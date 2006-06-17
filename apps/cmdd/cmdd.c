@@ -47,7 +47,7 @@ n(u16_t num, char *ptr)
   return ptr;
 }
 /*---------------------------------------------------------------------------*/
-static unsigned short
+/*static unsigned short
 ps_generate(void *state)
 {
   struct ek_proc *p = (struct ek_proc *)state;
@@ -61,7 +61,7 @@ ps_generate(void *state)
   *ptr++ = '\n';
 
   return ptr - (char *)uip_appdata;
-}
+}*/
 /*---------------------------------------------------------------------------*/
 static
 PT_THREAD(handle_connection(struct cmdd_state *s))
@@ -79,14 +79,14 @@ PT_THREAD(handle_connection(struct cmdd_state *s))
 	PSOCK_CLOSE_EXIT(&s->s);
 	memb_free(&conns, s);
 	tcp_markconn(uip_conn, NULL);
-      } else if(strncmp(s->inputbuf, "ps", 2) == 0) {
+	/*      } else if(strncmp(s->inputbuf, "ps", 2) == 0) {
 	PSOCK_GENERATOR_SEND(&s->s, ps_generate, ek_procs);
 	
 	for(s->i = 0; s->i < 40; s->i++) {
 	  if(ek_process(s->i) != NULL) {
 	    PSOCK_GENERATOR_SEND(&s->s, ps_generate, ek_process(s->i));
 	  }
-	}
+	  }*/
       } else if(strncmp(s->inputbuf, "send", 4) == 0) {
 	send_udp = 1;
 	PSOCK_WAIT_UNTIL(&s->s, send_udp == 0);
