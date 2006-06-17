@@ -43,7 +43,7 @@
  *
  * This file is part of the Mycal Modified uIP TCP/IP stack.
  *
- * $Id: ppp.c,v 1.1 2006/06/17 22:41:18 adamdunkels Exp $
+ * $Id: ppp.c,v 1.1 2006/06/17 22:48:09 adamdunkels Exp $
  *
  */
 

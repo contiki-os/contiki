@@ -1,13 +1,14 @@
-#ifndef __LCP_H__
-#define __LCP_H__
-/* www.mycal.com
-   ---------------------------------------------------------------------------
-   LCP.h - LCP header file
-   ---------------------------------------------------------------------------
-   Version                                                                  -
-   0.1 Original Version June 3, 2000
-   (c)2000 Mycal Labs, All Rights Reserved
-   ---------------------------------------------------------------------------
+#ifndef __PAP_H__
+#define __PAP_H__
+/*
+  www.mycal.com
+  ---------------------------------------------------------------------------
+  pap.h - pap header file 
+  ---------------------------------------------------------------------------
+  Version 
+  0.1 Original Version June 3, 2000
+  (c)2000 Mycal Labs, All Rights Reserved
+  ---------------------------------------------------------------------------
 */
 /*
  * Copyright (c) 2003, Mike Johnson, Mycal Labs, www.mycal.net
@@ -43,54 +44,40 @@
  *
  * This file is part of the Mycal Modified uIP TCP/IP stack.
  *
- * $Id: lcp.h,v 1.1 2006/06/17 22:41:18 adamdunkels Exp $
+ * $Id: pap.h,v 1.1 2006/06/17 22:48:09 adamdunkels Exp $
  *
  */
 
 #include "net/uip.h"
-#include "contiki-conf.h"
 
-/* LCP Option Types */
-#define LPC_VENDERX		0x0
-#define	LPC_MRU			0x1
-#define LPC_ACCM		0x2
-#define LPC_AUTH		0x3
-#define LPC_QUALITY		0x4
-#define LPC_MAGICNUMBER		0x5
-#define LPC_PFC			0x7
-#define LPC_ACFC		0x8
+/* PAP state machine flags */
+/* client only */
+#define PAP_TX_UP		0x01
+/* server only */
+#define PAP_RX_UP		0x02
 
-/* LCP Negotiated options flag equates */
-#define LCP_OPT_ACCM		0x1
-#define LCP_OPT_AUTH		0x2
-#define LCP_OPT_PFC		0x4
-#define LCP_OPT_ACFC		0x4
+#define PAP_RX_AUTH_FAIL	0x10
+#define PAP_TX_AUTH_FAIL	0x20
+#define PAP_RX_TIMEOUT		0x80
+#define PAP_TX_TIMEOUT		0x80
 
-/* LCP state machine flags */
-#define	LCP_TX_UP		0x1
-#define LCP_RX_UP		0x2
-
-#define LCP_RX_AUTH		0x10
-/* LCP request for auth */
-#define LCP_TERM_PEER		0x20
-/* LCP Terminated by peer */
-#define LCP_RX_TIMEOUT		0x40
-#define LCP_TX_TIMEOUT		0x80
-
-typedef struct _lcppkt
-{
+typedef struct _pappkt {
   u8_t code;
   u8_t id;
   u16_t len;
   u8_t data[0];	
-} LCPPKT;
+} PAPPKT;
 
-/* Exported Vars */
-extern	u8_t lcp_state;
+/* Export pap_state */
+extern u8_t pap_state;
 
-void	lcp_init(void);
-void	lcp_rx(u8_t *, u16_t);
-void	lcp_task(u8_t *buffer);
-void	lcp_disconnect(u8_t id);
+extern u8_t pap_username[];
+extern u8_t pap_password[];
 
-#endif /* __LCP_H__ */
+/* Function prototypes */
+void	pap_init(void);
+void	pap_rx(u8_t *, u16_t);
+void	pap_task(u8_t *buffer);	
+
+#endif /* __PAP_H__ */
+
