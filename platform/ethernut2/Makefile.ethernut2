@@ -1,0 +1,10 @@
+CONTIKI_TARGET_DIRS = . dev apps net loader
+CONTIKI_TARGET_MAIN = ethernut-main.o
+
+CONTIKI_SOURCEFILES += slip.c rs232.c serial.c ethernut-main.c
+
+
+CONTIKIAVR=$(CONTIKI)/cpu/avr
+CONTIKIBOARD=.
+MCU=atmega128
+include $(CONTIKIAVR)/Makefile.avr

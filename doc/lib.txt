@@ -1,0 +1,5 @@
+/**
+\defgroup lib Libraries
+@{
+*/
+/** @} */

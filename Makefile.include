@@ -1,0 +1,128 @@
+ifndef CONTIKI
+  $(error CONTIKI not defined! You must specify where CONTIKI resides!)
+endif
+
+OBJECTDIR = obj_$(TARGET)
+
+
+ifeq ($(TARGET),)
+  -include Makefile.target
+  ifeq ($(TARGET),)
+    $(warning TARGET not defined, using netsim target)
+    TARGET=netsim
+  else
+    $(warning using saved target '$(TARGET)')
+  endif
+endif
+
+usage:
+	@echo "make MAKETARGETS... [TARGET=(TARGET)] [savetarget]"
+
+savetarget:
+	-@rm -f Makefile.target
+	@echo >Makefile.target "TARGET = $(TARGET)"
+
+ifeq (${wildcard $(OBJECTDIR)},)
+DUMMY := ${shell mkdir $(OBJECTDIR)}
+endif
+
+SYSTEM  = process.c procinit.c service.c autostart.c
+THREADS = mt.c
+LIBS    = memb.c timer.c list.c etimer.c
+CFS     = cfs.c cfs-ram.c
+CTK     = ctk.c
+UIP     = uip.c uiplib.c resolv.c tcpip.c psock.c hc.c uip-split.c \
+          uip-fw.c uip-fw-service.c uipbuf.c uip_arp.c uiplib.c tcpdump.c \
+          uip-neighbor.c
+NET     = $(UIP) uaodv.c uaodv-rt.c
+
+CTKVNC  = $(CTK) ctk-vncserver.c libconio.c vnc-server.c vnc-out.c \
+          ctk-vncfont.c
+CTKTERM = $(CTK) libconio.c ctk-term.c ctk-term-in.c ctk-term-out.c \
+          ctk-termtelnet.c
+
+CONTIKIFILES = $(SYSTEM) $(THREADS) $(CFS) $(LIBS) $(NET) $(DHCP)
+
+CONTIKI_SOURCEFILES += $(CONTIKIFILES)
+
+# contiki.a: ${addprefix $(OBJECTDIR)/, $(CONTIKIFILES:.c=.o)}
+# 	@$(AR) rcf $@ $^
+
+# contikiapps.a: ${addprefix $(OBJECTDIR)/, $(APPSFILES:.c=.o)}
+# 	@$(AR) rcf $@ $^
+
+CONTIKIDIRS = ${addprefix $(CONTIKI)/core/,dev lib net sys \
+                 cfs ctk lib/ctk loader . }
+#APPDIRS += ${filter-out $(CONTIKI)/apps/CVS,${wildcard ${addprefix $(CONTIKI)/,apps/*}}}
+
+PROJECT_OBJECTFILES = ${addprefix $(OBJECTDIR)/,$(PROJECT_SOURCEFILES:.c=.o)}
+
+### Include application makefiles
+
+ifdef APPS
+  APPDIRS += $(addprefix $(CONTIKI)/apps/, $(APPS))
+  APPINCLUDES = $(foreach APP, $(APPS), $(CONTIKI)/apps/$(APP)/Makefile.$(APP))
+  -include $(APPINCLUDES)
+  CONTIKI_SOURCEFILES += $(APP_SOURCES) $(DSC_SOURCES)
+endif
+
+### Include target makefile (TODO Unsafe?)
+include $(CONTIKI)/platform/$(TARGET)/Makefile.$(TARGET)
+
+### Automatic dependency generation
+
+ifneq ($(MAKECMDGOALS),clean)
+-include $(addprefix $(OBJECTDIR)/,$(CONTIKI_SOURCEFILES:.c=.d) \
+				   $(PROJECT_SOURCEFILES:.c=.d))
+endif
+
+
+clean:
+	rm -f *~ *core core *.srec node-id.c \
+	*.lst *.map \
+        *.cprg *.bin *.data contiki*.a *.firmware core-labels.S *.ihex *.ini \
+        *.ce *.co
+	-rm -rf $(OBJECTDIR)
+
+%.ce: %.c
+	$(CC) $(CFLAGS) -DAUTOSTART_ENABLE -c $< -o $@
+	$(STRIP) --strip-unneeded -g -x $@
+
+$(OBJECTDIR)/%.o: %.c
+	$(CC) $(CFLAGS) -c $< -o $@
+
+%.o: %.c
+	$(CC) $(CFLAGS) -c $< -o $@
+
+%.co: %.c
+	$(CC) $(CFLAGS) -DAUTOSTART_ENABLE -c $< -o $@
+
+contiki-$(TARGET).a: ${addprefix $(OBJECTDIR)/, $(CONTIKI_SOURCEFILES:.c=.o)}
+	$(AR) rcf $@ $^
+
+
+ifndef CCDEP
+  CCDEP = $(CC)
+endif
+ifndef CDEPFLAGS
+  CDEPFLAGS = $(CFLAGS)
+endif
+
+$(OBJECTDIR)/%.d: %.c
+	@set -e; rm -f $@; \
+	$(CCDEP) -MM $(CDEPFLAGS) $< > $@.$$$$; \
+	sed 's,\($*\)\.o[ :]*,$(OBJECTDIR)/\1.o $@ : ,g' < $@.$$$$ > $@; \
+	rm -f $@.$$$$
+
+
+# The line below is needed so that GNU make does not remove the
+# generated file.
+.PRECIOUS: %.$(TARGET)
+
+%.$(TARGET):	%.co $(PROJECT_OBJECTFILES) contiki-$(TARGET).a
+	$(CC) $(LDFLAGS) $(CFLAGS) -o $@ $(filter-out %.a,$^) $(filter %.a,$^)
+
+# The target below looks weird, but I had to add the @ to avoid complaints
+# from GNU make about "*** No rule to make target `XXX'.  Stop."
+%: %.$(TARGET)
+	@

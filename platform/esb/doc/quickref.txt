@@ -1,0 +1,68 @@
+/**
+\defgroup quickref Function quick reference
+@{
+
+\section sensors Sensor functions
+
+Some sensors generate events when the sensors change. It is always
+possible to query the state of a sensor through a set of query functions.
+
+\subsection quickref-sensors-events Sensor events
+
+- \ref sensors_event_button_down - the button has been pressed
+- \ref sensors_event_button_up - the button has been depressed
+- \ref sensors_event_humidity - a change in humidity has been detected
+- \ref sensors_event_light - a change in light has been detected
+- \ref sensors_event_motion - motion has been detected
+- \ref sensors_event_sound - sound has been detected
+- \ref sensors_event_temperature - temperature has changed
+- \ref sensors_event_vibration - vibration has been detected
+
+\subsection quickref-sensors-query Sensor query functions
+
+- sensors_battery() - query the battery voltage level
+- sensors_button() - query the on-board button
+- sensors_mic() - query the microphone
+- sensors_pir() - query the passive IR sensor (motion detector)
+- sensors_radiosignal() - query the radio signal strength
+- sensors_temp() - query the temperature sensor
+- sensors_vib() - query the vibration sensor
+
+\section quickref-leds LED functions
+
+- leds_on() - turn LEDs on
+- leds_off() - turn LEDs off
+- leds_invert() - invert LEDs
+- leds_blink() - blink all LEDs
+
+\section quickref-beeper Beeper functions
+
+- beep() - click the beeper
+- beep_beep() - beep
+- beep_down() - pitchbend down beep
+- beep_quick() - a number of quick beeps
+- beep_spinup() - pitchbend up beep
+
+\section quickref-timers Timer functions
+
+Contiki supports two types of timers: event timers and simple
+timers. Event timers generates an event when the timer expires,
+whereas the simple timer has to be actively queried to check when it
+has expired.
+
+\subsection quickref-etimer Event timers
+
+- etimer_expired() - check if an event timer has expired
+- etimer_set() - set an event timer
+- etimer_reset() - set an expired event timer to the next interval
+- etimer_restart() - restart an event timer from the current point in time
+
+\subsection quickref-timer Simple timers
+
+- timer_expired() - check if a simple timer has expired
+- timer_set() - set a simple timer
+- timer_reset() - set a simple event timer to the next interval
+- timer_restart() - restart a simple timer from the current point in time
+
+
+*//** @{ */

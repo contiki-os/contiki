@@ -1,0 +1,72 @@
+/**
+
+\mainpage The Contiki Operating System
+
+\author Adam Dunkels <adam@sics.se>
+
+The Contiki operating system is a highly portable, minimalistic
+operating system for a variety of resource constrained systems with
+memory size on the order of a few kilobytes. Contiki provides a simple
+event-driven kernel with optional preemptive multithreading,
+interprocess communication using message passing signals, a dynamic
+process structure and support for loading and unloading programs,
+native TCP/IP support using the uIP TCP/IP stack, and a graphical
+subsystem with either direct graphic support for directly connected
+terminals or networked virtual display with VNC or Telnet.
+
+Contiki is written in the C programming language and is freely
+available as open source under a BSD-style license. More information
+about Contiki can be found at the Contiki home page:
+http://www.sics.se/~adam/contiki/
+
+The ESB (Embedded Sensor Board) is a prototype wireless sensor network
+device developed at Freie Universität Berlin. The ESB consists of a
+Texas Instruments MSP430 low-power microcontroller with 2k RAM and 60k
+flash ROM, a TR1001 radio transceiver, a 32k serial EEPROM, an RS232 port, a
+JTAG port, a beeper, and a number of sensors (passive IR, active IR
+sender/receiver, vibration/tilt, microphone, temperature).
+
+The Contiki/ESB port brings support for TCP/IP, loadable programs
+(over-the-air programming), event-based multitasking, and cooperative
+multi-threading (preemptive threading is implemented but not yet fully
+tested) to the ESB. The Contiki/ESB port contains drivers for most of
+the sensors. The drivers were mostly adapted from sources written by
+FU Berlin.
+
+\sa \ref esb "The Scatterweb/ESB board"
+
+\section contiki-esb-threads Processes, multi-threading and protothreads
+
+Contiki is based on an event-driven kernel but provides support for
+both multi-threading and a lightweight stackless thread-like construct
+called protothreads.
+
+\sa \ref process "Contiki processes"
+\sa \ref mt "Contiki multi-threading"
+\sa \ref pt "Protothreads"
+
+\section contiki-sensors Sensor interfaces
+
+\section contiki-esb-communication Communication
+
+Contiki includes the uIP TCP/IP stack (http://www.sics.se/~adam/uip/)
+that provides Contiki with TCP/IP networking support. uIP provides the
+protocols TCP, UDP, IP, and ARP.
+
+In Contiki, the TCP/IP stack typically is used for all communication.
+
+\sa \ref uip "The uIP TCP/IP stack documentation"
+\sa \ref tcpip "The Contiki/uIP interface"
+\sa \ref psock "Protosockets library"
+
+\section contiki-esb-lib Libraries
+
+Contiki provides a set of convenience libraries for memory management
+and linked list operations.
+
+\sa \ref etimer "Event timer library"
+\sa \ref timer "Simple timer library"
+\sa \ref memb "Memory block management"
+\sa \ref list "Linked list library"
+
+*/

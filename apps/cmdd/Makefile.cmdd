@@ -1,0 +1,2 @@
+APP_SOURCES += cmdd.c
+DSC_SOURCES +=

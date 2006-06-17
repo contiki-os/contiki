@@ -1,0 +1,2 @@
+APP_SOURCES += editor.c memb.c ctk-filedialog.c
+DSC_SOURCES += editor-dsc.c

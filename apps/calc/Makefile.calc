@@ -1,0 +1,2 @@
+APP_SOURCES += calc.c
+DSC_SOURCES += calc-dsc.c

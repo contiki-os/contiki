@@ -1,0 +1,52 @@
+ifndef CONTIKI
+  $(error CONTIKI not defined! You must specify where CONTIKI resides!)
+endif
+
+#contiki:	contiki-$(TARGET).a
+
+CONTIKI_TARGET_DIRS = . dev apps net
+
+SENSORS = sensors.c beep.c button-sensor.c pir-sensor.c vib-sensor.c \
+          irq.c eeprom.c \
+	  dummy-sensors.c leds.c leds-arch.c esb-sensors.c
+NETSIM = ether.c ethernode.c ethernode-drv.c tr1001.c tr1001-drv.c lpm.c \
+	 tapdev-drv.c tapdev-service.c tapdev.c rs232.c flash.c \
+	 node.c nodes.c sensor.c display.c random.c radio.c \
+	 dlloader.c main.c init.c contiki-main.c
+
+CONTIKI_TARGET_SOURCEFILES = $(NETSIM) $(SENSORS)
+
+CONTIKI_SOURCEFILES += $(CONTIKI_TARGET_SOURCEFILES)
+
+.SUFFIXES:
+
+### Define the CPU directory
+CONTIKI_CPU=$(CONTIKI)/cpu/x86
+
+### Compiler definitions
+CC       = gcc
+LD       = ld
+AS       = as
+OBJCOPY  = objcopy
+STRIP    = strip
+CFLAGSNO = -I. -I$(CONTIKI)/core -I$(CONTIKI_CPU) \
+           -I$(CONTIKI)/platform/$(TARGET) \
+           ${addprefix -I,$(APPDIRS)} \
+          -DWITH_UIP -DWITH_ASCII \
+          -Wall -g -I. -I/usr/local/include \
+	  `gtk-config --cflags`
+CFLAGS   += $(CFLAGSNO)
+LDFLAGS  = -Wl,-Map=contiki-$(TARGET).map,-export-dynamic `gtk-config --libs`
+
+### Setup directory search path for source files
+
+CONTIKI_TARGET_DIRS_CONCAT = ${addprefix $(CONTIKI)/platform/$(TARGET)/, \
+                               $(CONTIKI_TARGET_DIRS)}
+vpath %.c $(PROJECTDIRS) \
+	  $(CONTIKIDIRS) $(APPDIRS) $(CONTIKI_TARGET_DIRS_CONCAT) \
+	  $(CONTIKI_CPU)
+
+### Compilation rules
+
+%.so: $(OBJECTDIR)/%.o
+	$(LD) -shared -o $@ $^

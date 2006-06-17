@@ -1,0 +1,6 @@
+/**
+\defgroup platform Contiki platforms
+
+@{
+*/
+/** @} */

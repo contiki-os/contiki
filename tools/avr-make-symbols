@@ -1,0 +1,8 @@
+#!/bin/sh
+echo \#include '"symbols.h"'
+echo \#include '<avr/pgmspace.h>'
+avr-nm $* | perl -ne 'print ".global $2\n$2 = 0x$1\n" if(/([0-9a-f]+) [ABDRST] (.+)$/);' | grep -v ^_ | grep -v _reset_vector | grep = | perl -ne 'print "static const prog_char s_$1 [] = \"$1\";\n" if(/(\w+) = (\w+)/)' | sort
+
+echo "PROGMEM const struct symbols symbols[] = {"
+avr-nm $* | perl -ne 'print ".global $2\n$2 = 0x$1\n" if(/([0-9a-f]+) [ABDRST] (.+)$/);' | grep -v ^_ | grep -v _reset_vector | grep = | perl -ne 'print "{s_$1, $2},\n" if(/(\w+) = (\w+)/)' | sort
+echo "{(void *)0, 0} };"

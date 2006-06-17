@@ -1,0 +1,128 @@
+# $Id: Makefile.msp430,v 1.1 2006/06/17 22:41:21 adamdunkels Exp $
+
+### Check if we are running under Windows
+
+ifndef WINDIR
+  ifdef OS
+    ifneq (,$(findstring Windows,$(OS)))
+      WINDIR := Windows
+    endif
+  endif
+endif
+
+.SUFFIXES:
+
+### Define the CPU directory
+CONTIKI_CPU=$(CONTIKI)/cpu/msp430
+
+### Define the source files we have in the MSP430 port
+
+MSP430     = msp430.c eeprom.c flash.c clock.c leds.c leds-arch.c \
+             watchdog.c lpm.c cfs-eeprom.c
+UIPDRIVERS = me.c me_tabs.c slip.c crc16.c
+#UIPDRIVERS = me.c me_tabs.c crc16.c ppp/ahdlc.c ppp/ipcp.c ppp/lcp.c ppp/pap.c ppp/ppp.c ppp/ppp_process.c
+SYSAPPS    = codeprop-tmp.c
+APPDIRS += $(CONTIKI)/apps/codeprop
+#ELFLOADER  = loader-arch.c elfloader-tmp.c elfloader-msp430.c symtab.c
+ELFLOADER  = elfloader-tmp.c elfloader-msp430.c symtab.c
+TARGETLIBS = random.c serial.c
+
+CONTIKI_TARGET_SOURCEFILES += $(MSP430) \
+                              $(SYSAPPS) $(ELFLOADER) \
+                              $(TARGETLIBS) $(UIPDRIVERS)
+
+CONTIKI_SOURCEFILES        += $(CONTIKI_TARGET_SOURCEFILES)
+
+
+### Compiler definitions
+CC       = msp430-gcc
+LD       = msp430-ld
+AS       = msp430-as
+AR       = msp430-ar
+OBJCOPY  = msp430-objcopy
+STRIP    = msp430-strip
+BSL      = msp430-bsl
+CFLAGSNO = -I. -I$(CONTIKI)/core -I$(CONTIKI_CPU) \
+           -I$(CONTIKI)/platform/$(TARGET) \
+           ${addprefix -I,$(APPDIRS)} \
+           -DWITH_UIP -DWITH_ASCII \
+           -Wall -mmcu=$(MCU) -g
+CFLAGS  += $(CFLAGSNO) -Os
+LDFLAGS  = -mmcu=$(MCU) -Wl,-Map=contiki-$(TARGET).map
+
+PROJECT_OBJECTFILES += ${addprefix $(OBJECTDIR)/,$(CONTIKI_TARGET_MAIN:.c=.o)}
+
+### Setup directory search path for source files
+
+CONTIKI_TARGET_DIRS_CONCAT = ${addprefix $(CONTIKI)/platform/$(TARGET)/, \
+                               $(CONTIKI_TARGET_DIRS)}
+
+vpath %.c $(PROJECTDIRS) \
+	  $(CONTIKIDIRS) $(APPDIRS) $(CONTIKI_TARGET_DIRS_CONCAT) \
+	  $(CONTIKI_CPU)
+
+### Compilation rules
+
+
+%-stripped.o: %.c
+	$(CC) $(CFLAGS) -c $< -o $@
+	$(STRIP) --strip-unneeded -g -x $@
+
+%.cm: %.co
+	$(LD) -i -r --unresolved-symbols=ignore-in-object-files -mmsp430x149 -o $@ $^
+	$(STRIP) --strip-unneeded -g -x $@
+
+%-stripped.o: %.o
+	$(STRIP) --strip-unneeded -g -x -o $@ $<
+
+%.o: ${CONTIKI_TARGET}/loader/%.S
+	$(AS) -o $(notdir $(<:.S=.o)) $<
+
+%.firmware:	%.co $(PROJECT_OBJECTFILES) contiki-$(TARGET).a
+	$(CC) $(LDFLAGS) $(CFLAGS) -o $@ $(filter-out %.a,$^) $(filter %.a,$^)
+
+
+# %.firmware:	%.o contiki-esb-main.o contikiesb.a
+# 	$(CC) $(LDFLAGS) $(CFLAGS) -o $@ $(filter-out %.a,$^) $(filter %.a,$^)
+
+%.ihex: %.firmware
+	$(OBJCOPY) $^ -O ihex $@
+
+core-labels.o: core.firmware
+	${CONTIKI}/tools/msp430-make-labels core.firmware > core-labels.S
+	$(AS) -o $@ core-labels.S
+#	cp core-labels.o app/
+
+core-globals.o: core.firmware
+	${CONTIKI}/tools/msp430-make-globals core.firmware > core-globals.S
+	$(AS) -o $@ core-globals.S
+
+loader-init.o: ${CONTIKI_TARGET}/loader/loader-init.S
+	$(AS) -o $(notdir $(<:.S=.o)) $<
+# 	cp loader-init.o build-app/
+
+.PHONY: symbols.c
+symbols.c:
+	${CONTIKI}/tools/msp430-make-symbols core.firmware > symbols.c
+
+### System dependent Makefile
+
+ifndef WINDIR
+  # settings for unix
+  -include ${CONTIKI}/cpu/msp430/buildscripts/Makefile.unix
+else
+  # settings for windows
+  -include ${CONTIKI}/cpu/msp430/buildscripts/Makefile.win
+endif
+
+
+### Node id ###
+
+.PHONY:	node-id.c
+ifndef $(nodeid)
+  nodeid := 0
+endif
+node-id.c:
+	@-rm -f $@
+	@echo >$@ "const unsigned short node_id = $(nodeid);"
+	@echo ">>>> NODE ID SET TO $(nodeid)!"

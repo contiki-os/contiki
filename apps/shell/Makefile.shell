@@ -1,0 +1,2 @@
+APP_SOURCES += shell-gui.c shell.c ctk-textentry-cmdline.c
+DSC_SOURCES += shell-dsc.c

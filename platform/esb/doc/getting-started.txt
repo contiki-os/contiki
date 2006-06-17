@@ -1,0 +1,28 @@
+/**
+\addtogroup doc
+@{
+*/
+
+/**
+
+\defgroup getting-started Getting started with Contiki
+@{
+
+\section getting-started-intro Introduction
+
+What is Contiki?
+
+What is its relation to the ESB?
+
+How are programs written for it?
+
+\section getting-started-example An example program - blinker
+
+\subsection getting-started-compiling Compiling blinker
+
+\subsection getting-started-running Running blinker
+
+\subsection getting-started-simulation Running blinker in the simulator
+
+
+*/

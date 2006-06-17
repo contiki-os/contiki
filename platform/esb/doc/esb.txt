@@ -1,0 +1,28 @@
+/** \addtogroup platform
+ * @{ **/
+
+/**
+\defgroup esb The ESB Embedded Sensor Board
+
+The ESB (Embedded Sensor Board) is a prototype wireless sensor network
+device developed at Freie Universität Berlin.
+
+<img src="img/esb/esb.jpg" align="right">
+
+The ESB consists of a Texas Instruments MSP430 low-power
+microcontroller with 2k RAM and 60k flash ROM, a TR1001 radio
+transceiver, a 32k serial EEPROM, an RS232 port, a JTAG port, a
+beeper, and a number of sensors (passive IR, active IR
+sender/receiver, vibration/tilt, microphone, temperature).
+
+
+The Contiki/ESB port contains drivers for most of the sensors. The
+drivers were mostly adapted from sources from FU Berlin.
+
+@{
+
+*/
+
+
+/** @} */
+/** @} */

@@ -1,0 +1,2 @@
+APP_SOURCES += process-list.c
+DSC_SOURCES += process-list-dsc.c

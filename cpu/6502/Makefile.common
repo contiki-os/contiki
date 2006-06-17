@@ -1,0 +1,27 @@
+UIP=uip.o uip_arch.o uiplib.o resolv.o tcpip.o
+
+DHCP=dhcp.o dhcpc.o
+
+DIRECTORY=directory.o loader-arch-dsc.o
+
+EDITOR=editor.o memb.o ctk-filedialog.o
+
+EMAIL=email.o smtp-socket.o smtp-strings.o ctk-textentry-multiline.o psock.o uipbuf.o memb.o
+
+FTP=ftp.o ftpc.o memb.o
+
+IRC=irc.o ircc.o psock.o uipbuf.o ircc-strings.o ctk-textentry-cmdline.o
+
+SHELL_=shell-gui.o shell.o ctk-textentry-cmdline.o
+
+TELNET=simpletelnet.o telnet.o
+
+TELNETD=telnetd.o shell.o memb.o telnetd-gui.o
+
+VNCVIEWER=vnc.o vnc-viewer.o vnc-draw.o
+
+WEBSERVER=webserver.o httpd.o http-strings.o psock.o uipbuf.o memb.o httpd-fs.o
+
+WGET=wget.o webclient.o http-strings.o http-user-agent-string.o 
+
+WWW=www.o webclient.o http-strings.o http-user-agent-string.o htmlparser.o html-strings.o 

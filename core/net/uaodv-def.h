@@ -1,0 +1,127 @@
+/*
+ * Copyright (c) 2005, Swedish Institute of Computer Science.
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions
+ * are met:
+ * 1. Redistributions of source code must retain the above copyright
+ *    notice, this list of conditions and the following disclaimer.
+ * 2. Redistributions in binary form must reproduce the above copyright
+ *    notice, this list of conditions and the following disclaimer in the
+ *    documentation and/or other materials provided with the distribution.
+ * 3. Neither the name of the Institute nor the names of its contributors
+ *    may be used to endorse or promote products derived from this software
+ *    without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE INSTITUTE AND CONTRIBUTORS ``AS IS'' AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED.  IN NO EVENT SHALL THE INSTITUTE OR CONTRIBUTORS BE LIABLE
+ * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+ * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+ * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+ * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+ * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+ * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+ * SUCH DAMAGE.
+ *
+ * This file is part of the Contiki operating system.
+ *
+ * $Id: uaodv-def.h,v 1.1 2006/06/17 22:41:19 adamdunkels Exp $
+ */
+
+/**
+ * \file
+ *         Definitions for the micro implementation of the AODV ad hoc routing protocol
+ * \author
+ *         Adam Dunkels <adam@sics.se>
+ */
+
+#ifndef __UAODV_DEF_H__
+#define __UAODV_DEF_H__
+
+#include "net/uip.h"
+
+#define NUM_PRECURSORS 4
+
+
+#define UAODV_UDPPORT 654
+
+/* AODV routing table entry */
+struct uaodv_rtentry {
+  uip_ipaddr_t dest_addr;
+  uip_ipaddr_t next_hop;
+  uip_ipaddr_t precursors[NUM_PRECURSORS];
+  u32_t dest_seqno;  
+  u16_t lifetime;
+  u8_t dest_seqno_flag;
+  u8_t route_flags;
+  u8_t hop_count;
+};
+
+/* Generic AODV message */
+struct uaodv_msg {
+  u8_t type;
+};
+
+/* AODV RREQ message */
+#define UAODV_RREQ_TYPE     1
+#define UAODV_RREQ_JOIN     (1 << 7)
+#define UAODV_RREQ_REPAIR   (1 << 6)
+#define UAODV_RREQ_GRATIOUS (1 << 5)
+#define UAODV_RREQ_DESTONLY (1 << 4)
+#define UAODV_RREQ_UNKSEQNO (1 << 3)
+
+struct uaodv_msg_rreq {
+  u8_t type;
+  u8_t flags;
+  u8_t reserved;
+  u8_t hop_count;
+  u32_t rreq_id;
+  uip_ipaddr_t dest_addr;
+  u32_t dest_seqno;
+  uip_ipaddr_t src_addr;
+  u32_t src_seqno;
+};
+
+/* AODV RREP message */
+#define UAODV_RREP_TYPE     2
+#define UAODV_RREP_REPAIR  (1 << 7)
+#define UAODV_RREP_ACK     (1 << 6)
+
+struct uaodv_msg_rrep {
+  u8_t type;
+  u8_t flags;
+  u8_t reserved;
+  u8_t hop_count;
+  uip_ipaddr_t dest_addr;
+  u32_t dest_seqno;
+  uip_ipaddr_t src_addr;
+  u32_t lifetime;
+};
+
+/* AODV RERR message */
+#define UAODV_RERR_TYPE     3
+#define UAODV_RERR_NODELETE (1 << 7)
+
+struct uaodv_msg_rerr {
+  u8_t type;
+  u8_t flags;
+  u8_t reserved;
+  u8_t dest_count;
+  struct {
+    uip_ipaddr_t addr;
+    u32_t seqno;
+  } unreach[1];
+};
+
+/* AODV RREP-ACK message */
+#define UAODV_RREP_ACK_TYPE     4
+
+struct uaodv_msg_rrep_ack {
+  u8_t type;
+  u8_t reserved;
+};
+
+#endif /* __UAODV_DEF_H__ */

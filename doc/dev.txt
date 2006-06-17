@@ -1,0 +1,5 @@
+/**
+\defgroup dev Device driver APIs
+@{
+*/
+/** @} */

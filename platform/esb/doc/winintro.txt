@@ -1,0 +1,164 @@
+/**
+\addtogroup esb
+@{
+*/
+
+/**
+
+\defgroup winintro Introduction to Contiki development under Microsoft Windows
+\author Joakim Eriksson, Niclas Finne
+@{
+
+\section winintro-intro Introduction
+
+This is a brief introduction to Contik/ESB programming under Windows
+using cygwin and some other free software tools.
+
+\section winintro-installing Installing the development environment
+
+This sections describes how to install all the necessary software
+to get started with ESB programming.
+
+\subsection winintro-installing-cygwin Cygwin - a Linux-like environment for Windows
+
+The first "need to have" software is the cygwin environment that can
+be found at http://www.cygwin.com. Click on the icon "Install
+Cygwin Now" to the right to get the installation started.
+
+Choose "Install from Internet" and then specify where you want to
+install cygwin (recommended installation path: \c
+C:$\backslash$cygwin). Continue with the installation until you are
+asked to select packages. Most packages can be left as "Default" but
+there is one package that are not installed by default. Install the
+following package by clicking at "Default" until it changes to
+"Install":
+
+- Devel - contains things for developers (make, etc).
+
+<img src="img/esb/cygwin6b.jpg" align="center">
+
+When cygwin is installed there should be a cygwin icon that starts
+up a cygwin bash when clicked on. Whenever it is time to compile and
+send programs to the ESB nodes it will be done from a cygwin shell.
+
+\subsection winintro-installing-editor C programming editor
+
+If you do not already have a nice programming editor it is a good
+idea to download and install one. The Crimson editor is a nice
+windows based editor that is both easy to get started with and
+fairly powerful.
+
+Crimson Editor can be found at:
+http://www.crimsoneditor.com/
+
+The editor is useful both when editing C programs and when
+modifying scripts and configuration files.
+
+\subsection winintro-installing-compiler MSP430 Compiler and tools}
+
+The MSP430 compiler (a version of gcc) is needed to compile the
+programs to the MSP430 microprocessor that is used on the ESB
+sensor nodes. We have made a webpage which describe how to get the compilers
+and other tools for programming the ESB nodes, see:
+http://www.sics.se/sensornets/esblab/
+
+Download and install the GCC toolchain for MSP430
+(recommended installation path: C:$\backslash$MSP430$\backslash$):
+\c mspgcc-20041112.exe.
+
+You will also need some tools for sending the compiled programs
+over to the ESB nodes. Install the
+IAR Embedded Workbench (Kickstart Version) package
+(recommended installation path: C:$\backslash$MSP430$\backslash$IARSystems):
+\c fet_r304.exe.
+
+When the above software is installed you also need to set-up the
+PATH so that all of the necessary tools can be reached. In cygwin
+this is done by the following line (given that you have installed
+at recommended locations):
+
+<tt>
+export PATH=\$PATH:/cygdrive/c/MSP430/IARSystems/ew23:\newline
+/cygdrive/c/MSP430/IARSystems/ew23/430/bin:/cygdrive/c/MSP430/mspgcc/bin
+</tt>
+
+This line can also be added to the .profile startup file in your cygwin
+home directory \newline
+(<tt>C:$\backslash$cygwin$\backslash$home$\backslash$<YOUR
+USERNAME>$\backslash$.profile\end</tt>).
+
+If your home directory is located elsewhere you can find it by
+starting cygwin and running \c cd followed by \c pwd.
+
+\subsection winintro-installing-contiki The Contiki operating system, including examples and labs
+
+When programming the ESB sensor nodes it is very useful to have an
+operating system that takes care of some of the low-level tasks and
+also gives you as a programmer APIs for things like events, hardware
+and networking.  We will use the Contiki operating system developed by
+Adam Dunkels, SICS, which is very well suited when programming small
+embedded systems.
+
+Download Contiki for ESB nodes from the same page as before (Contiki
+ESB).
+
+Unzip the Contiki OS at (for example) C:$\backslash$
+and you will get the following directories:
+
+- esblab/contiki - the contiki operating system
+- esblab/contiki-esb - the contiki operating system drivers, etc for the ESB
+- esblab/contiki-esb/labs - the example and lab files
+
+\section winintro-testing Testing the tools
+
+Now everything necessary to start developing Contiki-based sensor net
+applications should be installed. Start cygwin and change to the
+directory \c labs/intro. Then call <tt> make esbintro</tt>.
+
+If you get an error about multiple cygwin dlls when compiling, you
+need to delete \c cygwin1.dll from the MSP430 GCC toolchain (\c
+C:$\backslash$MSP430$\backslash$bin$\backslash$cygwin1.dll).
+
+Connect a node and turn it on. Upload the test application by calling
+\c make esbintro.u.
+
+\subsection winintro-testing-development Development tools
+
+- <tt>make <SPEC></tt> will compile and make a executable file ready for
+sending to the ESB nodes. Depending on the SPEC it might even startup
+the application that sends the executable to the node. During this
+course you would typically write things like <tt>"make
+  esbintro.u"</tt> to get the file esbintro.c compiled, linked and
+sent out to the ESB node
+
+- cw23 starts up the CSPY program that sends programs to the
+ESB nodes and allow debugging (usually started by the \c make
+
+
+\subsection winintro-testing-shell Some basic shell commands
+
+- <tt> cd <DIR></tt> change to a specified directory (same as in DOS)
+- <tt> pwd <DIR></tt> shows your current directory
+- <tt> ls</tt> list the directory
+- <tt> mkdir <DIR></tt> creates a new directory
+- <tt> cp <SRC> <DEST></tt> copies a file
+
+\subsection winintro-testing-excercises
+
+ * compile and start the \c esbintro application (remember to change
+   directory to contiki-esb before you run \c make)
+ * modify the C code and make the yellow led be on when the red is
+ off (and vice versa). The code is in the \c contiki-esb/labs/intro
+folder. Hint: Add another line controlling the yellow led in the section:
+\code
+  if (timer_expired(&timer)) {
+    timer_reset(&timer);
+    leds_red(on ? LEDS_ON : LEDS_OFF);
+    on = !on;
+  }
+\endcode
+
+*/
+/** @} */
+/** @} */
+

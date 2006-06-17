@@ -1,0 +1,2 @@
+APP_SOURCES += simpletelnet.c telnet.c
+DSC_SOURCES += telnet-dsc.c

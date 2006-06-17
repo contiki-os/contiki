@@ -1,0 +1,2 @@
+APP_SOURCES += about.c
+DSC_SOURCES += about-dsc.c

@@ -1,0 +1,33 @@
+CONTIKI_SOURCEFILES += mtarch.c
+
+### Compiler definitions
+CC       = gcc
+LD       = ld
+AS       = as
+OBJCOPY  = objcopy
+STRIP    = strip
+CFLAGSNO = -I. -I$(CONTIKI) -I$(CONTIKI)/core -I$(CONTIKI_CPU) \
+           -I$(CONTIKI)/platform/$(TARGET) \
+           ${addprefix -I,$(APPDIRS)} $(APP_INCLUDES) \
+          -DWITH_UIP -DWITH_ASCII \
+          -Wall -g -I. -I/usr/local/include
+CFLAGS  += $(CFLAGSNO)
+LDFLAGS  = -Wl,-Map=contiki.map,-export-dynamic
+
+### Compilation rules
+
+# $(OBJECTDIR)/%.o: %.c
+# 	$(CC) $(CFLAGS) -c $< -o $@
+
+%.so: $(OBJECTDIR)/%.o
+	$(LD) -shared -o $@ $^
+
+# %.ce: %.co
+# 	$(LD) -shared -o $@ $^
+
+# %.co: %.c
+# 	$(CC) $(CFLAGS) -DPROCESS_LOADABLE -c $< -o $@
+# 	$(STRIP) --strip-unneeded -g -x $@
+
+# %: %.co $(CONTIKI_TARGET_MAIN) $(PROJECT_OBJECTFILES) contiki-$(TARGET).a
+# 	$(CC) $(CFLAGS) -o $@.$(TARGET) $^ $(LDFLAGS)

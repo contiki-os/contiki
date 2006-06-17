@@ -1,0 +1,5 @@
+/**
+\defgroup net Network functions
+@{
+*/
+/** @} */
