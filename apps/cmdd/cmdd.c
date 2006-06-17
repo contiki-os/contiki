@@ -1,6 +1,6 @@
 #include "contiki.h"
-#include "psock.h"
-#include "memb.h"
+#include "contiki-lib.h"
+#include "contiki-net.h"
 
 #include <string.h>
 
