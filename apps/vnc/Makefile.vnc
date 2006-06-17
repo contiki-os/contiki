@@ -1,0 +1,2 @@
+APP_SOURCES += vnc.c vnc-viewer.c vnc-draw.c
+DSC_SOURCES += vnc-dsc.c
