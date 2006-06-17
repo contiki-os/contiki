@@ -151,3 +151,10 @@ dhcpc_configured(const struct dhcpc_state *s)
   process_post(PROCESS_CURRENT(), SHOWCONFIG, NULL);
 }
 /*---------------------------------------------------------------------------*/
+void
+dhcpc_unconfigured(const struct dhcpc_state *s)
+{
+  set_statustext("Unconfigured.");
+  process_post(PROCESS_CURRENT(), SHOWCONFIG, NULL);
+}
+/*---------------------------------------------------------------------------*/
