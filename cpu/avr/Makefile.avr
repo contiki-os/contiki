@@ -1,0 +1,103 @@
+# $Id: Makefile.avr,v 1.1 2006/06/18 07:44:59 adamdunkels Exp $
+
+### Check if we are running under Windows
+
+ifndef WINDIR
+  ifdef OS
+    ifneq (,$(findstring Windows,$(OS)))
+      WINDIR := Windows
+    endif
+  endif
+endif
+
+.SUFFIXES:
+
+### Define the CPU directory
+CONTIKI_CPU=$(CONTIKI)/cpu/avr
+
+### Define the source files we have in the AVR port
+
+SENSORS    = #sensors.c button.c pir.c irq.c vib.c sound.c radio.c ctsrts.c \
+             #lm71.c
+UIPDRIVERS = #me.c me_tabs.c slip.c tr1001-drv.c tr1001.c crc16.c
+SYSAPPS    = #codeprop.c
+ELFLOADER  = #loader-arch.c elfloader-tmp.c elfloader-avr.c symtab.c
+TARGETLIBS = clock.c flash.c
+
+CONTIKI_TARGET_SOURCEFILES += $(SENSORS) \
+                              $(SYSAPPS) $(ELFLOADER) \
+                              $(TARGETLIBS) $(UIPDRIVERS)
+
+CONTIKI_SOURCEFILES        += $(CONTIKI_TARGET_SOURCEFILES)
+
+
+### Compiler definitions
+CC       = avr-gcc
+LD       = avr-ld
+AS       = avr-as
+AR       = avr-ar
+OBJCOPY  = avr-objcopy
+STRIP    = avr-strip
+CFLAGSNO = -I. -I$(CONTIKI)/core -I$(CONTIKI_CPU) \
+           -I$(CONTIKI)/platform/$(TARGET) \
+           ${addprefix -I,$(APPDIRS)} \
+           -DWITH_UIP -DWITH_ASCII \
+           -Wall -mmcu=$(MCU) -g
+CFLAGS   = $(CFLAGSNO) -Os
+LDFLAGS  = -mmcu=$(MCU) -Wl,-Map=contiki-$(TARGET).map
+
+### Setup directory search path for source files
+
+CONTIKI_TARGET_DIRS_CONCAT = ${addprefix $(CONTIKI)/platform/$(TARGET)/, \
+                               $(CONTIKI_TARGET_DIRS)}
+
+vpath %.c $(PROJECTDIRS) $(CONTIKI)/cpu/avr/dev \
+	  $(CONTIKIDIRS) $(APPDIRS) $(CONTIKI_TARGET_DIRS_CONCAT) \
+	  $(CONTIKI_CPU)
+
+### Compilation rules
+
+$(OBJECTDIR)/%.o: %.c
+	$(CC) $(CFLAGS) -c $< -o $@
+
+# %.firmware:	%.co $(PROJECT_OBJECTFILES) contiki-$(TARGET).a
+# 	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $(filter-out %.a,$^) $(filter %.a,$^) $(LDLIBS)
+
+%.o: %.c
+	$(CC) $(CFLAGS) -c $< -o $@
+
+%.firmware:	%.co $(PROJECT_OBJECTFILES) contiki-$(TARGET).a
+	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $(filter-out %.a,$^) $(filter %.a,$^) $(LDLIBS)
+%.ihex: %.firmware
+	$(OBJCOPY) $^ -O ihex $@
+
+%-stripped.o: %.c
+	$(CC) $(CFLAGS) -c $< -o $@
+	$(STRIP) --strip-unneeded -g -x $@
+
+%.ce: %.c
+	$(CC) $(CFLAGS) -DPROCESS_LOADABLE -c $< -o $@
+	$(STRIP) --strip-unneeded -g -x $@
+
+%.ce: #%.co
+	$(LD) -i -r --unresolved-symbols=ignore-in-object-files -mavrx149 -o $@ $^
+	$(STRIP) --strip-unneeded -g -x $@
+
+%.co: %.c
+	$(CC) $(CFLAGS) -DPROCESS_LOADABLE -c $< -o $@
+
+%-stripped.o: %.o
+	$(STRIP) --strip-unneeded -g -x -o $@ $<
+
+%.o: ${CONTIKI_TARGET}/loader/%.S
+	$(AS) -o $(notdir $(<:.S=.o)) $<
+
+%:	%.o $(CONTIKI_TARGET_MAIN) $(PROJECT_OBJECTFILES) contiki-$(TARGET).a
+	$(CC) $(LDFLAGS) $(CFLAGS) -o $@.$(TARGET) $(filter-out %.a,$^) $(filter %.a,$^)
+
+%.srec: %.$(TARGET)
+	$(OBJCOPY) -O srec $< $@
+
+.PHONY: symbols.c
+symbols.c:
+	${CONTIKI}/tools/avr-make-symbols core.firmware > symbols.c
