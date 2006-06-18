@@ -73,7 +73,7 @@ typedef unsigned short uip_stats_t;
 #define UIP_CONF_MAX_CONNECTIONS 4
 #define UIP_CONF_MAX_LISTENPORTS 8
 #define UIP_CONF_BUFFER_SIZE     140
-#define UIP_CONF_RECEIVE_WINDOW  140
+/*#define UIP_CONF_RECEIVE_WINDOW  140*/
 
 #define UIP_CONF_LLH_LEN         6
 
