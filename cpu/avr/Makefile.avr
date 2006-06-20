@@ -1,4 +1,4 @@
-# $Id: Makefile.avr,v 1.1 2006/06/18 07:44:59 adamdunkels Exp $
+# $Id: Makefile.avr,v 1.2 2006/06/20 21:23:09 adamdunkels Exp $
 
 ### Check if we are running under Windows
 
@@ -84,7 +84,7 @@ $(OBJECTDIR)/%.o: %.c
 	$(STRIP) --strip-unneeded -g -x $@
 
 %.co: %.c
-	$(CC) $(CFLAGS) -DPROCESS_LOADABLE -c $< -o $@
+	$(CC) $(CFLAGS) -DAUTOSTART_ENABLE -c $< -o $@
 
 %-stripped.o: %.o
 	$(STRIP) --strip-unneeded -g -x -o $@ $<
@@ -92,8 +92,8 @@ $(OBJECTDIR)/%.o: %.c
 %.o: ${CONTIKI_TARGET}/loader/%.S
 	$(AS) -o $(notdir $(<:.S=.o)) $<
 
-%:	%.o $(CONTIKI_TARGET_MAIN) $(PROJECT_OBJECTFILES) contiki-$(TARGET).a
-	$(CC) $(LDFLAGS) $(CFLAGS) -o $@.$(TARGET) $(filter-out %.a,$^) $(filter %.a,$^)
+# %:	%.o $(CONTIKI_TARGET_MAIN) $(PROJECT_OBJECTFILES) contiki-$(TARGET).a
+# 	$(CC) $(LDFLAGS) $(CFLAGS) -o $@.$(TARGET) $(filter-out %.a,$^) $(filter %.a,$^)
 
 %.srec: %.$(TARGET)
 	$(OBJCOPY) -O srec $< $@

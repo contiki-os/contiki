@@ -29,24 +29,21 @@
  *
  * This file is part of the Contiki OS
  *
- * $Id: ethernut-main.c,v 1.1 2006/06/17 22:41:28 adamdunkels Exp $
+ * $Id: ethernut-main.c,v 1.2 2006/06/20 21:23:10 adamdunkels Exp $
  *
  */
 
 #include "contiki.h"
 #include "contiki-net.h"
-#include "webserver-nogui.h"
-#include "telnetd.h"
 
+#include "dev/rs232.h"
 #include "dev/rtl8019-drv.h"
 
-#include <avr/signal.h>
-#include <avr/io.h>
 #include <avr/interrupt.h>
+#include <avr/io.h>
 #include <avr/pgmspace.h>
 
-PROCINIT(&etimer_process, &tcpip_process, &rtl8019_drv_process,
-	 &telnetd_process);
+PROCINIT(&etimer_process, &tcpip_process, &rtl8019_drv_process);
 
 static const struct uip_eth_addr ethaddr = {{0x00,0x06,0x98,0x01,0x02,0x29}};
 
@@ -85,6 +82,8 @@ main(void)
   
   procinit_init();
   
+  autostart_start((struct process **) autostart_processes);
+
   rs232_print("Initialized\n");
   
   while(1) {
@@ -94,8 +93,9 @@ main(void)
   return 0;
 }
 
-void
+int
 putchar(int c)
 {
   rs232_send(c);
+  return c;
 }

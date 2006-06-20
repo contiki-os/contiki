@@ -1,4 +1,4 @@
-# $Id: Makefile,v 1.1 2006/06/18 05:54:28 adamdunkels Exp $
+# $Id: Makefile,v 1.2 2006/06/20 21:23:10 adamdunkels Exp $
 
 all: core
 upload: core core.u
@@ -11,6 +11,7 @@ core:
 CONTIKI=../..
 TARGET=esb
 
+blinker.cm: blinker.co blinker2.co
 
 ifdef ENABLE_BACNET
 APPS += bacnet

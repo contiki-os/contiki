@@ -29,7 +29,7 @@
  *
  * This file is part of the Contiki OS
  *
- * $Id: ethernut-main.c,v 1.1 2006/06/17 22:41:28 adamdunkels Exp $
+ * $Id: ethernut-main.c,v 1.2 2006/06/20 21:23:10 adamdunkels Exp $
  *
  */
 
@@ -38,7 +38,6 @@
 #include "dev/serial.h"
 #include "dev/slip.h"
 #include "dev/rs232.h"
-#include "telnetd.h"
 
 #include <avr/interrupt.h>
 /*static void setup_xram(void) __attribute__ ((naked)) \
