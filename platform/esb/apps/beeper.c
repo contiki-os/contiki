@@ -28,11 +28,13 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: beeper.c,v 1.1 2006/06/18 07:48:48 adamdunkels Exp $
+ * @(#)$Id: beeper.c,v 1.2 2006/06/21 12:40:14 nifi Exp $
  */
 #include "contiki-esb.h"
 
 PROCESS(beeper_process, "Beeper");
+
+AUTOSTART_PROCESSES(&beeper_process);
 
 static struct etimer etimer;
 
@@ -72,7 +74,7 @@ PROCESS_THREAD(beeper_process, ev, data)
     
     PROCESS_WAIT_EVENT();
     
-    if(ev == codeprop_event_quit) {
+    if(ev == PROCESS_EVENT_EXIT) {
       break;
     } else if(ev == sensors_event &&
 	      data == &button_sensor) {
