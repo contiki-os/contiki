@@ -1,4 +1,4 @@
-# $Id: Makefile.msp430,v 1.1 2006/06/17 22:41:21 adamdunkels Exp $
+# $Id: Makefile.msp430,v 1.2 2006/06/22 14:24:49 nifi Exp $
 
 ### Check if we are running under Windows
 
@@ -48,7 +48,7 @@ CFLAGSNO = -I. -I$(CONTIKI)/core -I$(CONTIKI_CPU) \
            -DWITH_UIP -DWITH_ASCII \
            -Wall -mmcu=$(MCU) -g
 CFLAGS  += $(CFLAGSNO) -Os
-LDFLAGS  = -mmcu=$(MCU) -Wl,-Map=contiki-$(TARGET).map
+LDFLAGS += -mmcu=$(MCU) -Wl,-Map=contiki-$(TARGET).map
 
 PROJECT_OBJECTFILES += ${addprefix $(OBJECTDIR)/,$(CONTIKI_TARGET_MAIN:.c=.o)}
 
