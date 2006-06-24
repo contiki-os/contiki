@@ -1,0 +1,49 @@
+ifndef CONTIKI
+  $(error CONTIKI not defined! You must specify where CONTIKI resides!)
+endif
+
+APPS+=process-list webserver program-handler editor irc calc webbrowser email \
+      shell netconf dhcp ftp
+
+#contiki:	contiki-$(TARGET).a
+
+CONTIKI_TARGET_DIRS = . ctk net
+CONTIKI_TARGET_MAIN = ${addprefix $(OBJECTDIR)/,contiki-main.o}
+
+CTKGTK  = $(CTK) ctk-gtksim.c ctk-draw.c ctk-gtksim-service.c libconio.c \
+          ctk-gtksim-draw.c
+
+CONTIKI_TARGET_SOURCEFILES = tapdev-service.c tapdev.c contiki-main.c \
+                             dlloader.c clock.c $(CTK) $(CTKGTK) cfs-posix.c
+
+CONTIKI_SOURCEFILES += $(CONTIKI_TARGET_SOURCEFILES)
+
+.SUFFIXES:
+
+### Define the CPU directory
+CONTIKI_CPU=$(CONTIKI)/cpu/x86
+
+### Compiler definitions
+CC       = gcc
+LD       = ld
+AS       = as
+OBJCOPY  = objcopy
+STRIP    = strip
+CFLAGSNO = -I. -I$(CONTIKI)/core -I$(CONTIKI_CPU) \
+           -I$(CONTIKI)/platform/$(TARGET) \
+           -I$(CONTIKI)/platform/$(TARGET)/ctk \
+           -I$(CONTIKI)/platform/$(TARGET)/net \
+           ${addprefix -I,$(APPDIRS)} $(APP_INCLUDES) \
+          -DWITH_UIP -DWITH_ASCII \
+          -Wall -g -I. -I/usr/local/include \
+	  -DCTK_GTKSIM_SERVICE_PNGDIR=\"$(CONTIKI)/platform/gtk\"
+CFLAGS   = $(CFLAGSNO)	`pkg-config --cflags gtk+-2.0`
+LDFLAGS  = -Wl,-Map=contiki.map,-export-dynamic `pkg-config --libs gtk+-2.0`
+
+### Setup directory search path for source files
+
+CONTIKI_TARGET_DIRS_CONCAT = ${addprefix $(CONTIKI)/platform/$(TARGET)/, \
+                               $(CONTIKI_TARGET_DIRS)}
+vpath %.c $(PROJECTDIRS) \
+	  $(CONTIKIDIRS) $(APPDIRS) $(CONTIKI_TARGET_DIRS_CONCAT) \
+	  $(CONTIKI_CPU) $(APP_DIRS)
