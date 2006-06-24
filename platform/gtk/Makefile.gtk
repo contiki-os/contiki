@@ -5,8 +5,6 @@ endif
 APPS+=process-list webserver program-handler editor irc calc webbrowser email \
       shell netconf dhcp ftp
 
-#contiki:	contiki-$(TARGET).a
-
 CONTIKI_TARGET_DIRS = . ctk net
 CONTIKI_TARGET_MAIN = ${addprefix $(OBJECTDIR)/,contiki-main.o}
 

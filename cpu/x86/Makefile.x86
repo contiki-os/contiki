@@ -16,18 +16,5 @@ LDFLAGS  = -Wl,-Map=contiki.map,-export-dynamic
 
 ### Compilation rules
 
-# $(OBJECTDIR)/%.o: %.c
-# 	$(CC) $(CFLAGS) -c $< -o $@
-
 %.so: $(OBJECTDIR)/%.o
 	$(LD) -shared -o $@ $^
-
-# %.ce: %.co
-# 	$(LD) -shared -o $@ $^
-
-# %.co: %.c
-# 	$(CC) $(CFLAGS) -DPROCESS_LOADABLE -c $< -o $@
-# 	$(STRIP) --strip-unneeded -g -x $@
-
-# %: %.co $(CONTIKI_TARGET_MAIN) $(PROJECT_OBJECTFILES) contiki-$(TARGET).a
-# 	$(CC) $(CFLAGS) -o $@.$(TARGET) $^ $(LDFLAGS)

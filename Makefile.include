@@ -45,15 +45,8 @@ CONTIKIFILES = $(SYSTEM) $(THREADS) $(CFS) $(LIBS) $(NET) $(DHCP)
 
 CONTIKI_SOURCEFILES += $(CONTIKIFILES)
 
-# contiki.a: ${addprefix $(OBJECTDIR)/, $(CONTIKIFILES:.c=.o)}
-# 	@$(AR) rcf $@ $^
-
-# contikiapps.a: ${addprefix $(OBJECTDIR)/, $(APPSFILES:.c=.o)}
-# 	@$(AR) rcf $@ $^
-
 CONTIKIDIRS = ${addprefix $(CONTIKI)/core/,dev lib net sys \
                  cfs ctk lib/ctk loader . }
-#APPDIRS += ${filter-out $(CONTIKI)/apps/CVS,${wildcard ${addprefix $(CONTIKI)/,apps/*}}}
 
 PROJECT_OBJECTFILES = ${addprefix $(OBJECTDIR)/,$(PROJECT_SOURCEFILES:.c=.o)}
 
