@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: dhcpc.c,v 1.1 2006/06/17 22:41:18 adamdunkels Exp $
+ * @(#)$Id: dhcpc.c,v 1.2 2006/06/24 17:59:28 gpz Exp $
  */
 
 #include <stdio.h>
@@ -251,7 +251,7 @@ msg_for_me(void)
 {
   struct dhcp_msg *m = (struct dhcp_msg *)uip_appdata;
   u8_t *optptr = &m->options[4];
-  u8_t *end = uip_appdata + uip_datalen();
+  u8_t *end = (u8_t*)uip_appdata + uip_datalen();
   
   if(m->op == DHCP_REPLY &&
      memcmp(m->xid, &xid, sizeof(xid)) == 0 &&
