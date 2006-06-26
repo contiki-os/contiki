@@ -28,7 +28,7 @@ endif
 
 SYSTEM  = process.c procinit.c service.c autostart.c
 THREADS = mt.c
-LIBS    = memb.c timer.c list.c etimer.c crtk.c
+LIBS    = memb.c timer.c list.c etimer.c
 CFS     = cfs.c cfs-ram.c
 CTK     = ctk.c
 UIP     = uip.c uiplib.c resolv.c tcpip.c psock.c hc.c uip-split.c \
@@ -77,22 +77,35 @@ clean:
         *.ce *.co
 	-rm -rf $(OBJECTDIR)
 
+ifndef CUSTOM_RULE_C_TO_CE
 %.ce: %.c
 	$(CC) $(CFLAGS) -DAUTOSTART_ENABLE -c $< -o $@
 	$(STRIP) --strip-unneeded -g -x $@
+endif
 
+ifndef CUSTOM_RULE_C_TO_OBJECTDIR_O
 $(OBJECTDIR)/%.o: %.c
 	$(CC) $(CFLAGS) -c $< -o $@
+endif
 
+ifndef CUSTOM_RULE_C_TO_O
 %.o: %.c
 	$(CC) $(CFLAGS) -c $< -o $@
+endif
 
+ifndef CUSTOM_RULE_C_TO_CO
 %.co: %.c
 	$(CC) $(CFLAGS) -DAUTOSTART_ENABLE -c $< -o $@
+endif
 
+ifndef AROPTS
+  AROPTS = rcf
+endif
+
+ifndef CUSTOM_RULE_ALLOBJS_TO_TARGETLIB
 contiki-$(TARGET).a: ${addprefix $(OBJECTDIR)/, $(CONTIKI_SOURCEFILES:.c=.o)}
-	$(AR) rcf $@ $^
-
+	$(AR) $(AROPTS) $@ $^
+endif
 
 ifndef CCDEP
   CCDEP = $(CC)
@@ -112,10 +125,18 @@ $(OBJECTDIR)/%.d: %.c
 # generated file.
 .PRECIOUS: %.$(TARGET)
 
+ifndef LD
+  LD = $(CC)
+endif
+
+ifndef CUSTOM_RULE_LINK
 %.$(TARGET):	%.co $(PROJECT_OBJECTFILES) contiki-$(TARGET).a
-	$(CC) $(LDFLAGS) $(CFLAGS) -o $@ $(filter-out %.a,$^) $(filter %.a,$^)
+	$(LD) $(LDFLAGS) $(TARGET_STARTFILES) $(filter-out %.a,$^) $(filter %.a,$^) $(TARGET_LIBFILES) -o $@ 
+endif
 
 # The target below looks weird, but I had to add the @ to avoid complaints
 # from GNU make about "*** No rule to make target `XXX'.  Stop."
 %: %.$(TARGET)
 	@
+
+
