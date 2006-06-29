@@ -20,49 +20,52 @@ lets you communicate with them using standard network tools such as
 
 
 -# Click start button and choose 'My Computer'. Right-click 'My
-Network Places' and choose 'Properties'. <img src="img/esb/slip01.jpg"
-align="center">
--# Click 'Create a new connection'. <img src="img/esb/slip02.jpg" align="center">
--# Select 'Set up an advanced connection'. <img src="img/esb/slip03.jpg"
-align="center">
--# Select 'Connect directly to another computer'. <img
-src="img/esb/slip04.jpg" align="center">
--# Select 'Guest'. <img src="img/esb/slip05.jpg" align="center">
--# Select a name for the slip connection (for example 'ESB'). <img
-src="img/esb/slip06.jpg" align="center">
+Network Places' and choose 'Properties'.
+<img src="img/esb/slip01.jpg" align="center">
+-# Click 'Create a new connection'.
+<img src="img/esb/slip02.jpg" align="center">
+-# Select 'Set up an advanced connection'.
+<img src="img/esb/slip03.jpg" align="center">
+-# Select 'Connect directly to another computer'.
+<img src="img/esb/slip04.jpg" align="center">
+-# Select 'Guest'.
+<img src="img/esb/slip05.jpg" align="center">
+-# Select a name for the slip connection (for example 'ESB').
+<img src="img/esb/slip06.jpg" align="center">
 -# Select the serial port to use when communicating with the sensor
-node. <img src="img/esb/slip07.jpg" align="center">
--# Add the connection by clicking 'Finish'. <img src="img/esb/slip08.jpg"
-align="center">
--# A connection window will open. Choose 'Properties'. <img
-src="img/esb/slip09.jpg" align="center"> <img src="img/esb/slip10.jpg"
-align="center">
+node.
+<img src="img/esb/slip07.jpg" align="center">
+-# Add the connection by clicking 'Finish'.
+<img src="img/esb/slip08.jpg" align="center">
+-# A connection window will open. Choose 'Properties'.
+<img src="img/esb/slip09.jpg" align="center">
+<img src="img/esb/slip10.jpg" align="center">
 -# Click on 'Configure...' and deselect all selected
-buttons. Choose the speed 57600 bps. <img src="img/esb/slip11.jpg"
-align="center">
+buttons. Choose the speed 57600 bps.
+<img src="img/esb/slip11.jpg" align="center">
 -# Close the modem configuration window, and go to the 'Options'
 tab in the ESB properties. Deselect all except 'Display
-progress...'. <img src="img/esb/slip12.jpg" align="center">
+progress...'.
+<img src="img/esb/slip12.jpg" align="center">
 -# Go to the 'Networking' tab. Change to 'SLIP: Unix Connection'
 and deselect all except the first two items in the connection item
-list. <img src="img/esb/slip13.jpg" align="center">
+list.
+<img src="img/esb/slip13.jpg" align="center">
 -# Select 'Internet Protocol (TCP/IP)' and click
-'Properties'. Enter the IP address '172.16.0.1'. <img
-src="img/esb/slip14b.jpg" align="center">
+'Properties'. Enter the IP address '172.16.0.1'.
+<img src="img/esb/slip14b.jpg" align="center">
 -# Click 'Advanced' and deselect all checkboxes in the 'Advanced
 TCP/IP Settings'. Go to the 'WINS' tab and deselect 'Enable LMHOSTS
 lookup' if it is selected. Also select 'Disable NetBIOS over
-TCP/IP'. <img src="img/esb/slip15.jpg" align="center"> <img
-src="img/esb/slip16.jpg" align="center">
-
-
+TCP/IP'.
+<img src="img/esb/slip15.jpg" align="center">
+<img src="img/esb/slip16.jpg" align="center">
 
 
 \section slipintro-setup Setup ESB for over the air programming
 
--# Make sure you have the latest contiki, contiki-msp430, and
-contiki-esb (older versions of contiki might not work with SLIP under
-Windows)
+-# Make sure you have the latest version of contiki (older versions of
+   contiki might not work with SLIP under Windows)
 -# Install the contiki kernel by running
 \code
 make core.u
@@ -93,8 +96,8 @@ node id, the node will have the IP address 172.16.1.2. Each node
 should have its own unique node id.
 
 You need to compile a core and upload it onto the nodes. All nodes
-must run the same core. Move to the directory '\c contiki-esb' and
-run
+must run the same core. Move to the directory
+'<tt>contiki-2.x/platform/esb</tt>' and run
 
 \code
 make
