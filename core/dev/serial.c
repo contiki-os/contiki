@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: serial.c,v 1.1 2006/06/17 22:41:17 adamdunkels Exp $
+ * @(#)$Id: serial.c,v 1.2 2006/07/03 11:29:16 nifi Exp $
  */
 #include "serial.h"
 #include <string.h> /* for memcpy() */
@@ -44,8 +44,8 @@
 #define END 0x0a
 
 static char buffer[BUFSIZE], appbuffer[BUFSIZE];
-static unsigned char bufwptr;
-static char buffer_full = 0;
+static volatile unsigned char bufwptr;
+static volatile char buffer_full = 0;
 
 PROCESS(serial_process, "Serial driver");
 
@@ -56,15 +56,17 @@ int
 serial_input_byte(unsigned char c)
 {
   if(!buffer_full && !IGNORE_CHAR(c)) {
-    buffer[bufwptr] = c;
-    if(bufwptr < BUFSIZE) {
-      ++bufwptr;
-    }
-    
     if(c == END) {
+      /* terminate the string */
+      buffer[bufwptr++] = '\0';
       buffer_full++;
       process_poll(&serial_process);
       return 1;
+    }
+
+    /* reserve space for the terminating zero character */
+    if(bufwptr < (BUFSIZE - 1)) {
+      buffer[bufwptr++] = c;
     }
   }
   return 0;
@@ -85,8 +87,8 @@ PROCESS_THREAD(serial_process, ev, data)
     if(buffer_full) {
       memcpy(appbuffer, buffer, bufwptr);
       process_post(PROCESS_BROADCAST, serial_event_message, appbuffer);
-      buffer_full = 0;
       bufwptr = 0;
+      buffer_full = 0;
     }
   }
 
