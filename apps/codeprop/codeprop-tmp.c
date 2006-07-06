@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: codeprop-tmp.c,v 1.1 2006/06/18 07:44:36 adamdunkels Exp $
+ * @(#)$Id: codeprop-tmp.c,v 1.2 2006/07/06 14:55:21 nifi Exp $
  */
 
 /** \addtogroup esb
@@ -74,6 +74,7 @@
 #include "cfs/cfs.h"
 #include "codeprop-tmp.h"
 #include "loader/elfloader-tmp.h"
+#include <string.h>
 
 static const char *err_msgs[] =
   {"OK\r\n", "Bad ELF header\r\n", "No symtab\r\n", "No strtab\r\n",
@@ -160,8 +161,6 @@ codeprop_set_rate(clock_time_t time)
 /*---------------------------------------------------------------------*/
 PROCESS_THREAD(codeprop_process, ev, data)
 {
-  static int n;
-
   PROCESS_BEGIN();
 
   elfloader_init();
