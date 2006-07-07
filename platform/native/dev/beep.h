@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: beep.h,v 1.1 2006/06/17 22:41:31 adamdunkels Exp $
+ * @(#)$Id: beep.h,v 1.2 2006/07/07 06:38:53 nifi Exp $
  */
 /**
  * \addtogroup esb
@@ -49,9 +49,6 @@
 
 #ifndef __BEEP_H__
 #define __BEEP_H__
-
-#define BEEP_ON  1
-#define BEEP_OFF 0
 
 #define BEEP_ALARM1 1
 #define BEEP_ALARM2 2
