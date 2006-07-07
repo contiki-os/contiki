@@ -30,7 +30,7 @@
  *
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: tcpip.c,v 1.1 2006/06/17 22:41:19 adamdunkels Exp $
+ * $Id: tcpip.c,v 1.2 2006/07/07 06:45:45 nifi Exp $
  */
 
 #include "contiki-conf.h"
@@ -82,7 +82,7 @@ packet_input(void)
 {
   if(uip_len > 0) {
     if(forwarding) {
-      if(uip_fw_forward() == 0) {
+      if(uip_fw_forward() == UIP_FW_LOCAL) {
 	uip_input();
 	if(uip_len > 0) {
 #if UIP_CONF_TCP_SPLIT
