@@ -28,19 +28,23 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: beep.c,v 1.3 2006/06/18 08:07:30 adamdunkels Exp $
+ * @(#)$Id: beep.c,v 1.4 2006/07/07 06:36:38 nifi Exp $
  */
 
 #include <io.h>
 
 #include "contiki-esb.h"
 
+#define ON  1
+#define OFF 0
+
 /*
  * Flag to indicate if any of these functions should generate a sound
- * or not The function is used beep_off() to to change this flag so
- * none of the functions will generate sounds.
+ * or not. The function beep_off() is used to change this flag so none
+ * of the functions will generate sounds and beep_on() to turn sound
+ * back on.
  */
-static unsigned char beep_flag = BEEP_ON;
+static char onoroff = ON;
 
 /*
  * BEEPER_BIT is the bit in the io-register that is connected to the actual 
@@ -58,9 +62,10 @@ beep_alarm(int alarmmode, int len)
     /*
      * Check here if we should beep or not since if we do it outside the
      * while loop the call to this function would take muck less time, i.e.
-     * beep_flag would have side effects that might not be predictable.
+     * beep_on()/beep_off() would have side effects that might not be
+     * predictable.
      */
-    if(beep_flag & BEEP_ON) {
+    if(onoroff == ON) {
       if((alarmmode == BEEP_ALARM1) && ((len & 7) > 4)) {
 	P2OUT |= BEEPER_BIT;
       } else if((alarmmode == BEEP_ALARM2) && ((len & 15) > 12)) {
@@ -78,8 +83,7 @@ beep_alarm(int alarmmode, int len)
 void
 beep_beep(int i)
 {
-  if(beep_flag & BEEP_ON) {
-    
+  if(onoroff == ON) {
     /* Beep. */
     P2OUT |= BEEPER_BIT;
     clock_delay(i);
@@ -106,13 +110,13 @@ beep_down(int d)
 void
 beep_on(void)
 {
-  beep_flag |= BEEP_ON;
+  onoroff = ON;
 }
 /*-----------------------------------------------------------------------------------*/
 void
 beep_off(void)
 {
-  beep_flag &= ~BEEP_ON;
+  onoroff = OFF;
 }
 /*-----------------------------------------------------------------------------------*/
 void
@@ -149,14 +153,14 @@ void beep_long(clock_time_t len) {
    * Check if the beeper is turned on or off, i.e. if a call should generate 
    * a noise or not.
    */
-  if(beep_flag & BEEP_ON) {
+  if(onoroff == ON) {
     /* Turn on the beeper. */
     P2OUT |= BEEPER_BIT;
   }
 
   clock_wait(len);
 
-  if(beep_flag & BEEP_ON) {
+  if(onoroff == ON) {
     /* Turn the beeper off. */
     P2OUT &= ~BEEPER_BIT;
   }
