@@ -1,0 +1,116 @@
+# $Id: Makefile,v 1.1 2006/08/02 14:44:46 bg- Exp $
+#
+# This makefile requires GNU make!
+
+LIB = libcontiki.a
+KERNELS = gateway.ihex dhclient.ihex
+PROGS = loadable_prg.ko udpsend.ko udprecv.ko
+TOOLS = tunslip scat codeprop
+
+all: $(LIB) $(KERNELS) $(PROGS) $(TOOLS)
+
+gateway.out: gateway.o $(LIB)
+dhclient.out: dhclient.o $(LIB)
+
+CORE = ../../core
+INCDIRS = -I. -I../../cpu/msp430 -I$(CORE) -I../../apps
+SRCDIRS = dev  ../../cpu/msp430 ${addprefix $(CORE)/,sys dev net lib loader} ../../apps/codeprop
+
+MCU=msp430x1611
+
+ARCH=msp430.o leds.o leds-arch.o watchdog.o lpm.o light.o button.o spi.o ds2411.o rom.o xmem.o
+SYSTEM=process.o procinit.o service.o clock.o etimer.o timer.o \
+       elfloader.o symtab.o
+UIP=uip.o uiplib.o tcpip.o uip-fw.o uip-fw-service.o uipbuf.o \
+    tcpdump.o psock.o dhcpc.o uaodv.o uaodv-rt.o
+UIPDRIVERS=slip.o slip_uart1.o \
+           cc2420.o cc2420_uart0.o cc2420_send_ip.o cc2420_send_uaodv.o 
+LIBS=memb.o list.o malloc.o realloc.o malloc_compact.o rand.o crtk.o
+SYSAPPS=tcp_loader.o
+LIBFILES=$(SYSTEM) $(ARCH) $(UIP) $(UIPDRIVERS) $(LIBS) $(SYSAPPS)
+
+CP=cp
+LIBC=-lgcc -lc -lgcc
+CC=msp430-gcc
+LD=msp430-ld
+AS=msp430-as
+OBJCOPY=msp430-objcopy
+STRIP=msp430-strip
+AR=msp430-ar
+RANLIB=msp430-ranlib
+BSL=msp430-bsl
+CFLAGS=-mmcu=$(MCU) $(INCDIRS) -Wall -Os
+LDFLAGS=-mmcu=$(MCU)
+
+# Setup directory search path for source files
+vpath %.c $(SRCDIRS) ${filter-out CVS,${wildcard labs/*}}
+
+# Set COM port if not already set.
+# DOS: 1 => COM2, 2 => COM3, etc.
+# Linux: /dev/ttyUSB0, /dev/ttyUSB1, etc.
+# FreeBSD: /dev/ttyU0, /dev/ttyU1, etc.
+ifndef COMPORT
+  COMPORT := /dev/ttyUSB0
+endif
+
+
+%.o: %.c
+	$(CC) $(CFLAGS) -c $< -o $(notdir $(<:.c=.o))
+
+# Transform one .o to a .ko
+%.ko: %.o
+	$(STRIP) -K _init -K _fini --strip-unneeded -g -x $< -o $@
+
+# Combine several .o:s to one .ko
+# The msp430-ld can't do incremental linking, bogus output
+#%.ko %.o: $^
+#	/opt/msp430/bin/msp430-ld -r $< -o $@
+#	$(STRIP) -K _init -K _fini --strip-unneeded -g -x $@
+
+%.ihex: %.out
+	$(OBJCOPY) $^ -O ihex $@
+
+#%.out:
+#	$(if $^,$(CC) $(LDFLAGS) $(CFLAGS) -o $@ $^,$(error "NO TARGET $@"))
+
+# Add a namelist to the kernel
+%.out: $^
+	-test -f $@_nm.c || echo "unsigned symbols[1];" > $@_nm.c
+	$(CC) $(LDFLAGS) $(CFLAGS) -o $@ $^ $(LIBC) $@_nm.c
+	../../tools/msp430-make-symbols $@ > $@_tmp.c && mv $@_tmp.c $@_nm.c
+	$(CC) $(LDFLAGS) $(CFLAGS) -o $@ $^ $(LIBC) $@_nm.c
+
+%.u: %.ihex
+	$(BSL) --telosb -D -c $(COMPORT) -r -e -I -p $<
+
+$(LIB): $(LIBFILES)
+	$(AR) rcf $@ $^
+	$(RANLIB) $@
+
+codeprop: ../../tools/codeprop.c
+	cc -g -Wall $< -o $@
+
+tunslip: ../../tools/tunslip.c
+	cc -g -Wall $< -o $@
+
+scat: ../../tools/scat.c
+	cc -g -Wall $< -o $@
+
+### TEST ###
+
+test.out: test.o $(LIB)
+	$(CC) $(LDFLAGS) $(CFLAGS) -o $@ $^
+
+depend: $(LIBFILES:.o=.c)
+	-$(CC) $(CCDEPFLAGS) -MM $(CFLAGS) $(INCDIRS) $^ *.c >Makefile.depend
+
+tags: $(LIBFILES:.o=.c)
+	etags $^
+
+clean:
+	rm -f *.o *.ko *~ *.core *.out *.ihex *_nm.c
+	rm -f $(LIB) $(KERNELS) $(TOOLS)
+
+.PHONY: all
+
+-include Makefile.depend
