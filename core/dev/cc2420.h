@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: cc2420.h,v 1.1 2006/06/17 22:41:16 adamdunkels Exp $
+ * @(#)$Id: cc2420.h,v 1.2 2006/08/02 14:33:37 bg- Exp $
  */
 
 #ifndef CC2420_H
@@ -93,6 +93,16 @@ struct hdr_802_15_ack {
   u8_t footer[2];
   /* no more */
 };
+
+struct cc2420_neigbour {
+  unsigned mac:16, nretrans:4, expire:4; /* expiration time */
+#if 0
+  unsigned rssi:6, correlation:6;
+#endif
+};
+
+#define NNEIGBOURS 16
+extern struct cc2420_neigbour neigbours[NNEIGBOURS];
 
 PROCESS_NAME(cc2420_process);
 

@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: tcp_loader.c,v 1.1 2006/06/18 07:44:36 adamdunkels Exp $
+ * @(#)$Id: tcp_loader.c,v 1.2 2006/08/02 14:33:37 bg- Exp $
  */
 
 #include <stdio.h>
@@ -75,7 +75,7 @@ PT_THREAD(recv_tcpthread(struct pt *pt))
   uip_appdata += sizeof(struct codeprop_tcphdr);
   uip_len -= sizeof(struct codeprop_tcphdr);
 
-  xmem_erase(s.len, EEPROMFS_ADDR_CODEPROP);
+  xmem_erase(XMEM_ERASE_UNIT_SIZE, EEPROMFS_ADDR_CODEPROP);
 
   /* Read the rest of the data. */
   do {      

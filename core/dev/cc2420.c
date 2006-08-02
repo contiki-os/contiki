@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: cc2420.c,v 1.1 2006/06/17 22:41:16 adamdunkels Exp $
+ * @(#)$Id: cc2420.c,v 1.2 2006/08/02 14:33:36 bg- Exp $
  */
 /*
  * This code is almost device independent and should be possible to
@@ -566,15 +566,7 @@ PROCESS_THREAD(cc2420_retransmit_process, ev, data)
 #define MAX_EXPIRE         15
 #define AGE_INTERVAL        5	/* 20 seconds */
 
-struct cc2420_neigbour {
-  unsigned mac:16, nretrans:4, expire:4; /* expiration time */
-#if 0
-  unsigned rssi:6, correlation:6;
-#endif
-};
-
-#define NNEIGBOURS 16
-static struct cc2420_neigbour neigbours[NNEIGBOURS];
+struct cc2420_neigbour neigbours[NNEIGBOURS];
 
 /*
  * Double hash into 3 different positions using a constand step. If we

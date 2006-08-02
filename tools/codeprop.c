@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: codeprop.c,v 1.1 2006/06/18 08:16:12 adamdunkels Exp $
+ * @(#)$Id: codeprop.c,v 1.2 2006/08/02 14:33:37 bg- Exp $
  */
 #include <stdlib.h>
 #include <stdio.h>
@@ -92,7 +92,7 @@ main(int argc, char **argv) {
   }
   
   
-  {
+  while(1) {
     char buf[64000];
     int len;
     
@@ -116,17 +116,12 @@ main(int argc, char **argv) {
       exit(0);
     }
     total += len;
-
     buf[0] = len >> 8;
     buf[1] = len & 0xff;
     if(write(s, buf, len + 2) == -1) {
       perror("network send failed");
       exit(1);
     }
-    printf("File sent\n");
-    len = read(s, buf, sizeof(buf));
-    buf[len] = 0;
-    printf("%s", buf);
   }
   
   return 0;
