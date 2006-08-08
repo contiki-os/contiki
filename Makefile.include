@@ -131,7 +131,7 @@ endif
 
 ifndef CUSTOM_RULE_LINK
 %.$(TARGET):	%.co $(PROJECT_OBJECTFILES) contiki-$(TARGET).a
-	$(LD) $(LDFLAGS) $(TARGET_STARTFILES) $(filter-out %.a,$^) $(filter %.a,$^) $(TARGET_LIBFILES) -o $@ 
+	$(CC) $(LDFLAGS) $(TARGET_STARTFILES) $(filter-out %.a,$^) $(filter %.a,$^) $(TARGET_LIBFILES) -o $@ 
 endif
 
 # The target below looks weird, but I had to add the @ to avoid complaints
