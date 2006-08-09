@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: cc2420.h,v 1.2 2006/08/02 14:33:37 bg- Exp $
+ * @(#)$Id: cc2420.h,v 1.3 2006/08/09 17:39:39 bg- Exp $
  */
 
 #ifndef CC2420_H
@@ -117,9 +117,6 @@ void cc2420_set_chan_pan_addr(unsigned channel, unsigned pan,
 			      unsigned addr, const u8_t *ieee_addr);
 void cc2420_on(void);
 void cc2420_off(void);
-unsigned cc2420_pa_level(u16_t);
-unsigned cc2420_get_pa_level(void);
-int cc2420_get_current_rssi(void);
 
 u8_t cc2420_send_ip(void);
 u8_t cc2420_send_uaodv(void);

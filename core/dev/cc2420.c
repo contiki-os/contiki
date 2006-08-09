@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: cc2420.c,v 1.3 2006/08/09 16:13:39 bg- Exp $
+ * @(#)$Id: cc2420.c,v 1.4 2006/08/09 17:39:39 bg- Exp $
  */
 /*
  * This code is almost device independent and should be possible to
@@ -106,50 +106,6 @@ cc2420_status(void)
   FASTSPI_UPD_STATUS(status);
   splx(s);
   return status;
-}
-
-#define PA_LEVEL 0x1F
-
-unsigned
-cc2420_pa_level(u16_t p)
-{
-  u16_t reg;
-
-  /* 
-   * All PA settings can be used, the ones given in the datasheet
-   * correspond to 0, -1, -3, -5, -7, -10, -15, -25 dBm in the
-   * reference design.
-   */
-  if (p > PA_LEVEL)
-    p = PA_LEVEL;
-
-  reg = cc2420_getreg(CC2420_TXCTRL);
-
-  p |= reg & ~PA_LEVEL;
-
-  cc2420_setreg(CC2420_TXCTRL, p);
-
-  return reg & PA_LEVEL;
-}
-
-unsigned
-cc2420_get_pa_level(void)
-{
-  u16_t reg;
-
-  reg = cc2420_getreg(CC2420_TXCTRL);
-
-  return reg & PA_LEVEL;
-}
-
-int
-cc2420_get_current_rssi(void)
-{
-  u16_t reg;
-
-  reg = cc2420_getreg(CC2420_RSSI);
-
-  return (signed char) (reg & 0xff);
 }
 
 #define AUTOACK (1 << 4)
