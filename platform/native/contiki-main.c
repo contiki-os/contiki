@@ -29,7 +29,7 @@
  *
  * This file is part of the Contiki OS
  *
- * $Id: contiki-main.c,v 1.1 2006/06/17 22:41:31 adamdunkels Exp $
+ * $Id: contiki-main.c,v 1.2 2006/08/09 16:13:40 bg- Exp $
  *
  */
 
@@ -57,14 +57,14 @@ main(void)
   
   autostart_start(autostart_processes);
   
-  uip_ipaddr(addr, 192,168,2,2);
-  uip_sethostaddr(addr);
+  uip_ipaddr(&addr, 192,168,2,2);
+  uip_sethostaddr(&addr);
 
-  uip_ipaddr(addr, 192,168,2,1);
-  uip_setdraddr(addr);
+  uip_ipaddr(&addr, 192,168,2,1);
+  uip_setdraddr(&addr);
 
-  uip_ipaddr(addr, 255,255,255,0);
-  uip_setnetmask(addr);
+  uip_ipaddr(&addr, 255,255,255,0);
+  uip_setnetmask(&addr);
 
   printf("Contiki initiated, now starting process scheduling\n");
   

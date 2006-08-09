@@ -11,8 +11,8 @@
 #include "dev/cc2420.h"
 
 #define in_my_network(a) \
-  (((a[0] ^ cc2420if.ipaddr[0]) & cc2420if.netmask[0]) == 0 && \
-   ((a[1] ^ cc2420if.ipaddr[1]) & cc2420if.netmask[1]) == 0)
+  (((a[0] ^ cc2420if.ipaddr.u16[0]) & cc2420if.netmask.u16[0]) == 0 && \
+   ((a[1] ^ cc2420if.ipaddr.u16[1]) & cc2420if.netmask.u16[1]) == 0)
 
 u8_t
 cc2420_send_ip(void)
@@ -26,21 +26,21 @@ cc2420_send_ip(void)
   h.fc0 = FC0_TYPE_DATA | FC0_REQ_ACK | FC0_INTRA_PAN;
   h.fc1 = FC1_DST_16 | FC1_SRC_16;
 
-  h.src = uip_hostaddr[1];
-  if (BUF->destipaddr[0] == 0xffff && BUF->destipaddr[1] == 0xffff)
+  h.src = uip_hostaddr.u16[1];
+  if (uip_ipaddr_cmp(&BUF->destipaddr, &uip_broadcast_addr))
     h.dst = 0xffff;
   else {
     uip_ipaddr_t *next_gw;
 
-    if (in_my_network(BUF->destipaddr))
+    if (in_my_network(BUF->destipaddr.u16))
       next_gw = &BUF->destipaddr;
     else
       next_gw = &uip_draddr;	/* Default router. */
 
-    if (cc2420_check_remote((*next_gw)[1]) == 1)
+    if (cc2420_check_remote(next_gw->u16[1]) == 1)
       h.dst = 0xffff;		/* remote, use bcast */
     else
-      h.dst = (*next_gw)[1];	/* local or unknown, use ucast */
+      h.dst = next_gw->u16[1];	/* local or unknown, use ucast */
   }
 
   /* Don't request MAC level ACKs for broadcast packets. */

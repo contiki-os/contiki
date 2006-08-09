@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: dhcpc.c,v 1.2 2006/06/24 17:59:28 gpz Exp $
+ * @(#)$Id: dhcpc.c,v 1.3 2006/08/09 16:13:39 bg- Exp $
  */
 
 #include <stdio.h>
@@ -116,7 +116,7 @@ add_req_ipaddr(u8_t *optptr)
 {
   *optptr++ = DHCP_OPTION_REQ_IPADDR;
   *optptr++ = 4;
-  memcpy(optptr, s.ipaddr, 4);
+  memcpy(optptr, s.ipaddr.u16, 4);
   return optptr + 4;
 }
 /*---------------------------------------------------------------------------*/
@@ -149,7 +149,7 @@ create_msg(register struct dhcp_msg *m)
   m->secs = 0;
   m->flags = HTONS(BOOTP_BROADCAST); /*  Broadcast bit. */
   /*  uip_ipaddr_copy(m->ciaddr, uip_hostaddr);*/
-  memcpy(m->ciaddr, uip_hostaddr, sizeof(m->ciaddr));
+  memcpy(m->ciaddr, uip_hostaddr.u16, sizeof(m->ciaddr));
   memset(m->yiaddr, 0, sizeof(m->yiaddr));
   memset(m->siaddr, 0, sizeof(m->siaddr));
   memset(m->giaddr, 0, sizeof(m->giaddr));
@@ -203,13 +203,13 @@ parse_options(u8_t *optptr, int len)
   while(optptr < end) {
     switch(*optptr) {
     case DHCP_OPTION_SUBNET_MASK:
-      memcpy(s.netmask, optptr + 2, 4);
+      memcpy(s.netmask.u16, optptr + 2, 4);
       break;
     case DHCP_OPTION_ROUTER:
-      memcpy(s.default_router, optptr + 2, 4);
+      memcpy(s.default_router.u16, optptr + 2, 4);
       break;
     case DHCP_OPTION_DNS_SERVER:
-      memcpy(s.dnsaddr, optptr + 2, 4);
+      memcpy(s.dnsaddr.u16, optptr + 2, 4);
       break;
     case DHCP_OPTION_MSG_TYPE:
       type = *(optptr + 2);
@@ -237,7 +237,7 @@ parse_msg(void)
   if(m->op == DHCP_REPLY &&
      memcmp(m->xid, &xid, sizeof(xid)) == 0 &&
      memcmp(m->chaddr, s.mac_addr, s.mac_len) == 0) {
-    memcpy(s.ipaddr, m->yiaddr, 4);
+    memcpy(s.ipaddr.u16, m->yiaddr, 4);
     return parse_options(&m->options[4], uip_datalen());
   }
   return 0;
@@ -385,14 +385,14 @@ PT_THREAD(handle_dhcp(process_event_t ev, void *data))
 void
 dhcpc_init(const void *mac_addr, int mac_len)
 {
-  u16_t addr[2];
+  uip_ipaddr_t addr;
   
   s.mac_addr = mac_addr;
   s.mac_len  = mac_len;
 
   s.state = STATE_INITIAL;
-  uip_ipaddr(addr, 255,255,255,255);
-  s.conn = udp_new(addr, HTONS(DHCPC_SERVER_PORT), NULL);
+  uip_ipaddr(&addr, 255,255,255,255);
+  s.conn = udp_new(&addr, HTONS(DHCPC_SERVER_PORT), NULL);
   if(s.conn != NULL) {
     udp_bind(s.conn, HTONS(DHCPC_CLIENT_PORT));
   }
@@ -410,11 +410,11 @@ dhcpc_appcall(process_event_t ev, void *data)
 void
 dhcpc_request(void)
 {
-  u16_t ipaddr[2];
+  uip_ipaddr_t ipaddr;
   
   if(s.state == STATE_INITIAL) {
-    uip_ipaddr(ipaddr, 0,0,0,0);
-    uip_sethostaddr(ipaddr);
+    uip_ipaddr(&ipaddr, 0,0,0,0);
+    uip_sethostaddr(&ipaddr);
     handle_dhcp(PROCESS_EVENT_NONE, NULL);
   }
 }

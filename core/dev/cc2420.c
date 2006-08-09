@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: cc2420.c,v 1.2 2006/08/02 14:33:36 bg- Exp $
+ * @(#)$Id: cc2420.c,v 1.3 2006/08/09 16:13:39 bg- Exp $
  */
 /*
  * This code is almost device independent and should be possible to
@@ -209,7 +209,7 @@ cc2420_send_data_ack(u16_t mac)
   h.fc0 = FC0_TYPE_DATA | FC0_INTRA_PAN;
   h.fc1 = FC1_DST_16 | FC1_SRC_16;
 
-  h.src = uip_hostaddr[1];
+  h.src = uip_hostaddr.u16[1];
   h.dst = mac;
 
   cc2420_send(&h, 10, NULL, 0);
@@ -491,8 +491,7 @@ PROCESS_THREAD(cc2420_process, ev, data)
        * If we are the unique receiver send DATA ACK.
        */
       if (h.dst == 0xffff
-	  && BUF->destipaddr[0] == uip_hostaddr[0]
-	  && BUF->destipaddr[1] == uip_hostaddr[1])
+	  && uip_ipaddr_cmp(&BUF->destipaddr, &uip_hostaddr))
 	cc2420_send_data_ack(h.src);
       leds_toggle(LEDS_GREEN);
       tcpip_input();
@@ -630,7 +629,7 @@ neigbour_update(u16_t mac, int nretrans)
 void
 cc2420_recv_ok(uip_ipaddr_t *from)
 {
-  neigbour_update((*from)[1], 0);
+  neigbour_update(from->u16[1], 0);
 }
 
 /*

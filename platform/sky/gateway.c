@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF 
  * SUCH DAMAGE. 
  *
- * @(#)$Id: gateway.c,v 1.1 2006/08/02 14:44:46 bg- Exp $
+ * @(#)$Id: gateway.c,v 1.2 2006/08/09 16:13:40 bg- Exp $
  */
 
 /*
@@ -110,7 +110,7 @@ main(int argc, char **argv)
   leds_toggle(LEDS_RED | LEDS_GREEN | LEDS_BLUE);
   slip_arch_init();		/* Must come before first printf */
   printf("Starting %s "
-	 "($Id: gateway.c,v 1.1 2006/08/02 14:44:46 bg- Exp $)\n", __FILE__);
+	 "($Id: gateway.c,v 1.2 2006/08/09 16:13:40 bg- Exp $)\n", __FILE__);
   ds2411_init();
   sensors_light_init();
   cc2420_init();
@@ -128,7 +128,7 @@ main(int argc, char **argv)
   uip_ipaddr_copy(&uip_netmask, &cc2420if.netmask);
   printf("IP %d.%d.%d.%d netmask %d.%d.%d.%d\n",
 	 ip2quad(&uip_hostaddr), ip2quad(&uip_netmask));
-  cc2420_set_chan_pan_addr(RF_CHANNEL, panId, uip_hostaddr[1], ds2411_id);
+  cc2420_set_chan_pan_addr(RF_CHANNEL, panId, uip_hostaddr.u16[1], ds2411_id);
 
   /*
    * Initialize Contiki and our processes.

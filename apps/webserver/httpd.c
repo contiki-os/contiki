@@ -30,7 +30,7 @@
  *
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: httpd.c,v 1.1 2006/06/17 22:41:14 adamdunkels Exp $
+ * $Id: httpd.c,v 1.2 2006/08/09 16:13:39 bg- Exp $
  */
 
 #include "contiki-net.h"
@@ -249,7 +249,7 @@ PT_THREAD(handle_input(struct httpd_state *s))
     strncpy(s->filename, &s->inputbuf[0], sizeof(s->filename));
   }
 
-  httpd_log_file(uip_conn->ripaddr, s->filename);
+  httpd_log_file(&uip_conn->ripaddr, s->filename);
   
   s->state = STATE_OUTPUT;
 

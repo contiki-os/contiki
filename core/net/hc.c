@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: hc.c,v 1.1 2006/06/17 22:41:18 adamdunkels Exp $
+ * @(#)$Id: hc.c,v 1.2 2006/08/09 16:13:39 bg- Exp $
  */
 
 /**
@@ -49,7 +49,7 @@
 
 struct hc_hdr {
   u16_t flagsport;
-  u16_t srcipaddr[2];
+  uip_ipaddr_t srcipaddr;
 };
 
 struct udpip_hdr {
@@ -62,8 +62,7 @@ struct udpip_hdr {
     ttl,
     proto;
   u16_t ipchksum;
-  u16_t srcipaddr[2],
-    destipaddr[2];
+  uip_ipaddr_t srcipaddr, destipaddr;
   
   /* UDP header. */
   u16_t srcport,
@@ -121,11 +120,8 @@ hc_compress(void)
      uhdr->ipoffset[1] == 0x00 &&              /* No fragmented IP
 						  packets. */
      uhdr->proto == UIP_PROTO_UDP &&           /* Only UDP packets. */
-     uhdr->destipaddr[0] == 0xffffU &&         /* Only link-local
-						  broadcast
-						  packets. */
-     uhdr->destipaddr[1] == 0xffffU &&         /* Only link-local
-						  broadcast
+     uip_ipaddr_cmp(&uhdr->destipaddr, &uip_broadcast_addr) && /* Only
+						  link-local broadcast
 						  packets. */
      uhdr->destport == uhdr->srcport &&        /* Only packets with
 						  the same destination
@@ -184,8 +180,7 @@ hc_inflate(void)
     hdr = (struct hc_hdr *)&uip_buf[UIP_LLH_LEN + UIP_IPUDPH_LEN -
 				    HC_HLEN];
     
-    uhdr->srcipaddr[0] = hdr->srcipaddr[0];
-    uhdr->srcipaddr[1] = hdr->srcipaddr[1];
+    uhdr->srcipaddr = hdr->srcipaddr;
     uhdr->srcport = hdr->flagsport & HTONS(0x3fff);
     uhdr->destport = hdr->flagsport & HTONS(0x3fff);
     
@@ -202,7 +197,7 @@ hc_inflate(void)
     uhdr->ipoffset[0] = uhdr->ipoffset[1] = 0;
     uhdr->ttl = 2;
     uhdr->proto = UIP_PROTO_UDP;
-    uhdr->destipaddr[0] = uhdr->destipaddr[1] = 0xffff;
+    uhdr->destipaddr = uip_broadcast_addr;
     uhdr->udpchksum = 0;
 
     uhdr->ipchksum = 0;

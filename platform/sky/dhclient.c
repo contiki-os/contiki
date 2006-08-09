@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF 
  * SUCH DAMAGE. 
  *
- * @(#)$Id: dhclient.c,v 1.1 2006/08/02 14:44:46 bg- Exp $
+ * @(#)$Id: dhclient.c,v 1.2 2006/08/09 16:13:40 bg- Exp $
  */
 
 /*
@@ -100,7 +100,7 @@ main(int argc, char **argv)
   leds_toggle(LEDS_RED | LEDS_GREEN | LEDS_BLUE);
   slip_arch_init();		/* Must come before first printf */
   printf("Starting %s "
-	 "($Id: dhclient.c,v 1.1 2006/08/02 14:44:46 bg- Exp $)\n", __FILE__);
+	 "($Id: dhclient.c,v 1.2 2006/08/09 16:13:40 bg- Exp $)\n", __FILE__);
   ds2411_init();
   sensors_light_init();
   cc2420_init();
@@ -194,7 +194,7 @@ PROCESS_THREAD(dhclient_process, ev, data)
 
   /* For now use 0.0.0.0 as our IP address. */
   uip_ipaddr(&uip_hostaddr, 0,0,0,0);
-  cc2420_set_chan_pan_addr(RF_CHANNEL, panId, uip_hostaddr[1], ds2411_id);
+  cc2420_set_chan_pan_addr(RF_CHANNEL, panId, uip_hostaddr.u16[1], ds2411_id);
 
   /* Use only radio interface and enable forwarding. */
   uip_fw_default(&cc2420if);
@@ -230,18 +230,18 @@ dhcpc_configured(const struct dhcpc_state *s)
     process_start(&uaodv_process, NULL);
   }
 
-  uip_sethostaddr(s->ipaddr);
-  uip_setnetmask(s->netmask);
-  uip_setdraddr(s->default_router);
+  uip_sethostaddr(&s->ipaddr);
+  uip_setnetmask(&s->netmask);
+  uip_setdraddr(&s->default_router);
 
-  uip_ipaddr_copy(&cc2420if.ipaddr,  s->ipaddr);
-  uip_ipaddr_copy(&cc2420if.netmask, s->netmask);
+  uip_ipaddr_copy(&cc2420if.ipaddr,  &s->ipaddr);
+  uip_ipaddr_copy(&cc2420if.netmask, &s->netmask);
   /* resolv_conf(s->dnsaddr); */
 
   /*
    * Now we also have a new short MAC address!
    */
-  cc2420_set_chan_pan_addr(RF_CHANNEL, panId, uip_hostaddr[1], ds2411_id);
+  cc2420_set_chan_pan_addr(RF_CHANNEL, panId, uip_hostaddr.u16[1], ds2411_id);
 
   /* Use only radio interface and enable forwarding. */
   uip_fw_init();
@@ -257,10 +257,10 @@ dhcpc_unconfigured(const struct dhcpc_state *s)
   is_configured = 0;
   process_exit(&uaodv_process);
 
-  uip_ipaddr(uip_hostaddr, 0,0,0,0);
-  uip_ipaddr(uip_netmask, 0,0,0,0);
-  uip_ipaddr(uip_draddr, 0,0,0,0);
+  uip_ipaddr(&uip_hostaddr, 0,0,0,0);
+  uip_ipaddr(&uip_netmask, 0,0,0,0);
+  uip_ipaddr(&uip_draddr, 0,0,0,0);
 
   /* New short MAC address. */
-  cc2420_set_chan_pan_addr(RF_CHANNEL, panId, uip_hostaddr[1], ds2411_id);
+  cc2420_set_chan_pan_addr(RF_CHANNEL, panId, uip_hostaddr.u16[1], ds2411_id);
 }

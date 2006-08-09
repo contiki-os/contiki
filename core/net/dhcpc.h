@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: dhcpc.h,v 1.1 2006/06/17 22:41:18 adamdunkels Exp $
+ * @(#)$Id: dhcpc.h,v 1.2 2006/08/09 16:13:39 bg- Exp $
  */
 #ifndef __DHCPC_H__
 #define __DHCPC_H__
@@ -45,10 +45,10 @@ struct dhcpc_state {
   u8_t serverid[4];
 
   u16_t lease_time[2];
-  u16_t ipaddr[2];
-  u16_t netmask[2];
-  u16_t dnsaddr[2];
-  u16_t default_router[2];
+  uip_ipaddr_t ipaddr;
+  uip_ipaddr_t netmask;
+  uip_ipaddr_t dnsaddr;
+  uip_ipaddr_t default_router;
 };
 
 void dhcpc_init(const void *mac_addr, int mac_len);

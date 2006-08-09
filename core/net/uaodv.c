@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: uaodv.c,v 1.1 2006/06/17 22:41:19 adamdunkels Exp $
+ * $Id: uaodv.c,v 1.2 2006/08/09 16:13:39 bg- Exp $
  */
 
 /**
@@ -82,13 +82,11 @@ print_debug(const char *fmt, ...)
 }
 #endif
 
-#define uip_udp_sender() ((uip_ipaddr_t *)(((struct uip_udpip_hdr *)&uip_buf[UIP_LLH_LEN])->srcipaddr))
-
-uip_ipaddr_t inaddr_broadcast = { 0xffff, 0xffff };
+#define uip_udp_sender() (&((struct uip_udpip_hdr *)&uip_buf[UIP_LLH_LEN])->srcipaddr)
 
 /*---------------------------------------------------------------------------*/
 static void
-sendto(uip_ipaddr_t *dest, char *buf, int len)
+sendto(const uip_ipaddr_t *dest, char *buf, int len)
 {
   /* XXX: this is a HACK! We're updating the uIP UDP connection
      "unicastconn" so that the destination address is the next-hop,
@@ -162,7 +160,7 @@ send_rerr(uip_ipaddr_t *addr, u32_t seqno)
   uip_ipaddr_copy(&rm->unreach[0].addr, addr);
   rm->unreach[0].seqno = seqno;
 
-  sendto(&inaddr_broadcast, (char *)rm, sizeof(struct uaodv_msg_rerr));
+  sendto(&uip_broadcast_addr, (char *)rm, sizeof(struct uaodv_msg_rerr));
 
   print_debug("Broadcasting initial RERR for %d.%d.%d.%d\n", ip2quad(addr));  
 }
@@ -189,7 +187,7 @@ handle_incoming_rreq(void)
 #endif
 
   /* Check if it is for our address. */
-  if(uip_ipaddr_cmp(&rm->dest_addr, uip_hostaddr)) {
+  if(uip_ipaddr_cmp(&rm->dest_addr, &uip_hostaddr)) {
     print_debug("RREQ for our address!\n");
     rt = uaodv_rt_lookup(&rm->src_addr);
     if(rt == NULL || rm->hop_count <= rt->hop_count) {
@@ -317,7 +315,7 @@ handle_incoming_rrep(void)
 		);
 
   }
-  if(uip_ipaddr_cmp(&rm->src_addr, uip_hostaddr)) {
+  if(uip_ipaddr_cmp(&rm->src_addr, &uip_hostaddr)) {
     print_debug("------- COMPLETE ROUTE FOUND\n");
   } else {
   
@@ -365,7 +363,7 @@ handle_incoming_rerr(void)
   if(rt != NULL && uip_ipaddr_cmp(&rt->nexthop, uip_udp_sender())) {
     uaodv_rt_remove(rt);
     print_debug("RERR rebroadcast\n");
-    sendto(&inaddr_broadcast, (char *)rm, sizeof(struct uaodv_msg_rerr));
+    sendto(&uip_broadcast_addr, (char *)rm, sizeof(struct uaodv_msg_rerr));
   }
 }
 #endif

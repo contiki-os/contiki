@@ -29,7 +29,7 @@
  *
  * This file is part of the Contiki OS.
  *
- * $Id: webserver-nogui.c,v 1.1 2006/06/17 22:41:15 adamdunkels Exp $
+ * $Id: webserver-nogui.c,v 1.2 2006/08/09 16:13:39 bg- Exp $
  *
  */
 
@@ -59,7 +59,7 @@ PROCESS_THREAD(webserver_nogui_process, ev, data)
 }
 /*---------------------------------------------------------------------------*/
 void
-httpd_log_file(u16_t *requester, char *file)
+httpd_log_file(uip_ipaddr_t *requester, char *file)
 {
 }
 /*---------------------------------------------------------------------------*/

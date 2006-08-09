@@ -29,7 +29,7 @@
  *
  * This file is part of the Contiki desktop environment for the C64.
  *
- * $Id: webserver.c,v 1.1 2006/06/17 22:41:15 adamdunkels Exp $
+ * $Id: webserver.c,v 1.2 2006/08/09 16:13:39 bg- Exp $
  *
  */
 
@@ -89,7 +89,7 @@ PROCESS_THREAD(webserver_process, ev, data)
 }
 /*-----------------------------------------------------------------------------------*/
 void
-httpd_log_file(u16_t *requester, char *file)
+httpd_log_file(uip_ipaddr_t *requester, char *file)
 {
   int size;
   
@@ -99,10 +99,10 @@ httpd_log_file(u16_t *requester, char *file)
   /* Print out IP address of requesting host. */
   size = sprintf(&log[LOG_WIDTH * (LOG_HEIGHT - 1)],
 		 "%d.%d.%d.%d: ",
-		 htons(requester[0]) >> 8,
-		 htons(requester[0]) & 0xff,
-		 htons(requester[1]) >> 8,
-		 htons(requester[1]) & 0xff);
+		 requester->u8[0],
+		 requester->u8[1],
+		 requester->u8[2],
+		 requester->u8[3]);
   
   /* Copy filename into last line. */		 
   strncpy(&log[LOG_WIDTH * (LOG_HEIGHT - 1) + size], file, LOG_WIDTH - size);

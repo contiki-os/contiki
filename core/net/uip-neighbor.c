@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: uip-neighbor.c,v 1.1 2006/06/17 22:41:19 adamdunkels Exp $
+ * $Id: uip-neighbor.c,v 1.2 2006/08/09 16:13:40 bg- Exp $
  */
 
 /**
@@ -42,6 +42,7 @@
 #include "net/uip-neighbor.h"
 
 #include <string.h>
+#include <stdio.h>
 
 #define MAX_TIME 128
 
@@ -82,7 +83,7 @@ uip_neighbor_periodic(void)
 }
 /*---------------------------------------------------------------------------*/
 void
-uip_neighbor_add(uip_ipaddr_t ipaddr, struct uip_neighbor_addr *addr)
+uip_neighbor_add(uip_ipaddr_t *ipaddr, struct uip_neighbor_addr *addr)
 {
   int i, oldest;
   u8_t oldest_time;
@@ -99,7 +100,7 @@ uip_neighbor_add(uip_ipaddr_t ipaddr, struct uip_neighbor_addr *addr)
       oldest = i;
       break;
     }
-    if(uip_ipaddr_cmp(entries[i].ipaddr, addr)) {
+    if(uip_ipaddr_cmp(&entries[i].ipaddr, ipaddr)) {
       oldest = i;
       break;
     }
@@ -112,17 +113,17 @@ uip_neighbor_add(uip_ipaddr_t ipaddr, struct uip_neighbor_addr *addr)
   /* Use the oldest or first free entry (either pointed to by the
      "oldest" variable). */
   entries[oldest].time = 0;
-  uip_ipaddr_copy(entries[oldest].ipaddr, ipaddr);
+  uip_ipaddr_copy(&entries[oldest].ipaddr, ipaddr);
   memcpy(&entries[oldest].addr, addr, sizeof(struct uip_neighbor_addr));
 }
 /*---------------------------------------------------------------------------*/
 static struct neighbor_entry *
-find_entry(uip_ipaddr_t ipaddr)
+find_entry(uip_ipaddr_t *ipaddr)
 {
   int i;
   
   for(i = 0; i < ENTRIES; ++i) {
-    if(uip_ipaddr_cmp(entries[i].ipaddr, ipaddr)) {
+    if(uip_ipaddr_cmp(&entries[i].ipaddr, ipaddr)) {
       return &entries[i];
     }
   }
@@ -130,7 +131,7 @@ find_entry(uip_ipaddr_t ipaddr)
 }
 /*---------------------------------------------------------------------------*/
 void
-uip_neighbor_update(uip_ipaddr_t ipaddr)
+uip_neighbor_update(uip_ipaddr_t *ipaddr)
 {
   struct neighbor_entry *e;
 
@@ -141,7 +142,7 @@ uip_neighbor_update(uip_ipaddr_t ipaddr)
 }
 /*---------------------------------------------------------------------------*/
 struct uip_neighbor_addr *
-uip_neighbor_lookup(uip_ipaddr_t ipaddr)
+uip_neighbor_lookup(uip_ipaddr_t *ipaddr)
 {
   struct neighbor_entry *e;
 

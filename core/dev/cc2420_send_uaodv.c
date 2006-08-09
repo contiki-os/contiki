@@ -14,8 +14,8 @@
 #include "net/uaodv-rt.h"
 
 #define in_my_network(a) \
-  (((a[0] ^ cc2420if.ipaddr[0]) & cc2420if.netmask[0]) == 0 && \
-   ((a[1] ^ cc2420if.ipaddr[1]) & cc2420if.netmask[1]) == 0)
+  (((a[0] ^ cc2420if.ipaddr.u16[0]) & cc2420if.netmask.u16[0]) == 0 && \
+   ((a[1] ^ cc2420if.ipaddr.u16[1]) & cc2420if.netmask.u16[1]) == 0)
 
 u8_t
 cc2420_send_uaodv(void)
@@ -29,27 +29,27 @@ cc2420_send_uaodv(void)
   h.fc0 = FC0_TYPE_DATA | FC0_REQ_ACK | FC0_INTRA_PAN;
   h.fc1 = FC1_DST_16 | FC1_SRC_16;
 
-  h.src = uip_hostaddr[1];
-  if (BUF->destipaddr[0] == 0xffff && BUF->destipaddr[1] == 0xffff)
+  h.src = uip_hostaddr.u16[1];
+  if (uip_ipaddr_cmp(&BUF->destipaddr, &uip_broadcast_addr))
     h.dst = 0xffff;
   else {
     uip_ipaddr_t *next_gw;
 
-    if (in_my_network(BUF->destipaddr))
+    if (in_my_network(BUF->destipaddr.u16))
       next_gw = &BUF->destipaddr;
     else
       next_gw = &uip_draddr;	/* Default router. */
 
-    if (cc2420_check_remote((*next_gw)[1]) == 0)
-      h.dst = (*next_gw)[1];	/* local, use ucast */
+    if (cc2420_check_remote(next_gw->u16[1]) == 0)
+      h.dst = next_gw->u16[1];	/* local, use ucast */
     else {			/* remote or unknown */
       struct uaodv_rt_entry *route = uaodv_request_route_to(next_gw);
 
       if (route == NULL) {
-	h.dst = (*next_gw)[1];	/* try local while waiting for route */
+	h.dst = next_gw->u16[1]; /* try local while waiting for route */
       } else {
-	if (cc2420_check_remote(route->nexthop[1]) == 1) {
-	  printf("LOST 0x%04x\n", route->nexthop[1]);
+	if (cc2420_check_remote(route->nexthop.u16[1]) == 1) {
+	  printf("LOST 0x%04x\n", route->nexthop.u16[1]);
 	  /* Send bad route notification? */
 #ifdef UAODV_BAD_ROUTE
 	  uaodv_bad_route(route);
@@ -58,7 +58,7 @@ cc2420_send_uaodv(void)
 	  h.dst = 0xffff;	/* revert to bcast */
 	} else /* unknown */ {
 	  /* This will implicitly update neigbour table. */
-	  h.dst = route->nexthop[1];
+	  h.dst = route->nexthop.u16[1];
 	}
       }
     }

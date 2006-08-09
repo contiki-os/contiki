@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: uaodv-rt.c,v 1.1 2006/06/17 22:41:19 adamdunkels Exp $
+ * $Id: uaodv-rt.c,v 1.2 2006/08/09 16:13:39 bg- Exp $
  */
 
 /**
@@ -76,8 +76,8 @@ uaodv_rt_add(uip_ipaddr_t *dest, uip_ipaddr_t *nexthop,
     }
   }
 
-  uip_ipaddr_copy(e->dest, dest);
-  uip_ipaddr_copy(e->nexthop, nexthop);
+  uip_ipaddr_copy(&e->dest, dest);
+  uip_ipaddr_copy(&e->nexthop, nexthop);
   e->hop_count = hop_count;
   e->seqno = seqno;
 

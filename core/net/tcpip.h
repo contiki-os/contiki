@@ -60,7 +60,7 @@
  *
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: tcpip.h,v 1.1 2006/06/17 22:41:19 adamdunkels Exp $
+ * $Id: tcpip.h,v 1.2 2006/08/09 16:13:39 bg- Exp $
  */
 #ifndef __TCPIP_H__
 #define __TCPIP_H__
@@ -223,7 +223,7 @@ void udp_attach(struct uip_udp_conn *conn,
  * \return A pointer to the newly created connection, or NULL if
  * memory could not be allocated for the connection.
  */
-struct uip_udp_conn *udp_new(u16_t *ripaddr, u16_t port,
+struct uip_udp_conn *udp_new(uip_ipaddr_t *ripaddr, u16_t port,
 			     void *appstate);
 
 /**

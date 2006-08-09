@@ -41,7 +41,7 @@
  *
  * This file is part of the uIP TCP/IP stack.
  *
- * $Id: uip.c,v 1.1 2006/06/17 22:41:19 adamdunkels Exp $
+ * $Id: uip.c,v 1.2 2006/08/09 16:13:40 bg- Exp $
  *
  */
 
@@ -106,13 +106,13 @@ const uip_ipaddr_t uip_broadcast_addr =
 #if UIP_CONF_IPV6
   {0xffff,0xffff,0xffff,0xffff,0xffff,0xffff,0xffff,0xffff};
 #else /* UIP_CONF_IPV6 */
-  {0xffff,0xffff};
+  { .u16 = {0xffff,0xffff} };
 #endif /* UIP_CONF_IPV6 */
-static const uip_ipaddr_t all_zeroes_addr =
+const uip_ipaddr_t all_zeroes_addr =
 #if UIP_CONF_IPV6
   {0x0000,0x0000,0x0000,0x0000,0x0000,0x0000,0x0000,0x0000};
 #else /* UIP_CONF_IPV6 */
-  {0x0000,0x0000};
+  { .u16 = {0x0000,0x0000} };
 #endif /* UIP_CONF_IPV6 */
 
 
@@ -334,7 +334,7 @@ upper_layer_chksum(u8_t proto)
   /* IP protocol and length fields. This addition cannot carry. */
   sum = upper_layer_len + proto;
   /* Sum IP source and destination addresses. */
-  sum = chksum(sum, (u8_t *)&BUF->srcipaddr[0], 2 * sizeof(uip_ipaddr_t));
+  sum = chksum(sum, (u8_t *)&BUF->srcipaddr, 2 * sizeof(uip_ipaddr_t));
 
   /* Sum TCP header and data. */
   sum = chksum(sum, &uip_buf[UIP_IPH_LEN + UIP_LLH_LEN],
@@ -496,7 +496,7 @@ uip_udp_new(uip_ipaddr_t *ripaddr, u16_t rport)
   conn->lport = HTONS(lastport);
   conn->rport = rport;
   if(ripaddr == NULL) {
-    memset(conn->ripaddr, 0, sizeof(uip_ipaddr_t));
+    memset(&conn->ripaddr, 0, sizeof(uip_ipaddr_t));
   } else {
     uip_ipaddr_copy(&conn->ripaddr, ripaddr);
   }
@@ -881,7 +881,7 @@ uip_process(u8_t flag)
   }
 #endif /* UIP_CONF_IPV6 */
 
-  if(uip_ipaddr_cmp(uip_hostaddr, all_zeroes_addr)) {
+  if(uip_ipaddr_cmp(&uip_hostaddr, &all_zeroes_addr)) {
     /* If we are configured to use ping IP address configuration and
        hasn't been assigned an IP address yet, we accept all ICMP
        packets. */
@@ -901,7 +901,7 @@ uip_process(u8_t flag)
 #if UIP_BROADCAST
     DEBUG_PRINTF("UDP IP checksum 0x%04x\n", uip_ipchksum());
     if(BUF->proto == UIP_PROTO_UDP &&
-       uip_ipaddr_cmp(BUF->destipaddr, uip_broadcast_addr)
+       uip_ipaddr_cmp(&BUF->destipaddr, &uip_broadcast_addr)
        /*&&
 	 uip_ipchksum() == 0xffff*/) {
       goto udp_input;
@@ -910,7 +910,7 @@ uip_process(u8_t flag)
     
     /* Check if the packet is destined for our IP address. */
 #if !UIP_CONF_IPV6
-    if(!uip_ipaddr_cmp(BUF->destipaddr, uip_hostaddr)) {
+    if(!uip_ipaddr_cmp(&BUF->destipaddr, &uip_hostaddr)) {
       UIP_STAT(++uip_stat.ip.drop);
       goto drop;
     }
@@ -979,9 +979,8 @@ uip_process(u8_t flag)
      the destination IP address of this ping packet and assign it to
      ourself. */
 #if UIP_PINGADDRCONF
-  if((uip_hostaddr[0] | uip_hostaddr[1]) == 0) {
-    uip_hostaddr[0] = BUF->destipaddr[0];
-    uip_hostaddr[1] = BUF->destipaddr[1];
+  if(uip_ipaddr_cmp(&uip_hostaddr, &all_zeroes_addr)) {
+    uip_hostaddr = BUF->destipaddr;
   }
 #endif /* UIP_PINGADDRCONF */
 
@@ -994,8 +993,8 @@ uip_process(u8_t flag)
   }
 
   /* Swap IP addresses. */
-  uip_ipaddr_copy(BUF->destipaddr, BUF->srcipaddr);
-  uip_ipaddr_copy(BUF->srcipaddr, uip_hostaddr);
+  uip_ipaddr_copy(&BUF->destipaddr, &BUF->srcipaddr);
+  uip_ipaddr_copy(&BUF->srcipaddr, &uip_hostaddr);
 
   UIP_STAT(++uip_stat.icmp.sent);
   goto send;
@@ -1105,9 +1104,9 @@ uip_process(u8_t flag)
        UDPBUF->destport == uip_udp_conn->lport &&
        (uip_udp_conn->rport == 0 ||
         UDPBUF->srcport == uip_udp_conn->rport) &&
-       (uip_ipaddr_cmp(uip_udp_conn->ripaddr, all_zeroes_addr) ||
-	uip_ipaddr_cmp(uip_udp_conn->ripaddr, uip_broadcast_addr) ||
-	uip_ipaddr_cmp(BUF->srcipaddr, uip_udp_conn->ripaddr))) {
+       (uip_ipaddr_cmp(&uip_udp_conn->ripaddr, &all_zeroes_addr) ||
+	uip_ipaddr_cmp(&uip_udp_conn->ripaddr, &uip_broadcast_addr) ||
+	uip_ipaddr_cmp(&BUF->srcipaddr, &uip_udp_conn->ripaddr))) {
       goto udp_found;
     }
   }
@@ -1145,8 +1144,8 @@ uip_process(u8_t flag)
   BUF->srcport  = uip_udp_conn->lport;
   BUF->destport = uip_udp_conn->rport;
 
-  uip_ipaddr_copy(BUF->srcipaddr, uip_hostaddr);
-  uip_ipaddr_copy(BUF->destipaddr, uip_udp_conn->ripaddr);
+  uip_ipaddr_copy(&BUF->srcipaddr, &uip_hostaddr);
+  uip_ipaddr_copy(&BUF->destipaddr, &uip_udp_conn->ripaddr);
    
   uip_appdata = &uip_buf[UIP_LLH_LEN + UIP_IPTCPH_LEN];
 
@@ -1183,7 +1182,7 @@ uip_process(u8_t flag)
     if(uip_connr->tcpstateflags != UIP_CLOSED &&
        BUF->destport == uip_connr->lport &&
        BUF->srcport == uip_connr->rport &&
-       uip_ipaddr_cmp(BUF->srcipaddr, uip_connr->ripaddr)) {
+       uip_ipaddr_cmp(&BUF->srcipaddr, &uip_connr->ripaddr)) {
       goto found;
     }
   }
@@ -1252,8 +1251,8 @@ uip_process(u8_t flag)
   BUF->destport = tmp16;
   
   /* Swap IP addresses. */
-  uip_ipaddr_copy(BUF->destipaddr, BUF->srcipaddr);
-  uip_ipaddr_copy(BUF->srcipaddr, uip_hostaddr);
+  uip_ipaddr_copy(&BUF->destipaddr, &BUF->srcipaddr);
+  uip_ipaddr_copy(&BUF->srcipaddr, &uip_hostaddr);
   
   /* And send out the RST packet! */
   goto tcp_send_noconn;
@@ -1299,7 +1298,7 @@ uip_process(u8_t flag)
   uip_connr->nrtx = 0;
   uip_connr->lport = BUF->destport;
   uip_connr->rport = BUF->srcport;
-  uip_ipaddr_copy(uip_connr->ripaddr, BUF->srcipaddr);
+  uip_ipaddr_copy(&uip_connr->ripaddr, &BUF->srcipaddr);
   uip_connr->tcpstateflags = UIP_SYN_RCVD;
 
   uip_connr->snd_nxt[0] = iss[0];
@@ -1806,8 +1805,8 @@ uip_process(u8_t flag)
   BUF->srcport  = uip_connr->lport;
   BUF->destport = uip_connr->rport;
 
-  uip_ipaddr_copy(BUF->srcipaddr, uip_hostaddr);
-  uip_ipaddr_copy(BUF->destipaddr, uip_connr->ripaddr);
+  uip_ipaddr_copy(&BUF->srcipaddr, &uip_hostaddr);
+  uip_ipaddr_copy(&BUF->destipaddr, &uip_connr->ripaddr);
 
   if(uip_connr->tcpstateflags & UIP_STOPPED) {
     /* If the connection has issued uip_stop(), we advertise a zero

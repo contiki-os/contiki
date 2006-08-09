@@ -30,7 +30,7 @@
  *
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: tcpip.c,v 1.2 2006/07/07 06:45:45 nifi Exp $
+ * $Id: tcpip.c,v 1.3 2006/08/09 16:13:39 bg- Exp $
  */
 
 #include "contiki-conf.h"
@@ -188,12 +188,12 @@ udp_attach(struct uip_udp_conn *conn,
 }
 /*---------------------------------------------------------------------------*/
 struct uip_udp_conn *
-udp_new(u16_t *ripaddr, u16_t port, void *appstate)
+udp_new(uip_ipaddr_t *ripaddr, u16_t port, void *appstate)
 {
   struct uip_udp_conn *c;
   uip_udp_appstate_t *s;
   
-  c = uip_udp_new((uip_ipaddr_t *)ripaddr, port);
+  c = uip_udp_new(ripaddr, port);
   if(c == NULL) {
     return NULL;
   }
@@ -211,8 +211,8 @@ udp_broadcast_new(u16_t port, void *appstate)
   uip_ipaddr_t addr;
   struct uip_udp_conn *conn;
   
-  uip_ipaddr(addr, 255,255,255,255);
-  conn = udp_new(addr, port, appstate);
+  uip_ipaddr(&addr, 255,255,255,255);
+  conn = udp_new(&addr, port, appstate);
   if(conn != NULL) {
     udp_bind(conn, port);
   }

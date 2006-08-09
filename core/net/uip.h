@@ -46,7 +46,7 @@
  *
  * This file is part of the uIP TCP/IP stack.
  *
- * $Id: uip.h,v 1.1 2006/06/17 22:41:19 adamdunkels Exp $
+ * $Id: uip.h,v 1.2 2006/08/09 16:13:40 bg- Exp $
  *
  */
 
@@ -56,16 +56,29 @@
 #include "net/uipopt.h"
 
 /**
- * Repressentation of an IP address.
+ * Representation of an IP address.
  *
  */
-typedef u16_t uip_ip4addr_t[2];
-typedef u16_t uip_ip6addr_t[8];
+typedef union uip_ip4addr_t {
+  u16_t u16[2];			/* Must come first for now!!! */
+  u8_t  u8[4];
+#if 0
+  u32_t u32;
+#endif
+} uip_ip4addr_t;
+
+typedef union uip_ip6addr_t {
+  u16_t u16[8];
+  u8_t  u8[16];
+} uip_ip6addr_t;
+
 #if UIP_CONF_IPV6
 typedef uip_ip6addr_t uip_ipaddr_t;
 #else /* UIP_CONF_IPV6 */
 typedef uip_ip4addr_t uip_ipaddr_t;
 #endif /* UIP_CONF_IPV6 */
+
+#include "net/tcpip.h"
 
 /*---------------------------------------------------------------------------*/
 /* First, the functions that should be called from the
@@ -103,7 +116,7 @@ typedef uip_ip4addr_t uip_ipaddr_t;
  *
  * \hideinitializer
  */
-#define uip_sethostaddr(addr) uip_ipaddr_copy(uip_hostaddr, (addr))
+#define uip_sethostaddr(addr) uip_ipaddr_copy(&uip_hostaddr, (addr))
 
 /**
  * Get the IP address of this host.
@@ -123,7 +136,7 @@ typedef uip_ip4addr_t uip_ipaddr_t;
  *
  * \hideinitializer
  */
-#define uip_gethostaddr(addr) uip_ipaddr_copy((addr), uip_hostaddr)
+#define uip_gethostaddr(addr) uip_ipaddr_copy((addr), &uip_hostaddr)
 
 /**
  * Set the default router's IP address.
@@ -135,7 +148,7 @@ typedef uip_ip4addr_t uip_ipaddr_t;
  *
  * \hideinitializer
  */
-#define uip_setdraddr(addr) uip_ipaddr_copy(uip_draddr, (addr))
+#define uip_setdraddr(addr) uip_ipaddr_copy(&uip_draddr, (addr))
 
 /**
  * Set the netmask.
@@ -147,7 +160,7 @@ typedef uip_ip4addr_t uip_ipaddr_t;
  *
  * \hideinitializer
  */
-#define uip_setnetmask(addr) uip_ipaddr_copy(uip_netmask, (addr))
+#define uip_setnetmask(addr) uip_ipaddr_copy(&uip_netmask, (addr))
 
 
 /**
@@ -158,7 +171,7 @@ typedef uip_ip4addr_t uip_ipaddr_t;
  *
  * \hideinitializer
  */
-#define uip_getdraddr(addr) uip_ipaddr_copy((addr), uip_draddr)
+#define uip_getdraddr(addr) uip_ipaddr_copy((addr), &uip_draddr)
 
 /**
  * Get the netmask.
@@ -168,7 +181,7 @@ typedef uip_ip4addr_t uip_ipaddr_t;
  *
  * \hideinitializer
  */
-#define uip_getnetmask(addr) uip_ipaddr_copy((addr), uip_netmask)
+#define uip_getnetmask(addr) uip_ipaddr_copy((addr), &uip_netmask)
 
 /** @} */
 
@@ -838,8 +851,10 @@ struct uip_udp_conn *uip_udp_new(uip_ipaddr_t *ripaddr, u16_t rport);
  * \hideinitializer
  */
 #define uip_ipaddr(addr, addr0,addr1,addr2,addr3) do { \
-                     ((u16_t *)(addr))[0] = HTONS(((addr0) << 8) | (addr1)); \
-                     ((u16_t *)(addr))[1] = HTONS(((addr2) << 8) | (addr3)); \
+                     (addr)->u8[0] = addr0; \
+                     (addr)->u8[1] = addr1; \
+                     (addr)->u8[2] = addr2; \
+                     (addr)->u8[3] = addr3; \
                   } while(0)
 
 /**
@@ -878,14 +893,7 @@ struct uip_udp_conn *uip_udp_new(uip_ipaddr_t *ripaddr, u16_t rport);
  *
  * \hideinitializer
  */
-#if !UIP_CONF_IPV6
-#define uip_ipaddr_copy(dest, src) do { \
-                     ((u16_t *)dest)[0] = ((u16_t *)src)[0]; \
-                     ((u16_t *)dest)[1] = ((u16_t *)src)[1]; \
-                  } while(0)
-#else /* !UIP_CONF_IPV6 */
-#define uip_ipaddr_copy(dest, src) memcpy(dest, src, sizeof(uip_ip6addr_t))
-#endif /* !UIP_CONF_IPV6 */
+#define uip_ipaddr_copy(dest, src) ((*dest) = (*src))
 
 /**
  * Compare two IP addresses
@@ -908,8 +916,8 @@ struct uip_udp_conn *uip_udp_new(uip_ipaddr_t *ripaddr, u16_t rport);
  * \hideinitializer
  */
 #if !UIP_CONF_IPV6
-#define uip_ipaddr_cmp(addr1, addr2) (((u16_t *)addr1)[0] == ((u16_t *)addr2)[0] && \
-				      ((u16_t *)addr1)[1] == ((u16_t *)addr2)[1])
+#define uip_ipaddr_cmp(addr1, addr2) ((addr1)->u16[0] == (addr2)->u16[0] && \
+				      (addr1)->u16[1] == (addr2)->u16[1])
 #else /* !UIP_CONF_IPV6 */
 #define uip_ipaddr_cmp(addr1, addr2) (memcmp(addr1, addr2, sizeof(uip_ip6addr_t)) == 0)
 #endif /* !UIP_CONF_IPV6 */
@@ -992,7 +1000,7 @@ struct uip_udp_conn *uip_udp_new(uip_ipaddr_t *ripaddr, u16_t rport);
  *
  * \hideinitializer
  */
-#define uip_ipaddr1(addr) (htons(((u16_t *)(addr))[0]) >> 8)
+#define uip_ipaddr1(addr) ((addr)->u8[0])
 
 /**
  * Pick the second octet of an IP address.
@@ -1012,7 +1020,7 @@ struct uip_udp_conn *uip_udp_new(uip_ipaddr_t *ripaddr, u16_t rport);
  *
  * \hideinitializer
  */
-#define uip_ipaddr2(addr) (htons(((u16_t *)(addr))[0]) & 0xff)
+#define uip_ipaddr2(addr) ((addr)->u8[1])
 
 /**
  * Pick the third octet of an IP address.
@@ -1032,7 +1040,7 @@ struct uip_udp_conn *uip_udp_new(uip_ipaddr_t *ripaddr, u16_t rport);
  *
  * \hideinitializer
  */
-#define uip_ipaddr3(addr) (htons(((u16_t *)(addr))[1]) >> 8)
+#define uip_ipaddr3(addr) ((addr)->u8[2])
 
 /**
  * Pick the fourth octet of an IP address.
@@ -1052,7 +1060,7 @@ struct uip_udp_conn *uip_udp_new(uip_ipaddr_t *ripaddr, u16_t rport);
  *
  * \hideinitializer
  */
-#define uip_ipaddr4(addr) (htons(((u16_t *)(addr))[1]) & 0xff)
+#define uip_ipaddr4(addr) ((addr)->u8[3])
 
 /**
  * Convert 16-bit quantity from host byte order to network byte order.
@@ -1403,8 +1411,7 @@ struct uip_tcpip_hdr {
     ttl,
     proto;
   u16_t ipchksum;
-  u16_t srcipaddr[2],
-    destipaddr[2];
+  uip_ipaddr_t srcipaddr, destipaddr;
 #endif /* UIP_CONF_IPV6 */
   
   /* TCP header. */
@@ -1440,8 +1447,7 @@ struct uip_icmpip_hdr {
     ttl,
     proto;
   u16_t ipchksum;
-  u16_t srcipaddr[2],
-    destipaddr[2];
+  uip_ipaddr_t srcipaddr, destipaddr;
 #endif /* UIP_CONF_IPV6 */
   
   /* ICMP (echo) header. */
@@ -1477,8 +1483,7 @@ struct uip_udpip_hdr {
     ttl,
     proto;
   u16_t ipchksum;
-  u16_t srcipaddr[2],
-    destipaddr[2];
+  uip_ipaddr_t srcipaddr, destipaddr;
 #endif /* UIP_CONF_IPV6 */
   
   /* UDP header. */
@@ -1535,6 +1540,7 @@ extern const uip_ipaddr_t uip_hostaddr, uip_netmask, uip_draddr;
 extern uip_ipaddr_t uip_hostaddr, uip_netmask, uip_draddr;
 #endif /* UIP_FIXEDADDR */
 extern const uip_ipaddr_t uip_broadcast_addr;
+extern const uip_ipaddr_t all_zeroes_addr;
 
 
 /**

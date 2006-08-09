@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: contiki-esb-default-init-net.c,v 1.1 2006/06/17 22:41:27 adamdunkels Exp $
+ * @(#)$Id: contiki-esb-default-init-net.c,v 1.2 2006/08/09 16:13:40 bg- Exp $
  */
 
 #include "contiki-esb.h"
@@ -44,7 +44,7 @@ static struct uip_fw_netif slipif =
 void
 init_net(void)
 {
-  u16_t hostaddr[2];
+  uip_ipaddr_t hostaddr;
   
   rs232_set_input(slip_input_byte);
 
@@ -53,8 +53,8 @@ init_net(void)
   
   if (NODE_ID > 0) {
     /* node id is set, construct an ip address based on the node id */
-    uip_ipaddr(hostaddr, 172, 16, 1, NODE_ID);
-    uip_sethostaddr(hostaddr);
+    uip_ipaddr(&hostaddr, 172, 16, 1, NODE_ID);
+    uip_sethostaddr(&hostaddr);
   }
   uip_fw_register(&slipif);
   uip_fw_default(&tr1001if);

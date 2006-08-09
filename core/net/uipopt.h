@@ -53,7 +53,7 @@
  *
  * This file is part of the uIP TCP/IP stack.
  *
- * $Id: uipopt.h,v 1.1 2006/06/17 22:41:19 adamdunkels Exp $
+ * $Id: uipopt.h,v 1.2 2006/08/09 16:13:40 bg- Exp $
  *
  */
 
@@ -539,8 +539,6 @@ typedef struct httpd_state uip_tcp_appstate_t
  * application state information.
  */
 /** @} */
-
-#include "net/tcpip.h"
 
 #endif /* __UIPOPT_H__ */
 /** @} */
