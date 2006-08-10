@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF 
  * SUCH DAMAGE. 
  *
- * @(#)$Id: xmem.c,v 1.1 2006/08/02 14:44:46 bg- Exp $
+ * @(#)$Id: xmem.c,v 1.2 2006/08/10 16:42:11 bg- Exp $
  */
 
 /*
@@ -47,6 +47,12 @@
 #include "dev/spi.h"
 #include "dev/xmem.h"
 
+#if 0
+#define PRINTF(...) printf(__VA_ARGS__)
+#else
+#define PRINTF(...) do {} while (0)
+#endif
+
 #define  SPI_FLASH_INS_WREN        0x06
 #define  SPI_FLASH_INS_WRDI        0x04
 #define  SPI_FLASH_INS_RDSR        0x05
@@ -60,6 +66,12 @@
 #define  SPI_FLASH_INS_RES         0xab
 
 static void
+spi_tx(unsigned byte)
+{
+  FASTSPI_TX(byte);
+}
+
+static void
 write_enable(void)
 {
   int s;
@@ -67,7 +79,7 @@ write_enable(void)
   s = splhigh();
   SPI_FLASH_ENABLE();
   
-  FASTSPI_TX(SPI_FLASH_INS_WREN);
+  spi_tx(SPI_FLASH_INS_WREN);
 
   SPI_FLASH_DISABLE();
   splx(s);
@@ -83,7 +95,7 @@ read_status_register(void)
   s = splhigh();
   SPI_FLASH_ENABLE();
   
-  FASTSPI_TX(SPI_FLASH_INS_RDSR);
+  spi_tx(SPI_FLASH_INS_RDSR);
 
   FASTSPI_CLEAR_RX();
   FASTSPI_RX(u);
@@ -95,10 +107,10 @@ read_status_register(void)
 }
 
 /*
- * Wait for a write operation to finish.
+ * Wait for a write/erase operation to finish.
  */
 static unsigned
-eeprom_finish(void)
+wait_ready(void)
 {
   unsigned u;
   do {
@@ -108,24 +120,24 @@ eeprom_finish(void)
 }
 
 /*
- * Erase 64kBytes of date, it takes about 1s before WIP goes low!
+ * Erase 64k bytes of data. It takes about 1s before WIP goes low!
  */
 static void
-sector_erase(unsigned long offset)
+erase_sector(off_t offset)
 {
   int s;
 
-  eeprom_finish();
+  wait_ready();
 
   write_enable();
 
   s = splhigh();
   SPI_FLASH_ENABLE();
   
-  FASTSPI_TX(SPI_FLASH_INS_SE);
-  FASTSPI_TX(offset >> 16);	/* MSB */
-  FASTSPI_TX(offset >> 8);
-  FASTSPI_TX(offset >> 0);	/* LSB */
+  spi_tx(SPI_FLASH_INS_SE);
+  spi_tx(offset >> 16);	/* MSB */
+  spi_tx(offset >> 8);
+  spi_tx(offset >> 0);	/* LSB */
 
   SPI_FLASH_DISABLE();
   splx(s);
@@ -153,15 +165,15 @@ xmem_pread(void *_p, int size, off_t offset)
   const unsigned char *end = p + size;
   int s;
 
-  eeprom_finish();
+  wait_ready();
 
   s = splhigh();
   SPI_FLASH_ENABLE();
 
-  FASTSPI_TX(SPI_FLASH_INS_READ);
-  FASTSPI_TX(offset >> 16);	/* MSB */
-  FASTSPI_TX(offset >> 8);
-  FASTSPI_TX(offset >> 0);	/* LSB */
+  spi_tx(SPI_FLASH_INS_READ);
+  spi_tx(offset >> 16);	/* MSB */
+  spi_tx(offset >> 8);
+  spi_tx(offset >> 0);	/* LSB */
   
   FASTSPI_CLEAR_RX();
   for(; p < end; p++) {
@@ -176,25 +188,25 @@ xmem_pread(void *_p, int size, off_t offset)
 }
 
 static const char *
-eeprom_page_program(unsigned long offset, const unsigned char *p, int nbytes)
+program_page(off_t offset, const unsigned char *p, int nbytes)
 {
   const unsigned char *end = p + nbytes;
   int s;
 
-  eeprom_finish();
+  wait_ready();
 
   write_enable();
 
   s = splhigh();
   SPI_FLASH_ENABLE();
   
-  FASTSPI_TX(SPI_FLASH_INS_PP);
-  FASTSPI_TX(offset >> 16);	/* MSB */
-  FASTSPI_TX(offset >> 8);
-  FASTSPI_TX(offset >> 0);	/* LSB */
+  spi_tx(SPI_FLASH_INS_PP);
+  spi_tx(offset >> 16);	/* MSB */
+  spi_tx(offset >> 8);
+  spi_tx(offset >> 0);	/* LSB */
 
   for(; p < end; p++) {
-    FASTSPI_TX(~*p);
+    spi_tx(~*p);
   }
 
   SPI_FLASH_DISABLE();
@@ -206,16 +218,15 @@ eeprom_page_program(unsigned long offset, const unsigned char *p, int nbytes)
 int
 xmem_pwrite(const void *_buf, int size, off_t addr)
 {
-  const unsigned char *buf = _buf;
-  unsigned i, next_page, end;
-  const char *p = buf;
+  const unsigned char *p = _buf;
+  const off_t end = addr + size;
+  off_t i, next_page;
   
-  end = addr + size;
   for(i = addr; i < end;) {
     next_page = (i | 0xff) + 1;
     if(next_page > end)
       next_page = end;
-    p = eeprom_page_program(i, p, next_page - i);
+    p = program_page(i, p, next_page - i);
     i = next_page;
   }
   return size;
@@ -227,17 +238,17 @@ xmem_erase(long size, off_t addr)
   off_t end = addr + size;
 
   if(size % XMEM_ERASE_UNIT_SIZE != 0) {
-    printf("xmem_erase: bad size\n");
+    PRINTF("xmem_erase: bad size\n");
     return -1;
   }
 
   if(addr % XMEM_ERASE_UNIT_SIZE != 0) {
-    printf("xmem_erase: bad offset\n");
+    PRINTF("xmem_erase: bad offset\n");
     return -1;
   }
 
   for (; addr < end; addr += XMEM_ERASE_UNIT_SIZE)
-    sector_erase(addr);
+    erase_sector(addr);
 
   return size;
 }
