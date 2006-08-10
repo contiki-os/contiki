@@ -31,7 +31,7 @@
  *
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: tapdev6.c,v 1.1 2006/06/17 22:41:24 adamdunkels Exp $
+ * $Id: tapdev6.c,v 1.2 2006/08/10 19:22:23 bg- Exp $
  */
 
 
@@ -181,10 +181,10 @@ tapdev_send(void)
   struct uip_neighbor_addr *addr;
   /*  uip_arp_out();*/
 
-  addr = uip_neighbor_lookup(IPBUF->destipaddr);
+  addr = uip_neighbor_lookup(&IPBUF->destipaddr);
   if(addr == NULL) {
     printf("tapdev6: tapdev_send: no matching neighbor found\n");
-    DEBUG_PRINT6ADDR(IPBUF->destipaddr);
+    DEBUG_PRINT6ADDR(&IPBUF->destipaddr);
     printf("\n");
   } else {
     memcpy(&BUF->dest, addr, 6);

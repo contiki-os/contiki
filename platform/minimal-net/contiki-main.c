@@ -29,7 +29,7 @@
  *
  * This file is part of the Contiki OS
  *
- * $Id: contiki-main.c,v 1.1 2006/06/17 22:41:30 adamdunkels Exp $
+ * $Id: contiki-main.c,v 1.2 2006/08/10 19:23:13 bg- Exp $
  *
  */
 
@@ -45,7 +45,7 @@ PROCINIT(&etimer_process, &tcpip_process,
 int
 main(void)
 {
-  u16_t addr[2];
+  uip_ipaddr_t addr;
 
   process_init();
 
@@ -53,14 +53,14 @@ main(void)
   
   autostart_start(autostart_processes);
   
-  uip_ipaddr(addr, 192,168,2,2);
-  uip_sethostaddr(addr);
+  uip_ipaddr(&addr, 192,168,2,2);
+  uip_sethostaddr(&addr);
 
-  uip_ipaddr(addr, 192,168,2,1);
-  uip_setdraddr(addr);
+  uip_ipaddr(&addr, 192,168,2,1);
+  uip_setdraddr(&addr);
 
-  uip_ipaddr(addr, 255,255,255,0);
-  uip_setnetmask(addr);
+  uip_ipaddr(&addr, 255,255,255,0);
+  uip_setnetmask(&addr);
 
   while(1) {
     int n;
