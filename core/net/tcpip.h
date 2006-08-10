@@ -60,7 +60,7 @@
  *
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: tcpip.h,v 1.2 2006/08/09 16:13:39 bg- Exp $
+ * $Id: tcpip.h,v 1.3 2006/08/10 16:43:32 bg- Exp $
  */
 #ifndef __TCPIP_H__
 #define __TCPIP_H__
@@ -162,7 +162,7 @@ void tcp_unlisten(u16_t port);
  * memory could not be allocated for the connection.
  *
  */
-struct uip_conn *tcp_connect(u16_t *ripaddr, u16_t port,
+struct uip_conn *tcp_connect(uip_ipaddr_t *ripaddr, u16_t port,
 			     void *appstate);
 
 /**

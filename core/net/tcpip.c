@@ -30,7 +30,7 @@
  *
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: tcpip.c,v 1.3 2006/08/09 16:13:39 bg- Exp $
+ * $Id: tcpip.c,v 1.4 2006/08/10 16:43:32 bg- Exp $
  */
 
 #include "contiki-conf.h"
@@ -112,11 +112,11 @@ tcpip_output(void)
 }
 /*---------------------------------------------------------------------------*/
 struct uip_conn *
-tcp_connect(u16_t *ripaddr, u16_t port, void *appstate)
+tcp_connect(uip_ipaddr_t *ripaddr, u16_t port, void *appstate)
 {
   struct uip_conn *c;
   
-  c = uip_connect((uip_ipaddr_t *)ripaddr, port);
+  c = uip_connect(ripaddr, port);
   if(c == NULL) {
     return NULL;
   }

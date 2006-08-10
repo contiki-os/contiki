@@ -41,7 +41,7 @@
  *
  * This file is part of the uIP TCP/IP stack.
  *
- * $Id: uip.c,v 1.2 2006/08/09 16:13:40 bg- Exp $
+ * $Id: uip.c,v 1.3 2006/08/10 16:43:32 bg- Exp $
  *
  */
 
@@ -104,13 +104,13 @@ uip_ipaddr_t uip_hostaddr, uip_draddr, uip_netmask;
 
 const uip_ipaddr_t uip_broadcast_addr =
 #if UIP_CONF_IPV6
-  {0xffff,0xffff,0xffff,0xffff,0xffff,0xffff,0xffff,0xffff};
+  { .u16 = {0xffff,0xffff,0xffff,0xffff,0xffff,0xffff,0xffff,0xffff} };
 #else /* UIP_CONF_IPV6 */
   { .u16 = {0xffff,0xffff} };
 #endif /* UIP_CONF_IPV6 */
 const uip_ipaddr_t all_zeroes_addr =
 #if UIP_CONF_IPV6
-  {0x0000,0x0000,0x0000,0x0000,0x0000,0x0000,0x0000,0x0000};
+  { .u16 = {0x0000,0x0000,0x0000,0x0000,0x0000,0x0000,0x0000,0x0000} };
 #else /* UIP_CONF_IPV6 */
   { .u16 = {0x0000,0x0000} };
 #endif /* UIP_CONF_IPV6 */
@@ -920,8 +920,8 @@ uip_process(u8_t flag)
        hosts multicast address, and the solicited-node multicast
        address) as well. However, we will cheat here and accept all
        multicast packets that are sent to the ff02::/16 addresses. */
-    if(!uip_ipaddr_cmp(BUF->destipaddr, uip_hostaddr) &&
-       BUF->destipaddr[0] != HTONS(0xff02)) {
+    if(!uip_ipaddr_cmp(&BUF->destipaddr, &uip_hostaddr) &&
+       BUF->destipaddr.u16[0] != HTONS(0xff02)) {
       UIP_STAT(++uip_stat.ip.drop);
       goto drop;
     }
@@ -1018,11 +1018,11 @@ uip_process(u8_t flag)
   /* If we get a neighbor solicitation for our address we should send
      a neighbor advertisement message back. */
   if(ICMPBUF->type == ICMP6_NEIGHBOR_SOLICITATION) {
-    if(uip_ipaddr_cmp(ICMPBUF->icmp6data, uip_hostaddr)) {
+    if(uip_ipaddr_cmp(&ICMPBUF->icmp6data, &uip_hostaddr)) {
 
       if(ICMPBUF->options[0] == ICMP6_OPTION_SOURCE_LINK_ADDRESS) {
 	/* Save the sender's address in our neighbor list. */
-	uip_neighbor_add(ICMPBUF->srcipaddr, &(ICMPBUF->options[2]));
+	uip_neighbor_add(&ICMPBUF->srcipaddr, &(ICMPBUF->options[2]));
       }
       
       /* We should now send a neighbor advertisement back to where the
@@ -1032,8 +1032,8 @@ uip_process(u8_t flag)
       
       ICMPBUF->reserved1 = ICMPBUF->reserved2 = ICMPBUF->reserved3 = 0;
       
-      uip_ipaddr_copy(ICMPBUF->destipaddr, ICMPBUF->srcipaddr);
-      uip_ipaddr_copy(ICMPBUF->srcipaddr, uip_hostaddr);
+      uip_ipaddr_copy(&ICMPBUF->destipaddr, &ICMPBUF->srcipaddr);
+      uip_ipaddr_copy(&ICMPBUF->srcipaddr, &uip_hostaddr);
       ICMPBUF->options[0] = ICMP6_OPTION_TARGET_LINK_ADDRESS;
       ICMPBUF->options[1] = 1;  /* Options length, 1 = 8 bytes. */
       memcpy(&(ICMPBUF->options[2]), &uip_ethaddr, sizeof(uip_ethaddr));
@@ -1050,8 +1050,8 @@ uip_process(u8_t flag)
 
     ICMPBUF->type = ICMP6_ECHO_REPLY;
     
-    uip_ipaddr_copy(BUF->destipaddr, BUF->srcipaddr);
-    uip_ipaddr_copy(BUF->srcipaddr, uip_hostaddr);
+    uip_ipaddr_copy(&BUF->destipaddr, &BUF->srcipaddr);
+    uip_ipaddr_copy(&BUF->srcipaddr, &uip_hostaddr);
     ICMPBUF->icmpchksum = 0;
     ICMPBUF->icmpchksum = ~uip_icmp6chksum();
     
