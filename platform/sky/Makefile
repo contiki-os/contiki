@@ -1,4 +1,4 @@
-# $Id: Makefile,v 1.1 2006/08/02 14:44:46 bg- Exp $
+# $Id: Makefile,v 1.2 2006/08/11 13:37:21 bg- Exp $
 #
 # This makefile requires GNU make!
 
@@ -25,7 +25,7 @@ UIP=uip.o uiplib.o tcpip.o uip-fw.o uip-fw-service.o uipbuf.o \
     tcpdump.o psock.o dhcpc.o uaodv.o uaodv-rt.o
 UIPDRIVERS=slip.o slip_uart1.o \
            cc2420.o cc2420_uart0.o cc2420_send_ip.o cc2420_send_uaodv.o 
-LIBS=memb.o list.o malloc.o realloc.o malloc_compact.o rand.o crtk.o
+LIBS=memb.o list.o malloc.o realloc.o malloc_compact.o rand.o assert.o crtk.o
 SYSAPPS=tcp_loader.o
 LIBFILES=$(SYSTEM) $(ARCH) $(UIP) $(UIPDRIVERS) $(LIBS) $(SYSAPPS)
 
