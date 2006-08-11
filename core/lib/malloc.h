@@ -27,7 +27,7 @@
   POSSIBILITY OF SUCH DAMAGE.
 */
 
-/* $Id: malloc.h,v 1.1 2006/06/17 22:41:18 adamdunkels Exp $ */
+/* $Id: malloc.h,v 1.2 2006/08/11 13:41:31 bg- Exp $ */
 
 #ifndef MALLOC_H
 #define MALLOC_H
@@ -57,6 +57,7 @@ void free(void *ptr);
 
 extern char *__brkval;		/* first location not yet allocated */
 extern struct __freelist *__flp; /* freelist pointer (head of freelist) */
+extern char *__malloc_heap_end;
 
 #define MALLOC_ROUNDUP (sizeof(int) - 1)
 

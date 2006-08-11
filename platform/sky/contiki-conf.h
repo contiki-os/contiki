@@ -1,5 +1,5 @@
 /* -*- C -*- */
-/* @(#)$Id: contiki-conf.h,v 1.1 2006/08/02 14:44:46 bg- Exp $ */
+/* @(#)$Id: contiki-conf.h,v 1.2 2006/08/11 13:41:31 bg- Exp $ */
 
 #ifndef CONTIKI_CONF_H
 #define CONTIKI_CONF_H
@@ -8,6 +8,7 @@
 #define UAODV_BAD_ROUTE
 
 /* Helper prototypes that should go somewhere. */
+void   *sbrk(int);
 void    splx_(int);
 int     splhigh_(void);
 void msp430_cpu_init(void);	/* Rename to cpu_init() later! */
@@ -53,10 +54,6 @@ void msp430_cpu_init(void);	/* Rename to cpu_init() later! */
 
 /* Button sensors. */
 #define IRQ_PORT2 0x02
-
-/* Reserve 64 bytes (only) for the runtime stack. */
-#define __malloc_heap_start ((char *)&__bss_end)
-#define __malloc_heap_end  (((char *)&__stack) - 64)
 
 typedef unsigned char u8_t;
 typedef unsigned short u16_t;

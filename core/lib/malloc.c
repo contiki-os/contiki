@@ -30,7 +30,7 @@
 */
  
  
-/* $Id: malloc.c,v 1.1 2006/06/17 22:41:18 adamdunkels Exp $ */
+/* $Id: malloc.c,v 1.2 2006/08/11 13:41:31 bg- Exp $ */
 
 #include <stdlib.h>
 
@@ -54,6 +54,8 @@ char mymem[256];
  * with the data segment.
  */
  
+char *__malloc_heap_end;
+
 char *__brkval;
 struct __freelist *__flp;
 
@@ -64,7 +66,7 @@ malloc(size_t len)
 {
 	struct __freelist *fp1, *fp2;
 	char *cp;
-	size_t s, avail;
+	size_t s;
 
 	if (len <= 0)
 	    return 0;
@@ -161,23 +163,17 @@ malloc(size_t len)
 	 * that we don't collide with the stack.
 	 */
 	if (__brkval == 0)
-		__brkval = __malloc_heap_start;
-	cp = __malloc_heap_end;
-	avail = cp - __brkval;
-	/*
-	 * Both tests below are needed to catch the case len >= 0xfffe.
-	 */
-	if (avail >= len && avail >= len + sizeof(struct __freelist)) {
-		fp1 = (struct __freelist *)__brkval;
-		__brkval += len + sizeof(struct __freelist);
-		fp1->sz = len;
-		fp1->handle = NULL;
-		return &fp1[1];
-	}
-	/*
-	 * Step 4: There's no help, just fail. :-/
-	 */
-	return 0;
+		__brkval = sbrk(len + sizeof(struct __freelist));
+	else if (sbrk(len + sizeof(struct __freelist)) == (void *)-1)
+		return 0;	/* There's no help, just fail. :-/ */
+
+	__malloc_heap_end = sbrk(0);
+
+	fp1 = (struct __freelist *)__brkval;
+	__brkval += len + sizeof(struct __freelist);
+	fp1->sz = len;
+	fp1->handle = NULL;
+	return &fp1[1];
 }
 
 void

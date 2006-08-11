@@ -28,10 +28,11 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: msp430.c,v 1.1 2006/06/17 22:41:21 adamdunkels Exp $
+ * @(#)$Id: msp430.c,v 1.2 2006/08/11 13:41:31 bg- Exp $
  */
 #include <io.h>
 #include <signal.h>
+#include <sys/unistd.h>
 
 #include "net/uip.h"
 
@@ -159,6 +160,33 @@ msp430_cpu_init(void)
 }
 
 #define asmv(arg) __asm__ __volatile__(arg)
+
+#define STACK_EXTRA 32
+static char *cur_break = (char *)&__bss_end;
+
+/*
+ * Allocate memory from the heap. Check that we don't collide with the
+ * stack right now (some other routine might later). A watchdog might
+ * be used to check if cur_break and the stack pointer meet during
+ * runtime.
+ */
+void *
+sbrk(int incr)
+{
+  char *stack_pointer;
+
+  asmv("mov r1, %0" : "=r" (stack_pointer));
+  stack_pointer -= STACK_EXTRA;
+  if(incr > (stack_pointer - cur_break))
+    return (void *)-1;		/* ENOMEM */
+
+  void *old_break = cur_break;
+  cur_break += incr;
+  /*
+   * If the stack was never here then [old_break .. cur_break] should
+   * be filled with zeros.
+  */
+  return old_break; }
 
 /*
  * Mask all interrupts that can be masked.
