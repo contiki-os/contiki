@@ -29,7 +29,7 @@
  *
  * This file is part of the Contiki desktop environment
  *
- * $Id: directory.c,v 1.1 2006/06/17 22:41:10 adamdunkels Exp $
+ * $Id: directory.c,v 1.2 2006/08/13 14:02:07 oliverschmidt Exp $
  *
  */
 
@@ -39,6 +39,7 @@
 #include "contiki.h"
 #include "cfs/cfs.h"
 #include "ctk/ctk.h"
+#include "ctk/ctk-draw.h"
 
 #include "program-handler.h"
 
@@ -129,7 +130,7 @@ makewindow(unsigned char i)
     CTK_WIDGET_SET_YPOS(dscs[i]->icon, y);
     CTK_WIDGET_ADD(&window, dscs[i]->icon);
 
-    x += strlen(dscs[i]->icon->title) + 2;
+    x += (unsigned char)strlen(dscs[i]->icon->title) + 2;
   }
   CTK_WIDGET_SET_YPOS(&autoexitbutton, height - 2);
   CTK_WIDGET_ADD(&window, &autoexitbutton);
@@ -269,7 +270,7 @@ PROCESS_THREAD(directory_process, ev, data)
       } else {
 	for(i = 0; dscs[i] != NULL; ++i) {
 	  if(data == (process_data_t)(dscs[i]->icon)) {
-	    /*	    program_handler_load(dscs[i]->prgname, NULL);*/
+	    program_handler_load(dscs[i]->prgname, NULL);
 	    if(autoexit) {
 	      ctk_window_close(&window);
 	      quit();
