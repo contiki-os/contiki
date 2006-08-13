@@ -41,7 +41,7 @@
  *
  * This file is part of the uIP TCP/IP stack.
  *
- * $Id: uip.c,v 1.3 2006/08/10 16:43:32 bg- Exp $
+ * $Id: uip.c,v 1.4 2006/08/13 14:53:45 oliverschmidt Exp $
  *
  */
 
@@ -104,15 +104,15 @@ uip_ipaddr_t uip_hostaddr, uip_draddr, uip_netmask;
 
 const uip_ipaddr_t uip_broadcast_addr =
 #if UIP_CONF_IPV6
-  { .u16 = {0xffff,0xffff,0xffff,0xffff,0xffff,0xffff,0xffff,0xffff} };
+  {0xffff,0xffff,0xffff,0xffff,0xffff,0xffff,0xffff,0xffff};
 #else /* UIP_CONF_IPV6 */
-  { .u16 = {0xffff,0xffff} };
+  {0xffff,0xffff};
 #endif /* UIP_CONF_IPV6 */
 const uip_ipaddr_t all_zeroes_addr =
 #if UIP_CONF_IPV6
-  { .u16 = {0x0000,0x0000,0x0000,0x0000,0x0000,0x0000,0x0000,0x0000} };
+  {0x0000,0x0000,0x0000,0x0000,0x0000,0x0000,0x0000,0x0000};
 #else /* UIP_CONF_IPV6 */
-  { .u16 = {0x0000,0x0000} };
+  {0x0000,0x0000};
 #endif /* UIP_CONF_IPV6 */
 
 
