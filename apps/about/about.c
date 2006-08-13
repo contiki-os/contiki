@@ -29,7 +29,7 @@
  *
  * This file is part of the Contiki desktop environment
  *
- * $Id: about.c,v 1.1 2006/06/17 22:41:10 adamdunkels Exp $
+ * $Id: about.c,v 1.2 2006/08/13 13:59:07 oliverschmidt Exp $
  *
  */
 
@@ -37,6 +37,7 @@
 
 #include "contiki.h"
 #include "ctk/ctk.h"
+#include "lib/petsciiconv.h"
 
 static struct ctk_window aboutdialog;
 static struct ctk_label aboutlabel1 =
