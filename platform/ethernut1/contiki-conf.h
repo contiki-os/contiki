@@ -4,6 +4,9 @@
 #define CC_CONF_REGISTER_ARGS          1
 #define CC_CONF_FUNCTION_POINTER_ARGS  1
 
+#define CCI
+#define CLI
+
 typedef unsigned short clock_time_t;
 #define CLOCK_CONF_SECOND 1000
 

@@ -32,7 +32,7 @@
  *
  * This file is part of the Contiki desktop OS
  *
- * $Id: contiki-conf.h,v 1.1 2006/06/17 22:41:31 adamdunkels Exp $
+ * $Id: contiki-conf.h,v 1.2 2006/08/13 15:13:53 oliverschmidt Exp $
  *
  */
 
@@ -41,6 +41,9 @@
 #define CC_CONF_FASTCALL
 
 #define CC_CONF_VA_ARGS                1
+
+#define CCI
+#define CLI
 
 /*------------------------------------------------------------------------------*/
 /**

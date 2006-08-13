@@ -1,8 +1,11 @@
 /* -*- C -*- */
-/* @(#)$Id: contiki-conf.h,v 1.2 2006/08/11 13:41:31 bg- Exp $ */
+/* @(#)$Id: contiki-conf.h,v 1.3 2006/08/13 15:15:48 oliverschmidt Exp $ */
 
 #ifndef CONTIKI_CONF_H
 #define CONTIKI_CONF_H
+
+#define CCI
+#define CLI
 
 /* This is still experimental. /bg */
 #define UAODV_BAD_ROUTE

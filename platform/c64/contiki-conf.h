@@ -267,6 +267,11 @@
 
 #define CC_CONF_FASTCALL               fastcall
 
+/* Interface configuration. */
+
+#define CCI
+#define CLI
+
 /* Clock configuration. */
 
 #include <time.h>

@@ -22,6 +22,8 @@
 
 #define CC_CONF_VA_ARGS                1
 
+#define CCI
+#define CLI
 
 typedef unsigned short clock_time_t;
 #define CLOCK_CONF_SECOND 8

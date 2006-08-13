@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: contiki-conf.h,v 1.1 2006/06/17 22:41:30 adamdunkels Exp $
+ * @(#)$Id: contiki-conf.h,v 1.2 2006/08/13 15:12:37 oliverschmidt Exp $
  */
 
 #ifndef __CONTIKI_CONF_H__
@@ -44,6 +44,9 @@
 #define CC_CONF_FUNCTION_POINTER_ARGS  1
 #define CC_CONF_FASTCALL
 #define CC_CONF_VA_ARGS                1
+
+#define CCI
+#define CLI
 
 typedef uint8_t u8_t;
 typedef uint16_t u16_t;
