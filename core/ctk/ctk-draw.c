@@ -30,7 +30,7 @@
  * 
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: ctk-draw.c,v 1.1 2006/06/17 22:41:15 adamdunkels Exp $
+ * $Id: ctk-draw.c,v 1.2 2006/08/13 14:09:46 oliverschmidt Exp $
  */
 
 
@@ -48,7 +48,7 @@ unsigned char ctk_draw_windowborder_width = 1,
 void
 ctk_draw_init(void)
 {
-  struct ctk_draw_service *i;
+  const struct ctk_draw_service *i;
   struct service *s;
   
   s = SERVICE_FIND(ctk_draw_service);

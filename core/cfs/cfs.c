@@ -30,7 +30,7 @@
  * 
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: cfs.c,v 1.1 2006/06/17 22:41:15 adamdunkels Exp $
+ * $Id: cfs.c,v 1.2 2006/08/13 14:06:24 oliverschmidt Exp $
  */
 #include "contiki.h"
 
@@ -60,7 +60,7 @@ SERVICE(cfs_nullservice, cfs_service,
   });
 
 /*---------------------------------------------------------------------------*/
-struct cfs_service_interface *
+const struct cfs_service_interface *
 cfs_find_service(void)
 {
   struct service *s;

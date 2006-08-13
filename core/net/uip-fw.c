@@ -30,7 +30,7 @@
  *
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: uip-fw.c,v 1.2 2006/08/09 16:13:39 bg- Exp $
+ * $Id: uip-fw.c,v 1.3 2006/08/13 14:14:39 oliverschmidt Exp $
  */
 /**
  * \addtogroup uip
@@ -256,7 +256,7 @@ time_exceeded(void)
      IP header (20) = 56. */
   uip_len = 56;
   ICMPBUF->len[0] = 0;
-  ICMPBUF->len[1] = uip_len;
+  ICMPBUF->len[1] = (u8_t)uip_len;
 
   /* Fill in the other fields in the IP header. */
   ICMPBUF->vhl = 0x45;
