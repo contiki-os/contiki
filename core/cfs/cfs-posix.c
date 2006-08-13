@@ -30,7 +30,7 @@
  * 
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: cfs-posix.c,v 1.1 2006/06/17 22:41:15 adamdunkels Exp $
+ * $Id: cfs-posix.c,v 1.2 2006/08/13 14:05:20 oliverschmidt Exp $
  */
 #include "contiki.h"
 
@@ -76,8 +76,8 @@ PROCESS_THREAD(cfs_posix_process, ev, data)
 
   SERVICE_REGISTER(cfs_posix_service);
 
-  PROCESS_WAIT_EVENT_UNTIL(ev != PROCESS_EVENT_SERVICE_REMOVED &&
-			   ev != PROCESS_EVENT_EXIT);
+  PROCESS_WAIT_EVENT_UNTIL(ev == PROCESS_EVENT_SERVICE_REMOVED ||
+			   ev == PROCESS_EVENT_EXIT);
 
   SERVICE_REMOVE(cfs_posix_service);
   
