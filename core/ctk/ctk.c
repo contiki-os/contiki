@@ -44,7 +44,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: ctk.c,v 1.1 2006/06/17 22:41:16 adamdunkels Exp $
+ * $Id: ctk.c,v 1.2 2006/08/13 14:11:41 oliverschmidt Exp $
  *
  */
 
@@ -675,7 +675,7 @@ window_new(CC_REGISTER_ARG struct ctk_window *window,
   window->h = h;
   window->title = title;
   if(title != NULL) {
-    window->titlelen = strlen(title);
+    window->titlelen = (unsigned char)strlen(title);
   } else {
     window->titlelen = 0;
   }
@@ -750,7 +750,7 @@ ctk_menu_new(CC_REGISTER_ARG struct ctk_menu *menu,
 #if CTK_CONF_MENUS
   menu->next = NULL;
   menu->title = title;
-  menu->titlelen = strlen(title);
+  menu->titlelen = (unsigned char)strlen(title);
   menu->active = 0;
   menu->nitems = 0;
 #endif /* CTK_CONF_MENUS */
@@ -778,7 +778,7 @@ ctk_menuitem_add(CC_REGISTER_ARG struct ctk_menu *menu,
     return 0;
   }
   menu->items[menu->nitems].title = name;
-  menu->items[menu->nitems].titlelen = strlen(name);
+  menu->items[menu->nitems].titlelen = (unsigned char)strlen(name);
   return menu->nitems++;
 #else
   return 0;
@@ -1182,7 +1182,7 @@ textentry_input(ctk_arch_key_t c,
     
   case 0:
   case CH_CURS_DOWN:
-    txpos = strlen(t->text);
+    txpos = (unsigned char)strlen(t->text);
     if(txpos == tlen) {
       --txpos;
     }
