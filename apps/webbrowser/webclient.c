@@ -29,7 +29,7 @@
  *
  * This file is part of the "contiki" web browser.
  *
- * $Id: webclient.c,v 1.1 2006/06/17 22:41:14 adamdunkels Exp $
+ * $Id: webclient.c,v 1.2 2006/08/14 23:32:29 oliverschmidt Exp $
  *
  */
 
@@ -116,8 +116,8 @@ init_connection(void)
     sizeof(http_crnl) - 1 +
     sizeof(http_host) - 1 +
     sizeof(http_crnl) - 1 +
-    strlen(http_user_agent_fields) +
-    strlen(s.file) + strlen(s.host);
+    (u16_t)strlen(http_user_agent_fields) +
+    (u16_t)strlen(s.file) + (u16_t)strlen(s.host);
   s.getrequestptr = 0;
 
   s.httpheaderlineptr = 0;
@@ -146,7 +146,7 @@ webclient_get(char *host, u16_t port, char *file)
     }
   }
   
-  conn = tcp_connect(ipaddr, htons(port), NULL);
+  conn = tcp_connect((uip_ipaddr_t *)ipaddr, htons(port), NULL);
   
   if(conn == NULL) {
     return 0;
@@ -178,18 +178,18 @@ senddata(void)
     cptr = getrequest = (char *)uip_appdata;
 
     cptr = copy_string(cptr, http_get, sizeof(http_get) - 1);
-    cptr = copy_string(cptr, s.file, strlen(s.file));
+    cptr = copy_string(cptr, s.file, (unsigned char)strlen(s.file));
     *cptr++ = ISO_space;
     cptr = copy_string(cptr, http_10, sizeof(http_10) - 1);
 
     cptr = copy_string(cptr, http_crnl, sizeof(http_crnl) - 1);
     
     cptr = copy_string(cptr, http_host, sizeof(http_host) - 1);
-    cptr = copy_string(cptr, s.host, strlen(s.host));
+    cptr = copy_string(cptr, s.host, (unsigned char)strlen(s.host));
     cptr = copy_string(cptr, http_crnl, sizeof(http_crnl) - 1);
 
     cptr = copy_string(cptr, http_user_agent_fields,
-		       strlen(http_user_agent_fields));
+		       (unsigned char)strlen(http_user_agent_fields));
     
     len = s.getrequestleft > uip_mss()?
       uip_mss():

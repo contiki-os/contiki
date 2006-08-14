@@ -57,7 +57,7 @@
  *
  * This file is part of the uIP TCP/IP stack.
  *
- * $Id: resolv.c,v 1.2 2006/08/09 16:13:39 bg- Exp $
+ * $Id: resolv.c,v 1.3 2006/08/14 23:37:21 oliverschmidt Exp $
  *
  */
 
@@ -262,7 +262,7 @@ newdata(void)
 
   /* The ID in the DNS header should be our entry into the name
      table. */
-  i = htons(hdr->id);
+  i = (u8_t)htons(hdr->id);
   namemapptr = &names[i];
   if(i < RESOLV_ENTRIES &&
      namemapptr->state == STATE_ASKING) {
@@ -280,8 +280,8 @@ newdata(void)
 
     /* We only care about the question(s) and the answers. The authrr
        and the extrarr are simply discarded. */
-    nquestions = htons(hdr->numquestions);
-    nanswers = htons(hdr->numanswers);
+    nquestions = (u8_t)htons(hdr->numquestions);
+    nanswers = (u8_t)htons(hdr->numanswers);
 
     /* Skip the name in the question. XXX: This should really be
        checked agains the name in the question, to be sure that they
