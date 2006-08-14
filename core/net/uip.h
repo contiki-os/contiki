@@ -46,7 +46,7 @@
  *
  * This file is part of the uIP TCP/IP stack.
  *
- * $Id: uip.h,v 1.2 2006/08/09 16:13:40 bg- Exp $
+ * $Id: uip.h,v 1.3 2006/08/14 13:58:28 bg- Exp $
  *
  */
 
@@ -60,16 +60,16 @@
  *
  */
 typedef union uip_ip4addr_t {
-  u16_t u16[2];			/* Must come first for now!!! */
-  u8_t  u8[4];
+  u8_t  u8[4];			/* Initializer, must come first!!! */
+  u16_t u16[2];
 #if 0
   u32_t u32;
 #endif
 } uip_ip4addr_t;
 
 typedef union uip_ip6addr_t {
+  u8_t  u8[16];			/* Initializer, must come first!!! */
   u16_t u16[8];
-  u8_t  u8[16];
 } uip_ip6addr_t;
 
 #if UIP_CONF_IPV6
@@ -865,14 +865,14 @@ struct uip_udp_conn *uip_udp_new(uip_ipaddr_t *ripaddr, u16_t rport);
  * \hideinitializer
  */
 #define uip_ip6addr(addr, addr0,addr1,addr2,addr3,addr4,addr5,addr6,addr7) do { \
-                     ((u16_t *)(addr))[0] = HTONS((addr0)); \
-                     ((u16_t *)(addr))[1] = HTONS((addr1)); \
-                     ((u16_t *)(addr))[2] = HTONS((addr2)); \
-                     ((u16_t *)(addr))[3] = HTONS((addr3)); \
-                     ((u16_t *)(addr))[4] = HTONS((addr4)); \
-                     ((u16_t *)(addr))[5] = HTONS((addr5)); \
-                     ((u16_t *)(addr))[6] = HTONS((addr6)); \
-                     ((u16_t *)(addr))[7] = HTONS((addr7)); \
+                     (addr)->u16[0] = HTONS(addr0); \
+                     (addr)->u16[1] = HTONS(addr1); \
+                     (addr)->u16[2] = HTONS(addr2); \
+                     (addr)->u16[3] = HTONS(addr3); \
+                     (addr)->u16[4] = HTONS(addr4); \
+                     (addr)->u16[5] = HTONS(addr5); \
+                     (addr)->u16[6] = HTONS(addr6); \
+                     (addr)->u16[7] = HTONS(addr7); \
                   } while(0)
 
 /**

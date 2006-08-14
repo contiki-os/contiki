@@ -41,7 +41,7 @@
  *
  * This file is part of the uIP TCP/IP stack.
  *
- * $Id: uip.c,v 1.4 2006/08/13 14:53:45 oliverschmidt Exp $
+ * $Id: uip.c,v 1.5 2006/08/14 13:58:28 bg- Exp $
  *
  */
 
@@ -90,31 +90,23 @@
    here. Otherwise, the address */
 #if UIP_FIXEDADDR > 0
 const uip_ipaddr_t uip_hostaddr =
-  {HTONS((UIP_IPADDR0 << 8) | UIP_IPADDR1),
-   HTONS((UIP_IPADDR2 << 8) | UIP_IPADDR3)};
+  { UIP_IPADDR0, UIP_IPADDR1, UIP_IPADDR2, UIP_IPADDR3 };
 const uip_ipaddr_t uip_draddr =
-  {HTONS((UIP_DRIPADDR0 << 8) | UIP_DRIPADDR1),
-   HTONS((UIP_DRIPADDR2 << 8) | UIP_DRIPADDR3)};
+  { UIP_DRIPADDR0, UIP_DRIPADDR1, UIP_DRIPADDR2, UIP_DRIPADDR3 };
 const uip_ipaddr_t uip_netmask =
-  {HTONS((UIP_NETMASK0 << 8) | UIP_NETMASK1),
-   HTONS((UIP_NETMASK2 << 8) | UIP_NETMASK3)};
+  { UIP_NETMASK0, UIP_NETMASK1, UIP_NETMASK2, UIP_NETMASK3 };
 #else
 uip_ipaddr_t uip_hostaddr, uip_draddr, uip_netmask;
 #endif /* UIP_FIXEDADDR */
 
 const uip_ipaddr_t uip_broadcast_addr =
 #if UIP_CONF_IPV6
-  {0xffff,0xffff,0xffff,0xffff,0xffff,0xffff,0xffff,0xffff};
+  { { 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
+      0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff } };
 #else /* UIP_CONF_IPV6 */
-  {0xffff,0xffff};
+  { { 0xff, 0xff, 0xff, 0xff } };
 #endif /* UIP_CONF_IPV6 */
-const uip_ipaddr_t all_zeroes_addr =
-#if UIP_CONF_IPV6
-  {0x0000,0x0000,0x0000,0x0000,0x0000,0x0000,0x0000,0x0000};
-#else /* UIP_CONF_IPV6 */
-  {0x0000,0x0000};
-#endif /* UIP_CONF_IPV6 */
-
+const uip_ipaddr_t all_zeroes_addr = { { 0x0, /* rest is 0 */ } };
 
 #if UIP_FIXEDETHADDR
 const struct uip_eth_addr uip_ethaddr = {{UIP_ETHADDR0,
