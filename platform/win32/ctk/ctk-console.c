@@ -30,13 +30,12 @@
  * 
  * Author: Oliver Schmidt <ol.sc@web.de>
  *
- * $Id: ctk-console.c,v 1.1 2006/08/13 16:36:01 oliverschmidt Exp $
+ * $Id: ctk-console.c,v 1.2 2006/08/14 23:42:33 oliverschmidt Exp $
  */
 
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 #include <stdlib.h>
-#include <conio.h>
 
 #include "contiki.h"
 
