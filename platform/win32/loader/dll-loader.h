@@ -30,7 +30,7 @@
  * 
  * Author: Oliver Schmidt <ol.sc@web.de>
  *
- * $Id: dll-loader.h,v 1.2 2006/08/14 23:46:43 oliverschmidt Exp $
+ * $Id: dll-loader.h,v 1.3 2006/08/15 14:50:13 oliverschmidt Exp $
  */
 #ifndef __DLL_LOADER_H__
 #define __DLL_LOADER_H__
@@ -40,9 +40,9 @@
 #define LOADER_LOAD_DSC(name)  dll_loader_load_dsc(name)
 #define LOADER_UNLOAD_DSC(dsc) dll_loader_unload_dsc(dsc)
 
-CCI int dll_loader_load(char *name, char *arg);
-CCI void dll_loader_unload(void *addr);
-CCI struct dsc *dll_loader_load_dsc(char *name);
-CCI void __stdcall dll_loader_unload_dsc(void *addr);
+CCIF int dll_loader_load(char *name, char *arg);
+CCIF void dll_loader_unload(void *addr);
+CCIF struct dsc *dll_loader_load_dsc(char *name);
+CCIF void __stdcall dll_loader_unload_dsc(void *addr);
 
 #endif /* __DLL_LOADER_H__ */

@@ -1,11 +1,11 @@
 /* -*- C -*- */
-/* @(#)$Id: contiki-conf.h,v 1.3 2006/08/13 15:15:48 oliverschmidt Exp $ */
+/* @(#)$Id: contiki-conf.h,v 1.4 2006/08/15 14:49:32 oliverschmidt Exp $ */
 
 #ifndef CONTIKI_CONF_H
 #define CONTIKI_CONF_H
 
-#define CCI
-#define CLI
+#define CCIF
+#define CLIF
 
 /* This is still experimental. /bg */
 #define UAODV_BAD_ROUTE

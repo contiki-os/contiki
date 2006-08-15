@@ -269,8 +269,8 @@
 
 /* Interface configuration. */
 
-#define CCI
-#define CLI
+#define CCIF
+#define CLIF
 
 /* Clock configuration. */
 

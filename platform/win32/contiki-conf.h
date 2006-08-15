@@ -7,11 +7,11 @@
 
 
 #if _USRDLL
-#define CCI __declspec(dllimport)
-#define CLI __declspec(dllexport)
+#define CCIF __declspec(dllimport)
+#define CLIF __declspec(dllexport)
 #else
-#define CCI __declspec(dllexport)
-#define CLI
+#define CCIF __declspec(dllexport)
+#define CLIF
 #endif
 
 

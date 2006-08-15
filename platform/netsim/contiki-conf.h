@@ -32,7 +32,7 @@
  *
  * This file is part of the Contiki desktop OS
  *
- * $Id: contiki-conf.h,v 1.2 2006/08/13 15:13:53 oliverschmidt Exp $
+ * $Id: contiki-conf.h,v 1.3 2006/08/15 14:48:47 oliverschmidt Exp $
  *
  */
 
@@ -42,8 +42,8 @@
 
 #define CC_CONF_VA_ARGS                1
 
-#define CCI
-#define CLI
+#define CCIF
+#define CLIF
 
 /*------------------------------------------------------------------------------*/
 /**
