@@ -43,7 +43,7 @@
  *
  * This file is part of the Contiki desktop OS
  *
- * $Id: program-handler.c,v 1.1 2006/06/17 22:41:12 adamdunkels Exp $
+ * $Id: program-handler.c,v 1.2 2006/08/15 00:11:45 oliverschmidt Exp $
  *
  */
 
@@ -57,7 +57,7 @@
 
 
 /* Menus */
-static struct ctk_menu contikimenu;
+static struct ctk_menu contikimenu = {NULL, "Contiki", 7, 0, 0};
 
 #ifndef PROGRAM_HANDLER_CONF_MAX_NUMDSCS
 #define MAX_NUMDSCS 10
@@ -278,7 +278,6 @@ PROCESS_THREAD(program_handler_process, ev, data)
   PROCESS_BEGIN();
   
   /* Create the menus */
-  ctk_menu_new(&contikimenu, "Contiki");
   ctk_menu_add(&contikimenu);
 #if WITH_LOADER_ARCH
   runmenuitem = ctk_menuitem_add(&contikimenu, "Run program...");

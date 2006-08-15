@@ -44,7 +44,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: ctk.c,v 1.2 2006/08/13 14:11:41 oliverschmidt Exp $
+ * $Id: ctk.c,v 1.3 2006/08/15 00:13:23 oliverschmidt Exp $
  *
  */
 
@@ -1360,12 +1360,8 @@ PROCESS_THREAD(ctk_process, ev, data)
   ctk_mouse_show();
 #endif /* CTK_CONF_MOUSE_SUPPORT */
   
-  ctk_draw_init();
+  ctk_restore();
 
-  height = ctk_draw_height();
-  width = ctk_draw_width();
-  
-  desktop_window.active = NULL;
   desktop_window.owner = &ctk_process;
   
   ctk_signal_keypress = process_alloc_event();
@@ -1396,8 +1392,6 @@ PROCESS_THREAD(ctk_process, ev, data)
 
   iconx = ICONX_START;
   icony = ICONY_START;
-
-  redraw = REDRAW_ALL;
 
   timer_set(&timer, CLOCK_SECOND);
   
