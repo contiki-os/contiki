@@ -54,7 +54,7 @@
  *
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: cfs.h,v 1.1 2006/06/17 22:41:15 adamdunkels Exp $
+ * $Id: cfs.h,v 1.2 2006/08/15 09:38:33 nifi Exp $
  */
 #ifndef __CFS_H__
 #define __CFS_H__
@@ -185,7 +185,7 @@ int cfs_readdir(struct cfs_dir *dirp, struct cfs_dirent *dirent);
  */
 int cfs_closedir(struct cfs_dir *dirp);
 
-struct cfs_service_interface *cfs_find_service(void);
+const struct cfs_service_interface *cfs_find_service(void);
 
 #define cfs_open(name, flags)   (cfs_find_service()->open(name, flags))
 #define cfs_close(fd)           (cfs_find_service()->close(fd))
