@@ -8,11 +8,10 @@
 
 #if _USRDLL
 #define CCIF __declspec(dllimport)
-#define CLIF __declspec(dllexport)
 #else
 #define CCIF __declspec(dllexport)
-#define CLIF
 #endif
+#define CLIF __declspec(dllexport)
 
 
 
