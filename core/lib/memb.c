@@ -30,7 +30,7 @@
  *
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: memb.c,v 1.1 2006/06/17 22:41:18 adamdunkels Exp $
+ * $Id: memb.c,v 1.2 2006/08/16 22:12:46 oliverschmidt Exp $
  */
 
 /**
@@ -45,6 +45,7 @@
  */
 #include <string.h>
 
+#include "contiki.h"
 #include "lib/memb.h"
 
 /*---------------------------------------------------------------------------*/
