@@ -29,7 +29,7 @@
  *
  * This an example program for the Contiki desktop OS
  *
- * $Id: calc.c,v 1.1 2006/06/17 22:41:10 adamdunkels Exp $
+ * $Id: calc.c,v 1.2 2006/08/16 22:11:16 oliverschmidt Exp $
  *
  */
 
@@ -138,11 +138,11 @@ operand2_to_input(void)
 {
   unsigned char i;
   
-  input[7] = (operand2/10000) % 10 + '0';
-  input[8] = (operand2/1000) % 10 + '0';
-  input[9] = (operand2/100) % 10 + '0';
-  input[10] = (operand2/10) % 10 + '0';
-  input[11] = operand2 % 10 + '0';
+  input[7] = (char)((operand2/10000) % 10) + '0';
+  input[8] = (char)((operand2/1000) % 10) + '0';
+  input[9] = (char)((operand2/100) % 10) + '0';
+  input[10] = (char)((operand2/10) % 10) + '0';
+  input[11] = (char)(operand2 % 10) + '0';
 
   for(i = 0; i < 4; ++i) {
     if(input[7 + i] == '0') {
