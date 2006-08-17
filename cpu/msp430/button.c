@@ -26,15 +26,13 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF 
  * SUCH DAMAGE. 
  *
- * @(#)$Id: button.c,v 1.1 2006/06/17 22:41:21 adamdunkels Exp $
+ * @(#)$Id: button.c,v 1.2 2006/08/17 15:41:13 bg- Exp $
  */
 
 #include <io.h>
 #include <signal.h>
 
 #include "contiki.h"
-
-#include "dev/lpm.h"
 
 #include "dev/button.h"
 
@@ -75,6 +73,6 @@ __button_interrupt(void)
     if(selecting_proc != NULL) {
       process_post(selecting_proc, PROCESS_EVENT_MSG, &button_msg);
     }
-    LPM_AWAKE();
+    LPM4_EXIT;
   }
 }

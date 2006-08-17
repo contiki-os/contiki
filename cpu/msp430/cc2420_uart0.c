@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF 
  * SUCH DAMAGE. 
  *
- * @(#)$Id: cc2420_uart0.c,v 1.1 2006/06/17 22:41:21 adamdunkels Exp $
+ * @(#)$Id: cc2420_uart0.c,v 1.2 2006/08/17 15:41:13 bg- Exp $
  */
 
 #include <io.h>
@@ -35,7 +35,6 @@
 #include "contiki.h"
 #include "contiki-net.h"
 
-#include "dev/lpm.h"
 #include "dev/spi.h"
 #include "dev/cc2420.h"
 
@@ -43,7 +42,7 @@ interrupt(PORT1_VECTOR)
 __fifop_interrupt(void)
 {
   if(__cc2420_intr())
-    LPM_AWAKE();
+    LPM4_EXIT;
 }
 
 void

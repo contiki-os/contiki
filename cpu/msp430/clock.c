@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: clock.c,v 1.2 2006/08/17 15:25:46 bg- Exp $
+ * @(#)$Id: clock.c,v 1.3 2006/08/17 15:41:13 bg- Exp $
  */
 
 
@@ -36,8 +36,6 @@
 #include <signal.h>
 
 #include "contiki-conf.h"
-
-#include "dev/lpm.h"
 
 #include "sys/clock.h"
 #include "sys/etimer.h"
@@ -58,7 +56,7 @@ interrupt(TIMERA1_VECTOR) timera1 (void) {
     if(etimer_pending()
        && (etimer_next_expiration_time() - count) >= MAX_TICKS) {
       etimer_request_poll();
-      LPM_AWAKE();
+      LPM4_EXIT;
     }
   }
 }

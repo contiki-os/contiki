@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF 
  * SUCH DAMAGE. 
  *
- * @(#)$Id: slip_uart1.c,v 1.1 2006/06/17 22:41:21 adamdunkels Exp $
+ * @(#)$Id: slip_uart1.c,v 1.2 2006/08/17 15:41:13 bg- Exp $
  */
 
 /*
@@ -38,7 +38,6 @@
 
 #include "contiki.h"
 
-#include "dev/lpm.h"
 #include "dev/slip.h"
 
 void
@@ -160,6 +159,6 @@ __uart1_intr()
     dummy = RXBUF1;   /* Clear error flags by forcing a dummy read. */
   } else {
     if(slip_input_byte(RXBUF1))
-      LPM_AWAKE();
+      LPM4_EXIT;
   }
 }
