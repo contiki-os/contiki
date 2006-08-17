@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF 
  * SUCH DAMAGE. 
  *
- * @(#)$Id: dhclient.c,v 1.2 2006/08/09 16:13:40 bg- Exp $
+ * @(#)$Id: dhclient.c,v 1.3 2006/08/17 15:42:42 bg- Exp $
  */
 
 /*
@@ -52,6 +52,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include <io.h>
+
 #include "contiki.h"
 
 /* Also IP output. */
@@ -61,7 +63,6 @@
 #include "dev/slip.h"
 #include "dev/cc2420.h"
 
-#include "dev/lpm.h"
 #include "dev/ds2411.h"
 #include "dev/leds.h"
 #include "dev/light.h"
@@ -100,7 +101,7 @@ main(int argc, char **argv)
   leds_toggle(LEDS_RED | LEDS_GREEN | LEDS_BLUE);
   slip_arch_init();		/* Must come before first printf */
   printf("Starting %s "
-	 "($Id: dhclient.c,v 1.2 2006/08/09 16:13:40 bg- Exp $)\n", __FILE__);
+	 "($Id: dhclient.c,v 1.3 2006/08/17 15:42:42 bg- Exp $)\n", __FILE__);
   ds2411_init();
   sensors_light_init();
   cc2420_init();
@@ -141,13 +142,21 @@ main(int argc, char **argv)
    * This is the scheduler loop.
    */
   printf("process_run()...\n");
-  lpm_on();
   while (1) {
     do {
       /* Reset watchdog. */
     } while(process_run() > 0);
-    /* Idle processing. */
-    LPM_SLEEP();
+
+    /*
+     * Idle processing.
+     */
+    int s = splhigh();		/* Disable interrupts. */
+    if(process_nevents() != 0) {
+      splx(s);			/* Re-enable interrupts. */
+    } else {
+      /* Re-enable interrupts and go to sleep atomically. */
+      _BIS_SR(GIE | SCG0 | CPUOFF); /* LPM1 sleep. */
+    }
   }
 
   return 0;
