@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: process.c,v 1.1 2006/06/17 22:41:20 adamdunkels Exp $
+ * @(#)$Id: process.c,v 1.2 2006/08/17 15:39:24 bg- Exp $
  */
 
 /**
@@ -350,6 +350,16 @@ process_run(void)
   do_event();
 
   return nevents + poll_requested;
+}
+/*---------------------------------------------------------------------------*/
+int
+process_nevents(void)
+{
+#ifdef NPOLLS
+  return nevents + npolls;
+#else
+  return nevents + poll_requested;
+#endif
 }
 /*---------------------------------------------------------------------------*/
 int
