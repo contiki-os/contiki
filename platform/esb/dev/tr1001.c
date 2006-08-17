@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: tr1001.c,v 1.1 2006/06/18 07:49:33 adamdunkels Exp $
+ * @(#)$Id: tr1001.c,v 1.2 2006/08/17 08:27:54 nifi Exp $
  */
 /**
  * \addtogroup esb
@@ -343,6 +343,9 @@ interrupt (UART0RX_VECTOR)
      tr1001_rxhandler(void)
 {
   tr1001_default_rxhandler_pt(RXBUF0);
+  if(tr1001_rxstate == RXSTATE_FULL) {
+    LPM_AWAKE();
+  }
 }
 /*---------------------------------------------------------------------------*/
 static void
@@ -501,7 +504,6 @@ PT_THREAD(tr1001_default_rxhandler_pt(unsigned char incoming_byte))
 
       PACKET_ACCEPTED();
       tr1001_drv_request_poll();
-      LPM_AWAKE();
 
       /* We'll set the receive state flag to signal that a full frame
 	 is present in the buffer, and we'll wait until the buffer has
