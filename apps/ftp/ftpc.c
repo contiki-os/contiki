@@ -30,7 +30,7 @@
  *
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: ftpc.c,v 1.1 2006/06/17 22:41:11 adamdunkels Exp $
+ * $Id: ftpc.c,v 1.2 2006/08/21 21:37:37 oliverschmidt Exp $
  */
 #include "contiki.h"
 #include "ftpc.h"
@@ -143,7 +143,7 @@ ftpc_connect(u16_t *ipaddr, u16_t port)
   c->dataconn.port = DATAPORT;
   tcp_listen(HTONS(DATAPORT));
 
-  if(tcp_connect(ipaddr, port, c) == NULL) {
+  if(tcp_connect((uip_ipaddr_t *)ipaddr, port, c) == NULL) {
     memb_free(&connections, c);
     return NULL;
   }
@@ -273,29 +273,29 @@ senddata(struct ftp_connection *c)
   case STATE_SEND_USER:
     strcpy(uip_appdata, "USER ");
     strncpy((char *)uip_appdata + 5, ftpc_username(), uip_mss() - 7);
-    len = strlen(ftpc_username());
+    len = (u16_t)strlen(ftpc_username());
     strcpy((char *)uip_appdata + 5 + len, "\r\n");
     uip_send(uip_appdata, len + 2 + 5);
     break;
   case STATE_SEND_PASS:
     strcpy(uip_appdata, "PASS ");
     strncpy((char *)uip_appdata + 5, ftpc_password(), uip_mss() - 7);
-    len = strlen(ftpc_password());
+    len = (u16_t)strlen(ftpc_password());
     strcpy((char *)uip_appdata + 5 + len, "\r\n");
     uip_send(uip_appdata, len + 2 + 5);
     break;
   case STATE_SEND_PORT:
     len = sprintf(uip_appdata, "PORT %d,%d,%d,%d,%d,%d\n",
-		  uip_ipaddr1(uip_hostaddr),
-		  uip_ipaddr2(uip_hostaddr),
-		  uip_ipaddr3(uip_hostaddr),
-		  uip_ipaddr4(uip_hostaddr),
+		  uip_ipaddr1(&uip_hostaddr),
+		  uip_ipaddr2(&uip_hostaddr),
+		  uip_ipaddr3(&uip_hostaddr),
+		  uip_ipaddr4(&uip_hostaddr),
 		  (c->dataconn.port) >> 8,
 		  (c->dataconn.port) & 0xff);
     uip_send(uip_appdata, len);
     break;
   case STATE_SEND_OPTIONS:
-    len = strlen(options.commands[c->optionsptr]);
+    len = (u16_t)strlen(options.commands[c->optionsptr]);
     uip_send(options.commands[c->optionsptr], len);
     break;
   case STATE_SEND_NLST:
