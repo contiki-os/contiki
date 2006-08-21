@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki desktop OS.
  *
- * $Id: shell-gui.c,v 1.1 2006/06/17 22:41:12 adamdunkels Exp $
+ * $Id: shell-gui.c,v 1.2 2006/08/21 21:44:13 oliverschmidt Exp $
  *
  */
 
@@ -87,7 +87,7 @@ shell_output(char *str1, char *str2)
   memset(&log[(SHELL_GUI_YSIZE - 1) * SHELL_GUI_XSIZE],
 	 0, SHELL_GUI_XSIZE);
 
-  len = strlen(str1);
+  len = (unsigned char)strlen(str1);
 
   strncpy(&log[(SHELL_GUI_YSIZE - 1) * SHELL_GUI_XSIZE],
 	  str1, SHELL_GUI_XSIZE);
