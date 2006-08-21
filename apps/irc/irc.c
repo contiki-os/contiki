@@ -30,7 +30,7 @@
  * 
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: irc.c,v 1.1 2006/06/17 22:41:11 adamdunkels Exp $
+ * $Id: irc.c,v 1.2 2006/08/21 21:39:01 oliverschmidt Exp $
  */
 
 #include "contiki-conf.h"
@@ -126,7 +126,7 @@ ircc_text_output(struct ircc_state *s, char *text1, char *text2)
   memcpy(log, &log[LOG_WIDTH], LOG_WIDTH * (LOG_HEIGHT - 1));
 
   ptr = &log[LOG_WIDTH * (LOG_HEIGHT - 1)];
-  len = strlen(text1);
+  len = (int)strlen(text1);
 
   memset(ptr, 0, LOG_WIDTH);
   strncpy(ptr, text1, LOG_WIDTH);
@@ -141,7 +141,7 @@ ircc_text_output(struct ircc_state *s, char *text1, char *text2)
     len = 0;
   }
 
-  if(strlen(text2) > LOG_WIDTH - len) {
+  if((int)strlen(text2) > LOG_WIDTH - len) {
     memcpy(log, &log[LOG_WIDTH], LOG_WIDTH * (LOG_HEIGHT - 1));
     strncpy(&log[LOG_WIDTH * (LOG_HEIGHT - 1)],
 	    text2 + LOG_WIDTH - len, LOG_WIDTH);
@@ -154,7 +154,7 @@ static void
 parse_line(void)
 {
   int i;
-  for(i = 0; i < strlen(line); ++i) {
+  for(i = 0; i < (int)strlen(line); ++i) {
     line[i] &= 0x7f;
   }
   

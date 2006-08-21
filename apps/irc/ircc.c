@@ -30,7 +30,7 @@
  * 
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: ircc.c,v 1.1 2006/06/17 22:41:11 adamdunkels Exp $
+ * $Id: ircc.c,v 1.2 2006/08/21 21:39:49 oliverschmidt Exp $
  */
 
 #include "contiki.h"
@@ -50,7 +50,7 @@
 
 #define PORT 6667
 
-#define SEND_STRING(s, str) PSOCK_SEND(s, str, strlen(str))
+#define SEND_STRING(s, str) PSOCK_SEND(s, str, (unsigned int)strlen(str))
 
 #define ISO_space 0x20
 #define ISO_bang  0x21
@@ -78,9 +78,9 @@ ircc_init(void)
 }
 /*---------------------------------------------------------------------------*/
 static char *
-copystr(char *dest, const char *src, int n)
+copystr(char *dest, const char *src, size_t n)
 {
-  int len;
+  size_t len;
 
   len = strlen(src);
   strncpy(dest, src, n);
@@ -102,7 +102,7 @@ PT_THREAD(setup_connection(struct ircc_state *s))
   
   ptr = s->outputbuf;
   ptr = copystr(ptr, ircc_strings_nick, sizeof(s->outputbuf));
-  ptr = copystr(ptr, s->nick, sizeof(s->outputbuf) - (ptr - s->outputbuf));
+  ptr = copystr(ptr, s->nick, (int)sizeof(s->outputbuf) - (ptr - s->outputbuf));
   ptr = copystr(ptr, ircc_strings_crnl_user, sizeof(s->outputbuf) - (ptr - s->outputbuf));
   ptr = copystr(ptr, s->nick, sizeof(s->outputbuf) - (ptr - s->outputbuf));
   ptr = copystr(ptr, ircc_strings_contiki, sizeof(s->outputbuf) - (ptr - s->outputbuf));
@@ -481,7 +481,7 @@ struct ircc_state *
 ircc_connect(struct ircc_state *s, char *servername, u16_t *ipaddr,
 	     char *nick)
 {
-  s->conn = tcp_connect(ipaddr, HTONS(PORT), s);
+  s->conn = tcp_connect((uip_ipaddr_t *)ipaddr, HTONS(PORT), s);
   if(s->conn == NULL) {
     return NULL;
   }
