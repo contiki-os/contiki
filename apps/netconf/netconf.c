@@ -29,7 +29,7 @@
  *
  * This file is part of the Contiki desktop environment
  *
- * $Id: netconf.c,v 1.1 2006/06/17 22:41:11 adamdunkels Exp $
+ * $Id: netconf.c,v 1.2 2006/08/21 21:42:40 oliverschmidt Exp $
  *
  */
 
@@ -114,8 +114,7 @@ makestrings(void)
 {
   u16_t addr[2], *addrptr;
 
-#ifdef WITH_UIP
-  uip_gethostaddr(addr);
+  uip_gethostaddr(&addr);
   makeaddr(addr, ipaddr);
   
 #ifdef WITH_ETHERNET  
@@ -130,9 +129,6 @@ makestrings(void)
   if(addrptr != NULL) {
     makeaddr(addrptr, dnsserver);
   }
-  
-#endif /* WITH_UIP */
-
 }
 /*-----------------------------------------------------------------------------------*/
 static void
@@ -149,7 +145,6 @@ apply_tcpipconfig(void)
 {
   u16_t addr[2];
 
-#ifdef WITH_UIP
   nullterminate(ipaddr);
   if(uiplib_ipaddrconv(ipaddr, (unsigned char *)addr)) {
     uip_sethostaddr(addr);
@@ -171,7 +166,6 @@ apply_tcpipconfig(void)
   if(uiplib_ipaddrconv(dnsserver, (unsigned char *)addr)) {
     resolv_conf(addr);
   }
-#endif /* WITH_UIP */
 }
 /*-----------------------------------------------------------------------------------*/
 static void
