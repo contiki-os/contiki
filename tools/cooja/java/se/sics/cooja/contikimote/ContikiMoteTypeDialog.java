@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ContikiMoteTypeDialog.java,v 1.1 2006/08/21 12:13:10 fros4943 Exp $
+ * $Id: ContikiMoteTypeDialog.java,v 1.2 2006/08/21 15:06:28 fros4943 Exp $
  */
 
 package se.sics.cooja.contikimote;
@@ -889,11 +889,32 @@ public class ContikiMoteTypeDialog extends JDialog {
 
     compilationThread = new Thread(new Runnable() {
       public void run() {
-        // Merge user platforms
-        Vector<File> allUserPlatforms = (Vector<File>) GUI.currentGUI.getUserPlatforms().clone();
-        allUserPlatforms.addAll(moteTypeUserPlatforms);
-        compilationSucceded = ContikiMoteTypeDialog.compileLibrary(contikiDir,
-            allUserPlatforms, identifier, taskOutput, newMoteTypeConfig);
+        // Add all user platform directories
+        Vector<File> filesToCompile = (Vector<File>) GUI.currentGUI
+            .getUserPlatforms().clone();
+        filesToCompile.addAll(moteTypeUserPlatforms);
+
+        // Add source files from platform configs
+        String[] projectSourceFiles = newMoteTypeConfig.getStringArrayValue(
+            ContikiMoteType.class, "C_SOURCES");
+        for (String projectSourceFile : projectSourceFiles) {
+          if (!projectSourceFile.trim().equals("")) {
+            filesToCompile.add(new File(projectSourceFile));
+          }
+        }
+
+        // Add selected process source files
+        for (Component checkBox : processPanel.getComponents()) {
+          if (((JCheckBox) checkBox).isSelected()) {
+            String processName = ((JCheckBox) checkBox).getToolTipText();
+            if (processName != null) {
+              filesToCompile.add(new File(processName));
+            }
+          }
+        }
+
+        compilationSucceded = ContikiMoteTypeDialog.compileLibrary(identifier,
+            contikiDir, filesToCompile, taskOutput);
       }
     }, "compilation thread");
     compilationThread.start();
@@ -1074,21 +1095,21 @@ public class ContikiMoteTypeDialog extends JDialog {
   }
 
   /**
-   * Compiles a mote type shared library using an external makefile.
+   * Compiles a mote type shared library using the standard Contiki makefile.
    * 
-   * @param contikiDir
-   *          Contiki OS main directory
-   * @param userPlatformDirs
-   *          COOJA user platforms (may be null)
    * @param identifier
-   *          Filename identifier
+   *          Mote type identifier
+   * @param contikiDir
+   *          Contiki base directory
+   * @param sourceFiles
+   *          Source files and directories to include in compilation
    * @param appender
-   *          Optional component to append process output to
-   * @return False if an error was discovered, true otherwise
+   *          Component to append process output to (optional)
+   * @return True if compilation succeded, false otherwise
    */
-  public static boolean compileLibrary(File contikiDir, Vector<File> userPlatformDirs,
-      String identifier, final MessageList appender,
-      PlatformConfig platformConfig) {
+  public static boolean compileLibrary(String identifier, File contikiDir,
+      Vector<File> sourceFiles, final MessageList appender) {
+
     File libFile = new File(ContikiMoteType.tempOutputDirectory.getPath()
         + File.separatorChar + identifier + ContikiMoteType.librarySuffix);
     File mapFile = new File(ContikiMoteType.tempOutputDirectory.getPath()
@@ -1142,20 +1163,21 @@ public class ContikiMoteTypeDialog extends JDialog {
           contikiDir.getPath().replace(File.separatorChar, '/')
               + "/Makefile.include"};
 
-      String projectDirs = System.getProperty("PROJECTDIRS", "");
-      if (userPlatformDirs != null) {
-        for (File userPlatform : userPlatformDirs) {
-          projectDirs += " "
-              + userPlatform.getPath().replace(File.separatorChar, '/');
-        }
-      }
+      String sourceDirs = System.getProperty("PROJECTDIRS", "");
+      String sourceFileNames = "";
 
-      String[] projectSourceFiles = platformConfig.getStringArrayValue(
-          ContikiMoteType.class, "C_SOURCES");
-      String sourceFiles = "";
-      if (userPlatformDirs != null) {
-        for (String sourceFile : projectSourceFiles) {
-          sourceFiles += " " + sourceFile;
+      for (File sourceFile : sourceFiles) {
+        if (sourceFile.isDirectory()) {
+          // Add directory to search path
+          sourceDirs += " "
+              + sourceFile.getPath().replace(File.separatorChar, '/');
+        } else if (sourceFile.isFile()) {
+          // Add both file name and directory
+          sourceDirs += " " + sourceFile.getParent();
+          sourceFileNames += " " + sourceFile.getName();
+        } else {
+          // Add filename and hope Contiki knows where to find it...
+          sourceFileNames += " " + sourceFile.getName();
         }
       }
 
@@ -1167,7 +1189,8 @@ public class ContikiMoteTypeDialog extends JDialog {
           "EXTRA_CC_ARGS=" + GUI.getExternalToolsSetting("COMPILER_ARGS", ""),
           "CC=" + GUI.getExternalToolsSetting("PATH_C_COMPILER"),
           "LD=" + GUI.getExternalToolsSetting("PATH_LINKER"), "COMPILE_MAIN=1",
-          "PROJECTDIRS=" + projectDirs, "PROJECT_SOURCEFILES=" + sourceFiles,
+          "PROJECTDIRS=" + sourceDirs,
+          "PROJECT_SOURCEFILES=" + sourceFileNames,
           "PATH=" + System.getenv("PATH")};
 
       Process p = Runtime.getRuntime().exec(cmd, env, null);
@@ -1489,11 +1512,10 @@ public class ContikiMoteTypeDialog extends JDialog {
               if (confirmSelection) {
                 Object[] options = {"Create", "Cancel"};
 
-                String question = "The process [PROC1] depends on the following process: [PROC2]\nDo you want to add this as well?";
+                String question = "The process " + processName
+                    + " depends on the following process: " + autostartProcess
+                    + "\nDo you want to add this as well?";
                 String title = "Add dependency process?";
-                question = question.replaceFirst("\\[PROC1\\]", processName);
-                question = question.replaceFirst("\\[PROC2\\]",
-                    autostartProcess);
                 int answer = JOptionPane.showOptionDialog(myDialog, question,
                     title, JOptionPane.DEFAULT_OPTION,
                     JOptionPane.QUESTION_MESSAGE, null, options, options[0]);
@@ -1867,8 +1889,8 @@ public class ContikiMoteTypeDialog extends JDialog {
 
         // If user platforms exists, scan those too
         for (File userPlatform : GUI.currentGUI.getUserPlatforms()) {
-          processes.addAll(ContikiMoteTypeDialog
-              .scanForProcesses(userPlatform));
+          processes
+              .addAll(ContikiMoteTypeDialog.scanForProcesses(userPlatform));
         }
         if (moteTypeUserPlatforms != null) {
           for (File userPlatform : moteTypeUserPlatforms) {
@@ -2002,14 +2024,14 @@ public class ContikiMoteTypeDialog extends JDialog {
         // Find and load the mote interface classes
         for (String moteInterface : moteInterfaces) {
 
-          Class<? extends MoteInterface> newMoteInterfaceClass = GUI.currentGUI.tryLoadClass(this, MoteInterface.class,
-              moteInterface);
+          Class<? extends MoteInterface> newMoteInterfaceClass = GUI.currentGUI
+              .tryLoadClass(this, MoteInterface.class, moteInterface);
 
           if (newMoteInterfaceClass == null) {
             logger.warn("Failed to load mote interface: " + moteInterface);
           } else {
             moteIntfClasses.add(newMoteInterfaceClass);
-            //logger.info("Loaded mote interface: " + newMoteInterfaceClass);
+            // logger.info("Loaded mote interface: " + newMoteInterfaceClass);
           }
         }
 

@@ -70,8 +70,6 @@ MAINFILE = $(OUTPUT_DIR)/$(TYPEID).co
 COOJA = $(CONTIKI)/platform/$(TARGET)
 CONTIKI_TARGET_DIRS = . dev lib sys
 
-COOJA_APPS = testbutton.c testetimer.c testserial.c cooyah.c
-
 COOJA_DEV = $(patsubst $(COOJA)/dev/%.c,%.c,$(wildcard $(COOJA)/dev/*.c))
 
 COOJA_LIB = $(patsubst $(COOJA)/lib/%.c,%.c,$(wildcard $(COOJA)/lib/*.c))
@@ -81,7 +79,7 @@ COOJA_SYS = $(patsubst $(COOJA)/sys/%.c,%.c,$(wildcard $(COOJA)/sys/*.c))
 CORE_FILES = random.c sensors.c leds.c serial.c
 
 CONTIKI_TARGET_SOURCEFILES = \
-$(COOJA_APPS) $(COOJA_DEV) $(COOJA_LIB) $(COOJA_SYS) $(CORE_FILES)
+$(COOJA_DEV) $(COOJA_LIB) $(COOJA_SYS) $(CORE_FILES)
 
 CONTIKI_SOURCEFILES += $(CONTIKI_TARGET_SOURCEFILES)
 
