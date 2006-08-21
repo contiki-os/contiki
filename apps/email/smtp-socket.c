@@ -30,7 +30,7 @@
  * 
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: smtp-socket.c,v 1.1 2006/06/17 22:41:11 adamdunkels Exp $
+ * $Id: smtp-socket.c,v 1.2 2006/08/21 21:32:24 oliverschmidt Exp $
  */
 #include "smtp.h"
 
@@ -73,7 +73,7 @@ static u16_t smtpserver[2];
 #define ISO_5  0x35
 
 
-#define SEND_STRING(s, str) PSOCK_SEND(s, str, strlen(str))
+#define SEND_STRING(s, str) PSOCK_SEND(s, str, (unsigned char)strlen(str))
 /*---------------------------------------------------------------------------*/
 static
 PT_THREAD(smtp_thread(void))
@@ -214,7 +214,7 @@ smtp_send(char *to, char *cc, char *from, char *subject,
 {
   struct uip_conn *conn;
 
-  conn = tcp_connect(smtpserver, HTONS(25), NULL);
+  conn = tcp_connect((uip_ipaddr_t *)smtpserver, HTONS(25), NULL);
   if(conn == NULL) {
     return 0;
   }
