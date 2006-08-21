@@ -29,7 +29,7 @@
  *
  * This file is part of the Contiki desktop environment
  *
- * $Id: simpletelnet.c,v 1.1 2006/06/17 22:41:12 adamdunkels Exp $
+ * $Id: simpletelnet.c,v 1.2 2006/08/21 21:45:25 oliverschmidt Exp $
  *
  */
 
@@ -109,7 +109,7 @@ add_text(char *text)
   unsigned char i;
   unsigned int len;
   
-  len = strlen(text);
+  len = (unsigned int)strlen(text);
 
   i = 0;
   while(len > 0) {
@@ -180,7 +180,7 @@ connect(void)
   }
 
 
-  conn = tcp_connect(addrptr, htons(port), &ts_appstate);
+  conn = tcp_connect((uip_ipaddr_t *)addrptr, htons(port), &ts_appstate);
   if(conn == NULL) {
     show("Out of memory error");
     return;
@@ -227,7 +227,7 @@ PROCESS_THREAD(simpletelnet_process, ev, data)
       w = (struct ctk_widget *)data;
       if(w == (struct ctk_widget *)&telnetsendbutton) {
 	strcpy(sendline, telnetline);
-	sendlen = strlen(sendline);
+	sendlen = (int)strlen(sendline);
 	petsciiconv_toascii(sendline, sendlen);
 	sendline[sendlen++] = ISO_CR;
 	sendline[sendlen++] = ISO_NL;
