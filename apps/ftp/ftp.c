@@ -30,7 +30,7 @@
  * 
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: ftp.c,v 1.1 2006/06/17 22:41:11 adamdunkels Exp $
+ * $Id: ftp.c,v 1.2 2006/08/21 21:36:18 oliverschmidt Exp $
  */
 /* Note to self: It would be nice to have a "View" option in the download dialog. */
 
@@ -207,7 +207,7 @@ show_statustext(char *text1, char *text2)
 {
   int len;
 
-  len = strlen(text1);
+  len = (int)strlen(text1);
   if(len < sizeof(statustext)) {
     strncpy(statustext, text1, sizeof(statustext));
     strncpy(statustext + len, text2, sizeof(statustext) - len);
