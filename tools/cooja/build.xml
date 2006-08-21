@@ -1,0 +1,88 @@
+<?xml version="1.0"?>
+
+<project name="COOJA Simulator" default="help" basedir=".">
+  <property name="java" location="java"/>
+  <property name="build" location="build"/>
+  <property name="javadoc" location="javadoc"/>
+  <property name="config" location="config"/>
+  <property name="dist" location="dist"/>
+  <property name="lib" location="lib"/>
+  <property name="args" value="" />
+
+	<target name="help">
+		<echo>
+The COOJA Simulator
+
+> ant run
+	Starts COOJA simulator
+		</echo>	
+	</target>
+
+	<target name="init">
+    <tstamp/>
+  </target>
+
+  <target name="javadoc" depends="init">
+    <delete dir="${javadoc}" quiet="true"/>
+    <mkdir dir="${javadoc}/"/>
+    <javadoc destdir="${javadoc}">
+      <fileset dir="${java}/" includes="**/*.java"/>
+      <classpath>
+        <pathelement location="lib/jdom.jar"/>
+        <pathelement location="lib/log4j.jar"/>
+      </classpath>
+    </javadoc>
+  </target>
+
+	<target name="compile" depends="init">
+    <mkdir dir="${build}"/>
+    <javac srcdir="${java}" destdir="${build}">
+      <classpath>
+        <pathelement path="."/>
+        <pathelement location="lib/jdom.jar"/>
+        <pathelement location="lib/log4j.jar"/>
+      </classpath>
+    </javac>
+  </target>
+
+  <target name="copy configs" depends="init">
+    <mkdir dir="${build}"/>
+    <copy todir="${build}">
+      <fileset dir="${config}"/>
+    </copy>
+  </target>
+
+  <target name="clean" depends="init">
+    <delete dir="${build}"/>
+    <delete dir="${dist}"/>
+  </target>
+
+  <target name="run" depends="init, compile, copy configs">
+    <java fork="yes" dir="${build}" classname="se.sics.cooja.GUI">
+      <arg line="${args}"/>
+    	<env key="LD_LIBRARY_PATH" value="."/>
+      <classpath>
+        <pathelement path="${build}"/>
+        <pathelement location="lib/jdom.jar"/>
+        <pathelement location="lib/log4j.jar"/>
+      </classpath>
+    </java>
+  </target>
+
+  <target name="jar" depends="clean, init, compile, copy configs">
+    <mkdir dir="${dist}"/>
+    <jar destfile="${dist}/cooja.jar" basedir="${build}">
+      <fileset dir="${build}"/>      
+      <manifest>
+        <attribute name="Main-Class" value="se.sics.cooja.GUI"/>
+        <attribute name="Class-Path" value=". lib/log4j.jar lib/jdom.jar"/>
+      </manifest>
+    </jar>
+    <mkdir dir="${dist}/lib"/>
+    <copy todir="${dist}/lib">
+      <fileset dir="${lib}"/>
+    </copy>
+  </target>
+
+
+</project>

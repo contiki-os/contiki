@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE log4j:configuration SYSTEM "log4j.dtd">
+
+<log4j:configuration xmlns:log4j="http://jakarta.apache.org/log4j/">
+
+  <appender name="logfile" class="org.apache.log4j.FileAppender">
+    <param name="File" value="COOJA.log"/>
+    <param name="Append" value="false"/>
+    <layout class="org.apache.log4j.PatternLayout">
+      <param name="ConversionPattern" value="[%d{HH:mm:ss} - %t] [%F:%L] [%p] - %m%n"/>
+    </layout>
+  </appender>
+
+  <appender name="stdout" class="org.apache.log4j.ConsoleAppender">
+    <layout class="org.apache.log4j.PatternLayout">
+      <param name="ConversionPattern" value="%5p [%t] (%F:%L) - %m%n"/>
+    </layout>
+  </appender>
+
+  <root>
+    <priority value="debug"/>
+    <appender-ref ref="logfile"/>
+    <appender-ref ref="stdout"/>
+  </root>
+</log4j:configuration>

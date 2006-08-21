@@ -1,0 +1,153 @@
+<?xml version="1.0"?>
+
+<project name="COOJA Simulator - JNI Tests" default="about" basedir=".">
+
+	<!-- Properties used inside the COOJA Simulator -->
+	<property name="PATH_C_COMPILER" value="gcc"/>
+  <property name="COMPILER_ARGS" value=""/>
+  <property name="PATH_LINKER" value="ld"/>
+  <property name="LINKER_ARGS_1" value=""/>
+  <property name="LINKER_ARGS_2" value=""/>
+	
+	<target name="help">
+		<echo>
+Win32 cygwin users may try:
+  COMPILER_ARGS= -mno-cygwin -I....../jdk1.5.0/include -I....../jdk1.5.0/include/win32
+  LINKER_ARGS_1 = --add-stdcall-alias /usr/lib/mingw/dllcrt2.o
+  LINKER_ARGS_2 = -L/usr/lib/mingw -lmingw32 -lmingwex -lmsvcrt
+
+  Only for level 1, try the following compiler arguments:
+  COMPILER_ARGS= -mno-cygwin -I....../jdk1.5.0/include -I....../jdk1.5.0/include/win32 -Wl,--add-stdcall
+		</echo>
+	</target>
+	
+	<target name="about">
+		<echo>
+The COOJA Simulator - JNI Tests
+There examples may help understand errors during compilation from inside COOJA.
+For some examples; "ant help".				
+
+		
+ant level1
+	Runs JNI test level 1:
+	[compilation test]
+	Compiles level1.c to level1.library, using only c compiler.
+	Java class loads the library and calls a simple native function.
+
+ant level2
+	Runs JNI test level 2:
+	[compilation test]
+	Compiles level2.c to level2.library, using both c compiler and linker.
+	Java class loads the library and calls a simple native function.
+
+ant level3
+	Runs JNI test level 3:
+	[map file parsing test]
+	Compiles java + c.
+	The map file is parsed, and information about data+bss sections is outputted.
+
+ant level4
+	Runs JNI test level 4:
+	[fetching reference var]
+  Calculates offset between relative (mapfile) and absolute memory.
+	A simple native function increases two counters (from both data and bss sections).
+
+ant level5
+	Runs JNI test level 5:
+	[fetches and restores memory segments - the final test]
+	A simple native function increases two counters (from both data and bss sections).
+	The current memory (data+bss sections) is fetched and restored between function calls.
+	The counters should be restored with the memory!
+	</echo>	
+	</target>
+
+	<target name="clean">
+	  <delete>
+	     <fileset dir="." includes="**/*.class" />
+	     <fileset dir="." includes="**/*.library" />
+	     <fileset dir="." includes="**/*.o" />
+	     <fileset dir="." includes="**/*.map" />
+	   </delete>
+  </target>
+
+	<target name="init">
+    <tstamp/>
+  </target>
+
+  <target name="level1_compile_c" depends="init">
+		<echo message="EXECUTING: ${PATH_C_COMPILER} ${COMPILER_ARGS} -o level1.library -shared level1.c"/>
+  	<exec dir="level1" executable="${PATH_C_COMPILER}" failonerror="true">
+  	  <arg line="${COMPILER_ARGS} -o level1.library -shared level1.c"/>
+  	</exec>
+  </target>
+	
+  <target name="level1" depends="init, level1_compile_c">
+    <javac srcdir="level1" destdir="level1"/>
+    <java fork="yes" dir="level1" classname="Level1"/>
+  </target>
+
+  <target name="level2_compile_c" depends="init">
+		<echo message="EXECUTING: ${PATH_C_COMPILER} ${COMPILER_ARGS} -c -o level2.o -shared level2.c"/>
+  	<exec dir="level2" executable="${PATH_C_COMPILER}" failonerror="true">
+  	  <arg line="${COMPILER_ARGS} -c -o level2.o -shared level2.c"/>
+  	</exec>
+		<echo message="EXECUTING: ${PATH_LINKER} -Map=level2.map -shared ${LINKER_ARGS_1} -o level2.library level2.o ${LINKER_ARGS_2}"/>
+  	<exec dir="level2" executable="${PATH_LINKER}" failonerror="true">
+  	  <arg line="-Map=level2.map -shared ${LINKER_ARGS_1} -o level2.library level2.o ${LINKER_ARGS_2}"/>
+  	</exec>
+  </target>
+	
+  <target name="level2" depends="init, level2_compile_c">
+    <javac srcdir="level2" destdir="level2"/>
+    <java fork="yes" dir="level2" classname="Level2"/>
+  </target>
+
+  <target name="level3_compile_c" depends="init">
+		<echo message="EXECUTING: ${PATH_C_COMPILER} ${COMPILER_ARGS} -c -o level3.o -shared level3.c"/>
+  	<exec dir="level3" executable="${PATH_C_COMPILER}" failonerror="true">
+  	  <arg line="${COMPILER_ARGS} -c -o level3.o -shared level3.c"/>
+  	</exec>
+		<echo message="EXECUTING: ${PATH_LINKER} -Map=level3.map -shared ${LINKER_ARGS_1} -o level3.library level3.o ${LINKER_ARGS_2}"/>
+  	<exec dir="level3" executable="${PATH_LINKER}" failonerror="true">
+  	  <arg line="-Map=level3.map -shared ${LINKER_ARGS_1} -o level3.library level3.o ${LINKER_ARGS_2}"/>
+  	</exec>
+  </target>
+	
+  <target name="level3" depends="init, level3_compile_c">
+    <javac srcdir="level3" destdir="level3"/>
+    <java fork="yes" dir="level3" classname="Level3"/>
+  </target>
+
+  <target name="level4_compile_c" depends="init">
+		<echo message="EXECUTING: ${PATH_C_COMPILER} ${COMPILER_ARGS} -c -o level4.o -shared level4.c"/>
+  	<exec dir="level4" executable="${PATH_C_COMPILER}" failonerror="true">
+  	  <arg line="${COMPILER_ARGS} -c -o level4.o -shared level4.c"/>
+  	</exec>
+		<echo message="EXECUTING: ${PATH_LINKER} -Map=level4.map -shared ${LINKER_ARGS_1} -o level4.library level4.o ${LINKER_ARGS_2}"/>
+  	<exec dir="level4" executable="${PATH_LINKER}" failonerror="true">
+  	  <arg line="-Map=level4.map -shared ${LINKER_ARGS_1} -o level4.library level4.o ${LINKER_ARGS_2}"/>
+  	</exec>
+  </target>
+	
+  <target name="level4" depends="init, level4_compile_c">
+    <javac srcdir="level4" destdir="level4"/>
+    <java fork="yes" dir="level4" classname="Level4"/>
+  </target>
+
+  <target name="level5_compile_c" depends="init">
+		<echo message="EXECUTING: ${PATH_C_COMPILER} ${COMPILER_ARGS} -c -o level5.o -shared level5.c"/>
+  	<exec dir="level5" executable="${PATH_C_COMPILER}" failonerror="true">
+  	  <arg line="${COMPILER_ARGS} -c -o level5.o -shared level5.c"/>
+  	</exec>
+		<echo message="EXECUTING: ${PATH_LINKER} -Map=level5.map -shared ${LINKER_ARGS_1} -o level5.library level5.o ${LINKER_ARGS_2}"/>
+  	<exec dir="level5" executable="${PATH_LINKER}" failonerror="true">
+  	  <arg line="-Map=level5.map -shared ${LINKER_ARGS_1} -o level5.library level5.o ${LINKER_ARGS_2}"/>
+  	</exec>
+  </target>
+	
+  <target name="level5" depends="init, level5_compile_c">
+    <javac srcdir="level5" destdir="level5"/>
+    <java fork="yes" dir="level5" classname="Level5"/>
+  </target>
+
+</project>
