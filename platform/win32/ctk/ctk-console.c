@@ -30,7 +30,7 @@
  * 
  * Author: Oliver Schmidt <ol.sc@web.de>
  *
- * $Id: ctk-console.c,v 1.2 2006/08/14 23:42:33 oliverschmidt Exp $
+ * $Id: ctk-console.c,v 1.3 2006/08/21 22:27:10 oliverschmidt Exp $
  */
 
 #define WIN32_LEAN_AND_MEAN
@@ -48,6 +48,7 @@ static unsigned char width;
 static unsigned char height;
 
 static DWORD               saved_inputmode;
+static DWORD               saved_outputmode;
 static unsigned char       saved_color;
 static char                saved_title[1024];
 static CONSOLE_CURSOR_INFO saved_cursorinfo;
@@ -85,6 +86,9 @@ console_init(void)
   GetConsoleMode(stdinhandle, &saved_inputmode);
   SetConsoleMode(stdinhandle, ENABLE_MOUSE_INPUT | ENABLE_PROCESSED_INPUT);
 
+  GetConsoleMode(stdouthandle, &saved_outputmode);
+  SetConsoleMode(stdouthandle, ENABLE_PROCESSED_OUTPUT);
+
   screensize(&width, &height);
 
   GetConsoleScreenBufferInfo(stdouthandle, &consoleinfo);
@@ -105,13 +109,13 @@ console_init(void)
 void
 console_exit(void)
 {
-  SetConsoleMode(stdinhandle, saved_inputmode);
-
   textcolor(saved_color);
   revers(0);
   clrscr();
   gotoxy(0, 0);
 
+  SetConsoleMode(stdinhandle,  saved_inputmode);
+  SetConsoleMode(stdouthandle, saved_outputmode);
   SetConsoleTitle(saved_title);
   SetConsoleCursorInfo(stdouthandle, &saved_cursorinfo);
 }
