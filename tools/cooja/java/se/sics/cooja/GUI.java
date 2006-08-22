@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: GUI.java,v 1.2 2006/08/22 08:56:08 nifi Exp $
+ * $Id: GUI.java,v 1.3 2006/08/22 12:25:24 nifi Exp $
  */
 
 package se.sics.cooja;
@@ -49,7 +49,7 @@ import se.sics.cooja.plugins.*;
 
 /**
  * Main file of COOJA Simulator.
- * 
+ *
  * @author Fredrik Osterlind
  */
 public class GUI extends JDesktopPane {
@@ -415,7 +415,7 @@ public class GUI extends JDesktopPane {
 
   /**
    * Register new mote type class.
-   * 
+   *
    * @param moteTypeClass
    *          Class to register
    */
@@ -439,7 +439,7 @@ public class GUI extends JDesktopPane {
 
   /**
    * Register new IP distributor class
-   * 
+   *
    * @param ipDistributorClass
    *          Class to register
    * @return True if class was registered
@@ -475,7 +475,7 @@ public class GUI extends JDesktopPane {
 
   /**
    * Register new positioner class.
-   * 
+   *
    * @param positionerClass
    *          Class to register
    * @return True if class was registered
@@ -512,7 +512,7 @@ public class GUI extends JDesktopPane {
 
   /**
    * Register new radio medium class.
-   * 
+   *
    * @param radioMediumClass
    *          Class to register
    * @return True if class was registered
@@ -543,9 +543,9 @@ public class GUI extends JDesktopPane {
    * mediums. This method may still return true even if all classes could not be
    * registered, but always returns false if all user platform configuration
    * files were not parsed correctly.
-   * 
+   *
    * Any registered temporary plugins will be saved and reregistered.
-   * 
+   *
    * @return True if external configuration files were found and parsed OK
    */
   public boolean reparsePlatformConfig() {
@@ -715,7 +715,7 @@ public class GUI extends JDesktopPane {
 
   /**
    * Returns the current platform configuration common to the entire simulator.
-   * 
+   *
    * @return Current platform configuration
    */
   public PlatformConfig getPlatformConfig() {
@@ -724,7 +724,7 @@ public class GUI extends JDesktopPane {
 
   /**
    * Returns the current user platforms common to the entire simulator.
-   * 
+   *
    * @return Current user platforms.
    */
   public Vector<File> getUserPlatforms() {
@@ -735,7 +735,7 @@ public class GUI extends JDesktopPane {
 
   /**
    * Show a started plugin in working area.
-   * 
+   *
    * @param plugin
    *          Internal frame to add
    */
@@ -762,7 +762,7 @@ public class GUI extends JDesktopPane {
 
   /**
    * Remove a plugin from working area.
-   * 
+   *
    * @param plugin
    *          Plugin to remove
    * @param askUser
@@ -792,7 +792,7 @@ public class GUI extends JDesktopPane {
   /**
    * Starts a plugin of given plugin class. If the plugin is a mote plugin the
    * currently selected mote will be given as an argument.
-   * 
+   *
    * @param pluginClass
    *          Plugin class
    * @return True if plugin was started, false otherwise
@@ -860,7 +860,7 @@ public class GUI extends JDesktopPane {
   /**
    * Register a plugin to be included in the GUI. The plugin will be visible in
    * the menubar.
-   * 
+   *
    * @param newPluginClass
    *          New plugin to register
    * @return True if this plugin was registered ok, false otherwise
@@ -873,7 +873,7 @@ public class GUI extends JDesktopPane {
    * Register a temporary plugin to be included in the GUI. The plugin will be
    * visible in the menubar. This plugin will automatically be unregistered if
    * the current simulation is removed.
-   * 
+   *
    * @param newPluginClass
    *          New plugin to register
    * @return True if this plugin was registered ok, false otherwise
@@ -893,7 +893,7 @@ public class GUI extends JDesktopPane {
 
   /**
    * Unregister a plugin class. Removes any plugin menu items links as well.
-   * 
+   *
    * @param pluginClass
    *          Plugin class to unregister
    */
@@ -924,7 +924,7 @@ public class GUI extends JDesktopPane {
 
   /**
    * Register a plugin to be included in the GUI.
-   * 
+   *
    * @param newPluginClass
    *          New plugin to register
    * @param addToMenu
@@ -1005,7 +1005,7 @@ public class GUI extends JDesktopPane {
   /**
    * Show mote plugins menu for starting a mote plugin. All registered mote
    * plugins can be selected from.
-   * 
+   *
    * @param invoker
    *          Component that wants to display the menu
    * @param mote
@@ -1043,7 +1043,7 @@ public class GUI extends JDesktopPane {
 
   /**
    * Creates a new mote type of the given mote type class.
-   * 
+   *
    * @param moteTypeClass
    *          Mote type class
    */
@@ -1075,7 +1075,7 @@ public class GUI extends JDesktopPane {
 
   /**
    * Remove current simulation
-   * 
+   *
    * @param askForConfirmation
    *          Should we ask for confirmation if a simulation is already active?
    */
@@ -1126,7 +1126,7 @@ public class GUI extends JDesktopPane {
 
   /**
    * Load a simulation configuration file from disk
-   * 
+   *
    * @param askForConfirmation
    *          Should we ask for confirmation if a simulation is already active?
    */
@@ -1192,7 +1192,7 @@ public class GUI extends JDesktopPane {
 
   /**
    * Save current simulation configuration to disk
-   * 
+   *
    * @param askForConfirmation
    *          Ask for confirmation before overwriting file
    */
@@ -1259,7 +1259,7 @@ public class GUI extends JDesktopPane {
 
   /**
    * Create a new simulation
-   * 
+   *
    * @param askForConfirmation
    *          Should we ask for confirmation if a simulation is already active?
    */
@@ -1288,7 +1288,7 @@ public class GUI extends JDesktopPane {
 
   /**
    * Quit program
-   * 
+   *
    * @param askForConfirmation
    *          Should we ask for confirmation before quitting?
    */
@@ -1319,7 +1319,7 @@ public class GUI extends JDesktopPane {
 
   /**
    * Get name of external tools setting at given index.
-   * 
+   *
    * @param index
    *          Setting index
    * @return Name
@@ -1491,7 +1491,7 @@ public class GUI extends JDesktopPane {
 
   /**
    * Help method that tries to load and initialize a class with given name.
-   * 
+   *
    * @param <N>
    *          Class extending given class type
    * @param classType
@@ -1517,57 +1517,89 @@ public class GUI extends JDesktopPane {
     }
 
     try {
-      return userPlatformClassLoader.loadClass(className).asSubclass(classType);
+      if (userPlatformClassLoader != null) {
+	return userPlatformClassLoader.loadClass(className).asSubclass(classType);
+      }
     } catch (ClassNotFoundException e) {
     }
 
     return null;
   }
 
+  public ClassLoader createUserPlatformClassLoader(Vector<File> platformsList) {
+    if (userPlatformClassLoader == null) {
+      reparsePlatformConfig();
+    }
+    return createClassLoader(userPlatformClassLoader, platformsList);
+  }
+
   private ClassLoader createClassLoader(Vector<File> currentUserPlatforms) {
     ClassLoader classLoader = ClassLoader.getSystemClassLoader();
+    return createClassLoader(ClassLoader.getSystemClassLoader(), currentUserPlatforms);
+  }
 
-    // Combine class loader from all user platforms (including any specified JAR
-    // files)
-    for (File userPlatform : currentUserPlatforms) {
-      // Read configuration to check if any JAR files should be loaded
+  private File findJarFile(File platformPath, String jarfile) {
+    File fp = new File(jarfile);
+    if (!fp.exists()) {
+      fp = new File(platformPath, jarfile);
+    }
+    if (!fp.exists()) {
+      fp = new File(platformPath, "java/" + jarfile);
+    }
+    if (!fp.exists()) {
+      fp = new File(platformPath, "java/lib/" + jarfile);
+    }
+    if (!fp.exists()) {
+      fp = new File(platformPath, "lib/" + jarfile);
+    }
+    return fp.exists() ? fp : null;
+  }
+
+  private ClassLoader createClassLoader(ClassLoader parent,
+					Vector<File> platformsList) {
+    if (platformsList == null || platformsList.isEmpty()) {
+      return parent;
+    }
+
+    // Combine class loader from all user platforms (including any
+    // specified JAR files)
+    ArrayList<URL> urls = new ArrayList<URL>();
+    for (int j = platformsList.size() - 1; j >= 0; j--) {
+      File userPlatform = platformsList.get(j);
       try {
-        File userPlatformConfigFile = new File(userPlatform.getPath()
-            + File.separatorChar + PLATFORM_CONFIG_FILENAME);
+	urls.add((new File(userPlatform, "java")).toURL());
+
+	// Read configuration to check if any JAR files should be loaded
+        File userPlatformConfigFile =
+	  new File(userPlatform, PLATFORM_CONFIG_FILENAME);
         PlatformConfig userPlatformConfig = new PlatformConfig();
         userPlatformConfig.appendConfig(userPlatformConfigFile);
         String[] platformJarFiles = userPlatformConfig.getStringArrayValue(
             GUI.class, "JARFILES");
         if (platformJarFiles != null && platformJarFiles.length > 0) {
-          URL[] platformJarURLs = new URL[platformJarFiles.length];
-          for (int i = 0; i < platformJarFiles.length; i++) {
-            platformJarURLs[i] = new File(userPlatform.getPath()
-                + File.separatorChar + "lib" + File.separatorChar
-                + platformJarFiles[i]).toURL();
+	  for (String jarfile : platformJarFiles) {
+            File jarpath = findJarFile(userPlatform, jarfile);
+	    if (jarpath == null) {
+	      throw new FileNotFoundException(jarfile);
+	    }
+	    urls.add(jarpath.toURL());
           }
-
-          classLoader = new URLClassLoader(platformJarURLs, classLoader);
         }
 
       } catch (Exception e) {
         logger.fatal("Error when trying to read JAR-file in " + userPlatform
             + ": " + e);
       }
-
-      // Add java class directory
-      classLoader = new DirectoryClassLoader(classLoader, new File(userPlatform
-          .getPath()
-          + File.separatorChar + "java"));
     }
-
-    return classLoader;
+    return new URLClassLoader((URL[]) urls.toArray(new URL[urls.size()]),
+			      userPlatformClassLoader);
   }
 
   /**
    * Help method that returns the description for given object. This method
    * reads from the object's class annotations if existing. Otherwise it returns
    * the simple class name of object's class.
-   * 
+   *
    * @param object
    *          Object
    * @return Description
@@ -1580,7 +1612,7 @@ public class GUI extends JDesktopPane {
    * Help method that returns the description for given class. This method reads
    * from class annotations if existing. Otherwise it returns the simple class
    * name.
-   * 
+   *
    * @param clazz
    *          Class
    * @return Description
@@ -1594,7 +1626,7 @@ public class GUI extends JDesktopPane {
 
   /**
    * Load configurations and create a GUI.
-   * 
+   *
    * @param args
    *          null
    */
