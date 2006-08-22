@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: PlatformConfig.java,v 1.1 2006/08/21 12:12:56 fros4943 Exp $
+ * $Id: PlatformConfig.java,v 1.2 2006/08/22 15:28:17 fros4943 Exp $
  */
 
 package se.sics.cooja;
@@ -86,19 +86,133 @@ import org.apache.log4j.Logger;
 public class PlatformConfig {
   private static Logger logger = Logger.getLogger(PlatformConfig.class);
 
-  private Properties myConfig = new Properties();
+  private Properties myConfig = null;
+  private Vector<File> myUserPlatformHistory = null;
 
   /**
-   * Creates a new empty platform configuration.
+   * Creates new platform configuration.
+   * 
+   * @param useDefault
+   *          If true the default configuration will be loaded
+   * @throws FileNotFoundException
+   *           If file was not found
+   * @throws IOException
+   *           Stream read error
    */
-  public PlatformConfig() {
+  public PlatformConfig(boolean useDefault) throws IOException,
+      FileNotFoundException {
+    // Create empty configuration
     myConfig = new Properties();
+    myUserPlatformHistory = new Vector<File>();
+
+    if (useDefault) {
+      InputStream input = GUI.class
+          .getResourceAsStream(GUI.PLATFORM_DEFAULT_CONFIG_FILENAME);
+      if (input != null) {
+        try {
+          appendConfigStream(input);
+        } finally {
+          input.close();
+        }
+      } else {
+        throw new FileNotFoundException(GUI.PLATFORM_DEFAULT_CONFIG_FILENAME);
+      }
+    }
+  }
+
+  /**
+   * Appends the given user platform's config file. Thus method also saved a
+   * local history of which user platforms has been loaded.
+   * 
+   * @param userPlatform
+   *          User platform
+   * @return True if loaded OK
+   * @throws FileNotFoundException
+   *           If file was not found
+   * @throws IOException
+   *           Stream read error
+   */
+  public boolean appendUserPlatform(File userPlatform)
+      throws FileNotFoundException, IOException {
+    File userPlatformConfig = new File(userPlatform.getPath()
+        + File.separatorChar + GUI.PLATFORM_CONFIG_FILENAME);
+    myUserPlatformHistory.add(userPlatform);
+    return appendConfigFile(userPlatformConfig);
+  }
+
+
+  /**
+   * Returns the user platform earlier appended to this configuration that
+   * defined the given key. If the key is of an array format and the given array
+   * element is non-null, then the user platform that added this element will be
+   * returned instead. If no such user platform can be found null is returned
+   * instead.
+   * 
+   * @param callingClass
+   *          Class which value belongs to
+   * @param key
+   *          Key
+   * @param value
+   *          Element of array
+   * @return User platform
+   */
+  public File getUserPlatformDefining(Class callingClass, String key, String arrayElement) {
+
+    // Check that key really exists in current config
+    if (getStringValue(callingClass, key, null) == null) {
+      return null;
+    }
+    
+    // Check that element really exists, if any
+    if (arrayElement != null) {
+      String[] array = getStringArrayValue(callingClass, key);
+      boolean foundValue = false;
+      for (int c=0; c < array.length; c++) {
+        if (array[c].equals(arrayElement))
+          foundValue = true;
+      }
+      if (!foundValue) {
+        return null;
+      }
+    }
+
+    // Search in all user platform in reversed order
+    try {
+      PlatformConfig remadeConfig = new PlatformConfig(false);
+      
+      for (int i=myUserPlatformHistory.size()-1; i >= 0; i--) {
+        remadeConfig.appendUserPlatform(myUserPlatformHistory.get(i));
+
+        if (arrayElement != null) {
+          // Look for array
+          String[] array = remadeConfig.getStringArrayValue(callingClass, key);
+          for (int c=0; c < array.length; c++) {
+            if (array[c].equals(arrayElement))
+              return myUserPlatformHistory.get(i);
+          }
+        } else {
+          // Look for key
+          if (remadeConfig.getStringValue(callingClass, key, null) != null) {
+            return myUserPlatformHistory.get(i);
+          }
+        }
+      }
+      
+    } catch (Exception e) {
+      logger.fatal("Exception when searching in user platform history: " + e);
+      return null;
+    }
+    
+    return null;
   }
 
   /**
    * Loads the given property file and appends it to the current configuration.
    * If a property already exists it will be overwritten, unless the new value
    * begins with a '+' in which case the old value will be extended.
+   * 
+   * WARNING! The user platform history will not be saved if this method is
+   * called, instead the appendUserPlatform method should be used.
    * 
    * @param propertyFile
    *          Property file to read
@@ -108,23 +222,20 @@ public class PlatformConfig {
    * @throws IOException
    *           Stream read error
    */
-  public boolean appendConfig(File propertyFile) throws FileNotFoundException,
-      IOException {
-    return appendConfig(myConfig, propertyFile);
-  }
-
-  private static boolean appendConfig(Properties currentValues,
-      File propertyFile) throws FileNotFoundException, IOException {
-    // Open file
+  public boolean appendConfigFile(File propertyFile)
+      throws FileNotFoundException, IOException {
     FileInputStream in = new FileInputStream(propertyFile);
-    return appendConfig(currentValues, in);
+    return appendConfigStream(myConfig, in);
   }
 
   /**
-   * Reads propertues from the given stream and appends them to the current
+   * Reads properties from the given stream and appends them to the current
    * configuration. If a property already exists it will be overwritten, unless
    * the new value begins with a '+' in which case the old value will be
    * extended.
+   * 
+   * WARNING! The user platform history will not be saved if this method is
+   * called, instead the appendUserPlatform method should be used.
    * 
    * @param configFileStream
    *          Stream to read from
@@ -132,11 +243,12 @@ public class PlatformConfig {
    * @throws IOException
    *           Stream read error
    */
-  public boolean appendConfig(InputStream configFileStream) throws IOException {
-    return appendConfig(myConfig, configFileStream);
+  public boolean appendConfigStream(InputStream configFileStream)
+      throws IOException {
+    return appendConfigStream(myConfig, configFileStream);
   }
 
-  private static boolean appendConfig(Properties currentValues,
+  private static boolean appendConfigStream(Properties currentValues,
       InputStream configFileStream) throws IOException {
 
     // Read from stream
@@ -151,7 +263,8 @@ public class PlatformConfig {
       String property = newProps.getProperty(key);
       if (property.startsWith("+ ")) {
         if (currentValues.getProperty(key) != null)
-          currentValues.setProperty(key, currentValues.getProperty(key) + " " + property.substring(1).trim());
+          currentValues.setProperty(key, currentValues.getProperty(key) + " "
+              + property.substring(1).trim());
         else
           currentValues.setProperty(key, property.substring(1).trim());
       } else
@@ -189,7 +302,8 @@ public class PlatformConfig {
     String val = currentValues.getProperty(callingClass.getName() + "." + id);
 
     if (val == null) {
-      logger.warn("Could not find key named '" + callingClass.getName() + "." + id + "'");
+      logger.warn("Could not find key named '" + callingClass.getName() + "."
+          + id + "'");
       return defaultValue;
     }
 
@@ -251,6 +365,21 @@ public class PlatformConfig {
    */
   public String getValue(Class callingClass, String id) {
     return getStringValue(callingClass, id);
+  }
+
+  /**
+   * Get string array value with given id.
+   * 
+   * @param id
+   *          Id of value to return
+   * @return Value or null if id wasn't found
+   */
+  public String[] getStringArrayValue(String id) {
+    String stringVal = getStringValue(id);
+    if (stringVal == null)
+      return new String[0];
+
+    return getStringValue(id).split(" ");
   }
 
   /**
@@ -352,8 +481,13 @@ public class PlatformConfig {
   }
 
   public PlatformConfig clone() {
-    PlatformConfig clone = new PlatformConfig();
-    clone.myConfig = (Properties) this.myConfig.clone();
-    return clone;
+    try {
+      PlatformConfig clone = new PlatformConfig(false);
+      clone.myConfig = (Properties) this.myConfig.clone();
+      clone.myUserPlatformHistory = (Vector<File>) this.myUserPlatformHistory.clone();
+      return clone;
+    } catch (Exception e) {
+      return null;
+    }
   }
 }

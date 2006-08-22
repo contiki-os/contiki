@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: GUI.java,v 1.3 2006/08/22 12:25:24 nifi Exp $
+ * $Id: GUI.java,v 1.4 2006/08/22 15:28:17 fros4943 Exp $
  */
 
 package se.sics.cooja;
@@ -560,24 +560,15 @@ public class GUI extends JDesktopPane {
     unregisterPositioners();
     unregisterRadioMediums();
 
-    // Read default configuration
-    platformConfig = new PlatformConfig();
-    // logger.info("Loading default platform configuration: " +
-    // PLATFORM_DEFAULT_CONFIG_FILENAME);
     try {
-      InputStream input =
-	GUI.class.getResourceAsStream(PLATFORM_DEFAULT_CONFIG_FILENAME);
-      if (input != null) {
-	try {
-	  platformConfig.appendConfig(input);
-	} finally {
-	  input.close();
-	}
-      } else {
-	logger.fatal("Could not find default platform config file: "
-		     + PLATFORM_DEFAULT_CONFIG_FILENAME);
-	return false;
-      }
+      // Read default configuration
+      platformConfig = new PlatformConfig(true);
+      // logger.info("Loading default platform configuration: " +
+      // PLATFORM_DEFAULT_CONFIG_FILENAME);
+    } catch (FileNotFoundException e) {
+      logger.fatal("Could not find default platform config file: "
+          + PLATFORM_DEFAULT_CONFIG_FILENAME);
+      return false;
     } catch (IOException e) {
       logger.fatal("Error when reading default platform config file: "
           + PLATFORM_DEFAULT_CONFIG_FILENAME);
@@ -586,20 +577,18 @@ public class GUI extends JDesktopPane {
 
     // Append user platform configurations
     for (File userPlatform : currentUserPlatforms) {
-      File userPlatformConfig = new File(userPlatform.getPath()
-          + File.separatorChar + PLATFORM_CONFIG_FILENAME);
-      // logger.info("Loading platform configuration: " + userPlatformConfig);
 
       try {
         // Append config to general config
-        platformConfig.appendConfig(userPlatformConfig);
+        // logger.info("Appending user platform configuration: " + userPlatform);
+        platformConfig.appendUserPlatform(userPlatform);
       } catch (FileNotFoundException e) {
         logger.fatal("Could not find platform config file: "
-            + userPlatformConfig);
+            + userPlatform);
         return false;
       } catch (IOException e) {
         logger.fatal("Error when reading platform config file: "
-            + userPlatformConfig);
+            + userPlatform);
         return false;
       }
     }
@@ -1556,45 +1545,43 @@ public class GUI extends JDesktopPane {
   }
 
   private ClassLoader createClassLoader(ClassLoader parent,
-					Vector<File> platformsList) {
+      Vector<File> platformsList) {
     if (platformsList == null || platformsList.isEmpty()) {
       return parent;
     }
-
+    
     // Combine class loader from all user platforms (including any
     // specified JAR files)
     ArrayList<URL> urls = new ArrayList<URL>();
     for (int j = platformsList.size() - 1; j >= 0; j--) {
       File userPlatform = platformsList.get(j);
       try {
-	urls.add((new File(userPlatform, "java")).toURL());
-
-	// Read configuration to check if any JAR files should be loaded
-        File userPlatformConfigFile =
-	  new File(userPlatform, PLATFORM_CONFIG_FILENAME);
-        PlatformConfig userPlatformConfig = new PlatformConfig();
-        userPlatformConfig.appendConfig(userPlatformConfigFile);
+        urls.add((new File(userPlatform, "java")).toURL());
+        
+        // Read configuration to check if any JAR files should be loaded
+        PlatformConfig userPlatformConfig = new PlatformConfig(false);
+        userPlatformConfig.appendUserPlatform(userPlatform);
         String[] platformJarFiles = userPlatformConfig.getStringArrayValue(
             GUI.class, "JARFILES");
         if (platformJarFiles != null && platformJarFiles.length > 0) {
-	  for (String jarfile : platformJarFiles) {
+          for (String jarfile : platformJarFiles) {
             File jarpath = findJarFile(userPlatform, jarfile);
-	    if (jarpath == null) {
-	      throw new FileNotFoundException(jarfile);
-	    }
-	    urls.add(jarpath.toURL());
+            if (jarpath == null) {
+              throw new FileNotFoundException(jarfile);
+            }
+            urls.add(jarpath.toURL());
           }
         }
-
+        
       } catch (Exception e) {
         logger.fatal("Error when trying to read JAR-file in " + userPlatform
             + ": " + e);
       }
     }
     return new URLClassLoader((URL[]) urls.toArray(new URL[urls.size()]),
-			      userPlatformClassLoader);
+        userPlatformClassLoader);
   }
-
+  
   /**
    * Help method that returns the description for given object. This method
    * reads from the object's class annotations if existing. Otherwise it returns

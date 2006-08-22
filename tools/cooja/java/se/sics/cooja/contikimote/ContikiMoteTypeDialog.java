@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ContikiMoteTypeDialog.java,v 1.3 2006/08/22 12:26:36 nifi Exp $
+ * $Id: ContikiMoteTypeDialog.java,v 1.4 2006/08/22 15:28:18 fros4943 Exp $
  */
 
 package se.sics.cooja.contikimote;
@@ -898,8 +898,19 @@ public class ContikiMoteTypeDialog extends JDialog {
         String[] projectSourceFiles = newMoteTypeConfig.getStringArrayValue(
             ContikiMoteType.class, "C_SOURCES");
         for (String projectSourceFile : projectSourceFiles) {
-          if (!projectSourceFile.trim().equals("")) {
-            filesToCompile.add(new File(projectSourceFile));
+          if (!projectSourceFile.equals("")) {
+            File file = new File(projectSourceFile);
+            if (file.getParent() != null) {
+              // Find which user platform added this file
+              File userPlatform = newMoteTypeConfig.getUserPlatformDefining(
+                  ContikiMoteType.class, "C_SOURCES", projectSourceFile);
+              if (userPlatform != null) {
+                // We found a user platform - Add directory
+                filesToCompile.add(new File(userPlatform.getPath(),
+                    file.getParent()));
+              }
+            }
+            filesToCompile.add(new File(file.getName()));
           }
         }
 
@@ -1165,16 +1176,20 @@ public class ContikiMoteTypeDialog extends JDialog {
 
       String sourceDirs = System.getProperty("PROJECTDIRS", "");
       String sourceFileNames = "";
+      String ccFlags = GUI.getExternalToolsSetting("COMPILER_ARGS", "");
 
       for (File sourceFile : sourceFiles) {
         if (sourceFile.isDirectory()) {
           // Add directory to search path
           sourceDirs += " "
               + sourceFile.getPath().replace(File.separatorChar, '/');
+          ccFlags += " -I" + sourceFile.getPath().replace(File.separatorChar, '/');
         } else if (sourceFile.isFile()) {
           // Add both file name and directory
-          sourceDirs += " " +
-	    sourceFile.getParent().replace(File.separatorChar, '/');
+          if (sourceFile.getParent() != null) {
+            sourceDirs += " " +
+            sourceFile.getParent().replace(File.separatorChar, '/');
+          }
           sourceFileNames += " " + sourceFile.getName();
         } else {
           // Add filename and hope Contiki knows where to find it...
@@ -1182,12 +1197,16 @@ public class ContikiMoteTypeDialog extends JDialog {
         }
       }
 
+      logger.info("Project dirs: " + sourceDirs);
+      logger.info("Project sources: " + sourceFileNames);
+      logger.info("Compiler flags: " + ccFlags);
+      
       String[] env = new String[]{
           "CONTIKI=" + contikiDir.getPath().replace(File.separatorChar, '/'),
           "TARGET=cooja", "TYPEID=" + identifier,
           "LD_ARGS_1=" + GUI.getExternalToolsSetting("LINKER_ARGS_1", ""),
           "LD_ARGS_2=" + GUI.getExternalToolsSetting("LINKER_ARGS_2", ""),
-          "EXTRA_CC_ARGS=" + GUI.getExternalToolsSetting("COMPILER_ARGS", ""),
+          "EXTRA_CC_ARGS=" + ccFlags,
           "CC=" + GUI.getExternalToolsSetting("PATH_C_COMPILER"),
           "LD=" + GUI.getExternalToolsSetting("PATH_LINKER"), "COMPILE_MAIN=1",
           "PROJECTDIRS=" + sourceDirs,
@@ -2008,18 +2027,12 @@ public class ContikiMoteTypeDialog extends JDialog {
 
         // Merge with all user platform configs (if any)
         for (File userPlatform : moteTypeUserPlatforms) {
-          File userPlatformConfig = new File(userPlatform.getPath()
-              + File.separatorChar + GUI.PLATFORM_CONFIG_FILENAME);
-          if (userPlatformConfig.exists()) {
-            try {
-              newMoteTypeConfig.appendConfig(userPlatformConfig);
-            } catch (Exception ex) {
-              logger.fatal("Error when parsing user platform config: " + ex);
-              return;
-            }
-          } else
-            logger.fatal("Could not find user platform config file: "
-                + userPlatformConfig);
+          try {
+            newMoteTypeConfig.appendUserPlatform(userPlatform);
+          } catch (Exception ex) {
+            logger.fatal("Error when parsing user platform config: " + ex);
+            return;
+          }
         }
 
         // Get all mote interfaces available from config
