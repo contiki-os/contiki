@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: UserPlatformsDialog.java,v 1.1 2006/08/21 12:13:02 fros4943 Exp $
+ * $Id: UserPlatformsDialog.java,v 1.2 2006/08/22 08:56:08 nifi Exp $
  */
 
 package se.sics.cooja.dialogs;
@@ -36,10 +36,10 @@ import java.awt.event.*;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.Enumeration;
 import java.util.Vector;
 import javax.swing.*;
-
 import org.apache.log4j.Logger;
 
 import se.sics.cooja.GUI;
@@ -223,11 +223,19 @@ public class UserPlatformsDialog extends JDialog {
         // Create default configuration
         PlatformConfig config = new PlatformConfig();
         try {
-          config.appendConfig(new File(GUI.PLATFORM_DEFAULT_CONFIG_FILENAME));
-        } catch (FileNotFoundException ex) {
-          logger.fatal("Could not find default platform config file: "
-              + GUI.PLATFORM_DEFAULT_CONFIG_FILENAME);
-          return;
+	  InputStream input =
+	    GUI.class.getResourceAsStream(GUI.PLATFORM_DEFAULT_CONFIG_FILENAME);
+	  if (input != null) {
+	    try {
+	      config.appendConfig(input);
+	    } finally {
+	      input.close();
+	    }
+	  } else {
+	    logger.fatal("Could not find default platform config file1: "
+			 + GUI.PLATFORM_DEFAULT_CONFIG_FILENAME);
+	    return;
+	  }
         } catch (IOException ex) {
           logger.fatal("Error when reading default platform config file: "
               + GUI.PLATFORM_DEFAULT_CONFIG_FILENAME);
