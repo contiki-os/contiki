@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ContikiMoteTypeDialog.java,v 1.2 2006/08/21 15:06:28 fros4943 Exp $
+ * $Id: ContikiMoteTypeDialog.java,v 1.3 2006/08/22 12:26:36 nifi Exp $
  */
 
 package se.sics.cooja.contikimote;
@@ -313,11 +313,11 @@ public class ContikiMoteTypeDialog extends JDialog {
     }
 
     // Set position and focus of dialog
+    myDialog.pack();
     myDialog.setLocationRelativeTo(parentFrame);
     myDialog.textDescription.requestFocus();
     myDialog.textDescription.select(0, myDialog.textDescription.getText()
         .length());
-
     myDialog.setVisible(true);
 
     if (myDialog.myMoteType != null) {
@@ -728,12 +728,12 @@ public class ContikiMoteTypeDialog extends JDialog {
 
     Container contentPane = getContentPane();
     JScrollPane mainScrollPane = new JScrollPane(mainPane);
-    mainScrollPane.setPreferredSize(new Dimension(
-        mainPane.getPreferredSize().width + 50, 500));
+//     mainScrollPane.setPreferredSize(new Dimension(
+//         mainPane.getPreferredSize().width + 50, 500));
     contentPane.add(mainScrollPane, BorderLayout.CENTER);
     contentPane.add(buttonPane, BorderLayout.SOUTH);
 
-    pack();
+//     pack();
   }
 
   /**
@@ -1035,8 +1035,8 @@ public class ContikiMoteTypeDialog extends JDialog {
       processString = "PROCINIT(NULL);";
 
     if (!userProcessString.equals(""))
-      processString = processString.concat("\nAUTOSTART_PROCESSES("
-          + userProcessString + ");");
+      processString = processString + "\nAUTOSTART_PROCESSES("
+          + userProcessString + ");";
     else
       processString = processString.concat("\nAUTOSTART_PROCESSES(NULL);");
 
@@ -1056,7 +1056,7 @@ public class ContikiMoteTypeDialog extends JDialog {
         reader = new FileReader(mainTemplate);
       } else {
         InputStream input = ContikiMoteTypeDialog.class
-            .getResourceAsStream(File.separatorChar + mainTemplate);
+            .getResourceAsStream('/' + mainTemplate);
         if (input == null) {
           throw new FileNotFoundException(mainTemplate + " not found");
         }
@@ -1173,7 +1173,8 @@ public class ContikiMoteTypeDialog extends JDialog {
               + sourceFile.getPath().replace(File.separatorChar, '/');
         } else if (sourceFile.isFile()) {
           // Add both file name and directory
-          sourceDirs += " " + sourceFile.getParent();
+          sourceDirs += " " +
+	    sourceFile.getParent().replace(File.separatorChar, '/');
           sourceFileNames += " " + sourceFile.getName();
         } else {
           // Add filename and hope Contiki knows where to find it...
@@ -1530,7 +1531,6 @@ public class ContikiMoteTypeDialog extends JDialog {
                   processCheckBox.addActionListener(myEventHandler);
 
                   processPanel.add(processCheckBox);
-                  myDialog.pack();
                 }
               } else {
                 JCheckBox processCheckBox = new JCheckBox(autostartProcess,
@@ -1542,7 +1542,6 @@ public class ContikiMoteTypeDialog extends JDialog {
                 processCheckBox.addActionListener(myEventHandler);
 
                 processPanel.add(processCheckBox);
-                myDialog.pack();
               }
             }
           }
@@ -1562,9 +1561,13 @@ public class ContikiMoteTypeDialog extends JDialog {
     moteInterfacePanel.removeAll();
     processPanel.removeAll();
     sensorPanel.removeAll();
+    coreInterfacePanel.revalidate();
     coreInterfacePanel.repaint();
+    moteInterfacePanel.revalidate();
     moteInterfacePanel.repaint();
+    processPanel.revalidate();
     processPanel.repaint();
+    sensorPanel.revalidate();
     sensorPanel.repaint();
     createButton.setEnabled(libraryCreatedOK = false);
 
@@ -1694,8 +1697,11 @@ public class ContikiMoteTypeDialog extends JDialog {
       coreInterfacePanel.removeAll();
       processPanel.removeAll();
       sensorPanel.removeAll();
+      coreInterfacePanel.revalidate();
       coreInterfacePanel.repaint();
+      processPanel.revalidate();
       processPanel.repaint();
+      sensorPanel.revalidate();
       sensorPanel.repaint();
       testButton.setEnabled(settingsOK = false);
       createButton.setEnabled(libraryCreatedOK = false);
@@ -1916,8 +1922,8 @@ public class ContikiMoteTypeDialog extends JDialog {
           testButton.setEnabled(settingsOK = false);
         }
 
+	processPanel.revalidate();
         processPanel.repaint();
-        myDialog.pack();
         createButton.setEnabled(libraryCreatedOK = false);
 
       } else if (e.getActionCommand().equals("scansensors")) {
@@ -1952,8 +1958,8 @@ public class ContikiMoteTypeDialog extends JDialog {
           testButton.setEnabled(settingsOK = false);
         }
 
+	sensorPanel.revalidate();
         sensorPanel.repaint();
-        myDialog.pack();
         createButton.setEnabled(libraryCreatedOK = false);
       } else if (e.getActionCommand().equals("scancoreinterfaces")) {
         // Clear core interface panel
@@ -1989,8 +1995,8 @@ public class ContikiMoteTypeDialog extends JDialog {
         }
         recheckInterfaceDependencies();
 
+	coreInterfacePanel.revalidate();
         coreInterfacePanel.repaint();
-        myDialog.pack();
         createButton.setEnabled(libraryCreatedOK = false);
 
       } else if (e.getActionCommand().equals("scanmoteinterfaces")) {
@@ -2021,18 +2027,20 @@ public class ContikiMoteTypeDialog extends JDialog {
             ContikiMoteType.class, "MOTE_INTERFACES");
         Vector<Class<? extends MoteInterface>> moteIntfClasses = new Vector<Class<? extends MoteInterface>>();
 
+	ClassLoader classLoader =
+	  GUI.currentGUI.createUserPlatformClassLoader(moteTypeUserPlatforms);
+
         // Find and load the mote interface classes
         for (String moteInterface : moteInterfaces) {
-
-          Class<? extends MoteInterface> newMoteInterfaceClass = GUI.currentGUI
-              .tryLoadClass(this, MoteInterface.class, moteInterface);
-
-          if (newMoteInterfaceClass == null) {
-            logger.warn("Failed to load mote interface: " + moteInterface);
-          } else {
+	  try {
+	    Class<? extends MoteInterface> newMoteInterfaceClass =
+	      classLoader.loadClass(moteInterface).
+	      asSubclass(MoteInterface.class);
             moteIntfClasses.add(newMoteInterfaceClass);
             // logger.info("Loaded mote interface: " + newMoteInterfaceClass);
-          }
+	  } catch (Exception ce) {
+            logger.warn("Failed to load mote interface: " + moteInterface);
+	  }
         }
 
         // Create and add checkboxes for all mote interfaces
@@ -2055,8 +2063,8 @@ public class ContikiMoteTypeDialog extends JDialog {
           testButton.setEnabled(settingsOK = false);
         }
 
+	moteInterfacePanel.revalidate();
         moteInterfacePanel.repaint();
-        myDialog.pack();
         createButton.setEnabled(libraryCreatedOK = false);
       } else if (e.getActionCommand().equals("addprocess")) {
         String newProcessName = JOptionPane.showInputDialog(myDialog,
@@ -2071,8 +2079,9 @@ public class ContikiMoteTypeDialog extends JDialog {
           processCheckBox.addActionListener(myEventHandler);
 
           processPanel.add(processCheckBox);
+	  processPanel.revalidate();
+	  processPanel.repaint();
         }
-        myDialog.pack();
       } else if (e.getActionCommand().equals("addsensor")) {
         String newSensorName = JOptionPane.showInputDialog(myDialog,
             "Enter sensor name");
@@ -2081,8 +2090,9 @@ public class ContikiMoteTypeDialog extends JDialog {
           sensorCheckBox.setAlignmentX(Component.LEFT_ALIGNMENT);
           sensorCheckBox.setSelected(true);
           sensorPanel.add(sensorCheckBox);
+	  sensorPanel.revalidate();
+	  sensorPanel.repaint();
         }
-        myDialog.pack();
       } else if (e.getActionCommand().equals("addinterface")) {
         String newInterfaceName = JOptionPane.showInputDialog(myDialog,
             "Enter interface name");
@@ -2091,8 +2101,9 @@ public class ContikiMoteTypeDialog extends JDialog {
           interfaceCheckBox.setAlignmentX(Component.LEFT_ALIGNMENT);
           interfaceCheckBox.setSelected(true);
           coreInterfacePanel.add(interfaceCheckBox);
+	  coreInterfacePanel.revalidate();
+	  coreInterfacePanel.repaint();
         }
-        myDialog.pack();
       } else if (e.getActionCommand().equals("recheck_interface_dependencies")) {
         recheckInterfaceDependencies();
       } else if (e.getActionCommand().startsWith("process_clicked")) {
