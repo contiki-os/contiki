@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ContikiMote.java,v 1.1 2006/08/21 12:13:10 fros4943 Exp $
+ * $Id: ContikiMote.java,v 1.2 2006/08/23 12:18:27 fros4943 Exp $
  */
 
 package se.sics.cooja.contikimote;
@@ -300,7 +300,10 @@ public class ContikiMote implements Mote {
         }
         
         MoteInterface moteInterface = myInterfaceHandler.getInterfaceOfType(moteInterfaceClass);
-        moteInterface.setConfigXML(element.getChildren());
+        if (moteInterface != null)
+          moteInterface.setConfigXML(element.getChildren());
+        else
+          logger.warn("Can't restore configuration for non-existing interface: " + moteInterfaceClass.getName());
       }
     }
     
