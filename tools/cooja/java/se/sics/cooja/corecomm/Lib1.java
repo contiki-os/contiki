@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: Lib1.java,v 1.1 2006/08/21 12:12:57 fros4943 Exp $
+ * $Id: Lib1.java,v 1.2 2006/08/23 17:13:03 fros4943 Exp $
  */
 
 package se.sics.cooja.corecomm;
@@ -54,7 +54,7 @@ public class Lib1 extends CoreComm {
   public native void tick();
   public native void init();
   public native int getReferenceAbsAddr();
-  public native byte[] getMemory(int start, int length);
+  public native void getMemory(int start, int length, byte[] mem);
   public native void setMemory(int start, int length, byte[] mem);
 
 }

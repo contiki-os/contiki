@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ContikiMoteType.java,v 1.1 2006/08/21 12:13:09 fros4943 Exp $
+ * $Id: ContikiMoteType.java,v 1.2 2006/08/23 17:11:59 fros4943 Exp $
  */
 
 package se.sics.cooja.contikimote;
@@ -239,10 +239,12 @@ public class ContikiMoteType implements MoteType {
     }
 
     // Create initial memory
-    byte[] initialDataSection = getCoreMemory(relDataSectionAddr
-        + offsetRelToAbs, dataSectionSize);
-    byte[] initialBssSection = getCoreMemory(
-        relBssSectionAddr + offsetRelToAbs, bssSectionSize);
+    byte[] initialDataSection = new byte[dataSectionSize];
+    getCoreMemory(relDataSectionAddr
+        + offsetRelToAbs, dataSectionSize, initialDataSection);
+    byte[] initialBssSection = new byte[bssSectionSize];
+    getCoreMemory(
+        relBssSectionAddr + offsetRelToAbs, bssSectionSize, initialBssSection);
     initialMemory = new SectionMoteMemory(varAddresses);
     initialMemory.setMemorySegment(relDataSectionAddr, initialDataSection);
     initialMemory.setMemorySegment(relBssSectionAddr, initialBssSection);
@@ -294,8 +296,10 @@ public class ContikiMoteType implements MoteType {
     for (int i = 0; i < mem.getNumberOfSections(); i++) {
       int startAddr = mem.getStartAddrOfSection(i);
       int size = mem.getSizeOfSection(i);
-      mem.setMemorySegment(startAddr, getCoreMemory(startAddr + offsetRelToAbs,
-          size));
+      byte[] data = mem.getDataOfSection(i);
+      
+      getCoreMemory(startAddr + offsetRelToAbs,
+          size, data);
     }
   }
 
@@ -344,8 +348,8 @@ public class ContikiMoteType implements MoteType {
     return myCoreComm.getReferenceAbsAddr();
   }
 
-  private byte[] getCoreMemory(int start, int length) {
-    return myCoreComm.getMemory(start, length);
+  private void getCoreMemory(int start, int length, byte[] data) {
+    myCoreComm.getMemory(start, length, data);
   }
 
   private void setCoreMemory(int start, int length, byte[] mem) {

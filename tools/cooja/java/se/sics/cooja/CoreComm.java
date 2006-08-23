@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: CoreComm.java,v 1.1 2006/08/21 12:12:56 fros4943 Exp $
+ * $Id: CoreComm.java,v 1.2 2006/08/23 17:11:09 fros4943 Exp $
  */
 
 package se.sics.cooja;
@@ -36,18 +36,21 @@ import se.sics.cooja.corecomm.*;
 
 /**
  * The package corecomm's purpose is communicating with the simulation core
- * using Java Native Interface (JNI). Each implementing class (named Lib[1-MAX]),
- * loads a shared library which belongs to one mote type. The reason for this
- * somewhat strange design is that once loaded, a native library cannot be unloaded
- * in Java (yet). Therefore if we wish to load several libraries, the names and associated
- * native functions must have unique names. And those names are defined via the calling class in JNI.
- * For example, the native tick function in class Lib1 is named contiki_javasim_corecomm_Lib1_tick.
- * When creating a new mote type, the main contiki source file is generated with function names
- * compatible with the next available corecomm.
- * This also implies that even if a mote type is deleted, a new one cannot be created without
- * restarting the JVM and thus the entire simulation.
- *
- * Each implemented CoreComm class needs read access to the following core variables:
+ * using Java Native Interface (JNI). Each implementing class (named
+ * Lib[1-MAX]), loads a shared library which belongs to one mote type. The
+ * reason for this somewhat strange design is that once loaded, a native library
+ * cannot be unloaded in Java (yet). Therefore if we wish to load several
+ * libraries, the names and associated native functions must have unique names.
+ * And those names are defined via the calling class in JNI. For example, the
+ * native tick function in class Lib1 is named
+ * contiki_javasim_corecomm_Lib1_tick. When creating a new mote type, the main
+ * contiki source file is generated with function names compatible with the next
+ * available corecomm. This also implies that even if a mote type is deleted, a
+ * new one cannot be created without restarting the JVM and thus the entire
+ * simulation.
+ * 
+ * Each implemented CoreComm class needs read access to the following core
+ * variables:
  * <ul>
  * <li>referenceVar
  * </ul>
@@ -59,7 +62,7 @@ import se.sics.cooja.corecomm.*;
  * <li>getMemory(int start, int length)
  * <li>setMemory(int start, int length, byte[] mem)
  * </ul>
-
+ * 
  * @author Fredrik Osterlind
  */
 public abstract class CoreComm {
@@ -71,41 +74,42 @@ public abstract class CoreComm {
   // Static pointers to current libraries
   private final static CoreComm[] coreComms = new CoreComm[MAX_LIBRARIES];
   private final static File[] coreCommFiles = new File[MAX_LIBRARIES];
-  
+
   /**
-   * Has any library been loaded? Since libraries can't be unloaded
-   * the entire simulator may have to be restarted.
-   *
+   * Has any library been loaded? Since libraries can't be unloaded the entire
+   * simulator may have to be restarted.
+   * 
    * @return True if any library has been loaded this session
    */
   public static boolean hasLibraryBeenLoaded() {
-    for (int i=0; i < coreComms.length; i++)
+    for (int i = 0; i < coreComms.length; i++)
       if (coreComms[i] != null)
-  return true;
+        return true;
     return false;
   }
 
   /**
-   * Has given library file already been loaded during this session? 
-   * A loaded library can be removed, but not unloaded 
-   * during one session. And a new library file, named 
-   * the same as an earlier loaded and removed file, 
-   * can't be loaded either.
-   *
-   * @param libraryFile Library file
-   * @return True if a library has already been loaded from the given file's filename
+   * Has given library file already been loaded during this session? A loaded
+   * library can be removed, but not unloaded during one session. And a new
+   * library file, named the same as an earlier loaded and removed file, can't
+   * be loaded either.
+   * 
+   * @param libraryFile
+   *          Library file
+   * @return True if a library has already been loaded from the given file's
+   *         filename
    */
   public static boolean hasLibraryFileBeenLoaded(File libraryFile) {
-    for (File libFile: coreCommFiles)
+    for (File libFile : coreCommFiles)
       if (libFile != null && libFile.getName().equals(libraryFile.getName()))
         return true;
     return false;
   }
 
   /**
-   * Get the class name of next free core communicator class.
-   * If null is returned, no classes are available.
-   *
+   * Get the class name of next free core communicator class. If null is
+   * returned, no classes are available.
+   * 
    * @return Class name
    */
   public static String getAvailableClassName() {
@@ -130,11 +134,13 @@ public abstract class CoreComm {
   }
 
   /**
-   * Create and return an instance of the core communicator identified
-   * by className. This core communicator will load the native library libFile.
-   *
-   * @param className Class name of core communicator
-   * @param libFile Native library file
+   * Create and return an instance of the core communicator identified by
+   * className. This core communicator will load the native library libFile.
+   * 
+   * @param className
+   *          Class name of core communicator
+   * @param libFile
+   *          Native library file
    * @return Core Communicator
    */
   public static CoreComm createCoreComm(String className, File libFile) {
@@ -182,43 +188,47 @@ public abstract class CoreComm {
     return null;
   }
 
-
   /**
-   * Ticks a mote once. This should not be used directly,
-   * but instead via Mote.tick().
+   * Ticks a mote once. This should not be used directly, but instead via
+   * Mote.tick().
    */
   public abstract void tick();
 
   /**
-   * Initializes a mote by running a startup script in the core.
-   * (Should only by run once, at the same time as the library is loaded)
+   * Initializes a mote by running a startup script in the core. (Should only by
+   * run once, at the same time as the library is loaded)
    */
   protected abstract void init();
 
   /**
-   * Returns absolute memory location of the core variable
-   * referenceVar. Used to get offset between relative and absolute
-   * memory addresses.
-   *
+   * Returns absolute memory location of the core variable referenceVar. Used to
+   * get offset between relative and absolute memory addresses.
+   * 
    * @return Absolute memory address
    */
   public abstract int getReferenceAbsAddr();
 
   /**
-   * Returns a memory segment identified by start and length.
-   *
-   * @param start Start address of segment
-   * @param length Length of segment
-   * @return Memory segment
+   * Fills an byte array with memory segment identified by start and length.
+   * 
+   * @param start
+   *          Start address of segment
+   * @param length
+   *          Length of segment
+   * @param mem
+   *          Array to fill with memory segment
    */
-  public abstract byte[] getMemory(int start, int length);
+  public abstract void getMemory(int start, int length, byte[] mem);
 
   /**
    * Overwrites a memory segment identified by start and length.
-   *
-   * @param start Start address of segment
-   * @param length Length of segment
-   * @param mem Data to fill memory segment
+   * 
+   * @param start
+   *          Start address of segment
+   * @param length
+   *          Length of segment
+   * @param mem
+   *          New memory segment data
    */
   public abstract void setMemory(int start, int length, byte[] mem);
 
