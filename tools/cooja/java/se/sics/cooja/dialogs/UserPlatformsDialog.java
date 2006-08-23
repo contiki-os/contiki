@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: UserPlatformsDialog.java,v 1.3 2006/08/22 15:28:18 fros4943 Exp $
+ * $Id: UserPlatformsDialog.java,v 1.4 2006/08/23 14:29:44 fros4943 Exp $
  */
 
 package se.sics.cooja.dialogs;
@@ -66,7 +66,8 @@ public class UserPlatformsDialog extends JDialog {
   private Vector<File> changableUserPlatforms = null;
 
   private UserPlatformsDialog myDialog;
-  private Frame myParentFrame;
+  private Frame myParentFrame = null;
+  private Dialog myParentDialog = null;
 
   /**
    * Allows user to alter the given user platforms list by adding new,
@@ -94,11 +95,47 @@ public class UserPlatformsDialog extends JDialog {
     return myDialog.changableUserPlatforms;
   }
 
+  /**
+   * Allows user to alter the given user platforms list by adding new,
+   * reordering or removing user platforms. Only the changable user platforms
+   * may be changed,
+   * 
+   * @param parentDialog
+   *          Parent dialog
+   * @param changablePlatforms
+   *          Changeable user platforms
+   * @param fixedPlatforms
+   *          Fixed user platform
+   * @return Null if dialog aborted, else the new CHANGEABLE user platform list.
+   */
+  public static Vector<File> showDialog(Dialog parentDialog,
+      Vector<File> changablePlatforms, Vector<File> fixedPlatforms) {
+    UserPlatformsDialog myDialog = new UserPlatformsDialog(parentDialog,
+        changablePlatforms, fixedPlatforms);
+    myDialog.setLocationRelativeTo(parentDialog);
+
+    if (myDialog != null) {
+      myDialog.setVisible(true);
+    }
+
+    return myDialog.changableUserPlatforms;
+  }
+
   private UserPlatformsDialog(Frame frame, Vector<File> changablePlatforms,
       Vector<File> fixedPlatforms) {
     super(frame, "Manage User Platforms", true);
-
     myParentFrame = frame;
+    init(changablePlatforms, fixedPlatforms);
+  }
+
+  private UserPlatformsDialog(Dialog dialog, Vector<File> changablePlatforms,
+      Vector<File> fixedPlatforms) {
+    super(dialog, "Manage User Platforms", true);
+    myParentDialog = dialog;
+    init(changablePlatforms, fixedPlatforms);
+  }
+
+  private void init(Vector<File> changablePlatforms, Vector<File> fixedPlatforms) {
     myDialog = this;
 
     JPanel mainPane = new JPanel();
@@ -155,12 +192,12 @@ public class UserPlatformsDialog extends JDialog {
       listPane2.add(new JLabel("Fixed:"));
       listPane2.add(fixedPlatformsList);
     }
-    
+
     listPane2.add(new JLabel("Changable:"));
     listPane2.add(changablePlatformsList);
 
     listPane.add(listPane2);
-    
+
     smallPane = new JPanel();
     smallPane.setLayout(new BoxLayout(smallPane, BoxLayout.Y_AXIS));
 
@@ -245,7 +282,7 @@ public class UserPlatformsDialog extends JDialog {
             }
           }
         }
-        
+
         // Add the user platform configurations
         for (String userPlatform : changablePlatformsList.getItems()) {
           try {
@@ -257,7 +294,10 @@ public class UserPlatformsDialog extends JDialog {
         }
 
         // Show merged configuration
-        ConfigViewer.showDialog(myParentFrame, config);
+        if (myParentFrame != null)
+          ConfigViewer.showDialog(myParentFrame, config);
+        else
+          ConfigViewer.showDialog(myParentDialog, config);
       }
     });
     addRemovePane.add(button);
@@ -307,7 +347,7 @@ public class UserPlatformsDialog extends JDialog {
         fixedPlatformsList.add(userPlatform.getPath());
       }
     }
-    
+
     // Add already existing user platforms
     for (File userPlatform : changablePlatforms) {
       addUserPlatform(userPlatform);
@@ -361,15 +401,34 @@ class ConfigViewer extends JDialog {
   public static void showDialog(Frame parentFrame, PlatformConfig config) {
     ConfigViewer myDialog = new ConfigViewer(parentFrame, config);
     myDialog.setLocationRelativeTo(parentFrame);
+    myDialog.setAlwaysOnTop(true);
 
     if (myDialog != null) {
       myDialog.setVisible(true);
     }
   }
 
+  public static void showDialog(Dialog parentDialog, PlatformConfig config) {
+    ConfigViewer myDialog = new ConfigViewer(parentDialog, config);
+    myDialog.setLocationRelativeTo(parentDialog);
+    myDialog.setAlwaysOnTop(true);
+
+    if (myDialog != null) {
+      myDialog.setVisible(true);
+    }
+  }
+
+  private ConfigViewer(Dialog dialog, PlatformConfig config) {
+    super(dialog, "Current class configuration", true);
+    init(config);
+  }
+
   private ConfigViewer(Frame frame, PlatformConfig config) {
     super(frame, "Current class configuration", true);
+    init(config);
+  }
 
+  private void init(PlatformConfig config) {
     JPanel mainPane = new JPanel(new BorderLayout());
     JLabel label;
     JButton button;

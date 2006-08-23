@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ContikiMoteTypeDialog.java,v 1.4 2006/08/22 15:28:18 fros4943 Exp $
+ * $Id: ContikiMoteTypeDialog.java,v 1.5 2006/08/23 14:31:12 fros4943 Exp $
  */
 
 package se.sics.cooja.contikimote;
@@ -103,7 +103,6 @@ public class ContikiMoteTypeDialog extends JDialog {
   private Vector<MoteType> allOtherTypes = null; // Used to check for
   // conflicting parameters
 
-  private Frame myParentFrame;
   private ContikiMoteTypeDialog myDialog;
 
   /**
@@ -331,7 +330,6 @@ public class ContikiMoteTypeDialog extends JDialog {
     super(frame, "Add Mote Type", true);
 
     myDialog = this;
-    myParentFrame = frame;
 
     JLabel label;
     JPanel mainPane = new JPanel();
@@ -728,12 +726,12 @@ public class ContikiMoteTypeDialog extends JDialog {
 
     Container contentPane = getContentPane();
     JScrollPane mainScrollPane = new JScrollPane(mainPane);
-//     mainScrollPane.setPreferredSize(new Dimension(
-//         mainPane.getPreferredSize().width + 50, 500));
+    // mainScrollPane.setPreferredSize(new Dimension(
+    // mainPane.getPreferredSize().width + 50, 500));
     contentPane.add(mainScrollPane, BorderLayout.CENTER);
     contentPane.add(buttonPane, BorderLayout.SOUTH);
 
-//     pack();
+    // pack();
   }
 
   /**
@@ -906,8 +904,8 @@ public class ContikiMoteTypeDialog extends JDialog {
                   ContikiMoteType.class, "C_SOURCES", projectSourceFile);
               if (userPlatform != null) {
                 // We found a user platform - Add directory
-                filesToCompile.add(new File(userPlatform.getPath(),
-                    file.getParent()));
+                filesToCompile.add(new File(userPlatform.getPath(), file
+                    .getParent()));
               }
             }
             filesToCompile.add(new File(file.getName()));
@@ -1183,12 +1181,13 @@ public class ContikiMoteTypeDialog extends JDialog {
           // Add directory to search path
           sourceDirs += " "
               + sourceFile.getPath().replace(File.separatorChar, '/');
-          ccFlags += " -I" + sourceFile.getPath().replace(File.separatorChar, '/');
+          ccFlags += " -I"
+              + sourceFile.getPath().replace(File.separatorChar, '/');
         } else if (sourceFile.isFile()) {
           // Add both file name and directory
           if (sourceFile.getParent() != null) {
-            sourceDirs += " " +
-            sourceFile.getParent().replace(File.separatorChar, '/');
+            sourceDirs += " "
+                + sourceFile.getParent().replace(File.separatorChar, '/');
           }
           sourceFileNames += " " + sourceFile.getName();
         } else {
@@ -1200,7 +1199,7 @@ public class ContikiMoteTypeDialog extends JDialog {
       logger.info("Project dirs: " + sourceDirs);
       logger.info("Project sources: " + sourceFileNames);
       logger.info("Compiler flags: " + ccFlags);
-      
+
       String[] env = new String[]{
           "CONTIKI=" + contikiDir.getPath().replace(File.separatorChar, '/'),
           "TARGET=cooja", "TYPEID=" + identifier,
@@ -1887,7 +1886,7 @@ public class ContikiMoteTypeDialog extends JDialog {
         pathsWereUpdated();
       } else if (e.getActionCommand().equals("manageuserplatforms")) {
         Vector<File> newPlatforms = UserPlatformsDialog.showDialog(
-            myParentFrame, moteTypeUserPlatforms, GUI.currentGUI
+            ContikiMoteTypeDialog.this, moteTypeUserPlatforms, GUI.currentGUI
                 .getUserPlatforms());
         if (newPlatforms != null) {
           moteTypeUserPlatforms = newPlatforms;
@@ -1941,7 +1940,7 @@ public class ContikiMoteTypeDialog extends JDialog {
           testButton.setEnabled(settingsOK = false);
         }
 
-	processPanel.revalidate();
+        processPanel.revalidate();
         processPanel.repaint();
         createButton.setEnabled(libraryCreatedOK = false);
 
@@ -1977,7 +1976,7 @@ public class ContikiMoteTypeDialog extends JDialog {
           testButton.setEnabled(settingsOK = false);
         }
 
-	sensorPanel.revalidate();
+        sensorPanel.revalidate();
         sensorPanel.repaint();
         createButton.setEnabled(libraryCreatedOK = false);
       } else if (e.getActionCommand().equals("scancoreinterfaces")) {
@@ -2014,7 +2013,7 @@ public class ContikiMoteTypeDialog extends JDialog {
         }
         recheckInterfaceDependencies();
 
-	coreInterfacePanel.revalidate();
+        coreInterfacePanel.revalidate();
         coreInterfacePanel.repaint();
         createButton.setEnabled(libraryCreatedOK = false);
 
@@ -2040,20 +2039,19 @@ public class ContikiMoteTypeDialog extends JDialog {
             ContikiMoteType.class, "MOTE_INTERFACES");
         Vector<Class<? extends MoteInterface>> moteIntfClasses = new Vector<Class<? extends MoteInterface>>();
 
-	ClassLoader classLoader =
-	  GUI.currentGUI.createUserPlatformClassLoader(moteTypeUserPlatforms);
+        ClassLoader classLoader = GUI.currentGUI
+            .createUserPlatformClassLoader(moteTypeUserPlatforms);
 
         // Find and load the mote interface classes
         for (String moteInterface : moteInterfaces) {
-	  try {
-	    Class<? extends MoteInterface> newMoteInterfaceClass =
-	      classLoader.loadClass(moteInterface).
-	      asSubclass(MoteInterface.class);
+          try {
+            Class<? extends MoteInterface> newMoteInterfaceClass = classLoader
+                .loadClass(moteInterface).asSubclass(MoteInterface.class);
             moteIntfClasses.add(newMoteInterfaceClass);
             // logger.info("Loaded mote interface: " + newMoteInterfaceClass);
-	  } catch (Exception ce) {
+          } catch (Exception ce) {
             logger.warn("Failed to load mote interface: " + moteInterface);
-	  }
+          }
         }
 
         // Create and add checkboxes for all mote interfaces
@@ -2076,7 +2074,7 @@ public class ContikiMoteTypeDialog extends JDialog {
           testButton.setEnabled(settingsOK = false);
         }
 
-	moteInterfacePanel.revalidate();
+        moteInterfacePanel.revalidate();
         moteInterfacePanel.repaint();
         createButton.setEnabled(libraryCreatedOK = false);
       } else if (e.getActionCommand().equals("addprocess")) {
@@ -2092,8 +2090,8 @@ public class ContikiMoteTypeDialog extends JDialog {
           processCheckBox.addActionListener(myEventHandler);
 
           processPanel.add(processCheckBox);
-	  processPanel.revalidate();
-	  processPanel.repaint();
+          processPanel.revalidate();
+          processPanel.repaint();
         }
       } else if (e.getActionCommand().equals("addsensor")) {
         String newSensorName = JOptionPane.showInputDialog(myDialog,
@@ -2103,8 +2101,8 @@ public class ContikiMoteTypeDialog extends JDialog {
           sensorCheckBox.setAlignmentX(Component.LEFT_ALIGNMENT);
           sensorCheckBox.setSelected(true);
           sensorPanel.add(sensorCheckBox);
-	  sensorPanel.revalidate();
-	  sensorPanel.repaint();
+          sensorPanel.revalidate();
+          sensorPanel.repaint();
         }
       } else if (e.getActionCommand().equals("addinterface")) {
         String newInterfaceName = JOptionPane.showInputDialog(myDialog,
@@ -2114,8 +2112,8 @@ public class ContikiMoteTypeDialog extends JDialog {
           interfaceCheckBox.setAlignmentX(Component.LEFT_ALIGNMENT);
           interfaceCheckBox.setSelected(true);
           coreInterfacePanel.add(interfaceCheckBox);
-	  coreInterfacePanel.revalidate();
-	  coreInterfacePanel.repaint();
+          coreInterfacePanel.revalidate();
+          coreInterfacePanel.repaint();
         }
       } else if (e.getActionCommand().equals("recheck_interface_dependencies")) {
         recheckInterfaceDependencies();
