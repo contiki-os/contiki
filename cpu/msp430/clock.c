@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: clock.c,v 1.3 2006/08/17 15:41:13 bg- Exp $
+ * @(#)$Id: clock.c,v 1.4 2006/08/25 09:40:21 bg- Exp $
  */
 
 
@@ -54,7 +54,7 @@ interrupt(TIMERA1_VECTOR) timera1 (void) {
     ++count;
 
     if(etimer_pending()
-       && (etimer_next_expiration_time() - count) >= MAX_TICKS) {
+       && (etimer_next_expiration_time() - count - 1) > MAX_TICKS) {
       etimer_request_poll();
       LPM4_EXIT;
     }
