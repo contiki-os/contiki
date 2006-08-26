@@ -43,7 +43,7 @@
  *
  * This file is part of the Contiki desktop OS.
  *
- * $Id: ctk.h,v 1.1 2006/06/17 22:41:16 adamdunkels Exp $
+ * $Id: ctk.h,v 1.2 2006/08/26 23:55:32 oliverschmidt Exp $
  *
  */
 
@@ -677,28 +677,28 @@ unsigned char ctk_mode_get(void);
 /*void ctk_redraw(void);*/
 
 /* Functions for manipulating windows. */
-void ctk_window_new(struct ctk_window *window,
-		    unsigned char w, unsigned char h,
-		    char *title);
-void ctk_window_clear(struct ctk_window *w);
-void ctk_window_open(struct ctk_window *w);
+CCIF void ctk_window_new(struct ctk_window *window,
+			 unsigned char w, unsigned char h,
+			 char *title);
+CCIF void ctk_window_clear(struct ctk_window *w);
+CCIF void ctk_window_open(struct ctk_window *w);
 #define ctk_window_move(w,xpos,ypos) do { (w)->x=xpos; (w)->y=ypos; } while(0)
-void ctk_window_close(struct ctk_window *w);
-void ctk_window_redraw(struct ctk_window *w);
+CCIF void ctk_window_close(struct ctk_window *w);
+CCIF void ctk_window_redraw(struct ctk_window *w);
 #define ctk_window_isopen(w) ((w)->next != NULL)
 
 
 /* Functions for manipulating dialogs. */
-void ctk_dialog_new(struct ctk_window *window,
-		    unsigned char w, unsigned char h);
-void ctk_dialog_open(struct ctk_window *d);
-void ctk_dialog_close(void);
+CCIF void ctk_dialog_new(struct ctk_window *window,
+			unsigned char w, unsigned char h);
+CCIF void ctk_dialog_open(struct ctk_window *d);
+CCIF void ctk_dialog_close(void);
 
 /* Functions for manipulating menus. */
-void ctk_menu_new(struct ctk_menu *menu, char *title);
-void ctk_menu_add(struct ctk_menu *menu);
-void ctk_menu_remove(struct ctk_menu *menu);
-unsigned char ctk_menuitem_add(struct ctk_menu *menu, char *name);
+CCIF void ctk_menu_new(struct ctk_menu *menu, char *title);
+CCIF void ctk_menu_add(struct ctk_menu *menu);
+CCIF void ctk_menu_remove(struct ctk_menu *menu);
+CCIF unsigned char ctk_menuitem_add(struct ctk_menu *menu, char *name);
 
 /* Functions for icons. */
 
@@ -726,8 +726,8 @@ void ctk_icon_add(struct ctk_widget *icon, struct process *p);
  */
 #define CTK_WIDGET_ADD(win, widg) \
  ctk_widget_add(win, (struct ctk_widget *)widg)
-void CC_FASTCALL ctk_widget_add(struct ctk_window *window,
-				struct ctk_widget *widget);
+CCIF void CC_FASTCALL ctk_widget_add(struct ctk_window *window,
+				     struct ctk_widget *widget);
 
 /**
  * Set focus to a widget.
@@ -745,7 +745,7 @@ void CC_FASTCALL ctk_widget_add(struct ctk_window *window,
  */
 #define CTK_WIDGET_REDRAW(widg) \
  ctk_widget_redraw((struct ctk_widget *)widg)
-void ctk_widget_redraw(struct ctk_widget *w);
+CCIF void ctk_widget_redraw(struct ctk_widget *w);
 
 /**
  * Obtain the type of a widget.
@@ -912,11 +912,11 @@ void ctk_widget_redraw(struct ctk_widget *w);
 
 /* Desktop interface. */
 void ctk_desktop_redraw(struct ctk_desktop *d);
-unsigned char ctk_desktop_width(struct ctk_desktop *d);
+CCIF unsigned char ctk_desktop_width(struct ctk_desktop *d);
 unsigned char ctk_desktop_height(struct ctk_desktop *d);
 
 /* Signals. */
-extern process_event_t ctk_signal_keypress,
+CCIF extern process_event_t ctk_signal_keypress,
   ctk_signal_widget_activate,
   ctk_signal_widget_select,
   ctk_signal_timer,
@@ -945,7 +945,7 @@ extern unsigned short ctk_screensaver_timeout;
 #endif /* CTK_CONF_SCREENSAVER */
 
 /* These should no longer be used: */
-extern process_event_t ctk_signal_button_activate,
+CCIF extern process_event_t ctk_signal_button_activate,
   ctk_signal_button_hover,
   ctk_signal_hyperlink_activate,
   ctk_signal_hyperlink_hover;

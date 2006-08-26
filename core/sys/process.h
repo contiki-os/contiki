@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: process.h,v 1.2 2006/08/17 15:39:25 bg- Exp $
+ * @(#)$Id: process.h,v 1.3 2006/08/26 23:59:39 oliverschmidt Exp $
  */
 
 /**
@@ -279,7 +279,7 @@ static PT_THREAD(process_thread_##name(struct pt *process_pt,	\
 #else  /* PROCESS_LOADABLE */
 #define PROCESS_LOAD(name)
 #endif /* PROCESS_LOADABLE */
-extern const struct process *process_load;
+CLIF extern const struct process *process_load;
 
 /**
  * Declare the name of a process.
@@ -374,7 +374,7 @@ void process_start(struct process *p, char *arg);
  * \retval PROCESS_ERR_FULL The event queue was full and the event could
  * not be posted.
  */
-int  process_post(struct process *p, process_event_t ev, process_data_t data);
+CCIF int process_post(struct process *p, process_event_t ev, process_data_t data);
 
 /**
  * Post a synchronous event to a process.
@@ -399,7 +399,7 @@ void process_post_synch(struct process *p,
  *
  * \sa PROCESS_CURRENT()
  */
-void process_exit(struct process *p);
+CCIF void process_exit(struct process *p);
 
 
 /**
@@ -412,7 +412,7 @@ void process_exit(struct process *p);
  * \hideinitializer
  */
 #define PROCESS_CURRENT() process_current
-extern struct process *process_current;
+CCIF extern struct process *process_current;
 
 #define PROCESS_SET_FLAGS(flags)
 #define PROCESS_NO_BROADCAST
@@ -524,7 +524,7 @@ int process_nevents(void);
 
 /** @} */
 
-extern struct process *process_list;
+CCIF extern struct process *process_list;
 
 #define PROCESS_LIST() process_list
 

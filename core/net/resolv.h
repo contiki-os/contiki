@@ -34,7 +34,7 @@
  *
  * This file is part of the uIP TCP/IP stack.
  *
- * $Id: resolv.h,v 1.1 2006/06/17 22:41:18 adamdunkels Exp $
+ * $Id: resolv.h,v 1.2 2006/08/26 23:58:45 oliverschmidt Exp $
  *
  */
 #ifndef __RESOLV_H__
@@ -45,17 +45,17 @@
 /**
  * Event that is broadcasted when a DNS name has been resolved.
  */
-extern process_event_t resolv_event_found;
+CCIF extern process_event_t resolv_event_found;
 
 /* Callbacks. */
 void resolv_found(char *name, u16_t *ipaddr);
 
 /* Functions. */
-void resolv_conf(u16_t *dnsserver);
-u16_t *resolv_getserver(void);
+CCIF void resolv_conf(u16_t *dnsserver);
+CCIF u16_t *resolv_getserver(void);
 void resolv_init(char *arg);
-u16_t *resolv_lookup(char *name);
-void resolv_query(char *name);
+CCIF u16_t *resolv_lookup(char *name);
+CCIF void resolv_query(char *name);
 
 PROCESS_NAME(resolv_process);
 

@@ -29,7 +29,7 @@
  *
  * This file is part of the Contiki desktop environment for the C64.
  *
- * $Id: program-handler.h,v 1.1 2006/06/17 22:41:12 adamdunkels Exp $
+ * $Id: program-handler.h,v 1.2 2006/08/26 23:54:00 oliverschmidt Exp $
  *
  */
 #ifndef __PROGRAM_HANDLER_H__
@@ -42,7 +42,7 @@
 extern char program_handler_screensaver[];
 
 void program_handler_init(void);
-void program_handler_load(char *name, char *arg);
+CCIF void program_handler_load(char *name, char *arg);
 void program_handler_setscreensaver(char *name);
 
 void program_handler_add(struct dsc *dsc, char *menuname,

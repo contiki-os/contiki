@@ -45,7 +45,7 @@
  *
  * This file is part of the uIP TCP/IP stack.
  *
- * $Id: uip_arp.h,v 1.1 2006/06/17 22:41:19 adamdunkels Exp $
+ * $Id: uip_arp.h,v 1.2 2006/08/26 23:58:45 oliverschmidt Exp $
  *
  */
 
@@ -55,7 +55,7 @@
 #include "net/uip.h"
 
 
-extern struct uip_eth_addr uip_ethaddr;
+CCIF extern struct uip_eth_addr uip_ethaddr;
 
 /**
  * The Ethernet header.

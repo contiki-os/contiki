@@ -58,7 +58,7 @@
  *
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: etimer.h,v 1.1 2006/06/17 22:41:20 adamdunkels Exp $
+ * $Id: etimer.h,v 1.2 2006/08/26 23:59:39 oliverschmidt Exp $
  */
 #ifndef __ETIMER_H__
 #define __ETIMER_H__
@@ -96,7 +96,7 @@ struct etimer {
  *             process that called the etimer_set() function.
  *
  */
-void etimer_set(struct etimer *et, clock_time_t interval);
+CCIF void etimer_set(struct etimer *et, clock_time_t interval);
 
 /**
  * \brief      Reset an event timer with the same interval as was
@@ -181,7 +181,7 @@ clock_time_t etimer_start_time(struct etimer *et);
  *             This function tests if an event timer has expired and
  *             returns true or false depending on its status.
  */
-int  etimer_expired(struct etimer *et);
+CCIF int etimer_expired(struct etimer *et);
 
 /**
  * \brief      Stop a pending event timer.

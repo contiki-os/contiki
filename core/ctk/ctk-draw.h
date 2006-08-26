@@ -45,7 +45,7 @@
  *
  * This file is part of the Contiki desktop OS.
  *
- * $Id: ctk-draw.h,v 1.1 2006/06/17 22:41:15 adamdunkels Exp $
+ * $Id: ctk-draw.h,v 1.2 2006/08/26 23:56:18 oliverschmidt Exp $
  *
  */
 
@@ -273,8 +273,8 @@ void ctk_draw_menus(struct ctk_menus *menus);
 
 
 /* Returns width and height of screen. */
-unsigned char ctk_draw_width(void);
-unsigned char ctk_draw_height(void);
+CCIF unsigned char ctk_draw_width(void);
+CCIF unsigned char ctk_draw_height(void);
 
 
 extern unsigned char ctk_draw_windowborder_width,

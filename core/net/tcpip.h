@@ -60,7 +60,7 @@
  *
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: tcpip.h,v 1.3 2006/08/10 16:43:32 bg- Exp $
+ * $Id: tcpip.h,v 1.4 2006/08/26 23:58:45 oliverschmidt Exp $
  */
 #ifndef __TCPIP_H__
 #define __TCPIP_H__
@@ -105,8 +105,8 @@ void tcpip_uipcall(void);
  * process whenever an event occurs on the connection.
  *
  */
-void tcp_attach(struct uip_conn *conn,
-		void *appstate);
+CCIF void tcp_attach(struct uip_conn *conn,
+		     void *appstate);
 #define tcp_markconn(conn, appstate) tcp_attach(conn, appstate)
 
 /**
@@ -123,7 +123,7 @@ void tcp_attach(struct uip_conn *conn,
  * \param port The port number in network byte order.
  *
  */
-void tcp_listen(u16_t port);
+CCIF void tcp_listen(u16_t port);
 
 /**
  * Close a listening TCP port.
@@ -137,7 +137,7 @@ void tcp_listen(u16_t port);
  * \param port The port number in network byte order.
  *
  */
-void tcp_unlisten(u16_t port);
+CCIF void tcp_unlisten(u16_t port);
 
 /**
  * Open a TCP connection to the specified IP address and port.
@@ -162,8 +162,8 @@ void tcp_unlisten(u16_t port);
  * memory could not be allocated for the connection.
  *
  */
-struct uip_conn *tcp_connect(uip_ipaddr_t *ripaddr, u16_t port,
-			     void *appstate);
+CCIF struct uip_conn *tcp_connect(uip_ipaddr_t *ripaddr, u16_t port,
+				  void *appstate);
 
 /**
  * Cause a specified TCP connection to be polled.
@@ -223,8 +223,8 @@ void udp_attach(struct uip_udp_conn *conn,
  * \return A pointer to the newly created connection, or NULL if
  * memory could not be allocated for the connection.
  */
-struct uip_udp_conn *udp_new(uip_ipaddr_t *ripaddr, u16_t port,
-			     void *appstate);
+CCIF struct uip_udp_conn *udp_new(uip_ipaddr_t *ripaddr, u16_t port,
+				  void *appstate);
 
 /**
  * Create a new UDP broadcast connection.
@@ -269,7 +269,7 @@ struct uip_udp_conn *udp_broadcast_new(u16_t port, void *appstate);
  * \param conn A pointer to the UDP connection that should be polled.
  *
  */
-void tcpip_poll_udp(struct uip_udp_conn *conn);
+CCIF void tcpip_poll_udp(struct uip_udp_conn *conn);
 
 /** @} */
 
@@ -278,7 +278,7 @@ void tcpip_poll_udp(struct uip_udp_conn *conn);
  *
  * This event is posted to a process whenever a uIP event has occured.
  */
-extern process_event_t tcpip_event;
+CCIF extern process_event_t tcpip_event;
 
 /**
  * \name TCP/IP packet processing

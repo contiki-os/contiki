@@ -46,7 +46,7 @@
  *
  * This file is part of the uIP TCP/IP stack.
  *
- * $Id: uip.h,v 1.3 2006/08/14 13:58:28 bg- Exp $
+ * $Id: uip.h,v 1.4 2006/08/26 23:58:45 oliverschmidt Exp $
  *
  */
 
@@ -548,7 +548,7 @@ struct uip_conn *uip_connect(uip_ipaddr_t *ripaddr, u16_t port);
  *
  * \hideinitializer
  */
-void uip_send(const void *data, int len);
+CCIF void uip_send(const void *data, int len);
 
 /**
  * The length of any incoming data that is currently avaliable (if avaliable)
@@ -1089,7 +1089,7 @@ struct uip_udp_conn *uip_udp_new(uip_ipaddr_t *ripaddr, u16_t rport);
  * network byte order, use the HTONS() macro instead.
  */
 #ifndef htons
-u16_t htons(u16_t val);
+CCIF u16_t htons(u16_t val);
 #endif /* htons */
 #ifndef ntohs
 #define ntohs htons
@@ -1104,7 +1104,7 @@ u16_t htons(u16_t val);
  * called. If the application wishes to send data, the application may
  * use this space to write the data into before calling uip_send().
  */
-extern void *uip_appdata;
+CCIF extern void *uip_appdata;
 
 #if UIP_URGDATA > 0
 /* u8_t *uip_urgdata:
@@ -1139,7 +1139,7 @@ extern void *uip_urgdata;
  * packet.
  *
  */
-extern u16_t uip_len;
+CCIF extern u16_t uip_len;
 
 /** @} */
 
@@ -1195,9 +1195,9 @@ struct uip_conn {
  * The uip_conn pointer can be used to access the current TCP
  * connection.
  */
-extern struct uip_conn *uip_conn;
+CCIF extern struct uip_conn *uip_conn;
 /* The array containing all uIP connections. */
-extern struct uip_conn uip_conns[UIP_CONNS];
+CCIF extern struct uip_conn uip_conns[UIP_CONNS];
 /**
  * \addtogroup uiparch
  * @{
@@ -1310,7 +1310,7 @@ extern struct uip_stats uip_stat;
  * that are defined in this file. Please read below for more
  * infomation.
  */
-extern u8_t uip_flags;
+CCIF extern u8_t uip_flags;
 
 /* The following flags may be set in the global variable uip_flags
    before calling the application callback. The UIP_ACKDATA,
@@ -1535,9 +1535,9 @@ struct uip_udpip_hdr {
 
 
 #if UIP_FIXEDADDR
-extern const uip_ipaddr_t uip_hostaddr, uip_netmask, uip_draddr;
+CCIF extern const uip_ipaddr_t uip_hostaddr, uip_netmask, uip_draddr;
 #else /* UIP_FIXEDADDR */
-extern uip_ipaddr_t uip_hostaddr, uip_netmask, uip_draddr;
+CCIF extern uip_ipaddr_t uip_hostaddr, uip_netmask, uip_draddr;
 #endif /* UIP_FIXEDADDR */
 extern const uip_ipaddr_t uip_broadcast_addr;
 extern const uip_ipaddr_t all_zeroes_addr;
