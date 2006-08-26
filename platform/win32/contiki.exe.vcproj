@@ -215,6 +215,22 @@
 		<Filter
 			Name="core"
 			>
+			<File
+				RelativePath="..\..\core\contiki-lib.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\core\contiki-net.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\core\contiki-version.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\core\contiki.h"
+				>
+			</File>
 			<Filter
 				Name="cfs"
 				>
@@ -263,13 +279,37 @@
 				Name="lib"
 				>
 				<File
+					RelativePath="..\..\core\lib\list.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\core\lib\memb.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\core\lib\mmem.h"
+					>
+				</File>
+				<File
 					RelativePath="..\..\core\lib\petsciiconv.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\core\lib\random.h"
 					>
 				</File>
 			</Filter>
 			<Filter
 				Name="net"
 				>
+				<File
+					RelativePath="..\..\core\net\packet-service.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\core\net\psock.h"
+					>
+				</File>
 				<File
 					RelativePath="..\..\core\net\resolv.c"
 					>
@@ -308,6 +348,14 @@
 				</File>
 				<File
 					RelativePath="..\..\core\net\uip.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\core\net\uip_arp.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\core\net\uipbuf.h"
 					>
 				</File>
 				<File
@@ -444,14 +492,6 @@
 				</File>
 			</Filter>
 		</Filter>
-		<File
-			RelativePath="..\..\core\contiki-version.h"
-			>
-		</File>
-		<File
-			RelativePath="..\..\core\contiki.h"
-			>
-		</File>
 	</Files>
 	<Globals>
 	</Globals>
