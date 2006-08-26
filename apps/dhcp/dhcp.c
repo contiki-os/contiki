@@ -77,13 +77,13 @@ makestrings(void)
 {
   u16_t addr[2], *addrptr;
 
-  uip_gethostaddr(addr);
+  uip_gethostaddr((uip_ipaddr_t *)addr);
   makeaddr(addr, ipaddr);
   
-  uip_getnetmask(addr);
+  uip_getnetmask((uip_ipaddr_t *)addr);
   makeaddr(addr, netmask);
   
-  uip_getdraddr(addr);
+  uip_getdraddr((uip_ipaddr_t *)addr);
   makeaddr(addr, gateway);
 
   addrptr = resolv_getserver();
@@ -143,10 +143,10 @@ PROCESS_THREAD(dhcp_process, ev, data)
 void
 dhcpc_configured(const struct dhcpc_state *s)
 {
-  uip_sethostaddr(s->ipaddr);
-  uip_setnetmask(s->netmask);
-  uip_setdraddr(s->default_router);
-  resolv_conf(s->dnsaddr);
+  uip_sethostaddr(&s->ipaddr);
+  uip_setnetmask(&s->netmask);
+  uip_setdraddr(&s->default_router);
+  resolv_conf((u16_t *)&s->dnsaddr);
   set_statustext("Configured.");
   process_post(PROCESS_CURRENT(), SHOWCONFIG, NULL);
 }
