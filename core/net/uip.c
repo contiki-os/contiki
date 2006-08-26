@@ -41,7 +41,7 @@
  *
  * This file is part of the uIP TCP/IP stack.
  *
- * $Id: uip.c,v 1.5 2006/08/14 13:58:28 bg- Exp $
+ * $Id: uip.c,v 1.6 2006/08/26 23:40:46 oliverschmidt Exp $
  *
  */
 
@@ -73,6 +73,7 @@
 
 #include "net/uip.h"
 #include "net/uipopt.h"
+#include "net/uip_arp.h"
 #include "net/uip_arch.h"
 
 #if UIP_CONF_IPV6
