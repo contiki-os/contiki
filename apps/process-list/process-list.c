@@ -29,7 +29,7 @@
  *
  * This file is part of the Contiki desktop environment
  *
- * $Id: process-list.c,v 1.1 2006/06/17 22:41:12 adamdunkels Exp $
+ * $Id: process-list.c,v 1.2 2006/08/27 15:15:46 oliverschmidt Exp $
  *
  */
 
@@ -40,15 +40,15 @@
 
 #define MAX_PROCESSLABELS 13
 static struct ctk_window processwindow;
-static unsigned char ids[MAX_PROCESSLABELS][4];
+static struct {struct process *p; char id[2];} processes[MAX_PROCESSLABELS];
 static struct ctk_label processidlabels[MAX_PROCESSLABELS];
 static struct ctk_label processnamelabels[MAX_PROCESSLABELS];
 
 static struct ctk_label killlabel =
   {CTK_LABEL(0, 14, 12, 1, "Kill process")};
-static char killprocnum[4];
+static char killprocnum[3];
 static struct ctk_textentry killtextentry =
-  {CTK_TEXTENTRY(13, 14, 3, 1, killprocnum, 3)};
+  {CTK_TEXTENTRY(13, 14, 2, 1, killprocnum, 2)};
 static struct ctk_button killbutton =
   {CTK_BUTTON(19, 14, 2, "Ok")};
 static struct ctk_button processupdatebutton =
@@ -66,31 +66,25 @@ enum {
 static void
 update_processwindow(void)
 {
-  unsigned char i, j, *idsptr;
+  unsigned char i;
   struct process *p;
+  char *idptr;
 
-  /* Step through each possible process ID and see if there is a
-     matching process. */
-  j = 0;
-  for(p = PROCESS_LIST(); p != NULL && j < MAX_PROCESSLABELS; p = p->next) {
-    idsptr = ids[j];
-    i = (int)&p;
-    idsptr[0] = '0' + i / 100;
-    if(idsptr[0] == '0') {
-      idsptr[0] = ' ';
-    }
-    idsptr[1] = '0' + (i / 10) % 10;
-    idsptr[2] = '0' + i % 10;
-    idsptr[3] = 0;
-    CTK_LABEL_NEW(&processidlabels[j],
-		  0, j + 1, 3, 1, idsptr);
-    CTK_WIDGET_ADD(&processwindow, &processidlabels[j]);
+  i = 0;
+  for(p = PROCESS_LIST(); p != NULL && i < MAX_PROCESSLABELS; p = p->next) {
+    processes[i].p = p;
+    idptr = processes[i].id;
+    idptr[0] = '0' + (i / 10) % 10;
+    idptr[1] = '0' + i % 10;
+    CTK_LABEL_NEW(&processidlabels[i],
+		  1, i + 1, 2, 1, idptr);
+    CTK_WIDGET_ADD(&processwindow, &processidlabels[i]);
     
-    CTK_LABEL_NEW(&processnamelabels[j],
-		  4, j + 1, 22, 1, (char *)p->name);
-    CTK_WIDGET_ADD(&processwindow, &processnamelabels[j]);
+    CTK_LABEL_NEW(&processnamelabels[i],
+		  4, i + 1, 22, 1, (char *)p->name);
+    CTK_WIDGET_ADD(&processwindow, &processnamelabels[i]);
 
-    ++j;
+    ++i;
   }
 
   CTK_WIDGET_ADD(&processwindow, &killlabel);
@@ -114,43 +108,38 @@ processes_quit(void)
 static void
 killproc(void)
 {
-#if 0
-  int procnum;
-  unsigned char i, j;
-  struct ek_proc *p;
-  
-  /* Find first zero char in killprocnum string. */
-  for(i = 0; killprocnum[i] != 0 &&
-	i < sizeof(killprocnum); ++i);
-
-  if(i == 0) {
-    return;
-  }
+  unsigned char procnum, valid, i;
+  struct process *p;
   
   procnum = 0;
-  
-  for(j = 0; j < i; ++j) {
-    procnum = procnum * 10 + (killprocnum[j] - '0');
-    killprocnum[j] = 0;
+  valid = 0;
+  for(i = 0; i < 2; ++i) {
+    if(killprocnum[i] >= '0' && killprocnum[i] <= '9') {
+      procnum = procnum * 10 + (killprocnum[i] - '0');
+      valid = 1;
+    }
+  }
+
+  if(valid == 0) {
+    return;
   }
 
   /* Make sure the process ID exists. */
-  for(p = EK_PROCS(); p != NULL; p = p->next) {
-    if(EK_PROC_ID(p) == procnum) {
+  for(p = PROCESS_LIST(); p != NULL; p = p->next) {
+    if(p == processes[procnum].p) {
       break;
     }
   }
 
   if(p != NULL) {
-    /*    ek_post(procnum, EK_EVENT_REQUEST_EXIT, NULL);
-	  ek_post(id, EVENT_UPDATE, NULL);*/
-    CTK_TEXTENTRY_CLEAR(&killtextentry);
-    CTK_WIDGET_REDRAW(&killtextentry);
+    process_post(p, PROCESS_EVENT_EXIT, NULL);
     CTK_WIDGET_FOCUS(&processwindow, &processupdatebutton);
     CTK_WIDGET_REDRAW(&killbutton);
     CTK_WIDGET_REDRAW(&processupdatebutton);
   }
-#endif
+
+  CTK_TEXTENTRY_CLEAR(&killtextentry);
+  CTK_WIDGET_REDRAW(&killtextentry);
 }
 /*-----------------------------------------------------------------------------------*/
 PROCESS_THREAD(processes_process, ev, data)     
