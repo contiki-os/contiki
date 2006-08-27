@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: dhcpc.c,v 1.4 2006/08/17 12:51:07 bg- Exp $
+ * @(#)$Id: dhcpc.c,v 1.5 2006/08/27 00:07:15 oliverschmidt Exp $
  */
 
 #include <stdio.h>
@@ -175,7 +175,7 @@ send_discover(void)
   end = add_req_options(end);
   end = add_end(end);
 
-  uip_send(uip_appdata, end - (u8_t *)uip_appdata);
+  uip_send(uip_appdata, (int)(end - (u8_t *)uip_appdata));
 }
 /*---------------------------------------------------------------------------*/
 static void
@@ -191,7 +191,7 @@ send_request(void)
   end = add_req_ipaddr(end);
   end = add_end(end);
   
-  uip_send(uip_appdata, end - (u8_t *)uip_appdata);
+  uip_send(uip_appdata, (int)(end - (u8_t *)uip_appdata));
 }
 /*---------------------------------------------------------------------------*/
 static u8_t
@@ -348,10 +348,10 @@ PT_THREAD(handle_dhcp(process_event_t ev, void *data))
 
   if((ntohs(s.lease_time[0])*65536ul + ntohs(s.lease_time[1]))*CLOCK_SECOND/2
      <= MAX_TICKS) {
-    s.ticks = (ntohs(s.lease_time[0])*65536ul
-	       + ntohs(s.lease_time[1]))*CLOCK_SECOND/2;
+    s.ticks = (u16_t)(ntohs(s.lease_time[0])*65536ul
+		      + ntohs(s.lease_time[1]))*CLOCK_SECOND/2;
   } else {
-    s.ticks = MAX_TICKS;
+    s.ticks = (u16_t)MAX_TICKS;
   }
 
   etimer_set(&s.etimer, s.ticks);
