@@ -29,7 +29,7 @@
  *
  * This file is part of the "ctk" console GUI toolkit for cc65
  *
- * $Id: ctk-conio.c,v 1.1 2006/06/17 22:41:15 adamdunkels Exp $
+ * $Id: ctk-conio.c,v 1.2 2006/08/30 22:24:12 oliverschmidt Exp $
  *
  */
 
@@ -162,8 +162,11 @@ draw_widget(struct ctk_widget *w,
 	   w->widget.textentry.ypos == j) {
 	  revers(0);
 	  cputcxy(xpos, ypos, '>');
+	  c = 1;
 	  for(i = 0; i < w->w; ++i) {
-	    c = text[i + xscroll];
+	    if(c != 0) {
+	      c = text[i + xscroll];
+	    }
 	    revers(i == w->widget.textentry.xpos - xscroll);
 	    if(c == 0) {
 	      cputc(' ');

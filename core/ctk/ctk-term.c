@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: ctk-term.c,v 1.1 2006/06/17 22:41:16 adamdunkels Exp $
+ * @(#)$Id: ctk-term.c,v 1.2 2006/08/30 22:24:12 oliverschmidt Exp $
  */
 #include "ctk/ctk.h"
 #include "ctk-draw.h"
@@ -506,8 +506,11 @@ draw_widget(struct ctk_widget *w,
 	   w->widget.textentry.ypos == j) {
 	  revers(0);
 	  cputcxy(xpos, ypos, '>');
+	  c = 1;
 	  for(i = 0; i < w->w; ++i) {
-	    c = text[i + xscroll];
+	    if(c != 0) {
+	      c = text[i + xscroll];
+	    }
 	    if(i == w->widget.textentry.xpos - xscroll) {
 	      textcolor((unsigned char)(TERM_TEXTENTRYCOLOR + (focus ^ 0x01)));
 	      revers(1);
