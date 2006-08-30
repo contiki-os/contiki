@@ -102,6 +102,7 @@ typedef char ctk_arch_key_t;
 #define LOADER_CONF_ARCH "loader/dll-loader.h"
 
 #define PROGRAM_HANDLER_CONF_MAX_NUMDSCS 10
+#define PROGRAM_HANDLER_CONF_QUIT_MENU   1
 
 
 
