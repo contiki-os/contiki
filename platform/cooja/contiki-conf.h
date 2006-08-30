@@ -32,7 +32,7 @@
  *
  * This file is part of the Contiki desktop OS
  *
- * $Id: contiki-conf.h,v 1.2 2006/08/30 10:04:08 fros4943 Exp $
+ * $Id: contiki-conf.h,v 1.3 2006/08/30 14:48:36 fros4943 Exp $
  *
  */
 
@@ -41,6 +41,11 @@
 #define CC_CONF_FASTCALL
 
 #define CC_CONF_VA_ARGS                1
+
+/* Interface configuration. */
+
+#define CCIF
+#define CLIF
 
 /*------------------------------------------------------------------------------*/
 /**
