@@ -44,7 +44,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: ctk.c,v 1.3 2006/08/15 00:13:23 oliverschmidt Exp $
+ * $Id: ctk.c,v 1.4 2006/08/30 23:12:33 oliverschmidt Exp $
  *
  */
 
@@ -1600,14 +1600,9 @@ PROCESS_THREAD(ctk_process, ev, data)
 		      widget = widget->next) {
 		
 		    if(mxc >= widget->x &&
-		       mxc <= widget->x + widget->w &&
-		       (myc == widget->y ||
-			((widget->type == CTK_WIDGET_BITMAP ||
-			  /*widget->type == CTK_WIDGET_TEXTMAP ||*/
-			  widget->type == CTK_WIDGET_ICON) &&
-			 (myc >= widget->y &&
-			  myc <= widget->y +
-			  ((struct ctk_bitmap *)widget)->h)))) {
+		       mxc <= widget->x + widget->w + 1 &&
+		       myc >= widget->y &&
+		       myc <= widget->y + widget->h - 1) {
 		      break;
 		    }
 		  }
