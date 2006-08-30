@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ContikiMoteTypeDialog.java,v 1.5 2006/08/23 14:31:12 fros4943 Exp $
+ * $Id: ContikiMoteTypeDialog.java,v 1.6 2006/08/30 14:59:35 fros4943 Exp $
  */
 
 package se.sics.cooja.contikimote;
@@ -850,12 +850,39 @@ public class ContikiMoteTypeDialog extends JDialog {
     if (!ContikiMoteType.tempOutputDirectory.exists())
       ContikiMoteType.tempOutputDirectory.mkdir();
 
+    // Parse selected sensors
+    Vector<String> sensors = new Vector<String>();
+    for (Component checkBox : sensorPanel.getComponents()) {
+      if (((JCheckBox) checkBox).isSelected()) {
+        sensors.add(((JCheckBox) checkBox).getText());
+      }
+    }
+
+    // Parse selected core interfaces
+    Vector<String> coreInterfaces = new Vector<String>();
+    for (Component checkBox : coreInterfacePanel.getComponents()) {
+      if (((JCheckBox) checkBox).isSelected()) {
+        coreInterfaces.add(((JCheckBox) checkBox).getText());
+      }
+    }
+
+    // Parse selected user processes
+    Vector<String> userProcesses = new Vector<String>();
+    for (Component checkBox : processPanel.getComponents()) {
+      if (((JCheckBox) checkBox).isSelected()) {
+        userProcesses.add(((JCheckBox) checkBox).getText());
+      }
+    }
+
     // Generate main contiki source file
-    String errorMessage = generateSourceFile();
-    if (errorMessage != null) {
+    String filename = null;
+    try {
+      filename = generateSourceFile(textID.getText(), sensors, coreInterfaces,
+          userProcesses);
+    } catch (Exception e) {
       libraryCreatedOK = false;
       progressBar.setBackground(Color.ORANGE);
-      progressBar.setString("Maximum number of mote types already exist");
+      progressBar.setString(e.getMessage());
       progressBar.setIndeterminate(false);
       progressBar.setValue(0);
       createButton.setEnabled(libraryCreatedOK);
@@ -966,23 +993,35 @@ public class ContikiMoteTypeDialog extends JDialog {
   }
 
   /**
-   * @return Error message or null if source file generation ok
+   * Generates new source file by reading default source template and replacing
+   * fields with sensors, core interfaces and processes. Also includes default
+   * processes from GUI external configuration.
+   * 
+   * @param id
+   *          Mote type ID (decides name of new source file)
+   * @param sensors
+   *          Names of sensors
+   * @param coreInterfaces
+   *          Names of core interfaces
+   * @param userProcesses
+   *          Names of user processes
+   * @return New filename
+   * @throws Exception
+   *           If any error occurs
    */
-  private String generateSourceFile() {
+  public static String generateSourceFile(String id, Vector<String> sensors,
+      Vector<String> coreInterfaces, Vector<String> userProcesses)
+      throws Exception {
 
     // SENSORS
     String sensorString = "";
     String externSensorDefs = "";
-    for (Component checkBox : sensorPanel.getComponents()) {
-      if (((JCheckBox) checkBox).isSelected()) {
-        if (!sensorString.equals(""))
-          sensorString = sensorString.concat(", ");
-        sensorString = sensorString.concat("&"
-            + ((JCheckBox) checkBox).getText());
-        externSensorDefs = externSensorDefs
-            .concat("extern const struct sensors_sensor "
-                + ((JCheckBox) checkBox).getText() + ";\n");
-      }
+    for (String sensor : sensors) {
+      if (!sensorString.equals(""))
+        sensorString += ", ";
+      sensorString += "&" + sensor;
+      externSensorDefs += "extern const struct sensors_sensor " + sensor
+          + ";\n";
     }
 
     if (!sensorString.equals(""))
@@ -991,17 +1030,13 @@ public class ContikiMoteTypeDialog extends JDialog {
       sensorString = "SENSORS(NULL);";
 
     // CORE INTERFACES
-    String externInterfaceDefs = "";
     String interfaceString = "";
-    for (Component checkBox : coreInterfacePanel.getComponents()) {
-      if (((JCheckBox) checkBox).isSelected()) {
-        if (!interfaceString.equals(""))
-          interfaceString = interfaceString.concat(", ");
-        interfaceString = interfaceString.concat("&"
-            + ((JCheckBox) checkBox).getText());
-        externInterfaceDefs = externInterfaceDefs.concat("SIM_INTERFACE_NAME("
-            + ((JCheckBox) checkBox).getText() + ");\n");
-      }
+    String externInterfaceDefs = "";
+    for (String coreInterface : coreInterfaces) {
+      if (!interfaceString.equals(""))
+        interfaceString += ", ";
+      interfaceString += "&" + coreInterface;
+      externInterfaceDefs += "SIM_INTERFACE_NAME(" + coreInterface + ");\n";
     }
 
     if (!interfaceString.equals(""))
@@ -1009,27 +1044,23 @@ public class ContikiMoteTypeDialog extends JDialog {
     else
       interfaceString = "SIM_INTERFACES(NULL);";
 
-    // PROCESSES
+    // PROCESSES (including any default processes)
     String userProcessString = "";
     String externProcessDefs = "";
-    for (Component checkBox : processPanel.getComponents()) {
-      if (((JCheckBox) checkBox).isSelected()) {
-        if (!userProcessString.equals(""))
-          userProcessString = userProcessString.concat(", ");
-        userProcessString = userProcessString.concat("&"
-            + ((JCheckBox) checkBox).getText());
-        externProcessDefs = externProcessDefs.concat("PROCESS_NAME("
-            + ((JCheckBox) checkBox).getText() + ");\n");
-      }
+    for (String process : userProcesses) {
+      if (!userProcessString.equals(""))
+        userProcessString += ", ";
+      userProcessString += "&" + process;
+      externProcessDefs += "PROCESS_NAME(" + process + ");\n";
     }
 
-    String coreProcessString = "";
-    String processArray[] = GUI.getExternalToolsSetting(
+    String defaultProcessString = "";
+    String defaultProcesses[] = GUI.getExternalToolsSetting(
         "CONTIKI_STANDARD_PROCESSES").split(";");
-    for (String processString : processArray) {
-      if (!coreProcessString.equals(""))
-        coreProcessString = coreProcessString.concat(", ");
-      coreProcessString = coreProcessString + "&" + processString;
+    for (String process : defaultProcesses) {
+      if (!defaultProcessString.equals(""))
+        defaultProcessString += ", ";
+      defaultProcessString += "&" + process;
     }
 
     if (userProcessString.equals("")) {
@@ -1038,25 +1069,27 @@ public class ContikiMoteTypeDialog extends JDialog {
     }
 
     String processString;
-    if (!coreProcessString.equals(""))
-      processString = "PROCINIT(" + coreProcessString + ");";
+    if (!defaultProcessString.equals(""))
+      processString = "PROCINIT(" + defaultProcessString + ");";
     else
       processString = "PROCINIT(NULL);";
 
     if (!userProcessString.equals(""))
-      processString = processString + "\nAUTOSTART_PROCESSES("
-          + userProcessString + ");";
+      processString += "\nAUTOSTART_PROCESSES(" + userProcessString + ");";
     else
-      processString = processString.concat("\nAUTOSTART_PROCESSES(NULL);");
+      processString += "\nAUTOSTART_PROCESSES(NULL);";
 
-    // JNI CLASS NAME
+    // CHECK JNI CLASS AVAILABILITY
     String libString = CoreComm.getAvailableClassName();
     if (libString == null) {
       logger.fatal("No more libraries can be loaded!");
-      return "Maximum number of mote types already exist";
+      throw new Exception("Maximum number of mote types already exist");
     }
 
-    // Create new source file and replace special fields
+    // GENERATE NEW FILE
+    BufferedWriter destFile = null;
+    BufferedReader sourceFile = null;
+    String destFilename = null;
     try {
       Reader reader;
       String mainTemplate = GUI
@@ -1072,10 +1105,13 @@ public class ContikiMoteTypeDialog extends JDialog {
         reader = new InputStreamReader(input);
       }
 
-      BufferedReader sourceFile = new BufferedReader(reader);
-      BufferedWriter destFile = new BufferedWriter(new OutputStreamWriter(
-          new FileOutputStream(ContikiMoteType.tempOutputDirectory.getPath()
-              + File.separatorChar + textID.getText() + ".c")));
+      sourceFile = new BufferedReader(reader);
+      destFilename = ContikiMoteType.tempOutputDirectory.getPath()
+          + File.separatorChar + id + ".c";
+      destFile = new BufferedWriter(new OutputStreamWriter(
+          new FileOutputStream(destFilename)));
+
+      // Replace special fields in template
       String line;
       while ((line = sourceFile.readLine()) != null) {
         line = line
@@ -1096,11 +1132,19 @@ public class ContikiMoteTypeDialog extends JDialog {
       destFile.close();
       sourceFile.close();
     } catch (Exception e) {
-      logger.debug("Exception " + e);
-      return "Exception " + e;
+      try {
+        if (destFile != null)
+          destFile.close();
+        if (sourceFile != null)
+          sourceFile.close();
+      } catch (Exception e2) {
+      }
+
+      // Forward exception
+      throw e;
     }
 
-    return null;
+    return destFilename;
   }
 
   /**
