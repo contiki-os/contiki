@@ -15,6 +15,10 @@
 
 
 
+#define strcasecmp _stricmp
+
+
+
 #define LOG_CONF_ENABLED 1
 #include "sys/log.h"
 void debug_printf(char *format, ...);
@@ -98,8 +102,6 @@ typedef char ctk_arch_key_t;
 #define LOADER_CONF_ARCH "loader/dll-loader.h"
 
 #define PROGRAM_HANDLER_CONF_MAX_NUMDSCS 10
-
-#define strcasecmp _stricmp
 
 
 
