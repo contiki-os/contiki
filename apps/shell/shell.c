@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki desktop OS.
  *
- * $Id: shell.c,v 1.1 2006/06/17 22:41:12 adamdunkels Exp $
+ * $Id: shell.c,v 1.2 2006/08/30 22:06:18 oliverschmidt Exp $
  *
  */
 
@@ -103,15 +103,11 @@ inttostr(register char *str, unsigned int i)
 static void
 processes(char *str)
 {
-  static char idstr[5];
   struct process *p;
 
   shell_output("Processes:", "");
-  /* Step through each possible process ID and see if there is a
-     matching process. */
   for(p = PROCESS_LIST(); p != NULL; p = p->next) {
-    /*    inttostr(idstr, p->id);*/
-    shell_output(idstr, (char *)p->name);
+    shell_output((char *)p->name, "");
   }
 }
 /*-----------------------------------------------------------------------------------*/
@@ -161,28 +157,22 @@ execfile(char *str)
 static void
 killproc(char *str)
 {
-  char procnum, j, c;
-  char procstr[5];
+  struct process *p;
 
   nullterminate(str);
   
-  procnum = 0;
-  
-  for(j = 0; j < 4; ++j) {
-    c = str[(unsigned int)j];
-    if(c >= '0' && c <= '9') {
-      procnum = procnum * 10 + (str[(unsigned int)j] - '0');
-    } else {
+  for(p = PROCESS_LIST(); p != NULL; p = p->next) {
+    if(strcasecmp(p->name, str) == 0) {
       break;
     }
   }
-  if(procnum != 0) {
-    inttostr(procstr, procnum);
-    shell_output("Killing process ", procstr);
+
+  if(p != NULL) {
+    shell_output("Killing process ", (char *)p->name);
+    process_post(p, PROCESS_EVENT_EXIT, NULL);
   } else {
-    shell_output("Invalid process number", "");
+    shell_output("Invalid process name", "");
   }
-  
 }
 /*-----------------------------------------------------------------------------------*/
 static void
