@@ -8,15 +8,18 @@ OBJECTDIR = obj_$(TARGET)
 ifeq ($(TARGET),)
   -include Makefile.target
   ifeq ($(TARGET),)
-    $(warning TARGET not defined, using netsim target)
-    TARGET=netsim
+    $(warning TARGET not defined, using native target)
+    TARGET=native
   else
     $(warning using saved target '$(TARGET)')
   endif
 endif
 
 usage:
-	@echo "make MAKETARGETS... [TARGET=(TARGET)] [savetarget]"
+	@echo "make MAKETARGETS... [TARGET=(TARGET)] [savetarget] [targets]"
+
+targets:
+	@ls -1 $(CONTIKI)/platform | grep -v CVS
 
 savetarget:
 	-@rm -f Makefile.target
@@ -33,7 +36,7 @@ CFS     = cfs.c cfs-ram.c
 CTK     = ctk.c
 UIP     = uip.c uiplib.c resolv.c tcpip.c psock.c hc.c uip-split.c \
           uip-fw.c uip-fw-service.c uipbuf.c uip_arp.c uiplib.c tcpdump.c \
-          uip-neighbor.c
+          uip-neighbor.c uip-udp-packet.c
 NET     = $(UIP) uaodv.c uaodv-rt.c
 
 CTKVNC  = $(CTK) ctk-vncserver.c libconio.c vnc-server.c vnc-out.c \
@@ -131,12 +134,10 @@ endif
 
 ifndef CUSTOM_RULE_LINK
 %.$(TARGET):	%.co $(PROJECT_OBJECTFILES) contiki-$(TARGET).a
-	$(CC) $(LDFLAGS) $(TARGET_STARTFILES) $(filter-out %.a,$^) $(filter %.a,$^) $(TARGET_LIBFILES) -o $@ 
+	$(CC) $(LDFLAGS) $(TARGET_STARTFILES) $(filter-out %.a,$^) $(filter %.a,$^) $(TARGET_LIBFILES) -o $@
 endif
 
 # The target below looks weird, but I had to add the @ to avoid complaints
 # from GNU make about "*** No rule to make target `XXX'.  Stop."
 %: %.$(TARGET)
 	@
-
-
