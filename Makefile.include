@@ -30,7 +30,7 @@ DUMMY := ${shell mkdir $(OBJECTDIR)}
 endif
 
 SYSTEM  = process.c procinit.c service.c autostart.c
-THREADS = mt.c
+THREADS = #mt.c
 LIBS    = memb.c timer.c list.c etimer.c
 CFS     = cfs.c cfs-ram.c
 CTK     = ctk.c
