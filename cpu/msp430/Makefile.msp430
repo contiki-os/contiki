@@ -1,4 +1,4 @@
-# $Id: Makefile.msp430,v 1.3 2006/06/24 06:23:47 adamdunkels Exp $
+# $Id: Makefile.msp430,v 1.4 2006/09/01 22:56:26 adamdunkels Exp $
 
 ### Check if we are running under Windows
 
@@ -18,7 +18,7 @@ CONTIKI_CPU=$(CONTIKI)/cpu/msp430
 ### Define the source files we have in the MSP430 port
 
 MSP430     = msp430.c eeprom.c flash.c clock.c leds.c leds-arch.c \
-             watchdog.c lpm.c cfs-eeprom.c
+             watchdog.c lpm.c cfs-eeprom.c mtarch.c
 UIPDRIVERS = me.c me_tabs.c slip.c crc16.c
 #UIPDRIVERS = me.c me_tabs.c crc16.c ppp/ahdlc.c ppp/ipcp.c ppp/lcp.c ppp/pap.c ppp/ppp.c ppp/ppp_process.c
 SYSAPPS    = codeprop-tmp.c
