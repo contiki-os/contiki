@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: elfloader-avr.c,v 1.1 2006/06/17 22:41:18 adamdunkels Exp $
+ * @(#)$Id: elfloader-avr.c,v 1.2 2006/09/01 07:10:01 adamdunkels Exp $
  */
 #include "elfloader-arch.h"
 
@@ -46,10 +46,10 @@
 #define R_AVR_LO8_LDI_NEG      9
 #define R_AVR_HI8_LDI_NEG     10
 #define R_AVR_HH8_LDI_NEG     11
-#define R_AVR_LO8_LDI_PM      12 
-#define R_AVR_HI8_LDI_PM      13 
-#define R_AVR_HH8_LDI_PM      14 
-#define R_AVR_LO8_LDI_PM_NEG  15 
+#define R_AVR_LO8_LDI_PM      12
+#define R_AVR_HI8_LDI_PM      13
+#define R_AVR_HH8_LDI_PM      14
+#define R_AVR_LO8_LDI_PM_NEG  15
 #define R_AVR_HI8_LDI_PM_NEG  16
 #define R_AVR_HH8_LDI_PM_NEG  17
 #define R_AVR_CALL            18
@@ -127,9 +127,9 @@ elfloader_arch_relocate(int fd, unsigned int sectionoffset,
   unsigned int type;
   unsigned char instr[4];
 
-  cfs_seek(fd, sectionoffset);
+  cfs_seek(fd, sectionoffset + rela->r_offset);
   cfs_read(fd, instr, 4);
-  cfs_seek(fd, sectionoffset);
+  cfs_seek(fd, sectionoffset + rela->r_offset);
   
   addr += rela->r_addend;
 
@@ -147,7 +147,7 @@ elfloader_arch_relocate(int fd, unsigned int sectionoffset,
     
   case R_AVR_16:
     cfs_write(fd, (char *)addr, 2);
-    break;    
+    break;
   case R_AVR_16_PM:
     addr = (char *)((unsigned long)addr >> 1);
     cfs_write(fd, (char *)addr, 2);
@@ -172,7 +172,7 @@ elfloader_arch_relocate(int fd, unsigned int sectionoffset,
     write_ldi(fd, instr, (unsigned long)addr >> 8);
     break;
   case R_AVR_HH8_LDI_NEG:
-    addr = (char *)(0 - (unsigned long)addr);    
+    addr = (char *)(0 - (unsigned long)addr);
     write_ldi(fd, instr, (unsigned long)addr >> 16);
     break;
 
