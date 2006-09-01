@@ -30,7 +30,7 @@
  *
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: mt.h,v 1.1 2006/06/17 22:41:20 adamdunkels Exp $
+ * $Id: mt.h,v 1.2 2006/09/01 22:56:47 adamdunkels Exp $
  */
 
 /** \addtogroup sys
@@ -292,6 +292,7 @@ void mt_wait(process_event_t *ev, process_data_t *data);
  */
 void mt_exit(void);
 
+#if 0
 /**
  * \defgroup mtp Multi-threading library convenience functions
  * @{
@@ -361,6 +362,7 @@ void mtp_exit(void);
 void mtp_eventhandler(process_event_t ev, process_data_t data);
 
 /** @} */
+#endif /* 0 */
 /** @} */
 /** @} */
 #endif /* __MT_H__ */

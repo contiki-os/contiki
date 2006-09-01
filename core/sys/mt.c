@@ -30,7 +30,7 @@
  *
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: mt.c,v 1.1 2006/06/17 22:41:20 adamdunkels Exp $
+ * $Id: mt.c,v 1.2 2006/09/01 22:56:47 adamdunkels Exp $
  */
 
 /**
@@ -166,6 +166,7 @@ mt_peek(process_event_t *ev, process_data_t *data)
   mtarch_yield();
 }
 /*--------------------------------------------------------------------------*/
+#if 0
 void
 mtp_start(struct mt_process *t,
 	  void (* function)(void *), void *data)
@@ -219,3 +220,4 @@ mtp_eventhandler(ek_event_t ev, ek_data_t data)
   }
 }*/
 /*--------------------------------------------------------------------------*/
+#endif /* 0 */
