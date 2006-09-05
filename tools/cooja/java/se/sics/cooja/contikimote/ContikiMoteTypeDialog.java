@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ContikiMoteTypeDialog.java,v 1.6 2006/08/30 14:59:35 fros4943 Exp $
+ * $Id: ContikiMoteTypeDialog.java,v 1.7 2006/09/05 14:57:57 fros4943 Exp $
  */
 
 package se.sics.cooja.contikimote;
@@ -1506,113 +1506,147 @@ public class ContikiMoteTypeDialog extends JDialog {
     return interfaces;
   }
 
-  private void autoSelectDependencyProcesses(String processName,
-      String sourceFilename, boolean confirmSelection) {
-
-    /*
-     * Try to autofind and select dependency processes (via
-     * AUTOSTART_PROCESSES()) If this procedure fails, nothing will be reported
-     * to user
-     */
-
-    // Open source code file
-    FileReader reader = null;
-    try {
-      reader = new FileReader(textCoreDir.getText() + File.separatorChar
-          + sourceFilename);
-    } catch (Exception ex) {
-    }
-    for (File userPlatform : GUI.currentGUI.getUserPlatforms()) {
-      if (reader == null) {
-        try {
-          reader = new FileReader(userPlatform.getPath() + File.separatorChar
-              + sourceFilename);
-        } catch (Exception ex) {
-        }
-      }
-    }
-    for (File userPlatform : moteTypeUserPlatforms) {
-      if (reader == null) {
-        try {
-          reader = new FileReader(userPlatform.getPath() + File.separatorChar
-              + sourceFilename);
-        } catch (Exception ex) {
-        }
-      }
-    }
-    if (reader == null) {
-      // Could not locate source file
-      return;
-    }
+  /**
+   * Scans given file for an autostart expression and returns all process names
+   * found.
+   * 
+   * @param sourceFile
+   *          Source file to scan
+   * @return Autostart process names or null
+   * @throws FileNotFoundException
+   *           Given file not found
+   * @throws IOException
+   *           IO Exception
+   */
+  public static Vector<String> parseAutostartProcesses(File sourceFile)
+      throws FileNotFoundException, IOException {
+    // Open file for reading
+    BufferedReader sourceFileReader = new BufferedReader(new FileReader(
+        sourceFile));
 
     // Find which processes were set to autostart
-    BufferedReader sourceFile = new BufferedReader(reader);
     String line;
+    String autostartExpression = "^AUTOSTART_PROCESSES([^$]*)$";
+    Pattern pattern = Pattern.compile(autostartExpression);
+    Vector<String> foundProcesses = new Vector<String>();
+
+    while ((line = sourceFileReader.readLine()) != null) {
+      Matcher matcher = pattern.matcher(line);
+      if (matcher.find()) {
+        // Parse autostart processes
+        String[] allProcesses = matcher.group(1).split(",");
+        for (String autostartProcess : allProcesses) {
+          foundProcesses.add(autostartProcess.replaceAll("[&; \\(\\)]", ""));
+        }
+      }
+    }
+    return foundProcesses;
+  }
+
+  private boolean autoSelectDependencyProcesses(String processName,
+      String sourceFilename, boolean confirmSelection) {
+
+    // Locate source file
+    File sourceFile = new File(textCoreDir.getText(), sourceFilename);
+
+    boolean foundFile = sourceFile.exists();
+    if (!foundFile)
+      for (File userPlatform : GUI.currentGUI.getUserPlatforms()) {
+        sourceFile = new File(userPlatform, sourceFilename);
+        if (foundFile = sourceFile.exists())
+          break;
+      }
+
+    if (!foundFile)
+      for (File userPlatform : moteTypeUserPlatforms) {
+        sourceFile = new File(userPlatform, sourceFilename);
+        if (foundFile = sourceFile.exists())
+          break;
+      }
+
+    if (!foundFile) {
+      // Die quietly
+      return false;
+    }
+
+    Vector<String> autostartProcesses = null;
     try {
-      String autostartExpression = "^AUTOSTART_PROCESSES([^$]*)$";
+      autostartProcesses = parseAutostartProcesses(sourceFile);
+    } catch (Exception e) {
+      return false;
+    }
 
-      Pattern pattern = Pattern.compile(autostartExpression);
+    if (autostartProcesses == null || autostartProcesses.isEmpty()) {
+      // Die quietly
+      return true;
+    }
 
-      while ((line = sourceFile.readLine()) != null) {
-        Matcher matcher = pattern.matcher(line);
-        if (matcher.find()) {
-          // Parse autostart processes
-          String[] allProcesses = matcher.group(1).split(",");
-          for (String autostartProcess : allProcesses) {
-            autostartProcess = autostartProcess.replaceAll("[&; \\(\\)]", "");
+    for (String autostartProcess : autostartProcesses) {
+      // Does this process already exist?
+      boolean processAlreadySelected = false;
+      for (Component checkBox : processPanel.getComponents()) {
+        JCheckBox checkBox2 = (JCheckBox) checkBox;
+        String existingProcess = checkBox2.getText();
+        boolean selected = checkBox2.isSelected();
+        if (existingProcess.equals(autostartProcess) && selected) {
+          processAlreadySelected = true;
+        }
+      }
 
-            // Does this process already exist?
-            boolean processAlreadyExists = false;
-            for (Component checkBox : processPanel.getComponents()) {
-              String existingProcess = ((JCheckBox) checkBox).getText();
-              if (existingProcess.equals(autostartProcess)) {
-                processAlreadyExists = true;
-              }
-            }
+      if (!processAlreadySelected) {
 
-            if (!processAlreadyExists) {
+        boolean processShouldBeSelected = false;
+        if (confirmSelection) {
+          // Let user choose whether to add process
+          Object[] options = { "Create", "Cancel" };
 
-              if (confirmSelection) {
-                Object[] options = {"Create", "Cancel"};
+          String question = "The process " + processName
+              + " depends on the following process: " + autostartProcess
+              + "\nDo you want to select this as well?";
+          String title = "Select dependency process?";
+          int answer = JOptionPane.showOptionDialog(myDialog, question, title,
+              JOptionPane.DEFAULT_OPTION, JOptionPane.QUESTION_MESSAGE, null,
+              options, options[0]);
 
-                String question = "The process " + processName
-                    + " depends on the following process: " + autostartProcess
-                    + "\nDo you want to add this as well?";
-                String title = "Add dependency process?";
-                int answer = JOptionPane.showOptionDialog(myDialog, question,
-                    title, JOptionPane.DEFAULT_OPTION,
-                    JOptionPane.QUESTION_MESSAGE, null, options, options[0]);
+          if (answer == JOptionPane.YES_OPTION) {
+            processShouldBeSelected = true;
+          }
+        } else {
+          // Add process
+          processShouldBeSelected = true;
+        }
 
-                if (answer == JOptionPane.YES_OPTION) {
-                  JCheckBox processCheckBox = new JCheckBox(autostartProcess,
-                      true);
-                  processCheckBox.setAlignmentX(Component.LEFT_ALIGNMENT);
-
-                  processCheckBox.setActionCommand("process_clicked: "
-                      + autostartProcess);
-                  processCheckBox.addActionListener(myEventHandler);
-
-                  processPanel.add(processCheckBox);
-                }
-              } else {
-                JCheckBox processCheckBox = new JCheckBox(autostartProcess,
-                    true);
-                processCheckBox.setAlignmentX(Component.LEFT_ALIGNMENT);
-
-                processCheckBox.setActionCommand("process_clicked: "
-                    + autostartProcess);
-                processCheckBox.addActionListener(myEventHandler);
-
-                processPanel.add(processCheckBox);
-              }
+        if (processShouldBeSelected) {
+          // Get checkbox to select
+          JCheckBox processToSelectCheckBox = null;
+          for (Component checkBox : processPanel.getComponents()) {
+            JCheckBox checkBox2 = (JCheckBox) checkBox;
+            if (checkBox2.getText().equals(autostartProcess)) {
+              processToSelectCheckBox = checkBox2;
+              break;
             }
           }
 
+          if (processToSelectCheckBox == null) {
+            // Create new check box
+            processToSelectCheckBox = new JCheckBox(autostartProcess, true);
+            processToSelectCheckBox.setAlignmentX(Component.LEFT_ALIGNMENT);
+
+            processToSelectCheckBox.setActionCommand("process_clicked: "
+                + autostartProcess);
+            processToSelectCheckBox.addActionListener(myEventHandler);
+
+            processPanel.add(processToSelectCheckBox);
+          }
+
+          processToSelectCheckBox.setSelected(true);
+          processPanel.invalidate();
+          processPanel.revalidate();
         }
       }
-    } catch (Exception ex) {
-      return;
     }
+
+    return true;
   }
 
   private void pathsWereUpdated() {
