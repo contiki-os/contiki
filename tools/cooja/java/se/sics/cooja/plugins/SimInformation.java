@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: SimInformation.java,v 1.1 2006/08/21 12:13:07 fros4943 Exp $
+ * $Id: SimInformation.java,v 1.2 2006/09/05 14:12:48 fros4943 Exp $
  */
 
 package se.sics.cooja.plugins;
@@ -86,7 +86,8 @@ public class SimInformation extends VisPlugin {
     // Register as tick observer
     simulation.addTickObserver(tickObserver = new Observer() {
       public void update(Observable obs, Object obj) {
-        labelSimTime.setText("" + simulation.getSimulationTime());
+        if (labelSimTime != null)
+          labelSimTime.setText("" + simulation.getSimulationTime());
       }
     });
     
