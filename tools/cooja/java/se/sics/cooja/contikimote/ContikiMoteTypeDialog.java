@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ContikiMoteTypeDialog.java,v 1.8 2006/09/06 10:32:31 fros4943 Exp $
+ * $Id: ContikiMoteTypeDialog.java,v 1.9 2006/09/06 12:26:33 fros4943 Exp $
  */
 
 package se.sics.cooja.contikimote;
@@ -158,8 +158,8 @@ public class ContikiMoteTypeDialog extends JDialog {
         // Check if library file with given identifier has already been loaded
         if (identifierOK
             && CoreComm.hasLibraryFileBeenLoaded(new File(
-                ContikiMoteType.tempOutputDirectory.getPath()
-                    + File.separatorChar + testIdentifier
+                ContikiMoteType.tempOutputDirectory,
+                    testIdentifier
                     + ContikiMoteType.librarySuffix))) {
           identifierOK = false;
         }
@@ -893,12 +893,12 @@ public class ContikiMoteTypeDialog extends JDialog {
     progressBar.setString("..compiling..");
     final File contikiDir = new File(textContikiDir.getText());
     final String identifier = textID.getText();
-    File libFile = new File(ContikiMoteType.tempOutputDirectory.getPath()
-        + File.separatorChar + identifier + ContikiMoteType.librarySuffix);
-    File mapFile = new File(ContikiMoteType.tempOutputDirectory.getPath()
-        + File.separatorChar + identifier + ContikiMoteType.mapSuffix);
-    File depFile = new File(ContikiMoteType.tempOutputDirectory.getPath()
-        + File.separatorChar + identifier + ContikiMoteType.dependSuffix);
+    File libFile = new File(ContikiMoteType.tempOutputDirectory,
+        identifier + ContikiMoteType.librarySuffix);
+    File mapFile = new File(ContikiMoteType.tempOutputDirectory,
+        identifier + ContikiMoteType.mapSuffix);
+    File depFile = new File(ContikiMoteType.tempOutputDirectory,
+        identifier + ContikiMoteType.dependSuffix);
 
     if (libFile.exists()) {
       libFile.delete();
@@ -1163,12 +1163,12 @@ public class ContikiMoteTypeDialog extends JDialog {
   public static boolean compileLibrary(String identifier, File contikiDir,
       Vector<File> sourceFiles, final MessageList appender) {
 
-    File libFile = new File(ContikiMoteType.tempOutputDirectory.getPath()
-        + File.separatorChar + identifier + ContikiMoteType.librarySuffix);
-    File mapFile = new File(ContikiMoteType.tempOutputDirectory.getPath()
-        + File.separatorChar + identifier + ContikiMoteType.mapSuffix);
-    File depFile = new File(ContikiMoteType.tempOutputDirectory.getPath()
-        + File.separatorChar + identifier + ContikiMoteType.dependSuffix);
+    File libFile = new File(ContikiMoteType.tempOutputDirectory,
+        identifier + ContikiMoteType.librarySuffix);
+    File mapFile = new File(ContikiMoteType.tempOutputDirectory,
+        identifier + ContikiMoteType.mapSuffix);
+    File depFile = new File(ContikiMoteType.tempOutputDirectory,
+        identifier + ContikiMoteType.dependSuffix);
 
     // Recheck that contiki path exists
     if (!contikiDir.exists()) {
@@ -1251,7 +1251,7 @@ public class ContikiMoteTypeDialog extends JDialog {
           "LD_ARGS_2=" + GUI.getExternalToolsSetting("LINKER_ARGS_2", ""),
           "EXTRA_CC_ARGS=" + ccFlags,
           "CC=" + GUI.getExternalToolsSetting("PATH_C_COMPILER"),
-          "LD=" + GUI.getExternalToolsSetting("PATH_LINKER"), "COMPILE_MAIN=1",
+          "LD=" + GUI.getExternalToolsSetting("PATH_LINKER"),
           "PROJECTDIRS=" + sourceDirs,
           "PROJECT_SOURCEFILES=" + sourceFileNames,
           "PATH=" + System.getenv("PATH")};
@@ -1304,8 +1304,10 @@ public class ContikiMoteTypeDialog extends JDialog {
       err.close();
 
       p.waitFor();
-      if (p.exitValue() != 0)
+      if (p.exitValue() != 0) {
+        logger.fatal("Make file returned error: " + p.exitValue());
         return false;
+      }
     } catch (Exception e) {
       logger.fatal("Error while compiling library: " + e);
       return false;
@@ -1778,8 +1780,8 @@ public class ContikiMoteTypeDialog extends JDialog {
 
     // Check that all user platforms are valid
     for (File userPlatform : moteTypeUserPlatforms) {
-      File userPlatformConfig = new File(userPlatform.getPath()
-          + File.separatorChar + GUI.PLATFORM_CONFIG_FILENAME);
+      File userPlatformConfig = new File(userPlatform.getPath(),
+          GUI.PLATFORM_CONFIG_FILENAME);
       if (!userPlatformConfig.exists()) {
         textUserPlatforms.setBackground(Color.RED);
         textUserPlatforms.setToolTipText("Invalid user platform: "
@@ -1866,7 +1868,7 @@ public class ContikiMoteTypeDialog extends JDialog {
         dispose();
       } else if (e.getActionCommand().equals("clean")) {
         // Delete any created intermediate files
-        File objectDir = new File("obj_cooja");
+        File objectDir = ContikiMoteType.tempOutputDirectory;
         if (objectDir.exists() && objectDir.isDirectory()) {
           File[] objectFiles = objectDir.listFiles();
           for (File objectFile : objectFiles)

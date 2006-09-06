@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: MoteDebugger.java,v 1.1 2006/08/21 12:13:14 fros4943 Exp $
+ * $Id: MoteDebugger.java,v 1.2 2006/09/06 12:26:33 fros4943 Exp $
  */
 
 import java.awt.event.*;
@@ -96,7 +96,7 @@ public class MoteDebugger extends VisPlugin {;
         logger.info("Extracted PID=" + pid);
         
         logger.info("Checking that source code file exists..");
-        File sourceFile = new File("obj_cooja/" + moteToDebug.getType().getIdentifier() + ".c");
+        File sourceFile = new File(ContikiMoteType.tempOutputDirectory, moteToDebug.getType().getIdentifier() + ".c");
         if (!sourceFile.exists()) {
           logger.fatal("Can't find source file: " + sourceFile);
           return;
@@ -114,7 +114,7 @@ public class MoteDebugger extends VisPlugin {;
         logger.info("Function name is: " + functionName);
         
         logger.info("Creating temporary file .tmp with initial commands");
-        File tmpFile = new File("obj_cooja/" + ".tmp");
+        File tmpFile = new File(ContikiMoteType.tempOutputDirectory, ".tmp");
         if (tmpFile.exists()) {
           tmpFile.delete();
         }
@@ -142,7 +142,7 @@ public class MoteDebugger extends VisPlugin {;
           gdbProcess = Runtime.getRuntime().exec("xterm -e gdb"
               + " -nw -quiet "
               + " --pid=" + pid
-              + " -x " + "obj_cooja/" + tmpFile.getName()
+              + " -x " + ContikiMoteType.tempOutputDirectory.getName() + "/" + tmpFile.getName()
           );
           
           logger.info("Sleeping 2500 ms while starting up GDB");

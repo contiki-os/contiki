@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: PlatformConfig.java,v 1.2 2006/08/22 15:28:17 fros4943 Exp $
+ * $Id: PlatformConfig.java,v 1.3 2006/09/06 12:26:33 fros4943 Exp $
  */
 
 package se.sics.cooja;
@@ -134,8 +134,8 @@ public class PlatformConfig {
    */
   public boolean appendUserPlatform(File userPlatform)
       throws FileNotFoundException, IOException {
-    File userPlatformConfig = new File(userPlatform.getPath()
-        + File.separatorChar + GUI.PLATFORM_CONFIG_FILENAME);
+    File userPlatformConfig = new File(userPlatform.getPath(),
+        GUI.PLATFORM_CONFIG_FILENAME);
     myUserPlatformHistory.add(userPlatform);
     return appendConfigFile(userPlatformConfig);
   }

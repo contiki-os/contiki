@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ContikiMoteType.java,v 1.2 2006/08/23 17:11:59 fros4943 Exp $
+ * $Id: ContikiMoteType.java,v 1.3 2006/09/06 12:26:33 fros4943 Exp $
  */
 
 package se.sics.cooja.contikimote;
@@ -86,7 +86,7 @@ public class ContikiMoteType implements MoteType {
   /**
    * Temporary output directory
    */
-  final static public File tempOutputDirectory = new File("." + File.separatorChar + "obj_cooja" + File.separatorChar);
+  final static public File tempOutputDirectory = new File("obj_cooja");
 
   // Regular expressions for parsing the map file
   final static private String bssSectionAddrRegExp = "^.bss[ \t]*0x([0-9A-Fa-f]*)[ \t]*0x[0-9A-Fa-f]*[ \t]*$";
@@ -182,10 +182,10 @@ public class ContikiMoteType implements MoteType {
       return false;
     }
 
-    File libFile = new File(ContikiMoteType.tempOutputDirectory.getPath()
-        + File.separatorChar + identifier + librarySuffix);
-    File mapFile = new File(ContikiMoteType.tempOutputDirectory.getPath()
-        + File.separatorChar + identifier + mapSuffix);
+    File libFile = new File(ContikiMoteType.tempOutputDirectory,
+        identifier + librarySuffix);
+    File mapFile = new File(ContikiMoteType.tempOutputDirectory,
+        identifier + mapSuffix);
 
     // Check that library file exists
     if (!libFile.exists()) {

@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: UserPlatformsDialog.java,v 1.4 2006/08/23 14:29:44 fros4943 Exp $
+ * $Id: UserPlatformsDialog.java,v 1.5 2006/09/06 12:26:33 fros4943 Exp $
  */
 
 package se.sics.cooja.dialogs;
@@ -371,8 +371,8 @@ public class UserPlatformsDialog extends JDialog {
       return;
     }
 
-    File userPlatformConfigFile = new File(userPlatform.getPath()
-        + File.separatorChar + GUI.PLATFORM_CONFIG_FILENAME);
+    File userPlatformConfigFile = new File(userPlatform.getPath(),
+        GUI.PLATFORM_CONFIG_FILENAME);
     if (!userPlatformConfigFile.exists()) {
       logger.fatal("User platform has no configuration file: "
           + userPlatformConfigFile);
