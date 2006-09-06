@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: GUI.java,v 1.4 2006/08/22 15:28:17 fros4943 Exp $
+ * $Id: GUI.java,v 1.5 2006/09/06 10:05:22 fros4943 Exp $
  */
 
 package se.sics.cooja;
@@ -44,6 +44,7 @@ import javax.swing.filechooser.FileFilter;
 import org.apache.log4j.Logger;
 import org.apache.log4j.xml.DOMConfigurator;
 
+import se.sics.cooja.contikimote.*;
 import se.sics.cooja.dialogs.*;
 import se.sics.cooja.plugins.*;
 
@@ -411,6 +412,392 @@ public class GUI extends JDesktopPane {
     frame.setVisible(true);
   }
 
+  /**
+   * Quick-starts a simulation using given parameters. TODO Experimental code
+   * 
+   * @param moteTypeID
+   *          Mote type ID (if null "mtype1" will be used)
+   * @param userPlatforms
+   *          GUI user platforms
+   * @param sensors
+   *          Contiki sensors (if null sensors will be scanned for)
+   * @param coreInterfaces
+   *          COOJA core interfaces (if null interfaces will be scanned for)
+   * @param userProcesses
+   *          Contiki user processes (if null processes all in given main file
+   *          will be added)
+   * @param addAutostartProcesses
+   *          Should autostart processes automatically be added?
+   * @param numberOfNodes
+   *          Number of nodes to add
+   * @param areaSideLength
+   *          Side of node positioning square
+   * @param delayTime
+   *          Initial delay time
+   * @param simulationStartinge
+   *          Simulation automatically started?
+   * @param filename
+   *          Main Contiki user process file
+   * @param contikiPath
+   *          Contiki path
+   * @return True if simulation was quickstarted correctly
+   */
+  private static boolean quickStartSimulation(String moteTypeID,
+      Vector<String> userPlatforms, Vector<String> sensors,
+      Vector<String> coreInterfaces, Vector<String> userProcesses,
+      boolean addAutostartProcesses, int numberOfNodes, double areaSideLength,
+      int delayTime, boolean simulationStarting, String filename,
+      String contikiPath) {
+
+    // Create GUI and GUI frame (not visible yet)
+    JFrame.setDefaultLookAndFeelDecorated(true);
+    JDialog.setDefaultLookAndFeelDecorated(true);
+    logger.info("> Creating GUI and main frame (invisible)");
+    frame = new JFrame("COOJA Simulator");
+    frame.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
+    GUI gui = new GUI(); // loads external settings and creates initial
+    // platform config
+    JComponent newContentPane = gui;
+    newContentPane.setOpaque(true);
+    frame.setContentPane(newContentPane);
+    frame.setLocationRelativeTo(null);
+
+    // Set manual Contiki path if specified
+    if (contikiPath != null)
+      setExternalToolsSetting("PATH_CONTIKI", contikiPath);
+
+    // Parse user platforms and create config
+    if (userPlatforms == null) {
+      userPlatforms = new Vector<String>();
+      userPlatforms.add(".");
+    }
+    logger.info("> Reparsing user platforms and creating config");
+    for (String userPlatform : userPlatforms) {
+      logger.info(">> Adding: " + userPlatform);
+      gui.currentUserPlatforms.add(new File(userPlatform));
+    }
+    boolean parsedPlatforms = gui.reparsePlatformConfig();
+    if (!parsedPlatforms) {
+      logger.fatal(">> Error when parsing platforms, aborting");
+      return false;
+    }
+
+    // Check file permissions and paths
+    logger.info("> Checking paths and file permissions");
+    if (moteTypeID == null)
+      moteTypeID = "mtype1";
+    File contikiBaseDir = new File(getExternalToolsSetting("PATH_CONTIKI"));
+    File contikiCoreDir = new File(contikiBaseDir,
+        getExternalToolsSetting("PATH_COOJA_CORE_RELATIVE"));
+    File libFile = new File(ContikiMoteType.tempOutputDirectory.getPath()
+        + File.separatorChar + moteTypeID + ContikiMoteType.librarySuffix);
+    File mapFile = new File(ContikiMoteType.tempOutputDirectory.getPath()
+        + File.separatorChar + moteTypeID + ContikiMoteType.mapSuffix);
+    File depFile = new File(ContikiMoteType.tempOutputDirectory.getPath()
+        + File.separatorChar + moteTypeID + ContikiMoteType.dependSuffix);
+    if (libFile.exists())
+      libFile.delete();
+    if (depFile.exists())
+      depFile.delete();
+    if (mapFile.exists())
+      mapFile.delete();
+    if (libFile.exists()) {
+      logger.fatal(">> Can't delete output file, aborting: " + libFile);
+      return false;
+    }
+    if (depFile.exists()) {
+      logger.fatal(">> Can't delete output file, aborting: " + depFile);
+      return false;
+    }
+    if (mapFile.exists()) {
+      logger.fatal(">> Can't delete output file, aborting: " + mapFile);
+      return false;
+    }
+
+    // Search for main file in current directory (or arg)
+    File mainProcessFile = new File(filename);
+    logger.info(">> Searching main process file: "
+        + mainProcessFile.getAbsolutePath());
+    if (!mainProcessFile.exists()) {
+      logger.info(">> Searching main process file: "
+          + mainProcessFile.getAbsolutePath());
+      boolean foundFile = false;
+      for (String userPlatform : userPlatforms) {
+        mainProcessFile = new File(userPlatform, filename);
+        logger.info(">> Searching main process file: "
+            + mainProcessFile.getAbsolutePath());
+        if (mainProcessFile.exists()) {
+          foundFile = true;
+          break;
+        }
+      }
+      if (!foundFile) {
+        logger.fatal(">> Could not locate main process file, aborting");
+        return false;
+      }
+    }
+
+    // Setup compilation arguments
+    logger.info("> Setting up compilation arguments");
+    Vector<File> filesToCompile = new Vector<File>();
+    filesToCompile.add(mainProcessFile); // main process file
+    for (String userPlatform : userPlatforms)
+      // user platforms
+      filesToCompile.add(new File(userPlatform));
+    String[] platformSources = // platform config sources
+    gui.getPlatformConfig().getStringArrayValue(ContikiMoteType.class,
+        "C_SOURCES");
+    for (String platformSource : platformSources) {
+      if (!platformSource.equals("")) {
+        File file = new File(platformSource);
+        if (file.getParent() != null) {
+          // Find which user platform added this file
+          File userPlatform = gui.getPlatformConfig().getUserPlatformDefining(
+              ContikiMoteType.class, "C_SOURCES", platformSource);
+          if (userPlatform != null) {
+            // We found a user platform - Add directory
+            filesToCompile.add(new File(userPlatform.getPath(), file
+                .getParent()));
+          }
+        }
+        filesToCompile.add(new File(file.getName()));
+      }
+    }
+
+    // Scan for sensors
+    if (sensors == null) {
+      logger.info("> Scanning for sensors");
+      sensors = new Vector<String>();
+      Vector<String[]> scannedSensorInfo = ContikiMoteTypeDialog
+          .scanForSensors(contikiCoreDir);
+      for (String userPlatform : userPlatforms)
+        // user platforms
+        scannedSensorInfo.addAll(ContikiMoteTypeDialog.scanForSensors(new File(
+            userPlatform)));
+
+      for (String[] sensorInfo : scannedSensorInfo) {
+        // logger.info(">> Found and added: " + sensorInfo[1] + " (" +
+        // sensorInfo[0] + ")");
+        sensors.add(sensorInfo[1]);
+      }
+    }
+
+    // Scan for core interfaces
+    if (coreInterfaces == null) {
+      logger.info("> Scanning for core interfaces");
+      coreInterfaces = new Vector<String>();
+      Vector<String[]> scannedCoreInterfaceInfo = ContikiMoteTypeDialog
+          .scanForInterfaces(contikiCoreDir);
+      for (String userPlatform : userPlatforms)
+        // user platforms
+        scannedCoreInterfaceInfo.addAll(ContikiMoteTypeDialog
+            .scanForInterfaces(new File(userPlatform)));
+
+      for (String[] coreInterfaceInfo : scannedCoreInterfaceInfo) {
+        // logger.info(">> Found and added: " + coreInterfaceInfo[1] + " (" +
+        // coreInterfaceInfo[0] + ")");
+        coreInterfaces.add(coreInterfaceInfo[1]);
+      }
+    }
+
+    // Scan for mote interfaces
+    logger.info("> Loading mote interfaces");
+    String[] moteInterfaces = gui.getPlatformConfig().getStringArrayValue(
+        ContikiMoteType.class, "MOTE_INTERFACES");
+    Vector<Class<? extends MoteInterface>> moteIntfClasses = new Vector<Class<? extends MoteInterface>>();
+    for (String moteInterface : moteInterfaces) {
+      try {
+        Class<? extends MoteInterface> newMoteInterfaceClass = gui
+            .tryLoadClass(gui, MoteInterface.class, moteInterface);
+        moteIntfClasses.add(newMoteInterfaceClass);
+        // logger.info(">> Loaded mote interface: " + newMoteInterfaceClass);
+      } catch (Exception e) {
+        logger.fatal(">> Failed to load mote interface, aborting: "
+            + moteInterface + ", " + e.getMessage());
+        return false;
+      }
+    }
+
+    // Scan for processes
+    if (userProcesses == null) {
+      logger.info("> Scanning for user processes");
+      userProcesses = new Vector<String>();
+      Vector<String> autostartProcesses = new Vector<String>();
+      Vector<String[]> scannedProcessInfo = ContikiMoteTypeDialog
+          .scanForProcesses(contikiCoreDir);
+      for (String userPlatform : userPlatforms)
+        // user platforms
+        scannedProcessInfo.addAll(ContikiMoteTypeDialog
+            .scanForProcesses(new File(userPlatform)));
+
+      for (String[] processInfo : scannedProcessInfo) {
+        if (processInfo[0].equals(mainProcessFile.getName())) {
+          logger.info(">> Found and added: " + processInfo[1] + " ("
+              + processInfo[0] + ")");
+          userProcesses.add(processInfo[1]);
+
+          if (addAutostartProcesses) {
+            // Parse any autostart processes
+            try {
+              // logger.info(">>> Parsing " + processInfo[0] + " for autostart
+              // processes");
+              Vector<String> autostarters = ContikiMoteTypeDialog
+                  .parseAutostartProcesses(mainProcessFile);
+              if (autostarters != null)
+                autostartProcesses.addAll(autostarters);
+            } catch (Exception e) {
+              logger
+                  .fatal(">>> Error when parsing autostart processes, aborting: "
+                      + e);
+              return false;
+            }
+          }
+
+        } else {
+          // logger.info(">> Found and ignored: " + processInfo[1] + " (" +
+          // processInfo[0] + ")");
+        }
+      }
+
+      if (addAutostartProcesses) {
+        // Add autostart process sources if found
+        logger.info("> Adding autostart processes");
+        for (String autostartProcess : autostartProcesses) {
+          boolean alreadyExists = false;
+          for (String existingProcess : userProcesses) {
+            if (existingProcess.equals(autostartProcess)) {
+              alreadyExists = true;
+              break;
+            }
+          }
+          if (!alreadyExists) {
+            userProcesses.add(autostartProcess);
+            logger.info(">> Added autostart process: " + autostartProcess);
+          }
+        }
+      }
+
+    }
+
+    // Generate Contiki main source file
+    logger.info("> Generating Contiki main source file");
+    if (!ContikiMoteType.tempOutputDirectory.exists())
+      ContikiMoteType.tempOutputDirectory.mkdir();
+    if (!ContikiMoteType.tempOutputDirectory.exists()) {
+      logger.fatal(">> Could not create output directory: "
+          + ContikiMoteType.tempOutputDirectory);
+      return false;
+    }
+
+    try {
+      String generatedFilename = ContikiMoteTypeDialog.generateSourceFile(
+          moteTypeID, sensors, coreInterfaces, userProcesses);
+      // logger.info(">> Generated source file: " + generatedFilename);
+    } catch (Exception e) {
+      logger.fatal(">> Error during file generation, aborting: "
+          + e.getMessage());
+      return false;
+    }
+
+    // Compile library
+    logger.info("> Compiling library");
+    boolean compilationSucceded = ContikiMoteTypeDialog.compileLibrary(
+        moteTypeID, contikiBaseDir, filesToCompile, null);
+    if (!libFile.exists() || !depFile.exists() || !mapFile.exists())
+      compilationSucceded = false;
+
+    if (compilationSucceded) {
+      // logger.info(">> Compilation complete");
+    } else {
+      logger.fatal(">> Error during compilation, aborting");
+      return false;
+    }
+
+    // Create mote type
+    logger.info("> Creating mote type");
+    ContikiMoteType moteType = new ContikiMoteType(moteTypeID);
+    moteType.setDescription("Mote type: " + filename);
+    moteType.setContikiBaseDir(contikiBaseDir.getPath());
+    moteType.setContikiCoreDir(contikiCoreDir.getPath());
+    moteType.setUserPlatformDirs(new Vector<File>());
+    moteType.setConfig(gui.getPlatformConfig());
+    moteType.setProcesses(userProcesses);
+    moteType.setSensors(sensors);
+    moteType.setCoreInterfaces(coreInterfaces);
+    moteType.setMoteInterfaces(moteIntfClasses);
+
+    // Create simulation
+    logger.info("> Creating simulation");
+    Simulation simulation = new Simulation();
+    simulation.setTitle("Quickstarted: " + filename);
+    simulation.setDelayTime(delayTime);
+    simulation.setSimulationTime(0);
+    simulation.setTickTime(1);
+    String radioMediumClassName = null;
+    try {
+      radioMediumClassName = gui.getPlatformConfig().getStringArrayValue(
+          GUI.class, "RADIOMEDIUMS")[0];
+      Class<? extends RadioMedium> radioMediumClass = gui.tryLoadClass(gui,
+          RadioMedium.class, radioMediumClassName);
+      simulation.setRadioMedium(radioMediumClass.newInstance());
+    } catch (Exception e) {
+      logger.fatal(">> Failed to load radio medium, aborting: "
+          + radioMediumClassName + ", " + e);
+      return false;
+    }
+
+    // Create nodes
+    logger.info("> Creating motes");
+    Vector<ContikiMote> motes = new Vector<ContikiMote>();
+    Random random = new Random();
+    int nextMoteID = 1;
+    int nextIP = 0;
+    for (int i = 0; i < numberOfNodes; i++) {
+      ContikiMote mote = (ContikiMote) moteType.generateMote(simulation);
+
+      // Set random position
+      if (mote.getInterfaces().getPosition() != null)
+        mote.getInterfaces().getPosition().setCoordinates(
+            random.nextDouble() * areaSideLength,
+            random.nextDouble() * areaSideLength, 0);
+
+      // Set unique mote ID's
+      if (mote.getInterfaces().getMoteID() != null)
+        mote.getInterfaces().getMoteID().setMoteID(nextMoteID++);
+
+      // Set unique IP address
+      if (mote.getInterfaces().getIPAddress() != null) {
+        mote.getInterfaces().getIPAddress().setIPNumber((char) 10,
+            (char) ((nextIP / (254 * 255)) % 255),
+            (char) ((nextIP / 254) % 255), (char) (nextIP % 254 + 1));
+        nextIP++;
+      }
+
+      motes.add(mote);
+    }
+
+    // Add mote type and motes to simulation
+    logger.info("> Adding motes and mote type to simulation");
+    simulation.addMoteType(moteType);
+    for (Mote mote : motes) {
+      simulation.addMote(mote);
+    }
+
+    // Add simulation to GUI
+    logger.info("> Adding simulation to GUI");
+    gui.setSimulation(simulation);
+
+    // Start plugin and showing GUI
+    logger.info("> Starting plugin and showing GUI");
+    gui.startPlugin(VisState.class);
+    frame.setVisible(true);
+
+    if (simulationStarting) {
+      simulation.startSimulation();
+    }
+    return true;
+  }
+  
   // // PLATFORM CONFIG AND EXTENDABLE PARTS METHODS ////
 
   /**
@@ -1613,7 +2000,7 @@ public class GUI extends JDesktopPane {
 
   /**
    * Load configurations and create a GUI.
-   *
+   * 
    * @param args
    *          null
    */
@@ -1627,13 +2014,100 @@ public class GUI extends JDesktopPane {
       DOMConfigurator.configure(GUI.class.getResource("/" + LOG_CONFIG_FILE));
     }
 
-    // Schedule a job for the event-dispatching thread:
-    // creating and showing this application's GUI.
-    javax.swing.SwingUtilities.invokeLater(new Runnable() {
-      public void run() {
-        createAndShowGUI();
-      }
-    });
-  }
+    // Check if simulator should be quick-started
+    if (args.length > 0 && args[0].startsWith("-quickstart=")) {
+      String filename = args[0].substring("-quickstart=".length());
 
+      String moteTypeID = "mtype1";
+      Vector<String> userPlatforms = null;
+      Vector<String> sensors = null;
+      Vector<String> coreInterfaces = null;
+      Vector<String> userProcesses = null;
+      boolean addAutostartProcesses = true;
+      int numberOfNodes = 100;
+      double areaSideLength = 100;
+      int delayTime = 0;
+      boolean startSimulation = true;
+      String contikiPath = null;
+
+      // Parse quick start arguments
+      for (int i = 1; i < args.length; i++) {
+
+        if (args[i].startsWith("-id=")) {
+          moteTypeID = args[i].substring("-id=".length());
+
+        } else if (args[i].startsWith("-platforms=")) {
+          String arg = args[i].substring("-platforms=".length());
+          String[] argArray = arg.split(",");
+          userPlatforms = new Vector<String>();
+          for (String argValue : argArray)
+            userPlatforms.add(argValue);
+
+        } else if (args[i].startsWith("-sensors=")) {
+          String arg = args[i].substring("-sensors=".length());
+          String[] argArray = arg.split(",");
+          sensors = new Vector<String>();
+          for (String argValue : argArray)
+            sensors.add(argValue);
+
+        } else if (args[i].startsWith("-interfaces=")) {
+          String arg = args[i].substring("-interfaces=".length());
+          String[] argArray = arg.split(",");
+          coreInterfaces = new Vector<String>();
+          for (String argValue : argArray)
+            coreInterfaces.add(argValue);
+
+        } else if (args[i].startsWith("-processes=")) {
+          String arg = args[i].substring("-processes=".length());
+          String[] argArray = arg.split(",");
+          userProcesses = new Vector<String>();
+          for (String argValue : argArray)
+            userProcesses.add(argValue);
+
+        } else if (args[i].equals("-noautostartscan")) {
+          addAutostartProcesses = false;
+
+        } else if (args[i].equals("-paused")) {
+          startSimulation = false;
+
+        } else if (args[i].startsWith("-nodes=")) {
+          String arg = args[i].substring("-nodes=".length());
+          numberOfNodes = Integer.parseInt(arg);
+
+        } else if (args[i].startsWith("-contiki=")) {
+          String arg = args[i].substring("-contiki=".length());
+          contikiPath = arg;
+
+        } else if (args[i].startsWith("-delay=")) {
+          String arg = args[i].substring("-delay=".length());
+          delayTime = Integer.parseInt(arg);
+
+        } else if (args[i].startsWith("-side=")) {
+          String arg = args[i].substring("-side=".length());
+          areaSideLength = Double.parseDouble(arg);
+
+        } else {
+          logger.fatal("Unknown argument, aborting: " + args[i]);
+          System.exit(1);
+        }
+      }
+
+      boolean ok = quickStartSimulation(moteTypeID, userPlatforms, sensors,
+          coreInterfaces, userProcesses, addAutostartProcesses, numberOfNodes,
+          areaSideLength, delayTime, startSimulation, filename, contikiPath);
+      if (!ok)
+        System.exit(1);
+
+    } else {
+
+      // Regular start-up
+      javax.swing.SwingUtilities.invokeLater(new Runnable() {
+        public void run() {
+          createAndShowGUI();
+        }
+      });
+
+    }
+  }
+    
 }
