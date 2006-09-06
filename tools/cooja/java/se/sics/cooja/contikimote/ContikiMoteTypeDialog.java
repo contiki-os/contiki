@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ContikiMoteTypeDialog.java,v 1.7 2006/09/05 14:57:57 fros4943 Exp $
+ * $Id: ContikiMoteTypeDialog.java,v 1.8 2006/09/06 10:32:31 fros4943 Exp $
  */
 
 package se.sics.cooja.contikimote;
@@ -1826,26 +1826,6 @@ public class ContikiMoteTypeDialog extends JDialog {
     myDialog.myEventHandler.actionPerformed(new ActionEvent(
         myDialog.createButton, ActionEvent.ACTION_PERFORMED,
         "recheck_interface_dependencies"));
-
-    // Check if COOJA was started with a recommended process (select process)
-    if (System.getProperty("QUICKSTART_APP") != null) {
-
-      // Pre-select recommended process
-      String wantedSourceFilename = System.getProperty("QUICKSTART_APP");
-
-      for (Component checkBox : myDialog.processPanel.getComponents()) {
-        JCheckBox processCheckBox = (JCheckBox) checkBox;
-        String processFilename = processCheckBox.getToolTipText();
-
-        if (processFilename.startsWith(wantedSourceFilename)) {
-          // We found the recommended process, select it
-          processCheckBox.setSelected(true);
-          myDialog.autoSelectDependencyProcesses(processCheckBox.getText(),
-              processFilename, false);
-          break;
-        }
-      }
-    }
 
     settingsOK = true;
     testButton.setEnabled(settingsOK);
