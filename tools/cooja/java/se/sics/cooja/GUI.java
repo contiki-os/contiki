@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: GUI.java,v 1.5 2006/09/06 10:05:22 fros4943 Exp $
+ * $Id: GUI.java,v 1.6 2006/09/06 10:23:24 fros4943 Exp $
  */
 
 package se.sics.cooja;
@@ -180,46 +180,6 @@ public class GUI extends JDesktopPane {
     // Load default and overwrite with user settings (if any)
     loadExternalToolsDefaultSettings();
     loadExternalToolsUserSettings();
-
-    // If simulator was quick-started (via make), double-check that the
-    // contiki-paths are equal
-    if (System.getProperty("PATH_CONTIKI") != null) {
-      String makefilePath = null;
-      String userSettingsPath = null;
-      try {
-        makefilePath = new File(System.getProperty("PATH_CONTIKI"))
-            .getCanonicalPath();
-        userSettingsPath = new File(getExternalToolsSetting("PATH_CONTIKI"))
-            .getCanonicalPath();
-      } catch (Exception e) {
-      }
-
-      if (makefilePath == null || userSettingsPath == null
-          || !makefilePath.equals(userSettingsPath)) {
-        // Show dialog asking user which path to use
-        Object[] options = {"Use new temporarily", "Keep old (unsafe)"};
-        String question = "COOJA has detected a possible error in your current Contiki 2.x path!\n"
-            + "Maybe COOJA was started via a make script which defined a newer path.\n"
-            + "Old user settings: "
-            + getExternalToolsSetting("PATH_CONTIKI")
-            + "\n"
-            + "New makefile path: "
-            + System.getProperty("PATH_CONTIKI")
-            + "\n";
-
-        String title = "Possible error in Contiki 2.x path";
-
-        int answer = JOptionPane.showOptionDialog(this, question, title,
-            JOptionPane.DEFAULT_OPTION, JOptionPane.QUESTION_MESSAGE, null,
-            options, options[0]);
-
-        if (answer == JOptionPane.YES_OPTION) {
-          setExternalToolsSetting("PATH_CONTIKI", System
-              .getProperty("PATH_CONTIKI"));
-          logger.info("New Contiki path settings are not saved");
-        }
-      }
-    }
 
     // Load extendable parts (using current platform config)
     reparsePlatformConfig();
