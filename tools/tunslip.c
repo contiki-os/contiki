@@ -28,7 +28,7 @@
  *
  * This file is part of the uIP TCP/IP stack.
  *
- * $Id: tunslip.c,v 1.1 2006/08/02 14:40:47 bg- Exp $
+ * $Id: tunslip.c,v 1.2 2006/09/07 15:48:47 bg- Exp $
  *
  */
 
@@ -689,6 +689,15 @@ stty_telos(int fd)
   if(tcflush(fd, TCIOFLUSH) == -1) err(1, "tcflush");
 }
 
+int
+devopen(const char *dev, int flags)
+{
+  char t[32];
+  strcpy(t, "/dev/");
+  strcat(t, dev);
+  return open(t, flags);
+}
+
 #ifdef linux
 #include <linux/if.h>
 #include <linux/if_tun.h>
@@ -724,10 +733,7 @@ tun_alloc(char *dev)
 int
 tun_alloc(char *dev)
 {
-  char t[32];
-  strcpy(t, "/dev/");
-  strcat(t, dev);
-  return open(t, O_RDWR);
+  return devopen(dev, O_RDWR);
 }
 #endif
 
@@ -772,14 +778,46 @@ ifconf(const char *tundev, const char *ipaddr, const char *netmask)
 int
 main(int argc, char **argv)
 {
+  int c;
   int tunfd, slipfd, maxfd;
   int ret;
   fd_set rset, wset;
   FILE *inslip;
-  const char *siodev;
+  const char *siodev = NULL;
+  const char *dhcp_server = NULL;
   u_int16_t myport = BOOTPS, dhport = BOOTPS;
   
   ip_id = getpid() * time(NULL);
+
+  while ((c = getopt(argc, argv, "D:hs:t:")) != -1) {
+    switch (c) {
+    case 'D':
+      dhcp_server = optarg;
+      break;
+
+    case 's':
+      if (strncmp("/dev/", optarg, 5) == 0)
+	siodev = optarg + 5;
+      else
+	siodev = optarg;
+      break;
+
+    case 't':
+      if (strncmp("/dev/", optarg, 5) == 0)
+	strcpy(tundev, optarg + 5);
+      else
+	strcpy(tundev, optarg);
+      break;
+
+    case '?':
+    case 'h':
+    default:
+      err(1, "usage: tunslip [-s siodev] [-t tundev] [-d dhcp-server] ipaddress netmask [dhcp-server]");
+      break;
+    }
+  }
+  argc -= (optind - 1);
+  argv += (optind - 1);
 
   if (argc != 3 && argc != 4)
     err(1, "usage: tunslip ipaddress netmask [dhcp-server]");
@@ -793,16 +831,19 @@ main(int argc, char **argv)
    * agent.
    */
   if (argc == 4) {
+    dhcp_server = optarg;
+  }
+  if (dhcp_server != NULL) {
     struct sockaddr_in myaddr;
     socklen_t len;
     in_addr_t a;
 
-    if (strchr(argv[3], ':') != NULL) {
-      dhport = atoi(strchr(argv[3], ':') + 1);
+    if (strchr(dhcp_server, ':') != NULL) {
+      dhport = atoi(strchr(dhcp_server, ':') + 1);
       myport = dhport + 1;
-      *strchr(argv[3], ':') = '\0';
+      *strchr(dhcp_server, ':') = '\0';
     }
-    a = inet_addr(argv[3]);
+    a = inet_addr(dhcp_server);
     if (a == -1)
       err(1, "illegal dhcp-server address");
 #ifndef linux
@@ -846,23 +887,26 @@ main(int argc, char **argv)
     myaddr.sin_port = htons(myport);
     if (bind(dhsock, (struct sockaddr *)&myaddr, sizeof(myaddr)) < 0)
       err(1, "bind dhcp-relay");
-    fprintf(stderr, "DHCP server at %s:%d\n", argv[3], dhport);
+    fprintf(stderr, "DHCP server at %s:%d\n", dhcp_server, dhport);
   }
 
-  {
+  if (siodev != NULL) {
+      slipfd = devopen(siodev, O_RDWR | O_NONBLOCK);
+      if (slipfd == -1) err(1, "can't open siodev ``/dev/%s''", siodev);
+  } else {
     static const char *siodevs[] = {
-      "/dev/ttyUSB0", "/dev/ucom0", "/dev/cuaU0"
+      "ttyUSB0", "ucom0", "cuaU0"
     };
     int i;
     for(i = 0; i < 3; i++) {
       siodev = siodevs[i];
-      slipfd = open(siodev, O_RDWR | O_NONBLOCK);
+      slipfd = devopen(siodev, O_RDWR | O_NONBLOCK);
       if (slipfd != -1)
 	break;
     }
-    if (slipfd == -1) err(1, "can't open slipdev");
+    if (slipfd == -1) err(1, "can't open siodev");
   }
-  fprintf(stderr, "slip started on ``%s''\n", siodev);
+  fprintf(stderr, "slip started on ``/dev/%s''\n", siodev);
   stty_telos(slipfd);
   slip_send(slipfd, SLIP_END);
   inslip = fdopen(slipfd, "r");
