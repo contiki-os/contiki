@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ContikiMoteTypeDialog.java,v 1.10 2006/09/07 11:03:37 fros4943 Exp $
+ * $Id: ContikiMoteTypeDialog.java,v 1.11 2006/09/07 11:59:50 fros4943 Exp $
  */
 
 package se.sics.cooja.contikimote;
@@ -950,7 +950,9 @@ public class ContikiMoteTypeDialog extends JDialog {
         }
 
         compilationSucceded = ContikiMoteTypeDialog.compileLibrary(identifier,
-            contikiDir, filesToCompile, taskOutput);
+            contikiDir, filesToCompile, 
+            taskOutput.getInputStream(MessageList.NORMAL),
+            taskOutput.getInputStream(MessageList.ERROR));
       }
     }, "compilation thread");
     compilationThread.start();
@@ -1156,12 +1158,15 @@ public class ContikiMoteTypeDialog extends JDialog {
    *          Contiki base directory
    * @param sourceFiles
    *          Source files and directories to include in compilation
-   * @param appender
-   *          Component to append process output to (optional)
+   * @param outputStream
+   *          Output stream from compilation (optional)
+   * @param errorStream
+   *          Error stream from compilation (optional)
    * @return True if compilation succeded, false otherwise
    */
   public static boolean compileLibrary(String identifier, File contikiDir,
-      Vector<File> sourceFiles, final MessageList appender) {
+      Vector<File> sourceFiles, final PrintStream outputStream,
+      final PrintStream errorStream) {
 
     File libFile = new File(ContikiMoteType.tempOutputDirectory,
         identifier + ContikiMoteType.librarySuffix);
@@ -1172,43 +1177,43 @@ public class ContikiMoteTypeDialog extends JDialog {
 
     // Recheck that contiki path exists
     if (!contikiDir.exists()) {
-      if (appender != null)
-        appender.addMessage("Bad Contiki OS path", MessageList.ERROR);
+      if (errorStream != null)
+        errorStream.println("Bad Contiki OS path");
       logger.fatal("Contiki path does not exist");
       return false;
     }
     if (!contikiDir.isDirectory()) {
-      if (appender != null)
-        appender.addMessage("Bad Contiki OS path", MessageList.ERROR);
+      if (errorStream != null)
+        errorStream.println("Bad Contiki OS path");
       logger.fatal("Contiki path is not a directory");
       return false;
     }
 
     if (libFile.exists()) {
-      if (appender != null)
-        appender.addMessage("Bad output filenames", MessageList.ERROR);
+      if (errorStream != null)
+        errorStream.println("Bad output filenames");
       logger.fatal("Could not overwrite already existing library");
       return false;
     }
 
     if (CoreComm.hasLibraryFileBeenLoaded(libFile)) {
-      if (appender != null)
-        appender.addMessage("Bad output filenames", MessageList.ERROR);
+      if (errorStream != null)
+        errorStream.println("Bad output filenames");
       logger
           .fatal("A library has already been loaded with the same name before");
       return false;
     }
 
     if (depFile.exists()) {
-      if (appender != null)
-        appender.addMessage("Bad output filenames", MessageList.ERROR);
+      if (errorStream != null)
+        errorStream.println("Bad output filenames");
       logger.fatal("Could not overwrite already existing dependency file");
       return false;
     }
 
     if (mapFile.exists()) {
-      if (appender != null)
-        appender.addMessage("Bad output filenames", MessageList.ERROR);
+      if (errorStream != null)
+        errorStream.println("Bad output filenames");
       logger.fatal("Could not overwrite already existing map file");
       return false;
     }
@@ -1274,9 +1279,8 @@ public class ContikiMoteTypeDialog extends JDialog {
           String readLine;
           try {
             while ((readLine = input.readLine()) != null) {
-              if (appender != null && readLine != null) {
-                appender.addMessage(readLine);
-              }
+              if (outputStream != null && readLine != null)
+                outputStream.println(readLine);
             }
           } catch (IOException e) {
             logger.warn("Error while reading from process");
@@ -1289,9 +1293,8 @@ public class ContikiMoteTypeDialog extends JDialog {
           String readLine;
           try {
             while ((readLine = err.readLine()) != null) {
-              if (appender != null && readLine != null) {
-                appender.addMessage(readLine, MessageList.ERROR);
-              }
+              if (errorStream != null && readLine != null)
+                errorStream.println(readLine);
             }
           } catch (IOException e) {
             logger.warn("Error while reading from process");
