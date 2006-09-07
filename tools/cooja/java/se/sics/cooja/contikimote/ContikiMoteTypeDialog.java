@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ContikiMoteTypeDialog.java,v 1.9 2006/09/06 12:26:33 fros4943 Exp $
+ * $Id: ContikiMoteTypeDialog.java,v 1.10 2006/09/07 11:03:37 fros4943 Exp $
  */
 
 package se.sics.cooja.contikimote;
@@ -1172,37 +1172,43 @@ public class ContikiMoteTypeDialog extends JDialog {
 
     // Recheck that contiki path exists
     if (!contikiDir.exists()) {
-      appender.addMessage("Bad Contiki OS path", MessageList.ERROR);
+      if (appender != null)
+        appender.addMessage("Bad Contiki OS path", MessageList.ERROR);
       logger.fatal("Contiki path does not exist");
       return false;
     }
     if (!contikiDir.isDirectory()) {
-      appender.addMessage("Bad Contiki OS path", MessageList.ERROR);
+      if (appender != null)
+        appender.addMessage("Bad Contiki OS path", MessageList.ERROR);
       logger.fatal("Contiki path is not a directory");
       return false;
     }
 
     if (libFile.exists()) {
-      appender.addMessage("Bad output filenames", MessageList.ERROR);
+      if (appender != null)
+        appender.addMessage("Bad output filenames", MessageList.ERROR);
       logger.fatal("Could not overwrite already existing library");
       return false;
     }
 
     if (CoreComm.hasLibraryFileBeenLoaded(libFile)) {
-      appender.addMessage("Bad output filenames", MessageList.ERROR);
+      if (appender != null)
+        appender.addMessage("Bad output filenames", MessageList.ERROR);
       logger
           .fatal("A library has already been loaded with the same name before");
       return false;
     }
 
     if (depFile.exists()) {
-      appender.addMessage("Bad output filenames", MessageList.ERROR);
+      if (appender != null)
+        appender.addMessage("Bad output filenames", MessageList.ERROR);
       logger.fatal("Could not overwrite already existing dependency file");
       return false;
     }
 
     if (mapFile.exists()) {
-      appender.addMessage("Bad output filenames", MessageList.ERROR);
+      if (appender != null)
+        appender.addMessage("Bad output filenames", MessageList.ERROR);
       logger.fatal("Could not overwrite already existing map file");
       return false;
     }
