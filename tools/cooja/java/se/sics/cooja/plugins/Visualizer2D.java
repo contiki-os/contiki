@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: Visualizer2D.java,v 1.1 2006/08/21 12:13:08 fros4943 Exp $
+ * $Id: Visualizer2D.java,v 1.2 2006/09/07 09:54:37 fros4943 Exp $
  */
 
 package se.sics.cooja.plugins;
@@ -76,6 +76,7 @@ public abstract class Visualizer2D extends VisPlugin {
 
   private boolean moteIsBeingMoved = false;
   private Mote moteToMove = null;
+  private Cursor moveCursor = new Cursor(Cursor.MOVE_CURSOR);
 
   private Observer simObserver = null; // Watches simulation changes
   private Observer posObserver = null; // Watches position changes
@@ -289,6 +290,7 @@ public abstract class Visualizer2D extends VisPlugin {
   private void beginMoveRequest(Mote moteToMove) {
     moteIsBeingMoved = true;
     this.moteToMove = moteToMove;
+    canvas.repaint();
   }
 
   private void handleMoveRequest(final int x, final int y,
@@ -298,29 +300,28 @@ public abstract class Visualizer2D extends VisPlugin {
     }
 
     if (!wasJustReleased) {
-      visualizeSimulation(canvas.getGraphics());
-      canvas.paintImmediately(x - 40, y - 40, 80, 80);
-      canvas.getGraphics().setColor(Color.GRAY);
-      canvas.getGraphics().drawOval(x - MOTE_RADIUS, y - MOTE_RADIUS,
-          2 * MOTE_RADIUS, 2 * MOTE_RADIUS);
+      // Still moving mote
+      canvas.setCursor(moveCursor);
+      return;
     }
 
-    if (wasJustReleased) {
-      moteIsBeingMoved = false;
-
-      Position newXYValues = transformPixelToPositon(new Point(x, y));
-      int returnValue = JOptionPane.showConfirmDialog(myPlugin, "Mote mote to"
-          + "\nX=" + newXYValues.getXCoordinate() + "\nY="
-          + newXYValues.getYCoordinate() + "\nZ="
-          + moteToMove.getInterfaces().getPosition().getZCoordinate());
-
-      if (returnValue == JOptionPane.OK_OPTION) {
-        moteToMove.getInterfaces().getPosition().setCoordinates(
-            newXYValues.getXCoordinate(), newXYValues.getYCoordinate(),
-            moteToMove.getInterfaces().getPosition().getZCoordinate());
-        repaint();
-      }
+    // Stopped moving mote
+    canvas.setCursor(Cursor.getDefaultCursor());
+    moteIsBeingMoved = false;
+    
+    Position newXYValues = transformPixelToPositon(new Point(x, y));
+    int returnValue = JOptionPane.showConfirmDialog(myPlugin, "Mote mote to"
+        + "\nX=" + newXYValues.getXCoordinate() + "\nY="
+        + newXYValues.getYCoordinate() + "\nZ="
+        + moteToMove.getInterfaces().getPosition().getZCoordinate());
+    
+    if (returnValue == JOptionPane.OK_OPTION) {
+      moteToMove.getInterfaces().getPosition().setCoordinates(
+          newXYValues.getXCoordinate(), newXYValues.getYCoordinate(),
+          moteToMove.getInterfaces().getPosition().getZCoordinate());
     }
+    moteToMove = null;
+    repaint();
 
   }
 
@@ -390,22 +391,26 @@ public abstract class Visualizer2D extends VisPlugin {
       int x = pixelCoord.x;
       int y = pixelCoord.y;
 
-      if (moteColors.length >= 1) {
+      if (mote == moteToMove) {
+        // Don't fill mote
+      } else if (moteColors.length >= 2) {
         g.setColor(moteColors[0]);
         g.fillOval(x - MOTE_RADIUS, y - MOTE_RADIUS, 2 * MOTE_RADIUS,
             2 * MOTE_RADIUS);
-      }
 
-      if (moteColors.length >= 2) {
         g.setColor(moteColors[1]);
         g.fillOval(x - MOTE_RADIUS / 2, y - MOTE_RADIUS / 2, MOTE_RADIUS,
             MOTE_RADIUS);
-      }
+
+      } else if (moteColors.length >= 1) {
+        g.setColor(moteColors[0]);
+        g.fillOval(x - MOTE_RADIUS, y - MOTE_RADIUS, 2 * MOTE_RADIUS,
+            2 * MOTE_RADIUS);
+      } 
 
       g.setColor(Color.BLACK);
       g.drawOval(x - MOTE_RADIUS, y - MOTE_RADIUS, 2 * MOTE_RADIUS,
           2 * MOTE_RADIUS);
-
     }
   }
 
