@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: GUI.java,v 1.7 2006/09/06 12:26:33 fros4943 Exp $
+ * $Id: GUI.java,v 1.8 2006/09/07 12:01:35 fros4943 Exp $
  */
 
 package se.sics.cooja;
@@ -662,7 +662,7 @@ public class GUI extends JDesktopPane {
     // Compile library
     logger.info("> Compiling library");
     boolean compilationSucceded = ContikiMoteTypeDialog.compileLibrary(
-        moteTypeID, contikiBaseDir, filesToCompile, null);
+        moteTypeID, contikiBaseDir, filesToCompile, null, System.err);
     if (!libFile.exists() || !depFile.exists() || !mapFile.exists())
       compilationSucceded = false;
 
