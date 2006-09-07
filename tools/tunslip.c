@@ -28,7 +28,7 @@
  *
  * This file is part of the uIP TCP/IP stack.
  *
- * $Id: tunslip.c,v 1.2 2006/09/07 15:48:47 bg- Exp $
+ * $Id: tunslip.c,v 1.3 2006/09/07 17:05:21 bg- Exp $
  *
  */
 
@@ -831,7 +831,7 @@ main(int argc, char **argv)
    * agent.
    */
   if (argc == 4) {
-    dhcp_server = optarg;
+    dhcp_server = argv[3];
   }
   if (dhcp_server != NULL) {
     struct sockaddr_in myaddr;
