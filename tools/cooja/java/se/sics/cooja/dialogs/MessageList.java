@@ -26,18 +26,25 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: MessageList.java,v 1.1 2006/08/21 12:13:01 fros4943 Exp $
+ * $Id: MessageList.java,v 1.2 2006/09/07 11:54:15 fros4943 Exp $
  *
  * -----------------------------------------------------------------
  *
  * Author  : Adam Dunkels, Joakim Eriksson, Niclas Finne, Fredrik Osterlind
  * Created : 2006-06-14
- * Updated : $Date: 2006/08/21 12:13:01 $
- *           $Revision: 1.1 $
+ * Updated : $Date: 2006/09/07 11:54:15 $
+ *           $Revision: 1.2 $
  */
 package se.sics.cooja.dialogs;
 import java.awt.Color;
 import java.awt.Component;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.PipedInputStream;
+import java.io.PipedOutputStream;
+import java.io.PrintStream;
+
 import javax.swing.DefaultListCellRenderer;
 import javax.swing.DefaultListModel;
 import javax.swing.JList;
@@ -84,6 +91,34 @@ public class MessageList extends JList {
       backgrounds[type - 1] = color;
     } else if (type == NORMAL) {
       setBackground(color);
+    }
+  }
+
+  public PrintStream getInputStream(final int type) {
+    try {
+      PipedInputStream input = new PipedInputStream();
+      PipedOutputStream output = new PipedOutputStream(input);
+      final BufferedReader stringInput = new BufferedReader(new InputStreamReader(input));
+      
+      Thread readThread = new Thread(new Runnable() {
+        public void run() {
+          String readLine;
+          try {
+            while ((readLine = stringInput.readLine()) != null) {
+              addMessage(readLine, type);
+            }
+          } catch (IOException e) {
+            // Occurs when write end closes pipe - die quietly
+          }
+        }
+        
+      });
+      readThread.start();
+      
+      return new PrintStream(output);
+    } catch (Exception e) {
+      System.out.println("Exception: "+ e);
+      return null;
     }
   }
 
