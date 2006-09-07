@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: dhcpc.h,v 1.2 2006/08/09 16:13:39 bg- Exp $
+ * @(#)$Id: dhcpc.h,v 1.3 2006/09/07 15:57:59 bg- Exp $
  */
 #ifndef __DHCPC_H__
 #define __DHCPC_H__
@@ -38,7 +38,7 @@ struct dhcpc_state {
   char state;
   struct uip_udp_conn *conn;
   struct etimer etimer;
-  u16_t ticks;
+  clock_time_t ticks;
   const void *mac_addr;
   int mac_len;
   
