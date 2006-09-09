@@ -30,7 +30,7 @@
  * 
  * Author: Oliver Schmidt <ol.sc@web.de>
  *
- * $Id: ctk-console.c,v 1.3 2006/08/21 22:27:10 oliverschmidt Exp $
+ * $Id: ctk-console.c,v 1.4 2006/09/09 23:20:39 oliverschmidt Exp $
  */
 
 #define WIN32_LEAN_AND_MEAN
@@ -67,13 +67,6 @@ static unsigned short ypos;
 static unsigned char  button;
 
 /*-----------------------------------------------------------------------------------*/
-static BOOL WINAPI
-consolehandler(DWORD event)
-{
-  console_exit();
-  exit(EXIT_SUCCESS);
-}
-/*-----------------------------------------------------------------------------------*/
 void
 console_init(void)
 {
@@ -100,7 +93,7 @@ console_init(void)
   GetConsoleCursorInfo(stdouthandle, &saved_cursorinfo);
   SetConsoleCursorInfo(stdouthandle, &cursorinfo);
 
-  SetConsoleCtrlHandler(consolehandler, TRUE);
+  atexit(console_exit);
 
   memset(blank, ' ',  sizeof(blank));
   memset(hline, 0xC4, sizeof(hline));
