@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: process.h,v 1.3 2006/08/26 23:59:39 oliverschmidt Exp $
+ * @(#)$Id: process.h,v 1.4 2006/09/09 23:25:07 oliverschmidt Exp $
  */
 
 /**
@@ -482,7 +482,7 @@ process_event_t process_alloc_event(void);
  *
  * \param p A pointer to the process' process structure.
  */
-void process_poll(struct process *p);
+CCIF void process_poll(struct process *p);
 
 /** @} */
 

@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: service.h,v 1.1 2006/06/17 22:41:20 adamdunkels Exp $
+ * @(#)$Id: service.h,v 1.2 2006/09/09 23:25:07 oliverschmidt Exp $
  */
 
 /** \addtogroup sys
@@ -186,8 +186,8 @@ struct service {
  */
 #define SERVICE_FIND(service_name) service_find(service_name##_name)
 
-void service_register(struct service *s);
-void service_remove(struct service *s);
+CCIF void service_register(struct service *s);
+CCIF void service_remove(struct service *s);
 struct service *service_find(const char *name);
 
 #endif /* __SERVICE_H__ */

@@ -60,7 +60,7 @@
  *
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: tcpip.h,v 1.4 2006/08/26 23:58:45 oliverschmidt Exp $
+ * $Id: tcpip.h,v 1.5 2006/09/09 23:24:39 oliverschmidt Exp $
  */
 #ifndef __TCPIP_H__
 #define __TCPIP_H__
@@ -294,7 +294,7 @@ CCIF extern process_event_t tcpip_event;
  *             and the length of the packet must be in the global
  *             uip_len variable.
  */
-void tcpip_input(void);
+CCIF void tcpip_input(void);
 
 void tcpip_output(void);
 void tcpip_set_forwarding(unsigned char f);

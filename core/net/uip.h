@@ -46,7 +46,7 @@
  *
  * This file is part of the uIP TCP/IP stack.
  *
- * $Id: uip.h,v 1.4 2006/08/26 23:58:45 oliverschmidt Exp $
+ * $Id: uip.h,v 1.5 2006/09/09 23:24:39 oliverschmidt Exp $
  *
  */
 
@@ -432,7 +432,7 @@ void uip_setipid(u16_t id);
  }
  \endcode
  */
-extern u8_t uip_buf[UIP_BUFSIZE+2];
+CCIF extern u8_t uip_buf[UIP_BUFSIZE+2];
 
 /** @} */
 
