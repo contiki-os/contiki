@@ -122,6 +122,13 @@ PROCESS_THREAD(example_packet_service_process, ev, data)
   SERVICE_REGISTER(example_packet_service);
 
   /*
+   * Now we'll make sure that the poll handler is executed
+   * initially. We do this by calling process_poll() with this
+   * process as its argument.
+   */
+  process_poll(&example_packet_service_process);
+
+  /*
    * And we wait for either the process to exit, or for the service to
    * be removed (by someone else).
    */
