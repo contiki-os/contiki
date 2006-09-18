@@ -29,7 +29,7 @@
  *
  * This file is part of the Contiki desktop environment
  *
- * $Id: netconf.c,v 1.3 2006/08/26 23:20:44 oliverschmidt Exp $
+ * $Id: netconf.c,v 1.4 2006/09/18 22:48:05 oliverschmidt Exp $
  *
  */
 
@@ -40,7 +40,6 @@
 /* TCP/IP configuration window. */
 static struct ctk_window tcpipwindow;
 
-#ifdef WITH_ETHERNET
 static struct ctk_label ipaddrlabel =
   {CTK_LABEL(0, 1, 10, 1, "IP address")};
 static char ipaddr[17];
@@ -61,19 +60,6 @@ static struct ctk_label dnsserverlabel =
 static char dnsserver[17];
 static struct ctk_textentry dnsservertextentry =
   {CTK_TEXTENTRY(11, 7, 16, 1, dnsserver, 16)};
-#else /* WITH_ETHERNET */
-static struct ctk_label ipaddrlabel =
-  {CTK_LABEL(0, 2, 10, 1, "IP address")};
-static char ipaddr[17];
-static struct ctk_textentry ipaddrtextentry =
-  {CTK_TEXTENTRY(11, 2, 16, 1, ipaddr, 16)};
-static struct ctk_label dnsserverlabel =
-  {CTK_LABEL(0, 4, 10, 1, "DNS server")};
-static char dnsserver[17];
-static struct ctk_textentry dnsservertextentry =
-  {CTK_TEXTENTRY(11, 4, 16, 1, dnsserver, 16)};
-#endif /* WITH_ETHERNET */
-
 static struct ctk_button tcpipclosebutton =
   {CTK_BUTTON(0, 9, 2, "Ok")};
 
@@ -117,13 +103,11 @@ makestrings(void)
   uip_gethostaddr((uip_ipaddr_t *)addr);
   makeaddr(addr, ipaddr);
   
-#ifdef WITH_ETHERNET  
-  uip_getnetmask(addr);
+  uip_getnetmask((uip_ipaddr_t *)addr);
   makeaddr(addr, netmask);
   
-  uip_getdraddr(addr);
+  uip_getdraddr((uip_ipaddr_t *)addr);
   makeaddr(addr, gateway);
-#endif /* WITH_ETHERNET */
 
   addrptr = resolv_getserver();
   if(addrptr != NULL) {
@@ -150,17 +134,15 @@ apply_tcpipconfig(void)
     uip_sethostaddr((uip_ipaddr_t *)addr);
   }
   
-#ifdef WITH_ETHERNET
   nullterminate(netmask);
   if(uiplib_ipaddrconv(netmask, (unsigned char *)addr)) {
-    uip_setnetmask(addr);
+    uip_setnetmask((uip_ipaddr_t *)addr);
   }
 
   nullterminate(gateway);
   if(uiplib_ipaddrconv(gateway, (unsigned char *)addr)) {
-    uip_setdraddr(addr);
+    uip_setdraddr((uip_ipaddr_t *)addr);
   }
-#endif /* WITH_ETHERNET */
   
   nullterminate(dnsserver);
   if(uiplib_ipaddrconv(dnsserver, (unsigned char *)addr)) {
@@ -180,19 +162,9 @@ PROCESS_THREAD(netconf_process, ev, data)
 
   PROCESS_BEGIN();
   
-  
   /* Create TCP/IP configuration window. */
   ctk_window_new(&tcpipwindow, 30, 10, "TCP/IP config");
-  /*    if(ctk_desktop_width(tcpipwindow.desktop) < 30) {
-	ctk_window_move(&tcpipwindow, 0,
-	(ctk_desktop_height(tcpipwindow.desktop) - 10) / 2 - 2);
-	} else {
-	ctk_window_move(&tcpipwindow,
-	(ctk_desktop_width(tcpipwindow.desktop) - 30) / 2,
-	(ctk_desktop_height(tcpipwindow.desktop) - 10) / 2 - 2);
-	}*/
   
-#ifdef WITH_ETHERNET
   CTK_WIDGET_ADD(&tcpipwindow, &ipaddrlabel);  
   CTK_WIDGET_ADD(&tcpipwindow, &ipaddrtextentry);
   CTK_WIDGET_ADD(&tcpipwindow, &netmasklabel);
@@ -200,16 +172,9 @@ PROCESS_THREAD(netconf_process, ev, data)
   CTK_WIDGET_ADD(&tcpipwindow, &gatewaylabel);
   CTK_WIDGET_ADD(&tcpipwindow, &gatewaytextentry);
   CTK_WIDGET_ADD(&tcpipwindow, &dnsserverlabel);
-  CTK_WIDGET_ADD(&tcpipwindow, &dnsservertextentry);
-#else
-  CTK_WIDGET_ADD(&tcpipwindow, &ipaddrlabel);  
-  CTK_WIDGET_ADD(&tcpipwindow, &ipaddrtextentry);
-  CTK_WIDGET_ADD(&tcpipwindow, &dnsserverlabel);
   CTK_WIDGET_ADD(&tcpipwindow, &dnsservertextentry);  
-#endif /* WITH_ETHERNET */
-  
   CTK_WIDGET_ADD(&tcpipwindow, &tcpipclosebutton);
-  
+
   CTK_WIDGET_FOCUS(&tcpipwindow, &ipaddrtextentry);  
   
   /* Fill the configuration strings with values from the current
@@ -226,7 +191,6 @@ PROCESS_THREAD(netconf_process, ev, data)
 	apply_tcpipconfig();
 	ctk_window_close(&tcpipwindow);
 	netconf_quit();
-	/*      ctk_desktop_redraw(tcpipwindow.desktop);*/
       }
     } else if(ev == ctk_signal_window_close ||
 	      ev == PROCESS_EVENT_EXIT) {
