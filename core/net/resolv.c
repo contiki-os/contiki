@@ -57,7 +57,7 @@
  *
  * This file is part of the uIP TCP/IP stack.
  *
- * $Id: resolv.c,v 1.3 2006/08/14 23:37:21 oliverschmidt Exp $
+ * $Id: resolv.c,v 1.4 2006/09/18 23:30:40 oliverschmidt Exp $
  *
  */
 
@@ -453,13 +453,13 @@ resolv_lookup(char *name)
  * been configured.
  */
 /*-----------------------------------------------------------------------------------*/
-u16_t *
+uip_ipaddr_t *
 resolv_getserver(void)
 {
   if(resolv_conn == NULL) {
     return NULL;
   }
-  return resolv_conn->ripaddr.u16;
+  return &resolv_conn->ripaddr;
 }
 /*-----------------------------------------------------------------------------------*/
 /**
@@ -470,11 +470,11 @@ resolv_getserver(void)
  */
 /*-----------------------------------------------------------------------------------*/
 void
-resolv_conf(u16_t *dnsserver)
+resolv_conf(const uip_ipaddr_t *dnsserver)
 {
-  static u16_t server[2];
-  uip_ipaddr_copy(server, dnsserver);
-  process_post(&resolv_process, EVENT_NEW_SERVER, server);
+  static uip_ipaddr_t server;
+  uip_ipaddr_copy(&server, dnsserver);
+  process_post(&resolv_process, EVENT_NEW_SERVER, &server);
   
   /*  if(resolv_conn != NULL) {
     uip_udp_remove(resolv_conn);

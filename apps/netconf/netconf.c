@@ -29,7 +29,7 @@
  *
  * This file is part of the Contiki desktop environment
  *
- * $Id: netconf.c,v 1.4 2006/09/18 22:48:05 oliverschmidt Exp $
+ * $Id: netconf.c,v 1.5 2006/09/18 23:27:42 oliverschmidt Exp $
  *
  */
 
@@ -83,31 +83,31 @@ makebyte(u8_t byte, char *str)
 }
 /*-----------------------------------------------------------------------------------*/
 static void
-makeaddr(u16_t *addr, char *str)
+makeaddr(uip_ipaddr_t *addr, char *str)
 {
-  str = makebyte(HTONS(addr[0]) >> 8, str);
+  str = makebyte(addr->u8[0], str);
   *str++ = '.';
-  str = makebyte(HTONS(addr[0]) & 0xff, str);
+  str = makebyte(addr->u8[1], str);
   *str++ = '.';
-  str = makebyte(HTONS(addr[1]) >> 8, str);
+  str = makebyte(addr->u8[2], str);
   *str++ = '.';
-  str = makebyte(HTONS(addr[1]) & 0xff, str);
+  str = makebyte(addr->u8[3], str);
   *str++ = 0;
 }
 /*-----------------------------------------------------------------------------------*/
 static void
 makestrings(void)
 {
-  u16_t addr[2], *addrptr;
+  uip_ipaddr_t addr, *addrptr;
 
-  uip_gethostaddr((uip_ipaddr_t *)addr);
-  makeaddr(addr, ipaddr);
+  uip_gethostaddr(&addr);
+  makeaddr(&addr, ipaddr);
   
-  uip_getnetmask((uip_ipaddr_t *)addr);
-  makeaddr(addr, netmask);
+  uip_getnetmask(&addr);
+  makeaddr(&addr, netmask);
   
-  uip_getdraddr((uip_ipaddr_t *)addr);
-  makeaddr(addr, gateway);
+  uip_getdraddr(&addr);
+  makeaddr(&addr, gateway);
 
   addrptr = resolv_getserver();
   if(addrptr != NULL) {
@@ -127,26 +127,26 @@ nullterminate(char *cptr)
 static void
 apply_tcpipconfig(void)
 {
-  u16_t addr[2];
+  uip_ipaddr_t addr;
 
   nullterminate(ipaddr);
-  if(uiplib_ipaddrconv(ipaddr, (unsigned char *)addr)) {
-    uip_sethostaddr((uip_ipaddr_t *)addr);
+  if(uiplib_ipaddrconv(ipaddr, (unsigned char *)&addr)) {
+    uip_sethostaddr(&addr);
   }
   
   nullterminate(netmask);
-  if(uiplib_ipaddrconv(netmask, (unsigned char *)addr)) {
-    uip_setnetmask((uip_ipaddr_t *)addr);
+  if(uiplib_ipaddrconv(netmask, (unsigned char *)&addr)) {
+    uip_setnetmask(&addr);
   }
 
   nullterminate(gateway);
-  if(uiplib_ipaddrconv(gateway, (unsigned char *)addr)) {
-    uip_setdraddr((uip_ipaddr_t *)addr);
+  if(uiplib_ipaddrconv(gateway, (unsigned char *)&addr)) {
+    uip_setdraddr(&addr);
   }
   
   nullterminate(dnsserver);
-  if(uiplib_ipaddrconv(dnsserver, (unsigned char *)addr)) {
-    resolv_conf(addr);
+  if(uiplib_ipaddrconv(dnsserver, (unsigned char *)&addr)) {
+    resolv_conf(&addr);
   }
 }
 /*-----------------------------------------------------------------------------------*/

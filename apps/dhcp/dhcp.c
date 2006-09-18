@@ -60,37 +60,36 @@ makebyte(u8_t byte, char *str)
 }
 /*---------------------------------------------------------------------------*/
 static void
-makeaddr(u16_t *addr, char *str)
+makeaddr(uip_ipaddr_t *addr, char *str)
 {
-  str = makebyte(HTONS(addr[0]) >> 8, str);
+  str = makebyte(addr->u8[0], str);
   *str++ = '.';
-  str = makebyte(HTONS(addr[0]) & 0xff, str);
+  str = makebyte(addr->u8[1], str);
   *str++ = '.';
-  str = makebyte(HTONS(addr[1]) >> 8, str);
+  str = makebyte(addr->u8[2], str);
   *str++ = '.';
-  str = makebyte(HTONS(addr[1]) & 0xff, str);
+  str = makebyte(addr->u8[3], str);
   *str++ = 0;
 }
 /*---------------------------------------------------------------------------*/
 static void
 makestrings(void)
 {
-  u16_t addr[2], *addrptr;
+  uip_ipaddr_t addr, *addrptr;
 
-  uip_gethostaddr((uip_ipaddr_t *)addr);
-  makeaddr(addr, ipaddr);
+  uip_gethostaddr(&addr);
+  makeaddr(&addr, ipaddr);
   
-  uip_getnetmask((uip_ipaddr_t *)addr);
-  makeaddr(addr, netmask);
+  uip_getnetmask(&addr);
+  makeaddr(&addr, netmask);
   
-  uip_getdraddr((uip_ipaddr_t *)addr);
-  makeaddr(addr, gateway);
+  uip_getdraddr(&addr);
+  makeaddr(&addr, gateway);
 
   addrptr = resolv_getserver();
   if(addrptr != NULL) {
     makeaddr(addrptr, dnsserver);
   }
- 
 }
 /*---------------------------------------------------------------------------*/
 PROCESS_THREAD(dhcp_process, ev, data)
@@ -146,7 +145,7 @@ dhcpc_configured(const struct dhcpc_state *s)
   uip_sethostaddr(&s->ipaddr);
   uip_setnetmask(&s->netmask);
   uip_setdraddr(&s->default_router);
-  resolv_conf((u16_t *)&s->dnsaddr);
+  resolv_conf(&s->dnsaddr);
   set_statustext("Configured.");
   process_post(PROCESS_CURRENT(), SHOWCONFIG, NULL);
 }
