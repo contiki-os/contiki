@@ -30,7 +30,7 @@
  *
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: httpd.c,v 1.3 2006/08/16 22:09:51 oliverschmidt Exp $
+ * $Id: httpd.c,v 1.4 2006/09/20 19:18:56 adamdunkels Exp $
  */
 
 #include "contiki-net.h"
@@ -45,7 +45,7 @@
 #define STATE_OUTPUT  1
 
 #define SEND_STRING(s, str) PSOCK_SEND(s, str, (unsigned int)strlen(str))
-MEMB(conns, struct httpd_state, 8);
+MEMB(conns, struct httpd_state, 4);
 
 #define ISO_nl      0x0a
 #define ISO_space   0x20
@@ -100,9 +100,18 @@ static void
 next_scriptstate(struct httpd_state *s)
 {
   char *p;
+
+  if((p = strchr(s->scriptptr, ISO_nl)) != NULL) {
+    p += 1;
+    s->scriptlen -= (unsigned short)(p - s->scriptptr);
+    s->scriptptr = p;
+  } else {
+    s->scriptlen = 0;
+  }
+  /*  char *p;
   p = strchr(s->scriptptr, ISO_nl) + 1;
   s->scriptlen -= (unsigned short)(p - s->scriptptr);
-  s->scriptptr = p;
+  s->scriptptr = p;*/
 }
 /*---------------------------------------------------------------------------*/
 static
