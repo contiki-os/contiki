@@ -29,7 +29,7 @@
  *
  * This file is part of the Contiki desktop environment
  *
- * $Id: contiki-main.c,v 1.1 2006/06/17 22:41:29 adamdunkels Exp $
+ * $Id: contiki-main.c,v 1.2 2006/09/20 19:06:41 adamdunkels Exp $
  *
  */
 
@@ -77,18 +77,18 @@ PROCESS(init_process, "Init");
 
 PROCESS_THREAD(init_process, ev, data)
 {
-  u16_t addr[2];
+  uip_ipaddr_t addr;
 
   PROCESS_BEGIN();
   
-  uip_ipaddr(addr, 192,168,2,2);
-  uip_sethostaddr(addr);
+  uip_ipaddr(&addr, 192,168,2,2);
+  uip_sethostaddr(&addr);
 
-  uip_ipaddr(addr, 192,168,2,1);
-  uip_setdraddr(addr);
+  uip_ipaddr(&addr, 192,168,2,1);
+  uip_setdraddr(&addr);
 
-  uip_ipaddr(addr, 255,255,255,0);
-  uip_setnetmask(addr);
+  uip_ipaddr(&addr, 255,255,255,0);
+  uip_setnetmask(&addr);
 
   printf("init\n");
   
@@ -132,7 +132,7 @@ idle_callback(gpointer data)
 int
 main(int argc, char **argv)
 {
-  u16_t addr[2];
+  uip_ipaddr_t addr;
   
 
   gtk_init(&argc, &argv);
@@ -141,14 +141,14 @@ main(int argc, char **argv)
 
   procinit_init();
   
-  uip_ipaddr(addr, 192,168,2,2);
-  uip_sethostaddr(addr);
+  uip_ipaddr(&addr, 192,168,2,2);
+  uip_sethostaddr(&addr);
 
-  uip_ipaddr(addr, 192,168,2,1);
-  uip_setdraddr(addr);
+  uip_ipaddr(&addr, 192,168,2,1);
+  uip_setdraddr(&addr);
 
-  uip_ipaddr(addr, 255,255,255,0);
-  uip_setnetmask(addr);
+  uip_ipaddr(&addr, 255,255,255,0);
+  uip_setnetmask(&addr);
 
   /*  program_handler_add(&netconf_dsc, "Network setup", 1);
   program_handler_add(&ftp_dsc, "FTP client", 1);

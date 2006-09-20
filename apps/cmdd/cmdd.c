@@ -145,14 +145,14 @@ appcall(void *state)
 /*---------------------------------------------------------------------------*/
 PROCESS_THREAD(cmdd_process, ev, data)
 {
-  u16_t ipaddr[2];
+  uip_ipaddr_t ipaddr;
   
   PROCESS_BEGIN();
   
   tcp_listen(HTONS(6581));
   memb_init(&conns);
-  uip_ipaddr(ipaddr, 255,255,255,255);
-  udpconn = udp_new(ipaddr, HTONS(6712), NULL);
+  uip_ipaddr(&ipaddr, 255,255,255,255);
+  udpconn = udp_new(&ipaddr, HTONS(6712), NULL);
 
   while(1) {
     PROCESS_WAIT_EVENT();
