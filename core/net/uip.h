@@ -46,7 +46,7 @@
  *
  * This file is part of the uIP TCP/IP stack.
  *
- * $Id: uip.h,v 1.5 2006/09/09 23:24:39 oliverschmidt Exp $
+ * $Id: uip.h,v 1.6 2006/09/23 20:10:08 oliverschmidt Exp $
  *
  */
 
@@ -1539,8 +1539,8 @@ CCIF extern const uip_ipaddr_t uip_hostaddr, uip_netmask, uip_draddr;
 #else /* UIP_FIXEDADDR */
 CCIF extern uip_ipaddr_t uip_hostaddr, uip_netmask, uip_draddr;
 #endif /* UIP_FIXEDADDR */
-extern const uip_ipaddr_t uip_broadcast_addr;
-extern const uip_ipaddr_t all_zeroes_addr;
+CCIF extern const uip_ipaddr_t uip_broadcast_addr;
+CCIF extern const uip_ipaddr_t all_zeroes_addr;
 
 
 /**
