@@ -21,7 +21,7 @@
 
 #define LOG_CONF_ENABLED 1
 #include "sys/log.h"
-void debug_printf(char *format, ...);
+CCIF void debug_printf(char *format, ...);
 
 
 
