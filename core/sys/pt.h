@@ -30,7 +30,7 @@
  *
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: pt.h,v 1.1 2006/06/17 22:41:20 adamdunkels Exp $
+ * $Id: pt.h,v 1.2 2006/09/26 20:57:58 adamdunkels Exp $
  */
 
 /**
@@ -56,9 +56,9 @@ struct pt {
 };
 
 #define PT_WAITING 0
-#define PT_EXITED  1
-#define PT_ENDED   2
-#define PT_YIELDED 3
+#define PT_YIELDED 1
+#define PT_EXITED  2
+#define PT_ENDED   3
 
 /**
  * \name Initialization
@@ -268,7 +268,7 @@ struct pt {
  *
  * \hideinitializer
  */
-#define PT_SCHEDULE(f) ((f) == PT_WAITING)
+#define PT_SCHEDULE(f) ((f) < PT_EXITED)
 
 /** @} */
 
