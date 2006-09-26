@@ -30,7 +30,7 @@
  *
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: mt.h,v 1.2 2006/09/01 22:56:47 adamdunkels Exp $
+ * $Id: mt.h,v 1.3 2006/09/26 20:59:51 adamdunkels Exp $
  */
 
 /** \addtogroup sys
@@ -235,8 +235,8 @@ void mt_exec(struct mt_thread *thread);
  * containing additonal information, or NULL if no additional
  * information is needed.
  */
-void mt_exec_event(struct mt_thread *thread, process_event_t s,
-		   process_data_t data);
+/*void mt_exec_event(struct mt_thread *thread, process_event_t s,
+  process_data_t data);*/
 
 /**
  * Voluntarily give up the processor.
@@ -263,7 +263,7 @@ void mt_yield(void);
  * with the signal.
  *
  */
-void mt_post(struct process *p, process_event_t ev, process_data_t data);
+/*void mt_post(struct process *p, process_event_t ev, process_data_t data);*/
 
 /**
  * Block and wait for an event to occur.
@@ -281,7 +281,7 @@ void mt_post(struct process *p, process_event_t ev, process_data_t data);
  * the thread.
  *
  */
-void mt_wait(process_event_t *ev, process_data_t *data);
+/*void mt_wait(process_event_t *ev, process_data_t *data);*/
 
 /**
  * Exit a thread.
