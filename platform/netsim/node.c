@@ -30,7 +30,7 @@
  *
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: node.c,v 1.2 2006/08/14 14:01:02 bg- Exp $
+ * $Id: node.c,v 1.3 2006/09/26 22:10:12 adamdunkels Exp $
  */
 #include "node.h"
 #include "contiki.h"
@@ -55,7 +55,7 @@ node_init(int id, int posx, int posy, int b)
   node.id = id;
   node.x = posx;
   node.y = posy;
-  node.type = NODE_TYPE_NORMAL;
+  /*  node.type = NODE_TYPE_NORMAL;*/
 
   if(b) {
     uip_ipaddr(&addr, 192,168,250,2);

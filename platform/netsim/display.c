@@ -24,7 +24,7 @@
  * IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY
  * OF SUCH DAMAGE.
  *
- * $Id: display.c,v 1.1 2006/06/17 22:41:35 adamdunkels Exp $
+ * $Id: display.c,v 1.2 2006/09/26 22:10:12 adamdunkels Exp $
  *
  * Author: Adam Dunkels <adam@sics.se>
  *
@@ -45,7 +45,7 @@
 
 static GdkPixmap *pixmap = NULL;
 static GtkWidget *drawing_area;
-
+static GdkFont *font;
 
 #define DISPLAY_WIDTH 400
 #define DISPLAY_HEIGHT 300
@@ -111,7 +111,7 @@ display_redraw(void)
     x = n->x;
     y = n->y;
     
-    if(n->type == NODE_TYPE_CLUSTERHEAD) {
+    /*    if(n->type == NODE_TYPE_CLUSTERHEAD) {
       gdk_draw_arc(pixmap,
 		   intensity_clusterhead_lightgray,
 		   TRUE,
@@ -119,7 +119,7 @@ display_redraw(void)
 		   y * SCALE - DOT_SIZE * SCALE,
 		   DOT_SIZE * 2 * SCALE, DOT_SIZE * 2 * SCALE,
 		   0, 360 * 64);
-    }
+		   }*/
 
     if(n == marked_node) {
       gdk_draw_arc(pixmap,
@@ -138,7 +138,7 @@ display_redraw(void)
     x = n->x;
     y = n->y;
     
-    if(n->type == NODE_TYPE_CLUSTERHEAD) {
+    /*    if(n->type == NODE_TYPE_CLUSTERHEAD) {
       gdk_draw_rectangle(pixmap,
 			 intensity_clusterhead_red,
 			 TRUE,
@@ -159,9 +159,18 @@ display_redraw(void)
 	  
 	  
 	}
+	}
+	} else */ {
+
+      if(strlen(n->text) > 0) {
+	gdk_draw_string(pixmap,
+			font,
+			black,
+			x * SCALE + 2,
+			y * SCALE - 1,
+			n->text);
+	
       }
-    } else {
-      
       gdk_draw_rectangle(pixmap,
 			 black,
 			 TRUE,
@@ -497,6 +506,8 @@ display_init(void (* idlefunc)(void), int time, int with_gui)
 
   gtk_signal_connect(GTK_OBJECT (window), "destroy",
 		     GTK_SIGNAL_FUNC (quit), NULL);
+
+  font = gdk_font_load("-*-courier-medium-r-*-*-12-*-*-*-*-*-iso8859-1");
   
   /* Create the drawing area */
 

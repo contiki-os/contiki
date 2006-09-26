@@ -30,7 +30,7 @@
  *
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: ether.c,v 1.1 2006/06/17 22:41:35 adamdunkels Exp $
+ * $Id: ether.c,v 1.2 2006/09/26 22:10:12 adamdunkels Exp $
  */
 /**
  * \file
@@ -85,6 +85,7 @@ static int s, sc;
 #define PTYPE_DATA   2
 #define PTYPE_SENSOR 3
 #define PTYPE_LEDS   4
+#define PTYPE_TEXT   5
 
 struct ether_hdr {
   int type;
@@ -95,7 +96,9 @@ struct ether_hdr {
   int srcid;
   int srcnodetype;
   int leds;
+  char text[NODES_TEXTLEN];
 };
+
 static int strength;
 
 static int collisions = 1;
@@ -207,7 +210,7 @@ ether_client_poll(void)
     
     memcpy(uip_buf, &rxbuffer[sizeof(struct ether_hdr)], len);
 
-    if(hdr->type == PTYPE_DATA) {
+    if(hdr->type == PTYPE_DATA && hdr->srcid != node.id) {
       return len - sizeof(struct ether_hdr);
     } else if(hdr->type == PTYPE_CLOCK) {
       node_set_time(hdr->clock);
@@ -261,6 +264,9 @@ ether_server_poll(void)
 	break;
       case PTYPE_LEDS:
 	nodes_set_leds(hdr->srcx, hdr->srcy, hdr->leds);
+	break;
+      case PTYPE_TEXT:
+	nodes_set_text(hdr->srcx, hdr->srcy, hdr->text);
 	break;
       }
     }
@@ -334,7 +340,7 @@ ether_tick(void)
 
       /* Update the node type. */
       hdr = (struct ether_hdr *)p->data;
-      nodes_node(hdr->srcid)->type = hdr->srcnodetype;
+      /*      nodes_node(hdr->srcid)->type = hdr->srcnodetype;*/
       
       if(!(p->x == x && p->y == y) && /* Don't send packets back to
 					 the sender. */
@@ -363,6 +369,8 @@ ether_tick(void)
 	}
 	
 	if(!interference) {
+	  /*	  printf("ether: delivering packet from %d to %d\n",
+		  hdr->srcid, port);*/
 	  send_packet(p->data, p->len, port);
 	}
       }
@@ -419,7 +427,7 @@ ether_send(char *data, int len)
   hdr->srcx = node.x;
   hdr->srcy = node.y;
   hdr->type = PTYPE_DATA;
-  hdr->srcnodetype = node.type;
+  /*  hdr->srcnodetype = node.type;*/
   hdr->srcid = node.id;
 
 
@@ -437,7 +445,23 @@ ether_set_leds(int leds)
   hdr.srcy = node.y;
   hdr.type = PTYPE_LEDS;
   hdr.leds = leds;
-  hdr.srcnodetype = node.type;
+  /*  hdr.srcnodetype = node.type;*/
+  hdr.srcid = node.id;
+
+  node_send_packet((char *)&hdr, sizeof(struct ether_hdr));
+
+}
+/*-----------------------------------------------------------------------------------*/
+void
+ether_set_text(char *text)
+{
+  struct ether_hdr hdr;
+  
+  hdr.srcx = node.x;
+  hdr.srcy = node.y;
+  hdr.type = PTYPE_TEXT;
+  strncpy(hdr.text, text, NODES_TEXTLEN);
+  /*  hdr.srcnodetype = node.type;*/
   hdr.srcid = node.id;
 
   node_send_packet((char *)&hdr, sizeof(struct ether_hdr));
