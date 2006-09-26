@@ -29,7 +29,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: slip.c,v 1.1 2006/06/17 22:41:17 adamdunkels Exp $
+ * @(#)$Id: slip.c,v 1.2 2006/09/26 15:47:14 bg- Exp $
  */
 
 
@@ -50,6 +50,8 @@
 #define SLIP_ESC_ESC 0335
 
 PROCESS(slip_process, "SLIP driver");
+
+u8_t slip_active;
 
 #if 1
 #define SLIP_STATISTICS(statement)
@@ -114,6 +116,31 @@ slip_send(void)
 
   return UIP_FW_OK;
 }
+
+u8_t
+slip_write(u8_t *ptr, int len)
+{
+  u16_t i;
+  u8_t c;
+
+  slip_arch_writeb(SLIP_END);
+
+  for(i = 0; i < len; ++i) {
+    c = *ptr++;
+    if(c == SLIP_END) {
+      slip_arch_writeb(SLIP_ESC);
+      c = SLIP_ESC_END;
+    } else if(c == SLIP_ESC) {
+      slip_arch_writeb(SLIP_ESC);
+      c = SLIP_ESC_ESC;
+    }
+    slip_arch_writeb(c);
+  }
+  slip_arch_writeb(SLIP_END);
+
+  return len;
+}
+
 /*---------------------------------------------------------------------------*/
 static void
 rxbuf_init(void)
@@ -194,11 +221,18 @@ PROCESS_THREAD(slip_process, ev, data)
   while(1) {
     PROCESS_YIELD();
     
+    slip_active = 1;
+
     /* Move packet from rxbuf to buffer provided by uIP. */
     uip_len = slip_poll_handler(&uip_buf[UIP_LLH_LEN],
 				UIP_BUFSIZE - UIP_LLH_LEN);
 
-    if(uip_len > 0
+    if(uip_len == 4 && strncmp(&uip_buf[UIP_LLH_LEN], "?IPA", 4) == 0) {
+      char buf[8];
+      memcpy(&buf[0], "=IPA", 4);
+      memcpy(&buf[4], &uip_hostaddr, 4);
+      slip_write(buf, 8);
+    } else if(uip_len > 0
        && uip_len == (((u16_t)(BUF->len[0]) << 8) + BUF->len[1])
        && uip_ipchksum() == 0xffff) {
       tcpip_input();

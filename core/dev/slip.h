@@ -29,7 +29,7 @@
  *
  * This file is part of the Contiki operating system.
  * 
- * @(#)$Id: slip.h,v 1.1 2006/06/17 22:41:17 adamdunkels Exp $
+ * @(#)$Id: slip.h,v 1.2 2006/09/26 15:47:26 bg- Exp $
  */
 
 #ifndef __SLIP_H__
@@ -62,6 +62,11 @@ u8_t slip_send(void);
  * \return Non-zero if the CPU should be powered up, zero otherwise. 
  */
 int slip_input_byte(unsigned char c);
+
+u8_t slip_write(u8_t *ptr, int len);
+
+/* Did we receive any bytes lately? */
+extern u8_t slip_active;
 
 /* Statistics. */
 extern u16_t slip_rubbish, slip_twopackets, slip_overflow, slip_ip_drop;
