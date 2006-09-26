@@ -27,7 +27,14 @@ void
 mtarch_start(struct mtarch_thread *t,
 	     void (*function)(void *), void *data)
 {
+  
   struct frame *f = (struct frame *)&t->stack[MTARCH_STACKSIZE - sizeof(struct frame)/4];
+  int i;
+  
+  for(i = 0; i < MTARCH_STACKSIZE; ++i) {
+    t->stack[i] = i;
+  }
+  
   memset(f, 0, sizeof(struct frame));
   f->retaddr = (unsigned long)function;
   f->data    = (unsigned long)data;
@@ -97,5 +104,16 @@ void
 mtarch_pstart(void)
 {
   
+}
+/*--------------------------------------------------------------------------*/
+int
+mtarch_stack_usage(struct mt_thread *t)
+{
+  int i;
+  for(i = 0; i < MTARCH_STACKSIZE; ++i) {
+    if(t->thread.stack[i] != i) {
+      return MTARCH_STACKSIZE - i;
+    }
+  }
 }
 /*--------------------------------------------------------------------------*/

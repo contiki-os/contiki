@@ -41,5 +41,9 @@ struct mtarch_thread {
   unsigned long sp;
 };
 
+struct mt_thread;
+
+int mtarch_stack_usage(struct mt_thread *t);
+
 #endif /* __MTARCH_H__ */
 	

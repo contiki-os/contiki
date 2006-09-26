@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: mtarch.c,v 1.2 2006/09/01 22:56:18 adamdunkels Exp $
+ * @(#)$Id: mtarch.c,v 1.3 2006/09/26 20:56:56 adamdunkels Exp $
  */
 
 #include <stdio.h>
@@ -46,17 +46,22 @@ void
 mtarch_start(struct mtarch_thread *t,
 	     void (*function)(void *), void *data)
 {
+  int i;
+
+  for(i = 0; i < MTARCH_STACKSIZE; ++i) {
+    t->stack[i] = i;
+  }
 
   t->sp = &t->stack[MTARCH_STACKSIZE - 1];
-  
+
   *t->sp = (unsigned short)mt_exit;
   --t->sp;
+
   *t->sp = (unsigned short)function;
   --t->sp;
-  
+
   /* Space for registers. */
   t->sp -= 11;
-
 }
 /*--------------------------------------------------------------------------*/
 static unsigned short *sptmp;
@@ -128,5 +133,16 @@ void
 mtarch_pstart(void)
 {
   
+}
+/*--------------------------------------------------------------------------*/
+int
+mtarch_stack_usage(struct mt_thread *t)
+{
+  int i;
+  for(i = 0; i < MTARCH_STACKSIZE; ++i) {
+    if(t->thread.stack[i] != (unsigned short)i) {
+      return MTARCH_STACKSIZE - i;
+    }
+  }
 }
 /*--------------------------------------------------------------------------*/
