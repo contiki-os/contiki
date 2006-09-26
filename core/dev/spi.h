@@ -1,5 +1,5 @@
 /* -*- C -*- */
-/* @(#)$Id: spi.h,v 1.1 2006/06/17 22:41:17 adamdunkels Exp $ */
+/* @(#)$Id: spi.h,v 1.2 2006/09/26 15:48:01 bg- Exp $ */
 
 #ifndef SPI_H
 #define SPI_H
@@ -206,6 +206,18 @@ void spi_init(void);
 		  FASTSPI_TX((a >> 1) & 0xC0);\
 		  for (n = 0; n < (c); n++) {\
 				FASTSPI_TX(((u8_t*)(p))[n]);\
+		  }\
+		  SPI_DISABLE();\
+	 } while (0)
+
+#define FASTSPI_READ_RAM_LE(p,a,c,n)\
+	 do {\
+		  SPI_ENABLE();\
+		  FASTSPI_TX(0x80 | (a & 0x7F));\
+		  FASTSPI_TX(((a >> 1) & 0xC0) | 0x20);\
+		  SPI_RXBUF;\
+		  for (n = 0; n < (c); n++) {\
+				FASTSPI_RX(((u8_t*)(p))[n]);\
 		  }\
 		  SPI_DISABLE();\
 	 } while (0)
