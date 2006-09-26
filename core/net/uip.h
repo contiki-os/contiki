@@ -46,7 +46,7 @@
  *
  * This file is part of the uIP TCP/IP stack.
  *
- * $Id: uip.h,v 1.6 2006/09/23 20:10:08 oliverschmidt Exp $
+ * $Id: uip.h,v 1.7 2006/09/26 21:02:35 adamdunkels Exp $
  *
  */
 
@@ -952,6 +952,23 @@ struct uip_udp_conn *uip_udp_new(uip_ipaddr_t *ripaddr, u16_t rport);
                            ((((u16_t *)addr1)[1] & ((u16_t *)mask)[1]) == \
                             (((u16_t *)addr2)[1] & ((u16_t *)mask)[1])))
 
+/**
+ * Check if an address is a broadcast address for a network.
+ *
+ * Checks if an address is the broadcast address for a network. The
+ * network is defined by an IP address that is on the network and the
+ * network's netmask.
+ *
+ * \param addr The IP address.
+ * \param netaddr The network's IP address.
+ * \param netmask The network's netmask.
+ *
+ * \hideinitializer
+ */
+/*#define uip_ipaddr_isbroadcast(addr, netaddr, netmask)
+((uip_ipaddr_t *)(addr)).u16 & ((uip_ipaddr_t *)(addr)).u16*/
+
+
 
 /**
  * Mask out the network part of an IP address.
@@ -1239,11 +1256,11 @@ extern struct uip_udp_conn uip_udp_conns[UIP_UDP_CONNS];
  */
 struct uip_stats {
   struct {
-    uip_stats_t drop;     /**< Number of dropped packets at the IP
-			     layer. */
     uip_stats_t recv;     /**< Number of received packets at the IP
 			     layer. */
     uip_stats_t sent;     /**< Number of sent packets at the IP
+			     layer. */
+    uip_stats_t drop;     /**< Number of dropped packets at the IP
 			     layer. */
     uip_stats_t vhlerr;   /**< Number of packets dropped due to wrong
 			     IP version or header length. */
@@ -1259,16 +1276,16 @@ struct uip_stats {
 			     were neither ICMP, UDP nor TCP. */
   } ip;                   /**< IP statistics. */
   struct {
-    uip_stats_t drop;     /**< Number of dropped ICMP packets. */
     uip_stats_t recv;     /**< Number of received ICMP packets. */
     uip_stats_t sent;     /**< Number of sent ICMP packets. */
+    uip_stats_t drop;     /**< Number of dropped ICMP packets. */
     uip_stats_t typeerr;  /**< Number of ICMP packets with a wrong
 			     type. */
   } icmp;                 /**< ICMP statistics. */
   struct {
-    uip_stats_t drop;     /**< Number of dropped TCP segments. */
     uip_stats_t recv;     /**< Number of recived TCP segments. */
     uip_stats_t sent;     /**< Number of sent TCP segments. */
+    uip_stats_t drop;     /**< Number of dropped TCP segments. */
     uip_stats_t chkerr;   /**< Number of TCP segments with a bad
 			     checksum. */
     uip_stats_t ackerr;   /**< Number of TCP segments with a bad ACK
@@ -1510,6 +1527,7 @@ struct uip_udpip_hdr {
  * \hideinitializer
  */
 #define UIP_APPDATA_SIZE (UIP_BUFSIZE - UIP_LLH_LEN - UIP_TCPIP_HLEN)
+#define UIP_APPDATA_PTR (void *)&uip_buf[UIP_LLH_LEN + UIP_TCPIP_HLEN]
 
 
 #define UIP_PROTO_ICMP  1
