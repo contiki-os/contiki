@@ -28,7 +28,7 @@
  *
  * This file is part of the uIP TCP/IP stack.
  *
- * $Id: tunslip.c,v 1.3 2006/09/07 17:05:21 bg- Exp $
+ * $Id: tunslip.c,v 1.4 2006/09/26 15:45:09 bg- Exp $
  *
  */
 
@@ -152,6 +152,8 @@ struct dhcp_light_msg {
 in_addr_t giaddr;
 in_addr_t netaddr;
 in_addr_t circuit_addr;
+
+char tundev[32] = { "tun0" };
 
 struct sockaddr_in dhaddr;
 int dhsock = -1;
@@ -479,7 +481,23 @@ serial_to_tun(FILE *inslip, int outfd)
 #define DEBUG_LINE_MARKER '\r'
       int ecode;
       ecode = check_ip(&uip.iphdr, inbufptr);
-      if(ecode < 0) {
+      if(ecode < 0 && inbufptr == 8 && strncmp(uip.inbuf, "=IPA", 4) == 0) {
+	static struct in_addr ipa;
+
+	inbufptr = 0;
+	if(memcmp(&ipa, &uip.inbuf[4], sizeof(ipa)) == 0)
+	  break;
+
+	memcpy(&ipa, &uip.inbuf[4], sizeof(ipa));
+#ifdef linux
+	ssystem("route add -net %s netmask %s dev %s",
+		inet_ntoa(ipa), "255.255.255.255", tundev);
+#else
+	ssystem("route add -net %s -netmask %s -interface %s",
+		inet_ntoa(ipa), "255.255.255.255", tundev);
+#endif
+	break;
+      } else if(ecode < 0) {
 	/*
 	 * If sensible ASCII string, print it as debug info!
 	 */
@@ -737,38 +755,46 @@ tun_alloc(char *dev)
 }
 #endif
 
-char tundev[32] = { "tun0" };
 const char *ipaddr;
 const char *netmask;
 
 void
-cleanup(int signo)
+cleanup(void)
+{
+  ssystem("ifconfig %s down", tundev);
+#ifndef linux
+  ssystem("sysctl net.inet.ip.forwarding=0");
+#endif
+  /* ssystem("arp -d %s", ipaddr); */
+  ssystem("netstat -nr"
+	  " | awk '{ if ($2 == \"%s\") print \"route delete -net \"$1; }'"
+	  " | sh",
+	  tundev);
+}
+
+void
+sigcleanup(int signo)
 {
   fprintf(stderr, "signal %d\n", signo);
-#ifdef linux
-#else
-  ssystem("sysctl net.inet.ip.forwarding=0");
-  /* ssystem("arp -d %s", ipaddr); */
-  ssystem("ifconfig %s delete", tundev);
-#endif
-  exit(0);
+  exit(0);			/* exit(0) will call cleanup() */
 }
 
 void
 ifconf(const char *tundev, const char *ipaddr, const char *netmask)
 {
-#ifdef linux
   struct in_addr netname;
   netname.s_addr = inet_addr(ipaddr) & inet_addr(netmask);
+
+#ifdef linux
   ssystem("ifconfig %s inet `hostname` up", tundev);
-  ssystem("route add -net %s netmask %s dev %s",
-	  inet_ntoa(netname), netmask, tundev);
+  if (strcmp(ipaddr, "0.0.0.0") != 0)
+    ssystem("route add -net %s netmask %s dev %s",
+	    inet_ntoa(netname), netmask, tundev);
 #else
-  ssystem("ifconfig %s inet `hostname` %s netmask %s up",
-	  tundev, ipaddr, netmask);
-  ssystem("route add -net %s -netmask %s -interface %s",
-	  ipaddr, netmask, tundev);
-  /* ssystem("arp -s %s auto pub only", ipaddr); */
+  ssystem("ifconfig %s inet up", tundev);
+  if (strcmp(ipaddr, "0.0.0.0") != 0)
+    ssystem("route add -net %s -netmask %s -interface %s",
+	    inet_ntoa(netname), netmask, tundev);
   ssystem("sysctl net.inet.ip.forwarding=1");
 #endif /* !linux */
 
@@ -782,6 +808,8 @@ main(int argc, char **argv)
   int tunfd, slipfd, maxfd;
   int ret;
   fd_set rset, wset;
+  struct timeval timeout;
+  const char helo[6] = { SLIP_END, '?', 'I', 'P', 'A', SLIP_END };
   FILE *inslip;
   const char *siodev = NULL;
   const char *dhcp_server = NULL;
@@ -812,7 +840,7 @@ main(int argc, char **argv)
     case '?':
     case 'h':
     default:
-      err(1, "usage: tunslip [-s siodev] [-t tundev] [-d dhcp-server] ipaddress netmask [dhcp-server]");
+      err(1, "usage: tunslip [-s siodev] [-t tundev] [-D dhcp-server] ipaddress netmask [dhcp-server]");
       break;
     }
   }
@@ -820,7 +848,7 @@ main(int argc, char **argv)
   argv += (optind - 1);
 
   if (argc != 3 && argc != 4)
-    err(1, "usage: tunslip ipaddress netmask [dhcp-server]");
+    err(1, "usage: tunslip [-s siodev] [-t tundev] [-D dhcp-server] ipaddress netmask [dhcp-server]");
   ipaddr = argv[1];
   netmask = argv[2];
   circuit_addr = inet_addr(ipaddr);
@@ -916,9 +944,10 @@ main(int argc, char **argv)
   if(tunfd == -1) err(1, "main: open");
   fprintf(stderr, "opened device ``/dev/%s''\n", tundev);
 
-  signal(SIGHUP, cleanup);
-  signal(SIGTERM, cleanup);
-  signal(SIGINT, cleanup);
+  atexit(cleanup);
+  signal(SIGHUP, sigcleanup);
+  signal(SIGTERM, sigcleanup);
+  signal(SIGINT, sigcleanup);
   ifconf(tundev, ipaddr, netmask);
 
   while(1) {
@@ -942,10 +971,16 @@ main(int argc, char **argv)
       }
     }
 
-    ret = select(maxfd + 1, &rset, &wset, NULL, NULL);
+    timeout.tv_sec = 1;
+    timeout.tv_usec = 450*1000;
+    ret = select(maxfd + 1, &rset, &wset, NULL, &timeout);
     if(ret == -1)
       err(1, "select");
-    else if(ret > 0) {
+    else if(ret == 0 && slip_empty()) {
+      ret = write(slipfd, helo, sizeof(helo));
+      if(ret != sizeof(helo))
+	err(1, "write helo");
+    } else if(ret > 0) {
       if(FD_ISSET(slipfd, &rset))
         serial_to_tun(inslip, tunfd);
 
