@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ContikiRadio.java,v 1.1 2006/08/21 12:13:05 fros4943 Exp $
+ * $Id: ContikiRadio.java,v 1.2 2006/09/26 13:08:05 fros4943 Exp $
  */
 
 package se.sics.cooja.contikimote.interfaces;
@@ -151,7 +151,7 @@ public class ContikiRadio extends Radio implements ContikiMoteInterface {
 
     // If mote is inactive, wake it up
     if (RAISES_EXTERNAL_INTERRUPT)
-      myMote.setState(Mote.STATE_ACTIVE);
+      myMote.setState(Mote.State.ACTIVE);
   }
 
   public void advanceListenState() {

@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: MoteInformation.java,v 1.1 2006/08/21 12:13:07 fros4943 Exp $
+ * $Id: MoteInformation.java,v 1.2 2006/09/26 13:08:05 fros4943 Exp $
  */
 
 package se.sics.cooja.plugins;
@@ -39,6 +39,7 @@ import javax.swing.*;
 import org.apache.log4j.Logger;
 
 import se.sics.cooja.*;
+import se.sics.cooja.Mote.State;
 
 /**
  * MoteInformation is a simple information window for motes.
@@ -102,9 +103,9 @@ public class MoteInformation extends VisPlugin {
     label = new JLabel("-- STATE --");
     label.setPreferredSize(new Dimension(LABEL_WIDTH,LABEL_HEIGHT));
     smallPane.add(BorderLayout.WEST, label);
-    if (mote.getState() == Mote.STATE_ACTIVE)
+    if (mote.getState() == Mote.State.ACTIVE)
       label = new JLabel("active");
-    else if (mote.getState() == Mote.STATE_LPM)
+    else if (mote.getState() == State.LPM)
       label = new JLabel("low power mode");
     else
       label = new JLabel("dead");
@@ -207,9 +208,9 @@ public class MoteInformation extends VisPlugin {
     // Register as state observer to detect if mote changes state
     mote.addStateObserver(stateObserver = new Observer() {
       public void update(Observable obs, Object obj) {
-        if (mote.getState() == Mote.STATE_ACTIVE)
+        if (mote.getState() == State.ACTIVE)
           stateLabel.setText("active");
-        else if (mote.getState() == Mote.STATE_LPM)
+        else if (mote.getState() == Mote.State.LPM)
           stateLabel.setText("low power mode");
         else
           stateLabel.setText("dead");

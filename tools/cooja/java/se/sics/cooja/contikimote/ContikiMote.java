@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ContikiMote.java,v 1.2 2006/08/23 12:18:27 fros4943 Exp $
+ * $Id: ContikiMote.java,v 1.3 2006/09/26 13:08:05 fros4943 Exp $
  */
 
 package se.sics.cooja.contikimote;
@@ -64,7 +64,7 @@ public class ContikiMote implements Mote {
   // Time to wake up if sleeping
   private int wakeUpTime = 0;
 
-  private int myState = STATE_ACTIVE;
+  private State myState = State.ACTIVE;
 
   // State observable
   private class StateObservable extends Observable {
@@ -99,26 +99,26 @@ public class ContikiMote implements Mote {
     this.myMemory = moteType.createInitialMemory();
     this.myInterfaceHandler = new MoteInterfaceHandler((Mote) this, moteType.getMoteInterfaces());
     
-    myState = STATE_ACTIVE;
+    myState = State.ACTIVE;
   }
 
-  public void setState(int newState) {
-    if (myState == STATE_DEAD) {
+  public void setState(State newState) {
+    if (myState == State.DEAD) {
       return;
     }
 
-    if (myState == STATE_ACTIVE && newState != STATE_ACTIVE) {
+    if (myState == State.ACTIVE && newState != State.ACTIVE) {
       myState = newState;
       stateObservable.stateChanged();
     }
 
-    if (myState == STATE_LPM && newState != STATE_LPM) {
+    if (myState == State.LPM && newState != State.LPM) {
       myState = newState;
       stateObservable.stateChanged();
     }
   }
 
-  public int getState() {
+  public State getState() {
     return myState;
   }
 
@@ -175,17 +175,17 @@ public class ContikiMote implements Mote {
   public void tick(int simTime) {
 
     // If mote is dead, do nothing at all
-    if (getState() == STATE_DEAD)
+    if (getState() == State.DEAD)
       return;
 
     // If mote is sleeping and has a wake up time, should it wake up now?
-    if (getState() == STATE_LPM && wakeUpTime > 0 && wakeUpTime <= simTime) {
-      setState(STATE_ACTIVE);
+    if (getState() == State.LPM && wakeUpTime > 0 && wakeUpTime <= simTime) {
+      setState(State.ACTIVE);
       wakeUpTime = 0;
     }
 
     // If mote is active..
-    if (getState() == STATE_ACTIVE) {
+    if (getState() == State.ACTIVE) {
       // Let all active interfaces act before tick
       // Observe that each interface may put the mote to sleep at this point
       myInterfaceHandler.doActiveActionsBeforeTick();
@@ -196,7 +196,7 @@ public class ContikiMote implements Mote {
 
 
     // If mote is still active, complete this tick
-    if (getState() == STATE_ACTIVE) {
+    if (getState() == State.ACTIVE) {
       
       // Copy mote memory to core
       myType.setCoreMemory(myMemory);
@@ -216,19 +216,19 @@ public class ContikiMote implements Mote {
     myInterfaceHandler.doPassiveActionsAfterTick();
 
     // If mote is awake, should it go to sleep?
-    if (getState() == STATE_ACTIVE) {
+    if (getState() == State.ACTIVE) {
       // Check if this mote should sleep (no more pending timers or processes to poll)
       int processRunValue = myMemory.getIntValueOf("simProcessRunValue");
       int etimersPending = myMemory.getIntValueOf("simEtimerPending");
       int nextExpirationTime = myMemory.getIntValueOf("simNextExpirationTime");
       
       if (processRunValue == 0 && etimersPending == 0) {
-        setState(STATE_LPM);
+        setState(State.LPM);
         wakeUpTime = 0;
       }
       
       if (processRunValue == 0 && etimersPending == 1 && nextExpirationTime > 0) {
-        setState(STATE_LPM);
+        setState(State.LPM);
         wakeUpTime = nextExpirationTime;
       }
       
@@ -280,7 +280,7 @@ public class ContikiMote implements Mote {
   
   public boolean setConfigXML(Simulation simulation, Collection<Element> configXML) {
     mySim = simulation;
-    myState = STATE_ACTIVE;
+    myState = State.ACTIVE;
     
     for (Element element: configXML) {
       String name = element.getName();

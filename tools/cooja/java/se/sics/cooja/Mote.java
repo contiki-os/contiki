@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: Mote.java,v 1.1 2006/08/21 12:12:56 fros4943 Exp $
+ * $Id: Mote.java,v 1.2 2006/09/26 13:08:05 fros4943 Exp $
  */
 
 package se.sics.cooja;
@@ -50,21 +50,15 @@ import org.jdom.Element;
  * @author Fredrik Osterlind
  */
 public interface Mote {
-  
-  /**
-   * Active state.
-   */
-  public static int STATE_ACTIVE = 1;
 
   /**
-   * Sleeping state.
+   * Possible mote states
    */
-  public static int STATE_LPM = 2;
-
-  /**
-   * Dead state (may be out of batteries).
-   */
-  public static int STATE_DEAD = 3;
+  public static enum State {
+    ACTIVE, // Active state
+    LPM, // Low power mode (sleeping)
+    DEAD // Dead (for example out of batteries)
+  }
   
   /**
    * Tries to change state to given argument.
@@ -72,12 +66,12 @@ public interface Mote {
    * 
    * @param newState New state of mote.
    */
-  public void setState(int newState);
+  public void setState(State newState);
 
   /**
    * @return Current mote state
    */
-  public int getState();
+  public State getState();
 
   /**
    * Adds new state observer.

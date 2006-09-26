@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: VisBattery.java,v 1.1 2006/08/21 12:13:08 fros4943 Exp $
+ * $Id: VisBattery.java,v 1.2 2006/09/26 13:08:05 fros4943 Exp $
  */
 
 package se.sics.cooja.plugins;
@@ -96,7 +96,7 @@ public class VisBattery extends Visualizer2D {
   }
 
   public Color[] getColorOf(Mote mote) {
-    if (mote.getState() == Mote.STATE_DEAD)
+    if (mote.getState() == Mote.State.DEAD)
       return new Color[]{Color.RED};
 
     Battery battery = mote.getInterfaces().getBattery();

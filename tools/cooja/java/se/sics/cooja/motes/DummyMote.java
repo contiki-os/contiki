@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: DummyMote.java,v 1.1 2006/08/21 12:13:12 fros4943 Exp $
+ * $Id: DummyMote.java,v 1.2 2006/09/26 13:08:05 fros4943 Exp $
  */
 
 package se.sics.cooja.motes;
@@ -100,12 +100,12 @@ public class DummyMote implements Mote {
     myInterfaceHandler.addPassiveInterface(myPosition);
   }
 
-  public void setState(int newState) {
+  public void setState(State newState) {
     logger.fatal("Dummy mote can not change state");
   }
 
-  public int getState() {
-    return Mote.STATE_ACTIVE;
+  public State getState() {
+    return Mote.State.ACTIVE;
   }
 
   public void addStateObserver(Observer newObserver) {

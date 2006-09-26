@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ContikiButton.java,v 1.1 2006/08/21 12:13:05 fros4943 Exp $
+ * $Id: ContikiButton.java,v 1.2 2006/09/26 13:08:05 fros4943 Exp $
  */
 
 package se.sics.cooja.contikimote.interfaces;
@@ -106,7 +106,7 @@ public class ContikiButton extends Button implements ContikiMoteInterface {
 
       // If mote is inactive, wake it up
       if (RAISES_EXTERNAL_INTERRUPT)
-        mote.setState(Mote.STATE_ACTIVE);
+        mote.setState(Mote.State.ACTIVE);
 
       setChanged();
       notifyObservers();
@@ -121,7 +121,7 @@ public class ContikiButton extends Button implements ContikiMoteInterface {
 
       // If mote is inactive, wake it up
       if (RAISES_EXTERNAL_INTERRUPT)
-        mote.setState(Mote.STATE_ACTIVE);
+        mote.setState(Mote.State.ACTIVE);
 
       setChanged();
       notifyObservers();

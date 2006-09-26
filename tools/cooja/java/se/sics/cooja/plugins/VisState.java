@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: VisState.java,v 1.1 2006/08/21 12:13:07 fros4943 Exp $
+ * $Id: VisState.java,v 1.2 2006/09/26 13:08:05 fros4943 Exp $
  */
 
 package se.sics.cooja.plugins;
@@ -36,6 +36,7 @@ import java.util.*;
 import org.apache.log4j.Logger;
 
 import se.sics.cooja.*;
+import se.sics.cooja.Mote.State;
 
 /**
  * A State Visualizer indicates mote states by painting them in different colors.
@@ -107,11 +108,11 @@ public class VisState extends Visualizer2D {
     Color[] returnColors = new Color[2];
     
     // If mote is sleeping, make outer circle blue 
-    if (mote.getState() == Mote.STATE_LPM)
+    if (mote.getState() == Mote.State.LPM)
       returnColors[1] = Color.GRAY;
     
     // If mote is dead, make outer circle red
-    else if (mote.getState() == Mote.STATE_DEAD)
+    else if (mote.getState() == State.DEAD)
       returnColors[1] = Color.RED;
     
     else

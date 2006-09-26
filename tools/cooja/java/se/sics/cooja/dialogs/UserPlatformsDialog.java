@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: UserPlatformsDialog.java,v 1.5 2006/09/06 12:26:33 fros4943 Exp $
+ * $Id: UserPlatformsDialog.java,v 1.6 2006/09/26 13:08:05 fros4943 Exp $
  */
 
 package se.sics.cooja.dialogs;
@@ -36,7 +36,6 @@ import java.awt.event.*;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.Enumeration;
 import java.util.Vector;
 import javax.swing.*;

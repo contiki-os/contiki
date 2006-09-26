@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: Battery.java,v 1.2 2006/09/26 12:47:06 fros4943 Exp $
+ * $Id: Battery.java,v 1.3 2006/09/26 13:08:05 fros4943 Exp $
  */
 
 package se.sics.cooja.interfaces;
@@ -133,11 +133,11 @@ public class Battery extends MoteInterface implements PassiveMoteInterface {
       return;
 
     // If mote is dead, do nothing
-    if (mote.getState() == Mote.STATE_DEAD)
+    if (mote.getState() == Mote.State.DEAD)
       return;
 
     // Check mote state
-    if (mote.getState() == Mote.STATE_LPM) {
+    if (mote.getState() == Mote.State.LPM) {
       // Mote is sleeping. Sum up energy usage.
       double totalEnergyConsumption = 0.0;
       totalEnergyConsumption += energyConsumptionLPMPerTick;
@@ -171,7 +171,7 @@ public class Battery extends MoteInterface implements PassiveMoteInterface {
     if (getCurrentEnergy() <= 0.0) {
       setChanged();
       notifyObservers();
-      mote.setState(Mote.STATE_DEAD);
+      mote.setState(Mote.State.DEAD);
     }
   }
 
