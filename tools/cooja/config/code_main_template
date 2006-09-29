@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: code_main_template,v 1.3 2006/09/06 10:37:08 fros4943 Exp $
+ * $Id: code_main_template,v 1.4 2006/09/29 14:32:15 fros4943 Exp $
  */
 
 /**
@@ -71,6 +71,7 @@
 #include "net/uip.h"
 #include "dev/radio-arch.h"
 #include "sys/etimer.h"
+#include "sys/cooja_mt.h"
 
 /* Declare all initialization processes */
 [PROCESS_DEFINITIONS]
@@ -100,6 +101,26 @@ static struct uip_fw_netif simNetworkIF =
  * (this must not be static due to memory locations)
  */
 int referenceVar;
+
+/*
+ * process_run() infinite loop.
+ * Is yielded at least once per function call.
+ */
+static struct cooja_mt_thread process_run_thread;
+
+static void
+start_process_run_loop(void *data)
+{
+	while(1)
+	{
+		/* Always pretend we have processes left while inside process_run() */
+		simProcessRunValue = 1;
+		simProcessRunValue = process_run();
+
+		/* Yield thread when one process_run has completed */
+		cooja_mt_yield();
+	}
+}
 
 extern unsigned long _end;
 
@@ -134,6 +155,9 @@ Java_se_sics_cooja_corecomm_[CLASS_NAME]_init(JNIEnv *env, jobject obj)
 
   /* Start user applications */
   autostart_start((struct process **) autostart_processes);
+  
+  /* Prepare thread that will do the process_run()-loop */
+  cooja_mt_start(&process_run_thread, &start_process_run_loop, NULL);
  }
 /*---------------------------------------------------------------------------*/
 /**
@@ -153,10 +177,7 @@ Java_se_sics_cooja_corecomm_[CLASS_NAME]_init(JNIEnv *env, jobject obj)
 JNIEXPORT void JNICALL
 Java_se_sics_cooja_corecomm_[CLASS_NAME]_getMemory(JNIEnv *env, jobject obj, jint start, jint length, jbyteArray mem_arr)
 {
- // jbyteArray ret=(*env)->NewByteArray(env, length);
   (*env)->SetByteArrayRegion(env, mem_arr, 0, (size_t) length, (jbyte *) start);
-
-//  return (ret);
 }
 /*---------------------------------------------------------------------------*/
 /**
@@ -212,8 +233,9 @@ Java_se_sics_cooja_corecomm_[CLASS_NAME]_tick(JNIEnv *env, jobject obj)
     simEtimerPending = 0;
   }
 
-  /* Execute the contiki code (save process_run return value for state decisions) */
-  simProcessRunValue = process_run();
+  /* Let Contiki execute one or a part of the process_run()-function via the thread.
+  	This call stores the process_run() return value */
+  cooja_mt_exec(&process_run_thread);
 
   /* Let all simulation interfaces act before returning to java */
   doActionsAfterTick();
