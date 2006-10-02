@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ContikiRadio.java,v 1.3 2006/10/02 15:18:55 fros4943 Exp $
+ * $Id: ContikiRadio.java,v 1.4 2006/10/02 15:38:44 fros4943 Exp $
  */
 
 package se.sics.cooja.contikimote.interfaces;
@@ -307,7 +307,12 @@ public class ContikiRadio extends Radio implements ContikiMoteInterface {
       transmitting = true;
       int size = myMoteMemory.getIntValueOf("simOutSize");
       packetFromMote = myMoteMemory.getByteArray("simOutDataBuffer", size);
-      transmissionEndTime = myMote.getSimulation().getSimulationTime() + 100; // TODO What's the duration?
+
+      // Assuming sending at 19.2 kbps, with manchester-encoding (x2) and 1
+      // bit/byte UART overhead (x9 instead of x8)
+      int duration = (int) ((2 * size * 9) / 19.2); // ms
+      transmissionEndTime = myMote.getSimulation().getSimulationTime()
+          + Math.max(1, duration);
       
       lastEventTime = myMote.getSimulation().getSimulationTime();
       lastEvent = RadioEvent.TRANSMISSION_STARTED;
