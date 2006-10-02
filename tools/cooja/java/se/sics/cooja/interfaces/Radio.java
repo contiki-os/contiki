@@ -1,32 +1,30 @@
 /*
- * Copyright (c) 2006, Swedish Institute of Computer Science.
- * All rights reserved.
- *
+ * Copyright (c) 2006, Swedish Institute of Computer Science. All rights
+ * reserved.
+ * 
  * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in the
- *    documentation and/or other materials provided with the distribution.
- * 3. Neither the name of the Institute nor the names of its contributors
- *    may be used to endorse or promote products derived from this software
- *    without specific prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE INSTITUTE AND CONTRIBUTORS ``AS IS'' AND
- * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
- * ARE DISCLAIMED.  IN NO EVENT SHALL THE INSTITUTE OR CONTRIBUTORS BE LIABLE
- * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
- * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
- * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
- * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
- * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
- * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
- * SUCH DAMAGE.
- *
- * $Id: Radio.java,v 1.1 2006/08/21 12:12:59 fros4943 Exp $
+ * modification, are permitted provided that the following conditions are met:
+ * 1. Redistributions of source code must retain the above copyright notice,
+ * this list of conditions and the following disclaimer. 2. Redistributions in
+ * binary form must reproduce the above copyright notice, this list of
+ * conditions and the following disclaimer in the documentation and/or other
+ * materials provided with the distribution. 3. Neither the name of the
+ * Institute nor the names of its contributors may be used to endorse or promote
+ * products derived from this software without specific prior written
+ * permission.
+ * 
+ * THIS SOFTWARE IS PROVIDED BY THE INSTITUTE AND CONTRIBUTORS ``AS IS'' AND ANY
+ * EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE INSTITUTE OR CONTRIBUTORS BE LIABLE FOR ANY
+ * DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+ * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ * 
+ * $Id: Radio.java,v 1.2 2006/10/02 15:10:57 fros4943 Exp $
  */
 
 package se.sics.cooja.interfaces;
@@ -35,99 +33,94 @@ import se.sics.cooja.*;
 
 /**
  * A Radio represents a mote radio transceiver. An implementation should notify
- * all observers both when packets are received and transmitted. The static
- * constants should be used for describing the radio status when the observers
- * are notified.
+ * all observers both when packets are received and transmitted.
  * 
- * @see #SENT_NOTHING
- * @see #SENT_SOMETHING
- * @see #HEARS_NOTHING
- * @see #HEARS_PACKET
- * @see #HEARS_NOISE
  * @author Fredrik Osterlind
  */
 @ClassDescription("Packet Radio")
 public abstract class Radio extends MoteInterface {
 
   /**
-   * This radio has not sent anything last tick.
+   * Events that radios should notify observers about.
    */
-  public static final int SENT_NOTHING = 1;
+  public enum RadioEvent {
+    UNKNOWN, 
+    HW_OFF, HW_ON, 
+    RECEPTION_STARTED, RECEPTION_INTERFERED, RECEPTION_FINISHED, 
+    TRANSMISSION_STARTED, TRANSMISSION_FINISHED
+  }
 
   /**
-   * This radio has sent something last tick.
+   * Returns last significant event at this radio. Method may for example be
+   * used to learn the reason when a radio notifies a change to observers.
+   * 
+   * @return Last radio event
    */
-  public static final int SENT_SOMETHING = 2;
+  public abstract RadioEvent getLastEvent();
 
   /**
-   * This radio is not hearing anything.
+   * @return Last packet data transmitted, or currently being transmitted, from
+   *         this radio.
    */
-  public static final int HEARS_NOTHING = 1;
+  public abstract byte[] getLastPacketTransmitted();
 
   /**
-   * This radio is hearing exactly one packet right now.
-   */
-  public static final int HEARS_PACKET = 2;
-
-  /**
-   * This radio is hearing a lot of noise right now (may be several packets).
-   */
-  public static final int HEARS_NOISE = 3;
-
-  /**
-   * @return Last packet data sent from this radio.
-   */
-  public abstract byte[] getLastPacketSent();
-
-  /**
-   * @return Last packet data received by this radio.
+   * @return Last packet data received, or currently being received, by this
+   *         radio.
    */
   public abstract byte[] getLastPacketReceived();
 
   /**
-   * Send given packet data to this radio. The radio may or may not receive the
-   * data correctly depending on the current listen state.
+   * Receive given packet in given time. If reception is not interfered during
+   * this time, the packet will be delivered ok.
    * 
    * @param data
+   *          Packet data
+   * @param endTime
+   *          Time (ms) when reception is finished
    */
-  public abstract void receivePacket(byte[] data);
+  public abstract void receivePacket(byte[] data, int endTime);
 
   /**
-   * @return Current send state
-   * @see #SENT_NOTHING
-   * @see #SENT_SOMETHING
+   * Returns true if this radio is transmitting, or just finished transmitting,
+   * data.
+   * 
+   * @see #getLastPacketTransmitted()
+   * @return True if radio is transmitting data
    */
-  public abstract int getSendState();
+  public abstract boolean isTransmitting();
 
   /**
-   * @return Current listen state
-   * 
-   * @see #setListenState(int)
-   * @see #HEARS_NOTHING
-   * @see #HEARS_PACKET
-   * @see #HEARS_NOISE
+   * @return Transmission end time if any transmission active
    */
-  public abstract int getListenState();
-  
+  public abstract int getTransmissionEndTime();
+
   /**
-   * Changes listen state to given state
-   * @param newState
-   *          New listen state
-   *          
-   * @see #getListenState()
-   * @see #HEARS_NOTHING
-   * @see #HEARS_PACKET
-   * @see #HEARS_NOISE
-   */
-  public abstract void setListenState(int newState);
-  
-  /**
-   * Advances listen state one step. If listen state was 'hears nothing', it
-   * will become 'hears packet'. If it was 'hears packet', it will become 'hears
-   * noise'. If it was 'hears noise', it will stay that way.
+   * Returns true if this radio is receiving data.
    * 
-   * @see #getListenState()
+   * @see #getLastPacketReceived()
+   * @return True if radio is receiving data
    */
-  public abstract void advanceListenState();
+  public abstract boolean isReceiving();
+
+  /**
+   * If any packet has been received but not yet taken care of, this packet will
+   * be removed. This method can be used to simulate significant interference
+   * during transmissions.
+   */
+  public abstract void interferReception();
+
+  /**
+   * @return Current surrounding signal strength
+   */
+  public abstract double getCurrentSignalStrength();
+
+  /**
+   * Sets surrounding signal strength.
+   * 
+   * @param signalStrength
+   *          Current surrounding signal strength
+   */
+  public abstract void setCurrentSignalStrength(double signalStrength);
 
 }
