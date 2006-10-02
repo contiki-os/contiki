@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: radio-arch.c,v 1.1 2006/08/21 12:11:20 fros4943 Exp $
+ * $Id: radio-arch.c,v 1.2 2006/10/02 15:06:12 fros4943 Exp $
  */
 
 #include "dev/radio-arch.h"
@@ -40,109 +40,56 @@
 #include "net/uip.h"
 #include "net/uip-fw.h"
 #include "sys/etimer.h"
+#include "sys/cooja_mt.h"
 
 #include "sys/log.h"
 
 const struct simInterface radio_interface;
 
 // COOJA variables
-char simReceivedPacket;
-char simSentPacket;
-char simReceivedPacketData[UIP_BUFSIZE];
-char simSentPacketData[UIP_BUFSIZE];
-int simSentPacketSize;
-int simReceivedPacketSize;
-char simEtherBusy;
-int retryCounter;
+char simTransmitting;
+char simReceiving;
+
+char simInDataBuffer[UIP_BUFSIZE];
+int simInSize;
+char simOutDataBuffer[UIP_BUFSIZE];
+int simOutSize;
+
 char simRadioHWOn = 1;
-
-
-// Ether process
-PROCESS(ether_process, "Simulated Ether");
-
-PROCESS_THREAD(ether_process, ev, data)
-{
-  static struct etimer send_timer;
-
-  PROCESS_BEGIN();
-
-  // All outgoing messages pass through this process
-  // By using the COOJA variables simEtherBusy and !!!!TODO signalstrength!!!!
-  // this may be used to imitate a simple MAC protocol.
-  while(1) {
-    PROCESS_WAIT_EVENT();
-
-    // MAC protocol imitiation
-    // (this process is polled from simDoSend())
-
-    // Confirm we actually have data to send and radio hardware is on
-    if (simRadioHWOn && simSentPacketSize > 0) {
-
-      // Wait some random time to avoid initial collisions
-	  // MAC uses external random generator to get stochastic radio behaviour
-      etimer_set(&send_timer, rand() % 20);
-      PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&send_timer));
-
-      retryCounter = 0;
-      while (simEtherBusy && retryCounter < 5) {
-	retryCounter++;
-
-	// Wait some random time hoping ether will free
-	// MAC uses external random generator to get stochastic radio behaviour
-	etimer_set(&send_timer, rand() % 20);
-	PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&send_timer));
-      }
-
-      if (simEtherBusy) {
-		log_message("MAC layer skipping packet", "");
-      } else {
-	// Tell COOJA about our new packet
-	simSentPacket = 1;
-      }
-    }
-  }
-
-  PROCESS_END();
-}
-
+int simSignalStrength;
 
 /*-----------------------------------------------------------------------------------*/
 static void
 doInterfaceActionsBeforeTick(void)
 {
-  // Handle incoming network packets if any
-  if (simReceivedPacket) {
-
-
-    // If hardware is turned off, just remove packet
-    if (!simRadioHWOn) {
-      simReceivedPacket = 0;
-      simReceivedPacketSize = 0;
-      return;
-    }
-
-    // Reset flag
-    simReceivedPacket = 0;
-
-    if (simReceivedPacketSize == 0) {
-      fprintf(stderr, "simReceivedPacketSize == 0: Didn't I receive a packet?\n");
-      return;
-    }
-
-    // Copy incoming data to correct buffers and call handling routines
-    uip_len = simReceivedPacketSize;
-
-    if(uip_len > UIP_BUFSIZE) {
-      fprintf(stderr, "doInterfaceActionsBeforeTick>> uip_len too large - dropping\n");
-      uip_len = 0;
-    } else {
-      memcpy(&uip_buf[UIP_LLH_LEN], &simReceivedPacketData[0], simReceivedPacketSize);
-      simReceivedPacketSize = 0;
-
-      // Handle new packet
-      tcpip_input();
-    }
+  // If radio is turned off, do nothing
+  if (!simRadioHWOn) {
+    simInSize = 0;
+    return;
   }
+  
+  // If no incoming radio data, do nothing
+  if (simInSize == 0) {
+    return;
+  }
+  
+  // Busy-wait while receiving (in main file)
+  while (simReceiving) {
+    busyWaitNext = 1;
+    return;
+  }
+  
+  // Check size of received packet
+  if (simInSize > UIP_BUFSIZE) {
+    // Drop packet by not delivering
+    return;
+  }
+  
+  // Hand over new packet to uIP
+  uip_len = simInSize;
+  memcpy(&uip_buf[UIP_LLH_LEN], &simInDataBuffer[0], simInSize);
+  tcpip_input();
+  simInSize = 0;
 }
 
 /*-----------------------------------------------------------------------------------*/
@@ -155,30 +102,54 @@ doInterfaceActionsAfterTick(void)
 u8_t
 simDoSend(void)
 {
-  // If hardware is turned off, just remove packet
+  // If radio is turned off, do nothing
   if (!simRadioHWOn) {
-    // Should we reset uip_len if radio is off?
+    // TODO Should we reset uip_len if radio is off?
     uip_len = 0;
     return UIP_FW_DROPPED;
   }
-
-  // If outgoing data, but too large, drop it
+  
+  // Drop packet if data size too large
   if(uip_len > UIP_BUFSIZE) {
-    fprintf(stderr, "simDoSend>> uip_len too large - dropping\n");
     uip_len = 0;
     return UIP_FW_TOOLARGE;
   }
-
-  // If outgoing data, back it up, and wake ether process
-  if (uip_len > 0) {
-    // Backup packet data/size
-    memcpy(&simSentPacketData[0], &uip_buf[UIP_LLH_LEN], uip_len);
-    simSentPacketSize = uip_len;
-
-    process_poll(&ether_process);
-    return UIP_FW_OK;
+  
+  // Drop packet if no data length
+  if (uip_len <= 0) {
+    return UIP_FW_ZEROLEN;
   }
-  return UIP_FW_ZEROLEN;
+  
+  // - Initiate transmission -
+  simTransmitting = 1;
+  
+  // Copy packet data to temporary storage
+  memcpy(&simOutDataBuffer[0], &uip_buf[UIP_LLH_LEN], uip_len);
+  simOutSize = uip_len;
+  
+  // Busy-wait while we are receiving
+  while (simReceiving) {
+    cooja_mt_yield();
+  }
+	
+  // Busy-wait until ether is ready, or die (MAC imitation)
+  int retries=0;
+  /*	while (retries < 5 && simSignalStrength > -80) {
+  // TODO Retry and signal strength threshold values?
+  retries++;
+  printf("WAITING FOR ETHER! (null)\n");
+  cooja_mt_yield();
+  }
+  if (simSignalStrength > -80) {
+  return UIP_FW_DROPPED;
+  }
+  */	
+  // Busy-wait while transmitting
+  while (simTransmitting) {
+    cooja_mt_yield();
+  }
+  
+  return UIP_FW_OK;
 }
 /*-----------------------------------------------------------------------------------*/
 /**

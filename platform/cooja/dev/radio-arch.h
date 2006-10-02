@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: radio-arch.h,v 1.1 2006/08/21 12:11:18 fros4943 Exp $
+ * $Id: radio-arch.h,v 1.2 2006/10/02 15:06:12 fros4943 Exp $
  */
 
 #ifndef __RADIO_ARCH_H__
@@ -35,7 +35,7 @@
 #include "contiki.h"
 #include "net/uip.h"
 
-PROCESS_NAME(ether_process);
 u8_t simDoSend(void);
+
 
 #endif /* __RADIO_ARCH_H__ */
