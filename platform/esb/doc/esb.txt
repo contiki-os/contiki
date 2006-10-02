@@ -50,7 +50,7 @@ When cygwin is installed there should be a cygwin icon that starts
 up a cygwin bash when clicked on. Whenever it is time to compile and
 send programs to the ESB nodes it will be done from a cygwin shell.
 
-\subsection winintro-installing-editor C programming editor
+\subsubsection winintro-installing-editor C programming editor
 
 If you do not already have a nice programming editor it is a good
 idea to download and install one. The Crimson editor is a nice
@@ -63,7 +63,7 @@ http://www.crimsoneditor.com/
 The editor is useful both when editing C programs and when
 modifying scripts and configuration files.
 
-\subsection winintro-installing-compiler MSP430 Compiler and tools
+\subsubsection winintro-installing-compiler MSP430 Compiler and tools
 
 A compiler is needed to compile the programs to the MSP430
 microprocessor that is used on the ESB sensor nodes. Download and
@@ -89,7 +89,7 @@ home directory
 If your home directory is located elsewhere you can find it by
 starting cygwin and running \c cd followed by \c pwd.
 
-\subsection winintro-installing-contiki The Contiki operating system, including examples
+\subsubsection winintro-installing-contiki The Contiki operating system, including examples
 
 When programming the ESB sensor nodes it is very useful to have an
 operating system that takes care of some of the low-level tasks and
@@ -122,7 +122,7 @@ need to delete <tt>cygwin1.dll</tt> from the MSP430 GCC toolchain
 Connect a node and turn it on. Upload the test application by calling
 <tt>make beeper.u</tt>.
 
-\subsection winintro-testing-development Development tools
+\subsubsection winintro-testing-development Development tools
 
 - <tt>make \<SPEC\></tt> will compile and make a executable file ready
 for sending to the ESB nodes. Depending on the \c SPEC it might even
@@ -131,7 +131,7 @@ node. Typically you would write things like <tt>"make beeper.u"</tt>
 to get the file <tt>beeper.c</tt> compiled, linked and sent out to the
 ESB node
 
-\subsection winintro-testing-shell Some basic shell commands
+\subsubsection winintro-testing-shell Some basic shell commands
 
 - <tt> cd \<DIR\></tt> change to a specified directory (same as in DOS)
 - <tt> pwd \<DIR\></tt> shows your current directory
