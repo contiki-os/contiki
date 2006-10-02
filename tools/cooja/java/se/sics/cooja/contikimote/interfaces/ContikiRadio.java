@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ContikiRadio.java,v 1.2 2006/09/26 13:08:05 fros4943 Exp $
+ * $Id: ContikiRadio.java,v 1.3 2006/10/02 15:18:55 fros4943 Exp $
  */
 
 package se.sics.cooja.contikimote.interfaces;
@@ -41,21 +41,27 @@ import se.sics.cooja.contikimote.ContikiMoteInterface;
 import se.sics.cooja.interfaces.Radio;
 
 /**
- * This class represents a radio transciever.
+ * This class represents a radio transciever. In order to simulate different
+ * transmission rates, the underlying Contiki system can be locked in either
+ * transmission or reception states (using multi-threading). When a transmission
+ * is initiated, it will automatically lock the Contiki system. When a packet is
+ * received by this radio the Contiki system, the entitiy transfering the packet may explicitly
+ * lock the radio in receiving mode. After some time it should then deliver the
+ * packet.
  * 
  * It needs read/write access to the following core variables:
  * <ul>
- * <li>char simSentPacket (1=mote has new outgoing data, else no new outgoing
- * data)
- * <li>char simReceivedPacket (1=mote has new incoming data, else no new
- * incoming data)
- * <li>char simEtherBusy (1=ether is busy, MAC may try to resend later, else
- * not busy)
- * <li>int simReceivedPacketSize (size of new received data packet)
- * <li>int simSentPacketSize (size of new sent data packet)
- * <li>byte[] simSentPacketData (data of new sent data packet)
- * <li>byte[] simReceivedPacketData (data of new received data packet)
+ * <li>char simTransmitting (1=mote radio is transmitting)
+ * <li>char simReceiving (1=mote radio is receiving)
+ * <p>
+ * <li>int simInSize (size of received data packet)
+ * <li>byte[] simInDataBuffer (data of received data packet)
+ * <p>
+ * <li>int simOutSize (size of transmitted data packet)
+ * <li>byte[] simOutDataBuffer (data of transmitted data packet)
+ * <p>
  * <li>char simRadioHWOn (radio hardware status (on/off))
+ * <li>int simSignalStrength (heard radio signal strength)
  * </ul>
  * <p>
  * Dependency core interfaces are:
@@ -63,13 +69,6 @@ import se.sics.cooja.interfaces.Radio;
  * <li>radio_interface
  * </ul>
  * <p>
- * This observable is changed and notifies observers whenever either the send
- * status or listen status is changed. If current listen status is HEARS_PACKET
- * just before a mote tick, the current packet data is transferred to the core.
- * Otherwise no data will be transferred. If core has sent a packet, current
- * sent status will be set to SENT_SOMETHING when returning from the mote tick
- * that sent the packet. This status will be reset to SENT_NOTHING just before
- * next tick.
  * 
  * @author Fredrik Osterlind
  */
@@ -86,18 +85,24 @@ public class ContikiRadio extends Radio implements ContikiMoteInterface {
 
   private final boolean RAISES_EXTERNAL_INTERRUPT;
 
-  private double energyActiveRadioPerTick = -1;
-  
-  private int mySendState = SENT_NOTHING;
-  private int myListenState = HEARS_NOTHING;
+  private double energyListeningRadioPerTick = -1;
 
   private byte[] packetToMote = null;
+
   private byte[] packetFromMote = null;
 
   private boolean radioOn = true;
-  
-  private double myEnergyConsumption=0.0;
 
+  private double myEnergyConsumption = 0.0;
+
+  private boolean transmitting = false;
+
+  private int transmissionEndTime = 0;
+  private int receptionEndTime = 0;
+
+  private RadioEvent lastEvent = RadioEvent.UNKNOWN;
+  private int lastEventTime = 0;
+  
   /**
    * Creates an interface to the radio at mote.
    * 
@@ -108,21 +113,27 @@ public class ContikiRadio extends Radio implements ContikiMoteInterface {
    */
   public ContikiRadio(Mote mote) {
     // Read class configurations of this mote type
-    ENERGY_CONSUMPTION_RADIO_mA = mote.getType().getConfig().getDoubleValue(ContikiRadio.class, "ACTIVE_CONSUMPTION_mA");
-    RAISES_EXTERNAL_INTERRUPT = mote.getType().getConfig().getBooleanValue(ContikiRadio.class, "EXTERNAL_INTERRUPT_bool");
+    ENERGY_CONSUMPTION_RADIO_mA = mote.getType().getConfig().getDoubleValue(
+        ContikiRadio.class, "ACTIVE_CONSUMPTION_mA");
+    RAISES_EXTERNAL_INTERRUPT = mote.getType().getConfig().getBooleanValue(
+        ContikiRadio.class, "EXTERNAL_INTERRUPT_bool");
 
     this.myMote = mote;
     this.myMoteMemory = (SectionMoteMemory) mote.getMemory();
-    
-    if (energyActiveRadioPerTick < 0)
-      energyActiveRadioPerTick = ENERGY_CONSUMPTION_RADIO_mA * mote.getSimulation().getTickTimeInSeconds();
+
+    // Calculate energy consumption of a listening radio
+    if (energyListeningRadioPerTick < 0)
+      energyListeningRadioPerTick = ENERGY_CONSUMPTION_RADIO_mA
+          * mote.getSimulation().getTickTimeInSeconds();
+
+    radioOn = myMoteMemory.getByteValueOf("simRadioHWOn") == 1;
   }
 
   public static String[] getCoreInterfaceDependencies() {
     return new String[] { "radio_interface" };
   }
 
-  public byte[] getLastPacketSent() {
+  public byte[] getLastPacketTransmitted() {
     return packetFromMote;
   }
 
@@ -130,150 +141,209 @@ public class ContikiRadio extends Radio implements ContikiMoteInterface {
     return packetToMote;
   }
   
-  public void receivePacket(byte[] data) {
+  public boolean isTransmitting() {
+    return transmitting;
+  }
+
+  public int getTransmissionEndTime() {
+    return transmissionEndTime;
+  }
+  
+  public boolean isReceiving() {
+    if (isLockedAtReceiving())
+      return true;
+    
+    return myMoteMemory.getIntValueOf("simInSize") != 0;
+  }
+  
+  public RadioEvent getLastEvent() {
+    return lastEvent;
+  }
+  
+  /**
+   * @return True if locked at transmitting
+   */
+  private boolean isLockedAtTransmitting() {
+    return myMoteMemory.getByteValueOf("simTransmitting") == 1;
+  }
+
+  /**
+   * @return True if locked at receiving
+   */
+  private boolean isLockedAtReceiving() {
+    return myMoteMemory.getByteValueOf("simReceiving") == 1;
+  }
+
+  /**
+   * Locks underlying Contiki system in receiving mode. This may, but does not
+   * have to, be used during a simulated data transfer that takes longer than
+   * one tick to complete. The system is unlocked by delivering the received
+   * data to the mote.
+   * 
+   * @see #receivePacket(byte[])
+   */
+  private void lockInReceivingMode() {
+    // If mote is inactive, try to wake it up
+    if (myMote.getState() != Mote.State.ACTIVE) {
+      if (RAISES_EXTERNAL_INTERRUPT)
+        myMote.setState(Mote.State.ACTIVE);
+      if (myMote.getState() != Mote.State.ACTIVE)
+        return;
+    }
+
+    // Lock core radio in receiving loop
+    myMoteMemory.setByteValueOf("simReceiving", (byte) 1);
+    
+    lastEventTime = myMote.getSimulation().getSimulationTime();
+    lastEvent = RadioEvent.RECEPTION_STARTED;
+    this.setChanged();
+    this.notifyObservers();
+  }
+
+  public void receivePacket(byte[] data, int endTime) {
+    lockInReceivingMode();
+
+    receptionEndTime = endTime;
     packetToMote = data;
   }
 
-  public int getSendState() {
-    return mySendState;
-  }
-
-  public int getListenState() {
-    return myListenState;
-  }
-
-  public void setListenState(int newStatus) {
-    if (newStatus != myListenState) {
-      myListenState = newStatus;
-      this.setChanged();
-      this.notifyObservers(myMote.getInterfaces().getPosition());
+  private void deliverPacket() {
+    // If mote is inactive, try to wake it up
+    if (myMote.getState() != Mote.State.ACTIVE) {
+      if (RAISES_EXTERNAL_INTERRUPT)
+        myMote.setState(Mote.State.ACTIVE);
+      if (myMote.getState() != Mote.State.ACTIVE)
+        return;
     }
+    
+    // Unlock (if locked)
+    myMoteMemory.setByteValueOf("simReceiving", (byte) 0);
 
-    // If mote is inactive, wake it up
-    if (RAISES_EXTERNAL_INTERRUPT)
-      myMote.setState(Mote.State.ACTIVE);
+    // Set data
+    myMoteMemory.setIntValueOf("simInSize", packetToMote.length);
+    myMoteMemory.setByteArray("simInDataBuffer", packetToMote);
+
+    lastEventTime = myMote.getSimulation().getSimulationTime();
+    lastEvent = RadioEvent.RECEPTION_FINISHED;
+    this.setChanged();
+    this.notifyObservers();
   }
 
-  public void advanceListenState() {
-    if (myListenState == HEARS_NOTHING) {
-      setListenState(HEARS_PACKET);
-    } else
-      setListenState(HEARS_NOISE);
+  
+  /**
+   * Resets receive status. If a packet, or part of a packet, has been received
+   * but not yet taken care of in the Contiki system, this will be removed.
+   */
+  public void interferReception() {
+    // Unlock (if locked)
+    myMoteMemory.setByteValueOf("simReceiving", (byte) 0);
+
+    // Reset data
+    myMoteMemory.setIntValueOf("simInSize", 0);
+
+    lastEvent = RadioEvent.RECEPTION_INTERFERED;
+    lastEventTime = myMote.getSimulation().getSimulationTime();
+    this.setChanged();
+    this.notifyObservers();
   }
 
+  public double getCurrentSignalStrength() {
+    return myMoteMemory.getIntValueOf("simSignalStrength");
+  }
+
+  public void setCurrentSignalStrength(double signalStrength) {
+    myMoteMemory.setIntValueOf("simSignalStrength", (int) signalStrength);
+  }
+  
   public void doActionsBeforeTick() {
-    // If radio hardware is turned off, we don't need to do anything..
+    // Do nothing
+
+    if (isLockedAtReceiving() && myMote.getSimulation().getSimulationTime() >= receptionEndTime)
+      deliverPacket();
+  }
+
+  public void doActionsAfterTick() {
+    // Check if radio hardware status changed
+    if (radioOn != (myMoteMemory.getByteValueOf("simRadioHWOn") == 1)) {
+      // Radio changed
+      radioOn = !radioOn;
+      
+      if (!radioOn) {
+        // Reset status
+        myMoteMemory.setByteValueOf("simReceiving", (byte) 0);
+        myMoteMemory.setIntValueOf("simInSize",  0);
+        myMoteMemory.setByteValueOf("simTransmitting", (byte) 0);
+        myMoteMemory.setIntValueOf("simOutSize",  0);
+        transmitting = false;
+        lastEvent = RadioEvent.HW_OFF;
+      } else
+        lastEvent = RadioEvent.HW_ON;
+        
+      lastEventTime = myMote.getSimulation().getSimulationTime();
+      this.setChanged();
+      this.notifyObservers();
+    }
     if (!radioOn) {
       myEnergyConsumption = 0.0;
       return;
     }
-    myEnergyConsumption = energyActiveRadioPerTick;
+    myEnergyConsumption = energyListeningRadioPerTick;
 
-    // Set ether status
-    if (getListenState() == HEARS_PACKET ||
-        getListenState() == HEARS_NOISE ||
-        getSendState() == SENT_SOMETHING) {
-      myMoteMemory.setByteValueOf("simEtherBusy", (byte) 1);
-    } else {
-      myMoteMemory.setByteValueOf("simEtherBusy", (byte) 0);
-    }
-
-    if (getListenState() == HEARS_NOTHING) {
-      // Haven't heard anything, nothing to do
-    } else if (getListenState() == HEARS_PACKET) {
-      // Heard only one packet, transfer to mote ok
-      myMoteMemory.setByteValueOf("simReceivedPacket", (byte) 1);
-      myMoteMemory.setIntValueOf("simReceivedPacketSize", packetToMote.length);
-      myMoteMemory.setByteArray("simReceivedPacketData", packetToMote);
-    } else if (getListenState() == HEARS_NOISE) {
-      // Heard several packets or noise, transfer failed
+    // Are we transmitting but should stop?
+    if (transmitting && myMote.getSimulation().getSimulationTime() >= transmissionEndTime) {
+      myMoteMemory.setByteValueOf("simTransmitting", (byte) 0);
+      myMoteMemory.setIntValueOf("simOutSize", 0);
+      transmitting = false;
+      
+      lastEventTime = myMote.getSimulation().getSimulationTime();
+      lastEvent = RadioEvent.TRANSMISSION_FINISHED;
+      // TODO Memory consumption of transmitted packet?
+      this.setChanged();
+      this.notifyObservers();
     }
     
-    // Reset send flag
-    setSendStatus(SENT_NOTHING);
-  }
-
-  public void doActionsAfterTick() {
-    // Check new radio hardware status
-    if (myMoteMemory.getByteValueOf("simRadioHWOn") == 1) {
-      radioOn = true;
-    } else {
-      radioOn = false;
-      return;
-    }
-
-    // Reset listen flag
-    setListenState(HEARS_NOTHING);
-
-    if (fetchPacketFromCore()) {
-      setSendStatus(SENT_SOMETHING);
-    }
-  }
-
-  private void setSendStatus(int newStatus) {
-    if (newStatus != mySendState) {
-      mySendState = newStatus;
-      this.setChanged();
-      this.notifyObservers(myMote.getInterfaces().getPosition());
-    }
-  }
-
-  private boolean fetchPacketFromCore() {
-    if (myMoteMemory.getByteValueOf("simSentPacket") == 1) {
-      // TODO Increase energy consumption, we are sending a packet...
+    // Check if a new transmission should be started
+    if (!transmitting && myMoteMemory.getByteValueOf("simTransmitting") == 1) {
+      transmitting = true;
+      int size = myMoteMemory.getIntValueOf("simOutSize");
+      packetFromMote = myMoteMemory.getByteArray("simOutDataBuffer", size);
+      transmissionEndTime = myMote.getSimulation().getSimulationTime() + 100; // TODO What's the duration?
       
-      myMoteMemory.setByteValueOf("simSentPacket", (byte) 0);
-
-      int size = myMoteMemory.getIntValueOf("simSentPacketSize");
-
-      packetFromMote = myMoteMemory.getByteArray("simSentPacketData", size);
-
-      myMoteMemory.setIntValueOf("simSentPacketSize", 0);
-
-      return true;
+      lastEventTime = myMote.getSimulation().getSimulationTime();
+      lastEvent = RadioEvent.TRANSMISSION_STARTED;
+      this.setChanged();
+      this.notifyObservers();
     }
-    return false;
   }
-  
+
   public JPanel getInterfaceVisualizer() {
     // Location
     JPanel panel = new JPanel();
     panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
     
-    final JLabel listenLabel = new JLabel();
-    final JLabel sendLabel = new JLabel();
+    final JLabel statusLabel = new JLabel("");
+    final JLabel lastEventLabel = new JLabel("");
     
-    if (getListenState() == HEARS_NOISE)
-      listenLabel.setText("Current listen status: hears noise");
-    else if (getListenState() == HEARS_NOTHING)
-      listenLabel.setText("Current listen status: hears nothing");
-    else if (getListenState() == HEARS_PACKET)
-      listenLabel.setText("Current listen status: hears a packet");
-    
-    if (getSendState() == SENT_NOTHING)
-      sendLabel.setText("Current sending status: sent nothing");
-    else if (getSendState() == SENT_SOMETHING)
-      sendLabel.setText("Current sending status: sent a packet");
-    
-    panel.add(listenLabel);
-    panel.add(sendLabel);
+    panel.add(statusLabel);
+    panel.add(lastEventLabel);
     
     Observer observer;
     this.addObserver(observer = new Observer() {
       public void update(Observable obs, Object obj) {
-        if (getListenState() == HEARS_NOISE)
-          listenLabel.setText("Current listen status: hears noise");
-        else if (getListenState() == HEARS_NOTHING)
-          listenLabel.setText("Current listen status: hears nothing");
-        else if (getListenState() == HEARS_PACKET)
-          listenLabel.setText("Current listen status: hears a packet");
-        
-        if (getSendState() == SENT_NOTHING)
-          sendLabel.setText("Current sending status: sent nothing");
-        else if (getSendState() == SENT_SOMETHING)
-          sendLabel.setText("Current sending status: sent a packet");
+        if (isTransmitting())
+          statusLabel.setText("Transmitting packet now!");
+        else if (isReceiving())
+          statusLabel.setText("Receiving packet now!");
+        else if (radioOn)
+          statusLabel.setText("Listening...");
+        else
+          statusLabel.setText("HW turned off");
+
+        lastEventLabel.setText("Last event (time=" + lastEventTime + "): " + lastEvent);
       }
     });
+
+    observer.update(null, null);
     
     // Saving observer reference for releaseInterfaceVisualizer
     panel.putClientProperty("intf_obs", observer);
