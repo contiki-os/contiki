@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: simEnvChange.h,v 1.1 2006/08/21 12:11:20 fros4943 Exp $
+ * $Id: simEnvChange.h,v 1.2 2006/10/02 15:05:49 fros4943 Exp $
  */
 
 #ifndef __SIMENVCHANGE_H__
@@ -42,6 +42,9 @@ struct simInterface {
 extern int simProcessRunValue;
 extern int simEtimerPending;
 extern int simNextExpirationTime;
+
+// Variable that if set to != 0, immediately yields before then next process_run() call
+extern char busyWaitNext;
 
 // Definition for registering an interface
 #define SIM_INTERFACE(name, doActionsBeforeTick, doActionsAfterTick) \
