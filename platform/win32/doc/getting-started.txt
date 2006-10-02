@@ -1,0 +1,49 @@
+/** \addtogroup platform
+ * @{ **/
+
+/**
+\defgroup win32 Microsoft Windows
+\author Oliver Schmidt <ol.sc@web.de>
+\section win32-getting-started Getting started
+
+\note Network I/O does not work yet.
+
+The Microsoft Windows port of Contiki is built using the Microsoft
+Visual C++ compiler which is available for free from Microsoft's web
+page (registration required though).   Follow the instructions on the
+link below carefully:
+http://msdn.microsoft.com/vstudio/express/visualc/usingpsdk/default.aspx
+
+If you intend to around play with network I/O, get Ethereal:
+- It's a great free network analyzer.
+- It uses (and therefore installs) WinPcap that is used by Contiki network I/O
+too.
+http://www.ethereal.com/download.html
+
+Doubleclicking contiki-2.x\\platform\\win32\\contiki.sln should bring up the
+IDE and load the Contiki 'solution'. This takes some time if done for the
+first time as the source is scanned and quite some meta data gets
+generated.
+
+Select 'Build' and then 'Run' from the menu. (Or 'Build solution' from
+the 'Build' menu and press F5 to run/debug the program.) This should
+bring up Contiki inside a new command prompt window.
+
+Depending on your settings for command prompt windows the mouse
+should work right away with Contiki.
+
+Resizing the command prompt window running Contiki is handled by
+Contiki.
+
+Beside the Contiki Quit menu entry you can safely use Ctrl-C for a clean
+exit. You'll notice that when running Contiki from an open command
+prompt window (that therefore doesn't close on Contiki exit): The caption,
+colors, cursor, ... are restored.
+
+@{
+
+*/
+
+
+/** @} */
+/** @} */
