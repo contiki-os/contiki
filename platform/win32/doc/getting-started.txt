@@ -3,6 +3,10 @@
 
 /**
 \defgroup win32 Microsoft Windows
+
+It is possible to run an entire Contiki system as a program under
+Microsoft Windows.
+
 \author Oliver Schmidt <ol.sc@web.de>
 \section win32-getting-started Getting started
 
