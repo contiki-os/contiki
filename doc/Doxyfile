@@ -78,7 +78,7 @@ INPUT                  = contiki-mainpage.txt net.txt dev.txt \
                          uip-doc.txt \
                          code-style.txt \
                          examples.txt \
-                         uip-doc.txt \
+                         uip-doc.txt build-system.txt \
                          ../apps/program-handler/program-handler.c \
                          ../core/sys/process.c \
                          ../core/sys/process.h \
@@ -143,12 +143,13 @@ INPUT                  = contiki-mainpage.txt net.txt dev.txt \
                          ../core/lib/crc16.c \
 			 ../platform/esb/doc/esb.txt \
 			 ../platform/esb/doc/slipintro.txt \
-			 ../platform/esb/doc/winintro.txt \
 			 ../platform/esb/dev/beep.h \
 			 ../platform/esb/dev/eeprom.c \
 			 ../platform/esb/dev/rs232.h \
 			 ../platform/esb/dev/rs232.c \
-			 ../platform/esb/dev/tr1001.c 
+			 ../platform/esb/dev/tr1001.c \
+			 ../platform/win32/doc/getting-started.txt
+
 FILE_PATTERNS          = 
 RECURSIVE              = NO
 EXCLUDE                = 

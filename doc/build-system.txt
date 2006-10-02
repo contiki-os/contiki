@@ -1,0 +1,101 @@
+/**
+ \defgroup buildsystem The Contiki build system
+
+ .
+ 
+ The Contiki build system is designed to make it easy to compile
+ Contiki applications for either to a hardware platform or into a
+ simulation platform by simply supplying different parameters to the
+ <tt>make</tt> command, without having to edit makefiles or modify
+ the application code.
+
+ The file example project in examples/hello-world/ shows how the
+ Contiki build system works. The <tt>hello-world.c</tt> application
+ can be built into a complete Contiki system by running <tt>make</tt>
+ in the examples/hello-world/ directory. Running <tt>make</tt> without
+ parameters will build a Contiki system using the <tt>native</tt>
+ target. The <tt>native</tt> target is a special Contiki platform that
+ builds an entire Contiki system as a program that runs on the
+ development system. After compiling the application for the
+ <tt>native</tt> target it is possible to run the Contiki system with
+ the application by running the file <tt>hello-world.native</tt>. To
+ compile the application and a Contiki system for the \ref esb "ESB
+ platform" the command <tt>make TARGET=esb</tt> is used. This produces
+ a hello-world.esb file that can be loaded into an ESB board.
+
+ To compile the hello-world application into a stand-alone executable
+ that can be loaded into a running Contiki system, the command
+ <tt>make hello-world.ce</tt> is used. To build an executable file for
+ the ESB platform, <tt>make TARGET=esb hello-world.ce</tt> is run.
+
+ To avoid having to type <tt>TARGET=</tt> every time <tt>make</tt> is
+ run, it is possible to run <tt>make TARGET=esb savetarget</tt> to
+ save the selected target as the default target platform for
+ subsequent invocations of <tt>make</tt>. A file called
+ <tt>Makefile.target</tt> containing the currently saved target is
+ saved in the project's directory.
+
+ \section buildsystem-makefiles Makefiles used in the Contiki build system
+ 
+ The Contiki build system is composed of a number of Makefiles. These
+ are:
+ - <tt>Makefile</tt>: the project's makefile, located in the project directory.
+ - <tt>Makefile.include</tt>: the system-wide Contiki makefile,
+ located in the root of the Contiki source tree.
+ - <tt>Makefile.\$(TARGET)</tt> (where \$(TARGET) is the name of the
+ platform that is currently being built): rules for the specific
+ platform, located in the platform's subdirectory in the platform/ directory.
+ - <tt>Makefile.\$(CPU)</tt> (where \$(CPU) is the name of the CPU or
+ microcontroller architecture used on the platform for which Contiki
+ is built): rules for the CPU architecture, located in the CPU
+ architecture's subdirectory in the cpu/ directory.
+ - <tt>Makefile.\$(APP)</tt> (where \$(APP) is the name of an
+ application in the apps/ directory): rules for applications in the
+ apps/ directories. Each application has its own makefile.
+
+ The Makefile in the project's directory is intentionally simple. It
+ specifies where the Contiki source code resides in the system and
+ includes the system-wide Makefile, <tt>Makefile.include</tt>. The
+ project's makefile can also define in the <tt>APPS</tt> variable a
+ list of applications from the apps/ directory that should be included
+ in the Contiki system. The Makefile used in the hello-world example
+ project looks like this:
+
+ \code
+CONTIKI = ../..
+all: hello-world
+include $(CONTIKI)/Makefile.include
+ \endcode
+ 
+ First, the location of the Contiki source code tree is given by
+ defining the <tt>CONTIKI</tt> variable. Next, the name of the
+ application is defined. Finally, the system-wide
+ <tt>Makefile.include</tt> is included. 
+
+ The <tt>Makefile.include</tt> contains definitions of the C files of
+ the core Contiki system. <tt>Makefile.include</tt> always reside in
+ the root of the Contiki source tree. When <tt>make</tt> is run,
+ <tt>Makefile.include</tt> includes the <tt>Makefile.\$(TARGET)</tt>
+ as well as all makefiles for the applications in the <tt>APPS</tt>
+ list (which is specified by the project's <tt>Makefile</tt>).
+
+ <tt>Makefile.\$(TARGET)</tt>, which is located in the
+ platform/\$(TARGET)/ directory, contains the list of C files that the
+ platform adds to the Contiki system. This list is defined by the
+ <tt>CONTIKI_TARGET_SOURCEFILES</tt> variable. The
+ <tt>Makefile.\$(TARGET)</tt> also includes the
+ <tt>Makefile.\$(CPU)</tt> from the cpu/\$(CPU)/ directory.
+
+ The <tt>Makefile.\$(CPU)</tt> typically contains definitions for the
+ C compiler used for the particular CPU. If multiple C compilers are
+ used, the <tt>Makefile.\$(CPU)</tt> can either contain a conditional
+ expression that allows different C compilers to be defined, or it can
+ be completely overridden by the platform specific makefile
+ <tt>Makefile.\$(TARGET)</tt>. 
+@{
+ */
+
+ /**
+ @}
+ */
+ 

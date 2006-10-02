@@ -20,15 +20,23 @@ available as open source under a BSD-style license. More information
 about Contiki can be found at the Contiki home page:
 http://www.sics.se/~adam/contiki/
 
-\section contiki-mainpage-tcpip TCP/IP support
+\section contiki-mainpage-getting-started Getting started with Contiki
 
-Contiki includes the uIP TCP/IP stack (http://www.sics.se/~adam/uip/)
-that provides Contiki with TCP/IP networking support. uIP provides the
-protocols TCP, UDP, IP, and ARP.
+Contiki is designed to run on many different \ref platform "platforms". It is also
+possible to compile and build both the Contiki system and Contiki
+applications on many different development platforms. 
 
-\sa \ref uip "The uIP TCP/IP stack documentation"
-\sa \ref tcpip "The Contiki/uIP interface"
-\sa \ref psock "Protosockets library"
+See \ref esb-getting-started "Getting started with Contiki for the ESB platform
+
+\section contiki-mainpage-building Building the Contiki system and its applications
+
+ The Contiki build system is designed to make it easy to compile
+ Contiki applications for either to a hardware platform or into a
+ simulation platform by simply supplying different parameters to the
+ <tt>make</tt> command, without having to edit makefiles or modify
+ the application code.
+
+See \ref buildsystem 
 
 \section contiki-mainpage-threads Multi-threading and protothreads
 
@@ -49,5 +57,16 @@ and linked list operations.
 \sa \ref timer "Simple timer library"
 \sa \ref memb "Memory block management"
 \sa \ref list "Linked list library"
+
+\section contiki-mainpage-tcpip TCP/IP support
+
+Contiki includes the uIP TCP/IP stack (http://www.sics.se/~adam/uip/)
+that provides Contiki with TCP/IP networking support. uIP provides the
+protocols TCP, UDP, IP, and ARP.
+
+\sa \ref uip "The uIP TCP/IP stack documentation"
+\sa \ref tcpip "The Contiki/uIP interface"
+\sa \ref psock "Protosockets library"
+
 
 */
