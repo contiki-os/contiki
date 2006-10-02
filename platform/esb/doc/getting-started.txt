@@ -1,28 +1,18 @@
 /**
-\addtogroup doc
+\addtogroup esb
+\section esb-getting-started Getting started with Contiki for the ESB platform
+
+The ESB is equipped with an MSP430 microcontroller. The first step to
+getting started with Contiki for the ESB is to install the development
+tools for compiling Contiki for the MSP430.
+
+For Windows users, see \ref esb-winintro
+
+
 @{
 */
 
+
 /**
-
-\defgroup getting-started Getting started with Contiki
-@{
-
-\section getting-started-intro Introduction
-
-What is Contiki?
-
-What is its relation to the ESB?
-
-How are programs written for it?
-
-\section getting-started-example An example program - blinker
-
-\subsection getting-started-compiling Compiling blinker
-
-\subsection getting-started-running Running blinker
-
-\subsection getting-started-simulation Running blinker in the simulator
-
-
+@}
 */
