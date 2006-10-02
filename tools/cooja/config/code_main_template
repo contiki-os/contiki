@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: code_main_template,v 1.4 2006/09/29 14:32:15 fros4943 Exp $
+ * $Id: code_main_template,v 1.5 2006/10/02 15:07:33 fros4943 Exp $
  */
 
 /**
@@ -115,6 +115,13 @@ start_process_run_loop(void *data)
 	{
 		/* Always pretend we have processes left while inside process_run() */
 		simProcessRunValue = 1;
+
+		// Busy-wait while receiving
+		while (busyWaitNext) {
+			busyWaitNext--;
+			cooja_mt_yield();
+		}
+
 		simProcessRunValue = process_run();
 
 		/* Yield thread when one process_run has completed */
