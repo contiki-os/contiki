@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: StandardRadioMedium.java,v 1.1 2006/08/21 12:13:13 fros4943 Exp $
+ * $Id: StandardRadioMedium.java,v 1.2 2006/10/02 15:19:28 fros4943 Exp $
  */
 
 package se.sics.cooja.radiomediums;
@@ -218,14 +218,11 @@ public class StandardRadioMedium extends RadioMedium {
       if (selectedMote != null && mote == selectedMote)
         return new Color[]{Color.CYAN};
 
-      if (moteRadio.getSendState() == Radio.SENT_SOMETHING)
+      if (moteRadio.isTransmitting())
         return new Color[]{Color.BLUE};
 
-      if (moteRadio.getListenState() == Radio.HEARS_PACKET)
+      if (moteRadio.isReceiving())
         return new Color[]{Color.GREEN};
-
-      if (moteRadio.getListenState() == Radio.HEARS_NOISE)
-        return new Color[]{Color.RED};
 
       return new Color[]{Color.WHITE};
     }
@@ -322,7 +319,7 @@ public class StandardRadioMedium extends RadioMedium {
 
   private Observer radioDataObserver = new Observer() {
     public void update(Observable radio, Object obj) {
-      if (((Radio) radio).getSendState() == Radio.SENT_SOMETHING) {
+      if (((Radio) radio).getLastEvent() == Radio.RadioEvent.TRANSMISSION_FINISHED) {
         if (!sendingPositions.contains((Position) obj)) {
           sendingPositions.add((Position) obj);
           sendingRadios.add((Radio) radio);
@@ -342,7 +339,7 @@ public class StandardRadioMedium extends RadioMedium {
         // Loop through all sending radios
         for (int sendNr = 0; sendNr < numberSending; sendNr++) {
           Radio sendingRadio = sendingRadios.get(sendNr);
-          byte[] dataToSend = sendingRadio.getLastPacketSent();
+          byte[] dataToSend = sendingRadio.getLastPacketTransmitted();
 
           lastTickConnections[sendNr] = new RadioConnection();
           lastTickConnections[sendNr].setSource(sendingRadios.get(sendNr),
@@ -350,10 +347,8 @@ public class StandardRadioMedium extends RadioMedium {
 
           // Set sending radio unable to receive any more data
           if (RECEIVE_MY_OWN_PACKETS) {
-            sendingRadio.receivePacket(dataToSend);
-            sendingRadio.advanceListenState();
-          } else if (DETECT_MY_OWN_PACKETS) {
-            sendingRadio.setListenState(Radio.HEARS_NOISE);
+            if (sendingRadio.isReceiving())
+              sendingRadio.interferReception();
           }
 
           // Loop through all radios that are listening
@@ -372,25 +367,18 @@ public class StandardRadioMedium extends RadioMedium {
                     dataToSend);
 
                 // If close enough to transmit ok..
-                if (listeningRadio.getListenState() == Radio.HEARS_PACKET) {
+                if (listeningRadio.isReceiving()) {
                   // .. but listening radio already received a packet
-                  listeningRadio.advanceListenState();
-                } else if (listeningRadio.getListenState() == Radio.HEARS_NOISE) {
-                  // .. but listening radio heard interference
-                  listeningRadio.advanceListenState();
+                  listeningRadio.interferReception();
                 } else {
                   // .. send packet
-                  listeningRadio.receivePacket(dataToSend);
-                  listeningRadio.setListenState(Radio.HEARS_PACKET);
+                  listeningRadio.receivePacket(dataToSend, 0);
                 }
               } else if (distance <= INTERFERENCE_RANGE) {
                 // If close enough to sabotage other transmissions..
-                if (listeningRadio.getListenState() == Radio.HEARS_PACKET) {
+                if (listeningRadio.isReceiving()) {
                   // .. and listening radio already received a packet
-                  listeningRadio.advanceListenState();
-                } else {
-                  // .. and listening radio has done nothing sofar
-                  listeningRadio.setListenState(Radio.HEARS_NOISE);
+                  listeningRadio.interferReception();
                 }
               }
               // else too far away
