@@ -30,7 +30,7 @@
  * 
  * Author: Oliver Schmidt <ol.sc@web.de>
  *
- * $Id: ctk-console.c,v 1.4 2006/09/09 23:20:39 oliverschmidt Exp $
+ * $Id: ctk-console.c,v 1.5 2006/10/03 11:27:51 oliverschmidt Exp $
  */
 
 #define WIN32_LEAN_AND_MEAN
@@ -102,6 +102,13 @@ console_init(void)
 void
 console_exit(void)
 {
+  static unsigned char done;
+
+  if(done) {
+    return;
+  }
+  done = 1;
+
   textcolor(saved_color);
   revers(0);
   clrscr();

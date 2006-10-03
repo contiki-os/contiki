@@ -22,6 +22,7 @@
 #define LOG_CONF_ENABLED 1
 #include "sys/log.h"
 CCIF void debug_printf(char *format, ...);
+CCIF void error_exit(char *message);
 
 
 

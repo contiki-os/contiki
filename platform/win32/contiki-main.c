@@ -30,25 +30,35 @@
  * 
  * Author: Oliver Schmidt <ol.sc@web.de>
  *
- * $Id: contiki-main.c,v 1.1 2006/08/14 23:53:55 oliverschmidt Exp $
+ * $Id: contiki-main.c,v 1.2 2006/10/03 11:27:51 oliverschmidt Exp $
  */
 
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 #include <stdio.h>
+#include <stdlib.h>
 
 #include "contiki.h"
+#include "contiki-net.h"
 
 #include "sys/clock.h"
 
 #include "../../apps/directory/directory-dsc.h"
 #include "../../apps/webbrowser/www-dsc.h"
 
-#include "ctk/ctk-conio-service.h"
+#include "sys/etimer.h"
 #include "cfs/cfs-win32.h"
+#include "ctk/ctk-conio-service.h"
+#include "net/wpcap-service.h"
 #include "program-handler.h"
 
-PROCINIT(&ctk_conio_service_process, &ctk_process, &cfs_win32_process, &program_handler_process);
+PROCINIT(&etimer_process,
+	 &cfs_win32_process,
+	 &ctk_conio_service_process,
+	 &ctk_process,
+	 &tcpip_process,
+	 &resolv_process,
+	 &program_handler_process);
 
 /*-----------------------------------------------------------------------------------*/
 void
@@ -76,6 +86,16 @@ log_message(const char *part1, const char *part2)
   debug_printf("%s%s\n", part1, part2);
 }
 /*-----------------------------------------------------------------------------------*/
+void
+error_exit(char *message)
+{
+  debug_printf("Error Exit: %s", message);
+
+  console_exit();
+  console_cputs(message);
+  exit(EXIT_FAILURE);
+}
+/*-----------------------------------------------------------------------------------*/
 clock_time_t
 clock_time(void)
 {
@@ -94,6 +114,23 @@ main(int argc)
   program_handler_add(&directory_dsc, "Directory",   1);
   program_handler_add(&www_dsc,       "Web browser", 1);
 
+#if 1
+  {
+    uip_ipaddr_t addr;
+    uip_ipaddr(&addr, 192,168,0,222);
+    uip_sethostaddr(&addr);
+
+    uip_ipaddr(&addr, 255,255,255,0);
+    uip_setnetmask(&addr);
+
+    uip_ipaddr(&addr, 192,168,0,1);
+    uip_setdraddr(&addr);
+
+    uip_ipaddr(&addr, 192,168,0,1);
+    resolv_conf(&addr);
+  }
+#endif
+
   while(1) {
 
     if(process_run() < 2) {
@@ -104,6 +141,8 @@ main(int argc)
 
       /* Allow user-mode APC to execute. */
       SleepEx(10, TRUE);
+
+      etimer_request_poll();
     }
   }
 }
