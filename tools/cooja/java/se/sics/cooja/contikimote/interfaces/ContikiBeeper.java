@@ -26,13 +26,15 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ContikiBeeper.java,v 1.1 2006/08/21 12:13:05 fros4943 Exp $
+ * $Id: ContikiBeeper.java,v 1.2 2006/10/03 08:44:21 fros4943 Exp $
  */
 
 package se.sics.cooja.contikimote.interfaces;
 
-import java.util.Collection;
-import javax.swing.JPanel;
+import java.awt.Dimension;
+import java.awt.Toolkit;
+import java.util.*;
+import javax.swing.*;
 import org.apache.log4j.Logger;
 import org.jdom.Element;
 
@@ -116,10 +118,39 @@ public class ContikiBeeper extends Beeper implements ContikiMoteInterface {
   }
 
   public JPanel getInterfaceVisualizer() {
-    return null;
+    JPanel panel = new JPanel();
+    panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
+
+    final JLabel statusLabel = new JLabel("Beeping activate");
+    panel.add(statusLabel);
+    
+    Observer observer;
+    this.addObserver(observer = new Observer() {
+      public void update(Observable obs, Object obj) {
+        int currentTime = mote.getSimulation().getSimulationTime();
+        statusLabel.setText("Beeping activate: last beep at " + currentTime);
+        // Beep on speakers
+        Toolkit.getDefaultToolkit().beep();
+      }
+    });
+
+    // Saving observer reference for releaseInterfaceVisualizer
+    panel.putClientProperty("intf_obs", observer);
+
+    panel.setMinimumSize(new Dimension(140, 60));
+    panel.setPreferredSize(new Dimension(140, 60));
+
+    return panel;
   }
 
   public void releaseInterfaceVisualizer(JPanel panel) {
+    Observer observer = (Observer) panel.getClientProperty("intf_obs");
+    if (observer == null) {
+      logger.fatal("Error when releasing panel, observer is null");
+      return;
+    }
+
+    this.deleteObserver(observer);
   }
 
   public double energyConsumptionPerTick() {
