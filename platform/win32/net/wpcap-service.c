@@ -30,13 +30,14 @@
  * 
  * Author: Oliver Schmidt <ol.sc@web.de>
  *
- * $Id: wpcap-service.c,v 1.1 2006/09/23 20:25:03 oliverschmidt Exp $
+ * $Id: wpcap-service.c,v 1.2 2006/10/03 00:28:36 oliverschmidt Exp $
  */
 
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 #include <winsock2.h>
 #include <stdlib.h>
+#include <process.h>
 
 #pragma comment(lib, "wsock32")
 
@@ -83,6 +84,15 @@ static int (* pcap_sendpacket)(struct pcap *, unsigned char *, int);
 
 /*---------------------------------------------------------------------------*/
 static void
+error_exit(char *message)
+{
+  debug_printf("Error Exit: %s", message);
+  _cexit();
+  console_cputs(message);
+  ExitProcess(EXIT_FAILURE);
+}
+/*---------------------------------------------------------------------------*/
+static void
 pollhandler(void)
 {
   struct pcap_pkthdr *packet_header;
@@ -92,7 +102,7 @@ pollhandler(void)
 
   switch(pcap_next_ex(pcap, &packet_header, &packet)) {
   case -1: 
-    exit(1);
+    error_exit("Error on poll\n");
   case 0:
     return;
   }
@@ -101,12 +111,15 @@ pollhandler(void)
   CopyMemory(uip_buf, packet, uip_len);
 
   if(BUF->type == HTONS(UIP_ETHTYPE_IP)) {
+    debug_printf("I");
+    uip_len -= sizeof(struct uip_eth_hdr);
     tcpip_input();
   } else if(BUF->type == HTONS(UIP_ETHTYPE_ARP)) {
+    debug_printf("A");
     uip_arp_arpin();
     if(uip_len > 0) {
       if(pcap_sendpacket(pcap, uip_buf, uip_len) == -1) {
-	exit(1);
+        error_exit("Error on ARP response\n");
       }
     }
   }
@@ -118,7 +131,7 @@ send_packet(void)
   uip_arp_out();
 
   if(pcap_sendpacket(pcap, uip_buf, uip_len) == -1) {
-    exit(1);
+    error_exit("Error on send\n");
   }
 }
 /*---------------------------------------------------------------------------*/
@@ -138,7 +151,7 @@ PROCESS_THREAD(wpcap_service_process, ev, data)
 
   if(pcap_findalldevs == NULL || pcap_open_live  == NULL ||
      pcap_next_ex     == NULL || pcap_sendpacket == NULL) {
-    exit(1);
+    error_exit("Error on access to WinPcap library\n");
   }
 
   {
@@ -148,12 +161,12 @@ PROCESS_THREAD(wpcap_service_process, ev, data)
 
     cmdline_addr.s_addr = inet_addr(__argv[1]);
     if(cmdline_addr.s_addr == INADDR_NONE) {
-      exit(1);
+      error_exit("Usage: contiki <IP addr of Ethernet card to share>\n");
     }
     debug_printf("Cmdline address: %s\n", inet_ntoa(cmdline_addr));
 
     if(pcap_findalldevs(&interfaces, error) == -1) {
-      exit(1);
+      error_exit(error);
     }
 
     while(interfaces != NULL) {
@@ -172,12 +185,12 @@ PROCESS_THREAD(wpcap_service_process, ev, data)
     }
 
     if(interfaces == NULL) {
-      exit(1);
+      error_exit("No Ethernet card found with IP addr specified on cmdline\n");
     }
 
     pcap = pcap_open_live(interfaces->name, UIP_BUFSIZE, 0, -1, error);
     if(pcap == NULL) {
-      exit(1);
+      error_exit(error);
     }
   }
 
