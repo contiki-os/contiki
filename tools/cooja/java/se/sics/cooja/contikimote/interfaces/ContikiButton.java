@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ContikiButton.java,v 1.2 2006/09/26 13:08:05 fros4943 Exp $
+ * $Id: ContikiButton.java,v 1.3 2006/10/03 08:45:28 fros4943 Exp $
  */
 
 package se.sics.cooja.contikimote.interfaces;
@@ -139,8 +139,11 @@ public class ContikiButton extends Button implements ContikiMoteInterface {
   public void doActionsAfterTick() {
     // If a button is pressed and should be clicked, release it now
     if (shouldBeReleased) {
-      releaseButton();
-      shouldBeReleased = false;
+      // Make sure that the earlier press event has been handled by core
+      if (moteMem.getByteValueOf("simButtonChanged") == 0) {
+        releaseButton();
+        shouldBeReleased = false;
+      }
     }
   }
 
