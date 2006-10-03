@@ -30,7 +30,7 @@
  * 
  * Author: Oliver Schmidt <ol.sc@web.de>
  *
- * $Id: ctk-console.h,v 1.2 2006/08/14 23:50:51 oliverschmidt Exp $
+ * $Id: ctk-console.h,v 1.3 2006/10/03 00:30:42 oliverschmidt Exp $
  */
 #ifndef __CTK_CONSOLE_H__
 #define __CTK_CONSOLE_H__
@@ -50,7 +50,7 @@ void bordercolor(unsigned char c);
 void screensize(unsigned char *x, unsigned char *y);
 void revers(unsigned char c);
 void console_cputc(char c);
-void console_cputs(char *str);
+CCIF void console_cputs(char *str);
 void cclear(unsigned char length);
 void chline(unsigned char length);
 void cvline(unsigned char length);
