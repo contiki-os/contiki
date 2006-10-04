@@ -46,37 +46,39 @@ cooja_mtarch_start(struct cooja_mtarch_thread *t,
   f->ebp     = (unsigned long)&f->eax;
 }
 /*--------------------------------------------------------------------------*/
-static unsigned long cooja_spsave, cooja_sptmp;
+__asm__ (
+	 "cooja_sw:\n\t"
+	 "pushl %ebp\n\t"
+	 "movl %esp, %ebp\n\t"
+	 
+	 "pushl %eax\n\t"
+	 "pushl %ebx\n\t"
+	 "pushl %ecx\n\t"
+	 "pushl %edx\n\t"
+	 "pushl %esi\n\t"
+	 "pushl %edi\n\t"
+	 "pushl %ebp\n\t"
+	 "pushl %ebp\n\t"
+	 
+	 "movl cooja_running_thread, %eax\n\t"
+	 "movl 0(%eax), %ebx\n\t"
+	 "movl %esp, 0(%eax)\n\t"
+	 "movl %ebx, %esp\n\t"
+	 
+	 "popl %ebp\n\t"
+	 "popl %ebp\n\t"
+	 "popl %edi\n\t"
+	 "popl %esi\n\t"
+	 "popl %edx\n\t"
+	 "popl %ecx\n\t"
+	 "popl %ebx\n\t"
+	 "popl %eax\n\t"
+	 
+	 "leave\n\t"
+	 "ret\n\t"							
+	 );
+/*--------------------------------------------------------------------------*/
 static struct cooja_mtarch_thread *cooja_running_thread;
-
-static void
-cooja_sw(void)
-{
-  
-  asm("pushl %eax");
-  asm("pushl %ebx");
-  asm("pushl %ecx");
-  asm("pushl %edx");
-  asm("pushl %esi");
-  asm("pushl %edi");
-  asm("pushl %ebp");
- // asm("pushl %ebp"); /* XXX: should push FPU flags here. */
-  asm("movl %esp, cooja_spsave");
-
-  cooja_sptmp = cooja_running_thread->sp;
-  cooja_running_thread->sp = cooja_spsave;
-
-  asm("movl cooja_sptmp, %esp");
- // asm("popl %ebp"); /* XXX: should pop FPU flags here. */
-  asm("popl %ebp");  
-  asm("popl %edi");
-  asm("popl %esi");
-  asm("popl %edx");
-  asm("popl %ecx");
-  asm("popl %ebx");
-  asm("popl %eax");
-}
-
 /*--------------------------------------------------------------------------*/
 void
 cooja_mtarch_exec(struct cooja_mtarch_thread *t)

@@ -40,9 +40,8 @@
 #endif /* COOJA_MTARCH_STACKSIZE */
 
 struct cooja_mtarch_thread {
-  /* Note: stack must be aligned on 4-byte boundary. */
+  unsigned long sp;  /* Note: stack pointer must be first var in struct! */
   unsigned long stack[COOJA_MTARCH_STACKSIZE];
-  unsigned long sp;
 };
 
 struct cooja_mt_thread;
