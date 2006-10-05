@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: radio-arch.c,v 1.3 2006/10/05 07:46:53 fros4943 Exp $
+ * $Id: radio-arch.c,v 1.4 2006/10/05 12:09:40 fros4943 Exp $
  */
 
 #include "dev/radio-arch.h"
@@ -68,9 +68,9 @@ doInterfaceActionsBeforeTick(void)
     return;
   }
   
-  // Busy-wait while receiving (in main file)
+  // Don't fall asleep while receiving (in main file)
   if (simReceiving) {
-    busyWaitNext = 1;
+    simDontFallAsleep = 1;
     return;
   }
   
