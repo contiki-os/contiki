@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: StandardRadioMedium.java,v 1.4 2006/10/05 08:19:41 fros4943 Exp $
+ * $Id: StandardRadioMedium.java,v 1.5 2006/10/05 14:51:35 fros4943 Exp $
  */
 
 package se.sics.cooja.radiomediums;
@@ -240,11 +240,20 @@ public class StandardRadioMedium extends RadioMedium {
         int x = pixelCoord.x;
         int y = pixelCoord.y;
 
+        // Fetch current output power indicator (scale with as percent)
+        // TODO Probably not the best way to use indicator
+        double moteInterferenceRange = INTERFERENCE_RANGE
+            * (0.01 * (double) selectedMote.getInterfaces().getRadio()
+                .getCurrentOutputPowerIndicator());
+        double moteTransmissionRange = TRANSMITTING_RANGE
+            * (0.01 * (double) selectedMote.getInterfaces().getRadio()
+                .getCurrentOutputPowerIndicator());
+        
         Point translatedZero = transformPositionToPixel(0.0, 0.0, 0.0);
         Point translatedInterference = transformPositionToPixel(
-            INTERFERENCE_RANGE, INTERFERENCE_RANGE, 0.0);
+            moteInterferenceRange, moteInterferenceRange, 0.0);
         Point translatedTransmission = transformPositionToPixel(
-            TRANSMITTING_RANGE, TRANSMITTING_RANGE, 0.0);
+            moteTransmissionRange, moteTransmissionRange, 0.0);
 
         translatedInterference.x = Math.abs(translatedInterference.x
             - translatedZero.x);
@@ -302,8 +311,9 @@ public class StandardRadioMedium extends RadioMedium {
 
   private boolean isTickObserver = false;
 
-  private static double TRANSMITTING_RANGE = 20; // 20m
-  private static double INTERFERENCE_RANGE = 40; // 40m
+	// Maximum ranges (SS indicator 100)
+  private static double TRANSMITTING_RANGE = 50;
+  private static double INTERFERENCE_RANGE = 100;
 
   private class RadioMediumObservable extends Observable {
     private void transmissionStarted() {
@@ -375,7 +385,17 @@ public class StandardRadioMedium extends RadioMedium {
               double distance = newSendingPositions.get(sendNr).getDistanceTo(
                   registeredPositions.get(listenNr));
 
-              if (distance <= TRANSMITTING_RANGE) {
+              // Fetch current output power indicator (scale with as percent)
+			        // TODO Probably not the best way to use indicator
+              double moteInterferenceRange = INTERFERENCE_RANGE
+                  * (0.01 * (double) sendingRadio
+                      .getCurrentOutputPowerIndicator());
+              double moteTransmissionRange = TRANSMITTING_RANGE
+                  * (0.01 * (double) sendingRadio
+                      .getCurrentOutputPowerIndicator());
+              
+
+              if (distance <= moteTransmissionRange) {
                 lastTickConnections[sendNr].addDestination(registeredRadios
                     .get(listenNr), registeredPositions.get(listenNr),
                     dataToSend);
@@ -388,7 +408,7 @@ public class StandardRadioMedium extends RadioMedium {
                   // .. send packet
                   listeningRadio.receivePacket(dataToSend, sendingRadio.getTransmissionEndTime());
                 }
-              } else if (distance <= INTERFERENCE_RANGE) {
+              } else if (distance <= moteInterferenceRange) {
                 // If close enough to sabotage other transmissions..
                 listeningRadio.interferReception(sendingRadio.getTransmissionEndTime());
               }
