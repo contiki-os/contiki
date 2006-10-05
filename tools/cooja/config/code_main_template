@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: code_main_template,v 1.5 2006/10/02 15:07:33 fros4943 Exp $
+ * $Id: code_main_template,v 1.6 2006/10/05 07:48:15 fros4943 Exp $
  */
 
 /**
@@ -117,7 +117,7 @@ start_process_run_loop(void *data)
 		simProcessRunValue = 1;
 
 		// Busy-wait while receiving
-		while (busyWaitNext) {
+		while (busyWaitNext > 0) {
 			busyWaitNext--;
 			cooja_mt_yield();
 		}
