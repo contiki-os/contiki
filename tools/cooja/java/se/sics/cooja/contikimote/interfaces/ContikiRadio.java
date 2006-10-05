@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ContikiRadio.java,v 1.6 2006/10/05 12:27:30 fros4943 Exp $
+ * $Id: ContikiRadio.java,v 1.7 2006/10/05 14:46:16 fros4943 Exp $
  */
 
 package se.sics.cooja.contikimote.interfaces;
@@ -62,6 +62,7 @@ import se.sics.cooja.interfaces.Radio;
  * <p>
  * <li>char simRadioHWOn (radio hardware status (on/off))
  * <li>int simSignalStrength (heard radio signal strength)
+ * <li>char simPower (number indicating power output)
  * </ul>
  * <p>
  * Dependency core interfaces are:
@@ -103,6 +104,8 @@ public class ContikiRadio extends Radio implements ContikiMoteInterface {
 
   private RadioEvent lastEvent = RadioEvent.UNKNOWN;
   private int lastEventTime = 0;
+ 
+  private int oldOutputPowerIndicator = -1;
   
   /**
    * Creates an interface to the radio at mote.
@@ -261,6 +264,16 @@ public class ContikiRadio extends Radio implements ContikiMoteInterface {
     return interferenceEndTime >= myMote.getSimulation().getSimulationTime();
   }
 
+  public double getCurrentOutputPower() {
+    // TODO Implement method
+    logger.warn("Not implemeted, always returning 1.5 dBm");
+    return 1.5;
+  }
+
+  public int getCurrentOutputPowerIndicator() {
+    return (int) myMoteMemory.getByteValueOf("simPower");
+  }
+
   public double getCurrentSignalStrength() {
     return myMoteMemory.getIntValueOf("simSignalStrength");
   }
@@ -303,6 +316,13 @@ public class ContikiRadio extends Radio implements ContikiMoteInterface {
     }
     myEnergyConsumption = energyListeningRadioPerTick;
 
+    // Check if radio output power changed
+    if (myMoteMemory.getByteValueOf("simPower") != oldOutputPowerIndicator) {
+      oldOutputPowerIndicator = myMoteMemory.getByteValueOf("simPower");
+      this.setChanged();
+      this.notifyObservers();
+    }
+    
     // Are we transmitting but should stop?
     if (transmitting && myMote.getSimulation().getSimulationTime() >= transmissionEndTime) {
       myMoteMemory.setByteValueOf("simTransmitting", (byte) 0);

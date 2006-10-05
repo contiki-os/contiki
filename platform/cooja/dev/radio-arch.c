@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: radio-arch.c,v 1.4 2006/10/05 12:09:40 fros4943 Exp $
+ * $Id: radio-arch.c,v 1.5 2006/10/05 14:44:43 fros4943 Exp $
  */
 
 #include "dev/radio-arch.h"
@@ -56,8 +56,20 @@ char simOutDataBuffer[UIP_BUFSIZE];
 int simOutSize;
 
 char simRadioHWOn = 1;
-int simSignalStrength;
+int simSignalStrength = 0;
+char simPower = 100;
 
+/*-----------------------------------------------------------------------------------*/
+int
+radio_sstrength(void)
+{
+  return simSignalStrength;
+}
+/*-----------------------------------------------------------------------------------*/
+void radio_set_txpower(unsigned char power) {
+  // 1 - 100: Number indicating output power
+  simPower = power;
+}
 /*-----------------------------------------------------------------------------------*/
 static void
 doInterfaceActionsBeforeTick(void)
@@ -84,6 +96,8 @@ doInterfaceActionsBeforeTick(void)
     // Drop packet by not delivering
     return;
   }
+  
+  // ** Good place to add explicit manchester/gcr-encoding
   
   // Hand over new packet to uIP
   uip_len = simInSize;
@@ -120,8 +134,7 @@ simDoSend(void)
     return UIP_FW_ZEROLEN;
   }
   
-  // - Initiate transmission -
-  simTransmitting = 1;
+  // ** Good place to add explicit manchester/gcr-decoding
   
   // Copy packet data to temporary storage
   memcpy(&simOutDataBuffer[0], &uip_buf[UIP_LLH_LEN], uip_len);
@@ -131,7 +144,7 @@ simDoSend(void)
   while (simReceiving) {
     cooja_mt_yield();
   }
-	
+  
   // Busy-wait until ether is ready, or die (MAC imitation)
   int retries=0;
   /*	while (retries < 5 && simSignalStrength > -80) {
@@ -144,6 +157,10 @@ simDoSend(void)
   return UIP_FW_DROPPED;
   }
   */	
+
+  // - Initiate transmission -
+  simTransmitting = 1;
+
   // Busy-wait while transmitting
   while (simTransmitting) {
     cooja_mt_yield();
