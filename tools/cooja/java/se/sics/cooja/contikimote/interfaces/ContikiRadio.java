@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ContikiRadio.java,v 1.4 2006/10/02 15:38:44 fros4943 Exp $
+ * $Id: ContikiRadio.java,v 1.5 2006/10/05 07:49:59 fros4943 Exp $
  */
 
 package se.sics.cooja.contikimote.interfaces;
@@ -97,8 +97,9 @@ public class ContikiRadio extends Radio implements ContikiMoteInterface {
 
   private boolean transmitting = false;
 
-  private int transmissionEndTime = 0;
-  private int receptionEndTime = 0;
+  private int transmissionEndTime = -1;
+  private int interferenceEndTime = -1;
+  private int receptionEndTime = -1;
 
   private RadioEvent lastEvent = RadioEvent.UNKNOWN;
   private int lastEventTime = 0;
@@ -179,8 +180,6 @@ public class ContikiRadio extends Radio implements ContikiMoteInterface {
    * have to, be used during a simulated data transfer that takes longer than
    * one tick to complete. The system is unlocked by delivering the received
    * data to the mote.
-   * 
-   * @see #receivePacket(byte[])
    */
   private void lockInReceivingMode() {
     // If mote is inactive, try to wake it up
@@ -201,6 +200,11 @@ public class ContikiRadio extends Radio implements ContikiMoteInterface {
   }
 
   public void receivePacket(byte[] data, int endTime) {
+    if (isInterfered())
+      return;
+    if (isReceiving())
+      return;
+    
     lockInReceivingMode();
 
     receptionEndTime = endTime;
@@ -212,8 +216,14 @@ public class ContikiRadio extends Radio implements ContikiMoteInterface {
     if (myMote.getState() != Mote.State.ACTIVE) {
       if (RAISES_EXTERNAL_INTERRUPT)
         myMote.setState(Mote.State.ACTIVE);
-      if (myMote.getState() != Mote.State.ACTIVE)
+      if (myMote.getState() != Mote.State.ACTIVE) {
+        logger.fatal("Mote fell asleep during reception of packet, skipping packet!");
+        myMoteMemory.setByteValueOf("simReceiving", (byte) 0);
+        myMoteMemory.setIntValueOf("simInSize", 0);
+        this.setChanged();
+        this.notifyObservers();
         return;
+      }
     }
     
     // Unlock (if locked)
@@ -229,22 +239,26 @@ public class ContikiRadio extends Radio implements ContikiMoteInterface {
     this.notifyObservers();
   }
 
-  
-  /**
-   * Resets receive status. If a packet, or part of a packet, has been received
-   * but not yet taken care of in the Contiki system, this will be removed.
-   */
-  public void interferReception() {
+  public void interferReception(int endTime) {
     // Unlock (if locked)
     myMoteMemory.setByteValueOf("simReceiving", (byte) 0);
 
     // Reset data
     myMoteMemory.setIntValueOf("simInSize", 0);
 
-    lastEvent = RadioEvent.RECEPTION_INTERFERED;
-    lastEventTime = myMote.getSimulation().getSimulationTime();
-    this.setChanged();
-    this.notifyObservers();
+    // Save interference end time (if updated)
+    interferenceEndTime = Math.max(interferenceEndTime, endTime);
+    
+    if (lastEvent != RadioEvent.RECEPTION_INTERFERED) {
+      lastEvent = RadioEvent.RECEPTION_INTERFERED;
+      lastEventTime = myMote.getSimulation().getSimulationTime();
+      this.setChanged();
+      this.notifyObservers();
+    }
+  }
+  
+  public boolean isInterfered() {
+    return interferenceEndTime >= myMote.getSimulation().getSimulationTime();
   }
 
   public double getCurrentSignalStrength() {
@@ -256,10 +270,10 @@ public class ContikiRadio extends Radio implements ContikiMoteInterface {
   }
   
   public void doActionsBeforeTick() {
-    // Do nothing
-
-    if (isLockedAtReceiving() && myMote.getSimulation().getSimulationTime() >= receptionEndTime)
+    // Check if we need to release Contiki lock and deliver packet data
+    if (isLockedAtReceiving() && myMote.getSimulation().getSimulationTime() >= receptionEndTime) {
       deliverPacket();
+    }
   }
 
   public void doActionsAfterTick() {
@@ -297,7 +311,7 @@ public class ContikiRadio extends Radio implements ContikiMoteInterface {
       
       lastEventTime = myMote.getSimulation().getSimulationTime();
       lastEvent = RadioEvent.TRANSMISSION_FINISHED;
-      // TODO Memory consumption of transmitted packet?
+      // TODO Energy consumption of transmitted packet?
       this.setChanged();
       this.notifyObservers();
     }
