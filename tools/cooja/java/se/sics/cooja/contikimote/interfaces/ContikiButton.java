@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ContikiButton.java,v 1.3 2006/10/03 08:45:28 fros4943 Exp $
+ * $Id: ContikiButton.java,v 1.4 2006/10/05 12:13:46 fros4943 Exp $
  */
 
 package se.sics.cooja.contikimote.interfaces;
@@ -102,11 +102,11 @@ public class ContikiButton extends Button implements ContikiMoteInterface {
     moteMem.setByteValueOf("simButtonIsDown", (byte) 0);
 
     if (moteMem.getByteValueOf("simButtonIsActive") == 1) {
-      moteMem.setByteValueOf("simButtonChanged", (byte) 1);
+//      moteMem.setByteValueOf("simButtonChanged", (byte) 1);
 
       // If mote is inactive, wake it up
-      if (RAISES_EXTERNAL_INTERRUPT)
-        mote.setState(Mote.State.ACTIVE);
+//      if (RAISES_EXTERNAL_INTERRUPT)
+//        mote.setState(Mote.State.ACTIVE);
 
       setChanged();
       notifyObservers();
