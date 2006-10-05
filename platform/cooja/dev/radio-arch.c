@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: radio-arch.c,v 1.2 2006/10/02 15:06:12 fros4943 Exp $
+ * $Id: radio-arch.c,v 1.3 2006/10/05 07:46:53 fros4943 Exp $
  */
 
 #include "dev/radio-arch.h"
@@ -68,14 +68,14 @@ doInterfaceActionsBeforeTick(void)
     return;
   }
   
-  // If no incoming radio data, do nothing
-  if (simInSize == 0) {
+  // Busy-wait while receiving (in main file)
+  if (simReceiving) {
+    busyWaitNext = 1;
     return;
   }
   
-  // Busy-wait while receiving (in main file)
-  while (simReceiving) {
-    busyWaitNext = 1;
+  // If no incoming radio data, do nothing
+  if (simInSize == 0) {
     return;
   }
   
