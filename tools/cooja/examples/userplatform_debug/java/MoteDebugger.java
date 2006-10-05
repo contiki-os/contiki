@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: MoteDebugger.java,v 1.2 2006/09/06 12:26:33 fros4943 Exp $
+ * $Id: MoteDebugger.java,v 1.3 2006/10/05 11:53:13 fros4943 Exp $
  */
 
 import java.awt.event.*;
@@ -148,7 +148,7 @@ public class MoteDebugger extends VisPlugin {;
           logger.info("Sleeping 2500 ms while starting up GDB");
           Thread.sleep(2500);
           logger.info("Ticking chosen mote now! (setting state to active)");
-          moteToDebug.setState(Mote.STATE_ACTIVE);
+          moteToDebug.setState(Mote.State.ACTIVE);
           moteToDebug.tick(GUI.currentSimulation.getSimulationTime());
           
           gdbProcess.waitFor();
