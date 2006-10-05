@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ContikiRadio.java,v 1.5 2006/10/05 07:49:59 fros4943 Exp $
+ * $Id: ContikiRadio.java,v 1.6 2006/10/05 12:27:30 fros4943 Exp $
  */
 
 package se.sics.cooja.contikimote.interfaces;
@@ -200,11 +200,11 @@ public class ContikiRadio extends Radio implements ContikiMoteInterface {
   }
 
   public void receivePacket(byte[] data, int endTime) {
-    if (isInterfered())
+    if (isInterfered() || isReceiving() || isTransmitting()) {
+      interferReception(endTime);
       return;
-    if (isReceiving())
-      return;
-    
+    }
+
     lockInReceivingMode();
 
     receptionEndTime = endTime;
