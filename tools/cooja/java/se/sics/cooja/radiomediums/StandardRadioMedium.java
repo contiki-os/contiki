@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: StandardRadioMedium.java,v 1.3 2006/10/05 07:53:06 fros4943 Exp $
+ * $Id: StandardRadioMedium.java,v 1.4 2006/10/05 08:19:41 fros4943 Exp $
  */
 
 package se.sics.cooja.radiomediums;
@@ -381,7 +381,7 @@ public class StandardRadioMedium extends RadioMedium {
                     dataToSend);
 
                 // If close enough to transmit ok..
-                if (listeningRadio.isReceiving()) {
+                if (listeningRadio.isReceiving() || listeningRadio.isInterfered()) {
                   // .. but listening radio already received a packet
                   listeningRadio.interferReception(sendingRadio.getTransmissionEndTime());
                 } else {
