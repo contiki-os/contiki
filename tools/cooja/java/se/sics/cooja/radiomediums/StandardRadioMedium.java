@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: StandardRadioMedium.java,v 1.2 2006/10/02 15:19:28 fros4943 Exp $
+ * $Id: StandardRadioMedium.java,v 1.3 2006/10/05 07:53:06 fros4943 Exp $
  */
 
 package se.sics.cooja.radiomediums;
@@ -69,8 +69,8 @@ public class StandardRadioMedium extends RadioMedium {
   private Vector<Position> registeredPositions = new Vector<Position>();
   private Vector<Radio> registeredRadios = new Vector<Radio>();
 
-  private Vector<Position> sendingPositions = new Vector<Position>();
-  private Vector<Radio> sendingRadios = new Vector<Radio>();
+  private Vector<Position> newSendingPositions = new Vector<Position>();
+  private Vector<Radio> newSendingRadios = new Vector<Radio>();
 
   private static RadioMedium myRadioMedium;
 
@@ -221,6 +221,9 @@ public class StandardRadioMedium extends RadioMedium {
       if (moteRadio.isTransmitting())
         return new Color[]{Color.BLUE};
 
+      if (moteRadio.isInterfered())
+        return new Color[]{Color.RED};
+
       if (moteRadio.isReceiving())
         return new Color[]{Color.GREEN};
 
@@ -302,11 +305,12 @@ public class StandardRadioMedium extends RadioMedium {
   private static double TRANSMITTING_RANGE = 20; // 20m
   private static double INTERFERENCE_RANGE = 40; // 40m
 
-  private static boolean RECEIVE_MY_OWN_PACKETS = false;
-  private static boolean DETECT_MY_OWN_PACKETS = true;
-
   private class RadioMediumObservable extends Observable {
-    private void transferredData() {
+    private void transmissionStarted() {
+      setChanged();
+      notifyObservers();
+    }
+    private void radiosChanged() {
       setChanged();
       notifyObservers();
     }
@@ -319,46 +323,56 @@ public class StandardRadioMedium extends RadioMedium {
 
   private Observer radioDataObserver = new Observer() {
     public void update(Observable radio, Object obj) {
-      if (((Radio) radio).getLastEvent() == Radio.RadioEvent.TRANSMISSION_FINISHED) {
-        if (!sendingPositions.contains((Position) obj)) {
-          sendingPositions.add((Position) obj);
-          sendingRadios.add((Radio) radio);
+      if (((Radio) radio).getLastEvent() == Radio.RadioEvent.TRANSMISSION_STARTED) {
+        // If obj is the position, use it directly (speeds up things)
+        // Otherwise we must search for the position ourselves
+        Position sendingPosition = (Position) obj;
+        if (sendingPosition == null) {
+          if (!registeredRadios.contains(radio)) {
+            logger.fatal("Sending radio not registered, skipping packet");
+            return;
+          }
+          
+          sendingPosition = registeredPositions.get(registeredRadios.indexOf(radio));
         }
+        
+        if (!newSendingRadios.contains(radio)) {
+          newSendingPositions.add(sendingPosition);
+          newSendingRadios.add((Radio) radio);
+        }
+      } else {
+        radioMediumObservable.radiosChanged();
       }
     }
   };
 
   private Observer tickObserver = new Observer() {
     public void update(Observable obs, Object obj) {
+
       RadioConnection[] oldTickConnections = lastTickConnections;
       lastTickConnections = null;
-      if (sendingPositions.size() > 0) {
-        final int numberSending = sendingPositions.size();
+      if (newSendingPositions.size() > 0) {
+        final int numberSending = newSendingPositions.size();
         lastTickConnections = new RadioConnection[numberSending];
 
-        // Loop through all sending radios
+        // Loop through all new sending radios
         for (int sendNr = 0; sendNr < numberSending; sendNr++) {
-          Radio sendingRadio = sendingRadios.get(sendNr);
+          Radio sendingRadio = newSendingRadios.get(sendNr);
+
           byte[] dataToSend = sendingRadio.getLastPacketTransmitted();
 
           lastTickConnections[sendNr] = new RadioConnection();
-          lastTickConnections[sendNr].setSource(sendingRadios.get(sendNr),
-              sendingPositions.get(sendNr), dataToSend);
-
-          // Set sending radio unable to receive any more data
-          if (RECEIVE_MY_OWN_PACKETS) {
-            if (sendingRadio.isReceiving())
-              sendingRadio.interferReception();
-          }
+          lastTickConnections[sendNr].setSource(newSendingRadios.get(sendNr),
+              newSendingPositions.get(sendNr), dataToSend);
 
           // Loop through all radios that are listening
           for (int listenNr = 0; listenNr < registeredPositions.size(); listenNr++) {
+            Radio listeningRadio = registeredRadios.get(listenNr);
 
             // If not the sending radio..
-            if (sendingRadios.get(sendNr) != registeredRadios.get(listenNr)) {
-              Radio listeningRadio = registeredRadios.get(listenNr);
+            if (sendingRadio != listeningRadio) {
 
-              double distance = sendingPositions.get(sendNr).getDistanceTo(
+              double distance = newSendingPositions.get(sendNr).getDistanceTo(
                   registeredPositions.get(listenNr));
 
               if (distance <= TRANSMITTING_RANGE) {
@@ -369,24 +383,21 @@ public class StandardRadioMedium extends RadioMedium {
                 // If close enough to transmit ok..
                 if (listeningRadio.isReceiving()) {
                   // .. but listening radio already received a packet
-                  listeningRadio.interferReception();
+                  listeningRadio.interferReception(sendingRadio.getTransmissionEndTime());
                 } else {
                   // .. send packet
-                  listeningRadio.receivePacket(dataToSend, 0);
+                  listeningRadio.receivePacket(dataToSend, sendingRadio.getTransmissionEndTime());
                 }
               } else if (distance <= INTERFERENCE_RANGE) {
                 // If close enough to sabotage other transmissions..
-                if (listeningRadio.isReceiving()) {
-                  // .. and listening radio already received a packet
-                  listeningRadio.interferReception();
-                }
+                listeningRadio.interferReception(sendingRadio.getTransmissionEndTime());
               }
               // else too far away
             }
           }
         }
-        sendingPositions.clear();
-        sendingRadios.clear();
+        newSendingPositions.clear();
+        newSendingRadios.clear();
 
         if (myLogger != null) {
           for (RadioConnection conn : lastTickConnections)
@@ -395,7 +406,7 @@ public class StandardRadioMedium extends RadioMedium {
 
       }
       if (lastTickConnections != oldTickConnections)
-        radioMediumObservable.transferredData();
+        radioMediumObservable.transmissionStarted();
     }
   };
 
