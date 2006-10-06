@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: radio-arch.c,v 1.5 2006/10/05 14:44:43 fros4943 Exp $
+ * $Id: radio-arch.c,v 1.6 2006/10/06 10:45:53 fros4943 Exp $
  */
 
 #include "dev/radio-arch.h"
@@ -110,7 +110,11 @@ doInterfaceActionsBeforeTick(void)
 static void
 doInterfaceActionsAfterTick(void)
 {
-  // Nothing to do
+  // Make sure we are awake during radio activity
+  if (simReceiving || simTransmitting) {
+    simDontFallAsleep = 1;
+    return;
+  }
 }
 /*-----------------------------------------------------------------------------------*/
 u8_t
@@ -141,7 +145,7 @@ simDoSend(void)
   simOutSize = uip_len;
   
   // Busy-wait while we are receiving
-  while (simReceiving) {
+  if (simReceiving && simInsideProcessRun) {
     cooja_mt_yield();
   }
   
@@ -162,7 +166,7 @@ simDoSend(void)
   simTransmitting = 1;
 
   // Busy-wait while transmitting
-  while (simTransmitting) {
+  if (simTransmitting && simInsideProcessRun) {
     cooja_mt_yield();
   }
   
