@@ -29,7 +29,7 @@
  *
  * This file is part of the Contiki desktop environment
  *
- * $Id: directory.c,v 1.2 2006/08/13 14:02:07 oliverschmidt Exp $
+ * $Id: directory.c,v 1.3 2006/10/06 20:48:12 oliverschmidt Exp $
  *
  */
 
@@ -97,7 +97,7 @@ startloading(void)
     show_statustext("Cannot open directory");
     loading = 0;
   } else {
-    loading = 1;
+    loading = LOADING_DIR;
     process_post(&directory_process, PROCESS_EVENT_CONTINUE, NULL);
     numfiles = 0;
   }
@@ -155,7 +155,9 @@ quit(void)
 {
   unsigned char i;
 
-  cfs_closedir(&dir);
+  if(loading == LOADING_DIR) {
+    cfs_closedir(&dir);
+  }
   ctk_window_close(&window);
   for(i = 0; dscs[i] != NULL; ++i) {
     LOADER_UNLOAD_DSC(dscs[i]);
