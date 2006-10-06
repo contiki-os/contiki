@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2005, Swedish Institute of Computer Science.
+ * Copyright (c) 2006, Swedish Institute of Computer Science.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,17 +28,45 @@
  *
  * This file is part of the Contiki operating system.
  *
- * Author: Adam Dunkels <adam@sics.se>
- *
- * $Id: node-id.h,v 1.2 2006/10/06 07:47:03 adamdunkels Exp $
+ * $Id: node-id.c,v 1.1 2006/10/06 07:47:02 adamdunkels Exp $
  */
 
-#ifndef __NODE_ID_H__
-#define __NODE_ID_H__
+/**
+ * \file
+ *         A brief description of what this file is.
+ * \author
+ *         Adam Dunkels <adam@sics.se>
+ */
 
-void node_id_restore(void);
-void node_id_burn(unsigned short node_id);
+#include "node-id.h"
+#include "contiki-conf.h"
+#include "dev/eeprom.h"
 
-extern unsigned short node_id;
-
-#endif /* __NODE_ID_H__ */
+unsigned short node_id = 0;
+/*---------------------------------------------------------------------------*/
+void
+node_id_restore(void)
+{
+  unsigned char buf[2];
+  eeprom_read(NODE_ID_EEPROM_OFFSET, buf, 2);
+  if(buf[0] == 0xad &&
+     buf[1] == 0xde) {
+    eeprom_read(NODE_ID_EEPROM_OFFSET + 2, buf, 2);
+    node_id = (buf[0] << 8) | buf[1];
+  } else {
+    node_id = 0;
+  }
+}
+/*---------------------------------------------------------------------------*/
+void
+node_id_burn(unsigned short id)
+{
+  unsigned char buf[2];
+  buf[0] = 0xad;
+  buf[1] = 0xde;
+  eeprom_write(NODE_ID_EEPROM_OFFSET, buf, 2);
+  buf[0] = id >> 8;
+  buf[1] = id & 0xff;
+  eeprom_write(NODE_ID_EEPROM_OFFSET + 2, buf, 2);
+}
+/*---------------------------------------------------------------------------*/
