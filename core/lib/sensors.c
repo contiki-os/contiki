@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: sensors.c,v 1.1 2006/06/17 22:41:18 adamdunkels Exp $
+ * @(#)$Id: sensors.c,v 1.2 2006/10/06 09:18:52 adamdunkels Exp $
  */
 /* exeperimental code, will be renamed to sensors.c when done */
 
@@ -159,7 +159,8 @@ sensors_unselect(const struct sensors_sensor *s, const struct process *p)
 /*---------------------------------------------------------------------------*/
 PROCESS_THREAD(sensors_process, ev, data)
 {
-  int i;
+  static int i;
+  static int events;
 
   PROCESS_BEGIN();
   
@@ -176,17 +177,24 @@ PROCESS_THREAD(sensors_process, ev, data)
   while(1) {
 
     PROCESS_WAIT_EVENT();
-    
-    for(i = 0; i < num_sensors; ++i) {
-      if(sensors_flags[i] & FLAG_CHANGED) {
-	if(sensors_selecting_proc[i] == SELCOLL
-	   || sensors_selecting_proc[i] == NULL)
-	  process_post(PROCESS_BROADCAST, sensors_event, sensors[i]);
-	else
-	  process_post(sensors_selecting_proc[i], sensors_event, sensors[i]);
-	sensors_flags[i] &= ~FLAG_CHANGED;
+
+    do {
+      events = 0;
+      for(i = 0; i < num_sensors; ++i) {
+	if(sensors_flags[i] & FLAG_CHANGED) {
+	  /*	if(sensors_selecting_proc[i] == SELCOLL
+		|| sensors_selecting_proc[i] == NULL)
+		process_post(PROCESS_BROADCAST, sensors_event, sensors[i]);
+		else
+		process_post(sensors_selecting_proc[i], sensors_event, sensors[i]);*/
+	  if(process_post(PROCESS_BROADCAST, sensors_event, sensors[i]) == PROCESS_ERR_OK) {
+	    PROCESS_WAIT_EVENT_UNTIL(ev == sensors_event);
+	  }
+	  sensors_flags[i] &= ~FLAG_CHANGED;
+	  events++;
+	}
       }
-    }
+    } while(events);
   }
 
   PROCESS_END();
