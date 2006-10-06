@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: StandardRadioMedium.java,v 1.5 2006/10/05 14:51:35 fros4943 Exp $
+ * $Id: StandardRadioMedium.java,v 1.6 2006/10/06 13:32:45 fros4943 Exp $
  */
 
 package se.sics.cooja.radiomediums;
@@ -69,8 +69,9 @@ public class StandardRadioMedium extends RadioMedium {
   private Vector<Position> registeredPositions = new Vector<Position>();
   private Vector<Radio> registeredRadios = new Vector<Radio>();
 
-  private Vector<Position> newSendingPositions = new Vector<Position>();
-  private Vector<Radio> newSendingRadios = new Vector<Radio>();
+  private Vector<Position> transmissionStartedPositions = new Vector<Position>();
+  private Vector<Radio> transmissionStartedRadios = new Vector<Radio>();
+  private Vector<Radio> transmissionEndedRadios = new Vector<Radio>();
 
   private static RadioMedium myRadioMedium;
 
@@ -316,64 +317,111 @@ public class StandardRadioMedium extends RadioMedium {
   private static double INTERFERENCE_RANGE = 100;
 
   private class RadioMediumObservable extends Observable {
-    private void transmissionStarted() {
+    private void setRadioMediumChanged() {
       setChanged();
-      notifyObservers();
-    }
-    private void radiosChanged() {
-      setChanged();
-      notifyObservers();
     }
   }
   private RadioMediumObservable radioMediumObservable = new RadioMediumObservable();
 
   private RadioConnection[] lastTickConnections = null;
+  private Vector<RadioConnection> pendingConnections = new Vector<RadioConnection>();
 
   private ConnectionLogger myLogger = null;
 
   private Observer radioDataObserver = new Observer() {
     public void update(Observable radio, Object obj) {
+      // Something, let tick loop notify observers
+      radioMediumObservable.setRadioMediumChanged();
+
       if (((Radio) radio).getLastEvent() == Radio.RadioEvent.TRANSMISSION_STARTED) {
         // If obj is the position, use it directly (speeds up things)
         // Otherwise we must search for the position ourselves
-        Position sendingPosition = (Position) obj;
-        if (sendingPosition == null) {
+        Position startingPosition = (Position) obj;
+        if (startingPosition == null) {
           if (!registeredRadios.contains(radio)) {
             logger.fatal("Sending radio not registered, skipping packet");
             return;
           }
           
-          sendingPosition = registeredPositions.get(registeredRadios.indexOf(radio));
+          startingPosition = registeredPositions.get(registeredRadios.indexOf(radio));
         }
         
-        if (!newSendingRadios.contains(radio)) {
-          newSendingPositions.add(sendingPosition);
-          newSendingRadios.add((Radio) radio);
+        if (!transmissionStartedRadios.contains(radio)) {
+          transmissionStartedPositions.add(startingPosition);
+          transmissionStartedRadios.add((Radio) radio);
         }
-      } else {
-        radioMediumObservable.radiosChanged();
       }
+
+      if (((Radio) radio).getLastEvent() == Radio.RadioEvent.TRANSMISSION_FINISHED) {
+        transmissionEndedRadios.add((Radio) radio);
+      }
+      
     }
   };
 
   private Observer tickObserver = new Observer() {
     public void update(Observable obs, Object obj) {
 
-      RadioConnection[] oldTickConnections = lastTickConnections;
+      if (lastTickConnections != null)
+        radioMediumObservable.setRadioMediumChanged();
+
+      // Reset last tick connections
       lastTickConnections = null;
-      if (newSendingPositions.size() > 0) {
-        final int numberSending = newSendingPositions.size();
-        lastTickConnections = new RadioConnection[numberSending];
+      
+      // Log finished connections if any
+      Vector<RadioConnection> updatedPendingConnections = new Vector<RadioConnection>();
+      if (transmissionEndedRadios.size() > 0) {
+        final int numberFinished = transmissionEndedRadios.size();
+        Vector<RadioConnection> newTickConnections = new Vector<RadioConnection>();
+
+        // Loop through all radios that finished transmitting data
+        for (int recvNr = 0; recvNr < numberFinished; recvNr++) {
+          Radio transmittingRadio = transmissionEndedRadios.get(recvNr);
+
+          for (RadioConnection pendingConnection: pendingConnections) {
+
+            // Log finished connection
+            if (pendingConnection.getSourceRadio() == transmittingRadio) {
+              for (Radio destRadio: pendingConnection.getDestinationRadios()) {
+                if (destRadio.getLastEvent() != Radio.RadioEvent.RECEPTION_FINISHED) {
+                  // Radio was interfered
+                  pendingConnection.removeDestination(destRadio);
+                }
+              }
+              newTickConnections.add(pendingConnection);
+            }
+            
+            // Remove connection if old (don't keep)
+            if (pendingConnection.getSourceRadio().isTransmitting())
+              updatedPendingConnections.add(pendingConnection);
+          }
+        }
+
+        lastTickConnections = new RadioConnection[newTickConnections.size()];
+        for (int i=0; i < lastTickConnections.length; i++)
+          lastTickConnections[i] = newTickConnections.get(i);
+        transmissionEndedRadios.clear();
+        
+        pendingConnections = updatedPendingConnections;
+        
+        // Radio medium has changed, notifing below
+        radioMediumObservable.setRadioMediumChanged();
+      }
+
+      // Start new transmissions
+      if (transmissionStartedPositions.size() > 0) {
+        final int numberSending = transmissionStartedPositions.size();
 
         // Loop through all new sending radios
         for (int sendNr = 0; sendNr < numberSending; sendNr++) {
-          Radio sendingRadio = newSendingRadios.get(sendNr);
+          Radio sendingRadio = transmissionStartedRadios.get(sendNr);
 
           byte[] dataToSend = sendingRadio.getLastPacketTransmitted();
 
-          lastTickConnections[sendNr] = new RadioConnection();
-          lastTickConnections[sendNr].setSource(newSendingRadios.get(sendNr),
-              newSendingPositions.get(sendNr), dataToSend);
+          RadioConnection newConnection = new RadioConnection();
+          pendingConnections.add(newConnection);
+          newConnection.setSource(transmissionStartedRadios.get(sendNr),
+              transmissionStartedPositions.get(sendNr), dataToSend);
 
           // Loop through all radios that are listening
           for (int listenNr = 0; listenNr < registeredPositions.size(); listenNr++) {
@@ -382,7 +430,7 @@ public class StandardRadioMedium extends RadioMedium {
             // If not the sending radio..
             if (sendingRadio != listeningRadio) {
 
-              double distance = newSendingPositions.get(sendNr).getDistanceTo(
+              double distance = transmissionStartedPositions.get(sendNr).getDistanceTo(
                   registeredPositions.get(listenNr));
 
               // Fetch current output power indicator (scale with as percent)
@@ -393,10 +441,9 @@ public class StandardRadioMedium extends RadioMedium {
               double moteTransmissionRange = TRANSMITTING_RANGE
                   * (0.01 * (double) sendingRadio
                       .getCurrentOutputPowerIndicator());
-              
 
               if (distance <= moteTransmissionRange) {
-                lastTickConnections[sendNr].addDestination(registeredRadios
+                newConnection.addDestination(registeredRadios
                     .get(listenNr), registeredPositions.get(listenNr),
                     dataToSend);
 
@@ -416,17 +463,22 @@ public class StandardRadioMedium extends RadioMedium {
             }
           }
         }
-        newSendingPositions.clear();
-        newSendingRadios.clear();
+        transmissionStartedPositions.clear();
+        transmissionStartedRadios.clear();
 
+        
+        
         if (myLogger != null) {
           for (RadioConnection conn : lastTickConnections)
             myLogger.logConnection(conn);
         }
 
+        // Radio medium has changed, notifing below
+        radioMediumObservable.setRadioMediumChanged();
       }
-      if (lastTickConnections != oldTickConnections)
-        radioMediumObservable.transmissionStarted();
+      
+      // Notify observers (if anything has changed)
+      radioMediumObservable.notifyObservers();
     }
   };
 
