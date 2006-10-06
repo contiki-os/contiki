@@ -5,15 +5,8 @@
 #define IRQ_PORT2 0x02
 #define IRQ_ADC   0x03
 
-#define EEPROMFS_ADDR_NODECONF  0x0000
-#define EEPROMFS_ADDR_CODERECV  0x0040
-#define EEPROMFS_ADDR_CODEPROP  0x0040
-
-#define EEPROMFS_ADDR_TESTDATA   0x0042
-#define EEPROMFS_ADDR_NUMTESTDATA 0x0040
-
-#define EEPROMFS_ADDR_SENSORLOG 0x0400
-#define EEPROMFS_SIZE_SENSORLOG 0x0200
+#define NODE_ID_EEPROM_OFFSET     0x0010 /* - 0x0014 */
+#define CFS_EEPROM_CONF_OFFSET    0x0040
 
 #define CC_CONF_REGISTER_ARGS          1
 #define CC_CONF_FUNCTION_POINTER_ARGS  1
@@ -26,7 +19,7 @@
 #define CLIF
 
 typedef unsigned short clock_time_t;
-#define CLOCK_CONF_SECOND 8
+#define CLOCK_CONF_SECOND 100
 
 void clock_delay(unsigned int us2);
 
