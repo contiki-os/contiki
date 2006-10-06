@@ -29,7 +29,7 @@
  *
  * This file is part of the Contiki desktop environment 
  *
- * $Id: htmlparser.c,v 1.3 2006/10/06 21:14:28 oliverschmidt Exp $
+ * $Id: htmlparser.c,v 1.4 2006/10/06 21:28:18 oliverschmidt Exp $
  *
  */
 
@@ -364,7 +364,7 @@ static void
 parse_tag(void)
 {
   static char *tagattrparam;
-  static unsigned char size, i;
+  static unsigned char size;
 
   static char dummy;
   
