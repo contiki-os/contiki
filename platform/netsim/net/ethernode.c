@@ -30,7 +30,7 @@
  *
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: ethernode.c,v 1.1 2006/06/17 22:41:36 adamdunkels Exp $
+ * $Id: ethernode.c,v 1.2 2006/10/06 08:25:31 adamdunkels Exp $
  */
 /**
  * \file
@@ -181,7 +181,7 @@ ethernode_send(void)
 
   dest = ID_BROADCAST;
   
-  usleep(800 * (random_rand() % 1000));
+  /*  usleep(800 * (random_rand() % 1000));*/
 
   do_send(TYPE_DATA, dest, hdr, len);
 

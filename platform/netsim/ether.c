@@ -30,7 +30,7 @@
  *
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: ether.c,v 1.2 2006/09/26 22:10:12 adamdunkels Exp $
+ * $Id: ether.c,v 1.3 2006/10/06 08:25:30 adamdunkels Exp $
  */
 /**
  * \file
@@ -58,6 +58,8 @@
 #include "lib/memb.h"
 #include "lib/list.h"
 #include "nodes.h"
+
+#include "dev/radio-sensor.h"
 
 #include "sensor.h"
 
@@ -91,6 +93,7 @@ struct ether_hdr {
   int type;
   struct sensor_data sensor_data;
   clock_time_t clock;
+  int signal;
   int srcx, srcy;
   int srcpid;
   int srcid;
@@ -102,6 +105,7 @@ struct ether_hdr {
 static int strength;
 
 static int collisions = 1;
+static int num_collisions = 0;
 
 /*-----------------------------------------------------------------------------------*/
 void
@@ -193,7 +197,7 @@ ether_client_poll(void)
   FD_SET(sc, &fdset);
 
   tv.tv_sec = 0;
-  tv.tv_usec = 1000;
+  tv.tv_usec = 5000;
 
   
   ret = select(sc + 1, &fdset, NULL, NULL, &tv);
@@ -209,6 +213,7 @@ ether_client_poll(void)
     len = ret;
     
     memcpy(uip_buf, &rxbuffer[sizeof(struct ether_hdr)], len);
+    radio_sensor_signal = hdr->signal;
 
     if(hdr->type == PTYPE_DATA && hdr->srcid != node.id) {
       return len - sizeof(struct ether_hdr);
@@ -240,7 +245,7 @@ ether_server_poll(void)
 
   
   tv.tv_sec = 0;
-  tv.tv_usec = 4000;
+  tv.tv_usec = 100;
 
   
   do {
@@ -348,6 +353,9 @@ ether_tick(void)
 	 (p->y - y) * (p->y - y) <=
 	 ether_strength() * ether_strength()) {
 
+	hdr->signal = ether_strength() * ether_strength() -
+	  (p->x - x) * (p->x - x) -
+	  (p->y - y) * (p->y - y);
 	/* This packet was sent in the reception range of this node,
 	   so we check against all other packets to see if there is
 	   more than one packet sent towards this node. If so, we have
@@ -366,6 +374,11 @@ ether_tick(void)
 	      break;
 	    }
 	  }
+	}
+
+	if(interference) {
+	  num_collisions++;
+	  /*	  printf("Collisions %d\n", num_collisions);*/
 	}
 	
 	if(!interference) {
@@ -476,7 +489,7 @@ ether_send_sensor_data(struct sensor_data *d, int srcx, int srcy, int strength)
   int i;
   struct ether_hdr hdr;
 
-  printf("Sensor data at (%d, %d)\n", srcx, srcy);
+  /*  printf("Sensor data at (%d, %d)\n", srcx, srcy);*/
   
   for(i = 0; i < nodes_num(); ++i) {
 

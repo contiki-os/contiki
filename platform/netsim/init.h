@@ -28,14 +28,14 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: init.h,v 1.1 2006/06/17 22:41:35 adamdunkels Exp $
+ * @(#)$Id: init.h,v 1.2 2006/10/06 08:25:30 adamdunkels Exp $
  */
 #ifndef __INIT_H__
 #define __INIT_H__
 
 void init(void);
 
-void main_add_node(int x, int y);
+int main_add_node(int x, int y);
 void main_add_base(int x, int y);
 
 #endif /* __INIT_H__ */

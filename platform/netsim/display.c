@@ -24,7 +24,7 @@
  * IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY
  * OF SUCH DAMAGE.
  *
- * $Id: display.c,v 1.2 2006/09/26 22:10:12 adamdunkels Exp $
+ * $Id: display.c,v 1.3 2006/10/06 08:25:30 adamdunkels Exp $
  *
  * Author: Adam Dunkels <adam@sics.se>
  *
@@ -251,7 +251,11 @@ display_tick(void)
     } else {
       e = NULL;
     }
-    d->size -= 4;
+    if(d->size > 40) {
+      d->size -= 8;
+    } else {
+      d->size -= 4;
+    }
     /*    --(d->intensity);*/
     if(d->size > 0) {
       list_push(tempdots, d);
@@ -329,7 +333,8 @@ key_press_event (GtkWidget * widget, GdkEventKey * event)
     }*/
 
   if(event->keyval == 'q') {
-    exit(0);
+    gtk_exit(0);
+    /*   exit(0);*/
   }
   return TRUE;
 }

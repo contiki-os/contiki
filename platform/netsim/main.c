@@ -30,7 +30,7 @@
  *
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: main.c,v 1.2 2006/08/14 14:01:02 bg- Exp $
+ * $Id: main.c,v 1.3 2006/10/06 08:25:30 adamdunkels Exp $
  */
 
 /**
@@ -105,7 +105,7 @@ idle(void)
 
 }
 /*---------------------------------------------------------------------------*/
-static void
+static int
 start_node(int x, int y, int b)
 {
   pid_t pid;
@@ -123,7 +123,7 @@ start_node(int x, int y, int b)
 
     usleep(1000 * ((random() & 0x0f) << 6) );
     
-    node_init(port - NODES_PORTBASE, x, y, b);
+    node_init(port - NODES_PORTBASE + 1, x, y, b);
     ethernode_init(port);
 
     
@@ -138,12 +138,13 @@ start_node(int x, int y, int b)
   
 
   ++port;
+  return port - NODES_PORTBASE;
 }
 /*---------------------------------------------------------------------------*/
-void
+int
 main_add_node(int x, int y)
 {
-  start_node(x, y, 0);
+  return start_node(x, y, 0);
 }
 /*---------------------------------------------------------------------------*/
 void

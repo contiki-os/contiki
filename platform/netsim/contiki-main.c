@@ -30,7 +30,7 @@
  *
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: contiki-main.c,v 1.2 2006/08/14 14:01:02 bg- Exp $
+ * $Id: contiki-main.c,v 1.3 2006/10/06 08:25:30 adamdunkels Exp $
  */
 
 #include "contiki.h"
@@ -51,6 +51,7 @@
 #include "dev/button-sensor.h"
 #include "dev/pir-sensor.h"
 #include "dev/vib-sensor.h"
+#include "dev/radio-sensor.h"
 #include "dev/leds.h"
 
 static struct uip_fw_netif tapif =
@@ -63,7 +64,7 @@ static const struct uip_eth_addr ethaddr = {{0x00,0x06,0x98,0x01,0x02,0x12}};
 /*PROCESS(test_send_process, "Test send stuff");
   PROCESS(test_tcp_process, "Test TCP");*/
 
-SENSORS(&button_sensor, &pir_sensor, &vib_sensor);
+SENSORS(&button_sensor, &pir_sensor, &vib_sensor, &radio_sensor);
 
 PROCINIT(&sensors_process, &etimer_process, &tcpip_process,
 	 &ethernode_drv_process,
