@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: contiki-esb-main.c,v 1.1 2006/06/17 22:41:27 adamdunkels Exp $
+ * @(#)$Id: contiki-esb-main.c,v 1.2 2006/10/06 07:49:31 adamdunkels Exp $
  */
 
 #include <io.h>
@@ -80,11 +80,49 @@ PROCESS_THREAD(contiki_esb_main_init_process, ev, data)
   PROCESS_END();
 }
 /*---------------------------------------------------------------------------*/
+static void init_ports_toberemoved() {
+    ////////// Port 1 ////
+  P1SEL = 0x00;
+  P1DIR = 0x81;       // Outputs: P10=IRSend, P17=RS232RTS
+                      // Inputs: P11=Light, P12=IRRec, P13=PIR, P14=Vibration,
+                      //         P15=Clockalarm, P16=RS232CTS
+  P1OUT = 0x00;
+
+  ////////// Port 2 ////
+  P2SEL = 0x00;       // No Sels
+  P2DIR = 0x7F;       // Outpus: P20..P23=Leds+Beeper, P24..P26=Poti
+                      // Inputs: P27=Taster
+  P2OUT = 0x77;
+
+  ////////// Port 3 ////
+  P3SEL = 0xE0;       // Sels for P34..P37 to activate UART,
+  P3DIR = 0x5F;       // Inputs: P30..P33=CON4, P35/P37=RXD Transceiver/RS232
+                      // OutPuts: P36/P38=TXD Transceiver/RS232
+  P3OUT = 0xE0;       // Output a Zero on P34(TXD Transceiver) and turn SELECT off when receiving!!!
+
+  ////////// Port 4 ////
+  P4SEL = 0x00;       // CON5 Stecker
+  P4DIR = 0xFF;
+  P4OUT = 0x00;
+
+  ////////// Port 5 ////
+  P5SEL = 0x00;       // P50/P51= Clock SDA/SCL, P52/P53/P54=EEPROM SDA/SCL/WP
+  P5DIR = 0xDA;       // P56/P57=Transceiver CNTRL0/1
+  P5OUT = 0x0F;
+
+  ////////// Port 6 ////
+  P6SEL = 0x00;       // P60=Microphone, P61=PIR digital (same as P13), P62=PIR analog
+  P6DIR = 0x00;       // P63=extern voltage, P64=battery voltage, P65=Receive power
+  P6OUT = 0x00;
+}
+/*---------------------------------------------------------------------------*/
 int
 main(void)
 {
   msp430_cpu_init();
 
+  init_ports_toberemoved();
+  
   init_lowlevel();
 
   clock_init();
@@ -93,9 +131,8 @@ main(void)
 
   random_init(0);
 
-  uip_init();
-  uip_fw_init();
-
+  node_id_restore();
+  
   process_start(&contiki_esb_main_init_process, NULL);
 
   /*  watchdog_init();*/

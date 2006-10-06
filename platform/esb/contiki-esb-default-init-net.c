@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: contiki-esb-default-init-net.c,v 1.2 2006/08/09 16:13:40 bg- Exp $
+ * @(#)$Id: contiki-esb-default-init-net.c,v 1.3 2006/10/06 07:49:31 adamdunkels Exp $
  */
 
 #include "contiki-esb.h"
@@ -45,9 +45,13 @@ void
 init_net(void)
 {
   uip_ipaddr_t hostaddr;
+
+  uip_init();
+  uip_fw_init();
   
   rs232_set_input(slip_input_byte);
 
+  tr1001_init();
   process_start(&tr1001_drv_process, NULL);
   process_start(&slip_process, NULL);
   
