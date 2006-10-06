@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: tr1001.c,v 1.2 2006/08/17 08:27:54 nifi Exp $
+ * @(#)$Id: tr1001.c,v 1.3 2006/10/06 07:57:14 adamdunkels Exp $
  */
 /**
  * \addtogroup esb
@@ -130,8 +130,13 @@ static struct timer rxtimer;
 
 static unsigned short tmp_sstrength, sstrength;
 
+#define DEBUG 0
+#if DEBUG
 #include <stdio.h>
-#define LOG(...) /*printf(__VA_ARGS__)*/
+#define LOG(...) printf(__VA_ARGS__)
+#else
+#define LOG(...)
+#endif
 
 /*---------------------------------------------------------------------------*/
 #if TR1001_STATISTICS
