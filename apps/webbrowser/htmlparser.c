@@ -29,7 +29,7 @@
  *
  * This file is part of the Contiki desktop environment 
  *
- * $Id: htmlparser.c,v 1.4 2006/10/06 21:28:18 oliverschmidt Exp $
+ * $Id: htmlparser.c,v 1.5 2006/10/06 21:30:41 oliverschmidt Exp $
  *
  */
 
@@ -400,6 +400,7 @@ parse_tag(void)
   case TAG_SLASHSCRIPT:
   case TAG_SLASHSTYLE:
   case TAG_SLASHSELECT:
+    do_word();
     switch_majorstate(s.lastmajorstate);
     break;
   case TAG_BODY:
