@@ -29,7 +29,7 @@
  *
  * This file is part of the Contiki desktop environment 
  *
- * $Id: htmlparser.c,v 1.5 2006/10/06 21:30:41 oliverschmidt Exp $
+ * $Id: htmlparser.c,v 1.6 2006/10/06 21:34:59 oliverschmidt Exp $
  *
  */
 
@@ -155,11 +155,9 @@ struct htmlparser_state {
   unsigned char majorstate, lastmajorstate;
   char linkurl[WWW_CONF_MAX_URLLEN];
 
-#define MAX_WORDLEN 40
-  char word[MAX_WORDLEN];
+  char word[WWW_CONF_WEBPAGE_WIDTH];
   unsigned char wordlen;
-  
-  
+
 #if WWW_CONF_FORMS
   char formaction[WWW_CONF_MAX_FORMACTIONLEN];
   char formname[WWW_CONF_MAX_FORMNAMELEN];
@@ -283,13 +281,9 @@ switch_majorstate(unsigned char newstate)
 static void CC_FASTCALL
 add_char(unsigned char c)
 {
-  if(s.wordlen < MAX_WORDLEN &&
-     c < 0x80) {
+  if(s.wordlen < WWW_CONF_WEBPAGE_WIDTH - 1 && c < 0x80) {
     s.word[s.wordlen] = c;
     ++s.wordlen;
-    if(s.wordlen == MAX_WORDLEN) {
-      s.wordlen = MAX_WORDLEN - 1;
-    }
   }
 }
 /*-----------------------------------------------------------------------------------*/
