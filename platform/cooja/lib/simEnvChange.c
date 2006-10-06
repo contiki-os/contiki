@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: simEnvChange.c,v 1.3 2006/10/05 12:09:53 fros4943 Exp $
+ * $Id: simEnvChange.c,v 1.4 2006/10/06 10:47:09 fros4943 Exp $
  */
 
 #include <stdio.h>
@@ -38,6 +38,7 @@
 extern const struct simInterface *simInterfaces[];
 
 char simDontFallAsleep = 0;
+char simInsideProcessRun = 0;
 
 int simProcessRunValue;
 int simEtimerPending;

@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: simEnvChange.h,v 1.3 2006/10/05 12:09:53 fros4943 Exp $
+ * $Id: simEnvChange.h,v 1.4 2006/10/06 10:47:09 fros4943 Exp $
  */
 
 #ifndef __SIMENVCHANGE_H__
@@ -45,6 +45,7 @@ extern int simNextExpirationTime;
 
 // Variable that when set to != 0, stops the mote from falling asleep next tick
 extern char simDontFallAsleep;
+extern char simInsideProcessRun;
 
 // Definition for registering an interface
 #define SIM_INTERFACE(name, doActionsBeforeTick, doActionsAfterTick) \
