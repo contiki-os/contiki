@@ -29,7 +29,7 @@
  *
  * This file is part of the Contiki desktop environment 
  *
- * $Id: htmlparser.c,v 1.2 2006/08/14 23:31:40 oliverschmidt Exp $
+ * $Id: htmlparser.c,v 1.3 2006/10/06 21:14:28 oliverschmidt Exp $
  *
  */
 
@@ -478,14 +478,8 @@ parse_tag(void)
 	switch(s.inputtype) {
 	case HTMLPARSER_INPUTTYPE_NONE:
 	case HTMLPARSER_INPUTTYPE_TEXT:
-	  for(i = 0; i < s.inputvaluesize; ++i) {
-	    if(s.inputvalue[i] == 0) {
-	      memset(&s.inputvalue[i], ISO_space, s.inputvaluesize - i);
-	      s.inputvalue[s.inputvaluesize] = 0;
-	      break;
-	    }
-	  }	  
-	  htmlparser_inputfield(s.inputvalue, s.inputname,
+	  s.inputvalue[s.inputvaluesize] = 0;
+	  htmlparser_inputfield(s.inputvaluesize, s.inputvalue, s.inputname,
 				s.formname, s.formaction);
 	  break;
 	case HTMLPARSER_INPUTTYPE_SUBMIT:
