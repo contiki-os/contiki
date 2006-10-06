@@ -29,7 +29,7 @@
  *
  * This file is part of the Contiki desktop environment
  *
- * $Id: www.c,v 1.3 2006/10/06 21:14:28 oliverschmidt Exp $
+ * $Id: www.c,v 1.4 2006/10/06 21:39:45 oliverschmidt Exp $
  *
  */
 
@@ -861,8 +861,6 @@ htmlparser_submitbutton(char *text, char *name,
     strncpy(form->inputname, name, WWW_CONF_MAX_INPUTNAMELEN);
     form->inputtype = FORMINPUTTYPE_SUBMITBUTTON;
   }
-
-
 }
 /*-----------------------------------------------------------------------------------*/
 void
