@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: hc.c,v 1.2 2006/08/09 16:13:39 bg- Exp $
+ * @(#)$Id: hc.c,v 1.3 2006/10/09 11:53:43 adamdunkels Exp $
  */
 
 /**
@@ -85,11 +85,11 @@ hc_init(void)
 }
 /*---------------------------------------------------------------------------*/
 /**
- * Compress the header found in the uip_buf.
+ * Compress a header
  *
- * This function compresses the TCP/IP headers in the uip_buf and
+ * This function compresses the TCP/IP headers in a buffer and
  * should be called just before sending out data on the network. A
- * pointer to the compressed header is returned, and uip_len is
+ * pointer to the compressed header is returned, and len is
  * adjusted.
  *
  * If the header could not be compressed, the function does nothing
@@ -100,13 +100,13 @@ hc_init(void)
  */
 /*---------------------------------------------------------------------------*/
 int
-hc_compress(void)
+hc_compress(u8_t *buf, int len)
 {
   struct hc_hdr *hdr;
   struct udpip_hdr *uhdr;
 
-  hdr = (struct hc_hdr *)&uip_buf[UIP_LLH_LEN];
-  uhdr = (struct udpip_hdr *)&uip_buf[UIP_LLH_LEN];
+  hdr = (struct hc_hdr *)buf;
+  uhdr = (struct udpip_hdr *)buf;
 
   /* Check the original TCP/IP header to see if it matches our
      pattern, and compress if it does. */
@@ -139,20 +139,20 @@ hc_compress(void)
 
     /* Move the packet data to the end of the compressed header. */
     memcpy((char *)hdr + HC_HLEN,
-	   &uip_buf[UIP_LLH_LEN + UIP_IPUDPH_LEN],
-	   uip_len - UIP_IPUDPH_LEN);
+	   &buf[UIP_IPUDPH_LEN],
+	   len - UIP_IPUDPH_LEN);
 
     /* Return the new packet length. */
-    return uip_len - (UIP_IPUDPH_LEN - HC_HLEN);
+    return len - (UIP_IPUDPH_LEN - HC_HLEN);
   }
 
   /* No compression possible, return NULL pointer. */
-  return uip_len;
+  return len;
      
 }
 /*---------------------------------------------------------------------------*/
 /**
- * Inflate (decompress) a header in the uip_buf buffer.
+ * Inflate (decompress) a header
  *
  * This function should be called to inflate a possibly compressed
  * packet header just after a packet has been received from the
@@ -162,37 +162,36 @@ hc_compress(void)
  */
 /*---------------------------------------------------------------------------*/
 int
-hc_inflate(void)
+hc_inflate(u8_t *buf, int len)
 {
   struct udpip_hdr *uhdr;
   struct hc_hdr *hdr;
   
-  hdr = (struct hc_hdr *)&uip_buf[UIP_LLH_LEN];
+  hdr = (struct hc_hdr *)buf;
   
-  /* First, check if the header in uip_buf is compressed or not. */
+  /* First, check if the header in buf is compressed or not. */
   if((hdr->flagsport & HTONS(FLAGS_COMPRESSED)) != 0 &&
      (hdr->flagsport & HTONS(FLAGS_BROADCASTDATA)) != 0) {
     
     /* Move packet data in memory to make room for the uncompressed header. */
-    memmove(&uip_buf[UIP_LLH_LEN + UIP_IPUDPH_LEN - HC_HLEN],
-	    &uip_buf[UIP_LLH_LEN], uip_len);
-    uhdr = (struct udpip_hdr *)&uip_buf[UIP_LLH_LEN];
-    hdr = (struct hc_hdr *)&uip_buf[UIP_LLH_LEN + UIP_IPUDPH_LEN -
-				    HC_HLEN];
+    memmove(&buf[UIP_IPUDPH_LEN - HC_HLEN],
+	    buf, len);
+    uhdr = (struct udpip_hdr *)buf;
+    hdr = (struct hc_hdr *)&buf[UIP_IPUDPH_LEN - HC_HLEN];
     
     uhdr->srcipaddr = hdr->srcipaddr;
     uhdr->srcport = hdr->flagsport & HTONS(0x3fff);
     uhdr->destport = hdr->flagsport & HTONS(0x3fff);
     
-    uhdr->udplen = uip_len;
+    uhdr->udplen = len;
     
-    uip_len += UIP_IPUDPH_LEN - HC_HLEN;
+    len += UIP_IPUDPH_LEN - HC_HLEN;
 
     
     uhdr->vhl = 0x45;
     uhdr->tos = 0;
     uhdr->len[0] = 0;
-    uhdr->len[1] = uip_len;
+    uhdr->len[1] = len;
     uhdr->ipid[0] = uhdr->ipid[1] = 0xAD;
     uhdr->ipoffset[0] = uhdr->ipoffset[1] = 0;
     uhdr->ttl = 2;
@@ -205,6 +204,6 @@ hc_inflate(void)
 
   }
 
-  return uip_len;
+  return len;
 }
 /*---------------------------------------------------------------------------*/
