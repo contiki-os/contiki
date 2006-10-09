@@ -28,13 +28,14 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: tcpdump.h,v 1.1 2006/06/17 22:41:18 adamdunkels Exp $
+ * @(#)$Id: tcpdump.h,v 1.2 2006/10/09 11:53:56 adamdunkels Exp $
  */
 #ifndef __TCPDUMP_H__
 #define __TCPDUMP_H__
 
 #include "uip.h"
 
-int tcpdump_print(char *buf, u16_t buflen);
+int tcpdump_format(u8_t *packet, u16_t *len,
+		   char *printbuf, u16_t printbuflen);
 
 #endif /* __TCPDUMP_H__ */

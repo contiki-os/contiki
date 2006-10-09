@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: tcpdump.c,v 1.1 2006/06/17 22:41:18 adamdunkels Exp $
+ * @(#)$Id: tcpdump.c,v 1.2 2006/10/09 11:53:56 adamdunkels Exp $
  */
 
 #include "contiki-net.h"
@@ -39,14 +39,14 @@
  struct ip_hdr {
   /* IP header. */
    u8_t vhl,
-    tos,          
-     len[2],       
-     ipid[2],        
-     ipoffset[2],  
-     ttl,          
-     proto;     
+    tos,
+     len[2],
+     ipid[2],
+     ipoffset[2],
+     ttl,
+     proto;
    u16_t ipchksum;
-   u8_t srcipaddr[4], 
+   u8_t srcipaddr[4],
      destipaddr[4];
  };
 
@@ -61,48 +61,48 @@
 struct tcpip_hdr {
   /* IP header. */
    u8_t vhl,
-    tos,          
-     len[2],       
-     ipid[2],        
-     ipoffset[2],  
-     ttl,          
-     proto;     
+    tos,
+     len[2],
+     ipid[2],
+     ipoffset[2],
+     ttl,
+     proto;
    u16_t ipchksum;
-   u8_t srcipaddr[4], 
+   u8_t srcipaddr[4],
      destipaddr[4];
   /* TCP header. */
   u16_t srcport,
     destport;
-  u8_t seqno[4],  
+  u8_t seqno[4],
     ackno[4],
     tcpoffset,
     flags,
-    wnd[2];     
+    wnd[2];
   u16_t tcpchksum;
   u8_t urgp[2];
   u8_t optdata[4];
 };
 
 #define ICMP_ECHO_REPLY 0
-#define ICMP_ECHO       8     
+#define ICMP_ECHO       8
 
 struct icmpip_hdr {
   /* IP header. */
    u8_t vhl,
-    tos,          
-     len[2],       
-     ipid[2],        
-     ipoffset[2],  
-     ttl,          
-     proto;     
+    tos,
+     len[2],
+     ipid[2],
+     ipoffset[2],
+     ttl,
+     proto;
   u16_t ipchksum;
-  u8_t srcipaddr[4], 
+  u8_t srcipaddr[4],
     destipaddr[4];
   /* The ICMP and IP headers. */
   /* ICMP (echo) header. */
   u8_t type, icode;
   u16_t icmpchksum;
-  u16_t id, seqno;  
+  u16_t id, seqno;
 };
 
 
@@ -110,14 +110,14 @@ struct icmpip_hdr {
 struct udpip_hdr {
   /* IP header. */
    u8_t vhl,
-    tos,          
-     len[2],       
-     ipid[2],        
-     ipoffset[2],  
-     ttl,          
-     proto;     
+    tos,
+     len[2],
+     ipid[2],
+     ipoffset[2],
+     ttl,
+     proto;
    u16_t ipchksum;
-  u8_t srcipaddr[4], 
+  u8_t srcipaddr[4],
     destipaddr[4];
   
   /* UDP header. */
@@ -127,11 +127,11 @@ struct udpip_hdr {
   u16_t udpchksum;
 };
 
-#define ETHBUF    ((struct eth_hdr *)&uip_buf[0])
-#define IPBUF     ((struct ip_hdr *)&uip_buf[UIP_LLH_LEN])
-#define UDPBUF  ((struct udpip_hdr *)&uip_buf[UIP_LLH_LEN])
-#define ICMPBUF ((struct icmpip_hdr *)&uip_buf[UIP_LLH_LEN])
-#define TCPBUF  ((struct tcpip_hdr *)&uip_buf[UIP_LLH_LEN])
+#define ETHBUF    ((struct eth_hdr *)&packet[0])
+#define IPBUF     ((struct ip_hdr *)&packet[0])
+#define UDPBUF  ((struct udpip_hdr *)&packet[0])
+#define ICMPBUF ((struct icmpip_hdr *)&packet[0])
+#define TCPBUF  ((struct tcpip_hdr *)&packet[0])
 
 
 /*---------------------------------------------------------------------------*/
@@ -157,7 +157,7 @@ tcpflags(unsigned char flags, char *flagsstr)
   *flagsstr = 0;
 }
 /*---------------------------------------------------------------------------*/
-static char * CC_FASTCALL 
+static char * CC_FASTCALL
 n(u16_t num, char *ptr)
 {
   u16_t d;
@@ -165,7 +165,7 @@ n(u16_t num, char *ptr)
 
   if(num == 0) {
     *ptr = '0';
-    return ptr + 1;    
+    return ptr + 1;
   } else {
     f = 0;
     for(d = 10000; d >= 1; d /= 10) {
@@ -180,7 +180,7 @@ n(u16_t num, char *ptr)
   return ptr;
 }
 /*---------------------------------------------------------------------------*/
-static char * CC_FASTCALL 
+static char * CC_FASTCALL
 d(char *ptr)
 {
   *ptr = '.';
@@ -195,20 +195,21 @@ s(char *str, char *ptr)
 }
 /*---------------------------------------------------------------------------*/
 int
-tcpdump_print(char *buf, u16_t buflen)
+tcpdump_format(u8_t *packet, u16_t packetlen,
+	       char *buf, u16_t buflen)
 {
   char flags[8];
   if(IPBUF->proto == UIP_PROTO_ICMP) {
     if(ICMPBUF->type == ICMP_ECHO) {
       return s(" ping",
 	     n(IPBUF->destipaddr[3], d(
-	     n(IPBUF->destipaddr[2], d(	       
-	     n(IPBUF->destipaddr[1], d(	       
+	     n(IPBUF->destipaddr[2], d(
+	     n(IPBUF->destipaddr[1], d(
 	     n(IPBUF->destipaddr[0],
              s(" ",
-	     n(IPBUF->srcipaddr[3], d(	       
-	     n(IPBUF->srcipaddr[2], d(	       
-	     n(IPBUF->srcipaddr[1], d(	       
+	     n(IPBUF->srcipaddr[3], d(
+	     n(IPBUF->srcipaddr[2], d(
+	     n(IPBUF->srcipaddr[1], d(
              n(IPBUF->srcipaddr[0],
 	     buf)))))))))))))))) - buf;
 	     
@@ -220,13 +221,13 @@ tcpdump_print(char *buf, u16_t buflen)
     } else if(ICMPBUF->type == ICMP_ECHO_REPLY) {
       return s(" pong",
 	     n(IPBUF->destipaddr[3], d(
-	     n(IPBUF->destipaddr[2], d(	       
-	     n(IPBUF->destipaddr[1], d(	       
+	     n(IPBUF->destipaddr[2], d(
+	     n(IPBUF->destipaddr[1], d(
 	     n(IPBUF->destipaddr[0],
              s(" ",
-	     n(IPBUF->srcipaddr[3], d(	       
-	     n(IPBUF->srcipaddr[2], d(	       
-	     n(IPBUF->srcipaddr[1], d(	       
+	     n(IPBUF->srcipaddr[3], d(
+	     n(IPBUF->srcipaddr[2], d(
+	     n(IPBUF->srcipaddr[1], d(
              n(IPBUF->srcipaddr[0],
 	     buf)))))))))))))))) - buf;
       /*      return sprintf(buf, "%d.%d.%d.%d %d.%d.%d.%d pong",
@@ -237,16 +238,16 @@ tcpdump_print(char *buf, u16_t buflen)
     }
   } else if(IPBUF->proto == UIP_PROTO_UDP) {
       return s(" UDP",
-	     n(htons(UDPBUF->destport), d(	       
+	     n(htons(UDPBUF->destport), d(
 	     n(IPBUF->destipaddr[3], d(
-	     n(IPBUF->destipaddr[2], d(	       
-	     n(IPBUF->destipaddr[1], d(	       
+	     n(IPBUF->destipaddr[2], d(
+	     n(IPBUF->destipaddr[1], d(
 	     n(IPBUF->destipaddr[0],
              s(" ",
 	     n(htons(UDPBUF->srcport), d(
-	     n(IPBUF->srcipaddr[3], d(	       
-	     n(IPBUF->srcipaddr[2], d(	       
-	     n(IPBUF->srcipaddr[1], d(	       
+	     n(IPBUF->srcipaddr[3], d(
+	     n(IPBUF->srcipaddr[2], d(
+	     n(IPBUF->srcipaddr[1], d(
              n(IPBUF->srcipaddr[0],
 	     buf)))))))))))))))))))) - buf;
       /*    return sprintf(buf, "%d.%d.%d.%d.%d %d.%d.%d.%d.%d UDP",
@@ -260,16 +261,16 @@ tcpdump_print(char *buf, u16_t buflen)
     tcpflags(TCPBUF->flags, flags);
       return s(flags,
              s(" ",
-	     n(htons(TCPBUF->destport), d(	       
+	     n(htons(TCPBUF->destport), d(
 	     n(IPBUF->destipaddr[3], d(
-	     n(IPBUF->destipaddr[2], d(	       
-	     n(IPBUF->destipaddr[1], d(	       
+	     n(IPBUF->destipaddr[2], d(
+	     n(IPBUF->destipaddr[1], d(
 	     n(IPBUF->destipaddr[0],
              s(" ",
 	     n(htons(TCPBUF->srcport), d(
-	     n(IPBUF->srcipaddr[3], d(	       
-	     n(IPBUF->srcipaddr[2], d(	       
-	     n(IPBUF->srcipaddr[1], d(	       
+	     n(IPBUF->srcipaddr[3], d(
+	     n(IPBUF->srcipaddr[2], d(
+	     n(IPBUF->srcipaddr[1], d(
              n(IPBUF->srcipaddr[0],
 	     buf))))))))))))))))))))) - buf;
     /*    return sprintf(buf, "%d.%d.%d.%d.%d %d.%d.%d.%d.%d %s",
@@ -280,6 +281,8 @@ tcpdump_print(char *buf, u16_t buflen)
 		   IPBUF->destipaddr[2], IPBUF->destipaddr[3],
 		   htons(TCPBUF->destport),
 		   flags);  */
+  } else {
+    strcpy(buf, "Unrecognized protocol");
   }
 
   return 0;
