@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: radio-arch.c,v 1.6 2006/10/06 10:45:53 fros4943 Exp $
+ * $Id: radio-arch.c,v 1.7 2006/10/09 14:13:04 fros4943 Exp $
  */
 
 #include "dev/radio-arch.h"
@@ -44,6 +44,9 @@
 
 #include "sys/log.h"
 
+#define MAX_RETRIES 50
+#define SS_INTERFERENCE -150
+
 const struct simInterface radio_interface;
 
 // COOJA variables
@@ -56,7 +59,7 @@ char simOutDataBuffer[UIP_BUFSIZE];
 int simOutSize;
 
 char simRadioHWOn = 1;
-int simSignalStrength = 0;
+int simSignalStrength = -200;
 char simPower = 100;
 
 /*-----------------------------------------------------------------------------------*/
@@ -145,28 +148,25 @@ simDoSend(void)
   simOutSize = uip_len;
   
   // Busy-wait while we are receiving
-  if (simReceiving && simInsideProcessRun) {
+  if (simReceiving && !simNoYield) {
     cooja_mt_yield();
   }
   
   // Busy-wait until ether is ready, or die (MAC imitation)
   int retries=0;
-  /*	while (retries < 5 && simSignalStrength > -80) {
-  // TODO Retry and signal strength threshold values?
-  retries++;
-  printf("WAITING FOR ETHER! (null)\n");
-  cooja_mt_yield();
+  while (retries < MAX_RETRIES && simSignalStrength > SS_INTERFERENCE && !simNoYield) {
+	retries++;
+	cooja_mt_yield();
   }
-  if (simSignalStrength > -80) {
-  return UIP_FW_DROPPED;
+  if (simSignalStrength > SS_INTERFERENCE) {
+	return UIP_FW_DROPPED;
   }
-  */	
 
   // - Initiate transmission -
   simTransmitting = 1;
 
   // Busy-wait while transmitting
-  if (simTransmitting && simInsideProcessRun) {
+  if (simTransmitting && !simNoYield) {
     cooja_mt_yield();
   }
   
