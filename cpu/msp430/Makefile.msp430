@@ -1,4 +1,4 @@
-# $Id: Makefile.msp430,v 1.4 2006/09/01 22:56:26 adamdunkels Exp $
+# $Id: Makefile.msp430,v 1.5 2006/10/09 09:12:46 joxe Exp $
 
 ### Check if we are running under Windows
 
@@ -113,12 +113,11 @@ endif
 
 
 ### Node id ###
-
-.PHONY:	node-id.c
-ifndef $(nodeid)
-  nodeid := 0
-endif
-node-id.c:
-	@-rm -f $@
-	@echo >$@ "const unsigned short node_id = $(nodeid);"
-	@echo ">>>> NODE ID SET TO $(nodeid)!"
+# .PHONY:	node-id.c
+# ifndef $(nodeid)
+#   nodeid := 0
+# endif
+# node-id.c:
+# 	@-rm -f $@
+# 	@echo >$@ "const unsigned short node_id = $(nodeid);"
+# 	@echo ">>>> NODE ID SET TO $(nodeid)!"
