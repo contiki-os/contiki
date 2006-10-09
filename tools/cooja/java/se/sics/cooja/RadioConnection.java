@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: RadioConnection.java,v 1.2 2006/10/06 13:31:02 fros4943 Exp $
+ * $Id: RadioConnection.java,v 1.3 2006/10/09 13:38:38 fros4943 Exp $
  */
 
 package se.sics.cooja;
@@ -92,7 +92,7 @@ public class RadioConnection {
    */
   public void removeDestination(Radio radio) {
     int pos = destinationRadios.indexOf(radio);
-    if (pos > 0) {
+    if (pos >= 0) {
       destinationRadios.remove(pos);
       destinationPositions.remove(pos);
       destinationData.remove(pos);
