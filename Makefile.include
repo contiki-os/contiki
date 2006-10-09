@@ -3,7 +3,7 @@ ifndef CONTIKI
 endif
 
 OBJECTDIR = obj_$(TARGET)
-
+CFLAGS += -DCONTIKI_TARGET=$(TARGET)
 
 ifeq ($(TARGET),)
   -include Makefile.target
