@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: radio-arch.c,v 1.7 2006/10/09 14:13:04 fros4943 Exp $
+ * $Id: radio-arch.c,v 1.8 2006/10/09 14:42:25 fros4943 Exp $
  */
 
 #include "dev/radio-arch.h"
@@ -105,7 +105,11 @@ doInterfaceActionsBeforeTick(void)
   // Hand over new packet to uIP
   uip_len = simInSize;
   memcpy(&uip_buf[UIP_LLH_LEN], &simInDataBuffer[0], simInSize);
-  tcpip_input();
+	
+  if (simNoYield)
+  	simDoTcpipInput = 1;
+  else
+    tcpip_input();
   simInSize = 0;
 }
 

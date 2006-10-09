@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: code_main_template,v 1.9 2006/10/09 14:14:18 fros4943 Exp $
+ * $Id: code_main_template,v 1.10 2006/10/09 14:42:55 fros4943 Exp $
  */
 
 /**
@@ -115,6 +115,11 @@ start_process_run_loop(void *data)
 	{
 		/* Always pretend we have processes left while inside process_run() */
 		simProcessRunValue = 1;
+
+		if (simDoTcpipInput) {
+		  simDoTcpipInput = 0;
+		  tcpip_input();
+		}
 
 		simProcessRunValue = process_run();
 
