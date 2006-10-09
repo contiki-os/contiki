@@ -1,4 +1,4 @@
-# $Id: Makefile.msp430,v 1.5 2006/10/09 09:12:46 joxe Exp $
+# $Id: Makefile.msp430,v 1.6 2006/10/09 09:13:23 adamdunkels Exp $
 
 ### Check if we are running under Windows
 
@@ -110,14 +110,3 @@ else
   # settings for windows
   -include ${CONTIKI}/cpu/msp430/buildscripts/Makefile.win
 endif
-
-
-### Node id ###
-# .PHONY:	node-id.c
-# ifndef $(nodeid)
-#   nodeid := 0
-# endif
-# node-id.c:
-# 	@-rm -f $@
-# 	@echo >$@ "const unsigned short node_id = $(nodeid);"
-# 	@echo ">>>> NODE ID SET TO $(nodeid)!"
