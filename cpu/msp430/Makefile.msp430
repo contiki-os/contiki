@@ -1,4 +1,4 @@
-# $Id: Makefile.msp430,v 1.6 2006/10/09 09:13:23 adamdunkels Exp $
+# $Id: Makefile.msp430,v 1.7 2006/10/09 09:15:48 adamdunkels Exp $
 
 ### Check if we are running under Windows
 
@@ -8,6 +8,10 @@ ifndef WINDIR
       WINDIR := Windows
     endif
   endif
+endif
+
+ifdef nodeid
+CFLAGS += -DNODEID=$(nodeid)
 endif
 
 .SUFFIXES:
