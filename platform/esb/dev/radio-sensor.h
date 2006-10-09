@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: radio-sensor.h,v 1.1 2006/06/18 07:49:33 adamdunkels Exp $
+ * @(#)$Id: radio-sensor.h,v 1.2 2006/10/09 11:55:42 adamdunkels Exp $
  */
 #ifndef __RADIO_SENSOR_H__
 #define __RADIO_SENSOR_H__
@@ -36,6 +36,9 @@
 #include "contiki-esb.h"
 
 extern const struct sensors_sensor radio_sensor;
+
+#define RADIO_SENSOR_LAST_VALUE  0
+#define RADIO_SENSOR_LAST_PACKET 1
 
 #define RADIO_SENSOR "Radio"
 

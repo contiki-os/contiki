@@ -28,12 +28,14 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: radio-sensor.c,v 1.1 2006/06/18 07:49:33 adamdunkels Exp $
+ * @(#)$Id: radio-sensor.c,v 1.2 2006/10/09 11:55:42 adamdunkels Exp $
  */
 
 #include "contiki-esb.h"
 #include "dev/irq.h"
 #include <io.h>
+
+#include "dev/tr1001.h"
 
 const struct sensors_sensor radio_sensor;
 
@@ -78,7 +80,13 @@ active(void)
 static unsigned int
 value(int type)
 {
-  return radio_sensor_signal;
+  switch(type) {
+  case RADIO_SENSOR_LAST_PACKET:
+    return tr1001_sstrength();
+  case RADIO_SENSOR_LAST_VALUE:
+  default:
+    return radio_sensor_signal;
+  }
 }
 /*---------------------------------------------------------------------------*/
 static int
