@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: process.h,v 1.4 2006/09/09 23:25:07 oliverschmidt Exp $
+ * @(#)$Id: process.h,v 1.5 2006/10/09 11:54:29 adamdunkels Exp $
  */
 
 /**
@@ -98,7 +98,8 @@ typedef unsigned char process_num_events_t;
 #define PROCESS_EVENT_MSG             0x86
 #define PROCESS_EVENT_EXITED          0x87
 #define PROCESS_EVENT_TIMER           0x88
-#define PROCESS_EVENT_MAX             0x89
+#define PROCESS_EVENT_COM             0x89
+#define PROCESS_EVENT_MAX             0x8a
 
 #define PROCESS_BROADCAST NULL
 #define PROCESS_ZOMBIE ((struct process *)0x1)
@@ -190,6 +191,7 @@ typedef unsigned char process_num_events_t;
  * \hideinitializer
  */
 #define PROCESS_WAIT_UNTIL(c)       PT_WAIT_UNTIL(process_pt, c)
+#define PROCESS_WAIT_WHILE(c)       PT_WAIT_WHILE(process_pt, c)
 
 /**
  * Exit the currently running process.
@@ -207,7 +209,7 @@ typedef unsigned char process_num_events_t;
  *
  * \hideinitializer
  */
-#define PROCESS_SPAWN(pt, thread)   PT_SPAWN(process_pt, pt, thread)
+#define PROCESS_PT_SPAWN(pt, thread)   PT_SPAWN(process_pt, pt, thread)
 
 /**
  * Yield the process for a short while.
