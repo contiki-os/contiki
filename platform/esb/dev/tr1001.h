@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: tr1001.h,v 1.1 2006/06/18 07:49:33 adamdunkels Exp $
+ * @(#)$Id: tr1001.h,v 1.2 2006/10/09 11:56:13 adamdunkels Exp $
  */
 #ifndef __TR1001_H__
 #define __TR1001_H__
@@ -121,7 +121,7 @@ u8_t tr1001_send(u8_t *packet, u16_t len);
  * \return The length of the received packet, or 0 if no packet has
  * been received.
  */
-unsigned short tr1001_poll(void);
+unsigned short tr1001_poll(u8_t *buf, u16_t bufsize);
 
 extern unsigned char tr1001_rxbuf[];
 extern volatile unsigned char tr1001_rxstate;
