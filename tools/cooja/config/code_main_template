@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: code_main_template,v 1.8 2006/10/06 10:47:33 fros4943 Exp $
+ * $Id: code_main_template,v 1.9 2006/10/09 14:14:18 fros4943 Exp $
  */
 
 /**
@@ -116,9 +116,7 @@ start_process_run_loop(void *data)
 		/* Always pretend we have processes left while inside process_run() */
 		simProcessRunValue = 1;
 
-		simInsideProcessRun = 1;
 		simProcessRunValue = process_run();
-		simInsideProcessRun = 0;
 
 		// Check if we must stay awake
 		if (simDontFallAsleep) {
@@ -231,7 +229,9 @@ JNIEXPORT void JNICALL
 Java_se_sics_cooja_corecomm_[CLASS_NAME]_tick(JNIEnv *env, jobject obj)
 {
   /* Let all simulation interfaces act first */
+  simNoYield = 1;
   doActionsBeforeTick();
+  simNoYield = 0;
 
   /* Check if any e-timers are pending (save result for state decisions) */
   if (etimer_pending()) {
@@ -247,7 +247,9 @@ Java_se_sics_cooja_corecomm_[CLASS_NAME]_tick(JNIEnv *env, jobject obj)
   cooja_mt_exec(&process_run_thread);
 
   /* Let all simulation interfaces act before returning to java */
+  simNoYield = 1;
   doActionsAfterTick();
+  simNoYield = 0;
 
   /* Look for new e-timers */
   if (!simEtimerPending && etimer_pending()) {
