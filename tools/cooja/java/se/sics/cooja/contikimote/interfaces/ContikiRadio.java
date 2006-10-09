@@ -26,13 +26,14 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ContikiRadio.java,v 1.7 2006/10/05 14:46:16 fros4943 Exp $
+ * $Id: ContikiRadio.java,v 1.8 2006/10/09 13:41:57 fros4943 Exp $
  */
 
 package se.sics.cooja.contikimote.interfaces;
 
 import java.util.*;
 import javax.swing.*;
+import java.awt.event.*;
 import org.apache.log4j.Logger;
 import org.jdom.Element;
 
@@ -362,9 +363,19 @@ public class ContikiRadio extends Radio implements ContikiMoteInterface {
     
     final JLabel statusLabel = new JLabel("");
     final JLabel lastEventLabel = new JLabel("");
+    final JLabel ssLabel = new JLabel("");
+    final JButton updateButton = new JButton("Update SS");
     
     panel.add(statusLabel);
     panel.add(lastEventLabel);
+    panel.add(ssLabel);
+    panel.add(updateButton);
+    
+    updateButton.addActionListener(new ActionListener() {
+      public void actionPerformed(ActionEvent e) {
+        ssLabel.setText("Signal strength (not auto-updated): " + getCurrentSignalStrength() + " dBm");
+      }
+    });
     
     Observer observer;
     this.addObserver(observer = new Observer() {
@@ -379,6 +390,7 @@ public class ContikiRadio extends Radio implements ContikiMoteInterface {
           statusLabel.setText("HW turned off");
 
         lastEventLabel.setText("Last event (time=" + lastEventTime + "): " + lastEvent);
+        ssLabel.setText("Signal strength (not auto-updated): " + getCurrentSignalStrength() + " dBm");
       }
     });
 
