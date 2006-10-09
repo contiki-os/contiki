@@ -26,14 +26,14 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: radio-test.c,v 1.1 2006/06/18 07:48:48 adamdunkels Exp $
+ * $Id: radio-test.c,v 1.2 2006/10/09 11:55:30 adamdunkels Exp $
  *
  * -----------------------------------------------------------------
  *
  * Author  : Adam Dunkels, Joakim Eriksson, Niclas Finne
  * Created : 2006-03-07
- * Updated : $Date: 2006/06/18 07:48:48 $
- *           $Revision: 1.1 $
+ * Updated : $Date: 2006/10/09 11:55:30 $
+ *           $Revision: 1.2 $
  *
  * Simple application to indicate connectivity between two nodes:
  *
@@ -121,10 +121,10 @@ PROCESS_THREAD(radio_test_process, ev, data)
 
       if(uip_poll()) {
 	/* send packet */
-	memcpy(uip_sappdata, HEADER, sizeof(HEADER));
-	((char *)uip_sappdata)[sizeof(HEADER)] = recv.onoff;
+	memcpy(uip_appdata, HEADER, sizeof(HEADER));
+	((char *)uip_appdata)[sizeof(HEADER)] = recv.onoff;
 	/* send arbitrary data to fill the packet size */
-	uip_send(uip_sappdata, PACKET_SIZE);
+	uip_send(uip_appdata, PACKET_SIZE);
 
 	set(&flash, ON);
       }
