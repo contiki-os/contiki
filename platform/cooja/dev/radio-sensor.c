@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: radio-sensor.c,v 1.1 2006/10/06 10:44:37 fros4943 Exp $
+ * @(#)$Id: radio-sensor.c,v 1.2 2006/10/09 13:46:08 fros4943 Exp $
  */
 
 #include "lib/sensors.h"
@@ -46,7 +46,6 @@ extern int simSignalStrength;
 static void
 init(void)
 {
-  simSignalStrength = 0;;
 }
 /*---------------------------------------------------------------------------*/
 static int
