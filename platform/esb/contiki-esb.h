@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: contiki-esb.h,v 1.1 2006/06/17 22:41:27 adamdunkels Exp $
+ * @(#)$Id: contiki-esb.h,v 1.2 2006/10/09 11:55:16 adamdunkels Exp $
  */
 #ifndef __CONTIKI_ESB_H__
 #define __CONTIKI_ESB_H__
@@ -67,6 +67,8 @@
 #include "dev/ir.h"
 
 #include "dev/leds.h"
+
+#include "node-id.h"
 
 void msp430_cpu_init(void);
 void init_lowlevel(void);
