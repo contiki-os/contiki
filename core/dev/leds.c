@@ -28,39 +28,25 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: leds.c,v 1.1 2006/06/17 22:41:16 adamdunkels Exp $
+ * @(#)$Id: leds.c,v 1.2 2006/10/09 11:55:02 adamdunkels Exp $
  */
 
 #include "dev/leds.h"
 #include "sys/clock.h"
 
-static struct {
-  char green:4, yellow:4, red:4;
-} leds;
-
-static struct {
-  char green:2, yellow:2, red:2;  /* These bit fields should really be
-				     only one bit wide, but that
-				     crashed gcc... */
-} invert;
-
+static unsigned char leds, invert;
 /*---------------------------------------------------------------------------*/
 static void
 show_leds(void)
 {
-  leds_arch_set((((leds.green > 0) ^ invert.green) ? LEDS_GREEN : 0) |
-		(((leds.yellow > 0) ^ invert.yellow) ? LEDS_YELLOW : 0) |
-		(((leds.red > 0) ^ invert.red) ? LEDS_RED : 0));
+  leds_arch_set(leds);
 }
 /*---------------------------------------------------------------------------*/
 void
 leds_init(void)
 {
-  leds.green = leds.red = leds.yellow = 0;
-  invert.green = invert.red = invert.yellow = 0;
   leds_arch_init();
-
-  show_leds();
+  leds = invert = 0;
 }
 /*---------------------------------------------------------------------------*/
 void
@@ -82,30 +68,14 @@ leds_get(void) {
 void
 leds_on(unsigned char l)
 {
-  if((l & LEDS_GREEN) && leds.green < 15) {
-    ++leds.green;
-  }
-  if((l & LEDS_YELLOW) && leds.yellow < 15) {
-    ++leds.yellow;
-  }
-  if((l & LEDS_RED) && leds.red < 15) {
-    ++leds.red;
-  }
+  leds |= l;
   show_leds();
 }
 /*---------------------------------------------------------------------------*/
 void
 leds_off(unsigned char l)
 {
-  if((l & LEDS_GREEN) && leds.green > 0) {
-    --leds.green;
-  }
-  if((l & LEDS_YELLOW) && leds.yellow > 0) {
-    --leds.yellow;
-  }
-  if((l & LEDS_RED) && leds.red > 0) {
-    --leds.red;
-  }
+  leds &= ~l;
   show_leds();
 }
 /*---------------------------------------------------------------------------*/
@@ -117,15 +87,7 @@ leds_toggle(unsigned char leds)
 
 /*   invert the ínvert register using the leds parameter */
 void leds_invert(unsigned char l) {
-  if(l & LEDS_GREEN) {
-    invert.green = 1 - invert.green;
-  }
-  if(l & LEDS_YELLOW) {
-    invert.yellow = 1 - invert.yellow;
-  }
-  if(l & LEDS_RED) {
-    invert.red = 1 - invert.red;
-  }
+  leds = ~leds;
   show_leds();
 }
 
