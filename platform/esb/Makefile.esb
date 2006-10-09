@@ -1,4 +1,4 @@
-# $Id: Makefile.esb,v 1.2 2006/10/06 07:58:19 adamdunkels Exp $
+# $Id: Makefile.esb,v 1.3 2006/10/09 09:19:02 nifi Exp $
 
 SENSORS    = sensors.c irq.c button-sensor.c pir-sensor.c vib-sensor.c \
              sound-sensor.c radio-sensor.c ctsrts-sensor.c battery-sensor.c \
@@ -12,7 +12,7 @@ endif
 CONTIKI_TARGET_SOURCEFILES += $(SENSORS) $(ESB) \
         contiki-esb-default-init-lowlevel.c \
         contiki-esb-default-init-apps.c contiki-esb-default-init-net.c \
-	rs232.c fader.c $(CONTIKI_TARGET_MAIN)
+	rs232.c rs232-putchar.c fader.c $(CONTIKI_TARGET_MAIN)
 
 include $(CONTIKI)/platform/$(TARGET)/apps/Makefile.apps
 
