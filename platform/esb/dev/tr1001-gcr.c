@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: tr1001-gcr.c,v 1.3 2006/10/09 11:56:13 adamdunkels Exp $
+ * @(#)$Id: tr1001-gcr.c,v 1.4 2006/10/09 21:05:37 nifi Exp $
  */
 /**
  * \addtogroup esb
@@ -93,6 +93,8 @@ static unsigned short tr1001_rxlen = 0;
  * The reception state.
  */
 volatile unsigned char tr1001_rxstate = RXSTATE_READY;
+
+static u8_t radio_active;
 
 static u16_t rxcrc, rxcrctmp;
 
@@ -612,6 +614,8 @@ tr1001_send(u8_t *packet, u16_t len)
   /* Prepare the transmission. */
   prepare_transmission(NUM_SYNCHBYTES);
 
+  radio_active = 1;
+
   crc16 = 0xffff;
 
   gcr_init();
@@ -764,5 +768,17 @@ tr1001_sstrength_value(unsigned int type)
 }
 #endif /* TR1001_STATISTICS */
 /*---------------------------------------------------------------------------*/
+unsigned char
+tr1001_active(void)
+{
+  return radio_active;
+}
+/*--------------------------------------------------------------------------*/
+void
+tr1001_clear_active(void)
+{
+  radio_active = 0;
+}
+/*--------------------------------------------------------------------------*/
 /** @} */
 /** @} */
