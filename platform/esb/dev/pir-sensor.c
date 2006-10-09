@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: pir-sensor.c,v 1.1 2006/06/18 07:49:33 adamdunkels Exp $
+ * @(#)$Id: pir-sensor.c,v 1.2 2006/10/09 21:08:51 nifi Exp $
  */
 
 #include "contiki-esb.h"
@@ -36,6 +36,7 @@
 const struct sensors_sensor pir_sensor;
 
 static unsigned int pir;
+static unsigned char flags;
 
 HWCONF_PIN(PIR, 1, 3);
 HWCONF_IRQ(PIR, 1, 3);
@@ -46,7 +47,9 @@ irq(void)
 {
   if(PIR_CHECK_IRQ()) {
     ++pir;
-    sensors_changed(&pir_sensor);
+    if(flags & PIR_ENABLE_EVENT) {
+      sensors_changed(&pir_sensor);
+    }
     return 1;
   }
   return 0;
@@ -55,6 +58,7 @@ irq(void)
 static void
 init(void)
 {
+  flags = PIR_ENABLE_EVENT;
   pir = 0;
   PIR_SELECT();
   PIR_MAKE_INPUT();
@@ -89,13 +93,18 @@ value(int type)
 static int
 configure(int type, void *c)
 {
-  return 0;
+  if(c) {
+    flags |= type & 0xff;
+  } else {
+    flags &= ~type & 0xff;
+  }
+  return 1;
 }
 /*---------------------------------------------------------------------------*/
 static void *
 status(int type)
 {
-  return NULL;
+  return (void *) (((int) (flags & type)) & 0xff);
 }
 /*---------------------------------------------------------------------------*/
 SENSORS_SENSOR(pir_sensor, PIR_SENSOR,

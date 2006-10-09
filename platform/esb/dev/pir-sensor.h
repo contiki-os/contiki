@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: pir-sensor.h,v 1.1 2006/06/18 07:49:33 adamdunkels Exp $
+ * @(#)$Id: pir-sensor.h,v 1.2 2006/10/09 21:08:51 nifi Exp $
  */
 #ifndef __PIR_SENSOR_H__
 #define __PIR_SENSOR_H__
@@ -38,5 +38,7 @@
 extern const struct sensors_sensor pir_sensor;
 
 #define PIR_SENSOR "PIR"
+
+#define PIR_ENABLE_EVENT 1
 
 #endif /* __PIR_SENSOR_H__ */

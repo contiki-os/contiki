@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: vib-sensor.c,v 1.1 2006/06/18 07:49:33 adamdunkels Exp $
+ * @(#)$Id: vib-sensor.c,v 1.2 2006/10/09 21:08:51 nifi Exp $
  */
 
 #include "contiki-esb.h"
@@ -36,6 +36,7 @@
 const struct sensors_sensor vib_sensor;
 
 static unsigned int vib;
+static unsigned char flags;
 
 HWCONF_PIN(VIB, 1, 4);
 HWCONF_IRQ(VIB, 1, 4);
@@ -46,7 +47,9 @@ irq(void)
 {
   if(VIB_CHECK_IRQ()) {
     ++vib;
-    sensors_changed(&vib_sensor);
+    if(flags & VIB_ENABLE_EVENT) {
+      sensors_changed(&vib_sensor);
+    }
     return 1;
   }
   return 0;
@@ -89,13 +92,18 @@ value(int type)
 static int
 configure(int type, void *c)
 {
-  return 0;
+  if(c) {
+    flags |= type & 0xff;
+  } else {
+    flags &= ~type & 0xff;
+  }
+  return 1;
 }
 /*---------------------------------------------------------------------------*/
 static void *
 status(int type)
 {
-  return NULL;
+  return (void *) (((int) (flags & type)) & 0xff);
 }
 /*---------------------------------------------------------------------------*/
 SENSORS_SENSOR(vib_sensor, VIB_SENSOR,

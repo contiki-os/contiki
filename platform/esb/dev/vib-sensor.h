@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: vib-sensor.h,v 1.1 2006/06/18 07:49:33 adamdunkels Exp $
+ * @(#)$Id: vib-sensor.h,v 1.2 2006/10/09 21:08:51 nifi Exp $
  */
 #ifndef __VIB_SENSOR_H__
 #define __VIB_SENSOR_H__
@@ -38,5 +38,7 @@
 extern const struct sensors_sensor vib_sensor;
 
 #define VIB_SENSOR "Vibration"
+
+#define VIB_ENABLE_EVENT 1
 
 #endif /* __VIB_SENSOR_H__ */
