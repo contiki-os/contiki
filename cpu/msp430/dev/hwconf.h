@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: hwconf.h,v 1.1 2006/06/17 22:41:21 adamdunkels Exp $
+ * @(#)$Id: hwconf.h,v 1.2 2006/10/10 21:33:26 joxe Exp $
  */
 #ifndef __HWCONF_H__
 #define __HWCONF_H__
@@ -39,6 +39,8 @@
 
 #define HWCONF_PIN(name, port, bit)                                           \
 static CC_INLINE void name##_SELECT() {P##port##SEL &= ~(1 << bit);}          \
+static CC_INLINE void name##_SELECT_IO() {P##port##SEL &= ~(1 << bit);}       \
+static CC_INLINE void name##_SELECT_PM() {P##port##SEL |= 1 << bit;}          \
 static CC_INLINE void name##_SET() {P##port##OUT |= 1 << bit;}                \
 static CC_INLINE void name##_CLEAR() {P##port##OUT &= ~(1 << bit);}           \
 static CC_INLINE int  name##_READ() {return (P##port##IN & (1 << bit));}      \
