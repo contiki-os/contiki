@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: tr1001-gcr.c,v 1.4 2006/10/09 21:05:37 nifi Exp $
+ * @(#)$Id: tr1001-gcr.c,v 1.5 2006/10/10 23:16:10 nifi Exp $
  */
 /**
  * \addtogroup esb
@@ -130,6 +130,7 @@ static struct pt rxhandler_pt;
 static struct timer rxtimer;
 
 static unsigned short tmp_sstrength, sstrength;
+static unsigned short tmp_count;
 
 #define DEBUG 0
 
@@ -144,11 +145,11 @@ static unsigned short tmp_sstrength, sstrength;
 
 /*---------------------------------------------------------------------------*/
 #if TR1001_STATISTICS
-#define PACKET_DROPPED(bytes) do { \
+#define PACKET_DROPPED() do { \
   if(packets_err < ~0) {\
     packets_err++;\
   }\
-  sstrength_dropped = ((bytes) == 0 ? 0 : ((tmp_sstrength / (bytes)) << 1));\
+  sstrength_dropped = (tmp_count ? ((tmp_sstrength / tmp_count) << 2) : 0);\
 } while(0)
 #define PACKET_ACCEPTED() do {\
   if(packets_ok < ~0) {\
@@ -156,7 +157,7 @@ static unsigned short tmp_sstrength, sstrength;
   }\
 } while(0);
 #else
-#define PACKET_DROPPED(bytes)
+#define PACKET_DROPPED()
 #define PACKET_ACCEPTED()
 #endif /* TR1001_STATISTICS */
 /*---------------------------------------------------------------------------*/
@@ -407,6 +408,7 @@ PT_THREAD(tr1001_default_rxhandler_pt(unsigned char incoming_byte))
   if(tr1001_rxstate == RXSTATE_RECEVING) {
     unsigned short signal = radio_sensor_signal;
     tmp_sstrength += (signal >> 2);
+    tmp_count++;
     if(signal < tmp_sstrength_min) {
       tmp_sstrength_min = signal;
     }
@@ -438,6 +440,7 @@ PT_THREAD(tr1001_default_rxhandler_pt(unsigned char incoming_byte))
 
     /* Start signal strength measurement */
     tmp_sstrength = 0;
+    tmp_count = 0;
     tmp_sstrength_max = 0;
     tmp_sstrength_min = 0xFFFF;
 
@@ -461,7 +464,7 @@ PT_THREAD(tr1001_default_rxhandler_pt(unsigned char incoming_byte))
 	if(!gcr_valid()) {
 	  beep_beep(1000);
 	  LOG("Incorrect GCR in header at byte %d/1 %x\n", tmppos, incoming_byte);
-	  PACKET_DROPPED(tmppos);
+	  PACKET_DROPPED();
 	  PT_RESTART(&rxhandler_pt);
 	}
       } while(!gcr_get_decoded(&rxtmp));
@@ -479,7 +482,7 @@ PT_THREAD(tr1001_default_rxhandler_pt(unsigned char incoming_byte))
     /* If the length is longer than we can handle, we'll start from
        the beginning. */
     if(tmppos + tr1001_rxlen > sizeof(tr1001_rxbuf)) {
-      PACKET_DROPPED(tmppos);
+      PACKET_DROPPED();
       PT_RESTART(&rxhandler_pt);
     }
 
@@ -498,7 +501,7 @@ PT_THREAD(tr1001_default_rxhandler_pt(unsigned char incoming_byte))
 	  beep_beep(1000);
 	  LOG("Incorrect GCR 0x%02x at byte %d/1\n", incoming_byte,
 	      tmppos - TR1001_HDRLEN);
-	  PACKET_DROPPED(tmppos);
+	  PACKET_DROPPED();
 	  PT_RESTART(&rxhandler_pt);
 	}
       } while(!gcr_get_decoded(&rxtmp));
@@ -519,7 +522,7 @@ PT_THREAD(tr1001_default_rxhandler_pt(unsigned char incoming_byte))
 	gcr_decode(incoming_byte);
 	if(!gcr_valid()) {
 	  beep_beep(1000);
-	  PACKET_DROPPED(tr1001_rxlen + TR1001_HDRLEN);
+	  PACKET_DROPPED();
 	  PT_RESTART(&rxhandler_pt);
 	}
       } while(!gcr_get_decoded(&rxtmp));
@@ -545,7 +548,7 @@ PT_THREAD(tr1001_default_rxhandler_pt(unsigned char incoming_byte))
     } else {
       LOG("Incorrect CRC");
       beep_beep(1000);
-      PACKET_DROPPED(tr1001_rxlen + TR1001_HDRLEN);
+      PACKET_DROPPED();
     }
   }
   PT_END(&rxhandler_pt);
@@ -681,7 +684,8 @@ tr1001_poll(u8_t *buf, u16_t bufsize)
     memcpy(buf, &tr1001_rxbuf[TR1001_HDRLEN], tmplen);
 
     /* header + content + CRC */
-    sstrength = (tmp_sstrength / (TR1001_HDRLEN + tr1001_rxlen + 2)) << 1;
+/*     sstrength = (tmp_sstrength / (TR1001_HDRLEN + tr1001_rxlen + 2)) << 1; */
+    sstrength = (tmp_count ? ((tmp_sstrength / tmp_count) << 2) : 0);
     sstrength_max = tmp_sstrength_max;
     sstrength_min = tmp_sstrength_min;
 
