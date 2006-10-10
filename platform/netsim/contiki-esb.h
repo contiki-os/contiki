@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: contiki-esb.h,v 1.1 2006/06/17 22:41:33 adamdunkels Exp $
+ * $Id: contiki-esb.h,v 1.2 2006/10/10 15:58:31 adamdunkels Exp $
  */
 
 /**
@@ -59,5 +59,7 @@
 #include "dev/tr1001-drv.h"
 
 #include "dev/beep.h"
+
+#include "node-id.h"
 
 #endif /* __CONTIKI_ESB_H__ */

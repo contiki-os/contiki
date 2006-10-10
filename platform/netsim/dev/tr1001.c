@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: tr1001.c,v 1.1 2006/06/17 22:41:36 adamdunkels Exp $
+ * $Id: tr1001.c,v 1.2 2006/10/10 15:58:31 adamdunkels Exp $
  */
 
 /**
@@ -90,6 +90,17 @@ void
 tr1001_clear_packets(void)
 {
   packets_ok = packets_err = 0;
+}
+/*---------------------------------------------------------------------------*/
+void
+tr1001_clear_active(void)
+{
+}
+/*---------------------------------------------------------------------------*/
+int
+tr1001_active(void)
+{
+  return 0;
 }
 /*---------------------------------------------------------------------------*/
 unsigned short

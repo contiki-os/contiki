@@ -9,4 +9,6 @@ extern const struct sensors_sensor pir_sensor;
 
 void pir_sensor_changed(int strength);
 
+#define PIR_ENABLE_EVENT 1
+
 #endif /* __PIR_SENSOR_H__ */

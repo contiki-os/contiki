@@ -29,14 +29,14 @@
  * This file is part of the Configurable Sensor Network Application
  * Architecture for sensor nodes running the Contiki operating system.
  *
- * $Id: vib-sensor.h,v 1.1 2006/06/17 22:41:36 adamdunkels Exp $
+ * $Id: vib-sensor.h,v 1.2 2006/10/10 15:58:31 adamdunkels Exp $
  *
  * -----------------------------------------------------------------
  *
  * Author  : Adam Dunkels, Joakim Eriksson, Niclas Finne
  * Created : 2005-11-01
- * Updated : $Date: 2006/06/17 22:41:36 $
- *           $Revision: 1.1 $
+ * Updated : $Date: 2006/10/10 15:58:31 $
+ *           $Revision: 1.2 $
  */
 
 #ifndef __VIB_SENSOR_H__
@@ -49,5 +49,7 @@ extern const struct sensors_sensor vib_sensor;
 #define VIB_SENSOR "Vibration"
 
 void vib_sensor_changed(void);
+
+#define VIB_ENABLE_EVENT 1
 
 #endif /* __VIB_SENSOR_H__ */

@@ -30,7 +30,7 @@
  *
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: ethernode-drv.c,v 1.3 2006/10/09 11:56:49 adamdunkels Exp $
+ * $Id: ethernode-drv.c,v 1.4 2006/10/10 15:58:31 adamdunkels Exp $
  */
 
 #include "contiki.h"
@@ -75,13 +75,6 @@ PROCESS_THREAD(ethernode_drv_process, ev, data)
 	} else*/ {
 
 	uip_len = hc_inflate(&uip_buf[UIP_LLH_LEN], uip_len);
-
-	{
-	  char buf[40];
-	  tcpdump_format(&uip_buf[UIP_LLH_LEN], uip_len, buf, sizeof(buf));
-	  printf("radio_sniffer: packet length %d, %s\n", uip_len, buf);
-
-	}
 
 	tapdev_send_raw();
 	/*    if(uip_fw_forward() == UIP_FW_LOCAL)*/ {

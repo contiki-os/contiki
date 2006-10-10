@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: rs232.c,v 1.1 2006/06/17 22:41:36 adamdunkels Exp $
+ * $Id: rs232.c,v 1.2 2006/10/10 15:58:31 adamdunkels Exp $
  */
 
 /**
@@ -44,6 +44,12 @@
 void
 rs232_set_input(int (* f)(unsigned char))
 {
-  printf("rs232_set_input(%p)\n", f);
+  /*  printf("rs232_set_input(%p)\n", f);*/
+}
+/*---------------------------------------------------------------------------*/
+void
+slip_arch_writeb(unsigned char c)
+{
+  printf("%c", c);
 }
 /*---------------------------------------------------------------------------*/
