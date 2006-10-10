@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF 
  * SUCH DAMAGE. 
  *
- * @(#)$Id: ssd.c,v 1.1 2006/10/10 08:30:48 bg- Exp $
+ * @(#)$Id: ssd.c,v 1.2 2006/10/10 18:25:36 bg- Exp $
  */
 
 #include <stdio.h>
@@ -89,7 +89,7 @@ main(int argc, char **argv)
   leds_toggle(LEDS_RED | LEDS_GREEN | LEDS_BLUE);
   slip_arch_init();		/* Must come before first printf */
   printf("Starting %s "
-	 "($Id: ssd.c,v 1.1 2006/10/10 08:30:48 bg- Exp $)\n", __FILE__);
+	 "($Id: ssd.c,v 1.2 2006/10/10 18:25:36 bg- Exp $)\n", __FILE__);
   ds2411_init();
   sensors_light_init();
   cc2420_init();
@@ -160,7 +160,7 @@ PROCESS_THREAD(dhclient_process, ev, data)
 
   printf("dhclient_process starting\n");
 
-  leds_on(LEDS_GREEN);
+  leds_toggle(LEDS_GREEN);
 
   uip_setipid(rand());
 
@@ -199,7 +199,7 @@ dhcpc_configured(const struct dhcpc_state *s)
     printf("dhcp reconfigure %d.%d.%d.%d\n", ip2quad(&s->ipaddr));
   else {
     printf("dhcpc_configured %d.%d.%d.%d\n", ip2quad(&s->ipaddr));
-    leds_off(LEDS_GREEN);
+    leds_toggle(LEDS_GREEN);
     dhcp_is_conf = 1;
     process_start(&uaodv_process, NULL);
   }
@@ -231,7 +231,7 @@ void
 dhcpc_unconfigured(const struct dhcpc_state *s)
 {
   printf("dhcpc_unconfigured\n");
-  leds_on(LEDS_GREEN);
+  leds_toggle(LEDS_GREEN);
   dhcp_is_conf = 0;
   process_exit(&uaodv_process);
 
