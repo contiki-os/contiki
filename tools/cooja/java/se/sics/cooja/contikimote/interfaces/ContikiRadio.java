@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ContikiRadio.java,v 1.8 2006/10/09 13:41:57 fros4943 Exp $
+ * $Id: ContikiRadio.java,v 1.9 2006/10/11 15:14:30 fros4943 Exp $
  */
 
 package se.sics.cooja.contikimote.interfaces;
@@ -64,6 +64,7 @@ import se.sics.cooja.interfaces.Radio;
  * <li>char simRadioHWOn (radio hardware status (on/off))
  * <li>int simSignalStrength (heard radio signal strength)
  * <li>char simPower (number indicating power output)
+ * <li>int simRadioChannel
  * </ul>
  * <p>
  * Dependency core interfaces are:
@@ -159,6 +160,10 @@ public class ContikiRadio extends Radio implements ContikiMoteInterface {
       return true;
     
     return myMoteMemory.getIntValueOf("simInSize") != 0;
+  }
+
+  public int getChannel() {
+    return myMoteMemory.getIntValueOf("simRadioChannel");
   }
   
   public RadioEvent getLastEvent() {

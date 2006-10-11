@@ -24,7 +24,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * 
- * $Id: Radio.java,v 1.4 2006/10/05 14:47:48 fros4943 Exp $
+ * $Id: Radio.java,v 1.5 2006/10/11 15:13:57 fros4943 Exp $
  */
 
 package se.sics.cooja.interfaces;
@@ -145,4 +145,11 @@ public abstract class Radio extends MoteInterface {
    */
   public abstract void setCurrentSignalStrength(double signalStrength);
 
+  /**
+   * Returns the current radio channel number.
+   * 
+   * @return Current channel number
+   */
+  public abstract int getChannel();
+  
 }

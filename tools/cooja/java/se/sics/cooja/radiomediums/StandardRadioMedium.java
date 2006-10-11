@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: StandardRadioMedium.java,v 1.7 2006/10/09 14:15:29 fros4943 Exp $
+ * $Id: StandardRadioMedium.java,v 1.8 2006/10/11 15:14:10 fros4943 Exp $
  */
 
 package se.sics.cooja.radiomediums;
@@ -394,7 +394,8 @@ public class StandardRadioMedium extends RadioMedium {
                 * (0.01 * (double) sendingRadio
                     .getCurrentOutputPowerIndicator());
 
-            if (distance <= moteTransmissionRange) {
+            if (distance <= moteTransmissionRange
+                && sendingRadio.getChannel() == listeningRadio.getChannel()) {
               newConnection.addDestination(registeredRadios.get(listenNr),
                   registeredPositions.get(listenNr), dataToSend);
 
@@ -410,7 +411,8 @@ public class StandardRadioMedium extends RadioMedium {
                     .getTransmissionEndTime());
                 listeningRadio.setCurrentSignalStrength(SS_OK);
               }
-            } else if (distance <= moteInterferenceRange) {
+            } else if (distance <= moteInterferenceRange
+                && sendingRadio.getChannel() == listeningRadio.getChannel()) {
               // If close enough to sabotage other transmissions..
               listeningRadio.interferReception(sendingRadio
                   .getTransmissionEndTime());

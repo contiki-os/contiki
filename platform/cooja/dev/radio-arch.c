@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: radio-arch.c,v 1.9 2006/10/11 09:06:41 fros4943 Exp $
+ * $Id: radio-arch.c,v 1.10 2006/10/11 15:14:56 fros4943 Exp $
  */
 
 #include "dev/radio-arch.h"
@@ -61,7 +61,14 @@ int simOutSize;
 char simRadioHWOn = 1;
 int simSignalStrength = -200;
 char simPower = 100;
+int simRadioChannel = 1;
 
+/*-----------------------------------------------------------------------------------*/
+void
+radio_set_channel(int channel)
+{
+  simRadioChannel = channel;
+}
 /*-----------------------------------------------------------------------------------*/
 int
 radio_sstrength(void)
