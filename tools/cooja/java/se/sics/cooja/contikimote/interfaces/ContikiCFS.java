@@ -1,0 +1,221 @@
+/*
+ * Copyright (c) 2006, Swedish Institute of Computer Science.
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions
+ * are met:
+ * 1. Redistributions of source code must retain the above copyright
+ *    notice, this list of conditions and the following disclaimer.
+ * 2. Redistributions in binary form must reproduce the above copyright
+ *    notice, this list of conditions and the following disclaimer in the
+ *    documentation and/or other materials provided with the distribution.
+ * 3. Neither the name of the Institute nor the names of its contributors
+ *    may be used to endorse or promote products derived from this software
+ *    without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE INSTITUTE AND CONTRIBUTORS ``AS IS'' AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED.  IN NO EVENT SHALL THE INSTITUTE OR CONTRIBUTORS BE LIABLE
+ * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+ * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+ * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+ * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+ * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+ * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+ * SUCH DAMAGE.
+ *
+ * $Id: ContikiCFS.java,v 1.1 2006/10/11 14:19:39 fros4943 Exp $
+ */
+
+package se.sics.cooja.contikimote.interfaces;
+
+import java.awt.Dimension;
+import java.util.*;
+import javax.swing.*;
+import org.apache.log4j.Logger;
+import org.jdom.Element;
+
+import se.sics.cooja.*;
+import se.sics.cooja.contikimote.ContikiMoteInterface;
+
+/**
+ * The class represents a Contiki filesystem, for example an EEPROM or external
+ * flash memory.
+ * 
+ * It needs read/write access to the following core variables:
+ * <ul>
+ * <li>char[] simCFSData
+ * <li>char simCFSChanged (1=filesystem has been altered)
+ * <li>int simCFSRead (bytes read from filesystem)
+ * <li>int simCFSWritten (bytes written to filesystem)
+ * </ul>
+ * <p>
+ * Dependency core interfaces are:
+ * <ul>
+ * <li>cfs_interface
+ * </ul>
+ * <p>
+ * This observable is changed and notifies observers whenever the filesystem has
+ * been read from or written to.
+ * 
+ * @author Fredrik Osterlind
+ */
+@ClassDescription("Filesystem")
+public class ContikiCFS extends MoteInterface implements ContikiMoteInterface {
+  private static Logger logger = Logger.getLogger(ContikiCFS.class);
+
+  public int FILESYSTEM_SIZE = 60*1024;
+
+  private Mote mote = null;
+  private SectionMoteMemory moteMem = null;
+
+  private int lastRead = 0;
+  private int lastWritten = 0;
+  
+  /**
+   * Approximate energy consumption of every character read from filesystem (mQ).
+   */
+  public final double ENERGY_CONSUMPTION_PER_READ_CHAR_mQ;
+  public final double ENERGY_CONSUMPTION_PER_WRITTEN_CHAR_mQ;
+
+  private double myEnergyConsumption = 0.0;
+
+  /**
+   * Creates an interface to the filesystem at mote.
+   * 
+   * @param mote
+   *          Mote.
+   * @see Mote
+   * @see se.sics.cooja.MoteInterfaceHandler
+   */
+  public ContikiCFS(Mote mote) {
+    // Read class configurations of this mote type
+    ENERGY_CONSUMPTION_PER_READ_CHAR_mQ = mote.getType().getConfig()
+    .getDoubleValue(ContikiCFS.class, "CONSUMPTION_PER_READ_CHAR_mQ");
+    ENERGY_CONSUMPTION_PER_WRITTEN_CHAR_mQ = mote.getType().getConfig()
+    .getDoubleValue(ContikiCFS.class, "CONSUMPTION_PER_WRITTEN_CHAR_mQ");
+
+    this.mote = mote;
+    this.moteMem = (SectionMoteMemory) mote.getMemory();
+  }
+
+  public static String[] getCoreInterfaceDependencies() {
+    return new String[]{"cfs_interface"};
+  }
+
+  public void doActionsBeforeTick() {
+    // Nothing to do
+  }
+
+  public void doActionsAfterTick() {
+    if (moteMem.getByteValueOf("simCFSChanged") == 1) {
+      lastRead = moteMem.getIntValueOf("simCFSRead");
+      lastWritten = moteMem.getIntValueOf("simCFSWritten");
+
+      moteMem.setIntValueOf("simCFSRead", 0);
+      moteMem.setIntValueOf("simCFSWritten", 0);
+      moteMem.setByteValueOf("simCFSChanged", (byte) 0);
+
+      myEnergyConsumption = 
+        ENERGY_CONSUMPTION_PER_READ_CHAR_mQ*lastRead + 
+        ENERGY_CONSUMPTION_PER_WRITTEN_CHAR_mQ*lastWritten;
+      
+      this.setChanged();
+      this.notifyObservers(mote);
+    } else
+      myEnergyConsumption = 0.0;
+  }
+
+  /**
+   * Set filesystem data.
+   * 
+   * @param data Data
+   * @return True if operation successful
+   */
+  public boolean setFilesystemData(byte[] data) {
+    if (data.length > FILESYSTEM_SIZE) {
+      logger.fatal("Error. Filesystem data too large, skipping");
+      return false;
+    }
+
+    moteMem.setByteArray("simCFSData", data);
+    return true;
+  }
+
+  /**
+   * Get filesystem data.
+   * 
+   * @return Filesystem data
+   */
+  public byte[] getFilesystemData() {
+    return moteMem.getByteArray("simCFSData", FILESYSTEM_SIZE);
+  }
+
+  /**
+   * @return Read bytes count last change.
+   */
+  public int getLastReadCount() {
+    return lastRead;
+  }
+
+  /**
+   * @return Written bytes count last change.
+   */
+  public int getLastWrittenCount() {
+    return lastWritten;
+  }
+
+  public JPanel getInterfaceVisualizer() {
+    JPanel panel = new JPanel();
+    panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
+
+    final JLabel lastTimeLabel = new JLabel("Last change at: [unknown]");
+    final JLabel lastReadLabel = new JLabel("Last change read bytes: 0");
+    final JLabel lastWrittenLabel = new JLabel("Last change wrote bytes: 0");
+    panel.add(lastTimeLabel);
+    panel.add(lastReadLabel);
+    panel.add(lastWrittenLabel);
+    
+    Observer observer;
+    this.addObserver(observer = new Observer() {
+      public void update(Observable obs, Object obj) {
+        int currentTime = mote.getSimulation().getSimulationTime();
+        lastTimeLabel.setText("Last change at time: " + currentTime);
+        lastReadLabel.setText("Last change read bytes: " + getLastReadCount());
+        lastWrittenLabel.setText("Last change wrote bytes: " + getLastWrittenCount());
+      }
+    });
+
+    // Saving observer reference for releaseInterfaceVisualizer
+    panel.putClientProperty("intf_obs", observer);
+
+    panel.setMinimumSize(new Dimension(140, 60));
+    panel.setPreferredSize(new Dimension(140, 60));
+
+    return panel;
+  }
+
+  public void releaseInterfaceVisualizer(JPanel panel) {
+    Observer observer = (Observer) panel.getClientProperty("intf_obs");
+    if (observer == null) {
+      logger.fatal("Error when releasing panel, observer is null");
+      return;
+    }
+
+    this.deleteObserver(observer);
+  }
+
+  public double energyConsumptionPerTick() {
+    return myEnergyConsumption;
+  }
+
+  public Collection<Element> getConfigXML() {
+    return null;
+  }
+
+  public void setConfigXML(Collection<Element> configXML) {
+  }
+
+}
