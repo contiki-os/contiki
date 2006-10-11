@@ -26,14 +26,15 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: VisTraffic.java,v 1.2 2006/10/05 15:13:48 fros4943 Exp $
+ * $Id: VisTraffic.java,v 1.3 2006/10/11 10:37:06 fros4943 Exp $
  */
 
 package se.sics.cooja.plugins;
+
 import java.awt.*;
-import java.awt.image.BufferedImage;
-import java.util.Observable;
-import java.util.Observer;
+import java.util.*;
+import javax.swing.SwingUtilities;
+import org.apache.log4j.Logger;
 
 import se.sics.cooja.*;
 import se.sics.cooja.interfaces.Position;
@@ -49,21 +50,24 @@ import se.sics.cooja.interfaces.Position;
 @ClassDescription("Traffic Visualizer")
 @VisPluginType(VisPluginType.SIM_PLUGIN)
 public class VisTraffic extends Visualizer2D {
+  private boolean USE_ALPHA = false;
+
+  private boolean USE_HISTORY = true;
+
+  private int MAX_PAINTED_CONNS = 50;
+
   private static final long serialVersionUID = 1L;
+
+  private static Logger logger = Logger.getLogger(VisTraffic.class);
+
   private RadioMedium radioMedium;
-  
-  /**
-   * The image painted on screen at repaint().
-   */
-  public BufferedImage image;
-  
-  private Position oldSmallPosition = null;
-  private Position oldBigPosition = null;
+
+  public Vector<PaintedConnection> allPaintedConnections = new Vector<PaintedConnection>();
+
   private Simulation simulation;
-  private int oldNrMotes;
-  
+
   private Observer radioObserver = null;
-  
+
   /**
    * Creates a new VisTraffic visualizer.
    * 
@@ -74,112 +78,162 @@ public class VisTraffic extends Visualizer2D {
     super(simulationToVisualize);
     setTitle("Traffic Visualizer");
     simulation = simulationToVisualize;
-    oldNrMotes = simulation.getMotesCount();
-    
+
     radioMedium = simulationToVisualize.getRadioMedium();
 
-    // Repaint when radio medium has sent data
-    simulationToVisualize.getRadioMedium().addRadioMediumObserver(radioObserver = new Observer() {
-      public void update(Observable obs, Object obj) {
-        Graphics2D g2d = image.createGraphics();
-        g2d.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.2f));
-        if (radioMedium != null && radioMedium.getLastTickConnections() != null) {
-          for (RadioConnection conn: radioMedium.getLastTickConnections()) {
-            if (conn != null)
-              paintConnection(conn, g2d);
-          }
-        }
-        getCurrentCanvas().repaint();
-      }
-    });
+    // Listen to radio medium and paint any new data transfers
+    simulationToVisualize.getRadioMedium().addRadioMediumObserver(
+        radioObserver = new Observer() {
+          public void update(Observable obs, Object obj) {
+            if (radioMedium == null)
+              return;
 
+            final RadioConnection[] connsToAdd = radioMedium
+                .getLastTickConnections();
+            if (connsToAdd != null && connsToAdd.length > 0) {
+
+              SwingUtilities.invokeLater(new Runnable() {
+                public void run() {
+                  if (!USE_HISTORY)
+                    allPaintedConnections.clear();
+
+                  for (RadioConnection conn : connsToAdd) {
+                    if (conn != null) {
+                      Color connColor = getColorOf(conn);
+                      int duration = getDurationOf(conn);
+                      if (connColor != null && duration > 0)
+                        allPaintedConnections.add(0, new PaintedConnection(
+                            conn, duration, connColor));
+                    }
+                  }
+
+                  getCurrentCanvas().repaint();
+                }
+              });
+            }
+          }
+        });
   }
-  
+
   /**
    * Paints given connection on given graphics.
    * 
-   * @param connection Connection
-   * @param g2d Graphics to paint on
+   * @param connection
+   *          Connection
+   * @param g2d
+   *          Graphics to paint on
    */
-  protected void paintConnection(RadioConnection connection, Graphics g2d) {
-    Point sourcePixelPosition = transformPositionToPixel(connection.getSourcePosition());
-    for (Position destPosition: connection.getDestinationPositons()) {
+  protected void paintConnection(PaintedConnection connection, Graphics g2d) {
+    Point sourcePixelPosition = transformPositionToPixel(connection.radioConnection
+        .getSourcePosition());
+    g2d.setColor(connection.getColor(simulation.isRunning()));
+    for (Position destPosition : connection.radioConnection
+        .getDestinationPositons()) {
       Point destPixelPosition = transformPositionToPixel(destPosition);
-      g2d.setColor(getColorOf(connection));
       g2d.drawLine(sourcePixelPosition.x, sourcePixelPosition.y,
           destPixelPosition.x, destPixelPosition.y);
-      
     }
   }
-  
+
   /**
-   * Returns color a specific connection should be painted in.
+   * Returns color the given connection should be painted in. If returned color
+   * is null, the connection will not be painted.
    * 
-   * @param connection Connection
+   * @param connection
+   *          Connection
+   * @return Color
    */
   protected Color getColorOf(RadioConnection connection) {
     return Color.BLACK;
   }
-  
-  protected void calculateTransformations() {
-    super.calculateTransformations();
-    Dimension imageDimension = getCurrentCanvas().getPreferredSize();
-    if (imageDimension.height <= 0 || imageDimension.width <= 0)
-      return;
-    
-    // Recreate image if ..
-    if (
-        // .. it hasn't been painted before
-        oldSmallPosition == null ||
-        oldBigPosition == null ||
-        image == null ||
-        simulation == null ||
-        
-        // .. mote changes may have changed the transformation.
-        simulation.getMotesCount() != oldNrMotes ||
-        
-        // .. visualization window has changed the transformation.
-        imageDimension.height != image.getHeight() ||
-        imageDimension.width != image.getWidth()
-    ) {
-      if (simulation != null)
-        oldNrMotes = simulation.getMotesCount();
-      
-      BufferedImage oldImage = image;
-      image = new BufferedImage(imageDimension.width, imageDimension.height, BufferedImage.TYPE_4BYTE_ABGR);
-      image.createGraphics().setColor(Color.WHITE);
-      image.createGraphics().fillRect(0, 0, imageDimension.width, imageDimension.height);
-      
-      // If old data exists, keep it
-      if (oldSmallPosition != null && oldBigPosition != null) {
-        Point oldSmallPixelPos = transformPositionToPixel(oldSmallPosition);
-        Point oldBigPixelPos = transformPositionToPixel(oldBigPosition);
-        image.createGraphics().drawImage(oldImage,
-            oldSmallPixelPos.x,
-            oldSmallPixelPos.y,
-            oldBigPixelPos.x-oldSmallPixelPos.x,
-            oldBigPixelPos.y-oldSmallPixelPos.y,
-            null);
-      }
-      
-      oldSmallPosition = transformPixelToPositon(new Point(0,0));
-      oldBigPosition = transformPixelToPositon(new Point(imageDimension.width, imageDimension.height));
-    }
+
+  /**
+   * Returns duration the given connection should be visible. If negative, the
+   * connection will not be painted. Observe that the duration is the number of
+   * repaints, not related to time.
+   * 
+   * @param connection
+   *          Connection
+   * @return Duration in repaints
+   */
+  protected int getDurationOf(RadioConnection connection) {
+    return 10;
   }
-  
+
   public void closePlugin() {
     super.closePlugin();
-    
+
     // Remove radio observer
     radioMedium.deleteRadioMediumObserver(radioObserver);
   }
-  
+
   public Color[] getColorOf(Mote m) {
     return null;
   }
 
   protected void visualizeSimulation(Graphics g) {
-    g.drawImage(image, 0, 0, null);
+
+    // Clean up old connections
+    Vector<PaintedConnection> newPaintedConnections = new Vector<PaintedConnection>();
+    for (PaintedConnection conn : allPaintedConnections)
+      if (!conn.shouldBeRemoved())
+        newPaintedConnections.add(conn);
+    allPaintedConnections = newPaintedConnections;
+    if (allPaintedConnections.size() > MAX_PAINTED_CONNS)
+      allPaintedConnections.setSize(MAX_PAINTED_CONNS);
+
+    for (PaintedConnection conn : allPaintedConnections)
+      paintConnection(conn, (Graphics2D) g);
   }
-  
+
+  public class PaintedConnection {
+    public RadioConnection radioConnection;
+
+    private int duration;
+
+    private int colorVal;
+
+    private int repaintsLeft;
+
+    private Color staticColor;
+
+    /**
+     * @param conn
+     *          Radio connection to visualize
+     * @param duration
+     *          Number of repaints
+     * @param color
+     *          Base color of painted connection
+     */
+    public PaintedConnection(RadioConnection conn, int duration, Color color) {
+      radioConnection = conn;
+      colorVal = color.getRGB() & 0xffffff;
+      repaintsLeft = duration;
+      this.duration = duration;
+      staticColor = color;
+    }
+
+    /**
+     * Get color this connection should be painted in.
+     * 
+     * @param isRunning
+     *          True if current simulation is running
+     * @return Color
+     */
+    public Color getColor(boolean isRunning) {
+      if (isRunning)
+        repaintsLeft--;
+
+      if (!USE_ALPHA)
+        return staticColor;
+
+      int alpha = 127 + 128 * repaintsLeft / duration;
+      return new Color(colorVal | (alpha << 24), true);
+    }
+
+    public boolean shouldBeRemoved() {
+      return repaintsLeft <= 0;
+    }
+  }
+
 }
