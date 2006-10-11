@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ContikiBeeper.java,v 1.2 2006/10/03 08:44:21 fros4943 Exp $
+ * $Id: ContikiBeeper.java,v 1.3 2006/10/11 14:19:14 fros4943 Exp $
  */
 
 package se.sics.cooja.contikimote.interfaces;
@@ -121,14 +121,14 @@ public class ContikiBeeper extends Beeper implements ContikiMoteInterface {
     JPanel panel = new JPanel();
     panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
 
-    final JLabel statusLabel = new JLabel("Beeping activate");
+    final JLabel statusLabel = new JLabel("Beeping active");
     panel.add(statusLabel);
     
     Observer observer;
     this.addObserver(observer = new Observer() {
       public void update(Observable obs, Object obj) {
         int currentTime = mote.getSimulation().getSimulationTime();
-        statusLabel.setText("Beeping activate: last beep at " + currentTime);
+        statusLabel.setText("Beeping active: last beep at " + currentTime);
         // Beep on speakers
         Toolkit.getDefaultToolkit().beep();
       }
