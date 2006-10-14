@@ -10,39 +10,51 @@ Microsoft Windows.
 \author Oliver Schmidt <ol.sc@web.de>
 \section win32-getting-started Getting started
 
-\note Network I/O does not work yet.
+The Microsoft Windows port of Contiki doesn't use the the Contiki build system.
+Instead it is built with the Microsoft Visual C++. If you already have Microsoft
+Visual Studio 2005 Standard Edition (or better) installed you're ready to go.
 
-The Microsoft Windows port of Contiki is built using the Microsoft
-Visual C++ compiler which is available for free from Microsoft's web
-page (registration required though).   Follow the instructions on the
-link below carefully:
+Otherwise you can download and install the free Visual C++ 2005 Express Edition.
+I'd recommend to download the full package and then do a local install. That so
+called Manual Installation is described on this page:
+http://msdn.microsoft.com/vstudio/express/support/install/
+
+Then follow the instructions on this page carefully (Note - You only need to
+install the Microsoft Windows Core SDK from the Microsoft Platform SDK):
 http://msdn.microsoft.com/vstudio/express/visualc/usingpsdk/default.aspx
 
-If you intend to around play with network I/O, get Ethereal:
-- It's a great free network analyzer.
-- It uses (and therefore installs) WinPcap that is used by Contiki network I/O
-too.
-http://www.ethereal.com/download.html
+Finally you might want to integrate the Platform SDK help content into the IDE
+help system (although this isn't necessary for Contiki development) by choosing
+this topic in the IDE help system and following the instructions given:
+ms-help://MS.VSExpressCC.v80/dv_vsexpcc/local/CollectionManagerExpress.htm
 
-Doubleclicking contiki-2.x\\platform\\win32\\contiki.sln should bring up the
-IDE and load the Contiki 'solution'. This takes some time if done for the
-first time as the source is scanned and quite some meta data gets
-generated.
+For network I/O you need the WinPcap library which is available on this page:
+http://www.winpcap.org/install/default.htm
 
-Select 'Build' and then 'Run' from the menu. (Or 'Build solution' from
-the 'Build' menu and press F5 to run/debug the program.) This should
-bring up Contiki inside a new command prompt window.
+I'd recommend to install the Wireshark network protocol analyzer which uses (and
+therefore comes with) the WinPcap libary from this page instead of installing
+just the WinPcap library from the page above:
+http://www.wireshark.org/download.html
 
-Depending on your settings for command prompt windows the mouse
-should work right away with Contiki.
+Doubleclicking contiki-2.x\\platform\\win32\\contiki.sln should bring up the IDE
+and load the Contiki Solution. This takes some time if done for the first time
+as the source is scanned and quite some metadata gets generated.
 
-Resizing the command prompt window running Contiki is handled by
-Contiki.
+Now press F7 for Build Solution and then F5 for Start Debugging. This should
+bring up Contiki inside a new command prompt window. Starting Contiki in the
+debugger has the benefit of having the debug output routed to the IDE output
+pane.
 
-Beside the Contiki Quit menu entry you can safely use Ctrl-C for a clean
-exit. You'll notice that when running Contiki from an open command
-prompt window (that therefore doesn't close on Contiki exit): The caption,
-colors, cursor, ... are restored.
+Depending on your settings for command prompt windows the mouse should work
+right away with Contiki.
+
+Contiki resizes its desktop on resizing the command prompt window Contiki is
+running in.
+
+Beside the Contiki Quit menu entry you can safely use Ctrl-C for a clean exit.
+You'll notice that when running Contiki from an already open command prompt
+window (that therefore doesn't close on Contiki exit): The caption, colors,
+cursor, ... are restored.
 
 @{
 
