@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ContikiMoteTypeDialog.java,v 1.11 2006/09/07 11:59:50 fros4943 Exp $
+ * $Id: ContikiMoteTypeDialog.java,v 1.12 2006/10/21 10:40:33 fros4943 Exp $
  */
 
 package se.sics.cooja.contikimote;
@@ -218,8 +218,22 @@ public class ContikiMoteTypeDialog extends JDialog {
 
         // Warn if not found
         if (!foundAndSelectedProcess) {
-          logger.warn("Process was not found in current environment: "
-              + presetProcess);
+          // Let user choose whether to add process
+          Object[] options = { "Add", "Cancel" };
+          
+          String question = "The configuration file contains a process "
+            + "(" + presetProcess + ") not found during scan."
+            + "\nDo you want to include this anyway?";
+          String title = "Add process?";
+          int answer = JOptionPane.showOptionDialog(myDialog, question, title,
+              JOptionPane.DEFAULT_OPTION, JOptionPane.QUESTION_MESSAGE, null,
+              options, options[0]);
+          
+          if (answer == JOptionPane.YES_OPTION) {
+            // Create new check box
+            JCheckBox newCheckBox = new JCheckBox(presetProcess, true);
+            myDialog.processPanel.add(newCheckBox);
+          }
         }
       }
     }
@@ -245,8 +259,22 @@ public class ContikiMoteTypeDialog extends JDialog {
 
         // Warn if not found
         if (!foundAndSelectedSensor) {
-          logger.warn("Sensor was not found in current environment: "
-              + presetSensor);
+          // Let user choose whether to add sensor
+          Object[] options = { "Add", "Cancel" };
+          
+          String question = "The configuration file contains a sensor "
+            + "(" + presetSensor + ") not found during scan."
+            + "\nDo you want to include this anyway?";
+          String title = "Add sensor?";
+          int answer = JOptionPane.showOptionDialog(myDialog, question, title,
+              JOptionPane.DEFAULT_OPTION, JOptionPane.QUESTION_MESSAGE, null,
+              options, options[0]);
+          
+          if (answer == JOptionPane.YES_OPTION) {
+            // Create new check box
+            JCheckBox newCheckBox = new JCheckBox(presetSensor, true);
+            myDialog.sensorPanel.add(newCheckBox);
+          }
         }
       }
     }
@@ -274,8 +302,22 @@ public class ContikiMoteTypeDialog extends JDialog {
 
         // Warn if not found
         if (!foundAndSelectedCoreInterface) {
-          logger.warn("Core interface was not found in current environment: "
-              + presetCoreInterface);
+          // Let user choose whether to add interface
+          Object[] options = { "Add", "Cancel" };
+          
+          String question = "The configuration file contains a core interface "
+            + "(" + presetCoreInterface + ") not found during scan."
+            + "\nDo you want to include this anyway?";
+          String title = "Add core interface?";
+          int answer = JOptionPane.showOptionDialog(myDialog, question, title,
+              JOptionPane.DEFAULT_OPTION, JOptionPane.QUESTION_MESSAGE, null,
+              options, options[0]);
+          
+          if (answer == JOptionPane.YES_OPTION) {
+            // Create new check box
+            JCheckBox newCheckBox = new JCheckBox(presetCoreInterface, true);
+            myDialog.coreInterfacePanel.add(newCheckBox);
+          }
         }
       }
     }
@@ -844,6 +886,7 @@ public class ContikiMoteTypeDialog extends JDialog {
     progressDialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
     progressDialog.pack();
 
+    progressDialog.getRootPane().setDefaultButton(button);
     progressDialog.setVisible(true);
 
     // Create temp output directory if not already exists
@@ -985,9 +1028,12 @@ public class ContikiMoteTypeDialog extends JDialog {
     if (libraryCreatedOK) {
       progressBar.setBackground(Color.GREEN);
       progressBar.setString("compilation succeded");
+      button.grabFocus();
+      myDialog.getRootPane().setDefaultButton(createButton);
     } else {
       progressBar.setBackground(Color.ORANGE);
       progressBar.setString("compilation failed");
+      myDialog.getRootPane().setDefaultButton(testButton);
     }
     progressBar.setIndeterminate(false);
     progressBar.setValue(0);
@@ -1609,7 +1655,7 @@ public class ContikiMoteTypeDialog extends JDialog {
         boolean processShouldBeSelected = false;
         if (confirmSelection) {
           // Let user choose whether to add process
-          Object[] options = { "Create", "Cancel" };
+          Object[] options = { "Add", "Cancel" };
 
           String question = "The process " + processName
               + " depends on the following process: " + autostartProcess
