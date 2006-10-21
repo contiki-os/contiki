@@ -26,14 +26,18 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ContikiCFS.java,v 1.1 2006/10/11 14:19:39 fros4943 Exp $
+ * $Id: ContikiCFS.java,v 1.2 2006/10/21 10:41:58 fros4943 Exp $
  */
 
 package se.sics.cooja.contikimote.interfaces;
 
 import java.awt.Dimension;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.io.*;
 import java.util.*;
 import javax.swing.*;
+
 import org.apache.log4j.Logger;
 import org.jdom.Element;
 
@@ -174,9 +178,57 @@ public class ContikiCFS extends MoteInterface implements ContikiMoteInterface {
     final JLabel lastTimeLabel = new JLabel("Last change at: [unknown]");
     final JLabel lastReadLabel = new JLabel("Last change read bytes: 0");
     final JLabel lastWrittenLabel = new JLabel("Last change wrote bytes: 0");
+    final JButton uploadButton = new JButton("Upload binary file");
     panel.add(lastTimeLabel);
     panel.add(lastReadLabel);
     panel.add(lastWrittenLabel);
+    panel.add(uploadButton);
+
+    uploadButton.addActionListener(new ActionListener() {
+      public void actionPerformed(ActionEvent e) {
+
+        // Choose file
+        File file = null;
+        JFileChooser fileChooser = new JFileChooser();
+        fileChooser.setCurrentDirectory(new java.io.File("."));
+        fileChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
+        fileChooser.setDialogTitle("Select Contiki executable (.ce)");
+
+        if (fileChooser.showOpenDialog(null) == JFileChooser.APPROVE_OPTION) {
+          file = fileChooser.getSelectedFile();
+        } else
+          return;
+
+        // Read file data
+        long fileSize = file.length();
+        byte[] fileData = new byte[(int)fileSize];
+        
+        FileInputStream fileIn;
+        DataInputStream dataIn;
+        int offset = 0;
+        int numRead = 0;
+        try {
+          fileIn = new FileInputStream(file);
+          dataIn = new DataInputStream(fileIn);
+          while (offset < fileData.length
+              && (numRead = dataIn.read(fileData, offset, fileData.length - offset)) >= 0) {
+            offset += numRead;
+          }
+          
+          dataIn.close();
+          fileIn.close();
+        } catch (Exception ex) {
+          logger.debug("Exception ex: " + ex);
+          return;
+        }
+        
+        // Write file data to CFS
+        setFilesystemData(fileData);
+        
+        logger.info("Done! (" + numRead + " bytes written to CFS)");
+        
+      }
+    });
     
     Observer observer;
     this.addObserver(observer = new Observer() {
