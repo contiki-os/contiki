@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: radio-arch.c,v 1.10 2006/10/11 15:14:56 fros4943 Exp $
+ * $Id: radio-arch.c,v 1.11 2006/10/22 11:29:05 fros4943 Exp $
  */
 
 #include "dev/radio-arch.h"
@@ -180,7 +180,7 @@ simDoSend(void)
   simTransmitting = 1;
 
   // Busy-wait while transmitting
-  if (simTransmitting && !simNoYield) {
+  while (simTransmitting && !simNoYield) {
     cooja_mt_yield();
   }
   
