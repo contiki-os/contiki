@@ -36,7 +36,7 @@ CFS     = cfs.c cfs-ram.c
 CTK     = ctk.c
 UIP     = uip.c uiplib.c resolv.c tcpip.c psock.c hc.c uip-split.c \
           uip-fw.c uip-fw-service.c uipbuf.c uip_arp.c uiplib.c tcpdump.c \
-          uip-neighbor.c uip-udp-packet.c
+          uip-neighbor.c uip-udp-packet.c rawpacket-udp.c
 NET     = $(UIP) uaodv.c uaodv-rt.c
 
 CTKVNC  = $(CTK) ctk-vncserver.c libconio.c vnc-server.c vnc-out.c \
