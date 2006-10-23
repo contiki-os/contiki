@@ -30,7 +30,7 @@
  *
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: main.c,v 1.3 2006/10/06 08:25:30 adamdunkels Exp $
+ * $Id: main.c,v 1.4 2006/10/23 09:01:06 adamdunkels Exp $
  */
 
 /**
@@ -123,7 +123,7 @@ start_node(int x, int y, int b)
 
     usleep(1000 * ((random() & 0x0f) << 6) );
     
-    node_init(port - NODES_PORTBASE + 1, x, y, b);
+    node_init(port - NODES_PORTBASE + 2, x, y, b);
     ethernode_init(port);
 
     
@@ -134,11 +134,11 @@ start_node(int x, int y, int b)
   }
   /*    printf("Adding sensor %d at (%d,%d)\n", pid, x, y);*/
   main_process = 1;
-  nodes_add(pid, x, y, port);
+  nodes_add(pid, x, y, port, port - NODES_PORTBASE + 2);
   
 
   ++port;
-  return port - NODES_PORTBASE;
+  return port - NODES_PORTBASE + 1;
 }
 /*---------------------------------------------------------------------------*/
 int

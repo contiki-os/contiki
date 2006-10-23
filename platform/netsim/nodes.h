@@ -30,20 +30,22 @@
  *
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: nodes.h,v 1.2 2006/09/26 22:10:12 adamdunkels Exp $
+ * $Id: nodes.h,v 1.3 2006/10/23 09:01:06 adamdunkels Exp $
  */
 #ifndef __NODES_H__
 #define __NODES_H__
 
 #include <sys/types.h>
 
-#define NODES_TEXTLEN 4
+#define NODES_TEXTLEN 10
 
 void nodes_init(void);
-void nodes_add(int pid, int x, int y, int port);
+void nodes_add(int pid, int x, int y, int port, int id);
 void nodes_kill(void);
 void nodes_set_leds(int x, int y, int leds);
 void nodes_set_text(int x, int y, char *text);
+
+void nodes_done(int id);
 
 int nodes_num(void);
 struct nodes_node *nodes_node(int num);
@@ -51,9 +53,11 @@ struct nodes_node *nodes_find_pid(pid_t pid);
 
 struct nodes_node {
   int pid;
+  int id;
   int x, y;
   int port;
   int leds;
+  int done;
   char text[NODES_TEXTLEN];
 };
 

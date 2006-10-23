@@ -30,7 +30,7 @@
  *
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: ether.h,v 1.2 2006/09/26 22:10:12 adamdunkels Exp $
+ * $Id: ether.h,v 1.3 2006/10/23 09:01:06 adamdunkels Exp $
  */
 #ifndef __ETHER_H__
 #define __ETHER_H__
@@ -45,6 +45,8 @@ struct ether_packet {
   int x, y;
 };
 
+
+void ether_send_done(void);
 
 u8_t ether_send(char *data, int len);
 void ether_set_leds(int leds);

@@ -24,7 +24,7 @@
  * IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY
  * OF SUCH DAMAGE.
  *
- * $Id: display.c,v 1.3 2006/10/06 08:25:30 adamdunkels Exp $
+ * $Id: display.c,v 1.4 2006/10/23 09:01:06 adamdunkels Exp $
  *
  * Author: Adam Dunkels <adam@sics.se>
  *
@@ -251,8 +251,8 @@ display_tick(void)
     } else {
       e = NULL;
     }
-    if(d->size > 40) {
-      d->size -= 8;
+    if(d->size > 20) {
+      d->size /= 2;
     } else {
       d->size -= 4;
     }

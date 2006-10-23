@@ -30,7 +30,7 @@
  *
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: contiki-main.c,v 1.3 2006/10/06 08:25:30 adamdunkels Exp $
+ * $Id: contiki-main.c,v 1.4 2006/10/23 09:01:06 adamdunkels Exp $
  */
 
 #include "contiki.h"
@@ -147,7 +147,7 @@ idle(void)
 void
 contiki_main(int flag)
 {
-  random_init(0);
+  random_init(getpid());
 
   leds_init();
   

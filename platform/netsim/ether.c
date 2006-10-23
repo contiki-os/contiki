@@ -30,7 +30,7 @@
  *
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: ether.c,v 1.3 2006/10/06 08:25:30 adamdunkels Exp $
+ * $Id: ether.c,v 1.4 2006/10/23 09:01:06 adamdunkels Exp $
  */
 /**
  * \file
@@ -88,6 +88,7 @@ static int s, sc;
 #define PTYPE_SENSOR 3
 #define PTYPE_LEDS   4
 #define PTYPE_TEXT   5
+#define PTYPE_DONE   6
 
 struct ether_hdr {
   int type;
@@ -106,7 +107,23 @@ static int strength;
 
 static int collisions = 1;
 static int num_collisions = 0;
+static int num_packets = 0;
 
+#include <sys/time.h>
+
+static struct timeval t1;
+/*-----------------------------------------------------------------------------------*/
+void
+ether_print_stats(void)
+{
+  unsigned long time;
+  struct timeval t2;
+  gettimeofday(&t2, NULL);
+
+  time = (t2.tv_sec * 1000 + t2.tv_usec / 1000) -
+    (t1.tv_sec * 1000 + t1.tv_usec / 1000);
+  printf("%d, %d, %f\n", num_packets, num_collisions, time/1000.0);
+}
 /*-----------------------------------------------------------------------------------*/
 void
 ether_set_collisions(int c)
@@ -130,7 +147,9 @@ void
 ether_server_init(void)
 {
   struct sockaddr_in sa;
-    
+
+  gettimeofday(&t1, NULL);
+  
   memb_init(&packets);
   list_init(active_packets);
 
@@ -273,6 +292,9 @@ ether_server_poll(void)
       case PTYPE_TEXT:
 	nodes_set_text(hdr->srcx, hdr->srcy, hdr->text);
 	break;
+      case PTYPE_DONE:
+	nodes_done(hdr->srcid);
+	break;
       }
     }
     /*    tv.tv_sec = 0;
@@ -342,7 +364,9 @@ ether_tick(void)
     /* Go through all active packets to see if anyone is sent within
        range of this node. */
     for(p = list_head(active_packets); p != NULL; p = p->next) {
-
+      
+      num_packets++;
+      
       /* Update the node type. */
       hdr = (struct ether_hdr *)p->data;
       /*      nodes_node(hdr->srcid)->type = hdr->srcnodetype;*/
@@ -508,6 +532,20 @@ ether_send_sensor_data(struct sensor_data *d, int srcx, int srcy, int strength)
       send_packet((char *)&hdr, sizeof(hdr), port);
     }
   }
+
+}
+/*-----------------------------------------------------------------------------------*/
+void
+ether_send_done(void)
+{
+  struct ether_hdr hdr;
+  
+  hdr.srcx = node.x;
+  hdr.srcy = node.y;
+  hdr.type = PTYPE_DONE;
+  hdr.srcid = node.id;
+
+  node_send_packet((char *)&hdr, sizeof(struct ether_hdr));
 
 }
 /*-----------------------------------------------------------------------------------*/
