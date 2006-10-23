@@ -26,11 +26,12 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ContikiCFS.java,v 1.2 2006/10/21 10:41:58 fros4943 Exp $
+ * $Id: ContikiCFS.java,v 1.3 2006/10/23 16:13:12 fros4943 Exp $
  */
 
 package se.sics.cooja.contikimote.interfaces;
 
+import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -186,47 +187,13 @@ public class ContikiCFS extends MoteInterface implements ContikiMoteInterface {
 
     uploadButton.addActionListener(new ActionListener() {
       public void actionPerformed(ActionEvent e) {
+        byte[] fileData = readDialogFileBytes(null);
 
-        // Choose file
-        File file = null;
-        JFileChooser fileChooser = new JFileChooser();
-        fileChooser.setCurrentDirectory(new java.io.File("."));
-        fileChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
-        fileChooser.setDialogTitle("Select Contiki executable (.ce)");
-
-        if (fileChooser.showOpenDialog(null) == JFileChooser.APPROVE_OPTION) {
-          file = fileChooser.getSelectedFile();
-        } else
-          return;
-
-        // Read file data
-        long fileSize = file.length();
-        byte[] fileData = new byte[(int)fileSize];
-        
-        FileInputStream fileIn;
-        DataInputStream dataIn;
-        int offset = 0;
-        int numRead = 0;
-        try {
-          fileIn = new FileInputStream(file);
-          dataIn = new DataInputStream(fileIn);
-          while (offset < fileData.length
-              && (numRead = dataIn.read(fileData, offset, fileData.length - offset)) >= 0) {
-            offset += numRead;
-          }
-          
-          dataIn.close();
-          fileIn.close();
-        } catch (Exception ex) {
-          logger.debug("Exception ex: " + ex);
-          return;
-        }
-        
         // Write file data to CFS
-        setFilesystemData(fileData);
+        if (fileData != null)
+          setFilesystemData(fileData);
         
-        logger.info("Done! (" + numRead + " bytes written to CFS)");
-        
+        logger.info("Done! (" + fileData.length + " bytes written to CFS)");
       }
     });
     
@@ -270,4 +237,49 @@ public class ContikiCFS extends MoteInterface implements ContikiMoteInterface {
   public void setConfigXML(Collection<Element> configXML) {
   }
 
+  /**
+   * Opens a file dialog and returns the contents of the selected fileor null if dialog aborted.
+   * 
+   * @param parent Dialog parent, may be null
+   * @return Binary contents of user selected file
+   */
+  public static byte[] readDialogFileBytes(Component parent) {
+    // Choose file
+    File file = null;
+    JFileChooser fileChooser = new JFileChooser();
+    fileChooser.setCurrentDirectory(new java.io.File("."));
+    fileChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
+    fileChooser.setDialogTitle("Select Contiki executable (.ce)");
+
+    if (fileChooser.showOpenDialog(parent) == JFileChooser.APPROVE_OPTION) {
+      file = fileChooser.getSelectedFile();
+    } else
+      return null;
+
+    // Read file data
+    long fileSize = file.length();
+    byte[] fileData = new byte[(int) fileSize];
+
+    FileInputStream fileIn;
+    DataInputStream dataIn;
+    int offset = 0;
+    int numRead = 0;
+    try {
+      fileIn = new FileInputStream(file);
+      dataIn = new DataInputStream(fileIn);
+      while (offset < fileData.length
+          && (numRead = dataIn.read(fileData, offset, fileData.length - offset)) >= 0) {
+        offset += numRead;
+      }
+
+      dataIn.close();
+      fileIn.close();
+    } catch (Exception ex) {
+      logger.debug("Exception ex: " + ex);
+      return null;
+    }
+
+    return fileData;
+  }
+  
 }
