@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: LogListener.java,v 1.1 2006/08/21 12:13:08 fros4943 Exp $
+ * $Id: LogListener.java,v 1.2 2006/10/23 16:14:02 fros4943 Exp $
  */
 
 package se.sics.cooja.plugins;
@@ -70,6 +70,9 @@ public class LogListener extends VisPlugin {
     // Log observer
     logObserver = new Observer() {
       public void update(Observable obs, Object obj) {
+        if (logTextArea == null)
+          return;
+        
         logTextArea.append("\n");
 
         Mote mote = (Mote) obj;
