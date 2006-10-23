@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: VisBattery.java,v 1.2 2006/09/26 13:08:05 fros4943 Exp $
+ * $Id: VisBattery.java,v 1.3 2006/10/23 16:15:12 fros4943 Exp $
  */
 
 package se.sics.cooja.plugins;
@@ -90,9 +90,6 @@ public class VisBattery extends Visualizer2D {
     });
     simObserver.update(null, null);
 
-  }
-
-  public void postVisualizeSimulation(Graphics g) {
   }
 
   public Color[] getColorOf(Mote mote) {

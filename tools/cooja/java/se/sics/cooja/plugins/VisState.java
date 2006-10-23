@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: VisState.java,v 1.2 2006/09/26 13:08:05 fros4943 Exp $
+ * $Id: VisState.java,v 1.3 2006/10/23 16:15:16 fros4943 Exp $
  */
 
 package se.sics.cooja.plugins;
@@ -101,9 +101,6 @@ public class VisState extends Visualizer2D {
     
   }
   
-  public void postVisualizeSimulation(Graphics g) {
-  }
-
   public Color[] getColorOf(Mote mote) {
     Color[] returnColors = new Color[2];
     
