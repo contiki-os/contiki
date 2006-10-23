@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: code_main_template,v 1.11 2006/10/11 14:16:47 fros4943 Exp $
+ * $Id: code_main_template,v 1.12 2006/10/23 16:09:15 fros4943 Exp $
  */
 
 /**
@@ -70,7 +70,7 @@
 #include "lib/sensors.h"
 #include "net/uip.h"
 #include "dev/radio-arch.h"
-#include "dev/cfs-cooja.h"
+#include "cfs/cfs-cooja.h"
 #include "sys/etimer.h"
 #include "sys/cooja_mt.h"
 

@@ -28,10 +28,10 @@
  *
  * This file is part of the Contiki operating system.
  * 
- * $Id: cfs-cooja.c,v 1.1 2006/10/11 14:16:10 fros4943 Exp $
+ * $Id: cfs-cooja.c,v 1.1 2006/10/23 16:07:29 fros4943 Exp $
  */
 #include <string.h>
-#include "dev/cfs-cooja.h"
+#include "cfs/cfs-cooja.h"
 #include "lib/simEnvChange.h"
 
 #include "cfs/cfs.h"
@@ -51,7 +51,7 @@ const struct simInterface cfs_interface;
 
 // COOJA variables
 #define CFS_BUF_SIZE 60*1024
-char simCFSData[CFS_BUF_SIZE];
+char simCFSData[CFS_BUF_SIZE] = { 0 };
 char simCFSChanged = 0;
 int simCFSRead = 0;
 int simCFSWritten = 0;

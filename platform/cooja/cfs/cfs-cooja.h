@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF 
  * SUCH DAMAGE. 
  *
- * $Id: cfs-cooja.h,v 1.1 2006/10/11 14:16:10 fros4943 Exp $
+ * $Id: cfs-cooja.h,v 1.1 2006/10/23 16:07:29 fros4943 Exp $
  */
 #ifndef __CFS_COOJA_H__
 #define __CFS_COOJA_H__
