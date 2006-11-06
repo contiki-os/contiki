@@ -26,13 +26,16 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: Simulation.java,v 1.1 2006/08/21 12:12:56 fros4943 Exp $
+ * $Id: Simulation.java,v 1.2 2006/11/06 17:58:55 fros4943 Exp $
  */
 
 package se.sics.cooja;
 
+import java.awt.Dimension;
+import java.awt.Point;
 import java.io.*;
 import java.util.*;
+import javax.swing.JInternalFrame;
 
 import org.apache.log4j.Logger;
 import org.jdom.*;
@@ -272,6 +275,62 @@ public class Simulation extends Observable implements Runnable {
         return null;
       }
 
+      // EXPERIMENTAL: Reload stored plugins
+      boolean loadedPlugin = false;
+      for (Element pluginElement: config.toArray(new Element[0])) {
+        if (pluginElement.getName().equals("visplugin")) {
+          Class<? extends VisPlugin> visPluginClass = 
+            GUI.currentGUI.tryLoadClass(GUI.currentGUI, VisPlugin.class, pluginElement.getText().trim());
+
+          try {
+            VisPlugin openedPlugin = null;
+            List list = pluginElement.getChildren();
+            Dimension size = new Dimension(100, 100);
+            Point location = new Point(100, 100);
+            for (Element pluginSubElement: (List<Element>) pluginElement.getChildren()) {
+              
+              if (pluginSubElement.getName().equals("constructor")) {
+                if (pluginSubElement.getText().equals("sim")) {
+                  // Simulator plugin type
+                  openedPlugin = visPluginClass.getConstructor(new Class[]{Simulation.class}).newInstance(newSim);
+                  GUI.currentGUI.showPlugin(openedPlugin);
+                } else if (pluginSubElement.getText().equals("gui")) {
+                  // GUI plugin type
+                  openedPlugin = visPluginClass.getConstructor(new Class[]{GUI.class}).newInstance(GUI.currentGUI);
+                  GUI.currentGUI.showPlugin(openedPlugin);
+                } else if (pluginSubElement.getText().startsWith("mote: ")) {
+                  // Mote plugin type
+                  String moteNrString = pluginSubElement.getText().substring("mote: ".length());
+                  
+                  int moteNr = Integer.parseInt(moteNrString);
+                  Mote mote = newSim.getMote(moteNr);
+                  openedPlugin = visPluginClass.getConstructor(new Class[]{Mote.class}).newInstance(mote);
+                  GUI.currentGUI.showPlugin(openedPlugin);
+                }
+                
+              } else if (pluginSubElement.getName().equals("width")) {
+                size.width = Integer.parseInt(pluginSubElement.getText());
+                openedPlugin.setSize(size);
+              } else if (pluginSubElement.getName().equals("height")) {
+                size.height = Integer.parseInt(pluginSubElement.getText());
+                openedPlugin.setSize(size);
+              } else if (pluginSubElement.getName().equals("location_x")) {
+                location.x = Integer.parseInt(pluginSubElement.getText());
+                openedPlugin.setLocation(location);
+              } else if (pluginSubElement.getName().equals("location_y")) {
+                location.y = Integer.parseInt(pluginSubElement.getText());
+                openedPlugin.setLocation(location);
+              } else if (pluginSubElement.getName().equals("minimized")) {
+                openedPlugin.setIcon(Boolean.parseBoolean(pluginSubElement.getText()));
+              } else if (pluginSubElement.getName().equals("visplugin_config")) {
+                logger.fatal("NOT IMPLEMENTED: Not passing plugin specific data yet: " + pluginSubElement.getText());
+              }
+            }
+          } catch (Exception e) {
+            logger.fatal("Error when startup up saved plugins: " + e);
+          }
+        }
+      }
     } catch (JDOMException e) {
       logger.fatal("File not wellformed: " + e.getMessage());
       return null;
@@ -303,6 +362,67 @@ public class Simulation extends Observable implements Runnable {
       Element root = new Element("simulation");
       root.addContent(getConfigXML());
 
+      // EXPERIMENTAL: Store opened plugins information
+      Element pluginElement, pluginSubElement;
+      if (GUI.currentGUI != null) {
+        for (JInternalFrame openedFrame: GUI.currentGUI.getAllFrames()) {
+          VisPlugin openedPlugin = (VisPlugin) openedFrame;
+          int pluginType = openedPlugin.getClass().getAnnotation(VisPluginType.class).value();
+
+          pluginElement = new Element("visplugin");
+          pluginElement.setText(openedPlugin.getClass().getName());
+
+          pluginSubElement = new Element("constructor");
+          if (pluginType == VisPluginType.GUI_PLUGIN) {
+            pluginSubElement.setText("gui");
+            pluginElement.addContent(pluginSubElement);
+          } else if (pluginType == VisPluginType.SIM_PLUGIN || 
+              pluginType == VisPluginType.SIM_STANDARD_PLUGIN) {
+            pluginSubElement.setText("sim");
+            pluginElement.addContent(pluginSubElement);
+          } else if (pluginType == VisPluginType.MOTE_PLUGIN) {
+            if (openedPlugin.getClientProperty("mote") != null) {
+              Mote taggedMote = (Mote) openedPlugin.getClientProperty("mote");
+              for (int moteNr = 0; moteNr < getMotesCount(); moteNr++) {
+                if (getMote(moteNr) == taggedMote) {
+                  pluginSubElement.setText("mote: " + moteNr);
+                  pluginElement.addContent(pluginSubElement);
+                }
+              }
+            }
+          }
+
+          pluginSubElement = new Element("width");
+          pluginSubElement.setText("" + openedPlugin.getSize().width);
+          pluginElement.addContent(pluginSubElement);
+          
+          pluginSubElement = new Element("height");
+          pluginSubElement.setText("" + openedPlugin.getSize().height);
+          pluginElement.addContent(pluginSubElement);
+          
+          pluginSubElement = new Element("location_x");
+          pluginSubElement.setText("" + openedPlugin.getLocation().x);
+          pluginElement.addContent(pluginSubElement);
+          
+          pluginSubElement = new Element("location_y");
+          pluginSubElement.setText("" + openedPlugin.getLocation().y);
+          pluginElement.addContent(pluginSubElement);
+          
+          pluginSubElement = new Element("minimized");
+          pluginSubElement.setText(new Boolean(openedPlugin.isIcon()).toString());
+          pluginElement.addContent(pluginSubElement);
+          
+          Collection pluginXML = openedPlugin.getConfigXML();
+          if (pluginXML != null) {
+            pluginSubElement = new Element("visplugin_config");
+            pluginSubElement.addContent(pluginXML);
+            pluginElement.addContent(pluginSubElement);
+          }
+
+          root.addContent(pluginElement);
+        }
+      }
+      
       // Create config
       Document doc = new Document(root);
 

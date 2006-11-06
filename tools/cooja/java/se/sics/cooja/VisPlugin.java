@@ -26,14 +26,16 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: VisPlugin.java,v 1.1 2006/08/21 12:12:56 fros4943 Exp $
+ * $Id: VisPlugin.java,v 1.2 2006/11/06 17:59:34 fros4943 Exp $
  */
 
 package se.sics.cooja;
 
+import java.util.Collection;
 import javax.swing.JInternalFrame;
 import javax.swing.event.InternalFrameEvent;
 import javax.swing.event.InternalFrameListener;
+import org.jdom.Element;
 
 /**
  * Abstract class VisPlugin should be implemented by plugins for COOJA Simulator.
@@ -91,5 +93,34 @@ public abstract class VisPlugin extends JInternalFrame {
    * opened interface visualizers.
    */
   public abstract void closePlugin();
+  
+  /**
+   * EXPERIMENTAL.
+   * Returns XML elements representing the current config of this plugin. This
+   * is fetched by the simulator for example when saving a simulation
+   * configuration file. For example a plugin may return the current size and
+   * position. This method should however not return state specific information
+   * such as the value of a mote LED, or total number of motes. (All nodes are
+   * restarted when loading a simulation.)
+   * 
+   * @see #setConfigXML(Collection)
+   * @return XML elements representing the current radio medium config
+   */
+  public Collection<Element> getConfigXML() {
+    return null;
+  }
+
+  /**
+   * EXPERIMENTAL.
+   * Sets the current plugin config depending on the given XML elements.
+   * 
+   * @see #getConfigXML()
+   * @param configXML
+   *          Config XML elements
+   * @return True if config was set successfully, false otherwise
+   */
+  public boolean setConfigXML(Collection<Element> configXML) {
+    return false;
+  }
 
 }
