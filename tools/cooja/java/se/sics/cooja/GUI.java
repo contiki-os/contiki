@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: GUI.java,v 1.8 2006/09/07 12:01:35 fros4943 Exp $
+ * $Id: GUI.java,v 1.9 2006/11/06 17:55:59 fros4943 Exp $
  */
 
 package se.sics.cooja;
@@ -130,7 +130,8 @@ public class GUI extends JDesktopPane {
   private static Properties currentExternalToolsSettings;
   private static final String externalToolsSettingNames[] = new String[]{
       "PATH_CONTIKI", "PATH_COOJA_CORE_RELATIVE", "PATH_MAKE", "PATH_SHELL",
-      "PATH_C_COMPILER", "COMPILER_ARGS", "PATH_LINKER", "LINKER_ARGS_1",
+      "PATH_C_COMPILER", "COMPILER_ARGS", "PATH_LINKER", "PATH_NM", "NM_ARGS",
+      "LINKER_ARGS_1",
       "LINKER_ARGS_2", "CONTIKI_STANDARD_PROCESSES", "CMD_GREP_PROCESSES",
       "REGEXP_PARSE_PROCESSES", "CMD_GREP_INTERFACES",
       "REGEXP_PARSE_INTERFACES", "CMD_GREP_SENSORS", "REGEXP_PARSE_SENSORS",
@@ -662,7 +663,7 @@ public class GUI extends JDesktopPane {
     // Compile library
     logger.info("> Compiling library");
     boolean compilationSucceded = ContikiMoteTypeDialog.compileLibrary(
-        moteTypeID, contikiBaseDir, filesToCompile, null, System.err);
+        moteTypeID, contikiBaseDir, filesToCompile, false, null, System.err);
     if (!libFile.exists() || !depFile.exists() || !mapFile.exists())
       compilationSucceded = false;
 
@@ -1090,10 +1091,19 @@ public class GUI extends JDesktopPane {
           * FRAME_NEW_OFFSET);
       plugin.setVisible(true);
     }
+    
+    // Deselect all other plugins before selecting the new one
+    try {
+      for (JInternalFrame existingPlugin: this.getAllFrames()) {
+        existingPlugin.setSelected(false);
+      }
+      plugin.setSelected(true);
+    } catch (Exception e) {
+      // Ignore
+    }
 
-    // Mote to front and select plugin
+    // Mote plugin to front
     myGUI.moveToFront(plugin);
-    myGUI.setSelectedFrame(plugin);
   }
 
   /**
@@ -1153,6 +1163,10 @@ public class GUI extends JDesktopPane {
 
         newPlugin = pluginClass.getConstructor(new Class[]{Mote.class})
             .newInstance(selectedMote);
+        
+        // Tag plugin with mote
+        newPlugin.putClientProperty("mote", selectedMote);
+        
         selectedMote = null;
       } else if (pluginType == VisPluginType.SIM_PLUGIN) {
         if (currentSimulation == null) {
@@ -1367,14 +1381,15 @@ public class GUI extends JDesktopPane {
     // Set frame title
     frame.setTitle("COOJA Simulator" + " - " + sim.getTitle());
 
-    // Open standard plugins
-    for (Class<? extends VisPlugin> visPluginClass : pluginClasses) {
-      int pluginType = visPluginClass.getAnnotation(VisPluginType.class)
-          .value();
-      if (pluginType == VisPluginType.SIM_STANDARD_PLUGIN) {
-        startPlugin(visPluginClass);
+    // Open standard plugins (if none opened already)
+    if (getAllFrames().length == 0)
+      for (Class<? extends VisPlugin> visPluginClass : pluginClasses) {
+        int pluginType = visPluginClass.getAnnotation(VisPluginType.class)
+        .value();
+        if (pluginType == VisPluginType.SIM_STANDARD_PLUGIN) {
+          startPlugin(visPluginClass);
+        }
       }
-    }
   }
 
   /**
