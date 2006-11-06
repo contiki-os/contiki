@@ -47,7 +47,7 @@ cooja_mtarch_start(struct cooja_mtarch_thread *t,
 }
 /*--------------------------------------------------------------------------*/
 __asm__ (
-	 "_cooja_sw:\n\t"
+	 "cooja_sw:\n\t"
 	 "pushl %ebp\n\t"
 	 "movl %esp, %ebp\n\t"
 	 
@@ -60,7 +60,7 @@ __asm__ (
 	 "pushl %ebp\n\t"
 	 "pushl %ebp\n\t"
 	 
-	 "movl _cooja_running_thread, %eax\n\t"
+	 "movl cooja_running_thread, %eax\n\t"
 	 "movl 0(%eax), %ebx\n\t"
 	 "movl %esp, 0(%eax)\n\t"
 	 "movl %ebx, %esp\n\t"
