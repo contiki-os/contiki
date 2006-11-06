@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ContikiMoteTypeDialog.java,v 1.12 2006/10/21 10:40:33 fros4943 Exp $
+ * $Id: ContikiMoteTypeDialog.java,v 1.13 2006/11/06 18:03:34 fros4943 Exp $
  */
 
 package se.sics.cooja.contikimote;
@@ -81,7 +81,8 @@ public class ContikiMoteTypeDialog extends JDialog {
   private JTextField textID, textOutputFiles, textDescription, textContikiDir,
       textCoreDir, textUserPlatforms;
   private JButton createButton, testButton, rescanButton;
-
+  private JCheckBox symbolsCheckBox;
+  
   private JPanel processPanel; // Holds process checkboxes
   private JPanel sensorPanel; // Holds sensor checkboxes
   private JPanel moteInterfacePanel; // Holds mote interface checkboxes
@@ -196,6 +197,11 @@ public class ContikiMoteTypeDialog extends JDialog {
           userPlatformText += ", '" + userPlatform.getPath() + "'";
       }
       myDialog.textUserPlatforms.setText(userPlatformText);
+    }
+
+    // Set preset "use symbols"
+    if (moteTypeToConfigure.hasSystemSymbols()) {
+      myDialog.symbolsCheckBox.setSelected(true);
     }
 
     // Scan directories for processes, sensors and core interfaces
@@ -559,6 +565,30 @@ public class ContikiMoteTypeDialog extends JDialog {
     smallPane.add(Box.createHorizontalGlue());
     smallPane.add(textField);
     smallPane.add(button);
+    mainPane.add(smallPane);
+
+    mainPane.add(Box.createRigidArea(new Dimension(0, 5)));
+
+    // Include symbols selection
+    smallPane = new JPanel();
+    smallPane.setAlignmentX(Component.LEFT_ALIGNMENT);
+    smallPane.setLayout(new BoxLayout(smallPane, BoxLayout.X_AXIS));
+    label = new JLabel("System symbols");
+    label.setPreferredSize(new Dimension(LABEL_WIDTH, LABEL_HEIGHT));
+
+    symbolsCheckBox = new JCheckBox("Include");
+    symbolsCheckBox.setSelected(false);
+    symbolsCheckBox.addActionListener(new ActionListener() {
+      public void actionPerformed(ActionEvent e) {
+        pathsWereUpdated();
+      }
+    });
+    
+    smallPane.add(label);
+    smallPane.add(Box.createHorizontalStrut(10));
+    smallPane.add(Box.createHorizontalGlue());
+    smallPane.add(symbolsCheckBox);
+
     mainPane.add(smallPane);
 
     mainPane.add(Box.createRigidArea(new Dimension(0, 5)));
@@ -993,7 +1023,7 @@ public class ContikiMoteTypeDialog extends JDialog {
         }
 
         compilationSucceded = ContikiMoteTypeDialog.compileLibrary(identifier,
-            contikiDir, filesToCompile, 
+            contikiDir, filesToCompile, symbolsCheckBox.isSelected(),
             taskOutput.getInputStream(MessageList.NORMAL),
             taskOutput.getInputStream(MessageList.ERROR));
       }
@@ -1204,6 +1234,8 @@ public class ContikiMoteTypeDialog extends JDialog {
    *          Contiki base directory
    * @param sourceFiles
    *          Source files and directories to include in compilation
+   * @param includeSymbols
+   *          Generate and include symbols in library file
    * @param outputStream
    *          Output stream from compilation (optional)
    * @param errorStream
@@ -1211,7 +1243,7 @@ public class ContikiMoteTypeDialog extends JDialog {
    * @return True if compilation succeded, false otherwise
    */
   public static boolean compileLibrary(String identifier, File contikiDir,
-      Vector<File> sourceFiles, final PrintStream outputStream,
+      Vector<File> sourceFiles, boolean includeSymbols, final PrintStream outputStream,
       final PrintStream errorStream) {
 
     File libFile = new File(ContikiMoteType.tempOutputDirectory,
@@ -1307,6 +1339,7 @@ public class ContikiMoteTypeDialog extends JDialog {
           "LD_ARGS_1=" + GUI.getExternalToolsSetting("LINKER_ARGS_1", ""),
           "LD_ARGS_2=" + GUI.getExternalToolsSetting("LINKER_ARGS_2", ""),
           "EXTRA_CC_ARGS=" + ccFlags,
+          "SYMBOLS=" + (includeSymbols?"1":""),
           "CC=" + GUI.getExternalToolsSetting("PATH_C_COMPILER"),
           "LD=" + GUI.getExternalToolsSetting("PATH_LINKER"),
           "PROJECTDIRS=" + sourceDirs,
@@ -1979,6 +2012,9 @@ public class ContikiMoteTypeDialog extends JDialog {
         }
         myMoteType.setMoteInterfaces(moteInterfaces);
 
+        // Set "using symbols"
+        myMoteType.setHasSystemSymbols(symbolsCheckBox.isSelected());
+        
         dispose();
       } else if (e.getActionCommand().equals("testsettings")) {
         testButton.requestFocus();
