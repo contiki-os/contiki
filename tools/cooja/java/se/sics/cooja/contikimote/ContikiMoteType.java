@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ContikiMoteType.java,v 1.3 2006/09/06 12:26:33 fros4943 Exp $
+ * $Id: ContikiMoteType.java,v 1.4 2006/11/06 18:01:56 fros4943 Exp $
  */
 
 package se.sics.cooja.contikimote;
@@ -99,6 +99,9 @@ public class ContikiMoteType implements MoteType {
   final static private String varSizeRegExpPrefix = "^";
   final static private String varSizeRegExpSuffix = "[ \t]*(0x[0-9A-Fa-f]*)[ \t]*[^ ]*[ \t]*$";
 
+  // Regular expressions for parsing nm response
+  final static private String nmRegExp = "^([0-9A-Fa-f][0-9A-Fa-f]*)[ \t][^Tt][ \t]([^ ._][^ ]*)";
+  
   // Mote type specific data
   private String identifier = null;
   private String description = null;
@@ -109,7 +112,8 @@ public class ContikiMoteType implements MoteType {
   private Vector<String> sensors = null;
   private Vector<String> coreInterfaces = null;
   private Vector<Class<? extends MoteInterface>> moteInterfaces = null;
-
+  private boolean hasSystemSymbols = false;
+  
   // Simulation holding this mote type
   private Simulation mySimulation = null;
 
@@ -123,9 +127,6 @@ public class ContikiMoteType implements MoteType {
 
   // Variable name to address mappings
   private Properties varAddresses = new Properties();
-
-  // Map file contents
-  private Vector<String> mapContents = new Vector<String>();
 
   // Initial memory for all motes of this type
   private SectionMoteMemory initialMemory = null;
@@ -203,34 +204,36 @@ public class ContikiMoteType implements MoteType {
     libraryClassName = CoreComm.getAvailableClassName();
     myCoreComm = CoreComm.createCoreComm(libraryClassName, libFile);
 
-    // Load map file
-    mapContents = loadMapFile(mapFile);
-    if (mapContents == null) {
-      logger.fatal("Map file could not be loaded: " + mapFile);
+    // Try load map file
+    Vector<String> mapFileData = loadMapFile(mapFile);
+
+    // Try load nm data
+    Vector<String> nmData = loadNmData(libFile);
+
+    // Create variable names to addresses mappings
+    varAddresses.clear();
+    if (mapFileData == null || !parseMapFileData(mapFileData, varAddresses)) {
+      logger.fatal("Map file parsing failed");
+    }
+    logger.info("Testing experimental nm response parsing for finding variable addresses");
+    if (nmData == null || !parseNmData(nmData, varAddresses)) {
+      logger.fatal("Nm response parsing failed");
+    }
+
+    if (varAddresses.size() == 0) {
+      logger.fatal("Variable name to addresses mappings could not be created");
       return false;
     }
-
-    // Load variable addresses from Contiki system
-    varAddresses.clear();
-    Vector<String> varNames = getAllVariableNames();
-    for (String varName : varNames) {
-      int varAddress = getRelVarAddress(varName);
-      if (varAddress > 0) {
-        varAddresses.put(varName, new Integer(varAddress));
-      } else
-        logger.warn("Parsed Contiki variable '" + varName
-            + "' but could not find address");
-    }
-
+    
     // Get offset between relative and absolute addresses
     offsetRelToAbs = getReferenceAbsAddr()
-        - getRelVarAddr(mapContents, "referenceVar");
+        - getRelVarAddr(mapFileData, "referenceVar");
 
     // Parse addresses of data and BSS memory sections
-    int relDataSectionAddr = loadRelDataSectionAddr(mapContents);
-    int dataSectionSize = loadDataSectionSize(mapContents);
-    int relBssSectionAddr = loadRelBssSectionAddr(mapContents);
-    int bssSectionSize = loadBssSectionSize(mapContents);
+    int relDataSectionAddr = loadRelDataSectionAddr(mapFileData);
+    int dataSectionSize = loadDataSectionSize(mapFileData);
+    int relBssSectionAddr = loadRelBssSectionAddr(mapFileData);
+    int bssSectionSize = loadBssSectionSize(mapFileData);
 
     if (relDataSectionAddr <= 0 || dataSectionSize <= 0
         || relBssSectionAddr <= 0 || bssSectionSize <= 0) {
@@ -286,6 +289,76 @@ public class ContikiMoteType implements MoteType {
   }
 
   /**
+   * Parses specified map file data for variable name to addresses mappings. The
+   * mappings are added to the given properties object.
+   * 
+   * @param mapFileData
+   *          Contents of entire map file
+   * @param varAddresses
+   *          Properties that should contain the name to addresses mappings.
+   */
+  private boolean parseMapFileData(Vector<String> mapFileData, Properties varAddresses) {
+    Vector<String> varNames = getMapFileVarNames(mapFileData);
+    if (varNames == null || varNames.size() == 0)
+      return false;
+    
+    for (String varName : varNames) {
+      int varAddress = getMapFileVarAddress(mapFileData, varName);
+      if (varAddress > 0) {
+        varAddresses.put(varName, new Integer(varAddress));
+      } else
+        logger.warn("Parsed Contiki variable '" + varName
+            + "' but could not find address");
+    }
+
+    return true;
+  }
+
+  /**
+   * Parses specified nm data for variable name to addresses mappings. The
+   * mappings are added to the given properties object.
+   * 
+   * @param nmData
+   *          Response from nm command on object file
+   * @param varAddresses
+   *          Properties that should contain the name to addresses mappings.
+   */
+  private boolean parseNmData(Vector<String> nmData, Properties varAddresses) {
+    int nrNew = 0, nrOld = 0, nrMismatch = 0;
+    
+    Pattern pattern = Pattern.compile(nmRegExp);
+    for (String nmLine: nmData) {
+      Matcher matcher = pattern.matcher(nmLine);
+      
+      if (matcher.find()) {
+        //logger.debug("Parsing line: " + nmLine);
+        String varName = matcher.group(2);
+        int varAddress = Integer.parseInt(matcher.group(1), 16);
+        
+        if (!varAddresses.containsKey(varName)) {
+          nrNew++;
+          varAddresses.put(varName, new Integer(varAddress));
+        } else {
+          int oldAddress = (Integer) varAddresses.get(varName);
+          if (oldAddress != varAddress) {
+            logger.warn("Warning, nm response not matching previous entry of: " + varName);
+            nrMismatch++;
+          }
+             
+          nrOld++;
+        }
+      }
+    }
+
+    if (nrMismatch > 0)
+      logger.debug("Nm response parsing summary: Added " + nrNew + " variables. Found " + nrOld + " old variables. MISMATCHING ADDRESSES: " + nrMismatch);
+    else
+      logger.debug("Nm response parsing summary: Added " + nrNew + " variables. Found " + nrOld + " old variables");
+
+    return (nrNew + nrOld) > 0;
+  }
+  
+  /**
    * Copy core memory to given memory. This should not be used directly, but
    * instead via ContikiMote.getMemory().
    * 
@@ -312,6 +385,21 @@ public class ContikiMoteType implements MoteType {
   }
 
   /**
+   * @param using Core library has system symbols information
+   */
+  public void setHasSystemSymbols(boolean using) {
+    hasSystemSymbols = using;
+  }
+  
+  /**
+   * @return Whether core library has system symbols information
+   */
+  public boolean hasSystemSymbols() {
+    return hasSystemSymbols;
+  }
+  
+  
+  /**
    * @return Contiki mote type's library class name
    */
   public String getLibraryClassName() {
@@ -325,7 +413,7 @@ public class ContikiMoteType implements MoteType {
    *          Name of variable
    * @return Relative memory address of variable or -1 if not found
    */
-  protected int getRelVarAddress(String varName) {
+  protected int getMapFileVarAddress(Vector<String> mapFileData, String varName) {
     int varAddr;
     String varAddrString;
     if ((varAddrString = varAddresses.getProperty(varName)) != null) {
@@ -334,7 +422,7 @@ public class ContikiMoteType implements MoteType {
     }
 
     String regExp = varAddressRegExpPrefix + varName + varAddressRegExpSuffix;
-    String retString = getFirstMatchGroup(mapContents, regExp, 1);
+    String retString = getFirstMatchGroup(mapFileData, regExp, 1);
 
     if (retString != null) {
       varAddresses.setProperty(varName, Integer.toString(Integer.parseInt(
@@ -375,15 +463,15 @@ public class ContikiMoteType implements MoteType {
    * 
    * @return Variable names found in the data and bss section
    */
-  public Vector<String> getAllVariableNames() {
+  private Vector<String> getMapFileVarNames(Vector<String> mapFileData) {
 
-    Vector<String> varNames = getAllVariableNames(mapContents,
-        loadRelDataSectionAddr(mapContents),
-        loadRelDataSectionAddr(mapContents) + loadDataSectionSize(mapContents));
+    Vector<String> varNames = getAllVariableNames(mapFileData,
+        loadRelDataSectionAddr(mapFileData),
+        loadRelDataSectionAddr(mapFileData) + loadDataSectionSize(mapFileData));
 
-    varNames.addAll(getAllVariableNames(mapContents,
-        loadRelBssSectionAddr(mapContents), loadRelBssSectionAddr(mapContents)
-            + loadBssSectionSize(mapContents)));
+    varNames.addAll(getAllVariableNames(mapFileData,
+        loadRelBssSectionAddr(mapFileData), loadRelBssSectionAddr(mapFileData)
+            + loadBssSectionSize(mapFileData)));
 
     return varNames;
   }
@@ -417,8 +505,8 @@ public class ContikiMoteType implements MoteType {
     return -1;
   }
 
-  private static int loadRelDataSectionAddr(Vector<String> mapFile) {
-    String retString = getFirstMatchGroup(mapFile, dataSectionAddrRegExp, 1);
+  private static int loadRelDataSectionAddr(Vector<String> mapFileData) {
+    String retString = getFirstMatchGroup(mapFileData, dataSectionAddrRegExp, 1);
 
     if (retString != null)
       return Integer.parseInt(retString.trim(), 16);
@@ -426,8 +514,8 @@ public class ContikiMoteType implements MoteType {
       return 0;
   }
 
-  private static int loadDataSectionSize(Vector<String> mapFile) {
-    String retString = getFirstMatchGroup(mapFile, dataSectionSizeRegExp, 1);
+  private static int loadDataSectionSize(Vector<String> mapFileData) {
+    String retString = getFirstMatchGroup(mapFileData, dataSectionSizeRegExp, 1);
 
     if (retString != null)
       return Integer.parseInt(retString.trim(), 16);
@@ -435,8 +523,8 @@ public class ContikiMoteType implements MoteType {
       return 0;
   }
 
-  private static int loadRelBssSectionAddr(Vector<String> mapFile) {
-    String retString = getFirstMatchGroup(mapFile, bssSectionAddrRegExp, 1);
+  private static int loadRelBssSectionAddr(Vector<String> mapFileData) {
+    String retString = getFirstMatchGroup(mapFileData, bssSectionAddrRegExp, 1);
 
     if (retString != null)
       return Integer.parseInt(retString.trim(), 16);
@@ -444,8 +532,8 @@ public class ContikiMoteType implements MoteType {
       return 0;
   }
 
-  private static int loadBssSectionSize(Vector<String> mapFile) {
-    String retString = getFirstMatchGroup(mapFile, bssSectionSizeRegExp, 1);
+  private static int loadBssSectionSize(Vector<String> mapFileData) {
+    String retString = getFirstMatchGroup(mapFileData, bssSectionSizeRegExp, 1);
 
     if (retString != null)
       return Integer.parseInt(retString.trim(), 16);
@@ -453,9 +541,9 @@ public class ContikiMoteType implements MoteType {
       return 0;
   }
 
-  private static int getRelVarAddr(Vector<String> mapContents, String varName) {
+  private static int getRelVarAddr(Vector<String> mapFileData, String varName) {
     String regExp = varAddressRegExpPrefix + varName + varAddressRegExpSuffix;
-    String retString = getFirstMatchGroup(mapContents, regExp, 1);
+    String retString = getFirstMatchGroup(mapFileData, regExp, 1);
 
     if (retString != null)
       return Integer.parseInt(retString.trim(), 16);
@@ -464,14 +552,14 @@ public class ContikiMoteType implements MoteType {
   }
 
   private static Vector<String> loadMapFile(File mapFile) {
-    Vector<String> mapContents = new Vector<String>();
+    Vector<String> mapFileData = new Vector<String>();
 
     try {
       BufferedReader in = new BufferedReader(new InputStreamReader(
           new FileInputStream(mapFile)));
 
       while (in.ready()) {
-        mapContents.add(in.readLine());
+        mapFileData.add(in.readLine());
       }
     } catch (FileNotFoundException e) {
       logger.fatal("File not found: " + e);
@@ -481,7 +569,46 @@ public class ContikiMoteType implements MoteType {
       return null;
     }
 
-    return mapContents;
+    return mapFileData;
+  }
+
+  private static Vector<String> loadNmData(File libraryFile) {
+    Vector<String> nmData = new Vector<String>();
+
+    try {
+      String nmPath = GUI.getExternalToolsSetting("PATH_NM");
+      String nmArgs = GUI.getExternalToolsSetting("NM_ARGS");
+
+      if (nmPath == null || nmPath.equals(""))
+        return null;
+
+      String[] splittedNmArgs = nmArgs.split(" ");
+      String[] nmExecArray = new String[1 + splittedNmArgs.length + 1];
+
+      nmExecArray[0] = nmPath.trim();
+      nmExecArray[nmExecArray.length-1] = libraryFile.getAbsolutePath();
+      System.arraycopy(splittedNmArgs, 0, nmExecArray, 1, splittedNmArgs.length);
+
+      String line;
+      Process p = Runtime.getRuntime().exec(nmExecArray);
+      BufferedReader input =
+        new BufferedReader
+        (new InputStreamReader(p.getInputStream()));
+      p.getErrorStream().close(); // Ignore error stream
+      while ((line = input.readLine()) != null) {
+        nmData.add(line);
+      }
+      input.close();
+    }
+    catch (Exception err) {
+      err.printStackTrace();
+      return null;
+    }
+    
+    if (nmData == null || nmData.size() == 0)
+      return null;
+
+    return nmData;
   }
 
   /**
@@ -851,6 +978,11 @@ public class ContikiMoteType implements MoteType {
       config.add(element);
     }
 
+    // Has system symbols
+    element = new Element("symbols");
+    element.setText(new Boolean(hasSystemSymbols).toString());
+    config.add(element);
+
     return config;
   }
 
@@ -880,6 +1012,8 @@ public class ContikiMoteType implements MoteType {
         processes.add(element.getText());
       } else if (name.equals("sensor")) {
         sensors.add(element.getText());
+      } else if (name.equals("symbols")) {
+        hasSystemSymbols = Boolean.parseBoolean(element.getText());
       } else if (name.equals("coreinterface")) {
         coreInterfaces.add(element.getText());
       } else if (name.equals("moteinterface")) {
