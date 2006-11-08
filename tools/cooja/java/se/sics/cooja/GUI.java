@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: GUI.java,v 1.9 2006/11/06 17:55:59 fros4943 Exp $
+ * $Id: GUI.java,v 1.10 2006/11/08 02:17:19 fros4943 Exp $
  */
 
 package se.sics.cooja;
@@ -131,7 +131,7 @@ public class GUI extends JDesktopPane {
   private static final String externalToolsSettingNames[] = new String[]{
       "PATH_CONTIKI", "PATH_COOJA_CORE_RELATIVE", "PATH_MAKE", "PATH_SHELL",
       "PATH_C_COMPILER", "COMPILER_ARGS", "PATH_LINKER", "PATH_NM", "NM_ARGS",
-      "LINKER_ARGS_1",
+      "PATH_OBJDUMP", "OBJDUMP_ARGS", "LINKER_ARGS_1",
       "LINKER_ARGS_2", "CONTIKI_STANDARD_PROCESSES", "CMD_GREP_PROCESSES",
       "REGEXP_PARSE_PROCESSES", "CMD_GREP_INTERFACES",
       "REGEXP_PARSE_INTERFACES", "CMD_GREP_SENSORS", "REGEXP_PARSE_SENSORS",
