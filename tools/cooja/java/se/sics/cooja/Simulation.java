@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: Simulation.java,v 1.2 2006/11/06 17:58:55 fros4943 Exp $
+ * $Id: Simulation.java,v 1.3 2006/11/08 21:28:51 fros4943 Exp $
  */
 
 package se.sics.cooja;
@@ -177,11 +177,6 @@ public class Simulation extends Observable implements Runnable {
    */
   public Simulation() {
     // New simulation instance
-
-    // logger.fatal("WARNING ADDING 10000 BLINKER NODES NOW!!!");
-    // for (int i=0; i < 10000; i++)
-    // addMote(new BlinkerNode());
-
   }
 
   /**
