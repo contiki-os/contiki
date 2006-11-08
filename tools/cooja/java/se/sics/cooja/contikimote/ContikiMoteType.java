@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ContikiMoteType.java,v 1.5 2006/11/06 22:21:57 fros4943 Exp $
+ * $Id: ContikiMoteType.java,v 1.6 2006/11/08 02:14:24 fros4943 Exp $
  */
 
 package se.sics.cooja.contikimote;
@@ -323,7 +323,7 @@ public class ContikiMoteType implements MoteType {
    * @param varAddresses
    *          Properties that should contain the name to addresses mappings.
    */
-  private boolean parseNmData(Vector<String> nmData, Properties varAddresses) {
+  public static boolean parseNmData(Vector<String> nmData, Properties varAddresses) {
     int nrNew = 0, nrOld = 0, nrMismatch = 0;
     
     Pattern pattern = Pattern.compile(nmRegExp);
@@ -572,7 +572,13 @@ public class ContikiMoteType implements MoteType {
     return mapFileData;
   }
 
-  private static Vector<String> loadNmData(File libraryFile) {
+  /**
+   * Runs external tool nm on given file and returns the result.
+   * 
+   * @param libraryFile File
+   * @return Execution response
+   */
+  public static Vector<String> loadNmData(File libraryFile) {
     Vector<String> nmData = new Vector<String>();
 
     try {
@@ -616,9 +622,62 @@ public class ContikiMoteType implements MoteType {
     
     if (nmData == null || nmData.size() == 0)
       return null;
-    logger.debug("#4");
 
     return nmData;
+  }
+
+  /**
+   * Runs external tool objdump on given file and returns the result.
+   * 
+   * @param libraryFile File
+   * @return Execution response
+   */
+  public static Vector<String> loadObjdumpData(File libraryFile) {
+    Vector<String> objdumpData = new Vector<String>();
+
+    try {
+      String objdumpPath = GUI.getExternalToolsSetting("PATH_OBJDUMP");
+      String objdumpArgs = GUI.getExternalToolsSetting("OBJDUMP_ARGS");
+
+      if (objdumpPath == null || objdumpPath.equals(""))
+        return null;
+
+      String[] objdumpExecArray;
+      if (!objdumpArgs.trim().equals("")) {
+        // Arguments need to be passed to program
+        String[] splittedObjdumpArgs = objdumpArgs.split(" ");
+        objdumpExecArray = new String[1 + splittedObjdumpArgs.length + 1];
+
+        objdumpExecArray[0] = objdumpPath.trim();
+        
+        objdumpExecArray[objdumpExecArray.length-1] = libraryFile.getAbsolutePath();
+        System.arraycopy(splittedObjdumpArgs, 0, objdumpExecArray, 1, splittedObjdumpArgs.length);
+      } else {
+        objdumpExecArray = new String[2];
+        objdumpExecArray[0] = objdumpPath.trim();
+        objdumpExecArray[1] = libraryFile.getAbsolutePath();
+      }
+
+      String line;
+      Process p = Runtime.getRuntime().exec(objdumpExecArray);
+      BufferedReader input =
+        new BufferedReader
+        (new InputStreamReader(p.getInputStream()));
+      p.getErrorStream().close(); // Ignore error stream
+      while ((line = input.readLine()) != null) {
+        objdumpData.add(line);
+      }
+      input.close();
+    }
+    catch (Exception err) {
+      err.printStackTrace();
+      return null;
+    }
+    
+    if (objdumpData == null || objdumpData.size() == 0)
+      return null;
+
+    return objdumpData;
   }
 
   /**
