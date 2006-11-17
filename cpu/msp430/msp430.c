@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: msp430.c,v 1.2 2006/08/11 13:41:31 bg- Exp $
+ * @(#)$Id: msp430.c,v 1.3 2006/11/17 13:30:45 bg- Exp $
  */
 #include <io.h>
 #include <signal.h>
@@ -162,7 +162,7 @@ msp430_cpu_init(void)
 #define asmv(arg) __asm__ __volatile__(arg)
 
 #define STACK_EXTRA 32
-static char *cur_break = (char *)&__bss_end;
+static char *cur_break = (char *)(&__bss_end + 1);
 
 /*
  * Allocate memory from the heap. Check that we don't collide with the
