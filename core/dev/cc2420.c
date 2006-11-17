@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: cc2420.c,v 1.4 2006/08/09 17:39:39 bg- Exp $
+ * @(#)$Id: cc2420.c,v 1.5 2006/11/17 12:27:23 bg- Exp $
  */
 /*
  * This code is almost device independent and should be possible to
@@ -52,6 +52,12 @@
 #include "dev/spi.h"
 #include "dev/cc2420.h"
 #include "dev/cc2420_const.h"
+
+#if 0
+#define PRINTF(...) printf(__VA_ARGS__)
+#else
+#define PRINTF(...) do {} while (0)
+#endif
 
 PROCESS(cc2420_process, "CC2420 driver");
 PROCESS(cc2420_retransmit_process, "CC2420 retransmit process");
@@ -112,6 +118,7 @@ cc2420_status(void)
 #define RXFIFO_PROTECTION (1 << 9)
 #define CORR_THR(n) (((n) & 0x1f) << 6)
 #define FIFOP_THR(n) ((n) & 0x7f)
+#define RXBPF_LOCUR (1 << 13);
 
 void
 cc2420_init(void)
@@ -142,9 +149,13 @@ cc2420_init(void)
   reg |= AUTOACK;
   cc2420_setreg(CC2420_MDMCTRL0, reg);
 
-  /* Set the correlation threshold = 20. */
+  /* Change default values as recomended in the data sheet, */
+  /* correlation threshold = 20, RX bandpass filter = 1.3uA. */
   cc2420_setreg(CC2420_MDMCTRL1, CORR_THR(20));
-
+  reg = cc2420_getreg(CC2420_RXCTRL1);
+  reg |= RXBPF_LOCUR;
+  cc2420_setreg(CC2420_RXCTRL1, reg);
+  
   /* Set the FIFOP threshold to maximum. */
   cc2420_setreg(CC2420_IOCFG0, FIFOP_THR(127));
 
@@ -239,6 +250,8 @@ cc2420_resend(void)
     if (SFD_IS_1)
       return 0;			/* Transmission has started. */
 
+  PRINTF("REFOO\n");
+  return 0;
   /*
    * In the exceptional case that transmission never occurred we try
    * again but never verify if the transmission ever starts. If a new
@@ -338,7 +351,6 @@ __cc2420_intr(void)
   FASTSPI_READ_FIFO_BYTE(length);
   if (length > MAX_PACKET_LEN) {
     /* Oops, we must be out of sync. */
-    //printf("__cc2420_intr out of sync\n");
     FASTSPI_STROBE(CC2420_SFLUSHRX);
     FASTSPI_STROBE(CC2420_SFLUSHRX);
     return 0;
@@ -400,7 +412,7 @@ PROCESS_THREAD(cc2420_process, ev, data)
     if (len > 0) {
       /* Read payload and two bytes of footer */
       if ((len - 2) > (UIP_BUFSIZE - UIP_LLH_LEN) || len < 2) {
-	printf("cc2420_process too big len=%d\n", len);
+	PRINTF("cc2420_process too big len=%d\n", len);
 	s = splhigh();
 	FASTSPI_READ_FIFO_GARBAGE(len);
 	rx_fifo_remaining_bytes = 0; /* RX FIFO emptied! */
@@ -468,6 +480,7 @@ PROCESS_THREAD(cc2420_retransmit_process, ev, data)
 {
   static u8_t seq, n;
   static struct etimer etimer;
+  static unsigned taccr1;
 
   PROCESS_BEGIN();
 
@@ -477,7 +490,16 @@ PROCESS_THREAD(cc2420_retransmit_process, ev, data)
 
     n = 0;
     do {
+      taccr1 = TACCR1 - TAR;
+#if 0
+      if(taccr1 <= 14)
+	etimer_set(&etimer, RETRANSMIT_TIMEOUT + 1);
+      else
+	etimer_set(&etimer, RETRANSMIT_TIMEOUT + 0);
+#else
       etimer_set(&etimer, RETRANSMIT_TIMEOUT);
+#endif
+	
       PROCESS_WAIT_UNTIL(etimer_expired(&etimer) || ev == PROCESS_EVENT_POLL);
       if (ev == PROCESS_EVENT_POLL) {
 	etimer_stop(&etimer);
@@ -487,6 +509,7 @@ PROCESS_THREAD(cc2420_retransmit_process, ev, data)
       else if (n < MAX_RETRANSMISSIONS) {
 	cc2420_resend();
 	n++;
+ 	PRINTF("RETRANS %d %u\n", n, taccr1);
       } else {
 	break;
       }
@@ -494,7 +517,7 @@ PROCESS_THREAD(cc2420_retransmit_process, ev, data)
     neigbour_update(last_correspondent, n);
 #if 0
 #define CORRELATION_2_X(c) (((c) < 48) ? 0 : ((c) - 48))
-    printf("%04x %2d %2d %2u %u\n",
+    PRINTF("%04x %2d %2d %2u %u\n",
 	   last_correspondent, n,
 	   RSSI_2_ED(cc2420_last_rssi),
 	   CORRELATION_2_X(cc2420_last_correlation),
@@ -578,7 +601,6 @@ neigbour_update(u16_t mac, int nretrans)
       t->nretrans = (t->nretrans + nretrans)/2;
   }
   t->expire = MAX_EXPIRE;
-  //printf("+ %04x %d/4 %d\n", t->mac, t->nretrans, t->expire);
   return;
 }
 
@@ -606,7 +628,6 @@ cc2420_check_remote(u16_t mac)
   if (now >= AGE_INTERVAL) {
     unsigned i;
 
-    //printf("aging\n");
     for (i = 0; i < NNEIGBOURS; i++)
       if (neigbours[i].expire >= now)
 	neigbours[i].expire -= now;
@@ -616,7 +637,6 @@ cc2420_check_remote(u16_t mac)
   }
 
   t = lookup(mac);
-  //printf("  %04x %d/4 %d\n", t->mac, t->nretrans, t->expire);
   if (t->mac != mac)
     return -1;			/* unknown */
   else if (t->nretrans >= SCALE_RETRANS_THRESHOLD)
