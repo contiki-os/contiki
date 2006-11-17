@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: rand.c,v 1.1 2006/06/17 22:41:18 adamdunkels Exp $
+ * @(#)$Id: rand.c,v 1.2 2006/11/17 13:05:34 bg- Exp $
  */
 #include "rand.h"
 
@@ -43,7 +43,14 @@
  * Comm. of the ACM, V. 31. No. 10, pp 1192-1201
  */
 
+/*
+ * When possible, keep rand_state across reboots.
+ */
+#ifdef __GNUC__
+unsigned long rand_state __attribute__((section(".noinit")));
+#else
 unsigned long rand_state = 123459876ul;
+#endif
 
 int
 rand()
