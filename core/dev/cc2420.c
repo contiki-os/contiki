@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: cc2420.c,v 1.5 2006/11/17 12:27:23 bg- Exp $
+ * @(#)$Id: cc2420.c,v 1.6 2006/11/17 13:03:51 bg- Exp $
  */
 /*
  * This code is almost device independent and should be possible to
@@ -250,8 +250,6 @@ cc2420_resend(void)
     if (SFD_IS_1)
       return 0;			/* Transmission has started. */
 
-  PRINTF("REFOO\n");
-  return 0;
   /*
    * In the exceptional case that transmission never occurred we try
    * again but never verify if the transmission ever starts. If a new
@@ -480,7 +478,6 @@ PROCESS_THREAD(cc2420_retransmit_process, ev, data)
 {
   static u8_t seq, n;
   static struct etimer etimer;
-  static unsigned taccr1;
 
   PROCESS_BEGIN();
 
@@ -490,16 +487,7 @@ PROCESS_THREAD(cc2420_retransmit_process, ev, data)
 
     n = 0;
     do {
-      taccr1 = TACCR1 - TAR;
-#if 0
-      if(taccr1 <= 14)
-	etimer_set(&etimer, RETRANSMIT_TIMEOUT + 1);
-      else
-	etimer_set(&etimer, RETRANSMIT_TIMEOUT + 0);
-#else
       etimer_set(&etimer, RETRANSMIT_TIMEOUT);
-#endif
-	
       PROCESS_WAIT_UNTIL(etimer_expired(&etimer) || ev == PROCESS_EVENT_POLL);
       if (ev == PROCESS_EVENT_POLL) {
 	etimer_stop(&etimer);
@@ -509,7 +497,7 @@ PROCESS_THREAD(cc2420_retransmit_process, ev, data)
       else if (n < MAX_RETRANSMISSIONS) {
 	cc2420_resend();
 	n++;
- 	PRINTF("RETRANS %d %u\n", n, taccr1);
+ 	PRINTF("RETRANS %d\n", n);
       } else {
 	break;
       }
