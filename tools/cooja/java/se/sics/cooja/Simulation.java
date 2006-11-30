@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: Simulation.java,v 1.3 2006/11/08 21:28:51 fros4943 Exp $
+ * $Id: Simulation.java,v 1.4 2006/11/30 14:25:44 fros4943 Exp $
  */
 
 package se.sics.cooja;
@@ -300,6 +300,11 @@ public class Simulation extends Observable implements Runnable {
                   int moteNr = Integer.parseInt(moteNrString);
                   Mote mote = newSim.getMote(moteNr);
                   openedPlugin = visPluginClass.getConstructor(new Class[]{Mote.class}).newInstance(mote);
+
+                  // Tag plugin with mote
+                  openedPlugin.putClientProperty("mote", mote);
+
+                  // Show plugin
                   GUI.currentGUI.showPlugin(openedPlugin);
                 }
                 
@@ -318,7 +323,7 @@ public class Simulation extends Observable implements Runnable {
               } else if (pluginSubElement.getName().equals("minimized")) {
                 openedPlugin.setIcon(Boolean.parseBoolean(pluginSubElement.getText()));
               } else if (pluginSubElement.getName().equals("visplugin_config")) {
-                logger.fatal("NOT IMPLEMENTED: Not passing plugin specific data yet: " + pluginSubElement.getText());
+                openedPlugin.setConfigXML(pluginSubElement.getChildren());
               }
             }
           } catch (Exception e) {
@@ -375,16 +380,16 @@ public class Simulation extends Observable implements Runnable {
               pluginType == VisPluginType.SIM_STANDARD_PLUGIN) {
             pluginSubElement.setText("sim");
             pluginElement.addContent(pluginSubElement);
-          } else if (pluginType == VisPluginType.MOTE_PLUGIN) {
-            if (openedPlugin.getClientProperty("mote") != null) {
-              Mote taggedMote = (Mote) openedPlugin.getClientProperty("mote");
-              for (int moteNr = 0; moteNr < getMotesCount(); moteNr++) {
-                if (getMote(moteNr) == taggedMote) {
-                  pluginSubElement.setText("mote: " + moteNr);
-                  pluginElement.addContent(pluginSubElement);
-                }
+          } else if (pluginType == VisPluginType.MOTE_PLUGIN && openedPlugin.getClientProperty("mote") != null) {
+            Mote taggedMote = (Mote) openedPlugin.getClientProperty("mote");
+            for (int moteNr = 0; moteNr < getMotesCount(); moteNr++) {
+              if (getMote(moteNr) == taggedMote) {
+                pluginSubElement.setText("mote: " + moteNr);
+                pluginElement.addContent(pluginSubElement);
               }
             }
+          } else {
+            logger.fatal("Warning! Could not write visplugin constructor information: " + pluginType + "@" + openedPlugin);
           }
 
           pluginSubElement = new Element("width");

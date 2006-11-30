@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: VariableWatcher.java,v 1.1 2006/08/21 12:13:07 fros4943 Exp $
+ * $Id: VariableWatcher.java,v 1.2 2006/11/30 14:25:59 fros4943 Exp $
  */
 
 package se.sics.cooja.plugins;
@@ -35,7 +35,10 @@ import java.awt.*;
 import java.awt.event.*;
 import java.beans.*;
 import java.text.NumberFormat;
+import java.util.Collection;
+import java.util.Vector;
 import javax.swing.*;
+import org.jdom.Element;
 
 import se.sics.cooja.*;
 
@@ -64,6 +67,7 @@ public class VariableWatcher extends VisPlugin {
   private JPanel lengthPane;
   private JPanel valuePane;
   private JComboBox varName;
+  private JComboBox varType;
   private JFormattedTextField[] varValues;
   private JFormattedTextField varLength;
   private JButton writeButton;
@@ -122,7 +126,7 @@ public class VariableWatcher extends VisPlugin {
     label.setPreferredSize(new Dimension(LABEL_WIDTH,LABEL_HEIGHT));
     smallPane.add(BorderLayout.WEST, label);
 
-    final JComboBox varType = new JComboBox();
+    varType = new JComboBox();
     varType.addItem("Byte (1 byte)"); // BYTE_INDEX = 0
     varType.addItem("Integer (4 bytes)"); // INT_INDEX = 1
     varType.addItem("Byte array (x bytes)"); // ARRAY_INDEX = 2
@@ -307,4 +311,63 @@ public class VariableWatcher extends VisPlugin {
   public void closePlugin() {
   }
 
+  public Collection<Element> getConfigXML() {
+    // Return currently watched variable and type
+    Vector<Element> config = new Vector<Element>();
+    
+    Element element;
+    
+    // Selected variable name
+    element = new Element("varname");
+    element.setText((String) varName.getSelectedItem());
+    config.add(element);
+
+    // Selected variable type
+    if (varType.getSelectedIndex() == BYTE_INDEX) {
+      element = new Element("vartype");
+      element.setText("byte");
+      config.add(element);
+    } else if (varType.getSelectedIndex() == INT_INDEX) {
+      element = new Element("vartype");
+      element.setText("int");
+      config.add(element);
+    } else if (varType.getSelectedIndex() == ARRAY_INDEX) {
+      element = new Element("vartype");
+      element.setText("array");
+      config.add(element);
+      element = new Element("array_length");
+      element.setText(varLength.getValue().toString());
+      config.add(element);
+    }
+    
+    return config;
+  }
+
+  public boolean setConfigXML(Collection<Element> configXML) {
+    lengthPane.setVisible(false);
+    setNumberOfValues(1);
+    varLength.setValue(1);
+    
+    for (Element element : configXML) {
+      if (element.getName().equals("varname")) {
+        varName.setSelectedItem(element.getText());
+      } else if (element.getName().equals("vartype")) {
+        if (element.getText().equals("byte")) {
+          varType.setSelectedIndex(BYTE_INDEX);
+        } else if (element.getText().equals("int")) {
+          varType.setSelectedIndex(INT_INDEX);
+        } else if (element.getText().equals("array")) {
+          varType.setSelectedIndex(ARRAY_INDEX);
+          lengthPane.setVisible(true);
+        }
+      } else if (element.getName().equals("array_length")) {
+        int nrValues = Integer.parseInt(element.getText());
+        setNumberOfValues(nrValues);
+        varLength.setValue(nrValues);
+      }
+    }
+    
+    return true;
+  }
+  
 }
