@@ -1,16 +1,16 @@
-# $Id: Makefile,v 1.5 2006/09/27 10:00:42 bg- Exp $
+# $Id: Makefile,v 1.6 2006/12/01 14:55:15 bg- Exp $
 #
 # This makefile requires GNU make!
 
 LIB = libcontiki.a
-KERNELS = gateway.ihex dhclient.ihex ssd.ihex
+KERNELS = gateway.ihex client.ihex dhclient.ihex
 PROGS = loadable_prg.ko udpsend.ko udprecv.ko
 TOOLS = tunslip scat codeprop
 
 all: $(LIB) $(KERNELS) $(PROGS) $(TOOLS)
 
-ssd.out: ssd.o $(LIB)
 gateway.out: gateway.o $(LIB)
+client.out: client.o $(LIB)
 dhclient.out: dhclient.o $(LIB)
 
 CORE = ../../core
@@ -21,7 +21,7 @@ MCU=msp430x1611
 
 ARCH=msp430.o minileds.o watchdog.o light.o button.o spi.o ds2411.o rom.o xmem.o i2c.o
 SYSTEM=process.o procinit.o service.o clock.o etimer.o timer.o \
-       elfloader.o symtab.o
+        elfloader_compat.o cle.o symtab.o
 UIP=uip.o uiplib.o tcpip.o uip-fw.o uip-fw-service.o uipbuf.o \
     tcpdump.o psock.o dhcpc.o uaodv.o uaodv-rt.o uip-udp-packet.o
 UIPDRIVERS=slip.o slip_uart1.o \
