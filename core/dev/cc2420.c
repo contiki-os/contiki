@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: cc2420.c,v 1.6 2006/11/17 13:03:51 bg- Exp $
+ * @(#)$Id: cc2420.c,v 1.7 2006/12/01 15:04:04 bg- Exp $
  */
 /*
  * This code is almost device independent and should be possible to
@@ -179,9 +179,7 @@ cc2420_send_data_ack(u16_t mac)
   h.src = uip_hostaddr.u16[1];
   h.dst = mac;
 
-  cc2420_send(&h, 10, NULL, 0);
-
-  return 0;
+  return cc2420_send(&h, 10, NULL, 0);
 }
 
 int
@@ -224,40 +222,48 @@ cc2420_send(struct hdr_802_15 *hdr, u8_t hdr_len,
   FASTSPI_WRITE_FIFO(payload, payload_len);
   splx(s);
 
-  if (hdr->dst != 0xffff)
+  if (hdr->dst == 0xffff) {
+    int i;
+    for (i = 1; i < 3; i++) {
+      if (cc2420_resend() >= 0)
+	return 0;
+      clock_delay(i*256);
+    }
+  } else {
     process_post(&cc2420_retransmit_process,
 		 PROCESS_EVENT_MSG,
 		 (void *)(unsigned)last_used_seq);
+  }
   return cc2420_resend();	/* Send stuff from FIFO. */
 }
 
+/*
+ * Request packet to be sent using CSMA-CA. Requires that RSSI is
+ * valid.
+ *
+ * Return -3 on failure.
+ */
 int
 cc2420_resend(void)
 {
   int i;
   
-  /* Request packet to be sent using CSMA-CA. */
-  cc2420_strobe(CC2420_STXONCCA);
-
-  /* The RX FIFO can only hold one packet! Make sure to not overrun
+  /* The TX FIFO can only hold one packet! Make sure to not overrun
    * FIFO by waiting for transmission to start here and synchronizing
    * with the CC2420_TX_ACTIVE check in cc2420_send.
    *
-   * If RX FIFO is full or CSMA-CA never says ok we will have to
-   * terminate the loop below before SFD_IS_1!
+   * Note that we may have to wait up to 320 us (symbols) before
+   * transmission starts.
    */
-  for (i = 0; i < 1000; i++)
+#ifdef TMOTE_SKY
+#define LOOP_20_SYMBOLS 100	/* 326us (msp430 @ 2.4576MHz) */
+#endif
+  cc2420_strobe(CC2420_STXONCCA);
+  for (i = 0; i < LOOP_20_SYMBOLS; i++)
     if (SFD_IS_1)
       return 0;			/* Transmission has started. */
 
-  /*
-   * In the exceptional case that transmission never occurred we try
-   * again but never verify if the transmission ever starts. If a new
-   * call to cc2420_send() happens in a near future this transmission
-   * will be permanently canceled.
-   */
-  cc2420_strobe(CC2420_STXONCCA);
-  return 0;
+  return -3;			/* Transmission never started! */
 }
 
 void
@@ -290,8 +296,10 @@ cc2420_on(void)
 }
 
 void
-cc2420_set_chan_pan_addr(unsigned channel, unsigned pan,
-			 unsigned addr, const u8_t *ieee_addr)
+cc2420_set_chan_pan_addr(unsigned channel, /* 11 - 26 */
+			 unsigned pan,
+			 unsigned addr,
+			 const u8_t *ieee_addr)
 {
   /*
    * Subtract the base channel (11), multiply by 5, which is the
