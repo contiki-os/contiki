@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: GUI.java,v 1.10 2006/11/08 02:17:19 fros4943 Exp $
+ * $Id: GUI.java,v 1.11 2006/12/01 14:12:50 fros4943 Exp $
  */
 
 package se.sics.cooja;
@@ -68,7 +68,7 @@ public class GUI extends JDesktopPane {
   /**
    * External tools user settings filename.
    */
-  public static final String EXTERNAL_TOOLS_USER_SETTINGS_FILENAME = "external_tools_user.config";
+  public static final String EXTERNAL_TOOLS_USER_SETTINGS_FILENAME = ".cooja.user.properties";
 
   /**
    * Logger settings filename.
@@ -135,7 +135,7 @@ public class GUI extends JDesktopPane {
       "LINKER_ARGS_2", "CONTIKI_STANDARD_PROCESSES", "CMD_GREP_PROCESSES",
       "REGEXP_PARSE_PROCESSES", "CMD_GREP_INTERFACES",
       "REGEXP_PARSE_INTERFACES", "CMD_GREP_SENSORS", "REGEXP_PARSE_SENSORS",
-      "CONTIKI_MAIN_TEMPLATE_FILENAME"};
+      "CONTIKI_MAIN_TEMPLATE_FILENAME", "DEFAULT_USERPLATFORMS"};
 
   private static final int FRAME_NEW_OFFSET = 30;
   private static final int FRAME_STANDARD_WIDTH = 150;
@@ -182,6 +182,20 @@ public class GUI extends JDesktopPane {
     loadExternalToolsDefaultSettings();
     loadExternalToolsUserSettings();
 
+    // Register default user platforms
+    String defaultUserPlatforms = getExternalToolsSetting("DEFAULT_USERPLATFORMS", null);
+    if (defaultUserPlatforms != null) {
+      String[] defaultUserPlatformsArr = defaultUserPlatforms.split(";");
+      if (defaultUserPlatformsArr.length > 0) {
+        for (String defaultUserPlatform: defaultUserPlatformsArr) {
+          File userPlatform = new File(defaultUserPlatform);
+          if (userPlatform.exists() && userPlatform.isDirectory()) {
+            currentUserPlatforms.add(userPlatform);
+          }
+        }
+      }
+    }
+   
     // Load extendable parts (using current platform config)
     reparsePlatformConfig();
   }
@@ -432,6 +446,8 @@ public class GUI extends JDesktopPane {
       userPlatforms = new Vector<String>();
       userPlatforms.add(".");
     }
+    
+    //XXX Should add user prop platforms as well here...
     logger.info("> Reparsing user platforms and creating config");
     for (String userPlatform : userPlatforms) {
       logger.info(">> Adding: " + userPlatform);
@@ -1742,9 +1758,10 @@ public class GUI extends JDesktopPane {
    * Load user values from external properties file
    */
   private static void loadExternalToolsUserSettings() {
-    String filename = GUI.EXTERNAL_TOOLS_USER_SETTINGS_FILENAME;
+    File configFile = new File(System.getProperty("user.home"), GUI.EXTERNAL_TOOLS_USER_SETTINGS_FILENAME);
+    
     try {
-      FileInputStream in = new FileInputStream(filename);
+      FileInputStream in = new FileInputStream(configFile);
       Properties settings = new Properties();
       settings.load(in);
       in.close();
@@ -1759,7 +1776,7 @@ public class GUI extends JDesktopPane {
       // No default configuration file found, using default
     } catch (IOException e) {
       // Error while importing saved properties, using default
-      logger.warn("Error when reading default settings from " + filename);
+      logger.warn("Error when reading default settings from " + configFile);
     }
   }
 
@@ -1767,19 +1784,19 @@ public class GUI extends JDesktopPane {
    * Save external tools user settings to file.
    */
   public static void saveExternalToolsUserSettings() {
-    String filename = GUI.EXTERNAL_TOOLS_USER_SETTINGS_FILENAME;
+    File configFile = new File(System.getProperty("user.home"), GUI.EXTERNAL_TOOLS_USER_SETTINGS_FILENAME);
     try {
-      FileOutputStream out = new FileOutputStream(filename);
+      FileOutputStream out = new FileOutputStream(configFile);
       currentExternalToolsSettings.store(out, "COOJA User Settings");
       out.close();
     } catch (FileNotFoundException ex) {
       // Could not open settings file for writing, aborting
-      logger.warn("Could not save external tools user settings to " + filename
+      logger.warn("Could not save external tools user settings to " + configFile
           + ", aborting");
     } catch (IOException ex) {
       // Could not open settings file for writing, aborting
       logger.warn("Error while saving external tools user settings to "
-          + filename + ", aborting");
+          + configFile + ", aborting");
     }
   }
 
@@ -1885,7 +1902,6 @@ public class GUI extends JDesktopPane {
   }
 
   private ClassLoader createClassLoader(Vector<File> currentUserPlatforms) {
-    ClassLoader classLoader = ClassLoader.getSystemClassLoader();
     return createClassLoader(ClassLoader.getSystemClassLoader(), currentUserPlatforms);
   }
 
@@ -1940,8 +1956,8 @@ public class GUI extends JDesktopPane {
             + ": " + e);
       }
     }
-    return new URLClassLoader((URL[]) urls.toArray(new URL[urls.size()]),
-        userPlatformClassLoader);
+    
+    return new URLClassLoader((URL[]) urls.toArray(new URL[urls.size()]), parent);
   }
   
   /**
