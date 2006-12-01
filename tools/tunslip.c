@@ -28,7 +28,7 @@
  *
  * This file is part of the uIP TCP/IP stack.
  *
- * $Id: tunslip.c,v 1.4 2006/09/26 15:45:09 bg- Exp $
+ * $Id: tunslip.c,v 1.5 2006/12/01 15:09:57 bg- Exp $
  *
  */
 
@@ -435,6 +435,7 @@ ssystem(const char *fmt, ...)
   vsnprintf(cmd, sizeof(cmd), fmt, ap);
   va_end(ap);
   printf("%s\n", cmd);
+  fflush(stdout);
   return system(cmd);
 }
 
@@ -459,11 +460,20 @@ serial_to_tun(FILE *inslip, int outfd)
   int ret;
   unsigned char c;
 
+#ifdef linux
+  ret = fread(&c, 1, 1, inslip);
+  if(ret == -1 || ret == 0) err(1, "serial_to_tun: read");
+  goto after_fread;
+#endif
+
  read_more:
   if(inbufptr >= sizeof(uip.inbuf)) {
      inbufptr = 0;
   }
   ret = fread(&c, 1, 1, inslip);
+#ifdef linux
+ after_fread:
+#endif
   if(ret == -1) err(1, "serial_to_tun: read");
   if(ret == 0) {
     clearerr(inslip);
@@ -488,14 +498,27 @@ serial_to_tun(FILE *inslip, int outfd)
 	if(memcmp(&ipa, &uip.inbuf[4], sizeof(ipa)) == 0)
 	  break;
 
-	memcpy(&ipa, &uip.inbuf[4], sizeof(ipa));
+	/* New address. */
+	if(ipa.s_addr != 0) {
 #ifdef linux
-	ssystem("route add -net %s netmask %s dev %s",
-		inet_ntoa(ipa), "255.255.255.255", tundev);
+	  ssystem("route delete -net %s netmask %s dev %s",
+		  inet_ntoa(ipa), "255.255.255.255", tundev);
 #else
-	ssystem("route add -net %s -netmask %s -interface %s",
-		inet_ntoa(ipa), "255.255.255.255", tundev);
+	  ssystem("route delete -net %s -netmask %s -interface %s",
+		  inet_ntoa(ipa), "255.255.255.255", tundev);
 #endif
+	}
+
+	memcpy(&ipa, &uip.inbuf[4], sizeof(ipa));
+	if(ipa.s_addr != 0) {
+#ifdef linux
+	  ssystem("route add -net %s netmask %s dev %s",
+		  inet_ntoa(ipa), "255.255.255.255", tundev);
+#else
+	  ssystem("route add -net %s -netmask %s -interface %s",
+		  inet_ntoa(ipa), "255.255.255.255", tundev);
+#endif
+	}
 	break;
       } else if(ecode < 0) {
 	/*
@@ -661,7 +684,8 @@ tun_to_serial(int infd, int outfd)
   write_to_serial(outfd, uip.inbuf, size);
 }
 
-#define BAUDRATE B57600
+#define BAUDRATE B115200
+//#define BAUDRATE B57600
 //#define BAUDRATE B38400
 //#define BAUDRATE B19200
 
@@ -779,6 +803,27 @@ sigcleanup(int signo)
   exit(0);			/* exit(0) will call cleanup() */
 }
 
+static int got_sigalarm;
+
+void
+sigalarm(int signo)
+{
+  got_sigalarm = 1;
+  return;
+}
+
+void
+sigalarm_reset()
+{
+#ifdef linux
+#define TIMEOUT (997*1000)
+#else
+#define TIMEOUT (2451*1000)
+#endif
+  ualarm(TIMEOUT, TIMEOUT);
+  got_sigalarm = 0;
+}
+
 void
 ifconf(const char *tundev, const char *ipaddr, const char *netmask)
 {
@@ -791,7 +836,11 @@ ifconf(const char *tundev, const char *ipaddr, const char *netmask)
     ssystem("route add -net %s netmask %s dev %s",
 	    inet_ntoa(netname), netmask, tundev);
 #else
+#ifdef mac_something
+  ssystem("ifconfig %s inet `hostname` %s up", tundev, ipaddr);
+#else
   ssystem("ifconfig %s inet up", tundev);
+#endif
   if (strcmp(ipaddr, "0.0.0.0") != 0)
     ssystem("route add -net %s -netmask %s -interface %s",
 	    inet_ntoa(netname), netmask, tundev);
@@ -808,8 +857,6 @@ main(int argc, char **argv)
   int tunfd, slipfd, maxfd;
   int ret;
   fd_set rset, wset;
-  struct timeval timeout;
-  const char helo[6] = { SLIP_END, '?', 'I', 'P', 'A', SLIP_END };
   FILE *inslip;
   const char *siodev = NULL;
   const char *dhcp_server = NULL;
@@ -948,12 +995,23 @@ main(int argc, char **argv)
   signal(SIGHUP, sigcleanup);
   signal(SIGTERM, sigcleanup);
   signal(SIGINT, sigcleanup);
+  signal(SIGALRM, sigalarm);
   ifconf(tundev, ipaddr, netmask);
 
   while(1) {
     maxfd = 0;
     FD_ZERO(&rset);
     FD_ZERO(&wset);
+
+    if(got_sigalarm) {
+      /* Send "?IPA". */
+      slip_send(slipfd, '?');
+      slip_send(slipfd, 'I');
+      slip_send(slipfd, 'P');
+      slip_send(slipfd, 'A');
+      slip_send(slipfd, SLIP_END);
+      got_sigalarm = 0;
+    }
 
     if (!slip_empty())		/* Anything to flush? */
       FD_SET(slipfd, &wset);
@@ -971,32 +1029,28 @@ main(int argc, char **argv)
       }
     }
 
-    timeout.tv_sec = 1;
-    timeout.tv_usec = 450*1000;
-    ret = select(maxfd + 1, &rset, &wset, NULL, &timeout);
-    if(ret == -1)
+    ret = select(maxfd + 1, &rset, &wset, NULL, NULL);
+    if(ret == -1 && errno != EINTR)
       err(1, "select");
-    else if(ret == 0 && slip_empty()) {
-      ret = write(slipfd, helo, sizeof(helo));
-      if(ret != sizeof(helo))
-	err(1, "write helo");
-    } else if(ret > 0) {
+    else if(ret > 0) {
       if(FD_ISSET(slipfd, &rset))
         serial_to_tun(inslip, tunfd);
 
-      if(FD_ISSET(slipfd, &wset))
+      if(FD_ISSET(slipfd, &wset)) {
 	slip_flushbuf(slipfd);
+	sigalarm_reset();
+      }
 
       if(slip_empty() && FD_ISSET(tunfd, &rset)) {
         tun_to_serial(tunfd, slipfd);
 	slip_flushbuf(slipfd);
+	sigalarm_reset();
       }
 
       if(dhsock != -1 && slip_empty() && FD_ISSET(dhsock, &rset)) {
 	relay_dhcp_to_client(slipfd);
 	slip_flushbuf(slipfd);
       }
-    } else
-      err(1, "select");
+    }
   }
 }
