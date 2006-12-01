@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: symtab.c,v 1.1 2006/06/17 22:41:18 adamdunkels Exp $
+ * @(#)$Id: symtab.c,v 1.2 2006/12/01 15:05:21 bg- Exp $
  */
 
 #include "symtab.h"
@@ -38,11 +38,11 @@
 #include <string.h>
 
 /*---------------------------------------------------------------------------*/
-const char *
+void *
 symtab_lookup(const char *name)
 {
   const struct symbols *s;
-  for(s = symbols; s->name != (const void *)0; ++s) {
+  for(s = symbols; s->name != NULL; ++s) {
     if(strcmp(name, s->name) == 0) {
       return s->value;
     }
