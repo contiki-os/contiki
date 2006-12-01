@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF 
  * SUCH DAMAGE. 
  *
- * @(#)$Id: dhclient.c,v 1.4 2006/10/10 18:25:36 bg- Exp $
+ * @(#)$Id: dhclient.c,v 1.5 2006/12/01 14:57:19 bg- Exp $
  */
 
 /*
@@ -87,7 +87,9 @@ PROCESS(dhclient_process, "Dhclient process");
 /* Radio stuff in network byte order. */
 static u16_t panId = HTONS(0x2024);
 
-#define RF_CHANNEL              26
+#ifndef RF_CHANNEL
+#define RF_CHANNEL              15
+#endif
 
 int
 main(int argc, char **argv)
@@ -101,7 +103,7 @@ main(int argc, char **argv)
   leds_toggle(LEDS_RED | LEDS_GREEN | LEDS_BLUE);
   slip_arch_init();		/* Must come before first printf */
   printf("Starting %s "
-	 "($Id: dhclient.c,v 1.4 2006/10/10 18:25:36 bg- Exp $)\n", __FILE__);
+	 "($Id: dhclient.c,v 1.5 2006/12/01 14:57:19 bg- Exp $)\n", __FILE__);
   ds2411_init();
   sensors_light_init();
   cc2420_init();
@@ -116,7 +118,8 @@ main(int argc, char **argv)
 	 ds2411_id[0], ds2411_id[1], ds2411_id[2], ds2411_id[3],
 	 ds2411_id[4], ds2411_id[5], ds2411_id[6], ds2411_id[7]);
 
-  srand((ds2411_id[3]<<8) + (ds2411_id[4]<<6) + (ds2411_id[5]<<4) +
+  srand(rand() +
+	(ds2411_id[3]<<8) + (ds2411_id[4]<<6) + (ds2411_id[5]<<4) +
 	(ds2411_id[6]<<2) +  ds2411_id[7]);
 
   /*
