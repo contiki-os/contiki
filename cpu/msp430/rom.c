@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF 
  * SUCH DAMAGE. 
  *
- * @(#)$Id: rom.c,v 1.1 2006/06/17 22:41:21 adamdunkels Exp $
+ * @(#)$Id: rom.c,v 1.2 2006/12/01 15:06:42 bg- Exp $
  */
 
 #include <io.h>
@@ -90,12 +90,10 @@ rom_erase(long nbytes, off_t offset)
   struct ictx c;
   
   if(nbytes % ROM_ERASE_UNIT_SIZE != 0) {
-    printf("rom_erase: bad size\n");
     return -1;
   }
 
   if(offset % ROM_ERASE_UNIT_SIZE != 0) {
-    printf("rom_erase: bad offset\n");
     return -1;
   }
 
