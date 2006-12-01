@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF 
  * SUCH DAMAGE. 
  *
- * @(#)$Id: client.c,v 1.1 2006/10/27 13:08:15 bg- Exp $
+ * @(#)$Id: client.c,v 1.2 2006/12/01 14:56:39 bg- Exp $
  */
 
 /*
@@ -91,7 +91,9 @@ PROCESS(button_process, "Button process");
 /* Radio stuff in network byte order. */
 static u16_t panId = HTONS(0x2024);
 
-#define RF_CHANNEL              26
+#ifndef RF_CHANNEL
+#define RF_CHANNEL              15
+#endif
 
 int
 main(int argc, char **argv)
@@ -105,7 +107,7 @@ main(int argc, char **argv)
   leds_toggle(LEDS_RED | LEDS_GREEN | LEDS_BLUE);
   slip_arch_init();		/* Must come before first printf */
   printf("Starting %s "
-	 "($Id: client.c,v 1.1 2006/10/27 13:08:15 bg- Exp $)\n", __FILE__);
+	 "($Id: client.c,v 1.2 2006/12/01 14:56:39 bg- Exp $)\n", __FILE__);
   ds2411_init();
   sensors_light_init();
   cc2420_init();
