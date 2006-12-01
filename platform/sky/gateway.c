@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF 
  * SUCH DAMAGE. 
  *
- * @(#)$Id: gateway.c,v 1.3 2006/08/17 15:42:42 bg- Exp $
+ * @(#)$Id: gateway.c,v 1.4 2006/12/01 14:58:58 bg- Exp $
  */
 
 /*
@@ -109,7 +109,9 @@ static struct uip_fw_netif slipif =
 /* Radio stuff in network byte order. */
 static u16_t panId = HTONS(0x2024);
 
-#define RF_CHANNEL              26
+#ifndef RF_CHANNEL
+#define RF_CHANNEL              15
+#endif
 
 int
 main(int argc, char **argv)
@@ -123,7 +125,7 @@ main(int argc, char **argv)
   leds_toggle(LEDS_RED | LEDS_GREEN | LEDS_BLUE);
   slip_arch_init();		/* Must come before first printf */
   printf("Starting %s "
-	 "($Id: gateway.c,v 1.3 2006/08/17 15:42:42 bg- Exp $)\n", __FILE__);
+	 "($Id: gateway.c,v 1.4 2006/12/01 14:58:58 bg- Exp $)\n", __FILE__);
   ds2411_init();
   sensors_light_init();
   cc2420_init();
@@ -173,17 +175,7 @@ main(int argc, char **argv)
     do {
       /* Reset watchdog. */
     } while(process_run() > 0);
-
-    /*
-     * Idle processing.
-     */
-    int s = splhigh();		/* Disable interrupts. */
-    if(process_nevents() != 0) {
-      splx(s);			/* Re-enable interrupts. */
-    } else {
-      /* Re-enable interrupts and go to sleep atomically. */
-      _BIS_SR(GIE | SCG0 | CPUOFF); /* LPM1 sleep. */
-    }
+    /* Idle! */
   }
 
   return 0;
