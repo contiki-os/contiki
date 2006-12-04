@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: radio-arch.c,v 1.11 2006/10/22 11:29:05 fros4943 Exp $
+ * $Id: radio-arch.c,v 1.12 2006/12/04 15:26:33 fros4943 Exp $
  */
 
 #include "dev/radio-arch.h"
@@ -45,7 +45,7 @@
 #include "sys/log.h"
 
 #define MAX_RETRIES 100
-#define SS_INTERFERENCE -150
+#define SS_INTERFERENCE -70
 
 const struct simInterface radio_interface;
 
