@@ -1,4 +1,4 @@
-# $Id: Makefile,v 1.6 2006/12/01 14:55:15 bg- Exp $
+# $Id: Makefile,v 1.7 2006/12/05 16:19:43 bg- Exp $
 #
 # This makefile requires GNU make!
 
@@ -8,6 +8,10 @@ PROGS = loadable_prg.ko udpsend.ko udprecv.ko
 TOOLS = tunslip scat codeprop
 
 all: $(LIB) $(KERNELS) $(PROGS) $(TOOLS)
+
+loadable_prg.ko: loadable_prg.o
+udpsend.ko: udpsend.o
+udprecv.ko: udprecv.o
 
 gateway.out: gateway.o $(LIB)
 client.out: client.o $(LIB)
@@ -58,15 +62,9 @@ endif
 %.o: %.c
 	$(CC) $(CFLAGS) -c $< -o $(notdir $(<:.c=.o))
 
-# Transform one .o to a .ko
-%.ko: %.o
-	$(STRIP) -K _init -K _fini --strip-unneeded -g -x $< -o $@
-
-# Combine several .o:s to one .ko
-# The msp430-ld can't do incremental linking, bogus output
-#%.ko %.o: $^
-#	/opt/msp430/bin/msp430-ld -r $< -o $@
-#	$(STRIP) -K _init -K _fini --strip-unneeded -g -x $@
+# Combine several .o:s to one .ko and but COMMONs into the BSS segment
+%.ko:
+	$(LD) -r -dc --strip-all --unresolved-symbols=ignore-in-object-files $^ -o $@
 
 %.ihex: %.out
 	$(OBJCOPY) $^ -O ihex $@
