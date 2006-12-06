@@ -870,6 +870,15 @@ public class AreaViewer extends VisPlugin {
         
         try {
           tracker.waitForAll();
+          if (tracker.isErrorAny()) {
+            logger.fatal("Error when loading image: ");
+            for (Object errorObject: tracker.getErrorsAny())
+              logger.fatal("> " + errorObject);
+          }
+          if (image == null) {
+            logger.fatal("Image is null, aborting");
+            return;
+          }
         } catch (InterruptedException ex) {
           logger.fatal("Interrupted during image loading, aborting");
           return;
