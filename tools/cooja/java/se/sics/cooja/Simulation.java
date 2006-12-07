@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: Simulation.java,v 1.4 2006/11/30 14:25:44 fros4943 Exp $
+ * $Id: Simulation.java,v 1.5 2006/12/07 15:14:19 fros4943 Exp $
  */
 
 package se.sics.cooja;
@@ -314,6 +314,9 @@ public class Simulation extends Observable implements Runnable {
               } else if (pluginSubElement.getName().equals("height")) {
                 size.height = Integer.parseInt(pluginSubElement.getText());
                 openedPlugin.setSize(size);
+              } else if (pluginSubElement.getName().equals("z")) {
+                int zOrder = Integer.parseInt(pluginSubElement.getText());
+                GUI.currentGUI.setComponentZOrder(openedPlugin, zOrder);
               } else if (pluginSubElement.getName().equals("location_x")) {
                 location.x = Integer.parseInt(pluginSubElement.getText());
                 openedPlugin.setLocation(location);
@@ -394,6 +397,10 @@ public class Simulation extends Observable implements Runnable {
 
           pluginSubElement = new Element("width");
           pluginSubElement.setText("" + openedPlugin.getSize().width);
+          pluginElement.addContent(pluginSubElement);
+          
+          pluginSubElement = new Element("z");
+          pluginSubElement.setText("" + GUI.currentGUI.getComponentZOrder(openedPlugin));
           pluginElement.addContent(pluginSubElement);
           
           pluginSubElement = new Element("height");
