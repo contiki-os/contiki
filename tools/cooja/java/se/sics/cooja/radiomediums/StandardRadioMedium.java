@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: StandardRadioMedium.java,v 1.8 2006/10/11 15:14:10 fros4943 Exp $
+ * $Id: StandardRadioMedium.java,v 1.9 2006/12/07 14:28:54 fros4943 Exp $
  */
 
 package se.sics.cooja.radiomediums;
@@ -76,9 +76,9 @@ public class StandardRadioMedium extends RadioMedium {
 
   public static final double SS_NOTHING = -200;
 
-  public static final double SS_BAD = -110;
+  public static final double SS_BAD = -60;
 
-  public static final double SS_OK = -100;
+  public static final double SS_OK = 0;
 
   /**
    * Visualizes radio traffic in the current radio medium. Allows a user to
@@ -370,66 +370,65 @@ public class StandardRadioMedium extends RadioMedium {
         }
 
         byte[] dataToSend = sendingRadio.getLastPacketTransmitted();
-
+        
         RadioConnection newConnection = new RadioConnection();
         pendingConnections.add(newConnection);
         newConnection.setSource(sendingRadio, sendingPosition, dataToSend);
+
+        // Fetch current output power indicator (scale with as percent)
+        // TODO Probably not the best way to use indicator
+        double moteInterferenceRange = INTERFERENCE_RANGE
+            * (0.01 * (double) sendingRadio.getCurrentOutputPowerIndicator());
+        double moteTransmissionRange = TRANSMITTING_RANGE
+            * (0.01 * (double) sendingRadio.getCurrentOutputPowerIndicator());
 
         // Loop through all radios that are listening
         for (int listenNr = 0; listenNr < registeredPositions.size(); listenNr++) {
           Radio listeningRadio = registeredRadios.get(listenNr);
 
+          if (sendingRadio == listeningRadio)
+            continue;
+          if (sendingRadio.getChannel() != listeningRadio.getChannel())
+            continue;
+          
+          
           // If not the sending radio..
-          if (sendingRadio != listeningRadio) {
-
-            double distance = sendingPosition.getDistanceTo(registeredPositions
-                .get(listenNr));
-
-            // Fetch current output power indicator (scale with as percent)
-            // TODO Probably not the best way to use indicator
-            double moteInterferenceRange = INTERFERENCE_RANGE
-                * (0.01 * (double) sendingRadio
-                    .getCurrentOutputPowerIndicator());
-            double moteTransmissionRange = TRANSMITTING_RANGE
-                * (0.01 * (double) sendingRadio
-                    .getCurrentOutputPowerIndicator());
-
-            if (distance <= moteTransmissionRange
-                && sendingRadio.getChannel() == listeningRadio.getChannel()) {
-              newConnection.addDestination(registeredRadios.get(listenNr),
-                  registeredPositions.get(listenNr), dataToSend);
-
-              // If close enough to transmit ok..
-              if (listeningRadio.isReceiving() || listeningRadio.isInterfered()) {
-                // .. but listening radio already received a packet
-                listeningRadio.interferReception(sendingRadio
-                    .getTransmissionEndTime());
-                listeningRadio.setCurrentSignalStrength(SS_BAD);
-              } else {
-                // .. send packet
-                listeningRadio.receivePacket(dataToSend, sendingRadio
-                    .getTransmissionEndTime());
-                listeningRadio.setCurrentSignalStrength(SS_OK);
-              }
-            } else if (distance <= moteInterferenceRange
-                && sendingRadio.getChannel() == listeningRadio.getChannel()) {
-              // If close enough to sabotage other transmissions..
+          double distance = sendingPosition.getDistanceTo(registeredPositions
+              .get(listenNr));
+          
+          if (distance <= moteTransmissionRange) {
+            newConnection.addDestination(registeredRadios.get(listenNr),
+                registeredPositions.get(listenNr), dataToSend);
+            
+            // If close enough to transmit ok..
+            if (listeningRadio.isReceiving() || listeningRadio.isInterfered()) {
+              // .. but listening radio already received a packet
               listeningRadio.interferReception(sendingRadio
                   .getTransmissionEndTime());
               listeningRadio.setCurrentSignalStrength(SS_BAD);
+            } else {
+              // .. send packet
+              listeningRadio.receivePacket(dataToSend, sendingRadio
+                  .getTransmissionEndTime());
+              listeningRadio.setCurrentSignalStrength(SS_OK);
             }
-            // else too far away
+          } else if (distance <= moteInterferenceRange) {
+            // If close enough to sabotage other transmissions..
+            listeningRadio.interferReception(sendingRadio
+                .getTransmissionEndTime());
+            listeningRadio.setCurrentSignalStrength(SS_BAD);
           }
+          // else too far away
         }
       }
-
+      
       if (((Radio) radio).getLastEvent() == Radio.RadioEvent.TRANSMISSION_FINISHED) {
         transmissionEndedRadios.add((Radio) radio);
       }
-
+      
     }
   };
-
+  
   private Observer tickObserver = new Observer() {
     public void update(Observable obs, Object obj) {
 
