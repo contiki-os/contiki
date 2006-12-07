@@ -26,15 +26,19 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: LogListener.java,v 1.2 2006/10/23 16:14:02 fros4943 Exp $
+ * $Id: LogListener.java,v 1.3 2006/12/07 14:26:48 fros4943 Exp $
  */
 
 package se.sics.cooja.plugins;
 
+import java.awt.BorderLayout;
 import java.awt.Insets;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.util.*;
 import javax.swing.*;
 import org.apache.log4j.Logger;
+import org.jdom.Element;
 
 import se.sics.cooja.*;
 import se.sics.cooja.interfaces.Log;
@@ -56,7 +60,10 @@ public class LogListener extends VisPlugin {
   private JTextArea logTextArea;
   private Observer logObserver;
   private Simulation simulation;
-  
+
+  private String filterText = null;
+  private JTextField filterTextField = null;
+
   /**
    * Create a new simulation control panel.
    *
@@ -72,8 +79,6 @@ public class LogListener extends VisPlugin {
       public void update(Observable obs, Object obj) {
         if (logTextArea == null)
           return;
-        
-        logTextArea.append("\n");
 
         Mote mote = (Mote) obj;
         Log moteLogInterface = (Log) obs;
@@ -81,8 +86,14 @@ public class LogListener extends VisPlugin {
         if (mote != null && mote.getInterfaces().getMoteID() != null) {
           outputString = outputString.concat("ID:" + mote.getInterfaces().getMoteID().getMoteID() + "\t");
         }
-        outputString = outputString.concat(moteLogInterface.getLastLogMessages());
+        // Match against filter (if any)
+        if (filterText != null && !filterText.equals("") && 
+            !moteLogInterface.getLastLogMessages().contains(filterText))
+          return;
         
+        outputString = outputString.concat(moteLogInterface.getLastLogMessages());
+
+        logTextArea.append("\n");
         logTextArea.append(outputString);
         logTextArea.setCaretPosition(logTextArea.getDocument().getLength());
       }
@@ -101,8 +112,21 @@ public class LogListener extends VisPlugin {
     logTextArea.setMargin(new Insets(5,5,5,5));
     logTextArea.setEditable(false);
     logTextArea.setCursor(null);
+
+    JPanel filterPanel = new JPanel();
+    filterPanel.setLayout(new BoxLayout(filterPanel, BoxLayout.X_AXIS));
+    filterTextField = new JTextField("");
+    filterPanel.add(new JLabel("Filter on string: "));
+    filterPanel.add(filterTextField);
+    filterTextField.addActionListener(new ActionListener() {
+      public void actionPerformed(ActionEvent e) {
+        filterText = filterTextField.getText();
+      }
+    });
     
-    setContentPane(new JScrollPane(logTextArea));
+    getContentPane().add(BorderLayout.CENTER, new JScrollPane(logTextArea));
+    getContentPane().add(BorderLayout.SOUTH, new JScrollPane(filterPanel));
+
     setTitle("Log Listener - Listening on " + nrLogs + " mote logs");
     pack();
 
@@ -122,4 +146,30 @@ public class LogListener extends VisPlugin {
     }
   }
 
+  public Collection<Element> getConfigXML() {
+    Vector<Element> config = new Vector<Element>();
+    
+    Element element;
+    
+    // Selected variable name
+    element = new Element("filter");
+    element.setText(filterText);
+    config.add(element);
+
+    return config;
+  }
+
+  public boolean setConfigXML(Collection<Element> configXML) {
+    
+    for (Element element : configXML) {
+      if (element.getName().equals("filter")) {
+        filterText = element.getText();
+        filterTextField.setText(filterText);
+      }
+    }
+    
+    return true;
+  }
+
+  
 }
