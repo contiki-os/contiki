@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ConnectionLogger.java,v 1.1 2006/08/21 12:12:56 fros4943 Exp $
+ * $Id: ConnectionLogger.java,v 1.2 2006/12/11 16:37:11 fros4943 Exp $
  */
 
 package se.sics.cooja;
@@ -122,8 +122,11 @@ public class ConnectionLogger {
 
             // Source data
             out.write("SRC_DATA\t".getBytes());
-            for (byte b : conn.getSourceData())
-              out.write(Integer.toHexString((int) b).getBytes());
+            for (byte b : conn.getSourceData()) {
+              String hexString = Integer.toHexString((int) b);
+              if (hexString.length() == 1) hexString = "0" + hexString;
+              out.write(hexString.getBytes());
+            }
             out.write("\t".getBytes());
 
             // Destination pos
@@ -138,9 +141,11 @@ public class ConnectionLogger {
 
             // Source data
             out.write("DEST_DATA\t".getBytes());
-            for (byte b : conn.getDestinationData()[i])
-              out.write(Integer.toHexString((int) b).getBytes());
-            out.write("\t".getBytes());
+            for (byte b : conn.getDestinationData()[i]) {
+              String hexString = Integer.toHexString((int) b);
+              if (hexString.length() == 1) hexString = "0" + hexString;
+              out.write(hexString.getBytes());
+            } out.write("\t".getBytes());
 
             out.write("\n".getBytes());
           }
@@ -158,9 +163,11 @@ public class ConnectionLogger {
 
           // Source data
           out.write("SRC_DATA\t".getBytes());
-          for (byte b : conn.getSourceData())
-            out.write(Integer.toHexString((int) b).getBytes());
-
+          for (byte b : conn.getSourceData()) {
+            String hexString = Integer.toHexString((int) b);
+            if (hexString.length() == 1) hexString = "0" + hexString;
+            out.write(hexString.getBytes());
+          }
           out.write("\n".getBytes());
         }
         out.close();
