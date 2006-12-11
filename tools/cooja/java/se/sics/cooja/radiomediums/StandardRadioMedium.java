@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: StandardRadioMedium.java,v 1.9 2006/12/07 14:28:54 fros4943 Exp $
+ * $Id: StandardRadioMedium.java,v 1.10 2006/12/11 12:20:06 fros4943 Exp $
  */
 
 package se.sics.cooja.radiomediums;
@@ -475,13 +475,13 @@ public class StandardRadioMedium extends RadioMedium {
 
         pendingConnections = updatedPendingConnections;
 
+        if (myLogger != null) {
+          for (RadioConnection conn : lastTickConnections)
+            myLogger.logConnection(conn);
+        }
+
         // Radio medium has changed, notifing below
         radioMediumObservable.setRadioMediumChanged();
-      }
-
-      if (myLogger != null) {
-        for (RadioConnection conn : lastTickConnections)
-          myLogger.logConnection(conn);
       }
 
       // Set signal strengths on all radios
