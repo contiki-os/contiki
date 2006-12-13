@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: SimControl.java,v 1.1 2006/08/21 12:13:08 fros4943 Exp $
+ * $Id: SimControl.java,v 1.2 2006/12/13 11:55:06 fros4943 Exp $
  */
 
 package se.sics.cooja.plugins;
@@ -86,6 +86,9 @@ public class SimControl extends VisPlugin {
     // Register as tickobserver
     simulation.addTickObserver(tickObserver = new Observer() {
       public void update(Observable obs, Object obj) {
+        if (simulation ==  null || simulationTime == null)
+          return;
+        
         // During simulation running, only update text 10 times each second
         if (lastTextUpdateTime < System.currentTimeMillis() - 100) {
           lastTextUpdateTime = System.currentTimeMillis();
