@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: VisPluginType.java,v 1.1 2006/08/21 12:12:57 fros4943 Exp $
+ * $Id: VisPluginType.java,v 1.2 2006/12/13 11:58:28 fros4943 Exp $
  */
 
 package se.sics.cooja;
@@ -103,6 +103,16 @@ public @interface VisPluginType {
    * when a new simulation is created.
    */
   public static final int SIM_STANDARD_PLUGIN = 4;
+
+
+  /**
+   * GUI Standard Plugin
+   *
+   * This is treated exactly like a GUI Plugin, with the
+   * only difference that this will automatically be opened
+   * when a GUI is created.
+   */
+  public static final int GUI_STANDARD_PLUGIN = 5;
 
   int value();
 }

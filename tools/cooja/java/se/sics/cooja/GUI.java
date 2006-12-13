@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: GUI.java,v 1.11 2006/12/01 14:12:50 fros4943 Exp $
+ * $Id: GUI.java,v 1.12 2006/12/13 11:57:04 fros4943 Exp $
  */
 
 package se.sics.cooja;
@@ -198,6 +198,16 @@ public class GUI extends JDesktopPane {
    
     // Load extendable parts (using current platform config)
     reparsePlatformConfig();
+
+    // EXPERIMENTAL: Start all standard GUI plugins
+    for (Class<? extends VisPlugin> visPluginClass : pluginClasses) {
+      int pluginType = visPluginClass.getAnnotation(VisPluginType.class)
+          .value();
+      if (pluginType == VisPluginType.GUI_STANDARD_PLUGIN) {
+        startPlugin(visPluginClass);
+      }
+    }
+
   }
 
   private JMenuBar createMenuBar() {
@@ -1209,6 +1219,14 @@ public class GUI extends JDesktopPane {
 
         newPlugin = pluginClass.getConstructor(new Class[]{GUI.class})
             .newInstance(currentGUI);
+      } else if (pluginType == VisPluginType.GUI_STANDARD_PLUGIN) {
+        if (currentGUI == null) {
+          logger.fatal("Can't start GUI plugin (no GUI)");
+          return false;
+        }
+
+        newPlugin = pluginClass.getConstructor(new Class[]{GUI.class})
+            .newInstance(currentGUI);
       }
     } catch (Exception e) {
       logger.fatal("Exception thrown when starting plugin: " + e);
@@ -1321,6 +1339,8 @@ public class GUI extends JDesktopPane {
         newPluginClass.getConstructor(new Class[]{Simulation.class});
       } else if (pluginType == VisPluginType.GUI_PLUGIN) {
         newPluginClass.getConstructor(new Class[]{GUI.class});
+      } else if (pluginType == VisPluginType.GUI_STANDARD_PLUGIN) {
+        newPluginClass.getConstructor(new Class[]{GUI.class});
       } else {
         logger.fatal("Could not find valid plugin type annotation in class "
             + newPluginClass);
@@ -1388,7 +1408,7 @@ public class GUI extends JDesktopPane {
 
   // // GUI CONTROL METHODS ////
 
-  private void setSimulation(Simulation sim) {
+  public void setSimulation(Simulation sim) {
     if (sim != null) {
       doRemoveSimulation(false);
     }
@@ -1469,7 +1489,8 @@ public class GUI extends JDesktopPane {
         if (pluginClasses.contains(frameClass)) {
           int pluginType = ((Class<? extends VisPlugin>) frameClass)
               .getAnnotation(VisPluginType.class).value();
-          if (pluginType != VisPluginType.GUI_PLUGIN)
+          if (pluginType != VisPluginType.GUI_PLUGIN &&
+              pluginType != VisPluginType.GUI_STANDARD_PLUGIN)
             removePlugin((VisPlugin) openededFrame, false);
         }
       }

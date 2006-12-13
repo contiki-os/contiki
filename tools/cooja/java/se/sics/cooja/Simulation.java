@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: Simulation.java,v 1.5 2006/12/07 15:14:19 fros4943 Exp $
+ * $Id: Simulation.java,v 1.6 2006/12/13 11:58:02 fros4943 Exp $
  */
 
 package se.sics.cooja;
@@ -184,6 +184,7 @@ public class Simulation extends Observable implements Runnable {
    */
   public void startSimulation() {
     if (!isRunning()) {
+      isRunning = true;
       thread = new Thread(this);
       thread.start();
     }
@@ -376,7 +377,8 @@ public class Simulation extends Observable implements Runnable {
           pluginElement.setText(openedPlugin.getClass().getName());
 
           pluginSubElement = new Element("constructor");
-          if (pluginType == VisPluginType.GUI_PLUGIN) {
+          if (pluginType == VisPluginType.GUI_PLUGIN ||
+              pluginType == VisPluginType.GUI_STANDARD_PLUGIN) {
             pluginSubElement.setText("gui");
             pluginElement.addContent(pluginSubElement);
           } else if (pluginType == VisPluginType.SIM_PLUGIN || 
