@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: SectionMoteMemory.java,v 1.2 2006/08/23 15:48:15 fros4943 Exp $
+ * $Id: SectionMoteMemory.java,v 1.3 2006/12/15 11:47:40 fros4943 Exp $
  */
 
 package se.sics.cooja;
@@ -77,6 +77,16 @@ public class SectionMoteMemory implements MoteMemory {
     return names;
   }
 
+  /**
+   * @param varName Variable name
+   * @return Address of given variable, or -1
+   */
+  public int getVariableAddress(String varName) {
+    if (!variableAddresses.containsKey(varName))
+      return -1;
+    return ((Integer) variableAddresses.get(varName)).intValue();
+  }
+  
   public void clearMemory() {
     sections.clear();
   }
