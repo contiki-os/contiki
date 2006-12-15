@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ConnectionLogger.java,v 1.2 2006/12/11 16:37:11 fros4943 Exp $
+ * $Id: ConnectionLogger.java,v 1.3 2006/12/15 12:03:32 fros4943 Exp $
  */
 
 package se.sics.cooja;
@@ -36,7 +36,6 @@ import java.io.FileOutputStream;
 import org.apache.log4j.Logger;
 
 import se.sics.cooja.interfaces.Position;
-import se.sics.cooja.plugins.SimControl;
 
 /**
  * ConnectionLogger is a simple connection information outputter. All
@@ -54,7 +53,7 @@ import se.sics.cooja.plugins.SimControl;
  */
 public class ConnectionLogger {
   private static final long serialVersionUID = 1L;
-  private static Logger logger = Logger.getLogger(SimControl.class);
+  private static Logger logger = Logger.getLogger(ConnectionLogger.class);
 
   private static int LOG_TO_FILE = 1;
   private static int LOG_TO_LOG4J = 2;
