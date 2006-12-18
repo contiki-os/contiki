@@ -1,0 +1,22 @@
+#!/bin/sh
+
+SYMBOLS=`nm -P $* | grep -v " . _ " | grep " [A-Z] " | cut -f 1 -d \ | grep -v symbols | wc -l`
+SYMBOLS=`expr $SYMBOLS + 1`
+
+echo \#ifndef __SYMBOLS_H__ > symbols.h
+echo \#define __SYMBOLS_H__ >> symbols.h
+echo \#include '"loader/symbols-def.h"' >> symbols.h
+echo "extern const struct symbols symbols[$SYMBOLS];" >> symbols.h
+echo \#endif >> symbols.h
+
+echo \#include '"symbols.h"' > symbols.c
+
+nm -P $* | grep -v " . _ " | grep " [A-Z] " | cut -f 1 -d \ | grep -v symbols |  perl -ne 'print "extern int $1();\n" if(/(\w+)/)' | sort >> symbols.c
+
+echo "const struct symbols symbols[$SYMBOLS] = {" >> symbols.c
+
+if [ -f $* ] ; then 
+    nm -P $* | grep -v " . _ " | grep " [A-Z] " | cut -f 1 -d \ | grep -v symbols | perl -ne 'print "{\"$1\", (char *)$1},\n" if(/(\w+)/)' | sort >> symbols.c
+fi
+
+echo "{(void *)0, 0} };" >> symbols.c
