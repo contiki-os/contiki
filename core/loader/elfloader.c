@@ -28,12 +28,12 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: elfloader.c,v 1.2 2006/12/18 11:55:42 adamdunkels Exp $
+ * @(#)$Id: elfloader.c,v 1.3 2006/12/18 12:11:15 adamdunkels Exp $
  */
 
 #include "contiki.h"
 
-#include "loader/elfloader-tmp.h"
+#include "loader/elfloader.h"
 #include "loader/elfloader-arch.h"
 
 #include "cfs/cfs.h"
