@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: elfloader.c,v 1.3 2006/12/18 12:11:15 adamdunkels Exp $
+ * @(#)$Id: elfloader.c,v 1.4 2006/12/18 15:35:16 fros4943 Exp $
  */
 
 #include "contiki.h"
@@ -135,7 +135,7 @@ char elfloader_unknown[30];	/* Name that caused link error. */
 
 struct process **elfloader_autostart_processes;
 
-static struct relevant_section bss, data, text;
+static struct relevant_section bss, data, rodata, text;
 
 const static unsigned char elf_magic_header[] =
   {0x7f, 0x45, 0x4c, 0x46,  /* 0x7f, 'E', 'L', 'F' */
@@ -197,19 +197,30 @@ static int
 relocate_section(int fd,
 		 unsigned int section, unsigned short size,
 		 unsigned int sectionaddr,
+		 char *sectionbase,
 		 unsigned int strs,
 		 unsigned int strtab,
-		 unsigned int symtab, unsigned short symtabsize)
+		 unsigned int symtab, unsigned short symtabsize,
+		 unsigned char using_relas)
 {
-  struct elf32_rela rela;
+  /* sectionbase added; runtime start address of current section */
+  struct elf32_rela rela; /* Now used both for rel and rela data! */
+  int rel_size = 0;
   struct elf32_sym s;
   unsigned int a;
   char name[30];
   char *addr;
   struct relevant_section *sect;
+
+  /* determine correct relocation entry sizes */
+  if(using_relas) {
+    rel_size = sizeof(struct elf32_rela);
+  } else {
+    rel_size = sizeof(struct elf32_rel);
+  }
   
-  for(a = section; a < section + size; a += sizeof(struct elf32_rela)) {
-    seek_read(fd, a, (char *)&rela, sizeof(rela));
+  for(a = section; a < section + size; a += rel_size) {
+    seek_read(fd, a, (char *)&rela, rel_size);
     seek_read(fd,
 	      symtab + sizeof(struct elf32_sym) * ELF32_R_SYM(rela.r_info),
 	      (char *)&s, sizeof(s));
@@ -228,6 +239,8 @@ relocate_section(int fd,
 	  sect = &bss;
 	} else if(s.st_shndx == data.number) {
 	  sect = &data;
+	} else if(s.st_shndx == rodata.number) {
+	  sect = &rodata;
 	} else if(s.st_shndx == text.number) {
 	  sect = &text;
 	} else {
@@ -243,6 +256,8 @@ relocate_section(int fd,
 	sect = &bss;
       } else if(s.st_shndx == data.number) {
 	sect = &data;
+      } else if(s.st_shndx == rodata.number) {
+	sect = &rodata;
       } else if(s.st_shndx == text.number) {
 	sect = &text;
       } else {
@@ -252,8 +267,12 @@ relocate_section(int fd,
       addr = sect->address;
     }
 
-    elfloader_arch_relocate(fd, sectionaddr, &rela, addr);
-        
+	if (!using_relas) {
+		/* copy addend to rela structure */
+		seek_read(fd, sectionaddr + rela.r_offset, &rela.r_addend, 4);
+	}
+
+    elfloader_arch_relocate(fd, sectionaddr, sectionbase, &rela, addr);
   }
   return ELFLOADER_OK;
 }
@@ -317,8 +336,10 @@ elfloader_load(int fd)
   int i;
   unsigned short shdrnum, shdrsize;
 
+  unsigned char using_relas = -1;
   unsigned short textoff = 0, textsize, textrelaoff = 0, textrelasize;
   unsigned short dataoff = 0, datasize, datarelaoff = 0, datarelasize;
+  unsigned short rodataoff = 0, rodatasize, rodatarelaoff = 0, rodatarelasize;
   unsigned short symtaboff = 0, symtabsize;
   unsigned short strtaboff = 0, strtabsize;
   unsigned short bsssize = 0;
@@ -359,8 +380,8 @@ elfloader_load(int fd)
   /* Go through all sections and pick out the relevant ones. The
      ".text" segment holds the actual code from the ELF file, the
      ".data" segment contains initialized data, the ".bss" segment
-     holds the size of the unitialized data segment. The ".rela.text"
-     and ".rela.data" segments contains relocation information for the
+     holds the size of the unitialized data segment. The ".rel[a].text"
+     and ".rel[a].data" segments contains relocation information for the
      contents of the ".text" and ".data" segments, respectively. The
      ".symtab" segment contains the symbol table for this file. The
      ".strtab" segment points to the actual string names used by the
@@ -375,9 +396,9 @@ elfloader_load(int fd)
   /* Initialize the segment sizes to zero so that we can check if
      their sections was found in the file or not. */
   textsize = textrelasize = datasize = datarelasize =
-    symtabsize = strtabsize = 0;
+    rodatasize = rodatarelasize = symtabsize = strtabsize = 0;
 
-  bss.number = data.number = text.number = 0;
+  bss.number = data.number = rodata.number = text.number = -1;
 		
   shdrptr = ehdr.e_shoff;
   for(i = 0; i < shdrnum; ++i) {
@@ -391,13 +412,19 @@ elfloader_load(int fd)
     /* Match the name of the section with a predefined set of names
        (.text, .data, .bss, .rela.text, .rela.data, .symtab, and
        .strtab). */
+    /* added support for .rodata, .rel.text and .rel.data). */
 
     if(strncmp(name, ".text", 5) == 0) {
       textoff = shdr.sh_offset;
       textsize = shdr.sh_size;
       text.number = i;
       text.offset = textoff;
+    } else if(strncmp(name, ".rel.text", 9) == 0) {
+      using_relas = 0;
+      textrelaoff = shdr.sh_offset;
+      textrelasize = shdr.sh_size;
     } else if(strncmp(name, ".rela.text", 10) == 0) {
+      using_relas = 1;
       textrelaoff = shdr.sh_offset;
       textrelasize = shdr.sh_size;
     } else if(strncmp(name, ".data", 5) == 0) {
@@ -405,7 +432,28 @@ elfloader_load(int fd)
       datasize = shdr.sh_size;
       data.number = i;
       data.offset = dataoff;
+    } else if(strncmp(name, ".rodata", 7) == 0) {
+      /* read-only data handled the same way as regular text section */
+      rodataoff = shdr.sh_offset;
+      rodatasize = shdr.sh_size;
+      rodata.number = i;
+      rodata.offset = rodataoff;
+    } else if(strncmp(name, ".rel.rodata", 11) == 0) {
+      /* using elf32_rel instead of rela */
+      using_relas = 0;
+      rodatarelaoff = shdr.sh_offset;
+      rodatarelasize = shdr.sh_size;
+    } else if(strncmp(name, ".rela.rodata", 12) == 0) {
+      using_relas = 1;
+      rodatarelaoff = shdr.sh_offset;
+      rodatarelasize = shdr.sh_size;
+    } else if(strncmp(name, ".rel.data", 9) == 0) {
+      /* using elf32_rel instead of rela */
+      using_relas = 0;
+      datarelaoff = shdr.sh_offset;
+      datarelasize = shdr.sh_size;
     } else if(strncmp(name, ".rela.data", 10) == 0) {
+      using_relas = 1;
       datarelaoff = shdr.sh_offset;
       datarelasize = shdr.sh_size;
     } else if(strncmp(name, ".symtab", 7) == 0) {
@@ -436,19 +484,43 @@ elfloader_load(int fd)
 
   bss.address = (char *)elfloader_arch_allocate_ram(bsssize + datasize);
   data.address = (char *)bss.address + bsssize;
-  text.address = (char *)elfloader_arch_allocate_rom(textsize);
-
+  text.address = (char *)elfloader_arch_allocate_rom(textsize + rodatasize);
+  rodata.address = (char *)text.address + textsize;
   
+
+/*  printf("bss base address: bss.address = 0x%08x\n", bss.address);
+  printf("data base address: data.address = 0x%08x\n", data.address);
+  printf("text base address: text.address = 0x%08x\n", text.address);
+  printf("rodata base address: rodata.address = 0x%08x\n", rodata.address); */
+
+
   /* If we have text segment relocations, we process them. */
   PRINTF("elfloader: relocate text\n");
   if(textrelasize > 0) {
-    ret = relocate_section(fd,
+	    ret = relocate_section(fd,
 			   textrelaoff, textrelasize,
 			   textoff,
+			   text.address,
 			   strs,
 			   strtaboff,
-			   symtaboff, symtabsize);
+			   symtaboff, symtabsize, using_relas);
     if(ret != ELFLOADER_OK) {
+      return ret;
+    }
+  }
+
+  /* If we have any rodata segment relocations, we process them too. */
+  PRINTF("elfloader: relocate rodata\n");
+  if(rodatarelasize > 0) {
+    ret = relocate_section(fd,
+			   rodatarelaoff, rodatarelasize,
+			   rodataoff,
+			   rodata.address,
+			   strs,
+			   strtaboff,
+			   symtaboff, symtabsize, using_relas);
+    if(ret != ELFLOADER_OK) {
+      PRINTF("elfloader: data failed\n");
       return ret;
     }
   }
@@ -459,18 +531,19 @@ elfloader_load(int fd)
     ret = relocate_section(fd,
 			   datarelaoff, datarelasize,
 			   dataoff,
+			   data.address,
 			   strs,
 			   strtaboff,
-			   symtaboff, symtabsize);
+			   symtaboff, symtabsize, using_relas);
     if(ret != ELFLOADER_OK) {
       PRINTF("elfloader: data failed\n");
       return ret;
     }
   }
 
-  /* Write text segment into flash and data segment into RAM. */
-  cfs_seek(fd, textoff);
-  elfloader_arch_write_text(fd, textsize, text.address);
+  /* Write text and rodata segment into flash and data segment into RAM. */
+  elfloader_arch_write_rom(fd, textoff, textsize, text.address);
+  elfloader_arch_write_rom(fd, rodataoff, rodatasize, rodata.address);
   
   memset(bss.address, 0, bsssize);
   seek_read(fd, dataoff, data.address, datasize);
