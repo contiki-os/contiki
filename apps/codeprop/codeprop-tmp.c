@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: codeprop-tmp.c,v 1.2 2006/07/06 14:55:21 nifi Exp $
+ * @(#)$Id: codeprop-tmp.c,v 1.3 2006/12/18 15:17:47 fros4943 Exp $
  */
 
 /** \addtogroup esb
@@ -73,7 +73,7 @@
 #include "contiki-net.h"
 #include "cfs/cfs.h"
 #include "codeprop-tmp.h"
-#include "loader/elfloader-tmp.h"
+#include "loader/elfloader.h"
 #include <string.h>
 
 static const char *err_msgs[] =
