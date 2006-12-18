@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: elfloader-avr.c,v 1.2 2006/09/01 07:10:01 adamdunkels Exp $
+ * @(#)$Id: elfloader-avr.c,v 1.3 2006/12/18 14:54:04 fros4943 Exp $
  */
 #include "elfloader-arch.h"
 
@@ -76,7 +76,7 @@ elfloader_arch_allocate_rom(int size)
 /*---------------------------------------------------------------------------*/
 #define READSIZE 32
 void
-elfloader_arch_write_text(int fd, unsigned int size, char *mem)
+elfloader_arch_write_rom(int fd, unsigned short textoff, unsigned int size, char *mem)
 {
 #if 0
   int i;
@@ -87,6 +87,7 @@ elfloader_arch_write_text(int fd, unsigned int size, char *mem)
 
   flashptr = (unsigned short *)elfloader_arch_textmemory;
   
+  cfs_seek(fd, textoff);
   for(ptr = 0; ptr < size; ptr += READSIZE) {
     
     /* Read data from file into RAM. */
@@ -122,6 +123,7 @@ write_ldi(int fd, unsigned char *instr, unsigned char byte)
 /*---------------------------------------------------------------------------*/
 void
 elfloader_arch_relocate(int fd, unsigned int sectionoffset,
+			char *sectionaddr,
 			struct elf32_rela *rela, char *addr)
 {
   unsigned int type;

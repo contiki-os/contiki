@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: elfloader-x86.c,v 1.1 2006/10/25 10:53:31 fros4943 Exp $
+ * @(#)$Id: elfloader-x86.c,v 1.2 2006/12/18 14:54:04 fros4943 Exp $
  */
 #include "elfloader-arch.h"
 #include <sys/mman.h>
@@ -67,8 +67,9 @@ elfloader_arch_allocate_rom(int size)
 }
 /*---------------------------------------------------------------------------*/
 void
-elfloader_arch_write_text(int fd, unsigned int size, char *mem)
+elfloader_arch_write_rom(int fd, unsigned short textoff, unsigned int size, char *mem)
 {
+  cfs_seek(fd, textoff);
   cfs_read(fd, (unsigned char *)mem, size);
 }
 /*---------------------------------------------------------------------------*/

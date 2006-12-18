@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: elfloader-stub.c,v 1.1 2006/06/17 22:41:18 adamdunkels Exp $
+ * @(#)$Id: elfloader-stub.c,v 1.2 2006/12/18 14:54:04 fros4943 Exp $
  */
 #include "elfloader-arch.h"
 
@@ -48,15 +48,16 @@ elfloader_arch_allocate_rom(int size)
 }
 /*---------------------------------------------------------------------------*/
 void
-elfloader_arch_write_text(int fd, unsigned int size, char *mem)
+elfloader_arch_write_rom(int fd, unsigned short textoff, unsigned int size, char *mem)
 {
-  printf("elfloader_arch_write_text: size %d, mem %p\n", size, mem);
+  printf("elfloader_arch_write_rom: size %d, offset %i, mem %p\n", size, textoff, mem);
 }
 /*---------------------------------------------------------------------------*/
 void
 elfloader_arch_relocate(int fd, unsigned int sectionoffset,
+			char *sectionaddr,
 			struct elf32_rela *rela, char *addr)
 {
-  printf("elfloader_arch_relocate: sectionoffset 0x%04x, r_offset 0x%04x, r_info 0x%04x, r_addend 0x%04x, addr %p\n", sectionoffset, rela->r_offset, rela->r_info, rela->r_addend, addr);
+  printf("elfloader_arch_relocate: sectionoffset 0x%04x, sectionaddr %p, r_offset 0x%04x, r_info 0x%04x, r_addend 0x%04x, addr %p\n", sectionoffset, sectionaddr, rela->r_offset, rela->r_info, rela->r_addend, addr);
 }
 /*---------------------------------------------------------------------------*/

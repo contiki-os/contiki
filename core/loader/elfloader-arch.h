@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: elfloader-arch.h,v 1.2 2006/12/18 12:11:15 adamdunkels Exp $
+ * @(#)$Id: elfloader-arch.h,v 1.3 2006/12/18 14:54:04 fros4943 Exp $
  */
 /**
  * \addtogroup elfloader
@@ -101,6 +101,7 @@ void *elfloader_arch_allocate_rom(int size);
  * \brief      Perform a relocation.
  * \param fd   The file descriptor for the ELF file.
  * \param sectionoffset The file offset at which the relocation can be found.
+ * \param sectionaddr The section start address (absolute runtime).
  * \param rela A pointer to an ELF32 rela structure (struct elf32_rela).
  * \param addr The relocated address.
  *
@@ -116,11 +117,13 @@ void *elfloader_arch_allocate_rom(int size);
  *             processor.
  */
 void elfloader_arch_relocate(int fd, unsigned int sectionoffset,
-			      struct elf32_rela *rela, char *addr);
+			     char *sectionaddr,
+			     struct elf32_rela *rela, char *addr);
 
 /**
- * \brief      Write the program code (text segment) into program memory.
+ * \brief      Write to read-only memory (for example the text segment).
  * \param fd   The file descriptor for the ELF file.
+ * \param textoff	Offset of text segment relative start of file.
  * \param size The size of the text segment.
  * \param mem  A pointer to the where the text segment should be flashed
  *
@@ -129,7 +132,7 @@ void elfloader_arch_relocate(int fd, unsigned int sectionoffset,
  *             module into memory. The function is called when all
  *             relocations have been performed.
  */
-void elfloader_arch_write_text(int fd, unsigned int size, char *mem);
+void elfloader_arch_write_rom(int fd, unsigned short textoff, unsigned int size, char *mem);
 
 #endif /* __ELFLOADER_ARCH_H__ */
 
