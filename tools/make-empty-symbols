@@ -1,0 +1,5 @@
+#!/bin/sh
+echo "#include \"symbols.h\"" > symbols.c
+echo "const struct symbols symbols[] = {{0,0}};" >> symbols.c
+echo "#include \"loader/symbols-def.h\"" > symbols.h
+echo "extern const struct symbols symbols[1];">> symbols.h
