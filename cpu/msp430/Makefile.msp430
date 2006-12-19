@@ -1,4 +1,4 @@
-# $Id: Makefile.msp430,v 1.9 2006/12/18 15:20:36 fros4943 Exp $
+# $Id: Makefile.msp430,v 1.10 2006/12/19 09:22:25 adamdunkels Exp $
 
 ### Check if we are running under Windows
 
@@ -21,8 +21,8 @@ CONTIKI_CPU=$(CONTIKI)/cpu/msp430
 
 ### Define the source files we have in the MSP430 port
 
-MSP430     = msp430.c eeprom.c flash.c clock.c leds.c leds-arch.c \
-             watchdog.c lpm.c cfs-eeprom.c mtarch.c
+MSP430     = msp430.c flash.c clock.c leds.c leds-arch.c \
+             watchdog.c lpm.c mtarch.c
 UIPDRIVERS = me.c me_tabs.c slip.c crc16.c
 #UIPDRIVERS = me.c me_tabs.c crc16.c ppp/ahdlc.c ppp/ipcp.c ppp/lcp.c ppp/pap.c ppp/ppp.c ppp/ppp_process.c
 SYSAPPS    = codeprop-tmp.c
@@ -101,9 +101,14 @@ loader-init.o: ${CONTIKI_TARGET}/loader/loader-init.S
 	$(AS) -o $(notdir $(<:.S=.o)) $<
 # 	cp loader-init.o build-app/
 
-.PHONY: symbols.c
-symbols.c:
-	${CONTIKI}/tools/msp430-make-symbols core.firmware > symbols.c
+.PHONY: symbols.c symbols.h
+ifdef CORE
+symbols.c symbols.h:
+	@${CONTIKI}/tools/msp430-make-symbols $(CORE)
+else
+symbols.c symbols.h:
+	@${CONTIKI}/tools/make-empty-symbols
+endif
 
 ### System dependent Makefile
 
