@@ -150,9 +150,17 @@ packages (as root) with <tt>pkg_add</tt>.
 
 \section esb-burn-node-id Burning node IDs to EEPRMOM
 
-The Contiki ESB port comes with a small program that semi-permanently
-stores a (unique) node ID number in the ESB EEPROM. When the Contiki
-ESB port boots up, this node ID is restored from the EEPROM.
+The Contiki ESB port comes with a small program, <tt>burn-nodeid</tt>
+that semi-permanently stores a (unique) node ID number in the ESB
+EEPROM. When the Contiki ESB port boots up, this node ID is restored
+from the EEPROM. To compile and run this program, go into your project
+directory and run
+
+<tt>make burn-nodeid.u nodeid=X</tt>
+
+Where <tt>X</tt> is the node ID that will be burned into EEPROM. The
+<tt>burn-nodeid</tt> program stores the node ID in EEPROM, reads it
+back, and writes the output
 
 @{
 
