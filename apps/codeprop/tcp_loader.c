@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: tcp_loader.c,v 1.2 2006/08/02 14:33:37 bg- Exp $
+ * @(#)$Id: tcp_loader.c,v 1.3 2006/12/20 13:38:34 bg- Exp $
  */
 
 #include <stdio.h>
@@ -36,7 +36,7 @@
 
 #include "contiki.h"
 #include "sys/etimer.h"
-#include "loader/elfloader.h"
+#include "loader/elfloader_compat.h"
 
 #include "net/uip.h"
 

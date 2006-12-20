@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: elfloader_compat.c,v 1.1 2006/12/01 15:15:08 bg- Exp $
+ * @(#)$Id: elfloader_compat.c,v 1.2 2006/12/20 13:38:33 bg- Exp $
  */
 
 /*
@@ -44,7 +44,7 @@
 
 #include "contiki.h"
 
-#include "loader/elfloader.h"
+#include "loader/elfloader_compat.h"
 #include "loader/cle.h"
 
 #include "lib/malloc.h"
