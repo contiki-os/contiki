@@ -28,12 +28,12 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: symtab.c,v 1.4 2006/12/19 09:31:37 adamdunkels Exp $
+ * @(#)$Id: symtab.c,v 1.5 2006/12/20 14:41:28 bg- Exp $
  */
 
 #include "symtab.h"
 
-#include "symbols.h"
+#include "loader/symbols-def.h"
 
 #include <string.h>
 
@@ -48,7 +48,7 @@ symtab_lookup(const char *name)
   int r;
   
   start = 0;
-  end = sizeof(symbols) / sizeof(struct symbols);
+  end = symbols_nelts;
 
   do {
     /* Check middle, divide */
