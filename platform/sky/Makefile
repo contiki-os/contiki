@@ -1,4 +1,4 @@
-# $Id: Makefile,v 1.7 2006/12/05 16:19:43 bg- Exp $
+# $Id: Makefile,v 1.8 2006/12/20 13:46:14 bg- Exp $
 #
 # This makefile requires GNU make!
 
@@ -39,6 +39,7 @@ LIBC=-lgcc -lc -lgcc
 CC=msp430-gcc
 LD=msp430-ld
 AS=msp430-as
+NM=msp430-nm
 OBJCOPY=msp430-objcopy
 STRIP=msp430-strip
 AR=msp430-ar
@@ -62,7 +63,7 @@ endif
 %.o: %.c
 	$(CC) $(CFLAGS) -c $< -o $(notdir $(<:.c=.o))
 
-# Combine several .o:s to one .ko and but COMMONs into the BSS segment
+# Combine several .o:s to one .ko and put COMMONs into the BSS segment
 %.ko:
 	$(LD) -r -dc --strip-all --unresolved-symbols=ignore-in-object-files $^ -o $@
 
@@ -74,9 +75,9 @@ endif
 
 # Add a namelist to the kernel
 %.out: $^
-	-test -f $@_nm.c || echo "unsigned symbols[1];" > $@_nm.c
+	: | awk -f ../../tools/mknmlist > $@_tmp.c && mv $@_tmp.c $@_nm.c
 	$(CC) $(LDFLAGS) $(CFLAGS) -o $@ $^ $(LIBC) $@_nm.c
-	../../tools/msp430-make-symbols $@ > $@_tmp.c && mv $@_tmp.c $@_nm.c
+	$(NM) $@ | awk -f ../../tools/mknmlist > $@_tmp.c && mv $@_tmp.c $@_nm.c
 	$(CC) $(LDFLAGS) $(CFLAGS) -o $@ $^ $(LIBC) $@_nm.c
 
 %.u: %.ihex
