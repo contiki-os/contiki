@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: cc2420.c,v 1.7 2006/12/01 15:04:04 bg- Exp $
+ * @(#)$Id: cc2420.c,v 1.8 2006/12/20 13:42:55 bg- Exp $
  */
 /*
  * This code is almost device independent and should be possible to
@@ -252,7 +252,7 @@ cc2420_resend(void)
    * FIFO by waiting for transmission to start here and synchronizing
    * with the CC2420_TX_ACTIVE check in cc2420_send.
    *
-   * Note that we may have to wait up to 320 us (symbols) before
+   * Note that we may have to wait up to 320 us (20 symbols) before
    * transmission starts.
    */
 #ifdef TMOTE_SKY
