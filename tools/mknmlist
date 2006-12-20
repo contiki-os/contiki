@@ -1,0 +1,43 @@
+function sort(V, N, 	                        tmp, i, j) {
+  V[-1] = ""; # Used as a sentinel before V[0].
+  for (i = 1; i < N; i++) 
+    for (j = i; V[j - 1] > V[j]; j--) { 
+      tmp = V[j];
+      V[j] = V[j - 1];
+      V[j - 1] = tmp;
+    }
+  return;
+}
+
+BEGIN { nname = 0; }
+
+/ [A-Z] / { 
+  if ($3 != "symbols") {
+    name[nname] = $3;
+    nname++;
+  }
+}
+
+END {
+  print "#include \"loader/symbols-def.h\"\n";
+
+  # Must deal with compiler builtins etc.
+  for (x = 0; x < nname; x++) {
+    if (name[x] == "printf")
+      print "extern int printf(const char *, ...);";
+    else if (name[x] == "symbols_nelts")
+	;
+    else
+      print "extern int " name[x]"();";
+  }
+  print;
+
+  sort(name, nname);
+
+  # nname++: An { 0, 0 } entry is added at the end of the vector.
+  print "const int symbols_nelts = " nname+1 ";";
+  print "const struct symbols symbols[" nname+1 "] = {";
+  for (x = 0; x < nname; x++)
+    print "{ \"" name[x] "\", (void *)&"name[x]" },";
+  print "{ (const char *)0, (void *)0} };";
+}
