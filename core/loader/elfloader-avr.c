@@ -28,11 +28,16 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: elfloader-avr.c,v 1.3 2006/12/18 14:54:04 fros4943 Exp $
+ * @(#)$Id: elfloader-avr.c,v 1.4 2006/12/22 17:10:54 barner Exp $
  */
-#include "elfloader-arch.h"
 
-/*#include "dev/flash.h"*/
+#include <stdio.h>
+#include <avr/boot.h>
+#include <avr/pgmspace.h>
+#include <avr/interrupt.h>
+#include "dev/rs232.h"
+#include "elfloader-arch.h"
+#include "lib/mmem.h"
 
 #define R_AVR_NONE             0
 #define R_AVR_32               1
@@ -56,73 +61,94 @@
 
 #define ELF32_R_TYPE(info)      ((unsigned char)(info))
 
-static char datamemory[ELFLOADER_DATAMEMORY_SIZE];
-static const char textmemory[ELFLOADER_TEXTMEMORY_SIZE];
+static struct mmem module_heap;
 /*---------------------------------------------------------------------------*/
-void *
+void*
 elfloader_arch_allocate_ram(int size)
 {
-  return datamemory;
+  /* Allocate RAM for module (TODO: we leak the memory) */
+  if (mmem_alloc (&module_heap, size) ==  0) {
+    return NULL;
+  }
+  
+  return (char*)MMEM_PTR(&module_heap);
 }
+
 /*---------------------------------------------------------------------------*/
-void *
+/* TODO: Currently, modules are written to the fixed address 0x10000. Since
+ *        flash rom uses word addresses on the AVR, we return 0x8000 here
+ */
+void*
 elfloader_arch_allocate_rom(int size)
 {
-  /* Return an 512-byte aligned pointer. */
-  return (char *)
-    ((unsigned long)&textmemory[0] & 0xfffffe00) +
-    (((unsigned long)&textmemory[0] & 0x1ff) == 0? 0: 0x200);
+  return 0x8000;
 }
+
 /*---------------------------------------------------------------------------*/
-#define READSIZE 32
-void
+
+BOOTLOADER_SECTION void
 elfloader_arch_write_rom(int fd, unsigned short textoff, unsigned int size, char *mem)
 {
-#if 0
-  int i;
-  unsigned int ptr;
-  unsigned short *flashptr;
+    unsigned char   buf[SPM_PAGESIZE];
+    unsigned short* flashptr = mem;
 
-  flash_setup();
 
-  flashptr = (unsigned short *)elfloader_arch_textmemory;
+    // Sanity-check size of loadable module
+    if (size <= 0)
+	return;
+
   
-  cfs_seek(fd, textoff);
-  for(ptr = 0; ptr < size; ptr += READSIZE) {
-    
-    /* Read data from file into RAM. */
-    cfs_read(fd, (unsigned char *)elfloader_arch_datamemory, READSIZE);
+    // Seek to patched module and burn it to flash (in chunks of
+    // size SPM_PAGESIZE, i.e. 256 bytes on the ATmega128)
+    cfs_seek(fd, textoff);
+    for (flashptr=mem; flashptr < mem + size; flashptr += SPM_PAGESIZE) {
+	memset (buf, 0, SPM_PAGESIZE);
+	cfs_read(fd, buf, SPM_PAGESIZE);
 
-    /* Clear flash page on 512 byte boundary. */
-    if((((unsigned short)flashptr) & 0x01ff) == 0) {
-      flash_clear(flashptr);
-    }
-    
-    /* Burn data from RAM into flash ROM. Flash is burned one 16-bit
-       word at a time, so we need to be careful when incrementing
-       pointers. The flashptr is already a short pointer, so
-       incrementing it by one will actually increment the address by
-       two. */
-    for(i = 0; i < READSIZE / 2; ++i) {
-      flash_write(flashptr, ((unsigned short *)elfloader_arch_datamemory)[i]);
-      ++flashptr;
-    }
-  }
+	// Disable interrupts
+	uint8_t sreg;
+	sreg = SREG;
+	cli ();
+  
+	// Erase flash page
+	boot_page_erase (flashptr);
+	boot_spm_busy_wait ();
+	
+	unsigned short *origptr =  flashptr;
 
-  flash_done();
-#endif
+	int i;	
+	// Store data into page buffer
+	for(i = 0; i < SPM_PAGESIZE; i+=2) {
+	    boot_page_fill (flashptr, (uint16_t)((buf[i+1] << 8) | buf[i]));
+	    PORTB = 0xff - 7;
+	    ++flashptr;
+	}
+	
+	// Burn page
+	boot_page_write (origptr);
+	boot_spm_busy_wait();
+	
+	// Reenable RWW sectin
+	boot_rww_enable ();
+	boot_spm_busy_wait ();	
+
+	// Restore original interrupt settings
+	SREG = sreg;
+    }
 }
+
 /*---------------------------------------------------------------------------*/
 static void
 write_ldi(int fd, unsigned char *instr, unsigned char byte)
 {
   instr[0] = (instr[0] & 0xf0) | (byte & 0x0f);
-  instr[1] = (instr[0] & 0xf0) | (byte >> 4);
-  cfs_write(fd, instr, 2);
+  instr[1] = (instr[1] & 0xf0) | (byte >> 4);
+  cfs_write (fd, instr, 2);
 }
 /*---------------------------------------------------------------------------*/
 void
 elfloader_arch_relocate(int fd, unsigned int sectionoffset,
+	//			struct elf32_rela *rela, elf32_addr addr)
 			char *sectionaddr,
 			struct elf32_rela *rela, char *addr)
 {
@@ -133,84 +159,116 @@ elfloader_arch_relocate(int fd, unsigned int sectionoffset,
   cfs_read(fd, instr, 4);
   cfs_seek(fd, sectionoffset + rela->r_offset);
   
-  addr += rela->r_addend;
-
   type = ELF32_R_TYPE(rela->r_info);
 
-  printf("elfloader_arch_relocate: type %d\n", type);
-  
+  addr += rela->r_addend;
+
   switch(type) {
   case R_AVR_NONE:
   case R_AVR_32:
-  case R_AVR_7_PCREL:  /* >> 1 */
-  case R_AVR_13_PCREL: /* >> 1 */
-    printf("elfloader-avr.c: unsupported relocation type %d\n", type);
-    break;
-    
-  case R_AVR_16:
-    cfs_write(fd, (char *)addr, 2);
-    break;
-  case R_AVR_16_PM:
-    addr = (char *)((unsigned long)addr >> 1);
-    cfs_write(fd, (char *)addr, 2);
+    rs232_print_p (RS232_PORT_1, PSTR ("elfloader-avr.c: unsupported relocation type: "));
+    rs232_printf (RS232_PORT_1, "%d\n", type);
     break;
 
-  case R_AVR_LO8_LDI:
-    write_ldi(fd, instr, (unsigned long)addr);
+  case R_AVR_7_PCREL: { /* 4 */
+    /*
+     * Relocation is relative to PC. -2: branch instructions add 2 to PC.
+     * Do not use >> 1 for division because branch instructions use
+     * signed offsets.
+     */
+    int16_t a = (((int16_t)addr - rela->r_offset -2) / 2);
+    instr[0] |= (a << 3) & 0xf8;
+    instr[1] |= (a >> 5) & 0x03;
+    cfs_write(fd, instr, 2);
+  }
     break;
-  case R_AVR_HI8_LDI:
-    write_ldi(fd, instr, (unsigned long)addr >> 8);
-    break;
-  case R_AVR_HH8_LDI:
-    write_ldi(fd, instr, (unsigned long)addr >> 16);
-    break;
-
-  case R_AVR_LO8_LDI_NEG:
-    addr = (char *)(0 - (unsigned long)addr);
-    write_ldi(fd, instr, (unsigned long)addr);
-    break;
-  case R_AVR_HI8_LDI_NEG:
-    addr = (char *)(0 - (unsigned long)addr);
-    write_ldi(fd, instr, (unsigned long)addr >> 8);
-    break;
-  case R_AVR_HH8_LDI_NEG:
-    addr = (char *)(0 - (unsigned long)addr);
-    write_ldi(fd, instr, (unsigned long)addr >> 16);
-    break;
-
-  case R_AVR_LO8_LDI_PM:
-    write_ldi(fd, instr, (unsigned long)addr >> 1);
-    break;
-  case R_AVR_HI8_LDI_PM:
-    write_ldi(fd, instr, (unsigned long)addr >> 9);
-    break;
-  case R_AVR_HH8_LDI_PM:
-    write_ldi(fd, instr, (unsigned long)addr >> 17);
+  case R_AVR_13_PCREL: { /* 3 */
+    /*
+     * Relocation is relative to PC. -2: RJMP adds 2 to PC.
+     * Do not use >> 1 for division because RJMP uses signed offsets.
+     */
+    int16_t a = (int16_t)addr / 2;
+    a -= rela->r_offset / 2;
+    a--;
+    instr[0] |= a & 0xff;
+    instr[1] |= (a >> 8) & 0x0f;
+    cfs_write(fd, instr, 2);
+  }
     break;
 
-  case R_AVR_LO8_LDI_PM_NEG:
-    addr = (char *)(0 - (unsigned long)addr);
-    write_ldi(fd, instr, (unsigned long)addr >> 1);
+  case R_AVR_16:    /* 4 */
+    instr[0] = (int16_t)addr  & 0xff;
+    instr[1] = ((int16_t)addr >> 8) & 0xff;
+
+    cfs_write(fd, instr, 2);
     break;
-  case R_AVR_HI8_LDI_PM_NEG:
-    addr = (char *)(0 - (unsigned long)addr);
-    write_ldi(fd, instr, (unsigned long)addr >> 9);
-    break;
-    addr = (char *)(0 - (unsigned long)addr);
-  case R_AVR_HH8_LDI_PM_NEG:
-    write_ldi(fd, instr, (unsigned long)addr >> 17);
+  case R_AVR_16_PM: /* 5 */
+    addr = ((int16_t)addr >> 1);
+    instr[0] = (int16_t)addr  & 0xff;
+    instr[1] = ((int16_t)addr >> 8) & 0xff;
+
+    cfs_write(fd, instr, 2);
     break;
 
-  case R_AVR_CALL:
-    addr = (char *)((unsigned long)addr >> 1);
-    instr[3] = (unsigned long)addr >> 8;
-    instr[4] = (unsigned long)addr & 0xff;
-    printf("R_AVR_CALL:Writing 0x%02x 0x%02x 0x%02x 0x%02x\n",
-	   instr[0], instr[1], instr[2], instr[3]);
+  case R_AVR_LO8_LDI: /* 6 */
+    write_ldi(fd, instr, (int16_t)addr);
+    break;
+  case R_AVR_HI8_LDI: /* 7 */
+    write_ldi(fd, instr, (int16_t)addr >> 8);
+    break;
+  case R_AVR_HH8_LDI: /* 8 */
+    write_ldi(fd, instr, (int16_t)addr >> 16);
+    break;
+
+  case R_AVR_LO8_LDI_NEG: /* 9 */
+    addr = (0 - (int16_t)addr);
+    write_ldi(fd, instr, (int16_t)addr);
+    break;
+  case R_AVR_HI8_LDI_NEG: /* 10 */
+    addr = (0 - (int16_t)addr);
+    write_ldi(fd, instr, (int16_t)addr >> 8);
+    break;
+  case R_AVR_HH8_LDI_NEG: /* 11 */
+    addr = (0 - (int16_t)addr);
+    write_ldi(fd, instr, (int16_t)addr >> 16);
+    break;
+
+  case R_AVR_LO8_LDI_PM: /* 12 */
+    write_ldi(fd, instr, (int16_t)addr >> 1);
+    break;
+  case R_AVR_HI8_LDI_PM: /* 13 */
+    write_ldi(fd, instr, (int16_t)addr >> 9);
+    break;
+  case R_AVR_HH8_LDI_PM: /* 14 */
+    write_ldi(fd, instr, (int16_t)addr >> 17);
+    break;
+
+  case R_AVR_LO8_LDI_PM_NEG: /* 15 */
+    addr = (0 - (int16_t)addr);
+    write_ldi(fd, instr, (int16_t)addr >> 1);
+    break;
+  case R_AVR_HI8_LDI_PM_NEG: /* 16 */
+    addr = (0 - (int16_t)addr);
+    write_ldi(fd, instr, (int16_t)addr >> 9);
+    break;
+  case R_AVR_HH8_LDI_PM_NEG: /* 17 */
+    addr = (0 - (int16_t)addr);
+    write_ldi(fd, instr, (int16_t)addr >> 17);
+    break;
+
+  case R_AVR_CALL: /* 18 */
+    addr = ((int16_t)addr >> 1);
+    instr[2] = (int16_t)addr & 0xff;
+    instr[3] = (int16_t)addr >> 8;
     cfs_write(fd, instr, 4);
     break;
 
+  default:
+    rs232_print_p (RS232_PORT_1, PSTR ("Unknown reloation type!\n"));
+    break;
   }
-  
 }
 /*---------------------------------------------------------------------------*/
+void
+elfloader_unload(void) {
+}
