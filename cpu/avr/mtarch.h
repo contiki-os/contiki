@@ -27,17 +27,33 @@
  * SUCH DAMAGE. 
  *
  * This file is part of the Contiki operating system.
- *
- * @(#)$Id: mtarch.h,v 1.1 2006/06/20 21:23:09 adamdunkels Exp $
  */
+
+/**
+ * \file
+ *         AVR specific implementation of multithreading architecture
+ * \author
+ *         Adam Dunkels <adam@sics.se>
+ * \author
+ *         Simon Barner <barner@in.tum.de>
+ *
+ * @(#)$Id: mtarch.h,v 1.2 2006/12/22 16:55:53 barner Exp $
+ */
+
 #ifndef __MTARCH_H__
 #define __MTARCH_H__
 
-#define MTARCH_STACKSIZE 64
+#include "contiki-conf.h"
+
+#ifdef MTARCH_CONF_STACKSIZE
+#define MTARCH_STACKSIZE MTARCH_CONF_STACKSIZE
+#else
+#define MTARCH_STACKSIZE 128
+#endif
 
 struct mtarch_thread {
-  unsigned short stack[MTARCH_STACKSIZE];  
-  unsigned short *sp;
+  unsigned char stack[MTARCH_STACKSIZE];  
+  unsigned char *sp;
 };
 
 #endif /* __MTARCH_H__ */
