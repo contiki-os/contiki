@@ -28,24 +28,41 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: rs232.h,v 1.1 2006/06/17 22:41:21 adamdunkels Exp $
+ * Author:   Adam Dunkels <adam@sics.se>
+ *           Simon Barner <barner@in.tum.de>
+ *
+ * @(#)$Id: rs232.h,v 1.2 2006/12/22 17:00:45 barner Exp $
  */
 
 #ifndef __RS232_H__
 #define __RS232_H__
 
 #include <avr/pgmspace.h>
+#include "contiki-conf.h"
+
+#if MCU == atmega128
+#include "dev/rs232_atmega128.h"
+#else
+#error "Please implement a rs232 header for your MCU (or set the MCU type \
+in contiki-conf.h)."
+#endif
 
 /**
  * \brief      Initialize the RS232 module
  *
  *             This function is called from the boot up code to
  *             initalize the RS232 module.
+ * \param port The RS232 port to be used.
+ * \param bd   The baud rate of the connection.
+ * \param ffmt The frame format of the connection, i.e. parity mode,
+ *             number of stop and data bits, ...
  */
-void rs232_init(void);
+void
+rs232_init (uint8_t port, uint8_t bd, uint8_t ffmt);
 
 /**
  * \brief      Set an input handler for incoming RS232 data
+ * \param port The RS232 port to be used.
  * \param f    A pointer to a byte input handler
  *
  *             This function sets the input handler for incoming RS232
@@ -61,23 +78,26 @@ void rs232_init(void);
  *             take place. If the input handler returns zero, the CPU
  *             is kept sleeping.
  */
-void rs232_set_input(int (* f)(unsigned char));
+void
+rs232_set_input(uint8_t port, int (* f)(unsigned char));
 
 
 /**
  * \brief      Print a text string from program memory on RS232
- * \param str  A pointer to the string that is to be printed
+ * \param port The RS232 port to be used.
+ * \param buf  A pointer to the string that is to be printed
  *
  *             This function prints a string from program memory to
  *             RS232. The string must be terminated by a null
  *             byte. The RS232 module must be correctly initalized and
  *             configured for this function to work.
  */
-void rs232_print_p(prog_char *buf);
-
+void
+rs232_print_p(uint8_t port, prog_char *buf);
 
 /**
  * \brief      Print a text string on RS232
+ * \param port The RS232 port to be used.
  * \param str  A pointer to the string that is to be printed
  *
  *             This function prints a string to RS232. The string must
@@ -85,16 +105,50 @@ void rs232_print_p(prog_char *buf);
  *             correctly initalized and configured for this function
  *             to work.
  */
-void rs232_print(char *buf);
+void
+rs232_print(uint8_t port, char *buf);
+
+/**
+ * \brief      Print a formated string on RS232
+ * \param port The RS232 port to be used.
+ * \param fmt  The format string that is used to construct the string
+ *             from a variable number of arguments.
+ *
+ *             This function prints a formated string to RS232. Note
+ *             that this function used snprintf internally and thus cuts
+ *             the resulting string after RS232_PRINTF_BUFFER_LENGTH - 1
+ *             bytes. You can override this buffer lenght with the
+ *             RS232_CONF_PRINTF_BUFFER_LENGTH define. The RS232 module
+ *             must becorrectly initalized and configured for this
+ *             function to work.
+ */
+void
+rs232_printf(uint8_t port, const char *fmt, ...);
 
 /**
  * \brief      Print a character on RS232
+ * \param port The RS232 port to be used.
  * \param c    The character to be printed
  *
  *             This function prints a character to RS232. The RS232
  *             module must be correctly initalized and configured for
  *             this function to work.
  */
-void rs232_send(unsigned char c);
+void
+rs232_send(uint8_t port, unsigned char c);
+
+/**
+ * \brief      Redirects stdout to a given RS232 port
+ * \param port The RS232 port to be used.
+ *
+ *             This function redirects the stdout channel to a given
+ *             RS232 port. Note that this modfies the global variable
+ *             stdout. If you want to restore the previous behaviour, it
+ *             is your responsibility to backup to old value. The RS232
+ *             module must be correctly initalized and configured for
+ *             the redirection to work.
+ */
+void
+rs232_redirect_stdout (uint8_t port);
 
 #endif /* __RS232_H__ */
