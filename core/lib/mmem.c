@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: mmem.c,v 1.1 2006/06/17 22:41:18 adamdunkels Exp $
+ * @(#)$Id: mmem.c,v 1.2 2006/12/22 17:14:06 barner Exp $
  */
 
 /**
@@ -47,10 +47,14 @@
 
 #include "mmem.h"
 #include "list.h"
-
+#include "contiki-conf.h"
 #include <string.h>
 
+#ifdef MMEM_CONF_SIZE
+#define MMEM_SIZE MMEM_CONF_SIZE
+#else
 #define MMEM_SIZE 4096
+#endif
 
 LIST(mmemlist);
 unsigned int avail_memory;
