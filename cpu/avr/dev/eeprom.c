@@ -30,10 +30,10 @@
  *
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: eeprom.c,v 1.1 2006/06/17 22:41:21 adamdunkels Exp $
+ * $Id: eeprom.c,v 1.2 2006/12/22 17:02:24 barner Exp $
  */
 
-#include "eeprom.h"
+#include "dev/eeprom.h"
 
 #include <avr/eeprom.h>
 #include <stdio.h>
