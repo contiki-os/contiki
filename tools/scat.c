@@ -26,11 +26,12 @@
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.  
  *
- * $Id: scat.c,v 1.1 2006/08/02 14:41:30 bg- Exp $
+ * $Id: scat.c,v 1.2 2006/12/27 14:19:22 bg- Exp $
  *
  */
 
 #include <stdio.h>
+#include <ctype.h>
 #include <stdlib.h>
 #include <stdarg.h>
 #include <string.h>
@@ -54,7 +55,8 @@
 #define SLIP_ESC_END 0334
 #define SLIP_ESC_ESC 0335
 
-#define BAUDRATE B57600
+#define BAUDRATE B115200
+//#define BAUDRATE B57600
 //#define BAUDRATE B38400
 //#define BAUDRATE B19200
 
@@ -71,9 +73,9 @@ stty_telos(int fd)
 
   cfmakeraw(&tty);
 
-  /* Nonblocking read. */
+  /* Blocking read. */
   tty.c_cc[VTIME] = 0;
-  tty.c_cc[VMIN] = 0;
+  tty.c_cc[VMIN] = 1;
   tty.c_cflag &= ~CRTSCTS;
   tty.c_cflag &= ~HUPCL;
   tty.c_cflag &= ~CLOCAL;
@@ -83,16 +85,11 @@ stty_telos(int fd)
 
   if(tcsetattr(fd, TCSAFLUSH, &tty) == -1) err(1, "tcsetattr");
 
-#if 1
-  /* Nonblocking read and write. */
-  /* if(fcntl(fd, F_SETFL, O_NONBLOCK) == -1) err(1, "fcntl"); */
-
   tty.c_cflag |= CLOCAL;
   if(tcsetattr(fd, TCSAFLUSH, &tty) == -1) err(1, "tcsetattr");
 
   i = TIOCM_DTR;
   if(ioctl(fd, TIOCMBIS, &i) == -1) err(1, "ioctl");
-#endif
 
   usleep(10*1000);		/* Wait for hardware 10ms. */
 
@@ -113,26 +110,31 @@ main(int argc, char **argv)
     err(1, "usage: scat device-file");
   siodev = argv[1];
 
-  slipfd = open(siodev, O_RDWR | O_NONBLOCK);
+  slipfd = open(siodev, O_RDWR);
   if (slipfd == -1) err(1, "can't open '%s'", siodev);
   stty_telos(slipfd);
   inslip = fdopen(slipfd, "r");
   if(inslip == NULL) err(1, "main: fdopen");
 
-  do {
-    fd_set rset;
-    
-    FD_ZERO(&rset);
-    FD_SET(slipfd, &rset);
-
-    ret = select(slipfd + 1, &rset, NULL, NULL, NULL);
-    if (FD_ISSET(slipfd, &rset)) {
-      while ((c = getc(inslip)) != -1)
-	if (c != SLIP_END)
-	  putchar(c);
-    }
-    clearerr(inslip);
-  } while (1);
+  while (1) {
+    int c = getc(inslip);
+    while (c == SLIP_END)
+      c = getc(inslip);
+    do {
+      if (c == SLIP_ESC) {
+	c = getc(inslip);
+	if (c == SLIP_ESC_ESC)
+	  c = SLIP_ESC;
+	else if (c == SLIP_ESC_END)
+	  c = SLIP_END;
+      }
+      if (isprint(c) || c == '\n' || c == '\t' || c == '\r')
+	putchar(c);
+      else
+	printf("%02x ", c);
+      c = getc(inslip);
+    } while (c != SLIP_END);
+  }
 
   return 0;    
 }
