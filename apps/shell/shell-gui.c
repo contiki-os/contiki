@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki desktop OS.
  *
- * $Id: shell-gui.c,v 1.2 2006/08/21 21:44:13 oliverschmidt Exp $
+ * $Id: shell-gui.c,v 1.3 2006/12/29 23:05:19 oliverschmidt Exp $
  *
  */
 
@@ -130,8 +130,10 @@ PROCESS_THREAD(shell_gui_process, ev, data)
        data == (process_data_t)&commandentry) {
       shell_output("> ", command);
       shell_input(command);
-      CTK_TEXTENTRY_CLEAR(&commandentry);
-      CTK_WIDGET_REDRAW(&commandentry);
+      if(shell_gui_process.state) {
+        CTK_TEXTENTRY_CLEAR(&commandentry);
+        CTK_WIDGET_REDRAW(&commandentry);
+      }
     } else if(ev == ctk_signal_window_close ||
 	      ev == PROCESS_EVENT_EXIT) {
       shell_quit(NULL);
