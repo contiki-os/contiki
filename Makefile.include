@@ -44,7 +44,7 @@ CTKVNC  = $(CTK) ctk-vncserver.c libconio.c vnc-server.c vnc-out.c \
 CTKTERM = $(CTK) libconio.c ctk-term.c ctk-term-in.c ctk-term-out.c \
           ctk-termtelnet.c
 
-CONTIKIFILES = $(SYSTEM) $(THREADS) $(CFS) $(LIBS) $(NET) $(DHCP)
+CONTIKIFILES = $(SYSTEM) $(CFS) $(LIBS) $(NET) $(DHCP)
 
 CONTIKI_SOURCEFILES += $(CONTIKIFILES)
 
