@@ -51,6 +51,8 @@ CONTIKI_SOURCEFILES += $(CONTIKIFILES)
 CONTIKIDIRS = ${addprefix $(CONTIKI)/core/,dev lib net sys \
                  cfs ctk lib/ctk loader . }
 
+CONTIKI_OBJECTFILES = ${addprefix $(OBJECTDIR)/,$(CONTIKI_SOURCEFILES:.c=.o)}
+
 PROJECT_OBJECTFILES = ${addprefix $(OBJECTDIR)/,$(PROJECT_SOURCEFILES:.c=.o)}
 
 ### Include application makefiles
@@ -106,7 +108,7 @@ ifndef AROPTS
 endif
 
 ifndef CUSTOM_RULE_ALLOBJS_TO_TARGETLIB
-contiki-$(TARGET).a: ${addprefix $(OBJECTDIR)/, $(CONTIKI_SOURCEFILES:.c=.o)}
+contiki-$(TARGET).a: $(CONTIKI_OBJECTFILES)
 	$(AR) $(AROPTS) $@ $^
 endif
 
