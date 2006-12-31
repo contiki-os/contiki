@@ -119,12 +119,13 @@ ifndef CDEPFLAGS
   CDEPFLAGS = $(CFLAGS)
 endif
 
+ifndef CUSTOM_RULE_C_TO_OBJECTDIR_D
 $(OBJECTDIR)/%.d: %.c
 	@set -e; rm -f $@; \
 	$(CCDEP) -MM $(CDEPFLAGS) $< > $@.$$$$; \
 	sed 's,\($*\)\.o[ :]*,$(OBJECTDIR)/\1.o $@ : ,g' < $@.$$$$ > $@; \
 	rm -f $@.$$$$
-
+endif
 
 # The line below is needed so that GNU make does not remove the
 # generated file.
