@@ -11,28 +11,26 @@ function sort(V, N, 	                        tmp, i, j) {
 
 BEGIN { nname = 0; }
 
-/ [A-Z] / { 
-  if ($3 != "symbols") {
+/^[0123456789abcdef]+ [ABCDGINRSTUVW] / { 
+  if ($3 != "symbols" && $3 != "symbols_nelts") {
     name[nname] = $3;
     nname++;
   }
 }
 
 END {
+  sort(name, nname);
+
   print "#include \"loader/symbols-def.h\"\n";
 
   # Must deal with compiler builtins etc.
   for (x = 0; x < nname; x++) {
     if (name[x] == "printf")
       print "extern int printf(const char *, ...);";
-    else if (name[x] == "symbols_nelts")
-	;
     else
       print "extern int " name[x]"();";
   }
-  print;
-
-  sort(name, nname);
+  print "\n";
 
   # nname++: An { 0, 0 } entry is added at the end of the vector.
   print "const int symbols_nelts = " nname+1 ";";
