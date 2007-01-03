@@ -1,0 +1,69 @@
+#######################
+# General Definitions #
+#######################
+
+ifndef CC65_INC
+  $(error CC65_INC not defined! You must specify where the cc65 headers reside)
+endif
+
+ifndef LD65_LIB
+  $(error LD65_LIB not defined! You must specify where the cc65 libraries reside)
+endif
+
+ifndef LD65_OBJ
+  $(error LD65_OBJ not defined! You must specify where the cc65 objects reside)
+endif
+
+AS = ca65
+CC = cc65
+LD = ld65
+AR = ar65
+
+AFLAGS  = -t $(TARGET)
+CFLAGS += -t $(TARGET) -Or --create-dep $(INCLUDES)
+LDFLAGS = -t $(TARGET)
+AROPTS  = a
+
+PROJECT_OBJECTFILES += $(OBJECTDIR)/contiki-main.o
+CONTIKI_OBJECTFILES += $(OBJECTDIR)/lc-asm.o
+TARGET_STARTFILES    = $(TARGET).o
+TARGET_LIBFILES      = $(TARGET).lib
+
+#########
+# Rules #
+#########
+
+$(OBJECTDIR)/%.o: %.S
+	@$(AS) $(AFLAGS) $< -o $@
+
+CUSTOM_RULE_C_TO_OBJECTDIR_O = 1
+$(OBJECTDIR)/%.s: %.c
+	$(CC) $(CFLAGS) $< -o $@
+	@mv $(@:.s=.u) $(@:.s=.d)
+$(OBJECTDIR)/%.o: $(OBJECTDIR)/%.s
+	@$(AS) $(AFLAGS) $< -o $@
+
+CUSTOM_RULE_C_TO_CO = 1
+$(OBJECTDIR)/%.s: %.c
+	$(CC) $(CFLAGS) -DAUTOSTART_ENABLE $< -o $@
+	@mv $(@:.s=.u) $(@:.s=.d)
+%.co: $(OBJECTDIR)/%.s
+	@$(AS) $(AFLAGS) $< -o $@
+
+CUSTOM_RULE_C_TO_OBJECTDIR_D = 1
+# No explicit dependency file generation necessary since it is done 
+# as compilation side effect using the --create-dep compiler option
+
+# Keep the assembler source files since they are the targets in the 
+# compiler generated dependency files 
+.SECONDARY:
+
+#################
+# Path Settings #
+#################
+
+INCLUDES = -I$(CONTIKI)/platform/$(TARGET) -I$(CONTIKI_CPU) -I$(CONTIKI)/core
+
+vpath %.c $(CONTIKI)/platform/$(TARGET) $(CONTIKIDIRS)
+
+vpath %.S $(CONTIKI_CPU)/sys
