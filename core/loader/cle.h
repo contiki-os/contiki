@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF 
  * SUCH DAMAGE. 
  *
- * @(#)$Id: cle.h,v 1.1 2006/12/01 15:12:27 bg- Exp $
+ * @(#)$Id: cle.h,v 1.2 2007/01/05 17:47:53 bg- Exp $
  */
 
 #ifndef CLE_H
@@ -45,6 +45,8 @@ typedef u16_t cle_half;
 typedef unsigned char *cle_addr;
 /* typedef uintptr_t cle_addr; */
 
+typedef unsigned char cle_scratch[32];
+
 struct cle_info {
   cle_addr text, data, bss;
 
@@ -62,7 +64,7 @@ struct cle_info {
   unsigned char bss_shndx;
   unsigned char unused_shndx;
 
-  char name[32];		/* Scratch and errmsg buffer. */
+  cle_scratch name;		/* Scratch and errmsg buffer. */
 };
 
 int
