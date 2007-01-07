@@ -57,7 +57,7 @@
  *
  * This file is part of the uIP TCP/IP stack.
  *
- * $Id: resolv.c,v 1.4 2006/09/18 23:30:40 oliverschmidt Exp $
+ * $Id: resolv.c,v 1.5 2007/01/07 13:52:25 oliverschmidt Exp $
  *
  */
 
@@ -133,6 +133,8 @@ static u8_t seqno;
 
 static struct uip_udp_conn *resolv_conn = NULL;
 
+static struct etimer retry;
+
 process_event_t resolv_event_found;
 
 PROCESS(resolv_process, "DNS resolver");
@@ -185,6 +187,7 @@ check_entries(void)
     namemapptr = &names[i];
     if(namemapptr->state == STATE_NEW ||
        namemapptr->state == STATE_ASKING) {
+      etimer_set(&retry, CLOCK_SECOND);
       if(namemapptr->state == STATE_ASKING) {
 	if(--namemapptr->tmr == 0) {
 	  if(++namemapptr->retries == MAX_RETRIES) {
@@ -328,7 +331,6 @@ newdata(void)
       --nanswers;
     }
   }
-
 }
 /*-----------------------------------------------------------------------------------*/
 /** \internal
@@ -351,11 +353,15 @@ PROCESS_THREAD(resolv_process, ev, data)
   while(1) {
     PROCESS_WAIT_EVENT();
     
-    if(ev == EVENT_NEW_SERVER) {
+    if(ev == PROCESS_EVENT_TIMER) {
+      if(resolv_conn != NULL) {
+        tcpip_poll_udp(resolv_conn);
+      }
+
+    } else if(ev == EVENT_NEW_SERVER) {
       if(resolv_conn != NULL) {
 	uip_udp_remove(resolv_conn);
       }
-      
       resolv_conn = udp_new((uip_ipaddr_t *)data, HTONS(53), NULL);
       
     } else if(ev == tcpip_event) {
