@@ -26,22 +26,15 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: Simulation.java,v 1.6 2006/12/13 11:58:02 fros4943 Exp $
+ * $Id: Simulation.java,v 1.7 2007/01/09 10:21:08 fros4943 Exp $
  */
 
 package se.sics.cooja;
 
-import java.awt.Dimension;
-import java.awt.Point;
 import java.io.*;
 import java.util.*;
-import javax.swing.JInternalFrame;
-
 import org.apache.log4j.Logger;
 import org.jdom.*;
-import org.jdom.input.SAXBuilder;
-import org.jdom.output.Format;
-import org.jdom.output.XMLOutputter;
 
 import se.sics.cooja.dialogs.*;
 
@@ -77,6 +70,8 @@ public class Simulation extends Observable implements Runnable {
   private boolean stopSimulation = false;
   private Thread thread = null;
 
+  private GUI myGUI = null;
+  
   // Tick observable
   private class TickObservable extends Observable {
     private void allTicksPerformed() {
@@ -175,8 +170,9 @@ public class Simulation extends Observable implements Runnable {
   /**
    * Creates a new simulation with a delay time of 1 second.
    */
-  public Simulation() {
+  public Simulation(GUI gui) {
     // New simulation instance
+    myGUI = gui;
   }
 
   /**
@@ -230,226 +226,6 @@ public class Simulation extends Observable implements Runnable {
       }
     }
 
-  }
-
-  /**
-   * Loads a simulation configuration from given file.
-   * 
-   * When loading mote types, user must recompile the actual library of each
-   * type. User may also change mote type settings at this point.
-   * 
-   * @see #saveSimulationConfig(File)
-   * @param file
-   *          File to read
-   * @return New simulation or null if recompiling failed or aborted
-   * @throws UnsatisfiedLinkError
-   *           If associated libraries could not be loaded
-   */
-  public static Simulation loadSimulationConfig(File file)
-      throws UnsatisfiedLinkError {
-
-    Simulation newSim = null;
-
-    try {
-      // Open config file
-      SAXBuilder builder = new SAXBuilder();
-      Document doc = builder.build(file);
-      Element root = doc.getRootElement();
-
-      // Check that config file version is correct
-      if (!root.getName().equals("simulation")) {
-        logger.fatal("Not a COOJA simulation config xml file!");
-        return null;
-      }
-
-      // Build new simulation
-      Collection<Element> config = root.getChildren();
-      newSim = new Simulation();
-      boolean createdOK = newSim.setConfigXML(config);
-      if (!createdOK) {
-        logger.info("Simulation not loaded");
-        return null;
-      }
-
-      // EXPERIMENTAL: Reload stored plugins
-      boolean loadedPlugin = false;
-      for (Element pluginElement: config.toArray(new Element[0])) {
-        if (pluginElement.getName().equals("visplugin")) {
-          Class<? extends VisPlugin> visPluginClass = 
-            GUI.currentGUI.tryLoadClass(GUI.currentGUI, VisPlugin.class, pluginElement.getText().trim());
-
-          try {
-            VisPlugin openedPlugin = null;
-            List list = pluginElement.getChildren();
-            Dimension size = new Dimension(100, 100);
-            Point location = new Point(100, 100);
-            for (Element pluginSubElement: (List<Element>) pluginElement.getChildren()) {
-              
-              if (pluginSubElement.getName().equals("constructor")) {
-                if (pluginSubElement.getText().equals("sim")) {
-                  // Simulator plugin type
-                  openedPlugin = visPluginClass.getConstructor(new Class[]{Simulation.class}).newInstance(newSim);
-                  GUI.currentGUI.showPlugin(openedPlugin);
-                } else if (pluginSubElement.getText().equals("gui")) {
-                  // GUI plugin type
-                  openedPlugin = visPluginClass.getConstructor(new Class[]{GUI.class}).newInstance(GUI.currentGUI);
-                  GUI.currentGUI.showPlugin(openedPlugin);
-                } else if (pluginSubElement.getText().startsWith("mote: ")) {
-                  // Mote plugin type
-                  String moteNrString = pluginSubElement.getText().substring("mote: ".length());
-                  
-                  int moteNr = Integer.parseInt(moteNrString);
-                  Mote mote = newSim.getMote(moteNr);
-                  openedPlugin = visPluginClass.getConstructor(new Class[]{Mote.class}).newInstance(mote);
-
-                  // Tag plugin with mote
-                  openedPlugin.putClientProperty("mote", mote);
-
-                  // Show plugin
-                  GUI.currentGUI.showPlugin(openedPlugin);
-                }
-                
-              } else if (pluginSubElement.getName().equals("width")) {
-                size.width = Integer.parseInt(pluginSubElement.getText());
-                openedPlugin.setSize(size);
-              } else if (pluginSubElement.getName().equals("height")) {
-                size.height = Integer.parseInt(pluginSubElement.getText());
-                openedPlugin.setSize(size);
-              } else if (pluginSubElement.getName().equals("z")) {
-                int zOrder = Integer.parseInt(pluginSubElement.getText());
-                GUI.currentGUI.setComponentZOrder(openedPlugin, zOrder);
-              } else if (pluginSubElement.getName().equals("location_x")) {
-                location.x = Integer.parseInt(pluginSubElement.getText());
-                openedPlugin.setLocation(location);
-              } else if (pluginSubElement.getName().equals("location_y")) {
-                location.y = Integer.parseInt(pluginSubElement.getText());
-                openedPlugin.setLocation(location);
-              } else if (pluginSubElement.getName().equals("minimized")) {
-                openedPlugin.setIcon(Boolean.parseBoolean(pluginSubElement.getText()));
-              } else if (pluginSubElement.getName().equals("visplugin_config")) {
-                openedPlugin.setConfigXML(pluginSubElement.getChildren());
-              }
-            }
-          } catch (Exception e) {
-            logger.fatal("Error when startup up saved plugins: " + e);
-          }
-        }
-      }
-    } catch (JDOMException e) {
-      logger.fatal("File not wellformed: " + e.getMessage());
-      return null;
-    } catch (IOException e) {
-      logger.fatal("No access to file: " + e.getMessage());
-      return null;
-    } catch (Exception e) {
-      logger.fatal("Exception when loading file: " + e);
-      e.printStackTrace();
-      return null;
-    }
-
-    return newSim;
-  }
-
-  /**
-   * Saves current simulation configuration to given file and notifies
-   * observers.
-   * 
-   * @see #loadSimulationConfig(File file)
-   * @see #getConfigXML()
-   * @param file
-   *          File to write
-   */
-  public void saveSimulationConfig(File file) {
-
-    try {
-      // Create simulation XML
-      Element root = new Element("simulation");
-      root.addContent(getConfigXML());
-
-      // EXPERIMENTAL: Store opened plugins information
-      Element pluginElement, pluginSubElement;
-      if (GUI.currentGUI != null) {
-        for (JInternalFrame openedFrame: GUI.currentGUI.getAllFrames()) {
-          VisPlugin openedPlugin = (VisPlugin) openedFrame;
-          int pluginType = openedPlugin.getClass().getAnnotation(VisPluginType.class).value();
-
-          pluginElement = new Element("visplugin");
-          pluginElement.setText(openedPlugin.getClass().getName());
-
-          pluginSubElement = new Element("constructor");
-          if (pluginType == VisPluginType.GUI_PLUGIN ||
-              pluginType == VisPluginType.GUI_STANDARD_PLUGIN) {
-            pluginSubElement.setText("gui");
-            pluginElement.addContent(pluginSubElement);
-          } else if (pluginType == VisPluginType.SIM_PLUGIN || 
-              pluginType == VisPluginType.SIM_STANDARD_PLUGIN) {
-            pluginSubElement.setText("sim");
-            pluginElement.addContent(pluginSubElement);
-          } else if (pluginType == VisPluginType.MOTE_PLUGIN && openedPlugin.getClientProperty("mote") != null) {
-            Mote taggedMote = (Mote) openedPlugin.getClientProperty("mote");
-            for (int moteNr = 0; moteNr < getMotesCount(); moteNr++) {
-              if (getMote(moteNr) == taggedMote) {
-                pluginSubElement.setText("mote: " + moteNr);
-                pluginElement.addContent(pluginSubElement);
-              }
-            }
-          } else {
-            logger.fatal("Warning! Could not write visplugin constructor information: " + pluginType + "@" + openedPlugin);
-          }
-
-          pluginSubElement = new Element("width");
-          pluginSubElement.setText("" + openedPlugin.getSize().width);
-          pluginElement.addContent(pluginSubElement);
-          
-          pluginSubElement = new Element("z");
-          pluginSubElement.setText("" + GUI.currentGUI.getComponentZOrder(openedPlugin));
-          pluginElement.addContent(pluginSubElement);
-          
-          pluginSubElement = new Element("height");
-          pluginSubElement.setText("" + openedPlugin.getSize().height);
-          pluginElement.addContent(pluginSubElement);
-          
-          pluginSubElement = new Element("location_x");
-          pluginSubElement.setText("" + openedPlugin.getLocation().x);
-          pluginElement.addContent(pluginSubElement);
-          
-          pluginSubElement = new Element("location_y");
-          pluginSubElement.setText("" + openedPlugin.getLocation().y);
-          pluginElement.addContent(pluginSubElement);
-          
-          pluginSubElement = new Element("minimized");
-          pluginSubElement.setText(new Boolean(openedPlugin.isIcon()).toString());
-          pluginElement.addContent(pluginSubElement);
-          
-          Collection pluginXML = openedPlugin.getConfigXML();
-          if (pluginXML != null) {
-            pluginSubElement = new Element("visplugin_config");
-            pluginSubElement.addContent(pluginXML);
-            pluginElement.addContent(pluginSubElement);
-          }
-
-          root.addContent(pluginElement);
-        }
-      }
-      
-      // Create config
-      Document doc = new Document(root);
-
-      // Write to file
-      FileOutputStream out = new FileOutputStream(file);
-      XMLOutputter outputter = new XMLOutputter();
-      outputter.setFormat(Format.getPrettyFormat());
-      outputter.output(doc, out);
-
-      out.close();
-
-      logger.info("Saved to file: " + file.getAbsolutePath());
-    } catch (Exception e) {
-      logger.warn("Exception while saving simulation config: " + e);
-    }
-
-    this.setChanged();
-    this.notifyObservers(this);
   }
 
   /**
@@ -519,13 +295,20 @@ public class Simulation extends Observable implements Runnable {
   }
 
   /**
+   * @return GUI holding this simulation
+   */
+  public GUI getGUI() {
+    return myGUI;
+  }
+  
+  /**
    * Sets the current simulation config depending on the given XML elements.
    * 
    * @see #getConfigXML()
    * @param configXML
    *          Config XML elements
    */
-  public boolean setConfigXML(Collection<Element> configXML) throws Exception {
+  public boolean setConfigXML(Collection<Element> configXML, boolean visAvailable) throws Exception {
 
     // Parse elements
     for (Element element : configXML) {
@@ -553,18 +336,27 @@ public class Simulation extends Observable implements Runnable {
       // Radio medium
       if (element.getName().equals("radiomedium")) {
         String radioMediumClassName = element.getText().trim();
-        Class<? extends RadioMedium> radioMediumClass = GUI.currentGUI
+        Class<? extends RadioMedium> radioMediumClass = myGUI
             .tryLoadClass(this, RadioMedium.class, radioMediumClassName);
 
-        if (radioMediumClass != null)
+        if (radioMediumClass != null) {
           // Create radio medium specified in config
-          currentRadioMedium = radioMediumClass.newInstance();
-        else
-          logger.warn("Could not find radio medium class: "
-              + radioMediumClassName);
-
+          try {
+            currentRadioMedium = RadioMedium.generateInterface(radioMediumClass, this);
+          } catch (Exception e) {
+            currentRadioMedium = null;
+            logger.warn("Could not load radio medium class: "
+                + radioMediumClassName);
+          }
+        }
+        
         // Show configure simulation dialog
-        boolean createdOK = CreateSimDialog.showDialog(GUI.frame, this);
+        boolean createdOK = false;
+        if (visAvailable) {
+          createdOK = CreateSimDialog.showDialog(GUI.frame, this);
+        } else {
+          createdOK = true;
+        }
 
         if (!createdOK) {
           logger.debug("Simulation not created, aborting");
@@ -574,7 +366,7 @@ public class Simulation extends Observable implements Runnable {
         // Check if radio medium specific config should be applied
         if (radioMediumClassName
             .equals(currentRadioMedium.getClass().getName())) {
-          currentRadioMedium.setConfigXML(element.getChildren());
+          currentRadioMedium.setConfigXML(element.getChildren(), visAvailable);
         } else {
           logger
               .info("Radio Medium changed - ignoring radio medium specific config");
@@ -585,7 +377,7 @@ public class Simulation extends Observable implements Runnable {
       if (element.getName().equals("motetype")) {
         String moteTypeClassName = element.getText().trim();
 
-        Class<? extends MoteType> moteTypeClass = GUI.currentGUI.tryLoadClass(
+        Class<? extends MoteType> moteTypeClass = myGUI.tryLoadClass(
             this, MoteType.class, moteTypeClassName);
 
         if (moteTypeClass == null) {
@@ -596,7 +388,7 @@ public class Simulation extends Observable implements Runnable {
         MoteType moteType = moteTypeClass.getConstructor((Class[]) null)
             .newInstance();
 
-        boolean createdOK = moteType.setConfigXML(this, element.getChildren());
+        boolean createdOK = moteType.setConfigXML(this, element.getChildren(), visAvailable);
         if (createdOK) {
           addMoteType(moteType);
         } else {
@@ -608,11 +400,11 @@ public class Simulation extends Observable implements Runnable {
 
       // Mote
       if (element.getName().equals("mote")) {
-        Class<? extends Mote> moteClass = GUI.currentGUI.tryLoadClass(this,
+        Class<? extends Mote> moteClass = myGUI.tryLoadClass(this,
             Mote.class, element.getText().trim());
 
         Mote mote = moteClass.getConstructor((Class[]) null).newInstance();
-        if (mote.setConfigXML(this, element.getChildren())) {
+        if (mote.setConfigXML(this, element.getChildren(), visAvailable)) {
           addMote(mote);
         } else {
           logger.fatal("Mote was not created: " + element.getText().trim());
@@ -621,6 +413,8 @@ public class Simulation extends Observable implements Runnable {
       }
     }
 
+    setChanged();
+    notifyObservers(this);
     return true;
   }
 
