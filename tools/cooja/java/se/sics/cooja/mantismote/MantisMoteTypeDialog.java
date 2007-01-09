@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: MantisMoteTypeDialog.java,v 1.1 2006/11/09 19:31:14 fros4943 Exp $
+ * $Id: MantisMoteTypeDialog.java,v 1.2 2007/01/09 10:02:16 fros4943 Exp $
  */
 
 package se.sics.cooja.mantismote;
@@ -156,12 +156,12 @@ public class MantisMoteTypeDialog extends JDialog {
     }
 
     // Load all mote interface classes
-    String[] moteInterfaces = GUI.currentGUI.getPlatformConfig().getStringArrayValue(MantisMoteType.class, "MOTE_INTERFACES");
+    String[] moteInterfaces = simulation.getGUI().getPlatformConfig().getStringArrayValue(MantisMoteType.class, "MOTE_INTERFACES");
     myDialog.moteInterfaceClasses = new Vector<Class<? extends MoteInterface>>();
     for (String moteInterface : moteInterfaces) {
       try {
         Class<? extends MoteInterface> newMoteInterfaceClass = 
-          GUI.currentGUI.tryLoadClass(GUI.currentGUI, MoteInterface.class, moteInterface);
+          simulation.getGUI().tryLoadClass(simulation.getGUI(), MoteInterface.class, moteInterface);
         myDialog.moteInterfaceClasses.add(newMoteInterfaceClass);
         /*logger.info("Loaded Mantis mote interface: " + newMoteInterfaceClass);*/
       } catch (Exception e) {

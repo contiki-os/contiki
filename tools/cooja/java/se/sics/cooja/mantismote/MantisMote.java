@@ -24,7 +24,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * 
- * $Id: MantisMote.java,v 1.1 2006/11/09 19:31:15 fros4943 Exp $
+ * $Id: MantisMote.java,v 1.2 2007/01/09 10:02:16 fros4943 Exp $
  */
 
 package se.sics.cooja.mantismote;
@@ -188,7 +188,7 @@ public class MantisMote implements Mote {
   }
 
   public boolean setConfigXML(Simulation simulation,
-      Collection<Element> configXML) {
+      Collection<Element> configXML, boolean visAvailable) {
     mySimulation = simulation;
 
     for (Element element : configXML) {
@@ -201,7 +201,7 @@ public class MantisMote implements Mote {
             .getMoteInterfaces());
 
       } else if (name.equals("interface_config")) {
-        Class<? extends MoteInterface> moteInterfaceClass = GUI.currentGUI
+        Class<? extends MoteInterface> moteInterfaceClass = simulation.getGUI()
             .tryLoadClass(this, MoteInterface.class, element.getText().trim());
 
         if (moteInterfaceClass == null) {
@@ -213,7 +213,7 @@ public class MantisMote implements Mote {
         MoteInterface moteInterface = myInterfaceHandler
             .getInterfaceOfType(moteInterfaceClass);
         if (moteInterface != null)
-          moteInterface.setConfigXML(element.getChildren());
+          moteInterface.setConfigXML(element.getChildren(), visAvailable);
         else
           logger
               .warn("Can't restore configuration for non-existing interface: "
