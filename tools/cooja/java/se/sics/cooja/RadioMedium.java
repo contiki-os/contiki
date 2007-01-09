@@ -26,13 +26,16 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: RadioMedium.java,v 1.1 2006/08/21 12:12:55 fros4943 Exp $
+ * $Id: RadioMedium.java,v 1.2 2007/01/09 10:18:08 fros4943 Exp $
  */
 
 package se.sics.cooja;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
 import java.util.Collection;
+import java.util.Observable;
 import java.util.Observer;
-
+import org.apache.log4j.Logger;
 import org.jdom.Element;
 
 import se.sics.cooja.interfaces.Position;
@@ -50,6 +53,7 @@ import se.sics.cooja.interfaces.Radio;
  * @author Fredrik Osterlind
  */
 public abstract class RadioMedium {
+  private static Logger logger = Logger.getLogger(RadioMedium.class);
 
   /**
    * Registers a mote to this medium.
@@ -119,6 +123,11 @@ public abstract class RadioMedium {
   public abstract void addRadioMediumObserver(Observer observer);
 
   /**
+   * @return Radio medium observable
+   */
+  public abstract Observable getRadioMediumObservable();
+
+  /**
    * Deletes an radio medium observer.
    * 
    * @see #addRadioMediumObserver(Observer)
@@ -171,6 +180,24 @@ public abstract class RadioMedium {
    *          Config XML elements
    * @return True if config was set successfully, false otherwise
    */
-  public abstract boolean setConfigXML(Collection<Element> configXML);
+  public abstract boolean setConfigXML(Collection<Element> configXML, boolean visAvailable);
 
+  
+  /**
+   * This method creates an instance of the given class with the given
+   * simulation constructor argument. Instead of calling the constructors
+   * directly this method may be used.
+   * 
+   * @return Radio medium instance
+   */
+  public static final RadioMedium generateInterface(
+      Class<? extends RadioMedium> radioMediumClass, Simulation simulation)
+      throws NoSuchMethodException, InvocationTargetException,
+      IllegalAccessException, InstantiationException {
+
+    // Generating radio medium
+    Constructor constr = radioMediumClass
+        .getConstructor(new Class[] { Simulation.class });
+    return (RadioMedium) constr.newInstance(new Object[] { simulation });
+  }
 }
