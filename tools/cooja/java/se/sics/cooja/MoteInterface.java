@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: MoteInterface.java,v 1.1 2006/08/21 12:12:56 fros4943 Exp $
+ * $Id: MoteInterface.java,v 1.2 2007/01/09 10:16:42 fros4943 Exp $
  */
 
 package se.sics.cooja;
@@ -153,6 +153,6 @@ public abstract class MoteInterface extends Observable {
    * @see #getConfigXML()
    * @param configXML Config XML elements
    */
-  public abstract void setConfigXML(Collection<Element> configXML);
+  public abstract void setConfigXML(Collection<Element> configXML, boolean visAvailable);
   
 }

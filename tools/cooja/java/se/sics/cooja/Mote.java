@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: Mote.java,v 1.2 2006/09/26 13:08:05 fros4943 Exp $
+ * $Id: Mote.java,v 1.3 2007/01/09 10:16:26 fros4943 Exp $
  */
 
 package se.sics.cooja;
@@ -197,6 +197,6 @@ public interface Mote {
    * 
    * @see #getConfigXML()
    */
-  public abstract boolean setConfigXML(Simulation simulation, Collection<Element> configXML);
+  public abstract boolean setConfigXML(Simulation simulation, Collection<Element> configXML, boolean visAvailable);
 
 }

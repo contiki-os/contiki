@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: MoteType.java,v 1.1 2006/08/21 12:12:57 fros4943 Exp $
+ * $Id: MoteType.java,v 1.2 2007/01/09 10:16:26 fros4943 Exp $
  */
 
 package se.sics.cooja;
@@ -118,7 +118,7 @@ public interface MoteType {
    *          Simulation holding (or that should hold) mote type
    * @return True if mote type has valid settings and is ready to be used
    */
-  public boolean configureAndInit(JFrame parentFrame, Simulation simulation);
+  public boolean configureAndInit(JFrame parentFrame, Simulation simulation, boolean visAvailable);
 
   /**
    * Returns XML elements representing the current config of this mote type.
@@ -144,6 +144,6 @@ public interface MoteType {
    * @return True if config was set successfully, false otherwise
    */
   public boolean setConfigXML(Simulation simulation,
-      Collection<Element> configXML);
+      Collection<Element> configXML, boolean visAvailable);
 
 }
