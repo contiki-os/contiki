@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: MoteInterfaceViewer.java,v 1.2 2006/11/30 14:25:59 fros4943 Exp $
+ * $Id: MoteInterfaceViewer.java,v 1.3 2007/01/09 09:49:24 fros4943 Exp $
  */
 
 package se.sics.cooja.plugins;
@@ -46,7 +46,7 @@ import se.sics.cooja.*;
  * @author Fredrik Osterlind
  */
 @ClassDescription("Mote Interface Viewer")
-@VisPluginType(VisPluginType.MOTE_PLUGIN)
+@PluginType(PluginType.MOTE_PLUGIN)
 public class MoteInterfaceViewer extends VisPlugin {
   private static final long serialVersionUID = 1L;
 
@@ -60,8 +60,8 @@ public class MoteInterfaceViewer extends VisPlugin {
    *
    * @param moteToView Mote to view
    */
-  public MoteInterfaceViewer(Mote moteToView) {
-    super("Mote Interface Viewer (" + moteToView + ")");
+  public MoteInterfaceViewer(Mote moteToView, Simulation simulation, GUI gui) {
+    super("Mote Interface Viewer (" + moteToView + ")", gui);
     mote = moteToView;
 
     JLabel label;
@@ -147,12 +147,27 @@ public class MoteInterfaceViewer extends VisPlugin {
 
   }
 
+  /**
+   * Tries to select the interface with the given class name.
+   * @param description Interface description
+   * @return True if selected, false otherwise
+   */
+  public boolean setSelectedInterface(String description) {
+    for (int i=0; i < selectInterfaceComboBox.getItemCount(); i++) {
+      if (selectInterfaceComboBox.getItemAt(i).equals(description)) {
+        selectInterfaceComboBox.setSelectedIndex(i);
+        return true;
+      }
+    }
+    return false;
+  }
+  
   public void closePlugin() {
     // Release old interface visualizer if any
     if (selectedMoteInterface != null && currentInterfaceVisualizer != null)
       selectedMoteInterface.releaseInterfaceVisualizer(currentInterfaceVisualizer);
   }
-  
+
   public Collection<Element> getConfigXML() {
     Vector<Element> config = new Vector<Element>();
     
@@ -165,15 +180,11 @@ public class MoteInterfaceViewer extends VisPlugin {
 
     return config;
   }
-
-  public boolean setConfigXML(Collection<Element> configXML) {
+  
+  public boolean setConfigXML(Collection<Element> configXML, boolean visAvailable) {
     for (Element element : configXML) {
       if (element.getName().equals("interface")) {
-        for (int i=0; i < selectInterfaceComboBox.getItemCount(); i++) {
-          if (selectInterfaceComboBox.getItemAt(i).equals(element.getText())) {
-            selectInterfaceComboBox.setSelectedIndex(i);
-          }
-        }
+        setSelectedInterface(element.getText());
       } 
     }
     return true;

@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: VisState.java,v 1.3 2006/10/23 16:15:16 fros4943 Exp $
+ * $Id: VisState.java,v 1.4 2007/01/09 09:49:24 fros4943 Exp $
  */
 
 package se.sics.cooja.plugins;
@@ -49,7 +49,7 @@ import se.sics.cooja.Mote.State;
  * @author Fredrik Osterlind
  */
 @ClassDescription("State Visualizer")
-@VisPluginType(VisPluginType.SIM_PLUGIN)
+@PluginType(PluginType.SIM_PLUGIN)
 public class VisState extends Visualizer2D {
   private static final long serialVersionUID = 1L;
   private static Logger logger = Logger.getLogger(VisState.class);
@@ -74,8 +74,8 @@ public class VisState extends Visualizer2D {
    * 
    * @param simulationToVisualize Simulation to visualize
    */
-  public VisState(Simulation simulationToVisualize) {
-    super(simulationToVisualize);
+  public VisState(Simulation simulationToVisualize, GUI gui) {
+    super(simulationToVisualize, gui);
     setTitle("State Visualizer");
     
     simulation = simulationToVisualize;

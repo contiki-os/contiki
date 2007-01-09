@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: MoteTypeInformation.java,v 1.1 2006/08/21 12:13:08 fros4943 Exp $
+ * $Id: MoteTypeInformation.java,v 1.2 2007/01/09 09:49:24 fros4943 Exp $
  */
 
 package se.sics.cooja.plugins;
@@ -43,7 +43,7 @@ import se.sics.cooja.*;
  * @author Fredrik Osterlind
  */
 @ClassDescription("Mote Type Information")
-@VisPluginType(VisPluginType.SIM_PLUGIN)
+@PluginType(PluginType.SIM_PLUGIN)
 public class MoteTypeInformation extends VisPlugin {
   private static Logger logger = Logger.getLogger(MoteTypeInformation.class);
 
@@ -59,8 +59,8 @@ public class MoteTypeInformation extends VisPlugin {
    *
    * @param simulation Simulation
    */
-  public MoteTypeInformation(Simulation simulation) {
-    super("Mote Type Information *frozen*");
+  public MoteTypeInformation(Simulation simulation, GUI gui) {
+    super("Mote Type Information *frozen*", gui);
 
     mySimulation = simulation;
 

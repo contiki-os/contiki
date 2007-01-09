@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: SimControl.java,v 1.2 2006/12/13 11:55:06 fros4943 Exp $
+ * $Id: SimControl.java,v 1.3 2007/01/09 09:49:24 fros4943 Exp $
  */
 
 package se.sics.cooja.plugins;
@@ -49,7 +49,7 @@ import se.sics.cooja.*;
  * @author Fredrik Osterlind
  */
 @ClassDescription("Control Panel")
-@VisPluginType(VisPluginType.SIM_STANDARD_PLUGIN)
+@PluginType(PluginType.SIM_STANDARD_PLUGIN)
 public class SimControl extends VisPlugin {
   private static final long serialVersionUID = 1L;
   private static Logger logger = Logger.getLogger(SimControl.class);
@@ -75,8 +75,8 @@ public class SimControl extends VisPlugin {
    *
    * @param simulationToControl Simulation to control
    */
-  public SimControl(Simulation simulationToControl) {
-    super("Control Panel - " + simulationToControl.getTitle());
+  public SimControl(Simulation simulationToControl, GUI gui) {
+    super("Control Panel - " + simulationToControl.getTitle(), gui);
 
     simulation = simulationToControl;
 

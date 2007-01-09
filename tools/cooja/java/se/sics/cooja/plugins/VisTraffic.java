@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: VisTraffic.java,v 1.4 2006/10/11 10:38:26 fros4943 Exp $
+ * $Id: VisTraffic.java,v 1.5 2007/01/09 09:49:24 fros4943 Exp $
  */
 
 package se.sics.cooja.plugins;
@@ -48,7 +48,7 @@ import se.sics.cooja.interfaces.Position;
  * @author Fredrik Osterlind
  */
 @ClassDescription("Traffic Visualizer")
-@VisPluginType(VisPluginType.SIM_PLUGIN)
+@PluginType(PluginType.SIM_PLUGIN)
 public class VisTraffic extends Visualizer2D {
   protected boolean USE_ALPHA = false;
 
@@ -74,8 +74,8 @@ public class VisTraffic extends Visualizer2D {
    * @param simulationToVisualize
    *          Simulation to visualize
    */
-  public VisTraffic(Simulation simulationToVisualize) {
-    super(simulationToVisualize);
+  public VisTraffic(Simulation simulationToVisualize, GUI gui) {
+    super(simulationToVisualize, gui);
     setTitle("Traffic Visualizer");
     simulation = simulationToVisualize;
 

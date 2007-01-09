@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: MoteInformation.java,v 1.2 2006/09/26 13:08:05 fros4943 Exp $
+ * $Id: MoteInformation.java,v 1.3 2007/01/09 09:49:24 fros4943 Exp $
  */
 
 package se.sics.cooja.plugins;
@@ -47,7 +47,7 @@ import se.sics.cooja.Mote.State;
  * @author Fredrik Osterlind
  */
 @ClassDescription("Mote Information")
-@VisPluginType(VisPluginType.MOTE_PLUGIN)
+@PluginType(PluginType.MOTE_PLUGIN)
 public class MoteInformation extends VisPlugin {
   private static Logger logger = Logger.getLogger(MoteInformation.class);
 
@@ -63,16 +63,19 @@ public class MoteInformation extends VisPlugin {
   private Observer stateObserver;
   private Vector<JPanel> visibleMoteInterfaces = new Vector<JPanel>();
   
+  private Simulation mySimulation;
+  
   /**
    * Create a new mote information window.
    *
    * @param moteToView Mote to view
    */
-  public MoteInformation(Mote moteToView) {
-    super("Mote Information (" + moteToView + ")");
+  public MoteInformation(Mote moteToView, Simulation simulation, GUI gui) {
+    super("Mote Information (" + moteToView + ")", gui);
 
     mote = moteToView;
-
+    mySimulation = simulation;
+    
     JLabel label;
     JPanel mainPane = new JPanel();
     mainPane.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
@@ -89,7 +92,7 @@ public class MoteInformation extends VisPlugin {
     button.setActionCommand("removeMote");
     button.addActionListener(new ActionListener() {
       public void actionPerformed(ActionEvent e) {
-        GUI.currentSimulation.removeMote(mote);
+        mySimulation.removeMote(mote);
         dispose();
       }
     });
