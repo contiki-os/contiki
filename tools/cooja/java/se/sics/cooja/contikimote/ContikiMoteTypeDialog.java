@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ContikiMoteTypeDialog.java,v 1.13 2006/11/06 18:03:34 fros4943 Exp $
+ * $Id: ContikiMoteTypeDialog.java,v 1.14 2007/01/09 10:07:44 fros4943 Exp $
  */
 
 package se.sics.cooja.contikimote;
@@ -101,9 +101,12 @@ public class ContikiMoteTypeDialog extends JDialog {
   // user
   // platforms
 
+  private Vector<File> compilationFiles = null;
+  
   private Vector<MoteType> allOtherTypes = null; // Used to check for
   // conflicting parameters
 
+  private GUI myGUI = null;
   private ContikiMoteTypeDialog myDialog;
 
   /**
@@ -125,6 +128,7 @@ public class ContikiMoteTypeDialog extends JDialog {
         parentFrame);
 
     myDialog.myMoteType = moteTypeToConfigure;
+    myDialog.myGUI = simulation.getGUI();
     myDialog.allOtherTypes = simulation.getMoteTypes();
 
     // Set identifier of mote type
@@ -988,9 +992,9 @@ public class ContikiMoteTypeDialog extends JDialog {
     compilationThread = new Thread(new Runnable() {
       public void run() {
         // Add all user platform directories
-        Vector<File> filesToCompile = (Vector<File>) GUI.currentGUI
+        compilationFiles = (Vector<File>) myGUI
             .getUserPlatforms().clone();
-        filesToCompile.addAll(moteTypeUserPlatforms);
+        compilationFiles.addAll(moteTypeUserPlatforms);
 
         // Add source files from platform configs
         String[] projectSourceFiles = newMoteTypeConfig.getStringArrayValue(
@@ -1004,11 +1008,11 @@ public class ContikiMoteTypeDialog extends JDialog {
                   ContikiMoteType.class, "C_SOURCES", projectSourceFile);
               if (userPlatform != null) {
                 // We found a user platform - Add directory
-                filesToCompile.add(new File(userPlatform.getPath(), file
+                compilationFiles.add(new File(userPlatform.getPath(), file
                     .getParent()));
               }
             }
-            filesToCompile.add(new File(file.getName()));
+            compilationFiles.add(new File(file.getName()));
           }
         }
 
@@ -1017,13 +1021,13 @@ public class ContikiMoteTypeDialog extends JDialog {
           if (((JCheckBox) checkBox).isSelected()) {
             String processName = ((JCheckBox) checkBox).getToolTipText();
             if (processName != null) {
-              filesToCompile.add(new File(processName));
+              compilationFiles.add(new File(processName));
             }
           }
         }
 
         compilationSucceded = ContikiMoteTypeDialog.compileLibrary(identifier,
-            contikiDir, filesToCompile, symbolsCheckBox.isSelected(),
+            contikiDir, compilationFiles, symbolsCheckBox.isSelected(),
             taskOutput.getInputStream(MessageList.NORMAL),
             taskOutput.getInputStream(MessageList.ERROR));
       }
@@ -1641,7 +1645,7 @@ public class ContikiMoteTypeDialog extends JDialog {
 
     boolean foundFile = sourceFile.exists();
     if (!foundFile)
-      for (File userPlatform : GUI.currentGUI.getUserPlatforms()) {
+      for (File userPlatform : myGUI.getUserPlatforms()) {
         sourceFile = new File(userPlatform, sourceFilename);
         if (foundFile = sourceFile.exists())
           break;
@@ -1971,6 +1975,7 @@ public class ContikiMoteTypeDialog extends JDialog {
         myMoteType.setContikiBaseDir(textContikiDir.getText());
         myMoteType.setContikiCoreDir(textCoreDir.getText());
         myMoteType.setUserPlatformDirs(moteTypeUserPlatforms);
+        myMoteType.setCompilationFiles(compilationFiles);
         myMoteType.setConfig(newMoteTypeConfig);
 
         // Set startup processes
@@ -2037,7 +2042,7 @@ public class ContikiMoteTypeDialog extends JDialog {
         pathsWereUpdated();
       } else if (e.getActionCommand().equals("manageuserplatforms")) {
         Vector<File> newPlatforms = UserPlatformsDialog.showDialog(
-            ContikiMoteTypeDialog.this, moteTypeUserPlatforms, GUI.currentGUI
+            ContikiMoteTypeDialog.this, moteTypeUserPlatforms, myGUI
                 .getUserPlatforms());
         if (newPlatforms != null) {
           moteTypeUserPlatforms = newPlatforms;
@@ -2063,7 +2068,7 @@ public class ContikiMoteTypeDialog extends JDialog {
             textCoreDir.getText())));
 
         // If user platforms exists, scan those too
-        for (File userPlatform : GUI.currentGUI.getUserPlatforms()) {
+        for (File userPlatform : myGUI.getUserPlatforms()) {
           processes
               .addAll(ContikiMoteTypeDialog.scanForProcesses(userPlatform));
         }
@@ -2105,7 +2110,7 @@ public class ContikiMoteTypeDialog extends JDialog {
             textCoreDir.getText())));
 
         // If user platforms exists, scan those too
-        for (File userPlatform : GUI.currentGUI.getUserPlatforms()) {
+        for (File userPlatform : myGUI.getUserPlatforms()) {
           sensors.addAll(ContikiMoteTypeDialog.scanForSensors(userPlatform));
         }
         if (moteTypeUserPlatforms != null) {
@@ -2140,7 +2145,7 @@ public class ContikiMoteTypeDialog extends JDialog {
             textCoreDir.getText())));
 
         // If user platforms exists, scan those too
-        for (File userPlatform : GUI.currentGUI.getUserPlatforms()) {
+        for (File userPlatform : myGUI.getUserPlatforms()) {
           interfaces.addAll(ContikiMoteTypeDialog
               .scanForInterfaces(userPlatform));
         }
@@ -2173,7 +2178,7 @@ public class ContikiMoteTypeDialog extends JDialog {
         moteInterfacePanel.removeAll();
 
         // Clone general simulator config
-        newMoteTypeConfig = GUI.currentGUI.getPlatformConfig().clone();
+        newMoteTypeConfig = myGUI.getPlatformConfig().clone();
 
         // Merge with all user platform configs (if any)
         for (File userPlatform : moteTypeUserPlatforms) {
@@ -2190,7 +2195,7 @@ public class ContikiMoteTypeDialog extends JDialog {
             ContikiMoteType.class, "MOTE_INTERFACES");
         Vector<Class<? extends MoteInterface>> moteIntfClasses = new Vector<Class<? extends MoteInterface>>();
 
-        ClassLoader classLoader = GUI.currentGUI
+        ClassLoader classLoader = myGUI
             .createUserPlatformClassLoader(moteTypeUserPlatforms);
 
         // Find and load the mote interface classes
