@@ -26,23 +26,32 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: GUI.java,v 1.12 2006/12/13 11:57:04 fros4943 Exp $
+ * $Id: GUI.java,v 1.13 2007/01/09 10:27:53 fros4943 Exp $
  */
 
 package se.sics.cooja;
 
 import java.awt.*;
 import java.awt.event.*;
+import java.beans.PropertyVetoException;
 import java.io.*;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.*;
+import java.util.List;
+
 import javax.swing.*;
 import javax.swing.event.MenuEvent;
 import javax.swing.event.MenuListener;
 import javax.swing.filechooser.FileFilter;
 import org.apache.log4j.Logger;
 import org.apache.log4j.xml.DOMConfigurator;
+import org.jdom.Document;
+import org.jdom.Element;
+import org.jdom.JDOMException;
+import org.jdom.input.SAXBuilder;
+import org.jdom.output.Format;
+import org.jdom.output.XMLOutputter;
 
 import se.sics.cooja.contikimote.*;
 import se.sics.cooja.dialogs.*;
@@ -53,8 +62,8 @@ import se.sics.cooja.plugins.*;
  *
  * @author Fredrik Osterlind
  */
-public class GUI extends JDesktopPane {
-
+public class GUI {
+  
   /**
    * External tools default Win32 settings filename.
    */
@@ -109,19 +118,10 @@ public class GUI extends JDesktopPane {
   };
 
   /**
-   * Main frame for current GUI
+   * Main frame for current GUI.
+   * Null when COOJA is run without GUI!
    */
   public static JFrame frame;
-
-  /**
-   * Current active simulation
-   */
-  public static Simulation currentSimulation = null;
-
-  /**
-   * Current active GUI
-   */
-  public static GUI currentGUI = null;
 
   private static final long serialVersionUID = 1L;
   private static Logger logger = Logger.getLogger(GUI.class);
@@ -142,11 +142,15 @@ public class GUI extends JDesktopPane {
   private static final int FRAME_STANDARD_HEIGHT = 300;
 
   private GUI myGUI;
-  private Mote selectedMote = null;
-  private GUIEventHandler guiEventHandler = new GUIEventHandler();
+  private Simulation mySimulation;
+  protected Mote selectedMote = null;
+  protected GUIEventHandler guiEventHandler = new GUIEventHandler();
 
   private JMenu menuPlugins, menuMoteTypeClasses, menuMoteTypes;
   private JPopupMenu menuMotePlugins;
+  private JDesktopPane myDesktopPane;
+
+  private Vector<Plugin> startedPlugins = new Vector<Plugin>();
 
   // Platform configuration variables
   // Maintained via method reparsePlatformConfig()
@@ -155,8 +159,8 @@ public class GUI extends JDesktopPane {
   private ClassLoader userPlatformClassLoader;
 
   private Vector<Class<? extends MoteType>> moteTypeClasses = new Vector<Class<? extends MoteType>>();
-  private Vector<Class<? extends VisPlugin>> pluginClasses = new Vector<Class<? extends VisPlugin>>();
-  private Vector<Class<? extends VisPlugin>> pluginClassesTemporary = new Vector<Class<? extends VisPlugin>>();
+  private Vector<Class<? extends Plugin>> pluginClasses = new Vector<Class<? extends Plugin>>();
+  private Vector<Class<? extends Plugin>> pluginClassesTemporary = new Vector<Class<? extends Plugin>>();
   private Vector<Class<? extends RadioMedium>> radioMediumClasses = new Vector<Class<? extends RadioMedium>>();
   private Vector<Class<? extends IPDistributor>> ipDistributorClasses = new Vector<Class<? extends IPDistributor>>();
   private Vector<Class<? extends Positioner>> positionerClasses = new Vector<Class<? extends Positioner>>();
@@ -164,20 +168,17 @@ public class GUI extends JDesktopPane {
   /**
    * Creates a new COOJA Simulator GUI.
    */
-  public GUI() {
+  public GUI(JDesktopPane desktop) {
     myGUI = this;
-    currentGUI = this;
-
-    // Set drag frames to outlines only (faster)
-    setDragMode(JDesktopPane.OUTLINE_DRAG_MODE);
+    mySimulation = null;
+    myDesktopPane = desktop;
 
     // Add menu bar
-    frame.setJMenuBar(createMenuBar());
-
-    frame.setSize(700, 700);
-
-    frame.addWindowListener(guiEventHandler);
-
+    if (frame != null) {
+      frame.setJMenuBar(createMenuBar());
+    }
+    
+    
     // Load default and overwrite with user settings (if any)
     loadExternalToolsDefaultSettings();
     loadExternalToolsUserSettings();
@@ -200,16 +201,23 @@ public class GUI extends JDesktopPane {
     reparsePlatformConfig();
 
     // EXPERIMENTAL: Start all standard GUI plugins
-    for (Class<? extends VisPlugin> visPluginClass : pluginClasses) {
-      int pluginType = visPluginClass.getAnnotation(VisPluginType.class)
+    for (Class<? extends Plugin> visPluginClass : pluginClasses) {
+      int pluginType = visPluginClass.getAnnotation(PluginType.class)
           .value();
-      if (pluginType == VisPluginType.GUI_STANDARD_PLUGIN) {
-        startPlugin(visPluginClass);
+      if (pluginType == PluginType.COOJA_STANDARD_PLUGIN) {
+        startPlugin(visPluginClass, this, null, null);
       }
     }
 
   }
 
+  /**
+   * @return True if simulator is visualized
+   */
+  public boolean isVisualized() {
+    return frame != null;
+  }
+  
   private JMenuBar createMenuBar() {
     JMenuBar menuBar = new JMenuBar();
     JMenu menu;
@@ -240,9 +248,22 @@ public class GUI extends JDesktopPane {
     menuItem.addActionListener(guiEventHandler);
     menu.add(menuItem);
 
+    menuItem = new JMenuItem("Load simulation (quick)");
+    menuItem.setMnemonic(KeyEvent.VK_L);
+    menuItem.setActionCommand("load sim quick");
+    menuItem.addActionListener(guiEventHandler);
+    menu.add(menuItem);
+
     menuItem = new JMenuItem("Save simulation");
     menuItem.setMnemonic(KeyEvent.VK_S);
     menuItem.setActionCommand("save sim");
+    menuItem.addActionListener(guiEventHandler);
+    menu.add(menuItem);
+
+    menu.addSeparator();
+
+    menuItem = new JMenuItem("Close all plugins");
+    menuItem.setActionCommand("close plugins");
     menuItem.addActionListener(guiEventHandler);
     menu.add(menuItem);
 
@@ -327,14 +348,14 @@ public class GUI extends JDesktopPane {
         // Clear menu
         menuMoteTypes.removeAll();
 
-        if (currentSimulation == null) {
+        if (mySimulation == null) {
           return;
         }
 
         // Recreate menu items
         JMenuItem menuItem;
 
-        for (MoteType moteType : currentSimulation.getMoteTypes()) {
+        for (MoteType moteType : mySimulation.getMoteTypes()) {
           menuItem = new JMenuItem(moteType.getDescription());
           menuItem.setActionCommand("add motes");
           menuItem.setToolTipText(getDescriptionOf(moteType.getClass()));
@@ -388,13 +409,28 @@ public class GUI extends JDesktopPane {
     frame.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
 
     // Create and set up the content pane.
-    JComponent newContentPane = new GUI();
+    JDesktopPane desktop = new JDesktopPane();
+    desktop.setDragMode(JDesktopPane.OUTLINE_DRAG_MODE);
+
+    GUI gui = new GUI(desktop);
+    JComponent newContentPane = gui.getDesktopPane();
     newContentPane.setOpaque(true);
     frame.setContentPane(newContentPane);
     frame.setLocationRelativeTo(null);
 
+    frame.setSize(700, 700);
+    frame.addWindowListener(gui.guiEventHandler);
+
+
     // Display the window.
     frame.setVisible(true);
+  }
+
+  /**
+   * @return Current desktop pane (simulator visualizer)
+   */
+  public JDesktopPane getDesktopPane() {
+    return myDesktopPane;
   }
 
   /**
@@ -440,9 +476,18 @@ public class GUI extends JDesktopPane {
     logger.info("> Creating GUI and main frame (invisible)");
     frame = new JFrame("COOJA Simulator");
     frame.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
-    GUI gui = new GUI(); // loads external settings and creates initial
+
+    // Create and set up the content pane.
+    JDesktopPane desktop = new JDesktopPane();
+    desktop.setDragMode(JDesktopPane.OUTLINE_DRAG_MODE);
+    GUI gui = new GUI(desktop); // loads external settings and creates initial
     // platform config
-    JComponent newContentPane = gui;
+
+    // Add menu bar
+    frame.setSize(700, 700);
+    frame.addWindowListener(gui.guiEventHandler);
+    
+    JComponent newContentPane = gui.getDesktopPane();
     newContentPane.setOpaque(true);
     frame.setContentPane(newContentPane);
     frame.setLocationRelativeTo(null);
@@ -707,6 +752,7 @@ public class GUI extends JDesktopPane {
     moteType.setContikiBaseDir(contikiBaseDir.getPath());
     moteType.setContikiCoreDir(contikiCoreDir.getPath());
     moteType.setUserPlatformDirs(new Vector<File>());
+    moteType.setCompilationFiles(filesToCompile);
     moteType.setConfig(gui.getPlatformConfig());
     moteType.setProcesses(userProcesses);
     moteType.setSensors(sensors);
@@ -715,7 +761,7 @@ public class GUI extends JDesktopPane {
 
     // Create simulation
     logger.info("> Creating simulation");
-    Simulation simulation = new Simulation();
+    Simulation simulation = new Simulation(gui);
     simulation.setTitle("Quickstarted: " + filename);
     simulation.setDelayTime(delayTime);
     simulation.setSimulationTime(0);
@@ -726,7 +772,9 @@ public class GUI extends JDesktopPane {
           GUI.class, "RADIOMEDIUMS")[0];
       Class<? extends RadioMedium> radioMediumClass = gui.tryLoadClass(gui,
           RadioMedium.class, radioMediumClassName);
-      simulation.setRadioMedium(radioMediumClass.newInstance());
+      
+      RadioMedium radioMedium = RadioMedium.generateInterface(radioMediumClass, simulation);
+      simulation.setRadioMedium(radioMedium);
     } catch (Exception e) {
       logger.fatal(">> Failed to load radio medium, aborting: "
           + radioMediumClassName + ", " + e);
@@ -776,7 +824,7 @@ public class GUI extends JDesktopPane {
 
     // Start plugin and showing GUI
     logger.info("> Starting plugin and showing GUI");
-    gui.startPlugin(VisState.class);
+    gui.startPlugin(VisState.class, gui, simulation, null);
     frame.setVisible(true);
 
     if (simulationStarting) {
@@ -893,6 +941,16 @@ public class GUI extends JDesktopPane {
    */
   public boolean registerRadioMedium(
       Class<? extends RadioMedium> radioMediumClass) {
+    // Check that simulation constructor exists
+    try {
+      radioMediumClass
+          .getConstructor(new Class[]{Simulation.class});
+    } catch (Exception e) {
+      logger.fatal("No simulation constructor found of radio medium: "
+          + radioMediumClass);
+      return false;
+    }
+
     radioMediumClasses.add(radioMediumClass);
     return true;
   }
@@ -924,7 +982,7 @@ public class GUI extends JDesktopPane {
    */
   public boolean reparsePlatformConfig() {
     // Backup temporary plugins
-    Vector<Class<? extends VisPlugin>> oldTempPlugins = (Vector<Class<? extends VisPlugin>>) pluginClassesTemporary
+    Vector<Class<? extends Plugin>> oldTempPlugins = (Vector<Class<? extends Plugin>>) pluginClassesTemporary
         .clone();
 
     // Reset current configuration
@@ -995,8 +1053,8 @@ public class GUI extends JDesktopPane {
         "PLUGINS");
     if (pluginClassNames != null) {
       for (String pluginClassName : pluginClassNames) {
-        Class<? extends VisPlugin> pluginClass = tryLoadClass(this,
-            VisPlugin.class, pluginClassName);
+        Class<? extends Plugin> pluginClass = tryLoadClass(this,
+            Plugin.class, pluginClassName);
 
         if (pluginClass != null) {
           registerPlugin(pluginClass);
@@ -1009,7 +1067,7 @@ public class GUI extends JDesktopPane {
 
     // Reregister temporary plugins again
     if (oldTempPlugins != null) {
-      for (Class<? extends VisPlugin> pluginClass : oldTempPlugins) {
+      for (Class<? extends Plugin> pluginClass : oldTempPlugins) {
         if (registerTemporaryPlugin(pluginClass)) {
           // logger.info("Reregistered temporary plugin class: " +
           // getDescriptionOf(pluginClass));
@@ -1103,8 +1161,8 @@ public class GUI extends JDesktopPane {
    *          Internal frame to add
    */
   public void showPlugin(VisPlugin plugin) {
-    int nrFrames = this.getAllFrames().length;
-    add(plugin);
+    int nrFrames = myDesktopPane.getAllFrames().length;
+    myDesktopPane.add(plugin);
 
     // Set standard size if not specified by plugin itself
     if (plugin.getWidth() <= 0 || plugin.getHeight() <= 0) {
@@ -1120,7 +1178,7 @@ public class GUI extends JDesktopPane {
     
     // Deselect all other plugins before selecting the new one
     try {
-      for (JInternalFrame existingPlugin: this.getAllFrames()) {
+      for (JInternalFrame existingPlugin: myDesktopPane.getAllFrames()) {
         existingPlugin.setSelected(false);
       }
       plugin.setSelected(true);
@@ -1129,7 +1187,7 @@ public class GUI extends JDesktopPane {
     }
 
     // Mote plugin to front
-    myGUI.moveToFront(plugin);
+    myDesktopPane.moveToFront(plugin);
   }
 
   /**
@@ -1141,12 +1199,17 @@ public class GUI extends JDesktopPane {
    *          If plugin is the last one, ask user if we should remove current
    *          simulation also?
    */
-  public void removePlugin(VisPlugin plugin, boolean askUser) {
+  public void removePlugin(Plugin plugin, boolean askUser) {
     // Clear any allocated resources and remove plugin
     plugin.closePlugin();
-    plugin.dispose();
+    startedPlugins.remove(plugin);
+    
+    // Dispose plugin if it has visualizer
+    if (plugin instanceof VisPlugin) {
+      ((VisPlugin) plugin).dispose();
+    }
 
-    if (askUser && myGUI.getAllFrames().length == 0) {
+    if (askUser && startedPlugins.isEmpty()) {
       String s1 = "Remove";
       String s2 = "Cancel";
       Object[] options = {s1, s2};
@@ -1162,83 +1225,96 @@ public class GUI extends JDesktopPane {
   }
 
   /**
-   * Starts a plugin of given plugin class. If the plugin is a mote plugin the
-   * currently selected mote will be given as an argument.
-   *
+   * Starts a plugin of given plugin class with given arguments.
+   * 
    * @param pluginClass
    *          Plugin class
-   * @return True if plugin was started, false otherwise
+   * @param gui
+   *          GUI passed as argument to all plugins
+   * @param simulation
+   *          Simulation passed as argument to mote and simulation plugins
+   * @param mote
+   *          Mote passed as argument to mote plugins
+   * @return Start plugin if any
    */
-  protected boolean startPlugin(Class<? extends VisPlugin> pluginClass) {
+  public Plugin startPlugin(Class<? extends Plugin> pluginClass,
+      GUI gui,
+      Simulation simulation,
+      Mote mote
+  ) {
+    
     // Check that plugin class is registered
     if (!pluginClasses.contains(pluginClass)) {
       logger.fatal("Plugin class not registered: " + pluginClass);
-      return false;
+      return null;
     }
 
-    // Instantiate and show plugin differently depending on plugin type
-    VisPlugin newPlugin = null;
-    int pluginType = pluginClass.getAnnotation(VisPluginType.class).value();
+    // Check that visualizer plugin is not started without GUI 
+    if (!isVisualized()) {
+      try {
+        pluginClass.asSubclass(VisPlugin.class);
+
+        // Cast succeded, plugin is visualizer plugin!
+        logger.fatal("Can't start visualizer plugin (no GUI): " + pluginClass);
+        return null;
+      } catch (ClassCastException e) {
+      }
+    }
+    
+    // Construct plugin depending on plugin type
+    Plugin newPlugin = null;
+    int pluginType = pluginClass.getAnnotation(PluginType.class).value();
 
     try {
-      if (pluginType == VisPluginType.MOTE_PLUGIN) {
-        if (selectedMote == null) {
+      if (pluginType == PluginType.MOTE_PLUGIN) {
+        if (mote == null) {
           logger.fatal("Can't start mote plugin (no mote selected)");
-          return false;
+          return null;
         }
 
-        newPlugin = pluginClass.getConstructor(new Class[]{Mote.class})
-            .newInstance(selectedMote);
+        newPlugin = pluginClass.getConstructor(
+            new Class[] { Mote.class, Simulation.class, GUI.class })
+            .newInstance(mote, simulation, gui);
         
         // Tag plugin with mote
-        newPlugin.putClientProperty("mote", selectedMote);
-        
-        selectedMote = null;
-      } else if (pluginType == VisPluginType.SIM_PLUGIN) {
-        if (currentSimulation == null) {
+        newPlugin.tagWithObject(mote);
+      } else if (pluginType == PluginType.SIM_PLUGIN ||
+          pluginType == PluginType.SIM_STANDARD_PLUGIN) {
+        if (simulation == null) {
           logger.fatal("Can't start simulation plugin (no simulation)");
-          return false;
+          return null;
         }
 
-        newPlugin = pluginClass.getConstructor(new Class[]{Simulation.class})
-            .newInstance(currentSimulation);
-      } else if (pluginType == VisPluginType.SIM_STANDARD_PLUGIN) {
-        if (currentSimulation == null) {
-          logger
-              .fatal("Can't start simulation standard plugin (no simulation)");
-          return false;
-        }
-
-        newPlugin = pluginClass.getConstructor(new Class[]{Simulation.class})
-            .newInstance(currentSimulation);
-      } else if (pluginType == VisPluginType.GUI_PLUGIN) {
-        if (currentGUI == null) {
-          logger.fatal("Can't start GUI plugin (no GUI)");
-          return false;
+        newPlugin = pluginClass.getConstructor(new Class[]{Simulation.class, GUI.class})
+            .newInstance(simulation, gui);
+      } else if (pluginType == PluginType.COOJA_PLUGIN ||
+          pluginType == PluginType.COOJA_STANDARD_PLUGIN) {
+        if (gui == null) {
+          logger.fatal("Can't start COOJA plugin (no GUI)");
+          return null;
         }
 
         newPlugin = pluginClass.getConstructor(new Class[]{GUI.class})
-            .newInstance(currentGUI);
-      } else if (pluginType == VisPluginType.GUI_STANDARD_PLUGIN) {
-        if (currentGUI == null) {
-          logger.fatal("Can't start GUI plugin (no GUI)");
-          return false;
-        }
-
-        newPlugin = pluginClass.getConstructor(new Class[]{GUI.class})
-            .newInstance(currentGUI);
+            .newInstance(gui);
       }
     } catch (Exception e) {
       logger.fatal("Exception thrown when starting plugin: " + e);
-      return false;
+      e.printStackTrace();
+      return null;
     }
 
     if (newPlugin == null)
-      return false;
+      return null;
 
-    // Show plugin
-    myGUI.showPlugin(newPlugin);
-    return true;
+    // Add to active plugins list
+    startedPlugins.add(newPlugin);
+    
+    // Show plugin if visualizer type
+    if (newPlugin instanceof VisPlugin) {
+      myGUI.showPlugin((VisPlugin) newPlugin);
+    }
+
+    return newPlugin;
   }
 
   /**
@@ -1249,7 +1325,7 @@ public class GUI extends JDesktopPane {
    *          New plugin to register
    * @return True if this plugin was registered ok, false otherwise
    */
-  public boolean registerPlugin(Class<? extends VisPlugin> newPluginClass) {
+  public boolean registerPlugin(Class<? extends Plugin> newPluginClass) {
     return registerPlugin(newPluginClass, true);
   }
 
@@ -1263,7 +1339,7 @@ public class GUI extends JDesktopPane {
    * @return True if this plugin was registered ok, false otherwise
    */
   public boolean registerTemporaryPlugin(
-      Class<? extends VisPlugin> newPluginClass) {
+      Class<? extends Plugin> newPluginClass) {
     if (pluginClasses.contains(newPluginClass))
       return false;
 
@@ -1281,7 +1357,7 @@ public class GUI extends JDesktopPane {
    * @param pluginClass
    *          Plugin class to unregister
    */
-  public void unregisterPlugin(Class<? extends VisPlugin> pluginClass) {
+  public void unregisterPlugin(Class<? extends Plugin> pluginClass) {
 
     // Remove (if existing) plugin class menu items
     for (Component menuComponent : menuPlugins.getMenuComponents()) {
@@ -1315,7 +1391,7 @@ public class GUI extends JDesktopPane {
    *          Should this plugin be added to the dedicated plugins menubar?
    * @return True if this plugin was registered ok, false otherwise
    */
-  private boolean registerPlugin(Class<? extends VisPlugin> newPluginClass,
+  private boolean registerPlugin(Class<? extends Plugin> newPluginClass,
       boolean addToMenu) {
 
     // Get description annotation (if any)
@@ -1323,23 +1399,21 @@ public class GUI extends JDesktopPane {
 
     // Get plugin type annotation (required)
     int pluginType;
-    if (newPluginClass.isAnnotationPresent(VisPluginType.class)) {
-      pluginType = newPluginClass.getAnnotation(VisPluginType.class).value();
+    if (newPluginClass.isAnnotationPresent(PluginType.class)) {
+      pluginType = newPluginClass.getAnnotation(PluginType.class).value();
     } else {
-      pluginType = VisPluginType.UNDEFINED_PLUGIN;
+      pluginType = PluginType.UNDEFINED_PLUGIN;
     }
 
     // Check that plugin type is valid and constructor exists
     try {
-      if (pluginType == VisPluginType.MOTE_PLUGIN) {
-        newPluginClass.getConstructor(new Class[]{Mote.class});
-      } else if (pluginType == VisPluginType.SIM_PLUGIN) {
-        newPluginClass.getConstructor(new Class[]{Simulation.class});
-      } else if (pluginType == VisPluginType.SIM_STANDARD_PLUGIN) {
-        newPluginClass.getConstructor(new Class[]{Simulation.class});
-      } else if (pluginType == VisPluginType.GUI_PLUGIN) {
-        newPluginClass.getConstructor(new Class[]{GUI.class});
-      } else if (pluginType == VisPluginType.GUI_STANDARD_PLUGIN) {
+      if (pluginType == PluginType.MOTE_PLUGIN) {
+        newPluginClass.getConstructor(new Class[]{Mote.class, Simulation.class, GUI.class});
+      } else if (pluginType == PluginType.SIM_PLUGIN ||
+          pluginType == PluginType.SIM_STANDARD_PLUGIN) {
+        newPluginClass.getConstructor(new Class[]{Simulation.class, GUI.class});
+      } else if (pluginType == PluginType.COOJA_PLUGIN || 
+          pluginType == PluginType.COOJA_STANDARD_PLUGIN) {
         newPluginClass.getConstructor(new Class[]{GUI.class});
       } else {
         logger.fatal("Could not find valid plugin type annotation in class "
@@ -1352,7 +1426,7 @@ public class GUI extends JDesktopPane {
       return false;
     }
 
-    if (addToMenu) {
+    if (addToMenu && menuPlugins != null) {
       // Create 'start plugin'-menu item
       JMenuItem menuItem = new JMenuItem(description);
       menuItem.setActionCommand("start plugin");
@@ -1361,7 +1435,7 @@ public class GUI extends JDesktopPane {
 
       menuPlugins.add(menuItem);
 
-      if (pluginType == VisPluginType.MOTE_PLUGIN) {
+      if (pluginType == PluginType.MOTE_PLUGIN) {
         // Disable previous menu item and add new item to mote plugins menu
         menuItem.setEnabled(false);
         menuItem.setToolTipText("Mote plugin");
@@ -1382,8 +1456,10 @@ public class GUI extends JDesktopPane {
    * Unregister all plugin classes, including temporary plugins.
    */
   public void unregisterPlugins() {
-    menuPlugins.removeAll();
-    menuMotePlugins.removeAll();
+    if (menuPlugins != null) {
+      menuPlugins.removeAll();
+      menuMotePlugins.removeAll();
+    }
     pluginClasses.clear();
     pluginClassesTemporary.clear();
   }
@@ -1408,47 +1484,54 @@ public class GUI extends JDesktopPane {
 
   // // GUI CONTROL METHODS ////
 
+  /**
+   * @return Current simulation
+   */
+  public Simulation getSimulation() {
+    return mySimulation;
+  }
+  
   public void setSimulation(Simulation sim) {
     if (sim != null) {
       doRemoveSimulation(false);
     }
-    currentSimulation = sim;
+    mySimulation = sim;
 
     // Set frame title
-    frame.setTitle("COOJA Simulator" + " - " + sim.getTitle());
+    if (frame != null)
+      frame.setTitle("COOJA Simulator" + " - " + sim.getTitle());
 
     // Open standard plugins (if none opened already)
-    if (getAllFrames().length == 0)
-      for (Class<? extends VisPlugin> visPluginClass : pluginClasses) {
-        int pluginType = visPluginClass.getAnnotation(VisPluginType.class)
-        .value();
-        if (pluginType == VisPluginType.SIM_STANDARD_PLUGIN) {
-          startPlugin(visPluginClass);
+    if (startedPlugins.size() == 0)
+      for (Class<? extends Plugin> pluginClass : pluginClasses) {
+        int pluginType = pluginClass.getAnnotation(PluginType.class).value();
+        if (pluginType == PluginType.SIM_STANDARD_PLUGIN) {
+          startPlugin(pluginClass, this, sim, null);
         }
       }
   }
 
   /**
    * Creates a new mote type of the given mote type class.
-   *
+   * 
    * @param moteTypeClass
    *          Mote type class
    */
   public void doCreateMoteType(Class<? extends MoteType> moteTypeClass) {
-    if (currentSimulation == null) {
+    if (mySimulation == null) {
       logger.fatal("Can't create mote type (no simulation)");
       return;
     }
 
     // Stop simulation (if running)
-    currentSimulation.stopSimulation();
+    mySimulation.stopSimulation();
 
     // Create mote type
     MoteType newMoteType = null;
     boolean moteTypeOK = false;
     try {
       newMoteType = moteTypeClass.newInstance();
-      moteTypeOK = newMoteType.configureAndInit(frame, currentSimulation);
+      moteTypeOK = newMoteType.configureAndInit(frame, mySimulation, isVisualized());
     } catch (Exception e) {
       logger.fatal("Exception when creating mote type: " + e);
       return;
@@ -1456,7 +1539,7 @@ public class GUI extends JDesktopPane {
 
     // Add mote type to simulation
     if (newMoteType != null && moteTypeOK) {
-      currentSimulation.addMoteType(newMoteType);
+      mySimulation.addMoteType(newMoteType);
     }
   }
 
@@ -1468,7 +1551,7 @@ public class GUI extends JDesktopPane {
    */
   public void doRemoveSimulation(boolean askForConfirmation) {
 
-    if (currentSimulation != null) {
+    if (mySimulation != null) {
       if (askForConfirmation) {
         String s1 = "Remove";
         String s2 = "Cancel";
@@ -1483,25 +1566,20 @@ public class GUI extends JDesktopPane {
       }
 
       // Close all started non-GUI plugins
-      for (JInternalFrame openededFrame : myGUI.getAllFrames()) {
-        // Check that frame is a plugin
-        Class frameClass = openededFrame.getClass();
-        if (pluginClasses.contains(frameClass)) {
-          int pluginType = ((Class<? extends VisPlugin>) frameClass)
-              .getAnnotation(VisPluginType.class).value();
-          if (pluginType != VisPluginType.GUI_PLUGIN &&
-              pluginType != VisPluginType.GUI_STANDARD_PLUGIN)
-            removePlugin((VisPlugin) openededFrame, false);
-        }
+      for (Object startedPlugin: startedPlugins.toArray()) {
+        int pluginType = startedPlugin.getClass().getAnnotation(PluginType.class).value();
+        if (pluginType != PluginType.COOJA_PLUGIN &&
+            pluginType != PluginType.COOJA_STANDARD_PLUGIN)
+          removePlugin((Plugin)startedPlugin, false);
       }
 
       // Delete simulation
-      currentSimulation.deleteObservers();
-      currentSimulation.stopSimulation();
-      currentSimulation = null;
+      mySimulation.deleteObservers();
+      mySimulation.stopSimulation();
+      mySimulation = null;
 
       // Unregister temporary plugin classes
-      Enumeration<Class<? extends VisPlugin>> pluginClasses = pluginClassesTemporary
+      Enumeration<Class<? extends Plugin>> pluginClasses = pluginClassesTemporary
           .elements();
       while (pluginClasses.hasMoreElements()) {
         unregisterPlugin(pluginClasses.nextElement());
@@ -1518,7 +1596,7 @@ public class GUI extends JDesktopPane {
    * @param askForConfirmation
    *          Should we ask for confirmation if a simulation is already active?
    */
-  public void doLoadConfig(boolean askForConfirmation) {
+  public void doLoadConfig(boolean askForConfirmation, boolean quick) {
 
     if (CoreComm.hasLibraryBeenLoaded()) {
       JOptionPane
@@ -1529,7 +1607,7 @@ public class GUI extends JDesktopPane {
       return;
     }
 
-    if (askForConfirmation && currentSimulation != null) {
+    if (askForConfirmation && mySimulation != null) {
       String s1 = "Remove";
       String s2 = "Cancel";
       Object[] options = {s1, s2};
@@ -1561,7 +1639,7 @@ public class GUI extends JDesktopPane {
       if (loadFile.exists() && loadFile.canRead()) {
         Simulation newSim = null;
         try {
-          newSim = Simulation.loadSimulationConfig(loadFile);
+          newSim = loadSimulationConfig(loadFile, quick);
         } catch (UnsatisfiedLinkError e) {
           logger.warn("Could not reopen libraries");
           newSim = null;
@@ -1585,14 +1663,14 @@ public class GUI extends JDesktopPane {
    *          Ask for confirmation before overwriting file
    */
   public void doSaveConfig(boolean askForConfirmation) {
-    if (currentSimulation != null) {
-      currentSimulation.stopSimulation();
+    if (mySimulation != null) {
+      mySimulation.stopSimulation();
 
       JFileChooser fc = new JFileChooser();
 
       fc.setFileFilter(GUI.SAVED_SIMULATIONS_FILES);
 
-      int returnVal = fc.showSaveDialog(myGUI);
+      int returnVal = fc.showSaveDialog(myDesktopPane);
       if (returnVal == JFileChooser.APPROVE_OPTION) {
         File saveFile = fc.getSelectedFile();
         if (!fc.accept(saveFile)) {
@@ -1618,7 +1696,7 @@ public class GUI extends JDesktopPane {
         }
 
         if (!saveFile.exists() || saveFile.canWrite())
-          currentSimulation.saveSimulationConfig(saveFile);
+          saveSimulationConfig(saveFile);
         else
           logger.fatal("No write access to file");
 
@@ -1632,13 +1710,13 @@ public class GUI extends JDesktopPane {
    * Add new mote to current simulation
    */
   public void doAddMotes(MoteType moteType) {
-    if (currentSimulation != null) {
-      currentSimulation.stopSimulation();
+    if (mySimulation != null) {
+      mySimulation.stopSimulation();
 
-      Vector<Mote> newMotes = AddMoteDialog.showDialog(frame, moteType);
+      Vector<Mote> newMotes = AddMoteDialog.showDialog(frame, mySimulation, moteType);
       if (newMotes != null) {
         for (Mote newMote : newMotes)
-          currentSimulation.addMote(newMote);
+          mySimulation.addMote(newMote);
       }
 
     } else
@@ -1652,7 +1730,7 @@ public class GUI extends JDesktopPane {
    *          Should we ask for confirmation if a simulation is already active?
    */
   public void doCreateSimulation(boolean askForConfirmation) {
-    if (askForConfirmation && currentSimulation != null) {
+    if (askForConfirmation && mySimulation != null) {
       String s1 = "Remove";
       String s2 = "Cancel";
       Object[] options = {s1, s2};
@@ -1667,7 +1745,7 @@ public class GUI extends JDesktopPane {
 
     // Create new simulation
     doRemoveSimulation(false);
-    Simulation newSim = new Simulation();
+    Simulation newSim = new Simulation(this);
     boolean createdOK = CreateSimDialog.showDialog(frame, newSim);
     if (createdOK) {
       myGUI.setSimulation(newSim);
@@ -1681,17 +1759,21 @@ public class GUI extends JDesktopPane {
    *          Should we ask for confirmation before quitting?
    */
   public void doQuit(boolean askForConfirmation) {
-    if (!askForConfirmation)
-      System.exit(0);
+    if (askForConfirmation) {
+      String s1 = "Quit";
+      String s2 = "Cancel";
+      Object[] options = {s1, s2};
+      int n = JOptionPane.showOptionDialog(frame, "Sure you want to quit?",
+          "Close COOJA Simulator", JOptionPane.YES_NO_OPTION,
+          JOptionPane.QUESTION_MESSAGE, null, options, s1);
+      if (n != JOptionPane.YES_OPTION)
+        return;
+    }
 
-    String s1 = "Quit";
-    String s2 = "Cancel";
-    Object[] options = {s1, s2};
-    int n = JOptionPane.showOptionDialog(frame, "Sure you want to quit?",
-        "Close COOJA Simulator", JOptionPane.YES_NO_OPTION,
-        JOptionPane.QUESTION_MESSAGE, null, options, s1);
-    if (n != JOptionPane.YES_OPTION)
-      return;
+    // Clean up resources
+    Object[] plugins = startedPlugins.toArray();
+    for (Object plugin: plugins)
+      removePlugin((Plugin) plugin, false);
 
     System.exit(0);
   }
@@ -1779,7 +1861,8 @@ public class GUI extends JDesktopPane {
    * Load user values from external properties file
    */
   private static void loadExternalToolsUserSettings() {
-    File configFile = new File(System.getProperty("user.home"), GUI.EXTERNAL_TOOLS_USER_SETTINGS_FILENAME);
+    File configFile = new File(System.getProperty("user.home"),
+        GUI.EXTERNAL_TOOLS_USER_SETTINGS_FILENAME);
     
     try {
       FileInputStream in = new FileInputStream(configFile);
@@ -1847,7 +1930,9 @@ public class GUI extends JDesktopPane {
       } else if (e.getActionCommand().equals("close sim")) {
         myGUI.doRemoveSimulation(true);
       } else if (e.getActionCommand().equals("load sim")) {
-        myGUI.doLoadConfig(true);
+        myGUI.doLoadConfig(true, false);
+      } else if (e.getActionCommand().equals("load sim quick")) {
+        myGUI.doLoadConfig(true, true);
       } else if (e.getActionCommand().equals("save sim")) {
         myGUI.doSaveConfig(true);
       } else if (e.getActionCommand().equals("quit")) {
@@ -1860,6 +1945,10 @@ public class GUI extends JDesktopPane {
             .getClientProperty("motetype"));
       } else if (e.getActionCommand().equals("edit paths")) {
         ExternalToolsDialog.showDialog(frame);
+      } else if (e.getActionCommand().equals("close plugins")) {
+        Object[] plugins = startedPlugins.toArray();
+        for (Object plugin: plugins)
+          removePlugin((Plugin) plugin, false);
       } else if (e.getActionCommand().equals("manage platforms")) {
         Vector<File> newPlatforms = UserPlatformsDialog.showDialog(frame,
             currentUserPlatforms, null);
@@ -1870,7 +1959,7 @@ public class GUI extends JDesktopPane {
       } else if (e.getActionCommand().equals("start plugin")) {
         Class<? extends VisPlugin> pluginClass = (Class<? extends VisPlugin>) ((JMenuItem) e
             .getSource()).getClientProperty("class");
-        startPlugin(pluginClass);
+        startPlugin(pluginClass, myGUI, mySimulation, selectedMote);
       } else
         logger.warn("Unhandled action: " + e.getActionCommand());
     }
@@ -1907,7 +1996,8 @@ public class GUI extends JDesktopPane {
 
     try {
       if (userPlatformClassLoader != null) {
-	return userPlatformClassLoader.loadClass(className).asSubclass(classType);
+        return userPlatformClassLoader.loadClass(className).asSubclass(
+            classType);
       }
     } catch (ClassNotFoundException e) {
     }
@@ -2110,6 +2200,16 @@ public class GUI extends JDesktopPane {
       if (!ok)
         System.exit(1);
 
+      // Check if simulator should be quick-started
+    } else if (args.length > 0 && args[0].startsWith("-nogui")) {
+
+      // No GUI start-up
+      javax.swing.SwingUtilities.invokeLater(new Runnable() {
+        public void run() {
+          new GUI(null);
+        }
+      });
+
     } else {
 
       // Regular start-up
@@ -2121,5 +2221,280 @@ public class GUI extends JDesktopPane {
 
     }
   }
+  
+  /**
+   * Loads a simulation configuration from given file.
+   * 
+   * When loading Contiki mote types, the libraries must be recompiled. User may
+   * change mote type settings at this point.
+   * 
+   * @see #saveSimulationConfig(File)
+   * @param file
+   *          File to read
+   * @return New simulation or null if recompiling failed or aborted
+   * @throws UnsatisfiedLinkError
+   *           If associated libraries could not be loaded
+   */
+  public Simulation loadSimulationConfig(File file, boolean quick) throws UnsatisfiedLinkError {
+
+    Simulation newSim = null;
+
+    try {
+      // Open config file
+      SAXBuilder builder = new SAXBuilder();
+      Document doc = builder.build(file);
+      Element root = doc.getRootElement();
+
+      // Check that config file version is correct
+      if (!root.getName().equals("simconf")) {
+        logger.fatal("Not a valid COOJA simulation config!");
+        return null;
+      }
+
+      // Create new simulation from config
+      for (Object element : root.getChildren()) {
+        if (((Element) element).getName().equals("simulation")) {
+          Collection<Element> config = ((Element) element).getChildren();
+          newSim = new Simulation(this);
+          boolean createdOK = newSim.setConfigXML(config, !quick);
+          if (!createdOK) {
+            logger.info("Simulation not loaded");
+            return null;
+          }
+        }
+      }
+
+      // Restart plugins from config
+      setPluginsConfigXML(root.getChildren(), newSim, !quick);
+
+    } catch (JDOMException e) {
+      logger.fatal("File not wellformed: " + e.getMessage());
+      return null;
+    } catch (IOException e) {
+      logger.fatal("No access to file: " + e.getMessage());
+      return null;
+    } catch (Exception e) {
+      logger.fatal("Exception when loading file: " + e);
+      e.printStackTrace();
+      return null;
+    }
+
+    return newSim;
+  }
+
+  /**
+   * Saves current simulation configuration to given file and notifies
+   * observers.
+   * 
+   * @see #loadSimulationConfig(File file)
+   * @see #getConfigXML()
+   * @param file
+   *          File to write
+   */
+  public void saveSimulationConfig(File file) {
+
+    try {
+      // Create simulation configL
+      Element root = new Element("simconf");
+      Element simulationElement = new Element("simulation");
+      simulationElement.addContent(mySimulation.getConfigXML());
+      root.addContent(simulationElement);
+      
+      // Create started plugins config
+      Collection<Element> pluginsConfig = getPluginsConfigXML();
+      if (pluginsConfig != null)
+        root.addContent(pluginsConfig);
+      
+      // Create and write to document
+      Document doc = new Document(root);
+      FileOutputStream out = new FileOutputStream(file);
+      XMLOutputter outputter = new XMLOutputter();
+      outputter.setFormat(Format.getPrettyFormat());
+      outputter.output(doc, out);
+      out.close();
+
+      logger.info("Saved to file: " + file.getAbsolutePath());
+    } catch (Exception e) {
+      logger.warn("Exception while saving simulation config: " + e);
+      e.printStackTrace();
+    }
+  }
+
+  /**
+   * Returns started plugins config.
+   * @return Config or null
+   */
+  public Collection<Element> getPluginsConfigXML() {
+    Vector<Element> config = new Vector<Element>();
     
+    // Loop through all started plugins
+    // (Only return config of non-GUI plugins)
+    Element pluginElement, pluginSubElement;
+    for (Plugin startedPlugin: startedPlugins) {
+      int pluginType = startedPlugin.getClass().getAnnotation(PluginType.class).value();
+      
+      // Ignore GUI plugins
+      if (pluginType == PluginType.COOJA_PLUGIN ||
+          pluginType == PluginType.COOJA_STANDARD_PLUGIN)
+        continue;
+      
+      pluginElement = new Element("plugin");
+      pluginElement.setText(startedPlugin.getClass().getName());
+      
+      // Create mote argument config (if mote plugin)
+      if (pluginType == PluginType.MOTE_PLUGIN && startedPlugin.getTag() != null) {
+        pluginSubElement = new Element("mote_arg");
+        Mote taggedMote = (Mote) startedPlugin.getTag();
+        for (int moteNr = 0; moteNr < mySimulation.getMotesCount(); moteNr++) {
+          if (mySimulation.getMote(moteNr) == taggedMote) {
+            pluginSubElement.setText(Integer.toString(moteNr));
+            pluginElement.addContent(pluginSubElement);
+            break;
+          }
+        }
+      }
+
+      // Create plugin specific configuration
+      Collection pluginXML = startedPlugin.getConfigXML();
+      if (pluginXML != null) {
+        pluginSubElement = new Element("plugin_config");
+        pluginSubElement.addContent(pluginXML);
+        pluginElement.addContent(pluginSubElement);
+      }
+      
+      // If plugin is visualizer plugin, create visualization arguments
+      if (startedPlugin instanceof VisPlugin) {
+        VisPlugin startedVisPlugin = (VisPlugin) startedPlugin;
+        
+        pluginSubElement = new Element("width");
+        pluginSubElement.setText("" + startedVisPlugin.getSize().width);
+        pluginElement.addContent(pluginSubElement);
+        
+        pluginSubElement = new Element("z");
+        pluginSubElement.setText("" + getDesktopPane().getComponentZOrder(startedVisPlugin));
+        pluginElement.addContent(pluginSubElement);
+        
+        pluginSubElement = new Element("height");
+        pluginSubElement.setText("" + startedVisPlugin.getSize().height);
+        pluginElement.addContent(pluginSubElement);
+        
+        pluginSubElement = new Element("location_x");
+        pluginSubElement.setText("" + startedVisPlugin.getLocation().x);
+        pluginElement.addContent(pluginSubElement);
+        
+        pluginSubElement = new Element("location_y");
+        pluginSubElement.setText("" + startedVisPlugin.getLocation().y);
+        pluginElement.addContent(pluginSubElement);
+        
+        pluginSubElement = new Element("minimized");
+        pluginSubElement.setText(new Boolean(startedVisPlugin.isIcon()).toString());
+        pluginElement.addContent(pluginSubElement);
+      }
+      
+      config.add(pluginElement);
+    }
+    
+    return config;
+  }
+
+  /**
+   * Starts plugins with arguments in given config.
+   * 
+   * @param configXML
+   *          Config XML elements
+   * @param simulation
+   *          Simulation on which to start plugins
+   * @return True if all plugins started, false otherwise
+   */
+  public boolean setPluginsConfigXML(Collection<Element> configXML,
+      Simulation simulation, boolean visAvailable) {
+
+    for (Element pluginElement : configXML.toArray(new Element[0])) {
+      if (pluginElement.getName().equals("plugin")) {
+
+        // Read plugin class
+        String pluginClassName = pluginElement.getText().trim();
+        Class<? extends Plugin> visPluginClass = tryLoadClass(this,
+            Plugin.class, pluginClassName);
+        if (visPluginClass == null) {
+          logger.fatal("Could not load plugin class: " + pluginClassName);
+          return false;
+        }
+
+        // Parse plugin mote argument (if any)
+        Mote mote = null;
+        for (Element pluginSubElement : (List<Element>) pluginElement
+            .getChildren()) {
+          if (pluginSubElement.getName().equals("mote_arg")) {
+            int moteNr = Integer.parseInt(pluginSubElement.getText());
+            if (moteNr > 0 && moteNr < simulation.getMotesCount())
+              mote = simulation.getMote(moteNr);
+          }
+        }
+
+        // Start plugin (before applying rest of config)
+        Plugin startedPlugin = startPlugin(visPluginClass, this,
+            simulation, mote);
+
+        // Apply plugin specific configuration
+        for (Element pluginSubElement : (List<Element>) pluginElement
+            .getChildren()) {
+          if (pluginSubElement.getName().equals("plugin_config")) {
+            startedPlugin.setConfigXML(pluginSubElement.getChildren(), visAvailable);
+          }
+        }
+
+        // If plugin is visualizer plugin, parse visualization arguments
+        if (startedPlugin instanceof VisPlugin) {
+          Dimension size = new Dimension(100, 100);
+          Point location = new Point(100, 100);
+          VisPlugin startedVisPlugin = (VisPlugin) startedPlugin;
+
+          for (Element pluginSubElement : (List<Element>) pluginElement
+              .getChildren()) {
+
+            if (pluginSubElement.getName().equals("width") && size != null) {
+              size.width = Integer.parseInt(pluginSubElement.getText());
+              startedVisPlugin.setSize(size);
+            } else if (pluginSubElement.getName().equals("height")) {
+              size.height = Integer.parseInt(pluginSubElement.getText());
+              startedVisPlugin.setSize(size);
+            } else if (pluginSubElement.getName().equals("z")) {
+              int zOrder = Integer.parseInt(pluginSubElement.getText());
+              // Save z order as temporary client property
+              startedVisPlugin.putClientProperty("zorder", zOrder);
+            } else if (pluginSubElement.getName().equals("location_x")) {
+              location.x = Integer.parseInt(pluginSubElement.getText());
+              startedVisPlugin.setLocation(location);
+            } else if (pluginSubElement.getName().equals("location_y")) {
+              location.y = Integer.parseInt(pluginSubElement.getText());
+              startedVisPlugin.setLocation(location);
+            } else if (pluginSubElement.getName().equals("minimized")) {
+              try {
+                startedVisPlugin.setIcon(Boolean.parseBoolean(pluginSubElement
+                    .getText()));
+              } catch (PropertyVetoException e) {
+                // Ignoring
+              }
+            } else if (pluginSubElement.getName().equals("plugin_config")) {
+              startedVisPlugin.setConfigXML(pluginSubElement.getChildren(), visAvailable);
+            }
+          }
+        }
+
+      }
+    }
+    
+    // For all started visplugins, check if they have a zorder property
+    for (JInternalFrame plugin : getDesktopPane().getAllFrames()) {
+      if (plugin.getClientProperty("zorder") != null) {
+        getDesktopPane().setComponentZOrder(plugin,
+            ((Integer) plugin.getClientProperty("zorder")).intValue());
+        plugin.putClientProperty("zorder", null);
+      }
+    }
+
+    return true;
+  }
+
 }
