@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ContikiRS232.java,v 1.2 2006/09/26 13:08:05 fros4943 Exp $
+ * $Id: ContikiRS232.java,v 1.3 2007/01/09 10:05:19 fros4943 Exp $
  */
 
 package se.sics.cooja.contikimote.interfaces;
@@ -250,7 +250,7 @@ public class ContikiRS232 extends MoteInterface implements ContikiMoteInterface 
     return null;
   }
 
-  public void setConfigXML(Collection<Element> configXML) {
+  public void setConfigXML(Collection<Element> configXML, boolean visAvailable) {
   }
 
 }

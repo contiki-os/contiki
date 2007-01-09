@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ContikiMoteID.java,v 1.1 2006/08/21 12:13:05 fros4943 Exp $
+ * $Id: ContikiMoteID.java,v 1.2 2007/01/09 10:05:19 fros4943 Exp $
  */
 
 package se.sics.cooja.contikimote.interfaces;
@@ -156,7 +156,7 @@ public class ContikiMoteID extends MoteID implements ContikiMoteInterface {
     return config;
   }
 
-  public void setConfigXML(Collection<Element> configXML) {
+  public void setConfigXML(Collection<Element> configXML, boolean visAvailable) {
     for (Element element : configXML) {
       if (element.getName().equals("id")) {
         setMoteID(Integer.parseInt(element.getText()));

@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ContikiIPAddress.java,v 1.1 2006/08/21 12:13:04 fros4943 Exp $
+ * $Id: ContikiIPAddress.java,v 1.2 2007/01/09 10:05:19 fros4943 Exp $
  */
 
 package se.sics.cooja.contikimote.interfaces;
@@ -176,7 +176,7 @@ public class ContikiIPAddress extends IPAddress implements ContikiMoteInterface 
     return config;
   }
 
-  public void setConfigXML(Collection<Element> configXML) {
+  public void setConfigXML(Collection<Element> configXML, boolean visAvailable) {
     for (Element element : configXML) {
       if (element.getName().equals("ipv4address")) {
         setIPString(element.getText());

@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ContikiButton.java,v 1.4 2006/10/05 12:13:46 fros4943 Exp $
+ * $Id: ContikiButton.java,v 1.5 2007/01/09 10:05:19 fros4943 Exp $
  */
 
 package se.sics.cooja.contikimote.interfaces;
@@ -173,7 +173,7 @@ public class ContikiButton extends Button implements ContikiMoteInterface {
     return null;
   }
 
-  public void setConfigXML(Collection<Element> configXML) {
+  public void setConfigXML(Collection<Element> configXML, boolean visAvailable) {
   }
 
 }
