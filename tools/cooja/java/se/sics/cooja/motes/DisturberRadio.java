@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: DisturberRadio.java,v 1.1 2006/12/07 14:25:22 fros4943 Exp $
+ * $Id: DisturberRadio.java,v 1.2 2007/01/09 10:01:14 fros4943 Exp $
  */
 
 package se.sics.cooja.motes;
@@ -242,7 +242,7 @@ public class DisturberRadio extends Radio {
     return config;
   }
 
-  public void setConfigXML(Collection<Element> configXML) {
+  public void setConfigXML(Collection<Element> configXML, boolean visAvailable) {
     for (Element element : configXML) {
       String name = element.getName();
 

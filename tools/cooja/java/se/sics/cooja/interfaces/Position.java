@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: Position.java,v 1.1 2006/08/21 12:12:59 fros4943 Exp $
+ * $Id: Position.java,v 1.2 2007/01/09 10:02:44 fros4943 Exp $
  */
 
 package se.sics.cooja.interfaces;
@@ -211,7 +211,7 @@ public class Position extends MoteInterface {
     return config;
   }
 
-  public void setConfigXML(Collection<Element> configXML) {
+  public void setConfigXML(Collection<Element> configXML, boolean visAvailable) {
     double x = 0, y = 0, z = 0;
 
     for (Element element : configXML) {

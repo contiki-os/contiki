@@ -75,7 +75,7 @@ public class DisturberMoteType implements MoteType {
     return new DisturberMote(this, simulation);
   }
 
-  public boolean configureAndInit(JFrame parentFrame, Simulation simulation) {
+  public boolean configureAndInit(JFrame parentFrame, Simulation simulation, boolean visAvailable) {
 
     if (identifier == null) {
       // Create unique identifier
@@ -225,7 +225,7 @@ public class DisturberMoteType implements MoteType {
   }
 
   public boolean setConfigXML(Simulation simulation,
-      Collection<Element> configXML) {
+      Collection<Element> configXML, boolean visAvailable) {
     for (Element element : configXML) {
       moteInterfaces = new Vector<Class<? extends MoteInterface>>(); /* TV */
       mySimulation = simulation; /* TV */
@@ -237,7 +237,7 @@ public class DisturberMoteType implements MoteType {
       } else if (name.equals("description")) {
         description = element.getText();
       } else if (name.equals("moteinterface")) { /* TV */
-        Class<? extends MoteInterface> moteInterfaceClass = GUI.currentGUI
+        Class<? extends MoteInterface> moteInterfaceClass = simulation.getGUI()
             .tryLoadClass(this, MoteInterface.class, element.getText().trim());
 
         if (moteInterfaceClass == null) {
@@ -250,7 +250,7 @@ public class DisturberMoteType implements MoteType {
       }
     }
 
-    boolean createdOK = configureAndInit(GUI.frame, simulation);
+    boolean createdOK = configureAndInit(GUI.frame, simulation, visAvailable);
     return createdOK;
   }
 

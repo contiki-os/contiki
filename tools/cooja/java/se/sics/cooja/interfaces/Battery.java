@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: Battery.java,v 1.3 2006/09/26 13:08:05 fros4943 Exp $
+ * $Id: Battery.java,v 1.4 2007/01/09 10:02:44 fros4943 Exp $
  */
 
 package se.sics.cooja.interfaces;
@@ -285,7 +285,7 @@ public class Battery extends MoteInterface implements PassiveMoteInterface {
     return config;
   }
 
-  public void setConfigXML(Collection<Element> configXML) {
+  public void setConfigXML(Collection<Element> configXML, boolean visAvailable) {
     for (Element element : configXML) {
       if (element.getName().equals("infinite")) {
         hasInfiniteEnergy = Boolean.parseBoolean(element.getText());

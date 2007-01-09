@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: DummyMote.java,v 1.2 2006/09/26 13:08:05 fros4943 Exp $
+ * $Id: DummyMote.java,v 1.3 2007/01/09 10:01:14 fros4943 Exp $
  */
 
 package se.sics.cooja.motes;
@@ -183,7 +183,7 @@ public class DummyMote implements Mote {
   }
 
   public boolean setConfigXML(Simulation simulation,
-      Collection<Element> configXML) {
+      Collection<Element> configXML, boolean visAvailable) {
     mySim = simulation;
     myMemory = new SectionMoteMemory(new Properties());
     myInterfaceHandler = new MoteInterfaceHandler();
@@ -195,7 +195,7 @@ public class DummyMote implements Mote {
       if (name.equals("motetype_identifier")) {
         myType = simulation.getMoteType(element.getText());
       } else if (name.equals("interface_config")) {
-        Class<? extends MoteInterface> moteInterfaceClass = GUI.currentGUI
+        Class<? extends MoteInterface> moteInterfaceClass = simulation.getGUI()
             .tryLoadClass(this, MoteInterface.class, element.getText().trim());
 
         if (moteInterfaceClass == null) {
@@ -205,7 +205,7 @@ public class DummyMote implements Mote {
 
         MoteInterface moteInterface = myInterfaceHandler
             .getInterfaceOfType(moteInterfaceClass);
-        moteInterface.setConfigXML(element.getChildren());
+        moteInterface.setConfigXML(element.getChildren(), visAvailable);
       }
 
     }
