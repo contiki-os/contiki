@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: AddMoteDialog.java,v 1.1 2006/08/21 12:13:01 fros4943 Exp $
+ * $Id: AddMoteDialog.java,v 1.2 2007/01/09 10:03:51 fros4943 Exp $
  */
 
 package se.sics.cooja.dialogs;
@@ -63,24 +63,29 @@ public class AddMoteDialog extends JDialog {
   private JButton addButton;
 
   private MoteType moteType = null;
+  private Simulation simulation = null;
 
   private JFormattedTextField numberOfMotesField, startX, endX, startY, endY,
       startZ, endZ;
   private JComboBox positionDistributionBox, ipDistributionBox;
 
+  
   /**
    * Shows a dialog which enables a user to create and add motes of the given
    * type.
    * 
    * @param parentFrame
    *          Parent frame for dialog
+   * @param simulation
+   *          Simulation
    * @param moteType
    *          Mote type
    * @return New motes or null if aborted
    */
-  public static Vector<Mote> showDialog(Frame parentFrame, MoteType moteType) {
+  public static Vector<Mote> showDialog(Frame parentFrame,
+      Simulation simulation, MoteType moteType) {
 
-    AddMoteDialog myDialog = new AddMoteDialog(parentFrame, moteType);
+    AddMoteDialog myDialog = new AddMoteDialog(parentFrame, simulation, moteType);
     myDialog.setLocationRelativeTo(parentFrame);
     myDialog.checkSettings();
 
@@ -90,10 +95,11 @@ public class AddMoteDialog extends JDialog {
     return myDialog.newMotes;
   }
 
-  private AddMoteDialog(Frame frame, MoteType moteType) {
+  private AddMoteDialog(Frame frame, Simulation simulation, MoteType moteType) {
     super(frame, "Add motes (" + moteType.getDescription() + ")", true);
     this.moteType = moteType;
-
+    this.simulation = simulation;
+    
     JLabel label;
     JPanel mainPane = new JPanel();
     mainPane.setLayout(new BoxLayout(mainPane, BoxLayout.Y_AXIS));
@@ -154,7 +160,7 @@ public class AddMoteDialog extends JDialog {
     label = new JLabel("IP Addressing");
     label.setPreferredSize(new Dimension(LABEL_WIDTH, LABEL_HEIGHT));
 
-    Vector<Class<? extends IPDistributor>> ipDistributors = GUI.currentGUI
+    Vector<Class<? extends IPDistributor>> ipDistributors = simulation.getGUI()
         .getRegisteredIPDistributors();
     String[] ipDistributions = new String[ipDistributors.size()];
     for (int i = 0; i < ipDistributions.length; i++)
@@ -182,7 +188,7 @@ public class AddMoteDialog extends JDialog {
     label = new JLabel("Positioning");
     label.setPreferredSize(new Dimension(LABEL_WIDTH, LABEL_HEIGHT));
 
-    Vector<Class<? extends Positioner>> positioners = GUI.currentGUI
+    Vector<Class<? extends Positioner>> positioners = simulation.getGUI()
         .getRegisteredPositioners();
     String[] posDistributions = new String[positioners.size()];
     for (int i = 0; i < posDistributions.length; i++)
@@ -409,13 +415,13 @@ public class AddMoteDialog extends JDialog {
         // Create new motes
         int motesToAdd = ((Number) numberOfMotesField.getValue()).intValue();
         while (newMotes.size() < motesToAdd) {
-          Mote newMote = moteType.generateMote(GUI.currentSimulation);
+          Mote newMote = moteType.generateMote(simulation);
           newMotes.add(newMote);
         }
 
         // Position new motes
         Class<? extends Positioner> positionerClass = null;
-        for (Class<? extends Positioner> positioner : GUI.currentGUI
+        for (Class<? extends Positioner> positioner : simulation.getGUI()
             .getRegisteredPositioners()) {
           if (GUI.getDescriptionOf(positioner).equals(
               (String) positionDistributionBox.getSelectedItem()))
@@ -455,8 +461,8 @@ public class AddMoteDialog extends JDialog {
 
         // Set unique mote id's for all new motes
         int nextMoteID = 1;
-        for (int i = 0; i < GUI.currentSimulation.getMotesCount(); i++) {
-          MoteID moteID = GUI.currentSimulation.getMote(i).getInterfaces()
+        for (int i = 0; i < simulation.getMotesCount(); i++) {
+          MoteID moteID = simulation.getMote(i).getInterfaces()
               .getMoteID();
           if (moteID != null && moteID.getMoteID() >= nextMoteID)
             nextMoteID = moteID.getMoteID() + 1;
@@ -471,7 +477,7 @@ public class AddMoteDialog extends JDialog {
 
         // IP address new motes
         Class<? extends IPDistributor> ipDistClass = null;
-        for (Class<? extends IPDistributor> ipDistributor : GUI.currentGUI
+        for (Class<? extends IPDistributor> ipDistributor : simulation.getGUI()
             .getRegisteredIPDistributors()) {
           if (GUI.getDescriptionOf(ipDistributor).equals(
               (String) ipDistributionBox.getSelectedItem()))
