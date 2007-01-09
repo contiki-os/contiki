@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: VisPlugin.java,v 1.2 2006/11/06 17:59:34 fros4943 Exp $
+ * $Id: VisPlugin.java,v 1.3 2007/01/09 10:14:21 fros4943 Exp $
  */
 
 package se.sics.cooja;
@@ -48,13 +48,14 @@ import org.jdom.Element;
  *
  * @author Fredrik Osterlind
  */
-public abstract class VisPlugin extends JInternalFrame {
-
+public abstract class VisPlugin extends JInternalFrame implements Plugin {
+  private Object tag = null;
+  
   /**
    * Sets frame title
    * @param title Frame title
    */
-  public VisPlugin(String title) {
+  public VisPlugin(String title, final GUI gui) {
     super(title, true, true, true, true);
     final VisPlugin thisPlugin = this;
     
@@ -63,7 +64,7 @@ public abstract class VisPlugin extends JInternalFrame {
     // Detect frame events
     addInternalFrameListener(new InternalFrameListener() {
       public void internalFrameClosing(InternalFrameEvent e) {
-        GUI.currentGUI.removePlugin(thisPlugin, true);
+        gui.removePlugin(thisPlugin, true);
       }
       public void internalFrameClosed(InternalFrameEvent e) {
         // NOP
@@ -86,41 +87,22 @@ public abstract class VisPlugin extends JInternalFrame {
     }
     );
   }
-  
-  /**
-   * This method is called when an opened plugin is about to close.
-   * It should release any resources such as registered observers or
-   * opened interface visualizers.
-   */
-  public abstract void closePlugin();
-  
-  /**
-   * EXPERIMENTAL.
-   * Returns XML elements representing the current config of this plugin. This
-   * is fetched by the simulator for example when saving a simulation
-   * configuration file. For example a plugin may return the current size and
-   * position. This method should however not return state specific information
-   * such as the value of a mote LED, or total number of motes. (All nodes are
-   * restarted when loading a simulation.)
-   * 
-   * @see #setConfigXML(Collection)
-   * @return XML elements representing the current radio medium config
-   */
+
   public Collection<Element> getConfigXML() {
     return null;
   }
-
-  /**
-   * EXPERIMENTAL.
-   * Sets the current plugin config depending on the given XML elements.
-   * 
-   * @see #getConfigXML()
-   * @param configXML
-   *          Config XML elements
-   * @return True if config was set successfully, false otherwise
-   */
-  public boolean setConfigXML(Collection<Element> configXML) {
+  
+  public boolean setConfigXML(Collection<Element> configXML, boolean visAvailable) {
     return false;
   }
 
+  public void tagWithObject(Object tag) {
+    this.tag = tag;
+  }
+
+  public Object getTag() {
+    return tag;
+  }
+
+  
 }
