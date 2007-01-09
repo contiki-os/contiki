@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: VisUAODV.java,v 1.1 2006/08/21 12:13:01 fros4943 Exp $
+ * $Id: VisUAODV.java,v 1.2 2007/01/09 10:09:59 fros4943 Exp $
  */
 
 import java.awt.*;
@@ -47,7 +47,7 @@ import se.sics.cooja.plugins.*;
  * @author Fredrik Osterlind
  */
 @ClassDescription("uAODV Visualizer")
-@VisPluginType(VisPluginType.SIM_PLUGIN)
+@PluginType(PluginType.SIM_PLUGIN)
 public class VisUAODV extends VisTraffic {
   private static final long serialVersionUID = 1L;
   private static Logger logger = Logger.getLogger(VisUAODV.class);
@@ -56,8 +56,8 @@ public class VisUAODV extends VisTraffic {
    * Creates a new VisUAODV visualizer.
    * @param simulationToVisualize Simulation to visualize
    */
-  public VisUAODV(Simulation simulationToVisualize) {
-    super(simulationToVisualize);
+  public VisUAODV(Simulation simulationToVisualize, GUI gui) {
+    super(simulationToVisualize, gui);
     setTitle("uAODV Visualizer");
   }
   

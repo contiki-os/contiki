@@ -26,10 +26,11 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: DummyRadioMedium.java,v 1.1 2006/08/21 12:13:00 fros4943 Exp $
+ * $Id: DummyRadioMedium.java,v 1.2 2007/01/09 10:10:18 fros4943 Exp $
  */
 
 import java.util.Collection;
+import java.util.Observable;
 import java.util.Observer;
 import org.apache.log4j.Logger;
 import org.jdom.Element;
@@ -70,6 +71,10 @@ public class DummyRadioMedium extends RadioMedium {
     logger.debug("I'm a dummy. I will never change.");
   }
 
+  public Observable getRadioMediumObservable() {
+    return new Observable();
+  }
+
   public void deleteRadioMediumObserver(Observer observer) {
     // Do nothing
     logger.debug("I'm a dummy. I will never change.");
@@ -87,7 +92,7 @@ public class DummyRadioMedium extends RadioMedium {
     return null;
   }
   
-  public boolean setConfigXML(Collection<Element> configXML) {
+  public boolean setConfigXML(Collection<Element> configXML, boolean visAvailable) {
     return true;
   }
 
