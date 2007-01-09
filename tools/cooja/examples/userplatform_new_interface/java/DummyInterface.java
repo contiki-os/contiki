@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: DummyInterface.java,v 1.1 2006/08/21 12:13:13 fros4943 Exp $
+ * $Id: DummyInterface.java,v 1.2 2007/01/09 09:19:54 fros4943 Exp $
  */
 
 import java.util.*;
@@ -88,7 +88,7 @@ public class DummyInterface extends MoteInterface {
     return null;
   }
   
-  public void setConfigXML(Collection<Element> configXML) {
+  public void setConfigXML(Collection<Element> configXML, boolean visAvailable) {
   }
   
 }
