@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: AddMoteDialog.java,v 1.2 2007/01/09 10:03:51 fros4943 Exp $
+ * $Id: AddMoteDialog.java,v 1.3 2007/01/10 14:59:07 fros4943 Exp $
  */
 
 package se.sics.cooja.dialogs;
@@ -484,7 +484,7 @@ public class AddMoteDialog extends JDialog {
             ipDistClass = ipDistributor;
         }
 
-        IPDistributor ipDistributor = IPDistributor.generateInterface(
+        IPDistributor ipDistributor = IPDistributor.generateIPDistributor(
             ipDistClass, newMotes);
 
         if (ipDistributor == null) {
