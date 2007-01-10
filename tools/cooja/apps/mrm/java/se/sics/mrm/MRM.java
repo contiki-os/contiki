@@ -1,6 +1,7 @@
 package se.sics.mrm;
 
 import java.util.*;
+
 import org.apache.log4j.Logger;
 import org.jdom.Element;
 
@@ -261,6 +262,10 @@ public class MRM extends RadioMedium {
     radioActivityObservable.addObserver(observer);
   }
 
+  public Observable getRadioMediumObservable() {
+    return radioActivityObservable;
+  }
+
   public void deleteRadioMediumObserver(Observer observer) {
     // Remove observer from this radio medium
     radioActivityObservable.deleteObserver(observer);
@@ -280,7 +285,8 @@ public class MRM extends RadioMedium {
     return currentChannelModel.getConfigXML();
   }
   
-  public boolean setConfigXML(Collection<Element> configXML) {
+  public boolean setConfigXML(Collection<Element> configXML,
+      boolean visAvailable) {
     // Just forwarding to current channel model
     return currentChannelModel.setConfigXML(configXML);
   }
