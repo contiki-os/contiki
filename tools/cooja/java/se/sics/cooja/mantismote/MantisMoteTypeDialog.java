@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: MantisMoteTypeDialog.java,v 1.2 2007/01/09 10:02:16 fros4943 Exp $
+ * $Id: MantisMoteTypeDialog.java,v 1.3 2007/01/10 08:48:39 fros4943 Exp $
  */
 
 package se.sics.cooja.mantismote;
@@ -342,7 +342,7 @@ public class MantisMoteTypeDialog extends JDialog {
     libraryCreatedOK = false;
 
     JPanel progressPanel = new JPanel(new BorderLayout());
-    final JDialog progressDialog = new JDialog(myDialog, null);
+    final JDialog progressDialog = new JDialog(myDialog, (String) null);
     JProgressBar progressBar;
     JButton button;
     final MessageList taskOutput;
