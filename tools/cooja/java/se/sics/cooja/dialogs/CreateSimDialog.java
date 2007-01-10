@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: CreateSimDialog.java,v 1.2 2007/01/09 10:03:51 fros4943 Exp $
+ * $Id: CreateSimDialog.java,v 1.3 2007/01/10 09:04:01 fros4943 Exp $
  */
 
 package se.sics.cooja.dialogs;
@@ -319,7 +319,7 @@ public class CreateSimDialog extends JDialog {
 
           if (currentRadioMediumDescription.equals(radioMediumDescription)) {
             try {
-              RadioMedium radioMedium = RadioMedium.generateInterface(radioMediumClass, mySimulation);
+              RadioMedium radioMedium = RadioMedium.generateRadioMedium(radioMediumClass, mySimulation);
               mySimulation.setRadioMedium(radioMedium);
             } catch (Exception ex) {
               logger.fatal("Exception when creating radio medium: " + ex);

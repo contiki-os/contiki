@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: Simulation.java,v 1.7 2007/01/09 10:21:08 fros4943 Exp $
+ * $Id: Simulation.java,v 1.8 2007/01/10 09:02:38 fros4943 Exp $
  */
 
 package se.sics.cooja;
@@ -342,7 +342,7 @@ public class Simulation extends Observable implements Runnable {
         if (radioMediumClass != null) {
           // Create radio medium specified in config
           try {
-            currentRadioMedium = RadioMedium.generateInterface(radioMediumClass, this);
+            currentRadioMedium = RadioMedium.generateRadioMedium(radioMediumClass, this);
           } catch (Exception e) {
             currentRadioMedium = null;
             logger.warn("Could not load radio medium class: "

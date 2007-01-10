@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: RadioMedium.java,v 1.2 2007/01/09 10:18:08 fros4943 Exp $
+ * $Id: RadioMedium.java,v 1.3 2007/01/10 09:02:17 fros4943 Exp $
  */
 
 package se.sics.cooja;
@@ -190,7 +190,7 @@ public abstract class RadioMedium {
    * 
    * @return Radio medium instance
    */
-  public static final RadioMedium generateInterface(
+  public static final RadioMedium generateRadioMedium(
       Class<? extends RadioMedium> radioMediumClass, Simulation simulation)
       throws NoSuchMethodException, InvocationTargetException,
       IllegalAccessException, InstantiationException {

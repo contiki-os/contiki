@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: GUI.java,v 1.13 2007/01/09 10:27:53 fros4943 Exp $
+ * $Id: GUI.java,v 1.14 2007/01/10 09:03:02 fros4943 Exp $
  */
 
 package se.sics.cooja;
@@ -773,7 +773,7 @@ public class GUI {
       Class<? extends RadioMedium> radioMediumClass = gui.tryLoadClass(gui,
           RadioMedium.class, radioMediumClassName);
       
-      RadioMedium radioMedium = RadioMedium.generateInterface(radioMediumClass, simulation);
+      RadioMedium radioMedium = RadioMedium.generateRadioMedium(radioMediumClass, simulation);
       simulation.setRadioMedium(radioMedium);
     } catch (Exception e) {
       logger.fatal(">> Failed to load radio medium, aborting: "
