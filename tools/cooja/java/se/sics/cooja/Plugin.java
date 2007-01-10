@@ -26,30 +26,30 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: Plugin.java,v 1.1 2007/01/09 10:15:42 fros4943 Exp $
+ * $Id: Plugin.java,v 1.2 2007/01/10 14:57:42 fros4943 Exp $
  */
 
 package se.sics.cooja;
 
 import java.util.Collection;
-
 import org.jdom.Element;
 
 /**
- * Interface for a COOJA interaction plugin. The typical interaction plugin
+ * Main interface for a COOJA interaction plugin. The typical interaction plugin
  * is a visualization plugin, see abstract VisPlugin for more information.
  * 
+ * @see se.sics.cooja.VisPlugin
  * @author Fredrik Osterlind
  */
 public interface Plugin {
-  
+
   /**
    * This method is called when an opened plugin is about to close.
    * It should release any resources such as registered observers or
    * opened interface visualizers.
    */
   public void closePlugin();
-  
+
   /**
    * This method is used by the simulator for book-keeping purposes, and should
    * normally not be called by the plugin itself.
@@ -66,8 +66,7 @@ public interface Plugin {
    * @return Object
    */
   public Object getTag();
-  
-  
+
   /**
    * Returns XML elements representing the current config of this plugin. This
    * is fetched by the simulator for example when saving a simulation
@@ -76,11 +75,11 @@ public interface Plugin {
    * such as the value of a mote LED, or total number of motes. (All nodes are
    * restarted when loading a simulation.)
    * 
-   * @see #setConfigXML(Collection)
+   * @see #setConfigXML(Collection, boolean)
    * @return XML elements representing the current radio medium config
    */
   public Collection<Element> getConfigXML();
-  
+
   /**
    * Sets the current plugin config depending on the given XML elements.
    * 
@@ -89,6 +88,7 @@ public interface Plugin {
    *          Config XML elements
    * @return True if config was set successfully, false otherwise
    */
-  public boolean setConfigXML(Collection<Element> configXML, boolean visAvailable);
+  public boolean setConfigXML(Collection<Element> configXML,
+      boolean visAvailable);
 
 }

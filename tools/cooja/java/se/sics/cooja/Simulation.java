@@ -1,37 +1,34 @@
 /*
- * Copyright (c) 2006, Swedish Institute of Computer Science.
- * All rights reserved.
- *
+ * Copyright (c) 2006, Swedish Institute of Computer Science. All rights
+ * reserved.
+ * 
  * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in the
- *    documentation and/or other materials provided with the distribution.
- * 3. Neither the name of the Institute nor the names of its contributors
- *    may be used to endorse or promote products derived from this software
- *    without specific prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE INSTITUTE AND CONTRIBUTORS ``AS IS'' AND
- * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
- * ARE DISCLAIMED.  IN NO EVENT SHALL THE INSTITUTE OR CONTRIBUTORS BE LIABLE
- * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
- * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
- * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
- * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
- * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
- * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
- * SUCH DAMAGE.
- *
- * $Id: Simulation.java,v 1.8 2007/01/10 09:02:38 fros4943 Exp $
+ * modification, are permitted provided that the following conditions are met:
+ * 1. Redistributions of source code must retain the above copyright notice,
+ * this list of conditions and the following disclaimer. 2. Redistributions in
+ * binary form must reproduce the above copyright notice, this list of
+ * conditions and the following disclaimer in the documentation and/or other
+ * materials provided with the distribution. 3. Neither the name of the
+ * Institute nor the names of its contributors may be used to endorse or promote
+ * products derived from this software without specific prior written
+ * permission.
+ * 
+ * THIS SOFTWARE IS PROVIDED BY THE INSTITUTE AND CONTRIBUTORS ``AS IS'' AND ANY
+ * EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE INSTITUTE OR CONTRIBUTORS BE LIABLE FOR ANY
+ * DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+ * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ * 
+ * $Id: Simulation.java,v 1.9 2007/01/10 14:57:42 fros4943 Exp $
  */
 
 package se.sics.cooja;
 
-import java.io.*;
 import java.util.*;
 import org.apache.log4j.Logger;
 import org.jdom.*;
@@ -39,13 +36,15 @@ import org.jdom.*;
 import se.sics.cooja.dialogs.*;
 
 /**
- * A simulation contains motes and ticks them one by one. When all motes has
- * been ticked once, the simulation sleeps for some specified time, and the
- * current simulation time is updated. Some observers (tick observers) are also
- * notified.
+ * A simulation consists of a number of motes and mote types.
+ * 
+ * The motes in the simulation are ticked one by one in a simulation loop. When
+ * all motes have been ticked once, the simulation time is updated and then the
+ * simulation sleeps for some specified delay time. Any tick observers are also
+ * notified at this time.
  * 
  * When observing the simulation itself, the simulation state, added or deleted
- * motes etc are observed, as opposed to individual mote changes. Changes of
+ * motes etc. are observed, as opposed to individual mote changes. Changes of
  * individual motes should instead be observed via corresponding mote
  * interfaces.
  * 
@@ -54,24 +53,29 @@ import se.sics.cooja.dialogs.*;
 public class Simulation extends Observable implements Runnable {
 
   private Vector<Mote> motes = new Vector<Mote>();
+
   private Vector<MoteType> moteTypes = new Vector<MoteType>();
 
   private int delayTime = 100;
+
   private int currentSimulationTime = 0;
+
   private int tickTime = 1;
+
   private String title = null;
 
-  // Radio Medium
   private RadioMedium currentRadioMedium = null;
 
   private static Logger logger = Logger.getLogger(Simulation.class);
 
   private boolean isRunning = false;
+
   private boolean stopSimulation = false;
+
   private Thread thread = null;
 
   private GUI myGUI = null;
-  
+
   // Tick observable
   private class TickObservable extends Observable {
     private void allTicksPerformed() {
@@ -79,6 +83,7 @@ public class Simulation extends Observable implements Runnable {
       notifyObservers();
     }
   }
+
   private TickObservable tickObservable = new TickObservable();
 
   /**
@@ -168,10 +173,9 @@ public class Simulation extends Observable implements Runnable {
   }
 
   /**
-   * Creates a new simulation with a delay time of 1 second.
+   * Creates a new simulation with a delay time of 100 ms.
    */
   public Simulation(GUI gui) {
-    // New simulation instance
     myGUI = gui;
   }
 
@@ -202,12 +206,11 @@ public class Simulation extends Observable implements Runnable {
           } catch (InterruptedException e) {
           }
         }
-    } // else logger.fatal("Could not stop simulation: isRunning=" + isRunning +
-      // ", thread=" + thread);
+    } 
   }
 
   /**
-   * Starts simulation if stopped, ticks all motes once, and finally stop
+   * Starts simulation if stopped, ticks all motes once, and finally stops
    * simulation again.
    */
   public void tickSimulation() {
@@ -229,10 +232,16 @@ public class Simulation extends Observable implements Runnable {
   }
 
   /**
+   * @return GUI holding this simulation
+   */
+  public GUI getGUI() {
+    return myGUI;
+  }
+
+  /**
    * Returns the current simulation config represented by XML elements. This
    * config also includes the current radio medium, all mote types and motes.
    * 
-   * @see #saveSimulationConfig(File file)
    * @return Current simulation config
    */
   public Collection<Element> getConfigXML() {
@@ -295,20 +304,20 @@ public class Simulation extends Observable implements Runnable {
   }
 
   /**
-   * @return GUI holding this simulation
-   */
-  public GUI getGUI() {
-    return myGUI;
-  }
-  
-  /**
    * Sets the current simulation config depending on the given XML elements.
    * 
    * @see #getConfigXML()
    * @param configXML
    *          Config XML elements
+   * @param visAvailable
+   *          True if simulation is allowed to show visualizers while loading
+   *          the given config
+   * @return True if simulation config set successfully
+   * @throws Exception
+   *           If configuration could not be loaded
    */
-  public boolean setConfigXML(Collection<Element> configXML, boolean visAvailable) throws Exception {
+  public boolean setConfigXML(Collection<Element> configXML,
+      boolean visAvailable) throws Exception {
 
     // Parse elements
     for (Element element : configXML) {
@@ -336,20 +345,21 @@ public class Simulation extends Observable implements Runnable {
       // Radio medium
       if (element.getName().equals("radiomedium")) {
         String radioMediumClassName = element.getText().trim();
-        Class<? extends RadioMedium> radioMediumClass = myGUI
-            .tryLoadClass(this, RadioMedium.class, radioMediumClassName);
+        Class<? extends RadioMedium> radioMediumClass = myGUI.tryLoadClass(
+            this, RadioMedium.class, radioMediumClassName);
 
         if (radioMediumClass != null) {
           // Create radio medium specified in config
           try {
-            currentRadioMedium = RadioMedium.generateRadioMedium(radioMediumClass, this);
+            currentRadioMedium = RadioMedium.generateRadioMedium(
+                radioMediumClass, this);
           } catch (Exception e) {
             currentRadioMedium = null;
             logger.warn("Could not load radio medium class: "
                 + radioMediumClassName);
           }
         }
-        
+
         // Show configure simulation dialog
         boolean createdOK = false;
         if (visAvailable) {
@@ -377,8 +387,8 @@ public class Simulation extends Observable implements Runnable {
       if (element.getName().equals("motetype")) {
         String moteTypeClassName = element.getText().trim();
 
-        Class<? extends MoteType> moteTypeClass = myGUI.tryLoadClass(
-            this, MoteType.class, moteTypeClassName);
+        Class<? extends MoteType> moteTypeClass = myGUI.tryLoadClass(this,
+            MoteType.class, moteTypeClassName);
 
         if (moteTypeClass == null) {
           logger.fatal("Could not load mote type class: " + moteTypeClassName);
@@ -388,7 +398,8 @@ public class Simulation extends Observable implements Runnable {
         MoteType moteType = moteTypeClass.getConstructor((Class[]) null)
             .newInstance();
 
-        boolean createdOK = moteType.setConfigXML(this, element.getChildren(), visAvailable);
+        boolean createdOK = moteType.setConfigXML(this, element.getChildren(),
+            visAvailable);
         if (createdOK) {
           addMoteType(moteType);
         } else {
@@ -400,8 +411,8 @@ public class Simulation extends Observable implements Runnable {
 
       // Mote
       if (element.getName().equals("mote")) {
-        Class<? extends Mote> moteClass = myGUI.tryLoadClass(this,
-            Mote.class, element.getText().trim());
+        Class<? extends Mote> moteClass = myGUI.tryLoadClass(this, Mote.class,
+            element.getText().trim());
 
         Mote mote = moteClass.getConstructor((Class[]) null).newInstance();
         if (mote.setConfigXML(this, element.getChildren(), visAvailable)) {
@@ -460,7 +471,7 @@ public class Simulation extends Observable implements Runnable {
    * Get a mote from this simulation.
    * 
    * @param pos
-   *          Position of mote
+   *          Internal list position of mote
    * @return Mote
    */
   public Mote getMote(int pos) {
@@ -503,7 +514,7 @@ public class Simulation extends Observable implements Runnable {
   /**
    * Adds given mote type to simulation.
    * 
-   * @param newMoteType
+   * @param newMoteType Mote type
    */
   public void addMoteType(MoteType newMoteType) {
     moteTypes.add(newMoteType);
@@ -593,7 +604,7 @@ public class Simulation extends Observable implements Runnable {
     }
     this.currentRadioMedium = radioMedium;
 
-    // Add all current motes to be observered by new radio medium
+    // Add all current motes to the new radio medium
     for (int i = 0; i < motes.size(); i++)
       currentRadioMedium.registerMote(motes.get(i), this);
   }

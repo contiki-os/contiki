@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: PlatformConfig.java,v 1.3 2006/09/06 12:26:33 fros4943 Exp $
+ * $Id: PlatformConfig.java,v 1.4 2007/01/10 14:57:42 fros4943 Exp $
  */
 
 package se.sics.cooja;
@@ -149,12 +149,12 @@ public class PlatformConfig {
    * instead.
    * 
    * @param callingClass
-   *          Class which value belongs to
+   *          Class which value belong to
    * @param key
    *          Key
-   * @param value
-   *          Element of array
-   * @return User platform
+   * @param arrayElement
+   *          Value or array element
+   * @return User platform defining arguments or null
    */
   public File getUserPlatformDefining(Class callingClass, String key, String arrayElement) {
 

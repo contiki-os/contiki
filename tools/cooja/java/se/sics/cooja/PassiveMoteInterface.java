@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: PassiveMoteInterface.java,v 1.1 2006/08/21 12:12:57 fros4943 Exp $
+ * $Id: PassiveMoteInterface.java,v 1.2 2007/01/10 14:57:42 fros4943 Exp $
  */
 
 package se.sics.cooja;
@@ -34,19 +34,18 @@ package se.sics.cooja;
 /**
  * Mote interfaces are divided into active and passive interfaces.
  * 
- * A passive mote interface is treated different than an ordinary (active)
- * mote interface;
- * Passive interfaces are allowed to act even when the mote is sleeping,
- * while active interface only acts when the mote is in active state.
+ * A passive mote interface is treated different than an ordinary (active) mote
+ * interface; Passive interfaces are allowed to act even when the mote is
+ * sleeping, while active interface only acts when the mote is in active state.
  * 
- * A typical active interface is the radio interface, since radio
- * messages only can be received when the mote is active.
+ * A typical active interface is the radio interface, since radio messages only
+ * can be received when the mote is active.
  * 
- * A typical passive interface is the battery interface, since a mote 
- * consumes energy even though it is sleeping.
+ * A typical passive interface is the battery interface, since a mote consumes
+ * energy even though it is sleeping.
  * 
- * All passive interface should implement this interface. 
- * All interfaces not implemented this interface will be handled as active interfaces.
+ * All passive interface should implement this interface. All interfaces not
+ * implemented this interface will be handled as active interfaces.
  * 
  * Any energy required by this interface must be available after the
  * doActionsBeforeTick method.

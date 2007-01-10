@@ -1,32 +1,30 @@
 /*
- * Copyright (c) 2006, Swedish Institute of Computer Science.
- * All rights reserved.
- *
+ * Copyright (c) 2006, Swedish Institute of Computer Science. All rights
+ * reserved.
+ * 
  * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in the
- *    documentation and/or other materials provided with the distribution.
- * 3. Neither the name of the Institute nor the names of its contributors
- *    may be used to endorse or promote products derived from this software
- *    without specific prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE INSTITUTE AND CONTRIBUTORS ``AS IS'' AND
- * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
- * ARE DISCLAIMED.  IN NO EVENT SHALL THE INSTITUTE OR CONTRIBUTORS BE LIABLE
- * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
- * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
- * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
- * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
- * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
- * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
- * SUCH DAMAGE.
- *
- * $Id: CoreComm.java,v 1.2 2006/08/23 17:11:09 fros4943 Exp $
+ * modification, are permitted provided that the following conditions are met:
+ * 1. Redistributions of source code must retain the above copyright notice,
+ * this list of conditions and the following disclaimer. 2. Redistributions in
+ * binary form must reproduce the above copyright notice, this list of
+ * conditions and the following disclaimer in the documentation and/or other
+ * materials provided with the distribution. 3. Neither the name of the
+ * Institute nor the names of its contributors may be used to endorse or promote
+ * products derived from this software without specific prior written
+ * permission.
+ * 
+ * THIS SOFTWARE IS PROVIDED BY THE INSTITUTE AND CONTRIBUTORS ``AS IS'' AND ANY
+ * EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE INSTITUTE OR CONTRIBUTORS BE LIABLE FOR ANY
+ * DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+ * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ * 
+ * $Id: CoreComm.java,v 1.3 2007/01/10 14:57:42 fros4943 Exp $
  */
 
 package se.sics.cooja;
@@ -35,19 +33,19 @@ import java.io.File;
 import se.sics.cooja.corecomm.*;
 
 /**
- * The package corecomm's purpose is communicating with the simulation core
- * using Java Native Interface (JNI). Each implementing class (named
- * Lib[1-MAX]), loads a shared library which belongs to one mote type. The
- * reason for this somewhat strange design is that once loaded, a native library
- * cannot be unloaded in Java (yet). Therefore if we wish to load several
- * libraries, the names and associated native functions must have unique names.
- * And those names are defined via the calling class in JNI. For example, the
- * native tick function in class Lib1 is named
- * contiki_javasim_corecomm_Lib1_tick. When creating a new mote type, the main
- * contiki source file is generated with function names compatible with the next
- * available corecomm. This also implies that even if a mote type is deleted, a
- * new one cannot be created without restarting the JVM and thus the entire
- * simulation.
+ * The purpose of corecomm's is communicating with a compiled Contiki system
+ * using Java Native Interface (JNI). Each implemented class (named Lib[1-MAX]),
+ * loads a shared library which belongs to one mote type. The reason for this
+ * somewhat strange design is that once loaded, a native library cannot be
+ * unloaded in Java (in the current versions available). Therefore if we wish to
+ * load several libraries, the names and associated native functions must have
+ * unique names. And those names are defined via the calling class in JNI. For
+ * example, the corresponding function for a native tick method in class Lib1
+ * will be named Java_se_sics_cooja_corecomm_Lib1_tick. When creating a new mote
+ * type, the main Contiki source file is generated with function names
+ * compatible with the next available corecomm class. This also implies that
+ * even if a mote type is deleted, a new one cannot be created using the same
+ * corecomm class without restarting the JVM and thus the entire simulation.
  * 
  * Each implemented CoreComm class needs read access to the following core
  * variables:
@@ -56,23 +54,23 @@ import se.sics.cooja.corecomm.*;
  * </ul>
  * and the following native functions:
  * <ul>
- * <li>init()
  * <li>tick()
+ * <li>init()
  * <li>getReferenceAbsAddr()
- * <li>getMemory(int start, int length)
+ * <li>getMemory(int start, int length, byte[] mem)
  * <li>setMemory(int start, int length, byte[] mem)
- * </ul>
  * 
  * @author Fredrik Osterlind
  */
 public abstract class CoreComm {
   /**
-   * Maximum supported core communicators in a simulation.
+   * Maximum supported core communicators in a simulator.
    */
   private final static int MAX_LIBRARIES = 8;
 
   // Static pointers to current libraries
   private final static CoreComm[] coreComms = new CoreComm[MAX_LIBRARIES];
+
   private final static File[] coreCommFiles = new File[MAX_LIBRARIES];
 
   /**
@@ -195,7 +193,7 @@ public abstract class CoreComm {
   public abstract void tick();
 
   /**
-   * Initializes a mote by running a startup script in the core. (Should only by
+   * Initializes a mote by running a startup script in the core. (Should only be
    * run once, at the same time as the library is loaded)
    */
   protected abstract void init();

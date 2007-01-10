@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: MoteMemory.java,v 1.1 2006/08/21 12:12:55 fros4943 Exp $
+ * $Id: MoteMemory.java,v 1.2 2007/01/10 14:57:42 fros4943 Exp $
  */
 
 package se.sics.cooja;
@@ -41,6 +41,7 @@ package se.sics.cooja;
  * different memory sections, not covering the entire range
  * between the start address and the end address of this memory.
  *
+ * @see se.sics.cooja.SectionMoteMemory
  * @author Fredrik Osterlind
  */
 public interface MoteMemory {
@@ -49,7 +50,7 @@ public interface MoteMemory {
    * Clears the entire memory.
    */
   public void clearMemory();
-  
+
   /**
    * Returns a memory segment.
    * 

@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: Positioner.java,v 1.1 2006/08/21 12:12:51 fros4943 Exp $
+ * $Id: Positioner.java,v 1.2 2007/01/10 14:57:42 fros4943 Exp $
  */
 
 package se.sics.cooja;
@@ -72,11 +72,11 @@ public abstract class Positioner {
       double endZ) {
     try {
       // Generating positioner
-      Constructor constr = positionerClass.getConstructor(new Class[]{
+      Constructor constr = positionerClass.getConstructor(new Class[] {
           int.class, double.class, double.class, double.class, double.class,
-          double.class, double.class});
-      return (Positioner) constr.newInstance(new Object[]{totalNumberOfMotes,
-          startX, endX, startY, endY, startZ, endZ});
+          double.class, double.class });
+      return (Positioner) constr.newInstance(new Object[] { totalNumberOfMotes,
+          startX, endX, startY, endY, startZ, endZ });
     } catch (Exception e) {
       logger.fatal("Exception when creating " + positionerClass + ": " + e);
       return null;

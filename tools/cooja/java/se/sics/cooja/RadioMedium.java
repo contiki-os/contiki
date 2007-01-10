@@ -26,25 +26,24 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: RadioMedium.java,v 1.3 2007/01/10 09:02:17 fros4943 Exp $
+ * $Id: RadioMedium.java,v 1.4 2007/01/10 14:57:42 fros4943 Exp $
  */
 
 package se.sics.cooja;
+
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
-import java.util.Collection;
-import java.util.Observable;
-import java.util.Observer;
-import org.apache.log4j.Logger;
+import java.util.*;
 import org.jdom.Element;
 
 import se.sics.cooja.interfaces.Position;
 import se.sics.cooja.interfaces.Radio;
 
 /**
- * This interface represents a radio medium. Radios registered to this medium
- * can both send and receive radio data. Depending on the implementation of this
- * interface, more or less accurate radio behaviour imitation is aquired.
+ * The abstract class RadioMedium should be implemented by all COOJA radio
+ * mediums. Radios registered in this medium can both send and receive radio
+ * data. Depending on the implementation of this interface, more or less
+ * accurate radio behaviour imitation is aquired.
  * 
  * Often a radio medium, at initialization, registers one or several dynamic
  * plugins. These plugins shows the user some radio medium specific details,
@@ -53,7 +52,6 @@ import se.sics.cooja.interfaces.Radio;
  * @author Fredrik Osterlind
  */
 public abstract class RadioMedium {
-  private static Logger logger = Logger.getLogger(RadioMedium.class);
 
   /**
    * Registers a mote to this medium.
@@ -167,7 +165,7 @@ public abstract class RadioMedium {
    * information such as a current radio status. (All nodes are restarted when
    * loading a simulation.)
    * 
-   * @see #setConfigXML(Collection)
+   * @see #setConfigXML(Collection, boolean)
    * @return XML elements representing the current radio medium config
    */
   public abstract Collection<Element> getConfigXML();
@@ -182,7 +180,6 @@ public abstract class RadioMedium {
    */
   public abstract boolean setConfigXML(Collection<Element> configXML, boolean visAvailable);
 
-  
   /**
    * This method creates an instance of the given class with the given
    * simulation constructor argument. Instead of calling the constructors

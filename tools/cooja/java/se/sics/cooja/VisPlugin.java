@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: VisPlugin.java,v 1.3 2007/01/09 10:14:21 fros4943 Exp $
+ * $Id: VisPlugin.java,v 1.4 2007/01/10 14:57:42 fros4943 Exp $
  */
 
 package se.sics.cooja;
@@ -38,14 +38,15 @@ import javax.swing.event.InternalFrameListener;
 import org.jdom.Element;
 
 /**
- * Abstract class VisPlugin should be implemented by plugins for COOJA Simulator.
- * By extending JInternalFrame, the visual apperence is decided by the plugin itself.
- *
- * An implemented plugin should be registered at runtime using the following method:
- * GUI.registerPlugin(Class<? extends VisPlugin>, String)
- *
- * For example how to implement a plugin see classes SimControl or Vis2D.
- *
+ * Abstract class VisPlugin should be implemented by all plugins with
+ * visualizers. By extending JInternalFrame, the visual apperence is decided by
+ * the plugin itself.
+ * 
+ * To add a new plugin to the simulator environment either add it via a user
+ * platform or by altering the standard configuration files.
+ * 
+ * For example how to implement a plugin see plugins SimControl or Visualizer2D.
+ * 
  * @author Fredrik Osterlind
  */
 public abstract class VisPlugin extends JInternalFrame implements Plugin {
@@ -104,5 +105,4 @@ public abstract class VisPlugin extends JInternalFrame implements Plugin {
     return tag;
   }
 
-  
 }

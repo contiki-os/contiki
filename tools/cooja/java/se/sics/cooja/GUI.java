@@ -1,32 +1,30 @@
 /*
- * Copyright (c) 2006, Swedish Institute of Computer Science.
- * All rights reserved.
- *
+ * Copyright (c) 2006, Swedish Institute of Computer Science. All rights
+ * reserved.
+ * 
  * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in the
- *    documentation and/or other materials provided with the distribution.
- * 3. Neither the name of the Institute nor the names of its contributors
- *    may be used to endorse or promote products derived from this software
- *    without specific prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE INSTITUTE AND CONTRIBUTORS ``AS IS'' AND
- * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
- * ARE DISCLAIMED.  IN NO EVENT SHALL THE INSTITUTE OR CONTRIBUTORS BE LIABLE
- * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
- * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
- * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
- * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
- * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
- * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
- * SUCH DAMAGE.
- *
- * $Id: GUI.java,v 1.14 2007/01/10 09:03:02 fros4943 Exp $
+ * modification, are permitted provided that the following conditions are met:
+ * 1. Redistributions of source code must retain the above copyright notice,
+ * this list of conditions and the following disclaimer. 2. Redistributions in
+ * binary form must reproduce the above copyright notice, this list of
+ * conditions and the following disclaimer in the documentation and/or other
+ * materials provided with the distribution. 3. Neither the name of the
+ * Institute nor the names of its contributors may be used to endorse or promote
+ * products derived from this software without specific prior written
+ * permission.
+ * 
+ * THIS SOFTWARE IS PROVIDED BY THE INSTITUTE AND CONTRIBUTORS ``AS IS'' AND ANY
+ * EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE INSTITUTE OR CONTRIBUTORS BE LIABLE FOR ANY
+ * DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+ * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ * 
+ * $Id: GUI.java,v 1.15 2007/01/10 14:57:42 fros4943 Exp $
  */
 
 package se.sics.cooja;
@@ -39,7 +37,6 @@ import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.*;
 import java.util.List;
-
 import javax.swing.*;
 import javax.swing.event.MenuEvent;
 import javax.swing.event.MenuListener;
@@ -58,12 +55,18 @@ import se.sics.cooja.dialogs.*;
 import se.sics.cooja.plugins.*;
 
 /**
- * Main file of COOJA Simulator.
- *
+ * Main file of COOJA Simulator. Typically contains a visualizer for the
+ * simulator, but can also be started without visualizer.
+ * 
+ * This class loads external Java classes (in user platforms), and handles the
+ * COOJA plugins as well as the configuration system. If provides a number of
+ * help methods for the rest of the COOJA system, and is the starting point for
+ * loading and saving simulation configs.
+ * 
  * @author Fredrik Osterlind
  */
 public class GUI {
-  
+
   /**
    * External tools default Win32 settings filename.
    */
@@ -118,36 +121,44 @@ public class GUI {
   };
 
   /**
-   * Main frame for current GUI.
-   * Null when COOJA is run without GUI!
+   * Main frame for current GUI. Null when COOJA is run without visualizer!
    */
   public static JFrame frame;
 
   private static final long serialVersionUID = 1L;
+
   private static Logger logger = Logger.getLogger(GUI.class);
 
   // External tools setting names
   private static Properties currentExternalToolsSettings;
-  private static final String externalToolsSettingNames[] = new String[]{
+
+  private static final String externalToolsSettingNames[] = new String[] {
       "PATH_CONTIKI", "PATH_COOJA_CORE_RELATIVE", "PATH_MAKE", "PATH_SHELL",
       "PATH_C_COMPILER", "COMPILER_ARGS", "PATH_LINKER", "PATH_NM", "NM_ARGS",
-      "PATH_OBJDUMP", "OBJDUMP_ARGS", "LINKER_ARGS_1",
-      "LINKER_ARGS_2", "CONTIKI_STANDARD_PROCESSES", "CMD_GREP_PROCESSES",
+      "PATH_OBJDUMP", "OBJDUMP_ARGS", "LINKER_ARGS_1", "LINKER_ARGS_2",
+      "CONTIKI_STANDARD_PROCESSES", "CMD_GREP_PROCESSES",
       "REGEXP_PARSE_PROCESSES", "CMD_GREP_INTERFACES",
       "REGEXP_PARSE_INTERFACES", "CMD_GREP_SENSORS", "REGEXP_PARSE_SENSORS",
-      "CONTIKI_MAIN_TEMPLATE_FILENAME", "DEFAULT_USERPLATFORMS"};
+      "CONTIKI_MAIN_TEMPLATE_FILENAME", "DEFAULT_USERPLATFORMS" };
 
   private static final int FRAME_NEW_OFFSET = 30;
+
   private static final int FRAME_STANDARD_WIDTH = 150;
+
   private static final int FRAME_STANDARD_HEIGHT = 300;
 
   private GUI myGUI;
+
   private Simulation mySimulation;
+
   protected Mote selectedMote = null;
+
   protected GUIEventHandler guiEventHandler = new GUIEventHandler();
 
   private JMenu menuPlugins, menuMoteTypeClasses, menuMoteTypes;
+
   private JPopupMenu menuMotePlugins;
+
   private JDesktopPane myDesktopPane;
 
   private Vector<Plugin> startedPlugins = new Vector<Plugin>();
@@ -155,14 +166,21 @@ public class GUI {
   // Platform configuration variables
   // Maintained via method reparsePlatformConfig()
   private PlatformConfig platformConfig;
+
   private Vector<File> currentUserPlatforms = new Vector<File>();
+
   private ClassLoader userPlatformClassLoader;
 
   private Vector<Class<? extends MoteType>> moteTypeClasses = new Vector<Class<? extends MoteType>>();
+
   private Vector<Class<? extends Plugin>> pluginClasses = new Vector<Class<? extends Plugin>>();
+
   private Vector<Class<? extends Plugin>> pluginClassesTemporary = new Vector<Class<? extends Plugin>>();
+
   private Vector<Class<? extends RadioMedium>> radioMediumClasses = new Vector<Class<? extends RadioMedium>>();
+
   private Vector<Class<? extends IPDistributor>> ipDistributorClasses = new Vector<Class<? extends IPDistributor>>();
+
   private Vector<Class<? extends Positioner>> positionerClasses = new Vector<Class<? extends Positioner>>();
 
   /**
@@ -177,18 +195,18 @@ public class GUI {
     if (frame != null) {
       frame.setJMenuBar(createMenuBar());
     }
-    
-    
+
     // Load default and overwrite with user settings (if any)
     loadExternalToolsDefaultSettings();
     loadExternalToolsUserSettings();
 
     // Register default user platforms
-    String defaultUserPlatforms = getExternalToolsSetting("DEFAULT_USERPLATFORMS", null);
+    String defaultUserPlatforms = getExternalToolsSetting(
+        "DEFAULT_USERPLATFORMS", null);
     if (defaultUserPlatforms != null) {
       String[] defaultUserPlatformsArr = defaultUserPlatforms.split(";");
       if (defaultUserPlatformsArr.length > 0) {
-        for (String defaultUserPlatform: defaultUserPlatformsArr) {
+        for (String defaultUserPlatform : defaultUserPlatformsArr) {
           File userPlatform = new File(defaultUserPlatform);
           if (userPlatform.exists() && userPlatform.isDirectory()) {
             currentUserPlatforms.add(userPlatform);
@@ -196,14 +214,13 @@ public class GUI {
         }
       }
     }
-   
+
     // Load extendable parts (using current platform config)
     reparsePlatformConfig();
 
-    // EXPERIMENTAL: Start all standard GUI plugins
+    // Start all standard GUI plugins
     for (Class<? extends Plugin> visPluginClass : pluginClasses) {
-      int pluginType = visPluginClass.getAnnotation(PluginType.class)
-          .value();
+      int pluginType = visPluginClass.getAnnotation(PluginType.class).value();
       if (pluginType == PluginType.COOJA_STANDARD_PLUGIN) {
         startPlugin(visPluginClass, this, null, null);
       }
@@ -217,7 +234,7 @@ public class GUI {
   public boolean isVisualized() {
     return frame != null;
   }
-  
+
   private JMenuBar createMenuBar() {
     JMenuBar menuBar = new JMenuBar();
     JMenu menu;
@@ -321,8 +338,10 @@ public class GUI {
           menuMoteTypeClasses.add(menuItem);
         }
       }
+
       public void menuDeselected(MenuEvent e) {
       }
+
       public void menuCanceled(MenuEvent e) {
       }
     });
@@ -364,8 +383,10 @@ public class GUI {
           menuMoteTypes.add(menuItem);
         }
       }
+
       public void menuDeselected(MenuEvent e) {
       }
+
       public void menuCanceled(MenuEvent e) {
       }
     });
@@ -420,7 +441,6 @@ public class GUI {
 
     frame.setSize(700, 700);
     frame.addWindowListener(gui.guiEventHandler);
-
 
     // Display the window.
     frame.setVisible(true);
@@ -486,7 +506,7 @@ public class GUI {
     // Add menu bar
     frame.setSize(700, 700);
     frame.addWindowListener(gui.guiEventHandler);
-    
+
     JComponent newContentPane = gui.getDesktopPane();
     newContentPane.setOpaque(true);
     frame.setContentPane(newContentPane);
@@ -501,8 +521,8 @@ public class GUI {
       userPlatforms = new Vector<String>();
       userPlatforms.add(".");
     }
-    
-    //XXX Should add user prop platforms as well here...
+
+    // XXX Should add user prop platforms as well here...
     logger.info("> Reparsing user platforms and creating config");
     for (String userPlatform : userPlatforms) {
       logger.info(">> Adding: " + userPlatform);
@@ -521,12 +541,12 @@ public class GUI {
     File contikiBaseDir = new File(getExternalToolsSetting("PATH_CONTIKI"));
     File contikiCoreDir = new File(contikiBaseDir,
         getExternalToolsSetting("PATH_COOJA_CORE_RELATIVE"));
-    File libFile = new File(ContikiMoteType.tempOutputDirectory,
-        moteTypeID + ContikiMoteType.librarySuffix);
-    File mapFile = new File(ContikiMoteType.tempOutputDirectory,
-        moteTypeID + ContikiMoteType.mapSuffix);
-    File depFile = new File(ContikiMoteType.tempOutputDirectory,
-        moteTypeID + ContikiMoteType.dependSuffix);
+    File libFile = new File(ContikiMoteType.tempOutputDirectory, moteTypeID
+        + ContikiMoteType.librarySuffix);
+    File mapFile = new File(ContikiMoteType.tempOutputDirectory, moteTypeID
+        + ContikiMoteType.mapSuffix);
+    File depFile = new File(ContikiMoteType.tempOutputDirectory, moteTypeID
+        + ContikiMoteType.dependSuffix);
     if (libFile.exists())
       libFile.delete();
     if (depFile.exists())
@@ -772,8 +792,9 @@ public class GUI {
           GUI.class, "RADIOMEDIUMS")[0];
       Class<? extends RadioMedium> radioMediumClass = gui.tryLoadClass(gui,
           RadioMedium.class, radioMediumClassName);
-      
-      RadioMedium radioMedium = RadioMedium.generateRadioMedium(radioMediumClass, simulation);
+
+      RadioMedium radioMedium = RadioMedium.generateRadioMedium(
+          radioMediumClass, simulation);
       simulation.setRadioMedium(radioMedium);
     } catch (Exception e) {
       logger.fatal(">> Failed to load radio medium, aborting: "
@@ -832,12 +853,12 @@ public class GUI {
     }
     return true;
   }
-  
+
   // // PLATFORM CONFIG AND EXTENDABLE PARTS METHODS ////
 
   /**
    * Register new mote type class.
-   *
+   * 
    * @param moteTypeClass
    *          Class to register
    */
@@ -861,7 +882,7 @@ public class GUI {
 
   /**
    * Register new IP distributor class
-   *
+   * 
    * @param ipDistributorClass
    *          Class to register
    * @return True if class was registered
@@ -870,7 +891,7 @@ public class GUI {
       Class<? extends IPDistributor> ipDistributorClass) {
     // Check that vector constructor exists
     try {
-      ipDistributorClass.getConstructor(new Class[]{Vector.class});
+      ipDistributorClass.getConstructor(new Class[] { Vector.class });
     } catch (Exception e) {
       logger.fatal("No vector constructor found of IP distributor: "
           + ipDistributorClass);
@@ -897,7 +918,7 @@ public class GUI {
 
   /**
    * Register new positioner class.
-   *
+   * 
    * @param positionerClass
    *          Class to register
    * @return True if class was registered
@@ -906,8 +927,8 @@ public class GUI {
     // Check that interval constructor exists
     try {
       positionerClass
-          .getConstructor(new Class[]{int.class, double.class, double.class,
-              double.class, double.class, double.class, double.class});
+          .getConstructor(new Class[] { int.class, double.class, double.class,
+              double.class, double.class, double.class, double.class });
     } catch (Exception e) {
       logger.fatal("No interval constructor found of positioner: "
           + positionerClass);
@@ -934,7 +955,7 @@ public class GUI {
 
   /**
    * Register new radio medium class.
-   *
+   * 
    * @param radioMediumClass
    *          Class to register
    * @return True if class was registered
@@ -943,8 +964,7 @@ public class GUI {
       Class<? extends RadioMedium> radioMediumClass) {
     // Check that simulation constructor exists
     try {
-      radioMediumClass
-          .getConstructor(new Class[]{Simulation.class});
+      radioMediumClass.getConstructor(new Class[] { Simulation.class });
     } catch (Exception e) {
       logger.fatal("No simulation constructor found of radio medium: "
           + radioMediumClass);
@@ -975,9 +995,9 @@ public class GUI {
    * mediums. This method may still return true even if all classes could not be
    * registered, but always returns false if all user platform configuration
    * files were not parsed correctly.
-   *
+   * 
    * Any registered temporary plugins will be saved and reregistered.
-   *
+   * 
    * @return True if external configuration files were found and parsed OK
    */
   public boolean reparsePlatformConfig() {
@@ -1012,15 +1032,15 @@ public class GUI {
 
       try {
         // Append config to general config
-        // logger.info("Appending user platform configuration: " + userPlatform);
+        // logger.info("Appending user platform configuration: " +
+        // userPlatform);
         platformConfig.appendUserPlatform(userPlatform);
       } catch (FileNotFoundException e) {
-        logger.fatal("Could not find platform config file: "
-            + userPlatform);
+        logger.fatal("Could not find platform config file: " + userPlatform);
         return false;
       } catch (IOException e) {
-        logger.fatal("Error when reading platform config file: "
-            + userPlatform);
+        logger
+            .fatal("Error when reading platform config file: " + userPlatform);
         return false;
       }
     }
@@ -1053,8 +1073,8 @@ public class GUI {
         "PLUGINS");
     if (pluginClassNames != null) {
       for (String pluginClassName : pluginClassNames) {
-        Class<? extends Plugin> pluginClass = tryLoadClass(this,
-            Plugin.class, pluginClassName);
+        Class<? extends Plugin> pluginClass = tryLoadClass(this, Plugin.class,
+            pluginClassName);
 
         if (pluginClass != null) {
           registerPlugin(pluginClass);
@@ -1136,7 +1156,7 @@ public class GUI {
 
   /**
    * Returns the current platform configuration common to the entire simulator.
-   *
+   * 
    * @return Current platform configuration
    */
   public PlatformConfig getPlatformConfig() {
@@ -1145,7 +1165,7 @@ public class GUI {
 
   /**
    * Returns the current user platforms common to the entire simulator.
-   *
+   * 
    * @return Current user platforms.
    */
   public Vector<File> getUserPlatforms() {
@@ -1156,7 +1176,7 @@ public class GUI {
 
   /**
    * Show a started plugin in working area.
-   *
+   * 
    * @param plugin
    *          Internal frame to add
    */
@@ -1175,10 +1195,10 @@ public class GUI {
           * FRAME_NEW_OFFSET);
       plugin.setVisible(true);
     }
-    
+
     // Deselect all other plugins before selecting the new one
     try {
-      for (JInternalFrame existingPlugin: myDesktopPane.getAllFrames()) {
+      for (JInternalFrame existingPlugin : myDesktopPane.getAllFrames()) {
         existingPlugin.setSelected(false);
       }
       plugin.setSelected(true);
@@ -1192,7 +1212,7 @@ public class GUI {
 
   /**
    * Remove a plugin from working area.
-   *
+   * 
    * @param plugin
    *          Plugin to remove
    * @param askUser
@@ -1203,7 +1223,7 @@ public class GUI {
     // Clear any allocated resources and remove plugin
     plugin.closePlugin();
     startedPlugins.remove(plugin);
-    
+
     // Dispose plugin if it has visualizer
     if (plugin instanceof VisPlugin) {
       ((VisPlugin) plugin).dispose();
@@ -1212,7 +1232,7 @@ public class GUI {
     if (askUser && startedPlugins.isEmpty()) {
       String s1 = "Remove";
       String s2 = "Cancel";
-      Object[] options = {s1, s2};
+      Object[] options = { s1, s2 };
       int n = JOptionPane.showOptionDialog(frame,
           "You have an active simulation.\nDo you want to remove it?",
           "Remove current simulation?", JOptionPane.YES_NO_OPTION,
@@ -1237,19 +1257,16 @@ public class GUI {
    *          Mote passed as argument to mote plugins
    * @return Start plugin if any
    */
-  public Plugin startPlugin(Class<? extends Plugin> pluginClass,
-      GUI gui,
-      Simulation simulation,
-      Mote mote
-  ) {
-    
+  public Plugin startPlugin(Class<? extends Plugin> pluginClass, GUI gui,
+      Simulation simulation, Mote mote) {
+
     // Check that plugin class is registered
     if (!pluginClasses.contains(pluginClass)) {
       logger.fatal("Plugin class not registered: " + pluginClass);
       return null;
     }
 
-    // Check that visualizer plugin is not started without GUI 
+    // Check that visualizer plugin is not started without GUI
     if (!isVisualized()) {
       try {
         pluginClass.asSubclass(VisPlugin.class);
@@ -1260,7 +1277,7 @@ public class GUI {
       } catch (ClassCastException e) {
       }
     }
-    
+
     // Construct plugin depending on plugin type
     Plugin newPlugin = null;
     int pluginType = pluginClass.getAnnotation(PluginType.class).value();
@@ -1275,26 +1292,27 @@ public class GUI {
         newPlugin = pluginClass.getConstructor(
             new Class[] { Mote.class, Simulation.class, GUI.class })
             .newInstance(mote, simulation, gui);
-        
+
         // Tag plugin with mote
         newPlugin.tagWithObject(mote);
-      } else if (pluginType == PluginType.SIM_PLUGIN ||
-          pluginType == PluginType.SIM_STANDARD_PLUGIN) {
+      } else if (pluginType == PluginType.SIM_PLUGIN
+          || pluginType == PluginType.SIM_STANDARD_PLUGIN) {
         if (simulation == null) {
           logger.fatal("Can't start simulation plugin (no simulation)");
           return null;
         }
 
-        newPlugin = pluginClass.getConstructor(new Class[]{Simulation.class, GUI.class})
-            .newInstance(simulation, gui);
-      } else if (pluginType == PluginType.COOJA_PLUGIN ||
-          pluginType == PluginType.COOJA_STANDARD_PLUGIN) {
+        newPlugin = pluginClass.getConstructor(
+            new Class[] { Simulation.class, GUI.class }).newInstance(
+            simulation, gui);
+      } else if (pluginType == PluginType.COOJA_PLUGIN
+          || pluginType == PluginType.COOJA_STANDARD_PLUGIN) {
         if (gui == null) {
           logger.fatal("Can't start COOJA plugin (no GUI)");
           return null;
         }
 
-        newPlugin = pluginClass.getConstructor(new Class[]{GUI.class})
+        newPlugin = pluginClass.getConstructor(new Class[] { GUI.class })
             .newInstance(gui);
       }
     } catch (Exception e) {
@@ -1308,7 +1326,7 @@ public class GUI {
 
     // Add to active plugins list
     startedPlugins.add(newPlugin);
-    
+
     // Show plugin if visualizer type
     if (newPlugin instanceof VisPlugin) {
       myGUI.showPlugin((VisPlugin) newPlugin);
@@ -1320,7 +1338,7 @@ public class GUI {
   /**
    * Register a plugin to be included in the GUI. The plugin will be visible in
    * the menubar.
-   *
+   * 
    * @param newPluginClass
    *          New plugin to register
    * @return True if this plugin was registered ok, false otherwise
@@ -1333,13 +1351,12 @@ public class GUI {
    * Register a temporary plugin to be included in the GUI. The plugin will be
    * visible in the menubar. This plugin will automatically be unregistered if
    * the current simulation is removed.
-   *
+   * 
    * @param newPluginClass
    *          New plugin to register
    * @return True if this plugin was registered ok, false otherwise
    */
-  public boolean registerTemporaryPlugin(
-      Class<? extends Plugin> newPluginClass) {
+  public boolean registerTemporaryPlugin(Class<? extends Plugin> newPluginClass) {
     if (pluginClasses.contains(newPluginClass))
       return false;
 
@@ -1353,7 +1370,7 @@ public class GUI {
 
   /**
    * Unregister a plugin class. Removes any plugin menu items links as well.
-   *
+   * 
    * @param pluginClass
    *          Plugin class to unregister
    */
@@ -1384,7 +1401,7 @@ public class GUI {
 
   /**
    * Register a plugin to be included in the GUI.
-   *
+   * 
    * @param newPluginClass
    *          New plugin to register
    * @param addToMenu
@@ -1408,13 +1425,15 @@ public class GUI {
     // Check that plugin type is valid and constructor exists
     try {
       if (pluginType == PluginType.MOTE_PLUGIN) {
-        newPluginClass.getConstructor(new Class[]{Mote.class, Simulation.class, GUI.class});
-      } else if (pluginType == PluginType.SIM_PLUGIN ||
-          pluginType == PluginType.SIM_STANDARD_PLUGIN) {
-        newPluginClass.getConstructor(new Class[]{Simulation.class, GUI.class});
-      } else if (pluginType == PluginType.COOJA_PLUGIN || 
-          pluginType == PluginType.COOJA_STANDARD_PLUGIN) {
-        newPluginClass.getConstructor(new Class[]{GUI.class});
+        newPluginClass.getConstructor(new Class[] { Mote.class,
+            Simulation.class, GUI.class });
+      } else if (pluginType == PluginType.SIM_PLUGIN
+          || pluginType == PluginType.SIM_STANDARD_PLUGIN) {
+        newPluginClass
+            .getConstructor(new Class[] { Simulation.class, GUI.class });
+      } else if (pluginType == PluginType.COOJA_PLUGIN
+          || pluginType == PluginType.COOJA_STANDARD_PLUGIN) {
+        newPluginClass.getConstructor(new Class[] { GUI.class });
       } else {
         logger.fatal("Could not find valid plugin type annotation in class "
             + newPluginClass);
@@ -1467,7 +1486,7 @@ public class GUI {
   /**
    * Show mote plugins menu for starting a mote plugin. All registered mote
    * plugins can be selected from.
-   *
+   * 
    * @param invoker
    *          Component that wants to display the menu
    * @param mote
@@ -1490,7 +1509,7 @@ public class GUI {
   public Simulation getSimulation() {
     return mySimulation;
   }
-  
+
   public void setSimulation(Simulation sim) {
     if (sim != null) {
       doRemoveSimulation(false);
@@ -1531,7 +1550,8 @@ public class GUI {
     boolean moteTypeOK = false;
     try {
       newMoteType = moteTypeClass.newInstance();
-      moteTypeOK = newMoteType.configureAndInit(frame, mySimulation, isVisualized());
+      moteTypeOK = newMoteType.configureAndInit(frame, mySimulation,
+          isVisualized());
     } catch (Exception e) {
       logger.fatal("Exception when creating mote type: " + e);
       return;
@@ -1545,7 +1565,7 @@ public class GUI {
 
   /**
    * Remove current simulation
-   *
+   * 
    * @param askForConfirmation
    *          Should we ask for confirmation if a simulation is already active?
    */
@@ -1555,7 +1575,7 @@ public class GUI {
       if (askForConfirmation) {
         String s1 = "Remove";
         String s2 = "Cancel";
-        Object[] options = {s1, s2};
+        Object[] options = { s1, s2 };
         int n = JOptionPane.showOptionDialog(frame,
             "You have an active simulation.\nDo you want to remove it?",
             "Remove current simulation?", JOptionPane.YES_NO_OPTION,
@@ -1566,11 +1586,12 @@ public class GUI {
       }
 
       // Close all started non-GUI plugins
-      for (Object startedPlugin: startedPlugins.toArray()) {
-        int pluginType = startedPlugin.getClass().getAnnotation(PluginType.class).value();
-        if (pluginType != PluginType.COOJA_PLUGIN &&
-            pluginType != PluginType.COOJA_STANDARD_PLUGIN)
-          removePlugin((Plugin)startedPlugin, false);
+      for (Object startedPlugin : startedPlugins.toArray()) {
+        int pluginType = startedPlugin.getClass().getAnnotation(
+            PluginType.class).value();
+        if (pluginType != PluginType.COOJA_PLUGIN
+            && pluginType != PluginType.COOJA_STANDARD_PLUGIN)
+          removePlugin((Plugin) startedPlugin, false);
       }
 
       // Delete simulation
@@ -1592,7 +1613,7 @@ public class GUI {
 
   /**
    * Load a simulation configuration file from disk
-   *
+   * 
    * @param askForConfirmation
    *          Should we ask for confirmation if a simulation is already active?
    */
@@ -1610,7 +1631,7 @@ public class GUI {
     if (askForConfirmation && mySimulation != null) {
       String s1 = "Remove";
       String s2 = "Cancel";
-      Object[] options = {s1, s2};
+      Object[] options = { s1, s2 };
       int n = JOptionPane.showOptionDialog(frame,
           "You have an active simulation.\nDo you want to remove it?",
           "Remove current simulation?", JOptionPane.YES_NO_OPTION,
@@ -1658,7 +1679,7 @@ public class GUI {
 
   /**
    * Save current simulation configuration to disk
-   *
+   * 
    * @param askForConfirmation
    *          Ask for confirmation before overwriting file
    */
@@ -1682,7 +1703,7 @@ public class GUI {
           if (askForConfirmation) {
             String s1 = "Overwrite";
             String s2 = "Cancel";
-            Object[] options = {s1, s2};
+            Object[] options = { s1, s2 };
             int n = JOptionPane
                 .showOptionDialog(
                     frame,
@@ -1713,7 +1734,8 @@ public class GUI {
     if (mySimulation != null) {
       mySimulation.stopSimulation();
 
-      Vector<Mote> newMotes = AddMoteDialog.showDialog(frame, mySimulation, moteType);
+      Vector<Mote> newMotes = AddMoteDialog.showDialog(frame, mySimulation,
+          moteType);
       if (newMotes != null) {
         for (Mote newMote : newMotes)
           mySimulation.addMote(newMote);
@@ -1725,7 +1747,7 @@ public class GUI {
 
   /**
    * Create a new simulation
-   *
+   * 
    * @param askForConfirmation
    *          Should we ask for confirmation if a simulation is already active?
    */
@@ -1733,7 +1755,7 @@ public class GUI {
     if (askForConfirmation && mySimulation != null) {
       String s1 = "Remove";
       String s2 = "Cancel";
-      Object[] options = {s1, s2};
+      Object[] options = { s1, s2 };
       int n = JOptionPane.showOptionDialog(frame,
           "You have an active simulation.\nDo you want to remove it?",
           "Remove current simulation?", JOptionPane.YES_NO_OPTION,
@@ -1754,7 +1776,7 @@ public class GUI {
 
   /**
    * Quit program
-   *
+   * 
    * @param askForConfirmation
    *          Should we ask for confirmation before quitting?
    */
@@ -1762,7 +1784,7 @@ public class GUI {
     if (askForConfirmation) {
       String s1 = "Quit";
       String s2 = "Cancel";
-      Object[] options = {s1, s2};
+      Object[] options = { s1, s2 };
       int n = JOptionPane.showOptionDialog(frame, "Sure you want to quit?",
           "Close COOJA Simulator", JOptionPane.YES_NO_OPTION,
           JOptionPane.QUESTION_MESSAGE, null, options, s1);
@@ -1772,7 +1794,7 @@ public class GUI {
 
     // Clean up resources
     Object[] plugins = startedPlugins.toArray();
-    for (Object plugin: plugins)
+    for (Object plugin : plugins)
       removePlugin((Plugin) plugin, false);
 
     System.exit(0);
@@ -1789,7 +1811,7 @@ public class GUI {
 
   /**
    * Get name of external tools setting at given index.
-   *
+   * 
    * @param index
    *          Setting index
    * @return Name
@@ -1863,7 +1885,7 @@ public class GUI {
   private static void loadExternalToolsUserSettings() {
     File configFile = new File(System.getProperty("user.home"),
         GUI.EXTERNAL_TOOLS_USER_SETTINGS_FILENAME);
-    
+
     try {
       FileInputStream in = new FileInputStream(configFile);
       Properties settings = new Properties();
@@ -1888,15 +1910,16 @@ public class GUI {
    * Save external tools user settings to file.
    */
   public static void saveExternalToolsUserSettings() {
-    File configFile = new File(System.getProperty("user.home"), GUI.EXTERNAL_TOOLS_USER_SETTINGS_FILENAME);
+    File configFile = new File(System.getProperty("user.home"),
+        GUI.EXTERNAL_TOOLS_USER_SETTINGS_FILENAME);
     try {
       FileOutputStream out = new FileOutputStream(configFile);
       currentExternalToolsSettings.store(out, "COOJA User Settings");
       out.close();
     } catch (FileNotFoundException ex) {
       // Could not open settings file for writing, aborting
-      logger.warn("Could not save external tools user settings to " + configFile
-          + ", aborting");
+      logger.warn("Could not save external tools user settings to "
+          + configFile + ", aborting");
     } catch (IOException ex) {
       // Could not open settings file for writing, aborting
       logger.warn("Error while saving external tools user settings to "
@@ -1909,14 +1932,19 @@ public class GUI {
   private class GUIEventHandler implements ActionListener, WindowListener {
     public void windowDeactivated(WindowEvent e) {
     }
+
     public void windowIconified(WindowEvent e) {
     }
+
     public void windowDeiconified(WindowEvent e) {
     }
+
     public void windowOpened(WindowEvent e) {
     }
+
     public void windowClosed(WindowEvent e) {
     }
+
     public void windowActivated(WindowEvent e) {
     }
 
@@ -1947,7 +1975,7 @@ public class GUI {
         ExternalToolsDialog.showDialog(frame);
       } else if (e.getActionCommand().equals("close plugins")) {
         Object[] plugins = startedPlugins.toArray();
-        for (Object plugin: plugins)
+        for (Object plugin : plugins)
           removePlugin((Plugin) plugin, false);
       } else if (e.getActionCommand().equals("manage platforms")) {
         Vector<File> newPlatforms = UserPlatformsDialog.showDialog(frame,
@@ -1969,7 +1997,7 @@ public class GUI {
 
   /**
    * Help method that tries to load and initialize a class with given name.
-   *
+   * 
    * @param <N>
    *          Class extending given class type
    * @param classType
@@ -2013,7 +2041,8 @@ public class GUI {
   }
 
   private ClassLoader createClassLoader(Vector<File> currentUserPlatforms) {
-    return createClassLoader(ClassLoader.getSystemClassLoader(), currentUserPlatforms);
+    return createClassLoader(ClassLoader.getSystemClassLoader(),
+        currentUserPlatforms);
   }
 
   private File findJarFile(File platformPath, String jarfile) {
@@ -2038,7 +2067,7 @@ public class GUI {
     if (platformsList == null || platformsList.isEmpty()) {
       return parent;
     }
-    
+
     // Combine class loader from all user platforms (including any
     // specified JAR files)
     ArrayList<URL> urls = new ArrayList<URL>();
@@ -2046,7 +2075,7 @@ public class GUI {
       File userPlatform = platformsList.get(j);
       try {
         urls.add((new File(userPlatform, "java")).toURL());
-        
+
         // Read configuration to check if any JAR files should be loaded
         PlatformConfig userPlatformConfig = new PlatformConfig(false);
         userPlatformConfig.appendUserPlatform(userPlatform);
@@ -2061,21 +2090,22 @@ public class GUI {
             urls.add(jarpath.toURL());
           }
         }
-        
+
       } catch (Exception e) {
         logger.fatal("Error when trying to read JAR-file in " + userPlatform
             + ": " + e);
       }
     }
-    
-    return new URLClassLoader((URL[]) urls.toArray(new URL[urls.size()]), parent);
+
+    return new URLClassLoader((URL[]) urls.toArray(new URL[urls.size()]),
+        parent);
   }
-  
+
   /**
    * Help method that returns the description for given object. This method
    * reads from the object's class annotations if existing. Otherwise it returns
    * the simple class name of object's class.
-   *
+   * 
    * @param object
    *          Object
    * @return Description
@@ -2088,7 +2118,7 @@ public class GUI {
    * Help method that returns the description for given class. This method reads
    * from class annotations if existing. Otherwise it returns the simple class
    * name.
-   *
+   * 
    * @param clazz
    *          Class
    * @return Description
@@ -2221,7 +2251,7 @@ public class GUI {
 
     }
   }
-  
+
   /**
    * Loads a simulation configuration from given file.
    * 
@@ -2235,7 +2265,8 @@ public class GUI {
    * @throws UnsatisfiedLinkError
    *           If associated libraries could not be loaded
    */
-  public Simulation loadSimulationConfig(File file, boolean quick) throws UnsatisfiedLinkError {
+  public Simulation loadSimulationConfig(File file, boolean quick)
+      throws UnsatisfiedLinkError {
 
     Simulation newSim = null;
 
@@ -2286,8 +2317,7 @@ public class GUI {
    * Saves current simulation configuration to given file and notifies
    * observers.
    * 
-   * @see #loadSimulationConfig(File file)
-   * @see #getConfigXML()
+   * @see #loadSimulationConfig(File, boolean)
    * @param file
    *          File to write
    */
@@ -2299,12 +2329,12 @@ public class GUI {
       Element simulationElement = new Element("simulation");
       simulationElement.addContent(mySimulation.getConfigXML());
       root.addContent(simulationElement);
-      
+
       // Create started plugins config
       Collection<Element> pluginsConfig = getPluginsConfigXML();
       if (pluginsConfig != null)
         root.addContent(pluginsConfig);
-      
+
       // Create and write to document
       Document doc = new Document(root);
       FileOutputStream out = new FileOutputStream(file);
@@ -2322,27 +2352,30 @@ public class GUI {
 
   /**
    * Returns started plugins config.
+   * 
    * @return Config or null
    */
   public Collection<Element> getPluginsConfigXML() {
     Vector<Element> config = new Vector<Element>();
-    
+
     // Loop through all started plugins
     // (Only return config of non-GUI plugins)
     Element pluginElement, pluginSubElement;
-    for (Plugin startedPlugin: startedPlugins) {
-      int pluginType = startedPlugin.getClass().getAnnotation(PluginType.class).value();
-      
+    for (Plugin startedPlugin : startedPlugins) {
+      int pluginType = startedPlugin.getClass().getAnnotation(PluginType.class)
+          .value();
+
       // Ignore GUI plugins
-      if (pluginType == PluginType.COOJA_PLUGIN ||
-          pluginType == PluginType.COOJA_STANDARD_PLUGIN)
+      if (pluginType == PluginType.COOJA_PLUGIN
+          || pluginType == PluginType.COOJA_STANDARD_PLUGIN)
         continue;
-      
+
       pluginElement = new Element("plugin");
       pluginElement.setText(startedPlugin.getClass().getName());
-      
+
       // Create mote argument config (if mote plugin)
-      if (pluginType == PluginType.MOTE_PLUGIN && startedPlugin.getTag() != null) {
+      if (pluginType == PluginType.MOTE_PLUGIN
+          && startedPlugin.getTag() != null) {
         pluginSubElement = new Element("mote_arg");
         Mote taggedMote = (Mote) startedPlugin.getTag();
         for (int moteNr = 0; moteNr < mySimulation.getMotesCount(); moteNr++) {
@@ -2361,39 +2394,41 @@ public class GUI {
         pluginSubElement.addContent(pluginXML);
         pluginElement.addContent(pluginSubElement);
       }
-      
+
       // If plugin is visualizer plugin, create visualization arguments
       if (startedPlugin instanceof VisPlugin) {
         VisPlugin startedVisPlugin = (VisPlugin) startedPlugin;
-        
+
         pluginSubElement = new Element("width");
         pluginSubElement.setText("" + startedVisPlugin.getSize().width);
         pluginElement.addContent(pluginSubElement);
-        
+
         pluginSubElement = new Element("z");
-        pluginSubElement.setText("" + getDesktopPane().getComponentZOrder(startedVisPlugin));
+        pluginSubElement.setText(""
+            + getDesktopPane().getComponentZOrder(startedVisPlugin));
         pluginElement.addContent(pluginSubElement);
-        
+
         pluginSubElement = new Element("height");
         pluginSubElement.setText("" + startedVisPlugin.getSize().height);
         pluginElement.addContent(pluginSubElement);
-        
+
         pluginSubElement = new Element("location_x");
         pluginSubElement.setText("" + startedVisPlugin.getLocation().x);
         pluginElement.addContent(pluginSubElement);
-        
+
         pluginSubElement = new Element("location_y");
         pluginSubElement.setText("" + startedVisPlugin.getLocation().y);
         pluginElement.addContent(pluginSubElement);
-        
+
         pluginSubElement = new Element("minimized");
-        pluginSubElement.setText(new Boolean(startedVisPlugin.isIcon()).toString());
+        pluginSubElement.setText(new Boolean(startedVisPlugin.isIcon())
+            .toString());
         pluginElement.addContent(pluginSubElement);
       }
-      
+
       config.add(pluginElement);
     }
-    
+
     return config;
   }
 
@@ -2433,14 +2468,15 @@ public class GUI {
         }
 
         // Start plugin (before applying rest of config)
-        Plugin startedPlugin = startPlugin(visPluginClass, this,
-            simulation, mote);
+        Plugin startedPlugin = startPlugin(visPluginClass, this, simulation,
+            mote);
 
         // Apply plugin specific configuration
         for (Element pluginSubElement : (List<Element>) pluginElement
             .getChildren()) {
           if (pluginSubElement.getName().equals("plugin_config")) {
-            startedPlugin.setConfigXML(pluginSubElement.getChildren(), visAvailable);
+            startedPlugin.setConfigXML(pluginSubElement.getChildren(),
+                visAvailable);
           }
         }
 
@@ -2477,14 +2513,15 @@ public class GUI {
                 // Ignoring
               }
             } else if (pluginSubElement.getName().equals("plugin_config")) {
-              startedVisPlugin.setConfigXML(pluginSubElement.getChildren(), visAvailable);
+              startedVisPlugin.setConfigXML(pluginSubElement.getChildren(),
+                  visAvailable);
             }
           }
         }
 
       }
     }
-    
+
     // For all started visplugins, check if they have a zorder property
     for (JInternalFrame plugin : getDesktopPane().getAllFrames()) {
       if (plugin.getClientProperty("zorder") != null) {
