@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: Level3.java,v 1.1 2006/08/21 12:13:01 fros4943 Exp $
+ * $Id: Level3.java,v 1.2 2007/01/11 14:26:47 fros4943 Exp $
  */
 
 import java.io.*;
@@ -72,8 +72,16 @@ public class Level3 {
     System.err.println("Found relative data section address: 0x" + Integer.toHexString(relDataSectionAddr));
     System.err.println("Found data section size: 0x" + Integer.toHexString(dataSectionSize));
     System.err.println("Found relative bss section address: 0x" + Integer.toHexString(relBssSectionAddr));
-    System.err.println("Found bss section address: 0x" + Integer.toHexString(bssSectionSize));
+    System.err.println("Found bss section size: 0x" + Integer.toHexString(bssSectionSize));
     
+    if (dataSectionSize != 4) {
+      System.err.println("Data section size is " + Integer.toHexString(dataSectionSize) + " but should be 0x4!");
+      System.exit(1);
+    }
+    if (bssSectionSize != 4) {
+      System.err.println("BSS section size is " + Integer.toHexString(bssSectionSize) + " but should be 0x4!");
+      System.exit(1);
+    }
     test();
   }
 
