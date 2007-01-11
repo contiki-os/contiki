@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: level5.c,v 1.1 2006/08/21 12:13:10 fros4943 Exp $
+ * $Id: level5.c,v 1.2 2007/01/11 14:27:26 fros4943 Exp $
  */
 
 #include <jni.h>
@@ -41,7 +41,7 @@ int uninitialized_counter;
 JNIEXPORT void JNICALL
 Java_Level5_doCount(JNIEnv *env, jobject obj)
 {
- fprintf(stderr, ">> DATA_counter=\t%i\tBSS_counter=\t%i\n", initialized_counter++, uninitialized_counter++);
+ fprintf(stderr, ">> DATA_counter=\t%i\tBSS_counter=\t%i\n", ++initialized_counter, ++uninitialized_counter);
  fflush(stderr);
 }
 JNIEXPORT jint JNICALL
