@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: Level5.java,v 1.1 2006/08/21 12:13:10 fros4943 Exp $
+ * $Id: Level5.java,v 1.2 2007/01/11 14:28:26 fros4943 Exp $
  */
 
 import java.io.*;
@@ -64,6 +64,9 @@ public class Level5 {
   private native byte[] getMemory(int start, int length);
   private native void setMemory(int start, int length, byte[] mem);
 
+  private int javaDataCounter = 1;
+  private int javaBssCounter = 0;
+  
   public Level5() {
     File mapFile = new File("level5.map");
 
@@ -85,11 +88,15 @@ public class Level5 {
     int offsetRelToAbs = referenceAddress - getRelVarAddr(mapContents, "ref_var");
 
     System.err.println("\n\n--- RUNNING DO_COUNT 5 TIMES ---");
-    doCount();
-    doCount();
-    doCount();
-    doCount();
-    doCount();
+    doCount(); javaDataCounter++; javaBssCounter++;
+    doCount(); javaDataCounter++; javaBssCounter++;
+    doCount(); javaDataCounter++; javaBssCounter++;
+    doCount(); javaDataCounter++; javaBssCounter++;
+    doCount(); javaDataCounter++; javaBssCounter++;
+
+    System.err.println("\n\n--- CHECKPOINT #1: JAVA COUNTERS SHOULD EQUAL C ---");
+    System.err.println(">> JavaDATA_counter=\t" + javaDataCounter + "\tJavaBSS_counter=\t" + javaBssCounter);
+    
     System.err.println("\n\n--- FETCHING AND SAVING MEMORY ---");
     byte[] savedDataSection = getMemory(relDataSectionAddr + offsetRelToAbs, dataSectionSize);
     byte[] savedBssSection = getMemory(relBssSectionAddr + offsetRelToAbs, bssSectionSize);
@@ -97,26 +104,35 @@ public class Level5 {
     System.err.println("bss section size:\t" + savedBssSection.length + " = " + "0x" + Integer.toHexString(savedBssSection.length));
     
     System.err.println("\n\n--- RUNNING DO_COUNT 3 TIMES ---");
-    doCount();
-    doCount();
-    doCount();
+    doCount(); javaDataCounter++; javaBssCounter++;
+    doCount(); javaDataCounter++; javaBssCounter++;
+    doCount(); javaDataCounter++; javaBssCounter++;
 
+    System.err.println("\n\n--- CHECKPOINT #2: JAVA COUNTERS SHOULD EQUAL C ---");
+    System.err.println(">> JavaDATA_counter=\t" + javaDataCounter + "\tJavaBSS_counter=\t" + javaBssCounter);
+    
     System.err.println("\n\n--- RESTORING MEMORY: DATA ---");
-    setMemory(relDataSectionAddr + offsetRelToAbs, dataSectionSize, savedDataSection);
+    setMemory(relDataSectionAddr + offsetRelToAbs, dataSectionSize, savedDataSection); javaDataCounter -= 3;
 
     System.err.println("\n\n--- RUNNING DO_COUNT 3 TIMES ---");
-    doCount();
-    doCount();
-    doCount();
+    doCount(); javaDataCounter++; javaBssCounter++;
+    doCount(); javaDataCounter++; javaBssCounter++;
+    doCount(); javaDataCounter++; javaBssCounter++;
 
+    System.err.println("\n\n--- CHECKPOINT #3: JAVA COUNTERS SHOULD EQUAL C ---");
+    System.err.println(">> JavaDATA_counter=\t" + javaDataCounter + "\tJavaBSS_counter=\t" + javaBssCounter);
+    
     System.err.println("\n\n--- RESTORING MEMORY: BSS ---");
-    setMemory(relBssSectionAddr + offsetRelToAbs, bssSectionSize, savedBssSection);
+    setMemory(relBssSectionAddr + offsetRelToAbs, bssSectionSize, savedBssSection); javaBssCounter -= 6;
     
     System.err.println("\n\n--- RUNNING DO_COUNT 3 TIMES ---");
-    doCount();
-    doCount();
-    doCount();
+    doCount(); javaDataCounter++; javaBssCounter++;
+    doCount(); javaDataCounter++; javaBssCounter++;
+    doCount(); javaDataCounter++; javaBssCounter++;
 
+    System.err.println("\n\n--- CHECKPOINT #4: JAVA COUNTERS SHOULD EQUAL C ---");
+    System.err.println(">> JavaDATA_counter=\t" + javaDataCounter + "\tJavaBSS_counter=\t" + javaBssCounter);
+    
     System.err.println("Level 5 OK!");
   }
 
