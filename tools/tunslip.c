@@ -28,7 +28,7 @@
  *
  * This file is part of the uIP TCP/IP stack.
  *
- * $Id: tunslip.c,v 1.6 2006/12/22 17:25:13 barner Exp $
+ * $Id: tunslip.c,v 1.7 2007/01/12 18:23:19 bg- Exp $
  *
  */
 
@@ -970,7 +970,7 @@ main(int argc, char **argv)
       if (slipfd == -1) err(1, "can't open siodev ``/dev/%s''", siodev);
   } else {
     static const char *siodevs[] = {
-      "cuad0", "ttyUSB0", "ucom0", "cuaU0"
+      "ttyUSB0", "cuaU0", "ucom0" /* linux, fbsd6, fbsd5 */
     };
     int i;
     for(i = 0; i < 3; i++) {
