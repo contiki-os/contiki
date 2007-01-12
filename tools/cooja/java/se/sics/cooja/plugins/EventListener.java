@@ -24,7 +24,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * 
- * $Id: EventListener.java,v 1.1 2007/01/09 09:50:52 fros4943 Exp $
+ * $Id: EventListener.java,v 1.2 2007/01/12 10:47:05 fros4943 Exp $
  */
 
 package se.sics.cooja.plugins;
@@ -39,8 +39,6 @@ import se.sics.cooja.*;
 import se.sics.cooja.contikimote.ContikiMoteType;
 
 /**
- * EXPERIMENTAL:
- * 
  * Allows a user to observe several different parts of the simulator, stopping a
  * simulation whenever an object changes.
  * 
@@ -156,7 +154,6 @@ public class EventListener extends VisPlugin {
     for (Class<? extends MoteInterface> moteTypeClass : allMoteTypesDups) {
       if (!allMoteTypes.contains(moteTypeClass)) {
         allMoteTypes.add(moteTypeClass);
-        logger.debug("Available mote interface class: " + moteTypeClass);
       }
     }
     JPanel interfacePanel = new JPanel();
@@ -165,6 +162,7 @@ public class EventListener extends VisPlugin {
     for (Class<? extends MoteInterface> moteTypeClass : allMoteTypes) {
       JCheckBox checkBox = new JCheckBox(GUI.getDescriptionOf(moteTypeClass),
           false);
+      checkBox.setToolTipText(moteTypeClass.getName());
       checkBox.putClientProperty("interface_class", moteTypeClass);
       checkBox.addActionListener(interfaceCheckBoxListener);
 
