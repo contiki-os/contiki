@@ -28,14 +28,14 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: symbols-def.h,v 1.2 2006/12/20 14:36:28 bg- Exp $
+ * @(#)$Id: symbols-def.h,v 1.3 2007/01/12 13:55:04 bg- Exp $
  */
 #ifndef __SYMBOLS_DEF_H__
 #define __SYMBOLS_DEF_H__
 
 struct symbols {
   const char *name;
-  const char *value;
+  void *value;
 };
 
 extern const int symbols_nelts;

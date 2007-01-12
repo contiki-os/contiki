@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: symtab.c,v 1.5 2006/12/20 14:41:28 bg- Exp $
+ * @(#)$Id: symtab.c,v 1.6 2007/01/12 13:55:05 bg- Exp $
  */
 
 #include "symtab.h"
@@ -37,44 +37,38 @@
 
 #include <string.h>
 
-#define SYMTAB_CONF_BINARY_SEARCH 0
+/* Binary search is twice as large but still small. */
+#ifndef SYMTAB_CONF_BINARY_SEARCH
+#define SYMTAB_CONF_BINARY_SEARCH 1
+#endif
 
 /*---------------------------------------------------------------------------*/
 #if SYMTAB_CONF_BINARY_SEARCH
-const char *
+void *
 symtab_lookup(const char *name)
 {
   int start, middle, end;
   int r;
   
   start = 0;
-  end = symbols_nelts;
+  end = symbols_nelts - 1;	/* Last entry is { 0, 0 }. */
 
-  do {
+  while(start <= end) {
     /* Check middle, divide */
-    middle = (end + start) / 2;
-
-    if(symbols[middle].name == NULL) {
-      return NULL;
-    }
+    middle = (start + end) / 2;
     r = strcmp(name, symbols[middle].name);
-    if(r == 0) {
+    if(r < 0) {
+      end = middle - 1;
+    } else if(r > 0) {
+      start = middle + 1;
+    } else {
       return symbols[middle].value;   
     }
-    if(end == middle || start == middle) {
-      return NULL;
-    }
-    if(r < 0) {
-      end = middle;
-    }
-    if(r > 0) {
-      start = middle;
-    }
-  } while(1);
-
+  }
+  return NULL;
 }
 #else /* SYMTAB_CONF_BINARY_SEARCH */
-const char *
+void *
 symtab_lookup(const char *name)
 {
   const struct symbols *s;
