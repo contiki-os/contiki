@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF 
  * SUCH DAMAGE. 
  *
- * @(#)$Id: i2c.c,v 1.1 2006/09/27 09:43:55 bg- Exp $
+ * @(#)$Id: i2c.c,v 1.2 2007/01/12 13:41:57 bg- Exp $
  */
 
 /*
@@ -53,12 +53,10 @@
 /*
  * On the Tmote sky access to I2C/SPI/UART0 must always be exclusive.
  */
-#define I2C_ENABLE()  (i2c_enable())
-#define I2C_DISABLE() (i2c_disable())
 
 void     i2c_enable(void);
 void     i2c_disable(void);
-void     i2c_start(void);
+int      i2c_start(void);
 unsigned i2c_read(int send_ack);
 int      i2c_write(unsigned);
 void     i2c_stop(void);
@@ -136,16 +134,27 @@ i2c_disable(void)
   spi_busy = 0;
 }
 
-void
+int
 i2c_start(void)
 {
   SDA_1();
   SCL_1();
+#if 1
   SCL_WAIT_FOR_1();
+#else
+  {
+    unsigned long n;
+    for (n = 0; n < 100000 && !SCL_IS_1; n++)
+      ;
+    if (!SCL_IS_1)
+      return -1;
+  }
+#endif
   delay_4_7us();
   SDA_0();
   delay_4us();
   SCL_0();
+  return 0;
 }
 
 void

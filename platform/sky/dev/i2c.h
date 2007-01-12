@@ -26,15 +26,21 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF 
  * SUCH DAMAGE. 
  *
- * @(#)$Id: i2c.h,v 1.1 2006/09/27 09:43:55 bg- Exp $
+ * @(#)$Id: i2c.h,v 1.2 2007/01/12 13:41:57 bg- Exp $
  */
 
 #ifndef I2C_H
 #define I2C_H
 
+/*
+ * On the Tmote sky access to I2C/SPI/UART0 must always be exclusive.
+ */
+#define I2C_ENABLE()  (i2c_enable())
+#define I2C_DISABLE() (i2c_disable())
+
 void     i2c_enable(void);
 void     i2c_disable(void);
-void     i2c_start(void);
+int      i2c_start(void);
 void     i2c_stop(void);
 
 int      i2c_write(unsigned);
