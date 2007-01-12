@@ -24,7 +24,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * 
- * $Id: GUI.java,v 1.15 2007/01/10 14:57:42 fros4943 Exp $
+ * $Id: GUI.java,v 1.16 2007/01/12 14:47:29 fros4943 Exp $
  */
 
 package se.sics.cooja;
@@ -1662,7 +1662,7 @@ public class GUI {
         try {
           newSim = loadSimulationConfig(loadFile, quick);
         } catch (UnsatisfiedLinkError e) {
-          logger.warn("Could not reopen libraries");
+          logger.warn("Could not reopen libraries: " + e.getMessage());
           newSim = null;
         }
         if (newSim != null) {
