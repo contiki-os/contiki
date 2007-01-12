@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ContikiMoteID.java,v 1.2 2007/01/09 10:05:19 fros4943 Exp $
+ * $Id: ContikiMoteID.java,v 1.3 2007/01/12 10:43:19 fros4943 Exp $
  */
 
 package se.sics.cooja.contikimote.interfaces;
@@ -100,9 +100,9 @@ public class ContikiMoteID extends MoteID implements ContikiMoteInterface {
       setMoteID = false;
       moteMem.setIntValueOf("simMoteID", moteID);
       moteMem.setByteValueOf("simMoteIDChanged", (byte) 1);
+      setChanged();
+      notifyObservers();
     }
-    setChanged();
-    notifyObservers();
   }
 
   public void doActionsAfterTick() {
