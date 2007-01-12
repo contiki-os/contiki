@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF 
  * SUCH DAMAGE. 
  *
- * @(#)$Id: cle.c,v 1.2 2006/12/20 13:43:47 bg- Exp $
+ * @(#)$Id: cle.c,v 1.3 2007/01/12 13:36:27 bg- Exp $
  */
 
 /*
@@ -52,13 +52,13 @@
 #endif
 
 /*
- * Parse object file located at offset start reading data using function
+ * Parse object file located at offset hdr reading data using function
  * pread. Save what is useful in info.
  */
 int
 cle_read_info(struct cle_info *info,
 	      int (*pread)(void *, int, off_t),
-	      off_t start)
+	      off_t hdr)
 {
   /*
    * Save stackspace by using a union!
@@ -72,7 +72,7 @@ cle_read_info(struct cle_info *info,
 #define ehdr huge.ehdr
 #define shdr huge.shdr
 
-  off_t shdrptr; 
+  off_t shoff; 
   cle_off strs;
   cle_half shnum;		/* number shdrs */
   cle_half shentsize;		/* sizeof shdr */
@@ -81,7 +81,7 @@ cle_read_info(struct cle_info *info,
 
   memset(info, 0x0, sizeof(*info));
 
-  ret = pread(&ehdr, sizeof(ehdr), start);
+  ret = pread(&ehdr, sizeof(ehdr), hdr);
   assert(ret > 0);
 
   /* Make sure that we have a correct and compatible ELF header. */
@@ -89,12 +89,12 @@ cle_read_info(struct cle_info *info,
     return CLE_BAD_HEADER;
   }
 
-  shdrptr = ehdr.e_shoff;
+  shoff = hdr + ehdr.e_shoff;
   shentsize = ehdr.e_shentsize;
   shnum = ehdr.e_shnum;
 
   /* The string table section: holds the names of the sections. */
-  ret = pread(&shdr, sizeof(shdr), start + shdrptr + shentsize*ehdr.e_shstrndx);
+  ret = pread(&shdr, sizeof(shdr), shoff + shentsize*ehdr.e_shstrndx);
   assert(ret > 0);
 
   /* BEWARE THAT ehdr IS NOW OVERWRITTEN!!! */
@@ -121,11 +121,11 @@ cle_read_info(struct cle_info *info,
    * relocator code.
    */
   for(i = 0; i < shnum; ++i) {
-    ret = pread(&shdr, sizeof(shdr), shdrptr);
+    ret = pread(&shdr, sizeof(shdr), shoff);
     assert(ret > 0);
     
     /* The name of the section is contained in the strings table. */
-    ret = pread(info->name, sizeof(info->name), start + strs + shdr.sh_name);
+    ret = pread(info->name, sizeof(info->name), hdr + strs + shdr.sh_name);
     assert(ret > 0);
 
     if(strncmp(info->name, ".text", 5) == 0) {
@@ -157,7 +157,7 @@ cle_read_info(struct cle_info *info,
     }
 
     /* Move on to the next section header. */
-    shdrptr += shentsize;
+    shoff += shentsize;
   }
 
   if(info->symtabsize == 0) {
@@ -191,13 +191,13 @@ cle_upd_reloc(cle_addr segmem, struct elf32_rela *rela, cle_addr addr)
  * to by segmem.
  *
  * Relocation info is read from offset reloff to (reloff + relsize)
- * and the start of the object file is at start. Data is read using
+ * and the start of the object file is at hdr. Data is read using
  * function pread.
  */
 int
 cle_relocate(struct cle_info *info,
 	     int (*pread)(void *, int, off_t),
-	     off_t start,	/* Offset to start of file. */
+	     off_t hdr,		/* Offset to start of file. */
 	     cle_addr segmem,	/* Where segment is stored in memory. */
 	     cle_off reloff,	/* .rela.<segment> start */
 	     cle_word relsize)	/* .rela.<segment> size */
@@ -208,13 +208,13 @@ cle_relocate(struct cle_info *info,
   cle_addr addr;
   int ret;
   
-  for(off = start + reloff;
-      off < start + reloff + relsize;
+  for(off = hdr + reloff;
+      off < hdr + reloff + relsize;
       off += sizeof(struct elf32_rela)) {
     ret = pread(&rela, sizeof(rela), off);
     assert(ret > 0);
     ret = pread(&s, sizeof(s),
-	       start + info->symtaboff
+	       hdr + info->symtaboff
 	       + sizeof(struct elf32_sym)*ELF32_R_SYM(rela.r_info));
     assert(ret > 0);
 
@@ -234,7 +234,7 @@ cle_relocate(struct cle_info *info,
       }
     } else {
       ret = pread(info->name, sizeof(info->name),
-		  start + info->strtaboff + s.st_name);
+		  hdr + info->strtaboff + s.st_name);
       assert(ret > 0);
       cle_addr sym = symtab_lookup(info->name);
 
@@ -261,14 +261,14 @@ cle_relocate(struct cle_info *info,
 }
 
 /*
- * Search object file located at offset start using function
+ * Search object file located at offset hdr using function
  * pread. Search for symbol named symbol and return its address after
  * relocation or NULL on failure.
  */
 void *
 cle_lookup(struct cle_info *info,
 	   int (*pread)(void *, int, off_t),
-	   off_t start,		/* Offset to start of file. */
+	   off_t hdr,		/* Offset to start of file. */
 	   const char *symbol)
 
 {
@@ -277,15 +277,15 @@ cle_lookup(struct cle_info *info,
   cle_addr addr;
   int ret;
 
-  for(a = start + info->symtaboff;
-      a < start + info->symtaboff + info->symtabsize;
+  for(a = hdr + info->symtaboff;
+      a < hdr + info->symtaboff + info->symtabsize;
       a += sizeof(s)) {
     ret = pread(&s, sizeof(s), a);
     assert(ret > 0);
 
     if(s.st_name != 0) {
       ret = pread(info->name, sizeof(info->name),
-		 start + info->strtaboff + s.st_name);
+		 hdr + info->strtaboff + s.st_name);
       assert(ret > 0);
 
       if(strcmp(info->name, symbol) == 0) { /* Exported symbol found. */
