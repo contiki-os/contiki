@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: tcp_loader2.c,v 1.1 2007/01/05 17:46:26 bg- Exp $
+ * @(#)$Id: tcp_loader2.c,v 1.2 2007/01/12 18:16:56 bg- Exp $
  */
 
 #include <stdio.h>
@@ -43,6 +43,9 @@
 #include "net/uip.h"
 
 #include "dev/xmem.h"
+
+#define NDEBUG
+#include "lib/assert.h"
 
 #include "codeprop.h"
 
@@ -61,6 +64,8 @@ struct codeprop_state {
 static
 PT_THREAD(recv_tcpthread(struct pt *pt))
 {
+  register int ret;
+  
   PT_BEGIN(pt);
 
   /* Read the header. */
@@ -77,12 +82,14 @@ PT_THREAD(recv_tcpthread(struct pt *pt))
   uip_appdata += sizeof(struct codeprop_tcphdr);
   uip_len -= sizeof(struct codeprop_tcphdr);
 
-  xmem_erase(XMEM_ERASE_UNIT_SIZE, EEPROMFS_ADDR_CODEPROP);
+  ret = xmem_erase(XMEM_ERASE_UNIT_SIZE, EEPROMFS_ADDR_CODEPROP);
+  assert(ret == 0);
 
   /* Read the rest of the data. */
   do {      
     if(uip_len > 0) {
-      xmem_pwrite(uip_appdata, uip_len, EEPROMFS_ADDR_CODEPROP + s.addr);
+      ret = xmem_pwrite(uip_appdata, uip_len, EEPROMFS_ADDR_CODEPROP + s.addr);
+      assert(ret = uip_len);
       s.addr += uip_len;
     }
     if(s.addr < s.len) {
