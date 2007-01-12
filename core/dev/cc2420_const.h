@@ -28,10 +28,18 @@
  *
  */
 
-/* @(#)$Id: cc2420_const.h,v 1.1 2006/06/17 22:41:16 adamdunkels Exp $ */
+/* @(#)$Id: cc2420_const.h,v 1.2 2007/01/12 18:18:23 bg- Exp $ */
 
 #ifndef CC2420_CONST_H
 #define CC2420_CONST_H
+
+/*
+ * All constants are from the Chipcon CC2420 Data Sheet that at one
+ * point in time could be found at
+ * http://www.chipcon.com/files/CC2420_Data_Sheet_1_4.pdf
+ *
+ * The page numbers below refer to pages in this document.
+ */
 
 /* Page 27. */
 enum cc2420_status_byte {
