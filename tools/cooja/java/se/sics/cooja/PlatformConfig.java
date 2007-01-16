@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: PlatformConfig.java,v 1.4 2007/01/10 14:57:42 fros4943 Exp $
+ * $Id: PlatformConfig.java,v 1.5 2007/01/16 10:32:55 fros4943 Exp $
  */
 
 package se.sics.cooja;
@@ -302,8 +302,8 @@ public class PlatformConfig {
     String val = currentValues.getProperty(callingClass.getName() + "." + id);
 
     if (val == null) {
-      logger.warn("Could not find key named '" + callingClass.getName() + "."
-          + id + "'");
+      /*logger.warn("Could not find key named '" + callingClass.getName() + "."
+          + id + "'");*/
       return defaultValue;
     }
 
