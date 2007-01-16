@@ -24,7 +24,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * 
- * $Id: GUI.java,v 1.16 2007/01/12 14:47:29 fros4943 Exp $
+ * $Id: GUI.java,v 1.17 2007/01/16 10:33:25 fros4943 Exp $
  */
 
 package se.sics.cooja;
@@ -1229,7 +1229,7 @@ public class GUI {
       ((VisPlugin) plugin).dispose();
     }
 
-    if (askUser && startedPlugins.isEmpty()) {
+    if (getSimulation() != null && askUser && startedPlugins.isEmpty()) {
       String s1 = "Remove";
       String s2 = "Cancel";
       Object[] options = { s1, s2 };
