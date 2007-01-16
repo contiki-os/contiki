@@ -24,7 +24,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * 
- * $Id: GUI.java,v 1.17 2007/01/16 10:33:25 fros4943 Exp $
+ * $Id: GUI.java,v 1.18 2007/01/16 12:59:09 fros4943 Exp $
  */
 
 package se.sics.cooja;
@@ -2523,12 +2523,16 @@ public class GUI {
     }
 
     // For all started visplugins, check if they have a zorder property
-    for (JInternalFrame plugin : getDesktopPane().getAllFrames()) {
-      if (plugin.getClientProperty("zorder") != null) {
-        getDesktopPane().setComponentZOrder(plugin,
-            ((Integer) plugin.getClientProperty("zorder")).intValue());
-        plugin.putClientProperty("zorder", null);
+    try {
+      for (JInternalFrame plugin : getDesktopPane().getAllFrames()) {
+        if (plugin.getClientProperty("zorder") != null) {
+          getDesktopPane().setComponentZOrder(plugin,
+              ((Integer) plugin.getClientProperty("zorder")).intValue());
+          plugin.putClientProperty("zorder", null);
+        }
       }
+    } catch (Exception e) {
+      // Ignore errors
     }
 
     return true;
