@@ -76,7 +76,7 @@ endif
 
 
 clean:
-	rm -f *~ *core core *.srec node-id.c \
+	rm -f *~ *core core *.srec \
 	*.lst *.map \
         *.cprg *.bin *.data contiki*.a *.firmware core-labels.S *.ihex *.ini \
         *.ce *.co
