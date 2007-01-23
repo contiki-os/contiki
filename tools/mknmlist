@@ -9,7 +9,16 @@ function sort(V, N, 	                        tmp, i, j) {
   return;
 }
 
-BEGIN { nname = 0; }
+BEGIN {
+ nname = 0;
+ builtin["printf"] =	"int printf(const char *, ...)";
+ builtin["sprintf"] =	"int sprintf(char *, const char *, ...)";
+ builtin["malloc"] =	"void *malloc()";
+ builtin["memcpy"] =	"void *memcpy()";
+ builtin["memset"] =	"void *memset()";
+ builtin["strcpy"] =	"char *strcpy()";
+ builtin[""] = 	"";
+}
 
 /^[0123456789abcdef]+ [ABCDGINRSTUVW] / { 
   if ($3 != "symbols" && $3 != "symbols_nelts") {
@@ -25,8 +34,8 @@ END {
 
   # Must deal with compiler builtins etc.
   for (x = 0; x < nname; x++) {
-    if (name[x] == "printf")
-      print "extern int printf(const char *, ...);";
+    if (builtin[name[x]] != "")
+      print builtin[name[x]] ";";
     else
       print "extern int " name[x]"();";
   }
