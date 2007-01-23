@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: symtab-avr.c,v 1.1 2006/12/22 17:12:31 barner Exp $
+ * @(#)$Id: symtab-avr.c,v 1.2 2007/01/23 12:31:14 bg- Exp $
  */
 
 #include <stdio.h>
@@ -40,7 +40,7 @@
 #define SYMTAB_CONF_BINARY_SEARCH 0
 
 /*---------------------------------------------------------------------------*/
-const char*
+void *
 symtab_lookup(const char *name)
 {
   uint16_t i=0;

@@ -29,7 +29,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: slip.c,v 1.2 2006/09/26 15:47:14 bg- Exp $
+ * @(#)$Id: slip.c,v 1.3 2007/01/23 12:30:12 bg- Exp $
  */
 
 
@@ -118,8 +118,9 @@ slip_send(void)
 }
 
 u8_t
-slip_write(u8_t *ptr, int len)
+slip_write(const void *_ptr, int len)
 {
+  const u8_t *ptr = _ptr;
   u16_t i;
   u8_t c;
 
