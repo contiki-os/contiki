@@ -5,7 +5,7 @@
 #include <avr/io.h>
 #include <avr/interrupt.h>
 
-static clock_time_t count;
+static volatile clock_time_t count;
 
 /*---------------------------------------------------------------------------*/
 SIGNAL(SIG_OUTPUT_COMPARE0)
