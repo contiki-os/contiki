@@ -26,7 +26,7 @@
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.  
  *
- * $Id: scat.c,v 1.3 2007/01/05 18:05:21 bg- Exp $
+ * $Id: scat.c,v 1.4 2007/01/23 12:33:27 bg- Exp $
  *
  */
 
@@ -55,10 +55,12 @@
 #define SLIP_ESC_END 0334
 #define SLIP_ESC_ESC 0335
 
+#ifndef BAUDRATE
 #define BAUDRATE B115200
 //#define BAUDRATE B57600
 //#define BAUDRATE B38400
 //#define BAUDRATE B19200
+#endif
 
 void
 stty_telos(int fd)

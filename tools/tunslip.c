@@ -28,7 +28,7 @@
  *
  * This file is part of the uIP TCP/IP stack.
  *
- * $Id: tunslip.c,v 1.7 2007/01/12 18:23:19 bg- Exp $
+ * $Id: tunslip.c,v 1.8 2007/01/23 12:33:42 bg- Exp $
  *
  */
 
@@ -684,10 +684,12 @@ tun_to_serial(int infd, int outfd)
   write_to_serial(outfd, uip.inbuf, size);
 }
 
+#ifndef BAUDRATE
 #define BAUDRATE B115200
 //#define BAUDRATE B57600
 //#define BAUDRATE B38400
 //#define BAUDRATE B19200
+#endif
 
 void
 stty_telos(int fd)
