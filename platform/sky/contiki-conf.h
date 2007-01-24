@@ -1,5 +1,5 @@
 /* -*- C -*- */
-/* @(#)$Id: contiki-conf.h,v 1.4 2006/08/15 14:49:32 oliverschmidt Exp $ */
+/* @(#)$Id: contiki-conf.h,v 1.5 2007/01/24 16:31:40 bg- Exp $ */
 
 #ifndef CONTIKI_CONF_H
 #define CONTIKI_CONF_H
@@ -69,8 +69,9 @@ typedef unsigned long off_t;
 #define XMEM_ERASE_UNIT_SIZE (64*1024L)
 
 /* Use the first 64k of external flash for codeprop. */
-#define EEPROMFS_ADDR_CODEPROP  0x00000
+#define EEPROMFS_ADDR_CODEPROP  (1 * XMEM_ERASE_UNIT_SIZE)
 
+#define CC2420_RADIO
 /*
  * SPI bus configuration for the TMote Sky.
  */
