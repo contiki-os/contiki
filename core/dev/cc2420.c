@@ -28,21 +28,22 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: cc2420.c,v 1.8 2006/12/20 13:42:55 bg- Exp $
+ * @(#)$Id: cc2420.c,v 1.9 2007/01/24 16:26:55 bg- Exp $
  */
 /*
- * This code is almost device independent and should be possible to
- * port to the AVR.
+ * This code is almost device independent and should be easy to port.
  */
 
 #include <stdio.h>
 #include <string.h>
 
-#include <io.h>
-#include <signal.h>
-
 #include "contiki.h"
-#include "sys/clock.h"
+
+#if defined(__AVR__)
+#include <avr/io.h>
+#elif defined(__MSP430__)
+#include <io.h>
+#endif
 
 #include "net/uip.h"
 #define BUF ((struct uip_tcpip_hdr *)&uip_buf[UIP_LLH_LEN])
@@ -202,6 +203,12 @@ cc2420_send(struct hdr_802_15 *hdr, u8_t hdr_len,
   if (!receive_on)
     return -2;
 
+  if (FIFOP_IS_1 && !FIFO_IS_1) {
+    /* RXFIFO overflow, send on retransmit. */
+    printf("RXFIFO overflow!\n");
+    return -4;
+  }
+
   /* Wait for previous transmission to finish and RSSI. */
   do {
     spiStatusByte = cc2420_status();
@@ -246,7 +253,7 @@ cc2420_send(struct hdr_802_15 *hdr, u8_t hdr_len,
 int
 cc2420_resend(void)
 {
-  int i;
+  unsigned i;
   
   /* The TX FIFO can only hold one packet! Make sure to not overrun
    * FIFO by waiting for transmission to start here and synchronizing
@@ -257,9 +264,11 @@ cc2420_resend(void)
    */
 #ifdef TMOTE_SKY
 #define LOOP_20_SYMBOLS 100	/* 326us (msp430 @ 2.4576MHz) */
+#elif __AVR__
+#define LOOP_20_SYMBOLS 500	/* XXX */
 #endif
   cc2420_strobe(CC2420_STXONCCA);
-  for (i = 0; i < LOOP_20_SYMBOLS; i++)
+  for (i = LOOP_20_SYMBOLS; i > 0; i--)
     if (SFD_IS_1)
       return 0;			/* Transmission has started. */
 
