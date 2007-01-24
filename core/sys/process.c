@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: process.c,v 1.2 2006/08/17 15:39:24 bg- Exp $
+ * @(#)$Id: process.c,v 1.3 2007/01/24 16:07:20 bg- Exp $
  */
 
 /**
@@ -68,7 +68,6 @@ struct event_data {
 
 #ifdef PROCESS_CONF_FASTPOLL
 #define NPOLLS PROCESS_CONF_FASTPOLL
-#include <signal.h>
 static volatile unsigned npolls;
 static struct process *needpoll[NPOLLS];
 #endif
