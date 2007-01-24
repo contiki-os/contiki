@@ -47,6 +47,7 @@ cc2420_send_uaodv(void)
 
       if (route == NULL) {
 	h.dst = next_gw->u16[1]; /* try local while waiting for route */
+	h.fc0 &= ~FC0_REQ_ACK;	/* but don't request an ACK. */
       } else {
 	if (cc2420_check_remote(route->nexthop.u16[1]) == 1) {
 	  printf("LOST 0x%04x\n", route->nexthop.u16[1]);
