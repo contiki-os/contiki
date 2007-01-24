@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: uaodv.c,v 1.2 2006/08/09 16:13:39 bg- Exp $
+ * $Id: uaodv.c,v 1.3 2007/01/24 16:32:34 bg- Exp $
  */
 
 /**
@@ -46,7 +46,7 @@
 #include "net/uaodv-def.h"
 #include "net/uaodv-rt.h"
 
-#ifdef TMOTE_SKY
+#ifdef CC2420_RADIO
 #include "dev/cc2420.h"
 #endif
 
@@ -173,7 +173,7 @@ handle_incoming_rreq(void)
   uip_ipaddr_t dest_addr, src_addr;
   struct uaodv_rt_entry *rt;
 
-#ifdef TMOTE_SKY
+#ifdef CC2420_RADIO
   if(cc2420_last_rssi <= -38 || cc2420_last_correlation < 100) {
     printf("RREQ drop from %d.%d.%d.%d %d %d \n",
 	   uip_ipaddr1(uip_udp_sender()),
@@ -290,7 +290,7 @@ handle_incoming_rrep(void)
 		uip_ipaddr4(uip_udp_sender()), rm->hop_count
 		);
     uaodv_rt_add(&rm->dest_addr, uip_udp_sender(), rm->hop_count, 0);
-#ifdef TMOTE_SKY
+#ifdef CC2420_RADIO
     /* This link is ok since he is unicasting back to us! */
     cc2420_recv_ok(uip_udp_sender());
     printf("RREP recv ok from %d.%d.%d.%d %d %d \n",
