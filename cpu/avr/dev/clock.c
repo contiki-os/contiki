@@ -102,7 +102,11 @@ clock_time(void)
 void
 clock_delay(unsigned int i)
 {
-    // TODO
+  for (; i > 0; i--) {		/* Needs fixing XXX */
+    unsigned j;
+    for (j = 50; j > 0; j--)
+      asm volatile("nop");
+  }
 }
 
 /*---------------------------------------------------------------------------*/
