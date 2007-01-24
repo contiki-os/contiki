@@ -28,54 +28,18 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: symtab-avr.c,v 1.3 2007/01/24 16:13:50 adamdunkels Exp $
+ * @(#)$Id: symbols.h,v 1.4 2007/01/24 16:13:49 adamdunkels Exp $
  */
+#ifndef __SYMBOLS_DEF_H__
+#define __SYMBOLS_DEF_H__
 
-#include <stdio.h>
-#include <string.h>
-#include <avr/pgmspace.h>
-#include "symtab.h"
-#include "loader/symbols.h"
+struct symbols {
+  const char *name;
+  const char *value;
+};
 
-#define SYMTAB_CONF_BINARY_SEARCH 0
+extern const int symbols_nelts;
 
-/*---------------------------------------------------------------------------*/
-void *
-symtab_lookup(const char *name)
-{
-  uint16_t i=0;
-  void* name_addr;
+extern const struct symbols symbols[];
 
-  for(name_addr = (void*)pgm_read_word(&symbols[0].name);
-      name_addr != NULL;
-      name_addr = (void*)pgm_read_word(&symbols[++i].name)) {
-
-    if(strcmp_P (name, (const char*)name_addr) == 0) {
-      return (void*)pgm_read_word(&symbols[i].value);
-    }
-  }
-  return NULL;
-}
-
-/*---------------------------------------------------------------------------*/
-
-#if 0
-#define SYMTAB_PRINT_BUFFER_SIZE 30
-void
-symtab_print (void)
-{
-  uint16_t i=0;
-  const char* name_addr;
-  char buf[SYMTAB_PRINT_BUFFER_SIZE];
-
-  for(name_addr = (const char*)pgm_read_word(&symbols[0].name);
-      name_addr != NULL;
-      name_addr = pgm_read_word(&symbols[++i].name)) {
-
-    strncpy_P (buf, (const char*)name_addr, SYMTAB_PRINT_BUFFER_SIZE);
-    buf [SYMTAB_PRINT_BUFFER_SIZE - 1] = '\0';
-    uint16_t value = pgm_read_word(&symbols[i].value);
-    printf ("%s -> 0x%x\n", buf, value);
-  }
-}
-#endif
+#endif /* __SYMBOLS_DEF_H__ */

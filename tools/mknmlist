@@ -30,7 +30,7 @@ BEGIN {
 END {
   sort(name, nname);
 
-  print "#include \"loader/symbols-def.h\"\n";
+  print "#include \"loader/symbols.h\"\n";
 
   # Must deal with compiler builtins etc.
   for (x = 0; x < nname; x++) {

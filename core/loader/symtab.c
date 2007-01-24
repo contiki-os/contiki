@@ -28,12 +28,12 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: symtab.c,v 1.6 2007/01/12 13:55:05 bg- Exp $
+ * @(#)$Id: symtab.c,v 1.7 2007/01/24 16:13:50 adamdunkels Exp $
  */
 
 #include "symtab.h"
 
-#include "loader/symbols-def.h"
+#include "loader/symbols.h"
 
 #include <string.h>
 
