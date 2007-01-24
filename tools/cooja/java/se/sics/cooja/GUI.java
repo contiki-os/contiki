@@ -24,7 +24,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * 
- * $Id: GUI.java,v 1.18 2007/01/16 12:59:09 fros4943 Exp $
+ * $Id: GUI.java,v 1.19 2007/01/24 18:12:59 fros4943 Exp $
  */
 
 package se.sics.cooja;
@@ -2462,8 +2462,9 @@ public class GUI {
             .getChildren()) {
           if (pluginSubElement.getName().equals("mote_arg")) {
             int moteNr = Integer.parseInt(pluginSubElement.getText());
-            if (moteNr > 0 && moteNr < simulation.getMotesCount())
+            if (moteNr >= 0 && moteNr < simulation.getMotesCount()) {
               mote = simulation.getMote(moteNr);
+            }
           }
         }
 
