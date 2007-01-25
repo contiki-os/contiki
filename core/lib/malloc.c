@@ -30,7 +30,7 @@
 */
  
  
-/* $Id: malloc.c,v 1.2 2006/08/11 13:41:31 bg- Exp $ */
+/* $Id: malloc.c,v 1.3 2007/01/25 18:19:57 bg- Exp $ */
 
 #include <stdlib.h>
 
@@ -38,7 +38,6 @@
 #include "malloc.h"
 char mymem[256];
 #else
-#include <sys/unistd.h>
 #include "contiki.h"
 #include "lib/malloc.h"
 #endif /* !MALLOC_TEST */
