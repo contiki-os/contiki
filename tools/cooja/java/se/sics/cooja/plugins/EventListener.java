@@ -24,7 +24,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * 
- * $Id: EventListener.java,v 1.3 2007/01/26 14:39:54 fros4943 Exp $
+ * $Id: EventListener.java,v 1.4 2007/01/26 15:12:00 fros4943 Exp $
  */
 
 package se.sics.cooja.plugins;
@@ -251,7 +251,9 @@ public class EventListener extends VisPlugin {
       if (!shouldObserve) {
         // Remove existing observers
         for (EventObserver obs : allObservers.toArray(new EventObserver[0])) {
-          if (obs.getObservable().getClass() == interfaceClass) {
+          Class<? extends Observable> objClass = obs.getObservable().getClass();
+          if (objClass == interfaceClass ||
+              interfaceClass.isAssignableFrom(objClass)) {
             obs.detachFromObject();
             allObservers.remove(obs);
           }
@@ -261,8 +263,10 @@ public class EventListener extends VisPlugin {
         for (int i = 0; i < mySimulation.getMotesCount(); i++) {
           MoteInterface moteInterface = mySimulation.getMote(i).getInterfaces()
               .getInterfaceOfType(interfaceClass);
-          allObservers.add(new InterfaceEventObserver(myPlugin, mySimulation
-              .getMote(i), moteInterface));
+          if (moteInterface != null) {
+            allObservers.add(new InterfaceEventObserver(myPlugin, mySimulation
+                .getMote(i), moteInterface));
+          }
         }
       }
     }
