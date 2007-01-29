@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: Visualizer2D.java,v 1.4 2007/01/29 14:30:09 fros4943 Exp $
+ * $Id: Visualizer2D.java,v 1.5 2007/01/29 16:02:17 fros4943 Exp $
  */
 
 package se.sics.cooja.plugins;
@@ -325,7 +325,7 @@ public abstract class Visualizer2D extends VisPlugin {
     Position newXYValues = transformPixelToPositon(new Point(x, y));
 
     if (moteMoveBeginTime <= 0 || System.currentTimeMillis() - moteMoveBeginTime > 300) {
-      int returnValue = JOptionPane.showConfirmDialog(myPlugin, "Mote mote to"
+      int returnValue = JOptionPane.showConfirmDialog(myPlugin, "Move mote to"
           + "\nX=" + newXYValues.getXCoordinate() + "\nY="
           + newXYValues.getYCoordinate() + "\nZ="
           + moteToMove.getInterfaces().getPosition().getZCoordinate());
