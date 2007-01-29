@@ -1,4 +1,4 @@
-# $Id: Makefile,v 1.9 2007/01/12 18:24:51 bg- Exp $
+# $Id: Makefile,v 1.10 2007/01/29 14:28:10 bg- Exp $
 #
 # This makefile requires GNU make!
 
@@ -17,9 +17,9 @@ gateway.out: gateway.o $(LIB)
 client.out: client.o $(LIB)
 dhclient.out: dhclient.o $(LIB)
 
-CORE = ../../core
-INCDIRS = -I. -I../../cpu/msp430 -I$(CORE) -I../../apps
-SRCDIRS = dev  ../../cpu/msp430 ${addprefix $(CORE)/,sys dev net lib loader} ../../apps/codeprop
+TOP=../..
+INCDIRS = -I. -I$(TOP)/cpu/msp430 -I$(TOP)/core -I$(TOP)/apps
+SRCDIRS = dev  $(TOP)/cpu/msp430 ${addprefix $(TOP)/core/,sys dev net lib loader} $(TOP)/apps/codeprop
 
 MCU=msp430x1611
 
@@ -34,6 +34,7 @@ LIBS=memb.o list.o malloc.o realloc.o malloc_compact.o rand.o assert.o crtk.o
 SYSAPPS=tcp_loader2.o
 LIBFILES=$(SYSTEM) $(ARCH) $(UIP) $(UIPDRIVERS) $(LIBS) $(SYSAPPS)
 
+MKNMLIST=awk -f $(TOP)/tools/mknmlist
 CP=cp
 LIBC=-lgcc -lc -lgcc
 CC=msp430-gcc
@@ -75,9 +76,9 @@ endif
 
 # Add a namelist to the kernel
 %.out: $^
-	: | awk -f ../../tools/mknmlist > $@_tmp.c && mv $@_tmp.c $@_nm.c
+	: | $(MKNMLIST) > $@_tmp.c && mv $@_tmp.c $@_nm.c
 	$(CC) $(LDFLAGS) $(CFLAGS) -o $@ $^ $(LIBC) $@_nm.c
-	$(NM) $@ | awk -f ../../tools/mknmlist > $@_tmp.c && mv $@_tmp.c $@_nm.c
+	$(NM) $@ | $(MKNMLIST) > $@_tmp.c && mv $@_tmp.c $@_nm.c
 	$(CC) $(LDFLAGS) $(CFLAGS) -o $@ $^ $(LIBC) $@_nm.c
 
 %.u: %.ihex
@@ -87,13 +88,13 @@ $(LIB): $(LIBFILES)
 	$(AR) rcf $@ $^
 	$(RANLIB) $@
 
-codeprop: ../../tools/codeprop.c
+codeprop: $(TOP)/tools/codeprop.c
 	cc -g -Wall $< -o $@
 
-tunslip: ../../tools/tunslip.c
+tunslip: $(TOP)/tools/tunslip.c
 	cc -g -Wall $< -o $@
 
-scat: ../../tools/scat.c
+scat: $(TOP)/tools/scat.c
 	cc -g -Wall $< -o $@
 
 ### TEST ###
