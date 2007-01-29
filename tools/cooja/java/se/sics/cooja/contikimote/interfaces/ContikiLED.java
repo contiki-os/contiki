@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ContikiLED.java,v 1.2 2007/01/09 10:05:19 fros4943 Exp $
+ * $Id: ContikiLED.java,v 1.3 2007/01/29 14:29:39 fros4943 Exp $
  */
 
 package se.sics.cooja.contikimote.interfaces;
@@ -69,9 +69,9 @@ public class ContikiLED extends LED implements ContikiMoteInterface {
   private static final byte LEDS_YELLOW = 2;
   private static final byte LEDS_RED = 4;
 
-  private static final Color DARK_GREEN = new Color(0, 100, 0);
-  private static final Color DARK_YELLOW = new Color(100, 100, 0);
-  private static final Color DARK_RED = new Color(100, 0, 0);
+  private static final Color DARK_GREEN = new Color(0, 50, 0);
+  private static final Color DARK_YELLOW = new Color(50, 50, 0);
+  private static final Color DARK_RED = new Color(50, 0, 0);
   private static final Color GREEN = new Color(0, 255, 0);
   private static final Color YELLOW = new Color(255, 255, 0);
   private static final Color RED = new Color(255, 0, 0);
