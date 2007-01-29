@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: Visualizer2D.java,v 1.3 2007/01/09 09:49:24 fros4943 Exp $
+ * $Id: Visualizer2D.java,v 1.4 2007/01/29 14:30:09 fros4943 Exp $
  */
 
 package se.sics.cooja.plugins;
@@ -75,6 +75,7 @@ public abstract class Visualizer2D extends VisPlugin {
   private static final int MOTE_RADIUS = 8;
 
   private boolean moteIsBeingMoved = false;
+  private long moteMoveBeginTime = -1;
   private Mote moteToMove = null;
   private Cursor moveCursor = new Cursor(Cursor.MOVE_CURSOR);
 
@@ -95,6 +96,7 @@ public abstract class Visualizer2D extends VisPlugin {
       return "Move " + mote;
     }
     public void doAction(Mote mote) {
+      moteMoveBeginTime = -1;
       beginMoveRequest(mote);
     }
   };
@@ -175,8 +177,9 @@ public abstract class Visualizer2D extends VisPlugin {
       public void mousePressed(MouseEvent e) {
         if (e.isPopupTrigger())
           myPlugin.handlePopupRequest(e.getPoint().x, e.getPoint().y);
-        else {
-          myPlugin.handleMoveRequest(e.getPoint().x, e.getPoint().y, false);
+        else if (SwingUtilities.isLeftMouseButton(e)){
+          //myPlugin.handleMoveRequest(e.getPoint().x, e.getPoint().y, false);
+          beginMoveRequest(e.getPoint().x, e.getPoint().y);
         }
       }
       public void mouseReleased(MouseEvent e) {
@@ -287,6 +290,15 @@ public abstract class Visualizer2D extends VisPlugin {
     pickMoteMenu.setVisible(true);
   }
 
+  private void beginMoveRequest(final int x, final int y) {
+    final Vector<Mote> foundMotes = findMotesAtPosition(x, y);
+    if (foundMotes == null || foundMotes.size() == 0)
+      return;
+
+    moteMoveBeginTime = System.currentTimeMillis();
+    beginMoveRequest(foundMotes.get(0));
+  }
+
   private void beginMoveRequest(Mote moteToMove) {
     moteIsBeingMoved = true;
     this.moteToMove = moteToMove;
@@ -295,6 +307,7 @@ public abstract class Visualizer2D extends VisPlugin {
 
   private void handleMoveRequest(final int x, final int y,
       boolean wasJustReleased) {
+    
     if (!moteIsBeingMoved) {
       return;
     }
@@ -310,19 +323,22 @@ public abstract class Visualizer2D extends VisPlugin {
     moteIsBeingMoved = false;
     
     Position newXYValues = transformPixelToPositon(new Point(x, y));
-    int returnValue = JOptionPane.showConfirmDialog(myPlugin, "Mote mote to"
-        + "\nX=" + newXYValues.getXCoordinate() + "\nY="
-        + newXYValues.getYCoordinate() + "\nZ="
-        + moteToMove.getInterfaces().getPosition().getZCoordinate());
-    
-    if (returnValue == JOptionPane.OK_OPTION) {
-      moteToMove.getInterfaces().getPosition().setCoordinates(
-          newXYValues.getXCoordinate(), newXYValues.getYCoordinate(),
-          moteToMove.getInterfaces().getPosition().getZCoordinate());
+
+    if (moteMoveBeginTime <= 0 || System.currentTimeMillis() - moteMoveBeginTime > 300) {
+      int returnValue = JOptionPane.showConfirmDialog(myPlugin, "Mote mote to"
+          + "\nX=" + newXYValues.getXCoordinate() + "\nY="
+          + newXYValues.getYCoordinate() + "\nZ="
+          + moteToMove.getInterfaces().getPosition().getZCoordinate());
+      
+      if (returnValue == JOptionPane.OK_OPTION) {
+        moteToMove.getInterfaces().getPosition().setCoordinates(
+            newXYValues.getXCoordinate(), newXYValues.getYCoordinate(),
+            moteToMove.getInterfaces().getPosition().getZCoordinate());
+      }
     }
+    moteMoveBeginTime = -1;
     moteToMove = null;
     repaint();
-
   }
 
   /**
