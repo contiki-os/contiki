@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: msp430.c,v 1.3 2006/11/17 13:30:45 bg- Exp $
+ * @(#)$Id: msp430.c,v 1.4 2007/01/30 20:01:45 bg- Exp $
  */
 #include <io.h>
 #include <signal.h>
@@ -150,6 +150,9 @@ init_ports(void)
   P2IE = 0;
 }
 /*---------------------------------------------------------------------------*/
+/* __bss_end is int but msp430-ld may align it incorrectly. Fix below. */
+static char *cur_break = (char *)(&__bss_end + 1);
+
 void
 msp430_cpu_init(void)
 {
@@ -157,12 +160,13 @@ msp430_cpu_init(void)
   init_ports();
   msp430_init_dco();
   eint();
+  if((uintptr_t)cur_break & 1)	/* Workaround for msp430-ld bug! */
+    cur_break++;
 }
 
 #define asmv(arg) __asm__ __volatile__(arg)
 
 #define STACK_EXTRA 32
-static char *cur_break = (char *)(&__bss_end + 1);
 
 /*
  * Allocate memory from the heap. Check that we don't collide with the
@@ -186,7 +190,8 @@ sbrk(int incr)
    * If the stack was never here then [old_break .. cur_break] should
    * be filled with zeros.
   */
-  return old_break; }
+  return old_break;
+}
 
 /*
  * Mask all interrupts that can be masked.
