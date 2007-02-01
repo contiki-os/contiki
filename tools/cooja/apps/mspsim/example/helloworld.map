@@ -1,0 +1,1029 @@
+Archive member included because of file (symbol)
+
+contiki-esb.a(process.o)      obj_esb/contiki-esb-main.o (process_current)
+contiki-esb.a(procinit.o)     obj_esb/contiki-esb-main.o (procinit_init)
+contiki-esb.a(autostart.o)    obj_esb/contiki-esb-main.o (autostart_start)
+contiki-esb.a(etimer.o)       obj_esb/contiki-esb-main.o (etimer_process)
+contiki-esb.a(tcpip.o)        obj_esb/contiki-esb-main.o (tcpip_process)
+contiki-esb.a(uip-fw.o)       contiki-esb.a(tcpip.o) (uip_fw_forward)
+contiki-esb.a(uip-fw-service.)
+                              obj_esb/contiki-esb-main.o (uip_fw_process)
+contiki-esb.a(sensors.o)      obj_esb/contiki-esb-main.o (sensors_process)
+contiki-esb.a(irq.o)          contiki-esb.a(sensors.o) (irq_init)
+contiki-esb.a(button-sensor.o)
+                              obj_esb/contiki-esb-main.o (button_sensor)
+contiki-esb.a(pir-sensor.o)   obj_esb/contiki-esb-main.o (pir_sensor)
+contiki-esb.a(vib-sensor.o)   obj_esb/contiki-esb-main.o (vib_sensor)
+contiki-esb.a(sound-sensor.o)
+                              obj_esb/contiki-esb-main.o (sound_sensor)
+contiki-esb.a(radio-sensor.o)
+                              obj_esb/contiki-esb-main.o (radio_sensor)
+contiki-esb.a(ctsrts-sensor.o)
+                              obj_esb/contiki-esb-main.o (ctsrts_sensor)
+contiki-esb.a(battery-sensor.)
+                              obj_esb/contiki-esb-main.o (battery_sensor)
+contiki-esb.a(temperature-sen)
+                              obj_esb/contiki-esb-main.o (temperature_sensor)
+contiki-esb.a(ir.o)           obj_esb/contiki-esb-main.o (ir_process)
+contiki-esb.a(beep.o)         contiki-esb.a(ir.o) (beep_beep)
+contiki-esb.a(ds1629.o)       contiki-esb.a(temperature-sen) (ds1629_init)
+contiki-esb.a(tr1001-gcr.o)   contiki-esb.a(radio-sensor.o) (tr1001_sstrength)
+contiki-esb.a(gcr.o)          contiki-esb.a(tr1001-gcr.o) (gcr_init)
+contiki-esb.a(node-id.o)      obj_esb/contiki-esb-main.o (node_id_restore)
+contiki-esb.a(contiki-esb-def)
+                              obj_esb/contiki-esb-main.o (init_lowlevel)
+contiki-esb.a(contiki-esb-def)
+                              obj_esb/contiki-esb-main.o (init_apps)
+contiki-esb.a(contiki-esb-def)
+                              obj_esb/contiki-esb-main.o (init_net)
+contiki-esb.a(rs232.o)        contiki-esb.a(contiki-esb-def) (rs232_init)
+contiki-esb.a(rs232-putchar.o)
+                              obj_esb/contiki-esb-main.o (putchar)
+contiki-esb.a(msp430.o)       obj_esb/contiki-esb-main.o (msp430_cpu_init)
+contiki-esb.a(eeprom.o)       contiki-esb.a(node-id.o) (eeprom_read)
+contiki-esb.a(clock.o)        contiki-esb.a(etimer.o) (clock_time)
+contiki-esb.a(leds.o)         contiki-esb.a(contiki-esb-def) (leds_init)
+contiki-esb.a(leds-arch.o)    contiki-esb.a(leds.o) (leds_arch_init)
+contiki-esb.a(lpm.o)          obj_esb/contiki-esb-main.o (lpm_status)
+contiki-esb.a(cfs-eeprom.o)   obj_esb/contiki-esb-main.o (cfs_eeprom_process)
+contiki-esb.a(random.o)       obj_esb/contiki-esb-main.o (random_init)
+contiki-esb.a(slip.o)         contiki-esb.a(contiki-esb-def) (slip_process)
+contiki-esb.a(crc16.o)        contiki-esb.a(tr1001-gcr.o) (crc16_add)
+contiki-esb.a(service.o)      contiki-esb.a(uip-fw-service.) (service_register)
+contiki-esb.a(timer.o)        contiki-esb.a(etimer.o) (timer_set)
+contiki-esb.a(uip.o)          contiki-esb.a(uip-fw.o) (uip_broadcast_addr)
+contiki-esb.a(tr1001-drv.o)   contiki-esb.a(contiki-esb-def) (tr1001_drv_process)
+contiki-esb.a(esb-sensors.o)  contiki-esb.a(contiki-esb-def) (esb_sensors_init)
+contiki-esb.a(hc.o)           contiki-esb.a(tr1001-drv.o) (hc_compress)
+/cygdrive/c/mspgcc/bin/../lib/gcc-lib/msp430/3.2.3/msp2/libgcc.a(__stop_progExec__.o)
+                              obj_esb/contiki-esb-main.o (__stop_progExec__)
+/cygdrive/c/mspgcc/bin/../lib/gcc-lib/msp430/3.2.3/msp2/libgcc.a(_udivmodhi4.o)
+                              contiki-esb.a(beep.o) (__udivmodhi4)
+/cygdrive/c/mspgcc/bin/../lib/gcc-lib/msp430/3.2.3/msp2/libgcc.a(_divmodhi4.o)
+                              contiki-esb.a(beep.o) (__divmodhi4)
+/cygdrive/c/mspgcc/bin/../lib/gcc-lib/msp430/3.2.3/msp2/libgcc.a(_reset_vector__.o)
+                              /cygdrive/c/mspgcc/bin/../lib/gcc-lib/msp430/3.2.3/../../../../msp430/lib/crt430x149.o (_reset_vector__)
+/cygdrive/c/mspgcc/bin/../lib/gcc-lib/msp430/3.2.3/../../../../msp430/lib/msp2/libc.a(printf.o)
+                              obj_esb/contiki-esb-main.o (printf)
+/cygdrive/c/mspgcc/bin/../lib/gcc-lib/msp430/3.2.3/../../../../msp430/lib/msp2/libc.a(vuprintf.o)
+                              /cygdrive/c/mspgcc/bin/../lib/gcc-lib/msp430/3.2.3/../../../../msp430/lib/msp2/libc.a(printf.o) (vuprintf)
+/cygdrive/c/mspgcc/bin/../lib/gcc-lib/msp430/3.2.3/../../../../msp430/lib/msp2/libc.a(puts.o)
+                              helloworld.co (puts)
+/cygdrive/c/mspgcc/bin/../lib/gcc-lib/msp430/3.2.3/../../../../msp430/lib/msp2/libc.a(memchr.o)
+                              /cygdrive/c/mspgcc/bin/../lib/gcc-lib/msp430/3.2.3/../../../../msp430/lib/msp2/libc.a(vuprintf.o) (memchr)
+/cygdrive/c/mspgcc/bin/../lib/gcc-lib/msp430/3.2.3/../../../../msp430/lib/msp2/libc.a(strcmp.o)
+                              contiki-esb.a(service.o) (strcmp)
+/cygdrive/c/mspgcc/bin/../lib/gcc-lib/msp430/3.2.3/../../../../msp430/lib/msp2/libc.a(strncmp.o)
+                              contiki-esb.a(sensors.o) (strncmp)
+/cygdrive/c/mspgcc/bin/../lib/gcc-lib/msp430/3.2.3/../../../../msp430/lib/msp2/libc.a(memcmp.o)
+                              contiki-esb.a(slip.o) (memcmp)
+/cygdrive/c/mspgcc/bin/../lib/gcc-lib/msp430/3.2.3/../../../../msp430/lib/msp2/libc.a(memcpy.o)
+                              contiki-esb.a(tr1001-gcr.o) (memcpy)
+/cygdrive/c/mspgcc/bin/../lib/gcc-lib/msp430/3.2.3/../../../../msp430/lib/msp2/libc.a(memmove.o)
+                              contiki-esb.a(hc.o) (memmove)
+/cygdrive/c/mspgcc/bin/../lib/gcc-lib/msp430/3.2.3/msp2/libgcc.a(_udivmodsi4.o)
+                              /cygdrive/c/mspgcc/bin/../lib/gcc-lib/msp430/3.2.3/../../../../msp430/lib/msp2/libc.a(vuprintf.o) (__udivmodsi4)
+
+Allocating common symbols
+Common symbol       size              file
+
+uip_len             0x2               contiki-esb.a(uip.o)
+tr1001_rxbuf        0x5c              contiki-esb.a(tr1001-gcr.o)
+slip_active         0x1               contiki-esb.a(slip.o)
+uip_sappdata        0x2               contiki-esb.a(uip.o)
+uip_acc32           0x4               contiki-esb.a(uip.o)
+sensors_selecting_proc
+                    0x12              obj_esb/contiki-esb-main.o
+uip_flags           0x1               contiki-esb.a(uip.o)
+uip_udp_conn        0x2               contiki-esb.a(uip.o)
+ir_event_received   0x1               contiki-esb.a(ir.o)
+uip_appdata         0x2               contiki-esb.a(uip.o)
+uip_conn            0x2               contiki-esb.a(uip.o)
+tcpip_event         0x1               contiki-esb.a(tcpip.o)
+sound_pause         0x1               contiki-esb.a(sound-sensor.o)
+uip_conns           0x20              contiki-esb.a(uip.o)
+radio_sensor_signal
+                    0x2               contiki-esb.a(radio-sensor.o)
+uip_listenports     0x2               contiki-esb.a(uip.o)
+uip_draddr          0x4               contiki-esb.a(uip.o)
+sensors_flags       0x9               obj_esb/contiki-esb-main.o
+uip_netmask         0x4               contiki-esb.a(uip.o)
+sensors_event       0x1               contiki-esb.a(sensors.o)
+uip_hostaddr        0x4               contiki-esb.a(uip.o)
+uip_buf             0x5e              contiki-esb.a(uip.o)
+uip_slen            0x2               contiki-esb.a(uip.o)
+uip_udp_conns       0x2a              contiki-esb.a(uip.o)
+
+Discarded input sections
+
+ .stabstr       0x00000000        0x0 /cygdrive/c/mspgcc/bin/../lib/gcc-lib/msp430/3.2.3/../../../../msp430/lib/crt430x149.o
+ .stabstr       0x00000000        0x0 helloworld.co
+ .stabstr       0x00000000        0x0 obj_esb/contiki-esb-main.o
+ .stabstr       0x00000000        0x0 contiki-esb.a(process.o)
+ .stabstr       0x00000000        0x0 contiki-esb.a(procinit.o)
+ .stabstr       0x00000000        0x0 contiki-esb.a(autostart.o)
+ .stabstr       0x00000000        0x0 contiki-esb.a(etimer.o)
+ .stabstr       0x00000000        0x0 contiki-esb.a(tcpip.o)
+ .stabstr       0x00000000        0x0 contiki-esb.a(uip-fw.o)
+ .stabstr       0x00000000        0x0 contiki-esb.a(uip-fw-service.)
+ .stabstr       0x00000000        0x0 contiki-esb.a(sensors.o)
+ .stabstr       0x00000000        0x0 contiki-esb.a(irq.o)
+ .stabstr       0x00000000        0x0 contiki-esb.a(button-sensor.o)
+ .stabstr       0x00000000        0x0 contiki-esb.a(pir-sensor.o)
+ .stabstr       0x00000000        0x0 contiki-esb.a(vib-sensor.o)
+ .stabstr       0x00000000        0x0 contiki-esb.a(sound-sensor.o)
+ .stabstr       0x00000000        0x0 contiki-esb.a(radio-sensor.o)
+ .stabstr       0x00000000        0x0 contiki-esb.a(ctsrts-sensor.o)
+ .stabstr       0x00000000        0x0 contiki-esb.a(battery-sensor.)
+ .stabstr       0x00000000        0x0 contiki-esb.a(temperature-sen)
+ .stabstr       0x00000000        0x0 contiki-esb.a(ir.o)
+ .stabstr       0x00000000        0x0 contiki-esb.a(beep.o)
+ .stabstr       0x00000000        0x0 contiki-esb.a(ds1629.o)
+ .stabstr       0x00000000        0x0 contiki-esb.a(tr1001-gcr.o)
+ .stabstr       0x00000000        0x0 contiki-esb.a(gcr.o)
+ .stabstr       0x00000000        0x0 contiki-esb.a(node-id.o)
+ .stabstr       0x00000000        0x0 contiki-esb.a(contiki-esb-def)
+ .stabstr       0x00000000        0x0 contiki-esb.a(contiki-esb-def)
+ .stabstr       0x00000000        0x0 contiki-esb.a(contiki-esb-def)
+ .stabstr       0x00000000        0x0 contiki-esb.a(rs232.o)
+ .stabstr       0x00000000        0x0 contiki-esb.a(rs232-putchar.o)
+ .stabstr       0x00000000        0x0 contiki-esb.a(msp430.o)
+ .stabstr       0x00000000        0x0 contiki-esb.a(eeprom.o)
+ .stabstr       0x00000000        0x0 contiki-esb.a(clock.o)
+ .stabstr       0x00000000        0x0 contiki-esb.a(leds.o)
+ .stabstr       0x00000000        0x0 contiki-esb.a(leds-arch.o)
+ .stabstr       0x00000000        0x0 contiki-esb.a(lpm.o)
+ .stabstr       0x00000000        0x0 contiki-esb.a(cfs-eeprom.o)
+ .stabstr       0x00000000        0x0 contiki-esb.a(random.o)
+ .stabstr       0x00000000        0x0 contiki-esb.a(slip.o)
+ .stabstr       0x00000000        0x0 contiki-esb.a(crc16.o)
+ .stabstr       0x00000000        0x0 contiki-esb.a(service.o)
+ .stabstr       0x00000000        0x0 contiki-esb.a(timer.o)
+ .stabstr       0x00000000        0x0 contiki-esb.a(uip.o)
+ .stabstr       0x00000000        0x0 contiki-esb.a(tr1001-drv.o)
+ .stabstr       0x00000000        0x0 contiki-esb.a(esb-sensors.o)
+ .stabstr       0x00000000        0x0 contiki-esb.a(hc.o)
+ .stabstr       0x00000000        0x0 /cygdrive/c/mspgcc/bin/../lib/gcc-lib/msp430/3.2.3/../../../../msp430/lib/msp2/libc.a(printf.o)
+ .stabstr       0x00000000        0x0 /cygdrive/c/mspgcc/bin/../lib/gcc-lib/msp430/3.2.3/../../../../msp430/lib/msp2/libc.a(vuprintf.o)
+ .stabstr       0x00000000        0x0 /cygdrive/c/mspgcc/bin/../lib/gcc-lib/msp430/3.2.3/../../../../msp430/lib/msp2/libc.a(puts.o)
+ .stabstr       0x00000000        0x0 /cygdrive/c/mspgcc/bin/../lib/gcc-lib/msp430/3.2.3/../../../../msp430/lib/msp2/libc.a(memchr.o)
+ .stabstr       0x00000000        0x0 /cygdrive/c/mspgcc/bin/../lib/gcc-lib/msp430/3.2.3/../../../../msp430/lib/msp2/libc.a(strcmp.o)
+ .stabstr       0x00000000        0x0 /cygdrive/c/mspgcc/bin/../lib/gcc-lib/msp430/3.2.3/../../../../msp430/lib/msp2/libc.a(strncmp.o)
+ .stabstr       0x00000000        0x0 /cygdrive/c/mspgcc/bin/../lib/gcc-lib/msp430/3.2.3/../../../../msp430/lib/msp2/libc.a(memcmp.o)
+ .stabstr       0x00000000        0x0 /cygdrive/c/mspgcc/bin/../lib/gcc-lib/msp430/3.2.3/../../../../msp430/lib/msp2/libc.a(memcpy.o)
+ .stabstr       0x00000000        0x0 /cygdrive/c/mspgcc/bin/../lib/gcc-lib/msp430/3.2.3/../../../../msp430/lib/msp2/libc.a(memmove.o)
+
+Memory Configuration
+
+Name             Origin             Length             Attributes
+text             0x00001100         0x0000eee0         xr
+data             0x00000200         0x00000800         xrw
+vectors          0x0000ffe0         0x00000020         rw
+bootloader       0x00000c00         0x00000400         xr
+infomem          0x00001000         0x00000100         xr
+infomemnobits    0x00001000         0x00000100         xr
+*default*        0x00000000         0xffffffff
+
+Linker script and memory map
+
+LOAD /cygdrive/c/mspgcc/bin/../lib/gcc-lib/msp430/3.2.3/../../../../msp430/lib/crt430x149.o
+LOAD helloworld.co
+LOAD obj_esb/contiki-esb-main.o
+LOAD contiki-esb.a
+LOAD /cygdrive/c/mspgcc/bin/../lib/gcc-lib/msp430/3.2.3/msp2/libgcc.a
+LOAD /cygdrive/c/mspgcc/bin/../lib/gcc-lib/msp430/3.2.3/../../../../msp430/lib/msp2/libc.a
+LOAD /cygdrive/c/mspgcc/bin/../lib/gcc-lib/msp430/3.2.3/msp2/libgcc.a
+
+.hash
+ *(.hash)
+
+.dynsym
+ *(.dynsym)
+
+.dynstr
+ *(.dynstr)
+
+.gnu.version
+ *(.gnu.version)
+
+.gnu.version_d
+ *(.gnu.version_d)
+
+.gnu.version_r
+ *(.gnu.version_r)
+
+.rel.init
+ *(.rel.init)
+
+.rela.init
+ *(.rela.init)
+
+.rel.text
+ *(.rel.text)
+ *(.rel.text.*)
+ *(.rel.gnu.linkonce.t*)
+
+.rela.text
+ *(.rela.text)
+ *(.rela.text.*)
+ *(.rela.gnu.linkonce.t*)
+
+.rel.fini
+ *(.rel.fini)
+
+.rela.fini
+ *(.rela.fini)
+
+.rel.rodata
+ *(.rel.rodata)
+ *(.rel.rodata.*)
+ *(.rel.gnu.linkonce.r*)
+
+.rela.rodata
+ *(.rela.rodata)
+ *(.rela.rodata.*)
+ *(.rela.gnu.linkonce.r*)
+
+.rel.data
+ *(.rel.data)
+ *(.rel.data.*)
+ *(.rel.gnu.linkonce.d*)
+
+.rela.data
+ *(.rela.data)
+ *(.rela.data.*)
+ *(.rela.gnu.linkonce.d*)
+
+.rel.ctors
+ *(.rel.ctors)
+
+.rela.ctors
+ *(.rela.ctors)
+
+.rel.dtors
+ *(.rel.dtors)
+
+.rela.dtors
+ *(.rela.dtors)
+
+.rel.got
+ *(.rel.got)
+
+.rela.got
+ *(.rela.got)
+
+.rel.bss
+ *(.rel.bss)
+
+.rela.bss
+ *(.rela.bss)
+
+.rel.plt
+ *(.rel.plt)
+
+.rela.plt
+ *(.rela.plt)
+
+.text           0x00001100     0x4e78
+                0x00001100                . = ALIGN (0x2)
+ *(.init)
+ .init          0x00001100       0x3a /cygdrive/c/mspgcc/bin/../lib/gcc-lib/msp430/3.2.3/msp2/libgcc.a(_reset_vector__.o)
+                0x00001100                _reset_vector__
+ *(.init0)
+ *(.init1)
+ *(.init2)
+ *(.init3)
+ *(.init4)
+ *(.init5)
+ *(.init6)
+ *(.init7)
+ *(.init8)
+ *(.init9)
+                0x0000113a                __ctors_start = .
+ *(.ctors)
+                0x0000113a                __ctors_end = .
+                0x0000113a                __dtors_start = .
+ *(.dtors)
+                0x0000113a                __dtors_end = .
+                0x0000113a                . = ALIGN (0x2)
+ *(.text)
+ .text          0x0000113a        0x6 /cygdrive/c/mspgcc/bin/../lib/gcc-lib/msp430/3.2.3/../../../../msp430/lib/crt430x149.o
+                0x0000113a                _unexpected_1_
+                0x0000113a                vector_ffe0
+                0x0000113a                vector_ffec
+                0x0000113a                vector_fff0
+                0x0000113a                vector_fffc
+                0x0000113a                vector_ffe4
+                0x0000113e                _unexpected_
+                0x0000113a                vector_fffa
+                0x0000113a                vector_fff4
+                0x0000113a                vector_fff6
+ .text          0x00001140       0x7a helloworld.co
+ .text          0x000011ba      0x19e obj_esb/contiki-esb-main.o
+                0x00001330                arg_init
+                0x0000132c                arg_alloc
+                0x00001332                arg_free
+                0x000012e8                main
+                0x00001342                uip_log
+ .text          0x00001358      0x326 contiki-esb.a(process.o)
+                0x000015f4                process_post
+                0x000015c6                process_nevents
+                0x00001362                process_start
+                0x00001654                process_post_synch
+                0x00001666                process_poll
+                0x00001358                process_alloc_event
+                0x000014a8                process_exit
+                0x000014b2                process_init
+                0x000015aa                process_run
+ .text          0x0000167e       0x32 contiki-esb.a(procinit.o)
+                0x0000167e                procinit_init
+ .text          0x000016b0       0x5e contiki-esb.a(autostart.o)
+                0x000016e0                autostart_exit
+                0x000016b0                autostart_start
+ .text          0x0000170e      0x254 contiki-esb.a(etimer.o)
+                0x000018fc                etimer_pending
+                0x000018b0                etimer_reset
+                0x0000189e                etimer_set
+                0x000018d4                etimer_adjust
+                0x000018c2                etimer_restart
+                0x000018f8                etimer_start_time
+                0x00001908                etimer_next_expiration_time
+                0x0000185a                etimer_request_poll
+                0x000018ee                etimer_expiration_time
+                0x0000191a                etimer_stop
+                0x000018e0                etimer_expired
+ .text          0x00001962      0x3aa contiki-esb.a(tcpip.o)
+                0x00001a4c                tcp_attach
+                0x00001a82                udp_broadcast_new
+                0x00001a58                udp_attach
+                0x00001c2a                tcpip_uipcall
+                0x000019be                tcpip_output
+                0x00001a24                tcp_listen
+                0x00001c1c                tcpip_poll_tcp
+                0x000019d2                tcp_connect
+                0x000019fc                tcp_unlisten
+                0x00001970                tcpip_set_forwarding
+                0x00001bfc                tcpip_input
+                0x00001c0e                tcpip_poll_udp
+                0x00001a64                udp_new
+ .text          0x00001d0c      0x2c0 contiki-esb.a(uip-fw.o)
+                0x00001e62                uip_fw_output
+                0x00001d0c                uip_fw_init
+                0x00001faa                uip_fw_periodic
+                0x00001fa4                uip_fw_default
+                0x00001f98                uip_fw_register
+                0x00001ebe                uip_fw_forward
+ .text          0x00001fcc       0x68 contiki-esb.a(uip-fw-service.)
+ .text          0x00002034      0x24a contiki-esb.a(sensors.o)
+                0x000020f0                sensors_find
+                0x00002146                sensors_select
+                0x0000216c                sensors_unselect
+                0x000020ca                sensors_first
+                0x00002080                sensors_handle_irq
+                0x00002060                sensors_add_irq
+                0x000020d0                sensors_next
+                0x00002070                sensors_remove_irq
+                0x000020dc                sensors_changed
+ .text          0x0000227e      0x1ea contiki-esb.a(irq.o)
+                0x000022d6                irq_adc
+                0x000022aa                irq_p2
+                0x0000227e                irq_p1
+                0x00002398                irq_adc12_activate
+                0x00002452                irq_adc12_active
+                0x000022aa                vector_ffe2
+                0x0000227e                vector_ffe8
+                0x000022d6                vector_ffee
+                0x00002300                irq_init
+                0x000023f2                irq_adc12_deactivate
+ .text          0x00002468       0xce contiki-esb.a(button-sensor.o)
+                0x00002524                button_sensor
+ .text          0x00002536       0x9c contiki-esb.a(pir-sensor.o)
+                0x000025c0                pir_sensor
+ .text          0x000025d2       0xaa contiki-esb.a(vib-sensor.o)
+                0x0000266a                vib_sensor
+ .text          0x0000267c       0x98 contiki-esb.a(sound-sensor.o)
+                0x00002702                sound_sensor
+ .text          0x00002714       0x72 contiki-esb.a(radio-sensor.o)
+                0x00002774                radio_sensor
+ .text          0x00002786       0xee contiki-esb.a(ctsrts-sensor.o)
+                0x000027ae                ctsrts_rts_set
+                0x000027a6                ctsrts_rts_clear
+                0x00002862                ctsrts_sensor
+ .text          0x00002874       0x64 contiki-esb.a(battery-sensor.)
+                0x000028c6                battery_sensor
+ .text          0x000028d8       0x80 contiki-esb.a(temperature-sen)
+                0x00002946                temperature_sensor
+ .text          0x00002958      0x30e contiki-esb.a(ir.o)
+                0x00002aa4                ir_data
+                0x00002bbc                ir_irq
+                0x00002a08                ir_send
+                0x00002a56                recir_getAddress
+                0x00002ade                vector_fff8
+                0x00002a88                recir_getError
+                0x00002a4c                recir_getCode
+                0x00002a70                recir_getToggle
+                0x00002aaa                ir_poll
+                0x00002ade                Timer_B1
+ .text          0x00002c66      0x16a contiki-esb.a(beep.o)
+                0x00002c66                beep_alarm
+                0x00002d92                beep_quick
+                0x00002cce                beep_beep
+                0x00002db2                beep_long
+                0x00002cee                beep_down
+                0x00002d34                beep_spinup
+                0x00002ce4                beep
+                0x00002d2e                beep_off
+                0x00002d28                beep_on
+ .text          0x00002dd0      0x1ee contiki-esb.a(ds1629.o)
+                0x00002fa8                ds1629_start
+                0x00002fae                ds1629_temperature
+                0x00002fa2                ds1629_init
+ .text          0x00002fbe      0x69e contiki-esb.a(tr1001-gcr.o)
+                0x0000314a                tr1001_rxhandler
+                0x00003656                tr1001_clear_active
+                0x00003006                radio_off
+                0x0000348c                tr1001_send
+                0x000030a2                tr1001_set_txpower
+                0x00003614                tr1001_clear_packets
+                0x0000353a                tr1001_poll
+                0x000030f6                tr1001_init
+                0x000035ac                tr1001_set_speed
+                0x0000314a                vector_fff2
+                0x00003650                tr1001_active
+                0x0000360e                tr1001_packets_dropped
+                0x00003602                tr1001_sstrength
+                0x00003608                tr1001_packets_ok
+                0x0000361e                tr1001_sstrength_value
+                0x00003180                tr1001_default_rxhandler_pt
+                0x00003014                radio_on
+ .text          0x0000365c      0x16c contiki-esb.a(gcr.o)
+                0x00003696                gcr_finished
+                0x000036a2                gcr_encode
+                0x0000372a                gcr_valid
+                0x0000376e                gcr_get_decoded
+                0x0000368c                gcr_init
+                0x0000370c                gcr_decode
+                0x000036e6                gcr_get_encoded
+ .text          0x000037c8       0x86 contiki-esb.a(node-id.o)
+                0x0000380a                node_id_burn
+                0x000037c8                node_id_restore
+ .text          0x0000384e       0x12 contiki-esb.a(contiki-esb-def)
+                0x0000384e                init_lowlevel
+ .text          0x00003860        0x2 contiki-esb.a(contiki-esb-def)
+                0x00003860                init_apps
+ .text          0x00003862       0x6c contiki-esb.a(contiki-esb-def)
+                0x00003862                init_net
+ .text          0x000038ce       0xf2 contiki-esb.a(rs232.o)
+                0x00003930                rs232_send
+                0x00003940                rs232_set_speed
+                0x0000390a                rs232_init
+                0x000038ce                vector_ffe6
+                0x000039ba                slip_arch_writeb
+                0x00003998                rs232_print
+                0x000039b4                rs232_set_input
+                0x000038ce                rs232_rx_usart1
+ .text          0x000039c0        0xe contiki-esb.a(rs232-putchar.o)
+                0x000039c0                putchar
+ .text          0x000039ce       0xba contiki-esb.a(msp430.o)
+                0x00003a7c                splhigh_
+                0x00003a4e                msp430_cpu_init
+                0x00003a84                splx_
+                0x00003a5c                sbrk
+                0x000039ce                msp430_init_dco
+ .text          0x00003a88      0x226 contiki-esb.a(eeprom.o)
+                0x00003c1c                eeprom_write
+                0x00003ba0                eeprom_read
+ .text          0x00003cae       0xc6 contiki-esb.a(clock.o)
+                0x00003d0e                clock_init
+                0x00003d3c                clock_wait
+                0x00003d5a                clock_seconds
+                0x00003cae                timera1
+                0x00003d36                clock_delay
+                0x00003cf8                clock_set
+                0x00003d58                clock_set_seconds
+                0x00003cf2                clock_time
+                0x00003cae                vector_ffea
+ .text          0x00003d74       0x9a contiki-esb.a(leds.o)
+                0x00003dc2                leds_toggle
+                0x00003dae                leds_on
+                0x00003db8                leds_off
+                0x00003dfa                leds_red
+                0x00003da6                leds_get
+                0x00003dd2                leds_green
+                0x00003dc8                leds_invert
+                0x00003d90                leds_blink
+                0x00003de6                leds_yellow
+                0x00003d82                leds_init
+ .text          0x00003e0e       0x66 contiki-esb.a(leds-arch.o)
+                0x00003e0e                leds_arch_init
+                0x00003e1c                leds_arch_get
+                0x00003e48                leds_arch_set
+ .text          0x00003e74        0xc contiki-esb.a(lpm.o)
+                0x00003e74                lpm_on
+                0x00003e7a                lpm_off
+ .text          0x00003e80       0xfe contiki-esb.a(cfs-eeprom.o)
+ .text          0x00003f7e       0x2a contiki-esb.a(random.o)
+                0x00003f84                random_rand
+                0x00003f7e                random_init
+ .text          0x00003fa8      0x396 contiki-esb.a(slip.o)
+                0x00004274                slip_input_byte
+                0x00004022                slip_write
+                0x00003fb4                slip_send
+ .text          0x0000433e       0x3e contiki-esb.a(crc16.o)
+                0x0000433e                crc16_add
+ .text          0x0000437c       0x96 contiki-esb.a(service.o)
+                0x000043e4                service_find
+                0x000043a4                service_remove
+                0x0000437c                service_register
+ .text          0x00004412       0x4a contiki-esb.a(timer.o)
+                0x0000443e                timer_expired
+                0x00004412                timer_set
+                0x0000442e                timer_restart
+                0x00004426                timer_reset
+ .text          0x0000445c      0xfe0 contiki-esb.a(uip.o)
+                0x0000478c                uip_unlisten
+                0x0000445c                uip_broadcast_addr
+                0x0000446a                uip_add32
+                0x00004460                all_zeroes_addr
+                0x0000480a                uip_process
+                0x00004518                uip_ipchksum
+                0x000046b6                uip_udp_new
+                0x000047ae                uip_listen
+                0x00004570                uip_tcpchksum
+                0x000045b4                uip_connect
+                0x00004508                uip_chksum
+                0x0000541c                htons
+                0x0000457a                uip_init
+                0x00004464                uip_setipid
+                0x00005420                uip_send
+ .text          0x0000543c       0xa8 contiki-esb.a(tr1001-drv.o)
+                0x000054b6                tr1001_drv_request_poll
+                0x000054c0                tr1001_drv_send
+                0x000054de                tr1001_drv_set_slip_dump
+ .text          0x000054e4       0x1e contiki-esb.a(esb-sensors.o)
+                0x000054fa                esb_sensors_off
+                0x000054e4                esb_sensors_init
+                0x000054f2                esb_sensors_on
+ .text          0x00005502      0x130 contiki-esb.a(hc.o)
+                0x00005504                hc_compress
+                0x00005590                hc_inflate
+                0x00005502                hc_init
+ .text          0x00005632        0x0 /cygdrive/c/mspgcc/bin/../lib/gcc-lib/msp430/3.2.3/msp2/libgcc.a(__stop_progExec__.o)
+ .text          0x00005632        0x0 /cygdrive/c/mspgcc/bin/../lib/gcc-lib/msp430/3.2.3/msp2/libgcc.a(_udivmodhi4.o)
+ .text          0x00005632        0x0 /cygdrive/c/mspgcc/bin/../lib/gcc-lib/msp430/3.2.3/msp2/libgcc.a(_divmodhi4.o)
+ .text          0x00005632        0x0 /cygdrive/c/mspgcc/bin/../lib/gcc-lib/msp430/3.2.3/msp2/libgcc.a(_reset_vector__.o)
+ .text          0x00005632       0x12 /cygdrive/c/mspgcc/bin/../lib/gcc-lib/msp430/3.2.3/../../../../msp430/lib/msp2/libc.a(printf.o)
+                0x00005632                printf
+ .text          0x00005644      0x624 /cygdrive/c/mspgcc/bin/../lib/gcc-lib/msp430/3.2.3/../../../../msp430/lib/msp2/libc.a(vuprintf.o)
+                0x000056a8                vuprintf
+ .text          0x00005c68       0x2e /cygdrive/c/mspgcc/bin/../lib/gcc-lib/msp430/3.2.3/../../../../msp430/lib/msp2/libc.a(puts.o)
+                0x00005c68                puts
+ .text          0x00005c96       0x24 /cygdrive/c/mspgcc/bin/../lib/gcc-lib/msp430/3.2.3/../../../../msp430/lib/msp2/libc.a(memchr.o)
+                0x00005c96                memchr
+ .text          0x00005cba       0x36 /cygdrive/c/mspgcc/bin/../lib/gcc-lib/msp430/3.2.3/../../../../msp430/lib/msp2/libc.a(strcmp.o)
+                0x00005cba                strcmp
+ .text          0x00005cf0       0x30 /cygdrive/c/mspgcc/bin/../lib/gcc-lib/msp430/3.2.3/../../../../msp430/lib/msp2/libc.a(strncmp.o)
+                0x00005cf0                strncmp
+ .text          0x00005d20       0x30 /cygdrive/c/mspgcc/bin/../lib/gcc-lib/msp430/3.2.3/../../../../msp430/lib/msp2/libc.a(memcmp.o)
+                0x00005d20                memcmp
+ .text          0x00005d50       0xd4 /cygdrive/c/mspgcc/bin/../lib/gcc-lib/msp430/3.2.3/../../../../msp430/lib/msp2/libc.a(memcpy.o)
+                0x00005d50                memcpy
+ .text          0x00005e24       0xd4 /cygdrive/c/mspgcc/bin/../lib/gcc-lib/msp430/3.2.3/../../../../msp430/lib/msp2/libc.a(memmove.o)
+                0x00005e24                memmove
+ .text          0x00005ef8        0x0 /cygdrive/c/mspgcc/bin/../lib/gcc-lib/msp430/3.2.3/msp2/libgcc.a(_udivmodsi4.o)
+                0x00005ef8                . = ALIGN (0x2)
+ *(.text.*)
+ .text.libgcc   0x00005ef8        0x4 /cygdrive/c/mspgcc/bin/../lib/gcc-lib/msp430/3.2.3/msp2/libgcc.a(__stop_progExec__.o)
+                0x00005ef8                __stop_progExec__
+ .text.libgcc   0x00005efc       0x1c /cygdrive/c/mspgcc/bin/../lib/gcc-lib/msp430/3.2.3/msp2/libgcc.a(_udivmodhi4.o)
+                0x00005efc                __udivmodhi4
+ .text.libgcc   0x00005f18       0x36 /cygdrive/c/mspgcc/bin/../lib/gcc-lib/msp430/3.2.3/msp2/libgcc.a(_divmodhi4.o)
+                0x00005f18                __divmodhi4
+ .text.libgcc   0x00005f4e        0x0 /cygdrive/c/mspgcc/bin/../lib/gcc-lib/msp430/3.2.3/msp2/libgcc.a(_reset_vector__.o)
+ .text.libgcc   0x00005f4e       0x2a /cygdrive/c/mspgcc/bin/../lib/gcc-lib/msp430/3.2.3/msp2/libgcc.a(_udivmodsi4.o)
+                0x00005f4e                __udivmodsi4
+                0x00005f78                . = ALIGN (0x2)
+ *(.fini9)
+ *(.fini8)
+ *(.fini7)
+ *(.fini6)
+ *(.fini5)
+ *(.fini4)
+ *(.fini3)
+ *(.fini2)
+ *(.fini1)
+ *(.fini0)
+ *(.fini)
+                0x00005f78                _etext = .
+
+.data           0x00000200       0xec load address 0x00005f78
+                0x00000200                PROVIDE (__data_start, .)
+                0x00000200                . = ALIGN (0x2)
+ *(.data)
+ .data          0x00000200        0x0 /cygdrive/c/mspgcc/bin/../lib/gcc-lib/msp430/3.2.3/../../../../msp430/lib/crt430x149.o
+ .data          0x00000200        0xe helloworld.co
+                0x00000200                helloworld_process
+                0x0000020a                autostart_processes
+ .data          0x0000020e       0x2a obj_esb/contiki-esb-main.o
+                0x0000022e                contiki_esb_main_init_process
+                0x0000020e                sensors
+                0x00000220                procinit
+ .data          0x00000238        0x4 contiki-esb.a(process.o)
+                0x00000238                process_list
+                0x0000023a                process_current
+ .data          0x0000023c        0x0 contiki-esb.a(procinit.o)
+ .data          0x0000023c        0x0 contiki-esb.a(autostart.o)
+ .data          0x0000023c        0xa contiki-esb.a(etimer.o)
+                0x0000023c                etimer_process
+ .data          0x00000246        0xc contiki-esb.a(tcpip.o)
+                0x00000248                tcpip_process
+ .data          0x00000252        0x4 contiki-esb.a(uip-fw.o)
+ .data          0x00000256       0x14 contiki-esb.a(uip-fw-service.)
+                0x00000258                uip_fw_service
+                0x00000260                uip_fw_process
+ .data          0x0000026a        0xa contiki-esb.a(sensors.o)
+                0x0000026a                sensors_process
+ .data          0x00000274        0x0 contiki-esb.a(irq.o)
+ .data          0x00000274        0x0 contiki-esb.a(button-sensor.o)
+ .data          0x00000274        0x0 contiki-esb.a(pir-sensor.o)
+ .data          0x00000274        0x0 contiki-esb.a(vib-sensor.o)
+ .data          0x00000274        0x0 contiki-esb.a(sound-sensor.o)
+ .data          0x00000274        0x0 contiki-esb.a(radio-sensor.o)
+ .data          0x00000274        0x0 contiki-esb.a(ctsrts-sensor.o)
+ .data          0x00000274        0x0 contiki-esb.a(battery-sensor.)
+ .data          0x00000274        0x0 contiki-esb.a(temperature-sen)
+ .data          0x00000274        0xa contiki-esb.a(ir.o)
+                0x00000274                ir_process
+ .data          0x0000027e        0x1 contiki-esb.a(beep.o)
+ .data          0x0000027f        0x0 contiki-esb.a(ds1629.o)
+ *fill*         0x0000027f        0x1 00
+ .data          0x00000280        0x4 contiki-esb.a(tr1001-gcr.o)
+                0x00000282                tr1001_rxstate
+ .data          0x00000284        0x4 contiki-esb.a(gcr.o)
+ .data          0x00000288        0x2 contiki-esb.a(node-id.o)
+                0x00000288                node_id
+ .data          0x0000028a        0x0 contiki-esb.a(contiki-esb-def)
+ .data          0x0000028a        0x0 contiki-esb.a(contiki-esb-def)
+ .data          0x0000028a       0x18 contiki-esb.a(contiki-esb-def)
+ .data          0x000002a2        0x2 contiki-esb.a(rs232.o)
+ .data          0x000002a4        0x0 contiki-esb.a(rs232-putchar.o)
+ .data          0x000002a4        0x2 contiki-esb.a(msp430.o)
+ .data          0x000002a6        0x0 contiki-esb.a(eeprom.o)
+ .data          0x000002a6        0x2 contiki-esb.a(clock.o)
+ .data          0x000002a8        0x0 contiki-esb.a(leds.o)
+ .data          0x000002a8        0x0 contiki-esb.a(leds-arch.o)
+ .data          0x000002a8        0x1 contiki-esb.a(lpm.o)
+                0x000002a8                lpm_status
+ *fill*         0x000002a9        0x1 00
+ .data          0x000002aa       0x22 contiki-esb.a(cfs-eeprom.o)
+                0x000002c2                cfs_eeprom_process
+                0x000002ba                cfs_eeprom_service
+ .data          0x000002cc        0x0 contiki-esb.a(random.o)
+ .data          0x000002cc        0xc contiki-esb.a(slip.o)
+                0x000002cc                slip_process
+ .data          0x000002d8        0x0 contiki-esb.a(crc16.o)
+ .data          0x000002d8        0x2 contiki-esb.a(service.o)
+ .data          0x000002da        0x0 contiki-esb.a(timer.o)
+ .data          0x000002da        0x6 contiki-esb.a(uip.o)
+                0x000002da                uip_ethaddr
+ .data          0x000002e0        0xa contiki-esb.a(tr1001-drv.o)
+                0x000002e0                tr1001_drv_process
+ .data          0x000002ea        0x0 contiki-esb.a(esb-sensors.o)
+ .data          0x000002ea        0x0 contiki-esb.a(hc.o)
+ .data          0x000002ea        0x0 /cygdrive/c/mspgcc/bin/../lib/gcc-lib/msp430/3.2.3/msp2/libgcc.a(__stop_progExec__.o)
+ .data          0x000002ea        0x0 /cygdrive/c/mspgcc/bin/../lib/gcc-lib/msp430/3.2.3/msp2/libgcc.a(_udivmodhi4.o)
+ .data          0x000002ea        0x0 /cygdrive/c/mspgcc/bin/../lib/gcc-lib/msp430/3.2.3/msp2/libgcc.a(_divmodhi4.o)
+ .data          0x000002ea        0x0 /cygdrive/c/mspgcc/bin/../lib/gcc-lib/msp430/3.2.3/msp2/libgcc.a(_reset_vector__.o)
+ .data          0x000002ea        0x0 /cygdrive/c/mspgcc/bin/../lib/gcc-lib/msp430/3.2.3/../../../../msp430/lib/msp2/libc.a(printf.o)
+ .data          0x000002ea        0x2 /cygdrive/c/mspgcc/bin/../lib/gcc-lib/msp430/3.2.3/../../../../msp430/lib/msp2/libc.a(vuprintf.o)
+ .data          0x000002ec        0x0 /cygdrive/c/mspgcc/bin/../lib/gcc-lib/msp430/3.2.3/../../../../msp430/lib/msp2/libc.a(puts.o)
+ .data          0x000002ec        0x0 /cygdrive/c/mspgcc/bin/../lib/gcc-lib/msp430/3.2.3/../../../../msp430/lib/msp2/libc.a(memchr.o)
+ .data          0x000002ec        0x0 /cygdrive/c/mspgcc/bin/../lib/gcc-lib/msp430/3.2.3/../../../../msp430/lib/msp2/libc.a(strcmp.o)
+ .data          0x000002ec        0x0 /cygdrive/c/mspgcc/bin/../lib/gcc-lib/msp430/3.2.3/../../../../msp430/lib/msp2/libc.a(strncmp.o)
+ .data          0x000002ec        0x0 /cygdrive/c/mspgcc/bin/../lib/gcc-lib/msp430/3.2.3/../../../../msp430/lib/msp2/libc.a(memcmp.o)
+ .data          0x000002ec        0x0 /cygdrive/c/mspgcc/bin/../lib/gcc-lib/msp430/3.2.3/../../../../msp430/lib/msp2/libc.a(memcpy.o)
+ .data          0x000002ec        0x0 /cygdrive/c/mspgcc/bin/../lib/gcc-lib/msp430/3.2.3/../../../../msp430/lib/msp2/libc.a(memmove.o)
+ .data          0x000002ec        0x0 /cygdrive/c/mspgcc/bin/../lib/gcc-lib/msp430/3.2.3/msp2/libgcc.a(_udivmodsi4.o)
+                0x000002ec                . = ALIGN (0x2)
+ *(.gnu.linkonce.d*)
+                0x000002ec                . = ALIGN (0x2)
+                0x000002ec                _edata = .
+
+.bootloader     0x00000c00        0x0
+                0x00000c00                PROVIDE (__boot_start, .)
+ *(.bootloader)
+                0x00000c00                . = ALIGN (0x2)
+ *(.bootloader.*)
+
+.infomem        0x00001000        0x0
+ *(.infomem)
+                0x00001000                . = ALIGN (0x2)
+ *(.infomem.*)
+
+.infomemnobits  0x00001000        0x0
+ *(.infomemnobits)
+                0x00001000                . = ALIGN (0x2)
+ *(.infomemnobits.*)
+
+.bss            0x000002ec      0x284
+                0x000002ec                PROVIDE (__bss_start, .)
+ *(.bss)
+ .bss           0x000002ec        0x0 /cygdrive/c/mspgcc/bin/../lib/gcc-lib/msp430/3.2.3/../../../../msp430/lib/crt430x149.o
+ .bss           0x000002ec        0x8 helloworld.co
+ .bss           0x000002f4        0x0 obj_esb/contiki-esb-main.o
+ .bss           0x000002f4       0x3e contiki-esb.a(process.o)
+ .bss           0x00000332        0x0 contiki-esb.a(procinit.o)
+ .bss           0x00000332        0x0 contiki-esb.a(autostart.o)
+ .bss           0x00000332        0x4 contiki-esb.a(etimer.o)
+ .bss           0x00000336       0x14 contiki-esb.a(tcpip.o)
+ .bss           0x0000034a        0xe contiki-esb.a(uip-fw.o)
+ .bss           0x00000358        0x0 contiki-esb.a(uip-fw-service.)
+ .bss           0x00000358        0x6 contiki-esb.a(sensors.o)
+ .bss           0x0000035e        0x1 contiki-esb.a(irq.o)
+ *fill*         0x0000035f        0x1 00
+ .bss           0x00000360        0x4 contiki-esb.a(button-sensor.o)
+ .bss           0x00000364        0x4 contiki-esb.a(pir-sensor.o)
+ .bss           0x00000368        0x4 contiki-esb.a(vib-sensor.o)
+ .bss           0x0000036c        0x8 contiki-esb.a(sound-sensor.o)
+ .bss           0x00000374        0x0 contiki-esb.a(radio-sensor.o)
+ .bss           0x00000374        0x0 contiki-esb.a(ctsrts-sensor.o)
+ .bss           0x00000374        0x2 contiki-esb.a(battery-sensor.)
+ .bss           0x00000376        0x1 contiki-esb.a(temperature-sen)
+ *fill*         0x00000377        0x1 00
+ .bss           0x00000378        0x8 contiki-esb.a(ir.o)
+ .bss           0x00000380        0x0 contiki-esb.a(beep.o)
+ .bss           0x00000380        0x0 contiki-esb.a(ds1629.o)
+ .bss           0x00000380       0x22 contiki-esb.a(tr1001-gcr.o)
+ .bss           0x000003a2        0x0 contiki-esb.a(gcr.o)
+ .bss           0x000003a2        0x0 contiki-esb.a(node-id.o)
+ .bss           0x000003a2        0x0 contiki-esb.a(contiki-esb-def)
+ .bss           0x000003a2        0x0 contiki-esb.a(contiki-esb-def)
+ .bss           0x000003a2        0x0 contiki-esb.a(contiki-esb-def)
+ .bss           0x000003a2        0x0 contiki-esb.a(rs232.o)
+ .bss           0x000003a2        0x0 contiki-esb.a(rs232-putchar.o)
+ .bss           0x000003a2        0x0 contiki-esb.a(msp430.o)
+ .bss           0x000003a2        0x0 contiki-esb.a(eeprom.o)
+ .bss           0x000003a2        0x0 contiki-esb.a(clock.o)
+ .bss           0x000003a2        0x2 contiki-esb.a(leds.o)
+ .bss           0x000003a4        0x0 contiki-esb.a(leds-arch.o)
+ .bss           0x000003a4        0x0 contiki-esb.a(lpm.o)
+ .bss           0x000003a4        0x4 contiki-esb.a(cfs-eeprom.o)
+ .bss           0x000003a8        0x4 contiki-esb.a(random.o)
+ .bss           0x000003ac       0x6c contiki-esb.a(slip.o)
+ .bss           0x00000418        0x0 contiki-esb.a(crc16.o)
+ .bss           0x00000418        0x0 contiki-esb.a(service.o)
+ .bss           0x00000418        0x0 contiki-esb.a(timer.o)
+ .bss           0x00000418        0xc contiki-esb.a(uip.o)
+ .bss           0x00000424        0x1 contiki-esb.a(tr1001-drv.o)
+ .bss           0x00000425        0x0 contiki-esb.a(esb-sensors.o)
+ .bss           0x00000425        0x0 contiki-esb.a(hc.o)
+ .bss           0x00000425        0x0 /cygdrive/c/mspgcc/bin/../lib/gcc-lib/msp430/3.2.3/msp2/libgcc.a(__stop_progExec__.o)
+ .bss           0x00000425        0x0 /cygdrive/c/mspgcc/bin/../lib/gcc-lib/msp430/3.2.3/msp2/libgcc.a(_udivmodhi4.o)
+ .bss           0x00000425        0x0 /cygdrive/c/mspgcc/bin/../lib/gcc-lib/msp430/3.2.3/msp2/libgcc.a(_divmodhi4.o)
+ .bss           0x00000425        0x0 /cygdrive/c/mspgcc/bin/../lib/gcc-lib/msp430/3.2.3/msp2/libgcc.a(_reset_vector__.o)
+ .bss           0x00000425        0x0 /cygdrive/c/mspgcc/bin/../lib/gcc-lib/msp430/3.2.3/../../../../msp430/lib/msp2/libc.a(printf.o)
+ *fill*         0x00000425        0x1 00
+ .bss           0x00000426        0x2 /cygdrive/c/mspgcc/bin/../lib/gcc-lib/msp430/3.2.3/../../../../msp430/lib/msp2/libc.a(vuprintf.o)
+ .bss           0x00000428        0x0 /cygdrive/c/mspgcc/bin/../lib/gcc-lib/msp430/3.2.3/../../../../msp430/lib/msp2/libc.a(puts.o)
+ .bss           0x00000428        0x0 /cygdrive/c/mspgcc/bin/../lib/gcc-lib/msp430/3.2.3/../../../../msp430/lib/msp2/libc.a(memchr.o)
+ .bss           0x00000428        0x0 /cygdrive/c/mspgcc/bin/../lib/gcc-lib/msp430/3.2.3/../../../../msp430/lib/msp2/libc.a(strcmp.o)
+ .bss           0x00000428        0x0 /cygdrive/c/mspgcc/bin/../lib/gcc-lib/msp430/3.2.3/../../../../msp430/lib/msp2/libc.a(strncmp.o)
+ .bss           0x00000428        0x0 /cygdrive/c/mspgcc/bin/../lib/gcc-lib/msp430/3.2.3/../../../../msp430/lib/msp2/libc.a(memcmp.o)
+ .bss           0x00000428        0x0 /cygdrive/c/mspgcc/bin/../lib/gcc-lib/msp430/3.2.3/../../../../msp430/lib/msp2/libc.a(memcpy.o)
+ .bss           0x00000428        0x0 /cygdrive/c/mspgcc/bin/../lib/gcc-lib/msp430/3.2.3/../../../../msp430/lib/msp2/libc.a(memmove.o)
+ .bss           0x00000428        0x0 /cygdrive/c/mspgcc/bin/../lib/gcc-lib/msp430/3.2.3/msp2/libgcc.a(_udivmodsi4.o)
+ *(COMMON)
+ COMMON         0x00000428       0x1b obj_esb/contiki-esb-main.o
+                0x00000428                sensors_selecting_proc
+                0x0000043a                sensors_flags
+ COMMON         0x00000443        0x1 contiki-esb.a(tcpip.o)
+                0x00000443                tcpip_event
+ COMMON         0x00000444        0x1 contiki-esb.a(sensors.o)
+                0x00000444                sensors_event
+ COMMON         0x00000445        0x1 contiki-esb.a(sound-sensor.o)
+                0x00000445                sound_pause
+ COMMON         0x00000446        0x2 contiki-esb.a(radio-sensor.o)
+                0x00000446                radio_sensor_signal
+ COMMON         0x00000448        0x1 contiki-esb.a(ir.o)
+                0x00000448                ir_event_received
+ *fill*         0x00000449        0x1 00
+ COMMON         0x0000044a       0x5c contiki-esb.a(tr1001-gcr.o)
+                0x0000044a                tr1001_rxbuf
+ COMMON         0x000004a6        0x1 contiki-esb.a(slip.o)
+                0x000004a6                slip_active
+ *fill*         0x000004a7        0x1 00
+ COMMON         0x000004a8       0xc8 contiki-esb.a(uip.o)
+                0x000004a8                uip_len
+                0x000004aa                uip_sappdata
+                0x000004ac                uip_acc32
+                0x000004b0                uip_flags
+                0x000004b2                uip_udp_conn
+                0x000004b4                uip_appdata
+                0x000004b6                uip_conn
+                0x000004b8                uip_conns
+                0x000004d8                uip_listenports
+                0x000004da                uip_draddr
+                0x000004de                uip_netmask
+                0x000004e2                uip_hostaddr
+                0x000004e6                uip_buf
+                0x00000544                uip_slen
+                0x00000546                uip_udp_conns
+                0x00000570                PROVIDE (__bss_end, .)
+                0x00000570                _end = .
+
+.noinit         0x00000570        0x0
+                0x00000570                PROVIDE (__noinit_start, .)
+ *(.noinit)
+ *(COMMON)
+                0x00000570                PROVIDE (__noinit_end, .)
+                0x00000570                _end = .
+
+.vectors        0x0000ffe0       0x20
+                0x0000ffe0                PROVIDE (__vectors_start, .)
+ *(.vectors*)
+ .vectors       0x0000ffe0       0x20 /cygdrive/c/mspgcc/bin/../lib/gcc-lib/msp430/3.2.3/../../../../msp430/lib/crt430x149.o
+                0x0000ffe0                InterruptVectors
+                0x00010000                _vectors_end = .
+
+.profiler
+ *(.profiler)
+
+.stab           0x00000000    0x2469c
+ *(.stab)
+ .stab          0x00000000       0xf0 /cygdrive/c/mspgcc/bin/../lib/gcc-lib/msp430/3.2.3/../../../../msp430/lib/crt430x149.o
+ .stab          0x000000f0     0x16c8 helloworld.co
+                               0x16f8 (size before relaxing)
+ .stab          0x000017b8     0x156c obj_esb/contiki-esb-main.o
+                               0x1adc (size before relaxing)
+ .stab          0x00002d24      0xae0 contiki-esb.a(process.o)
+                                0xe28 (size before relaxing)
+ .stab          0x00003804      0x27c contiki-esb.a(procinit.o)
+                                0x408 (size before relaxing)
+ .stab          0x00003a80      0x294 contiki-esb.a(autostart.o)
+                                0x384 (size before relaxing)
+ .stab          0x00003d14      0x93c contiki-esb.a(etimer.o)
+                                0xa5c (size before relaxing)
+ .stab          0x00004650     0x1014 contiki-esb.a(tcpip.o)
+                               0x15e4 (size before relaxing)
+ .stab          0x00005664      0xb88 contiki-esb.a(uip-fw.o)
+                                0xed0 (size before relaxing)
+ .stab          0x000061ec      0x330 contiki-esb.a(uip-fw-service.)
+                                0x5a0 (size before relaxing)
+ .stab          0x0000651c      0x840 contiki-esb.a(sensors.o)
+                                0xc24 (size before relaxing)
+ .stab          0x00006d5c     0x11f4 contiki-esb.a(irq.o)
+                               0x189c (size before relaxing)
+ .stab          0x00007f50      0xff0 contiki-esb.a(button-sensor.o)
+                               0x168c (size before relaxing)
+ .stab          0x00008f40     0x1014 contiki-esb.a(pir-sensor.o)
+                               0x16b0 (size before relaxing)
+ .stab          0x00009f54     0x1008 contiki-esb.a(vib-sensor.o)
+                               0x16a4 (size before relaxing)
+ .stab          0x0000af5c     0x1074 contiki-esb.a(sound-sensor.o)
+                               0x18c0 (size before relaxing)
+ .stab          0x0000bfd0      0xf9c contiki-esb.a(radio-sensor.o)
+                               0x1644 (size before relaxing)
+ .stab          0x0000cf6c     0x1098 contiki-esb.a(ctsrts-sensor.o)
+                               0x1734 (size before relaxing)
+ .stab          0x0000e004      0xd8c contiki-esb.a(battery-sensor.)
+                               0x1104 (size before relaxing)
+ .stab          0x0000ed90      0x480 contiki-esb.a(temperature-sen)
+                                0x630 (size before relaxing)
+ .stab          0x0000f210     0x13d4 contiki-esb.a(ir.o)
+                               0x1968 (size before relaxing)
+ .stab          0x000105e4     0x11a0 contiki-esb.a(beep.o)
+                               0x183c (size before relaxing)
+ .stab          0x00011784     0x10e0 contiki-esb.a(ds1629.o)
+                               0x1320 (size before relaxing)
+ .stab          0x00012864     0x1ea8 contiki-esb.a(tr1001-gcr.o)
+                               0x270c (size before relaxing)
+ .stab          0x0001470c      0x42c contiki-esb.a(gcr.o)
+                                0x438 (size before relaxing)
+ .stab          0x00014b38      0x2b8 contiki-esb.a(node-id.o)
+                                0x324 (size before relaxing)
+ .stab          0x00014df0      0xdc8 contiki-esb.a(contiki-esb-def)
+                               0x1464 (size before relaxing)
+ .stab          0x00015bb8      0x15c contiki-esb.a(contiki-esb-def)
+                                0x168 (size before relaxing)
+ .stab          0x00015d14      0xe40 contiki-esb.a(contiki-esb-def)
+                               0x14dc (size before relaxing)
+ .stab          0x00016b54     0x10e0 contiki-esb.a(rs232.o)
+                               0x1944 (size before relaxing)
+ .stab          0x00017c34      0x180 contiki-esb.a(rs232-putchar.o)
+                                0x198 (size before relaxing)
+ .stab          0x00017db4      0xf00 contiki-esb.a(msp430.o)
+                               0x1350 (size before relaxing)
+ .stab          0x00018cb4     0x1104 contiki-esb.a(eeprom.o)
+                               0x12fc (size before relaxing)
+ .stab          0x00019db8      0xdec contiki-esb.a(clock.o)
+                               0x10ec (size before relaxing)
+ .stab          0x0001aba4      0x480 contiki-esb.a(leds.o)
+                                0x4f8 (size before relaxing)
+ .stab          0x0001b024      0xb58 contiki-esb.a(leds-arch.o)
+                                0xd98 (size before relaxing)
+ .stab          0x0001bb7c      0xb10 contiki-esb.a(lpm.o)
+                                0xd50 (size before relaxing)
+ .stab          0x0001c68c      0x690 contiki-esb.a(cfs-eeprom.o)
+                                0x84c (size before relaxing)
+ .stab          0x0001cd1c      0x258 contiki-esb.a(random.o)
+                                0x2d0 (size before relaxing)
+ .stab          0x0001cf74      0xad4 contiki-esb.a(slip.o)
+                                0xfe4 (size before relaxing)
+ .stab          0x0001da48      0x1b0 contiki-esb.a(crc16.o)
+                                0x1bc (size before relaxing)
+ .stab          0x0001dbf8      0x444 contiki-esb.a(service.o)
+                                0x810 (size before relaxing)
+ .stab          0x0001e03c      0x294 contiki-esb.a(timer.o)
+                                0x318 (size before relaxing)
+ .stab          0x0001e2d0     0x1f74 contiki-esb.a(uip.o)
+                               0x2448 (size before relaxing)
+ .stab          0x00020244      0xf78 contiki-esb.a(tr1001-drv.o)
+                               0x180c (size before relaxing)
+ .stab          0x000211bc      0xe10 contiki-esb.a(esb-sensors.o)
+                               0x14ac (size before relaxing)
+ .stab          0x00021fcc      0x4a4 contiki-esb.a(hc.o)
+                                0x99c (size before relaxing)
+ .stab          0x00022470      0x45c /cygdrive/c/mspgcc/bin/../lib/gcc-lib/msp430/3.2.3/../../../../msp430/lib/msp2/libc.a(printf.o)
+                                0x468 (size before relaxing)
+ .stab          0x000228cc      0xc60 /cygdrive/c/mspgcc/bin/../lib/gcc-lib/msp430/3.2.3/../../../../msp430/lib/msp2/libc.a(vuprintf.o)
+                                0xec4 (size before relaxing)
+ .stab          0x0002352c      0x210 /cygdrive/c/mspgcc/bin/../lib/gcc-lib/msp430/3.2.3/../../../../msp430/lib/msp2/libc.a(puts.o)
+                                0x480 (size before relaxing)
+ .stab          0x0002373c      0x24c /cygdrive/c/mspgcc/bin/../lib/gcc-lib/msp430/3.2.3/../../../../msp430/lib/msp2/libc.a(memchr.o)
+                                0x498 (size before relaxing)
+ .stab          0x00023988      0x1e0 /cygdrive/c/mspgcc/bin/../lib/gcc-lib/msp430/3.2.3/../../../../msp430/lib/msp2/libc.a(strcmp.o)
+                                0x42c (size before relaxing)
+ .stab          0x00023b68      0x210 /cygdrive/c/mspgcc/bin/../lib/gcc-lib/msp430/3.2.3/../../../../msp430/lib/msp2/libc.a(strncmp.o)
+                                0x45c (size before relaxing)
+ .stab          0x00023d78      0x264 /cygdrive/c/mspgcc/bin/../lib/gcc-lib/msp430/3.2.3/../../../../msp430/lib/msp2/libc.a(memcmp.o)
+                                0x4b0 (size before relaxing)
+ .stab          0x00023fdc      0x360 /cygdrive/c/mspgcc/bin/../lib/gcc-lib/msp430/3.2.3/../../../../msp430/lib/msp2/libc.a(memcpy.o)
+                                0x5ac (size before relaxing)
+ .stab          0x0002433c      0x360 /cygdrive/c/mspgcc/bin/../lib/gcc-lib/msp430/3.2.3/../../../../msp430/lib/msp2/libc.a(memmove.o)
+                                0x5ac (size before relaxing)
+
+.stabstr        0x00000000     0xc565
+ *(.stabstr)
+ .stabstr       0x00000000     0xc565 /cygdrive/c/mspgcc/bin/../lib/gcc-lib/msp430/3.2.3/../../../../msp430/lib/crt430x149.o
+
+.stab.excl
+ *(.stab.excl)
+
+.stab.exclstr
+ *(.stab.exclstr)
+
+.stab.index
+ *(.stab.index)
+
+.stab.indexstr
+ *(.stab.indexstr)
+
+.comment
+ *(.comment)
+
+.debug
+ *(.debug)
+
+.line
+ *(.line)
+
+.debug_srcinfo
+ *(.debug_srcinfo)
+
+.debug_sfnames
+ *(.debug_sfnames)
+
+.debug_aranges
+ *(.debug_aranges)
+
+.debug_pubnames
+ *(.debug_pubnames)
+
+.debug_info
+ *(.debug_info)
+ *(.gnu.linkonce.wi.*)
+
+.debug_abbrev
+ *(.debug_abbrev)
+
+.debug_line
+ *(.debug_line)
+
+.debug_frame
+ *(.debug_frame)
+
+.debug_str
+ *(.debug_str)
+
+.debug_loc
+ *(.debug_loc)
+
+.debug_macinfo
+ *(.debug_macinfo)
+                0x00000a00                PROVIDE (__stack, 0xa00)
+                0x00005f78                PROVIDE (__data_start_rom, _etext)
+                0x00006064                PROVIDE (__data_end_rom, (_etext + SIZEOF (.data)))
+                0x00006064                PROVIDE (__noinit_start_rom, (_etext + SIZEOF (.data)))
+                0x00006064                PROVIDE (__noinit_end_rom, ((_etext + SIZEOF (.data)) + SIZEOF (.noinit)))
+                0x00000000                PROVIDE (__subdevice_has_heap, 0x0)
+OUTPUT(helloworld.firmware elf32-msp430)
