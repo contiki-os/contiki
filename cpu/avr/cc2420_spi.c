@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF 
  * SUCH DAMAGE. 
  *
- * @(#)$Id: cc2420_uart0.c,v 1.1 2007/01/25 18:22:55 bg- Exp $
+ * @(#)$Id: cc2420_spi.c,v 1.1 2007/02/01 14:46:07 bg- Exp $
  */
 
 #include <avr/io.h>
