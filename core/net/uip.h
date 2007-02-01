@@ -46,7 +46,7 @@
  *
  * This file is part of the uIP TCP/IP stack.
  *
- * $Id: uip.h,v 1.7 2006/09/26 21:02:35 adamdunkels Exp $
+ * $Id: uip.h,v 1.8 2007/02/01 14:27:17 bg- Exp $
  *
  */
 
@@ -824,6 +824,20 @@ struct uip_udp_conn *uip_udp_new(uip_ipaddr_t *ripaddr, u16_t rport);
  * formats used by uIP.
  */
  
+/**
+ * Convert an IP address to four bytes separated by commas.
+ *
+ * Example:
+ \code
+ uip_ipaddr_t ipaddr;
+ printf("ipaddr=%d.%d.%d.%d\n", uip_ipaddr_to_quad(&ipaddr));
+ \endcode
+ *
+ * \param addr A pointer to a uip_ipaddr_t.
+ * \hideinitializer
+ */
+#define uip_ipaddr_to_quad(a) (a)->u8[0],(a)->u8[1],(a)->u8[2],(a)->u8[3]
+
 /**
  * Construct an IP address from four bytes.
  *
