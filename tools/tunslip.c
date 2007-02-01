@@ -28,7 +28,7 @@
  *
  * This file is part of the uIP TCP/IP stack.
  *
- * $Id: tunslip.c,v 1.8 2007/01/23 12:33:42 bg- Exp $
+ * $Id: tunslip.c,v 1.9 2007/02/01 14:35:23 bg- Exp $
  *
  */
 
@@ -630,10 +630,13 @@ write_to_serial(int outfd, void *inbuf, int len)
     return;
   }
 
-  if (iphdr->ip_id == 0) {
-    iphdr->ip_id = htons(ip_id++);
-    iphdr->ip_sum = 0;
-    iphdr->ip_sum = ~htons(ip4sum(0, iphdr, 20));
+  if (iphdr->ip_id == 0 && iphdr->ip_off & IP_DF) {
+    uint16_t nid = htons(ip_id++);
+    iphdr->ip_id = nid;
+    nid = ~nid;			/* negate */
+    iphdr->ip_sum += nid;	/* add */
+    if (iphdr->ip_sum < nid)	/* 1-complement overflow? */
+      iphdr->ip_sum++;
     ecode = check_ip(inbuf, len);
     if(ecode < 0) {
       fprintf(stderr, "tun_to_serial: drop packet %d\n", ecode);
