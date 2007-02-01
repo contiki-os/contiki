@@ -24,7 +24,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * 
- * $Id: GUI.java,v 1.19 2007/01/24 18:12:59 fros4943 Exp $
+ * $Id: GUI.java,v 1.20 2007/02/01 16:00:40 fros4943 Exp $
  */
 
 package se.sics.cooja;
@@ -437,9 +437,9 @@ public class GUI {
     JComponent newContentPane = gui.getDesktopPane();
     newContentPane.setOpaque(true);
     frame.setContentPane(newContentPane);
-    frame.setLocationRelativeTo(null);
 
     frame.setSize(700, 700);
+    frame.setLocationRelativeTo(null);
     frame.addWindowListener(gui.guiEventHandler);
 
     // Display the window.
