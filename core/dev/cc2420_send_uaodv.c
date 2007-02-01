@@ -13,6 +13,12 @@
 #include "net/uaodv.h"
 #include "net/uaodv-rt.h"
 
+#if 0
+#define PRINTF(...) printf(__VA_ARGS__)
+#else
+#define PRINTF(...) do {} while (0)
+#endif
+
 #define in_my_network(a) \
   (((a[0] ^ cc2420if.ipaddr.u16[0]) & cc2420if.netmask.u16[0]) == 0 && \
    ((a[1] ^ cc2420if.ipaddr.u16[1]) & cc2420if.netmask.u16[1]) == 0)
@@ -20,6 +26,7 @@
 u8_t
 cc2420_send_uaodv(void)
 {
+  int ret;
   struct hdr_802_15 h;
 
   u8_t color = (cc2420_ack_received) ? LEDS_BLUE : LEDS_RED;
@@ -47,10 +54,9 @@ cc2420_send_uaodv(void)
 
       if (route == NULL) {
 	h.dst = next_gw->u16[1]; /* try local while waiting for route */
-	h.fc0 &= ~FC0_REQ_ACK;	/* but don't request an ACK. */
       } else {
 	if (cc2420_check_remote(route->nexthop.u16[1]) == 1) {
-	  printf("LOST 0x%04x\n", route->nexthop.u16[1]);
+	  PRINTF("LOST 0x%04x\n", route->nexthop.u16[1]);
 	  /* Send bad route notification? */
 #ifdef UAODV_BAD_ROUTE
 	  uaodv_bad_route(route);
@@ -69,8 +75,9 @@ cc2420_send_uaodv(void)
   if (h.dst == 0xffff)
     h.fc0 &= ~FC0_REQ_ACK;
 
-  if (cc2420_send(&h, 10, &uip_buf[UIP_LLH_LEN], uip_len) < 0) {
-    printf("cc2420_send_uaodv too big uip_len=%d\n", uip_len);
+  ret = cc2420_send(&h, 10, &uip_buf[UIP_LLH_LEN], uip_len);
+  if (ret < 0) {
+    PRINTF("cc2420_send_uaodv uip_len=%d ret=%d\n", uip_len, ret);
     leds_toggle(color);
     return UIP_FW_TOOLARGE;
   }
