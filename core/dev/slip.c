@@ -29,7 +29,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: slip.c,v 1.3 2007/01/23 12:30:12 bg- Exp $
+ * @(#)$Id: slip.c,v 1.4 2007/02/01 14:04:06 bg- Exp $
  */
 
 
@@ -236,6 +236,18 @@ PROCESS_THREAD(slip_process, ev, data)
     } else if(uip_len > 0
        && uip_len == (((u16_t)(BUF->len[0]) << 8) + BUF->len[1])
        && uip_ipchksum() == 0xffff) {
+#define IP_DF   0x40
+      if(BUF->ipid[0] == 0 && BUF->ipid[1] == 0 && BUF->ipoffset[0] & IP_DF) {
+	static u16_t ip_id;
+	u16_t nid = ip_id++;
+	BUF->ipid[0] = nid >> 8;
+	BUF->ipid[1] = nid;
+	nid = htons(nid);
+	nid = ~nid;		/* negate */
+	BUF->ipchksum += nid;	/* add */
+	if (BUF->ipchksum < nid) /* 1-complement overflow? */
+	  BUF->ipchksum++;
+      }
       tcpip_input();
     } else {
       uip_len = 0;
