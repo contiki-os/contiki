@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: uaodv.c,v 1.3 2007/01/24 16:32:34 bg- Exp $
+ * $Id: uaodv.c,v 1.4 2007/02/01 14:33:05 bg- Exp $
  */
 
 /**
@@ -62,22 +62,22 @@ static uip_ipaddr_t last_rreq_originator;
 static u32_t last_rreq_id;
 
 
-#define ip2quad(p) uip_ipaddr1(p),uip_ipaddr2(p),uip_ipaddr3(p),uip_ipaddr4(p)
-
 #if 1
+#define PRINTF(...) do {} while (0)
 #define print_debug(...) do{}while(0)
 #else
+#define PRINTF(...) printf(__VA_ARGS__)
+static void
+print_debug(const char *fmt, ...) __attribute__((format(printf, 1, 2)));
 static void
 print_debug(const char *fmt, ...)
 {
-#if 1
   va_list ap;
 
   va_start(ap, fmt);
-  printf("%d.%d.%d.%d: ", ip2quad(&uip_hostaddr));
+  printf("%d.%d.%d.%d: ", uip_ipaddr_to_quad(&uip_hostaddr));
   vprintf(fmt, ap);
   va_end(ap);
-#endif
   return;
 }
 #endif
@@ -138,13 +138,7 @@ send_rrep(uip_ipaddr_t *dst, uip_ipaddr_t *nexthop, uip_ipaddr_t *src, u32_t seq
   rm->lifetime = MY_ROUTE_TIMEOUT;
   sendto(nexthop, (char *)rm, sizeof(struct uaodv_msg_rrep));
 
-  print_debug("Sending RREP to %d.%d.%d.%d\n",
-	      uip_ipaddr1(nexthop),
-	      uip_ipaddr2(nexthop),
-	      uip_ipaddr3(nexthop),
-	      uip_ipaddr4(nexthop));
-    
-  
+  print_debug("Sending RREP to %d.%d.%d.%d\n", uip_ipaddr_to_quad(nexthop));
 }
 /*---------------------------------------------------------------------------*/
 #ifdef UAODV_BAD_ROUTE
@@ -162,7 +156,8 @@ send_rerr(uip_ipaddr_t *addr, u32_t seqno)
 
   sendto(&uip_broadcast_addr, (char *)rm, sizeof(struct uaodv_msg_rerr));
 
-  print_debug("Broadcasting initial RERR for %d.%d.%d.%d\n", ip2quad(addr));  
+  print_debug("Broadcasting initial RERR for %d.%d.%d.%d\n",
+	      uip_ipaddr_to_quad(addr));  
 }
 #endif
 /*---------------------------------------------------------------------------*/
@@ -175,11 +170,8 @@ handle_incoming_rreq(void)
 
 #ifdef CC2420_RADIO
   if(cc2420_last_rssi <= -38 || cc2420_last_correlation < 100) {
-    printf("RREQ drop from %d.%d.%d.%d %d %d \n",
-	   uip_ipaddr1(uip_udp_sender()),
-	   uip_ipaddr2(uip_udp_sender()),
-	   uip_ipaddr3(uip_udp_sender()),
-	   uip_ipaddr4(uip_udp_sender()),
+    PRINTF("RREQ drop from %d.%d.%d.%d %d %d \n",
+	   uip_ipaddr_to_quad(uip_udp_sender()),
 	   cc2420_last_rssi,
 	   cc2420_last_correlation);
     return;
@@ -188,19 +180,13 @@ handle_incoming_rreq(void)
 
   /* Check if it is for our address. */
   if(uip_ipaddr_cmp(&rm->dest_addr, &uip_hostaddr)) {
-    print_debug("RREQ for our address!\n");
     rt = uaodv_rt_lookup(&rm->src_addr);
-    if(rt == NULL || rm->hop_count <= rt->hop_count) {
+    print_debug("RREQ for our address! rt=%p\n", rt);
+    if(rt == NULL) {
       /* Insert originator into routing table. */
       print_debug("Inserting1 %d.%d.%d.%d into routing table, next hop %d.%d.%d.%d., hop_count %d\n",
-		  uip_ipaddr1(&rm->src_addr),
-		  uip_ipaddr2(&rm->src_addr),
-		  uip_ipaddr3(&rm->src_addr),
-		  uip_ipaddr4(&rm->src_addr),
-		  uip_ipaddr1(uip_udp_sender()),
-		  uip_ipaddr2(uip_udp_sender()),
-		  uip_ipaddr3(uip_udp_sender()),
-		  uip_ipaddr4(uip_udp_sender()),
+		  uip_ipaddr_to_quad(&rm->src_addr),
+		  uip_ipaddr_to_quad(uip_udp_sender()),
 		  rm->hop_count);
       uaodv_rt_add(&rm->src_addr, uip_udp_sender(), rm->hop_count, 0);
     }
@@ -211,23 +197,13 @@ handle_incoming_rreq(void)
     send_rrep(&dest_addr, uip_udp_sender(), &src_addr, rm->src_seqno);
   } else if(!uip_ipaddr_cmp(&last_rreq_originator, &rm->src_addr) ||
 	    last_rreq_id != rm->rreq_id) {
-    print_debug("RREQ for %d.%d.%d.%d!\n",
-		uip_ipaddr1(&rm->dest_addr),
-		uip_ipaddr2(&rm->dest_addr),
-		uip_ipaddr3(&rm->dest_addr),
-		uip_ipaddr4(&rm->dest_addr));
+    print_debug("RREQ for %d.%d.%d.%d!\n", uip_ipaddr_to_quad(&rm->dest_addr));
     rt = uaodv_rt_lookup(&rm->src_addr);
-    if(rt == NULL || rm->hop_count <= rt->hop_count) {
+    if(rt == NULL) {
       /* Insert originator into routing table. */
       print_debug("Inserting2 %d.%d.%d.%d into routing table, next hop %d.%d.%d.%d., hop_count %d\n",
-		  uip_ipaddr1(&rm->src_addr),
-		  uip_ipaddr2(&rm->src_addr),
-		  uip_ipaddr3(&rm->src_addr),
-		  uip_ipaddr4(&rm->src_addr),
-		  uip_ipaddr1(uip_udp_sender()),
-		  uip_ipaddr2(uip_udp_sender()),
-		  uip_ipaddr3(uip_udp_sender()),
-		  uip_ipaddr4(uip_udp_sender()),
+		  uip_ipaddr_to_quad(&rm->src_addr),
+		  uip_ipaddr_to_quad(uip_udp_sender()),
 		  rm->hop_count);
       uaodv_rt_add(&rm->src_addr, uip_udp_sender(), rm->hop_count, 0);
     }
@@ -239,10 +215,7 @@ handle_incoming_rreq(void)
        don't do it at the moment. */
 	
     print_debug("Forwarding RREQ to %d.%d.%d.%d ttl=%d\n",
-		uip_ipaddr1(&rm->src_addr),
-		uip_ipaddr2(&rm->src_addr),
-		uip_ipaddr3(&rm->src_addr),
-		uip_ipaddr4(&rm->src_addr),
+		uip_ipaddr_to_quad(&rm->src_addr),
 		uip_udp_conn->ttl);
 
     uip_ipaddr_copy(&last_rreq_originator, &rm->src_addr);
@@ -250,15 +223,9 @@ handle_incoming_rreq(void)
     rm->hop_count++;
     uip_send((char *)rm, sizeof(struct uaodv_msg_rreq));
   } else {
-    print_debug("Not forwarding rreq last_rreq_originator %d.%d.%d.%d src_addr %d.%d.%d.%d, last_rreq_id %d rreq_id %d\n",
-		uip_ipaddr1(&last_rreq_originator),
-		uip_ipaddr2(&last_rreq_originator),
-		uip_ipaddr3(&last_rreq_originator),
-		uip_ipaddr4(&last_rreq_originator),
-		uip_ipaddr1(&rm->src_addr),
-		uip_ipaddr2(&rm->src_addr),
-		uip_ipaddr3(&rm->src_addr),
-		uip_ipaddr4(&rm->src_addr),
+    print_debug("Not forwarding rreq last_rreq_originator %d.%d.%d.%d src_addr %d.%d.%d.%d, last_rreq_id %ld rreq_id %ld\n",
+		uip_ipaddr_to_quad(&last_rreq_originator),
+		uip_ipaddr_to_quad(&rm->src_addr),
 		last_rreq_id, rm->rreq_id);
   }
 }
@@ -269,63 +236,47 @@ handle_incoming_rrep(void)
   struct uaodv_msg_rrep *rm = (struct uaodv_msg_rrep *)uip_appdata;
   struct uaodv_rt_entry *rt;
   
-  print_debug("RREP received\n");
-
   /* Check if we have another route to this destination. If so, we'll
      use the new one if the hop count is lower, and if the sequence
      number say we should. */
   rt = uaodv_rt_lookup(&rm->dest_addr);
+
+  print_debug("RREP received\n rt=%p", rt);
+
   if(rt == NULL ||
      (rt->hop_count > rm->hop_count /* && seqno < seqno */)) {
     
     /* Insert originator into routing table. */
     print_debug("Inserting3 %d.%d.%d.%d into routing table, next hop %d.%d.%d.%d, hop_count %d.\n",
-		uip_ipaddr1(&rm->dest_addr),
-		uip_ipaddr2(&rm->dest_addr),
-		uip_ipaddr3(&rm->dest_addr),
-		uip_ipaddr4(&rm->dest_addr),
-		uip_ipaddr1(uip_udp_sender()),
-		uip_ipaddr2(uip_udp_sender()),
-		uip_ipaddr3(uip_udp_sender()),
-		uip_ipaddr4(uip_udp_sender()), rm->hop_count
-		);
+		uip_ipaddr_to_quad(&rm->dest_addr),
+		uip_ipaddr_to_quad(uip_udp_sender()),
+		rm->hop_count);
     uaodv_rt_add(&rm->dest_addr, uip_udp_sender(), rm->hop_count, 0);
 #ifdef CC2420_RADIO
     /* This link is ok since he is unicasting back to us! */
     cc2420_recv_ok(uip_udp_sender());
-    printf("RREP recv ok from %d.%d.%d.%d %d %d \n",
-	   uip_ipaddr1(uip_udp_sender()),
-	   uip_ipaddr2(uip_udp_sender()),
-	   uip_ipaddr3(uip_udp_sender()),
-	   uip_ipaddr4(uip_udp_sender()),
+    PRINTF("RREP recv ok from %d.%d.%d.%d %d %d \n",
+	   uip_ipaddr_to_quad(uip_udp_sender()),
 	   cc2420_last_rssi,
 	   cc2420_last_correlation);
 #endif
 
   } else {
     print_debug("Not inserting %d.%d.%d.%d into routing table, next hop %d.%d.%d.%d, hop_count %d.\n",
-		uip_ipaddr1(&rm->dest_addr),
-		uip_ipaddr2(&rm->dest_addr),
-		uip_ipaddr3(&rm->dest_addr),
-		uip_ipaddr4(&rm->dest_addr),
-		uip_ipaddr1(uip_udp_sender()),
-		uip_ipaddr2(uip_udp_sender()),
-		uip_ipaddr3(uip_udp_sender()),
-		uip_ipaddr4(uip_udp_sender()), rm->hop_count
-		);
+		uip_ipaddr_to_quad(&rm->dest_addr),
+		uip_ipaddr_to_quad(uip_udp_sender()),
+		rm->hop_count);
 
   }
   if(uip_ipaddr_cmp(&rm->src_addr, &uip_hostaddr)) {
     print_debug("------- COMPLETE ROUTE FOUND\n");
   } else {
   
-    /*    print_debug("Sending back to originator\n");
-
+#if 0
+    print_debug("Sending back to originator\n");
     print_debug("Route lookup for %d.%d.%d.%d\n",
-	  uip_ipaddr1(&rm->src_addr),
-	  uip_ipaddr2(&rm->src_addr),
-	  uip_ipaddr3(&rm->src_addr),
-	  uip_ipaddr4(&rm->src_addr));*/
+		uip_ipaddr_to_quad(&rm->src_addr));
+#endif
 	
     rt = uaodv_rt_lookup(&rm->src_addr);
 
@@ -337,11 +288,8 @@ handle_incoming_rrep(void)
     rm->hop_count++;
 
     print_debug("Sending RREP to %d.%d.%d.%d\n",
-		uip_ipaddr1(&rt->nexthop),
-		uip_ipaddr2(&rt->nexthop),
-		uip_ipaddr3(&rt->nexthop),
-		uip_ipaddr4(&rt->nexthop));
-    
+		uip_ipaddr_to_quad(&rt->nexthop));
+
     sendto(&rt->nexthop, (char *)rm, sizeof(struct uaodv_msg_rrep));
     
     /*    print_debug("RREP forwarded\n");*/
@@ -355,9 +303,9 @@ handle_incoming_rerr(void)
   struct uaodv_msg_rerr *rm = (struct uaodv_msg_rerr *)uip_appdata;
   struct uaodv_rt_entry *rt;
 
-  print_debug("RERR received from %d.%d.%d.%d route to %d.%d.%d.%d seq=%d\n",
-	      ip2quad(uip_udp_sender()),
-	      ip2quad(&rm->unreach[0].addr), rm->unreach[0].seqno);
+  print_debug("RERR received from %d.%d.%d.%d route to %d.%d.%d.%d seq=%ld\n",
+	      uip_ipaddr_to_quad(uip_udp_sender()),
+	      uip_ipaddr_to_quad(&rm->unreach[0].addr), rm->unreach[0].seqno);
 
   rt = uaodv_rt_lookup(&rm->unreach[0].addr);
   if(rt != NULL && uip_ipaddr_cmp(&rt->nexthop, uip_udp_sender())) {
@@ -476,6 +424,11 @@ PROCESS_THREAD(uaodv_process, ev, data)
     }
 
     if(ev == PROCESS_EVENT_MSG) {
+#if 1
+      static struct etimer etimer;
+      etimer_set(&etimer, 2);
+      PROCESS_WAIT_UNTIL(etimer_expired(&etimer));
+#endif
       tcpip_poll_udp(aodvconn);
     }
   }
