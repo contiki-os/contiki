@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF 
  * SUCH DAMAGE. 
  *
- * @(#)$Id: dhclient.c,v 1.5 2006/12/01 14:57:19 bg- Exp $
+ * @(#)$Id: dhclient.c,v 1.6 2007/02/01 14:34:32 bg- Exp $
  */
 
 /*
@@ -100,16 +100,16 @@ main(int argc, char **argv)
   msp430_cpu_init();
   clock_init();
   leds_init();
-  leds_toggle(LEDS_RED | LEDS_GREEN | LEDS_BLUE);
+  leds_toggle(LEDS_ALL);
   slip_arch_init();		/* Must come before first printf */
   printf("Starting %s "
-	 "($Id: dhclient.c,v 1.5 2006/12/01 14:57:19 bg- Exp $)\n", __FILE__);
+	 "($Id: dhclient.c,v 1.6 2007/02/01 14:34:32 bg- Exp $)\n", __FILE__);
   ds2411_init();
   sensors_light_init();
   cc2420_init();
   xmem_init();
   button_init(&button_process);
-  leds_toggle(LEDS_RED | LEDS_GREEN | LEDS_BLUE);
+  leds_toggle(LEDS_ALL);
   /*
    * Hardware initialization done!
    */
@@ -181,10 +181,10 @@ PROCESS_THREAD(button_process, ev, data)
        && ((struct button_msg *)data)->type == BUTTON_MSG_TYPE) {
       printf("button press\n");
 
-      leds_toggle(LEDS_RED | LEDS_GREEN | LEDS_BLUE);
+      leds_toggle(LEDS_ALL);
       etimer_set(&etimer, CLOCK_SECOND);
       PROCESS_WAIT_UNTIL(etimer_expired(&etimer));
-      leds_toggle(LEDS_RED | LEDS_GREEN | LEDS_BLUE);
+      leds_toggle(LEDS_ALL);
     }
   }
 
