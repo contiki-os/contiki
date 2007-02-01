@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: cc2420.c,v 1.9 2007/01/24 16:26:55 bg- Exp $
+ * @(#)$Id: cc2420.c,v 1.10 2007/02/01 14:00:27 bg- Exp $
  */
 /*
  * This code is almost device independent and should be easy to port.
@@ -173,6 +173,8 @@ cc2420_send_data_ack(u16_t mac)
 {
   struct hdr_802_15 h;
 
+  PRINTF("send_data_ack to %u.%u\n", mac & 0xff, mac >> 8);
+
   h.len = MAC_HDR_LEN + 2; /* Including footer[2]. */
   h.fc0 = FC0_TYPE_DATA | FC0_INTRA_PAN;
   h.fc1 = FC1_DST_16 | FC1_SRC_16;
@@ -202,12 +204,6 @@ cc2420_send(struct hdr_802_15 *hdr, u8_t hdr_len,
    */
   if (!receive_on)
     return -2;
-
-  if (FIFOP_IS_1 && !FIFO_IS_1) {
-    /* RXFIFO overflow, send on retransmit. */
-    printf("RXFIFO overflow!\n");
-    return -4;
-  }
 
   /* Wait for previous transmission to finish and RSSI. */
   do {
@@ -255,6 +251,12 @@ cc2420_resend(void)
 {
   unsigned i;
   
+  if (FIFOP_IS_1 && !FIFO_IS_1) {
+    /* RXFIFO overflow, send on retransmit. */
+    PRINTF("rxfifo overflow!\n");
+    return -4;
+  }
+
   /* The TX FIFO can only hold one packet! Make sure to not overrun
    * FIFO by waiting for transmission to start here and synchronizing
    * with the CC2420_TX_ACTIVE check in cc2420_send.
