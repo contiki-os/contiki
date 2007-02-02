@@ -24,7 +24,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * 
- * $Id: SectionMoteMemory.java,v 1.4 2007/01/10 14:57:42 fros4943 Exp $
+ * $Id: SectionMoteMemory.java,v 1.5 2007/02/02 11:02:15 fros4943 Exp $
  */
 
 package se.sics.cooja;
@@ -46,7 +46,7 @@ import se.sics.cooja.MoteMemory;
  * 
  * @author Fredrik Osterlind
  */
-public class SectionMoteMemory implements MoteMemory {
+public class SectionMoteMemory implements MoteMemory, AddressMemory {
   private static Logger logger = Logger.getLogger(SectionMoteMemory.class);
 
   private Vector<MoteMemorySection> sections = new Vector<MoteMemorySection>();
@@ -64,9 +64,6 @@ public class SectionMoteMemory implements MoteMemory {
     this.variableAddresses = variableAddresses;
   }
 
-  /**
-   * @return All variable names known and residing in this memory
-   */
   public String[] getVariableNames() {
     String[] names = new String[variableAddresses.size()];
     Enumeration nameEnum = variableAddresses.keys();
@@ -76,11 +73,6 @@ public class SectionMoteMemory implements MoteMemory {
     return names;
   }
 
-  /**
-   * @param varName
-   *          Variable name
-   * @return Address of given variable, or -1
-   */
   public int getVariableAddress(String varName) {
     if (!variableAddresses.containsKey(varName))
       return -1;
@@ -207,13 +199,10 @@ public class SectionMoteMemory implements MoteMemory {
     return sections.elementAt(sectionNr).getData();
   }
 
-  /**
-   * Returns a value of the integer variable with the given name.
-   * 
-   * @param varName
-   *          Name of integer variable
-   * @return Value of integer variable
-   */
+  public boolean variableExists(String varName) {
+    return variableAddresses.containsKey(varName);
+  }
+
   public int getIntValueOf(String varName) {
     // Get start address of variable
     if (!variableAddresses.containsKey(varName))
@@ -235,14 +224,6 @@ public class SectionMoteMemory implements MoteMemory {
     return retVal;
   }
 
-  /**
-   * Set integer value of variable with given name.
-   * 
-   * @param varName
-   *          Name of integer variable
-   * @param newVal
-   *          New value to set
-   */
   public void setIntValueOf(String varName, int newVal) {
     // Get start address of variable
     if (!variableAddresses.containsKey(varName))
@@ -264,13 +245,6 @@ public class SectionMoteMemory implements MoteMemory {
     setMemorySegment(varAddr, varData);
   }
 
-  /**
-   * Returns a value of the byte variable with the given name.
-   * 
-   * @param varName
-   *          Name of byte variable
-   * @return Value of byte variable
-   */
   public byte getByteValueOf(String varName) {
     // Get start address of variable
     if (!variableAddresses.containsKey(varName))
@@ -282,14 +256,6 @@ public class SectionMoteMemory implements MoteMemory {
     return varData[0];
   }
 
-  /**
-   * Set byte value of variable with given name.
-   * 
-   * @param varName
-   *          Name of byte variable
-   * @param newVal
-   *          New value to set
-   */
   public void setByteValueOf(String varName, byte newVal) {
     // Get start address of variable
     if (!variableAddresses.containsKey(varName))
@@ -303,15 +269,6 @@ public class SectionMoteMemory implements MoteMemory {
     setMemorySegment(varAddr, varData);
   }
 
-  /**
-   * Returns byte array of given length and with the given name.
-   * 
-   * @param varName
-   *          Name of array
-   * @param length
-   *          Length of array
-   * @return Data of array
-   */
   public byte[] getByteArray(String varName, int length) {
     // Get start address of variable
     if (!variableAddresses.containsKey(varName))
@@ -322,14 +279,6 @@ public class SectionMoteMemory implements MoteMemory {
     return getMemorySegment(varAddr, length);
   }
 
-  /**
-   * Set byte array of the variable with the given name.
-   * 
-   * @param varName
-   *          Name of array
-   * @param data
-   *          New data of array
-   */
   public void setByteArray(String varName, byte[] data) {
     // Get start address of variable
     if (!variableAddresses.containsKey(varName))

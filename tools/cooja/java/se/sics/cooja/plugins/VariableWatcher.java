@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: VariableWatcher.java,v 1.3 2007/01/09 09:49:24 fros4943 Exp $
+ * $Id: VariableWatcher.java,v 1.4 2007/02/02 11:02:16 fros4943 Exp $
  */
 
 package se.sics.cooja.plugins;
@@ -55,7 +55,7 @@ import se.sics.cooja.*;
 public class VariableWatcher extends VisPlugin {
   private static final long serialVersionUID = 1L;
 
-  private SectionMoteMemory moteMemory;
+  private AddressMemory moteMemory;
 
   private final static int LABEL_WIDTH = 170;
   private final static int LABEL_HEIGHT = 15;
@@ -82,7 +82,10 @@ public class VariableWatcher extends VisPlugin {
   public VariableWatcher(Mote moteToView, Simulation simulation, GUI gui) {
     super("Variable Watcher (" + moteToView + ")", gui);
 
-    moteMemory = (SectionMoteMemory) moteToView.getMemory();
+    System.out.println("?!!");
+    
+    moteMemory = (AddressMemory) moteToView.getMemory();
+    System.out.println("?!!");
 
     JLabel label;
     integerFormat = NumberFormat.getIntegerInstance();
