@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF 
  * SUCH DAMAGE. 
  *
- * @(#)$Id: slip_uart1.c,v 1.3 2006/12/01 15:07:49 bg- Exp $
+ * @(#)$Id: slip_uart1.c,v 1.4 2007/02/02 13:26:48 bg- Exp $
  */
 
 /*
@@ -82,47 +82,12 @@ putchar(int c)
   return c;
 }
 
-#define RS232_19200 1
-#define RS232_38400 2
-#define RS232_57600 3
-#define RS232_115200 3
-
-#if 0
-void
-rs232_set_speed(unsigned char speed)
-{
-
-  if(speed == RS232_19200) {
-    /* Set RS232 to 19200 */
-    UBR01 = 0x80;                         /* 2,457MHz/19200 = 128 -> 0x80 */
-    UBR11 = 0x00;                         /* */
-    UMCTL1 = 0x00;                        /* no modulation  */
-  } else if(speed == RS232_38400) {
-    /* Set RS232 to 38400 */
-    UBR01 = 0x40;                         /* 2,457MHz/38400 = 64 -> 0x40 */
-    UBR11 = 0x00;                         /* */
-    UMCTL1 = 0x00;                        /* no modulation  */
-  } else if(speed == RS232_57600) {
-    UBR01 = 0x2a;                         /* 2,457MHz/57600 = 42.7 -> 0x2A */
-    UBR11 = 0x00;                         /* */
-    UMCTL1 = 0x5b;                        /* */
-  } else if(speed == RS232_115200) {
-    UBR01 = 0x15;                         /* 2,457MHz/115200 = 21.4 -> 0x15 */
-    UBR11 = 0x00;                         /* */
-    UMCTL1 = 0x4a;                        /* */
-  } else {
-    rs232_set_speed(RS232_57600);
-  }
-
-}
-#endif
-
 /**
  * Initalize the RS232 port and the SLIP driver.
  *
  */
 void
-slip_arch_init(void)
+slip_arch_init(unsigned long ubr)
 {
   /* RS232 */
   P3DIR &= ~0x80;			/* Select P37 for input (UART1RX) */
@@ -131,21 +96,32 @@ slip_arch_init(void)
 
   UCTL1 = SWRST | CHAR;                 /* 8-bit character, UART mode */
 
-/*   U1RCTL &= ~URXEIE;	/\* even erroneous characters trigger interrupts *\/ */
+#if 0
+   U1RCTL &= ~URXEIE; /* even erroneous characters trigger interrupts */
+#endif
 
   UTCTL1 = SSEL1;                       /* UCLK = MCLK */
 
-#ifdef TMOTE_SKY
-  /* rs232_set_speed(RS232_115200); */
-  UBR01 = 0x15;
-  UBR11 = 0x00;
-  UMCTL1 = 0x4a;
-#else
-  /* rs232_set_speed(RS232_57600); */
-  UBR01 = 0x2a;
-  UBR11 = 0x00;
-  UMCTL1 = 0x5b;
-#endif
+  UBR01 = ubr;
+  UBR11 = ubr >> 8;		/* always zero */
+  /*
+   * UMCTL1 values calculated using
+   * http://mspgcc.sourceforge.net/baudrate.html and are not
+   * complete. Also the table assumes that F_CPU = 2,457,600 Hz.
+   */
+  switch (ubr) {
+  case BAUD2UBR(115200):
+    UMCTL1 = 0x4a;
+    break;
+  case BAUD2UBR(57600):
+    UMCTL1 = 0x5b;
+    break;
+  case BAUD2UBR(19600):
+    UMCTL1 = 0x4a;
+    break;
+  default:
+    UMCTL1 = 0x00;
+  }
 
   ME2 &= ~USPIE1;			/* USART1 SPI module disable */
   ME2 |= (UTXE1 | URXE1);               /* Enable USART1 TXD/RXD */

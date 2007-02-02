@@ -26,7 +26,7 @@
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.  
  *
- * $Id: scat.c,v 1.4 2007/01/23 12:33:27 bg- Exp $
+ * $Id: scat.c,v 1.5 2007/02/02 13:26:49 bg- Exp $
  *
  */
 
@@ -57,16 +57,13 @@
 
 #ifndef BAUDRATE
 #define BAUDRATE B115200
-//#define BAUDRATE B57600
-//#define BAUDRATE B38400
-//#define BAUDRATE B19200
 #endif
+speed_t b_rate = BAUDRATE;
 
 void
 stty_telos(int fd)
 {
   struct termios tty;
-  speed_t speed = BAUDRATE;
   int i;
 
   if(tcflush(fd, TCIOFLUSH) == -1) err(1, "tcflush");
@@ -82,8 +79,8 @@ stty_telos(int fd)
   tty.c_cflag &= ~HUPCL;
   tty.c_cflag &= ~CLOCAL;
 
-  cfsetispeed(&tty, speed);
-  cfsetospeed(&tty, speed);
+  cfsetispeed(&tty, b_rate);
+  cfsetospeed(&tty, b_rate);
 
   if(tcsetattr(fd, TCSAFLUSH, &tty) == -1) err(1, "tcsetattr");
 
@@ -102,10 +99,51 @@ stty_telos(int fd)
 int
 main(int argc, char **argv)
 {
+  int c;
   int slipfd;
   FILE *inslip;
   const char *siodev;
+  int baudrate = -2;
   
+  while ((c = getopt(argc, argv, "B:")) != -1) {
+    switch (c) {
+    case 'B':
+      baudrate = atoi(optarg);
+      break;
+
+    case '?':
+    case 'h':
+    default:
+      err(1, "usage: scat [-B baudrate] device-file");
+      break;
+    }
+  }
+  argc -= (optind - 1);
+  argv += (optind - 1);
+
+  switch (baudrate) {
+  case -2:
+    break;			/* Use default. */
+  case 9600:
+    b_rate = B9600;
+    break;
+  case 19200:
+    b_rate = B19200;
+    break;
+  case 38400:
+    b_rate = B38400;
+    break;
+  case 57600:
+    b_rate = B57600;
+    break;
+  case 115200:
+    b_rate = B115200;
+    break;
+  default:
+    err(1, "unknown baudrate %d", baudrate);
+    break;
+  }
+
   if (argc != 2)
     err(1, "usage: scat device-file");
   siodev = argv[1];

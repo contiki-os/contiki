@@ -28,7 +28,7 @@
  *
  * This file is part of the uIP TCP/IP stack.
  *
- * $Id: tunslip.c,v 1.9 2007/02/01 14:35:23 bg- Exp $
+ * $Id: tunslip.c,v 1.10 2007/02/02 13:26:49 bg- Exp $
  *
  */
 
@@ -689,16 +689,14 @@ tun_to_serial(int infd, int outfd)
 
 #ifndef BAUDRATE
 #define BAUDRATE B115200
-//#define BAUDRATE B57600
-//#define BAUDRATE B38400
-//#define BAUDRATE B19200
 #endif
+speed_t b_rate = BAUDRATE;
 
 void
 stty_telos(int fd)
 {
   struct termios tty;
-  speed_t speed = BAUDRATE;
+  speed_t speed = b_rate;
   int i;
 
   if(tcflush(fd, TCIOFLUSH) == -1) err(1, "tcflush");
@@ -866,11 +864,16 @@ main(int argc, char **argv)
   const char *siodev = NULL;
   const char *dhcp_server = NULL;
   u_int16_t myport = BOOTPS, dhport = BOOTPS;
-  
+  int baudrate = -2;
+
   ip_id = getpid() * time(NULL);
 
-  while ((c = getopt(argc, argv, "D:hs:t:")) != -1) {
+  while ((c = getopt(argc, argv, "B:D:hs:t:")) != -1) {
     switch (c) {
+    case 'B':
+      baudrate = atoi(optarg);
+      break;
+
     case 'D':
       dhcp_server = optarg;
       break;
@@ -892,7 +895,7 @@ main(int argc, char **argv)
     case '?':
     case 'h':
     default:
-      err(1, "usage: tunslip [-s siodev] [-t tundev] [-D dhcp-server] ipaddress netmask [dhcp-server]");
+      err(1, "usage: tunslip [-B baudrate] [-s siodev] [-t tundev] [-D dhcp-server] ipaddress netmask [dhcp-server]");
       break;
     }
   }
@@ -905,6 +908,29 @@ main(int argc, char **argv)
   netmask = argv[2];
   circuit_addr = inet_addr(ipaddr);
   netaddr = inet_addr(ipaddr) & inet_addr(netmask);
+
+  switch (baudrate) {
+  case -2:
+    break;			/* Use default. */
+  case 9600:
+    b_rate = B9600;
+    break;
+  case 19200:
+    b_rate = B19200;
+    break;
+  case 38400:
+    b_rate = B38400;
+    break;
+  case 57600:
+    b_rate = B57600;
+    break;
+  case 115200:
+    b_rate = B115200;
+    break;
+  default:
+    err(1, "unknown baudrate %d", baudrate);
+    break;
+  }
 
   /*
    * Set up DHCP relay agent socket and find the address of this relay

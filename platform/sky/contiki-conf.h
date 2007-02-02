@@ -1,5 +1,5 @@
 /* -*- C -*- */
-/* @(#)$Id: contiki-conf.h,v 1.5 2007/01/24 16:31:40 bg- Exp $ */
+/* @(#)$Id: contiki-conf.h,v 1.6 2007/02/02 13:26:49 bg- Exp $ */
 
 #ifndef CONTIKI_CONF_H
 #define CONTIKI_CONF_H
@@ -26,8 +26,13 @@ void msp430_cpu_init(void);	/* Rename to cpu_init() later! */
 
 #define PROCESS_CONF_FASTPOLL    4
 
+/* CPU target speed in Hz */
+#define F_CPU 2457600uL
+
 /* Our clock resolution, this is the same as Unix HZ. */
 #define CLOCK_CONF_SECOND 64
+
+#define BAUD2UBR(baud) ((F_CPU/baud))
 
 #define UIP_CONF_DHCP_LIGHT
 #define UIP_CONF_LLH_LEN         0

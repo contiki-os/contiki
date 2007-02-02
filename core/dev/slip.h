@@ -29,7 +29,7 @@
  *
  * This file is part of the Contiki operating system.
  * 
- * @(#)$Id: slip.h,v 1.3 2007/01/23 12:29:50 bg- Exp $
+ * @(#)$Id: slip.h,v 1.4 2007/02/02 13:26:48 bg- Exp $
  */
 
 #ifndef __SLIP_H__
@@ -75,7 +75,7 @@ extern u16_t slip_rubbish, slip_twopackets, slip_overflow, slip_ip_drop;
  * These machine dependent functions and an interrupt service routine
  * must be provided externally (slip_arch.c).
  */
-void slip_arch_init(void);
+void slip_arch_init(unsigned long ubr);
 void slip_arch_writeb(unsigned char c);
 
 #endif /* __SLIP_H__ */

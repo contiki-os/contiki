@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF 
  * SUCH DAMAGE. 
  *
- * @(#)$Id: dhclient.c,v 1.6 2007/02/01 14:34:32 bg- Exp $
+ * @(#)$Id: dhclient.c,v 1.7 2007/02/02 13:26:49 bg- Exp $
  */
 
 /*
@@ -101,9 +101,9 @@ main(int argc, char **argv)
   clock_init();
   leds_init();
   leds_toggle(LEDS_ALL);
-  slip_arch_init();		/* Must come before first printf */
+  slip_arch_init(BAUD2UBR(115200)); /* Must come before first printf */
   printf("Starting %s "
-	 "($Id: dhclient.c,v 1.6 2007/02/01 14:34:32 bg- Exp $)\n", __FILE__);
+	 "($Id: dhclient.c,v 1.7 2007/02/02 13:26:49 bg- Exp $)\n", __FILE__);
   ds2411_init();
   sensors_light_init();
   cc2420_init();
