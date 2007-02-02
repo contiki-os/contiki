@@ -1,4 +1,4 @@
-# $Id: Makefile,v 1.1 2007/02/02 14:07:34 bg- Exp $
+# $Id: Makefile,v 1.2 2007/02/02 14:35:14 bg- Exp $
 #
 # This makefile requires GNU make!
 
@@ -26,13 +26,13 @@ MCU=atmega128
 
 ARCH=avr.o spi.o qleds.o rom.o xmem.o
 SYSTEM=process.o procinit.o service.o clock.o etimer.o timer.o \
-	elfloader_compat.o cle.o symtab.o
+	#elfloader_compat.o cle.o symtab.o
 UIP=uip.o uiplib.o tcpip.o uip-fw.o uip-fw-service.o uipbuf.o \
     tcpdump.o psock.o dhcpc.o uaodv.o uaodv-rt.o uip-udp-packet.o
 UIPDRIVERS=slip.o slip_uart1.o \
            cc2420.o cc2420_spi.o cc2420_send_ip.o cc2420_send_uaodv.o 
 LIBS=memb.o list.o rand.o assert.o crtk.o
-SYSAPPS=tcp_loader.o
+SYSAPPS=#tcp_loader.o
 LIBFILES=$(SYSTEM) $(ARCH) $(UIP) $(UIPDRIVERS) $(LIBS) $(SYSAPPS)
 
 MKNMLIST=awk -f $(TOP)/tools/mknmlist-avr
