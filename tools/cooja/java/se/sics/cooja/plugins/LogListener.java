@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: LogListener.java,v 1.4 2007/01/09 09:49:24 fros4943 Exp $
+ * $Id: LogListener.java,v 1.5 2007/02/23 15:18:26 fros4943 Exp $
  */
 
 package se.sics.cooja.plugins;
@@ -35,6 +35,7 @@ import java.awt.BorderLayout;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.*;
 import java.util.*;
 import javax.swing.*;
 import org.apache.log4j.Logger;
@@ -69,7 +70,7 @@ public class LogListener extends VisPlugin {
    *
    * @param simulationToControl Simulation to control
    */
-  public LogListener(final Simulation simulationToControl, GUI gui) {
+  public LogListener(final Simulation simulationToControl, final GUI gui) {
     super("Log Listener - Listening on ?? mote logs", gui);
     simulation = simulationToControl;
     int nrLogs = 0;
@@ -116,11 +117,57 @@ public class LogListener extends VisPlugin {
     JPanel filterPanel = new JPanel();
     filterPanel.setLayout(new BoxLayout(filterPanel, BoxLayout.X_AXIS));
     filterTextField = new JTextField("");
+    filterPanel.add(Box.createVerticalStrut(2));
     filterPanel.add(new JLabel("Filter on string: "));
     filterPanel.add(filterTextField);
     filterTextField.addActionListener(new ActionListener() {
       public void actionPerformed(ActionEvent e) {
         filterText = filterTextField.getText();
+      }
+    });
+    filterPanel.add(Box.createVerticalStrut(2));
+    JButton saveButton;
+    filterPanel.add(saveButton = new JButton("Save log"));
+    saveButton.addActionListener(new ActionListener() {
+      public void actionPerformed(ActionEvent ev) {
+        JFileChooser fc = new JFileChooser();
+
+        int returnVal = fc.showSaveDialog(GUI.frame);
+        if (returnVal == JFileChooser.APPROVE_OPTION) {
+          File saveFile = fc.getSelectedFile();
+
+          if (saveFile.exists()) {
+            String s1 = "Overwrite";
+            String s2 = "Cancel";
+            Object[] options = { s1, s2 };
+            int n = JOptionPane
+            .showOptionDialog(
+                GUI.frame,
+                "A file with the same name already exists.\nDo you want to remove it?",
+                "Overwrite existing file?", JOptionPane.YES_NO_OPTION,
+                JOptionPane.QUESTION_MESSAGE, null, options, s1);
+            if (n != JOptionPane.YES_OPTION) {
+              return;
+            }
+          }
+
+          if (!saveFile.exists() || saveFile.canWrite()) {
+            logger.debug("SAVING NOW!");
+            try {
+              BufferedWriter outStream = new BufferedWriter(
+                  new OutputStreamWriter(
+                      new FileOutputStream(
+                          saveFile)));
+              outStream.write(logTextArea.getText());
+              outStream.close();
+            } catch (Exception ex) {
+              logger.fatal("Could not write to file: " + saveFile);
+              return;
+            }
+            
+          } else
+            logger.fatal("No write access to file");
+        }
       }
     });
     
