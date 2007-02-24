@@ -483,7 +483,7 @@ StepperResult
 stepper_add_acc(unsigned int stepper_index, unsigned int period, long acc)
 {
   StepperAccSeq *seq = stepper_allocate_seq();
-  /* printf("stepper_add_acc: %d %d %ld\n", stepper_index, period, acc); */
+  /* printf("stepper_add_acc: %d %d %ld\n", stepper_index, period, acc);  */
   if (!seq) return STEPPER_ERR_MEM;
   seq->next = NULL;
   seq->period = period;
@@ -544,7 +544,7 @@ stepper_velocity(unsigned int stepper_index, unsigned long period)
   seq = state->acceleration_sequence;
   a = state->acceleration;
   v = state->velocity;
-  t = stepper_context.period_count + 1;
+  t = stepper_context.period_count + 2;
 
   while(seq && seq->period < period) {
     v += a * (seq->period - t);
@@ -588,7 +588,7 @@ stepper_state_at(unsigned int stepper_index, unsigned long period,
   seq = state->acceleration_sequence;
   a = state->acceleration;
   v = state->velocity;
-  t = stepper_context.period_count + 1;
+  t = stepper_context.period_count + 2;
   s = state->step_full * (long long)DIST_SCALE + state->step_frac;
   while(seq && seq->period < period) {
     dt = seq->period - t;
@@ -613,6 +613,7 @@ stepper_set_velocity(unsigned int stepper_index, unsigned long *periodp,
 {
   long start_period = *periodp;
   long v = stepper_velocity(stepper_index, start_period);
+  /* printf("%ld @ %ld\n", v, start_period); */
   if (final_speed == v) {
     return stepper_add_acc(stepper_index, start_period, 0);
   } else {
