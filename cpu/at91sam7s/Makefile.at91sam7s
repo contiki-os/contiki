@@ -1,0 +1,139 @@
+
+# Adapted from Makefile.msp430
+
+### Check if we are running under Windows
+
+ifndef WINDIR
+  ifdef OS
+    ifneq (,$(findstring Windows,$(OS)))
+      WINDIR := Windows
+    endif
+  endif
+endif
+
+ifdef nodeid
+CFLAGS += -DNODEID=$(nodeid)
+endif
+
+### Define the CPU directory
+CONTIKI_CPU=$(CONTIKI)/cpu/at91sam7s
+
+### Define the source files we have in the MSP430 port
+
+AT91SAM7S     = clock.c debug-uart.c interrupt_utils.c newlib-syscalls.c sys-interrupt.c
+
+CONTIKI_TARGET_SOURCEFILES += $(AT91SAM7S)
+
+CONTIKI_SOURCEFILES        += $(CONTIKI_TARGET_SOURCEFILES)
+
+CONTIKIDIRS=$(CONTIKI)/core/sys:$(CONTIKI)/core/dev:$(CONTIKI)/core/cfs:$(CONTIKI)/core/loader:$(CONTIKI)/core/net:$(CONTIKI)/core/lib
+
+### Compiler definitions
+CC       = arm-elf-gcc
+LD       = arm-elf-gcc
+AS       = arm-elf-as
+AR       = arm-elf-ar
+NM       = arm-elf-nm
+OBJCOPY  = arm-elf-objcopy
+STRIP    = arm-elf-strip
+
+LINKERSCRIPT = $(CONTIKI_CPU)/AT91SAM7S64-ROM.ld
+
+STARTUP=startup-SAM7S.o
+
+# JTAG program upload
+OPENOCD	 = openocd
+OPENOCD_FLASH_CFG = arm7_wig_flash.cfg
+OPENOCD_RESET = arm7_wig_reset.cfg
+
+# USB program upload
+SAMIAM=Sam_I_Am
+SAMIAM_TTY=/dev/ttyACM0
+
+ARCH_FLAGS= -mcpu=arm7tdmi
+THUMB_FLAGS=-mthumb -mthumb-interwork
+ARM_FLAGS=-mthumb-interwork
+
+
+CFLAGSNO = -I. -I$(CONTIKI)/core -I$(CONTIKI_CPU) \
+           -I$(CONTIKI)/platform/$(TARGET) \
+           ${addprefix -I,$(APPDIRS)} \
+           -DWITH_UIP -DWITH_ASCII -DMCK=$(MCK) \
+           -Wall $(ARCH_FLAGS) -g 
+
+CFLAGS  += $(CFLAGSNO) -O -DRUN_AS_SYSTEM -DROM_RUN
+LDFLAGS += $(ARCH_FLAGS) -T $(LINKERSCRIPT)
+
+PROJECT_OBJECTFILES += ${addprefix $(OBJECTDIR)/,$(CONTIKI_TARGET_MAIN:.c=.o)}
+
+### Setup directory search path for source files
+
+CONTIKI_TARGET_DIRS_CONCAT = ${addprefix $(CONTIKI)/platform/$(TARGET)/, \
+                               $(CONTIKI_TARGET_DIRS)}
+
+vpath %.c $(PROJECTDIRS) \
+          $(CONTIKIDIRS) $(APPDIRS) $(CONTIKI_TARGET_DIRS_CONCAT) \
+          $(CONTIKI_CPU)
+
+vpath %.S $(CONTIKI_CPU)
+
+%-interrupt.o: %-interrupt.c
+	$(CC) $(CFLAGS) $(ARM_FLAGS) $< -c
+
+%-arm.o: %-arm.c
+	$(CC) $(CFLAGS) $(ARM_FLAGS) $< -c
+
+interrupt-utils.o: interrupt-utils.c
+	$(CC) $(CFLAGS) $(ARM_FLAGS) $< -c
+
+%.o: %.c
+	$(CC) $(CFLAGS) $(THUMB_FLAGS) $< -c
+
+%.o: %.S
+	$(CC) $(CFLAGS) $(ARM_FLAGS) $< -c
+
+%.ko: %.o
+	$(LD) --relocatable -T $(CONTIKI_CPU)/merge-rodata.ld $< -o $@
+	$(STRIP) -K _init -K _fini --strip-unneeded -g -x $@
+
+%.elf: $^ $(STARTUP)
+	$(CC) $(LDFLAGS) $(CFLAGS) $(THUMB_FLAGS) -nostartfiles -o $@ $^
+
+# Add a namelist to the kernel
+%-syms.elf: $^ $(STARTUP)
+	: | awk -f $(CONTIKI)/tools/mknmlist > $*-tmp.c && mv $*-tmp.c $*-nm.c
+	$(CC) $(LDFLAGS) $(CFLAGS) $(THUMB_FLAGS) -nostartfiles -o $@ $^ $*-nm.c
+	$(NM) $@ | awk -f $(CONTIKI)/tools/mknmlist > $*-tmp.c && mv $*-tmp.c $*-nm.c
+	-test -r $*.exclude && grep -v -f $*.exclude $*-nm.c >$*-tmp.c && mv $*-tmp.c $*-nm.c
+	$(CC) $(LDFLAGS) $(CFLAGS) $(THUMB_FLAGS) -nostartfiles -o $*-syms.elf $^ $*-nm.c
+
+
+%.ihx: %.elf
+	$(OBJCOPY) -O ihex $< $@
+
+%.bin: %.elf
+	$(OBJCOPY) -O binary $< $@
+
+
+upload_ocd_%: %.bin
+	cp $< /tmp/openocd_write.bin 
+	# Clear lock bits
+	cd $(CONTIKI_CPU)/openocd;$(OPENOCD) -f $(OPENOCD_FLASH_CFG)
+	-rm  /tmp/openocd_write.bin
+
+
+upload_%: %.ihx
+	# Clear lock bits
+	$(SAMIAM) "open $(SAMIAM_TTY) , writew 0xffffff64 5a000004"
+	$(SAMIAM) "open $(SAMIAM_TTY) , writew 0xffffff64 5a002004"
+	$(SAMIAM) "open $(SAMIAM_TTY) , flash $< , go"
+
+ocd_reset:
+	cd $(CONTIKI_CPU)/openocd;$(OPENOCD) -f $(OPENOCD_RESET)
+
+clean: 
+	-rm *.o
+	-rm *.elf
+	-rm *.ihx
+	-rm *.bin
+	-rm *-nm.c
