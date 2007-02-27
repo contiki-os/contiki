@@ -24,7 +24,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * 
- * $Id: GUI.java,v 1.20 2007/02/01 16:00:40 fros4943 Exp $
+ * $Id: GUI.java,v 1.21 2007/02/27 13:51:58 fros4943 Exp $
  */
 
 package se.sics.cooja;
@@ -259,15 +259,15 @@ public class GUI {
     menuItem.addActionListener(guiEventHandler);
     menu.add(menuItem);
 
-    menuItem = new JMenuItem("Load simulation");
-    menuItem.setMnemonic(KeyEvent.VK_L);
-    menuItem.setActionCommand("load sim");
+    menuItem = new JMenuItem("Open simulation");
+    menuItem.setMnemonic(KeyEvent.VK_O);
+    menuItem.setActionCommand("open sim");
     menuItem.addActionListener(guiEventHandler);
     menu.add(menuItem);
 
-    menuItem = new JMenuItem("Load simulation (quick)");
-    menuItem.setMnemonic(KeyEvent.VK_L);
-    menuItem.setActionCommand("load sim quick");
+    menuItem = new JMenuItem("Quick-open simulation");
+    menuItem.setMnemonic(KeyEvent.VK_Q);
+    menuItem.setActionCommand("open sim quick");
     menuItem.addActionListener(guiEventHandler);
     menu.add(menuItem);
 
@@ -286,9 +286,9 @@ public class GUI {
 
     menu.addSeparator();
 
-    menuItem = new JMenuItem("Quit");
-    menuItem.setMnemonic(KeyEvent.VK_Q);
-    menuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_Q,
+    menuItem = new JMenuItem("Exit");
+    menuItem.setMnemonic(KeyEvent.VK_X);
+    menuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_X,
         ActionEvent.CTRL_MASK));
     menuItem.setActionCommand("quit");
     menuItem.addActionListener(guiEventHandler);
@@ -1957,9 +1957,9 @@ public class GUI {
         myGUI.doCreateSimulation(true);
       } else if (e.getActionCommand().equals("close sim")) {
         myGUI.doRemoveSimulation(true);
-      } else if (e.getActionCommand().equals("load sim")) {
+      } else if (e.getActionCommand().equals("open sim")) {
         myGUI.doLoadConfig(true, false);
-      } else if (e.getActionCommand().equals("load sim quick")) {
+      } else if (e.getActionCommand().equals("open sim quick")) {
         myGUI.doLoadConfig(true, true);
       } else if (e.getActionCommand().equals("save sim")) {
         myGUI.doSaveConfig(true);
