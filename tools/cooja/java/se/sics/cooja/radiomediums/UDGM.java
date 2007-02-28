@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: UDGM.java,v 1.1 2007/01/09 09:47:36 fros4943 Exp $
+ * $Id: UDGM.java,v 1.2 2007/02/28 09:50:00 fros4943 Exp $
  */
 
 package se.sics.cooja.radiomediums;
@@ -47,35 +47,41 @@ import se.sics.cooja.plugins.Visualizer2D;
  * The Unit Disk Graph medium has two different range parameters; one for
  * transmitting and one for interfering other transmissions.
  * 
- * Radio data are analysed when all registered motes have ticked once (this
- * medium is registered as a tick observer). For every mote in transmission
- * range of a sending mote, current listen status is changed from hearing
- * nothing to hearing packet, or hearing packet to hearing noise. This way, if a
- * mote hears two packets during one tick loop, it will receive none (noise). If
- * a mote is in the interference range, the current listen status will be set to
- * hears noise immediately.
+ * The radio medium supports both byte and packet radios. Any transmitted bytes
+ * are forwarded TODO immediately with a timestamp (more fine-grained than
+ * ticks).
  * 
- * This radio medium registers a temporary visual plugin class.
- * Via this plugin ranges can be viewed and changed. Active connection may also
- * be viewed.
+ * The radio medium registers a visualizer plugin. Via this plugin the current
+ * radio states and range parameters can be viewed and changed.
  * 
+ * The registered radios' signal strengths are updated whenever the radio medium
+ * changes. There are three fixed levels: no surrounding traffic heard, noise
+ * heard and data heard.
+ * 
+ * The radio output power indicator (0-100) is used in a very simple way; the
+ * total transmission (and interfering) range is multiplied with [power_ind]%.
+ * 
+ * @see #SS_OK
+ * @see #SS_NOISE
+ * @see #SS_NOTHING
+ * 
+ * @see VisUDGM
  * @author Fredrik Osterlind
  */
 @ClassDescription("Unit Disk Graph Medium (UDGM)")
 public class UDGM extends RadioMedium {
   private static Logger logger = Logger.getLogger(UDGM.class);
 
-  private Vector<Position> registeredPositions = new Vector<Position>();
-
   private Vector<Radio> registeredRadios = new Vector<Radio>();
 
-  private Vector<Radio> transmissionEndedRadios = new Vector<Radio>();
+  // private Vector<Radio> transmissionEndedRadios = new Vector<Radio>();
+  private Vector<RadioConnection> finishedConnections = new Vector<RadioConnection>();
 
   private static RadioMedium myRadioMedium;
 
   public static final double SS_NOTHING = -200;
 
-  public static final double SS_BAD = -60;
+  public static final double SS_NOISE = -60;
 
   public static final double SS_OK = 0;
 
@@ -89,7 +95,7 @@ public class UDGM extends RadioMedium {
    * 
    * @author Fredrik Osterlind
    */
-  @ClassDescription("Radio Medium Visualizer")
+  @ClassDescription("UDGM Visualizer")
   @PluginType(PluginType.SIM_PLUGIN)
   public static class VisUDGM extends Visualizer2D {
     private Mote selectedMote = null;
@@ -118,7 +124,7 @@ public class UDGM extends RadioMedium {
 
     public VisUDGM(Simulation sim, GUI gui) {
       super(sim, gui);
-      setTitle("Radio Medium Visualizer");
+      setTitle("UDGM Visualizer");
 
       // Create spinners for changing ranges
       SpinnerNumberModel transmissionModel = new SpinnerNumberModel();
@@ -253,54 +259,57 @@ public class UDGM extends RadioMedium {
         int y = pixelCoord.y;
 
         // Fetch current output power indicator (scale with as percent)
-        // TODO Probably not the best way to use indicator
-        double moteInterferenceRange = INTERFERENCE_RANGE
-            * (0.01 * (double) selectedMote.getInterfaces().getRadio()
-                .getCurrentOutputPowerIndicator());
-        double moteTransmissionRange = TRANSMITTING_RANGE
-            * (0.01 * (double) selectedMote.getInterfaces().getRadio()
-                .getCurrentOutputPowerIndicator());
+        if (selectedMote.getInterfaces().getRadio() != null) {
+          double moteInterferenceRange = INTERFERENCE_RANGE
+              * (0.01 * (double) selectedMote.getInterfaces().getRadio()
+                  .getCurrentOutputPowerIndicator());
+          double moteTransmissionRange = TRANSMITTING_RANGE
+              * (0.01 * (double) selectedMote.getInterfaces().getRadio()
+                  .getCurrentOutputPowerIndicator());
 
-        Point translatedZero = transformPositionToPixel(0.0, 0.0, 0.0);
-        Point translatedInterference = transformPositionToPixel(
-            moteInterferenceRange, moteInterferenceRange, 0.0);
-        Point translatedTransmission = transformPositionToPixel(
-            moteTransmissionRange, moteTransmissionRange, 0.0);
+          Point translatedZero = transformPositionToPixel(0.0, 0.0, 0.0);
+          Point translatedInterference = transformPositionToPixel(
+              moteInterferenceRange, moteInterferenceRange, 0.0);
+          Point translatedTransmission = transformPositionToPixel(
+              moteTransmissionRange, moteTransmissionRange, 0.0);
 
-        translatedInterference.x = Math.abs(translatedInterference.x
-            - translatedZero.x);
-        translatedInterference.y = Math.abs(translatedInterference.y
-            - translatedZero.y);
-        translatedTransmission.x = Math.abs(translatedTransmission.x
-            - translatedZero.x);
-        translatedTransmission.y = Math.abs(translatedTransmission.y
-            - translatedZero.y);
+          translatedInterference.x = Math.abs(translatedInterference.x
+              - translatedZero.x);
+          translatedInterference.y = Math.abs(translatedInterference.y
+              - translatedZero.y);
+          translatedTransmission.x = Math.abs(translatedTransmission.x
+              - translatedZero.x);
+          translatedTransmission.y = Math.abs(translatedTransmission.y
+              - translatedZero.y);
 
-        // Interference
-        g.setColor(Color.DARK_GRAY);
-        g.fillOval(x - translatedInterference.x, y - translatedInterference.y,
-            2 * translatedInterference.x, 2 * translatedInterference.y);
+          // Interference
+          g.setColor(Color.DARK_GRAY);
+          g.fillOval(x - translatedInterference.x,
+              y - translatedInterference.y, 2 * translatedInterference.x,
+              2 * translatedInterference.y);
 
-        // Transmission
-        g.setColor(Color.GREEN);
-        g.fillOval(x - translatedTransmission.x, y - translatedTransmission.y,
-            2 * translatedTransmission.x, 2 * translatedTransmission.y);
-
+          // Transmission
+          g.setColor(Color.GREEN);
+          g.fillOval(x - translatedTransmission.x,
+              y - translatedTransmission.y, 2 * translatedTransmission.x,
+              2 * translatedTransmission.y);
+        }
       }
 
       // Let parent paint motes
       super.visualizeSimulation(g);
 
-      // Paint last tick connections
+      // Paint just finished connections
       if (myRadioMedium != null
           && myRadioMedium.getLastTickConnections() != null) {
         for (RadioConnection conn : myRadioMedium.getLastTickConnections()) {
           if (conn != null) {
-            Point sourcePoint = transformPositionToPixel(conn
-                .getSourcePosition());
+            Point sourcePoint = transformPositionToPixel(conn.getSource()
+                .getPosition());
 
             // Paint destinations
-            for (Position destPos : conn.getDestinationPositons()) {
+            for (Radio destRadio : conn.getDestinations()) {
+              Position destPos = destRadio.getPosition();
               Point destPoint = transformPositionToPixel(destPos);
 
               g.setColor(Color.BLACK);
@@ -338,205 +347,417 @@ public class UDGM extends RadioMedium {
 
   private RadioConnection[] lastTickConnections = null;
 
-  private Vector<RadioConnection> pendingConnections = new Vector<RadioConnection>();
+  private Vector<RadioConnection> activeConnections = new Vector<RadioConnection>();
 
   private ConnectionLogger myLogger = null;
 
-  private Observer radioDataObserver = new Observer() {
-    public void update(Observable radio, Object obj) {
-      // This radio changed, let tick loop notify observers
-      radioMediumObservable.setRadioMediumChanged();
+  /**
+   * Creates and registers a new connection from given radio.
+   * 
+   * @param radio
+   *          Transmitting radio
+   * @return New registered connection
+   */
+  private RadioConnection createConnections(Radio radio) {
+    Radio sendingRadio = radio;
+    Position sendingPosition = sendingRadio.getPosition();
 
-      // Register any new transmission
-      if (((Radio) radio).getLastEvent() == Radio.RadioEvent.TRANSMISSION_STARTED) {
-        Radio sendingRadio = (Radio) radio;
+    RadioConnection newConnection = new RadioConnection(sendingRadio);
 
-        // If obj is the position, use it directly (speeds up things)
-        // Otherwise we must search for the position ourselves
-        Position sendingPosition = (Position) obj;
-        if (sendingPosition == null) {
-          if (!registeredRadios.contains(radio)) {
-            logger.fatal("Sending radio not registered, skipping packet");
-            return;
-          }
+    // Fetch current output power indicator (scale with as percent)
+    double moteTransmissionRange = TRANSMITTING_RANGE
+        * (0.01 * (double) sendingRadio.getCurrentOutputPowerIndicator());
+    double moteInterferenceRange = INTERFERENCE_RANGE
+        * (0.01 * (double) sendingRadio.getCurrentOutputPowerIndicator());
 
-          sendingPosition = registeredPositions.get(registeredRadios
-              .indexOf(radio));
-          if (sendingPosition == null) {
-            logger.fatal("Sending radio not registered, skipping packet");
-            return;
-          }
-        }
+    // Loop through all radios
+    for (int listenNr = 0; listenNr < registeredRadios.size(); listenNr++) {
+      Radio listeningRadio = registeredRadios.get(listenNr);
+      Position listeningRadioPosition = listeningRadio.getPosition();
 
-        byte[] dataToSend = sendingRadio.getLastPacketTransmitted();
-        
-        RadioConnection newConnection = new RadioConnection();
-        pendingConnections.add(newConnection);
-        newConnection.setSource(sendingRadio, sendingPosition, dataToSend);
+      // Ignore sending radio and radios on different channels
+      if (sendingRadio == listeningRadio)
+        continue;
+      if (sendingRadio.getChannel() != listeningRadio.getChannel())
+        continue;
 
-        // Fetch current output power indicator (scale with as percent)
-        // TODO Probably not the best way to use indicator
-        double moteInterferenceRange = INTERFERENCE_RANGE
-            * (0.01 * (double) sendingRadio.getCurrentOutputPowerIndicator());
-        double moteTransmissionRange = TRANSMITTING_RANGE
-            * (0.01 * (double) sendingRadio.getCurrentOutputPowerIndicator());
+      double distance = sendingPosition.getDistanceTo(listeningRadioPosition);
 
-        // Loop through all radios that are listening
-        for (int listenNr = 0; listenNr < registeredPositions.size(); listenNr++) {
-          Radio listeningRadio = registeredRadios.get(listenNr);
+      if (distance <= moteTransmissionRange) {
+        // Check if this radio is able to receive transmission
+        if (listeningRadio.isInterfered()) {
+          // Keep interfering radio
+          newConnection.addInterfered(listeningRadio);
 
-          if (sendingRadio == listeningRadio)
-            continue;
-          if (sendingRadio.getChannel() != listeningRadio.getChannel())
-            continue;
-          
-          
-          // If not the sending radio..
-          double distance = sendingPosition.getDistanceTo(registeredPositions
-              .get(listenNr));
-          
-          if (distance <= moteTransmissionRange) {
-            newConnection.addDestination(registeredRadios.get(listenNr),
-                registeredPositions.get(listenNr), dataToSend);
-            
-            // If close enough to transmit ok..
-            if (listeningRadio.isReceiving() || listeningRadio.isInterfered()) {
-              // .. but listening radio already received a packet
-              listeningRadio.interferReception(sendingRadio
-                  .getTransmissionEndTime());
-              listeningRadio.setCurrentSignalStrength(SS_BAD);
-            } else {
-              // .. send packet
-              listeningRadio.receivePacket(dataToSend, sendingRadio
-                  .getTransmissionEndTime());
-              listeningRadio.setCurrentSignalStrength(SS_OK);
+        } else if (listeningRadio.isReceiving()) {
+          newConnection.addInterfered(listeningRadio);
+
+          // Start interfering radio
+          listeningRadio.interfereAnyReception();
+
+          // Update connection that is transmitting to this radio
+          RadioConnection existingConn = null;
+          for (RadioConnection conn : activeConnections) {
+            for (Radio dstRadio : conn.getDestinations()) {
+              if (dstRadio == listeningRadio) {
+                existingConn = conn;
+                break;
+              }
             }
-          } else if (distance <= moteInterferenceRange) {
-            // If close enough to sabotage other transmissions..
-            listeningRadio.interferReception(sendingRadio
-                .getTransmissionEndTime());
-            listeningRadio.setCurrentSignalStrength(SS_BAD);
           }
-          // else too far away
+          if (existingConn != null) {
+            // Change radio from receiving to interfered
+            existingConn.removeDestination(listeningRadio);
+            existingConn.addInterfered(listeningRadio);
+
+          }
+        } else {
+          // Radio OK to receive
+          newConnection.addDestination(listeningRadio);
+          listeningRadio.signalReceptionStart();
+        }
+      } else if (distance <= moteInterferenceRange) {
+        // Interfere radio
+        newConnection.addInterfered(listeningRadio);
+        listeningRadio.interfereAnyReception();
+      }
+
+    }
+
+    // Register new connection
+    activeConnections.add(newConnection);
+    return newConnection;
+  }
+
+  /**
+   * Forward given packet from source to all destinations in given connection.
+   * 
+   * @param connection
+   *          Radio connection
+   * @param packetData
+   *          Packet data
+   */
+  private void forwardPacket(RadioConnection connection, byte[] packetData) {
+    Radio sourceRadio = connection.getSource();
+
+    if (sourceRadio instanceof ByteRadio) {
+      // Byte radios only forwards packets to packet radios
+      for (Radio receivingRadio : connection.getDestinations()) {
+        if (receivingRadio instanceof ByteRadio) {
+          // Do nothing (data will be forwarded on byte-per-byte basis)
+        } else if (receivingRadio instanceof PacketRadio) {
+          // Forward packet data
+          ((PacketRadio) receivingRadio).setReceivedPacket(packetData);
+        } else {
+          logger.warn("Packet was not forwarded correctly");
         }
       }
-      
-      if (((Radio) radio).getLastEvent() == Radio.RadioEvent.TRANSMISSION_FINISHED) {
-        transmissionEndedRadios.add((Radio) radio);
+    } else if (sourceRadio instanceof PacketRadio) {
+      // Packet radios forwards packets to all packet radios
+      for (Radio receivingRadio : connection.getDestinations()) {
+        if (receivingRadio instanceof PacketRadio) {
+          // Forward packet data
+          ((PacketRadio) receivingRadio).setReceivedPacket(packetData);
+        } else {
+          logger.warn("Packet was not forwarded correctly");
+        }
       }
-      
+    }
+  }
+
+  private void removeFromActiveConnections(Radio radio) {
+    // Abort any reception
+    if (radio.isReceiving()) {
+      radio.interfereAnyReception();
+      radio.signalReceptionEnd();
+    }
+
+    // Remove radio from all active connections
+    RadioConnection connToRemove = null;
+    for (RadioConnection conn : activeConnections) {
+      conn.removeDestination(radio);
+      conn.removeInterfered(radio);
+
+      if (conn.getSource() == radio) {
+        // Radio is currently transmitting
+        connToRemove = conn;
+        for (Radio dstRadio : conn.getDestinations()) {
+          dstRadio.interfereAnyReception();
+          dstRadio.signalReceptionEnd();
+        }
+        for (Radio dstRadio : conn.getInterfered()) {
+          dstRadio.signalReceptionEnd();
+        }
+      }
+    }
+    if (connToRemove != null)
+      activeConnections.remove(connToRemove);
+  }
+
+  /**
+   * Updates all radio signal strengths according to current transmissions. This
+   * method also updates earlier interfered radios.
+   */
+  private void updateSignalStrengths() {
+    // // Save old signal strengths
+    // double[] oldSignalStrengths = new double[registeredRadios.size()];
+    // for (int i = 0; i < registeredRadios.size(); i++) {
+    // oldSignalStrengths[i] = registeredRadios.get(i)
+    // .getCurrentSignalStrength();
+    // }
+
+    // Reset signal strength on all radios
+    for (Radio radio : registeredRadios) {
+      radio.setCurrentSignalStrength(SS_NOTHING);
+    }
+
+    // Set signal strength on all OK transmissions
+    for (RadioConnection conn : activeConnections) {
+      conn.getSource().setCurrentSignalStrength(SS_OK);
+      for (Radio dstRadio : conn.getDestinations()) {
+        dstRadio.setCurrentSignalStrength(SS_OK);
+      }
+    }
+
+    // Set signal strength on all interferences
+    for (RadioConnection conn : activeConnections) {
+      for (Radio dstRadio : conn.getInterfered()) {
+        dstRadio.setCurrentSignalStrength(SS_NOISE);
+        if (!dstRadio.isInterfered()) {
+          // Set to interfered again
+          dstRadio.interfereAnyReception();
+        }
+      }
+    }
+
+    // // Fetch new signal strengths
+    // double[] newSignalStrengths = new double[registeredRadios.size()];
+    // for (int i = 0; i < registeredRadios.size(); i++) {
+    // newSignalStrengths[i] = registeredRadios.get(i)
+    // .getCurrentSignalStrength();
+    // }
+    //
+    // // Compare new and old signal strengths
+    // for (int i = 0; i < registeredRadios.size(); i++) {
+    // if (oldSignalStrengths[i] != newSignalStrengths[i])
+    // logger.warn("Signal strengths changed on radio[" + i + "]: "
+    // + oldSignalStrengths[i] + " -> " + newSignalStrengths[i]);
+    // }
+  }
+
+  private Observer radioEventsObserver = new Observer() {
+    public void update(Observable obs, Object obj) {
+      if (!(obs instanceof Radio)) {
+        logger.fatal("Radio event dispatched by non-radio object");
+        return;
+      }
+
+      Radio radio = (Radio) obs;
+
+      // Handle radio event
+      final Radio.RadioEvent event = radio.getLastEvent();
+
+      // Ignore reception events
+      if (event == Radio.RadioEvent.RECEPTION_STARTED
+          || event == Radio.RadioEvent.RECEPTION_INTERFERED
+          || event == Radio.RadioEvent.RECEPTION_FINISHED) {
+        return;
+      }
+
+      if (event == Radio.RadioEvent.HW_OFF) {
+        // Destroy any(?) transfers
+        removeFromActiveConnections(radio);
+
+        // Recalculate signal strengths on all radios
+        updateSignalStrengths();
+
+        // Wake up tick observer
+        radioMediumObservable.setRadioMediumChanged();
+
+      } else if (event == Radio.RadioEvent.HW_ON) {
+        // No action
+        // TODO Maybe set signal strength levels now?
+
+        // Recalculate signal strengths on all radios
+        updateSignalStrengths();
+
+        // Wake up tick observer
+        radioMediumObservable.setRadioMediumChanged();
+
+      } else if (event == Radio.RadioEvent.TRANSMISSION_STARTED) {
+        /* Create radio connections */
+
+        createConnections((Radio) radio);
+
+        // Recalculate signal strengths on all radios
+        updateSignalStrengths();
+
+        // Wake up tick observer
+        radioMediumObservable.setRadioMediumChanged();
+
+      } else if (event == Radio.RadioEvent.TRANSMISSION_FINISHED) {
+        /* Remove active connection */
+
+        // Find corresponding connection of radio
+        RadioConnection connection = null;
+        for (RadioConnection conn : activeConnections) {
+          if (conn.getSource() == radio) {
+            connection = conn;
+            break;
+          }
+        }
+
+        if (connection == null) {
+          logger.fatal("Can't find active connection to remove");
+        } else {
+          activeConnections.remove(connection);
+          finishedConnections.add(connection);
+          for (Radio dstRadio : connection.getDestinations()) {
+            dstRadio.signalReceptionEnd();
+          }
+          for (Radio dstRadio : connection.getInterfered()) {
+            dstRadio.signalReceptionEnd();
+          }
+        }
+
+        // Recalculate signal strengths on all radios
+        updateSignalStrengths();
+
+        // Wake up tick observer
+        radioMediumObservable.setRadioMediumChanged();
+
+      } else if (event == Radio.RadioEvent.BYTE_TRANSMITTED) {
+        /* Forward byte */
+
+        // Find corresponding connection of radio
+        RadioConnection connection = null;
+        for (RadioConnection conn : activeConnections) {
+          if (conn.getSource() == radio) {
+            connection = conn;
+            break;
+          }
+        }
+
+        if (connection == null) {
+          logger.fatal("Can't find active connection to forward byte in");
+        } else {
+          byte b = ((ByteRadio) radio).getLastByteTransmitted();
+          long timestamp = ((ByteRadio) radio).getLastByteTransmittedTimestamp();
+
+          for (Radio dstRadio : connection.getDestinations()) {
+            if (dstRadio instanceof ByteRadio) {
+              ((ByteRadio) dstRadio).receiveByte(b, timestamp);
+            }
+          }
+        }
+
+      } else if (event == Radio.RadioEvent.PACKET_TRANSMITTED) {
+        /* Forward packet */
+
+        // Find corresponding connection of radio
+        RadioConnection connection = null;
+        for (RadioConnection conn : activeConnections) {
+          if (conn.getSource() == radio) {
+            connection = conn;
+            break;
+          }
+        }
+
+        if (connection == null) {
+          logger.fatal("Can't find active connection to forward byte in");
+        } else {
+          byte[] packetData = ((PacketRadio) radio).getLastPacketTransmitted();
+          forwardPacket(connection, packetData);
+        }
+
+      } else if (event == Radio.RadioEvent.UNKNOWN) {
+        // Do nothing
+      } else {
+        logger.fatal("Unsupported radio event: " + event);
+      }
     }
   };
-  
+
+  /**
+   * This observer is resposible for making last tick connections available to
+   * external observers, as well as forwarding finished connections to any
+   * registered connection logger.
+   * 
+   * @see #getLastTickConnections()
+   * @see #setConnectionLogger(ConnectionLogger)
+   */
   private Observer tickObserver = new Observer() {
     public void update(Observable obs, Object obj) {
 
-      if (lastTickConnections != null)
+      // Reset any last tick connections
+      if (lastTickConnections != null) {
         radioMediumObservable.setRadioMediumChanged();
+        lastTickConnections = null;
+      }
 
-      // Reset last tick connections
-      lastTickConnections = null;
+      // Do nothing if radio medium unchanged
+      if (!radioMediumObservable.hasChanged())
+        return;
 
-      // Log finished connections if any
-      Vector<RadioConnection> updatedPendingConnections = new Vector<RadioConnection>();
-      if (transmissionEndedRadios.size() > 0) {
-        final int numberFinished = transmissionEndedRadios.size();
-        Vector<RadioConnection> newTickConnections = new Vector<RadioConnection>();
+      // Log any new finished connections
+      if (finishedConnections.size() > 0) {
+        lastTickConnections = new RadioConnection[finishedConnections.size()];
+        for (int i = 0; i < finishedConnections.size(); i++)
+          lastTickConnections[i] = finishedConnections.get(i);
+        finishedConnections.clear();
 
-        // Loop through all radios that finished transmitting data
-        for (int recvNr = 0; recvNr < numberFinished; recvNr++) {
-          Radio transmittingRadio = transmissionEndedRadios.get(recvNr);
-
-          for (RadioConnection pendingConnection : pendingConnections) {
-
-            // Log finished connection
-            if (pendingConnection.getSourceRadio() == transmittingRadio) {
-              for (Radio destRadio : pendingConnection.getDestinationRadios()) {
-                if (destRadio.getLastEvent() != Radio.RadioEvent.RECEPTION_FINISHED) {
-                  // Radio was interfered
-                  pendingConnection.removeDestination(destRadio);
-                }
-              }
-              newTickConnections.add(pendingConnection);
-            }
-
-            // Remove connection if old (don't keep)
-            if (pendingConnection.getSourceRadio().isTransmitting()) {
-              updatedPendingConnections.add(pendingConnection);
-            }
-          }
-        }
-
-        lastTickConnections = new RadioConnection[newTickConnections.size()];
-        for (int i = 0; i < lastTickConnections.length; i++)
-          lastTickConnections[i] = newTickConnections.get(i);
-        transmissionEndedRadios.clear();
-
-        pendingConnections = updatedPendingConnections;
-
+        // Notify radio medium logger of the finished transmissions
         if (myLogger != null) {
           for (RadioConnection conn : lastTickConnections)
             myLogger.logConnection(conn);
         }
-
-        // Radio medium has changed, notifing below
-        radioMediumObservable.setRadioMediumChanged();
       }
 
-      // Set signal strengths on all radios
-      for (Radio radio : registeredRadios) {
-        if (radio.isTransmitting())
-          radio.setCurrentSignalStrength(SS_OK);
-        else if (radio.isReceiving())
-          radio.setCurrentSignalStrength(SS_OK);
-        else if (radio.isInterfered())
-          radio.setCurrentSignalStrength(SS_BAD);
-        else
-          radio.setCurrentSignalStrength(SS_NOTHING);
-      }
-
-      // Notify observers (if anything has changed)
+      // Notify all other radio medium observers
       radioMediumObservable.notifyObservers();
     }
   };
 
   public void registerMote(Mote mote, Simulation sim) {
-    registerRadioInterface(mote.getInterfaces().getRadio(), mote
-        .getInterfaces().getPosition(), sim);
+    registerRadioInterface(mote.getInterfaces().getRadio(), sim);
   }
 
   public void unregisterMote(Mote mote, Simulation sim) {
     unregisterRadioInterface(mote.getInterfaces().getRadio(), sim);
   }
 
-  public void registerRadioInterface(Radio radio, Position position,
-      Simulation sim) {
-    if (radio != null && position != null) {
+  public void registerRadioInterface(Radio radio, Simulation sim) {
+    if (radio != null) {
       if (!isTickObserver) {
         sim.addTickObserver(tickObserver);
         isTickObserver = true;
       }
 
-      registeredPositions.add(position);
+      // Warn if radio medium does not support radio
+      if (!(radio instanceof PacketRadio)) {
+        logger
+            .warn("Radio medium does not support radio (no transmission supported)");
+      }
+
+      // Register and start observing radio
       registeredRadios.add(radio);
-      radio.addObserver(radioDataObserver);
+      radio.addObserver(radioEventsObserver);
 
       // Set initial signal strenth
       radio.setCurrentSignalStrength(SS_NOTHING);
-
-    } // else logger.warn("Radio Medium not registering mote");
+    }
   }
 
   public void unregisterRadioInterface(Radio radio, Simulation sim) {
-    for (int i = 0; i < registeredRadios.size(); i++) {
-      if (registeredRadios.get(i).equals(radio)) {
-        registeredRadios.remove(i);
-        registeredPositions.remove(i);
-        radio.deleteObserver(radioDataObserver);
-        return;
-      }
+    if (!registeredRadios.contains(radio)) {
+      logger.warn("Could not find radio: " + radio + " to unregister");
+      return;
     }
-    logger.warn("Could not find radio: " + radio + " to unregister");
+
+    radio.deleteObserver(radioEventsObserver);
+    registeredRadios.remove(radio);
+
+    removeFromActiveConnections(radio);
   }
 
   public void addRadioMediumObserver(Observer observer) {
@@ -576,7 +797,8 @@ public class UDGM extends RadioMedium {
     return config;
   }
 
-  public boolean setConfigXML(Collection<Element> configXML, boolean visAvailable) {
+  public boolean setConfigXML(Collection<Element> configXML,
+      boolean visAvailable) {
     for (Element element : configXML) {
       if (element.getName().equals("transmitting_range")) {
         TRANSMITTING_RANGE = Double.parseDouble(element.getText());

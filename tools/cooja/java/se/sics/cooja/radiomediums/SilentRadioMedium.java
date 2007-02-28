@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: SilentRadioMedium.java,v 1.2 2007/01/09 09:47:10 fros4943 Exp $
+ * $Id: SilentRadioMedium.java,v 1.3 2007/02/28 09:50:00 fros4943 Exp $
  */
 
 package se.sics.cooja.radiomediums;
@@ -57,7 +57,7 @@ public class SilentRadioMedium extends RadioMedium {
     // Do nothing
   }
 
-  public void registerRadioInterface(Radio radio, Position position, Simulation sim) {
+  public void registerRadioInterface(Radio radio, Simulation sim) {
     // Do nothing
   }
 

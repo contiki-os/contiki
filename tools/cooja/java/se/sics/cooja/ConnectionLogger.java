@@ -24,7 +24,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * 
- * $Id: ConnectionLogger.java,v 1.4 2007/01/10 14:57:42 fros4943 Exp $
+ * $Id: ConnectionLogger.java,v 1.5 2007/02/28 09:47:55 fros4943 Exp $
  */
 
 package se.sics.cooja;
@@ -33,12 +33,14 @@ import java.io.File;
 import java.io.FileOutputStream;
 import org.apache.log4j.Logger;
 
+import se.sics.cooja.interfaces.PacketRadio;
 import se.sics.cooja.interfaces.Position;
+import se.sics.cooja.interfaces.Radio;
 
 /**
- * ConnectionLogger is a simple connection information outputter. All
- * connections given via the method logConnection will be written to either
- * default Log4J info stream, a log file or both.
+ * A connection logger is a simple connection information outputter. All
+ * connections given to it will be written to either the currently configured
+ * Log4J info stream, a log file or both.
  * 
  * Log files have the following structure (seprated by tabs): SRC_POS [src_x]
  * [src_y] [src_z] SRC_DATA [sent data bytes] DEST_POS [dest_x] [dest_y]
@@ -90,29 +92,29 @@ public class ConnectionLogger {
    *          Connection to output
    */
   public void logConnection(RadioConnection conn) {
-
     if (myType == LOG_TO_LOG4J || myType == LOG_TO_FILE_AND_LOG4J) {
-      if (conn.getDestinationPositons() != null
-          && conn.getDestinationPositons().length > 0)
-        for (Position destPos : conn.getDestinationPositons()) {
-          logger.info("RADIODATA from " + conn.getSourcePosition() + " to "
-              + destPos + "\tsize:" + conn.getSourceData().length);
+      Radio[] destinations = conn.getDestinations();
+      if (destinations != null && destinations.length > 0) {
+        for (Radio destRadio : destinations) {
+          logger.info("RADIODATA from " + conn.getSource().getPosition()
+              + " to " + destRadio.getPosition());
         }
-      else
-        logger.info("RADIODATA from " + conn.getSourcePosition() + " to "
-            + "[NOWHERE]" + "\tsize:" + conn.getSourceData().length);
+      } else {
+        logger.info("RADIODATA from " + conn.getSource().getPosition()
+            + " to [NOWHERE]");
+      }
     }
-    if (myType == LOG_TO_FILE || myType == LOG_TO_FILE_AND_LOG4J) {
 
+    if (myType == LOG_TO_FILE || myType == LOG_TO_FILE_AND_LOG4J) {
       try {
         FileOutputStream out = new FileOutputStream(myFile, true);
 
-        if (conn.getDestinationPositons() != null
-            && conn.getDestinationPositons().length > 0) {
-          for (int i = 0; i < conn.getDestinationPositons().length; i++) {
+        Radio[] destinations = conn.getDestinations();
+        if (destinations != null && destinations.length > 0) {
+          for (int i = 0; i < destinations.length; i++) {
             // Source pos
             out.write("SRC_POS\t".getBytes());
-            Position pos = conn.getSourcePosition();
+            Position pos = conn.getSource().getPosition();
             out.write(Double.toString(pos.getXCoordinate()).getBytes());
             out.write("\t".getBytes());
             out.write(Double.toString(pos.getYCoordinate()).getBytes());
@@ -122,7 +124,9 @@ public class ConnectionLogger {
 
             // Source data
             out.write("SRC_DATA\t".getBytes());
-            for (byte b : conn.getSourceData()) {
+            // TODO We need to log destination data again...
+            for (byte b : ((PacketRadio) conn.getSource())
+                .getLastPacketTransmitted()) {
               String hexString = Integer.toHexString((int) b);
               if (hexString.length() == 1)
                 hexString = "0" + hexString;
@@ -132,7 +136,7 @@ public class ConnectionLogger {
 
             // Destination pos
             out.write("DEST_POS\t".getBytes());
-            pos = conn.getDestinationPositons()[i];
+            pos = destinations[i].getPosition();
             out.write(Double.toString(pos.getXCoordinate()).getBytes());
             out.write("\t".getBytes());
             out.write(Double.toString(pos.getYCoordinate()).getBytes());
@@ -142,7 +146,9 @@ public class ConnectionLogger {
 
             // Source data
             out.write("DEST_DATA\t".getBytes());
-            for (byte b : conn.getDestinationData()[i]) {
+            // TODO We need to log destination data again...
+            for (byte b : ((PacketRadio) destinations[i])
+                .getLastPacketReceived()) {
               String hexString = Integer.toHexString((int) b);
               if (hexString.length() == 1)
                 hexString = "0" + hexString;
@@ -156,7 +162,7 @@ public class ConnectionLogger {
         } else {
           // Source pos
           out.write("SRC_POS\t".getBytes());
-          Position pos = conn.getSourcePosition();
+          Position pos = conn.getSource().getPosition();
           out.write(Double.toString(pos.getXCoordinate()).getBytes());
           out.write("\t".getBytes());
           out.write(Double.toString(pos.getYCoordinate()).getBytes());
@@ -166,12 +172,16 @@ public class ConnectionLogger {
 
           // Source data
           out.write("SRC_DATA\t".getBytes());
-          for (byte b : conn.getSourceData()) {
+          // TODO We need to log destination data again...
+          for (byte b : ((PacketRadio) conn.getSource())
+              .getLastPacketTransmitted()) {
             String hexString = Integer.toHexString((int) b);
             if (hexString.length() == 1)
               hexString = "0" + hexString;
             out.write(hexString.getBytes());
           }
+          out.write("\t".getBytes());
+          out.write("[NOWHERE]".getBytes());
           out.write("\n".getBytes());
         }
         out.close();

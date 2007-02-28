@@ -26,139 +26,121 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: RadioConnection.java,v 1.3 2006/10/09 13:38:38 fros4943 Exp $
+ * $Id: RadioConnection.java,v 1.4 2007/02/28 09:47:55 fros4943 Exp $
  */
 
 package se.sics.cooja;
 
 import java.util.Vector;
 
-import se.sics.cooja.interfaces.Position;
 import se.sics.cooja.interfaces.Radio;
 
 /**
- * RadioConnection represents a radio connection between a sending radio
- * and zero or more receiving radios.
- * By registering as an observer to the current radio medium, all
- * radio connections and data sent in that medium can be accessed.
- *
- * Each radio is associated with a position and some radio data.
- * Often the destinations' and source's data will refer to the same object,
- * but some radio mediums may want to distort the transferred data, hence
- * resulting in different data sent and received.
- *
+ * A radio connection represents a connection between a source radio and zero or
+ * more destination and interfered radios. Typically the destinations are able
+ * to receive data sent by the source radio, and the interfered radios are not.
+ * 
  * @see RadioMedium
  * @author Fredrik Osterlind
  */
 public class RadioConnection {
-  private Radio sourceRadio;
-  private Position sourcePosition;
-  private byte[] sourceData;
+  private Radio source;
 
-  private Vector<Radio> destinationRadios = new Vector<Radio>();
-  private Vector<Position> destinationPositions = new Vector<Position>();
-  private Vector<byte[]> destinationData = new Vector<byte[]>();
+  private Vector<Radio> destinations = new Vector<Radio>();
+
+  private Vector<Radio> interfered = new Vector<Radio>();
+
+  /**
+   * Creates a new radio connection with given source and no destinations.
+   * 
+   * @param sourceRadio
+   *          Source radio
+   */
+  public RadioConnection(Radio sourceRadio) {
+    this.source = sourceRadio;
+  }
 
   /**
    * Set source of this connection.
-   *
-   * @param radio Source radio
-   * @param position Source position
-   * @param data Source data
+   * 
+   * @param radio
+   *          Source radio
    */
-  public void setSource(Radio radio, Position position, byte[] data) {
-    sourceRadio = radio;
-    sourcePosition = position;
-    sourceData = data;
+  public void setSource(Radio radio) {
+    source = radio;
   }
 
   /**
-   * Add a connection destination.
-   *
-   * @param radio Source radio
-   * @param position Source position
-   * @param data Source data
+   * Adds destination radio.
+   * 
+   * @param radio
+   *          Radio
    */
-  public void addDestination(Radio radio, Position position, byte[] data) {
-    destinationRadios.add(radio);
-    destinationPositions.add(position);
-    destinationData.add(data);
+  public void addDestination(Radio radio) {
+    destinations.add(radio);
   }
-  
+
   /**
-   * Remove a connection destination.
-   *
-   * @param radio Destination to remove
+   * Adds interfered radio.
+   * 
+   * @param radio
+   *          Radio
+   */
+  public void addInterfered(Radio radio) {
+    interfered.add(radio);
+  }
+
+  /**
+   * Removes destination radio.
+   * 
+   * @param radio
+   *          Radio
    */
   public void removeDestination(Radio radio) {
-    int pos = destinationRadios.indexOf(radio);
-    if (pos >= 0) {
-      destinationRadios.remove(pos);
-      destinationPositions.remove(pos);
-      destinationData.remove(pos);
-    }
+    destinations.remove(radio);
+  }
+
+  /**
+   * Removes interfered radio.
+   * 
+   * @param radio
+   *          Radio
+   */
+  public void removeInterfered(Radio radio) {
+    interfered.remove(radio);
   }
 
   /**
    * @return Source radio
    */
-  public Radio getSourceRadio() {
-    return sourceRadio;
+  public Radio getSource() {
+    return source;
   }
 
   /**
-   * @return Source position
+   * @return All destinations of this connection
    */
-  public Position getSourcePosition() {
-    return sourcePosition;
-  }
-
-  /**
-   * Returns the data actually sent by source radio.
-   * @return Source data
-   */
-  public byte[] getSourceData() {
-    return sourceData;
-  }
-
-  /**
-   * @return Array of destination radios
-   */
-  public Radio[] getDestinationRadios() {
+  public Radio[] getDestinations() {
     Radio[] radioArrayType;
     Radio[] radioArray;
 
-    radioArrayType = new Radio[destinationRadios.size()];
-    radioArray = (Radio[]) destinationRadios.toArray(radioArrayType);
+    radioArrayType = new Radio[destinations.size()];
+    radioArray = (Radio[]) destinations.toArray(radioArrayType);
 
     return radioArray;
   }
 
   /**
-   * @return Array of destination positions
+   * @return All radios interfered by this connection
    */
-  public Position[] getDestinationPositons() {
-    Position[] positionArrayType;
-    Position[] positionArray;
+  public Radio[] getInterfered() {
+    Radio[] radioArrayType;
+    Radio[] radioArray;
 
-    positionArrayType = new Position[destinationPositions.size()];
-    positionArray = (Position[]) destinationPositions.toArray(positionArrayType);
+    radioArrayType = new Radio[interfered.size()];
+    radioArray = (Radio[]) interfered.toArray(radioArrayType);
 
-    return positionArray;
-  }
-
-  /**
-   * Returns an array of data actually received by each radio.
-   * @return Array of destination data
-   */
-  public byte[][] getDestinationData() {
-    byte[][] dataArrayType;
-    byte[][] dataArray;
-
-    dataArrayType = new byte[destinationData.size()][];
-    dataArray = (byte[][]) destinationData.toArray(dataArrayType);
-
-    return dataArray;
+    return radioArray;
   }
 
 }

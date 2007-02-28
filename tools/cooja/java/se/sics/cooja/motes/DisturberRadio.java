@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: DisturberRadio.java,v 1.2 2007/01/09 10:01:14 fros4943 Exp $
+ * $Id: DisturberRadio.java,v 1.3 2007/02/28 09:49:48 fros4943 Exp $
  */
 
 package se.sics.cooja.motes;
@@ -40,14 +40,14 @@ import org.apache.log4j.Logger;
 import org.jdom.Element;
 
 import se.sics.cooja.*;
-import se.sics.cooja.interfaces.Radio;
+import se.sics.cooja.interfaces.*;
 
 /**
  * This radio periodically transmits data on a configurable channel.
  * 
  * @author Fredrik Osterlind, Thiemo Voigt
  */
-public class DisturberRadio extends Radio {
+public class DisturberRadio extends Radio implements PacketRadio {
   private Mote myMote;
 
   private static Logger logger = Logger.getLogger(DisturberRadio.class);
@@ -78,13 +78,25 @@ public class DisturberRadio extends Radio {
   public DisturberRadio(Mote mote) {
     this.myMote = mote;
   }
-
+  
+  /* Packet radio support */
   public byte[] getLastPacketTransmitted() {
     return packetFromMote;
   }
 
   public byte[] getLastPacketReceived() {
     return null;
+  }
+
+  public void setReceivedPacket(byte[] data) {
+  }
+
+
+  /* General radio support */
+  public void signalReceptionStart() {
+  }
+
+  public void signalReceptionEnd() {
   }
 
   public boolean isTransmitting() {
@@ -96,8 +108,6 @@ public class DisturberRadio extends Radio {
   }
 
   public boolean isReceiving() {
-    if (isLockedAtReceiving())
-      return true;
     return false;
   }
 
@@ -105,21 +115,15 @@ public class DisturberRadio extends Radio {
     return distChannel;
   }
 
+  public Position getPosition() {
+    return myMote.getInterfaces().getPosition();
+  }
+  
   public RadioEvent getLastEvent() {
     return lastEvent;
   }
 
-  /**
-   * @return True if locked at receiving
-   */
-  private boolean isLockedAtReceiving() {
-    return false;
-  }
-
-  public void receivePacket(byte[] data, int endTime) {
-  }
-
-  public void interferReception(int endTime) {
+  public void interfereAnyReception() {
   }
 
   public boolean isInterfered() {

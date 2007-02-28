@@ -26,14 +26,14 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: VisUAODV.java,v 1.2 2007/01/09 10:09:59 fros4943 Exp $
+ * $Id: VisUAODV.java,v 1.3 2007/02/28 09:50:51 fros4943 Exp $
  */
 
 import java.awt.*;
 import org.apache.log4j.Logger;
 
 import se.sics.cooja.*;
-import se.sics.cooja.interfaces.Position;
+import se.sics.cooja.interfaces.*;
 import se.sics.cooja.plugins.*;
 
 /**
@@ -62,28 +62,32 @@ public class VisUAODV extends VisTraffic {
   }
   
   protected void paintConnection(RadioConnection connection, Graphics g2d) {
-    Point sourcePixelPosition = transformPositionToPixel(connection.getSourcePosition());
-    for (Position destPosition: connection.getDestinationPositons()) {
+    Point sourcePixelPosition = transformPositionToPixel(connection.getSource().getPosition());
+    for (Radio destRadio: connection.getDestinations()) {
+      Position destPosition = destRadio.getPosition();
       Point destPixelPosition = transformPositionToPixel(destPosition);
       g2d.setColor(getColorOf(connection));
 
-      if (isRouteReply(connection.getSourceData())) {
+      byte[] packet = ((PacketRadio)destRadio).getLastPacketReceived();
+      if (isRouteReply(packet)) {
         ((Graphics2D) g2d).setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 1.0f));
       }
 
       g2d.drawLine(sourcePixelPosition.x, sourcePixelPosition.y,
           destPixelPosition.x, destPixelPosition.y);
 
-      int hopCount = getHopCount(connection.getSourceData());
+      int hopCount = getHopCount(packet);
       if (hopCount >= 0)
         g2d.drawString("" + hopCount, sourcePixelPosition.x, sourcePixelPosition.y);
     }
   }
   
   protected Color getColorOf(RadioConnection conn) {
-    if (isRouteRequest(conn.getSourceData()))
+    byte[] packet = ((PacketRadio)conn.getSource()).getLastPacketReceived();
+
+    if (isRouteRequest(packet))
       return Color.RED;
-    else if (isRouteReply(conn.getSourceData()))
+    else if (isRouteReply(packet))
       return Color.GREEN;
     else
       return Color.BLACK;

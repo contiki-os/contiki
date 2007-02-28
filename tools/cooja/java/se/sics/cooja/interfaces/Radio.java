@@ -24,7 +24,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * 
- * $Id: Radio.java,v 1.5 2006/10/11 15:13:57 fros4943 Exp $
+ * $Id: Radio.java,v 1.6 2007/02/28 09:49:20 fros4943 Exp $
  */
 
 package se.sics.cooja.interfaces;
@@ -32,8 +32,15 @@ package se.sics.cooja.interfaces;
 import se.sics.cooja.*;
 
 /**
- * A Radio represents a mote radio transceiver. An implementation should notify
- * all observers both when packets are received and transmitted.
+ * A Radio represents a mote radio transceiver.
+ * 
+ * A radio can support different abstraction levels such as transmitting and
+ * receiving on a byte or packet-basis. In order to support communication
+ * between different levels the general rule in COOJA is that all radios at a
+ * lower abstraction level must also implement all higher levels.
+ * 
+ * @see PacketRadio
+ * @see ByteRadio
  * 
  * @author Fredrik Osterlind
  */
@@ -44,84 +51,65 @@ public abstract class Radio extends MoteInterface {
    * Events that radios should notify observers about.
    */
   public enum RadioEvent {
-    UNKNOWN, 
-    HW_OFF, HW_ON, 
-    RECEPTION_STARTED, RECEPTION_INTERFERED, RECEPTION_FINISHED, 
-    TRANSMISSION_STARTED, TRANSMISSION_FINISHED
+    UNKNOWN, HW_OFF, HW_ON, RECEPTION_STARTED, RECEPTION_FINISHED, RECEPTION_INTERFERED, TRANSMISSION_STARTED, TRANSMISSION_FINISHED, PACKET_TRANSMITTED, BYTE_TRANSMITTED
   }
 
   /**
-   * Returns last significant event at this radio. Method may for example be
-   * used to learn the reason when a radio notifies a change to observers.
+   * Signal that a new reception just begun. This method should normally be
+   * called from the radio medium.
+   * 
+   * @see #signalReceptionEnd()
+   */
+  public abstract void signalReceptionStart();
+
+  /**
+   * Signal that the current reception was ended. This method should normally be
+   * called from the radio medium.
+   * 
+   * @see #signalReceptionStart()
+   */
+  public abstract void signalReceptionEnd();
+
+  /**
+   * Returns last event at this radio. This method should be used to learn the
+   * reason when a radio notifies a change to observers.
    * 
    * @return Last radio event
    */
   public abstract RadioEvent getLastEvent();
 
   /**
-   * @return Last packet data transmitted, or currently being transmitted, from
-   *         this radio.
-   */
-  public abstract byte[] getLastPacketTransmitted();
-
-  /**
-   * @return Last packet data received, or currently being received, by this
-   *         radio.
-   */
-  public abstract byte[] getLastPacketReceived();
-
-  /**
-   * Receive given packet. If reception is not interfered during
-   * this time, the packet will be delivered ok.
-   * 
-   * @param data
-   *          Packet data
-   * @param endTime
-   *          Time (ms) when reception is finished
-   */
-  public abstract void receivePacket(byte[] data, int endTime);
-
-  /**
    * Returns true if this radio is transmitting, or just finished transmitting,
    * data.
    * 
-   * @see #getLastPacketTransmitted()
+   * @see #isReceiving()
    * @return True if radio is transmitting data
    */
   public abstract boolean isTransmitting();
 
   /**
-   * @return Transmission end time if any transmission active
-   */
-  public abstract int getTransmissionEndTime();
-
-  /**
    * Returns true if this radio is receiving data.
    * 
-   * @see #getLastPacketReceived()
+   * @see #isTransmitting()
    * @return True if radio is receiving data
    */
   public abstract boolean isReceiving();
 
   /**
-   * If a packet is being received, it will be interfered and dropped. The
-   * interference will continue until the given time, during which no other
-   * radio traffic may be received. This method can be used to simulate
-   * significant interference during transmissions.
-   * 
-   * @param endTime
-   *          Time when interference stops
-   */
-  public abstract void interferReception(int endTime);
-
-  /**
-   * Returns true is this radio is currently hearing noise from another
-   * transmission.
+   * Returns true if this radio had a connection that was dropped due to
+   * interference.
    * 
    * @return True if this radio is interfered
    */
   public abstract boolean isInterfered();
-  
+
+  /**
+   * Interferes with any current reception. If this method is called, the packet
+   * will be dropped. This method can be used to simulate radio interference
+   * such as high background noise.
+   */
+  public abstract void interfereAnyReception();
+
   /**
    * @return Current output power (dBm)
    */
@@ -138,7 +126,8 @@ public abstract class Radio extends MoteInterface {
   public abstract double getCurrentSignalStrength();
 
   /**
-   * Sets surrounding signal strength.
+   * Sets surrounding signal strength. This method should normally be called by
+   * the radio medium.
    * 
    * @param signalStrength
    *          Current surrounding signal strength
@@ -151,5 +140,13 @@ public abstract class Radio extends MoteInterface {
    * @return Current channel number
    */
   public abstract int getChannel();
+
+  /**
+   * Returns the radio position.
+   * This is typically the position of the mote.
+   * 
+   * @return Radio position
+   */
+  public abstract Position getPosition();
   
 }
