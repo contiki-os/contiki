@@ -1,5 +1,5 @@
 all: telnet-server
-APPS=telnetd
+APPS=telnetd program-handler
 
 CONTIKI = ../..
 include $(CONTIKI)/Makefile.include
