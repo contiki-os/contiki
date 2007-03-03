@@ -1,13 +1,9 @@
 #ifndef __CONTIKI_CONF_H__
 #define __CONTIKI_CONF_H__
 
-#define CC_CONF_REGISTER_ARGS 1
-#define CC_CONF_FASTCALL      __fastcall__
 
 
-
-#define CCIF
-#define CLIF
+#include "6502-conf.h"
 
 
 
@@ -22,11 +18,6 @@ void error_exit(char *message);
 typedef unsigned short clock_time_t;
 
 
-
-#include <ctype.h>
-#define ctk_arch_isprint isprint
-
-typedef char ctk_arch_key_t;
 
 #define CH_ULCORNER	          0xDA
 #define CH_URCORNER	          0xBF
@@ -83,7 +74,7 @@ typedef char ctk_arch_key_t;
 
 
 
-//#define LOADER_CONF_ARCH "loader/dll-loader.h"
+//#define LOADER_CONF_ARCH "loader/???-loader.h"
 
 #define PROGRAM_HANDLER_CONF_MAX_NUMDSCS 6
 #define PROGRAM_HANDLER_CONF_QUIT_MENU   1
@@ -94,11 +85,6 @@ typedef char ctk_arch_key_t;
 #define SHELL_GUI_CONF_YSIZE 12
 
 
-
-typedef unsigned char u8_t;
-typedef unsigned short u16_t;
-typedef unsigned long u32_t;
-typedef unsigned short uip_stats_t;
 
 #define UIP_CONF_MAX_CONNECTIONS 10
 #define UIP_CONF_MAX_LISTENPORTS 10
