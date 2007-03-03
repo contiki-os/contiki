@@ -21,11 +21,11 @@ AR = ar65
 
 AFLAGS  = -t $(TARGET)
 CFLAGS += -t $(TARGET) -Or --create-dep $(INCLUDES)
-LDFLAGS = -t $(TARGET)
+LDFLAGS = -C $(CONTIKI)/platform/$(TARGET)/linker.cfg -m $(TARGET).map
 AROPTS  = a
 
 PROJECT_OBJECTFILES += $(OBJECTDIR)/contiki-main.o
-CONTIKI_OBJECTFILES += $(OBJECTDIR)/lc-asm.o
+CONTIKI_OBJECTFILES += $(OBJECTDIR)/lc-asm.o $(OBJECTDIR)/uip_arch.o
 TARGET_STARTFILES    = $(TARGET).o
 TARGET_LIBFILES      = $(TARGET).lib
 
@@ -62,8 +62,8 @@ CUSTOM_RULE_C_TO_OBJECTDIR_D = 1
 # Path Settings #
 #################
 
-INCLUDES = -I$(CONTIKI)/platform/$(TARGET) -I$(CONTIKI_CPU) -I$(CONTIKI)/core
+INCLUDES = -I$(CONTIKI)/platform/$(TARGET) -I$(CONTIKI_CPU) -I$(CONTIKI)/core ${addprefix -I,$(APPDIRS)}
 
-vpath %.c $(CONTIKI)/platform/$(TARGET) $(CONTIKIDIRS)
+vpath %.c $(CONTIKI)/platform/$(TARGET) $(CONTIKI_CPU)/net $(CONTIKIDIRS) $(APPDIRS)
 
 vpath %.S $(CONTIKI_CPU)/sys
