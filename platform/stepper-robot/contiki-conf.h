@@ -70,6 +70,7 @@ do { \
 #define UIP_CONF_LLH_LEN         0
 #define UIP_CONF_BROADCAST       1
 #define UIP_CONF_LOGGING 1
+#define UIP_CONF_BUFFER_SIZE 116
 
 /* Prefix for relocation sections in ELF files */
 #define REL_SECT_PREFIX ".rel"

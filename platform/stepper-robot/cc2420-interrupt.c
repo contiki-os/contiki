@@ -32,7 +32,7 @@ inline int splhigh(void)
 #ifndef __THUMBEL__
   asm("mrs %0, CPSR\n\torr r1,%0,#0x80\n\tmsr CPSR_c, r1" : "=r" (save)::"r1");
 #else
-  #error Must be compiled in ARM mode
+#error Must be compiled in ARM mode
 #endif
   return save;
 }

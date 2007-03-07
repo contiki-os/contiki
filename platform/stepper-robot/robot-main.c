@@ -16,22 +16,18 @@
 #include <net/psock.h>
 #include <stepper-process.h>
 #include <dev/leds.h>
+#include <cfs/cfs-ram.h>
+#include <loader/codeprop-otf.h>
+#include <loader/ram-segments.h>
+#include <unistd.h>
 
 #ifndef RF_CHANNEL
 #define RF_CHANNEL 15
 #endif
 
-volatile const char * volatile input_line = NULL;
-volatile unsigned int input_line_len = 0;
+extern char __heap_end__;
+extern char __heap_start__;
 
-static void
-recv_input(const char *str, unsigned int len)
-{
-  /* Assume that the line is handled before any new characters is written
-     to the buffer */
-  input_line = str;
-  input_line_len = len;
-}
 
 PROCESS(blink_process, "LED blink process");
 
@@ -65,6 +61,7 @@ PROCESS_THREAD(blink_process, ev , data)
   PROCESS_END();
 }
 
+#if 0
 PROCESS(udprecv_process, "UDP recv process");
 
 PROCESS_THREAD(udprecv_process, ev, data)
@@ -100,7 +97,6 @@ PROCESS_THREAD(udprecv_process, ev, data)
   PROCESS_END();
 }
 
-
 PROCESS(wd_test_process, "Watchdog test process");
 
 
@@ -122,6 +118,7 @@ PROCESS_THREAD(wd_test_process, ev, data)
   
   PROCESS_END();
 }
+#endif
 
 
 #if 0
@@ -142,7 +139,11 @@ wdt_reset()
 static uip_ipaddr_t gw_addr = {{172,16,0,1}};
 
 
-PROCINIT(&etimer_process, &tcpip_process, &uip_fw_process, &cc2420_process,/*  &uaodv_process, */ &udprecv_process, &blink_process, &stepper_process);
+PROCINIT(&etimer_process, &tcpip_process, &uip_fw_process, &cc2420_process,
+	 /*  &uaodv_process, */ &cfs_ram_process, &codeprop_process,
+	 &ram_segments_cleanup_process,
+	 &blink_process, &stepper_process);
+
 
 int
 main()
@@ -155,8 +156,7 @@ main()
   
   dbg_setup_uart();
   printf("Initialising\n");
-  dbg_set_input_handler(recv_input);
-  leds_arch_init();
+    leds_arch_init();
   clock_init();
   uip_sethostaddr(&cc2420if.ipaddr);
   uip_setnetmask(&cc2420if.netmask);
@@ -168,6 +168,7 @@ main()
   uip_init();
   uip_fw_default(&cc2420if); 
   tcpip_set_forwarding(1);
+  printf("Heap size: %ld bytes\n", &__heap_end__ - (char*)sbrk(0));
   printf("Started\n");
   
   procinit_init();

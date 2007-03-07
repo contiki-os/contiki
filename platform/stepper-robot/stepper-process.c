@@ -1,6 +1,6 @@
 #include <stepper-process.h>
 #include <stepper-steps.h>
-#include <stepper-interrupt.h>
+#include <stepper.h>
 #include <stepper-move.h>
 #include <string.h>
 #include <interrupt-utils.h>
@@ -8,6 +8,8 @@
 #include <unistd.h>
 #include <net/uip.h>
 #include <dev/cc2420.h>
+
+#undef putchar
 
 static const uint32_t stepper0_steps_acc[] = MICRO_STEP(0,3);
 static const uint32_t stepper0_steps_run[] = MICRO_STEP(0,2);
