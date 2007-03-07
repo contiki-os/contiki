@@ -68,15 +68,13 @@ _sbrk(int incr)
 {
   extern char __heap_start__;		/* Defined by the linker */
   extern char __heap_end__;		/* Defined by the linker */
-  static char *heap_end;
+  static char *heap_end = &__heap_start__;
   char *prev_heap_end;
  
-  if (heap_end == 0) {
-    heap_end = &__heap_start__;
-  }
   prev_heap_end = heap_end;
   if (heap_end + incr > &__heap_end__) {
-    _write (2, "Heap full\n", 10);
+    printf("Heap full (requested %d, available %d)\n",
+	    incr, &__heap_end__ - heap_end);
     errno = ENOMEM;
     return (caddr_t)-1;
   }

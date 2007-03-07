@@ -30,7 +30,7 @@ CONTIKIDIRS=$(CONTIKI)/core/sys:$(CONTIKI)/core/dev:$(CONTIKI)/core/cfs:$(CONTIK
 
 ### Compiler definitions
 CC       = arm-elf-gcc
-LD       = arm-elf-gcc
+LD       = arm-elf-ld
 AS       = arm-elf-as
 AR       = arm-elf-ar
 NM       = arm-elf-nm
@@ -55,7 +55,8 @@ THUMB_FLAGS=-mthumb -mthumb-interwork
 ARM_FLAGS=-mthumb-interwork
 
 
-CFLAGSNO = -I. -I$(CONTIKI)/core -I$(CONTIKI_CPU) \
+CFLAGSNO = -I. -I$(CONTIKI)/core -I$(CONTIKI_CPU) -I$(CONTIKI_CPU)/loader \
+	   -I$(CONTIKI_CPU)/dbg-io\
            -I$(CONTIKI)/platform/$(TARGET) \
            ${addprefix -I,$(APPDIRS)} \
            -DWITH_UIP -DWITH_ASCII -DMCK=$(MCK) \
@@ -73,7 +74,7 @@ CONTIKI_TARGET_DIRS_CONCAT = ${addprefix $(CONTIKI)/platform/$(TARGET)/, \
 
 vpath %.c $(PROJECTDIRS) \
           $(CONTIKIDIRS) $(APPDIRS) $(CONTIKI_TARGET_DIRS_CONCAT) \
-          $(CONTIKI_CPU)
+          $(CONTIKI_CPU) $(CONTIKI_CPU)/loader $(CONTIKI_CPU)/dbg-io
 
 vpath %.S $(CONTIKI_CPU)
 
@@ -96,8 +97,6 @@ interrupt-utils.o: interrupt-utils.c
 	$(LD) --relocatable -T $(CONTIKI_CPU)/merge-rodata.ld $< -o $@
 	$(STRIP) -K _init -K _fini --strip-unneeded -g -x $@
 
-%.elf: $^ $(STARTUP)
-	$(CC) $(LDFLAGS) $(CFLAGS) $(THUMB_FLAGS) -nostartfiles -o $@ $^
 
 # Add a namelist to the kernel
 %-syms.elf: $^ $(STARTUP)
@@ -107,6 +106,8 @@ interrupt-utils.o: interrupt-utils.c
 	-test -r $*.exclude && grep -v -f $*.exclude $*-nm.c >$*-tmp.c && mv $*-tmp.c $*-nm.c
 	$(CC) $(LDFLAGS) $(CFLAGS) $(THUMB_FLAGS) -nostartfiles -o $*-syms.elf $^ $*-nm.c
 
+%.elf: $^ $(STARTUP)
+	$(CC) $(LDFLAGS) $(CFLAGS) $(THUMB_FLAGS) -nostartfiles -o $@ $^
 
 %.ihx: %.elf
 	$(OBJCOPY) -O ihex $< $@
@@ -137,3 +138,4 @@ clean:
 	-rm *.ihx
 	-rm *.bin
 	-rm *-nm.c
+	-rm *.ko

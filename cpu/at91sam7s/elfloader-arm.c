@@ -17,7 +17,7 @@
 
 /* Adapted from elfloader-avr.c */
 
-void
+int
 elfloader_arch_relocate(int input_fd,
 			struct elfloader_output *output,
 			unsigned int sectionoffset,
@@ -25,7 +25,6 @@ elfloader_arch_relocate(int input_fd,
                         struct elf32_rela *rela, char *addr)
 {
   unsigned int type;
-  unsigned char instr[4];
 
   type = ELF32_R_TYPE(rela->r_info);
 
@@ -46,6 +45,7 @@ elfloader_arch_relocate(int input_fd,
     break;
   case R_ARM_THM_CALL:
     {
+      uint16_t instr[2];
       int32_t offset;
       char *base;
       cfs_read(input_fd, (char*)instr, 4);
@@ -53,7 +53,24 @@ elfloader_arch_relocate(int input_fd,
 	 and I can't think of a case when doing a relative call to
 	 a non-symbol position */
       base = sectionaddr + (rela->r_offset + 4);
-      if (((*(uint16_t*)(instr+2)) & 0x1800) == 0x0800) {
+
+      if (((instr[1]) & 0xe800) == 0xe800) {
+	/* BL or BLX */
+	if (((uint32_t)addr) & 0x1) {
+	  /* BL */
+	  instr[1] |= 0x1800;
+	} else {
+#if defined(__ARM_ARCH_4T__)
+	  return ELFLOADER_UNHANDLED_RELOC;
+#else
+	  /* BLX */
+	  instr[1] &= ~0x1800;
+	  instr[1] |= 0x0800;
+#endif
+	}
+      }
+      /* Adjust address for BLX */
+      if ((instr[1] & 0x1800) == 0x0800) {
 	addr = (char*)((((uint32_t)addr) & 0xfffffffd)
 		       | (((uint32_t)base) & 0x00000002));
       }
@@ -62,17 +79,17 @@ elfloader_arch_relocate(int input_fd,
 	PRINTF("elfloader-arm.c: offset %d too large for relative call\n",
 	       (int)offset);
       }
-    /*   PRINTF("%p: %04x %04x  offset: %d addr: %p\n", sectionaddr +rela->r_offset, *(uint16_t*)instr, *(uint16_t*)(instr+2), (int)offset, addr);  */
-      *(uint16_t*)instr = (*(uint16_t*)instr & 0xf800) | ((offset>>12)&0x07ff);
-      *(uint16_t*)(instr+2) = ((*(uint16_t*)(instr+2) & 0xf800)
-			       | ((offset>>1)&0x07ff));
+    /*   PRINTF("%p: %04x %04x  offset: %d addr: %p\n", sectionaddr +rela->r_offset, instr[0], instr[1], (int)offset, addr);  */
+      instr[0] = (instr[0] & 0xf800) | ((offset>>12)&0x07ff);
+      instr[1] = (instr[1] & 0xf800) | ((offset>>1)&0x07ff);
       elfloader_output_write_segment(output, (char*)instr, 4);
-  /*     PRINTF("cfs_write: %04x %04x\n",*(uint16_t*)instr, *(uint16_t*)(instr+2));  */
+  /*     PRINTF("cfs_write: %04x %04x\n",instr[0], instr[1]);  */
     }
     break;
     
   default:
     PRINTF("elfloader-arm.c: unsupported relocation type %d\n", type);
-    break;
+    return ELFLOADER_UNHANDLED_RELOC;
   }
+  return ELFLOADER_OK;
 }
