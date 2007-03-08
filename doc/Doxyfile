@@ -76,6 +76,7 @@ INPUT                  = contiki-mainpage.txt net.txt dev.txt \
                          lib.txt \
                          platform.txt \
                          uip-doc.txt \
+			../apps/rime/rime-doc.txt \
                          code-style.txt \
                          examples.txt \
                          uip-doc.txt build-system.txt \
@@ -102,7 +103,7 @@ INPUT                  = contiki-mainpage.txt net.txt dev.txt \
                          ../core/sys/mt.c \
                          ../core/dev/eeprom.h \
                          ../core/dev/radio.h \
-                         ../core/loader/elfloader-tmp.h \
+                         ../core/loader/elfloader.h \
                          ../core/loader/elfloader-arch.h \
                          pt-doc.txt \
                          ../core/cfs/cfs.h \
