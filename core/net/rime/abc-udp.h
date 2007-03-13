@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006, Swedish Institute of Computer Science.
+ * Copyright (c) 2007, Swedish Institute of Computer Science.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,44 +28,26 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: abc-udp.c,v 1.2 2007/03/13 13:02:33 adamdunkels Exp $
+ * $Id: abc-udp.h,v 1.1 2007/03/13 13:02:33 adamdunkels Exp $
+ */
+
+/**
+ * \addtogroup rime
+ * @{
  */
 
 /**
  * \file
- *         A Rime driver that uses UDP local broadcasts.
+ *         Header file for a Rime driver that uses UDP local broadcasts.
  * \author
  *         Adam Dunkels <adam@sics.se>
  */
 
-#include "net/rime.h"
+#ifndef __ABC_UDP_H__
+#define __ABC_UDP_H__
 
-#define PORT 8096
-static struct uip_udp_conn *c;
-/*---------------------------------------------------------------------------*/
-PROCESS(abc_udp_process, "abc_udp");
-PROCESS_THREAD(abc_udp_process, ev, data)
-{
-  struct abc_conn *c;
+PROCESS_NAME(abc_udp_process);
 
-  c = uip_udp_new(HTONS(PORT), NULL);
-  
-  PROCESS_BEGIN();
+#endif /* __ABC_UDP_H__ */
 
-  while(1) {
-    PROCESS_WAIT_EVENT_UNTIL(ev == tcpip_event && uip_newdata());
-    DEBUGF(0, "%d: abc_udp_process: new data %p\n", node_id, data);
-    rimebuf_copyfrom(uip_appdata, uip_datalen());
-    abc_input_packet();
-  }
-  
-  PROCESS_END();
-}
-/*---------------------------------------------------------------------------*/
-void
-abc_arch_send(u8_t *buf, int len)
-{
-  uip_udp_packet_send(c, uip_buf, uip_len);
-  return 1;
-}
-/*---------------------------------------------------------------------------*/
+/** @} */
