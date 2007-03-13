@@ -28,7 +28,12 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: abc.h,v 1.1 2007/02/28 16:38:51 adamdunkels Exp $
+ * $Id: abc.h,v 1.2 2007/03/13 13:01:48 adamdunkels Exp $
+ */
+
+/**
+ * \addtogroup rime
+ * @{
  */
 
 /**
@@ -51,12 +56,54 @@ struct abc_ulayer {
 };
 
 struct abc_conn {
-  struct uip_udp_conn *c;
+  struct abc_conn *next;
+  u16_t channel;
   const struct abc_ulayer *u;
 };
 
+/**
+ * \brief      Set up an anonymous best-effort broadcast connection
+ * \param c    A pointer to a struct abc_conn
+ * \param channel The channel on which the connection will operate
+ * \param u    A struct abc_ulayer with function pointers to functions that will be called when a packet has been received
+ *
+ *             This function sets up an abc connection on the
+ *             specified channel. The caller must have allocated the
+ *             memory for the struct abc_conn, usually by declaring it
+ *             as a static variable.
+ *
+ *             The struct abc_ulayer pointer must point to a structure
+ *             containing a pointer to a function that will be called
+ *             when a packet arrives on the channel.
+ *
+ */
 void abc_setup(struct abc_conn *c, u16_t channel,
 	       const struct abc_ulayer *u);
+
+/**
+ * \brief      Send an anonymous best-effort broadcast packet
+ * \param c    The abc connection on which the packet should be sent
+ * \retval     Non-zero if the packet could be sent, zero otherwise
+ *
+ *             This function sends an anonymous best-effort broadcast
+ *             packet. The packet must be present in the rimebuf
+ *             before this function is called.
+ *
+ *             The parameter c must point to an abc connection that
+ *             must have previously been set up with abc_setup().
+ *
+ */
 int abc_send(struct abc_conn *c);
 
+/**
+ * \brief      Pass a packet to the abc layer
+ *
+ *             This function is used by a device driver to pass an
+ *             incoming packet to the abc layer. The packet must be
+ *             present in the rimebuf buffer when this function is
+ *             called.
+ */
+void abc_input_packet(void);
+
 #endif /* __BC_H__ */
+/** @} */
