@@ -30,7 +30,7 @@
  *
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: node.c,v 1.3 2006/09/26 22:10:12 adamdunkels Exp $
+ * $Id: node.c,v 1.4 2007/03/13 13:07:48 adamdunkels Exp $
  */
 #include "node.h"
 #include "contiki.h"
@@ -64,7 +64,7 @@ node_init(int id, int posx, int posy, int b)
   }
   uip_sethostaddr(&addr);
 
-  drift = random() % 9572627217;
+  drift = random() % 95726272;
 
   init_node_log();
 }
@@ -79,7 +79,7 @@ node_time(void)
   
   gettimeofday(&tv, &tz);
  
-  return tv.tv_sec * 1000 + tv.tv_usec / 1000 + drift;
+  return tv.tv_sec * 1000 + tv.tv_usec / 1000/* + drift*/;
 }
 /*------------------------------------------------------------------------------*/
 unsigned long

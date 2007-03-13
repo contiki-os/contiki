@@ -30,7 +30,7 @@
  *
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: contiki-main.c,v 1.4 2006/10/23 09:01:06 adamdunkels Exp $
+ * $Id: contiki-main.c,v 1.5 2007/03/13 13:07:47 adamdunkels Exp $
  */
 
 #include "contiki.h"
@@ -41,6 +41,7 @@
 #include "net/tapdev-drv.h"
 #include "net/tapdev-service.h"
 #include "net/ethernode-drv.h"
+#include "net/ethernode-rime.h"
 #include "net/ethernode.h"
 #include "ether.h"
 
@@ -67,7 +68,7 @@ static const struct uip_eth_addr ethaddr = {{0x00,0x06,0x98,0x01,0x02,0x12}};
 SENSORS(&button_sensor, &pir_sensor, &vib_sensor, &radio_sensor);
 
 PROCINIT(&sensors_process, &etimer_process, &tcpip_process,
-	 &ethernode_drv_process,
+	 &ethernode_drv_process, &ethernode_rime_process,
 	 &uip_fw_process);
 
 #if 0
@@ -166,7 +167,7 @@ contiki_main(int flag)
   leds_green(LEDS_ON);
 
   autostart_start(autostart_processes);
-
+  
   while(1) {
     int n;
     n = process_run();

@@ -30,53 +30,53 @@
  *
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: ether.h,v 1.4 2007/03/13 13:07:48 adamdunkels Exp $
+ * $Id: ethernode-rime.c,v 1.1 2007/03/13 13:07:48 adamdunkels Exp $
  */
-#ifndef __ETHER_H__
-#define __ETHER_H__
 
 #include "contiki.h"
-#include "sensor.h"
 
-struct ether_packet {
-  struct ether_packet *next;
-  char data[1500];
-  int len;
-  int x, y;
-};
+#include "ethernode.h"
 
+#include "net/rime.h"
 
-void ether_send_done(void);
+PROCESS(ethernode_rime_process, "Ethernode Rime driver");
 
-u8_t ether_send(char *data, int len);
-void ether_set_leds(int leds);
-void ether_set_text(char *text);
+/*---------------------------------------------------------------------------*/
+PROCESS_THREAD(ethernode_rime_process, ev, data)
+{
+  PROCESS_BEGIN();
 
+  printf("ethernode_rime_process\n");
+  
+  while(1) {
+    process_poll(&ethernode_rime_process);
+    PROCESS_WAIT_EVENT();
+    
+    /* Poll Ethernet device to see if there is a frame avaliable. */
+    {
+      u16_t len;
 
-void ether_poll(void);
-void ether_server_init(void);
-void ether_client_init(int port);
-void ether_tick(void);
+      rimebuf_clear();
+      
+      len = ethernode_poll(rimebuf_dataptr(), RIMEBUF_SIZE);
 
+      if(len > 0) {
 
-u16_t ether_client_poll(u8_t *buf, int len);
-void  ether_server_poll(void);
-
-void ether_put(char *packet, int len, int src_x, int src_y);
-
-void ether_send_sensor_data(struct sensor_data *d, int srcx, int srcy, int strength);
-
-
-struct ether_packet * ether_packets(void);
-
-clock_time_t ether_time(void);
-
-#define ETHER_PORT 4999
-/*#define ETHER_STRENGTH 24*/
-int ether_strength(void);
-void ether_set_strength(int s);
-
-
-void ether_set_collisions(int c);
-
-#endif /* __ETHER_H__ */
+	rimebuf_set_datalen(len);
+	
+	printf("ethernode_rime_process: received len %d\n",
+	       len);
+	abc_input_packet();
+      }
+    }
+  }
+  PROCESS_END();
+    
+}
+/*---------------------------------------------------------------------------*/
+void
+abc_arch_send(u8_t *buf, int len)
+{
+  ethernode_send_buf(buf, len);
+}
+/*---------------------------------------------------------------------------*/

@@ -30,7 +30,7 @@
  *
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: ethernode.c,v 1.3 2006/10/23 09:01:06 adamdunkels Exp $
+ * $Id: ethernode.c,v 1.4 2007/03/13 13:07:48 adamdunkels Exp $
  */
 /**
  * \file
@@ -121,22 +121,24 @@ ethernode_init(int port)
  */
 /*-------------------------------------------------------------------------------*/
 int
-ethernode_poll(void)
+ethernode_poll(u8_t *buf, int bufsize)
 {
   int len;
-  struct hdr *hdr = (struct hdr *)uip_buf;
+  u8_t tmpbuf[UIP_BUFSIZE];
+  struct hdr *hdr = (struct hdr *)tmpbuf;
   
-  len = ether_client_poll();
+  len = ether_client_poll(tmpbuf, UIP_BUFSIZE);
   if(len == 0) {
     return 0;
   }
   
-  /*  printf("ethernode_poll: received data packet with len %d\n", len);*/
+  /*  printf("ethernode_poll: received data packet with len %d type %d\n", len, hdr->type);*/
 
   switch(hdr->type) {
   case TYPE_DATA:
     if(hdr->dest == state.id ||
        hdr->dest == ID_BROADCAST) {
+      memcpy(buf, tmpbuf + HDR_LEN, bufsize);
       return len - HDR_LEN;
     }
     break;
@@ -181,10 +183,24 @@ ethernode_send(void)
 
   dest = ID_BROADCAST;
   
-  usleep(100 * (random_rand() % 1000));
+  usleep(1000 * (random_rand() % 1000));
 
   do_send(TYPE_DATA, dest, hdr, len);
 
   return UIP_FW_OK;
+}
+/*-------------------------------------------------------------------------------*/
+void
+ethernode_send_buf(u8_t *buf, int len)
+{
+  char tmpbuf[UIP_BUFSIZE + HDR_LEN];
+  struct hdr *hdr = (struct hdr *)tmpbuf;
+  u8_t dest;
+
+  memcpy(&tmpbuf[HDR_LEN], buf, len);
+  len = len + HDR_LEN;
+
+  dest = ID_BROADCAST;
+  do_send(TYPE_DATA, dest, hdr, len);
 }
 /*-------------------------------------------------------------------------------*/

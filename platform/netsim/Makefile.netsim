@@ -12,7 +12,8 @@ SENSORS = sensors.c beep.c button-sensor.c pir-sensor.c vib-sensor.c \
 NETSIM = ether.c ethernode.c ethernode-drv.c lpm.c \
 	 tapdev-drv.c tapdev-service.c tapdev.c rs232.c flash.c \
 	 node.c nodes.c sensor.c display.c random.c radio.c \
-	 dlloader.c main.c init.c contiki-main.c symtab.c symbols.c tr1001.c tr1001-drv.c
+	 dlloader.c main.c netsim-init.c contiki-main.c symtab.c symbols.c tr1001.c tr1001-drv.c \
+	ethernode-rime.c
 
 CONTIKI_TARGET_SOURCEFILES = $(NETSIM) $(SENSORS)
 
@@ -26,7 +27,7 @@ include $(CONTIKI)/cpu/x86/Makefile.x86
 
 ### Compiler definitions
 CC       = gcc
-LD       = ld
+LD       = gcc
 AS       = as
 OBJCOPY  = objcopy
 STRIP    = strip

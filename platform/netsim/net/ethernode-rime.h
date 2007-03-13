@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004, Swedish Institute of Computer Science.
+ * Copyright (c) 2007, Swedish Institute of Computer Science.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,55 +28,21 @@
  *
  * This file is part of the Contiki operating system.
  *
- * Author: Adam Dunkels <adam@sics.se>
- *
- * $Id: ether.h,v 1.4 2007/03/13 13:07:48 adamdunkels Exp $
+ * $Id: ethernode-rime.h,v 1.1 2007/03/13 13:07:48 adamdunkels Exp $
  */
-#ifndef __ETHER_H__
-#define __ETHER_H__
+
+/**
+ * \file
+ *         A brief description of what this file is.
+ * \author
+ *         Adam Dunkels <adam@sics.se>
+ */
+
+#ifndef __ETHERNODE_RIME_H__
+#define __ETHERNODE_RIME_H__
 
 #include "contiki.h"
-#include "sensor.h"
 
-struct ether_packet {
-  struct ether_packet *next;
-  char data[1500];
-  int len;
-  int x, y;
-};
+PROCESS_NAME(ethernode_rime_process);
 
-
-void ether_send_done(void);
-
-u8_t ether_send(char *data, int len);
-void ether_set_leds(int leds);
-void ether_set_text(char *text);
-
-
-void ether_poll(void);
-void ether_server_init(void);
-void ether_client_init(int port);
-void ether_tick(void);
-
-
-u16_t ether_client_poll(u8_t *buf, int len);
-void  ether_server_poll(void);
-
-void ether_put(char *packet, int len, int src_x, int src_y);
-
-void ether_send_sensor_data(struct sensor_data *d, int srcx, int srcy, int strength);
-
-
-struct ether_packet * ether_packets(void);
-
-clock_time_t ether_time(void);
-
-#define ETHER_PORT 4999
-/*#define ETHER_STRENGTH 24*/
-int ether_strength(void);
-void ether_set_strength(int s);
-
-
-void ether_set_collisions(int c);
-
-#endif /* __ETHER_H__ */
+#endif /* __ETHERNODE_RIME_H__ */

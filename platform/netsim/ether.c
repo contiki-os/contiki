@@ -30,7 +30,7 @@
  *
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: ether.c,v 1.4 2006/10/23 09:01:06 adamdunkels Exp $
+ * $Id: ether.c,v 1.5 2007/03/13 13:07:47 adamdunkels Exp $
  */
 /**
  * \file
@@ -205,7 +205,7 @@ ether_client_init(int port)
 }
 /*-----------------------------------------------------------------------------------*/
 u16_t
-ether_client_poll(void)
+ether_client_poll(u8_t *buf, int bufsize)
 {
   int ret, len;
   fd_set fdset;
@@ -224,14 +224,14 @@ ether_client_poll(void)
     return 0;
   }
   if(FD_ISSET(sc, &fdset)) {
-    ret = recv(sc, &rxbuffer[0], UIP_BUFSIZE, 0);
+    ret = recv(sc, &rxbuffer[0], bufsize, 0);
     if(ret == -1) {
       perror("ether_client_poll: read");
       return 0;
     }
     len = ret;
     
-    memcpy(uip_buf, &rxbuffer[sizeof(struct ether_hdr)], len);
+    memcpy(buf, &rxbuffer[sizeof(struct ether_hdr)], len);
     radio_sensor_signal = hdr->signal;
 
     if(hdr->type == PTYPE_DATA && hdr->srcid != node.id) {
@@ -277,13 +277,13 @@ ether_server_poll(void)
     }
     if(FD_ISSET(s, &fdset)) {
       ret = recv(s, &rxbuffer[0], UIP_BUFSIZE, 0);
-      /*      printf("ether_poll: read %d bytes from (%d, %d)\n", ret, hdr->srcx, hdr->srcy);*/
       if(ret == -1) {
 	perror("ether_poll: read");
 	return;
       }
       switch(hdr->type) {
       case PTYPE_DATA:
+	/*	printf("ether_poll: read %d bytes from (%d, %d)\n", ret, hdr->srcx, hdr->srcy);*/
 	ether_put(rxbuffer, ret, hdr->srcx, hdr->srcy);
 	break;
       case PTYPE_LEDS:
@@ -402,7 +402,7 @@ ether_tick(void)
 
 	if(interference) {
 	  num_collisions++;
-	  /*	  printf("Collisions %d\n", num_collisions);*/
+	  printf("Collisions %d\n", num_collisions);
 	}
 	
 	if(!interference) {
