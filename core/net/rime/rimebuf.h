@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: rimebuf.h,v 1.1 2007/02/28 16:38:52 adamdunkels Exp $
+ * $Id: rimebuf.h,v 1.2 2007/03/13 10:27:36 adamdunkels Exp $
  */
 
 /**
@@ -38,37 +38,233 @@
  *         Adam Dunkels <adam@sics.se>
  */
 
-#ifndef __NETBUF_H__
-#define __NETBUF_H__
+#ifndef __RIMEBUF_H__
+#define __RIMEBUF_H__
 
 #include "contiki-net.h"
 
-#define NETBUF_SIZE 128
-#define NETBUF_HDR_SIZE 16
+/**
+ * \brief      The size of the rimebuf, in bytes
+ */
+#define RIMEBUF_SIZE 128
 
-void *rimebuf_dataptr(void);
-void *rimebuf_hdrptr(void);
+/**
+ * \brief      The size of the rimebuf header, in bytes
+ */
+#define RIMEBUF_HDR_SIZE 16
 
-u8_t rimebuf_hdrlen(void);
-
-u16_t rimebuf_len(void);
-void rimebuf_set_len(u16_t len);
-
-void rimebuf_reference(void *ptr, u16_t len);
-int rimebuf_is_reference(void);
-void *rimebuf_reference_ptr(void);
-
-int rimebuf_copyfrom(u8_t *from, u16_t len);
-
-int rimebuf_copyto(u8_t *to);
-int rimebuf_copyto_hdr(u8_t *to);
-
-
-
-int rimebuf_hdrextend(int size);
-int rimebuf_hdrreduce(int size);
-
+/**
+ * \brief      Clear and reset the rimebuf
+ *
+ *             This function clears the rimebuf and resets all
+ *             internal state pointers (header size, header pointer,
+ *             external data pointer). It is used before preparing a
+ *             packet in the rimebuf.
+ *
+ */
 void rimebuf_clear(void);
 
+/**
+ * \brief      Get a pointer to the data in the rimebuf
+ * \return     Pointer to the rimebuf data
+ *
+ *             This function is used to get a pointer to the data in
+ *             the rimebuf. The data is either stored in the rimebuf,
+ *             or referenced to an external location.
+ *
+ *             For outbound packets, the rimebuf consists of two
+ *             parts: header and data. The header is accessed with the
+ *             rimebuf_hdrptr() function.
+ *
+ *             For incoming packets, both the packet header and the
+ *             packet data is stored in the data portion of the
+ *             rimebuf. Thus this function is used to get a pointer to
+ *             the header for incoming packets.
+ *
+ */
+void *rimebuf_dataptr(void);
 
-#endif /* __NETBUF_H__ */
+/**
+ * \brief      Get a pointer to the header in the rimebuf, for outbound packets
+ * \return     Pointer to the rimebuf header
+ *
+ *             For outbound packets, the rimebuf consists of two
+ *             parts: header and data. This function is used to get a
+ *             pointer to the header in the rimebuf. The header is
+ *             stored in the rimebuf.
+ *
+ */
+void *rimebuf_hdrptr(void);
+
+/**
+ * \brief      Get the length of the header in the rimebuf, for outbound packets
+ * \return     Pointer to the rimebuf header
+ *
+ *             For outbound packets, the rimebuf consists of two
+ *             parts: header and data. This function is used to get
+ *             the length of the header in the rimebuf. The header is
+ *             stored in the rimebuf and accessed via the
+ *             rimebuf_hdrptr() function.
+ *
+ */
+u8_t rimebuf_hdrlen(void);
+
+
+/**
+ * \brief      Get the length of the data in the rimebuf
+ * \return     Pointer to the rimebuf header
+ *
+ *             For outbound packets, the rimebuf consists of two
+ *             parts: header and data. This function is used to get
+ *             the length of the data in the rimebuf. The data is
+ *             stored in the rimebuf and accessed via the
+ *             rimebuf_dataptr() function.
+ *
+ *             For incoming packets, both the packet header and the
+ *             packet data is stored in the data portion of the
+ *             rimebuf. This function is then used to get the total
+ *             length of the packet - both header and data.
+ *
+ */
+u16_t rimebuf_datalen(void);
+
+/**
+ * \brief      Set the length of the data in the rimebuf
+ * \param len  The length of the data
+ *
+ *             For outbound packets, the rimebuf consists of two
+ *             parts: header and data. This function is used to set
+ *             the length of the data in the rimebuf.
+ */
+void rimebuf_set_datalen(u16_t len);
+
+/**
+ * \brief      Point the rimebuf to external data
+ * \param ptr  A pointer to the external data
+ * \param len  The length of the external data
+ *
+ *             For outbound packets, the rimebuf consists of two
+ *             parts: header and data. This function is used to make
+ *             the rimebuf point to external data. The function also
+ *             specifies the length of the external data that the
+ *             rimebuf references.
+ */
+void rimebuf_reference(void *ptr, u16_t len);
+
+/**
+ * \brief      Check if the rimebuf references external data
+ * \retval     Non-zero if the rimebuf references external data, zero otherwise.
+ *
+ *             For outbound packets, the rimebuf consists of two
+ *             parts: header and data. This function is used to check
+ *             if the rimebuf points to external data that has
+ *             previously been referenced with rimebuf_reference().
+ *
+ */
+int rimebuf_is_reference(void);
+
+/**
+ * \brief      Get a pointer to external data referenced by the rimebuf
+ * \retval     A pointer to the external data
+ *
+ *             For outbound packets, the rimebuf consists of two
+ *             parts: header and data. The data may point to external
+ *             data that has previously been referenced with
+ *             rimebuf_reference(). This function is used to get a
+ *             pointer to the external data.
+ *
+ */
+void *rimebuf_reference_ptr(void);
+
+/**
+ * \brief      Copy referenced data from the external location into the rimebuf
+ *
+ *             This function copies external data that has previously
+ *             been referenced with rimebuf_reference() into the
+ *             rimebuf.
+ *
+ */
+void rimebuf_copy_reference(void);
+
+/**
+ * \brief      Copy from external data into the rimebuf
+ * \param from A pointer to the data from which to copy
+ * \param len  The size of the data to copy
+ * \retval     The number of bytes that was copied into the rimebuf
+ *
+ *             This function copies data from a pointer into the
+ *             rimebuf. If the data that is to be copied is larger
+ *             than the rimebuf, only the data that fits in the
+ *             rimebuf is copied. The number of bytes that could be
+ *             copied into the rimbuf is returned.
+ *
+ */
+int rimebuf_copyfrom(u8_t *from, u16_t len);
+
+/**
+ * \brief      Copy the entire rimebuf to an external buffer
+ * \param to   A pointer to the buffer to which the data is to be copied
+ * \retval     The number of bytes that was copied to the external buffer
+ *
+ *             This function copies the rimebuf to an external
+ *             buffer. Both the data portion and the header portion of
+ *             the rimebuf is copied. If the rimebuf referenced
+ *             external data (referenced with rimebuf_reference()) the
+ *             external data is copied.
+ *
+ *             The external buffer to which the rimebuf is to be
+ *             copied must be able to accomodate at least
+ *             (RIMEBUF_SIZE + RIMEBUF_HDR_SIZE) bytes. The number of
+ *             bytes that was copied to the external buffer is
+ *             returned.
+ *
+ */
+int rimebuf_copyto(u8_t *to);
+
+/**
+ * \brief      Copy the header portion of the rimebuf to an external buffer
+ * \param to   A pointer to the buffer to which the data is to be copied
+ * \retval     The number of bytes that was copied to the external buffer
+ *
+ *             This function copies the header portion of the rimebuf
+ *             to an external buffer.
+ *
+ *             The external buffer to which the rimebuf is to be
+ *             copied must be able to accomodate at least
+ *             RIMEBUF_HDR_SIZE bytes. The number of bytes that was
+ *             copied to the external buffer is returned.
+ *
+ */
+int rimebuf_copyto_hdr(u8_t *to);
+
+/**
+ * \brief      Extend the header of the rimebuf, for outbound packets
+ * \param size The number of bytes the header should be extended
+ * \retval     Non-zero if the header could be extended, zero otherwise
+ *
+ *             This function is used to allocate extra space in the
+ *             header portion in the rimebuf, when preparing outbound
+ *             packets for transmission. If the function is unable to
+ *             allocate sufficient header space, the function returns
+ *             zero and does not allocate anything.
+ *
+ */
+int rimebuf_hdrextend(int size);
+
+/**
+ * \brief      Reduce the header in the rimebuf, for incoming packets
+ * \param size The number of bytes the header should be reduced
+ * \retval     Non-zero if the header could be reduced, zero otherwise
+ *
+ *             This function is used to remove the first part of the
+ *             header in the rimebuf, when processing incoming
+ *             packets. If the function is unable to remove the
+ *             requested amount of header space, the function returns
+ *             zero and does not allocate anything.
+ *
+ */
+int rimebuf_hdrreduce(int size);
+
+
+
+#endif /* __RIMEBUF_H__ */
