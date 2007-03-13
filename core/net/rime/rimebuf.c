@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: rimebuf.c,v 1.1 2007/02/28 16:38:52 adamdunkels Exp $
+ * $Id: rimebuf.c,v 1.2 2007/03/13 10:28:16 adamdunkels Exp $
  */
 
 /**
@@ -46,12 +46,11 @@
 
 
 static u16_t buflen, bufptr;
-static u8_t rimebuf[NETBUF_SIZE];
+static u8_t hdrptr;
+static u8_t rimebuf[RIMEBUF_SIZE + RIMEBUF_HDR_SIZE];
 
 static u8_t *rimebufptr;
 
-static u8_t hdrptr;
-static u8_t rimebuf_hdr[NETBUF_HDR_SIZE];
 
 
 /*---------------------------------------------------------------------------*/
@@ -59,9 +58,9 @@ void
 rimebuf_clear(void)
 {
   buflen = bufptr = 0;
-  hdrptr = NETBUF_HDR_SIZE;
+  hdrptr = RIMEBUF_HDR_SIZE;
 
-  rimebufptr = rimebuf;
+  rimebufptr = &rimebuf[RIMEBUF_HDR_SIZE];
 }
 /*---------------------------------------------------------------------------*/
 int
@@ -70,51 +69,60 @@ rimebuf_copyfrom(u8_t *from, u16_t len)
   u16_t l;
 
   rimebuf_clear();
-  l = len > NETBUF_SIZE? NETBUF_SIZE: len;
+  l = len > RIMEBUF_SIZE? RIMEBUF_SIZE: len;
   memcpy(rimebufptr, from, l);
   buflen = l;
   return l;
 }
 /*---------------------------------------------------------------------------*/
+void
+rimebuf_copy_reference(void)
+{
+  if(rimebuf_is_reference()) {
+    memcpy(&rimebuf[RIMEBUF_HDR_SIZE], rimebuf_reference_ptr(),
+	   rimebuf_datalen());
+  }
+}
+/*---------------------------------------------------------------------------*/
 int
 rimebuf_copyto_hdr(u8_t *to)
 {
-  {
+  if(DEBUG_LEVEL > 0) {
     int i;
     DEBUGF(0, "rimebuf_write_hdr: header:\n");
-    for(i = hdrptr; i < NETBUF_HDR_SIZE; ++i) {
-      DEBUGF(0, "0x%02x, ", rimebuf_hdr[i]);
+    for(i = hdrptr; i < RIMEBUF_HDR_SIZE; ++i) {
+      DEBUGF(0, "0x%02x, ", rimebuf[i]);
     }
     DEBUGF(0, "\n");
   }
-  memcpy(to, rimebuf_hdr + hdrptr, NETBUF_HDR_SIZE - hdrptr);
-  return NETBUF_HDR_SIZE - hdrptr;
+  memcpy(to, rimebuf + hdrptr, RIMEBUF_HDR_SIZE - hdrptr);
+  return RIMEBUF_HDR_SIZE - hdrptr;
 }
 /*---------------------------------------------------------------------------*/
 int
 rimebuf_copyto(u8_t *to)
 {
-  {
+  if(DEBUG_LEVEL > 0) {
     int i;
     char buffer[1000];
     char *bufferptr = buffer;
     
     bufferptr[0] = 0;
-    for(i = hdrptr; i < NETBUF_HDR_SIZE; ++i) {
-      bufferptr += sprintf(bufferptr, "0x%02x, ", rimebuf_hdr[i]);
+    for(i = hdrptr; i < RIMEBUF_HDR_SIZE; ++i) {
+      bufferptr += sprintf(bufferptr, "0x%02x, ", rimebuf[i]);
     }
     DEBUGF(0, "rimebuf_write: header: %s\n", buffer);
     bufferptr = buffer;
     bufferptr[0] = 0;
     for(i = bufptr; i < buflen + bufptr; ++i) {
-      bufferptr += sprintf(bufferptr, "0x%02x, ", rimebuf[i]);
+      bufferptr += sprintf(bufferptr, "0x%02x, ", rimebufptr[i]);
     }
     DEBUGF(0, "rimebuf_write: data: %s\n", buffer);
   }
-  memcpy(to, rimebuf_hdr + hdrptr, NETBUF_HDR_SIZE - hdrptr);
-  memcpy(to + NETBUF_HDR_SIZE - hdrptr, rimebufptr + bufptr,
+  memcpy(to, rimebuf + hdrptr, RIMEBUF_HDR_SIZE - hdrptr);
+  memcpy(to + RIMEBUF_HDR_SIZE - hdrptr, rimebufptr + bufptr,
 	 buflen);
-  return NETBUF_HDR_SIZE - hdrptr + buflen;
+  return RIMEBUF_HDR_SIZE - hdrptr + buflen;
 }
 /*---------------------------------------------------------------------------*/
 int
@@ -141,7 +149,7 @@ rimebuf_hdrreduce(int size)
 }
 /*---------------------------------------------------------------------------*/
 void
-rimebuf_set_len(u16_t len)
+rimebuf_set_datalen(u16_t len)
 {
   DEBUGF(0, "rimebuf_set_len: len %d\n", len);
   buflen = len;
@@ -150,13 +158,13 @@ rimebuf_set_len(u16_t len)
 void *
 rimebuf_dataptr(void)
 {
-  return (void *)(&rimebuf[bufptr]);
+  return (void *)(&rimebuf[bufptr + RIMEBUF_HDR_SIZE]);
 }
 /*---------------------------------------------------------------------------*/
 void *
 rimebuf_hdrptr(void)
 {
-  return (void *)(&rimebuf_hdr[hdrptr]);
+  return (void *)(&rimebuf[hdrptr]);
 }
 /*---------------------------------------------------------------------------*/
 void
@@ -170,7 +178,7 @@ rimebuf_reference(void *ptr, u16_t len)
 int
 rimebuf_is_reference(void)
 {
-  return rimebufptr != rimebuf;
+  return rimebufptr != &rimebuf[RIMEBUF_HDR_SIZE];
 }
 /*---------------------------------------------------------------------------*/
 void *
@@ -180,7 +188,7 @@ rimebuf_reference_ptr(void)
 }
 /*---------------------------------------------------------------------------*/
 u16_t
-rimebuf_len(void)
+rimebuf_datalen(void)
 {
   return buflen;
 }
@@ -188,6 +196,12 @@ rimebuf_len(void)
 u8_t
 rimebuf_hdrlen(void)
 {
-  return NETBUF_HDR_SIZE - hdrptr;
+  return RIMEBUF_HDR_SIZE - hdrptr;
+}
+/*---------------------------------------------------------------------------*/
+u16_t
+rimebuf_totlen(void)
+{
+  return rimebuf_hdrlen() + rimebuf_datalen();
 }
 /*---------------------------------------------------------------------------*/
