@@ -30,7 +30,7 @@
  *
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: ethernode.c,v 1.4 2007/03/13 13:07:48 adamdunkels Exp $
+ * $Id: ethernode.c,v 1.5 2007/03/14 00:32:30 adamdunkels Exp $
  */
 /**
  * \file
@@ -90,6 +90,7 @@ do_send(u8_t type, u8_t dest, struct hdr *hdr, int len)
 
   ++state.seqno;
 
+  /*  printf("ether_send len %d\n", len);*/
   return ether_send((char *)hdr, len);
   
 }

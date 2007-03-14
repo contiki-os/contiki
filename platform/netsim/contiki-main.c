@@ -30,7 +30,7 @@
  *
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: contiki-main.c,v 1.5 2007/03/13 13:07:47 adamdunkels Exp $
+ * $Id: contiki-main.c,v 1.6 2007/03/14 00:32:30 adamdunkels Exp $
  */
 
 #include "contiki.h"
@@ -40,7 +40,7 @@
 #include "net/tapdev.h"
 #include "net/tapdev-drv.h"
 #include "net/tapdev-service.h"
-#include "net/ethernode-drv.h"
+#include "net/ethernode-uip.h"
 #include "net/ethernode-rime.h"
 #include "net/ethernode.h"
 #include "ether.h"
@@ -57,8 +57,8 @@
 
 static struct uip_fw_netif tapif =
   {UIP_FW_NETIF(0,0,0,0, 0,0,0,0, tapdev_send)};
-static struct uip_fw_netif ethernodeif =
-  {UIP_FW_NETIF(172,16,0,0, 255,255,0,0, ethernode_drv_send)};
+/*static struct uip_fw_netif ethernodeif =
+  {UIP_FW_NETIF(172,16,0,0, 255,255,0,0, ethernode_drv_send)};*/
 
 static const struct uip_eth_addr ethaddr = {{0x00,0x06,0x98,0x01,0x02,0x12}};
 
@@ -68,7 +68,8 @@ static const struct uip_eth_addr ethaddr = {{0x00,0x06,0x98,0x01,0x02,0x12}};
 SENSORS(&button_sensor, &pir_sensor, &vib_sensor, &radio_sensor);
 
 PROCINIT(&sensors_process, &etimer_process, &tcpip_process,
-	 &ethernode_drv_process, &ethernode_rime_process,
+	 /*	 &ethernode_uip_process,*/
+	 &ethernode_rime_process,
 	 &uip_fw_process);
 
 #if 0
@@ -149,20 +150,23 @@ void
 contiki_main(int flag)
 {
   random_init(getpid());
+  srand(getpid());
 
   leds_init();
   
   process_init();
 
   procinit_init();
- 
+
+  rime_init();
+  
   if(flag == 1) {
     process_start(&tapdev_drv_process, NULL);
-    uip_fw_register(&ethernodeif);
+    /*    uip_fw_register(&ethernodeif);*/
     uip_fw_default(&tapif);
     printf("uip_hostaddr %02x%02x\n", uip_hostaddr.u16[0], uip_hostaddr.u16[1]);
   } else {
-    uip_fw_default(&ethernodeif);
+    /*    uip_fw_default(&ethernodeif);*/
   }
   leds_green(LEDS_ON);
 

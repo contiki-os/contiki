@@ -30,7 +30,7 @@
  *
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: ethernode-drv.c,v 1.5 2007/03/13 13:07:48 adamdunkels Exp $
+ * $Id: ethernode-uip.c,v 1.1 2007/03/14 00:32:30 adamdunkels Exp $
  */
 
 #include "contiki.h"
@@ -43,26 +43,26 @@
 
 #include "node-id.h"
 
-PROCESS(ethernode_drv_process, "Ethernode driver");
+PROCESS(ethernode_uip_process, "Ethernode driver");
 
 enum { NULLEVENT };
 /*---------------------------------------------------------------------------*/
 u8_t
-ethernode_drv_send(void)
+ethernode_uip_send(void)
 {
-  /*  printf("%d: ethernode_drv_send\n", node_id);*/
+  /*  printf("%d: ethernode_uip_send\n", node_id);*/
   uip_len = hc_compress(&uip_buf[UIP_LLH_LEN], uip_len);
 
   return ethernode_send();
 }
 /*---------------------------------------------------------------------------*/
-PROCESS_THREAD(ethernode_drv_process, ev, data)
+PROCESS_THREAD(ethernode_uip_process, ev, data)
 {
   static int drop = 3;
   PROCESS_BEGIN();
 
   while(1) {
-    process_poll(&ethernode_drv_process);
+    process_poll(&ethernode_uip_process);
     PROCESS_WAIT_EVENT();
     
     /* Poll Ethernet device to see if there is a frame avaliable. */

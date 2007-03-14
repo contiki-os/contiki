@@ -1,5 +1,4 @@
-/*
- * Copyright (c) 2004, Swedish Institute of Computer Science.
+/* Copyright (c) 2004, Swedish Institute of Computer Science.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,54 +29,17 @@
  *
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: ethernode-rime.c,v 1.2 2007/03/14 00:32:30 adamdunkels Exp $
+ * $Id: ethernode-uip.h,v 1.1 2007/03/14 00:32:30 adamdunkels Exp $
  */
+#ifndef __ETHERNODE_UIP_H__
+#define __ETHERNODE_UIP_H__
 
 #include "contiki.h"
 
-#include "ethernode.h"
+PROCESS_NAME(ethernode_uip_process);
 
-#include "net/rime.h"
+u8_t ethernode_uip_send(void);
 
-PROCESS(ethernode_rime_process, "Ethernode Rime driver");
+u8_t ethernode_uip_send(void);
 
-/*---------------------------------------------------------------------------*/
-PROCESS_THREAD(ethernode_rime_process, ev, data)
-{
-  PROCESS_BEGIN();
-
-  /*  printf("ethernode_rime_process\n");*/
-  
-  while(1) {
-    process_poll(&ethernode_rime_process);
-    PROCESS_WAIT_EVENT();
-    
-    /* Poll Ethernet device to see if there is a frame avaliable. */
-    {
-      u16_t len;
-
-      rimebuf_clear();
-      
-      len = ethernode_poll(rimebuf_dataptr(), RIMEBUF_SIZE);
-
-      if(len > 0) {
-
-	rimebuf_set_datalen(len);
-	
-	/*	printf("ethernode_rime_process: received len %d\n",
-		len);*/
-	abc_input_packet();
-      }
-    }
-  }
-  PROCESS_END();
-    
-}
-/*---------------------------------------------------------------------------*/
-void
-abc_driver_send(void)
-{
-  /*  printf("ethernode_rime: sending %d bytes\n", rimebuf_totlen());*/
-  ethernode_send_buf(rimebuf_hdrptr(), rimebuf_totlen());
-}
-/*---------------------------------------------------------------------------*/
+#endif /* __ETHERNODE_UIP_H__ */
