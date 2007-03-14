@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: rimebuf.h,v 1.2 2007/03/13 10:27:36 adamdunkels Exp $
+ * $Id: rimebuf.h,v 1.3 2007/03/14 00:30:11 adamdunkels Exp $
  */
 
 /**
@@ -51,7 +51,7 @@
 /**
  * \brief      The size of the rimebuf header, in bytes
  */
-#define RIMEBUF_HDR_SIZE 16
+#define RIMEBUF_HDR_SIZE 32
 
 /**
  * \brief      Clear and reset the rimebuf
@@ -177,14 +177,20 @@ int rimebuf_is_reference(void);
 void *rimebuf_reference_ptr(void);
 
 /**
- * \brief      Copy referenced data from the external location into the rimebuf
+ * \brief      Compact the rimebuf
  *
- *             This function copies external data that has previously
- *             been referenced with rimebuf_reference() into the
- *             rimebuf.
+ *             This function compacts the rimebuf by copying the data
+ *             portion of the rimebuf so that becomes consecutive to
+ *             the header. It also copies external data that has
+ *             previously been referenced with rimebuf_reference()
+ *             into the rimebuf.
+ *
+ *             This function is called by the Rime code before a
+ *             packet is to be sent by a device driver. This assures
+ *             that the entire packet is consecutive in memory.
  *
  */
-void rimebuf_copy_reference(void);
+void rimebuf_compact(void);
 
 /**
  * \brief      Copy from external data into the rimebuf
