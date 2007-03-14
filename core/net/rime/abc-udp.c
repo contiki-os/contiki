@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: abc-udp.c,v 1.2 2007/03/13 13:02:33 adamdunkels Exp $
+ * $Id: abc-udp.c,v 1.3 2007/03/14 00:29:05 adamdunkels Exp $
  */
 
 /**
@@ -63,9 +63,8 @@ PROCESS_THREAD(abc_udp_process, ev, data)
 }
 /*---------------------------------------------------------------------------*/
 void
-abc_arch_send(u8_t *buf, int len)
+abc_driver_send(void)
 {
-  uip_udp_packet_send(c, uip_buf, uip_len);
-  return 1;
+  uip_udp_packet_send(c, rimebuf_hdrptr(), rimebuf_totlen());
 }
 /*---------------------------------------------------------------------------*/

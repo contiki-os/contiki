@@ -30,7 +30,7 @@
  *
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: abc.c,v 1.1 2007/03/13 13:01:48 adamdunkels Exp $
+ * $Id: abc.c,v 1.2 2007/03/14 00:29:05 adamdunkels Exp $
  */
 
 /**
@@ -59,8 +59,6 @@ void
 abc_setup(struct abc_conn *c, u16_t channel,
 	  const struct abc_ulayer *ulayer)
 {
-  struct channel *chan;
-
   c->channel = channel;
   c->u = ulayer;
 
@@ -73,9 +71,11 @@ abc_send(struct abc_conn *c)
   if(rimebuf_hdrextend(sizeof(struct abc_hdr))) {
     struct abc_hdr *hdr = rimebuf_hdrptr();
 
+    DEBUGF(1, "%d: abc: abc_send on channel %d\n", node_id, c->channel);
+    
     hdr->channel = c->channel;
-    rimebuf_copy_reference();
-    abc_arch_send(rimebuf_hdrptr(), rimebuf_totlen());
+    rimebuf_compact();
+    abc_driver_send();
     return 1;
   }
   return 0;
@@ -88,6 +88,8 @@ abc_input_packet(void)
   struct abc_conn *c;
 
   hdr = rimebuf_dataptr();
+
+  DEBUGF(1, "%d: abc: abc_input_packet on channel %d\n", node_id, hdr->channel);
   
   if(rimebuf_hdrreduce(sizeof(struct abc_hdr))) {
 
