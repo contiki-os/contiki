@@ -1,2 +1,3 @@
 CONTIKI_SOURCEFILES += rimebuf.c queuebuf.c ctimer.c neighbor.c rime.c \
-               ibc.c uc.c suc.c ruc.c sibc.c sabc.c ccsabc.c abc.c abc-udp.c
+               ibc.c uc.c suc.c ruc.c sibc.c sabc.c ccsabc.c abc.c abc-udp.c \
+               nf.c
