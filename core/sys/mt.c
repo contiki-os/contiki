@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004, Swedish Institute of Computer Science.
+ * Copyright (c) 2006, Swedish Institute of Computer Science.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,7 +30,7 @@
  *
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: mt.c,v 1.3 2006/09/26 20:59:51 adamdunkels Exp $
+ * $Id: mt.c,v 1.4 2007/03/15 21:46:07 adamdunkels Exp $
  */
 
 /**
