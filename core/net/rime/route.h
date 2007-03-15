@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007, Swedish Institute of Computer Science.
+ * Copyright (c) 2005, Swedish Institute of Computer Science.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,24 +28,34 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: channel-assignments.h,v 1.2 2007/03/15 19:52:51 adamdunkels Exp $
+ * $Id: route.h,v 1.1 2007/03/15 19:52:51 adamdunkels Exp $
  */
 
 /**
  * \file
- *         A brief description of what this file is.
+ *         Routing tables for the micro implementation of the AODV ad hoc routing protocol
  * \author
  *         Adam Dunkels <adam@sics.se>
  */
 
-#ifndef __CHANNEL_ASSIGNMENTS_H__
-#define __CHANNEL_ASSIGNMENTS_H__
+#ifndef __ROUTE_H__
+#define __ROUTE_H__
 
-#define CHANNEL_TREE_META 16
-#define CHANNEL_TREE_DATA 17
+#include "contiki-net.h"
+#include "net/rime.h"
 
-#define CHANNEL_MESH_RREQ 18
-#define CHANNEL_MESH_RREP 19
-#define CHANNEL_MESH_DATA 20
+struct route_entry {
+  struct route_entry *next;
+  rimeaddr_t dest;
+  rimeaddr_t nexthop;
+  u16_t seqno;
+  u16_t hop_count;
+};
 
-#endif /* __CHANNEL_ASSIGNMENTS_H__ */
+int route_add(rimeaddr_t *dest, rimeaddr_t *nexthop,
+	      u16_t hop_count, u16_t seqno);
+struct route_entry *route_lookup(rimeaddr_t *dest);
+void route_remove(struct route_entry *e);
+void route_flush_all(void);
+
+#endif /* __ROUTE_H__ */

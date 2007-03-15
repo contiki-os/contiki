@@ -28,24 +28,30 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: channel-assignments.h,v 1.2 2007/03/15 19:52:51 adamdunkels Exp $
+ * $Id: mesh.h,v 1.1 2007/03/15 19:52:51 adamdunkels Exp $
  */
 
 /**
  * \file
- *         A brief description of what this file is.
+ *         Header file for the Rime mesh routing protocol
  * \author
  *         Adam Dunkels <adam@sics.se>
  */
 
-#ifndef __CHANNEL_ASSIGNMENTS_H__
-#define __CHANNEL_ASSIGNMENTS_H__
+#ifndef __MESH_H__
+#define __MESH_H__
 
-#define CHANNEL_TREE_META 16
-#define CHANNEL_TREE_DATA 17
+#include "net/rime.h"
 
-#define CHANNEL_MESH_RREQ 18
-#define CHANNEL_MESH_RREP 19
-#define CHANNEL_MESH_DATA 20
+struct mesh_callbacks {
+  void (* sent)(void);
+  void (* recv)(rimeaddr_t *from);
+};
 
-#endif /* __CHANNEL_ASSIGNMENTS_H__ */
+void mesh_init(const struct mesh_callbacks *callbacks,
+	       void (* data_send_function)(rimeaddr_t *next));
+int mesh_send(rimeaddr_t *dest);
+
+void mesh_data_received(rimeaddr_t *from);
+
+#endif /* __MESH_H__ */
