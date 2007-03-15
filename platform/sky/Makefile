@@ -1,4 +1,4 @@
-# $Id: Makefile,v 1.10 2007/01/29 14:28:10 bg- Exp $
+# $Id: Makefile,v 1.11 2007/03/15 21:50:23 adamdunkels Exp $
 #
 # This makefile requires GNU make!
 
@@ -27,7 +27,8 @@ ARCH=msp430.o minileds.o watchdog.o light.o button.o spi.o ds2411.o rom.o xmem.o
 SYSTEM=process.o procinit.o service.o clock.o etimer.o timer.o \
         cmod.o cle.o symtab.o
 UIP=uip.o uiplib.o tcpip.o uip-fw.o uip-fw-service.o uipbuf.o \
-    tcpdump.o psock.o dhcpc.o uaodv.o uaodv-rt.o uip-udp-packet.o
+    tcpdump.o psock.o dhcpc.o uaodv.o uaodv-rt.o uip-udp-packet.o \
+    uip-ipchksum.o
 UIPDRIVERS=slip.o slip_uart1.o \
            cc2420.o cc2420_uart0.o cc2420_send_ip.o cc2420_send_uaodv.o 
 LIBS=memb.o list.o malloc.o realloc.o malloc_compact.o rand.o assert.o crtk.o
