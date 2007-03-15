@@ -1,6 +1,8 @@
 #ifndef __CONTIKI_CONF_H__
 #define __CONTIKI_CONF_H__
 
+#define IRQ_PORT1_VECTOR 1
+
 #define IRQ_PORT1 0x01
 #define IRQ_PORT2 0x02
 #define IRQ_ADC   0x03
