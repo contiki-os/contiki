@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: msp430.c,v 1.4 2007/01/30 20:01:45 bg- Exp $
+ * @(#)$Id: msp430.c,v 1.5 2007/03/15 21:47:45 adamdunkels Exp $
  */
 #include <io.h>
 #include <signal.h>
@@ -94,9 +94,7 @@ msp430_init_dco(void)
 static void
 init_ports(void)
 {
-  /* Turn everything off, device drivers are supposed to enable what is
-   * really needed!
-   */
+  /* Turn everything off, device drivers enable what is needed. */
 
   /* All configured for digital I/O */
 #ifdef P1SEL
@@ -160,10 +158,11 @@ msp430_cpu_init(void)
   init_ports();
   msp430_init_dco();
   eint();
-  if((uintptr_t)cur_break & 1)	/* Workaround for msp430-ld bug! */
+  if((uintptr_t)cur_break & 1) { /* Workaround for msp430-ld bug! */
     cur_break++;
+  }
 }
-
+/*---------------------------------------------------------------------------*/
 #define asmv(arg) __asm__ __volatile__(arg)
 
 #define STACK_EXTRA 32
@@ -192,7 +191,7 @@ sbrk(int incr)
   */
   return old_break;
 }
-
+/*---------------------------------------------------------------------------*/
 /*
  * Mask all interrupts that can be masked.
  */
@@ -205,7 +204,7 @@ splhigh_(void)
   asmv("bic %0, r2" : : "i" (GIE));
   return sr & GIE;		/* Ignore other sr bits. */
 }
-
+/*---------------------------------------------------------------------------*/
 /*
  * Restore previous interrupt mask.
  */
@@ -215,30 +214,4 @@ splx_(int sr)
   /* If GIE was set, restore it. */
   asmv("bis %0, r2" : : "r" (sr));
 }
-
-#ifdef UIP_ARCH_IPCHKSUM
-u16_t
-uip_ipchksum(void)
-{
-  /* Assumes proper alignement of uip_buf. */
-  u16_t *p = (u16_t *)&uip_buf[UIP_LLH_LEN];
-  register u16_t sum;
-
-  sum = p[0];
-  asmv("add  %[p], %[sum]": [sum] "+r" (sum): [p] "m" (p[1]));
-  asmv("addc %[p], %[sum]": [sum] "+r" (sum): [p] "m" (p[2]));
-  asmv("addc %[p], %[sum]": [sum] "+r" (sum): [p] "m" (p[3]));
-  asmv("addc %[p], %[sum]": [sum] "+r" (sum): [p] "m" (p[4]));
-  asmv("addc %[p], %[sum]": [sum] "+r" (sum): [p] "m" (p[5]));
-  asmv("addc %[p], %[sum]": [sum] "+r" (sum): [p] "m" (p[6]));
-  asmv("addc %[p], %[sum]": [sum] "+r" (sum): [p] "m" (p[7]));
-  asmv("addc %[p], %[sum]": [sum] "+r" (sum): [p] "m" (p[8]));
-  asmv("addc %[p], %[sum]": [sum] "+r" (sum): [p] "m" (p[9]));
-
-  /* Finally, add the remaining carry bit. */
-  asmv("addc #0, %[sum]": [sum] "+r" (sum));
-
-  /* Return sum in network byte order. */
-  return (sum == 0) ? 0xffff : sum;
-}
-#endif
+/*---------------------------------------------------------------------------*/
