@@ -1,8 +1,14 @@
 /* -*- C -*- */
-/* @(#)$Id: contiki-conf.h,v 1.6 2007/02/02 13:26:49 bg- Exp $ */
+/* @(#)$Id: contiki-conf.h,v 1.7 2007/03/15 21:59:44 adamdunkels Exp $ */
 
 #ifndef CONTIKI_CONF_H
 #define CONTIKI_CONF_H
+
+#define LPM_CONF_OFF LPM4_EXIT
+
+#define IRQ_PORT1 0x01
+#define IRQ_PORT2 0x02
+#define IRQ_ADC   0x03
 
 #define CCIF
 #define CLIF
@@ -85,7 +91,7 @@ typedef unsigned long off_t;
 #define SPI_TXBUF U0TXBUF
 #define SPI_RXBUF U0RXBUF
 
-				/* USART0 Tx buffer ready? */ 
+				/* USART0 Tx buffer ready? */
 #define	SPI_WAITFOREOTx() while ((U0TCTL & TXEPT) == 0)
 				/* USART0 Rx buffer ready? */
 #define	SPI_WAITFOREORx() while ((IFG1 & URXIFG0) == 0)
@@ -133,7 +139,7 @@ typedef unsigned long off_t;
 #define SFD_IS_1        (!!(P4IN & BV(SFD)))
 
 /* The CC2420 reset pin. */
-#define SET_RESET_INACTIVE()    ( P4OUT |=  BV(RESET_N) )    
+#define SET_RESET_INACTIVE()    ( P4OUT |=  BV(RESET_N) )
 #define SET_RESET_ACTIVE()      ( P4OUT &= ~BV(RESET_N) )
 
 /* CC2420 voltage regulator enable pin. */
