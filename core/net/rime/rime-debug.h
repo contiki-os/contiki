@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: rime-debug.h,v 1.2 2007/03/15 10:01:04 adamdunkels Exp $
+ * $Id: rime-debug.h,v 1.3 2007/03/15 19:43:07 adamdunkels Exp $
  */
 
 /**
@@ -41,7 +41,7 @@
 #ifndef __RIME_DEBUG_H__
 #define __RIME_DEBUG_H__
 
-#define DEBUG_LEVEL 1
+#define DEBUG_LEVEL 0
 
 #if DEBUG_LEVEL > 0
 #include <stdio.h>

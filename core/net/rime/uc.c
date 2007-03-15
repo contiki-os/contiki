@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: uc.c,v 1.2 2007/03/15 10:01:05 adamdunkels Exp $
+ * $Id: uc.c,v 1.3 2007/03/15 19:43:07 adamdunkels Exp $
  */
 
 /**
@@ -43,20 +43,20 @@
 #include <string.h>
 
 struct uc_hdr {
-  node_id_t receiver_id;
+  rimeaddr_t receiver;
 };
 
 /*---------------------------------------------------------------------------*/
 static void
-recv_from_ibc(struct ibc_conn *ibc, node_id_t from_id)
+recv_from_ibc(struct ibc_conn *ibc, rimeaddr_t *from)
 {
   struct uc_conn *c = (struct uc_conn *)ibc;
   struct uc_hdr *hdr = rimebuf_dataptr();
-  DEBUGF(2, "%d: uc: recv_from_ibc, receiver id %d %p hdr %p\n",
-	 node_id, hdr->receiver_id, c, hdr);
-  if(hdr->receiver_id == node_id) {
+  DEBUGF(2, "%d: uc: recv_from_ibc, receiver %d %p hdr %p\n",
+	 node_id, hdr->receiver, c, hdr);
+  if(rimeaddr_cmp(&hdr->receiver, &rimeaddr_node_addr)) {
     rimebuf_hdrreduce(sizeof(struct uc_hdr));
-    c->u->recv(c, from_id);
+    c->u->recv(c, from);
   }
 }
 /*---------------------------------------------------------------------------*/
@@ -71,12 +71,12 @@ uc_setup(struct uc_conn *c, u16_t channel,
 }
 /*---------------------------------------------------------------------------*/
 int
-uc_send(struct uc_conn *c, node_id_t receiver_id)
+uc_send(struct uc_conn *c, rimeaddr_t *receiver)
 {
   DEBUGF(2, "%d: uc_send to %d\n", node_id, receiver_id);
   if(rimebuf_hdrextend(sizeof(struct uc_hdr))) {
     struct uc_hdr *hdr = rimebuf_hdrptr();
-    hdr->receiver_id = receiver_id;
+    rimeaddr_copy(&hdr->receiver, receiver);
     return ibc_send(&c->c);
   }
   return 0;

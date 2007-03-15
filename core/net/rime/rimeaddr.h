@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006, Swedish Institute of Computer Science.
+ * Copyright (c) 2007, Swedish Institute of Computer Science.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,38 +28,29 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: neighbor.h,v 1.2 2007/03/15 19:43:07 adamdunkels Exp $
+ * $Id: rimeaddr.h,v 1.1 2007/03/15 19:43:07 adamdunkels Exp $
  */
 
 /**
  * \file
- *         Header file for the Contiki radio neighborhood management
+ *         A brief description of what this file is.
  * \author
  *         Adam Dunkels <adam@sics.se>
  */
 
-#ifndef __NEIGHBOR_H__
-#define __NEIGHBOR_H__
+#ifndef __RIMEADDR_H__
+#define __RIMEADDR_H__
 
-#include "net/rime/rimeaddr.h"
+typedef union {
+  unsigned char u8[2];
+  unsigned short u16;
+} rimeaddr_t;
 
-struct neighbor {
-  u16_t signal;
-  u16_t time;
-  rimeaddr_t addr;
-  u8_t hopcount;
-};
+void rimeaddr_copy(rimeaddr_t *dest, const rimeaddr_t *from);
+int rimeaddr_cmp(const rimeaddr_t *addr1, const rimeaddr_t *addr2);
 
-void neighbor_init(void);
-void neighbor_periodic(int max_time);
+extern rimeaddr_t rimeaddr_node_addr;
 
-void neighbor_add(rimeaddr_t *addr, u8_t hopcount, u16_t signal);
-void neighbor_update(struct neighbor *n, u8_t hopcount, u16_t signal);
+extern const rimeaddr_t rimeaddr_null;
 
-void neighbor_remove(rimeaddr_t *addr);
-
-struct neighbor *neighbor_find(rimeaddr_t *addr);
-struct neighbor *neighbor_best(void);
-
-
-#endif /* __NEIGHBOR_H__ */
+#endif /* __RIMEADDR_H__ */

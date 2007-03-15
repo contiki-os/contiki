@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: suc.h,v 1.2 2007/03/15 10:01:05 adamdunkels Exp $
+ * $Id: suc.h,v 1.3 2007/03/15 19:43:07 adamdunkels Exp $
  */
 
 /**
@@ -48,7 +48,7 @@
 struct suc_conn;
 
 struct suc_callbacks {
-  void (* recv)(struct suc_conn *c, node_id_t from);
+  void (* recv)(struct suc_conn *c, rimeaddr_t *from);
   void (* sent)(struct suc_conn *c);
 };
 
@@ -57,16 +57,16 @@ struct suc_conn {
   struct ctimer t;
   struct queuebuf *buf;
   const struct suc_callbacks *u;
-  node_id_t receiver_id;
+  rimeaddr_t receiver;
 };
 
 void suc_setup(struct suc_conn *c, u16_t channel,
 	       const struct suc_callbacks *u);
 
-int suc_send_stubborn(struct suc_conn *c, node_id_t receiver_id);
+int suc_send_stubborn(struct suc_conn *c, rimeaddr_t *receiver);
 void suc_cancel(struct suc_conn *c);
 
-int suc_send_uc(struct suc_conn *c, node_id_t receiver_id);
+int suc_send_uc(struct suc_conn *c, rimeaddr_t *receiver);
 
 void suc_set_timer(struct suc_conn *c, clock_time_t t);
 

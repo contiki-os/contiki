@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: nf.c,v 1.3 2007/03/15 10:01:04 adamdunkels Exp $
+ * $Id: nf.c,v 1.4 2007/03/15 19:43:07 adamdunkels Exp $
  */
 
 /**
@@ -50,7 +50,7 @@
 struct nf_hdr {
   u8_t hops;
   u8_t originator_seqno;
-  node_id_t originator_id;
+  rimeaddr_t originator;
 };
 
 static u8_t seqno;
@@ -99,7 +99,7 @@ queue_for_send(struct nf_conn *c)
 }
 /*---------------------------------------------------------------------------*/
 static void
-recv_from_ibc(struct ibc_conn *ibc, node_id_t from_id)
+recv_from_ibc(struct ibc_conn *ibc, rimeaddr_t *from)
 {
   register struct nf_conn *c = (struct nf_conn *)ibc;
   struct nf_hdr *hdr = rimebuf_dataptr();
@@ -115,10 +115,10 @@ recv_from_ibc(struct ibc_conn *ibc, node_id_t from_id)
 
   rimebuf_hdrreduce(sizeof(struct nf_hdr));
   if(c->u->recv != NULL) {
-    if(!(hdr->originator_id == c->last_originator_id &&
+    if(!(rimeaddr_cmp(&hdr->originator, &c->last_originator) &&
 	 hdr->originator_seqno <= c->last_originator_seqno)) {
 
-      if(c->u->recv(c, from_id, hdr->originator_id, hdr->originator_seqno,
+      if(c->u->recv(c, from, &hdr->originator, hdr->originator_seqno,
 		    hops)) {
 	
 	if(queuebuf != NULL) {
@@ -135,7 +135,7 @@ recv_from_ibc(struct ibc_conn *ibc, node_id_t from_id)
 		  hops);*/
 	    hdr->hops++;
 	    queue_for_send(c);
-	    c->last_originator_id = hdr->originator_id;
+	    rimeaddr_copy(&c->last_originator, &hdr->originator);
 	    c->last_originator_seqno = hdr->originator_seqno;
 	  }
 	}
@@ -167,8 +167,8 @@ nf_send(struct nf_conn *c)
 
   if(rimebuf_hdrextend(sizeof(struct nf_hdr))) {
     struct nf_hdr *hdr = rimebuf_hdrptr();
-
-    c->last_originator_id = hdr->originator_id = node_id;
+    rimeaddr_copy(&hdr->originator, &rimeaddr_node_addr);
+    rimeaddr_copy(&c->last_originator, &hdr->originator);
     c->last_originator_seqno = hdr->originator_seqno = ++seqno;
     hdr->hops = 0;
     return queue_for_send(c);

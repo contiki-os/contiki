@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: rime.c,v 1.1 2007/02/28 16:38:52 adamdunkels Exp $
+ * $Id: rime.c,v 1.2 2007/03/15 19:43:07 adamdunkels Exp $
  */
 
 /**
@@ -39,6 +39,7 @@
  */
 
 #include "net/rime.h"
+#include "node-id.h"
 /*---------------------------------------------------------------------------*/
 void
 rime_init(void)
@@ -46,5 +47,13 @@ rime_init(void)
   ctimer_init();
   queuebuf_init();
   rimebuf_clear();
+
+  rimeaddr_node_addr.u16 = node_id;
+}
+/*---------------------------------------------------------------------------*/
+void
+rime_input_packet(void)
+{
+  abc_input_packet();
 }
 /*---------------------------------------------------------------------------*/

@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: sibc.h,v 1.2 2007/03/15 10:01:05 adamdunkels Exp $
+ * $Id: sibc.h,v 1.3 2007/03/15 19:43:07 adamdunkels Exp $
  */
 
 /**
@@ -48,7 +48,7 @@
 struct sibc_conn;
 
 struct sibc_callbacks {
-  void (* recv)(struct sibc_conn *c, node_id_t from);
+  void (* recv)(struct sibc_conn *c, rimeaddr_t *from);
   void (* sent)(struct sibc_conn *c);
 };
 

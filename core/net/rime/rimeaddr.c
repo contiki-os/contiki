@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006, Swedish Institute of Computer Science.
+ * Copyright (c) 2007, Swedish Institute of Computer Science.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,79 +28,31 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: sibc.c,v 1.3 2007/03/15 19:43:07 adamdunkels Exp $
+ * $Id: rimeaddr.c,v 1.1 2007/03/15 19:43:07 adamdunkels Exp $
  */
 
 /**
  * \file
- *         Implementation of the Rime module Stubborn Identified BroadCast (sibc)
+ *         A brief description of what this file is.
  * \author
  *         Adam Dunkels <adam@sics.se>
  */
 
-#include "net/rime/sibc.h"
-#include "net/rime.h"
-#include <string.h>
+#include "rimeaddr.h"
+
+rimeaddr_t rimeaddr_node_addr;
+const rimeaddr_t rimeaddr_null = {.u16 = 0};
 
 /*---------------------------------------------------------------------------*/
-static void
-recv_from_ibc(struct ibc_conn *ibc, rimeaddr_t *from)
-{
-  register struct sibc_conn *c = (struct sibc_conn *)ibc;
-  /*  DEBUGF(3, "sibc: recv_from_ibc from %d\n", from_id);*/
-  if(c->u->recv != NULL) {
-    c->u->recv(c, from);
-  }
-}
-/*---------------------------------------------------------------------------*/
-static const struct ibc_callbacks sibc = {recv_from_ibc};
-/*---------------------------------------------------------------------------*/
 void
-sibc_setup(struct sibc_conn *c, u16_t channel,
-	  const struct sibc_callbacks *u)
+rimeaddr_copy(rimeaddr_t *dest, const rimeaddr_t *src)
 {
-  ibc_setup(&c->c, channel, &sibc);
-  c->u = u;
-}
-/*---------------------------------------------------------------------------*/
-static void
-send(void *ptr)
-{
-  struct sibc_conn *c = ptr;
-
-  /*  DEBUGF(3, "sibc: send()\n");*/
-  queuebuf_to_rimebuf(c->buf);
-  ibc_send(&c->c);
-  ctimer_reset(&c->t);
-  if(c->u->sent != NULL) {
-    c->u->sent(c);
-  }
-}
-/*---------------------------------------------------------------------------*/
-void
-sibc_set_timer(struct sibc_conn *c, clock_time_t t)
-{
-  ctimer_set(&c->t, t, send, c);
+  dest->u16 = src->u16;
 }
 /*---------------------------------------------------------------------------*/
 int
-sibc_send_stubborn(struct sibc_conn *c, clock_time_t t)
+rimeaddr_cmp(const rimeaddr_t *addr1, const rimeaddr_t *addr2)
 {
-  if(c->buf != NULL) {
-    queuebuf_free(c->buf);
-  }
-  c->buf = queuebuf_new_from_rimebuf();
-  if(c->buf == NULL) {
-    return 0;
-  }
-  ctimer_set(&c->t, t, send, c);
-  return 1;
-  
-}
-/*---------------------------------------------------------------------------*/
-void
-sibc_cancel(struct sibc_conn *c)
-{
-  ctimer_stop(&c->t);
+  return addr1->u16 == addr2->u16;
 }
 /*---------------------------------------------------------------------------*/

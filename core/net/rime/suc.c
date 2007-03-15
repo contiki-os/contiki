@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: suc.c,v 1.2 2007/03/15 10:01:05 adamdunkels Exp $
+ * $Id: suc.c,v 1.3 2007/03/15 19:43:07 adamdunkels Exp $
  */
 
 /**
@@ -44,12 +44,12 @@
 
 /*---------------------------------------------------------------------------*/
 static void
-recv_from_uc(struct uc_conn *uc, node_id_t from_id)
+recv_from_uc(struct uc_conn *uc, rimeaddr_t *from)
 {
   register struct suc_conn *c = (struct suc_conn *)uc;
   DEBUGF(3, "%d: suc: recv_from_uc from %d %p\n", node_id, from_id, c);
   if(c->u->recv != NULL) {
-    c->u->recv(c, from_id);
+    c->u->recv(c, from);
   }
 }
 /*---------------------------------------------------------------------------*/
@@ -68,9 +68,9 @@ send(void *ptr)
 {
   struct suc_conn *c = ptr;
 
-  DEBUGF(3, "%d: suc: resend to %d\n", node_id, c->receiver_id);
+  DEBUGF(3, "%d: suc: resend to %d\n", node_id, c->receiver);
   queuebuf_to_rimebuf(c->buf);
-  uc_send(&c->c, c->receiver_id);
+  uc_send(&c->c, &c->receiver);
   suc_set_timer(c, CLOCK_SECOND);
   if(c->u->sent != NULL) {
     c->u->sent(c);
@@ -84,7 +84,7 @@ suc_set_timer(struct suc_conn *c, clock_time_t t)
 }
 /*---------------------------------------------------------------------------*/
 int
-suc_send_stubborn(struct suc_conn *c, node_id_t receiver_id)
+suc_send_stubborn(struct suc_conn *c, rimeaddr_t *receiver)
 {
   if(c->buf != NULL) {
     queuebuf_free(c->buf);
@@ -93,11 +93,11 @@ suc_send_stubborn(struct suc_conn *c, node_id_t receiver_id)
   if(c->buf == NULL) {
     return 0;
   }
-  c->receiver_id = receiver_id;
+  rimeaddr_copy(&c->receiver, receiver);
   ctimer_set(&c->t, CLOCK_SECOND, send, c);
 
-  DEBUGF(3, "%d: suc_send_stubborn to %d\n", node_id, c->receiver_id);
-  uc_send(&c->c, c->receiver_id);
+  DEBUGF(3, "%d: suc_send_stubborn to %d\n", node_id, c->receiver);
+  uc_send(&c->c, &c->receiver);
   if(c->u->sent != NULL) {
     c->u->sent(c);
   }
@@ -107,9 +107,9 @@ suc_send_stubborn(struct suc_conn *c, node_id_t receiver_id)
 }
 /*---------------------------------------------------------------------------*/
 int
-suc_send_uc(struct suc_conn *c, node_id_t receiver_id)
+suc_send_uc(struct suc_conn *c, rimeaddr_t *receiver)
 {
-  return uc_send(&c->c, receiver_id);
+  return uc_send(&c->c, receiver);
 }
 /*---------------------------------------------------------------------------*/
 void

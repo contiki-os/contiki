@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: ibc.c,v 1.2 2007/03/15 10:01:04 adamdunkels Exp $
+ * $Id: ibc.c,v 1.3 2007/03/15 19:43:07 adamdunkels Exp $
  */
 
 /**
@@ -43,18 +43,22 @@
 #include <string.h>
 
 struct ibc_hdr {
-  node_id_t sender_id;
+  rimeaddr_t sender;
 };
 
 /*---------------------------------------------------------------------------*/
 static void
 recv_from_abc(struct abc_conn *bc)
 {
+  rimeaddr_t sender;
   struct ibc_conn *c = (struct ibc_conn *)bc;
   struct ibc_hdr *hdr = rimebuf_dataptr();
+
+  rimeaddr_copy(&sender, &hdr->sender);
+  
   rimebuf_hdrreduce(sizeof(struct ibc_hdr));
   DEBUGF(1, "%d: ibc: recv_from_bc\n", node_id);
-  c->u->recv(c, hdr->sender_id);
+  c->u->recv(c, &sender);
 }
 /*---------------------------------------------------------------------------*/
 static const struct abc_callbacks ibc = {recv_from_abc};
@@ -73,7 +77,7 @@ ibc_send(struct ibc_conn *c)
   DEBUGF(1, "%d: ibc_send\n", node_id);
   if(rimebuf_hdrextend(sizeof(struct ibc_hdr))) {
     struct ibc_hdr *hdr = rimebuf_hdrptr();
-    hdr->sender_id = node_id;
+    rimeaddr_copy(&hdr->sender, &rimeaddr_node_addr);
     return abc_send(&c->c);
   }
   return 0;

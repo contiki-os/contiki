@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: neighbor.c,v 1.2 2007/03/15 09:56:15 adamdunkels Exp $
+ * $Id: neighbor.c,v 1.3 2007/03/15 19:43:07 adamdunkels Exp $
  */
 
 /**
@@ -42,7 +42,6 @@
 
 #include "contiki.h"
 #include "net/rime/neighbor.h"
-#include "node-id.h"
 
 #define MAX_NEIGHBORS 5
 
@@ -56,13 +55,13 @@ neighbor_periodic(int max_time)
   int i;
   
   for(i = 0; i < MAX_NEIGHBORS; ++i) {
-    if(neighbors[i].nodeid != 0 &&
+    if(!rimeaddr_cmp(&neighbors[i].addr, &rimeaddr_null) &&
        neighbors[i].time < max_time) {
       neighbors[i].time++;
       if(neighbors[i].time == max_time) {
 	neighbors[i].hopcount = HOPCOUNT_MAX;
 	/*	printf("%d: removing old neighbor %d\n", node_id, neighbors[i].nodeid);*/
-	neighbors[i].nodeid = 0;
+	rimeaddr_copy(&neighbors[i].addr, &rimeaddr_null);
       }
     }
   }
@@ -74,17 +73,17 @@ neighbor_init(void)
   int i;
 
   for(i = 0; i < MAX_NEIGHBORS; ++i) {
-    neighbors[i].nodeid = 0;
+    rimeaddr_copy(&neighbors[i].addr, &rimeaddr_null);
   }
 }
 /*---------------------------------------------------------------------------*/
 struct neighbor *
-neighbor_find(node_id_t nodeid)
+neighbor_find(rimeaddr_t *addr)
 {
   int i;
   
   for(i = 0; i < MAX_NEIGHBORS; ++i) {
-    if(neighbors[i].nodeid == nodeid) {
+    if(rimeaddr_cmp(&neighbors[i].addr, addr)) {
       return &neighbors[i];
     }
   }
@@ -102,7 +101,7 @@ neighbor_update(struct neighbor *n, u8_t hopcount, u16_t signal)
 }
 /*---------------------------------------------------------------------------*/
 void
-neighbor_add(node_id_t nodeid, u8_t nhopcount, u16_t nsignal)
+neighbor_add(rimeaddr_t *addr, u8_t nhopcount, u16_t nsignal)
 {
   int i, n;
   u8_t hopcount;
@@ -115,12 +114,12 @@ neighbor_add(node_id_t nodeid, u8_t nhopcount, u16_t nsignal)
 
   n = 0;
   for(i = 0; i < MAX_NEIGHBORS; ++i) {
-    if(neighbors[i].nodeid == 0 ||
-       neighbors[i].nodeid == nodeid) {
+    if(rimeaddr_cmp(&neighbors[i].addr, &rimeaddr_null) ||
+       rimeaddr_cmp(&neighbors[i].addr, addr)) {
       n = i;
       break;
     }
-    if(neighbors[i].nodeid != 0) {
+    if(!rimeaddr_cmp(&neighbors[i].addr, &rimeaddr_null)) {
       if(neighbors[i].hopcount > hopcount) {
 	hopcount = neighbors[i].hopcount;
 	signal = neighbors[i].signal;
@@ -142,20 +141,20 @@ neighbor_add(node_id_t nodeid, u8_t nhopcount, u16_t nsignal)
       node_id, neighbors[n].nodeid, hopcount, signal, n);*/
 
   neighbors[n].time = 0;
-  neighbors[n].nodeid = nodeid;
+  rimeaddr_copy(&neighbors[i].addr, addr);
   neighbors[n].hopcount = nhopcount;
   neighbors[n].signal = nsignal;
 }
 /*---------------------------------------------------------------------------*/
 void
-neighbor_remove(node_id_t nodeid)
+neighbor_remove(rimeaddr_t *addr)
 {
   int i;
 
   for(i = 0; i < MAX_NEIGHBORS; ++i) {
-    if(neighbors[i].nodeid == nodeid) {
-      printf("%d: removing %d @ %d\n", node_id, nodeid, i);
-      neighbors[i].nodeid = 0;
+    if(rimeaddr_cmp(&neighbors[i].addr, addr)) {
+      printf("%d: removing %d @ %d\n", rimeaddr_node_addr.u16, addr->u16, i);
+      rimeaddr_copy(&neighbors[i].addr, &rimeaddr_null);
       neighbors[i].hopcount = HOPCOUNT_MAX;
       return;
     }
@@ -179,7 +178,7 @@ neighbor_best(void)
   /* Find the lowest hopcount. */
   for(i = 0; i < MAX_NEIGHBORS; ++i) {
     /*  printf("%d:%d ", neighbors[i].nodeid, neighbors[i].hopcount);*/
-    if(neighbors[i].nodeid != 0 &&
+    if(!rimeaddr_cmp(&neighbors[i].addr, &rimeaddr_null) &&
        hopcount > neighbors[i].hopcount) {
       hopcount = neighbors[i].hopcount;
       lowest = i;
@@ -194,7 +193,7 @@ neighbor_best(void)
     signal = 0;
     best = lowest;
     for(i = 0; i < MAX_NEIGHBORS; ++i) {
-      if(neighbors[i].nodeid != 0 &&
+      if(!rimeaddr_cmp(&neighbors[i].addr, &rimeaddr_null) &&
 	 hopcount == neighbors[i].hopcount &&
 	 neighbors[i].signal > signal) {
 	signal = neighbors[i].signal;

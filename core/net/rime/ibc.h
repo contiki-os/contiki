@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: ibc.h,v 1.2 2007/03/15 10:01:04 adamdunkels Exp $
+ * $Id: ibc.h,v 1.3 2007/03/15 19:43:07 adamdunkels Exp $
  */
 
 /**
@@ -42,12 +42,12 @@
 #define __IBC_H__
 
 #include "net/rime/abc.h"
-#include "net/rime/node-id-t.h"
+#include "net/rime/rimeaddr.h"
 
 struct ibc_conn;
 
 struct ibc_callbacks {
-  void (* recv)(struct ibc_conn *ptr, node_id_t sender);
+  void (* recv)(struct ibc_conn *ptr, rimeaddr_t *sender);
 };
 
 struct ibc_conn {
