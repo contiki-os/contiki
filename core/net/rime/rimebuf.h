@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: rimebuf.h,v 1.3 2007/03/14 00:30:11 adamdunkels Exp $
+ * $Id: rimebuf.h,v 1.4 2007/03/15 09:57:00 adamdunkels Exp $
  */
 
 /**
@@ -98,7 +98,7 @@ void *rimebuf_hdrptr(void);
 
 /**
  * \brief      Get the length of the header in the rimebuf, for outbound packets
- * \return     Pointer to the rimebuf header
+ * \return     Length of the header in the rimebuf
  *
  *             For outbound packets, the rimebuf consists of two
  *             parts: header and data. This function is used to get
@@ -112,7 +112,7 @@ u8_t rimebuf_hdrlen(void);
 
 /**
  * \brief      Get the length of the data in the rimebuf
- * \return     Pointer to the rimebuf header
+ * \return     Length of the data in the rimebuf
  *
  *             For outbound packets, the rimebuf consists of two
  *             parts: header and data. This function is used to get
@@ -127,6 +127,13 @@ u8_t rimebuf_hdrlen(void);
  *
  */
 u16_t rimebuf_datalen(void);
+
+/**
+ * \brief      Get the total length of the header and data in the rimebuf
+ * \return     Length of data and header in the rimebuf
+ *
+ */
+u16_t rimebuf_totlen(void);
 
 /**
  * \brief      Set the length of the data in the rimebuf
@@ -270,7 +277,6 @@ int rimebuf_hdrextend(int size);
  *
  */
 int rimebuf_hdrreduce(int size);
-
 
 
 #endif /* __RIMEBUF_H__ */
