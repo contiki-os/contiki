@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: abc.h,v 1.4 2007/03/15 10:01:04 adamdunkels Exp $
+ * $Id: abc.h,v 1.5 2007/03/15 21:24:29 adamdunkels Exp $
  */
 
 /**
@@ -104,23 +104,6 @@ int abc_send(struct abc_conn *c);
  *             called.
  */
 void abc_input_packet(void);
-
-/**
- * \brief      This function, which must be implemented by the driver, is called to send out a packet
- *
- *             This function is implemented by the driver running
- *             below abc and is called by abc to send out a
- *             packet. The packet is contained in the rimebuf. The
- *             packet is consecutive in the rimebuf and a pointer to
- *             the first byte is gotten from the rimebuf_hdrptr()
- *             function. The length of the packet to send is gotten
- *             with the rimebuf_totlen() function.
- *
- *             The driver, which typically is a MAC protocol, may
- *             queue the packet by using the queuebuf functions.
- *
- */
-void abc_driver_send(void);
 
 #endif /* __BC_H__ */
 /** @} */

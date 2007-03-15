@@ -30,7 +30,7 @@
  *
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: abc.c,v 1.3 2007/03/15 10:01:04 adamdunkels Exp $
+ * $Id: abc.c,v 1.4 2007/03/15 21:24:11 adamdunkels Exp $
  */
 
 /**
@@ -75,7 +75,7 @@ abc_send(struct abc_conn *c)
     
     hdr->channel = c->channel;
     rimebuf_compact();
-    abc_driver_send();
+    rime_driver_send();
     return 1;
   }
   return 0;

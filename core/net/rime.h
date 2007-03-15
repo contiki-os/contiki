@@ -1,3 +1,25 @@
+/**
+ * \defgroup rime Rime - a Lightweight Layered Communication Stack for
+ * Contiki
+ *
+ * Rime is a communication stack for Contiki that consists of a number
+ * of modules that individually are very simple, but together form a
+ * feature-rich communication stack.
+ *
+ * Rime modules:
+ *
+ * abc: Anonymous link-local BroadCast
+ * ibc: Identified link-local BroadCast
+ * uc: link-local UniCast
+ * suc: Stubborn link-local UniCast
+ * ruc: Reliable link-local UniCast
+ * sibc: Stubborn Identified link-local BroadCast
+ *
+ * sabc: Stubborn Anonymous link-local BroadCast
+ * nf: Network Flooding
+ * @{
+ */
+
 /*
  * Copyright (c) 2006, Swedish Institute of Computer Science.
  * All rights reserved.
@@ -28,7 +50,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: rime.c,v 1.3 2007/03/15 21:24:11 adamdunkels Exp $
+ * $Id: rime.h,v 1.1 2007/03/15 21:24:11 adamdunkels Exp $
  */
 
 /**
@@ -38,22 +60,41 @@
  *         Adam Dunkels <adam@sics.se>
  */
 
-#include "net/rime.h"
-#include "node-id.h"
-/*---------------------------------------------------------------------------*/
-void
-rime_init(void)
-{
-  ctimer_init();
-  queuebuf_init();
-  rimebuf_clear();
+#ifndef __RIME_H__
+#define __RIME_H__
 
-  rimeaddr_node_addr.u16 = node_id;
-}
-/*---------------------------------------------------------------------------*/
-void
-rime_input(void)
-{
-  abc_input_packet();
-}
-/*---------------------------------------------------------------------------*/
+#include "net/rime/ruc.h"
+#include "net/rime/sibc.h"
+#include "net/rime/nf.h"
+#include "net/rime/mesh.h"
+#include "net/rime/tree.h"
+#include "net/rime/ctimer.h"
+
+#include "net/rime/rimebuf.h"
+
+#include "net/rime/rime-types.h"
+
+#include "net/rime/channel-assignments.h"
+
+#include "net/rime/rime-debug.h"
+
+void rime_init(void);
+void rime_input(void);
+
+/**
+ * \brief      Rime calls this function to send out a packet
+ *
+ *             This function must be implemented by the driver running
+ *             below Rime. It is called by abRime to send out a
+ *             packet. The packet is consecutive in the rimebuf. A
+ *             pointer to the first byte of the packet is obtained
+ *             with the rimebuf_hdrptr() function. The length of the
+ *             packet to send is obtained with the rimebuf_totlen()
+ *             function.
+ *
+ *             The driver, which typically is a MAC protocol, may
+ *             queue the packet by using the queuebuf functions.
+ */
+void rime_driver_send(void);
+
+#endif /* __RIME_H__ */
