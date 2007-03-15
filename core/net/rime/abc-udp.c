@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: abc-udp.c,v 1.3 2007/03/14 00:29:05 adamdunkels Exp $
+ * $Id: abc-udp.c,v 1.4 2007/03/15 09:56:00 adamdunkels Exp $
  */
 
 /**
@@ -39,6 +39,7 @@
  */
 
 #include "net/rime.h"
+#include "contiki-net.h"
 
 #define PORT 8096
 static struct uip_udp_conn *c;
@@ -46,9 +47,8 @@ static struct uip_udp_conn *c;
 PROCESS(abc_udp_process, "abc_udp");
 PROCESS_THREAD(abc_udp_process, ev, data)
 {
-  struct abc_conn *c;
 
-  c = uip_udp_new(HTONS(PORT), NULL);
+  c = udp_new(&uip_broadcast_addr, HTONS(PORT), NULL);
   
   PROCESS_BEGIN();
 
