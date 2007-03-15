@@ -29,6 +29,7 @@ ifeq (${wildcard $(OBJECTDIR)},)
 DUMMY := ${shell mkdir $(OBJECTDIR)}
 endif
 
+include $(CONTIKI)/core/net/rime/Makefile.rime
 SYSTEM  = process.c procinit.c service.c autostart.c
 THREADS = mt.c
 LIBS    = memb.c timer.c list.c etimer.c #crtk.c
@@ -48,7 +49,7 @@ CONTIKIFILES = $(SYSTEM) $(CFS) $(LIBS) $(NET) $(DHCP)
 
 CONTIKI_SOURCEFILES += $(CONTIKIFILES)
 
-CONTIKIDIRS = ${addprefix $(CONTIKI)/core/,dev lib net sys \
+CONTIKIDIRS = ${addprefix $(CONTIKI)/core/,dev lib net net/rime sys \
                  cfs ctk lib/ctk loader . }
 
 CONTIKI_OBJECTFILES = ${addprefix $(OBJECTDIR)/,$(CONTIKI_SOURCEFILES:.c=.o)}
