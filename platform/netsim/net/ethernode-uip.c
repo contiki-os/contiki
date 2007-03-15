@@ -30,7 +30,7 @@
  *
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: ethernode-uip.c,v 1.1 2007/03/14 00:32:30 adamdunkels Exp $
+ * $Id: ethernode-uip.c,v 1.2 2007/03/15 21:59:10 adamdunkels Exp $
  */
 
 #include "contiki.h"
@@ -58,7 +58,6 @@ ethernode_uip_send(void)
 /*---------------------------------------------------------------------------*/
 PROCESS_THREAD(ethernode_uip_process, ev, data)
 {
-  static int drop = 3;
   PROCESS_BEGIN();
 
   while(1) {
