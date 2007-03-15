@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: sabc.c,v 1.1 2007/02/28 16:38:52 adamdunkels Exp $
+ * $Id: sabc.c,v 1.2 2007/03/15 10:01:04 adamdunkels Exp $
  */
 
 /**
@@ -54,11 +54,11 @@ recv_from_abc(struct abc_conn *abc)
   }
 }
 /*---------------------------------------------------------------------------*/
-static const struct abc_ulayer sabc = {recv_from_abc};
+static const struct abc_callbacks sabc = {recv_from_abc};
 /*---------------------------------------------------------------------------*/
 void
 sabc_setup(struct sabc_conn *c, u16_t channel,
-	  const struct sabc_ulayer *u)
+	  const struct sabc_callbacks *u)
 {
   abc_setup(&c->c, channel, &sabc);
   c->u = u;

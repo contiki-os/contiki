@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: sibc.h,v 1.1 2007/02/28 16:38:52 adamdunkels Exp $
+ * $Id: sibc.h,v 1.2 2007/03/15 10:01:05 adamdunkels Exp $
  */
 
 /**
@@ -47,7 +47,7 @@
 
 struct sibc_conn;
 
-struct sibc_ulayer {
+struct sibc_callbacks {
   void (* recv)(struct sibc_conn *c, node_id_t from);
   void (* sent)(struct sibc_conn *c);
 };
@@ -56,11 +56,11 @@ struct sibc_conn {
   struct ibc_conn c;
   struct ctimer t;
   struct queuebuf *buf;
-  const struct sibc_ulayer *u;
+  const struct sibc_callbacks *u;
 };
 
 void sibc_setup(struct sibc_conn *c, u16_t channel,
-		const struct sibc_ulayer *u);
+		const struct sibc_callbacks *u);
 
 int sibc_send_stubborn(struct sibc_conn *c, clock_time_t t);
 void sibc_cancel(struct sibc_conn *c);

@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: nf.h,v 1.2 2007/03/15 09:56:30 adamdunkels Exp $
+ * $Id: nf.h,v 1.3 2007/03/15 10:01:04 adamdunkels Exp $
  */
 
 /**
@@ -47,7 +47,7 @@
 
 struct nf_conn;
 
-struct nf_ulayer {
+struct nf_callbacks {
   int (* recv)(struct nf_conn *c, node_id_t from,
 	       node_id_t originator, u8_t seqno, u8_t hops);
   void (* sent)(struct nf_conn *c);
@@ -60,11 +60,11 @@ struct nf_conn {
   u8_t packets_received;
   u8_t last_originator_seqno;
   node_id_t last_originator_id;
-  const struct nf_ulayer *u;
+  const struct nf_callbacks *u;
 };
 
 void nf_setup(struct nf_conn *c, u16_t channel,
-	      const struct nf_ulayer *u);
+	      const struct nf_callbacks *u);
 
 int nf_send(struct nf_conn *c);
 

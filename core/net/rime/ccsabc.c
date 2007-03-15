@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: ccsabc.c,v 1.1 2007/02/28 16:38:51 adamdunkels Exp $
+ * $Id: ccsabc.c,v 1.2 2007/03/15 10:01:04 adamdunkels Exp $
  */
 
 /**
@@ -62,11 +62,11 @@ sent_from_sabc(struct sabc_conn *sabc)
   }
 }
 /*---------------------------------------------------------------------------*/
-static const struct sabc_ulayer ccsabc = {recv_from_sabc, sent_from_sabc};
+static const struct sabc_callbacks ccsabc = {recv_from_sabc, sent_from_sabc};
 /*---------------------------------------------------------------------------*/
 void
 ccsabc_setup(struct ccsabc_conn *c, u16_t channel,
-	     const struct ccsabc_ulayer *u)
+	     const struct ccsabc_callbacks *u)
 {
   sabc_setup(&c->c, channel, &ccsabc);
 }

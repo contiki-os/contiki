@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: abc.h,v 1.3 2007/03/14 00:29:05 adamdunkels Exp $
+ * $Id: abc.h,v 1.4 2007/03/15 10:01:04 adamdunkels Exp $
  */
 
 /**
@@ -51,34 +51,34 @@
 
 struct abc_conn;
 
-struct abc_ulayer {
+struct abc_callbacks {
   void (* recv)(struct abc_conn *ptr);
 };
 
 struct abc_conn {
   struct abc_conn *next;
   u16_t channel;
-  const struct abc_ulayer *u;
+  const struct abc_callbacks *u;
 };
 
 /**
  * \brief      Set up an anonymous best-effort broadcast connection
  * \param c    A pointer to a struct abc_conn
  * \param channel The channel on which the connection will operate
- * \param u    A struct abc_ulayer with function pointers to functions that will be called when a packet has been received
+ * \param u    A struct abc_callbacks with function pointers to functions that will be called when a packet has been received
  *
  *             This function sets up an abc connection on the
  *             specified channel. The caller must have allocated the
  *             memory for the struct abc_conn, usually by declaring it
  *             as a static variable.
  *
- *             The struct abc_ulayer pointer must point to a structure
+ *             The struct abc_callbacks pointer must point to a structure
  *             containing a pointer to a function that will be called
  *             when a packet arrives on the channel.
  *
  */
 void abc_setup(struct abc_conn *c, u16_t channel,
-	       const struct abc_ulayer *u);
+	       const struct abc_callbacks *u);
 
 /**
  * \brief      Send an anonymous best-effort broadcast packet

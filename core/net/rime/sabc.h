@@ -44,7 +44,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: sabc.h,v 1.1 2007/02/28 16:38:52 adamdunkels Exp $
+ * $Id: sabc.h,v 1.2 2007/03/15 10:01:04 adamdunkels Exp $
  */
 
 /**
@@ -63,7 +63,7 @@
 
 struct sabc_conn;
 
-struct sabc_ulayer {
+struct sabc_callbacks {
   void (* recv)(struct sabc_conn *c);
   void (* sent)(struct sabc_conn *c);
 };
@@ -77,7 +77,7 @@ struct sabc_conn {
   struct abc_conn c;
   struct ctimer t;
   struct queuebuf *buf;
-  const struct sabc_ulayer *u;
+  const struct sabc_callbacks *u;
 };
 
 
@@ -97,7 +97,7 @@ struct sabc_conn {
  *
  */
 void sabc_setup(struct sabc_conn *c, u16_t channel,
-		const struct sabc_ulayer *u);
+		const struct sabc_callbacks *u);
 
 
 /**
