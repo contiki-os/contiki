@@ -1,0 +1,28 @@
+# $Id: Makefile.sky,v 1.1 2007/03/15 21:44:28 adamdunkels Exp $
+
+
+ARCH=msp430.c minileds.c watchdog.c light.c button.c spi.c ds2411.c \
+     rom.c xmem.c i2c.c \
+     simple-cc2420.c simple-cc2420-rime.c cc2420_uart0.c irq.c \
+     node-id.c sensors.c button-sensor.c
+
+CONTIKI_TARGET_DIRS = . dev apps net loader
+ifndef CONTIKI_TARGET_MAIN
+CONTIKI_TARGET_MAIN = contiki-sky-main.c
+endif
+
+CONTIKI_TARGET_SOURCEFILES += $(ARCH) $(UIPDRIVERS) $(CONTIKI_TARGET_MAIN)
+
+MCU=msp430x1611
+include $(CONTIKI)/cpu/msp430/Makefile.msp430
+
+contiki-$(TARGET).a: ${addprefix $(OBJECTDIR)/,symbols.o}
+#	$(AR) rcf $@ $^
+
+BSL=$(CONTIKI)/tools/msp430-bsl
+
+ifndef COMPORT
+  COMPORT := /dev/ttyUSB0
+endif
+%.up: %.ihex
+	$(BSL) --telosb -D -c $(COMPORT) -r -e -I -p $<
