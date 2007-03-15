@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: queuebuf.c,v 1.2 2007/03/13 10:28:52 adamdunkels Exp $
+ * $Id: queuebuf.c,v 1.3 2007/03/15 09:56:39 adamdunkels Exp $
  */
 
 /**
@@ -39,6 +39,8 @@
  */
 
 #include "net/rime/queuebuf.h"
+
+#include <string.h> /* for memcpy() */
 
 #define QUEUEBUF_NUM 2
 #define QUEUEBUF_REF_NUM 2

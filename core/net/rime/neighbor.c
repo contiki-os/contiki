@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: neighbor.c,v 1.1 2007/02/28 16:38:51 adamdunkels Exp $
+ * $Id: neighbor.c,v 1.2 2007/03/15 09:56:15 adamdunkels Exp $
  */
 
 /**
@@ -113,6 +113,7 @@ neighbor_add(node_id_t nodeid, u8_t nhopcount, u16_t nsignal)
   hopcount = 0;
   signal = USHRT_MAX;
 
+  n = 0;
   for(i = 0; i < MAX_NEIGHBORS; ++i) {
     if(neighbors[i].nodeid == 0 ||
        neighbors[i].nodeid == nodeid) {
