@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: uip-ipchksum.c,v 1.2 2007/03/15 21:39:23 adamdunkels Exp $
+ * $Id: uip-ipchksum.c,v 1.3 2007/03/15 21:51:12 adamdunkels Exp $
  */
 
 /**
@@ -38,6 +38,9 @@
  *         Björn Grönvall <bg@sics.se>
  */
 
+#include "net/uip.h"
+
+#define asmv(arg) __asm__ __volatile__(arg)
 /*---------------------------------------------------------------------------*/
 #ifdef UIP_ARCH_IPCHKSUM
 u16_t
