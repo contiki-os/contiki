@@ -2,7 +2,7 @@ CONTIKI_SOURCEFILES += mtarch.c
 
 ### Compiler definitions
 CC       = gcc
-LD       = ld
+LD       = gcc
 AS       = as
 OBJCOPY  = objcopy
 STRIP    = strip
@@ -19,11 +19,11 @@ LDFLAGS  = -Wl,-Map=contiki.map,-export-dynamic
 %.so: $(OBJECTDIR)/%.o
 	$(LD) -shared -o $@ $^
 
-.PHONY: symbols.c symbols.h
-ifdef CORE
-symbols.c symbols.h:
-	@${CONTIKI}/tools/make-symbols $(CORE)
-else
+# .PHONY: symbols.c symbols.h
+# ifdef CORE
+# symbols.c symbols.h:
+# 	@${CONTIKI}/tools/make-symbols $(CORE)
+# else
 symbols.c symbols.h:
 	@${CONTIKI}/tools/make-empty-symbols
-endif
+#endif
