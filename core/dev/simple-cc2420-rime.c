@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: simple-cc2420-rime.c,v 1.1 2007/03/15 21:26:18 adamdunkels Exp $
+ * $Id: simple-cc2420-rime.c,v 1.2 2007/03/15 22:11:06 adamdunkels Exp $
  */
 
 /**
@@ -67,7 +67,7 @@ simple_cc2420_rime_init(void)
 }
 /*---------------------------------------------------------------------------*/
 void
-abc_driver_send(void)
+rime_driver_send(void)
 {
   /*  printf("simple_cc2420_rime: sending %d bytes\n", rimebuf_totlen());*/
   simple_cc2420_send(rimebuf_hdrptr(), rimebuf_totlen());
