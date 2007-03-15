@@ -46,7 +46,7 @@
  *
  * This file is part of the uIP TCP/IP stack.
  *
- * $Id: uip.h,v 1.8 2007/02/01 14:27:17 bg- Exp $
+ * $Id: uip.h,v 1.9 2007/03/15 19:41:29 adamdunkels Exp $
  *
  */
 
@@ -776,7 +776,7 @@ CCIF void uip_send(const void *data, int len);
  * \return The uip_udp_conn structure for the new connection or NULL
  * if no connection could be allocated.
  */
-struct uip_udp_conn *uip_udp_new(uip_ipaddr_t *ripaddr, u16_t rport);
+struct uip_udp_conn *uip_udp_new(const uip_ipaddr_t *ripaddr, u16_t rport);
 
 /**
  * Removed a UDP connection.

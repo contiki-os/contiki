@@ -41,7 +41,7 @@
  *
  * This file is part of the uIP TCP/IP stack.
  *
- * $Id: uip.c,v 1.6 2006/08/26 23:40:46 oliverschmidt Exp $
+ * $Id: uip.c,v 1.7 2007/03/15 19:41:29 adamdunkels Exp $
  *
  */
 
@@ -455,7 +455,7 @@ uip_connect(uip_ipaddr_t *ripaddr, u16_t rport)
 /*---------------------------------------------------------------------------*/
 #if UIP_UDP
 struct uip_udp_conn *
-uip_udp_new(uip_ipaddr_t *ripaddr, u16_t rport)
+uip_udp_new(const uip_ipaddr_t *ripaddr, u16_t rport)
 {
   register struct uip_udp_conn *conn;
   
