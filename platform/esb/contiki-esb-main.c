@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: contiki-esb-main.c,v 1.3 2006/10/09 09:19:02 nifi Exp $
+ * @(#)$Id: contiki-esb-main.c,v 1.4 2007/03/15 21:53:15 adamdunkels Exp $
  */
 
 #include <io.h>
@@ -47,7 +47,7 @@ SENSORS(&button_sensor, &sound_sensor, &vib_sensor,
 	&temperature_sensor);
 
 PROCINIT(&sensors_process, &ir_process, &etimer_process,
-	 &tcpip_process, &uip_fw_process, &cfs_eeprom_process);
+	 &cfs_eeprom_process);
 
 #define ENABLE_AUTOSTART 0
 
@@ -75,7 +75,6 @@ PROCESS_THREAD(contiki_esb_main_init_process, ev, data)
   leds_on(LEDS_ALL);
   clock_delay(100);
   leds_off(LEDS_ALL);
-
 
   PROCESS_END();
 }
