@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: tr1001-gcr.c,v 1.5 2006/10/10 23:16:10 nifi Exp $
+ * @(#)$Id: tr1001-gcr.c,v 1.6 2007/03/15 21:57:35 adamdunkels Exp $
  */
 /**
  * \addtogroup esb
@@ -55,7 +55,6 @@
 #include "lib/gcr.h"
 /* #include "lib/me.h" */
 #include "lib/crc16.h"
-#include "net/tr1001-drv.h"
 
 #include <io.h>
 #include <signal.h>
@@ -131,6 +130,8 @@ static struct timer rxtimer;
 
 static unsigned short tmp_sstrength, sstrength;
 static unsigned short tmp_count;
+
+static struct process *poll_process;
 
 #define DEBUG 0
 
@@ -344,9 +345,10 @@ tr1001_set_txpower(unsigned char p)
 }
 /*---------------------------------------------------------------------------*/
 void
-tr1001_init(void)
+tr1001_init(struct process *p)
 {
-
+  poll_process = p;
+  
   PT_INIT(&rxhandler_pt);
 
 #if TR1001_STATISTICS
@@ -537,7 +539,9 @@ PT_THREAD(tr1001_default_rxhandler_pt(unsigned char incoming_byte))
 	 request the driver to take care of the incoming data. */
 
       PACKET_ACCEPTED();
-      tr1001_drv_request_poll();
+      if(poll_process != NULL) {
+	process_poll(poll_process);
+      }
 
       /* We'll set the receive state flag to signal that a full frame
 	 is present in the buffer, and we'll wait until the buffer has
