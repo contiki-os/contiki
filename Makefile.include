@@ -137,7 +137,7 @@ ifndef LD
 endif
 
 ifndef CUSTOM_RULE_LINK
-%.$(TARGET):	%.co $(PROJECT_OBJECTFILES) contiki-$(TARGET).a
+%.$(TARGET):	%.co $(PROJECT_OBJECTFILES) $(PROJECT_LIBRARIES) contiki-$(TARGET).a
 	$(LD) $(LDFLAGS) $(TARGET_STARTFILES) $(filter-out %.a,$^) $(filter %.a,$^) $(TARGET_LIBFILES) -o $@
 endif
 
