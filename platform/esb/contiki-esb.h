@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: contiki-esb.h,v 1.2 2006/10/09 11:55:16 adamdunkels Exp $
+ * @(#)$Id: contiki-esb.h,v 1.3 2007/03/16 11:34:05 adamdunkels Exp $
  */
 #ifndef __CONTIKI_ESB_H__
 #define __CONTIKI_ESB_H__
@@ -49,7 +49,7 @@
 #include "dev/serial.h"
 #include "dev/slip.h"
 #include "dev/tr1001.h"
-#include "net/tr1001-drv.h"
+#include "net/tr1001-uip.h"
 
 #include "node-id.h"
 
