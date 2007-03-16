@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: radio-sniffer.c,v 1.1 2006/10/09 10:08:40 adamdunkels Exp $
+ * $Id: radio-sniffer.c,v 1.2 2007/03/16 12:19:33 fros4943 Exp $
  */
 
 /**
@@ -56,7 +56,7 @@ PROCESS_THREAD(radio_sniffer_process, ev, data)
   static int len;
   PROCESS_BEGIN();
 
-  tr1001_init();
+  tr1001_init(&radio_sniffer_process);
 
   printf("Radio sniffer started\n");
   
