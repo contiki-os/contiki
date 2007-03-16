@@ -30,7 +30,7 @@
  *
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: memb.h,v 1.1 2006/06/17 22:41:18 adamdunkels Exp $
+ * $Id: memb.h,v 1.2 2007/03/16 16:53:33 adamdunkels Exp $
  */
 
 /**
@@ -48,14 +48,6 @@
  * MEMB() macro. Memory blocks are allocated from the declared
  * memory by the memb_alloc() function, and are deallocated with the
  * memb_free() function.
- *
- * \note Because of namespace clashes only one MEMB() can be
- * declared per C module, and the name scope of a MEMB() memory
- * block is local to each C module.
- *
- * The following example shows how to declare and use a memory block
- * called "cmem" which has 8 chunks of memory with each memory chunk
- * being 20 bytes large.
  *
  * @{
  */
@@ -90,7 +82,7 @@
  *
  * Example:
  \code
-MEMB(connections, sizeof(struct connection), 16);
+MEMB(connections, struct connection, 16);
  \endcode
  *
  * \param name The name of the memory block (later used with
@@ -142,6 +134,9 @@ void *memb_alloc(struct memb_blocks *m);
  * point to a legal memory block.
  */
 char  memb_free(struct memb_blocks *m, void *ptr);
+
+int memb_inmemb(struct memb_blocks *m, void *ptr);
+
 
 /** @} */
 /** @} */

@@ -30,7 +30,7 @@
  *
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: memb.c,v 1.2 2006/08/16 22:12:46 oliverschmidt Exp $
+ * $Id: memb.c,v 1.3 2007/03/16 16:53:33 adamdunkels Exp $
  */
 
 /**
@@ -99,6 +99,13 @@ memb_free(struct memb_blocks *m, void *ptr)
     ptr2 += m->size;
   }
   return -1;
+}
+/*---------------------------------------------------------------------------*/
+int
+memb_inmemb(struct memb_blocks *m, void *ptr)
+{
+  return (char *)ptr >= (char *)m->mem &&
+    (char *)ptr < (char *)m->mem + (m->num * m->size);
 }
 /*---------------------------------------------------------------------------*/
 
