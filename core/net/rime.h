@@ -50,7 +50,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: rime.h,v 1.1 2007/03/15 21:24:11 adamdunkels Exp $
+ * $Id: rime.h,v 1.2 2007/03/16 09:16:40 adamdunkels Exp $
  */
 
 /**
@@ -71,8 +71,6 @@
 #include "net/rime/ctimer.h"
 
 #include "net/rime/rimebuf.h"
-
-#include "net/rime/rime-types.h"
 
 #include "net/rime/channel-assignments.h"
 
