@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: dhcpc.c,v 1.6 2006/09/07 15:57:59 bg- Exp $
+ * @(#)$Id: dhcpc.c,v 1.7 2007/03/16 12:16:16 bg- Exp $
  */
 
 #include <stdio.h>
@@ -326,18 +326,11 @@ PT_THREAD(handle_dhcp(process_event_t ev, void *data))
   
  bound:
 #if 0
-  printf("Got IP address %d.%d.%d.%d\n",
-	 uip_ipaddr1(s.ipaddr), uip_ipaddr2(s.ipaddr),
-	 uip_ipaddr3(s.ipaddr), uip_ipaddr4(s.ipaddr));
-  printf("Got netmask %d.%d.%d.%d\n",
-	 uip_ipaddr1(s.netmask), uip_ipaddr2(s.netmask),
-	 uip_ipaddr3(s.netmask), uip_ipaddr4(s.netmask));
-  printf("Got DNS server %d.%d.%d.%d\n",
-	 uip_ipaddr1(s.dnsaddr), uip_ipaddr2(s.dnsaddr),
-	 uip_ipaddr3(s.dnsaddr), uip_ipaddr4(s.dnsaddr));
+  printf("Got IP address %d.%d.%d.%d\n", uip_ipaddr_to_quad(&s.ipaddr));
+  printf("Got netmask %d.%d.%d.%d\n",	 uip_ipaddr_to_quad(&s.netmask));
+  printf("Got DNS server %d.%d.%d.%d\n", uip_ipaddr_to_quad(&s.dnsaddr));
   printf("Got default router %d.%d.%d.%d\n",
-	 uip_ipaddr1(s.default_router), uip_ipaddr2(s.default_router),
-	 uip_ipaddr3(s.default_router), uip_ipaddr4(s.default_router));
+	 uip_ipaddr_to_quad(&s.default_router));
   printf("Lease expires in %ld seconds\n",
 	 ntohs(s.lease_time[0])*65536ul + ntohs(s.lease_time[1]));
 #endif
@@ -345,28 +338,45 @@ PT_THREAD(handle_dhcp(process_event_t ev, void *data))
   dhcpc_configured(&s);
   
 #define MAX_TICKS (~((clock_time_t)0) / 2)
+#define MAX_TICKS32 (~((u32_t)0))
+#define IMIN(a, b) ((a) < (b) ? (a) : (b))
 
   if((ntohs(s.lease_time[0])*65536ul + ntohs(s.lease_time[1]))*CLOCK_SECOND/2
-     <= MAX_TICKS) {
-    s.ticks = (clock_time_t)((ntohs(s.lease_time[0])*65536ul
-			      + ntohs(s.lease_time[1]))*CLOCK_SECOND/2);
+     <= MAX_TICKS32) {
+    s.ticks = (ntohs(s.lease_time[0])*65536ul + ntohs(s.lease_time[1])
+	       )*CLOCK_SECOND/2;
   } else {
-    s.ticks = MAX_TICKS;
+    s.ticks = MAX_TICKS32;
   }
 
-  etimer_set(&s.etimer, s.ticks);
-  PT_YIELD_UNTIL(&s.pt, etimer_expired(&s.etimer));
+  while(s.ticks > 0) {
+    clock_time_t ticks;
+    ticks = IMIN(s.ticks, MAX_TICKS);
+    s.ticks -= ticks;
+    etimer_set(&s.etimer, ticks);
+    PT_YIELD_UNTIL(&s.pt, etimer_expired(&s.etimer));
+  }
+
+  if((ntohs(s.lease_time[0])*65536ul + ntohs(s.lease_time[1]))*CLOCK_SECOND/2
+     <= MAX_TICKS32) {
+    s.ticks = (ntohs(s.lease_time[0])*65536ul + ntohs(s.lease_time[1])
+	       )*CLOCK_SECOND/2;
+  } else {
+    s.ticks = MAX_TICKS32;
+  }
 
   /* renewing: */
   xid++;
   do {
+    clock_time_t ticks;
     while(ev != tcpip_event) {
       tcpip_poll_udp(s.conn);
       PT_YIELD(&s.pt);
     }
     send_request();
-    s.ticks /= 2;
-    etimer_set(&s.etimer, s.ticks);
+    ticks = IMIN(s.ticks / 2, MAX_TICKS);
+    s.ticks -= ticks;
+    etimer_set(&s.etimer, ticks);
     do {
       PT_YIELD(&s.pt);
       if(ev == tcpip_event && uip_newdata() && msg_for_me() == DHCPACK) {
