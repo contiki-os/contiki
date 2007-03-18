@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: radio-arch.c,v 1.12 2006/12/04 15:26:33 fros4943 Exp $
+ * $Id: radio-arch.c,v 1.13 2007/03/18 19:31:36 fros4943 Exp $
  */
 
 #include "dev/radio-arch.h"
@@ -132,33 +132,30 @@ doInterfaceActionsAfterTick(void)
 }
 /*-----------------------------------------------------------------------------------*/
 u8_t
-simDoSend(void)
+simDoLLSend(unsigned char *buf, int len)
 {
-  // If radio is turned off, do nothing
+  /* If radio is turned off, do nothing */
   if (!simRadioHWOn) {
-    // TODO Should we reset uip_len if radio is off?
-    uip_len = 0;
     return UIP_FW_DROPPED;
   }
   
-  // Drop packet if data size too large
-  if(uip_len > UIP_BUFSIZE) {
-    uip_len = 0;
+  /* Drop packet if data size too large */
+  if(len > UIP_BUFSIZE) {
     return UIP_FW_TOOLARGE;
   }
   
-  // Drop packet if no data length
-  if (uip_len <= 0) {
+  /* Drop packet if no data length */
+  if (len <= 0) {
     return UIP_FW_ZEROLEN;
   }
   
-  // ** Good place to add explicit manchester/gcr-decoding
+  /* ** Good place to add explicit manchester/gcr-decoding */
   
-  // Copy packet data to temporary storage
-  memcpy(&simOutDataBuffer[0], &uip_buf[UIP_LLH_LEN], uip_len);
-  simOutSize = uip_len;
+  /* Copy packet data to temporary storage */
+  memcpy(&simOutDataBuffer[0], &buf[UIP_LLH_LEN], len);
+  simOutSize = len;
   
-  // Busy-wait until both radio HW and ether is ready
+  /* Busy-wait until both radio HW and ether is ready */
   int retries=0;
   while (retries < MAX_RETRIES && !simNoYield &&
     (simSignalStrength > SS_INTERFERENCE || simReceiving))
@@ -185,6 +182,25 @@ simDoSend(void)
   }
   
   return UIP_FW_OK;
+}
+/*-----------------------------------------------------------------------------------*/
+u8_t
+simDoSend()
+{
+  /* If radio is turned off, reset uip_len */
+  if (!simRadioHWOn) {
+    uip_len = 0;
+    return UIP_FW_DROPPED;
+  }
+  if (uip_len > UIP_BUFSIZE) {
+    uip_len = 0;
+    return UIP_FW_DROPPED;
+  }
+  if (uip_len <= 0) {
+    return UIP_FW_ZEROLEN;
+  }
+ 
+  return simDoLLSend(uip_buf, uip_len);
 }
 /*-----------------------------------------------------------------------------------*/
 /**
