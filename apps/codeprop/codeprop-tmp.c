@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: codeprop-tmp.c,v 1.3 2006/12/18 15:17:47 fros4943 Exp $
+ * @(#)$Id: codeprop-tmp.c,v 1.4 2007/03/18 13:15:01 ksb Exp $
  */
 
 /** \addtogroup esb
@@ -115,6 +115,7 @@ struct codeprop_udphdr {
 
 struct codeprop_tcphdr {
   u16_t len;
+  u16_t pad;
 };
 
 static void uipcall(void *state);

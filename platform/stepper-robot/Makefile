@@ -33,10 +33,13 @@ CFLAGS+= -I stepper
 
 cfs-ram.o: CFLAGS+= -DCFS_RAM_CONF_SIZE=4096
 
-all: $(KERNELS)
+all: $(KERNELS) codeprop
 
 sys-tst.elf: sys-tst.o $(ARCH) $(SYSTEM)
 
 robot-main-syms.elf:  robot-main.o stepper-process.o $(ARCH) $(SYSTEM) $(SYSLIB) $(UIP) $(UIPDRIVERS) $(STEPPER) $(CODEPROP) $(DEBUG_IO)
+
+codeprop: $(CONTIKI)/tools/codeprop.c
+	cc -g -Wall $< -o $@
 
 include $(CONTIKI)/cpu/at91sam7s/Makefile.at91sam7s

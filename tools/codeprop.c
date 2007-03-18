@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: codeprop.c,v 1.2 2006/08/02 14:33:37 bg- Exp $
+ * @(#)$Id: codeprop.c,v 1.3 2007/03/18 13:15:00 ksb Exp $
  */
 #include <stdlib.h>
 #include <stdio.h>
@@ -48,6 +48,9 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 
+/* Should be included from codeprop.h, but the include paths in the makefiles
+   isn't set up for that. */
+#define HDR_SIZE 4
 
 int
 main(int argc, char **argv) {
@@ -96,7 +99,7 @@ main(int argc, char **argv) {
     char buf[64000];
     int len;
     
-    len = read(fd, &buf[2], sizeof(buf) - 2);
+    len = read(fd, &buf[HDR_SIZE], sizeof(buf) - HDR_SIZE);
     if(len == 0) {
       printf("File successfully sent (%d bytes)\n", total);
       len = read(s, buf, sizeof(buf));
@@ -118,7 +121,7 @@ main(int argc, char **argv) {
     total += len;
     buf[0] = len >> 8;
     buf[1] = len & 0xff;
-    if(write(s, buf, len + 2) == -1) {
+    if(write(s, buf, len + HDR_SIZE) == -1) {
       perror("network send failed");
       exit(1);
     }
