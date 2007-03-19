@@ -30,7 +30,7 @@
  *
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: abc.c,v 1.5 2007/03/19 19:24:36 adamdunkels Exp $
+ * $Id: abc.c,v 1.6 2007/03/19 22:10:16 adamdunkels Exp $
  */
 
 /**
@@ -63,6 +63,12 @@ abc_open(struct abc_conn *c, u16_t channel,
   c->u = callbacks;
 
   list_add(channels, c);
+}
+/*---------------------------------------------------------------------------*/
+void
+abc_close(struct abc_conn *c)
+{
+  list_remove(channels, c);
 }
 /*---------------------------------------------------------------------------*/
 int

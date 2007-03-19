@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: nf.h,v 1.5 2007/03/19 19:24:37 adamdunkels Exp $
+ * $Id: nf.h,v 1.6 2007/03/19 22:10:17 adamdunkels Exp $
  */
 
 /**
@@ -65,6 +65,7 @@ struct nf_conn {
 
 void nf_open(struct nf_conn *c, u16_t channel,
 	      const struct nf_callbacks *u);
+void nf_close(struct nf_conn *c);
 
 int nf_send(struct nf_conn *c);
 

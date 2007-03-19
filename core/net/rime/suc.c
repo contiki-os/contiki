@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: suc.c,v 1.4 2007/03/19 19:24:37 adamdunkels Exp $
+ * $Id: suc.c,v 1.5 2007/03/19 22:10:17 adamdunkels Exp $
  */
 
 /**
@@ -61,6 +61,13 @@ suc_open(struct suc_conn *c, u16_t channel,
 {
   uc_open(&c->c, channel, &suc);
   c->u = u;
+}
+/*---------------------------------------------------------------------------*/
+void
+suc_close(struct suc_conn *c)
+{
+  uc_close(&c->c);
+  ctimer_stop(&c->t);
 }
 /*---------------------------------------------------------------------------*/
 static void

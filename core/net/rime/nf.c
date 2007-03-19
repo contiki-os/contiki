@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: nf.c,v 1.5 2007/03/19 19:24:37 adamdunkels Exp $
+ * $Id: nf.c,v 1.6 2007/03/19 22:10:17 adamdunkels Exp $
  */
 
 /**
@@ -155,6 +155,12 @@ nf_open(struct nf_conn *c, u16_t channel,
 {
   ibc_open(&c->c, channel, &nf);
   c->u = u;
+}
+/*---------------------------------------------------------------------------*/
+void
+nf_close(struct nf_conn *c)
+{
+  ibc_close(&c->c);
 }
 /*---------------------------------------------------------------------------*/
 int

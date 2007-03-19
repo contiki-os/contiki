@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: ruc.c,v 1.4 2007/03/19 19:24:37 adamdunkels Exp $
+ * $Id: ruc.c,v 1.5 2007/03/19 22:10:17 adamdunkels Exp $
  */
 
 /**
@@ -118,6 +118,12 @@ ruc_open(struct ruc_conn *c, u16_t channel,
 {
   suc_open(&c->c, channel, &ruc);
   c->u = u;
+}
+/*---------------------------------------------------------------------------*/
+void
+ruc_close(struct ruc_conn *c)
+{
+  suc_close(&c->c);
 }
 /*---------------------------------------------------------------------------*/
 int

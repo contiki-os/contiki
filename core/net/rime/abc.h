@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: abc.h,v 1.6 2007/03/19 19:24:37 adamdunkels Exp $
+ * $Id: abc.h,v 1.7 2007/03/19 22:10:16 adamdunkels Exp $
  */
 
 /**
@@ -79,6 +79,8 @@ struct abc_conn {
  */
 void abc_open(struct abc_conn *c, u16_t channel,
 	       const struct abc_callbacks *u);
+
+void abc_close(struct abc_conn *c);
 
 /**
  * \brief      Send an anonymous best-effort broadcast packet

@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: tree.h,v 1.2 2007/03/19 19:24:37 adamdunkels Exp $
+ * $Id: tree.h,v 1.3 2007/03/19 22:10:17 adamdunkels Exp $
  */
 
 /**
@@ -47,6 +47,7 @@ struct tree_callbacks {
 };
 
 void tree_open(const struct tree_callbacks *callbacks);
+void tree_close(void);
 
 void tree_send(void);
 

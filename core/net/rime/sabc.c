@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: sabc.c,v 1.3 2007/03/19 19:24:37 adamdunkels Exp $
+ * $Id: sabc.c,v 1.4 2007/03/19 22:10:17 adamdunkels Exp $
  */
 
 /**
@@ -62,6 +62,13 @@ sabc_open(struct sabc_conn *c, u16_t channel,
 {
   abc_open(&c->c, channel, &sabc);
   c->u = u;
+}
+/*---------------------------------------------------------------------------*/
+void
+sabc_close(struct sabc_conn *c)
+{
+  abc_close(&c->c);
+  ctimer_setop(&c->t);
 }
 /*---------------------------------------------------------------------------*/
 static void

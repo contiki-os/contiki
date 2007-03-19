@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: uc.c,v 1.4 2007/03/19 19:24:37 adamdunkels Exp $
+ * $Id: uc.c,v 1.5 2007/03/19 22:10:17 adamdunkels Exp $
  */
 
 /**
@@ -68,6 +68,12 @@ uc_open(struct uc_conn *c, u16_t channel,
 {
   ibc_open(&c->c, channel, &uc);
   c->u = u;
+}
+/*---------------------------------------------------------------------------*/
+void
+uc_close(struct uc_conn *c)
+{
+  ibc_close(&c->c);
 }
 /*---------------------------------------------------------------------------*/
 int

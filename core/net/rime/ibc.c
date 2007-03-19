@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: ibc.c,v 1.4 2007/03/19 19:24:37 adamdunkels Exp $
+ * $Id: ibc.c,v 1.5 2007/03/19 22:10:16 adamdunkels Exp $
  */
 
 /**
@@ -69,6 +69,12 @@ ibc_open(struct ibc_conn *c, u16_t channel,
 {
   abc_open(&c->c, channel, &ibc);
   c->u = u;
+}
+/*---------------------------------------------------------------------------*/
+void
+ibc_close(struct ibc_conn *c)
+{
+  abc_close(&c->c);
 }
 /*---------------------------------------------------------------------------*/
 int

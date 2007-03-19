@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: mesh.c,v 1.3 2007/03/19 19:24:37 adamdunkels Exp $
+ * $Id: mesh.c,v 1.4 2007/03/19 22:10:17 adamdunkels Exp $
  */
 
 /**
@@ -290,6 +290,14 @@ mesh_open(const struct mesh_callbacks *callbacks,
   mc.cb = callbacks;
 
   send_datapacket_handler = send_datapacket;
+}
+/*---------------------------------------------------------------------------*/
+void
+mesh_close(void)
+{
+  uc_close(&mc.dataconn);
+  uc_close(&mc.rrepconn);
+  nf_close(&mc.rreqconn);
 }
 /*---------------------------------------------------------------------------*/
 int

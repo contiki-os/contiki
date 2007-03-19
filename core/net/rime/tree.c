@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: tree.c,v 1.3 2007/03/19 19:24:37 adamdunkels Exp $
+ * $Id: tree.c,v 1.4 2007/03/19 22:10:17 adamdunkels Exp $
  */
 
 /**
@@ -190,6 +190,13 @@ tree_open(const struct tree_callbacks *cb)
   rimebuf_reference(&tc.hello, sizeof(tc.hello));
   sibc_send_stubborn(&sibc_conn, CLOCK_SECOND * 8);
   tc.cb = cb;
+}
+/*---------------------------------------------------------------------------*/
+void
+tree_close(void)
+{
+  sibc_close(&sibc_conn);
+  ruc_close(&ruc_conn);
 }
 /*---------------------------------------------------------------------------*/
 void
