@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: test-abc.c,v 1.1 2007/03/15 22:11:11 adamdunkels Exp $
+ * $Id: test-abc.c,v 1.2 2007/03/19 19:24:36 adamdunkels Exp $
  */
 
 /**
@@ -62,7 +62,7 @@ PROCESS_THREAD(test_abc_process, ev, data)
 {
   PROCESS_BEGIN();
 
-  abc_setup(&abc, 128, &abc_call);
+  abc_open(&abc, 128, &abc_call);
 
   while(1) {
     static struct etimer et;

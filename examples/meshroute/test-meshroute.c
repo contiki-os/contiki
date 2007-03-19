@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: test-meshroute.c,v 1.1 2007/03/15 22:06:19 adamdunkels Exp $
+ * $Id: test-meshroute.c,v 1.2 2007/03/19 19:24:36 adamdunkels Exp $
  */
 
 /**
@@ -71,7 +71,7 @@ PROCESS_THREAD(test_mesh_process, ev, data)
 {
   PROCESS_BEGIN();
 
-  mesh_setup(&callbacks, NULL);
+  mesh_open(&callbacks, NULL);
 
   button_sensor.activate();
 

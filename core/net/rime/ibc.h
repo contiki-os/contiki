@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: ibc.h,v 1.3 2007/03/15 19:43:07 adamdunkels Exp $
+ * $Id: ibc.h,v 1.4 2007/03/19 19:24:37 adamdunkels Exp $
  */
 
 /**
@@ -55,7 +55,7 @@ struct ibc_conn {
   const struct ibc_callbacks *u;
 };
 
-void ibc_setup(struct ibc_conn *c, u16_t channel,
+void ibc_open(struct ibc_conn *c, u16_t channel,
 	       const struct ibc_callbacks *u);
 int ibc_send(struct ibc_conn *c);
 

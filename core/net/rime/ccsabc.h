@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: ccsabc.h,v 1.2 2007/03/15 10:01:04 adamdunkels Exp $
+ * $Id: ccsabc.h,v 1.3 2007/03/19 19:24:37 adamdunkels Exp $
  */
 
 /**
@@ -58,7 +58,7 @@ struct ccsabc_conn {
   unsigned char c;
 };
 
-void ccsabc_setup(struct ccsabc_conn *c, u16_t channel,
+void ccsabc_open(struct ccsabc_conn *c, u16_t channel,
 		  const struct ccsabc_callbacks *u);
 
 int ccsabc_send_stubborn(struct ccsabc_conn *c, clock_time_t t);

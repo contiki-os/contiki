@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: suc.h,v 1.3 2007/03/15 19:43:07 adamdunkels Exp $
+ * $Id: suc.h,v 1.4 2007/03/19 19:24:37 adamdunkels Exp $
  */
 
 /**
@@ -60,7 +60,7 @@ struct suc_conn {
   rimeaddr_t receiver;
 };
 
-void suc_setup(struct suc_conn *c, u16_t channel,
+void suc_open(struct suc_conn *c, u16_t channel,
 	       const struct suc_callbacks *u);
 
 int suc_send_stubborn(struct suc_conn *c, rimeaddr_t *receiver);

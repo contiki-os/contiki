@@ -30,7 +30,7 @@
  *
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: abc.c,v 1.4 2007/03/15 21:24:11 adamdunkels Exp $
+ * $Id: abc.c,v 1.5 2007/03/19 19:24:36 adamdunkels Exp $
  */
 
 /**
@@ -56,7 +56,7 @@ LIST(channels);
 
 /*---------------------------------------------------------------------------*/
 void
-abc_setup(struct abc_conn *c, u16_t channel,
+abc_open(struct abc_conn *c, u16_t channel,
 	  const struct abc_callbacks *callbacks)
 {
   c->channel = channel;

@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: rbc.c,v 1.1 2007/02/28 16:38:52 adamdunkels Exp $
+ * $Id: rbc.c,v 1.2 2007/03/19 19:24:37 adamdunkels Exp $
  */
 
 /**
@@ -64,10 +64,10 @@ PROCESS_THREAD(rbc_process, ev, data)
 }
 /*---------------------------------------------------------------------------*/
 void
-rbc_setup(struct rbc_conn *c, u16_t id)
+rbc_open(struct rbc_conn *c, u16_t id)
 {
   PROCESS_CONTEXT_BEGIN(&rbc_process);
-  llbc_setup(&c->c, id);
+  llbc_open(&c->c, id);
   PROCESS_CONTEXT_END(&rbc_process);
 }
 /*---------------------------------------------------------------------------*/

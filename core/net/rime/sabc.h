@@ -44,7 +44,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: sabc.h,v 1.2 2007/03/15 10:01:04 adamdunkels Exp $
+ * $Id: sabc.h,v 1.3 2007/03/19 19:24:37 adamdunkels Exp $
  */
 
 /**
@@ -70,7 +70,7 @@ struct sabc_callbacks {
 
 /**
  * A sabc connection. This is an opaque structure with no user-visible
- * fields. The sabc_setup() function is used for setting up a sabc
+ * fields. The sabc_open() function is used for setting up a sabc
  * connection.
  */
 struct sabc_conn {
@@ -96,14 +96,14 @@ struct sabc_conn {
  *             that operates on the connection is called.
  *
  */
-void sabc_setup(struct sabc_conn *c, u16_t channel,
+void sabc_open(struct sabc_conn *c, u16_t channel,
 		const struct sabc_callbacks *u);
 
 
 /**
  * \brief      Send a stubborn message.
  * \param c    A sabc connection that must have been previously set up
- *             with sabc_setup()
+ *             with sabc_open()
  * \param t    The time between message retransmissions.
  *
  *             This function sends a message from the Rime buffer. The
@@ -121,7 +121,7 @@ int sabc_send_stubborn(struct sabc_conn *c, clock_time_t t);
 /**
  * \brief      Cancel the current stubborn message.
  * \param c    A sabc connection that must have been previously set up
- *             with sabc_setup()
+ *             with sabc_open()
  *
  *             This function cancels a stubborn message that has
  *             previously been sent with the sabc_send_stubborn()
@@ -135,7 +135,7 @@ void sabc_cancel(struct sabc_conn *c);
 /**
  * \brief      Set the retransmission time of the current stubborn message.
  * \param c    A sabc connection that must have been previously set up
- *             with sabc_setup()
+ *             with sabc_open()
  * \param t    The new time between message retransmissions.
  *
  *             This function sets the retransmission timer for the

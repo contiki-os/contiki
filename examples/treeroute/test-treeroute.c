@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: test-treeroute.c,v 1.1 2007/03/15 22:03:58 adamdunkels Exp $
+ * $Id: test-treeroute.c,v 1.2 2007/03/19 19:24:36 adamdunkels Exp $
  */
 
 /**
@@ -83,7 +83,7 @@ PROCESS_THREAD(test_tree_process, ev, data)
 {
   PROCESS_BEGIN();
 
-  tree_setup(NULL);
+  tree_open(NULL);
   
   while(1) {
 

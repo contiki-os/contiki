@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: nf.c,v 1.4 2007/03/15 19:43:07 adamdunkels Exp $
+ * $Id: nf.c,v 1.5 2007/03/19 19:24:37 adamdunkels Exp $
  */
 
 /**
@@ -150,10 +150,10 @@ recv_from_ibc(struct ibc_conn *ibc, rimeaddr_t *from)
 static const struct ibc_callbacks nf = {recv_from_ibc};
 /*---------------------------------------------------------------------------*/
 void
-nf_setup(struct nf_conn *c, u16_t channel,
+nf_open(struct nf_conn *c, u16_t channel,
 	  const struct nf_callbacks *u)
 {
-  ibc_setup(&c->c, channel, &nf);
+  ibc_open(&c->c, channel, &nf);
   c->u = u;
 }
 /*---------------------------------------------------------------------------*/

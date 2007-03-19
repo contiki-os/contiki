@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: mesh.c,v 1.2 2007/03/15 20:04:30 adamdunkels Exp $
+ * $Id: mesh.c,v 1.3 2007/03/19 19:24:37 adamdunkels Exp $
  */
 
 /**
@@ -281,12 +281,12 @@ static const struct uc_callbacks rrep_callbacks = {rrep_packet_received};
 static const struct nf_callbacks rreq_callbacks = {rreq_packet_received, NULL};
 /*---------------------------------------------------------------------------*/
 void
-mesh_setup(const struct mesh_callbacks *callbacks,
+mesh_open(const struct mesh_callbacks *callbacks,
 	   void (* send_datapacket)(rimeaddr_t *next))
 {
-  uc_setup(&mc.dataconn, CHANNEL_MESH_DATA, &data_callbacks);
-  uc_setup(&mc.rrepconn, CHANNEL_MESH_RREP, &rrep_callbacks);
-  nf_setup(&mc.rreqconn, CHANNEL_MESH_RREQ, &rreq_callbacks);
+  uc_open(&mc.dataconn, CHANNEL_MESH_DATA, &data_callbacks);
+  uc_open(&mc.rrepconn, CHANNEL_MESH_RREP, &rrep_callbacks);
+  nf_open(&mc.rreqconn, CHANNEL_MESH_RREQ, &rreq_callbacks);
   mc.cb = callbacks;
 
   send_datapacket_handler = send_datapacket;

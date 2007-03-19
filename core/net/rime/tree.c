@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: tree.c,v 1.2 2007/03/15 21:25:06 adamdunkels Exp $
+ * $Id: tree.c,v 1.3 2007/03/19 19:24:37 adamdunkels Exp $
  */
 
 /**
@@ -181,10 +181,10 @@ static const struct ruc_callbacks ruc_callbacks = {node_packet_received,
 					     node_packet_sent};
 /*---------------------------------------------------------------------------*/
 void
-tree_setup(const struct tree_callbacks *cb)
+tree_open(const struct tree_callbacks *cb)
 {
-  sibc_setup(&sibc_conn, CHANNEL_TREE_META, &sibc_callbacks);
-  ruc_setup(&ruc_conn, CHANNEL_TREE_DATA, &ruc_callbacks);
+  sibc_open(&sibc_conn, CHANNEL_TREE_META, &sibc_callbacks);
+  ruc_open(&ruc_conn, CHANNEL_TREE_DATA, &ruc_callbacks);
   tc.hello.hopcount = HOPCOUNT_MAX;
   rimebuf_clear();
   rimebuf_reference(&tc.hello, sizeof(tc.hello));

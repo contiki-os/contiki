@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: ruc.c,v 1.3 2007/03/15 19:43:07 adamdunkels Exp $
+ * $Id: ruc.c,v 1.4 2007/03/19 19:24:37 adamdunkels Exp $
  */
 
 /**
@@ -113,10 +113,10 @@ recv_from_suc(struct suc_conn *suc, rimeaddr_t *from)
 static const struct suc_callbacks ruc = {recv_from_suc, sent_by_suc};
 /*---------------------------------------------------------------------------*/
 void
-ruc_setup(struct ruc_conn *c, u16_t channel,
+ruc_open(struct ruc_conn *c, u16_t channel,
 	  const struct ruc_callbacks *u)
 {
-  suc_setup(&c->c, channel, &ruc);
+  suc_open(&c->c, channel, &ruc);
   c->u = u;
 }
 /*---------------------------------------------------------------------------*/

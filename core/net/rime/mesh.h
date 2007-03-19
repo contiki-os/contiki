@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: mesh.h,v 1.2 2007/03/15 20:04:30 adamdunkels Exp $
+ * $Id: mesh.h,v 1.3 2007/03/19 19:24:37 adamdunkels Exp $
  */
 
 /**
@@ -48,7 +48,7 @@ struct mesh_callbacks {
   void (* recv)(rimeaddr_t *from);
 };
 
-void mesh_setup(const struct mesh_callbacks *callbacks,
+void mesh_open(const struct mesh_callbacks *callbacks,
 	       void (* data_send_function)(rimeaddr_t *next));
 int mesh_send(rimeaddr_t *dest);
 
