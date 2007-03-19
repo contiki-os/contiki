@@ -1,4 +1,5 @@
 CONTIKI_SOURCEFILES += rimebuf.c queuebuf.c rimeaddr.c ctimer.c rime.c \
                ibc.c uc.c suc.c ruc.c sibc.c sabc.c abc.c nf.c \
                mesh.c route.c \
-               tree.c neighbor.c
+               tree.c neighbor.c \
+               trickle.c
