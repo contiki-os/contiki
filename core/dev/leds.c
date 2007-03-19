@@ -28,11 +28,12 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: leds.c,v 1.3 2006/10/09 14:38:23 nifi Exp $
+ * @(#)$Id: leds.c,v 1.4 2007/03/19 00:33:25 adamdunkels Exp $
  */
 
 #include "dev/leds.h"
 #include "sys/clock.h"
+#include "lib/energest.h"
 
 static unsigned char leds, invert;
 /*---------------------------------------------------------------------------*/
@@ -68,6 +69,16 @@ leds_get(void) {
 void
 leds_on(unsigned char l)
 {
+  if((l & LEDS_GREEN) && !(leds & LEDS_GREEN)) {
+    ENERGEST_ON(ENERGEST_TYPE_LED_GREEN);
+  }
+  if((l & LEDS_YELLOW) && !(leds & LEDS_YELLOW)) {
+    ENERGEST_ON(ENERGEST_TYPE_LED_YELLOW);
+  }
+  if((l & LEDS_RED) && !(leds & LEDS_RED)) {
+    ENERGEST_ON(ENERGEST_TYPE_LED_RED);
+  }
+
   leds |= l;
   show_leds();
 }
@@ -75,6 +86,16 @@ leds_on(unsigned char l)
 void
 leds_off(unsigned char l)
 {
+  
+  if((l & LEDS_GREEN) && (leds & LEDS_GREEN)) {
+    ENERGEST_OFF(ENERGEST_TYPE_LED_GREEN);
+  }
+  if((l & LEDS_YELLOW) && (leds & LEDS_YELLOW)) {
+    ENERGEST_OFF(ENERGEST_TYPE_LED_YELLOW);
+  }
+  if((l & LEDS_RED) && (leds & LEDS_RED)) {
+    ENERGEST_OFF(ENERGEST_TYPE_LED_RED);
+  }
   leds &= ~l;
   show_leds();
 }

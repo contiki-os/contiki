@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2005, Swedish Institute of Computer Science.
+ * Copyright (c) 2007, Swedish Institute of Computer Science.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,42 +28,40 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: esb-sensors.c,v 1.2 2007/03/19 00:34:43 adamdunkels Exp $
+ * $Id: energest.c,v 1.1 2007/03/19 00:30:13 adamdunkels Exp $
  */
 
 /**
  * \file
- *         Functions for turning the ESB sensors on or off
+ *         A brief description of what this file is.
  * \author
  *         Adam Dunkels <adam@sics.se>
- *
- * This file will eventually be changed into a better API. This is
- * sufficient for now.
  */
 
-#include "contiki-esb.h"
+#include "lib/energest.h"
 
-HWCONF_PIN(SENSORSWITCH, 5, 5);
+#if ENERGEST_CONF_ON
+
+energest_t energest_total_time[ENERGEST_TYPE_MAX];
+energest_t energest_current_time[ENERGEST_TYPE_MAX];
 
 /*---------------------------------------------------------------------------*/
 void
-esb_sensors_init(void)
+energest_init(void)
 {
-  SENSORSWITCH_SELECT();
-  SENSORSWITCH_MAKE_OUTPUT();
+  int i;
+  for(i = 0; i < ENERGEST_TYPE_MAX; ++i) {
+    energest_total_time[i] = 0;
+  }
 }
 /*---------------------------------------------------------------------------*/
-void
-esb_sensors_on(void)
+energest_t
+energest_type_time(int type)
 {
-  SENSORSWITCH_CLEAR();
-  ENERGEST_ON(ENERGEST_TYPE_SENSORS);
+  return energest_total_time[type];
 }
 /*---------------------------------------------------------------------------*/
-void
-esb_sensors_off(void)
-{
-  SENSORSWITCH_SET();
-  ENERGEST_OFF(ENERGEST_TYPE_SENSORS);
-}
-/*---------------------------------------------------------------------------*/
+#else /* ENERGEST_CONF_ON */
+void energest_init(void) {}
+energest_t energest_type_time(int type) { return 0; }
+#endif /* ENERGEST_CONF_ON */

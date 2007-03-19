@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2005, Swedish Institute of Computer Science.
+ * Copyright (c) 2007, Swedish Institute of Computer Science.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,42 +28,60 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: esb-sensors.c,v 1.2 2007/03/19 00:34:43 adamdunkels Exp $
+ * $Id: energest.h,v 1.1 2007/03/19 00:30:18 adamdunkels Exp $
  */
 
 /**
  * \file
- *         Functions for turning the ESB sensors on or off
+ *         A brief description of what this file is.
  * \author
  *         Adam Dunkels <adam@sics.se>
- *
- * This file will eventually be changed into a better API. This is
- * sufficient for now.
  */
 
-#include "contiki-esb.h"
+#ifndef __ENERGEST_H__
+#define __ENERGEST_H__
 
-HWCONF_PIN(SENSORSWITCH, 5, 5);
+typedef unsigned long energest_t;
 
-/*---------------------------------------------------------------------------*/
-void
-esb_sensors_init(void)
-{
-  SENSORSWITCH_SELECT();
-  SENSORSWITCH_MAKE_OUTPUT();
-}
-/*---------------------------------------------------------------------------*/
-void
-esb_sensors_on(void)
-{
-  SENSORSWITCH_CLEAR();
-  ENERGEST_ON(ENERGEST_TYPE_SENSORS);
-}
-/*---------------------------------------------------------------------------*/
-void
-esb_sensors_off(void)
-{
-  SENSORSWITCH_SET();
-  ENERGEST_OFF(ENERGEST_TYPE_SENSORS);
-}
-/*---------------------------------------------------------------------------*/
+enum {
+  ENERGEST_TYPE_NONE,
+
+  ENERGEST_TYPE_CPU,
+  ENERGEST_TYPE_LPM1,
+  ENERGEST_TYPE_LPM2,
+  ENERGEST_TYPE_LPM3,
+  ENERGEST_TYPE_LPM4,
+  ENERGEST_TYPE_LED_GREEN,
+  ENERGEST_TYPE_LED_YELLOW,
+  ENERGEST_TYPE_LED_RED,
+  ENERGEST_TYPE_TRANSMIT,
+  ENERGEST_TYPE_RECEIVE,
+  
+  ENERGEST_TYPE_SENSORS,
+
+  ENERGEST_TYPE_MAX
+} energest_type;
+
+void energest_init(void);
+energest_t energest_type_time(int type);
+
+#if ENERGEST_CONF_ON
+extern energest_t energest_total_time[ENERGEST_TYPE_MAX];
+extern energest_t energest_current_time[ENERGEST_TYPE_MAX];
+
+#define ENERGEST_ON(type)  do { \
+                           energest_current_time[type] = energest_arch_now(); \
+                           } while(0)
+#define ENERGEST_OFF(type) do { \
+                           energest_total_time[type] += energest_arch_now() - \
+                           energest_current_time[type]; \
+                           } while(0)
+#else /* ENERGEST_CONF_ON */
+#define ENERGEST_ON(type) do { } while(0)
+#define ENERGEST_OFF(type) do { } while(0)
+#endif /* ENERGEST_CONF_ON */
+
+energest_t energest_arch_current_estimate(void);
+energest_t energest_arch_now(void);
+
+#endif /* __ENERGEST_H__ */
