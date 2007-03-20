@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: suc.c,v 1.5 2007/03/19 22:10:17 adamdunkels Exp $
+ * $Id: suc.c,v 1.6 2007/03/20 12:27:32 adamdunkels Exp $
  */
 
 /**
@@ -47,7 +47,8 @@ static void
 recv_from_uc(struct uc_conn *uc, rimeaddr_t *from)
 {
   register struct suc_conn *c = (struct suc_conn *)uc;
-  DEBUGF(3, "%d: suc: recv_from_uc from %d %p\n", node_id, from_id, c);
+  DEBUGF(3, "%d: suc: recv_from_uc from %d %p\n",
+	 rimeaddr_node_addr.u16, from->u16, c);
   if(c->u->recv != NULL) {
     c->u->recv(c, from);
   }
@@ -75,7 +76,8 @@ send(void *ptr)
 {
   struct suc_conn *c = ptr;
 
-  DEBUGF(3, "%d: suc: resend to %d\n", node_id, c->receiver);
+  DEBUGF(3, "%d: suc: resend to %d\n",
+	 rimeaddr_node_addr.u16, c->receiver.u16);
   queuebuf_to_rimebuf(c->buf);
   uc_send(&c->c, &c->receiver);
   suc_set_timer(c, CLOCK_SECOND);
@@ -103,7 +105,7 @@ suc_send_stubborn(struct suc_conn *c, rimeaddr_t *receiver)
   rimeaddr_copy(&c->receiver, receiver);
   ctimer_set(&c->t, CLOCK_SECOND, send, c);
 
-  DEBUGF(3, "%d: suc_send_stubborn to %d\n", node_id, c->receiver);
+  DEBUGF(3, "%d: suc_send_stubborn to %d\n", rimeaddr_node_addr.u16, c->receiver.u16);
   uc_send(&c->c, &c->receiver);
   if(c->u->sent != NULL) {
     c->u->sent(c);
@@ -114,7 +116,7 @@ suc_send_stubborn(struct suc_conn *c, rimeaddr_t *receiver)
 }
 /*---------------------------------------------------------------------------*/
 int
-suc_send_uc(struct suc_conn *c, rimeaddr_t *receiver)
+suc_send(struct suc_conn *c, rimeaddr_t *receiver)
 {
   return uc_send(&c->c, receiver);
 }

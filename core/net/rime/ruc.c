@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: ruc.c,v 1.5 2007/03/19 22:10:17 adamdunkels Exp $
+ * $Id: ruc.c,v 1.6 2007/03/20 12:28:01 adamdunkels Exp $
  */
 
 /**
@@ -71,12 +71,12 @@ recv_from_suc(struct suc_conn *suc, rimeaddr_t *from)
   struct ruc_conn *c = (struct ruc_conn *)suc;
   struct ruc_hdr *hdr = rimebuf_dataptr();
 
-  DEBUGF(4, "%d: ruc: recv_from_suc type %d seqno %d\n", node_id,
+  DEBUGF(4, "%d: ruc: recv_from_suc type %d seqno %d\n", rimeaddr_node_addr.u16,
 	 hdr->type, hdr->seqno);
   
   if(hdr->type == TYPE_ACK) {
     if(hdr->seqno == seqno) {
-      DEBUGF(4, "%d: ruc: ACKed\n", node_id);
+      DEBUGF(4, "%d: ruc: ACKed\n", rimeaddr_node_addr.u16);
       ++seqno;
       suc_cancel(&c->c);
       if(c->u->sent != NULL) {
@@ -96,16 +96,17 @@ recv_from_suc(struct suc_conn *suc, rimeaddr_t *from)
     }
     
     if(send_ack) {
-      DEBUGF(4, "%d: ruc: Sending ACK to %d for %d\n", node_id, from,
+      DEBUGF(4, "%d: ruc: Sending ACK to %d for %d\n",
+	     rimeaddr_node_addr.u16, from->u16,
 	     packet_seqno);
       rimebuf_clear();
       rimebuf_hdrextend(sizeof(struct ruc_hdr));
       hdr = rimebuf_hdrptr();
       hdr->type = TYPE_ACK;
       hdr->seqno = packet_seqno;
-      suc_send_uc(&c->c, from);
+      suc_send(&c->c, from);
     } else {
-      DEBUGF(4, "%d: Not sending ACK\n", node_id);
+      DEBUGF(4, "%d: Not sending ACK\n", rimeaddr_node_addr.u16);
     }
   }
 }
