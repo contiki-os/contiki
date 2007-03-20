@@ -28,81 +28,51 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: test-treeroute.c,v 1.2 2007/03/19 19:24:36 adamdunkels Exp $
+ * $Id: test-trickle.c,v 1.1 2007/03/20 12:21:19 adamdunkels Exp $
  */
 
 /**
  * \file
- *         A brief description of what this file is.
+ *         Testing the trickle code in Rime
  * \author
  *         Adam Dunkels <adam@sics.se>
  */
 
 #include "contiki.h"
-#include "net/rime.h"
-#include "dev/leds.h"
-#include "dev/pir-sensor.h"
+#include "net/rime/trickle.h"
+
 #include "dev/button-sensor.h"
 
+#include "dev/leds.h"
+
+#include <stdio.h>
 /*---------------------------------------------------------------------------*/
-PROCESS(test_tree_process, "Test tree process");
-PROCESS(depth_blink_process, "Depth indicator");
-AUTOSTART_PROCESSES(&test_tree_process, &depth_blink_process);
+PROCESS(test_trickle_process, "TRICKLE test");
+AUTOSTART_PROCESSES(&test_trickle_process);
 /*---------------------------------------------------------------------------*/
-PROCESS_THREAD(depth_blink_process, ev, data)
+static void
+trickle_recv(struct trickle_conn *c)
 {
-  static struct etimer et;
-  static int count;
-
-  PROCESS_BEGIN();
-
-  while(1) {
-    etimer_set(&et, CLOCK_SECOND * 1);
-    PROCESS_WAIT_UNTIL(etimer_expired(&et));
-    count = tree_depth();
-    if(count == TREE_MAX_DEPTH) {
-      leds_on(LEDS_RED);
-    } else {
-      leds_off(LEDS_RED);
-      while(count > 0) {
-	leds_on(LEDS_RED);
-	etimer_set(&et, CLOCK_SECOND / 10);
-	PROCESS_WAIT_UNTIL(etimer_expired(&et));
-	leds_off(LEDS_RED);
-	etimer_set(&et, CLOCK_SECOND / 10);
-	PROCESS_WAIT_UNTIL(etimer_expired(&et));
-	--count;
-      }
-    }
-  }
-  
-  PROCESS_END();
+  printf("trickle message received '%s'\n", (char *)rimebuf_dataptr());
 }
+const static struct trickle_callbacks trickle_call = {trickle_recv};
+static struct trickle_conn trickle;
 /*---------------------------------------------------------------------------*/
-PROCESS_THREAD(test_tree_process, ev, data)
+PROCESS_THREAD(test_trickle_process, ev, data)
 {
   PROCESS_BEGIN();
 
-  tree_open(NULL);
-  
+  trickle_open(&trickle, 128, &trickle_call);
+  button_sensor.activate();
+
   while(1) {
+    PROCESS_WAIT_EVENT_UNTIL(ev == sensors_event &&
+			     data == &button_sensor);
 
-    PROCESS_WAIT_EVENT();
+    rimebuf_copyfrom("Hej", 4);
+    trickle_send(&trickle);
 
-    if(ev == sensors_event) {
-
-      if(data == &pir_sensor) {
-	tree_send();
-      }
-
-      if(data == &button_sensor) {
-	printf("Button\n");
-	tree_set_sink(1);
-      }
-    }
-    
   }
-  
   PROCESS_END();
 }
 /*---------------------------------------------------------------------------*/
