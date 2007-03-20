@@ -26,14 +26,16 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: button-sensor.h,v 1.1 2006/08/21 12:11:19 fros4943 Exp $
+ * $Id: button-sensor.h,v 1.2 2007/03/20 20:09:17 adamdunkels Exp $
  */
 
-#ifndef __BUTTON_H__
-#define __BUTTON_H__
+#ifndef __BUTTON_SENSOR_H__
+#define __BUTTON_SENSOR_H__
+
+#include "lib/sensors.h"
 
 extern const struct sensors_sensor button_sensor;
 
 #define BUTTON_SENSOR "Button"
 
-#endif /* __BUTTON_H__ */
+#endif /* __BUTTON_SENSOR_H__ */
