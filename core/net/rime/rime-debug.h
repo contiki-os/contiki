@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: rime-debug.h,v 1.3 2007/03/15 19:43:07 adamdunkels Exp $
+ * $Id: rime-debug.h,v 1.4 2007/03/20 12:28:13 adamdunkels Exp $
  */
 
 /**
@@ -42,7 +42,6 @@
 #define __RIME_DEBUG_H__
 
 #define DEBUG_LEVEL 0
-
 #if DEBUG_LEVEL > 0
 #include <stdio.h>
 #define DEBUGF(level, ...) if(DEBUG_LEVEL <= level) {printf("%.*s %lu ", 6 - level, "            ", clock_time() / CLOCK_SECOND); printf(__VA_ARGS__);}
