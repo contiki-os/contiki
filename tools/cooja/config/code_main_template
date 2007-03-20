@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: code_main_template,v 1.12 2006/10/23 16:09:15 fros4943 Exp $
+ * $Id: code_main_template,v 1.13 2007/03/20 20:08:51 adamdunkels Exp $
  */
 
 /**
@@ -68,6 +68,7 @@
 
 #include "lib/simEnvChange.h"
 #include "lib/sensors.h"
+#include "net/rime.h"
 #include "net/uip.h"
 #include "dev/radio-arch.h"
 #include "cfs/cfs-cooja.h"
@@ -158,6 +159,9 @@ Java_se_sics_cooja_corecomm_[CLASS_NAME]_init(JNIEnv *env, jobject obj)
 
   /* Start Contiki processes */
   procinit_init();
+
+  /* Initialize Rime. */
+  rime_init();
 
   /* Initialize uIP */
   uip_init();

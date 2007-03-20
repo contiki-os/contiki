@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: radio-arch.c,v 1.13 2007/03/18 19:31:36 fros4943 Exp $
+ * $Id: radio-arch.c,v 1.14 2007/03/20 20:10:34 adamdunkels Exp $
  */
 
 #include "dev/radio-arch.h"
@@ -63,6 +63,11 @@ int simSignalStrength = -200;
 char simPower = 100;
 int simRadioChannel = 1;
 
+enum {
+  UIP,
+  RIME,
+};
+
 /*-----------------------------------------------------------------------------------*/
 void
 radio_set_channel(int channel)
@@ -76,8 +81,10 @@ radio_sstrength(void)
   return simSignalStrength;
 }
 /*-----------------------------------------------------------------------------------*/
-void radio_set_txpower(unsigned char power) {
-  // 1 - 100: Number indicating output power
+void
+radio_set_txpower(unsigned char power)
+{
+  /* 1 - 100: Number indicating output power */
   simPower = power;
 }
 /*-----------------------------------------------------------------------------------*/
@@ -108,18 +115,25 @@ doInterfaceActionsBeforeTick(void)
   }
   
   // ** Good place to add explicit manchester/gcr-encoding
+  if(simInDataBuffer[0] == UIP) {
+    // Hand over new packet to uIP
+    uip_len = simInSize - 1;
+    memcpy(&uip_buf[UIP_LLH_LEN], &simInDataBuffer[1], simInSize - 1);
+    
+    if(simNoYield) {
+      simDoTcpipInput = 1;
+    } else {
+      tcpip_input();
+    }
+  } else if(simInDataBuffer[0] == RIME) {
+    /* If we are not configured to use uIP, we use Rime instead. */
+    rimebuf_copyfrom(&simInDataBuffer[1], simInSize - 1);
+    /*    log_message("rime input", "");*/
+    rime_input();
+  }
   
-  // Hand over new packet to uIP
-  uip_len = simInSize;
-  memcpy(&uip_buf[UIP_LLH_LEN], &simInDataBuffer[0], simInSize);
-	
-  if (simNoYield)
-  	simDoTcpipInput = 1;
-  else
-    tcpip_input();
   simInSize = 0;
 }
-
 /*-----------------------------------------------------------------------------------*/
 static void
 doInterfaceActionsAfterTick(void)
@@ -131,76 +145,84 @@ doInterfaceActionsAfterTick(void)
   }
 }
 /*-----------------------------------------------------------------------------------*/
-u8_t
-simDoLLSend(unsigned char *buf, int len)
+static u8_t
+simDoLLSend(unsigned char *buf, int len, int uip_or_rime)
 {
   /* If radio is turned off, do nothing */
-  if (!simRadioHWOn) {
+  if(!simRadioHWOn) {
     return UIP_FW_DROPPED;
   }
-  
+
   /* Drop packet if data size too large */
   if(len > UIP_BUFSIZE) {
     return UIP_FW_TOOLARGE;
   }
-  
+
   /* Drop packet if no data length */
-  if (len <= 0) {
+  if(len <= 0) {
     return UIP_FW_ZEROLEN;
   }
-  
+
   /* ** Good place to add explicit manchester/gcr-decoding */
-  
+
   /* Copy packet data to temporary storage */
-  memcpy(&simOutDataBuffer[0], &buf[UIP_LLH_LEN], len);
-  simOutSize = len;
-  
+  simOutDataBuffer[0] = uip_or_rime;
+  memcpy(&simOutDataBuffer[1], buf, len);
+  simOutSize = len + 1;
+
   /* Busy-wait until both radio HW and ether is ready */
-  int retries=0;
-  while (retries < MAX_RETRIES && !simNoYield &&
-    (simSignalStrength > SS_INTERFERENCE || simReceiving))
   {
-	retries++;
+    int retries = 0;
+    while(retries < MAX_RETRIES && !simNoYield &&
+	  (simSignalStrength > SS_INTERFERENCE || simReceiving)) {
+      retries++;
+      cooja_mt_yield();
+      if(!(simSignalStrength > SS_INTERFERENCE || simReceiving)) {
+	/* Wait one extra tick before transmission starts */
 	cooja_mt_yield();
-	
-	if (!(simSignalStrength > SS_INTERFERENCE || simReceiving))
-	{
-      // Wait one extra tick before transmission starts
-  	  cooja_mt_yield();
-	}
+      }
+    }
   }
-  if (simSignalStrength > SS_INTERFERENCE || simReceiving) {
-	return UIP_FW_DROPPED;
+  
+  if(simSignalStrength > SS_INTERFERENCE || simReceiving) {
+    return UIP_FW_DROPPED;
   }
 
   // - Initiate transmission -
   simTransmitting = 1;
 
   // Busy-wait while transmitting
-  while (simTransmitting && !simNoYield) {
+  while(simTransmitting && !simNoYield) {
     cooja_mt_yield();
   }
-  
+
   return UIP_FW_OK;
+}
+/*-----------------------------------------------------------------------------------*/
+void
+rime_driver_send(void)
+{
+  /*  log_message("rime driver send", "");*/
+  simDoLLSend(rimebuf_hdrptr(), rimebuf_totlen(), RIME);
 }
 /*-----------------------------------------------------------------------------------*/
 u8_t
 simDoSend()
 {
   /* If radio is turned off, reset uip_len */
-  if (!simRadioHWOn) {
+  if(!simRadioHWOn) {
     uip_len = 0;
     return UIP_FW_DROPPED;
   }
-  if (uip_len > UIP_BUFSIZE) {
+  if(uip_len > UIP_BUFSIZE) {
     uip_len = 0;
     return UIP_FW_DROPPED;
   }
-  if (uip_len <= 0) {
+  if(uip_len <= 0) {
     return UIP_FW_ZEROLEN;
   }
- 
-  return simDoLLSend(uip_buf, uip_len);
+
+  return simDoLLSend(&uip_buf[UIP_LLH_LEN], uip_len, UIP);
 }
 /*-----------------------------------------------------------------------------------*/
 /**
@@ -209,7 +231,8 @@ simDoSend()
  *             This function turns the radio hardware on.
  */
 void
-radio_on(void) {
+radio_on(void)
+{
   simRadioHWOn = 1;
 }
 /*-----------------------------------------------------------------------------------*/
@@ -218,7 +241,9 @@ radio_on(void) {
  *
  *             This function turns the radio hardware off.
  */
-void radio_off(void) {
+void
+radio_off(void)
+{
   simRadioHWOn = 0;
 }
 /*-----------------------------------------------------------------------------------*/
