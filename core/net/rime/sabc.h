@@ -44,7 +44,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: sabc.h,v 1.4 2007/03/19 22:10:17 adamdunkels Exp $
+ * $Id: sabc.h,v 1.5 2007/03/20 12:26:57 adamdunkels Exp $
  */
 
 /**
@@ -116,7 +116,6 @@ void sabc_close(struct sabc_conn *c);
  *
  */
 int sabc_send_stubborn(struct sabc_conn *c, clock_time_t t);
-
 
 /**
  * \brief      Cancel the current stubborn message.
