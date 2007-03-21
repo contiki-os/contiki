@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: simple-cc2420.c,v 1.1 2007/03/15 21:26:00 adamdunkels Exp $
+ * @(#)$Id: simple-cc2420.c,v 1.2 2007/03/21 23:19:15 adamdunkels Exp $
  */
 /*
  * This code is almost device independent and should be easy to port.
@@ -216,7 +216,10 @@ simple_cc2420_send(const u8_t *payload, u8_t payload_len)
   strobe(CC2420_SFLUSHTX); /* Cancel send that never started. */
   s = splhigh();
   /*  FASTSPI_WRITE_FIFO(hdr, hdr_len);*/
-  FASTSPI_WRITE_FIFO(&payload_len, 1);
+  {
+    u8_t total_len = payload_len + 2; /* 2 bytes footer. */
+    FASTSPI_WRITE_FIFO(&total_len, 1);
+  }
   FASTSPI_WRITE_FIFO(payload, payload_len);
   splx(s);
   PRINTF("simple_cc2420_send: wrote %d bytes\n", payload_len);
@@ -404,7 +407,7 @@ simple_cc2420_read(u8_t *buf, u8_t bufsize)
   int s;
   
   len = rx_fifo_remaining_bytes;
-
+  
   if(len > 0) {
     /* Read payload and two bytes of footer */
     if(len > bufsize) {
