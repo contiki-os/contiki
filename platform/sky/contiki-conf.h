@@ -1,10 +1,13 @@
 /* -*- C -*- */
-/* @(#)$Id: contiki-conf.h,v 1.7 2007/03/15 21:59:44 adamdunkels Exp $ */
+/* @(#)$Id: contiki-conf.h,v 1.8 2007/03/21 23:26:25 adamdunkels Exp $ */
 
 #ifndef CONTIKI_CONF_H
 #define CONTIKI_CONF_H
 
 #define LPM_CONF_OFF LPM4_EXIT
+
+#define NODE_ID_XMEM_OFFSET     0x0010 /* - 0x0014 */
+#define CFS_XMEM_CONF_OFFSET    0x0040
 
 #define IRQ_PORT1 0x01
 #define IRQ_PORT2 0x02
