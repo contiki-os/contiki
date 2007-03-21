@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: tree.c,v 1.4 2007/03/19 22:10:17 adamdunkels Exp $
+ * $Id: tree.c,v 1.5 2007/03/21 23:22:42 adamdunkels Exp $
  */
 
 /**
@@ -42,6 +42,7 @@
 
 #include "net/rime.h"
 #include "net/rime/neighbor.h"
+#include "net/rime/tree.h"
 
 #include "dev/radio-sensor.h"
 
@@ -151,8 +152,9 @@ node_packet_received(struct ruc_conn *c, rimeaddr_t *from, u8_t seqno)
     }
     return 1;
   } else if(hdr->hoplim > 1 && tc.hello.hopcount != HOPCOUNT_MAX) {
+    hdr->hoplim--;
     printf("%d: packet received from %d, forwarding %d, best neighbor %p\n",
-	   rimeaddr_node_addr.u16, from->u16, tc.forwarding, neighbor_best());
+	   rimeaddr_node_addr.u16[0], from->u16[0], tc.forwarding, neighbor_best());
     if(!tc.forwarding) {
       tc.forwarding = 1;
       n = neighbor_best();
@@ -163,7 +165,7 @@ node_packet_received(struct ruc_conn *c, rimeaddr_t *from, u8_t seqno)
     } else {
 
       printf("%d: still forwarding another packet, not sending ACK\n",
-	     rimeaddr_node_addr.u16);
+	     rimeaddr_node_addr.u16[0]);
       return 0;
     }
   }
