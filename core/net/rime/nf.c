@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: nf.c,v 1.6 2007/03/19 22:10:17 adamdunkels Exp $
+ * $Id: nf.c,v 1.7 2007/03/21 23:21:54 adamdunkels Exp $
  */
 
 /**
@@ -43,7 +43,7 @@
 #include "lib/rand.h"
 #include <string.h>
 
-#define QUEUE_TIME ((CLOCK_SECOND / 16) * (rand() % 16))
+#define QUEUE_TIME CLOCK_SECOND / 2
 
 #define HOPS_MAX 16
 
@@ -77,7 +77,7 @@ send(void *ptr)
     queuebuf_to_rimebuf(c->buf);
     queuebuf_free(c->buf);
     c->buf = NULL;
-    ibc_send(&c->c);
+    uibc_send(&c->c, QUEUE_TIME);
     if(c->u->sent != NULL) {
       c->u->sent(c);
     }
@@ -99,9 +99,9 @@ queue_for_send(struct nf_conn *c)
 }
 /*---------------------------------------------------------------------------*/
 static void
-recv_from_ibc(struct ibc_conn *ibc, rimeaddr_t *from)
+recv_from_uibc(struct uibc_conn *uibc, rimeaddr_t *from)
 {
-  register struct nf_conn *c = (struct nf_conn *)ibc;
+  register struct nf_conn *c = (struct nf_conn *)uibc;
   struct nf_hdr *hdr = rimebuf_dataptr();
   u8_t hops;
   struct queuebuf *queuebuf;
@@ -147,20 +147,20 @@ recv_from_ibc(struct ibc_conn *ibc, rimeaddr_t *from)
   }
 }
 /*---------------------------------------------------------------------------*/
-static const struct ibc_callbacks nf = {recv_from_ibc};
+static const struct uibc_callbacks nf = {recv_from_uibc, NULL, NULL};
 /*---------------------------------------------------------------------------*/
 void
 nf_open(struct nf_conn *c, u16_t channel,
 	  const struct nf_callbacks *u)
 {
-  ibc_open(&c->c, channel, &nf);
+  uibc_open(&c->c, channel, &nf);
   c->u = u;
 }
 /*---------------------------------------------------------------------------*/
 void
 nf_close(struct nf_conn *c)
 {
-  ibc_close(&c->c);
+  uibc_close(&c->c);
 }
 /*---------------------------------------------------------------------------*/
 int

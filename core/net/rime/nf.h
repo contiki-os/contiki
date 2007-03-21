@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: nf.h,v 1.6 2007/03/19 22:10:17 adamdunkels Exp $
+ * $Id: nf.h,v 1.7 2007/03/21 23:21:54 adamdunkels Exp $
  */
 
 /**
@@ -41,9 +41,10 @@
 #ifndef __NF_H__
 #define __NF_H__
 
-#include "net/rime/uc.h"
+
 #include "net/rime/ctimer.h"
 #include "net/rime/queuebuf.h"
+#include "net/rime/uibc.h"
 
 struct nf_conn;
 
@@ -54,7 +55,7 @@ struct nf_callbacks {
 };
 
 struct nf_conn {
-  struct ibc_conn c;
+  struct uibc_conn c;
   struct ctimer t;
   struct queuebuf *buf;
   u8_t packets_received;
