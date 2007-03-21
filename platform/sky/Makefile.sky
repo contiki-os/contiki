@@ -1,10 +1,10 @@
-# $Id: Makefile.sky,v 1.1 2007/03/15 21:44:28 adamdunkels Exp $
+# $Id: Makefile.sky,v 1.2 2007/03/21 23:26:12 adamdunkels Exp $
 
 
 ARCH=msp430.c minileds.c watchdog.c light.c button.c spi.c ds2411.c \
      rom.c xmem.c i2c.c \
      simple-cc2420.c simple-cc2420-rime.c cc2420_uart0.c irq.c \
-     node-id.c sensors.c button-sensor.c
+     node-id.c sensors.c button-sensor.c cfs-xmem.c
 
 CONTIKI_TARGET_DIRS = . dev apps net loader
 ifndef CONTIKI_TARGET_MAIN
