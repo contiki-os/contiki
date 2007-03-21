@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: test-rudolph.c,v 1.1 2007/03/20 12:21:19 adamdunkels Exp $
+ * $Id: test-rudolph0.c,v 1.1 2007/03/21 23:24:24 adamdunkels Exp $
  */
 
 /**
@@ -49,27 +49,23 @@
 
 #include <stdio.h>
 /*---------------------------------------------------------------------------*/
-PROCESS(test_rudolph0_process, "RUDOLPH0 test");
+PROCESS(test_rudolph0_process, "Rudolph0 test");
 AUTOSTART_PROCESSES(&test_rudolph0_process);
 /*---------------------------------------------------------------------------*/
 static int
 newfile(struct rudolph0_conn *c)
 {
   printf("+++ rudolph0 new file incoming at %lu\n", clock_time());
-  fflush(NULL);
   return cfs_open("hej", CFS_WRITE);
 }
 static void
-recv(struct rudolph0_conn *c, int cfs_fd)
+recv(struct rudolph0_conn *c)
 {
   int fd;
   int i;
   
   printf("+++ rudolph0 entire file received at %lu\n", clock_time());
-  fflush(NULL);
-  cfs_close(cfs_fd);
 
-  
   fd = cfs_open("hej", CFS_READ);
   for(i = 0; i < 200; ++i) {
     unsigned char buf;
@@ -78,6 +74,7 @@ recv(struct rudolph0_conn *c, int cfs_fd)
       printf("error: diff at %d, %d != %d\n", i, i, buf);
     }
   }
+  cfs_close(fd);
 }
 const static struct rudolph0_callbacks rudolph0_call = {newfile,
 							recv};
@@ -85,13 +82,14 @@ static struct rudolph0_conn rudolph0;
 /*---------------------------------------------------------------------------*/
 PROCESS_THREAD(test_rudolph0_process, ev, data)
 {
+  static int fd;
   PROCESS_BEGIN();
 
   process_start(&cfs_ram_process, NULL);
   PROCESS_PAUSE();
 
   {
-    int i, fd;
+    int i;
     
     fd = cfs_open("hej", CFS_WRITE);
     for(i = 0; i < 200; i++) {
@@ -107,8 +105,9 @@ PROCESS_THREAD(test_rudolph0_process, ev, data)
   while(1) {
     PROCESS_WAIT_EVENT_UNTIL(ev == sensors_event &&
 			     data == &button_sensor);
-
-    rudolph0_send(&rudolph0, cfs_open("hej", CFS_READ));
+    cfs_close(fd);
+    fd = cfs_open("hej", CFS_READ);
+    rudolph0_send(&rudolph0, fd);
 
   }
   PROCESS_END();

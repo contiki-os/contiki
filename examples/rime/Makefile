@@ -1,5 +1,6 @@
 CONTIKI = ../..
 APPS = rudolph
-all: test-abc test-meshroute test-rudolph test-treeroute test-trickle test-uabc
+all: test-abc test-meshroute test-treeroute test-trickle test-uabc \
+     test-rudolph0 test-rudolph1
 
 include $(CONTIKI)/Makefile.include
