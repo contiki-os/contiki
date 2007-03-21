@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: rimeaddr.h,v 1.1 2007/03/15 19:43:07 adamdunkels Exp $
+ * $Id: rimeaddr.h,v 1.2 2007/03/21 23:22:11 adamdunkels Exp $
  */
 
 /**
@@ -43,11 +43,12 @@
 
 typedef union {
   unsigned char u8[2];
-  unsigned short u16;
+  unsigned short u16[1];
 } rimeaddr_t;
 
 void rimeaddr_copy(rimeaddr_t *dest, const rimeaddr_t *from);
 int rimeaddr_cmp(const rimeaddr_t *addr1, const rimeaddr_t *addr2);
+void rimeaddr_set_node_addr(rimeaddr_t *t);
 
 extern rimeaddr_t rimeaddr_node_addr;
 
