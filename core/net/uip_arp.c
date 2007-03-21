@@ -6,7 +6,7 @@
 /**
  * \defgroup uiparp uIP Address Resolution Protocol
  * @{
- * 
+ *
  * The Address Resolution Protocol ARP is used for mapping between IP
  * addresses and link level addresses such as the Ethernet MAC
  * addresses. ARP uses broadcast queries to ask for the link level
@@ -26,19 +26,19 @@
 
 /*
  * Copyright (c) 2001-2003, Adam Dunkels.
- * All rights reserved. 
+ * All rights reserved.
  *
- * Redistribution and use in source and binary forms, with or without 
- * modification, are permitted provided that the following conditions 
- * are met: 
- * 1. Redistributions of source code must retain the above copyright 
- *    notice, this list of conditions and the following disclaimer. 
- * 2. Redistributions in binary form must reproduce the above copyright 
- *    notice, this list of conditions and the following disclaimer in the 
- *    documentation and/or other materials provided with the distribution. 
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions
+ * are met:
+ * 1. Redistributions of source code must retain the above copyright
+ *    notice, this list of conditions and the following disclaimer.
+ * 2. Redistributions in binary form must reproduce the above copyright
+ *    notice, this list of conditions and the following disclaimer in the
+ *    documentation and/or other materials provided with the distribution.
  * 3. The name of the author may not be used to endorse or promote
  *    products derived from this software without specific prior
- *    written permission.  
+ *    written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS
  * OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
@@ -50,11 +50,11 @@
  * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
  * WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
- * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.  
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * This file is part of the uIP TCP/IP stack.
  *
- * $Id: uip_arp.c,v 1.2 2006/08/09 16:13:40 bg- Exp $
+ * $Id: uip_arp.c,v 1.3 2007/03/21 23:19:52 adamdunkels Exp $
  *
  */
 
@@ -73,19 +73,19 @@ struct arp_hdr {
   struct uip_eth_addr shwaddr;
   uip_ipaddr_t sipaddr;
   struct uip_eth_addr dhwaddr;
-  uip_ipaddr_t dipaddr; 
+  uip_ipaddr_t dipaddr;
 };
 
 struct ethip_hdr {
   struct uip_eth_hdr ethhdr;
   /* IP header. */
   u8_t vhl,
-    tos,          
-    len[2],       
-    ipid[2],        
-    ipoffset[2],  
-    ttl,          
-    proto;     
+    tos,
+    len[2],
+    ipid[2],
+    ipoffset[2],
+    ttl,
+    proto;
   u16_t ipchksum;
   uip_ipaddr_t srcipaddr, destipaddr;
 };
@@ -114,6 +114,15 @@ static u8_t tmpage;
 
 #define BUF   ((struct arp_hdr *)&uip_buf[0])
 #define IPBUF ((struct ethip_hdr *)&uip_buf[0])
+
+#define DEBUG 0
+#if DEBUG
+#include <stdio.h>
+#define PRINTF(...) printf(__VA_ARGS__)
+#else
+#define PRINTF(...)
+#endif
+
 /*-----------------------------------------------------------------------------------*/
 /**
  * Initialize the ARP module.
@@ -283,9 +292,14 @@ uip_arp_arpin(void)
   switch(BUF->opcode) {
   case HTONS(ARP_REQUEST):
     /* ARP request. If it asked for our address, we send out a
-       reply. */    
+       reply. */
     /*    if(BUF->dipaddr[0] == uip_hostaddr[0] &&
 	  BUF->dipaddr[1] == uip_hostaddr[1]) {*/
+    PRINTF("uip_arp_arpin: request for %d.%d.%d.%d (we are %d.%d.%d.%d)\n",
+	   BUF->dipaddr.u8[0], BUF->dipaddr.u8[1],
+	   BUF->dipaddr.u8[2], BUF->dipaddr.u8[3],
+	   uip_hostaddr.u8[0], uip_hostaddr.u8[1],
+	   uip_hostaddr.u8[2], uip_hostaddr.u8[3]);
     if(uip_ipaddr_cmp(&BUF->dipaddr, &uip_hostaddr)) {
       /* First, we register the one who made the request in our ARP
 	 table, since it is likely that we will do more communication
@@ -303,9 +317,9 @@ uip_arp_arpin(void)
       BUF->dipaddr = BUF->sipaddr;
       BUF->sipaddr = uip_hostaddr;
 
-      BUF->ethhdr.type = HTONS(UIP_ETHTYPE_ARP);      
+      BUF->ethhdr.type = HTONS(UIP_ETHTYPE_ARP);
       uip_len = sizeof(struct arp_hdr);
-    }      
+    }
     break;
   case HTONS(ARP_REPLY):
     /* ARP reply. We insert or update the ARP table if it was meant
@@ -369,10 +383,10 @@ uip_arp_out(void)
       /* Destination address was not on the local network, so we need to
 	 use the default router's IP address instead of the destination
 	 address when determining the MAC address. */
-      uip_ipaddr_copy(&ipaddr, &uip_draddr); 
+      uip_ipaddr_copy(&ipaddr, &uip_draddr);
     } else {
       /* Else, we use the destination IP address. */
-      uip_ipaddr_copy(&ipaddr, &IPBUF->destipaddr); 
+      uip_ipaddr_copy(&ipaddr, &IPBUF->destipaddr);
     }
       
     for(i = 0; i < UIP_ARPTAB_SIZE; ++i) {
