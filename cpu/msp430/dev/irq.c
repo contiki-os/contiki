@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: irq.c,v 1.1 2007/03/15 21:37:01 adamdunkels Exp $
+ * @(#)$Id: irq.c,v 1.2 2007/03/21 23:23:43 adamdunkels Exp $
  */
 #include "lib/sensors.h"
 #include "dev/irq.h"
@@ -46,7 +46,7 @@ interrupt(PORT1_VECTOR)
      irq_p1(void)
 {
   if(sensors_handle_irq(IRQ_PORT1)) {
-    LPM_AWAKE();
+    LPM4_EXIT;
   }
   P1IFG = 0x00;
 }
@@ -56,7 +56,7 @@ interrupt(PORT2_VECTOR)
      irq_p2(void)
 {
   if(sensors_handle_irq(IRQ_PORT2)) {
-    LPM_AWAKE();
+    LPM4_EXIT;
   }
   P2IFG = 0x00;
 }
@@ -65,7 +65,7 @@ interrupt (ADC_VECTOR)
      irq_adc(void)
 {
   if(sensors_handle_irq(IRQ_ADC)) {
-    LPM_AWAKE();
+    LPM4_EXIT;
   }
 }
 /*---------------------------------------------------------------------------*/
