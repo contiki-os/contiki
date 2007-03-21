@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: trickle.c,v 1.1 2007/03/19 23:26:18 adamdunkels Exp $
+ * $Id: trickle.c,v 1.2 2007/03/21 23:23:02 adamdunkels Exp $
  */
 
 /**
@@ -42,14 +42,13 @@
 
 struct trickle_hdr {
   u8_t seqno;
-  u8_t pad;
+  u8_t interval;
 };
 
 #define K 1
 
-#define DEFAULT_INTERVAL (CLOCK_SECOND / 2)
 #define INTERVAL_MIN 1
-#define INTERVAL_MAX 10
+#define INTERVAL_MAX 4
 
 #define SEQNO_LT(a, b) ((signed char)((a) - (b)) < 0)
 
@@ -66,6 +65,7 @@ send(struct trickle_conn *c)
     rimebuf_hdrextend(sizeof(struct trickle_hdr));
     hdr = rimebuf_hdrptr();
     hdr->seqno = c->seqno;
+    hdr->interval = c->interval;
     abc_send(&c->c);
   }
 }
@@ -73,21 +73,28 @@ send(struct trickle_conn *c)
 static void
 set_intervaltimer(struct trickle_conn *c)
 {
-  ctimer_set(&c->intervaltimer, DEFAULT_INTERVAL << c->interval,
+  ctimer_set(&c->intervaltimer,
+	     CLOCK_SECOND * (c->interval << c->interval_scaling) /
+                                                  TRICKLE_SECOND,
 	     (void (*)(void *))trickle_pt, c);
 }
 /*---------------------------------------------------------------------------*/
 static void
 set_listentimer(struct trickle_conn *c)
 {
-  ctimer_set(&c->timer, (DEFAULT_INTERVAL << c->interval) / 2,
+  ctimer_set(&c->timer,
+	     CLOCK_SECOND * (c->interval << c->interval_scaling) /
+                                            (2 * TRICKLE_SECOND),
 	     (void (*)(void *))trickle_pt, c);
 }
 /*---------------------------------------------------------------------------*/
 static void
 set_transmittimer(struct trickle_conn *c)
 {
-  clock_time_t tval = (DEFAULT_INTERVAL << c->interval) / 2;
+  clock_time_t tval;
+
+  tval = CLOCK_SECOND * (c->interval << c->interval_scaling) /
+                                        (2 * TRICKLE_SECOND);
 
   ctimer_set(&c->timer, random_rand() & tval,
 	     (void (*)(void *))trickle_pt, c);
@@ -110,9 +117,11 @@ recv(struct abc_conn *abc)
 
   if(hdr->seqno == c->seqno) {
     c->count++;
+    c->cb->recv(c);
   } else if(SEQNO_LT(hdr->seqno, c->seqno)) {
     send(c);
   } else { /* hdr->seqno > c->seqno */
+    c->interval = hdr->interval;
     c->seqno = hdr->seqno;
     /* Store the incoming data in the queuebuf */
     if(c->q != NULL) {
@@ -130,7 +139,7 @@ trickle_pt(struct trickle_conn *c)
 {
   PT_BEGIN(&c->pt);
 
-  c->interval = INTERVAL_MIN;
+  c->interval_scaling = INTERVAL_MIN;
 
   while(1) {
     c->count = 0;
@@ -143,9 +152,9 @@ trickle_pt(struct trickle_conn *c)
       send(c);
     }
     PT_YIELD(&c->pt); /* Wait for interval timer to expire. */
-    c->interval++;
-    if(c->interval > INTERVAL_MAX) {
-      c->interval = INTERVAL_MAX;
+    c->interval_scaling++;
+    if(c->interval_scaling > INTERVAL_MAX) {
+      c->interval_scaling = INTERVAL_MAX;
     }
   }
   PT_END(&c->pt);
@@ -159,7 +168,6 @@ trickle_open(struct trickle_conn *c, u16_t channel,
 {
   abc_open(&c->c, channel, &abc);
   c->cb = cb;
-  reset_interval(c);
   c->q = NULL;
   c->count = 0;
 }
@@ -173,13 +181,14 @@ trickle_close(struct trickle_conn *c)
 }
 /*---------------------------------------------------------------------------*/
 void
-trickle_send(struct trickle_conn *c)
+trickle_send(struct trickle_conn *c, u8_t interval)
 {
   if(c->q != NULL) {
     queuebuf_free(c->q);
   }
   c->q = queuebuf_new_from_rimebuf();
   c->seqno++;
+  c->interval = interval;
   reset_interval(c);
 }
 /*---------------------------------------------------------------------------*/

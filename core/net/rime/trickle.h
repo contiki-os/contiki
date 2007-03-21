@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: trickle.h,v 1.1 2007/03/19 23:26:18 adamdunkels Exp $
+ * $Id: trickle.h,v 1.2 2007/03/21 23:23:02 adamdunkels Exp $
  */
 
 /**
@@ -56,15 +56,17 @@ struct trickle_conn {
   struct ctimer intervaltimer;
   struct ctimer timer;
   struct pt pt;
+  u8_t interval;
   u8_t seqno;
   u8_t count;
-  u8_t interval;
+  u8_t interval_scaling;
 };
 
 void trickle_open(struct trickle_conn *c, u16_t channel,
 		  const struct trickle_callbacks *cb);
 void trickle_close(struct trickle_conn *c);
 
-void trickle_send(struct trickle_conn *c);
+#define TRICKLE_SECOND 8
+void trickle_send(struct trickle_conn *c, u8_t interval);
 
 #endif /* __TRICKLE_H__ */
