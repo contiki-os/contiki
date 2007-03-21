@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: rudolph0.c,v 1.1 2007/03/20 12:25:27 adamdunkels Exp $
+ * $Id: rudolph0.c,v 1.2 2007/03/21 23:18:23 adamdunkels Exp $
  */
 
 /**
@@ -57,6 +57,8 @@ enum {
   STATE_SENDER,
 };
 
+#define VERSION_LT(a, b) ((signed char)((a) - (b)) < 0)
+
 #define DEBUG 0
 #if DEBUG
 #include <stdio.h>
@@ -74,7 +76,7 @@ read_new_datapacket(struct rudolph0_conn *c)
   len = cfs_read(c->cfs_fd, c->current.data, RUDOLPH0_DATASIZE);
   c->current.datalen = len;
 
-  PRINTF("read_new_datapacket len %d\n", c->current.datalen);
+  PRINTF("read_new_datapacket len %d\n", len);
 }
 /*---------------------------------------------------------------------------*/
 static void
@@ -104,7 +106,7 @@ sent(struct sabc_conn *sabc)
     read_new_datapacket(c);
   } else {
     sabc_set_timer(&c->c, STEADY_TIME);
-    PRINTF("Sending the same data chunk next time datalen %d, %d\n",
+    PRINTF("Steady: Sending the same data chunk next time datalen %d, %d\n",
 	   c->current.datalen, RUDOLPH0_DATASIZE);
   }
 }
@@ -120,8 +122,11 @@ recv(struct sabc_conn *sabc)
     }*/
   
   if(p->h.type == TYPE_DATA) {
-    if(p->h.version > c->current.h.version) {
+    if(c->current.h.version != p->h.version) {
       PRINTF("rudolph0 new version %d\n", p->h.version);
+      if(c->cfs_fd != -1) {
+	cfs_close(c->cfs_fd);
+      }
       c->cfs_fd = c->cb->new_file(c);
       c->current.h.version = p->h.version;
       c->current.h.chunk = 0;
@@ -140,8 +145,11 @@ recv(struct sabc_conn *sabc)
 	  cfs_write(c->cfs_fd, p->data, p->datalen);
 	  c->current.h.chunk++;
 	  if(p->datalen < RUDOLPH0_DATASIZE) {
-	    c->cb->received_file(c, c->cfs_fd);
+	    cfs_close(c->cfs_fd);
+	    c->cfs_fd = -1;
+	    c->cb->received_file(c);
 	  }
+	  
 	} else if(p->h.chunk > c->current.h.chunk) {
 	  PRINTF("received chunk %d > %d, sending NACK\n", p->h.chunk, c->current.h.chunk);
 	  send_nack(c);
@@ -188,6 +196,7 @@ rudolph0_open(struct rudolph0_conn *c, u16_t channel,
   c->cb = cb;
   c->current.h.version = 0;
   c->state = STATE_RECEIVER;
+  c->cfs_fd = -1;
 }
 /*---------------------------------------------------------------------------*/
 void
@@ -200,6 +209,9 @@ rudolph0_close(struct rudolph0_conn *c)
 void
 rudolph0_send(struct rudolph0_conn *c, int cfs_fd)
 {
+  if(c->cfs_fd != -1) {
+    cfs_close(c->cfs_fd);
+  }
   c->state = STATE_SENDER;
   c->cfs_fd = cfs_fd;
   c->current.h.version++;
@@ -208,5 +220,17 @@ rudolph0_send(struct rudolph0_conn *c, int cfs_fd)
   read_new_datapacket(c);
   rimebuf_reference(&c->current, sizeof(struct rudolph0_datapacket));
   sabc_send_stubborn(&c->c, SENDING_TIME);
+}
+/*---------------------------------------------------------------------------*/
+int
+rudolph0_version(struct rudolph0_conn *c)
+{
+  return c->current.h.version;
+}
+/*---------------------------------------------------------------------------*/
+void
+rudolph0_set_version(struct rudolph0_conn *c, int version)
+{
+  c->current.h.version = version;
 }
 /*---------------------------------------------------------------------------*/
