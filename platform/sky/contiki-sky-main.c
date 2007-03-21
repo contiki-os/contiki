@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#)$Id: contiki-sky-main.c,v 1.1 2007/03/15 21:44:28 adamdunkels Exp $
+ * @(#)$Id: contiki-sky-main.c,v 1.2 2007/03/21 23:26:34 adamdunkels Exp $
  */
 
 #include <stdio.h>
@@ -36,8 +36,9 @@
 
 #include "contiki.h"
 
-#include "net/rime.h"
+#include "cfs/cfs-xmem.h"
 
+#include "dev/button-sensor.h"
 #include "dev/ds2411.h"
 #include "dev/leds.h"
 #include "dev/light.h"
@@ -45,8 +46,10 @@
 #include "dev/simple-cc2420.h"
 #include "dev/simple-cc2420-rime.h"
 #include "dev/uart1.h"
+
+#include "net/rime.h"
+
 #include "sys/autostart.h"
-#include "dev/button-sensor.h"
 
 /*#include "codeprop/codeprop.h"*/
 
@@ -86,7 +89,7 @@ main(int argc, char **argv)
   uart1_init(BAUD2UBR(57600)); /* Must come before first printf */
   
   printf("Starting %s "
-	 "($Id: contiki-sky-main.c,v 1.1 2007/03/15 21:44:28 adamdunkels Exp $)\n", __FILE__);
+	 "($Id: contiki-sky-main.c,v 1.2 2007/03/21 23:26:34 adamdunkels Exp $)\n", __FILE__);
   ds2411_init();
   sensors_light_init();
   xmem_init();
@@ -108,11 +111,15 @@ main(int argc, char **argv)
   process_start(&etimer_process, NULL);
   process_start(&sensors_process, NULL);
 
+  cfs_xmem_init();
+
   simple_cc2420_init();
   simple_cc2420_rime_init();
   simple_cc2420_on();
   rime_init();
 
+  /*  rimeaddr_set_node_addr*/
+  
   /*  process_start(&tcp_loader_process, NULL);*/
 
   printf("Autostarting processes\n");
