@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: neighbor.c,v 1.4 2007/03/22 17:34:43 adamdunkels Exp $
+ * $Id: neighbor.c,v 1.5 2007/03/22 23:57:08 adamdunkels Exp $
  */
 
 /**
@@ -83,7 +83,7 @@ neighbor_init(void)
     rimeaddr_copy(&neighbors[i].addr, &rimeaddr_null);
   }
   
-  ctimer_set(&t, periodic, CLOCK_SECOND, NULL);
+  ctimer_set(&t, CLOCK_SECOND, periodic, NULL);
 }
 /*---------------------------------------------------------------------------*/
 struct neighbor *
