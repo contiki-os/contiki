@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: CreateSimDialog.java,v 1.4 2007/03/22 22:35:06 fros4943 Exp $
+ * $Id: CreateSimDialog.java,v 1.5 2007/03/22 23:06:26 fros4943 Exp $
  */
 
 package se.sics.cooja.dialogs;
@@ -78,6 +78,31 @@ public class CreateSimDialog extends JDialog {
    */
   public static boolean showDialog(Frame parentFrame, Simulation simulationToConfigure) {
     final CreateSimDialog myDialog = new CreateSimDialog(parentFrame, simulationToConfigure.getGUI());
+
+    myDialog.setDefaultCloseOperation(JDialog.DO_NOTHING_ON_CLOSE);
+    myDialog.addWindowListener(new WindowListener() {
+      public void windowDeactivated(WindowEvent e) {
+      }
+
+      public void windowIconified(WindowEvent e) {
+      }
+
+      public void windowDeiconified(WindowEvent e) {
+      }
+
+      public void windowOpened(WindowEvent e) {
+      }
+
+      public void windowClosed(WindowEvent e) {
+      }
+
+      public void windowActivated(WindowEvent e) {
+      }
+
+      public void windowClosing(WindowEvent e) {
+        myDialog.cancelButton.doClick();
+      }
+    });
 
     myDialog.mySimulation = simulationToConfigure;
 
