@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: Visualizer2D.java,v 1.6 2007/03/22 09:59:50 fros4943 Exp $
+ * $Id: Visualizer2D.java,v 1.7 2007/03/22 11:14:27 fros4943 Exp $
  */
 
 package se.sics.cooja.plugins;
@@ -272,13 +272,7 @@ public abstract class Visualizer2D extends VisPlugin {
           .getLocationOnScreen().y
           + y);
 
-      JMenuItem menuItem = new JMenuItem("Open mote plugin for " + mote);
-      menuItem.addActionListener(new ActionListener() {
-        public void actionPerformed(ActionEvent e) {
-          simulation.getGUI().showMotePluginsMenu(canvas, mote, pos);
-        }
-      });
-      pickMoteMenu.add(menuItem);
+      pickMoteMenu.add(simulation.getGUI().createMotePluginsSubmenu(mote));
     }
 
     // Add the rest of the actions
