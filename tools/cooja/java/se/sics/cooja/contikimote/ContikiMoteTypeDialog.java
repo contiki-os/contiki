@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ContikiMoteTypeDialog.java,v 1.16 2007/03/22 09:34:50 fros4943 Exp $
+ * $Id: ContikiMoteTypeDialog.java,v 1.17 2007/03/22 15:08:34 fros4943 Exp $
  */
 
 package se.sics.cooja.contikimote;
@@ -396,13 +396,11 @@ public class ContikiMoteTypeDialog extends JDialog {
     buttonPane.setLayout(new BoxLayout(buttonPane, BoxLayout.X_AXIS));
     buttonPane.setBorder(BorderFactory.createEmptyBorder(0, 10, 10, 10));
 
-    button = new JButton("Test current settings");
-    button.setActionCommand("testsettings");
+    button = new JButton("Cancel");
+    button.setActionCommand("cancel");
     button.addActionListener(myEventHandler);
-    testButton = button;
-    this.getRootPane().setDefaultButton(button);
-    buttonPane.add(button);
     buttonPane.add(Box.createRigidArea(new Dimension(10, 0)));
+    buttonPane.add(button);
 
     buttonPane.add(Box.createHorizontalGlue());
 
@@ -412,9 +410,11 @@ public class ContikiMoteTypeDialog extends JDialog {
     buttonPane.add(Box.createRigidArea(new Dimension(10, 0)));
     buttonPane.add(button);
 
-    button = new JButton("Cancel");
-    button.setActionCommand("cancel");
+    button = new JButton("Compile & Test");
+    button.setActionCommand("testsettings");
     button.addActionListener(myEventHandler);
+    testButton = button;
+    this.getRootPane().setDefaultButton(button);
     buttonPane.add(Box.createRigidArea(new Dimension(10, 0)));
     buttonPane.add(button);
 
