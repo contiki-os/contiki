@@ -30,7 +30,7 @@
  *
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: contiki-main.c,v 1.7 2007/03/15 21:58:13 adamdunkels Exp $
+ * $Id: contiki-main.c,v 1.8 2007/03/22 18:59:34 adamdunkels Exp $
  */
 
 #include "contiki.h"
@@ -44,6 +44,7 @@
 #include "net/ethernode-uip.h"
 #include "net/ethernode-rime.h"
 #include "net/ethernode.h"
+#include "net/uip-over-mesh.h"
 
 #include "ether.h"
 
@@ -59,13 +60,12 @@
 
 static struct uip_fw_netif tapif =
   {UIP_FW_NETIF(0,0,0,0, 0,0,0,0, tapdev_send)};
+static struct uip_fw_netif meshif =
+  {UIP_FW_NETIF(172,16,0,0, 255,255,0,0, uip_over_mesh_send)};
 /*static struct uip_fw_netif ethernodeif =
   {UIP_FW_NETIF(172,16,0,0, 255,255,0,0, ethernode_drv_send)};*/
 
 static const struct uip_eth_addr ethaddr = {{0x00,0x06,0x98,0x01,0x02,0x12}};
-
-/*PROCESS(test_send_process, "Test send stuff");
-  PROCESS(test_tcp_process, "Test TCP");*/
 
 SENSORS(&button_sensor, &pir_sensor, &vib_sensor, &radio_sensor);
 
@@ -74,79 +74,6 @@ PROCINIT(&sensors_process, &etimer_process, &tcpip_process,
 	 &ethernode_rime_process,
 	 &uip_fw_process);
 
-#if 0
-static
-PT_THREAD(send_packet(struct pt *pt,
-		      struct uip_udp_conn *c, process_event_t ev,
-		      process_data_t data))
-{
-  PT_BEGIN(pt);
-
-  tcpip_poll_udp(c);
-  
-  PT_YIELD_UNTIL(pt, ev == tcpip_event);
-  
-  uip_send("hej", 3);
-  
-  PT_END(pt);
-}
-
-PROCESS_THREAD(test_send_process, ev, data)
-{
-  static struct uip_udp_conn *conn;
-  static struct etimer etimer;
-  static struct pt send_pt;
-  
-  PROCESS_BEGIN();
-
-  conn = udp_broadcast_new(HTONS(3737), NULL);
-
-  etimer_set(&etimer, CLOCK_SECOND * 2);
-  while(1) {
-    PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&etimer) || uip_newdata());
-
-    if(uip_newdata()) {
-      /*      printf("Got a packet!\n");*/
-    }
-
-    if(etimer_expired(&etimer)) {
-      PROCESS_SPAWN(&send_pt, send_packet(&send_pt, conn, ev, data));
-      etimer_set(&etimer, CLOCK_SECOND * 2);
-    }
-    
-  }
-  
-  PROCESS_END();
-}
-
-PROCESS_THREAD(test_tcp_process, ev, data)
-{
-  uip_ipaddr_t server;
-  
-  PROCESS_BEGIN();
-
-  uip_ipaddr(server, 255,255,255,255);
-  tcp_connect(server, HTONS(1000), NULL);
-
-  while(1) {
-    PROCESS_WAIT_EVENT();
-    printf("test_tcp_process: event %d\n", ev);
-  }
-  
-  PROCESS_END();
-}
-
-#endif /* 0 */
-/*---------------------------------------------------------------------------*/
-/*static void
-idle(void)
-{
-  ether_server_poll();
-  display_tick();
-  display_redraw();
-  ether_tick();
-  ek_run();
-}*/
 /*---------------------------------------------------------------------------*/
 void
 contiki_main(int flag)
@@ -160,16 +87,20 @@ contiki_main(int flag)
 
   procinit_init();
 
+  uip_init();
+  
   rime_init();
+  uip_over_mesh_init(0);
   
   if(flag == 1) {
     process_start(&tapdev_drv_process, NULL);
-    /*    uip_fw_register(&ethernodeif);*/
+    uip_fw_register(&meshif);
     uip_fw_default(&tapif);
     printf("uip_hostaddr %02x%02x\n", uip_hostaddr.u16[0], uip_hostaddr.u16[1]);
   } else {
-    /*    uip_fw_default(&ethernodeif);*/
+    uip_fw_default(&meshif);
   }
+  
   leds_green(LEDS_ON);
 
   autostart_start(autostart_processes);

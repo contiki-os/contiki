@@ -28,13 +28,13 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: netsim-init.c,v 1.1 2007/03/21 09:07:15 adamdunkels Exp $
+ * @(#)$Id: netsim-init.c,v 1.2 2007/03/22 18:59:34 adamdunkels Exp $
  */
 #include "init.h"
 #include "random.h"
 
 void
-init(void)
+netsim_init(void)
 {
   int x, y;
 

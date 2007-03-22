@@ -30,7 +30,7 @@
  *
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: ether.c,v 1.5 2007/03/13 13:07:47 adamdunkels Exp $
+ * $Id: ether.c,v 1.6 2007/03/22 18:59:34 adamdunkels Exp $
  */
 /**
  * \file
@@ -107,13 +107,16 @@ static int strength;
 
 static int collisions = 1;
 static int num_collisions = 0;
-static int num_packets = 0;
+static int num_sent = 0;
+static int num_received = 0;
+static int drop_probability = 0;
+static int num_drops = 0;
 
 #include <sys/time.h>
 
 static struct timeval t1;
 /*-----------------------------------------------------------------------------------*/
-void
+int
 ether_print_stats(void)
 {
   unsigned long time;
@@ -122,7 +125,20 @@ ether_print_stats(void)
 
   time = (t2.tv_sec * 1000 + t2.tv_usec / 1000) -
     (t1.tv_sec * 1000 + t1.tv_usec / 1000);
-  printf("%d, %d, %f\n", num_packets, num_collisions, time/1000.0);
+  /*  printf("%d, %d, %f\n", num_packets, num_collisions, time/1000.0);*/
+  printf("Time: %f\n", time/1000.0);
+  printf("Total packets sent: %d\n", num_sent);
+  printf("Total collisions: %d\n", num_collisions);
+  printf("Total packets receptions: %d\n", num_received);
+  printf("Total randomly dropped packets: %d\n", num_drops);
+
+  return 0;
+}
+/*-----------------------------------------------------------------------------------*/
+void
+ether_set_drop_probability(double p)
+{
+  drop_probability = p * 65536;
 }
 /*-----------------------------------------------------------------------------------*/
 void
@@ -204,8 +220,8 @@ ether_client_init(int port)
   }
 }
 /*-----------------------------------------------------------------------------------*/
-u16_t
-ether_client_poll(u8_t *buf, int bufsize)
+int
+ether_client_poll(void)
 {
   int ret, len;
   fd_set fdset;
@@ -216,7 +232,24 @@ ether_client_poll(u8_t *buf, int bufsize)
   FD_SET(sc, &fdset);
 
   tv.tv_sec = 0;
-  tv.tv_usec = 5000;
+  tv.tv_usec = 10000;
+  
+  return select(sc + 1, &fdset, NULL, NULL, &tv);
+}
+/*-----------------------------------------------------------------------------------*/
+u16_t
+ether_client_read(u8_t *buf, int bufsize)
+{
+  int ret, len;
+  fd_set fdset;
+  struct timeval tv;
+  struct ether_hdr *hdr = (struct ether_hdr *)rxbuffer;
+
+  FD_ZERO(&fdset);
+  FD_SET(sc, &fdset);
+
+  tv.tv_sec = 0;
+  tv.tv_usec = 10000;
 
   
   ret = select(sc + 1, &fdset, NULL, NULL, &tv);
@@ -365,7 +398,7 @@ ether_tick(void)
        range of this node. */
     for(p = list_head(active_packets); p != NULL; p = p->next) {
       
-      num_packets++;
+      num_sent++;
       
       /* Update the node type. */
       hdr = (struct ether_hdr *)p->data;
@@ -402,13 +435,18 @@ ether_tick(void)
 
 	if(interference) {
 	  num_collisions++;
-	  printf("Collisions %d\n", num_collisions);
+	  /*	  printf("Collisions %d\n", num_collisions);*/
 	}
 	
 	if(!interference) {
 	  /*	  printf("ether: delivering packet from %d to %d\n",
 		  hdr->srcid, port);*/
-	  send_packet(p->data, p->len, port);
+	  if((unsigned int)((rand() * 17) % 65536) >= drop_probability) {
+	    send_packet(p->data, p->len, port);
+	    num_received++;
+	  } else {
+ 	    num_drops++;
+ 	  }
 	}
       }
 
