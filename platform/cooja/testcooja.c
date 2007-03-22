@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: cooyah.c,v 1.1 2006/08/21 12:11:16 fros4943 Exp $
+ * $Id: testcooja.c,v 1.1 2007/03/22 10:04:47 fros4943 Exp $
  */
 
 #include <stdio.h>
@@ -38,20 +38,20 @@
 #include "sys/log.h"
 #include "node-id.h"
 
-#define COOYAH_PORT 1234
+#define COOJA_PORT 1234
 
-PROCESS(cooyah_example_process, "Example process for report");
-AUTOSTART_PROCESSES(&cooyah_example_process);
+PROCESS(cooja_test_process, "Example process for COOJA");
+AUTOSTART_PROCESSES(&cooja_test_process);
 
 static struct uip_udp_conn *broadcast_conn;
 /*---------------------------------------------------------------------*/
-PROCESS_THREAD(cooyah_example_process, ev, data)
+PROCESS_THREAD(cooja_test_process, ev, data)
 {
 	PROCESS_BEGIN();
 
 	log_message("Example process started", "");
   
-	broadcast_conn = udp_broadcast_new(COOYAH_PORT , NULL);
+	broadcast_conn = udp_broadcast_new(COOJA_PORT , NULL);
 
 	button_sensor.activate();
 

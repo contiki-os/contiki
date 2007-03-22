@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: testbutton.c,v 1.1 2006/08/21 12:11:16 fros4943 Exp $
+ * $Id: testbutton.c,v 1.2 2007/03/22 10:04:47 fros4943 Exp $
  */
 
 
@@ -45,9 +45,9 @@
 #include "dev/button-sensor.h"
 
 
-PROCESS(button_process, "Button test process");
+PROCESS(button_test_process, "Button test process");
 
-PROCESS_THREAD(button_process, ev, data)
+PROCESS_THREAD(button_test_process, ev, data)
 {
   static int custom_counter = 0;
   static char logMess[100];
