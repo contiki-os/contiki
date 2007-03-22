@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: simple-cc2420.c,v 1.2 2007/03/21 23:19:15 adamdunkels Exp $
+ * @(#)$Id: simple-cc2420.c,v 1.3 2007/03/22 23:55:48 adamdunkels Exp $
  */
 /*
  * This code is almost device independent and should be easy to port.
@@ -45,7 +45,7 @@
 #include <io.h>
 #endif
 
-#include "dev/leds.h"
+/* #include "dev/leds.h" */
 
 #include "dev/spi.h"
 #include "dev/simple-cc2420.h"
@@ -342,7 +342,7 @@ __cc2420_intr(void)
   u8_t length;
   /*  const u8_t *const ack_footer = (u8_t *)&h.dst_pan;*/
 
-  leds_toggle(LEDS_YELLOW);
+
   CLEAR_FIFOP_INT();
 
   if(spi_busy || rx_fifo_remaining_bytes > 0) {
@@ -359,7 +359,7 @@ __cc2420_intr(void)
     /* Oops, we must be out of sync. */
     FASTSPI_STROBE(CC2420_SFLUSHRX);
     FASTSPI_STROBE(CC2420_SFLUSHRX);
-    leds_toggle(LEDS_RED);
+
     return 0;
   }
 
@@ -370,7 +370,7 @@ __cc2420_intr(void)
    */
   rx_fifo_remaining_bytes = length;
   process_poll(&simple_cc2420_process);
-  leds_toggle(LEDS_GREEN);
+
   return 1;
 }
 /*---------------------------------------------------------------------------*/
