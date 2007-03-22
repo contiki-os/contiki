@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: simple-cc2420.h,v 1.1 2007/03/15 21:26:00 adamdunkels Exp $
+ * $Id: simple-cc2420.h,v 1.2 2007/03/22 23:56:05 adamdunkels Exp $
  */
 
 /**
@@ -60,5 +60,8 @@ void simple_cc2420_set_chan_pan_addr(unsigned channel, /* 11 - 26 */
 				     unsigned pan,
 				     unsigned addr,
 				     const u8_t *ieee_addr);
+
+extern signed char simple_cc2420_last_rssi;
+extern u8_t simple_cc2420_last_correlation;
 
 #endif /* __SIMPLE_CC2420_H__ */
