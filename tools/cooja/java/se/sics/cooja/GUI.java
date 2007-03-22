@@ -24,7 +24,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * 
- * $Id: GUI.java,v 1.21 2007/02/27 13:51:58 fros4943 Exp $
+ * $Id: GUI.java,v 1.22 2007/03/22 11:14:27 fros4943 Exp $
  */
 
 package se.sics.cooja;
@@ -151,14 +151,12 @@ public class GUI {
 
   private Simulation mySimulation;
 
-  protected Mote selectedMote = null;
-
   protected GUIEventHandler guiEventHandler = new GUIEventHandler();
 
   private JMenu menuPlugins, menuMoteTypeClasses, menuMoteTypes;
 
-  private JPopupMenu menuMotePlugins;
-
+  private Vector<Class<? extends Plugin>> menuMotePluginClasses;
+  
   private JDesktopPane myDesktopPane;
 
   private Vector<Plugin> startedPlugins = new Vector<Plugin>();
@@ -412,10 +410,7 @@ public class GUI {
     menu.add(menuItem);
 
     // Mote plugins popup menu (not available via menu bar)
-    menuMotePlugins = new JPopupMenu();
-    menuMotePlugins.add(new JLabel("Open mote plugin:"));
-    menuMotePlugins.add(new JSeparator());
-
+    menuMotePluginClasses = new Vector<Class<? extends Plugin>>();
     return menuBar;
   }
 
@@ -1384,13 +1379,8 @@ public class GUI {
           menuPlugins.remove(menuItem);
       }
     }
-    for (MenuElement menuComponent : menuMotePlugins.getSubElements()) {
-      if (menuComponent.getClass().isAssignableFrom(JMenuItem.class)) {
-        JMenuItem menuItem = (JMenuItem) menuComponent;
-        if (menuItem.getClientProperty("class").equals(pluginClass))
-          menuPlugins.remove(menuItem);
-      }
-    }
+    if (menuMotePluginClasses.contains(pluginClass))
+      menuMotePluginClasses.remove(pluginClass);
 
     // Remove from plugin vectors (including temporary)
     if (pluginClasses.contains(pluginClass))
@@ -1458,12 +1448,7 @@ public class GUI {
         // Disable previous menu item and add new item to mote plugins menu
         menuItem.setEnabled(false);
         menuItem.setToolTipText("Mote plugin");
-
-        menuItem = new JMenuItem(description);
-        menuItem.setActionCommand("start plugin");
-        menuItem.putClientProperty("class", newPluginClass);
-        menuItem.addActionListener(guiEventHandler);
-        menuMotePlugins.add(menuItem);
+        menuMotePluginClasses.add(newPluginClass);
       }
     }
 
@@ -1477,28 +1462,30 @@ public class GUI {
   public void unregisterPlugins() {
     if (menuPlugins != null) {
       menuPlugins.removeAll();
-      menuMotePlugins.removeAll();
+      menuMotePluginClasses.clear();
     }
     pluginClasses.clear();
     pluginClassesTemporary.clear();
   }
 
   /**
-   * Show mote plugins menu for starting a mote plugin. All registered mote
-   * plugins can be selected from.
+   * Return a mote plugins submenu for given mote.
    * 
-   * @param invoker
-   *          Component that wants to display the menu
-   * @param mote
-   *          Mote of plugin selected
-   * @param location
-   *          Location of popup menu
+   * @param mote Mote
+   * @return Mote plugins menu
    */
-  public void showMotePluginsMenu(Component invoker, Mote mote, Point location) {
-    menuMotePlugins.setInvoker(invoker);
-    menuMotePlugins.setLocation(location);
-    menuMotePlugins.setVisible(true);
-    selectedMote = mote;
+  public JMenu createMotePluginsSubmenu(Mote mote) {
+    JMenu menuMotePlugins = new JMenu("Open mote plugin for " + mote);
+
+    for (Class<? extends Plugin> motePluginClass: menuMotePluginClasses) {
+      JMenuItem menuItem = new JMenuItem(getDescriptionOf(motePluginClass));
+      menuItem.setActionCommand("start plugin");
+      menuItem.putClientProperty("class", motePluginClass);
+      menuItem.putClientProperty("mote", mote);
+      menuItem.addActionListener(guiEventHandler);
+      menuMotePlugins.add(menuItem);
+    }
+    return menuMotePlugins;
   }
 
   // // GUI CONTROL METHODS ////
@@ -1987,7 +1974,8 @@ public class GUI {
       } else if (e.getActionCommand().equals("start plugin")) {
         Class<? extends VisPlugin> pluginClass = (Class<? extends VisPlugin>) ((JMenuItem) e
             .getSource()).getClientProperty("class");
-        startPlugin(pluginClass, myGUI, mySimulation, selectedMote);
+        Mote mote = (Mote) ((JMenuItem) e.getSource()).getClientProperty("mote");
+        startPlugin(pluginClass, myGUI, mySimulation, mote);
       } else
         logger.warn("Unhandled action: " + e.getActionCommand());
     }
