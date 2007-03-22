@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: elfloader.c,v 1.4 2006/12/18 15:35:16 fros4943 Exp $
+ * @(#)$Id: elfloader.c,v 1.5 2007/03/22 23:56:44 adamdunkels Exp $
  */
 
 #include "contiki.h"
@@ -267,10 +267,10 @@ relocate_section(int fd,
       addr = sect->address;
     }
 
-	if (!using_relas) {
-		/* copy addend to rela structure */
-		seek_read(fd, sectionaddr + rela.r_offset, &rela.r_addend, 4);
-	}
+    if(!using_relas) {
+      /* copy addend to rela structure */
+      seek_read(fd, sectionaddr + rela.r_offset, (char *)&rela.r_addend, 4);
+    }
 
     elfloader_arch_relocate(fd, sectionaddr, sectionbase, &rela, addr);
   }
@@ -408,13 +408,24 @@ elfloader_load(int fd)
     /* The name of the section is contained in the strings table. */
     nameptr = strs + shdr.sh_name;
     seek_read(fd, nameptr, name, sizeof(name));
-    
+    PRINTF("Section shdrptr 0x%x, %d + %d type %d\n",
+	   shdrptr,
+	   strs, shdr.sh_name,
+	   (int)shdr.sh_type);
     /* Match the name of the section with a predefined set of names
        (.text, .data, .bss, .rela.text, .rela.data, .symtab, and
        .strtab). */
     /* added support for .rodata, .rel.text and .rel.data). */
 
-    if(strncmp(name, ".text", 5) == 0) {
+    if(shdr.sh_type == SHT_SYMTAB/*strncmp(name, ".symtab", 7) == 0*/) {
+      PRINTF("symtab\n");
+      symtaboff = shdr.sh_offset;
+      symtabsize = shdr.sh_size;
+    } else if(shdr.sh_type == SHT_STRTAB/*strncmp(name, ".strtab", 7) == 0*/) {
+      PRINTF("strtab\n");
+      strtaboff = shdr.sh_offset;
+      strtabsize = shdr.sh_size;
+    } else if(strncmp(name, ".text", 5) == 0) {
       textoff = shdr.sh_offset;
       textsize = shdr.sh_size;
       text.number = i;
@@ -456,12 +467,6 @@ elfloader_load(int fd)
       using_relas = 1;
       datarelaoff = shdr.sh_offset;
       datarelasize = shdr.sh_size;
-    } else if(strncmp(name, ".symtab", 7) == 0) {
-      symtaboff = shdr.sh_offset;
-      symtabsize = shdr.sh_size;
-    } else if(strncmp(name, ".strtab", 7) == 0) {
-      strtaboff = shdr.sh_offset;
-      strtabsize = shdr.sh_size;
     } else if(strncmp(name, ".bss", 4) == 0) {
       bsssize = shdr.sh_size;
       bss.number = i;
@@ -482,16 +487,18 @@ elfloader_load(int fd)
     return ELFLOADER_NO_TEXT;
   }
 
+  PRINTF("before allocate ram\n");
   bss.address = (char *)elfloader_arch_allocate_ram(bsssize + datasize);
   data.address = (char *)bss.address + bsssize;
+  PRINTF("before allocate rom\n");
   text.address = (char *)elfloader_arch_allocate_rom(textsize + rodatasize);
   rodata.address = (char *)text.address + textsize;
   
 
-/*  printf("bss base address: bss.address = 0x%08x\n", bss.address);
-  printf("data base address: data.address = 0x%08x\n", data.address);
-  printf("text base address: text.address = 0x%08x\n", text.address);
-  printf("rodata base address: rodata.address = 0x%08x\n", rodata.address); */
+  PRINTF("bss base address: bss.address = 0x%08x\n", bss.address);
+  PRINTF("data base address: data.address = 0x%08x\n", data.address);
+  PRINTF("text base address: text.address = 0x%08x\n", text.address);
+  PRINTF("rodata base address: rodata.address = 0x%08x\n", rodata.address);
 
 
   /* If we have text segment relocations, we process them. */
