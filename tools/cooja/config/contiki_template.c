@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: code_main_template,v 1.13 2007/03/20 20:08:51 adamdunkels Exp $
+ * $Id: contiki_template.c,v 1.1 2007/03/22 16:20:22 fros4943 Exp $
  */
 
 /**
