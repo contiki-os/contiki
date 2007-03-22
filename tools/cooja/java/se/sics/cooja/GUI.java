@@ -24,7 +24,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * 
- * $Id: GUI.java,v 1.26 2007/03/22 16:41:50 fros4943 Exp $
+ * $Id: GUI.java,v 1.27 2007/03/22 20:38:38 fros4943 Exp $
  */
 
 package se.sics.cooja;
@@ -353,11 +353,11 @@ public class GUI {
     menu.add(menuItem);
     
     menuOpenSimulation = new JMenu("Open simulation");
-    menuOpenSimulation.setMnemonic(KeyEvent.VK_Q);
+    menuOpenSimulation.setMnemonic(KeyEvent.VK_O);
     menu.add(menuOpenSimulation);
 
     menuConfOpenSimulation = new JMenu("Open & Reconfigure simulation");
-    menuConfOpenSimulation.setMnemonic(KeyEvent.VK_O);
+    menuConfOpenSimulation.setMnemonic(KeyEvent.VK_R);
     menu.add(menuConfOpenSimulation);
 
     menuItem = new JMenuItem("Save simulation");
