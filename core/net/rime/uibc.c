@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: uibc.c,v 1.1 2007/03/21 23:21:01 adamdunkels Exp $
+ * $Id: uibc.c,v 1.2 2007/03/22 17:37:10 adamdunkels Exp $
  */
 
 /**
@@ -44,6 +44,14 @@
 
 #include <string.h>
 
+#define DEBUG 0
+#if DEBUG
+#include <stdio.h>
+#define PRINTF(...) printf(__VA_ARGS__)
+#else
+#define PRINTF(...)
+#endif
+
 /*---------------------------------------------------------------------------*/
 static void
 recv(struct ibc_conn *ibc, rimeaddr_t *from)
@@ -56,12 +64,15 @@ recv(struct ibc_conn *ibc, rimeaddr_t *from)
     /* We received a copy of our own packet, so we do not send out
        packet. */
     queuebuf_free(c->q);
+    c->q = NULL;
     ctimer_stop(&c->t);
     if(c->cb->dropped) {
       c->cb->dropped(c);
     }
   }
   if(c->cb->recv) {
+    PRINTF("%d.%d: uibc calling recv\n",
+	   rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1]);
     c->cb->recv(c, from);
   }
 }
@@ -74,6 +85,9 @@ send(void *ptr)
   if(c->q != NULL) {
     queuebuf_to_rimebuf(c->q);
     queuebuf_free(c->q);
+    c->q = NULL;
+    PRINTF("%d.%d: uibc sending with ibc_send\n",
+	   rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1]);
     ibc_send(&c->c);
     if(c->cb->sent) {
 	c->cb->sent(c);

@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: uabc.c,v 1.2 2007/03/21 09:09:33 adamdunkels Exp $
+ * $Id: uabc.c,v 1.3 2007/03/22 17:37:10 adamdunkels Exp $
  */
 
 /**
@@ -56,6 +56,7 @@ recv(struct abc_conn *abc)
     /* We received a copy of our own packet, so we do not send out
        packet. */
     queuebuf_free(c->q);
+    c->q = NULL;
     ctimer_stop(&c->t);
     if(c->cb->dropped) {
       c->cb->dropped(c);
@@ -74,6 +75,7 @@ send(void *ptr)
   if(c->q != NULL) {
     queuebuf_to_rimebuf(c->q);
     queuebuf_free(c->q);
+    c->q = NULL;
     abc_send(&c->c);
     if(c->cb->sent) {
 	c->cb->sent(c);
