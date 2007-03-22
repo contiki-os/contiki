@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: tree.h,v 1.3 2007/03/19 22:10:17 adamdunkels Exp $
+ * $Id: tree.h,v 1.4 2007/03/22 18:54:22 adamdunkels Exp $
  */
 
 /**
@@ -46,13 +46,24 @@ struct tree_callbacks {
 		u8_t hops, u8_t retransmissions);
 };
 
-void tree_open(const struct tree_callbacks *callbacks);
-void tree_close(void);
+struct tree_conn {
+  struct uibc_conn uibc_conn;
+  struct ruc_conn ruc_conn;
+  u8_t forwarding;
+  u8_t hops_from_sink;
+  u8_t seqno;
+  const struct tree_callbacks *cb;
+};
 
-void tree_send(void);
+void tree_open(struct tree_conn *c, u16_t channels,
+	       const struct tree_callbacks *callbacks);
+void tree_close(struct tree_conn *c);
 
-void tree_set_sink(int should_be_sink);
-int tree_depth(void);
+void tree_send(struct tree_conn *c);
+
+void tree_set_sink(struct tree_conn *c, int should_be_sink);
+
+int tree_depth(struct tree_conn *c);
 
 #define TREE_MAX_DEPTH 63
 
