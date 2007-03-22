@@ -30,7 +30,7 @@
  *
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: cfs-ram.c,v 1.1 2006/06/17 22:41:15 adamdunkels Exp $
+ * $Id: cfs-ram.c,v 1.2 2007/03/22 23:55:03 adamdunkels Exp $
  */
 #include "contiki.h"
 
@@ -43,12 +43,13 @@ struct filestate {
 #define FLAG_FILE_CLOSED 0
 #define FLAG_FILE_OPEN   1
   int fileptr;
+  int filesize;
 };
 
 #ifdef CFS_RAM_CONF_SIZE
 #define CFS_RAM_SIZE CFS_RAM_CONF_SIZE
 #else
-#define CFS_RAM_SIZE 512
+#define CFS_RAM_SIZE 4096
 #endif
 
 static struct filestate file;
@@ -61,6 +62,9 @@ s_open(const char *n, int f)
   if(file.flag == FLAG_FILE_CLOSED) {
     file.flag = FLAG_FILE_OPEN;
     file.fileptr = 0;
+    if((f & CFS_WRITE) && !(f & CFS_APPEND)) {
+      file.filesize = 0;
+    }
     return 1;
   } else {
     return -1;
@@ -78,6 +82,10 @@ s_read(int f, char *buf, unsigned int len)
 {
   if(file.fileptr + len > sizeof(filemem)) {
     len = sizeof(filemem) - file.fileptr;
+  }
+  
+  if(file.fileptr + len > file.filesize) {
+    len = file.filesize - file.fileptr;
   }
 
   if(f == 1) {
@@ -98,6 +106,11 @@ s_write(int f, char *buf, unsigned int len)
   if(file.fileptr + len > sizeof(filemem)) {
     len = sizeof(filemem) - file.fileptr;
   }
+
+  if(file.fileptr + len > file.filesize) {
+    /* Extend the size of the file. */
+    file.filesize = file.fileptr + len;
+  }
   
   if(f == 1) {
     memcpy(&filemem[file.fileptr], buf, len);
@@ -112,8 +125,8 @@ static int
 s_seek(int f, unsigned int o)
 {
   if(f == 1) {
-    if(o > sizeof(filemem)) {
-      o = sizeof(filemem);
+    if(o > file.filesize) {
+      o = file.filesize;
     }
     file.fileptr = o;
     return o;
@@ -161,5 +174,11 @@ PROCESS_THREAD(cfs_ram_process, ev, data)
   SERVICE_REMOVE(cfs_ram_service);
   
   PROCESS_END();
+}
+/*---------------------------------------------------------------------------*/
+void
+cfs_ram_init(void)
+{
+  process_start(&cfs_ram_process, NULL);
 }
 /*---------------------------------------------------------------------------*/
