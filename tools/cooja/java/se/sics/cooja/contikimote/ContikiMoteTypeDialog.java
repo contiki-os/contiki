@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ContikiMoteTypeDialog.java,v 1.18 2007/03/22 15:38:04 fros4943 Exp $
+ * $Id: ContikiMoteTypeDialog.java,v 1.19 2007/03/22 15:51:03 fros4943 Exp $
  */
 
 package se.sics.cooja.contikimote;
@@ -178,6 +178,26 @@ public class ContikiMoteTypeDialog extends JDialog {
     // Set preset description of mote type
     if (moteTypeToConfigure.getDescription() != null) {
       myDialog.textDescription.setText(moteTypeToConfigure.getDescription());
+    } else {
+      // Suggest unique description
+      int counter = 0;
+      String testDescription = "";
+      boolean descriptionOK = false;
+      while (!descriptionOK) {
+        counter++;
+        testDescription = "Contiki Mote #" + counter;
+        descriptionOK = true;
+
+        // Check if identifier is already used by some other type
+        for (MoteType existingMoteType : myDialog.allOtherTypes) {
+          if (existingMoteType != myDialog.myMoteType
+              && existingMoteType.getDescription().equals(testDescription)) {
+            descriptionOK = false;
+            break;
+          }
+        }
+      }
+      myDialog.textDescription.setText(testDescription);
     }
 
     // Set preset Contiki base directory of mote type
