@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: test-meshroute.c,v 1.1 2007/03/20 12:21:19 adamdunkels Exp $
+ * $Id: test-meshroute.c,v 1.2 2007/03/22 19:03:56 adamdunkels Exp $
  */
 
 /**
@@ -40,45 +40,56 @@
 
 #include "contiki.h"
 #include "net/rime.h"
+#include "net/rime/mesh.h"
 
 #include "dev/button-sensor.h"
 
 #include "dev/leds.h"
 
 #include <stdio.h>
+
+static struct mesh_conn mesh;
 /*---------------------------------------------------------------------------*/
 PROCESS(test_mesh_process, "Mesh test");
 AUTOSTART_PROCESSES(&test_mesh_process);
 /*---------------------------------------------------------------------------*/
 static void
-sent(void)
+sent(struct mesh_conn *c)
 {
-
+  printf("packet sent\n");
 }
 static void
-recv(rimeaddr_t *from)
+timedout(struct mesh_conn *c)
 {
-  printf("Data received from %d: %.*s (%d)\n", from->u16,
+  printf("packet timedout\n");
+}
+static void
+recv(struct mesh_conn *c, rimeaddr_t *from)
+{
+  printf("Data received from %d: %.*s (%d)\n", from->u16[0],
 	 rimebuf_datalen(), (char *)rimebuf_dataptr(), rimebuf_datalen());
 
   rimebuf_copyfrom("Hopp", 4);
-  mesh_send(from);
+  mesh_send(&mesh, from);
 }
 
-const static struct mesh_callbacks callbacks = {sent, recv};
+const static struct mesh_callbacks callbacks = {recv, sent, timedout};
 /*---------------------------------------------------------------------------*/
 PROCESS_THREAD(test_mesh_process, ev, data)
 {
   PROCESS_BEGIN();
 
-  mesh_open(&callbacks, NULL);
+  mesh_open(&mesh, 128, &callbacks);
 
   button_sensor.activate();
 
   while(1) {
     rimeaddr_t addr;
-    
-    PROCESS_WAIT_EVENT_UNTIL(ev == sensors_event && data == &button_sensor);
+    static struct etimer et;
+
+    /*    etimer_set(&et, CLOCK_SECOND * 4);*/
+    PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&et) ||
+			     (ev == sensors_event && data == &button_sensor));
 
     printf("Button\n");
 
@@ -88,8 +99,9 @@ PROCESS_THREAD(test_mesh_process, ev, data)
      */
     
     rimebuf_copyfrom("Hej", 3);
-    addr.u16 = 6;
-    mesh_send(&addr);
+    addr.u8[0] = 161;
+    addr.u8[1] = 161;
+    mesh_send(&mesh, &addr);
   }
   PROCESS_END();
 }
