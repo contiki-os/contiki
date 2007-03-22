@@ -24,7 +24,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * 
- * $Id: GUI.java,v 1.23 2007/03/22 13:59:33 fros4943 Exp $
+ * $Id: GUI.java,v 1.24 2007/03/22 15:02:55 fros4943 Exp $
  */
 
 package se.sics.cooja;
@@ -1695,14 +1695,14 @@ public class GUI {
    * @param quick Quick-load simulation
    * @param configFile Configuration file to load, if null a dialog will appear
    */
-  public void doLoadConfig(boolean askForConfirmation, boolean quick, File configFile) {
+  public void doLoadConfig(boolean askForConfirmation, final boolean quick, File configFile) {
 
     if (CoreComm.hasLibraryBeenLoaded()) {
       JOptionPane
-          .showMessageDialog(
-              frame,
-              "Shared libraries has already been loaded.\nYou need to restart the simulator!",
-              "Can't load simulation", JOptionPane.ERROR_MESSAGE);
+      .showMessageDialog(
+          frame,
+          "Shared libraries has already been loaded.\nYou need to restart the simulator!",
+          "Can't load simulation", JOptionPane.ERROR_MESSAGE);
       return;
     }
 
@@ -1721,65 +1721,102 @@ public class GUI {
 
     doRemoveSimulation(false);
 
+    // Check already selected file, or select file using filechooser
     if (configFile != null) {
-      if (configFile.exists() && configFile.canRead()) {
-        Simulation newSim = null;
-        try {
-          newSim = loadSimulationConfig(configFile, quick);
-          addToFileHistory(configFile);
-        } catch (UnsatisfiedLinkError e) {
-          logger.warn("Could not reopen libraries: " + e.getMessage());
-          newSim = null;
-        }
-        if (newSim != null) {
-          myGUI.setSimulation(newSim);
-        }
-      } else
+      if (!configFile.exists() || !configFile.canRead()) {
         logger.fatal("No read access to file");
+        return;
+      }
+    } else {
+      JFileChooser fc = new JFileChooser();
 
-      return;
-    }
+      fc.setFileFilter(GUI.SAVED_SIMULATIONS_FILES);
 
-    JFileChooser fc = new JFileChooser();
-
-    fc.setFileFilter(GUI.SAVED_SIMULATIONS_FILES);
-
-    // Suggest file using history
-    Vector<File> history = getFileHistory();
-    if (history != null && history.size() > 0) {
-      File suggestedFile = getFileHistory().firstElement();
-      fc.setSelectedFile(suggestedFile);
-    }
-
-    int returnVal = fc.showOpenDialog(frame);
-    if (returnVal == JFileChooser.APPROVE_OPTION) {
-      File loadFile = fc.getSelectedFile();
-
-      // Try adding extension if not founds
-      if (!loadFile.exists()) {
-        loadFile = new File(loadFile.getParent(), loadFile.getName()
-            + SAVED_SIMULATIONS_FILES);
+      // Suggest file using history
+      Vector<File> history = getFileHistory();
+      if (history != null && history.size() > 0) {
+        File suggestedFile = getFileHistory().firstElement();
+        fc.setSelectedFile(suggestedFile);
       }
 
-      if (loadFile.exists() && loadFile.canRead()) {
+      int returnVal = fc.showOpenDialog(frame);
+      if (returnVal == JFileChooser.APPROVE_OPTION) {
+        configFile = fc.getSelectedFile();
+
+        // Try adding extension if not founds
+        if (!configFile.exists()) {
+          configFile = new File(configFile.getParent(), configFile.getName()
+              + SAVED_SIMULATIONS_FILES);
+        }
+
+        if (!configFile.exists() || !configFile.canRead()) {
+          logger.fatal("No read access to file");
+          return;
+        }
+
+      } else {
+        logger.info("Load command cancelled by user...");
+        return;
+      }
+    }
+
+    // Load simulation in separate thread, while showing progress monitor
+    final JDialog progressDialog = new JDialog(frame, "Loading", true);
+    final File fileToLoad = configFile;
+    final Thread loadThread = new Thread(new Runnable() {
+      public void run() {
         Simulation newSim = null;
         try {
-          newSim = loadSimulationConfig(loadFile, quick);
-          addToFileHistory(loadFile);
+          newSim = loadSimulationConfig(fileToLoad, quick);
+          addToFileHistory(fileToLoad);
+          if (progressDialog != null) 
+            progressDialog.dispose();
         } catch (UnsatisfiedLinkError e) {
           logger.warn("Could not reopen libraries: " + e.getMessage());
+          if (progressDialog != null) 
+            progressDialog.dispose();
           newSim = null;
         }
         if (newSim != null) {
           myGUI.setSimulation(newSim);
         }
-      } else
-        logger.fatal("No read access to file");
+      }
+    });
+    loadThread.start();
 
-    } else {
-      logger.info("Load command cancelled by user...");
-    }
 
+    JPanel progressPanel = new JPanel(new BorderLayout());
+    JProgressBar progressBar;
+    JButton button;
+
+    progressBar = new JProgressBar(0, 100);
+    progressBar.setValue(0);
+    progressBar.setIndeterminate(true);
+    button = new JButton("Cancel");
+    button.addActionListener(new ActionListener() {
+      public void actionPerformed(ActionEvent e) {
+        if (loadThread != null && loadThread.isAlive()) {
+          loadThread.interrupt();
+          doRemoveSimulation(false);
+        }
+        progressDialog.dispose();
+      }
+    });
+
+    progressPanel.add(BorderLayout.CENTER, progressBar);
+    progressPanel.add(BorderLayout.SOUTH, button);
+    progressPanel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
+
+    progressPanel.setVisible(true);
+
+    progressDialog.getContentPane().add(progressPanel);
+    progressDialog.pack();
+
+    progressDialog.getRootPane().setDefaultButton(button);
+    progressDialog.setLocationRelativeTo(frame);
+    progressDialog.setDefaultCloseOperation(JDialog.DO_NOTHING_ON_CLOSE);
+    if (quick)
+      progressDialog.setVisible(true);
   }
 
   /**
