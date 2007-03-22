@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: rime.c,v 1.5 2007/03/22 18:54:45 adamdunkels Exp $
+ * $Id: rime.c,v 1.6 2007/03/22 23:57:19 adamdunkels Exp $
  */
 
 /**
@@ -39,7 +39,6 @@
  */
 
 #include "net/rime.h"
-#include "node-id.h"
 /*---------------------------------------------------------------------------*/
 void
 rime_init(void)
