@@ -1,4 +1,4 @@
-# $Id: Makefile.msp430,v 1.12 2007/03/15 21:46:43 adamdunkels Exp $
+# $Id: Makefile.msp430,v 1.13 2007/03/22 23:57:33 adamdunkels Exp $
 
 ### Check if we are running under Windows
 
@@ -43,6 +43,7 @@ CC       = msp430-gcc
 LD       = msp430-gcc
 AS       = msp430-as
 AR       = msp430-ar
+NM       = msp430-nm
 OBJCOPY  = msp430-objcopy
 STRIP    = msp430-strip
 BSL      = msp430-bsl
