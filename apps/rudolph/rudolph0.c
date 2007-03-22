@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: rudolph0.c,v 1.2 2007/03/21 23:18:23 adamdunkels Exp $
+ * $Id: rudolph0.c,v 1.3 2007/03/22 23:54:40 adamdunkels Exp $
  */
 
 /**
@@ -40,7 +40,6 @@
 
 #include "net/rime.h"
 #include "rudolph0.h"
-#include "cfs/cfs.h"
 
 #include <stddef.h> /* for offsetof */
 
@@ -71,9 +70,12 @@ enum {
 static void
 read_new_datapacket(struct rudolph0_conn *c)
 {
-  int len;
+  int len = 0;
 
-  len = cfs_read(c->cfs_fd, c->current.data, RUDOLPH0_DATASIZE);
+  if(c->cb->read_chunk) {
+    len = c->cb->read_chunk(c, c->current.h.chunk * RUDOLPH0_DATASIZE,
+			    c->current.data, RUDOLPH0_DATASIZE);
+  }
   c->current.datalen = len;
 
   PRINTF("read_new_datapacket len %d\n", len);
@@ -124,36 +126,30 @@ recv(struct sabc_conn *sabc)
   if(p->h.type == TYPE_DATA) {
     if(c->current.h.version != p->h.version) {
       PRINTF("rudolph0 new version %d\n", p->h.version);
-      if(c->cfs_fd != -1) {
-	cfs_close(c->cfs_fd);
-      }
-      c->cfs_fd = c->cb->new_file(c);
       c->current.h.version = p->h.version;
       c->current.h.chunk = 0;
-      if(c->cfs_fd != -1) {
-	if(p->h.chunk != 0) {
-	  send_nack(c);
+      c->cb->write_chunk(c, 0, RUDOLPH0_FLAG_NEWFILE, p->data, 0);
+      if(p->h.chunk != 0) {
+	send_nack(c);
       } else {
-	cfs_write(c->cfs_fd, p->data, p->datalen);
+	c->cb->write_chunk(c, 0, RUDOLPH0_FLAG_NONE, p->data, p->datalen);
 	c->current.h.chunk++;
       }
-      }
     } else if(p->h.version == c->current.h.version) {
-      if(c->cfs_fd != -1) {
-	if(p->h.chunk == c->current.h.chunk) {
-	  PRINTF("received chunk %d\n", p->h.chunk);
-	  cfs_write(c->cfs_fd, p->data, p->datalen);
-	  c->current.h.chunk++;
-	  if(p->datalen < RUDOLPH0_DATASIZE) {
-	    cfs_close(c->cfs_fd);
-	    c->cfs_fd = -1;
-	    c->cb->received_file(c);
-	  }
-	  
-	} else if(p->h.chunk > c->current.h.chunk) {
-	  PRINTF("received chunk %d > %d, sending NACK\n", p->h.chunk, c->current.h.chunk);
-	  send_nack(c);
+      if(p->h.chunk == c->current.h.chunk) {
+	PRINTF("received chunk %d\n", p->h.chunk);
+	if(p->datalen < RUDOLPH0_DATASIZE) {
+	  c->cb->write_chunk(c, c->current.h.chunk * RUDOLPH0_DATASIZE,
+			     RUDOLPH0_FLAG_LASTCHUNK, p->data, p->datalen);
+	} else {
+	  c->cb->write_chunk(c, c->current.h.chunk * RUDOLPH0_DATASIZE,
+			     RUDOLPH0_FLAG_NONE, p->data, p->datalen);
 	}
+	c->current.h.chunk++;
+	
+      } else if(p->h.chunk > c->current.h.chunk) {
+	PRINTF("received chunk %d > %d, sending NACK\n", p->h.chunk, c->current.h.chunk);
+	send_nack(c);
       }
     } else { /* p->h.version < c->current.h.version */
       /* Ignore packets with old version */
@@ -173,11 +169,9 @@ recv_nack(struct uabc_conn *uabc)
     if(p->h.version == c->current.h.version) {
       PRINTF("Reseting chunk to %d\n", p->h.chunk);
       c->current.h.chunk = p->h.chunk;
-      cfs_seek(c->cfs_fd, c->current.h.chunk * RUDOLPH0_DATASIZE);
     } else {
       PRINTF("Wrong version, reseting chunk to 0\n");
       c->current.h.chunk = 0;
-      cfs_seek(c->cfs_fd, 0);
     }
     read_new_datapacket(c);
     sabc_set_timer(&c->c, SENDING_TIME);
@@ -196,7 +190,6 @@ rudolph0_open(struct rudolph0_conn *c, u16_t channel,
   c->cb = cb;
   c->current.h.version = 0;
   c->state = STATE_RECEIVER;
-  c->cfs_fd = -1;
 }
 /*---------------------------------------------------------------------------*/
 void
@@ -207,19 +200,21 @@ rudolph0_close(struct rudolph0_conn *c)
 }
 /*---------------------------------------------------------------------------*/
 void
-rudolph0_send(struct rudolph0_conn *c, int cfs_fd)
+rudolph0_send(struct rudolph0_conn *c)
 {
-  if(c->cfs_fd != -1) {
-    cfs_close(c->cfs_fd);
-  }
   c->state = STATE_SENDER;
-  c->cfs_fd = cfs_fd;
   c->current.h.version++;
   c->current.h.chunk = 0;
   c->current.h.type = TYPE_DATA;
   read_new_datapacket(c);
   rimebuf_reference(&c->current, sizeof(struct rudolph0_datapacket));
   sabc_send_stubborn(&c->c, SENDING_TIME);
+}
+/*---------------------------------------------------------------------------*/
+void
+rudolph0_stop(struct rudolph0_conn *c)
+{
+  sabc_cancel(&c->c);
 }
 /*---------------------------------------------------------------------------*/
 int
