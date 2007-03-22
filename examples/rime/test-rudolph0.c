@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: test-rudolph0.c,v 1.1 2007/03/21 23:24:24 adamdunkels Exp $
+ * $Id: test-rudolph0.c,v 1.2 2007/03/22 23:58:57 adamdunkels Exp $
  */
 
 /**
@@ -52,32 +52,60 @@
 PROCESS(test_rudolph0_process, "Rudolph0 test");
 AUTOSTART_PROCESSES(&test_rudolph0_process);
 /*---------------------------------------------------------------------------*/
-static int
-newfile(struct rudolph0_conn *c)
-{
-  printf("+++ rudolph0 new file incoming at %lu\n", clock_time());
-  return cfs_open("hej", CFS_WRITE);
-}
 static void
-recv(struct rudolph0_conn *c)
+write_chunk(struct rudolph0_conn *c, int offset, int flag,
+	    char *data, int datalen)
 {
   int fd;
-  int i;
   
-  printf("+++ rudolph0 entire file received at %lu\n", clock_time());
-
-  fd = cfs_open("hej", CFS_READ);
-  for(i = 0; i < 200; ++i) {
-    unsigned char buf;
-    cfs_read(fd, &buf, 1);
-    if(buf != i) {
-      printf("error: diff at %d, %d != %d\n", i, i, buf);
-    }
+  if(flag == RUDOLPH0_FLAG_NEWFILE) {
+    printf("+++ rudolph0 new file incoming at %lu\n", clock_time());
+    fd = cfs_open("codeprop.out", CFS_WRITE);
+  } else {
+    fd = cfs_open("codeprop.out", CFS_WRITE + CFS_APPEND);
   }
+  
+  if(datalen > 0) {
+    int ret;
+    cfs_seek(fd, offset);
+    ret = cfs_write(fd, data, datalen);
+    printf("write_chunk wrote %d bytes at %d, %d\n", ret, offset, (unsigned char)data[0]);
+  }
+
   cfs_close(fd);
+
+  if(flag == RUDOLPH0_FLAG_LASTCHUNK) {
+    int i;
+    printf("+++ rudolph0 entire file received at %lu\n", clock_time());
+
+    fd = cfs_open("hej", CFS_READ);
+    for(i = 0; i < 200; ++i) {
+      unsigned char buf;
+      cfs_read(fd, &buf, 1);
+      if(buf != i) {
+	printf("error: diff at %d, %d != %d\n", i, i, buf);
+	break;
+      }
+    }
+    cfs_close(fd);
+  }
 }
-const static struct rudolph0_callbacks rudolph0_call = {newfile,
-							recv};
+static int
+read_chunk(struct rudolph0_conn *c, int offset, char *to, int maxsize)
+{
+  int fd;
+  int ret;
+  
+  fd = cfs_open("hej", CFS_READ);
+
+  cfs_seek(fd, offset);
+  ret = cfs_read(fd, to, maxsize);
+  printf("read_chunk %d bytes at %d, %d\n", ret, offset, (unsigned char)to[0]);
+  cfs_close(fd);
+  return ret;
+}
+const static struct rudolph0_callbacks rudolph0_call = {write_chunk,
+							read_chunk};
 static struct rudolph0_conn rudolph0;
 /*---------------------------------------------------------------------------*/
 PROCESS_THREAD(test_rudolph0_process, ev, data)
@@ -105,9 +133,11 @@ PROCESS_THREAD(test_rudolph0_process, ev, data)
   while(1) {
     PROCESS_WAIT_EVENT_UNTIL(ev == sensors_event &&
 			     data == &button_sensor);
-    cfs_close(fd);
-    fd = cfs_open("hej", CFS_READ);
-    rudolph0_send(&rudolph0, fd);
+    rudolph0_send(&rudolph0);
+
+    PROCESS_WAIT_EVENT_UNTIL(ev == sensors_event &&
+			     data == &button_sensor);
+    rudolph0_stop(&rudolph0);
 
   }
   PROCESS_END();

@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: rudolph1.c,v 1.1 2007/03/21 23:14:40 adamdunkels Exp $
+ * $Id: rudolph1.c,v 1.2 2007/03/22 23:54:40 adamdunkels Exp $
  */
 
 /**
@@ -81,10 +81,15 @@ enum {
 static int
 read_data(struct rudolph1_conn *c, char *dataptr, int chunk)
 {
-  int len;
+  int len = 0;
 
-  cfs_seek(c->cfs_fd, chunk * RUDOLPH1_DATASIZE);
-  len = cfs_read(c->cfs_fd, dataptr, RUDOLPH1_DATASIZE);
+  if(c->cb->read_chunk) {
+    len = c->cb->read_chunk(c, chunk * RUDOLPH1_DATASIZE,
+			    dataptr, RUDOLPH1_DATASIZE);
+  }
+
+  /*  cfs_seek(c->cfs_fd, chunk * RUDOLPH1_DATASIZE);
+      len = cfs_read(c->cfs_fd, dataptr, RUDOLPH1_DATASIZE);*/
   return len;
 }
 /*---------------------------------------------------------------------------*/
@@ -108,12 +113,22 @@ format_data(struct rudolph1_conn *c, int chunk)
 static void
 write_data(struct rudolph1_conn *c, int chunk, u8_t *data, int datalen)
 {
-  cfs_seek(c->cfs_fd, chunk * RUDOLPH1_DATASIZE);
-  cfs_write(c->cfs_fd, data, datalen);
+  if(chunk == 0) {
+    c->cb->write_chunk(c, 0, RUDOLPH1_FLAG_NEWFILE, data, 0);
+  }
+
+  
+  /*  cfs_seek(c->cfs_fd, chunk * RUDOLPH1_DATASIZE);
+      cfs_write(c->cfs_fd, data, datalen);*/
   if(datalen < RUDOLPH1_DATASIZE) {
     PRINTF("%d: get %d bytes, file complete\n",
 	   rimeaddr_node_addr.u16, datalen);
-    c->cb->received_file(c, c->cfs_fd);
+    /*    c->cb->received_file(c, c->cfs_fd);*/
+    c->cb->write_chunk(c, chunk * RUDOLPH1_DATASIZE,
+		       RUDOLPH1_FLAG_LASTCHUNK, data, datalen);
+  } else {
+    c->cb->write_chunk(c, chunk * RUDOLPH1_DATASIZE,
+		       RUDOLPH1_FLAG_NONE, data, datalen);
   }
 }
 /*---------------------------------------------------------------------------*/
@@ -138,34 +153,36 @@ handle_data(struct rudolph1_conn *c, struct rudolph1_datapacket *p)
 {
   if(LT(c->version, p->h.version)) {
     PRINTF("rudolph1 new version %d\n", p->h.version);
-    c->cfs_fd = c->cb->new_file(c);
+    /*    c->cfs_fd = c->cb->new_file(c);*/
     c->version = p->h.version;
     c->chunk = 1; /* Next chunk is 1. */
-    if(c->cfs_fd != -1) {
+    /*    if(c->cfs_fd != -1) {*/
       if(p->h.chunk != 0) {
 	send_nack(c);
       } else {
 	write_data(c, 0, p->data, p->datalen);
       }
-    }
+      /*    }*/
   } else if(p->h.version == c->version) {
-    if(c->cfs_fd != -1) {
+    /*    if(c->cfs_fd != -1) {*/
       if(p->h.chunk == c->chunk) {
 	PRINTF("%d: received chunk %d\n",
 	       rimeaddr_node_addr.u16, p->h.chunk);
-	cfs_seek(c->cfs_fd, c->chunk * RUDOLPH1_DATASIZE);
+	write_data(c, p->h.chunk, p->data, p->datalen);
+	c->chunk++;
+	/*	cfs_seek(c->cfs_fd, c->chunk * RUDOLPH1_DATASIZE);
 	cfs_write(c->cfs_fd, p->data, p->datalen);
 	c->chunk++;
 	if(p->datalen < RUDOLPH1_DATASIZE) {
 	  c->cb->received_file(c, c->cfs_fd);
-	}
+	  }*/
       } else if(p->h.chunk > c->chunk) {
 	PRINTF("%d: received chunk %d > %d, sending NACK\n",
 	       rimeaddr_node_addr.u16,
 	       p->h.chunk, c->chunk);
 	send_nack(c);
       }
-    }
+/*     } */
   } else { /* p->h.version < c->current.h.version */
     /* Ignore packets with old version */
   }
@@ -254,14 +271,22 @@ rudolph1_close(struct rudolph1_conn *c)
 }
 /*---------------------------------------------------------------------------*/
 void
-rudolph1_send(struct rudolph1_conn *c, int cfs_fd)
+rudolph1_send(struct rudolph1_conn *c)
 {
-  c->cfs_fd = cfs_fd;
+  /*  c->cfs_fd = cfs_fd;*/
   c->version++;
   c->chunk = 0;
   c->trickle_interval = TRICKLE_INTERVAL;
   format_data(c, 0);
   trickle_send(&c->trickle, c->trickle_interval);
   ctimer_set(&c->t, DATA_INTERVAL, send_next_packet, c);
+}
+/*---------------------------------------------------------------------------*/
+void
+rudolph1_stop(struct rudolph1_conn *c)
+{
+  /* XXX */
+  ctimer_stop(&c->t);
+  printf("rudolph1_stop: not implemented\n");
 }
 /*---------------------------------------------------------------------------*/

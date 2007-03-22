@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: rudolph0.h,v 1.2 2007/03/21 23:18:23 adamdunkels Exp $
+ * $Id: rudolph0.h,v 1.3 2007/03/22 23:54:40 adamdunkels Exp $
  */
 
 /**
@@ -48,9 +48,17 @@
 
 struct rudolph0_conn;
 
+enum {
+  RUDOLPH0_FLAG_NONE,
+  RUDOLPH0_FLAG_NEWFILE,
+  RUDOLPH0_FLAG_LASTCHUNK,
+};
+
 struct rudolph0_callbacks {
-  int (* new_file)(struct rudolph0_conn *c);
-  void (* received_file)(struct rudolph0_conn *c);
+  void (* write_chunk)(struct rudolph0_conn *c, int offset, int flag,
+		       char *data, int len);
+  int (* read_chunk)(struct rudolph0_conn *c, int offset, char *to,
+		     int maxsize);
 };
 
 #define RUDOLPH0_DATASIZE 64
@@ -71,7 +79,6 @@ struct rudolph0_conn {
   struct sabc_conn c;
   struct uabc_conn nackc;
   const struct rudolph0_callbacks *cb;
-  int cfs_fd;
   u8_t state;
   struct rudolph0_datapacket current;
 };
@@ -79,7 +86,8 @@ struct rudolph0_conn {
 void rudolph0_open(struct rudolph0_conn *c, u16_t channel,
 		   const struct rudolph0_callbacks *cb);
 void rudolph0_close(struct rudolph0_conn *c);
-void rudolph0_send(struct rudolph0_conn *c, int cfs_fd);
+void rudolph0_send(struct rudolph0_conn *c);
+void rudolph0_stop(struct rudolph0_conn *c);
 
 void rudolph0_set_version(struct rudolph0_conn *c, int version);
 int rudolph0_version(struct rudolph0_conn *c);

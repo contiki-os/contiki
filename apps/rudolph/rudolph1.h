@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: rudolph1.h,v 1.1 2007/03/21 23:14:40 adamdunkels Exp $
+ * $Id: rudolph1.h,v 1.2 2007/03/22 23:54:40 adamdunkels Exp $
  */
 
 /**
@@ -48,9 +48,17 @@
 
 struct rudolph1_conn;
 
+enum {
+  RUDOLPH1_FLAG_NONE,
+  RUDOLPH1_FLAG_NEWFILE,
+  RUDOLPH1_FLAG_LASTCHUNK,
+};
+
 struct rudolph1_callbacks {
-  int (* new_file)(struct rudolph1_conn *c);
-  void (* received_file)(struct rudolph1_conn *c, int cfs_fd);
+  void (* write_chunk)(struct rudolph1_conn *c, int offset, int flag,
+		       char *data, int len);
+  int (* read_chunk)(struct rudolph1_conn *c, int offset, char *to,
+		     int maxsize);
 };
 
 struct rudolph1_conn {
@@ -58,7 +66,6 @@ struct rudolph1_conn {
   struct uabc_conn uabc;
   const struct rudolph1_callbacks *cb;
   struct ctimer t;
-  int cfs_fd;
   u16_t chunk;
   u8_t version;
   u8_t trickle_interval;
@@ -68,6 +75,7 @@ struct rudolph1_conn {
 void rudolph1_open(struct rudolph1_conn *c, u16_t channel,
 		   const struct rudolph1_callbacks *cb);
 void rudolph1_close(struct rudolph1_conn *c);
-void rudolph1_send(struct rudolph1_conn *c, int cfs_fd);
+void rudolph1_send(struct rudolph1_conn *c);
+void rudolph1_stop(struct rudolph1_conn *c);
 
 #endif /* __RUDOLPH1_H__ */
