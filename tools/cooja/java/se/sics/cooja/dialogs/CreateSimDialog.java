@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: CreateSimDialog.java,v 1.3 2007/01/10 09:04:01 fros4943 Exp $
+ * $Id: CreateSimDialog.java,v 1.4 2007/03/22 22:35:06 fros4943 Exp $
  */
 
 package se.sics.cooja.dialogs;
@@ -67,6 +67,7 @@ public class CreateSimDialog extends JDialog {
   
   private JTextField logFilename;
   private JCheckBox logCheckBox;
+  private JButton cancelButton;
   
   /**
    * Shows a dialog for configuring a simulation.
@@ -76,7 +77,7 @@ public class CreateSimDialog extends JDialog {
    * @return True if simulation configured correctly
    */
   public static boolean showDialog(Frame parentFrame, Simulation simulationToConfigure) {
-    CreateSimDialog myDialog = new CreateSimDialog(parentFrame, simulationToConfigure.getGUI());
+    final CreateSimDialog myDialog = new CreateSimDialog(parentFrame, simulationToConfigure.getGUI());
 
     myDialog.mySimulation = simulationToConfigure;
 
@@ -119,6 +120,16 @@ public class CreateSimDialog extends JDialog {
     myDialog.title.requestFocus();
     myDialog.title.select(0, myDialog.title.getText().length());
 
+    // Dispose on escape key
+    InputMap inputMap = myDialog.getRootPane().getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
+    inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0, false), "dispose");
+    AbstractAction cancelAction = new AbstractAction(){
+      public void actionPerformed(ActionEvent e) {
+        myDialog.cancelButton.doClick();
+      }
+    }; 
+    myDialog.getRootPane().getActionMap().put("dispose", cancelAction);
+    
     myDialog.setVisible(true);
     
     if (myDialog.mySimulation != null) {
@@ -153,10 +164,10 @@ public class CreateSimDialog extends JDialog {
     
     buttonPane.add(Box.createHorizontalGlue());
     
-    button = new JButton("Cancel");
-    button.setActionCommand("cancel");
-    button.addActionListener(myEventHandler);
-    buttonPane.add(button);
+    cancelButton = new JButton("Cancel");
+    cancelButton.setActionCommand("cancel");
+    cancelButton.addActionListener(myEventHandler);
+    buttonPane.add(cancelButton);
     
     button = new JButton("Create");
     button.setActionCommand("create");
