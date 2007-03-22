@@ -30,7 +30,7 @@
  *
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: ethernode-rime.c,v 1.3 2007/03/15 21:58:37 adamdunkels Exp $
+ * $Id: ethernode-rime.c,v 1.4 2007/03/22 18:59:34 adamdunkels Exp $
  */
 
 #include "contiki.h"
@@ -58,7 +58,7 @@ PROCESS_THREAD(ethernode_rime_process, ev, data)
 
       rimebuf_clear();
       
-      len = ethernode_poll(rimebuf_dataptr(), RIMEBUF_SIZE);
+      len = ethernode_read(rimebuf_dataptr(), RIMEBUF_SIZE);
 
       if(len > 0) {
 

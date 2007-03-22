@@ -29,7 +29,7 @@
  *
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: ethernode-uip.h,v 1.1 2007/03/14 00:32:30 adamdunkels Exp $
+ * $Id: ethernode-uip.h,v 1.2 2007/03/22 18:59:34 adamdunkels Exp $
  */
 #ifndef __ETHERNODE_UIP_H__
 #define __ETHERNODE_UIP_H__
@@ -37,8 +37,6 @@
 #include "contiki.h"
 
 PROCESS_NAME(ethernode_uip_process);
-
-u8_t ethernode_uip_send(void);
 
 u8_t ethernode_uip_send(void);
 

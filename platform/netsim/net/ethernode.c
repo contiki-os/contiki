@@ -30,7 +30,7 @@
  *
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: ethernode.c,v 1.5 2007/03/14 00:32:30 adamdunkels Exp $
+ * $Id: ethernode.c,v 1.6 2007/03/22 18:59:34 adamdunkels Exp $
  */
 /**
  * \file
@@ -122,13 +122,13 @@ ethernode_init(int port)
  */
 /*-------------------------------------------------------------------------------*/
 int
-ethernode_poll(u8_t *buf, int bufsize)
+ethernode_read(u8_t *buf, int bufsize)
 {
   int len;
   u8_t tmpbuf[UIP_BUFSIZE];
   struct hdr *hdr = (struct hdr *)tmpbuf;
   
-  len = ether_client_poll(tmpbuf, UIP_BUFSIZE);
+  len = ether_client_read(tmpbuf, UIP_BUFSIZE);
   if(len == 0) {
     return 0;
   }

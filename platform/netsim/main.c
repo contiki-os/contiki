@@ -30,7 +30,7 @@
  *
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: main.c,v 1.4 2006/10/23 09:01:06 adamdunkels Exp $
+ * $Id: main.c,v 1.5 2007/03/22 18:59:34 adamdunkels Exp $
  */
 
 /**
@@ -111,7 +111,6 @@ start_node(int x, int y, int b)
   pid_t pid;
   static unsigned short port = NODES_PORTBASE;
   
-  
   pid = fork();
   
   if(pid == 0) {
@@ -121,18 +120,16 @@ start_node(int x, int y, int b)
     
     srandom(getpid());
 
-    usleep(1000 * ((random() & 0x0f) << 6) );
+    usleep(1000 * (rand() % 1000));
     
     node_init(port - NODES_PORTBASE + 2, x, y, b);
     ethernode_init(port);
 
-    
-    
     contiki_main(b);
     
     /* NOTREACHED */
   }
-  /*    printf("Adding sensor %d at (%d,%d)\n", pid, x, y);*/
+  /*  printf("Adding sensor %d at (%d,%d)\n", pid, x, y);*/
   main_process = 1;
   nodes_add(pid, x, y, port, port - NODES_PORTBASE + 2);
   
@@ -163,8 +160,9 @@ main(int argc, char **argv)
   nodes_init();
   
   atexit(nodes_kill);
+  atexit(ether_print_stats);
 
-  init();
+  netsim_init();
   
   ether_server_init();
 

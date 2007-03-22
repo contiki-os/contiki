@@ -40,7 +40,7 @@ PROCESS_THREAD(tapdev_drv_process, ev, data)
 	uip_arp_arpin();
 	/* If the above function invocation resulted in data that
 	   should be sent out on the network, the global variable
-	   uip_len is set to a value > 0. */	
+	   uip_len is set to a value > 0. */
 	if(uip_len > 0) {
 	  tapdev_send_raw();
 	}

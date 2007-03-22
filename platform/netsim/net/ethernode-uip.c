@@ -30,7 +30,7 @@
  *
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: ethernode-uip.c,v 1.2 2007/03/15 21:59:10 adamdunkels Exp $
+ * $Id: ethernode-uip.c,v 1.3 2007/03/22 18:59:34 adamdunkels Exp $
  */
 
 #include "contiki.h"
@@ -65,7 +65,7 @@ PROCESS_THREAD(ethernode_uip_process, ev, data)
     PROCESS_WAIT_EVENT();
     
     /* Poll Ethernet device to see if there is a frame avaliable. */
-    uip_len = ethernode_poll(uip_buf, UIP_BUFSIZE);
+    uip_len = ethernode_read(uip_buf, UIP_BUFSIZE);
 
     if(uip_len > 0) {
       /*      printf("%d: new packet len %d\n", node_id, uip_len);*/
