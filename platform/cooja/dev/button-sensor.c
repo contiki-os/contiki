@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: button-sensor.c,v 1.2 2006/10/05 11:51:51 fros4943 Exp $
+ * $Id: button-sensor.c,v 1.3 2007/03/22 20:37:34 fros4943 Exp $
  */
 
 #include "lib/sensors.h"
@@ -98,7 +98,7 @@ doInterfaceActionsBeforeTick(void)
   // Check if button value has changed
   if (simButtonChanged && simButtonIsActive && simButtonIsDown) {
     if(timer_expired(&debouncetimer)) {
-      timer_set(&debouncetimer, CLOCK_SECOND / 4);
+      timer_set(&debouncetimer, CLOCK_SECOND / 10);
       sensors_changed(&button_sensor);
       simButtonChanged = 0;
     }
