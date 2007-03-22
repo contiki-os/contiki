@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: SimControl.java,v 1.4 2007/03/22 20:52:58 fros4943 Exp $
+ * $Id: SimControl.java,v 1.5 2007/03/22 22:08:50 fros4943 Exp $
  */
 
 package se.sics.cooja.plugins;
@@ -54,11 +54,11 @@ public class SimControl extends VisPlugin {
   private static final long serialVersionUID = 1L;
   private static Logger logger = Logger.getLogger(SimControl.class);
 
-  private static final int MIN_DELAY_TIME = 0;
-  private static final int MAX_DELAY_TIME = 100;
-
   private Simulation simulation;
 
+  private static final int SLIDE_MAX = 921; // e^9.21 => ~10000
+  private static final int TIME_MAX = 10000;
+  
   private JSlider sliderDelay;
   private JLabel simulationTime, delayLabel;
   private JButton startButton, stopButton;
@@ -114,7 +114,8 @@ public class SimControl extends VisPlugin {
           stopButton.setEnabled(false);
           simulationStopTime = -1;
         }
-        sliderDelay.setValue((int) simulation.getDelayTime());
+
+        sliderDelay.setValue(convertTimeToSlide(simulation.getDelayTime()));
         simulationTime.setText("Current simulation time: " + simulation.getSimulationTime());
       }
     });
@@ -200,17 +201,20 @@ public class SimControl extends VisPlugin {
     smallPanel.add(delayLabel);
     
     JSlider slider;
-    if (simulation.getDelayTime() > MAX_DELAY_TIME)
-      slider = new JSlider(JSlider.HORIZONTAL, MIN_DELAY_TIME, simulation.getDelayTime(), simulation.getDelayTime());
-    else
-      slider = new JSlider(JSlider.HORIZONTAL, MIN_DELAY_TIME, MAX_DELAY_TIME, simulation.getDelayTime());
+    slider = new JSlider(JSlider.HORIZONTAL, 0, SLIDE_MAX, convertTimeToSlide(simulation.getDelayTime()));
     
     slider.addChangeListener(myEventHandler);
-    slider.setMajorTickSpacing(20);
-    slider.setPaintTicks(true);
-    
-    slider.setPaintLabels(true);
 
+    Hashtable labelTable = new Hashtable();
+    for (int i=0; i < 100; i += 5) {
+      labelTable.put(new Integer(convertTimeToSlide(i)), new JLabel("."));
+    }
+    for (int i=200; i < 10000; i += 100) {
+      labelTable.put(new Integer(convertTimeToSlide(i)), new JLabel(":"));
+    }
+    slider.setLabelTable(labelTable);
+    slider.setPaintLabels(true);
+    
     sliderDelay = slider;
     smallPanel.add(slider);
 
@@ -223,13 +227,25 @@ public class SimControl extends VisPlugin {
     } catch (java.beans.PropertyVetoException e) {
       // Could not select
     }
+  }
+  
+  private int convertSlideToTime(int slide) {
+    if (slide == SLIDE_MAX)
+      return TIME_MAX;
+    return (int) Math.round(Math.exp((double)slide/100.0) - 1.0);
+  }
+  
+  private int convertTimeToSlide(int time) {
+    if (time == TIME_MAX)
+      return SLIDE_MAX;
     
+    return (int) Math.round((Math.log(time + 1)*100.0));
   }
   
   private class MyEventHandler implements ActionListener, ChangeListener {
     public void stateChanged(ChangeEvent e) {
       if (e.getSource() == sliderDelay) {
-        simulation.setDelayTime(sliderDelay.getValue());
+        simulation.setDelayTime(convertSlideToTime(sliderDelay.getValue()));
         if (simulation.getDelayTime() > 0) {
           delayLabel.setText("Delay between tick loops: " + simulation.getDelayTime() + " ms");
         } else {
