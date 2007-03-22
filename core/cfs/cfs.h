@@ -54,7 +54,7 @@
  *
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: cfs.h,v 1.3 2006/08/26 23:54:38 oliverschmidt Exp $
+ * $Id: cfs.h,v 1.4 2007/03/22 23:55:32 adamdunkels Exp $
  */
 #ifndef __CFS_H__
 #define __CFS_H__
@@ -71,7 +71,7 @@
  *
  * \sa cfs_open()
  */
-#define CFS_READ  0
+#define CFS_READ  1
 
 /**
  * Specify that cfs_open() should open a file for writing.
@@ -83,7 +83,19 @@
  *
  * \sa cfs_open()
  */
-#define CFS_WRITE 1
+#define CFS_WRITE 2
+
+/**
+ * Specify that cfs_open() should append written data to the file rather than overwriting it.
+ *
+ * This constant indicates to cfs_open() that a file that should be
+ * opened for writing gets written data appended to the end of the
+ * file. The default behaviour (without CFS_APPEND) is that the file
+ * is overwritten with the new data.
+ *
+ * \sa cfs_open()
+ */
+#define CFS_APPEND 4
 
 /**
  * \brief      Open a file.
