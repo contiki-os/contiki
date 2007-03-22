@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: SimControl.java,v 1.3 2007/01/09 09:49:24 fros4943 Exp $
+ * $Id: SimControl.java,v 1.4 2007/03/22 20:52:58 fros4943 Exp $
  */
 
 package se.sics.cooja.plugins;
@@ -60,7 +60,7 @@ public class SimControl extends VisPlugin {
   private Simulation simulation;
 
   private JSlider sliderDelay;
-  private JLabel simulationTime;
+  private JLabel simulationTime, delayLabel;
   private JButton startButton, stopButton;
   private JFormattedTextField stopTimeTextField;
   private int simulationStopTime = -1;
@@ -191,7 +191,13 @@ public class SimControl extends VisPlugin {
     smallPanel.add(simulationTime);
     smallPanel.add(Box.createRigidArea(new Dimension(0, 10)));
     
-    smallPanel.add(new JLabel("Delay (ms) between each tick"));
+    delayLabel = new JLabel();
+    if (simulation.getDelayTime() > 0) {
+      delayLabel.setText("Delay between tick loops: " + simulation.getDelayTime() + " ms");
+    } else {
+      delayLabel.setText("Zero simulation delay");
+    }
+    smallPanel.add(delayLabel);
     
     JSlider slider;
     if (simulation.getDelayTime() > MAX_DELAY_TIME)
@@ -224,6 +230,11 @@ public class SimControl extends VisPlugin {
     public void stateChanged(ChangeEvent e) {
       if (e.getSource() == sliderDelay) {
         simulation.setDelayTime(sliderDelay.getValue());
+        if (simulation.getDelayTime() > 0) {
+          delayLabel.setText("Delay between tick loops: " + simulation.getDelayTime() + " ms");
+        } else {
+          delayLabel.setText("No simulation delay");
+        }
       } else
         logger.debug("Unhandled state change: " + e);
     }
