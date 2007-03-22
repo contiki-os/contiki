@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ContikiMoteTypeDialog.java,v 1.19 2007/03/22 15:51:03 fros4943 Exp $
+ * $Id: ContikiMoteTypeDialog.java,v 1.20 2007/03/22 22:20:33 fros4943 Exp $
  */
 
 package se.sics.cooja.contikimote;
@@ -1389,6 +1389,7 @@ public class ContikiMoteTypeDialog extends JDialog {
         }
       }
 
+      logger.info("-- Compiling --");
       logger.info("Project dirs: " + sourceDirs);
       logger.info("Project sources: " + sourceFileNames);
       logger.info("Compiler flags: " + ccFlags);
@@ -1509,14 +1510,14 @@ public class ContikiMoteTypeDialog extends JDialog {
       }
       input.close();
 
-      BufferedReader err = new BufferedReader(new InputStreamReader(p
-          .getErrorStream()));
-      if (err.ready())
-        logger.warn("Error occured during scan:");
-      while ((line = err.readLine()) != null) {
-        logger.warn(line);
-      }
-      err.close();
+//      BufferedReader err = new BufferedReader(new InputStreamReader(p
+//          .getErrorStream()));
+//      if (err.ready())
+//        logger.warn("Error occured during scan:");
+//      while ((line = err.readLine()) != null) {
+//        logger.warn(line);
+//      }
+//      err.close();
     } catch (IOException err) {
       logger.fatal("Error while scanning for processes: " + err);
       err.printStackTrace();
