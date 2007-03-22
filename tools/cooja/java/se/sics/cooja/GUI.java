@@ -24,7 +24,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * 
- * $Id: GUI.java,v 1.28 2007/03/22 22:36:04 fros4943 Exp $
+ * $Id: GUI.java,v 1.29 2007/03/22 23:01:11 fros4943 Exp $
  */
 
 package se.sics.cooja;
@@ -534,6 +534,18 @@ public class GUI {
     frame.setSize(700, 700);
     frame.setLocationRelativeTo(null);
     frame.addWindowListener(gui.guiEventHandler);
+
+    // Restore last frame size and position
+    if (frame != null) {
+      int framePosX = Integer.parseInt(getExternalToolsSetting("FRAME_POS_X", "-1"));
+      int framePosY = Integer.parseInt(getExternalToolsSetting("FRAME_POS_Y", "-1"));
+      int frameWidth = Integer.parseInt(getExternalToolsSetting("FRAME_WIDTH", "-1"));
+      int frameHeight = Integer.parseInt(getExternalToolsSetting("FRAME_HEIGHT", "-1"));
+      if (framePosX >= 0 && framePosY >= 0 && frameWidth > 0 && frameHeight > 0) {
+        frame.setLocation(framePosX, framePosY);
+        frame.setSize(frameWidth, frameHeight);
+      }
+    }
 
     // Display the window.
     frame.setVisible(true);
@@ -1955,6 +1967,15 @@ public class GUI {
     for (Object plugin : plugins)
       removePlugin((Plugin) plugin, false);
 
+    // Restore last frame size and position
+    if (frame != null) {
+      setExternalToolsSetting("FRAME_POS_X", "" + frame.getLocationOnScreen().x);
+      setExternalToolsSetting("FRAME_POS_Y", "" + frame.getLocationOnScreen().y);
+      setExternalToolsSetting("FRAME_WIDTH", "" + frame.getWidth());
+      setExternalToolsSetting("FRAME_HEIGHT", "" + frame.getHeight());
+      saveExternalToolsUserSettings();
+    }
+    
     System.exit(0);
   }
 
