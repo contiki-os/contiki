@@ -24,7 +24,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * 
- * $Id: GUI.java,v 1.22 2007/03/22 11:14:27 fros4943 Exp $
+ * $Id: GUI.java,v 1.23 2007/03/22 13:59:33 fros4943 Exp $
  */
 
 package se.sics.cooja;
@@ -155,6 +155,8 @@ public class GUI {
 
   private JMenu menuPlugins, menuMoteTypeClasses, menuMoteTypes;
 
+  private JMenu menuOpenSimulation, menuQuickOpenSimulation;
+
   private Vector<Class<? extends Plugin>> menuMotePluginClasses;
   
   private JDesktopPane myDesktopPane;
@@ -189,14 +191,14 @@ public class GUI {
     mySimulation = null;
     myDesktopPane = desktop;
 
+    // Load default and overwrite with user settings (if any)
+    loadExternalToolsDefaultSettings();
+    loadExternalToolsUserSettings();
+
     // Add menu bar
     if (frame != null) {
       frame.setJMenuBar(createMenuBar());
     }
-
-    // Load default and overwrite with user settings (if any)
-    loadExternalToolsDefaultSettings();
-    loadExternalToolsUserSettings();
 
     // Register default user platforms
     String defaultUserPlatforms = getExternalToolsSetting(
@@ -233,6 +235,88 @@ public class GUI {
     return frame != null;
   }
 
+  private Vector<File> getFileHistory() {
+    Vector<File> history = new Vector<File>();
+
+    // Fetch current history
+    String[] historyArray = getExternalToolsSetting("SIMCFG_HISTORY", "").split(";");
+
+    for (String file: historyArray) {
+      history.add(new File(file));
+    }
+    
+    return history;
+  }
+
+  private void addToFileHistory(File file) {
+    // Fetch current history
+    String[] history = getExternalToolsSetting("SIMCFG_HISTORY", "").split(";");
+    
+    // Create new history
+    String[] newHistory = null;
+    if (history == null || history.length <= 1 && history[0].equals("")) {
+      newHistory = new String[1];
+    } else {
+      newHistory = new String[Math.min(5, history.length+1)];
+      System.arraycopy(history, 0, newHistory, 1, newHistory.length-1);
+    }
+    newHistory[0] = file.getAbsolutePath();
+
+    // Abort if file added is equal to last file
+    if (history.length >= 1 && 
+        file.getAbsolutePath().equals(new File(history[0]).getAbsolutePath())) {
+      return;
+    }
+    
+    String newHistoryConfig = null;
+    for (String path: newHistory) {
+      if (newHistoryConfig == null)
+        newHistoryConfig = path;
+      else
+        newHistoryConfig += ";" + path;
+    }
+
+    setExternalToolsSetting("SIMCFG_HISTORY", newHistoryConfig);
+    saveExternalToolsUserSettings();
+  }
+  
+  private void updateOpenHistoryMenuItems() {
+    menuOpenSimulation.removeAll();
+    
+    JMenuItem browseItem = new JMenuItem("Browse...");
+    browseItem.setActionCommand("open sim");
+    browseItem.addActionListener(guiEventHandler);
+    menuOpenSimulation.add(browseItem);
+    menuOpenSimulation.add(new JSeparator());
+    Vector<File> openFilesHistory = getFileHistory();
+
+    for (File file: openFilesHistory) {
+      JMenuItem lastItem = new JMenuItem(file.getName());
+      lastItem.setActionCommand("open last sim");
+      lastItem.putClientProperty("file", file);
+      lastItem.setToolTipText(file.getAbsolutePath());
+      lastItem.addActionListener(guiEventHandler);
+      menuOpenSimulation.add(lastItem);
+    }
+
+    menuQuickOpenSimulation.removeAll();
+    
+    browseItem = new JMenuItem("Browse...");
+    browseItem.setActionCommand("open sim quick");
+    browseItem.addActionListener(guiEventHandler);
+    menuQuickOpenSimulation.add(browseItem);
+    menuQuickOpenSimulation.add(new JSeparator());
+    
+    for (File file: openFilesHistory) {
+      JMenuItem lastItem = new JMenuItem(file.getName());
+      lastItem.setActionCommand("open last sim quick");
+      lastItem.putClientProperty("file", file);
+      lastItem.setToolTipText(file.getAbsolutePath());
+      lastItem.addActionListener(guiEventHandler);
+      menuQuickOpenSimulation.add(lastItem);
+    }
+  }
+
   private JMenuBar createMenuBar() {
     JMenuBar menuBar = new JMenuBar();
     JMenu menu;
@@ -240,6 +324,16 @@ public class GUI {
 
     // File menu
     menu = new JMenu("File");
+    menu.addMenuListener(new MenuListener() {
+      public void menuSelected(MenuEvent e) {
+        updateOpenHistoryMenuItems();
+      }
+      public void menuDeselected(MenuEvent e) {
+      }
+
+      public void menuCanceled(MenuEvent e) {
+      }
+    });
     menu.setMnemonic(KeyEvent.VK_F);
     menuBar.add(menu);
 
@@ -257,17 +351,13 @@ public class GUI {
     menuItem.addActionListener(guiEventHandler);
     menu.add(menuItem);
 
-    menuItem = new JMenuItem("Open simulation");
-    menuItem.setMnemonic(KeyEvent.VK_O);
-    menuItem.setActionCommand("open sim");
-    menuItem.addActionListener(guiEventHandler);
-    menu.add(menuItem);
-
-    menuItem = new JMenuItem("Quick-open simulation");
-    menuItem.setMnemonic(KeyEvent.VK_Q);
-    menuItem.setActionCommand("open sim quick");
-    menuItem.addActionListener(guiEventHandler);
-    menu.add(menuItem);
+    menuOpenSimulation = new JMenu("Open simulation");
+    menuOpenSimulation.setMnemonic(KeyEvent.VK_O);
+    menu.add(menuOpenSimulation);
+    
+    menuQuickOpenSimulation = new JMenu("Quick-open simulation");
+    menuQuickOpenSimulation.setMnemonic(KeyEvent.VK_Q);
+    menu.add(menuQuickOpenSimulation);
 
     menuItem = new JMenuItem("Save simulation");
     menuItem.setMnemonic(KeyEvent.VK_S);
@@ -1601,10 +1691,11 @@ public class GUI {
   /**
    * Load a simulation configuration file from disk
    * 
-   * @param askForConfirmation
-   *          Should we ask for confirmation if a simulation is already active?
+   * @param askForConfirmation Ask for confirmation before removing any current simulation
+   * @param quick Quick-load simulation
+   * @param configFile Configuration file to load, if null a dialog will appear
    */
-  public void doLoadConfig(boolean askForConfirmation, boolean quick) {
+  public void doLoadConfig(boolean askForConfirmation, boolean quick, File configFile) {
 
     if (CoreComm.hasLibraryBeenLoaded()) {
       JOptionPane
@@ -1630,9 +1721,35 @@ public class GUI {
 
     doRemoveSimulation(false);
 
+    if (configFile != null) {
+      if (configFile.exists() && configFile.canRead()) {
+        Simulation newSim = null;
+        try {
+          newSim = loadSimulationConfig(configFile, quick);
+          addToFileHistory(configFile);
+        } catch (UnsatisfiedLinkError e) {
+          logger.warn("Could not reopen libraries: " + e.getMessage());
+          newSim = null;
+        }
+        if (newSim != null) {
+          myGUI.setSimulation(newSim);
+        }
+      } else
+        logger.fatal("No read access to file");
+
+      return;
+    }
+
     JFileChooser fc = new JFileChooser();
 
     fc.setFileFilter(GUI.SAVED_SIMULATIONS_FILES);
+
+    // Suggest file using history
+    Vector<File> history = getFileHistory();
+    if (history != null && history.size() > 0) {
+      File suggestedFile = getFileHistory().firstElement();
+      fc.setSelectedFile(suggestedFile);
+    }
 
     int returnVal = fc.showOpenDialog(frame);
     if (returnVal == JFileChooser.APPROVE_OPTION) {
@@ -1648,6 +1765,7 @@ public class GUI {
         Simulation newSim = null;
         try {
           newSim = loadSimulationConfig(loadFile, quick);
+          addToFileHistory(loadFile);
         } catch (UnsatisfiedLinkError e) {
           logger.warn("Could not reopen libraries: " + e.getMessage());
           newSim = null;
@@ -1678,6 +1796,13 @@ public class GUI {
 
       fc.setFileFilter(GUI.SAVED_SIMULATIONS_FILES);
 
+      // Suggest file using history
+      Vector<File> history = getFileHistory();
+      if (history != null && history.size() > 0) {
+        File suggestedFile = getFileHistory().firstElement();
+        fc.setSelectedFile(suggestedFile);
+      }
+
       int returnVal = fc.showSaveDialog(myDesktopPane);
       if (returnVal == JFileChooser.APPROVE_OPTION) {
         File saveFile = fc.getSelectedFile();
@@ -1703,9 +1828,10 @@ public class GUI {
           }
         }
 
-        if (!saveFile.exists() || saveFile.canWrite())
+        if (!saveFile.exists() || saveFile.canWrite()) {
           saveSimulationConfig(saveFile);
-        else
+          addToFileHistory(saveFile);
+        } else
           logger.fatal("No write access to file");
 
       } else {
@@ -1945,9 +2071,15 @@ public class GUI {
       } else if (e.getActionCommand().equals("close sim")) {
         myGUI.doRemoveSimulation(true);
       } else if (e.getActionCommand().equals("open sim")) {
-        myGUI.doLoadConfig(true, false);
+        myGUI.doLoadConfig(true, false, null);
+      } else if (e.getActionCommand().equals("open last sim")) {
+        File file = (File) ((JMenuItem) e.getSource()).getClientProperty("file");
+        myGUI.doLoadConfig(true, false, file);
       } else if (e.getActionCommand().equals("open sim quick")) {
-        myGUI.doLoadConfig(true, true);
+        myGUI.doLoadConfig(true, true, null);
+      } else if (e.getActionCommand().equals("open last sim quick")) {
+        File file = (File) ((JMenuItem) e.getSource()).getClientProperty("file");
+        myGUI.doLoadConfig(true, true, file);
       } else if (e.getActionCommand().equals("save sim")) {
         myGUI.doSaveConfig(true);
       } else if (e.getActionCommand().equals("quit")) {
