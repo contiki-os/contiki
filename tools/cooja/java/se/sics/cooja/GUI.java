@@ -24,7 +24,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * 
- * $Id: GUI.java,v 1.27 2007/03/22 20:38:38 fros4943 Exp $
+ * $Id: GUI.java,v 1.28 2007/03/22 22:36:04 fros4943 Exp $
  */
 
 package se.sics.cooja;
@@ -227,6 +227,13 @@ public class GUI {
       }
     }
 
+    if (frame != null) {
+      SwingUtilities.invokeLater(new Runnable() {
+        public void run() {
+          myGUI.doCreateSimulation(true);
+        }
+      });
+    }
   }
 
   /**
