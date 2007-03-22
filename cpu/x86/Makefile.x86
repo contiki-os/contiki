@@ -1,4 +1,4 @@
-CONTIKI_SOURCEFILES += mtarch.c
+CONTIKI_SOURCEFILES += mtarch.c elfloader-stub.c
 
 ### Compiler definitions
 CC       = gcc
@@ -20,10 +20,11 @@ LDFLAGS  = -Wl,-Map=contiki.map,-export-dynamic
 	$(LD) -shared -o $@ $^
 
 # .PHONY: symbols.c symbols.h
-# ifdef CORE
-# symbols.c symbols.h:
-# 	@${CONTIKI}/tools/make-symbols $(CORE)
-# else
+ifdef CORE
+symbols.c symbols.h:
+	$(NM) $(CORE) | awk -f ../../tools/mknmlist > symbols.c
+#	@${CONTIKI}/tools/make-symbols $(CORE)
+else
 symbols.c symbols.h:
 	@${CONTIKI}/tools/make-empty-symbols
-#endif
+endif
