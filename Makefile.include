@@ -32,12 +32,12 @@ endif
 include $(CONTIKI)/core/net/rime/Makefile.rime
 SYSTEM  = process.c procinit.c service.c autostart.c
 THREADS = mt.c
-LIBS    = memb.c timer.c list.c etimer.c #crtk.c
+LIBS    = memb.c timer.c list.c etimer.c energest.c #rt.c #crtk.c
 CFS     = cfs.c cfs-ram.c
 CTK     = ctk.c
 UIP     = uip.c uiplib.c resolv.c tcpip.c psock.c hc.c uip-split.c \
           uip-fw.c uip-fw-service.c uipbuf.c uip_arp.c uiplib.c tcpdump.c \
-          uip-neighbor.c uip-udp-packet.c rawpacket-udp.c
+          uip-neighbor.c uip-udp-packet.c rawpacket-udp.c uip-over-mesh.c
 NET     = $(UIP) uaodv.c uaodv-rt.c
 
 CTKVNC  = $(CTK) ctk-vncserver.c libconio.c vnc-server.c vnc-out.c \
