@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: test-treeroute.c,v 1.1 2007/03/20 12:21:19 adamdunkels Exp $
+ * $Id: test-treeroute.c,v 1.2 2007/03/22 19:03:56 adamdunkels Exp $
  */
 
 /**
@@ -40,9 +40,12 @@
 
 #include "contiki.h"
 #include "net/rime.h"
+#include "net/rime/tree.h"
 #include "dev/leds.h"
 #include "dev/pir-sensor.h"
 #include "dev/button-sensor.h"
+
+static struct tree_conn tc;
 
 /*---------------------------------------------------------------------------*/
 PROCESS(test_tree_process, "Test tree process");
@@ -59,7 +62,7 @@ PROCESS_THREAD(depth_blink_process, ev, data)
   while(1) {
     etimer_set(&et, CLOCK_SECOND * 1);
     PROCESS_WAIT_UNTIL(etimer_expired(&et));
-    count = tree_depth();
+    count = tree_depth(&tc);
     if(count == TREE_MAX_DEPTH) {
       leds_on(LEDS_RED);
     } else {
@@ -79,11 +82,19 @@ PROCESS_THREAD(depth_blink_process, ev, data)
   PROCESS_END();
 }
 /*---------------------------------------------------------------------------*/
+static void
+recv(rimeaddr_t *originator, u8_t seqno, u8_t hops, u8_t retransmissions)
+{
+  
+}
+/*---------------------------------------------------------------------------*/
+static const struct tree_callbacks callbacks = { recv };
+/*---------------------------------------------------------------------------*/
 PROCESS_THREAD(test_tree_process, ev, data)
 {
   PROCESS_BEGIN();
 
-  tree_open(NULL);
+  tree_open(&tc, 128, &callbacks);
   
   while(1) {
 
@@ -92,12 +103,12 @@ PROCESS_THREAD(test_tree_process, ev, data)
     if(ev == sensors_event) {
 
       if(data == &pir_sensor) {
-	tree_send();
+	tree_send(&tc);
       }
 
       if(data == &button_sensor) {
 	printf("Button\n");
-	tree_set_sink(1);
+	tree_set_sink(&tc, 1);
       }
     }
     
