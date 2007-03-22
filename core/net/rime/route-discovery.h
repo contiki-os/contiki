@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: mesh.h,v 1.5 2007/03/22 17:34:16 adamdunkels Exp $
+ * $Id: route-discovery.h,v 1.1 2007/03/22 17:34:16 adamdunkels Exp $
  */
 
 /**
@@ -38,34 +38,36 @@
  *         Adam Dunkels <adam@sics.se>
  */
 
-#ifndef __MESH_H__
-#define __MESH_H__
+#ifndef __ROUTE_DISCOVERY_H__
+#define __ROUTE_DISCOVERY_H__
 
 #include "net/rime.h"
-#include "net/rime/mh.h"
-#include "net/rime/route-discovery.h"
+#include "net/rime/nf.h"
 
-struct mesh_conn;
+struct route_discovery_conn;
 
-struct mesh_callbacks {
-  void (* recv)(struct mesh_conn *c, rimeaddr_t *from);
-  void (* sent)(struct mesh_conn *c);
-  void (* timedout)(struct mesh_conn *c);
+struct route_discovery_callbacks {
+  void (* new_route)(struct route_discovery_conn *c, rimeaddr_t *to);
+  void (* timedout)(struct route_discovery_conn *c);
 };
 
-struct mesh_conn {
-  struct mh_conn mh;
-  struct route_discovery_conn route_discovery_conn;
-  struct queuebuf *queued_data;
-  rimeaddr_t queued_data_dest;
-  const struct mesh_callbacks *cb;
+#define ROUTE_DISCOVERY_ENTRIES 8
+
+struct route_discovery_conn {
+  struct nf_conn rreqconn;
+  struct uc_conn rrepconn;
+  struct ctimer t;
+  rimeaddr_t last_rreq_originator;
+  u16_t last_rreq_id;
+  u16_t rreq_id;
+  const struct route_discovery_callbacks *cb;
 };
 
-void mesh_open(struct mesh_conn *c, u16_t channels,
-	       const struct mesh_callbacks *callbacks);
+void route_discovery_open(struct route_discovery_conn *c, u16_t channels,
+			  const struct route_discovery_callbacks *callbacks);
+void route_discovery_discover(struct route_discovery_conn *c, rimeaddr_t *dest,
+			      clock_time_t timeout);
 
-int mesh_send(struct mesh_conn *c, rimeaddr_t *dest);
+void route_discovery_close(struct route_discovery_conn *c);
 
-void mesh_close(struct mesh_conn *c);
-
-#endif /* __MESH_H__ */
+#endif /* __ROUTE_DISCOVERY_H__ */
