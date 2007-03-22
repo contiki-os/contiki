@@ -24,7 +24,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * 
- * $Id: GUI.java,v 1.24 2007/03/22 15:02:55 fros4943 Exp $
+ * $Id: GUI.java,v 1.25 2007/03/22 16:17:01 fros4943 Exp $
  */
 
 package se.sics.cooja;
@@ -155,7 +155,7 @@ public class GUI {
 
   private JMenu menuPlugins, menuMoteTypeClasses, menuMoteTypes;
 
-  private JMenu menuOpenSimulation, menuQuickOpenSimulation;
+  private JMenu menuOpenSimulation, menuConfOpenSimulation;
 
   private Vector<Class<? extends Plugin>> menuMotePluginClasses;
   
@@ -281,15 +281,32 @@ public class GUI {
   }
   
   private void updateOpenHistoryMenuItems() {
-    menuOpenSimulation.removeAll();
+    menuConfOpenSimulation.removeAll();
     
     JMenuItem browseItem = new JMenuItem("Browse...");
+    browseItem.setActionCommand("confopen sim");
+    browseItem.addActionListener(guiEventHandler);
+    menuConfOpenSimulation.add(browseItem);
+    menuConfOpenSimulation.add(new JSeparator());
+    Vector<File> openFilesHistory = getFileHistory();
+
+    for (File file: openFilesHistory) {
+      JMenuItem lastItem = new JMenuItem(file.getName());
+      lastItem.setActionCommand("confopen last sim");
+      lastItem.putClientProperty("file", file);
+      lastItem.setToolTipText(file.getAbsolutePath());
+      lastItem.addActionListener(guiEventHandler);
+      menuConfOpenSimulation.add(lastItem);
+    }
+
+    menuOpenSimulation.removeAll();
+    
+    browseItem = new JMenuItem("Browse...");
     browseItem.setActionCommand("open sim");
     browseItem.addActionListener(guiEventHandler);
     menuOpenSimulation.add(browseItem);
     menuOpenSimulation.add(new JSeparator());
-    Vector<File> openFilesHistory = getFileHistory();
-
+    
     for (File file: openFilesHistory) {
       JMenuItem lastItem = new JMenuItem(file.getName());
       lastItem.setActionCommand("open last sim");
@@ -297,23 +314,6 @@ public class GUI {
       lastItem.setToolTipText(file.getAbsolutePath());
       lastItem.addActionListener(guiEventHandler);
       menuOpenSimulation.add(lastItem);
-    }
-
-    menuQuickOpenSimulation.removeAll();
-    
-    browseItem = new JMenuItem("Browse...");
-    browseItem.setActionCommand("open sim quick");
-    browseItem.addActionListener(guiEventHandler);
-    menuQuickOpenSimulation.add(browseItem);
-    menuQuickOpenSimulation.add(new JSeparator());
-    
-    for (File file: openFilesHistory) {
-      JMenuItem lastItem = new JMenuItem(file.getName());
-      lastItem.setActionCommand("open last sim quick");
-      lastItem.putClientProperty("file", file);
-      lastItem.setToolTipText(file.getAbsolutePath());
-      lastItem.addActionListener(guiEventHandler);
-      menuQuickOpenSimulation.add(lastItem);
     }
   }
 
@@ -350,14 +350,14 @@ public class GUI {
     menuItem.setActionCommand("close sim");
     menuItem.addActionListener(guiEventHandler);
     menu.add(menuItem);
-
-    menuOpenSimulation = new JMenu("Open simulation");
-    menuOpenSimulation.setMnemonic(KeyEvent.VK_O);
-    menu.add(menuOpenSimulation);
     
-    menuQuickOpenSimulation = new JMenu("Quick-open simulation");
-    menuQuickOpenSimulation.setMnemonic(KeyEvent.VK_Q);
-    menu.add(menuQuickOpenSimulation);
+    menuOpenSimulation = new JMenu("Open simulation");
+    menuOpenSimulation.setMnemonic(KeyEvent.VK_Q);
+    menu.add(menuOpenSimulation);
+
+    menuConfOpenSimulation = new JMenu("Open & Reconfigure simulation");
+    menuConfOpenSimulation.setMnemonic(KeyEvent.VK_O);
+    menu.add(menuConfOpenSimulation);
 
     menuItem = new JMenuItem("Save simulation");
     menuItem.setMnemonic(KeyEvent.VK_S);
@@ -2107,14 +2107,14 @@ public class GUI {
         myGUI.doCreateSimulation(true);
       } else if (e.getActionCommand().equals("close sim")) {
         myGUI.doRemoveSimulation(true);
-      } else if (e.getActionCommand().equals("open sim")) {
+      } else if (e.getActionCommand().equals("confopen sim")) {
         myGUI.doLoadConfig(true, false, null);
-      } else if (e.getActionCommand().equals("open last sim")) {
+      } else if (e.getActionCommand().equals("confopen last sim")) {
         File file = (File) ((JMenuItem) e.getSource()).getClientProperty("file");
         myGUI.doLoadConfig(true, false, file);
-      } else if (e.getActionCommand().equals("open sim quick")) {
+      } else if (e.getActionCommand().equals("open sim")) {
         myGUI.doLoadConfig(true, true, null);
-      } else if (e.getActionCommand().equals("open last sim quick")) {
+      } else if (e.getActionCommand().equals("open last sim")) {
         File file = (File) ((JMenuItem) e.getSource()).getClientProperty("file");
         myGUI.doLoadConfig(true, true, file);
       } else if (e.getActionCommand().equals("save sim")) {
