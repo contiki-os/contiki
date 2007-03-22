@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: neighbor.h,v 1.2 2007/03/15 19:43:07 adamdunkels Exp $
+ * $Id: neighbor.h,v 1.3 2007/03/22 17:34:43 adamdunkels Exp $
  */
 
 /**
@@ -51,7 +51,7 @@ struct neighbor {
 };
 
 void neighbor_init(void);
-void neighbor_periodic(int max_time);
+/*void neighbor_periodic(int max_time);*/
 
 void neighbor_add(rimeaddr_t *addr, u8_t hopcount, u16_t signal);
 void neighbor_update(struct neighbor *n, u8_t hopcount, u16_t signal);

@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: route.c,v 1.1 2007/03/15 19:52:51 adamdunkels Exp $
+ * $Id: route.c,v 1.2 2007/03/22 17:34:43 adamdunkels Exp $
  */
 
 /**
@@ -49,17 +49,41 @@
 LIST(route_table);
 MEMB(route_mem, struct route_entry, NUM_RT_ENTRIES);
 
+static struct ctimer t;
+
+#define MAX_TIME 10
+
+/*---------------------------------------------------------------------------*/
+static void
+periodic(void *ptr)
+{
+  struct route_entry *e;
+
+  for(e = list_head(route_table); e != NULL; e = e->next) {
+    e->time++;
+    if(e->time >= MAX_TIME) {
+      printf("Route to %d.%d bropped\n",
+	     e->dest.u8[0], e->dest.u8[1]);
+      list_remove(route_table, e);
+      memb_free(&route_mem, e);
+    }
+  }
+
+  ctimer_set(&t, CLOCK_SECOND * 2, periodic, NULL);
+}
 /*---------------------------------------------------------------------------*/
 void
 route_init(void)
 {
   list_init(route_table);
   memb_init(&route_mem);
+
+  ctimer_set(&t, CLOCK_SECOND * 2, periodic, NULL);
 }
 /*---------------------------------------------------------------------------*/
 int
 route_add(rimeaddr_t *dest, rimeaddr_t *nexthop,
-	  u16_t hop_count, u16_t seqno)
+	  u8_t hop_count, u8_t seqno)
 {
   struct route_entry *e;
 
@@ -79,6 +103,7 @@ route_add(rimeaddr_t *dest, rimeaddr_t *nexthop,
   rimeaddr_copy(&e->nexthop, nexthop);
   e->hop_count = hop_count;
   e->seqno = seqno;
+  e->time = 0;
 
   /* New entry goes first. */
   list_push(route_table, e);

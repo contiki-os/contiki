@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: neighbor.c,v 1.3 2007/03/15 19:43:07 adamdunkels Exp $
+ * $Id: neighbor.c,v 1.4 2007/03/22 17:34:43 adamdunkels Exp $
  */
 
 /**
@@ -42,15 +42,20 @@
 
 #include "contiki.h"
 #include "net/rime/neighbor.h"
+#include "net/rime/ctimer.h"
 
 #define MAX_NEIGHBORS 5
 
 #define HOPCOUNT_MAX 32
 
 static struct neighbor neighbors[MAX_NEIGHBORS];
+
+static struct ctimer t;
+
+static int max_time = 20;
 /*---------------------------------------------------------------------------*/
-void
-neighbor_periodic(int max_time)
+static void
+periodic(void *ptr)
 {
   int i;
   
@@ -65,6 +70,8 @@ neighbor_periodic(int max_time)
       }
     }
   }
+  printf("neighbor periodic\n");
+  ctimer_set(&t, CLOCK_SECOND, periodic, NULL);
 }
 /*---------------------------------------------------------------------------*/
 void
@@ -75,6 +82,8 @@ neighbor_init(void)
   for(i = 0; i < MAX_NEIGHBORS; ++i) {
     rimeaddr_copy(&neighbors[i].addr, &rimeaddr_null);
   }
+  
+  ctimer_set(&t, periodic, CLOCK_SECOND, NULL);
 }
 /*---------------------------------------------------------------------------*/
 struct neighbor *
@@ -153,7 +162,7 @@ neighbor_remove(rimeaddr_t *addr)
 
   for(i = 0; i < MAX_NEIGHBORS; ++i) {
     if(rimeaddr_cmp(&neighbors[i].addr, addr)) {
-      printf("%d: removing %d @ %d\n", rimeaddr_node_addr.u16, addr->u16, i);
+      printf("%d: removing %d @ %d\n", rimeaddr_node_addr.u16[0], addr->u16[0], i);
       rimeaddr_copy(&neighbors[i].addr, &rimeaddr_null);
       neighbors[i].hopcount = HOPCOUNT_MAX;
       return;
