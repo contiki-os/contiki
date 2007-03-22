@@ -24,7 +24,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * 
- * $Id: Simulation.java,v 1.9 2007/01/10 14:57:42 fros4943 Exp $
+ * $Id: Simulation.java,v 1.10 2007/03/22 20:39:34 fros4943 Exp $
  */
 
 package se.sics.cooja;
@@ -56,7 +56,7 @@ public class Simulation extends Observable implements Runnable {
 
   private Vector<MoteType> moteTypes = new Vector<MoteType>();
 
-  private int delayTime = 100;
+  private int delayTime = 5;
 
   private int currentSimulationTime = 0;
 
