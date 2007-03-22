@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#)$Id: contiki-sky-main.c,v 1.2 2007/03/21 23:26:34 adamdunkels Exp $
+ * @(#)$Id: contiki-sky-main.c,v 1.3 2007/03/22 19:04:43 adamdunkels Exp $
  */
 
 #include <stdio.h>
@@ -45,6 +45,7 @@
 #include "dev/xmem.h"
 #include "dev/simple-cc2420.h"
 #include "dev/simple-cc2420-rime.h"
+#include "dev/slip.h"
 #include "dev/uart1.h"
 
 #include "net/rime.h"
@@ -54,6 +55,14 @@
 /*#include "codeprop/codeprop.h"*/
 
 SENSORS(&button_sensor);
+
+#define WITH_UIP 1
+
+#if WITH_UIP
+static struct uip_fw_netif slipif =
+{UIP_FW_NETIF(192,168,1,2, 255,255,255,255, slip_send)};
+#endif /* WITH_UIP */
+
 /*---------------------------------------------------------------------------*/
 #if 0
 int
@@ -86,10 +95,11 @@ main(int argc, char **argv)
   leds_init();
   leds_toggle(LEDS_RED | LEDS_GREEN | LEDS_BLUE);
   
-  uart1_init(BAUD2UBR(57600)); /* Must come before first printf */
-  
+/*    uart1_init(BAUD2UBR(57600)); /\* Must come before first printf *\/ */
+
+  slip_arch_init(BAUD2UBR(115200)); /* Must come before first printf */
   printf("Starting %s "
-	 "($Id: contiki-sky-main.c,v 1.2 2007/03/21 23:26:34 adamdunkels Exp $)\n", __FILE__);
+	 "($Id: contiki-sky-main.c,v 1.3 2007/03/22 19:04:43 adamdunkels Exp $)\n", __FILE__);
   ds2411_init();
   sensors_light_init();
   xmem_init();
@@ -103,6 +113,14 @@ main(int argc, char **argv)
 	 ds2411_id[4], ds2411_id[5], ds2411_id[6], ds2411_id[7]);
 
   simple_cc2420_set_chan_pan_addr(RF_CHANNEL, panId, 0 /*XXX*/, ds2411_id);
+
+#if WITH_UIP
+  uip_init();
+  uip_sethostaddr(&slipif.ipaddr);
+  uip_setnetmask(&slipif.netmask);
+  uip_fw_default(&slipif);	/* Point2point, no default router. */
+  tcpip_set_forwarding(0);
+#endif /* WITH_UIP */
 
   /*
    * Initialize Contiki and our processes.
@@ -119,8 +137,12 @@ main(int argc, char **argv)
   rime_init();
 
   /*  rimeaddr_set_node_addr*/
-  
+#if WITH_UIP
+  process_start(&tcpip_process, NULL);
+  process_start(&uip_fw_process, NULL);	/* Start IP output */
+  process_start(&slip_process, NULL);
   /*  process_start(&tcp_loader_process, NULL);*/
+#endif /* WITH_UIP */
 
   printf("Autostarting processes\n");
   autostart_start((struct process **) autostart_processes);
