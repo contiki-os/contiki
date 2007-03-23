@@ -1,5 +1,5 @@
 ifndef JTAG
-  JTAG := $(CONTIKI_CPU)/buildscripts/jtag/pyjtag/jtag.py
+  JTAG := $(CONTIKI)/platform/$(TARGET)/buildscripts/jtag/pyjtag/jtag.py
 endif
 
 ifndef JTAG_PORT

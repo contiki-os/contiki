@@ -1,14 +1,4 @@
-# $Id: Makefile.msp430,v 1.13 2007/03/22 23:57:33 adamdunkels Exp $
-
-### Check if we are running under Windows
-
-ifndef WINDIR
-  ifdef OS
-    ifneq (,$(findstring Windows,$(OS)))
-      WINDIR := Windows
-    endif
-  endif
-endif
+# $Id: Makefile.msp430,v 1.14 2007/03/23 16:22:26 nifi Exp $
 
 ifdef nodeid
 CFLAGS += -DNODEID=$(nodeid)
@@ -110,14 +100,4 @@ symbols.c:
 else
 symbols.c symbols.h:
 	@${CONTIKI}/tools/make-empty-symbols
-endif
-
-### System dependent Makefile
-
-ifndef WINDIR
-  # settings for unix
-  -include ${CONTIKI}/cpu/msp430/buildscripts/Makefile.unix
-else
-  # settings for windows
-  -include ${CONTIKI}/cpu/msp430/buildscripts/Makefile.win
 endif
