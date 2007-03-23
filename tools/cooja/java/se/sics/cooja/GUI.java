@@ -24,7 +24,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * 
- * $Id: GUI.java,v 1.29 2007/03/22 23:01:11 fros4943 Exp $
+ * $Id: GUI.java,v 1.30 2007/03/23 11:25:19 fros4943 Exp $
  */
 
 package se.sics.cooja;
@@ -353,6 +353,14 @@ public class GUI {
     menuItem.addActionListener(guiEventHandler);
     menu.add(menuItem);
 
+    menuItem = new JMenuItem("Reload simulation");
+    menuItem.addActionListener(new ActionListener() {
+      public void actionPerformed(ActionEvent e) {
+        reloadCurrentSimulation();
+      }
+    });
+    menu.add(menuItem);
+    
     menuItem = new JMenuItem("Close simulation");
     menuItem.setMnemonic(KeyEvent.VK_C);
     menuItem.setActionCommand("close sim");
@@ -1789,8 +1797,9 @@ public class GUI {
         try {
           newSim = loadSimulationConfig(fileToLoad, quick);
           addToFileHistory(fileToLoad);
-          if (progressDialog != null) 
+          if (progressDialog != null && progressDialog.isVisible()) {
             progressDialog.dispose();
+          }
         } catch (UnsatisfiedLinkError e) {
           logger.warn("Could not reopen libraries: " + e.getMessage());
           if (progressDialog != null) 
@@ -1819,7 +1828,9 @@ public class GUI {
           loadThread.interrupt();
           doRemoveSimulation(false);
         }
-        progressDialog.dispose();
+        if (progressDialog != null && progressDialog.isVisible()) {
+          progressDialog.dispose();
+        }
       }
     });
 
@@ -1837,6 +1848,142 @@ public class GUI {
     progressDialog.setDefaultCloseOperation(JDialog.DO_NOTHING_ON_CLOSE);
     if (quick)
       progressDialog.setVisible(true);
+  }
+  
+  /**
+   * Reloads current simulation.
+   * This may include recompiling libraries and renaming mote type identifiers.
+   */
+  private void reloadCurrentSimulation() {
+    final JDialog progressDialog = new JDialog(frame, "Reloading", true);
+    final Thread loadThread = new Thread(new Runnable() {
+      public void run() {
+
+        // Create mappings to new mote type identifiers
+        Properties moteTypeNames = new Properties();
+        for (MoteType moteType: getSimulation().getMoteTypes()) {
+          if (moteType.getClass().equals(ContikiMoteType.class)) {
+            // Suggest new identifier
+            int counter = 0;
+            String testIdentifier = "";
+            boolean identifierOK = false;
+            while (!identifierOK) {
+              counter++;
+              testIdentifier = ContikiMoteTypeDialog.ID_PREFIX + counter;
+              identifierOK = true;
+
+              // Check if identifier already reserved for some other type
+              if (moteTypeNames.containsValue(testIdentifier)) {
+                identifierOK = false;
+              }
+
+              // Check if identifier is already used by some other type
+              for (MoteType existingMoteType : getSimulation().getMoteTypes()) {
+                if (existingMoteType != moteType
+                    && existingMoteType.getIdentifier().equals(testIdentifier)) {
+                  identifierOK = false;
+                  break;
+                }
+              }
+
+              // Check if library file with given identifier has already been loaded
+              if (identifierOK
+                  && CoreComm.hasLibraryFileBeenLoaded(new File(
+                      ContikiMoteType.tempOutputDirectory,
+                      testIdentifier
+                      + ContikiMoteType.librarySuffix))) {
+                identifierOK = false;
+              }
+            }
+
+            moteTypeNames.setProperty(moteType.getIdentifier(), testIdentifier);
+          }
+        }
+
+        // Get current simulation configuration
+        Element simulationElement = new Element("simulation");
+        simulationElement.addContent(getSimulation().getConfigXML());
+        Collection<Element> pluginsConfig = getPluginsConfigXML();
+
+        // Scan and replace old configuration mote type names
+        Element root = new Element("simconf");
+        root.addContent(simulationElement);
+
+        if (pluginsConfig != null)
+          root.addContent(pluginsConfig);
+
+        Document doc = new Document(root);
+        XMLOutputter outputter = new XMLOutputter();
+        outputter.setFormat(Format.getPrettyFormat());
+        String configXML = outputter.outputString(doc);
+
+        Enumeration oldNames = moteTypeNames.keys();
+        while (oldNames.hasMoreElements()) {
+          String oldName = (String) oldNames.nextElement();
+          configXML = configXML.replaceAll(">" + oldName + "<", ">" + moteTypeNames.get(oldName) + "<");
+        }
+
+        // Remove current simulation
+        doRemoveSimulation(false);
+
+        // Reload altered simulation config
+        Simulation newSim = null;
+        try {
+          newSim = loadSimulationConfig(new StringReader(configXML), true);
+          if (progressDialog != null && progressDialog.isVisible()) { 
+            progressDialog.dispose();
+          }
+        } catch (UnsatisfiedLinkError e) {
+          logger.fatal("Could not reopen libraries: " + e.getMessage());
+          if (progressDialog != null && progressDialog.isVisible()) { 
+            progressDialog.dispose();
+          }
+          newSim = null;
+        }
+        if (newSim != null) {
+          myGUI.setSimulation(newSim);
+        }
+
+        if (progressDialog != null && progressDialog.isVisible()) { 
+          progressDialog.dispose();
+        }
+      }
+    });
+
+    // Display progress dialog while reloading
+    JProgressBar progressBar = new JProgressBar(0, 100);
+    progressBar.setValue(0);
+    progressBar.setIndeterminate(true);
+
+    JButton button = new JButton("Cancel");
+    button.addActionListener(new ActionListener() {
+      public void actionPerformed(ActionEvent e) {
+        if (loadThread != null && loadThread.isAlive()) {
+          loadThread.interrupt();
+          doRemoveSimulation(false);
+        }
+        if (progressDialog != null && progressDialog.isVisible()) { 
+          progressDialog.dispose();
+        }
+      }
+    });
+
+    JPanel progressPanel = new JPanel(new BorderLayout());
+    progressPanel.add(BorderLayout.CENTER, progressBar);
+    progressPanel.add(BorderLayout.SOUTH, button);
+    progressPanel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
+
+    progressPanel.setVisible(true);
+
+    progressDialog.getContentPane().add(progressPanel);
+    progressDialog.pack();
+
+    progressDialog.getRootPane().setDefaultButton(button);
+    progressDialog.setLocationRelativeTo(frame);
+    progressDialog.setDefaultCloseOperation(JDialog.DO_NOTHING_ON_CLOSE);
+
+    loadThread.start();
+    progressDialog.setVisible(true);
   }
 
   /**
@@ -2465,16 +2612,42 @@ public class GUI {
    *           If associated libraries could not be loaded
    */
   public Simulation loadSimulationConfig(File file, boolean quick)
-      throws UnsatisfiedLinkError {
-
-    Simulation newSim = null;
-
+  throws UnsatisfiedLinkError {
     try {
-      // Open config file
       SAXBuilder builder = new SAXBuilder();
       Document doc = builder.build(file);
       Element root = doc.getRootElement();
 
+      return loadSimulationConfig(root, quick);
+    } catch (JDOMException e) {
+      logger.fatal("Config not wellformed: " + e.getMessage());
+      return null;
+    } catch (IOException e) {
+      logger.fatal("IOException: " + e.getMessage());
+      return null;
+    }
+  }
+
+  private Simulation loadSimulationConfig(StringReader stringReader, boolean quick) {
+    try {
+      SAXBuilder builder = new SAXBuilder();
+      Document doc = builder.build(stringReader);
+      Element root = doc.getRootElement();
+
+      return loadSimulationConfig(root, quick);
+    } catch (JDOMException e) {
+      logger.fatal("Config not wellformed: " + e.getMessage());
+      return null;
+    } catch (IOException e) {
+      logger.fatal("IOException: " + e.getMessage());
+      return null;
+    }
+  }
+
+  private Simulation loadSimulationConfig(Element root, boolean quick) {
+    Simulation newSim = null;
+
+    try {
       // Check that config file version is correct
       if (!root.getName().equals("simconf")) {
         logger.fatal("Not a valid COOJA simulation config!");
