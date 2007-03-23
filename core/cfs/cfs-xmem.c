@@ -30,7 +30,7 @@
  *
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: cfs-xmem.c,v 1.1 2007/03/21 23:15:31 adamdunkels Exp $
+ * $Id: cfs-xmem.c,v 1.2 2007/03/23 12:15:08 nifi Exp $
  */
 #include "contiki.h"
 
@@ -42,16 +42,25 @@ struct filestate {
   int flag;
 #define FLAG_FILE_CLOSED 0
 #define FLAG_FILE_OPEN   1
-  off_t fileptr;
+  int fileptr;
+  int filesize;
 };
-
-static struct filestate file;
 
 #ifdef CFS_XMEM_CONF_OFFSET
 #define CFS_XMEM_OFFSET CFS_XMEM_CONF_OFFSET
 #else
 #define CFS_XMEM_OFFSET 0
 #endif
+
+/* Note the CFS_XMEM_CONF_SIZE must be a tuple of XMEM_ERASE_UNIT_SIZE */
+#ifdef CFS_XMEM_CONF_SIZE
+#define CFS_XMEM_SIZE CFS_XMEM_CONF_SIZE
+#else
+#define CFS_XMEM_SIZE XMEM_ERASE_UNIT_SIZE
+#endif
+
+static struct filestate file;
+
 
 /*---------------------------------------------------------------------------*/
 static int
@@ -60,6 +69,10 @@ s_open(const char *n, int f)
   if(file.flag == FLAG_FILE_CLOSED) {
     file.flag = FLAG_FILE_OPEN;
     file.fileptr = 0;
+    if((f & CFS_WRITE) && !(f & CFS_APPEND)) {
+      file.filesize = 0;
+      xmem_erase(CFS_XMEM_SIZE, CFS_XMEM_OFFSET);
+    }
     return 1;
   } else {
     return -1;
@@ -75,6 +88,14 @@ s_close(int f)
 static int
 s_read(int f, char *buf, unsigned int len)
 {
+  if(file.fileptr + len > CFS_XMEM_SIZE) {
+    len = CFS_XMEM_SIZE - file.fileptr;
+  }
+
+  if(file.fileptr + len > file.filesize) {
+    len = file.filesize - file.fileptr;
+  }
+
   if(f == 1) {
     xmem_pread(buf, len, CFS_XMEM_OFFSET + file.fileptr);
     file.fileptr += len;
@@ -87,6 +108,18 @@ s_read(int f, char *buf, unsigned int len)
 static int
 s_write(int f, char *buf, unsigned int len)
 {
+  if(file.fileptr >= CFS_XMEM_SIZE) {
+    return 0;
+  }
+  if(file.fileptr + len > CFS_XMEM_SIZE) {
+    len = CFS_XMEM_SIZE - file.fileptr;
+  }
+
+  if(file.fileptr + len > file.filesize) {
+    /* Extend the size of the file. */
+    file.filesize = file.fileptr + len;
+  }
+
   if(f == 1) {
     xmem_pwrite(buf, len, CFS_XMEM_OFFSET + file.fileptr);
     file.fileptr += len;
@@ -100,6 +133,9 @@ static int
 s_seek(int f, unsigned int o)
 {
   if(f == 1) {
+    if(o > file.filesize) {
+      o = file.filesize;
+    }
     file.fileptr = o;
     return o;
   } else {
