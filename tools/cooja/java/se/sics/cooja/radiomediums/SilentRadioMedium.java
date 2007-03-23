@@ -26,13 +26,11 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: SilentRadioMedium.java,v 1.3 2007/02/28 09:50:00 fros4943 Exp $
+ * $Id: SilentRadioMedium.java,v 1.4 2007/03/23 21:06:23 fros4943 Exp $
  */
 
 package se.sics.cooja.radiomediums;
 import java.util.Collection;
-import java.util.Observable;
-import java.util.Observer;
 import org.jdom.Element;
 
 import se.sics.cooja.*;
@@ -44,47 +42,19 @@ import se.sics.cooja.interfaces.*;
  * @author Fredrik Osterlind
  */
 @ClassDescription("No radio traffic")
-public class SilentRadioMedium extends RadioMedium {
+public class SilentRadioMedium extends AbstractRadioMedium {
 
   public SilentRadioMedium(Simulation simulation) {
+    super(simulation);
   }
 
-  public void registerMote(Mote mote, Simulation sim) {
-    // Do nothing
-  }
-
-  public void unregisterMote(Mote mote, Simulation sim) {
-    // Do nothing
-  }
-
-  public void registerRadioInterface(Radio radio, Simulation sim) {
-    // Do nothing
-  }
-
-  public void unregisterRadioInterface(Radio radio, Simulation sim) {
-    // Do nothing
-  }
-
-  public void addRadioMediumObserver(Observer observer) {
-    // Do nothing
-  }
-  
-  public Observable getRadioMediumObservable() {
-    // Return empty observable
-    return new Observable();
-  }
-
-  public void deleteRadioMediumObserver(Observer observer) {
-    // Do nothing
-  }
-
-  public RadioConnection[] getLastTickConnections() {
+  public RadioConnection createConnections(Radio radio) {
     return null;
   }
-
-  public void setConnectionLogger(ConnectionLogger connection) {
-    // Do nothing
+  
+  public void updateSignalStrengths() {
   }
+  
 
   public Collection<Element> getConfigXML() {
     return null;
@@ -93,5 +63,4 @@ public class SilentRadioMedium extends RadioMedium {
   public boolean setConfigXML(Collection<Element> configXML, boolean visAvailable) {
     return true;
   }
-
 }
