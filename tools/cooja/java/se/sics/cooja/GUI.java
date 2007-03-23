@@ -24,7 +24,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * 
- * $Id: GUI.java,v 1.31 2007/03/23 14:36:27 fros4943 Exp $
+ * $Id: GUI.java,v 1.32 2007/03/23 21:04:19 fros4943 Exp $
  */
 
 package se.sics.cooja;
@@ -1812,8 +1812,6 @@ public class GUI {
         }
       }
     });
-    loadThread.start();
-
 
     JPanel progressPanel = new JPanel(new BorderLayout());
     JProgressBar progressBar;
@@ -1847,6 +1845,7 @@ public class GUI {
     progressDialog.getRootPane().setDefaultButton(button);
     progressDialog.setLocationRelativeTo(frame);
     progressDialog.setDefaultCloseOperation(JDialog.DO_NOTHING_ON_CLOSE);
+    loadThread.start();
     if (quick)
       progressDialog.setVisible(true);
   }
