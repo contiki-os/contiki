@@ -16,7 +16,6 @@ import org.jdom.Element;
 
 import se.sics.cooja.*;
 import se.sics.cooja.interfaces.*;
-import se.sics.mrm.MRM.*;
 
 /**
  * The class AreaViewer belongs to the MRM package.
@@ -872,8 +871,7 @@ public class AreaViewer extends VisPlugin {
           tracker.waitForAll();
           if (tracker.isErrorAny()) {
             logger.fatal("Error when loading image: ");
-            for (Object errorObject: tracker.getErrorsAny())
-              logger.fatal("> " + errorObject);
+            image = null;
           }
           if (image == null) {
             logger.fatal("Image is null, aborting");
@@ -1833,43 +1831,43 @@ public class AreaViewer extends VisPlugin {
 
     // -- Draw radio activity --
     if (drawRadioActivity) {
-      // Paint scaled (otherwise bad rounding to integers may occur)
-      g2d.setTransform(realWorldTransformScaled);
-      g2d.setStroke(new BasicStroke((float) 0.0));
+      for (RadioConnection connection: currentRadioMedium.getActiveConnections()) {
+        Position sourcePosition = connection.getSource().getPosition();
 
-      for (RadioInterference interference: currentRadioMedium.getCurrentInterferencesArray()) {
-        g2d.setColor(Color.RED);
+        // Paint scaled (otherwise bad rounding to integers may occur)
+        g2d.setTransform(realWorldTransformScaled);
+        g2d.setStroke(new BasicStroke((float) 0.0));
+        
+        for (Radio receivingRadio: connection.getDestinations()) {
+          g2d.setColor(Color.GREEN);
 
-        // Get source and destination coordinates
-        Position sourcePosition = interference.mySource.source.position;
-        Position destinationPosition = interference.myDestination.position;
+          // Get source and destination coordinates
+          Position destinationPosition = receivingRadio.getPosition();
 
-        g2d.draw(new Line2D.Double(
-            sourcePosition.getXCoordinate()*100.0,
-            sourcePosition.getYCoordinate()*100.0,
-            destinationPosition.getXCoordinate()*100.0,
-            destinationPosition.getYCoordinate()*100.0
-        ));
-      } 
-      for (RadioTransfer transfer: currentRadioMedium.getCurrentTransfersArray()) {
-        g2d.setColor(Color.GREEN);
+          g2d.draw(new Line2D.Double(
+              sourcePosition.getXCoordinate()*100.0,
+              sourcePosition.getYCoordinate()*100.0,
+              destinationPosition.getXCoordinate()*100.0,
+              destinationPosition.getYCoordinate()*100.0
+          ));
+        }
 
-        // Get source and destination coordinates
-        Position sourcePosition = transfer.mySource.source.position;
-        Position destinationPosition = transfer.myDestination.position;
+        for (Radio interferedRadio: connection.getInterfered()) {
+          g2d.setColor(Color.RED);
 
-        g2d.draw(new Line2D.Double(
-            sourcePosition.getXCoordinate()*100.0,
-            sourcePosition.getYCoordinate()*100.0,
-            destinationPosition.getXCoordinate()*100.0,
-            destinationPosition.getYCoordinate()*100.0
-        ));
-      } 
-      for (RadioTransmission transmission: currentRadioMedium.getCurrentTransmissionsArray()) {
+          // Get source and destination coordinates
+          Position destinationPosition = interferedRadio.getPosition();
+
+          g2d.draw(new Line2D.Double(
+              sourcePosition.getXCoordinate()*100.0,
+              sourcePosition.getYCoordinate()*100.0,
+              destinationPosition.getXCoordinate()*100.0,
+              destinationPosition.getYCoordinate()*100.0
+          ));
+        }
+        
         g2d.setColor(Color.BLUE);
-
         g2d.setTransform(realWorldTransform);
-        Position sourcePosition = transmission.source.position;
        
         g2d.translate(
             sourcePosition.getXCoordinate(),
@@ -1890,8 +1888,7 @@ public class AreaViewer extends VisPlugin {
             (int) 5
         );
 
-      
-      } 
+      }
     }
 
     // -- Draw scale arrow --
@@ -2096,7 +2093,7 @@ public class AreaViewer extends VisPlugin {
    *          Config XML elements
    * @return True if config was set successfully, false otherwise
    */
-  public boolean setConfigXML(Collection<Element> configXML) {
+  public boolean setConfigXML(Collection<Element> configXML, boolean visAvailable) {
     for (Element element : configXML) {
       if (element.getName().equals("controls_visible")) {
         showSettingsBox.setSelected(Boolean.parseBoolean(element.getText()));
