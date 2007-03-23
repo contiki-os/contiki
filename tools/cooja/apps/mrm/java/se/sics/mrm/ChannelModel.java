@@ -5,9 +5,7 @@ import java.util.*;
 import javax.swing.tree.DefaultMutableTreeNode;
 import org.apache.log4j.Logger;
 import org.jdom.Element;
-
 import statistics.GaussianWrapper;
-
 
 /**
  * The channel model object in MRM is responsible for calulating propagation
@@ -1687,7 +1685,4 @@ public class ChannelModel {
     settingsObservable.notifySettingsChanged();
     return true;    
   }
-  
 }
-
-
