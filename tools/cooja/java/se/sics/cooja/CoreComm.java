@@ -24,17 +24,19 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * 
- * $Id: CoreComm.java,v 1.3 2007/01/10 14:57:42 fros4943 Exp $
+ * $Id: CoreComm.java,v 1.4 2007/03/23 14:36:27 fros4943 Exp $
  */
 
 package se.sics.cooja;
 
-import java.io.File;
-import se.sics.cooja.corecomm.*;
+import java.io.*;
+import java.lang.reflect.*;
+import java.net.*;
+import java.util.Vector;
 
 /**
  * The purpose of corecomm's is communicating with a compiled Contiki system
- * using Java Native Interface (JNI). Each implemented class (named Lib[1-MAX]),
+ * using Java Native Interface (JNI). Each implemented class (named Lib[number]),
  * loads a shared library which belongs to one mote type. The reason for this
  * somewhat strange design is that once loaded, a native library cannot be
  * unloaded in Java (in the current versions available). Therefore if we wish to
@@ -63,16 +65,12 @@ import se.sics.cooja.corecomm.*;
  * @author Fredrik Osterlind
  */
 public abstract class CoreComm {
-  /**
-   * Maximum supported core communicators in a simulator.
-   */
-  private final static int MAX_LIBRARIES = 8;
 
   // Static pointers to current libraries
-  private final static CoreComm[] coreComms = new CoreComm[MAX_LIBRARIES];
-
-  private final static File[] coreCommFiles = new File[MAX_LIBRARIES];
-
+  private final static Vector<CoreComm> coreComms = new Vector<CoreComm>();
+  private final static Vector<File> coreCommFiles = new Vector<File>();
+  private static int fileCounter = 1;
+  
   /**
    * Has any library been loaded? Since libraries can't be unloaded the entire
    * simulator may have to be restarted.
@@ -80,10 +78,7 @@ public abstract class CoreComm {
    * @return True if any library has been loaded this session
    */
   public static boolean hasLibraryBeenLoaded() {
-    for (int i = 0; i < coreComms.length; i++)
-      if (coreComms[i] != null)
-        return true;
-    return false;
+    return coreComms.size() > 0;
   }
 
   /**
@@ -98,8 +93,8 @@ public abstract class CoreComm {
    *         filename
    */
   public static boolean hasLibraryFileBeenLoaded(File libraryFile) {
-    for (File libFile : coreCommFiles)
-      if (libFile != null && libFile.getName().equals(libraryFile.getName()))
+    for (File loadedFile : coreCommFiles)
+      if (loadedFile != null && loadedFile.getName().equals(libraryFile.getName()))
         return true;
     return false;
   }
@@ -111,26 +106,120 @@ public abstract class CoreComm {
    * @return Class name
    */
   public static String getAvailableClassName() {
-    if (coreComms[0] == null)
-      return "Lib1";
-    if (coreComms[1] == null)
-      return "Lib2";
-    if (coreComms[2] == null)
-      return "Lib3";
-    if (coreComms[3] == null)
-      return "Lib4";
-    if (coreComms[4] == null)
-      return "Lib5";
-    if (coreComms[5] == null)
-      return "Lib6";
-    if (coreComms[6] == null)
-      return "Lib7";
-    if (coreComms[7] == null)
-      return "Lib8";
-
-    return null;
+    return "Lib" + fileCounter;
   }
 
+  /**
+   * Generates new source file by reading default source template and replacing
+   * the class name field.
+   * 
+   * @param className
+   *          Wanted class name
+   * @return True if success, false otherwise
+   */
+  public static boolean generateLibSourceFile(String className) {
+    BufferedWriter sourceFileWriter = null;
+    BufferedReader templateFileReader = null;
+    String destFilename = null;
+
+    try {
+      Reader reader;
+      String mainTemplate = GUI
+          .getExternalToolsSetting("CORECOMM_TEMPLATE_FILENAME");
+      
+      if ((new File(mainTemplate)).exists()) {
+        reader = new FileReader(mainTemplate);
+      } else {
+        InputStream input = CoreComm.class
+            .getResourceAsStream('/' + mainTemplate);
+        if (input == null) {
+          throw new FileNotFoundException(mainTemplate + " not found");
+        }
+        reader = new InputStreamReader(input);
+      }
+      
+      templateFileReader = new BufferedReader(reader);
+      destFilename = className + ".java";
+      sourceFileWriter = new BufferedWriter(new OutputStreamWriter(
+          new FileOutputStream("se/sics/cooja/corecomm/" + destFilename)));
+
+      // Replace special fields in template
+      String line;
+      while ((line = templateFileReader.readLine()) != null) {
+        line = line.replaceFirst("\\[CLASSNAME\\]", className);
+        sourceFileWriter.write(line + "\n");
+      }
+
+      sourceFileWriter.close();
+      templateFileReader.close();
+    } catch (Exception e) {
+      try {
+        if (sourceFileWriter != null)
+          sourceFileWriter.close();
+        if (templateFileReader != null)
+          templateFileReader.close();
+      } catch (Exception e2) {
+        return false;
+      }
+
+      return false;
+    }
+
+    File genFile = new File("se/sics/cooja/corecomm/" + destFilename);
+    if (genFile.exists())
+      return true;
+
+    return false;
+  }
+
+  /**
+   * Compile given Java source file.
+   * 
+   * @param className Class name
+   * @return True if success, false otherwise
+   */
+  private static boolean compileSourceFile(String className) {
+    try {
+      String[] cmd = new String[]{
+          GUI.getExternalToolsSetting("PATH_JAVAC"),
+          "se/sics/cooja/corecomm/" + className + ".java" };
+
+      Process p = Runtime.getRuntime().exec(cmd, null, null);
+      p.waitFor();
+    } catch (IOException e) {
+      return false;
+    } catch (InterruptedException e) {
+      return false;
+    }
+
+    File classFile = new File("se/sics/cooja/corecomm/" + className + ".class");
+    if (classFile.exists())
+      return true;
+    
+    return false;
+  }
+  
+  /**
+   * Load given Java class file, making it ready to be used.
+   * 
+   * @param classFile Class file
+   * @return Loaded class, or null
+   */
+  private static Class loadClassFile(String className) {
+    Class loadedClass = null;
+    try {
+      ClassLoader urlClassLoader = new URLClassLoader(
+          new URL[] { new File(".").toURL() }, 
+          CoreComm.class.getClassLoader());
+      loadedClass = urlClassLoader.loadClass("se.sics.cooja.corecomm." + className);
+    } catch (MalformedURLException e) {
+      return null;
+    } catch (ClassNotFoundException e) {
+      return null;
+    }
+    return loadedClass;
+  }
+  
   /**
    * Create and return an instance of the core communicator identified by
    * className. This core communicator will load the native library libFile.
@@ -142,50 +231,36 @@ public abstract class CoreComm {
    * @return Core Communicator
    */
   public static CoreComm createCoreComm(String className, File libFile) {
-    if (className.equals("Lib1") && coreComms[0] == null) {
-      coreComms[0] = new Lib1(libFile);
-      coreCommFiles[0] = libFile;
-      return coreComms[0];
-    }
-    if (className.equals("Lib2") && coreComms[1] == null) {
-      coreComms[1] = new Lib2(libFile);
-      coreCommFiles[1] = libFile;
-      return coreComms[1];
-    }
-    if (className.equals("Lib3") && coreComms[2] == null) {
-      coreComms[2] = new Lib3(libFile);
-      coreCommFiles[2] = libFile;
-      return coreComms[2];
-    }
-    if (className.equals("Lib4") && coreComms[3] == null) {
-      coreComms[3] = new Lib4(libFile);
-      coreCommFiles[3] = libFile;
-      return coreComms[3];
-    }
-    if (className.equals("Lib5") && coreComms[4] == null) {
-      coreComms[4] = new Lib5(libFile);
-      coreCommFiles[4] = libFile;
-      return coreComms[4];
-    }
-    if (className.equals("Lib6") && coreComms[5] == null) {
-      coreComms[5] = new Lib6(libFile);
-      coreCommFiles[5] = libFile;
-      return coreComms[5];
-    }
-    if (className.equals("Lib7") && coreComms[6] == null) {
-      coreComms[6] = new Lib7(libFile);
-      coreCommFiles[6] = libFile;
-      return coreComms[6];
-    }
-    if (className.equals("Lib8") && coreComms[7] == null) {
-      coreComms[7] = new Lib8(libFile);
-      coreCommFiles[7] = libFile;
-      return coreComms[7];
-    }
+    if (!generateLibSourceFile(className))
+      return null;
+    
+    if (!compileSourceFile(className))
+      return null;
 
-    return null;
+    Class newCoreCommClass = loadClassFile(className);
+    if (newCoreCommClass == null)
+      return null;
+
+    try {
+      Constructor constr = newCoreCommClass.getConstructor(new Class[] { File.class });
+      CoreComm newCoreComm = (CoreComm) constr.newInstance(new Object[] { libFile });
+
+      coreComms.add(newCoreComm);
+      coreCommFiles.add(libFile);
+      fileCounter++;
+      
+      return newCoreComm;
+    } catch (NoSuchMethodException e) {
+      return null;
+    } catch (InstantiationException e) {
+      return null;
+    } catch (InvocationTargetException e) {
+      return null;
+    } catch (IllegalAccessException e) {
+      return null;
+    }
   }
-
+  
   /**
    * Ticks a mote once. This should not be used directly, but instead via
    * Mote.tick().
