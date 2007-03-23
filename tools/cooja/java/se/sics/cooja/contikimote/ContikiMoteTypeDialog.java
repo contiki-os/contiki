@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ContikiMoteTypeDialog.java,v 1.22 2007/03/23 23:34:33 fros4943 Exp $
+ * $Id: ContikiMoteTypeDialog.java,v 1.23 2007/03/23 23:45:13 fros4943 Exp $
  */
 
 package se.sics.cooja.contikimote;
@@ -517,7 +517,35 @@ public class ContikiMoteTypeDialog extends JDialog {
     textField = new JTextField();
     textField.setBackground(Color.GREEN);
     textField.setText("[enter description here]");
-    textField.getDocument().addDocumentListener(myEventHandler);
+    textField.getDocument().addDocumentListener(new DocumentListener() {
+      public void insertUpdate(DocumentEvent e) {
+        if (myDialog.isVisible())
+          javax.swing.SwingUtilities.invokeLater(new Runnable() {
+            public void run() {
+              updateVisualFields();
+            }
+          });
+      }
+
+      public void removeUpdate(DocumentEvent e) {
+        if (myDialog.isVisible())
+          javax.swing.SwingUtilities.invokeLater(new Runnable() {
+            public void run() {
+              updateVisualFields();
+            }
+          });
+      }
+
+      public void changedUpdate(DocumentEvent e) {
+        if (myDialog.isVisible())
+          javax.swing.SwingUtilities.invokeLater(new Runnable() {
+            public void run() {
+              updateVisualFields();
+            }
+          });
+      }
+
+    });
     textDescription = textField;
     label.setLabelFor(textField);
     smallPane.add(label);
