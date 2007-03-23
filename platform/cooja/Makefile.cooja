@@ -1,4 +1,4 @@
-# $Id: Makefile.cooja,v 1.10 2007/01/09 09:13:36 fros4943 Exp $
+# $Id: Makefile.cooja,v 1.11 2007/03/23 21:36:48 fros4943 Exp $
 
 ## The COOJA Simulator Contiki platform Makefile
 ##
@@ -6,6 +6,14 @@
 ## rather from inside the COOJA simulator.
 ## The purpose of this file is to compile a shared library that
 ## can be loaded into the Java part of COOJA.
+
+ifndef WINDIR
+  ifdef OS
+    ifneq (,$(findstring Windows,$(OS)))
+      WINDIR := Windows
+    endif
+  endif
+endif
 
 ### Check input COOJA parameters
 
@@ -78,7 +86,10 @@ endif
 $(DEPFILE): ${addprefix $(OBJECTDIR)/, $(CONTIKI_SOURCEFILES:.c=.o)}
 	$(AR) rcf $@ $^
 
+ifndef WINDIR
 .PHONY: symbols.c
+endif
+
 symbols.c:
 	# Create initial symbol files if not existing
 	${CONTIKI}/tools/make-empty-symbols
