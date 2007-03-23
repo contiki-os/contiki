@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ContikiMoteTypeDialog.java,v 1.20 2007/03/22 22:20:33 fros4943 Exp $
+ * $Id: ContikiMoteTypeDialog.java,v 1.21 2007/03/23 11:16:53 fros4943 Exp $
  */
 
 package se.sics.cooja.contikimote;
@@ -962,7 +962,9 @@ public class ContikiMoteTypeDialog extends JDialog {
         if (compilationThread != null && compilationThread.isAlive()) {
           compilationThread.interrupt();
         }
-        progressDialog.dispose();
+        if (progressDialog != null && progressDialog.isVisible()) {
+          progressDialog.dispose();
+        }
       }
     });
 
