@@ -1,10 +1,10 @@
 MSPSim - ESB (MSP430) emulation support for the COOJA Simulator
 
 Note:
-This functionality is still under development and will in the future be added as a default user platform in COOJA.
+This functionality is still under development and will in the future be added as a default application in COOJA.
 
 Usage:
-Add user platform "../apps/mspsim" in COOJA.
+Add project directory "../apps/mspsim" in COOJA.
 Create an MSP mote type by providing paths to three pre-compiled files:
 	* IHEX-file (the actual file currently interpreted by MSPSim)
 	* Firmware-file (contains debug-section with sourcecode-pointers)
