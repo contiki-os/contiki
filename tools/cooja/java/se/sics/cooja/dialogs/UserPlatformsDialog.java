@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: UserPlatformsDialog.java,v 1.6 2006/09/26 13:08:05 fros4943 Exp $
+ * $Id: UserPlatformsDialog.java,v 1.7 2007/03/23 21:57:24 fros4943 Exp $
  */
 
 package se.sics.cooja.dialogs;
@@ -373,9 +373,29 @@ public class UserPlatformsDialog extends JDialog {
     File userPlatformConfigFile = new File(userPlatform.getPath(),
         GUI.PLATFORM_CONFIG_FILENAME);
     if (!userPlatformConfigFile.exists()) {
-      logger.fatal("User platform has no configuration file: "
-          + userPlatformConfigFile);
-      return;
+      
+      Object[] options = {"Create",
+                          "Cancel"};
+
+      int n = JOptionPane.showOptionDialog(
+          this,
+          "No " + GUI.PLATFORM_CONFIG_FILENAME + " file exists in specified directory!"
+          + "\nCreate an empty " + GUI.PLATFORM_CONFIG_FILENAME + " file?",
+          "Create user platform configuration?",
+          JOptionPane.YES_NO_OPTION,
+          JOptionPane.QUESTION_MESSAGE,
+          null, options, options[1]);
+      
+      if (n == JOptionPane.NO_OPTION)
+        return;
+      
+      try {
+        userPlatformConfigFile.createNewFile();
+      } catch (IOException e) {
+        logger.fatal("Could not create user platform configuration file: "
+            + userPlatformConfigFile);
+        return;
+      }
     }
 
     changablePlatformsList.add(userPlatform.getPath(), index);
