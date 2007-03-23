@@ -1,4 +1,4 @@
-# $Id: Makefile.sky,v 1.4 2007/03/22 23:59:54 adamdunkels Exp $
+# $Id: Makefile.sky,v 1.5 2007/03/23 16:27:14 nifi Exp $
 
 
 ARCH=msp430.c minileds.c watchdog.c light.c button.c spi.c ds2411.c \
@@ -20,12 +20,13 @@ include $(CONTIKI)/cpu/msp430/Makefile.msp430
 contiki-$(TARGET).a: ${addprefix $(OBJECTDIR)/,symbols.o}
 #	$(AR) rcf $@ $^
 
-BSL=$(CONTIKI)/tools/msp430-bsl
+BSL=msp430-bsl
 
 ifndef COMPORT
   COMPORT := /dev/ttyUSB0
 endif
-%.up: %.ihex
+
+%.u: %.ihex
 	$(BSL) --telosb -D -c $(COMPORT) -r -e -I -p $<
 
 %.send: %.ce
