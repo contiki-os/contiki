@@ -1,0 +1,2 @@
+%.u:	%.ihex
+	msp430-jtag -eI $^

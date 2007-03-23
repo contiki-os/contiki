@@ -1,4 +1,4 @@
-# $Id: Makefile.esb,v 1.5 2007/03/16 11:34:05 adamdunkels Exp $
+# $Id: Makefile.esb,v 1.6 2007/03/23 16:19:41 nifi Exp $
 
 SENSORS    = sensors.c irq.c button-sensor.c pir-sensor.c vib-sensor.c \
              sound-sensor.c radio-sensor.c ctsrts-sensor.c battery-sensor.c \
@@ -34,3 +34,26 @@ send:	$(CONTIKI)/tools/codeprop.c
 
 %.send:	%.cm send
 	send $(BASE_IP) $<
+
+### System dependent Makefile
+
+ifndef WINDIR
+  ifdef OS
+    ifneq (,$(findstring Windows,$(OS)))
+      WINDIR := Windows
+    endif
+  endif
+endif
+
+ifeq (${HOSTTYPE},FreeBSD)
+  # settings for FreeBSD
+  -include $(CONTIKI)/platform/$(TARGET)/buildscripts/Makefile.freebsd
+else
+ifndef WINDIR
+  # settings for unix
+  -include $(CONTIKI)/platform/$(TARGET)/buildscripts/Makefile.unix
+else
+  # settings for windows
+  -include $(CONTIKI)/platform/$(TARGET)/buildscripts/Makefile.win
+endif
+endif
