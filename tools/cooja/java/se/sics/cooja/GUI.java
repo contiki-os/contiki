@@ -24,7 +24,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * 
- * $Id: GUI.java,v 1.32 2007/03/23 21:04:19 fros4943 Exp $
+ * $Id: GUI.java,v 1.33 2007/03/23 23:34:33 fros4943 Exp $
  */
 
 package se.sics.cooja;
@@ -58,7 +58,7 @@ import se.sics.cooja.plugins.*;
  * Main file of COOJA Simulator. Typically contains a visualizer for the
  * simulator, but can also be started without visualizer.
  * 
- * This class loads external Java classes (in user platforms), and handles the
+ * This class loads external Java classes (in project directories), and handles the
  * COOJA plugins as well as the configuration system. If provides a number of
  * help methods for the rest of the COOJA system, and is the starting point for
  * loading and saving simulation configs.
@@ -88,14 +88,14 @@ public class GUI {
   public static final String LOG_CONFIG_FILE = "log4j_config.xml";
 
   /**
-   * Default platform configuration filename.
+   * Default project configuration filename.
    */
-  public static final String PLATFORM_DEFAULT_CONFIG_FILENAME = "/cooja_default.config";
+  public static final String PROJECT_DEFAULT_CONFIG_FILENAME = "/cooja_default.config";
 
   /**
-   * User platform configuration filename.
+   * User project configuration filename.
    */
-  public static final String PLATFORM_CONFIG_FILENAME = "cooja.config";
+  public static final String PROJECT_CONFIG_FILENAME = "cooja.config";
 
   /**
    * File filter only showing saved simulations files (*.csc).
@@ -140,7 +140,7 @@ public class GUI {
       "CONTIKI_STANDARD_PROCESSES", "CMD_GREP_PROCESSES",
       "REGEXP_PARSE_PROCESSES", "CMD_GREP_INTERFACES",
       "REGEXP_PARSE_INTERFACES", "CMD_GREP_SENSORS", "REGEXP_PARSE_SENSORS",
-      "CONTIKI_MAIN_TEMPLATE_FILENAME", "DEFAULT_USERPLATFORMS",
+      "CONTIKI_MAIN_TEMPLATE_FILENAME", "DEFAULT_PROJECTDIRS",
       "CORECOMM_TEMPLATE_FILENAME", "PATH_JAVAC"};
 
   private static final int FRAME_NEW_OFFSET = 30;
@@ -166,12 +166,12 @@ public class GUI {
   private Vector<Plugin> startedPlugins = new Vector<Plugin>();
 
   // Platform configuration variables
-  // Maintained via method reparsePlatformConfig()
-  private PlatformConfig platformConfig;
+  // Maintained via method reparseProjectConfig()
+  private ProjectConfig projectConfig;
 
-  private Vector<File> currentUserPlatforms = new Vector<File>();
+  private Vector<File> currentProjectDirs = new Vector<File>();
 
-  private ClassLoader userPlatformClassLoader;
+  private ClassLoader projectDirClassLoader;
 
   private Vector<Class<? extends MoteType>> moteTypeClasses = new Vector<Class<? extends MoteType>>();
 
@@ -202,23 +202,23 @@ public class GUI {
       frame.setJMenuBar(createMenuBar());
     }
 
-    // Register default user platforms
-    String defaultUserPlatforms = getExternalToolsSetting(
-        "DEFAULT_USERPLATFORMS", null);
-    if (defaultUserPlatforms != null) {
-      String[] defaultUserPlatformsArr = defaultUserPlatforms.split(";");
-      if (defaultUserPlatformsArr.length > 0) {
-        for (String defaultUserPlatform : defaultUserPlatformsArr) {
-          File userPlatform = new File(defaultUserPlatform);
-          if (userPlatform.exists() && userPlatform.isDirectory()) {
-            currentUserPlatforms.add(userPlatform);
+    // Register default project directories
+    String defaultProjectDirs = getExternalToolsSetting(
+        "DEFAULT_PROJECTDIRS", null);
+    if (defaultProjectDirs != null) {
+      String[] defaultProjectDirsArr = defaultProjectDirs.split(";");
+      if (defaultProjectDirsArr.length > 0) {
+        for (String defaultProjectDir : defaultProjectDirsArr) {
+          File projectDir = new File(defaultProjectDir);
+          if (projectDir.exists() && projectDir.isDirectory()) {
+            currentProjectDirs.add(projectDir);
           }
         }
       }
     }
 
-    // Load extendable parts (using current platform config)
-    reparsePlatformConfig();
+    // Load extendable parts (using current project config)
+    reparseProjectConfig();
 
     // Start all standard GUI plugins
     for (Class<? extends Plugin> visPluginClass : pluginClasses) {
@@ -511,8 +511,8 @@ public class GUI {
     menuItem.addActionListener(guiEventHandler);
     menu.add(menuItem);
 
-    menuItem = new JMenuItem("Manage user platforms");
-    menuItem.setActionCommand("manage platforms");
+    menuItem = new JMenuItem("Manage project directories");
+    menuItem.setActionCommand("manage projects");
     menuItem.addActionListener(guiEventHandler);
     menu.add(menuItem);
 
@@ -572,8 +572,8 @@ public class GUI {
    * 
    * @param moteTypeID
    *          Mote type ID (if null "mtype1" will be used)
-   * @param userPlatforms
-   *          GUI user platforms
+   * @param projectDirs
+   *          GUI project directories
    * @param sensors
    *          Contiki sensors (if null sensors will be scanned for)
    * @param coreInterfaces
@@ -592,13 +592,13 @@ public class GUI {
    * @param simulationStartinge
    *          Simulation automatically started?
    * @param filename
-   *          Main Contiki user process file
+   *          Main Contiki process file
    * @param contikiPath
    *          Contiki path
    * @return True if simulation was quickstarted correctly
    */
   private static boolean quickStartSimulation(String moteTypeID,
-      Vector<String> userPlatforms, Vector<String> sensors,
+      Vector<String> projectDirs, Vector<String> sensors,
       Vector<String> coreInterfaces, Vector<String> userProcesses,
       boolean addAutostartProcesses, int numberOfNodes, double areaSideLength,
       int delayTime, boolean simulationStarting, String filename,
@@ -615,7 +615,7 @@ public class GUI {
     JDesktopPane desktop = new JDesktopPane();
     desktop.setDragMode(JDesktopPane.OUTLINE_DRAG_MODE);
     GUI gui = new GUI(desktop); // loads external settings and creates initial
-    // platform config
+    // project config
 
     // Add menu bar
     frame.setSize(700, 700);
@@ -630,21 +630,21 @@ public class GUI {
     if (contikiPath != null)
       setExternalToolsSetting("PATH_CONTIKI", contikiPath);
 
-    // Parse user platforms and create config
-    if (userPlatforms == null) {
-      userPlatforms = new Vector<String>();
-      userPlatforms.add(".");
+    // Parse project directories and create config
+    if (projectDirs == null) {
+      projectDirs = new Vector<String>();
+      projectDirs.add(".");
     }
 
-    // XXX Should add user prop platforms as well here...
-    logger.info("> Reparsing user platforms and creating config");
-    for (String userPlatform : userPlatforms) {
-      logger.info(">> Adding: " + userPlatform);
-      gui.currentUserPlatforms.add(new File(userPlatform));
+    // TODO Should add user prop projects as well here...
+    logger.info("> Reparsing project directories and creating config");
+    for (String projectDir : projectDirs) {
+      logger.info(">> Adding: " + projectDir);
+      gui.currentProjectDirs.add(new File(projectDir));
     }
-    boolean parsedPlatforms = gui.reparsePlatformConfig();
-    if (!parsedPlatforms) {
-      logger.fatal(">> Error when parsing platforms, aborting");
+    boolean parsedProjects = gui.reparseProjectConfig();
+    if (!parsedProjects) {
+      logger.fatal(">> Error when parsing project directories, aborting");
       return false;
     }
 
@@ -688,8 +688,8 @@ public class GUI {
       logger.info(">> Searching main process file: "
           + mainProcessFile.getAbsolutePath());
       boolean foundFile = false;
-      for (String userPlatform : userPlatforms) {
-        mainProcessFile = new File(userPlatform, filename);
+      for (String projectDir : projectDirs) {
+        mainProcessFile = new File(projectDir, filename);
         logger.info(">> Searching main process file: "
             + mainProcessFile.getAbsolutePath());
         if (mainProcessFile.exists()) {
@@ -707,22 +707,22 @@ public class GUI {
     logger.info("> Setting up compilation arguments");
     Vector<File> filesToCompile = new Vector<File>();
     filesToCompile.add(mainProcessFile); // main process file
-    for (String userPlatform : userPlatforms)
-      // user platforms
-      filesToCompile.add(new File(userPlatform));
-    String[] platformSources = // platform config sources
-    gui.getPlatformConfig().getStringArrayValue(ContikiMoteType.class,
+    for (String projectDir : projectDirs)
+      // project directories
+      filesToCompile.add(new File(projectDir));
+    String[] projectSources = // project config sources
+    gui.getProjectConfig().getStringArrayValue(ContikiMoteType.class,
         "C_SOURCES");
-    for (String platformSource : platformSources) {
-      if (!platformSource.equals("")) {
-        File file = new File(platformSource);
+    for (String projectSource : projectSources) {
+      if (!projectSource.equals("")) {
+        File file = new File(projectSource);
         if (file.getParent() != null) {
-          // Find which user platform added this file
-          File userPlatform = gui.getPlatformConfig().getUserPlatformDefining(
-              ContikiMoteType.class, "C_SOURCES", platformSource);
-          if (userPlatform != null) {
-            // We found a user platform - Add directory
-            filesToCompile.add(new File(userPlatform.getPath(), file
+          // Find which project directory added this file
+          File projectDir = gui.getProjectConfig().getUserProjectDefining(
+              ContikiMoteType.class, "C_SOURCES", projectSource);
+          if (projectDir != null) {
+            // We found a project directory - Add it
+            filesToCompile.add(new File(projectDir.getPath(), file
                 .getParent()));
           }
         }
@@ -736,10 +736,10 @@ public class GUI {
       sensors = new Vector<String>();
       Vector<String[]> scannedSensorInfo = ContikiMoteTypeDialog
           .scanForSensors(contikiCoreDir);
-      for (String userPlatform : userPlatforms)
-        // user platforms
+      for (String projectDir : projectDirs)
+        // project directories
         scannedSensorInfo.addAll(ContikiMoteTypeDialog.scanForSensors(new File(
-            userPlatform)));
+            projectDir)));
 
       for (String[] sensorInfo : scannedSensorInfo) {
         // logger.info(">> Found and added: " + sensorInfo[1] + " (" +
@@ -754,10 +754,10 @@ public class GUI {
       coreInterfaces = new Vector<String>();
       Vector<String[]> scannedCoreInterfaceInfo = ContikiMoteTypeDialog
           .scanForInterfaces(contikiCoreDir);
-      for (String userPlatform : userPlatforms)
-        // user platforms
+      for (String projectDir : projectDirs)
+        // project directories
         scannedCoreInterfaceInfo.addAll(ContikiMoteTypeDialog
-            .scanForInterfaces(new File(userPlatform)));
+            .scanForInterfaces(new File(projectDir)));
 
       for (String[] coreInterfaceInfo : scannedCoreInterfaceInfo) {
         // logger.info(">> Found and added: " + coreInterfaceInfo[1] + " (" +
@@ -768,7 +768,7 @@ public class GUI {
 
     // Scan for mote interfaces
     logger.info("> Loading mote interfaces");
-    String[] moteInterfaces = gui.getPlatformConfig().getStringArrayValue(
+    String[] moteInterfaces = gui.getProjectConfig().getStringArrayValue(
         ContikiMoteType.class, "MOTE_INTERFACES");
     Vector<Class<? extends MoteInterface>> moteIntfClasses = new Vector<Class<? extends MoteInterface>>();
     for (String moteInterface : moteInterfaces) {
@@ -791,10 +791,10 @@ public class GUI {
       Vector<String> autostartProcesses = new Vector<String>();
       Vector<String[]> scannedProcessInfo = ContikiMoteTypeDialog
           .scanForProcesses(contikiCoreDir);
-      for (String userPlatform : userPlatforms)
-        // user platforms
+      for (String projectDir : projectDirs)
+        // project directories
         scannedProcessInfo.addAll(ContikiMoteTypeDialog
-            .scanForProcesses(new File(userPlatform)));
+            .scanForProcesses(new File(projectDir)));
 
       for (String[] processInfo : scannedProcessInfo) {
         if (processInfo[0].equals(mainProcessFile.getName())) {
@@ -885,9 +885,9 @@ public class GUI {
     moteType.setDescription("Mote type: " + filename);
     moteType.setContikiBaseDir(contikiBaseDir.getPath());
     moteType.setContikiCoreDir(contikiCoreDir.getPath());
-    moteType.setUserPlatformDirs(new Vector<File>());
+    moteType.setProjectDirs(new Vector<File>());
     moteType.setCompilationFiles(filesToCompile);
-    moteType.setConfig(gui.getPlatformConfig());
+    moteType.setConfig(gui.getProjectConfig());
     moteType.setProcesses(userProcesses);
     moteType.setSensors(sensors);
     moteType.setCoreInterfaces(coreInterfaces);
@@ -902,7 +902,7 @@ public class GUI {
     simulation.setTickTime(1);
     String radioMediumClassName = null;
     try {
-      radioMediumClassName = gui.getPlatformConfig().getStringArrayValue(
+      radioMediumClassName = gui.getProjectConfig().getStringArrayValue(
           GUI.class, "RADIOMEDIUMS")[0];
       Class<? extends RadioMedium> radioMediumClass = gui.tryLoadClass(gui,
           RadioMedium.class, radioMediumClassName);
@@ -968,7 +968,7 @@ public class GUI {
     return true;
   }
 
-  // // PLATFORM CONFIG AND EXTENDABLE PARTS METHODS ////
+  //// PROJECT CONFIG AND EXTENDABLE PARTS METHODS ////
 
   /**
    * Register new mote type class.
@@ -1104,17 +1104,17 @@ public class GUI {
   }
 
   /**
-   * Builds new platform configuration using current user platforms settings.
+   * Builds new project configuration using current project directories settings.
    * Reregisters mote types, plugins, IP distributors, positioners and radio
    * mediums. This method may still return true even if all classes could not be
-   * registered, but always returns false if all user platform configuration
+   * registered, but always returns false if all project directory configuration
    * files were not parsed correctly.
    * 
    * Any registered temporary plugins will be saved and reregistered.
    * 
    * @return True if external configuration files were found and parsed OK
    */
-  public boolean reparsePlatformConfig() {
+  public boolean reparseProjectConfig() {
     // Backup temporary plugins
     Vector<Class<? extends Plugin>> oldTempPlugins = (Vector<Class<? extends Plugin>>) pluginClassesTemporary
         .clone();
@@ -1128,42 +1128,38 @@ public class GUI {
 
     try {
       // Read default configuration
-      platformConfig = new PlatformConfig(true);
-      // logger.info("Loading default platform configuration: " +
-      // PLATFORM_DEFAULT_CONFIG_FILENAME);
+      projectConfig = new ProjectConfig(true);
     } catch (FileNotFoundException e) {
-      logger.fatal("Could not find default platform config file: "
-          + PLATFORM_DEFAULT_CONFIG_FILENAME);
+      logger.fatal("Could not find default project config file: "
+          + PROJECT_DEFAULT_CONFIG_FILENAME);
       return false;
     } catch (IOException e) {
-      logger.fatal("Error when reading default platform config file: "
-          + PLATFORM_DEFAULT_CONFIG_FILENAME);
+      logger.fatal("Error when reading default project config file: "
+          + PROJECT_DEFAULT_CONFIG_FILENAME);
       return false;
     }
 
-    // Append user platform configurations
-    for (File userPlatform : currentUserPlatforms) {
+    // Append project directory configurations
+    for (File projectDir : currentProjectDirs) {
 
       try {
         // Append config to general config
-        // logger.info("Appending user platform configuration: " +
-        // userPlatform);
-        platformConfig.appendUserPlatform(userPlatform);
+        projectConfig.appendProjectDir(projectDir);
       } catch (FileNotFoundException e) {
-        logger.fatal("Could not find platform config file: " + userPlatform);
+        logger.fatal("Could not find project config file: " + projectDir);
         return false;
       } catch (IOException e) {
         logger
-            .fatal("Error when reading platform config file: " + userPlatform);
+            .fatal("Error when reading project config file: " + projectDir);
         return false;
       }
     }
 
     // Create class loader
-    userPlatformClassLoader = createClassLoader(currentUserPlatforms);
+    projectDirClassLoader = createClassLoader(currentProjectDirs);
 
     // Register mote types
-    String[] moteTypeClassNames = platformConfig.getStringArrayValue(GUI.class,
+    String[] moteTypeClassNames = projectConfig.getStringArrayValue(GUI.class,
         "MOTETYPES");
     if (moteTypeClassNames != null) {
       for (String moteTypeClassName : moteTypeClassNames) {
@@ -1183,7 +1179,7 @@ public class GUI {
     registerPlugin(SimControl.class, false); // Not in menu
     registerPlugin(SimInformation.class, false); // Not in menu
     registerPlugin(MoteTypeInformation.class, false); // Not in menu
-    String[] pluginClassNames = platformConfig.getStringArrayValue(GUI.class,
+    String[] pluginClassNames = projectConfig.getStringArrayValue(GUI.class,
         "PLUGINS");
     if (pluginClassNames != null) {
       for (String pluginClassName : pluginClassNames) {
@@ -1212,7 +1208,7 @@ public class GUI {
     }
 
     // Register IP distributors
-    String[] ipDistClassNames = platformConfig.getStringArrayValue(GUI.class,
+    String[] ipDistClassNames = projectConfig.getStringArrayValue(GUI.class,
         "IP_DISTRIBUTORS");
     if (ipDistClassNames != null) {
       for (String ipDistClassName : ipDistClassNames) {
@@ -1230,7 +1226,7 @@ public class GUI {
     }
 
     // Register positioners
-    String[] positionerClassNames = platformConfig.getStringArrayValue(
+    String[] positionerClassNames = projectConfig.getStringArrayValue(
         GUI.class, "POSITIONERS");
     if (positionerClassNames != null) {
       for (String positionerClassName : positionerClassNames) {
@@ -1248,7 +1244,7 @@ public class GUI {
     }
 
     // Register radio mediums
-    String[] radioMediumsClassNames = platformConfig.getStringArrayValue(
+    String[] radioMediumsClassNames = projectConfig.getStringArrayValue(
         GUI.class, "RADIOMEDIUMS");
     if (radioMediumsClassNames != null) {
       for (String radioMediumClassName : radioMediumsClassNames) {
@@ -1269,21 +1265,21 @@ public class GUI {
   }
 
   /**
-   * Returns the current platform configuration common to the entire simulator.
+   * Returns the current project configuration common to the entire simulator.
    * 
-   * @return Current platform configuration
+   * @return Current project configuration
    */
-  public PlatformConfig getPlatformConfig() {
-    return platformConfig;
+  public ProjectConfig getProjectConfig() {
+    return projectConfig;
   }
 
   /**
-   * Returns the current user platforms common to the entire simulator.
+   * Returns the current project directories common to the entire simulator.
    * 
-   * @return Current user platforms.
+   * @return Current project directories.
    */
-  public Vector<File> getUserPlatforms() {
-    return currentUserPlatforms;
+  public Vector<File> getProjectDirs() {
+    return currentProjectDirs;
   }
 
   // // PLUGIN METHODS ////
@@ -2322,12 +2318,12 @@ public class GUI {
         Object[] plugins = startedPlugins.toArray();
         for (Object plugin : plugins)
           removePlugin((Plugin) plugin, false);
-      } else if (e.getActionCommand().equals("manage platforms")) {
-        Vector<File> newPlatforms = UserPlatformsDialog.showDialog(frame,
-            currentUserPlatforms, null);
-        if (newPlatforms != null) {
-          currentUserPlatforms = newPlatforms;
-          reparsePlatformConfig();
+      } else if (e.getActionCommand().equals("manage projects")) {
+        Vector<File> newProjects = ProjectDirectoriesDialog.showDialog(frame,
+            currentProjectDirs, null);
+        if (newProjects != null) {
+          currentProjectDirs = newProjects;
+          reparseProjectConfig();
         }
       } else if (e.getActionCommand().equals("start plugin")) {
         Class<? extends VisPlugin> pluginClass = (Class<? extends VisPlugin>) ((JMenuItem) e
@@ -2369,8 +2365,8 @@ public class GUI {
     }
 
     try {
-      if (userPlatformClassLoader != null) {
-        return userPlatformClassLoader.loadClass(className).asSubclass(
+      if (projectDirClassLoader != null) {
+        return projectDirClassLoader.loadClass(className).asSubclass(
             classType);
       }
     } catch (ClassNotFoundException e) {
@@ -2379,57 +2375,57 @@ public class GUI {
     return null;
   }
 
-  public ClassLoader createUserPlatformClassLoader(Vector<File> platformsList) {
-    if (userPlatformClassLoader == null) {
-      reparsePlatformConfig();
+  public ClassLoader createProjectDirClassLoader(Vector<File> projectsDirs) {
+    if (projectDirClassLoader == null) {
+      reparseProjectConfig();
     }
-    return createClassLoader(userPlatformClassLoader, platformsList);
+    return createClassLoader(projectDirClassLoader, projectsDirs);
   }
 
-  private ClassLoader createClassLoader(Vector<File> currentUserPlatforms) {
+  private ClassLoader createClassLoader(Vector<File> currentProjectDirs) {
     return createClassLoader(ClassLoader.getSystemClassLoader(),
-        currentUserPlatforms);
+        currentProjectDirs);
   }
 
-  private File findJarFile(File platformPath, String jarfile) {
+  private File findJarFile(File projectDir, String jarfile) {
     File fp = new File(jarfile);
     if (!fp.exists()) {
-      fp = new File(platformPath, jarfile);
+      fp = new File(projectDir, jarfile);
     }
     if (!fp.exists()) {
-      fp = new File(platformPath, "java/" + jarfile);
+      fp = new File(projectDir, "java/" + jarfile);
     }
     if (!fp.exists()) {
-      fp = new File(platformPath, "java/lib/" + jarfile);
+      fp = new File(projectDir, "java/lib/" + jarfile);
     }
     if (!fp.exists()) {
-      fp = new File(platformPath, "lib/" + jarfile);
+      fp = new File(projectDir, "lib/" + jarfile);
     }
     return fp.exists() ? fp : null;
   }
 
   private ClassLoader createClassLoader(ClassLoader parent,
-      Vector<File> platformsList) {
-    if (platformsList == null || platformsList.isEmpty()) {
+      Vector<File> projectDirs) {
+    if (projectDirs == null || projectDirs.isEmpty()) {
       return parent;
     }
 
-    // Combine class loader from all user platforms (including any
+    // Combine class loader from all project directories (including any
     // specified JAR files)
     ArrayList<URL> urls = new ArrayList<URL>();
-    for (int j = platformsList.size() - 1; j >= 0; j--) {
-      File userPlatform = platformsList.get(j);
+    for (int j = projectDirs.size() - 1; j >= 0; j--) {
+      File projectDir = projectDirs.get(j);
       try {
-        urls.add((new File(userPlatform, "java")).toURL());
+        urls.add((new File(projectDir, "java")).toURL());
 
         // Read configuration to check if any JAR files should be loaded
-        PlatformConfig userPlatformConfig = new PlatformConfig(false);
-        userPlatformConfig.appendUserPlatform(userPlatform);
-        String[] platformJarFiles = userPlatformConfig.getStringArrayValue(
+        ProjectConfig projectConfig = new ProjectConfig(false);
+        projectConfig.appendProjectDir(projectDir);
+        String[] projectJarFiles = projectConfig.getStringArrayValue(
             GUI.class, "JARFILES");
-        if (platformJarFiles != null && platformJarFiles.length > 0) {
-          for (String jarfile : platformJarFiles) {
-            File jarpath = findJarFile(userPlatform, jarfile);
+        if (projectJarFiles != null && projectJarFiles.length > 0) {
+          for (String jarfile : projectJarFiles) {
+            File jarpath = findJarFile(projectDir, jarfile);
             if (jarpath == null) {
               throw new FileNotFoundException(jarfile);
             }
@@ -2438,7 +2434,7 @@ public class GUI {
         }
 
       } catch (Exception e) {
-        logger.fatal("Error when trying to read JAR-file in " + userPlatform
+        logger.fatal("Error when trying to read JAR-file in " + projectDir
             + ": " + e);
       }
     }
@@ -2497,7 +2493,7 @@ public class GUI {
       String filename = args[0].substring("-quickstart=".length());
 
       String moteTypeID = "mtype1";
-      Vector<String> userPlatforms = null;
+      Vector<String> projectDirs = null;
       Vector<String> sensors = null;
       Vector<String> coreInterfaces = null;
       Vector<String> userProcesses = null;
@@ -2514,12 +2510,12 @@ public class GUI {
         if (args[i].startsWith("-id=")) {
           moteTypeID = args[i].substring("-id=".length());
 
-        } else if (args[i].startsWith("-platforms=")) {
-          String arg = args[i].substring("-platforms=".length());
+        } else if (args[i].startsWith("-projects=")) {
+          String arg = args[i].substring("-projects=".length());
           String[] argArray = arg.split(",");
-          userPlatforms = new Vector<String>();
+          projectDirs = new Vector<String>();
           for (String argValue : argArray)
-            userPlatforms.add(argValue);
+            projectDirs.add(argValue);
 
         } else if (args[i].startsWith("-sensors=")) {
           String arg = args[i].substring("-sensors=".length());
@@ -2570,7 +2566,7 @@ public class GUI {
         }
       }
 
-      boolean ok = quickStartSimulation(moteTypeID, userPlatforms, sensors,
+      boolean ok = quickStartSimulation(moteTypeID, projectDirs, sensors,
           coreInterfaces, userProcesses, addAutostartProcesses, numberOfNodes,
           areaSideLength, delayTime, startSimulation, filename, contikiPath);
       if (!ok)

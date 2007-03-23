@@ -26,53 +26,36 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: uaodv-example.c,v 1.2 2006/08/21 15:32:29 fros4943 Exp $
+ * $Id: app2.c,v 1.1 2007/03/23 23:33:54 fros4943 Exp $
  */
 
+#include "contiki.h"
+#include "sys/loader.h"
+
 #include <stdio.h>
-#include "contiki-net.h"
-#include "net/uaodv.h"
-#include "net/uaodv-rt.h"
+
+#include "lib/list.h"
+#include "lib/random.h"
+
+#include "net/uip.h"
 
 #include "lib/sensors.h"
 #include "sys/log.h"
-
 #include "dev/button-sensor.h"
-#include "dev/serial.h"
 
-/*---------------------------------------------------------------------------*/
-PROCESS(uaodv_example_process, "uAODV example");
 
-AUTOSTART_PROCESSES(&uaodv_process, &uaodv_example_process);
+PROCESS(dummy_process_2, "Dummy process 2");
 
-/*---------------------------------------------------------------------------*/
-PROCESS_THREAD(uaodv_example_process, ev, data)
+PROCESS_THREAD(dummy_process_2, ev, data)
 {
-  static uip_ipaddr_t addr;
-  
   PROCESS_BEGIN();
 
-  int ipA, ipB, ipC, ipD;
-  char buf[200];
-    
-  button_sensor.activate();
-  serial_init();
+  log_message("Dummy process 2 started", "");
 
   while(1) {
     PROCESS_WAIT_EVENT();
-    if(ev == sensors_event && data == &button_sensor && button_sensor.value(0)) {
-      uip_ipaddr(&addr, 10,10,0,1);
-      log_message("Sending RREQ to (static) 10.10.0.1\n", "");
-      uaodv_request_route_to(&addr);
-    } else if(ev == serial_event_message) {
-      sscanf(data, "SENDTO>%d.%d.%d.%d", &ipA, &ipB, &ipC, &ipD);
-      sprintf(buf, "Sending RREQ to %d.%d.%d.%d .. \n", ipA, ipB, ipC, ipD);
-      log_message(buf, "");
-      uip_ipaddr(&addr, ipA, ipB, ipC, ipD);
-      uaodv_request_route_to(&addr);
-    }
+    log_message("Dummy process 2 received event", "");
   }
-  
+
   PROCESS_END();
 }
-/*---------------------------------------------------------------------------*/

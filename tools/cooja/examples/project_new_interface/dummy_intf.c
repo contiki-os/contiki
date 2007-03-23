@@ -26,15 +26,33 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: dummy_intf.h,v 1.1 2006/08/21 12:13:13 fros4943 Exp $
+ * $Id: dummy_intf.c,v 1.1 2007/03/23 23:33:54 fros4943 Exp $
  */
 
-#ifndef __DUMMY_INTF_H__
-#define __DUMMY_INTF_H__
+#include "dummy_intf.h"
+#include "lib/simEnvChange.h"
+#include <stdio.h>
 
-// Interface needs to include something?
+const struct simInterface beep_interface;
 
-#define DUMMY_NR_1 1
-#define DUMMY_NR_2 2
+// COOJA variables (shared between Java and C)
+char simDummyVar;
 
-#endif /* __DUMMY_INTF_H__ */
+/*-----------------------------------------------------------------------------------*/
+static void
+doInterfaceActionsBeforeTick(void)
+{
+	fprintf(stderr, "Core (C) dummy interface acts BEFORE mote tick\n");
+}
+/*-----------------------------------------------------------------------------------*/
+static void
+doInterfaceActionsAfterTick(void)
+{
+	fprintf(stderr, "Core (C) dummy interface acts AFTER mote tick\n");
+}
+/*-----------------------------------------------------------------------------------*/
+
+// Register this as an available interface
+SIM_INTERFACE(dummy_interface,
+	      doInterfaceActionsBeforeTick,
+	      doInterfaceActionsAfterTick);

@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: UAODVControl.java,v 1.2 2007/01/09 10:09:59 fros4943 Exp $
+ * $Id: UAODVControl.java,v 1.1 2007/03/23 23:33:54 fros4943 Exp $
  */
 
 import java.awt.*;

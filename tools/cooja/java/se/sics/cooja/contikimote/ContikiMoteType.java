@@ -26,20 +26,18 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ContikiMoteType.java,v 1.7 2007/01/09 10:09:19 fros4943 Exp $
+ * $Id: ContikiMoteType.java,v 1.8 2007/03/23 23:34:33 fros4943 Exp $
  */
 
 package se.sics.cooja.contikimote;
 
 import java.awt.BorderLayout;
-import java.awt.Component;
 import java.awt.Dimension;
 import java.io.*;
 import java.security.*;
 import java.util.*;
 import java.util.regex.*;
 import javax.swing.*;
-
 import org.apache.log4j.Logger;
 import org.jdom.Element;
 
@@ -52,7 +50,7 @@ import se.sics.cooja.*;
  * <p>
  * This type also contains information about which processes, sensors and core
  * interfaces a mote of this type has, as well as where the Contiki OS, COOJA
- * core files and an optional user platform are located.
+ * core files and optional mote type specific project directories are located.
  * <p>
  * All core communication with the Contiki mote should be via this class. When a
  * mote type is created it allocates a CoreComm to be used with this type, and
@@ -108,7 +106,7 @@ public class ContikiMoteType implements MoteType {
   private String description = null;
   private String contikiBaseDir = null;
   private String contikiCoreDir = null;
-  private Vector<File> userPlatformDirs = null;
+  private Vector<File> projectDirs = null;
   private Vector<File> compilationFiles = null;
   private Vector<String> processes = null;
   private Vector<String> sensors = null;
@@ -120,7 +118,7 @@ public class ContikiMoteType implements MoteType {
   private Simulation mySimulation = null;
 
   // Type specific class configuration
-  private PlatformConfig myConfig = null;
+  private ProjectConfig myConfig = null;
 
   // Core communication variables
   private String libraryClassName = null;
@@ -834,36 +832,36 @@ public class ContikiMoteType implements MoteType {
   }
 
   /**
-   * Returns user platform directories
+   * Returns mote type specific project directories
    * 
-   * @return User platform directories
+   * @return Project directories
    */
-  public Vector<File> getUserPlatformDirs() {
-    return userPlatformDirs;
+  public Vector<File> getProjectDirs() {
+    return projectDirs;
   }
 
   /**
-   * Sets user platform directories.
+   * Sets mote type specific project directories.
    * 
    * @param dirs
-   *          New user platform directories
+   *          New project directories
    */
-  public void setUserPlatformDirs(Vector<File> dirs) {
-    userPlatformDirs = dirs;
+  public void setProjectDirs(Vector<File> dirs) {
+    projectDirs = dirs;
   }
 
-  public PlatformConfig getConfig() {
+  public ProjectConfig getConfig() {
     return myConfig;
   }
 
   /**
-   * Sets mote type platform configuration. This may differ from the general
-   * simulator platform configuration.
+   * Sets mote type project configuration. This may differ from the general
+   * simulator project configuration.
    * 
    * @param moteTypeConfig
-   *          Platform configuration
+   *          Project configuration
    */
-  public void setConfig(PlatformConfig moteTypeConfig) {
+  public void setConfig(ProjectConfig moteTypeConfig) {
     myConfig = moteTypeConfig;
   }
 
@@ -1100,10 +1098,10 @@ public class ContikiMoteType implements MoteType {
     element.setText(getContikiCoreDir());
     config.add(element);
 
-    // User platform directory
-    for (File userPlatform: userPlatformDirs) {
-      element = new Element("userplatformdir");
-      element.setText(userPlatform.getPath());
+    // User project directory
+    for (File projectDir: projectDirs) {
+      element = new Element("projectdir");
+      element.setText(projectDir.getPath());
       config.add(element);
     }
 
@@ -1152,7 +1150,7 @@ public class ContikiMoteType implements MoteType {
 
   public boolean setConfigXML(Simulation simulation,
       Collection<Element> configXML, boolean visAvailable) {
-    userPlatformDirs = new Vector<File>();
+    projectDirs = new Vector<File>();
     compilationFiles = new Vector<File>();
     processes = new Vector<String>();
     sensors = new Vector<String>();
@@ -1171,8 +1169,8 @@ public class ContikiMoteType implements MoteType {
         contikiBaseDir = element.getText();
       } else if (name.equals("contikicoredir")) {
         contikiCoreDir = element.getText();
-      } else if (name.equals("userplatformdir")) {
-        userPlatformDirs.add(new File(element.getText()));
+      } else if (name.equals("projectdir")) {
+        projectDirs.add(new File(element.getText()));
       } else if (name.equals("compilefile")) {
         compilationFiles.add(new File(element.getText()));
       } else if (name.equals("process")) {
@@ -1197,14 +1195,14 @@ public class ContikiMoteType implements MoteType {
     }
 
     // Create class specific configuration
-    myConfig = simulation.getGUI().getPlatformConfig().clone();
+    myConfig = simulation.getGUI().getProjectConfig().clone();
 
-    // Merge with all user platform configs (if any)
-    for (File userPlatform : userPlatformDirs) {
+    // Merge with all project directory configs (if any)
+    for (File projectDir : projectDirs) {
       try {
-        myConfig.appendUserPlatform(userPlatform);
+        myConfig.appendProjectDir(projectDir);
       } catch (Exception ex) {
-        logger.fatal("Error when parsing user platform config: " + ex);
+        logger.fatal("Error when parsing project directory config: " + ex);
         return false;
       }
     }

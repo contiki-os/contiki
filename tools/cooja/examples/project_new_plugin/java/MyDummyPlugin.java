@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: MyDummyPlugin.java,v 1.2 2007/01/09 10:11:08 fros4943 Exp $
+ * $Id: MyDummyPlugin.java,v 1.1 2007/03/23 23:33:55 fros4943 Exp $
  */
 
 import java.awt.event.*;

@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: PlatformConfig.java,v 1.5 2007/01/16 10:32:55 fros4943 Exp $
+ * $Id: ProjectConfig.java,v 1.1 2007/03/23 23:34:33 fros4943 Exp $
  */
 
 package se.sics.cooja;
@@ -36,13 +36,13 @@ import java.util.*;
 import org.apache.log4j.Logger;
 
 /**
- * A platform configuration may hold the configuration for one or several user
- * platforms as well as a general simulator configuration.
+ * A project configuration may hold the configuration for one or several project
+ * directories as well as a general simulator configuration.
  * 
- * The configuration for a user platform may for example consist of which
- * plugins, interfaces and processes that the specific platform supplies. Each
- * user platform configuration is read from the property file cooja.config, a
- * file which is required in each user platform.
+ * The configuration for a project directory may for example consist of which
+ * plugins, interfaces and processes that the specific project directory supplies.
+ * Each project directory configuration is read from the property file cooja.config, a
+ * file which is required in each project directory.
  * 
  * Values can be fetched as String, Boolean, Integer, Double or String array.
  * 
@@ -67,8 +67,8 @@ import org.apache.log4j.Logger;
  * 
  * will result in the final value "a b c d e".
  * 
- * The simulator will hold a merged platform configuration, depending on which
- * user platforms are used. Additionally. each mote type may also have a
+ * The simulator will hold a merged project configuration, depending on which
+ * project directories are used. Additionally. each mote type may also have a
  * configuration of its own, that differs from the general simulator
  * configuration.
  * 
@@ -83,14 +83,14 @@ import org.apache.log4j.Logger;
  * 
  * @author Fredrik Osterlind
  */
-public class PlatformConfig {
-  private static Logger logger = Logger.getLogger(PlatformConfig.class);
+public class ProjectConfig {
+  private static Logger logger = Logger.getLogger(ProjectConfig.class);
 
   private Properties myConfig = null;
-  private Vector<File> myUserPlatformHistory = null;
+  private Vector<File> myProjectDirHistory = null;
 
   /**
-   * Creates new platform configuration.
+   * Creates new project configuration.
    * 
    * @param useDefault
    *          If true the default configuration will be loaded
@@ -99,15 +99,15 @@ public class PlatformConfig {
    * @throws IOException
    *           Stream read error
    */
-  public PlatformConfig(boolean useDefault) throws IOException,
+  public ProjectConfig(boolean useDefault) throws IOException,
       FileNotFoundException {
     // Create empty configuration
     myConfig = new Properties();
-    myUserPlatformHistory = new Vector<File>();
+    myProjectDirHistory = new Vector<File>();
 
     if (useDefault) {
       InputStream input = GUI.class
-          .getResourceAsStream(GUI.PLATFORM_DEFAULT_CONFIG_FILENAME);
+          .getResourceAsStream(GUI.PROJECT_DEFAULT_CONFIG_FILENAME);
       if (input != null) {
         try {
           appendConfigStream(input);
@@ -115,37 +115,37 @@ public class PlatformConfig {
           input.close();
         }
       } else {
-        throw new FileNotFoundException(GUI.PLATFORM_DEFAULT_CONFIG_FILENAME);
+        throw new FileNotFoundException(GUI.PROJECT_DEFAULT_CONFIG_FILENAME);
       }
     }
   }
 
   /**
-   * Appends the given user platform's config file. Thus method also saved a
-   * local history of which user platforms has been loaded.
+   * Appends the given project directory's config file. This method also saves a
+   * local history of which project directories has been loaded.
    * 
-   * @param userPlatform
-   *          User platform
+   * @param projectDir
+   *          Project directory
    * @return True if loaded OK
    * @throws FileNotFoundException
    *           If file was not found
    * @throws IOException
    *           Stream read error
    */
-  public boolean appendUserPlatform(File userPlatform)
+  public boolean appendProjectDir(File projectDir)
       throws FileNotFoundException, IOException {
-    File userPlatformConfig = new File(userPlatform.getPath(),
-        GUI.PLATFORM_CONFIG_FILENAME);
-    myUserPlatformHistory.add(userPlatform);
-    return appendConfigFile(userPlatformConfig);
+    File projectConfig = new File(projectDir.getPath(),
+        GUI.PROJECT_CONFIG_FILENAME);
+    myProjectDirHistory.add(projectDir);
+    return appendConfigFile(projectConfig);
   }
 
 
   /**
-   * Returns the user platform earlier appended to this configuration that
+   * Returns the project directory earlier appended to this configuration that
    * defined the given key. If the key is of an array format and the given array
-   * element is non-null, then the user platform that added this element will be
-   * returned instead. If no such user platform can be found null is returned
+   * element is non-null, then the project directory that added this element will be
+   * returned instead. If no such project directory can be found null is returned
    * instead.
    * 
    * @param callingClass
@@ -154,9 +154,9 @@ public class PlatformConfig {
    *          Key
    * @param arrayElement
    *          Value or array element
-   * @return User platform defining arguments or null
+   * @return Project directory defining arguments or null
    */
-  public File getUserPlatformDefining(Class callingClass, String key, String arrayElement) {
+  public File getUserProjectDefining(Class callingClass, String key, String arrayElement) {
 
     // Check that key really exists in current config
     if (getStringValue(callingClass, key, null) == null) {
@@ -176,30 +176,30 @@ public class PlatformConfig {
       }
     }
 
-    // Search in all user platform in reversed order
+    // Search in all project directory in reversed order
     try {
-      PlatformConfig remadeConfig = new PlatformConfig(false);
+      ProjectConfig remadeConfig = new ProjectConfig(false);
       
-      for (int i=myUserPlatformHistory.size()-1; i >= 0; i--) {
-        remadeConfig.appendUserPlatform(myUserPlatformHistory.get(i));
+      for (int i=myProjectDirHistory.size()-1; i >= 0; i--) {
+        remadeConfig.appendProjectDir(myProjectDirHistory.get(i));
 
         if (arrayElement != null) {
           // Look for array
           String[] array = remadeConfig.getStringArrayValue(callingClass, key);
           for (int c=0; c < array.length; c++) {
             if (array[c].equals(arrayElement))
-              return myUserPlatformHistory.get(i);
+              return myProjectDirHistory.get(i);
           }
         } else {
           // Look for key
           if (remadeConfig.getStringValue(callingClass, key, null) != null) {
-            return myUserPlatformHistory.get(i);
+            return myProjectDirHistory.get(i);
           }
         }
       }
       
     } catch (Exception e) {
-      logger.fatal("Exception when searching in user platform history: " + e);
+      logger.fatal("Exception when searching in project directory history: " + e);
       return null;
     }
     
@@ -211,7 +211,7 @@ public class PlatformConfig {
    * If a property already exists it will be overwritten, unless the new value
    * begins with a '+' in which case the old value will be extended.
    * 
-   * WARNING! The user platform history will not be saved if this method is
+   * WARNING! The project directory history will not be saved if this method is
    * called, instead the appendUserPlatform method should be used.
    * 
    * @param propertyFile
@@ -234,7 +234,7 @@ public class PlatformConfig {
    * the new value begins with a '+' in which case the old value will be
    * extended.
    * 
-   * WARNING! The user platform history will not be saved if this method is
+   * WARNING! The project directory history will not be saved if this method is
    * called, instead the appendUserPlatform method should be used.
    * 
    * @param configFileStream
@@ -480,11 +480,11 @@ public class PlatformConfig {
     return getBooleanValue(callingClass, id, false);
   }
 
-  public PlatformConfig clone() {
+  public ProjectConfig clone() {
     try {
-      PlatformConfig clone = new PlatformConfig(false);
+      ProjectConfig clone = new ProjectConfig(false);
       clone.myConfig = (Properties) this.myConfig.clone();
-      clone.myUserPlatformHistory = (Vector<File>) this.myUserPlatformHistory.clone();
+      clone.myProjectDirHistory = (Vector<File>) this.myProjectDirHistory.clone();
       return clone;
     } catch (Exception e) {
       return null;

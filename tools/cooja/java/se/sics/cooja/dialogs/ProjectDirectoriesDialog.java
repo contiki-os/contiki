@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: UserPlatformsDialog.java,v 1.7 2007/03/23 21:57:24 fros4943 Exp $
+ * $Id: ProjectDirectoriesDialog.java,v 1.1 2007/03/23 23:34:33 fros4943 Exp $
  */
 
 package se.sics.cooja.dialogs;
@@ -42,99 +42,99 @@ import javax.swing.*;
 import org.apache.log4j.Logger;
 
 import se.sics.cooja.GUI;
-import se.sics.cooja.PlatformConfig;
+import se.sics.cooja.ProjectConfig;
 
 /**
- * This dialog allows a user to manage the user platforms configuration. User
- * platforms can be added, removed or reordered. The resulting platform
+ * This dialog allows a user to manage the project directory configurations. Project
+ * directories can be added, removed or reordered. The resulting
  * configuration can also be viewed.
  * 
- * This dialog reads from the external platform configuration files in each user
- * platform, as well as from any specified default configuration files.
+ * This dialog reads from the external project configuration files in each project
+ * directory, as well as from any specified default configuration files.
  * 
  * @author Fredrik Osterlind
  */
-public class UserPlatformsDialog extends JDialog {
+public class ProjectDirectoriesDialog extends JDialog {
 
   private static final long serialVersionUID = 1L;
-  private static Logger logger = Logger.getLogger(UserPlatformsDialog.class);
+  private static Logger logger = Logger.getLogger(ProjectDirectoriesDialog.class);
 
-  private List changablePlatformsList = new List();
-  private List fixedPlatformsList = null;
-  private Vector<File> fixedUserPlatforms = null;
-  private Vector<File> changableUserPlatforms = null;
+  private List changableProjectsList = new List();
+  private List fixedProjectsList = null;
+  private Vector<File> changableProjects = null;
+  private Vector<File> fixedProjects = null;
 
-  private UserPlatformsDialog myDialog;
+  private ProjectDirectoriesDialog myDialog;
   private Frame myParentFrame = null;
   private Dialog myParentDialog = null;
 
   /**
-   * Allows user to alter the given user platforms list by adding new,
-   * reordering or removing user platforms. Only the changable user platforms
-   * may be changed,
+   * Allows user to alter the given project directories list by adding new,
+   * reordering or removing project directories. Only the changable project directories
+   * can be altered.
    * 
    * @param parentFrame
    *          Parent frame
-   * @param changablePlatforms
-   *          Changeable user platforms
-   * @param fixedPlatforms
-   *          Fixed user platform
-   * @return Null if dialog aborted, else the new CHANGEABLE user platform list.
+   * @param changableProjects
+   *          Changeable project directories
+   * @param fixedProjects
+   *          Fixed project directory
+   * @return Null if dialog aborted, else the new CHANGEABLE project directory list.
    */
   public static Vector<File> showDialog(Frame parentFrame,
-      Vector<File> changablePlatforms, Vector<File> fixedPlatforms) {
-    UserPlatformsDialog myDialog = new UserPlatformsDialog(parentFrame,
-        changablePlatforms, fixedPlatforms);
+      Vector<File> changableProjects, Vector<File> fixedProjects) {
+    ProjectDirectoriesDialog myDialog = new ProjectDirectoriesDialog(parentFrame,
+        changableProjects, fixedProjects);
     myDialog.setLocationRelativeTo(parentFrame);
 
     if (myDialog != null) {
       myDialog.setVisible(true);
     }
 
-    return myDialog.changableUserPlatforms;
+    return myDialog.changableProjects;
   }
 
   /**
-   * Allows user to alter the given user platforms list by adding new,
-   * reordering or removing user platforms. Only the changable user platforms
-   * may be changed,
+   * Allows user to alter the given project directories list by adding new,
+   * reordering or removing project directories. Only the changable project directories
+   * may be altered.
    * 
    * @param parentDialog
    *          Parent dialog
-   * @param changablePlatforms
-   *          Changeable user platforms
-   * @param fixedPlatforms
-   *          Fixed user platform
-   * @return Null if dialog aborted, else the new CHANGEABLE user platform list.
+   * @param changableProjects
+   *          Changeable project directories
+   * @param fixedProjects
+   *          Fixed project directory
+   * @return Null if dialog aborted, else the new CHANGEABLE project directory list.
    */
   public static Vector<File> showDialog(Dialog parentDialog,
-      Vector<File> changablePlatforms, Vector<File> fixedPlatforms) {
-    UserPlatformsDialog myDialog = new UserPlatformsDialog(parentDialog,
-        changablePlatforms, fixedPlatforms);
+      Vector<File> changableProjects, Vector<File> fixedProjects) {
+    ProjectDirectoriesDialog myDialog = new ProjectDirectoriesDialog(parentDialog,
+        changableProjects, fixedProjects);
     myDialog.setLocationRelativeTo(parentDialog);
 
     if (myDialog != null) {
       myDialog.setVisible(true);
     }
 
-    return myDialog.changableUserPlatforms;
+    return myDialog.changableProjects;
   }
 
-  private UserPlatformsDialog(Frame frame, Vector<File> changablePlatforms,
-      Vector<File> fixedPlatforms) {
-    super(frame, "Manage User Platforms", true);
+  private ProjectDirectoriesDialog(Frame frame, Vector<File> changableProjects,
+      Vector<File> fixedProjects) {
+    super(frame, "Manage Project Directories", true);
     myParentFrame = frame;
-    init(changablePlatforms, fixedPlatforms);
+    init(changableProjects, fixedProjects);
   }
 
-  private UserPlatformsDialog(Dialog dialog, Vector<File> changablePlatforms,
-      Vector<File> fixedPlatforms) {
-    super(dialog, "Manage User Platforms", true);
+  private ProjectDirectoriesDialog(Dialog dialog, Vector<File> changableProjects,
+      Vector<File> fixedProjects) {
+    super(dialog, "Manage Project Directories", true);
     myParentDialog = dialog;
-    init(changablePlatforms, fixedPlatforms);
+    init(changableProjects, fixedProjects);
   }
 
-  private void init(Vector<File> changablePlatforms, Vector<File> fixedPlatforms) {
+  private void init(Vector<File> changablePlatforms, Vector<File> fixedProjects) {
     myDialog = this;
 
     JPanel mainPane = new JPanel();
@@ -152,7 +152,7 @@ public class UserPlatformsDialog extends JDialog {
     button = new JButton("Cancel");
     button.addActionListener(new ActionListener() {
       public void actionPerformed(ActionEvent e) {
-        changableUserPlatforms = null;
+        changableProjects = null;
         dispose();
       }
     });
@@ -163,13 +163,13 @@ public class UserPlatformsDialog extends JDialog {
     button = new JButton("OK");
     button.addActionListener(new ActionListener() {
       public void actionPerformed(ActionEvent e) {
-        changableUserPlatforms = new Vector<File>();
-        for (String directory : changablePlatformsList.getItems()) {
-          File userPlatform = new File(directory);
-          if (userPlatform.exists() && userPlatform.isDirectory())
-            changableUserPlatforms.add(userPlatform);
+        changableProjects = new Vector<File>();
+        for (String directory : changableProjectsList.getItems()) {
+          File projectDir = new File(directory);
+          if (projectDir.exists() && projectDir.isDirectory())
+            changableProjects.add(projectDir);
           else
-            logger.fatal("Can't find user platform: " + userPlatform);
+            logger.fatal("Can't find project directory: " + projectDir);
         }
         dispose();
       }
@@ -185,15 +185,15 @@ public class UserPlatformsDialog extends JDialog {
     JPanel listPane2 = new JPanel();
     listPane2.setLayout(new BoxLayout(listPane2, BoxLayout.Y_AXIS));
 
-    if (fixedPlatforms != null) {
-      fixedPlatformsList = new List();
-      fixedPlatformsList.setEnabled(false);
+    if (fixedProjects != null) {
+      fixedProjectsList = new List();
+      fixedProjectsList.setEnabled(false);
       listPane2.add(new JLabel("Fixed:"));
-      listPane2.add(fixedPlatformsList);
+      listPane2.add(fixedProjectsList);
     }
 
     listPane2.add(new JLabel("Changable:"));
-    listPane2.add(changablePlatformsList);
+    listPane2.add(changableProjectsList);
 
     listPane.add(listPane2);
 
@@ -203,15 +203,15 @@ public class UserPlatformsDialog extends JDialog {
     button = new JButton("Move up");
     button.addActionListener(new ActionListener() {
       public void actionPerformed(ActionEvent e) {
-        int selectedIndex = changablePlatformsList.getSelectedIndex();
+        int selectedIndex = changableProjectsList.getSelectedIndex();
         if (selectedIndex <= 0)
           return;
 
-        File file = new File(changablePlatformsList.getItem(selectedIndex));
+        File file = new File(changableProjectsList.getItem(selectedIndex));
 
-        removeUserPlatform(selectedIndex);
-        addUserPlatform(file, selectedIndex - 1);
-        changablePlatformsList.select(selectedIndex - 1);
+        removeProjectDir(selectedIndex);
+        addProjectDir(file, selectedIndex - 1);
+        changableProjectsList.select(selectedIndex - 1);
       }
     });
     smallPane.add(button);
@@ -219,16 +219,16 @@ public class UserPlatformsDialog extends JDialog {
     button = new JButton("Move down");
     button.addActionListener(new ActionListener() {
       public void actionPerformed(ActionEvent e) {
-        int selectedIndex = changablePlatformsList.getSelectedIndex();
+        int selectedIndex = changableProjectsList.getSelectedIndex();
         if (selectedIndex < 0)
           return;
-        if (selectedIndex >= changablePlatformsList.getItemCount() - 1)
+        if (selectedIndex >= changableProjectsList.getItemCount() - 1)
           return;
 
-        File file = new File(changablePlatformsList.getItem(selectedIndex));
-        removeUserPlatform(selectedIndex);
-        addUserPlatform(file, selectedIndex + 1);
-        changablePlatformsList.select(selectedIndex + 1);
+        File file = new File(changableProjectsList.getItem(selectedIndex));
+        removeProjectDir(selectedIndex);
+        addProjectDir(file, selectedIndex + 1);
+        changableProjectsList.select(selectedIndex + 1);
       }
     });
     smallPane.add(button);
@@ -238,10 +238,10 @@ public class UserPlatformsDialog extends JDialog {
     button = new JButton("Remove");
     button.addActionListener(new ActionListener() {
       public void actionPerformed(ActionEvent e) {
-        if (changablePlatformsList.getSelectedIndex() < 0)
+        if (changableProjectsList.getSelectedIndex() < 0)
           return;
 
-        removeUserPlatform(changablePlatformsList.getSelectedIndex());
+        removeProjectDir(changableProjectsList.getSelectedIndex());
       }
     });
     smallPane.add(button);
@@ -256,25 +256,25 @@ public class UserPlatformsDialog extends JDialog {
     button = new JButton("View resulting config");
     button.addActionListener(new ActionListener() {
       public void actionPerformed(ActionEvent e) {
-        PlatformConfig config;
+        ProjectConfig config;
         try {
           // Create default configuration
-          config = new PlatformConfig(true);
+          config = new ProjectConfig(true);
         } catch (FileNotFoundException ex) {
-          logger.fatal("Could not find default platform config file: "
-              + GUI.PLATFORM_DEFAULT_CONFIG_FILENAME);
+          logger.fatal("Could not find default project config file: "
+              + GUI.PROJECT_DEFAULT_CONFIG_FILENAME);
           return;
         } catch (IOException ex) {
-          logger.fatal("Error when reading default platform config file: "
-              + GUI.PLATFORM_DEFAULT_CONFIG_FILENAME);
+          logger.fatal("Error when reading default project config file: "
+              + GUI.PROJECT_DEFAULT_CONFIG_FILENAME);
           return;
         }
 
-        // Add the fixed platform configurations
-        if (fixedPlatformsList != null) {
-          for (String userPlatform : fixedPlatformsList.getItems()) {
+        // Add the fixed project configurations
+        if (fixedProjectsList != null) {
+          for (String projectDir : fixedProjectsList.getItems()) {
             try {
-              config.appendUserPlatform(new File(userPlatform));
+              config.appendProjectDir(new File(projectDir));
             } catch (Exception ex) {
               logger.fatal("Error when merging configurations: " + ex);
               return;
@@ -282,10 +282,10 @@ public class UserPlatformsDialog extends JDialog {
           }
         }
 
-        // Add the user platform configurations
-        for (String userPlatform : changablePlatformsList.getItems()) {
+        // Add the project directory configurations
+        for (String projectDir : changableProjectsList.getItems()) {
           try {
-            config.appendUserPlatform(new File(userPlatform));
+            config.appendProjectDir(new File(projectDir));
           } catch (Exception ex) {
             logger.fatal("Error when merging configurations: " + ex);
             return;
@@ -306,11 +306,11 @@ public class UserPlatformsDialog extends JDialog {
     button = new JButton("Add manually");
     button.addActionListener(new ActionListener() {
       public void actionPerformed(ActionEvent e) {
-        String newUserPlatformPath = JOptionPane.showInputDialog(myDialog,
-            "Enter path to user platform", "Enter path",
+        String newProjectPath = JOptionPane.showInputDialog(myDialog,
+            "Enter path to project directory", "Enter path",
             JOptionPane.QUESTION_MESSAGE);
-        if (newUserPlatformPath != null) {
-          addUserPlatform(new File(newUserPlatformPath));
+        if (newProjectPath != null) {
+          addProjectDir(new File(newProjectPath));
         }
       }
     });
@@ -324,10 +324,10 @@ public class UserPlatformsDialog extends JDialog {
         JFileChooser fc = new JFileChooser();
         fc.setCurrentDirectory(new java.io.File("."));
         fc.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
-        fc.setDialogTitle("Select user platform");
+        fc.setDialogTitle("Select project directory");
 
         if (fc.showOpenDialog(myDialog) == JFileChooser.APPROVE_OPTION) {
-          addUserPlatform(fc.getSelectedFile());
+          addProjectDir(fc.getSelectedFile());
         }
       }
     });
@@ -340,48 +340,48 @@ public class UserPlatformsDialog extends JDialog {
     contentPane.add(mainPane, BorderLayout.CENTER);
     contentPane.add(buttonPane, BorderLayout.SOUTH);
 
-    // Add fixed user platforms if any
-    if (fixedPlatforms != null) {
-      for (File userPlatform : fixedPlatforms) {
-        fixedPlatformsList.add(userPlatform.getPath());
+    // Add fixed project directories if any
+    if (fixedProjects != null) {
+      for (File projectDir : fixedProjects) {
+        fixedProjectsList.add(projectDir.getPath());
       }
     }
 
-    // Add already existing user platforms
-    for (File userPlatform : changablePlatforms) {
-      addUserPlatform(userPlatform);
+    // Add already existing project directories
+    for (File projectDir : changablePlatforms) {
+      addProjectDir(projectDir);
     }
 
     pack();
   }
 
-  private void addUserPlatform(File userPlatform) {
-    addUserPlatform(userPlatform, changablePlatformsList.getItemCount());
+  private void addProjectDir(File projectDir) {
+    addProjectDir(projectDir, changableProjectsList.getItemCount());
   }
 
-  private void addUserPlatform(File userPlatform, int index) {
+  private void addProjectDir(File projectDir, int index) {
     // Check that file exists, is a directory and contains the correct files
-    if (!userPlatform.exists()) {
-      logger.fatal("Can't find user platform: " + userPlatform);
+    if (!projectDir.exists()) {
+      logger.fatal("Can't find project directory: " + projectDir);
       return;
     }
-    if (!userPlatform.isDirectory()) {
-      logger.fatal("User platform is not a directory: " + userPlatform);
+    if (!projectDir.isDirectory()) {
+      logger.fatal("Specified path is not a directory: " + projectDir);
       return;
     }
 
-    File userPlatformConfigFile = new File(userPlatform.getPath(),
-        GUI.PLATFORM_CONFIG_FILENAME);
-    if (!userPlatformConfigFile.exists()) {
+    File projectConfigFile = new File(projectDir.getPath(),
+        GUI.PROJECT_CONFIG_FILENAME);
+    if (!projectConfigFile.exists()) {
       
       Object[] options = {"Create",
                           "Cancel"};
 
       int n = JOptionPane.showOptionDialog(
           this,
-          "No " + GUI.PLATFORM_CONFIG_FILENAME + " file exists in specified directory!"
-          + "\nCreate an empty " + GUI.PLATFORM_CONFIG_FILENAME + " file?",
-          "Create user platform configuration?",
+          "No " + GUI.PROJECT_CONFIG_FILENAME + " file exists in specified directory!"
+          + "\nCreate an empty " + GUI.PROJECT_CONFIG_FILENAME + " file?",
+          "Create project directory configuration?",
           JOptionPane.YES_NO_OPTION,
           JOptionPane.QUESTION_MESSAGE,
           null, options, options[1]);
@@ -390,19 +390,19 @@ public class UserPlatformsDialog extends JDialog {
         return;
       
       try {
-        userPlatformConfigFile.createNewFile();
+        projectConfigFile.createNewFile();
       } catch (IOException e) {
-        logger.fatal("Could not create user platform configuration file: "
-            + userPlatformConfigFile);
+        logger.fatal("Could not create project directory configuration file: "
+            + projectConfigFile);
         return;
       }
     }
 
-    changablePlatformsList.add(userPlatform.getPath(), index);
+    changableProjectsList.add(projectDir.getPath(), index);
   }
 
-  private void removeUserPlatform(int index) {
-    changablePlatformsList.remove(index);
+  private void removeProjectDir(int index) {
+    changableProjectsList.remove(index);
   }
 
 }
@@ -417,7 +417,7 @@ class ConfigViewer extends JDialog {
   private static final long serialVersionUID = 1L;
   private static Logger logger = Logger.getLogger(ConfigViewer.class);
 
-  public static void showDialog(Frame parentFrame, PlatformConfig config) {
+  public static void showDialog(Frame parentFrame, ProjectConfig config) {
     ConfigViewer myDialog = new ConfigViewer(parentFrame, config);
     myDialog.setLocationRelativeTo(parentFrame);
     myDialog.setAlwaysOnTop(true);
@@ -427,7 +427,7 @@ class ConfigViewer extends JDialog {
     }
   }
 
-  public static void showDialog(Dialog parentDialog, PlatformConfig config) {
+  public static void showDialog(Dialog parentDialog, ProjectConfig config) {
     ConfigViewer myDialog = new ConfigViewer(parentDialog, config);
     myDialog.setLocationRelativeTo(parentDialog);
     myDialog.setAlwaysOnTop(true);
@@ -437,17 +437,17 @@ class ConfigViewer extends JDialog {
     }
   }
 
-  private ConfigViewer(Dialog dialog, PlatformConfig config) {
+  private ConfigViewer(Dialog dialog, ProjectConfig config) {
     super(dialog, "Current class configuration", true);
     init(config);
   }
 
-  private ConfigViewer(Frame frame, PlatformConfig config) {
+  private ConfigViewer(Frame frame, ProjectConfig config) {
     super(frame, "Current class configuration", true);
     init(config);
   }
 
-  private void init(PlatformConfig config) {
+  private void init(ProjectConfig config) {
     JPanel mainPane = new JPanel(new BorderLayout());
     JLabel label;
     JButton button;

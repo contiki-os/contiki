@@ -58,7 +58,7 @@ public class DisturberMoteType implements MoteType {
   private Vector<Class<? extends MoteInterface>> moteInterfaces = null;
 
   // Type specific class configuration
-  private PlatformConfig myConfig = null;
+  private ProjectConfig myConfig = null;
 
   // Simulation holding this mote type
   private Simulation mySimulation = null;
@@ -194,7 +194,7 @@ public class DisturberMoteType implements MoteType {
     return panel;
   }
 
-  public PlatformConfig getConfig() {
+  public ProjectConfig getConfig() {
     return myConfig;
     //return null; /* TV */
   }
