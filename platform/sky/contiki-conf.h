@@ -1,5 +1,5 @@
 /* -*- C -*- */
-/* @(#)$Id: contiki-conf.h,v 1.10 2007/03/23 09:59:08 nifi Exp $ */
+/* @(#)$Id: contiki-conf.h,v 1.11 2007/03/23 12:15:50 nifi Exp $ */
 
 #ifndef CONTIKI_CONF_H
 #define CONTIKI_CONF_H
@@ -89,6 +89,7 @@ typedef unsigned long off_t;
 #define EEPROMFS_ADDR_CODEPROP  (1 * XMEM_ERASE_UNIT_SIZE)
 
 #define CFS_XMEM_CONF_OFFSET    (2 * XMEM_ERASE_UNIT_SIZE)
+#define CFS_XMEM_CONF_SIZE      (1 * XMEM_ERASE_UNIT_SIZE)
 
 #define CFS_RAM_CONF_SIZE 4096
 
