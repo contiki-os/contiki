@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#)$Id: contiki-sky-main.c,v 1.4 2007/03/23 00:00:29 adamdunkels Exp $
+ * @(#)$Id: contiki-sky-main.c,v 1.5 2007/03/23 16:05:47 nifi Exp $
  */
 
 #include <stdio.h>
@@ -48,6 +48,8 @@
 #include "dev/simple-cc2420-rime.h"
 #include "dev/slip.h"
 #include "dev/uart1.h"
+
+#include "node-id.h"
 
 #include "net/rime.h"
 
@@ -100,7 +102,7 @@ main(int argc, char **argv)
 
   slip_arch_init(BAUD2UBR(115200)); /* Must come before first printf */
   printf("Starting %s "
-	 "($Id: contiki-sky-main.c,v 1.4 2007/03/23 00:00:29 adamdunkels Exp $)\n", __FILE__);
+	 "($Id: contiki-sky-main.c,v 1.5 2007/03/23 16:05:47 nifi Exp $)\n", __FILE__);
   ds2411_init();
   sensors_light_init();
   xmem_init();
@@ -108,7 +110,10 @@ main(int argc, char **argv)
   /*
    * Hardware initialization done!
    */
-  
+
+  /* Restore node id if such has been stored in external mem */
+  node_id_restore();
+
   printf("MAC %02x:%02x:%02x:%02x:%02x:%02x:%02x:%02x\n",
 	 ds2411_id[0], ds2411_id[1], ds2411_id[2], ds2411_id[3],
 	 ds2411_id[4], ds2411_id[5], ds2411_id[6], ds2411_id[7]);
@@ -130,8 +135,7 @@ main(int argc, char **argv)
   process_start(&etimer_process, NULL);
   process_start(&sensors_process, NULL);
 
-  /*  cfs_xmem_init();*/
-  cfs_ram_init();
+  cfs_xmem_init();
 
   simple_cc2420_init();
   simple_cc2420_rime_init();
