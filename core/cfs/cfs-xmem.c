@@ -30,7 +30,7 @@
  *
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: cfs-xmem.c,v 1.2 2007/03/23 12:15:08 nifi Exp $
+ * $Id: cfs-xmem.c,v 1.3 2007/03/23 15:52:13 nifi Exp $
  */
 #include "contiki.h"
 
@@ -42,8 +42,8 @@ struct filestate {
   int flag;
 #define FLAG_FILE_CLOSED 0
 #define FLAG_FILE_OPEN   1
-  int fileptr;
-  int filesize;
+  unsigned int fileptr;
+  unsigned int filesize;
 };
 
 #ifdef CFS_XMEM_CONF_OFFSET
@@ -173,6 +173,8 @@ PROCESS(cfs_xmem_process, "CFS XMEM service");
 PROCESS_THREAD(cfs_xmem_process, ev, data)
 {
   PROCESS_BEGIN();
+
+  file.fileptr = file.filesize = 0;
 
   SERVICE_REGISTER(cfs_xmem_service);
 
