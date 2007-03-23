@@ -24,7 +24,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * 
- * $Id: Simulation.java,v 1.10 2007/03/22 20:39:34 fros4943 Exp $
+ * $Id: Simulation.java,v 1.11 2007/03/23 21:38:45 fros4943 Exp $
  */
 
 package se.sics.cooja;
@@ -259,11 +259,6 @@ public class Simulation extends Observable implements Runnable {
     element.setText(Integer.toString(delayTime));
     config.add(element);
 
-    // Simulation time
-    element = new Element("simtime");
-    element.setText(Integer.toString(currentSimulationTime));
-    config.add(element);
-
     // Tick time
     element = new Element("ticktime");
     element.setText(Integer.toString(tickTime));
@@ -330,11 +325,6 @@ public class Simulation extends Observable implements Runnable {
       // Delay time
       if (element.getName().equals("delaytime")) {
         delayTime = Integer.parseInt(element.getText());
-      }
-
-      // Simulation time
-      if (element.getName().equals("simtime")) {
-        currentSimulationTime = Integer.parseInt(element.getText());
       }
 
       // Tick time
