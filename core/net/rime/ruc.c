@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: ruc.c,v 1.6 2007/03/20 12:28:01 adamdunkels Exp $
+ * $Id: ruc.c,v 1.7 2007/03/23 10:46:35 adamdunkels Exp $
  */
 
 /**
@@ -100,7 +100,7 @@ recv_from_suc(struct suc_conn *suc, rimeaddr_t *from)
 	     rimeaddr_node_addr.u16, from->u16,
 	     packet_seqno);
       rimebuf_clear();
-      rimebuf_hdrextend(sizeof(struct ruc_hdr));
+      rimebuf_hdralloc(sizeof(struct ruc_hdr));
       hdr = rimebuf_hdrptr();
       hdr->type = TYPE_ACK;
       hdr->seqno = packet_seqno;
@@ -130,7 +130,7 @@ ruc_close(struct ruc_conn *c)
 int
 ruc_send(struct ruc_conn *c, rimeaddr_t *receiver)
 {
-  if(rimebuf_hdrextend(sizeof(struct ruc_hdr))) {
+  if(rimebuf_hdralloc(sizeof(struct ruc_hdr))) {
     struct ruc_hdr *hdr = rimebuf_hdrptr();
     hdr->type = TYPE_DATA;
     hdr->seqno = seqno;

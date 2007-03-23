@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: queuebuf.c,v 1.4 2007/03/20 12:26:23 adamdunkels Exp $
+ * $Id: queuebuf.c,v 1.5 2007/03/23 10:46:35 adamdunkels Exp $
  */
 
 /**
@@ -111,7 +111,7 @@ queuebuf_to_rimebuf(struct queuebuf *b)
     r = (struct queuebuf_ref *)b;
     rimebuf_clear();
     rimebuf_copyfrom(r->ref, r->len);
-    rimebuf_hdrextend(r->hdrlen);
+    rimebuf_hdralloc(r->hdrlen);
     memcpy(rimebuf_hdrptr(), r->hdr, r->hdrlen);
   }
 }

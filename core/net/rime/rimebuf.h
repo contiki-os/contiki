@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: rimebuf.h,v 1.4 2007/03/15 09:57:00 adamdunkels Exp $
+ * $Id: rimebuf.h,v 1.5 2007/03/23 10:46:35 adamdunkels Exp $
  */
 
 /**
@@ -262,7 +262,7 @@ int rimebuf_copyto_hdr(u8_t *to);
  *             zero and does not allocate anything.
  *
  */
-int rimebuf_hdrextend(int size);
+int rimebuf_hdralloc(int size);
 
 /**
  * \brief      Reduce the header in the rimebuf, for incoming packets

@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: mh.c,v 1.1 2007/03/22 17:33:15 adamdunkels Exp $
+ * $Id: mh.c,v 1.2 2007/03/23 10:46:35 adamdunkels Exp $
  */
 
 /**
@@ -64,7 +64,7 @@ send_data(struct mh_conn *c, rimeaddr_t *to, struct route_entry *next)
 {
   struct data_hdr *hdr;
 
-  if(rimebuf_hdrextend(sizeof(struct data_hdr))) {
+  if(rimebuf_hdralloc(sizeof(struct data_hdr))) {
     hdr = rimebuf_hdrptr();
     rimeaddr_copy(&hdr->dest, to);
     rimeaddr_copy(&hdr->originator, &rimeaddr_node_addr);
