@@ -26,36 +26,15 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: app1.c,v 1.1 2006/08/21 12:13:09 fros4943 Exp $
+ * $Id: dummy_intf.h,v 1.1 2007/03/23 23:33:54 fros4943 Exp $
  */
 
-#include "contiki.h"
-#include "sys/loader.h"
+#ifndef __DUMMY_INTF_H__
+#define __DUMMY_INTF_H__
 
-#include <stdio.h>
+// Interface needs to include something?
 
-#include "lib/list.h"
-#include "lib/random.h"
+#define DUMMY_NR_1 1
+#define DUMMY_NR_2 2
 
-#include "net/uip.h"
-
-#include "lib/sensors.h"
-#include "sys/log.h"
-#include "dev/button-sensor.h"
-
-
-PROCESS(dummy_process_1, "Dummy process 1");
-
-PROCESS_THREAD(dummy_process_1, ev, data)
-{
-  PROCESS_BEGIN();
-
-  log_message("Dummy process 1 started", "");
-
-  while(1) {
-    PROCESS_WAIT_EVENT();
-    log_message("Dummy process 1 received event", "");
-  }
-
-  PROCESS_END();
-}
+#endif /* __DUMMY_INTF_H__ */

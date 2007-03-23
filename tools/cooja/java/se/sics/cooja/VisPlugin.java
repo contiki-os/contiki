@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: VisPlugin.java,v 1.4 2007/01/10 14:57:42 fros4943 Exp $
+ * $Id: VisPlugin.java,v 1.5 2007/03/23 23:34:33 fros4943 Exp $
  */
 
 package se.sics.cooja;
@@ -42,8 +42,8 @@ import org.jdom.Element;
  * visualizers. By extending JInternalFrame, the visual apperence is decided by
  * the plugin itself.
  * 
- * To add a new plugin to the simulator environment either add it via a user
- * platform or by altering the standard configuration files.
+ * To add a new plugin to the simulator environment either add it via a project
+ * directory or by altering the standard configuration files.
  * 
  * For example how to implement a plugin see plugins SimControl or Visualizer2D.
  * 

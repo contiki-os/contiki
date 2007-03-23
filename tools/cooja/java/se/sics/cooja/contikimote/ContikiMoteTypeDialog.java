@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ContikiMoteTypeDialog.java,v 1.21 2007/03/23 11:16:53 fros4943 Exp $
+ * $Id: ContikiMoteTypeDialog.java,v 1.22 2007/03/23 23:34:33 fros4943 Exp $
  */
 
 package se.sics.cooja.contikimote;
@@ -44,7 +44,7 @@ import org.apache.log4j.Logger;
 
 import se.sics.cooja.*;
 import se.sics.cooja.dialogs.MessageList;
-import se.sics.cooja.dialogs.UserPlatformsDialog;
+import se.sics.cooja.dialogs.ProjectDirectoriesDialog;
 
 /**
  * A dialog for configuring Contiki mote types and compiling Contiki mote type
@@ -79,7 +79,7 @@ public class ContikiMoteTypeDialog extends JDialog {
   private ContikiMoteType myMoteType = null;
 
   private JTextField textID, textOutputFiles, textDescription, textContikiDir,
-      textCoreDir, textUserPlatforms;
+      textCoreDir, textProjectDirs;
   private JButton createButton, testButton, rescanButton;
   private JCheckBox symbolsCheckBox;
   
@@ -96,10 +96,8 @@ public class ContikiMoteTypeDialog extends JDialog {
   private boolean compilationSucceded = false; // Did compilation succeed?
   private boolean libraryCreatedOK = false; // Was a library created?
 
-  private PlatformConfig newMoteTypeConfig = null; // Mote type platform config
-  private Vector<File> moteTypeUserPlatforms = new Vector<File>(); // Mote type
-  // user
-  // platforms
+  private ProjectConfig newMoteTypeConfig = null; // Mote type project config
+  private Vector<File> moteTypeProjectDirs = new Vector<File>(); // Mote type project directories
 
   private Vector<File> compilationFiles = null;
   
@@ -210,18 +208,18 @@ public class ContikiMoteTypeDialog extends JDialog {
       myDialog.textCoreDir.setText(moteTypeToConfigure.getContikiCoreDir());
     }
 
-    // Set preset user platform directories of mote type
-    if (moteTypeToConfigure.getUserPlatformDirs() != null) {
-      myDialog.moteTypeUserPlatforms = moteTypeToConfigure
-          .getUserPlatformDirs();
-      String userPlatformText = null;
-      for (File userPlatform : myDialog.moteTypeUserPlatforms) {
-        if (userPlatformText == null)
-          userPlatformText = "'" + userPlatform.getPath() + "'";
+    // Set preset project directories of mote type
+    if (moteTypeToConfigure.getProjectDirs() != null) {
+      myDialog.moteTypeProjectDirs = moteTypeToConfigure
+          .getProjectDirs();
+      String projectText = null;
+      for (File projectDir : myDialog.moteTypeProjectDirs) {
+        if (projectText == null)
+          projectText = "'" + projectDir.getPath() + "'";
         else
-          userPlatformText += ", '" + userPlatform.getPath() + "'";
+          projectText += ", '" + projectDir.getPath() + "'";
       }
-      myDialog.textUserPlatforms.setText(userPlatformText);
+      myDialog.textProjectDirs.setText(projectText);
     }
 
     // Set preset "use symbols"
@@ -580,21 +578,21 @@ public class ContikiMoteTypeDialog extends JDialog {
 
     mainPane.add(Box.createRigidArea(new Dimension(0, 5)));
 
-    // COOJA user platform dir
+    // COOJA project directory
     smallPane = new JPanel();
     smallPane.setAlignmentX(Component.LEFT_ALIGNMENT);
     smallPane.setLayout(new BoxLayout(smallPane, BoxLayout.X_AXIS));
-    label = new JLabel("Mote type user platforms");
+    label = new JLabel("Mote type project directories");
     label.setPreferredSize(new Dimension(LABEL_WIDTH, LABEL_HEIGHT));
 
     textField = new JTextField();
     textField.setText("");
     textField.setEditable(false);
-    textUserPlatforms = textField;
+    textProjectDirs = textField;
     label.setLabelFor(textField);
 
     button = new JButton("Manage");
-    button.setActionCommand("manageuserplatforms");
+    button.setActionCommand("manageprojectdirs");
     button.addActionListener(myEventHandler);
 
     smallPane.add(label);
@@ -1049,24 +1047,24 @@ public class ContikiMoteTypeDialog extends JDialog {
 
     compilationThread = new Thread(new Runnable() {
       public void run() {
-        // Add all user platform directories
+        // Add all project directories
         compilationFiles = (Vector<File>) myGUI
-            .getUserPlatforms().clone();
-        compilationFiles.addAll(moteTypeUserPlatforms);
+            .getProjectDirs().clone();
+        compilationFiles.addAll(moteTypeProjectDirs);
 
-        // Add source files from platform configs
+        // Add source files from project configs
         String[] projectSourceFiles = newMoteTypeConfig.getStringArrayValue(
             ContikiMoteType.class, "C_SOURCES");
         for (String projectSourceFile : projectSourceFiles) {
           if (!projectSourceFile.equals("")) {
             File file = new File(projectSourceFile);
             if (file.getParent() != null) {
-              // Find which user platform added this file
-              File userPlatform = newMoteTypeConfig.getUserPlatformDefining(
+              // Find which project directory added this file
+              File projectDir = newMoteTypeConfig.getUserProjectDefining(
                   ContikiMoteType.class, "C_SOURCES", projectSourceFile);
-              if (userPlatform != null) {
-                // We found a user platform - Add directory
-                compilationFiles.add(new File(userPlatform.getPath(), file
+              if (projectDir != null) {
+                // We found a project directory; add it to path
+                compilationFiles.add(new File(projectDir.getPath(), file
                     .getParent()));
               }
             }
@@ -1704,15 +1702,15 @@ public class ContikiMoteTypeDialog extends JDialog {
 
     boolean foundFile = sourceFile.exists();
     if (!foundFile)
-      for (File userPlatform : myGUI.getUserPlatforms()) {
-        sourceFile = new File(userPlatform, sourceFilename);
+      for (File projectDir : myGUI.getProjectDirs()) {
+        sourceFile = new File(projectDir, sourceFilename);
         if (foundFile = sourceFile.exists())
           break;
       }
 
     if (!foundFile)
-      for (File userPlatform : moteTypeUserPlatforms) {
-        sourceFile = new File(userPlatform, sourceFilename);
+      for (File projectDir : moteTypeProjectDirs) {
+        sourceFile = new File(projectDir, sourceFilename);
         if (foundFile = sourceFile.exists())
           break;
       }
@@ -1873,13 +1871,13 @@ public class ContikiMoteTypeDialog extends JDialog {
           .setToolTipText("Compilation may not work correctly with spaced paths");
     }
 
-    // Warn if spaces in a user platform path
-    textUserPlatforms.setBackground(Color.WHITE);
-    textUserPlatforms.setToolTipText(null);
-    for (File userPlatform : moteTypeUserPlatforms) {
-      if (userPlatform.getPath().contains(" ")) {
-        textUserPlatforms.setBackground(Color.ORANGE);
-        textUserPlatforms
+    // Warn if spaces in a project directory path
+    textProjectDirs.setBackground(Color.WHITE);
+    textProjectDirs.setToolTipText(null);
+    for (File projectDir : moteTypeProjectDirs) {
+      if (projectDir.getPath().contains(" ")) {
+        textProjectDirs.setBackground(Color.ORANGE);
+        textProjectDirs
             .setToolTipText("Compilation may not work correctly with spaced paths");
       }
     }
@@ -1897,11 +1895,11 @@ public class ContikiMoteTypeDialog extends JDialog {
   }
 
   /**
-   * Scans Contiki base + (optional) user platform for Contiki processes,
+   * Scans Contiki base + (optional) project directories for Contiki processes,
    * sensors and core interfaces. The new mote type config is recreated every
-   * time this method is run. If a user platform is specified, it looks for a
-   * special class config file there, and appends it to the new mote type
-   * config. By reading that config all available mote interfaces are parsed -
+   * time this method is run. If any project directories are specified, it reads
+   * the configuration files, and appends it to the new mote type config. 
+   * By reading those configs all available mote interfaces are parsed -
    * which will all be selected initially. This method also selects the core
    * interfaces needed by the mote interfaces.
    * 
@@ -1919,7 +1917,7 @@ public class ContikiMoteTypeDialog extends JDialog {
       pathErrorFound = true;
     }
 
-    // Check that cooja main platform path is correct
+    // Check that Cooja main platform path is correct
     if (!new File(myDialog.textCoreDir.getText()).isDirectory()) {
       // Cooja main platform specified does not exist
       textContikiDir.setBackground(Color.RED);
@@ -1929,14 +1927,14 @@ public class ContikiMoteTypeDialog extends JDialog {
       pathErrorFound = true;
     }
 
-    // Check that all user platforms are valid
-    for (File userPlatform : moteTypeUserPlatforms) {
-      File userPlatformConfig = new File(userPlatform.getPath(),
-          GUI.PLATFORM_CONFIG_FILENAME);
-      if (!userPlatformConfig.exists()) {
-        textUserPlatforms.setBackground(Color.RED);
-        textUserPlatforms.setToolTipText("Invalid user platform: "
-            + userPlatform);
+    // Check that all project directories are valid
+    for (File projectDir : moteTypeProjectDirs) {
+      File userProjectConfig = new File(projectDir.getPath(),
+          GUI.PROJECT_CONFIG_FILENAME);
+      if (!userProjectConfig.exists()) {
+        textProjectDirs.setBackground(Color.RED);
+        textProjectDirs.setToolTipText("Invalid project directory: "
+            + projectDir);
         pathErrorFound = true;
       }
     }
@@ -2033,7 +2031,7 @@ public class ContikiMoteTypeDialog extends JDialog {
         myMoteType.setDescription(textDescription.getText());
         myMoteType.setContikiBaseDir(textContikiDir.getText());
         myMoteType.setContikiCoreDir(textCoreDir.getText());
-        myMoteType.setUserPlatformDirs(moteTypeUserPlatforms);
+        myMoteType.setProjectDirs(moteTypeProjectDirs);
         myMoteType.setCompilationFiles(compilationFiles);
         myMoteType.setConfig(newMoteTypeConfig);
 
@@ -2099,20 +2097,20 @@ public class ContikiMoteTypeDialog extends JDialog {
         }
         createButton.setEnabled(libraryCreatedOK = false);
         pathsWereUpdated();
-      } else if (e.getActionCommand().equals("manageuserplatforms")) {
-        Vector<File> newPlatforms = UserPlatformsDialog.showDialog(
-            ContikiMoteTypeDialog.this, moteTypeUserPlatforms, myGUI
-                .getUserPlatforms());
-        if (newPlatforms != null) {
-          moteTypeUserPlatforms = newPlatforms;
-          String userPlatformText = null;
-          for (File userPlatform : newPlatforms) {
-            if (userPlatformText == null)
-              userPlatformText = "'" + userPlatform.getPath() + "'";
+      } else if (e.getActionCommand().equals("manageprojectdirs")) {
+        Vector<File> newProjectDirs = ProjectDirectoriesDialog.showDialog(
+            ContikiMoteTypeDialog.this, moteTypeProjectDirs, myGUI
+                .getProjectDirs());
+        if (newProjectDirs != null) {
+          moteTypeProjectDirs = newProjectDirs;
+          String projectDirText = null;
+          for (File projectDir : newProjectDirs) {
+            if (projectDirText == null)
+              projectDirText = "'" + projectDir.getPath() + "'";
             else
-              userPlatformText += " + '" + userPlatform.getPath() + "'";
+              projectDirText += " + '" + projectDir.getPath() + "'";
           }
-          textUserPlatforms.setText(userPlatformText);
+          textProjectDirs.setText(projectDirText);
 
           createButton.setEnabled(libraryCreatedOK = false);
           pathsWereUpdated();
@@ -2126,15 +2124,15 @@ public class ContikiMoteTypeDialog extends JDialog {
         processes.addAll(ContikiMoteTypeDialog.scanForProcesses(new File(
             textCoreDir.getText())));
 
-        // If user platforms exists, scan those too
-        for (File userPlatform : myGUI.getUserPlatforms()) {
+        // If project directories exists, scan those too
+        for (File projectDir : myGUI.getProjectDirs()) {
           processes
-              .addAll(ContikiMoteTypeDialog.scanForProcesses(userPlatform));
+              .addAll(ContikiMoteTypeDialog.scanForProcesses(projectDir));
         }
-        if (moteTypeUserPlatforms != null) {
-          for (File userPlatform : moteTypeUserPlatforms) {
+        if (moteTypeProjectDirs != null) {
+          for (File projectDir : moteTypeProjectDirs) {
             processes.addAll(ContikiMoteTypeDialog
-                .scanForProcesses(userPlatform));
+                .scanForProcesses(projectDir));
           }
         }
 
@@ -2168,13 +2166,13 @@ public class ContikiMoteTypeDialog extends JDialog {
         sensors.addAll(ContikiMoteTypeDialog.scanForSensors(new File(
             textCoreDir.getText())));
 
-        // If user platforms exists, scan those too
-        for (File userPlatform : myGUI.getUserPlatforms()) {
-          sensors.addAll(ContikiMoteTypeDialog.scanForSensors(userPlatform));
+        // If project directories exists, scan those too
+        for (File projectDir : myGUI.getProjectDirs()) {
+          sensors.addAll(ContikiMoteTypeDialog.scanForSensors(projectDir));
         }
-        if (moteTypeUserPlatforms != null) {
-          for (File userPlatform : moteTypeUserPlatforms) {
-            sensors.addAll(ContikiMoteTypeDialog.scanForSensors(userPlatform));
+        if (moteTypeProjectDirs != null) {
+          for (File projectDir : moteTypeProjectDirs) {
+            sensors.addAll(ContikiMoteTypeDialog.scanForSensors(projectDir));
           }
         }
 
@@ -2203,15 +2201,15 @@ public class ContikiMoteTypeDialog extends JDialog {
         interfaces.addAll(ContikiMoteTypeDialog.scanForInterfaces(new File(
             textCoreDir.getText())));
 
-        // If user platforms exists, scan those too
-        for (File userPlatform : myGUI.getUserPlatforms()) {
+        // If project directories exists, scan those too
+        for (File projectDir : myGUI.getProjectDirs()) {
           interfaces.addAll(ContikiMoteTypeDialog
-              .scanForInterfaces(userPlatform));
+              .scanForInterfaces(projectDir));
         }
-        if (moteTypeUserPlatforms != null) {
-          for (File userPlatform : moteTypeUserPlatforms) {
+        if (moteTypeProjectDirs != null) {
+          for (File projectDir : moteTypeProjectDirs) {
             interfaces.addAll(ContikiMoteTypeDialog
-                .scanForInterfaces(userPlatform));
+                .scanForInterfaces(projectDir));
           }
         }
 
@@ -2237,14 +2235,14 @@ public class ContikiMoteTypeDialog extends JDialog {
         moteInterfacePanel.removeAll();
 
         // Clone general simulator config
-        newMoteTypeConfig = myGUI.getPlatformConfig().clone();
+        newMoteTypeConfig = myGUI.getProjectConfig().clone();
 
-        // Merge with all user platform configs (if any)
-        for (File userPlatform : moteTypeUserPlatforms) {
+        // Merge with all project directory configs (if any)
+        for (File projectDir : moteTypeProjectDirs) {
           try {
-            newMoteTypeConfig.appendUserPlatform(userPlatform);
+            newMoteTypeConfig.appendProjectDir(projectDir);
           } catch (Exception ex) {
-            logger.fatal("Error when parsing user platform config: " + ex);
+            logger.fatal("Error when parsing project directory config: " + ex);
             return;
           }
         }
@@ -2255,7 +2253,7 @@ public class ContikiMoteTypeDialog extends JDialog {
         Vector<Class<? extends MoteInterface>> moteIntfClasses = new Vector<Class<? extends MoteInterface>>();
 
         ClassLoader classLoader = myGUI
-            .createUserPlatformClassLoader(moteTypeUserPlatforms);
+            .createProjectDirClassLoader(moteTypeProjectDirs);
 
         // Find and load the mote interface classes
         for (String moteInterface : moteInterfaces) {

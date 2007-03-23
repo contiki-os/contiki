@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: app2.c,v 1.1 2006/08/21 12:13:09 fros4943 Exp $
+ * $Id: app1.c,v 1.1 2007/03/23 23:33:54 fros4943 Exp $
  */
 
 #include "contiki.h"
@@ -44,17 +44,17 @@
 #include "dev/button-sensor.h"
 
 
-PROCESS(dummy_process_2, "Dummy process 2");
+PROCESS(dummy_process_1, "Dummy process 1");
 
-PROCESS_THREAD(dummy_process_2, ev, data)
+PROCESS_THREAD(dummy_process_1, ev, data)
 {
   PROCESS_BEGIN();
 
-  log_message("Dummy process 2 started", "");
+  log_message("Dummy process 1 started", "");
 
   while(1) {
     PROCESS_WAIT_EVENT();
-    log_message("Dummy process 2 received event", "");
+    log_message("Dummy process 1 received event", "");
   }
 
   PROCESS_END();

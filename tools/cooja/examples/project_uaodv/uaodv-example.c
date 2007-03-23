@@ -26,33 +26,53 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: dummy_intf.c,v 1.1 2006/08/21 12:13:13 fros4943 Exp $
+ * $Id: uaodv-example.c,v 1.1 2007/03/23 23:33:54 fros4943 Exp $
  */
 
-#include "dummy_intf.h"
-#include "lib/simEnvChange.h"
 #include <stdio.h>
+#include "contiki-net.h"
+#include "net/uaodv.h"
+#include "net/uaodv-rt.h"
 
-const struct simInterface beep_interface;
+#include "lib/sensors.h"
+#include "sys/log.h"
 
-// COOJA variables (shared between Java and C)
-char simDummyVar;
+#include "dev/button-sensor.h"
+#include "dev/serial.h"
 
-/*-----------------------------------------------------------------------------------*/
-static void
-doInterfaceActionsBeforeTick(void)
+/*---------------------------------------------------------------------------*/
+PROCESS(uaodv_example_process, "uAODV example");
+
+AUTOSTART_PROCESSES(&uaodv_process, &uaodv_example_process);
+
+/*---------------------------------------------------------------------------*/
+PROCESS_THREAD(uaodv_example_process, ev, data)
 {
-	fprintf(stderr, "Core (C) dummy interface acts BEFORE mote tick\n");
-}
-/*-----------------------------------------------------------------------------------*/
-static void
-doInterfaceActionsAfterTick(void)
-{
-	fprintf(stderr, "Core (C) dummy interface acts AFTER mote tick\n");
-}
-/*-----------------------------------------------------------------------------------*/
+  static uip_ipaddr_t addr;
+  
+  PROCESS_BEGIN();
 
-// Register this as an available interface
-SIM_INTERFACE(dummy_interface,
-	      doInterfaceActionsBeforeTick,
-	      doInterfaceActionsAfterTick);
+  int ipA, ipB, ipC, ipD;
+  char buf[200];
+    
+  button_sensor.activate();
+  serial_init();
+
+  while(1) {
+    PROCESS_WAIT_EVENT();
+    if(ev == sensors_event && data == &button_sensor && button_sensor.value(0)) {
+      uip_ipaddr(&addr, 10,10,0,1);
+      log_message("Sending RREQ to (static) 10.10.0.1\n", "");
+      uaodv_request_route_to(&addr);
+    } else if(ev == serial_event_message) {
+      sscanf(data, "SENDTO>%d.%d.%d.%d", &ipA, &ipB, &ipC, &ipD);
+      sprintf(buf, "Sending RREQ to %d.%d.%d.%d .. \n", ipA, ipB, ipC, ipD);
+      log_message(buf, "");
+      uip_ipaddr(&addr, ipA, ipB, ipC, ipD);
+      uaodv_request_route_to(&addr);
+    }
+  }
+  
+  PROCESS_END();
+}
+/*---------------------------------------------------------------------------*/
