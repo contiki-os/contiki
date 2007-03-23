@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: uc.c,v 1.6 2007/03/20 12:28:13 adamdunkels Exp $
+ * $Id: uc.c,v 1.7 2007/03/23 10:46:35 adamdunkels Exp $
  */
 
 /**
@@ -80,7 +80,7 @@ int
 uc_send(struct uc_conn *c, rimeaddr_t *receiver)
 {
   DEBUGF(2, "%d: uc_send to %d\n", rimeaddr_node_addr.u16, receiver->u16);
-  if(rimebuf_hdrextend(sizeof(struct uc_hdr))) {
+  if(rimebuf_hdralloc(sizeof(struct uc_hdr))) {
     struct uc_hdr *hdr = rimebuf_hdrptr();
     rimeaddr_copy(&hdr->receiver, receiver);
     return ibc_send(&c->c);

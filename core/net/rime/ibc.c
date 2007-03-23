@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: ibc.c,v 1.6 2007/03/20 12:28:13 adamdunkels Exp $
+ * $Id: ibc.c,v 1.7 2007/03/23 10:46:35 adamdunkels Exp $
  */
 
 /**
@@ -81,7 +81,7 @@ int
 ibc_send(struct ibc_conn *c)
 {
   DEBUGF(1, "%d: ibc_send\n", rimeaddr_node_addr.u16);
-  if(rimebuf_hdrextend(sizeof(struct ibc_hdr))) {
+  if(rimebuf_hdralloc(sizeof(struct ibc_hdr))) {
     struct ibc_hdr *hdr = rimebuf_hdrptr();
     rimeaddr_copy(&hdr->sender, &rimeaddr_node_addr);
     return abc_send(&c->c);

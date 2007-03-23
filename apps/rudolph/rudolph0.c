@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: rudolph0.c,v 1.3 2007/03/22 23:54:40 adamdunkels Exp $
+ * $Id: rudolph0.c,v 1.4 2007/03/23 10:46:56 adamdunkels Exp $
  */
 
 /**
@@ -86,7 +86,7 @@ send_nack(struct rudolph0_conn *c)
 {
   struct rudolph0_hdr *hdr;
   rimebuf_clear();
-  rimebuf_hdrextend(sizeof(struct rudolph0_hdr));
+  rimebuf_hdralloc(sizeof(struct rudolph0_hdr));
   hdr = rimebuf_hdrptr();
 
   hdr->type = TYPE_NACK;

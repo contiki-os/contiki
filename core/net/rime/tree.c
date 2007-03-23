@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: tree.c,v 1.6 2007/03/22 18:54:22 adamdunkels Exp $
+ * $Id: tree.c,v 1.7 2007/03/23 10:46:35 adamdunkels Exp $
  */
 
 /**
@@ -250,7 +250,7 @@ tree_send(struct tree_conn *tc)
   struct neighbor *n;
   struct hdr *hdr;
 
-  if(rimebuf_hdrextend(sizeof(struct hdr))) {
+  if(rimebuf_hdralloc(sizeof(struct hdr))) {
     hdr = rimebuf_hdrptr();
     hdr->originator_seqno = tc->seqno++;
     rimeaddr_copy(&hdr->originator, &rimeaddr_node_addr);

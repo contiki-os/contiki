@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: rimebuf.c,v 1.3 2007/03/14 00:30:11 adamdunkels Exp $
+ * $Id: rimebuf.c,v 1.4 2007/03/23 10:46:35 adamdunkels Exp $
  */
 
 /**
@@ -130,7 +130,7 @@ rimebuf_copyto(u8_t *to)
 }
 /*---------------------------------------------------------------------------*/
 int
-rimebuf_hdrextend(int size)
+rimebuf_hdralloc(int size)
 {
   if(hdrptr > size) {
     hdrptr -= size;

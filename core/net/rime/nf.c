@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: nf.c,v 1.8 2007/03/22 18:53:38 adamdunkels Exp $
+ * $Id: nf.c,v 1.9 2007/03/23 10:46:35 adamdunkels Exp $
  */
 
 /**
@@ -185,7 +185,7 @@ nf_send(struct nf_conn *c)
     c->buf = NULL;
   }
 
-  if(rimebuf_hdrextend(sizeof(struct nf_hdr))) {
+  if(rimebuf_hdralloc(sizeof(struct nf_hdr))) {
     struct nf_hdr *hdr = rimebuf_hdrptr();
     rimeaddr_copy(&hdr->originator, &rimeaddr_node_addr);
     rimeaddr_copy(&c->last_originator, &hdr->originator);

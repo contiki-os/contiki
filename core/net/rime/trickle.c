@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: trickle.c,v 1.2 2007/03/21 23:23:02 adamdunkels Exp $
+ * $Id: trickle.c,v 1.3 2007/03/23 10:46:35 adamdunkels Exp $
  */
 
 /**
@@ -62,7 +62,7 @@ send(struct trickle_conn *c)
 
   if(c->q != NULL) {
     queuebuf_to_rimebuf(c->q);
-    rimebuf_hdrextend(sizeof(struct trickle_hdr));
+    rimebuf_hdralloc(sizeof(struct trickle_hdr));
     hdr = rimebuf_hdrptr();
     hdr->seqno = c->seqno;
     hdr->interval = c->interval;
