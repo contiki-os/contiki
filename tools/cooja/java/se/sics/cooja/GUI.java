@@ -24,7 +24,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * 
- * $Id: GUI.java,v 1.33 2007/03/23 23:34:33 fros4943 Exp $
+ * $Id: GUI.java,v 1.34 2007/03/24 00:42:51 fros4943 Exp $
  */
 
 package se.sics.cooja;
@@ -187,8 +187,11 @@ public class GUI {
 
   /**
    * Creates a new COOJA Simulator GUI.
+   * 
+   * @param desktop Desktop pane
+   * @param createSimDialog If true, a create simulation dialog will be displayed at startup
    */
-  public GUI(JDesktopPane desktop) {
+  public GUI(JDesktopPane desktop, boolean createSimDialog) {
     myGUI = this;
     mySimulation = null;
     myDesktopPane = desktop;
@@ -228,7 +231,7 @@ public class GUI {
       }
     }
 
-    if (frame != null) {
+    if (createSimDialog && frame != null) {
       SwingUtilities.invokeLater(new Runnable() {
         public void run() {
           myGUI.doCreateSimulation(true);
@@ -535,7 +538,7 @@ public class GUI {
     JDesktopPane desktop = new JDesktopPane();
     desktop.setDragMode(JDesktopPane.OUTLINE_DRAG_MODE);
 
-    GUI gui = new GUI(desktop);
+    GUI gui = new GUI(desktop, true);
     JComponent newContentPane = gui.getDesktopPane();
     newContentPane.setOpaque(true);
     frame.setContentPane(newContentPane);
@@ -614,7 +617,7 @@ public class GUI {
     // Create and set up the content pane.
     JDesktopPane desktop = new JDesktopPane();
     desktop.setDragMode(JDesktopPane.OUTLINE_DRAG_MODE);
-    GUI gui = new GUI(desktop); // loads external settings and creates initial
+    GUI gui = new GUI(desktop, false); // loads external settings and creates initial
     // project config
 
     // Add menu bar
@@ -1794,12 +1797,12 @@ public class GUI {
         try {
           newSim = loadSimulationConfig(fileToLoad, quick);
           addToFileHistory(fileToLoad);
-          if (progressDialog != null && progressDialog.isVisible()) {
+          if (progressDialog != null && progressDialog.isDisplayable()) {
             progressDialog.dispose();
           }
         } catch (UnsatisfiedLinkError e) {
           logger.warn("Could not reopen libraries: " + e.getMessage());
-          if (progressDialog != null) 
+          if (progressDialog != null && progressDialog.isDisplayable()) 
             progressDialog.dispose();
           newSim = null;
         }
@@ -1823,7 +1826,7 @@ public class GUI {
           loadThread.interrupt();
           doRemoveSimulation(false);
         }
-        if (progressDialog != null && progressDialog.isVisible()) {
+        if (progressDialog != null && progressDialog.isDisplayable()) {
           progressDialog.dispose();
         }
       }
@@ -1926,12 +1929,12 @@ public class GUI {
         Simulation newSim = null;
         try {
           newSim = loadSimulationConfig(new StringReader(configXML), true);
-          if (progressDialog != null && progressDialog.isVisible()) { 
+          if (progressDialog != null && progressDialog.isDisplayable()) { 
             progressDialog.dispose();
           }
         } catch (UnsatisfiedLinkError e) {
           logger.fatal("Could not reopen libraries: " + e.getMessage());
-          if (progressDialog != null && progressDialog.isVisible()) { 
+          if (progressDialog != null && progressDialog.isDisplayable()) { 
             progressDialog.dispose();
           }
           newSim = null;
@@ -1940,7 +1943,7 @@ public class GUI {
           myGUI.setSimulation(newSim);
         }
 
-        if (progressDialog != null && progressDialog.isVisible()) { 
+        if (progressDialog != null && progressDialog.isDisplayable()) { 
           progressDialog.dispose();
         }
       }
@@ -1958,7 +1961,7 @@ public class GUI {
           loadThread.interrupt();
           doRemoveSimulation(false);
         }
-        if (progressDialog != null && progressDialog.isVisible()) { 
+        if (progressDialog != null && progressDialog.isDisplayable()) { 
           progressDialog.dispose();
         }
       }
@@ -2572,13 +2575,12 @@ public class GUI {
       if (!ok)
         System.exit(1);
 
-      // Check if simulator should be quick-started
     } else if (args.length > 0 && args[0].startsWith("-nogui")) {
 
       // No GUI start-up
       javax.swing.SwingUtilities.invokeLater(new Runnable() {
         public void run() {
-          new GUI(null);
+          new GUI(null, false);
         }
       });
 
