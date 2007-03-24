@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: rimebuf.c,v 1.4 2007/03/23 10:46:35 adamdunkels Exp $
+ * $Id: rimebuf.c,v 1.5 2007/03/24 13:38:06 oliverschmidt Exp $
  */
 
 /**
@@ -39,6 +39,7 @@
  */
 
 #include <string.h>
+#include <stdio.h>
 
 #include "contiki-net.h"
 #include "net/rime/rimebuf.h"
