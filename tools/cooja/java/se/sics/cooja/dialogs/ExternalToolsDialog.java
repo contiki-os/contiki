@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ExternalToolsDialog.java,v 1.2 2007/03/22 16:41:50 fros4943 Exp $
+ * $Id: ExternalToolsDialog.java,v 1.3 2007/03/24 00:44:55 fros4943 Exp $
  */
 
 package se.sics.cooja.dialogs;
@@ -187,9 +187,11 @@ public class ExternalToolsDialog extends JDialog {
               .trim());
         }
         GUI.saveExternalToolsUserSettings();
-        myDialog.dispose();
+        if (myDialog != null && myDialog.isDisplayable())
+          myDialog.dispose();
       } else if (e.getActionCommand().equals("cancel")) {
-        myDialog.dispose();
+        if (myDialog != null && myDialog.isDisplayable())
+          myDialog.dispose();
       } else
         logger.debug("Unhandled command: " + e.getActionCommand());
     }
