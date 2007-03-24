@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: elfloader-arch.h,v 1.3 2006/12/18 14:54:04 fros4943 Exp $
+ * @(#)$Id: elfloader-arch.h,v 1.4 2007/03/24 15:21:34 oliverschmidt Exp $
  */
 /**
  * \addtogroup elfloader
@@ -66,7 +66,7 @@
 #ifndef __ELFLOADER_ARCH_H__
 #define __ELFLOADER_ARCH_H__
 
-#include "elfloader.h"
+#include "loader/elfloader.h"
 
 /**
  * \brief      Allocate RAM for a new module.
