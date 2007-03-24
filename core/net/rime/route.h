@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: route.h,v 1.2 2007/03/22 17:34:43 adamdunkels Exp $
+ * $Id: route.h,v 1.3 2007/03/24 13:54:05 oliverschmidt Exp $
  */
 
 /**
@@ -53,6 +53,7 @@ struct route_entry {
   u8_t time;
 };
 
+void route_init(void);
 int route_add(rimeaddr_t *dest, rimeaddr_t *nexthop,
 	      u8_t hop_count, u8_t seqno);
 struct route_entry *route_lookup(rimeaddr_t *dest);
