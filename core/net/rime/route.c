@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: route.c,v 1.3 2007/03/24 13:42:25 oliverschmidt Exp $
+ * $Id: route.c,v 1.4 2007/03/24 13:57:04 oliverschmidt Exp $
  */
 
 /**
@@ -38,6 +38,7 @@
  *         Adam Dunkels <adam@sics.se>
  */
 
+#include <stdio.h>
 
 #include "net/rime/route.h"
 

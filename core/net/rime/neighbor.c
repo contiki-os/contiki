@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: neighbor.c,v 1.5 2007/03/22 23:57:08 adamdunkels Exp $
+ * $Id: neighbor.c,v 1.6 2007/03/24 13:57:04 oliverschmidt Exp $
  */
 
 /**
@@ -39,6 +39,7 @@
  */
 
 #include <limits.h>
+#include <stdio.h>
 
 #include "contiki.h"
 #include "net/rime/neighbor.h"
