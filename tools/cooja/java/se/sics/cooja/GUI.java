@@ -24,7 +24,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * 
- * $Id: GUI.java,v 1.34 2007/03/24 00:42:51 fros4943 Exp $
+ * $Id: GUI.java,v 1.35 2007/03/24 01:00:25 fros4943 Exp $
  */
 
 package se.sics.cooja;
@@ -960,9 +960,16 @@ public class GUI {
     logger.info("> Adding simulation to GUI");
     gui.setSimulation(simulation);
 
-    // Start plugin and showing GUI
+    // Start plugins and try to place them wisely
     logger.info("> Starting plugin and showing GUI");
-    gui.startPlugin(VisState.class, gui, simulation, null);
+    VisPlugin plugin = (VisPlugin) gui.startPlugin(VisState.class, gui, simulation, null);
+    plugin.setLocation(350, 20);
+    plugin = (VisPlugin) gui.startPlugin(VisTraffic.class, gui, simulation, null);
+    plugin.setLocation(350, 340);
+    plugin = (VisPlugin) gui.startPlugin(LogListener.class, gui, simulation, null);
+    plugin.setLocation(20, 420);
+
+    // Finally show GUI
     frame.setVisible(true);
 
     if (simulationStarting) {
@@ -2503,7 +2510,7 @@ public class GUI {
       boolean addAutostartProcesses = true;
       int numberOfNodes = 100;
       double areaSideLength = 100;
-      int delayTime = 0;
+      int delayTime = 5;
       boolean startSimulation = true;
       String contikiPath = null;
 
