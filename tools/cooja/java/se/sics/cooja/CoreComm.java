@@ -24,7 +24,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * 
- * $Id: CoreComm.java,v 1.4 2007/03/23 14:36:27 fros4943 Exp $
+ * $Id: CoreComm.java,v 1.5 2007/03/24 00:41:10 fros4943 Exp $
  */
 
 package se.sics.cooja;
@@ -140,6 +140,11 @@ public abstract class CoreComm {
       
       templateFileReader = new BufferedReader(reader);
       destFilename = className + ".java";
+
+      File dir = new File("se/sics/cooja/corecomm");
+      if (!dir.exists()) 
+        dir.mkdirs();
+      
       sourceFileWriter = new BufferedWriter(new OutputStreamWriter(
           new FileOutputStream("se/sics/cooja/corecomm/" + destFilename)));
 
@@ -179,20 +184,35 @@ public abstract class CoreComm {
    * @return True if success, false otherwise
    */
   private static boolean compileSourceFile(String className) {
+    File classFile = new File("se/sics/cooja/corecomm/" + className + ".class");
+
     try {
       String[] cmd = new String[]{
           GUI.getExternalToolsSetting("PATH_JAVAC"),
-          "se/sics/cooja/corecomm/" + className + ".java" };
+          "se/sics/cooja/corecomm/" + className + ".java"};
 
       Process p = Runtime.getRuntime().exec(cmd, null, null);
       p.waitFor();
+      
+      if (classFile.exists())
+        return true;
+      
+      // Try including cooja.jar
+      cmd = new String[]{
+          GUI.getExternalToolsSetting("PATH_JAVAC"),
+          "se/sics/cooja/corecomm/" + className + ".java",
+          "-cp",
+          GUI.getExternalToolsSetting("PATH_CONTIKI") + "/tools/cooja/dist/cooja.jar"};
+
+      p = Runtime.getRuntime().exec(cmd, null, null);
+      p.waitFor();
+      
     } catch (IOException e) {
       return false;
     } catch (InterruptedException e) {
       return false;
     }
 
-    File classFile = new File("se/sics/cooja/corecomm/" + className + ".class");
     if (classFile.exists())
       return true;
     
