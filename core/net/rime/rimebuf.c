@@ -28,18 +28,17 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: rimebuf.c,v 1.5 2007/03/24 13:38:06 oliverschmidt Exp $
+ * $Id: rimebuf.c,v 1.6 2007/03/24 16:42:36 adamdunkels Exp $
  */
 
 /**
  * \file
- *         A brief description of what this file is.
+ *         Rime buffer (rimebuf) management
  * \author
  *         Adam Dunkels <adam@sics.se>
  */
 
 #include <string.h>
-#include <stdio.h>
 
 #include "contiki-net.h"
 #include "net/rime/rimebuf.h"
@@ -51,8 +50,6 @@ static u8_t hdrptr;
 static u8_t rimebuf[RIMEBUF_SIZE + RIMEBUF_HDR_SIZE];
 
 static u8_t *rimebufptr;
-
-
 
 /*---------------------------------------------------------------------------*/
 void
@@ -92,7 +89,8 @@ rimebuf_compact(void)
 int
 rimebuf_copyto_hdr(u8_t *to)
 {
-  if(DEBUG_LEVEL > 0) {
+#if DEBUG_LEVEL > 0
+  {
     int i;
     DEBUGF(0, "rimebuf_write_hdr: header:\n");
     for(i = hdrptr; i < RIMEBUF_HDR_SIZE; ++i) {
@@ -100,6 +98,7 @@ rimebuf_copyto_hdr(u8_t *to)
     }
     DEBUGF(0, "\n");
   }
+#endif /* DEBUG_LEVEL */
   memcpy(to, rimebuf + hdrptr, RIMEBUF_HDR_SIZE - hdrptr);
   return RIMEBUF_HDR_SIZE - hdrptr;
 }
@@ -107,7 +106,8 @@ rimebuf_copyto_hdr(u8_t *to)
 int
 rimebuf_copyto(u8_t *to)
 {
-  if(DEBUG_LEVEL > 0) {
+#if DEBUG_LEVEL > 0
+  {
     int i;
     char buffer[1000];
     char *bufferptr = buffer;
@@ -124,6 +124,7 @@ rimebuf_copyto(u8_t *to)
     }
     DEBUGF(0, "rimebuf_write: data: %s\n", buffer);
   }
+#endif /* DEBUG_LEVEL */
   memcpy(to, rimebuf + hdrptr, RIMEBUF_HDR_SIZE - hdrptr);
   memcpy(to + RIMEBUF_HDR_SIZE - hdrptr, rimebufptr + bufptr,
 	 buflen);
