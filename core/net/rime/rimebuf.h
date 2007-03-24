@@ -28,12 +28,12 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: rimebuf.h,v 1.5 2007/03/23 10:46:35 adamdunkels Exp $
+ * $Id: rimebuf.h,v 1.6 2007/03/24 16:42:43 adamdunkels Exp $
  */
 
 /**
  * \file
- *         A brief description of what this file is.
+ *         Header file for the Rime buffer (rimebuf) management
  * \author
  *         Adam Dunkels <adam@sics.se>
  */
