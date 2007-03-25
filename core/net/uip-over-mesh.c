@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: uip-over-mesh.c,v 1.1 2007/03/22 18:58:40 adamdunkels Exp $
+ * $Id: uip-over-mesh.c,v 1.2 2007/03/25 12:13:22 adamdunkels Exp $
  */
 
 /**
@@ -58,16 +58,16 @@ recv_data(struct uc_conn *c, rimeaddr_t *from)
 
   /*  uip_len = hc_inflate(&uip_buf[UIP_LLH_LEN], uip_len);*/
 
-  printf("%d.%d:recv_data\n",
-	 rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1]);
+  /*  printf("%d.%d:recv_data\n",
+      rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1]);*/
   tcpip_input();
 }
 /*---------------------------------------------------------------------------*/
 static void
 send_data(rimeaddr_t *next)
 {
-  printf("%d.%d:send_data\n",
-	 rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1]);
+  /*  printf("%d.%d:send_data\n",
+      rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1]);*/
   uc_send(&dataconn, next);
 }
 /*---------------------------------------------------------------------------*/
@@ -109,7 +109,8 @@ uip_over_mesh_init(u16_t channels)
 	 uip_hostaddr.u8[2], uip_hostaddr.u8[3]); */
 
   uc_open(&dataconn, channels, &data_callbacks);
-  route_discovery_open(&route_discovery, channels + 1, &rdc);
+  route_discovery_open(&route_discovery, CLOCK_SECOND / 2,
+		       channels + 1, &rdc);
   tcpip_set_forwarding(1);
 
 }
