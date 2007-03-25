@@ -1,5 +1,4 @@
 CONTIKI = ../..
-APPS = rudolph
 all: test-abc test-meshroute test-treeroute test-trickle test-uabc \
      test-rudolph0 test-rudolph1
 

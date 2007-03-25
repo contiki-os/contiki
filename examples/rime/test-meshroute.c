@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: test-meshroute.c,v 1.2 2007/03/22 19:03:56 adamdunkels Exp $
+ * $Id: test-meshroute.c,v 1.3 2007/03/25 12:10:29 adamdunkels Exp $
  */
 
 /**
@@ -77,6 +77,7 @@ const static struct mesh_callbacks callbacks = {recv, sent, timedout};
 /*---------------------------------------------------------------------------*/
 PROCESS_THREAD(test_mesh_process, ev, data)
 {
+  PROCESS_EXITHANDLER(mesh_close(&mesh);)
   PROCESS_BEGIN();
 
   mesh_open(&mesh, 128, &callbacks);

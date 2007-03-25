@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: test-rudolph1.c,v 1.2 2007/03/22 23:58:57 adamdunkels Exp $
+ * $Id: test-rudolph1.c,v 1.3 2007/03/25 12:10:29 adamdunkels Exp $
  */
 
 /**
@@ -39,7 +39,7 @@
  */
 
 #include "contiki.h"
-#include "rudolph1.h"
+#include "net/rime/rudolph1.h"
 
 #include "dev/button-sensor.h"
 
@@ -111,9 +111,9 @@ static struct rudolph1_conn rudolph1;
 PROCESS_THREAD(test_rudolph1_process, ev, data)
 {
   static int fd;
+  PROCESS_EXITHANDLER(rudolph1_close(&rudolph1);)
   PROCESS_BEGIN();
 
-  process_start(&cfs_ram_process, NULL);
   PROCESS_PAUSE();
 
   {
