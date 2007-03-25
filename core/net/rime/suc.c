@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: suc.c,v 1.6 2007/03/20 12:27:32 adamdunkels Exp $
+ * $Id: suc.c,v 1.7 2007/03/25 21:43:23 adamdunkels Exp $
  */
 
 /**
@@ -69,6 +69,9 @@ suc_close(struct suc_conn *c)
 {
   uc_close(&c->c);
   ctimer_stop(&c->t);
+  if(c->buf != NULL) {
+    queuebuf_free(c->buf);
+  }
 }
 /*---------------------------------------------------------------------------*/
 static void
