@@ -24,7 +24,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * 
- * $Id: GUI.java,v 1.35 2007/03/24 01:00:25 fros4943 Exp $
+ * $Id: GUI.java,v 1.36 2007/03/25 21:32:33 fros4943 Exp $
  */
 
 package se.sics.cooja;
@@ -643,6 +643,18 @@ public class GUI {
     logger.info("> Reparsing project directories and creating config");
     for (String projectDir : projectDirs) {
       logger.info(">> Adding: " + projectDir);
+      
+      // Check if config file exists
+      File configFile = new File(projectDir + File.separatorChar + PROJECT_CONFIG_FILENAME);
+      if (!configFile.exists()) {
+        logger.debug(">>> Creating empty cooja.config file");
+        try {
+          configFile.createNewFile();
+        } catch (IOException e) {
+          logger.fatal(">> Error when creating cooja.config file, aborting");
+          return false;
+        }
+      }
       gui.currentProjectDirs.add(new File(projectDir));
     }
     boolean parsedProjects = gui.reparseProjectConfig();
