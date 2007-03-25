@@ -28,15 +28,15 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: rt.c,v 1.1 2007/03/19 00:16:13 adamdunkels Exp $
+ * @(#)$Id: rtimer.c,v 1.1 2007/03/25 17:10:30 adamdunkels Exp $
  */
 
-#include "sys/rt.h"
+#include "sys/rtimer.h"
 #include "contiki.h"
 
 #define LIST_SIZE 16
 
-static struct rt_task *tasks[LIST_SIZE];
+static struct rtimer *rtimers[LIST_SIZE];
 static u8_t next, firstempty;
 
 #define DEBUG 0
@@ -49,105 +49,105 @@ static u8_t next, firstempty;
 
 /*---------------------------------------------------------------------------*/
 void
-rt_init(void)
+rtimer_init(void)
 {
   next = 0;
   firstempty = 0;
-  rt_arch_init();
+  rtimer_arch_init();
 }
 /*---------------------------------------------------------------------------*/
 int
-rt_post(struct rt_task *task, rt_clock_t time, rt_clock_t duration)
+rtimer_set(struct rtimer *rtimer, rt_clock_t time, rt_clock_t duration,
+	   void (* func)(struct rtimer *t, void *ptr), void *ptr)
 {
   int i;
 
-  PRINTF("rt_post time %d\n", time);
+  PRINTF("rtimer_set time %d\n", time);
   
-  /* Check if task queue is full. */
+  /* Check if rtimer queue is full. */
   if(firstempty == (next - 1) % LIST_SIZE) {
-    PRINTF("rt_post: next %d firstempty %d full\n", next, firstempty);
-    return RT_ERR_FULL;
+    PRINTF("rtimer_set: next %d firstempty %d full\n", next, firstempty);
+    return RTIMER_ERR_FULL;
   }
   
-  /* Check if it is possible to run this task at the requested
+  /* Check if it is possible to run this rtimer at the requested
      time. */
   for(i = next; i != firstempty;
       i = (i + 1) % LIST_SIZE) {
 
     /* XXX: should check a range of time not just the same precise
        moment. */
-    if(tasks[i]->time == time) {
-      PRINTF("rt_post: next %d firstempty %d time %d == %d\n",
-	     next, firstempty, tasks[i]->time, time);
-      return RT_ERR_TIME;
+    if(rtimers[i]->time == time) {
+      PRINTF("rtimer_set: next %d firstempty %d time %d == %d\n",
+	     next, firstempty, rtimers[i]->time, time);
+      return RTIMER_ERR_TIME;
     }
   }
-  /* Put the task at the end of the task list. */
-  task->time = time;
-  tasks[firstempty] = task;
-  PRINTF("rt_post: putting task %s as %d\n", task->name, firstempty);
+  /* Put the rtimer at the end of the rtimer list. */
+  rtimer->time = time;
+  rtimers[firstempty] = rtimer;
+  PRINTF("rt_post: putting rtimer %s as %d\n", rtimer->name, firstempty);
 
   firstempty = (firstempty + 1) % LIST_SIZE;
 
   /*  PRINTF("rt_post: next %d firstempty %d scheduling soon\n",
       next, firstempty);*/
 
-  /* Check if this is the first task on the list. If so, we need to
+  /* Check if this is the first rtimer on the list. If so, we need to
      run the rt_arch_schedule() function to get the ball rolling. */
   if(firstempty == (next + 1) % LIST_SIZE) {
     
-    PRINTF("rt_post scheduling %d %s (%d)\n",
-	 next, tasks[next]->name, tasks[next]->time);
-    rt_arch_schedule(time);
+    PRINTF("rtimer_set scheduling %d %s (%d)\n",
+	 next, rtimers[next]->name, rtimers[next]->time);
+    rtimer
   }
   
-  return RT_OK;
+  return RTIMER_OK;
 }
 /*---------------------------------------------------------------------------*/
 void
-rt_task_run(void)
+rtimer_run_next(void)
 {
   int i, n;
-  struct rt_task *t;
+  struct rtimer *t;
 
-  t = tasks[next];
+  t = rtimers[next];
 
-  /* Increase the pointer to the next task. */
+  /* Increase the pointer to the next rtimer. */
   next = (next + 1) % LIST_SIZE;
   
-  /* Run the task. */
-  PRINTF("rt_task_run running %s\n", t->name);
+  /* Run the rtimer. */
+  PRINTF("rtimer_run_next running %s\n", t->name);
   t->func(t, t->ptr);
 
   if(next == firstempty) {
-    PRINTF("rt_task_run: empty task list\n");
-    /* The list is empty, no more tasks to schedule. */
+    PRINTF("rtimer_run_next: empty rtimer list\n");
+    /* The list is empty, no more rtimers to schedule. */
     return;
   }
 
-  /* Find the next task to run. */
+  /* Find the next rtimer to run. */
   n = next;
   for(i = next; i != firstempty; i = (i + 1) % LIST_SIZE) {
-    PRINTF("rt_task_run checking %s (%d) against %s (%d)\n",
-	   tasks[i]->name, tasks[i]->time,
-	   tasks[n]->name, tasks[n]->time);
-    if(tasks[i]->prio >= tasks[n]->prio &&
-       RT_CLOCK_LT(tasks[i]->time, tasks[n]->time)) {
+    PRINTF("rtimer_run_next checking %s (%d) against %s (%d)\n",
+	   rtimers[i]->name, rtimers[i]->time,
+	   rtimers[n]->name, rtimers[n]->time);
+    if(RT_CLOCK_LT(rtimers[i]->time, rtimers[n]->time)) {
       n = i;
     }
   }
 
-  PRINTF("rt_task_run next task is %d %s (%d)\n",
-	 n, tasks[n]->name, tasks[n]->time);
+  PRINTF("rtimer_run_next next rtimer is %d %s (%d)\n",
+	 n, rtimers[n]->name, rtimers[n]->time);
   
-  /* Put the next task first in the task list. */
-  t = tasks[next];
-  tasks[next] = tasks[n];
-  tasks[n] = t;
+  /* Put the next rtimer first in the rtimer list. */
+  t = rtimers[next];
+  rtimers[next] = rtimers[n];
+  rtimers[n] = t;
 
-  PRINTF("rt_task_run scheduling %d %s (%d)\n",
-	 next, tasks[next]->name, tasks[next]->time);
+  PRINTF("rtimer_run_next scheduling %d %s (%d)\n",
+	 next, rtimers[next]->name, rtimers[next]->time);
 
-  rt_arch_schedule(tasks[next]->time);
+  rtimer_arch_schedule(rtimers[next]->time);
 }
 /*---------------------------------------------------------------------------*/
