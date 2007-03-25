@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: tree.c,v 1.8 2007/03/25 12:06:39 adamdunkels Exp $
+ * $Id: tree.c,v 1.9 2007/03/25 21:44:06 adamdunkels Exp $
  */
 
 /**
@@ -173,6 +173,7 @@ node_packet_received(struct ruc_conn *c, rimeaddr_t *from, u8_t seqno)
 
   if(tc->hops_from_sink == SINK) {
 
+    rimebuf_hdrreduce(sizeof(struct hdr));
     if(tc->cb->recv != NULL) {
       tc->cb->recv(&hdr->originator, hdr->originator_seqno,
 		   hdr->hopcount, hdr->retransmissions);
