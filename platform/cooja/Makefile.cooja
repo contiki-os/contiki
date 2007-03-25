@@ -1,4 +1,4 @@
-# $Id: Makefile.cooja,v 1.11 2007/03/23 21:36:48 fros4943 Exp $
+# $Id: Makefile.cooja,v 1.12 2007/03/25 18:22:41 fros4943 Exp $
 
 ## The COOJA Simulator Contiki platform Makefile
 ##
@@ -22,7 +22,9 @@ ifndef CONTIKI
 endif
 
 ifndef TYPEID
-  $(error TYPEID not defined!)
+### Quickstart simulator
+$(MAKECMDGOALS):
+	java -jar $(CONTIKI)/tools/cooja/dist/cooja.jar -quickstart=$(MAKECMDGOALS).c -contiki=$(CONTIKI)
 endif
 
 OUTPUT_DIR = obj_cooja
