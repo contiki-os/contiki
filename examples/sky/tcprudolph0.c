@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: tcprudolph0.c,v 1.5 2007/03/25 21:45:32 adamdunkels Exp $
+ * @(#)$Id: tcprudolph0.c,v 1.6 2007/03/25 21:53:08 adamdunkels Exp $
  */
 
 #include <stdio.h>
@@ -310,5 +310,8 @@ dummy(void)
   sibc_close(NULL);
   rudolph0_close(NULL);
   rudolph1_close(NULL);
+
+  /* Make sure psock is included */
+  psock_datalen(NULL);
 }
 /*---------------------------------------------------------------------*/
