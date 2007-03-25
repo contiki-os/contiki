@@ -1,4 +1,4 @@
-# $Id: Makefile.sky,v 1.5 2007/03/23 16:27:14 nifi Exp $
+# $Id: Makefile.sky,v 1.6 2007/03/25 17:21:33 adamdunkels Exp $
 
 
 ARCH=msp430.c minileds.c watchdog.c light.c button.c spi.c ds2411.c \
@@ -7,7 +7,7 @@ ARCH=msp430.c minileds.c watchdog.c light.c button.c spi.c ds2411.c \
      node-id.c sensors.c button-sensor.c cfs-xmem.c \
      slip.c slip_uart1.c uip-ipchksum.c radio-sensor.c
 
-CONTIKI_TARGET_DIRS = . dev apps net loader
+CONTIKI_TARGET_DIRS = . dev apps net
 ifndef CONTIKI_TARGET_MAIN
 CONTIKI_TARGET_MAIN = contiki-sky-main.c
 endif
