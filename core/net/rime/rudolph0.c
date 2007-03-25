@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: rudolph0.c,v 1.1 2007/03/25 11:56:59 adamdunkels Exp $
+ * $Id: rudolph0.c,v 1.2 2007/03/25 21:29:02 oliverschmidt Exp $
  */
 
 /**
@@ -38,10 +38,10 @@
  *         Adam Dunkels <adam@sics.se>
  */
 
-#include "net/rime.h"
-#include "rudolph0.h"
-
 #include <stddef.h> /* for offsetof */
+
+#include "net/rime.h"
+#include "net/rime/rudolph0.h"
 
 #define SENDING_TIME CLOCK_SECOND / 2
 #define STEADY_TIME CLOCK_SECOND * 2
