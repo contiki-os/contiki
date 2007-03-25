@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: sabc.c,v 1.5 2007/03/20 12:26:57 adamdunkels Exp $
+ * $Id: sabc.c,v 1.6 2007/03/25 12:03:41 adamdunkels Exp $
  */
 
 /**
@@ -102,7 +102,7 @@ sabc_send_stubborn(struct sabc_conn *c, clock_time_t t)
     return 0;
   }
   send(c);
-  ctimer_set(&c->t, t, send, c);
+  sabc_set_timer(c, t);
   return 1;
   
 }
