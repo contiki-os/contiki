@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: tcprudolph0.c,v 1.3 2007/03/25 12:14:21 adamdunkels Exp $
+ * @(#)$Id: tcprudolph0.c,v 1.5 2007/03/25 21:45:32 adamdunkels Exp $
  */
 
 #include <stdio.h>
@@ -46,7 +46,9 @@
 
 #include "codeprop.h"
 
-#include "core/net/rime/rudolph0.h"
+#include "net/rime/rudolph0.h"
+
+#include <io.h>
 
 #define DEBUG 0
 #if DEBUG
@@ -79,6 +81,12 @@ start_program(void)
   int ret;
   s.fd = cfs_open("codeprop.out", CFS_READ);
   ret = elfloader_load(s.fd);
+
+  /* XXX: Interrupts seems to be turned off a little too long during the
+     ELF loading process, so we need to "manually" trigger a timer
+     interrupt here. */
+  TACCR1 = TAR + 1000;
+  
   if(ret == ELFLOADER_OK) {
     sprintf(msg, "ok\n");
     PRINTF("Ok, starting new program.\n");
@@ -197,7 +205,7 @@ write_chunk(struct rudolph0_conn *c, int offset, int flag,
   leds_toggle(LEDS_YELLOW);
   
   if(flag == RUDOLPH0_FLAG_NEWFILE) {
-    printf("+++ rudolph0 new file incoming at %lu\n", clock_time());
+    printf("+++ rudolph0 new file incoming at %u\n", clock_time());
     fd = cfs_open("codeprop.out", CFS_WRITE);
     
     if(elfloader_autostart_processes != NULL) {
@@ -220,7 +228,7 @@ write_chunk(struct rudolph0_conn *c, int offset, int flag,
   cfs_close(fd);
 
   if(flag == RUDOLPH0_FLAG_LASTCHUNK) {
-    printf("+++ rudolph0 entire file received at %lu\n", clock_time());
+    printf("+++ rudolph0 entire file received at %u\n", clock_time());
     start_program();
     leds_off(LEDS_YELLOW);
   }
@@ -233,7 +241,7 @@ read_chunk(struct rudolph0_conn *c, int offset, char *to, int maxsize)
 
   leds_toggle(LEDS_GREEN);
   
-  fd = cfs_open("hej", CFS_READ);
+  fd = cfs_open("codeprop.out", CFS_READ);
 
   cfs_seek(fd, offset);
   ret = cfs_read(fd, to, maxsize);
@@ -288,13 +296,19 @@ PROCESS_THREAD(tcp_loader_process, ev, data)
 /*---------------------------------------------------------------------*/
 #include "net/rime/tree.h"
 #include "net/rime/mesh.h"
+#include "net/rime/rudolph0.h"
+#include "net/rime/rudolph1.h"
 void
 dummy(void)
 {
+  /* Make sure that all Rime modules are present in the core */
   tree_close(NULL);
   mesh_close(NULL);
   uibc_close(NULL);
   uabc_close(NULL);
   ruc_close(NULL);
+  sibc_close(NULL);
+  rudolph0_close(NULL);
+  rudolph1_close(NULL);
 }
 /*---------------------------------------------------------------------*/
