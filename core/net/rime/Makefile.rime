@@ -3,4 +3,5 @@ CONTIKI_SOURCEFILES += rimebuf.c queuebuf.c rimeaddr.c ctimer.c rime.c \
                uibc.c mh.c \
                mesh.c route.c route-discovery.c \
                tree.c neighbor.c \
-               trickle.c
+               trickle.c \
+               rudolph0.c rudolph1.c
