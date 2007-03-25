@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: tree.h,v 1.4 2007/03/22 18:54:22 adamdunkels Exp $
+ * $Id: tree.h,v 1.5 2007/03/25 12:06:39 adamdunkels Exp $
  */
 
 /**
@@ -40,6 +40,9 @@
 
 #ifndef __TREE_H__
 #define __TREE_H__
+
+#include "net/rime/uibc.h"
+#include "net/rime/ruc.h"
 
 struct tree_callbacks {
   void (* recv)(rimeaddr_t *originator, u8_t seqno,

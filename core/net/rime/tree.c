@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: tree.c,v 1.7 2007/03/23 10:46:35 adamdunkels Exp $
+ * $Id: tree.c,v 1.8 2007/03/25 12:06:39 adamdunkels Exp $
  */
 
 /**
@@ -42,6 +42,7 @@
 
 #include "net/rime.h"
 #include "net/rime/neighbor.h"
+#include "net/rime/nf.h"
 #include "net/rime/tree.h"
 
 #include "dev/radio-sensor.h"
