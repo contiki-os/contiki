@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: energest.h,v 1.1 2007/03/19 00:30:18 adamdunkels Exp $
+ * $Id: energest.h,v 1.2 2007/03/25 09:20:53 oliverschmidt Exp $
  */
 
 /**
@@ -43,7 +43,7 @@
 
 typedef unsigned long energest_t;
 
-enum {
+enum energest_type {
   ENERGEST_TYPE_NONE,
 
   ENERGEST_TYPE_CPU,
@@ -60,7 +60,7 @@ enum {
   ENERGEST_TYPE_SENSORS,
 
   ENERGEST_TYPE_MAX
-} energest_type;
+};
 
 void energest_init(void);
 energest_t energest_type_time(int type);
