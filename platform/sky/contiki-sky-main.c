@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#)$Id: contiki-sky-main.c,v 1.5 2007/03/23 16:05:47 nifi Exp $
+ * @(#)$Id: contiki-sky-main.c,v 1.6 2007/03/25 17:21:49 adamdunkels Exp $
  */
 
 #include <stdio.h>
@@ -87,6 +87,14 @@ static u16_t panId = 0x2024;
 
 #define RF_CHANNEL              26
 /*---------------------------------------------------------------------------*/
+static void
+set_rime_addr(void)
+{
+  rimeaddr_t addr;
+  addr.u16[0] = node_id;
+  rimeaddr_set_node_addr(&addr);
+}
+/*---------------------------------------------------------------------------*/
 int
 main(int argc, char **argv)
 {
@@ -102,7 +110,7 @@ main(int argc, char **argv)
 
   slip_arch_init(BAUD2UBR(115200)); /* Must come before first printf */
   printf("Starting %s "
-	 "($Id: contiki-sky-main.c,v 1.5 2007/03/23 16:05:47 nifi Exp $)\n", __FILE__);
+	 "($Id: contiki-sky-main.c,v 1.6 2007/03/25 17:21:49 adamdunkels Exp $)\n", __FILE__);
   ds2411_init();
   sensors_light_init();
   xmem_init();
@@ -141,6 +149,7 @@ main(int argc, char **argv)
   simple_cc2420_rime_init();
   simple_cc2420_on();
   rime_init();
+  set_rime_addr();
 
   /*  rimeaddr_set_node_addr*/
 #if WITH_UIP
@@ -150,6 +159,8 @@ main(int argc, char **argv)
   /*  process_start(&tcp_loader_process, NULL);*/
 #endif /* WITH_UIP */
 
+  button_sensor.activate();
+  
   printf("Autostarting processes\n");
   autostart_start((struct process **) autostart_processes);
   
