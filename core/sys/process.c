@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: process.c,v 1.3 2007/01/24 16:07:20 bg- Exp $
+ * @(#)$Id: process.c,v 1.4 2007/03/25 17:18:37 adamdunkels Exp $
  */
 
 /**
@@ -83,6 +83,13 @@ static volatile unsigned char poll_requested;
 
 static void call_process(struct process *p, process_event_t ev, process_data_t data);
 
+#define DEBUG 0
+#if DEBUG
+#include <stdio.h>
+#define PRINTF(...) printf(__VA_ARGS__)
+#else
+#define PRINTF(...)
+#endif
 
 /*---------------------------------------------------------------------------*/
 process_event_t
@@ -112,7 +119,7 @@ process_start(struct process *p, char *arg)
 
   PT_INIT(&p->pt);
   
-  /* Post an asynchronous event to the process. */
+  /* Post a synchronous event to the process. */
   process_post(p, PROCESS_EVENT_INIT, (process_data_t)arg);
 }
 /*---------------------------------------------------------------------------*/
@@ -367,7 +374,13 @@ process_post(struct process *p, process_event_t ev, process_data_t data)
   static unsigned char snum;
   
   if(nevents == PROCESS_CONF_NUMEVENTS) {
-    printf("soft panic: event queue is full\n");
+#if DEBUG
+    if(p == PROCESS_BROADCAST) {
+      printf("soft panic: event queue is full when broadcast event %d was posted from %s\n", ev, process_current->name);
+    } else {
+      printf("soft panic: event queue is full when event %d was posted to %s frpm %s\n", ev, p->name, process_current->name);
+    }
+#endif /* DEBUG */
     return PROCESS_ERR_FULL;
   }
   
