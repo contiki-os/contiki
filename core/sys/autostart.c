@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: autostart.c,v 1.1 2006/06/17 22:41:19 adamdunkels Exp $
+ * $Id: autostart.c,v 1.2 2007/03/25 17:16:57 adamdunkels Exp $
  */
 
 /**
@@ -40,6 +40,14 @@
 
 #include "sys/autostart.h"
 
+#define DEBUG 0
+#if DEBUG
+#include <stdio.h>
+#define PRINTF(...) printf(__VA_ARGS__)
+#else
+#define PRINTF(...)
+#endif
+
 /*---------------------------------------------------------------------------*/
 void
 autostart_start(struct process *processes[])
@@ -48,6 +56,7 @@ autostart_start(struct process *processes[])
   
   for(i = 0; processes[i] != NULL; ++i) {
     process_start(processes[i], NULL);
+    PRINTF("autostart_start: starting process '%s'\n", processes[i]->name);
   }
 }
 /*---------------------------------------------------------------------------*/
@@ -58,6 +67,7 @@ autostart_exit(struct process *processes[])
   
   for(i = 0; processes[i] != NULL; ++i) {
     process_exit(processes[i]);
+    PRINTF("autostart_exit: stopping process '%s'\n", processes[i]->name);
   }
 }
 /*---------------------------------------------------------------------------*/
