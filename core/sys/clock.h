@@ -53,7 +53,7 @@
  *
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: clock.h,v 1.1 2006/06/17 22:41:20 adamdunkels Exp $
+ * $Id: clock.h,v 1.2 2007/03/25 21:51:31 adamdunkels Exp $
  */
 #ifndef __CLOCK_H__
 #define __CLOCK_H__
@@ -90,6 +90,10 @@ void clock_delay(unsigned int);
 #else
 #define CLOCK_SECOND (clock_time_t)32
 #endif
+
+int clock_fine_max(void);
+unsigned short clock_fine(void);
+
 
 #endif /* __CLOCK_H__ */
 
