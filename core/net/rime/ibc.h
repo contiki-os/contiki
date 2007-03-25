@@ -1,3 +1,16 @@
+/**
+ * \addtogroup rime
+ * @{
+ */
+
+/**
+ * \defgroup rime-ibc Identified best-effort local area broadcast (ibc)
+ * @{
+ *
+ * The ibc module sends packets to all local area neighbors with an a
+ * header that identifies the sender.
+ */
+
 /*
  * Copyright (c) 2006, Swedish Institute of Computer Science.
  * All rights reserved.
@@ -28,12 +41,12 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: ibc.h,v 1.5 2007/03/19 22:10:16 adamdunkels Exp $
+ * $Id: ibc.h,v 1.6 2007/03/25 12:05:51 adamdunkels Exp $
  */
 
 /**
  * \file
- *         A brief description of what this file is.
+ *         Header file for identified best-effort local area broadcast
  * \author
  *         Adam Dunkels <adam@sics.se>
  */
@@ -46,7 +59,12 @@
 
 struct ibc_conn;
 
+/**
+ * \brief     Callback structure for abc
+ *
+ */
 struct ibc_callbacks {
+  /** Called when a packet has been received by the ibc module. */
   void (* recv)(struct ibc_conn *ptr, rimeaddr_t *sender);
 };
 
@@ -55,9 +73,52 @@ struct ibc_conn {
   const struct ibc_callbacks *u;
 };
 
+/**
+ * \brief      Set up an identified best-effort broadcast connection
+ * \param c    A pointer to a struct ibc_conn
+ * \param channel The channel on which the connection will operate
+ * \param u    A struct ibc_callbacks with function pointers to functions that will be called when a packet has been received
+ *
+ *             This function sets up an ibc connection on the
+ *             specified channel. The caller must have allocated the
+ *             memory for the struct ibc_conn, usually by declaring it
+ *             as a static variable.
+ *
+ *             The struct ibc_callbacks pointer must point to a structure
+ *             containing a pointer to a function that will be called
+ *             when a packet arrives on the channel.
+ *
+ */
 void ibc_open(struct ibc_conn *c, u16_t channel,
 	       const struct ibc_callbacks *u);
+
+/**
+ * \brief      Close an ibc connection
+ * \param c    A pointer to a struct ibc_conn
+ *
+ *             This function closes an ibc connection that has
+ *             previously been opened with ibc_open().
+ *
+ *             This function typically is called as an exit handler.
+ *
+ */
 void ibc_close(struct ibc_conn *c);
+
+/**
+ * \brief      Send an anonymous best-effort broadcast packet
+ * \param c    The ibc connection on which the packet should be sent
+ * \retval     Non-zero if the packet could be sent, zero otherwise
+ *
+ *             This function sends an anonymous best-effort broadcast
+ *             packet. The packet must be present in the rimebuf
+ *             before this function is called.
+ *
+ *             The parameter c must point to an abc connection that
+ *             must have previously been set up with ibc_open().
+ *
+ */
 int ibc_send(struct ibc_conn *c);
 
 #endif /* __IBC_H__ */
+/** @} */
+/** @} */

@@ -1,3 +1,16 @@
+/**
+ * \addtogroup rime
+ * @{
+ */
+
+/**
+ * \defgroup rime_abc Anonymous best-effort local area broadcast (abc)
+ * @{
+ *
+ * The abc module sends packets to all local area neighbors without
+ * any extra headers that idendtify the sender or receiver.
+ */
+
 /*
  * Copyright (c) 2006, Swedish Institute of Computer Science.
  * All rights reserved.
@@ -28,14 +41,8 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: abc.h,v 1.7 2007/03/19 22:10:16 adamdunkels Exp $
+ * $Id: abc.h,v 1.8 2007/03/25 12:05:51 adamdunkels Exp $
  */
-
-/**
- * \addtogroup rime
- * @{
- */
-
 /**
  * \file
  *         Header file for the Rime module Anonymous BroadCast (abc)
@@ -51,7 +58,12 @@
 
 struct abc_conn;
 
+/**
+ * \brief     Callback structure for abc
+ *
+ */
 struct abc_callbacks {
+  /** Called when a packet has been received by the abc module. */
   void (* recv)(struct abc_conn *ptr);
 };
 
@@ -80,6 +92,16 @@ struct abc_conn {
 void abc_open(struct abc_conn *c, u16_t channel,
 	       const struct abc_callbacks *u);
 
+/**
+ * \brief      Close an abc connection
+ * \param c    A pointer to a struct abc_conn
+ *
+ *             This function closes an abc connection that has
+ *             previously been opened with abc_open().
+ *
+ *             This function typically is called as an exit handler.
+ *
+ */
 void abc_close(struct abc_conn *c);
 
 /**
@@ -98,14 +120,15 @@ void abc_close(struct abc_conn *c);
 int abc_send(struct abc_conn *c);
 
 /**
- * \brief      Pass a packet to the abc layer
+ * \brief      Internal Rime function: Pass a packet to the abc layer
  *
- *             This function is used by a device driver to pass an
- *             incoming packet to the abc layer. The packet must be
- *             present in the rimebuf buffer when this function is
- *             called.
+ *             This function is used internally by Rime to pass
+ *             packets to the abc layer. Should never be called
+ *             directly.
+ *
  */
 void abc_input_packet(void);
 
 #endif /* __BC_H__ */
+/** @} */
 /** @} */

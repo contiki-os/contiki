@@ -1,3 +1,16 @@
+/**
+ * \addtogroup rime
+ * @{
+ */
+
+/**
+ * \defgroup rime-queuebuf Rime queue buffer management
+ * @{
+ *
+ * The Rime queue buffer management handles buffers that are queued.
+ *
+ */
+
 /*
  * Copyright (c) 2006, Swedish Institute of Computer Science.
  * All rights reserved.
@@ -28,12 +41,12 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: queuebuf.h,v 1.2 2007/03/20 12:26:23 adamdunkels Exp $
+ * $Id: queuebuf.h,v 1.3 2007/03/25 12:07:10 adamdunkels Exp $
  */
 
 /**
  * \file
- *         A brief description of what this file is.
+ *         Header file for the Rime queue buffer management
  * \author
  *         Adam Dunkels <adam@sics.se>
  */
@@ -49,7 +62,6 @@ void queuebuf_init(void);
 
 struct queuebuf *queuebuf_new_from_rimebuf(void);
 void queuebuf_free(struct queuebuf *b);
-void queuebuf_from_rimebuf(struct queuebuf *b);
 void queuebuf_to_rimebuf(struct queuebuf *b);
 
 void *queuebuf_dataptr(struct queuebuf *b);

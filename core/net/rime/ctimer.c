@@ -28,12 +28,12 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: ctimer.c,v 1.1 2007/02/28 16:38:51 adamdunkels Exp $
+ * $Id: ctimer.c,v 1.2 2007/03/25 12:05:51 adamdunkels Exp $
  */
 
 /**
  * \file
- *         A brief description of what this file is.
+ *         Callback timer implementation
  * \author
  *         Adam Dunkels <adam@sics.se>
  */
