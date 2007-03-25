@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: rudolph1.c,v 1.1 2007/03/25 11:58:09 adamdunkels Exp $
+ * $Id: rudolph1.c,v 1.2 2007/03/25 21:31:24 oliverschmidt Exp $
  */
 
 /**
@@ -38,11 +38,11 @@
  *         Adam Dunkels <adam@sics.se>
  */
 
+#include <stddef.h> /* for offsetof */
+
 #include "net/rime.h"
 #include "net/rime/rudolph1.h"
 #include "cfs/cfs.h"
-
-#include <stddef.h> /* for offsetof */
 
 #define DATA_INTERVAL CLOCK_SECOND * 2
 #define TRICKLE_INTERVAL TRICKLE_SECOND
