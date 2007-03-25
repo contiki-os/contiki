@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: rs232.h,v 1.1 2006/06/18 07:49:33 adamdunkels Exp $
+ * @(#)$Id: rs232.h,v 1.2 2007/03/25 17:20:43 adamdunkels Exp $
  */
 
 /** \addtogroup esb
@@ -101,7 +101,7 @@ void rs232_set_speed(unsigned char speed);
  *             correctly initalized and configured for this function
  *             to work.
  */
-void rs232_print(char *text);
+void rs232_print(char *str);
 
 /**
  * \brief      Print a character on RS232

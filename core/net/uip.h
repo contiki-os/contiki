@@ -46,7 +46,7 @@
  *
  * This file is part of the uIP TCP/IP stack.
  *
- * $Id: uip.h,v 1.9 2007/03/15 19:41:29 adamdunkels Exp $
+ * $Id: uip.h,v 1.10 2007/03/25 17:16:44 adamdunkels Exp $
  *
  */
 
@@ -833,7 +833,7 @@ struct uip_udp_conn *uip_udp_new(const uip_ipaddr_t *ripaddr, u16_t rport);
  printf("ipaddr=%d.%d.%d.%d\n", uip_ipaddr_to_quad(&ipaddr));
  \endcode
  *
- * \param addr A pointer to a uip_ipaddr_t.
+ * \param a A pointer to a uip_ipaddr_t.
  * \hideinitializer
  */
 #define uip_ipaddr_to_quad(a) (a)->u8[0],(a)->u8[1],(a)->u8[2],(a)->u8[3]
