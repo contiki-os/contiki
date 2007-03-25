@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: simple-cc2420.c,v 1.3 2007/03/22 23:55:48 adamdunkels Exp $
+ * @(#)$Id: simple-cc2420.c,v 1.4 2007/03/25 17:15:30 adamdunkels Exp $
  */
 /*
  * This code is almost device independent and should be easy to port.
@@ -416,7 +416,7 @@ simple_cc2420_read(u8_t *buf, u8_t bufsize)
       FASTSPI_READ_FIFO_GARBAGE(len);
       rx_fifo_remaining_bytes = 0; /* RX FIFO emptied! */
       splx(s);
-      len = 0;
+      len = 2; /* We eventually return len - 2 */
     } else {
       s = splhigh();
       FASTSPI_READ_FIFO_NO_WAIT(buf, len - 2);
@@ -447,6 +447,6 @@ simple_cc2420_read(u8_t *buf, u8_t bufsize)
     splx(s);
   }
 
-  return len;
+  return len - 2; /* Remove two bytes for the footer. */
 }
 /*---------------------------------------------------------------------------*/
