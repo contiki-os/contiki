@@ -1,3 +1,8 @@
+/**
+ * \addtogroup rime_uibc
+ * @{
+ */
+
 /*
  * Copyright (c) 2007, Swedish Institute of Computer Science.
  * All rights reserved.
@@ -28,7 +33,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: uibc.c,v 1.2 2007/03/22 17:37:10 adamdunkels Exp $
+ * $Id: uibc.c,v 1.3 2007/03/25 12:03:12 adamdunkels Exp $
  */
 
 /**
@@ -57,17 +62,25 @@ static void
 recv(struct ibc_conn *ibc, rimeaddr_t *from)
 {
   struct uibc_conn *c = (struct uibc_conn *)ibc;
-  if(c->q != NULL &&
-     rimebuf_datalen() == queuebuf_datalen(c->q) &&
-     memcmp(rimebuf_dataptr(), queuebuf_dataptr(c->q),
-	    rimebuf_datalen()) == 0) {
-    /* We received a copy of our own packet, so we do not send out
-       packet. */
-    queuebuf_free(c->q);
-    c->q = NULL;
-    ctimer_stop(&c->t);
-    if(c->cb->dropped) {
-      c->cb->dropped(c);
+
+  if(c->q != NULL) {
+    PRINTF("%d.%d: recv queued packet, rimebuf len %d queuebuf %d, memcmp %d\n",
+	   rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1],
+	   rimebuf_datalen(), queuebuf_datalen(c->q),
+	   memcmp(rimebuf_dataptr(), queuebuf_dataptr(c->q),
+		  rimebuf_datalen()));
+    
+    if(rimebuf_datalen() == queuebuf_datalen(c->q) &&
+       memcmp(rimebuf_dataptr(), queuebuf_dataptr(c->q),
+	      rimebuf_datalen()) == 0) {
+      /* We received a copy of our own packet, so we do not send out
+	 packet. */
+      queuebuf_free(c->q);
+      c->q = NULL;
+      ctimer_stop(&c->t);
+      if(c->cb->dropped) {
+	c->cb->dropped(c);
+      }
     }
   }
   if(c->cb->recv) {
@@ -130,3 +143,4 @@ uibc_send(struct uibc_conn *c, clock_time_t interval)
   return 0;
 }
 /*---------------------------------------------------------------------------*/
+/** @} */
