@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: route.c,v 1.4 2007/03/24 13:57:04 oliverschmidt Exp $
+ * $Id: route.c,v 1.5 2007/03/25 12:03:59 adamdunkels Exp $
  */
 
 /**
@@ -52,7 +52,7 @@ MEMB(route_mem, struct route_entry, NUM_RT_ENTRIES);
 
 static struct ctimer t;
 
-#define MAX_TIME 10
+static int max_time = 10;
 
 /*---------------------------------------------------------------------------*/
 static void
@@ -62,7 +62,7 @@ periodic(void *ptr)
 
   for(e = list_head(route_table); e != NULL; e = e->next) {
     e->time++;
-    if(e->time >= MAX_TIME) {
+    if(e->time >= max_time) {
       printf("Route to %d.%d bropped\n",
 	     e->dest.u8[0], e->dest.u8[1]);
       list_remove(route_table, e);
@@ -70,7 +70,7 @@ periodic(void *ptr)
     }
   }
 
-  ctimer_set(&t, CLOCK_SECOND * 2, periodic, NULL);
+  ctimer_set(&t, CLOCK_SECOND, periodic, NULL);
 }
 /*---------------------------------------------------------------------------*/
 void
@@ -79,7 +79,7 @@ route_init(void)
   list_init(route_table);
   memb_init(&route_mem);
 
-  ctimer_set(&t, CLOCK_SECOND * 2, periodic, NULL);
+  ctimer_set(&t, CLOCK_SECOND, periodic, NULL);
 }
 /*---------------------------------------------------------------------------*/
 int
@@ -155,5 +155,11 @@ route_flush_all(void)
       break;
     }
   }
+}
+/*---------------------------------------------------------------------------*/
+void
+route_set_lifetime(int seconds)
+{
+  max_time = seconds;
 }
 /*---------------------------------------------------------------------------*/
