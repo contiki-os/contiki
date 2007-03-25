@@ -45,13 +45,13 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: rt.h,v 1.1 2007/03/19 00:16:13 adamdunkels Exp $
+ * @(#)$Id: rtimer.h,v 1.1 2007/03/25 17:11:02 adamdunkels Exp $
  */
-#ifndef __RT_H__
-#define __RT_H__
+#ifndef __RTIMER_H__
+#define __RTIMER_H__
 
-typedef unsigned short rt_clock_t;
-#define RT_CLOCK_LT(a,b)     ((signed short)((a)-(b)) < 0)
+typedef unsigned short rtimer_clock_t;
+#define RTIMER_CLOCK_LT(a,b)     ((signed short)((a)-(b)) < 0)
 
 /**
  * \brief      Initialize the real-time scheduler.
@@ -60,7 +60,7 @@ typedef unsigned short rt_clock_t;
  *             must be called at boot-up, before any other functions
  *             from the real-time scheduler is called.
  */
-void rt_init(void);
+void rtimer_init(void);
 
 /**
  * \brief      Repressentation of a real-time task
@@ -69,37 +69,21 @@ void rt_init(void);
  *             by the real-time module and the architecture specific
  *             support module for the real-time module.
  */
-struct rt_task {
-  char *name;
-  rt_clock_t time;
-  void (* func)(struct rt_task *t, void *ptr);
-  unsigned char prio;
+struct rtimer {
+  rtimer_clock_t time;
+  void (* func)(struct rtimer *t, void *ptr);
   void *ptr;
 };
 
-/**
- * \brief      Declare a real-time task.
- * \param name The name of the task state variable.
- * \param func The function implementing the real-time task.
- * \param prio The priority of the task.
- * \param ptr  An opaque pointer that is passed to the real-time task
- *             when it is executed.
- *
- *             This macro declares a real-time task.
- *
- * \hideinitializer
- */
-#define RT_TASK(name, func, prio, ptr) { name, 0, func, prio, ptr }
-
 enum {
-  RT_OK,
-  RT_ERR_FULL,
-  RT_ERR_TIME,
+  RTIMER_OK,
+  RTIMER_ERR_FULL,
+  RTIMER_ERR_TIME,
 };
 
 /**
  * \brief      Post a real-time task.
- * \param task A pointer to the task variable previously declared with RT_TASK().
+ * \param task A pointer to the task variable previously declared with RTIMER_TASK().
  * \param time The time when the task is to be executed.
  * \return     Non-zero (true) if the task could be scheduled, zero
  *             (false) if the task could not be scheduled.
@@ -108,7 +92,8 @@ enum {
  *             time in the future.
  *
  */
-int rt_post(struct rt_task *task, rt_clock_t time, rt_clock_t duration);
+int rtimer_set(struct rtimer *t, rtimer_clock_t time, rtimer_clock_t duration,
+	       void (* func)(struct rtimer *t, void *ptr), void *ptr);
 
 /**
  * \brief      Execute the next real-time task and schedule the next task, if any
@@ -117,7 +102,7 @@ int rt_post(struct rt_task *task, rt_clock_t time, rt_clock_t duration);
  *             code to execute and schedule the next real-time task.
  *
  */
-void rt_task_run(void);
+void rtimer_next(void);
 
 /**
  * \brief      Get the current clock time
@@ -129,7 +114,7 @@ void rt_task_run(void);
  *
  * \hideinitializer
  */
-#define RT_NOW() rt_arch_now()
+#define RTIMER_NOW() rtimer_arch_now()
 
 /**
  * \brief      Get the time that a task last was executed
@@ -142,15 +127,14 @@ void rt_task_run(void);
  *
  * \hideinitializer
  */
-#define RT_TASK_TIME(task) ((task)->time)
+#define RTIMER_TIME(task) ((task)->time)
 
-void rt_arch_init(void);
-void rt_arch_schedule(rt_clock_t t);
-rt_clock_t rt_arch_now(void);
+void rtimer_arch_init(void);
+void rtimer_arch_schedule(rtimer_clock_t t);
+rtimer_clock_t rtimer_arch_now(void);
 
+#include "rtimer-arch.h"
 
-#include "rt-arch.h"
-
-#endif /* __RT_H__ */
+#endif /* __RTIMER_H__ */
 
 /** @} */
