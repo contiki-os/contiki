@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: tcprudolph0.c,v 1.2 2007/03/25 12:13:27 adamdunkels Exp $
+ * @(#)$Id: tcprudolph0.c,v 1.3 2007/03/25 12:14:21 adamdunkels Exp $
  */
 
 #include <stdio.h>
@@ -46,7 +46,7 @@
 
 #include "codeprop.h"
 
-#include "rudolph0.h"
+#include "core/net/rime/rudolph0.h"
 
 #define DEBUG 0
 #if DEBUG
