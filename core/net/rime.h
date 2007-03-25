@@ -1,22 +1,5 @@
 /**
- * \defgroup rime Rime - a Lightweight Layered Communication Stack for
- * Contiki
- *
- * Rime is a communication stack for Contiki that consists of a number
- * of modules that individually are very simple, but together form a
- * feature-rich communication stack.
- *
- * Rime modules:
- *
- * abc: Anonymous link-local BroadCast
- * ibc: Identified link-local BroadCast
- * uc: link-local UniCast
- * suc: Stubborn link-local UniCast
- * ruc: Reliable link-local UniCast
- * sibc: Stubborn Identified link-local BroadCast
- *
- * sabc: Stubborn Anonymous link-local BroadCast
- * nf: Network Flooding
+ * \addtogroup rime
  * @{
  */
 
@@ -50,7 +33,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: rime.h,v 1.4 2007/03/25 09:19:16 oliverschmidt Exp $
+ * $Id: rime.h,v 1.5 2007/03/25 17:16:25 adamdunkels Exp $
  */
 
 /**
@@ -65,17 +48,30 @@
 
 #include "net/rime/ruc.h"
 #include "net/rime/sibc.h"
-#include "net/rime/nf.h"
 #include "net/rime/ctimer.h"
 #include "net/rime/rimebuf.h"
 #include "net/rime/queuebuf.h"
 #include "net/rime/route.h"
 
-#include "net/rime/channel-assignments.h"
-
 #include "net/rime/rime-debug.h"
 
+/**
+ * \brief      Initialize Rime
+ *
+ *             This function should be called from the system boot up
+ *             code to initialize Rime.
+ */
 void rime_init(void);
+
+/**
+ * \brief      Send an incoming packet to Rime
+ *
+ *             This function should be called by the network driver to
+ *             hand over a packet to Rime for furhter processing. The
+ *             packet should be placed in the rimebuf (with
+ *             rimebuf_copyfrom()) before calling this function.
+ *
+ */
 void rime_input(void);
 
 /**
@@ -95,3 +91,5 @@ void rime_input(void);
 void rime_driver_send(void);
 
 #endif /* __RIME_H__ */
+
+/** @} */
