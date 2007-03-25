@@ -1,3 +1,8 @@
+/**
+ * \addtogroup rime-ibc
+ * @{
+ */
+
 /*
  * Copyright (c) 2006, Swedish Institute of Computer Science.
  * All rights reserved.
@@ -28,12 +33,12 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: ibc.c,v 1.7 2007/03/23 10:46:35 adamdunkels Exp $
+ * $Id: ibc.c,v 1.8 2007/03/25 12:05:51 adamdunkels Exp $
  */
 
 /**
  * \file
- *         A brief description of what this file is.
+ *         Identified best-effort local area broadcast (ibc)
  * \author
  *         Adam Dunkels <adam@sics.se>
  */
@@ -89,3 +94,4 @@ ibc_send(struct ibc_conn *c)
   return 0;
 }
 /*---------------------------------------------------------------------------*/
+/** @} */

@@ -30,11 +30,11 @@
  *
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: abc.c,v 1.8 2007/03/23 10:46:35 adamdunkels Exp $
+ * $Id: abc.c,v 1.9 2007/03/25 12:05:51 adamdunkels Exp $
  */
 
 /**
- * \addtogroup rime
+ * \addtogroup rime_abc
  * @{
  */
 

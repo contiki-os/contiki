@@ -1,3 +1,17 @@
+/**
+ * \addtogroup rime
+ * @{
+ */
+
+/**
+ * \defgroup rime-mesh Mesh routing
+ * @{
+ *
+ * The abc module sends packets using multi-hop routing to a specified
+ * receiver somewhere in the network.
+ *
+ */
+
 /*
  * Copyright (c) 2007, Swedish Institute of Computer Science.
  * All rights reserved.
@@ -28,7 +42,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: mesh.h,v 1.5 2007/03/22 17:34:16 adamdunkels Exp $
+ * $Id: mesh.h,v 1.6 2007/03/25 12:05:51 adamdunkels Exp $
  */
 
 /**
@@ -47,9 +61,15 @@
 
 struct mesh_conn;
 
+/**
+ * \brief     Mesh callbacks
+ */
 struct mesh_callbacks {
+  /** Called when a packet is received. */
   void (* recv)(struct mesh_conn *c, rimeaddr_t *from);
+  /** Called when a packet, sent with mesh_send(), is actually transmitted. */
   void (* sent)(struct mesh_conn *c);
+  /** Called when a packet, sent with mesh_send(), times out and is dropped. */
   void (* timedout)(struct mesh_conn *c);
 };
 
@@ -61,11 +81,51 @@ struct mesh_conn {
   const struct mesh_callbacks *cb;
 };
 
+/**
+ * \brief      Open a mesh connection
+ * \param c    A pointer to a struct mesh_conn
+ * \param channels The channels on which the connection will operate; mesh uses 3 channels
+ * \param callbacks Pointer to callback structure
+ *
+ *             This function sets up a mesh connection on the
+ *             specified channel. The caller must have allocated the
+ *             memory for the struct mesh_conn, usually by declaring it
+ *             as a static variable.
+ *
+ *             The struct mesh_callbacks pointer must point to a structure
+ *             containing function pointers to functions that will be called
+ *             when a packet arrives on the channel.
+ *
+ */
 void mesh_open(struct mesh_conn *c, u16_t channels,
 	       const struct mesh_callbacks *callbacks);
 
-int mesh_send(struct mesh_conn *c, rimeaddr_t *dest);
-
+/**
+ * \brief      Close an mesh connection
+ * \param c    A pointer to a struct mesh_conn
+ *
+ *             This function closes an mesh connection that has
+ *             previously been opened with mesh_open().
+ *
+ *             This function typically is called as an exit handler.
+ *
+ */
 void mesh_close(struct mesh_conn *c);
 
+/**
+ * \brief      Send a mesh packet
+ * \param c    The mesh connection on which the packet should be sent
+ * \retval     Non-zero if the packet could be queued for sending, zero otherwise
+ *
+ *             This function sends a mesh packet. The packet must be
+ *             present in the rimebuf before this function is called.
+ *
+ *             The parameter c must point to an abc connection that
+ *             must have previously been set up with mesh_open().
+ *
+ */
+int mesh_send(struct mesh_conn *c, rimeaddr_t *dest);
+
 #endif /* __MESH_H__ */
+/** @} */
+/** @} */
