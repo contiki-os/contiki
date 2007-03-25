@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: neighbor.c,v 1.6 2007/03/24 13:57:04 oliverschmidt Exp $
+ * $Id: neighbor.c,v 1.7 2007/03/25 12:06:28 adamdunkels Exp $
  */
 
 /**
@@ -213,5 +213,11 @@ neighbor_best(void)
     return &neighbors[best];
   }
   return NULL;
+}
+/*---------------------------------------------------------------------------*/
+void
+neighbor_set_lifetime(int seconds)
+{
+  max_time = seconds;
 }
 /*---------------------------------------------------------------------------*/

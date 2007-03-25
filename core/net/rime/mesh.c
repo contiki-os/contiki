@@ -1,3 +1,8 @@
+/**
+ * \addtogroup rime-mesh
+ * @{
+ */
+
 /*
  * Copyright (c) 2007, Swedish Institute of Computer Science.
  * All rights reserved.
@@ -28,7 +33,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: mesh.c,v 1.5 2007/03/22 17:34:16 adamdunkels Exp $
+ * $Id: mesh.c,v 1.6 2007/03/25 12:06:57 adamdunkels Exp $
  */
 
 /**
@@ -111,7 +116,9 @@ mesh_open(struct mesh_conn *c, u16_t channels,
 	  const struct mesh_callbacks *callbacks)
 {
   mh_open(&c->mh, channels, &data_callbacks);
-  route_discovery_open(&c->route_discovery_conn, channels + 1,
+  route_discovery_open(&c->route_discovery_conn,
+		       CLOCK_SECOND / 2,
+		       channels + 1,
 		       &route_discovery_callbacks);
   c->cb = callbacks;
 }
@@ -146,3 +153,4 @@ mesh_send(struct mesh_conn *c, rimeaddr_t *to)
   return 1;
 }
 /*---------------------------------------------------------------------------*/
+/** @} */
