@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: uabc.c,v 1.3 2007/03/22 17:37:10 adamdunkels Exp $
+ * $Id: uabc.c,v 1.4 2007/03/25 21:44:23 adamdunkels Exp $
  */
 
 /**
@@ -112,7 +112,7 @@ uabc_send(struct uabc_conn *c, clock_time_t interval)
   }
   c->q = queuebuf_new_from_rimebuf();
   if(c->q != NULL) {
-    ctimer_set(&c->t, interval / 2 + (rand() % (interval / 2)), send, c);
+    ctimer_set(&c->t, interval / 2 + (random_rand() % (interval / 2)), send, c);
     return 1;
   }
   return 0;
