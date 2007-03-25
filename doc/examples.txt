@@ -6,3 +6,12 @@
 /** \example example-list.c */
 /** \example example-packet-service.c */
 /** \example example-psock-server.c */
+
+/** \example test-abc.c */
+/** \example test-meshroute.c */
+/** \example test-rudolph0.c */
+/** \example test-rudolph1.c */
+/** \example test-treeroute.c */
+/** \example test-trickle.c */
+/** \example test-uabc.c */
+/** \example test-uibc.c */
