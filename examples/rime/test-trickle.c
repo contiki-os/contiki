@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: test-trickle.c,v 1.2 2007/03/21 23:25:16 adamdunkels Exp $
+ * $Id: test-trickle.c,v 1.3 2007/03/25 12:10:29 adamdunkels Exp $
  */
 
 /**
@@ -61,6 +61,7 @@ static struct trickle_conn trickle;
 /*---------------------------------------------------------------------------*/
 PROCESS_THREAD(test_trickle_process, ev, data)
 {
+  PROCESS_EXITHANDLER(trickle_close(&trickle);)
   PROCESS_BEGIN();
 
   /*  log_message("Trickle", "running");*/

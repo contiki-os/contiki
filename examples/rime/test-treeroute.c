@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: test-treeroute.c,v 1.2 2007/03/22 19:03:56 adamdunkels Exp $
+ * $Id: test-treeroute.c,v 1.3 2007/03/25 12:10:29 adamdunkels Exp $
  */
 
 /**
@@ -44,6 +44,8 @@
 #include "dev/leds.h"
 #include "dev/pir-sensor.h"
 #include "dev/button-sensor.h"
+
+#include <stdio.h>
 
 static struct tree_conn tc;
 
