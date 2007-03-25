@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: neighbor.h,v 1.3 2007/03/22 17:34:43 adamdunkels Exp $
+ * $Id: neighbor.h,v 1.4 2007/03/25 12:06:28 adamdunkels Exp $
  */
 
 /**
@@ -60,6 +60,7 @@ void neighbor_remove(rimeaddr_t *addr);
 
 struct neighbor *neighbor_find(rimeaddr_t *addr);
 struct neighbor *neighbor_best(void);
+void neighbor_set_lifetime(int seconds);
 
 
 #endif /* __NEIGHBOR_H__ */

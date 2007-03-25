@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: nf.h,v 1.7 2007/03/21 23:21:54 adamdunkels Exp $
+ * $Id: nf.h,v 1.8 2007/03/25 12:06:28 adamdunkels Exp $
  */
 
 /**
@@ -58,14 +58,15 @@ struct nf_conn {
   struct uibc_conn c;
   struct ctimer t;
   struct queuebuf *buf;
+  clock_time_t queue_time;
   u8_t packets_received;
   u8_t last_originator_seqno;
   rimeaddr_t last_originator;
   const struct nf_callbacks *u;
 };
 
-void nf_open(struct nf_conn *c, u16_t channel,
-	      const struct nf_callbacks *u);
+void nf_open(struct nf_conn *c, clock_time_t queue_time,
+	     u16_t channel, const struct nf_callbacks *u);
 void nf_close(struct nf_conn *c);
 
 int nf_send(struct nf_conn *c);

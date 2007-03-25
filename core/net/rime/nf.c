@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: nf.c,v 1.9 2007/03/23 10:46:35 adamdunkels Exp $
+ * $Id: nf.c,v 1.10 2007/03/25 12:06:28 adamdunkels Exp $
  */
 
 /**
@@ -42,8 +42,6 @@
 #include "net/rime.h"
 #include "lib/rand.h"
 #include <string.h>
-
-#define QUEUE_TIME CLOCK_SECOND / 4
 
 #define HOPS_MAX 16
 
@@ -70,7 +68,7 @@ static void send(void *ptr);
 static void
 set_timer(struct nf_conn *c)
 {
-  ctimer_set(&c->t, QUEUE_TIME, send, c);
+  ctimer_set(&c->t, c->queue_time, send, c);
 }
 /*---------------------------------------------------------------------------*/
 static void
@@ -88,7 +86,7 @@ send(void *ptr)
     c->buf = NULL;
     PRINTF("%d.%d: nf send to uibc\n",
 	   rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1]);
-    uibc_send(&c->c, QUEUE_TIME);
+    uibc_send(&c->c, c->queue_time);
     if(c->u->sent != NULL) {
       c->u->sent(c);
     }
@@ -164,11 +162,12 @@ recv_from_uibc(struct uibc_conn *uibc, rimeaddr_t *from)
 static const struct uibc_callbacks nf = {recv_from_uibc, NULL, NULL};
 /*---------------------------------------------------------------------------*/
 void
-nf_open(struct nf_conn *c, u16_t channel,
-	  const struct nf_callbacks *u)
+nf_open(struct nf_conn *c, clock_time_t queue_time,
+	u16_t channel, const struct nf_callbacks *u)
 {
   uibc_open(&c->c, channel, &nf);
   c->u = u;
+  c->queue_time = queue_time;
 }
 /*---------------------------------------------------------------------------*/
 void
