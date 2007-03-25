@@ -18,7 +18,7 @@ CONTIKI_CPU=$(CONTIKI)/cpu/x86
 
 ### Compiler definitions
 CC       = gcc
-LD       = ld
+LD       = gcc
 AS       = as
 OBJCOPY  = objcopy
 STRIP    = strip
