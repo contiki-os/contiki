@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: route.h,v 1.3 2007/03/24 13:54:05 oliverschmidt Exp $
+ * $Id: route.h,v 1.4 2007/03/25 12:03:59 adamdunkels Exp $
  */
 
 /**
@@ -59,5 +59,6 @@ int route_add(rimeaddr_t *dest, rimeaddr_t *nexthop,
 struct route_entry *route_lookup(rimeaddr_t *dest);
 void route_remove(struct route_entry *e);
 void route_flush_all(void);
+void route_set_lifetime(int seconds);
 
 #endif /* __ROUTE_H__ */
