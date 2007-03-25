@@ -1,10 +1,10 @@
 /* -*- C -*- */
-/* @(#)$Id: contiki-conf.h,v 1.11 2007/03/23 12:15:50 nifi Exp $ */
+/* @(#)$Id: contiki-conf.h,v 1.12 2007/03/25 21:54:06 adamdunkels Exp $ */
 
 #ifndef CONTIKI_CONF_H
 #define CONTIKI_CONF_H
 
-#define ELFLOADER_CONF_DATAMEMORY_SIZE 500
+#define ELFLOADER_CONF_DATAMEMORY_SIZE 0x1800
 #define ELFLOADER_CONF_TEXTMEMORY_SIZE 0x2000
 
 #define LPM_CONF_OFF LPM4_EXIT
