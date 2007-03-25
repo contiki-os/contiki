@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: tcprudolph0.c,v 1.1 2007/03/23 00:03:25 adamdunkels Exp $
+ * @(#)$Id: tcprudolph0.c,v 1.4 2007/03/25 12:14:45 adamdunkels Exp $
  */
 
 #include <stdio.h>
@@ -40,11 +40,13 @@
 
 #include "net/uip.h"
 
+#include "dev/leds.h"
+
 #include "cfs/cfs.h"
 
 #include "codeprop.h"
 
-#include "rudolph0.h"
+#include "net/rime/rudolph0.h"
 
 #define DEBUG 0
 #if DEBUG
@@ -119,6 +121,7 @@ PT_THREAD(recv_tcpthread(struct pt *pt))
 
   /* Read the rest of the data. */
   do {
+    leds_toggle(LEDS_RED);
     if(uip_len > 0) {
       s.fd = cfs_open("codeprop.out", CFS_WRITE + CFS_APPEND);
       cfs_seek(s.fd, s.addr);
@@ -133,7 +136,7 @@ PT_THREAD(recv_tcpthread(struct pt *pt))
       PT_YIELD_UNTIL(pt, uip_newdata());
     }
   } while(s.addr < s.len);
-
+  leds_off(LEDS_RED);
 
 #if DEBUG
   {
@@ -190,6 +193,8 @@ write_chunk(struct rudolph0_conn *c, int offset, int flag,
 	    char *data, int datalen)
 {
   int fd;
+
+  leds_toggle(LEDS_YELLOW);
   
   if(flag == RUDOLPH0_FLAG_NEWFILE) {
     printf("+++ rudolph0 new file incoming at %lu\n", clock_time());
@@ -198,6 +203,7 @@ write_chunk(struct rudolph0_conn *c, int offset, int flag,
     if(elfloader_autostart_processes != NULL) {
       PRINTF("Stopping old programs.\n");
       autostart_exit(elfloader_autostart_processes);
+      elfloader_autostart_processes = NULL;
     }
 
   } else {
@@ -216,6 +222,7 @@ write_chunk(struct rudolph0_conn *c, int offset, int flag,
   if(flag == RUDOLPH0_FLAG_LASTCHUNK) {
     printf("+++ rudolph0 entire file received at %lu\n", clock_time());
     start_program();
+    leds_off(LEDS_YELLOW);
   }
 }
 static int
@@ -223,12 +230,17 @@ read_chunk(struct rudolph0_conn *c, int offset, char *to, int maxsize)
 {
   int fd;
   int ret;
+
+  leds_toggle(LEDS_GREEN);
   
   fd = cfs_open("hej", CFS_READ);
 
   cfs_seek(fd, offset);
   ret = cfs_read(fd, to, maxsize);
   /*  printf("read_chunk %d bytes at %d, %d\n", ret, offset, (unsigned char)to[0]);*/
+  if(ret < maxsize) {
+    leds_off(LEDS_GREEN);
+  }
   cfs_close(fd);
   return ret;
 }
@@ -255,6 +267,7 @@ PROCESS_THREAD(tcp_loader_process, ev, data)
 	  if(elfloader_autostart_processes != NULL) {
 	    PRINTF("Stopping old programs.\n");
 	    autostart_exit(elfloader_autostart_processes);
+	    elfloader_autostart_processes = NULL;
 	  }
 	} else {
 	  PRINTF(("codeprop: uip_connected() and data != NULL\n"));

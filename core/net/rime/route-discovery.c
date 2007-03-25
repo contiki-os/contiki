@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: route-discovery.c,v 1.2 2007/03/25 12:06:28 adamdunkels Exp $
+ * $Id: route-discovery.c,v 1.3 2007/03/25 12:13:04 adamdunkels Exp $
  */
 
 /**
@@ -208,7 +208,7 @@ static const struct nf_callbacks rreq_callbacks = {rreq_packet_received, NULL};
 /*---------------------------------------------------------------------------*/
 void
 route_discovery_open(struct route_discovery_conn *c,
-		     clock_time time,
+		     clock_time_t time,
 		     u16_t channels,
 		     const struct route_discovery_callbacks *callbacks)
 {
