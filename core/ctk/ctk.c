@@ -44,7 +44,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: ctk.c,v 1.4 2006/08/30 23:12:33 oliverschmidt Exp $
+ * $Id: ctk.c,v 1.5 2007/03/26 23:01:11 oliverschmidt Exp $
  *
  */
 
@@ -774,7 +774,7 @@ ctk_menuitem_add(CC_REGISTER_ARG struct ctk_menu *menu,
 		 char *name)
 {
 #if CTK_CONF_MENUS
-  if(menu->nitems == CTK_CONF_MAXMENUITEMS) {
+  if(menu->nitems == CTK_MAXMENUITEMS) {
     return 0;
   }
   menu->items[menu->nitems].title = name;
