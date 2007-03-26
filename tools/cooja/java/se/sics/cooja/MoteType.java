@@ -24,7 +24,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * 
- * $Id: MoteType.java,v 1.4 2007/03/23 23:34:33 fros4943 Exp $
+ * $Id: MoteType.java,v 1.5 2007/03/26 16:31:09 fros4943 Exp $
  */
 
 package se.sics.cooja;
@@ -118,7 +118,7 @@ public interface MoteType {
    * @return True if mote type has valid settings and is ready to be used
    */
   public boolean configureAndInit(JFrame parentFrame, Simulation simulation,
-      boolean visAvailable);
+      boolean visAvailable) throws MoteTypeCreationException;
 
   /**
    * Returns XML elements representing the current config of this mote type.
@@ -146,6 +146,9 @@ public interface MoteType {
    * @return True if config was set successfully, false otherwise
    */
   public boolean setConfigXML(Simulation simulation,
-      Collection<Element> configXML, boolean visAvailable);
+      Collection<Element> configXML, boolean visAvailable) throws MoteTypeCreationException;
+
+  public class MoteTypeCreationException extends Exception {
+  }
 
 }
