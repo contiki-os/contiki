@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ContikiMoteTypeDialog.java,v 1.24 2007/03/24 00:44:55 fros4943 Exp $
+ * $Id: ContikiMoteTypeDialog.java,v 1.25 2007/03/26 16:30:29 fros4943 Exp $
  */
 
 package se.sics.cooja.contikimote;
@@ -43,6 +43,7 @@ import javax.swing.event.*;
 import org.apache.log4j.Logger;
 
 import se.sics.cooja.*;
+import se.sics.cooja.MoteType.MoteTypeCreationException;
 import se.sics.cooja.dialogs.MessageList;
 import se.sics.cooja.dialogs.ProjectDirectoriesDialog;
 
@@ -2055,7 +2056,11 @@ public class ContikiMoteTypeDialog extends JDialog {
         }
       } else if (e.getActionCommand().equals("create")) {
         // Create mote type and set various data
-        myMoteType.doInit(textID.getText());
+        try {
+          myMoteType.doInit(textID.getText());
+        } catch (MoteTypeCreationException ex) {
+          logger.fatal("Exception when loading library: " + ex);
+        }
         myMoteType.setDescription(textDescription.getText());
         myMoteType.setContikiBaseDir(textContikiDir.getText());
         myMoteType.setContikiCoreDir(textCoreDir.getText());

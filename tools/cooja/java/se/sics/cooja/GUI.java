@@ -24,7 +24,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * 
- * $Id: GUI.java,v 1.36 2007/03/25 21:32:33 fros4943 Exp $
+ * $Id: GUI.java,v 1.37 2007/03/26 16:31:09 fros4943 Exp $
  */
 
 package se.sics.cooja;
@@ -50,6 +50,7 @@ import org.jdom.input.SAXBuilder;
 import org.jdom.output.Format;
 import org.jdom.output.XMLOutputter;
 
+import se.sics.cooja.MoteType.MoteTypeCreationException;
 import se.sics.cooja.contikimote.*;
 import se.sics.cooja.dialogs.*;
 import se.sics.cooja.plugins.*;
@@ -896,7 +897,13 @@ public class GUI {
 
     // Create mote type
     logger.info("> Creating mote type");
-    ContikiMoteType moteType = new ContikiMoteType(moteTypeID);
+    ContikiMoteType moteType;
+    try {
+      moteType = new ContikiMoteType(moteTypeID);
+    } catch (MoteTypeCreationException e) {
+      logger.fatal("Exception when creating mote type: " + e);
+      return false;
+    }
     moteType.setDescription("Mote type: " + filename);
     moteType.setContikiBaseDir(contikiBaseDir.getPath());
     moteType.setContikiCoreDir(contikiCoreDir.getPath());

@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ContikiMoteType.java,v 1.8 2007/03/23 23:34:33 fros4943 Exp $
+ * $Id: ContikiMoteType.java,v 1.9 2007/03/26 16:30:29 fros4943 Exp $
  */
 
 package se.sics.cooja.contikimote;
@@ -147,7 +147,7 @@ public class ContikiMoteType implements MoteType {
    * @param identifier
    *          Unique identifier for this mote type
    */
-  public ContikiMoteType(String identifier) {
+  public ContikiMoteType(String identifier) throws MoteTypeCreationException {
     doInit(identifier);
   }
 
@@ -155,7 +155,8 @@ public class ContikiMoteType implements MoteType {
     return new ContikiMote(this, simulation);
   }
 
-  public boolean configureAndInit(JFrame parentFrame, Simulation simulation, boolean visAvailable) {
+  public boolean configureAndInit(JFrame parentFrame, Simulation simulation, boolean visAvailable)
+  throws MoteTypeCreationException {
     if (visAvailable) {
       return ContikiMoteTypeDialog.showDialog(parentFrame, simulation, this);
     } else {
@@ -241,7 +242,7 @@ public class ContikiMoteType implements MoteType {
    *          Mote type identifier
    * @return True if initialization ok, false otherwise
    */
-  protected boolean doInit(String identifier) {
+  protected boolean doInit(String identifier) throws MoteTypeCreationException {
     this.identifier = identifier;
 
     if (myCoreComm != null) {
@@ -1149,7 +1150,7 @@ public class ContikiMoteType implements MoteType {
   }
 
   public boolean setConfigXML(Simulation simulation,
-      Collection<Element> configXML, boolean visAvailable) {
+      Collection<Element> configXML, boolean visAvailable) throws MoteTypeCreationException {
     projectDirs = new Vector<File>();
     compilationFiles = new Vector<File>();
     processes = new Vector<String>();
@@ -1211,5 +1212,5 @@ public class ContikiMoteType implements MoteType {
     boolean createdOK = configureAndInit(GUI.frame, simulation, visAvailable);
     return createdOK;
   }
-
+  
 }
