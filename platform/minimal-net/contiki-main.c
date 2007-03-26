@@ -29,17 +29,24 @@
  *
  * This file is part of the Contiki OS
  *
- * $Id: contiki-main.c,v 1.2 2006/08/10 19:23:13 bg- Exp $
+ * $Id: contiki-main.c,v 1.3 2007/03/26 02:53:54 oliverschmidt Exp $
  *
  */
 
 #include "contiki.h"
 
 #include "net/uip.h"
+#ifdef __CYGWIN__
+#include "net/wpcap-service.h"
+#else
 #include "net/tapdev-service.h"
+#endif
 
-PROCINIT(&etimer_process, &tcpip_process,
-	 &tapdev_process);
+#ifdef __CYGWIN__
+PROCINIT(&etimer_process, &tcpip_process, &wpcap_process);
+#else
+PROCINIT(&etimer_process, &tcpip_process, &tapdev_process);
+#endif
 
 /*---------------------------------------------------------------------------*/
 int
