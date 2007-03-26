@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: rudolph1.c,v 1.2 2007/03/25 21:31:24 oliverschmidt Exp $
+ * $Id: rudolph1.c,v 1.3 2007/03/26 22:45:50 oliverschmidt Exp $
  */
 
 /**
@@ -38,6 +38,7 @@
  *         Adam Dunkels <adam@sics.se>
  */
 
+#include <stdio.h>
 #include <stddef.h> /* for offsetof */
 
 #include "net/rime.h"

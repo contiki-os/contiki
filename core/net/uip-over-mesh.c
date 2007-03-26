@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: uip-over-mesh.c,v 1.2 2007/03/25 12:13:22 adamdunkels Exp $
+ * $Id: uip-over-mesh.c,v 1.3 2007/03/26 22:45:49 oliverschmidt Exp $
  */
 
 /**
@@ -37,6 +37,8 @@
  * \author
  *         Adam Dunkels <adam@sics.se>
  */
+
+#include <stdio.h>
 
 #include "net/hc.h"
 #include "net/uip-fw.h"
