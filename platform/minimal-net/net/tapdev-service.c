@@ -28,28 +28,34 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: tapdev-service.c,v 1.2 2006/08/10 19:23:13 bg- Exp $
+ * @(#)$Id: tapdev-service.c,v 1.3 2007/03/27 20:41:10 oliverschmidt Exp $
  */
 
 #include "contiki-net.h"
 #include "tapdev.h"
 #include "net/uip-neighbor.h"
 
-/*static struct uip_eth_addr addr =
-  {{0x08, 0x12, 0x23, 0x89, 0xa3, 0x94}};*/
-
 #define BUF ((struct uip_eth_hdr *)&uip_buf[0])
-#define IPBUF ((struct uip_tcpip_hdr *)&uip_buf[UIP_LLH_LEN])
 
-SERVICE(tapdev_service, packet_service, { tapdev_send });
+static u8_t output(void);
+
+SERVICE(tapdev_service, packet_service, { output });
 
 PROCESS(tapdev_process, "TAP driver");
 
 /*---------------------------------------------------------------------------*/
+static u8_t
+output(void)
+{
+  uip_arp_out();
+  tapdev_send();
+  
+  return 0;
+}
+/*---------------------------------------------------------------------------*/
 static void
 pollhandler(void)
 {
-  /*  tapdev_service_request_poll();*/
   process_poll(&tapdev_process);
   uip_len = tapdev_poll();
 
@@ -61,13 +67,7 @@ pollhandler(void)
     } else
 #endif /* UIP_CONF_IPV6 */
     if(BUF->type == htons(UIP_ETHTYPE_IP)) {
-      /*      uip_arp_ipin();
-	      uip_len -= sizeof(struct uip_eth_hdr);*/
-      /*    uip_input();*/
       tcpip_input();
-      /* If the above function invocation resulted in data that
-	 should be sent out on the network, the global variable
-	 uip_len is set to a value > 0. */
     } else if(BUF->type == htons(UIP_ETHTYPE_ARP)) {
       uip_arp_arpin();
       /* If the above function invocation resulted in data that
@@ -80,11 +80,8 @@ pollhandler(void)
   }
 }
 /*---------------------------------------------------------------------------*/
-
 PROCESS_THREAD(tapdev_process, ev, data)
 {
-  PROCESS_POLLHANDLER(pollhandler());
-  
   PROCESS_BEGIN();
 
   tapdev_init();
@@ -102,3 +99,4 @@ PROCESS_THREAD(tapdev_process, ev, data)
   
   PROCESS_END();
 }
+/*---------------------------------------------------------------------------*/

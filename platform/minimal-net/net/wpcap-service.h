@@ -28,9 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  * 
- * Author: Oliver Schmidt <ol.sc@web.de>
- *
- * $Id: wpcap-service.h,v 1.1 2007/03/26 02:53:55 oliverschmidt Exp $
+ * $Id: wpcap-service.h,v 1.2 2007/03/27 20:41:10 oliverschmidt Exp $
  */
 
 #ifndef __WPCAP_SERVICE_H__
