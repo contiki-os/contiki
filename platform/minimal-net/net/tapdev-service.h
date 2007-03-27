@@ -28,8 +28,9 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: tapdev-service.h,v 1.1 2006/06/17 22:41:30 adamdunkels Exp $
+ * @(#)$Id: tapdev-service.h,v 1.2 2007/03/27 20:41:10 oliverschmidt Exp $
  */
+
 #ifndef __TAPDEV_SERVICE_H__
 #define __TAPDEV_SERVICE_H__
 

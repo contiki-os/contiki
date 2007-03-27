@@ -31,9 +31,8 @@
  *
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: tapdev.c,v 1.1 2006/06/17 22:41:30 adamdunkels Exp $
+ * $Id: tapdev.c,v 1.2 2007/03/27 20:41:10 oliverschmidt Exp $
  */
-
 
 #include <fcntl.h>
 #include <stdlib.h>
@@ -47,7 +46,6 @@
 #include <sys/uio.h>
 #include <sys/socket.h>
 
-
 #ifdef linux
 #include <sys/ioctl.h>
 #include <linux/if.h>
@@ -57,9 +55,8 @@
 #define DEVTAP "/dev/tap0"
 #endif /* linux */
 
-#include "tapdev.h"
-
 #include "contiki-net.h"
+#include "tapdev.h"
 
 #define DROP 0
 
@@ -73,37 +70,6 @@ static unsigned long lasttime;
 
 #define BUF ((struct uip_eth_hdr *)&uip_buf[0])
 
-static void do_send(void);
-u8_t tapdev_send(void);
-
-
-u16_t
-tapdev_poll(void)
-{
-  fd_set fdset;
-  struct timeval tv;
-  int ret;
-  
-  tv.tv_sec = 0;
-  tv.tv_usec = 0;
-  
-  FD_ZERO(&fdset);
-  if(fd > 0) {
-    FD_SET(fd, &fdset);
-  }
-
-  ret = select(fd + 1, &fdset, NULL, NULL, &tv);
-
-  if(ret == 0) {
-    return 0;
-  }
-  ret = read(fd, uip_buf, UIP_BUFSIZE);
-
-  if(ret == -1) {
-    perror("tapdev_poll: read");
-  }
-  return ret;
-}
 /*---------------------------------------------------------------------------*/
 void
 tapdev_init(void)
@@ -133,24 +99,48 @@ tapdev_init(void)
   printf("%s\n", buf);
 
   lasttime = 0;
-
-  /*  gdk_input_add(fd, GDK_INPUT_READ,
-      read_callback, NULL);*/
-
 }
 /*---------------------------------------------------------------------------*/
-static void
-do_send(void)
+u16_t
+tapdev_poll(void)
+{
+  fd_set fdset;
+  struct timeval tv;
+  int ret;
+  
+  tv.tv_sec = 0;
+  tv.tv_usec = 0;
+  
+  FD_ZERO(&fdset);
+  if(fd > 0) {
+    FD_SET(fd, &fdset);
+  }
+
+  ret = select(fd + 1, &fdset, NULL, NULL, &tv);
+
+  if(ret == 0) {
+    return 0;
+  }
+  ret = read(fd, uip_buf, UIP_BUFSIZE);
+
+  if(ret == -1) {
+    perror("tapdev_poll: read");
+  }
+  return ret;
+}
+/*---------------------------------------------------------------------------*/
+void
+tapdev_send(void)
 {
   int ret;
 
   if(fd <= 0) {
     return;
   }
-
  
   /*  printf("tapdev_send: sending %d bytes\n", size);*/
   /*  check_checksum(uip_buf, size);*/
+
 #if DROP
   drop++;
   if(drop % 8 == 7) {
@@ -165,20 +155,5 @@ do_send(void)
     perror("tap_dev: tapdev_send: writev");
     exit(1);
   }
-}
-/*---------------------------------------------------------------------------*/
-u8_t
-tapdev_send(void)
-{
-  uip_arp_out();
-
-  do_send();
-  return 0;
-}
-/*---------------------------------------------------------------------------*/
-void
-tapdev_do_send(void)
-{
-  do_send();
 }
 /*---------------------------------------------------------------------------*/

@@ -28,9 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * Author: Oliver Schmidt <ol.sc@web.de>
- *
- * @(#)$Id: wpcap-service.c,v 1.1 2007/03/26 02:53:54 oliverschmidt Exp $
+ * @(#)$Id: wpcap-service.c,v 1.2 2007/03/27 20:41:10 oliverschmidt Exp $
  */
 
 #include "contiki-net.h"
@@ -70,9 +68,6 @@ pollhandler(void)
 #endif /* UIP_CONF_IPV6 */
     if(BUF->type == htons(UIP_ETHTYPE_IP)) {
       tcpip_input();
-      /* If the above function invocation resulted in data that
-	 should be sent out on the network, the global variable
-	 uip_len is set to a value > 0. */
     } else if(BUF->type == htons(UIP_ETHTYPE_ARP)) {
       uip_arp_arpin();
       /* If the above function invocation resulted in data that
@@ -87,8 +82,6 @@ pollhandler(void)
 /*---------------------------------------------------------------------------*/
 PROCESS_THREAD(wpcap_process, ev, data)
 {
-  PROCESS_POLLHANDLER(pollhandler());
-  
   PROCESS_BEGIN();
 
   wpcap_init();
