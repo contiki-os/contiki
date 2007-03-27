@@ -29,7 +29,7 @@
  *
  * This file is part of the Contiki desktop environment
  *
- * $Id: contiki-main.c,v 1.2 2006/09/20 19:06:41 adamdunkels Exp $
+ * $Id: contiki-main.c,v 1.3 2007/03/27 21:26:24 oliverschmidt Exp $
  *
  */
 
@@ -68,9 +68,9 @@
 #include "cmdd.h"
 
 
-u8_t tapdev_send(void);
+u8_t tapdev_output(void);
 static struct uip_fw_netif tapif =
-  {UIP_FW_NETIF(0,0,0,0, 0,0,0,0, tapdev_send)};
+  {UIP_FW_NETIF(0,0,0,0, 0,0,0,0, tapdev_output)};
 
 
 PROCESS(init_process, "Init");
