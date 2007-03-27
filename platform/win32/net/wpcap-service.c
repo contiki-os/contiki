@@ -30,7 +30,7 @@
  * 
  * Author: Oliver Schmidt <ol.sc@web.de>
  *
- * $Id: wpcap-service.c,v 1.5 2006/12/29 00:06:32 oliverschmidt Exp $
+ * $Id: wpcap-service.c,v 1.6 2007/03/27 20:01:35 oliverschmidt Exp $
  */
 
 #define WIN32_LEAN_AND_MEAN
@@ -40,7 +40,7 @@
 #include <stdlib.h>
 #include <malloc.h>
 
-#pragma comment(lib, "wsock32")
+#pragma comment(lib, "ws2_32")
 #pragma comment(lib, "iphlpapi")
 
 #define htons		  /* Avoid 'redefinition' error. */
