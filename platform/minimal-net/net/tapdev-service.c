@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: tapdev-service.c,v 1.3 2007/03/27 20:41:10 oliverschmidt Exp $
+ * @(#)$Id: tapdev-service.c,v 1.4 2007/03/27 21:19:35 oliverschmidt Exp $
  */
 
 #include "contiki-net.h"
@@ -74,7 +74,7 @@ pollhandler(void)
 	 should be sent out on the network, the global variable
 	 uip_len is set to a value > 0. */
       if(uip_len > 0) {
-	tapdev_do_send();
+	tapdev_send();
       }
     }
   }
