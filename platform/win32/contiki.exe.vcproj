@@ -279,6 +279,10 @@
 				Name="lib"
 				>
 				<File
+					RelativePath="..\..\core\lib\energest.h"
+					>
+				</File>
+				<File
 					RelativePath="..\..\core\lib\list.h"
 					>
 				</File>
