@@ -30,7 +30,7 @@
  *
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: ethernode-uip.c,v 1.3 2007/03/22 18:59:34 adamdunkels Exp $
+ * $Id: ethernode-uip.c,v 1.4 2007/03/27 21:47:18 oliverschmidt Exp $
  */
 
 #include "contiki.h"
@@ -76,7 +76,7 @@ PROCESS_THREAD(ethernode_uip_process, ev, data)
 
 	uip_len = hc_inflate(&uip_buf[UIP_LLH_LEN], uip_len);
 
-	tapdev_send_raw();
+	tapdev_send();
 	/*    if(uip_fw_forward() == UIP_FW_LOCAL)*/ {
 	  /* A frame was avaliable (and is now read into the uip_buf), so
 	     we process it. */

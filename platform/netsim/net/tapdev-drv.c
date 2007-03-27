@@ -1,4 +1,4 @@
-
+#include "contiki-net.h"
 #include "net/tapdev.h"
 #include "net/uip_arp.h"
 
@@ -11,8 +11,7 @@ PROCESS(tapdev_drv_process, "TAP driver");
 void tapdev_drv_request_poll(void);
 
 /*---------------------------------------------------------------------------*/
-PROCESS_THREAD(tapdev_drv_process, ev, data)
-     
+PROCESS_THREAD(tapdev_drv_process, ev, data)  
 {
   PROCESS_BEGIN();
 
@@ -42,12 +41,11 @@ PROCESS_THREAD(tapdev_drv_process, ev, data)
 	   should be sent out on the network, the global variable
 	   uip_len is set to a value > 0. */
 	if(uip_len > 0) {
-	  tapdev_send_raw();
+	  tapdev_send();
 	}
       }
     }
   }
-
   PROCESS_END();
 }
 /*---------------------------------------------------------------------------*/
