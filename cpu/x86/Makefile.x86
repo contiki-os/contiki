@@ -1,4 +1,4 @@
-CONTIKI_SOURCEFILES += mtarch.c elfloader-stub.c
+CONTIKI_SOURCEFILES += mtarch.c elfloader-x86.c
 
 ### Compiler definitions
 CC       = gcc
