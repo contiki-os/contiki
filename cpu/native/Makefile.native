@@ -1,0 +1,29 @@
+CONTIKI_SOURCEFILES += rtimer-arch.c elfloader-stub.c
+
+### Compiler definitions
+CC       = gcc
+LD       = gcc
+AS       = as
+OBJCOPY  = objcopy
+STRIP    = strip
+CFLAGSNO = -I. -I$(CONTIKI) -I$(CONTIKI)/core -I$(CONTIKI_CPU) \
+           -I$(CONTIKI)/platform/$(TARGET) \
+           ${addprefix -I,$(APPDIRS)} $(APP_INCLUDES) \
+          -Wall -g -I. -I/usr/local/include
+CFLAGS  += $(CFLAGSNO) -O
+LDFLAGS  = -Wl,-Map=contiki-native.map,-export-dynamic
+
+### Compilation rules
+
+%.so: $(OBJECTDIR)/%.o
+	$(LD) -shared -o $@ $^
+
+# .PHONY: symbols.c symbols.h
+ifdef CORE
+symbols.c symbols.h:
+	$(NM) $(CORE) | awk -f ../../tools/mknmlist > symbols.c
+#	@${CONTIKI}/tools/make-symbols $(CORE)
+else
+symbols.c symbols.h:
+	@${CONTIKI}/tools/make-empty-symbols
+endif
