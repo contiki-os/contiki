@@ -4,7 +4,7 @@
  */
 
 /**
- * \defgroup rime_uibc Unique Identified best effort local area Broadcast
+ * \defgroup rimeuibc Unique Identified best effort local area Broadcast
  * @{
  *
  * Send one packet that is unique within a time interval.
@@ -41,7 +41,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: uibc.h,v 1.2 2007/03/25 12:07:10 adamdunkels Exp $
+ * $Id: uibc.h,v 1.3 2007/03/28 19:51:54 adamdunkels Exp $
  */
 
 /**

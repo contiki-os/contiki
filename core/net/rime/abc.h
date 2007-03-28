@@ -1,10 +1,10 @@
 /**
- * \addtogroup rime
+ * \addtogroup rimed
  * @{
  */
 
 /**
- * \defgroup rime_abc Anonymous best-effort local area broadcast (abc)
+ * \defgroup rimeabc Anonymous best-effort local area broadcast (abc)
  * @{
  *
  * The abc module sends packets to all local area neighbors without
@@ -41,7 +41,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: abc.h,v 1.8 2007/03/25 12:05:51 adamdunkels Exp $
+ * $Id: abc.h,v 1.9 2007/03/28 19:51:33 adamdunkels Exp $
  */
 /**
  * \file
