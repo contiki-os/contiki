@@ -30,7 +30,7 @@
  *
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: contiki-main.c,v 1.10 2007/03/27 21:47:17 oliverschmidt Exp $
+ * $Id: contiki-main.c,v 1.11 2007/03/28 20:15:15 adamdunkels Exp $
  */
 
 #include "contiki.h"
@@ -42,7 +42,6 @@
 #include "net/rime.h"
 
 #include "net/tapdev.h"
-#include "net/tapdev-drv.h"
 #include "net/tapdev-service.h"
 #include "net/ethernode-uip.h"
 #include "net/ethernode-rime.h"
@@ -63,7 +62,7 @@
 
 u8_t tapdev_output(void);
 static struct uip_fw_netif tapif =
-  {UIP_FW_NETIF(0,0,0,0, 0,0,0,0, tapdev_output)};
+  {UIP_FW_NETIF(0,0,0,0, 0,0,0,0, tapdev_send)};
 static struct uip_fw_netif meshif =
   {UIP_FW_NETIF(172,16,0,0, 255,255,0,0, uip_over_mesh_send)};
 /*static struct uip_fw_netif ethernodeif =
@@ -98,7 +97,7 @@ contiki_main(int flag)
   uip_over_mesh_init(0);
   
   if(flag == 1) {
-    process_start(&tapdev_drv_process, NULL);
+    process_start(&tapdev_process, NULL);
     uip_fw_register(&meshif);
     uip_fw_default(&tapif);
     printf("uip_hostaddr %02x%02x\n", uip_hostaddr.u16[0], uip_hostaddr.u16[1]);
