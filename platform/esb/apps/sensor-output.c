@@ -28,14 +28,15 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: sensor-output.c,v 1.1 2006/06/18 07:48:48 adamdunkels Exp $
+ * @(#)$Id: sensor-output.c,v 1.2 2007/03/28 11:04:07 nifi Exp $
  */
-#include "contiki.h"
-#include "scatterweb.h"
+#include "contiki-esb.h"
 
 #include <stdio.h>
 
 PROCESS(sensor_output_process, "Sensor output");
+
+AUTOSTART_PROCESSES(&sensor_output_process);
 
 /*---------------------------------------------------------------------------*/
 PROCESS_THREAD(sensor_output_process, ev, data)
@@ -44,12 +45,16 @@ PROCESS_THREAD(sensor_output_process, ev, data)
 
   PROCESS_BEGIN();
 
+  /* Activate some sensors to get sensor events */
+  pir_sensor.activate();
+  vib_sensor.activate();
+
   while(1) {
     PROCESS_WAIT_EVENT_UNTIL(ev == sensors_event);
 
     s = (struct sensors_sensor *)data;
-    
-    printf("%s %d\n", s->type, s->value());    
+
+    printf("%s %d\n", s->type, s->value(0));
   }
 
   PROCESS_END();
