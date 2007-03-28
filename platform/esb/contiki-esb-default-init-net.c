@@ -28,39 +28,23 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: contiki-esb-default-init-net.c,v 1.4 2007/03/15 21:53:15 adamdunkels Exp $
+ * @(#)$Id: contiki-esb-default-init-net.c,v 1.5 2007/03/28 20:34:33 adamdunkels Exp $
  */
 
 #include "contiki-esb.h"
 
-static struct uip_fw_netif tr1001if =
-  {UIP_FW_NETIF(0,0,0,0, 0,0,0,0, tr1001_uip_send)};
-
-static struct uip_fw_netif slipif =
-  {UIP_FW_NETIF(172,16,0,0, 255,255,255,0, slip_send)};
-
-#define NODE_ID (node_id & 0xFF)
+#include "net/rime.h"
 
 void
 init_net(void)
 {
-  uip_ipaddr_t hostaddr;
+  rimeaddr_t rimeaddr;
 
-  uip_init();
-  uip_fw_init();
-  
-  rs232_set_input(slip_input_byte);
+  rime_init();
+  rimeaddr.u8[0] = node_id >> 8;
+  rimeaddr.u8[1] = node_id & 0xff;
+  rimeaddr_set_node_addr(&rimeaddr);
 
-  process_start(&tr1001_uip_process, NULL);
-  process_start(&slip_process, NULL);
-  process_start(&uip_fw_process, NULL);
-  process_start(&tcpip_process, NULL);
-  
-  if (NODE_ID > 0) {
-    /* node id is set, construct an ip address based on the node id */
-    uip_ipaddr(&hostaddr, 172, 16, 1, NODE_ID);
-    uip_sethostaddr(&hostaddr);
-  }
-  uip_fw_register(&slipif);
-  uip_fw_default(&tr1001if);
+  rs232_set_input(serial_input_byte);
+
 }
