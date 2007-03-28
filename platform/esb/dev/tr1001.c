@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: tr1001.c,v 1.5 2006/10/10 12:37:04 nifi Exp $
+ * @(#)$Id: tr1001.c,v 1.6 2007/03/28 09:52:35 joxe Exp $
  */
 /**
  * \addtogroup esb
@@ -179,13 +179,13 @@ rxon(void)
   /* Enable the receiver. */
   ME1 |= URXE0;
 
-  /* Turn off receive interrupt. */
+  /* Turn on receive interrupt. */
   IE1 |= URXIE0;
 
 }
 /*---------------------------------------------------------------------------*/
 /*
- * Turn on data reception for the radio tranceiver.
+ * Turn off data reception for the radio tranceiver.
  */
 static void
 rxoff(void)
