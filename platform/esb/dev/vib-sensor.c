@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: vib-sensor.c,v 1.2 2006/10/09 21:08:51 nifi Exp $
+ * @(#)$Id: vib-sensor.c,v 1.3 2007/03/28 09:58:47 nifi Exp $
  */
 
 #include "contiki-esb.h"
@@ -58,6 +58,7 @@ irq(void)
 static void
 init(void)
 {
+  flags = VIB_ENABLE_EVENT;
   vib = 0;
   VIB_SELECT();
   VIB_MAKE_INPUT();
