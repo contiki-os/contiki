@@ -1,5 +1,5 @@
 /**
- * \addtogroup rime_uibc
+ * \addtogroup rimeuibc
  * @{
  */
 
@@ -33,7 +33,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: uibc.c,v 1.4 2007/03/25 21:44:23 adamdunkels Exp $
+ * $Id: uibc.c,v 1.5 2007/03/28 19:51:54 adamdunkels Exp $
  */
 
 /**
