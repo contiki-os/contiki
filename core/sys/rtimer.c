@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: rtimer.c,v 1.1 2007/03/25 17:10:30 adamdunkels Exp $
+ * @(#)$Id: rtimer.c,v 1.2 2007/03/28 20:28:22 adamdunkels Exp $
  */
 
 #include "sys/rtimer.h"
@@ -57,12 +57,15 @@ rtimer_init(void)
 }
 /*---------------------------------------------------------------------------*/
 int
-rtimer_set(struct rtimer *rtimer, rt_clock_t time, rt_clock_t duration,
+rtimer_set(struct rtimer *rtimer, rtimer_clock_t time, rtimer_clock_t duration,
 	   void (* func)(struct rtimer *t, void *ptr), void *ptr)
 {
   int i;
 
   PRINTF("rtimer_set time %d\n", time);
+
+  rtimer->func = func;
+  rtimer->ptr = ptr;
   
   /* Check if rtimer queue is full. */
   if(firstempty == (next - 1) % LIST_SIZE) {
@@ -86,20 +89,20 @@ rtimer_set(struct rtimer *rtimer, rt_clock_t time, rt_clock_t duration,
   /* Put the rtimer at the end of the rtimer list. */
   rtimer->time = time;
   rtimers[firstempty] = rtimer;
-  PRINTF("rt_post: putting rtimer %s as %d\n", rtimer->name, firstempty);
+  PRINTF("rtimer_post: putting rtimer %s as %d\n", rtimer->name, firstempty);
 
   firstempty = (firstempty + 1) % LIST_SIZE;
 
-  /*  PRINTF("rt_post: next %d firstempty %d scheduling soon\n",
+  /*  PRINTF("rtimer_post: next %d firstempty %d scheduling soon\n",
       next, firstempty);*/
 
   /* Check if this is the first rtimer on the list. If so, we need to
-     run the rt_arch_schedule() function to get the ball rolling. */
+     run the rtimer_arch_schedule() function to get the ball rolling. */
   if(firstempty == (next + 1) % LIST_SIZE) {
     
     PRINTF("rtimer_set scheduling %d %s (%d)\n",
 	 next, rtimers[next]->name, rtimers[next]->time);
-    rtimer
+    rtimer_arch_schedule(rtimers[next]->time);
   }
   
   return RTIMER_OK;
@@ -132,7 +135,7 @@ rtimer_run_next(void)
     PRINTF("rtimer_run_next checking %s (%d) against %s (%d)\n",
 	   rtimers[i]->name, rtimers[i]->time,
 	   rtimers[n]->name, rtimers[n]->time);
-    if(RT_CLOCK_LT(rtimers[i]->time, rtimers[n]->time)) {
+    if(RTIMER_CLOCK_LT(rtimers[i]->time, rtimers[n]->time)) {
       n = i;
     }
   }
