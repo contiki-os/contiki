@@ -16,8 +16,8 @@ CONTIKI_SOURCEFILES += $(CONTIKI_TARGET_SOURCEFILES)
 .SUFFIXES:
 
 ### Define the CPU directory
-CONTIKI_CPU=$(CONTIKI)/cpu/x86
-include $(CONTIKI)/cpu/x86/Makefile.x86
+CONTIKI_CPU=$(CONTIKI)/cpu/native
+include $(CONTIKI)/cpu/native/Makefile.native
 
 ### Setup directory search path for source files
 
