@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: rimebuf.c,v 1.6 2007/03/24 16:42:36 adamdunkels Exp $
+ * $Id: rimebuf.c,v 1.7 2007/03/29 23:18:22 adamdunkels Exp $
  */
 
 /**
@@ -50,6 +50,14 @@ static u8_t hdrptr;
 static u8_t rimebuf[RIMEBUF_SIZE + RIMEBUF_HDR_SIZE];
 
 static u8_t *rimebufptr;
+
+#define DEBUG 0
+#if DEBUG
+#include <stdio.h>
+#define PRINTF(...) printf(__VA_ARGS__)
+#else
+#define PRINTF(...)
+#endif
 
 /*---------------------------------------------------------------------------*/
 void
@@ -92,11 +100,11 @@ rimebuf_copyto_hdr(u8_t *to)
 #if DEBUG_LEVEL > 0
   {
     int i;
-    DEBUGF(0, "rimebuf_write_hdr: header:\n");
+    PRINTF("rimebuf_write_hdr: header:\n");
     for(i = hdrptr; i < RIMEBUF_HDR_SIZE; ++i) {
-      DEBUGF(0, "0x%02x, ", rimebuf[i]);
+      PRINTF("0x%02x, ", rimebuf[i]);
     }
-    DEBUGF(0, "\n");
+    PRINTF("\n");
   }
 #endif /* DEBUG_LEVEL */
   memcpy(to, rimebuf + hdrptr, RIMEBUF_HDR_SIZE - hdrptr);
@@ -116,13 +124,13 @@ rimebuf_copyto(u8_t *to)
     for(i = hdrptr; i < RIMEBUF_HDR_SIZE; ++i) {
       bufferptr += sprintf(bufferptr, "0x%02x, ", rimebuf[i]);
     }
-    DEBUGF(0, "rimebuf_write: header: %s\n", buffer);
+    PRINTF("rimebuf_write: header: %s\n", buffer);
     bufferptr = buffer;
     bufferptr[0] = 0;
     for(i = bufptr; i < buflen + bufptr; ++i) {
       bufferptr += sprintf(bufferptr, "0x%02x, ", rimebufptr[i]);
     }
-    DEBUGF(0, "rimebuf_write: data: %s\n", buffer);
+    PRINTF("rimebuf_write: data: %s\n", buffer);
   }
 #endif /* DEBUG_LEVEL */
   memcpy(to, rimebuf + hdrptr, RIMEBUF_HDR_SIZE - hdrptr);
@@ -157,7 +165,7 @@ rimebuf_hdrreduce(int size)
 void
 rimebuf_set_datalen(u16_t len)
 {
-  DEBUGF(0, "rimebuf_set_len: len %d\n", len);
+  PRINTF("rimebuf_set_len: len %d\n", len);
   buflen = len;
 }
 /*---------------------------------------------------------------------------*/

@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: ctimer.c,v 1.2 2007/03/25 12:05:51 adamdunkels Exp $
+ * $Id: ctimer.c,v 1.3 2007/03/29 23:18:22 adamdunkels Exp $
  */
 
 /**
@@ -44,6 +44,14 @@
 #include "net/rime.h"
 
 LIST(ctimer_list);
+
+#define DEBUG 0
+#if DEBUG
+#include <stdio.h>
+#define PRINTF(...) printf(__VA_ARGS__)
+#else
+#define PRINTF(...)
+#endif
 
 /*---------------------------------------------------------------------------*/
 PROCESS(ctimer_process, "ctimer process");
@@ -81,7 +89,7 @@ void
 ctimer_set(struct ctimer *c, clock_time_t t,
 	   void (*f)(void *), void *ptr)
 {
-  DEBUGF(3, "ctimer_set %p %d\n", c, t);
+  PRINTF("ctimer_set %p %d\n", c, t);
   c->p = PROCESS_CURRENT();
   c->f = f;
   c->ptr = ptr;
