@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: uip-over-mesh.c,v 1.3 2007/03/26 22:45:49 oliverschmidt Exp $
+ * $Id: uip-over-mesh.c,v 1.4 2007/03/29 22:21:56 adamdunkels Exp $
  */
 
 /**
@@ -52,6 +52,14 @@ static rimeaddr_t queued_receiver;
 static struct route_discovery_conn route_discovery;;
 static struct uc_conn dataconn;
 
+#define DEBUG 0
+#if DEBUG
+#include <stdio.h>
+#define PRINTF(...) printf(__VA_ARGS__)
+#else
+#define PRINTF(...)
+#endif
+
 /*---------------------------------------------------------------------------*/
 static void
 recv_data(struct uc_conn *c, rimeaddr_t *from)
@@ -60,16 +68,17 @@ recv_data(struct uc_conn *c, rimeaddr_t *from)
 
   /*  uip_len = hc_inflate(&uip_buf[UIP_LLH_LEN], uip_len);*/
 
-  /*  printf("%d.%d:recv_data\n",
-      rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1]);*/
+  PRINTF("uip-over-mesh: %d.%d: recv_data with len %d\n",
+	 rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1], uip_len);
   tcpip_input();
 }
 /*---------------------------------------------------------------------------*/
 static void
 send_data(rimeaddr_t *next)
 {
-  /*  printf("%d.%d:send_data\n",
-      rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1]);*/
+  PRINTF("uip-over-mesh: %d.%d: send_data with len %d\n",
+	 rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1],
+	 rimebuf_totlen());
   uc_send(&dataconn, next);
 }
 /*---------------------------------------------------------------------------*/
@@ -79,6 +88,8 @@ new_route(struct route_discovery_conn *c, rimeaddr_t *to)
   struct route_entry *rt;
   
   if(queued_packet) {
+    PRINTF("uip-over-mesh: new route, sending queued packet\n");
+    
     queuebuf_to_rimebuf(queued_packet);
     queuebuf_free(queued_packet);
     queued_packet = NULL;
@@ -93,8 +104,11 @@ new_route(struct route_discovery_conn *c, rimeaddr_t *to)
 static void
 timedout(struct route_discovery_conn *c)
 {
+  PRINTF("uip-over-mesh: packet timed out\n");
   if(queued_packet) {
+    PRINTF("uip-over-mesh: freeing queued packet\n");
     queuebuf_free(queued_packet);
+    queued_packet = NULL;
   }
 }
 /*---------------------------------------------------------------------------*/
@@ -111,7 +125,7 @@ uip_over_mesh_init(u16_t channels)
 	 uip_hostaddr.u8[2], uip_hostaddr.u8[3]); */
 
   uc_open(&dataconn, channels, &data_callbacks);
-  route_discovery_open(&route_discovery, CLOCK_SECOND / 2,
+  route_discovery_open(&route_discovery, CLOCK_SECOND / 4,
 		       channels + 1, &rdc);
   tcpip_set_forwarding(1);
 
@@ -130,7 +144,9 @@ uip_over_mesh_send(void)
   
   receiver.u16[0] = ((struct uip_udpip_hdr *)&uip_buf[UIP_LLH_LEN])->destipaddr.u16[1];
 
-  printf("uIP over mesh send to %d.%d\n", receiver.u8[0], receiver.u8[1]);
+  PRINTF("uIP over mesh send to %d.%d with len %d\n",
+	 receiver.u8[0], receiver.u8[1],
+	 uip_len);
   
   /*  uip_len = hc_compress(&uip_buf[UIP_LLH_LEN], uip_len);*/
   
@@ -138,7 +154,7 @@ uip_over_mesh_send(void)
   
   rt = route_lookup(&receiver);
   if(rt == NULL) {
-    printf("uIP over mesh no route to %d.%d\n", receiver.u8[0], receiver.u8[1]);
+    PRINTF("uIP over mesh no route to %d.%d\n", receiver.u8[0], receiver.u8[1]);
     if(queued_packet == NULL) {
       queued_packet = queuebuf_new_from_rimebuf();
       rimeaddr_copy(&queued_receiver, &receiver);
