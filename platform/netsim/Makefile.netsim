@@ -26,19 +26,7 @@ CONTIKI_CPU=$(CONTIKI)/cpu/native
 include $(CONTIKI)/cpu/native/Makefile.native
 
 ### Compiler definitions
-CC       = gcc
-LD       = gcc
-AS       = as
-OBJCOPY  = objcopy
-STRIP    = strip
-CFLAGSNO = -I. -I$(CONTIKI)/core -I$(CONTIKI_CPU) \
-           -I$(CONTIKI)/platform/$(TARGET) \
-           ${addprefix -I,$(APPDIRS)} \
-          -DWITH_UIP -DWITH_ASCII \
-          -Wall -g -I. -I/usr/local/include \
-	  `gtk-config --cflags` -DNETSIM=1
-CFLAGS   += $(CFLAGSNO)
-LDFLAGS  = -Wl,-Map=contiki-$(TARGET).map,-export-dynamic
+CFLAGS   += `gtk-config --cflags` -DNETSIM=1
 TARGET_LIBFILES = `gtk-config --libs`
 
 ### Setup directory search path for source files
@@ -50,6 +38,3 @@ vpath %.c $(PROJECTDIRS) \
 	  $(CONTIKI_CPU)
 
 ### Compilation rules
-
-%.so: $(OBJECTDIR)/%.o
-	$(LD) -shared -o $@ $^
