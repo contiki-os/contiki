@@ -30,7 +30,7 @@
  *
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: abc.c,v 1.10 2007/03/28 19:51:33 adamdunkels Exp $
+ * $Id: abc.c,v 1.11 2007/03/29 23:18:22 adamdunkels Exp $
  */
 
 /**
@@ -53,6 +53,14 @@ struct abc_hdr {
 };
 
 LIST(channels);
+
+#define DEBUG 0
+#if DEBUG
+#include <stdio.h>
+#define PRINTF(...) printf(__VA_ARGS__)
+#else
+#define PRINTF(...)
+#endif
 
 /*---------------------------------------------------------------------------*/
 void
@@ -77,7 +85,7 @@ abc_send(struct abc_conn *c)
   if(rimebuf_hdralloc(sizeof(struct abc_hdr))) {
     struct abc_hdr *hdr = rimebuf_hdrptr();
 
-    DEBUGF(1, "%d: abc: abc_send on channel %d\n", rimeaddr_node_addr.u16, c->channel);
+    PRINTF("%d: abc: abc_send on channel %d\n", rimeaddr_node_addr.u16, c->channel);
     
     hdr->channel = c->channel;
     rimebuf_compact();
@@ -95,7 +103,7 @@ abc_input_packet(void)
 
   hdr = rimebuf_dataptr();
 
-  DEBUGF(1, "%d: abc: abc_input_packet on channel %d\n", rimeaddr_node_addr.u16, hdr->channel);
+  PRINTF("%d: abc: abc_input_packet on channel %d\n", rimeaddr_node_addr.u16, hdr->channel);
   
   if(rimebuf_hdrreduce(sizeof(struct abc_hdr))) {
 

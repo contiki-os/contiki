@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: ruc.c,v 1.7 2007/03/23 10:46:35 adamdunkels Exp $
+ * $Id: ruc.c,v 1.8 2007/03/29 23:18:22 adamdunkels Exp $
  */
 
 /**
@@ -58,6 +58,14 @@ enum {
 
 static u8_t seqno;
 
+#define DEBUG 0
+#if DEBUG
+#include <stdio.h>
+#define PRINTF(...) printf(__VA_ARGS__)
+#else
+#define PRINTF(...)
+#endif
+
 /*---------------------------------------------------------------------------*/
 static void
 sent_by_suc(struct suc_conn *suc)
@@ -71,12 +79,12 @@ recv_from_suc(struct suc_conn *suc, rimeaddr_t *from)
   struct ruc_conn *c = (struct ruc_conn *)suc;
   struct ruc_hdr *hdr = rimebuf_dataptr();
 
-  DEBUGF(4, "%d: ruc: recv_from_suc type %d seqno %d\n", rimeaddr_node_addr.u16,
+  PRINTF("%d: ruc: recv_from_suc type %d seqno %d\n", rimeaddr_node_addr.u16,
 	 hdr->type, hdr->seqno);
   
   if(hdr->type == TYPE_ACK) {
     if(hdr->seqno == seqno) {
-      DEBUGF(4, "%d: ruc: ACKed\n", rimeaddr_node_addr.u16);
+      PRINTF("%d: ruc: ACKed\n", rimeaddr_node_addr.u16);
       ++seqno;
       suc_cancel(&c->c);
       if(c->u->sent != NULL) {
@@ -96,7 +104,7 @@ recv_from_suc(struct suc_conn *suc, rimeaddr_t *from)
     }
     
     if(send_ack) {
-      DEBUGF(4, "%d: ruc: Sending ACK to %d for %d\n",
+      PRINTF("%d: ruc: Sending ACK to %d for %d\n",
 	     rimeaddr_node_addr.u16, from->u16,
 	     packet_seqno);
       rimebuf_clear();
@@ -106,7 +114,7 @@ recv_from_suc(struct suc_conn *suc, rimeaddr_t *from)
       hdr->seqno = packet_seqno;
       suc_send(&c->c, from);
     } else {
-      DEBUGF(4, "%d: Not sending ACK\n", rimeaddr_node_addr.u16);
+      PRINTF("%d: Not sending ACK\n", rimeaddr_node_addr.u16);
     }
   }
 }

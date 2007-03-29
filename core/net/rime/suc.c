@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: suc.c,v 1.7 2007/03/25 21:43:23 adamdunkels Exp $
+ * $Id: suc.c,v 1.8 2007/03/29 23:18:22 adamdunkels Exp $
  */
 
 /**
@@ -42,12 +42,20 @@
 #include "net/rime.h"
 #include <string.h>
 
+#define DEBUG 0
+#if DEBUG
+#include <stdio.h>
+#define PRINTF(...) printf(__VA_ARGS__)
+#else
+#define PRINTF(...)
+#endif
+
 /*---------------------------------------------------------------------------*/
 static void
 recv_from_uc(struct uc_conn *uc, rimeaddr_t *from)
 {
   register struct suc_conn *c = (struct suc_conn *)uc;
-  DEBUGF(3, "%d: suc: recv_from_uc from %d %p\n",
+  PRINTF("%d: suc: recv_from_uc from %d %p\n",
 	 rimeaddr_node_addr.u16, from->u16, c);
   if(c->u->recv != NULL) {
     c->u->recv(c, from);
@@ -79,7 +87,7 @@ send(void *ptr)
 {
   struct suc_conn *c = ptr;
 
-  DEBUGF(3, "%d: suc: resend to %d\n",
+  PRINTF("%d: suc: resend to %d\n",
 	 rimeaddr_node_addr.u16, c->receiver.u16);
   queuebuf_to_rimebuf(c->buf);
   uc_send(&c->c, &c->receiver);
@@ -108,7 +116,7 @@ suc_send_stubborn(struct suc_conn *c, rimeaddr_t *receiver)
   rimeaddr_copy(&c->receiver, receiver);
   ctimer_set(&c->t, CLOCK_SECOND, send, c);
 
-  DEBUGF(3, "%d: suc_send_stubborn to %d\n", rimeaddr_node_addr.u16, c->receiver.u16);
+  PRINTF("%d: suc_send_stubborn to %d\n", rimeaddr_node_addr.u16, c->receiver.u16);
   uc_send(&c->c, &c->receiver);
   if(c->u->sent != NULL) {
     c->u->sent(c);
