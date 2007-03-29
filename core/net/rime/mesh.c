@@ -1,5 +1,5 @@
 /**
- * \addtogroup rime-mesh
+ * \addtogroup rimemesh
  * @{
  */
 
@@ -33,7 +33,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: mesh.c,v 1.6 2007/03/25 12:06:57 adamdunkels Exp $
+ * $Id: mesh.c,v 1.7 2007/03/29 23:18:48 adamdunkels Exp $
  */
 
 /**

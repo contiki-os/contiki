@@ -1,5 +1,5 @@
 /**
- * \addtogroup rimed
+ * \addtogroup rime
  * @{
  */
 
@@ -41,7 +41,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: abc.h,v 1.9 2007/03/28 19:51:33 adamdunkels Exp $
+ * $Id: abc.h,v 1.10 2007/03/29 23:18:47 adamdunkels Exp $
  */
 /**
  * \file
@@ -129,6 +129,6 @@ int abc_send(struct abc_conn *c);
  */
 void abc_input_packet(void);
 
-#endif /* __BC_H__ */
+#endif /* __ABC_H__ */
 /** @} */
 /** @} */

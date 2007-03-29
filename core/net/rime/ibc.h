@@ -4,7 +4,7 @@
  */
 
 /**
- * \defgroup rime-ibc Identified best-effort local area broadcast (ibc)
+ * \defgroup rimeibc Identified best-effort local area broadcast (ibc)
  * @{
  *
  * The ibc module sends packets to all local area neighbors with an a
@@ -41,7 +41,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: ibc.h,v 1.6 2007/03/25 12:05:51 adamdunkels Exp $
+ * $Id: ibc.h,v 1.7 2007/03/29 23:18:48 adamdunkels Exp $
  */
 
 /**
