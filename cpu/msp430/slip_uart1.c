@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#)$Id: slip_uart1.c,v 1.5 2007/03/25 21:52:41 adamdunkels Exp $
+ * @(#)$Id: slip_uart1.c,v 1.6 2007/03/29 23:43:59 adamdunkels Exp $
  */
 
 /*
@@ -78,8 +78,6 @@ putchar(int c)
     slip_arch_writeb(SLIP_END);
     debug_frame = 0;
   }
-
-  clock_delay(100);
 
   return c;
 }
