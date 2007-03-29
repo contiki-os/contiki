@@ -1,3 +1,6 @@
 APP_SOURCES += webserver-nogui.c httpd.c http-strings.c psock.c uipbuf.c \
                memb.c httpd-fs.c httpd-cgi.c
 DSC_SOURCES += webserver-dsc.c
+
+#$(CONTIKI)/apps/webserver/http-strings.c: $(CONTIKI)/apps/webserver/http-strings
+#	cd $(CONTIKI)/apps/webserver/; $(CONTIKI)/tools/makestrings $<
