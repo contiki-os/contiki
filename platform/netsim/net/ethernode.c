@@ -30,7 +30,7 @@
  *
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: ethernode.c,v 1.6 2007/03/22 18:59:34 adamdunkels Exp $
+ * $Id: ethernode.c,v 1.7 2007/03/29 22:25:52 adamdunkels Exp $
  */
 /**
  * \file
@@ -53,8 +53,8 @@
 
 #define BUF ((uip_tcpip_hdr *)&uip_buf[HDR_LEN])
 
-/*#define PRINTF(x)*/
-#define PRINTF(x) printf x; fflush(NULL)
+#define PRINTF(...)
+/*#define PRINTF(x) printf x; fflush(NULL)*/
 
 struct {
   u8_t id;
@@ -90,7 +90,7 @@ do_send(u8_t type, u8_t dest, struct hdr *hdr, int len)
 
   ++state.seqno;
 
-  /*  printf("ether_send len %d\n", len);*/
+  PRINTF("ether_send len %d\n", len);
   return ether_send((char *)hdr, len);
   
 }
@@ -125,10 +125,10 @@ int
 ethernode_read(u8_t *buf, int bufsize)
 {
   int len;
-  u8_t tmpbuf[UIP_BUFSIZE];
+  u8_t tmpbuf[2048];
   struct hdr *hdr = (struct hdr *)tmpbuf;
   
-  len = ether_client_read(tmpbuf, UIP_BUFSIZE);
+  len = ether_client_read(tmpbuf, sizeof(tmpbuf));
   if(len == 0) {
     return 0;
   }
@@ -170,11 +170,11 @@ u8_t
 ethernode_send(void)
 {
   int len;
-  static char tmpbuf[UIP_BUFSIZE + HDR_LEN];
+  static char tmpbuf[2048];
   struct hdr *hdr = (struct hdr *)tmpbuf;
   u8_t dest;
   
-  if(uip_len > UIP_BUFSIZE) {
+  if(uip_len > sizeof(tmpbuf)) {
     PRINTF(("Ethernode_send: too large uip_len %d\n", uip_len));
     return UIP_FW_TOOLARGE;
   }
@@ -194,7 +194,7 @@ ethernode_send(void)
 void
 ethernode_send_buf(u8_t *buf, int len)
 {
-  char tmpbuf[UIP_BUFSIZE + HDR_LEN];
+  char tmpbuf[2048];
   struct hdr *hdr = (struct hdr *)tmpbuf;
   u8_t dest;
 
