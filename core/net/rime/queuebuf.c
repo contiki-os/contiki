@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: queuebuf.c,v 1.5 2007/03/23 10:46:35 adamdunkels Exp $
+ * $Id: queuebuf.c,v 1.6 2007/03/29 22:22:20 adamdunkels Exp $
  */
 
 /**
@@ -42,8 +42,17 @@
 
 #include <string.h> /* for memcpy() */
 
+#ifdef QUEUEBUF_CONF_NUM
+#define QUEUEBUF_NUM QUEUEBUF_CONF_NUM
+#else
 #define QUEUEBUF_NUM 2
+#endif
+
+#ifdef QUEUEBUF_CONF_REF_NUM
+#define QUEUEBUF_REF_NUM QUEUEBUF_CONF_REF_NUM
+#else
 #define QUEUEBUF_REF_NUM 2
+#endif
 
 struct queuebuf {
   u16_t len;
