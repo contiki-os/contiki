@@ -30,7 +30,7 @@
  *
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: ether.c,v 1.6 2007/03/22 18:59:34 adamdunkels Exp $
+ * $Id: ether.c,v 1.7 2007/03/29 22:25:25 adamdunkels Exp $
  */
 /**
  * \file
@@ -74,12 +74,13 @@
 MEMB(packets, struct ether_packet, 20000);
 LIST(active_packets);
 
-static u8_t rxbuffer[2000];
+static u8_t rxbuffer[2048];
 static clock_time_t timer;
 
 #define BUF ((struct uip_tcpip_hdr *)&uip_buf[UIP_LLH_LEN])
 
-#define PRINTF(x) printf x
+#define PRINTF(...)
+/*#define PRINTF(x) printf x*/
 
 static int s, sc;
 
@@ -257,13 +258,18 @@ ether_client_read(u8_t *buf, int bufsize)
     return 0;
   }
   if(FD_ISSET(sc, &fdset)) {
-    ret = recv(sc, &rxbuffer[0], bufsize, 0);
+    ret = recv(sc, &rxbuffer[0], sizeof(rxbuffer), 0);
     if(ret == -1) {
       perror("ether_client_poll: read");
       return 0;
     }
     len = ret;
-    
+
+    if(len > bufsize) {
+      PRINTF("ether_client_read: packet truncated from %d to %d\n",
+	     len, bufsize);
+      len = bufsize;
+    }
     memcpy(buf, &rxbuffer[sizeof(struct ether_hdr)], len);
     radio_sensor_signal = hdr->signal;
 
@@ -309,14 +315,15 @@ ether_server_poll(void)
       return;
     }
     if(FD_ISSET(s, &fdset)) {
-      ret = recv(s, &rxbuffer[0], UIP_BUFSIZE, 0);
+      ret = recv(s, &rxbuffer[0], sizeof(rxbuffer), 0);
       if(ret == -1) {
 	perror("ether_poll: read");
 	return;
       }
       switch(hdr->type) {
       case PTYPE_DATA:
-	/*	printf("ether_poll: read %d bytes from (%d, %d)\n", ret, hdr->srcx, hdr->srcy);*/
+	PRINTF("ether_poll: read %d bytes from (%d, %d)\n",
+	       ret, hdr->srcx, hdr->srcy);
 	ether_put(rxbuffer, ret, hdr->srcx, hdr->srcy);
 	break;
       case PTYPE_LEDS:
@@ -493,7 +500,7 @@ node_send_packet(char *data, int len)
 u8_t
 ether_send(char *data, int len)
 {
-  char tmpbuf[UIP_BUFSIZE + UIP_LLH_LEN + sizeof(struct ether_hdr)];
+  char tmpbuf[2048];
   struct ether_hdr *hdr = (struct ether_hdr *)tmpbuf;
    
 
