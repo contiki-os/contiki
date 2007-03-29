@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: contiki-esb-main.c,v 1.5 2007/03/28 19:53:48 adamdunkels Exp $
+ * @(#)$Id: contiki-esb-main.c,v 1.6 2007/03/29 22:23:01 adamdunkels Exp $
  */
 
 #include <io.h>
@@ -135,6 +135,8 @@ main(void)
   /*  watchdog_init();*/
   
   /*  beep();*/
+
+  printf("Contiki started.\n");
 
   while(1) {
     /*    watchdog_restart();*/
