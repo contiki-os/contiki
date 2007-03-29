@@ -33,12 +33,12 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: rime.h,v 1.5 2007/03/25 17:16:25 adamdunkels Exp $
+ * $Id: rime.h,v 1.6 2007/03/29 23:38:07 adamdunkels Exp $
  */
 
 /**
  * \file
- *         A brief description of what this file is.
+ *         Header file for the Rime stack
  * \author
  *         Adam Dunkels <adam@sics.se>
  */
@@ -52,8 +52,6 @@
 #include "net/rime/rimebuf.h"
 #include "net/rime/queuebuf.h"
 #include "net/rime/route.h"
-
-#include "net/rime/rime-debug.h"
 
 /**
  * \brief      Initialize Rime
@@ -92,4 +90,5 @@ void rime_driver_send(void);
 
 #endif /* __RIME_H__ */
 
+/** @} */
 /** @} */
