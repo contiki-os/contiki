@@ -1,0 +1,33 @@
+Contiki is an open source, highly portable, multi-tasking operating
+system for memory-constrained networked embedded systems written by
+Adam Dunkels at the Networked Embedded Systems group at the Swedish
+Institute of Computer Science.
+
+Contiki is designed for embedded systems with small amounts of
+memory. A typical Contiki configuration is 2 kilobytes of RAM and 40
+kilobytes of ROM. Contiki consists of an event-driven kernel on top of
+which application programs are dynamically loaded and unloaded at
+runtime. Contiki processes use light-weight protothreads that provide
+a linear, thread-like programming style on top of the event-driven
+kernel. Contiki also supports per-process optional preemptive
+multi-threading, interprocess communication using message passing
+through events, as well as an optional GUI subsystem with either
+direct graphic support for locally connected terminals or networked
+virtual display with VNC or over Telnet.
+
+Contiki contains two communication stacks: uIP and Rime. uIP is a
+small RFC-compliant TCP/IP stack that makes it possible for Contiki to
+communicate over the Internet. Rime is a lightweight communication
+stack designed for low-power radios. Rime provides a wide range of
+communication primitives, from best-effort local area broadcast, to
+reliable multi-hop bulk data flooding.
+
+Contiki runs on a variety of platform ranging from embedded
+microcontrollers such as the MSP430 and the AVR to old
+homecomputers. Code footprint is on the order of kilobytes and memory
+usage can be configured to be as low as tens of bytes.
+
+Contiki is written in the C programming language and is freely
+available as open source under a BSD-style license. More information
+about Contiki can be found at the Contiki home page:
+http://www.sics.se/contiki/
