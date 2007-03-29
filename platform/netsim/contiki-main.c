@@ -30,7 +30,7 @@
  *
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: contiki-main.c,v 1.11 2007/03/28 20:15:15 adamdunkels Exp $
+ * $Id: contiki-main.c,v 1.12 2007/03/29 22:24:47 adamdunkels Exp $
  */
 
 #include "contiki.h"
@@ -62,7 +62,7 @@
 
 u8_t tapdev_output(void);
 static struct uip_fw_netif tapif =
-  {UIP_FW_NETIF(0,0,0,0, 0,0,0,0, tapdev_send)};
+  {UIP_FW_NETIF(0,0,0,0, 0,0,0,0, tapdev_output)};
 static struct uip_fw_netif meshif =
   {UIP_FW_NETIF(172,16,0,0, 255,255,0,0, uip_over_mesh_send)};
 /*static struct uip_fw_netif ethernodeif =
