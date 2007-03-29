@@ -1,0 +1,39 @@
+/** \addtogroup platform
+ * @{
+ **/
+
+/**
+\defgroup sky The Tmote Sky Board
+
+The Tmote Sky platform is a wireless sensor board from Moteiv. It is
+an MSP430-based board with an 802.15.4-compatible CC2420 radio chip, a
+1 megabyte external serial flash memory, and two light
+sensors. Contiki was ported to the Tmote Sky by Björn Grönvall as part
+of the RUNES project. The Tmote Sky port was integrated into the
+Contiki build system in March 2007.
+
+The platform-specif source code for the Tmote Sky port can be found in
+the directories platform/sky and cpu/msp430 in the Contiki source
+tree. Code for writing to the on-chip flash ROM is in the
+cpu/msp430/flash.c and code for reading and writing to the external
+flash is the file platform/sky/dev/xmem.c. Code for reading the light
+sensors is in platform/sky/dev/light.c.
+
+The serial/USB port is read from and written to with either the code
+in cpu/msp430/dev/uart1.c or platform/sky/slip_uart1.c, depending on
+weather or not the Tmote Sky is running TCP/IP or not.
+
+There are currently two CC2420 drivers in the Contiki source code,
+core/dev/simple-cc2420.c (a really simple CC2420 driver) and
+core/dev/cc2420.c (a more feature-rich CC2420 driver).
+
+More information about the Tmote Sky, including data sheets, can be
+found at Moteiv's web site: http://www.moteiv.com
+
+@{
+
+*/
+
+
+/** @} */
+/** @} */
