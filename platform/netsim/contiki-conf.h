@@ -32,7 +32,7 @@
  *
  * This file is part of the Contiki desktop OS
  *
- * $Id: contiki-conf.h,v 1.4 2006/09/26 22:09:26 adamdunkels Exp $
+ * $Id: contiki-conf.h,v 1.5 2007/03/29 22:24:21 adamdunkels Exp $
  *
  */
 
@@ -96,17 +96,21 @@ typedef unsigned long clock_time_t;
 
 /*------------------------------------------------------------------------------*/
 
+#define RIMEBUF_CONF_SIZE        128
+#define RIMEBUF_CONF_HDR_SIZE    32
+
 #define UIP_CONF_MAX_CONNECTIONS 40
 #define UIP_CONF_MAX_LISTENPORTS 40
-#define UIP_CONF_BUFFER_SIZE     420
+#define UIP_CONF_BUFFER_SIZE     120
 
 #define UIP_CONF_BYTE_ORDER      LITTLE_ENDIAN
 
 #define UIP_CONF_BROADCAST	 1
 
-#define UIP_CONF_TCP_SPLIT       1
+/* TCP splitting does not work well with multi hop routing. */
+#define UIP_CONF_TCP_SPLIT       0
 
-#define UIP_CONF_LOGGING         0
+#define UIP_CONF_LOGGING         1
 
 #define UIP_CONF_UDP_CHECKSUMS   0
 
