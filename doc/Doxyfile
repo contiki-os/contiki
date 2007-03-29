@@ -189,6 +189,7 @@ INPUT                  = contiki-mainpage.txt net.txt dev.txt \
                          ../core/lib/me.c \
                          ../core/lib/crc16.h \
                          ../core/lib/crc16.c \
+			 ../platform/sky/doc/sky.txt \
 			 ../platform/esb/doc/esb.txt \
 			 ../platform/esb/doc/slipintro.txt \
 			 ../platform/esb/dev/beep.h \

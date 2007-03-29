@@ -4,7 +4,7 @@
  */
 
 /**
- * \defgroup rime-queuebuf Rime queue buffer management
+ * \defgroup rimequeuebuf Rime queue buffer management
  * @{
  *
  * The Rime queue buffer management handles buffers that are queued.
@@ -41,7 +41,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: queuebuf.h,v 1.3 2007/03/25 12:07:10 adamdunkels Exp $
+ * $Id: queuebuf.h,v 1.4 2007/03/29 23:18:48 adamdunkels Exp $
  */
 
 /**
@@ -69,3 +69,6 @@ int queuebuf_datalen(struct queuebuf *b);
 
 
 #endif /* __QUEUEBUF_H__ */
+
+/** @} */
+/** @} */

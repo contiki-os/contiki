@@ -1,19 +1,17 @@
 /**
-\addtogroup net
-@{
-*/
+ * \addtogroup net
+ * @{
+ */
 
 /**
-\defgroup rime The Rime communication stack
-@{
-
-The Rime communication stack provides a set of lightweight
-communication primitives ranging from best-effort anonymous local area
-broadcast to reliable network flooding.
-
-*/
-
+ * \defgroup rime The Rime communication stack
+ * @{
+ *
+ * The Rime communication stack provides a set of lightweight
+ * communication primitives ranging from best-effort anonymous local area
+ * broadcast to reliable network flooding.
+ *
+ */
 
 /** @} */
 /** @} */
-

@@ -28,12 +28,12 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: queuebuf.c,v 1.6 2007/03/29 22:22:20 adamdunkels Exp $
+ * $Id: queuebuf.c,v 1.7 2007/03/29 23:18:48 adamdunkels Exp $
  */
 
 /**
  * \file
- *         A brief description of what this file is.
+ *         Implementation of the Rime queue buffers
  * \author
  *         Adam Dunkels <adam@sics.se>
  */
