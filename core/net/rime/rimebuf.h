@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: rimebuf.h,v 1.6 2007/03/24 16:42:43 adamdunkels Exp $
+ * $Id: rimebuf.h,v 1.7 2007/03/29 22:22:20 adamdunkels Exp $
  */
 
 /**
@@ -46,12 +46,20 @@
 /**
  * \brief      The size of the rimebuf, in bytes
  */
+#ifdef RIMEBUF_CONF_SIZE
+#define RIMEBUF_SIZE RIMEBUF_CONF_SIZE
+#else
 #define RIMEBUF_SIZE 128
+#endif
 
 /**
  * \brief      The size of the rimebuf header, in bytes
  */
+#ifdef RIMEBUF_CONF_HDR_SIZE
+#define RIMEBUF_HDR_SIZE RIMEBUF_CONF_HDR_SIZE
+#else
 #define RIMEBUF_HDR_SIZE 32
+#endif
 
 /**
  * \brief      Clear and reset the rimebuf
