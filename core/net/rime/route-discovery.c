@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: route-discovery.c,v 1.3 2007/03/25 12:13:04 adamdunkels Exp $
+ * $Id: route-discovery.c,v 1.4 2007/03/29 22:22:44 adamdunkels Exp $
  */
 
 /**
@@ -231,7 +231,7 @@ timeout_handler(void *ptr)
   struct route_discovery_conn *c = ptr;
   PRINTF("route_discovery: timeout, timed out\n");
   if(c->cb->timedout) {
-    /*    c->cb->timedout(c);*/
+    c->cb->timedout(c);
   }
 }
 /*---------------------------------------------------------------------------*/
