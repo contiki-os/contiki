@@ -1,7 +1,7 @@
 The Contiki build system
 
 The Contiki build system is designed to make it easy to compile
-Contiki applications for either to a hardware platform or into a
+Contiki applications for different hardware platforms or into a
 simulation platform by simply supplying different parameters to the
 make command, without having to edit makefiles or modify the
 application code.
