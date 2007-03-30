@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: process.h,v 1.5 2006/10/09 11:54:29 adamdunkels Exp $
+ * @(#)$Id: process.h,v 1.6 2007/03/30 00:04:12 adamdunkels Exp $
  */
 
 /**
@@ -293,16 +293,6 @@ CLIF extern const struct process *process_load;
  */
 #define PROCESS_NAME(name) extern struct process name
 
-/**
- * Declare a process that should not be automatically loaded.
- *
- * This macro is similar to the PROCESS() declaration, with the
- * difference that for programs that are compiled as loadable
- * programs, processes declared with the PROCESS_NOLOAD() declaration
- * will not be automatically started when the program is loaded.
- *
- * \hideinitializer
- */
 #define PROCESS_NOLOAD(name, strname)			\
   PROCESS_THREAD(name, ev, data);			\
   struct process name = { NULL, strname,		\
@@ -313,12 +303,6 @@ CLIF extern const struct process *process_load;
  * This macro declares a process. The process has two names: the
  * variable of the process structure, which is used by the C program,
  * and a human readable string name, which is used when debugging.
- *
- * \note For programs that are compiled as loadable programs: the
- * process declared with the PROCESS() declaration will be
- * automatically started when the program is loaded. The
- * PROCESS_NOLOAD() declaration can be used to declare a process that
- * shouldn't be automatically loaded.
  *
  * \param name The variable name of the process structure.
  * \param strname The string repressentation of the process' name.
