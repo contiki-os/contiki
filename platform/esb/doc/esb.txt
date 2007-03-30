@@ -148,7 +148,7 @@ packages (as root) with <tt>pkg_add</tt>.
 
 \section esb-test-compilation Compiling your first Contiki system
 
-\section esb-burn-node-id Burning node IDs to EEPRMOM
+\section esb-burn-node-id Burning node IDs to EEPROM
 
 The Contiki ESB port comes with a small program, <tt>burn-nodeid</tt>
 that semi-permanently stores a (unique) node ID number in the ESB
