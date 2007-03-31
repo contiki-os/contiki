@@ -1,3 +1,8 @@
+/**
+ * \addtogroup routediscovery
+ * @{
+ */
+
 /*
  * Copyright (c) 2007, Swedish Institute of Computer Science.
  * All rights reserved.
@@ -28,7 +33,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: route-discovery.c,v 1.4 2007/03/29 22:22:44 adamdunkels Exp $
+ * $Id: route-discovery.c,v 1.5 2007/03/31 18:31:28 adamdunkels Exp $
  */
 
 /**
@@ -244,3 +249,4 @@ route_discovery_discover(struct route_discovery_conn *c, rimeaddr_t *addr,
   send_rreq(c, addr);
 }
 /*---------------------------------------------------------------------------*/
+/** @} */

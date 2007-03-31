@@ -1,3 +1,9 @@
+/**
+ * \addtogroup rimeabc
+ * @{
+ */
+
+
 /*
  * Copyright (c) 2004, Swedish Institute of Computer Science.
  * All rights reserved.
@@ -30,12 +36,7 @@
  *
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: abc.c,v 1.11 2007/03/29 23:18:22 adamdunkels Exp $
- */
-
-/**
- * \addtogroup rimeabc
- * @{
+ * $Id: abc.c,v 1.12 2007/03/31 18:31:27 adamdunkels Exp $
  */
 
 /**

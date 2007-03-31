@@ -1,3 +1,8 @@
+/**
+ * \addtogroup rudolph1
+ * @{
+ */
+
 /*
  * Copyright (c) 2007, Swedish Institute of Computer Science.
  * All rights reserved.
@@ -28,7 +33,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: rudolph1.c,v 1.4 2007/03/28 19:52:27 adamdunkels Exp $
+ * $Id: rudolph1.c,v 1.5 2007/03/31 18:31:28 adamdunkels Exp $
  */
 
 /**
@@ -263,3 +268,4 @@ rudolph1_stop(struct rudolph1_conn *c)
   ctimer_stop(&c->t);
 }
 /*---------------------------------------------------------------------------*/
+/** @} */

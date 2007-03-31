@@ -1,3 +1,17 @@
+/**
+ * \addtogroup rime
+ * @{
+ */
+
+/**
+ * \defgroup ctimer Callback timer
+ * @{
+ *
+ * The ctimer module provides a timer mechanism that calls a specified
+ * C function when a ctimer expires.
+ *
+ */
+
 /*
  * Copyright (c) 2006, Swedish Institute of Computer Science.
  * All rights reserved.
@@ -28,7 +42,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: ctimer.h,v 1.2 2007/03/25 12:05:51 adamdunkels Exp $
+ * $Id: ctimer.h,v 1.3 2007/03/31 18:31:27 adamdunkels Exp $
  */
 
 /**
@@ -60,3 +74,5 @@ void ctimer_stop(struct ctimer *c);
 void ctimer_init(void);
 
 #endif /* __CTIMER_H__ */
+/** @} */
+/** @} */

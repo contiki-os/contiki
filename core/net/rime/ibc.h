@@ -4,11 +4,16 @@
  */
 
 /**
- * \defgroup rimeibc Identified best-effort local area broadcast (ibc)
+ * \defgroup rimeibc Identified best-effort local area broadcast
  * @{
  *
  * The ibc module sends packets to all local area neighbors with an a
  * header that identifies the sender.
+ *
+ * \section channels Channels
+ *
+ * The ibc module uses 1 channel.
+ *
  */
 
 /*
@@ -41,7 +46,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: ibc.h,v 1.7 2007/03/29 23:18:48 adamdunkels Exp $
+ * $Id: ibc.h,v 1.8 2007/03/31 18:31:27 adamdunkels Exp $
  */
 
 /**

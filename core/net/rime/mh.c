@@ -1,3 +1,8 @@
+/**
+ * \addtogroup rimemh
+ * @{
+ */
+
 /*
  * Copyright (c) 2007, Swedish Institute of Computer Science.
  * All rights reserved.
@@ -28,12 +33,12 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: mh.c,v 1.2 2007/03/23 10:46:35 adamdunkels Exp $
+ * $Id: mh.c,v 1.3 2007/03/31 18:31:28 adamdunkels Exp $
  */
 
 /**
  * \file
- *         A mesh routing protocol
+ *         Multihop forwarding
  * \author
  *         Adam Dunkels <adam@sics.se>
  */
@@ -145,3 +150,4 @@ mh_send(struct mh_conn *c, rimeaddr_t *to)
   }
 }
 /*---------------------------------------------------------------------------*/
+/** @} */

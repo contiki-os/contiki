@@ -1,3 +1,20 @@
+/**
+ * \addtogroup rime
+ * @{
+ */
+
+/**
+ * \defgroup routediscovery Rime route discovery protocol
+ * @{
+ *
+ * The route-discovery module does route discovery for Rime.
+ *
+ * \section channels Channels
+ *
+ * The ibc module uses 2 channels; one for the flooded route request
+ * packets and one for the unicast route replies.
+ *
+ */
 /*
  * Copyright (c) 2007, Swedish Institute of Computer Science.
  * All rights reserved.
@@ -28,7 +45,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: route-discovery.h,v 1.2 2007/03/25 12:06:28 adamdunkels Exp $
+ * $Id: route-discovery.h,v 1.3 2007/03/31 18:31:28 adamdunkels Exp $
  */
 
 /**
@@ -72,3 +89,5 @@ void route_discovery_discover(struct route_discovery_conn *c, rimeaddr_t *dest,
 void route_discovery_close(struct route_discovery_conn *c);
 
 #endif /* __ROUTE_DISCOVERY_H__ */
+/** @} */
+/** @} */

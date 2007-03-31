@@ -1,3 +1,8 @@
+/**
+ * \addtogroup rimequeuebuf
+ * @{
+ */
+
 /*
  * Copyright (c) 2006, Swedish Institute of Computer Science.
  * All rights reserved.
@@ -28,7 +33,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: queuebuf.c,v 1.7 2007/03/29 23:18:48 adamdunkels Exp $
+ * $Id: queuebuf.c,v 1.8 2007/03/31 18:31:28 adamdunkels Exp $
  */
 
 /**
@@ -68,6 +73,15 @@ struct queuebuf_ref {
 
 MEMB(bufmem, struct queuebuf, QUEUEBUF_NUM);
 MEMB(refbufmem, struct queuebuf_ref, QUEUEBUF_REF_NUM);
+
+#define DEBUG 0
+#if DEBUG
+#include <stdio.h>
+#define PRINTF(...) printf(__VA_ARGS__)
+#else
+#define PRINTF(...)
+#endif
+
 /*---------------------------------------------------------------------------*/
 void
 queuebuf_init(void)
@@ -88,12 +102,16 @@ queuebuf_new_from_rimebuf(void)
       rbuf->len = rimebuf_datalen();
       rbuf->ref = rimebuf_reference_ptr();
       rbuf->hdrlen = rimebuf_copyto_hdr(rbuf->hdr);
+    } else {
+      PRINTF("queuebuf_new_from_rimebuf: could not allocate a reference queuebuf\n");
     }
     return (struct queuebuf *)rbuf;
   } else {
     buf = memb_alloc(&bufmem);
     if(buf != NULL) {
       buf->len = rimebuf_copyto(buf->data);
+    } else {
+      PRINTF("queuebuf_new_from_rimebuf: could not allocate a queuebuf\n");
     }
     return buf;
   }
@@ -145,3 +163,4 @@ queuebuf_datalen(struct queuebuf *b)
   return b->len;
 }
 /*---------------------------------------------------------------------------*/
+/** @} */

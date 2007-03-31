@@ -1,3 +1,13 @@
+/**
+ * \addtogroup rime
+ * @{
+ */
+/**
+ * \defgroup rimeneighbor Rime neighbor management
+ * @{
+ *
+ * The neighbor module manages the neighbor table.
+ */
 /*
  * Copyright (c) 2006, Swedish Institute of Computer Science.
  * All rights reserved.
@@ -28,7 +38,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: neighbor.h,v 1.4 2007/03/25 12:06:28 adamdunkels Exp $
+ * $Id: neighbor.h,v 1.5 2007/03/31 18:31:28 adamdunkels Exp $
  */
 
 /**
@@ -64,3 +74,5 @@ void neighbor_set_lifetime(int seconds);
 
 
 #endif /* __NEIGHBOR_H__ */
+/** @} */
+/** @} */

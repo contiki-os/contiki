@@ -4,10 +4,15 @@
  */
 
 /**
- * \defgroup uabc Unique Anonymous best effort local area BroadCast
+ * \defgroup rimeuabc Unique anonymous best effort local area broadcast
  * @{
  *
- * Send one packet that is unique within a time interval.
+ * The uabc module sends one anonymous packet that is unique within a
+ * time interval.
+ *
+ * \section channels Channels
+ *
+ * The uabc module uses 1 channel.
  *
  */
 
@@ -41,7 +46,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: uabc.h,v 1.1 2007/03/20 11:59:55 adamdunkels Exp $
+ * $Id: uabc.h,v 1.2 2007/03/31 18:31:29 adamdunkels Exp $
  */
 
 /**

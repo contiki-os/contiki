@@ -1,3 +1,8 @@
+/**
+ * \addtogroup rimebuf
+ * @{
+ */
+
 /*
  * Copyright (c) 2006, Swedish Institute of Computer Science.
  * All rights reserved.
@@ -28,7 +33,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: rimebuf.c,v 1.7 2007/03/29 23:18:22 adamdunkels Exp $
+ * $Id: rimebuf.c,v 1.8 2007/03/31 18:31:28 adamdunkels Exp $
  */
 
 /**
@@ -219,3 +224,4 @@ rimebuf_totlen(void)
   return rimebuf_hdrlen() + rimebuf_datalen();
 }
 /*---------------------------------------------------------------------------*/
+/** @} */

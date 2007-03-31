@@ -1,3 +1,8 @@
+/**
+ * \addtogroup trickle
+ * @{
+ */
+
 /*
  * Copyright (c) 2007, Swedish Institute of Computer Science.
  * All rights reserved.
@@ -28,7 +33,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: trickle.c,v 1.3 2007/03/23 10:46:35 adamdunkels Exp $
+ * $Id: trickle.c,v 1.4 2007/03/31 18:31:29 adamdunkels Exp $
  */
 
 /**
@@ -192,3 +197,4 @@ trickle_send(struct trickle_conn *c, u8_t interval)
   reset_interval(c);
 }
 /*---------------------------------------------------------------------------*/
+/** @} */

@@ -1,3 +1,8 @@
+/**
+ * \addtogroup rimeroute
+ * @{
+ */
+
 /*
  * Copyright (c) 2007, Swedish Institute of Computer Science.
  * All rights reserved.
@@ -28,12 +33,12 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: route.c,v 1.5 2007/03/25 12:03:59 adamdunkels Exp $
+ * $Id: route.c,v 1.6 2007/03/31 18:31:28 adamdunkels Exp $
  */
 
 /**
  * \file
- *         Routing tables for the mesh routing protocol
+ *         Rime route table
  * \author
  *         Adam Dunkels <adam@sics.se>
  */
@@ -163,3 +168,4 @@ route_set_lifetime(int seconds)
   max_time = seconds;
 }
 /*---------------------------------------------------------------------------*/
+/** @} */

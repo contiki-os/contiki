@@ -1,3 +1,8 @@
+/**
+ * \addtogroup ctimer
+ * @{
+ */
+
 /*
  * Copyright (c) 2006, Swedish Institute of Computer Science.
  * All rights reserved.
@@ -28,7 +33,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: ctimer.c,v 1.3 2007/03/29 23:18:22 adamdunkels Exp $
+ * $Id: ctimer.c,v 1.4 2007/03/31 18:31:27 adamdunkels Exp $
  */
 
 /**
@@ -120,3 +125,4 @@ ctimer_stop(struct ctimer *c)
   list_remove(ctimer_list, c);
 }
 /*---------------------------------------------------------------------------*/
+/** @} */
