@@ -31,7 +31,7 @@
  *
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: tapdev.c,v 1.4 2007/03/29 22:26:17 adamdunkels Exp $
+ * $Id: tapdev.c,v 1.1 2007/03/31 18:49:40 adamdunkels Exp $
  */
 
 #include <fcntl.h>
@@ -107,7 +107,14 @@ tapdev_init(void)
   snprintf(buf, sizeof(buf), "ifconfig tap0 inet 192.168.1.1");
   system(buf);
   printf("%s\n", buf);
-  snprintf(buf, sizeof(buf), "route add -net 172.16.0.0 192.168.1.2");
+#ifdef linux
+  /* route add for linux */
+  snprintf(buf, sizeof(buf), "route add -net 172.16.0.0/16 gw 192.168.1.2");
+#else /* linux */
+  /* route add for freebsd */
+  snprintf(buf, sizeof(buf), "route add -net 172.16.0.0/16 192.168.1.2");
+#endif /* linux */
+  
   system(buf);
   printf("%s\n", buf);
   atexit(remove_route);
