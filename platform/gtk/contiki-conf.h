@@ -17,7 +17,7 @@ typedef unsigned long clock_time_t;
 
 
 
-#include "ctk-arch.h"
+#include "ctk/ctk-arch.h"
 
 #define CTK_CONF_MOUSE_SUPPORT        1
 
