@@ -1,3 +1,8 @@
+/**
+ * \addtogroup rimetree
+ * @{
+ */
+
 /*
  * Copyright (c) 2006, Swedish Institute of Computer Science.
  * All rights reserved.
@@ -28,12 +33,12 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: tree.c,v 1.9 2007/03/25 21:44:06 adamdunkels Exp $
+ * $Id: tree.c,v 1.10 2007/03/31 18:33:04 adamdunkels Exp $
  */
 
 /**
  * \file
- *         A brief description of what this file is.
+ *         Tree-based hop-by-hop reliable data collection
  * \author
  *         Adam Dunkels <adam@sics.se>
  */
@@ -65,9 +70,6 @@ struct hdr {
   u8_t originator_seqno;
   u8_t hopcount;
   u8_t hoplim;
-  u8_t retransmissions;
-  u8_t datalen;
-  u8_t data[1];
 };
 
 #define SINK 0
@@ -75,8 +77,31 @@ struct hdr {
 
 #define MAX_HOPLIM 10
 
-#define MAX_INTERVAL CLOCK_SECOND * 4
+#define MAX_INTERVAL CLOCK_SECOND * 10
+#define MIN_INTERVAL CLOCK_SECOND * 2
 
+#define MAX_RETRANSMISSIONS 3
+
+#define DEBUG 0
+#if DEBUG
+#include <stdio.h>
+#define PRINTF(...) printf(__VA_ARGS__)
+#else
+#define PRINTF(...)
+#endif
+
+/*---------------------------------------------------------------------------*/
+static void
+send_adv(struct tree_conn *tc, clock_time_t interval)
+{
+  struct adv_msg *hdr;
+
+  rimebuf_clear();
+  rimebuf_set_datalen(sizeof(struct adv_msg));
+  hdr = rimebuf_dataptr();
+  hdr->hopcount = tc->hops_from_sink;
+  uibc_send(&tc->uibc_conn, interval);
+}
 /*---------------------------------------------------------------------------*/
 static void
 update_hopcount(struct tree_conn *tc)
@@ -93,6 +118,7 @@ update_hopcount(struct tree_conn *tc)
     } else {
       if(n->hopcount + 1 != tc->hops_from_sink) {
 	tc->hops_from_sink = n->hopcount + 1;
+	send_adv(tc, MIN_INTERVAL);
       }
     }
   }
@@ -112,18 +138,6 @@ update_hopcount(struct tree_conn *tc)
 }
 /*---------------------------------------------------------------------------*/
 static void
-send_adv(struct tree_conn *tc)
-{
-  struct adv_msg *hdr;
-
-  rimebuf_clear();
-  rimebuf_set_datalen(sizeof(struct adv_msg));
-  hdr = rimebuf_dataptr();
-  hdr->hopcount = tc->hops_from_sink;
-  uibc_send(&tc->uibc_conn, MAX_INTERVAL);
-}
-/*---------------------------------------------------------------------------*/
-static void
 adv_packet_received(struct uibc_conn *c, rimeaddr_t *from)
 {
   struct tree_conn *tc = (struct tree_conn *)
@@ -131,10 +145,10 @@ adv_packet_received(struct uibc_conn *c, rimeaddr_t *from)
   struct adv_msg *msg = rimebuf_dataptr();
   struct neighbor *n;
 
-  /*  printf("%d: neighbor_packet_received from %d with hopcount %d\n",
-	 node_id, from, hdr->hopcount
-	 );*/
-  
+  /*  PRINTF("%d.%d: adv_packet_received from %d.%d with hopcount %d\n",
+	 rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1],
+	 from->u8[0], from->u8[1], msg->hopcount);*/
+
   n = neighbor_find(from);
 
   if(n == NULL) {
@@ -152,7 +166,7 @@ adv_packet_sent(struct uibc_conn *c)
 {
   struct tree_conn *tc = (struct tree_conn *)
     ((char *)c - offsetof(struct tree_conn, uibc_conn));
-  send_adv(tc);
+  send_adv(tc, MAX_INTERVAL);
 }
 /*---------------------------------------------------------------------------*/
 static void
@@ -160,7 +174,7 @@ adv_packet_dropped(struct uibc_conn *c)
 {
   struct tree_conn *tc = (struct tree_conn *)
     ((char *)c - offsetof(struct tree_conn, uibc_conn));
-  send_adv(tc);
+  send_adv(tc, MAX_INTERVAL);
 }
 /*---------------------------------------------------------------------------*/
 static int
@@ -174,26 +188,38 @@ node_packet_received(struct ruc_conn *c, rimeaddr_t *from, u8_t seqno)
   if(tc->hops_from_sink == SINK) {
 
     rimebuf_hdrreduce(sizeof(struct hdr));
+    
+    PRINTF("%d.%d: sink received packet from %d.%d via %d.%d with hopcount %d\n",
+	   rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1],
+	   hdr->originator.u8[0], hdr->originator.u8[1],
+	   from->u8[0], from->u8[1], hdr->hopcount);
+    
     if(tc->cb->recv != NULL) {
       tc->cb->recv(&hdr->originator, hdr->originator_seqno,
-		   hdr->hopcount, hdr->retransmissions);
+		   hdr->hopcount);
     }
     return 1;
   } else if(hdr->hoplim > 1 && tc->hops_from_sink != HOPCOUNT_MAX) {
     hdr->hoplim--;
-    /*    printf("%d: packet received from %d, forwarding %d, best neighbor %p\n",
-	  rimeaddr_node_addr.u16[0], from->u16[0], tc->forwarding, neighbor_best());*/
+
+        
+    PRINTF("%d.%d: packet received from %d.%d via %d.%d with hopcount %d, best neighbor %p, forwarding %d\n",
+	   rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1],
+	   hdr->originator.u8[0], hdr->originator.u8[1],
+	   from->u8[0], from->u8[1], hdr->hopcount,
+	   neighbor_best(), tc->forwarding);
+
     if(!tc->forwarding) {
       tc->forwarding = 1;
       n = neighbor_best();
       if(n != NULL) {
-	ruc_send(c, &n->addr);
+	ruc_send(c, &n->addr, MAX_RETRANSMISSIONS);
       }
       return 1;
     } else {
 
-      /*      printf("%d: still forwarding another packet, not sending ACK\n",
-	      rimeaddr_node_addr.u16[0]);*/
+      PRINTF("%d.%d: still forwarding another packet, not sending ACK\n",
+	     rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1]);
       return 0;
     }
   }
@@ -225,7 +251,7 @@ tree_open(struct tree_conn *tc, u16_t channels,
   rimebuf_reference(&tc.hello, sizeof(tc.hello));
   sibc_send_stubborn(&sibc_conn, CLOCK_SECOND * 8);*/
   tc->cb = cb;
-  send_adv(tc);
+  send_adv(tc, MAX_INTERVAL);
 }
 /*---------------------------------------------------------------------------*/
 void
@@ -240,6 +266,7 @@ tree_set_sink(struct tree_conn *tc, int should_be_sink)
 {
   if(should_be_sink) {
     tc->hops_from_sink = SINK;
+    send_adv(tc, MIN_INTERVAL);
   } else {
     tc->hops_from_sink = HOPCOUNT_MAX;
   }
@@ -258,12 +285,10 @@ tree_send(struct tree_conn *tc)
     rimeaddr_copy(&hdr->originator, &rimeaddr_node_addr);
     hdr->hopcount = tc->hops_from_sink;
     hdr->hoplim = MAX_HOPLIM;
-    hdr->retransmissions = 0;
-    hdr->datalen = 0;
     n = neighbor_best();
     if(n != NULL) {
       /*      printf("Sending to best neighbor\n");*/
-      ruc_send(&tc->ruc_conn, &n->addr);
+      ruc_send(&tc->ruc_conn, &n->addr, MAX_RETRANSMISSIONS);
     } else {
       /*      printf("Didn't find any neighbor\n");*/
     }
@@ -276,3 +301,4 @@ tree_depth(struct tree_conn *tc)
   return tc->hops_from_sink;
 }
 /*---------------------------------------------------------------------------*/
+/** @} */
