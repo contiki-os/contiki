@@ -29,7 +29,7 @@
  *
  * This file is part of the Contiki desktop environment
  *
- * $Id: contiki-main.c,v 1.3 2007/03/27 21:26:24 oliverschmidt Exp $
+ * $Id: contiki-main.c,v 1.4 2007/03/31 18:44:14 adamdunkels Exp $
  *
  */
 
@@ -47,10 +47,10 @@
 
 #include "cfs/cfs-posix.h"
 
-#include "tapdev-service.h"
+#include "net/tapdev-service.h"
 #include "program-handler.h"
 #include "webserver.h"
-#include "ctk-gtksim-service.h"
+#include "ctk/ctk-gtksim-service.h"
 
 #include "about-dsc.h"
 #include "calc-dsc.h"
