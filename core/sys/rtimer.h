@@ -45,7 +45,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: rtimer.h,v 1.2 2007/03/28 20:28:22 adamdunkels Exp $
+ * @(#)$Id: rtimer.h,v 1.3 2007/03/31 11:20:20 adamdunkels Exp $
  */
 #ifndef __RTIMER_H__
 #define __RTIMER_H__
@@ -102,7 +102,7 @@ int rtimer_set(struct rtimer *t, rtimer_clock_t time, rtimer_clock_t duration,
  *             code to execute and schedule the next real-time task.
  *
  */
-void rtimer_next(void);
+void rtimer_run_next(void);
 
 /**
  * \brief      Get the current clock time
