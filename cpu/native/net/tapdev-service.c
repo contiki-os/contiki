@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: tapdev-service.c,v 1.4 2007/03/27 21:19:35 oliverschmidt Exp $
+ * @(#)$Id: tapdev-service.c,v 1.1 2007/03/31 18:49:40 adamdunkels Exp $
  */
 
 #include "contiki-net.h"
@@ -37,20 +37,21 @@
 
 #define BUF ((struct uip_eth_hdr *)&uip_buf[0])
 
-static u8_t output(void);
+u8_t tapdev_output(void);
 
-SERVICE(tapdev_service, packet_service, { output });
+SERVICE(tapdev_service, packet_service, { tapdev_output });
 
 PROCESS(tapdev_process, "TAP driver");
 
 /*---------------------------------------------------------------------------*/
-static u8_t
-output(void)
+u8_t
+tapdev_output(void)
 {
   uip_arp_out();
   tapdev_send();
   
-  return 0;
+  uip_len -= UIP_LLH_LEN;
+  return UIP_FW_OK;
 }
 /*---------------------------------------------------------------------------*/
 static void
