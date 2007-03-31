@@ -1,0 +1,84 @@
+The examples/ directory contains a few examples that will help you get
+started with Contiki.
+
+To run the example programs, you need either to be running Linux or
+FreeBSD (or any other *nix-type system), or install Cygwin if you are
+running Microsoft Windows (http://www.cygwin.com/). As a minimum you
+will need to have the gcc C compiler installed. To run the examples in
+the "netsim" target, you need to have GTK 1.x development libraries
+installed. These are usually called "gtk-devel", "libgtk1-devel" or
+similar in your Linux software installation programs.
+
+hello-world/
+
+  A really simple Contiki program that shows how to write Contiki
+  programs. To compile and test the program, go into the hello-world
+  directory:
+
+    cd examples/hello-world
+
+  Run the "make" command.
+
+    make
+
+  This will compile the hello-world program for the "native"
+  platform. This causes the entire Contiki operating system and the
+  hello-world application to be compiled into a single program that
+  can be run by typing the following command:
+
+    ./hello-world.native
+
+  This will print out the following text:
+
+    Contiki initiated, now starting process scheduling
+    Hello, world
+
+  The program will then appear to hang, and must be stopped by
+  pressing the C key while holding down the Control key.
+
+rime/
+
+  Contains a set of examples on how to use the Rime communications
+  stack. To run those examples in the "netsim" target (a very simple
+  Contiki network simulator), compile the programs with
+
+    make TARGET=netsim
+
+  You will need to have GTK 1.x development libraries installed.
+
+  Run the different programs:
+  
+    ./test-abc.netsim
+    ./test-meshroute.netsim
+    ./test-rudolph0.netsim
+    ./test-rudolph1.netsim
+    ./test-treeroute.netsim
+    ./test-trickle.netsim
+    ./test-uabc.netsim
+
+  Most of the examples requires you to click with the middle mouse
+  button on one of the simulated nodes for something to happen.
+
+sky/
+
+  Examples inteded for running on the Tmote Sky board. To compile
+  those, you need to have msp430-gcc (the gcc C compiler for the
+  MSP430 microcontroller) installed.
+
+  The follwing programs are included:
+
+    blink.c          A simple program that blinks the on-board LEDs
+    sky-treeroute.c  Collects sensor data to a sink (press button to
+                     make the node a sink)
+    tcprudolph0.c    TCP server that receives loadable ELF files and
+                     sends them to the network.
+    test-button.c    Toggles the LEDs when the button is pressed.
+    test-cfs.c       Tests the 1 mb flash memory of the Tmote Sky
+
+telnet-server/
+
+  A simple TCP telnet server with a simple command shell.
+
+webserver/
+
+  A web server.
