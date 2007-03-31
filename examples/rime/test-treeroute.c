@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: test-treeroute.c,v 1.3 2007/03/25 12:10:29 adamdunkels Exp $
+ * $Id: test-treeroute.c,v 1.4 2007/03/31 18:41:13 adamdunkels Exp $
  */
 
 /**
@@ -85,9 +85,14 @@ PROCESS_THREAD(depth_blink_process, ev, data)
 }
 /*---------------------------------------------------------------------------*/
 static void
-recv(rimeaddr_t *originator, u8_t seqno, u8_t hops, u8_t retransmissions)
+recv(rimeaddr_t *originator, u8_t seqno, u8_t hops)
 {
-  
+  printf("Sink got message from %d.%d, seqno %d, hops %d: len %d '%s'\n",
+	 originator->u8[0], originator->u8[1],
+	 seqno, hops,
+	 rimebuf_datalen(),
+	 (char *)rimebuf_dataptr());
+
 }
 /*---------------------------------------------------------------------------*/
 static const struct tree_callbacks callbacks = { recv };
@@ -105,6 +110,9 @@ PROCESS_THREAD(test_tree_process, ev, data)
     if(ev == sensors_event) {
 
       if(data == &pir_sensor) {
+	rimebuf_clear();
+	rimebuf_set_datalen(sprintf(rimebuf_dataptr(),
+				    "%d", pir_sensor.value(0)));
 	tree_send(&tc);
       }
 
