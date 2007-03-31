@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: test-trickle.c,v 1.3 2007/03/25 12:10:29 adamdunkels Exp $
+ * $Id: test-trickle.c,v 1.4 2007/03/31 18:43:45 adamdunkels Exp $
  */
 
 /**
@@ -53,8 +53,9 @@ AUTOSTART_PROCESSES(&test_trickle_process);
 static void
 trickle_recv(struct trickle_conn *c)
 {
-  printf("trickle message received '%s'\n", (char *)rimebuf_dataptr());
-  /*  log_message("Trickle", rimebuf_dataptr()); */
+  printf("%d.%d: trickle message received '%s'\n",
+	 rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1],
+	 (char *)rimebuf_dataptr());
 }
 const static struct trickle_callbacks trickle_call = {trickle_recv};
 static struct trickle_conn trickle;
@@ -64,7 +65,6 @@ PROCESS_THREAD(test_trickle_process, ev, data)
   PROCESS_EXITHANDLER(trickle_close(&trickle);)
   PROCESS_BEGIN();
 
-  /*  log_message("Trickle", "running");*/
   trickle_open(&trickle, 128, &trickle_call);
   button_sensor.activate();
 
@@ -72,8 +72,7 @@ PROCESS_THREAD(test_trickle_process, ev, data)
     PROCESS_WAIT_EVENT_UNTIL(ev == sensors_event &&
 			     data == &button_sensor);
 
-    rimebuf_copyfrom("Hej", 4);
-    /*    log_message("Hej", "hopp");*/
+    rimebuf_copyfrom("Hello, world", 13);
     trickle_send(&trickle, TRICKLE_SECOND / 4);
 
   }
