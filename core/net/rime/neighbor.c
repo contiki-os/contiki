@@ -1,3 +1,8 @@
+/**
+ * \addtogroup rimeneighbor
+ * @{
+ */
+
 /*
  * Copyright (c) 2006, Swedish Institute of Computer Science.
  * All rights reserved.
@@ -28,7 +33,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: neighbor.c,v 1.7 2007/03/25 12:06:28 adamdunkels Exp $
+ * $Id: neighbor.c,v 1.8 2007/03/31 18:31:28 adamdunkels Exp $
  */
 
 /**
@@ -221,3 +226,4 @@ neighbor_set_lifetime(int seconds)
   max_time = seconds;
 }
 /*---------------------------------------------------------------------------*/
+/** @} */

@@ -1,3 +1,17 @@
+/**
+ * \addtogroup rime
+ * @{
+ */
+
+/**
+ * \defgroup rimeaddr Rime addresses
+ * @{
+ *
+ * The rimeaddr module is an abstract repressentation of addresses in
+ * Rime.
+ *
+ */
+
 /*
  * Copyright (c) 2007, Swedish Institute of Computer Science.
  * All rights reserved.
@@ -28,12 +42,12 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: rimeaddr.h,v 1.2 2007/03/21 23:22:11 adamdunkels Exp $
+ * $Id: rimeaddr.h,v 1.3 2007/03/31 18:31:28 adamdunkels Exp $
  */
 
 /**
  * \file
- *         A brief description of what this file is.
+ *         Header file for the Rime address repressentation
  * \author
  *         Adam Dunkels <adam@sics.se>
  */
@@ -46,12 +60,66 @@ typedef union {
   unsigned short u16[1];
 } rimeaddr_t;
 
-void rimeaddr_copy(rimeaddr_t *dest, const rimeaddr_t *from);
-int rimeaddr_cmp(const rimeaddr_t *addr1, const rimeaddr_t *addr2);
-void rimeaddr_set_node_addr(rimeaddr_t *t);
 
+/**
+ * \brief      Copy a Rime address
+ * \param dest The destination
+ * \param from The source
+ *
+ *             This function copies a Rime address from one location
+ *             to another.
+ *
+ */
+void rimeaddr_copy(rimeaddr_t *dest, const rimeaddr_t *from);
+
+/**
+ * \brief      Compare two Rime addresses
+ * \param addr1 The first address
+ * \param addr2 The second address
+ * \return     Non-zero if the addresses are the same, zero if they are different
+ *
+ *             This function compares two Rime addresses and returns
+ *             the result of the comparison. The function acts like
+ *             the '==' operator and returns non-zero if the addresses
+ *             are the same, and zero if the addresses are different.
+ *
+ */
+int rimeaddr_cmp(const rimeaddr_t *addr1, const rimeaddr_t *addr2);
+
+
+/**
+ * \brief      Set the address of the current node
+ * \param addr The address
+ *
+ *             This function sets the Rime address of the node.
+ *
+ */
+void rimeaddr_set_node_addr(rimeaddr_t *addr);
+
+/**
+ * \brief      The Rime address of the node
+ *
+ *             This variable contains the Rime address of the
+ *             node. This variable should not be changed directly;
+ *             rather, the rimeaddr_set_node_addr() function should be
+ *             used.
+ *
+ */
 extern rimeaddr_t rimeaddr_node_addr;
 
+/**
+ * \brief      The null Rime address
+ *
+ *             This variable contains the null Rime address. The null
+ *             address is used in route tables to indicate that the
+ *             table entry is unused. Nodes with no configured address
+ *             has the null address. Nodes with their node address set
+ *             to the null address will have problems communicating
+ *             with other nodes.
+ *
+ */
 extern const rimeaddr_t rimeaddr_null;
 
 #endif /* __RIMEADDR_H__ */
+/** @} */
+/** @} */

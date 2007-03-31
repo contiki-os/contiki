@@ -1,3 +1,8 @@
+/**
+ * \addtogroup rimeaddr
+ * @{
+ */
+
 /*
  * Copyright (c) 2007, Swedish Institute of Computer Science.
  * All rights reserved.
@@ -28,12 +33,12 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: rimeaddr.c,v 1.4 2007/03/24 16:42:21 adamdunkels Exp $
+ * $Id: rimeaddr.c,v 1.5 2007/03/31 18:31:28 adamdunkels Exp $
  */
 
 /**
  * \file
- *         A brief description of what this file is.
+ *         Functions for manipulating Rime addresses
  * \author
  *         Adam Dunkels <adam@sics.se>
  */
@@ -62,3 +67,4 @@ rimeaddr_set_node_addr(rimeaddr_t *t)
   rimeaddr_copy(&rimeaddr_node_addr, t);
 }
 /*---------------------------------------------------------------------------*/
+/** @} */

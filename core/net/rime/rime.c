@@ -1,3 +1,8 @@
+/**
+ * \addtogroup rime
+ * @{
+ */
+
 /*
  * Copyright (c) 2006, Swedish Institute of Computer Science.
  * All rights reserved.
@@ -28,12 +33,12 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: rime.c,v 1.6 2007/03/22 23:57:19 adamdunkels Exp $
+ * $Id: rime.c,v 1.7 2007/03/31 18:31:28 adamdunkels Exp $
  */
 
 /**
  * \file
- *         A brief description of what this file is.
+ *         Rime initialization and common code
  * \author
  *         Adam Dunkels <adam@sics.se>
  */
@@ -55,3 +60,4 @@ rime_input(void)
   abc_input_packet();
 }
 /*---------------------------------------------------------------------------*/
+/** @} */

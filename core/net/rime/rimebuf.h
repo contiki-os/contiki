@@ -1,3 +1,15 @@
+/**
+ * \addtogroup rime
+ * @{
+ */
+
+/**
+ * \defgroup rimebuf Rime buffer management
+ * @{
+ *
+ * The rimebuf module does Rime's buffer management.
+ */
+
 /*
  * Copyright (c) 2006, Swedish Institute of Computer Science.
  * All rights reserved.
@@ -28,7 +40,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: rimebuf.h,v 1.7 2007/03/29 22:22:20 adamdunkels Exp $
+ * $Id: rimebuf.h,v 1.8 2007/03/31 18:31:28 adamdunkels Exp $
  */
 
 /**
@@ -288,3 +300,5 @@ int rimebuf_hdrreduce(int size);
 
 
 #endif /* __RIMEBUF_H__ */
+/** @} */
+/** @} */

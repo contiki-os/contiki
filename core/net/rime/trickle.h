@@ -1,3 +1,20 @@
+/**
+ * \addtogroup rime
+ * @{
+ */
+
+/**
+ * \defgroup trickle Reliable single-source multi-hop flooding
+ * @{
+ *
+ * The trickle module sends a single packet to all nodes on the network.
+ *
+ * \section channels Channels
+ *
+ * The trickle module uses 1 channel.
+ *
+ */
+
 /*
  * Copyright (c) 2007, Swedish Institute of Computer Science.
  * All rights reserved.
@@ -28,7 +45,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: trickle.h,v 1.2 2007/03/21 23:23:02 adamdunkels Exp $
+ * $Id: trickle.h,v 1.3 2007/03/31 18:31:29 adamdunkels Exp $
  */
 
 /**
@@ -70,3 +87,5 @@ void trickle_close(struct trickle_conn *c);
 void trickle_send(struct trickle_conn *c, u8_t interval);
 
 #endif /* __TRICKLE_H__ */
+/** @} */
+/** @} */

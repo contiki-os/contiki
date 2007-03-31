@@ -1,3 +1,8 @@
+/**
+ * \addtogroup rimesuc
+ * @{
+ */
+
 /*
  * Copyright (c) 2006, Swedish Institute of Computer Science.
  * All rights reserved.
@@ -28,12 +33,12 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: suc.c,v 1.8 2007/03/29 23:18:22 adamdunkels Exp $
+ * $Id: suc.c,v 1.9 2007/03/31 18:31:29 adamdunkels Exp $
  */
 
 /**
  * \file
- *         A brief description of what this file is.
+ *         Stubborn unicast
  * \author
  *         Adam Dunkels <adam@sics.se>
  */
@@ -55,8 +60,9 @@ static void
 recv_from_uc(struct uc_conn *uc, rimeaddr_t *from)
 {
   register struct suc_conn *c = (struct suc_conn *)uc;
-  PRINTF("%d: suc: recv_from_uc from %d %p\n",
-	 rimeaddr_node_addr.u16, from->u16, c);
+  PRINTF("%d.%d: suc: recv_from_uc from %d.%d\n",
+	 rimeaddr_node_addr.u8[0],rimeaddr_node_addr.u8[1],
+	from->u8[0], from->u8[1]);
   if(c->u->recv != NULL) {
     c->u->recv(c, from);
   }
@@ -87,8 +93,9 @@ send(void *ptr)
 {
   struct suc_conn *c = ptr;
 
-  PRINTF("%d: suc: resend to %d\n",
-	 rimeaddr_node_addr.u16, c->receiver.u16);
+  PRINTF("%d.%d: suc: resend to %d.%d\n",
+	 rimeaddr_node_addr.u8[0],rimeaddr_node_addr.u8[1],
+	 c->receiver.u8[0], c->receiver.u8[1]);
   queuebuf_to_rimebuf(c->buf);
   uc_send(&c->c, &c->receiver);
   suc_set_timer(c, CLOCK_SECOND);
@@ -116,7 +123,9 @@ suc_send_stubborn(struct suc_conn *c, rimeaddr_t *receiver)
   rimeaddr_copy(&c->receiver, receiver);
   ctimer_set(&c->t, CLOCK_SECOND, send, c);
 
-  PRINTF("%d: suc_send_stubborn to %d\n", rimeaddr_node_addr.u16, c->receiver.u16);
+  PRINTF("%d.%d: suc_send_stubborn to %d.%d\n",
+	 rimeaddr_node_addr.u8[0],rimeaddr_node_addr.u8[1],
+	 c->receiver.u8[0],c->receiver.u8[1]);
   uc_send(&c->c, &c->receiver);
   if(c->u->sent != NULL) {
     c->u->sent(c);
@@ -129,6 +138,9 @@ suc_send_stubborn(struct suc_conn *c, rimeaddr_t *receiver)
 int
 suc_send(struct suc_conn *c, rimeaddr_t *receiver)
 {
+  PRINTF("%d.%d: suc_send to %d.%d\n",
+	 rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1],
+	 receiver->u8[0], receiver->u8[1]);
   return uc_send(&c->c, receiver);
 }
 /*---------------------------------------------------------------------------*/
@@ -138,3 +150,4 @@ suc_cancel(struct suc_conn *c)
   ctimer_stop(&c->t);
 }
 /*---------------------------------------------------------------------------*/
+/** @} */

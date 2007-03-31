@@ -4,10 +4,14 @@
  */
 
 /**
- * \defgroup rimeuibc Unique Identified best effort local area Broadcast
+ * \defgroup rimeuibc Unique identified best effort local area broadcast
  * @{
  *
- * Send one packet that is unique within a time interval.
+ * The uibc module sends one packet that is unique within a time interval.
+ *
+ * \section channels Channels
+ *
+ * The uibc module uses 1 channel.
  *
  */
 
@@ -41,7 +45,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: uibc.h,v 1.3 2007/03/28 19:51:54 adamdunkels Exp $
+ * $Id: uibc.h,v 1.4 2007/03/31 18:31:29 adamdunkels Exp $
  */
 
 /**

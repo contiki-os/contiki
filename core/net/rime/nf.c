@@ -1,3 +1,8 @@
+/**
+ * \addtogroup rimenf
+ * @{
+ */
+
 /*
  * Copyright (c) 2006, Swedish Institute of Computer Science.
  * All rights reserved.
@@ -28,7 +33,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: nf.c,v 1.10 2007/03/25 12:06:28 adamdunkels Exp $
+ * $Id: nf.c,v 1.11 2007/03/31 18:31:28 adamdunkels Exp $
  */
 
 /**
@@ -201,3 +206,4 @@ nf_cancel(struct nf_conn *c)
   ctimer_stop(&c->t);
 }
 /*---------------------------------------------------------------------------*/
+/** @} */

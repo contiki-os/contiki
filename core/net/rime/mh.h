@@ -1,3 +1,23 @@
+/**
+ * \addtogroup rime
+ * @{
+ */
+
+/**
+ * \defgroup rimemh Best-effort multihop forwarding
+ * @{
+ *
+ * The mh module implements a multihop forwarding mechanism. Routes
+ * must have already been setup with the route_add() function. Setting
+ * up routes is done with another Rime module such as the \ref
+ * routediscovery "route-discovery module".
+ *
+ * \section channels Channels
+ *
+ * The mh module uses 1 channel.
+ *
+ */
+
 /*
  * Copyright (c) 2006, Swedish Institute of Computer Science.
  * All rights reserved.
@@ -28,12 +48,12 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: mh.h,v 1.1 2007/03/22 17:33:15 adamdunkels Exp $
+ * $Id: mh.h,v 1.2 2007/03/31 18:31:28 adamdunkels Exp $
  */
 
 /**
  * \file
- *         A brief description of what this file is.
+ *         Multihop forwarding header file
  * \author
  *         Adam Dunkels <adam@sics.se>
  */
@@ -62,3 +82,5 @@ void mh_close(struct mh_conn *c);
 int mh_send(struct mh_conn *c, rimeaddr_t *to);
 
 #endif /* __MH_H__ */
+/** @} */
+/** @} */

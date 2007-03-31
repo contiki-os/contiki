@@ -1,3 +1,22 @@
+/**
+ * \addtogroup rime
+ * @{
+ */
+
+/**
+ * \defgroup rimetree Tree-based hop-by-hop reliable data collection
+ * @{
+ *
+ * The tree module implements a hop-by-hop reliable data collection
+ * mechanism.
+ *
+ * \section channels Channels
+ *
+ * The tree module uses 2 channels; one for neighbor discovery and one
+ * for data packets.
+ *
+ */
+
 /*
  * Copyright (c) 2007, Swedish Institute of Computer Science.
  * All rights reserved.
@@ -28,12 +47,12 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: tree.h,v 1.5 2007/03/25 12:06:39 adamdunkels Exp $
+ * $Id: tree.h,v 1.6 2007/03/31 18:31:29 adamdunkels Exp $
  */
 
 /**
  * \file
- *         A brief description of what this file is.
+ *         Header file for hop-by-hop reliable data collection
  * \author
  *         Adam Dunkels <adam@sics.se>
  */
@@ -46,7 +65,7 @@
 
 struct tree_callbacks {
   void (* recv)(rimeaddr_t *originator, u8_t seqno,
-		u8_t hops, u8_t retransmissions);
+		u8_t hops);
 };
 
 struct tree_conn {
@@ -71,3 +90,5 @@ int tree_depth(struct tree_conn *c);
 #define TREE_MAX_DEPTH 63
 
 #endif /* __TREE_H__ */
+/** @} */
+/** @} */

@@ -1,3 +1,8 @@
+/**
+ * \addtogroup rimesibc
+ * @{
+ */
+
 /*
  * Copyright (c) 2006, Swedish Institute of Computer Science.
  * All rights reserved.
@@ -28,7 +33,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: sibc.c,v 1.5 2007/03/19 22:10:17 adamdunkels Exp $
+ * $Id: sibc.c,v 1.6 2007/03/31 18:31:28 adamdunkels Exp $
  */
 
 /**
@@ -111,3 +116,4 @@ sibc_cancel(struct sibc_conn *c)
   ctimer_stop(&c->t);
 }
 /*---------------------------------------------------------------------------*/
+/** @} */

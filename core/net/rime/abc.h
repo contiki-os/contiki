@@ -4,11 +4,16 @@
  */
 
 /**
- * \defgroup rimeabc Anonymous best-effort local area broadcast (abc)
+ * \defgroup rimeabc Anonymous best-effort local area broadcast
  * @{
  *
- * The abc module sends packets to all local area neighbors without
- * any extra headers that idendtify the sender or receiver.
+ * The abc module sends packets to all local area neighbors. The abc
+ * module adds no headers to outgoing packets.
+ *
+ * \section channels Channels
+ *
+ * The abc module uses 1 channel.
+ *
  */
 
 /*
@@ -41,7 +46,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: abc.h,v 1.10 2007/03/29 23:18:47 adamdunkels Exp $
+ * $Id: abc.h,v 1.11 2007/03/31 18:31:27 adamdunkels Exp $
  */
 /**
  * \file

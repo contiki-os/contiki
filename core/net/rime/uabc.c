@@ -1,3 +1,8 @@
+/**
+ * \addtogroup rimeuabc
+ * @{
+ */
+
 /*
  * Copyright (c) 2007, Swedish Institute of Computer Science.
  * All rights reserved.
@@ -28,7 +33,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: uabc.c,v 1.4 2007/03/25 21:44:23 adamdunkels Exp $
+ * $Id: uabc.c,v 1.5 2007/03/31 18:31:29 adamdunkels Exp $
  */
 
 /**
@@ -118,3 +123,4 @@ uabc_send(struct uabc_conn *c, clock_time_t interval)
   return 0;
 }
 /*---------------------------------------------------------------------------*/
+/** @} */
