@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: wpcap-service.c,v 1.1 2007/04/01 20:39:38 oliverschmidt Exp $
+ * @(#)$Id: wpcap-service.c,v 1.2 2007/04/01 21:06:30 oliverschmidt Exp $
  */
 
 #include "contiki-net.h"
@@ -37,15 +37,15 @@
 
 #define BUF ((struct uip_eth_hdr *)&uip_buf[0])
 
-static u8_t output(void);
+u8_t wpcap_output(void);
 
-SERVICE(wpcap_service, packet_service, { output });
+SERVICE(wpcap_service, packet_service, { wpcap_output });
 
 PROCESS(wpcap_process, "WinPcap driver");
 
 /*---------------------------------------------------------------------------*/
-static u8_t
-output(void)
+u8_t
+wpcap_output(void)
 {
   uip_arp_out();
   wpcap_send();

@@ -30,7 +30,7 @@
  *
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: contiki-main.c,v 1.12 2007/03/29 22:24:47 adamdunkels Exp $
+ * $Id: contiki-main.c,v 1.13 2007/04/01 21:05:17 oliverschmidt Exp $
  */
 
 #include "contiki.h"
@@ -41,8 +41,11 @@
 
 #include "net/rime.h"
 
-#include "net/tapdev.h"
+#ifdef __CYGWIN__
+#include "net/wpcap-service.h"
+#else
 #include "net/tapdev-service.h"
+#endif
 #include "net/ethernode-uip.h"
 #include "net/ethernode-rime.h"
 #include "net/ethernode.h"
@@ -60,9 +63,15 @@
 #include "dev/radio-sensor.h"
 #include "dev/leds.h"
 
+#ifdef __CYGWIN__
+u8_t wpcap_output(void);
+static struct uip_fw_netif extif =
+  {UIP_FW_NETIF(0,0,0,0, 0,0,0,0, wpcap_output)};
+#else
 u8_t tapdev_output(void);
-static struct uip_fw_netif tapif =
+static struct uip_fw_netif extif =
   {UIP_FW_NETIF(0,0,0,0, 0,0,0,0, tapdev_output)};
+#endif
 static struct uip_fw_netif meshif =
   {UIP_FW_NETIF(172,16,0,0, 255,255,0,0, uip_over_mesh_send)};
 /*static struct uip_fw_netif ethernodeif =
@@ -97,9 +106,13 @@ contiki_main(int flag)
   uip_over_mesh_init(0);
   
   if(flag == 1) {
+#ifdef __CYGWIN__
+    process_start(&wpcap_process, NULL);
+#else
     process_start(&tapdev_process, NULL);
+#endif
     uip_fw_register(&meshif);
-    uip_fw_default(&tapif);
+    uip_fw_default(&extif);
     printf("uip_hostaddr %02x%02x\n", uip_hostaddr.u16[0], uip_hostaddr.u16[1]);
   } else {
     uip_fw_default(&meshif);
