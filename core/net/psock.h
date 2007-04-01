@@ -30,11 +30,11 @@
  *
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: psock.h,v 1.1 2006/06/17 22:41:18 adamdunkels Exp $
+ * $Id: psock.h,v 1.2 2007/04/01 18:20:55 adamdunkels Exp $
  */
 
 /**
- * \addtogroup net
+ * \addtogroup uip
  * @{
  */
 
