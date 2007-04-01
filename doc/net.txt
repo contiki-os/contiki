@@ -1,5 +1,5 @@
 /**
-\defgroup net Network functions
+\defgroup net Communication stacks
 @{
 */
 /** @} */
