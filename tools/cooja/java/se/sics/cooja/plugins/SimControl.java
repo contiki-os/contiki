@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: SimControl.java,v 1.5 2007/03/22 22:08:50 fros4943 Exp $
+ * $Id: SimControl.java,v 1.6 2007/04/02 16:02:32 fros4943 Exp $
  */
 
 package se.sics.cooja.plugins;
@@ -125,7 +125,7 @@ public class SimControl extends VisPlugin {
     JPanel controlPanel = new JPanel();
     controlPanel.setLayout(new BoxLayout(controlPanel, BoxLayout.Y_AXIS));
     
-    setContentPane(controlPanel);
+    getContentPane().add(controlPanel, BorderLayout.NORTH);
 
     // Add control buttons
     smallPanel = new JPanel();
