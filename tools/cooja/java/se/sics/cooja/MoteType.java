@@ -24,7 +24,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * 
- * $Id: MoteType.java,v 1.5 2007/03/26 16:31:09 fros4943 Exp $
+ * $Id: MoteType.java,v 1.6 2007/04/02 12:45:20 fros4943 Exp $
  */
 
 package se.sics.cooja;
@@ -149,6 +149,9 @@ public interface MoteType {
       Collection<Element> configXML, boolean visAvailable) throws MoteTypeCreationException;
 
   public class MoteTypeCreationException extends Exception {
+    public MoteTypeCreationException(String message) {
+      super(message);
+    }
   }
 
 }
