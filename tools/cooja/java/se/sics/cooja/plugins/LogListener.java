@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: LogListener.java,v 1.5 2007/02/23 15:18:26 fros4943 Exp $
+ * $Id: LogListener.java,v 1.6 2007/04/02 17:44:43 fros4943 Exp $
  */
 
 package se.sics.cooja.plugins;
@@ -94,9 +94,15 @@ public class LogListener extends VisPlugin {
         
         outputString = outputString.concat(moteLogInterface.getLastLogMessages());
 
-        logTextArea.append("\n");
-        logTextArea.append(outputString);
-        logTextArea.setCaretPosition(logTextArea.getDocument().getLength());
+        
+        final String str = outputString;
+        SwingUtilities.invokeLater(new Runnable() {
+          public void run() {
+            logTextArea.append("\n");
+            logTextArea.append(str);
+            logTextArea.setCaretPosition(logTextArea.getDocument().getLength());
+          }
+        });
       }
     };
     
