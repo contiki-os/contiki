@@ -47,7 +47,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: rudolph1.h,v 1.3 2007/04/02 09:51:45 adamdunkels Exp $
+ * $Id: rudolph1.h,v 1.4 2007/04/02 17:53:27 adamdunkels Exp $
  */
 
 /**
@@ -86,7 +86,7 @@ struct rudolph1_conn {
   const struct rudolph1_callbacks *cb;
   struct ctimer t;
   clock_time_t send_interval;
-  u16_t chunk;
+  u16_t chunk, highest_chunk_heard;
   u8_t version;
   u8_t trickle_interval;
   u8_t nacks;
