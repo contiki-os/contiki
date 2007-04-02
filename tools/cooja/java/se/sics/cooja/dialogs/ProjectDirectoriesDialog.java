@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ProjectDirectoriesDialog.java,v 1.1 2007/03/23 23:34:33 fros4943 Exp $
+ * $Id: ProjectDirectoriesDialog.java,v 1.2 2007/04/02 10:32:37 fros4943 Exp $
  */
 
 package se.sics.cooja.dialogs;
@@ -422,6 +422,16 @@ class ConfigViewer extends JDialog {
     myDialog.setLocationRelativeTo(parentFrame);
     myDialog.setAlwaysOnTop(true);
 
+    Rectangle maxSize = GraphicsEnvironment.getLocalGraphicsEnvironment().getMaximumWindowBounds();
+    if (maxSize != null && 
+        (myDialog.getSize().getWidth() > maxSize.getWidth()
+            || myDialog.getSize().getHeight() > maxSize.getHeight())) {
+      Dimension newSize = new Dimension();
+      newSize.height = Math.min((int) maxSize.getHeight(), (int) myDialog.getSize().getHeight());
+      newSize.width = Math.min((int) maxSize.getWidth(), (int) myDialog.getSize().getWidth());
+      myDialog.setSize(newSize);
+    }
+    
     if (myDialog != null) {
       myDialog.setVisible(true);
     }
