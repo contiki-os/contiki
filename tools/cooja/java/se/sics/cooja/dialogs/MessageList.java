@@ -26,14 +26,14 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: MessageList.java,v 1.2 2006/09/07 11:54:15 fros4943 Exp $
+ * $Id: MessageList.java,v 1.3 2007/04/02 15:45:44 nifi Exp $
  *
  * -----------------------------------------------------------------
  *
  * Author  : Adam Dunkels, Joakim Eriksson, Niclas Finne, Fredrik Osterlind
  * Created : 2006-06-14
- * Updated : $Date: 2006/09/07 11:54:15 $
- *           $Revision: 1.2 $
+ * Updated : $Date: 2007/04/02 15:45:44 $
+ *           $Revision: 1.3 $
  */
 package se.sics.cooja.dialogs;
 import java.awt.Color;
@@ -50,6 +50,7 @@ import javax.swing.DefaultListModel;
 import javax.swing.JList;
 import javax.swing.ListModel;
 import javax.swing.ListSelectionModel;
+import javax.swing.SwingUtilities;
 
 public class MessageList extends JList {
 
@@ -105,7 +106,12 @@ public class MessageList extends JList {
           String readLine;
           try {
             while ((readLine = stringInput.readLine()) != null) {
-              addMessage(readLine, type);
+	      final String line = readLine;
+	      SwingUtilities.invokeLater(new Runnable() {
+		  public void run() {
+		    addMessage(line, type);
+		  }
+		});
             }
           } catch (IOException e) {
             // Occurs when write end closes pipe - die quietly
