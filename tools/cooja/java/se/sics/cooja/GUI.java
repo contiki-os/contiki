@@ -24,7 +24,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * 
- * $Id: GUI.java,v 1.37 2007/03/26 16:31:09 fros4943 Exp $
+ * $Id: GUI.java,v 1.38 2007/04/02 12:45:19 fros4943 Exp $
  */
 
 package se.sics.cooja;
@@ -1683,7 +1683,13 @@ public class GUI {
       newMoteType = moteTypeClass.newInstance();
       moteTypeOK = newMoteType.configureAndInit(frame, mySimulation,
           isVisualized());
-    } catch (Exception e) {
+    } catch (InstantiationException e) {
+      logger.fatal("Exception when creating mote type: " + e);
+      return;
+    } catch (IllegalAccessException e) {
+      logger.fatal("Exception when creating mote type: " + e);
+      return;
+    } catch (MoteTypeCreationException e) {
       logger.fatal("Exception when creating mote type: " + e);
       return;
     }
@@ -1827,7 +1833,20 @@ public class GUI {
             progressDialog.dispose();
           }
         } catch (UnsatisfiedLinkError e) {
-          logger.warn("Could not reopen libraries: " + e.getMessage());
+          JOptionPane.showMessageDialog(frame,
+              e.getMessage(),
+              "Simulation load error",
+              JOptionPane.ERROR_MESSAGE);
+
+          if (progressDialog != null && progressDialog.isDisplayable()) 
+            progressDialog.dispose();
+          newSim = null;
+        } catch (SimulationCreationException e) {
+          JOptionPane.showMessageDialog(frame,
+              e.getMessage(),
+              "Simulation load error",
+              JOptionPane.ERROR_MESSAGE);
+
           if (progressDialog != null && progressDialog.isDisplayable()) 
             progressDialog.dispose();
           newSim = null;
@@ -1880,6 +1899,11 @@ public class GUI {
    * This may include recompiling libraries and renaming mote type identifiers.
    */
   private void reloadCurrentSimulation() {
+    if (getSimulation() == null) {
+      logger.fatal("No simulation to reload");
+      return;
+    }
+    
     final JDialog progressDialog = new JDialog(frame, "Reloading", true);
     final Thread loadThread = new Thread(new Runnable() {
       public void run() {
@@ -1948,30 +1972,36 @@ public class GUI {
           configXML = configXML.replaceAll(">" + oldName + "<", ">" + moteTypeNames.get(oldName) + "<");
         }
 
-        // Remove current simulation
-        doRemoveSimulation(false);
-
         // Reload altered simulation config
-        Simulation newSim = null;
         try {
-          newSim = loadSimulationConfig(new StringReader(configXML), true);
-          if (progressDialog != null && progressDialog.isDisplayable()) { 
-            progressDialog.dispose();
-          }
-        } catch (UnsatisfiedLinkError e) {
-          logger.fatal("Could not reopen libraries: " + e.getMessage());
-          if (progressDialog != null && progressDialog.isDisplayable()) { 
-            progressDialog.dispose();
-          }
-          newSim = null;
-        }
-        if (newSim != null) {
+          myGUI.doRemoveSimulation(false);
+          Simulation newSim = loadSimulationConfig(new StringReader(configXML), true);
           myGUI.setSimulation(newSim);
+
+        } catch (UnsatisfiedLinkError e) {
+          logger.fatal("Could not load libraries: " + e.getMessage());
+
+          JOptionPane.showMessageDialog(frame,
+              e.getMessage(),
+              "Simulation reload error",
+              JOptionPane.ERROR_MESSAGE);
+
+          myGUI.doRemoveSimulation(false);
+        } catch (SimulationCreationException e) {
+          logger.fatal("Could not reopen simulation: " + e.getMessage());
+
+          JOptionPane.showMessageDialog(frame,
+              e.getMessage(),
+              "Simulation reload error",
+              JOptionPane.ERROR_MESSAGE);
+
+          myGUI.doRemoveSimulation(false);
+        } finally {
+          if (progressDialog != null && progressDialog.isDisplayable()) { 
+            progressDialog.dispose();
+          }
         }
 
-        if (progressDialog != null && progressDialog.isDisplayable()) { 
-          progressDialog.dispose();
-        }
       }
     });
 
@@ -2636,7 +2666,7 @@ public class GUI {
    *           If associated libraries could not be loaded
    */
   public Simulation loadSimulationConfig(File file, boolean quick)
-  throws UnsatisfiedLinkError {
+  throws UnsatisfiedLinkError, SimulationCreationException {
     try {
       SAXBuilder builder = new SAXBuilder();
       Document doc = builder.build(file);
@@ -2652,7 +2682,8 @@ public class GUI {
     }
   }
 
-  private Simulation loadSimulationConfig(StringReader stringReader, boolean quick) {
+  private Simulation loadSimulationConfig(StringReader stringReader, boolean quick) 
+  throws SimulationCreationException {
     try {
       SAXBuilder builder = new SAXBuilder();
       Document doc = builder.build(stringReader);
@@ -2660,15 +2691,14 @@ public class GUI {
 
       return loadSimulationConfig(root, quick);
     } catch (JDOMException e) {
-      logger.fatal("Config not wellformed: " + e.getMessage());
-      return null;
+      throw new SimulationCreationException("Configuration file not wellformed: " + e.getMessage());
     } catch (IOException e) {
-      logger.fatal("IOException: " + e.getMessage());
-      return null;
+      throw new SimulationCreationException("IO Exception: " + e.getMessage());
     }
   }
 
-  private Simulation loadSimulationConfig(Element root, boolean quick) {
+  private Simulation loadSimulationConfig(Element root, boolean quick)
+  throws SimulationCreationException {
     Simulation newSim = null;
 
     try {
@@ -2695,15 +2725,11 @@ public class GUI {
       setPluginsConfigXML(root.getChildren(), newSim, !quick);
 
     } catch (JDOMException e) {
-      logger.fatal("File not wellformed: " + e.getMessage());
-      return null;
+      throw new SimulationCreationException("Configuration file not wellformed: " + e.getMessage());
     } catch (IOException e) {
-      logger.fatal("No access to file: " + e.getMessage());
-      return null;
+      throw new SimulationCreationException("No access to configuration file: " + e.getMessage());
     } catch (Exception e) {
-      logger.fatal("Exception when loading file: " + e);
-      e.printStackTrace();
-      return null;
+      throw new SimulationCreationException("Unknown error: " + e.getMessage());
     }
 
     return newSim;
@@ -2934,5 +2960,12 @@ public class GUI {
 
     return true;
   }
+  
+  class SimulationCreationException extends Exception {
+    public SimulationCreationException(String message) {
+      super(message);
+    }
+  }
+  
 
 }

@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ContikiMoteType.java,v 1.9 2007/03/26 16:30:29 fros4943 Exp $
+ * $Id: ContikiMoteType.java,v 1.10 2007/04/02 12:45:19 fros4943 Exp $
  */
 
 package se.sics.cooja.contikimote;
@@ -165,9 +165,7 @@ public class ContikiMoteType implements MoteType {
       if (!ContikiMoteType.tempOutputDirectory.exists())
         ContikiMoteType.tempOutputDirectory.mkdir();
       if (!ContikiMoteType.tempOutputDirectory.exists()) {
-        logger.fatal(">> Could not create output directory: "
-            + ContikiMoteType.tempOutputDirectory);
-        return false;
+        throw new MoteTypeCreationException("Could not create output directory: " + ContikiMoteType.tempOutputDirectory);
       }
 
       // Delete output files
@@ -184,24 +182,20 @@ public class ContikiMoteType implements MoteType {
       if (mapFile.exists())
         mapFile.delete();
       if (libFile.exists()) {
-        logger.fatal(">> Can't delete output file, aborting: " + libFile);
-        return false;
+        throw new MoteTypeCreationException("Could not delete output file: " + libFile);
       }
       if (depFile.exists()) {
-        logger.fatal(">> Can't delete output file, aborting: " + depFile);
-        return false;
+        throw new MoteTypeCreationException("Could not delete output file: " + depFile);
       }
       if (mapFile.exists()) {
-        logger.fatal(">> Can't delete output file, aborting: " + mapFile);
-        return false;
+        throw new MoteTypeCreationException("Could not delete output file: " + mapFile);
       }
 
       // Generate Contiki main source file
       try {
         ContikiMoteTypeDialog.generateSourceFile(identifier, sensors, coreInterfaces, processes);
       } catch (Exception e) {
-        logger.fatal(">> Error during file generation, aborting: " + e.getMessage());
-        return false;
+        throw new MoteTypeCreationException("Error during main source file generation: " + e.getMessage());
       }
 
       // Compile library
@@ -216,14 +210,13 @@ public class ContikiMoteType implements MoteType {
         compilationSucceded = false;
 
       if (!compilationSucceded) {
-        logger.fatal(">> Error during compilation, aborting");
-        return false;
+        throw new MoteTypeCreationException("Error during compilation");
       }
       
       // Load compiled library
-      boolean loadingSucceded = doInit(identifier);
+      doInit(identifier);
 
-      return loadingSucceded;
+      return true;
     }
   }
 
@@ -240,15 +233,12 @@ public class ContikiMoteType implements MoteType {
    * 
    * @param identifier
    *          Mote type identifier
-   * @return True if initialization ok, false otherwise
    */
-  protected boolean doInit(String identifier) throws MoteTypeCreationException {
+  protected void doInit(String identifier) throws MoteTypeCreationException {
     this.identifier = identifier;
 
     if (myCoreComm != null) {
-      logger
-          .fatal("Core communicator not null. Is library already loaded? Aborting");
-      return false;
+      throw new MoteTypeCreationException("Core communicator already used: " + myCoreComm.getClass().getName());
     }
 
     File libFile = new File(ContikiMoteType.tempOutputDirectory,
@@ -258,14 +248,12 @@ public class ContikiMoteType implements MoteType {
 
     // Check that library file exists
     if (!libFile.exists()) {
-      logger.fatal("Library file could not be found: " + libFile);
-      return false;
+      throw new MoteTypeCreationException("Library file could not be found: " + libFile);
     }
 
     // Check that map file exists
     if (!mapFile.exists()) {
-      logger.fatal("Map file could not be found: " + mapFile);
-      return false;
+      throw new MoteTypeCreationException("Map file could not be found: " + mapFile);
     }
 
     // Allocate core communicator class
@@ -289,8 +277,7 @@ public class ContikiMoteType implements MoteType {
     }
 
     if (varAddresses.size() == 0) {
-      logger.fatal("Variable name to addresses mappings could not be created");
-      return false;
+      throw new MoteTypeCreationException("Variable name to addresses mappings could not be created");
     }
     
     // Get offset between relative and absolute addresses
@@ -305,8 +292,7 @@ public class ContikiMoteType implements MoteType {
 
     if (relDataSectionAddr <= 0 || dataSectionSize <= 0
         || relBssSectionAddr <= 0 || bssSectionSize <= 0) {
-      logger.fatal("Could not parse section addresses correctly");
-      return false;
+      throw new MoteTypeCreationException("Could not parse section addresses correctly");
     }
 
     // Create initial memory
@@ -319,8 +305,6 @@ public class ContikiMoteType implements MoteType {
     initialMemory = new SectionMoteMemory(varAddresses);
     initialMemory.setMemorySegment(relDataSectionAddr, initialDataSection);
     initialMemory.setMemorySegment(relBssSectionAddr, initialBssSection);
-
-    return true;
   }
 
   /**
