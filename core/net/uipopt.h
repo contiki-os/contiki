@@ -1,4 +1,9 @@
 /**
+ * \addtogroup uip
+ * @{
+ */
+
+/**
  * \defgroup uipopt Configuration options for uIP
  * @{
  *
@@ -53,7 +58,7 @@
  *
  * This file is part of the uIP TCP/IP stack.
  *
- * $Id: uipopt.h,v 1.2 2006/08/09 16:13:40 bg- Exp $
+ * $Id: uipopt.h,v 1.3 2007/04/02 18:08:36 adamdunkels Exp $
  *
  */
 
@@ -541,4 +546,5 @@ typedef struct httpd_state uip_tcp_appstate_t
 /** @} */
 
 #endif /* __UIPOPT_H__ */
+/** @} */
 /** @} */
