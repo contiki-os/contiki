@@ -26,9 +26,8 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: testbutton.c,v 1.2 2007/03/22 10:04:47 fros4943 Exp $
+ * $Id: testbutton.c,v 1.3 2007/04/02 16:31:28 fros4943 Exp $
  */
-
 
 #include "contiki.h"
 #include "sys/loader.h"
@@ -60,10 +59,10 @@ PROCESS_THREAD(button_test_process, ev, data)
   while(1) {
     PROCESS_WAIT_EVENT();
 
-    if (button_sensor.value(0)) {
+    if (ev == sensors_event && data == &button_sensor && button_sensor.value(0)) {
       custom_counter++;
 
-      sprintf(logMess, "button> Button pressed (counter=%i)\n", custom_counter);
+      sprintf(logMess, "Button pressed (counter=%i)\n", custom_counter);
       log_message(logMess, "");
     }
   }

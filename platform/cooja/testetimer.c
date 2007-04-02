@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: testetimer.c,v 1.1 2006/08/21 12:11:17 fros4943 Exp $
+ * $Id: testetimer.c,v 1.2 2007/04/02 16:31:28 fros4943 Exp $
  */
 
 
@@ -59,7 +59,7 @@ PROCESS_THREAD(etimer_test_process, ev, data)
 
   etimer_set(&mytimer, 1111);
 
-  sprintf(logMess, "Starting ETimer test process (counter=%i)\n", custom_counter);
+  sprintf(logMess, "Starting event timer test process (counter=%i)\n", custom_counter);
   log_message(logMess, "");
 
   while(1) {
@@ -67,7 +67,7 @@ PROCESS_THREAD(etimer_test_process, ev, data)
 
     if (etimer_expired(&mytimer)) {
       custom_counter++;
-      sprintf(logMess, "etimer> Timed out(counter=%i)\n", custom_counter);
+      sprintf(logMess, "Timed out (counter=%i)\n", custom_counter);
       log_message(logMess, "");
 
       etimer_restart(&mytimer);
