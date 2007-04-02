@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: test-rudolph1.c,v 1.4 2007/04/02 10:04:37 adamdunkels Exp $
+ * $Id: test-rudolph1.c,v 1.5 2007/04/02 17:51:54 adamdunkels Exp $
  */
 
 /**
@@ -49,7 +49,7 @@
 
 #include <stdio.h>
 
-#define FILESIZE 200
+#define FILESIZE 2000
 
 /*---------------------------------------------------------------------------*/
 PROCESS(test_rudolph1_process, "Rudolph1 test");
@@ -60,6 +60,13 @@ write_chunk(struct rudolph1_conn *c, int offset, int flag,
 	    char *data, int datalen)
 {
   int fd;
+#if NETSIM
+  {
+    char buf[100];
+    sprintf(buf, "%d%%", (100 * (offset + datalen)) / FILESIZE);
+    ether_set_text(buf);
+  }
+#endif /* NETSIM */
   
   if(flag == RUDOLPH1_FLAG_NEWFILE) {
     /*printf("+++ rudolph1 new file incoming at %lu\n", clock_time());*/
@@ -145,7 +152,10 @@ PROCESS_THREAD(test_rudolph1_process, ev, data)
       }
       cfs_close(fd);
     }
-    rudolph1_send(&rudolph1, CLOCK_SECOND / 2);
+    rudolph1_send(&rudolph1, CLOCK_SECOND * 2);
+#if NETSIM
+    ether_send_done();
+#endif /* NETSIM */
 
   }
   
@@ -162,7 +172,7 @@ PROCESS_THREAD(test_rudolph1_process, ev, data)
       }
       cfs_close(fd);
     }
-    rudolph1_send(&rudolph1, CLOCK_SECOND / 2);
+    rudolph1_send(&rudolph1, CLOCK_SECOND * 2);
 
     PROCESS_WAIT_EVENT_UNTIL(ev == sensors_event &&
 			     data == &button_sensor);
