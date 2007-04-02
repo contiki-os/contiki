@@ -1,0 +1,51 @@
+<?xml version="1.0"?>
+
+<project name="COOJA Examples" default="compile" basedir=".">
+  <property name="cooja_jar" value="../dist/cooja.jar"/>
+
+  <target name="init">
+    <tstamp/>
+  </target>
+
+  <target name="compile" depends="init">
+  	<ant antfile="build.xml" dir=".." target="jar"/>
+  	
+  	<javac srcdir="project_debug/java" destdir="project_debug/java">
+      <classpath>
+        <pathelement location="${cooja_jar}"/>
+      </classpath>
+    </javac>
+
+    <javac srcdir="project_new_interface/java" destdir="project_new_interface/java">
+      <classpath>
+        <pathelement location="${cooja_jar}"/>
+      </classpath>
+    </javac>
+
+    <javac srcdir="project_new_plugin/java" destdir="project_new_plugin/java">
+      <classpath>
+        <pathelement location="${cooja_jar}"/>
+      </classpath>
+    </javac>
+
+    <javac srcdir="project_new_radiomedium/java" destdir="project_new_radiomedium/java">
+      <classpath>
+        <pathelement location="${cooja_jar}"/>
+      </classpath>
+    </javac>
+
+    <javac srcdir="project_uaodv/java" destdir="project_uaodv/java">
+      <classpath>
+        <pathelement location="${cooja_jar}"/>
+      </classpath>
+    </javac>
+
+</target>
+
+  <target name="clean" depends="init">
+    <delete>
+      <fileset dir="." includes="**/*.class"/>
+    </delete>
+  </target>
+
+</project>
