@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: contiki-esb-main.c,v 1.7 2007/03/30 08:27:47 nifi Exp $
+ * @(#)$Id: contiki-esb-main.c,v 1.8 2007/04/02 13:35:54 nifi Exp $
  */
 
 #include <io.h>
@@ -136,9 +136,9 @@ main(void)
   
   /*  beep();*/
 
-  printf(CONTIKI_VERSION_STRING " started.\n");
+  printf(CONTIKI_VERSION_STRING " started. ");
   if(node_id > 0) {
-    printf("Node %u\n", node_id);
+    printf("Node id is set to %u.\n", node_id);
   } else {
     printf("Node id is not set.\n");
   }
