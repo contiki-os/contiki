@@ -30,7 +30,7 @@
  *
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: nodes.c,v 1.3 2006/10/23 09:01:06 adamdunkels Exp $
+ * $Id: nodes.c,v 1.4 2007/04/02 10:03:35 adamdunkels Exp $
  */
 #include <signal.h>
 #include <stdio.h>
@@ -144,7 +144,6 @@ nodes_done(int id)
   }
 
   if(num_done == numnodes) {
-    ether_print_stats();
     exit(0);
   }
 }
