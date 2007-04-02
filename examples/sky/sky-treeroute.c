@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: sky-treeroute.c,v 1.1 2007/03/27 10:39:30 adamdunkels Exp $
+ * $Id: sky-treeroute.c,v 1.2 2007/04/02 20:02:23 adamdunkels Exp $
  */
 
 /**
@@ -87,7 +87,6 @@ PROCESS_THREAD(depth_blink_process, ev, data)
 static void
 recv(rimeaddr_t *originator, u8_t seqno, u8_t hops, u8_t retransmissions)
 {
-  rimebuf_hdrreduce(8);
   printf("Got message from %d.%d, seqno %d, hops %d, retransmissions %d: len %d '%s'\n",
 	 originator->u8[0], originator->u8[1],
 	 seqno, hops, retransmissions,
