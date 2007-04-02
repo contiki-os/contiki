@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: tcprudolph0.c,v 1.6 2007/03/25 21:53:08 adamdunkels Exp $
+ * @(#)$Id: tcprudolph0.c,v 1.7 2007/04/02 20:02:13 adamdunkels Exp $
  */
 
 #include <stdio.h>
@@ -173,11 +173,11 @@ PT_THREAD(recv_tcpthread(struct pt *pt))
   ret = start_program();
   
 #if NETSIM
-  rudolph0_send(&rudolph0);
+  rudolph0_send(&rudolph0, CLOCK_SECOND / 4);
 #else /* NETSIM */
   if(ret == ELFLOADER_OK) {
     /* Propagate program. */
-    rudolph0_send(&rudolph0);
+    rudolph0_send(&rudolph0, CLOCK_SECOND / 4);
   }
 #endif /* NETSIM */
   
