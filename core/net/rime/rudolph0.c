@@ -33,7 +33,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: rudolph0.c,v 1.3 2007/03/31 18:31:28 adamdunkels Exp $
+ * $Id: rudolph0.c,v 1.4 2007/04/02 09:51:45 adamdunkels Exp $
  */
 
 /**
@@ -48,7 +48,6 @@
 #include "net/rime.h"
 #include "net/rime/rudolph0.h"
 
-#define SENDING_TIME CLOCK_SECOND / 2
 #define STEADY_TIME CLOCK_SECOND * 2
 
 enum {
@@ -99,7 +98,7 @@ send_nack(struct rudolph0_conn *c)
   hdr->chunk = c->current.h.chunk;
 
   PRINTF("Sending nack for %d:%d\n", hdr->version, hdr->chunk);
-  uabc_send(&c->nackc, CLOCK_SECOND / 4);
+  uabc_send(&c->nackc, c->send_interval / 2);
 }
 /*---------------------------------------------------------------------------*/
 static void
@@ -175,7 +174,7 @@ recv_nack(struct uabc_conn *uabc)
       c->current.h.chunk = 0;
     }
     read_new_datapacket(c);
-    sabc_set_timer(&c->c, SENDING_TIME);
+    sabc_set_timer(&c->c, c->send_interval);
   }
 }
 /*---------------------------------------------------------------------------*/
@@ -201,7 +200,7 @@ rudolph0_close(struct rudolph0_conn *c)
 }
 /*---------------------------------------------------------------------------*/
 void
-rudolph0_send(struct rudolph0_conn *c)
+rudolph0_send(struct rudolph0_conn *c, clock_time_t send_interval)
 {
   c->state = STATE_SENDER;
   c->current.h.version++;
@@ -209,7 +208,8 @@ rudolph0_send(struct rudolph0_conn *c)
   c->current.h.type = TYPE_DATA;
   read_new_datapacket(c);
   rimebuf_reference(&c->current, sizeof(struct rudolph0_datapacket));
-  sabc_send_stubborn(&c->c, SENDING_TIME);
+  c->send_interval = send_interval;
+  sabc_send_stubborn(&c->c, c->send_interval);
 }
 /*---------------------------------------------------------------------------*/
 void
