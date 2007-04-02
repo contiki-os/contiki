@@ -13,20 +13,21 @@ Contiki is designed for embedded systems with small amounts of
 memory. A typical Contiki configuration is 2 kilobytes of RAM and 40
 kilobytes of ROM. Contiki consists of an event-driven kernel on top of
 which application programs are dynamically loaded and unloaded at
-runtime. Contiki processes use light-weight protothreads that provide
-a linear, thread-like programming style on top of the event-driven
-kernel. Contiki also supports per-process optional preemptive
-multi-threading, interprocess communication using message passing
-through events, as well as an optional GUI subsystem with either
-direct graphic support for locally connected terminals or networked
-virtual display with VNC or over Telnet.
+runtime. Contiki processes use light-weight \ref pt "protothreads"
+that provide a linear, thread-like programming style on top of the
+event-driven kernel. Contiki also supports per-process optional
+preemptive multi-threading, interprocess communication using message
+passing through events, as well as an optional GUI subsystem with
+either direct graphic support for locally connected terminals or
+networked virtual display with VNC or over Telnet.
 
-Contiki contains two communication stacks: uIP and Rime. uIP is a
-small RFC-compliant TCP/IP stack that makes it possible for Contiki to
-communicate over the Internet. Rime is a lightweight communication
-stack designed for low-power radios. Rime provides a wide range of
-communication primitives, from best-effort local area broadcast, to
-reliable multi-hop bulk data flooding.
+Contiki contains two communication stacks: \ref uip "uIP" and \ref
+rime "Rime". uIP is a small RFC-compliant TCP/IP stack that makes it
+possible for Contiki to communicate over the Internet. Rime is a
+lightweight communication stack designed for low-power radios. Rime
+provides a wide range of communication primitives, from \ref rimeabc
+"best-effort local area broadcast", to \ref rudolph1
+"reliable multi-hop bulk data flooding".
 
 Contiki runs on a variety of platform ranging from embedded
 microcontrollers such as the MSP430 and the AVR to old

@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: process.h,v 1.6 2007/03/30 00:04:12 adamdunkels Exp $
+ * @(#)$Id: process.h,v 1.7 2007/04/02 18:07:26 adamdunkels Exp $
  */
 
 /**
@@ -39,7 +39,7 @@
 /**
  * \defgroup process Contiki processes
  *
- * A process in Contiki consists of a single \ref pt protothread.
+ * A process in Contiki consists of a single \ref pt "protothread".
  *
  * @{
  */
