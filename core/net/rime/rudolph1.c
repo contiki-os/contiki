@@ -33,7 +33,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: rudolph1.c,v 1.7 2007/04/02 17:53:27 adamdunkels Exp $
+ * $Id: rudolph1.c,v 1.8 2007/04/02 19:12:37 adamdunkels Exp $
  */
 
 /**
@@ -151,7 +151,9 @@ static void
 handle_data(struct rudolph1_conn *c, struct rudolph1_datapacket *p)
 {
   if(LT(c->version, p->h.version)) {
-    PRINTF("rudolph1 new version %d, chunk %d\n", p->h.version, p->h.chunk);
+    PRINTF("%d.%d: rudolph1 new version %d, chunk %d\n",
+	   rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1],
+	   p->h.version, p->h.chunk);
     c->version = p->h.version;
     c->highest_chunk_heard = c->chunk = 0;
       if(p->h.chunk != 0) {
@@ -163,8 +165,9 @@ handle_data(struct rudolph1_conn *c, struct rudolph1_datapacket *p)
       /*    }*/
   } else if(p->h.version == c->version) {
     if(p->h.chunk == c->chunk) {
-      PRINTF("%d: received chunk %d\n",
-	     rimeaddr_node_addr.u16, p->h.chunk);
+      PRINTF("%d.%d: received chunk %d\n",
+	     rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1],
+	     p->h.chunk);
       write_data(c, p->h.chunk, p->data, p->datalen);
       c->highest_chunk_heard = c->chunk;
       c->chunk++;
@@ -197,6 +200,9 @@ recv_trickle(struct trickle_conn *trickle)
   struct rudolph1_datapacket *p = rimebuf_dataptr();
 
   if(p->h.type == TYPE_DATA) {
+    PRINTF("%d.%d: received trickle with chunk %d\n",
+	   rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1],
+	   p->h.chunk);
     handle_data(c, p);
   }
 }
@@ -215,6 +221,9 @@ recv_uabc(struct uabc_conn *uabc)
     if(p->h.version == c->version) {
       if(p->h.chunk < c->chunk) {
 	/* Format and send a repair packet */
+	PRINTF("%d.%d: sending repair for chunk %d\n",
+	       rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1],
+	       p->h.chunk);
 	format_data(c, p->h.chunk);
 	uabc_send(&c->uabc, c->send_interval / 2);
       }
@@ -275,6 +284,7 @@ rudolph1_send(struct rudolph1_conn *c, clock_time_t send_interval)
   c->trickle_interval = TRICKLE_INTERVAL;
   format_data(c, 0);
   trickle_send(&c->trickle, c->trickle_interval);
+  c->chunk++;
   c->send_interval = send_interval;
   ctimer_set(&c->t, send_interval, send_next_packet, c);
 }
