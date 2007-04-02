@@ -24,7 +24,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * 
- * $Id: GUI.java,v 1.39 2007/04/02 13:42:05 fros4943 Exp $
+ * $Id: GUI.java,v 1.40 2007/04/02 16:50:07 fros4943 Exp $
  */
 
 package se.sics.cooja;
@@ -500,6 +500,12 @@ public class GUI {
       }
     });
     menu.add(menuMoteTypes);
+
+    menuItem = new JMenuItem("Remove all motes");
+    menuItem.setActionCommand("remove all motes");
+    menuItem.addActionListener(guiEventHandler);
+
+    menu.add(menuItem);
 
     // Plugins menu
     menuPlugins = new JMenu("Plugins");
@@ -2373,6 +2379,15 @@ public class GUI {
         Object[] plugins = startedPlugins.toArray();
         for (Object plugin : plugins)
           removePlugin((Plugin) plugin, false);
+      } else if (e.getActionCommand().equals("remove all motes")) {
+        if (getSimulation() != null) {
+          if (getSimulation().isRunning())
+            getSimulation().stopSimulation();
+          
+          while (getSimulation().getMotesCount() > 0) {
+            getSimulation().removeMote(getSimulation().getMote(0));
+          }
+        }
       } else if (e.getActionCommand().equals("manage projects")) {
         Vector<File> newProjects = ProjectDirectoriesDialog.showDialog(frame,
             currentProjectDirs, null);
