@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: MoteInformation.java,v 1.3 2007/01/09 09:49:24 fros4943 Exp $
+ * $Id: MoteInformation.java,v 1.4 2007/04/02 16:44:44 fros4943 Exp $
  */
 
 package se.sics.cooja.plugins;
@@ -195,7 +195,7 @@ public class MoteInformation extends VisPlugin {
     }
     
     
-    this.setContentPane(new JScrollPane(mainPane,
+    this.getContentPane().add(BorderLayout.NORTH, new JScrollPane(mainPane,
         JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,
         JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED));
     pack();
