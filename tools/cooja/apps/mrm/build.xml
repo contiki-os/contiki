@@ -16,8 +16,6 @@
       <classpath>
         <pathelement path="."/>
         <pathelement location="${cooja_jar}"/>
-        <pathelement location="${lib}/jfreechart-1.0.1.jar"/>
-        <pathelement location="${lib}/jcommon-1.0.0.jar"/>
       </classpath>
     </javac>
   </target>
