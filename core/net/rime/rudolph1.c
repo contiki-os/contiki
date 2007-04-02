@@ -33,7 +33,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: rudolph1.c,v 1.5 2007/03/31 18:31:28 adamdunkels Exp $
+ * $Id: rudolph1.c,v 1.6 2007/04/02 09:51:45 adamdunkels Exp $
  */
 
 /**
@@ -50,9 +50,8 @@
 #include "net/rime/rudolph1.h"
 #include "cfs/cfs.h"
 
-#define DATA_INTERVAL CLOCK_SECOND * 2
 #define TRICKLE_INTERVAL TRICKLE_SECOND
-#define NACK_TIMEOUT CLOCK_SECOND
+#define NACK_TIMEOUT CLOCK_SECOND / 4
 
 struct rudolph1_hdr {
   u8_t type;
@@ -151,12 +150,12 @@ static void
 handle_data(struct rudolph1_conn *c, struct rudolph1_datapacket *p)
 {
   if(LT(c->version, p->h.version)) {
-    PRINTF("rudolph1 new version %d\n", p->h.version);
+    PRINTF("rudolph1 new version %d, chunk %d\n", p->h.version, p->h.chunk);
     c->version = p->h.version;
-    c->chunk = 1; /* Next chunk is 1. */
       if(p->h.chunk != 0) {
 	send_nack(c);
       } else {
+	c->chunk = 1; /* Next chunk is 1. */
 	write_data(c, 0, p->data, p->datalen);
       }
       /*    }*/
@@ -199,14 +198,15 @@ recv_uabc(struct uabc_conn *uabc)
   c->nacks++;
 
   if(p->h.type == TYPE_NACK) {
+    PRINTF("Got NACK for %d:%d\n", p->h.version, p->h.chunk);
     if(p->h.version == c->version) {
       if(p->h.chunk < c->chunk) {
 	format_data(c, p->h.chunk);
-	uabc_send(&c->uabc, NACK_TIMEOUT);
+	uabc_send(&c->uabc, c->send_interval / 2);
       }
     } else if(LT(p->h.version, c->version)) {
       format_data(c, 0);
-      uabc_send(&c->uabc, NACK_TIMEOUT);
+      uabc_send(&c->uabc, c->send_interval / 2);
     }
   } else if(p->h.type == TYPE_DATA) {
     handle_data(c, p);
@@ -223,10 +223,10 @@ send_next_packet(void *ptr)
     len = format_data(c, c->chunk);
     trickle_send(&c->trickle, c->trickle_interval);
     if(len == RUDOLPH1_DATASIZE) {
-      ctimer_set(&c->t, DATA_INTERVAL, send_next_packet, c);
+      ctimer_set(&c->t, c->send_interval, send_next_packet, c);
     }
   } else {
-    ctimer_set(&c->t, DATA_INTERVAL, send_next_packet, c);
+    ctimer_set(&c->t, c->send_interval, send_next_packet, c);
   }
   c->nacks = 0;
 }
@@ -252,14 +252,15 @@ rudolph1_close(struct rudolph1_conn *c)
 }
 /*---------------------------------------------------------------------------*/
 void
-rudolph1_send(struct rudolph1_conn *c)
+rudolph1_send(struct rudolph1_conn *c, clock_time_t send_interval)
 {
   c->version++;
   c->chunk = 0;
   c->trickle_interval = TRICKLE_INTERVAL;
   format_data(c, 0);
   trickle_send(&c->trickle, c->trickle_interval);
-  ctimer_set(&c->t, DATA_INTERVAL, send_next_packet, c);
+  c->send_interval = send_interval;
+  ctimer_set(&c->t, send_interval, send_next_packet, c);
 }
 /*---------------------------------------------------------------------------*/
 void
