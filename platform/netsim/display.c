@@ -24,7 +24,7 @@
  * IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY
  * OF SUCH DAMAGE.
  *
- * $Id: display.c,v 1.4 2006/10/23 09:01:06 adamdunkels Exp $
+ * $Id: display.c,v 1.5 2007/04/02 17:58:43 adamdunkels Exp $
  *
  * Author: Adam Dunkels <adam@sics.se>
  *
@@ -48,7 +48,7 @@ static GtkWidget *drawing_area;
 static GdkFont *font;
 
 #define DISPLAY_WIDTH 400
-#define DISPLAY_HEIGHT 300
+#define DISPLAY_HEIGHT 400
 
 #define BASESTATION_SIZE 4
 
@@ -166,8 +166,8 @@ display_redraw(void)
 	gdk_draw_string(pixmap,
 			font,
 			black,
-			x * SCALE + 2,
-			y * SCALE - 1,
+			x * SCALE + 10,
+			y * SCALE + 7,
 			n->text);
 	
       }
