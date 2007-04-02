@@ -1,4 +1,4 @@
-# $Id: Makefile.cooja,v 1.13 2007/04/02 09:07:30 fros4943 Exp $
+# $Id: Makefile.cooja,v 1.14 2007/04/02 10:28:52 fros4943 Exp $
 
 ## The COOJA Simulator Contiki platform Makefile
 ##
@@ -21,15 +21,30 @@ ifndef CONTIKI
   $(error CONTIKI not defined!)
 endif
 
+### Assuming quickstart if no type ID set
 ifndef TYPEID
+QUICKSTART=1
+endif
+
 ### Quickstart simulator
+ifdef QUICKSTART
+
+# Check that target file exists
+have_file := $(wildcard $(MAKECMDGOALS).c)
+ifeq ($(strip $(have_file)),)
+$(error Quick-start error. Can't find file "$(MAKECMDGOALS).c")
+endif
+
+# Create COOJA JAR rule
+$(CONTIKI)/tools/cooja/dist/cooja.jar:
+	@echo "Creating COOJA Java archive..."
+	(cd $(CONTIKI)/tools/cooja && ant jar)
+
+# Quickstart rule
 $(MAKECMDGOALS): $(CONTIKI)/tools/cooja/dist/cooja.jar
 	java -jar $(CONTIKI)/tools/cooja/dist/cooja.jar -quickstart=$(MAKECMDGOALS).c -contiki=$(CONTIKI)
 
-$(CONTIKI)/tools/cooja/dist/cooja.jar:
-	echo Creating COOJA Java archive...
-	(cd $(CONTIKI)/tools/cooja && ant jar)
-endif
+endif ## QUICKSTART
 
 OUTPUT_DIR = obj_cooja
 LIBFILE = $(OUTPUT_DIR)/$(TYPEID).library
