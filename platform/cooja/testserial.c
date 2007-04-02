@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: testserial.c,v 1.1 2006/08/21 12:11:16 fros4943 Exp $
+ * $Id: testserial.c,v 1.2 2007/04/02 16:31:28 fros4943 Exp $
  */
 
 
@@ -58,22 +58,22 @@ PROCESS_THREAD(serial_test_process, ev, data)
 
   etimer_set(&mytimer, CLOCK_SECOND);
 
-	/* Starts the serial process among other */
-	serial_init();
+  /* Starts the serial process among other */
+  serial_init();
 
-  log_message("serial> Starting test process\n", "");
+  log_message("Starting serial test process\n", "");
 
   while(1) {
     PROCESS_WAIT_EVENT();
 	
     if (etimer_expired(&mytimer)) {
-      log_message("serial> Sending serial data now\n", "");
+      log_message("Sending serial data now\n", "");
       etimer_restart(&mytimer);
-			rs232_print("GNU's not Unix\n");
+      rs232_print("GNU's not Unix\n");
     }
 
     if(ev == serial_event_message) {
-		  log_message("serial> Message received: ", data);
+      log_message("Message received: ", data);
     }
   }
 
