@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: clock.c,v 1.5 2007/03/25 21:52:00 adamdunkels Exp $
+ * @(#)$Id: clock.c,v 1.6 2007/04/02 16:32:20 joxe Exp $
  */
 
 
@@ -91,7 +91,7 @@ clock_fine(void)
   dint();
   t = TAR;
   eint();
-  
+
   return (unsigned short)((unsigned long)t - (unsigned long)last_tar);
 }
 /*---------------------------------------------------------------------------*/
@@ -101,13 +101,14 @@ clock_init(void)
   dint();
 
   /* Select SMCLK (2.4576MHz), clear TAR */
-/*   TACTL = TASSEL1 | TACLR | ID_3; */
+  /* TACTL = TASSEL1 | TACLR | ID_3; */
+  /* Select ACLK 32768Hz clock, divide by 8 */
   TACTL = TASSEL0 | TACLR | ID_3;
 
   /* Initialize ccr1 to create the X ms interval. */
   /* CCR1 interrupt enabled, interrupt occurs when timer equals CCR1. */
   TACCTL1 = CCIE;
-  
+
   /* Interrupt after X ms. */
   TACCR1 = INTERVAL;
 
@@ -115,7 +116,7 @@ clock_init(void)
   TACTL |= MC1;
 
   count = 0;
-  
+
   BCSCTL1 &= ~(DIVA1 + DIVA0);   /* remove /8 divisor from ACLK again    */
 
   /* Enable interrupts. */
