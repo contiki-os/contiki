@@ -32,7 +32,7 @@ endif
 include $(CONTIKI)/core/net/rime/Makefile.rime
 SYSTEM  = process.c procinit.c service.c autostart.c elfloader.c
 THREADS = mt.c
-LIBS    = memb.c timer.c list.c etimer.c energest.c #rt.c #crtk.c
+LIBS    = memb.c timer.c list.c etimer.c energest.c rtimer.c 
 CFS     = cfs.c cfs-ram.c
 CTK     = ctk.c
 UIP     = uip.c uiplib.c resolv.c tcpip.c psock.c hc.c uip-split.c \
