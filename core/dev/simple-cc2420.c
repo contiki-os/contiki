@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: simple-cc2420.c,v 1.4 2007/03/25 17:15:30 adamdunkels Exp $
+ * @(#)$Id: simple-cc2420.c,v 1.5 2007/04/03 19:05:44 adamdunkels Exp $
  */
 /*
  * This code is almost device independent and should be easy to port.
@@ -269,8 +269,9 @@ simple_cc2420_off(void)
 {
   u8_t spiStatusByte;
 
-  if (receive_on == 0)
+  if(receive_on == 0) {
     return;
+  }
   receive_on = 0;
   /* Wait for transmission to end before turning radio off. */
   do {
@@ -328,7 +329,23 @@ simple_cc2420_set_chan_pan_addr(unsigned channel, /* 11 - 26 */
 }
 /*---------------------------------------------------------------------------*/
 static volatile u8_t rx_fifo_remaining_bytes;
-    
+/*---------------------------------------------------------------------------*/
+void
+radio_on(void)
+{
+  simple_cc2420_on();
+}
+/*---------------------------------------------------------------------------*/
+void
+radio_off(void)
+{
+  /* Turn the receiver off, but only if we have not recently received
+     a packet. */
+  if(rx_fifo_remaining_bytes == 0) {
+    simple_cc2420_off();
+  }
+}
+/*---------------------------------------------------------------------------*/
 /*
  * Interrupt either leaves frame intact in FIFO or reads *only* the
  * MAC header and sets rx_fifo_remaining_bytes.
