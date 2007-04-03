@@ -28,12 +28,12 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: rtimer-arch.h,v 1.1 2007/04/03 19:03:10 adamdunkels Exp $
+ * $Id: rtimer-arch.h,v 1.2 2007/04/03 19:04:27 adamdunkels Exp $
  */
 
 /**
  * \file
- *         A brief description of what this file is.
+ *         Header file for the MSP430-specific rtimer code
  * \author
  *         Adam Dunkels <adam@sics.se>
  */
