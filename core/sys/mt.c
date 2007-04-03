@@ -30,7 +30,7 @@
  *
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: mt.c,v 1.4 2007/03/15 21:46:07 adamdunkels Exp $
+ * $Id: mt.c,v 1.5 2007/04/03 18:47:21 oliverschmidt Exp $
  */
 
 /**
@@ -92,14 +92,6 @@ mt_exec(struct mt_thread *thread)
   }
 }
 /*--------------------------------------------------------------------------*/
-void
-mt_exit(void)
-{
-  current->state = MT_STATE_EXITED;
-  current = NULL;
-  mtarch_yield();
-}
-/*--------------------------------------------------------------------------*/
 #if 0
 void
 mt_exec_event(struct mt_thread *thread, process_event_t ev,
@@ -130,6 +122,20 @@ mt_yield(void)
      until the next time we are scheduled to run. */
   mtarch_yield();
   
+}
+/*--------------------------------------------------------------------------*/
+void
+mt_exit(void)
+{
+  current->state = MT_STATE_EXITED;
+  current = NULL;
+  mtarch_yield();
+}
+/*--------------------------------------------------------------------------*/
+void
+mt_stop(struct mt_thread *thread)
+{
+  mtarch_stop(&thread->thread);
 }
 /*--------------------------------------------------------------------------*/
 #if 0

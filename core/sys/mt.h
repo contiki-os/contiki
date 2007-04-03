@@ -30,7 +30,7 @@
  *
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: mt.h,v 1.3 2006/09/26 20:59:51 adamdunkels Exp $
+ * $Id: mt.h,v 1.4 2007/04/03 18:47:21 oliverschmidt Exp $
  */
 
 /** \addtogroup sys
@@ -57,17 +57,19 @@
  *
  * The Contiki multi-threading library requires some architecture
  * specific support for seting up and switching stacks. This support
- * requires three stack manipulation functions to be implemented:
+ * requires four stack manipulation functions to be implemented:
  * mtarch_start(), which sets up the stack frame for a new thread,
- * mtarch_exec(), which switches in the stack of a thread, and
+ * mtarch_exec(), which switches in the stack of a thread,
  * mtarch_yield(), which restores the kernel stack from a thread's
- * stack. Additionally, two functions for controlling the preemption
- * (if any) must be implemented: mtarch_preemption_start() and
- * mtarch_preemption_stop(). If no preemption is used, these functions
- * can be implemented as empty functions. Finally, the function
- * mtarch_init() is called by mt_init(), and can be used for
- * initalization of timer interrupts, or any other mechanisms required
- * for correct operation of the architecture specific support funcions.
+ * stack and mtarch_stop(), which cleans up the stack of a thread.
+ * Additionally, two functions for controlling the preemption
+ * (if any) must be implemented: mtarch_pstart() and mtarch_pstop().
+ * If no preemption is used, these functions can be implemented as
+ * empty functions. Finally, the function mtarch_init() is called by
+ * mt_init(), and can be used for initalization of timer interrupts,
+ * or any other mechanisms required for correct operation of the
+ * architecture specific support funcions while mtarch_remove() is
+ * called by mt_remove() to clean up those resources.
  *
  */
 
@@ -131,6 +133,21 @@ void mtarch_start(struct mtarch_thread *thread,
 		  void *data);
 
 /**
+ * Start executing a thread.
+ *
+ * This function is called from mt_exec() and the purpose of the
+ * function is to start execution of the thread. The function should
+ * switch in the stack of the thread, and does not return until the
+ * thread has explicitly yielded (using mt_yield()) or until it is
+ * preempted.
+ *
+ * \param thread A pointer to a struct mtarch_thread for the thread to
+ * be executed.
+ *
+ */
+void mtarch_exec(struct mtarch_thread *thread);
+
+/**
  * Yield the processor.
  *
  * This function is called by the mt_yield() function, which is called
@@ -140,17 +157,19 @@ void mtarch_start(struct mtarch_thread *thread,
 void mtarch_yield(void);
 
 /**
- * Start executing a thread.
+ * Clean up the stack of a thread.
  *
- * This function is called from mt_exec() and the purpose of the
- * function is to start execution of the thread. The function should
- * switch in the stack of the thread, and does not return until the
- * thread has explicitly yielded (using mt_yield()) or until it is
- * preempted.
+ * This function is called by the mt_stop() function in order to clean
+ * up the architecture specific stack of the thread to be stopped.
+ *
+ * \note If the stack is wholly contained in struct mtarch_thread this
+ * function may very well be empty.
+ *
+ * \param thread A pointer to a struct mtarch_thread for the thread to
+ * be stopped.
  *
  */
-void mtarch_exec(struct mtarch_thread *thread);
-
+void mtarch_stop(struct mtarch_thread *thread);
 
 void mtarch_pstart(void);
 void mtarch_pstop(void);
@@ -208,7 +227,8 @@ void mt_start(struct mt_thread *thread, void (* function)(void *), void *data);
  * thread. The function does not return until the thread has yielded,
  * or is preempted.
  *
- * \note The thread must first be initialized with the mt_init() function.
+ * \note The thread library must first be initialized with the mt_init()
+ * function.
  *
  * \param thread A pointer to a struct mt_thread block that must be
  * allocated by the caller.
@@ -224,7 +244,8 @@ void mt_exec(struct mt_thread *thread);
  * number. If the thread is not waiting for the event, this function
  * does nothing.
  *
- * \note The thread must first be initialized with the mt_init() function.
+ * \note The thread library must first be initialized with the mt_init()
+ * function.
  *
  * \param thread A pointer to a struct mt_thread block that must be
  * allocated by the caller.
@@ -291,6 +312,18 @@ void mt_yield(void);
  *
  */
 void mt_exit(void);
+
+/**
+ * Stop a thread.
+ *
+ * This function is called by a Contiki process in order to clean up a
+ * thread. The struct mt_thread block may then be discarded by the caller.
+ *
+ * \param thread A pointer to a struct mt_thread block that must be
+ * allocated by the caller.
+ *
+ */
+void mt_stop(struct mt_thread *thread);
 
 #if 0
 /**
