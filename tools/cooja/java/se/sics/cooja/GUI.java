@@ -24,7 +24,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * 
- * $Id: GUI.java,v 1.40 2007/04/02 16:50:07 fros4943 Exp $
+ * $Id: GUI.java,v 1.41 2007/04/03 16:21:12 fros4943 Exp $
  */
 
 package se.sics.cooja;
@@ -82,7 +82,11 @@ public class GUI {
    * External tools user settings filename.
    */
   public static final String EXTERNAL_TOOLS_USER_SETTINGS_FILENAME = ".cooja.user.properties";
+  private static File externalToolsUserSettingsFile = 
+    new File(System.getProperty("user.home"), EXTERNAL_TOOLS_USER_SETTINGS_FILENAME);
 
+  private static String specifiedContikiPath = null;
+  
   /**
    * Logger settings filename.
    */
@@ -200,7 +204,11 @@ public class GUI {
     // Load default and overwrite with user settings (if any)
     loadExternalToolsDefaultSettings();
     loadExternalToolsUserSettings();
-
+    if (specifiedContikiPath != null) {
+      setExternalToolsSetting("PATH_CONTIKI", specifiedContikiPath);
+    }
+    
+    
     // Add menu bar
     if (frame != null) {
       frame.setJMenuBar(createMenuBar());
@@ -2279,11 +2287,8 @@ public class GUI {
    * Load user values from external properties file
    */
   private static void loadExternalToolsUserSettings() {
-    File configFile = new File(System.getProperty("user.home"),
-        GUI.EXTERNAL_TOOLS_USER_SETTINGS_FILENAME);
-
     try {
-      FileInputStream in = new FileInputStream(configFile);
+      FileInputStream in = new FileInputStream(externalToolsUserSettingsFile);
       Properties settings = new Properties();
       settings.load(in);
       in.close();
@@ -2298,7 +2303,7 @@ public class GUI {
       // No default configuration file found, using default
     } catch (IOException e) {
       // Error while importing saved properties, using default
-      logger.warn("Error when reading default settings from " + configFile);
+      logger.warn("Error when reading default settings from " + externalToolsUserSettingsFile);
     }
   }
 
@@ -2306,20 +2311,18 @@ public class GUI {
    * Save external tools user settings to file.
    */
   public static void saveExternalToolsUserSettings() {
-    File configFile = new File(System.getProperty("user.home"),
-        GUI.EXTERNAL_TOOLS_USER_SETTINGS_FILENAME);
     try {
-      FileOutputStream out = new FileOutputStream(configFile);
+      FileOutputStream out = new FileOutputStream(externalToolsUserSettingsFile);
       currentExternalToolsSettings.store(out, "COOJA User Settings");
       out.close();
     } catch (FileNotFoundException ex) {
       // Could not open settings file for writing, aborting
       logger.warn("Could not save external tools user settings to "
-          + configFile + ", aborting");
+          + externalToolsUserSettingsFile + ", aborting");
     } catch (IOException ex) {
       // Could not open settings file for writing, aborting
       logger.warn("Error while saving external tools user settings to "
-          + configFile + ", aborting");
+          + externalToolsUserSettingsFile + ", aborting");
     }
   }
 
@@ -2558,6 +2561,14 @@ public class GUI {
       DOMConfigurator.configure(GUI.class.getResource("/" + LOG_CONFIG_FILE));
     }
 
+    // Check for Contiki path argument
+    for (int i = 1; i < args.length; i++) {
+      if (args[i].startsWith("-contiki=")) {
+        String arg = args[i].substring("-contiki=".length());
+        GUI.specifiedContikiPath = arg;
+      }
+    }
+    
     // Check if simulator should be quick-started
     if (args.length > 0 && args[0].startsWith("-quickstart=")) {
       String filename = args[0].substring("-quickstart=".length());
@@ -2574,7 +2585,7 @@ public class GUI {
       boolean startSimulation = true;
       String contikiPath = null;
 
-      // Parse quick start arguments
+      // Parse arguments
       for (int i = 1; i < args.length; i++) {
 
         if (args[i].startsWith("-id=")) {
@@ -2644,6 +2655,23 @@ public class GUI {
 
     } else if (args.length > 0 && args[0].startsWith("-nogui")) {
 
+      // Parse arguments
+      for (int i = 1; i < args.length; i++) {
+
+        if (args[i].startsWith("-external_tools_config=")) {
+          String arg = args[i].substring("-external_tools_config=".length());
+          File specifiedExternalToolsConfigFile = new File(arg);
+          if (!specifiedExternalToolsConfigFile.exists()) {
+            logger.fatal("Specified external tools configuration not found: " + specifiedExternalToolsConfigFile);
+            specifiedExternalToolsConfigFile = null;
+            System.exit(1);
+          } else {
+            GUI.externalToolsUserSettingsFile = specifiedExternalToolsConfigFile;
+          }
+        }
+
+      }
+      
       // No GUI start-up
       javax.swing.SwingUtilities.invokeLater(new Runnable() {
         public void run() {
