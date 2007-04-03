@@ -30,7 +30,7 @@
  * 
  * Author: Oliver Schmidt <ol.sc@web.de>
  *
- * $Id: mtarch.c,v 1.1 2007/04/03 00:40:51 oliverschmidt Exp $
+ * $Id: mtarch.c,v 1.2 2007/04/03 18:37:15 oliverschmidt Exp $
  */
 
 #ifdef __CYGWIN__
@@ -92,13 +92,13 @@ mtarch_start(struct mtarch_thread *thread,
 
   thread->mt_thread = malloc(sizeof(struct mtarch_t));
 
-  getcontext(&((struct mtarch_t *)&thread->mt_thread)->context);
+  getcontext(&((struct mtarch_t *)thread->mt_thread)->context);
 
-  ((struct mtarch_t *)&thread->mt_thread)->context.uc_link = NULL;
-  ((struct mtarch_t *)&thread->mt_thread)->context.uc_stack.ss_sp = 
-			((struct mtarch_t *)&thread->mt_thread)->stack;
-  ((struct mtarch_t *)&thread->mt_thread)->context.uc_stack.ss_size = 
-			sizeof(((struct mtarch_t *)&thread->mt_thread)->stack);
+  ((struct mtarch_t *)thread->mt_thread)->context.uc_link = NULL;
+  ((struct mtarch_t *)thread->mt_thread)->context.uc_stack.ss_sp = 
+			((struct mtarch_t *)thread->mt_thread)->stack;
+  ((struct mtarch_t *)thread->mt_thread)->context.uc_stack.ss_size = 
+			sizeof(((struct mtarch_t *)thread->mt_thread)->stack);
 
   /* Some notes:
      - If a CPU needs stronger alignment for the stack than malloc()
@@ -115,7 +115,7 @@ mtarch_start(struct mtarch_thread *thread,
        the only way to stay independent from the CPU architecture. But
        Solaris prior to release 10 interprets ss_sp as highest stack
        address thus requiring special handling. */
-  makecontext(&((struct mtarch_t *)&thread->mt_thread)->context,
+  makecontext(&((struct mtarch_t *)thread->mt_thread)->context,
 	      (void (*)(void))function, 1, data);
 
 #endif /* __CYGWIN__ */
@@ -144,7 +144,7 @@ mtarch_exec(struct mtarch_thread *thread)
 
 #else /* __CYGWIN__ */
 
-  running_context = &((struct mtarch_t *)&thread->mt_thread)->context;
+  running_context = &((struct mtarch_t *)thread->mt_thread)->context;
   swapcontext(&main_context, running_context);
   running_context = NULL;
 
