@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ContikiMoteType.java,v 1.10 2007/04/02 12:45:19 fros4943 Exp $
+ * $Id: ContikiMoteType.java,v 1.11 2007/04/03 16:18:05 fros4943 Exp $
  */
 
 package se.sics.cooja.contikimote;
@@ -280,9 +280,13 @@ public class ContikiMoteType implements MoteType {
       throw new MoteTypeCreationException("Variable name to addresses mappings could not be created");
     }
     
-    // Get offset between relative and absolute addresses
-    offsetRelToAbs = getReferenceAbsAddr()
-        - getRelVarAddr(mapFileData, "referenceVar");
+    try {
+      // Get offset between relative and absolute addresses
+      offsetRelToAbs = getReferenceAbsAddr()
+          - getRelVarAddr(mapFileData, "referenceVar");
+    } catch (Exception e) {
+      throw new MoteTypeCreationException("JNI call error: " + e.getMessage());
+    }
 
     // Parse addresses of data and BSS memory sections
     int relDataSectionAddr = loadRelDataSectionAddr(mapFileData);
