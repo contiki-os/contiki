@@ -24,7 +24,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * 
- * $Id: GUI.java,v 1.41 2007/04/03 16:21:12 fros4943 Exp $
+ * $Id: GUI.java,v 1.42 2007/04/04 08:04:48 fros4943 Exp $
  */
 
 package se.sics.cooja;
@@ -2313,7 +2313,19 @@ public class GUI {
   public static void saveExternalToolsUserSettings() {
     try {
       FileOutputStream out = new FileOutputStream(externalToolsUserSettingsFile);
-      currentExternalToolsSettings.store(out, "COOJA User Settings");
+      
+      Properties differingSettings = new Properties();
+      Enumeration keyEnum = currentExternalToolsSettings.keys();
+      while (keyEnum.hasMoreElements()) {
+        String key = (String) keyEnum.nextElement();
+        String defaultSetting = getExternalToolsDefaultSetting(key, "");
+        String currentSetting = getExternalToolsSetting(key, "");
+        if (!defaultSetting.equals(currentSetting)) {
+          differingSettings.setProperty(key, currentSetting);
+        }
+      }
+      
+      differingSettings.store(out, "COOJA External Tools (User specific)");
       out.close();
     } catch (FileNotFoundException ex) {
       // Could not open settings file for writing, aborting
