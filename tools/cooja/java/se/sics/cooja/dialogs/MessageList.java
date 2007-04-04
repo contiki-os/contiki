@@ -26,14 +26,14 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: MessageList.java,v 1.3 2007/04/02 15:45:44 nifi Exp $
+ * $Id: MessageList.java,v 1.4 2007/04/04 07:47:02 fros4943 Exp $
  *
  * -----------------------------------------------------------------
  *
  * Author  : Adam Dunkels, Joakim Eriksson, Niclas Finne, Fredrik Osterlind
  * Created : 2006-06-14
- * Updated : $Date: 2007/04/02 15:45:44 $
- *           $Revision: 1.3 $
+ * Updated : $Date: 2007/04/04 07:47:02 $
+ *           $Revision: 1.4 $
  */
 package se.sics.cooja.dialogs;
 import java.awt.Color;
@@ -133,9 +133,12 @@ public class MessageList extends JList {
   }
 
   public void addMessage(String message, int type) {
+    boolean scroll = getLastVisibleIndex() >= getModel().getSize() - 1;
     MessageContainer msg = new MessageContainer(message, type);
     ((DefaultListModel) getModel()).addElement(msg);
-    ensureIndexIsVisible(getModel().getSize() - 1);
+    if (scroll) {
+      ensureIndexIsVisible(getModel().getSize() - 1);
+    }
   }
 
   public void clearMessages() {
