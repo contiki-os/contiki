@@ -1,5 +1,5 @@
 /* -*- C -*- */
-/* @(#)$Id: contiki-conf.h,v 1.12 2007/03/25 21:54:06 adamdunkels Exp $ */
+/* @(#)$Id: contiki-conf.h,v 1.13 2007/04/04 11:39:49 bg- Exp $ */
 
 #ifndef CONTIKI_CONF_H
 #define CONTIKI_CONF_H
@@ -18,6 +18,7 @@
 
 /* This is still experimental. /bg */
 #define UAODV_BAD_ROUTE
+#define AODV_NUM_RT_ENTRIES 32
 
 /* Helper prototypes that should go somewhere. */
 void   *sbrk(int);
@@ -50,7 +51,7 @@ void msp430_cpu_init(void);	/* Rename to cpu_init() later! */
 #define UIP_CONF_MAX_CONNECTIONS 4
 #define UIP_CONF_MAX_LISTENPORTS 8
 #define UIP_CONF_UDP_CONNS       6
-#define UIP_CONF_FWCACHE_SIZE    5
+#define UIP_CONF_FWCACHE_SIZE    30
 #define UIP_CONF_BROADCAST       1
 #define UIP_ARCH_IPCHKSUM        1
 #define UIP_CONF_UDP_CHECKSUMS   1
