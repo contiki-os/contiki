@@ -28,7 +28,7 @@
  *
  * This file is part of the uIP TCP/IP stack.
  *
- * $Id: tunslip.c,v 1.10 2007/02/02 13:26:49 bg- Exp $
+ * $Id: tunslip.c,v 1.11 2007/04/04 11:54:45 bg- Exp $
  *
  */
 
@@ -842,7 +842,7 @@ ifconf(const char *tundev, const char *ipaddr, const char *netmask)
 #ifdef mac_something
   ssystem("ifconfig %s inet `hostname` %s up", tundev, ipaddr);
 #else
-  ssystem("ifconfig %s inet up", tundev);
+  ssystem("ifconfig %s inet `hostname` %s up", tundev, ipaddr);
 #endif
   if (strcmp(ipaddr, "0.0.0.0") != 0)
     ssystem("route add -net %s -netmask %s -interface %s",
