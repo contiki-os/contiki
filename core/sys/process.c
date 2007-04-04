@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: process.c,v 1.4 2007/03/25 17:18:37 adamdunkels Exp $
+ * @(#)$Id: process.c,v 1.5 2007/04/04 09:19:18 nifi Exp $
  */
 
 /**
@@ -119,7 +119,7 @@ process_start(struct process *p, char *arg)
 
   PT_INIT(&p->pt);
   
-  /* Post a synchronous event to the process. */
+  /* Post an asynchronous event to the process. */
   process_post(p, PROCESS_EVENT_INIT, (process_data_t)arg);
 }
 /*---------------------------------------------------------------------------*/
