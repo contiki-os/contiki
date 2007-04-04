@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: uaodv-rt.c,v 1.2 2006/08/09 16:13:39 bg- Exp $
+ * $Id: uaodv-rt.c,v 1.3 2007/04/04 11:50:54 bg- Exp $
  */
 
 /**
@@ -42,13 +42,15 @@
 #include "net/uaodv-rt.h"
 #include "contiki-net.h"
 
-#define NUM_RT_ENTRIES 8
+#ifndef UAODV_NUM_RT_ENTRIES
+#define UAODV_NUM_RT_ENTRIES 8
+#endif
 
 /*
  * LRU (with respect to insertion time) list of route entries.
  */
 LIST(route_table);
-MEMB(route_mem, struct uaodv_rt_entry, NUM_RT_ENTRIES);
+MEMB(route_mem, struct uaodv_rt_entry, UAODV_NUM_RT_ENTRIES);
 
 /*---------------------------------------------------------------------------*/
 void
@@ -58,9 +60,9 @@ uaodv_rt_init(void)
   memb_init(&route_mem);
 }
 /*---------------------------------------------------------------------------*/
-int
+struct uaodv_rt_entry *
 uaodv_rt_add(uip_ipaddr_t *dest, uip_ipaddr_t *nexthop,
-	     u16_t hop_count, u32_t seqno)
+	     unsigned hop_count, u32_t seqno)
 {
   struct uaodv_rt_entry *e;
 
@@ -84,7 +86,7 @@ uaodv_rt_add(uip_ipaddr_t *dest, uip_ipaddr_t *nexthop,
   /* New entry goes first. */
   list_push(route_table, e);
 
-  return 0;
+  return e;
 }
 /*---------------------------------------------------------------------------*/
 struct uaodv_rt_entry *
@@ -115,6 +117,15 @@ uaodv_rt_remove(struct uaodv_rt_entry *e)
 {
   list_remove(route_table, e);
   memb_free(&route_mem, e);
+}
+
+void
+uaodv_rt_lru(struct uaodv_rt_entry *e)
+{
+  if(e != list_head(route_table)) {
+    list_remove(route_table, e);
+    list_push(route_table, e);
+  }
 }
 /*---------------------------------------------------------------------------*/
 void
