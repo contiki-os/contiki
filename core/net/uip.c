@@ -41,7 +41,7 @@
  *
  * This file is part of the uIP TCP/IP stack.
  *
- * $Id: uip.c,v 1.7 2007/03/15 19:41:29 adamdunkels Exp $
+ * $Id: uip.c,v 1.8 2007/04/04 11:37:40 bg- Exp $
  *
  */
 
@@ -1866,6 +1866,12 @@ u16_t
 htons(u16_t val)
 {
   return HTONS(val);
+}
+
+u32_t
+htonl(u32_t val)
+{
+  return HTONL(val);
 }
 /*---------------------------------------------------------------------------*/
 void

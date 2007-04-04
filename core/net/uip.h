@@ -46,7 +46,7 @@
  *
  * This file is part of the uIP TCP/IP stack.
  *
- * $Id: uip.h,v 1.10 2007/03/25 17:16:44 adamdunkels Exp $
+ * $Id: uip.h,v 1.11 2007/04/04 11:37:20 bg- Exp $
  *
  */
 
@@ -1105,8 +1105,10 @@ struct uip_udp_conn *uip_udp_new(const uip_ipaddr_t *ripaddr, u16_t rport);
 #ifndef HTONS
 #   if UIP_BYTE_ORDER == UIP_BIG_ENDIAN
 #      define HTONS(n) (n)
+#      define HTONL(n) (n)
 #   else /* UIP_BYTE_ORDER == UIP_BIG_ENDIAN */
 #      define HTONS(n) (u16_t)((((u16_t) (n)) << 8) | (((u16_t) (n)) >> 8))
+#      define HTONL(n) (((u32_t)HTONS(n) << 16) | HTONS((u32_t)(n) >> 16))
 #   endif /* UIP_BYTE_ORDER == UIP_BIG_ENDIAN */
 #else
 #error "HTONS already defined!"
@@ -1124,6 +1126,13 @@ CCIF u16_t htons(u16_t val);
 #endif /* htons */
 #ifndef ntohs
 #define ntohs htons
+#endif
+
+#ifndef htonl
+CCIF u32_t htonl(u32_t val);
+#endif /* htonl */
+#ifndef ntohl
+#define ntohl htonl
 #endif
 
 /** @} */
