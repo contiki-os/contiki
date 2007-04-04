@@ -44,7 +44,7 @@ cc2420_send_uaodv(void)
     else
       next_gw = &uip_draddr;	/* Default router. */
 
-    if (cc2420_check_remote(next_gw->u16[1]) == 0)
+    if (cc2420_check_remote(next_gw->u16[1]) == REMOTE_NO)
       h.dst = next_gw->u16[1];	/* local, use ucast */
     else {			/* remote or unknown */
       struct uaodv_rt_entry *route = uaodv_request_route_to(next_gw);
