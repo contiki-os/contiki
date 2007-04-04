@@ -30,7 +30,7 @@
  * 
  * Author: Oliver Schmidt <ol.sc@web.de>
  *
- * $Id: multi-threading.c,v 1.1 2007/04/03 20:13:28 oliverschmidt Exp $
+ * $Id: multi-threading.c,v 1.2 2007/04/04 17:41:28 oliverschmidt Exp $
  */
 
 /**
@@ -74,7 +74,7 @@ thread_func(char *str, int len)
   sprintf(buf, "%s\n", str + len);
   mt_yield();
 
-  if (len) {
+  if(len) {
     thread_func(str, len - 1);
     mt_yield();
   }
