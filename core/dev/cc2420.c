@@ -28,13 +28,14 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: cc2420.c,v 1.10 2007/02/01 14:00:27 bg- Exp $
+ * @(#)$Id: cc2420.c,v 1.11 2007/04/04 11:46:10 bg- Exp $
  */
 /*
  * This code is almost device independent and should be easy to port.
  */
 
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 
 #include "contiki.h"
@@ -227,10 +228,12 @@ cc2420_send(struct hdr_802_15 *hdr, u8_t hdr_len,
 
   if (hdr->dst == 0xffff) {
     int i;
-    for (i = 1; i < 3; i++) {
+    for (i = 0; i < 3; i++) {
+      static unsigned delaymask[] = { 1024-1, 2048-1, 4096-1 };
       if (cc2420_resend() >= 0)
 	return 0;
-      clock_delay(i*256);
+      PRINTF("resend i=%d\n", i);
+      clock_delay(rand() & delaymask[i]);
     }
   } else {
     process_post(&cc2420_retransmit_process,
@@ -254,7 +257,7 @@ cc2420_resend(void)
   if (FIFOP_IS_1 && !FIFO_IS_1) {
     /* RXFIFO overflow, send on retransmit. */
     PRINTF("rxfifo overflow!\n");
-    return -4;
+    //    return -4;
   }
 
   /* The TX FIFO can only hold one packet! Make sure to not overrun
@@ -269,11 +272,16 @@ cc2420_resend(void)
 #elif __AVR__
 #define LOOP_20_SYMBOLS 500	/* XXX */
 #endif
-  cc2420_strobe(CC2420_STXONCCA);
-  for (i = LOOP_20_SYMBOLS; i > 0; i--)
-    if (SFD_IS_1)
-      return 0;			/* Transmission has started. */
-
+  if (CCA_IS_1) {
+    cc2420_strobe(CC2420_STXONCCA);
+    for (i = LOOP_20_SYMBOLS; i > 0; i--)
+      if (SFD_IS_1) {
+	if (cc2420_status() & BV(CC2420_TX_ACTIVE))
+	  return 0;		/* Transmission has started. */
+	else
+	  break;		/* We must be receiving. */
+      }
+  }
   return -3;			/* Transmission never started! */
 }
 
