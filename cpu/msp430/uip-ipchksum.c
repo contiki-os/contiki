@@ -28,14 +28,12 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: uip-ipchksum.c,v 1.3 2007/03/15 21:51:12 adamdunkels Exp $
+ * $Id: uip-ipchksum.c,v 1.4 2007/04/04 11:53:07 bg- Exp $
  */
 
 /**
  * \file
  *         uIP checksum calculation for MSP430
- * \author
- *         Björn Grönvall <bg@sics.se>
  */
 
 #include "net/uip.h"
