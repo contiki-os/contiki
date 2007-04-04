@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF 
  * SUCH DAMAGE. 
  *
- * @(#)$Id: client.c,v 1.4 2007/02/02 13:26:49 bg- Exp $
+ * @(#)$Id: client.c,v 1.5 2007/04/04 11:38:35 bg- Exp $
  */
 
 /*
@@ -80,8 +80,7 @@
 /* This is how we force inclusion of the psock library. */
 #include "net/psock.h"
 void *force_psock_inclusion = &psock_init;
-
-void uip_log(char *msg) { puts(msg); }
+void *force_udp_inclusion = &uip_udp_packet_send;
 
 struct uip_fw_netif cc2420if =
 {UIP_FW_NETIF(172,16,0,9, 255,255,0,0, cc2420_send_uaodv)};
@@ -107,7 +106,7 @@ main(int argc, char **argv)
   leds_toggle(LEDS_ALL);
   slip_arch_init(BAUD2UBR(115200)); /* Must come before first printf */
   printf("Starting %s "
-	 "($Id: client.c,v 1.4 2007/02/02 13:26:49 bg- Exp $)\n", __FILE__);
+	 "($Id: client.c,v 1.5 2007/04/04 11:38:35 bg- Exp $)\n", __FILE__);
   ds2411_init();
   sensors_light_init();
   cc2420_init();
