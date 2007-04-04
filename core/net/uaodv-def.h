@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: uaodv-def.h,v 1.1 2006/06/17 22:41:19 adamdunkels Exp $
+ * $Id: uaodv-def.h,v 1.2 2007/04/04 11:48:49 bg- Exp $
  */
 
 /**
@@ -48,6 +48,7 @@
 
 #define UAODV_UDPPORT 654
 
+#if 0
 /* AODV routing table entry */
 struct uaodv_rtentry {
   uip_ipaddr_t dest_addr;
@@ -59,6 +60,7 @@ struct uaodv_rtentry {
   u8_t route_flags;
   u8_t hop_count;
 };
+#endif
 
 /* Generic AODV message */
 struct uaodv_msg {
@@ -81,8 +83,8 @@ struct uaodv_msg_rreq {
   u32_t rreq_id;
   uip_ipaddr_t dest_addr;
   u32_t dest_seqno;
-  uip_ipaddr_t src_addr;
-  u32_t src_seqno;
+  uip_ipaddr_t orig_addr;
+  u32_t orig_seqno;
 };
 
 /* AODV RREP message */
@@ -97,7 +99,7 @@ struct uaodv_msg_rrep {
   u8_t hop_count;
   uip_ipaddr_t dest_addr;
   u32_t dest_seqno;
-  uip_ipaddr_t src_addr;
+  uip_ipaddr_t orig_addr;
   u32_t lifetime;
 };
 
