@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF 
  * SUCH DAMAGE. 
  *
- * @(#)$Id: gateway.c,v 1.6 2007/02/02 13:26:49 bg- Exp $
+ * @(#)$Id: gateway.c,v 1.7 2007/04/04 11:41:38 bg- Exp $
  */
 
 /*
@@ -70,6 +70,7 @@
 #include "dev/leds.h"
 #include "dev/light.h"
 #include "dev/xmem.h"
+#include "lib/rand.h"
 
 #include "dev/button.h"
 
@@ -82,8 +83,12 @@
  * device driver.
  */
 #include "net/psock.h"
-void *force_psock_inclusion = &psock_init;
-void *force_button_inclusion = &button_init;
+void *force_inclusion[] = {
+  &psock_init,
+  &button_init,
+  &uip_udp_packet_send,
+  &rand,
+};
 #if 0
 int
 force_float_inclusion()
@@ -96,8 +101,6 @@ force_float_inclusion()
   return __fixsfsi + __floatsisf + __mulsf3 + __subsf3;
 }
 #endif
-
-void uip_log(char *msg) { puts(msg); }
 
 /* We have two IP interfaces. */
 struct uip_fw_netif cc2420if =
@@ -125,7 +128,7 @@ main(int argc, char **argv)
   leds_toggle(LEDS_ALL);
   slip_arch_init(BAUD2UBR(115200)); /* Must come before first printf */
   printf("Starting %s "
-	 "($Id: gateway.c,v 1.6 2007/02/02 13:26:49 bg- Exp $)\n", __FILE__);
+	 "($Id: gateway.c,v 1.7 2007/04/04 11:41:38 bg- Exp $)\n", __FILE__);
   ds2411_init();
   sensors_light_init();
   cc2420_init();
