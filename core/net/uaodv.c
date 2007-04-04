@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: uaodv.c,v 1.4 2007/02/01 14:33:05 bg- Exp $
+ * $Id: uaodv.c,v 1.5 2007/04/04 12:12:39 bg- Exp $
  */
 
 /**
@@ -56,13 +56,42 @@ PROCESS(uaodv_process, "uAODV");
 
 static struct uip_udp_conn *aodvconn, *unicastconn;
 
-static u32_t rreq_id, rreq_seqno;
+/* Compare sequence numbers. */
+#define SCMP32(a, b) ((int32_t)((a) - (b)))
 
-static uip_ipaddr_t last_rreq_originator;
-static u32_t last_rreq_id;
+/*
+ * When possible, keep state across reboots.
+ */
+#ifdef __GNUC__
+#define NOINIT __attribute__((section(".noinit")))
+#else
+#define NOINIT
+#endif
+NOINIT static u32_t rreq_id, rreq_seqno;
 
+#define NFWCACHE 16
 
-#if 1
+static struct {
+  uip_ipaddr_t orig;
+  u32_t id;
+} fwcache[NFWCACHE];
+
+static inline int
+fwc_lookup(uip_ipaddr_t *orig, u32_t *id)
+{
+  unsigned n = (orig->u8[2] + orig->u8[3]) % NFWCACHE;
+  return fwcache[n].id == *id && uip_ipaddr_cmp(&fwcache[n].orig, orig);
+}
+
+static inline void
+fwc_add(uip_ipaddr_t *orig, u32_t *id)
+{
+  unsigned n = orig->u8[3] % NFWCACHE;
+  fwcache[n].id = *id;
+  fwcache[n].orig = *orig;
+}
+
+#if 0
 #define PRINTF(...) do {} while (0)
 #define print_debug(...) do{}while(0)
 #else
@@ -86,7 +115,7 @@ print_debug(const char *fmt, ...)
 
 /*---------------------------------------------------------------------------*/
 static void
-sendto(const uip_ipaddr_t *dest, char *buf, int len)
+sendto(const uip_ipaddr_t *dest, const void *buf, int len)
 {
   /* XXX: this is a HACK! We're updating the uIP UDP connection
      "unicastconn" so that the destination address is the next-hop,
@@ -109,22 +138,17 @@ send_rreq(uip_ipaddr_t *addr)
   rm->flags = UAODV_RREQ_UNKSEQNO;
   rm->reserved = 0;
   rm->hop_count = 0;
-  rm->rreq_id = rreq_id;
+  rm->rreq_id = htonl(rreq_id++);
   uip_ipaddr_copy(&rm->dest_addr, addr);
   rm->dest_seqno = 0;
-  uip_gethostaddr(&rm->src_addr);
-  rm->src_seqno = rreq_seqno;
+  uip_gethostaddr(&rm->orig_addr);
+  rreq_seqno++;			/* Always */
+  rm->orig_seqno = htonl(rreq_seqno);
   uip_send((char *)rm, sizeof(struct uaodv_msg_rreq));
-  
-  ++rreq_seqno;
-  ++rreq_id;
-
-  uip_ipaddr_copy(&last_rreq_originator, &rm->src_addr);
-  last_rreq_id = rm->rreq_id;
 }
 /*---------------------------------------------------------------------------*/
 static void
-send_rrep(uip_ipaddr_t *dst, uip_ipaddr_t *nexthop, uip_ipaddr_t *src, u32_t seqno)
+send_rrep(uip_ipaddr_t *dest, uip_ipaddr_t *nexthop, uip_ipaddr_t *orig, u32_t seqno)
 {
   struct uaodv_msg_rrep *rm = (struct uaodv_msg_rrep *)uip_appdata;
   
@@ -132,18 +156,18 @@ send_rrep(uip_ipaddr_t *dst, uip_ipaddr_t *nexthop, uip_ipaddr_t *src, u32_t seq
   rm->flags = 0;
   rm->reserved = 0;
   rm->hop_count = 0;
-  uip_ipaddr_copy(&rm->src_addr, src);
-  rm->dest_seqno = seqno;
-  uip_ipaddr_copy(&rm->dest_addr, dst);
-  rm->lifetime = MY_ROUTE_TIMEOUT;
-  sendto(nexthop, (char *)rm, sizeof(struct uaodv_msg_rrep));
+  uip_ipaddr_copy(&rm->orig_addr, orig);
+  rm->dest_seqno = htonl(seqno);
+  uip_ipaddr_copy(&rm->dest_addr, dest);
+  rm->lifetime = HTONL(MY_ROUTE_TIMEOUT);
+  sendto(nexthop, rm, sizeof(struct uaodv_msg_rrep));
 
   print_debug("Sending RREP to %d.%d.%d.%d\n", uip_ipaddr_to_quad(nexthop));
 }
 /*---------------------------------------------------------------------------*/
 #ifdef UAODV_BAD_ROUTE
 static void
-send_rerr(uip_ipaddr_t *addr, u32_t seqno)
+send_rerr(uip_ipaddr_t *addr, u32_t *seqno)
 {
   struct uaodv_msg_rerr *rm = (struct uaodv_msg_rerr *)uip_appdata;
   
@@ -152,9 +176,9 @@ send_rerr(uip_ipaddr_t *addr, u32_t seqno)
   rm->reserved = 0;
   rm->dest_count = 1;
   uip_ipaddr_copy(&rm->unreach[0].addr, addr);
-  rm->unreach[0].seqno = seqno;
+  rm->unreach[0].seqno = *seqno;
 
-  sendto(&uip_broadcast_addr, (char *)rm, sizeof(struct uaodv_msg_rerr));
+  sendto(&uip_broadcast_addr, rm, sizeof(struct uaodv_msg_rerr));
 
   print_debug("Broadcasting initial RERR for %d.%d.%d.%d\n",
 	      uip_ipaddr_to_quad(addr));  
@@ -165,68 +189,70 @@ static void
 handle_incoming_rreq(void)
 {
   struct uaodv_msg_rreq *rm = (struct uaodv_msg_rreq *)uip_appdata;
-  uip_ipaddr_t dest_addr, src_addr;
+  uip_ipaddr_t dest_addr, orig_addr;
   struct uaodv_rt_entry *rt;
 
 #ifdef CC2420_RADIO
   if(cc2420_last_rssi <= -38 || cc2420_last_correlation < 100) {
-    PRINTF("RREQ drop from %d.%d.%d.%d %d %d \n",
-	   uip_ipaddr_to_quad(uip_udp_sender()),
-	   cc2420_last_rssi,
-	   cc2420_last_correlation);
+    print_debug("RREQ drop from %d.%d.%d.%d %d %d \n",
+		uip_ipaddr_to_quad(uip_udp_sender()),
+		cc2420_last_rssi,
+		cc2420_last_correlation);
     return;
+  }
+
+  if(cc2420_check_remote(uip_udp_sender()->u16[1]) == REMOTE_YES) {
+    print_debug("RREQ drop from %d.%d.%d.%d is remote\n",
+		uip_ipaddr_to_quad(uip_udp_sender()));
   }
 #endif
 
+  /* Have we seen this RREQ before? */
+  if(uip_ipaddr_cmp(&rm->orig_addr, &uip_hostaddr)
+     || fwc_lookup(&rm->orig_addr, &rm->rreq_id)) {
+    print_debug("Not fwd rreq from %d.%d.%d.%d orig_addr %d.%d.%d.%d, rreq_id %lu\n",
+		uip_ipaddr_to_quad(uip_udp_sender()),
+		uip_ipaddr_to_quad(&rm->orig_addr),
+		ntohl(rm->rreq_id));
+    return;
+  }
+
+  /* New reverse route? */
+  rt = uaodv_rt_lookup(&rm->orig_addr);
+  if(rt == NULL
+     || (SCMP32(ntohl(rm->orig_seqno), rt->seqno) > 0) /* New route. */
+     || (SCMP32(ntohl(rm->orig_seqno), rt->seqno) == 0
+	 && rm->hop_count < rt->hop_count)) { /* Better route. */
+    print_debug("Inserting1 %d.%d.%d.%d into routing table, next hop %d.%d.%d.%d, hop_count %u seq %lu\n",
+		uip_ipaddr_to_quad(&rm->orig_addr),
+		uip_ipaddr_to_quad(uip_udp_sender()),
+		rm->hop_count,
+		ntohl(rm->orig_seqno));
+    rt = uaodv_rt_add(&rm->orig_addr, uip_udp_sender(),
+		      rm->hop_count, ntohl(rm->orig_seqno));
+  }
+    
   /* Check if it is for our address. */
   if(uip_ipaddr_cmp(&rm->dest_addr, &uip_hostaddr)) {
-    rt = uaodv_rt_lookup(&rm->src_addr);
     print_debug("RREQ for our address! rt=%p\n", rt);
-    if(rt == NULL) {
-      /* Insert originator into routing table. */
-      print_debug("Inserting1 %d.%d.%d.%d into routing table, next hop %d.%d.%d.%d., hop_count %d\n",
-		  uip_ipaddr_to_quad(&rm->src_addr),
-		  uip_ipaddr_to_quad(uip_udp_sender()),
-		  rm->hop_count);
-      uaodv_rt_add(&rm->src_addr, uip_udp_sender(), rm->hop_count, 0);
-    }
-    
     /* Send an RREP back to the source of the RREQ. */
-    uip_ipaddr_copy( &dest_addr, &rm->dest_addr );
-    uip_ipaddr_copy( &src_addr, &rm->src_addr );
-    send_rrep(&dest_addr, uip_udp_sender(), &src_addr, rm->src_seqno);
-  } else if(!uip_ipaddr_cmp(&last_rreq_originator, &rm->src_addr) ||
-	    last_rreq_id != rm->rreq_id) {
-    print_debug("RREQ for %d.%d.%d.%d!\n", uip_ipaddr_to_quad(&rm->dest_addr));
-    rt = uaodv_rt_lookup(&rm->src_addr);
-    if(rt == NULL) {
-      /* Insert originator into routing table. */
-      print_debug("Inserting2 %d.%d.%d.%d into routing table, next hop %d.%d.%d.%d., hop_count %d\n",
-		  uip_ipaddr_to_quad(&rm->src_addr),
-		  uip_ipaddr_to_quad(uip_udp_sender()),
-		  rm->hop_count);
-      uaodv_rt_add(&rm->src_addr, uip_udp_sender(), rm->hop_count, 0);
-    }
-
-    /* Forward RREQ. XXX to be compliant, we should check the TTL
-       of the incoming packet and forward only if TTL > 1. We
-       should also set the TTL in our outgoing IP header too, but
-       there currently is no way of doing this in Contiki so we
-       don't do it at the moment. */
-	
-    print_debug("Forwarding RREQ to %d.%d.%d.%d ttl=%d\n",
-		uip_ipaddr_to_quad(&rm->src_addr),
+    uip_ipaddr_copy(&dest_addr, &rm->dest_addr);
+    uip_ipaddr_copy(&orig_addr, &rm->orig_addr);
+    rreq_seqno++;		/* XXX Not really always. */
+#ifdef CC2420_RADIO
+    if(cc2420_check_remote(rt->nexthop.u16[1]) == REMOTE_MAYBE)
+      cc2420_recv_ok(&rt->nexthop);
+#endif
+    send_rrep(&dest_addr, &rt->nexthop, &orig_addr, rreq_seqno);
+  } else {
+    print_debug("RREQ for %d.%d.%d.%d orig %d.%d.%d.%d ttl=%d\n",
+		uip_ipaddr_to_quad(&rm->dest_addr),
+		uip_ipaddr_to_quad(&rm->orig_addr),
 		uip_udp_conn->ttl);
 
-    uip_ipaddr_copy(&last_rreq_originator, &rm->src_addr);
-    last_rreq_id = rm->rreq_id;
+    fwc_add(&rm->orig_addr, &rm->rreq_id);
     rm->hop_count++;
-    uip_send((char *)rm, sizeof(struct uaodv_msg_rreq));
-  } else {
-    print_debug("Not forwarding rreq last_rreq_originator %d.%d.%d.%d src_addr %d.%d.%d.%d, last_rreq_id %ld rreq_id %ld\n",
-		uip_ipaddr_to_quad(&last_rreq_originator),
-		uip_ipaddr_to_quad(&rm->src_addr),
-		last_rreq_id, rm->rreq_id);
+    uip_send(rm, sizeof(struct uaodv_msg_rreq));
   }
 }
 /*---------------------------------------------------------------------------*/
@@ -235,32 +261,28 @@ handle_incoming_rrep(void)
 {
   struct uaodv_msg_rrep *rm = (struct uaodv_msg_rrep *)uip_appdata;
   struct uaodv_rt_entry *rt;
-  
-  /* Check if we have another route to this destination. If so, we'll
-     use the new one if the hop count is lower, and if the sequence
-     number say we should. */
+
   rt = uaodv_rt_lookup(&rm->dest_addr);
 
-  print_debug("RREP received\n rt=%p", rt);
+  print_debug("RREP received rt=%p\n", rt);
 
-  if(rt == NULL ||
-     (rt->hop_count > rm->hop_count /* && seqno < seqno */)) {
-    
-    /* Insert originator into routing table. */
-    print_debug("Inserting3 %d.%d.%d.%d into routing table, next hop %d.%d.%d.%d, hop_count %d.\n",
+  /* New forward route? */
+  if(rt == NULL || (SCMP32(ntohl(rm->dest_seqno), rt->seqno) > 0)) {
+    print_debug("Inserting3 %d.%d.%d.%d into routing table, next hop %d.%d.%d.%d, hop_count %u seq %lu.\n",
 		uip_ipaddr_to_quad(&rm->dest_addr),
 		uip_ipaddr_to_quad(uip_udp_sender()),
-		rm->hop_count);
-    uaodv_rt_add(&rm->dest_addr, uip_udp_sender(), rm->hop_count, 0);
+		rm->hop_count,
+		ntohl(rm->dest_seqno));
+    rt = uaodv_rt_add(&rm->dest_addr, uip_udp_sender(),
+		      rm->hop_count, ntohl(rm->dest_seqno));
 #ifdef CC2420_RADIO
     /* This link is ok since he is unicasting back to us! */
     cc2420_recv_ok(uip_udp_sender());
-    PRINTF("RREP recv ok from %d.%d.%d.%d %d %d \n",
-	   uip_ipaddr_to_quad(uip_udp_sender()),
-	   cc2420_last_rssi,
-	   cc2420_last_correlation);
+    print_debug("RREP recv ok from %d.%d.%d.%d %d %d \n",
+		uip_ipaddr_to_quad(uip_udp_sender()),
+		cc2420_last_rssi,
+		cc2420_last_correlation);
 #endif
-
   } else {
     print_debug("Not inserting %d.%d.%d.%d into routing table, next hop %d.%d.%d.%d, hop_count %d.\n",
 		uip_ipaddr_to_quad(&rm->dest_addr),
@@ -268,17 +290,12 @@ handle_incoming_rrep(void)
 		rm->hop_count);
 
   }
-  if(uip_ipaddr_cmp(&rm->src_addr, &uip_hostaddr)) {
+
+  /* Forward RREP towards originator? */
+  if(uip_ipaddr_cmp(&rm->orig_addr, &uip_hostaddr)) {
     print_debug("------- COMPLETE ROUTE FOUND\n");
   } else {
-  
-#if 0
-    print_debug("Sending back to originator\n");
-    print_debug("Route lookup for %d.%d.%d.%d\n",
-		uip_ipaddr_to_quad(&rm->src_addr));
-#endif
-	
-    rt = uaodv_rt_lookup(&rm->src_addr);
+    rt = uaodv_rt_lookup(&rm->orig_addr);
 
     if(rt == NULL) {
       print_debug("RREP received, but no route back to originator... :-( \n");
@@ -287,12 +304,13 @@ handle_incoming_rrep(void)
 
     rm->hop_count++;
 
-    print_debug("Sending RREP to %d.%d.%d.%d\n",
-		uip_ipaddr_to_quad(&rt->nexthop));
+    print_debug("Fwd RREP to %d.%d.%d.%d\n", uip_ipaddr_to_quad(&rt->nexthop));
 
-    sendto(&rt->nexthop, (char *)rm, sizeof(struct uaodv_msg_rrep));
-    
-    /*    print_debug("RREP forwarded\n");*/
+#ifdef CC2420_RADIO
+    if(cc2420_check_remote(rt->nexthop.u16[1]) == REMOTE_MAYBE)
+      cc2420_recv_ok(&rt->nexthop);
+#endif
+    sendto(&rt->nexthop, rm, sizeof(struct uaodv_msg_rrep));
   }
 }
 /*---------------------------------------------------------------------------*/
@@ -305,13 +323,16 @@ handle_incoming_rerr(void)
 
   print_debug("RERR received from %d.%d.%d.%d route to %d.%d.%d.%d seq=%ld\n",
 	      uip_ipaddr_to_quad(uip_udp_sender()),
-	      uip_ipaddr_to_quad(&rm->unreach[0].addr), rm->unreach[0].seqno);
+	      uip_ipaddr_to_quad(&rm->unreach[0].addr),
+	      ntohl(rm->unreach[0].seqno));
 
   rt = uaodv_rt_lookup(&rm->unreach[0].addr);
-  if(rt != NULL && uip_ipaddr_cmp(&rt->nexthop, uip_udp_sender())) {
+  if(rt != NULL
+     && uip_ipaddr_cmp(&rt->nexthop, uip_udp_sender())
+     && SCMP32(rt->seqno, ntohl(rm->unreach[0].seqno)) <= 0) {
     uaodv_rt_remove(rt);
     print_debug("RERR rebroadcast\n");
-    sendto(&uip_broadcast_addr, (char *)rm, sizeof(struct uaodv_msg_rerr));
+    sendto(&uip_broadcast_addr, rm, sizeof(struct uaodv_msg_rerr));
   }
 }
 #endif
@@ -348,13 +369,13 @@ static enum {
 
 #ifdef UAODV_BAD_ROUTE
 static uip_ipaddr_t bad_nexthop;
-u32_t bad_seqno;
+u32_t bad_seqno;		/* In network byte order! */
 
 void
 uaodv_bad_route(struct uaodv_rt_entry *rt)
 {
   uip_ipaddr_copy(&bad_nexthop, &rt->nexthop);
-  bad_seqno = rt->seqno;
+  bad_seqno = htonl(rt->seqno);
   command = COMMAND_SEND_RERR;
   process_post(&uaodv_process, PROCESS_EVENT_MSG, NULL);
 }
@@ -369,6 +390,7 @@ uaodv_request_route_to(uip_ipaddr_t *host)
   struct uaodv_rt_entry *route = uaodv_rt_lookup(host);
 
   if(route != NULL) {
+    uaodv_rt_lru(route);
     return route;
   }
 
@@ -416,7 +438,7 @@ PROCESS_THREAD(uaodv_process, ev, data)
 	  send_rreq(&rreq_addr);
 #ifdef UAODV_BAD_ROUTE
 	else if (command == COMMAND_SEND_RERR)
-	  send_rerr(&bad_nexthop, bad_seqno);
+	  send_rerr(&bad_nexthop, &bad_seqno);
 #endif
 	command = COMMAND_NONE;
 	continue;
