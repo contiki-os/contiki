@@ -29,9 +29,6 @@ cc2420_send_uaodv(void)
   int ret;
   struct hdr_802_15 h;
 
-  u8_t color = (cc2420_ack_received) ? LEDS_BLUE : LEDS_RED;
-  leds_toggle(color);
-
   h.len = MAC_HDR_LEN + uip_len + 2; /* Including footer[2]. */
   h.fc0 = FC0_TYPE_DATA | FC0_REQ_ACK | FC0_INTRA_PAN;
   h.fc1 = FC1_DST_16 | FC1_SRC_16;
@@ -55,7 +52,7 @@ cc2420_send_uaodv(void)
       if (route == NULL) {
 	h.dst = next_gw->u16[1]; /* try local while waiting for route */
       } else {
-	if (cc2420_check_remote(route->nexthop.u16[1]) == 1) {
+	if (cc2420_check_remote(route->nexthop.u16[1]) == REMOTE_YES) {
 	  PRINTF("LOST 0x%04x\n", route->nexthop.u16[1]);
 	  /* Send bad route notification? */
 #ifdef UAODV_BAD_ROUTE
@@ -70,6 +67,9 @@ cc2420_send_uaodv(void)
       }
     }
   }
+
+  u8_t color = (cc2420_ack_received) ? LEDS_BLUE : LEDS_RED;
+  leds_toggle(color);
 
   /* Don't request MAC level ACKs for broadcast packets. */
   if (h.dst == 0xffff)
