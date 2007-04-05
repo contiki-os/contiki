@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: uaodv.c,v 1.5 2007/04/04 12:12:39 bg- Exp $
+ * $Id: uaodv.c,v 1.6 2007/04/05 12:09:32 bg- Exp $
  */
 
 /**
@@ -77,14 +77,14 @@ static struct {
 } fwcache[NFWCACHE];
 
 static inline int
-fwc_lookup(uip_ipaddr_t *orig, u32_t *id)
+fwc_lookup(const uip_ipaddr_t *orig, const u32_t *id)
 {
   unsigned n = (orig->u8[2] + orig->u8[3]) % NFWCACHE;
   return fwcache[n].id == *id && uip_ipaddr_cmp(&fwcache[n].orig, orig);
 }
 
 static inline void
-fwc_add(uip_ipaddr_t *orig, u32_t *id)
+fwc_add(const uip_ipaddr_t *orig, const u32_t *id)
 {
   unsigned n = orig->u8[3] % NFWCACHE;
   fwcache[n].id = *id;
@@ -190,7 +190,7 @@ handle_incoming_rreq(void)
 {
   struct uaodv_msg_rreq *rm = (struct uaodv_msg_rreq *)uip_appdata;
   uip_ipaddr_t dest_addr, orig_addr;
-  struct uaodv_rt_entry *rt;
+  struct uaodv_rt_entry *rt, *fw = NULL;
 
 #ifdef CC2420_RADIO
   if(cc2420_last_rssi <= -38 || cc2420_last_correlation < 100) {
@@ -232,18 +232,23 @@ handle_incoming_rreq(void)
 		      rm->hop_count, ntohl(rm->orig_seqno));
   }
     
-  /* Check if it is for our address. */
-  if(uip_ipaddr_cmp(&rm->dest_addr, &uip_hostaddr)) {
+  /* Check if it is for our address or an existing route. */
+  if(uip_ipaddr_cmp(&rm->dest_addr, &uip_hostaddr)
+     || (fw = uaodv_rt_lookup(&rm->dest_addr)) != NULL) {
     print_debug("RREQ for our address! rt=%p\n", rt);
     /* Send an RREP back to the source of the RREQ. */
     uip_ipaddr_copy(&dest_addr, &rm->dest_addr);
     uip_ipaddr_copy(&orig_addr, &rm->orig_addr);
-    rreq_seqno++;		/* XXX Not really always. */
 #ifdef CC2420_RADIO
     if(cc2420_check_remote(rt->nexthop.u16[1]) == REMOTE_MAYBE)
       cc2420_recv_ok(&rt->nexthop);
 #endif
-    send_rrep(&dest_addr, &rt->nexthop, &orig_addr, rreq_seqno);
+    if(fw != NULL)		/* Existing route. */
+      send_rrep(&dest_addr, &rt->nexthop, &orig_addr, fw->seqno);
+    else {
+      rreq_seqno++;		/* XXX Not really always. */
+      send_rrep(&dest_addr, &rt->nexthop, &orig_addr, rreq_seqno);
+    }
   } else {
     print_debug("RREQ for %d.%d.%d.%d orig %d.%d.%d.%d ttl=%d\n",
 		uip_ipaddr_to_quad(&rm->dest_addr),
@@ -321,7 +326,7 @@ handle_incoming_rerr(void)
   struct uaodv_msg_rerr *rm = (struct uaodv_msg_rerr *)uip_appdata;
   struct uaodv_rt_entry *rt;
 
-  print_debug("RERR received from %d.%d.%d.%d route to %d.%d.%d.%d seq=%ld\n",
+  print_debug("RERR received from %d.%d.%d.%d route to %d.%d.%d.%d seq=%lu\n",
 	      uip_ipaddr_to_quad(uip_udp_sender()),
 	      uip_ipaddr_to_quad(&rm->unreach[0].addr),
 	      ntohl(rm->unreach[0].seqno));
@@ -368,13 +373,13 @@ static enum {
 } command;
 
 #ifdef UAODV_BAD_ROUTE
-static uip_ipaddr_t bad_nexthop;
-u32_t bad_seqno;		/* In network byte order! */
+static uip_ipaddr_t bad_dest;
+static u32_t bad_seqno;		/* In network byte order! */
 
 void
 uaodv_bad_route(struct uaodv_rt_entry *rt)
 {
-  uip_ipaddr_copy(&bad_nexthop, &rt->nexthop);
+  uip_ipaddr_copy(&bad_dest, &rt->dest);
   bad_seqno = htonl(rt->seqno);
   command = COMMAND_SEND_RERR;
   process_post(&uaodv_process, PROCESS_EVENT_MSG, NULL);
@@ -438,7 +443,7 @@ PROCESS_THREAD(uaodv_process, ev, data)
 	  send_rreq(&rreq_addr);
 #ifdef UAODV_BAD_ROUTE
 	else if (command == COMMAND_SEND_RERR)
-	  send_rerr(&bad_nexthop, &bad_seqno);
+	  send_rerr(&bad_dest, &bad_seqno);
 #endif
 	command = COMMAND_NONE;
 	continue;
