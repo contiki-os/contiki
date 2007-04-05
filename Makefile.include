@@ -62,6 +62,8 @@ ifdef APPS
   APPDIRS += $(addprefix $(CONTIKI)/apps/, $(APPS))
   APPINCLUDES = $(foreach APP, $(APPS), $(CONTIKI)/apps/$(APP)/Makefile.$(APP))
   -include $(APPINCLUDES)
+  APP_SOURCES = $(foreach APP, $(APPS), $($(APP)_src))
+  DSC_SOURCES = $(foreach APP, $(APPS), $($(APP)_dsc))
   CONTIKI_SOURCEFILES += $(APP_SOURCES) $(DSC_SOURCES)
 endif
 

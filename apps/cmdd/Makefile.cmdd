@@ -1,2 +1,2 @@
-APP_SOURCES += cmdd.c
-DSC_SOURCES +=
+cmdd_src = cmdd.c
+cmdd_dsc =

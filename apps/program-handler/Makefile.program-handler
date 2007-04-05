@@ -1,2 +1,2 @@
-APP_SOURCES += program-handler.c
-DSC_SOURCES +=
+program-handler_src = program-handler.c
+program-handler_dsc =

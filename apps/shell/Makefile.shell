@@ -1,2 +1,2 @@
-APP_SOURCES += shell-gui.c shell.c ctk-textentry-cmdline.c
-DSC_SOURCES += shell-dsc.c
+shell_src = shell-gui.c shell.c ctk-textentry-cmdline.c
+shell_dsc = shell-dsc.c

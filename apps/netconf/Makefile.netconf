@@ -1,2 +1,2 @@
-APP_SOURCES += netconf.c
-DSC_SOURCES += netconf-dsc.c
+netconf_src = netconf.c
+netconf_dsc = netconf-dsc.c
