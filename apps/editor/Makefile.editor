@@ -1,2 +1,2 @@
-APP_SOURCES += editor.c memb.c ctk-filedialog.c
-DSC_SOURCES += editor-dsc.c
+editor_src = editor.c memb.c ctk-filedialog.c
+editor_dsc = editor-dsc.c

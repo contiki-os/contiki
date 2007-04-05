@@ -1,2 +1,2 @@
-APP_SOURCES += ftp.c ftpc.c memb.c
-DSC_SOURCES += ftp-dsc.c
+tfp_src = ftp.c ftpc.c memb.c
+ftp_dsc = ftp-dsc.c

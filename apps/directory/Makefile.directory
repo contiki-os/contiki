@@ -1,2 +1,2 @@
-APP_SOURCES += directory.c
-DSC_SOURCES += directory-dsc.c
+directory_src = directory.c
+directory_dsc = directory-dsc.c
