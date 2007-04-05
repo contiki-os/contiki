@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: uaodv.c,v 1.6 2007/04/05 12:09:32 bg- Exp $
+ * $Id: uaodv.c,v 1.7 2007/04/05 12:30:17 bg- Exp $
  */
 
 /**
@@ -165,7 +165,6 @@ send_rrep(uip_ipaddr_t *dest, uip_ipaddr_t *nexthop, uip_ipaddr_t *orig, u32_t s
   print_debug("Sending RREP to %d.%d.%d.%d\n", uip_ipaddr_to_quad(nexthop));
 }
 /*---------------------------------------------------------------------------*/
-#ifdef UAODV_BAD_ROUTE
 static void
 send_rerr(uip_ipaddr_t *addr, u32_t *seqno)
 {
@@ -183,7 +182,6 @@ send_rerr(uip_ipaddr_t *addr, u32_t *seqno)
   print_debug("Broadcasting initial RERR for %d.%d.%d.%d\n",
 	      uip_ipaddr_to_quad(addr));  
 }
-#endif
 /*---------------------------------------------------------------------------*/
 static void
 handle_incoming_rreq(void)
@@ -319,7 +317,6 @@ handle_incoming_rrep(void)
   }
 }
 /*---------------------------------------------------------------------------*/
-#ifdef UAODV_BAD_ROUTE
 static void
 handle_incoming_rerr(void)
 {
@@ -340,7 +337,6 @@ handle_incoming_rerr(void)
     sendto(&uip_broadcast_addr, rm, sizeof(struct uaodv_msg_rerr));
   }
 }
-#endif
 /*---------------------------------------------------------------------------*/
 static void
 handle_incoming_packet(void)
@@ -357,11 +353,9 @@ handle_incoming_packet(void)
     handle_incoming_rrep();
     break;
 
-#ifdef UAODV_BAD_ROUTE
   case UAODV_RERR_TYPE:
     handle_incoming_rerr();
     break;
-#endif
   }
 
 }
@@ -372,7 +366,6 @@ static enum {
   COMMAND_SEND_RERR,
 } command;
 
-#ifdef UAODV_BAD_ROUTE
 static uip_ipaddr_t bad_dest;
 static u32_t bad_seqno;		/* In network byte order! */
 
@@ -384,7 +377,6 @@ uaodv_bad_route(struct uaodv_rt_entry *rt)
   command = COMMAND_SEND_RERR;
   process_post(&uaodv_process, PROCESS_EVENT_MSG, NULL);
 }
-#endif
 
 static uip_ipaddr_t rreq_addr;
 static struct timer next_time;
@@ -413,7 +405,7 @@ uaodv_request_route_to(uip_ipaddr_t *host)
   uip_ipaddr_copy(&rreq_addr, host);
   command = COMMAND_SEND_RREQ;
   process_post(&uaodv_process, PROCESS_EVENT_MSG, NULL);
-  timer_set(&next_time, CLOCK_SECOND/4); /* Max 10/s per RFC3561. */
+  timer_set(&next_time, CLOCK_SECOND/8); /* Max 10/s per RFC3561. */
   return NULL;
 }
 
@@ -439,12 +431,12 @@ PROCESS_THREAD(uaodv_process, ev, data)
 	continue;
       }
       if(uip_poll()) {
-	if(command == COMMAND_SEND_RREQ)
-	  send_rreq(&rreq_addr);
-#ifdef UAODV_BAD_ROUTE
-	else if (command == COMMAND_SEND_RERR)
+	if(command == COMMAND_SEND_RREQ) {
+	  if(uaodv_rt_lookup(&rreq_addr) == NULL)
+	    send_rreq(&rreq_addr);
+	} else if (command == COMMAND_SEND_RERR) {
 	  send_rerr(&bad_dest, &bad_seqno);
-#endif
+	}
 	command = COMMAND_NONE;
 	continue;
       }
