@@ -1,0 +1,47 @@
+ifndef CONTIKI
+  ${error CONTIKI not defined! You must specify where CONTIKI resides!}
+endif
+
+CONTIKI_TARGET_DIRS = . cfs ctk loader
+CONTIKI_TARGET_MAIN = ${addprefix $(OBJECTDIR)/,contiki-main.o}
+
+CONTIKI_TARGET_SOURCEFILES = contiki-main.c cfs-win32.c ctk-console.c dll-loader.c
+
+CONTIKI_SOURCEFILES += $(CTK) ctk-conio-service.c ctk-draw.c $(CONTIKI_TARGET_SOURCEFILES)
+
+.SUFFIXES:
+
+### Define the CPU directory
+CONTIKI_CPU = $(CONTIKI)/cpu/native
+include $(CONTIKI)/cpu/native/Makefile.native
+
+CFLAGS += -DWITH_LOADER_ARCH
+LDFLAGS += -Wl,--out-implib=contiki-main.$(TARGET).a \
+           -u _cfs_find_service -u _uiplib_ipaddrconv
+
+### Generate the module-link prerequisites
+define PRG_TEMPLATE
+$(1).prg: $${addprefix $$(OBJECTDIR)/,$$($(2)_src:.c=.o)}
+endef
+define DSC_TEMPLATE
+$(1).dsc: $${addprefix $$(OBJECTDIR)/,$$($(2)_dsc:.c=.o)}
+endef
+${foreach PRG,$(PRGS),${eval ${call PRG_TEMPLATE,$(PRG),${call APPNAME,$(PRG)}}}}
+${foreach DSC,$(DSCS),${eval ${call DSC_TEMPLATE,$(DSC),${call APPNAME,$(DSC)}}}}
+
+### Generic module-compile and -link rule, no prerequisites here!
+### (The *.d files contain the full module-compile prerequisites)
+${sort ${foreach PRG,$(PRGS), ${addprefix $(OBJECTDIR)/, \
+                                $(${call APPNAME,$(PRG)_src:.c=.o})}}}:
+	$(CC) $(CFLAGS) -DAUTOSTART_ENABLE -D_USRDLL -DPROCESS_LOADABLE -c $< -o $@
+$(PRGS:=.prg):
+	$(LD) -shared $^ contiki-main.$(TARGET).a -o $@
+$(DSCS:=.dsc):
+	$(LD) -shared $^ contiki-main.$(TARGET).a -o $@
+
+### Setup directory search path for source files
+CONTIKI_TARGET_DIRS_CONCAT = ${addprefix $(CONTIKI)/platform/$(TARGET)/, \
+                               $(CONTIKI_TARGET_DIRS)}
+vpath %.c $(PROJECTDIRS) \
+	  $(CONTIKIDIRS) $(APPDIRS) $(CONTIKI_TARGET_DIRS_CONCAT) \
+	  $(CONTIKI_CPU) $(APP_DIRS)

@@ -30,7 +30,7 @@
  * 
  * Author: Oliver Schmidt <ol.sc@web.de>
  *
- * $Id: ctk-console.c,v 1.5 2006/10/03 11:27:51 oliverschmidt Exp $
+ * $Id: ctk-console.c,v 1.6 2007/04/06 23:09:33 oliverschmidt Exp $
  */
 
 #define WIN32_LEAN_AND_MEAN
@@ -38,6 +38,7 @@
 #include <stdlib.h>
 
 #include "contiki.h"
+#include "ctk/ctk.h"
 
 #include "ctk-console.h"
 
