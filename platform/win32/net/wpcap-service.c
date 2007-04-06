@@ -30,7 +30,7 @@
  * 
  * Author: Oliver Schmidt <ol.sc@web.de>
  *
- * $Id: wpcap-service.c,v 1.6 2007/03/27 20:01:35 oliverschmidt Exp $
+ * $Id: wpcap-service.c,v 1.7 2007/04/06 22:36:31 oliverschmidt Exp $
  */
 
 #define WIN32_LEAN_AND_MEAN
@@ -43,7 +43,10 @@
 #pragma comment(lib, "ws2_32")
 #pragma comment(lib, "iphlpapi")
 
-#define htons		  /* Avoid 'redefinition' error. */
+/* Avoid 'redefinition' error. */
+#define htonl
+#define htons
+
 #include "contiki.h"
 #include "contiki-net.h"
 
