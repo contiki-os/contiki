@@ -2,9 +2,9 @@
 <VisualStudioProject
 	ProjectType="Visual C++"
 	Version="8,00"
-	Name="ftp.dsc"
-	ProjectGUID="{1D1C715A-6C61-42BA-B972-0F7DA80CCD6F}"
-	RootNamespace="ftpdsc"
+	Name="webserver.prg"
+	ProjectGUID="{C741203A-ADD3-4C4A-9BF1-82978105F057}"
+	RootNamespace="webserverprg"
 	Keyword="Win32Proj"
 	>
 	<Platforms>
@@ -18,7 +18,7 @@
 		<Configuration
 			Name="Debug|Win32"
 			OutputDirectory="$(SolutionDir)$(ConfigurationName)"
-			IntermediateDirectory="$(ConfigurationName)"
+			IntermediateDirectory="$(SolutionDir)$(ConfigurationName)"
 			ConfigurationType="2"
 			CharacterSet="2"
 			>
@@ -40,8 +40,8 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories=".;../../core"
-				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;_USRDLL;_CRT_SECURE_NO_DEPRECATE;WITH_LOADER_ARCH"
+				AdditionalIncludeDirectories="..;../../../core;../../../apps/program-handler"
+				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;_USRDLL;_CRT_SECURE_NO_DEPRECATE;PROCESS_LOADABLE;WITH_LOADER_ARCH"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="3"
 				WarningLevel="3"
@@ -60,8 +60,10 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
+				AdditionalDependencies="&quot;$(OutDir)\contiki.lib&quot;"
 				OutputFile="$(OutDir)\$(ProjectName)"
 				LinkIncremental="2"
+				GenerateDebugInformation="true"
 				SubSystem="1"
 				TargetMachine="1"
 			/>
@@ -93,7 +95,7 @@
 		<Configuration
 			Name="Release|Win32"
 			OutputDirectory="$(SolutionDir)$(ConfigurationName)"
-			IntermediateDirectory="$(ConfigurationName)"
+			IntermediateDirectory="$(SolutionDir)$(ConfigurationName)"
 			ConfigurationType="2"
 			CharacterSet="2"
 			WholeProgramOptimization="1"
@@ -115,8 +117,8 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
-				AdditionalIncludeDirectories=".;../../core"
-				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_USRDLL;_CRT_SECURE_NO_DEPRECATE;WITH_LOADER_ARCH"
+				AdditionalIncludeDirectories="..;../../../core;../../../apps/program-handler"
+				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_USRDLL;_CRT_SECURE_NO_DEPRECATE;PROCESS_LOADABLE;WITH_LOADER_ARCH"
 				RuntimeLibrary="2"
 				WarningLevel="3"
 				Detect64BitPortabilityProblems="true"
@@ -134,8 +136,10 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
+				AdditionalDependencies="&quot;$(OutDir)\contiki.lib&quot;"
 				OutputFile="$(OutDir)\$(ProjectName)"
 				LinkIncremental="1"
+				GenerateDebugInformation="true"
 				SubSystem="1"
 				OptimizeReferences="2"
 				EnableCOMDATFolding="2"
@@ -170,8 +174,68 @@
 	<References>
 	</References>
 	<Files>
+		<Filter
+			Name="net"
+			>
+			<File
+				RelativePath="..\..\..\core\net\psock.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\core\net\psock.h"
+				>
+			</File>
+		</Filter>
+		<Filter
+			Name="lib"
+			>
+			<File
+				RelativePath="..\..\..\core\lib\memb.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\core\lib\memb.h"
+				>
+			</File>
+		</Filter>
 		<File
-			RelativePath="..\..\apps\ftp\ftp-dsc.c"
+			RelativePath="..\..\..\apps\webserver\http-strings.c"
+			>
+		</File>
+		<File
+			RelativePath="..\..\..\apps\webserver\http-strings.h"
+			>
+		</File>
+		<File
+			RelativePath="..\..\..\apps\webserver\httpd-cgi.c"
+			>
+		</File>
+		<File
+			RelativePath="..\..\..\apps\webserver\httpd-cgi.h"
+			>
+		</File>
+		<File
+			RelativePath="..\..\..\apps\webserver\httpd-fs.c"
+			>
+		</File>
+		<File
+			RelativePath="..\..\..\apps\webserver\httpd-fs.h"
+			>
+		</File>
+		<File
+			RelativePath="..\..\..\apps\webserver\httpd.c"
+			>
+		</File>
+		<File
+			RelativePath="..\..\..\apps\webserver\httpd.h"
+			>
+		</File>
+		<File
+			RelativePath="..\..\..\apps\webserver\webserver.c"
+			>
+		</File>
+		<File
+			RelativePath="..\..\..\apps\webserver\webserver.h"
 			>
 		</File>
 	</Files>

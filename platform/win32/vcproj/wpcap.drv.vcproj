@@ -2,9 +2,9 @@
 <VisualStudioProject
 	ProjectType="Visual C++"
 	Version="8,00"
-	Name="processes.prg"
-	ProjectGUID="{F6F06B52-2D04-4486-88AF-F3698AC85F6E}"
-	RootNamespace="processesprg"
+	Name="wpcap.drv"
+	ProjectGUID="{39F3E492-1EE3-4904-8962-D482011AB375}"
+	RootNamespace="wpcapdrv"
 	Keyword="Win32Proj"
 	>
 	<Platforms>
@@ -18,7 +18,7 @@
 		<Configuration
 			Name="Debug|Win32"
 			OutputDirectory="$(SolutionDir)$(ConfigurationName)"
-			IntermediateDirectory="$(ConfigurationName)"
+			IntermediateDirectory="$(SolutionDir)$(ConfigurationName)"
 			ConfigurationType="2"
 			CharacterSet="2"
 			>
@@ -40,7 +40,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories=".;../../core;../../apps/program-handler"
+				AdditionalIncludeDirectories="..;../../../core;../../../apps/program-handler"
 				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;_USRDLL;_CRT_SECURE_NO_DEPRECATE;PROCESS_LOADABLE;WITH_LOADER_ARCH"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="3"
@@ -95,7 +95,7 @@
 		<Configuration
 			Name="Release|Win32"
 			OutputDirectory="$(SolutionDir)$(ConfigurationName)"
-			IntermediateDirectory="$(ConfigurationName)"
+			IntermediateDirectory="$(SolutionDir)$(ConfigurationName)"
 			ConfigurationType="2"
 			CharacterSet="2"
 			WholeProgramOptimization="1"
@@ -117,7 +117,7 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
-				AdditionalIncludeDirectories=".;../../core;../../apps/program-handler"
+				AdditionalIncludeDirectories="..;../../../core;../../../apps/program-handler"
 				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_USRDLL;_CRT_SECURE_NO_DEPRECATE;PROCESS_LOADABLE;WITH_LOADER_ARCH"
 				RuntimeLibrary="2"
 				WarningLevel="3"
@@ -174,8 +174,24 @@
 	<References>
 	</References>
 	<Files>
+		<Filter
+			Name="net"
+			>
+			<File
+				RelativePath="..\..\..\core\net\uip_arp.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\core\net\uip_arp.h"
+				>
+			</File>
+		</Filter>
 		<File
-			RelativePath="..\..\apps\process-list\process-list.c"
+			RelativePath="..\net\wpcap-service.c"
+			>
+		</File>
+		<File
+			RelativePath="..\net\wpcap-service.h"
 			>
 		</File>
 	</Files>

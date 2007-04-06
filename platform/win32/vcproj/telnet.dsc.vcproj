@@ -2,9 +2,9 @@
 <VisualStudioProject
 	ProjectType="Visual C++"
 	Version="8,00"
-	Name="dhcp.prg"
-	ProjectGUID="{DAD91041-E4DE-42FE-9360-2237F03AB05C}"
-	RootNamespace="dhcpprg"
+	Name="telnet.dsc"
+	ProjectGUID="{79094763-B380-4072-B475-2A5019474C2B}"
+	RootNamespace="telnetdsc"
 	Keyword="Win32Proj"
 	>
 	<Platforms>
@@ -18,7 +18,7 @@
 		<Configuration
 			Name="Debug|Win32"
 			OutputDirectory="$(SolutionDir)$(ConfigurationName)"
-			IntermediateDirectory="$(ConfigurationName)"
+			IntermediateDirectory="$(SolutionDir)$(ConfigurationName)"
 			ConfigurationType="2"
 			CharacterSet="2"
 			>
@@ -40,8 +40,8 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories=".;../../core;../../apps/program-handler"
-				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;_USRDLL;_CRT_SECURE_NO_DEPRECATE;PROCESS_LOADABLE;WITH_LOADER_ARCH"
+				AdditionalIncludeDirectories="..;../../../core"
+				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;_USRDLL;_CRT_SECURE_NO_DEPRECATE;WITH_LOADER_ARCH"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="3"
 				WarningLevel="3"
@@ -60,10 +60,8 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="&quot;$(OutDir)\contiki.lib&quot;"
 				OutputFile="$(OutDir)\$(ProjectName)"
 				LinkIncremental="2"
-				GenerateDebugInformation="true"
 				SubSystem="1"
 				TargetMachine="1"
 			/>
@@ -95,7 +93,7 @@
 		<Configuration
 			Name="Release|Win32"
 			OutputDirectory="$(SolutionDir)$(ConfigurationName)"
-			IntermediateDirectory="$(ConfigurationName)"
+			IntermediateDirectory="$(SolutionDir)$(ConfigurationName)"
 			ConfigurationType="2"
 			CharacterSet="2"
 			WholeProgramOptimization="1"
@@ -117,8 +115,8 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
-				AdditionalIncludeDirectories=".;../../core;../../apps/program-handler"
-				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_USRDLL;_CRT_SECURE_NO_DEPRECATE;PROCESS_LOADABLE;WITH_LOADER_ARCH"
+				AdditionalIncludeDirectories="..;../../../core"
+				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_USRDLL;_CRT_SECURE_NO_DEPRECATE;WITH_LOADER_ARCH"
 				RuntimeLibrary="2"
 				WarningLevel="3"
 				Detect64BitPortabilityProblems="true"
@@ -136,10 +134,8 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="&quot;$(OutDir)\contiki.lib&quot;"
 				OutputFile="$(OutDir)\$(ProjectName)"
 				LinkIncremental="1"
-				GenerateDebugInformation="true"
 				SubSystem="1"
 				OptimizeReferences="2"
 				EnableCOMDATFolding="2"
@@ -174,20 +170,8 @@
 	<References>
 	</References>
 	<Files>
-		<Filter
-			Name="net"
-			>
-			<File
-				RelativePath="..\..\core\net\dhcpc.c"
-				>
-			</File>
-			<File
-				RelativePath="..\..\core\net\dhcpc.h"
-				>
-			</File>
-		</Filter>
 		<File
-			RelativePath="..\..\apps\dhcp\dhcp.c"
+			RelativePath="..\..\..\apps\telnet\telnet-dsc.c"
 			>
 		</File>
 	</Files>

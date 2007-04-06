@@ -1,102 +1,102 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 9.00
 # Visual C++ Express 2005
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "contiki.exe", "contiki.exe.vcproj", "{DD219C2D-D3F8-4C76-B2AA-376978722232}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "contiki.exe", "vcproj\contiki.exe.vcproj", "{DD219C2D-D3F8-4C76-B2AA-376978722232}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "about.dsc", "about.dsc.vcproj", "{D94905DB-27DB-4053-9760-9ADBC64F656A}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "about.dsc", "vcproj\about.dsc.vcproj", "{D94905DB-27DB-4053-9760-9ADBC64F656A}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "about.prg", "about.prg.vcproj", "{39E33545-D63F-4FBE-A7A1-5077AC704EB1}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "about.prg", "vcproj\about.prg.vcproj", "{39E33545-D63F-4FBE-A7A1-5077AC704EB1}"
 	ProjectSection(ProjectDependencies) = postProject
 		{DD219C2D-D3F8-4C76-B2AA-376978722232} = {DD219C2D-D3F8-4C76-B2AA-376978722232}
 	EndProjectSection
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "calc.dsc", "calc.dsc.vcproj", "{3F1FB015-FE4C-45DC-93B2-6CB03AA672F7}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "calc.dsc", "vcproj\calc.dsc.vcproj", "{3F1FB015-FE4C-45DC-93B2-6CB03AA672F7}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "calc.prg", "calc.prg.vcproj", "{5A82FB85-CA5E-4ABE-95DD-6966E120E05E}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "calc.prg", "vcproj\calc.prg.vcproj", "{5A82FB85-CA5E-4ABE-95DD-6966E120E05E}"
 	ProjectSection(ProjectDependencies) = postProject
 		{DD219C2D-D3F8-4C76-B2AA-376978722232} = {DD219C2D-D3F8-4C76-B2AA-376978722232}
 	EndProjectSection
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "dhcp.dsc", "dhcp.dsc.vcproj", "{881CD2B8-5729-4F3A-A65B-BD5995329CA0}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "dhcp.dsc", "vcproj\dhcp.dsc.vcproj", "{881CD2B8-5729-4F3A-A65B-BD5995329CA0}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "dhcp.prg", "dhcp.prg.vcproj", "{DAD91041-E4DE-42FE-9360-2237F03AB05C}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "dhcp.prg", "vcproj\dhcp.prg.vcproj", "{DAD91041-E4DE-42FE-9360-2237F03AB05C}"
 	ProjectSection(ProjectDependencies) = postProject
 		{DD219C2D-D3F8-4C76-B2AA-376978722232} = {DD219C2D-D3F8-4C76-B2AA-376978722232}
 	EndProjectSection
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "directory.dsc", "directory.dsc.vcproj", "{41417495-F60E-47CC-BDEF-4B9614E5DA08}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "directory.dsc", "vcproj\directory.dsc.vcproj", "{41417495-F60E-47CC-BDEF-4B9614E5DA08}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "directory.prg", "directory.prg.vcproj", "{1EAF4006-F7AF-46E9-9390-43E0626CB4E5}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "directory.prg", "vcproj\directory.prg.vcproj", "{1EAF4006-F7AF-46E9-9390-43E0626CB4E5}"
 	ProjectSection(ProjectDependencies) = postProject
 		{DD219C2D-D3F8-4C76-B2AA-376978722232} = {DD219C2D-D3F8-4C76-B2AA-376978722232}
 	EndProjectSection
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "email.dsc", "email.dsc.vcproj", "{9929C46F-F0B8-408C-8455-3ED425EE3F23}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "email.dsc", "vcproj\email.dsc.vcproj", "{9929C46F-F0B8-408C-8455-3ED425EE3F23}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "email.prg", "email.prg.vcproj", "{04A1BFE8-B685-4D22-8AFB-BB47D80E6BDD}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "email.prg", "vcproj\email.prg.vcproj", "{04A1BFE8-B685-4D22-8AFB-BB47D80E6BDD}"
 	ProjectSection(ProjectDependencies) = postProject
 		{DD219C2D-D3F8-4C76-B2AA-376978722232} = {DD219C2D-D3F8-4C76-B2AA-376978722232}
 	EndProjectSection
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ftp.dsc", "ftp.dsc.vcproj", "{1D1C715A-6C61-42BA-B972-0F7DA80CCD6F}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ftp.dsc", "vcproj\ftp.dsc.vcproj", "{1D1C715A-6C61-42BA-B972-0F7DA80CCD6F}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ftp.prg", "ftp.prg.vcproj", "{4D40467F-D97B-4CB8-B340-928A85FC2721}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ftp.prg", "vcproj\ftp.prg.vcproj", "{4D40467F-D97B-4CB8-B340-928A85FC2721}"
 	ProjectSection(ProjectDependencies) = postProject
 		{DD219C2D-D3F8-4C76-B2AA-376978722232} = {DD219C2D-D3F8-4C76-B2AA-376978722232}
 	EndProjectSection
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "irc.dsc", "irc.dsc.vcproj", "{54D09D67-89E9-417C-9C52-685C18A9F399}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "irc.dsc", "vcproj\irc.dsc.vcproj", "{54D09D67-89E9-417C-9C52-685C18A9F399}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "irc.prg", "irc.prg.vcproj", "{2F1E7C4F-3FDA-437F-82D4-F3BC9D145DAE}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "irc.prg", "vcproj\irc.prg.vcproj", "{2F1E7C4F-3FDA-437F-82D4-F3BC9D145DAE}"
 	ProjectSection(ProjectDependencies) = postProject
 		{DD219C2D-D3F8-4C76-B2AA-376978722232} = {DD219C2D-D3F8-4C76-B2AA-376978722232}
 	EndProjectSection
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "netconf.dsc", "netconf.dsc.vcproj", "{202EFB35-1D34-4CCB-8DD9-9BE1D5D31D0D}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "netconf.dsc", "vcproj\netconf.dsc.vcproj", "{202EFB35-1D34-4CCB-8DD9-9BE1D5D31D0D}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "netconf.prg", "netconf.prg.vcproj", "{EAF263A5-CD3F-454D-984C-C85AD604F1EF}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "netconf.prg", "vcproj\netconf.prg.vcproj", "{EAF263A5-CD3F-454D-984C-C85AD604F1EF}"
 	ProjectSection(ProjectDependencies) = postProject
 		{DD219C2D-D3F8-4C76-B2AA-376978722232} = {DD219C2D-D3F8-4C76-B2AA-376978722232}
 	EndProjectSection
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "processes.dsc", "processes.dsc.vcproj", "{E5D69749-8BA3-45C0-85D6-277C8ED1736B}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "processes.dsc", "vcproj\processes.dsc.vcproj", "{E5D69749-8BA3-45C0-85D6-277C8ED1736B}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "processes.prg", "processes.prg.vcproj", "{F6F06B52-2D04-4486-88AF-F3698AC85F6E}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "processes.prg", "vcproj\processes.prg.vcproj", "{F6F06B52-2D04-4486-88AF-F3698AC85F6E}"
 	ProjectSection(ProjectDependencies) = postProject
 		{DD219C2D-D3F8-4C76-B2AA-376978722232} = {DD219C2D-D3F8-4C76-B2AA-376978722232}
 	EndProjectSection
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "shell.dsc", "shell.dsc.vcproj", "{6F41B3DA-96D9-4431-B53B-2F91893E7B69}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "shell.dsc", "vcproj\shell.dsc.vcproj", "{6F41B3DA-96D9-4431-B53B-2F91893E7B69}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "shell.prg", "shell.prg.vcproj", "{54FB8E12-5558-460C-BC6E-9D67D8A564E8}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "shell.prg", "vcproj\shell.prg.vcproj", "{54FB8E12-5558-460C-BC6E-9D67D8A564E8}"
 	ProjectSection(ProjectDependencies) = postProject
 		{DD219C2D-D3F8-4C76-B2AA-376978722232} = {DD219C2D-D3F8-4C76-B2AA-376978722232}
 	EndProjectSection
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "telnet.dsc", "telnet.dsc.vcproj", "{79094763-B380-4072-B475-2A5019474C2B}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "telnet.dsc", "vcproj\telnet.dsc.vcproj", "{79094763-B380-4072-B475-2A5019474C2B}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "telnet.prg", "telnet.prg.vcproj", "{C511175A-BD2B-4ED9-87A6-05040E4DD823}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "telnet.prg", "vcproj\telnet.prg.vcproj", "{C511175A-BD2B-4ED9-87A6-05040E4DD823}"
 	ProjectSection(ProjectDependencies) = postProject
 		{DD219C2D-D3F8-4C76-B2AA-376978722232} = {DD219C2D-D3F8-4C76-B2AA-376978722232}
 	EndProjectSection
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "webserver.dsc", "webserver.dsc.vcproj", "{BE742A25-4F10-4741-B307-850C61BE0883}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "webserver.dsc", "vcproj\webserver.dsc.vcproj", "{BE742A25-4F10-4741-B307-850C61BE0883}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "webserver.prg", "webserver.prg.vcproj", "{C741203A-ADD3-4C4A-9BF1-82978105F057}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "webserver.prg", "vcproj\webserver.prg.vcproj", "{C741203A-ADD3-4C4A-9BF1-82978105F057}"
 	ProjectSection(ProjectDependencies) = postProject
 		{DD219C2D-D3F8-4C76-B2AA-376978722232} = {DD219C2D-D3F8-4C76-B2AA-376978722232}
 	EndProjectSection
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "wpcap.drv", "wpcap.drv.vcproj", "{39F3E492-1EE3-4904-8962-D482011AB375}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "wpcap.drv", "vcproj\wpcap.drv.vcproj", "{39F3E492-1EE3-4904-8962-D482011AB375}"
 	ProjectSection(ProjectDependencies) = postProject
 		{DD219C2D-D3F8-4C76-B2AA-376978722232} = {DD219C2D-D3F8-4C76-B2AA-376978722232}
 	EndProjectSection
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "wpcap.dsc", "wpcap.dsc.vcproj", "{618101EC-0777-4FA6-B1B7-3B7C1981707B}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "wpcap.dsc", "vcproj\wpcap.dsc.vcproj", "{618101EC-0777-4FA6-B1B7-3B7C1981707B}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "www.dsc", "www.dsc.vcproj", "{76D7F9A9-9C9E-41C9-9BF8-DB305BCEEF71}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "www.dsc", "vcproj\www.dsc.vcproj", "{76D7F9A9-9C9E-41C9-9BF8-DB305BCEEF71}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "www.prg", "www.prg.vcproj", "{2A1D67D7-7FAE-42D3-AC99-DB68A3570735}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "www.prg", "vcproj\www.prg.vcproj", "{2A1D67D7-7FAE-42D3-AC99-DB68A3570735}"
 	ProjectSection(ProjectDependencies) = postProject
 		{DD219C2D-D3F8-4C76-B2AA-376978722232} = {DD219C2D-D3F8-4C76-B2AA-376978722232}
 	EndProjectSection
