@@ -30,7 +30,7 @@
  * 
  * Author: Oliver Schmidt <ol.sc@web.de>
  *
- * $Id: contiki-main.c,v 1.3 2007/01/03 10:36:58 oliverschmidt Exp $
+ * $Id: contiki-main.c,v 1.4 2007/04/06 23:09:32 oliverschmidt Exp $
  */
 
 #define WIN32_LEAN_AND_MEAN
@@ -42,6 +42,8 @@
 #include "contiki-net.h"
 
 #include "sys/clock.h"
+#include "ctk/ctk.h"
+#include "ctk/ctk-console.h"
 
 #include "../../apps/directory/directory-dsc.h"
 #include "../../apps/webbrowser/www-dsc.h"
@@ -102,8 +104,8 @@ clock_time(void)
   return clock();
 }
 /*-----------------------------------------------------------------------------------*/
-void
-main(int argc)
+int
+main(void)
 {
   process_init();
 
