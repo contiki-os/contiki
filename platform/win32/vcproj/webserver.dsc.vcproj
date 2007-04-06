@@ -2,9 +2,9 @@
 <VisualStudioProject
 	ProjectType="Visual C++"
 	Version="8,00"
-	Name="dhcp.dsc"
-	ProjectGUID="{881CD2B8-5729-4F3A-A65B-BD5995329CA0}"
-	RootNamespace="dhcpdsc"
+	Name="webserver.dsc"
+	ProjectGUID="{BE742A25-4F10-4741-B307-850C61BE0883}"
+	RootNamespace="webserverdsc"
 	Keyword="Win32Proj"
 	>
 	<Platforms>
@@ -18,7 +18,7 @@
 		<Configuration
 			Name="Debug|Win32"
 			OutputDirectory="$(SolutionDir)$(ConfigurationName)"
-			IntermediateDirectory="$(ConfigurationName)"
+			IntermediateDirectory="$(SolutionDir)$(ConfigurationName)"
 			ConfigurationType="2"
 			CharacterSet="2"
 			>
@@ -40,7 +40,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories=".;../../core"
+				AdditionalIncludeDirectories="..;../../../core"
 				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;_USRDLL;_CRT_SECURE_NO_DEPRECATE;WITH_LOADER_ARCH"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="3"
@@ -93,7 +93,7 @@
 		<Configuration
 			Name="Release|Win32"
 			OutputDirectory="$(SolutionDir)$(ConfigurationName)"
-			IntermediateDirectory="$(ConfigurationName)"
+			IntermediateDirectory="$(SolutionDir)$(ConfigurationName)"
 			ConfigurationType="2"
 			CharacterSet="2"
 			WholeProgramOptimization="1"
@@ -115,7 +115,7 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
-				AdditionalIncludeDirectories=".;../../core"
+				AdditionalIncludeDirectories="..;../../../core"
 				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_USRDLL;_CRT_SECURE_NO_DEPRECATE;WITH_LOADER_ARCH"
 				RuntimeLibrary="2"
 				WarningLevel="3"
@@ -171,7 +171,7 @@
 	</References>
 	<Files>
 		<File
-			RelativePath="..\..\apps\dhcp\dhcp-dsc.c"
+			RelativePath="..\..\..\apps\webserver\webserver-dsc.c"
 			>
 		</File>
 	</Files>

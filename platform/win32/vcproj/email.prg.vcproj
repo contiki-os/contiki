@@ -2,9 +2,9 @@
 <VisualStudioProject
 	ProjectType="Visual C++"
 	Version="8,00"
-	Name="directory.prg"
-	ProjectGUID="{1EAF4006-F7AF-46E9-9390-43E0626CB4E5}"
-	RootNamespace="directoryprg"
+	Name="email.prg"
+	ProjectGUID="{04A1BFE8-B685-4D22-8AFB-BB47D80E6BDD}"
+	RootNamespace="emailprg"
 	Keyword="Win32Proj"
 	>
 	<Platforms>
@@ -18,7 +18,7 @@
 		<Configuration
 			Name="Debug|Win32"
 			OutputDirectory="$(SolutionDir)$(ConfigurationName)"
-			IntermediateDirectory="$(ConfigurationName)"
+			IntermediateDirectory="$(SolutionDir)$(ConfigurationName)"
 			ConfigurationType="2"
 			CharacterSet="2"
 			>
@@ -40,7 +40,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories=".;../../core;../../apps/program-handler"
+				AdditionalIncludeDirectories="..;../../../core;../../../apps/program-handler"
 				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;_USRDLL;_CRT_SECURE_NO_DEPRECATE;PROCESS_LOADABLE;WITH_LOADER_ARCH"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="3"
@@ -95,7 +95,7 @@
 		<Configuration
 			Name="Release|Win32"
 			OutputDirectory="$(SolutionDir)$(ConfigurationName)"
-			IntermediateDirectory="$(ConfigurationName)"
+			IntermediateDirectory="$(SolutionDir)$(ConfigurationName)"
 			ConfigurationType="2"
 			CharacterSet="2"
 			WholeProgramOptimization="1"
@@ -117,7 +117,7 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
-				AdditionalIncludeDirectories=".;../../core;../../apps/program-handler"
+				AdditionalIncludeDirectories="..;../../../core;../../../apps/program-handler"
 				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_USRDLL;_CRT_SECURE_NO_DEPRECATE;PROCESS_LOADABLE;WITH_LOADER_ARCH"
 				RuntimeLibrary="2"
 				WarningLevel="3"
@@ -174,8 +174,48 @@
 	<References>
 	</References>
 	<Files>
+		<Filter
+			Name="lib"
+			>
+			<File
+				RelativePath="..\..\..\core\lib\ctk-textentry-multiline.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\core\lib\ctk-textentry-multiline.h"
+				>
+			</File>
+		</Filter>
+		<Filter
+			Name="net"
+			>
+			<File
+				RelativePath="..\..\..\core\net\psock.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\core\net\psock.h"
+				>
+			</File>
+		</Filter>
 		<File
-			RelativePath="..\..\apps\directory\directory.c"
+			RelativePath="..\..\..\apps\email\email.c"
+			>
+		</File>
+		<File
+			RelativePath="..\..\..\apps\email\smtp-socket.c"
+			>
+		</File>
+		<File
+			RelativePath="..\..\..\apps\email\smtp-strings.c"
+			>
+		</File>
+		<File
+			RelativePath="..\..\..\apps\email\smtp-strings.h"
+			>
+		</File>
+		<File
+			RelativePath="..\..\..\apps\email\smtp.h"
 			>
 		</File>
 	</Files>

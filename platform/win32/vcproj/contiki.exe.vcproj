@@ -18,7 +18,7 @@
 		<Configuration
 			Name="Debug|Win32"
 			OutputDirectory="$(SolutionDir)$(ConfigurationName)"
-			IntermediateDirectory="$(ConfigurationName)"
+			IntermediateDirectory="$(SolutionDir)$(ConfigurationName)"
 			ConfigurationType="1"
 			CharacterSet="2"
 			>
@@ -40,7 +40,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories=".;../../core;../../apps/program-handler"
+				AdditionalIncludeDirectories="..;../../../core;../../../apps/program-handler"
 				PreprocessorDefinitions="WIN32;_DEBUG;_CONSOLE;_CRT_SECURE_NO_DEPRECATE;WITH_LOADER_ARCH"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="3"
@@ -94,7 +94,7 @@
 		<Configuration
 			Name="Release|Win32"
 			OutputDirectory="$(SolutionDir)$(ConfigurationName)"
-			IntermediateDirectory="$(ConfigurationName)"
+			IntermediateDirectory="$(SolutionDir)$(ConfigurationName)"
 			ConfigurationType="1"
 			CharacterSet="2"
 			WholeProgramOptimization="1"
@@ -116,7 +116,7 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
-				AdditionalIncludeDirectories=".;../../core;../../apps/program-handler"
+				AdditionalIncludeDirectories="..;../../../core;../../../apps/program-handler"
 				PreprocessorDefinitions="WIN32;NDEBUG;_CONSOLE;_CRT_SECURE_NO_DEPRECATE;WITH_LOADER_ARCH"
 				RuntimeLibrary="2"
 				WarningLevel="3"
@@ -179,11 +179,11 @@
 				Name="program-handler"
 				>
 				<File
-					RelativePath="..\..\apps\program-handler\program-handler.c"
+					RelativePath="..\..\..\apps\program-handler\program-handler.c"
 					>
 				</File>
 				<File
-					RelativePath="..\..\apps\program-handler\program-handler.h"
+					RelativePath="..\..\..\apps\program-handler\program-handler.h"
 					>
 				</File>
 			</Filter>
@@ -191,11 +191,11 @@
 				Name="webbrowser"
 				>
 				<File
-					RelativePath="..\..\apps\webbrowser\www-dsc.c"
+					RelativePath="..\..\..\apps\webbrowser\www-dsc.c"
 					>
 				</File>
 				<File
-					RelativePath="..\..\apps\webbrowser\www-dsc.h"
+					RelativePath="..\..\..\apps\webbrowser\www-dsc.h"
 					>
 				</File>
 			</Filter>
@@ -203,11 +203,11 @@
 				Name="directory"
 				>
 				<File
-					RelativePath="..\..\apps\directory\directory-dsc.c"
+					RelativePath="..\..\..\apps\directory\directory-dsc.c"
 					>
 				</File>
 				<File
-					RelativePath="..\..\apps\directory\directory-dsc.h"
+					RelativePath="..\..\..\apps\directory\directory-dsc.h"
 					>
 				</File>
 			</Filter>
@@ -216,30 +216,30 @@
 			Name="core"
 			>
 			<File
-				RelativePath="..\..\core\contiki-lib.h"
+				RelativePath="..\..\..\core\contiki-lib.h"
 				>
 			</File>
 			<File
-				RelativePath="..\..\core\contiki-net.h"
+				RelativePath="..\..\..\core\contiki-net.h"
 				>
 			</File>
 			<File
-				RelativePath="..\..\core\contiki-version.h"
+				RelativePath="..\..\..\core\contiki-version.h"
 				>
 			</File>
 			<File
-				RelativePath="..\..\core\contiki.h"
+				RelativePath="..\..\..\core\contiki.h"
 				>
 			</File>
 			<Filter
 				Name="cfs"
 				>
 				<File
-					RelativePath="..\..\core\cfs\cfs.c"
+					RelativePath="..\..\..\core\cfs\cfs.c"
 					>
 				</File>
 				<File
-					RelativePath="..\..\core\cfs\cfs.h"
+					RelativePath="..\..\..\core\cfs\cfs.h"
 					>
 				</File>
 			</Filter>
@@ -247,31 +247,35 @@
 				Name="ctk"
 				>
 				<File
-					RelativePath="..\..\core\ctk\ctk-conio-service.c"
+					RelativePath="..\..\..\core\ctk\ctk-conio-service.c"
 					>
 				</File>
 				<File
-					RelativePath="..\..\core\ctk\ctk-conio-service.h"
+					RelativePath="..\..\..\core\ctk\ctk-conio-service.h"
 					>
 				</File>
 				<File
-					RelativePath="..\..\core\ctk\ctk-draw-service.h"
+					RelativePath="..\..\..\core\ctk\ctk-draw-service.h"
 					>
 				</File>
 				<File
-					RelativePath="..\..\core\ctk\ctk-draw.c"
+					RelativePath="..\..\..\core\ctk\ctk-draw.c"
 					>
 				</File>
 				<File
-					RelativePath="..\..\core\ctk\ctk-draw.h"
+					RelativePath="..\..\..\core\ctk\ctk-draw.h"
 					>
 				</File>
 				<File
-					RelativePath="..\..\core\ctk\ctk.c"
+					RelativePath="..\..\..\core\ctk\ctk-mouse.h"
 					>
 				</File>
 				<File
-					RelativePath="..\..\core\ctk\ctk.h"
+					RelativePath="..\..\..\core\ctk\ctk.c"
+					>
+				</File>
+				<File
+					RelativePath="..\..\..\core\ctk\ctk.h"
 					>
 				</File>
 			</Filter>
@@ -279,27 +283,27 @@
 				Name="lib"
 				>
 				<File
-					RelativePath="..\..\core\lib\energest.h"
+					RelativePath="..\..\..\core\lib\energest.h"
 					>
 				</File>
 				<File
-					RelativePath="..\..\core\lib\list.h"
+					RelativePath="..\..\..\core\lib\list.h"
 					>
 				</File>
 				<File
-					RelativePath="..\..\core\lib\memb.h"
+					RelativePath="..\..\..\core\lib\memb.h"
 					>
 				</File>
 				<File
-					RelativePath="..\..\core\lib\mmem.h"
+					RelativePath="..\..\..\core\lib\mmem.h"
 					>
 				</File>
 				<File
-					RelativePath="..\..\core\lib\petsciiconv.h"
+					RelativePath="..\..\..\core\lib\petsciiconv.h"
 					>
 				</File>
 				<File
-					RelativePath="..\..\core\lib\random.h"
+					RelativePath="..\..\..\core\lib\random.h"
 					>
 				</File>
 			</Filter>
@@ -307,71 +311,71 @@
 				Name="net"
 				>
 				<File
-					RelativePath="..\..\core\net\packet-service.h"
+					RelativePath="..\..\..\core\net\packet-service.h"
 					>
 				</File>
 				<File
-					RelativePath="..\..\core\net\psock.h"
+					RelativePath="..\..\..\core\net\psock.h"
 					>
 				</File>
 				<File
-					RelativePath="..\..\core\net\resolv.c"
+					RelativePath="..\..\..\core\net\resolv.c"
 					>
 				</File>
 				<File
-					RelativePath="..\..\core\net\resolv.h"
+					RelativePath="..\..\..\core\net\resolv.h"
 					>
 				</File>
 				<File
-					RelativePath="..\..\core\net\tcpip.c"
+					RelativePath="..\..\..\core\net\tcpip.c"
 					>
 				</File>
 				<File
-					RelativePath="..\..\core\net\tcpip.h"
+					RelativePath="..\..\..\core\net\tcpip.h"
 					>
 				</File>
 				<File
-					RelativePath="..\..\core\net\uip-fw.c"
+					RelativePath="..\..\..\core\net\uip-fw.c"
 					>
 				</File>
 				<File
-					RelativePath="..\..\core\net\uip-fw.h"
+					RelativePath="..\..\..\core\net\uip-fw.h"
 					>
 				</File>
 				<File
-					RelativePath="..\..\core\net\uip-split.c"
+					RelativePath="..\..\..\core\net\uip-split.c"
 					>
 				</File>
 				<File
-					RelativePath="..\..\core\net\uip-split.h"
+					RelativePath="..\..\..\core\net\uip-split.h"
 					>
 				</File>
 				<File
-					RelativePath="..\..\core\net\uip.c"
+					RelativePath="..\..\..\core\net\uip.c"
 					>
 				</File>
 				<File
-					RelativePath="..\..\core\net\uip.h"
+					RelativePath="..\..\..\core\net\uip.h"
 					>
 				</File>
 				<File
-					RelativePath="..\..\core\net\uip_arp.h"
+					RelativePath="..\..\..\core\net\uip_arp.h"
 					>
 				</File>
 				<File
-					RelativePath="..\..\core\net\uipbuf.h"
+					RelativePath="..\..\..\core\net\uipbuf.h"
 					>
 				</File>
 				<File
-					RelativePath="..\..\core\net\uiplib.c"
+					RelativePath="..\..\..\core\net\uiplib.c"
 					>
 				</File>
 				<File
-					RelativePath="..\..\core\net\uiplib.h"
+					RelativePath="..\..\..\core\net\uiplib.h"
 					>
 				</File>
 				<File
-					RelativePath="..\..\core\net\uipopt.h"
+					RelativePath="..\..\..\core\net\uipopt.h"
 					>
 				</File>
 			</Filter>
@@ -379,71 +383,71 @@
 				Name="sys"
 				>
 				<File
-					RelativePath="..\..\core\sys\autostart.h"
+					RelativePath="..\..\..\core\sys\autostart.h"
 					>
 				</File>
 				<File
-					RelativePath="..\..\core\sys\cc.h"
+					RelativePath="..\..\..\core\sys\cc.h"
 					>
 				</File>
 				<File
-					RelativePath="..\..\core\sys\clock.h"
+					RelativePath="..\..\..\core\sys\clock.h"
 					>
 				</File>
 				<File
-					RelativePath="..\..\core\sys\dsc.h"
+					RelativePath="..\..\..\core\sys\dsc.h"
 					>
 				</File>
 				<File
-					RelativePath="..\..\core\sys\etimer.c"
+					RelativePath="..\..\..\core\sys\etimer.c"
 					>
 				</File>
 				<File
-					RelativePath="..\..\core\sys\etimer.h"
+					RelativePath="..\..\..\core\sys\etimer.h"
 					>
 				</File>
 				<File
-					RelativePath="..\..\core\sys\loader.h"
+					RelativePath="..\..\..\core\sys\loader.h"
 					>
 				</File>
 				<File
-					RelativePath="..\..\core\sys\log.h"
+					RelativePath="..\..\..\core\sys\log.h"
 					>
 				</File>
 				<File
-					RelativePath="..\..\core\sys\process.c"
+					RelativePath="..\..\..\core\sys\process.c"
 					>
 				</File>
 				<File
-					RelativePath="..\..\core\sys\process.h"
+					RelativePath="..\..\..\core\sys\process.h"
 					>
 				</File>
 				<File
-					RelativePath="..\..\core\sys\procinit.c"
+					RelativePath="..\..\..\core\sys\procinit.c"
 					>
 				</File>
 				<File
-					RelativePath="..\..\core\sys\procinit.h"
+					RelativePath="..\..\..\core\sys\procinit.h"
 					>
 				</File>
 				<File
-					RelativePath="..\..\core\sys\pt.h"
+					RelativePath="..\..\..\core\sys\pt.h"
 					>
 				</File>
 				<File
-					RelativePath="..\..\core\sys\service.c"
+					RelativePath="..\..\..\core\sys\service.c"
 					>
 				</File>
 				<File
-					RelativePath="..\..\core\sys\service.h"
+					RelativePath="..\..\..\core\sys\service.h"
 					>
 				</File>
 				<File
-					RelativePath="..\..\core\sys\timer.c"
+					RelativePath="..\..\..\core\sys\timer.c"
 					>
 				</File>
 				<File
-					RelativePath="..\..\core\sys\timer.h"
+					RelativePath="..\..\..\core\sys\timer.h"
 					>
 				</File>
 			</Filter>
@@ -452,22 +456,26 @@
 			Name="win32"
 			>
 			<File
-				RelativePath=".\contiki-conf.h"
+				RelativePath="..\conio.h"
 				>
 			</File>
 			<File
-				RelativePath=".\contiki-main.c"
+				RelativePath="..\contiki-conf.h"
+				>
+			</File>
+			<File
+				RelativePath="..\contiki-main.c"
 				>
 			</File>
 			<Filter
 				Name="cfs"
 				>
 				<File
-					RelativePath=".\cfs\cfs-win32.c"
+					RelativePath="..\cfs\cfs-win32.c"
 					>
 				</File>
 				<File
-					RelativePath=".\cfs\cfs-win32.h"
+					RelativePath="..\cfs\cfs-win32.h"
 					>
 				</File>
 			</Filter>
@@ -475,11 +483,11 @@
 				Name="ctk"
 				>
 				<File
-					RelativePath=".\ctk\ctk-console.c"
+					RelativePath="..\ctk\ctk-console.c"
 					>
 				</File>
 				<File
-					RelativePath=".\ctk\ctk-console.h"
+					RelativePath="..\ctk\ctk-console.h"
 					>
 				</File>
 			</Filter>
@@ -487,11 +495,11 @@
 				Name="loader"
 				>
 				<File
-					RelativePath=".\loader\dll-loader.c"
+					RelativePath="..\loader\dll-loader.c"
 					>
 				</File>
 				<File
-					RelativePath=".\loader\dll-loader.h"
+					RelativePath="..\loader\dll-loader.h"
 					>
 				</File>
 			</Filter>

@@ -2,9 +2,9 @@
 <VisualStudioProject
 	ProjectType="Visual C++"
 	Version="8,00"
-	Name="telnet.prg"
-	ProjectGUID="{C511175A-BD2B-4ED9-87A6-05040E4DD823}"
-	RootNamespace="telnetprg"
+	Name="www.prg"
+	ProjectGUID="{2A1D67D7-7FAE-42D3-AC99-DB68A3570735}"
+	RootNamespace="wwwprg"
 	Keyword="Win32Proj"
 	>
 	<Platforms>
@@ -18,7 +18,7 @@
 		<Configuration
 			Name="Debug|Win32"
 			OutputDirectory="$(SolutionDir)$(ConfigurationName)"
-			IntermediateDirectory="$(ConfigurationName)"
+			IntermediateDirectory="$(SolutionDir)$(ConfigurationName)"
 			ConfigurationType="2"
 			CharacterSet="2"
 			>
@@ -40,7 +40,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories=".;../../core;../../apps/program-handler"
+				AdditionalIncludeDirectories="..;../../../core;../../../apps/program-handler"
 				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;_USRDLL;_CRT_SECURE_NO_DEPRECATE;PROCESS_LOADABLE;WITH_LOADER_ARCH"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="3"
@@ -95,7 +95,7 @@
 		<Configuration
 			Name="Release|Win32"
 			OutputDirectory="$(SolutionDir)$(ConfigurationName)"
-			IntermediateDirectory="$(ConfigurationName)"
+			IntermediateDirectory="$(SolutionDir)$(ConfigurationName)"
 			ConfigurationType="2"
 			CharacterSet="2"
 			WholeProgramOptimization="1"
@@ -117,7 +117,7 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
-				AdditionalIncludeDirectories=".;../../core;../../apps/program-handler"
+				AdditionalIncludeDirectories="..;../../../core;../../../apps/program-handler"
 				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_USRDLL;_CRT_SECURE_NO_DEPRECATE;PROCESS_LOADABLE;WITH_LOADER_ARCH"
 				RuntimeLibrary="2"
 				WarningLevel="3"
@@ -174,20 +174,64 @@
 	<References>
 	</References>
 	<Files>
+		<Filter
+			Name="sys"
+			>
+			<File
+				RelativePath="..\..\..\core\sys\arg.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\core\sys\arg.h"
+				>
+			</File>
+		</Filter>
 		<File
-			RelativePath="..\..\apps\telnet\simpletelnet.c"
+			RelativePath="..\..\..\apps\webbrowser\html-strings.c"
 			>
 		</File>
 		<File
-			RelativePath="..\..\apps\telnet\simpletelnet.h"
+			RelativePath="..\..\..\apps\webbrowser\html-strings.h"
 			>
 		</File>
 		<File
-			RelativePath="..\..\apps\telnet\telnet.c"
+			RelativePath="..\..\..\apps\webbrowser\htmlparser.c"
 			>
 		</File>
 		<File
-			RelativePath="..\..\apps\telnet\telnet.h"
+			RelativePath="..\..\..\apps\webbrowser\htmlparser.h"
+			>
+		</File>
+		<File
+			RelativePath="..\..\..\apps\webbrowser\http-strings.c"
+			>
+		</File>
+		<File
+			RelativePath="..\..\..\apps\webbrowser\http-strings.h"
+			>
+		</File>
+		<File
+			RelativePath="..\..\..\apps\webbrowser\http-user-agent-string.c"
+			>
+		</File>
+		<File
+			RelativePath="..\..\..\apps\webbrowser\http-user-agent-string.h"
+			>
+		</File>
+		<File
+			RelativePath="..\..\..\apps\webbrowser\webclient.c"
+			>
+		</File>
+		<File
+			RelativePath="..\..\..\apps\webbrowser\webclient.h"
+			>
+		</File>
+		<File
+			RelativePath="..\..\..\apps\webbrowser\www.c"
+			>
+		</File>
+		<File
+			RelativePath="..\..\..\apps\webbrowser\www.h"
 			>
 		</File>
 	</Files>

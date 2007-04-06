@@ -2,9 +2,9 @@
 <VisualStudioProject
 	ProjectType="Visual C++"
 	Version="8,00"
-	Name="ftp.prg"
-	ProjectGUID="{4D40467F-D97B-4CB8-B340-928A85FC2721}"
-	RootNamespace="ftpprg"
+	Name="shell.prg"
+	ProjectGUID="{54FB8E12-5558-460C-BC6E-9D67D8A564E8}"
+	RootNamespace="shellprg"
 	Keyword="Win32Proj"
 	>
 	<Platforms>
@@ -18,7 +18,7 @@
 		<Configuration
 			Name="Debug|Win32"
 			OutputDirectory="$(SolutionDir)$(ConfigurationName)"
-			IntermediateDirectory="$(ConfigurationName)"
+			IntermediateDirectory="$(SolutionDir)$(ConfigurationName)"
 			ConfigurationType="2"
 			CharacterSet="2"
 			>
@@ -40,7 +40,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories=".;../../core;../../apps/program-handler"
+				AdditionalIncludeDirectories="..;../../../core;../../../apps/program-handler"
 				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;_USRDLL;_CRT_SECURE_NO_DEPRECATE;PROCESS_LOADABLE;WITH_LOADER_ARCH"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="3"
@@ -95,7 +95,7 @@
 		<Configuration
 			Name="Release|Win32"
 			OutputDirectory="$(SolutionDir)$(ConfigurationName)"
-			IntermediateDirectory="$(ConfigurationName)"
+			IntermediateDirectory="$(SolutionDir)$(ConfigurationName)"
 			ConfigurationType="2"
 			CharacterSet="2"
 			WholeProgramOptimization="1"
@@ -117,7 +117,7 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
-				AdditionalIncludeDirectories=".;../../core;../../apps/program-handler"
+				AdditionalIncludeDirectories="..;../../../core;../../../apps/program-handler"
 				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_USRDLL;_CRT_SECURE_NO_DEPRECATE;PROCESS_LOADABLE;WITH_LOADER_ARCH"
 				RuntimeLibrary="2"
 				WarningLevel="3"
@@ -178,24 +178,24 @@
 			Name="lib"
 			>
 			<File
-				RelativePath="..\..\core\lib\memb.c"
+				RelativePath="..\..\..\core\lib\ctk-textentry-cmdline.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\core\lib\memb.h"
+				RelativePath="..\..\..\core\lib\ctk-textentry-cmdline.h"
 				>
 			</File>
 		</Filter>
 		<File
-			RelativePath="..\..\apps\ftp\ftp.c"
+			RelativePath="..\..\..\apps\shell\shell-gui.c"
 			>
 		</File>
 		<File
-			RelativePath="..\..\apps\ftp\ftpc.c"
+			RelativePath="..\..\..\apps\shell\shell.c"
 			>
 		</File>
 		<File
-			RelativePath="..\..\apps\ftp\ftpc.h"
+			RelativePath="..\..\..\apps\shell\shell.h"
 			>
 		</File>
 	</Files>

@@ -2,9 +2,9 @@
 <VisualStudioProject
 	ProjectType="Visual C++"
 	Version="8,00"
-	Name="irc.prg"
-	ProjectGUID="{2F1E7C4F-3FDA-437F-82D4-F3BC9D145DAE}"
-	RootNamespace="ircprg"
+	Name="calc.prg"
+	ProjectGUID="{5A82FB85-CA5E-4ABE-95DD-6966E120E05E}"
+	RootNamespace="calcprg"
 	Keyword="Win32Proj"
 	>
 	<Platforms>
@@ -18,7 +18,7 @@
 		<Configuration
 			Name="Debug|Win32"
 			OutputDirectory="$(SolutionDir)$(ConfigurationName)"
-			IntermediateDirectory="$(ConfigurationName)"
+			IntermediateDirectory="$(SolutionDir)$(ConfigurationName)"
 			ConfigurationType="2"
 			CharacterSet="2"
 			>
@@ -40,7 +40,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories=".;../../core;../../apps/program-handler"
+				AdditionalIncludeDirectories="..;../../../core;../../../apps/program-handler"
 				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;_USRDLL;_CRT_SECURE_NO_DEPRECATE;PROCESS_LOADABLE;WITH_LOADER_ARCH"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="3"
@@ -95,7 +95,7 @@
 		<Configuration
 			Name="Release|Win32"
 			OutputDirectory="$(SolutionDir)$(ConfigurationName)"
-			IntermediateDirectory="$(ConfigurationName)"
+			IntermediateDirectory="$(SolutionDir)$(ConfigurationName)"
 			ConfigurationType="2"
 			CharacterSet="2"
 			WholeProgramOptimization="1"
@@ -117,7 +117,7 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
-				AdditionalIncludeDirectories=".;../../core;../../apps/program-handler"
+				AdditionalIncludeDirectories="..;../../../core;../../../apps/program-handler"
 				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_USRDLL;_CRT_SECURE_NO_DEPRECATE;PROCESS_LOADABLE;WITH_LOADER_ARCH"
 				RuntimeLibrary="2"
 				WarningLevel="3"
@@ -174,48 +174,8 @@
 	<References>
 	</References>
 	<Files>
-		<Filter
-			Name="lib"
-			>
-			<File
-				RelativePath="..\..\core\lib\ctk-textentry-cmdline.c"
-				>
-			</File>
-			<File
-				RelativePath="..\..\core\lib\ctk-textentry-cmdline.h"
-				>
-			</File>
-		</Filter>
-		<Filter
-			Name="net"
-			>
-			<File
-				RelativePath="..\..\core\net\psock.c"
-				>
-			</File>
-			<File
-				RelativePath="..\..\core\net\psock.h"
-				>
-			</File>
-		</Filter>
 		<File
-			RelativePath="..\..\apps\irc\irc.c"
-			>
-		</File>
-		<File
-			RelativePath="..\..\apps\irc\ircc-strings.c"
-			>
-		</File>
-		<File
-			RelativePath="..\..\apps\irc\ircc-strings.h"
-			>
-		</File>
-		<File
-			RelativePath="..\..\apps\irc\ircc.c"
-			>
-		</File>
-		<File
-			RelativePath="..\..\apps\irc\ircc.h"
+			RelativePath="..\..\..\apps\calc\calc.c"
 			>
 		</File>
 	</Files>

@@ -2,9 +2,9 @@
 <VisualStudioProject
 	ProjectType="Visual C++"
 	Version="8,00"
-	Name="email.prg"
-	ProjectGUID="{04A1BFE8-B685-4D22-8AFB-BB47D80E6BDD}"
-	RootNamespace="emailprg"
+	Name="about.prg"
+	ProjectGUID="{39E33545-D63F-4FBE-A7A1-5077AC704EB1}"
+	RootNamespace="aboutprg"
 	Keyword="Win32Proj"
 	>
 	<Platforms>
@@ -18,7 +18,7 @@
 		<Configuration
 			Name="Debug|Win32"
 			OutputDirectory="$(SolutionDir)$(ConfigurationName)"
-			IntermediateDirectory="$(ConfigurationName)"
+			IntermediateDirectory="$(SolutionDir)$(ConfigurationName)"
 			ConfigurationType="2"
 			CharacterSet="2"
 			>
@@ -40,7 +40,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories=".;../../core;../../apps/program-handler"
+				AdditionalIncludeDirectories="..;../../../core;../../../apps/program-handler"
 				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;_USRDLL;_CRT_SECURE_NO_DEPRECATE;PROCESS_LOADABLE;WITH_LOADER_ARCH"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="3"
@@ -95,7 +95,7 @@
 		<Configuration
 			Name="Release|Win32"
 			OutputDirectory="$(SolutionDir)$(ConfigurationName)"
-			IntermediateDirectory="$(ConfigurationName)"
+			IntermediateDirectory="$(SolutionDir)$(ConfigurationName)"
 			ConfigurationType="2"
 			CharacterSet="2"
 			WholeProgramOptimization="1"
@@ -117,7 +117,7 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
-				AdditionalIncludeDirectories=".;../../core;../../apps/program-handler"
+				AdditionalIncludeDirectories="..;../../../core;../../../apps/program-handler"
 				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_USRDLL;_CRT_SECURE_NO_DEPRECATE;PROCESS_LOADABLE;WITH_LOADER_ARCH"
 				RuntimeLibrary="2"
 				WarningLevel="3"
@@ -174,49 +174,25 @@
 	<References>
 	</References>
 	<Files>
-		<Filter
-			Name="lib"
+		<File
+			RelativePath="..\..\..\apps\about\about.c"
 			>
-			<File
-				RelativePath="..\..\core\lib\ctk-textentry-multiline.c"
+			<FileConfiguration
+				Name="Debug|Win32"
 				>
-			</File>
-			<File
-				RelativePath="..\..\core\lib\ctk-textentry-multiline.h"
+				<Tool
+					Name="VCCLCompilerTool"
+					AdditionalIncludeDirectories="..;../../../core"
+				/>
+			</FileConfiguration>
+			<FileConfiguration
+				Name="Release|Win32"
 				>
-			</File>
-		</Filter>
-		<Filter
-			Name="net"
-			>
-			<File
-				RelativePath="..\..\core\net\psock.c"
-				>
-			</File>
-			<File
-				RelativePath="..\..\core\net\psock.h"
-				>
-			</File>
-		</Filter>
-		<File
-			RelativePath="..\..\apps\email\email.c"
-			>
-		</File>
-		<File
-			RelativePath="..\..\apps\email\smtp-socket.c"
-			>
-		</File>
-		<File
-			RelativePath="..\..\apps\email\smtp-strings.c"
-			>
-		</File>
-		<File
-			RelativePath="..\..\apps\email\smtp-strings.h"
-			>
-		</File>
-		<File
-			RelativePath="..\..\apps\email\smtp.h"
-			>
+				<Tool
+					Name="VCCLCompilerTool"
+					AdditionalIncludeDirectories="..;../../../core"
+				/>
+			</FileConfiguration>
 		</File>
 	</Files>
 	<Globals>

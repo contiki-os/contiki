@@ -2,9 +2,9 @@
 <VisualStudioProject
 	ProjectType="Visual C++"
 	Version="8,00"
-	Name="www.prg"
-	ProjectGUID="{2A1D67D7-7FAE-42D3-AC99-DB68A3570735}"
-	RootNamespace="wwwprg"
+	Name="ftp.prg"
+	ProjectGUID="{4D40467F-D97B-4CB8-B340-928A85FC2721}"
+	RootNamespace="ftpprg"
 	Keyword="Win32Proj"
 	>
 	<Platforms>
@@ -18,7 +18,7 @@
 		<Configuration
 			Name="Debug|Win32"
 			OutputDirectory="$(SolutionDir)$(ConfigurationName)"
-			IntermediateDirectory="$(ConfigurationName)"
+			IntermediateDirectory="$(SolutionDir)$(ConfigurationName)"
 			ConfigurationType="2"
 			CharacterSet="2"
 			>
@@ -40,7 +40,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories=".;../../core;../../apps/program-handler"
+				AdditionalIncludeDirectories="..;../../../core;../../../apps/program-handler"
 				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;_USRDLL;_CRT_SECURE_NO_DEPRECATE;PROCESS_LOADABLE;WITH_LOADER_ARCH"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="3"
@@ -95,7 +95,7 @@
 		<Configuration
 			Name="Release|Win32"
 			OutputDirectory="$(SolutionDir)$(ConfigurationName)"
-			IntermediateDirectory="$(ConfigurationName)"
+			IntermediateDirectory="$(SolutionDir)$(ConfigurationName)"
 			ConfigurationType="2"
 			CharacterSet="2"
 			WholeProgramOptimization="1"
@@ -117,7 +117,7 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
-				AdditionalIncludeDirectories=".;../../core;../../apps/program-handler"
+				AdditionalIncludeDirectories="..;../../../core;../../../apps/program-handler"
 				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_USRDLL;_CRT_SECURE_NO_DEPRECATE;PROCESS_LOADABLE;WITH_LOADER_ARCH"
 				RuntimeLibrary="2"
 				WarningLevel="3"
@@ -175,63 +175,27 @@
 	</References>
 	<Files>
 		<Filter
-			Name="sys"
+			Name="lib"
 			>
 			<File
-				RelativePath="..\..\core\sys\arg.c"
+				RelativePath="..\..\..\core\lib\memb.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\core\sys\arg.h"
+				RelativePath="..\..\..\core\lib\memb.h"
 				>
 			</File>
 		</Filter>
 		<File
-			RelativePath="..\..\apps\webbrowser\html-strings.c"
+			RelativePath="..\..\..\apps\ftp\ftp.c"
 			>
 		</File>
 		<File
-			RelativePath="..\..\apps\webbrowser\html-strings.h"
+			RelativePath="..\..\..\apps\ftp\ftpc.c"
 			>
 		</File>
 		<File
-			RelativePath="..\..\apps\webbrowser\htmlparser.c"
-			>
-		</File>
-		<File
-			RelativePath="..\..\apps\webbrowser\htmlparser.h"
-			>
-		</File>
-		<File
-			RelativePath="..\..\apps\webbrowser\http-strings.c"
-			>
-		</File>
-		<File
-			RelativePath="..\..\apps\webbrowser\http-strings.h"
-			>
-		</File>
-		<File
-			RelativePath="..\..\apps\webbrowser\http-user-agent-string.c"
-			>
-		</File>
-		<File
-			RelativePath="..\..\apps\webbrowser\http-user-agent-string.h"
-			>
-		</File>
-		<File
-			RelativePath="..\..\apps\webbrowser\webclient.c"
-			>
-		</File>
-		<File
-			RelativePath="..\..\apps\webbrowser\webclient.h"
-			>
-		</File>
-		<File
-			RelativePath="..\..\apps\webbrowser\www.c"
-			>
-		</File>
-		<File
-			RelativePath="..\..\apps\webbrowser\www.h"
+			RelativePath="..\..\..\apps\ftp\ftpc.h"
 			>
 		</File>
 	</Files>
