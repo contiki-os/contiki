@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: rtimer-arch.c,v 1.2 2007/04/03 19:04:27 adamdunkels Exp $
+ * $Id: rtimer-arch.c,v 1.3 2007/04/07 05:45:08 adamdunkels Exp $
  */
 
 /**
@@ -94,6 +94,6 @@ rtimer_arch_schedule(rtimer_clock_t t)
 rtimer_clock_t
 rtimer_arch_now(void)
 {
-  return TBCCR1;
+  return TBR;
 }
 /*---------------------------------------------------------------------------*/
