@@ -30,7 +30,7 @@
  * 
  * Author: Oliver Schmidt <ol.sc@web.de>
  *
- * $Id: wpcap.c,v 1.3 2007/04/05 19:42:47 oliverschmidt Exp $
+ * $Id: wpcap.c,v 1.4 2007/04/07 00:27:22 oliverschmidt Exp $
  */
 
 #define WIN32_LEAN_AND_MEAN
@@ -49,7 +49,7 @@
 #include "contiki-net.h"
 #include "wpcap.h"
 
-extern char **__argv[];
+__attribute__((dllimport)) extern char **__argv[];
 
 struct pcap;
 
