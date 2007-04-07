@@ -28,7 +28,7 @@
  *
  * This file is part of the uIP TCP/IP stack.
  *
- * $Id: httpd-cgi.c,v 1.2 2006/08/09 16:13:39 bg- Exp $
+ * $Id: httpd-cgi.c,v 1.3 2007/04/07 01:31:29 oliverschmidt Exp $
  *
  */
 
@@ -95,6 +95,10 @@ static const char time_wait[] = /*  "TIME-WAIT,"*/
 static const char last_ack[] = /*  "LAST-ACK"*/
 {0x4c, 0x41, 0x53, 0x54, 0x2d, 0x41, 0x43, 
  0x4b, 0};
+static const char none[] = "NONE";
+static const char init[] = "INIT";
+static const char running[] = "RUNNING";
+static const char needs_poll[] = "NEEDS POLL";
 
 static const char *states[] = {
   closed,
@@ -105,7 +109,11 @@ static const char *states[] = {
   fin_wait_2,
   closing,
   time_wait,
-  last_ack};
+  last_ack,
+  none,
+  init,
+  running,
+  needs_poll};
   
 
 /*---------------------------------------------------------------------------*/
@@ -185,34 +193,27 @@ PT_THREAD(tcp_stats(struct httpd_state *s, char *ptr))
 }
 /*---------------------------------------------------------------------------*/
 static unsigned short
-make_processes(void *s)
+make_processes(void *p)
 {
-  struct process *p = (struct process *)s;
   char name[40];
 
-  strncpy(name, p->name, 40);
+  strncpy(name, ((struct process *)p)->name, 40);
   petsciiconv_toascii(name, 40);
 
   return sprintf((char *)uip_appdata,
-		 "<tr align=\"center\"><td>%p</td><td>%s</td><td>0x%02x</td><td>%p</td></tr>\r\n",
-		 p, name, 0,
-		 p->thread);
+		 "<tr align=\"center\"><td>%p</td><td>%s</td><td></td><td>%p</td><td></td><td>%s</td></tr>\r\n",
+		 p, name,
+		 ((struct process *)p)->thread,
+		 states[9 + ((struct process *)p)->state]);
 }
 /*---------------------------------------------------------------------------*/
 static
 PT_THREAD(processes(struct httpd_state *s, char *ptr))
 {
-  struct process *p = NULL;
-  
   PSOCK_BEGIN(&s->sout);
-  /*
-  for(s->count = 0; s->count < EK_CONF_MAXPROCS; ++s->count) {
-    p = ek_process(s->count);
-    if(p != NULL) {
-      PSOCK_GENERATOR_SEND(&s->sout, make_processes, p);
-    } 
+  for(s->ptr = PROCESS_LIST(); s->ptr != NULL; s->ptr = ((struct process *)s->ptr)->next) {
+    PSOCK_GENERATOR_SEND(&s->sout, make_processes, s->ptr);
   }
-  */
   PSOCK_END(&s->sout);
 }
 /*---------------------------------------------------------------------------*/
