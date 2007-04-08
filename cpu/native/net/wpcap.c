@@ -30,7 +30,7 @@
  * 
  * Author: Oliver Schmidt <ol.sc@web.de>
  *
- * $Id: wpcap.c,v 1.4 2007/04/07 00:27:22 oliverschmidt Exp $
+ * $Id: wpcap.c,v 1.5 2007/04/08 20:06:56 oliverschmidt Exp $
  */
 
 #define WIN32_LEAN_AND_MEAN
@@ -221,6 +221,10 @@ wpcap_poll(void)
   case -1: 
     error_exit("error on poll\n");
   case 0:
+    return 0;
+  }
+
+  if(packet_header->caplen > UIP_BUFSIZE) {
     return 0;
   }
 
