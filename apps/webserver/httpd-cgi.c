@@ -28,7 +28,7 @@
  *
  * This file is part of the uIP TCP/IP stack.
  *
- * $Id: httpd-cgi.c,v 1.3 2007/04/07 01:31:29 oliverschmidt Exp $
+ * $Id: httpd-cgi.c,v 1.4 2007/04/08 19:39:05 oliverschmidt Exp $
  *
  */
 
@@ -201,7 +201,7 @@ make_processes(void *p)
   petsciiconv_toascii(name, 40);
 
   return sprintf((char *)uip_appdata,
-		 "<tr align=\"center\"><td>%p</td><td>%s</td><td></td><td>%p</td><td></td><td>%s</td></tr>\r\n",
+		 "<tr align=\"center\"><td>%p</td><td>%s</td><td>%p</td><td>%s</td></tr>\r\n",
 		 p, name,
 		 ((struct process *)p)->thread,
 		 states[9 + ((struct process *)p)->state]);
