@@ -30,7 +30,7 @@
  * 
  * Author: Oliver Schmidt <ol.sc@web.de>
  *
- * $Id: contiki-main.c,v 1.4 2007/04/06 23:09:32 oliverschmidt Exp $
+ * $Id: contiki-main.c,v 1.5 2007/04/09 11:57:15 oliverschmidt Exp $
  */
 
 #define WIN32_LEAN_AND_MEAN
@@ -58,6 +58,7 @@ PROCINIT(&etimer_process,
 	 &cfs_win32_process,
 	 &ctk_conio_service_process,
 	 &ctk_process,
+	 &wpcap_service_process,
 	 &tcpip_process,
 	 &resolv_process,
 	 &program_handler_process);
@@ -130,8 +131,6 @@ main(void)
 
     uip_ipaddr(&addr, 192,168,0,1);
     resolv_conf(&addr);
-
-    program_handler_load("wpcap.drv", NULL);
   }
 #endif
 

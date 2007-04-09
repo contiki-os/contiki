@@ -359,6 +359,10 @@
 					>
 				</File>
 				<File
+					RelativePath="..\..\..\core\net\uip_arp.c"
+					>
+				</File>
+				<File
 					RelativePath="..\..\..\core\net\uip_arp.h"
 					>
 				</File>
@@ -500,6 +504,18 @@
 				</File>
 				<File
 					RelativePath="..\loader\dll-loader.h"
+					>
+				</File>
+			</Filter>
+			<Filter
+				Name="net"
+				>
+				<File
+					RelativePath="..\net\wpcap-service.c"
+					>
+				</File>
+				<File
+					RelativePath="..\net\wpcap-service.h"
 					>
 				</File>
 			</Filter>
