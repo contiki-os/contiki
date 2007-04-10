@@ -4,7 +4,7 @@ endif
 
 #contiki:	contiki-$(TARGET).a
 
-CONTIKI_TARGET_DIRS = . net
+CONTIKI_TARGET_DIRS = .
 CONTIKI_TARGET_MAIN = ${addprefix $(OBJECTDIR)/,contiki-main.o}
 
 CONTIKI_TARGET_SOURCEFILES = contiki-main.c dlloader.c clock.c \
