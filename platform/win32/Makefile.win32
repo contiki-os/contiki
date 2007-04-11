@@ -2,12 +2,15 @@ ifndef CONTIKI
   ${error CONTIKI not defined! You must specify where CONTIKI resides!}
 endif
 
+TARGET_LIBFILES = /lib/w32api/libws2_32.a /lib/w32api/libiphlpapi.a
+
 CONTIKI_TARGET_DIRS = . cfs ctk loader
 CONTIKI_TARGET_MAIN = ${addprefix $(OBJECTDIR)/,contiki-main.o}
 
 CONTIKI_TARGET_SOURCEFILES = contiki-main.c cfs-win32.c ctk-console.c dll-loader.c
 
-CONTIKI_SOURCEFILES += $(CTK) ctk-conio-service.c ctk-draw.c $(CONTIKI_TARGET_SOURCEFILES)
+CONTIKI_SOURCEFILES += $(CTK) ctk-conio-service.c ctk-draw.c wpcap.c wpcap-service.c \
+                       $(CONTIKI_TARGET_SOURCEFILES)
 
 .SUFFIXES:
 
@@ -29,7 +32,7 @@ endef
 ${foreach PRG,$(PRGS),${eval ${call PRG_TEMPLATE,$(PRG),${call APPNAME,$(PRG)}}}}
 ${foreach DSC,$(DSCS),${eval ${call DSC_TEMPLATE,$(DSC),${call APPNAME,$(DSC)}}}}
 
-### Generic module-compile and -link rule, no prerequisites here!
+### Generic module-compile and -link rules, no prerequisites here
 ### (The *.d files contain the full module-compile prerequisites)
 ${sort ${foreach PRG,$(PRGS), ${addprefix $(OBJECTDIR)/, \
                                 $(${call APPNAME,$(PRG)_src:.c=.o})}}}:
