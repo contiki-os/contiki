@@ -1,4 +1,4 @@
-# Copyright (c) 2002-2004, Adam Dunkels.
+# Copyright (c) 2007, Adam Dunkels.
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -25,9 +25,11 @@
 # NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
-# This file is part of the Contiki desktop environment
+# This file is part of the Contiki operating system.
 #
-# $Id: Makefile,v 1.1 2007/04/06 23:09:32 oliverschmidt Exp $
+# Author: Oliver Schmidt <ol.sc@web.de>
+#
+# $Id: Makefile,v 1.2 2007/04/11 01:08:46 oliverschmidt Exp $
 #
 
 PRGS = about calc dhcp directory email ftp irc netconf processes shell \
@@ -38,6 +40,10 @@ all: contiki-main $(PRGS:=.prg) $(DSCS:=.dsc)
 
 APPNAME = ${subst processes,process-list,${subst www,webbrowser,$(1)}}
 
+# Use webserver.c instead of webserver-nogui.c to get CTK support
+override webserver_src = webserver.c httpd.c http-strings.c psock.c \
+			 uipbuf.c memb.c httpd-fs.c httpd-cgi.c
+                
 CONTIKI = ../..
 APPS = program-handler ${call APPNAME,$(PRGS)}
 TARGET = win32
