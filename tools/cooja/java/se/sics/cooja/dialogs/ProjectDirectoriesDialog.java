@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ProjectDirectoriesDialog.java,v 1.2 2007/04/02 10:32:37 fros4943 Exp $
+ * $Id: ProjectDirectoriesDialog.java,v 1.3 2007/04/11 14:00:27 fros4943 Exp $
  */
 
 package se.sics.cooja.dialogs;
@@ -306,11 +306,15 @@ public class ProjectDirectoriesDialog extends JDialog {
     button = new JButton("Add manually");
     button.addActionListener(new ActionListener() {
       public void actionPerformed(ActionEvent e) {
-        String newProjectPath = JOptionPane.showInputDialog(myDialog,
-            "Enter path to project directory", "Enter path",
-            JOptionPane.QUESTION_MESSAGE);
-        if (newProjectPath != null) {
-          addProjectDir(new File(newProjectPath));
+        ProjectDirectoryInputDialog pathDialog = new ProjectDirectoryInputDialog(myParentFrame);
+        pathDialog.pack();
+
+        pathDialog.setLocationRelativeTo(myParentFrame);
+        pathDialog.setVisible(true);
+
+        File projectPath = pathDialog.getProjectDirectory();
+        if (projectPath != null) {
+          addProjectDir(projectPath);
         }
       }
     });
