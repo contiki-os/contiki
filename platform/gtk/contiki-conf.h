@@ -140,7 +140,7 @@ typedef unsigned short uip_stats_t;
 #define UIP_CONF_MAX_LISTENPORTS 40
 #define UIP_CONF_BUFFER_SIZE     420
 
-#define UIP_CONF_BYTE_ORDER      LITTLE_ENDIAN
+#define UIP_CONF_BYTE_ORDER      UIP_LITTLE_ENDIAN
 
 #define UIP_CONF_TCP_SPLIT       1
 

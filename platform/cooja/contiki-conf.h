@@ -32,7 +32,7 @@
  *
  * This file is part of the Contiki desktop OS
  *
- * $Id: contiki-conf.h,v 1.3 2006/08/30 14:48:36 fros4943 Exp $
+ * $Id: contiki-conf.h,v 1.4 2007/04/11 00:26:27 oliverschmidt Exp $
  *
  */
 
@@ -247,7 +247,7 @@ architecture specific files to work). */
 #define UIP_CONF_MAX_LISTENPORTS 4
 #define UIP_CONF_BUFFER_SIZE     200
 
-#define UIP_CONF_BYTE_ORDER      LITTLE_ENDIAN
+#define UIP_CONF_BYTE_ORDER      UIP_LITTLE_ENDIAN
 
 #define UIP_CONF_BROADCAST	 1
 

@@ -520,7 +520,7 @@ architecture specific files to work). */
 #define UIP_CONF_BUFFER_SIZE     400
 #define UIP_CONF_RECEIVE_WINDOW  320
 
-#define UIP_CONF_BYTE_ORDER      LITTLE_ENDIAN
+#define UIP_CONF_BYTE_ORDER      UIP_LITTLE_ENDIAN
 
 #define UIP_CONF_ARBTAB_SIZE 4
 
