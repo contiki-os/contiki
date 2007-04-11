@@ -24,7 +24,6 @@
 #define LOG_CONF_ENABLED 1
 #include "sys/log.h"
 CCIF void debug_printf(char *format, ...);
-CCIF void error_exit(char *message);
 
 
 
@@ -119,7 +118,7 @@ typedef unsigned short uip_stats_t;
 #define UIP_CONF_MAX_CONNECTIONS 40
 #define UIP_CONF_MAX_LISTENPORTS 40
 #define UIP_CONF_BUFFER_SIZE     420
-#define UIP_CONF_BYTE_ORDER      LITTLE_ENDIAN
+#define UIP_CONF_BYTE_ORDER      UIP_LITTLE_ENDIAN
 #define UIP_CONF_TCP_SPLIT       1
 #define UIP_CONF_LOGGING         1
 #define UIP_CONF_UDP_CHECKSUMS   1
