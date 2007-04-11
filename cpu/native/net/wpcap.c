@@ -30,7 +30,7 @@
  * 
  * Author: Oliver Schmidt <ol.sc@web.de>
  *
- * $Id: wpcap.c,v 1.5 2007/04/08 20:06:56 oliverschmidt Exp $
+ * $Id: wpcap.c,v 1.6 2007/04/11 00:21:28 oliverschmidt Exp $
  */
 
 #define WIN32_LEAN_AND_MEAN
@@ -41,15 +41,19 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <malloc.h>
 
 /* Avoid 'conflicting types' errors. */
 #define htonl 
 #define htons
 
 #include "contiki-net.h"
+#include "sys/log.h"
 #include "wpcap.h"
 
+#ifdef __CYGWIN__
 __attribute__((dllimport)) extern char **__argv[];
+#endif
 
 struct pcap;
 
@@ -64,13 +68,13 @@ struct pcap_if {
     struct sockaddr *broadaddr;
     struct sockaddr *dstaddr;
   } *addresses;
-  uint32_t flags;
+  DWORD flags;
 };
 
 struct pcap_pkthdr {
   struct timeval ts;
-  uint32_t caplen;
-  uint32_t len;
+  DWORD caplen;
+  DWORD len;
 };
 
 static struct pcap *pcap;
@@ -101,7 +105,7 @@ init_pcap(struct in_addr addr)
   }
 
   while(interfaces != NULL) {
-    printf("init_pcap: found interface: %s\n", interfaces->description);
+    log_message("init_pcap: found interface: ", interfaces->description);
 
     if(interfaces->addresses != NULL && 
        interfaces->addresses->addr != NULL &&
@@ -109,7 +113,7 @@ init_pcap(struct in_addr addr)
 
       struct in_addr interface_addr;
       interface_addr = ((struct sockaddr_in *)interfaces->addresses->addr)->sin_addr;
-      printf("init_pcap:    with address: %s\n", inet_ntoa(interface_addr));
+      log_message("init_pcap:    with address: ", inet_ntoa(interface_addr));
 
       if(interface_addr.s_addr == addr.s_addr) {
         break;
@@ -150,10 +154,10 @@ set_ethaddr(struct in_addr addr)
 
   while(adapters != NULL) {
 
-    char description[256];
+    char buffer[256];
     WideCharToMultiByte(CP_ACP, 0, adapters->Description, -1,
-			description, sizeof(description), NULL, NULL);
-    printf("set_ethaddr: found adapter: %s\n", description);
+			buffer, sizeof(buffer), NULL, NULL);
+    log_message("set_ethaddr: found adapter: ", buffer);
 
     if(adapters->FirstUnicastAddress != NULL &&
        adapters->FirstUnicastAddress->Address.lpSockaddr != NULL &&
@@ -161,16 +165,17 @@ set_ethaddr(struct in_addr addr)
 
       struct in_addr adapter_addr;
       adapter_addr = ((struct sockaddr_in *)adapters->FirstUnicastAddress->Address.lpSockaddr)->sin_addr;
-      printf("set_ethaddr:  with address: %s\n", inet_ntoa(adapter_addr));
+      log_message("set_ethaddr:  with address: ", inet_ntoa(adapter_addr));
 
       if(adapter_addr.s_addr == addr.s_addr) {
 	if(adapters->PhysicalAddressLength != 6) {
 	  error_exit("ip addr specified on cmdline does not belong to an ethernet card\n");
 	}
-	printf("set_ethaddr:  ethernetaddr: %02X-%02X-%02X-%02X-%02X-%02X\n",
-	       adapters->PhysicalAddress[0], adapters->PhysicalAddress[1],
-	       adapters->PhysicalAddress[2], adapters->PhysicalAddress[3],
-	       adapters->PhysicalAddress[4], adapters->PhysicalAddress[5]);
+	wsprintf(buffer, "%02X-%02X-%02X-%02X-%02X-%02X",
+		 adapters->PhysicalAddress[0], adapters->PhysicalAddress[1],
+		 adapters->PhysicalAddress[2], adapters->PhysicalAddress[3],
+		 adapters->PhysicalAddress[4], adapters->PhysicalAddress[5]);
+	log_message("set_ethaddr:  ethernetaddr: ", buffer);
 
 	uip_setethaddr((*(struct uip_eth_addr *)adapters->PhysicalAddress));
 	break;
@@ -190,11 +195,15 @@ wpcap_init(void)
   struct in_addr addr;
   HMODULE wpcap;
 
+#ifdef __CYGWIN__
   addr.s_addr = inet_addr((*__argv)[1]);
+#else
+  addr.s_addr = inet_addr(__argv[1]);
+#endif
   if(addr.s_addr == INADDR_NONE) {
     error_exit("usage: <program> <ip addr of ethernet card to share>\n");
   }
-  printf("wpcap_init: cmdline address: %s\n", inet_ntoa(addr));
+  log_message("wpcap_init: cmdline address: ", inet_ntoa(addr));
 
   wpcap = LoadLibrary("wpcap.dll");
   (FARPROC)pcap_findalldevs = GetProcAddress(wpcap, "pcap_findalldevs");
