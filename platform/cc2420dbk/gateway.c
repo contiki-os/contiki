@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF 
  * SUCH DAMAGE. 
  *
- * @(#)$Id: gateway.c,v 1.1 2007/02/02 14:07:34 bg- Exp $
+ * @(#)$Id: gateway.c,v 1.2 2007/04/11 10:14:00 bg- Exp $
  */
 
 /*
@@ -110,7 +110,7 @@ main(int argc, char **argv)
   leds_toggle(LEDS_ALL);
   slip_arch_init(BAUD2UBR(38400)); /* Must come before first printf */
   printf("Starting %s "
-         "($Id: gateway.c,v 1.1 2007/02/02 14:07:34 bg- Exp $)\n", __FILE__);
+         "($Id: gateway.c,v 1.2 2007/04/11 10:14:00 bg- Exp $)\n", __FILE__);
   ds2411_init();
   cc2420_init();
   xmem_init();
@@ -120,9 +120,10 @@ main(int argc, char **argv)
    * Hardware initialization done!
    */
   
-  printf("MAC %02x:%02x:%02x:%02x:%02x:%02x:%02x:%02x\n",
+  printf("MAC %02x:%02x:%02x:%02x:%02x:%02x:%02x:%02x CHANNEL %d\n",
 	 ds2411_id[0], ds2411_id[1], ds2411_id[2], ds2411_id[3],
-	 ds2411_id[4], ds2411_id[5], ds2411_id[6], ds2411_id[7]);
+	 ds2411_id[4], ds2411_id[5], ds2411_id[6], ds2411_id[7],
+	 RF_CHANNEL);
 
   uip_ipaddr_copy(&uip_hostaddr, &cc2420if.ipaddr);
   uip_ipaddr_copy(&uip_netmask, &cc2420if.netmask);
