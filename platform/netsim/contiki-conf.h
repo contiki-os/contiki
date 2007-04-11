@@ -32,7 +32,7 @@
  *
  * This file is part of the Contiki desktop OS
  *
- * $Id: contiki-conf.h,v 1.5 2007/03/29 22:24:21 adamdunkels Exp $
+ * $Id: contiki-conf.h,v 1.6 2007/04/11 00:28:26 oliverschmidt Exp $
  *
  */
 
@@ -103,7 +103,7 @@ typedef unsigned long clock_time_t;
 #define UIP_CONF_MAX_LISTENPORTS 40
 #define UIP_CONF_BUFFER_SIZE     120
 
-#define UIP_CONF_BYTE_ORDER      LITTLE_ENDIAN
+#define UIP_CONF_BYTE_ORDER      UIP_LITTLE_ENDIAN
 
 #define UIP_CONF_BROADCAST	 1
 

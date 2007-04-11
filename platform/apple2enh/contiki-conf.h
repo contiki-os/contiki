@@ -89,7 +89,7 @@ typedef unsigned short clock_time_t;
 #define UIP_CONF_MAX_CONNECTIONS 10
 #define UIP_CONF_MAX_LISTENPORTS 10
 #define UIP_CONF_BUFFER_SIZE     (1024 - 2)
-#define UIP_CONF_BYTE_ORDER      LITTLE_ENDIAN
+#define UIP_CONF_BYTE_ORDER      UIP_LITTLE_ENDIAN
 #define UIP_CONF_TCP_SPLIT       1
 #define UIP_CONF_LOGGING         1
 #define UIP_CONF_UDP_CHECKSUMS   1

@@ -58,7 +58,7 @@
  *
  * This file is part of the uIP TCP/IP stack.
  *
- * $Id: uipopt.h,v 1.3 2007/04/02 18:08:36 adamdunkels Exp $
+ * $Id: uipopt.h,v 1.4 2007/04/11 00:29:12 oliverschmidt Exp $
  *
  */
 
@@ -474,8 +474,8 @@ void uip_log(char *msg);
 /**
  * The byte order of the CPU architecture on which uIP is to be run.
  *
- * This option can be either BIG_ENDIAN (Motorola byte order) or
- * LITTLE_ENDIAN (Intel byte order).
+ * This option can be either UIP_BIG_ENDIAN (Motorola byte order) or
+ * UIP_LITTLE_ENDIAN (Intel byte order).
  *
  * \hideinitializer
  */
