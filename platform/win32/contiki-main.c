@@ -30,7 +30,7 @@
  * 
  * Author: Oliver Schmidt <ol.sc@web.de>
  *
- * $Id: contiki-main.c,v 1.5 2007/04/09 11:57:15 oliverschmidt Exp $
+ * $Id: contiki-main.c,v 1.6 2007/04/11 00:17:25 oliverschmidt Exp $
  */
 
 #define WIN32_LEAN_AND_MEAN
@@ -58,7 +58,7 @@ PROCINIT(&etimer_process,
 	 &cfs_win32_process,
 	 &ctk_conio_service_process,
 	 &ctk_process,
-	 &wpcap_service_process,
+	 &wpcap_process,
 	 &tcpip_process,
 	 &resolv_process,
 	 &program_handler_process);
@@ -87,16 +87,6 @@ void
 log_message(const char *part1, const char *part2)
 {
   debug_printf("%s%s\n", part1, part2);
-}
-/*-----------------------------------------------------------------------------------*/
-void
-error_exit(char *message)
-{
-  debug_printf("Error Exit: %s", message);
-
-  console_exit();
-  console_cputs(message);
-  exit(EXIT_FAILURE);
 }
 /*-----------------------------------------------------------------------------------*/
 clock_time_t
