@@ -40,7 +40,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..;../../../core;../../../apps/program-handler"
+				AdditionalIncludeDirectories="..;../../../cpu/native;../../../core;../../../apps/program-handler"
 				PreprocessorDefinitions="WIN32;_DEBUG;_CONSOLE;_CRT_SECURE_NO_DEPRECATE;WITH_LOADER_ARCH"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="3"
@@ -60,6 +60,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
+				AdditionalDependencies="ws2_32.lib iphlpapi.lib"
 				OutputFile="$(OutDir)\$(ProjectName)"
 				LinkIncremental="2"
 				GenerateDebugInformation="true"
@@ -116,7 +117,7 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
-				AdditionalIncludeDirectories="..;../../../core;../../../apps/program-handler"
+				AdditionalIncludeDirectories="..;../../../cpu/native;../../../core;../../../apps/program-handler"
 				PreprocessorDefinitions="WIN32;NDEBUG;_CONSOLE;_CRT_SECURE_NO_DEPRECATE;WITH_LOADER_ARCH"
 				RuntimeLibrary="2"
 				WarningLevel="3"
@@ -135,6 +136,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
+				AdditionalDependencies="ws2_32.lib iphlpapi.lib"
 				OutputFile="$(OutDir)\$(ProjectName)"
 				LinkIncremental="1"
 				GenerateDebugInformation="true"
@@ -457,6 +459,30 @@
 			</Filter>
 		</Filter>
 		<Filter
+			Name="cpu"
+			>
+			<Filter
+				Name="net"
+				>
+				<File
+					RelativePath="..\..\..\cpu\native\net\wpcap-service.c"
+					>
+				</File>
+				<File
+					RelativePath="..\..\..\cpu\native\net\wpcap-service.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\..\cpu\native\net\wpcap.c"
+					>
+				</File>
+				<File
+					RelativePath="..\..\..\cpu\native\net\wpcap.h"
+					>
+				</File>
+			</Filter>
+		</Filter>
+		<Filter
 			Name="win32"
 			>
 			<File
@@ -504,18 +530,6 @@
 				</File>
 				<File
 					RelativePath="..\loader\dll-loader.h"
-					>
-				</File>
-			</Filter>
-			<Filter
-				Name="net"
-				>
-				<File
-					RelativePath="..\net\wpcap-service.c"
-					>
-				</File>
-				<File
-					RelativePath="..\net\wpcap-service.h"
 					>
 				</File>
 			</Filter>
