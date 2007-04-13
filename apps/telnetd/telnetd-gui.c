@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki desktop OS.
  *
- * $Id: telnetd-gui.c,v 1.1 2006/06/17 22:41:13 adamdunkels Exp $
+ * $Id: telnetd-gui.c,v 1.2 2007/04/13 22:02:28 oliverschmidt Exp $
  *
  */
 
@@ -63,7 +63,7 @@ telnetd_gui_output(char *str1, char *str2)
   }
   memset(&log[(YSIZE - 1) * XSIZE], 0, XSIZE);
 
-  len = strlen(str1);
+  len = (unsigned int)strlen(str1);
 
   strncpy(&log[(YSIZE - 1) * XSIZE], str1, XSIZE);
   if(len < XSIZE) {
