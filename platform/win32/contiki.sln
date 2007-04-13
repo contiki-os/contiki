@@ -80,6 +80,13 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "telnet.prg", "vcproj\telnet
 		{DD219C2D-D3F8-4C76-B2AA-376978722232} = {DD219C2D-D3F8-4C76-B2AA-376978722232}
 	EndProjectSection
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "telnetd.prg", "vcproj\telnetd.prg.vcproj", "{ED41B93E-1FEF-477A-AFCC-7CAC0A324E24}"
+	ProjectSection(ProjectDependencies) = postProject
+		{DD219C2D-D3F8-4C76-B2AA-376978722232} = {DD219C2D-D3F8-4C76-B2AA-376978722232}
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "telnetd.dsc", "vcproj\telnetd.dsc.vcproj", "{3A99D8B2-44AC-4B56-A746-61A677BCAFC8}"
+EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "webserver.dsc", "vcproj\webserver.dsc.vcproj", "{BE742A25-4F10-4741-B307-850C61BE0883}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "webserver.prg", "vcproj\webserver.prg.vcproj", "{C741203A-ADD3-4C4A-9BF1-82978105F057}"
@@ -192,6 +199,14 @@ Global
 		{C511175A-BD2B-4ED9-87A6-05040E4DD823}.Debug|Win32.Build.0 = Debug|Win32
 		{C511175A-BD2B-4ED9-87A6-05040E4DD823}.Release|Win32.ActiveCfg = Release|Win32
 		{C511175A-BD2B-4ED9-87A6-05040E4DD823}.Release|Win32.Build.0 = Release|Win32
+		{ED41B93E-1FEF-477A-AFCC-7CAC0A324E24}.Debug|Win32.ActiveCfg = Debug|Win32
+		{ED41B93E-1FEF-477A-AFCC-7CAC0A324E24}.Debug|Win32.Build.0 = Debug|Win32
+		{ED41B93E-1FEF-477A-AFCC-7CAC0A324E24}.Release|Win32.ActiveCfg = Release|Win32
+		{ED41B93E-1FEF-477A-AFCC-7CAC0A324E24}.Release|Win32.Build.0 = Release|Win32
+		{3A99D8B2-44AC-4B56-A746-61A677BCAFC8}.Debug|Win32.ActiveCfg = Debug|Win32
+		{3A99D8B2-44AC-4B56-A746-61A677BCAFC8}.Debug|Win32.Build.0 = Debug|Win32
+		{3A99D8B2-44AC-4B56-A746-61A677BCAFC8}.Release|Win32.ActiveCfg = Release|Win32
+		{3A99D8B2-44AC-4B56-A746-61A677BCAFC8}.Release|Win32.Build.0 = Release|Win32
 		{BE742A25-4F10-4741-B307-850C61BE0883}.Debug|Win32.ActiveCfg = Debug|Win32
 		{BE742A25-4F10-4741-B307-850C61BE0883}.Debug|Win32.Build.0 = Debug|Win32
 		{BE742A25-4F10-4741-B307-850C61BE0883}.Release|Win32.ActiveCfg = Release|Win32

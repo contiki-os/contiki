@@ -143,7 +143,8 @@ typedef unsigned short uip_stats_t;
 
 
 
-#define TELNETD_CONF_LINELEN 64
+#define TELNETD_CONF_LINELEN  64
 #define TELNETD_CONF_NUMLINES 16
+#define TELNETD_CONF_GUI      1
 
 #endif /* __CONTIKI_CONF_H__ */
