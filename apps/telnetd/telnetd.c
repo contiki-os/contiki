@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki desktop OS.
  *
- * $Id: telnetd.c,v 1.1 2006/06/17 22:41:13 adamdunkels Exp $
+ * $Id: telnetd.c,v 1.2 2007/04/13 21:04:52 oliverschmidt Exp $
  *
  */
 
@@ -394,6 +394,3 @@ telnetd_appcall(void *ts)
   }
 }
 /*-----------------------------------------------------------------------------------*/
-void
-program_handler_load(char *name, char *arg)
-{}
