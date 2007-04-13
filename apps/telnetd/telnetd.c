@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki desktop OS.
  *
- * $Id: telnetd.c,v 1.2 2007/04/13 21:04:52 oliverschmidt Exp $
+ * $Id: telnetd.c,v 1.3 2007/04/13 22:02:28 oliverschmidt Exp $
  *
  */
 
@@ -149,12 +149,12 @@ shell_output(char *str1, char *str2)
 
   line = alloc_line();
   if(line != NULL) {
-    len = strlen(str1);
+    len = (unsigned int)strlen(str1);
     strncpy(line, str1, TELNETD_CONF_LINELEN);
     if(len < TELNETD_CONF_LINELEN) {
       strncpy(line + len, str2, TELNETD_CONF_LINELEN - len);
     }
-    len = strlen(line);
+    len = (unsigned int)strlen(line);
     if(len < TELNETD_CONF_LINELEN - 2) {
       line[len] = ISO_cr;
       line[len+1] = ISO_nl;
@@ -215,7 +215,7 @@ senddata(void)
   for(s.numsent = 0; s.numsent < TELNETD_CONF_NUMLINES &&
 	s.lines[s.numsent] != NULL ; ++s.numsent) {
     lineptr = s.lines[s.numsent];
-    linelen = strlen(lineptr);
+    linelen = (int)strlen(lineptr);
     if(linelen > TELNETD_CONF_LINELEN) {
       linelen = TELNETD_CONF_LINELEN;
     }
