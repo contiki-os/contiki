@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki desktop OS.
  *
- * $Id: telnetd.c,v 1.3 2007/04/13 22:02:28 oliverschmidt Exp $
+ * $Id: telnetd.c,v 1.4 2007/04/13 22:15:52 oliverschmidt Exp $
  *
  */
 
@@ -147,6 +147,9 @@ shell_output(char *str1, char *str2)
   static unsigned len;
   char *line;
 
+#if TELNETD_CONF_GUI
+  telnetd_gui_output(str1, str2);
+#endif /* TELNETD_CONF_GUI */
   line = alloc_line();
   if(line != NULL) {
     len = (unsigned int)strlen(str1);
@@ -172,6 +175,9 @@ PROCESS_THREAD(telnetd_process, ev, data)
   tcp_listen(HTONS(23));
   memb_init(&linemem);
   shell_init();
+#if TELNETD_CONF_GUI
+  telnetd_gui_init();
+#endif /* TELNETD_CONF_GUI */
 
   while(1) {
     PROCESS_WAIT_EVENT();
@@ -283,7 +289,6 @@ newdata(void)
   u16_t len;
   u8_t c;
     
-  
   len = uip_datalen();
   
   while(len > 0 && s.bufptr < sizeof(s.buf)) {
@@ -344,10 +349,7 @@ newdata(void)
       }
       break;
     }
-
-    
   }
-  
 }
 /*-----------------------------------------------------------------------------------*/
 void
