@@ -29,16 +29,19 @@
 #
 # Author: Oliver Schmidt <ol.sc@web.de>
 #
-# $Id: Makefile,v 1.2 2007/04/11 01:08:46 oliverschmidt Exp $
+# $Id: Makefile,v 1.3 2007/04/13 21:55:55 oliverschmidt Exp $
 #
 
 PRGS = about calc dhcp directory email ftp irc netconf processes shell \
-       telnet webserver www
+       telnet telnetd webserver www
 DSCS = about calc dhcp email ftp irc netconf processes shell telnet \
-       webserver
+       telnetd webserver
 all: contiki-main $(PRGS:=.prg) $(DSCS:=.dsc)
 
 APPNAME = ${subst processes,process-list,${subst www,webbrowser,$(1)}}
+
+# Add telnetd-gui.c to get CTK support
+override telnetd_src = telnetd.c telnetd-gui.c memb.c shell.c
 
 # Use webserver.c instead of webserver-nogui.c to get CTK support
 override webserver_src = webserver.c httpd.c http-strings.c psock.c \
