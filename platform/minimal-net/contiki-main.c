@@ -29,12 +29,13 @@
  *
  * This file is part of the Contiki OS
  *
- * $Id: contiki-main.c,v 1.3 2007/03/26 02:53:54 oliverschmidt Exp $
+ * $Id: contiki-main.c,v 1.4 2007/04/13 23:08:52 oliverschmidt Exp $
  *
  */
 
 #include "contiki.h"
 
+#include "cfs/cfs-posix.h"
 #include "net/uip.h"
 #ifdef __CYGWIN__
 #include "net/wpcap-service.h"
@@ -43,9 +44,9 @@
 #endif
 
 #ifdef __CYGWIN__
-PROCINIT(&etimer_process, &tcpip_process, &wpcap_process);
+PROCINIT(&etimer_process, &cfs_posix_process, &tcpip_process, &wpcap_process);
 #else
-PROCINIT(&etimer_process, &tcpip_process, &tapdev_process);
+PROCINIT(&etimer_process, &cfs_posix_process, &tcpip_process, &tapdev_process);
 #endif
 
 /*---------------------------------------------------------------------------*/
