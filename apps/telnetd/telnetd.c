@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki desktop OS.
  *
- * $Id: telnetd.c,v 1.4 2007/04/13 22:15:52 oliverschmidt Exp $
+ * $Id: telnetd.c,v 1.5 2007/04/13 22:47:43 oliverschmidt Exp $
  *
  */
 
@@ -186,6 +186,7 @@ PROCESS_THREAD(telnetd_process, ev, data)
     } else if(ev == PROCESS_EVENT_EXIT) {
       telnetd_quit();
     } else {
+      shell_eventhandler(ev, data);
 #if TELNETD_CONF_GUI
       telnetd_gui_eventhandler(ev, data);
 #endif /* TELNETD_CONF_GUI */
