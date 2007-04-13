@@ -105,6 +105,10 @@ typedef unsigned long clock_time_t;
 
 
 
+#define SHELL_CONF_WITH_PROGRAM_HANDLER 1
+
+
+
 #define SHELL_GUI_CONF_XSIZE 46
 #define SHELL_GUI_CONF_YSIZE 22
 
@@ -136,5 +140,10 @@ typedef unsigned short uip_stats_t;
 #define WWW_CONF_MAX_FORMNAMELEN    200
 #define WWW_CONF_MAX_INPUTNAMELEN   200
 #define WWW_CONF_MAX_INPUTVALUELEN  240
+
+
+
+#define TELNETD_CONF_LINELEN 64
+#define TELNETD_CONF_NUMLINES 16
 
 #endif /* __CONTIKI_CONF_H__ */

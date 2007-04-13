@@ -99,6 +99,11 @@ typedef unsigned long clock_time_t;
 #define PROGRAM_HANDLER_CONF_MAX_NUMDSCS 10
 
 
+
+#define SHELL_CONF_WITH_PROGRAM_HANDLER 1
+
+
+
 #define SHELL_GUI_CONF_XSIZE 46
 #define SHELL_GUI_CONF_YSIZE 22
 
