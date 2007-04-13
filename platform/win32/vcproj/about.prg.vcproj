@@ -177,22 +177,6 @@
 		<File
 			RelativePath="..\..\..\apps\about\about.c"
 			>
-			<FileConfiguration
-				Name="Debug|Win32"
-				>
-				<Tool
-					Name="VCCLCompilerTool"
-					AdditionalIncludeDirectories="..;../../../core"
-				/>
-			</FileConfiguration>
-			<FileConfiguration
-				Name="Release|Win32"
-				>
-				<Tool
-					Name="VCCLCompilerTool"
-					AdditionalIncludeDirectories="..;../../../core"
-				/>
-			</FileConfiguration>
 		</File>
 	</Files>
 	<Globals>
