@@ -29,18 +29,19 @@
  *
  * This file is part of the Contiki OS.
  *
- * $Id: webserver-nogui.c,v 1.2 2006/08/09 16:13:39 bg- Exp $
+ * $Id: webserver-nogui.c,v 1.3 2007/04/14 13:40:53 oliverschmidt Exp $
  *
  */
 
+#include <string.h>
+#include <stdio.h>
 
 #include "contiki.h"
+#include "sys/log.h"
+
 #include "http-strings.h"
 #include "webserver.h"
 #include "httpd.h"
-
-#include <string.h>
-#include <stdio.h>
 
 PROCESS(webserver_nogui_process, "Web server");
 /*---------------------------------------------------------------------------*/
@@ -61,10 +62,19 @@ PROCESS_THREAD(webserver_nogui_process, ev, data)
 void
 httpd_log_file(uip_ipaddr_t *requester, char *file)
 {
+#if LOG_CONF_ENABLED
+  char buf[18];
+
+  /* Print out IP address of requesting host. */
+  sprintf(buf, "%d.%d.%d.%d: ", requester->u8[0], requester->u8[1],
+				requester->u8[2], requester->u8[3]);
+  log_message(buf, file);
+#endif /* LOG_CONF_ENABLED */
 }
 /*---------------------------------------------------------------------------*/
 void
 httpd_log(char *msg)
 {
+  log_message(msg, "");
 }
 /*---------------------------------------------------------------------------*/
