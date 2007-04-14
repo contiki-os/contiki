@@ -1,5 +1,5 @@
 ifndef CONTIKI
-  $(error CONTIKI not defined! You must specify where CONTIKI resides!)
+  ${error CONTIKI not defined! You must specify where CONTIKI resides!}
 endif
 
 OBJECTDIR = obj_$(TARGET)
@@ -8,10 +8,10 @@ CFLAGS += -DCONTIKI_TARGET=$(TARGET)
 ifeq ($(TARGET),)
   -include Makefile.target
   ifeq ($(TARGET),)
-    $(warning TARGET not defined, using native target)
+    ${warning TARGET not defined, using native target}
     TARGET=native
   else
-    $(warning using saved target '$(TARGET)')
+    ${warning using saved target '$(TARGET)'}
   endif
 endif
 
@@ -59,11 +59,11 @@ PROJECT_OBJECTFILES = ${addprefix $(OBJECTDIR)/,$(PROJECT_SOURCEFILES:.c=.o)}
 ### Include application makefiles
 
 ifdef APPS
-  APPDIRS += $(addprefix $(CONTIKI)/apps/, $(APPS))
-  APPINCLUDES = $(foreach APP, $(APPS), $(CONTIKI)/apps/$(APP)/Makefile.$(APP))
+  APPDIRS += ${addprefix $(CONTIKI)/apps/, $(APPS)}
+  APPINCLUDES = ${foreach APP, $(APPS), $(CONTIKI)/apps/$(APP)/Makefile.$(APP)}
   -include $(APPINCLUDES)
-  APP_SOURCES = $(foreach APP, $(APPS), $($(APP)_src))
-  DSC_SOURCES = $(foreach APP, $(APPS), $($(APP)_dsc))
+  APP_SOURCES = ${foreach APP, $(APPS), $($(APP)_src)}
+  DSC_SOURCES = ${foreach APP, $(APPS), $($(APP)_dsc)}
   CONTIKI_SOURCEFILES += $(APP_SOURCES) $(DSC_SOURCES)
 endif
 
@@ -73,8 +73,8 @@ include $(CONTIKI)/platform/$(TARGET)/Makefile.$(TARGET)
 ### Automatic dependency generation
 
 ifneq ($(MAKECMDGOALS),clean)
--include $(addprefix $(OBJECTDIR)/,$(CONTIKI_SOURCEFILES:.c=.d) \
-				   $(PROJECT_SOURCEFILES:.c=.d))
+-include ${addprefix $(OBJECTDIR)/,$(CONTIKI_SOURCEFILES:.c=.d) \
+				   $(PROJECT_SOURCEFILES:.c=.d)}
 endif
 
 
@@ -140,7 +140,7 @@ endif
 
 ifndef CUSTOM_RULE_LINK
 %.$(TARGET):	%.co $(PROJECT_OBJECTFILES) $(PROJECT_LIBRARIES) contiki-$(TARGET).a
-	$(LD) $(LDFLAGS) $(TARGET_STARTFILES) $(filter-out %.a,$^) $(filter %.a,$^) $(TARGET_LIBFILES) -o $@
+	$(LD) $(LDFLAGS) $(TARGET_STARTFILES) ${filter-out %.a,$^} ${filter %.a,$^} $(TARGET_LIBFILES) -o $@
 endif
 
 # The target below looks weird, but I had to add the @ to avoid complaints
