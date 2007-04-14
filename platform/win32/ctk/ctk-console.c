@@ -30,7 +30,7 @@
  * 
  * Author: Oliver Schmidt <ol.sc@web.de>
  *
- * $Id: ctk-console.c,v 1.7 2007/04/14 14:28:19 oliverschmidt Exp $
+ * $Id: ctk-console.c,v 1.8 2007/04/14 14:57:53 oliverschmidt Exp $
  */
 
 #define WIN32_LEAN_AND_MEAN
@@ -83,6 +83,12 @@ console_init(void)
 {
   CONSOLE_SCREEN_BUFFER_INFO consoleinfo;
   CONSOLE_CURSOR_INFO cursorinfo = {1, FALSE};
+  static unsigned char done;
+
+  if(done) {
+    return;
+  }
+  done = 1;
 
   stdinhandle  = GetStdHandle(STD_INPUT_HANDLE);
   stdouthandle = GetStdHandle(STD_OUTPUT_HANDLE);
@@ -190,11 +196,15 @@ clrscr(void)
 void
 bgcolor(unsigned char c)
 {
+  /* Presume this to be one the first calls. */
+  console_init();
 }
 /*-----------------------------------------------------------------------------------*/
 void
 bordercolor(unsigned char c)
 {
+  /* Presume this to be one the first calls. */
+  console_init();
 }
 /*-----------------------------------------------------------------------------------*/
 void
