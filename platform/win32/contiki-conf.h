@@ -27,8 +27,7 @@ CCIF void debug_printf(char *format, ...);
 
 
 
-#include <time.h>
-#define CLOCK_CONF_SECOND CLK_TCK
+#define CLOCK_CONF_SECOND 1000
 typedef unsigned long clock_time_t;
 
 

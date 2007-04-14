@@ -30,7 +30,7 @@
  * 
  * Author: Oliver Schmidt <ol.sc@web.de>
  *
- * $Id: contiki-main.c,v 1.7 2007/04/14 14:57:19 oliverschmidt Exp $
+ * $Id: contiki-main.c,v 1.8 2007/04/14 23:23:15 oliverschmidt Exp $
  */
 
 #define WIN32_LEAN_AND_MEAN
@@ -87,12 +87,6 @@ void
 log_message(const char *part1, const char *part2)
 {
   debug_printf("%s%s\n", part1, part2);
-}
-/*-----------------------------------------------------------------------------------*/
-clock_time_t
-clock_time(void)
-{
-  return clock();
 }
 /*-----------------------------------------------------------------------------------*/
 int
