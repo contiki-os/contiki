@@ -486,6 +486,10 @@
 			Name="win32"
 			>
 			<File
+				RelativePath="..\clock.c"
+				>
+			</File>
+			<File
 				RelativePath="..\conio.h"
 				>
 			</File>
