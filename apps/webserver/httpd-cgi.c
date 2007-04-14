@@ -28,7 +28,7 @@
  *
  * This file is part of the uIP TCP/IP stack.
  *
- * $Id: httpd-cgi.c,v 1.4 2007/04/08 19:39:05 oliverschmidt Exp $
+ * $Id: httpd-cgi.c,v 1.5 2007/04/14 13:48:33 oliverschmidt Exp $
  *
  */
 
@@ -163,7 +163,7 @@ make_tcp_stats(void *arg)
     
   conn = &uip_conns[s->count];
   return sprintf((char *)uip_appdata,
-		 "<tr><td>%d</td><td>%u.%u.%u.%u:%u</td><td>%s</td><td>%u</td><td>%u</td><td>%c %c</td></tr>\r\n",
+		 "<tr align=\"center\"><td>%d</td><td>%u.%u.%u.%u:%u</td><td>%s</td><td>%u</td><td>%u</td><td>%c %c</td></tr>\r\n",
 		 htons(conn->lport),
 		 conn->ripaddr.u8[0],
 		 conn->ripaddr.u8[1],
