@@ -44,7 +44,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: ctk.c,v 1.5 2007/03/26 23:01:11 oliverschmidt Exp $
+ * $Id: ctk.c,v 1.6 2007/04/15 13:09:23 oliverschmidt Exp $
  *
  */
 
@@ -1639,7 +1639,7 @@ PROCESS_THREAD(ctk_process, ev, data)
 	    
 		  if(mouse_button_changed) {
 		    process_post(window->owner, ctk_signal_pointer_button,
-				 (process_data_t)mouse_button);
+				 (process_data_t)(size_t)mouse_button);
 		    if(mouse_clicked && widget != NULL) {
 		      select_widget(widget);
 		      redraw |= activate(widget);
@@ -1725,7 +1725,7 @@ PROCESS_THREAD(ctk_process, ev, data)
 		  /*	      window->focused = NULL;*/
 		  unfocus_widget(window->focused);
 		  process_post_synch(window->owner, ctk_signal_keypress,
-				     (process_data_t)c);
+				     (process_data_t)(size_t)c);
 		}
 	      }
 	      break;
