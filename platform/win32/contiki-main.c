@@ -30,7 +30,7 @@
  * 
  * Author: Oliver Schmidt <ol.sc@web.de>
  *
- * $Id: contiki-main.c,v 1.8 2007/04/14 23:23:15 oliverschmidt Exp $
+ * $Id: contiki-main.c,v 1.9 2007/04/15 13:30:16 oliverschmidt Exp $
  */
 
 #define WIN32_LEAN_AND_MEAN
@@ -50,14 +50,12 @@
 
 #include "sys/etimer.h"
 #include "cfs/cfs-win32.h"
-#include "ctk/ctk-conio-service.h"
 #include "net/wpcap-service.h"
 #include "program-handler.h"
 
 PROCINIT(&etimer_process,
 	 &wpcap_process,
 	 &cfs_win32_process,
-	 &ctk_conio_service_process,
 	 &ctk_process,
 	 &tcpip_process,
 	 &resolv_process,

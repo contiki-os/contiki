@@ -29,7 +29,7 @@
 #
 # Author: Oliver Schmidt <ol.sc@web.de>
 #
-# $Id: Makefile.win32,v 1.4 2007/04/14 23:23:15 oliverschmidt Exp $
+# $Id: Makefile.win32,v 1.5 2007/04/15 13:30:16 oliverschmidt Exp $
 #
 
 ifndef CONTIKI
@@ -41,10 +41,10 @@ TARGET_LIBFILES = /lib/w32api/libws2_32.a /lib/w32api/libiphlpapi.a
 CONTIKI_TARGET_DIRS = . cfs ctk loader
 CONTIKI_TARGET_MAIN = ${addprefix $(OBJECTDIR)/,contiki-main.o}
 
-CONTIKI_TARGET_SOURCEFILES = contiki-main.c clock.c cfs-win32.c ctk-console.c \
-                             dll-loader.c
+CONTIKI_TARGET_SOURCEFILES = contiki-main.c clock.c cfs-win32.c \
+                             ctk-console.c dll-loader.c
 
-CONTIKI_SOURCEFILES += $(CTK) ctk-conio-service.c ctk-draw.c wpcap.c wpcap-service.c \
+CONTIKI_SOURCEFILES += $(CTK) ctk-conio.c wpcap.c wpcap-service.c \
                        $(CONTIKI_TARGET_SOURCEFILES)
 
 .SUFFIXES:

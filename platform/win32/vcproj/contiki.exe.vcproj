@@ -249,19 +249,7 @@
 				Name="ctk"
 				>
 				<File
-					RelativePath="..\..\..\core\ctk\ctk-conio-service.c"
-					>
-				</File>
-				<File
-					RelativePath="..\..\..\core\ctk\ctk-conio-service.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\..\core\ctk\ctk-draw-service.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\..\core\ctk\ctk-draw.c"
+					RelativePath="..\..\..\core\ctk\ctk-conio.c"
 					>
 				</File>
 				<File

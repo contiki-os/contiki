@@ -30,7 +30,7 @@
  * 
  * Author: Oliver Schmidt <ol.sc@web.de>
  *
- * $Id: ctk-console.c,v 1.8 2007/04/14 14:57:53 oliverschmidt Exp $
+ * $Id: ctk-console.c,v 1.9 2007/04/15 13:30:16 oliverschmidt Exp $
  */
 
 #define WIN32_LEAN_AND_MEAN
@@ -401,7 +401,7 @@ console_read(void)
   }
 }
 /*-----------------------------------------------------------------------------------*/
-ctk_arch_key_t
+char
 ctk_arch_getkey(void)
 {
   console_read();
@@ -424,14 +424,26 @@ unsigned short
 ctk_mouse_x(void)
 {
   console_read();
-  return xpos * 8;
+  return xpos;
 }
 /*-----------------------------------------------------------------------------------*/
 unsigned short
 ctk_mouse_y(void)
 {
   console_read();
-  return ypos * 8;
+  return ypos;
+}
+/*-----------------------------------------------------------------------------------*/
+unsigned short
+ctk_mouse_xtoc(unsigned short x)
+{
+  return x;
+}
+/*-----------------------------------------------------------------------------------*/
+unsigned short
+ctk_mouse_ytoc(unsigned short y)
+{
+  return y;
 }
 /*-----------------------------------------------------------------------------------*/
 unsigned char
