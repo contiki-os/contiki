@@ -35,6 +35,8 @@ typedef unsigned long clock_time_t;
 #include <ctype.h>
 #define ctk_arch_isprint isprint
 
+#include "ctk/ctk-console.h"
+
 #define CH_ULCORNER	          0xDA
 #define CH_URCORNER	          0xBF
 #define CH_LLCORNER	          0xC0

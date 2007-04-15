@@ -30,7 +30,7 @@
  * 
  * Author: Oliver Schmidt <ol.sc@web.de>
  *
- * $Id: ctk-console.h,v 1.4 2006/10/03 11:27:51 oliverschmidt Exp $
+ * $Id: ctk-console.h,v 1.5 2007/04/15 13:30:17 oliverschmidt Exp $
  */
 #ifndef __CTK_CONSOLE_H__
 #define __CTK_CONSOLE_H__
@@ -62,7 +62,7 @@ void cputsxy(unsigned char x, unsigned char y, char *str);
 void cputcxy(unsigned char x, unsigned char y, char c);
 void textcolor(unsigned char c);
 
-ctk_arch_key_t ctk_arch_getkey(void);
+char ctk_arch_getkey(void);
 unsigned char ctk_arch_keyavail(void);
 
 #endif /* __CTK_CONSOLE_H__ */
