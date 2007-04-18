@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: uaodv.c,v 1.7 2007/04/05 12:30:17 bg- Exp $
+ * $Id: uaodv.c,v 1.8 2007/04/18 21:26:09 oliverschmidt Exp $
  */
 
 /**
@@ -57,16 +57,25 @@ PROCESS(uaodv_process, "uAODV");
 static struct uip_udp_conn *aodvconn, *unicastconn;
 
 /* Compare sequence numbers. */
+#ifdef __GNUC__
 #define SCMP32(a, b) ((int32_t)((a) - (b)))
+#else /* __GNUC__ */
+/* SCMP32() seems to be called with arguments of type u32_t.
+ * These seem to be subtracted in an unsigned manner and then
+ * the result is afterwards(!) casted to a signed type. As I'm
+ * unable to detect the behaviour intended here I'm unable to
+ * port it cleanly to other compilers :-(  - Oliver Schmidt */
+#define SCMP32(a, b) exit(1) 
+#endif /* __GNUC__ */
 
 /*
  * When possible, keep state across reboots.
  */
 #ifdef __GNUC__
 #define NOINIT __attribute__((section(".noinit")))
-#else
+#else /* __GNUC__ */
 #define NOINIT
-#endif
+#endif /* __GNUC__ */
 NOINIT static u32_t rreq_id, rreq_seqno;
 
 #define NFWCACHE 16
@@ -76,14 +85,14 @@ static struct {
   u32_t id;
 } fwcache[NFWCACHE];
 
-static inline int
+static CC_INLINE int
 fwc_lookup(const uip_ipaddr_t *orig, const u32_t *id)
 {
   unsigned n = (orig->u8[2] + orig->u8[3]) % NFWCACHE;
   return fwcache[n].id == *id && uip_ipaddr_cmp(&fwcache[n].orig, orig);
 }
 
-static inline void
+static CC_INLINE void
 fwc_add(const uip_ipaddr_t *orig, const u32_t *id)
 {
   unsigned n = orig->u8[3] % NFWCACHE;
@@ -96,8 +105,10 @@ fwc_add(const uip_ipaddr_t *orig, const u32_t *id)
 #define print_debug(...) do{}while(0)
 #else
 #define PRINTF(...) printf(__VA_ARGS__)
+#ifdef __GNUC__
 static void
 print_debug(const char *fmt, ...) __attribute__((format(printf, 1, 2)));
+#endif /* __GNUC__ */
 static void
 print_debug(const char *fmt, ...)
 {
