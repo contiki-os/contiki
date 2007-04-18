@@ -3,6 +3,7 @@
 
 #define CC_CONF_REGISTER_ARGS 1
 #define CC_CONF_FASTCALL      __fastcall
+#define CC_CONF_INLINE        __inline
 
 
 
