@@ -130,10 +130,6 @@ $(OBJECTDIR)/%.d: %.c
 	rm -f $@.$$$$
 endif
 
-# The line below is needed so that GNU make does not remove the
-# generated file.
-.PRECIOUS: %.$(TARGET)
-
 ifndef LD
   LD = $(CC)
 endif
@@ -143,7 +139,17 @@ ifndef CUSTOM_RULE_LINK
 	$(LD) $(LDFLAGS) $(TARGET_STARTFILES) ${filter-out %.a,$^} ${filter %.a,$^} $(TARGET_LIBFILES) -o $@
 endif
 
-# The target below looks weird, but I had to add the @ to avoid complaints
-# from GNU make about "*** No rule to make target `XXX'.  Stop."
+# Don't treat %.$(TARGET) as an intermediate file because it is
+# in fact the primary target.
+.PRECIOUS: %.$(TARGET)
+
+# Cancel the predefined implict rule for compiling and linking
+# a single C source into a binary to force GNU make to consider
+# the match-anything rule below instead.
+%: %.c
+
+# Match-anything pattern rule to allow the project makefiles to
+# abstract from the actual binary name. It needs to contain some
+# command in order to be a rule, not just a prerequisite.
 %: %.$(TARGET)
 	@
