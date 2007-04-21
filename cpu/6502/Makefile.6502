@@ -29,7 +29,7 @@
 #
 # Author: Oliver Schmidt <ol.sc@web.de>
 #
-# $Id: Makefile.6502,v 1.4 2007/04/18 22:52:22 oliverschmidt Exp $
+# $Id: Makefile.6502,v 1.5 2007/04/21 13:23:47 oliverschmidt Exp $
 #
 
 #######################
@@ -58,8 +58,8 @@ LD = ld65
 AR = ar65
 
 AFLAGS  = -t $(TARGET)
-CFLAGS += -t $(TARGET) -Or --create-dep $(INCLUDES)
-LDFLAGS = -C $(CONTIKI)/platform/$(TARGET)/linker.cfg -m $(TARGET).map
+CFLAGS += -t $(TARGET) -Or $(INCLUDES)
+LDFLAGS = -C $(CONTIKI)/platform/$(TARGET)/linker.cfg -m contiki-$(TARGET).map
 AROPTS  = a
 
 CONTIKI_TARGET_MAIN  = $(OBJECTDIR)/contiki-main.o
@@ -75,26 +75,21 @@ $(OBJECTDIR)/%.o: %.S
 	@$(AS) $(AFLAGS) $< -o $@
 
 CUSTOM_RULE_C_TO_OBJECTDIR_O = 1
-$(OBJECTDIR)/%.s: %.c
-	$(CC) $(CFLAGS) $< -o $@
-	@mv $(@:.s=.u) $(@:.s=.d)
-$(OBJECTDIR)/%.o: $(OBJECTDIR)/%.s
-	@$(AS) $(AFLAGS) $< -o $@
+$(OBJECTDIR)/%.o: %.c
+	$(CC) $(CFLAGS) --create-dep $< -o $(@:.o=.s)
+	@$(AS) $(AFLAGS) $(@:.o=.s) -o $@
+	@sed 's!.s:!.o:!' < $(@:.o=.u) > $(@:.o=.d)
+	@rm -f $(@:.o=.s) $(@:.o=.u)
 
 CUSTOM_RULE_C_TO_CO = 1
-$(OBJECTDIR)/%.s: %.c
-	$(CC) $(CFLAGS) -DAUTOSTART_ENABLE $< -o $@
-	@mv $(@:.s=.u) $(@:.s=.d)
-%.co: $(OBJECTDIR)/%.s
-	@$(AS) $(AFLAGS) $< -o $@
+%.co: %.c
+	$(CC) $(CFLAGS) -DAUTOSTART_ENABLE $< -o $(@:.co=.s)
+	@$(AS) $(AFLAGS) $(@:.co=.s) -o $@
+	@rm -f $(@:.co=.s)
 
 CUSTOM_RULE_C_TO_OBJECTDIR_D = 1
 # No explicit dependency file generation necessary since it is done 
 # as compilation side effect using the --create-dep compiler option
-
-# Keep the assembler source files since they are the targets in the 
-# compiler generated dependency files 
-.SECONDARY:
 
 #################
 # Path Settings #
