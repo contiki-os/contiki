@@ -1,3 +1,4 @@
+#
 # Copyright (c) 2007, Adam Dunkels.
 # All rights reserved.
 #
@@ -29,7 +30,7 @@
 #
 # Author: Oliver Schmidt <ol.sc@web.de>
 #
-# $Id: Makefile,v 1.4 2007/04/21 15:11:21 oliverschmidt Exp $
+# $Id: Makefile,v 1.5 2007/04/21 22:17:22 oliverschmidt Exp $
 #
 
 PRGS = about calc dhcp directory email ftp irc netconf processes shell \
