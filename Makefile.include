@@ -52,11 +52,11 @@ CONTIKI_SOURCEFILES += $(CONTIKIFILES)
 CONTIKIDIRS = ${addprefix $(CONTIKI)/core/,dev lib net net/rime sys \
                  cfs ctk lib/ctk loader . }
 
-s2o = ${patsubst %.c,%.o,${patsubst %.S,%.o,$(1)}}
+oname = ${patsubst %.c,%.o,${patsubst %.S,%.o,$(1)}}
 
-CONTIKI_OBJECTFILES = ${addprefix $(OBJECTDIR)/,${call s2o, $(CONTIKI_SOURCEFILES)}}
+CONTIKI_OBJECTFILES = ${addprefix $(OBJECTDIR)/,${call oname, $(CONTIKI_SOURCEFILES)}}
 
-PROJECT_OBJECTFILES = ${addprefix $(OBJECTDIR)/,${call s2o, $(PROJECT_SOURCEFILES)}}
+PROJECT_OBJECTFILES = ${addprefix $(OBJECTDIR)/,${call oname, $(PROJECT_SOURCEFILES)}}
 
 ### Include application makefiles
 
