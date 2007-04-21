@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007, Swedish Institute of Computer Science.
+ * Copyright (c) 2004, Adam Dunkels.
  * All rights reserved. 
  *
  * Redistribution and use in source and binary forms, with or without 
@@ -28,14 +28,24 @@
  *
  * This file is part of the Contiki operating system.
  * 
- * $Id: mtarch.h,v 1.1 2007/04/18 21:38:55 oliverschmidt Exp $
+ * Author: Adam Dunkels <adam@sics.se>
+ *
+ * $Id: mtarch.h,v 1.2 2007/04/21 22:15:45 oliverschmidt Exp $
  */
 
 #ifndef __MTARCH_H__
 #define __MTARCH_H__
 
+#define MTARCH_CPUSTACKSIZE 256
+#define MTARCH_CSTACKSIZE   256
+#define MTARCH_ZPSIZE       32
+
 struct mtarch_thread {
-  unsigned char dummy;
+  unsigned char spreg;
+  unsigned char *sp;
+  unsigned char cpustack[MTARCH_CPUSTACKSIZE];
+  unsigned char cstack  [MTARCH_CSTACKSIZE];
+  unsigned char zp      [MTARCH_ZPSIZE];
 };
 
 #endif /* __MTARCH_H__ */
