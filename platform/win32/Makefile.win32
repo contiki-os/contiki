@@ -1,3 +1,4 @@
+#
 # Copyright (c) 2007, Adam Dunkels.
 # All rights reserved.
 #
@@ -29,7 +30,7 @@
 #
 # Author: Oliver Schmidt <ol.sc@web.de>
 #
-# $Id: Makefile.win32,v 1.6 2007/04/21 15:11:21 oliverschmidt Exp $
+# $Id: Makefile.win32,v 1.7 2007/04/21 22:17:22 oliverschmidt Exp $
 #
 
 ifndef CONTIKI
