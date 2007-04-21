@@ -29,12 +29,8 @@
 #
 # Author: Oliver Schmidt <ol.sc@web.de>
 #
-# $Id: Makefile.6502,v 1.5 2007/04/21 13:23:47 oliverschmidt Exp $
+# $Id: Makefile.6502,v 1.6 2007/04/21 15:04:23 oliverschmidt Exp $
 #
-
-#######################
-# General Definitions #
-#######################
 
 ifndef CONTIKI
   ${error CONTIKI not defined! You must specify where CONTIKI resides!}
@@ -52,27 +48,37 @@ ifndef LD65_OBJ
   ${error LD65_OBJ not defined! You must specify where the cc65 objects reside!}
 endif
 
+CONTIKI_TARGET_DIRS = .
+CONTIKI_CPU_DIRS    = . net sys
+CONTIKI_TARGET_MAIN = ${addprefix $(OBJECTDIR)/,contiki-main.o}
+
+CONTIKI_TARGET_SOURCEFILES = contiki-main.c
+CONTIKI_CPU_SOURCEFILES    = lc-asm.S uip_arch.c
+
+CONTIKI_SOURCEFILES += $(CONTIKI_CPU_SOURCEFILES) $(CONTIKI_TARGET_SOURCEFILES)
+
+TARGET_STARTFILES = $(TARGET).o --start-group
+TARGET_LIBFILES   = $(TARGET).lib --end-group
+
+### Compiler definitions
+
 AS = ca65
 CC = cc65
 LD = ld65
 AR = ar65
 
 AFLAGS  = -t $(TARGET)
-CFLAGS += -t $(TARGET) -Or $(INCLUDES)
+CFLAGS += -t $(TARGET) -Or ${addprefix -I,$(SOURCEDIRS)}
 LDFLAGS = -C $(CONTIKI)/platform/$(TARGET)/linker.cfg -m contiki-$(TARGET).map
 AROPTS  = a
 
-CONTIKI_TARGET_MAIN  = $(OBJECTDIR)/contiki-main.o
-CONTIKI_OBJECTFILES += $(OBJECTDIR)/contiki-main.o $(OBJECTDIR)/lc-asm.o $(OBJECTDIR)/uip_arch.o
-TARGET_STARTFILES    = $(TARGET).o --start-group
-TARGET_LIBFILES      = $(TARGET).lib --end-group
+### Compilation rules
 
-#########
-# Rules #
-#########
+.SUFFIXES:
 
-$(OBJECTDIR)/%.o: %.S
-	@$(AS) $(AFLAGS) $< -o $@
+CUSTOM_RULE_C_TO_OBJECTDIR_D = 1
+# No explicit dependency file generation necessary since it is done 
+# as compilation side effect using the --create-dep compiler option
 
 CUSTOM_RULE_C_TO_OBJECTDIR_O = 1
 $(OBJECTDIR)/%.o: %.c
@@ -87,16 +93,18 @@ CUSTOM_RULE_C_TO_CO = 1
 	@$(AS) $(AFLAGS) $(@:.co=.s) -o $@
 	@rm -f $(@:.co=.s)
 
-CUSTOM_RULE_C_TO_OBJECTDIR_D = 1
-# No explicit dependency file generation necessary since it is done 
-# as compilation side effect using the --create-dep compiler option
+$(OBJECTDIR)/%.o: %.S
+	$(AS) $(AFLAGS) $< -o $@
 
-#################
-# Path Settings #
-#################
+### Setup directory search path for source files
 
-INCLUDES = -I$(CONTIKI)/platform/$(TARGET) -I$(CONTIKI_CPU) -I$(CONTIKI)/core ${addprefix -I,$(APPDIRS)}
+CONTIKI_TARGET_DIRS_CONCAT = ${addprefix $(CONTIKI)/platform/$(TARGET)/, \
+                               $(CONTIKI_TARGET_DIRS)}
+CONTIKI_CPU_DIRS_CONCAT    = ${addprefix $(CONTIKI)/cpu/6502/, \
+                               $(CONTIKI_CPU_DIRS)}
+SOURCEDIRS = $(PROJECTDIRS) \
+	     $(CONTIKI_TARGET_DIRS_CONCAT) $(CONTIKI_CPU_DIRS_CONCAT) \
+	     $(CONTIKIDIRS) $(APPDIRS) $(APP_DIRS)
 
-vpath %.c $(CONTIKI)/platform/$(TARGET) $(CONTIKI_CPU)/net $(CONTIKIDIRS) $(APPDIRS)
-
-vpath %.S $(CONTIKI_CPU)/sys
+vpath %.c $(SOURCEDIRS)
+vpath %.S $(SOURCEDIRS)
