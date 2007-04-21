@@ -29,7 +29,7 @@
 #
 # Author: Oliver Schmidt <ol.sc@web.de>
 #
-# $Id: Makefile,v 1.3 2007/04/13 21:55:55 oliverschmidt Exp $
+# $Id: Makefile,v 1.4 2007/04/21 15:11:21 oliverschmidt Exp $
 #
 
 PRGS = about calc dhcp directory email ftp irc netconf processes shell \
@@ -38,7 +38,7 @@ DSCS = about calc dhcp email ftp irc netconf processes shell telnet \
        telnetd webserver
 all: contiki-main $(PRGS:=.prg) $(DSCS:=.dsc)
 
-APPNAME = ${subst processes,process-list,${subst www,webbrowser,$(1)}}
+appname = ${subst processes,process-list,${subst www,webbrowser,$(1)}}
 
 # Add telnetd-gui.c to get CTK support
 override telnetd_src = telnetd.c telnetd-gui.c memb.c shell.c
@@ -48,6 +48,6 @@ override webserver_src = webserver.c httpd.c http-strings.c psock.c \
 			 uipbuf.c memb.c httpd-fs.c httpd-cgi.c
                 
 CONTIKI = ../..
-APPS = program-handler ${call APPNAME,$(PRGS)}
+APPS = program-handler ${call appname,$(PRGS)}
 TARGET = win32
 -include $(CONTIKI)/Makefile.include
