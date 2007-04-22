@@ -30,7 +30,7 @@
  * 
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: httpd-fs.c,v 1.1 2006/06/17 22:41:14 adamdunkels Exp $
+ * $Id: httpd-fs.c,v 1.2 2007/04/22 09:52:33 oliverschmidt Exp $
  */
 
 #include "contiki-net.h"
@@ -50,8 +50,8 @@ httpd_fs_strcmp(const char *str1, const char *str2)
 {
   u8_t i;
   i = 0;
- loop:
 
+loop:
   if(str2[i] == 0 ||
      str1[i] == '\r' || 
      str1[i] == '\n') {
@@ -61,7 +61,6 @@ httpd_fs_strcmp(const char *str1, const char *str2)
   if(str1[i] != str2[i]) {
     return 1;
   }
-
 
   ++i;
   goto loop;
@@ -107,8 +106,7 @@ httpd_fs_init(void)
 }
 /*-----------------------------------------------------------------------------------*/
 #if HTTPD_FS_STATISTICS
-u16_t httpd_fs_count
-(char *name)
+u16_t httpd_fs_count(char *name)
 {
   struct httpd_fsdata_file_noconst *f;
   u16_t i;
