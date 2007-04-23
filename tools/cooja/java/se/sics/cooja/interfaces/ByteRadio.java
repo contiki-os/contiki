@@ -16,10 +16,10 @@ public interface ByteRadio extends PacketRadio {
    * 
    * @param b
    *          Byte
-   * @param timestamp
-   *          Timestamp information
+   * @param delay
+   *          Delay cycle information
    */
-  public void receiveByte(byte b, long timestamp);
+  public void receiveByte(byte b, long delay);
 
   /**
    * @return Last byte transmitted by radio
@@ -27,12 +27,11 @@ public interface ByteRadio extends PacketRadio {
   public byte getLastByteTransmitted();
 
   /**
-   * Returns timestamp information of byte transmitted. This may for example be
-   * the number of cycles since transmission started.
+   * Returns number of cycles since last byte was transmitted.
    * 
    * @return Timestamp info
    */
-  public long getLastByteTransmittedTimestamp();
+  public long getLastByteTransmittedDelay();
 
   /**
    * @return Last byte received by radio

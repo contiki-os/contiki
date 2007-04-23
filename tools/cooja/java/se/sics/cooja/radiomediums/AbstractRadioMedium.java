@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: AbstractRadioMedium.java,v 1.2 2007/04/23 08:25:50 fros4943 Exp $
+ * $Id: AbstractRadioMedium.java,v 1.3 2007/04/23 11:33:54 fros4943 Exp $
  */
 
 package se.sics.cooja.radiomediums;
@@ -289,11 +289,11 @@ public abstract class AbstractRadioMedium extends RadioMedium {
           logger.fatal("Can't find active connection to forward byte in");
         } else {
           byte b = ((ByteRadio) radio).getLastByteTransmitted();
-          long timestamp = ((ByteRadio) radio).getLastByteTransmittedTimestamp();
+          long delay = ((ByteRadio) radio).getLastByteTransmittedDelay();
 
           for (Radio dstRadio : connection.getDestinations()) {
             if (dstRadio instanceof ByteRadio) {
-              ((ByteRadio) dstRadio).receiveByte(b, timestamp);
+              ((ByteRadio) dstRadio).receiveByte(b, delay);
             }
           }
         }
