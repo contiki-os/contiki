@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ContikiRadio.java,v 1.11 2007/02/28 09:48:48 fros4943 Exp $
+ * $Id: ContikiRadio.java,v 1.12 2007/04/23 08:28:30 fros4943 Exp $
  */
 
 package se.sics.cooja.contikimote.interfaces;
@@ -341,30 +341,42 @@ public class ContikiRadio extends Radio implements ContikiMoteInterface,
       // TODO Energy consumption of transmitted packet?
       this.setChanged();
       this.notifyObservers();
+      //logger.debug("----- CONTIKI TRANSMISSION ENDED -----");
     }
 
     // Check if a new transmission should be started
     if (!isTransmitting && myMoteMemory.getByteValueOf("simTransmitting") == 1) {
-      isTransmitting = true;
       int size = myMoteMemory.getIntValueOf("simOutSize");
+      if (size <= 0) {
+        logger.warn("Skipping zero sized Contiki packet");
+        myMoteMemory.setByteValueOf("simTransmitting", (byte) 0);
+        return;
+      }
       packetFromMote = myMoteMemory.getByteArray("simOutDataBuffer", size);
+      if (packetFromMote == null || packetFromMote.length == 0) {
+        logger.warn("Skipping zero sized Contiki packet");
+        myMoteMemory.setByteValueOf("simTransmitting", (byte) 0);
+        return;
+      }
 
-      // Assuming sending at 19.2 kbps, with manchester-encoding (x2) and 1
-      // bit/byte UART overhead (x9 instead of x8)
-      int duration = (int) ((2 * size * 9) / 19.2); // ms
+      isTransmitting = true;
+
+      // Assuming sending at 19.2 kbps, with 30 bytes overhead 
+      int duration = (int) ((9 * (size+30)) / 19.2); // ms
       transmissionEndTime = myMote.getSimulation().getSimulationTime()
           + Math.max(1, duration);
-
       lastEventTime = myMote.getSimulation().getSimulationTime();
 
       lastEvent = RadioEvent.TRANSMISSION_STARTED;
       this.setChanged();
       this.notifyObservers();
+      //logger.debug("----- NEW CONTIKI TRANSMISSION DETECTED -----");
 
       // Deliver packet right away
       lastEvent = RadioEvent.PACKET_TRANSMITTED;
       this.setChanged();
       this.notifyObservers();
+      //logger.debug("----- CONTIKI PACKET DELIVERED -----");
     }
   }
 
