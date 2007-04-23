@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: radio-arch.c,v 1.14 2007/03/20 20:10:34 adamdunkels Exp $
+ * $Id: radio-arch.c,v 1.15 2007/04/23 08:46:35 fros4943 Exp $
  */
 
 #include "dev/radio-arch.h"
@@ -39,6 +39,7 @@
 #include <stdlib.h>
 #include "net/uip.h"
 #include "net/uip-fw.h"
+#include "net/rime.h"
 #include "sys/etimer.h"
 #include "sys/cooja_mt.h"
 
@@ -62,6 +63,8 @@ char simRadioHWOn = 1;
 int simSignalStrength = -200;
 char simPower = 100;
 int simRadioChannel = 1;
+
+int inSendFunction = 0;
 
 enum {
   UIP,
@@ -148,18 +151,28 @@ doInterfaceActionsAfterTick(void)
 static u8_t
 simDoLLSend(unsigned char *buf, int len, int uip_or_rime)
 {
+  /* If radio already actively transmitting, drop packet*/
+  if(inSendFunction) {
+    return UIP_FW_DROPPED;
+  }
+
+  inSendFunction = 1;
+
   /* If radio is turned off, do nothing */
   if(!simRadioHWOn) {
+    inSendFunction = 0;
     return UIP_FW_DROPPED;
   }
 
   /* Drop packet if data size too large */
   if(len > UIP_BUFSIZE) {
+    inSendFunction = 0;
     return UIP_FW_TOOLARGE;
   }
 
   /* Drop packet if no data length */
   if(len <= 0) {
+    inSendFunction = 0;
     return UIP_FW_ZEROLEN;
   }
 
@@ -185,6 +198,7 @@ simDoLLSend(unsigned char *buf, int len, int uip_or_rime)
   }
   
   if(simSignalStrength > SS_INTERFERENCE || simReceiving) {
+    inSendFunction = 0;
     return UIP_FW_DROPPED;
   }
 
@@ -196,6 +210,7 @@ simDoLLSend(unsigned char *buf, int len, int uip_or_rime)
     cooja_mt_yield();
   }
 
+  inSendFunction = 0;
   return UIP_FW_OK;
 }
 /*-----------------------------------------------------------------------------------*/
