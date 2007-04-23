@@ -29,14 +29,17 @@
  *
  * This file is part of the Contiki operating system
  *
- * $Id: webserver.h,v 1.1 2006/06/17 22:41:15 adamdunkels Exp $
+ * $Id: webserver.h,v 1.2 2007/04/23 21:19:55 oliverschmidt Exp $
  *
  */
 #ifndef __WEBSERVER_H__
 #define __WEBSERVER_H__
 
-#include "contiki.h"
+#include "contiki-net.h"
 
 PROCESS_NAME(webserver_process);
+
+void webserver_log(char *msg);
+void webserver_log_file(uip_ipaddr_t *requester, char *file);
 
 #endif /* __WEBSERVER_H__ */

@@ -30,16 +30,19 @@
  *
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: httpd.c,v 1.4 2006/09/20 19:18:56 adamdunkels Exp $
+ * $Id: httpd.c,v 1.5 2007/04/23 21:19:55 oliverschmidt Exp $
  */
 
+#include <string.h>
+
 #include "contiki-net.h"
-#include "httpd.h"
+
+#include "webserver.h"
 #include "httpd-fs.h"
 #include "httpd-cgi.h"
 #include "http-strings.h"
 
-#include <string.h>
+#include "httpd.h"
 
 #define STATE_WAITING 0
 #define STATE_OUTPUT  1
@@ -54,7 +57,6 @@ MEMB(conns, struct httpd_state, 4);
 #define ISO_period  0x2e
 #define ISO_slash   0x2f
 #define ISO_colon   0x3a
-
 
 /*---------------------------------------------------------------------------*/
 static unsigned short
@@ -121,7 +123,6 @@ PT_THREAD(handle_script(struct httpd_state *s))
   
   PT_BEGIN(&s->scriptpt);
 
-
   while(s->file.len > 0) {
 
     /* Check if we should start executing a script. */
@@ -167,7 +168,6 @@ PT_THREAD(handle_script(struct httpd_state *s))
       PT_WAIT_THREAD(&s->scriptpt, send_part_of_file(s));
       s->file.data += s->len;
       s->file.len -= s->len;
-      
     }
   }
   
@@ -240,7 +240,6 @@ PT_THREAD(handle_input(struct httpd_state *s))
   PSOCK_BEGIN(&s->sin);
 
   PSOCK_READTO(&s->sin, ISO_space);
-
   
   if(strncmp(s->inputbuf, http_get, 4) != 0) {
     PSOCK_CLOSE_EXIT(&s->sin);
@@ -258,7 +257,7 @@ PT_THREAD(handle_input(struct httpd_state *s))
     strncpy(s->filename, &s->inputbuf[0], sizeof(s->filename));
   }
 
-  httpd_log_file(&uip_conn->ripaddr, s->filename);
+  webserver_log_file(&uip_conn->ripaddr, s->filename);
   
   s->state = STATE_OUTPUT;
 
@@ -267,7 +266,7 @@ PT_THREAD(handle_input(struct httpd_state *s))
 
     if(strncmp(s->inputbuf, http_referer, 8) == 0) {
       s->inputbuf[PSOCK_DATALEN(&s->sin) - 2] = 0;
-      httpd_log(&s->inputbuf[9]);
+      webserver_log(&s->inputbuf[9]);
     }
   }
   
