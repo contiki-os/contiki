@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ContikiRadio.java,v 1.12 2007/04/23 08:28:30 fros4943 Exp $
+ * $Id: ContikiRadio.java,v 1.13 2007/04/23 11:58:20 fros4943 Exp $
  */
 
 package se.sics.cooja.contikimote.interfaces;
@@ -361,8 +361,10 @@ public class ContikiRadio extends Radio implements ContikiMoteInterface,
 
       isTransmitting = true;
 
-      // Assuming sending at 19.2 kbps, with 30 bytes overhead 
-      int duration = (int) ((9 * (size+30)) / 19.2); // ms
+      // Assuming sending at 19.2 kbps, with GCR and 30+4 bytes overhead 
+      //  (8bit/byte, 30 bytes nonGCR overhead, 1.25 due to GCR)
+      //int duration = (int) ((double) (8*(30+1.25*(size+4))) / 19.2);
+      int duration = (int) ((double) (280 + 10*size) / 19.2); // ms
       transmissionEndTime = myMote.getSimulation().getSimulationTime()
           + Math.max(1, duration);
       lastEventTime = myMote.getSimulation().getSimulationTime();
