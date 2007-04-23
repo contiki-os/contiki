@@ -28,20 +28,19 @@
  *
  * This file is part of the uIP TCP/IP stack.
  *
- * $Id: httpd-cfs.h,v 1.1 2006/06/17 22:41:14 adamdunkels Exp $
+ * $Id: httpd-cfs.h,v 1.2 2007/04/23 23:08:44 oliverschmidt Exp $
  *
  */
 
-#ifndef __HTTPD_H__
-#define __HTTPD_H__
+#ifndef __HTTPD_CFS_H__
+#define __HTTPD_CFS_H__
 
-#include "contiki.h"
-#include "psock.h"
+#include "contiki-net.h"
 
 struct httpd_state {
   struct timer timer;
   struct psock sin, sout;
-  struct pt outputpt, scriptpt;
+  struct pt outputpt;
   char inputbuf[50];
   char outputbuf[UIP_TCP_MSS];
   char filename[20];
@@ -54,4 +53,4 @@ struct httpd_state {
 void httpd_init(void);
 void httpd_appcall(void *state);
 
-#endif /* __HTTPD_H__ */
+#endif /* __HTTPD_CFS_H__ */
