@@ -30,28 +30,23 @@
  *
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: httpd-cfs.c,v 1.1 2006/06/17 22:41:14 adamdunkels Exp $
+ * $Id: httpd-cfs.c,v 1.2 2007/04/23 23:08:44 oliverschmidt Exp $
  */
 
-#include "contiki.h"
-#include "httpd-cfs.h"
-#include "webserver.h"
-#include "psock.h"
-#include "cfs.h"
-
-#include "petsciiconv.h"
-
 #include <string.h>
+
+#include "contiki-net.h"
+#include "cfs/cfs.h"
+
+#include "webserver.h"
+
+#include "httpd-cfs.h"
 
 #define STATE_WAITING 0
 #define STATE_OUTPUT  1
 
 #define SEND_STRING(s, str) PSOCK_SEND(s, str, strlen(str))
 MEMB(conns, struct httpd_state, 2);
-struct httpd_buf {
-  char buf[HTTPD_BUFSIZE];
-};
-MEMB(buffers, struct httpd_buf, 2);
 
 /*---------------------------------------------------------------------------*/
 static
@@ -60,21 +55,13 @@ PT_THREAD(send_file(struct httpd_state *s))
   PSOCK_BEGIN(&s->sout);
   
   do {
-    /* Wait until a buffer is available */
-    PSOCK_WAIT_UNTIL(&s->sout, ((s->buffer = memb_alloc(&buffers)) != NULL));
-
     /* Read data from file system into buffer */
-    s->len = cfs_read(s->fd, s->buffer, sizeof(s->buffer));
+    s->len = cfs_read(s->fd, s->outputbuf, sizeof(s->outputbuf));
 
     /* If there is data in the buffer, send it */
     if(s->len > 0) {
-      PSOCK_SEND(&s->sout, s->buffer, s->len);
-      
-      /* Free buffer */
-      memb_free(&buffers, s->buffer);
+      PSOCK_SEND(&s->sout, s->outputbuf, s->len);
     } else {
-      /* Free buffer */
-      memb_free(&buffers, s->buffer);
       break;
     }
   } while(s->len > 0);
@@ -112,8 +99,6 @@ PT_THREAD(send_headers(struct httpd_state *s, char *statushdr))
 static
 PT_THREAD(handle_output(struct httpd_state *s))
 {
-  char *ptr;
-
   PT_BEGIN(&s->outputpt);
 
   s->fd = cfs_open(s->filename, CFS_READ);
@@ -123,7 +108,6 @@ PT_THREAD(handle_output(struct httpd_state *s))
       uip_abort();
       PT_EXIT(&s->outputpt);
     }
-    /*    httpd_fs_open("404.html", &s->file);*/
     PT_WAIT_THREAD(&s->outputpt,
 		   send_headers(s, "HTTP/1.0 404 Not found\r\n"));
     PT_WAIT_THREAD(&s->outputpt,
@@ -145,7 +129,6 @@ PT_THREAD(handle_input(struct httpd_state *s))
   PSOCK_BEGIN(&s->sin);
 
   PSOCK_READTO(&s->sin, ' ');
-
   
   if(strncmp(s->inputbuf, "GET ", 4) != 0) {
     PSOCK_CLOSE_EXIT(&s->sin);
@@ -163,8 +146,7 @@ PT_THREAD(handle_input(struct httpd_state *s))
     strncpy(s->filename, &s->inputbuf[1], sizeof(s->filename));
   }
 
-  webserver_log_file(uip_conn->ripaddr, s->filename);
-  
+  webserver_log_file(&uip_conn->ripaddr, s->filename);
   s->state = STATE_OUTPUT;
 
   while(1) {
@@ -206,7 +188,6 @@ httpd_appcall(void *state)
     tcp_markconn(uip_conn, s);
     PSOCK_INIT(&s->sin, s->inputbuf, sizeof(s->inputbuf) - 1);
     PSOCK_INIT(&s->sout, s->inputbuf, sizeof(s->inputbuf) - 1);
-    /*    PSOCK_INIT(&s->scgi, s->inputbuf, sizeof(s->inputbuf) - 1);*/
     PT_INIT(&s->outputpt);
     s->state = STATE_WAITING;
     timer_set(&s->timer, CLOCK_SECOND * 10);
@@ -230,6 +211,5 @@ httpd_init(void)
 {
   tcp_listen(HTONS(80));
   memb_init(&conns);
-  memb_init(&buffers);
 }
 /*---------------------------------------------------------------------------*/
