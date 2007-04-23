@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: AbstractRadioMedium.java,v 1.1 2007/03/23 21:05:45 fros4943 Exp $
+ * $Id: AbstractRadioMedium.java,v 1.2 2007/04/23 08:25:50 fros4943 Exp $
  */
 
 package se.sics.cooja.radiomediums;
@@ -114,6 +114,10 @@ public abstract class AbstractRadioMedium extends RadioMedium {
    */
   public void forwardPacket(RadioConnection connection, byte[] packetData) {
     Radio sourceRadio = connection.getSource();
+    if (packetData == null || packetData.length == 0) {
+      logger.warn("Trying to forward null packet");
+      return;
+    }
 
     if (sourceRadio instanceof ByteRadio) {
       // Byte radios only forwards packets to packet radios
