@@ -48,7 +48,8 @@ cc2420_send_ip(void)
     h.fc0 &= ~FC0_REQ_ACK;
 
   if (cc2420_send(&h, 10, &uip_buf[UIP_LLH_LEN], uip_len) < 0) {
-    printf("cc2420_send_ip too big uip_len=%d\n", uip_len);
+    printf("cc2420_send_ip failed uip_len=%d\n", uip_len);
+    leds_toggle(color);
     return UIP_FW_TOOLARGE;
   }
 
