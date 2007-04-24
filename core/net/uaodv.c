@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: uaodv.c,v 1.8 2007/04/18 21:26:09 oliverschmidt Exp $
+ * $Id: uaodv.c,v 1.9 2007/04/24 16:08:10 bg- Exp $
  */
 
 /**
@@ -145,6 +145,8 @@ send_rreq(uip_ipaddr_t *addr)
 {
   struct uaodv_msg_rreq *rm = (struct uaodv_msg_rreq *)uip_appdata;
   
+  print_debug("send RREQ for %d.%d.%d.%d\n", uip_ipaddr_to_quad(addr));
+
   rm->type = UAODV_RREQ_TYPE;
   rm->flags = UAODV_RREQ_UNKSEQNO;
   rm->reserved = 0;
@@ -159,16 +161,20 @@ send_rreq(uip_ipaddr_t *addr)
 }
 /*---------------------------------------------------------------------------*/
 static void
-send_rrep(uip_ipaddr_t *dest, uip_ipaddr_t *nexthop, uip_ipaddr_t *orig, u32_t seqno)
+send_rrep(uip_ipaddr_t *dest, uip_ipaddr_t *nexthop, uip_ipaddr_t *orig,
+	  u32_t *seqno, unsigned hop_count)
 {
   struct uaodv_msg_rrep *rm = (struct uaodv_msg_rrep *)uip_appdata;
   
+  print_debug("send RREP orig=%d.%d.%d.%d hops=%d\n",
+	      uip_ipaddr_to_quad(orig), hop_count);
+
   rm->type = UAODV_RREP_TYPE;
   rm->flags = 0;
   rm->reserved = 0;
-  rm->hop_count = 0;
+  rm->hop_count = hop_count;
   uip_ipaddr_copy(&rm->orig_addr, orig);
-  rm->dest_seqno = htonl(seqno);
+  rm->dest_seqno = htonl(*seqno);
   uip_ipaddr_copy(&rm->dest_addr, dest);
   rm->lifetime = HTONL(MY_ROUTE_TIMEOUT);
   sendto(nexthop, rm, sizeof(struct uaodv_msg_rrep));
@@ -244,7 +250,8 @@ handle_incoming_rreq(void)
   /* Check if it is for our address or an existing route. */
   if(uip_ipaddr_cmp(&rm->dest_addr, &uip_hostaddr)
      || (fw = uaodv_rt_lookup(&rm->dest_addr)) != NULL) {
-    print_debug("RREQ for our address! rt=%p\n", rt);
+    print_debug("RREQ for known address %d.%d.%d.%d\n",
+		uip_ipaddr_to_quad(&rm->dest_addr));
     /* Send an RREP back to the source of the RREQ. */
     uip_ipaddr_copy(&dest_addr, &rm->dest_addr);
     uip_ipaddr_copy(&orig_addr, &rm->orig_addr);
@@ -253,10 +260,11 @@ handle_incoming_rreq(void)
       cc2420_recv_ok(&rt->nexthop);
 #endif
     if(fw != NULL)		/* Existing route. */
-      send_rrep(&dest_addr, &rt->nexthop, &orig_addr, fw->seqno);
+      send_rrep(&dest_addr, &rt->nexthop, &orig_addr,
+		&fw->seqno, fw->hop_count + 1);
     else {
       rreq_seqno++;		/* XXX Not really always. */
-      send_rrep(&dest_addr, &rt->nexthop, &orig_addr, rreq_seqno);
+      send_rrep(&dest_addr, &rt->nexthop, &orig_addr, &rreq_seqno, 0);
     }
   } else {
     print_debug("RREQ for %d.%d.%d.%d orig %d.%d.%d.%d ttl=%d\n",
@@ -278,7 +286,8 @@ handle_incoming_rrep(void)
 
   rt = uaodv_rt_lookup(&rm->dest_addr);
 
-  print_debug("RREP received rt=%p\n", rt);
+  print_debug("RREP received dst=%d.%d.%d.%d rt=%p\n",
+	      uip_ipaddr_to_quad(&rm->dest_addr), rt);
 
   /* New forward route? */
   if(rt == NULL || (SCMP32(ntohl(rm->dest_seqno), rt->seqno) > 0)) {
@@ -309,6 +318,12 @@ handle_incoming_rrep(void)
   if(uip_ipaddr_cmp(&rm->orig_addr, &uip_hostaddr)) {
     print_debug("------- COMPLETE ROUTE FOUND\n");
   } else {
+    if(uip_ipaddr_cmp(&((struct uip_udpip_hdr*)&uip_buf[UIP_LLH_LEN])->destipaddr,
+		      &uip_broadcast_addr)) {
+      print_debug("RREP hello received?\n");
+      return;
+    }
+
     rt = uaodv_rt_lookup(&rm->orig_addr);
 
     if(rt == NULL) {
