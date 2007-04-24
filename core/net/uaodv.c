@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: uaodv.c,v 1.9 2007/04/24 16:08:10 bg- Exp $
+ * $Id: uaodv.c,v 1.10 2007/04/24 16:37:45 bg- Exp $
  */
 
 /**
@@ -56,15 +56,15 @@ PROCESS(uaodv_process, "uAODV");
 
 static struct uip_udp_conn *aodvconn, *unicastconn;
 
-/* Compare sequence numbers. */
+/* Compare sequence numbers as per RFC 3561. */
 #ifdef __GNUC__
 #define SCMP32(a, b) ((int32_t)((a) - (b)))
 #else /* __GNUC__ */
-/* SCMP32() seems to be called with arguments of type u32_t.
- * These seem to be subtracted in an unsigned manner and then
- * the result is afterwards(!) casted to a signed type. As I'm
- * unable to detect the behaviour intended here I'm unable to
- * port it cleanly to other compilers :-(  - Oliver Schmidt */
+/*
+ * The macro above works for any compiler that does int32_t arithmetic
+ * in 2's complement. Machines that does not use 2's complement needs
+ * to figure a different implementation.
+ */
 #define SCMP32(a, b) exit(1) 
 #endif /* __GNUC__ */
 
