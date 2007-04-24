@@ -30,7 +30,7 @@
  *
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: uip-fw.c,v 1.3 2006/08/13 14:14:39 oliverschmidt Exp $
+ * $Id: uip-fw.c,v 1.4 2007/04/24 16:58:58 bg- Exp $
  */
 /**
  * \addtogroup uip
@@ -53,12 +53,16 @@
  *
  */
 
+#include <string.h>
+
+#include "contiki-conf.h"
+
 #include "net/uip.h"
 #include "net/uip_arch.h"
 #include "net/uip-fw.h"
-#include "contiki-conf.h"
-
-#include <string.h> /* for memcpy() */
+#ifdef AODV_COMPLIANCE
+#include "net/uaodv-def.h"
+#endif
 
 /*
  * The list of registered network interfaces.
@@ -356,6 +360,7 @@ u8_t
 uip_fw_output(void)
 {
   struct uip_fw_netif *netif;
+  const struct uip_udpip_hdr *udp = (void *)BUF;
 
   if(uip_len == 0) {
     return UIP_FW_ZEROLEN;
@@ -365,8 +370,11 @@ uip_fw_output(void)
 
 #if UIP_BROADCAST
   /* Link local broadcasts go out on all interfaces. */
-  if(/*BUF->proto == UIP_PROTO_UDP &&*/
-     uip_ipaddr_cmp(&BUF->destipaddr, &uip_broadcast_addr)) {
+  if(uip_ipaddr_cmp(&udp->destipaddr, &uip_broadcast_addr)
+#ifdef AODV_COMPLIANCE
+     && !(udp->proto == UIP_PROTO_UDP && udp->destport == HTONS(UAODV_UDPPORT))
+#endif
+     ) {
     if(defaultnetif != NULL) {
       defaultnetif->output();
     }
