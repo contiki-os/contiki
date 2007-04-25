@@ -26,14 +26,14 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF 
  * SUCH DAMAGE. 
  *
- * @(#)$Id: cmod.h,v 1.1 2007/01/05 18:00:55 bg- Exp $
+ * @(#)$Id: cmod.h,v 1.2 2007/04/25 15:38:00 bg- Exp $
  */
 
 #ifndef CMOD_H
 #define CMOD_H
 
 struct cmod_info {
-  cle_addr ram;
+  void * ram;
   /* cle_addr rom; */
   void (*fini)(void);
 };
