@@ -1,4 +1,4 @@
-# $Id: Makefile,v 1.11 2007/03/15 21:50:23 adamdunkels Exp $
+# $Id: Makefile,v 1.12 2007/04/25 15:49:43 bg- Exp $
 #
 # This makefile requires GNU make!
 
@@ -25,7 +25,7 @@ MCU=msp430x1611
 
 ARCH=msp430.o minileds.o watchdog.o light.o button.o spi.o ds2411.o rom.o xmem.o i2c.o
 SYSTEM=process.o procinit.o service.o clock.o etimer.o timer.o \
-        cmod.o cle.o symtab.o
+        cmod.o cle.o sym.o
 UIP=uip.o uiplib.o tcpip.o uip-fw.o uip-fw-service.o uipbuf.o \
     tcpdump.o psock.o dhcpc.o uaodv.o uaodv-rt.o uip-udp-packet.o \
     uip-ipchksum.o
@@ -35,7 +35,7 @@ LIBS=memb.o list.o malloc.o realloc.o malloc_compact.o rand.o assert.o crtk.o
 SYSAPPS=tcp_loader2.o
 LIBFILES=$(SYSTEM) $(ARCH) $(UIP) $(UIPDRIVERS) $(LIBS) $(SYSAPPS)
 
-MKNMLIST=awk -f $(TOP)/tools/mknmlist
+MKNMLIST=awk -f $(TOP)/tools/mknmlist-ansi
 CP=cp
 LIBC=-lgcc -lc -lgcc
 CC=msp430-gcc

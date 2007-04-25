@@ -1,4 +1,4 @@
-# $Id: Makefile,v 1.2 2007/02/02 14:35:14 bg- Exp $
+# $Id: Makefile,v 1.3 2007/04/25 15:52:47 bg- Exp $
 #
 # This makefile requires GNU make!
 
@@ -26,7 +26,7 @@ MCU=atmega128
 
 ARCH=avr.o spi.o qleds.o rom.o xmem.o
 SYSTEM=process.o procinit.o service.o clock.o etimer.o timer.o \
-	#elfloader_compat.o cle.o symtab.o
+	sym.o cle.o elfloader_compat.o
 UIP=uip.o uiplib.o tcpip.o uip-fw.o uip-fw-service.o uipbuf.o \
     tcpdump.o psock.o dhcpc.o uaodv.o uaodv-rt.o uip-udp-packet.o
 UIPDRIVERS=slip.o slip_uart1.o \
@@ -35,7 +35,7 @@ LIBS=memb.o list.o rand.o assert.o crtk.o
 SYSAPPS=#tcp_loader.o
 LIBFILES=$(SYSTEM) $(ARCH) $(UIP) $(UIPDRIVERS) $(LIBS) $(SYSAPPS)
 
-MKNMLIST=awk -f $(TOP)/tools/mknmlist-avr
+MKNMLIST=awk -f $(TOP)/tools/mknmlist-ansi
 CP=cp
 LIBC=-lgcc -lc -lgcc
 CC=avr-gcc
@@ -80,11 +80,10 @@ endif
 
 # Add a namelist to the kernel
 %.out: $^
-	$(CC) $(LDFLAGS) $(CFLAGS) -o $@ $^ $(LIBC)
-#	: | $(MKNMLIST) > $@_tmp.c && mv $@_tmp.c $@_nm.c
-#	$(CC) $(LDFLAGS) $(CFLAGS) -o $@ $^ $(LIBC) $@_nm.c
-#	$(NM) $@ | $(MKNMLIST) > $@_tmp.c && mv $@_tmp.c $@_nm.c
-#	$(CC) $(LDFLAGS) $(CFLAGS) -o $@ $^ $(LIBC) $@_nm.c
+	: | $(MKNMLIST) > $@_tmp.c && mv $@_tmp.c $@_nm.c
+	$(CC) $(LDFLAGS) $(CFLAGS) -o $@ $^ $(LIBC) $@_nm.c
+	$(NM) $@ | $(MKNMLIST) > $@_tmp.c && mv $@_tmp.c $@_nm.c
+	$(CC) $(LDFLAGS) $(CFLAGS) -o $@ $^ $(LIBC) $@_nm.c
 
 %.u: %.ihex
 	$(BSL) -p $(MCU) -P $(COMPORT) -c stk200 -U flash:w:$<
