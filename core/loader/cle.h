@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF 
  * SUCH DAMAGE. 
  *
- * @(#)$Id: cle.h,v 1.2 2007/01/05 17:47:53 bg- Exp $
+ * @(#)$Id: cle.h,v 1.3 2007/04/25 15:36:53 bg- Exp $
  */
 
 #ifndef CLE_H
@@ -42,13 +42,13 @@ typedef u16_t cle_word;
 typedef u16_t cle_half;
 
 /* Also used for address arithmetic (can't be void *). */
-typedef unsigned char *cle_addr;
-/* typedef uintptr_t cle_addr; */
+typedef uintptr_t cle_addr;
 
 typedef unsigned char cle_scratch[32];
 
 struct cle_info {
-  cle_addr text, data, bss;
+  cle_addr text;
+  void *data, *bss;
 
   cle_off textrelaoff, datarelaoff;
   cle_word textrelasize, datarelasize;
@@ -76,7 +76,7 @@ int
 cle_relocate(struct cle_info *info,
 	     int (*read)(void *, int, off_t),
 	     off_t hdr,		/* Offset to start of file. */
-	     cle_addr segmem,   /* Where segment is stored in memory. */
+	     void *segmem,      /* Where segment is stored in memory. */
 	     cle_off reloff,	/* .rela.<segment> start */
 	     cle_word relsize);	/* .rela.<segment> size */
 
@@ -93,6 +93,7 @@ cle_lookup(struct cle_info *info,
 #define CLE_NO_TEXT             4
 #define CLE_UNDEFINED           5
 #define CLE_UNKNOWN_SEGMENT     6
+#define CLE_UNKNOWN_RELOC       7
 
 #define CLE_MULTIPLY_DEFINED   20
 
