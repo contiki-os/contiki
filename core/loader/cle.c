@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF 
  * SUCH DAMAGE. 
  *
- * @(#)$Id: cle.c,v 1.3 2007/01/12 13:36:27 bg- Exp $
+ * @(#)$Id: cle.c,v 1.4 2007/04/25 15:41:02 bg- Exp $
  */
 
 /*
@@ -40,9 +40,9 @@
 
 #include "loader/cle.h"
 #include "loader/elf32.h"
-#include "loader/symtab.h"
+#include "loader/sym.h"
 
-#define NDEBUG
+//#define NDEBUG
 #include "lib/assert.h"
 
 #ifdef NDEBUG
@@ -50,6 +50,8 @@
 #else
 #define PRINTF(...) printf(__VA_ARGS__)
 #endif
+
+#define NOLL 0
 
 /*
  * Parse object file located at offset hdr reading data using function
@@ -179,12 +181,18 @@ cle_read_info(struct cle_info *info,
  * Writing relocs is machine dependent and this function is MSP430
  * specific!
  */
+#ifdef __MSP430__
 static inline int
-cle_upd_reloc(cle_addr segmem, struct elf32_rela *rela, cle_addr addr)
+cle_upd_reloc(void *segmem, struct elf32_rela *rela, cle_addr addr)
 {
-  memcpy(segmem + rela->r_offset, &addr, 2); /* Write reloc */
+  memcpy((char *)segmem + rela->r_offset, &addr, 2); /* Write reloc */
   return 0;
 }
+#else
+static int
+cle_upd_reloc(void *segmem, struct elf32_rela *rela, cle_addr addr);
+#endif
+
 
 /*
  * Relocate one segment that has been copied to the location pointed
@@ -198,7 +206,7 @@ int
 cle_relocate(struct cle_info *info,
 	     int (*pread)(void *, int, off_t),
 	     off_t hdr,		/* Offset to start of file. */
-	     cle_addr segmem,	/* Where segment is stored in memory. */
+	     void *segmem,      /* Where segment is stored in memory. */
 	     cle_off reloff,	/* .rela.<segment> start */
 	     cle_word relsize)	/* .rela.<segment> size */
 {
@@ -219,34 +227,34 @@ cle_relocate(struct cle_info *info,
     assert(ret > 0);
 
     if(s.st_shndx == info->bss_shndx) {
-      addr = info->bss;
+      addr = (cle_addr)info->bss;
     } else if(s.st_shndx == info->data_shndx) {
-      addr = info->data;
+      addr = (cle_addr)info->data;
     } else if(s.st_shndx == info->text_shndx) {
       addr = info->text;
     } else {
-      addr = NULL;
+      addr = NOLL;
     }
 
     if(s.st_name == 0) {	/* No name, local symbol? */
-      if(addr == NULL) {
+      if(addr == NOLL) {
 	return CLE_UNKNOWN_SEGMENT;
       }
     } else {
       ret = pread(info->name, sizeof(info->name),
 		  hdr + info->strtaboff + s.st_name);
       assert(ret > 0);
-      cle_addr sym = symtab_lookup(info->name);
+      cle_addr sym = (cle_addr)sym_object(info->name);
 
-      if(addr == NULL && sym != NULL) { /* Imported symbol. */
+      if(addr == NOLL && sym != NOLL) { /* Imported symbol. */
 	addr = sym;
-      } else if(addr != NULL && sym == NULL) { /* Exported symbol. */
+      } else if(addr != NOLL && sym == NOLL) { /* Exported symbol. */
 	addr = addr + s.st_value;
-      } else if(addr == NULL && sym == NULL) {
+      } else if(addr == NOLL && sym == NOLL) {
 	PRINTF("cle: undefined reference to %.32s (%d)\n",
 	       info->name, s.st_info);
 	return CLE_UNDEFINED;	/* Or COMMON symbol. */
-      } else if(addr != NULL && sym != NULL) {
+      } else if(addr != NOLL && sym != NOLL) {
 	PRINTF("cle: multiple definitions of %.32s (%d)\n",
 	       info->name, s.st_info);
 	return CLE_MULTIPLY_DEFINED;
@@ -255,7 +263,10 @@ cle_relocate(struct cle_info *info,
 
     addr += rela.r_addend;
 
-    cle_upd_reloc(segmem, &rela, addr);
+    ret = cle_upd_reloc(segmem, &rela, addr);
+    if(ret < 0) {
+      return CLE_UNKNOWN_SEGMENT;
+    }
   }
   return CLE_OK;
 }
@@ -290,9 +301,9 @@ cle_lookup(struct cle_info *info,
 
       if(strcmp(info->name, symbol) == 0) { /* Exported symbol found. */
 	if(s.st_shndx == info->bss_shndx) {
-	  addr = info->bss;
+	  addr = (cle_addr)info->bss;
 	} else if(s.st_shndx == info->data_shndx) {
-	  addr = info->data;
+	  addr = (cle_addr)info->data;
 	} else if(s.st_shndx == info->text_shndx) {
 	  addr = info->text;
 	} else {
