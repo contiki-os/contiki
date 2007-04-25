@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: elfloader_compat.c,v 1.2 2006/12/20 13:38:33 bg- Exp $
+ * @(#)$Id: elfloader_compat.c,v 1.3 2007/04/25 15:43:43 bg- Exp $
  */
 
 /*
@@ -40,8 +40,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include <sys/unistd.h>
-
 #include "contiki.h"
 
 #include "loader/elfloader_compat.h"
@@ -51,7 +49,6 @@
 #include "dev/rom.h"
 #include "dev/xmem.h"
 
-#define NDEBUG
 #include "lib/assert.h"
 
 #ifdef NDEBUG
@@ -65,13 +62,18 @@ void (*elfloader_fini)(void);
 
 #define IMAX(a, b) (((a) > (b)) ? (a) : (b))
 
-static cle_addr datamemory;
+unsigned char *datamemory;
 
+#ifdef __AVR__
+#define TEXTMEMORY ((cle_addr)0x8000)
+#else
+#include <sys/unistd.h>
 #define TEXTMEMORY \
     (cle_addr)(((uintptr_t)(&_etext + 1)                        \
 		+ (uintptr_t)&_edata - (uintptr_t)&__data_start \
 		+ ROM_ERASE_UNIT_SIZE)                          \
 	       & ~(ROM_ERASE_UNIT_SIZE - 1))
+#endif
 
 char elfloader_unknown[30];	/* Name that caused link error. */
 
@@ -100,14 +102,14 @@ elfloader_load(off_t eepromaddr)
   }
 
   /* We are making semi-permanent allocations, first compact heap! */
-  malloc_compact();
+  /* malloc_compact(); */
   datamemory = malloc(IMAX(h.textsize, h.datasize + h.bsssize));
   if(datamemory == NULL) {
     return ELFLOADER_DATA_TO_LARGE; /* XXX or text to large */
   }
 
   h.data = datamemory;
-  h.bss = h.data + h.datasize;
+  h.bss = datamemory + h.datasize;
   h.text = TEXTMEMORY;
 
   PRINTF("elfloader: copy text segment to RAM %p %p\n",
@@ -127,7 +129,7 @@ elfloader_load(off_t eepromaddr)
       return ret;
     }
   }
-  PRINTF("elfloader: copy text segment to ROM %p %p\n",
+  PRINTF("elfloader: copy text segment to ROM 0x%u 0x%u\n",
 	 h.text, h.text + h.textsize);
   ret = rom_erase((h.textsize+ROM_ERASE_UNIT_SIZE) & ~(ROM_ERASE_UNIT_SIZE-1),
 		  (uintptr_t)h.text);
