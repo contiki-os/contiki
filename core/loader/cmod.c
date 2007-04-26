@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF 
  * SUCH DAMAGE. 
  *
- * @(#)$Id: cmod.c,v 1.2 2007/04/25 15:37:41 bg- Exp $
+ * @(#)$Id: cmod.c,v 1.3 2007/04/26 13:38:52 bg- Exp $
  */
 
 #include <stdio.h>
@@ -34,6 +34,7 @@
 
 #include "contiki.h"
 
+#include "loader/elf32.h"
 #include "loader/cle.h"
 #include "loader/cmod.h"
 
