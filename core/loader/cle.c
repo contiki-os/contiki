@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF 
  * SUCH DAMAGE. 
  *
- * @(#)$Id: cle.c,v 1.4 2007/04/25 15:41:02 bg- Exp $
+ * @(#)$Id: cle.c,v 1.5 2007/04/26 12:52:52 bg- Exp $
  */
 
 /*
@@ -42,7 +42,7 @@
 #include "loader/elf32.h"
 #include "loader/sym.h"
 
-//#define NDEBUG
+#define NDEBUG
 #include "lib/assert.h"
 
 #ifdef NDEBUG
@@ -52,6 +52,16 @@
 #endif
 
 #define NOLL 0
+
+#ifdef __AVR__
+/*
+ * On the AVR, GNU C squeezes function addresses into 16 bits. Some of
+ * this code is explicitly written to deal with this.
+ */
+#ifndef __GNUC__
+#eror "You lose!!!"
+#endif
+#endif
 
 /*
  * Parse object file located at offset hdr reading data using function
@@ -183,14 +193,14 @@ cle_read_info(struct cle_info *info,
  */
 #ifdef __MSP430__
 static inline int
-cle_upd_reloc(void *segmem, struct elf32_rela *rela, cle_addr addr)
+cle_upd_reloc(unsigned char *segmem, struct elf32_rela *rela, cle_addr addr)
 {
   memcpy((char *)segmem + rela->r_offset, &addr, 2); /* Write reloc */
-  return 0;
+  return CLE_OK;
 }
 #else
 static int
-cle_upd_reloc(void *segmem, struct elf32_rela *rela, cle_addr addr);
+cle_upd_reloc(unsigned char *segmem, struct elf32_rela *rela, cle_addr addr);
 #endif
 
 
@@ -227,9 +237,9 @@ cle_relocate(struct cle_info *info,
     assert(ret > 0);
 
     if(s.st_shndx == info->bss_shndx) {
-      addr = (cle_addr)info->bss;
+      addr = (cle_addr)(uintptr_t)info->bss;
     } else if(s.st_shndx == info->data_shndx) {
-      addr = (cle_addr)info->data;
+      addr = (cle_addr)(uintptr_t)info->data;
     } else if(s.st_shndx == info->text_shndx) {
       addr = info->text;
     } else {
@@ -244,7 +254,13 @@ cle_relocate(struct cle_info *info,
       ret = pread(info->name, sizeof(info->name),
 		  hdr + info->strtaboff + s.st_name);
       assert(ret > 0);
-      cle_addr sym = (cle_addr)sym_object(info->name);
+      cle_addr sym = (cle_addr)(uintptr_t)sym_function(info->name);
+#ifdef __AVR__
+      if(sym != NOLL)
+	sym = sym << 1;
+#endif
+      if(sym == NOLL)
+	sym = (cle_addr)(uintptr_t)sym_object(info->name);
 
       if(addr == NOLL && sym != NOLL) { /* Imported symbol. */
 	addr = sym;
@@ -264,8 +280,8 @@ cle_relocate(struct cle_info *info,
     addr += rela.r_addend;
 
     ret = cle_upd_reloc(segmem, &rela, addr);
-    if(ret < 0) {
-      return CLE_UNKNOWN_SEGMENT;
+    if(ret != CLE_OK) {
+      return ret;
     }
   }
   return CLE_OK;
@@ -301,17 +317,146 @@ cle_lookup(struct cle_info *info,
 
       if(strcmp(info->name, symbol) == 0) { /* Exported symbol found. */
 	if(s.st_shndx == info->bss_shndx) {
-	  addr = (cle_addr)info->bss;
+	  addr = (cle_addr)(uintptr_t)info->bss;
 	} else if(s.st_shndx == info->data_shndx) {
-	  addr = (cle_addr)info->data;
+	  addr = (cle_addr)(uintptr_t)info->data;
 	} else if(s.st_shndx == info->text_shndx) {
 	  addr = info->text;
+#ifdef __AVR__
+	  return (void *)(uintptr_t)((addr + s.st_value) >> 1);
+#endif
 	} else {
 	  return NULL;		/* Really an error! */
 	}
-	return addr + s.st_value;
+
+	return (void *)(uintptr_t)(addr + s.st_value);
       }
     }
   }
   return NULL;
 }
+
+#if defined(__AVR__) && defined(__GNUC__)
+#define R_AVR_NONE             0
+#define R_AVR_32               1
+#define R_AVR_7_PCREL          2
+#define R_AVR_13_PCREL         3
+#define R_AVR_16               4
+#define R_AVR_16_PM            5
+#define R_AVR_LO8_LDI          6
+#define R_AVR_HI8_LDI          7
+#define R_AVR_HH8_LDI          8
+#define R_AVR_LO8_LDI_NEG      9
+#define R_AVR_HI8_LDI_NEG     10
+#define R_AVR_HH8_LDI_NEG     11
+#define R_AVR_LO8_LDI_PM      12
+#define R_AVR_HI8_LDI_PM      13
+#define R_AVR_HH8_LDI_PM      14
+#define R_AVR_LO8_LDI_PM_NEG  15
+#define R_AVR_HI8_LDI_PM_NEG  16
+#define R_AVR_HH8_LDI_PM_NEG  17
+#define R_AVR_CALL            18
+
+static int
+cle_upd_reloc(unsigned char *segmem, struct elf32_rela *rela, cle_addr addr)
+{
+  unsigned char *instr = segmem + rela->r_offset;
+  unsigned char byte;
+
+  switch(ELF32_R_TYPE(rela->r_info)) {
+  default:
+    PRINTF("cle_upd_reloc: unsupported relocation type: %d\n",
+	   ELF32_R_TYPE(rela->r_info));
+    return CLE_UNKNOWN_RELOC;
+
+#if VERIFY_BEFORE_ENABLE
+  case R_AVR_7_PCREL:		/* 2 */
+    /* Reloc in bits 0x03f8 (0000 00kk kkkk k000). */
+    byte = (addr - rela->r_offset - 2)/2;
+    instr[0] = (instr[0] & 0x07) | (byte << 3);	/* 0xf8 */
+    instr[1] = (instr[1] & 0xfc) | (byte >> 5);	/* 0x03 */
+    return CLE_OK;
+
+  case R_AVR_13_PCREL:		/* 3 */
+    /* Reloc in bits 0x0fff (0000 kkkk kkkk kkkk). */
+    addr = (addr - rela->r_offset - 2)/2;
+    instr[0] = addr;
+    instr[1] = (instr[1] & 0xf0) | ((addr >> 8) & 0x0f);
+    return CLE_OK;
+#endif
+
+  case R_AVR_CALL:		/* 18 */
+    addr = addr >> 1;
+    instr[2] = addr;
+    instr[3] = addr >> 8;
+    return CLE_OK;
+    
+  case R_AVR_16:		/* 4 */
+    instr[0] = addr;
+    instr[1] = addr >> 8;
+    return CLE_OK;
+
+  case R_AVR_16_PM:		/* 5 */
+    addr = addr >> 1;
+    instr[0] = addr;
+    instr[1] = addr >> 8;
+    return CLE_OK;
+
+    /*
+     * Remaining relocs all have immediate value in bits 0x0f0f.
+     */
+  case R_AVR_LO8_LDI:		/* 6 */
+    byte = addr;
+    break;
+    
+  case R_AVR_HI8_LDI:		/* 7 */
+    byte = addr >> 8;
+    break;
+
+  case R_AVR_HH8_LDI:		/* 8 */
+    byte = addr >> 16;
+    break;
+
+  case R_AVR_LO8_LDI_NEG:	/* 9 */
+    byte = (-addr);
+    break;
+
+  case R_AVR_HI8_LDI_NEG:	/* 10 */
+    byte = (-addr) >> 8;
+    break;
+
+  case R_AVR_HH8_LDI_NEG:	/* 11 */
+    byte = (-addr) >> 16;
+    break;
+
+  case R_AVR_LO8_LDI_PM:	/* 12 */
+    byte = addr >> 1;
+    break;
+
+  case R_AVR_HI8_LDI_PM:	/* 13 */
+    byte = addr >> 9;
+    break;
+
+  case R_AVR_HH8_LDI_PM:	/* 14 */
+    byte = addr >> 17;
+    break;
+
+  case R_AVR_LO8_LDI_PM_NEG:	/* 15 */
+    byte = (-addr) >> 1;
+    break;
+
+  case R_AVR_HI8_LDI_PM_NEG:	/* 16 */
+    byte = (-addr) >> 9;
+    break;
+
+  case R_AVR_HH8_LDI_PM_NEG:	/* 17 */
+    byte = (-addr) >> 17;
+    break;
+  }
+  /* Relocation in bits 0x0f0f (0000 kkkk 0000 kkkk). */
+  instr[0] = (instr[0] & 0xf0) | (byte & 0x0f);
+  instr[1] = (instr[1] & 0xf0) | (byte >> 4);
+
+  return CLE_OK;
+}
+#endif /* __AVR__ */
