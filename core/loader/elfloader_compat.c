@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: elfloader_compat.c,v 1.3 2007/04/25 15:43:43 bg- Exp $
+ * @(#)$Id: elfloader_compat.c,v 1.4 2007/04/26 12:54:52 bg- Exp $
  */
 
 /*
@@ -49,6 +49,7 @@
 #include "dev/rom.h"
 #include "dev/xmem.h"
 
+#define NDEBUG
 #include "lib/assert.h"
 
 #ifdef NDEBUG
@@ -129,8 +130,10 @@ elfloader_load(off_t eepromaddr)
       return ret;
     }
   }
-  PRINTF("elfloader: copy text segment to ROM 0x%u 0x%u\n",
-	 h.text, h.text + h.textsize);
+  PRINTF("elfloader: copy text segment to ROM 0x%lx 0x%lx\n",
+	 (unsigned long)h.text,
+	 (unsigned long)h.text + h.textsize);
+
   ret = rom_erase((h.textsize+ROM_ERASE_UNIT_SIZE) & ~(ROM_ERASE_UNIT_SIZE-1),
 		  (uintptr_t)h.text);
   assert(ret > 0);
@@ -140,7 +143,7 @@ elfloader_load(off_t eepromaddr)
   PRINTF("elfloader: copy data segment to RAM %p %p\n",
 	 h.data, h.data + h.datasize);
   ret = xmem_pread(datamemory, h.datasize, eepromaddr + h.dataoff); 
-  assert(ret > 0);
+  assert(ret >= h.datasize);
   if(h.datarelasize > 0) {
     PRINTF("elfloader: relocate data segment\n");
     ret = cle_relocate(&h,
