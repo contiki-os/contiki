@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF 
  * SUCH DAMAGE. 
  *
- * @(#)$Id: cmod.h,v 1.2 2007/04/25 15:38:00 bg- Exp $
+ * @(#)$Id: cmod.h,v 1.3 2007/04/26 12:54:13 bg- Exp $
  */
 
 #ifndef CMOD_H
@@ -49,8 +49,8 @@ cmod_load(unsigned imod,
 void cmod_unload(int imod);
 
 /* Most error codes are chared with elfloader and cle. */
-#define CMOD_OK                  0
-#define CMOD_NO_STARTPOINT       7
-#define CMOD_DATA_TO_LARGE       9
+#define CMOD_OK                  CLE_OK
+#define CMOD_NO_STARTPOINT       CLE_NO_STARTPOINT
+#define CMOD_DATA_TO_LARGE       CLE_DATA_TO_LARGE
 
 #endif /* CMOD_H */
