@@ -1,4 +1,4 @@
-# $Id: Makefile,v 1.4 2007/04/26 12:55:46 bg- Exp $
+# $Id: Makefile,v 1.5 2007/04/26 13:40:26 bg- Exp $
 #
 # This makefile requires GNU make!
 
@@ -24,7 +24,7 @@ SRCDIRS = dev $(TOP)/cpu/avr $(TOP)/cpu/avr/dev ${addprefix $(TOP)/core/,sys dev
 
 MCU=atmega128
 
-ARCH=avr.o spi.o qleds.o rom.o xmem.o
+ARCH=avr.o spi.o qleds.o rom.o xmem.o cle_avr.o
 SYSTEM=process.o procinit.o service.o clock.o etimer.o timer.o \
 	sym.o cle.o elfloader_compat.o
 UIP=uip.o uiplib.o tcpip.o uip-fw.o uip-fw-service.o uipbuf.o \
