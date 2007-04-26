@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF 
  * SUCH DAMAGE. 
  *
- * @(#)$Id: cle.h,v 1.3 2007/04/25 15:36:53 bg- Exp $
+ * @(#)$Id: cle.h,v 1.4 2007/04/26 12:53:49 bg- Exp $
  */
 
 #ifndef CLE_H
@@ -42,7 +42,11 @@ typedef u16_t cle_word;
 typedef u16_t cle_half;
 
 /* Also used for address arithmetic (can't be void *). */
+#ifdef __AVR__
+typedef  uint32_t cle_addr;
+#else
 typedef uintptr_t cle_addr;
+#endif
 
 typedef unsigned char cle_scratch[32];
 
@@ -86,6 +90,9 @@ cle_lookup(struct cle_info *info,
 	   off_t hdr,		/* Offset to start of file. */
 	   const char *symbol);
 
+/*
+ * Error codes that apply in general to linking and loading.
+ */
 #define CLE_OK                  0
 #define CLE_BAD_HEADER          1
 #define CLE_NO_SYMTAB           2
@@ -93,8 +100,10 @@ cle_lookup(struct cle_info *info,
 #define CLE_NO_TEXT             4
 #define CLE_UNDEFINED           5
 #define CLE_UNKNOWN_SEGMENT     6
-#define CLE_UNKNOWN_RELOC       7
-
-#define CLE_MULTIPLY_DEFINED   20
+#define CLE_NO_STARTPOINT       7
+#define CLE_TEXT_TO_LARGE       8
+#define CLE_DATA_TO_LARGE       9
+#define CLE_UNKNOWN_RELOC      10
+#define CLE_MULTIPLY_DEFINED   11
 
 #endif /* CLE_H */
