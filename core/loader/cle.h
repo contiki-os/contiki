@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF 
  * SUCH DAMAGE. 
  *
- * @(#)$Id: cle.h,v 1.4 2007/04/26 12:53:49 bg- Exp $
+ * @(#)$Id: cle.h,v 1.5 2007/04/26 13:37:41 bg- Exp $
  */
 
 #ifndef CLE_H
@@ -89,6 +89,10 @@ cle_lookup(struct cle_info *info,
 	   int (*read)(void *, int, off_t),
 	   off_t hdr,		/* Offset to start of file. */
 	   const char *symbol);
+
+struct elf32_rela;		/* Struct forward decl. */
+
+int cle_write_reloc(unsigned char *, const struct elf32_rela *, cle_addr);
 
 /*
  * Error codes that apply in general to linking and loading.
