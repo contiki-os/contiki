@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: codeprop.c,v 1.3 2007/03/18 13:15:00 ksb Exp $
+ * @(#)$Id: codeprop.c,v 1.4 2007/04/26 12:56:28 bg- Exp $
  */
 #include <stdlib.h>
 #include <stdio.h>
@@ -107,14 +107,18 @@ main(int argc, char **argv) {
       printf("Reply: %s", buf);
       if(buf[0] != 'o' || buf[1] != 'k') {
 	/* Cut and pasted from core/loader/elfloader.h */
-	printf("ELFLOADER_OK                  0\n"
-	       "ELFLOADER_BAD_ELF_HEADER      1\n"
-	       "ELFLOADER_NO_SYMTAB           2\n"
-	       "ELFLOADER_NO_STRTAB           3\n"
-	       "ELFLOADER_NO_TEXT             4\n"
-	       "ELFLOADER_SYMBOL_NOT_FOUND    5\n"
-	       "ELFLOADER_SEGMENT_NOT_FOUND   6\n"
-	       "ELFLOADER_NO_STARTPOINT       7\n");
+	printf("OK                  0\n"
+	       "BAD_HEADER          1\n"
+	       "NO_SYMTAB           2\n"
+	       "NO_STRTAB           3\n"
+	       "NO_TEXT             4\n"
+	       "UNDEFINED           5\n"
+	       "UNKNOWN_SEGMENT     6\n"
+	       "NO_STARTPOINT       7\n"
+	       "TEXT_TO_LARGE       8\n"
+	       "DATA_TO_LARGE       9\n"
+	       "UNKNOWN_RELOC      10\n"
+	       "MULTIPLY_DEFINED   11\n");
       }
       exit(0);
     }
