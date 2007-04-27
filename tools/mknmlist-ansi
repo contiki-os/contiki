@@ -68,13 +68,13 @@ END {
   print "#endif"
   print "#include \"loader/sym.h\"";
 
-  print;
+  print "";
   for (x = 0; x < ndata; x++) {
     print "static const PROGMEM char __D"x"[] = \""data[x]"\";";
   }
 
   # Extern decls. Must deal with compiler builtins etc.
-  print;
+  print "";
   for (x = 0; x < ndata; x++) {
     if (builtin[data[x]] != "")
       print builtin[data[x]] ";";
@@ -82,20 +82,20 @@ END {
       print "extern int " data[x]";";
   }
 
-  print;
+  print "";
   print "const int sym_obj_nelts = " ndata ";";
   print "PROGMEM const struct sym_bol sym_obj[" ndata "] = {";
   for (x = 0; x < ndata; x++)
     print "  { (const char *)__D"x", { .obj = (void *)&" data[x] " } },";
   print "};";
 
-  print;
+  print "";
   for (x = 0; x < ntext; x++) {
     print "static const PROGMEM char __T"x"[] = \""text[x]"\";";
   }
 
   # Extern decls. Must deal with compiler builtins etc.
-  print;
+  print "";
   for (x = 0; x < ntext; x++) {
     if (builtin[text[x]] != "")
       print builtin[text[x]] ";";
@@ -103,7 +103,7 @@ END {
       print "extern int " text[x]"();";
   }
 
-  print;
+  print "";
   print "const int sym_func_nelts = " ntext ";";
   print "PROGMEM const struct sym_bol sym_func[" ntext "] = {";
   for (x = 0; x < ntext; x++)
