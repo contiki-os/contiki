@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: cc2420.c,v 1.11 2007/04/04 11:46:10 bg- Exp $
+ * @(#)$Id: cc2420.c,v 1.12 2007/04/30 09:41:42 bg- Exp $
  */
 /*
  * This code is almost device independent and should be easy to port.
@@ -447,7 +447,8 @@ PROCESS_THREAD(cc2420_process, ev, data)
 	u8_t footer[2];
 	uip_len = 0;
 	s = splhigh();
-	FASTSPI_READ_FIFO_NO_WAIT(&uip_buf[UIP_LLH_LEN], len - 2);
+	if (len > 2)
+	  FASTSPI_READ_FIFO_NO_WAIT(&uip_buf[UIP_LLH_LEN], len - 2);
 	FASTSPI_READ_FIFO_NO_WAIT(footer, 2);
 	rx_fifo_remaining_bytes = 0; /* RX FIFO emptied! */
 	splx(s);
@@ -459,6 +460,9 @@ PROCESS_THREAD(cc2420_process, ev, data)
 	}
       }
     }
+
+    if (len == 2)
+      PRINTF("recv data_ack\n");
 
     /* Clean up in case of FIFO overflow!  This happens for every full
      * length frame and is signaled by FIFOP = 1 and FIFO = 0.
