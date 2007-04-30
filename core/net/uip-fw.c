@@ -30,7 +30,7 @@
  *
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: uip-fw.c,v 1.4 2007/04/24 16:58:58 bg- Exp $
+ * $Id: uip-fw.c,v 1.5 2007/04/30 09:51:06 bg- Exp $
  */
 /**
  * \addtogroup uip
@@ -370,11 +370,7 @@ uip_fw_output(void)
 
 #if UIP_BROADCAST
   /* Link local broadcasts go out on all interfaces. */
-  if(uip_ipaddr_cmp(&udp->destipaddr, &uip_broadcast_addr)
-#ifdef AODV_COMPLIANCE
-     && !(udp->proto == UIP_PROTO_UDP && udp->destport == HTONS(UAODV_UDPPORT))
-#endif
-     ) {
+  if(uip_ipaddr_cmp(&udp->destipaddr, &uip_broadcast_addr)) {
     if(defaultnetif != NULL) {
       defaultnetif->output();
     }
@@ -417,6 +413,14 @@ uip_fw_forward(void)
   if(uip_ipaddr_cmp(&BUF->destipaddr, &uip_hostaddr)) {
     return UIP_FW_LOCAL;
   }
+
+#ifdef AODV_COMPLIANCE
+#define udp ((struct uip_udpip_hdr *)&uip_buf[UIP_LLH_LEN])
+  if(udp->proto == UIP_PROTO_UDP && udp->destport == HTONS(UAODV_UDPPORT)) {
+    printf("not fwd\n");
+    return UIP_FW_LOCAL;
+  }
+#endif
 
   /* If we use ping IP address configuration, and our IP address is
      not yet configured, we should intercept all ICMP echo packets. */
