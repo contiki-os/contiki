@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: uaodv.c,v 1.10 2007/04/24 16:37:45 bg- Exp $
+ * $Id: uaodv.c,v 1.11 2007/04/30 09:49:32 bg- Exp $
  */
 
 /**
@@ -122,7 +122,8 @@ print_debug(const char *fmt, ...)
 }
 #endif
 
-#define uip_udp_sender() (&((struct uip_udpip_hdr *)&uip_buf[UIP_LLH_LEN])->srcipaddr)
+#define BUF ((struct uip_udpip_hdr *)&uip_buf[UIP_LLH_LEN])
+#define uip_udp_sender() (&BUF->srcipaddr)
 
 /*---------------------------------------------------------------------------*/
 static void
@@ -219,6 +220,7 @@ handle_incoming_rreq(void)
   if(cc2420_check_remote(uip_udp_sender()->u16[1]) == REMOTE_YES) {
     print_debug("RREQ drop from %d.%d.%d.%d is remote\n",
 		uip_ipaddr_to_quad(uip_udp_sender()));
+    return;
   }
 #endif
 
@@ -255,10 +257,6 @@ handle_incoming_rreq(void)
     /* Send an RREP back to the source of the RREQ. */
     uip_ipaddr_copy(&dest_addr, &rm->dest_addr);
     uip_ipaddr_copy(&orig_addr, &rm->orig_addr);
-#ifdef CC2420_RADIO
-    if(cc2420_check_remote(rt->nexthop.u16[1]) == REMOTE_MAYBE)
-      cc2420_recv_ok(&rt->nexthop);
-#endif
     if(fw != NULL)		/* Existing route. */
       send_rrep(&dest_addr, &rt->nexthop, &orig_addr,
 		&fw->seqno, fw->hop_count + 1);
@@ -318,8 +316,7 @@ handle_incoming_rrep(void)
   if(uip_ipaddr_cmp(&rm->orig_addr, &uip_hostaddr)) {
     print_debug("------- COMPLETE ROUTE FOUND\n");
   } else {
-    if(uip_ipaddr_cmp(&((struct uip_udpip_hdr*)&uip_buf[UIP_LLH_LEN])->destipaddr,
-		      &uip_broadcast_addr)) {
+    if(uip_ipaddr_cmp(&BUF->destipaddr, &uip_broadcast_addr)) {
       print_debug("RREP hello received?\n");
       return;
     }
@@ -335,10 +332,6 @@ handle_incoming_rrep(void)
 
     print_debug("Fwd RREP to %d.%d.%d.%d\n", uip_ipaddr_to_quad(&rt->nexthop));
 
-#ifdef CC2420_RADIO
-    if(cc2420_check_remote(rt->nexthop.u16[1]) == REMOTE_MAYBE)
-      cc2420_recv_ok(&rt->nexthop);
-#endif
     sendto(&rt->nexthop, rm, sizeof(struct uaodv_msg_rrep));
   }
 }
