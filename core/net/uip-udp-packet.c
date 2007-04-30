@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: uip-udp-packet.c,v 1.2 2006/09/26 22:12:59 adamdunkels Exp $
+ * $Id: uip-udp-packet.c,v 1.3 2007/04/30 15:19:21 bg- Exp $
  */
 
 /**
@@ -46,7 +46,7 @@ extern u16_t uip_slen;
 
 /*---------------------------------------------------------------------------*/
 void
-uip_udp_packet_send(struct uip_udp_conn *c, char *data, int len)
+uip_udp_packet_send(struct uip_udp_conn *c, const void *data, int len)
 {
   uip_udp_conn = c;
   uip_slen = len;
