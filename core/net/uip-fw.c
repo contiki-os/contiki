@@ -30,7 +30,7 @@
  *
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: uip-fw.c,v 1.5 2007/04/30 09:51:06 bg- Exp $
+ * $Id: uip-fw.c,v 1.6 2007/04/30 09:51:51 bg- Exp $
  */
 /**
  * \addtogroup uip
@@ -417,7 +417,6 @@ uip_fw_forward(void)
 #ifdef AODV_COMPLIANCE
 #define udp ((struct uip_udpip_hdr *)&uip_buf[UIP_LLH_LEN])
   if(udp->proto == UIP_PROTO_UDP && udp->destport == HTONS(UAODV_UDPPORT)) {
-    printf("not fwd\n");
     return UIP_FW_LOCAL;
   }
 #endif
