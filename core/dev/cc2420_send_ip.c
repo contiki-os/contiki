@@ -17,6 +17,7 @@
 u8_t
 cc2420_send_ip(void)
 {
+  int ret;
   struct hdr_802_15 h;
 
   u8_t color = (cc2420_ack_received) ? LEDS_BLUE : LEDS_RED;
@@ -37,7 +38,7 @@ cc2420_send_ip(void)
     else
       next_gw = &uip_draddr;	/* Default router. */
 
-    if (cc2420_check_remote(next_gw->u16[1]) == 1)
+    if (cc2420_check_remote(next_gw->u16[1]) == REMOTE_YES)
       h.dst = 0xffff;		/* remote, use bcast */
     else
       h.dst = next_gw->u16[1];	/* local or unknown, use ucast */
@@ -47,8 +48,9 @@ cc2420_send_ip(void)
   if (h.dst == 0xffff)
     h.fc0 &= ~FC0_REQ_ACK;
 
-  if (cc2420_send(&h, 10, &uip_buf[UIP_LLH_LEN], uip_len) < 0) {
-    printf("cc2420_send_ip failed uip_len=%d\n", uip_len);
+  ret = cc2420_send(&h, 10, &uip_buf[UIP_LLH_LEN], uip_len);
+  if (ret < 0) {
+    printf("cc2420_send_ip failed uip_len=%d ret=%d\n", uip_len, ret);
     leds_toggle(color);
     return UIP_FW_TOOLARGE;
   }
