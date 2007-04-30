@@ -4,7 +4,7 @@
 
 #include "net/uip.h"
 #include "net/uip-fw.h"
-#define BUF ((struct uip_tcpip_hdr *)&uip_buf[UIP_LLH_LEN])
+#define BUF ((struct uip_udpip_hdr *)&uip_buf[UIP_LLH_LEN])
 
 #include "dev/leds.h"
 
@@ -12,6 +12,7 @@
 
 #include "net/uaodv.h"
 #include "net/uaodv-rt.h"
+#include "net/uaodv-def.h"
 
 #if 0
 #define PRINTF(...) printf(__VA_ARGS__)
@@ -36,7 +37,11 @@ cc2420_send_uaodv(void)
   h.src = uip_hostaddr.u16[1];
   if (uip_ipaddr_cmp(&BUF->destipaddr, &uip_broadcast_addr))
     h.dst = 0xffff;
-  else {
+  else if (BUF->proto == UIP_PROTO_UDP
+	   && BUF->destport == HTONS(UAODV_UDPPORT)) {
+    h.dst = BUF->destipaddr.u16[1]; /* Routing messages bypass routing! */
+    PRINTF("UNICAST to %d.%d.%d.%d\n", uip_ipaddr_to_quad(&BUF->destipaddr));
+  } else {
     uip_ipaddr_t *next_gw;
 
     if (in_my_network(BUF->destipaddr.u16))
@@ -55,9 +60,7 @@ cc2420_send_uaodv(void)
 	if (cc2420_check_remote(route->nexthop.u16[1]) == REMOTE_YES) {
 	  PRINTF("LOST 0x%04x\n", route->nexthop.u16[1]);
 	  /* Send bad route notification? */
-#ifdef UAODV_BAD_ROUTE
 	  uaodv_bad_route(route);
-#endif
 	  uaodv_rt_remove(route);  
 	  h.dst = 0xffff;	/* revert to bcast */
 	} else /* unknown */ {
@@ -77,7 +80,7 @@ cc2420_send_uaodv(void)
 
   ret = cc2420_send(&h, 10, &uip_buf[UIP_LLH_LEN], uip_len);
   if (ret < 0) {
-    PRINTF("cc2420_send_uaodv uip_len=%d ret=%d\n", uip_len, ret);
+    PRINTF("cc2420_send_uaodv failed uip_len=%d ret=%d\n", uip_len, ret);
     leds_toggle(color);
     return UIP_FW_TOOLARGE;
   }
