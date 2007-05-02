@@ -28,7 +28,7 @@
  *
  * This file is part of the uIP TCP/IP stack.
  *
- * $Id: tunslip.c,v 1.12 2007/04/30 12:28:29 bg- Exp $
+ * $Id: tunslip.c,v 1.13 2007/05/02 08:58:00 bg- Exp $
  *
  */
 
@@ -279,7 +279,7 @@ relay_dhcp_to_client(int slipfd)
 
     case DHCP_OPTION_DNS_SERVER: /* Only copy first server */
       *t++ = p[0];
-      *t++ = 6;
+      *t++ = 4;
       memcpy(t, p + 2, 4); t += 4;
       p += p[1] + 2;
       break;
@@ -791,7 +791,7 @@ cleanup(void)
 {
   ssystem("ifconfig %s down", tundev);
 #ifndef linux
-  ssystem("sysctl net.inet.ip.forwarding=0");
+  ssystem("sysctl -w net.inet.ip.forwarding=0");
 #endif
   /* ssystem("arp -d %s", ipaddr); */
   ssystem("netstat -nr"
@@ -840,15 +840,11 @@ ifconf(const char *tundev, const char *ipaddr, const char *netmask)
     ssystem("route add -net %s netmask %s dev %s",
 	    inet_ntoa(netname), netmask, tundev);
 #else
-#ifdef mac_something
   ssystem("ifconfig %s inet `hostname` %s up", tundev, ipaddr);
-#else
-  ssystem("ifconfig %s inet `hostname` %s up", tundev, ipaddr);
-#endif
   if (strcmp(ipaddr, "0.0.0.0") != 0)
     ssystem("route add -net %s -netmask %s -interface %s",
 	    inet_ntoa(netname), netmask, tundev);
-  ssystem("sysctl net.inet.ip.forwarding=1");
+  ssystem("sysctl -w net.inet.ip.forwarding=1");
 #endif /* !linux */
 
   ssystem("ifconfig %s\n", tundev);
