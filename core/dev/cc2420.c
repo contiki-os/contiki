@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: cc2420.c,v 1.12 2007/04/30 09:41:42 bg- Exp $
+ * @(#)$Id: cc2420.c,v 1.13 2007/05/02 14:51:20 bg- Exp $
  */
 /*
  * This code is almost device independent and should be easy to port.
@@ -38,15 +38,16 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "contiki.h"
-
 #if defined(__AVR__)
 #include <avr/io.h>
 #elif defined(__MSP430__)
 #include <io.h>
 #endif
 
+#include "contiki.h"
+
 #include "net/uip.h"
+#include "net/uip-fw.h"
 #define BUF ((struct uip_tcpip_hdr *)&uip_buf[UIP_LLH_LEN])
 
 #include "dev/leds.h"
@@ -55,10 +56,13 @@
 #include "dev/cc2420.h"
 #include "dev/cc2420_const.h"
 
-#if 0
-#define PRINTF(...) printf(__VA_ARGS__)
-#else
+#define NDEBUG
+#include "lib/assert.h"
+
+#ifdef NDEBUG
 #define PRINTF(...) do {} while (0)
+#else
+#define PRINTF(...) printf(__VA_ARGS__)
 #endif
 
 PROCESS(cc2420_process, "CC2420 driver");
@@ -75,7 +79,7 @@ static u8_t receive_on;
 
 volatile u8_t cc2420_ack_received; /* Naive ACK management. */
 static u8_t last_used_seq;
-static u16_t last_correspondent;
+static u16_t last_dst;
 
 /* Radio stuff in network byte order. */
 static u16_t pan_id;
@@ -191,7 +195,7 @@ cc2420_send(struct hdr_802_15 *hdr, u8_t hdr_len,
 	    const u8_t *payload, u8_t payload_len)
 {
   u8_t spiStatusByte;
-  int s;
+  int s, ret;
 
   /* struct hdr_802_15::len shall *not* be counted, thus the -1.
    * 2 == sizeof(footer).
@@ -214,7 +218,7 @@ cc2420_send(struct hdr_802_15 *hdr, u8_t hdr_len,
   } while (spiStatusByte & BV(CC2420_TX_ACTIVE));
 
   hdr->dst_pan = pan_id;	/* Not at fixed position! xxx/bg */
-  last_correspondent = hdr->dst; /* Not dst either. */
+  last_dst = hdr->dst;		/* Not dst either. */
   last_used_seq++;
   hdr->seq = last_used_seq;
   cc2420_ack_received = 0;
@@ -226,28 +230,23 @@ cc2420_send(struct hdr_802_15 *hdr, u8_t hdr_len,
   FASTSPI_WRITE_FIFO(payload, payload_len);
   splx(s);
 
-  if (hdr->dst == 0xffff) {
-    int i;
-    for (i = 0; i < 3; i++) {
-      static unsigned delaymask[] = { 1024-1, 2048-1, 4096-1 };
-      if (cc2420_resend() >= 0)
-	return 0;
-      PRINTF("resend i=%d\n", i);
-      clock_delay(rand() & delaymask[i]);
-    }
-  } else {
-    process_post(&cc2420_retransmit_process,
-		 PROCESS_EVENT_MSG,
-		 (void *)(unsigned)last_used_seq);
+  ret = cc2420_resend();	/* Send stuff from FIFO. */
+  if (hdr->dst == 0xffff && ret == UIP_FW_OK) {
+    return ret;
   }
-  return cc2420_resend();	/* Send stuff from FIFO. */
+
+  process_post(&cc2420_retransmit_process,
+	       PROCESS_EVENT_MSG,
+	       (void *)(unsigned)last_used_seq);
+
+  return UIP_FW_OK;
 }
 
 /*
  * Request packet to be sent using CSMA-CA. Requires that RSSI is
  * valid.
  *
- * Return -3 on failure.
+ * Return UIP_FW_DROPPED on failure.
  */
 int
 cc2420_resend(void)
@@ -257,7 +256,7 @@ cc2420_resend(void)
   if (FIFOP_IS_1 && !FIFO_IS_1) {
     /* RXFIFO overflow, send on retransmit. */
     PRINTF("rxfifo overflow!\n");
-    //    return -4;
+    //    return UIP_FW_DROPPED;
   }
 
   /* The TX FIFO can only hold one packet! Make sure to not overrun
@@ -277,12 +276,13 @@ cc2420_resend(void)
     for (i = LOOP_20_SYMBOLS; i > 0; i--)
       if (SFD_IS_1) {
 	if (cc2420_status() & BV(CC2420_TX_ACTIVE))
-	  return 0;		/* Transmission has started. */
+	  return UIP_FW_OK;	/* Transmission has started. */
 	else
 	  break;		/* We must be receiving. */
       }
   }
-  return -3;			/* Transmission never started! */
+
+  return UIP_FW_DROPPED;	/* Transmission never started! */
 }
 
 void
@@ -479,7 +479,7 @@ PROCESS_THREAD(cc2420_process, ev, data)
     }
 
     if (len == 2) {		/* A DATA ACK packet. */
-      if (last_correspondent == h.src)
+      if (last_dst == h.src)
 	cc2420_ack_received = 1;
       neigbour_update(h.src, 0);
     } else if (len > 2 && uip_len > 0
@@ -526,18 +526,23 @@ PROCESS_THREAD(cc2420_retransmit_process, ev, data)
       } else if (seq != last_used_seq)
 	break;			/* Transmitting different packet. */
       else if (n < MAX_RETRANSMISSIONS) {
-	cc2420_resend();
+	int ret;
+ 	PRINTF("RETRANS %d %d.%d\n", n, last_dst >> 8, last_dst & 0xff);
+	ret = cc2420_resend();
+	if (last_dst == 0xffff && ret == UIP_FW_OK) {
+	  etimer_stop(&etimer);
+	  break;
+	}
 	n++;
- 	PRINTF("RETRANS %d\n", n);
       } else {
 	break;
       }
     } while (1);
-    neigbour_update(last_correspondent, n);
+    neigbour_update(last_dst, n);
 #if 0
 #define CORRELATION_2_X(c) (((c) < 48) ? 0 : ((c) - 48))
     PRINTF("%04x %2d %2d %2u %u\n",
-	   last_correspondent, n,
+	   last_dst, n,
 	   RSSI_2_ED(cc2420_last_rssi),
 	   CORRELATION_2_X(cc2420_last_correlation),
 	   clock_time());
