@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: cc2420.c,v 1.14 2007/05/07 12:01:32 bg- Exp $
+ * @(#)$Id: cc2420.c,v 1.15 2007/05/07 12:02:14 bg- Exp $
  */
 /*
  * This code is almost device independent and should be easy to port.
@@ -56,7 +56,7 @@
 #include "dev/cc2420.h"
 #include "dev/cc2420_const.h"
 
-//#define NDEBUG
+#define NDEBUG
 #include "lib/assert.h"
 
 #ifdef NDEBUG
