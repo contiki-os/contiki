@@ -14,10 +14,13 @@
 #include "net/uaodv-rt.h"
 #include "net/uaodv-def.h"
 
-#if 0
-#define PRINTF(...) printf(__VA_ARGS__)
-#else
+#define NDEBUG
+#include "lib/assert.h"
+
+#ifdef NDEBUG
 #define PRINTF(...) do {} while (0)
+#else
+#define PRINTF(...) printf(__VA_ARGS__)
 #endif
 
 #define in_my_network(a) \
@@ -56,9 +59,14 @@ cc2420_send_uaodv(void)
 
       if (route == NULL) {
 	h.dst = next_gw->u16[1]; /* try local while waiting for route */
+#if 0
+	PRINTF("SKIP %d.%d.%d.%d\n", uip_ipaddr_to_quad(next_gw));
+	return UIP_FW_OK;
+#endif
       } else {
 	if (cc2420_check_remote(route->nexthop.u16[1]) == REMOTE_YES) {
-	  PRINTF("LOST 0x%04x\n", route->nexthop.u16[1]);
+	  PRINTF("LOST %d.%d\n",
+		 route->nexthop.u16[1] & 0xff, route->nexthop.u16[1] >> 8);
 	  /* Send bad route notification? */
 	  uaodv_bad_route(route);
 	  uaodv_rt_remove(route);  
