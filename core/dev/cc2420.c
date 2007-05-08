@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: cc2420.c,v 1.15 2007/05/07 12:02:14 bg- Exp $
+ * @(#)$Id: cc2420.c,v 1.16 2007/05/08 08:27:34 bg- Exp $
  */
 /*
  * This code is almost device independent and should be easy to port.
@@ -74,6 +74,7 @@ static void neigbour_update(u16_t mac, int retransmissions);
 
 signed char cc2420_last_rssi;
 u8_t cc2420_last_correlation;
+u8_t cc2420_is_input;
 
 static u8_t receive_on;
 
@@ -491,7 +492,9 @@ PROCESS_THREAD(cc2420_process, ev, data)
 	  && uip_ipaddr_cmp(&BUF->destipaddr, &uip_hostaddr))
 	cc2420_send_data_ack(h.src);
       leds_toggle(LEDS_GREEN);
+      cc2420_is_input = 1;
       tcpip_input();
+      cc2420_is_input = 0;
       leds_toggle(LEDS_GREEN);
     }
   }
