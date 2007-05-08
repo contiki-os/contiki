@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: uaodv.c,v 1.13 2007/05/07 11:51:20 bg- Exp $
+ * $Id: uaodv.c,v 1.14 2007/05/08 08:41:26 bg- Exp $
  */
 
 /**
@@ -72,31 +72,14 @@ static struct uip_udp_conn *bcastconn, *unicastconn;
 #define SCMP32(a, b) exit(1) 
 #endif /* __GNUC__ */
 
-#define NDELETED 4
-
-/*
- * Save known seqno:s in network byte order.
- */
-static
-struct {
-  uip_ipaddr_t orig;
-  u32_t seqno;
-} lseq[NDELETED];
-
-static CC_INLINE void
-save_latest_seqno(const uip_ipaddr_t *originator, const u32_t *seqno)
-{
-  unsigned n = (originator->u8[2] + originator->u8[3]) % NDELETED;
-  uip_ipaddr_copy(&lseq[n].orig, originator);
-  lseq[n].seqno = *seqno;
-}
-
 static CC_INLINE u32_t
-latest_seqno(const uip_ipaddr_t *originator)
+last_known_seqno(uip_ipaddr_t *host)
 {
-  unsigned n = (originator->u8[2] + originator->u8[3]) % NDELETED;
-  if(uip_ipaddr_cmp(&lseq[n].orig, originator))
-    return lseq[n].seqno;
+  struct uaodv_rt_entry *route = uaodv_rt_lookup_any(host);
+
+  if(route != NULL)
+    return route->seqno;
+
   return 0;
 }
 
@@ -181,7 +164,7 @@ send_rreq(uip_ipaddr_t *addr)
   print_debug("send RREQ for %d.%d.%d.%d\n", uip_ipaddr_to_quad(addr));
 
   rm->type = UAODV_RREQ_TYPE;
-  rm->dest_seqno = latest_seqno(addr);
+  rm->dest_seqno = last_known_seqno(addr);
   if(rm->dest_seqno == 0)
     rm->flags = UAODV_RREQ_UNKSEQNO;
   else
@@ -403,12 +386,14 @@ handle_incoming_rerr(void)
 	      uip_ipaddr_to_quad((uip_ipaddr_t *)&rm->unreach[0]),
 	      ntohl(rm->unreach[0].seqno));
 
+  if(uip_ipaddr_cmp(&rm->unreach[0].addr, &uip_hostaddr))
+    return;
+
   rt = uaodv_rt_lookup(&rm->unreach[0].addr);
   if(rt != NULL
      && uip_ipaddr_cmp(&rt->nexthop, uip_udp_sender())
      && SCMP32(rt->seqno, ntohl(rm->unreach[0].seqno)) <= 0) {
-    save_latest_seqno(&rm->unreach[0].addr, &rm->unreach[0].seqno);
-    uaodv_rt_remove(rt);
+    rt->is_bad = 1;
     print_debug("RERR rebroadcast\n");
     uip_udp_packet_send(bcastconn, rm, sizeof(struct uaodv_msg_rerr));
   }
@@ -448,10 +433,12 @@ static u32_t bad_seqno;		/* In network byte order! */
 void
 uaodv_bad_route(struct uaodv_rt_entry *rt)
 {
-  u32_t net_seqno = htonl(rt->seqno);
-  save_latest_seqno(&rt->dest, &net_seqno);
+  if(rt == NULL)
+    return;
+
   uip_ipaddr_copy(&bad_dest, &rt->dest);
   bad_seqno = htonl(rt->seqno);
+  rt->is_bad = 1;
   command = COMMAND_SEND_RERR;
   process_post(&uaodv_process, PROCESS_EVENT_MSG, NULL);
 }
@@ -525,11 +512,6 @@ PROCESS_THREAD(uaodv_process, ev, data)
     }
 
     if(ev == PROCESS_EVENT_MSG) {
-#if 1
-      static struct etimer etimer;
-      etimer_set(&etimer, 2);
-      PROCESS_WAIT_UNTIL(etimer_expired(&etimer));
-#endif
       tcpip_poll_udp(bcastconn);
     }
   }
