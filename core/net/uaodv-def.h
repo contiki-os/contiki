@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: uaodv-def.h,v 1.2 2007/04/04 11:48:49 bg- Exp $
+ * $Id: uaodv-def.h,v 1.3 2007/05/08 13:32:55 bg- Exp $
  */
 
 /**
@@ -106,6 +106,7 @@ struct uaodv_msg_rrep {
 /* AODV RERR message */
 #define UAODV_RERR_TYPE     3
 #define UAODV_RERR_NODELETE (1 << 7)
+#define UAODV_RERR_UNKNOWN  (1 << 6) /* Non standard extension /bg. */
 
 struct uaodv_msg_rerr {
   u8_t type;
