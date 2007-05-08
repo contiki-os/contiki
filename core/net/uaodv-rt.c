@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: uaodv-rt.c,v 1.3 2007/04/04 11:50:54 bg- Exp $
+ * $Id: uaodv-rt.c,v 1.4 2007/05/08 08:30:49 bg- Exp $
  */
 
 /**
@@ -82,6 +82,7 @@ uaodv_rt_add(uip_ipaddr_t *dest, uip_ipaddr_t *nexthop,
   uip_ipaddr_copy(&e->nexthop, nexthop);
   e->hop_count = hop_count;
   e->seqno = seqno;
+  e->is_bad = 0;
 
   /* New entry goes first. */
   list_push(route_table, e);
@@ -90,34 +91,37 @@ uaodv_rt_add(uip_ipaddr_t *dest, uip_ipaddr_t *nexthop,
 }
 /*---------------------------------------------------------------------------*/
 struct uaodv_rt_entry *
-uaodv_rt_lookup(uip_ipaddr_t *dest)
+uaodv_rt_lookup_any(uip_ipaddr_t *dest)
 {
   struct uaodv_rt_entry *e;
 
   for(e = list_head(route_table); e != NULL; e = e->next) {
-    /*    printf("uaodv_rt_lookup: comparing %d.%d.%d.%d with %d.%d.%d.%d\n",
-	   uip_ipaddr1(dest),
-	   uip_ipaddr2(dest),
-	   uip_ipaddr3(dest),
-	   uip_ipaddr4(dest),
-	   uip_ipaddr1(&e->dest),
-	   uip_ipaddr2(&e->dest),
-	   uip_ipaddr3(&e->dest),
-	   uip_ipaddr4(&e->dest));*/
-	   
     if(uip_ipaddr_cmp(dest, &e->dest)) {
       return e;
     }
   }
   return NULL;
 }
+
+struct uaodv_rt_entry *
+uaodv_rt_lookup(uip_ipaddr_t *dest)
+{
+  struct uaodv_rt_entry *e;
+
+  e = uaodv_rt_lookup_any(dest);
+  if(e->is_bad)
+    return NULL;
+  return e;
+}
 /*---------------------------------------------------------------------------*/
+#if 0
 void
 uaodv_rt_remove(struct uaodv_rt_entry *e)
 {
   list_remove(route_table, e);
   memb_free(&route_mem, e);
 }
+#endif
 
 void
 uaodv_rt_lru(struct uaodv_rt_entry *e)
