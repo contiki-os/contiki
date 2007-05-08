@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: uaodv.c,v 1.14 2007/05/08 08:41:26 bg- Exp $
+ * $Id: uaodv.c,v 1.15 2007/05/08 13:33:57 bg- Exp $
  */
 
 /**
@@ -207,11 +207,14 @@ send_rerr(uip_ipaddr_t *addr, u32_t *seqno)
   print_debug("send RERR for %d.%d.%d.%d\n", uip_ipaddr_to_quad(addr));  
 
   rm->type = UAODV_RERR_TYPE;
-  rm->flags = 0;
   rm->reserved = 0;
   rm->dest_count = 1;
   uip_ipaddr_copy(&rm->unreach[0].addr, addr);
   rm->unreach[0].seqno = *seqno;
+  if(*seqno == 0)
+    rm->flags = UAODV_RERR_UNKNOWN;
+  else
+    rm->flags = 0;
 
   uip_udp_packet_send(bcastconn, rm, sizeof(struct uaodv_msg_rerr));
 }
@@ -390,12 +393,13 @@ handle_incoming_rerr(void)
     return;
 
   rt = uaodv_rt_lookup(&rm->unreach[0].addr);
-  if(rt != NULL
-     && uip_ipaddr_cmp(&rt->nexthop, uip_udp_sender())
-     && SCMP32(rt->seqno, ntohl(rm->unreach[0].seqno)) <= 0) {
-    rt->is_bad = 1;
-    print_debug("RERR rebroadcast\n");
-    uip_udp_packet_send(bcastconn, rm, sizeof(struct uaodv_msg_rerr));
+  if(rt != NULL && uip_ipaddr_cmp(&rt->nexthop, uip_udp_sender())) {
+    if(rm->flags & UAODV_RERR_UNKNOWN || rm->unreach[0].seqno == 0
+       || SCMP32(rt->seqno, ntohl(rm->unreach[0].seqno)) <= 0) {
+      rt->is_bad = 1;
+      print_debug("RERR rebroadcast\n");
+      uip_udp_packet_send(bcastconn, rm, sizeof(struct uaodv_msg_rerr));
+    }
   }
 }
 /*---------------------------------------------------------------------------*/
@@ -431,14 +435,18 @@ static uip_ipaddr_t bad_dest;
 static u32_t bad_seqno;		/* In network byte order! */
 
 void
-uaodv_bad_route(struct uaodv_rt_entry *rt)
+uaodv_bad_dest(uip_ipaddr_t *dest)
 {
-  if(rt == NULL)
-    return;
+  struct uaodv_rt_entry *rt = uaodv_rt_lookup(dest);
 
-  uip_ipaddr_copy(&bad_dest, &rt->dest);
-  bad_seqno = htonl(rt->seqno);
-  rt->is_bad = 1;
+  if(rt == NULL)
+    bad_seqno = 0;		/* Or flag this in RERR? */
+  else {
+    rt->is_bad = 1;
+    bad_seqno = htonl(rt->seqno);
+  }
+
+  uip_ipaddr_copy(&bad_dest, dest);
   command = COMMAND_SEND_RERR;
   process_post(&uaodv_process, PROCESS_EVENT_MSG, NULL);
 }
