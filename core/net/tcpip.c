@@ -30,7 +30,7 @@
  *
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: tcpip.c,v 1.5 2007/03/15 19:41:29 adamdunkels Exp $
+ * $Id: tcpip.c,v 1.6 2007/05/08 08:28:59 bg- Exp $
  */
 
 #include "contiki-conf.h"
@@ -66,7 +66,8 @@ enum {
   PACKET_INPUT
 };
 
-static unsigned char forwarding = 0;
+static unsigned char forwarding; /* Forwarding enabled. */
+unsigned char tcpip_is_forwarding; /* Forwarding right now? */
 
 PROCESS(tcpip_process, "TCP/IP stack");
 
@@ -82,7 +83,9 @@ packet_input(void)
 {
   if(uip_len > 0) {
     if(forwarding) {
+      tcpip_is_forwarding = 1;
       if(uip_fw_forward() == UIP_FW_LOCAL) {
+	tcpip_is_forwarding = 0;
 	uip_input();
 	if(uip_len > 0) {
 #if UIP_CONF_TCP_SPLIT
@@ -92,6 +95,7 @@ packet_input(void)
 #endif
 	}
       }
+      tcpip_is_forwarding = 0;
     } else {
       uip_input();
       if(uip_len > 0) {
