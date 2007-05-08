@@ -59,15 +59,16 @@ cc2420_send_uaodv(void)
 
       if (route == NULL || route->is_bad) {
 	if (tcpip_is_forwarding && cc2420_is_input)
-	  uaodv_bad_route(route);
+	  uaodv_bad_dest(next_gw);
 	else
 	  uaodv_request_route_to(next_gw);
 	return UIP_FW_DROPPED;
       } else if (cc2420_check_remote(route->nexthop.u16[1]) == REMOTE_YES) {
 	PRINTF("LOST %d.%d\n",
 	       route->nexthop.u16[1] & 0xff, route->nexthop.u16[1] >> 8);
+	route->is_bad = 1;
 	if (tcpip_is_forwarding && cc2420_is_input)
-	  uaodv_bad_route(route);
+	  uaodv_bad_dest(next_gw);
 	else
 	  uaodv_request_route_to(next_gw);
 	return UIP_FW_DROPPED;
