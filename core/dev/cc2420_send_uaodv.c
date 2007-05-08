@@ -55,27 +55,27 @@ cc2420_send_uaodv(void)
     if (cc2420_check_remote(next_gw->u16[1]) == REMOTE_NO)
       h.dst = next_gw->u16[1];	/* local, use ucast */
     else {			/* remote or unknown */
-      struct uaodv_rt_entry *route = uaodv_request_route_to(next_gw);
+      struct uaodv_rt_entry *route = uaodv_rt_lookup_any(next_gw);
 
-      if (route == NULL) {
-	h.dst = next_gw->u16[1]; /* try local while waiting for route */
-#if 0
-	PRINTF("SKIP %d.%d.%d.%d\n", uip_ipaddr_to_quad(next_gw));
-	return UIP_FW_OK;
-#endif
-      } else {
-	if (cc2420_check_remote(route->nexthop.u16[1]) == REMOTE_YES) {
-	  PRINTF("LOST %d.%d\n",
-		 route->nexthop.u16[1] & 0xff, route->nexthop.u16[1] >> 8);
-	  /* Send bad route notification? */
+      if (route == NULL || route->is_bad) {
+	if (tcpip_is_forwarding && cc2420_is_input)
 	  uaodv_bad_route(route);
-	  uaodv_rt_remove(route);  
-	  h.dst = 0xffff;	/* revert to bcast */
-	} else /* unknown */ {
-	  /* This will implicitly update neigbour table. */
-	  h.dst = route->nexthop.u16[1];
-	}
+	else
+	  uaodv_request_route_to(next_gw);
+	return UIP_FW_DROPPED;
+      } else if (cc2420_check_remote(route->nexthop.u16[1]) == REMOTE_YES) {
+	PRINTF("LOST %d.%d\n",
+	       route->nexthop.u16[1] & 0xff, route->nexthop.u16[1] >> 8);
+	if (tcpip_is_forwarding && cc2420_is_input)
+	  uaodv_bad_route(route);
+	else
+	  uaodv_request_route_to(next_gw);
+	return UIP_FW_DROPPED;
+      } else {
+	h.dst = route->nexthop.u16[1];
+	uaodv_rt_lru(route);
       }
+
     }
   }
 
