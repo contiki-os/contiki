@@ -60,7 +60,7 @@
  *
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: tcpip.h,v 1.7 2007/04/01 18:20:55 adamdunkels Exp $
+ * $Id: tcpip.h,v 1.8 2007/05/08 08:29:18 bg- Exp $
  */
 #ifndef __TCPIP_H__
 #define __TCPIP_H__
@@ -298,6 +298,11 @@ CCIF void tcpip_input(void);
 
 void tcpip_output(void);
 void tcpip_set_forwarding(unsigned char f);
+
+/*
+ * Are we at the moment forwarding the contents of uip_buf[]?
+ */
+extern unsigned char tcpip_is_forwarding;
 
 /** @} */
 
