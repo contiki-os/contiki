@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: uaodv.h,v 1.1 2006/06/17 22:41:19 adamdunkels Exp $
+ * $Id: uaodv.h,v 1.2 2007/05/08 16:07:59 bg- Exp $
  */
 
 /**
@@ -46,6 +46,6 @@
 PROCESS_NAME(uaodv_process);
 
 struct uaodv_rt_entry * uaodv_request_route_to(uip_ipaddr_t *host);
-void uaodv_bad_route(struct uaodv_rt_entry *rt);
+void uaodv_bad_dest(uip_ipaddr_t *);
 
 #endif /* __UAODV_H__ */
