@@ -24,7 +24,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * 
- * $Id: CoreComm.java,v 1.6 2007/04/03 16:18:44 fros4943 Exp $
+ * $Id: CoreComm.java,v 1.7 2007/05/09 07:18:36 fros4943 Exp $
  */
 
 package se.sics.cooja;
@@ -274,13 +274,13 @@ public abstract class CoreComm {
       
       return newCoreComm;
     } catch (NoSuchMethodException e) {
-      throw new MoteTypeCreationException("Error when creating library instance: " + className);
+      throw new MoteTypeCreationException("Error when creating library instance (#1): " + className);
     } catch (InstantiationException e) {
-      throw new MoteTypeCreationException("Error when creating library instance: " + className);
+      throw new MoteTypeCreationException("Error when creating library instance (#2): " + className);
     } catch (InvocationTargetException e) {
-      throw new MoteTypeCreationException("Error when creating library instance: " + className);
+      throw new MoteTypeCreationException("Error when creating library instance (#3): " + className);
     } catch (IllegalAccessException e) {
-      throw new MoteTypeCreationException("Error when creating library instance: " + className);
+      throw new MoteTypeCreationException("Error when creating library instance (#4): " + className);
     }
   }
   
