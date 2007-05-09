@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: uaodv.c,v 1.15 2007/05/08 13:33:57 bg- Exp $
+ * $Id: uaodv.c,v 1.16 2007/05/09 13:07:55 bg- Exp $
  */
 
 /**
@@ -248,9 +248,9 @@ handle_incoming_rreq(void)
      return;
    } else if (ret == REMOTE_NO) {
      /* Is neigbour, accept it. */
-   } else if(cc2420_last_rssi <= -38 || cc2420_last_correlation < 100) {
-     print_debug("RREQ drop %d %d\n",
-		 cc2420_last_rssi,cc2420_last_correlation);
+   } else if(cc2420_last_rssi <= -40) {
+     print_debug("RREQ drop %d %d\n", cc2420_last_rssi,
+		 cc2420_last_correlation);
      return;
    }
  }
