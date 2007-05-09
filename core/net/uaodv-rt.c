@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: uaodv-rt.c,v 1.5 2007/05/09 13:45:41 bg- Exp $
+ * $Id: uaodv-rt.c,v 1.6 2007/05/09 16:45:53 bg- Exp $
  */
 
 /**
@@ -67,7 +67,7 @@ uaodv_rt_add(uip_ipaddr_t *dest, uip_ipaddr_t *nexthop,
   struct uaodv_rt_entry *e;
 
   /* Avoid inserting duplicate entries. */
-  e = uaodv_rt_lookup(dest);
+  e = uaodv_rt_lookup_any(dest);
   if(e != NULL) {
     list_remove(route_table, e);    
   } else {

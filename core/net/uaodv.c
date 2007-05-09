@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: uaodv.c,v 1.18 2007/05/09 14:53:54 bg- Exp $
+ * $Id: uaodv.c,v 1.19 2007/05/09 16:45:03 bg- Exp $
  */
 
 /**
@@ -393,7 +393,7 @@ handle_incoming_rerr(void)
   if(uip_ipaddr_cmp(&rm->unreach[0].addr, &uip_hostaddr))
     return;
 
-  rt = uaodv_rt_lookup(&rm->unreach[0].addr);
+  rt = uaodv_rt_lookup_any(&rm->unreach[0].addr);
   if(rt != NULL && uip_ipaddr_cmp(&rt->nexthop, uip_udp_sender())) {
     if(rm->flags & UAODV_RERR_UNKNOWN || rm->unreach[0].seqno == 0
        || SCMP32(rt->hseqno, ntohl(rm->unreach[0].seqno)) <= 0) {
@@ -438,7 +438,7 @@ static u32_t bad_seqno;		/* In network byte order! */
 void
 uaodv_bad_dest(uip_ipaddr_t *dest)
 {
-  struct uaodv_rt_entry *rt = uaodv_rt_lookup(dest);
+  struct uaodv_rt_entry *rt = uaodv_rt_lookup_any(dest);
 
   if(rt == NULL)
     bad_seqno = 0;		/* Or flag this in RERR? */
