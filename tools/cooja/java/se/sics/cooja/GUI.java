@@ -24,12 +24,13 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * 
- * $Id: GUI.java,v 1.42 2007/04/04 08:04:48 fros4943 Exp $
+ * $Id: GUI.java,v 1.43 2007/05/10 17:05:01 fros4943 Exp $
  */
 
 package se.sics.cooja;
 
 import java.awt.*;
+import java.awt.Dialog.ModalityType;
 import java.awt.event.*;
 import java.beans.PropertyVetoException;
 import java.io.*;
@@ -49,6 +50,7 @@ import org.jdom.JDOMException;
 import org.jdom.input.SAXBuilder;
 import org.jdom.output.Format;
 import org.jdom.output.XMLOutputter;
+import sun.swing.DefaultLookup;
 
 import se.sics.cooja.MoteType.MoteTypeCreationException;
 import se.sics.cooja.contikimote.*;
@@ -1847,19 +1849,13 @@ public class GUI {
             progressDialog.dispose();
           }
         } catch (UnsatisfiedLinkError e) {
-          JOptionPane.showMessageDialog(frame,
-              e.getMessage(),
-              "Simulation load error",
-              JOptionPane.ERROR_MESSAGE);
+          showErrorDialog(frame, "Simulation load error", e);
 
           if (progressDialog != null && progressDialog.isDisplayable()) 
             progressDialog.dispose();
           newSim = null;
         } catch (SimulationCreationException e) {
-          JOptionPane.showMessageDialog(frame,
-              e.getMessage(),
-              "Simulation load error",
-              JOptionPane.ERROR_MESSAGE);
+          showErrorDialog(frame, "Simulation load error", e);
 
           if (progressDialog != null && progressDialog.isDisplayable()) 
             progressDialog.dispose();
@@ -1993,17 +1989,11 @@ public class GUI {
           myGUI.setSimulation(newSim);
 
         } catch (UnsatisfiedLinkError e) {
-          JOptionPane.showMessageDialog(frame,
-              e.getMessage(),
-              "Simulation reload error",
-              JOptionPane.ERROR_MESSAGE);
+          showErrorDialog(frame, "Simulation reload error", e);
 
           myGUI.doRemoveSimulation(false);
         } catch (SimulationCreationException e) {
-          JOptionPane.showMessageDialog(frame,
-              e.getMessage(),
-              "Simulation reload error",
-              JOptionPane.ERROR_MESSAGE);
+          showErrorDialog(frame, "Simulation reload error", e);
 
           myGUI.doRemoveSimulation(false);
         } finally {
@@ -2742,9 +2732,11 @@ public class GUI {
 
       return loadSimulationConfig(root, quick);
     } catch (JDOMException e) {
-      throw new SimulationCreationException("Configuration file not wellformed: " + e.getMessage());
+      throw (SimulationCreationException) new SimulationCreationException(
+          "Configuration file not wellformed: " + e.getMessage()).initCause(e);
     } catch (IOException e) {
-      throw new SimulationCreationException("IO Exception: " + e.getMessage());
+      throw (SimulationCreationException) new SimulationCreationException(
+          "IO Exception: " + e.getMessage()).initCause(e);
     }
   }
 
@@ -2776,13 +2768,17 @@ public class GUI {
       setPluginsConfigXML(root.getChildren(), newSim, !quick);
 
     } catch (JDOMException e) {
-      throw new SimulationCreationException("Configuration file not wellformed: " + e.getMessage());
+      throw (SimulationCreationException) new SimulationCreationException(
+          "Configuration file not wellformed: " + e.getMessage()).initCause(e);
     } catch (IOException e) {
-      throw new SimulationCreationException("No access to configuration file: " + e.getMessage());
+      throw (SimulationCreationException) new SimulationCreationException(
+          "No access to configuration file: " + e.getMessage()).initCause(e);
     } catch (MoteTypeCreationException e) {
-      throw new SimulationCreationException("Mote type creation error: " + e.getMessage());
+      throw (SimulationCreationException) new SimulationCreationException(
+          "Mote type creation error: " + e.getMessage()).initCause(e);
     } catch (Exception e) {
-      throw new SimulationCreationException("Unknown error: " + e.getMessage());
+      throw (SimulationCreationException) new SimulationCreationException(
+          "Unknown error: " + e.getMessage()).initCause(e);
     }
 
     return newSim;
@@ -3019,6 +3015,147 @@ public class GUI {
       super(message);
     }
   }
-  
+
+  public static void showErrorDialog(Component parentComponent, final String title, Throwable exception) {
+
+    MessageList compilationOutput = null;
+    MessageList stackTrace = null;
+    String message = title;
+    
+    // Create message
+    if (exception != null)
+      message = exception.getMessage();
+    
+    // Create stack trace message list
+    if (exception != null) {
+      stackTrace = new MessageList();
+      PrintStream printStream = stackTrace.getInputStream(MessageList.NORMAL);
+      exception.printStackTrace(printStream);
+    }
+
+    // Create compilation out message list (if available)
+    if (exception != null 
+        && exception instanceof MoteTypeCreationException 
+        && ((MoteTypeCreationException) exception).hasCompilationOutput()) {
+      compilationOutput = ((MoteTypeCreationException) exception).getCompilationOutput();
+    } else if (exception != null 
+        && exception.getCause() != null 
+        && exception.getCause() instanceof MoteTypeCreationException 
+        && ((MoteTypeCreationException) exception.getCause()).hasCompilationOutput()) {
+      compilationOutput = ((MoteTypeCreationException) exception.getCause()).getCompilationOutput();
+    }
+
+    // Create error dialog
+    final JDialog errorDialog;
+    if (parentComponent instanceof Dialog)
+      errorDialog = new JDialog((Dialog) parentComponent, title, true);
+    else if (parentComponent instanceof Frame)
+      errorDialog = new JDialog((Frame) parentComponent, title, true);
+    else if (parentComponent instanceof Window)
+      errorDialog = new JDialog((Window) parentComponent, title, ModalityType.APPLICATION_MODAL);
+    else {
+      logger.fatal("Bad parent for error dialog");
+      errorDialog = new JDialog((Frame) null, title + " (Java stack trace)");
+      return;
+    }
+    
+    final JPanel errorPanel = new JPanel();
+    errorPanel.setLayout(new BoxLayout(errorPanel, BoxLayout.Y_AXIS));
+    errorPanel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
+    Box messageBox = Box.createHorizontalBox();
+
+    Icon myIcon = (Icon)DefaultLookup.get(errorPanel, null, "OptionPane.errorIcon");
+    messageBox.add(new JLabel(myIcon));
+    messageBox.add(Box.createHorizontalGlue());
+    messageBox.add(new JLabel(message));
+    messageBox.add(Box.createHorizontalGlue());
+
+    Box buttonBox = Box.createHorizontalBox();
+    if (compilationOutput != null) {
+      final MessageList listToDisplay = compilationOutput;
+      final String titleToDisplay = title + " (Compilation output)";
+      JButton showCompilationButton = new JButton("Show compilation output");
+      showCompilationButton.addActionListener(new ActionListener() {
+        public void actionPerformed(ActionEvent e) {
+          JDialog messageListDialog = new JDialog(errorDialog, titleToDisplay);
+        
+          JPanel messageListPanel = new JPanel(new BorderLayout());
+
+          messageListPanel.add(BorderLayout.CENTER, new JScrollPane(listToDisplay));
+          messageListPanel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
+          messageListPanel.setVisible(true);
+
+          messageListDialog.getContentPane().add(messageListPanel);
+          messageListDialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
+          messageListDialog.pack();
+          messageListDialog.setLocationRelativeTo(errorDialog);
+
+          Rectangle maxSize = GraphicsEnvironment.getLocalGraphicsEnvironment().getMaximumWindowBounds();
+          if (maxSize != null && 
+              (messageListDialog.getSize().getWidth() > maxSize.getWidth()
+                  || messageListDialog.getSize().getHeight() > maxSize.getHeight())) {
+            Dimension newSize = new Dimension();
+            newSize.height = Math.min((int) maxSize.getHeight(), (int) messageListDialog.getSize().getHeight());
+            newSize.width = Math.min((int) maxSize.getWidth(), (int) messageListDialog.getSize().getWidth());
+            messageListDialog.setSize(newSize);
+          }
+
+          messageListDialog.setVisible(true);
+        }
+      });
+      buttonBox.add(showCompilationButton);
+    }
+    
+    if (stackTrace != null) {
+      final MessageList listToDisplay = stackTrace;
+      final String titleToDisplay = title + " (Java stack trace)";
+      JButton showTraceButton = new JButton("Show Java stack trace");
+      showTraceButton.addActionListener(new ActionListener() {
+        public void actionPerformed(ActionEvent e) {
+          JDialog messageListDialog = new JDialog(errorDialog, titleToDisplay);
+        
+          JPanel messageListPanel = new JPanel(new BorderLayout());
+
+          messageListPanel.add(BorderLayout.CENTER, new JScrollPane(listToDisplay));
+          messageListPanel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
+          messageListPanel.setVisible(true);
+
+          messageListDialog.getContentPane().add(messageListPanel);
+          messageListDialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
+          messageListDialog.pack();
+          messageListDialog.setLocationRelativeTo(errorDialog);
+
+          Rectangle maxSize = GraphicsEnvironment.getLocalGraphicsEnvironment().getMaximumWindowBounds();
+          if (maxSize != null && 
+              (messageListDialog.getSize().getWidth() > maxSize.getWidth()
+                  || messageListDialog.getSize().getHeight() > maxSize.getHeight())) {
+            Dimension newSize = new Dimension();
+            newSize.height = Math.min((int) maxSize.getHeight(), (int) messageListDialog.getSize().getHeight());
+            newSize.width = Math.min((int) maxSize.getWidth(), (int) messageListDialog.getSize().getWidth());
+            messageListDialog.setSize(newSize);
+          }
+          
+          messageListDialog.setVisible(true);
+        }
+      });
+      buttonBox.add(showTraceButton);
+    }
+
+    JButton closeButton = new JButton("Close");
+    closeButton.addActionListener(new ActionListener() {
+      public void actionPerformed(ActionEvent e) {
+        errorDialog.dispose();
+      }
+    });
+    buttonBox.add(closeButton);
+
+    errorPanel.add(messageBox);
+    errorPanel.add(buttonBox);
+    
+    errorDialog.getContentPane().add(errorPanel);
+    errorDialog.pack();
+    errorDialog.setLocationRelativeTo(parentComponent);
+    errorDialog.setVisible(true);
+  }
 
 }
