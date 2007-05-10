@@ -24,7 +24,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * 
- * $Id: MoteType.java,v 1.6 2007/04/02 12:45:20 fros4943 Exp $
+ * $Id: MoteType.java,v 1.7 2007/05/10 17:00:03 fros4943 Exp $
  */
 
 package se.sics.cooja;
@@ -33,6 +33,8 @@ import java.util.Collection;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 import org.jdom.Element;
+
+import se.sics.cooja.dialogs.MessageList;
 
 /**
  * The mote type defines properties common for several motes. These properties
@@ -149,8 +151,18 @@ public interface MoteType {
       Collection<Element> configXML, boolean visAvailable) throws MoteTypeCreationException;
 
   public class MoteTypeCreationException extends Exception {
+    private MessageList compilationOutput = null;
     public MoteTypeCreationException(String message) {
       super(message);
+    }
+    public boolean hasCompilationOutput() {
+      return compilationOutput != null;
+    }
+    public void setCompilationOutput(MessageList compilationOutput) {
+      this.compilationOutput = compilationOutput;
+    }
+    public MessageList getCompilationOutput() {
+      return compilationOutput;
     }
   }
 
