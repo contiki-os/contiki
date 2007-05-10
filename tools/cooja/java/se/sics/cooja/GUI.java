@@ -24,7 +24,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * 
- * $Id: GUI.java,v 1.43 2007/05/10 17:05:01 fros4943 Exp $
+ * $Id: GUI.java,v 1.44 2007/05/10 17:08:44 fros4943 Exp $
  */
 
 package se.sics.cooja;
@@ -50,7 +50,6 @@ import org.jdom.JDOMException;
 import org.jdom.input.SAXBuilder;
 import org.jdom.output.Format;
 import org.jdom.output.XMLOutputter;
-import sun.swing.DefaultLookup;
 
 import se.sics.cooja.MoteType.MoteTypeCreationException;
 import se.sics.cooja.contikimote.*;
@@ -3064,8 +3063,8 @@ public class GUI {
     errorPanel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
     Box messageBox = Box.createHorizontalBox();
 
-    Icon myIcon = (Icon)DefaultLookup.get(errorPanel, null, "OptionPane.errorIcon");
-    messageBox.add(new JLabel(myIcon));
+//    Icon myIcon = (Icon)DefaultLookup.get(errorPanel, null, "OptionPane.errorIcon");
+//    messageBox.add(new JLabel(myIcon));
     messageBox.add(Box.createHorizontalGlue());
     messageBox.add(new JLabel(message));
     messageBox.add(Box.createHorizontalGlue());
