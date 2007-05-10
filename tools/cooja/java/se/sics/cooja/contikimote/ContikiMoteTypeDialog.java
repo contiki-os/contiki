@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ContikiMoteTypeDialog.java,v 1.26 2007/04/02 12:45:19 fros4943 Exp $
+ * $Id: ContikiMoteTypeDialog.java,v 1.27 2007/05/10 17:02:04 fros4943 Exp $
  */
 
 package se.sics.cooja.contikimote;
@@ -1250,7 +1250,7 @@ public class ContikiMoteTypeDialog extends JDialog {
     String libString = CoreComm.getAvailableClassName();
     if (libString == null) {
       logger.fatal("No more libraries can be loaded!");
-      throw new Exception("Maximum number of mote types already exist");
+      throw new MoteTypeCreationException("Maximum number of mote types already exist");
     }
 
     // GENERATE NEW FILE
@@ -2059,10 +2059,11 @@ public class ContikiMoteTypeDialog extends JDialog {
         try {
           myMoteType.doInit(textID.getText());
         } catch (MoteTypeCreationException ex) {
-          JOptionPane.showMessageDialog(myDialog,
-              ex.getMessage(),
+          GUI.showErrorDialog(
+              myDialog,
               "Mote type creation error",
-              JOptionPane.ERROR_MESSAGE);
+              ex
+          );
           return;
         }
         myMoteType.setDescription(textDescription.getText());
