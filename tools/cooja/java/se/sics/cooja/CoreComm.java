@@ -24,7 +24,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * 
- * $Id: CoreComm.java,v 1.7 2007/05/09 07:18:36 fros4943 Exp $
+ * $Id: CoreComm.java,v 1.8 2007/05/10 16:59:00 fros4943 Exp $
  */
 
 package se.sics.cooja;
@@ -255,14 +255,14 @@ public abstract class CoreComm {
   public static CoreComm createCoreComm(String className, File libFile)
   throws MoteTypeCreationException {
     if (!generateLibSourceFile(className))
-      throw new MoteTypeCreationException("Could not generate library source file: " + className);
+      throw new MoteTypeCreationException("Could not generate corecomm source file: " + className + ".java");
     
     if (!compileSourceFile(className))
-      throw new MoteTypeCreationException("Could not compile library: " + className);
+      throw new MoteTypeCreationException("Could not compile corecomm source file: " + className + ".java");
 
     Class newCoreCommClass = loadClassFile(className);
     if (newCoreCommClass == null)
-      throw new MoteTypeCreationException("Could not load library class file: " + className);
+      throw new MoteTypeCreationException("Could not load corecomm class file: " + className + ".class");
 
     try {
       Constructor constr = newCoreCommClass.getConstructor(new Class[] { File.class });
@@ -273,14 +273,9 @@ public abstract class CoreComm {
       fileCounter++;
       
       return newCoreComm;
-    } catch (NoSuchMethodException e) {
-      throw new MoteTypeCreationException("Error when creating library instance (#1): " + className);
-    } catch (InstantiationException e) {
-      throw new MoteTypeCreationException("Error when creating library instance (#2): " + className);
-    } catch (InvocationTargetException e) {
-      throw new MoteTypeCreationException("Error when creating library instance (#3): " + className);
-    } catch (IllegalAccessException e) {
-      throw new MoteTypeCreationException("Error when creating library instance (#4): " + className);
+    } catch (Exception e) {
+      throw (MoteTypeCreationException) new MoteTypeCreationException(
+          "Error when creating library instance: " + className).initCause(e);
     }
   }
   
