@@ -24,7 +24,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * 
- * $Id: CoreComm.java,v 1.8 2007/05/10 16:59:00 fros4943 Exp $
+ * $Id: CoreComm.java,v 1.9 2007/05/11 10:02:13 fros4943 Exp $
  */
 
 package se.sics.cooja;
@@ -35,6 +35,7 @@ import java.net.*;
 import java.util.Vector;
 
 import se.sics.cooja.MoteType.MoteTypeCreationException;
+import se.sics.cooja.dialogs.MessageList;
 
 /**
  * The purpose of corecomm's is communicating with a compiled Contiki system
@@ -180,45 +181,82 @@ public abstract class CoreComm {
   }
 
   /**
-   * Compile given Java source file.
+   * Compiles Java class.
    * 
-   * @param className Class name
-   * @return True if success, false otherwise
+   * @param className Java class name (without extension)
+   * @throws MoteTypeCreationException If Java class compilation error occurrs
    */
-  private static boolean compileSourceFile(String className) {
+  private static void compileSourceFile(String className)
+      throws MoteTypeCreationException {
+    MessageList compilationOutput = new MessageList();
+    OutputStream compilationStandardStream = compilationOutput
+        .getInputStream(MessageList.NORMAL);
+    OutputStream compilationErrorStream = compilationOutput
+        .getInputStream(MessageList.ERROR);
+
     File classFile = new File("se/sics/cooja/corecomm/" + className + ".class");
 
     try {
-      String[] cmd = new String[]{
-          GUI.getExternalToolsSetting("PATH_JAVAC"),
-          "se/sics/cooja/corecomm/" + className + ".java"};
+      int b;
+      String[] cmd = new String[] { GUI.getExternalToolsSetting("PATH_JAVAC"),
+          "-version", "se/sics/cooja/corecomm/" + className + ".java" };
 
       Process p = Runtime.getRuntime().exec(cmd, null, null);
+      InputStream outputStream = p.getInputStream();
+      InputStream errorStream = p.getErrorStream();
+      while ((b = outputStream.read()) >= 0) {
+        compilationStandardStream.write(b);
+      }
+      while ((b = errorStream.read()) >= 0) {
+        compilationErrorStream.write(b);
+      }
       p.waitFor();
-      
+
       if (classFile.exists())
-        return true;
-      
+        return;
+
       // Try including cooja.jar
-      cmd = new String[]{
+      cmd = new String[] {
           GUI.getExternalToolsSetting("PATH_JAVAC"),
+          "-version",
           "se/sics/cooja/corecomm/" + className + ".java",
           "-cp",
-          GUI.getExternalToolsSetting("PATH_CONTIKI") + "/tools/cooja/dist/cooja.jar"};
+          GUI.getExternalToolsSetting("PATH_CONTIKI")
+              + "/tools/cooja/dist/cooja.jar" };
 
       p = Runtime.getRuntime().exec(cmd, null, null);
+
+      outputStream = p.getInputStream();
+      errorStream = p.getErrorStream();
+      while ((b = outputStream.read()) >= 0) {
+        compilationStandardStream.write(b);
+      }
+      while ((b = errorStream.read()) >= 0) {
+        compilationErrorStream.write(b);
+      }
       p.waitFor();
-      
+
       if (classFile.exists())
-        return true;
-      
+        return;
+
     } catch (IOException e) {
-      return false;
+      MoteTypeCreationException exception = (MoteTypeCreationException) new MoteTypeCreationException(
+          "Could not compile corecomm source file: " + className + ".java")
+          .initCause(e);
+      exception.setCompilationOutput(compilationOutput);
+      throw exception;
     } catch (InterruptedException e) {
-      return false;
+      MoteTypeCreationException exception = (MoteTypeCreationException) new MoteTypeCreationException(
+          "Could not compile corecomm source file: " + className + ".java")
+          .initCause(e);
+      exception.setCompilationOutput(compilationOutput);
+      throw exception;
     }
 
-    return false;
+    MoteTypeCreationException exception = new MoteTypeCreationException(
+        "Could not compile corecomm source file: " + className + ".java");
+    exception.setCompilationOutput(compilationOutput);
+    throw exception;
   }
   
   /**
@@ -257,8 +295,7 @@ public abstract class CoreComm {
     if (!generateLibSourceFile(className))
       throw new MoteTypeCreationException("Could not generate corecomm source file: " + className + ".java");
     
-    if (!compileSourceFile(className))
-      throw new MoteTypeCreationException("Could not compile corecomm source file: " + className + ".java");
+    compileSourceFile(className);
 
     Class newCoreCommClass = loadClassFile(className);
     if (newCoreCommClass == null)
