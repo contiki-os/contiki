@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF 
  * SUCH DAMAGE. 
  *
- * @(#)$Id: cle_avr.c,v 1.1 2007/04/26 13:38:22 bg- Exp $
+ * @(#)$Id: cle_avr.c,v 1.2 2007/05/11 15:40:16 bg- Exp $
  */
 
 /*
@@ -86,28 +86,28 @@ cle_write_reloc(unsigned char *pos,
 	   ELF32_R_TYPE(rela->r_info));
     return CLE_UNKNOWN_RELOC;
 
-#if VERIFY_BEFORE_ENABLE
   case R_AVR_7_PCREL:		/* 2 */
     /* Reloc in bits 0x03f8 (0000 00kk kkkk k000). */
-    byte = (addr - rela->r_offset - 2)/2;
+    byte = addr - rela->r_offset - 2;
+    byte = byte >> 1;
     pos[0] = (pos[0] & 0x07) | (byte << 3);	/* 0xf8 */
     pos[1] = (pos[1] & 0xfc) | (byte >> 5);	/* 0x03 */
     return CLE_OK;
 
   case R_AVR_13_PCREL:		/* 3 */
     /* Reloc in bits 0x0fff (0000 kkkk kkkk kkkk). */
-    addr = (addr - rela->r_offset - 2)/2;
+    addr = addr - rela->r_offset - 2;
+    addr = addr >> 1;
     pos[0] = addr;
     pos[1] = (pos[1] & 0xf0) | ((addr >> 8) & 0x0f);
     return CLE_OK;
-#endif
 
   case R_AVR_CALL:		/* 18 */
     addr = addr >> 1;
     pos[2] = addr;
     pos[3] = addr >> 8;
     return CLE_OK;
-    
+
   case R_AVR_16:		/* 4 */
     pos[0] = addr;
     pos[1] = addr >> 8;
