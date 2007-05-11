@@ -24,7 +24,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * 
- * $Id: CoreComm.java,v 1.9 2007/05/11 10:02:13 fros4943 Exp $
+ * $Id: CoreComm.java,v 1.10 2007/05/11 10:15:42 fros4943 Exp $
  */
 
 package se.sics.cooja;
@@ -39,18 +39,19 @@ import se.sics.cooja.dialogs.MessageList;
 
 /**
  * The purpose of corecomm's is communicating with a compiled Contiki system
- * using Java Native Interface (JNI). Each implemented class (named Lib[number]),
- * loads a shared library which belongs to one mote type. The reason for this
- * somewhat strange design is that once loaded, a native library cannot be
- * unloaded in Java (in the current versions available). Therefore if we wish to
- * load several libraries, the names and associated native functions must have
- * unique names. And those names are defined via the calling class in JNI. For
- * example, the corresponding function for a native tick method in class Lib1
- * will be named Java_se_sics_cooja_corecomm_Lib1_tick. When creating a new mote
- * type, the main Contiki source file is generated with function names
- * compatible with the next available corecomm class. This also implies that
- * even if a mote type is deleted, a new one cannot be created using the same
- * corecomm class without restarting the JVM and thus the entire simulation.
+ * using Java Native Interface (JNI). Each implemented class (named
+ * Lib[number]), loads a shared library which belongs to one mote type. The
+ * reason for this somewhat strange design is that once loaded, a native library
+ * cannot be unloaded in Java (in the current versions available). Therefore if
+ * we wish to load several libraries, the names and associated native functions
+ * must have unique names. And those names are defined via the calling class in
+ * JNI. For example, the corresponding function for a native tick method in
+ * class Lib1 will be named Java_se_sics_cooja_corecomm_Lib1_tick. When creating
+ * a new mote type, the main Contiki source file is generated with function
+ * names compatible with the next available corecomm class. This also implies
+ * that even if a mote type is deleted, a new one cannot be created using the
+ * same corecomm class without restarting the JVM and thus the entire
+ * simulation.
  * 
  * Each implemented CoreComm class needs read access to the following core
  * variables:
@@ -71,9 +72,11 @@ public abstract class CoreComm {
 
   // Static pointers to current libraries
   private final static Vector<CoreComm> coreComms = new Vector<CoreComm>();
+
   private final static Vector<File> coreCommFiles = new Vector<File>();
+
   private static int fileCounter = 1;
-  
+
   /**
    * Has any library been loaded? Since libraries can't be unloaded the entire
    * simulator may have to be restarted.
@@ -97,7 +100,8 @@ public abstract class CoreComm {
    */
   public static boolean hasLibraryFileBeenLoaded(File libraryFile) {
     for (File loadedFile : coreCommFiles)
-      if (loadedFile != null && loadedFile.getName().equals(libraryFile.getName()))
+      if (loadedFile != null
+          && loadedFile.getName().equals(libraryFile.getName()))
         return true;
     return false;
   }
@@ -117,10 +121,12 @@ public abstract class CoreComm {
    * the class name field.
    * 
    * @param className
-   *          Wanted class name
-   * @return True if success, false otherwise
+   *          Java class name (without extension)
+   * @throws MoteTypeCreationException
+   *           If error occurs
    */
-  public static boolean generateLibSourceFile(String className) {
+  public static void generateLibSourceFile(String className)
+      throws MoteTypeCreationException {
     BufferedWriter sourceFileWriter = null;
     BufferedReader templateFileReader = null;
     String destFilename = null;
@@ -129,7 +135,7 @@ public abstract class CoreComm {
       Reader reader;
       String mainTemplate = GUI
           .getExternalToolsSetting("CORECOMM_TEMPLATE_FILENAME");
-      
+
       if ((new File(mainTemplate)).exists()) {
         reader = new FileReader(mainTemplate);
       } else {
@@ -140,14 +146,14 @@ public abstract class CoreComm {
         }
         reader = new InputStreamReader(input);
       }
-      
+
       templateFileReader = new BufferedReader(reader);
       destFilename = className + ".java";
 
       File dir = new File("se/sics/cooja/corecomm");
-      if (!dir.exists()) 
+      if (!dir.exists())
         dir.mkdirs();
-      
+
       sourceFileWriter = new BufferedWriter(new OutputStreamWriter(
           new FileOutputStream("se/sics/cooja/corecomm/" + destFilename)));
 
@@ -167,24 +173,28 @@ public abstract class CoreComm {
         if (templateFileReader != null)
           templateFileReader.close();
       } catch (Exception e2) {
-        return false;
       }
 
-      return false;
+      throw (MoteTypeCreationException) new MoteTypeCreationException(
+          "Could not generate corecomm source file: " + className + ".java")
+          .initCause(e);
     }
 
     File genFile = new File("se/sics/cooja/corecomm/" + destFilename);
     if (genFile.exists())
-      return true;
+      return;
 
-    return false;
+    throw (MoteTypeCreationException) new MoteTypeCreationException(
+        "Could not generate corecomm source file: " + className + ".java");
   }
 
   /**
    * Compiles Java class.
    * 
-   * @param className Java class name (without extension)
-   * @throws MoteTypeCreationException If Java class compilation error occurrs
+   * @param className
+   *          Java class name (without extension)
+   * @throws MoteTypeCreationException
+   *           If Java class compilation error occurs
    */
   private static void compileSourceFile(String className)
       throws MoteTypeCreationException {
@@ -258,28 +268,41 @@ public abstract class CoreComm {
     exception.setCompilationOutput(compilationOutput);
     throw exception;
   }
-  
+
   /**
-   * Load given Java class file, making it ready to be used.
+   * Loads given Java class file from disk.
    * 
-   * @param classFile Class file
-   * @return Loaded class, or null
+   * @param classFile
+   *          Java class (without extension)
+   * @return Loaded class
+   * @throws MoteTypeCreationException
+   *           If error occurs
    */
-  private static Class loadClassFile(String className) {
+  private static Class loadClassFile(String className)
+      throws MoteTypeCreationException {
     Class loadedClass = null;
     try {
-      ClassLoader urlClassLoader = new URLClassLoader(
-          new URL[] { new File(".").toURL() }, 
-          CoreComm.class.getClassLoader());
-      loadedClass = urlClassLoader.loadClass("se.sics.cooja.corecomm." + className);
+      ClassLoader urlClassLoader = new URLClassLoader(new URL[] { new File(".")
+          .toURL() }, CoreComm.class.getClassLoader());
+      loadedClass = urlClassLoader.loadClass("se.sics.cooja.corecomm."
+          + className);
+
     } catch (MalformedURLException e) {
-      return null;
+      throw (MoteTypeCreationException) new MoteTypeCreationException(
+          "Could not load corecomm class file: " + className + ".class")
+          .initCause(e);
     } catch (ClassNotFoundException e) {
-      return null;
+      throw (MoteTypeCreationException) new MoteTypeCreationException(
+          "Could not load corecomm class file: " + className + ".class")
+          .initCause(e);
     }
+    if (loadedClass == null)
+      throw (MoteTypeCreationException) new MoteTypeCreationException(
+          "Could not load corecomm class file: " + className + ".class");
+
     return loadedClass;
   }
-  
+
   /**
    * Create and return an instance of the core communicator identified by
    * className. This core communicator will load the native library libFile.
@@ -291,31 +314,30 @@ public abstract class CoreComm {
    * @return Core Communicator
    */
   public static CoreComm createCoreComm(String className, File libFile)
-  throws MoteTypeCreationException {
-    if (!generateLibSourceFile(className))
-      throw new MoteTypeCreationException("Could not generate corecomm source file: " + className + ".java");
-    
+      throws MoteTypeCreationException {
+    generateLibSourceFile(className);
+
     compileSourceFile(className);
 
     Class newCoreCommClass = loadClassFile(className);
-    if (newCoreCommClass == null)
-      throw new MoteTypeCreationException("Could not load corecomm class file: " + className + ".class");
 
     try {
-      Constructor constr = newCoreCommClass.getConstructor(new Class[] { File.class });
-      CoreComm newCoreComm = (CoreComm) constr.newInstance(new Object[] { libFile });
+      Constructor constr = newCoreCommClass
+          .getConstructor(new Class[] { File.class });
+      CoreComm newCoreComm = (CoreComm) constr
+          .newInstance(new Object[] { libFile });
 
       coreComms.add(newCoreComm);
       coreCommFiles.add(libFile);
       fileCounter++;
-      
+
       return newCoreComm;
     } catch (Exception e) {
       throw (MoteTypeCreationException) new MoteTypeCreationException(
-          "Error when creating library instance: " + className).initCause(e);
+          "Error when creating corecomm instance: " + className).initCause(e);
     }
   }
-  
+
   /**
    * Ticks a mote once. This should not be used directly, but instead via
    * Mote.tick().
