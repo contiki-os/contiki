@@ -24,7 +24,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * 
- * $Id: GUI.java,v 1.44 2007/05/10 17:08:44 fros4943 Exp $
+ * $Id: GUI.java,v 1.45 2007/05/11 10:55:07 fros4943 Exp $
  */
 
 package se.sics.cooja;
@@ -1848,13 +1848,13 @@ public class GUI {
             progressDialog.dispose();
           }
         } catch (UnsatisfiedLinkError e) {
-          showErrorDialog(frame, "Simulation load error", e);
+          showErrorDialog(frame, "Simulation load error", e, false);
 
           if (progressDialog != null && progressDialog.isDisplayable()) 
             progressDialog.dispose();
           newSim = null;
         } catch (SimulationCreationException e) {
-          showErrorDialog(frame, "Simulation load error", e);
+          showErrorDialog(frame, "Simulation load error", e, false);
 
           if (progressDialog != null && progressDialog.isDisplayable()) 
             progressDialog.dispose();
@@ -1982,25 +1982,27 @@ public class GUI {
         }
 
         // Reload altered simulation config
-        try {
-          myGUI.doRemoveSimulation(false);
-          Simulation newSim = loadSimulationConfig(new StringReader(configXML), true);
-          myGUI.setSimulation(newSim);
+        boolean shouldRetry = false;
+        do {
+          try {
+            shouldRetry = false;
+            myGUI.doRemoveSimulation(false);
+            Simulation newSim = loadSimulationConfig(new StringReader(configXML), true);
+            myGUI.setSimulation(newSim);
+          } catch (UnsatisfiedLinkError e) {
+            shouldRetry = showErrorDialog(frame, "Simulation reload error", e, true);
 
-        } catch (UnsatisfiedLinkError e) {
-          showErrorDialog(frame, "Simulation reload error", e);
+            myGUI.doRemoveSimulation(false);
+          } catch (SimulationCreationException e) {
+            shouldRetry = showErrorDialog(frame, "Simulation reload error", e, true);
 
-          myGUI.doRemoveSimulation(false);
-        } catch (SimulationCreationException e) {
-          showErrorDialog(frame, "Simulation reload error", e);
-
-          myGUI.doRemoveSimulation(false);
-        } finally {
-          if (progressDialog != null && progressDialog.isDisplayable()) { 
-            progressDialog.dispose();
+            myGUI.doRemoveSimulation(false);
           }
-        }
+        } while (shouldRetry);
 
+        if (progressDialog != null && progressDialog.isDisplayable()) { 
+          progressDialog.dispose();
+        }
       }
     });
 
@@ -3015,16 +3017,31 @@ public class GUI {
     }
   }
 
-  public static void showErrorDialog(Component parentComponent, final String title, Throwable exception) {
+  /**
+   * Shows a simple dialog with information about the thrown exception. A user
+   * may watch the stack trace and, if the exception is a
+   * MoteTypeCreationException, watch compilation output.
+   * 
+   * @param parentComponent
+   *          Parent component
+   * @param title
+   *          Title of error window
+   * @param exception
+   *          Exception causing window to be shown
+   * @param retryAvailable
+   *          If true, a retry option is available
+   */
+  public static boolean showErrorDialog(Component parentComponent,
+      final String title, Throwable exception, boolean retryAvailable) {
 
     MessageList compilationOutput = null;
     MessageList stackTrace = null;
     String message = title;
-    
+
     // Create message
     if (exception != null)
       message = exception.getMessage();
-    
+
     // Create stack trace message list
     if (exception != null) {
       stackTrace = new MessageList();
@@ -3033,15 +3050,17 @@ public class GUI {
     }
 
     // Create compilation out message list (if available)
-    if (exception != null 
-        && exception instanceof MoteTypeCreationException 
+    if (exception != null && exception instanceof MoteTypeCreationException
         && ((MoteTypeCreationException) exception).hasCompilationOutput()) {
-      compilationOutput = ((MoteTypeCreationException) exception).getCompilationOutput();
-    } else if (exception != null 
-        && exception.getCause() != null 
-        && exception.getCause() instanceof MoteTypeCreationException 
-        && ((MoteTypeCreationException) exception.getCause()).hasCompilationOutput()) {
-      compilationOutput = ((MoteTypeCreationException) exception.getCause()).getCompilationOutput();
+      compilationOutput = ((MoteTypeCreationException) exception)
+          .getCompilationOutput();
+    } else if (exception != null
+        && exception.getCause() != null
+        && exception.getCause() instanceof MoteTypeCreationException
+        && ((MoteTypeCreationException) exception.getCause())
+            .hasCompilationOutput()) {
+      compilationOutput = ((MoteTypeCreationException) exception.getCause())
+          .getCompilationOutput();
     }
 
     // Create error dialog
@@ -3051,20 +3070,21 @@ public class GUI {
     else if (parentComponent instanceof Frame)
       errorDialog = new JDialog((Frame) parentComponent, title, true);
     else if (parentComponent instanceof Window)
-      errorDialog = new JDialog((Window) parentComponent, title, ModalityType.APPLICATION_MODAL);
+      errorDialog = new JDialog((Window) parentComponent, title,
+          ModalityType.APPLICATION_MODAL);
     else {
       logger.fatal("Bad parent for error dialog");
       errorDialog = new JDialog((Frame) null, title + " (Java stack trace)");
-      return;
     }
-    
+
     final JPanel errorPanel = new JPanel();
     errorPanel.setLayout(new BoxLayout(errorPanel, BoxLayout.Y_AXIS));
     errorPanel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
     Box messageBox = Box.createHorizontalBox();
 
-//    Icon myIcon = (Icon)DefaultLookup.get(errorPanel, null, "OptionPane.errorIcon");
-//    messageBox.add(new JLabel(myIcon));
+    // Icon myIcon = (Icon)DefaultLookup.get(errorPanel, null,
+    // "OptionPane.errorIcon");
+    // messageBox.add(new JLabel(myIcon));
     messageBox.add(Box.createHorizontalGlue());
     messageBox.add(new JLabel(message));
     messageBox.add(Box.createHorizontalGlue());
@@ -3077,11 +3097,13 @@ public class GUI {
       showCompilationButton.addActionListener(new ActionListener() {
         public void actionPerformed(ActionEvent e) {
           JDialog messageListDialog = new JDialog(errorDialog, titleToDisplay);
-        
+
           JPanel messageListPanel = new JPanel(new BorderLayout());
 
-          messageListPanel.add(BorderLayout.CENTER, new JScrollPane(listToDisplay));
-          messageListPanel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
+          messageListPanel.add(BorderLayout.CENTER, new JScrollPane(
+              listToDisplay));
+          messageListPanel.setBorder(BorderFactory.createEmptyBorder(20, 20,
+              20, 20));
           messageListPanel.setVisible(true);
 
           messageListDialog.getContentPane().add(messageListPanel);
@@ -3089,13 +3111,16 @@ public class GUI {
           messageListDialog.pack();
           messageListDialog.setLocationRelativeTo(errorDialog);
 
-          Rectangle maxSize = GraphicsEnvironment.getLocalGraphicsEnvironment().getMaximumWindowBounds();
-          if (maxSize != null && 
-              (messageListDialog.getSize().getWidth() > maxSize.getWidth()
-                  || messageListDialog.getSize().getHeight() > maxSize.getHeight())) {
+          Rectangle maxSize = GraphicsEnvironment.getLocalGraphicsEnvironment()
+              .getMaximumWindowBounds();
+          if (maxSize != null
+              && (messageListDialog.getSize().getWidth() > maxSize.getWidth() || messageListDialog
+                  .getSize().getHeight() > maxSize.getHeight())) {
             Dimension newSize = new Dimension();
-            newSize.height = Math.min((int) maxSize.getHeight(), (int) messageListDialog.getSize().getHeight());
-            newSize.width = Math.min((int) maxSize.getWidth(), (int) messageListDialog.getSize().getWidth());
+            newSize.height = Math.min((int) maxSize.getHeight(),
+                (int) messageListDialog.getSize().getHeight());
+            newSize.width = Math.min((int) maxSize.getWidth(),
+                (int) messageListDialog.getSize().getWidth());
             messageListDialog.setSize(newSize);
           }
 
@@ -3104,7 +3129,7 @@ public class GUI {
       });
       buttonBox.add(showCompilationButton);
     }
-    
+
     if (stackTrace != null) {
       final MessageList listToDisplay = stackTrace;
       final String titleToDisplay = title + " (Java stack trace)";
@@ -3112,11 +3137,13 @@ public class GUI {
       showTraceButton.addActionListener(new ActionListener() {
         public void actionPerformed(ActionEvent e) {
           JDialog messageListDialog = new JDialog(errorDialog, titleToDisplay);
-        
+
           JPanel messageListPanel = new JPanel(new BorderLayout());
 
-          messageListPanel.add(BorderLayout.CENTER, new JScrollPane(listToDisplay));
-          messageListPanel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
+          messageListPanel.add(BorderLayout.CENTER, new JScrollPane(
+              listToDisplay));
+          messageListPanel.setBorder(BorderFactory.createEmptyBorder(20, 20,
+              20, 20));
           messageListPanel.setVisible(true);
 
           messageListDialog.getContentPane().add(messageListPanel);
@@ -3124,20 +3151,34 @@ public class GUI {
           messageListDialog.pack();
           messageListDialog.setLocationRelativeTo(errorDialog);
 
-          Rectangle maxSize = GraphicsEnvironment.getLocalGraphicsEnvironment().getMaximumWindowBounds();
-          if (maxSize != null && 
-              (messageListDialog.getSize().getWidth() > maxSize.getWidth()
-                  || messageListDialog.getSize().getHeight() > maxSize.getHeight())) {
+          Rectangle maxSize = GraphicsEnvironment.getLocalGraphicsEnvironment()
+              .getMaximumWindowBounds();
+          if (maxSize != null
+              && (messageListDialog.getSize().getWidth() > maxSize.getWidth() || messageListDialog
+                  .getSize().getHeight() > maxSize.getHeight())) {
             Dimension newSize = new Dimension();
-            newSize.height = Math.min((int) maxSize.getHeight(), (int) messageListDialog.getSize().getHeight());
-            newSize.width = Math.min((int) maxSize.getWidth(), (int) messageListDialog.getSize().getWidth());
+            newSize.height = Math.min((int) maxSize.getHeight(),
+                (int) messageListDialog.getSize().getHeight());
+            newSize.width = Math.min((int) maxSize.getWidth(),
+                (int) messageListDialog.getSize().getWidth());
             messageListDialog.setSize(newSize);
           }
-          
+
           messageListDialog.setVisible(true);
         }
       });
       buttonBox.add(showTraceButton);
+    }
+
+    if (retryAvailable) {
+      JButton retryButton = new JButton("Retry");
+      retryButton.addActionListener(new ActionListener() {
+        public void actionPerformed(ActionEvent e) {
+          errorDialog.dispose();
+          errorDialog.setTitle("-RETRY-");
+        }
+      });
+      buttonBox.add(retryButton);
     }
 
     JButton closeButton = new JButton("Close");
@@ -3149,12 +3190,17 @@ public class GUI {
     buttonBox.add(closeButton);
 
     errorPanel.add(messageBox);
+    errorPanel.add(Box.createVerticalStrut(20));
     errorPanel.add(buttonBox);
-    
+
     errorDialog.getContentPane().add(errorPanel);
     errorDialog.pack();
     errorDialog.setLocationRelativeTo(parentComponent);
     errorDialog.setVisible(true);
+
+    if (errorDialog.getTitle().equals("-RETRY-"))
+      return true;
+    return false;
   }
 
 }

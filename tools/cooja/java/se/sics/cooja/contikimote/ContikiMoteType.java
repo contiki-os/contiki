@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ContikiMoteType.java,v 1.12 2007/05/10 17:01:02 fros4943 Exp $
+ * $Id: ContikiMoteType.java,v 1.13 2007/05/11 10:55:26 fros4943 Exp $
  */
 
 package se.sics.cooja.contikimote;
@@ -42,7 +42,6 @@ import org.apache.log4j.Logger;
 import org.jdom.Element;
 
 import se.sics.cooja.*;
-import se.sics.cooja.MoteType.MoteTypeCreationException;
 import se.sics.cooja.dialogs.MessageList;
 
 /**

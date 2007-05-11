@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ContikiMoteTypeDialog.java,v 1.27 2007/05/10 17:02:04 fros4943 Exp $
+ * $Id: ContikiMoteTypeDialog.java,v 1.28 2007/05/11 10:55:26 fros4943 Exp $
  */
 
 package se.sics.cooja.contikimote;
@@ -2062,7 +2062,8 @@ public class ContikiMoteTypeDialog extends JDialog {
           GUI.showErrorDialog(
               myDialog,
               "Mote type creation error",
-              ex
+              ex,
+              false
           );
           return;
         }
