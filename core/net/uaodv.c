@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: uaodv.c,v 1.19 2007/05/09 16:45:03 bg- Exp $
+ * $Id: uaodv.c,v 1.20 2007/05/12 21:04:05 oliverschmidt Exp $
  */
 
 /**
@@ -61,16 +61,7 @@ PROCESS(uaodv_process, "uAODV");
 static struct uip_udp_conn *bcastconn, *unicastconn;
 
 /* Compare sequence numbers as per RFC 3561. */
-#ifdef __GNUC__
-#define SCMP32(a, b) ((int32_t)((a) - (b)))
-#else /* __GNUC__ */
-/*
- * The macro above works for any compiler that does int32_t arithmetic
- * in 2's complement. Machines that does not use 2's complement needs
- * to figure a different implementation.
- */
-#define SCMP32(a, b) exit(1) 
-#endif /* __GNUC__ */
+#define SCMP32(a, b) ((s32_t)((a) - (b)))
 
 static CC_INLINE u32_t
 last_known_seqno(uip_ipaddr_t *host)
