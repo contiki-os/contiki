@@ -32,7 +32,7 @@
  *
  * This file is part of the Contiki desktop OS
  *
- * $Id: contiki-conf.h,v 1.4 2007/04/11 00:26:27 oliverschmidt Exp $
+ * $Id: contiki-conf.h,v 1.5 2007/05/12 20:58:54 oliverschmidt Exp $
  *
  */
 
@@ -78,6 +78,14 @@ typedef uint16_t u16_t;
  * short" works for most compilers.
  */
 typedef uint32_t u32_t;
+
+/**
+ * The 32-bit signed data type.
+ *
+ * This may have to be tweaked for your particular compiler. "signed
+ * short" works for most compilers.
+ */
+typedef int32_t s32_t;
 
 /**
  * The statistics data type.

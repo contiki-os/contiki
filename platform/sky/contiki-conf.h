@@ -1,5 +1,5 @@
 /* -*- C -*- */
-/* @(#)$Id: contiki-conf.h,v 1.14 2007/04/11 15:22:05 bg- Exp $ */
+/* @(#)$Id: contiki-conf.h,v 1.15 2007/05/12 21:02:23 oliverschmidt Exp $ */
 
 #ifndef CONTIKI_CONF_H
 #define CONTIKI_CONF_H
@@ -71,9 +71,10 @@ void msp430_cpu_init(void);	/* Rename to cpu_init() later! */
 /* Button sensors. */
 #define IRQ_PORT2 0x02
 
-typedef unsigned char u8_t;
+typedef unsigned char   u8_t;
 typedef unsigned short u16_t;
-typedef unsigned long u32_t;
+typedef unsigned long  u32_t;
+typedef          long  s32_t;
 typedef unsigned short uip_stats_t;
 typedef unsigned short clock_time_t;
 

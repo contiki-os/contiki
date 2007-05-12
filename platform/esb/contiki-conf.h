@@ -59,6 +59,14 @@ typedef unsigned short u16_t;
 typedef unsigned long u32_t;
 
 /**
+ * The 32-bit signed data type.
+ *
+ * This may have to be tweaked for your particular compiler. "signed
+ * long" works for most compilers.
+ */
+typedef long s32_t;
+
+/**
  * The statistics data type.
  *
  * This datatype determines how high the statistics counters are able
