@@ -116,9 +116,10 @@ typedef unsigned long clock_time_t;
 
 
 
-typedef unsigned char u8_t;
+typedef unsigned char   u8_t;
 typedef unsigned short u16_t;
-typedef unsigned long u32_t;
+typedef unsigned long  u32_t;
+typedef          long  s32_t;
 typedef unsigned short uip_stats_t;
 
 #define UIP_CONF_MAX_CONNECTIONS 40

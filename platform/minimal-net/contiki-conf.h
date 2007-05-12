@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: contiki-conf.h,v 1.4 2007/04/11 00:27:17 oliverschmidt Exp $
+ * @(#)$Id: contiki-conf.h,v 1.5 2007/05/12 21:00:56 oliverschmidt Exp $
  */
 
 #ifndef __CONTIKI_CONF_H__
@@ -44,9 +44,10 @@
 #define CCIF
 #define CLIF
 
-typedef uint8_t u8_t;
+typedef uint8_t   u8_t;
 typedef uint16_t u16_t;
 typedef uint32_t u32_t;
+typedef  int32_t s32_t;
 typedef unsigned short uip_stats_t;
 
 #define UIP_CONF_MAX_CONNECTIONS 40

@@ -1,9 +1,10 @@
 #ifndef __6502_CONF_H__
 #define __6502_CONF_H__
 
-typedef unsigned char  u8_t;
+typedef unsigned char   u8_t;
 typedef unsigned short u16_t;
 typedef unsigned long  u32_t;
+typedef          long  s32_t;
 typedef unsigned short uip_stats_t;
 
 #define CC_CONF_REGISTER_ARGS 1

@@ -130,6 +130,7 @@ typedef unsigned char u8_t;
 typedef unsigned short u16_t;
 
 typedef unsigned long u32_t;
+typedef          long s32_t;
 
 /**
  * The statistics data type.
