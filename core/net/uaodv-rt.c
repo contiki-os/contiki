@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: uaodv-rt.c,v 1.6 2007/05/09 16:45:53 bg- Exp $
+ * $Id: uaodv-rt.c,v 1.7 2007/05/13 15:14:48 bg- Exp $
  */
 
 /**
@@ -109,7 +109,7 @@ uaodv_rt_lookup(uip_ipaddr_t *dest)
   struct uaodv_rt_entry *e;
 
   e = uaodv_rt_lookup_any(dest);
-  if(e->is_bad)
+  if(e != NULL && e->is_bad)
     return NULL;
   return e;
 }
