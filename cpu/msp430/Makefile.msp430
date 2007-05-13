@@ -1,4 +1,4 @@
-# $Id: Makefile.msp430,v 1.15 2007/04/03 19:05:13 adamdunkels Exp $
+# $Id: Makefile.msp430,v 1.16 2007/05/13 08:41:49 oliverschmidt Exp $
 
 ifdef nodeid
 CFLAGS += -DNODEID=$(nodeid)
@@ -10,6 +10,8 @@ endif
 CONTIKI_CPU=$(CONTIKI)/cpu/msp430
 
 ### Define the source files we have in the MSP430 port
+
+CONTIKI_CPU_DIRS = . dev
 
 MSP430     = msp430.c flash.c clock.c leds.c leds-arch.c \
              watchdog.c lpm.c mtarch.c uart1.c rtimer-arch.c
@@ -47,17 +49,7 @@ LDFLAGS += -mmcu=$(MCU) -Wl,-Map=contiki-$(TARGET).map
 
 PROJECT_OBJECTFILES += ${addprefix $(OBJECTDIR)/,$(CONTIKI_TARGET_MAIN:.c=.o)}
 
-### Setup directory search path for source files
-
-CONTIKI_TARGET_DIRS_CONCAT = ${addprefix $(CONTIKI)/platform/$(TARGET)/, \
-                               $(CONTIKI_TARGET_DIRS)}
-
-vpath %.c $(PROJECTDIRS) \
-	  $(CONTIKIDIRS) $(APPDIRS) $(CONTIKI_TARGET_DIRS_CONCAT) \
-	  $(CONTIKI_CPU) $(CONTIKI_CPU)/dev
-
 ### Compilation rules
-
 
 %-stripped.o: %.c
 	$(CC) $(CFLAGS) -c $< -o $@

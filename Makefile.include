@@ -70,7 +70,21 @@ ifdef APPS
 endif
 
 ### Include target makefile (TODO Unsafe?)
+
 include $(CONTIKI)/platform/$(TARGET)/Makefile.$(TARGET)
+
+### Setup directory search path for source files
+
+CONTIKI_TARGET_DIRS_CONCAT = ${addprefix $(CONTIKI)/platform/$(TARGET)/, \
+                               $(CONTIKI_TARGET_DIRS)}
+CONTIKI_CPU_DIRS_CONCAT    = ${addprefix $(CONTIKI_CPU)/, \
+                               $(CONTIKI_CPU_DIRS)}
+
+SOURCEDIRS = $(PROJECTDIRS) $(CONTIKI_TARGET_DIRS_CONCAT) \
+             $(CONTIKI_CPU_DIRS_CONCAT) $(CONTIKIDIRS) $(APPDIRS)
+
+vpath %.c $(SOURCEDIRS)
+vpath %.S $(SOURCEDIRS)
 
 ### Automatic dependency generation
 
@@ -78,7 +92,6 @@ ifneq ($(MAKECMDGOALS),clean)
 -include ${addprefix $(OBJECTDIR)/,$(CONTIKI_SOURCEFILES:.c=.d) \
 				   $(PROJECT_SOURCEFILES:.c=.d)}
 endif
-
 
 clean:
 	rm -f *~ *core core *.srec \

@@ -30,7 +30,7 @@
 #
 # Author: Oliver Schmidt <ol.sc@web.de>
 #
-# $Id: Makefile.win32,v 1.7 2007/04/21 22:17:22 oliverschmidt Exp $
+# $Id: Makefile.win32,v 1.8 2007/05/13 08:46:18 oliverschmidt Exp $
 #
 
 ifndef CONTIKI
@@ -77,10 +77,3 @@ $(PRGS:=.prg):
 	$(LD) -shared $^ contiki-main.$(TARGET).a -o $@
 $(DSCS:=.dsc):
 	$(LD) -shared $^ contiki-main.$(TARGET).a -o $@
-
-### Setup directory search path for source files
-CONTIKI_TARGET_DIRS_CONCAT = ${addprefix $(CONTIKI)/platform/$(TARGET)/, \
-                               $(CONTIKI_TARGET_DIRS)}
-vpath %.c $(PROJECTDIRS) \
-	  $(CONTIKIDIRS) $(APPDIRS) $(CONTIKI_TARGET_DIRS_CONCAT) \
-	  $(CONTIKI_CPU) $(APP_DIRS)

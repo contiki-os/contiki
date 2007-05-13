@@ -1,3 +1,5 @@
+CONTIKI_CPU_DIRS = .
+
 CONTIKI_SOURCEFILES += mtarch.c elfloader-x86.c
 
 ### Compiler definitions

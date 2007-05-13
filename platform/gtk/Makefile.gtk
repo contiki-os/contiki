@@ -26,12 +26,3 @@ include $(CONTIKI_CPU)/Makefile.native
 CFLAGS   += -DCTK_GTKSIM_SERVICE_PNGDIR=\"$(CONTIKI)/platform/gtk\" \
             `pkg-config --cflags gtk+-2.0`
 TARGET_LIBFILES = -Wl,-Map=contiki.map,-export-dynamic `pkg-config --libs gtk+-2.0`
-
-
-### Setup directory search path for source files
-
-CONTIKI_TARGET_DIRS_CONCAT = ${addprefix $(CONTIKI)/platform/$(TARGET)/, \
-                               $(CONTIKI_TARGET_DIRS)}
-vpath %.c $(PROJECTDIRS) \
-	  $(CONTIKIDIRS) $(APPDIRS) $(CONTIKI_TARGET_DIRS_CONCAT) \
-	  $(CONTIKI_CPU) $(APP_DIRS)
