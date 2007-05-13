@@ -2,8 +2,6 @@ ifndef CONTIKI
   $(error CONTIKI not defined! You must specify where CONTIKI resides!)
 endif
 
-#contiki:	contiki-$(TARGET).a
-
 CONTIKI_TARGET_DIRS = . dev apps net
 
 SENSORS = sensors.c beep.c button-sensor.c pir-sensor.c vib-sensor.c \
@@ -35,13 +33,3 @@ TARGET_LIBFILES = `gtk-config --libs`
 ifeq ($(OS),Windows_NT)
 TARGET_LIBFILES += /lib/w32api/libws2_32.a /lib/w32api/libiphlpapi.a
 endif
-
-### Setup directory search path for source files
-
-CONTIKI_TARGET_DIRS_CONCAT = ${addprefix $(CONTIKI)/platform/$(TARGET)/, \
-                               $(CONTIKI_TARGET_DIRS)}
-vpath %.c $(PROJECTDIRS) \
-	  $(CONTIKIDIRS) $(APPDIRS) $(CONTIKI_TARGET_DIRS_CONCAT) \
-	  $(CONTIKI_CPU)
-
-### Compilation rules

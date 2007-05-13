@@ -30,7 +30,7 @@
 #
 # Author: Oliver Schmidt <ol.sc@web.de>
 #
-# $Id: Makefile.6502,v 1.7 2007/04/21 22:15:45 oliverschmidt Exp $
+# $Id: Makefile.6502,v 1.8 2007/05/13 08:41:32 oliverschmidt Exp $
 #
 
 ifndef CONTIKI
@@ -96,16 +96,3 @@ CUSTOM_RULE_C_TO_CO = 1
 
 $(OBJECTDIR)/%.o: %.S
 	$(AS) $(AFLAGS) $< -o $@
-
-### Setup directory search path for source files
-
-CONTIKI_TARGET_DIRS_CONCAT = ${addprefix $(CONTIKI)/platform/$(TARGET)/, \
-                               $(CONTIKI_TARGET_DIRS)}
-CONTIKI_CPU_DIRS_CONCAT    = ${addprefix $(CONTIKI)/cpu/6502/, \
-                               $(CONTIKI_CPU_DIRS)}
-SOURCEDIRS = $(PROJECTDIRS) \
-	     $(CONTIKI_TARGET_DIRS_CONCAT) $(CONTIKI_CPU_DIRS_CONCAT) \
-	     $(CONTIKIDIRS) $(APPDIRS) $(APP_DIRS)
-
-vpath %.c $(SOURCEDIRS)
-vpath %.S $(SOURCEDIRS)

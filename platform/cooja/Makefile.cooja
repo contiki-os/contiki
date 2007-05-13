@@ -1,4 +1,4 @@
-# $Id: Makefile.cooja,v 1.14 2007/04/02 10:28:52 fros4943 Exp $
+# $Id: Makefile.cooja,v 1.15 2007/05/13 08:42:54 oliverschmidt Exp $
 
 ## The COOJA Simulator Contiki platform Makefile
 ##
@@ -83,14 +83,6 @@ CFLAGSNO = -I. -I$(CONTIKI_CPU) \
           -Wall -g -I. -I/usr/local/include
 CFLAGS   = $(CFLAGSNO)
 
-### Setup directory search path for source files
-CONTIKI_TARGET_DIRS_CONCAT = ${addprefix $(COOJA)/, \
-                               $(CONTIKI_TARGET_DIRS)}
-
-vpath %.c $(PROJECTDIRS) \
-	  $(CONTIKIDIRS) $(APPDIRS) $(CONTIKI_TARGET_DIRS_CONCAT) \
-	  $(CONTIKI_CPU)
-
 ### Define custom targets
 $(LIBFILE): $(MAINFILE) $(PROJECT_OBJECTFILES) $(DEPFILE)
 ifdef SYMBOLS
@@ -114,4 +106,3 @@ endif
 symbols.c:
 	# Create initial symbol files if not existing
 	${CONTIKI}/tools/make-empty-symbols
-	
