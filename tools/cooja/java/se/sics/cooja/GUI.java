@@ -24,13 +24,12 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * 
- * $Id: GUI.java,v 1.45 2007/05/11 10:55:07 fros4943 Exp $
+ * $Id: GUI.java,v 1.46 2007/05/14 12:13:08 fros4943 Exp $
  */
 
 package se.sics.cooja;
 
 import java.awt.*;
-import java.awt.Dialog.ModalityType;
 import java.awt.event.*;
 import java.beans.PropertyVetoException;
 import java.io.*;
@@ -3069,9 +3068,9 @@ public class GUI {
       errorDialog = new JDialog((Dialog) parentComponent, title, true);
     else if (parentComponent instanceof Frame)
       errorDialog = new JDialog((Frame) parentComponent, title, true);
-    else if (parentComponent instanceof Window)
-      errorDialog = new JDialog((Window) parentComponent, title,
-          ModalityType.APPLICATION_MODAL);
+//    else if (parentComponent instanceof Window)
+//      errorDialog = new JDialog((Window) parentComponent, title,
+//          ModalityType.APPLICATION_MODAL);
     else {
       logger.fatal("Bad parent for error dialog");
       errorDialog = new JDialog((Frame) null, title + " (Java stack trace)");
