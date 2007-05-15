@@ -1,11 +1,12 @@
-# $Id: Makefile.sky,v 1.6 2007/03/25 17:21:33 adamdunkels Exp $
+# $Id: Makefile.sky,v 1.7 2007/05/15 08:11:59 adamdunkels Exp $
 
 
 ARCH=msp430.c minileds.c watchdog.c light.c button.c spi.c ds2411.c \
-     rom.c xmem.c i2c.c \
-     simple-cc2420.c simple-cc2420-rime.c cc2420_uart0.c irq.c \
+     rom.c xmem.c i2c.c sht11.c \
+     simple-cc2420.c cc2420_uart0.c irq.c energest-arch.c \
      node-id.c sensors.c button-sensor.c cfs-xmem.c \
-     slip.c slip_uart1.c uip-ipchksum.c radio-sensor.c
+     radio-sensor.c uart1.c \
+     #slip.c slip_uart1.c uip-ipchksum.c
 
 CONTIKI_TARGET_DIRS = . dev apps net
 ifndef CONTIKI_TARGET_MAIN
