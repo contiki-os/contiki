@@ -1,3 +1,4 @@
+
 /**
  * \addtogroup rimeuc
  * @{
@@ -33,7 +34,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: uc.c,v 1.9 2007/03/31 18:31:29 adamdunkels Exp $
+ * $Id: uc.c,v 1.10 2007/05/15 08:09:21 adamdunkels Exp $
  */
 
 /**
@@ -46,6 +47,10 @@
 #include "net/rime.h"
 #include "net/rime/uc.h"
 #include <string.h>
+
+/* XXX This is a hack: MAC protocols may use this address as the
+   receiver address of packets. */
+rimeaddr_t uc_receiver;
 
 struct uc_hdr {
   rimeaddr_t receiver;
@@ -94,9 +99,13 @@ uc_send(struct uc_conn *c, rimeaddr_t *receiver)
 {
   PRINTF("%d: uc_send to %d\n", rimeaddr_node_addr.u16, receiver->u16);
   if(rimebuf_hdralloc(sizeof(struct uc_hdr))) {
+    int ret;
     struct uc_hdr *hdr = rimebuf_hdrptr();
     rimeaddr_copy(&hdr->receiver, receiver);
-    return ibc_send(&c->c);
+    rimeaddr_copy(&uc_receiver, receiver);
+    ret = ibc_send(&c->c);
+    rimeaddr_copy(&uc_receiver, &rimeaddr_null);
+    return ret;
   }
   return 0;
 }

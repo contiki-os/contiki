@@ -36,7 +36,7 @@
  *
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: abc.c,v 1.12 2007/03/31 18:31:27 adamdunkels Exp $
+ * $Id: abc.c,v 1.13 2007/05/15 08:09:21 adamdunkels Exp $
  */
 
 /**
@@ -46,7 +46,7 @@
  *         Adam Dunkels <adam@sics.se>
  */
 
-#include "contiki.h"
+#include "contiki-net.h"
 #include "net/rime.h"
 
 struct abc_hdr {
@@ -89,8 +89,7 @@ abc_send(struct abc_conn *c)
     PRINTF("%d: abc: abc_send on channel %d\n", rimeaddr_node_addr.u16, c->channel);
     
     hdr->channel = c->channel;
-    rimebuf_compact();
-    rime_driver_send();
+    rime_output();
     return 1;
   }
   return 0;

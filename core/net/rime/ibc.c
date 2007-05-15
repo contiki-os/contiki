@@ -33,7 +33,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: ibc.c,v 1.9 2007/03/29 23:18:22 adamdunkels Exp $
+ * $Id: ibc.c,v 1.10 2007/05/15 08:09:21 adamdunkels Exp $
  */
 
 /**
@@ -43,8 +43,7 @@
  *         Adam Dunkels <adam@sics.se>
  */
 
-#include "net/rime/ibc.h"
-#include "net/rime.h"
+#include "contiki-net.h"
 #include <string.h>
 
 struct ibc_hdr {

@@ -33,7 +33,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: nf.c,v 1.11 2007/03/31 18:31:28 adamdunkels Exp $
+ * $Id: nf.c,v 1.12 2007/05/15 08:09:21 adamdunkels Exp $
  */
 
 /**
@@ -51,16 +51,12 @@
 #define HOPS_MAX 16
 
 struct nf_hdr {
-  u8_t hops;
-  u8_t originator_seqno;
+  u16_t originator_seqno;
   rimeaddr_t originator;
+  u16_t hops;
 };
 
-static u8_t seqno;
-
-static void send(void *ptr);
-
-#define DEBUG 0
+#define DEBUG 1
 #if DEBUG
 #include <stdio.h>
 #define PRINTF(...) printf(__VA_ARGS__)
@@ -68,59 +64,22 @@ static void send(void *ptr);
 #define PRINTF(...)
 #endif
 
-
-/*---------------------------------------------------------------------------*/
-static void
-set_timer(struct nf_conn *c)
-{
-  ctimer_set(&c->t, c->queue_time, send, c);
-}
-/*---------------------------------------------------------------------------*/
-static void
-send(void *ptr)
-{
-  struct nf_conn *c = ptr;
-
-  if(c->packets_received > 0) {
-    c->packets_received = 0;
-    set_timer(c);
-  } else {
-    /*  DEBUGF(3, "nf: send()\n");*/
-    queuebuf_to_rimebuf(c->buf);
-    queuebuf_free(c->buf);
-    c->buf = NULL;
-    PRINTF("%d.%d: nf send to uibc\n",
-	   rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1]);
-    uibc_send(&c->c, c->queue_time);
-    if(c->u->sent != NULL) {
-      c->u->sent(c);
-    }
-  }
-}
 /*---------------------------------------------------------------------------*/
 static int
-queue_for_send(struct nf_conn *c)
+send(struct nf_conn *c)
 {
-  if(c->buf == NULL) {
-    c->buf = queuebuf_new_from_rimebuf();
-  }
-  if(c->buf == NULL) {
-    return 0;
-  }
-  c->packets_received = 0;
-  set_timer(c);
-  return 1;
+  PRINTF("%d.%d: nf send to ipolite\n",
+	 rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1]);
+  return ipolite_send(&c->c, c->queue_time, 4);
 }
 /*---------------------------------------------------------------------------*/
 static void
-recv_from_uibc(struct uibc_conn *uibc, rimeaddr_t *from)
+recv_from_ipolite(struct ipolite_conn *ipolite, rimeaddr_t *from)
 {
-  register struct nf_conn *c = (struct nf_conn *)uibc;
+  struct nf_conn *c = (struct nf_conn *)ipolite;
   struct nf_hdr *hdr = rimebuf_dataptr();
   u8_t hops;
   struct queuebuf *queuebuf;
-
-  c->packets_received++;
 
   hops = hdr->hops;
 
@@ -151,7 +110,7 @@ recv_from_uibc(struct uibc_conn *uibc, rimeaddr_t *from)
 		   c->last_originator_seqno,
 		  hops);
 	    hdr->hops++;
-	    queue_for_send(c);
+	    send(c);
 	    rimeaddr_copy(&c->last_originator, &hdr->originator);
 	    c->last_originator_seqno = hdr->originator_seqno;
 	  }
@@ -164,13 +123,31 @@ recv_from_uibc(struct uibc_conn *uibc, rimeaddr_t *from)
   }
 }
 /*---------------------------------------------------------------------------*/
-static const struct uibc_callbacks nf = {recv_from_uibc, NULL, NULL};
+static void
+sent(struct ipolite_conn *ipolite)
+{
+  struct nf_conn *c = (struct nf_conn *)ipolite;
+  if(c->u->sent != NULL) {
+    c->u->sent(c);
+  }
+}
+/*---------------------------------------------------------------------------*/
+static void
+dropped(struct ipolite_conn *ipolite)
+{
+  struct nf_conn *c = (struct nf_conn *)ipolite;
+  if(c->u->dropped != NULL) {
+    c->u->dropped(c);
+  }
+}
+/*---------------------------------------------------------------------------*/
+static const struct ipolite_callbacks nf = {recv_from_ipolite, sent, dropped};
 /*---------------------------------------------------------------------------*/
 void
 nf_open(struct nf_conn *c, clock_time_t queue_time,
 	u16_t channel, const struct nf_callbacks *u)
 {
-  uibc_open(&c->c, channel, &nf);
+  ipolite_open(&c->c, channel, &nf);
   c->u = u;
   c->queue_time = queue_time;
 }
@@ -178,24 +155,22 @@ nf_open(struct nf_conn *c, clock_time_t queue_time,
 void
 nf_close(struct nf_conn *c)
 {
-  uibc_close(&c->c);
+  ipolite_close(&c->c);
 }
 /*---------------------------------------------------------------------------*/
 int
-nf_send(struct nf_conn *c)
+nf_send(struct nf_conn *c, u8_t seqno)
 {
-  if(c->buf != NULL) {
-    queuebuf_free(c->buf);
-    c->buf = NULL;
-  }
-
   if(rimebuf_hdralloc(sizeof(struct nf_hdr))) {
     struct nf_hdr *hdr = rimebuf_hdrptr();
     rimeaddr_copy(&hdr->originator, &rimeaddr_node_addr);
     rimeaddr_copy(&c->last_originator, &hdr->originator);
-    c->last_originator_seqno = hdr->originator_seqno = ++seqno;
+    c->last_originator_seqno = hdr->originator_seqno = seqno;
     hdr->hops = 0;
-    return queue_for_send(c);
+    PRINTF("%d.%d: nf sending '%s'\n",
+	   rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1],
+	   (char *)rimebuf_dataptr());
+    return send(c);
   }
   return 0;
 }
@@ -203,7 +178,7 @@ nf_send(struct nf_conn *c)
 void
 nf_cancel(struct nf_conn *c)
 {
-  ctimer_stop(&c->t);
+  ipolite_cancel(&c->c);
 }
 /*---------------------------------------------------------------------------*/
 /** @} */

@@ -33,7 +33,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: tree.c,v 1.10 2007/03/31 18:33:04 adamdunkels Exp $
+ * $Id: tree.c,v 1.11 2007/05/15 08:09:21 adamdunkels Exp $
  */
 
 /**
@@ -100,7 +100,7 @@ send_adv(struct tree_conn *tc, clock_time_t interval)
   rimebuf_set_datalen(sizeof(struct adv_msg));
   hdr = rimebuf_dataptr();
   hdr->hopcount = tc->hops_from_sink;
-  uibc_send(&tc->uibc_conn, interval);
+  ipolite_send(&tc->ipolite_conn, interval, rimebuf_totlen());
 }
 /*---------------------------------------------------------------------------*/
 static void
@@ -111,14 +111,18 @@ update_hopcount(struct tree_conn *tc)
   if(tc->hops_from_sink != SINK) {
     n = neighbor_best();
     if(n == NULL) {
-      /*      if(hopcount != HOPCOUNT_MAX) {
-	printf("%d: didn't find a best neighbor, setting hopcount to max\n", node_id);
-	}*/
+      if(tc->hops_from_sink != HOPCOUNT_MAX) {
+	PRINTF("%d.%d: didn't find a best neighbor, setting hopcount to max\n",
+	       rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1]);
+      }
       tc->hops_from_sink = HOPCOUNT_MAX;
     } else {
       if(n->hopcount + 1 != tc->hops_from_sink) {
 	tc->hops_from_sink = n->hopcount + 1;
 	send_adv(tc, MIN_INTERVAL);
+	PRINTF("%d.%d: new hopcount %d\n",
+	       rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1],
+	       tc->hops_from_sink);
       }
     }
   }
@@ -138,10 +142,10 @@ update_hopcount(struct tree_conn *tc)
 }
 /*---------------------------------------------------------------------------*/
 static void
-adv_packet_received(struct uibc_conn *c, rimeaddr_t *from)
+adv_packet_received(struct ipolite_conn *c, rimeaddr_t *from)
 {
   struct tree_conn *tc = (struct tree_conn *)
-    ((char *)c - offsetof(struct tree_conn, uibc_conn));
+    ((char *)c - offsetof(struct tree_conn, ipolite_conn));
   struct adv_msg *msg = rimebuf_dataptr();
   struct neighbor *n;
 
@@ -155,6 +159,10 @@ adv_packet_received(struct uibc_conn *c, rimeaddr_t *from)
     neighbor_add(from, msg->hopcount, radio_sensor.value(1));
   } else {
     neighbor_update(n, msg->hopcount, radio_sensor.value(1));
+    PRINTF("%d.%d: updating neighbor %d.%d, radio sensor %d, hops %d\n",
+	   rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1],
+	   n->addr.u8[0], n->addr.u8[1],
+	   radio_sensor.value(1), msg->hopcount);
   }
 
   update_hopcount(tc);
@@ -162,19 +170,28 @@ adv_packet_received(struct uibc_conn *c, rimeaddr_t *from)
 }
 /*---------------------------------------------------------------------------*/
 static void
-adv_packet_sent(struct uibc_conn *c)
+adv_packet_sent(struct ipolite_conn *c)
 {
   struct tree_conn *tc = (struct tree_conn *)
-    ((char *)c - offsetof(struct tree_conn, uibc_conn));
-  send_adv(tc, MAX_INTERVAL);
+    ((char *)c - offsetof(struct tree_conn, ipolite_conn));
+  /*  send_adv(tc, MAX_INTERVAL);*/
 }
 /*---------------------------------------------------------------------------*/
 static void
-adv_packet_dropped(struct uibc_conn *c)
+adv_packet_dropped(struct ipolite_conn *c)
 {
   struct tree_conn *tc = (struct tree_conn *)
-    ((char *)c - offsetof(struct tree_conn, uibc_conn));
-  send_adv(tc, MAX_INTERVAL);
+    ((char *)c - offsetof(struct tree_conn, ipolite_conn));
+  /*  send_adv(tc, MAX_INTERVAL);*/
+}
+/*---------------------------------------------------------------------------*/
+static void
+send_timer(void *ptr)
+{
+  struct tree_conn *tc = ptr;
+
+  send_adv(tc, MAX_INTERVAL / 2);
+  ctimer_set(&tc->t, MAX_INTERVAL, send_timer, tc);
 }
 /*---------------------------------------------------------------------------*/
 static int
@@ -235,29 +252,37 @@ node_packet_sent(struct ruc_conn *c)
   tc->forwarding = 0;
 }
 /*---------------------------------------------------------------------------*/
-static const struct uibc_callbacks uibc_callbacks =
+static void
+node_packet_timedout(struct ruc_conn *c)
+{
+  struct tree_conn *tc = (struct tree_conn *)
+    ((char *)c - offsetof(struct tree_conn, ruc_conn));
+
+  tc->forwarding = 0;
+}
+/*---------------------------------------------------------------------------*/
+static const struct ipolite_callbacks ipolite_callbacks =
   {adv_packet_received, adv_packet_sent, adv_packet_dropped};
 static const struct ruc_callbacks ruc_callbacks = {node_packet_received,
-					     node_packet_sent};
+						   node_packet_sent,
+						   node_packet_timedout};
 /*---------------------------------------------------------------------------*/
 void
 tree_open(struct tree_conn *tc, u16_t channels,
 	  const struct tree_callbacks *cb)
 {
-  uibc_open(&tc->uibc_conn, channels, &uibc_callbacks);
+  ipolite_open(&tc->ipolite_conn, channels, &ipolite_callbacks);
   ruc_open(&tc->ruc_conn, channels + 1, &ruc_callbacks);
   tc->hops_from_sink = HOPCOUNT_MAX;
-  /*  rimebuf_clear();
-  rimebuf_reference(&tc.hello, sizeof(tc.hello));
-  sibc_send_stubborn(&sibc_conn, CLOCK_SECOND * 8);*/
   tc->cb = cb;
   send_adv(tc, MAX_INTERVAL);
+  ctimer_set(&tc->t, MAX_INTERVAL, send_timer, tc);
 }
 /*---------------------------------------------------------------------------*/
 void
 tree_close(struct tree_conn *tc)
 {
-  uibc_close(&tc->uibc_conn);
+  ipolite_close(&tc->ipolite_conn);
   ruc_close(&tc->ruc_conn);
 }
 /*---------------------------------------------------------------------------*/
@@ -279,6 +304,10 @@ tree_send(struct tree_conn *tc)
   struct neighbor *n;
   struct hdr *hdr;
 
+  if(tc->hops_from_sink == 0) {
+    return;
+  }
+  
   if(rimebuf_hdralloc(sizeof(struct hdr))) {
     hdr = rimebuf_hdrptr();
     hdr->originator_seqno = tc->seqno++;
@@ -291,6 +320,8 @@ tree_send(struct tree_conn *tc)
       ruc_send(&tc->ruc_conn, &n->addr, MAX_RETRANSMISSIONS);
     } else {
       /*      printf("Didn't find any neighbor\n");*/
+    PRINTF("%d.%d: did not find any neighbor to send to\n",
+	   rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1]);
     }
   }
 }

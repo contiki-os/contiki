@@ -47,7 +47,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: rudolph0.h,v 1.3 2007/04/02 09:51:45 adamdunkels Exp $
+ * $Id: rudolph0.h,v 1.4 2007/05/15 08:09:21 adamdunkels Exp $
  */
 
 /**
@@ -62,7 +62,7 @@
 
 #include "net/rime.h"
 #include "net/rime/sabc.h"
-#include "net/rime/uabc.h"
+#include "net/rime/polite.h"
 #include "contiki-net.h"
 
 struct rudolph0_conn;
@@ -96,7 +96,7 @@ struct rudolph0_datapacket {
 
 struct rudolph0_conn {
   struct sabc_conn c;
-  struct uabc_conn nackc;
+  struct polite_conn nackc;
   const struct rudolph0_callbacks *cb;
   clock_time_t send_interval;
   u8_t state;

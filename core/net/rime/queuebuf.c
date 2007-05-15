@@ -33,7 +33,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: queuebuf.c,v 1.8 2007/03/31 18:31:28 adamdunkels Exp $
+ * $Id: queuebuf.c,v 1.9 2007/05/15 08:09:21 adamdunkels Exp $
  */
 
 /**
@@ -43,14 +43,14 @@
  *         Adam Dunkels <adam@sics.se>
  */
 
-#include "net/rime/queuebuf.h"
+#include "contiki-net.h"
 
 #include <string.h> /* for memcpy() */
 
 #ifdef QUEUEBUF_CONF_NUM
 #define QUEUEBUF_NUM QUEUEBUF_CONF_NUM
 #else
-#define QUEUEBUF_NUM 2
+#define QUEUEBUF_NUM 4
 #endif
 
 #ifdef QUEUEBUF_CONF_REF_NUM
@@ -82,12 +82,20 @@ MEMB(refbufmem, struct queuebuf_ref, QUEUEBUF_REF_NUM);
 #define PRINTF(...)
 #endif
 
+#define QUEUEBUF_STATS 1
+#if QUEUEBUF_STATS
+u8_t queuebuf_len, queuebuf_ref_len, queuebuf_max_len;
+#endif /* QUEUEBUF_STATS */
+
 /*---------------------------------------------------------------------------*/
 void
 queuebuf_init(void)
 {
   memb_init(&bufmem);
   memb_init(&refbufmem);
+#if QUEUEBUF_STATS
+  queuebuf_max_len = QUEUEBUF_NUM;
+#endif /* QUEUEBUF_STATS */
 }
 /*---------------------------------------------------------------------------*/
 struct queuebuf *
@@ -99,6 +107,14 @@ queuebuf_new_from_rimebuf(void)
   if(rimebuf_is_reference()) {
     rbuf = memb_alloc(&refbufmem);
     if(rbuf != NULL) {
+#if QUEUEBUF_STATS
+      ++queuebuf_ref_len;
+#if NETSIM
+      node_log("%d %d\n",
+	       queuebuf_len,
+	       queuebuf_ref_len);
+#endif /* NETSIM */
+#endif /* QUEUEBUF_STATS */
       rbuf->len = rimebuf_datalen();
       rbuf->ref = rimebuf_reference_ptr();
       rbuf->hdrlen = rimebuf_copyto_hdr(rbuf->hdr);
@@ -109,6 +125,19 @@ queuebuf_new_from_rimebuf(void)
   } else {
     buf = memb_alloc(&bufmem);
     if(buf != NULL) {
+#if QUEUEBUF_STATS
+      ++queuebuf_len;
+      if(queuebuf_len == queuebuf_max_len + 1) {
+	memb_free(&bufmem, buf);
+	queuebuf_len--;
+	return NULL;
+      }
+#if NETSIM
+      node_log("%d %d\n",
+	       queuebuf_len,
+	       queuebuf_ref_len);
+#endif /* NETSIM */
+#endif /* QUEUEBUF_STATS */
       buf->len = rimebuf_copyto(buf->data);
     } else {
       PRINTF("queuebuf_new_from_rimebuf: could not allocate a queuebuf\n");
@@ -122,8 +151,24 @@ queuebuf_free(struct queuebuf *buf)
 {
   if(memb_inmemb(&bufmem, buf)) {
     memb_free(&bufmem, buf);
+#if QUEUEBUF_STATS
+    --queuebuf_len;
+#if NETSIM
+    node_log("%d %d\n",
+	     queuebuf_len,
+	     queuebuf_ref_len);
+#endif /* NETSIM */
+#endif /* QUEUEBUF_STATS */
   } else if(memb_inmemb(&refbufmem, buf)) {
     memb_free(&refbufmem, buf);
+#if QUEUEBUF_STATS
+    --queuebuf_ref_len;
+#if NETSIM
+    node_log("%d %d\n",
+	     queuebuf_len,
+	     queuebuf_ref_len);
+#endif /* NETSIM */
+#endif /* QUEUEBUF_STATS */
   }
 }
 /*---------------------------------------------------------------------------*/

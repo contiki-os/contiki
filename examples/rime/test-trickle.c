@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: test-trickle.c,v 1.4 2007/03/31 18:43:45 adamdunkels Exp $
+ * $Id: test-trickle.c,v 1.5 2007/05/15 08:10:32 adamdunkels Exp $
  */
 
 /**
@@ -65,7 +65,7 @@ PROCESS_THREAD(test_trickle_process, ev, data)
   PROCESS_EXITHANDLER(trickle_close(&trickle);)
   PROCESS_BEGIN();
 
-  trickle_open(&trickle, 128, &trickle_call);
+  trickle_open(&trickle, CLOCK_SECOND, 128, &trickle_call);
   button_sensor.activate();
 
   while(1) {
@@ -73,7 +73,7 @@ PROCESS_THREAD(test_trickle_process, ev, data)
 			     data == &button_sensor);
 
     rimebuf_copyfrom("Hello, world", 13);
-    trickle_send(&trickle, TRICKLE_SECOND / 4);
+    trickle_send(&trickle);
 
   }
   PROCESS_END();

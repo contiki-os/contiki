@@ -33,7 +33,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: rudolph1.c,v 1.8 2007/04/02 19:12:37 adamdunkels Exp $
+ * $Id: rudolph1.c,v 1.9 2007/05/15 08:09:21 adamdunkels Exp $
  */
 
 /**
@@ -51,8 +51,9 @@
 #include "cfs/cfs.h"
 
 #define DEFAULT_SEND_INTERVAL CLOCK_SECOND * 2
-#define TRICKLE_INTERVAL TRICKLE_SECOND / 2
+#define TRICKLE_INTERVAL CLOCK_SECOND / 2
 #define NACK_TIMEOUT CLOCK_SECOND / 4
+#define REPAIR_TIMEOUT CLOCK_SECOND / 4
 
 struct rudolph1_hdr {
   u8_t type;
@@ -121,8 +122,9 @@ write_data(struct rudolph1_conn *c, int chunk, u8_t *data, int datalen)
   }
 
   if(datalen < RUDOLPH1_DATASIZE) {
-    PRINTF("%d: get %d bytes, file complete\n",
-	   rimeaddr_node_addr.u16, datalen);
+    PRINTF("%d.%d: get %d bytes, file complete\n",
+	   rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1],
+	   datalen);
     c->cb->write_chunk(c, chunk * RUDOLPH1_DATASIZE,
 		       RUDOLPH1_FLAG_LASTCHUNK, data, datalen);
   } else {
@@ -143,8 +145,10 @@ send_nack(struct rudolph1_conn *c)
   hdr->version = c->version;
   hdr->chunk = c->chunk;
 
-  PRINTF("Sending nack for %d:%d\n", hdr->version, hdr->chunk);
-  uabc_send(&c->uabc, CLOCK_SECOND / 4);
+  PRINTF("%d.%d: Sending nack for %d:%d\n",
+	 rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1],
+	 hdr->version, hdr->chunk);
+  ipolite_send(&c->ipolite, NACK_TIMEOUT, sizeof(struct rudolph1_hdr));
 }
 /*---------------------------------------------------------------------------*/
 static void
@@ -164,16 +168,22 @@ handle_data(struct rudolph1_conn *c, struct rudolph1_datapacket *p)
       }
       /*    }*/
   } else if(p->h.version == c->version) {
+    PRINTF("%d.%d: got chunk %d (%d) highest heard %d\n",
+	   rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1],
+	   p->h.chunk, c->chunk, c->highest_chunk_heard);
+
     if(p->h.chunk == c->chunk) {
       PRINTF("%d.%d: received chunk %d\n",
 	     rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1],
 	     p->h.chunk);
       write_data(c, p->h.chunk, p->data, p->datalen);
-      c->highest_chunk_heard = c->chunk;
+      if(c->highest_chunk_heard < c->chunk) {
+	c->highest_chunk_heard = c->chunk;
+      }
       c->chunk++;
     } else if(p->h.chunk > c->chunk) {
-      PRINTF("%d: received chunk %d > %d, sending NACK\n",
-	     rimeaddr_node_addr.u16,
+      PRINTF("%d.%d: received chunk %d > %d, sending NACK\n",
+	     rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1],
 	     p->h.chunk, c->chunk);
       send_nack(c);
       c->highest_chunk_heard = p->h.chunk;
@@ -184,7 +194,7 @@ handle_data(struct rudolph1_conn *c, struct rudolph1_datapacket *p)
     /* If we have heard a higher chunk number, we send a NACK so that
        we get a repair for the next packet. */
     
-    if(c->highest_chunk_heard < p->h.chunk) {
+    if(c->highest_chunk_heard > p->h.chunk) {
       send_nack(c);
     }
   } else { /* p->h.version < c->current.h.version */
@@ -208,16 +218,37 @@ recv_trickle(struct trickle_conn *trickle)
 }
 /*---------------------------------------------------------------------------*/
 static void
-recv_uabc(struct uabc_conn *uabc)
+sent_ipolite(struct ipolite_conn *ipolite)
+{
+  PRINTF("%d.%d: Sent ipolite\n",
+	 rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1]);
+}
+/*---------------------------------------------------------------------------*/
+static void
+dropped_ipolite(struct ipolite_conn *ipolite)
+{
+  PRINTF("%d.%d: dropped ipolite\n",
+	 rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1]);
+}
+/*---------------------------------------------------------------------------*/
+static void
+recv_ipolite(struct ipolite_conn *ipolite, rimeaddr_t *from)
 {
   struct rudolph1_conn *c = (struct rudolph1_conn *)
-    ((char *)uabc - offsetof(struct rudolph1_conn, uabc));
+    ((char *)ipolite - offsetof(struct rudolph1_conn, ipolite));
   struct rudolph1_datapacket *p = rimebuf_dataptr();
+
+  PRINTF("%d.%d: Got ipolite type %d\n",
+	 rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1],
+	 p->h.type);
 
   c->nacks++;
 
   if(p->h.type == TYPE_NACK) {
-    PRINTF("Got NACK for %d:%d\n", p->h.version, p->h.chunk);
+    PRINTF("%d.%d: Got NACK for %d:%d (%d:%d)\n",
+	   rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1],
+	   p->h.version, p->h.chunk,
+	   c->version, c->chunk);
     if(p->h.version == c->version) {
       if(p->h.chunk < c->chunk) {
 	/* Format and send a repair packet */
@@ -225,14 +256,17 @@ recv_uabc(struct uabc_conn *uabc)
 	       rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1],
 	       p->h.chunk);
 	format_data(c, p->h.chunk);
-	uabc_send(&c->uabc, c->send_interval / 2);
+	ipolite_send(&c->ipolite, REPAIR_TIMEOUT, sizeof(struct rudolph1_hdr));
       }
     } else if(LT(p->h.version, c->version)) {
       format_data(c, 0);
-      uabc_send(&c->uabc, c->send_interval / 2);
+      ipolite_send(&c->ipolite, c->send_interval / 2, sizeof(struct rudolph1_hdr));
     }
   } else if(p->h.type == TYPE_DATA) {
     /* This is a repair packet from someone else. */
+    PRINTF("%d.%d: got repair for chunk %d\n",
+	   rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1],
+	   p->h.chunk);
     handle_data(c, p);
   }
 }
@@ -244,26 +278,32 @@ send_next_packet(void *ptr)
   int len;
   if(c->nacks == 0) {
     len = format_data(c, c->chunk);
-    trickle_send(&c->trickle, c->trickle_interval);
+    trickle_send(&c->trickle);
     if(len == RUDOLPH1_DATASIZE) {
       ctimer_set(&c->t, c->send_interval, send_next_packet, c);
     }
+    PRINTF("%d.%d: send_next_packet chunk %d, next %d\n",
+	   rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1],
+	   c->chunk, c->chunk + 1);
+
+    c->highest_chunk_heard = c->chunk;
     c->chunk++;
+    
   } else {
     ctimer_set(&c->t, c->send_interval, send_next_packet, c);
   }
   c->nacks = 0;
 }
 /*---------------------------------------------------------------------------*/
-static const struct uabc_callbacks uabc = { recv_uabc, NULL, NULL };
+static const struct ipolite_callbacks ipolite = { recv_ipolite, sent_ipolite, dropped_ipolite };
 static const struct trickle_callbacks trickle = { recv_trickle };
 /*---------------------------------------------------------------------------*/
 void
 rudolph1_open(struct rudolph1_conn *c, u16_t channel,
 	      const struct rudolph1_callbacks *cb)
 {
-  trickle_open(&c->trickle, channel, &trickle);
-  uabc_open(&c->uabc, channel + 1, &uabc);
+  trickle_open(&c->trickle, TRICKLE_INTERVAL, channel, &trickle);
+  ipolite_open(&c->ipolite, channel + 1, &ipolite);
   c->cb = cb;
   c->version = 0;
   c->send_interval = DEFAULT_SEND_INTERVAL;
@@ -273,7 +313,7 @@ void
 rudolph1_close(struct rudolph1_conn *c)
 {
   trickle_close(&c->trickle);
-  uabc_close(&c->uabc);
+  ipolite_close(&c->ipolite);
 }
 /*---------------------------------------------------------------------------*/
 void
@@ -281,9 +321,9 @@ rudolph1_send(struct rudolph1_conn *c, clock_time_t send_interval)
 {
   c->version++;
   c->chunk = c->highest_chunk_heard = 0;
-  c->trickle_interval = TRICKLE_INTERVAL;
+  /*  c->trickle_interval = TRICKLE_INTERVAL;*/
   format_data(c, 0);
-  trickle_send(&c->trickle, c->trickle_interval);
+  trickle_send(&c->trickle);
   c->chunk++;
   c->send_interval = send_interval;
   ctimer_set(&c->t, send_interval, send_next_packet, c);

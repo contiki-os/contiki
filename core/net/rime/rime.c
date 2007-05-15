@@ -33,7 +33,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: rime.c,v 1.7 2007/03/31 18:31:28 adamdunkels Exp $
+ * $Id: rime.c,v 1.8 2007/05/15 08:09:21 adamdunkels Exp $
  */
 
 /**
@@ -44,6 +44,9 @@
  */
 
 #include "net/rime.h"
+
+static void (* output)(void);
+
 /*---------------------------------------------------------------------------*/
 void
 rime_init(void)
@@ -52,12 +55,29 @@ rime_init(void)
   queuebuf_init();
   route_init();
   rimebuf_clear();
+  output = NULL;
+  neighbor_init();
 }
 /*---------------------------------------------------------------------------*/
 void
 rime_input(void)
 {
   abc_input_packet();
+}
+/*---------------------------------------------------------------------------*/
+void
+rime_set_output(void (*f)(void))
+{
+  output = f;
+}
+/*---------------------------------------------------------------------------*/
+void
+rime_output(void)
+{
+  rimebuf_compact();
+  if(output) {
+    output();
+  }
 }
 /*---------------------------------------------------------------------------*/
 /** @} */
