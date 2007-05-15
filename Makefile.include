@@ -30,9 +30,13 @@ DUMMY := ${shell mkdir $(OBJECTDIR)}
 endif
 
 include $(CONTIKI)/core/net/rime/Makefile.rime
+ifdef CHAMELEON
+include $(CONTIKI)/core/net/chameleon/Makefile.chameleon
+endif
+include $(CONTIKI)/core/net/mac/Makefile.mac
 SYSTEM  = process.c procinit.c service.c autostart.c elfloader.c
 THREADS = mt.c
-LIBS    = memb.c timer.c list.c etimer.c energest.c rtimer.c 
+LIBS    = memb.c timer.c list.c etimer.c energest.c rtimer.c
 CFS     = cfs.c cfs-ram.c
 CTK     = ctk.c
 UIP     = uip.c uiplib.c resolv.c tcpip.c psock.c hc.c uip-split.c \
@@ -45,11 +49,11 @@ CTKVNC  = $(CTK) ctk-vncserver.c libconio.c vnc-server.c vnc-out.c \
 CTKTERM = $(CTK) libconio.c ctk-term.c ctk-term-in.c ctk-term-out.c \
           ctk-termtelnet.c
 
-CONTIKIFILES = $(SYSTEM) $(THREADS) $(CFS) $(LIBS) $(NET) $(DHCP)
+CONTIKIFILES = $(SYSTEM) $(CFS) $(LIBS) $(NET) $(DHCP) $(THREADS)
 
 CONTIKI_SOURCEFILES += $(CONTIKIFILES)
 
-CONTIKIDIRS = ${addprefix $(CONTIKI)/core/,dev lib net net/rime sys \
+CONTIKIDIRS += ${addprefix $(CONTIKI)/core/,dev lib net net/mac net/rime sys \
                  cfs ctk lib/ctk loader . }
 
 oname = ${patsubst %.c,%.o,${patsubst %.S,%.o,$(1)}}
