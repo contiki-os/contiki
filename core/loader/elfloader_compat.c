@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: elfloader_compat.c,v 1.4 2007/04/26 12:54:52 bg- Exp $
+ * @(#)$Id: elfloader_compat.c,v 1.5 2007/05/15 16:21:29 bg- Exp $
  */
 
 /*
@@ -66,7 +66,7 @@ void (*elfloader_fini)(void);
 unsigned char *datamemory;
 
 #ifdef __AVR__
-#define TEXTMEMORY ((cle_addr)0x8000)
+#define TEXTMEMORY ((cle_addr)96*1024)
 #else
 #include <sys/unistd.h>
 #define TEXTMEMORY \
@@ -135,9 +135,9 @@ elfloader_load(off_t eepromaddr)
 	 (unsigned long)h.text + h.textsize);
 
   ret = rom_erase((h.textsize+ROM_ERASE_UNIT_SIZE) & ~(ROM_ERASE_UNIT_SIZE-1),
-		  (uintptr_t)h.text);
+		  h.text);
   assert(ret > 0);
-  ret = rom_pwrite(datamemory, h.textsize, (uintptr_t)h.text);
+  ret = rom_pwrite(datamemory, h.textsize, h.text);
   assert(ret > 0);
 
   PRINTF("elfloader: copy data segment to RAM %p %p\n",
