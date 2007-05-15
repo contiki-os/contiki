@@ -33,7 +33,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: rime.h,v 1.6 2007/03/29 23:38:07 adamdunkels Exp $
+ * $Id: rime.h,v 1.7 2007/05/15 08:05:52 adamdunkels Exp $
  */
 
 /**
@@ -46,12 +46,12 @@
 #ifndef __RIME_H__
 #define __RIME_H__
 
-#include "net/rime/ruc.h"
-#include "net/rime/sibc.h"
+#include "net/rime/rimeaddr.h"
 #include "net/rime/ctimer.h"
 #include "net/rime/rimebuf.h"
 #include "net/rime/queuebuf.h"
-#include "net/rime/route.h"
+#include "net/rime/ruc.h"
+#include "net/rime/sibc.h"
 
 /**
  * \brief      Initialize Rime
@@ -87,6 +87,9 @@ void rime_input(void);
  *             queue the packet by using the queuebuf functions.
  */
 void rime_driver_send(void);
+
+void rime_set_output(void (*output_function)(void));
+void rime_output(void);
 
 #endif /* __RIME_H__ */
 
