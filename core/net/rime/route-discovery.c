@@ -33,7 +33,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: route-discovery.c,v 1.5 2007/03/31 18:31:28 adamdunkels Exp $
+ * $Id: route-discovery.c,v 1.6 2007/05/15 08:09:21 adamdunkels Exp $
  */
 
 /**
@@ -82,10 +82,11 @@ send_rreq(struct route_discovery_conn *c, rimeaddr_t *dest)
   rimebuf_set_datalen(sizeof(struct route_msg));
 
   msg->pad = 0;
-  msg->rreq_id = c->rreq_id++;
+  msg->rreq_id = c->rreq_id;
   rimeaddr_copy(&msg->dest, dest);
 
-  nf_send(&c->rreqconn);
+  nf_send(&c->rreqconn, c->rreq_id);
+  c->rreq_id++;
 }
 /*---------------------------------------------------------------------------*/
 static void

@@ -40,7 +40,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: rimebuf.h,v 1.8 2007/03/31 18:31:28 adamdunkels Exp $
+ * $Id: rimebuf.h,v 1.9 2007/05/15 08:09:21 adamdunkels Exp $
  */
 
 /**
@@ -53,7 +53,7 @@
 #ifndef __RIMEBUF_H__
 #define __RIMEBUF_H__
 
-#include "contiki-net.h"
+#include "contiki-conf.h"
 
 /**
  * \brief      The size of the rimebuf, in bytes
@@ -297,7 +297,6 @@ int rimebuf_hdralloc(int size);
  *
  */
 int rimebuf_hdrreduce(int size);
-
 
 #endif /* __RIMEBUF_H__ */
 /** @} */

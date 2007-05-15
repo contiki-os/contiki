@@ -45,7 +45,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: trickle.h,v 1.3 2007/03/31 18:31:29 adamdunkels Exp $
+ * $Id: trickle.h,v 1.4 2007/05/15 08:09:21 adamdunkels Exp $
  */
 
 /**
@@ -59,6 +59,7 @@
 #define __TRICKLE_H__
 
 #include "net/rime.h"
+#include "net/rime/nf.h"
 
 struct trickle_conn;
 
@@ -67,24 +68,20 @@ struct trickle_callbacks {
 };
 
 struct trickle_conn {
-  struct abc_conn c;
+  struct nf_conn c;
   const struct trickle_callbacks *cb;
+  struct ctimer t;
   struct queuebuf *q;
-  struct ctimer intervaltimer;
-  struct ctimer timer;
-  struct pt pt;
-  u8_t interval;
+  clock_time_t interval;
   u8_t seqno;
-  u8_t count;
   u8_t interval_scaling;
 };
 
-void trickle_open(struct trickle_conn *c, u16_t channel,
-		  const struct trickle_callbacks *cb);
+void trickle_open(struct trickle_conn *c, clock_time_t interval,
+		  u16_t channel, const struct trickle_callbacks *cb);
 void trickle_close(struct trickle_conn *c);
 
-#define TRICKLE_SECOND 8
-void trickle_send(struct trickle_conn *c, u8_t interval);
+void trickle_send(struct trickle_conn *c);
 
 #endif /* __TRICKLE_H__ */
 /** @} */

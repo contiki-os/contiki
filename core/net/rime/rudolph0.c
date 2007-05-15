@@ -33,7 +33,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: rudolph0.c,v 1.4 2007/04/02 09:51:45 adamdunkels Exp $
+ * $Id: rudolph0.c,v 1.5 2007/05/15 08:09:21 adamdunkels Exp $
  */
 
 /**
@@ -50,6 +50,7 @@
 
 #define STEADY_TIME CLOCK_SECOND * 2
 
+#define DEFAULT_SEND_INTERVAL CLOCK_SECOND / 2
 enum {
   TYPE_DATA,
   TYPE_NACK,
@@ -62,7 +63,7 @@ enum {
 
 #define VERSION_LT(a, b) ((signed char)((a) - (b)) < 0)
 
-#define DEBUG 0
+#define DEBUG 1
 #if DEBUG
 #include <stdio.h>
 #define PRINTF(...) printf(__VA_ARGS__)
@@ -98,7 +99,7 @@ send_nack(struct rudolph0_conn *c)
   hdr->chunk = c->current.h.chunk;
 
   PRINTF("Sending nack for %d:%d\n", hdr->version, hdr->chunk);
-  uabc_send(&c->nackc, c->send_interval / 2);
+  polite_send(&c->nackc, c->send_interval / 2, sizeof(struct rudolph0_hdr));
 }
 /*---------------------------------------------------------------------------*/
 static void
@@ -158,10 +159,10 @@ recv(struct sabc_conn *sabc)
 }
 /*---------------------------------------------------------------------------*/
 static void
-recv_nack(struct uabc_conn *uabc)
+recv_nack(struct polite_conn *polite)
 {
   struct rudolph0_conn *c = (struct rudolph0_conn *)
-    ((char *)uabc - offsetof(struct rudolph0_conn,
+    ((char *)polite - offsetof(struct rudolph0_conn,
 			     nackc));
   struct rudolph0_datapacket *p = rimebuf_dataptr();
 
@@ -178,7 +179,7 @@ recv_nack(struct uabc_conn *uabc)
   }
 }
 /*---------------------------------------------------------------------------*/
-static const struct uabc_callbacks uabc = { recv_nack, NULL, NULL };
+static const struct polite_callbacks polite = { recv_nack, NULL, NULL };
 static const struct sabc_callbacks sabc = { recv, sent };
 /*---------------------------------------------------------------------------*/
 void
@@ -186,23 +187,25 @@ rudolph0_open(struct rudolph0_conn *c, u16_t channel,
 	      const struct rudolph0_callbacks *cb)
 {
   sabc_open(&c->c, channel, &sabc);
-  uabc_open(&c->nackc, channel + 1, &uabc);
+  polite_open(&c->nackc, channel + 1, &polite);
   c->cb = cb;
   c->current.h.version = 0;
   c->state = STATE_RECEIVER;
+  c->send_interval = DEFAULT_SEND_INTERVAL;
 }
 /*---------------------------------------------------------------------------*/
 void
 rudolph0_close(struct rudolph0_conn *c)
 {
   sabc_close(&c->c);
-  uabc_close(&c->nackc);
+  polite_close(&c->nackc);
 }
 /*---------------------------------------------------------------------------*/
 void
 rudolph0_send(struct rudolph0_conn *c, clock_time_t send_interval)
 {
   c->state = STATE_SENDER;
+  c->current.h.version++;
   c->current.h.version++;
   c->current.h.chunk = 0;
   c->current.h.type = TYPE_DATA;

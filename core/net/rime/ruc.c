@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: ruc.c,v 1.9 2007/03/31 18:33:27 adamdunkels Exp $
+ * $Id: ruc.c,v 1.10 2007/05/15 08:09:21 adamdunkels Exp $
  */
 
 /**
@@ -74,6 +74,7 @@ sent_by_suc(struct suc_conn *suc)
   c->transmissions_left--;
   if(c->transmissions_left == 0) {
     suc_cancel(&c->c);
+    c->u->timedout(c);
   }
 }
 /*---------------------------------------------------------------------------*/

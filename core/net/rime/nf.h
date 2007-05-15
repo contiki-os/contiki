@@ -45,7 +45,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: nf.h,v 1.9 2007/03/31 18:31:28 adamdunkels Exp $
+ * $Id: nf.h,v 1.10 2007/05/15 08:09:21 adamdunkels Exp $
  */
 
 /**
@@ -61,7 +61,7 @@
 
 #include "net/rime/ctimer.h"
 #include "net/rime/queuebuf.h"
-#include "net/rime/uibc.h"
+#include "net/rime/ipolite.h"
 
 struct nf_conn;
 
@@ -69,24 +69,22 @@ struct nf_callbacks {
   int (* recv)(struct nf_conn *c, rimeaddr_t *from,
 	       rimeaddr_t *originator, u8_t seqno, u8_t hops);
   void (* sent)(struct nf_conn *c);
+  void (* dropped)(struct nf_conn *c);
 };
 
 struct nf_conn {
-  struct uibc_conn c;
-  struct ctimer t;
-  struct queuebuf *buf;
-  clock_time_t queue_time;
-  u8_t packets_received;
-  u8_t last_originator_seqno;
-  rimeaddr_t last_originator;
+  struct ipolite_conn c;
   const struct nf_callbacks *u;
+  clock_time_t queue_time;
+  rimeaddr_t last_originator;
+  u8_t last_originator_seqno;
 };
 
 void nf_open(struct nf_conn *c, clock_time_t queue_time,
 	     u16_t channel, const struct nf_callbacks *u);
 void nf_close(struct nf_conn *c);
 
-int nf_send(struct nf_conn *c);
+int nf_send(struct nf_conn *c, u8_t seqno);
 
 #endif /* __SIBC_H__ */
 /** @} */
