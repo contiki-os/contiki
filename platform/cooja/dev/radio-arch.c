@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: radio-arch.c,v 1.15 2007/04/23 08:46:35 fros4943 Exp $
+ * $Id: radio-arch.c,v 1.16 2007/05/15 14:39:52 fros4943 Exp $
  */
 
 #include "dev/radio-arch.h"
@@ -61,6 +61,7 @@ int simOutSize;
 
 char simRadioHWOn = 1;
 int simSignalStrength = -200;
+int simLastSignalStrength = 0;
 char simPower = 100;
 int simRadioChannel = 1;
 
@@ -81,7 +82,7 @@ radio_set_channel(int channel)
 int
 radio_sstrength(void)
 {
-  return simSignalStrength;
+  return simLastSignalStrength;
 }
 /*-----------------------------------------------------------------------------------*/
 void
@@ -102,6 +103,7 @@ doInterfaceActionsBeforeTick(void)
   
   // Don't fall asleep while receiving (in main file)
   if (simReceiving) {
+    simLastSignalStrength = simSignalStrength;
     simDontFallAsleep = 1;
     return;
   }
