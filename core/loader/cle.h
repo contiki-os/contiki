@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF 
  * SUCH DAMAGE. 
  *
- * @(#)$Id: cle.h,v 1.5 2007/04/26 13:37:41 bg- Exp $
+ * @(#)$Id: cle.h,v 1.6 2007/05/15 10:28:03 bg- Exp $
  */
 
 #ifndef CLE_H
@@ -48,7 +48,7 @@ typedef  uint32_t cle_addr;
 typedef uintptr_t cle_addr;
 #endif
 
-typedef unsigned char cle_scratch[32];
+typedef char cle_scratch[32];
 
 struct cle_info {
   cle_addr text;
