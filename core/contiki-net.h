@@ -30,7 +30,7 @@
  *
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: contiki-net.h,v 1.2 2006/08/31 09:36:46 adamdunkels Exp $
+ * $Id: contiki-net.h,v 1.3 2007/05/15 07:47:54 adamdunkels Exp $
  */
 #ifndef __CONTIKI_NET_H__
 #define __CONTIKI_NET_H__
@@ -52,5 +52,7 @@
 #include "net/packet-service.h"
 
 #include "net/psock.h"
+
+#include "net/rime.h"
 
 #endif /* __CONTIKI_NET_H__ */
