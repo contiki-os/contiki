@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: simple-cc2420.c,v 1.5 2007/04/03 19:05:44 adamdunkels Exp $
+ * @(#)$Id: simple-cc2420.c,v 1.6 2007/05/15 07:53:09 adamdunkels Exp $
  */
 /*
  * This code is almost device independent and should be easy to port.
@@ -45,8 +45,6 @@
 #include <io.h>
 #endif
 
-/* #include "dev/leds.h" */
-
 #include "dev/spi.h"
 #include "dev/simple-cc2420.h"
 #include "dev/cc2420_const.h"
@@ -54,7 +52,8 @@
 #define FOOTER1_CRC_OK      0x80
 #define FOOTER1_CORRELATION 0x7f
 
-#if 0
+#define DEBUG 0
+#if DEBUG
 #define PRINTF(...) printf(__VA_ARGS__)
 #else
 #define PRINTF(...) do {} while (0)
@@ -63,49 +62,92 @@
 PROCESS(simple_cc2420_process, "CC2420 driver");
 /*---------------------------------------------------------------------------*/
 
-static void (* receiver_callback)(void);
+static void (* receiver_callback)(const struct radio_driver *);
 
 signed char simple_cc2420_last_rssi;
 u8_t simple_cc2420_last_correlation;
+
+const struct radio_driver simple_cc2420_driver =
+  {
+    simple_cc2420_send,
+    simple_cc2420_read,
+    simple_cc2420_set_receiver,
+    simple_cc2420_on,
+    simple_cc2420_off,
+  };
 
 static u8_t receive_on;
 /* Radio stuff in network byte order. */
 static u16_t pan_id;
 /*---------------------------------------------------------------------------*/
+static void
+strobe(enum cc2420_register regname)
+{
+  FASTSPI_STROBE(regname);
+}
+/*---------------------------------------------------------------------------*/
+static unsigned int
+status(void)
+{
+  u8_t status;
+  FASTSPI_UPD_STATUS(status);
+  return status;
+}
+/*---------------------------------------------------------------------------*/
+static void
+on(void)
+{
+  ENERGEST_ON(ENERGEST_TYPE_RECEIVE);
+  PRINTF("on\n");
+  receive_on = 1;
+  
+  strobe(CC2420_SRXON);
+  strobe(CC2420_SFLUSHRX);
+  ENABLE_FIFOP_INT();
+}
+static void
+off(void)
+{
+  u8_t spiStatusByte;
+  
+  PRINTF("off\n");
+  receive_on = 0;
+  /* Wait for transmission to end before turning radio off. */
+  do {
+    spiStatusByte = status();
+  } while(spiStatusByte & BV(CC2420_TX_ACTIVE));
+  
+  strobe(CC2420_SRFOFF);
+  DISABLE_FIFOP_INT();
+  ENERGEST_OFF(ENERGEST_TYPE_RECEIVE);
+}
+/*---------------------------------------------------------------------------*/
+static u8_t locked, lock_on, lock_off;
+#define GET_LOCK() locked = 1
+static void RELEASE_LOCK(void) {
+  if(lock_on) {
+    on();
+    lock_on = 0;
+  }
+  if(lock_off) {
+    off();
+    lock_off = 0;
+  }
+  locked = 0;
+}
+/*---------------------------------------------------------------------------*/
 static unsigned
 getreg(enum cc2420_register regname)
 {
   unsigned reg;
-  int s = splhigh();
   FASTSPI_GETREG(regname, reg);
-  splx(s);
   return reg;
 }
 /*---------------------------------------------------------------------------*/
 static void
 setreg(enum cc2420_register regname, unsigned value)
 {
-  int s = splhigh();
   FASTSPI_SETREG(regname, value);
-  splx(s);
-}
-/*---------------------------------------------------------------------------*/
-static void
-strobe(enum cc2420_register regname)
-{
-  int s = splhigh();
-  FASTSPI_STROBE(regname);
-  splx(s);
-}
-/*---------------------------------------------------------------------------*/
-static unsigned
-status(void)
-{
-  u8_t status;
-  int s = splhigh();
-  FASTSPI_UPD_STATUS(status);
-  splx(s);
-  return status;
 }
 /*---------------------------------------------------------------------------*/
 #define AUTOACK (1 << 4)
@@ -116,7 +158,7 @@ status(void)
 #define RXBPF_LOCUR (1 << 13);
 /*---------------------------------------------------------------------------*/
 void
-simple_cc2420_set_receiver(void (* recv)(void))
+simple_cc2420_set_receiver(void (* recv)(const struct radio_driver *))
 {
   receiver_callback = recv;
 }
@@ -176,18 +218,11 @@ simple_cc2420_init(void)
 }
 /*---------------------------------------------------------------------------*/
 int
-simple_cc2420_send(const u8_t *payload, u8_t payload_len)
+simple_cc2420_send(const u8_t *payload, u16_t payload_len)
 {
   u8_t spiStatusByte;
-  int s, i;
+  int i;
   
-  /* struct hdr_802_15::len shall *not* be counted, thus the -1.
-   * 2 == sizeof(footer).
-   */
-  /*  if(((hdr_len - 1) + payload_len + 2) > MAX_PACKET_LEN) {
-    return -1;
-    }*/
-
   /* This code uses the CC2420 CCA (Clear Channel Assessment) to
    * implement Carrier Sense Multiple Access with Collision Avoidance
    * (CSMA-CA) and requires the receiver to be enabled and ready.
@@ -196,6 +231,8 @@ simple_cc2420_send(const u8_t *payload, u8_t payload_len)
     return -2;
   }
 
+  GET_LOCK();
+  
   /* Wait for previous transmission to finish and RSSI. */
   do {
     spiStatusByte = status();
@@ -204,39 +241,29 @@ simple_cc2420_send(const u8_t *payload, u8_t payload_len)
     }
   } while(spiStatusByte & BV(CC2420_TX_ACTIVE));
 
-#if 0
-  hdr->dst_pan = pan_id;	/* Not at fixed position! xxx/bg */
-  last_correspondent = hdr->dst; /* Not dst either. */
-  last_used_seq++;
-  hdr->seq = last_used_seq;
-  cc2420_ack_received = 0;
-#endif
-  
   /* Write packet to TX FIFO, appending FCS if AUTOCRC is enabled. */
   strobe(CC2420_SFLUSHTX); /* Cancel send that never started. */
-  s = splhigh();
-  /*  FASTSPI_WRITE_FIFO(hdr, hdr_len);*/
+
+  ENERGEST_ON(ENERGEST_TYPE_TRANSMIT);
+  
   {
-    u8_t total_len = payload_len + 2; /* 2 bytes footer. */
+    u8_t total_len = 2 + payload_len + 2; /* 2 bytes time stamp,
+					     2 bytes footer. */
     FASTSPI_WRITE_FIFO(&total_len, 1);
   }
+  
   FASTSPI_WRITE_FIFO(payload, payload_len);
-  splx(s);
-  PRINTF("simple_cc2420_send: wrote %d bytes\n", payload_len);
 
-  /*  if(hdr->dst == 0xffff) {
-    int i;
-    for(i = 1; i < 3; i++) {
-      if(do_send() >= 0) {
-	return 0;
-      }
-      clock_delay(i*256);
-    }
-    }*/
+  {
+    rtimer_clock_t t;
+    t = rtimer_arch_now();
+    FASTSPI_WRITE_FIFO(&t, 2);
+  }
 
   if(FIFOP_IS_1 && !FIFO_IS_1) {
     /* RXFIFO overflow, send on retransmit. */
     PRINTF("rxfifo overflow!\n");
+    RELEASE_LOCK();
     return -4;
   }
 
@@ -255,44 +282,60 @@ simple_cc2420_send(const u8_t *payload, u8_t payload_len)
   strobe(CC2420_STXONCCA);
   for(i = LOOP_20_SYMBOLS; i > 0; i--) {
     if(SFD_IS_1) {
-      PRINTF("simple_cc2420: do_send() transmission has started\n");
+      /*      PRINTF("simple_cc2420: do_send() transmission has started\n");*/
+      
+      do {
+	spiStatusByte = status();
+      } while(spiStatusByte & BV(CC2420_TX_ACTIVE));
+
+      ENERGEST_OFF(ENERGEST_TYPE_TRANSMIT);
+      
+      RELEASE_LOCK();     
       return 0;			/* Transmission has started. */
     }
   }
 
   PRINTF("simple_cc2420: do_send() transmission never started\n");
+  RELEASE_LOCK();
   return -3;			/* Transmission never started! */
 }
 /*---------------------------------------------------------------------------*/
-void
+static volatile u8_t packet_seen;
+/*---------------------------------------------------------------------------*/
+int
 simple_cc2420_off(void)
 {
-  u8_t spiStatusByte;
-
   if(receive_on == 0) {
-    return;
+    return 1;
   }
-  receive_on = 0;
-  /* Wait for transmission to end before turning radio off. */
-  do {
-    spiStatusByte = status();
-  } while(spiStatusByte & BV(CC2420_TX_ACTIVE));
 
-  strobe(CC2420_SRFOFF);
-  DISABLE_FIFOP_INT();
+  if(locked) {
+    lock_off = 1;
+    return 1;
+  }
+
+  if(packet_seen) {
+    lock_off = 1;
+    return 1;
+  }
+  
+  off();
+  return 1;
 }
 /*---------------------------------------------------------------------------*/
-void
+int
 simple_cc2420_on(void)
 {
   if(receive_on) {
-    return;
+    return 1;
   }
-  receive_on = 1;
+  if(locked) {
+    lock_on = 1;
+    return 1;
+  }
 
-  strobe(CC2420_SRXON);
-  strobe(CC2420_SFLUSHRX);
-  ENABLE_FIFOP_INT();
+  on();
+  return 1;
 }
 /*---------------------------------------------------------------------------*/
 void
@@ -307,7 +350,6 @@ simple_cc2420_set_chan_pan_addr(unsigned channel, /* 11 - 26 */
    */
   u8_t spiStatusByte;
   u16_t f = channel;
-  int s;
         
   f = 5*(f - 11) + 357 + 0x4000;
   /*
@@ -319,30 +361,10 @@ simple_cc2420_set_chan_pan_addr(unsigned channel, /* 11 - 26 */
 
   pan_id = pan;
   setreg(CC2420_FSCTRL, f);
-  s = splhigh();
   FASTSPI_WRITE_RAM_LE(&pan, CC2420RAM_PANID, 2, f);
   FASTSPI_WRITE_RAM_LE(&addr, CC2420RAM_SHORTADDR, 2, f);
   if(ieee_addr != NULL) {
     FASTSPI_WRITE_RAM_LE(ieee_addr, CC2420RAM_IEEEADDR, 8, f);
-  }
-  splx(s);
-}
-/*---------------------------------------------------------------------------*/
-static volatile u8_t rx_fifo_remaining_bytes;
-/*---------------------------------------------------------------------------*/
-void
-radio_on(void)
-{
-  simple_cc2420_on();
-}
-/*---------------------------------------------------------------------------*/
-void
-radio_off(void)
-{
-  /* Turn the receiver off, but only if we have not recently received
-     a packet. */
-  if(rx_fifo_remaining_bytes == 0) {
-    simple_cc2420_off();
   }
 }
 /*---------------------------------------------------------------------------*/
@@ -353,41 +375,15 @@ radio_off(void)
  * In order to quickly empty the FIFO ack processing is done at
  * interrupt priority rather than poll priority.
  */
+static volatile rtimer_clock_t interrupt_time;
 int
 __cc2420_intr(void)
 {
-  u8_t length;
-  /*  const u8_t *const ack_footer = (u8_t *)&h.dst_pan;*/
-
-
+  interrupt_time = rtimer_arch_now();
+  
   CLEAR_FIFOP_INT();
-
-  if(spi_busy || rx_fifo_remaining_bytes > 0) {
-    /* SPI bus hardware is currently used elsewhere (UART0 or I2C bus)
-     * or we already have a packet in the works and will have to defer
-     * interrupt processing of this packet in a fake interrupt.
-     */
-    process_poll(&simple_cc2420_process);
-    return 1;
-  }
-
-  FASTSPI_READ_FIFO_BYTE(length);
-  if(length > SIMPLE_CC2420_MAX_PACKET_LEN) {
-    /* Oops, we must be out of sync. */
-    FASTSPI_STROBE(CC2420_SFLUSHRX);
-    FASTSPI_STROBE(CC2420_SFLUSHRX);
-
-    return 0;
-  }
-
-
-  /* The payload and footer is now left in the RX FIFO and will be
-   * picked up asynchronously at poll priority in the cc2420_process
-   * below.
-   */
-  rx_fifo_remaining_bytes = length;
   process_poll(&simple_cc2420_process);
-
+  packet_seen = 1;
   return 1;
 }
 /*---------------------------------------------------------------------------*/
@@ -396,50 +392,65 @@ PROCESS_THREAD(simple_cc2420_process, ev, data)
   PROCESS_BEGIN();
 
   while(1) {
-    PROCESS_YIELD();
+    PROCESS_YIELD_UNTIL(ev == PROCESS_EVENT_POLL);
 
+    /*    printf("Diff %d\n", rtimer_arch_now() - interrupt_time);*/
+    
     if(receiver_callback != NULL) {
-      receiver_callback();
+      receiver_callback(&simple_cc2420_driver);
     } else {
-      PRINTF("simple_cc2420_process dropping %d bytes\n",
-	     rx_fifo_remaining_bytes);
-      if(rx_fifo_remaining_bytes > 0) {
-	int s;
-	s = splhigh();
-	FASTSPI_READ_FIFO_GARBAGE(rx_fifo_remaining_bytes);
-	rx_fifo_remaining_bytes = 0; /* RX FIFO emptied! */
-	splx(s);
-      }
+      PRINTF("simple_cc2420_process not receiving function\n");
+      FASTSPI_STROBE(CC2420_SFLUSHRX);
+      FASTSPI_STROBE(CC2420_SFLUSHRX);
     }
   }
 
   PROCESS_END();
 }
 /*---------------------------------------------------------------------------*/
-int
-simple_cc2420_read(u8_t *buf, u8_t bufsize)
+u16_t
+simple_cc2420_read(u8_t *buf, u16_t bufsize)
 {
   u8_t footer[2];
   int len;
-  int s;
-  
-  len = rx_fifo_remaining_bytes;
-  
+
+  if(!packet_seen) {
+    return 0;
+  }
+
+  GET_LOCK();
+
+  FASTSPI_READ_FIFO_BYTE(len);
+
+  if(len > SIMPLE_CC2420_MAX_PACKET_LEN) {
+    /* Oops, we must be out of sync. */
+    FASTSPI_STROBE(CC2420_SFLUSHRX);
+    FASTSPI_STROBE(CC2420_SFLUSHRX);
+    packet_seen = 0;
+    RELEASE_LOCK();
+    return 0;
+  }
+
   if(len > 0) {
     /* Read payload and two bytes of footer */
-    if(len > bufsize) {
-      PRINTF("simple_cc2420_poll too big len=%d\n", len);
-      s = splhigh();
+    PRINTF("simple_cc2420_read: len %d\n", len);
+    if(len < 2) {
       FASTSPI_READ_FIFO_GARBAGE(len);
-      rx_fifo_remaining_bytes = 0; /* RX FIFO emptied! */
-      splx(s);
-      len = 2; /* We eventually return len - 2 */
-    } else {
-      s = splhigh();
-      FASTSPI_READ_FIFO_NO_WAIT(buf, len - 2);
+    } else if(len - 2 > bufsize) {
+      PRINTF("simple_cc2420_read too big len=%d bufsize %d\n", len, bufsize);
+      //      FASTSPI_READ_FIFO_GARBAGE(2);
+      FASTSPI_READ_FIFO_NO_WAIT(buf, bufsize);
+      FASTSPI_READ_FIFO_GARBAGE(len - bufsize - 2);
       FASTSPI_READ_FIFO_NO_WAIT(footer, 2);
-      rx_fifo_remaining_bytes = 0; /* RX FIFO emptied! */
-      splx(s);
+      //      len = bufsize - 2; /* We eventually return len - 2 */
+      len = 4;
+    } else {
+      rtimer_clock_t t;
+      //      FASTSPI_READ_FIFO_NO_WAIT(&t, 2); /* Time stamp */
+      FASTSPI_READ_FIFO_NO_WAIT(buf, len - 2);
+      /*      PRINTF("simple_cc2420_read: data\n");*/
+      FASTSPI_READ_FIFO_NO_WAIT(footer, 2);
+      /*      PRINTF("simple_cc2420_read: footer\n");*/
       if(footer[1] & FOOTER1_CRC_OK) {
 	simple_cc2420_last_rssi = footer[0];
 	simple_cc2420_last_correlation = footer[1] & FOOTER1_CORRELATION;
@@ -447,6 +458,7 @@ simple_cc2420_read(u8_t *buf, u8_t bufsize)
 	  uip_len = len - 2;
 	  }*/
       }
+      //      PRINTF("Time 0x%02x\n", t);
     }
   }
   
@@ -454,16 +466,40 @@ simple_cc2420_read(u8_t *buf, u8_t bufsize)
    * length frame and is signaled by FIFOP = 1 and FIFO = 0.
    */
   if(FIFOP_IS_1 && !FIFO_IS_1) {
+    PRINTF("simple_cc2420_read: FIFOP_IS_1 1\n");
     strobe(CC2420_SFLUSHRX);
     strobe(CC2420_SFLUSHRX);
   }
   
   if(FIFOP_IS_1) {
-    s = splhigh();
-    __cc2420_intr();		/* Fake interrupt! */
-    splx(s);
+    PRINTF("simple_cc2420_read: FIFOP_IS_1 2\n");
+    /*    strobe(CC2420_SFLUSHRX);
+	  strobe(CC2420_SFLUSHRX);*/
+    /* Another packet has been received and needs attention. */
+    process_poll(&simple_cc2420_process);
+    packet_seen = 1;
+  } else {
+    packet_seen = 0;
+  }
+  
+  RELEASE_LOCK();
+  
+  if(len < 2) {
+    return 0;
   }
 
-  return len - 2; /* Remove two bytes for the footer. */
+  return len - 2; /* Remove two bytes for the footer, two bytes for time stamp. */
+}
+/*---------------------------------------------------------------------------*/
+void
+simple_cc2420_set_txpower(u8_t power)
+{
+  u16_t reg;
+
+  GET_LOCK();
+  reg = getreg(CC2420_TXCTRL);
+  reg = (reg & 0xffe0) | (power & 0x1f);
+  setreg(CC2420_TXCTRL, reg);
+  RELEASE_LOCK();
 }
 /*---------------------------------------------------------------------------*/
