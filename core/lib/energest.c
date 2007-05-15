@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: energest.c,v 1.1 2007/03/19 00:30:13 adamdunkels Exp $
+ * $Id: energest.c,v 1.2 2007/05/15 07:54:03 adamdunkels Exp $
  */
 
 /**
@@ -39,6 +39,7 @@
  */
 
 #include "lib/energest.h"
+#include "contiki-conf.h"
 
 #if ENERGEST_CONF_ON
 
@@ -51,17 +52,17 @@ energest_init(void)
 {
   int i;
   for(i = 0; i < ENERGEST_TYPE_MAX; ++i) {
-    energest_total_time[i] = 0;
+    energest_total_time[i].current = 0;
   }
 }
 /*---------------------------------------------------------------------------*/
-energest_t
+unsigned long
 energest_type_time(int type)
 {
-  return energest_total_time[type];
+  return energest_total_time[type].current;
 }
 /*---------------------------------------------------------------------------*/
 #else /* ENERGEST_CONF_ON */
 void energest_init(void) {}
-energest_t energest_type_time(int type) { return 0; }
+unsigned long energest_type_time(int type) { return 0; }
 #endif /* ENERGEST_CONF_ON */

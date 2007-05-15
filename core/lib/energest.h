@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: energest.h,v 1.2 2007/03/25 09:20:53 oliverschmidt Exp $
+ * $Id: energest.h,v 1.3 2007/05/15 07:54:03 adamdunkels Exp $
  */
 
 /**
@@ -41,16 +41,14 @@
 #ifndef __ENERGEST_H__
 #define __ENERGEST_H__
 
-typedef unsigned long energest_t;
+typedef struct {
+  /*  unsigned long cummulative[2];*/
+  unsigned long current;
+} energest_t;
 
 enum energest_type {
-  ENERGEST_TYPE_NONE,
-
   ENERGEST_TYPE_CPU,
-  ENERGEST_TYPE_LPM1,
-  ENERGEST_TYPE_LPM2,
-  ENERGEST_TYPE_LPM3,
-  ENERGEST_TYPE_LPM4,
+  ENERGEST_TYPE_LPM,
   ENERGEST_TYPE_LED_GREEN,
   ENERGEST_TYPE_LED_YELLOW,
   ENERGEST_TYPE_LED_RED,
@@ -63,25 +61,25 @@ enum energest_type {
 };
 
 void energest_init(void);
-energest_t energest_type_time(int type);
+unsigned long energest_type_time(int type);
 
 #if ENERGEST_CONF_ON
 extern energest_t energest_total_time[ENERGEST_TYPE_MAX];
-extern energest_t energest_current_time[ENERGEST_TYPE_MAX];
+extern unsigned short energest_current_time[ENERGEST_TYPE_MAX];
 
 #define ENERGEST_ON(type)  do { \
                            energest_current_time[type] = energest_arch_now(); \
                            } while(0)
 #define ENERGEST_OFF(type) do { \
-                           energest_total_time[type] += energest_arch_now() - \
-                           energest_current_time[type]; \
+                           energest_total_time[type].current += (unsigned long)((signed short)energest_arch_now() - \
+                           (signed short)energest_current_time[type]); \
                            } while(0)
 #else /* ENERGEST_CONF_ON */
 #define ENERGEST_ON(type) do { } while(0)
 #define ENERGEST_OFF(type) do { } while(0)
 #endif /* ENERGEST_CONF_ON */
 
-energest_t energest_arch_current_estimate(void);
-energest_t energest_arch_now(void);
+unsigned long energest_arch_current_estimate(void);
+unsigned short energest_arch_now(void);
 
 #endif /* __ENERGEST_H__ */
