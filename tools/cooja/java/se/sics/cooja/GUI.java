@@ -24,7 +24,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * 
- * $Id: GUI.java,v 1.47 2007/05/18 13:45:19 fros4943 Exp $
+ * $Id: GUI.java,v 1.48 2007/05/18 14:08:19 fros4943 Exp $
  */
 
 package se.sics.cooja;
@@ -532,6 +532,14 @@ public class GUI {
     menuItem = new JMenuItem("Manage project directories");
     menuItem.setActionCommand("manage projects");
     menuItem.addActionListener(guiEventHandler);
+    menu.add(menuItem);
+
+    menu.addSeparator();
+
+    menuItem = new JMenuItem("Java version: "
+        + System.getProperty("java.version") + " ("
+        + System.getProperty("java.vendor") + ")");
+    menuItem.setEnabled(false);
     menu.add(menuItem);
 
     // Mote plugins popup menu (not available via menu bar)
