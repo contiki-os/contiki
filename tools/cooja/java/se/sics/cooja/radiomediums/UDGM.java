@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: UDGM.java,v 1.3 2007/03/23 21:06:23 fros4943 Exp $
+ * $Id: UDGM.java,v 1.4 2007/05/18 15:17:11 fros4943 Exp $
  */
 
 package se.sics.cooja.radiomediums;
@@ -79,7 +79,9 @@ public class UDGM extends AbstractRadioMedium {
 
   public static final double SS_NOISE = -60;
 
-  public static final double SS_OK = 0;
+  public static final double SS_OK_BEST = 0;
+
+  public static final double SS_OK_WORST = -30;
 
   /**
    * Visualizes radio traffic in the UDGM. Allows a user to
@@ -415,9 +417,13 @@ public class UDGM extends AbstractRadioMedium {
 
     // Set signal strength on all OK transmissions
     for (RadioConnection conn : getActiveConnections()) {
-      conn.getSource().setCurrentSignalStrength(SS_OK);
+      conn.getSource().setCurrentSignalStrength(SS_OK_BEST);
       for (Radio dstRadio : conn.getDestinations()) {
-        dstRadio.setCurrentSignalStrength(SS_OK);
+        double dist = conn.getSource().getPosition().getDistanceTo(dstRadio.getPosition());
+        double distFactor = dist/TRANSMITTING_RANGE;
+        distFactor = distFactor*distFactor;
+        double signalStrength = SS_OK_BEST + distFactor*(SS_OK_WORST - SS_OK_BEST);
+        dstRadio.setCurrentSignalStrength(signalStrength);
       }
     }
 
