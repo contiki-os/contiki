@@ -42,7 +42,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: radio.h,v 1.2 2007/05/15 07:51:57 adamdunkels Exp $
+ * $Id: radio.h,v 1.3 2007/05/18 13:13:18 fros4943 Exp $
  */
 
 /**
@@ -74,21 +74,6 @@ struct radio_driver {
   /** Turn the radio off. */
   int (* off)(void);
 };
-
-
-/**
- * \brief      Turn radio on.
- *
- *             This function turns the radio hardware on.
- */
-void radio_on(void);
-
-/**
- * \brief      Turn radio off.
- *
- *             This function turns the radio hardware off.
- */
-void radio_off(void);
 
 #endif /* __RADIO_H__ */
 
