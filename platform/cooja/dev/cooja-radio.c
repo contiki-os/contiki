@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: cooja-radio.c,v 1.1 2007/05/18 13:48:16 fros4943 Exp $
+ * $Id: cooja-radio.c,v 1.2 2007/05/18 15:20:21 fros4943 Exp $
  */
 
 #include <string.h>
@@ -54,6 +54,7 @@ int simOutSize;
 
 char simRadioHWOn = 1;
 int simSignalStrength = -200;
+int simLastSignalStrength = -200;
 char simPower = 100;
 int simRadioChannel = 1;
 int inSendFunction = 0;
@@ -99,6 +100,12 @@ radio_set_channel(int channel)
 int
 radio_sstrength(void)
 {
+  return simLastSignalStrength;
+}
+/*-----------------------------------------------------------------------------------*/
+int
+radio_current_sstrength(void)
+{
   return simSignalStrength;
 }
 /*-----------------------------------------------------------------------------------*/
@@ -121,6 +128,7 @@ doInterfaceActionsBeforeTick(void)
   
   // Don't fall asleep while receiving (in main file)
   if (simReceiving) {
+    simLastSignalStrength = simSignalStrength;
     simDontFallAsleep = 1;
     return;
   }
