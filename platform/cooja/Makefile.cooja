@@ -1,4 +1,4 @@
-# $Id: Makefile.cooja,v 1.15 2007/05/13 08:42:54 oliverschmidt Exp $
+# $Id: Makefile.cooja,v 1.16 2007/05/18 13:51:04 fros4943 Exp $
 
 ## The COOJA Simulator Contiki platform Makefile
 ##
@@ -54,12 +54,12 @@ MAINFILE = $(OUTPUT_DIR)/$(TYPEID).co
 
 ### Define COOJA core interfaces
 COOJA = $(CONTIKI)/platform/$(TARGET)
-CONTIKI_TARGET_DIRS = . dev lib sys cfs
+CONTIKI_TARGET_DIRS = . dev lib sys cfs net
 
 COOJA_BASE	= simEnvChange.c irq.c cooja_mt.c cooja_mtarch.c
 
 COOJA_INTFS	= beep.c button-sensor.c ip.c leds-arch.c moteid.c \
-		    pir-sensor.c radio-arch.c rs232.c vib-sensor.c \
+		    pir-sensor.c rs232.c vib-sensor.c \
 		    clock.c log.c radio-sensor.c cfs-cooja.c
 
 CORE_FILES = random.c sensors.c leds.c serial.c cfs.c symbols.c
