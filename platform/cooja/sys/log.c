@@ -26,12 +26,13 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: log.c,v 1.2 2007/05/15 18:13:32 fros4943 Exp $
+ * $Id: log.c,v 1.3 2007/05/18 13:50:08 fros4943 Exp $
  */
 
+#include <stdio.h>
+#include <string.h>
 #include "sys/log.h"
 #include "lib/simEnvChange.h"
-#include <string.h>
 
 #define MAX_LOG_LENGTH 1024
 const struct simInterface simlog_interface;
