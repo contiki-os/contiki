@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ContikiMoteType.java,v 1.13 2007/05/11 10:55:26 fros4943 Exp $
+ * $Id: ContikiMoteType.java,v 1.14 2007/05/18 13:46:31 fros4943 Exp $
  */
 
 package se.sics.cooja.contikimote;
@@ -88,6 +88,32 @@ public class ContikiMoteType implements MoteType {
    */
   final static public File tempOutputDirectory = new File("obj_cooja");
 
+  /**
+   * Communication stacks in Contiki.
+   */
+  public enum CommunicationStack {
+    UIP,
+    RIME;
+
+    public String toString() {
+      if (this == UIP)
+        return "uIP";
+      if (this == RIME)
+        return "Rime";
+      return "[unknown]";
+    }
+    
+    public static CommunicationStack parse(String name) {
+      if (name.equals("uIP") || name.equals("UIP"))
+        return UIP;
+      if (name.equals("Rime") || name.equals("RIME"))
+        return RIME;
+      
+      logger.warn("Can't parse communication stack name: " + name);
+      return UIP;
+    }
+  }
+  
   // Regular expressions for parsing the map file
   final static private String bssSectionAddrRegExp = "^.bss[ \t]*0x([0-9A-Fa-f]*)[ \t]*0x[0-9A-Fa-f]*[ \t]*$";
   final static private String bssSectionSizeRegExp = "^.bss[ \t]*0x[0-9A-Fa-f]*[ \t]*0x([0-9A-Fa-f]*)[ \t]*$";
@@ -114,7 +140,8 @@ public class ContikiMoteType implements MoteType {
   private Vector<String> coreInterfaces = null;
   private Vector<Class<? extends MoteInterface>> moteInterfaces = null;
   private boolean hasSystemSymbols = false;
-  
+  private CommunicationStack commStack = CommunicationStack.UIP;
+
   // Simulation holding this mote type
   private Simulation mySimulation = null;
 
@@ -206,7 +233,8 @@ public class ContikiMoteType implements MoteType {
           identifier, 
           new File(contikiBaseDir), 
           compilationFiles, 
-          hasSystemSymbols, 
+          hasSystemSymbols,
+          commStack,
           taskOutput.getInputStream(MessageList.NORMAL),
           taskOutput.getInputStream(MessageList.ERROR));
       if (!libFile.exists() || !depFile.exists() || !mapFile.exists())
@@ -459,7 +487,20 @@ public class ContikiMoteType implements MoteType {
   public boolean hasSystemSymbols() {
     return hasSystemSymbols;
   }
+    
+  /**
+   * @param commStack Communication stack
+   */
+  public void setCommunicationStack(CommunicationStack commStack) {
+    this.commStack = commStack;
+  }
   
+  /**
+   * @return Contiki communication stack
+   */
+  public CommunicationStack getCommunicationStack() {
+    return commStack;
+  }
   
   /**
    * @return Contiki mote type's library class name
@@ -1140,6 +1181,11 @@ public class ContikiMoteType implements MoteType {
     element.setText(new Boolean(hasSystemSymbols).toString());
     config.add(element);
 
+    // Communication stack
+    element = new Element("commstack");
+    element.setText(commStack.toString());
+    config.add(element);
+
     return config;
   }
 
@@ -1174,6 +1220,8 @@ public class ContikiMoteType implements MoteType {
         sensors.add(element.getText());
       } else if (name.equals("symbols")) {
         hasSystemSymbols = Boolean.parseBoolean(element.getText());
+      } else if (name.equals("commstack")) {
+        commStack = CommunicationStack.parse(element.getText());
       } else if (name.equals("coreinterface")) {
         coreInterfaces.add(element.getText());
       } else if (name.equals("moteinterface")) {

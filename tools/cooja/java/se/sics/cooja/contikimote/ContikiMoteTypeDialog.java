@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ContikiMoteTypeDialog.java,v 1.28 2007/05/11 10:55:26 fros4943 Exp $
+ * $Id: ContikiMoteTypeDialog.java,v 1.29 2007/05/18 13:47:13 fros4943 Exp $
  */
 
 package se.sics.cooja.contikimote;
@@ -83,7 +83,8 @@ public class ContikiMoteTypeDialog extends JDialog {
       textCoreDir, textProjectDirs;
   private JButton createButton, testButton, rescanButton;
   private JCheckBox symbolsCheckBox;
-  
+  private JComboBox commStackComboBox;
+
   private JPanel processPanel; // Holds process checkboxes
   private JPanel sensorPanel; // Holds sensor checkboxes
   private JPanel moteInterfacePanel; // Holds mote interface checkboxes
@@ -228,6 +229,9 @@ public class ContikiMoteTypeDialog extends JDialog {
       myDialog.symbolsCheckBox.setSelected(true);
     }
 
+    // Set preset communication stack
+    myDialog.commStackComboBox.setSelectedItem(moteTypeToConfigure.getCommunicationStack());
+    
     // Scan directories for processes, sensors and core interfaces
     // TODO Really do this without starting a separate thread?
     myDialog.updateVisualFields();
@@ -686,6 +690,25 @@ public class ContikiMoteTypeDialog extends JDialog {
     mainPane.add(new JSeparator());
     mainPane.add(Box.createRigidArea(new Dimension(0, 5)));
 
+    // Communication stack
+    smallPane = new JPanel();
+    smallPane.setAlignmentX(Component.LEFT_ALIGNMENT);
+    smallPane.setLayout(new BoxLayout(smallPane, BoxLayout.X_AXIS));
+    label = new JLabel("Communication stack");
+
+    commStackComboBox = new JComboBox(new Object[] {
+            ContikiMoteType.CommunicationStack.UIP, 
+            ContikiMoteType.CommunicationStack.RIME});
+    commStackComboBox.setSelectedIndex(0);
+    
+    smallPane.add(label);
+    smallPane.add(Box.createHorizontalStrut(10));
+    smallPane.add(Box.createHorizontalGlue());
+    smallPane.add(commStackComboBox);
+    mainPane.add(smallPane);
+
+    mainPane.add(Box.createRigidArea(new Dimension(0, 5)));
+
     // Processes
     smallPane = new JPanel();
     smallPane.setAlignmentX(Component.LEFT_ALIGNMENT);
@@ -1113,6 +1136,7 @@ public class ContikiMoteTypeDialog extends JDialog {
 
         compilationSucceded = ContikiMoteTypeDialog.compileLibrary(identifier,
             contikiDir, compilationFiles, symbolsCheckBox.isSelected(),
+            (ContikiMoteType.CommunicationStack) commStackComboBox.getSelectedItem(),
             taskOutput.getInputStream(MessageList.NORMAL),
             taskOutput.getInputStream(MessageList.ERROR));
       }
@@ -1332,9 +1356,9 @@ public class ContikiMoteTypeDialog extends JDialog {
    * @return True if compilation succeded, false otherwise
    */
   public static boolean compileLibrary(String identifier, File contikiDir,
-      Vector<File> sourceFiles, boolean includeSymbols, final PrintStream outputStream,
-      final PrintStream errorStream) {
-
+      Vector<File> sourceFiles, boolean includeSymbols,
+      ContikiMoteType.CommunicationStack commStack,
+      final PrintStream outputStream, final PrintStream errorStream) {
     File libFile = new File(ContikiMoteType.tempOutputDirectory,
         identifier + ContikiMoteType.librarySuffix);
     File mapFile = new File(ContikiMoteType.tempOutputDirectory,
@@ -1418,6 +1442,13 @@ public class ContikiMoteTypeDialog extends JDialog {
         }
       }
 
+      // Add communication stack source files
+      if (commStack == ContikiMoteType.CommunicationStack.UIP) {
+        sourceFileNames += " cooja-radio.c radio-uip.c init-net-uip.c";
+      } else if (commStack == ContikiMoteType.CommunicationStack.RIME) {
+        sourceFileNames += " cooja-radio.c radio-rime.c init-net-rime.c";
+      }
+      
       logger.info("-- Compiling --");
       logger.info("Project dirs: " + sourceDirs);
       logger.info("Project sources: " + sourceFileNames);
@@ -2116,6 +2147,10 @@ public class ContikiMoteTypeDialog extends JDialog {
         // Set "using symbols"
         myMoteType.setHasSystemSymbols(symbolsCheckBox.isSelected());
         
+        // Set communication stack
+        myMoteType.setCommunicationStack(
+          (ContikiMoteType.CommunicationStack) commStackComboBox.getSelectedItem());
+
         dispose();
       } else if (e.getActionCommand().equals("testsettings")) {
         testButton.requestFocus();
