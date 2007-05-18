@@ -24,7 +24,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * 
- * $Id: GUI.java,v 1.46 2007/05/14 12:13:08 fros4943 Exp $
+ * $Id: GUI.java,v 1.47 2007/05/18 13:45:19 fros4943 Exp $
  */
 
 package se.sics.cooja;
@@ -896,9 +896,12 @@ public class GUI {
     }
 
     // Compile library
-    logger.info("> Compiling library");
+    logger.info("> Compiling library (uIP comm stack)");
+    // TODO Warning, assuming uIP communication stack
     boolean compilationSucceded = ContikiMoteTypeDialog.compileLibrary(
-        moteTypeID, contikiBaseDir, filesToCompile, false, null, System.err);
+        moteTypeID, contikiBaseDir, filesToCompile, false, 
+        ContikiMoteType.CommunicationStack.UIP,
+        null, System.err);
     if (!libFile.exists() || !depFile.exists() || !mapFile.exists())
       compilationSucceded = false;
 
