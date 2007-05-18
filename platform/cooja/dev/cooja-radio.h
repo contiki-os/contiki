@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: cooja-radio.h,v 1.1 2007/05/18 13:48:30 fros4943 Exp $
+ * $Id: cooja-radio.h,v 1.2 2007/05/18 15:20:20 fros4943 Exp $
  */
 
 #ifndef __COOJA_RADIO_H__
@@ -102,10 +102,15 @@ u16_t
 radio_read(u8_t *buf, u16_t bufsize);
 
 /**
- * This function returns the recevied signal strength of the last
+ * This function returns the signal strength of the last
  * received packet. This function typically is called when a packet
  * has been received.
  */
 int radio_sstrength(void);
+
+/**
+ * This function measures and returns the signal strength.
+ */
+int radio_current_sstrength(void);
 
 #endif /* __COOJA_RADIO_H__ */
