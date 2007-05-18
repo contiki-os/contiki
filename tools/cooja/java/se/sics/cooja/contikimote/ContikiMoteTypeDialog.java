@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ContikiMoteTypeDialog.java,v 1.29 2007/05/18 13:47:13 fros4943 Exp $
+ * $Id: ContikiMoteTypeDialog.java,v 1.30 2007/05/18 15:18:07 fros4943 Exp $
  */
 
 package se.sics.cooja.contikimote;
@@ -1467,6 +1467,15 @@ public class ContikiMoteTypeDialog extends JDialog {
           "PROJECT_SOURCEFILES=" + sourceFileNames,
           "PATH=" + System.getenv("PATH")};
 
+/*      System.out.print("Full command:\n");
+      System.out.print((new File(".").getAbsolutePath()) + "/> ");
+      for (String s: cmd)
+        System.out.print(s + " ");
+      System.out.println();
+      System.out.println("Environment:\n");
+      for (String s: env)
+        System.out.print(s + "\n");
+*/      
       Process p = Runtime.getRuntime().exec(cmd, env, null);
 
       final BufferedReader input = new BufferedReader(new InputStreamReader(p
