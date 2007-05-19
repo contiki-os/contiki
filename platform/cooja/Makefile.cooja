@@ -1,4 +1,4 @@
-# $Id: Makefile.cooja,v 1.16 2007/05/18 13:51:04 fros4943 Exp $
+# $Id: Makefile.cooja,v 1.17 2007/05/19 07:57:59 oliverschmidt Exp $
 
 ## The COOJA Simulator Contiki platform Makefile
 ##
@@ -75,12 +75,7 @@ CONTIKI_SOURCEFILES += $(CONTIKI_TARGET_SOURCEFILES)
 CONTIKI_CPU=$(CONTIKI)/cpu/x86
 
 ### Compiler arguments
-CFLAGSNO = -I. -I$(CONTIKI_CPU) \
-			$(EXTRA_CC_ARGS) \
-           -I$(COOJA) \
-           -I$(CONTIKI)/core \
-          -DWITH_UIP -DWITH_ASCII \
-          -Wall -g -I. -I/usr/local/include
+CFLAGSNO = $(EXTRA_CC_ARGS) -Wall -g -I/usr/local/include
 CFLAGS   = $(CFLAGSNO)
 
 ### Define custom targets

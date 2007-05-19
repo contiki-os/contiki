@@ -77,7 +77,7 @@ endif
 
 include $(CONTIKI)/platform/$(TARGET)/Makefile.$(TARGET)
 
-### Setup directory search path for source files
+### Setup directory search path for source and header files
 
 CONTIKI_TARGET_DIRS_CONCAT = ${addprefix $(CONTIKI)/platform/$(TARGET)/, \
                                $(CONTIKI_TARGET_DIRS)}
@@ -89,6 +89,8 @@ SOURCEDIRS = $(PROJECTDIRS) $(CONTIKI_TARGET_DIRS_CONCAT) \
 
 vpath %.c $(SOURCEDIRS)
 vpath %.S $(SOURCEDIRS)
+
+CFLAGS += ${addprefix -I,$(SOURCEDIRS)}
 
 ### Automatic dependency generation
 
