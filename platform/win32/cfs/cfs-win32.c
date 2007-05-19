@@ -30,7 +30,7 @@
  * 
  * Author: Oliver Schmidt <ol.sc@web.de>
  *
- * $Id: cfs-win32.c,v 1.1 2006/08/13 16:23:10 oliverschmidt Exp $
+ * $Id: cfs-win32.c,v 1.2 2007/05/19 21:38:22 oliverschmidt Exp $
  */
 
 #define WIN32_LEAN_AND_MEAN
@@ -43,20 +43,6 @@
 #include "contiki.h"
 
 #include "cfs/cfs.h"
-#include "cfs/cfs-service.h"
-
-static int  s_open(const char *n, int f);
-static void s_close(int f);
-static int  s_read(int f, char *b, unsigned int l);
-static int  s_write(int f, char *b, unsigned int l);
-static int  s_seek(int f, unsigned int offset);
-static int  s_opendir(struct cfs_dir *p, const char *n);
-static int  s_readdir(struct cfs_dir *p, struct cfs_dirent *e);
-static int  s_closedir(struct cfs_dir *p);
-
-SERVICE(cfs_win32_service, cfs_service,
-{ s_open, s_close, s_read, s_write, s_seek,
-    s_opendir, s_readdir, s_closedir });
 
 struct cfs_win32_dir {
   HANDLE         handle;
@@ -64,24 +50,9 @@ struct cfs_win32_dir {
   unsigned int   size;
 };
 
-PROCESS(cfs_win32_process, "CFS Win32 service");
-
-PROCESS_THREAD(cfs_win32_process, ev, data)
-{
-  PROCESS_BEGIN();
-
-  SERVICE_REGISTER(cfs_win32_service);
-
-  PROCESS_WAIT_EVENT_UNTIL(ev == PROCESS_EVENT_SERVICE_REMOVED ||
-			   ev == PROCESS_EVENT_EXIT);
-
-  SERVICE_REMOVE(cfs_win32_service);
-  
-  PROCESS_END();
-}
 /*---------------------------------------------------------------------------*/
-static int
-s_open(const char *n, int f)
+int
+cfs_open(const char *n, int f)
 {
   if(f == CFS_READ) {
     return _open(n, O_RDONLY);
@@ -90,32 +61,32 @@ s_open(const char *n, int f)
   }
 }
 /*---------------------------------------------------------------------------*/
-static void
-s_close(int f)
+void
+cfs_close(int f)
 {
   _close(f);
 }
 /*---------------------------------------------------------------------------*/
-static int
-s_read(int f, char *b, unsigned int l)
+int
+cfs_read(int f, char *b, unsigned int l)
 {
   return _read(f, b, l);
 }
 /*---------------------------------------------------------------------------*/
-static int
-s_write(int f, char *b, unsigned int l)
+int
+cfs_write(int f, char *b, unsigned int l)
 {
   return _write(f, b, l);
 }
 /*---------------------------------------------------------------------------*/
-static int
-s_seek(int f, unsigned int o)
+int
+cfs_seek(int f, unsigned int o)
 {
   return _lseek(f, o, SEEK_SET);
 }
 /*---------------------------------------------------------------------------*/
-static int
-s_opendir(struct cfs_dir *p, const char *n)
+int
+cfs_opendir(struct cfs_dir *p, const char *n)
 {
   struct cfs_win32_dir *dir = (struct cfs_win32_dir *)p;
   WIN32_FIND_DATA data;
@@ -143,8 +114,8 @@ s_opendir(struct cfs_dir *p, const char *n)
   return 0;
 }
 /*---------------------------------------------------------------------------*/
-static int
-s_readdir(struct cfs_dir *p, struct cfs_dirent *e)
+int
+cfs_readdir(struct cfs_dir *p, struct cfs_dirent *e)
 {
   struct cfs_win32_dir *dir = (struct cfs_win32_dir *)p;
   WIN32_FIND_DATA data;
@@ -168,8 +139,8 @@ s_readdir(struct cfs_dir *p, struct cfs_dirent *e)
   return 0;
 }
 /*---------------------------------------------------------------------------*/
-static int
-s_closedir(struct cfs_dir *p)
+int
+cfs_closedir(struct cfs_dir *p)
 {
   struct cfs_win32_dir *dir = (struct cfs_win32_dir *)p;
 
