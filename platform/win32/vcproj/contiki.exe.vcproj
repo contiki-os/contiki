@@ -429,6 +429,10 @@
 					>
 				</File>
 				<File
+					RelativePath="..\..\..\core\sys\rtimer.h"
+					>
+				</File>
+				<File
 					RelativePath="..\..\..\core\sys\service.c"
 					>
 				</File>
@@ -449,6 +453,10 @@
 		<Filter
 			Name="cpu"
 			>
+			<File
+				RelativePath="..\..\..\cpu\native\rtimer-arch.h"
+				>
+			</File>
 			<Filter
 				Name="net"
 				>
