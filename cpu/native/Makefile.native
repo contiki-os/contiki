@@ -8,10 +8,7 @@ LD       = gcc
 AS       = as
 OBJCOPY  = objcopy
 STRIP    = strip
-CFLAGSNO = -I. -I$(CONTIKI) -I$(CONTIKI)/core -I$(CONTIKI_CPU) \
-           -I$(CONTIKI)/platform/$(TARGET) \
-           ${addprefix -I,$(APPDIRS)} $(APP_INCLUDES) \
-          -Wall -g -I. -I/usr/local/include
+CFLAGSNO = -Wall -g -I/usr/local/include
 CFLAGS  += $(CFLAGSNO) -O
 LDFLAGS  = -Wl,-Map=contiki-native.map,-export-dynamic
 

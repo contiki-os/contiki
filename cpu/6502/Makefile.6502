@@ -30,7 +30,7 @@
 #
 # Author: Oliver Schmidt <ol.sc@web.de>
 #
-# $Id: Makefile.6502,v 1.8 2007/05/13 08:41:32 oliverschmidt Exp $
+# $Id: Makefile.6502,v 1.9 2007/05/19 07:55:35 oliverschmidt Exp $
 #
 
 ifndef CONTIKI
@@ -69,7 +69,7 @@ LD = ld65
 AR = ar65
 
 AFLAGS  = -t $(TARGET)
-CFLAGS += -t $(TARGET) -Or ${addprefix -I,$(SOURCEDIRS)}
+CFLAGS += -t $(TARGET) -Or
 LDFLAGS = -C $(CONTIKI)/platform/$(TARGET)/linker.cfg -m contiki-$(TARGET).map
 AROPTS  = a
 

@@ -1,4 +1,4 @@
-# $Id: Makefile.msp430,v 1.17 2007/05/15 08:09:45 adamdunkels Exp $
+# $Id: Makefile.msp430,v 1.18 2007/05/19 07:56:34 oliverschmidt Exp $
 
 ifdef nodeid
 CFLAGS += -DNODEID=$(nodeid)
@@ -39,11 +39,7 @@ NM       = msp430-nm
 OBJCOPY  = msp430-objcopy
 STRIP    = msp430-strip
 BSL      = msp430-bsl
-CFLAGSNO = -I. -I$(CONTIKI)/core -I$(CONTIKI_CPU) \
-           -I$(CONTIKI)/platform/$(TARGET) \
-           ${addprefix -I,$(APPDIRS)} \
-           -DWITH_ASCII \
-           -Wall -mmcu=$(MCU) -g
+CFLAGSNO = -Wall -mmcu=$(MCU) -g
 CFLAGS  += $(CFLAGSNO) -Os
 LDFLAGS += -mmcu=$(MCU) -Wl,-Map=contiki-$(TARGET).map
 
