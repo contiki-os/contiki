@@ -237,10 +237,6 @@
 				Name="cfs"
 				>
 				<File
-					RelativePath="..\..\..\core\cfs\cfs.c"
-					>
-				</File>
-				<File
 					RelativePath="..\..\..\core\cfs\cfs.h"
 					>
 				</File>
@@ -502,10 +498,6 @@
 				>
 				<File
 					RelativePath="..\cfs\cfs-win32.c"
-					>
-				</File>
-				<File
-					RelativePath="..\cfs\cfs-win32.h"
 					>
 				</File>
 			</Filter>

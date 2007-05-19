@@ -28,14 +28,12 @@
  *
  * This file is part of the Contiki operating system.
  * 
- * $Id: cfs-cooja.c,v 1.1 2006/10/23 16:07:29 fros4943 Exp $
+ * $Id: cfs-cooja.c,v 1.2 2007/05/19 21:37:54 oliverschmidt Exp $
  */
 #include <string.h>
-#include "cfs/cfs-cooja.h"
 #include "lib/simEnvChange.h"
 
 #include "cfs/cfs.h"
-#include "cfs/cfs-service.h"
 #include "dev/eeprom.h"
 
 struct filestate {
@@ -57,8 +55,8 @@ int simCFSRead = 0;
 int simCFSWritten = 0;
 
 /*---------------------------------------------------------------------------*/
-static int
-s_open(const char *n, int f)
+int
+cfs_open(const char *n, int f)
 {
   if(file.flag == FLAG_FILE_CLOSED) {
     file.flag = FLAG_FILE_OPEN;
@@ -69,14 +67,14 @@ s_open(const char *n, int f)
   }
 }
 /*---------------------------------------------------------------------------*/
-static void
-s_close(int f)
+void
+cfs_close(int f)
 {
   file.flag = FLAG_FILE_CLOSED;
 }
 /*---------------------------------------------------------------------------*/
-static int
-s_read(int f, char *buf, unsigned int len)
+int
+cfs_read(int f, char *buf, unsigned int len)
 {
   if(f == 1) {
 	// TODO Should yield a few times?
@@ -90,8 +88,8 @@ s_read(int f, char *buf, unsigned int len)
   }
 }
 /*---------------------------------------------------------------------------*/
-static int
-s_write(int f, char *buf, unsigned int len)
+int
+cfs_write(int f, char *buf, unsigned int len)
 {
   if(f == 1) {
 	// TODO Should yield a few times?
@@ -105,8 +103,8 @@ s_write(int f, char *buf, unsigned int len)
   }
 }
 /*---------------------------------------------------------------------------*/
-static int
-s_seek(int f, unsigned int o)
+int
+cfs_seek(int f, unsigned int o)
 {
   if(f == 1) {
     file.fileptr = o;
@@ -116,58 +114,35 @@ s_seek(int f, unsigned int o)
   }
 }
 /*---------------------------------------------------------------------------*/
-static int
-s_opendir(struct cfs_dir *p, const char *n)
+int
+cfs_opendir(struct cfs_dir *p, const char *n)
 {
   return 1;
 }
 /*---------------------------------------------------------------------------*/
-static int
-s_readdir(struct cfs_dir *p, struct cfs_dirent *e)
+int
+cfs_readdir(struct cfs_dir *p, struct cfs_dirent *e)
 {
   return 1;
 }
 /*---------------------------------------------------------------------------*/
-static int
-s_closedir(struct cfs_dir *p)
+int
+cfs_closedir(struct cfs_dir *p)
 {
   return 1;
 }
 /*---------------------------------------------------------------------------*/
-/*
- * Service registration code follows.
- */
-SERVICE(cfs_cooja_service, cfs_service,
-{ s_open, s_close, s_read, s_write, s_seek,
-    s_opendir, s_readdir, s_closedir });
-
-PROCESS(cfs_cooja_process, "CFS COOJA service");
-
-PROCESS_THREAD(cfs_cooja_process, ev, data)
-{
-  PROCESS_BEGIN();
-
-  SERVICE_REGISTER(cfs_cooja_service);
-
-  PROCESS_WAIT_EVENT_UNTIL(ev == PROCESS_EVENT_SERVICE_REMOVED ||
-			   ev == PROCESS_EVENT_EXIT);
-
-  SERVICE_REMOVE(cfs_cooja_service);
-  
-  PROCESS_END();
-}
-/*-----------------------------------------------------------------------------------*/
 static void
 doInterfaceActionsBeforeTick(void)
 {
 }
-/*-----------------------------------------------------------------------------------*/
+/*---------------------------------------------------------------------------*/
 static void
 doInterfaceActionsAfterTick(void)
 {
 }
-/*-----------------------------------------------------------------------------------*/
-
+/*---------------------------------------------------------------------------*/
 SIM_INTERFACE(cfs_interface,
 	      doInterfaceActionsBeforeTick,
 	      doInterfaceActionsAfterTick);
+/*---------------------------------------------------------------------------*/
