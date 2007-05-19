@@ -30,12 +30,11 @@
  * 
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: cfs-eeprom.c,v 1.1 2006/06/17 22:41:15 adamdunkels Exp $
+ * $Id: cfs-eeprom.c,v 1.2 2007/05/19 21:05:48 oliverschmidt Exp $
  */
 #include "contiki.h"
 
 #include "cfs/cfs.h"
-#include "cfs/cfs-service.h"
 #include "dev/eeprom.h"
 
 struct filestate {
@@ -54,8 +53,8 @@ static struct filestate file;
 #endif
 
 /*---------------------------------------------------------------------------*/
-static int
-s_open(const char *n, int f)
+int
+cfs_open(const char *n, int f)
 {
   if(file.flag == FLAG_FILE_CLOSED) {
     file.flag = FLAG_FILE_OPEN;
@@ -66,14 +65,14 @@ s_open(const char *n, int f)
   }
 }
 /*---------------------------------------------------------------------------*/
-static void
-s_close(int f)
+void
+cfs_close(int f)
 {
   file.flag = FLAG_FILE_CLOSED;
 }
 /*---------------------------------------------------------------------------*/
-static int
-s_read(int f, char *buf, unsigned int len)
+int
+cfs_read(int f, char *buf, unsigned int len)
 {
   if(f == 1) {
     eeprom_read(CFS_EEPROM_OFFSET + file.fileptr, buf, len);
@@ -84,8 +83,8 @@ s_read(int f, char *buf, unsigned int len)
   }
 }
 /*---------------------------------------------------------------------------*/
-static int
-s_write(int f, char *buf, unsigned int len)
+int
+cfs_write(int f, char *buf, unsigned int len)
 {
   if(f == 1) {
     eeprom_write(CFS_EEPROM_OFFSET + file.fileptr, buf, len);
@@ -96,8 +95,8 @@ s_write(int f, char *buf, unsigned int len)
   }
 }
 /*---------------------------------------------------------------------------*/
-static int
-s_seek(int f, unsigned int o)
+int
+cfs_seek(int f, unsigned int o)
 {
   if(f == 1) {
     file.fileptr = o;
@@ -107,44 +106,21 @@ s_seek(int f, unsigned int o)
   }
 }
 /*---------------------------------------------------------------------------*/
-static int
-s_opendir(struct cfs_dir *p, const char *n)
+int
+cfs_opendir(struct cfs_dir *p, const char *n)
 {
   return 1;
 }
 /*---------------------------------------------------------------------------*/
-static int
-s_readdir(struct cfs_dir *p, struct cfs_dirent *e)
+int
+cfs_readdir(struct cfs_dir *p, struct cfs_dirent *e)
 {
   return 1;
 }
 /*---------------------------------------------------------------------------*/
-static int
-s_closedir(struct cfs_dir *p)
+int
+cfs_closedir(struct cfs_dir *p)
 {
   return 1;
-}
-/*---------------------------------------------------------------------------*/
-/*
- * Service registration code follows.
- */
-SERVICE(cfs_eeprom_service, cfs_service,
-{ s_open, s_close, s_read, s_write, s_seek,
-    s_opendir, s_readdir, s_closedir });
-
-PROCESS(cfs_eeprom_process, "CFS EEPROM service");
-
-PROCESS_THREAD(cfs_eeprom_process, ev, data)
-{
-  PROCESS_BEGIN();
-
-  SERVICE_REGISTER(cfs_eeprom_service);
-
-  PROCESS_WAIT_EVENT_UNTIL(ev == PROCESS_EVENT_SERVICE_REMOVED ||
-			   ev == PROCESS_EVENT_EXIT);
-
-  SERVICE_REMOVE(cfs_eeprom_service);
-  
-  PROCESS_END();
 }
 /*---------------------------------------------------------------------------*/
