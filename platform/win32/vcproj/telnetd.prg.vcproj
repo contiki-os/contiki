@@ -40,7 +40,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..;../../../core;../../../apps/program-handler;../../../apps/shell"
+				AdditionalIncludeDirectories="..;../../../cpu/native;../../../core;../../../apps/program-handler;../../../apps/shell"
 				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;_USRDLL;_CRT_SECURE_NO_DEPRECATE;PROCESS_LOADABLE;WITH_LOADER_ARCH"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="3"
@@ -117,7 +117,7 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
-				AdditionalIncludeDirectories="..;../../../core;../../../apps/program-handler;../../../apps/shell"
+				AdditionalIncludeDirectories="..;../../../cpu/native;../../../core;../../../apps/program-handler;../../../apps/shell"
 				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_USRDLL;_CRT_SECURE_NO_DEPRECATE;PROCESS_LOADABLE;WITH_LOADER_ARCH"
 				RuntimeLibrary="2"
 				WarningLevel="3"
