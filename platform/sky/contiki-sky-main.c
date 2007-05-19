@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#)$Id: contiki-sky-main.c,v 1.7 2007/04/03 19:04:50 adamdunkels Exp $
+ * @(#)$Id: contiki-sky-main.c,v 1.8 2007/05/19 21:21:32 oliverschmidt Exp $
  */
 
 #include <stdio.h>
@@ -110,7 +110,7 @@ main(int argc, char **argv)
 
   slip_arch_init(BAUD2UBR(115200)); /* Must come before first printf */
   printf("Starting %s "
-	 "($Id: contiki-sky-main.c,v 1.7 2007/04/03 19:04:50 adamdunkels Exp $)\n", __FILE__);
+	 "($Id: contiki-sky-main.c,v 1.8 2007/05/19 21:21:32 oliverschmidt Exp $)\n", __FILE__);
   ds2411_init();
   sensors_light_init();
   xmem_init();
@@ -144,8 +144,6 @@ main(int argc, char **argv)
   process_init();
   process_start(&etimer_process, NULL);
   process_start(&sensors_process, NULL);
-
-  cfs_xmem_init();
 
   simple_cc2420_init();
   simple_cc2420_rime_init();

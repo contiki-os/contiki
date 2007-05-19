@@ -30,7 +30,7 @@
 #
 # Author: Oliver Schmidt <ol.sc@web.de>
 #
-# $Id: Makefile.win32,v 1.8 2007/05/13 08:46:18 oliverschmidt Exp $
+# $Id: Makefile.win32,v 1.9 2007/05/19 21:23:06 oliverschmidt Exp $
 #
 
 ifndef CONTIKI
@@ -56,7 +56,7 @@ include $(CONTIKI)/cpu/native/Makefile.native
 
 CFLAGS += -DWITH_LOADER_ARCH
 LDFLAGS += -Wl,--out-implib=contiki-main.$(TARGET).a \
-           -u _cfs_find_service -u _uiplib_ipaddrconv
+           -u _cfs_open -u _uiplib_ipaddrconv
 
 ### Generate the module-link prerequisites
 define prg_template
