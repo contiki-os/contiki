@@ -24,7 +24,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * 
- * $Id: GUI.java,v 1.48 2007/05/18 14:08:19 fros4943 Exp $
+ * $Id: GUI.java,v 1.49 2007/05/19 17:05:54 fros4943 Exp $
  */
 
 package se.sics.cooja;
@@ -1910,7 +1910,11 @@ public class GUI {
     progressDialog.setDefaultCloseOperation(JDialog.DO_NOTHING_ON_CLOSE);
     loadThread.start();
     if (quick)
-      progressDialog.setVisible(true);
+      SwingUtilities.invokeLater(new Runnable() {
+        public void run() {
+          progressDialog.setVisible(true);
+        }
+      });
   }
   
   /**
