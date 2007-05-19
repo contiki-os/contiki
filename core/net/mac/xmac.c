@@ -30,7 +30,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: xmac.c,v 1.2 2007/05/15 08:07:07 adamdunkels Exp $
+ * $Id: xmac.c,v 1.3 2007/05/19 13:12:00 oliverschmidt Exp $
  */
 
 /**
@@ -113,7 +113,7 @@ static const struct radio_driver *radio;
 #endif
 
 /*---------------------------------------------------------------------------*/
-static void
+static char
 powercycle(struct rtimer *t, void *ptr)
 {
   PT_BEGIN(&pt);
@@ -132,7 +132,8 @@ powercycle(struct rtimer *t, void *ptr)
 	should_be_awake = 0;
       }
     }
-    if(rtimer_set(t, RTIMER_TIME(t) + OFF_TIME, 1, powercycle, ptr)) {
+    if(rtimer_set(t, RTIMER_TIME(t) + OFF_TIME, 1,
+		  (void (*)(struct rtimer *, void *))powercycle, ptr)) {
       PRINTF("xmac: could not set rtimer\n");
     }
     t2 = rtimer_arch_now();
@@ -150,7 +151,8 @@ powercycle(struct rtimer *t, void *ptr)
       radio_is_on = 1;
       LEDS_ON(LEDS_RED);
     }
-    if(rtimer_set(t, RTIMER_TIME(t) + ON_TIME, 1, powercycle, ptr)) {
+    if(rtimer_set(t, RTIMER_TIME(t) + ON_TIME, 1,
+		  (void (*)(struct rtimer *, void *))powercycle, ptr)) {
       PRINTF("xmac: could not set rtimer\n");
     }
     t2 = rtimer_arch_now();
@@ -264,7 +266,8 @@ send(void)
   LEDS_OFF(LEDS_GREEN);
 
   PT_INIT(&pt);
-  if(rtimer_set(&rt, RTIMER_NOW() + ON_TIME, 1, powercycle, NULL)) {
+  if(rtimer_set(&rt, RTIMER_NOW() + ON_TIME, 1,
+		(void (*)(struct rtimer *, void *))powercycle, NULL)) {
     PRINTF("xmac: could not set rtimer after send\n");
   }
   we_are_sending = 0;
@@ -357,7 +360,8 @@ xmac_init(const struct radio_driver *d)
   radio_is_on = 0;
   should_be_awake = 0;
   PT_INIT(&pt);
-  rtimer_set(&rt, RTIMER_NOW() + OFF_TIME, 1, powercycle, NULL);
+  rtimer_set(&rt, RTIMER_NOW() + OFF_TIME, 1,
+	     (void (*)(struct rtimer *, void *))powercycle, NULL);
 
   rime_set_output(qsend);
   radio = d;
