@@ -30,14 +30,12 @@
  *
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: contiki-main.c,v 1.13 2007/04/01 21:05:17 oliverschmidt Exp $
+ * $Id: contiki-main.c,v 1.14 2007/05/19 21:20:03 oliverschmidt Exp $
  */
 
 #include "contiki.h"
 #include "contiki-net.h"
 #include "contiki-lib.h"
-
-#include "cfs/cfs-ram.h"
 
 #include "net/rime.h"
 
@@ -83,7 +81,6 @@ SENSORS(&button_sensor, &pir_sensor, &vib_sensor, &radio_sensor);
 
 PROCINIT(&sensors_process, &etimer_process, &tcpip_process,
 	 /*	 &ethernode_uip_process,*/
-	 &cfs_ram_process,
 	 &ethernode_rime_process,
 	 &uip_fw_process);
 

@@ -30,7 +30,7 @@
  * 
  * Author: Oliver Schmidt <ol.sc@web.de>
  *
- * $Id: contiki-main.c,v 1.9 2007/04/15 13:30:16 oliverschmidt Exp $
+ * $Id: contiki-main.c,v 1.10 2007/05/19 21:23:06 oliverschmidt Exp $
  */
 
 #define WIN32_LEAN_AND_MEAN
@@ -49,13 +49,11 @@
 #include "../../apps/webbrowser/www-dsc.h"
 
 #include "sys/etimer.h"
-#include "cfs/cfs-win32.h"
 #include "net/wpcap-service.h"
 #include "program-handler.h"
 
 PROCINIT(&etimer_process,
 	 &wpcap_process,
-	 &cfs_win32_process,
 	 &ctk_process,
 	 &tcpip_process,
 	 &resolv_process,
