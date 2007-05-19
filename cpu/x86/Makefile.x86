@@ -10,7 +10,7 @@ OBJCOPY  = objcopy
 STRIP    = strip
 CFLAGSNO = -Wall -g -I/usr/local/include
 CFLAGS  += $(CFLAGSNO)
-LDFLAGS  = -Wl,-Map=contiki.map,-export-dynamic
+LDFLAGS  = -Wl,-Map=contiki-$(TARGET).map,-export-dynamic
 
 ### Compilation rules
 

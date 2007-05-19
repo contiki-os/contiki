@@ -25,4 +25,4 @@ include $(CONTIKI_CPU)/Makefile.native
 ### Compiler definitions
 CFLAGS   += -DCTK_GTKSIM_SERVICE_PNGDIR=\"$(CONTIKI)/platform/gtk\" \
             `pkg-config --cflags gtk+-2.0`
-TARGET_LIBFILES = -Wl,-Map=contiki.map,-export-dynamic `pkg-config --libs gtk+-2.0`
+TARGET_LIBFILES = `pkg-config --libs gtk+-2.0`
