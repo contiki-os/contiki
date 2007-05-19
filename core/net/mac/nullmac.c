@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: nullmac.c,v 1.1 2007/05/15 07:40:22 adamdunkels Exp $
+ * $Id: nullmac.c,v 1.2 2007/05/19 13:19:22 oliverschmidt Exp $
  */
 
 /**
@@ -50,7 +50,7 @@ send(void)
 }
 /*---------------------------------------------------------------------------*/
 static void
-input(void)
+input(const struct radio_driver *d)
 {
   int len;
   rimebuf_clear();
