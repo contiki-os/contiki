@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ContikiMoteType.java,v 1.14 2007/05/18 13:46:31 fros4943 Exp $
+ * $Id: ContikiMoteType.java,v 1.15 2007/05/19 14:27:08 fros4943 Exp $
  */
 
 package se.sics.cooja.contikimote;
@@ -93,19 +93,34 @@ public class ContikiMoteType implements MoteType {
    */
   public enum CommunicationStack {
     UIP,
+    UIP_UAODV,
     RIME;
 
     public String toString() {
       if (this == UIP)
         return "uIP";
+      if (this == UIP_UAODV)
+        return "uIP over uAODV";
       if (this == RIME)
         return "Rime";
       return "[unknown]";
     }
     
+    public String getSourceFilenamesString() {
+      if (this == UIP)
+        return " cooja-radio.c radio-uip.c init-net-uip.c";
+      if (this == UIP_UAODV)
+        return " cooja-radio.c radio-uip-uaodv.c init-net-uip-uaodv.c";
+      if (this == RIME)
+        return " cooja-radio.c radio-rime.c init-net-rime.c";
+      return " ";
+    }
+
     public static CommunicationStack parse(String name) {
       if (name.equals("uIP") || name.equals("UIP"))
         return UIP;
+      if (name.equals("uIP over uAODV") || name.equals("UIP_UAODV"))
+        return UIP_UAODV;
       if (name.equals("Rime") || name.equals("RIME"))
         return RIME;
       
