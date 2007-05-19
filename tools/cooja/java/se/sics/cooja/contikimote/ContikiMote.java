@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ContikiMote.java,v 1.4 2007/01/09 10:08:02 fros4943 Exp $
+ * $Id: ContikiMote.java,v 1.5 2007/05/19 16:56:55 fros4943 Exp $
  */
 
 package se.sics.cooja.contikimote;
@@ -173,19 +173,21 @@ public class ContikiMote implements Mote {
    * @param simTime Current simulation time
    */
   public void tick(int simTime) {
-
+    State currentState = getState();
+    
     // If mote is dead, do nothing at all
-    if (getState() == State.DEAD)
+    if (currentState == State.DEAD)
       return;
 
     // If mote is sleeping and has a wake up time, should it wake up now?
-    if (getState() == State.LPM && wakeUpTime > 0 && wakeUpTime <= simTime) {
+    if (currentState == State.LPM && wakeUpTime > 0 && wakeUpTime <= simTime) {
       setState(State.ACTIVE);
+      currentState = getState();
       wakeUpTime = 0;
     }
 
     // If mote is active..
-    if (getState() == State.ACTIVE) {
+    if (currentState == State.ACTIVE) {
       // Let all active interfaces act before tick
       // Observe that each interface may put the mote to sleep at this point
       myInterfaceHandler.doActiveActionsBeforeTick();
@@ -196,7 +198,8 @@ public class ContikiMote implements Mote {
 
 
     // If mote is still active, complete this tick
-    if (getState() == State.ACTIVE) {
+    currentState = getState();
+    if (currentState == State.ACTIVE) {
       
       // Copy mote memory to core
       myType.setCoreMemory(myMemory);
@@ -216,7 +219,7 @@ public class ContikiMote implements Mote {
     myInterfaceHandler.doPassiveActionsAfterTick();
 
     // If mote is awake, should it go to sleep?
-    if (getState() == State.ACTIVE) {
+    if (currentState == State.ACTIVE) {
       // Check if this mote should sleep (no more pending timers or processes to poll)
       int processRunValue = myMemory.getIntValueOf("simProcessRunValue");
       int etimersPending = myMemory.getIntValueOf("simEtimerPending");
