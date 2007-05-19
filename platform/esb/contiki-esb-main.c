@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: contiki-esb-main.c,v 1.9 2007/05/15 08:11:33 adamdunkels Exp $
+ * @(#)$Id: contiki-esb-main.c,v 1.10 2007/05/19 21:08:43 oliverschmidt Exp $
  */
 
 #include <io.h>
@@ -40,15 +40,12 @@
 #include "sys/autostart.h"
 #include "contiki-esb.h"
 
-#include "cfs/cfs-eeprom.h"
-
 SENSORS(&button_sensor, &sound_sensor, &vib_sensor,
 	&pir_sensor, &radio_sensor, &battery_sensor, &ctsrts_sensor,
 	&temperature_sensor);
 
 PROCINIT(&sensors_process, /*&ir_process,*/
-	 &etimer_process,
-	 &cfs_eeprom_process);
+	 &etimer_process);
 
 PROCESS(contiki_esb_main_init_process, "Contiki ESB init process");
 

@@ -54,12 +54,21 @@
  *
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: cfs.h,v 1.4 2007/03/22 23:55:32 adamdunkels Exp $
+ * $Id: cfs.h,v 1.5 2007/05/19 21:05:49 oliverschmidt Exp $
  */
 #ifndef __CFS_H__
 #define __CFS_H__
 
-#include "cfs/cfs-service.h"
+#include "contiki.h"
+
+struct cfs_dir {
+  unsigned char dummy_space[32];
+};
+
+struct cfs_dirent {
+  unsigned char name[32];
+  unsigned int size;
+};
 
 /**
  * Specify that cfs_open() should open a file for reading.
@@ -115,7 +124,7 @@
  * \sa         CFS_WRITE
  * \sa         cfs_close()
  */
-int cfs_open(const char *name, int flags);
+CCIF int cfs_open(const char *name, int flags);
 
 /**
  * \brief      Close an open file.
@@ -124,7 +133,7 @@ int cfs_open(const char *name, int flags);
  *             This function closes a file that has previously been
  *             opened with cfs_open().
  */
-void cfs_close(int fd);
+CCIF void cfs_close(int fd);
 
 /**
  * \brief      Read data from an open file.
@@ -137,7 +146,7 @@ void cfs_close(int fd);
  *             buffer. The file must have first been opened with
  *             cfs_open() and the CFS_READ flag.
  */
-int cfs_read(int fd, char *buf, unsigned int len);
+CCIF int cfs_read(int fd, char *buf, unsigned int len);
 
 /**
  * \brief      Write data to an open file.
@@ -150,7 +159,7 @@ int cfs_read(int fd, char *buf, unsigned int len);
  *             an open file. The file must have been opened with
  *             cfs_open() and the CFS_WRITE flag.
  */
-int cfs_write(int fd, char *buf, unsigned int len);
+CCIF int cfs_write(int fd, char *buf, unsigned int len);
 
 /**
  * \brief      Seek to a specified position in an open file.
@@ -163,7 +172,7 @@ int cfs_write(int fd, char *buf, unsigned int len);
  *             or written to the file will be at the position given by
  *             the offset parameter.
  */
-int cfs_seek(int fd, unsigned int offset);
+CCIF int cfs_seek(int fd, unsigned int offset);
 
 /**
  * \brief      Open a directory for reading directory entries.
@@ -174,7 +183,7 @@ int cfs_seek(int fd, unsigned int offset);
  * \sa         cfs_readdir()
  * \sa         cfs_closedir()
  */
-int cfs_opendir(struct cfs_dir *dirp, const char *name);
+CCIF int cfs_opendir(struct cfs_dir *dirp, const char *name);
 
 /**
  * \brief      Read a directory entry
@@ -186,7 +195,7 @@ int cfs_opendir(struct cfs_dir *dirp, const char *name);
  * \sa         cfs_opendir()
  * \sa         cfs_closedir()
  */
-int cfs_readdir(struct cfs_dir *dirp, struct cfs_dirent *dirent);
+CCIF int cfs_readdir(struct cfs_dir *dirp, struct cfs_dirent *dirent);
 
 /**
  * \brief      Close a directory opened with cfs_opendir().
@@ -195,20 +204,7 @@ int cfs_readdir(struct cfs_dir *dirp, struct cfs_dirent *dirent);
  * \sa         cfs_opendir()
  * \sa         cfs_readdir()
  */
-int cfs_closedir(struct cfs_dir *dirp);
-
-CCIF const struct cfs_service_interface *cfs_find_service(void);
-
-#define cfs_open(name, flags)   (cfs_find_service()->open(name, flags))
-#define cfs_close(fd)           (cfs_find_service()->close(fd))
-#define cfs_read(fd, buf, len)  (cfs_find_service()->read(fd, buf, len))
-#define cfs_write(fd, buf, len) (cfs_find_service()->write(fd, buf, len))
-#define cfs_seek(fd, off)       (cfs_find_service()->seek(fd, off))
-
-#define cfs_opendir(dirp, name) (cfs_find_service()->opendir(dirp, name))
-#define cfs_readdir(dirp, ent)  (cfs_find_service()->readdir(dirp, ent))
-#define cfs_closedir(dirp)      (cfs_find_service()->closedir(dirp))
-
+CCIF int cfs_closedir(struct cfs_dir *dirp);
 
 #endif /* __CFS_H__ */
 
