@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2005, Swedish Institute of Computer Science
+ * Copyright (c) 2007, Swedish Institute of Computer Science.
  * All rights reserved. 
  *
  * Redistribution and use in source and binary forms, with or without 
@@ -27,15 +27,17 @@
  * SUCH DAMAGE. 
  *
  * This file is part of the Contiki operating system.
- *
- * @(#)$Id: tapdev-service.h,v 1.1 2007/03/31 18:49:40 adamdunkels Exp $
+ * 
+ * $Id: wpcap-drv.h,v 1.1 2007/05/20 21:32:25 oliverschmidt Exp $
  */
 
-#ifndef __TAPDEV_SERVICE_H__
-#define __TAPDEV_SERVICE_H__
+#ifndef __WPCAP_DRV_H__
+#define __WPCAP_DRV_H__
 
 #include "contiki.h"
 
-PROCESS_NAME(tapdev_process);
+PROCESS_NAME(wpcap_process);
 
-#endif /* __TAPDEV_SERVICE_H__ */
+u8_t wpcap_output(void);
+
+#endif /* __WPCAP_DRV_H__ */

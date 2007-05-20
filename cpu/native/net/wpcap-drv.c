@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2005, Swedish Institute of Computer Science
+ * Copyright (c) 2007, Swedish Institute of Computer Science
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,37 +28,34 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: tapdev-service.c,v 1.1 2007/03/31 18:49:40 adamdunkels Exp $
+ * @(#)$Id: wpcap-drv.c,v 1.1 2007/05/20 21:32:24 oliverschmidt Exp $
  */
 
 #include "contiki-net.h"
-#include "tapdev.h"
+#include "wpcap.h"
 #include "net/uip-neighbor.h"
+
+#include "wpcap-drv.h"
 
 #define BUF ((struct uip_eth_hdr *)&uip_buf[0])
 
-u8_t tapdev_output(void);
-
-SERVICE(tapdev_service, packet_service, { tapdev_output });
-
-PROCESS(tapdev_process, "TAP driver");
+PROCESS(wpcap_process, "WinPcap driver");
 
 /*---------------------------------------------------------------------------*/
 u8_t
-tapdev_output(void)
+wpcap_output(void)
 {
   uip_arp_out();
-  tapdev_send();
+  wpcap_send();
   
-  uip_len -= UIP_LLH_LEN;
-  return UIP_FW_OK;
+  return 0;
 }
 /*---------------------------------------------------------------------------*/
 static void
 pollhandler(void)
 {
-  process_poll(&tapdev_process);
-  uip_len = tapdev_poll();
+  process_poll(&wpcap_process);
+  uip_len = wpcap_poll();
 
   if(uip_len > 0) {
 #if UIP_CONF_IPV6
@@ -68,6 +65,7 @@ pollhandler(void)
     } else
 #endif /* UIP_CONF_IPV6 */
     if(BUF->type == htons(UIP_ETHTYPE_IP)) {
+      uip_len -= sizeof(struct uip_eth_hdr);
       tcpip_input();
     } else if(BUF->type == htons(UIP_ETHTYPE_ARP)) {
       uip_arp_arpin();
@@ -75,29 +73,33 @@ pollhandler(void)
 	 should be sent out on the network, the global variable
 	 uip_len is set to a value > 0. */
       if(uip_len > 0) {
-	tapdev_send();
+	wpcap_send();
       }
     }
   }
 }
 /*---------------------------------------------------------------------------*/
-PROCESS_THREAD(tapdev_process, ev, data)
+static void
+exithandler(void)
 {
+  wpcap_exit();
+}
+/*---------------------------------------------------------------------------*/
+PROCESS_THREAD(wpcap_process, ev, data)
+{
+  PROCESS_POLLHANDLER(pollhandler());
+  PROCESS_EXITHANDLER(exithandler());
+
   PROCESS_BEGIN();
 
-  tapdev_init();
-  
-  SERVICE_REGISTER(tapdev_service);
+  wpcap_init();
 
-  process_poll(&tapdev_process);
-  
-  while(1) {
-    PROCESS_YIELD();
-    if(ev == PROCESS_EVENT_POLL) {
-      pollhandler();
-    }
-  }
-  
+  tcpip_set_outputfunc(wpcap_output);
+
+  process_poll(&wpcap_process);
+
+  PROCESS_WAIT_UNTIL(ev == PROCESS_EVENT_EXIT);
+
   PROCESS_END();
 }
 /*---------------------------------------------------------------------------*/

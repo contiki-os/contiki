@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007, Swedish Institute of Computer Science.
+ * Copyright (c) 2004, Swedish Institute of Computer Science.
  * All rights reserved. 
  *
  * Redistribution and use in source and binary forms, with or without 
@@ -28,14 +28,16 @@
  *
  * This file is part of the Contiki operating system.
  * 
- * $Id: wpcap-service.h,v 1.1 2007/04/01 20:39:38 oliverschmidt Exp $
+ * Author: Adam Dunkels <adam@sics.se>
+ *
+ * $Id: uip-fw-drv.h,v 1.1 2007/05/20 21:29:40 oliverschmidt Exp $
  */
-
-#ifndef __WPCAP_SERVICE_H__
-#define __WPCAP_SERVICE_H__
+#ifndef __UIP_FW_DRV_H__
+#define __UIP_FW_DRV_H__
 
 #include "contiki.h"
+#include "net/uip-fw.h"
 
-PROCESS_NAME(wpcap_process);
+PROCESS_NAME(uip_fw_process);
 
-#endif /* __WPCAP_SERVICE_H__ */
+#endif /* __UIP_FW_DRV_H__ */

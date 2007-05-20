@@ -31,7 +31,7 @@
  *
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: tapdev.c,v 1.2 2007/03/27 20:49:09 oliverschmidt Exp $
+ * $Id: tapdev.c,v 1.3 2007/05/20 21:34:28 oliverschmidt Exp $
  */
 
 #include <fcntl.h>
@@ -155,5 +155,10 @@ tapdev_send(void)
     perror("tap_dev: tapdev_send: writev");
     exit(1);
   }
+}
+/*---------------------------------------------------------------------------*/
+void
+tapdev_exit(void)
+{
 }
 /*---------------------------------------------------------------------------*/
