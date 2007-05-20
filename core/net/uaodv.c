@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: uaodv.c,v 1.20 2007/05/12 21:04:05 oliverschmidt Exp $
+ * $Id: uaodv.c,v 1.21 2007/05/20 20:08:28 fros4943 Exp $
  */
 
 /**
@@ -101,7 +101,7 @@ fwc_lookup(const uip_ipaddr_t *orig, const u32_t *id)
 static CC_INLINE void
 fwc_add(const uip_ipaddr_t *orig, const u32_t *id)
 {
-  unsigned n = orig->u8[3] % NFWCACHE;
+  unsigned n = (orig->u8[2] + orig->u8[3]) % NFWCACHE;
   fwcache[n].id = *id;
   fwcache[n].orig = *orig;
 }
