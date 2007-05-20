@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007, Swedish Institute of Computer Science
+ * Copyright (c) 2004, Swedish Institute of Computer Science.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,75 +28,28 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: wpcap-service.c,v 1.2 2007/04/01 21:06:30 oliverschmidt Exp $
+ * Author: Adam Dunkels <adam@sics.se>
+ *
+ * $Id: uip-fw-drv.c,v 1.1 2007/05/20 21:29:40 oliverschmidt Exp $
  */
 
-#include "contiki-net.h"
-#include "wpcap.h"
-#include "net/uip-neighbor.h"
+#include "net/uip-fw.h"
 
-#define BUF ((struct uip_eth_hdr *)&uip_buf[0])
-
-u8_t wpcap_output(void);
-
-SERVICE(wpcap_service, packet_service, { wpcap_output });
-
-PROCESS(wpcap_process, "WinPcap driver");
+PROCESS(uip_fw_process, "IP forwarding");
 
 /*---------------------------------------------------------------------------*/
-u8_t
-wpcap_output(void)
-{
-  uip_arp_out();
-  wpcap_send();
-  
-  return 0;
-}
-/*---------------------------------------------------------------------------*/
-static void
-pollhandler(void)
-{
-  process_poll(&wpcap_process);
-  uip_len = wpcap_poll();
-
-  if(uip_len > 0) {
-#if UIP_CONF_IPV6
-    if(BUF->type == htons(UIP_ETHTYPE_IPV6)) {
-      uip_neighbor_add(&IPBUF->srcipaddr, &BUF->src);
-      tcpip_input();
-    } else
-#endif /* UIP_CONF_IPV6 */
-    if(BUF->type == htons(UIP_ETHTYPE_IP)) {
-      tcpip_input();
-    } else if(BUF->type == htons(UIP_ETHTYPE_ARP)) {
-      uip_arp_arpin();
-      /* If the above function invocation resulted in data that
-	 should be sent out on the network, the global variable
-	 uip_len is set to a value > 0. */
-      if(uip_len > 0) {
-	wpcap_send();
-      }
-    }
-  }
-}
-/*---------------------------------------------------------------------------*/
-PROCESS_THREAD(wpcap_process, ev, data)
+PROCESS_THREAD(uip_fw_process, ev, data)
 {
   PROCESS_BEGIN();
 
-  wpcap_init();
-  
-  SERVICE_REGISTER(wpcap_service);
+  PROCESS_SET_FLAGS(PROCESS_NO_BROADCAST);
 
-  process_poll(&wpcap_process);
-  
-  while(1) {
-    PROCESS_YIELD();
-    if(ev == PROCESS_EVENT_POLL) {
-      pollhandler();
-    }
-  }
-  
+  uip_fw_init();
+
+  tcpip_set_outputfunc(uip_fw_output);
+
+  PROCESS_WAIT_UNTIL(ev == PROCESS_EVENT_EXIT);
+
   PROCESS_END();
 }
 /*---------------------------------------------------------------------------*/

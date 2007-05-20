@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004, Swedish Institute of Computer Science.
+ * Copyright (c) 2005, Swedish Institute of Computer Science
  * All rights reserved. 
  *
  * Redistribution and use in source and binary forms, with or without 
@@ -27,20 +27,17 @@
  * SUCH DAMAGE. 
  *
  * This file is part of the Contiki operating system.
- * 
- * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: packet-service.h,v 1.1 2006/06/17 22:41:18 adamdunkels Exp $
+ * @(#)$Id: tapdev-drv.h,v 1.1 2007/05/20 21:32:24 oliverschmidt Exp $
  */
-#ifndef __PACKET_SERVICE_H__
-#define __PACKET_SERVICE_H__
+
+#ifndef __TAPDEV_DRV_H__
+#define __TAPDEV_DRV_H__
 
 #include "contiki.h"
 
-#define packet_service_name "Packet driver"
+PROCESS_NAME(tapdev_process);
 
-SERVICE_INTERFACE(packet_service, {
-  u8_t (* output)(void);
-});
+u8_t tapdev_output(void);
 
-#endif /* __PACKET_SERVICE_H__ */
+#endif /* __TAPDEV_DRV_H__ */

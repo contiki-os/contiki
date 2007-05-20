@@ -30,7 +30,7 @@
  * 
  * Author: Oliver Schmidt <ol.sc@web.de>
  *
- * $Id: wpcap.c,v 1.6 2007/04/11 00:21:28 oliverschmidt Exp $
+ * $Id: wpcap.c,v 1.7 2007/05/20 21:32:24 oliverschmidt Exp $
  */
 
 #define WIN32_LEAN_AND_MEAN
@@ -247,5 +247,10 @@ wpcap_send(void)
   if(pcap_sendpacket(pcap, uip_buf, uip_len) == -1) {
     error_exit("error on send\n");
   }
+}
+/*---------------------------------------------------------------------------*/
+void
+wpcap_exit(void)
+{
 }
 /*---------------------------------------------------------------------------*/

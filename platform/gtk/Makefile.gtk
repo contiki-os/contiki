@@ -11,7 +11,7 @@ CONTIKI_TARGET_MAIN = ${addprefix $(OBJECTDIR)/,contiki-main.o}
 CTKGTK  = $(CTK) ctk-gtksim.c ctk-draw.c ctk-gtksim-service.c libconio.c \
           ctk-gtksim-draw.c
 
-CONTIKI_TARGET_SOURCEFILES = tapdev-service.c tapdev.c contiki-main.c \
+CONTIKI_TARGET_SOURCEFILES = tapdev-drv.c tapdev.c contiki-main.c \
                              dlloader.c clock.c $(CTK) $(CTKGTK) cfs-posix.c
 
 CONTIKI_SOURCEFILES += $(CONTIKI_TARGET_SOURCEFILES)

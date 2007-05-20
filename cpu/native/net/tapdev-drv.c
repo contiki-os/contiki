@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004, Swedish Institute of Computer Science.
+ * Copyright (c) 2005, Swedish Institute of Computer Science
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,35 +28,76 @@
  *
  * This file is part of the Contiki operating system.
  *
- * Author: Adam Dunkels <adam@sics.se>
- *
- * $Id: uip-fw-service.c,v 1.1 2006/06/17 22:41:19 adamdunkels Exp $
+ * @(#)$Id: tapdev-drv.c,v 1.1 2007/05/20 21:32:24 oliverschmidt Exp $
  */
 
-#include "net/packet-service.h"
+#include "contiki-net.h"
+#include "tapdev.h"
+#include "net/uip-neighbor.h"
 
-#include "net/uip-fw.h"
+#define BUF ((struct uip_eth_hdr *)&uip_buf[0])
 
-SERVICE(uip_fw_service, packet_service, { uip_fw_output });
-
-/*---------------------------------------------------------------------------*/
-
-PROCESS(uip_fw_process, "IP forwarding");
+PROCESS(tapdev_process, "TAP driver");
 
 /*---------------------------------------------------------------------------*/
-PROCESS_THREAD(uip_fw_process, ev, data)
+u8_t
+tapdev_output(void)
 {
+  uip_arp_out();
+  tapdev_send();
+  
+  return 0;
+}
+/*---------------------------------------------------------------------------*/
+static void
+pollhandler(void)
+{
+  process_poll(&tapdev_process);
+  uip_len = tapdev_poll();
+
+  if(uip_len > 0) {
+#if UIP_CONF_IPV6
+    if(BUF->type == htons(UIP_ETHTYPE_IPV6)) {
+      uip_neighbor_add(&IPBUF->srcipaddr, &BUF->src);
+      tcpip_input();
+    } else
+#endif /* UIP_CONF_IPV6 */
+    if(BUF->type == htons(UIP_ETHTYPE_IP)) {
+      uip_len -= sizeof(struct uip_eth_hdr);
+      tcpip_input();
+    } else if(BUF->type == htons(UIP_ETHTYPE_ARP)) {
+      uip_arp_arpin();
+      /* If the above function invocation resulted in data that
+	 should be sent out on the network, the global variable
+	 uip_len is set to a value > 0. */
+      if(uip_len > 0) {
+	tapdev_send();
+      }
+    }
+  }
+}
+/*---------------------------------------------------------------------------*/
+static void
+exithandler(void)
+{
+  tapdev_exit();
+}
+/*---------------------------------------------------------------------------*/
+PROCESS_THREAD(tapdev_process, ev, data)
+{
+  PROCESS_POLLHANDLER(pollhandler());
+  PROCESS_EXITHANDLER(exithandler());
+
   PROCESS_BEGIN();
 
-  PROCESS_SET_FLAGS(PROCESS_NO_BROADCAST);
+  tapdev_init();
 
-  SERVICE_REGISTER(uip_fw_service);
+  tcpip_set_outputfunc(tapdev_output);
 
-  PROCESS_WAIT_UNTIL(ev == PROCESS_EVENT_EXIT ||
-		     ev == PROCESS_EVENT_SERVICE_REMOVED);
+  process_poll(&tapdev_process);
 
-  SERVICE_REMOVE(uip_fw_service);
-  
+  PROCESS_WAIT_UNTIL(ev == PROCESS_EVENT_EXIT);
+
   PROCESS_END();
 }
 /*---------------------------------------------------------------------------*/

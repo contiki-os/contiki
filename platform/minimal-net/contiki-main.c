@@ -29,7 +29,7 @@
  *
  * This file is part of the Contiki OS
  *
- * $Id: contiki-main.c,v 1.5 2007/05/19 21:18:10 oliverschmidt Exp $
+ * $Id: contiki-main.c,v 1.6 2007/05/20 21:36:31 oliverschmidt Exp $
  *
  */
 
@@ -37,9 +37,9 @@
 
 #include "net/uip.h"
 #ifdef __CYGWIN__
-#include "net/wpcap-service.h"
+#include "net/wpcap-drv.h"
 #else
-#include "net/tapdev-service.h"
+#include "net/tapdev-drv.h"
 #endif
 
 #ifdef __CYGWIN__
