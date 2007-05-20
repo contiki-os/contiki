@@ -30,7 +30,7 @@
  * 
  * Author: Oliver Schmidt <ol.sc@web.de>
  *
- * $Id: contiki-main.c,v 1.10 2007/05/19 21:23:06 oliverschmidt Exp $
+ * $Id: contiki-main.c,v 1.11 2007/05/20 21:43:21 oliverschmidt Exp $
  */
 
 #define WIN32_LEAN_AND_MEAN
@@ -38,7 +38,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "contiki.h"
 #include "contiki-net.h"
 
 #include "sys/clock.h"
@@ -49,7 +48,7 @@
 #include "../../apps/webbrowser/www-dsc.h"
 
 #include "sys/etimer.h"
-#include "net/wpcap-service.h"
+#include "net/wpcap-drv.h"
 #include "program-handler.h"
 
 PROCINIT(&etimer_process,
@@ -85,6 +84,12 @@ log_message(const char *part1, const char *part2)
   debug_printf("%s%s\n", part1, part2);
 }
 /*-----------------------------------------------------------------------------------*/
+void
+exit_handler(void)
+{
+  process_post_synch(&wpcap_process, PROCESS_EVENT_EXIT, NULL);
+}
+/*-----------------------------------------------------------------------------------*/
 int
 main(void)
 {
@@ -94,6 +99,8 @@ main(void)
 
   program_handler_add(&directory_dsc, "Directory",   1);
   program_handler_add(&www_dsc,       "Web browser", 1);
+
+  atexit(exit_handler);
 
 #if 1
   {

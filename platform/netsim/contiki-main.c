@@ -30,7 +30,7 @@
  *
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: contiki-main.c,v 1.14 2007/05/19 21:20:03 oliverschmidt Exp $
+ * $Id: contiki-main.c,v 1.15 2007/05/20 21:41:31 oliverschmidt Exp $
  */
 
 #include "contiki.h"
@@ -40,9 +40,9 @@
 #include "net/rime.h"
 
 #ifdef __CYGWIN__
-#include "net/wpcap-service.h"
+#include "net/wpcap-drv.h"
 #else
-#include "net/tapdev-service.h"
+#include "net/tapdev-drv.h"
 #endif
 #include "net/ethernode-uip.h"
 #include "net/ethernode-rime.h"
@@ -62,11 +62,9 @@
 #include "dev/leds.h"
 
 #ifdef __CYGWIN__
-u8_t wpcap_output(void);
 static struct uip_fw_netif extif =
   {UIP_FW_NETIF(0,0,0,0, 0,0,0,0, wpcap_output)};
 #else
-u8_t tapdev_output(void);
 static struct uip_fw_netif extif =
   {UIP_FW_NETIF(0,0,0,0, 0,0,0,0, tapdev_output)};
 #endif

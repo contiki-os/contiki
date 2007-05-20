@@ -297,10 +297,6 @@
 				Name="net"
 				>
 				<File
-					RelativePath="..\..\..\core\net\packet-service.h"
-					>
-				</File>
-				<File
 					RelativePath="..\..\..\core\net\psock.h"
 					>
 				</File>
@@ -457,11 +453,11 @@
 				Name="net"
 				>
 				<File
-					RelativePath="..\..\..\cpu\native\net\wpcap-service.c"
+					RelativePath="..\..\..\cpu\native\net\wpcap-drv.c"
 					>
 				</File>
 				<File
-					RelativePath="..\..\..\cpu\native\net\wpcap-service.h"
+					RelativePath="..\..\..\cpu\native\net\wpcap-drv.h"
 					>
 				</File>
 				<File
