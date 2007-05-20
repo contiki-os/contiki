@@ -30,7 +30,7 @@
 #
 # Author: Oliver Schmidt <ol.sc@web.de>
 #
-# $Id: Makefile.win32,v 1.9 2007/05/19 21:23:06 oliverschmidt Exp $
+# $Id: Makefile.win32,v 1.10 2007/05/20 21:43:21 oliverschmidt Exp $
 #
 
 ifndef CONTIKI
@@ -45,7 +45,7 @@ CONTIKI_TARGET_MAIN = ${addprefix $(OBJECTDIR)/,contiki-main.o}
 CONTIKI_TARGET_SOURCEFILES = contiki-main.c clock.c cfs-win32.c \
                              ctk-console.c dll-loader.c
 
-CONTIKI_SOURCEFILES += $(CTK) ctk-conio.c wpcap.c wpcap-service.c \
+CONTIKI_SOURCEFILES += $(CTK) ctk-conio.c wpcap.c wpcap-drv.c \
                        $(CONTIKI_TARGET_SOURCEFILES)
 
 .SUFFIXES:
