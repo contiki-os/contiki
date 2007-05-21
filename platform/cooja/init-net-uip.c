@@ -28,13 +28,13 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: init-net-uip.c,v 1.1 2007/05/18 13:49:15 fros4943 Exp $
+ * $Id: init-net-uip.c,v 1.2 2007/05/21 14:52:15 fros4943 Exp $
  */
 
 #include "contiki.h"
 #include "net/uip.h"
 #include "net/uip-fw.h"
-#include "net/uip-fw-service.h"
+#include "net/uip-fw-drv.h"
 #include "net/radio-uip.h"
 #include "dev/cooja-radio.h"
 
