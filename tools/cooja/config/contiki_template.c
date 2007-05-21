@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: contiki_template.c,v 1.2 2007/05/18 13:51:42 fros4943 Exp $
+ * $Id: contiki_template.c,v 1.3 2007/05/21 15:00:13 fros4943 Exp $
  */
 
 /**
@@ -68,7 +68,6 @@
 
 #include "lib/simEnvChange.h"
 #include "lib/sensors.h"
-#include "cfs/cfs-cooja.h"
 #include "sys/etimer.h"
 #include "sys/cooja_mt.h"
 #include "net/init-net.h"
