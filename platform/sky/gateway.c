@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF 
  * SUCH DAMAGE. 
  *
- * @(#)$Id: gateway.c,v 1.8 2007/04/11 10:13:59 bg- Exp $
+ * @(#)$Id: gateway.c,v 1.9 2007/05/21 14:22:05 bg- Exp $
  */
 
 /*
@@ -61,7 +61,7 @@
 #include "contiki.h"
 
 /* Also IP output. */
-#include "net/uip-fw-service.h"
+#include "net/uip-fw-drv.h"
 #include "net/uaodv.h"
 #include "dev/slip.h"
 #include "dev/cc2420.h"
@@ -128,7 +128,7 @@ main(int argc, char **argv)
   leds_toggle(LEDS_ALL);
   slip_arch_init(BAUD2UBR(115200)); /* Must come before first printf */
   printf("Starting %s "
-	 "($Id: gateway.c,v 1.8 2007/04/11 10:13:59 bg- Exp $)\n", __FILE__);
+	 "($Id: gateway.c,v 1.9 2007/05/21 14:22:05 bg- Exp $)\n", __FILE__);
   ds2411_init();
   sensors_light_init();
   cc2420_init();

@@ -1,4 +1,4 @@
-# $Id: Makefile,v 1.5 2007/04/26 13:40:26 bg- Exp $
+# $Id: Makefile,v 1.6 2007/05/21 14:26:56 bg- Exp $
 #
 # This makefile requires GNU make!
 
@@ -27,7 +27,7 @@ MCU=atmega128
 ARCH=avr.o spi.o qleds.o rom.o xmem.o cle_avr.o
 SYSTEM=process.o procinit.o service.o clock.o etimer.o timer.o \
 	sym.o cle.o elfloader_compat.o
-UIP=uip.o uiplib.o tcpip.o uip-fw.o uip-fw-service.o uipbuf.o \
+UIP=uip.o uiplib.o tcpip.o uip-fw.o uip-fw-drv.o uipbuf.o \
     tcpdump.o psock.o dhcpc.o uaodv.o uaodv-rt.o uip-udp-packet.o
 UIPDRIVERS=slip.o slip_uart1.o \
            cc2420.o cc2420_spi.o cc2420_send_ip.o cc2420_send_uaodv.o 
@@ -38,7 +38,7 @@ LIBFILES=$(SYSTEM) $(ARCH) $(UIP) $(UIPDRIVERS) $(LIBS) $(SYSAPPS)
 MKNMLIST=awk -f $(TOP)/tools/mknmlist-ansi
 CP=cp
 LIBC=-lgcc -lc -lgcc
-CC=avr-gcc
+CC=avr-gcc -mno-tablejump
 LD=avr-ld
 AS=avr-as
 NM=avr-nm
@@ -86,7 +86,7 @@ endif
 	$(CC) $(LDFLAGS) $(CFLAGS) -o $@ $^ $(LIBC) $@_nm.c
 
 %.u: %.ihex
-	$(BSL) -p $(MCU) -P $(COMPORT) -c stk200 -U flash:w:$<
+	$(BSL) -p $(MCU) -P $(COMPORT) -c stk500 -U flash:w:$<
 
 $(LIB): $(LIBFILES)
 	$(AR) rcf $@ $^
