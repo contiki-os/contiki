@@ -28,16 +28,17 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: init-net-uip-uaodv.c,v 1.1 2007/05/19 14:25:43 fros4943 Exp $
+ * $Id: init-net-uip-uaodv.c,v 1.2 2007/05/21 14:52:15 fros4943 Exp $
  */
 
 #include "contiki.h"
 #include "net/uip.h"
 #include "net/uip-fw.h"
-#include "net/uip-fw-service.h"
+#include "net/uip-fw-drv.h"
 #include "net/radio-uip-uaodv.h"
 #include "dev/cooja-radio.h"
 #include "net/uaodv.h"
+#include "net/uaodv-rt.h"
 
 /* Default network interface */
 static struct uip_fw_netif radioif =
