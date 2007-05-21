@@ -1,10 +1,7 @@
 /** \example example-program.c */
-/** \example example-service.c */
-/** \example example-service.h */
-/** \example example-use-service.c */
 /** \example example-pollhandler.c */
 /** \example example-list.c */
-/** \example example-packet-service.c */
+/** \example example-packet-drv.c */
 /** \example example-psock-server.c */
 
 /** \example test-abc.c */
