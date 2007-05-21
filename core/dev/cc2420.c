@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: cc2420.c,v 1.16 2007/05/08 08:27:34 bg- Exp $
+ * @(#)$Id: cc2420.c,v 1.17 2007/05/21 14:24:51 bg- Exp $
  */
 /*
  * This code is almost device independent and should be easy to port.
@@ -668,9 +668,9 @@ cc2420_check_remote(u16_t mac)
 
   t = lookup(mac);
   if (t->mac != mac)
-    return -1;			/* unknown */
+    return REMOTE_MAYBE;	/* unknown */
   else if (t->nretrans >= SCALE_RETRANS_THRESHOLD)
-    return +1;			/* remote */
+    return REMOTE_YES;		/* remote */
   else
-    return  0;			/* local */
+    return  REMOTE_NO;		/* local */
 }
