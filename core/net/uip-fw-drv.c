@@ -30,7 +30,7 @@
  *
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: uip-fw-drv.c,v 1.1 2007/05/20 21:29:40 oliverschmidt Exp $
+ * $Id: uip-fw-drv.c,v 1.2 2007/05/21 14:30:38 fros4943 Exp $
  */
 
 #include "net/uip-fw.h"
@@ -44,7 +44,7 @@ PROCESS_THREAD(uip_fw_process, ev, data)
 
   PROCESS_SET_FLAGS(PROCESS_NO_BROADCAST);
 
-  uip_fw_init();
+  //uip_fw_init();
 
   tcpip_set_outputfunc(uip_fw_output);
 
