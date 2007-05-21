@@ -26,7 +26,7 @@
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.  
  *
- * $Id: scat.c,v 1.5 2007/02/02 13:26:49 bg- Exp $
+ * $Id: scat.c,v 1.6 2007/05/21 15:22:45 bg- Exp $
  *
  */
 
@@ -147,6 +147,8 @@ main(int argc, char **argv)
   if (argc != 2)
     err(1, "usage: scat device-file");
   siodev = argv[1];
+
+  setvbuf(stdout, NULL, _IOLBF, 0); /* Line buffered output. */
 
   slipfd = open(siodev, O_RDWR);
   if (slipfd == -1) err(1, "can't open '%s'", siodev);
