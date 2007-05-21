@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: uaodv.c,v 1.21 2007/05/20 20:08:28 fros4943 Exp $
+ * $Id: uaodv.c,v 1.22 2007/05/21 15:26:57 bg- Exp $
  */
 
 /**
@@ -51,6 +51,7 @@
 
 #ifdef CC2420_RADIO
 #include "dev/cc2420.h"
+#define RSSI_THRESHOLD -39	/* accept -39 ... xx */
 #endif
 
 /* This implementation never expires routes!!! */
@@ -181,7 +182,7 @@ send_rrep(uip_ipaddr_t *dest, uip_ipaddr_t *nexthop, uip_ipaddr_t *orig,
 
   rm->type = UAODV_RREP_TYPE;
   rm->flags = 0;
-  rm->reserved = 0;
+  rm->prefix_sz = 0;		/* I.e a /32 route. */
   rm->hop_count = hop_count;
   uip_ipaddr_copy(&rm->orig_addr, orig);
   rm->dest_seqno = *seqno;
@@ -239,7 +240,7 @@ handle_incoming_rreq(void)
      return;
    } else if (ret == REMOTE_NO) {
      /* Is neigbour, accept it. */
-   } else if(cc2420_last_rssi <= -40) {
+   } else if(cc2420_last_rssi < RSSI_THRESHOLD) {
      print_debug("RREQ drop %d %d\n", cc2420_last_rssi,
 		 cc2420_last_correlation);
      return;
@@ -316,6 +317,29 @@ handle_incoming_rrep(void)
   struct uaodv_msg_rrep *rm = (struct uaodv_msg_rrep *)uip_appdata;
   struct uaodv_rt_entry *rt;
 
+  /*
+   * Send a fake RREP in response to HELLOs.
+   */
+  if(uip_ipaddr_cmp(&BUF->destipaddr, &uip_broadcast_addr)) {
+    u32_t net_seqno;
+#ifdef CC2420_RADIO
+    int ret = cc2420_check_remote(uip_udp_sender()->u16[1]);
+
+    if(ret == REMOTE_YES) {
+      print_debug("HELLO drop is remote\n");
+      return;
+    } else if (ret == REMOTE_NO) {
+      /* Is neigbour, accept it. */
+    } else if(cc2420_last_rssi < RSSI_THRESHOLD) {
+      print_debug("HELLO drop %d %d\n", cc2420_last_rssi, cc2420_last_correlation);
+      return;
+    }
+#endif
+    net_seqno = htonl(my_hseqno);
+    send_rrep(&uip_hostaddr, &BUF->srcipaddr, &BUF->srcipaddr, &net_seqno, 0);
+    return;
+  }
+
   print_debug("RREP %d.%d.%d.%d -> %d.%d.%d.%d"
 	      " dest=%d.%d.%d.%d seq=%lu hops=%u orig=%d.%d.%d.%d\n",
 	      uip_ipaddr_to_quad(&BUF->srcipaddr),
@@ -325,9 +349,6 @@ handle_incoming_rrep(void)
 	      uip_ipaddr_to_quad(&rm->orig_addr));
 
   rt = uaodv_rt_lookup(&rm->dest_addr);
-
-  print_debug("RREP received dst=%d.%d.%d.%d rt=%p\n",
-	      uip_ipaddr_to_quad(&rm->dest_addr), rt);
 
   /* New forward route? */
   if(rt == NULL || (SCMP32(ntohl(rm->dest_seqno), rt->hseqno) > 0)) {
@@ -344,15 +365,16 @@ handle_incoming_rrep(void)
     print_debug("Not inserting\n");
   }
 
+  if(rm->flags & UAODV_RREP_ACK) {
+    print_debug("RREP with ACK request (ignored)!\n");
+    /* Don't want any RREP-ACKs in return! */
+    rm->flags &= ~UAODV_RREP_ACK;
+  }
+
   /* Forward RREP towards originator? */
   if(uip_ipaddr_cmp(&rm->orig_addr, &uip_hostaddr)) {
     print_debug("------- COMPLETE ROUTE FOUND\n");
   } else {
-    if(uip_ipaddr_cmp(&BUF->destipaddr, &uip_broadcast_addr)) {
-      print_debug("RREP hello received?\n");
-      return;
-    }
-
     rt = uaodv_rt_lookup(&rm->orig_addr);
 
     if(rt == NULL) {
