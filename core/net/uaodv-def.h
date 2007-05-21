@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: uaodv-def.h,v 1.3 2007/05/08 13:32:55 bg- Exp $
+ * $Id: uaodv-def.h,v 1.4 2007/05/21 15:24:44 bg- Exp $
  */
 
 /**
@@ -95,7 +95,7 @@ struct uaodv_msg_rreq {
 struct uaodv_msg_rrep {
   u8_t type;
   u8_t flags;
-  u8_t reserved;
+  u8_t prefix_sz;		/* prefix_sz:5 */
   u8_t hop_count;
   uip_ipaddr_t dest_addr;
   u32_t dest_seqno;
