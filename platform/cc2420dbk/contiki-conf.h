@@ -1,5 +1,5 @@
 /* -*- C -*- */
-/* @(#)$Id: contiki-conf.h,v 1.2 2007/04/11 15:24:39 bg- Exp $ */
+/* @(#)$Id: contiki-conf.h,v 1.3 2007/05/21 14:51:32 bg- Exp $ */
 
 #ifndef CONTIKI_CONF_H
 #define CONTIKI_CONF_H
@@ -82,9 +82,14 @@ unsigned long clock_seconds(void);
 #define LEDS_CONF_YELLOW _BV(4)	/* PE.4 - Output */
 #endif
 
-typedef unsigned char u8_t;
-typedef unsigned short u16_t;
-typedef unsigned long u32_t;
+typedef int8_t   s8_t;
+typedef int16_t  s16_t;
+typedef int32_t  s32_t;
+
+typedef uint8_t  u8_t;
+typedef uint16_t u16_t;
+typedef uint32_t u32_t;
+
 typedef u16_t uip_stats_t;
 typedef u16_t clock_time_t;
 
