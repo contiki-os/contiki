@@ -1,4 +1,4 @@
-# $Id: Makefile,v 1.6 2007/05/21 14:26:56 bg- Exp $
+# $Id: Makefile,v 1.7 2007/05/21 14:30:52 bg- Exp $
 #
 # This makefile requires GNU make!
 
@@ -38,7 +38,7 @@ LIBFILES=$(SYSTEM) $(ARCH) $(UIP) $(UIPDRIVERS) $(LIBS) $(SYSAPPS)
 MKNMLIST=awk -f $(TOP)/tools/mknmlist-ansi
 CP=cp
 LIBC=-lgcc -lc -lgcc
-CC=avr-gcc -mno-tablejump
+CC=avr-gcc
 LD=avr-ld
 AS=avr-as
 NM=avr-nm
