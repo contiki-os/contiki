@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: msp430.c,v 1.5 2007/03/15 21:47:45 adamdunkels Exp $
+ * @(#)$Id: msp430.c,v 1.6 2007/05/21 15:29:46 bg- Exp $
  */
 #include <io.h>
 #include <signal.h>
@@ -148,8 +148,9 @@ init_ports(void)
   P2IE = 0;
 }
 /*---------------------------------------------------------------------------*/
-/* __bss_end is int but msp430-ld may align it incorrectly. Fix below. */
-static char *cur_break = (char *)(&__bss_end + 1);
+/* msp430-ld may align _end incorrectly. Workaround in cpu_init. */
+extern int _end;		/* Not in sys/unistd.h */
+static char *cur_break = (char *)&_end;
 
 void
 msp430_cpu_init(void)
