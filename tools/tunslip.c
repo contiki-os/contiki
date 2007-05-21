@@ -28,7 +28,7 @@
  *
  * This file is part of the uIP TCP/IP stack.
  *
- * $Id: tunslip.c,v 1.13 2007/05/02 08:58:00 bg- Exp $
+ * $Id: tunslip.c,v 1.14 2007/05/21 15:22:56 bg- Exp $
  *
  */
 
@@ -864,6 +864,8 @@ main(int argc, char **argv)
   int baudrate = -2;
 
   ip_id = getpid() * time(NULL);
+
+  setvbuf(stdout, NULL, _IOLBF, 0); /* Line buffered output. */
 
   while ((c = getopt(argc, argv, "B:D:hs:t:")) != -1) {
     switch (c) {
