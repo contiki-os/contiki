@@ -1,6 +1,9 @@
 #ifndef __CONTIKI_CONF_H__
 #define __CONTIKI_CONF_H__
 
+#define QUEUEBUF_CONF_NUM 2
+#define ENERGEST_CONF_ON 1
+
 #define IRQ_PORT1_VECTOR 1
 
 #define IRQ_PORT1 0x01
