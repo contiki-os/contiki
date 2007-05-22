@@ -30,7 +30,7 @@
  *
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: ethernode.c,v 1.7 2007/03/29 22:25:52 adamdunkels Exp $
+ * $Id: ethernode.c,v 1.8 2007/05/22 21:09:19 adamdunkels Exp $
  */
 /**
  * \file
@@ -43,6 +43,8 @@
 #include "net/uip_arch.h"
 #include "net/uip-fw.h"
 #include "ether.h"
+
+#include "dev/radio.h"
 
 #include "node.h"
 
@@ -72,10 +74,26 @@ struct hdr {
   u8_t seqno;
 };
 
+static int ethernode_on(void) {return 0;}
+static int ethernode_safe_off(void) {return 0;}
+
+#include "net/ethernode.h"
+
+const struct radio_driver ethernode_driver =
+  {
+    ethernode_send_buf,
+    ethernode_read,
+    ethernode_set_receiver,
+    ethernode_on,
+    ethernode_safe_off,
+  };
+
 
 #define HDR_LEN UIP_LLH_LEN
 
 #define ID_BROADCAST 0x80
+
+PROCESS(ethernode_process, "Ethernode");
 /*-------------------------------------------------------------------------------*/
 static u8_t
 do_send(u8_t type, u8_t dest, struct hdr *hdr, int len)
@@ -122,7 +140,13 @@ ethernode_init(int port)
  */
 /*-------------------------------------------------------------------------------*/
 int
-ethernode_read(u8_t *buf, int bufsize)
+ethernode_poll(void)
+{
+  return ether_client_poll();
+}
+/*-------------------------------------------------------------------------------*/
+u16_t
+ethernode_read(u8_t *buf, u16_t bufsize)
 {
   int len;
   u8_t tmpbuf[2048];
@@ -191,8 +215,8 @@ ethernode_send(void)
   return UIP_FW_OK;
 }
 /*-------------------------------------------------------------------------------*/
-void
-ethernode_send_buf(u8_t *buf, int len)
+int
+ethernode_send_buf(const u8_t *buf, u16_t len)
 {
   char tmpbuf[2048];
   struct hdr *hdr = (struct hdr *)tmpbuf;
@@ -203,5 +227,32 @@ ethernode_send_buf(u8_t *buf, int len)
 
   dest = ID_BROADCAST;
   do_send(TYPE_DATA, dest, hdr, len);
+  return len;
+}
+/*-------------------------------------------------------------------------------*/
+static void (* receiver_callback)(const struct radio_driver *);
+/*-------------------------------------------------------------------------------*/
+void
+ethernode_set_receiver(void (* recv)(const struct radio_driver *))
+{
+  process_start(&ethernode_process, NULL);
+  receiver_callback = recv;
+}
+/*---------------------------------------------------------------------------*/
+PROCESS_THREAD(ethernode_process, ev, data)
+{
+  PROCESS_BEGIN();
+
+  while(1) {
+    process_poll(&ethernode_process);
+    PROCESS_WAIT_EVENT();
+
+    if(ethernode_poll()) {
+      if(receiver_callback) {
+	receiver_callback(&ethernode_driver);
+      }
+    }
+  }
+  PROCESS_END();
 }
 /*-------------------------------------------------------------------------------*/
