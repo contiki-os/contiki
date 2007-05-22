@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: tr1001-gcr.c,v 1.7 2007/03/19 00:35:23 adamdunkels Exp $
+ * @(#)$Id: tr1001-gcr.c,v 1.8 2007/05/22 21:08:04 adamdunkels Exp $
  */
 /**
  * \addtogroup esb
@@ -76,6 +76,14 @@ static unsigned short packets_err;
 static unsigned short packets_ok;
 #endif /* TR1001_STATISTICS */
 
+/*const struct radio_driver tr1001_driver =
+  {
+    tr1001_send,
+    tr1001_read,
+    tr1001_set_receiver,
+    tr1001_on,
+    tr1001_off,
+    };*/
 
 /*
  * The buffer which holds incoming data.
@@ -142,7 +150,7 @@ static struct process *poll_process;
 #define LOG(...)
 #endif
 
-#define GCRLOG(...) /* printf(__VA_ARGS__) */
+#define GCRLOG(...) /* printf(__VA_ARGS__)*/
 
 /*---------------------------------------------------------------------------*/
 #if TR1001_STATISTICS
@@ -386,10 +394,12 @@ tr1001_init(struct process *p)
 interrupt (UART0RX_VECTOR)
      tr1001_rxhandler(void)
 {
+  ENERGEST_ON(ENERGEST_TYPE_IRQ);
   tr1001_default_rxhandler_pt(RXBUF0);
   if(tr1001_rxstate == RXSTATE_FULL) {
     LPM_AWAKE();
   }
+  ENERGEST_OFF(ENERGEST_TYPE_IRQ);
 }
 /*---------------------------------------------------------------------------*/
 static void
