@@ -34,7 +34,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: uc.c,v 1.10 2007/05/15 08:09:21 adamdunkels Exp $
+ * $Id: uc.c,v 1.11 2007/05/22 20:58:00 adamdunkels Exp $
  */
 
 /**
@@ -70,8 +70,9 @@ recv_from_ibc(struct ibc_conn *ibc, rimeaddr_t *from)
 {
   struct uc_conn *c = (struct uc_conn *)ibc;
   struct uc_hdr *hdr = rimebuf_dataptr();
-  PRINTF("%d: uc: recv_from_ibc, receiver %d %p hdr %p\n",
-	 rimeaddr_node_addr.u16, hdr->receiver.u16, c, hdr);
+  PRINTF("%d.%d: uc: recv_from_ibc, receiver %d.%d\n",
+	 rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1],
+	 hdr->receiver.u8[0], hdr->receiver.u8[1]);
   if(rimeaddr_cmp(&hdr->receiver, &rimeaddr_node_addr)) {
     rimebuf_hdrreduce(sizeof(struct uc_hdr));
     c->u->recv(c, from);
@@ -97,7 +98,9 @@ uc_close(struct uc_conn *c)
 int
 uc_send(struct uc_conn *c, rimeaddr_t *receiver)
 {
-  PRINTF("%d: uc_send to %d\n", rimeaddr_node_addr.u16, receiver->u16);
+  PRINTF("%d.%d: uc_send to %d.%d\n",
+	 rimeaddr_node_addr.u8[0],rimeaddr_node_addr.u8[1],
+	 receiver->u8[0], receiver->u8[1]);
   if(rimebuf_hdralloc(sizeof(struct uc_hdr))) {
     int ret;
     struct uc_hdr *hdr = rimebuf_hdrptr();
