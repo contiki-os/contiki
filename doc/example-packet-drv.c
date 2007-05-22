@@ -33,6 +33,11 @@ u8_t
 example_packet_driver_output(void)
 {
   let_the_hardware_send_the_packet(uip_buf, uip_len);
+
+  /*
+   * An network device driver returns always zero.
+   */
+  return 0;
 }
 /*---------------------------------------------------------------------------*/
 /*
