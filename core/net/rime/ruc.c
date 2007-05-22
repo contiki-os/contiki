@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: ruc.c,v 1.11 2007/05/22 20:56:52 adamdunkels Exp $
+ * $Id: ruc.c,v 1.12 2007/05/22 21:53:15 adamdunkels Exp $
  */
 
 /**
@@ -53,7 +53,7 @@ struct ruc_hdr {
   u8_t seqno;
 };
 
-#define DEBUG 1
+#define DEBUG 0
 #if DEBUG
 #include <stdio.h>
 #define PRINTF(...) printf(__VA_ARGS__)
