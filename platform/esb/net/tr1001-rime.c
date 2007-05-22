@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: tr1001-rime.c,v 1.1 2007/03/15 21:56:16 adamdunkels Exp $
+ * @(#)$Id: tr1001-rime.c,v 1.2 2007/05/22 21:08:24 adamdunkels Exp $
  */
 
 #include "contiki-esb.h"
@@ -46,6 +46,8 @@ PROCESS_THREAD(tr1001_rime_process, ev, data)
 
   tr1001_init(&tr1001_rime_process);
 
+  rime_set_output(rime_driver_send);
+  
   while(1) {
     int len;
 
