@@ -33,7 +33,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: rime.c,v 1.8 2007/05/15 08:09:21 adamdunkels Exp $
+ * $Id: rime.c,v 1.9 2007/05/22 20:56:10 adamdunkels Exp $
  */
 
 /**
@@ -62,6 +62,7 @@ rime_init(void)
 void
 rime_input(void)
 {
+  RIMESTATS_ADD(rx);
   abc_input_packet();
 }
 /*---------------------------------------------------------------------------*/
@@ -74,6 +75,7 @@ rime_set_output(void (*f)(void))
 void
 rime_output(void)
 {
+  RIMESTATS_ADD(tx);
   rimebuf_compact();
   if(output) {
     output();
