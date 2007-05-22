@@ -30,17 +30,22 @@
  *
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: ethernode.h,v 1.2 2007/03/13 13:07:48 adamdunkels Exp $
+ * $Id: ethernode.h,v 1.3 2007/05/22 21:09:19 adamdunkels Exp $
  */
 #ifndef __ETHERNODE_H__
 #define __ETHERNODE_H__
 
 #include "contiki.h"
 
+#include "dev/radio.h"
+
 void ethernode_init(int port);
-int ethernode_poll(u8_t *buf, int bufsize);
+u16_t ethernode_read(u8_t *buf, u16_t bufsize);
 u8_t ethernode_send(void);
-void ethernode_send_buf(u8_t *buf, int len);
+int ethernode_send_buf(const u8_t *buf, u16_t len);
 void ethernode_periodic(void);
+void ethernode_set_receiver(void (* recv)(const struct radio_driver *));
+
+extern const struct radio_driver ethernode_driver;
 
 #endif /* __ETHERNODE_H__ */
