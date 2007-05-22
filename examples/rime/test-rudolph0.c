@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: test-rudolph0.c,v 1.4 2007/04/02 10:04:37 adamdunkels Exp $
+ * $Id: test-rudolph0.c,v 1.5 2007/05/22 21:04:19 adamdunkels Exp $
  */
 
 /**
@@ -44,8 +44,6 @@
 #include "dev/button-sensor.h"
 
 #include "dev/leds.h"
-
-#include "cfs/cfs-ram.h"
 
 #include <stdio.h>
 
