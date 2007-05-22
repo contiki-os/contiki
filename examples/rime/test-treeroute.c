@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: test-treeroute.c,v 1.4 2007/03/31 18:41:13 adamdunkels Exp $
+ * $Id: test-treeroute.c,v 1.5 2007/05/22 21:04:34 adamdunkels Exp $
  */
 
 /**
@@ -113,7 +113,7 @@ PROCESS_THREAD(test_tree_process, ev, data)
 	rimebuf_clear();
 	rimebuf_set_datalen(sprintf(rimebuf_dataptr(),
 				    "%d", pir_sensor.value(0)));
-	tree_send(&tc);
+	tree_send(&tc, 10);
       }
 
       if(data == &button_sensor) {
