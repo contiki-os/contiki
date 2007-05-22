@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: clock.c,v 1.6 2007/04/02 16:32:20 joxe Exp $
+ * @(#)$Id: clock.c,v 1.7 2007/05/22 20:59:27 adamdunkels Exp $
  */
 
 
@@ -37,6 +37,7 @@
 
 #include "contiki-conf.h"
 
+#include "lib/energest.h"
 #include "sys/clock.h"
 #include "sys/etimer.h"
 
@@ -50,6 +51,7 @@ static volatile clock_time_t count = 0;
 static unsigned short last_tar = 0;
 /*---------------------------------------------------------------------------*/
 interrupt(TIMERA1_VECTOR) timera1 (void) {
+  ENERGEST_ON(ENERGEST_TYPE_IRQ);
   if(TAIV == 2) {
     TACCR1 += INTERVAL;
     last_tar = TAR;
@@ -61,6 +63,7 @@ interrupt(TIMERA1_VECTOR) timera1 (void) {
       LPM4_EXIT;
     }
   }
+  ENERGEST_OFF(ENERGEST_TYPE_IRQ);
 }
 /*---------------------------------------------------------------------------*/
 clock_time_t
