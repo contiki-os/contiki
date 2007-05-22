@@ -26,9 +26,10 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#)$Id: contiki-sky-main.c,v 1.8 2007/05/19 21:21:32 oliverschmidt Exp $
+ * @(#)$Id: contiki-sky-main.c,v 1.9 2007/05/22 21:13:26 adamdunkels Exp $
  */
 
+#include <signal.h>
 #include <stdio.h>
 #include <string.h>
 
@@ -36,18 +37,19 @@
 
 #include "contiki.h"
 
-#include "cfs/cfs-xmem.h"
-#include "cfs/cfs-ram.h"
-
 #include "dev/button-sensor.h"
 #include "dev/ds2411.h"
+#include "dev/sht11.h"
 #include "dev/leds.h"
 #include "dev/light.h"
 #include "dev/xmem.h"
 #include "dev/simple-cc2420.h"
-#include "dev/simple-cc2420-rime.h"
+
 #include "dev/slip.h"
 #include "dev/uart1.h"
+
+#include "net/mac/xmac.h"
+#include "net/mac/nullmac.h"
 
 #include "node-id.h"
 
@@ -59,7 +61,7 @@
 
 SENSORS(&button_sensor);
 
-#define WITH_UIP 1
+#define WITH_UIP 0
 
 #if WITH_UIP
 static struct uip_fw_netif slipif =
@@ -87,6 +89,12 @@ static u16_t panId = 0x2024;
 
 #define RF_CHANNEL              26
 /*---------------------------------------------------------------------------*/
+void
+force_inclusion(int d1, int d2)
+{
+  snprintf(NULL, 0, "%d", d1 % d2);
+}
+/*---------------------------------------------------------------------------*/
 static void
 set_rime_addr(void)
 {
@@ -106,13 +114,17 @@ main(int argc, char **argv)
   leds_init();
   leds_toggle(LEDS_RED | LEDS_GREEN | LEDS_BLUE);
   
-/*    uart1_init(BAUD2UBR(57600)); /\* Must come before first printf *\/ */
-
+#if WITH_UIP
   slip_arch_init(BAUD2UBR(115200)); /* Must come before first printf */
+#else /* WITH_UIP */
+  uart1_init(BAUD2UBR(115200)); /* Must come before first printf */
+#endif /* WITH_UIP */
+  
   printf("Starting %s "
-	 "($Id: contiki-sky-main.c,v 1.8 2007/05/19 21:21:32 oliverschmidt Exp $)\n", __FILE__);
+	 "($Id: contiki-sky-main.c,v 1.9 2007/05/22 21:13:26 adamdunkels Exp $)\n", __FILE__);
   ds2411_init();
   sensors_light_init();
+  sht11_init();
   xmem_init();
   leds_toggle(LEDS_RED | LEDS_GREEN | LEDS_BLUE);
 
@@ -146,10 +158,13 @@ main(int argc, char **argv)
   process_start(&sensors_process, NULL);
 
   simple_cc2420_init();
-  simple_cc2420_rime_init();
+
   simple_cc2420_on();
   rime_init();
   set_rime_addr();
+
+  //nullmac_init(&simple_cc2420_driver);
+  xmac_init(&simple_cc2420_driver);
 
   /*  rimeaddr_set_node_addr*/
 #if WITH_UIP
@@ -163,11 +178,14 @@ main(int argc, char **argv)
   
   printf("Autostarting processes\n");
   autostart_start((struct process **) autostart_processes);
+
+  energest_init();
   
   /*
    * This is the scheduler loop.
    */
   printf("process_run()...\n");
+  ENERGEST_ON(ENERGEST_TYPE_CPU);
   while (1) {
     do {
       /* Reset watchdog. */
@@ -180,8 +198,22 @@ main(int argc, char **argv)
     if(process_nevents() != 0) {
       splx(s);			/* Re-enable interrupts. */
     } else {
+      static unsigned long irq_energest = 0;
       /* Re-enable interrupts and go to sleep atomically. */
-      _BIS_SR(GIE | SCG0 | CPUOFF); /* LPM1 sleep. */
+      ENERGEST_OFF(ENERGEST_TYPE_CPU);
+      ENERGEST_ON(ENERGEST_TYPE_LPM);
+      /* We only want to measure the processing done in IRQs when we
+	 are asleep, so we discard the processing time done when we
+	 were awake. */
+      energest_type_set(ENERGEST_TYPE_IRQ, irq_energest);
+      _BIS_SR(GIE | SCG0 | /*SCG1 |*/ CPUOFF); /* LPM3 sleep. */
+      /* We get the current processing time for interrupts that was
+	 done during the LPM and store it for next time around.  */
+      dint();
+      irq_energest = energest_type_time(ENERGEST_TYPE_IRQ);
+      eint();
+      ENERGEST_OFF(ENERGEST_TYPE_LPM);
+      ENERGEST_ON(ENERGEST_TYPE_CPU);
     }
   }
 
