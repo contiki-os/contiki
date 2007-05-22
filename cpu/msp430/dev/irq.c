@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: irq.c,v 1.2 2007/03/21 23:23:43 adamdunkels Exp $
+ * @(#)$Id: irq.c,v 1.3 2007/05/22 21:01:32 adamdunkels Exp $
  */
 #include "lib/sensors.h"
 #include "dev/irq.h"
@@ -45,28 +45,34 @@ static unsigned char adcflags;
 interrupt(PORT1_VECTOR)
      irq_p1(void)
 {
+  ENERGEST_ON(ENERGEST_TYPE_IRQ);
   if(sensors_handle_irq(IRQ_PORT1)) {
     LPM4_EXIT;
   }
   P1IFG = 0x00;
+  ENERGEST_OFF(ENERGEST_TYPE_IRQ);
 }
 #endif
 /*---------------------------------------------------------------------------*/
 interrupt(PORT2_VECTOR)
      irq_p2(void)
 {
+  ENERGEST_ON(ENERGEST_TYPE_IRQ);
   if(sensors_handle_irq(IRQ_PORT2)) {
     LPM4_EXIT;
   }
   P2IFG = 0x00;
+  ENERGEST_OFF(ENERGEST_TYPE_IRQ);
 }
 /*---------------------------------------------------------------------------*/
 interrupt (ADC_VECTOR)
      irq_adc(void)
 {
+  ENERGEST_ON(ENERGEST_TYPE_IRQ);
   if(sensors_handle_irq(IRQ_ADC)) {
     LPM4_EXIT;
   }
+  ENERGEST_OFF(ENERGEST_TYPE_IRQ);
 }
 /*---------------------------------------------------------------------------*/
 void
@@ -110,8 +116,8 @@ sethilo(void)
      interrupt for each sequence of conversions. */
   for(c = 0; c < 8; c++) {
     if(adcflags & (128 >> c)) {
-      ADC12IE |= 128 >> c;
-      ADC12MCTL_NO(7 - c) |= EOS;
+      /*ADC12IE |= 128 >> c;*/
+	      /*	      ADC12MCTL_NO(7 - c) |= EOS;*/
       break;
     }
   }
