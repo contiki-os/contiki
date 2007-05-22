@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: ruc.c,v 1.10 2007/05/15 08:09:21 adamdunkels Exp $
+ * $Id: ruc.c,v 1.11 2007/05/22 20:56:52 adamdunkels Exp $
  */
 
 /**
@@ -43,6 +43,8 @@
 #include "net/rime.h"
 #include <string.h>
 
+#define REXMIT_TIME CLOCK_SECOND
+
 #define TYPE_DATA 0
 #define TYPE_ACK  1
 
@@ -51,14 +53,7 @@ struct ruc_hdr {
   u8_t seqno;
 };
 
-enum {
-  STATE_READY,
-  STATE_SENDING
-};
-
-static u8_t seqno;
-
-#define DEBUG 0
+#define DEBUG 1
 #if DEBUG
 #include <stdio.h>
 #define PRINTF(...) printf(__VA_ARGS__)
@@ -71,10 +66,22 @@ static void
 sent_by_suc(struct suc_conn *suc)
 {
   struct ruc_conn *c = (struct ruc_conn *)suc;
-  c->transmissions_left--;
-  if(c->transmissions_left == 0) {
+
+  RIMESTATS_ADD(rexmit);
+  
+  c->rxmit++;
+  if(c->rxmit >= c->max_rxmit) {
+    RIMESTATS_ADD(timedout);
     suc_cancel(&c->c);
     c->u->timedout(c);
+    PRINTF("%d.%d: ruc: packet %d timed out\n",
+	   rimeaddr_node_addr.u8[0],rimeaddr_node_addr.u8[1],
+	   c->sndnxt);
+  } else {
+    int shift;
+
+    shift = c->rxmit > 4? 4: c->rxmit;
+    suc_set_timer(&c->c, (REXMIT_TIME) << shift);
   }
 }
 /*---------------------------------------------------------------------------*/
@@ -90,19 +97,33 @@ recv_from_suc(struct suc_conn *suc, rimeaddr_t *from)
 	 hdr->type, hdr->seqno);
   
   if(hdr->type == TYPE_ACK) {
-    if(hdr->seqno == seqno) {
+    if(hdr->seqno == c->sndnxt) {
+      RIMESTATS_ADD(ackrx);
       PRINTF("%d.%d: ruc: ACKed %d\n",
 	     rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1],
 	     hdr->seqno);
-      ++seqno;
+      ++c->sndnxt;
+      c->rxmit = 0;
       suc_cancel(&c->c);
       if(c->u->sent != NULL) {
 	c->u->sent(c);
       }
+    } else {
+      PRINTF("%d.%d: ruc: received bad ACK %d for %d\n",
+	     rimeaddr_node_addr.u8[0],rimeaddr_node_addr.u8[1],
+	     hdr->seqno,
+	     c->sndnxt);
+      RIMESTATS_ADD(badackrx);
     }
   } else if(hdr->type == TYPE_DATA) {
     int send_ack = 1;
     u16_t packet_seqno;
+
+    RIMESTATS_ADD(reliablerx);
+
+    PRINTF("%d.%d: ruc: got packet %d\n",
+	   rimeaddr_node_addr.u8[0],rimeaddr_node_addr.u8[1],
+	   hdr->seqno);
 
     packet_seqno = hdr->seqno;
 
@@ -122,7 +143,9 @@ recv_from_suc(struct suc_conn *suc, rimeaddr_t *from)
       hdr->type = TYPE_ACK;
       hdr->seqno = packet_seqno;
       suc_send(&c->c, from);
+      RIMESTATS_ADD(acktx);
     } else {
+      RIMESTATS_ADD(noacktx);
       PRINTF("%d.%d: Not sending ACK\n",
 	     rimeaddr_node_addr.u8[0],rimeaddr_node_addr.u8[1]);
     }
@@ -137,6 +160,8 @@ ruc_open(struct ruc_conn *c, u16_t channel,
 {
   suc_open(&c->c, channel, &ruc);
   c->u = u;
+  c->rxmit = 0;
+  c->sndnxt = 0;
 }
 /*---------------------------------------------------------------------------*/
 void
@@ -151,9 +176,14 @@ ruc_send(struct ruc_conn *c, rimeaddr_t *receiver, u8_t max_retransmissions)
   if(rimebuf_hdralloc(sizeof(struct ruc_hdr))) {
     struct ruc_hdr *hdr = rimebuf_hdrptr();
     hdr->type = TYPE_DATA;
-    hdr->seqno = seqno;
-    c->transmissions_left = max_retransmissions;
-    return suc_send_stubborn(&c->c, receiver);
+    hdr->seqno = c->sndnxt;
+    c->max_rxmit = max_retransmissions;
+    c->rxmit = 0;
+    RIMESTATS_ADD(reliabletx);
+    PRINTF("%d.%d: ruc: sendign packet %d\n",
+	   rimeaddr_node_addr.u8[0],rimeaddr_node_addr.u8[1],
+	   c->sndnxt);
+    return suc_send_stubborn(&c->c, receiver, REXMIT_TIME);
   }
   return 0;
 }
