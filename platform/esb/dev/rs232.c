@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: rs232.c,v 1.1 2006/06/18 07:49:33 adamdunkels Exp $
+ * @(#)$Id: rs232.c,v 1.2 2007/05/22 21:07:51 adamdunkels Exp $
  */
 
 /** \addtogroup esbrs232
@@ -55,6 +55,7 @@ static int (* input_handler)(unsigned char) = NULL;
 interrupt(UART1RX_VECTOR)
      rs232_rx_usart1(void)
 {
+  ENERGEST_ON(ENERGEST_TYPE_IRQ);
   /* Check status register for receive errors. - before reading RXBUF since
      it clears the error and interrupt flags */
   if(!(URCTL1 & RXERR) && input_handler != NULL) {
@@ -66,6 +67,7 @@ interrupt(UART1RX_VECTOR)
     /* Else read out the char to clear the I-flags, etc. */
     RXBUF1;
   }
+  ENERGEST_OFF(ENERGEST_TYPE_IRQ);
 }
 /*---------------------------------------------------------------------------*/
 /**
@@ -91,11 +93,15 @@ rs232_init(void)
 void
 rs232_send(char c)
 {
+
+  ENERGEST_ON(ENERGEST_TYPE_SERIAL);
   /* Loop until the transmission buffer is available. */
-  while ((IFG2 & UTXIFG1) == 0);
+  while((IFG2 & UTXIFG1) == 0) {
+  }
 
   /* Transmit the data. */
   TXBUF1 = c;
+  ENERGEST_OFF(ENERGEST_TYPE_SERIAL);
 }
 /*---------------------------------------------------------------------------*/
 void
