@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: simple-cc2420.c,v 1.6 2007/05/15 07:53:09 adamdunkels Exp $
+ * @(#)$Id: simple-cc2420.c,v 1.7 2007/05/22 20:51:30 adamdunkels Exp $
  */
 /*
  * This code is almost device independent and should be easy to port.
@@ -48,6 +48,8 @@
 #include "dev/spi.h"
 #include "dev/simple-cc2420.h"
 #include "dev/cc2420_const.h"
+
+#include "net/rime/rimestats.h"
 
 #define FOOTER1_CRC_OK      0x80
 #define FOOTER1_CORRELATION 0x7f
@@ -231,7 +233,11 @@ simple_cc2420_send(const u8_t *payload, u16_t payload_len)
     return -2;
   }
 
+  /*  PRINTF("simple_cc2420_send: %d bytes\n", payload_len);*/
+  
   GET_LOCK();
+
+  RIMESTATS_ADD(lltx);
   
   /* Wait for previous transmission to finish and RSSI. */
   do {
@@ -247,18 +253,18 @@ simple_cc2420_send(const u8_t *payload, u16_t payload_len)
   ENERGEST_ON(ENERGEST_TYPE_TRANSMIT);
   
   {
-    u8_t total_len = 2 + payload_len + 2; /* 2 bytes time stamp,
+    u8_t total_len = /*2 +*/ payload_len + 2; /* 2 bytes time stamp,
 					     2 bytes footer. */
     FASTSPI_WRITE_FIFO(&total_len, 1);
   }
   
   FASTSPI_WRITE_FIFO(payload, payload_len);
 
-  {
+  /*  {
     rtimer_clock_t t;
     t = rtimer_arch_now();
     FASTSPI_WRITE_FIFO(&t, 2);
-  }
+    }*/
 
   if(FIFOP_IS_1 && !FIFO_IS_1) {
     /* RXFIFO overflow, send on retransmit. */
@@ -427,6 +433,7 @@ simple_cc2420_read(u8_t *buf, u16_t bufsize)
     FASTSPI_STROBE(CC2420_SFLUSHRX);
     FASTSPI_STROBE(CC2420_SFLUSHRX);
     packet_seen = 0;
+    RIMESTATS_ADD(badsynch);
     RELEASE_LOCK();
     return 0;
   }
@@ -436,6 +443,7 @@ simple_cc2420_read(u8_t *buf, u16_t bufsize)
     PRINTF("simple_cc2420_read: len %d\n", len);
     if(len < 2) {
       FASTSPI_READ_FIFO_GARBAGE(len);
+      RIMESTATS_ADD(tooshort);
     } else if(len - 2 > bufsize) {
       PRINTF("simple_cc2420_read too big len=%d bufsize %d\n", len, bufsize);
       //      FASTSPI_READ_FIFO_GARBAGE(2);
@@ -443,7 +451,8 @@ simple_cc2420_read(u8_t *buf, u16_t bufsize)
       FASTSPI_READ_FIFO_GARBAGE(len - bufsize - 2);
       FASTSPI_READ_FIFO_NO_WAIT(footer, 2);
       //      len = bufsize - 2; /* We eventually return len - 2 */
-      len = 4;
+      len = 2;
+      RIMESTATS_ADD(toolong);
     } else {
       rtimer_clock_t t;
       //      FASTSPI_READ_FIFO_NO_WAIT(&t, 2); /* Time stamp */
@@ -457,8 +466,13 @@ simple_cc2420_read(u8_t *buf, u16_t bufsize)
 	/*	if((h.fc0 & FC0_TYPE_MASK) == FC0_TYPE_DATA) {
 	  uip_len = len - 2;
 	  }*/
+	RIMESTATS_ADD(llrx);
+      } else {
+	RIMESTATS_ADD(badcrc);
+	len = 2;
       }
       //      PRINTF("Time 0x%02x\n", t);
+
     }
   }
   
