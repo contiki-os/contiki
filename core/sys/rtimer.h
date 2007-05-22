@@ -9,7 +9,7 @@
 
 /**
  * \file
- *         Header file for the real-time module.
+ *         Header file for the real-time timer module.
  * \author
  *         Adam Dunkels <adam@sics.se>
  *
@@ -45,7 +45,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: rtimer.h,v 1.4 2007/05/17 00:24:29 adamdunkels Exp $
+ * @(#)$Id: rtimer.h,v 1.5 2007/05/22 20:58:49 adamdunkels Exp $
  */
 #ifndef __RTIMER_H__
 #define __RTIMER_H__
