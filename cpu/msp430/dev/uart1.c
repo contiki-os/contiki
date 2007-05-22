@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#)$Id: uart1.c,v 1.1 2007/03/15 21:37:19 adamdunkels Exp $
+ * @(#)$Id: uart1.c,v 1.2 2007/05/22 21:01:51 adamdunkels Exp $
  */
 
 /*
@@ -36,6 +36,7 @@
 #include <io.h>
 #include <signal.h>
 
+#include "lib/energest.h"
 #include "dev/uart1.h"
 
 /*---------------------------------------------------------------------------*/
@@ -110,6 +111,7 @@ uart1_init(unsigned long ubr)
 interrupt(UART1RX_VECTOR)
 uart1_interrupt(void)
 {
+  ENERGEST_ON(ENERGEST_TYPE_IRQ);
   /* Check status register for receive errors. */
   if(URCTL1 & RXERR) {
     volatile unsigned dummy;
@@ -119,5 +121,6 @@ uart1_interrupt(void)
       LPM4_EXIT;
       }*/
   }
+  ENERGEST_OFF(ENERGEST_TYPE_IRQ);
 }
 /*---------------------------------------------------------------------------*/
