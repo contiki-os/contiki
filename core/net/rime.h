@@ -33,7 +33,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: rime.h,v 1.7 2007/05/15 08:05:52 adamdunkels Exp $
+ * $Id: rime.h,v 1.8 2007/05/22 20:53:24 adamdunkels Exp $
  */
 
 /**
@@ -46,6 +46,7 @@
 #ifndef __RIME_H__
 #define __RIME_H__
 
+#include "net/rime/rimestats.h"
 #include "net/rime/rimeaddr.h"
 #include "net/rime/ctimer.h"
 #include "net/rime/rimebuf.h"
