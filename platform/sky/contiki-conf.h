@@ -1,11 +1,11 @@
 /* -*- C -*- */
-/* @(#)$Id: contiki-conf.h,v 1.15 2007/05/12 21:02:23 oliverschmidt Exp $ */
+/* @(#)$Id: contiki-conf.h,v 1.16 2007/05/22 21:12:15 adamdunkels Exp $ */
 
 #ifndef CONTIKI_CONF_H
 #define CONTIKI_CONF_H
 
 #define ELFLOADER_CONF_DATAMEMORY_SIZE 0x1800
-#define ELFLOADER_CONF_TEXTMEMORY_SIZE 0x2000
+#define ELFLOADER_CONF_TEXTMEMORY_SIZE 0x1000
 
 #define LPM_CONF_OFF LPM4_EXIT
 
@@ -29,7 +29,6 @@ void msp430_cpu_init(void);	/* Rename to cpu_init() later! */
 #define splx(sr) __asm__ __volatile__("bis %0, r2" : : "r" (sr))
 
 #define TMOTE_SKY 1
-#define WITH_UIP 1
 #define WITH_ASCII 1
 
 #define PROCESS_CONF_FASTPOLL    4
@@ -81,6 +80,9 @@ typedef unsigned short clock_time_t;
 typedef unsigned long off_t;
 #define ROM_ERASE_UNIT_SIZE  512
 #define XMEM_ERASE_UNIT_SIZE (64*1024L)
+
+#define XMAC_CONF_ON_TIME RTIMER_ARCH_SECOND / 100
+#define XMAC_CONF_OFF_TIME RTIMER_ARCH_SECOND / 10
 
 /* Use the first 64k of external flash for node configuration */
 #define NODE_ID_XMEM_OFFSET     (0 * XMEM_ERASE_UNIT_SIZE)
@@ -179,5 +181,6 @@ typedef unsigned long off_t;
 
 #define SPI_ENABLE()    ( P4OUT &= ~BV(CSN) ) /* ENABLE CSn (active low) */
 #define SPI_DISABLE()   ( P4OUT |=  BV(CSN) ) /* DISABLE CSn (active low) */
+
 
 #endif /* CONTIKI_CONF_H */
