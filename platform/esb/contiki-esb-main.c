@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: contiki-esb-main.c,v 1.10 2007/05/19 21:08:43 oliverschmidt Exp $
+ * @(#)$Id: contiki-esb-main.c,v 1.11 2007/05/22 21:05:53 adamdunkels Exp $
  */
 
 #include <io.h>
@@ -68,10 +68,12 @@ PROCESS_THREAD(contiki_esb_main_init_process, ev, data)
   autostart_start((struct process **) autostart_processes);
 
   beep_spinup();
-  leds_on(LEDS_ALL);
+  leds_on(LEDS_RED);
   clock_delay(100);
-  leds_off(LEDS_ALL);
+  leds_off(LEDS_RED);
 
+  energest_init();
+  
   PROCESS_END();
 }
 /*---------------------------------------------------------------------------*/
@@ -141,6 +143,43 @@ main(void)
     printf("Node id is set to %u.\n", node_id);
   } else {
     printf("Node id is not set.\n");
+  }
+
+  
+  ENERGEST_ON(ENERGEST_TYPE_CPU);
+  while (1) {
+    static unsigned long irq_energest = 0;
+    do {
+      /* Reset watchdog. */
+    } while(process_run() > 0);
+
+    /*
+     * Idle processing.
+     */
+    dint();
+    if(process_nevents() != 0) {
+      eint();
+    } else {
+      /* Re-enable interrupts and go to sleep atomically. */
+      ENERGEST_OFF(ENERGEST_TYPE_CPU);
+      ENERGEST_ON(ENERGEST_TYPE_LPM);
+
+      /* We only want to measure the processing done in IRQs when we
+	 are asleep, so we discard the processing time done when we
+	 were awake. */
+      energest_type_set(ENERGEST_TYPE_IRQ, irq_energest);
+      
+      _BIS_SR(GIE | SCG0 | CPUOFF); /* LPM1 sleep. */
+
+      /* We get the current processing time for interrupts that was
+	 done during the LPM and store it for next time around.  */
+      dint();
+      irq_energest = energest_type_time(ENERGEST_TYPE_IRQ);
+      eint();
+
+      ENERGEST_OFF(ENERGEST_TYPE_LPM);
+      ENERGEST_ON(ENERGEST_TYPE_CPU);
+    }
   }
 
   while(1) {
