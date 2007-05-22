@@ -29,9 +29,12 @@
  *
  * This file is part of the Contiki OS
  *
- * $Id: contiki-main.c,v 1.2 2006/08/09 16:13:40 bg- Exp $
+ * $Id: contiki-main.c,v 1.3 2007/05/22 21:33:31 oliverschmidt Exp $
  *
  */
+
+#include <stdio.h>
+#include <unistd.h>
 
 #include "contiki.h"
 
