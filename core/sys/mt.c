@@ -30,7 +30,7 @@
  *
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: mt.c,v 1.5 2007/04/03 18:47:21 oliverschmidt Exp $
+ * $Id: mt.c,v 1.6 2007/05/22 20:58:14 adamdunkels Exp $
  */
 
 /**
@@ -92,24 +92,6 @@ mt_exec(struct mt_thread *thread)
   }
 }
 /*--------------------------------------------------------------------------*/
-#if 0
-void
-mt_exec_event(struct mt_thread *thread, process_event_t ev,
-	      process_data_t data)
-{
-  if(thread->state == MT_STATE_WAITING ||
-     thread->state == MT_STATE_PEEK) {
-    *(thread->evptr) = ev;
-    *(thread->dataptr) = data;
-    thread->state = MT_STATE_RUNNING;
-    current = thread;
-    /* Switch context to the thread. The function call will not return
-       until the the thread has yielded, or is preempted. */
-    mtarch_exec(&thread->thread);
-  }
-}
-#endif
-/*--------------------------------------------------------------------------*/
 void
 mt_yield(void)
 {
@@ -138,98 +120,3 @@ mt_stop(struct mt_thread *thread)
   mtarch_stop(&thread->thread);
 }
 /*--------------------------------------------------------------------------*/
-#if 0
-void
-mt_post(struct process *p, process_event_t ev,
-	process_data_t data)
-{
-  /* Turn off preemption to ensure mutual exclusion of kernel. */
-  mtarch_pstop();
-
-  process_post(p, ev, data);
-  
-  /* Turn preemption on again. */
-  mtarch_pstart();
-}
-#endif
-/*--------------------------------------------------------------------------*/
-#if 0
-void
-mt_wait(process_event_t *ev, process_data_t *data)
-{
-  mtarch_pstop();
-  current->evptr = ev;
-  current->dataptr = data;
-  current->state = MT_STATE_WAITING;
-  current = NULL;
-  mtarch_yield();
-}
-/*--------------------------------------------------------------------------*/
-void
-mt_peek(process_event_t *ev, process_data_t *data)
-{
-  mtarch_pstop();
-  *ev = PROCESS_EVENT_NONE;
-  current->evptr = ev;
-  current->dataptr = data;
-  current->state = MT_STATE_PEEK;
-  current = NULL;
-  mtarch_yield();
-}
-#endif
-/*--------------------------------------------------------------------------*/
-#if 0
-void
-mtp_start(struct mt_process *t,
-	  void (* function)(void *), void *data)
-{
-  mt_start(&t->t, function, data);
-  process_start(t->p, function);
-}
-/*--------------------------------------------------------------------------*/
-void
-mtp_exit(void)
-{
-  mtarch_pstop();
-  mt_exit();
-  mt_remove();
-}
-/*--------------------------------------------------------------------------*/
-/*void
-mtp_eventhandler(ek_event_t ev, ek_data_t data)
-{
-  struct mtp_thread *thread = (struct mtp_thread *)EK_PROC_STATE(EK_CURRENT());
-
-  if(ev == EK_EVENT_REQUEST_EXIT) {
-    ek_exit();
-    LOADER_UNLOAD();
-    
-  } else if(ev == EK_EVENT_INIT) {
-    
-    ek_post(EK_PROC_ID(EK_CURRENT()), EK_EVENT_CONTINUE, NULL);
-    
-  } else if(ev == EK_EVENT_CONTINUE) {
-
-    if(thread->t.state == MT_STATE_READY ||
-       thread->t.state == MT_STATE_PEEK) {
-      mt_exec(&thread->t);
-      if(thread->t.state == MT_STATE_EXITED) {
-	ek_exit();
-	LOADER_UNLOAD();
-      } else {
-	ek_post(EK_PROC_ID(EK_CURRENT()), EK_EVENT_CONTINUE, NULL);
-      }
-    }
-  } else {
-    mt_exec_event(&thread->t, ev, data);
-    if(thread->t.state == MT_STATE_EXITED) {
-      ek_exit();
-      LOADER_UNLOAD();
-    } else if(thread->t.state == MT_STATE_READY ||
-	      thread->t.state == MT_STATE_PEEK) {
-      ek_post(EK_PROC_ID(EK_CURRENT()), EK_EVENT_CONTINUE, NULL);
-    }
-  }
-}*/
-/*--------------------------------------------------------------------------*/
-#endif /* 0 */
