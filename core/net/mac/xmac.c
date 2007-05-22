@@ -30,7 +30,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: xmac.c,v 1.3 2007/05/19 13:12:00 oliverschmidt Exp $
+ * $Id: xmac.c,v 1.4 2007/05/22 20:55:24 adamdunkels Exp $
  */
 
 /**
@@ -51,7 +51,21 @@
 #include "net/chameleon/packattr.h"
 #endif
 
-extern rimeaddr_t uc_receiver;
+#undef XMAC_CONF_ON_TIME
+#undef XMAC_CONF_OFF_TIME
+
+#define WITH_RECEIVER 1
+#define WITH_QUEUE 1
+#define XMAC_CONF_ON_TIME RTIMER_ARCH_SECOND / 100
+#define XMAC_CONF_OFF_TIME RTIMER_ARCH_SECOND / 10
+
+
+#if WITH_RECEIVER
+extern
+#else
+static
+#endif
+rimeaddr_t uc_receiver;
 
 struct powercycle {
   struct pt pt;
@@ -68,20 +82,18 @@ struct xmac_hdr {
 static struct rtimer rt;
 static struct pt pt;
 
-#ifdef XMAC_CONF_BASE_TIME
-#define BASE_TIME XMAC_CONF_BASE_TIME
+#ifdef XMAC_CONF_ON_TIME
+#define ON_TIME (XMAC_CONF_ON_TIME)
 #else
-#define BASE_TIME (RTIMER_ARCH_SECOND / 100)
+#define ON_TIME (RTIMER_ARCH_SECOND / 100)
 #endif
 
-#ifdef XMAC_CONF_DUTYCYCLE
-#define DUTYCYCLE XMAC_CONF_DUTYCYCLE
+#ifdef XMAC_CONF_OFF_TIME
+#define OFF_TIME (XMAC_CONF_OFF_TIME)
 #else
-#define DUTYCYCLE 10
+#define OFF_TIME (ON_TIME * 10)
 #endif
 
-#define OFF_TIME BASE_TIME * (DUTYCYCLE)
-#define ON_TIME BASE_TIME
 #define STROBE_WAIT_TIME ON_TIME / 2
 
 static volatile unsigned char should_be_awake = 0;
@@ -119,9 +131,9 @@ powercycle(struct rtimer *t, void *ptr)
   PT_BEGIN(&pt);
 
   while(1) {
-    rtimer_clock_t t1, t2;
+/*     rtimer_clock_t t1, t2; */
     
-    t1 = rtimer_arch_now();
+/*     t1 = rtimer_arch_now(); */
     if(should_be_awake == 0) {
       radio->off();
       radio_is_on = 0;
@@ -136,7 +148,7 @@ powercycle(struct rtimer *t, void *ptr)
 		  (void (*)(struct rtimer *, void *))powercycle, ptr)) {
       PRINTF("xmac: could not set rtimer\n");
     }
-    t2 = rtimer_arch_now();
+/*     t2 = rtimer_arch_now(); */
 /*     printf("xmac 1 %d\n", t2 - t1); */
     PT_YIELD(&pt);
 
@@ -145,7 +157,7 @@ powercycle(struct rtimer *t, void *ptr)
       PT_YIELD(&pt);
     }
 
-    t1 = rtimer_arch_now();
+/*     t1 = rtimer_arch_now(); */
     if(radio_is_on == 0) {
       radio->on();
       radio_is_on = 1;
@@ -155,7 +167,7 @@ powercycle(struct rtimer *t, void *ptr)
 		  (void (*)(struct rtimer *, void *))powercycle, ptr)) {
       PRINTF("xmac: could not set rtimer\n");
     }
-    t2 = rtimer_arch_now();
+/*     t2 = rtimer_arch_now(); */
 /*     printf("xmac 2 %d\n", t2 - t1); */
 
     PT_YIELD(&pt);
@@ -169,8 +181,14 @@ powercycle(struct rtimer *t, void *ptr)
       
       /* XXX should wait for a complete packet that is not destined to
 	 us to swisch past us. */
-
+      radio->off();
+      radio_is_on = 0;
+      LEDS_OFF(LEDS_RED);
+      if(rtimer_set(t, RTIMER_TIME(t) + OFF_TIME, 1, powercycle, ptr)) {
+	PRINTF("xmac: could not set long off rtimer\n");
+      }
       long_off = 0;
+      someone_is_sending = 0;
     }
     
   }
@@ -189,9 +207,11 @@ send(void)
   we_are_sending = 1;
 
   radio->on();
+  radio_is_on = 1;
   
   /*  printf("xmac_send\n");*/
-  PRINTF("xmac: send() len %d\n", rimebuf_totlen());
+  PRINTF("xmac: send() len %d to %d.%d\n", rimebuf_totlen(),
+	 uc_receiver.u8[0], uc_receiver.u8[1]);
     
   rimebuf_hdralloc(sizeof(struct xmac_hdr));
   hdr = rimebuf_hdrptr();
@@ -246,6 +266,8 @@ send(void)
 	     the packet. */
 	  got_ack = 1;
 	  break;
+	} else {
+	  RIMESTATS_ADD(sendingdrop);
 	}
       }
     }
@@ -264,7 +286,6 @@ send(void)
   /*  printf("Strobe %d got_ack %d\n", strobes, got_ack);*/
 
   LEDS_OFF(LEDS_GREEN);
-
   PT_INIT(&pt);
   if(rtimer_set(&rt, RTIMER_NOW() + ON_TIME, 1,
 		(void (*)(struct rtimer *, void *))powercycle, NULL)) {
@@ -274,12 +295,22 @@ send(void)
 
 }
 /*---------------------------------------------------------------------------*/
+static struct queuebuf *queued_packet;
 static void
 qsend(void)
 {
   if(someone_is_sending) {
     PRINTF("xmac: should queue packet, now just dropping %d %d %d %d.\n",
 	   should_be_awake, someone_is_sending, we_are_sending, radio_is_on);
+    if(queued_packet != NULL) {
+      RIMESTATS_ADD(contentiondrop);
+    } else {
+#if WITH_QUEUE
+      queued_packet = queuebuf_new_from_rimebuf();
+#else
+      RIMESTATS_ADD(contentiondrop);
+#endif
+    }
   } else {
     PRINTF("xmac: send immediately.\n");
     send();
@@ -330,12 +361,14 @@ input(const struct radio_driver *d)
     } else if(rimeaddr_cmp(&hdr->receiver, &rimeaddr_null)) {
       /* Wait for the actual packet to arrive. */
       should_be_awake = 1;
+      PRINTF("xmac: broadcast from %d.%d\n",
+	     hdr->sender.u8[0],hdr->sender.u8[1]);
       /*      PRINTF("xmac: broadcast\n");*/
     } else {
       /* Go back to sleep. XXX should not turn on the radio again
 	 until this packet has passed.  */
       should_be_awake = 0;
-      someone_is_sending = 0;
+      someone_is_sending = 1;
       long_off = 1;
       /* XXX set timer to turn someone_is_sending off again and send queued packet. */
       /*      PRINTF("xmac: not for us\n");*/
@@ -350,6 +383,12 @@ input(const struct radio_driver *d)
       PRINTF("xmac: final packet received\n");
       rime_input();
       /* XXX send queued packet. */
+      if(queued_packet != NULL) {
+	queuebuf_to_rimebuf(queued_packet);
+	queuebuf_free(queued_packet);
+	queued_packet = NULL;
+	send();
+      }
     }
   }
 }
