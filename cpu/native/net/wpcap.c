@@ -30,7 +30,7 @@
  * 
  * Author: Oliver Schmidt <ol.sc@web.de>
  *
- * $Id: wpcap.c,v 1.7 2007/05/20 21:32:24 oliverschmidt Exp $
+ * $Id: wpcap.c,v 1.8 2007/05/22 22:01:03 oliverschmidt Exp $
  */
 
 #define WIN32_LEAN_AND_MEAN
@@ -76,6 +76,8 @@ struct pcap_pkthdr {
   DWORD caplen;
   DWORD len;
 };
+
+HMODULE wpcap;
 
 static struct pcap *pcap;
 
@@ -193,7 +195,6 @@ void
 wpcap_init(void)
 {
   struct in_addr addr;
-  HMODULE wpcap;
 
 #ifdef __CYGWIN__
   addr.s_addr = inet_addr((*__argv)[1]);
@@ -252,5 +253,6 @@ wpcap_send(void)
 void
 wpcap_exit(void)
 {
+  FreeLibrary(wpcap);
 }
 /*---------------------------------------------------------------------------*/
