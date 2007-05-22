@@ -42,7 +42,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: radio.h,v 1.3 2007/05/18 13:13:18 fros4943 Exp $
+ * $Id: radio.h,v 1.4 2007/05/22 20:50:22 adamdunkels Exp $
  */
 
 /**
@@ -54,6 +54,8 @@
 
 #ifndef __RADIO_H__
 #define __RADIO_H__
+
+#include "contiki-net.h"
 
 /**
  * The structure of a device driver for a radio in Contiki.
