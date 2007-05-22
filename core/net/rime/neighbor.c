@@ -33,7 +33,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: neighbor.c,v 1.8 2007/03/31 18:31:28 adamdunkels Exp $
+ * $Id: neighbor.c,v 1.9 2007/05/22 21:15:17 adamdunkels Exp $
  */
 
 /**
@@ -58,7 +58,7 @@ static struct neighbor neighbors[MAX_NEIGHBORS];
 
 static struct ctimer t;
 
-static int max_time = 20;
+static int max_time = 30;
 /*---------------------------------------------------------------------------*/
 static void
 periodic(void *ptr)
@@ -76,7 +76,7 @@ periodic(void *ptr)
       }
     }
   }
-  printf("neighbor periodic\n");
+  /*  printf("neighbor periodic\n");*/
   ctimer_set(&t, CLOCK_SECOND, periodic, NULL);
 }
 /*---------------------------------------------------------------------------*/
