@@ -1,3 +1,17 @@
+/**
+ * \addtogroup rt
+ * @{
+ */
+
+/**
+ * \file
+ *         Implementation of the architecture-agnostic parts of the real-time timer module.
+ * \author
+ *         Adam Dunkels <adam@sics.se>
+ *
+ */
+
+
 /*
  * Copyright (c) 2005, Swedish Institute of Computer Science
  * All rights reserved.
@@ -28,13 +42,17 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: rtimer.c,v 1.3 2007/05/17 00:23:58 adamdunkels Exp $
+ * @(#)$Id: rtimer.c,v 1.4 2007/05/22 20:58:38 adamdunkels Exp $
  */
 
 #include "sys/rtimer.h"
 #include "contiki.h"
 
+#ifdef RTIMER_CONF_NUM
+#define LIST_SIZE RTIMER_CONF_NUM
+#else
 #define LIST_SIZE 4
+#endif
 
 static struct rtimer *rtimers[LIST_SIZE];
 static u8_t next, firstempty;
