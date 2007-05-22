@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: energest.c,v 1.3 2007/05/22 20:52:20 adamdunkels Exp $
+ * $Id: energest.c,v 1.4 2007/05/22 21:55:33 adamdunkels Exp $
  */
 
 /**
@@ -45,7 +45,7 @@
 
 int energest_total_count;
 energest_t energest_total_time[ENERGEST_TYPE_MAX];
-energest_t energest_current_time[ENERGEST_TYPE_MAX];
+unsigned short energest_current_time[ENERGEST_TYPE_MAX];
 
 /*---------------------------------------------------------------------------*/
 void
