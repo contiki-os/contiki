@@ -33,7 +33,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: tree.c,v 1.11 2007/05/15 08:09:21 adamdunkels Exp $
+ * $Id: tree.c,v 1.12 2007/05/22 20:57:44 adamdunkels Exp $
  */
 
 /**
@@ -70,6 +70,7 @@ struct hdr {
   u8_t originator_seqno;
   u8_t hopcount;
   u8_t hoplim;
+  u8_t rexmits;
 };
 
 #define SINK 0
@@ -79,8 +80,6 @@ struct hdr {
 
 #define MAX_INTERVAL CLOCK_SECOND * 10
 #define MIN_INTERVAL CLOCK_SECOND * 2
-
-#define MAX_RETRANSMISSIONS 3
 
 #define DEBUG 0
 #if DEBUG
@@ -230,7 +229,7 @@ node_packet_received(struct ruc_conn *c, rimeaddr_t *from, u8_t seqno)
       tc->forwarding = 1;
       n = neighbor_best();
       if(n != NULL) {
-	ruc_send(c, &n->addr, MAX_RETRANSMISSIONS);
+	ruc_send(c, &n->addr, hdr->rexmits);
       }
       return 1;
     } else {
@@ -299,14 +298,11 @@ tree_set_sink(struct tree_conn *tc, int should_be_sink)
 }
 /*---------------------------------------------------------------------------*/
 void
-tree_send(struct tree_conn *tc)
+tree_send(struct tree_conn *tc, int rexmits)
 {
   struct neighbor *n;
   struct hdr *hdr;
 
-  if(tc->hops_from_sink == 0) {
-    return;
-  }
   
   if(rimebuf_hdralloc(sizeof(struct hdr))) {
     hdr = rimebuf_hdrptr();
@@ -314,14 +310,22 @@ tree_send(struct tree_conn *tc)
     rimeaddr_copy(&hdr->originator, &rimeaddr_node_addr);
     hdr->hopcount = tc->hops_from_sink;
     hdr->hoplim = MAX_HOPLIM;
-    n = neighbor_best();
-    if(n != NULL) {
-      /*      printf("Sending to best neighbor\n");*/
-      ruc_send(&tc->ruc_conn, &n->addr, MAX_RETRANSMISSIONS);
+    hdr->rexmits = rexmits;
+    if(tc->hops_from_sink == 0) {
+      if(tc->cb->recv != NULL) {
+	tc->cb->recv(&hdr->originator, hdr->originator_seqno,
+		     hdr->hopcount);
+      }      
     } else {
-      /*      printf("Didn't find any neighbor\n");*/
-    PRINTF("%d.%d: did not find any neighbor to send to\n",
-	   rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1]);
+      n = neighbor_best();
+      if(n != NULL) {
+	/*      printf("Sending to best neighbor\n");*/
+	ruc_send(&tc->ruc_conn, &n->addr, rexmits);
+      } else {
+	/*      printf("Didn't find any neighbor\n");*/
+	PRINTF("%d.%d: did not find any neighbor to send to\n",
+	       rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1]);
+      }
     }
   }
 }

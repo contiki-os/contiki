@@ -47,7 +47,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: tree.h,v 1.7 2007/05/15 08:09:21 adamdunkels Exp $
+ * $Id: tree.h,v 1.8 2007/05/22 20:57:44 adamdunkels Exp $
  */
 
 /**
@@ -82,7 +82,7 @@ void tree_open(struct tree_conn *c, u16_t channels,
 	       const struct tree_callbacks *callbacks);
 void tree_close(struct tree_conn *c);
 
-void tree_send(struct tree_conn *c);
+void tree_send(struct tree_conn *c, int rexmits);
 
 void tree_set_sink(struct tree_conn *c, int should_be_sink);
 
