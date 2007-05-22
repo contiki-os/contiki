@@ -30,7 +30,7 @@
  *
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: contiki-main.c,v 1.15 2007/05/20 21:41:31 oliverschmidt Exp $
+ * $Id: contiki-main.c,v 1.16 2007/05/22 21:08:57 adamdunkels Exp $
  */
 
 #include "contiki.h"
@@ -79,7 +79,6 @@ SENSORS(&button_sensor, &pir_sensor, &vib_sensor, &radio_sensor);
 
 PROCINIT(&sensors_process, &etimer_process, &tcpip_process,
 	 /*	 &ethernode_uip_process,*/
-	 &ethernode_rime_process,
 	 &uip_fw_process);
 
 /*---------------------------------------------------------------------------*/
@@ -114,6 +113,10 @@ contiki_main(int flag)
   }
   
   leds_green(LEDS_ON);
+
+  rtimer_init();
+  
+  ethernode_rime_init();
 
   autostart_start(autostart_processes);
   
