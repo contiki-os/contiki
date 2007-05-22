@@ -33,7 +33,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: suc.c,v 1.9 2007/03/31 18:31:29 adamdunkels Exp $
+ * $Id: suc.c,v 1.10 2007/05/22 20:57:20 adamdunkels Exp $
  */
 
 /**
@@ -111,7 +111,8 @@ suc_set_timer(struct suc_conn *c, clock_time_t t)
 }
 /*---------------------------------------------------------------------------*/
 int
-suc_send_stubborn(struct suc_conn *c, rimeaddr_t *receiver)
+suc_send_stubborn(struct suc_conn *c, rimeaddr_t *receiver,
+		  clock_time_t rxmittime)
 {
   if(c->buf != NULL) {
     queuebuf_free(c->buf);
@@ -121,7 +122,7 @@ suc_send_stubborn(struct suc_conn *c, rimeaddr_t *receiver)
     return 0;
   }
   rimeaddr_copy(&c->receiver, receiver);
-  ctimer_set(&c->t, CLOCK_SECOND, send, c);
+  ctimer_set(&c->t, rxmittime, send, c);
 
   PRINTF("%d.%d: suc_send_stubborn to %d.%d\n",
 	 rimeaddr_node_addr.u8[0],rimeaddr_node_addr.u8[1],
