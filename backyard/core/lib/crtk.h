@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF 
  * SUCH DAMAGE. 
  *
- * @(#)$Id: crtk.h,v 1.1 2006/06/17 22:41:17 adamdunkels Exp $
+ * @(#)$Id: crtk.h,v 1.1 2007/05/23 23:23:23 oliverschmidt Exp $
  */
 
 /*
