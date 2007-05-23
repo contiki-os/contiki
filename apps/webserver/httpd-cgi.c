@@ -28,7 +28,7 @@
  *
  * This file is part of the uIP TCP/IP stack.
  *
- * $Id: httpd-cgi.c,v 1.5 2007/04/14 13:48:33 oliverschmidt Exp $
+ * $Id: httpd-cgi.c,v 1.6 2007/05/23 21:35:18 oliverschmidt Exp $
  *
  */
 
@@ -161,7 +161,7 @@ make_tcp_stats(void *arg)
   struct uip_conn *conn;
   struct httpd_state *s = (struct httpd_state *)arg;
     
-  conn = &uip_conns[s->count];
+  conn = &uip_conns[s->u.count];
   return sprintf((char *)uip_appdata,
 		 "<tr align=\"center\"><td>%d</td><td>%u.%u.%u.%u:%u</td><td>%s</td><td>%u</td><td>%u</td><td>%c %c</td></tr>\r\n",
 		 htons(conn->lport),
@@ -183,8 +183,8 @@ PT_THREAD(tcp_stats(struct httpd_state *s, char *ptr))
   
   PSOCK_BEGIN(&s->sout);
 
-  for(s->count = 0; s->count < UIP_CONNS; ++s->count) {   
-    if((uip_conns[s->count].tcpstateflags & UIP_TS_MASK) != UIP_CLOSED) {
+  for(s->u.count = 0; s->u.count < UIP_CONNS; ++s->u.count) {   
+    if((uip_conns[s->u.count].tcpstateflags & UIP_TS_MASK) != UIP_CLOSED) {
       PSOCK_GENERATOR_SEND(&s->sout, make_tcp_stats, s);
     }
   }
@@ -211,8 +211,8 @@ static
 PT_THREAD(processes(struct httpd_state *s, char *ptr))
 {
   PSOCK_BEGIN(&s->sout);
-  for(s->ptr = PROCESS_LIST(); s->ptr != NULL; s->ptr = ((struct process *)s->ptr)->next) {
-    PSOCK_GENERATOR_SEND(&s->sout, make_processes, s->ptr);
+  for(s->u.ptr = PROCESS_LIST(); s->u.ptr != NULL; s->u.ptr = ((struct process *)s->u.ptr)->next) {
+    PSOCK_GENERATOR_SEND(&s->sout, make_processes, s->u.ptr);
   }
   PSOCK_END(&s->sout);
 }

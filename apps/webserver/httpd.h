@@ -28,7 +28,7 @@
  *
  * This file is part of the uIP TCP/IP stack.
  *
- * $Id: httpd.h,v 1.4 2007/04/23 21:19:55 oliverschmidt Exp $
+ * $Id: httpd.h,v 1.5 2007/05/23 21:35:18 oliverschmidt Exp $
  *
  */
 
@@ -50,11 +50,10 @@ struct httpd_state {
   int len;
   char *scriptptr;
   int scriptlen;
-  
   union {
     unsigned short count;
     void *ptr;
-  };
+  } u;
 };
 
 
