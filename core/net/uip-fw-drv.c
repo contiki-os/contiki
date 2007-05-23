@@ -30,7 +30,7 @@
  *
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: uip-fw-drv.c,v 1.3 2007/05/22 20:32:32 oliverschmidt Exp $
+ * $Id: uip-fw-drv.c,v 1.4 2007/05/23 22:17:08 oliverschmidt Exp $
  */
 
 #include "net/uip-fw.h"
@@ -41,8 +41,6 @@ PROCESS(uip_fw_process, "IP forwarding");
 PROCESS_THREAD(uip_fw_process, ev, data)
 {
   PROCESS_BEGIN();
-
-  PROCESS_SET_FLAGS(PROCESS_NO_BROADCAST);
 
   tcpip_set_outputfunc(uip_fw_output);
 

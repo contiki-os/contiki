@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: process.h,v 1.7 2007/04/02 18:07:26 adamdunkels Exp $
+ * @(#)$Id: process.h,v 1.8 2007/05/23 22:16:05 oliverschmidt Exp $
  */
 
 /**
@@ -399,9 +399,6 @@ CCIF void process_exit(struct process *p);
  */
 #define PROCESS_CURRENT() process_current
 CCIF extern struct process *process_current;
-
-#define PROCESS_SET_FLAGS(flags)
-#define PROCESS_NO_BROADCAST
 
 /**
  * Switch context to another process
