@@ -29,29 +29,18 @@
  *
  * This file is part of the Contiki desktop OS
  *
- * $Id: loader-arch-dsc.c,v 1.1 2006/06/17 22:41:20 adamdunkels Exp $
+ * $Id: loader-arch-dsc.h,v 1.1 2007/05/23 23:50:02 oliverschmidt Exp $
  *
  */
+#ifndef __LOADER_ARCH_DSC_H__
+#define __LOADER_ARCH_DSC_H__
 
-#include <stddef.h>
+#include "sys/dsc.h"
 #include <modload.h>
 
-#include "sys/loader.h"
+struct dsc *loader_arch_load_dsc(const char *name);
 
-extern struct mod_ctrl ctrl;
+#define LOADER_LOAD_DSC(name)  loader_arch_load_dsc(name)
+#define LOADER_UNLOAD_DSC(dsc) mod_free(dsc)
 
-unsigned char load(const char *name);
-
-/*-----------------------------------------------------------------------------------*/
-struct dsc *
-loader_arch_load_dsc(const char *name)
-{
-  unsigned char r;
-
-  r = load(name);
-  if(r == MLOAD_OK) {
-    return (struct dsc *)ctrl.module;    
-  }
-  return NULL;
-}
-/*-----------------------------------------------------------------------------------*/
+#endif /* __LOADER_ARCH_DSC_H__ */
