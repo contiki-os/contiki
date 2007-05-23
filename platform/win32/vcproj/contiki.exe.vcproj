@@ -425,14 +425,6 @@
 					>
 				</File>
 				<File
-					RelativePath="..\..\..\core\sys\service.c"
-					>
-				</File>
-				<File
-					RelativePath="..\..\..\core\sys\service.h"
-					>
-				</File>
-				<File
 					RelativePath="..\..\..\core\sys\timer.c"
 					>
 				</File>
