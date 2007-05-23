@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: wpcap-drv.c,v 1.1 2007/05/20 21:32:24 oliverschmidt Exp $
+ * @(#)$Id: wpcap-drv.c,v 1.2 2007/05/23 22:13:29 oliverschmidt Exp $
  */
 
 #include "contiki-net.h"
@@ -79,16 +79,9 @@ pollhandler(void)
   }
 }
 /*---------------------------------------------------------------------------*/
-static void
-exithandler(void)
-{
-  wpcap_exit();
-}
-/*---------------------------------------------------------------------------*/
 PROCESS_THREAD(wpcap_process, ev, data)
 {
   PROCESS_POLLHANDLER(pollhandler());
-  PROCESS_EXITHANDLER(exithandler());
 
   PROCESS_BEGIN();
 
@@ -99,6 +92,8 @@ PROCESS_THREAD(wpcap_process, ev, data)
   process_poll(&wpcap_process);
 
   PROCESS_WAIT_UNTIL(ev == PROCESS_EVENT_EXIT);
+
+  wpcap_exit();
 
   PROCESS_END();
 }

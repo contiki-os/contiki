@@ -81,15 +81,6 @@ pollhandler(void)
 }
 /*---------------------------------------------------------------------------*/
 /*
- * Here we shutdown the hardware in case the process exits.
- */
-static void
-exithandler(void)
-{
-  shutdown_the_hardware();
-}
-/*---------------------------------------------------------------------------*/
-/*
  * Finally, we define the process that does the work. 
  */
 PROCESS_THREAD(example_packet_driver_process, ev, data)
@@ -134,6 +125,11 @@ PROCESS_THREAD(example_packet_driver_process, ev, data)
    * And we wait for the process to exit.
    */
   PROCESS_WAIT_EVENT_UNTIL(ev == PROCESS_EVENT_EXIT);
+
+  /*
+   * Now we shutdown the hardware.
+   */
+  shutdown_the_hardware();
 
   /*
    * Here ends the process.
