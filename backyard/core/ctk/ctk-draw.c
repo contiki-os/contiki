@@ -30,7 +30,7 @@
  * 
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: ctk-draw.c,v 1.2 2006/08/13 14:09:46 oliverschmidt Exp $
+ * $Id: ctk-draw.c,v 1.1 2007/05/23 23:19:13 oliverschmidt Exp $
  */
 
 
