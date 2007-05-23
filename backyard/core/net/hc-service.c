@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: hc-service.c,v 1.1 2006/06/17 22:41:18 adamdunkels Exp $
+ * @(#)$Id: hc-service.c,v 1.1 2007/05/23 23:28:19 oliverschmidt Exp $
  */
 
 #include "hc-service.h"
