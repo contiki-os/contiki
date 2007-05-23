@@ -29,12 +29,11 @@
  *
  * This file is part of the Contiki OS
  *
- * $Id: contiki-main.c,v 1.7 2007/05/22 21:19:34 oliverschmidt Exp $
+ * $Id: contiki-main.c,v 1.8 2007/05/23 22:02:26 oliverschmidt Exp $
  *
  */
 
 #include <stdio.h>
-#include <stdlib.h>
 #include <unistd.h>
 
 #include "contiki.h"
@@ -52,16 +51,6 @@ PROCINIT(&etimer_process, &tcpip_process, &wpcap_process);
 PROCINIT(&etimer_process, &tcpip_process, &tapdev_process);
 #endif
 
-/*-----------------------------------------------------------------------------------*/
-void
-exit_handler(void)
-{
-#ifdef __CYGWIN__
-  process_post_synch(&wpcap_process, PROCESS_EVENT_EXIT, NULL);
-#else
-  process_post_synch(&tapdev_process, PROCESS_EVENT_EXIT, NULL);
-#endif
-}
 /*---------------------------------------------------------------------------*/
 int
 main(void)
@@ -82,8 +71,6 @@ main(void)
 
   uip_ipaddr(&addr, 255,255,255,0);
   uip_setnetmask(&addr);
-
-  atexit(exit_handler);
 
   while(1) {
     int n;
