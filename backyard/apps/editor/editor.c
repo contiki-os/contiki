@@ -30,7 +30,7 @@
  *
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: editor.c,v 1.1 2006/06/17 22:41:11 adamdunkels Exp $
+ * $Id: editor.c,v 1.1 2007/05/23 23:34:33 oliverschmidt Exp $
  */
 #define EDITOR_CONF_WIDTH 32
 #define EDITOR_CONF_HEIGHT 16

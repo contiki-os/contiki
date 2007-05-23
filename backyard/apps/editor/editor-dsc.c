@@ -29,14 +29,46 @@
  *
  * This file is part of the Contiki desktop environment
  *
- * $Id: editor-dsc.h,v 1.1 2006/06/17 22:41:11 adamdunkels Exp $
+ * $Id: editor-dsc.c,v 1.1 2007/05/23 23:34:33 oliverschmidt Exp $
  *
  */
-#ifndef __EDITOR_DSC_H__
-#define __EDITOR_DSC_H__
 
 #include "sys/dsc.h"
 
-DSC_HEADER(editor_dsc);
+extern struct ctk_icon editor_icon;
+/*-----------------------------------------------------------------------------------*/
+DSC(editor_dsc,
+    "A simple text editor",
+    "editor.prg",
+    editor_process,
+    &editor_icon);
+/*-----------------------------------------------------------------------------------*/
+#if CTK_CONF_ICON_BITMAPS
+static unsigned char editoricon_bitmap[3*3*8] = {
+  0x00, 0x7e, 0x40, 0x73, 0x46, 0x4c, 0x18, 0x13,
+  0x00, 0x00, 0xff, 0x81, 0x34, 0xc9, 0x00, 0xb6,
+  0x00, 0x7e, 0x02, 0xce, 0x72, 0x32, 0x18, 0x48,
 
-#endif /* __EDITOR_DSC_H__ */
+  0x30, 0x27, 0x24, 0x20, 0x37, 0x24, 0x20, 0x33,
+  0x00, 0x7b, 0x42, 0x00, 0x7b, 0x42, 0x00, 0x3b,
+  0x0c, 0x24, 0x24, 0x04, 0xa4, 0x24, 0x04, 0x4c,
+
+  0x12, 0x19, 0x4c, 0x46, 0x63, 0x40, 0x7c, 0x00,
+  0x22, 0x91, 0x00, 0xc4, 0x81, 0xff, 0x00, 0x00,
+  0x08, 0x18, 0x32, 0x62, 0xc6, 0x02, 0x3e, 0x00
+};
+#endif /* CTK_CONF_ICON_BITMAPS */
+
+#if CTK_CONF_ICON_TEXTMAPS
+static char editoricon_textmap[9] = {
+  't', 'x', 't',
+  'e', 'd', 'i',
+  't', 'o', 'r'
+};
+#endif /* CTK_CONF_ICON_TEXTMAPS */
+
+#if CTK_CONF_ICONS
+static struct ctk_icon editor_icon =
+  {CTK_ICON("Editor", editoricon_bitmap, editoricon_textmap)};
+#endif /* CTK_CONF_ICONS */
+/*-----------------------------------------------------------------------------------*/
