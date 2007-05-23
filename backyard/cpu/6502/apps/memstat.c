@@ -29,7 +29,7 @@
  *
  * This file is part of the Contiki desktop environment
  *
- * $Id: memstat.c,v 1.1 2006/06/17 22:41:20 adamdunkels Exp $
+ * $Id: memstat.c,v 1.1 2007/05/23 23:47:44 oliverschmidt Exp $
  *
  */
 

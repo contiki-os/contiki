@@ -29,14 +29,46 @@
  *
  * This file is part of the Contiki desktop environment
  *
- * $Id: memstat-dsc.h,v 1.1 2006/06/17 22:41:20 adamdunkels Exp $
+ * $Id: memstat-dsc.c,v 1.1 2007/05/23 23:47:44 oliverschmidt Exp $
  *
  */
-#ifndef __MEMSTAT_DSC_H__
-#define __MEMSTAT_DSC_H__
 
 #include "sys/dsc.h"
 
-DSC_HEADER(memstat_dsc);
+extern struct ctk_icon memstat_icon;
+/*-----------------------------------------------------------------------------------*/
+DSC(memstat_dsc,
+    "Memory stats",
+    "memstat.prg",
+    memstat_init,
+    &memstat_icon);
+/*-----------------------------------------------------------------------------------*/
+#if CTK_CONF_ICON_BITMAPS
+static unsigned char memstaticon_bitmap[3*3*8] = {
+  0x00, 0x7f, 0x43, 0x4c, 0x58, 0x53, 0x60, 0x6f,
+  0x00, 0xff, 0x00, 0x7e, 0x00, 0xff, 0x00, 0xff,
+  0x00, 0xfe, 0xc2, 0x32, 0x1a, 0xca, 0x06, 0xf6,
 
-#endif /* __MEMSTAT_DSC_H__ */
+  0x40, 0x5f, 0x40, 0x5f, 0x40, 0x5f, 0x40, 0x4f,
+  0x00, 0xff, 0x00, 0xff, 0x00, 0xfc, 0x01, 0xf3,
+  0x02, 0xfa, 0x02, 0x82, 0x3e, 0xfe, 0xfe, 0xfe,
+
+  0x60, 0x67, 0x50, 0x59, 0x4c, 0x43, 0x7f, 0x00,
+  0x07, 0xe7, 0x0f, 0xef, 0x0f, 0x0f, 0xff, 0x00,
+  0x8e, 0x06, 0x06, 0x06, 0x8e, 0xfe, 0xfe, 0x00
+};
+#endif /* CTK_CONF_ICON_BITMAPS */
+
+#if CTK_CONF_ICON_TEXTMAPS
+static char memstaticon_textmap[9] = {
+  '0', '0', '1',
+  '0', '1', '0',
+  '1', '0', '1'
+};
+#endif /* CTK_CONF_ICON_TEXTMAPS */
+
+#if CTK_CONF_ICONS
+static struct ctk_icon memstat_icon =
+  {CTK_ICON("Memory stats", memstaticon_bitmap, memstaticon_textmap)};
+#endif /* CTK_CONF_ICONS */
+/*-----------------------------------------------------------------------------------*/
