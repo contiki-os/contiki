@@ -24,7 +24,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * 
- * $Id: GUI.java,v 1.50 2007/05/23 09:10:15 fros4943 Exp $
+ * $Id: GUI.java,v 1.51 2007/05/24 08:24:11 fros4943 Exp $
  */
 
 package se.sics.cooja;
@@ -3209,7 +3209,7 @@ public class GUI {
       buttonBox.add(retryButton);
     }
 
-    JButton closeButton = new JButton("Close");
+    final JButton closeButton = new JButton("Close");
     closeButton.addActionListener(new ActionListener() {
       public void actionPerformed(ActionEvent e) {
         errorDialog.dispose();
@@ -3217,6 +3217,16 @@ public class GUI {
     });
     buttonBox.add(closeButton);
 
+    // Dispose on escape key
+    InputMap inputMap = errorDialog.getRootPane().getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
+    inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0, false), "dispose");
+    AbstractAction cancelAction = new AbstractAction(){
+      public void actionPerformed(ActionEvent e) {
+        closeButton.doClick();
+      }
+    }; 
+    errorDialog.getRootPane().getActionMap().put("dispose", cancelAction);
+    
     errorPanel.add(messageBox);
     errorPanel.add(Box.createVerticalStrut(20));
     errorPanel.add(buttonBox);
