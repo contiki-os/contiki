@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#)$Id: contiki-sky-main.c,v 1.9 2007/05/22 21:13:26 adamdunkels Exp $
+ * @(#)$Id: contiki-sky-main.c,v 1.10 2007/05/25 08:08:36 adamdunkels Exp $
  */
 
 #include <signal.h>
@@ -121,7 +121,7 @@ main(int argc, char **argv)
 #endif /* WITH_UIP */
   
   printf("Starting %s "
-	 "($Id: contiki-sky-main.c,v 1.9 2007/05/22 21:13:26 adamdunkels Exp $)\n", __FILE__);
+	 "($Id: contiki-sky-main.c,v 1.10 2007/05/25 08:08:36 adamdunkels Exp $)\n", __FILE__);
   ds2411_init();
   sensors_light_init();
   sht11_init();
@@ -157,21 +157,19 @@ main(int argc, char **argv)
   process_start(&etimer_process, NULL);
   process_start(&sensors_process, NULL);
 
-  simple_cc2420_init();
-
-  simple_cc2420_on();
-  rime_init();
   set_rime_addr();
 
-  //nullmac_init(&simple_cc2420_driver);
+  simple_cc2420_init();
+/*   nullmac_init(&simple_cc2420_driver); */
+/*   rime_init(&nullmac_driver); */
   xmac_init(&simple_cc2420_driver);
+  rime_init(&xmac_driver);
 
   /*  rimeaddr_set_node_addr*/
 #if WITH_UIP
   process_start(&tcpip_process, NULL);
   process_start(&uip_fw_process, NULL);	/* Start IP output */
   process_start(&slip_process, NULL);
-  /*  process_start(&tcp_loader_process, NULL);*/
 #endif /* WITH_UIP */
 
   button_sensor.activate();
