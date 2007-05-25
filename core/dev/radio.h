@@ -42,7 +42,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: radio.h,v 1.4 2007/05/22 20:50:22 adamdunkels Exp $
+ * $Id: radio.h,v 1.5 2007/05/25 08:05:24 adamdunkels Exp $
  */
 
 /**
@@ -55,17 +55,15 @@
 #ifndef __RADIO_H__
 #define __RADIO_H__
 
-#include "contiki-net.h"
-
 /**
  * The structure of a device driver for a radio in Contiki.
  */
 struct radio_driver {
-  /** Send a packet  */
-  int (* send)(const u8_t *buf, u16_t len);
+  /** Send a packet */
+  int (* send)(const void *payload, unsigned short payload_len);
 
-  /** Read a received packet. */
-  u16_t (* read)(u8_t *buf, u16_t bufsize);
+  /** Read a received packet into a buffer. */
+  int (* read)(void *buf, unsigned short buf_len);
 
   /** Set a function to be called when a packet has been received. */
   void (* set_receive_function)(void (*f)(const struct radio_driver *d));
