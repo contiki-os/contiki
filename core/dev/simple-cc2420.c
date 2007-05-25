@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: simple-cc2420.c,v 1.7 2007/05/22 20:51:30 adamdunkels Exp $
+ * @(#)$Id: simple-cc2420.c,v 1.8 2007/05/25 08:06:15 adamdunkels Exp $
  */
 /*
  * This code is almost device independent and should be easy to port.
@@ -60,11 +60,24 @@
 #else
 #define PRINTF(...) do {} while (0)
 #endif
+
+void simple_cc2420_arch_init(void);
+
 /*---------------------------------------------------------------------------*/
 PROCESS(simple_cc2420_process, "CC2420 driver");
 /*---------------------------------------------------------------------------*/
 
 static void (* receiver_callback)(const struct radio_driver *);
+
+int simple_cc2420_on(void);
+int simple_cc2420_off(void);
+
+u16_t simple_cc2420_read(u8_t *buf, u16_t bufsize);
+
+int simple_cc2420_send(const u8_t *data, u16_t len);
+
+void simple_cc2420_set_receiver(void (* recv)(const struct radio_driver *d));
+
 
 signed char simple_cc2420_last_rssi;
 u8_t simple_cc2420_last_correlation;
@@ -171,7 +184,7 @@ simple_cc2420_init(void)
   u16_t reg;
   {
     int s = splhigh();
-    __cc2420_arch_init();		/* Initalize ports and SPI. */
+    simple_cc2420_arch_init();		/* Initalize ports and SPI. */
     DISABLE_FIFOP_INT();
     FIFOP_INT_INIT();
     splx(s);
@@ -383,7 +396,7 @@ simple_cc2420_set_chan_pan_addr(unsigned channel, /* 11 - 26 */
  */
 static volatile rtimer_clock_t interrupt_time;
 int
-__cc2420_intr(void)
+simple_cc2420_interrupt(void)
 {
   interrupt_time = rtimer_arch_now();
   
@@ -454,7 +467,7 @@ simple_cc2420_read(u8_t *buf, u16_t bufsize)
       len = 2;
       RIMESTATS_ADD(toolong);
     } else {
-      rtimer_clock_t t;
+      //      rtimer_clock_t t;
       //      FASTSPI_READ_FIFO_NO_WAIT(&t, 2); /* Time stamp */
       FASTSPI_READ_FIFO_NO_WAIT(buf, len - 2);
       /*      PRINTF("simple_cc2420_read: data\n");*/
