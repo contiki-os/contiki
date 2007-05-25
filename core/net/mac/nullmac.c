@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: nullmac.c,v 1.2 2007/05/19 13:19:22 oliverschmidt Exp $
+ * $Id: nullmac.c,v 1.3 2007/05/25 08:07:15 adamdunkels Exp $
  */
 
 /**
@@ -39,32 +39,63 @@
  */
 
 #include "net/mac/nullmac.h"
+#include "net/rime/rimebuf.h"
 
 static const struct radio_driver *radio;
-
+static void (* receiver_callback)(const struct mac_driver *);
 /*---------------------------------------------------------------------------*/
-static void
+static int
 send(void)
 {
-  radio->send(rimebuf_hdrptr(), rimebuf_totlen());
+  return radio->send(rimebuf_hdrptr(), rimebuf_totlen());
 }
 /*---------------------------------------------------------------------------*/
 static void
 input(const struct radio_driver *d)
 {
+  receiver_callback(&nullmac_driver);
+}
+/*---------------------------------------------------------------------------*/
+static int
+read(void)
+{
   int len;
   rimebuf_clear();
   len = radio->read(rimebuf_dataptr(), RIMEBUF_SIZE);
   rimebuf_set_datalen(len);
-  rime_input();
+  return len;
+}
+/*---------------------------------------------------------------------------*/
+static void
+set_receive_function(void (* recv)(const struct mac_driver *))
+{
+  receiver_callback = recv;
+}
+/*---------------------------------------------------------------------------*/
+static int
+on(void)
+{
+  return radio->on();
+}
+/*---------------------------------------------------------------------------*/
+static int
+off(void)
+{
+  return radio->off();
 }
 /*---------------------------------------------------------------------------*/
 void
 nullmac_init(const struct radio_driver *d)
 {
-  rime_set_output(send);
   radio = d;
   radio->set_receive_function(input);
   radio->on();
 }
 /*---------------------------------------------------------------------------*/
+const struct mac_driver nullmac_driver = {
+  send,
+  read,
+  set_receive_function,
+  on,
+  off,
+};

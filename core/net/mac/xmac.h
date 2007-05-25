@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: xmac.h,v 1.3 2007/05/22 20:55:24 adamdunkels Exp $
+ * $Id: xmac.h,v 1.4 2007/05/25 08:07:15 adamdunkels Exp $
  */
 
 /**
@@ -41,9 +41,10 @@
 #ifndef __XMAC_H__
 #define __XMAC_H__
 
-#include "contiki-net.h"
-
+#include "net/mac/mac.h"
 #include "dev/radio.h"
+
+extern const struct mac_driver xmac_driver;
 
 void xmac_init(const struct radio_driver *d);
 
