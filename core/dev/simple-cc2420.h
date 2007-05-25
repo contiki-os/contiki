@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: simple-cc2420.h,v 1.3 2007/05/15 07:53:09 adamdunkels Exp $
+ * $Id: simple-cc2420.h,v 1.4 2007/05/25 08:06:15 adamdunkels Exp $
  */
 
 /**
@@ -44,18 +44,9 @@
 #include "contiki.h"
 #include "dev/radio.h"
 
-#define SIMPLE_CC2420_MAX_PACKET_LEN      127
-
 void simple_cc2420_init(void);
 
-int simple_cc2420_on(void);
-int simple_cc2420_off(void);
-
-u16_t simple_cc2420_read(u8_t *buf, u16_t bufsize);
-
-int simple_cc2420_send(const u8_t *data, u16_t len);
-
-void simple_cc2420_set_receiver(void (* recv)(const struct radio_driver *d));
+#define SIMPLE_CC2420_MAX_PACKET_LEN      127
 
 void simple_cc2420_set_chan_pan_addr(unsigned channel, /* 11 - 26 */
 				     unsigned pan,
@@ -71,5 +62,11 @@ extern const struct radio_driver simple_cc2420_driver;
  * \param power Between 1 and 31.
  */
 void simple_cc2420_set_txpower(u8_t power);
+
+/**
+ * Interrupt function, called from the simple-cc2420-arch driver.
+ *
+ */
+int simple_cc2420_interrupt(void);
 
 #endif /* __SIMPLE_CC2420_H__ */
