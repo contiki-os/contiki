@@ -30,7 +30,7 @@
  * 
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: cs8900a.h,v 1.1 2006/06/17 22:41:16 adamdunkels Exp $
+ * $Id: cs8900a.h,v 1.1 2007/05/26 22:00:33 oliverschmidt Exp $
  */
 #ifndef __CS8900A_H__
 #define __CS8900A_H__
