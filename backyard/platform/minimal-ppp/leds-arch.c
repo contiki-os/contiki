@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: leds-arch.c,v 1.1 2006/06/17 22:41:30 adamdunkels Exp $
+ * $Id: leds-arch.c,v 1.1 2007/05/26 07:21:01 oliverschmidt Exp $
  */
 
 /**

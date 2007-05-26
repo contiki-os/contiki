@@ -29,7 +29,7 @@
  *
  * This file is part of the Contiki OS
  *
- * $Id: contiki-main.c,v 1.1 2006/06/17 22:41:30 adamdunkels Exp $
+ * $Id: contiki-main.c,v 1.1 2007/05/26 07:21:01 oliverschmidt Exp $
  *
  */
 
