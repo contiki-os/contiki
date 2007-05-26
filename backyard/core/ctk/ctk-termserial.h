@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: ctk-termserial.h,v 1.1 2006/06/17 22:41:16 adamdunkels Exp $
+ * @(#)$Id: ctk-termserial.h,v 1.1 2007/05/26 21:46:28 oliverschmidt Exp $
  */
 #ifndef __CTK_TERMSERIAL_H__
 #define __CTK_TERMSERIAL_H__
