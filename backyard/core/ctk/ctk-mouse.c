@@ -29,7 +29,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: ctk-mouse.c,v 1.1 2006/06/17 22:41:15 adamdunkels Exp $
+ * $Id: ctk-mouse.c,v 1.1 2007/05/26 21:38:53 oliverschmidt Exp $
  *
  */
 
