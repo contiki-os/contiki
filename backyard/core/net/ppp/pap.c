@@ -41,7 +41,7 @@
  *
  * This file is part of the Mycal Modified uIP TCP/IP stack.
  *
- * $Id: pap.c,v 1.1 2006/06/17 22:48:09 adamdunkels Exp $
+ * $Id: pap.c,v 1.1 2007/05/26 07:14:39 oliverschmidt Exp $
  *
  */
 
