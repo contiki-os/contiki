@@ -86,8 +86,6 @@ INPUT                  = contiki-mainpage.txt net.txt dev.txt \
                          ../core/sys/cc.h \
                          ../core/sys/etimer.c \
                          ../core/sys/etimer.h \
-                         ../core/sys/service.h \
-                         ../core/sys/service.c \
                          ../core/sys/procinit.h \
                          ../core/sys/procinit.c \
                          ../core/sys/arg.c \
