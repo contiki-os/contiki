@@ -1,5 +1,6 @@
 all: webserver-example
 APPS=webserver
+DEFAULT_TARGET=minimal-net
 
 # The webserver application normally contains a built-in file system and support
 # for server-side includes.
