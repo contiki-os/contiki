@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: service.h,v 1.2 2006/09/09 23:25:07 oliverschmidt Exp $
+ * @(#)$Id: service.h,v 1.1 2007/05/26 23:24:24 oliverschmidt Exp $
  */
 
 /** \addtogroup sys

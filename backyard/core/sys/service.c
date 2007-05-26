@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: service.c,v 1.1 2006/06/17 22:41:20 adamdunkels Exp $
+ * @(#)$Id: service.c,v 1.1 2007/05/26 23:24:24 oliverschmidt Exp $
  */
 
 #include <string.h>
