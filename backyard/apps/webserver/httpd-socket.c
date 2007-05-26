@@ -30,7 +30,7 @@
  *
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: httpd-socket.c,v 1.1 2006/06/17 22:41:14 adamdunkels Exp $
+ * $Id: httpd-socket.c,v 1.1 2007/05/26 22:18:48 oliverschmidt Exp $
  */
 
 #include "contiki.h"
