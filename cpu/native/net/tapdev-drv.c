@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: tapdev-drv.c,v 1.2 2007/05/23 22:13:29 oliverschmidt Exp $
+ * @(#)$Id: tapdev-drv.c,v 1.3 2007/05/26 22:51:38 oliverschmidt Exp $
  */
 
 #include "contiki-net.h"
@@ -80,7 +80,6 @@ pollhandler(void)
 PROCESS_THREAD(tapdev_process, ev, data)
 {
   PROCESS_POLLHANDLER(pollhandler());
-  PROCESS_EXITHANDLER(exithandler());
 
   PROCESS_BEGIN();
 
