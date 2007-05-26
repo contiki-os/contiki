@@ -5,7 +5,7 @@
 #include <ctype.h>
 #include <stdio.h>
 #include <net/uip.h>
-#include "net/uip-fw-service.h"
+#include "net/uip-fw-drv.h"
 #include "net/uaodv.h"
 #include <dev/cc2420.h>
 #include <dev/cc2420_const.h>
