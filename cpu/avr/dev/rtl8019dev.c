@@ -30,7 +30,7 @@
 
 void RTL8019dev_init(void)
 {
-	initRTL8019();
+  initRTL8019();
 }
 
 
@@ -54,24 +54,29 @@ void RTL8019dev_send(void)
 
 unsigned int RTL8019dev_poll(void)
 {
-	unsigned int packetLength;
+  unsigned int packetLength;
 	
-	packetLength = RTL8019beginPacketRetreive();
+  packetLength = RTL8019beginPacketRetreive();
 
-	// if there's no packet or an error - exit without ending the operation
-	if( !packetLength )
-	  return 0;
+  // if there's no packet or an error - exit without ending the operation
+  if( !packetLength )
+    return 0;
 
-	// drop anything too big for the buffer
-	if( packetLength > UIP_BUFSIZE )
-	{
-	  RTL8019endPacketRetreive();
-      return 0;
-	}
+  // drop anything too big for the buffer
+  if( packetLength > UIP_BUFSIZE )
+  {
+    RTL8019endPacketRetreive();
+    return 0;
+  }
 	
-	// copy the packet data into the uIP packet buffer
-	RTL8019retreivePacketData( uip_buf, packetLength );
-	RTL8019endPacketRetreive();
+  // copy the packet data into the uIP packet buffer
+  RTL8019retreivePacketData( uip_buf, packetLength );
+  RTL8019endPacketRetreive();
 		
-	return packetLength;
+  return packetLength;
+}
+
+
+void RTL8019dev_exit(void)
+{
 }

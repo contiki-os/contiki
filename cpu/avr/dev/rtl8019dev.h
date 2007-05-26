@@ -57,4 +57,13 @@ void RTL8019dev_send(void);
 unsigned int RTL8019dev_poll(void);
 
 
+/*****************************************************************************
+*  RTL8019dev_exit()
+*  Created By:  -
+*  Date:        -
+*  Description: Final shutdown of the RTL8019
+*****************************************************************************/
+void RTL8019dev_exit(void);
+
+
 #endif /* __RTL8019DEV_H__ */
