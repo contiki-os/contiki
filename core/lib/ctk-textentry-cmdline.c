@@ -29,7 +29,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: ctk-textentry-cmdline.c,v 1.1 2006/06/17 22:41:17 adamdunkels Exp $
+ * $Id: ctk-textentry-cmdline.c,v 1.2 2007/05/26 21:41:01 oliverschmidt Exp $
  *
  */
 
@@ -43,7 +43,6 @@ ctk_textentry_cmdline_input(ctk_arch_key_t c,
 			    struct ctk_textentry *t)
 {
   if(c == CH_ENTER) {
-    /*    ek_post(t->window->owner, ctk_signal_widget_activate, t);*/
     process_post(t->window->owner, ctk_signal_widget_activate, t);
     return 1;
   }
