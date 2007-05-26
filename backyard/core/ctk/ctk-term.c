@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: ctk-term.c,v 1.2 2006/08/30 22:24:12 oliverschmidt Exp $
+ * @(#)$Id: ctk-term.c,v 1.1 2007/05/26 21:54:33 oliverschmidt Exp $
  */
 #include "ctk/ctk.h"
 #include "ctk-draw.h"
