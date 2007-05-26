@@ -31,7 +31,7 @@
  *
  * This file is part of the C64 RealAudio server demo project.
  *
- * $Id: cs8900a.c,v 1.1 2006/06/17 22:41:16 adamdunkels Exp $
+ * $Id: cs8900a.c,v 1.1 2007/05/26 22:00:33 oliverschmidt Exp $
  *
  */
 
