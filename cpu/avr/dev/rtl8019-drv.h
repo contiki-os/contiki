@@ -31,7 +31,7 @@
  *
  * This file is part of the uIP TCP/IP stack.
  *
- * $Id: rtl8019-drv.h,v 1.1 2006/06/17 22:41:21 adamdunkels Exp $
+ * $Id: rtl8019-drv.h,v 1.2 2007/05/26 23:05:36 oliverschmidt Exp $
  *
  */
 #ifndef __RTL8019_DRV_H__
@@ -39,6 +39,8 @@
 
 #include "contiki.h"
 
-PROCESS_NAME(rtl8019_drv_process);
+PROCESS_NAME(rtl8019_process);
+
+u8_t rtl8019_output(void);
 
 #endif /* __RTL8019_DRV_H__ */
