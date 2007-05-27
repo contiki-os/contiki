@@ -42,7 +42,7 @@
  * 
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: timer.c,v 1.1 2006/06/17 22:41:20 adamdunkels Exp $
+ * $Id: timer.c,v 1.2 2007/05/27 11:11:28 oliverschmidt Exp $
  */
 
 #include "contiki-conf.h"
@@ -75,7 +75,7 @@ timer_set(struct timer *t, clock_time_t interval)
  * given to the timer_set() function. The start point of the interval
  * is the exact time that the timer last expired. Therefore, this
  * function will cause the timer to be stable over time, unlike the
- * timer_rester() function.
+ * timer_restart() function.
  *
  * \param t A pointer to the timer.
  *
