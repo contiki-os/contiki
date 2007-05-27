@@ -1,0 +1,2 @@
+CONTIKI_CPU = $(CONTIKI)/cpu/6502
+include $(CONTIKI_CPU)/Makefile.6502
