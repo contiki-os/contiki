@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: uaodv-def.h,v 1.4 2007/05/21 15:24:44 bg- Exp $
+ * $Id: uaodv-def.h,v 1.5 2007/05/28 16:33:19 bg- Exp $
  */
 
 /**
@@ -125,6 +125,22 @@ struct uaodv_msg_rerr {
 struct uaodv_msg_rrep_ack {
   u8_t type;
   u8_t reserved;
+};
+
+#define RREP_HELLO_INTERVAL_EXT 1 /* Per RFC 3561. */
+#define RREQ_BAD_HOP_EXT 101	/* Non standard extension /bg */
+
+struct uaodv_extension {
+  u8_t type;
+  u8_t length;
+  /* u8_t value[length]; */
+};
+
+struct uaodv_bad_hop_ext {
+  u8_t type;
+  u8_t length;
+  u8_t unused1, unused2;
+  uip_ipaddr_t addrs[1];
 };
 
 #endif /* __UAODV_DEF_H__ */

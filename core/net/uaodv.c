@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: uaodv.c,v 1.22 2007/05/21 15:26:57 bg- Exp $
+ * $Id: uaodv.c,v 1.23 2007/05/28 16:32:43 bg- Exp $
  */
 
 /**
@@ -347,6 +347,30 @@ handle_incoming_rrep(void)
 	      uip_ipaddr_to_quad(&rm->dest_addr), ntohl(rm->dest_seqno),
 	      rm->hop_count,
 	      uip_ipaddr_to_quad(&rm->orig_addr));
+
+#ifdef AODV_BAD_HOP_EXTENSION
+  if(uip_len > (sizeof(*rm) + 2)) {
+    struct uaodv_bad_hop_ext *ext = (void *)(uip_appdata + sizeof(*rm));
+    u8_t *end = uip_appdata + uip_len;
+    for(;
+	(u8_t *)ext < end;
+	ext = (void *)((u8_t *)ext + ext->length + 2)) {
+      u8_t *eend = (u8_t *)ext + ext->length;
+      if(eend > end)
+	eend = end;
+
+      if(ext->type == RREQ_BAD_HOP_EXT) {
+	uip_ipaddr_t *a;
+	for(a = ext->addrs; (u8_t *)a < eend; a++) {
+	  if(uip_ipaddr_cmp(a, &uip_hostaddr)) {
+	    print_debug("BAD_HOP drop\n");
+	    return;
+	  }
+	}
+      }
+    }
+  }
+#endif /* AODV_BAD_HOP_EXTENSION */
 
   rt = uaodv_rt_lookup(&rm->dest_addr);
 
