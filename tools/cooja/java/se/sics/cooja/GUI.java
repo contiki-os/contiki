@@ -24,7 +24,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * 
- * $Id: GUI.java,v 1.51 2007/05/24 08:24:11 fros4943 Exp $
+ * $Id: GUI.java,v 1.52 2007/05/28 08:06:41 fros4943 Exp $
  */
 
 package se.sics.cooja;
@@ -2592,11 +2592,23 @@ public class GUI {
       DOMConfigurator.configure(GUI.class.getResource("/" + LOG_CONFIG_FILE));
     }
 
-    // Check for Contiki path argument
-    for (int i = 1; i < args.length; i++) {
+    // Parse general command arguments
+    for (int i = 0; i < args.length; i++) {
       if (args[i].startsWith("-contiki=")) {
         String arg = args[i].substring("-contiki=".length());
         GUI.specifiedContikiPath = arg;
+      }
+
+      if (args[i].startsWith("-external_tools_config=")) {
+        String arg = args[i].substring("-external_tools_config=".length());
+        File specifiedExternalToolsConfigFile = new File(arg);
+        if (!specifiedExternalToolsConfigFile.exists()) {
+          logger.fatal("Specified external tools configuration not found: " + specifiedExternalToolsConfigFile);
+          specifiedExternalToolsConfigFile = null;
+          System.exit(1);
+        } else {
+          GUI.externalToolsUserSettingsFile = specifiedExternalToolsConfigFile;
+        }
       }
     }
     
@@ -2685,23 +2697,6 @@ public class GUI {
         System.exit(1);
 
     } else if (args.length > 0 && args[0].startsWith("-nogui")) {
-
-      // Parse arguments
-      for (int i = 1; i < args.length; i++) {
-
-        if (args[i].startsWith("-external_tools_config=")) {
-          String arg = args[i].substring("-external_tools_config=".length());
-          File specifiedExternalToolsConfigFile = new File(arg);
-          if (!specifiedExternalToolsConfigFile.exists()) {
-            logger.fatal("Specified external tools configuration not found: " + specifiedExternalToolsConfigFile);
-            specifiedExternalToolsConfigFile = null;
-            System.exit(1);
-          } else {
-            GUI.externalToolsUserSettingsFile = specifiedExternalToolsConfigFile;
-          }
-        }
-
-      }
       
       // No GUI start-up
       javax.swing.SwingUtilities.invokeLater(new Runnable() {
