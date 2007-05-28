@@ -24,7 +24,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * 
- * $Id: GUI.java,v 1.53 2007/05/28 09:01:49 fros4943 Exp $
+ * $Id: GUI.java,v 1.54 2007/05/28 09:37:01 fros4943 Exp $
  */
 
 package se.sics.cooja;
@@ -2716,7 +2716,9 @@ public class GUI {
       // No GUI start-up
       javax.swing.SwingUtilities.invokeLater(new Runnable() {
         public void run() {
-          new GUI(null);
+          JDesktopPane desktop = new JDesktopPane();
+          desktop.setDragMode(JDesktopPane.OUTLINE_DRAG_MODE);
+          new GUI(desktop);
         }
       });
 
