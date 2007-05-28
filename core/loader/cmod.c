@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF 
  * SUCH DAMAGE. 
  *
- * @(#)$Id: cmod.c,v 1.3 2007/04/26 13:38:52 bg- Exp $
+ * @(#)$Id: cmod.c,v 1.4 2007/05/28 16:22:15 bg- Exp $
  */
 
 #include <stdio.h>
@@ -113,7 +113,7 @@ cmod_load(unsigned imod,
   PRINTF("cmod: copy data segment to RAM %p %p\n",
 	 h.data, h.data + h.datasize);
   ret = pread(h.data, h.datasize, off + h.dataoff); 
-  assert(ret > 0);
+  assert(ret >= 0);
   if(h.datarelasize > 0) {
     PRINTF("cmod: relocate data segment\n");
     ret = cle_relocate(&h,
