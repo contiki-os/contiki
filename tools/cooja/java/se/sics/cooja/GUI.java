@@ -24,7 +24,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * 
- * $Id: GUI.java,v 1.52 2007/05/28 08:06:41 fros4943 Exp $
+ * $Id: GUI.java,v 1.53 2007/05/28 09:01:49 fros4943 Exp $
  */
 
 package se.sics.cooja;
@@ -194,12 +194,15 @@ public class GUI {
    * Creates a new COOJA Simulator GUI.
    * 
    * @param desktop Desktop pane
-   * @param createSimDialog If true, a create simulation dialog will be displayed at startup
    */
-  public GUI(JDesktopPane desktop, boolean createSimDialog) {
+  public GUI(JDesktopPane desktop) {
     myGUI = this;
     mySimulation = null;
     myDesktopPane = desktop;
+    if (menuPlugins == null)
+      menuPlugins = new JMenu("Plugins");
+    if (menuMotePluginClasses == null)
+      menuMotePluginClasses = new Vector<Class<? extends Plugin>>();
 
     // Load default and overwrite with user settings (if any)
     loadExternalToolsDefaultSettings();
@@ -208,12 +211,6 @@ public class GUI {
       setExternalToolsSetting("PATH_CONTIKI", specifiedContikiPath);
     }
     
-    
-    // Add menu bar
-    if (frame != null) {
-      frame.setJMenuBar(createMenuBar());
-    }
-
     // Register default project directories
     String defaultProjectDirs = getExternalToolsSetting(
         "DEFAULT_PROJECTDIRS", null);
@@ -239,14 +236,6 @@ public class GUI {
         startPlugin(visPluginClass, this, null, null);
       }
     }
-
-    if (createSimDialog && frame != null) {
-      SwingUtilities.invokeLater(new Runnable() {
-        public void run() {
-          myGUI.doCreateSimulation(true);
-        }
-      });
-    }
   }
 
   /**
@@ -254,6 +243,22 @@ public class GUI {
    */
   public boolean isVisualized() {
     return frame != null;
+  }
+  
+  /**
+   * EXPERIMENTAL!
+   * Tries to create/remove simulator visualizer.
+   * 
+   * @param visualized Visualized
+   */
+  public void setVisualized(boolean visualized) {
+    if (!isVisualized() && visualized) {
+      configureFrame(myGUI, false);
+    } else {
+      frame.setVisible(false);
+      frame.dispose();
+      frame = null;
+    }
   }
 
   private Vector<File> getFileHistory() {
@@ -516,7 +521,10 @@ public class GUI {
     menu.add(menuItem);
 
     // Plugins menu
-    menuPlugins = new JMenu("Plugins");
+    if (menuPlugins == null)
+      menuPlugins = new JMenu("Plugins");
+    else
+      menuPlugins.setText("Plugins");
     menuPlugins.setMnemonic(KeyEvent.VK_P);
     menuBar.add(menuPlugins);
 
@@ -543,11 +551,12 @@ public class GUI {
     menu.add(menuItem);
 
     // Mote plugins popup menu (not available via menu bar)
-    menuMotePluginClasses = new Vector<Class<? extends Plugin>>();
+    if (menuMotePluginClasses == null)
+      menuMotePluginClasses = new Vector<Class<? extends Plugin>>();
     return menuBar;
   }
-
-  private static void createAndShowGUI() {
+  
+  private static void configureFrame(final GUI gui, boolean createSimDialog) {
 
     // Make sure we have nice window decorations.
     JFrame.setDefaultLookAndFeelDecorated(true);
@@ -560,13 +569,10 @@ public class GUI {
     if (maxSize != null)
       frame.setMaximizedBounds(maxSize);
     frame.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
-    logger.debug(frame.getPreferredSize());
 
-    // Create and set up the content pane.
-    JDesktopPane desktop = new JDesktopPane();
-    desktop.setDragMode(JDesktopPane.OUTLINE_DRAG_MODE);
+    // Add menu bar
+    frame.setJMenuBar(gui.createMenuBar());
 
-    GUI gui = new GUI(desktop, true);
     JComponent newContentPane = gui.getDesktopPane();
     newContentPane.setOpaque(true);
     frame.setContentPane(newContentPane);
@@ -598,6 +604,14 @@ public class GUI {
 
     // Display the window.
     frame.setVisible(true);
+
+    if (createSimDialog) {
+      SwingUtilities.invokeLater(new Runnable() {
+        public void run() {
+          gui.doCreateSimulation(true);
+        }
+      });
+    }
   }
 
   /**
@@ -654,8 +668,7 @@ public class GUI {
     // Create and set up the content pane.
     JDesktopPane desktop = new JDesktopPane();
     desktop.setDragMode(JDesktopPane.OUTLINE_DRAG_MODE);
-    GUI gui = new GUI(desktop, false); // loads external settings and creates initial
-    // project config
+    GUI gui = new GUI(desktop); // loads external settings and creates initial project config
 
     // Add menu bar
     frame.setSize(700, 700);
@@ -1645,6 +1658,8 @@ public class GUI {
   public void unregisterPlugins() {
     if (menuPlugins != null) {
       menuPlugins.removeAll();
+    }
+    if (menuMotePluginClasses != null) {
       menuMotePluginClasses.clear();
     }
     pluginClasses.clear();
@@ -2701,7 +2716,7 @@ public class GUI {
       // No GUI start-up
       javax.swing.SwingUtilities.invokeLater(new Runnable() {
         public void run() {
-          new GUI(null, false);
+          new GUI(null);
         }
       });
 
@@ -2710,7 +2725,10 @@ public class GUI {
       // Regular start-up
       javax.swing.SwingUtilities.invokeLater(new Runnable() {
         public void run() {
-          createAndShowGUI();
+          JDesktopPane desktop = new JDesktopPane();
+          desktop.setDragMode(JDesktopPane.OUTLINE_DRAG_MODE);
+          GUI gui = new GUI(desktop);
+          configureFrame(gui, false);
         }
       });
 
