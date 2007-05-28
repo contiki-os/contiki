@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: uaodv.c,v 1.23 2007/05/28 16:32:43 bg- Exp $
+ * $Id: uaodv.c,v 1.24 2007/05/28 16:41:06 bg- Exp $
  */
 
 /**
@@ -55,7 +55,7 @@
 #endif
 
 /* This implementation never expires routes!!! */
-#define MY_ROUTE_TIMEOUT ((u16_t)~0u)
+#define MY_ROUTE_TIMEOUT ((u32_t)~0ul)
 
 PROCESS(uaodv_process, "uAODV");
 
