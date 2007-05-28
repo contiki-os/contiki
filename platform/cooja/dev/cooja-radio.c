@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: cooja-radio.c,v 1.2 2007/05/18 15:20:21 fros4943 Exp $
+ * $Id: cooja-radio.c,v 1.3 2007/05/28 15:47:07 fros4943 Exp $
  */
 
 #include <string.h>
@@ -150,6 +150,9 @@ doInterfaceActionsBeforeTick(void)
   if(receiver_callback != NULL && !simInPolled) {
     receiver_callback(&cooja_driver);
     simInPolled = 1;
+  } else {
+    simInPolled = 0;
+    simDontFallAsleep = 1;
   }
 }
 /*---------------------------------------------------------------------------*/
@@ -236,7 +239,10 @@ radio_send(const u8_t *payload, u16_t payload_len)
   while(simTransmitting && !simNoYield) {
     cooja_mt_yield();
   }
-  
+  if (simTransmitting) {
+    simDontFallAsleep = 1;
+  }
+    
   inSendFunction = 0;
   return COOJA_RADIO_OK;
 }
