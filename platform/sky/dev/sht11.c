@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF 
  * SUCH DAMAGE. 
  *
- * @(#)$Id: sht11.c,v 1.1 2007/04/04 12:48:50 bg- Exp $
+ * @(#)$Id: sht11.c,v 1.2 2007/05/28 16:25:29 bg- Exp $
  */
 
 /*
@@ -194,6 +194,10 @@ crc8_add(unsigned acc, unsigned byte)
 }
 #endif /* CRC_CHECK */
 
+/*
+ * Power up the device. The device can be used after an additional
+ * 11ms waiting time.
+ */
 void
 sht11_init(void)
 {
@@ -203,6 +207,17 @@ sht11_init(void)
    *     1: Input and pull-up (Output=0)
    */
   P1OUT |= BV(PWR);
+  P1OUT &= ~(BV(SDA) | BV(SCL));
+  P1DIR |= BV(PWR) | BV(SCL);
+}
+
+/*
+ * Power of device.
+ */
+void
+sht11_off(void)
+{
+  P1OUT &= ~BV(PWR);
   P1OUT &= ~(BV(SDA) | BV(SCL));
   P1DIR |= BV(PWR) | BV(SCL);
 }
@@ -246,12 +261,18 @@ scmd(unsigned cmd)
   return -1;
 }
 
+/*
+ * Call may take up to 210ms.
+ */
 unsigned
 sht11_temp(void)
 {
   return scmd(MEASURE_TEMP);
 }
 
+/*
+ * Call may take up to 210ms.
+ */
 unsigned
 sht11_humidity(void)
 {
@@ -260,7 +281,7 @@ sht11_humidity(void)
 
 #if 0 /* But ok! */
 unsigned
-sget_sreg(void)
+sht11_sreg(void)
 {
   unsigned sreg, rcrc;
 
@@ -290,8 +311,8 @@ sget_sreg(void)
 #endif
 
 #if 0
-unsigned
-sset_sreg(unsigned sreg)
+int
+sht11_set_sreg(unsigned sreg)
 {
   sstart();			/* Start transmission */
   if (!swrite(STATUS_REG_W))
