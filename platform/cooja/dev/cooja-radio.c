@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: cooja-radio.c,v 1.3 2007/05/28 15:47:07 fros4943 Exp $
+ * $Id: cooja-radio.c,v 1.4 2007/05/29 12:53:49 fros4943 Exp $
  */
 
 #include <string.h>
@@ -43,14 +43,14 @@
 const struct simInterface radio_interface;
 
 // COOJA variables
-char simTransmitting;
-char simReceiving;
+char simTransmitting = 0;
+char simReceiving = 0;
 
 char simInDataBuffer[COOJA_RADIO_BUFSIZE];
-int simInSize;
-char simInPolled;
+int simInSize = 0;
+char simInPolled = 0;
 char simOutDataBuffer[COOJA_RADIO_BUFSIZE];
-int simOutSize;
+int simOutSize = 0;
 
 char simRadioHWOn = 1;
 int simSignalStrength = -200;
@@ -228,6 +228,11 @@ radio_send(const u8_t *payload, u16_t payload_len)
   }
   
   if(simSignalStrength > SS_INTERFERENCE || simReceiving) {
+    inSendFunction = 0;
+    return COOJA_RADIO_DROPPED;
+  }
+  
+  if(simOutSize <= 0) {
     inSendFunction = 0;
     return COOJA_RADIO_DROPPED;
   }
