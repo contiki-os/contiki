@@ -24,7 +24,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * 
- * $Id: Simulation.java,v 1.11 2007/03/23 21:38:45 fros4943 Exp $
+ * $Id: Simulation.java,v 1.12 2007/05/29 07:27:10 fros4943 Exp $
  */
 
 package se.sics.cooja;
@@ -76,6 +76,14 @@ public class Simulation extends Observable implements Runnable {
 
   private GUI myGUI = null;
 
+  private long tickListRandomSeed = 123456;
+
+  private int currentTickListIndex = 0;
+
+  private int nrTickLists = 3;
+
+  private Random tickListRandom = new Random();
+
   // Tick observable
   private class TickObservable extends Observable {
     private void allTicksPerformed() {
@@ -118,12 +126,37 @@ public class Simulation extends Observable implements Runnable {
     this.setChanged();
     this.notifyObservers(this);
 
+    // Distribute motes in tick lists according to random seed
+    // TODO Timeconsuming approach (but only performed once)
+    int motesToDistribute = motes.size();
+    Mote[][] allLists = new Mote[nrTickLists][];
+    for (int i=0; i < nrTickLists; i++) {
+      allLists[i] = new Mote[(int) Math.ceil((double)motesToDistribute/(double)(nrTickLists - i))];
+      motesToDistribute -= allLists[i].length;
+    }
+
+    // Distribute motes according to seed
+    tickListRandom.setSeed(tickListRandomSeed);
+    Vector<Mote> motesClone = (Vector<Mote>) motes.clone();
+    for (int i=0; i < allLists.length; i++) {
+      for (int j=0; j < allLists[i].length; j++) {
+        int moteNr = tickListRandom.nextInt(motesClone.size());
+        allLists[i][j] = motesClone.remove(moteNr);
+      }
+    }
+    
     while (isRunning) {
       try {
-        // Tick all motes
-        for (Mote moteToTick : motes) {
+ 
+        // Tick current mote subset
+        for (Mote moteToTick : allLists[currentTickListIndex]) {
           moteToTick.tick(currentSimulationTime);
         }
+        
+        // Select next mote subset (persistent)
+        currentTickListIndex++;
+        if (currentTickListIndex >= nrTickLists)
+          currentTickListIndex = 0;
 
         // Increase simulation time
         currentSimulationTime += tickTime;
