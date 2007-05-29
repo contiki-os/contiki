@@ -32,7 +32,7 @@
  *
  * This file is part of the Contiki desktop OS
  *
- * $Id: contiki-conf.h,v 1.5 2007/05/12 20:58:54 oliverschmidt Exp $
+ * $Id: contiki-conf.h,v 1.6 2007/05/29 09:13:37 fros4943 Exp $
  *
  */
 
@@ -250,6 +250,7 @@ architecture specific files to work). */
 
 
 /*------------------------------------------------------------------------------*/
+#define AODV_COMPLIANCE
 
 #define UIP_CONF_MAX_CONNECTIONS 4
 #define UIP_CONF_MAX_LISTENPORTS 4
