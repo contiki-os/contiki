@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ContikiRadio.java,v 1.13 2007/04/23 11:58:20 fros4943 Exp $
+ * $Id: ContikiRadio.java,v 1.14 2007/05/29 12:53:49 fros4943 Exp $
  */
 
 package se.sics.cooja.contikimote.interfaces;
@@ -348,13 +348,13 @@ public class ContikiRadio extends Radio implements ContikiMoteInterface,
     if (!isTransmitting && myMoteMemory.getByteValueOf("simTransmitting") == 1) {
       int size = myMoteMemory.getIntValueOf("simOutSize");
       if (size <= 0) {
-        logger.warn("Skipping zero sized Contiki packet");
+        logger.warn("Skipping zero sized Contiki packet (no size)");
         myMoteMemory.setByteValueOf("simTransmitting", (byte) 0);
         return;
       }
       packetFromMote = myMoteMemory.getByteArray("simOutDataBuffer", size);
       if (packetFromMote == null || packetFromMote.length == 0) {
-        logger.warn("Skipping zero sized Contiki packet");
+        logger.warn("Skipping zero sized Contiki packet (no buffer)");
         myMoteMemory.setByteValueOf("simTransmitting", (byte) 0);
         return;
       }
