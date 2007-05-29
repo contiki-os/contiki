@@ -13,6 +13,9 @@ typedef unsigned short uip_stats_t;
 #define CCIF
 #define CLIF
 
+#define CLOCK_CONF_SECOND 2
+typedef unsigned short clock_time_t;
+
 #define UIP_ARCH_ADD32  1
 #define UIP_ARCH_CHKSUM 1
 
