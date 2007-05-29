@@ -28,12 +28,12 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: radio-sensor.c,v 1.2 2006/10/09 13:46:08 fros4943 Exp $
+ * @(#)$Id: radio-sensor.c,v 1.3 2007/05/29 12:27:00 fros4943 Exp $
  */
 
 #include "lib/sensors.h"
 #include "dev/radio-sensor.h"
-#include "dev/radio-arch.h"
+#include "dev/cooja-radio.h"
 #include "lib/simEnvChange.h"
 
 const struct sensors_sensor radio_sensor;
