@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: Visualizer2D.java,v 1.9 2007/04/02 14:14:26 fros4943 Exp $
+ * $Id: Visualizer2D.java,v 1.10 2007/05/30 10:54:22 fros4943 Exp $
  */
 
 package se.sics.cooja.plugins;
@@ -35,6 +35,8 @@ import java.awt.*;
 import java.awt.event.*;
 import java.util.*;
 import javax.swing.*;
+import javax.swing.Timer;
+
 import org.apache.log4j.Logger;
 
 import se.sics.cooja.*;
@@ -67,6 +69,7 @@ public abstract class Visualizer2D extends VisPlugin {
   private double smallestXCoord;
   private double smallestYCoord;
 
+  private GUI myGUI = null;
   private Simulation simulation = null;
   private final JPanel canvas;
   private Visualizer2D myPlugin;
@@ -82,6 +85,10 @@ public abstract class Visualizer2D extends VisPlugin {
   private Observer simObserver = null; // Watches simulation changes
   private Observer posObserver = null; // Watches position changes
 
+  private Observer moteHighligtObserver = null;
+  private Mote highlightedMote = null;
+  private Color highlightColor = Color.GRAY;
+  
   public interface MoteMenuAction {
     public boolean isEnabled(Mote mote);
     public String getDescription(Mote mote);
@@ -125,6 +132,7 @@ public abstract class Visualizer2D extends VisPlugin {
   public Visualizer2D(Simulation simulationToVisualize, GUI gui) {
     super("Visualizer2D", gui);
 
+    myGUI = gui;
     myPlugin = this;
 
     // Set initial bounds of frame
@@ -175,6 +183,37 @@ public abstract class Visualizer2D extends VisPlugin {
       }
     });
     simObserver.update(null, null);
+
+    // Detect mote highligts
+    myGUI.addMoteHighligtObserver(moteHighligtObserver = new Observer() {
+      public void update(Observable obs, Object obj) {
+        if (!(obj instanceof Mote))
+          return;
+          
+        highlightedMote = (Mote) obj;
+        final Timer timer = new Timer(100, null);
+        timer.addActionListener(new ActionListener() {
+          public void actionPerformed(ActionEvent e) {
+            // Decrease delay
+            if (timer.getDelay() < 90) {
+              timer.stop();
+              highlightedMote = null;
+              repaint();
+              return;
+            }
+
+            // Toggle color
+            if (highlightColor == Color.GRAY)
+              highlightColor = Color.CYAN;
+            else
+              highlightColor = Color.GRAY; 
+            timer.setDelay(timer.getDelay()-1);
+            repaint();
+          }
+        });
+        timer.start();          
+      }
+    });
 
     canvas.addMouseMotionListener(new MouseMotionListener() {
       public void mouseMoved(MouseEvent e) {
@@ -417,8 +456,12 @@ public abstract class Visualizer2D extends VisPlugin {
       int x = pixelCoord.x;
       int y = pixelCoord.y;
 
-      if (mote == moteToMove) {
-        // Don't fill mote
+      if (mote == highlightedMote) {
+        g.setColor(highlightColor);
+        g.fillOval(x - MOTE_RADIUS, y - MOTE_RADIUS, 2 * MOTE_RADIUS,
+            2 * MOTE_RADIUS);
+      } else if (mote == moteToMove) {
+          // Don't fill mote
       } else if (moteColors.length >= 2) {
         g.setColor(moteColors[0]);
         g.fillOval(x - MOTE_RADIUS, y - MOTE_RADIUS, 2 * MOTE_RADIUS,
@@ -555,6 +598,10 @@ public abstract class Visualizer2D extends VisPlugin {
   }
 
   public void closePlugin() {
+    if (moteHighligtObserver != null) {
+      myGUI.deleteMoteHighligtObserver(moteHighligtObserver);
+    }
+
     if (simObserver != null) {
       simulation.deleteObserver(simObserver);
 
