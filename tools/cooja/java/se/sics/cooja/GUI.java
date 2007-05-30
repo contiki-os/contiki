@@ -24,7 +24,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * 
- * $Id: GUI.java,v 1.54 2007/05/28 09:37:01 fros4943 Exp $
+ * $Id: GUI.java,v 1.55 2007/05/30 10:51:14 fros4943 Exp $
  */
 
 package se.sics.cooja;
@@ -190,6 +190,15 @@ public class GUI {
 
   private Vector<Class<? extends Positioner>> positionerClasses = new Vector<Class<? extends Positioner>>();
 
+  // Mote highlight observable
+  private class HighlightObservable extends Observable {
+    private void highlightMote(Mote mote) {
+      setChanged();
+      notifyObservers(mote);
+    }
+  }
+  private HighlightObservable moteHighlightObservable = new HighlightObservable();
+
   /**
    * Creates a new COOJA Simulator GUI.
    * 
@@ -238,6 +247,29 @@ public class GUI {
     }
   }
 
+
+  /**
+   * Add mote highlight observer.
+   * 
+   * @see #deleteTickObserver(Observer)
+   * @param newObserver
+   *          New observer
+   */
+  public void addMoteHighligtObserver(Observer newObserver) {
+    moteHighlightObservable.addObserver(newObserver);
+  }
+
+  /**
+   * Delete an mote highlight observer.
+   * 
+   * @see #addTickObserver(Observer)
+   * @param observer
+   *          Observer to delete
+   */
+  public void deleteMoteHighligtObserver(Observer observer) {
+    moteHighlightObservable.deleteObserver(observer);
+  }
+  
   /**
    * @return True if simulator is visualized
    */
@@ -3256,4 +3288,17 @@ public class GUI {
     return false;
   }
 
+  /**
+   * This method can be used by various different modules in the simulator to
+   * indicate for example that a mote has been selected. All mote highlight
+   * listeners will be notified. An example application of mote highlightinh is
+   * a simulator visualizer that highlights the mote.
+   * 
+   * @see #addMoteHighligtObserver(Observer)
+   * @param m
+   *          Mote to highlight
+   */
+  public void signalMoteHighlight(Mote m) {
+    moteHighlightObservable.highlightMote(m);
+  }
 }
