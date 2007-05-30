@@ -24,7 +24,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * 
- * $Id: Radio.java,v 1.6 2007/02/28 09:49:20 fros4943 Exp $
+ * $Id: Radio.java,v 1.7 2007/05/30 10:52:57 fros4943 Exp $
  */
 
 package se.sics.cooja.interfaces;
@@ -148,5 +148,13 @@ public abstract class Radio extends MoteInterface {
    * @return Radio position
    */
   public abstract Position getPosition();
+
+  /**
+   * This is a convenience function.
+   * It returns the mote, if any, that holds this radio.
+   * 
+   * @return Mote
+   */
+  public abstract Mote getMote();
   
 }

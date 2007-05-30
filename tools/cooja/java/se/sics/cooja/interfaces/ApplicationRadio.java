@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ApplicationRadio.java,v 1.1 2007/05/19 17:17:34 fros4943 Exp $
+ * $Id: ApplicationRadio.java,v 1.2 2007/05/30 10:52:57 fros4943 Exp $
  */
 
 package se.sics.cooja.interfaces;
@@ -312,5 +312,9 @@ public class ApplicationRadio extends Radio implements PacketRadio {
   }
 
   public void setConfigXML(Collection<Element> configXML, boolean visAvailable) {
+  }
+  
+  public Mote getMote() {
+    return myMote;
   }
 }

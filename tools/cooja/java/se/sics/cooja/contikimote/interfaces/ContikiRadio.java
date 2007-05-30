@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ContikiRadio.java,v 1.14 2007/05/29 12:53:49 fros4943 Exp $
+ * $Id: ContikiRadio.java,v 1.15 2007/05/30 10:52:57 fros4943 Exp $
  */
 
 package se.sics.cooja.contikimote.interfaces;
@@ -452,4 +452,7 @@ public class ContikiRadio extends Radio implements ContikiMoteInterface,
   public void setConfigXML(Collection<Element> configXML, boolean visAvailable) {
   }
 
+  public Mote getMote() {
+    return myMote;
+  }
 }
