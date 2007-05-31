@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: cc2420.c,v 1.17 2007/05/21 14:24:51 bg- Exp $
+ * @(#)$Id: cc2420.c,v 1.18 2007/05/31 10:15:57 bg- Exp $
  */
 /*
  * This code is almost device independent and should be easy to port.
@@ -196,7 +196,7 @@ cc2420_send(struct hdr_802_15 *hdr, u8_t hdr_len,
 	    const u8_t *payload, u8_t payload_len)
 {
   u8_t spiStatusByte;
-  int s, ret;
+  int s;
 
   /* struct hdr_802_15::len shall *not* be counted, thus the -1.
    * 2 == sizeof(footer).
@@ -231,14 +231,8 @@ cc2420_send(struct hdr_802_15 *hdr, u8_t hdr_len,
   FASTSPI_WRITE_FIFO(payload, payload_len);
   splx(s);
 
-  ret = cc2420_resend();	/* Send stuff from FIFO. */
-  if (hdr->dst == 0xffff && ret == UIP_FW_OK) {
-    return ret;
-  }
-
-  process_post(&cc2420_retransmit_process,
-	       PROCESS_EVENT_MSG,
-	       (void *)(unsigned)last_used_seq);
+  /* Send stuff from FIFO now! */
+  process_post_synch(&cc2420_retransmit_process, PROCESS_EVENT_MSG, NULL);
 
   return UIP_FW_OK;
 }
@@ -510,52 +504,50 @@ unsigned    neigbour_find(u16_t mac);
 
 PROCESS_THREAD(cc2420_retransmit_process, ev, data)
 {
-  static u8_t seq, n;
+  static char n;
   static struct etimer etimer;
 
-  PROCESS_BEGIN();
+  switch (ev) {
+  default:
+  case PROCESS_EVENT_INIT:
+    return PT_WAITING;
 
-  while (1) {
-    PROCESS_WAIT_UNTIL(ev == PROCESS_EVENT_MSG);
-    seq = (unsigned)data;
+  case PROCESS_EVENT_EXIT:
+    return PT_ENDED;
 
-    n = 0;
-    do {
-      etimer_set(&etimer, RETRANSMIT_TIMEOUT);
-      PROCESS_WAIT_UNTIL(etimer_expired(&etimer) || ev == PROCESS_EVENT_POLL);
-      if (ev == PROCESS_EVENT_POLL) {
-	etimer_stop(&etimer);
-	break;
-      } else if (seq != last_used_seq)
-	break;			/* Transmitting different packet. */
-      else if (last_dst == 0xffff) {
-	n++;
-	if (cc2420_resend() == UIP_FW_OK) {
-	  PRINTF("REBCAST %d\n", n);
-	  etimer_stop(&etimer);
-	  break;
-	}
-      } else if (n < MAX_RETRANSMISSIONS) {
-	if (cc2420_resend() == UIP_FW_OK) {
-	  n++;
-	  PRINTF("RETRANS %d to %d.%d\n", n, last_dst & 0xff, last_dst >> 8);
-	}
-      } else {
-	break;
-      }
-    } while (1);
+  case PROCESS_EVENT_POLL:	/* Cancel future retransmissions. */
+    etimer_stop(&etimer);
     neigbour_update(last_dst, n);
-#if 0
-#define CORRELATION_2_X(c) (((c) < 48) ? 0 : ((c) - 48))
-    PRINTF("%04x %2d %2d %2u %u\n",
-	   last_dst, n,
-	   RSSI_2_ED(cc2420_last_rssi),
-	   CORRELATION_2_X(cc2420_last_correlation),
-	   clock_time());
-#endif
-  }
+    return PT_WAITING;
 
-  PROCESS_END();
+  case PROCESS_EVENT_MSG:	/* Send new packet. */
+    n = -1;
+
+    /* FALLTHROUGH */
+  case PROCESS_EVENT_TIMER:
+    if (last_dst == 0xffff) {
+      n++;
+      if (cc2420_resend() == UIP_FW_OK) {
+	PRINTF("REBCAST %d\n", n);
+	return PT_WAITING;	/* Final transmission attempt. */
+      }
+    } else {
+      if (cc2420_resend() == UIP_FW_OK) {
+	n++;
+	PRINTF("RETRANS %d to %d.%d\n", n, last_dst & 0xff, last_dst >> 8);
+      }
+      if (n == MAX_RETRANSMISSIONS) {
+	neigbour_update(last_dst, n);
+	return PT_WAITING;	/* Final transmission attempt. */
+      }
+    }
+    /*
+     * Schedule retransmission.
+     */
+    etimer_set(&etimer, RETRANSMIT_TIMEOUT);
+    return PT_WAITING;
+  }
+  /* NOTREACHED */
 }
 
 /*
