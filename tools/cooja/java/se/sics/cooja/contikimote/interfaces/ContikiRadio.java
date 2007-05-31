@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ContikiRadio.java,v 1.15 2007/05/30 10:52:57 fros4943 Exp $
+ * $Id: ContikiRadio.java,v 1.16 2007/05/31 07:19:11 fros4943 Exp $
  */
 
 package se.sics.cooja.contikimote.interfaces;
@@ -91,6 +91,13 @@ public class ContikiRadio extends Radio implements ContikiMoteInterface,
    */
   public final double ENERGY_CONSUMPTION_RADIO_mA;
 
+  /**
+   * Approximate transmission rate (kbps), used to calculate transmission
+   * duration of packets. Each transmission is assumed to use an encoding with
+   * an overhead nrBytesx0.25 (such as GCR), and a fixed overhead of 34 bytes.
+   */
+  public final double RADIO_TRANSMISSION_RATE_kbps;
+
   private final boolean RAISES_EXTERNAL_INTERRUPT;
 
   private double energyListeningRadioPerTick = -1;
@@ -129,7 +136,9 @@ public class ContikiRadio extends Radio implements ContikiMoteInterface,
         ContikiRadio.class, "ACTIVE_CONSUMPTION_mA");
     RAISES_EXTERNAL_INTERRUPT = mote.getType().getConfig().getBooleanValue(
         ContikiRadio.class, "EXTERNAL_INTERRUPT_bool");
-
+    RADIO_TRANSMISSION_RATE_kbps = mote.getType().getConfig().getDoubleValue(
+        ContikiRadio.class, "RADIO_TRANSMISSION_RATE_kbps");
+    
     this.myMote = mote;
     this.myMoteMemory = (SectionMoteMemory) mote.getMemory();
 
@@ -361,10 +370,8 @@ public class ContikiRadio extends Radio implements ContikiMoteInterface,
 
       isTransmitting = true;
 
-      // Assuming sending at 19.2 kbps, with GCR and 30+4 bytes overhead 
-      //  (8bit/byte, 30 bytes nonGCR overhead, 1.25 due to GCR)
-      //int duration = (int) ((double) (8*(30+1.25*(size+4))) / 19.2);
-      int duration = (int) ((double) (280 + 10*size) / 19.2); // ms
+      // Calculate transmission duration (ms)
+      int duration = (int) ((double) (280 + 10 * size) / RADIO_TRANSMISSION_RATE_kbps);
       transmissionEndTime = myMote.getSimulation().getSimulationTime()
           + Math.max(1, duration);
       lastEventTime = myMote.getSimulation().getSimulationTime();
