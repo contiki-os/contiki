@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: RadioLogger.java,v 1.2 2007/05/31 07:01:32 fros4943 Exp $
+ * $Id: RadioLogger.java,v 1.3 2007/05/31 10:00:30 fros4943 Exp $
  */
 
 package se.sics.cooja.plugins;
@@ -207,7 +207,7 @@ public class RadioLogger extends VisPlugin {
     destColumn.setCellEditor(new DefaultCellEditor(comboBox));
 
     final JScrollPane scrollPane = new JScrollPane(dataTable);
-    dataTable.setFillsViewportHeight(true);
+//    dataTable.setFillsViewportHeight(true);
 
     add(scrollPane);
 
