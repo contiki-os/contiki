@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: RadioLogger.java,v 1.1 2007/05/30 11:13:31 fros4943 Exp $
+ * $Id: RadioLogger.java,v 1.2 2007/05/31 07:01:32 fros4943 Exp $
  */
 
 package se.sics.cooja.plugins;
@@ -36,6 +36,8 @@ import java.awt.event.ItemListener;
 import java.awt.event.MouseEvent;
 import java.util.*;
 import javax.swing.*;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.ListSelectionListener;
 import javax.swing.table.AbstractTableModel;
 import javax.swing.table.TableCellEditor;
 import javax.swing.table.TableColumn;
@@ -62,12 +64,12 @@ public class RadioLogger extends VisPlugin {
   private final int DATAPOS_TIME = 0;
   private final int DATAPOS_CONNECTION = 1;
   private final int DATAPOS_DATA = 2;
-  
+
   private final int COLUMN_TIME = 0;
   private final int COLUMN_FROM = 1;
   private final int COLUMN_TO = 2;
   private final int COLUMN_DATA = 3;
-  
+
   private static Logger logger = Logger.getLogger(RadioLogger.class);
 
   private Simulation simulation;
@@ -79,14 +81,14 @@ public class RadioLogger extends VisPlugin {
   private JTable dataTable = null;
 
   private RadioMedium radioMedium;
-  
+
   private Observer radioMediumObserver;
-  
+
   public RadioLogger(final Simulation simulationToControl, final GUI gui) {
     super("Radio Logger", gui);
     simulation = simulationToControl;
     radioMedium = simulation.getRadioMedium();
-    
+
     columnNames.add("Time");
     columnNames.add("From");
     columnNames.add("To");
@@ -127,7 +129,7 @@ public class RadioLogger extends VisPlugin {
               ((RadioConnection)rowData.get(row)[DATAPOS_CONNECTION]).getSource().getMote()
           );
         }
-        
+
         if (col == COLUMN_TO)
           return true;
         return false;
@@ -167,10 +169,10 @@ public class RadioLogger extends VisPlugin {
             comboBox.addItem("[standalone radio]"); 
           }
         }
-          
+
         return super.getCellEditor(row, column);
       }
-      
+
       public String getToolTipText(MouseEvent e) {
         java.awt.Point p = e.getPoint();
         int rowIndex = rowAtPoint(p);
@@ -180,17 +182,26 @@ public class RadioLogger extends VisPlugin {
         String tip = "";
         if (realColumnIndex == COLUMN_DATA) {
           byte[] data = (byte[]) rowData.get(rowIndex)[DATAPOS_DATA];
-          for (byte b: data) {
-            String hexB = "0" + Integer.toHexString(b);
-            hexB = hexB.substring(hexB.length() - 2);
-            tip += "0x" + hexB + " ";
+
+          Packet packet = analyzePacket(data);
+          if (packet != null) {
+            tip = packet.getToolTip();
           }
         } else {
           tip = super.getToolTipText(e);
         }
         return tip;
-    }
+      }
     };
+
+    dataTable.getSelectionModel().setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+    dataTable.getSelectionModel().addListSelectionListener(
+        new ListSelectionListener() {
+          public void valueChanged(ListSelectionEvent e) {
+            gui.signalMoteHighlight(((RadioConnection) rowData.get(
+                dataTable.getSelectedRow())[DATAPOS_CONNECTION]).getSource().getMote());
+          }
+        });
 
     TableColumn destColumn = dataTable.getColumnModel().getColumn(COLUMN_TO);
     destColumn.setCellEditor(new DefaultCellEditor(comboBox));
@@ -205,12 +216,12 @@ public class RadioLogger extends VisPlugin {
         RadioConnection[] newConnections = radioMedium.getLastTickConnections();
         if (newConnections == null)
           return;
-        
+
         for (RadioConnection newConnection: newConnections) {
           Object[] data = new Object[3];
           data[DATAPOS_TIME] = new Integer(simulation.getSimulationTime());
           data[DATAPOS_CONNECTION] = newConnection;
-          
+
           if (newConnection.getSource() instanceof PacketRadio) {
             data[DATAPOS_DATA] = ((PacketRadio) newConnection.getSource()).getLastPacketTransmitted();
           } else {
@@ -239,7 +250,225 @@ public class RadioLogger extends VisPlugin {
   public Object transformDataToString(byte[] data) {
     if (data == null)
       return "[unknown data]";
-    return data.length + " bytes";
+
+    Packet packet = analyzePacket(data);
+    if (packet == null)
+      return "Unknown packet, size " + data.length;
+    else
+      return packet.getShortDescription();
+  }
+
+  static abstract class Packet {
+    public abstract String getShortDescription();
+    public abstract String getToolTip();
+  }
+
+  static class PacketAODV_RREQ extends Packet {
+    public final static int MINIMUM_SIZE = 24;
+    public final static int TYPE = 1;
+
+    private byte[] data;
+    public PacketAODV_RREQ(byte[] data) {
+      this.data = data;
+    }
+
+    public int getType() {
+      return data[0];
+    }
+
+    public int getFlags() {
+      return data[1];
+    }
+
+    public int getReserved() {
+      return data[2];
+    }
+
+    public int getHopCount() {
+      return data[3];
+    }
+
+    public int getID() {
+      int id = 
+        ((data[4] & 0xFF) << 24) +
+        ((data[5] & 0xFF) << 16) +
+        ((data[6] & 0xFF) << 8) +
+        ((data[7] & 0xFF) << 0);
+      return id;
+    }
+
+    public String getDestAddr() {
+      return data[8] + "." + data[9] + "." + data[10] + "." + data[11];
+    }
+
+    public int getDestSeqNo() {
+      int seqNo = 
+        ((data[12] & 0xFF) << 24) +
+        ((data[13] & 0xFF) << 16) +
+        ((data[14] & 0xFF) << 8) +
+        ((data[15] & 0xFF) << 0);
+      return seqNo;
+    }
+
+    public String getOrigAddr() {
+      return data[16] + "." + data[17] + "." + data[18] + "." + data[19];
+    }
+
+    public int getOrigSeqNo() {
+      int seqNo = 
+        ((data[20] & 0xFF) << 24) +
+        ((data[21] & 0xFF) << 16) +
+        ((data[22] & 0xFF) << 8) +
+        ((data[23] & 0xFF) << 0);
+      return seqNo;
+    }
+
+    public String getShortDescription() {
+      return "AODV RREQ to " + getDestAddr() + " from " + getOrigAddr();
+    }
+
+    public String getToolTip() {
+      return "<html>" +
+      "AODV RREQ type: " + getType() + "<br>" +
+      "AODV RREQ flags: " + getFlags() + "<br>" +
+      "AODV RREQ reserved: " + getReserved() + "<br>" +
+      "AODV RREQ hop_count: " + getHopCount() + "<br>" +
+      "AODV RREQ id: " + getID() + "<br>" +
+      "AODV RREQ dest_addr: " + getDestAddr() + "<br>" +
+      "AODV RREQ dest_seqno: " + getDestSeqNo() + "<br>" +
+      "AODV RREQ orig_addr: " + getOrigAddr() + "<br>" +
+      "AODV RREQ orig_seqno: " + getOrigSeqNo() +
+      "</html>";
+    }
+  };
+
+
+
+  static class PacketUnknown extends Packet {
+    public final static int MINIMUM_SIZE = 20;
+    public final static int TYPE = 2;
+
+    private byte[] data;
+    public PacketUnknown(byte[] data) {
+      this.data = data;
+    }
+
+    public String getShortDescription() {
+      return "Data packet, size " + data.length;
+    }
+
+    public String getToolTip() {
+      String toolTip = "<html><b>Data packet</b><br>";
+
+      int byteCounter = 0;
+      for (byte b: data) {
+        String hexB = "0" + Integer.toHexString(b);
+        hexB = hexB.substring(hexB.length() - 2);
+        toolTip += "0x" + hexB + " ";
+        if (byteCounter++ > 2) {
+          toolTip += "<br>";
+          byteCounter = 0;
+        }
+      }
+      toolTip += "<br><br>";
+      for (byte b: data) {
+        toolTip += (char) b;
+      }
+      toolTip += "</html>";
+      return toolTip;
+    }
+
+  }
+
+  static class PacketAODV_RREP extends Packet {
+    public final static int MINIMUM_SIZE = 20;
+    public final static int TYPE = 2;
+
+    private byte[] data;
+    public PacketAODV_RREP(byte[] data) {
+      this.data = data;
+    }
+
+    public int getType() {
+      return data[0];
+    }
+
+    public int getFlags() {
+      return data[1];
+    }
+
+    public int getPrefix() {
+      return data[2];
+    }
+
+    public int getHopCount() {
+      return data[3];
+    }
+
+    public String getDestAddr() {
+      return data[4] + "." + data[5] + "." + data[6] + "." + data[7];
+    }
+
+    public int getDestSeqNo() {
+      int seqNo = 
+        ((data[8] & 0xFF) << 24) +
+        ((data[9] & 0xFF) << 16) +
+        ((data[10] & 0xFF) << 8) +
+        ((data[11] & 0xFF) << 0);
+      return seqNo;
+    }
+
+    public String getOrigAddr() {
+      return data[12] + "." + data[13] + "." + data[14] + "." + data[15];
+    }
+
+    public int getLifetime() {
+      int seqNo = 
+        ((data[16] & 0xFF) << 24) +
+        ((data[17] & 0xFF) << 16) +
+        ((data[18] & 0xFF) << 8) +
+        ((data[19] & 0xFF) << 0);
+      return seqNo;
+    }
+
+    public String getShortDescription() {
+      return "AODV RREP to " + getDestAddr() + " from " + getOrigAddr();
+    }
+
+    public String getToolTip() {
+      return "<html>" +
+      "AODV RREP type: " + getType() + "<br>" + 
+      "AODV RREP flags: " + getFlags() + "<br>" +
+      "AODV RREP prefix: " + getPrefix() + "<br>" +
+      "AODV RREP hop_count: " + getHopCount() + "<br>" +
+      "AODV RREP dest_addr: " + getDestAddr() + "<br>" +
+      "AODV RREP dest_seqno: " + getDestSeqNo() + "<br>" +
+      "AODV RREP orig_addr: " + getOrigAddr() + "<br>" +
+      "AODV RREP lifetime: " + getLifetime() + "<br>" +
+      "</html>";
+    }
+
+  };
+
+  private Packet analyzePacket(byte[] data) {
+    // Parse AODV type by comparing tail of message TODO XXX
+    byte[] dataNoHeader = null;
+
+    if (data.length >= PacketAODV_RREQ.MINIMUM_SIZE) {
+      dataNoHeader = new byte[PacketAODV_RREQ.MINIMUM_SIZE];
+      System.arraycopy(data, data.length - PacketAODV_RREQ.MINIMUM_SIZE, dataNoHeader, 0, PacketAODV_RREQ.MINIMUM_SIZE);
+      if (dataNoHeader[0] == PacketAODV_RREQ.TYPE)
+        return new PacketAODV_RREQ(dataNoHeader);
+    }
+
+    if (data.length >= PacketAODV_RREP.MINIMUM_SIZE) {
+      dataNoHeader = new byte[PacketAODV_RREP.MINIMUM_SIZE];
+      System.arraycopy(data, data.length - PacketAODV_RREP.MINIMUM_SIZE, dataNoHeader, 0, PacketAODV_RREP.MINIMUM_SIZE);
+      if (dataNoHeader[0] == PacketAODV_RREP.TYPE)
+        return new PacketAODV_RREP(dataNoHeader);
+    }
+
+    return new PacketUnknown(data);
   }
 
   public void closePlugin() {
