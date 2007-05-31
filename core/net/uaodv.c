@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: uaodv.c,v 1.24 2007/05/28 16:41:06 bg- Exp $
+ * $Id: uaodv.c,v 1.25 2007/05/31 10:10:26 bg- Exp $
  */
 
 /**
@@ -55,7 +55,8 @@
 #endif
 
 /* This implementation never expires routes!!! */
-#define MY_ROUTE_TIMEOUT ((u32_t)~0ul)
+#define MY_ROUTE_TIMEOUT 0x7fffffff /* Should be 0xffffffff! */
+#define MY_NET_DIAMETER  20
 
 PROCESS(uaodv_process, "uAODV");
 
@@ -168,6 +169,7 @@ send_rreq(uip_ipaddr_t *addr)
   uip_gethostaddr(&rm->orig_addr);
   my_hseqno++;			/* Always */
   rm->orig_seqno = htonl(my_hseqno);
+  bcastconn->ttl = MY_NET_DIAMETER;
   uip_udp_packet_send(bcastconn, rm, sizeof(struct uaodv_msg_rreq));
 }
 /*---------------------------------------------------------------------------*/
@@ -288,16 +290,15 @@ handle_incoming_rreq(void)
     uip_ipaddr_copy(&dest_addr, &rm->dest_addr);
     uip_ipaddr_copy(&orig_addr, &rm->orig_addr);
 
+    my_hseqno++;
     if(!(rm->flags & UAODV_RREQ_UNKSEQNO)
        && SCMP32(my_hseqno, ntohl(rm->dest_seqno)) < 0) { 
       print_debug("New my_hseqno %lu\n", my_hseqno); /* We have rebooted. */
       my_hseqno = ntohl(rm->dest_seqno) + 1;
-    } else {
-      my_hseqno++;
     }
     net_seqno = htonl(my_hseqno);
     send_rrep(&dest_addr, &rt->nexthop, &orig_addr, &net_seqno, 0);
-  } else {
+  } else if(BUF->ttl > 1) {
     /* Have we seen this RREQ before? */
     if(fwc_lookup(&rm->orig_addr, &rm->rreq_id)) {
       print_debug("RREQ cached, not fwd\n");
@@ -307,6 +308,7 @@ handle_incoming_rreq(void)
 
     print_debug("RREQ fwd\n");
     rm->hop_count++;
+    bcastconn->ttl = BUF->ttl - 1;
     uip_udp_packet_send(bcastconn, rm, sizeof(struct uaodv_msg_rreq));
   }
 }
@@ -317,26 +319,12 @@ handle_incoming_rrep(void)
   struct uaodv_msg_rrep *rm = (struct uaodv_msg_rrep *)uip_appdata;
   struct uaodv_rt_entry *rt;
 
-  /*
-   * Send a fake RREP in response to HELLOs.
-   */
+  /* Useless HELLO message? */
   if(uip_ipaddr_cmp(&BUF->destipaddr, &uip_broadcast_addr)) {
-    u32_t net_seqno;
-#ifdef CC2420_RADIO
-    int ret = cc2420_check_remote(uip_udp_sender()->u16[1]);
-
-    if(ret == REMOTE_YES) {
-      print_debug("HELLO drop is remote\n");
-      return;
-    } else if (ret == REMOTE_NO) {
-      /* Is neigbour, accept it. */
-    } else if(cc2420_last_rssi < RSSI_THRESHOLD) {
-      print_debug("HELLO drop %d %d\n", cc2420_last_rssi, cc2420_last_correlation);
-      return;
-    }
-#endif
-    net_seqno = htonl(my_hseqno);
+#if 0
+    /* An option is to send a fake RREP in response. */
     send_rrep(&uip_hostaddr, &BUF->srcipaddr, &BUF->srcipaddr, &net_seqno, 0);
+#endif
     return;
   }
 
@@ -435,6 +423,10 @@ handle_incoming_rerr(void)
     if(rm->flags & UAODV_RERR_UNKNOWN || rm->unreach[0].seqno == 0
        || SCMP32(rt->hseqno, ntohl(rm->unreach[0].seqno)) <= 0) {
       rt->is_bad = 1;
+      if(rm->flags & UAODV_RERR_UNKNOWN) {
+	rm->flags &= ~UAODV_RERR_UNKNOWN;
+	rm->unreach[0].seqno = htonl(rt->hseqno);
+      }
       print_debug("RERR rebroadcast\n");
       uip_udp_packet_send(bcastconn, rm, sizeof(struct uaodv_msg_rerr));
     }
@@ -529,13 +521,7 @@ PROCESS_THREAD(uaodv_process, ev, data)
   printf("uaodv_process starting %lu\n", my_hseqno);
 
   bcastconn = udp_broadcast_new(HTONS(UAODV_UDPPORT), NULL);
-#ifdef AODV_COMPLIANCE
-  bcastconn->ttl = 6;
-#else
-  bcastconn->ttl = 1;
-#endif
   unicastconn = udp_broadcast_new(HTONS(UAODV_UDPPORT), NULL);
-  unicastconn->ttl = 1;
   
   while(1) {
     PROCESS_WAIT_EVENT();
