@@ -1,4 +1,4 @@
-# $Id: Makefile,v 1.14 2007/05/21 14:21:07 bg- Exp $
+# $Id: Makefile,v 1.15 2007/05/31 14:26:58 bg- Exp $
 #
 # This makefile requires GNU make!
 
@@ -24,14 +24,14 @@ SRCDIRS = dev  $(TOP)/cpu/msp430 ${addprefix $(TOP)/core/,sys dev net lib loader
 MCU=msp430x1611
 
 ARCH=msp430.o minileds.o watchdog.o light.o button.o spi.o ds2411.o rom.o xmem.o i2c.o cle_msp430.o
-SYSTEM=process.o procinit.o service.o clock.o etimer.o timer.o \
+SYSTEM=process.o procinit.o clock.o etimer.o timer.o \
         cmod.o cle.o sym.o
 UIP=uip.o uiplib.o tcpip.o uip-fw.o uip-fw-drv.o uipbuf.o \
     tcpdump.o psock.o dhcpc.o uaodv.o uaodv-rt.o uip-udp-packet.o \
     uip-ipchksum.o
 UIPDRIVERS=slip.o slip_uart1.o \
            cc2420.o cc2420_uart0.o cc2420_send_ip.o cc2420_send_uaodv.o 
-LIBS=memb.o list.o malloc.o realloc.o malloc_compact.o rand.o assert.o crtk.o
+LIBS=memb.o list.o malloc.o realloc.o malloc_compact.o rand.o assert.o
 SYSAPPS=tcp_loader2.o
 LIBFILES=$(SYSTEM) $(ARCH) $(UIP) $(UIPDRIVERS) $(LIBS) $(SYSAPPS)
 
