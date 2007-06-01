@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF 
  * SUCH DAMAGE. 
  *
- * @(#)$Id: assert.h,v 1.1 2006/08/11 13:37:21 bg- Exp $
+ * @(#)$Id: assert.h,v 1.2 2007/06/01 15:36:00 bg- Exp $
  */
 
 #ifndef ASSERT_H
@@ -39,5 +39,10 @@
 void _xassert(const char *, int);
 #endif
 
+#ifndef CTASSERT                /* Allow lint to override */
+#define CTASSERT(x)             _CTASSERT(x, __LINE__)
+#define _CTASSERT(x, y)         __CTASSERT(x, y)
+#define __CTASSERT(x, y)        typedef char __assert ## y[(x) ? 1 : -1]
+#endif
 
 #endif /* ASSERT_H */
