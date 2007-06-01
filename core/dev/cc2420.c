@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: cc2420.c,v 1.18 2007/05/31 10:15:57 bg- Exp $
+ * @(#)$Id: cc2420.c,v 1.19 2007/06/01 14:37:02 bg- Exp $
  */
 /*
  * This code is almost device independent and should be easy to port.
@@ -527,6 +527,7 @@ PROCESS_THREAD(cc2420_retransmit_process, ev, data)
   case PROCESS_EVENT_TIMER:
     if (last_dst == 0xffff) {
       n++;
+      clock_delay(1 + (rand() & (2048 - 1)));
       if (cc2420_resend() == UIP_FW_OK) {
 	PRINTF("REBCAST %d\n", n);
 	return PT_WAITING;	/* Final transmission attempt. */
