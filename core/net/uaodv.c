@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: uaodv.c,v 1.26 2007/05/31 14:24:20 bg- Exp $
+ * $Id: uaodv.c,v 1.27 2007/06/01 14:49:54 bg- Exp $
  */
 
 /**
@@ -324,8 +324,23 @@ handle_incoming_rrep(void)
 
   /* Useless HELLO message? */
   if(uip_ipaddr_cmp(&BUF->destipaddr, &uip_broadcast_addr)) {
-#if 0
-    /* An option is to send a fake RREP in response. */
+#ifdef AODV_RESPOND_TO_HELLOS
+    u32_t net_seqno;
+#ifdef CC2420_RADIO
+    int ret = cc2420_check_remote(uip_udp_sender()->u16[1]);
+
+    if(ret == REMOTE_YES) {
+      print_debug("HELLO drop is remote\n");
+      return;
+    } else if (ret == REMOTE_NO) {
+      /* Is neigbour, accept it. */
+    } else if(cc2420_last_rssi < RSSI_THRESHOLD) {
+      print_debug("HELLO drop %d %d\n", cc2420_last_rssi, cc2420_last_correlation);
+      return;
+    }
+#endif
+    /* Sometimes it helps to send a non-requested RREP in response! */
+    net_seqno = htonl(my_hseqno);
     send_rrep(&uip_hostaddr, &BUF->srcipaddr, &BUF->srcipaddr, &net_seqno, 0);
 #endif
     return;
