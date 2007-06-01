@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: rand.c,v 1.3 2007/04/24 19:01:39 bg- Exp $
+ * @(#)$Id: rand.c,v 1.4 2007/06/01 15:28:02 bg- Exp $
  */
 
 #include <stdlib.h>
@@ -59,7 +59,7 @@ int
 rand()
 {
   rand_state = (16807*rand_state) % 2147483647ul;
-  return rand_state & RAND_MAX;
+  return (rand_state ^ (rand_state >> 16)) & RAND_MAX;
 }
 
 void
