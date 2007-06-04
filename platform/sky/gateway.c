@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF 
  * SUCH DAMAGE. 
  *
- * @(#)$Id: gateway.c,v 1.9 2007/05/21 14:22:05 bg- Exp $
+ * @(#)$Id: gateway.c,v 1.10 2007/06/04 18:09:14 bg- Exp $
  */
 
 /*
@@ -87,7 +87,6 @@ void *force_inclusion[] = {
   &psock_init,
   &button_init,
   &uip_udp_packet_send,
-  &rand,
 };
 #if 0
 int
@@ -128,7 +127,7 @@ main(int argc, char **argv)
   leds_toggle(LEDS_ALL);
   slip_arch_init(BAUD2UBR(115200)); /* Must come before first printf */
   printf("Starting %s "
-	 "($Id: gateway.c,v 1.9 2007/05/21 14:22:05 bg- Exp $)\n", __FILE__);
+	 "($Id: gateway.c,v 1.10 2007/06/04 18:09:14 bg- Exp $)\n", __FILE__);
   ds2411_init();
   sensors_light_init();
   cc2420_init();
@@ -148,6 +147,10 @@ main(int argc, char **argv)
   printf("IP %d.%d.%d.%d netmask %d.%d.%d.%d\n",
 	 ip2quad(&uip_hostaddr), ip2quad(&uip_netmask));
   cc2420_set_chan_pan_addr(RF_CHANNEL, panId, uip_hostaddr.u16[1], ds2411_id);
+
+  srand(rand() +
+	(ds2411_id[3]<<8) + (ds2411_id[4]<<6) + (ds2411_id[5]<<4) +
+	(ds2411_id[6]<<2) +  ds2411_id[7]);
 
   /*
    * Initialize Contiki and our processes.
