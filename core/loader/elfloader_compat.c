@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: elfloader_compat.c,v 1.5 2007/05/15 16:21:29 bg- Exp $
+ * @(#)$Id: elfloader_compat.c,v 1.6 2007/06/04 17:51:41 bg- Exp $
  */
 
 /*
@@ -66,7 +66,9 @@ void (*elfloader_fini)(void);
 unsigned char *datamemory;
 
 #ifdef __AVR__
-#define TEXTMEMORY ((cle_addr)96*1024)
+extern int __data_load_end;
+#define TEXTMEMORY (((cle_addr)(&__data_load_end) + ROM_ERASE_UNIT_SIZE) \
+		    & ~(ROM_ERASE_UNIT_SIZE - 1))
 #else
 #include <sys/unistd.h>
 #define TEXTMEMORY \
