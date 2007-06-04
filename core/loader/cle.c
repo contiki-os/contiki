@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF 
  * SUCH DAMAGE. 
  *
- * @(#)$Id: cle.c,v 1.6 2007/04/26 13:37:28 bg- Exp $
+ * @(#)$Id: cle.c,v 1.7 2007/06/04 17:48:19 bg- Exp $
  */
 
 /*
@@ -260,7 +260,7 @@ cle_relocate(struct cle_info *info,
 
     addr += rela.r_addend;
 
-    ret = cle_write_reloc(segmem + rela.r_offset, &rela, addr);
+    ret = cle_write_reloc(segmem + rela.r_offset, &rela, addr, info);
     if(ret != CLE_OK) {
       return ret;
     }
