@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF 
  * SUCH DAMAGE. 
  *
- * @(#)$Id: cle_avr.c,v 1.2 2007/05/11 15:40:16 bg- Exp $
+ * @(#)$Id: cle_avr.c,v 1.3 2007/06/04 17:50:25 bg- Exp $
  */
 
 /*
@@ -74,10 +74,12 @@
  * specific!
  */
 int
-cle_write_reloc(unsigned char *pos,
+cle_write_reloc(void *pos_,
 		const struct elf32_rela *rela,
-		cle_addr addr)
+		cle_addr addr,
+		const struct cle_info *info)
 {
+  unsigned char *pos = pos_;
   unsigned char byte;
 
   switch(ELF32_R_TYPE(rela->r_info)) {
@@ -88,7 +90,7 @@ cle_write_reloc(unsigned char *pos,
 
   case R_AVR_7_PCREL:		/* 2 */
     /* Reloc in bits 0x03f8 (0000 00kk kkkk k000). */
-    byte = addr - rela->r_offset - 2;
+    byte = addr - (/* text */ + rela->r_offset + 2);
     byte = byte >> 1;
     pos[0] = (pos[0] & 0x07) | (byte << 3);	/* 0xf8 */
     pos[1] = (pos[1] & 0xfc) | (byte >> 5);	/* 0x03 */
@@ -96,7 +98,7 @@ cle_write_reloc(unsigned char *pos,
 
   case R_AVR_13_PCREL:		/* 3 */
     /* Reloc in bits 0x0fff (0000 kkkk kkkk kkkk). */
-    addr = addr - rela->r_offset - 2;
+    addr = addr - (info->text + rela->r_offset + 2);
     addr = addr >> 1;
     pos[0] = addr;
     pos[1] = (pos[1] & 0xf0) | ((addr >> 8) & 0x0f);
