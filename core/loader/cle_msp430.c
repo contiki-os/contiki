@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF 
  * SUCH DAMAGE. 
  *
- * @(#)$Id: cle_msp430.c,v 1.1 2007/04/26 13:38:00 bg- Exp $
+ * @(#)$Id: cle_msp430.c,v 1.2 2007/06/04 17:48:32 bg- Exp $
  */
 
 /*
@@ -54,9 +54,10 @@
  * specific!
  */
 int
-cle_write_reloc(unsigned char *pos,
+cle_write_reloc(void *pos,
 		const struct elf32_rela *rela,
-		cle_addr addr)
+		cle_addr addr,
+		const struct cle_info *info)
 {
   memcpy(pos, &addr, 2);	/* Write reloc */
   return CLE_OK;
