@@ -28,10 +28,17 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: rand.c,v 1.4 2007/06/01 15:28:02 bg- Exp $
+ * @(#)$Id: rand.c,v 1.5 2007/06/04 18:03:58 bg- Exp $
  */
 
 #include <stdlib.h>
+
+#include "lib/assert.h"
+
+#ifdef RAND_MAX
+/* Use rand() from libc if this breaks! */
+CTASSERT(RAND_MAX == 0x7fff);
+#endif
 
 #include "rand.h"
 
