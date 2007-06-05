@@ -28,10 +28,14 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: rand.c,v 1.5 2007/06/04 18:03:58 bg- Exp $
+ * @(#)$Id: rand.c,v 1.6 2007/06/05 10:02:53 bg- Exp $
  */
 
 #include <stdlib.h>
+
+#if defined(__GNUC__) && defined(__MSP430__)
+#undef RAND_MAX			/* Broken header files! */
+#endif
 
 #include "lib/assert.h"
 
