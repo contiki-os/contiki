@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: uaodv.c,v 1.27 2007/06/01 14:49:54 bg- Exp $
+ * $Id: uaodv.c,v 1.28 2007/06/05 10:04:20 bg- Exp $
  */
 
 /**
@@ -395,21 +395,27 @@ handle_incoming_rrep(void)
     print_debug("Not inserting\n");
   }
 
-  if(rm->flags & UAODV_RREP_ACK) {
-    print_debug("RREP with ACK request (ignored)!\n");
-    /* Don't want any RREP-ACKs in return! */
-    rm->flags &= ~UAODV_RREP_ACK;
-  }
-
   /* Forward RREP towards originator? */
   if(uip_ipaddr_cmp(&rm->orig_addr, &uip_hostaddr)) {
-    print_debug("------- COMPLETE ROUTE FOUND\n");
+    print_debug("ROUTE FOUND\n");
+    if(rm->flags & UAODV_RREP_ACK) {
+      struct uaodv_msg_rrep_ack *ack = (void *)uip_appdata;
+      ack->type = UAODV_RREP_ACK_TYPE;
+      ack->reserved = 0;
+      sendto(uip_udp_sender(), ack, sizeof(*ack));
+    }
   } else {
     rt = uaodv_rt_lookup(&rm->orig_addr);
 
     if(rt == NULL) {
       print_debug("RREP received, but no route back to originator... :-( \n");
       return;
+    }
+
+    if(rm->flags & UAODV_RREP_ACK) {
+      print_debug("RREP with ACK request (ignored)!\n");
+      /* Don't want any RREP-ACKs in return! */
+      rm->flags &= ~UAODV_RREP_ACK;
     }
 
     rm->hop_count++;
