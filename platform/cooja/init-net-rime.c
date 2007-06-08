@@ -28,20 +28,20 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: init-net-rime.c,v 1.1 2007/05/18 13:49:15 fros4943 Exp $
+ * @(#)$Id: init-net-rime.c,v 1.2 2007/06/08 12:26:25 fros4943 Exp $
  */
 
 #include "contiki.h"
 #include "net/rime.h"
-#include "net/radio-rime.h"
-#include "dev/cooja-radio.h"
 #include "dev/radio.h"
+#include "dev/cooja-radio.h"
+#include "net/mac/nullmac.h"
 
 void
 init_net(void)
 {
-  rime_init();
-  radio_rime_init(&cooja_driver);
+  nullmac_init(&cooja_driver);
+  rime_init(&nullmac_driver);
   
   /* TODO Rime node ID */
 }
