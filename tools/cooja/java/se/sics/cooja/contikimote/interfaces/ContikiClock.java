@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ContikiClock.java,v 1.2 2007/01/09 10:05:19 fros4943 Exp $
+ * $Id: ContikiClock.java,v 1.3 2007/06/19 09:59:19 fros4943 Exp $
  */
 
 package se.sics.cooja.contikimote.interfaces;
@@ -83,13 +83,20 @@ public class ContikiClock extends Clock implements ContikiMoteInterface {
     moteMem.setIntValueOf("simCurrentTime", newTime);
   }
 
+  public void setDrift(int timeDrift) {
+    this.timeDrift = timeDrift;
+  }
+
   public int getTime() {
     return moteMem.getIntValueOf("simCurrentTime");
   }
 
   public void doActionsBeforeTick() {
     // Update core time to correspond with the simulation time
-    setTime((int) mote.getSimulation().getSimulationTime() + timeDrift);
+    int moteTime = mote.getSimulation().getSimulationTime() + timeDrift;
+    
+    if (moteTime > 0)
+      setTime(moteTime);
   }
 
   public void doActionsAfterTick() {
