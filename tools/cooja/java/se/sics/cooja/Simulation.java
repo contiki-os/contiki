@@ -24,7 +24,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * 
- * $Id: Simulation.java,v 1.12 2007/05/29 07:27:10 fros4943 Exp $
+ * $Id: Simulation.java,v 1.13 2007/06/19 09:58:43 fros4943 Exp $
  */
 
 package se.sics.cooja;
@@ -33,6 +33,8 @@ import java.util.*;
 import org.apache.log4j.Logger;
 import org.jdom.*;
 
+import se.sics.cooja.contikimote.ContikiMote;
+import se.sics.cooja.contikimote.interfaces.ContikiClock;
 import se.sics.cooja.dialogs.*;
 
 /**
@@ -76,13 +78,17 @@ public class Simulation extends Observable implements Runnable {
 
   private GUI myGUI = null;
 
-  private long tickListRandomSeed = 123456;
+  private long randomSeed = 123456;
 
   private int currentTickListIndex = 0;
 
-  private int nrTickLists = 3;
+  private int nrTickLists = 10;
+
+  private int maxDelayedStartupTime = 10000;
 
   private Random tickListRandom = new Random();
+  
+  private Random delayMotesRandom = new Random();
 
   // Tick observable
   private class TickObservable extends Observable {
@@ -136,7 +142,7 @@ public class Simulation extends Observable implements Runnable {
     }
 
     // Distribute motes according to seed
-    tickListRandom.setSeed(tickListRandomSeed);
+    tickListRandom.setSeed(randomSeed);
     Vector<Mote> motesClone = (Vector<Mote>) motes.clone();
     for (int i=0; i < allLists.length; i++) {
       for (int j=0; j < allLists[i].length; j++) {
@@ -210,6 +216,7 @@ public class Simulation extends Observable implements Runnable {
    */
   public Simulation(GUI gui) {
     myGUI = gui;
+    delayMotesRandom.setSeed(randomSeed);
   }
 
   /**
@@ -485,6 +492,11 @@ public class Simulation extends Observable implements Runnable {
     } else
       motes.add(mote);
 
+    tickListRandom.setSeed(randomSeed);
+    if (maxDelayedStartupTime > 0 && mote instanceof ContikiMote) {
+      ((ContikiClock) mote.getInterfaces().getClock()).setDrift(-delayMotesRandom.nextInt(maxDelayedStartupTime));
+    }
+    
     currentRadioMedium.registerMote(mote, this);
     this.setChanged();
     this.notifyObservers(this);
