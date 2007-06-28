@@ -67,3 +67,29 @@ interrupt(DACDMA_VECTOR) irq_dacdma(void)
     DAC12_1CTL &= ~(DAC12IFG | DAC12IE);
   }
 }
+
+void
+dma_transfer(char *buf, unsigned len)
+{
+    // Configure DMA Channel 0 for UART0 TXIFG.
+    DMACTL0 = DMA0TSEL_4;
+
+    // No DMAONFETCH, ROUNDROBIN, ENNMI.
+    DMACTL1 = 0x0000;
+
+    /*
+     * Single transfer mode, dstadr unchanged, srcadr 
+     * incremented, byte access
+     * Important to use DMALEVEL when using USART TX 
+     * interrupts so first edge 
+     * doesn't get lost (hangs every 50. - 100. time)!
+     */
+    DMA0CTL =
+      DMADT_0 | DMADSTINCR_0 | DMASRCINCR_3 | DMASBDB | DMALEVEL | DMAIE;
+    DMA0SA = (unsigned) buf;
+    DMA0DA = (unsigned) &TXBUF0;
+    DMA0SZ = len;
+    DMA0CTL |= DMAEN;           // enable DMA
+    U0CTL &= ~SWRST;            // enable UART, starts transfer
+
+}
