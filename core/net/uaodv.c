@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: uaodv.c,v 1.28 2007/06/05 10:04:20 bg- Exp $
+ * $Id: uaodv.c,v 1.29 2007/06/28 15:06:56 bg- Exp $
  */
 
 /**
@@ -152,11 +152,48 @@ sendto(const uip_ipaddr_t *dest, const void *buf, int len)
   uip_udp_packet_send(unicastconn, buf, len);
 }
 /*---------------------------------------------------------------------------*/
+#ifdef AODV_BAD_HOP_EXTENSION
+static unsigned
+add_rreq_extensions(void *_p)
+{
+  struct uaodv_bad_hop_ext *p = _p;
+  uip_ipaddr_t *a = p->addrs;
+  unsigned i, n;
+
+#define SCALE_RETRANS_THRESHOLD (3*4)
+
+  cc2420_check_remote(0xffff); /* Age table. */
+  n = 0;
+  for (i = 0; i < NNEIGBOURS; i++) {
+    if (neigbours[i].nretrans >= SCALE_RETRANS_THRESHOLD
+	&& neigbours[i].mac != 0xffff) {
+      a->u16[0] = uip_hostaddr.u16[0];
+      a->u16[1] = neigbours[i].mac;
+      n++;
+      if(n == 15)
+	break;			/* Avoid buffer overrun */
+      print_debug("BAD HOP %d.%d.%d.%d\t%d\n",
+		  uip_ipaddr_to_quad(a), neigbours[i].nretrans);
+    }
+  }
+
+  if(n == 0)
+    return 0;
+
+  p->type = RREQ_BAD_HOP_EXT;
+  p->length = 2 + 4*n;		/* Two unused bytes + addresses */
+  return 2 + p->length;		/* Type + len + extension data */
+}
+#else
+#define add_rreq_extensions(p) 0 /* Don't add anything */
+#endif
+
 static void
 send_rreq(uip_ipaddr_t *addr)
 {
   struct uaodv_msg_rreq *rm = (struct uaodv_msg_rreq *)uip_appdata;
-  
+  int len;
+
   print_debug("send RREQ for %d.%d.%d.%d\n", uip_ipaddr_to_quad(addr));
 
   rm->type = UAODV_RREQ_TYPE;
@@ -173,7 +210,9 @@ send_rreq(uip_ipaddr_t *addr)
   my_hseqno++;			/* Always */
   rm->orig_seqno = htonl(my_hseqno);
   bcastconn->ttl = MY_NET_DIAMETER;
-  uip_udp_packet_send(bcastconn, rm, sizeof(struct uaodv_msg_rreq));
+  len = sizeof(struct uaodv_msg_rreq);
+  len += add_rreq_extensions(rm + 1);
+  uip_udp_packet_send(bcastconn, rm, len);
 }
 /*---------------------------------------------------------------------------*/
 static void
@@ -253,6 +292,30 @@ handle_incoming_rreq(void)
  }
 #endif
 
+#ifdef AODV_BAD_HOP_EXTENSION
+  if(uip_len > (sizeof(*rm) + 2)) {
+    struct uaodv_bad_hop_ext *ext = (void *)(uip_appdata + sizeof(*rm));
+    u8_t *end = uip_appdata + uip_len;
+    for(;
+	(u8_t *)ext < end;
+	ext = (void *)((u8_t *)ext + ext->length + 2)) {
+      u8_t *eend = (u8_t *)ext + ext->length;
+      if(eend > end)
+	eend = end;
+
+      if(ext->type == RREQ_BAD_HOP_EXT) {
+	uip_ipaddr_t *a;
+	for(a = ext->addrs; (u8_t *)a < eend; a++) {
+	  if(uip_ipaddr_cmp(a, &uip_hostaddr)) {
+	    print_debug("BAD_HOP drop\n");
+	    return;
+	  }
+	}
+      }
+    }
+  }
+#endif /* AODV_BAD_HOP_EXTENSION */
+
   /* New reverse route? */
   rt = uaodv_rt_lookup(&rm->orig_addr);
   if(rt == NULL
@@ -302,6 +365,8 @@ handle_incoming_rreq(void)
     net_seqno = htonl(my_hseqno);
     send_rrep(&dest_addr, &rt->nexthop, &orig_addr, &net_seqno, 0);
   } else if(BUF->ttl > 1) {
+    int len;
+
     /* Have we seen this RREQ before? */
     if(fwc_lookup(&rm->orig_addr, &rm->rreq_id)) {
       print_debug("RREQ cached, not fwd\n");
@@ -312,7 +377,9 @@ handle_incoming_rreq(void)
     print_debug("RREQ fwd\n");
     rm->hop_count++;
     bcastconn->ttl = BUF->ttl - 1;
-    uip_udp_packet_send(bcastconn, rm, sizeof(struct uaodv_msg_rreq));
+    len = sizeof(struct uaodv_msg_rreq);
+    len += add_rreq_extensions(rm + 1);
+    uip_udp_packet_send(bcastconn, rm, len);
   }
 }
 /*---------------------------------------------------------------------------*/
@@ -353,30 +420,6 @@ handle_incoming_rrep(void)
 	      uip_ipaddr_to_quad(&rm->dest_addr), ntohl(rm->dest_seqno),
 	      rm->hop_count,
 	      uip_ipaddr_to_quad(&rm->orig_addr));
-
-#ifdef AODV_BAD_HOP_EXTENSION
-  if(uip_len > (sizeof(*rm) + 2)) {
-    struct uaodv_bad_hop_ext *ext = (void *)(uip_appdata + sizeof(*rm));
-    u8_t *end = uip_appdata + uip_len;
-    for(;
-	(u8_t *)ext < end;
-	ext = (void *)((u8_t *)ext + ext->length + 2)) {
-      u8_t *eend = (u8_t *)ext + ext->length;
-      if(eend > end)
-	eend = end;
-
-      if(ext->type == RREQ_BAD_HOP_EXT) {
-	uip_ipaddr_t *a;
-	for(a = ext->addrs; (u8_t *)a < eend; a++) {
-	  if(uip_ipaddr_cmp(a, &uip_hostaddr)) {
-	    print_debug("BAD_HOP drop\n");
-	    return;
-	  }
-	}
-      }
-    }
-  }
-#endif /* AODV_BAD_HOP_EXTENSION */
 
   rt = uaodv_rt_lookup(&rm->dest_addr);
 
