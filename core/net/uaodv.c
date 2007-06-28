@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: uaodv.c,v 1.29 2007/06/28 15:06:56 bg- Exp $
+ * $Id: uaodv.c,v 1.30 2007/06/28 15:16:41 bg- Exp $
  */
 
 /**
@@ -487,7 +487,7 @@ handle_incoming_rerr(void)
 
   rt = uaodv_rt_lookup_any(&rm->unreach[0].addr);
   if(rt != NULL && uip_ipaddr_cmp(&rt->nexthop, uip_udp_sender())) {
-    if(rm->flags & UAODV_RERR_UNKNOWN || rm->unreach[0].seqno == 0
+    if((rm->flags & UAODV_RERR_UNKNOWN) || rm->unreach[0].seqno == 0
        || SCMP32(rt->hseqno, ntohl(rm->unreach[0].seqno)) <= 0) {
       rt->is_bad = 1;
       if(rm->flags & UAODV_RERR_UNKNOWN) {
