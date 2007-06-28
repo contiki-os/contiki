@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: cc2420.c,v 1.19 2007/06/01 14:37:02 bg- Exp $
+ * @(#)$Id: cc2420.c,v 1.20 2007/06/28 15:08:53 bg- Exp $
  */
 /*
  * This code is almost device independent and should be easy to port.
@@ -560,12 +560,12 @@ PROCESS_THREAD(cc2420_retransmit_process, ev, data)
 #define MAX_SCALE_RETRANS         15
 
 /*
- * Expiration timestamps are 4-bits wide, in units of 4 seconds, and
+ * Expiration timestamps are 4-bits wide, in units of 2 seconds, and
  * relative to cc2420_check_remote::toff.
  */
-#define SCALE_DIV_EXPIRE    4
-#define MAX_EXPIRE         15
-#define AGE_INTERVAL        5	/* 20 seconds */
+#define SCALE_DIV_EXPIRE    2
+#define MAX_EXPIRE         15	/* 30 seconds */
+#define AGE_INTERVAL        5	/* 10 seconds */
 
 struct cc2420_neigbour neigbours[NNEIGBOURS];
 
@@ -644,7 +644,7 @@ cc2420_check_remote(u16_t mac)
   struct cc2420_neigbour *t;
 
   /*
-   * Age neigbour table every 5*SCALE_DIV_EXPIRE=20 seconds.
+   * Age neigbour table every 5*SCALE_DIV_EXPIRE=10 seconds.
    */
   static clock_time_t toff;
   unsigned now = ((clock_time() - toff)/CLOCK_SECOND)/SCALE_DIV_EXPIRE;
