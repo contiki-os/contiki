@@ -1,0 +1,2 @@
+helloworld: helloworld.c
+test-abc: test-abc.c
