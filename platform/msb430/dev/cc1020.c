@@ -1,0 +1,722 @@
+/*
+Copyright 2006, Freie Universitaet Berlin. All rights reserved.
+
+These sources were developed at the Freie Universität Berlin, Computer
+Systems and Telematics group.
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are
+met:
+
+- Redistributions of source code must retain the above copyright
+notice, this list of conditions and the following disclaimer.
+
+- Redistributions in binary form must reproduce the above copyright
+notice, this list of conditions and the following disclaimer in the
+documentation and/or other materials provided with the distribution.
+ 
+- Neither the name of Freie Universitaet Berlin (FUB) nor the names of its
+contributors may be used to endorse or promote products derived from
+this software without specific prior written permission.
+
+This software is provided by FUB and the contributors on an "as is"
+basis, without any representations or warranties of any kind, express
+or implied including, but not limited to, representations or
+warranties of non-infringement, merchantability or fitness for a
+particular purpose. In no event shall FUB or contributors be liable
+for any direct, indirect, incidental, special, exemplary, or
+consequential damages (including, but not limited to, procurement of
+substitute goods or services; loss of use, data, or profits; or
+business interruption) however caused and on any theory of liability,
+whether in contract, strict liability, or tort (including negligence
+or otherwise) arising in any way out of the use of this software, even
+if advised of the possibility of such damage.
+
+This implementation was developed by the CST group at the FUB.
+
+For documentation and questions please use the web site
+http://scatterweb.mi.fu-berlin.de and the mailinglist
+scatterweb@lists.spline.inf.fu-berlin.de (subscription via the Website).
+Berlin, 2006
+*/
+
+
+/**
+ * @file	cc1020.c
+ * @author	FUB ScatterWeb Developers, Michael Baar, Nicolas Tsiftes
+ *
+ * Taken from ScatterWeb² 1.1 and modified/reformatted for Contiki 2.0
+ **/
+
+#include <stdio.h>
+#include <string.h>
+#include <signal.h>
+
+#include "contiki-msb430.h"
+#include "cc1020-internal.h"
+#include "cc1020.h"
+#include "lib/random.h"
+#include "dev/irq.h"
+
+static int cc1020_calibrate(void);
+static int cc1020_setupTX(int);
+static int cc1020_setupRX(int);
+static void cc1020_setupPD(void);
+static void cc1020_wakeupTX(int);
+static void cc1020_wakeupRX(int);
+static u8_t cc1020_read_reg(u8_t addr);
+static void cc1020_write_reg(u8_t addr, u8_t adata);
+static void cc1020_load_config(const u8_t *);
+static void cc1020_reset(void);
+
+/// selected rx/tx/pd switching algorithm
+static enum cc1020_power_mode cc1020_power_mode = CC1020_ALWAYS_ON;
+
+// current mode of cc1020 chip
+static enum cc1020_state cc1020_state = CC1020_OFF;
+volatile u8_t cc1020_rxbuf[HDRSIZE + CC1020_BUFFERSIZE];
+volatile u8_t cc1020_txbuf[PREAMBLESIZE + HDRSIZE + CC1020_BUFFERSIZE +
+			   TAILSIZE];
+static enum cc1020_rxstate cc1020_rxstate = CC1020_RX_SEARCHING;
+
+/// number of bytes in receive buffer
+static unsigned short cc1020_rxlen = 0;
+
+/// received signal strength indicator reading for last received packet
+static unsigned char rssi;
+
+/// callback when a packet has been received
+static void (*receiver_callback) (void);
+static unsigned char cc1020_pa_power = PA_POWER;
+static unsigned short cc1020_txlen = 0;
+
+const struct radio_driver cc1020_driver =
+  {
+    cc1020_send,
+    cc1020_read,
+    cc1020_set_receiver,
+    cc1020_on,
+    cc1020_off
+  };
+
+process_event_t cc1020_event;
+
+PROCESS(cc1020_sender_process, "CC1020 sender");
+
+void
+cc1020_init(const u8_t * config)
+{
+  cc1020_event = process_alloc_event();
+
+  cc1020_setupPD();
+  cc1020_reset();
+  cc1020_load_config(config);
+
+  // init tx buffer with preamble + syncword
+  memset(cc1020_txbuf, PREAMBLE, PREAMBLESIZE);
+  memcpy((char *) cc1020_txbuf + PREAMBLESIZE, &syncword, SYNCWDSIZE);
+
+  // calibrate receiver
+  cc1020_wakeupRX(RX_CURRENT);
+  if (!cc1020_calibrate())
+    printf("rx calibration failed\n");
+
+  // calibrate transmitter
+  cc1020_wakeupTX(TX_CURRENT);
+  if (!cc1020_calibrate())
+    printf("tx calibration failed\n");
+
+  // power down
+  cc1020_setupPD();
+  process_start(&cc1020_sender_process, NULL);
+}
+
+int
+cc1020_on(void)
+{
+  if (cc1020_power_mode == CC1020_ALWAYS_ON) {
+
+    // Switch to receive mode
+    cc1020_set_rx();
+  } else {
+    cc1020_off();
+  }
+  return true;
+}
+
+void
+cc1020_off(void)
+{
+  if (cc1020_rxstate == CC1020_OFF)
+    return;
+  LNA_POWER_OFF();		// power down lna
+  _DINT();
+  cc1020_rxstate = CC1020_OFF;
+  DISABLE_RX_IRQ();
+  cc1020_state = CC1020_OFF;
+  _EINT();
+  cc1020_setupPD();		// power down radio
+}
+
+void
+cc1020_set_rx(void)
+{
+  // configure controller
+  _DINT();
+
+  // Reset SEL for P3[1-3] (CC DIO, DIO, DCLK) and P3[4-5] (Camera Rx+Tx)
+  P3SEL &= ~0x3E;
+  IFG1 &= ~(UTXIE0 | URXIE0);	// Clear interrupt flags
+  ME1 &= ~(UTXE0 | URXE0);	// Disable Uart0 Tx + Rx
+  UCTL0 = SWRST;		// U0 into reset state.
+  UCTL0 |= CHAR | SYNC;		// 8-bit character, SPI, Slave mode
+
+  // CKPH works also, but not CKPH+CKPL or none of them!!
+  UTCTL0 = CKPL + STC;
+  URCTL0 = 0x00;
+  UBR00 = 0x00;			// No baudrate divider 
+  UBR10 = 0x00;			// settings for a spi
+  UMCTL0 = 0x00;		// slave.
+  ME1 |= USPIE0;		// Enable USART0 TXD/RXD, disabling does not yield any powersavings
+  P3SEL |= 0x0A;		// Select rx line and clk
+  UCTL0 &= ~SWRST;		// Clear reset bit
+  _EINT();
+
+  // configure driver
+  cc1020_rxlen = 0;		// receive buffer position to start
+  cc1020_rxstate = CC1020_RX_SEARCHING;	// rx state machine to searching mode
+  cc1020_state = CC1020_RX;	// driver state to receive mode
+
+  // configure radio
+  cc1020_wakeupRX(RX_CURRENT);
+  cc1020_setupRX(RX_CURRENT);
+  LNA_POWER_ON();		// enable amplifier
+
+  // activate
+  IE1 |= URXIE0;		// enable interrupt
+}
+
+void
+cc1020_set_tx(void)
+{
+
+  // configure radio rx
+  LNA_POWER_OFF();		// power down LNA
+  _DINT();
+  DISABLE_RX_IRQ();
+  P3SEL &= ~0x02;		// Ensure Rx line is off
+  _EINT();
+
+  // configure radio tx
+  cc1020_wakeupTX(TX_CURRENT);
+  cc1020_setupTX(TX_CURRENT);
+  P3SEL |= 0x0C;		// select Tx line and clk
+  U0CTL |= SWRST;		// UART to reset mode
+  IFG1 &= ~UTXIFG0;		// Reset IFG.
+
+  // configure driver
+  cc1020_state = CC1020_TX;
+}
+
+void
+cc1020_set_receiver(void (*recv) (void))
+{
+  receiver_callback = recv;
+}
+
+__inline void
+cc1020_set_power_mode(enum cc1020_power_mode mode)
+{
+  cc1020_power_mode = mode;
+}
+
+__inline void
+cc1020_set_power(u8_t pa_power)
+{
+  cc1020_pa_power = pa_power;
+}
+
+unsigned int
+cc1020_read(u8_t * buf, unsigned int bufsize)
+{
+  unsigned short len;
+
+  if (cc1020_rxlen > HDRSIZE) {
+    len = cc1020_rxlen - HDRSIZE;
+    if (len > bufsize) {
+
+      // XXX Must handle this condition.
+      printf
+	("read buffer smaller than packet payload. payload length=%u, buffer size=%u\n",
+	 len, bufsize);
+    } else {
+      memcpy(buf, (char *) cc1020_rxbuf + HDRSIZE, len);
+      return len;
+    }
+  }
+  return 0;
+}
+
+__inline u8_t
+cc1020_get_rssi()
+{
+  return rssi;
+}
+
+unsigned
+cc1020_send(u8_t * buf, unsigned int len)
+{
+  if (len > CC1020_BUFFERSIZE)	// too large
+    return 0;
+  if (cc1020_txlen > 0)		// buffer in use
+    return 0;
+
+  // prefix
+  // (preamble+syncword are already in buffer)
+  cc1020_txlen = PREAMBLESIZE + SYNCWDSIZE;
+
+  // header
+  cc1020_txbuf[cc1020_txlen++] = HDRSIZE + len;
+
+  // data to send
+  memcpy((char *) cc1020_txbuf + cc1020_txlen, buf, len);
+  cc1020_txlen += len;
+
+  // suffix
+  cc1020_txbuf[cc1020_txlen++] = 0xFA;
+  cc1020_txbuf[cc1020_txlen++] = 0xFA;
+
+  // poll sender
+  process_poll(&cc1020_sender_process);
+  return len;
+}
+
+interrupt(UART0RX_VECTOR) cc1020_rxhandler(void)
+{
+  static signed char syncbs;
+  static union {
+    struct {
+      u8_t b2;
+      u8_t b1;
+      u8_t b4;
+      u8_t b3;
+    };
+    struct {
+      UINT16 i1;
+      UINT16 i2;
+    };
+  } shiftbuf;
+
+  switch (cc1020_rxstate) {
+  case CC1020_RX_SEARCHING:
+    shiftbuf.b1 = shiftbuf.b2;
+    shiftbuf.b2 = shiftbuf.b3;
+    shiftbuf.b3 = shiftbuf.b4;
+    shiftbuf.b4 = RXBUF0;
+    if (shiftbuf.i1 == 0xAAD3 && shiftbuf.i2 == 0x9100) {
+
+      // 0  AA D3 91 00 | FF 00 |
+      syncbs = 0;
+      cc1020_rxbuf[cc1020_rxlen++] = shiftbuf.b4;
+    } else if (shiftbuf.i1 == 0x5569 && shiftbuf.i2 == 0xC880) {
+
+      // 1  55 69 C8 80 | 7F 80 |
+      syncbs = -1;
+    } else if (shiftbuf.i1 == 0xAAB4 && shiftbuf.i2 == 0xE440) {
+
+      // 2  AA B4 E4 40 | 3F C0 |
+      syncbs = -2;
+    } else if (shiftbuf.i1 == 0x555A && shiftbuf.i2 == 0x7220) {
+
+      // 3  55 5A 72 20 | 1F E0 |
+      syncbs = -3;
+    } else if (shiftbuf.i1 == 0xAAAD && shiftbuf.i2 == 0x3910) {
+
+      // 4  AA AD 39 10 | 0F F0 |
+      syncbs = -4;
+    } else if (shiftbuf.i1 == 0x5556 && shiftbuf.i2 == 0x9C88) {
+
+      // 5  55 56 9C 88 | 07 F8 |
+      syncbs = +3;
+    } else if (shiftbuf.i1 == 0xAAAB && shiftbuf.i2 == 0x4E44) {
+
+      // 6  AA AB 4E 44 | 03 FC |
+      syncbs = +2;
+    } else if (shiftbuf.i1 == 0x5555 && shiftbuf.i2 == 0xA722) {
+
+      // 7  55 55 A7 22 | 01 FE |
+      syncbs = +1;
+    } else {
+      return;
+    }
+    cc1020_rxstate = CC1020_RX_RECEIVE;
+
+    // Signal "Channel busy"
+    rssi = cc1020_read_reg(CC1020_RSS);
+    break;
+  case CC1020_RX_RECEIVE:
+    if (syncbs == 0) {
+      cc1020_rxbuf[cc1020_rxlen] = RXBUF0;
+    } else {
+      shiftbuf.b3 = shiftbuf.b4;
+      shiftbuf.b4 = RXBUF0;
+      if (syncbs < 0) {
+	shiftbuf.i1 = shiftbuf.i2 << -syncbs;
+	cc1020_rxbuf[cc1020_rxlen] = shiftbuf.b1;
+      } else {
+	shiftbuf.i1 = shiftbuf.i2 >> syncbs;
+	cc1020_rxbuf[cc1020_rxlen] = shiftbuf.b2;
+      }
+    }
+    cc1020_rxlen++;
+    if (cc1020_rxlen > HDRSIZE) {
+      if (cc1020_rxlen == ((struct cc1020_header *) cc1020_rxbuf)->length) {
+
+	// disable receiver
+	DISABLE_RX_IRQ();
+	cc1020_rxstate = CC1020_RX_PROCESSING;
+
+	// call receiver to copy from buffer
+	if (receiver_callback != NULL)
+	  receiver_callback();
+
+	// reset receiver
+	cc1020_rxlen = 0;
+	cc1020_rxstate = CC1020_RX_SEARCHING;
+	ENABLE_RX_IRQ();
+      }
+    }
+    break;
+  default:
+    break;
+  }
+}
+
+PROCESS_THREAD(cc1020_sender_process, ev, data)
+{
+  PROCESS_BEGIN();
+  while (1) {
+    // Wait for data in buffer.
+    PROCESS_WAIT_UNTIL(cc1020_txlen > 0);
+
+    // Radio could be in OFF or RX mode.
+    if (cc1020_state == CC1020_OFF)
+      cc1020_set_rx();
+
+    // Radio is in RX mode.
+
+    // Wait until the receiver is idle.
+    PROCESS_WAIT_UNTIL(cc1020_rxstate == CC1020_RX_SEARCHING);
+
+    // Wait for a short pseudo-random time before sending.
+    clock_delay(1 + (random_rand() & 0xf));
+
+    // Switch to transceive mode.
+    cc1020_set_tx();
+
+    // Initiate radio transfer.
+
+    // Configure DMA Channel 0 for UART0 TXIFG.
+    DMACTL0 = DMA0TSEL_4;
+
+    // No DMAONFETCH, ROUNDROBIN, ENNMI.
+    DMACTL1 = 0x0000;
+
+    /*
+     * Single transfer mode, dstadr unchanged, srcadr 
+     * incremented, byte access
+     * Important to use DMALEVEL when using USART TX 
+     * interrupts so first edge 
+     * doesn't get lost (hangs every 50. - 100. time)!
+     */
+    DMA0CTL =
+      DMADT_0 | DMADSTINCR_0 | DMASRCINCR_3 | DMASBDB | DMALEVEL | DMAIE;
+    DMA0SA = (unsigned) cc1020_txbuf;
+    DMA0DA = (unsigned) &TXBUF0;
+    DMA0SZ = cc1020_txlen;
+    DMA0CTL |= DMAEN;		// enable DMA
+    U0CTL &= ~SWRST;		// enable UART, starts transfer
+
+    // wait for DMA0 to finish
+    PROCESS_WAIT_UNTIL(ev == cc1020_event && *((unsigned char *) data) == 0);
+
+    // clean up
+    cc1020_txlen = 0;
+    cc1020_on();
+  } PROCESS_END();
+}
+
+static void
+cc1020_write_reg(u8_t addr, u8_t adata)
+{
+  unsigned i;
+  unsigned char data;
+
+  PSEL_OFF;
+  data = addr << 1;
+  PSEL_ON;
+
+  // Send address bits 
+  for (i = 0; i < 7; i++) {
+    nop();			// Delay50ns();
+    PCLK_LOW;
+    nop();			// Delay50ns();
+    if (data & 0x80)
+      PDI_HIGH;
+
+    else
+      PDI_LOW;
+    data = data << 1;
+    PCLK_HIGH;
+  }
+
+  // Send read/write bit 
+  // Ignore bit in data, always use 1 
+  nop();			// Delay50ns();
+  PCLK_LOW;
+  PDI_HIGH;
+  nop();			// Delay50ns();
+  PCLK_HIGH;
+  nop();			// Delay50ns();
+  PCLK_LOW;
+  data = adata;
+
+  // Send data bits 
+  for (i = 0; i < 8; i++) {
+    nop();			// Delay50ns();
+    PCLK_LOW;
+    nop();			// Delay50ns();
+    if (data & 0x80)
+      PDI_HIGH;
+
+    else
+      PDI_LOW;
+    data = data << 1;
+    PCLK_HIGH;
+  }
+  nop();			// Delay50ns();
+  PCLK_LOW;
+  nop();			// Delay50ns();
+  PSEL_OFF;
+}
+
+static u8_t
+cc1020_read_reg(u8_t addr)
+{
+  unsigned i;
+  unsigned char data = 0;
+
+  PSEL_OFF;
+  data = addr << 1;
+  PSEL_ON;
+  nop();			// Delay50ns();
+  // Send address bits 
+  for (i = 0; i < 7; i++) {
+    nop();			// Delay50ns();
+    PCLK_LOW;
+    nop();			// Delay50ns();
+    if (data & 0x80)
+      PDI_HIGH;
+
+    else
+      PDI_LOW;
+    data = data << 1;
+    PCLK_HIGH;
+  }
+
+  // Send read/write bit 
+  // Ignore bit in data, always use 0 
+  nop();			// Delay50ns();
+  PCLK_LOW;
+  PDI_LOW;
+  nop();			// Delay50ns();
+  PCLK_HIGH;
+  nop();			// Delay50ns();
+  PCLK_LOW;
+
+  // Receive data bits       
+  for (i = 0; i < 8; i++) {
+    nop();			// Delay50ns();
+    PCLK_HIGH;
+    nop();			// Delay50ns();
+    data = data << 1;
+    if (PDO)
+      data++;
+    nop();			// Delay50ns();
+    PCLK_LOW;
+  }
+  nop();			// Delay50ns();
+  PSEL_OFF;
+  return data;
+}
+
+static void
+cc1020_load_config(const u8_t * config)
+{
+  int i;
+
+  for (i = 0; i < 0x28; i++)
+    cc1020_write_reg(i, config[i]);
+}
+
+static void
+cc1020_reset(void)
+{
+
+  // Reset CC1020
+  cc1020_write_reg(CC1020_MAIN, 0x0FU & ~0x01U);
+
+  // Bring CC1020 out of reset
+  cc1020_write_reg(CC1020_MAIN, 0x1F);
+}
+
+static int
+cc1020_calibrate(void)
+{
+  unsigned char tmp;
+  unsigned int timeout_cnt;
+
+
+  // Turn off PA to avoid spurs during calibration in TX mode
+  cc1020_write_reg(CC1020_PA_POWER, 0x00);
+
+  // Start calibration
+  cc1020_write_reg(CC1020_CALIBRATE, 0xB5);
+  clock_delay(1200);
+  while ((tmp = cc1020_read_reg(CC1020_STATUS) & CAL_COMPLETE) == 0);
+  clock_delay(800);
+
+  // Monitor lock
+  timeout_cnt = LOCK_TIMEOUT;
+
+  do {
+    tmp = cc1020_read_reg(CC1020_STATUS);
+  } while (tmp & LOCK_CONTINUOUS && --timeout_cnt > 0);
+
+  // Restore PA_POWER
+  cc1020_write_reg(CC1020_PA_POWER, cc1020_pa_power);
+
+  // Return state of LOCK_CONTINUOUS bit
+  return (cc1020_read_reg(CC1020_STATUS) & LOCK_CONTINUOUS) ==
+    LOCK_CONTINUOUS;
+}
+
+static int
+cc1020_lock(void)
+{
+  char lock_status;
+  int i;
+
+  // Monitor LOCK, lasts 420 - 510 cycles @ 4505600 = 93 us - 113 us
+  for (i = LOCK_TIMEOUT; i > 0; i--) {
+    lock_status = cc1020_read_reg(CC1020_STATUS) & LOCK_CONTINUOUS;
+    if (lock_status)
+      break;
+  }
+  if (lock_status == LOCK_CONTINUOUS) {
+    return LOCK_OK;
+  } else {
+
+    // If recalibration ok
+    if (cc1020_calibrate())
+      return LOCK_RECAL_OK;	// Indicate PLL in LOCK
+    else
+      return LOCK_NOK;		// Indicate PLL out of LOCK
+  }
+}
+static int
+cc1020_setupRX(int analog)
+{
+  char lock_status;
+
+  // Switch into RX, switch to freq. reg A
+  cc1020_write_reg(CC1020_MAIN, 0x11);
+
+  // Setup bias current adjustment
+  cc1020_write_reg(CC1020_ANALOG, analog);
+  clock_delay(400);		// Wait for 1 msec  
+  lock_status = cc1020_lock();
+
+  // Switch RX part of CC1020 on
+  cc1020_write_reg(CC1020_MAIN, 0x01);
+  cc1020_write_reg(CC1020_INTERFACE, 0x02);
+
+  // Return LOCK status to application
+  return lock_status;
+}
+
+static int
+cc1020_setupTX(int analog)
+{
+  char lock_status;
+
+  // Setup bias current adjustment
+  cc1020_write_reg(CC1020_ANALOG, analog);
+
+  // Switch into TX, switch to freq. reg B
+  cc1020_write_reg(CC1020_MAIN, 0xC1);
+  clock_delay(400);		// Wait for 1 msec
+  lock_status = cc1020_lock();
+
+  // Restore PA_POWER
+  cc1020_write_reg(CC1020_PA_POWER, cc1020_pa_power);
+
+  // Turn OFF DCLK squelch in TX
+  cc1020_write_reg(CC1020_INTERFACE, 0x01);
+
+  // Return LOCK status to application
+  return lock_status;
+}
+
+static void
+cc1020_setupPD(void)
+{
+  // Put CC1020 into power-down
+  cc1020_write_reg(CC1020_MAIN, 0x1F);
+
+  // Turn off PA to minimise current draw
+  cc1020_write_reg(CC1020_PA_POWER, 0x00);
+}
+
+static void
+cc1020_wakeupRX(int analog)
+{
+  // Turn on crystal oscillator core.
+  cc1020_write_reg(CC1020_MAIN, 0x1B);
+
+  // Setup bias current adjustment.
+  cc1020_write_reg(CC1020_ANALOG, analog);
+
+  // Insert wait routine here, must wait for xtal oscillator to stabilise, 
+  // typically takes 2-5ms.
+  clock_delay(1200);		// DelayMs(5);
+
+  // Turn on bias generator.
+  cc1020_write_reg(CC1020_MAIN, 0x19);
+  clock_delay(400);		// NOT NEEDED?
+
+  // Turn on frequency synthesizer.
+  cc1020_write_reg(CC1020_MAIN, 0x11);
+}
+
+static void
+cc1020_wakeupTX(int analog)
+{
+  // Turn on crystal oscillator core.
+  cc1020_write_reg(CC1020_MAIN, 0xDB);
+
+  // Setup bias current adjustment.
+  cc1020_write_reg(CC1020_ANALOG, analog);
+
+  // Insert wait routine here, must wait for xtal oscillator to stabilise, 
+  // typically takes 2-5ms.
+  clock_delay(1200);		// DelayMs(5);
+
+  // Turn on bias generator.
+  cc1020_write_reg(CC1020_MAIN, 0xD9);
+  clock_delay(400);		// NOT NEEDED?
+
+  // Turn on frequency synthesizer.
+  clock_delay(400);
+  cc1020_write_reg(CC1020_MAIN, 0xD1);
+}
