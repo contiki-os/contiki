@@ -1,0 +1,18 @@
+ifndef JTAG
+  JTAG := $(CONTIKI)/platform/$(TARGET)/buildscripts/jtag/pyjtag/jtag.py
+endif
+
+ifndef JTAG_PORT
+  JTAG_PORT = /dev/ppi0
+endif
+
+%.u: %.$(TARGET)
+	$(JTAG) -l $(JTAG_PORT) -e
+	$(JTAG) -l $(JTAG_PORT) -D -D -S -R 2048 -p $^
+	$(JTAG) -l $(JTAG_PORT) -D -r
+
+r:
+	$(JTAG) -l $(JTAG_PORT) -r
+
+erase:
+	$(JTAG) -l $(JTAG_PORT) -e
