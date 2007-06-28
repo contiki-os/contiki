@@ -28,56 +28,12 @@
  *
  * This file is part of the Contiki operating system.
  *
+ * $Id: dma.h,v 1.2 2007/06/28 14:41:17 nvt-se Exp $
  */
 
-/**
- * \file
- *	ADC functions.
- * \author
- * 	Nicolas Tsiftes <nvt@sics.se>
- */
+#ifndef DMA_H
+#define DMA_H
 
-#include <io.h>
-#include <signal.h>
+void dma_transfer(char *, unsigned);
 
-#include "contiki-msb430.h"
-
-void
-adc_init(void) {
-  //Setup ADC12, ref., sampling time, REFON for DAC!!
-  ADC12CTL0 = SHT0_15 + SHT1_15 + MSC;
-
-  // Use sampling timer, repeat-sequence-of-channels
-  ADC12CTL1 = SHP + CONSEQ_3 + CSTARTADD_0;
-  ADC12MCTL0 = INCH_0 + SREF_0;		// P60: AIN0
-  ADC12MCTL1 = INCH_0 + SREF_0;		// P60: AIN0
-  ADC12MCTL2 = INCH_0 + SREF_0;		// P60: AIN0
-  ADC12MCTL3 = INCH_1 + SREF_0;		// P61: AIN1
-  ADC12MCTL4 = INCH_1 + SREF_0;		// P61: AIN1
-  ADC12MCTL5 = INCH_1 + SREF_0;		// P61: AIN1
-  ADC12MCTL6 = INCH_2 + SREF_0;		// P62: AIN2
-  ADC12MCTL7 = INCH_2 + SREF_0;		// P62: AIN2
-  ADC12MCTL8 = INCH_2 + SREF_0;		// P62: AIN2
-  ADC12MCTL9 = INCH_2 + SREF_0;		// P62: AIN2
-  ADC12MCTL10 = INCH_3 + SREF_0;	// P63: AIN2
-  ADC12MCTL11 = INCH_4 + SREF_0;	// P64: AIN3
-  ADC12MCTL12 = INCH_5 + SREF_0;	// P65: AIN4
-  ADC12MCTL13 = INCH_10 + SREF_0 + EOS;	// Temp diode
-}
-
-void
-adc_on(void)
-{
-  ADC12CTL0 |= ADC12ON;
-  clock_delay(600);
-  ADC12CTL0 |= ENC;
-  ADC12CTL0 |= ADC12SC;
-}
-
-void
-adc_off(void)
-{
-  ADC12CTL0 &= ~ENC;
-  clock_delay(600);
-  ADC12CTL0 &= ~ADC12ON;
-}
+#endif
