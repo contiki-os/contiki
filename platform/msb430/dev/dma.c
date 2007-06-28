@@ -91,5 +91,4 @@ dma_transfer(char *buf, unsigned len)
     DMA0SZ = len;
     DMA0CTL |= DMAEN;           // enable DMA
     U0CTL &= ~SWRST;            // enable UART, starts transfer
-
 }
