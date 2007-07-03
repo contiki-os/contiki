@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: rand.c,v 1.6 2007/06/05 10:02:53 bg- Exp $
+ * @(#)$Id: rand.c,v 1.7 2007/07/03 13:26:00 bg- Exp $
  */
 
 #include <stdlib.h>
@@ -61,16 +61,39 @@ CTASSERT(RAND_MAX == 0x7fff);
  * When possible, keep rand_state across reboots.
  */
 #ifdef __GNUC__
-unsigned long rand_state __attribute__((section(".noinit")));
+int32_t rand_state __attribute__((section(".noinit")));
 #else
-unsigned long rand_state = 123459876ul;
+int32_t rand_state = 1;
 #endif
 
 int
-rand()
+rand(void)
 {
-  rand_state = (16807*rand_state) % 2147483647ul;
-  return (rand_state ^ (rand_state >> 16)) & RAND_MAX;
+  uint32_t hi, lo;
+
+  /*
+   * Perform two 16x16 bits multiplication with 32 bit results.
+   */
+  lo = 16807ul * (uint16_t)(rand_state);
+  hi = 16807ul * (uint16_t)(rand_state >> 16);
+        
+  lo += (hi & 0x7fff) << 16;
+
+  /*
+   * lo += hi >> 15; But faster using 16 bit registers.
+   */
+  hi <<= 1;
+  lo += (uint16_t)(hi >> 16);
+
+  if ((int32_t)lo <= 0)		/* Deal with rand_state == 0. */
+    lo -= 0x7fffffff;
+
+  rand_state = lo;
+
+  if (sizeof(int) == sizeof(int16_t))
+    return (lo ^ (lo >> 16)) & RAND_MAX; /* Not ANSI C! */
+  else
+    return lo & RAND_MAX;
 }
 
 void
