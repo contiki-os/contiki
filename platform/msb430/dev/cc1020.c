@@ -84,7 +84,7 @@ static enum cc1020_rxstate cc1020_rxstate = CC1020_RX_SEARCHING;
 static unsigned short cc1020_rxlen = 0;
 
 /// received signal strength indicator reading for last received packet
-static unsigned char rssi;
+static volatile unsigned char rssi;
 
 /// callback when a packet has been received
 static unsigned char cc1020_pa_power = PA_POWER;
@@ -109,7 +109,6 @@ void
 cc1020_init(const u8_t *config)
 {
   cc1020_event = process_alloc_event();
-printf("cc1020_event = %d\n", cc1020_event);
 
   cc1020_setupPD();
   cc1020_reset();
@@ -138,7 +137,6 @@ int
 cc1020_on(void)
 {
   if (cc1020_power_mode == CC1020_ALWAYS_ON) {
-
     // Switch to receive mode
     cc1020_set_rx();
   } else {
@@ -152,6 +150,7 @@ cc1020_off(void)
 {
   if (cc1020_rxstate == CC1020_OFF)
     return;
+
   LNA_POWER_OFF();		// power down lna
   _DINT();
   cc1020_rxstate = CC1020_OFF;
@@ -175,7 +174,7 @@ cc1020_set_rx(void)
   UCTL0 |= CHAR | SYNC;		// 8-bit character, SPI, Slave mode
 
   // CKPH works also, but not CKPH+CKPL or none of them!!
-  UTCTL0 = CKPL + STC;
+  UTCTL0 = CKPL | STC;
   URCTL0 = 0x00;
   UBR00 = 0x00;			// No baudrate divider 
   UBR10 = 0x00;			// settings for a spi
@@ -202,7 +201,6 @@ cc1020_set_rx(void)
 void
 cc1020_set_tx(void)
 {
-
   // configure radio rx
   LNA_POWER_OFF();		// power down LNA
   _DINT();
@@ -222,19 +220,18 @@ cc1020_set_tx(void)
 }
 
 void
-cc1020_set_receiver(void (*recv) (void))
+cc1020_set_receiver(void (*recv)(void))
 {
-printf("cc1020_set_receiver\n");
   receiver_callback = recv;
 }
 
-__inline void
+void
 cc1020_set_power_mode(enum cc1020_power_mode mode)
 {
   cc1020_power_mode = mode;
 }
 
-__inline void
+void
 cc1020_set_power(u8_t pa_power)
 {
   cc1020_pa_power = pa_power;
@@ -260,7 +257,7 @@ cc1020_read(u8_t *buf, unsigned int bufsize)
   return 0;
 }
 
-__inline u8_t
+u8_t
 cc1020_get_rssi(void)
 {
   return rssi;
@@ -276,8 +273,7 @@ cc1020_send(u8_t *buf, unsigned int len)
   if (cc1020_txlen > 0)
     return 0;
 
-  // prefix
-  // (preamble+syncword are already in buffer)
+  /* The preamble and the sync word are already in buffer. */
   cc1020_txlen = PREAMBLESIZE + SYNCWDSIZE;
 
   // header
@@ -288,8 +284,8 @@ cc1020_send(u8_t *buf, unsigned int len)
   cc1020_txlen += len;
 
   // suffix
-  cc1020_txbuf[cc1020_txlen++] = 0xFA;
-  cc1020_txbuf[cc1020_txlen++] = 0xFA;
+  cc1020_txbuf[cc1020_txlen++] = TAIL;
+  cc1020_txbuf[cc1020_txlen++] = TAIL;
 
   process_poll(&cc1020_sender_process);
 
@@ -318,7 +314,6 @@ interrupt(UART0RX_VECTOR) cc1020_rxhandler(void)
     shiftbuf.b2 = shiftbuf.b3;
     shiftbuf.b3 = shiftbuf.b4;
     shiftbuf.b4 = RXBUF0;
-
     if (shiftbuf.i1 == 0xAAD3 && shiftbuf.i2 == 0x9100) {
       // 0  AA D3 91 00 | FF 00 |
       syncbs = 0;
@@ -348,9 +343,10 @@ interrupt(UART0RX_VECTOR) cc1020_rxhandler(void)
       return;
     }
 
-    cc1020_rxstate = CC1020_RX_RECEIVE;
-    // Signal "Channel busy"
+    // Update RSSI.
     rssi = cc1020_read_reg(CC1020_RSS);
+
+    cc1020_rxstate = CC1020_RX_RECEIVE;
     break;
   case CC1020_RX_RECEIVE:
     if (syncbs == 0) {
@@ -360,30 +356,29 @@ interrupt(UART0RX_VECTOR) cc1020_rxhandler(void)
       shiftbuf.b4 = RXBUF0;
 
       if (syncbs < 0) {
-	shiftbuf.i1 = shiftbuf.i2 << -syncbs;
-	cc1020_rxbuf[cc1020_rxlen] = shiftbuf.b1;
+        shiftbuf.i1 = shiftbuf.i2 << -syncbs;
+        cc1020_rxbuf[cc1020_rxlen] = shiftbuf.b1;
       } else {
-	shiftbuf.i1 = shiftbuf.i2 >> syncbs;
-	cc1020_rxbuf[cc1020_rxlen] = shiftbuf.b2;
+        shiftbuf.i1 = shiftbuf.i2 >> syncbs;
+        cc1020_rxbuf[cc1020_rxlen] = shiftbuf.b2;
       }
     }
 
     cc1020_rxlen++;
     if (cc1020_rxlen > HDRSIZE) {
       if (cc1020_rxlen == ((struct cc1020_header *) cc1020_rxbuf)->length) {
-	// disable receiver
-	DISABLE_RX_IRQ();
-	cc1020_rxstate = CC1020_RX_PROCESSING;
-printf("read %u bytes.\n", cc1020_rxlen);
+        // disable receiver
+        DISABLE_RX_IRQ();
+        cc1020_rxstate = CC1020_RX_PROCESSING;
 
-	// call receiver to copy from buffer
-	if (receiver_callback != NULL)
-	  receiver_callback();
+        // call receiver to copy from buffer
+        if (receiver_callback != NULL)
+          receiver_callback();
 
-	// reset receiver
-	cc1020_rxlen = 0;
-	cc1020_rxstate = CC1020_RX_SEARCHING;
-	ENABLE_RX_IRQ();
+        // reset receiver
+        cc1020_rxlen = 0;
+        cc1020_rxstate = CC1020_RX_SEARCHING;
+        ENABLE_RX_IRQ();
       }
     }
     break;
