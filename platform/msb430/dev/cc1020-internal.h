@@ -54,17 +54,17 @@
 #define CC1020_STATUS7		0x4B
 
 // For CC1020_STATUS
-#define LOCK_CONTINUOUS	0x10
-#define CAL_COMPLETE	0x80
-#define PA_POWER	0x0F	// initial default for output power
-#define LOCK_NOK	0x00
-#define LOCK_OK		0x01
-#define LOCK_RECAL_OK	0x02
-#define CAL_TIMEOUT	0x7FFE
-#define LOCK_TIMEOUT	0x7FFE
-#define RESET_TIMEOUT	0x7FFE
-#define TX_CURRENT 0x87
-#define RX_CURRENT 0x86
+#define LOCK_CONTINUOUS		0x10
+#define CAL_COMPLETE		0x80
+#define PA_POWER		0x0F	// initial default for output power
+#define LOCK_NOK		0x00
+#define LOCK_OK			0x01
+#define LOCK_RECAL_OK		0x02
+#define CAL_TIMEOUT		0x7FFE
+#define LOCK_TIMEOUT		0x7FFE
+#define RESET_TIMEOUT		0x7FFE
+#define TX_CURRENT 		0x87
+#define RX_CURRENT 		0x86
 
 // CC1020 driver configuration
 #define CC1020_BUFFERSIZE	250
@@ -99,14 +99,14 @@
 #define ACK_TIMEOUT_115		4	// In RADIO_STROKE ticks
 #define ACK_TIMEOUT_19		16
 
-#define MHZ_869525      1
+#define MHZ_869525      	1
 
 const u8_t cc1020_config_19200[41] = {
   0x01,   // 0x00, MAIN
   0x0F,   // 0x01, INTERFACE
   0xFF,   // 0x02, RESET
   0x8F,   // 0x03, SEQUENCING
-  //869.525 bei 50kHz
+  // 869.525 at 50kHz
   0x3A,   // 0x04, FREQ_2A
   0x32,   // 0x05, FREQ_1A
   0x97,   // 0x06, FREQ_0A // 19200
@@ -152,7 +152,7 @@ const u8_t cc1020_config_115200[41] = {
   0x0F,   // 0x01, INTERFACE
   0xFF,   // 0x02, RESET
   0x8F,   // 0x03, SEQUENCING
-  // 869.525 bei 200kHz
+  // 869.525 at 200kHz
   0x3A,   // 0x04, FREQ_2A
   0x32,   // 0x05, FREQ_1A
   0x97,   // 0x06, FREQ_0A // 19200
@@ -204,17 +204,21 @@ enum cc1020_state {
  * @name	Packet specification
  * @{
  */
-#define PREAMBLESIZE	6	// number of bytes in preamble
-#define PREAMBLE		0xAA
-#define SYNCWDSIZE	2	// number of bytes in syncword
+
 const u8_t syncword[2] = {0xD3,0x91};
-#define HDRSIZE		1	// number of bytes in header
-#define TAILSIZE	2	// number of bytes in tail
-#define	TAIL		0xFA
 __attribute__((packed))
 struct cc1020_header {
-	u8_t	length;		// header: number of bytes in packet (incl. header)
+  u8_t  length;		// header: number of bytes in packet including header
 };
+
+#define PREAMBLESIZE	6
+#define PREAMBLE	0xAA
+#define TAILSIZE	2
+#define	TAIL		0xFA
+
+#define SYNCWDSIZE	(sizeof (syncword))
+#define HDRSIZE		(sizeof (struct cc1020_header))
+
 ///@}
 
 /// cc1020 receiver state

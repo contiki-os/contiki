@@ -69,7 +69,7 @@ interrupt(DACDMA_VECTOR) irq_dacdma(void)
 }
 
 void
-dma_transfer(char *buf, unsigned len)
+dma_transfer(unsigned char *buf, unsigned len)
 {
     // Configure DMA Channel 0 for UART0 TXIFG.
     DMACTL0 = DMA0TSEL_4;

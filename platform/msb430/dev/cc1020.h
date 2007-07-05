@@ -60,15 +60,15 @@ extern const u8_t cc1020_config_115200[];
 
 void cc1020_init(const u8_t* config);
 
-int cc1020_on();
+int cc1020_on(void);
 
-void cc1020_set_rx();
+void cc1020_set_rx(void);
 
-void cc1020_set_tx();
+void cc1020_set_tx(void);
 
-void cc1020_off();
+void cc1020_off(void);
 
-void cc1020_set_receiver(void (* recv)(void));
+void cc1020_set_receiver(void (*recv)(void));
 
 void cc1020_set_power_mode(enum cc1020_power_mode mode);
 
@@ -86,9 +86,9 @@ unsigned int cc1020_read(u8_t *buf, unsigned int bufsize);
  * 
  * Best to call in packet handler
  */
-u8_t cc1020_get_rssi();
+u8_t cc1020_get_rssi(void);
 
-unsigned int cc1020_send(u8_t* buf, unsigned int bufsize);
+unsigned int cc1020_send(u8_t *buf, unsigned int bufsize);
 
 extern const struct radio_driver cc1020_driver;
 

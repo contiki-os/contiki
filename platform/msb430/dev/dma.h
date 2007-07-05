@@ -28,12 +28,12 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: dma.h,v 1.2 2007/06/28 14:41:17 nvt-se Exp $
+ * $Id: dma.h,v 1.3 2007/07/05 08:35:13 nvt-se Exp $
  */
 
 #ifndef DMA_H
 #define DMA_H
 
-void dma_transfer(char *, unsigned);
+void dma_transfer(unsigned char *, unsigned);
 
 #endif
