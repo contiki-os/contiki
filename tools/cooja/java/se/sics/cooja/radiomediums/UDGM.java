@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: UDGM.java,v 1.4 2007/05/18 15:17:11 fros4943 Exp $
+ * $Id: UDGM.java,v 1.5 2007/07/10 12:43:24 fros4943 Exp $
  */
 
 package se.sics.cooja.radiomediums;
@@ -83,6 +83,20 @@ public class UDGM extends AbstractRadioMedium {
 
   public static final double SS_OK_WORST = -30;
 
+  public static final double PACKET_SUCCESS_RATIO = 0.95;
+
+  // Maximum ranges (SS indicator 100)
+  private static double TRANSMITTING_RANGE = 50;
+
+  private static double INTERFERENCE_RANGE = 100;
+
+  private Simulation mySimulation;
+  
+  private boolean usingRandom = false;
+
+  private Random random = new Random();
+
+  
   /**
    * Visualizes radio traffic in the UDGM. Allows a user to
    * change transmission ranges.
@@ -327,13 +341,12 @@ public class UDGM extends AbstractRadioMedium {
     
     // Register this radio medium's plugins
     simulation.getGUI().registerTemporaryPlugin(VisUDGM.class);
+
+    usingRandom = false;
+
     myRadioMedium = this;
+    mySimulation = simulation;
   }
-
-  // Maximum ranges (SS indicator 100)
-  private static double TRANSMITTING_RANGE = 50;
-
-  private static double INTERFERENCE_RANGE = 100;
 
   public RadioConnection createConnections(Radio sendingRadio) {
     Position sendingPosition = sendingRadio.getPosition();
@@ -346,6 +359,11 @@ public class UDGM extends AbstractRadioMedium {
     double moteInterferenceRange = INTERFERENCE_RANGE
         * (0.01 * (double) sendingRadio.getCurrentOutputPowerIndicator());
 
+    // If in random state, check if transmission fails
+    if (usingRandom && random.nextDouble() > PACKET_SUCCESS_RATIO) {
+      return newConnection;
+    }
+    
     // Loop through all radios
     for (int listenNr = 0; listenNr < getRegisteredRadios().size(); listenNr++) {
       Radio listeningRadio = getRegisteredRadios().get(listenNr);
@@ -467,6 +485,10 @@ public class UDGM extends AbstractRadioMedium {
     element.setText(Double.toString(INTERFERENCE_RANGE));
     config.add(element);
 
+    element = new Element("using_random");
+    element.setText("" + usingRandom);
+    config.add(element);
+
     return config;
   }
 
@@ -479,6 +501,13 @@ public class UDGM extends AbstractRadioMedium {
 
       if (element.getName().equals("interference_range")) {
         INTERFERENCE_RANGE = Double.parseDouble(element.getText());
+      }
+
+      if (element.getName().equals("using_random")) {
+        usingRandom = Boolean.parseBoolean(element.getText());
+        if (usingRandom) {
+          random.setSeed(mySimulation.getRandomSeed());
+        }
       }
     }
     return true;
