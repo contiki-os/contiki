@@ -24,7 +24,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * 
- * $Id: Simulation.java,v 1.15 2007/07/04 16:13:17 fros4943 Exp $
+ * $Id: Simulation.java,v 1.16 2007/07/10 12:43:23 fros4943 Exp $
  */
 
 package se.sics.cooja;
@@ -278,6 +278,13 @@ public class Simulation extends Observable implements Runnable {
     return myGUI;
   }
 
+  /**
+   * @return Current simulation random seed
+   */
+  public long getRandomSeed() {
+    return randomSeed;
+  }
+  
   /**
    * Returns the current simulation config represented by XML elements. This
    * config also includes the current radio medium, all mote types and motes.
