@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ContikiMoteType.java,v 1.16 2007/06/08 12:25:54 fros4943 Exp $
+ * $Id: ContikiMoteType.java,v 1.17 2007/07/11 15:22:22 fros4943 Exp $
  */
 
 package se.sics.cooja.contikimote;
@@ -110,7 +110,7 @@ public class ContikiMoteType implements MoteType {
       if (this == UIP)
         return " cooja-radio.c radio-uip.c init-net-uip.c";
       if (this == UIP_UAODV)
-        return " cooja-radio.c radio-uip-uaodv.c init-net-uip-uaodv.c";
+        return " cooja-radio.c radio-uip-uaodv.c init-net-uip-uaodv.c crc16.c";
       if (this == RIME)
         return " cooja-radio.c init-net-rime.c";
       return " ";
