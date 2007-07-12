@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: RadioLogger.java,v 1.3 2007/05/31 10:00:30 fros4943 Exp $
+ * $Id: RadioLogger.java,v 1.4 2007/07/12 14:27:07 fros4943 Exp $
  */
 
 package se.sics.cooja.plugins;
@@ -450,6 +450,61 @@ public class RadioLogger extends VisPlugin {
 
   };
 
+  static class PacketAODV_RERR extends Packet {
+    public final static int MINIMUM_SIZE = 12;
+    public final static int TYPE = 3;
+
+    private byte[] data;
+    public PacketAODV_RERR(byte[] data) {
+      this.data = data;
+    }
+
+    public int getType() {
+      return data[0];
+    }
+
+    public int getFlags() {
+      return data[1];
+    }
+
+    public int getReserved() {
+      return data[2];
+    }
+
+    public int getDestCount() {
+      return data[3];
+    }
+
+    public String getUnreachAddr() {
+      return data[4] + "." + data[5] + "." + data[6] + "." + data[7];
+    }
+
+    public int getUnreachSeqNo() {
+      int seqNo = 
+        ((data[8] & 0xFF) << 24) +
+        ((data[9] & 0xFF) << 16) +
+        ((data[10] & 0xFF) << 8) +
+        ((data[11] & 0xFF) << 0);
+      return seqNo;
+    }
+
+    public String getShortDescription() {
+      return "AODV RERR for " + getUnreachAddr();
+    }
+
+    public String getToolTip() {
+      return "<html>" +
+      "AODV RREP type: " + getType() + "<br>" + 
+      "AODV RREP flags: " + getFlags() + "<br>" +
+      "AODV RREP reserved: " + getReserved() + "<br>" +
+      "AODV RREP dest_count: " + getDestCount() + "<br>" +
+      "AODV RREP unreach_addr: " + getUnreachAddr() + "<br>" +
+      "AODV RREP unreach_seqno: " + getUnreachSeqNo() + "<br>" +
+      "</html>";
+    }
+
+  };
+
   private Packet analyzePacket(byte[] data) {
     // Parse AODV type by comparing tail of message TODO XXX
     byte[] dataNoHeader = null;
@@ -466,6 +521,13 @@ public class RadioLogger extends VisPlugin {
       System.arraycopy(data, data.length - PacketAODV_RREP.MINIMUM_SIZE, dataNoHeader, 0, PacketAODV_RREP.MINIMUM_SIZE);
       if (dataNoHeader[0] == PacketAODV_RREP.TYPE)
         return new PacketAODV_RREP(dataNoHeader);
+    }
+
+    if (data.length >= PacketAODV_RERR.MINIMUM_SIZE) {
+      dataNoHeader = new byte[PacketAODV_RERR.MINIMUM_SIZE];
+      System.arraycopy(data, data.length - PacketAODV_RERR.MINIMUM_SIZE, dataNoHeader, 0, PacketAODV_RERR.MINIMUM_SIZE);
+      if (dataNoHeader[0] == PacketAODV_RERR.TYPE)
+        return new PacketAODV_RERR(dataNoHeader);
     }
 
     return new PacketUnknown(data);
