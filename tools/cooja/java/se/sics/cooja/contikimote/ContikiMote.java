@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ContikiMote.java,v 1.5 2007/05/19 16:56:55 fros4943 Exp $
+ * $Id: ContikiMote.java,v 1.6 2007/07/13 09:08:24 fros4943 Exp $
  */
 
 package se.sics.cooja.contikimote;
@@ -115,6 +115,10 @@ public class ContikiMote implements Mote {
     if (myState == State.LPM && newState != State.LPM) {
       myState = newState;
       stateObservable.stateChanged();
+    }
+    
+    if (myState == State.DEAD) {
+      mySim.getRadioMedium().unregisterMote(this, mySim);
     }
   }
 

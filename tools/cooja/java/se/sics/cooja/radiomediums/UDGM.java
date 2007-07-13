@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: UDGM.java,v 1.5 2007/07/10 12:43:24 fros4943 Exp $
+ * $Id: UDGM.java,v 1.6 2007/07/13 09:08:25 fros4943 Exp $
  */
 
 package se.sics.cooja.radiomediums;
@@ -243,6 +243,9 @@ public class UDGM extends AbstractRadioMedium {
     public Color[] getColorOf(Mote mote) {
       Radio moteRadio = mote.getInterfaces().getRadio();
       if (moteRadio == null)
+        return new Color[] { Color.GRAY };
+
+      if (mote.getState() == Mote.State.DEAD)
         return new Color[] { Color.GRAY };
 
       if (selectedMote != null && mote == selectedMote)
