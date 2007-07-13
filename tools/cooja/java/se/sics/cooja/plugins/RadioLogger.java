@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: RadioLogger.java,v 1.4 2007/07/12 14:27:07 fros4943 Exp $
+ * $Id: RadioLogger.java,v 1.5 2007/07/13 10:11:30 fros4943 Exp $
  */
 
 package se.sics.cooja.plugins;
@@ -268,8 +268,9 @@ public class RadioLogger extends VisPlugin {
     public final static int TYPE = 1;
 
     private byte[] data;
-    public PacketAODV_RREQ(byte[] data) {
-      this.data = data;
+    public PacketAODV_RREQ(byte[] packetData) {
+      this.data = new byte[MINIMUM_SIZE];
+      System.arraycopy(packetData, packetData.length - MINIMUM_SIZE, data, 0, MINIMUM_SIZE);
     }
 
     public int getType() {
@@ -340,53 +341,30 @@ public class RadioLogger extends VisPlugin {
       "AODV RREQ orig_seqno: " + getOrigSeqNo() +
       "</html>";
     }
+
+    public static boolean dataFits(byte[] packetData) {
+      if (packetData.length < MINIMUM_SIZE)
+        return false;
+
+      byte[] dataNoHeader = new byte[MINIMUM_SIZE];
+      System.arraycopy(packetData, packetData.length - MINIMUM_SIZE, dataNoHeader, 0, MINIMUM_SIZE);
+
+      if (dataNoHeader[0] != TYPE)
+        return false;
+
+      return true;
+    }
   };
-
-
-
-  static class PacketUnknown extends Packet {
-    public final static int MINIMUM_SIZE = 20;
-    public final static int TYPE = 2;
-
-    private byte[] data;
-    public PacketUnknown(byte[] data) {
-      this.data = data;
-    }
-
-    public String getShortDescription() {
-      return "Data packet, size " + data.length;
-    }
-
-    public String getToolTip() {
-      String toolTip = "<html><b>Data packet</b><br>";
-
-      int byteCounter = 0;
-      for (byte b: data) {
-        String hexB = "0" + Integer.toHexString(b);
-        hexB = hexB.substring(hexB.length() - 2);
-        toolTip += "0x" + hexB + " ";
-        if (byteCounter++ > 2) {
-          toolTip += "<br>";
-          byteCounter = 0;
-        }
-      }
-      toolTip += "<br><br>";
-      for (byte b: data) {
-        toolTip += (char) b;
-      }
-      toolTip += "</html>";
-      return toolTip;
-    }
-
-  }
 
   static class PacketAODV_RREP extends Packet {
     public final static int MINIMUM_SIZE = 20;
     public final static int TYPE = 2;
 
     private byte[] data;
-    public PacketAODV_RREP(byte[] data) {
-      this.data = data;
+
+    public PacketAODV_RREP(byte[] packetData) {
+      this.data = new byte[MINIMUM_SIZE];
+      System.arraycopy(packetData, packetData.length - MINIMUM_SIZE, data, 0, MINIMUM_SIZE);
     }
 
     public int getType() {
@@ -448,6 +426,18 @@ public class RadioLogger extends VisPlugin {
       "</html>";
     }
 
+    public static boolean dataFits(byte[] packetData) {
+      if (packetData.length < MINIMUM_SIZE)
+        return false;
+
+      byte[] dataNoHeader = new byte[MINIMUM_SIZE];
+      System.arraycopy(packetData, packetData.length - MINIMUM_SIZE, dataNoHeader, 0, MINIMUM_SIZE);
+
+      if (dataNoHeader[0] != TYPE)
+        return false;
+
+      return true;
+    }
   };
 
   static class PacketAODV_RERR extends Packet {
@@ -455,8 +445,9 @@ public class RadioLogger extends VisPlugin {
     public final static int TYPE = 3;
 
     private byte[] data;
-    public PacketAODV_RERR(byte[] data) {
-      this.data = data;
+    public PacketAODV_RERR(byte[] packetData) {
+      this.data = new byte[MINIMUM_SIZE];
+      System.arraycopy(packetData, packetData.length - MINIMUM_SIZE, data, 0, MINIMUM_SIZE);
     }
 
     public int getType() {
@@ -503,32 +494,145 @@ public class RadioLogger extends VisPlugin {
       "</html>";
     }
 
+    public static boolean dataFits(byte[] packetData) {
+      if (packetData.length < MINIMUM_SIZE)
+        return false;
+
+      byte[] dataNoHeader = new byte[MINIMUM_SIZE];
+      System.arraycopy(packetData, packetData.length - MINIMUM_SIZE, dataNoHeader, 0, MINIMUM_SIZE);
+
+      if (dataNoHeader[0] != TYPE)
+        return false;
+
+      return true;
+    }
   };
 
+  static class AckPacket extends Packet {
+    public final static int SIZE = 5;
+
+    private byte[] data;
+    public AckPacket(byte[] packetData) {
+      this.data = packetData;
+    }
+
+    public int getChecksum() {
+      int checksum = 
+        ((data[3] & 0xFF) << 8) +
+        ((data[4] & 0xFF) << 0);
+      return checksum;
+    }
+
+    public String getShortDescription() {
+      return "ACK";
+    }
+
+    public String getToolTip() {
+      return "<html>" +
+      "ACK checksum: " + getChecksum() + "<br>" + 
+      "</html>";
+    }
+
+    public static boolean dataFits(byte[] packetData) {
+      if (packetData.length != SIZE)
+        return false;
+
+      if (packetData[0] != (byte) 'a')
+        return false;
+      
+      if (packetData[1] != (byte) 'C')
+        return false;
+      
+      if (packetData[2] != (byte) 'k')
+        return false;
+      
+      return true;
+    }
+  };
+  
+  static class ForwardedPacketUnknown extends PacketUnknown {
+    public final static int MINIMUM_SIZE = 4;
+
+    public ForwardedPacketUnknown(byte[] data) {
+      super(data);
+    }
+
+    public String getShortDescription() {
+      return "(FWD) " + super.getShortDescription();
+    }
+
+    public static boolean dataFits(byte[] packetData) {
+      if (packetData.length < ForwardedPacketUnknown.MINIMUM_SIZE)
+        return false;
+      
+      if (packetData[0] != (byte) 'f')
+        return false;
+      
+      if (packetData[1] != (byte) 'W')
+        return false;
+      
+      if (packetData[2] != (byte) 'd')
+        return false;
+      
+      if (packetData[3] != (byte) ':')
+        return false;
+      
+      return true;
+    }
+  }
+
+  static class PacketUnknown extends Packet {
+    public final static int MINIMUM_SIZE = 20;
+
+    private byte[] data = null;
+
+    public PacketUnknown(byte[] data) {
+      this.data = data;
+    }
+
+    public String getShortDescription() {
+      return "Data packet, size " + data.length;
+    }
+
+    public String getToolTip() {
+      String toolTip = "<html><b>Data packet</b><br>";
+
+      int byteCounter = 0;
+      for (byte b: data) {
+        String hexB = "0" + Integer.toHexString(b);
+        hexB = hexB.substring(hexB.length() - 2);
+        toolTip += "0x" + hexB + " ";
+        if (byteCounter++ > 2) {
+          toolTip += "<br>";
+          byteCounter = 0;
+        }
+      }
+      toolTip += "<br><br>";
+      for (byte b: data) {
+        toolTip += (char) b;
+      }
+      toolTip += "</html>";
+      return toolTip;
+    }
+
+  }
+
   private Packet analyzePacket(byte[] data) {
-    // Parse AODV type by comparing tail of message TODO XXX
-    byte[] dataNoHeader = null;
 
-    if (data.length >= PacketAODV_RREQ.MINIMUM_SIZE) {
-      dataNoHeader = new byte[PacketAODV_RREQ.MINIMUM_SIZE];
-      System.arraycopy(data, data.length - PacketAODV_RREQ.MINIMUM_SIZE, dataNoHeader, 0, PacketAODV_RREQ.MINIMUM_SIZE);
-      if (dataNoHeader[0] == PacketAODV_RREQ.TYPE)
-        return new PacketAODV_RREQ(dataNoHeader);
-    }
+    if (PacketAODV_RREQ.dataFits(data))
+      return new PacketAODV_RREQ(data);
 
-    if (data.length >= PacketAODV_RREP.MINIMUM_SIZE) {
-      dataNoHeader = new byte[PacketAODV_RREP.MINIMUM_SIZE];
-      System.arraycopy(data, data.length - PacketAODV_RREP.MINIMUM_SIZE, dataNoHeader, 0, PacketAODV_RREP.MINIMUM_SIZE);
-      if (dataNoHeader[0] == PacketAODV_RREP.TYPE)
-        return new PacketAODV_RREP(dataNoHeader);
-    }
+    if (PacketAODV_RREP.dataFits(data))
+      return new PacketAODV_RREP(data);
 
-    if (data.length >= PacketAODV_RERR.MINIMUM_SIZE) {
-      dataNoHeader = new byte[PacketAODV_RERR.MINIMUM_SIZE];
-      System.arraycopy(data, data.length - PacketAODV_RERR.MINIMUM_SIZE, dataNoHeader, 0, PacketAODV_RERR.MINIMUM_SIZE);
-      if (dataNoHeader[0] == PacketAODV_RERR.TYPE)
-        return new PacketAODV_RERR(dataNoHeader);
-    }
+    if (PacketAODV_RERR.dataFits(data))
+      return new PacketAODV_RERR(data);
+
+    if (ForwardedPacketUnknown.dataFits(data))
+      return new ForwardedPacketUnknown(data);
+
+    if (AckPacket.dataFits(data))
+      return new AckPacket(data);
 
     return new PacketUnknown(data);
   }
