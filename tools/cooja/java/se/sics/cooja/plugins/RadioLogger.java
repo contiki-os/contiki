@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: RadioLogger.java,v 1.6 2007/07/16 07:33:53 fros4943 Exp $
+ * $Id: RadioLogger.java,v 1.7 2007/07/16 08:21:17 fros4943 Exp $
  */
 
 package se.sics.cooja.plugins;
@@ -300,7 +300,7 @@ public class RadioLogger extends VisPlugin {
     }
 
     public String getDestAddr() {
-      return data[8] + "." + data[9] + "." + data[10] + "." + data[11];
+      return (int) (0xff&data[8]) + "." + (int) (0xff&data[9]) + "." + (int) (0xff&data[10]) + "." + (int) (0xff&data[11]);
     }
 
     public int getDestSeqNo() {
@@ -313,7 +313,7 @@ public class RadioLogger extends VisPlugin {
     }
 
     public String getOrigAddr() {
-      return data[16] + "." + data[17] + "." + data[18] + "." + data[19];
+      return (int) (0xff&data[16]) + "." + (int) (0xff&data[17]) + "." + (int) (0xff&data[18]) + "." + (int) (0xff&data[19]);
     }
 
     public int getOrigSeqNo() {
@@ -386,7 +386,7 @@ public class RadioLogger extends VisPlugin {
     }
 
     public String getDestAddr() {
-      return data[4] + "." + data[5] + "." + data[6] + "." + data[7];
+      return (int) (0xff&data[4]) + "." + (int) (0xff&data[5]) + "." + (int) (0xff&data[6]) + "." + (int) (0xff&data[7]);
     }
 
     public int getDestSeqNo() {
@@ -399,7 +399,7 @@ public class RadioLogger extends VisPlugin {
     }
 
     public String getOrigAddr() {
-      return data[12] + "." + data[13] + "." + data[14] + "." + data[15];
+      return (int) (0xff&data[12]) + "." + (int) (0xff&data[13]) + "." + (int) (0xff&data[14]) + "." + (int) (0xff&data[15]);
     }
 
     public int getLifetime() {
@@ -470,7 +470,7 @@ public class RadioLogger extends VisPlugin {
     }
 
     public String getUnreachAddr() {
-      return data[4] + "." + data[5] + "." + data[6] + "." + data[7];
+      return (int) (0xff&data[4]) + "." + (int) (0xff&data[5]) + "." + (int) (0xff&data[6]) + "." + (int) (0xff&data[7]);
     }
 
     public int getUnreachSeqNo() {
