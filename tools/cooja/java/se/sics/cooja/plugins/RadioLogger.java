@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: RadioLogger.java,v 1.5 2007/07/13 10:11:30 fros4943 Exp $
+ * $Id: RadioLogger.java,v 1.6 2007/07/16 07:33:53 fros4943 Exp $
  */
 
 package se.sics.cooja.plugins;
@@ -264,13 +264,14 @@ public class RadioLogger extends VisPlugin {
   }
 
   static class PacketAODV_RREQ extends Packet {
-    public final static int MINIMUM_SIZE = 24;
+    public final static int SIZE = 52;
+    public final static int HEADER_SIZE = 24;
     public final static int TYPE = 1;
 
     private byte[] data;
     public PacketAODV_RREQ(byte[] packetData) {
-      this.data = new byte[MINIMUM_SIZE];
-      System.arraycopy(packetData, packetData.length - MINIMUM_SIZE, data, 0, MINIMUM_SIZE);
+      this.data = new byte[HEADER_SIZE];
+      System.arraycopy(packetData, packetData.length - HEADER_SIZE, data, 0, HEADER_SIZE);
     }
 
     public int getType() {
@@ -343,11 +344,11 @@ public class RadioLogger extends VisPlugin {
     }
 
     public static boolean dataFits(byte[] packetData) {
-      if (packetData.length < MINIMUM_SIZE)
+      if (packetData.length != SIZE)
         return false;
 
-      byte[] dataNoHeader = new byte[MINIMUM_SIZE];
-      System.arraycopy(packetData, packetData.length - MINIMUM_SIZE, dataNoHeader, 0, MINIMUM_SIZE);
+      byte[] dataNoHeader = new byte[HEADER_SIZE];
+      System.arraycopy(packetData, packetData.length - HEADER_SIZE, dataNoHeader, 0, HEADER_SIZE);
 
       if (dataNoHeader[0] != TYPE)
         return false;
@@ -357,14 +358,15 @@ public class RadioLogger extends VisPlugin {
   };
 
   static class PacketAODV_RREP extends Packet {
-    public final static int MINIMUM_SIZE = 20;
+    public final static int SIZE = 48;
+    public final static int HEADER_SIZE = 20;
     public final static int TYPE = 2;
 
     private byte[] data;
 
     public PacketAODV_RREP(byte[] packetData) {
-      this.data = new byte[MINIMUM_SIZE];
-      System.arraycopy(packetData, packetData.length - MINIMUM_SIZE, data, 0, MINIMUM_SIZE);
+      this.data = new byte[HEADER_SIZE];
+      System.arraycopy(packetData, packetData.length - HEADER_SIZE, data, 0, HEADER_SIZE);
     }
 
     public int getType() {
@@ -427,11 +429,11 @@ public class RadioLogger extends VisPlugin {
     }
 
     public static boolean dataFits(byte[] packetData) {
-      if (packetData.length < MINIMUM_SIZE)
+      if (packetData.length != SIZE)
         return false;
 
-      byte[] dataNoHeader = new byte[MINIMUM_SIZE];
-      System.arraycopy(packetData, packetData.length - MINIMUM_SIZE, dataNoHeader, 0, MINIMUM_SIZE);
+      byte[] dataNoHeader = new byte[HEADER_SIZE];
+      System.arraycopy(packetData, packetData.length - HEADER_SIZE, dataNoHeader, 0, HEADER_SIZE);
 
       if (dataNoHeader[0] != TYPE)
         return false;
@@ -441,13 +443,14 @@ public class RadioLogger extends VisPlugin {
   };
 
   static class PacketAODV_RERR extends Packet {
-    public final static int MINIMUM_SIZE = 12;
+    public final static int SIZE = 40;
+    public final static int HEADER_SIZE = 12;
     public final static int TYPE = 3;
 
     private byte[] data;
     public PacketAODV_RERR(byte[] packetData) {
-      this.data = new byte[MINIMUM_SIZE];
-      System.arraycopy(packetData, packetData.length - MINIMUM_SIZE, data, 0, MINIMUM_SIZE);
+      this.data = new byte[HEADER_SIZE];
+      System.arraycopy(packetData, packetData.length - HEADER_SIZE, data, 0, HEADER_SIZE);
     }
 
     public int getType() {
@@ -485,21 +488,21 @@ public class RadioLogger extends VisPlugin {
 
     public String getToolTip() {
       return "<html>" +
-      "AODV RREP type: " + getType() + "<br>" + 
-      "AODV RREP flags: " + getFlags() + "<br>" +
-      "AODV RREP reserved: " + getReserved() + "<br>" +
-      "AODV RREP dest_count: " + getDestCount() + "<br>" +
-      "AODV RREP unreach_addr: " + getUnreachAddr() + "<br>" +
-      "AODV RREP unreach_seqno: " + getUnreachSeqNo() + "<br>" +
+      "AODV RERR type: " + getType() + "<br>" + 
+      "AODV RERR flags: " + getFlags() + "<br>" +
+      "AODV RERR reserved: " + getReserved() + "<br>" +
+      "AODV RERR dest_count: " + getDestCount() + "<br>" +
+      "AODV RERR unreach_addr: " + getUnreachAddr() + "<br>" +
+      "AODV RERR unreach_seqno: " + getUnreachSeqNo() + "<br>" +
       "</html>";
     }
 
     public static boolean dataFits(byte[] packetData) {
-      if (packetData.length < MINIMUM_SIZE)
+      if (packetData.length != SIZE)
         return false;
 
-      byte[] dataNoHeader = new byte[MINIMUM_SIZE];
-      System.arraycopy(packetData, packetData.length - MINIMUM_SIZE, dataNoHeader, 0, MINIMUM_SIZE);
+      byte[] dataNoHeader = new byte[HEADER_SIZE];
+      System.arraycopy(packetData, packetData.length - HEADER_SIZE, dataNoHeader, 0, HEADER_SIZE);
 
       if (dataNoHeader[0] != TYPE)
         return false;
@@ -582,8 +585,6 @@ public class RadioLogger extends VisPlugin {
   }
 
   static class PacketUnknown extends Packet {
-    public final static int MINIMUM_SIZE = 20;
-
     private byte[] data = null;
 
     public PacketUnknown(byte[] data) {
