@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: RadioLogger.java,v 1.7 2007/07/16 08:21:17 fros4943 Exp $
+ * $Id: RadioLogger.java,v 1.8 2007/07/16 10:17:38 fros4943 Exp $
  */
 
 package se.sics.cooja.plugins;
@@ -193,6 +193,12 @@ public class RadioLogger extends VisPlugin {
         return tip;
       }
     };
+
+    // Set data column width greedy
+    dataTable.setAutoResizeMode(JTable.AUTO_RESIZE_LAST_COLUMN);
+    dataTable.getColumnModel().getColumn(COLUMN_TIME).setPreferredWidth(55);
+    dataTable.getColumnModel().getColumn(COLUMN_FROM).setPreferredWidth(130);
+    dataTable.getColumnModel().getColumn(COLUMN_TO).setPreferredWidth(100);
 
     dataTable.getSelectionModel().setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
     dataTable.getSelectionModel().addListSelectionListener(
