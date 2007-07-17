@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: init-net-uip-uaodv.c,v 1.2 2007/05/21 14:52:15 fros4943 Exp $
+ * $Id: init-net-uip-uaodv.c,v 1.3 2007/07/17 23:02:22 fros4943 Exp $
  */
 
 #include "contiki.h"
@@ -49,6 +49,7 @@ init_net(void)
 {
   uip_init();
   uip_fw_init();
+  tcpip_set_forwarding(1);
   
   process_start(&tcpip_process, NULL);
   process_start(&uip_fw_process, NULL);
