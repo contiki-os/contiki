@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: RadioLogger.java,v 1.8 2007/07/16 10:17:38 fros4943 Exp $
+ * $Id: RadioLogger.java,v 1.9 2007/07/17 21:21:19 fros4943 Exp $
  */
 
 package se.sics.cooja.plugins;
@@ -364,7 +364,7 @@ public class RadioLogger extends VisPlugin {
   };
 
   static class PacketAODV_RREP extends Packet {
-    public final static int SIZE = 48;
+    public final static int SIZE = 56;
     public final static int HEADER_SIZE = 20;
     public final static int TYPE = 2;
 
