@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: SimControl.java,v 1.6 2007/04/02 16:02:32 fros4943 Exp $
+ * $Id: SimControl.java,v 1.7 2007/07/17 21:21:24 fros4943 Exp $
  */
 
 package se.sics.cooja.plugins;
@@ -83,40 +83,44 @@ public class SimControl extends VisPlugin {
     JButton button;
     JPanel smallPanel;
 
-    // Register as tickobserver
-    simulation.addTickObserver(tickObserver = new Observer() {
-      public void update(Observable obs, Object obj) {
-        if (simulation ==  null || simulationTime == null)
-          return;
-        
-        // During simulation running, only update text 10 times each second
-        if (lastTextUpdateTime < System.currentTimeMillis() - 100) {
-          lastTextUpdateTime = System.currentTimeMillis();
-          simulationTime.setText("Current simulation time: " + simulation.getSimulationTime());
-        }
+    SwingUtilities.invokeLater(new Runnable() {
+      public void run() {
+        // Register as tickobserver
+        simulation.addTickObserver(tickObserver = new Observer() {
+          public void update(Observable obs, Object obj) {
+            if (simulation == null || simulationTime == null)
+              return;
+            
+            // During simulation running, only update text 10 times each second
+            if (lastTextUpdateTime < System.currentTimeMillis() - 100) {
+              lastTextUpdateTime = System.currentTimeMillis();
+              simulationTime.setText("Current simulation time: " + simulation.getSimulationTime());
+            }
 
-        if (simulationStopTime > 0 && simulationStopTime <= simulation.getSimulationTime() && simulation.isRunning()) {
-          // Time to stop simulation now
-          simulation.stopSimulation();
-          simulationStopTime = -1;
-        }
-      }
-    });
+            if (simulationStopTime > 0 && simulationStopTime <= simulation.getSimulationTime() && simulation.isRunning()) {
+              // Time to stop simulation now
+              simulation.stopSimulation();
+              simulationStopTime = -1;
+            }
+          }
+        });
 
-    // Register as simulation observer
-    simulation.addObserver(simObserver = new Observer() {
-      public void update(Observable obs, Object obj) {
-        if (simulation.isRunning()) {
-          startButton.setEnabled(false);
-          stopButton.setEnabled(true);
-        } else {
-          startButton.setEnabled(true);
-          stopButton.setEnabled(false);
-          simulationStopTime = -1;
-        }
+        // Register as simulation observer
+        simulation.addObserver(simObserver = new Observer() {
+          public void update(Observable obs, Object obj) {
+            if (simulation.isRunning()) {
+              startButton.setEnabled(false);
+              stopButton.setEnabled(true);
+            } else {
+              startButton.setEnabled(true);
+              stopButton.setEnabled(false);
+              simulationStopTime = -1;
+            }
 
-        sliderDelay.setValue(convertTimeToSlide(simulation.getDelayTime()));
-        simulationTime.setText("Current simulation time: " + simulation.getSimulationTime());
+            sliderDelay.setValue(convertTimeToSlide(simulation.getDelayTime()));
+            simulationTime.setText("Current simulation time: " + simulation.getSimulationTime());
+          }
+        });
       }
     });
 
