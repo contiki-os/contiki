@@ -32,7 +32,7 @@
  *
  * This file is part of the Contiki desktop OS
  *
- * $Id: contiki-conf.h,v 1.6 2007/05/29 09:13:37 fros4943 Exp $
+ * $Id: contiki-conf.h,v 1.7 2007/07/20 15:21:56 fros4943 Exp $
  *
  */
 
@@ -265,6 +265,7 @@ architecture specific files to work). */
 #define UIP_CONF_LOGGING         0
 
 #define UIP_CONF_UDP_CHECKSUMS   0
+#define UIP_CONF_FWCACHE_SIZE    100
 
 
 /*------------------------------------------------------------------------------*/
