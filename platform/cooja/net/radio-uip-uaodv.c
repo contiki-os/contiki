@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: radio-uip-uaodv.c,v 1.4 2007/07/17 23:02:21 fros4943 Exp $
+ * @(#)$Id: radio-uip-uaodv.c,v 1.5 2007/07/26 13:22:01 fros4943 Exp $
  */
 
 #include "radio-uip-uaodv.h"
@@ -69,6 +69,7 @@
 #define ACK_ID_LENGTH 3
 #define ACK_CRC ACK_ID_LENGTH
 #define ACK_PACKET_LENGTH (ACK_ID_LENGTH + 2)
+#define ACK_TIMEOUT (CLOCK_SECOND / 50) * (random_rand() % 100)
 
 enum {
   EVENT_SEND_ACK
@@ -141,7 +142,8 @@ PROCESS_THREAD(radio_uip_process, ev, data)
           } else if (packet->resends > 0) {
             /* Resend packet */
             packet->resends--;
-            etimer_set(&packet->etimer, CLOCK_SECOND * 1);
+            etimer_set(&packet->etimer, ACK_TIMEOUT);
+
             radio->send(packet->data, packet->len);
 
           } else {
