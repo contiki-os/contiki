@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: cc2420.c,v 1.20 2007/06/28 15:08:53 bg- Exp $
+ * @(#)$Id: cc2420.c,v 1.21 2007/07/30 14:54:49 bg- Exp $
  */
 /*
  * This code is almost device independent and should be easy to port.
@@ -249,9 +249,8 @@ cc2420_resend(void)
   unsigned i;
   
   if (FIFOP_IS_1 && !FIFO_IS_1) {
-    /* RXFIFO overflow, send on retransmit. */
+    process_poll(&cc2420_process);
     PRINTF("rxfifo overflow!\n");
-    //    return UIP_FW_DROPPED;
   }
 
   /* The TX FIFO can only hold one packet! Make sure to not overrun
