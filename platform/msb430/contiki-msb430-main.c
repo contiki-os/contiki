@@ -53,7 +53,21 @@
 #include "net/mac/nullmac.h"
 #include "net/mac/xmac.h"
 
+#include "dev/slip.h"
+
 SENSORS(NULL);
+
+#if WITH_UIP
+static struct uip_fw_netif slipif =
+{UIP_FW_NETIF(192,168,1,2, 255,255,255,255, slip_send)};
+#else
+int
+putchar(int c)
+{
+  rs232_send(c);
+  return c;
+}
+#endif /* WITH_UIP */
 
 static void
 set_rime_addr(void)
@@ -117,30 +131,46 @@ main(void)
 
   uart_lock(UART_MODE_RS232);
   uart_unlock(UART_MODE_RS232);
-  //slip_arch_init(BAUD2UBR(115200));
-
-  cc1020_init(cc1020_config_19200);
-
-  // network configuration
-  node_id_restore();
-
-  nullmac_init(&cc1020_driver);
-  rime_init(&nullmac_driver);
-  set_rime_addr();
+#if WITH_UIP
+  slip_arch_init(BAUD2UBR(115200));
+#endif
 
   /* System services */
   process_start(&etimer_process, NULL);
   //process_start(&sensors_process, NULL);
 
+  //cc1020_init(cc1020_config_19200);
+
+  // network configuration
+  node_id_restore();
+ 
+#if WITH_UIP
+  uip_init();
+  uip_sethostaddr(&slipif.ipaddr);
+  uip_setnetmask(&slipif.netmask);
+  uip_fw_default(&slipif);	/* Point2point, no default router. */
+  tcpip_set_forwarding(0);
+#endif /* WITH_UIP */
+
+  nullmac_init(&cc1020_driver);
+  rime_init(&nullmac_driver);
+  set_rime_addr();
+
+#if WITH_UIP
+  process_start(&tcpip_process, NULL);
+  process_start(&uip_fw_process, NULL);	/* Start IP output */
+  process_start(&slip_process, NULL);
+#endif /* WITH_UIP */
+ 
   leds_off(LEDS_ALL);
-  
-  printf("Autostarting processes\n");
+  lpm_on();
   autostart_start((struct process **) autostart_processes);
 
   for (;;) {
-    while (process_run());
-    if (process_nevents() == 0)
-      LPM1;
+    while (process_run() > 0);
+    if (process_nevents() == 0) {
+      LPM_SLEEP();
+    }
   }
 
   return 0;

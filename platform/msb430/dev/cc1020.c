@@ -552,7 +552,6 @@ cc1020_reset(void)
 static int
 cc1020_calibrate(void)
 {
-  unsigned char tmp;
   unsigned int timeout_cnt;
 
   // Turn off PA to avoid spurs during calibration in TX mode
@@ -561,22 +560,20 @@ cc1020_calibrate(void)
   // Start calibration
   cc1020_write_reg(CC1020_CALIBRATE, 0xB5);
   clock_delay(1200);
-  while ((tmp = cc1020_read_reg(CC1020_STATUS) & CAL_COMPLETE) == 0);
+  while ((cc1020_read_reg(CC1020_STATUS) & CAL_COMPLETE) == 0);
   clock_delay(800);
 
   // Monitor lock
-  timeout_cnt = LOCK_TIMEOUT;
-
-  do {
-    tmp = cc1020_read_reg(CC1020_STATUS);
-  } while (tmp & LOCK_CONTINUOUS && --timeout_cnt > 0);
+  for (timeout_cnt = LOCK_TIMEOUT; timeout_cnt > 0; timeout_cnt--) {
+    if (cc1020_read_reg(CC1020_STATUS) & LOCK_CONTINUOUS)
+    	break;
+  }
 
   // Restore PA_POWER
   cc1020_write_reg(CC1020_PA_POWER, cc1020_pa_power);
 
   // Return state of LOCK_CONTINUOUS bit
-  return (cc1020_read_reg(CC1020_STATUS) & LOCK_CONTINUOUS) ==
-    LOCK_CONTINUOUS;
+  return (cc1020_read_reg(CC1020_STATUS) & LOCK_CONTINUOUS) == LOCK_CONTINUOUS;
 }
 
 static int
