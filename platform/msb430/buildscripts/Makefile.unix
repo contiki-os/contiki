@@ -7,7 +7,7 @@ ifndef JTAG_PORT
 endif
 
 %.u: %.$(TARGET)
-	$(JTAG) -l $(JTAG_PORT) -e
+	$(JTAG) -l $(JTAG_PORT) -m
 	$(JTAG) -l $(JTAG_PORT) -D -D -S -R 2048 -p $^
 	$(JTAG) -l $(JTAG_PORT) -D -r
 
