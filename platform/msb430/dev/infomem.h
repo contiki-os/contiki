@@ -42,21 +42,17 @@ Berlin, 2006
 
 /**
  * @file		infomem.h
- * @addtogroup	storage
+ * @addtogroup		storage
  * @brief		MSP430 Infomemory Storage
  * 
- * @author	Michael Baar	<baar@inf.fu-berlin.de>
+ * @author		Michael Baar	<baar@inf.fu-berlin.de>
  */
 
-#ifndef INFOMEM_H_
-#define INFOMEM_H_
+#ifndef INFOMEM_H
+#define INFOMEM_H
 
-/* These defines might depend on the specific CPU used and have to be defined in platform:
-#define INFOMEM_START		0x1000
-#define INFOMEM_BLOCK_SIZE	128
-*/
 #if !defined(INFOMEM_START) || !defined(INFOMEM_BLOCK_SIZE)
-	#error "Infomemory position (INFOMEM_START) and blocksize (INFOMEM_BLOCK_SIZE) need to be defined for current platform"
+  #error "infomem position (INFOMEM_START) and block size (INFOMEM_BLOCK_SIZE) need to be defined for the platform"
 #endif
 
 /**
@@ -65,21 +61,22 @@ Berlin, 2006
  * @param[in]		offset		Offset in infomemory (0-254)
  * @param[in]		size		Number of bytes to read
  */
-void infomem_read(void* buffer, unsigned int offset, unsigned char size);
+void infomem_read(void *buffer, unsigned int offset, unsigned char size);
 
 /**
  * @brief	Write bytes to infomemory
  * @param[in]		offset		Offset in infomemory (0-254)
  * @param[in]		count		Number of items following
- *								each item is a pair pointer, length
+ *					each item is a pair pointer, length
  *
  * Example: Infomem_write( 0, 2, &a,3, &b,1 );
  *
- * \note: The MSP430 has two consecutive blocks of infomemory. Each is 128 Bytes large.
- *        The offset is the relative address starting at the beginning of the first block.
- *        You can write an arbitrary number of bytes at any offse, but this 
- *        function cannot write across the two blocks of infomemory.
+ * \note: The MSP430 has two consecutive blocks of infomemory.
+ *        Each is 128 bytes large. The offset is the relative address 
+ *        starting at the beginning of the first block. You can write an 
+ *        arbitrary number of bytes at any offset, but this function 
+ *        cannot write across the two blocks of infomemory.
  */
 bool infomem_write(unsigned int offset, unsigned char count, ...);
 
-#endif // INFOMEM_H
+#endif // !INFOMEM_H

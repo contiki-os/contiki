@@ -57,62 +57,65 @@ Berlin, 2007
 #include <msp430/flash.h>
 #include "infomem.h"
 
-void infomem_read(void* buffer, unsigned int offset, unsigned char size) {
-	UINT8* address = (UINT8*)INFOMEM_START + offset;
-	memcpy(buffer, address, size);
+void
+infomem_read(void *buffer, unsigned int offset, unsigned char size)
+{
+  UINT8 *address = (UINT8 *) INFOMEM_START + offset;
+  memcpy(buffer, address, size);
 }
 
-bool infomem_write(unsigned int offset, unsigned char count, ...) {
-	char backup[INFOMEM_BLOCK_SIZE];
-	
-	register UINT8* buffer;
-	register UINT16 i;
-	UINT8*	 flash;
+bool
+infomem_write(unsigned int offset, unsigned char count, ...)
+{
+  char backup[INFOMEM_BLOCK_SIZE];	
+  UINT8 *buffer;
+  UINT16 i;
+  UINT8 *flash;
+  va_list argp;
+  UINT16 size;
+  UINT8 *data;
 
-	if( offset > ( 2 * INFOMEM_BLOCK_SIZE) )
-		return false;
+  if (offset > (2 * INFOMEM_BLOCK_SIZE))
+    return false;
 
-	flash = (UINT8*)INFOMEM_START + offset;
+  flash = (UINT8 *) INFOMEM_START + offset;
 
-	_DINT();
+  _DINT();
 
-	// backup into RAM
-	memcpy(backup, flash, INFOMEM_BLOCK_SIZE);
+  // backup into RAM
+  memcpy(backup, flash, INFOMEM_BLOCK_SIZE);
 
-	// merge backup with new data
-	va_list argp;
-	va_start(argp, count);
+  // merge backup with new data
+  va_start(argp, count);
 
-	buffer = (UINT8*)backup;
-	for( i = 0; i < count; i++ ) {
-		register UINT16	size;
-		register UINT8* data;
+  buffer = (UINT8 *) backup;
+  for (i = 0; i < count; i++) {
+    data = va_arg(argp, UINT8*);
+    size = va_arg(argp, UINT16);
+    memcpy(buffer, data, size);
+    buffer += size;
+  }
 
-		data = va_arg(argp, UINT8*);
-		size = va_arg(argp, UINT16);
-		memcpy(buffer, data, size);
-		buffer += size;
-	}
-	va_end(argp);
+  va_end(argp);
 
-	// init flash access
-    FCTL2 = FWKEY + FSSEL1 + FN2;
-    FCTL3 = FWKEY;
+  // init flash access
+  FCTL2 = FWKEY + FSSEL1 + FN2;
+  FCTL3 = FWKEY;
 
-	// erase flash
-    FCTL1 = FWKEY + ERASE;
-	*flash = 0;
+  // erase flash
+  FCTL1 = FWKEY + ERASE;
+  *flash = 0;
 
-	// write flash
-    FCTL1 = FWKEY + WRT;
-	buffer = (UINT8*)backup;
-	for( i = 0; i < INFOMEM_BLOCK_SIZE; i++ ) {
-		*flash = *buffer;
-		buffer++; flash++;
-	}
-    FCTL1 = FWKEY;
-    FCTL3 = FWKEY + LOCK;
+  // write flash
+  FCTL1 = FWKEY + WRT;
+  buffer = (UINT8 *) backup;
+  for (i = 0; i < INFOMEM_BLOCK_SIZE; i++) {
+    *flash++ = *buffer++;
+  }
 
-	_EINT();
-	return true;
+  FCTL1 = FWKEY;
+  FCTL3 = FWKEY + LOCK;
+
+  _EINT();
+  return true;
 }
