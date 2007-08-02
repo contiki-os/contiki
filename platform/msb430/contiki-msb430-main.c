@@ -139,7 +139,7 @@ main(void)
   process_start(&etimer_process, NULL);
   //process_start(&sensors_process, NULL);
 
-  //cc1020_init(cc1020_config_19200);
+  cc1020_init(cc1020_config_19200);
 
   // network configuration
   node_id_restore();
@@ -164,7 +164,11 @@ main(void)
  
   leds_off(LEDS_ALL);
   lpm_on();
+
+  printf("Autostarting processes\n");
   autostart_start((struct process **) autostart_processes);
+
+  printf(CONTIKI_VERSION_STRING " started. Node id %d.\n", node_id);
 
   for (;;) {
     while (process_run() > 0);
