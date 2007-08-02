@@ -51,12 +51,14 @@ interrupt(DACDMA_VECTOR) irq_dacdma(void)
     DMA0CTL &= ~(DMAIFG | DMAIE);
     line = 0;
     process_post(&cc1020_sender_process, cc1020_event, &line);
+    LPM_AWAKE();
   }
 
   if (DMA1CTL & DMAIFG) {
     DMA1CTL &= ~(DMAIFG | DMAIE);
     line = 1;
     process_post(&cc1020_sender_process, cc1020_event, &line);
+    LPM_AWAKE();
   }
 
   if (DAC12_0CTL & DAC12IFG) {
@@ -77,18 +79,22 @@ dma_transfer(unsigned char *buf, unsigned len)
     // No DMAONFETCH, ROUNDROBIN, ENNMI.
     DMACTL1 = 0x0000;
 
-    /*
-     * Single transfer mode, dstadr unchanged, srcadr 
-     * incremented, byte access
-     * Important to use DMALEVEL when using USART TX 
-     * interrupts so first edge 
-     * doesn't get lost (hangs every 50. - 100. time)!
-     */
-    DMA0CTL =
-      DMADT_0 | DMADSTINCR_0 | DMASRCINCR_3 | DMASBDB | DMALEVEL | DMAIE;
-    DMA0SA = (unsigned) buf;
-    DMA0DA = (unsigned) &TXBUF0;
-    DMA0SZ = len;
-    DMA0CTL |= DMAEN;           // enable DMA
-    U0CTL &= ~SWRST;            // enable UART, starts transfer
+  /*
+   * Set single transfer mode with byte-per-byte transfers.
+   *
+   * The source address is incremented for each byte, while the 
+   * destination address remains constant.
+   *
+   * Important to use DMALEVEL when using USART TX 
+   * interrupts so first edge 
+   * doesn't get lost (hangs every 50. - 100. time)!
+   */
+   DMA0CTL = DMADT_0 | DMADSTINCR_0 | DMASRCINCR_3 | DMASBDB | DMALEVEL | DMAIE;
+
+   DMA0SA = (unsigned) buf;
+   DMA0DA = (unsigned) &TXBUF0;
+   DMA0SZ = len;
+
+   DMA0CTL |= DMAEN;	// enable DMA
+   U0CTL &= ~SWRST;	// enable UART state machine, starts transfer
 }
