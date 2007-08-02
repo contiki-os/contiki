@@ -398,13 +398,11 @@ PROCESS_THREAD(cc1020_sender_process, ev, data)
     if (cc1020_state == CC1020_OFF)
       cc1020_set_rx();
 
-    // Radio is in RX mode.
-
     // Wait until the receiver is idle.
     PROCESS_WAIT_UNTIL(cc1020_rxstate == CC1020_RX_SEARCHING);
 
     // Wait for a short pseudo-random time before sending.
-    clock_delay(1 + (random_rand() & 0xff));
+    clock_delay(1 + 10 * (random_rand() & 0xff));
 
     // Switch to transceive mode.
     cc1020_set_tx();
@@ -435,12 +433,11 @@ cc1020_write_reg(u8_t addr, u8_t adata)
 
   // Send address bits 
   for (i = 0; i < 7; i++) {
-    nop();			// Delay50ns();
+    nop();
     PCLK_LOW;
-    nop();			// Delay50ns();
+    nop();
     if (data & 0x80)
       PDI_HIGH;
-
     else
       PDI_LOW;
     data = data << 1;
@@ -449,20 +446,20 @@ cc1020_write_reg(u8_t addr, u8_t adata)
 
   // Send read/write bit 
   // Ignore bit in data, always use 1 
-  nop();			// Delay50ns();
+  nop();
   PCLK_LOW;
   PDI_HIGH;
-  nop();			// Delay50ns();
+  nop();
   PCLK_HIGH;
-  nop();			// Delay50ns();
+  nop();
   PCLK_LOW;
   data = adata;
 
   // Send data bits 
   for (i = 0; i < 8; i++) {
-    nop();			// Delay50ns();
+    nop();
     PCLK_LOW;
-    nop();			// Delay50ns();
+    nop();
     if (data & 0x80)
       PDI_HIGH;
 
@@ -472,9 +469,9 @@ cc1020_write_reg(u8_t addr, u8_t adata)
     PCLK_HIGH;
   }
 
-  nop();			// Delay50ns();
+  nop();
   PCLK_LOW;
-  nop();			// Delay50ns();
+  nop();
   PSEL_OFF;
 }
 
@@ -487,15 +484,15 @@ cc1020_read_reg(u8_t addr)
   PSEL_OFF;
   data = addr << 1;
   PSEL_ON;
-  nop();			// Delay50ns();
+  nop();
+
   // Send address bits 
   for (i = 0; i < 7; i++) {
-    nop();			// Delay50ns();
+    nop();
     PCLK_LOW;
-    nop();			// Delay50ns();
+    nop();
     if (data & 0x80)
       PDI_HIGH;
-
     else
       PDI_LOW;
     data = data << 1;
@@ -504,28 +501,29 @@ cc1020_read_reg(u8_t addr)
 
   // Send read/write bit 
   // Ignore bit in data, always use 0 
-  nop();			// Delay50ns();
+  nop();
   PCLK_LOW;
   PDI_LOW;
-  nop();			// Delay50ns();
+  nop();
   PCLK_HIGH;
-  nop();			// Delay50ns();
+  nop();
   PCLK_LOW;
 
   // Receive data bits       
   for (i = 0; i < 8; i++) {
-    nop();			// Delay50ns();
+    nop();
     PCLK_HIGH;
-    nop();			// Delay50ns();
+    nop();
     data = data << 1;
     if (PDO)
       data++;
-    nop();			// Delay50ns();
+    nop();
     PCLK_LOW;
   }
 
-  nop();			// Delay50ns();
+  nop();
   PSEL_OFF;
+
   return data;
 }
 
