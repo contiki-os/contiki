@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: tr1001.h,v 1.4 2007/03/15 21:57:35 adamdunkels Exp $
+ * @(#)$Id: tr1001.h,v 1.5 2007/08/07 11:11:20 nifi Exp $
  */
 #ifndef __TR1001_H__
 #define __TR1001_H__
@@ -39,12 +39,17 @@
 #include "contiki-conf.h"
 
 /**
+ * Radio driver for TR1001
+ */
+extern const struct radio_driver tr1001_driver;
+
+/**
  * Initialize the radio tranciever.
  *
  * Turns on reception of bytes and installs the receive interrupt
  * handler.
  */
-void tr1001_init(struct process *p);
+void tr1001_init();
 
 /**
  * Set the speed of the TR1001 radio device.
@@ -109,7 +114,7 @@ void tr1001_set_numrexmit(unsigned char acks);
  * This function should normally not be called from user
  * programs. Rather, the uIP TCP/IP stack should be used.
  */
-u8_t tr1001_send(u8_t *packet, u16_t len);
+int tr1001_send(const u8_t *packet, u16_t len);
 
 /**
  * Check if an incoming packet has been received.
@@ -121,7 +126,7 @@ u8_t tr1001_send(u8_t *packet, u16_t len);
  * \return The length of the received packet, or 0 if no packet has
  * been received.
  */
-unsigned short tr1001_poll(u8_t *buf, u16_t bufsize);
+u16_t tr1001_read(u8_t *buf, u16_t bufsize);
 
 extern unsigned char tr1001_rxbuf[];
 extern volatile unsigned char tr1001_rxstate;
