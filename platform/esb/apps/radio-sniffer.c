@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: radio-sniffer.c,v 1.2 2007/03/16 12:19:33 fros4943 Exp $
+ * $Id: radio-sniffer.c,v 1.3 2007/08/07 11:20:11 nifi Exp $
  */
 
 /**
@@ -49,43 +49,38 @@
 PROCESS(radio_sniffer_process, "Radio sniffer");
 AUTOSTART_PROCESSES(&radio_sniffer_process);
 /*---------------------------------------------------------------------------*/
-PROCESS_THREAD(radio_sniffer_process, ev, data)
+static void
+sniffer_callback(const struct radio_driver *driver)
 {
   static char buf[40];
   static u8_t packet[UIP_BUFSIZE];
   static int len;
+  len = driver->read(packet, sizeof(packet));
+  if(len > 0) {
+    leds_blink();
+    len = hc_inflate(packet, len);
+    tcpdump_format(packet, len, buf, sizeof(buf));
+    printf("radio-sniffer %d: packet length %d, %s\n", node_id, len, buf);
+  }
+}
+/*---------------------------------------------------------------------------*/
+PROCESS_THREAD(radio_sniffer_process, ev, data)
+{
   PROCESS_BEGIN();
 
-  tr1001_init(&radio_sniffer_process);
+  tr1001_init();
+  tr1001_driver.set_receive_function(sniffer_callback);
 
-  printf("Radio sniffer started\n");
-  
+  printf("Radio sniffer started.\n");
+
   while(1) {
-    
     PROCESS_WAIT_EVENT();
-    
-    len = tr1001_poll(packet, sizeof(packet));
-    
-    if(len > 0) {
-      leds_blink();
-      len = hc_inflate(packet, len);
-      tcpdump_format(packet, sizeof(packet), buf, sizeof(buf));
-      printf("radio-sniffer %d: packet length %d, %s\n", node_id, len, buf);
-    }
   }
-  
   PROCESS_END();
 }
 /*---------------------------------------------------------------------------*/
 void
 init_net(void)
 {
-
-}
-/*---------------------------------------------------------------------------*/
-void
-tr1001_drv_request_poll(void)
-{
-  process_poll(&radio_sniffer_process);
 }
 /*---------------------------------------------------------------------------*/
