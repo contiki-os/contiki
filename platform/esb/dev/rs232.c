@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: rs232.c,v 1.2 2007/05/22 21:07:51 adamdunkels Exp $
+ * @(#)$Id: rs232.c,v 1.3 2007/08/07 11:06:14 nifi Exp $
  */
 
 /** \addtogroup esbrs232
@@ -61,7 +61,7 @@ interrupt(UART1RX_VECTOR)
   if(!(URCTL1 & RXERR) && input_handler != NULL) {
 
     if(input_handler(RXBUF1)) {
-      LPM_AWAKE();
+      LPM4_EXIT;
     }
   } else {
     /* Else read out the char to clear the I-flags, etc. */
