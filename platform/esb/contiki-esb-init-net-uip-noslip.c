@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: contiki-esb-init-net-uip-noslip.c,v 1.1 2007/05/09 15:13:01 nifi Exp $
+ * $Id: contiki-esb-init-net-uip-noslip.c,v 1.2 2007/08/07 11:17:54 nifi Exp $
  */
 
 #include "contiki-esb.h"
@@ -47,8 +47,9 @@ init_net(void)
   uip_fw_init();
 
   process_start(&tcpip_process, NULL);
-  process_start(&tr1001_uip_process, NULL);
   process_start(&uip_fw_process, NULL);
+
+  tr1001_uip_init();
 
   if (NODE_ID > 0) {
     /* node id is set, construct an ip address based on the node id */

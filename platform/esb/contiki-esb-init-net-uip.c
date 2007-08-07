@@ -26,14 +26,14 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: contiki-esb-init-net-uip.c,v 1.1 2007/04/05 08:11:57 nifi Exp $
+ * $Id: contiki-esb-init-net-uip.c,v 1.2 2007/08/07 11:17:54 nifi Exp $
  *
  * -----------------------------------------------------------------
  *
  * Author  : Adam Dunkels, Joakim Eriksson, Niclas Finne
  * Created : 2007-04-03
- * Updated : $Date: 2007/04/05 08:11:57 $
- *           $Revision: 1.1 $
+ * Updated : $Date: 2007/08/07 11:17:54 $
+ *           $Revision: 1.2 $
  */
 
 #include "contiki-esb.h"
@@ -58,8 +58,9 @@ init_net(void)
 
   process_start(&tcpip_process, NULL);
   process_start(&slip_process, NULL);
-  process_start(&tr1001_uip_process, NULL);
   process_start(&uip_fw_process, NULL);
+
+  tr1001_uip_init();
 
   if (NODE_ID > 0) {
     /* node id is set, construct an ip address based on the node id */
