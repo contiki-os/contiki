@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: tr1001.c,v 1.6 2007/03/28 09:52:35 joxe Exp $
+ * @(#)$Id: tr1001.c,v 1.7 2007/08/07 11:11:20 nifi Exp $
  */
 /**
  * \addtogroup esb
@@ -52,9 +52,9 @@
 
 #include "contiki-esb.h"
 
+#include "dev/tr1001.h"
 #include "lib/me.h"
 #include "lib/crc16.h"
-#include "net/tr1001-drv.h"
 
 #include <io.h>
 #include <signal.h>
@@ -112,7 +112,7 @@ struct tr1001_hdr {
 
 #define OFF 0
 #define ON 1
-static u8_t onoroff = ON;
+static u8_t onoroff = OFF;
 
 #define NUM_SYNCHBYTES 4
 
@@ -129,6 +129,7 @@ static struct pt rxhandler_pt;
 static struct timer rxtimer;
 
 static unsigned short tmp_sstrength, sstrength;
+static unsigned short tmp_count;
 
 #define DEBUG 0
 #if DEBUG
@@ -139,12 +140,30 @@ static unsigned short tmp_sstrength, sstrength;
 #endif
 
 /*---------------------------------------------------------------------------*/
+PROCESS(tr1001_process, "TR1001 driver");
+/*---------------------------------------------------------------------------*/
+
+static void (* receiver_callback)(const struct radio_driver *);
+
+static void tr1001_set_receiver(void (* recv)(const struct radio_driver *));
+static int tr1001_on(void);
+static int tr1001_off(void);
+
+const struct radio_driver tr1001_driver = {
+  tr1001_send,
+  tr1001_read,
+  tr1001_set_receiver,
+  tr1001_on,
+  tr1001_off
+};
+
+/*---------------------------------------------------------------------------*/
 #if TR1001_STATISTICS
-#define PACKET_DROPPED(bytes) do { \
+#define PACKET_DROPPED() do { \
   if(packets_err < ~0) {\
     packets_err++;\
   }\
-  sstrength_dropped = ((bytes) == 0 ? 0 : ((tmp_sstrength / (bytes)) << 1));\
+  sstrength_dropped = (tmp_count ? ((tmp_sstrength / tmp_count) << 2) : 0);\
 } while(0)
 #define PACKET_ACCEPTED() do {\
   if(packets_ok < ~0) {\
@@ -152,7 +171,7 @@ static unsigned short tmp_sstrength, sstrength;
   }\
 } while(0);
 #else
-#define PACKET_DROPPED(bytes)
+#define PACKET_DROPPED()
 #define PACKET_ACCEPTED()
 #endif /* TR1001_STATISTICS */
 /*---------------------------------------------------------------------------*/
@@ -212,24 +231,37 @@ rxclear(void)
  * Turn TR1001 radio transceiver off.
  */
 /*---------------------------------------------------------------------------*/
-void
-radio_off(void)
+static int
+tr1001_off(void)
 {
+  if(onoroff == OFF) {
+    return 1;
+  }
   onoroff = OFF;
   rxoff();
   rxclear();
+
+  ENERGEST_OFF(ENERGEST_TYPE_RECEIVE);
+  return 1;
 }
 /*---------------------------------------------------------------------------*/
 /*
  * Turn TR1001 radio transceiver on.
  */
 /*---------------------------------------------------------------------------*/
-void
-radio_on(void)
+static int
+tr1001_on(void)
 {
+  if(onoroff == ON) {
+    return 1;
+  }
+
+  ENERGEST_ON(ENERGEST_TYPE_RECEIVE);
+
   onoroff = ON;
   rxon();
   rxclear();
+  return 1;
 }
 /*---------------------------------------------------------------------------*/
 /*
@@ -310,6 +342,12 @@ tr1001_set_txpower(unsigned char p)
   P2OUT |= 0x40;                                /* P26 = 1 (chipselect off) */
 }
 /*---------------------------------------------------------------------------*/
+static void
+tr1001_set_receiver(void (* recv)(const struct radio_driver *))
+{
+  receiver_callback = recv;
+}
+/*---------------------------------------------------------------------------*/
 void
 tr1001_init(void)
 {
@@ -322,6 +360,7 @@ tr1001_init(void)
   sstrength_min = 0xFFFF;
   sstrength_max = 0;
 #endif /* TR1001_STATISTICS */
+  onoroff = OFF;
 
   UCTL0 = CHAR;                         /* 8-bit character */
   UTCTL0 = SSEL1;                       /* UCLK = SMCLK */
@@ -336,21 +375,24 @@ tr1001_init(void)
   timer_set(&rxtimer, CLOCK_SECOND / 4);
 
 
-  radio_on();
+  tr1001_on();
   tr1001_set_txpower(100);
 
   /* Reset reception state. */
   rxclear();
 
+  process_start(&tr1001_process, NULL);
 }
 /*---------------------------------------------------------------------------*/
 interrupt (UART0RX_VECTOR)
      tr1001_rxhandler(void)
 {
+  ENERGEST_ON(ENERGEST_TYPE_IRQ);
   tr1001_default_rxhandler_pt(RXBUF0);
   if(tr1001_rxstate == RXSTATE_FULL) {
-    LPM_AWAKE();
+    LPM4_EXIT;
   }
+  ENERGEST_OFF(ENERGEST_TYPE_IRQ);
 }
 /*---------------------------------------------------------------------------*/
 static void
@@ -375,6 +417,7 @@ PT_THREAD(tr1001_default_rxhandler_pt(unsigned char incoming_byte))
   if(tr1001_rxstate == RXSTATE_RECEVING) {
     unsigned short signal = radio_sensor_signal;
     tmp_sstrength += (signal >> 2);
+    tmp_count++;
     if(signal < tmp_sstrength_min) {
       tmp_sstrength_min = signal;
     }
@@ -406,6 +449,7 @@ PT_THREAD(tr1001_default_rxhandler_pt(unsigned char incoming_byte))
 
     /* Start signal strength measurement */
     tmp_sstrength = 0;
+    tmp_count = 0;
     tmp_sstrength_max = 0;
     tmp_sstrength_min = 0xFFFF;
 
@@ -423,7 +467,7 @@ PT_THREAD(tr1001_default_rxhandler_pt(unsigned char incoming_byte))
       if(!me_valid(incoming_byte)) {
 	beep_beep(1000);
 	LOG("Incorrect manchester in header at byte %d/1\n", tmppos);
-	PACKET_DROPPED(tmppos);
+	PACKET_DROPPED();
 	PT_RESTART(&rxhandler_pt);
       }
 
@@ -435,7 +479,7 @@ PT_THREAD(tr1001_default_rxhandler_pt(unsigned char incoming_byte))
       if(!me_valid(incoming_byte)) {
 	beep_beep(1000);
 	LOG("Incorrect manchester in header at byte %d/2\n", tmppos);
-	PACKET_DROPPED(tmppos + 1);
+	PACKET_DROPPED();
 	PT_RESTART(&rxhandler_pt);
       }
 
@@ -457,7 +501,7 @@ PT_THREAD(tr1001_default_rxhandler_pt(unsigned char incoming_byte))
     /* If the length is longer than we can handle, we'll start from
        the beginning. */
     if(tmppos + tr1001_rxlen > sizeof(tr1001_rxbuf)) {
-      PACKET_DROPPED(tmppos);
+      PACKET_DROPPED();
       PT_RESTART(&rxhandler_pt);
     }
 
@@ -469,7 +513,7 @@ PT_THREAD(tr1001_default_rxhandler_pt(unsigned char incoming_byte))
 	LOG("Incorrect manchester 0x%02x at byte %d/1\n", incoming_byte,
 	    tmppos - TR1001_HDRLEN);
 	beep_beep(1000);
-	PACKET_DROPPED(tmppos);
+	PACKET_DROPPED();
 	PT_RESTART(&rxhandler_pt);
       }
 
@@ -480,7 +524,7 @@ PT_THREAD(tr1001_default_rxhandler_pt(unsigned char incoming_byte))
       if(!me_valid(incoming_byte)) {
 	LOG("Incorrect manchester at byte %d/2\n", tmppos - TR1001_HDRLEN);
 	beep_beep(1000);
-	PACKET_DROPPED(tmppos + 1);
+	PACKET_DROPPED();
 	PT_RESTART(&rxhandler_pt);
       }
 
@@ -496,7 +540,7 @@ PT_THREAD(tr1001_default_rxhandler_pt(unsigned char incoming_byte))
 
       if(!me_valid(incoming_byte)) {
 	beep_beep(1000);
-	PACKET_DROPPED(tr1001_rxlen + TR1001_HDRLEN);
+	PACKET_DROPPED();
 	PT_RESTART(&rxhandler_pt);
       }
 
@@ -508,7 +552,7 @@ PT_THREAD(tr1001_default_rxhandler_pt(unsigned char incoming_byte))
 	 request the driver to take care of the incoming data. */
 
       PACKET_ACCEPTED();
-      tr1001_drv_request_poll();
+      process_poll(&tr1001_process);
 
       /* We'll set the receive state flag to signal that a full frame
 	 is present in the buffer, and we'll wait until the buffer has
@@ -519,7 +563,7 @@ PT_THREAD(tr1001_default_rxhandler_pt(unsigned char incoming_byte))
     } else {
       LOG("Incorrect CRC");
       beep_beep(1000);
-      PACKET_DROPPED(tr1001_rxlen + TR1001_HDRLEN);
+      PACKET_DROPPED();
     }
   }
   PT_END(&rxhandler_pt);
@@ -577,13 +621,15 @@ prepare_transmission(int synchbytes)
 
 }
 /*---------------------------------------------------------------------------*/
-u8_t
-tr1001_send(u8_t *packet, u16_t len)
+int
+tr1001_send(const u8_t *packet, u16_t len)
 {
   int i;
   u16_t crc16;
 
   LOG("tr1001_send: sending %d bytes\n", len);
+
+  ENERGEST_ON(ENERGEST_TYPE_TRANSMIT);
 
   /* Prepare the transmission. */
   prepare_transmission(NUM_SYNCHBYTES);
@@ -620,11 +666,13 @@ tr1001_send(u8_t *packet, u16_t len)
     rxclear();
   }
 
-  return UIP_FW_OK;
+  ENERGEST_OFF(ENERGEST_TYPE_TRANSMIT);
+
+  return 0;
 }
 /*---------------------------------------------------------------------------*/
-unsigned short
-tr1001_poll(u8_t *buf, u16_t bufsize)
+u16_t
+tr1001_read(u8_t *buf, u16_t bufsize)
 {
   unsigned short tmplen;
 
@@ -637,24 +685,46 @@ tr1001_poll(u8_t *buf, u16_t bufsize)
     /*    if(tmplen > UIP_BUFSIZE - (UIP_LLH_LEN - TR1001_HDRLEN)) {
       tmplen = UIP_BUFSIZE - (UIP_LLH_LEN - TR1001_HDRLEN);
       }*/
-    if(tmplen > bufsize - TR1001_HDRLEN) {
-      tmplen = bufsize - TR1001_HDRLEN;
+    if(tmplen > bufsize) {
+      tmplen = bufsize;
     }
 
     memcpy(buf, &tr1001_rxbuf[TR1001_HDRLEN], tmplen);
 
     /* header + content + CRC */
-    sstrength = (tmp_sstrength / (TR1001_HDRLEN + tr1001_rxlen + 2)) << 1;
+    sstrength = (tmp_count ? ((tmp_sstrength / tmp_count) << 2) : 0);
     sstrength_max = tmp_sstrength_max;
     sstrength_min = tmp_sstrength_min;
 
     rxclear();
 
-    LOG("tr1001_poll: got %d bytes\n", tmplen);
+    LOG("tr1001_read: got %d bytes\n", tmplen);
 
     return tmplen;
   }
   return 0;
+}
+/*---------------------------------------------------------------------------*/
+PROCESS_THREAD(tr1001_process, ev, data)
+{
+  PROCESS_BEGIN();
+
+  /* Reset reception state now that the process is ready to receive data. */
+  rxclear();
+
+  while(1) {
+    PROCESS_YIELD_UNTIL(ev == PROCESS_EVENT_POLL);
+    if(receiver_callback != NULL) {
+      receiver_callback(&tr1001_driver);
+    } else {
+      LOG("tr1001 has no receive function\n");
+
+      /* Perform a dummy read to drop the message. */
+      tr1001_read(&data, 0);
+    }
+  }
+
+  PROCESS_END();
 }
 /*---------------------------------------------------------------------------*/
 void
