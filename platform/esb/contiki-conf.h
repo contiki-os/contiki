@@ -37,6 +37,9 @@ unsigned long clock_seconds(void);
 
 #define LOG_CONF_ENABLED 0
 
+/* Standard integer types. */
+#include <stdint.h>
+
 /**
  * The 8-bit unsigned data type.
  *
