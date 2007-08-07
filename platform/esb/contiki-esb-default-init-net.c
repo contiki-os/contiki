@@ -28,23 +28,22 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: contiki-esb-default-init-net.c,v 1.6 2007/04/04 09:12:14 fros4943 Exp $
+ * @(#)$Id: contiki-esb-default-init-net.c,v 1.7 2007/08/07 11:17:54 nifi Exp $
  */
 
 #include "contiki-esb.h"
 
 #include "net/rime.h"
-
-#include "net/tr1001-rime.h"
+#include "net/mac/nullmac.h"
 
 void
 init_net(void)
 {
   rimeaddr_t rimeaddr;
 
-  process_start(&tr1001_rime_process, NULL);
-
-  rime_init();
+  tr1001_init();
+  nullmac_init(&tr1001_driver);
+  rime_init(&nullmac_driver);
   rimeaddr.u8[0] = node_id >> 8;
   rimeaddr.u8[1] = node_id & 0xff;
   rimeaddr_set_node_addr(&rimeaddr);
