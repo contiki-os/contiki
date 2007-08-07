@@ -28,40 +28,38 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: tr1001-uip.c,v 1.1 2007/03/15 21:55:59 adamdunkels Exp $
+ * @(#)$Id: tr1001-uip.c,v 1.2 2007/08/07 11:14:39 nifi Exp $
  */
 
 #include "contiki-esb.h"
 #include "net/hc.h"
 
-PROCESS(tr1001_uip_process, "TR1001 driver");
-
 /*---------------------------------------------------------------------------*/
-PROCESS_THREAD(tr1001_uip_process, ev, data)
+static void
+tr1001_uip_callback(const struct radio_driver *driver)
 {
-  PROCESS_BEGIN();
-
-  tr1001_init(&tr1001_uip_process);
-  
-  while(1) {
-    
-    PROCESS_WAIT_EVENT_UNTIL(ev == PROCESS_EVENT_POLL);
-    
-    uip_len = tr1001_poll(&uip_buf[UIP_LLH_LEN], UIP_BUFSIZE - UIP_LLH_LEN);
-    
-    if(uip_len > 0) {
-      uip_len = hc_inflate(&uip_buf[UIP_LLH_LEN], uip_len);
-      tcpip_input();
-    }
+  uip_len = driver->read(&uip_buf[UIP_LLH_LEN], UIP_BUFSIZE - UIP_LLH_LEN);
+  if(uip_len > 0) {
+    uip_len = hc_inflate(&uip_buf[UIP_LLH_LEN], uip_len);
+    tcpip_input();
   }
-  
-  PROCESS_END();
+}
+/*---------------------------------------------------------------------------*/
+void
+tr1001_uip_init()
+{
+  tr1001_init();
+  tr1001_driver.set_receive_function(tr1001_uip_callback);
 }
 /*---------------------------------------------------------------------------*/
 u8_t
 tr1001_uip_send(void)
 {
   uip_len = hc_compress(&uip_buf[UIP_LLH_LEN], uip_len);
-  return tr1001_send(&uip_buf[UIP_LLH_LEN], uip_len);
+  if (tr1001_driver.send(&uip_buf[UIP_LLH_LEN], uip_len) == 0) {
+    return UIP_FW_OK;
+  } else {
+    return UIP_FW_DROPPED;
+  }
 }
 /*---------------------------------------------------------------------------*/

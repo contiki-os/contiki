@@ -28,12 +28,12 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: tr1001-uip.h,v 1.1 2007/03/15 21:55:59 adamdunkels Exp $
+ * @(#)$Id: tr1001-uip.h,v 1.2 2007/08/07 11:14:39 nifi Exp $
  */
 #ifndef __TR1001_UIP_H__
 #define __TR1001_UIP_H__
 
-PROCESS_NAME(tr1001_uip_process);
+void tr1001_uip_init();
 u8_t tr1001_uip_send(void);
 
 #endif /* __TR1001_UIP_H__ */
