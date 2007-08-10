@@ -30,15 +30,12 @@
 ; 
 ; Author: Adam Dunkels <adam@sics.se>
 ;
-; $Id: mtarch-asm.S,v 1.1 2007/04/21 22:15:45 oliverschmidt Exp $
+; $Id: mtarch-asm.S,v 1.2 2007/08/10 10:45:35 oliverschmidt Exp $
 ;
 ;---------------------------------------------------------------------       
-	.importzp       ptr1
-	.importzp	sp
 	.import		__ZP_START__
 	
 	.import		_mtarch_asm_threadspreg
-	.import		_mtarch_asm_threadsp
 	.import		_mtarch_asm_threadzp	
 	.import		_mtarch_asm_threadstack
 	
@@ -48,68 +45,77 @@
 	
 ;---------------------------------------------------------------------
 .bss
-kernelsp:	.res 2
-kernelspreg:	.res 1		
+kernelspreg:	.res 1
+zpsave:		.res 2
 	
-zpsize	= 32
+zpspace	= 26	; see <cc65 source>/asminc/zeropage.inc
 
 ;---------------------------------------------------------------------	
 .code
-; Switch to thread defined by threadsp, threadstack and threadspreg.
-; The kernel stack is swapped onto the threadstack, and the
-; sp and spreg are saved to the local variables "kernelsp" and
-; "kernelspreg". Also, the zeropage variables are saved.
+; Switch to thread defined by threadzp, threadstack and threadspreg.
+; The kernel CPU stack is swapped onto the threadstack, and the
+; CPU stack pointer is saved to the local variable "kernelspreg".
+; Also, the zeropage variables are saved.
 _mtarch_asm_exec:
 	sei
-	; Save current stack pointer
-	lda sp
-	sta kernelsp
-	lda sp+1
-	sta kernelsp+1
 	
+	; Save kernel CPU stack pointer
 	tsx
 	stx kernelspreg
-	
-	lda _mtarch_asm_threadzp
-	sta ptr1
-	lda _mtarch_asm_threadzp+1
-	sta ptr1+1
 
+	; Save zp locations FE/FF
+	lda $FE
+	sta zpsave
+	lda $FF
+	sta zpsave+1
+
+	; Get zero page buffer addr
+	lda _mtarch_asm_threadzp
+	sta $FE
+	lda _mtarch_asm_threadzp+1
+	sta $FF
+
+	; Swap zero page content with buffer content
 	ldy #0
 :	lda <__ZP_START__,y
 	tax
-	lda (ptr1),y
+	lda ($FE),y
 	sta <__ZP_START__,y
 	txa
-	sta (ptr1),y	
+	sta ($FE),y	
 	iny
-	cpy #zpsize
+	cpy #zpspace
 	bne :-
 	
+	; Get CPU stack buffer addr
 	lda _mtarch_asm_threadstack
-	sta ptr1
+	sta $FE
 	lda _mtarch_asm_threadstack+1
-	sta ptr1+1
+	sta $FF
 
+	; Get CPU stack size
 	ldy kernelspreg             ; Determine the smallest of the two stack pointers,
         cpy _mtarch_asm_threadspreg ; as we only need to swap the used part of the stack.
         bcc :+
         ldy _mtarch_asm_threadspreg
 
+	; Swap CPU stack content with buffer content
 :	lda $0100,y
 	tax	
-	lda (ptr1),y
+	lda ($FE),y
 	sta $0100,y
 	txa
-	sta (ptr1),y
+	sta ($FE),y
 	iny
 	bne :-
 
-	lda _mtarch_asm_threadsp
-	sta sp
-	lda _mtarch_asm_threadsp+1
-	sta sp+1
-	
+	; Restore zp locations FE/FF
+	lda zpsave
+	sta $FE
+	lda zpsave+1
+	sta $FF
+
+	; Set thread CPU stack pointer
 	ldx _mtarch_asm_threadspreg
 	txs
 
@@ -121,10 +127,10 @@ _mtarch_asm_exec:
 	rti
 
 ;---------------------------------------------------------------------
-; Switch from thread defined by threadsp, threadstack and threadspreg.
-; The kernel stack is swapped back from the threadstack, and the
-; sp and spreg are restored from the local variables "kernelsp" and
-; "kernelspreg".
+; Switch from thread defined by threadzp, threadstack and threadspreg.
+; The kernel CPU stack is swapped back from the threadstack, and the
+; CPU stack pointer is restored from the local variable "kernelspreg".
+; Also, the zeropage variables are restored.
 _mtarch_asm_yield:
 	php
 	pha
@@ -144,54 +150,63 @@ _mtarch_asm_yield:
         adc #0
         sta $0106,x
  	
-	lda sp
-	sta _mtarch_asm_threadsp
-	lda sp+1
-	sta _mtarch_asm_threadsp+1
-
+	; Save thread CPU stack pointer
 	tsx
 	stx _mtarch_asm_threadspreg
 
-	lda _mtarch_asm_threadzp
-	sta ptr1
-	lda _mtarch_asm_threadzp+1
-	sta ptr1+1
+	; Save zp locations FE/FF
+	lda $FE
+	sta zpsave
+	lda $FF
+	sta zpsave+1
 
+	; Get zero page buffer addr
+	lda _mtarch_asm_threadzp
+	sta $FE
+	lda _mtarch_asm_threadzp+1
+	sta $FF
+
+	; Swap zero page content with buffer content
+	ldy #0
+:	lda <__ZP_START__,y
+	tax
+	lda ($FE),y
+	sta <__ZP_START__,y
+	txa
+	sta ($FE),y	
+	iny
+	cpy #zpspace
+	bne :-
+
+	; Get CPU stack buffer addr
+	lda _mtarch_asm_threadstack
+	sta $FE
+	lda _mtarch_asm_threadstack+1
+	sta $FF
+
+	; Get CPU stack size
 	ldy kernelspreg             ; Determine the smallest of the two stack pointers,
         cpy _mtarch_asm_threadspreg ; as we only need to swap the used part of the stack.
         bcc :+
         ldy _mtarch_asm_threadspreg
 
-:	lda <__ZP_START__,y
-	tax
-	lda (ptr1),y
-	sta <__ZP_START__,y
-	txa
-	sta (ptr1),y	
-	iny
-	cpy #zpsize
-	bne :-
-
-	lda _mtarch_asm_threadstack
-	sta ptr1
-	lda _mtarch_asm_threadstack+1
-	sta ptr1+1
-
-	ldy #0
+	; Swap CPU stack content with buffer content
 :	lda $0100,y
 	tax	
-	lda (ptr1),y
+	lda ($FE),y
 	sta $0100,y
 	txa
-	sta (ptr1),y
+	sta ($FE),y
 	iny
 	bne :-
 
-	lda kernelsp
-	sta sp
-	lda kernelsp+1
-	sta sp+1
-	
+	; Restore zp locations FE/FF
+	lda zpsave
+	sta $FE
+	lda zpsave+1
+	sta $FF
+
+	; Set kernel CPU stack pointer
 	ldx kernelspreg
 	txs
 
@@ -199,16 +214,31 @@ _mtarch_asm_yield:
 	rts
 ;---------------------------------------------------------------------
 _mtarch_asm_start:
-	lda _mtarch_asm_threadzp
-	sta ptr1
-	lda _mtarch_asm_threadzp+1
-	sta ptr1+1
+	; Save zp locations FE/FF
+	lda $FE
+	sta zpsave
+	lda $FF
+	sta zpsave+1
 
-	ldy #0
+	; Get zero page buffer addr
+	lda _mtarch_asm_threadzp
+	sta $FE
+	lda _mtarch_asm_threadzp+1
+	sta $FF
+
+	; Copy zero page content to buffer
+	ldy #$00
 :	lda <__ZP_START__,y
-	sta (ptr1),y	
+	sta ($FE),y	
 	iny
-	cpy #zpsize
+	cpy #zpspace
 	bne :-
+
+	; Restore zp locations FE/FF
+	lda zpsave
+	sta $FE
+	lda zpsave+1
+	sta $FF
+
 	rts
 ;---------------------------------------------------------------------

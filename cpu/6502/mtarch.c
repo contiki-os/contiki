@@ -30,7 +30,7 @@
  * 
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: mtarch.c,v 1.1 2007/04/21 22:15:45 oliverschmidt Exp $
+ * $Id: mtarch.c,v 1.2 2007/08/10 10:45:35 oliverschmidt Exp $
  */
 
 #include <string.h>
@@ -38,7 +38,6 @@
 #include "mtarch.h"
 
 unsigned char  mtarch_asm_threadspreg;
-unsigned char *mtarch_asm_threadsp;
 unsigned char *mtarch_asm_threadzp;
 unsigned char *mtarch_asm_threadstack;
 
@@ -65,6 +64,10 @@ mtarch_start(struct mtarch_thread *thread,
   memset(thread->cpustack, 0, sizeof(thread->cpustack));
   memset(thread->cstack,   0, sizeof(thread->cstack));
   
+  /* Copy current zero page content as template. */
+  mtarch_asm_threadzp = &(thread->zp);
+  mtarch_asm_start();
+
   /* Create a CPU stack frame with the appropriate values. */
   thread->cpustack[MTARCH_CPUSTACKSIZE - 2] = ((unsigned short)function) / 0x100; /* high byte of return address */
   thread->cpustack[MTARCH_CPUSTACKSIZE - 3] = ((unsigned short)function) % 0x100; /* low  byte of return address */
@@ -75,12 +78,12 @@ mtarch_start(struct mtarch_thread *thread,
   thread->spreg = MTARCH_CPUSTACKSIZE - 8;
 
   /* Setup the C stack with the data pointer. */
-  thread->cstack[MTARCH_CPUSTACKSIZE - 2] = ((unsigned short)data) / 0x100; /* high byte of data pointer */
-  thread->cstack[MTARCH_CPUSTACKSIZE - 3] = ((unsigned short)data) % 0x100; /* low  byte of data pointer */
-  thread->sp = &thread->cstack[MTARCH_CSTACKSIZE - 3];
+  thread->cstack[MTARCH_CSTACKSIZE - 2] = ((unsigned short)data) / 0x100; /* high byte of data pointer */
+  thread->cstack[MTARCH_CSTACKSIZE - 3] = ((unsigned short)data) % 0x100; /* low  byte of data pointer */
   
-  mtarch_asm_threadzp = &(thread->zp);
-  mtarch_asm_start();
+  /* Setup the C stack pointer. */
+  thread->zp[1] = ((size_t)&thread->cstack[MTARCH_CSTACKSIZE - 3]) / 0x100; /* high byte of C stack pointer */
+  thread->zp[0] = ((size_t)&thread->cstack[MTARCH_CSTACKSIZE - 3]) % 0x100; /* low  byte of C stack pointer */
 }
 /*--------------------------------------------------------------------------*/
 void
@@ -95,14 +98,12 @@ mtarch_exec(struct mtarch_thread *thread)
   /* Switch processor stack. The call to mtarch_asm_switch() will not
      return until the process that we switch to calls yield(). */
   mtarch_asm_threadspreg = thread->spreg;
-  mtarch_asm_threadsp    = thread->sp;
 
-  mtarch_asm_threadstack = &(thread->cpustack[0]);  
-  mtarch_asm_threadzp    = &(thread->zp[0]);
+  mtarch_asm_threadstack = thread->cpustack;  
+  mtarch_asm_threadzp    = thread->zp;
   
   mtarch_asm_exec();
 
-  thread->sp = mtarch_asm_threadsp;
   thread->spreg = mtarch_asm_threadspreg;  
 }
 /*--------------------------------------------------------------------------*/
