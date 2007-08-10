@@ -28,10 +28,10 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: rand.h,v 1.2 2007/07/03 13:26:15 bg- Exp $
+ * @(#)$Id: rand.h,v 1.3 2007/08/10 08:02:01 oliverschmidt Exp $
  */
 /* -*- C -*- */
-/* @(#)$Id: rand.h,v 1.2 2007/07/03 13:26:15 bg- Exp $ */
+/* @(#)$Id: rand.h,v 1.3 2007/08/10 08:02:01 oliverschmidt Exp $ */
 
 #ifndef RAND_H
 #define RAND_H
@@ -50,7 +50,7 @@
  * Comm. of the ACM, V. 31. No. 10, pp 1192-1201
  */
 
-extern int32_t rand_state;
+extern s32_t rand_state;
 
 int rand(void);
 
