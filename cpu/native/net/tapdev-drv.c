@@ -28,12 +28,14 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: tapdev-drv.c,v 1.3 2007/05/26 22:51:38 oliverschmidt Exp $
+ * @(#)$Id: tapdev-drv.c,v 1.4 2007/08/10 14:59:59 oliverschmidt Exp $
  */
 
 #include "contiki-net.h"
 #include "tapdev.h"
 #include "net/uip-neighbor.h"
+
+#include "tapdev-drv.h"
 
 #define BUF ((struct uip_eth_hdr *)&uip_buf[0])
 
