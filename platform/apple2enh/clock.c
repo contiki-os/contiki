@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006, Swedish Institute of Computer Science.
+ * Copyright (c) 2007, Swedish Institute of Computer Science.
  * All rights reserved. 
  *
  * Redistribution and use in source and binary forms, with or without 
@@ -30,69 +30,49 @@
  * 
  * Author: Oliver Schmidt <ol.sc@web.de>
  *
- * $Id: contiki-main.c,v 1.3 2007/08/10 13:30:02 oliverschmidt Exp $
+ * $Id: clock.c,v 1.1 2007/08/10 13:30:02 oliverschmidt Exp $
  */
+
+#include <apple2.h>
+
+#include "contiki.h"
+
+/* The enhanced Apple//e doesn't have a hardware clock whatsoever. Therefore the
+ * cc65 C-library for this target doesn't include an implementation of clock().
+ */
+
+static unsigned char tick = 14;
+static clock_time_t time;
 
 #include <stdio.h>
 
-#include "contiki-net.h"
-
-PROCINIT(&etimer_process,
-	 &tcpip_process);
-
-void clock_update(void);
-
 /*-----------------------------------------------------------------------------------*/
 void
-uip_log(char *message)
+clock_init(void)
 {
-  fprintf(stderr, "%s\n", message);
-}
-/*-----------------------------------------------------------------------------------*/
-void
-log_message(const char *part1, const char *part2)
-{
-  fprintf(stderr, "%s%s\n", part1, part2);
-}
-/*-----------------------------------------------------------------------------------*/
-void
-main(void)
-{
-  process_init();
-
-  procinit_init();
-
-  autostart_start((struct process **)autostart_processes);
-
-#if 1
-  {
-    uip_ipaddr_t addr;
-    uip_ipaddr(&addr, 192,168,0,128);
-    uip_sethostaddr(&addr);
-
-    uip_ipaddr(&addr, 255,255,255,0);
-    uip_setnetmask(&addr);
-
-    uip_ipaddr(&addr, 192,168,0,1);
-    uip_setdraddr(&addr);
-
-    uip_ipaddr(&addr, 192,168,0,1);
-    resolv_conf(&addr);
-  }
-#endif
-
-  clock_init();
-
-  printf("Contiki initiated, now starting process scheduling\n");
-  
-  while(1) {
-
-    clock_update();
-
-    if(process_run() < 2) {
-
-      etimer_request_poll();
+  if(get_ostype() >= APPLE_IIGS) {
+    if(*(signed char *)0xC036 < 0) {
+      /* 5 / 14 = 1.0MHz / 2.8MHz */
+      tick = 5;
     }
   }
+}
+/*-----------------------------------------------------------------------------------*/
+void
+clock_update(void)
+{
+  static unsigned int count;
+
+  count += tick;
+  if(count > 2500) {
+    count = 0;
+    ++time;
+  }
+}
+/*-----------------------------------------------------------------------------------*/
+clock_time_t
+clock_time(void)
+{
+  return time;
 }
 /*-----------------------------------------------------------------------------------*/
