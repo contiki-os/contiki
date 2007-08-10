@@ -30,7 +30,7 @@
  * 
  * Author: Oliver Schmidt <ol.sc@web.de>
  *
- * $Id: multi-threading.c,v 1.2 2007/04/04 17:41:28 oliverschmidt Exp $
+ * $Id: multi-threading.c,v 1.3 2007/08/10 10:33:28 oliverschmidt Exp $
  */
 
 /**
@@ -62,7 +62,7 @@
 #include "contiki.h"
 #include "sys/mt.h"
 
-static char buf[10];
+static char buf[12];
 
 PROCESS(multi_threading_process, "Multi-threading process");
 AUTOSTART_PROCESSES(&multi_threading_process);
@@ -86,7 +86,7 @@ static void
 thread_main(void *data)
 {
   while(1) {
-    thread_func((char *)data, 8);
+    thread_func((char *)data, 9);
   }
   mt_exit();
 }
@@ -102,8 +102,8 @@ PROCESS_THREAD(multi_threading_process, ev, data)
   PROCESS_BEGIN();
 
   mt_init();
-  mt_start(&alpha_thread, thread_main, "IHGFEDCBA");
-  mt_start(&count_thread, thread_main, "987654321");
+  mt_start(&alpha_thread, thread_main, "JIHGFEDCBA");
+  mt_start(&count_thread, thread_main, "9876543210");
 
   etimer_set(&timer, CLOCK_SECOND / 2);
 
