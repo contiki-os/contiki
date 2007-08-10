@@ -30,7 +30,7 @@
  * 
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: mtarch.h,v 1.2 2007/04/21 22:15:45 oliverschmidt Exp $
+ * $Id: mtarch.h,v 1.3 2007/08/10 10:45:35 oliverschmidt Exp $
  */
 
 #ifndef __MTARCH_H__
@@ -38,11 +38,10 @@
 
 #define MTARCH_CPUSTACKSIZE 256
 #define MTARCH_CSTACKSIZE   256
-#define MTARCH_ZPSIZE       32
+#define MTARCH_ZPSIZE       26 // see <cc65 source>/asminc/zeropage.inc
 
 struct mtarch_thread {
   unsigned char spreg;
-  unsigned char *sp;
   unsigned char cpustack[MTARCH_CPUSTACKSIZE];
   unsigned char cstack  [MTARCH_CSTACKSIZE];
   unsigned char zp      [MTARCH_ZPSIZE];
