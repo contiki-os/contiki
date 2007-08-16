@@ -1,6 +1,9 @@
 #ifndef __CONTIKI_CONF_H__
 #define __CONTIKI_CONF_H__
 
+#define HAVE_STDINT_H
+#include <msp430def.h>
+
 #define QUEUEBUF_CONF_NUM 2
 #define ENERGEST_CONF_ON 1
 
@@ -36,41 +39,6 @@ unsigned long clock_seconds(void);
 #include "ctk/ctk-vncarch.h"
 
 #define LOG_CONF_ENABLED 0
-
-/* Standard integer types. */
-#include <stdint.h>
-
-/**
- * The 8-bit unsigned data type.
- *
- * This may have to be tweaked for your particular compiler. "unsigned
- * char" works for most compilers.
- */
-typedef unsigned char u8_t;
-
-/**
- * The 16-bit unsigned data type.
- *
- * This may have to be tweaked for your particular compiler. "unsigned
- * short" works for most compilers.
- */
-typedef unsigned short u16_t;
-
-/**
- * The 32-bit unsigned data type.
- *
- * This may have to be tweaked for your particular compiler. "unsigned
- * long" works for most compilers.
- */
-typedef unsigned long u32_t;
-
-/**
- * The 32-bit signed data type.
- *
- * This may have to be tweaked for your particular compiler. "signed
- * long" works for most compilers.
- */
-typedef long s32_t;
 
 /**
  * The statistics data type.
