@@ -1,13 +1,16 @@
 /* -*- C -*- */
-/* @(#)$Id: contiki-conf.h,v 1.16 2007/05/22 21:12:15 adamdunkels Exp $ */
+/* @(#)$Id: contiki-conf.h,v 1.17 2007/08/16 13:10:53 bg- Exp $ */
 
 #ifndef CONTIKI_CONF_H
 #define CONTIKI_CONF_H
 
+#define HAVE_STDINT_H
+#include "msp430def.h"
+
+#define RF_CHANNEL              26
+
 #define ELFLOADER_CONF_DATAMEMORY_SIZE 0x1800
 #define ELFLOADER_CONF_TEXTMEMORY_SIZE 0x1000
-
-#define LPM_CONF_OFF LPM4_EXIT
 
 #define IRQ_PORT1 0x01
 #define IRQ_PORT2 0x02
@@ -16,17 +19,8 @@
 #define CCIF
 #define CLIF
 
+#define AODV_COMPLIANCE
 #define AODV_NUM_RT_ENTRIES 32
-
-/* Helper prototypes that should go somewhere. */
-void   *sbrk(int);
-void    splx_(int);
-int     splhigh_(void);
-void msp430_cpu_init(void);	/* Rename to cpu_init() later! */
-
-#define cpu_init() msp430_cpu_init()
-#define splhigh() splhigh_()
-#define splx(sr) __asm__ __volatile__("bis %0, r2" : : "r" (sr))
 
 #define TMOTE_SKY 1
 #define WITH_ASCII 1
@@ -70,10 +64,6 @@ void msp430_cpu_init(void);	/* Rename to cpu_init() later! */
 /* Button sensors. */
 #define IRQ_PORT2 0x02
 
-typedef unsigned char   u8_t;
-typedef unsigned short u16_t;
-typedef unsigned long  u32_t;
-typedef          long  s32_t;
 typedef unsigned short uip_stats_t;
 typedef unsigned short clock_time_t;
 
