@@ -42,22 +42,26 @@
 
 #include "contiki-msb430.h"
 #include "dev/cc1020.h"
+#include "dev/dma.h"
+
+static struct process *subscribers[DMA_LINES];
+process_event_t dma_event;
 
 interrupt(DACDMA_VECTOR) irq_dacdma(void)
 {
-  static unsigned char line;
-
   if (DMA0CTL & DMAIFG) {
     DMA0CTL &= ~(DMAIFG | DMAIE);
-    line = 0;
-    process_post(&cc1020_sender_process, cc1020_event, &line);
+    if (subscribers[0] != NULL) {
+      process_post(subscribers[0], dma_event, NULL);
+    }
     LPM_AWAKE();
   }
 
   if (DMA1CTL & DMAIFG) {
     DMA1CTL &= ~(DMAIFG | DMAIE);
-    line = 1;
-    process_post(&cc1020_sender_process, cc1020_event, &line);
+    if (subscribers[1] != NULL) {
+      process_post(subscribers[1], dma_event, NULL);
+    }
     LPM_AWAKE();
   }
 
@@ -71,13 +75,28 @@ interrupt(DACDMA_VECTOR) irq_dacdma(void)
 }
 
 void
+dma_init(void)
+{
+  dma_event = process_alloc_event();
+}
+
+int
+dma_subscribe(int line, struct process *p)
+{
+  if (line >= DMA_LINES)
+    return -1;
+
+  subscribers[line] = p;
+}
+
+void
 dma_transfer(unsigned char *buf, unsigned len)
 {
-    // Configure DMA Channel 0 for UART0 TXIFG.
-    DMACTL0 = DMA0TSEL_4;
+  // Configure DMA Channel 0 for UART0 TXIFG.
+  DMACTL0 = DMA0TSEL_4;
 
-    // No DMAONFETCH, ROUNDROBIN, ENNMI.
-    DMACTL1 = 0x0000;
+  // No DMAONFETCH, ROUNDROBIN, ENNMI.
+  DMACTL1 = 0x0000;
 
   /*
    * Set single transfer mode with byte-per-byte transfers.
@@ -89,12 +108,12 @@ dma_transfer(unsigned char *buf, unsigned len)
    * interrupts so first edge 
    * doesn't get lost (hangs every 50. - 100. time)!
    */
-   DMA0CTL = DMADT_0 | DMADSTINCR_0 | DMASRCINCR_3 | DMASBDB | DMALEVEL | DMAIE;
+  DMA0CTL = DMADT_0 | DMADSTINCR_0 | DMASRCINCR_3 | DMASBDB | DMALEVEL | DMAIE;
 
-   DMA0SA = (unsigned) buf;
-   DMA0DA = (unsigned) &TXBUF0;
-   DMA0SZ = len;
+  DMA0SA = (unsigned) buf;
+  DMA0DA = (unsigned) &TXBUF0;
+  DMA0SZ = len;
 
-   DMA0CTL |= DMAEN;	// enable DMA
-   U0CTL &= ~SWRST;	// enable UART state machine, starts transfer
+  DMA0CTL |= DMAEN;	// enable DMA
+  U0CTL &= ~SWRST;	// enable UART state machine, starts transfer
 }
