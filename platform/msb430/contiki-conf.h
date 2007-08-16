@@ -1,7 +1,8 @@
 #ifndef CONTIKI_CONF_H
 #define CONTIKI_CONF_H
 
-#include <stdint.h>
+#define HAVE_STDINT_H
+#include "msp430def.h"
 
 #define IRQ_PORT1			0x01
 #define IRQ_PORT2			0x02
@@ -34,43 +35,11 @@ typedef unsigned short clock_time_t;
 #define CLOCK_CONF_SECOND		100
 #define F_CPU				2457600uL // CPU target speed in Hz
 
-#define BAUD2UBR(baud) ((F_CPU/baud))
+#define BAUD2UBR(baud)			(F_CPU/(baud))
 
 #include "ctk/ctk-vncarch.h"
 
 #define LOG_CONF_ENABLED		0
-
-/**
- * The 8-bit unsigned data type.
- *
- * This may have to be tweaked for your particular compiler. "unsigned
- * char" works for most compilers.
- */
-typedef unsigned char u8_t;
-
-/**
- * The 16-bit unsigned data type.
- *
- * This may have to be tweaked for your particular compiler. "unsigned
- * short" works for most compilers.
- */
-typedef unsigned short u16_t;
-
-/**
- * The 32-bit unsigned data type.
- *
- * This may have to be tweaked for your particular compiler. "unsigned
- * long" works for most compilers.
- */
-typedef unsigned long u32_t;
-
-/**
- * The 32-bit signed data type.
- *
- * This may have to be tweaked for your particular compiler. "signed
- * long" works for most compilers.
- */
-typedef long s32_t;
 
 /**
  * The statistics data type.
@@ -78,23 +47,11 @@ typedef long s32_t;
  * This datatype determines how high the statistics counters are able
  * to count.
  */
-typedef unsigned short uip_stats_t;
+typedef uint16_t uip_stats_t;
 
-/**
- * ScatterWeb code compatibilty
- * @{
- */
-typedef char				bool;
-typedef unsigned char			UINT8;
-typedef unsigned int			UINT16;
-typedef unsigned long			UINT32;
-typedef signed char			INT8;
-typedef signed int			INT16;
-typedef signed long			INT32;
-
-#define	true	1
-#define false 	0
-/** @} */
+typedef int bool;
+#define	TRUE				1
+#define FALSE 				0
 
 #define UIP_CONF_MAX_CONNECTIONS	4
 #define UIP_CONF_MAX_LISTENPORTS	8
