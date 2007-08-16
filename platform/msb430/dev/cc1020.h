@@ -94,6 +94,4 @@ extern const struct radio_driver cc1020_driver;
 
 PROCESS_NAME(cc1020_sender_process);
 
-extern process_event_t cc1020_event;
-
 #endif

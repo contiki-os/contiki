@@ -65,9 +65,9 @@ static int cc1020_setupRX(int);
 static void cc1020_setupPD(void);
 static void cc1020_wakeupTX(int);
 static void cc1020_wakeupRX(int);
-static u8_t cc1020_read_reg(u8_t addr);
-static void cc1020_write_reg(u8_t addr, u8_t adata);
-static void cc1020_load_config(const u8_t *);
+static uint8_t cc1020_read_reg(uint8_t addr);
+static void cc1020_write_reg(uint8_t addr, uint8_t adata);
+static void cc1020_load_config(const uint8_t *);
 static void cc1020_reset(void);
 
 /// selected rx/tx/pd switching algorithm
@@ -75,20 +75,20 @@ static enum cc1020_power_mode cc1020_power_mode = CC1020_ALWAYS_ON;
 
 // current mode of cc1020 chip
 static enum cc1020_state cc1020_state = CC1020_OFF;
-volatile u8_t cc1020_rxbuf[HDRSIZE + CC1020_BUFFERSIZE];
-volatile u8_t cc1020_txbuf[PREAMBLESIZE + HDRSIZE + CC1020_BUFFERSIZE +
+static volatile uint8_t cc1020_rxbuf[HDRSIZE + CC1020_BUFFERSIZE];
+static uint8_t cc1020_txbuf[PREAMBLESIZE + HDRSIZE + CC1020_BUFFERSIZE +
 			   TAILSIZE];
 static enum cc1020_rxstate cc1020_rxstate = CC1020_RX_SEARCHING;
 
-/// number of bytes in receive buffer
-static unsigned short cc1020_rxlen = 0;
+/// number of bytes in receive and transmit buffers respectively.
+static uint16_t cc1020_rxlen;
+static uint16_t cc1020_txlen;
 
 /// received signal strength indicator reading for last received packet
-static volatile unsigned char rssi;
+static volatile uint8_t rssi;
 
 /// callback when a packet has been received
-static unsigned char cc1020_pa_power = PA_POWER;
-static unsigned short cc1020_txlen = 0;
+static uint8_t cc1020_pa_power = PA_POWER;
 
 static void (*receiver_callback)(void);
 
@@ -104,7 +104,7 @@ const struct radio_driver cc1020_driver =
 PROCESS(cc1020_sender_process, "CC1020 sender");
 
 void
-cc1020_init(const u8_t *config)
+cc1020_init(const uint8_t *config)
 {
   cc1020_setupPD();
   cc1020_reset();
@@ -229,13 +229,13 @@ cc1020_set_power_mode(enum cc1020_power_mode mode)
 }
 
 void
-cc1020_set_power(u8_t pa_power)
+cc1020_set_power(uint8_t pa_power)
 {
   cc1020_pa_power = pa_power;
 }
 
 unsigned int
-cc1020_read(u8_t *buf, unsigned int bufsize)
+cc1020_read(uint8_t *buf, unsigned int bufsize)
 {
   unsigned len;
 
@@ -254,14 +254,14 @@ cc1020_read(u8_t *buf, unsigned int bufsize)
   return 0;
 }
 
-u8_t
+uint8_t
 cc1020_get_rssi(void)
 {
   return rssi;
 }
 
 unsigned
-cc1020_send(u8_t *buf, unsigned int len)
+cc1020_send(uint8_t *buf, unsigned int len)
 {
   if (len > CC1020_BUFFERSIZE)
     return 0;
@@ -294,10 +294,10 @@ interrupt(UART0RX_VECTOR) cc1020_rxhandler(void)
   static signed char syncbs;
   static union {
     struct {
-      u8_t b2;
-      u8_t b1;
-      u8_t b4;
-      u8_t b3;
+      uint8_t b2;
+      uint8_t b1;
+      uint8_t b4;
+      uint8_t b3;
     };
     struct {
       uint16_t i1;
@@ -397,11 +397,13 @@ PROCESS_THREAD(cc1020_sender_process, ev, data)
     if (cc1020_state == CC1020_OFF)
       cc1020_set_rx();
 
-    // Wait until the receiver is idle.
-    PROCESS_WAIT_UNTIL(cc1020_rxstate == CC1020_RX_SEARCHING);
+    if (cc1020_rxstate != CC1020_RX_SEARCHING) {
+      // Wait until the receiver is idle.
+      PROCESS_WAIT_UNTIL(cc1020_rxstate == CC1020_RX_SEARCHING);
 
-    // Wait for a short pseudo-random time before sending.
-    clock_delay(1 + 10 * (random_rand() & 0xff));
+      // Wait for a short pseudo-random time before sending.
+      clock_delay(1 + 10 * (random_rand() & 0xff));
+    }
 
     // Switch to transceive mode.
     cc1020_set_tx();
@@ -421,7 +423,7 @@ PROCESS_THREAD(cc1020_sender_process, ev, data)
 }
 
 static void
-cc1020_write_reg(u8_t addr, u8_t adata)
+cc1020_write_reg(uint8_t addr, uint8_t adata)
 {
   unsigned i;
   unsigned char data;
@@ -474,8 +476,8 @@ cc1020_write_reg(u8_t addr, u8_t adata)
   PSEL_OFF;
 }
 
-static u8_t
-cc1020_read_reg(u8_t addr)
+static uint8_t
+cc1020_read_reg(uint8_t addr)
 {
   unsigned i;
   unsigned char data = 0;
@@ -527,7 +529,7 @@ cc1020_read_reg(u8_t addr)
 }
 
 static void
-cc1020_load_config(const u8_t * config)
+cc1020_load_config(const uint8_t * config)
 {
   int i;
 
