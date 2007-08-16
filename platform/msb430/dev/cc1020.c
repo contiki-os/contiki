@@ -57,7 +57,7 @@ Berlin, 2006
 #include "cc1020.h"
 #include "lib/random.h"
 #include "dev/irq.h"
-#include "dma.h"
+#include "dev/dma.h"
 
 static int cc1020_calibrate(void);
 static int cc1020_setupTX(int);
@@ -101,15 +101,11 @@ const struct radio_driver cc1020_driver =
     cc1020_off
   };
 
-process_event_t cc1020_event;
-
 PROCESS(cc1020_sender_process, "CC1020 sender");
 
 void
 cc1020_init(const u8_t *config)
 {
-  cc1020_event = process_alloc_event();
-
   cc1020_setupPD();
   cc1020_reset();
   cc1020_load_config(config);
@@ -130,6 +126,7 @@ cc1020_init(const u8_t *config)
 
   // power down
   cc1020_setupPD();
+
   process_start(&cc1020_sender_process, NULL);
 }
 
@@ -391,6 +388,8 @@ PROCESS_THREAD(cc1020_sender_process, ev, data)
 {
   PROCESS_BEGIN();
 
+  dma_subscribe(0, &cc1020_sender_process);
+
   while (1) {
     PROCESS_WAIT_UNTIL(cc1020_txlen > 0);
 
@@ -411,7 +410,7 @@ PROCESS_THREAD(cc1020_sender_process, ev, data)
     dma_transfer(cc1020_txbuf, cc1020_txlen);
 
     // wait for DMA0 to finish
-    PROCESS_WAIT_UNTIL(ev == cc1020_event && *((unsigned char *) data) == 0);
+    PROCESS_WAIT_UNTIL(ev == dma_event);
 
     // clean up
     cc1020_txlen = 0;
