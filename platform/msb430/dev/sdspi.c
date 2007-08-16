@@ -75,7 +75,7 @@ spi_init(void)
   uart_set_speed(UART_MODE_SPI, 0x02, 0x00, 0x00);
 }
 
-UINT8
+uint8_t_t
 spi_rx(void)
 {
   UART_RESET_RX();
@@ -85,7 +85,7 @@ spi_rx(void)
 }
 
 void
-spi_tx(register const UINT8 c)
+spi_tx(register const uint8_t_t c)
 {
   UART_RESET_RX();
   UART_TX = c;
@@ -93,10 +93,10 @@ spi_tx(register const UINT8 c)
 }
 
 void
-spi_read(void *pDestination, const UINT16 size, const bool incDest)
+spi_read(void *pDestination, const uint16_t size, const bool incDest)
 {
-  register UINT8 *p = (UINT8 *) pDestination;
-  register UINT16 i;
+  register uint8_t *p = (uint8_t *) pDestination;
+  register uint16_t i;
 
   for (i = size; i > 0; i--) {
     *p = spi_rx();
@@ -106,11 +106,11 @@ spi_read(void *pDestination, const UINT16 size, const bool incDest)
 }
 
 void
-spi_write(const void *pSource, const UINT16 size, const UINT8 startToken,
+spi_write(const void *pSource, const uint16_t size, const uint8_t startToken,
 	  const bool incSource)
 {
   register unsigned char *p = (unsigned char *) pSource;
-  register UINT16 i;
+  register uint16_t i;
 
   spi_tx(startToken);
   for (i = size; i > 0; i--) {
@@ -121,9 +121,9 @@ spi_write(const void *pSource, const UINT16 size, const UINT8 startToken,
 }
 
 void
-spi_idle(register const UINT16 clocks)
+spi_idle(register const uint16_t clocks)
 {
-  register UINT16 i;
+  register uint16_t i;
 
   for (i = 0; i < clocks; i++) {
     UART_RESET_RX();
@@ -132,16 +132,16 @@ spi_idle(register const UINT16 clocks)
   }
 }
 
-UINT8
-spi_wait_token(const UINT8 token, const UINT16 timeout)
+bool
+spi_wait_token(const uint8_t token, const uint16_t timeout)
 {
-  UINT16 i;
-  UINT8 rx;
+  uint16_t i;
+  uint8_t rx;
 
   for (i = 0; i < timeout; i++) {
     rx = spi_rx();
     if (rx == token)
-      return true;
+      return TRUE;
   }
-  return false;
+  return FALSE;
 }

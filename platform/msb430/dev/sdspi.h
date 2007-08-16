@@ -75,16 +75,16 @@ void spi_init(void);
 void spi_enable(void);
 
 /// Receive one byte from SPI
-UINT8 spi_rx(void);
+uint8_t spi_rx(void);
 
 /// Send one byte to SPI
-void spi_tx(const UINT8 c);
+void spi_tx(const uint8_t c);
 
 /// Read a number of bytes from SPI
-void spi_read(void *pDestination, const UINT16 size, const bool incDest);
+void spi_read(void *pDestination, const uint16_t size, const bool incDest);
 
 #if SPI_DMA_WRITE
-extern UINT8 spi_dma_lock;
+extern uint8_t spi_dma_lock;
 #endif
 #if SPI_DMA_READ || SPI_DMA_WRITE
 void spi_dma_wait();
@@ -93,14 +93,14 @@ void spi_dma_wait();
 #if SPI_WRITE
 /// Write a number of bytes to SPI
 void spi_write(const void *pSource,
-	       const UINT16 size,
-	       const UINT8 startToken, const bool incSource);
+	       const uint16_t size,
+	       const uint8_t startToken, const bool incSource);
 #endif
 
 /// Wait a number of clock cycles
-void spi_idle(const UINT16 clocks);
+void spi_idle(const uint16_t clocks);
 
 /// Read chars until token is received
-UINT8 spi_wait_token(const UINT8 token, const UINT16 timeout);
+bool spi_wait_token(const uint8_t token, const uint16_t timeout);
 
 #endif /*SPI_H_ */
