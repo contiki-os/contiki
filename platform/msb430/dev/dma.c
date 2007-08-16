@@ -87,6 +87,7 @@ dma_subscribe(int line, struct process *p)
     return -1;
 
   subscribers[line] = p;
+  return 0;
 }
 
 void
