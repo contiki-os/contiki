@@ -49,17 +49,17 @@
 #include "sys/autostart.h"
 
 #include "dev/adc.h"
+#include "dev/dma.h"
+#include "dev/slip.h"
 
 #include "net/mac/nullmac.h"
 #include "net/mac/xmac.h"
-
-#include "dev/slip.h"
 
 SENSORS(NULL);
 
 #if WITH_UIP
 static struct uip_fw_netif slipif =
-{UIP_FW_NETIF(192,168,1,2, 255,255,255,255, slip_send)};
+  {UIP_FW_NETIF(192,168,1,2, 255,255,255,255, slip_send)};
 #else
 int
 putchar(int c)
@@ -73,6 +73,7 @@ static void
 set_rime_addr(void)
 {
   rimeaddr_t addr;
+
   addr.u16[0] = node_id;
   rimeaddr_set_node_addr(&addr);
 }
@@ -113,6 +114,7 @@ main(void)
   /* Platform-specific initialization. */
   msb_ports_init();
   adc_init();
+  dma_init();
 
   clock_init();
   leds_init();
