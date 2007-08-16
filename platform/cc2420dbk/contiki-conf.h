@@ -1,27 +1,21 @@
 /* -*- C -*- */
-/* @(#)$Id: contiki-conf.h,v 1.3 2007/05/21 14:51:32 bg- Exp $ */
+/* @(#)$Id: contiki-conf.h,v 1.4 2007/08/16 13:24:20 bg- Exp $ */
 
 #ifndef CONTIKI_CONF_H
 #define CONTIKI_CONF_H
 
-/* #define CB_GATEWAY */
-
 #include <avr/interrupt.h>
+
+#define HAVE_STDINT_H
+#include "avrdef.h"
+
+/* #define CB_GATEWAY */
 
 #define CCIF
 #define CLIF
 
+#define AODV_COMPLIANCE
 #define AODV_NUM_RT_ENTRIES 32
-
-/* Helper prototypes that should go somewhere. */
-void *sbrk(int);
-typedef unsigned char spl_t;
-static inline void splx_(spl_t s) { SREG = s; }
-static inline spl_t splhigh_(void) { spl_t s = SREG; cli(); return s; }
-void cpu_init(void);
-
-#define splhigh() splhigh_()
-#define splx(s)  splx_((spl_t)s)
 
 void clock_delay(unsigned int us2);
 void clock_wait(int ms10);
@@ -81,14 +75,6 @@ unsigned long clock_seconds(void);
 #define LEDS_CONF_RED    _BV(3)	/* PE.3 - Output */
 #define LEDS_CONF_YELLOW _BV(4)	/* PE.4 - Output */
 #endif
-
-typedef int8_t   s8_t;
-typedef int16_t  s16_t;
-typedef int32_t  s32_t;
-
-typedef uint8_t  u8_t;
-typedef uint16_t u16_t;
-typedef uint32_t u32_t;
 
 typedef u16_t uip_stats_t;
 typedef u16_t clock_time_t;
