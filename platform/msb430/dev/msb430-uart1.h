@@ -110,9 +110,11 @@ void uart_set_speed(unsigned char mode, unsigned char ubr0, unsigned char ubr1, 
 
 void uart_set_handler(unsigned char mode, fp_uart_handler fpHandler);
 
-char uart_lock(unsigned char mode);
+int uart_lock(unsigned char mode);
 
-char uart_unlock(unsigned char mode);
+int uart_unlock(unsigned char mode);
+
+int uart_get_mode(void);
 
 #endif /* __UART_H__ */
 
