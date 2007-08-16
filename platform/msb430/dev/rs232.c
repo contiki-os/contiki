@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: rs232.c,v 1.1 2007/06/28 12:52:42 nvt-se Exp $
+ * @(#)$Id: rs232.c,v 1.2 2007/08/16 20:29:56 nvt-se Exp $
  */
 
 /** \addtogroup esbrs232
@@ -73,7 +73,7 @@ rs232_send(char c)
      before using it.
   */
 
-  if (uart_mode == UART_MODE_RS232) {
+  if (uart_get_mode() == UART_MODE_RS232) {
     /* Loop until the transmission buffer is available. */
     UART_WAIT_TX();
     /* Transmit the data. */
