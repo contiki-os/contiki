@@ -60,7 +60,7 @@ Berlin, 2007
 void
 infomem_read(void *buffer, unsigned int offset, unsigned char size)
 {
-  UINT8 *address = (UINT8 *) INFOMEM_START + offset;
+  uint8_t *address = (uint8_t *) INFOMEM_START + offset;
   memcpy(buffer, address, size);
 }
 
@@ -68,17 +68,17 @@ bool
 infomem_write(unsigned int offset, unsigned char count, ...)
 {
   char backup[INFOMEM_BLOCK_SIZE];	
-  UINT8 *buffer;
-  UINT16 i;
-  UINT8 *flash;
+  uint8_t *buffer;
+  uint16_t i;
+  uint8_t *flash;
   va_list argp;
-  UINT16 size;
-  UINT8 *data;
+  uint16_t size;
+  uint8_t *data;
 
   if (offset > (2 * INFOMEM_BLOCK_SIZE))
-    return false;
+    return FALSE;
 
-  flash = (UINT8 *) INFOMEM_START + offset;
+  flash = (uint8_t *) INFOMEM_START + offset;
 
   _DINT();
 
@@ -88,10 +88,10 @@ infomem_write(unsigned int offset, unsigned char count, ...)
   // merge backup with new data
   va_start(argp, count);
 
-  buffer = (UINT8 *) backup;
+  buffer = (uint8_t *) backup;
   for (i = 0; i < count; i++) {
-    data = va_arg(argp, UINT8*);
-    size = va_arg(argp, UINT16);
+    data = va_arg(argp, uint8_t*);
+    size = va_arg(argp, uint16_t);
     memcpy(buffer, data, size);
     buffer += size;
   }
@@ -108,7 +108,7 @@ infomem_write(unsigned int offset, unsigned char count, ...)
 
   // write flash
   FCTL1 = FWKEY + WRT;
-  buffer = (UINT8 *) backup;
+  buffer = (uint8_t *) backup;
   for (i = 0; i < INFOMEM_BLOCK_SIZE; i++) {
     *flash++ = *buffer++;
   }
@@ -117,5 +117,5 @@ infomem_write(unsigned int offset, unsigned char count, ...)
   FCTL3 = FWKEY + LOCK;
 
   _EINT();
-  return true;
+  return TRUE;
 }

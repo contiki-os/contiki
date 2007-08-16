@@ -142,7 +142,7 @@ cc1020_on(void)
   } else {
     cc1020_off();
   }
-  return true;
+  return TRUE;
 }
 
 void
@@ -303,8 +303,8 @@ interrupt(UART0RX_VECTOR) cc1020_rxhandler(void)
       u8_t b3;
     };
     struct {
-      UINT16 i1;
-      UINT16 i2;
+      uint16_t i1;
+      uint16_t i2;
     };
   } shiftbuf;
 
