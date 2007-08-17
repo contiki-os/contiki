@@ -1,12 +1,12 @@
-# $Id: Makefile,v 1.2 2007/06/28 13:47:28 nvt-se Exp $
+# $Id: Makefile,v 1.3 2007/08/17 13:10:16 nvt-se Exp $
 
-all: core
-upload: core core.u
+all: test-abc
+upload: test-abc test-abc.u
 
-core:
-	$(MAKE) core.firmware && \
-	$(MAKE) core.firmware && \
-	$(MAKE) core.firmware
+test-abc:
+	$(MAKE) test-abc.firmware && \
+	$(MAKE) test-abc.firmware && \
+	$(MAKE) test-abc.firmware
 
 CONTIKI=../..
 TARGET=msb430
