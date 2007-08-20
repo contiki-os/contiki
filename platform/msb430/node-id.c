@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: node-id.c,v 1.1 2007/06/28 12:49:57 nvt-se Exp $
+ * $Id: node-id.c,v 1.2 2007/08/20 11:01:13 nvt-se Exp $
  */
 
 #include "node-id.h"
