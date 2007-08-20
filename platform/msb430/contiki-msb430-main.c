@@ -59,7 +59,7 @@ SENSORS(NULL);
 
 #if WITH_UIP
 static struct uip_fw_netif slipif =
-  {UIP_FW_NETIF(192,168,1,2, 255,255,255,255, slip_send)};
+  {UIP_FW_NETIF(172,16,0,1, 255,255,255,0, slip_send)};
 #else
 int
 putchar(int c)
@@ -81,29 +81,12 @@ set_rime_addr(void)
 static void
 msb_ports_init(void)
 {
-  P1SEL = 0x00;
-  P1OUT = 0x00;
-  P1DIR = 0x00;
-
-  P2SEL = 0x00;
-  P2OUT = 0x18;
-  P2DIR = 0x1A;
-
-  P3SEL = 0x00;
-  P3OUT = 0x09;
-  P3DIR = 0x21;
-
-  P4SEL = 0x00;
-  P4OUT = 0x00;
-  P4DIR = 0x00;
-
-  P5SEL = 0x0E;
-  P5OUT = 0xF9;
-  P5DIR = 0xFD;
-
-  P6SEL = 0x07;
-  P6OUT = 0x00;
-  P6DIR = 0xC8;
+  P1SEL = 0x00; P1OUT = 0x00; P1DIR = 0x00;
+  P2SEL = 0x00; P2OUT = 0x18; P2DIR = 0x1A;
+  P3SEL = 0x00; P3OUT = 0x09; P3DIR = 0x21;
+  P4SEL = 0x00; P4OUT = 0x00; P4DIR = 0x00;
+  P5SEL = 0x0E; P5OUT = 0xF9; P5DIR = 0xFD;
+  P6SEL = 0x07; P6OUT = 0x00; P6DIR = 0xC8;
 }
 
 int
@@ -145,32 +128,31 @@ main(void)
 
   // network configuration
   node_id_restore();
- 
+
 #if WITH_UIP
   uip_init();
   uip_sethostaddr(&slipif.ipaddr);
   uip_setnetmask(&slipif.netmask);
-  uip_fw_default(&slipif);	/* Point2point, no default router. */
+  /* Point-to-point, no default router. */
+  uip_fw_default(&slipif);
   tcpip_set_forwarding(0);
+
+  process_start(&tcpip_process, NULL);
+  process_start(&uip_fw_process, NULL);
+  process_start(&slip_process, NULL);
 #endif /* WITH_UIP */
 
   nullmac_init(&cc1020_driver);
   rime_init(&nullmac_driver);
   set_rime_addr();
-
-#if WITH_UIP
-  process_start(&tcpip_process, NULL);
-  process_start(&uip_fw_process, NULL);	/* Start IP output */
-  process_start(&slip_process, NULL);
-#endif /* WITH_UIP */
  
-  leds_off(LEDS_ALL);
-  lpm_on();
+  printf(CONTIKI_VERSION_STRING " started. Node id %d.\n", node_id);
 
   printf("Autostarting processes\n");
   autostart_start((struct process **) autostart_processes);
 
-  printf(CONTIKI_VERSION_STRING " started. Node id %d.\n", node_id);
+  leds_off(LEDS_ALL);
+  lpm_on();
 
   for (;;) {
     while (process_run() > 0);
