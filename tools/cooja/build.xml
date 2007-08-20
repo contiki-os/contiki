@@ -15,7 +15,7 @@ The COOJA Simulator
 
 > ant run
 	Starts COOJA simulator
-		</echo>	
+		</echo>
 	</target>
 
 	<target name="init">
@@ -36,7 +36,7 @@ The COOJA Simulator
 
 	<target name="compile" depends="init">
     <mkdir dir="${build}"/>
-    <javac srcdir="${java}" destdir="${build}">
+    <javac srcdir="${java}" destdir="${build}" debug="on">
       <classpath>
         <pathelement path="."/>
         <pathelement location="lib/jdom.jar"/>
@@ -84,7 +84,7 @@ The COOJA Simulator
   <target name="jar" depends="clean, init, compile, copy configs">
     <mkdir dir="${dist}"/>
     <jar destfile="${dist}/cooja.jar" basedir="${build}">
-      <fileset dir="${build}"/>      
+      <fileset dir="${build}"/>
       <manifest>
         <attribute name="Main-Class" value="se.sics.cooja.GUI"/>
         <attribute name="Class-Path" value=". lib/log4j.jar lib/jdom.jar"/>
