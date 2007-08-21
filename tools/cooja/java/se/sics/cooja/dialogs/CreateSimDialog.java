@@ -26,17 +26,15 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: CreateSimDialog.java,v 1.5 2007/03/22 23:06:26 fros4943 Exp $
+ * $Id: CreateSimDialog.java,v 1.6 2007/08/21 08:54:48 fros4943 Exp $
  */
 
 package se.sics.cooja.dialogs;
 
 import java.awt.*;
 import java.awt.event.*;
-import java.io.File;
 import java.text.*;
 import java.util.Vector;
-
 import javax.swing.*;
 import org.apache.log4j.Logger;
 
@@ -55,18 +53,18 @@ public class CreateSimDialog extends JDialog {
   
   private final static int LABEL_WIDTH = 170;
   private final static int LABEL_HEIGHT = 15;
-  
+
   private Simulation mySimulation = null;
   private GUI myGUI = null;
   
   private CreateSimDialog myDialog;
   
   private JFormattedTextField delayTime, simulationTime, tickTime;
+  private JFormattedTextField randomSeed, tickLists, delayedStartup;
+  
   private JTextField title;
   private JComboBox radioMediumBox;
   
-  private JTextField logFilename;
-  private JCheckBox logCheckBox;
   private JButton cancelButton;
   
   /**
@@ -112,7 +110,7 @@ public class CreateSimDialog extends JDialog {
       myDialog.title.setText(simulationToConfigure.getTitle());
     } else {
       // Suggest title
-      myDialog.title.setText("[enter simulation title]");
+      myDialog.title.setText("My simulation");
     }
 
     // Set delay time
@@ -139,7 +137,17 @@ public class CreateSimDialog extends JDialog {
         }
       }
     }
-    
+
+    // Set random seed
+    myDialog.randomSeed.setValue(new Long(simulationToConfigure.getRandomSeed()));
+
+    // Set number of tick lists
+    myDialog.tickLists.setValue(new Integer(simulationToConfigure.getNrTickLists()));
+
+    // Set delayed mote startup time
+    myDialog.delayedStartup.setValue(new Integer(simulationToConfigure.getDelayedMoteStartupTime()));
+
+   
     // Set position and focus of dialog
     myDialog.setLocationRelativeTo(parentFrame);
     myDialog.title.requestFocus();
@@ -170,12 +178,11 @@ public class CreateSimDialog extends JDialog {
     myDialog = this;
     myGUI = gui;
     
-    JPanel mainPane = new JPanel();
-    mainPane.setLayout(new BoxLayout(mainPane, BoxLayout.Y_AXIS));
+    Box vertBox = Box.createVerticalBox();
     
     JLabel label;
     JTextField textField;
-    JPanel smallPane;
+    Box horizBox;
     JButton button;
     JComboBox comboBox;
     JFormattedTextField numberField;
@@ -183,31 +190,30 @@ public class CreateSimDialog extends JDialog {
     
     
     // BOTTOM BUTTON PART
-    JPanel buttonPane = new JPanel();
-    buttonPane.setLayout(new BoxLayout(buttonPane, BoxLayout.X_AXIS));
-    buttonPane.setBorder(BorderFactory.createEmptyBorder(0, 10, 10, 10));
+    Box buttonBox = Box.createHorizontalBox();
+    buttonBox.setBorder(BorderFactory.createEmptyBorder(0, 10, 10, 10));
     
-    buttonPane.add(Box.createHorizontalGlue());
+    buttonBox.add(Box.createHorizontalGlue());
     
     cancelButton = new JButton("Cancel");
     cancelButton.setActionCommand("cancel");
     cancelButton.addActionListener(myEventHandler);
-    buttonPane.add(cancelButton);
+    buttonBox.add(cancelButton);
     
     button = new JButton("Create");
     button.setActionCommand("create");
     button.addActionListener(myEventHandler);
-    buttonPane.add(Box.createRigidArea(new Dimension(10, 0)));
+    buttonBox.add(Box.createHorizontalStrut(5));
     myDialog.rootPane.setDefaultButton(button);
-    buttonPane.add(button);
+    buttonBox.add(button);
     
     
     // MAIN PART
     
     // Title
-    smallPane = new JPanel();
-    smallPane.setAlignmentX(Component.LEFT_ALIGNMENT);
-    smallPane.setLayout(new BoxLayout(smallPane, BoxLayout.X_AXIS));
+    horizBox = Box.createHorizontalBox();
+    horizBox.setMaximumSize(new Dimension(Integer.MAX_VALUE,LABEL_HEIGHT));
+    horizBox.setAlignmentX(Component.LEFT_ALIGNMENT);
     label = new JLabel("Simulation title");
     label.setPreferredSize(new Dimension(LABEL_WIDTH,LABEL_HEIGHT));
     
@@ -216,17 +222,17 @@ public class CreateSimDialog extends JDialog {
     textField.setColumns(25);
     title = textField;
     
-    smallPane.add(label);
-    smallPane.add(Box.createHorizontalStrut(10));
-    smallPane.add(textField);
-    
-    mainPane.add(smallPane);
-    mainPane.add(Box.createRigidArea(new Dimension(0,5)));
+    horizBox.add(label);
+    horizBox.add(Box.createHorizontalStrut(10));
+    horizBox.add(textField);
+
+    vertBox.add(horizBox);
+    vertBox.add(Box.createRigidArea(new Dimension(0,5)));
     
     // Radio Medium selection
-    smallPane = new JPanel();
-    smallPane.setAlignmentX(Component.LEFT_ALIGNMENT);
-    smallPane.setLayout(new BoxLayout(smallPane, BoxLayout.X_AXIS));
+    horizBox = Box.createHorizontalBox();
+    horizBox.setMaximumSize(new Dimension(Integer.MAX_VALUE,LABEL_HEIGHT));
+    horizBox.setAlignmentX(Component.LEFT_ALIGNMENT);
     label = new JLabel("Radio Medium");
     label.setPreferredSize(new Dimension(LABEL_WIDTH,LABEL_HEIGHT));
     
@@ -242,18 +248,19 @@ public class CreateSimDialog extends JDialog {
     radioMediumBox = comboBox;
     label.setLabelFor(comboBox);
     
-    smallPane.add(label);
-    smallPane.add(Box.createHorizontalStrut(10));
-    smallPane.add(comboBox);
+    horizBox.add(label);
+    horizBox.add(Box.createHorizontalStrut(10));
+    horizBox.add(comboBox);
+    horizBox.setToolTipText("Determines the radio surroundings behaviour");
     
-    mainPane.add(smallPane);
-    mainPane.add(Box.createRigidArea(new Dimension(0,5)));
+    vertBox.add(horizBox);
+    vertBox.add(Box.createRigidArea(new Dimension(0,5)));
     
     
-    // Radio Medium Logging selection
-    smallPane = new JPanel();
+/*    // Radio Medium Logging selection
+    smallPane = Box.createHorizontalBox();
+    smallPane.setMaximumSize(new Dimension(Integer.MAX_VALUE,LABEL_HEIGHT));
     smallPane.setAlignmentX(Component.LEFT_ALIGNMENT);
-    smallPane.setLayout(new BoxLayout(smallPane, BoxLayout.X_AXIS));
     logCheckBox = new JCheckBox("Log all radio traffic?");
     logCheckBox.setPreferredSize(new Dimension(LABEL_WIDTH,LABEL_HEIGHT));
     
@@ -269,31 +276,17 @@ public class CreateSimDialog extends JDialog {
     
     mainPane.add(smallPane);
     mainPane.add(Box.createRigidArea(new Dimension(0,5)));
+*/    
     
-    
-    // Delay time
-    smallPane = new JPanel();
-    smallPane.setAlignmentX(Component.LEFT_ALIGNMENT);
-    smallPane.setLayout(new BoxLayout(smallPane, BoxLayout.X_AXIS));
-    label = new JLabel("Delay time (ms)");
-    label.setPreferredSize(new Dimension(LABEL_WIDTH,LABEL_HEIGHT));
-    
-    numberField = new JFormattedTextField(integerFormat);
-    numberField.setValue(new Integer(100));
-    numberField.setColumns(4);
-    delayTime = numberField;
-    
-    smallPane.add(label);
-    smallPane.add(Box.createHorizontalStrut(150));
-    smallPane.add(numberField);
-    
-    mainPane.add(smallPane);
-    mainPane.add(Box.createRigidArea(new Dimension(0,5)));
-    
-    // Simulation start time
-    smallPane = new JPanel();
-    smallPane.setAlignmentX(Component.LEFT_ALIGNMENT);
-    smallPane.setLayout(new BoxLayout(smallPane, BoxLayout.X_AXIS));
+
+    // -- Advanced settings --
+    Box advancedBox = Box.createVerticalBox();
+    advancedBox.setBorder(BorderFactory.createTitledBorder("Advanced settings"));
+
+    // Start time
+    horizBox = Box.createHorizontalBox();
+    horizBox.setMaximumSize(new Dimension(Integer.MAX_VALUE,LABEL_HEIGHT));
+    horizBox.setAlignmentX(Component.LEFT_ALIGNMENT);
     label = new JLabel("Simulation start time (ms)");
     label.setPreferredSize(new Dimension(LABEL_WIDTH,LABEL_HEIGHT));
     
@@ -302,18 +295,19 @@ public class CreateSimDialog extends JDialog {
     numberField.setColumns(4);
     simulationTime = numberField;
     
-    smallPane.add(label);
-    smallPane.add(Box.createHorizontalStrut(150));
-    smallPane.add(numberField);
+    horizBox.add(label);
+    horizBox.add(Box.createHorizontalStrut(150));
+    horizBox.add(numberField);
+    horizBox.setToolTipText("Initial value of simulated time");
     
-    mainPane.add(smallPane);
-    mainPane.add(Box.createRigidArea(new Dimension(0,5)));
+    advancedBox.add(horizBox);
+    advancedBox.add(Box.createRigidArea(new Dimension(0,5)));
     
     // Tick time
-    smallPane = new JPanel();
-    smallPane.setAlignmentX(Component.LEFT_ALIGNMENT);
-    smallPane.setLayout(new BoxLayout(smallPane, BoxLayout.X_AXIS));
-    label = new JLabel("Tick time (ms)");
+    horizBox = Box.createHorizontalBox();
+    horizBox.setMaximumSize(new Dimension(Integer.MAX_VALUE,LABEL_HEIGHT));
+    horizBox.setAlignmentX(Component.LEFT_ALIGNMENT);
+    label = new JLabel("Simulation tick time (ms)");
     label.setPreferredSize(new Dimension(LABEL_WIDTH,LABEL_HEIGHT));
     
     numberField = new JFormattedTextField(integerFormat);
@@ -321,19 +315,107 @@ public class CreateSimDialog extends JDialog {
     numberField.setColumns(4);
     tickTime = numberField;
     
-    smallPane.add(label);
-    smallPane.add(Box.createHorizontalStrut(150));
-    smallPane.add(numberField);
+    horizBox.add(label);
+    horizBox.add(Box.createHorizontalStrut(150));
+    horizBox.add(numberField);
+    horizBox.setToolTipText("Simulated time increase each simulation loop");
+
+    advancedBox.add(horizBox);
+    advancedBox.add(Box.createRigidArea(new Dimension(0,5)));
     
-    mainPane.add(smallPane);
-    mainPane.add(Box.createRigidArea(new Dimension(0,5)));
+    // Delayed startup
+    horizBox = Box.createHorizontalBox();
+    horizBox.setMaximumSize(new Dimension(Integer.MAX_VALUE,LABEL_HEIGHT));
+    horizBox.setAlignmentX(Component.LEFT_ALIGNMENT);
+    label = new JLabel("Mote startup delay (max, ms)");
+    label.setPreferredSize(new Dimension(LABEL_WIDTH,LABEL_HEIGHT));
+    
+    numberField = new JFormattedTextField(integerFormat);
+    numberField.setValue(new Integer(10000));
+    numberField.setColumns(4);
+    delayedStartup = numberField;
+    
+    horizBox.add(label);
+    horizBox.add(Box.createHorizontalStrut(150));
+    horizBox.add(numberField);
+    horizBox.setToolTipText("Maximum mote startup delay (random interval: [0, time])");
+
+    advancedBox.add(horizBox);
+    advancedBox.add(Box.createVerticalStrut(5));
+    
+    advancedBox.add(Box.createVerticalStrut(5));
+
+    // Delay time
+    horizBox = Box.createHorizontalBox();
+    horizBox.setMaximumSize(new Dimension(Integer.MAX_VALUE,LABEL_HEIGHT));
+    horizBox.setAlignmentX(Component.LEFT_ALIGNMENT);
+    label = new JLabel("Delay time (ms)");
+    label.setPreferredSize(new Dimension(LABEL_WIDTH,LABEL_HEIGHT));
+    
+    numberField = new JFormattedTextField(integerFormat);
+    numberField.setValue(new Integer(100));
+    numberField.setColumns(4);
+    delayTime = numberField;
+    
+    horizBox.add(label);
+    horizBox.add(Box.createHorizontalStrut(150));
+    horizBox.add(numberField);
+    horizBox.setToolTipText("Delay between each simulated time step");
+
+    advancedBox.add(horizBox);
+    advancedBox.add(Box.createVerticalStrut(5));
+
+    advancedBox.add(Box.createVerticalStrut(5));
+
+    // Random seed
+    horizBox = Box.createHorizontalBox();
+    horizBox.setMaximumSize(new Dimension(Integer.MAX_VALUE,LABEL_HEIGHT));
+    horizBox.setAlignmentX(Component.LEFT_ALIGNMENT);
+    label = new JLabel("Main random seed");
+    label.setPreferredSize(new Dimension(LABEL_WIDTH,LABEL_HEIGHT));
+    
+    numberField = new JFormattedTextField(integerFormat);
+    numberField.setValue(new Integer(123456));
+    numberField.setColumns(4);
+    randomSeed = numberField;
+    
+    horizBox.add(label);
+    horizBox.add(Box.createHorizontalStrut(150));
+    horizBox.add(numberField);
+    horizBox.setToolTipText("Main random seed. Determines mote tick order, mote startup delay etc.");
+    
+    advancedBox.add(horizBox);
+    advancedBox.add(Box.createVerticalStrut(5));
+    
+    // Tick lists
+    horizBox = Box.createHorizontalBox();
+    horizBox.setMaximumSize(new Dimension(Integer.MAX_VALUE,LABEL_HEIGHT));
+    horizBox.setAlignmentX(Component.LEFT_ALIGNMENT);
+    label = new JLabel("Number of tick lists");
+    label.setPreferredSize(new Dimension(LABEL_WIDTH,LABEL_HEIGHT));
+    
+    numberField = new JFormattedTextField(integerFormat);
+    numberField.setValue(new Integer(1));
+    numberField.setColumns(4);  
+    tickLists = numberField;
+    
+    horizBox.add(label);
+    horizBox.add(Box.createHorizontalStrut(150));
+    horizBox.add(numberField);
+    horizBox.setToolTipText("<html>Number of tick lists.<p>Every simulated mote belongs to a tick list, and each simulated loop only one list is allowed to act.<br>If the number of tick lists is 1, all motes are tick every simulation time increase.</html>");
+    
+    advancedBox.add(horizBox);
+    advancedBox.add(Box.createVerticalGlue());
     
     
-    mainPane.setBorder(BorderFactory.createEmptyBorder(10,10,10,10));
+    vertBox.add(advancedBox);
+    vertBox.add(Box.createVerticalGlue());
+    
+    vertBox.setBorder(BorderFactory.createEmptyBorder(10,10,10,10));
     
     Container contentPane = getContentPane();
-    contentPane.add(mainPane, BorderLayout.NORTH);
-    contentPane.add(buttonPane, BorderLayout.SOUTH);
+    contentPane.add(vertBox, BorderLayout.CENTER);
+    contentPane.add(buttonBox, BorderLayout.SOUTH);
     
     pack();
   }
@@ -365,10 +447,15 @@ public class CreateSimDialog extends JDialog {
           }
         }
         
-        if (logCheckBox.isSelected()) {
+/*        if (logCheckBox.isSelected()) {
           ConnectionLogger connLogger = new ConnectionLogger(new File(logFilename.getText()));
           mySimulation.getRadioMedium().setConnectionLogger(connLogger);
         }
+*/       
+        
+        mySimulation.setRandomSeed(((Number) randomSeed.getValue()).longValue());
+        mySimulation.setNrTickLists(((Number) tickLists.getValue()).intValue());
+        mySimulation.setDelayedMoteStartupTime(((Number) delayedStartup.getValue()).intValue());
         
         dispose();
       }
