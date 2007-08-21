@@ -47,6 +47,8 @@ clock_time(void)
 #define SPIN_TIME 2 /* us */
 #define SPIN_COUNT (((MCK*SPIN_TIME/1000000)-5)/4)
 
+#ifndef __MAKING_DEPS__
+
 void
 clock_delay(unsigned int t)
 {
@@ -56,3 +58,5 @@ clock_delay(unsigned int t)
 #error Must be compiled in thumb mode
 #endif
 }
+
+#endif /* __MAKING_DEPS__ */

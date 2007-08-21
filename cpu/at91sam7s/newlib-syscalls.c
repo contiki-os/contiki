@@ -94,3 +94,30 @@ fsync(int fd)
   errno = EBADF;
   return -1;
 }
+
+void
+_exit(int status)
+{
+  while(1);
+}
+
+void
+_abort()
+{
+  while(1);
+}
+
+void
+_kill()
+{
+  while(1);
+}
+
+pid_t
+_getpid(void)
+{
+  return 1;
+}
+
+const unsigned long
+bkpt_instr = 0xe1200070;

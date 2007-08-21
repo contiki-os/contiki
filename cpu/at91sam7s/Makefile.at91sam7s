@@ -1,32 +1,28 @@
-
 # Adapted from Makefile.msp430
 
-### Check if we are running under Windows
-
-ifndef WINDIR
-  ifdef OS
-    ifneq (,$(findstring Windows,$(OS)))
-      WINDIR := Windows
-    endif
-  endif
-endif
-
-ifdef nodeid
-CFLAGS += -DNODEID=$(nodeid)
-endif
-
-### Define the CPU directory
+### Defin the CPU directory
 CONTIKI_CPU=$(CONTIKI)/cpu/at91sam7s
 
-### Define the source files we have in the MSP430 port
+### Define the source files we have in the AT91SAM7S port
 
-AT91SAM7S     = clock.c debug-uart.c interrupt_utils.c newlib-syscalls.c sys-interrupt.c
+CONTIKI_CPU_DIRS = . dbg-io loader
 
-CONTIKI_TARGET_SOURCEFILES += $(AT91SAM7S)
+AT91SAM7S     = clock.c debug-uart.c interrupt-utils.c newlib-syscalls.c sys-interrupt.c rtimer-arch.c rtimer-arch-interrupt.c uip-log.c
+
+SYSAPPS = codeprop-otf.c
+APPDIRS += $(CONTIKI)/cpu/at91sam7s/loader
+
+ELFLOADER = elfloader-otf.c elfloader-arm.c symtab.c cfs-ram.c
+
+TARGETLIBS = random.c dbg-printf.c dbg-puts.c dbg-putchar.c dbg-sprintf.c strformat.c
+
+CONTIKI_TARGET_SOURCEFILES += $(AT91SAM7S) $(SYSAPPS) $(ELFLOADER) \
+			$(TARGETLIBS) $(UIPDRIVERS)
 
 CONTIKI_SOURCEFILES        += $(CONTIKI_TARGET_SOURCEFILES)
 
-CONTIKIDIRS=$(CONTIKI)/core/sys:$(CONTIKI)/core/dev:$(CONTIKI)/core/cfs:$(CONTIKI)/core/loader:$(CONTIKI)/core/net:$(CONTIKI)/core/lib
+
+THREADS =
 
 ### Compiler definitions
 CC       = arm-elf-gcc
@@ -37,9 +33,11 @@ NM       = arm-elf-nm
 OBJCOPY  = arm-elf-objcopy
 STRIP    = arm-elf-strip
 
+PROJECT_OBJECTFILES += ${addprefix $(OBJECTDIR)/,$(CONTIKI_TARGET_MAIN:.c=.o)}
+
 LINKERSCRIPT = $(CONTIKI_CPU)/AT91SAM7S64-ROM.ld
 
-STARTUP=startup-SAM7S.o
+STARTUP=${addprefix $(OBJECTDIR)/,startup-SAM7S.o}
 
 # JTAG program upload
 OPENOCD	 = openocd
@@ -50,9 +48,9 @@ OPENOCD_RESET = arm7_wig_reset.cfg
 SAMIAM=Sam_I_Am
 SAMIAM_TTY=/dev/ttyACM0
 
-ARCH_FLAGS= -mcpu=arm7tdmi
-THUMB_FLAGS=-mthumb -mthumb-interwork
-ARM_FLAGS=-mthumb-interwork
+ARCH_FLAGS= -mcpu=arm7tdmi -mthumb-interwork
+THUMB_FLAGS=-mthumb
+ARM_FLAGS=
 
 
 CFLAGSNO = -I. -I$(CONTIKI)/core -I$(CONTIKI_CPU) -I$(CONTIKI_CPU)/loader \
@@ -63,58 +61,94 @@ CFLAGSNO = -I. -I$(CONTIKI)/core -I$(CONTIKI_CPU) -I$(CONTIKI_CPU)/loader \
            -Wall $(ARCH_FLAGS) -g 
 
 CFLAGS  += $(CFLAGSNO) -O -DRUN_AS_SYSTEM -DROM_RUN
-LDFLAGS += $(ARCH_FLAGS) -T $(LINKERSCRIPT)
+LDFLAGS += -T $(LINKERSCRIPT) -nostartfiles
 
-PROJECT_OBJECTFILES += ${addprefix $(OBJECTDIR)/,$(CONTIKI_TARGET_MAIN:.c=.o)}
+CDEPFLAGS = $(CFLAGS) -D __MAKING_DEPS__
+
+
+
 
 ### Setup directory search path for source files
 
-CONTIKI_TARGET_DIRS_CONCAT = ${addprefix $(CONTIKI)/platform/$(TARGET)/, \
-                               $(CONTIKI_TARGET_DIRS)}
-
-vpath %.c $(PROJECTDIRS) \
-          $(CONTIKIDIRS) $(APPDIRS) $(CONTIKI_TARGET_DIRS_CONCAT) \
-          $(CONTIKI_CPU) $(CONTIKI_CPU)/loader $(CONTIKI_CPU)/dbg-io
-
-vpath %.S $(CONTIKI_CPU)
+CUSTOM_RULE_C_TO_OBJECTDIR_O=yes
+CUSTOM_RULE_C_TO_O=yes
 
 %-interrupt.o: %-interrupt.c
 	$(CC) $(CFLAGS) $(ARM_FLAGS) $< -c
 
+$(OBJECTDIR)/%-interrupt.o: %-interrupt.c
+	$(CC) $(CFLAGS) $(ARM_FLAGS) -c $< -o $@
+
 %-arm.o: %-arm.c
 	$(CC) $(CFLAGS) $(ARM_FLAGS) $< -c
 
-interrupt-utils.o: interrupt-utils.c
-	$(CC) $(CFLAGS) $(ARM_FLAGS) $< -c
+$(OBJECTDIR)/%-arm.o: %-arm.c
+	$(CC) $(CFLAGS) $(ARM_FLAGS) -c $< -o $@
+
+$(OBJECTDIR)/interrupt-utils.o: interrupt-utils.c
+	$(CC) $(CFLAGS) $(ARM_FLAGS) $< -c -o $@
 
 %.o: %.c
 	$(CC) $(CFLAGS) $(THUMB_FLAGS) $< -c
 
+$(OBJECTDIR)/%.o: %.c
+	$(CC) $(CFLAGS) $(THUMB_FLAGS) -c $< -o $@
+
 %.o: %.S
 	$(CC) $(CFLAGS) $(ARM_FLAGS) $< -c
 
-%.ko: %.o
-	$(LD) --relocatable -T $(CONTIKI_CPU)/merge-rodata.ld $< -o $@
+$(OBJECTDIR)/%.o: %.S
+	$(CC) $(CFLAGS) $(ARM_FLAGS) $< -c  -o $@
+
+
+CUSTOM_RULE_C_TO_CO=yes
+
+%.co: %.c
+	$(CC) $(CFLAGS) $(THUMB_FLAGS) $< -c -o $@
+
+CUSTOM_RULE_C_TO_CE=yes
+
+%.ce: %.o
+	$(LD) $(LDFLAGS) --relocatable -T $(CONTIKI_CPU)/merge-rodata.ld $< -o $@
 	$(STRIP) -K _init -K _fini --strip-unneeded -g -x $@
 
+CUSTOM_RULE_LINK=yes
 
-# Add a namelist to the kernel
-%-syms.elf: $^ $(STARTUP)
-	: | awk -f $(CONTIKI)/tools/mknmlist > $*-tmp.c && mv $*-tmp.c $*-nm.c
-	$(CC) $(LDFLAGS) $(CFLAGS) $(THUMB_FLAGS) -nostartfiles -o $@ $^ $*-nm.c
-	$(NM) $@ | awk -f $(CONTIKI)/tools/mknmlist > $*-tmp.c && mv $*-tmp.c $*-nm.c
-	-test -r $*.exclude && grep -v -f $*.exclude $*-nm.c >$*-tmp.c && mv $*-tmp.c $*-nm.c
-	$(CC) $(LDFLAGS) $(CFLAGS) $(THUMB_FLAGS) -nostartfiles -o $*-syms.elf $^ $*-nm.c
+%-stripped.o: %.c
+	$(CC) $(CFLAGS) -c $< -o $@
+	$(STRIP) --strip-unneeded -g -x $@
 
-%.elf: $^ $(STARTUP)
-	$(CC) $(LDFLAGS) $(CFLAGS) $(THUMB_FLAGS) -nostartfiles -o $@ $^
+%-stripped.o: %.o
+	$(STRIP) --strip-unneeded -g -x -o $@ $<
 
-%.ihx: %.elf
-	$(OBJCOPY) -O ihex $< $@
+%.o: ${CONTIKI_TARGET}/loader/%.S
+	$(AS) -o $(notdir $(<:.S=.o)) $<
 
-%.bin: %.elf
+%-nosyms.$(TARGET): %.co $(PROJECT_OBJECTFILES) contiki-$(TARGET).a $(STARTUP) $(OBJECTDIR)/empty-symbols.o
+	$(CC) $(LDFLAGS) $(CFLAGS) -nostartfiles -o $@ $(filter-out %.a,$^) $(filter %.a,$^) -lc $(filter %.a,$^)
+
+
+%.ihex: %.$(TARGET)
+	$(OBJCOPY) $^ -O ihex $@
+
+%.bin: %.$(TARGET)
 	$(OBJCOPY) -O binary $< $@
+ 
+.PHONY: symbols.c
+ifdef CORE
+%.$(TARGET): %.co $(PROJECT_OBJECTFILES) contiki-$(TARGET).a $(STARTUP) $(OBJECTDIR)/symbols.o
+	$(CC) $(LDFLAGS) $(CFLAGS) -nostartfiles -o $@ $(filter-out %.a,$^) $(filter %.a,$^) -lc $(filter %.a,$^)
 
+symbols.c: $(CORE)
+	$(NM) $< | awk -f ../../tools/mknmlist > symbols.c
+
+else
+%.$(TARGET): %-nosyms.$(TARGET)
+	ln -sf $< $@
+endif
+
+empty-symbols.c:
+	@${CONTIKI}/tools/make-empty-symbols
 
 upload_ocd_%: %.bin
 	cp $< /tmp/openocd_write.bin 
@@ -123,7 +157,7 @@ upload_ocd_%: %.bin
 	-rm  /tmp/openocd_write.bin
 
 
-upload_%: %.ihx
+upload_%: %.ihex
 	# Clear lock bits
 	$(SAMIAM) "open $(SAMIAM_TTY) , writew 0xffffff64 5a000004"
 	$(SAMIAM) "open $(SAMIAM_TTY) , writew 0xffffff64 5a002004"
@@ -132,10 +166,8 @@ upload_%: %.ihx
 ocd_reset:
 	cd $(CONTIKI_CPU)/openocd;$(OPENOCD) -f $(OPENOCD_RESET)
 
-clean: 
-	-rm *.o
-	-rm *.elf
-	-rm *.ihx
-	-rm *.bin
-	-rm *-nm.c
-	-rm *.ko
+# Don't use core/loader/elfloader.c, use elfloader-otf.c instead
+$(OBJECTDIR)/elfloader.o: 
+	echo -n >$@
+
+.PRECIOUS: %-nosyms.$(TARGET)
