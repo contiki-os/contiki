@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: cooja-radio.h,v 1.2 2007/05/18 15:20:20 fros4943 Exp $
+ * $Id: cooja-radio.h,v 1.3 2007/08/21 13:09:40 fros4943 Exp $
  */
 
 #ifndef __COOJA_RADIO_H__
@@ -112,5 +112,10 @@ int radio_sstrength(void);
  * This function measures and returns the signal strength.
  */
 int radio_current_sstrength(void);
+
+/**
+ * Internal COOJA function, calls the current receiver function.
+ */
+void radio_call_receiver(void);
 
 #endif /* __COOJA_RADIO_H__ */
