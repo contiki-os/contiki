@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: UDGM.java,v 1.6 2007/07/13 09:08:25 fros4943 Exp $
+ * $Id: UDGM.java,v 1.7 2007/08/21 09:17:18 fros4943 Exp $
  */
 
 package se.sics.cooja.radiomediums;
@@ -83,7 +83,7 @@ public class UDGM extends AbstractRadioMedium {
 
   public static final double SS_OK_WORST = -30;
 
-  public static final double PACKET_SUCCESS_RATIO = 0.95;
+  public static double PACKET_SUCCESS_RATIO = 1.0;
 
   // Maximum ranges (SS indicator 100)
   private static double TRANSMITTING_RANGE = 50;
@@ -116,6 +116,8 @@ public class UDGM extends AbstractRadioMedium {
 
     private JSpinner interferenceSpinner = null;
 
+    private JSpinner successRatioSpinner = null;
+
     private Observer radioMediumObserver;
 
     private class ChangeRangesMenuAction implements MoteMenuAction {
@@ -130,6 +132,21 @@ public class UDGM extends AbstractRadioMedium {
       public void doAction(Mote mote) {
         transmissionSpinner.setVisible(true);
         interferenceSpinner.setVisible(true);
+        repaint();
+      }
+    };
+
+    private class ChangeSuccessRadioMenuAction implements MoteMenuAction {
+      public boolean isEnabled(Mote mote) {
+        return true;
+      }
+
+      public String getDescription(Mote mote) {
+        return "Change transmission success ratio";
+      }
+
+      public void doAction(Mote mote) {
+        successRatioSpinner.setVisible(true);
         repaint();
       }
     };
@@ -149,15 +166,33 @@ public class UDGM extends AbstractRadioMedium {
       interferenceModel.setStepSize(new Double(1.0)); // 1m
       interferenceModel.setMinimum(new Double(0.0));
 
-      transmissionSpinner = new JSpinner(transmissionModel);
-      interferenceSpinner = new JSpinner(interferenceModel);
+      SpinnerNumberModel successRatioModel = new SpinnerNumberModel();
+      successRatioModel.setValue(new Double(PACKET_SUCCESS_RATIO));
+      successRatioModel.setStepSize(new Double(0.01)); // 1%
+      successRatioModel.setMinimum(new Double(0.0));
+      successRatioModel.setMaximum(new Double(1.0));
 
+      JSpinner.NumberEditor editor;
+      transmissionSpinner = new JSpinner(transmissionModel);
+      editor = new JSpinner.NumberEditor(transmissionSpinner, "0m");
+      transmissionSpinner.setEditor(editor);
+      interferenceSpinner = new JSpinner(interferenceModel);
+      editor = new JSpinner.NumberEditor(interferenceSpinner, "0m");
+      interferenceSpinner.setEditor(editor);
+      successRatioSpinner = new JSpinner(successRatioModel);
+      editor = new JSpinner.NumberEditor(successRatioSpinner, "0%");
+      successRatioSpinner.setEditor(editor);
+      
+      
       ((JSpinner.DefaultEditor) transmissionSpinner.getEditor()).getTextField()
-          .setColumns(5);
+      .setColumns(5);
       ((JSpinner.DefaultEditor) interferenceSpinner.getEditor()).getTextField()
-          .setColumns(5);
+      .setColumns(5);
+      ((JSpinner.DefaultEditor) successRatioSpinner.getEditor()).getTextField()
+      .setColumns(5);
       transmissionSpinner.setToolTipText("Transmitting range");
       interferenceSpinner.setToolTipText("Interference range");
+      successRatioSpinner.setToolTipText("Transmission success ratio in green area");
 
       transmissionSpinner.addChangeListener(new ChangeListener() {
         public void stateChanged(ChangeEvent e) {
@@ -175,10 +210,20 @@ public class UDGM extends AbstractRadioMedium {
         }
       });
 
+      successRatioSpinner.addChangeListener(new ChangeListener() {
+        public void stateChanged(ChangeEvent e) {
+          PACKET_SUCCESS_RATIO = ((SpinnerNumberModel) successRatioSpinner
+              .getModel()).getNumber().doubleValue();
+          repaint();
+        }
+      });
+
       getCurrentCanvas().add(transmissionSpinner);
       getCurrentCanvas().add(interferenceSpinner);
+      getCurrentCanvas().add(successRatioSpinner);
       transmissionSpinner.setVisible(false);
       interferenceSpinner.setVisible(false);
+      successRatioSpinner.setVisible(false);
 
       // Add mouse listener for selecting motes
       getCurrentCanvas().addMouseListener(new MouseListener() {
@@ -200,6 +245,7 @@ public class UDGM extends AbstractRadioMedium {
             selectedMote = null;
             transmissionSpinner.setVisible(false);
             interferenceSpinner.setVisible(false);
+            successRatioSpinner.setVisible(false);
             repaint();
             return;
           }
@@ -221,9 +267,10 @@ public class UDGM extends AbstractRadioMedium {
         }
       });
 
-      // Register change ranges action
+      // Register change ranges and change success ratio action
       addMoteMenuAction(new ChangeRangesMenuAction());
-
+      addMoteMenuAction(new ChangeSuccessRadioMenuAction());
+      
       // Observe our own radio medium
       myRadioMedium
           .addRadioMediumObserver(radioMediumObserver = new Observer() {
