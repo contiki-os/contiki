@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: RadioLogger.java,v 1.9 2007/07/17 21:21:19 fros4943 Exp $
+ * $Id: RadioLogger.java,v 1.10 2007/08/21 13:28:52 fros4943 Exp $
  */
 
 package se.sics.cooja.plugins;
@@ -52,7 +52,7 @@ import se.sics.cooja.interfaces.Radio;
  * Radio logger listens to the simulation radio medium and lists all transmitted
  * data in a table. By overriding the transformDataToString method, protocol
  * specific data can be interpreted.
- * 
+ *
  * @see #transformDataToString(byte[])
  * @author Fredrik Osterlind
  */
@@ -130,8 +130,9 @@ public class RadioLogger extends VisPlugin {
           );
         }
 
-        if (col == COLUMN_TO)
+        if (col == COLUMN_TO) {
           return true;
+        }
         return false;
       }
 
@@ -145,8 +146,9 @@ public class RadioLogger extends VisPlugin {
     comboBox.addItemListener(new ItemListener() {
       public void itemStateChanged(ItemEvent e) {
         if (e.getStateChange() == ItemEvent.SELECTED) {
-          if (e.getItem() instanceof Mote)
+          if (e.getItem() instanceof Mote) {
             gui.signalMoteHighlight((Mote) e.getItem());
+          }
         }
       }
     });
@@ -155,18 +157,20 @@ public class RadioLogger extends VisPlugin {
       public TableCellEditor getCellEditor(int row, int column) {
         // Populate combo box
         comboBox.removeAllItems();
-        if (row < 0 || row >= rowData.size())
+        if (row < 0 || row >= rowData.size()) {
           return super.getCellEditor(row, column);
+        }
 
         RadioConnection conn = (RadioConnection) rowData.get(row)[DATAPOS_CONNECTION];
-        if (conn == null)
+        if (conn == null) {
           return super.getCellEditor(row, column);
+        }
 
         for (Radio destRadio: conn.getDestinations()) {
           if (destRadio.getMote() != null) {
-            comboBox.addItem(destRadio.getMote()); 
+            comboBox.addItem(destRadio.getMote());
           } else {
-            comboBox.addItem("[standalone radio]"); 
+            comboBox.addItem("[standalone radio]");
           }
         }
 
@@ -204,8 +208,27 @@ public class RadioLogger extends VisPlugin {
     dataTable.getSelectionModel().addListSelectionListener(
         new ListSelectionListener() {
           public void valueChanged(ListSelectionEvent e) {
-            gui.signalMoteHighlight(((RadioConnection) rowData.get(
-                dataTable.getSelectedRow())[DATAPOS_CONNECTION]).getSource().getMote());
+            int selectedRowIndex = dataTable.getSelectedRow();
+            if (selectedRowIndex < 0) {
+              return;
+            }
+
+            Object[] row = rowData.get(selectedRowIndex);
+            if (row == null) {
+              return;
+            }
+
+            RadioConnection conn = (RadioConnection) row[DATAPOS_CONNECTION];
+            if (conn == null) {
+              return;
+            }
+
+            Mote mote = conn.getSource().getMote();
+            if (mote == null) {
+              return;
+            }
+
+            gui.signalMoteHighlight(mote);
           }
         });
 
@@ -220,8 +243,9 @@ public class RadioLogger extends VisPlugin {
     simulation.getRadioMedium().addRadioMediumObserver(radioMediumObserver = new Observer() {
       public void update(Observable obs, Object obj) {
         RadioConnection[] newConnections = radioMedium.getLastTickConnections();
-        if (newConnections == null)
+        if (newConnections == null) {
           return;
+        }
 
         for (RadioConnection newConnection: newConnections) {
           Object[] data = new Object[3];
@@ -249,19 +273,21 @@ public class RadioLogger extends VisPlugin {
 
   /**
    * Transform transmitted data to representable object, such as a string.
-   * 
+   *
    * @param data Transmitted data
    * @return Representable object
    */
   public Object transformDataToString(byte[] data) {
-    if (data == null)
+    if (data == null) {
       return "[unknown data]";
+    }
 
     Packet packet = analyzePacket(data);
-    if (packet == null)
+    if (packet == null) {
       return "Unknown packet, size " + data.length;
-    else
+    } else {
       return packet.getShortDescription();
+    }
   }
 
   static abstract class Packet {
@@ -297,7 +323,7 @@ public class RadioLogger extends VisPlugin {
     }
 
     public int getID() {
-      int id = 
+      int id =
         ((data[4] & 0xFF) << 24) +
         ((data[5] & 0xFF) << 16) +
         ((data[6] & 0xFF) << 8) +
@@ -306,11 +332,11 @@ public class RadioLogger extends VisPlugin {
     }
 
     public String getDestAddr() {
-      return (int) (0xff&data[8]) + "." + (int) (0xff&data[9]) + "." + (int) (0xff&data[10]) + "." + (int) (0xff&data[11]);
+      return (0xff&data[8]) + "." + (0xff&data[9]) + "." + (0xff&data[10]) + "." + (0xff&data[11]);
     }
 
     public int getDestSeqNo() {
-      int seqNo = 
+      int seqNo =
         ((data[12] & 0xFF) << 24) +
         ((data[13] & 0xFF) << 16) +
         ((data[14] & 0xFF) << 8) +
@@ -319,11 +345,11 @@ public class RadioLogger extends VisPlugin {
     }
 
     public String getOrigAddr() {
-      return (int) (0xff&data[16]) + "." + (int) (0xff&data[17]) + "." + (int) (0xff&data[18]) + "." + (int) (0xff&data[19]);
+      return (0xff&data[16]) + "." + (0xff&data[17]) + "." + (0xff&data[18]) + "." + (0xff&data[19]);
     }
 
     public int getOrigSeqNo() {
-      int seqNo = 
+      int seqNo =
         ((data[20] & 0xFF) << 24) +
         ((data[21] & 0xFF) << 16) +
         ((data[22] & 0xFF) << 8) +
@@ -350,14 +376,16 @@ public class RadioLogger extends VisPlugin {
     }
 
     public static boolean dataFits(byte[] packetData) {
-      if (packetData.length != SIZE)
+      if (packetData.length != SIZE) {
         return false;
+      }
 
       byte[] dataNoHeader = new byte[HEADER_SIZE];
       System.arraycopy(packetData, packetData.length - HEADER_SIZE, dataNoHeader, 0, HEADER_SIZE);
 
-      if (dataNoHeader[0] != TYPE)
+      if (dataNoHeader[0] != TYPE) {
         return false;
+      }
 
       return true;
     }
@@ -392,11 +420,11 @@ public class RadioLogger extends VisPlugin {
     }
 
     public String getDestAddr() {
-      return (int) (0xff&data[4]) + "." + (int) (0xff&data[5]) + "." + (int) (0xff&data[6]) + "." + (int) (0xff&data[7]);
+      return (0xff&data[4]) + "." + (0xff&data[5]) + "." + (0xff&data[6]) + "." + (0xff&data[7]);
     }
 
     public int getDestSeqNo() {
-      int seqNo = 
+      int seqNo =
         ((data[8] & 0xFF) << 24) +
         ((data[9] & 0xFF) << 16) +
         ((data[10] & 0xFF) << 8) +
@@ -405,11 +433,11 @@ public class RadioLogger extends VisPlugin {
     }
 
     public String getOrigAddr() {
-      return (int) (0xff&data[12]) + "." + (int) (0xff&data[13]) + "." + (int) (0xff&data[14]) + "." + (int) (0xff&data[15]);
+      return (0xff&data[12]) + "." + (0xff&data[13]) + "." + (0xff&data[14]) + "." + (0xff&data[15]);
     }
 
     public int getLifetime() {
-      int seqNo = 
+      int seqNo =
         ((data[16] & 0xFF) << 24) +
         ((data[17] & 0xFF) << 16) +
         ((data[18] & 0xFF) << 8) +
@@ -423,7 +451,7 @@ public class RadioLogger extends VisPlugin {
 
     public String getToolTip() {
       return "<html>" +
-      "AODV RREP type: " + getType() + "<br>" + 
+      "AODV RREP type: " + getType() + "<br>" +
       "AODV RREP flags: " + getFlags() + "<br>" +
       "AODV RREP prefix: " + getPrefix() + "<br>" +
       "AODV RREP hop_count: " + getHopCount() + "<br>" +
@@ -435,14 +463,16 @@ public class RadioLogger extends VisPlugin {
     }
 
     public static boolean dataFits(byte[] packetData) {
-      if (packetData.length != SIZE)
+      if (packetData.length != SIZE) {
         return false;
+      }
 
       byte[] dataNoHeader = new byte[HEADER_SIZE];
       System.arraycopy(packetData, packetData.length - HEADER_SIZE, dataNoHeader, 0, HEADER_SIZE);
 
-      if (dataNoHeader[0] != TYPE)
+      if (dataNoHeader[0] != TYPE) {
         return false;
+      }
 
       return true;
     }
@@ -476,11 +506,11 @@ public class RadioLogger extends VisPlugin {
     }
 
     public String getUnreachAddr() {
-      return (int) (0xff&data[4]) + "." + (int) (0xff&data[5]) + "." + (int) (0xff&data[6]) + "." + (int) (0xff&data[7]);
+      return (0xff&data[4]) + "." + (0xff&data[5]) + "." + (0xff&data[6]) + "." + (0xff&data[7]);
     }
 
     public int getUnreachSeqNo() {
-      int seqNo = 
+      int seqNo =
         ((data[8] & 0xFF) << 24) +
         ((data[9] & 0xFF) << 16) +
         ((data[10] & 0xFF) << 8) +
@@ -494,7 +524,7 @@ public class RadioLogger extends VisPlugin {
 
     public String getToolTip() {
       return "<html>" +
-      "AODV RERR type: " + getType() + "<br>" + 
+      "AODV RERR type: " + getType() + "<br>" +
       "AODV RERR flags: " + getFlags() + "<br>" +
       "AODV RERR reserved: " + getReserved() + "<br>" +
       "AODV RERR dest_count: " + getDestCount() + "<br>" +
@@ -504,14 +534,16 @@ public class RadioLogger extends VisPlugin {
     }
 
     public static boolean dataFits(byte[] packetData) {
-      if (packetData.length != SIZE)
+      if (packetData.length != SIZE) {
         return false;
+      }
 
       byte[] dataNoHeader = new byte[HEADER_SIZE];
       System.arraycopy(packetData, packetData.length - HEADER_SIZE, dataNoHeader, 0, HEADER_SIZE);
 
-      if (dataNoHeader[0] != TYPE)
+      if (dataNoHeader[0] != TYPE) {
         return false;
+      }
 
       return true;
     }
@@ -526,7 +558,7 @@ public class RadioLogger extends VisPlugin {
     }
 
     public int getChecksum() {
-      int checksum = 
+      int checksum =
         ((data[3] & 0xFF) << 8) +
         ((data[4] & 0xFF) << 0);
       return checksum;
@@ -538,27 +570,31 @@ public class RadioLogger extends VisPlugin {
 
     public String getToolTip() {
       return "<html>" +
-      "ACK checksum: " + getChecksum() + "<br>" + 
+      "ACK checksum: " + getChecksum() + "<br>" +
       "</html>";
     }
 
     public static boolean dataFits(byte[] packetData) {
-      if (packetData.length != SIZE)
+      if (packetData.length != SIZE) {
         return false;
+      }
 
-      if (packetData[0] != (byte) 'a')
+      if (packetData[0] != (byte) 'a') {
         return false;
-      
-      if (packetData[1] != (byte) 'C')
+      }
+
+      if (packetData[1] != (byte) 'C') {
         return false;
-      
-      if (packetData[2] != (byte) 'k')
+      }
+
+      if (packetData[2] != (byte) 'k') {
         return false;
-      
+      }
+
       return true;
     }
   };
-  
+
   static class ForwardedPacketUnknown extends PacketUnknown {
     public final static int MINIMUM_SIZE = 4;
 
@@ -571,21 +607,26 @@ public class RadioLogger extends VisPlugin {
     }
 
     public static boolean dataFits(byte[] packetData) {
-      if (packetData.length < ForwardedPacketUnknown.MINIMUM_SIZE)
+      if (packetData.length < ForwardedPacketUnknown.MINIMUM_SIZE) {
         return false;
-      
-      if (packetData[0] != (byte) 'f')
+      }
+
+      if (packetData[0] != (byte) 'f') {
         return false;
-      
-      if (packetData[1] != (byte) 'W')
+      }
+
+      if (packetData[1] != (byte) 'W') {
         return false;
-      
-      if (packetData[2] != (byte) 'd')
+      }
+
+      if (packetData[2] != (byte) 'd') {
         return false;
-      
-      if (packetData[3] != (byte) ':')
+      }
+
+      if (packetData[3] != (byte) ':') {
         return false;
-      
+      }
+
       return true;
     }
   }
@@ -626,27 +667,33 @@ public class RadioLogger extends VisPlugin {
 
   private Packet analyzePacket(byte[] data) {
 
-    if (PacketAODV_RREQ.dataFits(data))
+    if (PacketAODV_RREQ.dataFits(data)) {
       return new PacketAODV_RREQ(data);
+    }
 
-    if (PacketAODV_RREP.dataFits(data))
+    if (PacketAODV_RREP.dataFits(data)) {
       return new PacketAODV_RREP(data);
+    }
 
-    if (PacketAODV_RERR.dataFits(data))
+    if (PacketAODV_RERR.dataFits(data)) {
       return new PacketAODV_RERR(data);
+    }
 
-    if (ForwardedPacketUnknown.dataFits(data))
+    if (ForwardedPacketUnknown.dataFits(data)) {
       return new ForwardedPacketUnknown(data);
+    }
 
-    if (AckPacket.dataFits(data))
+    if (AckPacket.dataFits(data)) {
       return new AckPacket(data);
+    }
 
     return new PacketUnknown(data);
   }
 
   public void closePlugin() {
-    if (radioMediumObserver != null)
+    if (radioMediumObserver != null) {
       radioMedium.deleteRadioMediumObserver(radioMediumObserver);
+    }
   }
 
   public Collection<Element> getConfigXML() {

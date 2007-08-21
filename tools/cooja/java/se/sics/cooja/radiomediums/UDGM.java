@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: UDGM.java,v 1.7 2007/08/21 09:17:18 fros4943 Exp $
+ * $Id: UDGM.java,v 1.8 2007/08/21 13:31:26 fros4943 Exp $
  */
 
 package se.sics.cooja.radiomediums;
@@ -46,26 +46,23 @@ import se.sics.cooja.plugins.Visualizer2D;
 /**
  * The Unit Disk Graph medium has two different range parameters; one for
  * transmitting and one for interfering other transmissions.
- * 
+ *
  * The radio medium supports both byte and packet radios.
- * 
- * TODO Any transmitted bytes are forwarded immediately with a timestamp 
- * (more fine-grained than ticks).
- * 
+ *
  * The radio medium registers a visualizer plugin. Via this plugin the current
  * radio states and range parameters can be viewed and changed.
- * 
+ *
  * The registered radios' signal strengths are updated whenever the radio medium
  * changes. There are three fixed levels: no surrounding traffic heard, noise
  * heard and data heard.
- * 
+ *
  * The radio output power indicator (0-100) is used in a very simple way; the
  * total transmission (and interfering) range is multiplied with [power_ind]%.
- * 
+ *
  * @see #SS_OK
  * @see #SS_NOISE
  * @see #SS_NOTHING
- * 
+ *
  * @see VisUDGM
  * @author Fredrik Osterlind
  */
@@ -91,20 +88,20 @@ public class UDGM extends AbstractRadioMedium {
   private static double INTERFERENCE_RANGE = 100;
 
   private Simulation mySimulation;
-  
+
   private boolean usingRandom = false;
 
   private Random random = new Random();
 
-  
+
   /**
    * Visualizes radio traffic in the UDGM. Allows a user to
    * change transmission ranges.
-   * 
+   *
    * Sending motes are blue, receiving motes are green and motes that hear noise
    * are painted red. Motes without radios are painted gray, and the rest are
    * white.
-   * 
+   *
    * @author Fredrik Osterlind
    */
   @ClassDescription("UDGM Visualizer")
@@ -182,8 +179,8 @@ public class UDGM extends AbstractRadioMedium {
       successRatioSpinner = new JSpinner(successRatioModel);
       editor = new JSpinner.NumberEditor(successRatioSpinner, "0%");
       successRatioSpinner.setEditor(editor);
-      
-      
+
+
       ((JSpinner.DefaultEditor) transmissionSpinner.getEditor()).getTextField()
       .setColumns(5);
       ((JSpinner.DefaultEditor) interferenceSpinner.getEditor()).getTextField()
@@ -253,10 +250,11 @@ public class UDGM extends AbstractRadioMedium {
           // Select one of the clicked motes
           if (clickedMotes.contains(selectedMote)) {
             int pos = clickedMotes.indexOf(selectedMote);
-            if (pos < clickedMotes.size() - 1)
+            if (pos < clickedMotes.size() - 1) {
               selectedMote = clickedMotes.get(pos + 1);
-            else
+            } else {
               selectedMote = clickedMotes.firstElement();
+            }
           } else {
             selectedMote = clickedMotes.firstElement();
           }
@@ -270,7 +268,7 @@ public class UDGM extends AbstractRadioMedium {
       // Register change ranges and change success ratio action
       addMoteMenuAction(new ChangeRangesMenuAction());
       addMoteMenuAction(new ChangeSuccessRadioMenuAction());
-      
+
       // Observe our own radio medium
       myRadioMedium
           .addRadioMediumObserver(radioMediumObserver = new Observer() {
@@ -289,23 +287,29 @@ public class UDGM extends AbstractRadioMedium {
 
     public Color[] getColorOf(Mote mote) {
       Radio moteRadio = mote.getInterfaces().getRadio();
-      if (moteRadio == null)
+      if (moteRadio == null) {
         return new Color[] { Color.GRAY };
+      }
 
-      if (mote.getState() == Mote.State.DEAD)
+      if (mote.getState() == Mote.State.DEAD) {
         return new Color[] { Color.GRAY };
+      }
 
-      if (selectedMote != null && mote == selectedMote)
+      if (selectedMote != null && mote == selectedMote) {
         return new Color[] { Color.CYAN };
+      }
 
-      if (moteRadio.isTransmitting())
+      if (moteRadio.isTransmitting()) {
         return new Color[] { Color.BLUE };
+      }
 
-      if (moteRadio.isInterfered())
+      if (moteRadio.isInterfered()) {
         return new Color[] { Color.RED };
+      }
 
-      if (moteRadio.isReceiving())
+      if (moteRadio.isReceiving()) {
         return new Color[] { Color.GREEN };
+      }
 
       return new Color[] { Color.WHITE };
     }
@@ -323,10 +327,10 @@ public class UDGM extends AbstractRadioMedium {
         // Fetch current output power indicator (scale with as percent)
         if (selectedMote.getInterfaces().getRadio() != null) {
           double moteInterferenceRange = INTERFERENCE_RANGE
-              * (0.01 * (double) selectedMote.getInterfaces().getRadio()
+              * (0.01 * selectedMote.getInterfaces().getRadio()
                   .getCurrentOutputPowerIndicator());
           double moteTransmissionRange = TRANSMITTING_RANGE
-              * (0.01 * (double) selectedMote.getInterfaces().getRadio()
+              * (0.01 * selectedMote.getInterfaces().getRadio()
                   .getCurrentOutputPowerIndicator());
 
           Point translatedZero = transformPositionToPixel(0.0, 0.0, 0.0);
@@ -362,9 +366,10 @@ public class UDGM extends AbstractRadioMedium {
       super.visualizeSimulation(g);
 
       // Paint just finished connections
+      RadioConnection[] conns;
       if (myRadioMedium != null
-          && myRadioMedium.getLastTickConnections() != null) {
-        for (RadioConnection conn : myRadioMedium.getLastTickConnections()) {
+          && (conns = myRadioMedium.getLastTickConnections()) != null) {
+        for (RadioConnection conn : conns) {
           if (conn != null) {
             Point sourcePoint = transformPositionToPixel(conn.getSource()
                 .getPosition());
@@ -388,7 +393,7 @@ public class UDGM extends AbstractRadioMedium {
 
   public UDGM(Simulation simulation) {
     super(simulation);
-    
+
     // Register this radio medium's plugins
     simulation.getGUI().registerTemporaryPlugin(VisUDGM.class);
 
@@ -405,25 +410,27 @@ public class UDGM extends AbstractRadioMedium {
 
     // Fetch current output power indicator (scale with as percent)
     double moteTransmissionRange = TRANSMITTING_RANGE
-        * (0.01 * (double) sendingRadio.getCurrentOutputPowerIndicator());
+        * (0.01 * sendingRadio.getCurrentOutputPowerIndicator());
     double moteInterferenceRange = INTERFERENCE_RANGE
-        * (0.01 * (double) sendingRadio.getCurrentOutputPowerIndicator());
+        * (0.01 * sendingRadio.getCurrentOutputPowerIndicator());
 
     // If in random state, check if transmission fails
     if (usingRandom && random.nextDouble() > PACKET_SUCCESS_RATIO) {
       return newConnection;
     }
-    
+
     // Loop through all radios
     for (int listenNr = 0; listenNr < getRegisteredRadios().size(); listenNr++) {
       Radio listeningRadio = getRegisteredRadios().get(listenNr);
       Position listeningRadioPosition = listeningRadio.getPosition();
 
       // Ignore sending radio and radios on different channels
-      if (sendingRadio == listeningRadio)
+      if (sendingRadio == listeningRadio) {
         continue;
-      if (sendingRadio.getChannel() != listeningRadio.getChannel())
+      }
+      if (sendingRadio.getChannel() != listeningRadio.getChannel()) {
         continue;
+      }
 
       double distance = sendingPosition.getDistanceTo(listeningRadioPosition);
 
