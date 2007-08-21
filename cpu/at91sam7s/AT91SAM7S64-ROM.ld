@@ -123,7 +123,7 @@ SECTIONS
    _end = .;
   PROVIDE (end = .);
 
-  .stack ORIGIN(DATA) + LENGTH(DATA) - 0x0c0c : 
+  .stack ORIGIN(DATA) + LENGTH(DATA) - 0x0a0c : 
   {
     __stack_start__ = . ;
     *(.stack)

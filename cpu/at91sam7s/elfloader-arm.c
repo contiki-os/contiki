@@ -1,3 +1,4 @@
+#include <stdlib.h>
 #include <malloc.h>
 #include <loader/elfloader-arch-otf.h>
 

@@ -1,7 +1,7 @@
 /******************************************************************************
  *
  * $RCSfile: interrupt-utils.c,v $
- * $Revision: 1.1 $
+ * $Revision: 1.2 $
  *
  * This module provides the interface routines for setting up and
  * controlling the various interrupt modes present on the ARM processor.
@@ -26,7 +26,7 @@ static inline unsigned __get_cpsr(void)
 
 static inline void __set_cpsr(unsigned val)
 {
-  asm volatile (" msr  cpsr, %0" : /* no outputs */ : "r" (val)  );
+  asm volatile (" msr  cpsr_c, %0" : /* no outputs */ : "r" (val)  );
 }
 
 unsigned disableIRQ(void)

@@ -71,7 +71,7 @@
 */
         .equ    Top_Stack,      0x00204000
         .equ    UND_Stack_Size, 0x00000004
-        .equ    SVC_Stack_Size, 0x00000400
+        .equ    SVC_Stack_Size, 0x00000200
         .equ    ABT_Stack_Size, 0x00000004
         .equ    FIQ_Stack_Size, 0x00000004
         .equ    IRQ_Stack_Size, 0x00000400
@@ -207,6 +207,11 @@ UND_Stack_End:
 	.equ	RSTC_MR_Val,	0xa5000001	/* Enable user reset */
 	
 
+/* Advanced interrupt controller */
+	.equ	AIC_SETUP,	1
+	.equ	AIC_BASE,	0xfffff000
+	.equ	AIC_EOICR,	0x130
+	.equ	AIC_SPU,	0x134
 
 #if (defined(VECTORS_IN_RAM) && defined(ROM_RUN)) || defined(USE_SAMBA)
 
@@ -299,7 +304,16 @@ DAbt_Handler:   B       DAbt_Handler
 IRQ_Handler:    B       IRQ_Handler
 FIQ_Handler:    B       FIQ_Handler
 
-#endif	
+#endif
+
+// Spurious interrupt handler
+SPU_Handler:
+		STMDB   SP!, {R0}
+		LDR	R0, =AIC_BASE
+		STR	R0, [R0, #AIC_EOICR]
+		LDMIA   SP!, {R0}
+		SUBS    PC, LR, #4
+	
 
 // Starupt Code must be linked first at Address at which it expects to run.
 
@@ -395,7 +409,7 @@ PLL_Loop:       LDR     R2, [R0, #PMC_SR]
                 LDR     SP, =SVC_Stack_End
 	
 //  Enter User Mode and set its Stack Pointer
-#ifndef RUN_AS_SYSTEM
+#ifdef RUN_AS_SYSTEM
 		MSR     CPSR_c, #Mode_SYS
 #else
                 MSR     CPSR_c, #Mode_USR
@@ -453,6 +467,11 @@ LoopVectCopy:   CMP     R2, R3
                 BLO     LoopVectCopy
 #endif	
 
+.if AIC_SETUP
+		LDR	R1, =AIC_BASE
+		LDR	R0, = SPU_Handler
+		STR	R0, [R1, #AIC_SPU]
+.endif
 
 /*
    Call C++ constructors (for objects in "global scope")

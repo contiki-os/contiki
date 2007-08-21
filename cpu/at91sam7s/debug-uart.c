@@ -74,7 +74,10 @@ dbg_send_bytes(const unsigned char *seq, unsigned int len)
   unsigned short current_count;
   unsigned short left;
   unsigned int save = disableIRQ();
-  if (mutex) return 0;	/* Buffer being updated */
+  if (mutex) {
+    restoreIRQ(save);
+    return 0;	/* Buffer being updated */
+  }
   mutex = 1;	/* Prevent interrupts from messing up the transmission */
   *AT91C_DBGU_PTCR =AT91C_PDC_TXTDIS; /* Stop transmitting */
   while(*AT91C_DBGU_PTSR & AT91C_PDC_TXTEN); /* Wait until stopped */

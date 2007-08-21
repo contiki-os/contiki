@@ -3,7 +3,7 @@
 #include <string.h>
 #include <strformat.h>
 
-StrFormatResult
+static StrFormatResult
 write_str(void *user_data, const char *data, unsigned int len)
 {
   dbg_send_bytes((unsigned char*)data, len);
@@ -19,10 +19,12 @@ static StrFormatContext ctxt =
 int
 printf(const char *fmt, ...)
 {
+  int res;
   va_list ap;
   va_start(ap, fmt);
-  return format_str_v(&ctxt, fmt, ap);
+  res = format_str_v(&ctxt, fmt, ap);
   va_end(ap);
+  return res;
 }
 
 
