@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: contiki_template.c,v 1.3 2007/05/21 15:00:13 fros4943 Exp $
+ * $Id: contiki_template.c,v 1.4 2007/08/21 13:10:19 fros4943 Exp $
  */
 
 /**
@@ -111,9 +111,9 @@ start_process_run_loop(void *data)
 		/* Always pretend we have processes left while inside process_run() */
 		simProcessRunValue = 1;
 
-		if (simDoTcpipInput) {
-		  simDoTcpipInput = 0;
-		  tcpip_input();
+		if (simDoReceiverCallback) {
+		  simDoReceiverCallback = 0;
+		  radio_call_receiver();
 		}
 
 		simProcessRunValue = process_run();
