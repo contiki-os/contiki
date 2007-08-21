@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ProjectDirectoriesDialog.java,v 1.3 2007/04/11 14:00:27 fros4943 Exp $
+ * $Id: ProjectDirectoriesDialog.java,v 1.4 2007/08/21 14:18:04 fros4943 Exp $
  */
 
 package se.sics.cooja.dialogs;
@@ -39,6 +39,7 @@ import java.io.IOException;
 import java.util.Enumeration;
 import java.util.Vector;
 import javax.swing.*;
+
 import org.apache.log4j.Logger;
 
 import se.sics.cooja.GUI;
@@ -48,10 +49,10 @@ import se.sics.cooja.ProjectConfig;
  * This dialog allows a user to manage the project directory configurations. Project
  * directories can be added, removed or reordered. The resulting
  * configuration can also be viewed.
- * 
+ *
  * This dialog reads from the external project configuration files in each project
  * directory, as well as from any specified default configuration files.
- * 
+ *
  * @author Fredrik Osterlind
  */
 public class ProjectDirectoriesDialog extends JDialog {
@@ -72,7 +73,7 @@ public class ProjectDirectoriesDialog extends JDialog {
    * Allows user to alter the given project directories list by adding new,
    * reordering or removing project directories. Only the changable project directories
    * can be altered.
-   * 
+   *
    * @param parentFrame
    *          Parent frame
    * @param changableProjects
@@ -98,7 +99,7 @@ public class ProjectDirectoriesDialog extends JDialog {
    * Allows user to alter the given project directories list by adding new,
    * reordering or removing project directories. Only the changable project directories
    * may be altered.
-   * 
+   *
    * @param parentDialog
    *          Parent dialog
    * @param changableProjects
@@ -160,16 +161,57 @@ public class ProjectDirectoriesDialog extends JDialog {
 
     buttonPane.add(Box.createRigidArea(new Dimension(10, 0)));
 
+    if (fixedProjects == null) {
+      button = new JButton("Set default");
+      button.addActionListener(new ActionListener() {
+        public void actionPerformed(ActionEvent e) {
+          Object[] options = { "Ok", "Cancel" };
+
+          String newDefaultProjectDirs = "";
+          for (String directory : changableProjectsList.getItems()) {
+            if (newDefaultProjectDirs != "") {
+              newDefaultProjectDirs += ";";
+            }
+
+            newDefaultProjectDirs += directory;
+          }
+          newDefaultProjectDirs = newDefaultProjectDirs.replace('\\', '/');
+
+          String question = "External tools setting DEFAULT_PROJECTDIRS will change from:\n"
+            + GUI.getExternalToolsSetting("DEFAULT_PROJECTDIRS")
+            + "\n to:\n"
+            + newDefaultProjectDirs + "\n\nAre you sure?";
+          String title = "Change external tools settings?";
+          int answer = JOptionPane.showOptionDialog(myDialog, question, title,
+              JOptionPane.DEFAULT_OPTION, JOptionPane.WARNING_MESSAGE, null,
+              options, options[0]);
+
+          if (answer != JOptionPane.YES_OPTION) {
+            return;
+          }
+
+          GUI.setExternalToolsSetting("DEFAULT_PROJECTDIRS",
+              newDefaultProjectDirs);
+        }
+      });
+
+      buttonPane.add(button);
+
+      buttonPane.add(Box.createRigidArea(new Dimension(10, 0)));
+
+    }
+
     button = new JButton("OK");
     button.addActionListener(new ActionListener() {
       public void actionPerformed(ActionEvent e) {
         changableProjects = new Vector<File>();
         for (String directory : changableProjectsList.getItems()) {
           File projectDir = new File(directory);
-          if (projectDir.exists() && projectDir.isDirectory())
+          if (projectDir.exists() && projectDir.isDirectory()) {
             changableProjects.add(projectDir);
-          else
+          } else {
             logger.fatal("Can't find project directory: " + projectDir);
+          }
         }
         dispose();
       }
@@ -204,8 +246,9 @@ public class ProjectDirectoriesDialog extends JDialog {
     button.addActionListener(new ActionListener() {
       public void actionPerformed(ActionEvent e) {
         int selectedIndex = changableProjectsList.getSelectedIndex();
-        if (selectedIndex <= 0)
+        if (selectedIndex <= 0) {
           return;
+        }
 
         File file = new File(changableProjectsList.getItem(selectedIndex));
 
@@ -220,10 +263,12 @@ public class ProjectDirectoriesDialog extends JDialog {
     button.addActionListener(new ActionListener() {
       public void actionPerformed(ActionEvent e) {
         int selectedIndex = changableProjectsList.getSelectedIndex();
-        if (selectedIndex < 0)
+        if (selectedIndex < 0) {
           return;
-        if (selectedIndex >= changableProjectsList.getItemCount() - 1)
+        }
+        if (selectedIndex >= changableProjectsList.getItemCount() - 1) {
           return;
+        }
 
         File file = new File(changableProjectsList.getItem(selectedIndex));
         removeProjectDir(selectedIndex);
@@ -238,8 +283,9 @@ public class ProjectDirectoriesDialog extends JDialog {
     button = new JButton("Remove");
     button.addActionListener(new ActionListener() {
       public void actionPerformed(ActionEvent e) {
-        if (changableProjectsList.getSelectedIndex() < 0)
+        if (changableProjectsList.getSelectedIndex() < 0) {
           return;
+        }
 
         removeProjectDir(changableProjectsList.getSelectedIndex());
       }
@@ -293,10 +339,11 @@ public class ProjectDirectoriesDialog extends JDialog {
         }
 
         // Show merged configuration
-        if (myParentFrame != null)
+        if (myParentFrame != null) {
           ConfigViewer.showDialog(myParentFrame, config);
-        else
+        } else {
           ConfigViewer.showDialog(myParentDialog, config);
+        }
       }
     });
     addRemovePane.add(button);
@@ -377,7 +424,7 @@ public class ProjectDirectoriesDialog extends JDialog {
     File projectConfigFile = new File(projectDir.getPath(),
         GUI.PROJECT_CONFIG_FILENAME);
     if (!projectConfigFile.exists()) {
-      
+
       Object[] options = {"Create",
                           "Cancel"};
 
@@ -389,10 +436,11 @@ public class ProjectDirectoriesDialog extends JDialog {
           JOptionPane.YES_NO_OPTION,
           JOptionPane.QUESTION_MESSAGE,
           null, options, options[1]);
-      
-      if (n == JOptionPane.NO_OPTION)
+
+      if (n == JOptionPane.NO_OPTION) {
         return;
-      
+      }
+
       try {
         projectConfigFile.createNewFile();
       } catch (IOException e) {
@@ -414,7 +462,7 @@ public class ProjectDirectoriesDialog extends JDialog {
 /**
  * Modal frame that shows all keys with their respective values of a given class
  * configuration.
- * 
+ *
  * @author Fredrik Osterlind
  */
 class ConfigViewer extends JDialog {
@@ -427,7 +475,7 @@ class ConfigViewer extends JDialog {
     myDialog.setAlwaysOnTop(true);
 
     Rectangle maxSize = GraphicsEnvironment.getLocalGraphicsEnvironment().getMaximumWindowBounds();
-    if (maxSize != null && 
+    if (maxSize != null &&
         (myDialog.getSize().getWidth() > maxSize.getWidth()
             || myDialog.getSize().getHeight() > maxSize.getHeight())) {
       Dimension newSize = new Dimension();
@@ -435,7 +483,7 @@ class ConfigViewer extends JDialog {
       newSize.width = Math.min((int) maxSize.getWidth(), (int) myDialog.getSize().getWidth());
       myDialog.setSize(newSize);
     }
-    
+
     if (myDialog != null) {
       myDialog.setVisible(true);
     }
@@ -502,10 +550,11 @@ class ConfigViewer extends JDialog {
       String propertyName = allPropertyNames.nextElement();
 
       keyPane.add(new JLabel(propertyName));
-      if (config.getStringValue(propertyName).equals(""))
+      if (config.getStringValue(propertyName).equals("")) {
         valuePane.add(new JLabel(" "));
-      else
+      } else {
         valuePane.add(new JLabel(config.getStringValue(propertyName)));
+      }
     }
 
     // Add components
