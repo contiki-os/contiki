@@ -24,7 +24,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * 
- * $Id: Simulation.java,v 1.16 2007/07/10 12:43:23 fros4943 Exp $
+ * $Id: Simulation.java,v 1.17 2007/08/21 08:51:33 fros4943 Exp $
  */
 
 package se.sics.cooja;
@@ -82,9 +82,9 @@ public class Simulation extends Observable implements Runnable {
 
   private int currentTickListIndex = 0;
 
-  private int nrTickLists = 10;
+  private int nrTickLists = 1;
 
-  private int maxDelayedStartupTime = 10000;
+  private int maxMoteStartupDelay = 0;
 
   private Random tickListRandom = new Random();
   
@@ -279,12 +279,47 @@ public class Simulation extends Observable implements Runnable {
   }
 
   /**
-   * @return Current simulation random seed
+   * @return Random seed
    */
   public long getRandomSeed() {
     return randomSeed;
   }
-  
+
+  /**
+   * @param randomSeed Random seed
+   */
+  public void setRandomSeed(long randomSeed) {
+    this.randomSeed = randomSeed;
+  }
+
+  /**
+   * @return Number of tick lists
+   */
+  public int getNrTickLists() {
+    return nrTickLists;
+  }
+
+  /**
+   * @param nrTickLists Number of tick lists
+   */
+  public void setNrTickLists(int nrTickLists) {
+    this.nrTickLists = Math.max(1, nrTickLists);
+  }
+
+  /**
+   * @return Maximum mote startup delay
+   */
+  public int getDelayedMoteStartupTime() {
+    return maxMoteStartupDelay;
+  }
+
+  /**
+   * @param nrTickLists Maximum mote startup delay
+   */
+  public void setDelayedMoteStartupTime(int maxMoteStartupDelay) {
+    this.maxMoteStartupDelay = Math.max(0, maxMoteStartupDelay);
+  }
+
   /**
    * Returns the current simulation config represented by XML elements. This
    * config also includes the current radio medium, all mote types and motes.
@@ -314,6 +349,16 @@ public class Simulation extends Observable implements Runnable {
     // Random seed
     element = new Element("randomseed");
     element.setText(Long.toString(randomSeed));
+    config.add(element);
+
+    // Number of tick lists
+    element = new Element("nrticklists");
+    element.setText(Integer.toString(nrTickLists));
+    config.add(element);
+
+    // Max mote startup delay
+    element = new Element("motedelay");
+    element.setText(Integer.toString(maxMoteStartupDelay));
     config.add(element);
 
     // Radio Medium
@@ -388,6 +433,16 @@ public class Simulation extends Observable implements Runnable {
       if (element.getName().equals("randomseed")) {
         randomSeed = Long.parseLong(element.getText());
         delayMotesRandom.setSeed(randomSeed);
+      }
+
+      // Number of tick lists
+      if (element.getName().equals("nrticklists")) {
+        nrTickLists = Integer.parseInt(element.getText());
+      }
+
+      // Max mote startup delay
+      if (element.getName().equals("motedelay")) {
+        maxMoteStartupDelay = Integer.parseInt(element.getText());
       }
 
       // Radio medium
@@ -510,8 +565,8 @@ public class Simulation extends Observable implements Runnable {
     } else
       motes.add(mote);
 
-    if (maxDelayedStartupTime > 0 && mote instanceof ContikiMote) {
-      ((ContikiClock) mote.getInterfaces().getClock()).setDrift(-delayMotesRandom.nextInt(maxDelayedStartupTime));
+    if (maxMoteStartupDelay > 0 && mote instanceof ContikiMote) {
+      ((ContikiClock) mote.getInterfaces().getClock()).setDrift(-delayMotesRandom.nextInt(maxMoteStartupDelay));
     }
     
     currentRadioMedium.registerMote(mote, this);
