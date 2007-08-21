@@ -9,27 +9,9 @@
 #include <net/uip.h>
 #include <dev/cc2420.h>
 
+
 #undef putchar
 
-static const uint32_t stepper0_steps_acc[] = MICRO_STEP(0,3);
-static const uint32_t stepper0_steps_run[] = MICRO_STEP(0,2);
-static const uint32_t stepper0_steps_hold[] = MICRO_STEP(0,1);
-
-static const uint32_t stepper1_steps_acc[] = MICRO_STEP(1,3);
-static const uint32_t stepper1_steps_run[] = MICRO_STEP(1,2);
-static const uint32_t stepper1_steps_hold[] = MICRO_STEP(1,1);
-
-static StepperAccSeq seq_heap[40];
-
-static void
-init_seq_heap()
-{
-  unsigned int i;
-  for(i = 0; i < sizeof(seq_heap)/sizeof(seq_heap[0]); i++) {
-    seq_heap[i].next = NULL;
-    stepper_free_seq(&seq_heap[i]);
-  }
-}
 
 static unsigned int
 parse_uint_hex(const char **pp, const char *end)
@@ -189,6 +171,7 @@ static int
 handle_line(const char *input_line, const char *inend, ReplyBuffer *reply)
 {
   unsigned long when;
+#if 0
   {
     const char *p = input_line;
     printf("Got line: '");
@@ -198,6 +181,7 @@ handle_line(const char *input_line, const char *inend, ReplyBuffer *reply)
     printf("'\n");
     fsync(1);
   }
+#endif
   skip_white(&input_line, inend);
   CHECK_INPUT_LEFT(1);
   if (*input_line == '#') {
@@ -226,8 +210,8 @@ handle_line(const char *input_line, const char *inend, ReplyBuffer *reply)
       int speed;
       input_line++;
       if (input_line == inend) {
-	printf("Speed: %ld\n",
-	       stepper_current_velocity(stepper_index)/VEL_SCALE);
+	/* printf("Speed: %ld\n",
+	   stepper_current_velocity(stepper_index)/VEL_SCALE);*/
 	reply_char(reply, input_line[-2]);
 	reply_char(reply, 'S');
 	format_int_hex(&reply->write, REPLY_BUFFER_END(reply),
@@ -240,7 +224,7 @@ handle_line(const char *input_line, const char *inend, ReplyBuffer *reply)
 	  unsigned int acc;
 	  input_line++;
 	  acc = parse_uint_hex(&input_line, inend);
-	  printf("Speed=%d, Acc=%u\n", speed, acc);
+	  /* printf("Speed=%d, Acc=%u\n", speed, acc); */
 	  res = stepper_set_velocity(stepper_index, &when,
 				     acc, speed*VEL_SCALE);
 	  
@@ -269,7 +253,7 @@ handle_line(const char *input_line, const char *inend, ReplyBuffer *reply)
 	  StepperResult res;
 	  input_line++;
 	  move = parse_int_hex(&input_line, inend);
-	  printf("Speed=%u, Acc=%u, Move=%d\n", speed, acc, move);
+	  /*printf("Speed=%u, Acc=%u, Move=%d\n", speed, acc, move);*/
 	  res = stepper_move(stepper_index, &when,
 			     acc,speed*VEL_SCALE,move*DIST_SCALE);
 	  stepper_reply(reply, res);
@@ -283,11 +267,11 @@ handle_line(const char *input_line, const char *inend, ReplyBuffer *reply)
       reply_str(reply, "ERR\n");
     }
   } else if (input_line[0] == 'E') {
-    *AT91C_PIOA_SODR = STEPPER_INHIBIT;
+    STEPPER_ENABLE();
     printf("Stepper enabled\n");
     reply_str(reply, "OK\n");
   } else if (input_line[0] == 'D') {
-    *AT91C_PIOA_CODR = STEPPER_INHIBIT;
+    STEPPER_DISABLE();
     printf("Stepper disabled\n");
     reply_str(reply, "OK\n");
   } else if (input_line[0] == 'p') {
@@ -354,7 +338,7 @@ handle_connection()
   if (uip_newdata()) {
     const char *read_pos = uip_appdata;
     const char *read_end = read_pos + uip_len;
-    printf("Got data\n");
+    /* printf("Got data\n"); */
     while(read_pos < read_end) {
       if (line_end == line_buffer+sizeof(line_buffer)) {
 	/* Buffer too small, just discard everything */
@@ -440,7 +424,7 @@ PROCESS_THREAD(udp_stepper_process, ev, data)
       } else if (uip_poll()) {
 	if (data == &conn) {
 	  uip_send(udp_reply.buffer, udp_reply.write - udp_reply.buffer);
-	  printf("sent %ld\n", udp_reply.write - udp_reply.buffer);
+	  /* printf("sent %ld\n", udp_reply.write - udp_reply.buffer); */
 	}
       }
     } else if (ev == PROCESS_EVENT_TIMER) {
@@ -466,24 +450,14 @@ PROCESS_THREAD(stepper_process, ev, data)
   PROCESS_EXITHANDLER(goto exit);
   PROCESS_BEGIN();
   tcp_listen(HTONS(1010));
-  init_seq_heap();
-  stepper_init(AT91C_BASE_TC0, AT91C_ID_TC0);
-  *AT91C_PIOA_OER = STEPPER_INHIBIT;
-  *AT91C_PIOA_MDER = STEPPER_INHIBIT; /*  | STEPPER0_IOMASK; */
-  *AT91C_PIOA_CODR = STEPPER_INHIBIT;
-  stepper_init_io(1, STEPPER_IOMASK(0), stepper0_steps_acc,
-		  stepper0_steps_run, stepper0_steps_hold,
-		  (sizeof(stepper0_steps_run) / sizeof(stepper0_steps_run[0])));
-  stepper_init_io(0, STEPPER_IOMASK(1), stepper1_steps_acc,
-		  stepper1_steps_run, stepper1_steps_hold,
-		  (sizeof(stepper1_steps_run) / sizeof(stepper1_steps_run[0])));
+  
   process_start(&udp_stepper_process, NULL);
   printf("Stepper starting\n");
 
   while(1) {
     PROCESS_WAIT_EVENT_UNTIL(ev == tcpip_event);
     if(uip_connected()) {
-      printf("connected\n");
+      /* printf("connected\n"); */
       handle_connection(); /* Initialise parser */
       while(!(uip_aborted() || uip_closed() || uip_timedout())) {
 	PROCESS_WAIT_EVENT_UNTIL(ev == tcpip_event);

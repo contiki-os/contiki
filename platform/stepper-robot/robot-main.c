@@ -10,16 +10,18 @@
 #include <dev/cc2420.h>
 #include <dev/cc2420_const.h>
 #include <dev/spi.h>
+#include <dev/leds.h>
 #include <sys/process.h>
 #include <sys/procinit.h>
+#include <sys/autostart.h>
 #include <sys/etimer.h>
 #include <net/psock.h>
-#include <stepper-process.h>
-#include <dev/leds.h>
-#include <cfs/cfs-ram.h>
-#include <loader/codeprop-otf.h>
-#include <loader/ram-segments.h>
 #include <unistd.h>
+
+#include <stepper-steps.h>
+#include <stepper.h>
+#include <stepper-move.h>
+
 
 #ifndef RF_CHANNEL
 #define RF_CHANNEL 15
@@ -29,37 +31,44 @@ extern char __heap_end__;
 extern char __heap_start__;
 
 
-PROCESS(blink_process, "LED blink process");
+static const uint32_t stepper0_steps_acc[] = MICRO_STEP(0,3);
+static const uint32_t stepper0_steps_run[] = MICRO_STEP(0,2);
+static const uint32_t stepper0_steps_hold[] = MICRO_STEP(0,1);
+
+static const uint32_t stepper1_steps_acc[] = MICRO_STEP(1,3);
+static const uint32_t stepper1_steps_run[] = MICRO_STEP(1,2);
+static const uint32_t stepper1_steps_hold[] = MICRO_STEP(1,1);
+
+static StepperAccSeq seq_heap[40];
+
+static void
+init_seq_heap()
+{
+  unsigned int i;
+  for(i = 0; i < sizeof(seq_heap)/sizeof(seq_heap[0]); i++) {
+    seq_heap[i].next = NULL;
+    stepper_free_seq(&seq_heap[i]);
+  }
+}
+
+static void
+robot_stepper_init()
+{
+  init_seq_heap();
+  stepper_init(AT91C_BASE_TC0, AT91C_ID_TC0);
+  *AT91C_PIOA_OER = STEPPER_INHIBIT;
+  *AT91C_PIOA_MDER = STEPPER_INHIBIT; /*  | STEPPER0_IOMASK; */
+  *AT91C_PIOA_CODR = STEPPER_INHIBIT;
+  stepper_init_io(1, STEPPER_IOMASK(0), stepper0_steps_acc,
+		  stepper0_steps_run, stepper0_steps_hold,
+		  (sizeof(stepper0_steps_run) / sizeof(stepper0_steps_run[0])));
+  stepper_init_io(0, STEPPER_IOMASK(1), stepper1_steps_acc,
+		  stepper1_steps_run, stepper1_steps_hold,
+		  (sizeof(stepper1_steps_run) / sizeof(stepper1_steps_run[0])));}
 
 struct uip_fw_netif cc2420if =
   {UIP_FW_NETIF(172,16,0,2, 255,255,0,0, cc2420_send_ip)};
 
-PROCESS_THREAD(blink_process, ev , data)
-{
-  static struct etimer timer;
-  PROCESS_BEGIN();
-  etimer_set(&timer, CLOCK_SECOND/2);
-   while(1) {
-    PROCESS_WAIT_EVENT_UNTIL(ev == PROCESS_EVENT_EXIT ||
-			     ev== PROCESS_EVENT_TIMER);
-    if (ev == PROCESS_EVENT_EXIT) break;
-    leds_invert(LEDS_RED);
-#if 0
-    {
-      DISABLE_FIFOP_INT();
-      printf("FSMSTATE:  %04x",cc2420_getreg(CC2420_FSMSTATE));
-      ENABLE_FIFOP_INT();
-      if (SFD_IS_1) printf(" SFD");
-      if (FIFO_IS_1) printf(" FIFO");
-      if (FIFOP_IS_1) printf(" FIFOP");
-      putchar('\n');
-    }
-#endif
-    etimer_reset(&timer);
-  }
-  printf("Ended process\n");
-  PROCESS_END();
-}
 
 #if 0
 PROCESS(udprecv_process, "UDP recv process");
@@ -136,13 +145,13 @@ wdt_reset()
   *AT91C_WDTC_WDCR = (0xa5<<24) | AT91C_WDTC_WDRSTT;
 }
 
+#if 0
 static uip_ipaddr_t gw_addr = {{172,16,0,1}};
+#endif
 
-
-PROCINIT(&etimer_process, &tcpip_process, &uip_fw_process, &cc2420_process,
-	 /*  &uaodv_process, */ &cfs_ram_process, &codeprop_process,
-	 &ram_segments_cleanup_process,
-	 &blink_process, &stepper_process);
+PROCINIT(&etimer_process, &tcpip_process, &cc2420_process,
+	 &uip_fw_process /*,  &uaodv_process */
+	 );
 
 
 int
@@ -156,7 +165,7 @@ main()
   
   dbg_setup_uart();
   printf("Initialising\n");
-    leds_arch_init();
+  leds_arch_init();
   clock_init();
   uip_sethostaddr(&cc2420if.ipaddr);
   uip_setnetmask(&cc2420if.netmask);
@@ -170,10 +179,12 @@ main()
   tcpip_set_forwarding(1);
   printf("Heap size: %ld bytes\n", &__heap_end__ - (char*)sbrk(0));
   printf("Started\n");
-  
+
+  robot_stepper_init();
   procinit_init();
   enableIRQ(); 
   cc2420_on();
+  autostart_start(autostart_processes);
   printf("Processes running\n");
   while(1) {
     do {
