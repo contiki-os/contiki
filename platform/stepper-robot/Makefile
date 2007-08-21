@@ -1,45 +1,23 @@
-CONTIKI=../..
-
 TARGET=stepper-robot
 
-CONTIKI_TARGET_DIRS=stepper
+all: core
 
-KERNELS= sys-tst.elf robot-main-syms.elf
+core: 
+	$(MAKE) core.$(TARGET)
 
-# Master clock frequency
-MCK=23961600
+CONTIKI=../..
 
-ARCH=debug-uart.o clock.o sys-interrupt.o interrupt-utils.o newlib-syscalls.o \
-leds-arch.o sam7s-spi.o
-
-SYSTEM=process.o procinit.o service.o clock.o etimer.o timer.o leds.o uip-log.o cfs.o
-DEBUG_IO=dbg-printf.o dbg-puts.o dbg-putchar.o strformat.o
-
-UIP=uip.o uiplib.o tcpip.o uip-fw.o uip-fw-service.o uipbuf.o \
-    tcpdump.o psock.o uaodv.o uaodv-rt.o uip-udp-packet.o
-
-UIPDRIVERS= cc2420.o cc2420_send_ip.o cc2420_send_uaodv.o cc2420-interrupt.o \
-cc2420-spi.o
-
-SYSLIB=memb.o list.o malloc.o realloc.o
-
-STEPPER=stepper-interrupt.o stepper-move.o stepper.o
-
-ELFLOADER=elfloader-arm.o elfloader-otf.o symtab.o
-CODEPROP=$(ELFLOADER) cfs-ram.o codeprop-otf.o ram-segments.o \
-autostart.o random.o
-
-CFLAGS+= -I stepper
-
-cfs-ram.o: CFLAGS+= -DCFS_RAM_CONF_SIZE=4096
-
-all: $(KERNELS) codeprop
-
-sys-tst.elf: sys-tst.o $(ARCH) $(SYSTEM)
-
-robot-main-syms.elf:  robot-main.o stepper-process.o $(ARCH) $(SYSTEM) $(SYSLIB) $(UIP) $(UIPDRIVERS) $(STEPPER) $(CODEPROP) $(DEBUG_IO)
+CORE=core-nosyms.$(TARGET)
 
 codeprop: $(CONTIKI)/tools/codeprop.c
 	cc -g -Wall $< -o $@
 
-include $(CONTIKI)/cpu/at91sam7s/Makefile.at91sam7s
+clean: stepper_robot_clean
+
+.PHONY: stepper_robot_clean
+
+stepper_robot_clean:
+	-rm codeprop
+
+include $(CONTIKI)/Makefile.include
+

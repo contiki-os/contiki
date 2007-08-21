@@ -16,6 +16,9 @@
 typedef uint8_t u8_t;
 typedef uint16_t u16_t;
 typedef uint32_t u32_t;
+typedef int8_t s8_t;
+typedef int16_t s16_t;
+typedef int32_t s32_t;
 
 typedef unsigned int clock_time_t;
 typedef unsigned int uip_stats_t;
@@ -39,6 +42,7 @@ typedef unsigned int uip_stats_t;
 #define VREG_IS_1       1 /* Hardwired */
 #define FIFOP_IS_1      (*AT91C_PIOA_PDSR & AT91C_PIO_PA30)
 #define SFD_IS_1        (*AT91C_PIOA_PDSR & AT91C_PIO_PA15)
+#define CCA_IS_1        1
 
 #define SET_RESET_INACTIVE()	cc2420_setreg(CC2420_MAIN, 0xf800);
 #define SET_RESET_ACTIVE()	cc2420_setreg(CC2420_MAIN, 0x0000);

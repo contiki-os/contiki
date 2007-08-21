@@ -26,6 +26,8 @@ cc2420_interrupt_fifop_int_init(void)
   /* *AT91C_AIC_IECR = (1 << AT91C_ID_IRQ1); */
 }
 
+#ifndef __MAKING_DEPS__
+
 inline int splhigh(void)
 {
   int save;
@@ -45,3 +47,5 @@ inline void splx(int saved)
 #error Must be compiled in ARM mode
 #endif
 }
+
+#endif /* __MAKING_DEPS__ */
