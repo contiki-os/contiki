@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki desktop OS.
  *
- * $Id: telnetd.c,v 1.5 2007/04/13 22:47:43 oliverschmidt Exp $
+ * $Id: telnetd.c,v 1.6 2007/08/22 10:59:56 ksb Exp $
  *
  */
 
@@ -294,7 +294,7 @@ newdata(void)
   
   while(len > 0 && s.bufptr < sizeof(s.buf)) {
     c = *(char *)uip_appdata;
-    ++((char *)uip_appdata);
+    uip_appdata = (char *)uip_appdata + 1;
     --len;
     switch(s.state) {
     case STATE_IAC:
