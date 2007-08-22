@@ -16,6 +16,7 @@ BEGIN {
  builtin["malloc"] =	"void *malloc()";
  builtin["memcpy"] =	"void *memcpy()";
  builtin["memset"] =	"void *memset()";
+ builtin["memmove"] =	"void *memmove()";
  builtin["strcpy"] =	"char *strcpy()";
  builtin[""] = 	"";
 }
