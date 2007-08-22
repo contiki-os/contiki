@@ -30,7 +30,7 @@
  *
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: uip-fw.c,v 1.6 2007/04/30 09:51:51 bg- Exp $
+ * $Id: uip-fw.c,v 1.7 2007/08/22 10:47:37 ksb Exp $
  */
 /**
  * \addtogroup uip
@@ -246,15 +246,15 @@ time_exceeded(void)
 
   /* Set the IP destination address to be the source address of the
      original packet. */
-  tmpip = BUF->destipaddr;
-  BUF->destipaddr = BUF->srcipaddr;
-  BUF->srcipaddr = tmpip;
-  tmpip = BUF->destipaddr;
-  BUF->destipaddr = BUF->srcipaddr;
-  BUF->srcipaddr = tmpip;
+  uip_ipaddr_copy(&tmpip, &BUF->destipaddr);
+  uip_ipaddr_copy(&BUF->destipaddr, &BUF->srcipaddr);
+  uip_ipaddr_copy(&BUF->srcipaddr, &tmpip);
+  uip_ipaddr_copy(&tmpip, &BUF->destipaddr);
+  uip_ipaddr_copy(&BUF->destipaddr, &BUF->srcipaddr);
+  uip_ipaddr_copy(&BUF->srcipaddr, &tmpip);
 
   /* Set our IP address as the source address. */
-  BUF->srcipaddr = uip_hostaddr;
+  uip_ipaddr_copy(&BUF->srcipaddr, &uip_hostaddr);
 
   /* The size of the ICMP time exceeded packet is 36 + the size of the
      IP header (20) = 56. */
@@ -304,8 +304,8 @@ fwcache_register(void)
 
   fw->timer = FW_TIME;
   fw->ipid = BUF->ipid;
-  fw->srcipaddr = BUF->srcipaddr;
-  fw->destipaddr = BUF->destipaddr;
+  uip_ipaddr_copy(&fw->srcipaddr, &BUF->srcipaddr);
+  uip_ipaddr_copy(&fw->destipaddr, &BUF->destipaddr);
   fw->proto = BUF->proto;
 #if notdef
   fw->payload[0] = BUF->srcport;
