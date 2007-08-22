@@ -46,7 +46,7 @@
  *
  * This file is part of the uIP TCP/IP stack.
  *
- * $Id: uip.h,v 1.11 2007/04/04 11:37:20 bg- Exp $
+ * $Id: uip.h,v 1.12 2007/08/22 10:45:42 ksb Exp $
  *
  */
 
@@ -907,7 +907,9 @@ struct uip_udp_conn *uip_udp_new(const uip_ipaddr_t *ripaddr, u16_t rport);
  *
  * \hideinitializer
  */
-#define uip_ipaddr_copy(dest, src) ((*dest) = (*src))
+#ifndef uip_ipaddr_copy
+#define uip_ipaddr_copy(dest, src) (*(dest) = *(src))
+#endif
 
 /**
  * Compare two IP addresses
