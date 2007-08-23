@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: init-net-rime.c,v 1.2 2007/06/08 12:26:25 fros4943 Exp $
+ * @(#)$Id: init-net-rime.c,v 1.3 2007/08/23 07:35:26 fros4943 Exp $
  */
 
 #include "contiki.h"
@@ -36,12 +36,17 @@
 #include "dev/radio.h"
 #include "dev/cooja-radio.h"
 #include "net/mac/nullmac.h"
+#include "node-id.h"
 
 void
 init_net(void)
 {
+  rimeaddr_t rimeaddr;
+
   nullmac_init(&cooja_driver);
   rime_init(&nullmac_driver);
-  
-  /* TODO Rime node ID */
+
+  rimeaddr.u8[0] = node_id >> 8;
+  rimeaddr.u8[1] = node_id & 0xff;
+  rimeaddr_set_node_addr(&rimeaddr);
 }
