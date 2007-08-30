@@ -121,6 +121,11 @@ $(OBJECTDIR)/%.o: %.c
 	$(CC) $(CFLAGS) -c $< -o $@
 endif
 
+ifndef CUSTOM_RULE_S_TO_OBJECTDIR_O
+$(OBJECTDIR)/%.o: %.S
+	$(AS) $(ASFLAGS) $< -o $@
+endif
+
 ifndef CUSTOM_RULE_C_TO_O
 %.o: %.c
 	$(CC) $(CFLAGS) -c $< -o $@
@@ -129,11 +134,6 @@ endif
 ifndef CUSTOM_RULE_C_TO_CO
 %.co: %.c
 	$(CC) $(CFLAGS) -DAUTOSTART_ENABLE -c $< -o $@
-endif
-
-ifndef CUSTOM_RULE_S_TO_OBJECTDIR_O
-$(OBJECTDIR)/%.o: %.S
-	$(AS) $(ASFLAGS) -o $@ $<
 endif
 
 ifndef AROPTS
