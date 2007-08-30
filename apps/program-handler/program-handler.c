@@ -43,7 +43,7 @@
  *
  * This file is part of the Contiki desktop OS
  *
- * $Id: program-handler.c,v 1.4 2007/03/26 23:02:11 oliverschmidt Exp $
+ * $Id: program-handler.c,v 1.5 2007/08/30 14:39:18 matsutsuka Exp $
  *
  */
 
@@ -164,7 +164,9 @@ program_handler_add(struct dsc *dsc, char *menuname,
   contikidsc[contikidsclast++] = dsc;
   ctk_menuitem_add(&contikimenu, menuname);
   if(desktop) {
+#if CTK_CONF_ICONS
     CTK_ICON_ADD(dsc->icon, &program_handler_process);
+#endif /* CTK_CONF_ICONS */
   }
 }
 /*-----------------------------------------------------------------------------------*/
@@ -337,8 +339,11 @@ PROCESS_THREAD(program_handler_process, ev, data)
 #endif /* QUIT_MENU */
       dscp = &contikidsc[0];
       for(i = 0; i < CTK_MAXMENUITEMS; ++i) {    
-	if(*dscp != NULL &&
-	   data == (process_data_t)(*dscp)->icon) {
+	if(*dscp != NULL
+#if CTK_CONF_ICONS
+	  && data == (process_data_t)(*dscp)->icon
+#endif /* CTK_CONF_ICONS */
+	  ) {
 	  RUN((*dscp)->prgname, (*dscp)->process, NULL);
 	  break;
 	}

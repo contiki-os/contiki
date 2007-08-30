@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: uaodv.c,v 1.30 2007/06/28 15:16:41 bg- Exp $
+ * $Id: uaodv.c,v 1.31 2007/08/30 14:39:17 matsutsuka Exp $
  */
 
 /**
@@ -108,7 +108,7 @@ fwc_add(const uip_ipaddr_t *orig, const u32_t *id)
 {
   unsigned n = (orig->u8[2] + orig->u8[3]) % NFWCACHE;
   fwcache[n].id = *id;
-  fwcache[n].orig = *orig;
+  uip_ipaddr_copy(&fwcache[n].orig, orig);
 }
 
 #ifdef NDEBUG

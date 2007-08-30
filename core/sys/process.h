@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: process.h,v 1.9 2007/08/22 10:49:48 ksb Exp $
+ * @(#)$Id: process.h,v 1.10 2007/08/30 14:39:17 matsutsuka Exp $
  */
 
 /**
@@ -360,7 +360,7 @@ void process_start(struct process *p, char *arg);
  * \retval PROCESS_ERR_FULL The event queue was full and the event could
  * not be posted.
  */
-CCIF int process_post(struct process *p, process_event_t ev, process_data_t data);
+CCIF int process_post(struct process *p, process_event_t ev, void* data);
 
 /**
  * Post a synchronous event to a process.
@@ -373,7 +373,7 @@ CCIF int process_post(struct process *p, process_event_t ev, process_data_t data
  * with the event.
  */
 void process_post_synch(struct process *p,
-			process_event_t ev, process_data_t data);
+			process_event_t ev, void* data);
 
 /**
  * \brief      Cause a process to exit

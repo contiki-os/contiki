@@ -30,7 +30,7 @@
  *
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: psock.c,v 1.1 2006/06/17 22:41:18 adamdunkels Exp $
+ * $Id: psock.c,v 1.2 2007/08/30 14:39:17 matsutsuka Exp $
  */
 
 #include <stdio.h>
@@ -106,8 +106,8 @@ buf_bufdata(struct psock_buf *buf, u16_t len,
 }
 /*---------------------------------------------------------------------------*/
 static u8_t
-buf_bufto(register struct psock_buf *buf, u8_t endmarker,
-	  register u8_t **dataptr, register u16_t *datalen)
+buf_bufto(CC_REGISTER_ARG struct psock_buf *buf, u8_t endmarker,
+	  CC_REGISTER_ARG u8_t **dataptr, CC_REGISTER_ARG u16_t *datalen)
 {
   u8_t c;
   while(buf->left > 0 && *datalen > 0) {
@@ -140,7 +140,7 @@ buf_bufto(register struct psock_buf *buf, u8_t endmarker,
 }
 /*---------------------------------------------------------------------------*/
 static char
-send_data(register struct psock *s)
+send_data(CC_REGISTER_ARG struct psock *s)
 {
   if(s->state != STATE_DATA_SENT || uip_rexmit()) {
     if(s->sendlen > uip_mss()) {
@@ -155,7 +155,7 @@ send_data(register struct psock *s)
 }
 /*---------------------------------------------------------------------------*/
 static char
-data_acked(register struct psock *s)
+data_acked(CC_REGISTER_ARG struct psock *s)
 {
   if(s->state == STATE_DATA_SENT && uip_acked()) {
     if(s->sendlen > uip_mss()) {
@@ -171,7 +171,7 @@ data_acked(register struct psock *s)
   return 0;
 }
 /*---------------------------------------------------------------------------*/
-PT_THREAD(psock_send(register struct psock *s, const char *buf,
+PT_THREAD(psock_send(CC_REGISTER_ARG struct psock *s, const char *buf,
 		     unsigned int len))
 {
   PT_BEGIN(&s->psockpt);
@@ -210,7 +210,7 @@ PT_THREAD(psock_send(register struct psock *s, const char *buf,
   PT_END(&s->psockpt);
 }
 /*---------------------------------------------------------------------------*/
-PT_THREAD(psock_generator_send(register struct psock *s,
+PT_THREAD(psock_generator_send(CC_REGISTER_ARG struct psock *s,
 			       unsigned short (*generate)(void *), void *arg))
 {
   PT_BEGIN(&s->psockpt);
@@ -267,7 +267,7 @@ psock_newdata(struct psock *s)
   }
 }
 /*---------------------------------------------------------------------------*/
-PT_THREAD(psock_readto(register struct psock *psock, unsigned char c))
+PT_THREAD(psock_readto(CC_REGISTER_ARG struct psock *psock, unsigned char c))
 {
   PT_BEGIN(&psock->psockpt);
 
@@ -294,7 +294,7 @@ PT_THREAD(psock_readto(register struct psock *psock, unsigned char c))
   PT_END(&psock->psockpt);
 }
 /*---------------------------------------------------------------------------*/
-PT_THREAD(psock_readbuf(register struct psock *psock))
+PT_THREAD(psock_readbuf(CC_REGISTER_ARG struct psock *psock))
 {
   PT_BEGIN(&psock->psockpt);
 
@@ -323,7 +323,7 @@ PT_THREAD(psock_readbuf(register struct psock *psock))
 }
 /*---------------------------------------------------------------------------*/
 void
-psock_init(register struct psock *psock, char *buffer, unsigned int buffersize)
+psock_init(CC_REGISTER_ARG struct psock *psock, char *buffer, unsigned int buffersize)
 {
   psock->state = STATE_NONE;
   psock->readlen = 0;

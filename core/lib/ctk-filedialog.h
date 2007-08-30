@@ -30,7 +30,7 @@
  * 
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: ctk-filedialog.h,v 1.1 2006/06/17 22:41:17 adamdunkels Exp $
+ * $Id: ctk-filedialog.h,v 1.2 2007/08/30 14:39:18 matsutsuka Exp $
  */
 #ifndef __CTK_FILEDIALOG_H__
 #define __CTK_FILEDIALOG_H__
@@ -42,8 +42,8 @@ struct ctk_filedialog_state {
   process_event_t ev;
 };
 
-void ctk_filedialog_init(register struct ctk_filedialog_state *s);
-void ctk_filedialog_open(register struct ctk_filedialog_state *s,
+void ctk_filedialog_init(CC_REGISTER_ARG struct ctk_filedialog_state *s);
+void ctk_filedialog_open(CC_REGISTER_ARG struct ctk_filedialog_state *s,
 			 const char *buttontext, process_event_t event);
 char ctk_filedialog_eventhandler(struct ctk_filedialog_state *s,
 				 process_event_t ev, process_data_t data);

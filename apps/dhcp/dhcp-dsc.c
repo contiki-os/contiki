@@ -29,13 +29,13 @@
  *
  * This file is part of the Contiki desktop environment
  *
- * $Id: dhcp-dsc.c,v 1.1 2006/06/17 22:41:10 adamdunkels Exp $
+ * $Id: dhcp-dsc.c,v 1.2 2007/08/30 14:39:19 matsutsuka Exp $
  *
  */
 
 #include "sys/dsc.h"
 
-extern struct ctk_icon dhcp_icon;
+extern static struct ctk_icon dhcp_icon;
 /*-----------------------------------------------------------------------------------*/
 DSC(dhcp_dsc,
     "Obtain IP address automatically",

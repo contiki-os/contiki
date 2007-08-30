@@ -28,7 +28,7 @@
  *
  * This file is part of the uIP TCP/IP stack.
  *
- * $Id: vnc-out.c,v 1.1 2006/06/17 22:41:16 adamdunkels Exp $
+ * $Id: vnc-out.c,v 1.2 2007/08/30 14:39:18 matsutsuka Exp $
  *
  */
 
@@ -376,7 +376,7 @@ vnc_out_update_area(struct vnc_server_state *vs,
 }
 /*-----------------------------------------------------------------------------------*/
 static void
-init_send_screen(register struct vnc_server_state *vs)
+init_send_screen(CC_REGISTER_ARG struct vnc_server_state *vs)
 {
   vs->sendmsg = SEND_SCREEN;
   vs->x = vs->y = 0;
@@ -387,7 +387,7 @@ init_send_screen(register struct vnc_server_state *vs)
 }
 /*-----------------------------------------------------------------------------------*/
 static void
-check_updates(register struct vnc_server_state *vs)
+check_updates(CC_REGISTER_ARG struct vnc_server_state *vs)
 {
   
   if(vs->state == VNC_RUNNING &&
@@ -521,7 +521,7 @@ makechar(CC_REGISTER_ARG char *ptr, u8_t x, u8_t y)
 }
 /*-----------------------------------------------------------------------------------*/
 void
-vnc_out_new(register struct vnc_server_state *vs)
+vnc_out_new(CC_REGISTER_ARG struct vnc_server_state *vs)
 {
   u8_t i;
   
@@ -542,7 +542,7 @@ vnc_out_new(register struct vnc_server_state *vs)
 }
 /*-----------------------------------------------------------------------------------*/
 void
-vnc_out_send_blank(register struct vnc_server_state *vs)
+vnc_out_send_blank(CC_REGISTER_ARG struct vnc_server_state *vs)
 {
   register struct rfb_fb_update *umsg;
   u8_t *ptr;
@@ -588,7 +588,7 @@ vnc_out_send_screen(struct vnc_server_state *vs)
 /*-----------------------------------------------------------------------------------*/
 static short tmpbuf[30];
 void
-vnc_out_send_update(register struct vnc_server_state *vs)
+vnc_out_send_update(CC_REGISTER_ARG struct vnc_server_state *vs)
 {
   u8_t x, y, x0;
   u8_t msglen;
@@ -857,7 +857,7 @@ vnc_out_pointer_event(struct vnc_server_state *vs)
 }
 /*-----------------------------------------------------------------------------------*/
 void
-vnc_out_acked(register struct vnc_server_state *vs)
+vnc_out_acked(CC_REGISTER_ARG struct vnc_server_state *vs)
 {
   if(vs->state != VNC_RUNNING) {
     return;

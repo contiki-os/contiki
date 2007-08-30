@@ -33,7 +33,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: rimeaddr.c,v 1.5 2007/03/31 18:31:28 adamdunkels Exp $
+ * $Id: rimeaddr.c,v 1.6 2007/08/30 14:39:17 matsutsuka Exp $
  */
 
 /**
@@ -46,7 +46,7 @@
 #include "net/rime/rimeaddr.h"
 
 rimeaddr_t rimeaddr_node_addr;
-const rimeaddr_t rimeaddr_null;
+const rimeaddr_t rimeaddr_null = { { 0, 0 } };
 
 /*---------------------------------------------------------------------------*/
 void

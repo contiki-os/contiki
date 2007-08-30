@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: uip-over-mesh.c,v 1.4 2007/03/29 22:21:56 adamdunkels Exp $
+ * $Id: uip-over-mesh.c,v 1.5 2007/08/30 14:39:17 matsutsuka Exp $
  */
 
 /**
@@ -49,7 +49,7 @@
 
 static struct queuebuf *queued_packet;
 static rimeaddr_t queued_receiver;
-static struct route_discovery_conn route_discovery;;
+static struct route_discovery_conn route_discovery;
 static struct uc_conn dataconn;
 
 #define DEBUG 0

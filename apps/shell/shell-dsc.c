@@ -29,13 +29,13 @@
  *
  * This file is part of the Contiki desktop environment
  *
- * $Id: shell-dsc.c,v 1.1 2006/06/17 22:41:12 adamdunkels Exp $
+ * $Id: shell-dsc.c,v 1.2 2007/08/30 14:39:16 matsutsuka Exp $
  *
  */
 
 #include "sys/dsc.h"
 
-extern struct ctk_icon shell_icon;
+extern static struct ctk_icon shell_icon;
 /*-----------------------------------------------------------------------------------*/
 DSC(shell_dsc,
     "The Contiki command shell",

@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: dhcpc.c,v 1.7 2007/03/16 12:16:16 bg- Exp $
+ * @(#)$Id: dhcpc.c,v 1.8 2007/08/30 14:39:17 matsutsuka Exp $
  */
 
 #include <stdio.h>
@@ -139,7 +139,7 @@ add_end(u8_t *optptr)
 }
 /*---------------------------------------------------------------------------*/
 static void
-create_msg(register struct dhcp_msg *m)
+create_msg(CC_REGISTER_ARG struct dhcp_msg *m)
 {
   m->op = DHCP_REQUEST;
   m->htype = DHCP_HTYPE_ETHERNET;

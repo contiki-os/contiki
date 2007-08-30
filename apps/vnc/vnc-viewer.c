@@ -28,7 +28,7 @@
  *
  * This file is part of the uIP TCP/IP stack.
  *
- * $Id: vnc-viewer.c,v 1.1 2006/06/17 23:08:35 adamdunkels Exp $
+ * $Id: vnc-viewer.c,v 1.2 2007/08/30 14:39:17 matsutsuka Exp $
  *
  */
 
@@ -84,7 +84,7 @@ vnc_viewer_connect(u16_t *server, u8_t display)
   vnc_draw_init();
 
   memset(vs, 0, sizeof(struct vnc_viewer_state));
-  conn = uip_connect(server, htons(5900 + display));
+  conn = uip_connect((uip_ipaddr_t *) server, htons(5900 + display));
   if(conn == NULL) {
     return;
   }
@@ -308,7 +308,7 @@ recv_rectstate(u8_t *dataptr, u16_t datalen)
 /* Returns: the amount of bytes that needs to be buffered before the
    rect can be drawn. */
 static unsigned short
-recv_update_rect(register struct rfb_fb_update_rect_hdr *rhdr,
+recv_update_rect(CC_REGISTER_ARG struct rfb_fb_update_rect_hdr *rhdr,
 		 u16_t dataleft)
 {
   struct rfb_rre_hdr *rrehdr;
@@ -364,7 +364,7 @@ recv_update_rect(register struct rfb_fb_update_rect_hdr *rhdr,
  * be expected.
  */
 static u16_t
-identify_data(register u8_t *data, u16_t datalen)
+identify_data(CC_REGISTER_ARG u8_t *data, u16_t datalen)
 {
   switch(vs->waitmsg) {
   case VNC_WAIT_VERSION:
@@ -425,7 +425,7 @@ identify_data(register u8_t *data, u16_t datalen)
  * Handles the data.
  */
 static unsigned short
-handle_data(register u8_t *data, u16_t datalen)
+handle_data(CC_REGISTER_ARG u8_t *data, u16_t datalen)
 {
   
   switch(vs->waitmsg) {

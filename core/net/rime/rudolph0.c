@@ -33,7 +33,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: rudolph0.c,v 1.5 2007/05/15 08:09:21 adamdunkels Exp $
+ * $Id: rudolph0.c,v 1.6 2007/08/30 14:39:17 matsutsuka Exp $
  */
 
 /**
@@ -179,7 +179,7 @@ recv_nack(struct polite_conn *polite)
   }
 }
 /*---------------------------------------------------------------------------*/
-static const struct polite_callbacks polite = { recv_nack, NULL, NULL };
+static const struct polite_callbacks polite = { recv_nack, 0, 0 };
 static const struct sabc_callbacks sabc = { recv, sent };
 /*---------------------------------------------------------------------------*/
 void
