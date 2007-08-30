@@ -39,7 +39,7 @@
  *
  * This file is part of the Contiki desktop OS
  *
- * $Id: cc.h,v 1.1 2006/06/17 22:41:20 adamdunkels Exp $
+ * $Id: cc.h,v 1.2 2007/08/30 14:39:17 matsutsuka Exp $
  *
  */
 #ifndef __CC_H__
@@ -100,6 +100,26 @@
 #else /* CC_CONF_INLINE */
 #define CC_INLINE
 #endif /* CC_CONF_INLINE */
+
+/**
+ * Configure if the C compiler supports the assignment of struct value.
+ */
+#ifdef CC_CONF_ASSIGN_AGGREGATE
+#define CC_ASSIGN_AGGREGATE(dest, src)	CC_ASSIGN_AGGREGATE(dest, src)
+#else /* CC_CONF_ASSIGN_AGGREGATE */
+#define CC_ASSIGN_AGGREGATE(dest, src)	*dest = *src
+#endif /* CC_CONF_ASSIGN_AGGREGATE */
+
+/**
+ * Configure if the C compiler supports the increment of pointer.
+ */
+#ifdef CC_CONF_INC_CAST_POINTER
+#define CC_INC_CAST_POINTER(type, data)	\
+	CC_CONF_INC_CAST_POINTER(type, data)
+#else /* CC_CONF_INC_CAST_POINTER */
+#define CC_INC_CAST_POINTER(type, data) 	\
+	++((type) data)
+#endif /* CC_CONF_INC_CAST_POINTER */
 
 #if CC_CONF_NO_VA_ARGS
 #define CC_NO_VA_ARGS CC_CONF_VA_ARGS

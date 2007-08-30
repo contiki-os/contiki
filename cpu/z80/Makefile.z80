@@ -1,0 +1,35 @@
+#
+# Makefile for z80/SDCC
+# @author Takahide Matsutsuka <markn@markn.org>
+#
+# $Id: Makefile.z80,v 1.1 2007/08/30 14:39:16 matsutsuka Exp $
+#
+
+### Compiler definitions
+CC       = sdcc
+LD       = sdcc
+#LD       = link-z80
+AS       = as-z80
+AR	 = sdcclib
+OBJCOPY  = objcopy
+STRIP    = strip
+
+CFLAGS  += -I. -I$(CONTIKI) -I$(CONTIKI)/core -I$(CONTIKI_CPU) \
+           ${addprefix -I$(CONTIKI)/platform/$(TARGET)/,$(CONTIKI_TARGET_DIRS)} \
+           ${addprefix -I,$(APPDIRS)} $(APP_INCLUDES) \
+           --std-c99 --vc -mz80
+
+ASFLAGS += 
+LDFLAGS += -mz80
+AROPTS = -a
+
+CONTIKI_SOURCEFILES += strcasecmp.c mtarch.c
+CONTIKI_ASMFILES += uip_arch-asm.S
+
+contiki-$(TARGET).o: $(CONTIKI_OBJECTFILES) $(PROJECT_OBJECTFILES) $(CONTIKI_ASMOBJECTFILES)
+	for target in $^; do $(AR) $(AROPTS) $@ $$target; done
+
+contiki.ihex: contiki-$(TARGET).o
+	$(LD) $(LDFLAGS) -DAUTOSTART_ENABLE $(CONTIKI_TARGET_MAIN) -lcontiki-$(TARGET).o -o $@
+
+#CONTIKI_TARGET_DIRS += $(CONTIKI_CPU)/net

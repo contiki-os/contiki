@@ -54,7 +54,7 @@
  *
  * This file is part of the uIP TCP/IP stack.
  *
- * $Id: uip_arp.c,v 1.3 2007/03/21 23:19:52 adamdunkels Exp $
+ * $Id: uip_arp.c,v 1.4 2007/08/30 14:39:17 matsutsuka Exp $
  *
  */
 
@@ -217,7 +217,7 @@ uip_arp_update(uip_ipaddr_t *ipaddr, struct uip_eth_addr *ethaddr)
 
   /* Now, i is the ARP table entry which we will fill with the new
      information. */
-  tabptr->ipaddr = *ipaddr;
+  uip_ipaddr_copy(&tabptr->ipaddr, ipaddr);
   memcpy(tabptr->ethaddr.addr, ethaddr->addr, 6);
   tabptr->time = arptime;
 }
@@ -314,8 +314,8 @@ uip_arp_arpin(void)
       memcpy(BUF->ethhdr.src.addr, uip_ethaddr.addr, 6);
       memcpy(BUF->ethhdr.dest.addr, BUF->dhwaddr.addr, 6);
       
-      BUF->dipaddr = BUF->sipaddr;
-      BUF->sipaddr = uip_hostaddr;
+      uip_ipaddr_copy(&BUF->dipaddr, &BUF->sipaddr);
+      uip_ipaddr_copy(&BUF->sipaddr, &uip_hostaddr);
 
       BUF->ethhdr.type = HTONS(UIP_ETHTYPE_ARP);
       uip_len = sizeof(struct arp_hdr);

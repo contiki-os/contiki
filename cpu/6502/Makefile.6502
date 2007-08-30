@@ -30,7 +30,7 @@
 #
 # Author: Oliver Schmidt <ol.sc@web.de>
 #
-# $Id: Makefile.6502,v 1.10 2007/05/29 21:56:21 oliverschmidt Exp $
+# $Id: Makefile.6502,v 1.11 2007/08/30 14:39:18 matsutsuka Exp $
 #
 
 ifndef CONTIKI
@@ -94,5 +94,6 @@ CUSTOM_RULE_C_TO_CO = 1
 	@$(AS) $(AFLAGS) $(@:.co=.s) -o $@
 	@rm -f $(@:.co=.s)
 
-$(OBJECTDIR)/%.o: %.S
-	$(AS) $(AFLAGS) $< -o $@
+#moved to Makefile.include
+#$(OBJECTDIR)/%.o: %.S
+#	$(AS) $(AFLAGS) $< -o $@

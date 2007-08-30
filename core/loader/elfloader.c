@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: elfloader.c,v 1.5 2007/03/22 23:56:44 adamdunkels Exp $
+ * @(#)$Id: elfloader.c,v 1.6 2007/08/30 14:39:18 matsutsuka Exp $
  */
 
 #include "contiki.h"
@@ -556,14 +556,14 @@ elfloader_load(int fd)
   seek_read(fd, dataoff, data.address, datasize);
 
   PRINTF("elfloader: autostart search\n");
-  process = find_local_symbol(fd, "autostart_processes", symtaboff, symtabsize, strtaboff);
+  process = (struct process **) find_local_symbol(fd, "autostart_processes", symtaboff, symtabsize, strtaboff);
   if(process != NULL) {
     PRINTF("elfloader: autostart found\n");
     elfloader_autostart_processes = process;
     return ELFLOADER_OK;
   } else {
     PRINTF("elfloader: no autostart\n");
-    process = find_program_processes(fd, symtaboff, symtabsize, strtaboff);
+    process = (struct process **) find_program_processes(fd, symtaboff, symtabsize, strtaboff);
     if(process != NULL) {
       PRINTF("elfloader: FOUND PRG\n");
     }

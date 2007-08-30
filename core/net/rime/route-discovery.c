@@ -33,7 +33,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: route-discovery.c,v 1.6 2007/05/15 08:09:21 adamdunkels Exp $
+ * $Id: route-discovery.c,v 1.7 2007/08/30 14:39:17 matsutsuka Exp $
  */
 
 /**
@@ -210,7 +210,7 @@ rreq_packet_received(struct nf_conn *nf, rimeaddr_t *from,
 }
 /*---------------------------------------------------------------------------*/
 static const struct uc_callbacks rrep_callbacks = {rrep_packet_received};
-static const struct nf_callbacks rreq_callbacks = {rreq_packet_received, NULL};
+static const struct nf_callbacks rreq_callbacks = {rreq_packet_received, NULL, NULL};
 /*---------------------------------------------------------------------------*/
 void
 route_discovery_open(struct route_discovery_conn *c,

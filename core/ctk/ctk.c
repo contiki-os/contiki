@@ -44,7 +44,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: ctk.c,v 1.6 2007/04/15 13:09:23 oliverschmidt Exp $
+ * $Id: ctk.c,v 1.7 2007/08/30 14:39:17 matsutsuka Exp $
  *
  */
 
@@ -168,9 +168,11 @@ process_event_t ctk_signal_screensaver_stop,
 unsigned short mouse_x, mouse_y, mouse_button;
 #endif /* CTK_CONF_MOUSE_SUPPORT */
 
+#if CTK_CONF_SCREENSAVER
 static unsigned short screensaver_timer = 0;
 unsigned short ctk_screensaver_timeout = (5*60);
 static struct timer timer;
+#endif /* CTK_CONF_SCREENSAVER */
 
 static void CC_FASTCALL
 textentry_input(ctk_arch_key_t c,
@@ -202,6 +204,7 @@ make_desktopmenu(void)
 }
 #endif /* CTK_CONF_MENUS */
 /*---------------------------------------------------------------------------*/
+#if CTK_CONF_ICONS
 static void
 arrange_icons(void)
 {
@@ -223,6 +226,7 @@ arrange_icons(void)
     }
   }
 }
+#endif /* CTK_CONF_ICONS */
 /*---------------------------------------------------------------------------*/
 void
 ctk_restore(void)
@@ -232,7 +236,9 @@ ctk_restore(void)
   height = ctk_draw_height();
   width = ctk_draw_width();
 
+#if CTK_CONF_ICONS
   arrange_icons();
+#endif /* CTK_CONF_ICONS */
 
   redraw = REDRAW_ALL;
 }
@@ -1296,23 +1302,23 @@ menus_input(ctk_arch_key_t c)
 }
 #endif /* CTK_CONF_MENUS */
 /*---------------------------------------------------------------------------*/
+#if CTK_CONF_SCREENSAVER
 static void
 handle_timer(void)
 {
   if(mode == CTK_MODE_NORMAL) {
     ++screensaver_timer;
     if(screensaver_timer >= ctk_screensaver_timeout) {
-#if CTK_CONF_SCREENSAVER
       process_post(PROCESS_BROADCAST, ctk_signal_screensaver_start, NULL);
 #ifdef CTK_SCREENSAVER_INIT
       CTK_SCREENSAVER_INIT();
 #endif /* CTK_SCREENSAVER_INIT */
 
-#endif /* CTK_CONF_SCREENSAVER */
       screensaver_timer = 0;
     }
   }
 }
+#endif /* CTK_CONF_SCREENSAVER */
 /*---------------------------------------------------------------------------*/
 static void
 unfocus_widget(CC_REGISTER_ARG struct ctk_widget *w)
@@ -1393,16 +1399,20 @@ PROCESS_THREAD(ctk_process, ev, data)
   iconx = ICONX_START;
   icony = ICONY_START;
 
+#if CTK_CONF_SCREENSAVER
   timer_set(&timer, CLOCK_SECOND);
+#endif /* CTK_CONF_SCREENSAVER */
   
   while(1) {
     process_poll(&ctk_process);
     PROCESS_WAIT_EVENT();
     
+#if CTK_CONF_SCREENSAVER
     if(timer_expired(&timer)) {
       timer_reset(&timer);
       handle_timer();
     }
+#endif /* CTK_CONF_SCREENSAVER */
 
 #if CTK_CONF_MENUS
     if(menus.open != NULL) {
@@ -1456,7 +1466,9 @@ PROCESS_THREAD(ctk_process, ev, data)
 	   the correct signals, or bring a window to focus. */
 	if(mouse_moved || mouse_button_changed) {
 	  ctk_mouse_show();
+#if CTK_CONF_SCREENSAVER
 	  screensaver_timer = 0;
+#endif /* CTK_CONF_SCREENSAVER */
       
 	  if(myc == 0) {
 	    /* Here we should do whatever needs to be done when the mouse
@@ -1656,7 +1668,9 @@ PROCESS_THREAD(ctk_process, ev, data)
 
 	  ctk_mouse_hide();
       
+#if CTK_CONF_SCREENSAVER
 	  screensaver_timer = 0;
+#endif /* CTK_CONF_SCREENSAVER */
       
 	  c = ctk_arch_getkey();
       
@@ -1788,7 +1802,9 @@ PROCESS_THREAD(ctk_process, ev, data)
     
 	while(mode == CTK_MODE_WINDOWMOVE && ctk_arch_keyavail()) {
     
+#if CTK_CONF_SCREENSAVER
 	  screensaver_timer = 0;
+#endif /* CTK_CONF_SCREENSAVER */
       
 	  c = ctk_arch_getkey();
       

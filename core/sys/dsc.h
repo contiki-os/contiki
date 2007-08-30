@@ -56,7 +56,7 @@
  *
  * This file is part of the Contiki desktop environment
  *
- * $Id: dsc.h,v 1.2 2006/08/26 23:59:39 oliverschmidt Exp $
+ * $Id: dsc.h,v 1.3 2007/08/30 14:39:17 matsutsuka Exp $
  *
  */
 #ifndef __DSC_H__
@@ -82,8 +82,10 @@ struct dsc {
   struct process *process; /**< A pointer to the program's process. */
 #endif /* WITH_LOADER_ARCH */
   
+#if CTK_CONF_ICONS  
   struct ctk_icon *icon;  /**< A pointer to the ctk_icon structure for
 			     the DSC. */
+#endif /* CTK_CONF_ICONS */
  
 #if WITH_LOADER_ARCH
   void *loadaddr;         /**< The loading address of the DSC. Used by
@@ -109,15 +111,26 @@ struct dsc {
  * \param icon A pointer to the CTK icon.
  */
 #if WITH_LOADER_ARCH
+#if CTK_CONF_ICONS
 #define DSC(dscname, description, prgname, process, icon) \
         CLIF const struct dsc dscname = {description, prgname, icon}
+#else /* CTK_CONF_ICONS */
+#define DSC(dscname, description, prgname, process, icon) \
+        CLIF const struct dsc dscname = {description, prgname}
+#endif /* CTK_CONF_ICONS */
 #else /* WITH_LOADER_ARCH */
+#if CTK_CONF_ICONS
 #define DSC(dscname, description, prgname, process, icon) \
     PROCESS_NAME(process); \
     const struct dsc dscname = {description, &process, icon}
+#else /* CTK_CONF_ICONS */
+#define DSC(dscname, description, prgname, process, icon) \
+    PROCESS_NAME(process); \
+    const struct dsc dscname = {description, &process}
+#endif /* CTK_CONF_ICONS */
 #endif /* WITH_LOADER_ARCH */
 
-#define DSC_HEADER(name) extern struct dsc name;
+#define DSC_HEADER(name) extern struct dsc name
 
 #ifndef NULL
 #define NULL 0

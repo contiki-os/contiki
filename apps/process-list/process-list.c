@@ -29,7 +29,7 @@
  *
  * This file is part of the Contiki desktop environment
  *
- * $Id: process-list.c,v 1.2 2006/08/27 15:15:46 oliverschmidt Exp $
+ * $Id: process-list.c,v 1.3 2007/08/30 14:39:17 matsutsuka Exp $
  *
  */
 
@@ -38,23 +38,30 @@
 
 #include <string.h>
 
+#ifdef PROCESSLIST_CONF_HEIGHT
+#define PROCESSLIST_HEIGHT PROCESSLIST_CONF_HEIGHT
+#else /* PROCESSLIST_CONF_HEIGHT */
+#define PROCESSLIST_HEIGHT 16
+#endif /* PROCESSLIST_CONF_HEIGHT */
+
 #define MAX_PROCESSLABELS 13
+
 static struct ctk_window processwindow;
 static struct {struct process *p; char id[2];} processes[MAX_PROCESSLABELS];
 static struct ctk_label processidlabels[MAX_PROCESSLABELS];
 static struct ctk_label processnamelabels[MAX_PROCESSLABELS];
 
 static struct ctk_label killlabel =
-  {CTK_LABEL(0, 14, 12, 1, "Kill process")};
+  {CTK_LABEL(0, PROCESSLIST_CONF_HEIGHT - 2, 12, 1, "Kill process")};
 static char killprocnum[3];
 static struct ctk_textentry killtextentry =
-  {CTK_TEXTENTRY(13, 14, 2, 1, killprocnum, 2)};
+  {CTK_TEXTENTRY(13, PROCESSLIST_CONF_HEIGHT - 2, 2, 1, killprocnum, 2)};
 static struct ctk_button killbutton =
-  {CTK_BUTTON(19, 14, 2, "Ok")};
+  {CTK_BUTTON(19, PROCESSLIST_CONF_HEIGHT - 2, 2, "Ok")};
 static struct ctk_button processupdatebutton =
-  {CTK_BUTTON(0, 15, 6, "Update")};
+  {CTK_BUTTON(0, PROCESSLIST_CONF_HEIGHT - 1, 6, "Update")};
 static struct ctk_button processclosebutton =
-  {CTK_BUTTON(19, 15, 5, "Close")};
+  {CTK_BUTTON(19, PROCESSLIST_CONF_HEIGHT - 1, 5, "Close")};
 
 PROCESS(processes_process, "Process listing");
 
@@ -147,7 +154,7 @@ PROCESS_THREAD(processes_process, ev, data)
 
   PROCESS_BEGIN();
   
-  ctk_window_new(&processwindow, 26, 16, "Processes");
+  ctk_window_new(&processwindow, 26, PROCESSLIST_HEIGHT, "Processes");
   update_processwindow();
   
   ctk_window_open(&processwindow);

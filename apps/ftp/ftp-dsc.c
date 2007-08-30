@@ -29,13 +29,13 @@
  *
  * This file is part of the Contiki desktop environment
  *
- * $Id: ftp-dsc.c,v 1.1 2006/06/17 22:41:11 adamdunkels Exp $
+ * $Id: ftp-dsc.c,v 1.2 2007/08/30 14:39:18 matsutsuka Exp $
  *
  */
 
 #include "sys/dsc.h"
 
-extern struct ctk_icon ftp_icon;
+extern static struct ctk_icon ftp_icon;
 /*-----------------------------------------------------------------------------------*/
 DSC(ftp_dsc,
     "FTP client",

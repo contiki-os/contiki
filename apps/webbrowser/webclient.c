@@ -29,7 +29,7 @@
  *
  * This file is part of the "contiki" web browser.
  *
- * $Id: webclient.c,v 1.2 2006/08/14 23:32:29 oliverschmidt Exp $
+ * $Id: webclient.c,v 1.3 2007/08/30 14:39:18 matsutsuka Exp $
  *
  */
 
@@ -219,7 +219,7 @@ parse_statusline(u16_t len)
   
   while(len > 0 && s.httpheaderlineptr < sizeof(s.httpheaderline)) {
     s.httpheaderline[s.httpheaderlineptr] = *(char *)uip_appdata;
-    ++((char *)uip_appdata);
+    CC_INC_CAST_POINTER(char *, uip_appdata);
     --len;
     if(s.httpheaderline[s.httpheaderlineptr] == ISO_nl) {
 
@@ -287,7 +287,7 @@ parse_headers(u16_t len)
   
   while(len > 0 && s.httpheaderlineptr < sizeof(s.httpheaderline)) {
     s.httpheaderline[s.httpheaderlineptr] = *(char *)uip_appdata;
-    ++((char *)uip_appdata);
+    CC_INC_CAST_POINTER(char *, uip_appdata);
     --len;
     if(s.httpheaderline[s.httpheaderlineptr] == ISO_nl) {
       /* We have an entire HTTP header line in s.httpheaderline, so

@@ -30,7 +30,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: xmac.c,v 1.6 2007/05/25 08:07:15 adamdunkels Exp $
+ * $Id: xmac.c,v 1.7 2007/08/30 14:39:18 matsutsuka Exp $
  */
 
 /**
@@ -219,6 +219,9 @@ send(void)
   int strobes;
   struct xmac_hdr *hdr;
   int got_ack = 0;
+  struct xmac_hdr msg;
+  rtimer_clock_t t;
+  int len;
 
   we_are_sending = 1;
 
@@ -248,9 +251,6 @@ send(void)
   strobes = 0;
 
   do {
-    struct xmac_hdr msg;
-    rtimer_clock_t t;
-    int len;
 
     t = RTIMER_NOW();
     

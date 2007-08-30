@@ -29,13 +29,13 @@
  *
  * This file is part of the Contiki desktop environment
  *
- * $Id: vnc-dsc.c,v 1.1 2006/06/17 23:08:35 adamdunkels Exp $
+ * $Id: vnc-dsc.c,v 1.2 2007/08/30 14:39:17 matsutsuka Exp $
  *
  */
 
 #include "sys/dsc.h"
 
-extern struct ctk_icon vnc_icon;
+extern static struct ctk_icon vnc_icon;
 /*-----------------------------------------------------------------------------------*/
 DSC(vnc_dsc,
     "Remote control your PC using Contiki",

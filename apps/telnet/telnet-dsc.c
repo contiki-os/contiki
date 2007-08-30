@@ -29,13 +29,13 @@
  *
  * This file is part of the Contiki desktop environment
  *
- * $Id: telnet-dsc.c,v 1.1 2006/06/17 22:41:12 adamdunkels Exp $
+ * $Id: telnet-dsc.c,v 1.2 2007/08/30 14:39:18 matsutsuka Exp $
  *
  */
 
 #include "sys/dsc.h"
 
-extern struct ctk_icon telnet_icon;
+extern static struct ctk_icon telnet_icon;
 /*-----------------------------------------------------------------------------------*/
 DSC(telnet_dsc,
     "A simple Telnet client",

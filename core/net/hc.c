@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: hc.c,v 1.3 2006/10/09 11:53:43 adamdunkels Exp $
+ * @(#)$Id: hc.c,v 1.4 2007/08/30 14:39:17 matsutsuka Exp $
  */
 
 /**
@@ -179,7 +179,7 @@ hc_inflate(u8_t *buf, int len)
     uhdr = (struct udpip_hdr *)buf;
     hdr = (struct hc_hdr *)&buf[UIP_IPUDPH_LEN - HC_HLEN];
     
-    uhdr->srcipaddr = hdr->srcipaddr;
+    uip_ipaddr_copy(&uhdr->srcipaddr, &hdr->srcipaddr);
     uhdr->srcport = hdr->flagsport & HTONS(0x3fff);
     uhdr->destport = hdr->flagsport & HTONS(0x3fff);
     
@@ -196,7 +196,7 @@ hc_inflate(u8_t *buf, int len)
     uhdr->ipoffset[0] = uhdr->ipoffset[1] = 0;
     uhdr->ttl = 2;
     uhdr->proto = UIP_PROTO_UDP;
-    uhdr->destipaddr = uip_broadcast_addr;
+    uip_ipaddr_copy(&uhdr->destipaddr, &uip_broadcast_addr);
     uhdr->udpchksum = 0;
 
     uhdr->ipchksum = 0;

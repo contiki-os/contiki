@@ -29,7 +29,7 @@
  *
  * This file is part of the Contiki VNC client.
  *
- * $Id: vnc-viewer.h,v 1.1 2006/06/17 23:08:35 adamdunkels Exp $
+ * $Id: vnc-viewer.h,v 1.2 2007/08/30 14:39:17 matsutsuka Exp $
  *
  */
 
@@ -163,7 +163,7 @@ struct vnc_viewer_state {
   u8_t buffer[VNC_BUFFERSIZE];
 };
 
-extern struct vnc_viewer_state vnc_viewer_state;
+extern static struct vnc_viewer_state vnc_viewer_state;
 
 /* Definitions of the RFB (Remote Frame Buffer) protocol
    structures and constants. */

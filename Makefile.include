@@ -64,6 +64,8 @@ CONTIKI_OBJECTFILES = ${addprefix $(OBJECTDIR)/,${call oname, $(CONTIKI_SOURCEFI
 
 PROJECT_OBJECTFILES = ${addprefix $(OBJECTDIR)/,${call oname, $(PROJECT_SOURCEFILES)}}
 
+CONTIKI_ASMOBJECTFILES = ${addprefix $(OBJECTDIR)/,$(CONTIKI_ASMFILES:.S=.o)}
+
 ### Include application makefiles
 
 ifdef APPS
@@ -105,7 +107,7 @@ clean:
 	rm -f *~ *core core *.srec \
 	*.lst *.map \
         *.cprg *.bin *.data contiki*.a *.firmware core-labels.S *.ihex *.ini \
-        *.ce *.co
+        *.ce *.co $(CLEAN)
 	-rm -rf $(OBJECTDIR)
 
 ifndef CUSTOM_RULE_C_TO_CE
@@ -127,6 +129,11 @@ endif
 ifndef CUSTOM_RULE_C_TO_CO
 %.co: %.c
 	$(CC) $(CFLAGS) -DAUTOSTART_ENABLE -c $< -o $@
+endif
+
+ifndef CUSTOM_RULE_S_TO_OBJECTDIR_O
+$(OBJECTDIR)/%.o: %.S
+	$(AS) $(ASFLAGS) -o $@ $<
 endif
 
 ifndef AROPTS
