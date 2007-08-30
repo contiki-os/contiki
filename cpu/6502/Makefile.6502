@@ -30,7 +30,7 @@
 #
 # Author: Oliver Schmidt <ol.sc@web.de>
 #
-# $Id: Makefile.6502,v 1.11 2007/08/30 14:39:18 matsutsuka Exp $
+# $Id: Makefile.6502,v 1.12 2007/08/30 20:47:14 oliverschmidt Exp $
 #
 
 ifndef CONTIKI
@@ -68,7 +68,7 @@ CC = cc65
 LD = ld65
 AR = ar65
 
-AFLAGS  = -t $(TARGET)
+ASFLAGS = -t $(TARGET)
 CFLAGS += -t $(TARGET) -Or
 LDFLAGS = -C $(CONTIKI)/platform/$(TARGET)/linker.cfg -m contiki-$(TARGET).map
 AROPTS  = a
@@ -84,16 +84,12 @@ CUSTOM_RULE_C_TO_OBJECTDIR_D = 1
 CUSTOM_RULE_C_TO_OBJECTDIR_O = 1
 $(OBJECTDIR)/%.o: %.c
 	$(CC) $(CFLAGS) --create-dep $< -o $(@:.o=.s)
-	@$(AS) $(AFLAGS) $(@:.o=.s) -o $@
+	@$(AS) $(ASFLAGS) $(@:.o=.s) -o $@
 	@sed 's!.s:!.o:!' < $(@:.o=.u) > $(@:.o=.d)
 	@rm -f $(@:.o=.s) $(@:.o=.u)
 
 CUSTOM_RULE_C_TO_CO = 1
 %.co: %.c
 	$(CC) $(CFLAGS) -DAUTOSTART_ENABLE $< -o $(@:.co=.s)
-	@$(AS) $(AFLAGS) $(@:.co=.s) -o $@
+	@$(AS) $(ASFLAGS) $(@:.co=.s) -o $@
 	@rm -f $(@:.co=.s)
-
-#moved to Makefile.include
-#$(OBJECTDIR)/%.o: %.S
-#	$(AS) $(AFLAGS) $< -o $@
