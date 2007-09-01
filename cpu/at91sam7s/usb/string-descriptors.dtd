@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8" ?>
+
+<!ELEMENT descriptors (languages,  strings)>
+
+<!ELEMENT languages (lang+) >
+
+<!ELEMENT lang (#PCDATA) >
+<!ATTLIST lang
+id CDATA "all"
+>
+
+<!ELEMENT strings (string+) >
+
+<!ELEMENT string (lang+) >
+
