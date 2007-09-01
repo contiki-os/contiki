@@ -27,7 +27,7 @@ extern char __heap_end__;
 extern char __heap_start__;
 
 struct uip_fw_netif cc2420if =
-  {UIP_FW_NETIF(172,16,0,2, 255,255,0,0, cc2420_send_ip)};
+  {UIP_FW_NETIF(172,16,0,129, 255,255,0,0, cc2420_send_ip)};
 
 #if 0
 /* Wathcdog is  already disabled in startup code */
