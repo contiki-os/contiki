@@ -57,15 +57,15 @@ mtarch_start(struct mtarch_thread *t,
 
   
   /* A parameter for method for thread function. */
-  *t->sp = (u16_t) data;
+  *t->sp = (u16_t)data;
   --t->sp;
 
   /* This will be a return address of thread function. */
-  *t->sp = (u16_t) mt_exit;
+  *t->sp = (u16_t)mt_exit;
   --t->sp;
 
   /* The thread function, is used as a return address of mtarch_switch. */
-  *t->sp = (u16_t) function;
+  *t->sp = (u16_t)function;
   --t->sp;
 
   /*
