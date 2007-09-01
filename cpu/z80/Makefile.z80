@@ -2,7 +2,7 @@
 # Makefile for z80/SDCC
 # @author Takahide Matsutsuka <markn@markn.org>
 #
-# $Id: Makefile.z80,v 1.1 2007/08/30 14:39:16 matsutsuka Exp $
+# $Id: Makefile.z80,v 1.2 2007/09/01 11:14:52 matsutsuka Exp $
 #
 
 ### Compiler definitions
@@ -19,11 +19,11 @@ CFLAGS  += -I. -I$(CONTIKI) -I$(CONTIKI)/core -I$(CONTIKI_CPU) \
            ${addprefix -I,$(APPDIRS)} $(APP_INCLUDES) \
            --std-c99 --vc -mz80
 
-ASFLAGS += 
+ASFLAGS += -l
 LDFLAGS += -mz80
 AROPTS = -a
 
-CONTIKI_SOURCEFILES += strcasecmp.c mtarch.c
+CONTIKI_SOURCEFILES += strcasecmp.c mtarch.c uip_arch.c
 CONTIKI_ASMFILES += uip_arch-asm.S
 
 contiki-$(TARGET).o: $(CONTIKI_OBJECTFILES) $(PROJECT_OBJECTFILES) $(CONTIKI_ASMOBJECTFILES)
@@ -31,5 +31,9 @@ contiki-$(TARGET).o: $(CONTIKI_OBJECTFILES) $(PROJECT_OBJECTFILES) $(CONTIKI_ASM
 
 contiki.ihex: contiki-$(TARGET).o
 	$(LD) $(LDFLAGS) -DAUTOSTART_ENABLE $(CONTIKI_TARGET_MAIN) -lcontiki-$(TARGET).o -o $@
+
+CUSTOM_RULE_S_TO_OBJECTDIR_O = 1
+$(OBJECTDIR)/%.o: %.S
+	$(AS) $(ASFLAGS) -o $@ $<
 
 #CONTIKI_TARGET_DIRS += $(CONTIKI_CPU)/net

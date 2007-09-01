@@ -27,16 +27,16 @@
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * $Id: contiki-sdcc-conf.h,v 1.1 2007/08/30 14:39:16 matsutsuka Exp $
+ * $Id: contiki-sdcc-conf.h,v 1.2 2007/09/01 11:14:52 matsutsuka Exp $
  *
  */
 
 /*
  * \file
- *		This file contains a set of configuration for using SDCC as a compiler. 
+ *	This file contains a set of configuration for using SDCC as a compiler. 
  * 
  * \author
- *		Takahide Matsutsuka <markn@markn.org>
+ *	Takahide Matsutsuka <markn@markn.org>
  */
  
 #ifndef __CONTIKI_SDCC_CONF_H__
@@ -64,15 +64,22 @@ typedef unsigned int size_t;
 #define CCIF
 #define CLIF
 
-/* uIP configurations */
-/* uip_add32 */
+/*
+ * Enable architecture-depend checksum calculation
+ * for uIP configuration.
+ * @see uip_arch.h
+ * @see uip_arch-asm.S
+ */
 #define UIP_ARCH_ADD32		1
+#define UIP_ARCH_CHKSUM	1
+#define UIP_ARCH_IPCHKSUM
 
-#define uip_ipaddr_copy(dest, src)		\
-	memcpy(dest, src, sizeof(*dest))
 #define CC_CONF_ASSIGN_AGGREGATE(dest, src)	\
 	memcpy(dest, src, sizeof(*dest))
 #define CC_CONF_INC_CAST_POINTER(type, data)	\
-    data = ((type) data) + 1
+    data = ((type)data) + 1
+
+#define uip_ipaddr_copy(dest, src)		\
+	memcpy(dest, src, sizeof(*dest))
 
 #endif /* __CONTIKI_SDCC_CONF_H__ */
