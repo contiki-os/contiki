@@ -33,7 +33,7 @@
   * 	Z80 machine-specific difinitions for supporting multithread.
   * 
   * \author
-  *		Takahide Matsutsuka <markn@markn.org>
+  *	Takahide Matsutsuka <markn@markn.org>
   */
 #ifndef __MTARCH_H__
 #define __MTARCH_H__
@@ -49,10 +49,17 @@ struct mtarch_thread {
    * See details at mtarch_switch in mtarch.c
    */
   u16_t *sp;
+  /*
+   * Stack is 2-byte wide, so please note that you need 2 * MTARCH_STACKSIZE
+   * bytes for the stack area for each thread.
+   */
   u16_t stack[MTARCH_STACKSIZE];
 };
 
+/*
+ * A function for debugging purpose, placed here by following other implementations.
+ */
 int mtarch_stack_usage(struct mtarch_thread *t);
 
 #endif /* __MTARCH_H__ */
-	
+
