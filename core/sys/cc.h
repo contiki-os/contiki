@@ -39,7 +39,7 @@
  *
  * This file is part of the Contiki desktop OS
  *
- * $Id: cc.h,v 1.2 2007/08/30 14:39:17 matsutsuka Exp $
+ * $Id: cc.h,v 1.3 2007/09/01 00:49:41 matsutsuka Exp $
  *
  */
 #ifndef __CC_H__
@@ -105,7 +105,7 @@
  * Configure if the C compiler supports the assignment of struct value.
  */
 #ifdef CC_CONF_ASSIGN_AGGREGATE
-#define CC_ASSIGN_AGGREGATE(dest, src)	CC_ASSIGN_AGGREGATE(dest, src)
+#define CC_ASSIGN_AGGREGATE(dest, src)	CC_CONF_ASSIGN_AGGREGATE(dest, src)
 #else /* CC_CONF_ASSIGN_AGGREGATE */
 #define CC_ASSIGN_AGGREGATE(dest, src)	*dest = *src
 #endif /* CC_CONF_ASSIGN_AGGREGATE */
