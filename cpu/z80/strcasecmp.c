@@ -27,7 +27,7 @@
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * $Id: strcasecmp.c,v 1.1 2007/08/30 14:39:16 matsutsuka Exp $
+ * $Id: strcasecmp.c,v 1.2 2007/09/01 01:09:48 matsutsuka Exp $
  *
  */
  /*
@@ -46,5 +46,5 @@ int strcasecmp(const char *str1, const char *str2)
     str1++;
     str2++;
   }
-  return tolower(*(unsigned char *) str1) - tolower(*(unsigned char *) str2);
+  return tolower(*(unsigned char *)str1) - tolower(*(unsigned char *)str2);
 }
