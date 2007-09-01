@@ -5,7 +5,7 @@ CONTIKI_CPU=$(CONTIKI)/cpu/at91sam7s
 
 ### Define the source files we have in the AT91SAM7S port
 
-CONTIKI_CPU_DIRS = . dbg-io loader
+CONTIKI_CPU_DIRS = . dbg-io loader usb
 
 AT91SAM7S     = clock.c debug-uart.c interrupt-utils.c newlib-syscalls.c sys-interrupt.c rtimer-arch.c rtimer-arch-interrupt.c uip-log.c
 
@@ -14,10 +14,12 @@ APPDIRS += $(CONTIKI)/cpu/at91sam7s/loader
 
 ELFLOADER = elfloader-otf.c elfloader-arm.c symtab.c cfs-ram.c
 
+USB = usb-proto.c usb-handler.c usb-interrupt.c cdc-acm.c descriptors.c string-descriptors.c 
+
 TARGETLIBS = random.c dbg-printf.c dbg-puts.c dbg-putchar.c dbg-sprintf.c strformat.c
 
 CONTIKI_TARGET_SOURCEFILES += $(AT91SAM7S) $(SYSAPPS) $(ELFLOADER) \
-			$(TARGETLIBS) $(UIPDRIVERS)
+			$(TARGETLIBS) $(UIPDRIVERS) $(USB)
 
 CONTIKI_SOURCEFILES        += $(CONTIKI_TARGET_SOURCEFILES)
 
@@ -32,6 +34,8 @@ AR       = arm-elf-ar
 NM       = arm-elf-nm
 OBJCOPY  = arm-elf-objcopy
 STRIP    = arm-elf-strip
+
+XSLTPROC=xsltproc
 
 PROJECT_OBJECTFILES += ${addprefix $(OBJECTDIR)/,$(CONTIKI_TARGET_MAIN:.c=.o)}
 
@@ -54,7 +58,7 @@ ARM_FLAGS=
 
 
 CFLAGSNO = -I. -I$(CONTIKI)/core -I$(CONTIKI_CPU) -I$(CONTIKI_CPU)/loader \
-	   -I$(CONTIKI_CPU)/dbg-io\
+	   -I$(CONTIKI_CPU)/dbg-io \
            -I$(CONTIKI)/platform/$(TARGET) \
            ${addprefix -I,$(APPDIRS)} \
            -DWITH_UIP -DWITH_ASCII -DMCK=$(MCK) \
@@ -94,6 +98,7 @@ $(OBJECTDIR)/interrupt-utils.o: interrupt-utils.c
 $(OBJECTDIR)/%.o: %.c
 	$(CC) $(CFLAGS) $(THUMB_FLAGS) -c $< -o $@
 
+CUSTOM_RULE_S_TO_OBJECTDIR_O = yes
 %.o: %.S
 	$(CC) $(CFLAGS) $(ARM_FLAGS) $< -c
 
@@ -149,6 +154,10 @@ endif
 
 empty-symbols.c:
 	@${CONTIKI}/tools/make-empty-symbols
+
+$(CONTIKI_CPU)/usb/string-descriptors.c: \
+		$(CONTIKI_CPU)/usb/string-descriptors.xml
+	$(XSLTPROC) $(CONTIKI_CPU)/usb/string-descriptors.xslt $^ >$@
 
 upload_ocd_%: %.bin
 	cp $< /tmp/openocd_write.bin 

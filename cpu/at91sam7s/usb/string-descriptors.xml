@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8" ?>
+  <descriptors>
+  <languages>
+    <lang id="en">0x0409</lang>
+    <lang id="sv">0x041d</lang>
+  </languages>
+  <strings>
+    <string> <!-- 1 -->
+      <lang id="en">Serial interface</lang>
+      <lang id="sv">Serieport</lang>
+    </string>
+    <string> <!-- 2 -->
+      <lang>Fluffware</lang>
+    </string>
+    <string> <!-- 3 -->
+      <lang>0.01</lang>
+    </string>
+ </strings>
+  </descriptors>
