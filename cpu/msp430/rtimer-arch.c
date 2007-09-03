@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: rtimer-arch.c,v 1.4 2007/05/22 20:59:47 adamdunkels Exp $
+ * $Id: rtimer-arch.c,v 1.5 2007/09/03 19:22:37 joxe Exp $
  */
 
 /**
@@ -69,7 +69,7 @@ rtimer_arch_init(void)
   dint();
 
   offset = 0;
-  
+
   /* Select SMCLK (2.4576MHz), clear TAR; This makes the rtimer count
      the number of processor cycles executed by the CPU. */
   //TBCTL = TBSSEL1 | TBCLR;
@@ -81,8 +81,6 @@ rtimer_arch_init(void)
 
   /* Start Timer_B in continuous mode. */
   TBCTL |= MC1;
-
-  BCSCTL1 &= ~(DIVA1 + DIVA0);   /* remove /8 divisor from ACLK again    */
 
   /* Enable interrupts. */
   eint();
