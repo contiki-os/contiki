@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: clock.c,v 1.7 2007/05/22 20:59:27 adamdunkels Exp $
+ * @(#)$Id: clock.c,v 1.8 2007/09/03 19:22:37 joxe Exp $
  */
 
 
@@ -119,8 +119,6 @@ clock_init(void)
   TACTL |= MC1;
 
   count = 0;
-
-  BCSCTL1 &= ~(DIVA1 + DIVA0);   /* remove /8 divisor from ACLK again    */
 
   /* Enable interrupts. */
   eint();
