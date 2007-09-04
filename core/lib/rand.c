@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: rand.c,v 1.8 2007/08/10 08:01:17 oliverschmidt Exp $
+ * @(#)$Id: rand.c,v 1.9 2007/09/04 08:48:54 bg- Exp $
  */
 
 #include <stdlib.h>
@@ -37,6 +37,7 @@
 #undef RAND_MAX			/* Broken header files! */
 #endif
 
+#include "contiki.h"
 #include "lib/assert.h"
 
 #ifdef RAND_MAX
@@ -61,21 +62,21 @@ CTASSERT(RAND_MAX == 0x7fff);
  * When possible, keep rand_state across reboots.
  */
 #ifdef __GNUC__
-s32_t rand_state __attribute__((section(".noinit")));
+int32_t rand_state __attribute__((section(".noinit")));
 #else
-s32_t rand_state = 1;
+int32_t rand_state = 1;
 #endif
 
 int
 rand(void)
 {
-  u32_t hi, lo;
+  uint32_t hi, lo;
 
   /*
    * Perform two 16x16 bits multiplication with 32 bit results.
    */
-  lo = 16807ul * (u16_t)(rand_state);
-  hi = 16807ul * (u16_t)(rand_state >> 16);
+  lo = 16807ul * (uint16_t)(rand_state);
+  hi = 16807ul * (uint16_t)(rand_state >> 16);
         
   lo += (hi & 0x7fff) << 16;
 
@@ -83,14 +84,14 @@ rand(void)
    * lo += hi >> 15; But faster using 16 bit registers.
    */
   hi <<= 1;
-  lo += (u16_t)(hi >> 16);
+  lo += (uint16_t)(hi >> 16);
 
-  if ((s32_t)lo <= 0)		/* Deal with rand_state == 0. */
+  if ((int32_t)lo <= 0)		/* Deal with rand_state == 0. */
     lo -= 0x7fffffff;
 
   rand_state = lo;
 
-  if (sizeof(unsigned int) == sizeof(u16_t))
+  if (sizeof(int) == sizeof(int16_t))
     return (lo ^ (lo >> 16)) & RAND_MAX; /* Not ANSI C! */
   else
     return lo & RAND_MAX;
