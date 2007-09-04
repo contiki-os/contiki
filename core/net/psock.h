@@ -30,7 +30,7 @@
  *
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: psock.h,v 1.2 2007/04/01 18:20:55 adamdunkels Exp $
+ * $Id: psock.h,v 1.3 2007/09/04 12:39:00 nvt-se Exp $
  */
 
 /**
@@ -359,7 +359,7 @@ char psock_newdata(struct psock *s);
  {
    PSOCK_BEGIN(s);
 
-   PSOCK_WAIT_UNTIL(s, PSOCK_NEWADATA(s) || timer_expired(t));
+   PSOCK_WAIT_UNTIL(s, PSOCK_NEWDATA(s) || timer_expired(t));
    
    if(PSOCK_NEWDATA(s)) {
      PSOCK_READTO(s, '\n');
