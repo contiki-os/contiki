@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ContikiMoteTypeDialog.java,v 1.32 2007/05/28 07:26:51 fros4943 Exp $
+ * $Id: ContikiMoteTypeDialog.java,v 1.33 2007/09/05 14:00:59 fros4943 Exp $
  */
 
 package se.sics.cooja.contikimote;
@@ -53,14 +53,14 @@ import se.sics.cooja.dialogs.ProjectDirectoriesDialog;
  * libraries. Allows user to change mote type specific data such as
  * descriptions, which processes should be started at mote initialization and
  * which interfaces the type should support.
- * 
+ *
  * The dialog takes a Contiki mote type as argument and pre-selects the values
  * already set in that mote type before showing the dialog. Any changes made to
  * the settings are written to the mote type if the compilation is successful
  * and the user presses OK.
- * 
+ *
  * This dialog uses external tools to scan for sources and compile libraries.
- * 
+ *
  * @author Fredrik Osterlind
  */
 public class ContikiMoteTypeDialog extends JDialog {
@@ -103,7 +103,7 @@ public class ContikiMoteTypeDialog extends JDialog {
   private Vector<File> moteTypeProjectDirs = new Vector<File>(); // Mote type project directories
 
   private Vector<File> compilationFiles = null;
-  
+
   private Vector<MoteType> allOtherTypes = null; // Used to check for
   // conflicting parameters
 
@@ -113,7 +113,7 @@ public class ContikiMoteTypeDialog extends JDialog {
   /**
    * Shows a dialog for configuring a Contiki mote type and compiling the shared
    * library it uses.
-   * 
+   *
    * @param parentFrame
    *          Parent frame for dialog
    * @param simulation
@@ -128,7 +128,7 @@ public class ContikiMoteTypeDialog extends JDialog {
     final ContikiMoteTypeDialog myDialog = new ContikiMoteTypeDialog(
         parentFrame);
     myDialog.setDefaultCloseOperation(JDialog.DO_NOTHING_ON_CLOSE);
-    
+
     myDialog.myMoteType = moteTypeToConfigure;
     myDialog.myGUI = simulation.getGUI();
     myDialog.allOtherTypes = simulation.getMoteTypes();
@@ -217,10 +217,11 @@ public class ContikiMoteTypeDialog extends JDialog {
           .getProjectDirs();
       String projectText = null;
       for (File projectDir : myDialog.moteTypeProjectDirs) {
-        if (projectText == null)
+        if (projectText == null) {
           projectText = "'" + projectDir.getPath() + "'";
-        else
+        } else {
           projectText += ", '" + projectDir.getPath() + "'";
+        }
       }
       myDialog.textProjectDirs.setText(projectText);
     }
@@ -232,7 +233,7 @@ public class ContikiMoteTypeDialog extends JDialog {
 
     // Set preset communication stack
     myDialog.commStackComboBox.setSelectedItem(moteTypeToConfigure.getCommunicationStack());
-    
+
     // Scan directories for processes, sensors and core interfaces
     // TODO Really do this without starting a separate thread?
     myDialog.updateVisualFields();
@@ -255,7 +256,7 @@ public class ContikiMoteTypeDialog extends JDialog {
         if (!foundAndSelectedProcess) {
           // Let user choose whether to add process
           Object[] options = { "Add", "Cancel" };
-          
+
           String question = "The configuration file contains a process "
             + "(" + presetProcess + ") not found during scan."
             + "\nDo you want to include this anyway?";
@@ -263,7 +264,7 @@ public class ContikiMoteTypeDialog extends JDialog {
           int answer = JOptionPane.showOptionDialog(myDialog, question, title,
               JOptionPane.DEFAULT_OPTION, JOptionPane.QUESTION_MESSAGE, null,
               options, options[0]);
-          
+
           if (answer == JOptionPane.YES_OPTION) {
             // Create new check box
             JCheckBox newCheckBox = new JCheckBox(presetProcess, true);
@@ -296,7 +297,7 @@ public class ContikiMoteTypeDialog extends JDialog {
         if (!foundAndSelectedSensor) {
           // Let user choose whether to add sensor
           Object[] options = { "Add", "Cancel" };
-          
+
           String question = "The configuration file contains a sensor "
             + "(" + presetSensor + ") not found during scan."
             + "\nDo you want to include this anyway?";
@@ -304,7 +305,7 @@ public class ContikiMoteTypeDialog extends JDialog {
           int answer = JOptionPane.showOptionDialog(myDialog, question, title,
               JOptionPane.DEFAULT_OPTION, JOptionPane.QUESTION_MESSAGE, null,
               options, options[0]);
-          
+
           if (answer == JOptionPane.YES_OPTION) {
             // Create new check box
             JCheckBox newCheckBox = new JCheckBox(presetSensor, true);
@@ -339,7 +340,7 @@ public class ContikiMoteTypeDialog extends JDialog {
         if (!foundAndSelectedCoreInterface) {
           // Let user choose whether to add interface
           Object[] options = { "Add", "Cancel" };
-          
+
           String question = "The configuration file contains a core interface "
             + "(" + presetCoreInterface + ") not found during scan."
             + "\nDo you want to include this anyway?";
@@ -347,7 +348,7 @@ public class ContikiMoteTypeDialog extends JDialog {
           int answer = JOptionPane.showOptionDialog(myDialog, question, title,
               JOptionPane.DEFAULT_OPTION, JOptionPane.QUESTION_MESSAGE, null,
               options, options[0]);
-          
+
           if (answer == JOptionPane.YES_OPTION) {
             // Create new check box
             JCheckBox newCheckBox = new JCheckBox(presetCoreInterface, true);
@@ -396,7 +397,7 @@ public class ContikiMoteTypeDialog extends JDialog {
         .length());
 
     Rectangle maxSize = GraphicsEnvironment.getLocalGraphicsEnvironment().getMaximumWindowBounds();
-    if (maxSize != null && 
+    if (maxSize != null &&
         (myDialog.getSize().getWidth() > maxSize.getWidth()
             || myDialog.getSize().getHeight() > maxSize.getHeight())) {
       Dimension newSize = new Dimension();
@@ -405,7 +406,7 @@ public class ContikiMoteTypeDialog extends JDialog {
       logger.info("Resizing dialog: " + myDialog.getSize() + " -> " + newSize);
       myDialog.setSize(newSize);
     }
-    
+
     myDialog.setVisible(true);
 
     if (myDialog.myMoteType != null) {
@@ -525,30 +526,33 @@ public class ContikiMoteTypeDialog extends JDialog {
     textField.setText("[enter description here]");
     textField.getDocument().addDocumentListener(new DocumentListener() {
       public void insertUpdate(DocumentEvent e) {
-        if (myDialog.isVisible())
+        if (myDialog.isVisible()) {
           javax.swing.SwingUtilities.invokeLater(new Runnable() {
             public void run() {
               updateVisualFields();
             }
           });
+        }
       }
 
       public void removeUpdate(DocumentEvent e) {
-        if (myDialog.isVisible())
+        if (myDialog.isVisible()) {
           javax.swing.SwingUtilities.invokeLater(new Runnable() {
             public void run() {
               updateVisualFields();
             }
           });
+        }
       }
 
       public void changedUpdate(DocumentEvent e) {
-        if (myDialog.isVisible())
+        if (myDialog.isVisible()) {
           javax.swing.SwingUtilities.invokeLater(new Runnable() {
             public void run() {
               updateVisualFields();
             }
           });
+        }
       }
 
     });
@@ -652,7 +656,7 @@ public class ContikiMoteTypeDialog extends JDialog {
         pathsWereUpdated();
       }
     });
-    
+
     smallPane.add(label);
     smallPane.add(Box.createHorizontalStrut(10));
     smallPane.add(Box.createHorizontalGlue());
@@ -699,7 +703,7 @@ public class ContikiMoteTypeDialog extends JDialog {
 
     commStackComboBox = new JComboBox(CommunicationStack.values());
     commStackComboBox.setSelectedIndex(0);
-    
+
     smallPane.add(label);
     smallPane.add(Box.createHorizontalStrut(10));
     smallPane.add(Box.createHorizontalGlue());
@@ -781,15 +785,19 @@ public class ContikiMoteTypeDialog extends JDialog {
     showAdvancedCheckBox.addActionListener(new ActionListener() {
       public void actionPerformed(ActionEvent e) {
         if (((JCheckBox) e.getSource()).isSelected()) {
-          if (entireCoreInterfacePane != null)
+          if (entireCoreInterfacePane != null) {
             entireCoreInterfacePane.setVisible(true);
-          if (entireSensorPane != null)
+          }
+          if (entireSensorPane != null) {
             entireSensorPane.setVisible(true);
+          }
         } else {
-          if (entireCoreInterfacePane != null)
+          if (entireCoreInterfacePane != null) {
             entireCoreInterfacePane.setVisible(false);
-          if (entireSensorPane != null)
+          }
+          if (entireSensorPane != null) {
             entireSensorPane.setVisible(false);
+          }
         }
       }
     });
@@ -1031,8 +1039,9 @@ public class ContikiMoteTypeDialog extends JDialog {
     progressDialog.setVisible(true);
 
     // Create temp output directory if not already exists
-    if (!ContikiMoteType.tempOutputDirectory.exists())
+    if (!ContikiMoteType.tempOutputDirectory.exists()) {
       ContikiMoteType.tempOutputDirectory.mkdir();
+    }
 
     // Parse selected sensors
     Vector<String> sensors = new Vector<String>();
@@ -1163,8 +1172,9 @@ public class ContikiMoteTypeDialog extends JDialog {
       libraryCreatedOK = false;
     } else {
       libraryCreatedOK = true;
-      if (!libFile.exists() || !depFile.exists() || !mapFile.exists())
+      if (!libFile.exists() || !depFile.exists() || !mapFile.exists()) {
         libraryCreatedOK = false;
+      }
     }
 
     if (libraryCreatedOK) {
@@ -1186,7 +1196,7 @@ public class ContikiMoteTypeDialog extends JDialog {
    * Generates new source file by reading default source template and replacing
    * fields with sensors, core interfaces and processes. Also includes default
    * processes from GUI external configuration.
-   * 
+   *
    * @param id
    *          Mote type ID (decides name of new source file)
    * @param sensors
@@ -1207,39 +1217,44 @@ public class ContikiMoteTypeDialog extends JDialog {
     String sensorString = "";
     String externSensorDefs = "";
     for (String sensor : sensors) {
-      if (!sensorString.equals(""))
+      if (!sensorString.equals("")) {
         sensorString += ", ";
+      }
       sensorString += "&" + sensor;
       externSensorDefs += "extern const struct sensors_sensor " + sensor
           + ";\n";
     }
 
-    if (!sensorString.equals(""))
+    if (!sensorString.equals("")) {
       sensorString = "SENSORS(" + sensorString + ");";
-    else
+    } else {
       sensorString = "SENSORS(NULL);";
+    }
 
     // CORE INTERFACES
     String interfaceString = "";
     String externInterfaceDefs = "";
     for (String coreInterface : coreInterfaces) {
-      if (!interfaceString.equals(""))
+      if (!interfaceString.equals("")) {
         interfaceString += ", ";
+      }
       interfaceString += "&" + coreInterface;
       externInterfaceDefs += "SIM_INTERFACE_NAME(" + coreInterface + ");\n";
     }
 
-    if (!interfaceString.equals(""))
+    if (!interfaceString.equals("")) {
       interfaceString = "SIM_INTERFACES(" + interfaceString + ");";
-    else
+    } else {
       interfaceString = "SIM_INTERFACES(NULL);";
+    }
 
     // PROCESSES (including any default processes)
     String userProcessString = "";
     String externProcessDefs = "";
     for (String process : userProcesses) {
-      if (!userProcessString.equals(""))
+      if (!userProcessString.equals("")) {
         userProcessString += ", ";
+      }
       userProcessString += "&" + process;
       externProcessDefs += "PROCESS_NAME(" + process + ");\n";
     }
@@ -1248,8 +1263,9 @@ public class ContikiMoteTypeDialog extends JDialog {
     String defaultProcesses[] = GUI.getExternalToolsSetting(
         "CONTIKI_STANDARD_PROCESSES").split(";");
     for (String process : defaultProcesses) {
-      if (!defaultProcessString.equals(""))
+      if (!defaultProcessString.equals("")) {
         defaultProcessString += ", ";
+      }
       defaultProcessString += "&" + process;
     }
 
@@ -1259,15 +1275,17 @@ public class ContikiMoteTypeDialog extends JDialog {
     }
 
     String processString;
-    if (!defaultProcessString.equals(""))
+    if (!defaultProcessString.equals("")) {
       processString = "PROCINIT(" + defaultProcessString + ");";
-    else
+    } else {
       processString = "PROCINIT(NULL);";
+    }
 
-    if (!userProcessString.equals(""))
+    if (!userProcessString.equals("")) {
       processString += "\nAUTOSTART_PROCESSES(" + userProcessString + ");";
-    else
+    } else {
       processString += "\nAUTOSTART_PROCESSES(NULL);";
+    }
 
     // CHECK JNI CLASS AVAILABILITY
     String libString = CoreComm.getAvailableClassName();
@@ -1323,10 +1341,12 @@ public class ContikiMoteTypeDialog extends JDialog {
       sourceFile.close();
     } catch (Exception e) {
       try {
-        if (destFile != null)
+        if (destFile != null) {
           destFile.close();
-        if (sourceFile != null)
+        }
+        if (sourceFile != null) {
           sourceFile.close();
+        }
       } catch (Exception e2) {
       }
 
@@ -1339,7 +1359,7 @@ public class ContikiMoteTypeDialog extends JDialog {
 
   /**
    * Compiles a mote type shared library using the standard Contiki makefile.
-   * 
+   *
    * @param identifier
    *          Mote type identifier
    * @param contikiDir
@@ -1362,48 +1382,53 @@ public class ContikiMoteTypeDialog extends JDialog {
         identifier + ContikiMoteType.librarySuffix);
     File mapFile = new File(ContikiMoteType.tempOutputDirectory,
         identifier + ContikiMoteType.mapSuffix);
-    File depFile = new File(ContikiMoteType.tempOutputDirectory,
+    File arFile = new File(ContikiMoteType.tempOutputDirectory,
         identifier + ContikiMoteType.dependSuffix);
 
     // Recheck that contiki path exists
     if (!contikiDir.exists()) {
-      if (errorStream != null)
+      if (errorStream != null) {
         errorStream.println("Bad Contiki OS path");
+      }
       logger.fatal("Contiki path does not exist: " + contikiDir.getAbsolutePath());
       return false;
     }
     if (!contikiDir.isDirectory()) {
-      if (errorStream != null)
+      if (errorStream != null) {
         errorStream.println("Bad Contiki OS path");
+      }
       logger.fatal("Contiki path is not a directory");
       return false;
     }
 
     if (libFile.exists()) {
-      if (errorStream != null)
+      if (errorStream != null) {
         errorStream.println("Bad output filenames");
+      }
       logger.fatal("Could not overwrite already existing library");
       return false;
     }
 
     if (CoreComm.hasLibraryFileBeenLoaded(libFile)) {
-      if (errorStream != null)
+      if (errorStream != null) {
         errorStream.println("Bad output filenames");
-      logger
-          .fatal("A library has already been loaded with the same name before");
+      }
+      logger.fatal("A library has already been loaded with the same name before");
       return false;
     }
 
-    if (depFile.exists()) {
-      if (errorStream != null)
+    if (arFile.exists()) {
+      if (errorStream != null) {
         errorStream.println("Bad output filenames");
+      }
       logger.fatal("Could not overwrite already existing dependency file");
       return false;
     }
 
     if (mapFile.exists()) {
-      if (errorStream != null)
+      if (errorStream != null) {
         errorStream.println("Bad output filenames");
+      }
       logger.fatal("Could not overwrite already existing map file");
       return false;
     }
@@ -1419,13 +1444,27 @@ public class ContikiMoteTypeDialog extends JDialog {
 
       String sourceDirs = System.getProperty("PROJECTDIRS", "");
       String sourceFileNames = "";
+
+      // Prepare compilation command
       String ccFlags = GUI.getExternalToolsSetting("COMPILER_ARGS", "");
-      
-      // Replace Java home references
-      if (ccFlags.contains("$(JAVA_HOME)")) {
-        String javaHome = (String) System.getenv().get("JAVA_HOME");
-        ccFlags = ccFlags.replace("$(JAVA_HOME)", javaHome);
-      }
+      String link1 = GUI.getExternalToolsSetting("LINK_COMMAND_1", "");
+      String link2 = GUI.getExternalToolsSetting("LINK_COMMAND_2", "");
+
+      link1 = link1.replace("$(MAPFILE)", mapFile.getPath().replace(File.separatorChar, '/'));
+      link2 = link2.replace("$(MAPFILE)", mapFile.getPath().replace(File.separatorChar, '/'));
+      ccFlags = ccFlags.replace("$(MAPFILE)", mapFile.getPath().replace(File.separatorChar, '/'));
+
+      link1 = link1.replace("$(LIBFILE)", libFile.getPath().replace(File.separatorChar, '/'));
+      link2 = link2.replace("$(LIBFILE)", libFile.getPath().replace(File.separatorChar, '/'));
+      ccFlags = ccFlags.replace("$(LIBFILE)", libFile.getPath().replace(File.separatorChar, '/'));
+
+      link1 = link1.replace("$(ARFILE)", arFile.getPath().replace(File.separatorChar, '/'));
+      link2 = link2.replace("$(ARFILE)", arFile.getPath().replace(File.separatorChar, '/'));
+      ccFlags = ccFlags.replace("$(DEPFILE)", arFile.getPath().replace(File.separatorChar, '/'));
+
+      link1 = link1.replace("$(JAVA_HOME)", System.getenv().get("JAVA_HOME"));
+      link2 = link2.replace("$(JAVA_HOME)", System.getenv().get("JAVA_HOME"));
+      ccFlags = ccFlags.replace("$(JAVA_HOME)", System.getenv().get("JAVA_HOME"));
 
       for (File sourceFile : sourceFiles) {
         if (sourceFile.isDirectory()) {
@@ -1449,7 +1488,7 @@ public class ContikiMoteTypeDialog extends JDialog {
 
       // Add communication stack source files
       sourceFileNames += commStack.getSourceFilenamesString();
-      
+
       logger.info("-- Compiling --");
       logger.info("Project dirs: " + sourceDirs);
       logger.info("Project sources: " + sourceFileNames);
@@ -1458,8 +1497,8 @@ public class ContikiMoteTypeDialog extends JDialog {
       String[] env = new String[]{
           "CONTIKI=" + contikiDir.getPath().replace(File.separatorChar, '/'),
           "TARGET=cooja", "TYPEID=" + identifier,
-          "LD_ARGS_1=" + GUI.getExternalToolsSetting("LINKER_ARGS_1", ""),
-          "LD_ARGS_2=" + GUI.getExternalToolsSetting("LINKER_ARGS_2", ""),
+          "LINK_COMMAND_1=" + link1,
+          "LINK_COMMAND_2=" + link2,
           "EXTRA_CC_ARGS=" + ccFlags,
           "SYMBOLS=" + (includeSymbols?"1":""),
           "CC=" + GUI.getExternalToolsSetting("PATH_C_COMPILER"),
@@ -1476,7 +1515,7 @@ public class ContikiMoteTypeDialog extends JDialog {
       System.out.println("Environment:\n");
       for (String s: env)
         System.out.print(s + "\n");
-*/      
+*/
       Process p = Runtime.getRuntime().exec(cmd, env, null);
 
       final BufferedReader input = new BufferedReader(new InputStreamReader(p
@@ -1489,8 +1528,9 @@ public class ContikiMoteTypeDialog extends JDialog {
           String readLine;
           try {
             while ((readLine = input.readLine()) != null) {
-              if (outputStream != null && readLine != null)
+              if (outputStream != null && readLine != null) {
                 outputStream.println(readLine);
+              }
             }
           } catch (IOException e) {
             logger.warn("Error while reading from process");
@@ -1503,8 +1543,9 @@ public class ContikiMoteTypeDialog extends JDialog {
           String readLine;
           try {
             while ((readLine = err.readLine()) != null) {
-              if (errorStream != null && readLine != null)
+              if (errorStream != null && readLine != null) {
                 errorStream.println(readLine);
+              }
             }
           } catch (IOException e) {
             logger.warn("Error while reading from process");
@@ -1536,7 +1577,7 @@ public class ContikiMoteTypeDialog extends JDialog {
 
   /**
    * Scans a directory for sourcefiles which defines a Contiki process.
-   * 
+   *
    * @param rootDirectory
    *          Top directory to search in
    * @return Process definitions found under rootDirectory, {sourcefile,
@@ -1601,7 +1642,7 @@ public class ContikiMoteTypeDialog extends JDialog {
   /**
    * Scans a directory and all subdirectories for sourcefiles which defines a
    * Contiki sensor.
-   * 
+   *
    * @param rootDirectory
    *          Top directory to search in
    * @return Sensor definitions found under rootDirectory, {sourcefile,
@@ -1646,8 +1687,9 @@ public class ContikiMoteTypeDialog extends JDialog {
 
       BufferedReader err = new BufferedReader(new InputStreamReader(p
           .getErrorStream()));
-      if (err.ready())
+      if (err.ready()) {
         logger.warn("Error occured during scan:");
+      }
       while ((line = err.readLine()) != null) {
         logger.warn(line);
       }
@@ -1665,7 +1707,7 @@ public class ContikiMoteTypeDialog extends JDialog {
   /**
    * Scans a directory and all subdirectories for sourcefiles which defines a
    * COOJA core interface.
-   * 
+   *
    * @param rootDirectory
    *          Top directory to search in
    * @return Core interface definitions found under rootDirectory, {sourcefile,
@@ -1711,8 +1753,9 @@ public class ContikiMoteTypeDialog extends JDialog {
 
       BufferedReader err = new BufferedReader(new InputStreamReader(p
           .getErrorStream()));
-      if (err.ready())
+      if (err.ready()) {
         logger.warn("Error occured during scan:");
+      }
       while ((line = err.readLine()) != null) {
         logger.warn(line);
       }
@@ -1730,7 +1773,7 @@ public class ContikiMoteTypeDialog extends JDialog {
   /**
    * Scans given file for an autostart expression and returns all process names
    * found.
-   * 
+   *
    * @param sourceFile
    *          Source file to scan
    * @return Autostart process names or null
@@ -1771,19 +1814,23 @@ public class ContikiMoteTypeDialog extends JDialog {
     File sourceFile = new File(textCoreDir.getText(), sourceFilename);
 
     boolean foundFile = sourceFile.exists();
-    if (!foundFile)
+    if (!foundFile) {
       for (File projectDir : myGUI.getProjectDirs()) {
         sourceFile = new File(projectDir, sourceFilename);
-        if (foundFile = sourceFile.exists())
+        if (foundFile = sourceFile.exists()) {
           break;
+        }
       }
+    }
 
-    if (!foundFile)
+    if (!foundFile) {
       for (File projectDir : moteTypeProjectDirs) {
         sourceFile = new File(projectDir, sourceFilename);
-        if (foundFile = sourceFile.exists())
+        if (foundFile = sourceFile.exists()) {
           break;
+        }
       }
+    }
 
     if (!foundFile) {
       // Die quietly
@@ -1968,11 +2015,11 @@ public class ContikiMoteTypeDialog extends JDialog {
    * Scans Contiki base + (optional) project directories for Contiki processes,
    * sensors and core interfaces. The new mote type config is recreated every
    * time this method is run. If any project directories are specified, it reads
-   * the configuration files, and appends it to the new mote type config. 
+   * the configuration files, and appends it to the new mote type config.
    * By reading those configs all available mote interfaces are parsed -
    * which will all be selected initially. This method also selects the core
    * interfaces needed by the mote interfaces.
-   * 
+   *
    * Finally any pre-specified processes (via shortcut start) will be selected.
    */
   private void rescanDirectories() {
@@ -2057,28 +2104,31 @@ public class ContikiMoteTypeDialog extends JDialog {
         ActionListener,
         DocumentListener {
     public void insertUpdate(DocumentEvent e) {
-      if (myDialog.isVisible())
+      if (myDialog.isVisible()) {
         javax.swing.SwingUtilities.invokeLater(new Runnable() {
           public void run() {
             pathsWereUpdated();
           }
         });
+      }
     }
     public void removeUpdate(DocumentEvent e) {
-      if (myDialog.isVisible())
+      if (myDialog.isVisible()) {
         javax.swing.SwingUtilities.invokeLater(new Runnable() {
           public void run() {
             pathsWereUpdated();
           }
         });
+      }
     }
     public void changedUpdate(DocumentEvent e) {
-      if (myDialog.isVisible())
+      if (myDialog.isVisible()) {
         javax.swing.SwingUtilities.invokeLater(new Runnable() {
           public void run() {
             pathsWereUpdated();
           }
         });
+      }
     }
     public void actionPerformed(ActionEvent e) {
       if (e.getActionCommand().equals("cancel")) {
@@ -2090,8 +2140,9 @@ public class ContikiMoteTypeDialog extends JDialog {
         File objectDir = ContikiMoteType.tempOutputDirectory;
         if (objectDir.exists() && objectDir.isDirectory()) {
           File[] objectFiles = objectDir.listFiles();
-          for (File objectFile : objectFiles)
+          for (File objectFile : objectFiles) {
             objectFile.delete();
+          }
 
           objectDir.delete();
         }
@@ -2156,7 +2207,7 @@ public class ContikiMoteTypeDialog extends JDialog {
 
         // Set "using symbols"
         myMoteType.setHasSystemSymbols(symbolsCheckBox.isSelected());
-        
+
         // Set communication stack
         myMoteType.setCommunicationStack(
           (ContikiMoteType.CommunicationStack) commStackComboBox.getSelectedItem());
@@ -2189,10 +2240,11 @@ public class ContikiMoteTypeDialog extends JDialog {
           moteTypeProjectDirs = newProjectDirs;
           String projectDirText = null;
           for (File projectDir : newProjectDirs) {
-            if (projectDirText == null)
+            if (projectDirText == null) {
               projectDirText = "'" + projectDir.getPath() + "'";
-            else
+            } else {
               projectDirText += " + '" + projectDir.getPath() + "'";
+            }
           }
           textProjectDirs.setText(projectDirText);
 
@@ -2431,13 +2483,15 @@ public class ContikiMoteTypeDialog extends JDialog {
           }
         }
 
-        if (!processWasSelected || sourceFilename == null)
+        if (!processWasSelected || sourceFilename == null) {
           return;
+        }
 
         autoSelectDependencyProcesses(processName, sourceFilename, true);
 
-      } else
+      } else {
         logger.warn("Unhandled action: " + e.getActionCommand());
+      }
 
       createButton.setEnabled(libraryCreatedOK = false);
 
