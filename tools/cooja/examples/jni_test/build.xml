@@ -1,58 +1,71 @@
 <?xml version="1.0"?>
 
 <project name="COOJA Simulator - JNI Tests" default="about" basedir=".">
+	<property environment="env"/>
 
-	<!-- Properties used inside the COOJA Simulator -->
+	<!-- CONFIGURATION -->
+	<!-- Change these until all tests pass! -->
+	<!-- The working configuration must manually be entered in COOJA -->
 	<property name="PATH_C_COMPILER" value="gcc"/>
-  <property name="COMPILER_ARGS" value=""/>
-  <property name="PATH_LINKER" value="ld"/>
-  <property name="LINKER_ARGS_1" value=""/>
-  <property name="LINKER_ARGS_2" value=""/>
-	
+	<property name="COMPILER_ARGS" value="-Wall -D_JNI_IMPLEMENTATION_ -I'$(JAVA_HOME)/include' -I'$(JAVA_HOME)/include/win32'"/>
+	<property name="LINK_COMMAND_1" value="gcc -shared -Wl,-Map=$(MAPFILE) -Wall -D_JNI_IMPLEMENTATION_ -Wl,--kill-at -o $(LIBFILE)"/>
+	<property name="LINK_COMMAND_2" value=""/>
+
 	<target name="help">
 		<echo>
-Win32 cygwin users may try:
-  COMPILER_ARGS= -mno-cygwin -I....../jdk1.5.0/include -I....../jdk1.5.0/include/win32
+Cygwin users may try:
+  COMPILER_ARGS = -mno-cygwin -I....../jdk1.5.0/include -I....../jdk1.5.0/include/win32
   LINKER_ARGS_1 = --add-stdcall-alias /usr/lib/mingw/dllcrt2.o
   LINKER_ARGS_2 = -L/usr/lib/mingw -lmingw32 -lmingwex -lmsvcrt
 
-  Only for level 1, try the following compiler arguments:
-  COMPILER_ARGS= -mno-cygwin -I....../jdk1.5.0/include -I....../jdk1.5.0/include/win32 -Wl,--add-stdcall
+Note for Windows users with recent Cygwin:
+In recent (early 2007) MinGW-Cygwin versions, the JNI support has been removed/limited.
+This may cause COOJA not to be able to load libraries generated using gcc's -mno-cygwin flag.
+One possible solution is to download "real" MinGW (http://www.mingw.org), and install it separately
+from Cygwin (for example in c:\mingw). Try using the following settings:
+
+  COMPILER_ARGS = -Wall -D_JNI_IMPLEMENTATION_ -I'$(JAVA_HOME)/include' -I'$(JAVA_HOME)/include/win32'
+  LINK_COMMAND_1 = gcc -shared -Wl,-Map=$(MAPFILE) -Wall -D_JNI_IMPLEMENTATION_ -Wl,--kill-at -o $(LIBFILE)
+  LINK_COMMAND_2 = 
 		</echo>
 	</target>
 	
 	<target name="about">
 		<echo>
 The COOJA Simulator - JNI Tests
-There examples may help understand errors during compilation from inside COOJA.
-For some examples; "ant help".				
+-------------------------------
 
-		
-ant level1
-	Runs JNI test level 1:
-	[compilation test]
-	Compiles level1.c to level1.library, using only c compiler.
-	Java class loads the library and calls a simple native function.
+These tests can be used to help understand COOJA errors, and to configure COOJA for new users.
+For COOJA to compile JNI libraries successfully, tests 2-5 must be completed.
 
-ant level2
+You may have to change the configuration (4 properties) in this file (build.xml).
+When all tests pass, the settings should be entered into the COOJA External tool settings dialog.
+
+To run the first test:
+ > ant level2
+
+For more information including configuration examples:
+ > ant help
+
+> ant level2
 	Runs JNI test level 2:
 	[compilation test]
 	Compiles level2.c to level2.library, using both c compiler and linker.
 	Java class loads the library and calls a simple native function.
 
-ant level3
+> ant level3
 	Runs JNI test level 3:
 	[map file parsing test]
 	Compiles java + c.
 	The map file is parsed, and information about data+bss sections is outputted.
 
-ant level4
+> ant level4
 	Runs JNI test level 4:
 	[fetching reference var]
   Calculates offset between relative (mapfile) and absolute memory.
 	A simple native function increases two counters (from both data and bss sections).
 
-ant level5
+> ant level5
 	Runs JNI test level 5:
 	[fetches and restores memory segments - the final test]
 	A simple native function increases two counters (from both data and bss sections).
@@ -67,6 +80,8 @@ ant level5
 	     <fileset dir="." includes="**/*.library" />
 	     <fileset dir="." includes="**/*.o" />
 	     <fileset dir="." includes="**/*.map" />
+	     <fileset dir="." includes="**/*.log" />
+	     <fileset dir="." includes="build.temp" />
 	   </delete>
   </target>
 
@@ -74,80 +89,81 @@ ant level5
     <tstamp/>
   </target>
 
-  <target name="level1_compile_c" depends="init">
-		<echo message="EXECUTING: ${PATH_C_COMPILER} ${COMPILER_ARGS} -o level1.library -shared level1.c"/>
-  	<exec dir="level1" executable="${PATH_C_COMPILER}" failonerror="true">
-  	  <arg line="${COMPILER_ARGS} -o level1.library -shared level1.c"/>
+  <target name="compile_library" depends="init">
+	  <property name="SRCFILE" value="${LEVEL}.c"/>
+	  <property name="OBJFILE" value="${LEVEL}.o"/>
+	  <property name="LIBFILE" value="${LEVEL}.library"/>
+	  <property name="MAPFILE" value="${LEVEL}.map"/>
+	  <property name="ARFILE" value="${LEVEL}.a"/>
+
+	  <property name="COMPILE_COMMAND" value="${PATH_C_COMPILER} ${COMPILER_ARGS} -c ${SRCFILE} -o ${OBJFILE}"/>
+	  <property name="LINKER_COMMAND" value="${LINK_COMMAND_1} ${OBJFILE} ${LINK_COMMAND_2}"/>
+
+  	<propertyfile file="build.temp">
+  		<entry key="COMPILE_EXEC" value="${COMPILE_COMMAND}"/>
+  		<entry key="COMPILE_ARGS" value="${COMPILE_COMMAND}"/>
+  		<entry key="LINKER_EXEC" value="${LINKER_COMMAND}"/>
+  		<entry key="LINKER_ARGS" value="${LINKER_COMMAND}"/>
+  	</propertyfile>
+  	<replace file="build.temp" token="$(JAVA_HOME)" value="${env.JAVA_HOME}"/>
+  	<replace file="build.temp" token="$(LIBFILE)" value="${LIBFILE}"/>
+  	<replace file="build.temp" token="$(MAPFILE)" value="${MAPFILE}"/>
+   	<replace file="build.temp" token="$(ARFILE)" value="${ARFILE}"/>
+    <replaceregexp 
+    	file="build.temp" match="COMPILE_EXEC=(\w*).*" 
+    	replace="COMPILE_EXEC=\1" byline="true"/>
+    <replaceregexp 
+    	file="build.temp" match="COMPILE_ARGS=\w*(.*)" 
+    	replace="COMPILE_ARGS=\1" byline="true"/>
+    <replaceregexp 
+    	file="build.temp" match="LINKER_EXEC=(\w*).*" 
+    	replace="LINKER_EXEC=\1" byline="true"/>
+    <replaceregexp 
+    	file="build.temp" match="LINKER_ARGS=\w*(.*)" 
+    	replace="LINKER_ARGS=\1" byline="true"/>
+  	<property file="build.temp"/>
+  	
+		<echo message="EXECUTING: ${COMPILE_EXEC} ${COMPILE_ARGS}"/>
+  	<exec dir="${LEVEL}" executable="${COMPILE_EXEC}" failonerror="true">
+  	  <arg line="${COMPILE_ARGS}"/>
+  	</exec>
+  	
+  	<echo message="EXECUTING: ${LINKER_EXEC} ${LINKER_ARGS}"/>
+  	<exec dir="${LEVEL}" executable="${LINKER_EXEC}" failonerror="true">
+  	  <arg line="${LINKER_ARGS}"/>
   	</exec>
   </target>
 	
-  <target name="level1" depends="init, level1_compile_c">
-    <javac srcdir="level1" destdir="level1"/>
-    <java fork="yes" dir="level1" classname="Level1"/>
+  <target name="level2" depends="init">
+	  <property name="LEVEL" value="level2"/>
+  	<antcall target="compile_library" inheritall="true"/>
+  	
+  	<javac srcdir="${LEVEL}" destdir="${LEVEL}"/>
+    <java fork="yes" dir="${LEVEL}" classname="Level2"/>
   </target>
 
-  <target name="level2_compile_c" depends="init">
-		<echo message="EXECUTING: ${PATH_C_COMPILER} ${COMPILER_ARGS} -c -o level2.o -shared level2.c"/>
-  	<exec dir="level2" executable="${PATH_C_COMPILER}" failonerror="true">
-  	  <arg line="${COMPILER_ARGS} -c -o level2.o -shared level2.c"/>
-  	</exec>
-		<echo message="EXECUTING: ${PATH_LINKER} -Map=level2.map -shared ${LINKER_ARGS_1} -o level2.library level2.o ${LINKER_ARGS_2}"/>
-  	<exec dir="level2" executable="${PATH_LINKER}" failonerror="true">
-  	  <arg line="-Map=level2.map -shared ${LINKER_ARGS_1} -o level2.library level2.o ${LINKER_ARGS_2}"/>
-  	</exec>
-  </target>
-	
-  <target name="level2" depends="init, level2_compile_c">
-    <javac srcdir="level2" destdir="level2"/>
-    <java fork="yes" dir="level2" classname="Level2"/>
+  <target name="level3" depends="init">
+	  <property name="LEVEL" value="level3"/>
+  	<antcall target="compile_library" inheritall="true"/>
+  	
+  	<javac srcdir="${LEVEL}" destdir="${LEVEL}"/>
+    <java fork="yes" dir="${LEVEL}" classname="Level3"/>
   </target>
 
-  <target name="level3_compile_c" depends="init">
-		<echo message="EXECUTING: ${PATH_C_COMPILER} ${COMPILER_ARGS} -c -o level3.o -shared level3.c"/>
-  	<exec dir="level3" executable="${PATH_C_COMPILER}" failonerror="true">
-  	  <arg line="${COMPILER_ARGS} -c -o level3.o -shared level3.c"/>
-  	</exec>
-		<echo message="EXECUTING: ${PATH_LINKER} -Map=level3.map -shared ${LINKER_ARGS_1} -o level3.library level3.o ${LINKER_ARGS_2}"/>
-  	<exec dir="level3" executable="${PATH_LINKER}" failonerror="true">
-  	  <arg line="-Map=level3.map -shared ${LINKER_ARGS_1} -o level3.library level3.o ${LINKER_ARGS_2}"/>
-  	</exec>
-  </target>
-	
-  <target name="level3" depends="init, level3_compile_c">
-    <javac srcdir="level3" destdir="level3"/>
-    <java fork="yes" dir="level3" classname="Level3"/>
+  <target name="level4" depends="init">
+	  <property name="LEVEL" value="level4"/>
+  	<antcall target="compile_library" inheritall="true"/>
+  	
+  	<javac srcdir="${LEVEL}" destdir="${LEVEL}"/>
+    <java fork="yes" dir="${LEVEL}" classname="Level4"/>
   </target>
 
-  <target name="level4_compile_c" depends="init">
-		<echo message="EXECUTING: ${PATH_C_COMPILER} ${COMPILER_ARGS} -c -o level4.o -shared level4.c"/>
-  	<exec dir="level4" executable="${PATH_C_COMPILER}" failonerror="true">
-  	  <arg line="${COMPILER_ARGS} -c -o level4.o -shared level4.c"/>
-  	</exec>
-		<echo message="EXECUTING: ${PATH_LINKER} -Map=level4.map -shared ${LINKER_ARGS_1} -o level4.library level4.o ${LINKER_ARGS_2}"/>
-  	<exec dir="level4" executable="${PATH_LINKER}" failonerror="true">
-  	  <arg line="-Map=level4.map -shared ${LINKER_ARGS_1} -o level4.library level4.o ${LINKER_ARGS_2}"/>
-  	</exec>
-  </target>
-	
-  <target name="level4" depends="init, level4_compile_c">
-    <javac srcdir="level4" destdir="level4"/>
-    <java fork="yes" dir="level4" classname="Level4"/>
-  </target>
-
-  <target name="level5_compile_c" depends="init">
-		<echo message="EXECUTING: ${PATH_C_COMPILER} ${COMPILER_ARGS} -c -o level5.o -shared level5.c"/>
-  	<exec dir="level5" executable="${PATH_C_COMPILER}" failonerror="true">
-  	  <arg line="${COMPILER_ARGS} -c -o level5.o -shared level5.c"/>
-  	</exec>
-		<echo message="EXECUTING: ${PATH_LINKER} -Map=level5.map -shared ${LINKER_ARGS_1} -o level5.library level5.o ${LINKER_ARGS_2}"/>
-  	<exec dir="level5" executable="${PATH_LINKER}" failonerror="true">
-  	  <arg line="-Map=level5.map -shared ${LINKER_ARGS_1} -o level5.library level5.o ${LINKER_ARGS_2}"/>
-  	</exec>
-  </target>
-	
-  <target name="level5" depends="init, level5_compile_c">
-    <javac srcdir="level5" destdir="level5"/>
-    <java fork="yes" dir="level5" classname="Level5"/>
-  </target>
+	<target name="level5" depends="init">
+	  <property name="LEVEL" value="level5"/>
+  	<antcall target="compile_library" inheritall="true"/>
+  	
+  	<javac srcdir="${LEVEL}" destdir="${LEVEL}"/>
+    <java fork="yes" dir="${LEVEL}" classname="Level5"/>
+	 </target>
 
 </project>
