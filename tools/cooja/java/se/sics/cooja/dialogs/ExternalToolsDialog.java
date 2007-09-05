@@ -26,13 +26,14 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ExternalToolsDialog.java,v 1.3 2007/03/24 00:44:55 fros4943 Exp $
+ * $Id: ExternalToolsDialog.java,v 1.4 2007/09/05 14:01:56 fros4943 Exp $
  */
 
 package se.sics.cooja.dialogs;
 
 import java.awt.*;
 import java.awt.event.*;
+import java.io.File;
 import javax.swing.*;
 import org.apache.log4j.Logger;
 
@@ -41,7 +42,7 @@ import se.sics.cooja.*;
 /**
  * A dialog for viewing/editing external tools settings.
  * Allows user to change paths and arguments to compilers, linkers etc.
- * 
+ *
  * @author Fredrik Osterlind
  */
 public class ExternalToolsDialog extends JDialog {
@@ -59,7 +60,7 @@ public class ExternalToolsDialog extends JDialog {
 
   /**
    * Creates a dialog for viewing/editing external tools settings.
-   * 
+   *
    * @param parentFrame
    *          Parent frame for dialog
    */
@@ -108,6 +109,15 @@ public class ExternalToolsDialog extends JDialog {
     buttonPane.add(Box.createRigidArea(new Dimension(10, 0)));
     buttonPane.add(button);
 
+    // Some explanations
+    Box explanations = Box.createVerticalBox();
+    explanations.add(new JLabel("Special variables used in COMPILER_ARGS, LINK_COMMAND_1 and LINK_COMMAND_2:"));
+    explanations.add(new JLabel("  $(JAVA_HOME) maps to the environment Java home: " + System.getenv().get("JAVA_HOME").replace(File.separatorChar, '/')));
+    explanations.add(new JLabel("  $(LIBFILE) maps to the current library file being created (\"mtyp1.library\")"));
+    explanations.add(new JLabel("  $(MAPFILE) maps to the current map file being created (\"mtyp1.map\")"));
+    explanations.add(new JLabel("  $(ARFILE) maps to the current archive file being created (\"mtyp1.a\")"));
+    explanations.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
+
     // MAIN PART
     textFields = new JTextField[GUI.getExternalToolsSettingsCount()];
     for (int i = 0; i < GUI.getExternalToolsSettingsCount(); i++) {
@@ -138,7 +148,10 @@ public class ExternalToolsDialog extends JDialog {
     mainPane.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
     Container contentPane = getContentPane();
-    contentPane.add(mainPane, BorderLayout.NORTH);
+    JScrollPane scrollPane = new JScrollPane(mainPane);
+    scrollPane.setPreferredSize(new Dimension(700, 500));
+    contentPane.add(explanations, BorderLayout.NORTH);
+    contentPane.add(scrollPane, BorderLayout.CENTER);
     contentPane.add(buttonPane, BorderLayout.SOUTH);
 
     pack();
@@ -187,13 +200,16 @@ public class ExternalToolsDialog extends JDialog {
               .trim());
         }
         GUI.saveExternalToolsUserSettings();
-        if (myDialog != null && myDialog.isDisplayable())
+        if (myDialog != null && myDialog.isDisplayable()) {
           myDialog.dispose();
+        }
       } else if (e.getActionCommand().equals("cancel")) {
-        if (myDialog != null && myDialog.isDisplayable())
+        if (myDialog != null && myDialog.isDisplayable()) {
           myDialog.dispose();
-      } else
+        }
+      } else {
         logger.debug("Unhandled command: " + e.getActionCommand());
+      }
     }
   }
 
