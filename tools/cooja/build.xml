@@ -69,6 +69,18 @@ The COOJA Simulator
     </java>
   </target>
 
+  <target name="run_bigmem" depends="init, compile, copy configs">
+    <java fork="yes" dir="${build}" classname="se.sics.cooja.GUI" maxmemory="512m">
+      <arg line="${args}"/>
+    	<env key="LD_LIBRARY_PATH" value="."/>
+      <classpath>
+        <pathelement path="${build}"/>
+        <pathelement location="lib/jdom.jar"/>
+        <pathelement location="lib/log4j.jar"/>
+      </classpath>
+    </java>
+  </target>
+
   <target name="run_nogui" depends="init, compile, copy configs">
     <java fork="yes" dir="${build}" classname="se.sics.cooja.GUI">
       <arg line="-nogui ${args}"/>
