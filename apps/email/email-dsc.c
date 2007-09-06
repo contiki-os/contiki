@@ -29,19 +29,12 @@
  *
  * This file is part of the Contiki desktop environment
  *
- * $Id: email-dsc.c,v 1.2 2007/08/30 14:39:17 matsutsuka Exp $
+ * $Id: email-dsc.c,v 1.3 2007/09/06 01:36:11 matsutsuka Exp $
  *
  */
 
 #include "sys/dsc.h"
 
-extern static struct ctk_icon email_icon;
-/*-----------------------------------------------------------------------------------*/
-DSC(email_dsc,
-    "Unfinished e-mail client",
-    "email.prg",
-    email_process,
-    &email_icon);
 /*-----------------------------------------------------------------------------------*/
 #if CTK_CONF_ICON_BITMAPS
 static unsigned char tcpipconficon_bitmap[3*3*8] = {
@@ -71,4 +64,10 @@ static char tcpipconficon_textmap[9] = {
 static struct ctk_icon email_icon =
   {CTK_ICON("E-mail", tcpipconficon_bitmap, tcpipconficon_textmap)};
 #endif /* CTK_CONF_ICONS */
+/*-----------------------------------------------------------------------------------*/
+DSC(email_dsc,
+    "Unfinished e-mail client",
+    "email.prg",
+    email_process,
+    &email_icon);
 /*-----------------------------------------------------------------------------------*/

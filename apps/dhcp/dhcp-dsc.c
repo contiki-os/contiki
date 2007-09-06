@@ -29,19 +29,12 @@
  *
  * This file is part of the Contiki desktop environment
  *
- * $Id: dhcp-dsc.c,v 1.2 2007/08/30 14:39:19 matsutsuka Exp $
+ * $Id: dhcp-dsc.c,v 1.3 2007/09/06 01:36:12 matsutsuka Exp $
  *
  */
 
 #include "sys/dsc.h"
 
-extern static struct ctk_icon dhcp_icon;
-/*-----------------------------------------------------------------------------------*/
-DSC(dhcp_dsc,
-    "Obtain IP address automatically",
-    "dhcp.prg",
-    dhcp_process,
-    &dhcp_icon);
 /*-----------------------------------------------------------------------------------*/
 #if CTK_CONF_ICON_BITMAPS
 static unsigned char tcpipconficon_bitmap[3*3*8] = {
@@ -71,4 +64,10 @@ static char tcpipconficon_textmap[9] = {
 static struct ctk_icon dhcp_icon =
   {CTK_ICON("DHCP client", tcpipconficon_bitmap, tcpipconficon_textmap)};
 #endif /* CTK_CONF_ICONS */
+/*-----------------------------------------------------------------------------------*/
+DSC(dhcp_dsc,
+    "Obtain IP address automatically",
+    "dhcp.prg",
+    dhcp_process,
+    &dhcp_icon);
 /*-----------------------------------------------------------------------------------*/

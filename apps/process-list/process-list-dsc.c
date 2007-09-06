@@ -29,19 +29,12 @@
  *
  * This file is part of the Contiki desktop environment
  *
- * $Id: process-list-dsc.c,v 1.2 2007/08/30 14:39:17 matsutsuka Exp $
+ * $Id: process-list-dsc.c,v 1.3 2007/09/06 01:36:12 matsutsuka Exp $
  *
  */
 
 #include "sys/dsc.h"
 
-extern static struct ctk_icon processes_icon;
-/*-----------------------------------------------------------------------------------*/
-DSC(processes_dsc,
-    "Process information",
-    "processes.prg",
-    processes_process,
-    &processes_icon);
 /*-----------------------------------------------------------------------------------*/
 #if CTK_CONF_ICON_BITMAPS
 static unsigned char processesicon_bitmap[3*3*8] = {
@@ -71,4 +64,10 @@ static char processesicon_textmap[9] = {
 static struct ctk_icon processes_icon =
   {CTK_ICON("Processes", processesicon_bitmap, processesicon_textmap)};
 #endif /* CTK_CONF_ICONS */
+/*-----------------------------------------------------------------------------------*/
+DSC(processes_dsc,
+    "Process information",
+    "processes.prg",
+    processes_process,
+    &processes_icon);
 /*-----------------------------------------------------------------------------------*/

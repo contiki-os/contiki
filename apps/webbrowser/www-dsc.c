@@ -29,19 +29,12 @@
  *
  * This file is part of the Contiki desktop environment
  *
- * $Id: www-dsc.c,v 1.2 2007/08/30 14:39:18 matsutsuka Exp $
+ * $Id: www-dsc.c,v 1.3 2007/09/06 01:36:11 matsutsuka Exp $
  *
  */
 
 #include "sys/dsc.h"
 
-extern static struct ctk_icon www_icon;
-/*-----------------------------------------------------------------------------------*/
-DSC(www_dsc,
-    "The Contiki web browser",
-    "www.prg",
-    www_process,
-    &www_icon);
 /*-----------------------------------------------------------------------------------*/
 #if CTK_CONF_ICON_BITMAPS
 static unsigned char wwwicon_bitmap[3*3*8] = {
@@ -71,4 +64,10 @@ static char wwwicon_textmap[9] = {
 static struct ctk_icon www_icon =
   {CTK_ICON("Web browser", wwwicon_bitmap, wwwicon_textmap)};
 #endif /* CTK_CONF_ICONS */
+/*-----------------------------------------------------------------------------------*/
+DSC(www_dsc,
+    "The Contiki web browser",
+    "www.prg",
+    www_process,
+    &www_icon);
 /*-----------------------------------------------------------------------------------*/
