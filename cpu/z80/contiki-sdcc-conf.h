@@ -27,7 +27,7 @@
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * $Id: contiki-sdcc-conf.h,v 1.2 2007/09/01 11:14:52 matsutsuka Exp $
+ * $Id: contiki-sdcc-conf.h,v 1.3 2007/09/06 01:41:05 matsutsuka Exp $
  *
  */
 
@@ -55,6 +55,7 @@ typedef unsigned short u16_t;      /* 16 bit type */
 typedef unsigned long  u32_t;      /* 32 bit type */
 typedef   signed long  s32_t;      /* 32 bit type */
 typedef unsigned short uip_stats_t;
+typedef   signed long  int32_t;    /* 32 bit type */
 #ifndef _SIZE_T_DEFINED
 #define _SIZE_T_DEFINED
 typedef unsigned int size_t;
