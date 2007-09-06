@@ -29,19 +29,12 @@
  *
  * This file is part of the Contiki desktop environment
  *
- * $Id: about-dsc.c,v 1.2 2007/08/30 14:39:19 matsutsuka Exp $
+ * $Id: about-dsc.c,v 1.3 2007/09/06 01:36:12 matsutsuka Exp $
  *
  */
 
 #include "sys/dsc.h"
 
-extern static struct ctk_icon about_icon;
-/*-----------------------------------------------------------------------------------*/
-DSC(about_dsc,
-    "About Contiki",
-    "about.prg",
-    about_process,
-    &about_icon);
 /*-----------------------------------------------------------------------------------*/
 #if CTK_CONF_ICON_BITMAPS
 static unsigned char abouticon_bitmap[3*3*8] = {
@@ -71,4 +64,10 @@ static char abouticon_textmap[9] = {
 static struct ctk_icon about_icon =
   {CTK_ICON("About Contiki", abouticon_bitmap, abouticon_textmap)};
 #endif /* CTK_CONF_ICONS */
+/*-----------------------------------------------------------------------------------*/
+DSC(about_dsc,
+    "About Contiki",
+    "about.prg",
+    about_process,
+    &about_icon);
 /*-----------------------------------------------------------------------------------*/

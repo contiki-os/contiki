@@ -29,19 +29,12 @@
  *
  * This file is part of the Contiki desktop environment
  *
- * $Id: springlight-dsc.c,v 1.1 2007/05/23 23:11:24 oliverschmidt Exp $
+ * $Id: springlight-dsc.c,v 1.2 2007/09/06 01:36:11 matsutsuka Exp $
  *
  */
 
 #include "sys/dsc.h"
 
-extern struct ctk_icon springlight_icon;
-/*-----------------------------------------------------------------------------------*/
-DSC(springlight_dsc,
-    "Spring green CTK theme",
-    "springlight.prg",
-    springlight_init,
-    &springlight_icon);
 /*-----------------------------------------------------------------------------------*/
 #if CTK_CONF_ICON_BITMAPS
 static unsigned char springlighticon_bitmap[3*3*8] = {
@@ -71,4 +64,10 @@ static char springlighticon_textmap[9] = {
 static struct ctk_icon springlight_icon =
   {CTK_ICON("Springlight", springlighticon_bitmap, springlighticon_textmap)};
 #endif /* CTK_CONF_ICONS */
+/*-----------------------------------------------------------------------------------*/
+DSC(springlight_dsc,
+    "Spring green CTK theme",
+    "springlight.prg",
+    springlight_init,
+    &springlight_icon);
 /*-----------------------------------------------------------------------------------*/

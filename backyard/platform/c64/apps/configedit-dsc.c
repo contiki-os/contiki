@@ -29,19 +29,12 @@
  *
  * This file is part of the Contiki desktop environment
  *
- * $Id: configedit-dsc.c,v 1.1 2007/05/23 23:11:24 oliverschmidt Exp $
+ * $Id: configedit-dsc.c,v 1.2 2007/09/06 01:36:11 matsutsuka Exp $
  *
  */
 
 #include "sys/dsc.h"
 
-extern struct ctk_icon configedit_icon;
-/*-----------------------------------------------------------------------------------*/
-DSC(configedit_dsc,
-    "Edit Contiki configuration",
-    "configedit.prg",
-    configedit_init,
-    &configedit_icon);
 /*-----------------------------------------------------------------------------------*/
 #if CTK_CONF_ICON_BITMAPS
 static unsigned char tcpipconficon_bitmap[3*3*8] = {
@@ -71,4 +64,10 @@ static char tcpipconficon_textmap[9] = {
 static struct ctk_icon configedit_icon =
   {CTK_ICON("Configuration", tcpipconficon_bitmap, tcpipconficon_textmap)};
 #endif /* CTK_CONF_ICONS */
+/*-----------------------------------------------------------------------------------*/
+DSC(configedit_dsc,
+    "Edit Contiki configuration",
+    "configedit.prg",
+    configedit_init,
+    &configedit_icon);
 /*-----------------------------------------------------------------------------------*/

@@ -29,19 +29,12 @@
  *
  * This file is part of the Contiki desktop environment
  *
- * $Id: slip-dsc.c,v 1.1 2006/06/17 22:41:21 adamdunkels Exp $
+ * $Id: slip-dsc.c,v 1.2 2007/09/06 01:36:11 matsutsuka Exp $
  *
  */
 
 #include "sys/dsc.h"
 
-extern struct ctk_icon slip_icon;
-/*-----------------------------------------------------------------------------------*/
-DSC(slip_dsc,
-    "SLIP driver",
-    "slip.drv",
-    slip_init,
-    &slip_icon);
 /*-----------------------------------------------------------------------------------*/
 #if CTK_CONF_ICON_BITMAPS
 static unsigned char slipicon_bitmap[3*3*8] = {
@@ -69,4 +62,10 @@ static char slipicon_textmap[9] = {
 static struct ctk_icon slip_icon =
   {CTK_ICON("SLIP driver", slipicon_bitmap, slipicon_textmap)};
 #endif /* CTK_CONF_ICONS */
+/*-----------------------------------------------------------------------------------*/
+DSC(slip_dsc,
+    "SLIP driver",
+    "slip.drv",
+    slip_init,
+    &slip_icon);
 /*-----------------------------------------------------------------------------------*/

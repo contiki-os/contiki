@@ -29,19 +29,12 @@
  *
  * This file is part of the Contiki desktop environment
  *
- * $Id: editor-dsc.c,v 1.1 2007/05/23 23:34:33 oliverschmidt Exp $
+ * $Id: editor-dsc.c,v 1.2 2007/09/06 01:36:11 matsutsuka Exp $
  *
  */
 
 #include "sys/dsc.h"
 
-extern struct ctk_icon editor_icon;
-/*-----------------------------------------------------------------------------------*/
-DSC(editor_dsc,
-    "A simple text editor",
-    "editor.prg",
-    editor_process,
-    &editor_icon);
 /*-----------------------------------------------------------------------------------*/
 #if CTK_CONF_ICON_BITMAPS
 static unsigned char editoricon_bitmap[3*3*8] = {
@@ -71,4 +64,10 @@ static char editoricon_textmap[9] = {
 static struct ctk_icon editor_icon =
   {CTK_ICON("Editor", editoricon_bitmap, editoricon_textmap)};
 #endif /* CTK_CONF_ICONS */
+/*-----------------------------------------------------------------------------------*/
+DSC(editor_dsc,
+    "A simple text editor",
+    "editor.prg",
+    editor_process,
+    &editor_icon);
 /*-----------------------------------------------------------------------------------*/

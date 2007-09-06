@@ -29,19 +29,12 @@
  *
  * This file is part of the Contiki desktop environment
  *
- * $Id: webserver-dsc.c,v 1.2 2007/08/30 14:39:18 matsutsuka Exp $
+ * $Id: webserver-dsc.c,v 1.3 2007/09/06 01:36:12 matsutsuka Exp $
  *
  */
 
 #include "sys/dsc.h"
 
-extern static struct ctk_icon webserver_icon;
-/*-----------------------------------------------------------------------------------*/
-DSC(webserver_dsc,
-    "The Contiki web server",
-    "webserver.prg",
-    webserver_process,
-    &webserver_icon);
 /*-----------------------------------------------------------------------------------*/
 #if CTK_CONF_ICON_BITMAPS
 static unsigned char webservericon_bitmap[3*3*8] = {
@@ -71,4 +64,10 @@ static char webservericon_textmap[9] = {
 static struct ctk_icon webserver_icon =
   {CTK_ICON("Web server", webservericon_bitmap, webservericon_textmap)};
 #endif /* CTK_CONF_ICONS */
+/*-----------------------------------------------------------------------------------*/
+DSC(webserver_dsc,
+    "The Contiki web server",
+    "webserver.prg",
+    webserver_process,
+    &webserver_icon);
 /*-----------------------------------------------------------------------------------*/

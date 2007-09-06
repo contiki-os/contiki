@@ -29,19 +29,12 @@
  *
  * This file is part of the Contiki desktop environment
  *
- * $Id: directory-dsc.c,v 1.2 2007/08/30 14:39:17 matsutsuka Exp $
+ * $Id: directory-dsc.c,v 1.3 2007/09/06 01:36:11 matsutsuka Exp $
  *
  */
 
 #include "sys/dsc.h"
 
-extern static struct ctk_icon directory_icon;
-/*-----------------------------------------------------------------------------------*/
-DSC(directory_dsc,
-    "Directory reader",
-    "directory.prg",
-    directory_process,
-    &directory_icon);
 /*-----------------------------------------------------------------------------------*/
 #if CTK_CONF_ICON_BITMAPS
 static unsigned char directoryicon_bitmap[3*3*8] = {
@@ -71,4 +64,10 @@ static char directoryicon_textmap[9] = {
 static struct ctk_icon directory_icon =
   {CTK_ICON("Directory", directoryicon_bitmap, directoryicon_textmap)};
 #endif /* CTK_CONF_ICONS */
+/*-----------------------------------------------------------------------------------*/
+DSC(directory_dsc,
+    "Directory reader",
+    "directory.prg",
+    directory_process,
+    &directory_icon);
 /*-----------------------------------------------------------------------------------*/

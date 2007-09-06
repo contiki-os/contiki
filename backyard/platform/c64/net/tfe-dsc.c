@@ -29,19 +29,12 @@
  *
  * This file is part of the Contiki desktop environment
  *
- * $Id: tfe-dsc.c,v 1.1 2007/05/23 23:11:30 oliverschmidt Exp $
+ * $Id: tfe-dsc.c,v 1.2 2007/09/06 01:36:12 matsutsuka Exp $
  *
  */
 
 #include "sys/dsc.h"
 
-extern struct ctk_icon tfe_icon;
-/*-----------------------------------------------------------------------------------*/
-DSC(tfe_dsc,
-    "The Final Ethernet driver",
-    "tfe.drv",
-    tfe_init,
-    &tfe_icon);
 /*-----------------------------------------------------------------------------------*/
 #if CTK_CONF_ICON_BITMAPS
 static unsigned char tfeicon_bitmap[3*3*8] = {
@@ -71,4 +64,10 @@ static char tfeicon_textmap[9] = {
 static struct ctk_icon tfe_icon =
   {CTK_ICON("TFE driver", tfeicon_bitmap, tfeicon_textmap)};
 #endif /* CTK_CONF_ICONS */
+/*-----------------------------------------------------------------------------------*/
+DSC(tfe_dsc,
+    "The Final Ethernet driver",
+    "tfe.drv",
+    tfe_init,
+    &tfe_icon);
 /*-----------------------------------------------------------------------------------*/
