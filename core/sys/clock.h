@@ -53,12 +53,14 @@
  *
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: clock.h,v 1.2 2007/03/25 21:51:31 adamdunkels Exp $
+ * $Id: clock.h,v 1.3 2007/09/07 10:20:30 fros4943 Exp $
  */
 #ifndef __CLOCK_H__
 #define __CLOCK_H__
 
 #include "contiki-conf.h"
+
+#define CLOCK_LT(a,b)     ((signed short)((a)-(b)) < 0)
 
 /**
  * Initialize the clock library.
