@@ -27,7 +27,7 @@
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * $Id: contiki-sdcc-conf.h,v 1.3 2007/09/06 01:41:05 matsutsuka Exp $
+ * $Id: z80def.h,v 1.1 2007/09/07 04:59:06 matsutsuka Exp $
  *
  */
 
@@ -39,8 +39,8 @@
  *	Takahide Matsutsuka <markn@markn.org>
  */
  
-#ifndef __CONTIKI_SDCC_CONF_H__
-#define __CONTIKI_SDCC_CONF_H__
+#ifndef __Z80_DEF_H__
+#define __Z80_DEF_H__
 
 #define CC_CONF_FUNCTION_POINTER_ARGS	1
 #define CC_CONF_FASTCALL
@@ -76,11 +76,11 @@ typedef unsigned int size_t;
 #define UIP_ARCH_IPCHKSUM
 
 #define CC_CONF_ASSIGN_AGGREGATE(dest, src)	\
-	memcpy(dest, src, sizeof(*dest))
+    memcpy(dest, src, sizeof(*dest))
 #define CC_CONF_INC_CAST_POINTER(type, data)	\
     data = ((type)data) + 1
 
 #define uip_ipaddr_copy(dest, src)		\
-	memcpy(dest, src, sizeof(*dest))
+    memcpy(dest, src, sizeof(*dest))
 
-#endif /* __CONTIKI_SDCC_CONF_H__ */
+#endif /* __Z80_DEF_H__ */
