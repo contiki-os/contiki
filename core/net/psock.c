@@ -30,7 +30,7 @@
  *
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: psock.c,v 1.2 2007/08/30 14:39:17 matsutsuka Exp $
+ * $Id: psock.c,v 1.3 2007/09/08 15:32:30 matsutsuka Exp $
  */
 
 #include <stdio.h>
@@ -306,7 +306,9 @@ PT_THREAD(psock_readbuf(CC_REGISTER_ARG struct psock *psock))
   do {
     if(psock->readlen == 0) {
       PT_WAIT_UNTIL(&psock->psockpt, psock_newdata(psock));
+#if LOG_CONF_ENABLED
       printf("Waited for newdata\n");
+#endif
       psock->state = STATE_READ;
       psock->readptr = (u8_t *)uip_appdata;
       psock->readlen = uip_datalen();
