@@ -27,7 +27,7 @@
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * $Id: strcasecmp.h,v 1.1 2007/08/30 14:39:16 matsutsuka Exp $
+ * $Id: strcasecmp.c,v 1.1 2007/09/09 12:20:59 matsutsuka Exp $
  *
  */
  /*
@@ -37,9 +37,14 @@
   * 	Takahide Matsutsuka <markn@markn.org>
   */
 
-#ifndef __STRCASECMP_H__
-#define __STRCASECMP_H__
+#include <ctype.h>
+#include "strcasecmp.h"
 
-int strcasecmp(const char *str1, const char *str2);
-
-#endif /*__STRCASECMP_H__*/
+int strcasecmp(const char *str1, const char *str2)
+{
+  while (*str1 != '\0' && tolower(*str1) == tolower(*str2)) {
+    str1++;
+    str2++;
+  }
+  return tolower(*(unsigned char *)str1) - tolower(*(unsigned char *)str2);
+}
