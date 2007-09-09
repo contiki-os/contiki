@@ -27,7 +27,7 @@
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.  
  *
- * $Id: rs-232.c,v 1.1 2007/09/09 12:22:34 matsutsuka Exp $
+ * $Id: rs232.c,v 1.1 2007/09/09 13:41:15 matsutsuka Exp $
  *
  */
 /*
@@ -39,25 +39,30 @@
 
 #include "contiki.h"
 #include "serial.h"
-#include "rs-232.h"
+#include "rs232.h"
+#include "log.h"
 
-PROCESS(rs232_process, "RS323C polling process");
+PROCESS(rs232_process, "RS-232C polling process");
 /*---------------------------------------------------------------------------*/
 PROCESS_THREAD(rs232_process, ev, data)
 {
+  static struct etimer timer;
   char ch;
   PROCESS_BEGIN();
 
   rs232_arch_init();
+  etimer_set(&timer, CLOCK_SECOND / 16);
 
   while(1) {
-    etimer_set(&timer, CLOCK_SECOND / 16);
     PROCESS_WAIT_EVENT();
-    if(ev == PROCESS_EVENT_TIMER) {
-      ch = rs232_poll();
+
+    if (etimer_expired(&timer)) {
+      ch = rs232_arch_poll();
       if (ch != 0) {
+	/* We have an input data */
 	serial_input_byte(ch);
       }
+      etimer_reset(&timer);
     }
   }
 
