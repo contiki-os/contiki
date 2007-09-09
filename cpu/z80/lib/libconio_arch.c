@@ -27,14 +27,14 @@
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * $Id: libconio_arch.c,v 1.1 2007/09/09 12:21:54 matsutsuka Exp $
+ * $Id: libconio_arch.c,v 1.2 2007/09/09 13:41:50 matsutsuka Exp $
  *
  */
  /*
   * \file
   * 	Arcitecture-depend libconio module, which supposes
   *     the machine has character VRAM and optional attribute VRAM
-  *     on memory.
+  *     on the main memory.
   * \author
   * 	Takahide Matsutsuka <markn@markn.org>
   */
