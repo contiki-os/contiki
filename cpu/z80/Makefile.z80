@@ -2,7 +2,7 @@
 # Makefile for z80/SDCC
 # @author Takahide Matsutsuka <markn@markn.org>
 #
-# $Id: Makefile.z80,v 1.3 2007/09/09 12:20:12 matsutsuka Exp $
+# $Id: Makefile.z80,v 1.4 2007/09/09 13:41:15 matsutsuka Exp $
 #
 
 ### Compiler definitions
@@ -21,7 +21,7 @@ AROPTS   = -a
 
 CONTIKI_CPU_DIRS = . dev lib
 CONTIKI_SOURCEFILES += strcasecmp.c mtarch.c uip_arch.c \
-	log-conio.c libconio_arch.c rs-232.c
+	libconio_arch.c log-conio.c rs232.c
 CONTIKI_ASMFILES += uip_arch-asm.S
 
 contiki-$(TARGET).o: $(CONTIKI_OBJECTFILES) $(PROJECT_OBJECTFILES) $(CONTIKI_ASMOBJECTFILES)

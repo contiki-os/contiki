@@ -27,7 +27,7 @@
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.  
  *
- * $Id: rs-232.h,v 1.1 2007/09/09 12:22:34 matsutsuka Exp $
+ * $Id: rs232.h,v 1.1 2007/09/09 13:41:15 matsutsuka Exp $
  *
  */
 /*
@@ -45,18 +45,18 @@
  */
 
 /*
- * RS-232C initialize.
+ * An architecture-depend implementation of RS-232C initialization.
  */
 void rs232_arch_init(void);
 
 /*
- * RS-232C polling.
+ * An architecture-depend implementation of RS-232C polling.
  * @return character, zero if no input.
  */
 unsigned char rs232_arch_poll(void);
 
 /*
- * RS-232C write a byte.
+ * An architecture-depend implementation of RS-232C writing a byte.
  */
 void rs232_arch_writeb(u8_t ch);
 
