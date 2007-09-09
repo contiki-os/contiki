@@ -29,11 +29,12 @@
  *
  * This file is part of the Contiki desktop environment
  *
- * $Id: libconio.c,v 1.1 2006/06/17 22:41:17 adamdunkels Exp $
+ * $Id: libconio.c,v 1.2 2007/09/09 12:24:44 matsutsuka Exp $
  *
  */
 
 #include <string.h>
+#include "contiki.h"
 #include "libconio.h"
 
 static unsigned char cursx, cursy;
