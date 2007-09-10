@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: level4.c,v 1.1 2006/08/21 12:12:59 fros4943 Exp $
+ * $Id: level4.c,v 1.2 2007/09/10 14:07:12 fros4943 Exp $
  */
 
 #include <jni.h>
@@ -40,8 +40,8 @@ int uninitialized_counter;
 JNIEXPORT void JNICALL
 Java_Level4_doCount(JNIEnv *env, jobject obj)
 {
- fprintf(stderr, ">> DATA_counter=\t%i\tBSS_counter=\t%i\n", initialized_counter++, uninitialized_counter++);
- fflush(stderr);
+ printf(">> DATA_counter=\t%i\tBSS_counter=\t%i\n", initialized_counter++, uninitialized_counter++);
+ fflush(stdout);
 }
 JNIEXPORT jint JNICALL
 Java_Level4_getRefAddress(JNIEnv *env, jobject obj)

@@ -3,30 +3,28 @@
 <project name="COOJA Simulator - JNI Tests" default="about" basedir=".">
 	<property environment="env"/>
 
-	<!-- CONFIGURATION -->
-	<!-- Change these until all tests pass! -->
-	<!-- The working configuration must manually be entered in COOJA -->
-	<property name="PATH_C_COMPILER" value="gcc"/>
-	<property name="COMPILER_ARGS" value="-Wall -D_JNI_IMPLEMENTATION_ -I'$(JAVA_HOME)/include' -I'$(JAVA_HOME)/include/win32'"/>
-	<property name="LINK_COMMAND_1" value="gcc -shared -Wl,-Map=$(MAPFILE) -Wall -D_JNI_IMPLEMENTATION_ -Wl,--kill-at -o $(LIBFILE)"/>
-	<property name="LINK_COMMAND_2" value=""/>
-
 	<target name="help">
 		<echo>
+Linux users with the GNU toolchain often can use:			
+	COMPILER_ARGS = [PENDING]
+	LINK_COMMAND_1 = [PENDING]
+	LINK_COMMAND_2 = [PENDING]
+			
 Cygwin users may try:
-  COMPILER_ARGS = -mno-cygwin -I....../jdk1.5.0/include -I....../jdk1.5.0/include/win32
-  LINKER_ARGS_1 = --add-stdcall-alias /usr/lib/mingw/dllcrt2.o
-  LINKER_ARGS_2 = -L/usr/lib/mingw -lmingw32 -lmingwex -lmsvcrt
+	COMPILER_ARGS = [PENDING]
+	LINK_COMMAND_1 = [PENDING]
+	LINK_COMMAND_2 = [PENDING]
 
-Note for Windows users with recent Cygwin:
+Windows users with recent Cygwin:
 In recent (early 2007) MinGW-Cygwin versions, the JNI support has been removed/limited.
 This may cause COOJA not to be able to load libraries generated using gcc's -mno-cygwin flag.
 One possible solution is to download "real" MinGW (http://www.mingw.org), and install it separately
 from Cygwin (for example in c:\mingw). Try using the following settings:
 
-  COMPILER_ARGS = -Wall -D_JNI_IMPLEMENTATION_ -I'$(JAVA_HOME)/include' -I'$(JAVA_HOME)/include/win32'
-  LINK_COMMAND_1 = gcc -shared -Wl,-Map=$(MAPFILE) -Wall -D_JNI_IMPLEMENTATION_ -Wl,--kill-at -o $(LIBFILE)
-  LINK_COMMAND_2 = 
+	COMPILER_ARGS = -Wall -D_JNI_IMPLEMENTATION_ -I'$(JAVA_HOME)/include' -I'$(JAVA_HOME)/include/win32'
+	LINK_COMMAND_1 = gcc -shared -Wl,-Map=$(MAPFILE) -Wall -D_JNI_IMPLEMENTATION_ -Wl,--kill-at -o $(LIBFILE)
+	LINK_COMMAND_2 = 
+
 		</echo>
 	</target>
 	
@@ -37,36 +35,37 @@ The COOJA Simulator - JNI Tests
 
 These tests can be used to help understand COOJA errors, and to configure COOJA for new users.
 For COOJA to compile JNI libraries successfully, tests 2-5 must be completed.
+In level3, only level3a or level3b is necessary to pass.
 
-You may have to change the configuration (4 properties) in this file (build.xml).
-When all tests pass, the settings should be entered into the COOJA External tool settings dialog.
+You may have to change the configuration in the file 'exttools.cfg'.
+When all tests pass, these settings should be entered into the COOJA External tool settings dialog.
 
+Before running the tests, the COOJA JAR file must be created:
+> ant compile_cooja
+			
 To run the first test:
- > ant level2
+> ant level2
 
 For more information including configuration examples:
- > ant help
+> ant help
 
 > ant level2
-	Runs JNI test level 2:
 	[compilation test]
 	Compiles level2.c to level2.library, using both c compiler and linker.
 	Java class loads the library and calls a simple native function.
 
-> ant level3
-	Runs JNI test level 3:
-	[map file parsing test]
-	Compiles java + c.
-	The map file is parsed, and information about data+bss sections is outputted.
+> ant level3a
+	[address parsing using map file]
+
+> ant level3b
+	[address parsing using nm]
 
 > ant level4
-	Runs JNI test level 4:
 	[fetching reference var]
-  Calculates offset between relative (mapfile) and absolute memory.
+	Calculates offset between relative and absolute memory.
 	A simple native function increases two counters (from both data and bss sections).
 
 > ant level5
-	Runs JNI test level 5:
 	[fetches and restores memory segments - the final test]
 	A simple native function increases two counters (from both data and bss sections).
 	The current memory (data+bss sections) is fetched and restored between function calls.
@@ -75,95 +74,128 @@ For more information including configuration examples:
 	</target>
 
 	<target name="clean">
-	  <delete>
-	     <fileset dir="." includes="**/*.class" />
-	     <fileset dir="." includes="**/*.library" />
-	     <fileset dir="." includes="**/*.o" />
-	     <fileset dir="." includes="**/*.map" />
-	     <fileset dir="." includes="**/*.log" />
-	     <fileset dir="." includes="build.temp" />
-	   </delete>
-  </target>
+		<delete>
+			 <fileset dir="." includes="**/*.class" />
+			 <fileset dir="." includes="**/*.library" />
+			 <fileset dir="." includes="**/*.o" />
+			 <fileset dir="." includes="**/*.map" />
+			 <fileset dir="." includes="**/*.log" />
+			 <fileset dir="." includes="build.temp" />
+		 </delete>
+	</target>
 
 	<target name="init">
-    <tstamp/>
-  </target>
+		<tstamp/>
+	</target>
 
-  <target name="compile_library" depends="init">
-	  <property name="SRCFILE" value="${LEVEL}.c"/>
-	  <property name="OBJFILE" value="${LEVEL}.o"/>
-	  <property name="LIBFILE" value="${LEVEL}.library"/>
-	  <property name="MAPFILE" value="${LEVEL}.map"/>
-	  <property name="ARFILE" value="${LEVEL}.a"/>
+	<target name="compile_library" depends="init">
+		<property name="SRCFILE" value="${LEVEL}.c"/>
+		<property name="OBJFILE" value="${LEVEL}.o"/>
+		<property name="LIBFILE" value="${LEVEL}.library"/>
+		<property name="MAPFILE" value="${LEVEL}.map"/>
+		<property name="ARFILE" value="${LEVEL}.a"/>
 
-	  <property name="COMPILE_COMMAND" value="${PATH_C_COMPILER} ${COMPILER_ARGS} -c ${SRCFILE} -o ${OBJFILE}"/>
-	  <property name="LINKER_COMMAND" value="${LINK_COMMAND_1} ${OBJFILE} ${LINK_COMMAND_2}"/>
+		<property file="exttools.cfg"/>
+		<property name="COMPILE_COMMAND" value="${PATH_C_COMPILER} ${COMPILER_ARGS} -c ${SRCFILE} -o ${OBJFILE}"/>
+		<property name="LINKER_COMMAND" value="${LINK_COMMAND_1} ${OBJFILE} ${LINK_COMMAND_2}"/>
 
-  	<propertyfile file="build.temp">
-  		<entry key="COMPILE_EXEC" value="${COMPILE_COMMAND}"/>
-  		<entry key="COMPILE_ARGS" value="${COMPILE_COMMAND}"/>
-  		<entry key="LINKER_EXEC" value="${LINKER_COMMAND}"/>
-  		<entry key="LINKER_ARGS" value="${LINKER_COMMAND}"/>
-  	</propertyfile>
-  	<replace file="build.temp" token="$(JAVA_HOME)" value="${env.JAVA_HOME}"/>
-  	<replace file="build.temp" token="$(LIBFILE)" value="${LIBFILE}"/>
-  	<replace file="build.temp" token="$(MAPFILE)" value="${MAPFILE}"/>
-   	<replace file="build.temp" token="$(ARFILE)" value="${ARFILE}"/>
-    <replaceregexp 
-    	file="build.temp" match="COMPILE_EXEC=(\w*).*" 
-    	replace="COMPILE_EXEC=\1" byline="true"/>
-    <replaceregexp 
-    	file="build.temp" match="COMPILE_ARGS=\w*(.*)" 
-    	replace="COMPILE_ARGS=\1" byline="true"/>
-    <replaceregexp 
-    	file="build.temp" match="LINKER_EXEC=(\w*).*" 
-    	replace="LINKER_EXEC=\1" byline="true"/>
-    <replaceregexp 
-    	file="build.temp" match="LINKER_ARGS=\w*(.*)" 
-    	replace="LINKER_ARGS=\1" byline="true"/>
-  	<property file="build.temp"/>
-  	
+		<propertyfile file="build.temp">
+			<entry key="COMPILE_EXEC" value="${COMPILE_COMMAND}"/>
+			<entry key="COMPILE_ARGS" value="${COMPILE_COMMAND}"/>
+			<entry key="LINKER_EXEC" value="${LINKER_COMMAND}"/>
+			<entry key="LINKER_ARGS" value="${LINKER_COMMAND}"/>
+		</propertyfile>
+		<replace file="build.temp" token="$(JAVA_HOME)" value="${env.JAVA_HOME}"/>
+		<replace file="build.temp" token="$(LIBFILE)" value="${LIBFILE}"/>
+		<replace file="build.temp" token="$(MAPFILE)" value="${MAPFILE}"/>
+	 	<replace file="build.temp" token="$(ARFILE)" value="${ARFILE}"/>
+		<replaceregexp 
+			file="build.temp" match="COMPILE_EXEC=(\w*).*" 
+			replace="COMPILE_EXEC=\1" byline="true"/>
+		<replaceregexp 
+			file="build.temp" match="COMPILE_ARGS=\w*(.*)" 
+			replace="COMPILE_ARGS=\1" byline="true"/>
+		<replaceregexp 
+			file="build.temp" match="LINKER_EXEC=(\w*).*" 
+			replace="LINKER_EXEC=\1" byline="true"/>
+		<replaceregexp 
+			file="build.temp" match="LINKER_ARGS=\w*(.*)" 
+			replace="LINKER_ARGS=\1" byline="true"/>
+		<property file="build.temp"/>
+		
 		<echo message="EXECUTING: ${COMPILE_EXEC} ${COMPILE_ARGS}"/>
-  	<exec dir="${LEVEL}" executable="${COMPILE_EXEC}" failonerror="true">
-  	  <arg line="${COMPILE_ARGS}"/>
-  	</exec>
-  	
-  	<echo message="EXECUTING: ${LINKER_EXEC} ${LINKER_ARGS}"/>
-  	<exec dir="${LEVEL}" executable="${LINKER_EXEC}" failonerror="true">
-  	  <arg line="${LINKER_ARGS}"/>
-  	</exec>
-  </target>
+		<exec dir="${LEVEL}" executable="${COMPILE_EXEC}" failonerror="true">
+			<arg line="${COMPILE_ARGS}"/>
+		</exec>
+		
+		<echo message="EXECUTING: ${LINKER_EXEC} ${LINKER_ARGS}"/>
+		<exec dir="${LEVEL}" executable="${LINKER_EXEC}" failonerror="true">
+			<arg line="${LINKER_ARGS}"/>
+		</exec>
+	</target>
+
+	<target name="compile_cooja" depends="init">
+		<ant dir="../../" antfile="build.xml" target="jar"/>
+	</target>
 	
-  <target name="level2" depends="init">
-	  <property name="LEVEL" value="level2"/>
-  	<antcall target="compile_library" inheritall="true"/>
-  	
-  	<javac srcdir="${LEVEL}" destdir="${LEVEL}"/>
-    <java fork="yes" dir="${LEVEL}" classname="Level2"/>
-  </target>
+	<target name="level2" depends="init">
+		<property name="LEVEL" value="level2"/>
+		<antcall target="compile_library" inheritall="true"/>
+		
+		<javac srcdir="${LEVEL}" destdir="${LEVEL}"/>
+		<java fork="yes" dir="${LEVEL}" classname="Level2"/>
+	</target>
 
-  <target name="level3" depends="init">
-	  <property name="LEVEL" value="level3"/>
-  	<antcall target="compile_library" inheritall="true"/>
-  	
-  	<javac srcdir="${LEVEL}" destdir="${LEVEL}"/>
-    <java fork="yes" dir="${LEVEL}" classname="Level3"/>
-  </target>
+	<target name="level3a" depends="init">
+		<property name="LEVEL" value="level3a"/>
+		<antcall target="compile_library" inheritall="true"/>
+		
+		<javac srcdir="${LEVEL}" destdir="${LEVEL}" classpath="../../dist/cooja.jar"/>
+		<java fork="yes" dir="${LEVEL}" classname="Level3a">
+			<classpath>
+				<pathelement location="../../dist/cooja.jar"/>
+				<pathelement location="${LEVEL}"/>
+			</classpath>
+		</java>	
+	</target>
 
-  <target name="level4" depends="init">
-	  <property name="LEVEL" value="level4"/>
-  	<antcall target="compile_library" inheritall="true"/>
-  	
-  	<javac srcdir="${LEVEL}" destdir="${LEVEL}"/>
-    <java fork="yes" dir="${LEVEL}" classname="Level4"/>
-  </target>
+	<target name="level3b" depends="init">
+		<property name="LEVEL" value="level3b"/>
+		<antcall target="compile_library" inheritall="true"/>
+		
+		<javac srcdir="${LEVEL}" destdir="${LEVEL}" classpath="../../dist/cooja.jar"/>
+		<java fork="yes" dir="${LEVEL}" classname="Level3b">
+			<classpath>
+				<pathelement location="../../dist/cooja.jar"/>
+				<pathelement location="${LEVEL}"/>
+			</classpath>
+		</java>	
+	</target>
+
+	<target name="level4" depends="init">
+		<property name="LEVEL" value="level4"/>
+		<antcall target="compile_library" inheritall="true"/>
+		
+		<javac srcdir="${LEVEL}" destdir="${LEVEL}" classpath="../../dist/cooja.jar"/>
+		<java fork="yes" dir="${LEVEL}" classname="Level4">
+			<classpath>
+				<pathelement location="../../dist/cooja.jar"/>
+				<pathelement location="${LEVEL}"/>
+			</classpath>
+		</java>	
+	</target>
 
 	<target name="level5" depends="init">
-	  <property name="LEVEL" value="level5"/>
-  	<antcall target="compile_library" inheritall="true"/>
-  	
-  	<javac srcdir="${LEVEL}" destdir="${LEVEL}"/>
-    <java fork="yes" dir="${LEVEL}" classname="Level5"/>
-	 </target>
+		<property name="LEVEL" value="level5"/>
+		<antcall target="compile_library" inheritall="true"/>
+		
+		<javac srcdir="${LEVEL}" destdir="${LEVEL}" classpath="../../dist/cooja.jar"/>
+		<java fork="yes" dir="${LEVEL}" classname="Level5">
+			<classpath>
+				<pathelement location="../../dist/cooja.jar"/>
+				<pathelement location="${LEVEL}"/>
+			</classpath>
+		</java>	
+	</target>
 
 </project>
