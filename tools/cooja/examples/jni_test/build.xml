@@ -5,26 +5,39 @@
 
 	<target name="help">
 		<echo>
-Linux users with the GNU toolchain often can use:			
+The majority of problems encountered during these tests are related to 
+the compilation and linking stage of the Contiki libraries.
+Below follows a number of configurations that work for different users.
+
+Linux users with the GNU toolchain may try:
 	COMPILER_ARGS = [PENDING]
 	LINK_COMMAND_1 = [PENDING]
 	LINK_COMMAND_2 = [PENDING]
 			
-Cygwin users may try:
-	COMPILER_ARGS = [PENDING]
-	LINK_COMMAND_1 = [PENDING]
-	LINK_COMMAND_2 = [PENDING]
+Windows users with recent Cygwin may try:
+	COMPILER_ARGS = -mno-cygwin -Wall -I'$(JAVA_HOME)/include' -I'$(JAVA_HOME)/include/win32'
+	LINK_COMMAND_1 = gcc -mno-cygwin -shared -Wl,-Map=$(MAPFILE) -Wl,--add-stdcall-alias -o $(LIBFILE)
+	LINK_COMMAND_2 = -L/usr/lib/mingw -lmsvcrt
 
-Windows users with recent Cygwin:
-In recent (early 2007) MinGW-Cygwin versions, the JNI support has been removed/limited.
+Windows users with older Cygwin may try:
+	COMPILER_ARGS = -mno-cygwin -I'$(JAVA_HOME)/include' -I'$(JAVA_HOME)/include/win32'
+	LINK_COMMAND_1 = ld -Map=$(MAPFILE) -shared --add-stdcall-alias /usr/lib/mingw/dllcrt2.o -o $(LIBFILE)
+	LINK_COMMAND_2 = -L/usr/lib/mingw -lmingw32 -lmingwex -lmsvcrt
+
+Windows users with recent Cygwin and separate MinGW tools may try:
+In recent (early 2007) MinGW-Cygwin versions, the JNI support has been limited.
 This may cause COOJA not to be able to load libraries generated using gcc's -mno-cygwin flag.
 One possible solution is to download "real" MinGW (http://www.mingw.org), and install it separately
 from Cygwin (for example in c:\mingw). Try using the following settings:
-
 	COMPILER_ARGS = -Wall -D_JNI_IMPLEMENTATION_ -I'$(JAVA_HOME)/include' -I'$(JAVA_HOME)/include/win32'
 	LINK_COMMAND_1 = gcc -shared -Wl,-Map=$(MAPFILE) -Wall -D_JNI_IMPLEMENTATION_ -Wl,--kill-at -o $(LIBFILE)
 	LINK_COMMAND_2 = 
 
+Mac users may try:
+	COMPILER_ARGS = [PENDING]
+	LINK_COMMAND_1 = [PENDING]
+	LINK_COMMAND_2 = [PENDING]
+			
 		</echo>
 	</target>
 	
@@ -144,6 +157,29 @@ For more information including configuration examples:
 		
 		<javac srcdir="${LEVEL}" destdir="${LEVEL}"/>
 		<java fork="yes" dir="${LEVEL}" classname="Level2"/>
+	</target>
+
+	<target name="level3">
+		<echo>
+Run either
+	> ant level3a
+or
+	> ant level3b			
+
+3a tests parsing library addresses using the map file generated at link time.
+3b tests parsing library addresses using the nm tool.
+At least one of the tests must pass.
+
+After passing, the 'exttools.cfg' must be updated.
+The external tools setting:
+	PARSE_WITH_NM=true
+causes COOJA (and the following tests) to use nm to parse library addresses,
+and should be used if test 3b passed.
+
+	PARSE_WITH_NM=false
+causes COOJA to parse the generated map file, and should be used if test 3a passed.
+			
+		</echo>
 	</target>
 
 	<target name="level3a" depends="init">
