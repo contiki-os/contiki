@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ContikiMoteType.java,v 1.18 2007/09/10 13:26:54 fros4943 Exp $
+ * $Id: ContikiMoteType.java,v 1.19 2007/09/10 14:05:34 fros4943 Exp $
  */
 
 package se.sics.cooja.contikimote;
@@ -55,7 +55,7 @@ import se.sics.cooja.dialogs.MessageList;
  * <p>
  * All core communication with the Contiki mote should be via this class. When a
  * mote type is created it allocates a CoreComm to be used with this type, and
- * loads a map file. The map file is used to map variable names to addresses.
+ * loads the variable and segments addresses.
  * <p>
  * When a new mote type is created an initialization function is run on the
  * Contiki system in order to create the initial memory. When a new mote is
@@ -188,10 +188,7 @@ public class ContikiMoteType implements MoteType {
   }
 
   /**
-   * Creates a new Contiki mote type. This type uses two external files: a map
-   * file for parsing relative addresses of Contiki variables (identifier +
-   * ".map") and a library file with an actual compiled Contiki system
-   * (identifier + ".library")
+   * Creates a new Contiki mote type.
    *
    * @param identifier
    *          Unique identifier for this mote type
@@ -244,10 +241,6 @@ public class ContikiMoteType implements MoteType {
         throw new MoteTypeCreationException("Could not delete output file: "
             + depFile);
       }
-      if (mapFile.exists()) {
-        throw new MoteTypeCreationException("Could not delete output file: "
-            + mapFile);
-      }
 
       // Generate Contiki main source file
       try {
@@ -266,7 +259,7 @@ public class ContikiMoteType implements MoteType {
           hasSystemSymbols, commStack, taskOutput
               .getInputStream(MessageList.NORMAL), taskOutput
               .getInputStream(MessageList.ERROR));
-      if (!libFile.exists() || !depFile.exists() || !mapFile.exists()) {
+      if (!libFile.exists() || !depFile.exists()) {
         compilationSucceded = false;
       }
 
@@ -292,8 +285,9 @@ public class ContikiMoteType implements MoteType {
    * configuration files, and the libraries must be recompiled.
    *
    * This method allocates a core communicator, loads the Contiki library file,
-   * loads and parses the map file, creates a variable name to address mapping
-   * of the Contiki system and finally creates the Contiki mote initial memory.
+   * loads and parses library addresses, creates a variable name to address
+   * mapping of the Contiki system and finally creates the Contiki mote initial
+   * memory.
    *
    * @param identifier
    *          Mote type identifier
@@ -317,33 +311,62 @@ public class ContikiMoteType implements MoteType {
           + libFile);
     }
 
-    // Check that map file exists
-    if (!mapFile.exists()) {
-      throw new MoteTypeCreationException("Map file could not be found: "
-          + mapFile);
-    }
-
     // Allocate core communicator class
     libraryClassName = CoreComm.getAvailableClassName();
     myCoreComm = CoreComm.createCoreComm(libraryClassName, libFile);
 
-    // Try load map file
-    Vector<String> mapFileData = loadMapFile(mapFile);
+    // Should we parse addresses using map file or nm?
+    boolean useNm = Boolean.parseBoolean(GUI.getExternalToolsSetting("PARSE_WITH_NM", "false"));
 
-    // Try load nm data
-    Vector<String> nmData = loadNmData(libFile);
+    int relDataSectionAddr = -1;
+    int dataSectionSize = -1;
+    int relBssSectionAddr = -1;
+    int bssSectionSize = -1;
+
+    if (useNm) {
+      // Parse nm output
+      Vector<String> nmData = loadNmData(libFile);
+      if (nmData == null) {
+        logger.fatal("No nm data could be loaded");
+        throw new MoteTypeCreationException("No nm data could be loaded");
+      }
+
+      boolean parseOK = parseNmData(nmData, varAddresses);
+      if (!parseOK) {
+        logger.fatal("Nm data parsing failed");
+        throw new MoteTypeCreationException("Nm data parsing failed");
+      }
+
+      relDataSectionAddr = loadNmRelDataSectionAddr(nmData);
+      dataSectionSize = loadNmDataSectionSize(nmData);
+      relBssSectionAddr = loadNmRelBssSectionAddr(nmData);
+      bssSectionSize = loadNmBssSectionSize(nmData);
+    } else {
+      // Parse map file
+      if (!mapFile.exists()) {
+        logger.fatal("Map file " + mapFile.getAbsolutePath() + " could not be found!");
+        throw new MoteTypeCreationException("Map file " + mapFile.getAbsolutePath() + " could not be found!");
+      }
+
+      Vector<String> mapData = loadMapFile(mapFile);
+      if (mapData == null) {
+        logger.fatal("No map data could be loaded");
+        throw new MoteTypeCreationException("No map data could be loaded");
+      }
+
+      boolean parseOK = parseMapFileData(mapData, varAddresses);
+      if (!parseOK) {
+        logger.fatal("Map data parsing failed");
+        throw new MoteTypeCreationException("Map data parsing failed");
+      }
+
+      relDataSectionAddr = loadRelDataSectionAddr(mapData);
+      dataSectionSize = loadDataSectionSize(mapData);
+      relBssSectionAddr = loadRelBssSectionAddr(mapData);
+      bssSectionSize = loadBssSectionSize(mapData);
+    }
 
     // Create variable names to addresses mappings
-    varAddresses.clear();
-    if (mapFileData == null || !parseMapFileData(mapFileData, varAddresses)) {
-      logger.fatal("Map file parsing failed");
-    }
-    logger
-        .info("Testing experimental nm response parsing for finding variable addresses");
-    if (nmData == null || !parseNmData(nmData, varAddresses)) {
-      logger.fatal("Nm response parsing failed");
-    }
-
     if (varAddresses.size() == 0) {
       throw new MoteTypeCreationException(
           "Variable name to addresses mappings could not be created");
@@ -351,18 +374,11 @@ public class ContikiMoteType implements MoteType {
 
     try {
       // Get offset between relative and absolute addresses
-      offsetRelToAbs = getReferenceAbsAddr()
-          - getRelVarAddr(mapFileData, "referenceVar");
+      offsetRelToAbs = getReferenceAbsAddr() - (Integer) varAddresses.get("referenceVar");
     } catch (Exception e) {
       throw (MoteTypeCreationException) new MoteTypeCreationException(
           "JNI call error: " + e.getMessage()).initCause(e);
     }
-
-    // Parse addresses of data and BSS memory sections
-    int relDataSectionAddr = loadRelDataSectionAddr(mapFileData);
-    int dataSectionSize = loadDataSectionSize(mapFileData);
-    int relBssSectionAddr = loadRelBssSectionAddr(mapFileData);
-    int bssSectionSize = loadBssSectionSize(mapFileData);
 
     if (relDataSectionAddr <= 0 || dataSectionSize <= 0
         || relBssSectionAddr <= 0 || bssSectionSize <= 0) {
