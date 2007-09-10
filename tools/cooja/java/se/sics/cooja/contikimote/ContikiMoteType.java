@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ContikiMoteType.java,v 1.17 2007/07/11 15:22:22 fros4943 Exp $
+ * $Id: ContikiMoteType.java,v 1.18 2007/09/10 13:26:54 fros4943 Exp $
  */
 
 package se.sics.cooja.contikimote;
@@ -61,7 +61,7 @@ import se.sics.cooja.dialogs.MessageList;
  * Contiki system in order to create the initial memory. When a new mote is
  * created the createInitialMemory() method should be called to get this initial
  * memory for the mote.
- * 
+ *
  * @author Fredrik Osterlind
  */
 @ClassDescription("Contiki Mote Type")
@@ -92,69 +92,73 @@ public class ContikiMoteType implements MoteType {
    * Communication stacks in Contiki.
    */
   public enum CommunicationStack {
-    UIP,
-    UIP_UAODV,
-    RIME;
+    UIP, UIP_UAODV, RIME;
 
     public String toString() {
-      if (this == UIP)
+      if (this == UIP) {
         return "uIP";
-      if (this == UIP_UAODV)
+      }
+      if (this == UIP_UAODV) {
         return "uIP over uAODV";
-      if (this == RIME)
+      }
+      if (this == RIME) {
         return "Rime";
+      }
       return "[unknown]";
     }
-    
+
     public String getSourceFilenamesString() {
-      if (this == UIP)
+      if (this == UIP) {
         return " cooja-radio.c radio-uip.c init-net-uip.c";
-      if (this == UIP_UAODV)
+      }
+      if (this == UIP_UAODV) {
         return " cooja-radio.c radio-uip-uaodv.c init-net-uip-uaodv.c crc16.c";
-      if (this == RIME)
+      }
+      if (this == RIME) {
         return " cooja-radio.c init-net-rime.c";
+      }
       return " ";
     }
 
     public static CommunicationStack parse(String name) {
-      if (name.equals("uIP") || name.equals("UIP"))
+      if (name.equals("uIP") || name.equals("UIP")) {
         return UIP;
-      if (name.equals("uIP over uAODV") || name.equals("UIP_UAODV"))
+      }
+      if (name.equals("uIP over uAODV") || name.equals("UIP_UAODV")) {
         return UIP_UAODV;
-      if (name.equals("Rime") || name.equals("RIME"))
+      }
+      if (name.equals("Rime") || name.equals("RIME")) {
         return RIME;
-      
+      }
+
       logger.warn("Can't parse communication stack name: " + name);
       return UIP;
     }
   }
-  
-  // Regular expressions for parsing the map file
-  final static private String bssSectionAddrRegExp = "^.bss[ \t]*0x([0-9A-Fa-f]*)[ \t]*0x[0-9A-Fa-f]*[ \t]*$";
-  final static private String bssSectionSizeRegExp = "^.bss[ \t]*0x[0-9A-Fa-f]*[ \t]*0x([0-9A-Fa-f]*)[ \t]*$";
-  final static private String dataSectionAddrRegExp = "^.data[ \t]*0x([0-9A-Fa-f]*)[ \t]*0x[0-9A-Fa-f]*[ \t]*$";
-  final static private String dataSectionSizeRegExp = "^.data[ \t]*0x[0-9A-Fa-f]*[ \t]*0x([0-9A-Fa-f]*)[ \t]*$";
-  final static private String varAddressRegExpPrefix = "^[ \t]*0x([0-9A-Fa-f]*)[ \t]*";
-  final static private String varAddressRegExpSuffix = "[ \t]*$";
-  final static private String varNameRegExp = "^[ \t]*(0x[0-9A-Fa-f]*)[ \t]*([^ ]*)[ \t]*$";
-  final static private String varSizeRegExpPrefix = "^";
-  final static private String varSizeRegExpSuffix = "[ \t]*(0x[0-9A-Fa-f]*)[ \t]*[^ ]*[ \t]*$";
 
-  // Regular expressions for parsing nm response
-  final static private String nmRegExp = "^([0-9A-Fa-f][0-9A-Fa-f]*)[ \t][^Tt][ \t]([^ ._][^ ]*)";
-  
   // Mote type specific data
   private String identifier = null;
+
   private String description = null;
+
   private String contikiBaseDir = null;
+
   private String contikiCoreDir = null;
+
   private Vector<File> projectDirs = null;
+
   private Vector<File> compilationFiles = null;
+
   private Vector<String> processes = null;
+
   private Vector<String> sensors = null;
+
   private Vector<String> coreInterfaces = null;
+
   private Vector<Class<? extends MoteInterface>> moteInterfaces = null;
+
   private boolean hasSystemSymbols = false;
+
   private CommunicationStack commStack = CommunicationStack.UIP;
 
   // Simulation holding this mote type
@@ -165,7 +169,9 @@ public class ContikiMoteType implements MoteType {
 
   // Core communication variables
   private String libraryClassName = null;
+
   private int offsetRelToAbs = 0;
+
   private CoreComm myCoreComm = null;
 
   // Variable name to address mappings
@@ -186,7 +192,7 @@ public class ContikiMoteType implements MoteType {
    * file for parsing relative addresses of Contiki variables (identifier +
    * ".map") and a library file with an actual compiled Contiki system
    * (identifier + ".library")
-   * 
+   *
    * @param identifier
    *          Unique identifier for this mote type
    */
@@ -198,69 +204,79 @@ public class ContikiMoteType implements MoteType {
     return new ContikiMote(this, simulation);
   }
 
-  public boolean configureAndInit(JFrame parentFrame, Simulation simulation, boolean visAvailable)
-  throws MoteTypeCreationException {
+  public boolean configureAndInit(JFrame parentFrame, Simulation simulation,
+      boolean visAvailable) throws MoteTypeCreationException {
     if (visAvailable) {
       return ContikiMoteTypeDialog.showDialog(parentFrame, simulation, this);
     } else {
-      
+
       // Create temp output directory if not already exists
-      if (!ContikiMoteType.tempOutputDirectory.exists())
-        ContikiMoteType.tempOutputDirectory.mkdir();
       if (!ContikiMoteType.tempOutputDirectory.exists()) {
-        throw new MoteTypeCreationException("Could not create output directory: " + ContikiMoteType.tempOutputDirectory);
+        ContikiMoteType.tempOutputDirectory.mkdir();
+      }
+      if (!ContikiMoteType.tempOutputDirectory.exists()) {
+        throw new MoteTypeCreationException(
+            "Could not create output directory: "
+                + ContikiMoteType.tempOutputDirectory);
       }
 
       // Delete output files
-      File libFile = new File(ContikiMoteType.tempOutputDirectory,
-          identifier + ContikiMoteType.librarySuffix);
-      File mapFile = new File(ContikiMoteType.tempOutputDirectory,
-          identifier + ContikiMoteType.mapSuffix);
-      File depFile = new File(ContikiMoteType.tempOutputDirectory,
-          identifier + ContikiMoteType.dependSuffix);
-      if (libFile.exists())
-        libFile.delete();
-      if (depFile.exists())
-        depFile.delete();
-      if (mapFile.exists())
-        mapFile.delete();
+      File libFile = new File(ContikiMoteType.tempOutputDirectory, identifier
+          + ContikiMoteType.librarySuffix);
+      File mapFile = new File(ContikiMoteType.tempOutputDirectory, identifier
+          + ContikiMoteType.mapSuffix);
+      File depFile = new File(ContikiMoteType.tempOutputDirectory, identifier
+          + ContikiMoteType.dependSuffix);
       if (libFile.exists()) {
-        throw new MoteTypeCreationException("Could not delete output file: " + libFile);
+        libFile.delete();
       }
       if (depFile.exists()) {
-        throw new MoteTypeCreationException("Could not delete output file: " + depFile);
+        depFile.delete();
       }
       if (mapFile.exists()) {
-        throw new MoteTypeCreationException("Could not delete output file: " + mapFile);
+        mapFile.delete();
+      }
+      if (libFile.exists()) {
+        throw new MoteTypeCreationException("Could not delete output file: "
+            + libFile);
+      }
+      if (depFile.exists()) {
+        throw new MoteTypeCreationException("Could not delete output file: "
+            + depFile);
+      }
+      if (mapFile.exists()) {
+        throw new MoteTypeCreationException("Could not delete output file: "
+            + mapFile);
       }
 
       // Generate Contiki main source file
       try {
-        ContikiMoteTypeDialog.generateSourceFile(identifier, sensors, coreInterfaces, processes);
+        ContikiMoteTypeDialog.generateSourceFile(identifier, sensors,
+            coreInterfaces, processes);
       } catch (Exception e) {
         throw (MoteTypeCreationException) new MoteTypeCreationException(
-            "Error during main source file generation: " + e.getMessage()).initCause(e);
+            "Error during main source file generation: " + e.getMessage())
+            .initCause(e);
       }
 
       // Compile library
       MessageList taskOutput = new MessageList();
       boolean compilationSucceded = ContikiMoteTypeDialog.compileLibrary(
-          identifier, 
-          new File(contikiBaseDir), 
-          compilationFiles, 
-          hasSystemSymbols,
-          commStack,
-          taskOutput.getInputStream(MessageList.NORMAL),
-          taskOutput.getInputStream(MessageList.ERROR));
-      if (!libFile.exists() || !depFile.exists() || !mapFile.exists())
+          identifier, new File(contikiBaseDir), compilationFiles,
+          hasSystemSymbols, commStack, taskOutput
+              .getInputStream(MessageList.NORMAL), taskOutput
+              .getInputStream(MessageList.ERROR));
+      if (!libFile.exists() || !depFile.exists() || !mapFile.exists()) {
         compilationSucceded = false;
+      }
 
       if (!compilationSucceded) {
-        MoteTypeCreationException ex = new MoteTypeCreationException("Compilation error");
+        MoteTypeCreationException ex = new MoteTypeCreationException(
+            "Compilation error");
         ex.setCompilationOutput(taskOutput);
         throw ex;
       }
-      
+
       // Load compiled library
       doInit(identifier);
 
@@ -274,11 +290,11 @@ public class ContikiMoteType implements MoteType {
    * the constructor with an identifier argument. but not from the standard
    * constructor. This method may be called from the simulator when loading
    * configuration files, and the libraries must be recompiled.
-   * 
+   *
    * This method allocates a core communicator, loads the Contiki library file,
    * loads and parses the map file, creates a variable name to address mapping
    * of the Contiki system and finally creates the Contiki mote initial memory.
-   * 
+   *
    * @param identifier
    *          Mote type identifier
    */
@@ -286,22 +302,25 @@ public class ContikiMoteType implements MoteType {
     this.identifier = identifier;
 
     if (myCoreComm != null) {
-      throw new MoteTypeCreationException("Core communicator already used: " + myCoreComm.getClass().getName());
+      throw new MoteTypeCreationException("Core communicator already used: "
+          + myCoreComm.getClass().getName());
     }
 
-    File libFile = new File(ContikiMoteType.tempOutputDirectory,
-        identifier + librarySuffix);
-    File mapFile = new File(ContikiMoteType.tempOutputDirectory,
-        identifier + mapSuffix);
+    File libFile = new File(ContikiMoteType.tempOutputDirectory, identifier
+        + librarySuffix);
+    File mapFile = new File(ContikiMoteType.tempOutputDirectory, identifier
+        + mapSuffix);
 
     // Check that library file exists
     if (!libFile.exists()) {
-      throw new MoteTypeCreationException("Library file could not be found: " + libFile);
+      throw new MoteTypeCreationException("Library file could not be found: "
+          + libFile);
     }
 
     // Check that map file exists
     if (!mapFile.exists()) {
-      throw new MoteTypeCreationException("Map file could not be found: " + mapFile);
+      throw new MoteTypeCreationException("Map file could not be found: "
+          + mapFile);
     }
 
     // Allocate core communicator class
@@ -319,15 +338,17 @@ public class ContikiMoteType implements MoteType {
     if (mapFileData == null || !parseMapFileData(mapFileData, varAddresses)) {
       logger.fatal("Map file parsing failed");
     }
-    logger.info("Testing experimental nm response parsing for finding variable addresses");
+    logger
+        .info("Testing experimental nm response parsing for finding variable addresses");
     if (nmData == null || !parseNmData(nmData, varAddresses)) {
       logger.fatal("Nm response parsing failed");
     }
 
     if (varAddresses.size() == 0) {
-      throw new MoteTypeCreationException("Variable name to addresses mappings could not be created");
+      throw new MoteTypeCreationException(
+          "Variable name to addresses mappings could not be created");
     }
-    
+
     try {
       // Get offset between relative and absolute addresses
       offsetRelToAbs = getReferenceAbsAddr()
@@ -345,16 +366,17 @@ public class ContikiMoteType implements MoteType {
 
     if (relDataSectionAddr <= 0 || dataSectionSize <= 0
         || relBssSectionAddr <= 0 || bssSectionSize <= 0) {
-      throw new MoteTypeCreationException("Could not parse section addresses correctly");
+      throw new MoteTypeCreationException(
+          "Could not parse section addresses correctly");
     }
 
     // Create initial memory
     byte[] initialDataSection = new byte[dataSectionSize];
-    getCoreMemory(relDataSectionAddr
-        + offsetRelToAbs, dataSectionSize, initialDataSection);
+    getCoreMemory(relDataSectionAddr + offsetRelToAbs, dataSectionSize,
+        initialDataSection);
     byte[] initialBssSection = new byte[bssSectionSize];
-    getCoreMemory(
-        relBssSectionAddr + offsetRelToAbs, bssSectionSize, initialBssSection);
+    getCoreMemory(relBssSectionAddr + offsetRelToAbs, bssSectionSize,
+        initialBssSection);
     initialMemory = new SectionMoteMemory(varAddresses);
     initialMemory.setMemorySegment(relDataSectionAddr, initialDataSection);
     initialMemory.setMemorySegment(relBssSectionAddr, initialBssSection);
@@ -372,7 +394,7 @@ public class ContikiMoteType implements MoteType {
    * Creates and returns a copy of this mote type's initial memory (just after
    * the init function has been run). When a new mote is created it should get
    * it's memory from here.
-   * 
+   *
    * @return Initial memory of a mote type
    */
   public SectionMoteMemory createInitialMemory() {
@@ -382,7 +404,7 @@ public class ContikiMoteType implements MoteType {
   /**
    * Copy given memory to the Contiki system. This should not be used directly,
    * but instead via ContikiMote.setMemory().
-   * 
+   *
    * @param mem
    *          New memory
    */
@@ -396,24 +418,27 @@ public class ContikiMoteType implements MoteType {
   /**
    * Parses specified map file data for variable name to addresses mappings. The
    * mappings are added to the given properties object.
-   * 
+   *
    * @param mapFileData
    *          Contents of entire map file
    * @param varAddresses
    *          Properties that should contain the name to addresses mappings.
    */
-  private boolean parseMapFileData(Vector<String> mapFileData, Properties varAddresses) {
+  public static boolean parseMapFileData(Vector<String> mapFileData,
+      Properties varAddresses) {
     Vector<String> varNames = getMapFileVarNames(mapFileData);
-    if (varNames == null || varNames.size() == 0)
+    if (varNames == null || varNames.size() == 0) {
       return false;
-    
+    }
+
     for (String varName : varNames) {
-      int varAddress = getMapFileVarAddress(mapFileData, varName);
+      int varAddress = getMapFileVarAddress(mapFileData, varName, varAddresses);
       if (varAddress > 0) {
         varAddresses.put(varName, new Integer(varAddress));
-      } else
+      } else {
         logger.warn("Parsed Contiki variable '" + varName
             + "' but could not find address");
+      }
     }
 
     return true;
@@ -422,51 +447,58 @@ public class ContikiMoteType implements MoteType {
   /**
    * Parses specified nm data for variable name to addresses mappings. The
    * mappings are added to the given properties object.
-   * 
+   *
    * @param nmData
    *          Response from nm command on object file
    * @param varAddresses
    *          Properties that should contain the name to addresses mappings.
    */
-  public static boolean parseNmData(Vector<String> nmData, Properties varAddresses) {
+  public static boolean parseNmData(Vector<String> nmData,
+      Properties varAddresses) {
     int nrNew = 0, nrOld = 0, nrMismatch = 0;
-    
-    Pattern pattern = Pattern.compile(nmRegExp);
-    for (String nmLine: nmData) {
+
+    Pattern pattern = Pattern.compile(GUI
+        .getExternalToolsSetting("NM_VAR_NAME_ADDRESS"));
+    for (String nmLine : nmData) {
       Matcher matcher = pattern.matcher(nmLine);
-      
+
       if (matcher.find()) {
-        //logger.debug("Parsing line: " + nmLine);
+        // logger.debug("Parsing line: " + nmLine);
         String varName = matcher.group(2);
         int varAddress = Integer.parseInt(matcher.group(1), 16);
-        
+
         if (!varAddresses.containsKey(varName)) {
           nrNew++;
           varAddresses.put(varName, new Integer(varAddress));
         } else {
           int oldAddress = (Integer) varAddresses.get(varName);
           if (oldAddress != varAddress) {
-            logger.warn("Warning, nm response not matching previous entry of: " + varName);
+            logger.warn("Warning, nm response not matching previous entry of: "
+                + varName);
             nrMismatch++;
           }
-             
+
           nrOld++;
         }
       }
     }
 
-    if (nrMismatch > 0)
-      logger.debug("Nm response parsing summary: Added " + nrNew + " variables. Found " + nrOld + " old variables. MISMATCHING ADDRESSES: " + nrMismatch);
-    else
-      logger.debug("Nm response parsing summary: Added " + nrNew + " variables. Found " + nrOld + " old variables");
+    if (nrMismatch > 0) {
+      logger.debug("Nm response parsing summary: Added " + nrNew
+          + " variables. Found " + nrOld
+          + " old variables. MISMATCHING ADDRESSES: " + nrMismatch);
+    } else {
+      logger.debug("Nm response parsing summary: Added " + nrNew
+          + " variables. Found " + nrOld + " old variables");
+    }
 
     return (nrNew + nrOld) > 0;
   }
-  
+
   /**
    * Copy core memory to given memory. This should not be used directly, but
    * instead via ContikiMote.getMemory().
-   * 
+   *
    * @param mem
    *          Memory to set
    */
@@ -475,9 +507,8 @@ public class ContikiMoteType implements MoteType {
       int startAddr = mem.getStartAddrOfSection(i);
       int size = mem.getSizeOfSection(i);
       byte[] data = mem.getDataOfSection(i);
-      
-      getCoreMemory(startAddr + offsetRelToAbs,
-          size, data);
+
+      getCoreMemory(startAddr + offsetRelToAbs, size, data);
     }
   }
 
@@ -490,33 +521,35 @@ public class ContikiMoteType implements MoteType {
   }
 
   /**
-   * @param using Core library has system symbols information
+   * @param using
+   *          Core library has system symbols information
    */
   public void setHasSystemSymbols(boolean using) {
     hasSystemSymbols = using;
   }
-  
+
   /**
    * @return Whether core library has system symbols information
    */
   public boolean hasSystemSymbols() {
     return hasSystemSymbols;
   }
-    
+
   /**
-   * @param commStack Communication stack
+   * @param commStack
+   *          Communication stack
    */
   public void setCommunicationStack(CommunicationStack commStack) {
     this.commStack = commStack;
   }
-  
+
   /**
    * @return Contiki communication stack
    */
   public CommunicationStack getCommunicationStack() {
     return commStack;
   }
-  
+
   /**
    * @return Contiki mote type's library class name
    */
@@ -526,12 +559,12 @@ public class ContikiMoteType implements MoteType {
 
   /**
    * Get relative address of variable with given name.
-   * 
+   *
    * @param varName
    *          Name of variable
    * @return Relative memory address of variable or -1 if not found
    */
-  protected int getMapFileVarAddress(Vector<String> mapFileData, String varName) {
+  public static int getMapFileVarAddress(Vector<String> mapFileData, String varName, Properties varAddresses) {
     int varAddr;
     String varAddrString;
     if ((varAddrString = varAddresses.getProperty(varName)) != null) {
@@ -539,15 +572,17 @@ public class ContikiMoteType implements MoteType {
       return varAddr;
     }
 
-    String regExp = varAddressRegExpPrefix + varName + varAddressRegExpSuffix;
+    String regExp = GUI.getExternalToolsSetting("MAPFILE_VAR_ADDRESS_1")
+        + varName + GUI.getExternalToolsSetting("MAPFILE_VAR_ADDRESS_2");
     String retString = getFirstMatchGroup(mapFileData, regExp, 1);
 
     if (retString != null) {
       varAddresses.setProperty(varName, Integer.toString(Integer.parseInt(
           retString.trim(), 16)));
       return Integer.parseInt(retString.trim(), 16);
-    } else
+    } else {
       return -1;
+    }
   }
 
   private int getReferenceAbsAddr() {
@@ -578,10 +613,10 @@ public class ContikiMoteType implements MoteType {
    * Returns all variable names in both data and BSS section by parsing the map
    * file. These values should not be trusted completely as the parsing may
    * fail.
-   * 
+   *
    * @return Variable names found in the data and bss section
    */
-  private Vector<String> getMapFileVarNames(Vector<String> mapFileData) {
+  public static Vector<String> getMapFileVarNames(Vector<String> mapFileData) {
 
     Vector<String> varNames = getAllVariableNames(mapFileData,
         loadRelDataSectionAddr(mapFileData),
@@ -594,11 +629,12 @@ public class ContikiMoteType implements MoteType {
     return varNames;
   }
 
-  private Vector<String> getAllVariableNames(Vector<String> lines,
+  public static Vector<String> getAllVariableNames(Vector<String> lines,
       int startAddress, int endAddress) {
     Vector<String> varNames = new Vector<String>();
 
-    Pattern pattern = Pattern.compile(varNameRegExp);
+    Pattern pattern = Pattern.compile(GUI
+        .getExternalToolsSetting("MAPFILE_VAR_NAME"));
     for (int i = 0; i < lines.size(); i++) {
       Matcher matcher = pattern.matcher(lines.elementAt(i));
       if (matcher.find()) {
@@ -612,8 +648,9 @@ public class ContikiMoteType implements MoteType {
   }
 
   protected int getVariableSize(Vector<String> lines, String varName) {
-    Pattern pattern = Pattern.compile(varSizeRegExpPrefix + varName
-        + varSizeRegExpSuffix);
+    Pattern pattern = Pattern.compile(GUI
+        .getExternalToolsSetting("MAPFILE_VAR_SIZE_1")
+        + varName + GUI.getExternalToolsSetting("MAPFILE_VAR_SIZE_2"));
     for (int i = 0; i < lines.size(); i++) {
       Matcher matcher = pattern.matcher(lines.elementAt(i));
       if (matcher.find()) {
@@ -623,53 +660,131 @@ public class ContikiMoteType implements MoteType {
     return -1;
   }
 
-  private static int loadRelDataSectionAddr(Vector<String> mapFileData) {
-    String retString = getFirstMatchGroup(mapFileData, dataSectionAddrRegExp, 1);
+  public static int loadRelDataSectionAddr(Vector<String> mapFileData) {
+    String retString = getFirstMatchGroup(mapFileData, GUI
+        .getExternalToolsSetting("MAPFILE_DATA_START"), 1);
 
-    if (retString != null)
+    if (retString != null) {
       return Integer.parseInt(retString.trim(), 16);
-    else
-      return 0;
+    } else {
+      return -1;
+    }
   }
 
-  private static int loadDataSectionSize(Vector<String> mapFileData) {
-    String retString = getFirstMatchGroup(mapFileData, dataSectionSizeRegExp, 1);
+  public static int loadDataSectionSize(Vector<String> mapFileData) {
+    String retString = getFirstMatchGroup(mapFileData, GUI
+        .getExternalToolsSetting("MAPFILE_DATA_SIZE"), 1);
 
-    if (retString != null)
+    if (retString != null) {
       return Integer.parseInt(retString.trim(), 16);
-    else
-      return 0;
+    } else {
+      return -1;
+    }
   }
 
-  private static int loadRelBssSectionAddr(Vector<String> mapFileData) {
-    String retString = getFirstMatchGroup(mapFileData, bssSectionAddrRegExp, 1);
+  public static int loadRelBssSectionAddr(Vector<String> mapFileData) {
+    String retString = getFirstMatchGroup(mapFileData, GUI
+        .getExternalToolsSetting("MAPFILE_BSS_START"), 1);
 
-    if (retString != null)
+    if (retString != null) {
       return Integer.parseInt(retString.trim(), 16);
-    else
-      return 0;
+    } else {
+      return -1;
+    }
   }
 
-  private static int loadBssSectionSize(Vector<String> mapFileData) {
-    String retString = getFirstMatchGroup(mapFileData, bssSectionSizeRegExp, 1);
+  public static int loadBssSectionSize(Vector<String> mapFileData) {
+    String retString = getFirstMatchGroup(mapFileData, GUI
+        .getExternalToolsSetting("MAPFILE_BSS_SIZE"), 1);
 
-    if (retString != null)
+    if (retString != null) {
       return Integer.parseInt(retString.trim(), 16);
-    else
-      return 0;
+    } else {
+      return -1;
+    }
+  }
+
+  public static int loadNmRelDataSectionAddr(Vector<String> nmData) {
+    String retString = getFirstMatchGroup(nmData, GUI
+        .getExternalToolsSetting("NM_DATA_START"), 1);
+
+    if (retString != null) {
+      return Integer.parseInt(retString.trim(), 16);
+    } else {
+      return -1;
+    }
+  }
+
+  public static int loadNmDataSectionSize(Vector<String> nmData) {
+    String retString;
+    int start, end;
+
+    retString = getFirstMatchGroup(nmData, GUI
+        .getExternalToolsSetting("NM_DATA_START"), 1);
+    if (retString != null) {
+      start = Integer.parseInt(retString.trim(), 16);
+    } else {
+      return -1;
+    }
+
+    retString = getFirstMatchGroup(nmData, GUI
+        .getExternalToolsSetting("NM_DATA_END"), 1);
+    if (retString != null) {
+      end = Integer.parseInt(retString.trim(), 16);
+    } else {
+      return -1;
+    }
+
+    return end - start;
+  }
+
+  public static int loadNmRelBssSectionAddr(Vector<String> nmData) {
+    String retString = getFirstMatchGroup(nmData, GUI
+        .getExternalToolsSetting("NM_BSS_START"), 1);
+
+    if (retString != null) {
+      return Integer.parseInt(retString.trim(), 16);
+    } else {
+      return -1;
+    }
+  }
+
+  public static int loadNmBssSectionSize(Vector<String> nmData) {
+    String retString;
+    int start, end;
+
+    retString = getFirstMatchGroup(nmData, GUI
+        .getExternalToolsSetting("NM_BSS_START"), 1);
+    if (retString != null) {
+      start = Integer.parseInt(retString.trim(), 16);
+    } else {
+      return -1;
+    }
+
+    retString = getFirstMatchGroup(nmData, GUI
+        .getExternalToolsSetting("NM_BSS_END"), 1);
+    if (retString != null) {
+      end = Integer.parseInt(retString.trim(), 16);
+    } else {
+      return -1;
+    }
+
+    return end - start;
   }
 
   private static int getRelVarAddr(Vector<String> mapFileData, String varName) {
-    String regExp = varAddressRegExpPrefix + varName + varAddressRegExpSuffix;
+    String regExp = GUI.getExternalToolsSetting("MAPFILE_VAR_ADDRESS_1")
+        + varName + GUI.getExternalToolsSetting("MAPFILE_VAR_ADDRESS_2");
     String retString = getFirstMatchGroup(mapFileData, regExp, 1);
 
-    if (retString != null)
+    if (retString != null) {
       return Integer.parseInt(retString.trim(), 16);
-    else
-      return 0;
+    } else {
+      return -1;
+    }
   }
 
-  private static Vector<String> loadMapFile(File mapFile) {
+  public static Vector<String> loadMapFile(File mapFile) {
     Vector<String> mapFileData = new Vector<String>();
 
     try {
@@ -692,8 +807,9 @@ public class ContikiMoteType implements MoteType {
 
   /**
    * Runs external tool nm on given file and returns the result.
-   * 
-   * @param libraryFile File
+   *
+   * @param libraryFile
+   *          File
    * @return Execution response
    */
   public static Vector<String> loadNmData(File libraryFile) {
@@ -703,8 +819,9 @@ public class ContikiMoteType implements MoteType {
       String nmPath = GUI.getExternalToolsSetting("PATH_NM");
       String nmArgs = GUI.getExternalToolsSetting("NM_ARGS");
 
-      if (nmPath == null || nmPath.equals(""))
+      if (nmPath == null || nmPath.equals("")) {
         return null;
+      }
 
       String[] nmExecArray;
       if (!nmArgs.trim().equals("")) {
@@ -713,9 +830,10 @@ public class ContikiMoteType implements MoteType {
         nmExecArray = new String[1 + splittedNmArgs.length + 1];
 
         nmExecArray[0] = nmPath.trim();
-        
-        nmExecArray[nmExecArray.length-1] = libraryFile.getAbsolutePath();
-        System.arraycopy(splittedNmArgs, 0, nmExecArray, 1, splittedNmArgs.length);
+
+        nmExecArray[nmExecArray.length - 1] = libraryFile.getAbsolutePath();
+        System.arraycopy(splittedNmArgs, 0, nmExecArray, 1,
+            splittedNmArgs.length);
       } else {
         nmExecArray = new String[2];
         nmExecArray[0] = nmPath.trim();
@@ -724,30 +842,30 @@ public class ContikiMoteType implements MoteType {
 
       String line;
       Process p = Runtime.getRuntime().exec(nmExecArray);
-      BufferedReader input =
-        new BufferedReader
-        (new InputStreamReader(p.getInputStream()));
+      BufferedReader input = new BufferedReader(new InputStreamReader(p
+          .getInputStream()));
       p.getErrorStream().close(); // Ignore error stream
       while ((line = input.readLine()) != null) {
         nmData.add(line);
       }
       input.close();
-    }
-    catch (Exception err) {
+    } catch (Exception err) {
       err.printStackTrace();
       return null;
     }
-    
-    if (nmData == null || nmData.size() == 0)
+
+    if (nmData == null || nmData.size() == 0) {
       return null;
+    }
 
     return nmData;
   }
 
   /**
    * Runs external tool objdump on given file and returns the result.
-   * 
-   * @param libraryFile File
+   *
+   * @param libraryFile
+   *          File
    * @return Execution response
    */
   public static Vector<String> loadObjdumpData(File libraryFile) {
@@ -757,8 +875,9 @@ public class ContikiMoteType implements MoteType {
       String objdumpPath = GUI.getExternalToolsSetting("PATH_OBJDUMP");
       String objdumpArgs = GUI.getExternalToolsSetting("OBJDUMP_ARGS");
 
-      if (objdumpPath == null || objdumpPath.equals(""))
+      if (objdumpPath == null || objdumpPath.equals("")) {
         return null;
+      }
 
       String[] objdumpExecArray;
       if (!objdumpArgs.trim().equals("")) {
@@ -767,9 +886,11 @@ public class ContikiMoteType implements MoteType {
         objdumpExecArray = new String[1 + splittedObjdumpArgs.length + 1];
 
         objdumpExecArray[0] = objdumpPath.trim();
-        
-        objdumpExecArray[objdumpExecArray.length-1] = libraryFile.getAbsolutePath();
-        System.arraycopy(splittedObjdumpArgs, 0, objdumpExecArray, 1, splittedObjdumpArgs.length);
+
+        objdumpExecArray[objdumpExecArray.length - 1] = libraryFile
+            .getAbsolutePath();
+        System.arraycopy(splittedObjdumpArgs, 0, objdumpExecArray, 1,
+            splittedObjdumpArgs.length);
       } else {
         objdumpExecArray = new String[2];
         objdumpExecArray[0] = objdumpPath.trim();
@@ -778,29 +899,28 @@ public class ContikiMoteType implements MoteType {
 
       String line;
       Process p = Runtime.getRuntime().exec(objdumpExecArray);
-      BufferedReader input =
-        new BufferedReader
-        (new InputStreamReader(p.getInputStream()));
+      BufferedReader input = new BufferedReader(new InputStreamReader(p
+          .getInputStream()));
       p.getErrorStream().close(); // Ignore error stream
       while ((line = input.readLine()) != null) {
         objdumpData.add(line);
       }
       input.close();
-    }
-    catch (Exception err) {
+    } catch (Exception err) {
       err.printStackTrace();
       return null;
     }
-    
-    if (objdumpData == null || objdumpData.size() == 0)
+
+    if (objdumpData == null || objdumpData.size() == 0) {
       return null;
+    }
 
     return objdumpData;
   }
 
   /**
    * Returns simulation holding this mote type
-   * 
+   *
    * @return Simulation
    */
   public Simulation getSimulation() {
@@ -809,7 +929,7 @@ public class ContikiMoteType implements MoteType {
 
   /**
    * Sets simulation holding this mote type
-   * 
+   *
    * @param simulation
    *          Simulation holding this mote type
    */
@@ -827,7 +947,7 @@ public class ContikiMoteType implements MoteType {
 
   /**
    * Returns path to contiki base dir
-   * 
+   *
    * @return String containing path
    */
   public String getContikiBaseDir() {
@@ -836,7 +956,7 @@ public class ContikiMoteType implements MoteType {
 
   /**
    * Sets contiki base dir to path.
-   * 
+   *
    * @param path
    *          Contiki base dir
    */
@@ -846,7 +966,7 @@ public class ContikiMoteType implements MoteType {
 
   /**
    * Returns path to contiki core dir
-   * 
+   *
    * @return String containing path
    */
   public String getContikiCoreDir() {
@@ -855,7 +975,7 @@ public class ContikiMoteType implements MoteType {
 
   /**
    * Sets contiki core dir to path.
-   * 
+   *
    * @param path
    *          Contiki core dir
    */
@@ -865,7 +985,7 @@ public class ContikiMoteType implements MoteType {
 
   /**
    * Returns compilation files
-   * 
+   *
    * @return Compilation files
    */
   public Vector<File> getCompilationFiles() {
@@ -874,7 +994,7 @@ public class ContikiMoteType implements MoteType {
 
   /**
    * Sets compilation files.
-   * 
+   *
    * @param files
    *          New compilation files
    */
@@ -884,7 +1004,7 @@ public class ContikiMoteType implements MoteType {
 
   /**
    * Returns mote type specific project directories
-   * 
+   *
    * @return Project directories
    */
   public Vector<File> getProjectDirs() {
@@ -893,7 +1013,7 @@ public class ContikiMoteType implements MoteType {
 
   /**
    * Sets mote type specific project directories.
-   * 
+   *
    * @param dirs
    *          New project directories
    */
@@ -908,7 +1028,7 @@ public class ContikiMoteType implements MoteType {
   /**
    * Sets mote type project configuration. This may differ from the general
    * simulator project configuration.
-   * 
+   *
    * @param moteTypeConfig
    *          Project configuration
    */
@@ -918,7 +1038,7 @@ public class ContikiMoteType implements MoteType {
 
   /**
    * Returns all processes of this mote type
-   * 
+   *
    * @return All processes
    */
   public Vector<String> getProcesses() {
@@ -927,7 +1047,7 @@ public class ContikiMoteType implements MoteType {
 
   /**
    * Set startup processes
-   * 
+   *
    * @param processes
    *          New startup processes
    */
@@ -937,7 +1057,7 @@ public class ContikiMoteType implements MoteType {
 
   /**
    * Returns all sensors of this mote type
-   * 
+   *
    * @return All sensors
    */
   public Vector<String> getSensors() {
@@ -946,7 +1066,7 @@ public class ContikiMoteType implements MoteType {
 
   /**
    * Set sensors
-   * 
+   *
    * @param sensors
    *          New sensors
    */
@@ -956,7 +1076,7 @@ public class ContikiMoteType implements MoteType {
 
   /**
    * Returns all core interfaces of this mote type
-   * 
+   *
    * @return All core interfaces
    */
   public Vector<String> getCoreInterfaces() {
@@ -965,7 +1085,7 @@ public class ContikiMoteType implements MoteType {
 
   /**
    * Set core interfaces
-   * 
+   *
    * @param coreInterfaces
    *          New core interfaces
    */
@@ -975,7 +1095,7 @@ public class ContikiMoteType implements MoteType {
 
   /**
    * Returns all mote interfaces of this mote type
-   * 
+   *
    * @return All mote interfaces
    */
   public Vector<Class<? extends MoteInterface>> getMoteInterfaces() {
@@ -984,7 +1104,7 @@ public class ContikiMoteType implements MoteType {
 
   /**
    * Set mote interfaces of this mote type
-   * 
+   *
    * @param moteInterfaces
    *          New mote interfaces
    */
@@ -996,7 +1116,7 @@ public class ContikiMoteType implements MoteType {
   /**
    * Create a checksum of file. Used for checking if needed files are unchanged
    * when loading a saved simulation.
-   * 
+   *
    * @param file
    *          File containg data to checksum
    * @return Checksum
@@ -1012,8 +1132,9 @@ public class ContikiMoteType implements MoteType {
 
       while (bytesRead > 0) {
         bytesRead = fileInputStream.read(readBytes);
-        if (bytesRead > 0)
+        if (bytesRead > 0) {
           messageDigest.update(readBytes, 0, bytesRead);
+        }
       }
       fileInputStream.close();
     } catch (NoSuchAlgorithmException e) {
@@ -1026,7 +1147,7 @@ public class ContikiMoteType implements MoteType {
 
   /**
    * Returns a panel with interesting data for this mote type.
-   * 
+   *
    * @return Mote type visualizer
    */
   public JPanel getTypeVisualizer() {
@@ -1150,19 +1271,19 @@ public class ContikiMoteType implements MoteType {
     config.add(element);
 
     // User project directory
-    for (File projectDir: projectDirs) {
+    for (File projectDir : projectDirs) {
       element = new Element("projectdir");
       element.setText(projectDir.getPath());
       config.add(element);
     }
 
     // Compilation files
-    for (File compileFile: compilationFiles) {
+    for (File compileFile : compilationFiles) {
       element = new Element("compilefile");
       element.setText(compileFile.getPath());
       config.add(element);
     }
-    
+
     // Contiki processes
     for (String process : getProcesses()) {
       element = new Element("process");
@@ -1205,7 +1326,8 @@ public class ContikiMoteType implements MoteType {
   }
 
   public boolean setConfigXML(Simulation simulation,
-      Collection<Element> configXML, boolean visAvailable) throws MoteTypeCreationException {
+      Collection<Element> configXML, boolean visAvailable)
+      throws MoteTypeCreationException {
     projectDirs = new Vector<File>();
     compilationFiles = new Vector<File>();
     processes = new Vector<String>();
@@ -1213,7 +1335,7 @@ public class ContikiMoteType implements MoteType {
     coreInterfaces = new Vector<String>();
     moteInterfaces = new Vector<Class<? extends MoteInterface>>();
     mySimulation = simulation;
-    
+
     for (Element element : configXML) {
       String name = element.getName();
 
@@ -1240,13 +1362,14 @@ public class ContikiMoteType implements MoteType {
       } else if (name.equals("coreinterface")) {
         coreInterfaces.add(element.getText());
       } else if (name.equals("moteinterface")) {
-        Class<? extends MoteInterface> moteInterfaceClass = 
-          simulation.getGUI().tryLoadClass(this, MoteInterface.class, element.getText().trim());
+        Class<? extends MoteInterface> moteInterfaceClass = simulation.getGUI()
+            .tryLoadClass(this, MoteInterface.class, element.getText().trim());
 
         if (moteInterfaceClass == null) {
           logger.warn("Can't find mote interface class: " + element.getText());
-        } else
+        } else {
           moteInterfaces.add(moteInterfaceClass);
+        }
       } else {
         logger.fatal("Unrecognized entry in loaded configuration: " + name);
       }
@@ -1269,5 +1392,5 @@ public class ContikiMoteType implements MoteType {
     boolean createdOK = configureAndInit(GUI.frame, simulation, visAvailable);
     return createdOK;
   }
-  
+
 }
