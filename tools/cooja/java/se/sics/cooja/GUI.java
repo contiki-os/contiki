@@ -24,7 +24,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * $Id: GUI.java,v 1.57 2007/09/05 13:58:08 fros4943 Exp $
+ * $Id: GUI.java,v 1.58 2007/09/10 13:25:36 fros4943 Exp $
  */
 
 package se.sics.cooja;
@@ -82,7 +82,7 @@ public class GUI {
    * External tools user settings filename.
    */
   public static final String EXTERNAL_TOOLS_USER_SETTINGS_FILENAME = ".cooja.user.properties";
-  private static File externalToolsUserSettingsFile =
+  public static File externalToolsUserSettingsFile =
     new File(System.getProperty("user.home"), EXTERNAL_TOOLS_USER_SETTINGS_FILENAME);
   private static boolean externalToolsUserSettingsFileReadOnly = false;
 
@@ -149,7 +149,18 @@ public class GUI {
       "REGEXP_PARSE_PROCESSES", "CMD_GREP_INTERFACES",
       "REGEXP_PARSE_INTERFACES", "CMD_GREP_SENSORS", "REGEXP_PARSE_SENSORS",
       "CONTIKI_MAIN_TEMPLATE_FILENAME", "DEFAULT_PROJECTDIRS",
-      "CORECOMM_TEMPLATE_FILENAME", "PATH_JAVAC"};
+      "CORECOMM_TEMPLATE_FILENAME", "PATH_JAVAC",
+
+      "MAPFILE_DATA_START", "MAPFILE_DATA_SIZE",
+      "MAPFILE_BSS_START", "MAPFILE_BSS_SIZE",
+      "MAPFILE_VAR_NAME",
+      "MAPFILE_VAR_ADDRESS_1", "MAPFILE_VAR_ADDRESS_2",
+      "MAPFILE_VAR_SIZE_1", "MAPFILE_VAR_SIZE_2",
+
+      "NM_VAR_NAME_ADDRESS",
+      "NM_DATA_START", "NM_DATA_END",
+      "NM_BSS_START", "NM_BSS_END",
+  };
 
   private static final int FRAME_NEW_OFFSET = 30;
 
@@ -2396,7 +2407,7 @@ public class GUI {
   /**
    * Load user values from external properties file
    */
-  private static void loadExternalToolsUserSettings() {
+  public static void loadExternalToolsUserSettings() {
     try {
       FileInputStream in = new FileInputStream(externalToolsUserSettingsFile);
       Properties settings = new Properties();
