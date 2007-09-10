@@ -26,193 +26,224 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: Level5.java,v 1.2 2007/01/11 14:28:26 fros4943 Exp $
+ * $Id: Level5.java,v 1.3 2007/09/10 14:07:12 fros4943 Exp $
  */
 
 import java.io.*;
+import java.util.Properties;
 import java.util.Vector;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+import org.apache.log4j.xml.DOMConfigurator;
+
+import se.sics.cooja.GUI;
+import se.sics.cooja.SectionMoteMemory;
+import se.sics.cooja.contikimote.ContikiMoteType;
 
 public class Level5 {
+  private final File externalToolsSettingsFile = new File("../exttools.cfg");
 
   static {
     System.load(new File("level5.library").getAbsolutePath());
   }
 
-  final static private String bssSectionAddrRegExp =
-    "^.bss[ \t]*0x([0-9A-Fa-f]*)[ \t]*0x[0-9A-Fa-f]*[ \t]*$";
-  final static private String bssSectionSizeRegExp =
-    "^.bss[ \t]*0x[0-9A-Fa-f]*[ \t]*0x([0-9A-Fa-f]*)[ \t]*$";
-  final static private String dataSectionAddrRegExp =
-    "^.data[ \t]*0x([0-9A-Fa-f]*)[ \t]*0x[0-9A-Fa-f]*[ \t]*$";
-  final static private String dataSectionSizeRegExp =
-    "^.data[ \t]*0x[0-9A-Fa-f]*[ \t]*0x([0-9A-Fa-f]*)[ \t]*$";
-  final static private String varAddressRegExpPrefix =
-    "^[ \t]*0x([0-9A-Fa-f]*)[ \t]*";
-  final static private String varAddressRegExpSuffix =
-    "[ \t]*$";
-  final static private String varNameRegExp =
-    "^[ \t]*(0x[0-9A-Fa-f]*)[ \t]*([^ ]*)[ \t]*$";
-  final static private String varSizeRegExpPrefix =
-    "^";
-  final static private String varSizeRegExpSuffix =
-    "[ \t]*(0x[0-9A-Fa-f]*)[ \t]*[^ ]*[ \t]*$";
-  
   private native void doCount();
   private native int getRefAddress();
-  private native byte[] getMemory(int start, int length);
-  private native void setMemory(int start, int length, byte[] mem);
+  public native void getMemory(int start, int length, byte[] mem);
+  public native void setMemory(int start, int length, byte[] mem);
 
   private int javaDataCounter = 1;
   private int javaBssCounter = 0;
-  
+
   public Level5() {
-    File mapFile = new File("level5.map");
 
-    // Check that map file exists
-    if (!mapFile.exists()) {
-      System.err.println("No map file could be loaded");
+    // Configure logger
+    DOMConfigurator.configure(GUI.class.getResource("/" + GUI.LOG_CONFIG_FILE));
+
+    // Load configuration
+    System.out.println("Loading COOJA configuration");
+    GUI.externalToolsUserSettingsFile = externalToolsSettingsFile;
+    GUI.loadExternalToolsDefaultSettings();
+    GUI.loadExternalToolsUserSettings();
+
+    // Should we parse addresses using map file or nm?
+    boolean useNm = Boolean.parseBoolean(GUI.getExternalToolsSetting("PARSE_WITH_NM", "false"));
+
+    Properties addresses = new Properties();
+    int relDataSectionAddr = -1;
+    int dataSectionSize = -1;
+    int relBssSectionAddr = -1;
+    int bssSectionSize = -1;
+
+    if (useNm) {
+      // Parse nm output
+      System.out.println("Parsing using nm");
+
+      File libFile = new File("level5.library");
+      if (!libFile.exists()) {
+        System.err.println("Library file " + libFile.getAbsolutePath() + " could not be found!");
+        System.exit(1);
+      }
+
+      Vector<String> nmData = ContikiMoteType.loadNmData(libFile);
+      if (nmData == null) {
+        System.err.println("No nm data could be loaded");
+        System.exit(1);
+      }
+
+      boolean parseOK = ContikiMoteType.parseNmData(nmData, addresses);
+      if (!parseOK) {
+        System.err.println("Nm data parsing failed");
+        System.exit(1);
+      }
+
+      relDataSectionAddr = ContikiMoteType.loadNmRelDataSectionAddr(nmData);
+      dataSectionSize = ContikiMoteType.loadNmDataSectionSize(nmData);
+      relBssSectionAddr = ContikiMoteType.loadNmRelBssSectionAddr(nmData);
+      bssSectionSize = ContikiMoteType.loadNmBssSectionSize(nmData);
+    } else {
+      // Parse map file
+      System.out.println("Parsing using map file");
+      File mapFile = new File("level5.map");
+      if (!mapFile.exists()) {
+        System.err.println("No map file could be loaded");
+        System.exit(1);
+      }
+
+      Vector<String> mapData = ContikiMoteType.loadMapFile(mapFile);
+      if (mapData == null) {
+        System.err.println("No map data could be loaded");
+        System.exit(1);
+      }
+
+      boolean parseOK = ContikiMoteType.parseMapFileData(mapData, addresses);
+      if (!parseOK) {
+        System.err.println("Map data parsing failed");
+        System.exit(1);
+      }
+
+      relDataSectionAddr = ContikiMoteType.loadRelDataSectionAddr(mapData);
+      dataSectionSize = ContikiMoteType.loadDataSectionSize(mapData);
+      relBssSectionAddr = ContikiMoteType.loadRelBssSectionAddr(mapData);
+      bssSectionSize = ContikiMoteType.loadBssSectionSize(mapData);
+    }
+
+    int absRefAddress = getRefAddress();
+    int relRefAddress = (Integer) addresses.get("ref_var");
+    int offsetRelToAbs = absRefAddress - relRefAddress;
+
+    System.out.println("Creating section memory");
+    byte[] initialDataSection = new byte[dataSectionSize];
+    byte[] initialBssSection = new byte[bssSectionSize];
+
+    getMemory(relDataSectionAddr + offsetRelToAbs, dataSectionSize, initialDataSection);
+    getMemory(relBssSectionAddr + offsetRelToAbs, bssSectionSize, initialBssSection);
+    SectionMoteMemory memory = new SectionMoteMemory(addresses);
+    memory.setMemorySegment(relDataSectionAddr, initialDataSection);
+    memory.setMemorySegment(relBssSectionAddr, initialBssSection);
+
+    int dataCounter, bssCounter;
+
+    System.out.print("Checking initial values: ");
+    dataCounter = memory.getIntValueOf("initialized_counter");
+    bssCounter = memory.getIntValueOf("uninitialized_counter");
+    if (dataCounter != javaDataCounter || bssCounter != javaBssCounter) {
+      System.out.println("FAILED!");
+    } else {
+      System.out.println("OK!");
+    }
+
+    System.out.println("Increasing counters 5 times");
+    doCount(); javaDataCounter++; javaBssCounter++;
+    doCount(); javaDataCounter++; javaBssCounter++;
+    doCount(); javaDataCounter++; javaBssCounter++;
+    doCount(); javaDataCounter++; javaBssCounter++;
+    doCount(); javaDataCounter++; javaBssCounter++;
+
+    System.out.print("Checking increased values: ");
+    getMemory(relDataSectionAddr + offsetRelToAbs, dataSectionSize, initialDataSection);
+    getMemory(relBssSectionAddr + offsetRelToAbs, bssSectionSize, initialBssSection);
+    memory.setMemorySegment(relDataSectionAddr, initialDataSection);
+    memory.setMemorySegment(relBssSectionAddr, initialBssSection);
+    dataCounter = memory.getIntValueOf("initialized_counter");
+    bssCounter = memory.getIntValueOf("uninitialized_counter");
+    if (dataCounter != javaDataCounter || bssCounter != javaBssCounter) {
+      System.out.println("FAILED!");
       System.exit(1);
+    } else {
+      System.out.println("OK!");
     }
 
-    Vector<String> mapContents = loadMapFile(mapFile);
+    System.out.println("Storing both memory segments now");
+    byte[] savedDataSection = new byte[dataSectionSize];
+    byte[] savedBssSection = new byte[bssSectionSize];
+    int savedDataCounter = dataCounter;
+    int savedBssCounter = bssCounter;
+    getMemory(relDataSectionAddr + offsetRelToAbs, dataSectionSize, savedDataSection);
+    getMemory(relBssSectionAddr + offsetRelToAbs, bssSectionSize, savedBssSection);
 
-    int relDataSectionAddr = loadRelDataSectionAddr(mapContents);
-    int dataSectionSize = (int) loadDataSectionSize(mapContents);
-    int relBssSectionAddr = loadRelBssSectionAddr(mapContents);
-    int bssSectionSize = (int) loadBssSectionSize(mapContents);
-
-    int referenceAddress = getRefAddress();
-
-    int offsetRelToAbs = referenceAddress - getRelVarAddr(mapContents, "ref_var");
-
-    System.err.println("\n\n--- RUNNING DO_COUNT 5 TIMES ---");
-    doCount(); javaDataCounter++; javaBssCounter++;
-    doCount(); javaDataCounter++; javaBssCounter++;
+    System.out.println("Increasing counters 3 times");
     doCount(); javaDataCounter++; javaBssCounter++;
     doCount(); javaDataCounter++; javaBssCounter++;
     doCount(); javaDataCounter++; javaBssCounter++;
 
-    System.err.println("\n\n--- CHECKPOINT #1: JAVA COUNTERS SHOULD EQUAL C ---");
-    System.err.println(">> JavaDATA_counter=\t" + javaDataCounter + "\tJavaBSS_counter=\t" + javaBssCounter);
-    
-    System.err.println("\n\n--- FETCHING AND SAVING MEMORY ---");
-    byte[] savedDataSection = getMemory(relDataSectionAddr + offsetRelToAbs, dataSectionSize);
-    byte[] savedBssSection = getMemory(relBssSectionAddr + offsetRelToAbs, bssSectionSize);
-    System.err.println("data section size:\t" + savedDataSection.length + " = " + "0x" + Integer.toHexString(savedDataSection.length));
-    System.err.println("bss section size:\t" + savedBssSection.length + " = " + "0x" + Integer.toHexString(savedBssSection.length));
-    
-    System.err.println("\n\n--- RUNNING DO_COUNT 3 TIMES ---");
-    doCount(); javaDataCounter++; javaBssCounter++;
-    doCount(); javaDataCounter++; javaBssCounter++;
-    doCount(); javaDataCounter++; javaBssCounter++;
-
-    System.err.println("\n\n--- CHECKPOINT #2: JAVA COUNTERS SHOULD EQUAL C ---");
-    System.err.println(">> JavaDATA_counter=\t" + javaDataCounter + "\tJavaBSS_counter=\t" + javaBssCounter);
-    
-    System.err.println("\n\n--- RESTORING MEMORY: DATA ---");
-    setMemory(relDataSectionAddr + offsetRelToAbs, dataSectionSize, savedDataSection); javaDataCounter -= 3;
-
-    System.err.println("\n\n--- RUNNING DO_COUNT 3 TIMES ---");
-    doCount(); javaDataCounter++; javaBssCounter++;
-    doCount(); javaDataCounter++; javaBssCounter++;
-    doCount(); javaDataCounter++; javaBssCounter++;
-
-    System.err.println("\n\n--- CHECKPOINT #3: JAVA COUNTERS SHOULD EQUAL C ---");
-    System.err.println(">> JavaDATA_counter=\t" + javaDataCounter + "\tJavaBSS_counter=\t" + javaBssCounter);
-    
-    System.err.println("\n\n--- RESTORING MEMORY: BSS ---");
-    setMemory(relBssSectionAddr + offsetRelToAbs, bssSectionSize, savedBssSection); javaBssCounter -= 6;
-    
-    System.err.println("\n\n--- RUNNING DO_COUNT 3 TIMES ---");
-    doCount(); javaDataCounter++; javaBssCounter++;
-    doCount(); javaDataCounter++; javaBssCounter++;
-    doCount(); javaDataCounter++; javaBssCounter++;
-
-    System.err.println("\n\n--- CHECKPOINT #4: JAVA COUNTERS SHOULD EQUAL C ---");
-    System.err.println(">> JavaDATA_counter=\t" + javaDataCounter + "\tJavaBSS_counter=\t" + javaBssCounter);
-    
-    System.err.println("Level 5 OK!");
-  }
-
-  private static int getRelVarAddr(Vector<String> mapContents, String varName) {
-    String regExp = varAddressRegExpPrefix + varName + varAddressRegExpSuffix;
-    String retString = getFirstMatchGroup(mapContents, regExp, 1);
-
-    if (retString != null)
-      return Integer.parseInt(retString.trim(), 16);
-    else return 0;
-  }
-  
-  private static Vector<String> loadMapFile(File mapFile) {
-    Vector<String> mapContents = new Vector<String>();
-    
-    try {
-      BufferedReader in =
-        new BufferedReader(
-            new InputStreamReader(
-                new FileInputStream(mapFile)));
-      
-      while (in.ready())
-      {
-        mapContents.add(in.readLine());
-      }
-    } catch (FileNotFoundException e) {
-      System.err.println("File not found: " + e);
-      return null;
-    } catch (IOException e) {
-      System.err.println("IO error: " + e);
-      return null;
+    System.out.print("Checking increased values: ");
+    getMemory(relDataSectionAddr + offsetRelToAbs, dataSectionSize, initialDataSection);
+    getMemory(relBssSectionAddr + offsetRelToAbs, bssSectionSize, initialBssSection);
+    memory.setMemorySegment(relDataSectionAddr, initialDataSection);
+    memory.setMemorySegment(relBssSectionAddr, initialBssSection);
+    dataCounter = memory.getIntValueOf("initialized_counter");
+    bssCounter = memory.getIntValueOf("uninitialized_counter");
+    if (dataCounter != javaDataCounter || bssCounter != javaBssCounter) {
+      System.out.println("FAILED!");
+      System.exit(1);
+    } else {
+      System.out.println("OK!");
     }
-    
-    return mapContents;
-  }
 
-  private static int loadRelDataSectionAddr(Vector<String> mapFile) {
-    String retString = getFirstMatchGroup(mapFile, dataSectionAddrRegExp, 1);
+    System.out.println("Restoring data segment");
+    setMemory(relDataSectionAddr + offsetRelToAbs, dataSectionSize, savedDataSection);
+    javaDataCounter = savedDataCounter;
 
-    if (retString != null)
-      return Integer.parseInt(retString.trim(), 16);
-    else return 0;
-  }
+    System.out.println("Increasing counters 3 times");
+    doCount(); javaDataCounter++; javaBssCounter++;
+    doCount(); javaDataCounter++; javaBssCounter++;
+    doCount(); javaDataCounter++; javaBssCounter++;
 
-  private static int loadDataSectionSize(Vector<String> mapFile) {
-    String retString = getFirstMatchGroup(mapFile, dataSectionSizeRegExp, 1);
-
-    if (retString != null)
-      return Integer.parseInt(retString.trim(), 16);
-    else return 0;
-  }
-
-  private static int loadRelBssSectionAddr(Vector<String> mapFile) {
-    String retString = getFirstMatchGroup(mapFile, bssSectionAddrRegExp, 1);
-
-    if (retString != null)
-      return Integer.parseInt(retString.trim(), 16);
-    else return 0;
-  }
-
-  private static int loadBssSectionSize(Vector<String> mapFile) {
-    String retString = getFirstMatchGroup(mapFile, bssSectionSizeRegExp, 1);
-
-    if (retString != null)
-      return Integer.parseInt(retString.trim(), 16);
-    else return 0;
-  }
-
-  private static String getFirstMatchGroup(Vector<String> lines, String regexp, int groupNr) {
-    Pattern pattern = Pattern.compile(regexp);
-    for (int i=0; i < lines.size(); i++) {
-      Matcher matcher = pattern.matcher(lines.elementAt(i));
-      if (matcher.find()) {
-        return matcher.group(groupNr);
-      }
+    System.out.print("Checking reset data counter: ");
+    getMemory(relDataSectionAddr + offsetRelToAbs, dataSectionSize, initialDataSection);
+    getMemory(relBssSectionAddr + offsetRelToAbs, bssSectionSize, initialBssSection);
+    memory.setMemorySegment(relDataSectionAddr, initialDataSection);
+    memory.setMemorySegment(relBssSectionAddr, initialBssSection);
+    dataCounter = memory.getIntValueOf("initialized_counter");
+    bssCounter = memory.getIntValueOf("uninitialized_counter");
+    if (dataCounter != javaDataCounter || bssCounter != javaBssCounter) {
+      System.out.println("FAILED!");
+      System.exit(1);
+    } else {
+      System.out.println("OK!");
     }
-    return null;
-  }
 
-  
+    System.out.println("Restoring bss segment");
+    setMemory(relBssSectionAddr + offsetRelToAbs, bssSectionSize, savedBssSection);
+    javaBssCounter = savedBssCounter;
+
+    System.out.print("Checking reset bss counter: ");
+    getMemory(relDataSectionAddr + offsetRelToAbs, dataSectionSize, initialDataSection);
+    getMemory(relBssSectionAddr + offsetRelToAbs, bssSectionSize, initialBssSection);
+    memory.setMemorySegment(relDataSectionAddr, initialDataSection);
+    memory.setMemorySegment(relBssSectionAddr, initialBssSection);
+    dataCounter = memory.getIntValueOf("initialized_counter");
+    bssCounter = memory.getIntValueOf("uninitialized_counter");
+    if (dataCounter != javaDataCounter || bssCounter != javaBssCounter) {
+      System.out.println("FAILED!");
+      System.exit(1);
+    } else {
+      System.out.println("OK!");
+    }
+
+    System.out.println("\n");
+    System.out.println("Reading and writing memory segments via JNI successfully");
+    System.out.println("Level 5 OK!");
+  }
 
   public static void main(String[] args) {
     new Level5();

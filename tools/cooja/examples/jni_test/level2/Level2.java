@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: Level2.java,v 1.1 2006/08/21 12:13:00 fros4943 Exp $
+ * $Id: Level2.java,v 1.2 2007/09/10 14:07:12 fros4943 Exp $
  */
 
 import java.io.*;
@@ -34,15 +34,14 @@ import java.io.*;
 public class Level2 {
 
   static {
-    System.err.println("JAVA Level2 static> loading library now");
+    System.out.println("Loading library now");
     System.load(new File("level2.library").getAbsolutePath());
-    System.err.println("JAVA Level2 static> done loading library");
   }
 
   private native void test();
 
   public Level2() {
-    System.err.println("JAVA Level2 constructor()> running native test function");
+    System.err.println("Calling native test function");
     test();
   }
 

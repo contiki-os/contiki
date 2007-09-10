@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: level2.c,v 1.1 2006/08/21 12:13:00 fros4943 Exp $
+ * $Id: level2.c,v 1.2 2007/09/10 14:07:12 fros4943 Exp $
  */
 
 #include <jni.h>
@@ -35,6 +35,6 @@
 JNIEXPORT void JNICALL
 Java_Level2_test(JNIEnv *env, jobject obj)
 {
- fprintf(stderr, "C test()> Level 2 OK!\n");
+ fprintf(stderr, "Level 2 OK!\n");
  fflush(stderr);
 }
