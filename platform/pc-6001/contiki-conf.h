@@ -27,7 +27,7 @@
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * $Id: contiki-conf.h,v 1.1 2007/09/11 12:12:59 matsutsuka Exp $
+ * $Id: contiki-conf.h,v 1.2 2007/09/11 12:55:16 matsutsuka Exp $
  *
  */
 
@@ -110,6 +110,23 @@ typedef unsigned long clock_time_t;
 #error Specify appropriate ARCH & MEMORY combination
 #endif /*  ARCH_PC6001MK2 */
 
+#if 0 /* ctk-conio case */
+#define SCREENCOLOR		0x20
+#define BORDERCOLOR		0x20
+#define WIDGETCOLOR		0x20
+#define WIDGETCOLOR_FWIN	0x20
+#define BACKGROUNDCOLOR		0x20
+#define DIALOGCOLOR		0x20
+#define WINDOWCOLOR		0x20
+#define WINDOWCOLOR_FOCUS	0x21
+#define MENUCOLOR		0x21
+#define MENUCOLOR		0x21
+#define OPENMENUCOLOR		0x22
+#define ACTIVEMENUITEMCOLOR	0x23
+#define WIDGETCOLOR_HLINK	0x21
+#define WIDGETCOLOR_FOCUS	0x20
+#define WIDGETCOLOR_DIALOG	0x22
+#endif
 
 /* uIP configuration */
 #define UIP_CONF_MAX_CONNECTIONS	10
