@@ -2,7 +2,7 @@
 # Makefile for PC-6001 using z80/SDCC
 # @author Takahide Matsutsuka <markn@markn.org>
 #
-# $Id: Makefile.pc-6001,v 1.1 2007/09/11 12:12:59 matsutsuka Exp $
+# $Id: Makefile.pc-6001,v 1.2 2007/09/11 12:55:35 matsutsuka Exp $
 #
 
 ifndef CONTIKI
@@ -31,13 +31,16 @@ LDFLAGS += $(CFLAGS) --opt-code-size --out-fmt-ihx
 
 ifeq ($(MEMORY),16K)
   LDFLAGS      += --code-loc 0xc41d --data-loc
-  HEX2CASFLAGS  = -1 -n contki
+  HEX2CASFLAGS  = -1 -n contki -o contiki.p6
 else ifeq ($(MEMORY),ROM)
   LDFLAGS      += --code-loc 0x4004 --data-loc 0xf000
-  HEX2CASFLAGS  = -r -o coniki.rom
+  HEX2CASFLAGS  = -r -o contiki.rom
+else ifeq ($(ARCH),PC6001MK2)
+  LDFLAGS      += --code-loc 0x801d --data-loc
+  HEX2CASFLAGS  = -5 -o contiki2.p6
 else
   LDFLAGS      += --code-loc 0x841d --data-loc
-  HEX2CASFLAGS  = -2 -n contki
+  HEX2CASFLAGS  = -2 -n contki -o contiki.p6
 endif
 
 ### Include platform-depend application makefiles
@@ -54,6 +57,7 @@ endif
 CONTIKI_TARGET_SOURCEFILES = \
 	$(CTK) cfs-ram.c serial.c slip.c \
 	ctk-conio_arch.c libconio.c
+#	ctk-conio.c
 
 #you can use the below instead of ctk-conio_arch.c and ctk-conio_arch-asm.hS
 #ctk-conio_arch-source.c
@@ -65,11 +69,11 @@ CONTIKI_SOURCEFILES += $(CONTIKI_TARGET_SOURCEFILES)
 
 CLEAN += *.asm *.lnk *.sym *.o *.a *.cas *.rom
 
-contiki: contiki.cas
+contiki: contiki.p6
 
 .SUFFIXES:
 
-%.cas:	%.ihex
+%.p6:	%.ihex
 	$(HEX2CAS) $(HEX2CASFLAGS) $<
 %.rom:	%.ihex
 	$(HEX2CAS) $(HEX2CASFLAGS) $<
