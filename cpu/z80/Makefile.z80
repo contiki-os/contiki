@@ -2,7 +2,7 @@
 # Makefile for z80/SDCC
 # @author Takahide Matsutsuka <markn@markn.org>
 #
-# $Id: Makefile.z80,v 1.5 2007/09/10 15:09:28 matsutsuka Exp $
+# $Id: Makefile.z80,v 1.6 2007/09/11 12:11:38 matsutsuka Exp $
 #
 
 ### Compiler definitions
@@ -22,7 +22,7 @@ CUSTOM_RULE_LINK=1
 ### Default flags
 CFLAGS  += --std-c99 --vc -mz80
 ASFLAGS += -l
-LDFLAGS += -mz80
+LDFLAGS +=
 AROPTS   = -a
 
 ### CPU-dependent directories
@@ -30,8 +30,9 @@ CONTIKI_CPU_DIRS = . dev lib
 
 ### CPU-dependent source files
 CONTIKI_SOURCEFILES += strcasecmp.c mtarch.c uip_arch.c \
-	libconio_arch.c log-conio.c rs232.c
+	libconio_arch.c log-conio.c rs232.c rs232-slip.c
 CONTIKI_ASMFILES += uip_arch-asm.S
+
 
 CONTIKI_HASMOBJECTFILES = ${addprefix $(OBJECTDIR)/,$(CONTIKI_HASMFILES:.hS=.o)}
 
@@ -54,10 +55,9 @@ $(OBJECTDIR)/%.o: %.hS
 endif
 
 #CUSTOM_RULE_ALLOBJS_TO_TARGETLIB
-contiki-$(TARGET).o: $(CONTIKI_OBJECTFILES) $(PROJECT_OBJECTFILES) $(CONTIKI_ASMOBJECTFILES) $(CONTIKI_HASMOBJECTFILES)
+contiki-$(TARGET).a: $(CONTIKI_OBJECTFILES) $(PROJECT_OBJECTFILES) $(CONTIKI_ASMOBJECTFILES) $(CONTIKI_HASMOBJECTFILES)
 	for target in $^; do $(AR) $(AROPTS) $@ $$target; done
 
 #CUSTOM_RULE_LINK
-contiki.ihex: contiki-$(TARGET).o
-	$(LD) $(LDFLAGS) -DAUTOSTART_ENABLE $(CONTIKI_TARGET_MAIN) -lcontiki-$(TARGET).o -o $@
-
+contiki.ihex: contiki-$(TARGET).a
+	$(LD) $(LDFLAGS) -DAUTOSTART_ENABLE $(CONTIKI_TARGET_MAIN) -lcontiki-$(TARGET).a -o $@
