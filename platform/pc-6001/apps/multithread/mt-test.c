@@ -30,7 +30,7 @@
  * 
  * Author: Oliver Schmidt <ol.sc@web.de>
  *
- * $Id: mt-test.c,v 1.1 2007/09/11 12:12:59 matsutsuka Exp $
+ * $Id: mt-test.c,v 1.2 2007/09/11 12:55:57 matsutsuka Exp $
  */
 
 /**
@@ -129,6 +129,10 @@ PROCESS_THREAD(mt_process, ev, data)
 	toggle++;
       }
       etimer_set(&timer, CLOCK_SECOND / 2);
+    } else if(ev == ctk_signal_window_close || ev == PROCESS_EVENT_EXIT) {
+      ctk_window_close(&window);
+      process_exit(&mt_process);
+      LOADER_UNLOAD();
     }
   }
   
