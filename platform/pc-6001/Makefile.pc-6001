@@ -1,0 +1,94 @@
+#
+# Makefile for PC-6001 using z80/SDCC
+# @author Takahide Matsutsuka <markn@markn.org>
+#
+# $Id: Makefile.pc-6001,v 1.1 2007/09/11 12:12:59 matsutsuka Exp $
+#
+
+ifndef CONTIKI
+  $(error CONTIKI not defined! You must specify where CONTIKI resides!)
+endif
+
+### setup default values
+ifndef ARCH
+  ARCH = PC6001
+endif
+ifndef MEMORY
+  MEMORY = 32K
+endif
+ifndef HEX2CAS
+  HEX2CAS = hex2cas
+endif
+ifndef CONTIKI_TARGET_MAIN
+  CONTIKI_TARGET_MAIN = contiki-main.c
+endif
+
+### setup flags to be used in compiler, assembler, and hex2cas
+PLATFORM = $(CONTIKI)/platform/$(TARGET)
+CONTIKI_TARGET_DIRS = . ctk dev loader
+CFLAGS  += -DMEMORY_$(MEMORY) -DARCH_$(ARCH)
+LDFLAGS += $(CFLAGS) --opt-code-size --out-fmt-ihx
+
+ifeq ($(MEMORY),16K)
+  LDFLAGS      += --code-loc 0xc41d --data-loc
+  HEX2CASFLAGS  = -1 -n contki
+else ifeq ($(MEMORY),ROM)
+  LDFLAGS      += --code-loc 0x4004 --data-loc 0xf000
+  HEX2CASFLAGS  = -r -o coniki.rom
+else
+  LDFLAGS      += --code-loc 0x841d --data-loc
+  HEX2CASFLAGS  = -2 -n contki
+endif
+
+### Include platform-depend application makefiles
+
+ifdef PLATFORM_APPS
+  PLATFORM_APPDIRS += ${addprefix $(PLATFORM)/apps/, $(PLATFORM_APPS)}
+  PLATFORM_APPINCLUDES = ${foreach APP, $(PLATFORM_APPS), $(PLATFORM)/apps/$(APP)/Makefile.$(APP)}
+  -include $(PLATFORM_APPINCLUDES)
+  PLATFORM_APP_SOURCES = ${foreach APP, $(PLATFORM_APPS), $($(APP)_src)}
+  PLATFORM_DSC_SOURCES = ${foreach APP, $(PLATFORM_APPS), $($(APP)_dsc)}
+  CONTIKI_SOURCEFILES += $(PLATFORM_APP_SOURCES) $(PLATFORM_DSC_SOURCES)
+endif
+
+CONTIKI_TARGET_SOURCEFILES = \
+	$(CTK) cfs-ram.c serial.c slip.c \
+	ctk-conio_arch.c libconio.c
+
+#you can use the below instead of ctk-conio_arch.c and ctk-conio_arch-asm.hS
+#ctk-conio_arch-source.c
+
+CONTIKI_ASMFILES  += getkey.S isprint_arch.S clock.S rs232-asm.S
+CONTIKI_HASMFILES += ctk-conio_arch-asm.hS
+
+CONTIKI_SOURCEFILES += $(CONTIKI_TARGET_SOURCEFILES)
+
+CLEAN += *.asm *.lnk *.sym *.o *.a *.cas *.rom
+
+contiki: contiki.cas
+
+.SUFFIXES:
+
+%.cas:	%.ihex
+	$(HEX2CAS) $(HEX2CASFLAGS) $<
+%.rom:	%.ihex
+	$(HEX2CAS) $(HEX2CASFLAGS) $<
+
+remove-ctk:
+	rm -f obj_$(TARGET)/ctk*;
+	rm -f contiki.ihex
+remove-net:
+	rm -f ${addprefix obj_$(TARGET)/,uip*.o hc.o psock.o rawpacket-udp.o resolv.o slip*.o tcp*.o uaod*.o rime*.o http*.o web*.o};
+	rm -f contiki.ihex
+remove-mt:
+	rm -f obj_$(TARGET)/mt*.o
+	rm -f contiki.ihex
+
+### Define the CPU directory
+CONTIKI_CPU=$(CONTIKI)/cpu/z80
+include $(CONTIKI_CPU)/Makefile.z80
+
+### Setup directory search path for source files
+
+PROJECTDIRS += $(PLATFORM_APPDIRS)
+

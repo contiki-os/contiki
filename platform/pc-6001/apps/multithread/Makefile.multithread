@@ -1,0 +1,2 @@
+multithread_src = mt-test.c
+multithread_dsc = mt-test-dsc.c
