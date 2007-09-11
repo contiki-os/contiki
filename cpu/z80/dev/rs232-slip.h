@@ -27,49 +27,19 @@
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.  
  *
- * $Id: rs232.c,v 1.2 2007/09/11 12:03:20 matsutsuka Exp $
+ * $Id: rs232-slip.h,v 1.1 2007/09/11 12:03:20 matsutsuka Exp $
  *
  */
 /*
  * \file
  * 	This is RS-232C process based on polling.
- * 	Note that rs232.c and rs232-slip.c cannot be used at the same time.
  * \author
  * 	Takahide Matsutsuka <markn@markn.org>
  */
 
-#include "contiki.h"
-#include "dev/serial.h"
-#include "dev/rs232.h"
+#ifndef __RS232_SLIP_H__
+#define __RS232_SLIP_H__
 
-PROCESS(rs232_process, "RS-232C polling process");
-/*---------------------------------------------------------------------------*/
-PROCESS_THREAD(rs232_process, ev, data)
-{
-  static struct etimer timer;
-  char ch;
-  unsigned char i;
-  PROCESS_BEGIN();
+PROCESS_NAME(rs232sl_process);
 
-  rs232_arch_init(RS232_BAUD_RATE);
-  etimer_set(&timer, CLOCK_SECOND / 16);
-
-  while(1) {
-    PROCESS_WAIT_EVENT();
-
-    if (etimer_expired(&timer)) {
-      for (i = 0; i < RS232_BUFSIZE; i++) {
-	ch = rs232_arch_poll();
-	if (ch == 0) {
-	  break;
-	}
-	/* We have an input data */
-	serial_input_byte(ch);
-      }
-      etimer_reset(&timer);
-    }
-  }
-
-  PROCESS_END();
-}
-/*---------------------------------------------------------------------------*/
+#endif /* __RS232_SLIP_H__ */
