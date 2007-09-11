@@ -27,7 +27,7 @@
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.  
  *
- * $Id: rs232.h,v 1.1 2007/09/09 13:41:15 matsutsuka Exp $
+ * $Id: rs232.h,v 1.2 2007/09/11 12:03:20 matsutsuka Exp $
  *
  */
 /*
@@ -37,8 +37,8 @@
  * 	Takahide Matsutsuka <markn@markn.org>
  */
 
-#ifndef __RS_232C_H__
-#define __RS_232C_H__
+#ifndef __RS232_H__
+#define __RS232_H__
 
 /*
  * Implement the following methods for each platform.
@@ -47,7 +47,7 @@
 /*
  * An architecture-depend implementation of RS-232C initialization.
  */
-void rs232_arch_init(void);
+void rs232_arch_init(unsigned long ubr);
 
 /*
  * An architecture-depend implementation of RS-232C polling.
@@ -62,4 +62,16 @@ void rs232_arch_writeb(u8_t ch);
 
 PROCESS_NAME(rs232_process);
 
-#endif /* __RS_232C_H__ */
+#ifdef RS232_CONF_BUFISZE
+#define RS232_BUFSIZE RS232_CONF_BUFISZE
+#else /* RS232_CONF_BUFISZE */
+#define RS232_BUFSIZE 64
+#endif /* RS232_CONF_BUFISZE */
+
+#ifdef RS232_CONF_BAUD_RATE
+#define RS232_BAUD_RATE RS232_CONF_BAUD_RATE
+#else /* RS232_CONF_BAUD_RATE */
+#define RS232_BAUD_RATE 9600
+#endif /* RS232_CONF_BAUD_RATE */
+
+#endif /* __RS232_H__ */
