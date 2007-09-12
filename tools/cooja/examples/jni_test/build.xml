@@ -10,9 +10,10 @@ the compilation and linking stage of the Contiki libraries.
 Below follows a number of configurations that work for different users.
 
 Linux users with the GNU toolchain may try:
-	COMPILER_ARGS = [PENDING]
-	LINK_COMMAND_1 = [PENDING]
-	LINK_COMMAND_2 = [PENDING]
+        COMPILER_ARGS = 
+        LINK_COMMAND_1 = gcc -shared -Wl,-Map=$(MAPFILE) -o $(LIBFILE)
+        LINK_COMMAND_2 = 
+        PARSE_WITH_NM=false
 			
 Windows users with recent Cygwin may try:
 	COMPILER_ARGS = -mno-cygwin -Wall -I'$(JAVA_HOME)/include' -I'$(JAVA_HOME)/include/win32'
