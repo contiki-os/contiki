@@ -30,15 +30,17 @@
  *
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: node-id.h,v 1.2 2007/08/20 11:01:13 nvt-se Exp $
+ * $Id: node-id.h,v 1.3 2007/09/14 19:24:45 nvt-se Exp $
  */
 
-#ifndef __NODE_ID_H__
-#define __NODE_ID_H__
+#ifndef NODE_ID_H
+#define NODE_ID_H
+
+#include "contiki-conf.h"
 
 void node_id_restore(void);
-void node_id_burn(unsigned short node_id);
+void node_id_burn(uint16_t node_id);
 
-extern unsigned short node_id;
+extern uint16_t node_id;
 
-#endif /* __NODE_ID_H__ */
+#endif /* !NODE_ID_H */
