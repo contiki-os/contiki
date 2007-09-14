@@ -56,6 +56,7 @@ Berlin, 2006
 #include "cc1020-internal.h"
 #include "cc1020.h"
 #include "lib/random.h"
+#include "net/rime/rimestats.h"
 #include "dev/irq.h"
 #include "dev/dma.h"
 
@@ -242,10 +243,14 @@ cc1020_read(void *buf, unsigned short size)
     return 0;
 
   len = cc1020_rxlen - HDRSIZE;
-  if (len > size)
+  if (len > size) {
+    RIMESTATS_ADD(toolong);
     return -1;
+  }
 
   memcpy(buf, (char *) cc1020_rxbuf + HDRSIZE, len);
+  RIMESTATS_ADD(llrx);
+
   return len;
 }
 
@@ -417,6 +422,8 @@ PROCESS_THREAD(cc1020_sender_process, ev, data)
 
     // wait for DMA0 to finish
     PROCESS_WAIT_UNTIL(ev == dma_event);
+
+    RIMESTATS_ADD(lltx);
 
     // clean up
     cc1020_txlen = 0;
