@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: test-abc.c,v 1.3 2007/03/25 12:10:29 adamdunkels Exp $
+ * $Id: test-abc.c,v 1.4 2007/09/14 20:07:26 nvt-se Exp $
  */
 
 /**
@@ -55,7 +55,7 @@ abc_recv(struct abc_conn *c)
 {
   printf("abc message received '%s'\n", (char *)rimebuf_dataptr());
 }
-const static struct abc_callbacks abc_call = {abc_recv};
+static const struct abc_callbacks abc_call = {abc_recv};
 static struct abc_conn abc;
 /*---------------------------------------------------------------------------*/
 PROCESS_THREAD(test_abc_process, ev, data)
@@ -69,7 +69,7 @@ PROCESS_THREAD(test_abc_process, ev, data)
   while(1) {
     static struct etimer et;
     
-    etimer_set(&et, CLOCK_SECOND * 2);
+    etimer_set(&et, CLOCK_SECOND);
     
     PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&et));
 
