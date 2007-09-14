@@ -29,8 +29,9 @@
  * This file is part of the Contiki operating system.
  *
  */
-#ifndef __CONTIKI_MSB430_H__
-#define __CONTIKI_MSB430_H__
+
+#ifndef CONTIKI_MSB430_H
+#define CONTIKI_MSB430_H
 
 #include "contiki.h"
 #include "contiki-net.h"
@@ -59,22 +60,12 @@
 
 #include "node-id.h"
 
-//#include "dev/vib-sensor.h"
-//#include "dev/pir-sensor.h"
-//#include "dev/button-sensor.h"
-//#include "dev/radio-sensor.h"
-//#include "dev/sound-sensor.h"
-//#include "dev/battery-sensor.h"
-//#include "dev/temperature-sensor.h"
-//#include "dev/ctsrts-sensor.h"
-//#include "dev/beep.h"
-//#include "dev/ir.h"
 #include "dev/leds.h"
 
 #include "node-id.h"
 
 #include "net/rime.h"
 
-void msp430_cpu_init(void);
+//void msp430_cpu_init(void);
 
-#endif /* __CONTIKI_MSB430_H__ */
+#endif /* !CONTIKI_MSB430_H */
