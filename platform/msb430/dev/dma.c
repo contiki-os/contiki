@@ -105,16 +105,16 @@ dma_transfer(unsigned char *buf, unsigned len)
    * The source address is incremented for each byte, while the 
    * destination address remains constant.
    *
-   * Important to use DMALEVEL when using USART TX 
-   * interrupts so first edge 
-   * doesn't get lost (hangs every 50. - 100. time)!
+   * In order to avoid missing the first rising edge of the trigger
+   * signal, it is important to use the level-sensitive trigger when 
+   * using USART transfer interrupts.
    */
-  DMA0CTL = DMADT_0 | DMADSTINCR_0 | DMASRCINCR_3 | DMASBDB | DMALEVEL | DMAIE;
+  DMA0CTL = DMADT_0 | DMADSTINCR_0 | DMASRCINCR_3 | DMASBDB | DMALEVEL;
 
   DMA0SA = (unsigned) buf;
   DMA0DA = (unsigned) &TXBUF0;
   DMA0SZ = len;
 
-  DMA0CTL |= DMAEN;	// enable DMA
-  U0CTL &= ~SWRST;	// enable UART state machine, starts transfer
+  DMA0CTL |= DMAEN | DMAIE;	// enable DMA and interrupts
+  U0CTL &= ~SWRST;		// enable UART state machine, starts transfer
 }
