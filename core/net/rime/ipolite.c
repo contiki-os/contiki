@@ -33,7 +33,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: ipolite.c,v 1.1 2007/05/15 07:41:36 adamdunkels Exp $
+ * $Id: ipolite.c,v 1.2 2007/09/14 20:26:52 nvt-se Exp $
  */
 
 /**
@@ -45,7 +45,7 @@
 
 #include "net/rime.h"
 #include "net/rime/ipolite.h"
-#include "lib/rand.h"
+#include "lib/random.h"
 
 #include <string.h>
 
