@@ -66,6 +66,4 @@
 
 #include "net/rime.h"
 
-//void msp430_cpu_init(void);
-
 #endif /* !CONTIKI_MSB430_H */
