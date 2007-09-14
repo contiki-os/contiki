@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: elfloader.c,v 1.6 2007/08/30 14:39:18 matsutsuka Exp $
+ * @(#)$Id: elfloader.c,v 1.7 2007/09/14 20:12:55 nvt-se Exp $
  */
 
 #include "contiki.h"
@@ -137,7 +137,7 @@ struct process **elfloader_autostart_processes;
 
 static struct relevant_section bss, data, rodata, text;
 
-const static unsigned char elf_magic_header[] =
+static const unsigned char elf_magic_header[] =
   {0x7f, 0x45, 0x4c, 0x46,  /* 0x7f, 'E', 'L', 'F' */
    0x01,                    /* Only 32-bit objects. */
    0x01,                    /* Only LSB data. */
