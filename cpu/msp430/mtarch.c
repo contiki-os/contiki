@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: mtarch.c,v 1.3 2006/09/26 20:56:56 adamdunkels Exp $
+ * @(#)$Id: mtarch.c,v 1.4 2007/09/14 20:21:01 nvt-se Exp $
  */
 
 #include <stdio.h>
@@ -139,10 +139,13 @@ int
 mtarch_stack_usage(struct mt_thread *t)
 {
   int i;
+
   for(i = 0; i < MTARCH_STACKSIZE; ++i) {
     if(t->thread.stack[i] != (unsigned short)i) {
       return MTARCH_STACKSIZE - i;
     }
   }
+
+  return MTARCH_STACKSIZE;
 }
 /*--------------------------------------------------------------------------*/
