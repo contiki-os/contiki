@@ -90,7 +90,7 @@ static volatile uint8_t rssi;
 /// callback when a packet has been received
 static uint8_t cc1020_pa_power = PA_POWER;
 
-static void (*receiver_callback)(void);
+static void (*receiver_callback)(const struct radio_driver *);
 
 const struct radio_driver cc1020_driver =
   {
@@ -130,38 +130,12 @@ cc1020_init(const uint8_t *config)
   process_start(&cc1020_sender_process, NULL);
 }
 
-int
-cc1020_on(void)
-{
-  if (cc1020_power_mode == CC1020_ALWAYS_ON) {
-    // Switch to receive mode
-    cc1020_set_rx();
-  } else {
-    cc1020_off();
-  }
-  return TRUE;
-}
-
-void
-cc1020_off(void)
-{
-  if (cc1020_rxstate == CC1020_OFF)
-    return;
-
-  LNA_POWER_OFF();		// power down lna
-  _DINT();
-  cc1020_rxstate = CC1020_OFF;
-  DISABLE_RX_IRQ();
-  cc1020_state = CC1020_OFF;
-  _EINT();
-  cc1020_setupPD();		// power down radio
-}
-
 void
 cc1020_set_rx(void)
 {
-  // configure controller
-  _DINT();
+  int s;
+
+  s = splhigh();
 
   // Reset SEL for P3[1-3] (CC DIO, DIO, DCLK) and P3[4-5] (Camera Rx+Tx)
   P3SEL &= ~0x3E;
@@ -179,7 +153,7 @@ cc1020_set_rx(void)
   ME1 |= USPIE0;		// Enable USART0 TXD/RXD, disabling does not yield any powersavings
   P3SEL |= 0x0A;		// Select rx line and clk
   UCTL0 &= ~SWRST;		// Clear reset bit
-  _EINT();
+  splx(s);
 
   // configure driver
   cc1020_rxlen = 0;		// receive buffer position to start
@@ -198,12 +172,14 @@ cc1020_set_rx(void)
 void
 cc1020_set_tx(void)
 {
+  int s;
+
   // configure radio rx
   LNA_POWER_OFF();		// power down LNA
-  _DINT();
+  s = splhigh();
   DISABLE_RX_IRQ();
   P3SEL &= ~0x02;		// Ensure Rx line is off
-  _EINT();
+  splx(s);
 
   // configure radio tx
   cc1020_wakeupTX(TX_CURRENT);
@@ -214,12 +190,6 @@ cc1020_set_tx(void)
 
   // configure driver
   cc1020_state = CC1020_TX;
-}
-
-void
-cc1020_set_receiver(void (*recv)(void))
-{
-  receiver_callback = recv;
 }
 
 void
@@ -234,41 +204,15 @@ cc1020_set_power(uint8_t pa_power)
   cc1020_pa_power = pa_power;
 }
 
-unsigned int
-cc1020_read(uint8_t *buf, unsigned int bufsize)
-{
-  unsigned len;
-
-  if (cc1020_rxlen > HDRSIZE) {
-    len = cc1020_rxlen - HDRSIZE;
-    if (len > bufsize) {
-      // XXX Must handle this condition.
-      printf
-	("read buffer smaller than packet payload. payload length=%u, buffer size=%u\n",
-	 len, bufsize);
-    } else {
-      memcpy(buf, (char *) cc1020_rxbuf + HDRSIZE, len);
-      return len;
-    }
-  }
-  return 0;
-}
-
-uint8_t
-cc1020_get_rssi(void)
-{
-  return rssi;
-}
-
-unsigned
-cc1020_send(uint8_t *buf, unsigned int len)
+int
+cc1020_send(const void *buf, unsigned short len)
 {
   if (len > CC1020_BUFFERSIZE)
-    return 0;
+    return -1;
 
   /* Previous data hasn't been sent yet. */
   if (cc1020_txlen > 0)
-    return 0;
+    return -1;
 
   /* The preamble and the sync word are already in buffer. */
   cc1020_txlen = PREAMBLESIZE + SYNCWDSIZE;
@@ -287,6 +231,66 @@ cc1020_send(uint8_t *buf, unsigned int len)
   process_poll(&cc1020_sender_process);
 
   return len;
+}
+
+int
+cc1020_read(void *buf, unsigned short size)
+{
+  unsigned short len;
+
+  if (cc1020_rxlen <= HDRSIZE)
+    return 0;
+
+  len = cc1020_rxlen - HDRSIZE;
+  if (len > size)
+    return -1;
+
+  memcpy(buf, (char *) cc1020_rxbuf + HDRSIZE, len);
+  return len;
+}
+
+void
+cc1020_set_receiver(void (*recv)(const struct radio_driver *))
+{
+  receiver_callback = recv;
+}
+
+int
+cc1020_on(void)
+{
+  if (cc1020_power_mode == CC1020_ALWAYS_ON) {
+    // Switch to receive mode
+    cc1020_set_rx();
+  } else {
+    cc1020_off();
+  }
+
+  return 1;
+}
+
+int
+cc1020_off(void)
+{
+  int s;
+
+  if (cc1020_rxstate == CC1020_OFF)
+    return 1;
+
+  LNA_POWER_OFF();		// power down lna
+  s = splhigh();
+  cc1020_rxstate = CC1020_OFF;
+  DISABLE_RX_IRQ();
+  cc1020_state = CC1020_OFF;
+  splx(s);
+  cc1020_setupPD();		// power down radio
+
+  return 1;
+}
+
+uint8_t
+cc1020_get_rssi(void)
+{
+  return rssi;
 }
 
 interrupt(UART0RX_VECTOR) cc1020_rxhandler(void)
@@ -370,7 +374,7 @@ interrupt(UART0RX_VECTOR) cc1020_rxhandler(void)
 
         // call receiver to copy from buffer
         if (receiver_callback != NULL)
-          receiver_callback();
+          receiver_callback(&cc1020_driver);
 
         // reset receiver
         cc1020_rxlen = 0;

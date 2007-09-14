@@ -55,40 +55,21 @@ enum cc1020_power_mode {
 	CC1020_ALWAYS_ON
 };
 
-extern const u8_t cc1020_config_19200[];
-extern const u8_t cc1020_config_115200[];
+extern const uint8_t cc1020_config_19200[];
+extern const uint8_t cc1020_config_115200[];
 
-void cc1020_init(const u8_t* config);
-
-int cc1020_on(void);
-
+void cc1020_init(const uint8_t* config);
 void cc1020_set_rx(void);
-
 void cc1020_set_tx(void);
-
-void cc1020_off(void);
-
-void cc1020_set_receiver(void (*recv)(void));
-
 void cc1020_set_power_mode(enum cc1020_power_mode mode);
+void cc1020_set_power(uint8_t pa_power);
+uint8_t cc1020_get_rssi(void);
 
-/**
- * @brief Set output power amplifier power-
- * 
- * For good values see CC1020 documentation.
- */
-void cc1020_set_power(u8_t pa_power);
-
-unsigned int cc1020_read(u8_t *buf, unsigned int bufsize);
-
-/**
- * @brief Get RSSI of last received packet
- * 
- * Best to call in packet handler
- */
-u8_t cc1020_get_rssi(void);
-
-unsigned int cc1020_send(u8_t *buf, unsigned int bufsize);
+int cc1020_send(const void *buf, unsigned short size);
+int cc1020_read(void *buf, unsigned short size);
+void cc1020_set_receiver(void (*recv)(const struct radio_driver *));
+int cc1020_on(void);
+int cc1020_off(void);
 
 extern const struct radio_driver cc1020_driver;
 
