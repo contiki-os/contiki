@@ -74,13 +74,14 @@ infomem_write(unsigned int offset, unsigned char count, ...)
   va_list argp;
   uint16_t size;
   uint8_t *data;
+  int s;
 
   if (offset > (2 * INFOMEM_BLOCK_SIZE))
     return FALSE;
 
   flash = (uint8_t *) INFOMEM_START + offset;
 
-  _DINT();
+  s = splhigh();
 
   // backup into RAM
   memcpy(backup, flash, INFOMEM_BLOCK_SIZE);
@@ -116,6 +117,7 @@ infomem_write(unsigned int offset, unsigned char count, ...)
   FCTL1 = FWKEY;
   FCTL3 = FWKEY + LOCK;
 
-  _EINT();
+  splx(s);
+
   return TRUE;
 }
