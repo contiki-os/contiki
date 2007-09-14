@@ -28,28 +28,28 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: node-id.c,v 1.2 2007/08/20 11:01:13 nvt-se Exp $
+ * $Id: node-id.c,v 1.3 2007/09/14 19:24:45 nvt-se Exp $
  */
 
 #include "node-id.h"
-#include "contiki-conf.h"
 #include "dev/infomem.h"
 
-unsigned short node_id = 0;
+uint16_t node_id = 0;
+
 /*---------------------------------------------------------------------------*/
 void
 node_id_restore(void)
 {
-	unsigned short newid[2];
+  uint16_t newid[2];
 
-	infomem_read(newid, INFOMEM_NODE_ID, 2 * sizeof(node_id));
-	node_id = ( newid[0] == 0xdead ) ? newid[1] : newid[0];
+  infomem_read(newid, INFOMEM_NODE_ID, sizeof(newid));
+  node_id = ( newid[0] == 0xdead ) ? newid[1] : newid[0];
 }
 /*---------------------------------------------------------------------------*/
 void
-node_id_burn(unsigned short id)
+node_id_burn(uint16_t id)
 {
-	unsigned short buffer[2] = { 0xdead, id };
-	infomem_write(INFOMEM_NODE_ID, 1, buffer, 2 * sizeof(node_id));
+  uint16_t buffer[2] = { 0xdead, id };
+  infomem_write(INFOMEM_NODE_ID, 1, buffer, sizeof(buffer));
 }
 /*---------------------------------------------------------------------------*/
