@@ -130,7 +130,9 @@ uart_unlock(unsigned char mode)
 static void
 uart_configure(unsigned char mode)
 {
-  _DINT();
+  int s;
+
+  s = splhigh();
 
   UART_WAIT_TXDONE();							
 
@@ -162,7 +164,8 @@ uart_configure(unsigned char mode)
   UMCTL1 = uart_speed_bmn[mode];	// set modulation
 
   UCTL1 &= ~SWRST;			// clear reset flag
-  _EINT();				// enable interrupts
+
+  splx(s);
 }
 
 static void
