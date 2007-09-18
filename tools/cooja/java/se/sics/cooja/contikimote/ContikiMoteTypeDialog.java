@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ContikiMoteTypeDialog.java,v 1.33 2007/09/05 14:00:59 fros4943 Exp $
+ * $Id: ContikiMoteTypeDialog.java,v 1.34 2007/09/18 16:23:38 fros4943 Exp $
  */
 
 package se.sics.cooja.contikimote;
@@ -1462,9 +1462,13 @@ public class ContikiMoteTypeDialog extends JDialog {
       link2 = link2.replace("$(ARFILE)", arFile.getPath().replace(File.separatorChar, '/'));
       ccFlags = ccFlags.replace("$(DEPFILE)", arFile.getPath().replace(File.separatorChar, '/'));
 
-      link1 = link1.replace("$(JAVA_HOME)", System.getenv().get("JAVA_HOME"));
-      link2 = link2.replace("$(JAVA_HOME)", System.getenv().get("JAVA_HOME"));
-      ccFlags = ccFlags.replace("$(JAVA_HOME)", System.getenv().get("JAVA_HOME"));
+      String javaHome = System.getenv().get("JAVA_HOME");
+      if (javaHome == null) {
+        javaHome = "";
+      }
+      link1 = link1.replace("$(JAVA_HOME)", javaHome);
+      link2 = link2.replace("$(JAVA_HOME)", javaHome);
+      ccFlags = ccFlags.replace("$(JAVA_HOME)", javaHome);
 
       for (File sourceFile : sourceFiles) {
         if (sourceFile.isDirectory()) {
@@ -1570,6 +1574,7 @@ public class ContikiMoteTypeDialog extends JDialog {
       }
     } catch (Exception e) {
       logger.fatal("Error while compiling library: " + e);
+      e.printStackTrace();
       return false;
     }
     return true;
