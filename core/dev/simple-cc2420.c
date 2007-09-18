@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: simple-cc2420.c,v 1.8 2007/05/25 08:06:15 adamdunkels Exp $
+ * @(#)$Id: simple-cc2420.c,v 1.9 2007/09/18 10:32:00 nifi Exp $
  */
 /*
  * This code is almost device independent and should be easy to port.
@@ -282,6 +282,7 @@ simple_cc2420_send(const u8_t *payload, u16_t payload_len)
   if(FIFOP_IS_1 && !FIFO_IS_1) {
     /* RXFIFO overflow, send on retransmit. */
     PRINTF("rxfifo overflow!\n");
+    ENERGEST_OFF(ENERGEST_TYPE_TRANSMIT);
     RELEASE_LOCK();
     return -4;
   }
@@ -315,6 +316,8 @@ simple_cc2420_send(const u8_t *payload, u16_t payload_len)
   }
 
   PRINTF("simple_cc2420: do_send() transmission never started\n");
+
+  ENERGEST_OFF(ENERGEST_TYPE_TRANSMIT);
   RELEASE_LOCK();
   return -3;			/* Transmission never started! */
 }
