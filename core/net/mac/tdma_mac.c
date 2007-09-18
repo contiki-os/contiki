@@ -28,169 +28,185 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: tdma_mac.c,v 1.1 2007/08/31 13:42:22 fros4943 Exp $
+ * $Id: tdma_mac.c,v 1.2 2007/09/18 10:37:17 fros4943 Exp $
  */
 
 #include "contiki.h"
 #include "net/mac/tdma_mac.h"
 #include "net/rime/rimebuf.h"
 #include "net/uip-fw.h"
+#include "sys/rtimer.h"
+#include "net/rime.h"
 #include "lib/memb.h"
 #include "lib/list.h"
+#include "dev/leds.h"
 #include "node-id.h"
 
 #include <string.h>
 #include <stdio.h>
 
-static const struct radio_driver *radio;
-static void (* receiver_callback)(const struct mac_driver *);
-static int id_counter = 0;
-
 #define DEBUG 1
 #if DEBUG
-/*#include "printf2log.h"*/ /* XXX COOJA specifics */
+#define DLEDS_ON(x) leds_on(x)
+#define DLEDS_OFF(x) leds_off(x)
+#define DLEDS_TOGGLE(x) leds_toggle(x)
 #define PRINTF(...) printf(__VA_ARGS__)
 #else
+#define DLEDS_ON(x)
+#define DLEDS_OFF(x)
+#define DLEDS_TOGGLE(x)
 #define PRINTF(...)
 #endif
 
 /* TDMA configuration */
-#define MAX_BUFFERED_PACKETS 6
-
-#define NR_SLOTS 10
-#define SLOT_LENGTH (CLOCK_SECOND) /* Slot length */
-#define GUARD_PERIOD (CLOCK_SECOND / 2) /* Approx. packet transmission time */
+#define NR_SLOTS 3
+#define SLOT_LENGTH (RTIMER_SECOND/3)
+#define GUARD_PERIOD (RTIMER_SECOND/12)
 
 #define MY_SLOT (node_id % NR_SLOTS)
-#define PERIOD_LENGTH (SLOT_LENGTH*NR_SLOTS)
+#define PERIOD_LENGTH RTIMER_SECOND
 
-enum {
-  EVENT_PACKET_BUFFERED
-};
+/* Buffers */
+#define NUM_PACKETS 8
+u8_t lastqueued = 0;
+u8_t nextsend = 0;
+u8_t freeslot = 0;
+struct queuebuf* data[NUM_PACKETS];
+int id[NUM_PACKETS];
 
-struct buf_packet {
-  struct buf_packet *next;
-  struct queuebuf *queued_packet;
-  int id;
-  struct etimer etimer;
-};
+static struct rtimer rtimer;
+u8_t timer_on = 0;
 
-LIST(buf_packet_list);
-MEMB(buf_packet_mem, struct buf_packet, MAX_BUFFERED_PACKETS);
-
-PROCESS(tdma_process, "TDMA process");
+static const struct radio_driver *radio;
+static void (* receiver_callback)(const struct mac_driver *);
+static int id_counter = 0;
+static int sent_counter = 0;
 
 /*---------------------------------------------------------------------------*/
-PROCESS_THREAD(tdma_process, ev, data)
+static char
+transmitter(struct rtimer *t, void *ptr)
 {
-  PROCESS_BEGIN();
+  int r;
+  rtimer_clock_t now, rest, period_start, slot_start;
 
-  while(1) {
-    PROCESS_YIELD();
+  /* Calculate slot start time */
+  now = RTIMER_NOW();
+  rest = now % PERIOD_LENGTH;
+  period_start = now - rest;
+  slot_start = period_start + MY_SLOT*SLOT_LENGTH;
 
-    if(ev == EVENT_PACKET_BUFFERED || ev == PROCESS_EVENT_TIMER) {
-      struct buf_packet *packet;
+  /* Check if we are inside our slot */
+  if (now < slot_start ||
+      now > slot_start + SLOT_LENGTH - GUARD_PERIOD)
+  {
+    PRINTF("TIMER We are outside our slot: %u != [%u,%u]\n", now, slot_start, slot_start + SLOT_LENGTH);
+    while (now > slot_start + SLOT_LENGTH - GUARD_PERIOD)
+    {
+      slot_start += PERIOD_LENGTH;
+    }
+    
+    PRINTF("TIMER Rescheduling until %u\n", slot_start);
+    r = rtimer_set(&rtimer, slot_start, 1,
+        (void (*)(struct rtimer *, void *))transmitter, NULL);
+    if(r)
+    {
+      PRINTF("TIMER Error #1: %d\n", r);
+    }
 
-      /* Locate packet */
-      for(packet = list_head(buf_packet_list); packet != NULL; packet = packet->next) {
-        if (etimer_expired(&packet->etimer)) {
-          int ret, rest, period_start, my_next_slot;
-          clock_time_t now;
+    return 1;
+  }
 
-          /* Calculate time of our next slot */
-          now = clock_time();
-          rest = now % PERIOD_LENGTH;
-          period_start = now - rest;
-          my_next_slot = period_start + MY_SLOT*SLOT_LENGTH;
+  /* Transmit queued packets */
+  while (nextsend != freeslot)
+  {
+    PRINTF("RADIO Transmitting packet #%i\n", id[nextsend]);
+    if(!radio->send(
+        queuebuf_dataptr(data[nextsend]), 
+        queuebuf_datalen(data[nextsend])))
+    {
+      sent_counter++;
+      PRINTF("RADIO Transmit OK for #%i, total=%i\n", id[nextsend], sent_counter);
+      DLEDS_TOGGLE(LEDS_GREEN);
+    }
+    else
+    {
+      PRINTF("RADIO Transmit failed for #%i, total=%i\n", id[nextsend], sent_counter);
+      DLEDS_TOGGLE(LEDS_RED);
+    }
 
-          /* Transmit if inside our slot, with enough time left */
-          if ((now == my_next_slot) ||
-              (now > my_next_slot && (now - my_next_slot) < (SLOT_LENGTH-GUARD_PERIOD)))
-          {
-            PRINTF("SCHEDULE We can deliver right now (%i), slot = (%i <-> %i)\n", now, my_next_slot, my_next_slot + SLOT_LENGTH);
-          }
-          else
-          {
-            if (now > my_next_slot) {
-              my_next_slot += PERIOD_LENGTH;
-            }
+    nextsend = (nextsend + 1) % NUM_PACKETS;
 
-            int distance = my_next_slot - now;
-            etimer_set(&packet->etimer, distance);
-            PRINTF("SCHEDULE Packet #%i rescheduled at %i to %i\n", packet->id, clock_time(), my_next_slot);
-            continue;
-          }
-
-          /* Clear Rime buffer */
-          rimebuf_clear();
-
-          /* Restore packet from buffer */
-          if(packet->queued_packet != NULL) {
-            queuebuf_to_rimebuf(packet->queued_packet);
-            queuebuf_free(packet->queued_packet);
-          }
-
-          /* Send packet */
-          PRINTF("TDMA_PROC Packet #%i send starting at %i\n", packet->id, clock_time());
-          ret = radio->send(rimebuf_hdrptr(), rimebuf_totlen());
-
-
-          if (ret == UIP_FW_OK) {
-            /* Remove transmitted packet */
-            list_remove(buf_packet_list, packet);
-            memb_free(&buf_packet_mem, packet);
-            PRINTF("BUFFER Packet removed, memory freed\n");
-            PRINTF("TDMA_PROC Packet #%i sent at %i\n", packet->id, clock_time());
-          } else {
-            /* Reschedule packet */
-            etimer_set(&packet->etimer, SLOT_LENGTH);
-            PRINTF("TDMA_PROC Packet #%i forced rescheduled\n", packet->id);
-          }
-        }
-      }
+    /* Recalculate new slot */
+    if (RTIMER_NOW() > slot_start + SLOT_LENGTH - GUARD_PERIOD)
+    {
+      PRINTF("TIMER No more time to transmit\n");
+      break;
     }
   }
-  PROCESS_END();
+
+  /* Calculate time of our next slot */
+  slot_start += PERIOD_LENGTH;
+  PRINTF("TIMER Rescheduling until %u\n", slot_start);
+  r = rtimer_set(&rtimer, slot_start, 1,
+      (void (*)(struct rtimer *, void *))transmitter, NULL);
+  if(r)
+  {
+    PRINTF("TIMER Error #2: %d\n", r);
+  }
+  
+  return 0;
 }
 /*---------------------------------------------------------------------------*/
 static int
 send(void)
 {
-  struct buf_packet *packet;
+  int r;
+  id_counter++;
+  
+  /* Clean up already sent packets */
+  while (lastqueued != nextsend)
+  {
+    PRINTF("BUFFER Cleaning up packet #%i\n", id[lastqueued]);
+    queuebuf_free(data[lastqueued]);
+    data[lastqueued] = NULL;
 
-  packet = (struct buf_packet *)memb_alloc(&buf_packet_mem);
-  if (packet == NULL) {
-    PRINTF("BUFFER No memory available, packet dropped\n");
+    lastqueued = (lastqueued + 1) % NUM_PACKETS;
+  }
+  
+  if ((freeslot + 1) % NUM_PACKETS == lastqueued)
+  {
+    PRINTF("BUFFER Buffer full, dropping packet #%i\n", (id_counter+1));
     return UIP_FW_DROPPED;
   }
 
-  /* Add to buffered packets list */
-  list_add(buf_packet_list, packet);
-  PRINTF("BUFFER Packet added, memory allocated\n");
-
-  /* Store packet data */
-  packet->queued_packet = queuebuf_new_from_rimebuf();
-  if (packet->queued_packet == NULL) {
-    list_remove(buf_packet_list, packet);
-    memb_free(&buf_packet_mem, packet);
-    PRINTF("BUFFER No queue memory available, packet dropped\n");
+  /* Allocate queue buf for packet */
+  data[freeslot] = queuebuf_new_from_rimebuf();
+  id[freeslot] = id_counter;
+  if (data[freeslot] == NULL)
+  {
+    PRINTF("BUFFER Queuebuffer full, dropping packet #%i\n", id[freeslot]);
     return UIP_FW_DROPPED;
   }
+  PRINTF("BUFFER Wrote packet #%i to buffer \n", id[freeslot]);
 
-  PROCESS_CONTEXT_BEGIN(&tdma_process);
-  etimer_set(&packet->etimer, 0);
-  PROCESS_CONTEXT_END(&tdma_process);
-
-  /* TODO ID only used for debugging */
-  packet->id = id_counter++;
-
-  /* Clear Rime buffer */
-  rimebuf_clear();
-
-  process_post(&tdma_process, EVENT_PACKET_BUFFERED, NULL);
+  freeslot = (freeslot + 1) % NUM_PACKETS;
+  
+  if (!timer_on) 
+  {
+    PRINTF("TIMER Starting timer\n");
+    r = rtimer_set(&rtimer, RTIMER_NOW() + RTIMER_SECOND, 1,
+        (void (*)(struct rtimer *, void *))transmitter, NULL);
+    if(r)
+    {
+      PRINTF("TIMER Error #3: %d\n", r);
+    }
+    else
+    {
+      timer_on = 1;
+    }
+  }
 
   return UIP_FW_OK; /* TODO Return what? */
-
 }
 /*---------------------------------------------------------------------------*/
 static void
@@ -230,9 +246,11 @@ off(void)
 void
 tdma_mac_init(const struct radio_driver *d)
 {
-  memb_init(&buf_packet_mem);
-  list_init(buf_packet_list);
-  process_start(&tdma_process, NULL);
+  int i;
+  for (i=0; i < NUM_PACKETS; i++)
+  {
+    data[i] = NULL;
+  }
 
   radio = d;
   radio->set_receive_function(input);
