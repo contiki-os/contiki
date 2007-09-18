@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ExternalToolsDialog.java,v 1.5 2007/09/05 14:08:04 fros4943 Exp $
+ * $Id: ExternalToolsDialog.java,v 1.6 2007/09/18 16:07:10 fros4943 Exp $
  */
 
 package se.sics.cooja.dialogs;
@@ -112,7 +112,13 @@ public class ExternalToolsDialog extends JDialog {
     // Some explanations
     Box explanations = Box.createVerticalBox();
     explanations.add(new JLabel("Special variables used in COMPILER_ARGS, LINK_COMMAND_1 and LINK_COMMAND_2:"));
-    explanations.add(new JLabel("  $(JAVA_HOME) maps to the environment Java home: " + System.getenv().get("JAVA_HOME").replace(File.separatorChar, '/')));
+    String javaHome = System.getenv().get("JAVA_HOME");
+    if (javaHome != null) {
+      javaHome = javaHome.replace(File.separatorChar, '/');
+    } else {
+      javaHome = "[null]";
+    }
+    explanations.add(new JLabel("  $(JAVA_HOME) maps to the environment Java home: " + javaHome));
     explanations.add(new JLabel("  $(LIBFILE) maps to the current library file being created (\"mtype1.library\")"));
     explanations.add(new JLabel("  $(MAPFILE) maps to the current map file being created (\"mtype1.map\")"));
     explanations.add(new JLabel("  $(ARFILE) maps to the current archive file being created (\"mtype1.a\")"));
