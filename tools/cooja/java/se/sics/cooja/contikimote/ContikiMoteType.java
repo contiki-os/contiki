@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ContikiMoteType.java,v 1.19 2007/09/10 14:05:34 fros4943 Exp $
+ * $Id: ContikiMoteType.java,v 1.20 2007/09/18 11:33:58 fros4943 Exp $
  */
 
 package se.sics.cooja.contikimote;
@@ -315,32 +315,32 @@ public class ContikiMoteType implements MoteType {
     libraryClassName = CoreComm.getAvailableClassName();
     myCoreComm = CoreComm.createCoreComm(libraryClassName, libFile);
 
-    // Should we parse addresses using map file or nm?
-    boolean useNm = Boolean.parseBoolean(GUI.getExternalToolsSetting("PARSE_WITH_NM", "false"));
+    // Should we parse addresses using map file or command?
+    boolean useCommand = Boolean.parseBoolean(GUI.getExternalToolsSetting("PARSE_WITH_COMMAND", "false"));
 
     int relDataSectionAddr = -1;
     int dataSectionSize = -1;
     int relBssSectionAddr = -1;
     int bssSectionSize = -1;
 
-    if (useNm) {
-      // Parse nm output
-      Vector<String> nmData = loadNmData(libFile);
-      if (nmData == null) {
-        logger.fatal("No nm data could be loaded");
-        throw new MoteTypeCreationException("No nm data could be loaded");
+    if (useCommand) {
+      // Parse command output
+      Vector<String> commandData = loadCommandData(libFile);
+      if (commandData == null) {
+        logger.fatal("No parse command output could be loaded");
+        throw new MoteTypeCreationException("No parse command output be loaded");
       }
 
-      boolean parseOK = parseNmData(nmData, varAddresses);
+      boolean parseOK = parseCommandData(commandData, varAddresses);
       if (!parseOK) {
-        logger.fatal("Nm data parsing failed");
-        throw new MoteTypeCreationException("Nm data parsing failed");
+        logger.fatal("Command output parsing failed");
+        throw new MoteTypeCreationException("Command output parsing failed");
       }
 
-      relDataSectionAddr = loadNmRelDataSectionAddr(nmData);
-      dataSectionSize = loadNmDataSectionSize(nmData);
-      relBssSectionAddr = loadNmRelBssSectionAddr(nmData);
-      bssSectionSize = loadNmBssSectionSize(nmData);
+      relDataSectionAddr = loadCommandRelDataSectionAddr(commandData);
+      dataSectionSize = loadCommandDataSectionSize(commandData);
+      relBssSectionAddr = loadCommandRelBssSectionAddr(commandData);
+      bssSectionSize = loadCommandBssSectionSize(commandData);
     } else {
       // Parse map file
       if (!mapFile.exists()) {
@@ -461,25 +461,26 @@ public class ContikiMoteType implements MoteType {
   }
 
   /**
-   * Parses specified nm data for variable name to addresses mappings. The
-   * mappings are added to the given properties object.
+   * Parses specified parse command output for variable 
+   * name to addresses mappings. The mappings are added
+   * to the given properties object.
    *
-   * @param nmData
-   *          Response from nm command on object file
+   * @param commandData
+   *          Output from parse command on object file
    * @param varAddresses
    *          Properties that should contain the name to addresses mappings.
    */
-  public static boolean parseNmData(Vector<String> nmData,
+  public static boolean parseCommandData(Vector<String> commandData,
       Properties varAddresses) {
     int nrNew = 0, nrOld = 0, nrMismatch = 0;
 
     Pattern pattern = Pattern.compile(GUI
-        .getExternalToolsSetting("NM_VAR_NAME_ADDRESS"));
-    for (String nmLine : nmData) {
-      Matcher matcher = pattern.matcher(nmLine);
+        .getExternalToolsSetting("COMMAND_VAR_NAME_ADDRESS"));
+    for (String commandLine : commandData) {
+      Matcher matcher = pattern.matcher(commandLine);
 
       if (matcher.find()) {
-        // logger.debug("Parsing line: " + nmLine);
+        // logger.debug("Parsing line: " + commandLine);
         String varName = matcher.group(2);
         int varAddress = Integer.parseInt(matcher.group(1), 16);
 
@@ -489,7 +490,7 @@ public class ContikiMoteType implements MoteType {
         } else {
           int oldAddress = (Integer) varAddresses.get(varName);
           if (oldAddress != varAddress) {
-            logger.warn("Warning, nm response not matching previous entry of: "
+            logger.warn("Warning, command response not matching previous entry of: "
                 + varName);
             nrMismatch++;
           }
@@ -500,11 +501,11 @@ public class ContikiMoteType implements MoteType {
     }
 
     if (nrMismatch > 0) {
-      logger.debug("Nm response parsing summary: Added " + nrNew
+      logger.debug("Command response parsing summary: Added " + nrNew
           + " variables. Found " + nrOld
           + " old variables. MISMATCHING ADDRESSES: " + nrMismatch);
     } else {
-      logger.debug("Nm response parsing summary: Added " + nrNew
+      logger.debug("Command response parsing summary: Added " + nrNew
           + " variables. Found " + nrOld + " old variables");
     }
 
@@ -720,9 +721,9 @@ public class ContikiMoteType implements MoteType {
     }
   }
 
-  public static int loadNmRelDataSectionAddr(Vector<String> nmData) {
-    String retString = getFirstMatchGroup(nmData, GUI
-        .getExternalToolsSetting("NM_DATA_START"), 1);
+  public static int loadCommandRelDataSectionAddr(Vector<String> commandData) {
+    String retString = getFirstMatchGroup(commandData, GUI
+        .getExternalToolsSetting("COMMAND_DATA_START"), 1);
 
     if (retString != null) {
       return Integer.parseInt(retString.trim(), 16);
@@ -731,20 +732,20 @@ public class ContikiMoteType implements MoteType {
     }
   }
 
-  public static int loadNmDataSectionSize(Vector<String> nmData) {
+  public static int loadCommandDataSectionSize(Vector<String> commandData) {
     String retString;
     int start, end;
 
-    retString = getFirstMatchGroup(nmData, GUI
-        .getExternalToolsSetting("NM_DATA_START"), 1);
+    retString = getFirstMatchGroup(commandData, GUI
+        .getExternalToolsSetting("COMMAND_DATA_START"), 1);
     if (retString != null) {
       start = Integer.parseInt(retString.trim(), 16);
     } else {
       return -1;
     }
 
-    retString = getFirstMatchGroup(nmData, GUI
-        .getExternalToolsSetting("NM_DATA_END"), 1);
+    retString = getFirstMatchGroup(commandData, GUI
+        .getExternalToolsSetting("COMMAND_DATA_END"), 1);
     if (retString != null) {
       end = Integer.parseInt(retString.trim(), 16);
     } else {
@@ -754,9 +755,9 @@ public class ContikiMoteType implements MoteType {
     return end - start;
   }
 
-  public static int loadNmRelBssSectionAddr(Vector<String> nmData) {
-    String retString = getFirstMatchGroup(nmData, GUI
-        .getExternalToolsSetting("NM_BSS_START"), 1);
+  public static int loadCommandRelBssSectionAddr(Vector<String> commandData) {
+    String retString = getFirstMatchGroup(commandData, GUI
+        .getExternalToolsSetting("COMMAND_BSS_START"), 1);
 
     if (retString != null) {
       return Integer.parseInt(retString.trim(), 16);
@@ -765,20 +766,20 @@ public class ContikiMoteType implements MoteType {
     }
   }
 
-  public static int loadNmBssSectionSize(Vector<String> nmData) {
+  public static int loadCommandBssSectionSize(Vector<String> commandData) {
     String retString;
     int start, end;
 
-    retString = getFirstMatchGroup(nmData, GUI
-        .getExternalToolsSetting("NM_BSS_START"), 1);
+    retString = getFirstMatchGroup(commandData, GUI
+        .getExternalToolsSetting("COMMAND_BSS_START"), 1);
     if (retString != null) {
       start = Integer.parseInt(retString.trim(), 16);
     } else {
       return -1;
     }
 
-    retString = getFirstMatchGroup(nmData, GUI
-        .getExternalToolsSetting("NM_BSS_END"), 1);
+    retString = getFirstMatchGroup(commandData, GUI
+        .getExternalToolsSetting("COMMAND_BSS_END"), 1);
     if (retString != null) {
       end = Integer.parseInt(retString.trim(), 16);
     } else {
@@ -822,47 +823,32 @@ public class ContikiMoteType implements MoteType {
   }
 
   /**
-   * Runs external tool nm on given file and returns the result.
+   * Executes parse command on given file and returns the result.
    *
    * @param libraryFile
    *          File
    * @return Execution response
    */
-  public static Vector<String> loadNmData(File libraryFile) {
-    Vector<String> nmData = new Vector<String>();
+  public static Vector<String> loadCommandData(File libraryFile) {
+    Vector<String> commandData = new Vector<String>();
 
     try {
-      String nmPath = GUI.getExternalToolsSetting("PATH_NM");
-      String nmArgs = GUI.getExternalToolsSetting("NM_ARGS");
+      String command = GUI.getExternalToolsSetting("PARSE_COMMAND");
 
-      if (nmPath == null || nmPath.equals("")) {
+      if (command == null) {
         return null;
       }
 
-      String[] nmExecArray;
-      if (!nmArgs.trim().equals("")) {
-        // Arguments need to be passed to program
-        String[] splittedNmArgs = nmArgs.split(" ");
-        nmExecArray = new String[1 + splittedNmArgs.length + 1];
-
-        nmExecArray[0] = nmPath.trim();
-
-        nmExecArray[nmExecArray.length - 1] = libraryFile.getAbsolutePath();
-        System.arraycopy(splittedNmArgs, 0, nmExecArray, 1,
-            splittedNmArgs.length);
-      } else {
-        nmExecArray = new String[2];
-        nmExecArray[0] = nmPath.trim();
-        nmExecArray[1] = libraryFile.getAbsolutePath();
-      }
+      // Prepare command
+      command = command.replace("$(LIBFILE)", libraryFile.getPath().replace(File.separatorChar, '/'));
 
       String line;
-      Process p = Runtime.getRuntime().exec(nmExecArray);
+      Process p = Runtime.getRuntime().exec(command.split(" "));
       BufferedReader input = new BufferedReader(new InputStreamReader(p
           .getInputStream()));
       p.getErrorStream().close(); // Ignore error stream
       while ((line = input.readLine()) != null) {
-        nmData.add(line);
+        commandData.add(line);
       }
       input.close();
     } catch (Exception err) {
@@ -870,11 +856,11 @@ public class ContikiMoteType implements MoteType {
       return null;
     }
 
-    if (nmData == null || nmData.size() == 0) {
+    if (commandData == null || commandData.size() == 0) {
       return null;
     }
 
-    return nmData;
+    return commandData;
   }
 
   /**

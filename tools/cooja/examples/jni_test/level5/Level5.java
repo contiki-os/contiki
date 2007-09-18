@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: Level5.java,v 1.3 2007/09/10 14:07:12 fros4943 Exp $
+ * $Id: Level5.java,v 1.4 2007/09/18 11:35:11 fros4943 Exp $
  */
 
 import java.io.*;
@@ -64,8 +64,8 @@ public class Level5 {
     GUI.loadExternalToolsDefaultSettings();
     GUI.loadExternalToolsUserSettings();
 
-    // Should we parse addresses using map file or nm?
-    boolean useNm = Boolean.parseBoolean(GUI.getExternalToolsSetting("PARSE_WITH_NM", "false"));
+    // Should we parse addresses using map file or command?
+    boolean useCommand = Boolean.parseBoolean(GUI.getExternalToolsSetting("PARSE_WITH_COMMAND", "false"));
 
     Properties addresses = new Properties();
     int relDataSectionAddr = -1;
@@ -73,9 +73,9 @@ public class Level5 {
     int relBssSectionAddr = -1;
     int bssSectionSize = -1;
 
-    if (useNm) {
-      // Parse nm output
-      System.out.println("Parsing using nm");
+    if (useCommand) {
+      // Parse command output
+      System.out.println("Parsing using command");
 
       File libFile = new File("level5.library");
       if (!libFile.exists()) {
@@ -83,22 +83,22 @@ public class Level5 {
         System.exit(1);
       }
 
-      Vector<String> nmData = ContikiMoteType.loadNmData(libFile);
-      if (nmData == null) {
-        System.err.println("No nm data could be loaded");
+      Vector<String> commandData = ContikiMoteType.loadCommandData(libFile);
+      if (commandData == null) {
+        System.err.println("No command data could be loaded");
         System.exit(1);
       }
 
-      boolean parseOK = ContikiMoteType.parseNmData(nmData, addresses);
+      boolean parseOK = ContikiMoteType.parseCommandData(commandData, addresses);
       if (!parseOK) {
-        System.err.println("Nm data parsing failed");
+        System.err.println("Command data parsing failed");
         System.exit(1);
       }
 
-      relDataSectionAddr = ContikiMoteType.loadNmRelDataSectionAddr(nmData);
-      dataSectionSize = ContikiMoteType.loadNmDataSectionSize(nmData);
-      relBssSectionAddr = ContikiMoteType.loadNmRelBssSectionAddr(nmData);
-      bssSectionSize = ContikiMoteType.loadNmBssSectionSize(nmData);
+      relDataSectionAddr = ContikiMoteType.loadCommandRelDataSectionAddr(commandData);
+      dataSectionSize = ContikiMoteType.loadCommandDataSectionSize(commandData);
+      relBssSectionAddr = ContikiMoteType.loadCommandRelBssSectionAddr(commandData);
+      bssSectionSize = ContikiMoteType.loadCommandBssSectionSize(commandData);
     } else {
       // Parse map file
       System.out.println("Parsing using map file");

@@ -13,7 +13,7 @@ Linux users with the GNU toolchain may try:
         COMPILER_ARGS = 
         LINK_COMMAND_1 = gcc -shared -Wl,-Map=$(MAPFILE) -o $(LIBFILE)
         LINK_COMMAND_2 = 
-        PARSE_WITH_NM=false
+        PARSE_WITH_COMMAND=false
 			
 Windows users with recent Cygwin may try:
 	COMPILER_ARGS = -mno-cygwin -Wall -I'$(JAVA_HOME)/include' -I'$(JAVA_HOME)/include/win32'
@@ -72,7 +72,7 @@ For more information including configuration examples:
 	[address parsing using map file]
 
 > ant level3b
-	[address parsing using nm]
+	[address parsing using command]
 
 > ant level4
 	[fetching reference var]
@@ -168,16 +168,16 @@ or
 	> ant level3b			
 
 3a tests parsing library addresses using the map file generated at link time.
-3b tests parsing library addresses using the nm tool.
+3b tests parsing library addresses using a command.
 At least one of the tests must pass.
 
 After passing, the 'exttools.cfg' must be updated.
 The external tools setting:
-	PARSE_WITH_NM=true
-causes COOJA (and the following tests) to use nm to parse library addresses,
+	PARSE_WITH_COMMAND=true
+causes COOJA (and the following tests) to use the command to parse library addresses,
 and should be used if test 3b passed.
 
-	PARSE_WITH_NM=false
+	PARSE_WITH_COMMAND=false
 causes COOJA to parse the generated map file, and should be used if test 3a passed.
 			
 		</echo>

@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: MantisMoteType.java,v 1.4 2007/04/03 16:18:04 fros4943 Exp $
+ * $Id: MantisMoteType.java,v 1.5 2007/09/18 11:33:58 fros4943 Exp $
  */
 
 package se.sics.cooja.mantismote;
@@ -143,8 +143,8 @@ public class MantisMoteType implements MoteType {
 
     // Parse variable name to addresses mappings using nm
     varAddresses.clear();
-    Vector<String> nmData = ContikiMoteType.loadNmData(libFile);
-    if (nmData == null || !ContikiMoteType.parseNmData(nmData, varAddresses)) {
+    Vector<String> nmData = ContikiMoteType.loadCommandData(libFile);
+    if (nmData == null || !ContikiMoteType.parseCommandData(nmData, varAddresses)) {
       logger.fatal("Nm response parsing failed");
       return false;
     }
