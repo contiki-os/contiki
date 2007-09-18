@@ -24,7 +24,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * $Id: GUI.java,v 1.60 2007/09/18 11:33:46 fros4943 Exp $
+ * $Id: GUI.java,v 1.61 2007/09/18 15:57:14 fros4943 Exp $
  */
 
 package se.sics.cooja;
@@ -2581,12 +2581,14 @@ public class GUI {
         return callingObject.getClass().getClassLoader().loadClass(className)
             .asSubclass(classType);
       } catch (ClassNotFoundException e) {
+      } catch (UnsupportedClassVersionError e) {
       }
     }
 
     try {
       return Class.forName(className).asSubclass(classType);
     } catch (ClassNotFoundException e) {
+    } catch (UnsupportedClassVersionError e) {
     }
 
     try {
@@ -2595,6 +2597,7 @@ public class GUI {
             classType);
       }
     } catch (ClassNotFoundException e) {
+    } catch (UnsupportedClassVersionError e) {
     }
 
     return null;
