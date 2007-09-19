@@ -27,7 +27,7 @@
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * $Id: libconio_arch.h,v 1.2 2007/09/09 13:41:50 matsutsuka Exp $
+ * $Id: libconio_z80.h,v 1.1 2007/09/19 12:48:26 matsutsuka Exp $
  *
  */
  /*
