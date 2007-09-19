@@ -29,13 +29,13 @@
  *
  * This file is part of the "ctk" console GUI toolkit for cc65
  *
- * $Id: ctk-conio.c,v 1.3 2007/04/15 13:14:40 oliverschmidt Exp $
+ * $Id: ctk-conio.c,v 1.4 2007/09/19 12:50:23 matsutsuka Exp $
  *
  */
 
 #include <string.h>
 #include <ctype.h>
-#include <conio.h>
+#include "lib/libconio.h"
 
 #include "contiki.h"
 
