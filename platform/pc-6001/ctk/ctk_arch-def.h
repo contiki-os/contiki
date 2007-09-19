@@ -27,10 +27,10 @@
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * $Id: ctk_arch-def.h,v 1.1 2007/09/11 12:12:59 matsutsuka Exp $
+ * $Id: ctk_arch-def.h,v 1.2 2007/09/19 12:46:15 matsutsuka Exp $
  *
  */
- 
+
 /*
  * \file
  * 	ctk_arch-def.h
@@ -106,7 +106,7 @@
 #define CH_CURS_RIGHT			0x1c
 #define CH_ENTER			0x0d
 #define CH_ESC				0x1b
-#define CH_STOP			0x03
+#define CH_STOP				0x03
 #define CH_DEL				0x08
 
 /* Contiki toolkit options */
@@ -136,16 +136,28 @@
 /* Key used to switch the frontmost window.  */
 #define CTK_CONF_WINDOWSWITCH_KEY	CH_F3
 /* Key used to move down a widget.  */
-#define CTK_CONF_WIDGETDOWN_KEY	CH_TAB
+#define CTK_CONF_WIDGETDOWN_KEY		CH_TAB
 /* Key used to move up a widget.  */
 #define CTK_CONF_WIDGETUP_KEY		CH_F5
 /* Defines which key that is to be used for activating the menus */
 #define CTK_CONF_MENU_KEY		CH_F1
 
-/* offsets of struct screen_info for assembler */
-#define CURSX  0
-#define CURSY  1
-#define CY1    2
-#define CY2    3
+/* Imported symbols from ctk.h */
+
+#define _CTK_FOCUS_NONE		0
+#define _CTK_FOCUS_WIDGET	1
+#define _CTK_FOCUS_WINDOW	2
+#define _CTK_FOCUS_DIALOG	4
+
+#define _CTK_WIDGET_SEPARATOR	1
+#define _CTK_WIDGET_LABEL	2
+#define _CTK_WIDGET_BUTTON	3
+#define _CTK_WIDGET_HYPERLINK	4
+#define _CTK_WIDGET_TEXTENTRY	5
+#define _CTK_WIDGET_BITMAP	6
+#define _CTK_WIDGET_ICON	7
+
+#define _CTK_TEXTENTRY_NORMAL	0
+#define _CTK_TEXTENTRY_EDIT	1
 
 #endif /* __CTK_ARCH_DEF_H__ */
