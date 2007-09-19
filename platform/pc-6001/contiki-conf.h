@@ -27,7 +27,7 @@
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * $Id: contiki-conf.h,v 1.2 2007/09/11 12:55:16 matsutsuka Exp $
+ * $Id: contiki-conf.h,v 1.3 2007/09/19 12:44:45 matsutsuka Exp $
  *
  */
 
@@ -129,15 +129,20 @@ typedef unsigned long clock_time_t;
 #endif
 
 /* uIP configuration */
-#define UIP_CONF_MAX_CONNECTIONS	10
-#define UIP_CONF_MAX_LISTENPORTS	10
-#define UIP_CONF_BUFFER_SIZE		300
+#define UIP_CONF_MAX_CONNECTIONS	2
+#define UIP_CONF_MAX_LISTENPORTS	2
+#define UIP_CONF_BUFFER_SIZE		200
 #define UIP_CONF_BYTE_ORDER		LITTLE_ENDIAN
 //#define UIP_CONF_TCP_SPLIT		1
 #define UIP_CONF_TCP_SPLIT		0
 #define UIP_CONF_LOGGING		0
 //#define UIP_CONF_UDP_CHECKSUMS	1
 #define UIP_CONF_UDP_CHECKSUMS		0
+
+/* uses SLIP */
+#define UIP_CONF_UDP			1
+#define UIP_CONF_LLH_LEN		0
+#define UIP_CONF_BROADCAST		0
 
 /* Web sever configuration */
 #undef WEBSERVER_CONF_LOG_ENABLED
