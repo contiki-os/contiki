@@ -2,7 +2,7 @@
 # Makefile for PC-6001 using z80/SDCC
 # @author Takahide Matsutsuka <markn@markn.org>
 #
-# $Id: Makefile,v 1.1 2007/09/11 12:12:59 matsutsuka Exp $
+# $Id: Makefile,v 1.2 2007/09/19 12:44:45 matsutsuka Exp $
 #
 
 CONTIKI = ../..
@@ -43,7 +43,7 @@ minimal:
 
 serial:
 	rm -f contiki.ihex;
-	make contiki MEMORY=16K CONTIKI_TARGET_MAIN=contiki-serial-main.c
+	make contiki MEMORY=32K CONTIKI_TARGET_MAIN=contiki-serial-main.c
 
 rom:
 	rm -f contiki.ihex;
@@ -51,5 +51,8 @@ rom:
 slip:
 	rm -f contiki.ihex;
 	make contiki APPS="$(APPS_NETWORK)" PLATFORM_APPS="$(PLATFORM_APPS_NETWORK)" CONTIKI_TARGET_MAIN=contiki-slip-main.c
+web:
+	rm -f contiki.ihex;
+	make contiki APPS="$(APPS_DESKTOP) $(APPS_NETWORK)" PLATFORM_APPS="$(PLATFORM_APPS_NETWORK)" CONTIKI_TARGET_MAIN=contiki-web-main.c
 
 include $(CONTIKI)/Makefile.include

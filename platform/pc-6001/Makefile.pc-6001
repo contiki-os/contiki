@@ -2,7 +2,7 @@
 # Makefile for PC-6001 using z80/SDCC
 # @author Takahide Matsutsuka <markn@markn.org>
 #
-# $Id: Makefile.pc-6001,v 1.2 2007/09/11 12:55:35 matsutsuka Exp $
+# $Id: Makefile.pc-6001,v 1.3 2007/09/19 12:44:45 matsutsuka Exp $
 #
 
 ifndef CONTIKI
@@ -27,7 +27,7 @@ endif
 PLATFORM = $(CONTIKI)/platform/$(TARGET)
 CONTIKI_TARGET_DIRS = . ctk dev loader
 CFLAGS  += -DMEMORY_$(MEMORY) -DARCH_$(ARCH)
-LDFLAGS += $(CFLAGS) --opt-code-size --out-fmt-ihx
+LDFLAGS += $(CFLAGS) --opt-code-size --out-fmt-ihx --main-return
 
 ifeq ($(MEMORY),16K)
   LDFLAGS      += --code-loc 0xc41d --data-loc
@@ -57,17 +57,18 @@ endif
 CONTIKI_TARGET_SOURCEFILES = \
 	$(CTK) cfs-ram.c serial.c slip.c \
 	ctk-conio_arch.c libconio.c
+
 #	ctk-conio.c
 
-#you can use the below instead of ctk-conio_arch.c and ctk-conio_arch-asm.hS
+#you can use the below instead of ctk-conio_arch.c and ctk-conio_arch-asm.cS
 #ctk-conio_arch-source.c
 
 CONTIKI_ASMFILES  += getkey.S isprint_arch.S clock.S rs232-asm.S
-CONTIKI_HASMFILES += ctk-conio_arch-asm.hS
+CONTIKI_CASMFILES += ctk-conio_arch-asm.cS libconio_arch-asm.cS
 
 CONTIKI_SOURCEFILES += $(CONTIKI_TARGET_SOURCEFILES)
 
-CLEAN += *.asm *.lnk *.sym *.o *.a *.cas *.rom
+CLEAN += *.asm *.lnk *.sym *.o *.a *.cas *.rom *.p6
 
 contiki: contiki.p6
 
