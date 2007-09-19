@@ -1,5 +1,5 @@
 /* -*- C -*- */
-/* @(#)$Id: contiki-conf.h,v 1.17 2007/08/16 13:10:53 bg- Exp $ */
+/* @(#)$Id: contiki-conf.h,v 1.18 2007/09/19 14:09:31 nifi Exp $ */
 
 #ifndef CONTIKI_CONF_H
 #define CONTIKI_CONF_H
@@ -18,6 +18,8 @@
 
 #define CCIF
 #define CLIF
+
+#define CC_CONF_INLINE inline
 
 #define AODV_COMPLIANCE
 #define AODV_NUM_RT_ENTRIES 32
