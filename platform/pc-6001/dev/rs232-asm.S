@@ -7,7 +7,7 @@
 ;;; 
 ;;; @author Takahide Matsutsuka <markn@markn.org>
 ;;; 
-;;; $Id: rs232-asm.S,v 1.1 2007/09/11 12:12:59 matsutsuka Exp $
+;;; $Id: rs232-asm.S,v 1.2 2007/09/19 12:47:19 matsutsuka Exp $
 ;;; 
 	
 	;; definitions of PC-6001 BIOS routines
@@ -37,18 +37,25 @@ _rs232_arch_writeb:
 	ret
 
 	;; ---------------------------------
-	;; unsigned char rs232_arch_poll();
-	;; Stack; retl reth
-	;; AFBC__HL____
-	;; return input byte (zero if no input)
+	;; unsigned char rs232_arch_poll(unsigned char *stat);
+	;; Stack; retl reth statl stath
+	;; AFBCDEHL____
+	;; return input byte (*stat == 0 if no input)
 	;; ---------------------------------
 _rs232_arch_poll:
-	ld	a,#0x01
+	ld	hl, #2
+	add	hl, sp
+	ld	e, (hl)
+	inc	hl
+	ld	d, (hl)
+	ld	a, #0x01
+	ld	(de), a
 	di
 	call	#_char_input_sub	; read from buffer
 	ei
 	jr	nz, _rs232_arch_poll_ret
 	xor	a			; we have no data in the buffer
+	ld	(de), a
 _rs232_arch_poll_ret:
 	ld	l, a
 	ret
