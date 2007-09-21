@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ContikiMoteTypeDialog.java,v 1.34 2007/09/18 16:23:38 fros4943 Exp $
+ * $Id: ContikiMoteTypeDialog.java,v 1.35 2007/09/21 16:14:19 fros4943 Exp $
  */
 
 package se.sics.cooja.contikimote;
@@ -2393,8 +2393,30 @@ public class ContikiMoteTypeDialog extends JDialog {
             ContikiMoteType.class, "MOTE_INTERFACES");
         Vector<Class<? extends MoteInterface>> moteIntfClasses = new Vector<Class<? extends MoteInterface>>();
 
-        ClassLoader classLoader = myGUI
-            .createProjectDirClassLoader(moteTypeProjectDirs);
+        ClassLoader classLoader;
+        try {
+          classLoader = myGUI.createProjectDirClassLoader(moteTypeProjectDirs);
+        } catch (GUI.ClassLoaderCreationException e2) {
+          logger.fatal("Error when creating class loader: " + e2.getMessage());
+          e2.printStackTrace();
+          if (myGUI.isVisualized()) {
+            JOptionPane.showMessageDialog(ContikiMoteTypeDialog.this,
+                "Error when creating class loader.\nStack trace printed to console.",
+                "Error", JOptionPane.ERROR_MESSAGE);
+          }
+          return;
+        } catch (GUI.ParseProjectsException e2) {
+          logger.fatal("Error when loading projects: " + e2.getMessage());
+          e2.printStackTrace();
+          if (myGUI.isVisualized()) {
+            JOptionPane.showMessageDialog(ContikiMoteTypeDialog.this,
+                "Error when loading projects.\nStack trace printed to console.",
+                "Error", JOptionPane.ERROR_MESSAGE);
+          }
+          return;
+        }
+
+
 
         // Find and load the mote interface classes
         for (String moteInterface : moteInterfaces) {

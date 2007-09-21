@@ -24,7 +24,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * $Id: GUI.java,v 1.61 2007/09/18 15:57:14 fros4943 Exp $
+ * $Id: GUI.java,v 1.62 2007/09/21 16:14:19 fros4943 Exp $
  */
 
 package se.sics.cooja;
@@ -264,7 +264,17 @@ public class GUI {
     }
 
     // Load extendable parts (using current project config)
-    reparseProjectConfig();
+    try {
+      reparseProjectConfig();
+    } catch (ParseProjectsException e) {
+      logger.fatal("Error when loading project directories: " + e.getMessage());
+      e.printStackTrace();
+      if (myDesktopPane != null) {
+        JOptionPane.showMessageDialog(frame,
+            "Loading project directories failed.\nStack trace printed to console.",
+            "Error", JOptionPane.ERROR_MESSAGE);
+      }
+    }
 
     // Start all standard GUI plugins
     for (Class<? extends Plugin> visPluginClass : pluginClasses) {
@@ -772,9 +782,10 @@ public class GUI {
       }
       gui.currentProjectDirs.add(new File(projectDir));
     }
-    boolean parsedProjects = gui.reparseProjectConfig();
-    if (!parsedProjects) {
-      logger.fatal(">> Error when parsing project directories, aborting");
+    try {
+      gui.reparseProjectConfig();
+    } catch (ParseProjectsException e) {
+      logger.fatal(">> Error when parsing project directories: " + e.getMessage());
       return false;
     }
 
@@ -1273,7 +1284,8 @@ public class GUI {
    *
    * @return True if external configuration files were found and parsed OK
    */
-  public boolean reparseProjectConfig() {
+  public void reparseProjectConfig()
+  throws ParseProjectsException {
     // Backup temporary plugins
     Vector<Class<? extends Plugin>> oldTempPlugins = (Vector<Class<? extends Plugin>>) pluginClassesTemporary
         .clone();
@@ -1291,11 +1303,15 @@ public class GUI {
     } catch (FileNotFoundException e) {
       logger.fatal("Could not find default project config file: "
           + PROJECT_DEFAULT_CONFIG_FILENAME);
-      return false;
+      throw (ParseProjectsException) new ParseProjectsException(
+          "Could not find default project config file: "
+          + PROJECT_DEFAULT_CONFIG_FILENAME).initCause(e);
     } catch (IOException e) {
       logger.fatal("Error when reading default project config file: "
           + PROJECT_DEFAULT_CONFIG_FILENAME);
-      return false;
+      throw (ParseProjectsException) new ParseProjectsException(
+          "Error when reading default project config file: "
+          + PROJECT_DEFAULT_CONFIG_FILENAME).initCause(e);
     }
 
     // Append project directory configurations
@@ -1306,16 +1322,23 @@ public class GUI {
         projectConfig.appendProjectDir(projectDir);
       } catch (FileNotFoundException e) {
         logger.fatal("Could not find project config file: " + projectDir);
-        return false;
+        throw (ParseProjectsException) new ParseProjectsException(
+            "Could not find project config file: " + projectDir).initCause(e);
       } catch (IOException e) {
-        logger
-            .fatal("Error when reading project config file: " + projectDir);
-        return false;
+        logger.fatal("Error when reading project config file: " + projectDir);
+        throw (ParseProjectsException) new ParseProjectsException(
+            "Error when reading project config file: " + projectDir).initCause(e);
       }
     }
 
     // Create class loader
+    try {
     projectDirClassLoader = createClassLoader(currentProjectDirs);
+    } catch (ClassLoaderCreationException e) {
+      throw (ParseProjectsException) new ParseProjectsException(
+          "Error when creating class loader").initCause(e);
+    }
+
 
     // Register mote types
     String[] moteTypeClassNames = projectConfig.getStringArrayValue(GUI.class,
@@ -1421,7 +1444,6 @@ public class GUI {
       }
     }
 
-    return true;
   }
 
   /**
@@ -2547,7 +2569,18 @@ public class GUI {
             currentProjectDirs, null);
         if (newProjects != null) {
           currentProjectDirs = newProjects;
-          reparseProjectConfig();
+          try {
+            reparseProjectConfig();
+          } catch (ParseProjectsException e2) {
+            logger.fatal("Error when loading projects: " + e2.getMessage());
+            e2.printStackTrace();
+            if (myGUI.isVisualized()) {
+              JOptionPane.showMessageDialog(frame,
+                  "Error when loading projects.\nStack trace printed to console.",
+                  "Error", JOptionPane.ERROR_MESSAGE);
+            }
+            return;
+          }
         }
       } else if (e.getActionCommand().equals("start plugin")) {
         Class<? extends VisPlugin> pluginClass = (Class<? extends VisPlugin>) ((JMenuItem) e
@@ -2603,14 +2636,17 @@ public class GUI {
     return null;
   }
 
-  public ClassLoader createProjectDirClassLoader(Vector<File> projectsDirs) {
+  public ClassLoader createProjectDirClassLoader(Vector<File> projectsDirs)
+  throws ParseProjectsException, ClassLoaderCreationException {
     if (projectDirClassLoader == null) {
       reparseProjectConfig();
     }
     return createClassLoader(projectDirClassLoader, projectsDirs);
   }
 
-  private ClassLoader createClassLoader(Vector<File> currentProjectDirs) {
+  private ClassLoader createClassLoader(Vector<File> currentProjectDirs)
+  throws ClassLoaderCreationException
+  {
     return createClassLoader(ClassLoader.getSystemClassLoader(),
         currentProjectDirs);
   }
@@ -2633,7 +2669,7 @@ public class GUI {
   }
 
   private ClassLoader createClassLoader(ClassLoader parent,
-      Vector<File> projectDirs) {
+      Vector<File> projectDirs) throws ClassLoaderCreationException {
     if (projectDirs == null || projectDirs.isEmpty()) {
       return parent;
     }
@@ -2664,6 +2700,8 @@ public class GUI {
       } catch (Exception e) {
         logger.fatal("Error when trying to read JAR-file in " + projectDir
             + ": " + e);
+        throw (ClassLoaderCreationException) new ClassLoaderCreationException(
+            "Error when trying to read JAR-file in " + projectDir).initCause(e);
       }
     }
 
@@ -3145,9 +3183,6 @@ public class GUI {
               } catch (PropertyVetoException e) {
                 // Ignoring
               }
-            } else if (pluginSubElement.getName().equals("plugin_config")) {
-              startedVisPlugin.setConfigXML(pluginSubElement.getChildren(),
-                  visAvailable);
             }
           }
         }
@@ -3171,7 +3206,19 @@ public class GUI {
     return true;
   }
 
-  class SimulationCreationException extends Exception {
+  public class ParseProjectsException extends Exception {
+    public ParseProjectsException(String message) {
+      super(message);
+    }
+  }
+
+  public class ClassLoaderCreationException extends Exception {
+    public ClassLoaderCreationException(String message) {
+      super(message);
+    }
+  }
+
+  public class SimulationCreationException extends Exception {
     public SimulationCreationException(String message) {
       super(message);
     }
