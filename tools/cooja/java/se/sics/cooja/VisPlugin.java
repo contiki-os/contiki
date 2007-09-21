@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: VisPlugin.java,v 1.5 2007/03/23 23:34:33 fros4943 Exp $
+ * $Id: VisPlugin.java,v 1.6 2007/09/21 16:11:44 fros4943 Exp $
  */
 
 package se.sics.cooja;
@@ -41,17 +41,17 @@ import org.jdom.Element;
  * Abstract class VisPlugin should be implemented by all plugins with
  * visualizers. By extending JInternalFrame, the visual apperence is decided by
  * the plugin itself.
- * 
+ *
  * To add a new plugin to the simulator environment either add it via a project
  * directory or by altering the standard configuration files.
- * 
+ *
  * For example how to implement a plugin see plugins SimControl or Visualizer2D.
- * 
+ *
  * @author Fredrik Osterlind
  */
 public abstract class VisPlugin extends JInternalFrame implements Plugin {
   private Object tag = null;
-  
+
   /**
    * Sets frame title
    * @param title Frame title
@@ -59,7 +59,7 @@ public abstract class VisPlugin extends JInternalFrame implements Plugin {
   public VisPlugin(String title, final GUI gui) {
     super(title, true, true, true, true);
     final VisPlugin thisPlugin = this;
-    
+
     // Close via gui
     setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
     // Detect frame events
@@ -80,7 +80,10 @@ public abstract class VisPlugin extends JInternalFrame implements Plugin {
         // NOP
       }
       public void internalFrameActivated(InternalFrameEvent e) {
-        // NOP
+        // Signal mote highlight
+        if (VisPlugin.this.tag != null && tag instanceof Mote) {
+          gui.signalMoteHighlight((Mote) tag);
+        }
       }
       public void internalFrameDeactivated(InternalFrameEvent e) {
         // NOP
@@ -92,7 +95,7 @@ public abstract class VisPlugin extends JInternalFrame implements Plugin {
   public Collection<Element> getConfigXML() {
     return null;
   }
-  
+
   public boolean setConfigXML(Collection<Element> configXML, boolean visAvailable) {
     return false;
   }
