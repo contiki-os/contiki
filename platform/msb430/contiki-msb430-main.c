@@ -47,6 +47,7 @@
 
 #include "sys/procinit.h"
 #include "sys/autostart.h"
+#include "sys/rtimer.h"
 
 #include "dev/adc.h"
 #include "dev/dma.h"
@@ -81,12 +82,12 @@ set_rime_addr(void)
 static void
 msb_ports_init(void)
 {
-  P1SEL = 0x00; P1OUT = 0x00; P1DIR = 0x00;
-  P2SEL = 0x00; P2OUT = 0x18; P2DIR = 0x1A;
-  P3SEL = 0x00; P3OUT = 0x09; P3DIR = 0x21;
-  P4SEL = 0x00; P4OUT = 0x00; P4DIR = 0x00;
-  P5SEL = 0x0E; P5OUT = 0xF9; P5DIR = 0xFD;
-  P6SEL = 0x07; P6OUT = 0x00; P6DIR = 0xC8;
+  P1DIR = 0x00; P1SEL = 0x00; P1OUT = 0x00;
+  P2DIR = 0x1A; P2SEL = 0x00; P2OUT = 0x18;
+  P3DIR = 0x21; P3SEL = 0x00; P3OUT = 0x09;
+  P4DIR = 0x00; P4SEL = 0x00; P4OUT = 0x07;
+  P5DIR = 0xFD; P5SEL = 0x0E; P5OUT = 0xF9;
+  P6DIR = 0xC8; P6SEL = 0x07; P6OUT = 0x00;
 }
 
 int
@@ -119,6 +120,8 @@ main(void)
 #if WITH_UIP
   slip_arch_init(BAUD2UBR(115200));
 #endif
+
+  rtimer_init();
 
   /* System services */
   process_start(&etimer_process, NULL);
