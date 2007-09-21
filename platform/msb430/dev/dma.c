@@ -65,6 +65,14 @@ interrupt(DACDMA_VECTOR) irq_dacdma(void)
     LPM_AWAKE();
   }
 
+  if (DMA2CTL & DMAIFG) {
+    DMA2CTL &= ~(DMAIFG | DMAIE);
+    if (subscribers[2] != NULL) {
+      process_post(subscribers[2], dma_event, NULL);
+    }
+    LPM_AWAKE();
+  }
+
   if (DAC12_0CTL & DAC12IFG) {
     DAC12_0CTL &= ~(DAC12IFG | DAC12IE);
   }
