@@ -33,7 +33,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: rime.c,v 1.10 2007/05/25 08:06:44 adamdunkels Exp $
+ * $Id: rime.c,v 1.11 2007/09/26 11:34:49 nifi Exp $
  */
 
 /**
@@ -44,6 +44,8 @@
  */
 
 #include "net/rime.h"
+#include "net/rime/neighbor.h"
+#include "net/rime/route.h"
 #include "net/mac/mac.h"
 
 static const struct mac_driver *mac;
