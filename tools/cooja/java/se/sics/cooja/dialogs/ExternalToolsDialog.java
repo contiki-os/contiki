@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ExternalToolsDialog.java,v 1.6 2007/09/18 16:07:10 fros4943 Exp $
+ * $Id: ExternalToolsDialog.java,v 1.7 2007/09/28 07:21:21 fros4943 Exp $
  */
 
 package se.sics.cooja.dialogs;
@@ -111,7 +111,7 @@ public class ExternalToolsDialog extends JDialog {
 
     // Some explanations
     Box explanations = Box.createVerticalBox();
-    explanations.add(new JLabel("Special variables used in COMPILER_ARGS, LINK_COMMAND_1 and LINK_COMMAND_2:"));
+    explanations.add(new JLabel("Special variables used in COMPILER_ARGS, LINK_COMMAND_[12] and AR_COMMAND_[12]:"));
     String javaHome = System.getenv().get("JAVA_HOME");
     if (javaHome != null) {
       javaHome = javaHome.replace(File.separatorChar, '/');

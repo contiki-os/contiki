@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ContikiMoteTypeDialog.java,v 1.35 2007/09/21 16:14:19 fros4943 Exp $
+ * $Id: ContikiMoteTypeDialog.java,v 1.36 2007/09/28 07:21:22 fros4943 Exp $
  */
 
 package se.sics.cooja.contikimote;
@@ -1172,7 +1172,9 @@ public class ContikiMoteTypeDialog extends JDialog {
       libraryCreatedOK = false;
     } else {
       libraryCreatedOK = true;
-      if (!libFile.exists() || !depFile.exists() || !mapFile.exists()) {
+      if (!libFile.exists() || !depFile.exists()) {
+        /* TODO Check if map file is really needed */
+        logger.fatal("Not all needed files could be located");
         libraryCreatedOK = false;
       }
     }
@@ -1449,18 +1451,26 @@ public class ContikiMoteTypeDialog extends JDialog {
       String ccFlags = GUI.getExternalToolsSetting("COMPILER_ARGS", "");
       String link1 = GUI.getExternalToolsSetting("LINK_COMMAND_1", "");
       String link2 = GUI.getExternalToolsSetting("LINK_COMMAND_2", "");
+      String ar1 = GUI.getExternalToolsSetting("AR_COMMAND_1", "");
+      String ar2 = GUI.getExternalToolsSetting("AR_COMMAND_2", "");
 
       link1 = link1.replace("$(MAPFILE)", mapFile.getPath().replace(File.separatorChar, '/'));
       link2 = link2.replace("$(MAPFILE)", mapFile.getPath().replace(File.separatorChar, '/'));
+      ar1 = ar1.replace("$(MAPFILE)", mapFile.getPath().replace(File.separatorChar, '/'));
+      ar2 = ar2.replace("$(MAPFILE)", mapFile.getPath().replace(File.separatorChar, '/'));
       ccFlags = ccFlags.replace("$(MAPFILE)", mapFile.getPath().replace(File.separatorChar, '/'));
 
       link1 = link1.replace("$(LIBFILE)", libFile.getPath().replace(File.separatorChar, '/'));
       link2 = link2.replace("$(LIBFILE)", libFile.getPath().replace(File.separatorChar, '/'));
+      ar1 = ar1.replace("$(LIBFILE)", libFile.getPath().replace(File.separatorChar, '/'));
+      ar2 = ar2.replace("$(LIBFILE)", libFile.getPath().replace(File.separatorChar, '/'));
       ccFlags = ccFlags.replace("$(LIBFILE)", libFile.getPath().replace(File.separatorChar, '/'));
 
       link1 = link1.replace("$(ARFILE)", arFile.getPath().replace(File.separatorChar, '/'));
       link2 = link2.replace("$(ARFILE)", arFile.getPath().replace(File.separatorChar, '/'));
-      ccFlags = ccFlags.replace("$(DEPFILE)", arFile.getPath().replace(File.separatorChar, '/'));
+      ar1 = ar1.replace("$(ARFILE)", arFile.getPath().replace(File.separatorChar, '/'));
+      ar2 = ar2.replace("$(ARFILE)", arFile.getPath().replace(File.separatorChar, '/'));
+      ccFlags = ccFlags.replace("$(ARFILE)", arFile.getPath().replace(File.separatorChar, '/'));
 
       String javaHome = System.getenv().get("JAVA_HOME");
       if (javaHome == null) {
@@ -1468,6 +1478,8 @@ public class ContikiMoteTypeDialog extends JDialog {
       }
       link1 = link1.replace("$(JAVA_HOME)", javaHome);
       link2 = link2.replace("$(JAVA_HOME)", javaHome);
+      ar1 = ar1.replace("$(JAVA_HOME)", javaHome);
+      ar2 = ar2.replace("$(JAVA_HOME)", javaHome);
       ccFlags = ccFlags.replace("$(JAVA_HOME)", javaHome);
 
       for (File sourceFile : sourceFiles) {
@@ -1503,10 +1515,13 @@ public class ContikiMoteTypeDialog extends JDialog {
           "TARGET=cooja", "TYPEID=" + identifier,
           "LINK_COMMAND_1=" + link1,
           "LINK_COMMAND_2=" + link2,
+          "AR_COMMAND_1=" + ar1,
+          "AR_COMMAND_2=" + ar2,
           "EXTRA_CC_ARGS=" + ccFlags,
           "SYMBOLS=" + (includeSymbols?"1":""),
           "CC=" + GUI.getExternalToolsSetting("PATH_C_COMPILER"),
           "LD=" + GUI.getExternalToolsSetting("PATH_LINKER"),
+          "AR=" + GUI.getExternalToolsSetting("PATH_AR"),
           "PROJECTDIRS=" + sourceDirs,
           "PROJECT_SOURCEFILES=" + sourceFileNames,
           "PATH=" + System.getenv("PATH")};
