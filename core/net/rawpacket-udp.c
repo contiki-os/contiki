@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: rawpacket-udp.c,v 1.1 2006/10/22 12:31:46 adamdunkels Exp $
+ * $Id: rawpacket-udp.c,v 1.2 2007/09/29 03:54:18 matsutsuka Exp $
  */
 
 /**
@@ -38,6 +38,7 @@
  *         Adam Dunkels <adam@sics.se>
  */
 
+#if UIP_UDP
 #include "contiki-net.h"
 
 #include "net/rawpacket-udp.h"
@@ -69,3 +70,4 @@ rawpacket_received(struct rawpacket_conn *c)
   return uip_newdata() && (struct uip_udp_conn *)c == uip_udp_conn;
 }
 /*---------------------------------------------------------------------------*/
+#endif /* UIP_UDP */

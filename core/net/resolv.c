@@ -57,12 +57,13 @@
  *
  * This file is part of the uIP TCP/IP stack.
  *
- * $Id: resolv.c,v 1.5 2007/01/07 13:52:25 oliverschmidt Exp $
+ * $Id: resolv.c,v 1.6 2007/09/29 03:54:18 matsutsuka Exp $
  *
  */
 
 #include "net/tcpip.h"
 #include "net/resolv.h"
+#if UIP_UDP
 
 #include <string.h>
 
@@ -500,6 +501,7 @@ resolv_found(char *name, u16_t *ipaddr)
   process_post(PROCESS_BROADCAST, resolv_event_found, name);
 }
 /*-----------------------------------------------------------------------------------*/
+#endif /* UIP_UDP */
 
 /** @} */
 /** @} */
