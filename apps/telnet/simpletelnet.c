@@ -29,7 +29,7 @@
  *
  * This file is part of the Contiki desktop environment
  *
- * $Id: simpletelnet.c,v 1.2 2006/08/21 21:45:25 oliverschmidt Exp $
+ * $Id: simpletelnet.c,v 1.3 2007/09/29 04:02:06 matsutsuka Exp $
  *
  */
 
@@ -46,42 +46,41 @@
 static struct ctk_window telnetwindow;
 
 static struct ctk_label telnethostlabel =
-  {CTK_LABEL(1, 0, 4, 1, "Host")};
+  {CTK_LABEL(0, 0, 4, 1, "Host")};
 static char telnethost[25];
 static struct ctk_textentry telnethosttextentry =
-  {CTK_TEXTENTRY(0, 1, 24, 1, telnethost, 24)};
+  {CTK_TEXTENTRY(4, 0, 24, 1, telnethost, 24)};
 
 static struct ctk_label telnetportlabel =
-  {CTK_LABEL(31, 0, 4, 1, "Port")};
+  {CTK_LABEL(0, 1, 4, 1, "Port")};
 static char telnetport[6];
 static struct ctk_textentry telnetporttextentry =
-  {CTK_TEXTENTRY(30, 1, 5, 1, telnetport, 5)};
+  {CTK_TEXTENTRY(4, 1, 5, 1, telnetport, 5)};
 
 static struct ctk_button telnetconnectbutton =
-  {CTK_BUTTON(2, 3, 7, "Connect")};
+  {CTK_BUTTON(2, 2, 7, "Connect")};
 static struct ctk_button telnetdisconnectbutton =
-  {CTK_BUTTON(25, 3, 10, "Disconnect")};
+  {CTK_BUTTON(15, 2, 10, "Disconnect")};
 
 static char telnetline[31];
 static struct ctk_textentry telnetlinetextentry =
-  {CTK_TEXTENTRY(0, 5, 30, 1, telnetline, 30)};
-
+  {CTK_TEXTENTRY(0, 3, TELNET_ENTRY_WIDTH, 1, telnetline, TELNET_ENTRY_WIDTH)};
 
 static struct ctk_button telnetsendbutton =
-  {CTK_BUTTON(32, 5, 4, "Send")};
+  {CTK_BUTTON(TELNET_ENTRY_WIDTH + 2, 3, 4, "Send")};
 
 static struct ctk_label telnetstatus =
-  {CTK_LABEL(0, 19, 38, 1, "")};
+  {CTK_LABEL(0, TELNET_WINDOW_HEIGHT - 1, TELNET_WINDOW_WIDTH, 1, "")};
 
 static struct ctk_separator telnetsep1 =
-  {CTK_SEPARATOR(0, 7, 38)};
+  {CTK_SEPARATOR(0, 4, TELNET_WINDOW_WIDTH)};
 
 static struct ctk_separator telnetsep2 =
-  {CTK_SEPARATOR(0, 18, 38)};
+  {CTK_SEPARATOR(0, TELNET_WINDOW_HEIGHT - 2, TELNET_WINDOW_WIDTH)};
 
-static char telnettext[38*10];
+static char telnettext[TELNET_WINDOW_WIDTH*TELNET_TEXTAREA_HEIGHT];
 static struct ctk_label telnettextarea =
-  {CTK_LABEL(0, 8, 38, 10, telnettext)};
+  {CTK_LABEL(0, 5, TELNET_WINDOW_WIDTH, TELNET_TEXTAREA_HEIGHT, telnettext)};
 
 static struct telnet_state ts_appstate;
 
@@ -97,10 +96,10 @@ static void
 scrollup(void)
 {
   unsigned char i;
-  for(i = 1; i < 10; ++i) {
-    memcpy(&telnettext[(i - 1) * 38], &telnettext[i * 38], 38);
+  for(i = 1; i < TELNET_TEXTAREA_HEIGHT; ++i) {
+    memcpy(&telnettext[(i - 1) * TELNET_WINDOW_WIDTH], &telnettext[i * TELNET_WINDOW_WIDTH], TELNET_WINDOW_WIDTH);
   }
-  memset(&telnettext[9 * 38], 0, 38);
+  memset(&telnettext[(TELNET_TEXTAREA_HEIGHT - 1) * TELNET_WINDOW_WIDTH], 0, TELNET_WINDOW_WIDTH);
 }
 /*-----------------------------------------------------------------------------------*/
 static void
@@ -119,9 +118,9 @@ add_text(char *text)
     } else if(*text == '\r') {
       i = 0;
     } else if(*text >= ' ') {
-      telnettext[9 * 38 + i] = *text;
+      telnettext[(TELNET_TEXTAREA_HEIGHT - 1) * TELNET_WINDOW_WIDTH + i] = *text;
       ++i;
-      if(i == 38) {
+      if(i == TELNET_WINDOW_WIDTH) {
 	scrollup();
 	i = 0;
       }
@@ -161,6 +160,7 @@ connect(void)
   *cptr = 0;
 
   addrptr = &addr[0];  
+#if UIP_UDP
   if(uiplib_ipaddrconv(telnethost, (unsigned char *)addr) == 0) {
     addrptr = resolv_lookup(telnethost);
     if(addrptr == NULL) {
@@ -169,6 +169,9 @@ connect(void)
       return;
     }
   }
+#else /* UIP_UDP */
+  uiplib_ipaddrconv(telnethost, (unsigned char *)addr);
+#endif /* UIP_UDP */
 
   port = 0;
   for(cptr = telnetport; *cptr != ' ' && *cptr != 0; ++cptr) {
@@ -197,7 +200,7 @@ PROCESS_THREAD(simpletelnet_process, ev, data)
 
   PROCESS_BEGIN();
   
-  ctk_window_new(&telnetwindow, 38, 20, "Simple telnet");
+  ctk_window_new(&telnetwindow, TELNET_WINDOW_WIDTH, TELNET_WINDOW_HEIGHT, "Simple telnet");
   
   strcpy(telnetport, "23");
   
@@ -245,6 +248,7 @@ PROCESS_THREAD(simpletelnet_process, ev, data)
 	connect();
 	ctk_window_redraw(&telnetwindow);
       }
+#if UIP_UDP
     } else if(ev == resolv_event_found) {
       if(strcmp(data, telnethost) == 0) {
 	if(resolv_lookup(telnethost) != NULL) {
@@ -253,7 +257,11 @@ PROCESS_THREAD(simpletelnet_process, ev, data)
 	  show("Host not found");
 	}
       }
-    } else if(ev == ctk_signal_window_close ||
+#endif /* UIP_UDP */
+    } else if(
+#if CTK_CONF_WINDOWCLOSE
+	      ev == ctk_signal_window_close ||
+#endif /* CTK_CONF_WINDOWCLOSE */
 	      ev == PROCESS_EVENT_EXIT) {
       process_exit(&simpletelnet_process);
       ctk_window_close(&telnetwindow);
