@@ -27,7 +27,7 @@
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * $Id: contiki-conf.h,v 1.3 2007/09/19 12:44:45 matsutsuka Exp $
+ * $Id: contiki-conf.h,v 1.4 2007/09/29 04:05:20 matsutsuka Exp $
  *
  */
 
@@ -131,21 +131,29 @@ typedef unsigned long clock_time_t;
 /* uIP configuration */
 #define UIP_CONF_MAX_CONNECTIONS	2
 #define UIP_CONF_MAX_LISTENPORTS	2
-#define UIP_CONF_BUFFER_SIZE		200
+#define UIP_CONF_BUFFER_SIZE		300
 #define UIP_CONF_BYTE_ORDER		LITTLE_ENDIAN
 //#define UIP_CONF_TCP_SPLIT		1
 #define UIP_CONF_TCP_SPLIT		0
 #define UIP_CONF_LOGGING		0
-//#define UIP_CONF_UDP_CHECKSUMS	1
-#define UIP_CONF_UDP_CHECKSUMS		0
 
 /* uses SLIP */
-#define UIP_CONF_UDP			1
+#define UIP_CONF_UDP			0
+#define UIP_CONF_UDP_CHECKSUMS		0
 #define UIP_CONF_LLH_LEN		0
-#define UIP_CONF_BROADCAST		0
+#undef UIP_CONF_BROADCAST
+#undef RS232_CONF_CALLBACK
+#define slip_arch_init(ubr)             rs232_arch_init(ubr)
+#define slip_arch_writeb(c)             rs232_arch_writeb(c)
 
 /* Web sever configuration */
 #undef WEBSERVER_CONF_LOG_ENABLED
+
+/* Telnet configuration */
+#define TELNET_CONF_WINDOW_WIDTH        30
+#define TELNET_CONF_WINDOW_HEIGHT       13
+//#define TELNET_CONF_TEXTAREA_HEIGHT      5 // TELNET_WINDOW_HEIGHT - 8
+//#define TELNET_CONF_ENTRY_WIDTH         22 // TELNET_WINDOW_WIDTH - 8
 
 /* unused yet */
 #define VNC_CONF_REFRESH_ROWS    8
