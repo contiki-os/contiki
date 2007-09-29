@@ -2,13 +2,12 @@
 # Makefile for z80/SDCC
 # @author Takahide Matsutsuka <markn@markn.org>
 #
-# $Id: Makefile.z80,v 1.7 2007/09/19 12:41:33 matsutsuka Exp $
+# $Id: Makefile.z80,v 1.8 2007/09/29 03:57:07 matsutsuka Exp $
 #
 
 ### Compiler definitions
 CC       = sdcc
-LD       = sdcc
-#LD       = link-z80
+LD       = link-z80
 AS       = as-z80
 AR	 = sdcclib
 OBJCOPY  = objcopy
@@ -21,17 +20,21 @@ CUSTOM_RULE_LINK=1
 
 ### Default flags
 CFLAGS  += --std-c99 --vc -mz80
+# --peep-file $(CONTIKI_CPU)/z80peephole.def
 ASFLAGS +=
-LDFLAGS +=
+LDFLAGS += -mz80 --out-fmt-ihx --no-std-crt0
 AROPTS   = -a
+
+### CPU-dependent cleanup files
+CLEAN += *.lnk *.sym *.lib contiki.ihx
 
 ### CPU-dependent directories
 CONTIKI_CPU_DIRS = . dev lib
 
 ### CPU-dependent source files
 CONTIKI_SOURCEFILES += strcasecmp.c mtarch.c uip_arch.c \
-	libconio_z80.c log-conio.c rs232.c rs232-slip.c
-CONTIKI_ASMFILES += uip_arch-asm.S
+	libconio_z80.c log-conio.c rs232.c
+CONTIKI_ASMFILES += uip_arch-asm.S crt0.S
 
 
 CONTIKI_CASMOBJECTFILES = ${addprefix $(OBJECTDIR)/,$(CONTIKI_CASMFILES:.cS=.o)}
@@ -55,9 +58,11 @@ $(OBJECTDIR)/%.o: %.cS
 endif
 
 #CUSTOM_RULE_ALLOBJS_TO_TARGETLIB
-contiki-$(TARGET).a: $(CONTIKI_OBJECTFILES) $(PROJECT_OBJECTFILES) $(CONTIKI_ASMOBJECTFILES) $(CONTIKI_CASMOBJECTFILES)
-	for target in $^; do $(AR) $(AROPTS) $@ $$target; done
+contiki-$(TARGET).lib: $(CONTIKI_OBJECTFILES) $(PROJECT_OBJECTFILES) $(CONTIKI_ASMOBJECTFILES) $(CONTIKI_CASMOBJECTFILES)
+	rm -f $@
+	for target in $^; do echo $$target >> $@; done
 
 #CUSTOM_RULE_LINK
-contiki.ihex: contiki-$(TARGET).a
-	$(LD) $(LDFLAGS) -DAUTOSTART_ENABLE $(CONTIKI_TARGET_MAIN) -lcontiki-$(TARGET).a -o $@
+contiki.ihx: contiki-$(TARGET).lib
+	$(CC) $(LDFLAGS)  -o $@ $(OBJECTDIR)/crt0.o -lcontiki-$(TARGET).lib
+	$(LD) -nf contiki
