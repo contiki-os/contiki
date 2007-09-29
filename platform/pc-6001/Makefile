@@ -2,13 +2,14 @@
 # Makefile for PC-6001 using z80/SDCC
 # @author Takahide Matsutsuka <markn@markn.org>
 #
-# $Id: Makefile,v 1.2 2007/09/19 12:44:45 matsutsuka Exp $
+# $Id: Makefile,v 1.3 2007/09/29 04:07:00 matsutsuka Exp $
 #
 
 CONTIKI = ../..
 TARGET=pc-6001
 APPS_DESKTOP = program-handler calc process-list shell about
-APPS_NETWORK = netconf cmdd
+APPS_NETWORK_CLIENT = $(APPS_DESKTOP) netconf webbrowser email telnet ftp irc
+APPS_NETWORK_SERVER = netconf cmdd
 
 #	editor netconf dhcp webbrowser ftp irc email telnet telnetd
 #	cmdd codeprop webserver vnc
@@ -48,11 +49,15 @@ serial:
 rom:
 	rm -f contiki.ihex;
 	make contiki.rom MEMORY=ROM CONTIKI_TARGET_MAIN=contiki-rom-main.c
-slip:
+server:
 	rm -f contiki.ihex;
-	make contiki APPS="$(APPS_NETWORK)" PLATFORM_APPS="$(PLATFORM_APPS_NETWORK)" CONTIKI_TARGET_MAIN=contiki-slip-main.c
-web:
+	make contiki APPS="$(APPS_NETWORK_SERVER)" PLATFORM_APPS="$(PLATFORM_APPS_NETWORK)" CONTIKI_TARGET_MAIN=contiki-server-main.c
+client:
 	rm -f contiki.ihex;
-	make contiki APPS="$(APPS_DESKTOP) $(APPS_NETWORK)" PLATFORM_APPS="$(PLATFORM_APPS_NETWORK)" CONTIKI_TARGET_MAIN=contiki-web-main.c
+	make contiki APPS="$(APPS_NETWORK_CLIENT)" PLATFORM_APPS="$(PLATFORM_APPS_NETWORK)" CONTIKI_TARGET_MAIN=contiki-client-main.c
+
+romdump:
+	rm -f contiki.ihex;
+	make contiki MEMORY=16K CONTIKI_TARGET_MAIN=romdump.c
 
 include $(CONTIKI)/Makefile.include
