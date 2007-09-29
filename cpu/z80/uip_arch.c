@@ -27,7 +27,7 @@
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * $Id: uip_arch.c,v 1.1 2007/09/01 11:14:52 matsutsuka Exp $
+ * $Id: uip_arch.c,v 1.2 2007/09/29 03:57:39 matsutsuka Exp $
  *
  */
  /*
@@ -41,9 +41,9 @@
 #include <stddef.h>
 #include "uip_arch.h"
 
-const u16_t SIZEOF_UIP_IPADDR_T = sizeof(uip_ipaddr_t);
-const u16_t OFFSET_TCPIP_HDR_LEN = offsetof(struct uip_tcpip_hdr, len);
-const u16_t OFFSET_TCPIP_HDR_SRCIPADDR = offsetof(struct uip_tcpip_hdr, srcipaddr);
+static const u16_t sizeof_uip_ipaddr_t = sizeof(uip_ipaddr_t);
+static const u16_t offset_tcpip_hdr_len = offsetof(struct uip_tcpip_hdr, len);
+static const u16_t offset_tcpip_hdr_srcipaddr = offsetof(struct uip_tcpip_hdr, srcipaddr);
 
 /*--------------------------------------------------------------------------*/
 static void upper_layer_chksum() {
@@ -62,7 +62,7 @@ __asm
 	
 	;; HL = BUF->len[0]
 	push	ix
-	ld	ix, #_OFFSET_TCPIP_HDR_LEN
+	ld	ix, #_offset_tcpip_hdr_len
 	ld	e, 0(ix)
 	ld	d, 1(ix)
 	add	hl, de
@@ -92,13 +92,13 @@ _upper_layer_chksum_setlen3:
 	pop	hl		; BUF
 	push	de
 	push	ix
-	ld	ix, #_OFFSET_TCPIP_HDR_SRCIPADDR
+	ld	ix, #_offset_tcpip_hdr_srcipaddr
 	ld	e, 0(ix)
 	ld	d, 1(ix)
 	add	hl, de
 	ld	e, l
 	ld	d, h
-	ld	ix, #_SIZEOF_UIP_IPADDR_T
+	ld	ix, #_sizeof_uip_ipaddr_t
 	ld	l, 0(ix)
 	ld	h, 1(ix)
 	pop	ix
