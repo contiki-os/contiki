@@ -27,7 +27,7 @@
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * $Id: libconio_arch.h,v 1.1 2007/09/19 12:46:15 matsutsuka Exp $
+ * $Id: libconio_arch.h,v 1.2 2007/09/29 04:10:00 matsutsuka Exp $
  *
  */
 
@@ -41,22 +41,19 @@
 #ifndef __LIBCONIO_ARCH_H__
 #define __LIBCONIO_ARCH_H__
 
+/* The following functions are used by assembler only */
+#if LIBCONIO_EXPORT
 void cputc_arch(char c);
 void cputs_arch(char *str);
 void cputsn_arch(char *str, unsigned char len);
 void chline_arch(unsigned char length);
 void cvline_arch(unsigned char length);
 void clip_arch(unsigned char clip1, unsigned char clip2);
-unsigned char wherex_arch();
-void gotoxy_arch(unsigned char x, unsigned char y);
 void clearto_arch(unsigned char to);
 void revers_arch(unsigned char reversed);
-void drawbox_arch(unsigned char x, unsigned char y,
-		  unsigned char w, unsigned char h);
-void drawicon_arch(unsigned char x, unsigned char y,
-		   char* textmap, char* title);
-void clearbox_arch(unsigned char x, unsigned char y,
-		   unsigned char w, unsigned char h);
-void newline_arch();
+#endif /* LIBCONIO_CONF_EXPORT */
+unsigned char wherex_arch();
+unsigned char wherey_arch();
+void gotoxy_arch(unsigned char x, unsigned char y);
 
 #endif /* __LIBCONIO_ARCH_H__ */

@@ -7,13 +7,14 @@
 ;;; 
 ;;; @author Takahide Matsutsuka <markn@markn.org>
 ;;; 
-;;; $Id: libconio_arch-asm.cS,v 1.1 2007/09/19 12:46:15 matsutsuka Exp $
+;;; $Id: libconio_arch-asm.cS,v 1.2 2007/09/29 04:10:00 matsutsuka Exp $
 ;;;
 
 	;; uses preprocessor to enable definitions
 #include "ctk_arch-def.h"
 
 	;; export symbols
+.if LIBCONIO_EXPORT
 	.globl	_cputc_arch
 	.globl	_cputs_arch
 	.globl	_cputsn_arch
@@ -23,11 +24,9 @@
 	.globl	_clearto_arch
 	.globl	_revers_arch
 	.globl	_clip_arch
+.endif
 	.globl	_wherex_arch
-	.globl	_drawbox_arch
-	.globl	_drawicon_arch
-	.globl	_clearbox_arch
-	.globl	_newline_arch
+	.globl	_wherey_arch
 	
 	.area	_DATA
 _screen_cursor:
@@ -42,45 +41,23 @@ _screen_reversed:
 	.area	_CODE
 	
 _libconio_arch_asm_start::
-.if 0
-	;; input: B = y, C = x
-	;; output: HL = offset
-	;; ______HL____
-_calc_offset:
-	push	af
-	push	de
-	ld	a, b
-	ld	hl, #0
-	ld	de, #SCREEN_WIDTH
-_calc_offset_loop:
-	or	a
-	jr	z, _calc_offset_calcx
-	add	hl, de
-	dec	a
-	jr	_calc_offset_loop
-_calc_offset_calcx:
-	ld	d, #0
-	ld	e, c
-	add	hl, de
-	pop	de
-	pop	af
-	ret
-.endif	
 	;; ---------------------------------
 	;; void cputc(char ch);
 	;; Stack; retl reth ch
 	;; AFBCDEHL____
 	;; return A=1 if output is succeeded, A=0 if not
 	;; ---------------------------------
+.if LIBCONIO_EXPORT
 _cputc_arch:
 	ld	hl, #2
 	add	hl, sp
 	ld	a, (hl)
+.endif				; LIBCONIO_EXPORT
 	;; ------------
 	;; A = char
 	;; AFBCDEHL____
 	;; ------------
-_cputc_arch_asm:
+_cputc_arch_asm::
 	push	af	
 	ld	bc, (#_screen_cursor)	;B=y, C=x
 	ld	de, (#_screen_clips)	;D=cy2, E=cy1
@@ -99,9 +76,6 @@ _cputc_arch_next2:
 	cp	a, #SCREEN_WIDTH		; cursx - SCREEN_WIDTH
 	jr	nc, _cputc_arch_ret_false	; if (cursx >= SCREEN_WIDTH)
 	;; calculate offset
-.if 0	
-	call	_calc_offset
-.else	
 	ld	a, b			; A=y
 	ld	hl, #0
 	ld	de, #SCREEN_WIDTH
@@ -115,7 +89,7 @@ _cputc_arch_calcx:
 	ld	d, #0
 	ld	e, c
 	add	hl, de
-.endif
+
 	;; putchar
 	pop	af
 	ld	de, #VRAM_CHAR
@@ -149,19 +123,46 @@ _cputc_arch_ret_false:
 	;; AFB_DEHL____
 	;; return void
 	;; ---------------------------------
-_cputs_arch:
+.if 1
+_cputs_arch::
 	ld	hl, #2
 	add	hl, sp
 	ld	e, (hl)
 	inc	hl
 	ld	d, (hl)
+.endif				; LIBCONIO_EXPORT
+	
+	;; ------------
+	;; DE = str
+	;; AFB_DEHL____
+	;; ------------
+_cputs_arch_asm::
 	ld	b, #SCREEN_WIDTH		; max length
+	jr	_cputsn_arch_asm	; take over B and DE
+
+	;; ---------------------------------
+	;; void cputsn(char *str, unsigned char length);
+	;; Stack; retl reth strl strh length
+	;; AFB_DEHL____
+	;; return void
+	;; ---------------------------------
+.if LIBCONIO_EXPORT
+_cputsn_arch:
+	ld	hl, #2
+	add	hl, sp
+	ld	e, (hl)
+	inc	hl
+	ld	d, (hl)
+	inc	hl
+	ld	b, (hl)
+.endif				; LIBCONIO_EXPORT
+	
 	;; ------------
 	;; B = nchars
 	;; DE = str
 	;; AFB_DEHL____
 	;; ------------
-_cputs_arch_loop:
+_cputsn_arch_asm::
 	ld	a, (de)
 	or	a
 	ret	z
@@ -171,24 +172,8 @@ _cputs_arch_loop:
 	pop	de
 	pop	bc
 	inc	de
-	djnz	_cputs_arch_loop
+	djnz	_cputsn_arch_asm
 	ret
-
-	;; ---------------------------------
-	;; void cputsn(char *str, unsigned char length);
-	;; Stack; retl reth strl strh length
-	;; AFB_DEHL____
-	;; return void
-	;; ---------------------------------
-_cputsn_arch:
-	ld	hl, #2
-	add	hl, sp
-	ld	e, (hl)
-	inc	hl
-	ld	d, (hl)
-	inc	hl
-	ld	b, (hl)
-	jr	_cputs_arch_loop	; take over B and DE
 	
 	;; ---------------------------------
 	;; void chline(unsigned char length);
@@ -196,6 +181,7 @@ _cputsn_arch:
 	;; AFB_DEHL____
 	;; return void
 	;; ---------------------------------
+.if LIBCONIO_EXPORT
 _chline_arch:
 	ld	hl, #2
 	add	hl, sp
@@ -204,15 +190,13 @@ _chline_arch:
 	;; B = length
 	;; AFB_DEHL____
 	;; ------------
-_chline_arch_asm:
+.endif
+_chline_arch_asm::
 	ld	a, #CH_HOLILINE
-_chline_arch_loop:
 	push	bc
-	push	af
 	call	_cputc_arch_asm
-	pop	af
 	pop	bc
-	djnz	_chline_arch_loop
+	djnz	_chline_arch_asm
 	ret
 		
 	;; ---------------------------------
@@ -221,23 +205,23 @@ _chline_arch_loop:
 	;; AFB_DEHL____
 	;; return void
 	;; ---------------------------------
+.if LIBCONIO_EXPORT
 _cvline_arch:
 	ld	hl, #2
 	add	hl, sp
 	ld	b, (hl)		; length
+.endif				; LIBCONIO_EXPORT
 	;; ------------
 	;; B = length
 	;; AFB_DEHL____
 	;; ------------
-_cvline_arch_asm:
-	ld	a, #CH_VERTLINE
+_cvline_arch_asm::
 	ld	hl, (#_screen_cursor) ; H=y, L=x
 _cvline_arch_loop:
+	ld	a, #CH_VERTLINE
 	push	hl
 	push	bc
-	push	af
 	call	_cputc_arch_asm
-	pop	af
 	pop	bc
 	pop	hl
 	inc	h
@@ -251,19 +235,22 @@ _cvline_arch_loop:
 	;; _F__DEHL____
 	;; return void
 	;; ---------------------------------
-_gotoxy_arch:
+.if 1
+_gotoxy_arch::
 	ld	hl, #2
 	add	hl, sp
-	ld	d, (hl)		; x
-	inc	hl
 	ld	e, (hl)		; y
+	inc	hl
+	ld	d, (hl)		; x
+	ld	l, e		; L=x
+	ld	h, d		; H=y
+.endif				; LIBCONIO_EXPORT
+
 	;; ------------
-	;; D = x, E = y
-	;; ______HL____
+	;; H = x, L = y
+	;; ____________
 	;; ------------
-_gotoxy_arch_asm:
-	ld	l, d		; L=x
-	ld	h, e		; H=y
+_gotoxy_arch_asm::
 	ld	(#_screen_cursor), hl
 	ret
 	
@@ -273,11 +260,17 @@ _gotoxy_arch_asm:
 	;; AFBCDEHL____
 	;; return void
 	;; ---------------------------------
+.if LIBCONIO_EXPORT
 _clearto_arch:
 	ld	hl, #2
 	add	hl, sp
 	ld	a, (hl)
-_clearto_arch_loop:
+.endif				; LIBCONIO_EXPORT
+	;; ------------
+	;; A = to
+	;; AFBCDEHL____
+	;; ------------
+_clearto_arch_asm::
 	ld	hl, #_screen_cursor
 	cp	(hl)		; to - cursx
 	ret	z
@@ -288,7 +281,7 @@ _clearto_arch_loop:
 	or	a
 	pop	af
 	ret	z
-	jr	_clearto_arch_loop
+	jr	_clearto_arch_asm
 
 	;; ---------------------------------
 	;; void revers_arch(unsigned char reverse)
@@ -296,10 +289,15 @@ _clearto_arch_loop:
 	;; A_____HL____
 	;; return void
 	;; ---------------------------------
+.if LIBCONIO_EXPORT
 _revers_arch:
 	ld	hl, #2
 	add	hl, sp
 	ld	a, (hl)
+.endif				; LIBCONIO_EXPORT
+	;; A = reverse
+	;; ____________
+_revers_arch_asm::
 	ld	(#_screen_reversed), a
 	ret
 
@@ -309,6 +307,7 @@ _revers_arch:
 	;; ____________
 	;; return void
 	;; ---------------------------------
+.if LIBCONIO_EXPORT
 _clip_arch:
 	push	af
 	push	hl
@@ -326,12 +325,20 @@ _clip_arch:
 	pop	hl
 	pop	af
 	ret	
+.endif	
+	;; ---------------------------------
+	;; L = clipy1, H = clipy2
+	;; ____________
+	;; ---------------------------------
+_clip_arch_asm::
+	ld	(#_screen_clips), hl
+	ret	
 
 	;; ---------------------------------
 	;; unsigned char wherex_arch()
 	;; Stack; retl reth
-	;; A_____HL____
-	;; return void
+	;; A______L____
+	;; return x
 	;; ---------------------------------
 _wherex_arch:
 	ld	a, (#_screen_cursor)
@@ -339,168 +346,17 @@ _wherex_arch:
 	ret
 	
 	;; ---------------------------------
-	;; void drawbox_arch(unsigned char x, y, w, h)
-	;; Stack; retl reth x y w h
-	;; AFBCDEHL____
-	;; return void
+	;; unsigned char wherey_arch()
+	;; Stack; retl reth
+	;; A______L____
+	;; return y
 	;; ---------------------------------
-_drawbox_arch:
-	ld	hl, #2
-	add	hl, sp
-	ld	d, (hl)		; x
-	inc	hl
-	ld	e, (hl)		; y
-	inc	hl
-	ld	c, (hl)		; w
-	inc	hl
-	ld	b, (hl)		; h
-	inc	e
-	call	_gotoxy_arch_asm	; (x, y + 1)
-	dec	e
-	push	de
-	push	bc
-	call	_cvline_arch_asm
-	ld	a, #CH_LLCORNER
-	call	_cputc_arch_asm
-	pop	bc
-	push	bc		; Stack; BC DE
-	ld	b, c		; w
-	call	_chline_arch_asm
-	ld	a, #CH_LRCORNER
-	call	_cputc_arch_asm
-	pop	bc
-	pop	de
-	call	_gotoxy_arch_asm	; (x, y)
-	push	de
-	push	bc		; Stack; BC DE
-	ld	a, #CH_ULCORNER
-	call	_cputc_arch_asm
-	pop	bc
-	push	bc		; Stack; BC DE
-	ld	b, c
-	call	_chline_arch_asm
-	ld	a, #CH_URCORNER
-	call	_cputc_arch_asm
-	pop	bc		; B = h
-	pop	de
-	ld	a, d
-	inc	a
-	add	a, c
-	ld	d, a		; D = x + 1 + w
-	inc	e		; E = y + 1
-	call	_gotoxy_arch_asm
-	call	_cvline_arch_asm
+_wherey_arch:
+	ld	a, (#_screen_cursor + 1)
+	ld	l, a
 	ret
-
-.if CTK_CONF_ICONS
-	;; ---------------------------------
-	;; void drawicon_arch(char* textmap, char *title);
-	;; Stack; retl reth textmapl textmaph titlel titleh
-	;; AFBCDEHL____
-	;; return void
-	;; ---------------------------------
-_drawicon_arch:
-	ld	hl, #_screen_cursor
-	ld	b, (hl)		; x
-	inc	hl
-	ld	c, (hl)		; y
-	ld	hl, #2
-	add	hl, sp
-	ld	e, (hl)
-	inc	hl
-	ld	d, (hl)		; DE = textmap
-	ld	a, e
-	or	d
-	ret	z		; if (textmap == NULL) return;
-	ld	a, #3		; loop counter
-_drawicon_arch_loop:
-	push	af
-	push	de
-	ld	d, b
-	ld	e, c
-	call	_gotoxy_arch_asm
-	pop	de
-	push	bc
-	ld	b, #3
-	call	_cputs_arch_loop ; DE = DE + 3
-	pop	bc
-	pop	af
-	inc	c		; y++
-	dec	a
-	jr	z, _drawicon_arch_title
-	jr	_drawicon_arch_loop
-	;; B = x, C = y
-_drawicon_arch_title:
-	ld	hl, #4
-	add	hl, sp
-	ld	e, (hl)
-	inc	hl
-	ld	d, (hl)		; DE = title
-	ld	h, d
-	ld	l, e
-	xor	a
-	push	de
-	ld	d, #0
-_drawicon_arch_title_strlen:
-	ld	a, (hl)
-	or	a
-	jr	z, _drawicon_arch_title_setpos
-	inc	hl
-	inc	d
-	jr	_drawicon_arch_title_strlen
-_drawicon_arch_title_setpos:
-	ld	h, d		; H = len
-	ld	a, d
-	pop	de
-	add	a, b
-	cp	a, #SCREEN_WIDTH ;  x + len - SCREEN_WIDTH
-	jr	c, _drawicon_arch_title_show
-	ld	a, #SCREEN_WIDTH
-	sub	h
-	ld	b, a
-	;; B = x, C = y, DE = title, H = len
-_drawicon_arch_title_show:
-	push	de
-	ld	d, b
-	ld	e, c
-	call	_gotoxy_arch_asm
-	pop	de
-	ld	b, #SCREEN_WIDTH
-	call	_cputs_arch_loop
-	ret
-.endif
-
-	;; ---------------------------------
-	;; void clearbox_arch(unsigned char x, y, w, h)
-	;; Stack; retl reth x y w h
-	;; AFBCDEHL____
-	;; return void
-	;; ---------------------------------
-_clearbox_arch:
-	ld	hl, #2
-	add	hl, sp
-	ld	d, (hl)		; x
-	inc	hl
-	ld	e, (hl)		; y
-	inc	hl
-	ld	c, (hl)		; w
-	inc	hl
-	ld	b, (hl)		; h
-	ld	a, d
-	add	a, c
-	ld	c, a		; to_x
-_clearbox_arch_loop:
-	call	_gotoxy_arch_asm	; (x, y + 1)
-	push	de
-	push	bc
-	ld	a, c
-	call	_clearto_arch_loop
-	pop	bc
-	pop	de
-	inc	e
-	djnz	_clearbox_arch_loop
-	ret
-
+	
+.if 0
 _newline_arch:
 	ld	hl, #_screen_cursor
 	xor	a
@@ -521,5 +377,6 @@ _newline_arch_scroll:
 	ld	bc, #SCREEN_HEIGHT * #SCREEN_WIDTH - #SCREEN_WIDTH
 	ldir
 	ret
+.endif
 	
 _libconio_arch_asm_end::
