@@ -30,7 +30,7 @@
  * 
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: irc.c,v 1.2 2006/08/21 21:39:01 oliverschmidt Exp $
+ * $Id: irc.c,v 1.3 2007/09/29 04:12:16 matsutsuka Exp $
  */
 
 #include "contiki-conf.h"
@@ -230,8 +230,10 @@ PROCESS_THREAD(irc_process, ev, data)
     
     if(ev == PROCESS_EVENT_EXIT) {
       quit();
+#if CTK_CONF_WINDOWCLOSE
     } else if(ev == ctk_signal_window_close) {
       quit();
+#endif /* CTK_CONF_WINDOWCLOSE */
     } else if(ev == tcpip_event) {
       ircc_appcall(data);
     } else if(ev == ctk_signal_widget_activate) {
@@ -243,6 +245,7 @@ PROCESS_THREAD(irc_process, ev, data)
 	ctk_window_close(&setupwindow);
 	ctk_window_open(&window);
 	ipaddr = serveraddr;
+#if UIP_UDP
 	if(uiplib_ipaddrconv(server, (u8_t *)serveraddr) == 0) {
 	  ipaddr = resolv_lookup(server);
 	  if(ipaddr == NULL) {
@@ -251,11 +254,15 @@ PROCESS_THREAD(irc_process, ev, data)
 	    uip_ipaddr_copy(serveraddr, ipaddr);
 	  }
 	}
+#else /* UIP_UDP */
+	uiplib_ipaddrconv(server, (u8_t *)serveraddr);
+#endif /* UIP_UDP */
 	if(ipaddr != NULL) {
 	  
 	  ircc_connect(&s, server, serveraddr, nick);
 	}
       }
+#if UIP_UDP
     } else if(ev == resolv_event_found) {
       
       ipaddr = resolv_lookup(server);
@@ -265,7 +272,7 @@ PROCESS_THREAD(irc_process, ev, data)
 	uip_ipaddr_copy(serveraddr, ipaddr);
 	ircc_connect(&s, server, serveraddr, nick);
       }
-      
+#endif /* UIP_UDP */
     } else if(ev == ctk_signal_keypress) {
       c = (ctk_arch_key_t)data;
       if(c == CH_ENTER) {

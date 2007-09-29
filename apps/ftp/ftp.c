@@ -30,7 +30,7 @@
  * 
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: ftp.c,v 1.2 2006/08/21 21:36:18 oliverschmidt Exp $
+ * $Id: ftp.c,v 1.3 2007/09/29 04:12:15 matsutsuka Exp $
  */
 /* Note to self: It would be nice to have a "View" option in the download dialog. */
 
@@ -372,6 +372,7 @@ PROCESS_THREAD(ftp_process, ev, data)
       quit();
     } else if(ev == tcpip_event) {
       ftpc_appcall(data);
+#if UIP_UDP
     } else if(ev == resolv_event_found) {
       /* Either found a hostname, or not. */
       if((char *)data != NULL &&
@@ -381,8 +382,11 @@ PROCESS_THREAD(ftp_process, ev, data)
       } else {
 	show_statustext("Host not found: ", hostname);
       }
-      
-    } else if(ev == ctk_signal_window_close &&
+#endif /* UIP_UDP */
+    } else if(
+#if CTK_CONF_WINDOWCLOSE
+	      ev == ctk_signal_window_close &&
+#endif /* CTK_CONF_WINDOWCLOSE */
 	      data == (process_data_t)&window) {
       quit();
     } else if(ev == ctk_signal_widget_activate) {
@@ -417,6 +421,7 @@ PROCESS_THREAD(ftp_process, ev, data)
 	ftpc_close(connection);
       } else if((struct ctk_button *)data == &connectbutton) {
 	ctk_dialog_close();
+#if UIP_UDP
 	if(uiplib_ipaddrconv(hostname, (unsigned char *)ipaddr) == 0) {
 	  ipaddrptr = resolv_lookup(hostname);
 	  if(ipaddrptr == NULL) {
@@ -429,7 +434,12 @@ PROCESS_THREAD(ftp_process, ev, data)
 	} else {
 	  connection = ftpc_connect(ipaddr, HTONS(21));
 	  show_statustext("Connecting to ", hostname);
-	}       	
+	}
+#else /* UIP_UDP */
+	uiplib_ipaddrconv(hostname, (unsigned char *)ipaddr);
+	connection = ftpc_connect(ipaddr, HTONS(21));
+	show_statustext("Connecting to ", hostname);
+#endif /* UIP_UDP */
       } 
       /*      if((struct ctk_button *)data == &closebutton) {
 	ftpc_close(connection);

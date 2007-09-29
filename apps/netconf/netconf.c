@@ -29,7 +29,7 @@
  *
  * This file is part of the Contiki desktop environment
  *
- * $Id: netconf.c,v 1.5 2006/09/18 23:27:42 oliverschmidt Exp $
+ * $Id: netconf.c,v 1.6 2007/09/29 04:12:16 matsutsuka Exp $
  *
  */
 
@@ -55,11 +55,13 @@ static struct ctk_label gatewaylabel =
 static char gateway[17];
 static struct ctk_textentry gatewaytextentry =
   {CTK_TEXTENTRY(11, 5, 16, 1, gateway, 16)};
+#if UIP_UDP
 static struct ctk_label dnsserverlabel =
   {CTK_LABEL(0, 7, 10, 1, "DNS server")};
 static char dnsserver[17];
 static struct ctk_textentry dnsservertextentry =
   {CTK_TEXTENTRY(11, 7, 16, 1, dnsserver, 16)};
+#endif /* UIP_UDP */
 static struct ctk_button tcpipclosebutton =
   {CTK_BUTTON(0, 9, 2, "Ok")};
 
@@ -109,10 +111,12 @@ makestrings(void)
   uip_getdraddr(&addr);
   makeaddr(&addr, gateway);
 
+#if UIP_UDP
   addrptr = resolv_getserver();
   if(addrptr != NULL) {
     makeaddr(addrptr, dnsserver);
   }
+#endif /* UIP_UDP */
 }
 /*-----------------------------------------------------------------------------------*/
 static void
@@ -144,10 +148,12 @@ apply_tcpipconfig(void)
     uip_setdraddr(&addr);
   }
   
+#if UIP_UDP
   nullterminate(dnsserver);
   if(uiplib_ipaddrconv(dnsserver, (unsigned char *)&addr)) {
     resolv_conf(&addr);
   }
+#endif /* UIP_UDP */
 }
 /*-----------------------------------------------------------------------------------*/
 static void
@@ -171,8 +177,10 @@ PROCESS_THREAD(netconf_process, ev, data)
   CTK_WIDGET_ADD(&tcpipwindow, &netmasktextentry);
   CTK_WIDGET_ADD(&tcpipwindow, &gatewaylabel);
   CTK_WIDGET_ADD(&tcpipwindow, &gatewaytextentry);
+#if UIP_UDP
   CTK_WIDGET_ADD(&tcpipwindow, &dnsserverlabel);
   CTK_WIDGET_ADD(&tcpipwindow, &dnsservertextentry);  
+#endif /* UIP_UDP */
   CTK_WIDGET_ADD(&tcpipwindow, &tcpipclosebutton);
 
   CTK_WIDGET_FOCUS(&tcpipwindow, &ipaddrtextentry);  
@@ -192,7 +200,10 @@ PROCESS_THREAD(netconf_process, ev, data)
 	ctk_window_close(&tcpipwindow);
 	netconf_quit();
       }
-    } else if(ev == ctk_signal_window_close ||
+    } else if(
+#if CTK_CONF_WINDOWCLOSE
+	      ev == ctk_signal_window_close ||
+#endif
 	      ev == PROCESS_EVENT_EXIT) {
       ctk_window_close(&tcpipwindow);
       netconf_quit();
