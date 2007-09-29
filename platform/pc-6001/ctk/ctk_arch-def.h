@@ -27,7 +27,7 @@
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * $Id: ctk_arch-def.h,v 1.2 2007/09/19 12:46:15 matsutsuka Exp $
+ * $Id: ctk_arch-def.h,v 1.3 2007/09/29 04:10:00 matsutsuka Exp $
  *
  */
 
@@ -116,7 +116,7 @@
 /* Define if text icon is used. */
 #define CTK_CONF_ICON_TEXTMAPS		1
 /* Define if bitmap icon is used. */
-#define CTK_CONF_ICON_BITMAPS		1
+#define CTK_CONF_ICON_BITMAPS		0
 /* Toggles support for closable windows. */
 #define CTK_CONF_WINDOWCLOSE		1
 /* Toggles support for movable windows. */
@@ -127,6 +127,10 @@
 #define CTK_CONF_MENUWIDTH		16
 /* Defines if screen saver is supported. */
 #define CTK_CONF_SCREENSAVER		0
+/* Defines if mouse is supported. */
+#define CTK_CONF_MOUSE_SUPPORT		0
+/* Defines if hyperlink is supported. */
+#define CTK_CONF_HYPERLINK		1
 
 /* The maximum number of menu items in each menu. */
 #define CTK_CONF_MAXMENUITEMS		4
@@ -141,6 +145,12 @@
 #define CTK_CONF_WIDGETUP_KEY		CH_F5
 /* Defines which key that is to be used for activating the menus */
 #define CTK_CONF_MENU_KEY		CH_F1
+
+#ifdef LIBCONIO_CONF_EXPORT
+#define LIBCONIO_EXPORT LIBCONIO_CONF_EXPORT
+#else /* LIBCONIO_CONF_EXPORT */
+#define LIBCONIO_EXPORT 0
+#endif /* LIBCONIO_CONF_EXPORT */
 
 /* Imported symbols from ctk.h */
 

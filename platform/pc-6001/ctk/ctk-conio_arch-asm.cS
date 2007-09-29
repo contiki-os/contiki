@@ -7,7 +7,7 @@
 ;;; 
 ;;; @author Takahide Matsutsuka <markn@markn.org>
 ;;; 
-;;; $Id: ctk-conio_arch-asm.cS,v 1.1 2007/09/19 12:46:15 matsutsuka Exp $
+;;; $Id: ctk-conio_arch-asm.cS,v 1.2 2007/09/29 04:10:00 matsutsuka Exp $
 ;;;
 
 	;; uses preprocessor to enable definitions
@@ -21,26 +21,26 @@
 	.globl	_ctk_draw_dialog
 	.globl	_ctk_draw_widget
 	.globl	_ctk_draw_windowtitle_height
+.if CTK_CONF_MENUS
 	.globl	_ctk_draw_menus
+.endif
 	.globl	_ctk_draw_width
 	.globl	_ctk_draw_height
 
 	;; import symbols
-	.globl	_cputc_arch
-	.globl	_cputs_arch
-	.globl	_cputsn_arch
-	.globl	_gotoxy_arch
-	.globl	_clip_arch
-	.globl	_clearto_arch
 	.globl	_wherex_arch
-	.globl	_clearbox_arch
-	.globl	_drawbox_arch
-.if CTK_CONF_ICONS
-	.globl	_drawicon_arch
-.endif				; CTK_CONF_ICONS
-	.globl	_revers_arch
-	.globl	_chline_arch
+	.globl	_wherey_arch
 	
+	.globl	_cputc_arch_asm
+	.globl	_cputs_arch_asm
+	.globl	_cputsn_arch_asm
+	.globl	_clip_arch_asm
+	.globl	_clearto_arch_asm
+	.globl	_revers_arch_asm
+	.globl	_chline_arch_asm
+	.globl	_cvline_arch_asm
+	.globl	_gotoxy_arch_asm
+		
 	;; offsets
 	.globl	_off_window_x
 	.globl	_off_window_y
@@ -63,10 +63,13 @@
 	.globl	_off_widget_textentry_xpos
 	.globl	_off_widget_textentry_ypos
 	.globl	_off_widget_textentry_state
+.if CTK_CONF_HYPERLINK
+	.globl	_off_widget_hyperlink_text
+.endif
 .if CTK_CONF_ICONS
 	.globl	_off_widget_icon_title
 	.globl	_off_widget_icon_textmap
-.endif				; CTK_CONF_ICONS
+.endif
 .if CTK_CONF_MENUS
 	.globl	_off_menu_title
 	.globl	_off_menu_active
@@ -78,7 +81,7 @@
 	.globl	_off_menus_open
 	.globl	_off_menus_menus
 	.globl	_off_menus_desktopmenu
-.endif				; CTK_CONF_MENUS
+.endif
 
 	.area	_DATA
 
@@ -94,8 +97,10 @@ _ctk_conio_arch_asm_start::
 	;; return void
 	;; ---------------------------------
 _ctk_draw_init:
-	ld	d, #SCREEN_HEIGHT
-	ld	e, #0
+	xor	a
+	call	_revers_arch_asm
+	ld	h, #SCREEN_HEIGHT
+	ld	l, #0
 	jr	_ctk_draw_clear_asm
 
 	;; ---------------------------------
@@ -111,21 +116,16 @@ _ctk_draw_clear:
 	inc	hl
 	ld	d, (hl)		; clipy2
 	;; E = clip1, D = clip2
+	ex	de, hl
 _ctk_draw_clear_asm:
-	push	de
-	call	_clip_arch
-	pop	de
-	ld	a, d
-	sub	e
-	ld	h, a			; height
-	ld	l, #SCREEN_WIDTH	; width
-	push	hl
-	ld	l, #0		; x
-	ld	h, e		; y
-	push	hl
-	call	_clearbox_arch
-	pop	hl
-	pop	hl
+	call	_clip_arch_asm
+	ld	a, h
+	sub	l			; A = clipy2 - clipy1
+	ld	b, a			; height
+	ld	c, #SCREEN_WIDTH	; width
+	ld	d, l		; y
+	ld	e, #0		; x
+	call	_clearbox_arch_asm
 	ret
 
 _get_offset:
@@ -164,9 +164,8 @@ _ctk_draw_clear_window:
 	ld	e, (hl)
 	inc	hl
 	ld	d, (hl)
-	push	de
-	call	_clip_arch
-	pop	de
+	ex	de, hl
+	call	_clip_arch_asm
 	;;   clearbox_arch(window->x + 1, window->y + 2, window->w, window->h);
 	ld	hl, #2
 	add	hl, sp
@@ -177,11 +176,10 @@ _ctk_draw_clear_window:
 	ld	l, e		; HL = window
 
 	ld	bc, #_off_window_h
-	call	_get_offset	; E = window->h
-	ld	a, e
+	call	_get_offset
+	ld	d, e		; D = window->h
 	ld	bc, #_off_window_w
 	call	_get_offset	; E = window->w
-	ld	d, a
 	push	de
 	ld	bc, #_off_window_y
 	call	_get_offset	; E = window->y
@@ -192,10 +190,8 @@ _ctk_draw_clear_window:
 	call	_get_offset	; E = window->x
 	inc	e
 	ld	d, a		; D = window->y + 2, E = window->x + 1
-	push	de
-	call	_clearbox_arch
-	pop	de
-	pop	de
+	pop	bc		; B = h, C = w
+	call	_clearbox_arch_asm
 	ret
 	
 	;; ---------------------------------
@@ -243,9 +239,8 @@ _ctk_draw_window:
 	ld	e, (hl)
 	inc	hl
 	ld	d, (hl)
-	push	de
-	call	_clip_arch
-	pop	de
+	ex	de, hl
+	call	_clip_arch_asm
 	
 	;;   DE = window
 	;;   A = focus = focus & CTK_FOCUS_WINDOW
@@ -270,11 +265,10 @@ _ctk_draw_window:
 	;; return void
 	;; ---------------------------------
 _draw_window_asm:
-	;;  drawbox_arch(window->x, window->y + 1, window->w, window->h);
+	;;  drawbox_asm(window->x, window->y + 1, window->w, window->h);
 	push	af		; focus
 	ld	h, d
 	ld	l, e		; HL = window
-	push	hl		; window
 	ld	bc, #_off_window_h
 	call	_get_offset
 	ld	a, e
@@ -288,14 +282,11 @@ _draw_window_asm:
 	inc	a
 	ld	bc, #_off_window_x
 	call	_get_offset
-	ld	d, a
-	push	de		; D = window->y + 1, E = window->x
-	call	_drawbox_arch
-	pop	de		; pop yx
-	pop	bc		; pop hw, Stack; window focus
-	pop	hl		; HL = window; Stack; focus
-	inc	d		; D = x = window->y + 2
-	inc	e		; E = y = window->x + 1
+	ld	d, a		; D = window->y + 1, E = window->x
+	pop	bc		; B = h, C = w, HL = window
+	call	_drawbox_asm
+	inc	d		; D = y = window->y + 2
+	inc	e		; E = x = window->x + 1
 	push	de		; Stack; yx focus
 	
 	;; for(w = window->inactive; w != NULL; w = w->next) {
@@ -377,6 +368,7 @@ _draw_window_asm_next2:		; Stack; focused focus
 	pop	af
 	ret
 
+
 	;; ---------------------------------
 	;; ctk_draw_widget(struct ctk_widget *w,
 	;; 		unsigned char focus,
@@ -399,16 +391,14 @@ _ctk_draw_widget:
 	inc	hl
 	ld	b, (hl)		; clipy2
 	push	af		; focus
-	push	bc
-	call	_clip_arch
-	pop	bc
+	ld	h, b
+	ld	l, c	
+	call	_clip_arch_asm
 	push	de		; Stack; widget focus
-	ld	h, d
-	ld	l, e
+	ex	de, hl		; HL = widget
 	ld	bc, #_off_widget_window
 	call	_get_offset
-	ld	h, d
-	ld	l, e		; HL = window
+	ex	de, hl		; HL = window
 	ld	bc, #_off_window_focused
 	call	_get_offset	; DE = focused
 	pop	bc		; pop widget, Stack focus
@@ -439,11 +429,11 @@ _ctk_draw_widget_nofocus:
 	;; FALL THROUGH
 
 	;; ---------------------------------
-	;; void draw_widget_asm(struct ctk_widget *w,
+	;; static void draw_widget_asm(struct ctk_widget *w,
 	;; 			unsigned char x, unsigned char y,
 	;; 			unsigned char focus)
  	;; Stack; retl reth
-	;; in; a = focus, bc = yx, de = widget
+	;; in; A = focus, BC = yx, DE = widget
 	;; ____________
 	;; return void
 	;; ---------------------------------
@@ -453,7 +443,7 @@ _draw_widget_asm:
 	push	bc
 	push	af
 	
-	push	de
+	push	de		; Stack; w
 	ld	h, d
 	ld	l, e
 	push	af
@@ -472,15 +462,12 @@ _draw_widget_asm:
 	add	b
 	ld	b, a		; B = ypos, C = xpos
 	pop	af
-	and	#_CTK_FOCUS_WIDGET
-	push	af
-	inc	sp
-	call	_revers_arch
-	inc	sp		; Stack; w
-	push	bc		; Stack; yx, w
-	call	_gotoxy_arch
-	pop	bc
-	pop	hl		; Stack; null
+	and	a, #_CTK_FOCUS_WIDGET
+	call	_revers_arch_asm
+	ld	h, b
+	ld	l, c
+	call	_gotoxy_arch_asm
+	pop	hl		; Stack; null, HL = w
 	push	hl
 	push	bc	
 	ld	bc, #_off_widget_type
@@ -496,20 +483,19 @@ _draw_widget_asm:
 	jp	z, _draw_widget_label
 	cp	a, #_CTK_WIDGET_BUTTON
 	jp	z, _draw_widget_button
+.if CTK_CONF_HYPERLINK
 	cp	a, #_CTK_WIDGET_HYPERLINK
 	jp	z, _draw_widget_hyperlink
+.endif
 	cp	a, #_CTK_WIDGET_TEXTENTRY
 	jp	z, _draw_widget_textentry
 .if CTK_CONF_ICONS
 	cp	a, #_CTK_WIDGET_ICON
 	jp	z, _draw_widget_icon
-.endif				;  CTK_CONF_ICONS
+.endif
 _draw_widget_ret:
 	xor	a
-	push	af
-	inc	sp
-	call	_revers_arch
-	inc	sp
+	call	_revers_arch_asm
 
 	pop	af
 	pop	bc
@@ -518,10 +504,8 @@ _draw_widget_ret:
 	ret
 	;; BC = ypos, xpos, HL = w, E = w->w, Stack; null
 _draw_widget_separator:
-	push	de
-	inc	sp
-	call	_chline_arch
-	inc	sp
+	ld	b, e
+	call	_chline_arch_asm
 	jr	_draw_widget_ret
 	;; BC = ypos, xpos, HL = w, E = w->w, Stack; null
 _draw_widget_label:
@@ -542,36 +526,28 @@ _draw_widget_label_loop:
 	or	a
 	jr	z, _draw_widget_ret
 
-	push	de
-	push	hl
-	push	bc
-	call	_gotoxy_arch
-	pop	bc
-	pop	hl
-	pop	de
 	;; BC = ypos, xpos, H = h, L = w->w, DE = text
+	push	hl		; Stack; hw
+	ld	h, b
+	ld	l, c
+	call	_gotoxy_arch_asm
+	pop	hl
 	;;       cputsn_arch(text, w->w);
-	ld	a, l
 	push	hl
 	push	bc
-	push	af
-	inc	sp
-	push	de
-	call	_cputsn_arch
+	push	de		; Stack; text yx hw
+	ld	b, l
+	call	_cputsn_arch_asm ; DE = text
 	pop	de
-	inc	sp
 	pop	bc
-	pop	hl
+	pop	hl		; Stack; null
 	;;       clearto_arch(xpos + w->w);
 	ld	a, c
 	add	a, l
 	push	hl
 	push	de
 	push	bc
-	push	af
-	inc	sp
-	call	_clearto_arch
-	inc	sp
+	call	_clearto_arch_asm
 	pop	bc
 	pop	de
 	pop	hl
@@ -593,45 +569,38 @@ _draw_widget_button:
 	push	hl		; w
 	push	de		; w->w
 	ld	a, #0x5b	; '['
-	push	af
-	inc	sp
-	call	_cputc_arch
-	inc	sp
+	call	_cputc_arch_asm
 	pop	de
 	pop	hl
-	push	de
+	ld	a, e
 	ld	bc, #_off_widget_button_text
 	call	_get_offset
-	push	de
-	call	_cputsn_arch
-	pop	de
-	pop	de
+	ld	b, a
+	call	_cputsn_arch_asm
 	ld	a, #0x5d	; ']'
-	push	af
-	inc	sp
-	call	_cputc_arch
-	inc	sp
+	call	_cputc_arch_asm
 	jp	_draw_widget_ret
+.if CTK_CONF_HYPERLINK
 	;; BC = ypos, xpos, HL = w, E = w->w, Stack; null
 _draw_widget_hyperlink:
-	push	de
-	ld	bc, #_off_widget_button_text
+	ld	a, e
+	ld	bc, #_off_widget_hyperlink_text
 	call	_get_offset
-	push	de
-	call	_cputsn_arch
-	pop	de
-	pop	de
+	ld	b, a
+	call	_cputsn_arch_asm
 	jp	_draw_widget_ret
+.endif
 	
 	;; BC = ypos, xpos, HL = w, E = w->w, Stack; null
-_draw_widget_textentry:		; 0xc5dc sp=0xf97e
+_draw_widget_textentry:		; 0xc5dc sp=0xf97e ;widget=e3be
+	;; e3cd;textentry.xpos<-b224
 	;; stable variables;
 	;;   w->w, w->h, w->widget.textentry.{state,ypos,xpos), xscroll
 	push	ix
 	ld	ix, #-6
 	add	ix, sp
 	ld	sp, ix
-	push	bc
+	push	bc		; yx
 	
 	ld	0(ix), e	; w->w
 	ld	bc, #_off_widget_h
@@ -648,16 +617,18 @@ _draw_widget_textentry:		; 0xc5dc sp=0xf97e
 	ld	bc, #_off_widget_textentry_xpos
 	call	_get_offset
 	ld	4(ix), e	; w->widget.textentry.xpos
-
-	ld	bc, #_off_widget_textentry_xpos
-	call	_get_offset
+	
+	;;     xscroll = 0;
+	;;     if(w->widget.textentry.xpos >= w->w - 1) {
+	;;       xscroll = w->widget.textentry.xpos - w->w + 1;
+	;;     }
 	ld	a, e
 	inc	a
-	sub	0(ix)	; w->w
+	sub	0(ix)	; xscroll = w->widget.textentry.xpos - w->w + 1
 	jr	nc, _draw_widget_textentry_next
-	xor	a
+	xor	a		;  if (xscroll < 0) xscroll = 0
 _draw_widget_textentry_next:	; A = xscroll, Stack; yx - IX
-	ld	5(ix), a	; w->widget.textentry.xscroll
+	ld	5(ix), a	; xscroll
 
 	ld	bc, #_off_widget_textentry_text
 	call	_get_offset	; DE = text
@@ -667,40 +638,32 @@ _draw_widget_textentry_next:	; A = xscroll, Stack; yx - IX
 	;; L = counter, IX = sp, DE = text, BC = yx, Stack; null
 _draw_widget_textentry_loop1:	; 0xc629
 	;;       gotoxy_arch(xpos, ypos);
-	push	de
-	push	hl		; Stack; yx count text
-	push	bc
-	call	_gotoxy_arch
+	push	hl		; Stack; text
+	ld	h, b
+	ld	l, c
+	call	_gotoxy_arch_asm
 
 	;;       if(w->widget.textentry.state == CTK_TEXTENTRY_EDIT &&
 	;; 	    w->widget.textentry.ypos == j)
-	pop	bc
-	pop	hl		; Stack; text
-	pop	de		; Stack; null
+	pop	hl		; Stack; null, BC = yx, DE = text, L = count
 	push	bc		; Stack; yx
 	ld	a, l
 	cp	a, 1(ix)	; j - w->h
 	jp	nc, _draw_widget_textentry_ret
 	ld	a, 2(ix)	; state
-	or	a
+	or	a		; state == EDIT?
 	jr	nz, _draw_widget_textentry_else
 	ld	a, 3(ix)	; ypos
-	cp	a, l
+	cp	a, l		; ypos == j?
 	jr	nz, _draw_widget_textentry_else
 	;; 	revers_arch(0);
 	push	hl		; Stack count yx
 	push	de		; Stack text count yx
 	xor	a
-	push	af
-	inc	sp
-	call	_revers_arch
-	inc	sp
+	call	_revers_arch_asm
 	;; 	cputc_arch('>');
 	ld	a, #0x3e	; '>'
-	push	af
-	inc	sp
-	call	_cputc_arch
-	inc	sp
+	call	_cputc_arch_asm
 	
 	pop	de		; Stack count yx
 	push	de		; Stack text count yx
@@ -713,7 +676,8 @@ _draw_widget_textentry_loop1:	; 0xc629
 
 	ld	h, #0		; loop counter
 	;; 	for(i = 0; i < w->w; ++i)
-_draw_widget_textentry_loop2:	; 0xc666 Stack text count yx
+_draw_widget_textentry_loop2:	; 0xc39d Stack text count yx
+	;; H = count2, DE = text[xscroll + i]
 	ld	a, h
 	cp	a, 0(ix)	; i - w->w
 	jr	nc, _draw_widget_textentry_loop2exit
@@ -722,44 +686,30 @@ _draw_widget_textentry_loop2:	; 0xc666 Stack text count yx
 	ld	a, 4(ix)	; w->w.widget.textentry.xpos
 	sub	5(ix)		; xscroll
 	sub	h		; textentry.xpos - xscroll- i
-	jr	z, _draw_widget_textentry_revers1
-	xor	a
-	jr	_draw_widget_textentry_revers0
-_draw_widget_textentry_revers1:
+	ld	a, #00		; flags don't change
+	jr	nz, _draw_widget_textentry_revers
 	ld	a, #01
-_draw_widget_textentry_revers0:
-	push	af
-	inc	sp
-	call	_revers_arch
-	inc	sp
-	
+_draw_widget_textentry_revers:
+	call	_revers_arch_asm
+	;;  DE = text, Stack; count2 text count1 yx
+	;; 	  	  cputc((c == 0) ? CH_SPACE : c);
 	ld	a, (de)		; ch
 	or	a
 	jr	nz, _draw_widget_textentry_nospace
 	ld	a, #CH_SPACE
 _draw_widget_textentry_nospace:
 	push	de
-	push	af
-	inc	sp
-	call	_cputc_arch
-	inc	sp
+	call	_cputc_arch_asm
 	pop	de
-	pop	hl		; Stack text count1 yx
+	pop	hl		; Stack text count1 yx, H = count2
 	inc	h
 	inc	de
 	jr	_draw_widget_textentry_loop2
-
 _draw_widget_textentry_loop2exit:	; Stack text count yx
 	xor	a
-	push	af
-	inc	sp
-	call	_revers_arch
-	inc	sp
+	call	_revers_arch_asm
 	ld	a, #0x3c	; '<'
-	push	af
-	inc	sp
-	call	_cputc_arch
-	inc	sp
+	call	_cputc_arch_asm
 	jr	_draw_widget_textentry_endif
 
 _draw_widget_textentry_else: ; 0xc68a DE = text, L = count1, Stack yx
@@ -767,19 +717,13 @@ _draw_widget_textentry_else: ; 0xc68a DE = text, L = count1, Stack yx
 	ld	a, #CH_VERTLINE
 	push	hl
 	push	de
-	push	af
-	inc	sp
-	call	_cputc_arch
-	inc	sp
+	call	_cputc_arch_asm
 	pop	de
 	;; 	cputsn_arch(text, w->w);
-	ld	a, 0(ix)	; w->w
-	push	af
-	inc	sp
+	ld	b, 0(ix)	; w->w
 	push	de
-	call	_cputsn_arch
-	pop	de
-	inc	sp		; Stack j yx
+	call	_cputsn_arch_asm
+	pop	de		; Stack count1 yx
 	;; 	clearto_arch(xpos + w->w + 1);
 	pop	hl
 	pop	bc
@@ -789,16 +733,10 @@ _draw_widget_textentry_else: ; 0xc68a DE = text, L = count1, Stack yx
 	ld	a, 0(ix)	; w->w
 	add	a, c
 	inc	a		; xpos + w->w + 1
-	push	af
-	inc	sp
-	call	_clearto_arch
-	inc	sp
+	call	_clearto_arch_asm
 	;; 	cputc_arch(CH_VERTLINE);
 	ld	a, #CH_VERTLINE
-	push	af
-	inc	sp
-	call	_cputc_arch
-	inc	sp
+	call	_cputc_arch_asm
 _draw_widget_textentry_endif:	; Stack text count yx
 	;; text += w->w
 	pop	de
@@ -825,19 +763,86 @@ _draw_widget_textentry_ret:
 	jp	_draw_widget_ret	
 
 .if CTK_CONF_ICONS
+	;; BC = ypos, xpos, HL = w, E = w->w, Stack; null
 _draw_widget_icon:
+	push	bc		; Stack; yx
 	ld	bc, #_off_widget_icon_title
 	call	_get_offset
-	push	de
+	push	de		; Stack; title yx
 	ld	bc, #_off_widget_icon_textmap
 	call	_get_offset
-	push	de
-	call	_drawicon_arch
-	pop	de
-	pop	de
-	jp	_draw_widget_ret
-.endif				; CTK_CONF_ICONS
+	pop	hl		; HL = title, DE = textmap
+	pop	bc		; BC = yx
 
+	;; BC = yx, DE = textmap, HL = title
+	push	hl		; Stack; title
+	ld	h, b
+	ld	l, c		; HL = yx
+	ld	a, e
+	or	d
+	jr	z, _draw_widget_icon_title
+	
+	;; 	push	hl
+	;; 	call	_wherex_arch
+	;; 	ld	c, l
+	;; 	call	_wherey_arch
+	;; 	ld	b, l
+	;; 	pop	hl
+
+	ld	a, #3		; loop counter
+_draw_widget_icon_loop:		; HL = yx, DE = textmap, Stack; title
+	call	_gotoxy_arch_asm
+	
+	push	af		; Stack; loop title
+	push	hl		; DE = textmap, Stack; yx loop title
+
+	ld	b, #3
+	call	_cputsn_arch_asm	; DE = DE + 3
+	
+	pop	hl
+	pop	af		; HL = yx, A = count, Stack; title
+	
+	inc	h		; y++
+	dec	a
+	jr	nz, _draw_widget_icon_loop
+	;; Stack; title, HL = yx
+_draw_widget_icon_title:
+	pop	de		; Stack; null, HL = yx, DE = title
+	push	de		; Stack; title, HL = yx, DE = title
+	ld	b, h
+	ld	c, l		; BC = yx
+	ex	de, hl		; BC = yx, HL = title
+	ld	d, #0
+_draw_widget_icon_title_strlen:
+	ld	a, (hl)
+	or	a
+	jr	z, _draw_widget_icon_title_setpos
+	inc	hl
+	inc	d
+	jr	_draw_widget_icon_title_strlen
+	;; D = len, BC = yx, Stack; title
+_draw_widget_icon_title_setpos:
+	ld	h, d		; H = len
+	ld	a, d
+	add	a, c		; x + len
+	cp	a, #SCREEN_WIDTH ;  x + len - SCREEN_WIDTH
+	jr	c, _draw_widget_icon_title_show
+	ld	a, #SCREEN_WIDTH
+	sub	h
+	ld	c, a
+	;; B = y, C = x; H = len, Stack; title
+_draw_widget_icon_title_show:
+	ld	a, h		; A = len
+	ld	h, b
+	ld	l, c
+	call	_gotoxy_arch_asm
+	pop	de		; DE = title
+	ld	b, a		; B = len
+	call	_cputsn_arch_asm
+	jp	_draw_widget_ret
+
+.endif
+	
 .if CTK_CONF_MENUS
 	;; ---------------------------------
 	;; static void draw_menu(struct ctk_menu *m, struct ctk_menu *open)
@@ -855,16 +860,11 @@ _draw_menu_asm:
 	push	bc
 	ld	bc, #_off_menu_title
 	call	_get_offset	; DE = m->title
-	push	hl
-	push	de
-	call	_cputs_arch
-	pop	de		; Stack; menu open x
+	push	hl		; Stack; menu open x
+	call	_cputs_arch_asm
 	;;   cputc_arch(CH_SPACE);
 	ld	a, #CH_SPACE
-	push	af
-	inc	sp
-	call	_cputc_arch
-	inc	sp
+	call	_cputc_arch_asm
 
 	pop	hl		; menu
 	pop	bc		; open, Stack; x
@@ -914,22 +914,16 @@ _draw_menu_loop1:
 	jr	nz, _draw_menu_next1
 	xor	a
 	push	hl
-	push	af
-	inc	sp
-	call	_revers_arch
-	inc	sp
+	call	_revers_arch_asm
 	pop	hl
 	;; B = x, C = x2, D = y, HL = menu
 _draw_menu_next1:		; c4ae
 	;;       gotoxy_arch(x, y + 1);
 	push	hl
-	push	de
-	inc	d
-	ld	e, b
-	push	de
-	call	_gotoxy_arch
-	pop	de
-	pop	de		; D = y
+	ld	h, d
+	ld	l, b
+	inc	h
+	call	_gotoxy_arch_asm
 	pop	hl		; HL = menu, Stack; null
 	;;       if(m->items[y].title[0] == '-')
 	push	de
@@ -963,43 +957,31 @@ _draw_menu_next2:
 	cp	a, #0x2d	; '-'
 	jr	nz, _draw_menu_else
 	;; 	chline_arch(CTK_CONF_MENUWIDTH);
-	ld	a, #CTK_CONF_MENUWIDTH
-	push	af
-	inc	sp
-	call	_chline_arch
-	inc	sp
+	ld	b, #CTK_CONF_MENUWIDTH
+	call	_chline_arch_asm
 	jr	_draw_menu_next3
 _draw_menu_else:
 	;; 	cputs_arch(m->items[y].title);
-	push	de
-	call	_cputs_arch
-	pop	de
+	call	_cputs_arch_asm
 _draw_menu_next3:
 	;;       clearto_arch(x + CTK_CONF_MENUWIDTH);
 	pop	bc		; B = x, C = x2, Stack; menu y
 	push	bc
 	ld	a, b
 	add	a, #CTK_CONF_MENUWIDTH
-	push	af
-	inc	sp
-	call	_clearto_arch
-	inc	sp
+	call	_clearto_arch_asm
 	;;       revers_arch(1);
 	ld	a, #1
-	push	af
-	inc	sp
-	call	_revers_arch
-	inc	sp
+	call	_revers_arch_asm
 	pop	bc
 	pop	hl
 	pop	de
 	inc	d
 	jr	_draw_menu_loop1
 _draw_menu_ret:			; C = x2
-	ld	b, #0
-	push	bc
-	call	_gotoxy_arch
-	pop	bc
+	ld	h, #0
+	ld	l, c
+	call	_gotoxy_arch_asm
 _draw_menu_ret2:
 	pop	af
 	ret	
@@ -1014,18 +996,13 @@ _ctk_draw_menus:
 	;;   clip_arch(0, SCREEN_HEIGHT);
 	ld	h, #SCREEN_HEIGHT
 	ld	l, #0
-	push	hl
-	call	_clip_arch
+	call	_clip_arch_asm
 	;;   gotoxy_arch(0, 0);
-	ld	hl, #0
-	ex	(sp), hl
-	call	_gotoxy_arch
+	ld	h, #0
+	call	_gotoxy_arch_asm
 	;;   revers_arch(1);
-	ld	h, #1
-	ex	(sp), hl
-	inc	sp
-	call	_revers_arch
-	inc	sp		; Stack; null
+	ld	a, #1
+	call	_revers_arch_asm
 
 	ld	hl, #2
 	add	hl, sp
@@ -1080,20 +1057,14 @@ _ctk_draw_menus_next2:
 	sub	b	; strlen(menus->desktopmenu->title)
 	dec	a	; SCREEN_WIDTH - strlen(menus->desktopmenu->title) - 1
 	push	hl
-	push	af
-	inc	sp
-	call	_clearto_arch
-	inc	sp
+	call	_clearto_arch_asm
 	pop	hl		; desktopmenu
 	pop	bc		; open, Stack; null
 	call	_draw_menu_asm
 	xor	a
-	push	af
-	inc	sp
-	call	_revers_arch
-	inc	sp
+	call	_revers_arch_asm
 	ret
-.endif				; CTK_CONF_MENUS
+.endif
 
 	;; ---------------------------------
 	;; unsigned char ctk_draw_width(void);
@@ -1113,6 +1084,92 @@ _ctk_draw_width:
 	;; ---------------------------------
 _ctk_draw_height:
 	ld	l, #SCREEN_HEIGHT
+	ret
+
+	
+	;; ---------------------------------
+	;; internal functions
+	;; ---------------------------------
+	
+	;; ---------------------------------
+	;; static void clearbox_arch_asm(unsigned char x, y, w, h)
+	;; Stack; retl reth
+	;; AFBCDEHL____
+	;; return void
+	;; ---------------------------------
+	;; DE = yx, B = h, C = w
+_clearbox_arch_asm:
+	ld	a, e
+	add	a, c
+	ld	c, a		; to_x = x + w
+	ld	h, d
+	ld	l, e
+_clearbox_arch_loop::
+	call	_gotoxy_arch_asm	; (x, y)
+	push	hl
+	push	bc		; B = h, HL = yx
+	ld	a, c
+	call	_clearto_arch_asm
+	pop	bc
+	pop	hl
+	inc	h		; y++
+	djnz	_clearbox_arch_loop
+	ret
+
+	;; ---------------------------------
+	;; void drawbox_asm(unsigned char x, y, w, h)
+	;; Stack; retl reth
+	;; B = h, C = w, D = y, E = x
+	;; AF__________
+	;; return void
+	;; ---------------------------------
+_drawbox_asm:
+	push	bc
+	push	de
+	push	hl
+	
+	ld	h, d
+	ld	l, e
+	inc	h
+	call	_gotoxy_arch_asm	; (x, y + 1)
+	dec	h
+	push	hl
+	push	bc		; Stack; hw, yx, B = h
+	call	_cvline_arch_asm
+	ld	a, #CH_LLCORNER
+	call	_cputc_arch_asm
+	pop	bc
+	push	bc		; Stack; hw yx
+	ld	b, c		; w
+	call	_chline_arch_asm
+	ld	a, #CH_LRCORNER
+	call	_cputc_arch_asm
+	pop	bc
+	pop	hl
+	call	_gotoxy_arch_asm	; (x, y)
+	push	hl
+	push	bc		; Stack; hw yx
+	ld	a, #CH_ULCORNER
+	call	_cputc_arch_asm
+	pop	bc
+	push	bc		; Stack; hw yx
+	ld	b, c		; B = w
+	call	_chline_arch_asm
+	ld	a, #CH_URCORNER
+	call	_cputc_arch_asm
+	pop	bc		; B = h
+	pop	hl
+	ld	a, l
+	inc	a
+	add	a, c
+	ld	l, a		; L = x + 1 + w
+	inc	h		; H = y + 1
+	call	_gotoxy_arch_asm
+	call	_cvline_arch_asm
+	
+	pop	hl
+	pop	de
+	pop	bc
 	ret
 
 _ctk_conio_arch_asm_end::
