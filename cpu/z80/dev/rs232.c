@@ -27,7 +27,7 @@
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.  
  *
- * $Id: rs232.c,v 1.3 2007/09/19 12:47:55 matsutsuka Exp $
+ * $Id: rs232.c,v 1.4 2007/09/29 03:58:38 matsutsuka Exp $
  *
  */
 /*
@@ -39,6 +39,7 @@
  */
 
 #include "contiki.h"
+#include "dev/slip.h"
 #include "dev/serial.h"
 #include "dev/rs232.h"
 
@@ -64,7 +65,7 @@ PROCESS_THREAD(rs232_process, ev, data)
 	  break;
 	}
 	/* We have an input data */
-	serial_input_byte(ch);
+	RS232_CALLBACK(ch);
       }
       etimer_reset(&timer);
     }
