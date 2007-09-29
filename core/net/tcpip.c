@@ -30,7 +30,7 @@
  *
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: tcpip.c,v 1.8 2007/05/20 21:29:39 oliverschmidt Exp $
+ * $Id: tcpip.c,v 1.9 2007/09/29 03:54:18 matsutsuka Exp $
  */
 
 #include "contiki-net.h"
@@ -168,6 +168,7 @@ tcp_attach(struct uip_conn *conn,
   s->state = appstate;
 }
 /*---------------------------------------------------------------------------*/
+#if UIP_UDP
 void
 udp_attach(struct uip_udp_conn *conn,
 	   void *appstate)
@@ -210,6 +211,7 @@ udp_broadcast_new(u16_t port, void *appstate)
   }
   return conn;
 }
+#endif /* UIP_UDP */
 /*---------------------------------------------------------------------------*/
 static void
 eventhandler(process_event_t ev, process_data_t data)
@@ -306,6 +308,7 @@ eventhandler(process_event_t ev, process_data_t data)
 
     }
     break;
+#if UIP_UDP
   case UDP_POLL:
     if(data != NULL) {
       uip_udp_periodic_conn(data);
@@ -314,6 +317,7 @@ eventhandler(process_event_t ev, process_data_t data)
       }
     }
     break;
+#endif /* UIP_UDP */
 
   case PACKET_INPUT:
     packet_input();
@@ -328,11 +332,13 @@ tcpip_input(void)
   uip_len = 0;
 }
 /*---------------------------------------------------------------------------*/
+#if UIP_UDP
 void
 tcpip_poll_udp(struct uip_udp_conn *conn)
 {
   process_post(&tcpip_process, UDP_POLL, conn);
 }
+#endif /* UIP_UDP */
 /*---------------------------------------------------------------------------*/
 void
 tcpip_poll_tcp(struct uip_conn *conn)
@@ -347,11 +353,15 @@ tcpip_uipcall(void)
   static unsigned char i;
   register struct listenport *l;
 
+#if UIP_UDP
   if(uip_conn != NULL) {
     ts = &uip_conn->appstate;
   } else {
     ts = &uip_udp_conn->appstate;
   }
+#else /* UIP_UDP */
+  ts = &uip_conn->appstate;
+#endif /* UIP_UDP */
 
   /* If this is a connection request for a listening port, we must
      mark the connection with the right process ID. */
