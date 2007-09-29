@@ -27,7 +27,7 @@
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.  
  *
- * $Id: rs232.h,v 1.3 2007/09/19 12:47:55 matsutsuka Exp $
+ * $Id: rs232.h,v 1.4 2007/09/29 03:58:38 matsutsuka Exp $
  *
  */
 /*
@@ -58,9 +58,20 @@ unsigned char rs232_arch_poll(unsigned char* stat);
 /*
  * An architecture-depend implementation of RS-232C writing a byte.
  */
-void rs232_arch_writeb(u8_t ch);
+void rs232_arch_writeb(unsigned char ch);
 
 PROCESS_NAME(rs232_process);
+
+/*
+ * if you want to use simple serial communication,
+ * define RS232_CONF_CALLBACK as serial_input_byte.
+ * The default is SLIP.
+ */
+#ifdef RS232_CONF_CALLBACK
+#define RS232_CALLBACK                  RS232_CONF_CALLBACK
+#else /* RS232_CONF_CALLBACK */
+#define RS232_CALLBACK                  slip_input_byte
+#endif /* RS232_CONF_CALLBACK */
 
 #ifdef RS232_CONF_BUFISZE
 #define RS232_BUFSIZE RS232_CONF_BUFISZE
