@@ -24,7 +24,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * $Id: GUI.java,v 1.63 2007/09/28 07:21:21 fros4943 Exp $
+ * $Id: GUI.java,v 1.64 2007/09/30 12:02:33 fros4943 Exp $
  */
 
 package se.sics.cooja;
@@ -72,6 +72,11 @@ public class GUI {
    * External tools default Win32 settings filename.
    */
   public static final String EXTERNAL_TOOLS_WIN32_SETTINGS_FILENAME = "/external_tools_win32.config";
+
+  /**
+   * External tools default Mac OS X settings filename.
+   */
+  public static final String EXTERNAL_TOOLS_MACOSX_SETTINGS_FILENAME = "/external_tools_macosx.config";
 
   /**
    * External tools default Linux/Unix settings filename.
@@ -2411,10 +2416,16 @@ public class GUI {
    * Load external tools settings from default file.
    */
   public static void loadExternalToolsDefaultSettings() {
+    String osName = System.getProperty("os.name").toLowerCase();
+
     String filename = GUI.EXTERNAL_TOOLS_LINUX_SETTINGS_FILENAME;
-    if (System.getProperty("os.name").startsWith("Win")) {
+    if (osName.startsWith("win")) {
       filename = GUI.EXTERNAL_TOOLS_WIN32_SETTINGS_FILENAME;
+    } else if (osName.startsWith("mac os x")) {
+      filename = GUI.EXTERNAL_TOOLS_MACOSX_SETTINGS_FILENAME;
     }
+
+    logger.info("Loading external tools user settings from: " + filename);
 
     try {
       InputStream in = GUI.class.getResourceAsStream(filename);
