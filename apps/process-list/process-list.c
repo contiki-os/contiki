@@ -29,7 +29,7 @@
  *
  * This file is part of the Contiki desktop environment
  *
- * $Id: process-list.c,v 1.5 2007/09/22 04:12:30 matsutsuka Exp $
+ * $Id: process-list.c,v 1.6 2007/09/30 02:32:23 matsutsuka Exp $
  *
  */
 
@@ -53,7 +53,7 @@ static struct ctk_label processnamelabels[MAX_PROCESSLABELS];
 
 static struct ctk_label killlabel =
   {CTK_LABEL(0, PROCESSLIST_HEIGHT - 2, 12, 1, "Kill process")};
-static char killprocnum[3] = "";
+static char killprocnum[3];
 static struct ctk_textentry killtextentry =
   {CTK_TEXTENTRY(13, PROCESSLIST_HEIGHT - 2, 2, 1, killprocnum, 2)};
 static struct ctk_button killbutton =
