@@ -53,6 +53,21 @@
 #define CC1020_STATUS6		0x4A
 #define CC1020_STATUS7		0x4B
 
+/* Flags for the MAIN register. */
+#define RESET_N			1
+#define BIAS_PD			(1<<1)
+#define XOSC_PD			(1<<2)
+#define FS_PD			(1<<3)
+#define PD_MODE_1		(1<<4)
+#define PD_MODE_2		(1<<5)
+#define F_REG			(1<<6)
+#define RXTX			(1<<7)
+
+/* In power up mode, the MAIN register modifies some flags to the following. */
+#define SEQ_PD			(1<<1)
+#define SEQ_CAL_1		(1<<2)
+#define SEQ_CAL_2		(1<<3)
+
 // For CC1020_STATUS
 #define LOCK_CONTINUOUS		0x10
 #define CAL_COMPLETE		0x80
@@ -73,8 +88,8 @@
 #define PDO		(P2IN & 0x01)
 
 // PSEL is on P30 and low active
-#define PSEL_ON		do { P3OUT &=  ~0x01; } while(0)
-#define PSEL_OFF	do { P3OUT |=   0x01; } while(0)
+#define PSEL_ON		do { P3OUT &= ~0x01; } while(0)
+#define PSEL_OFF	do { P3OUT |=  0x01; } while(0)
 #define PCLK_HIGH	do { P2OUT |=  0x08; }  while(0)
 #define PCLK_LOW	do { P2OUT &= ~0x08; }  while(0)
 
@@ -94,14 +109,14 @@
 		do { IE1 &= ~(URXIE0); } while(0)
 
 #define ENABLE_RX_IRQ()					\
-		do { IFG1 &= ~URXIFG0; IE1 |= URXIE0; } while(0)
+	do { IFG1 &= ~URXIFG0; IE1 |= URXIE0; } while(0)
 
 #define ACK_TIMEOUT_115		4	// In RADIO_STROKE ticks
 #define ACK_TIMEOUT_19		16
 
 #define MHZ_869525      	1
 
-const u8_t cc1020_config_19200[41] = {
+const uint8_t cc1020_config_19200[41] = {
   0x01,   // 0x00, MAIN
   0x0F,   // 0x01, INTERFACE
   0xFF,   // 0x02, RESET
@@ -147,7 +162,7 @@ const u8_t cc1020_config_19200[41] = {
   ACK_TIMEOUT_19
 };
 
-const u8_t cc1020_config_115200[41] = {
+const uint8_t cc1020_config_115200[41] = {
   0x01,   // 0x00, MAIN
   0x0F,   // 0x01, INTERFACE
   0xFF,   // 0x02, RESET
@@ -195,9 +210,9 @@ const u8_t cc1020_config_115200[41] = {
 
 /// cc1020 state
 enum cc1020_state {
-	CC1020_OFF,
-	CC1020_RX,
-	CC1020_TX
+  CC1020_OFF,
+  CC1020_RX,
+  CC1020_TX
 };
 
 /******************************************************************************
@@ -205,11 +220,13 @@ enum cc1020_state {
  * @{
  */
 
-const u8_t syncword[2] = {0xD3,0x91};
-__attribute__((packed))
+const uint8_t syncword[2] = {0xD3,0x91};
+
+// header: number of bytes in packet including header
 struct cc1020_header {
-  u8_t  length;		// header: number of bytes in packet including header
-};
+  uint8_t  length;
+} __attribute__((packed));
+
 
 #define PREAMBLESIZE	6
 #define PREAMBLE	0xAA
@@ -223,7 +240,7 @@ struct cc1020_header {
 
 /// cc1020 receiver state
 enum cc1020_rxstate {
-	CC1020_RX_SEARCHING,		// searching for preamble + sync word
-	CC1020_RX_RECEIVE,		// receiving bytes
-	CC1020_RX_PROCESSING		// processing data in buffer
+  CC1020_RX_SEARCHING,		// searching for preamble + sync word
+  CC1020_RX_RECEIVE,		// receiving bytes
+  CC1020_RX_PROCESSING		// processing data in buffer
 };
