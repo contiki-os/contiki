@@ -51,17 +51,12 @@ Berlin, 2006
 
 #include "dev/radio.h"
 
-enum cc1020_power_mode {
-	CC1020_ALWAYS_ON
-};
-
 extern const uint8_t cc1020_config_19200[];
 extern const uint8_t cc1020_config_115200[];
 
 void cc1020_init(const uint8_t* config);
 void cc1020_set_rx(void);
 void cc1020_set_tx(void);
-void cc1020_set_power_mode(enum cc1020_power_mode mode);
 void cc1020_set_power(uint8_t pa_power);
 uint8_t cc1020_get_rssi(void);
 

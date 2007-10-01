@@ -71,9 +71,6 @@ static void cc1020_write_reg(uint8_t addr, uint8_t adata);
 static void cc1020_load_config(const uint8_t *);
 static void cc1020_reset(void);
 
-/// selected rx/tx/pd switching algorithm
-static enum cc1020_power_mode cc1020_power_mode = CC1020_ALWAYS_ON;
-
 // current mode of cc1020 chip
 static enum cc1020_state cc1020_state = CC1020_OFF;
 static volatile uint8_t cc1020_rxbuf[HDRSIZE + CC1020_BUFFERSIZE];
@@ -194,12 +191,6 @@ cc1020_set_tx(void)
 }
 
 void
-cc1020_set_power_mode(enum cc1020_power_mode mode)
-{
-  cc1020_power_mode = mode;
-}
-
-void
 cc1020_set_power(uint8_t pa_power)
 {
   cc1020_pa_power = pa_power;
@@ -263,12 +254,8 @@ cc1020_set_receiver(void (*recv)(const struct radio_driver *))
 int
 cc1020_on(void)
 {
-  if (cc1020_power_mode == CC1020_ALWAYS_ON) {
-    // Switch to receive mode
-    cc1020_set_rx();
-  } else {
-    cc1020_off();
-  }
+  // Switch to receive mode
+  cc1020_set_rx();
 
   return 1;
 }
