@@ -2,7 +2,7 @@
 # Makefile for z80/SDCC
 # @author Takahide Matsutsuka <markn@markn.org>
 #
-# $Id: Makefile.z80,v 1.8 2007/09/29 03:57:07 matsutsuka Exp $
+# $Id: Makefile.z80,v 1.9 2007/10/01 23:04:02 matsutsuka Exp $
 #
 
 ### Compiler definitions
@@ -63,6 +63,6 @@ contiki-$(TARGET).lib: $(CONTIKI_OBJECTFILES) $(PROJECT_OBJECTFILES) $(CONTIKI_A
 	for target in $^; do echo $$target >> $@; done
 
 #CUSTOM_RULE_LINK
-contiki.ihx: contiki-$(TARGET).lib
+contiki.ihx: contiki-$(TARGET).lib $(OBJECTDIR)/crt0.o
 	$(CC) $(LDFLAGS)  -o $@ $(OBJECTDIR)/crt0.o -lcontiki-$(TARGET).lib
 	$(LD) -nf contiki
