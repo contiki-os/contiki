@@ -241,6 +241,6 @@ struct cc1020_header {
 /// cc1020 receiver state
 enum cc1020_rxstate {
   CC1020_RX_SEARCHING,		// searching for preamble + sync word
-  CC1020_RX_RECEIVE,		// receiving bytes
+  CC1020_RX_RECEIVING,		// receiving bytes
   CC1020_RX_PROCESSING		// processing data in buffer
 };
