@@ -76,7 +76,7 @@ static enum cc1020_state cc1020_state = CC1020_OFF;
 static volatile uint8_t cc1020_rxbuf[HDRSIZE + CC1020_BUFFERSIZE];
 static uint8_t cc1020_txbuf[PREAMBLESIZE + HDRSIZE + CC1020_BUFFERSIZE +
 			   TAILSIZE];
-static enum cc1020_rxstate cc1020_rxstate = CC1020_RX_SEARCHING;
+static volatile enum cc1020_rxstate cc1020_rxstate = CC1020_RX_SEARCHING;
 
 /// number of bytes in receive and transmit buffers respectively.
 static uint16_t cc1020_rxlen;
@@ -110,7 +110,7 @@ cc1020_init(const uint8_t *config)
 
   // init tx buffer with preamble + syncword
   memset(cc1020_txbuf, PREAMBLE, PREAMBLESIZE);
-  memcpy((char *) cc1020_txbuf + PREAMBLESIZE, &syncword, SYNCWDSIZE);
+  memcpy((char *)cc1020_txbuf + PREAMBLESIZE, &syncword, SYNCWDSIZE);
 
   // calibrate receiver
   cc1020_wakeupRX(RX_CURRENT);
@@ -199,6 +199,9 @@ cc1020_set_power(uint8_t pa_power)
 int
 cc1020_send(const void *buf, unsigned short len)
 {
+  if (cc1020_state == CC1020_OFF)
+    return -2;
+
   if (len > CC1020_BUFFERSIZE)
     return -1;
 
@@ -213,7 +216,7 @@ cc1020_send(const void *buf, unsigned short len)
   cc1020_txbuf[cc1020_txlen++] = HDRSIZE + len;
 
   // data to send
-  memcpy((char *) cc1020_txbuf + cc1020_txlen, buf, len);
+  memcpy((char *)cc1020_txbuf + cc1020_txlen, buf, len);
   cc1020_txlen += len;
 
   // suffix
@@ -239,7 +242,7 @@ cc1020_read(void *buf, unsigned short size)
     return -1;
   }
 
-  memcpy(buf, (char *) cc1020_rxbuf + HDRSIZE, len);
+  memcpy(buf, (char *)cc1020_rxbuf + HDRSIZE, len);
   RIMESTATS_ADD(llrx);
 
   return len;
@@ -265,8 +268,8 @@ cc1020_off(void)
 {
   int s;
 
-  if (cc1020_rxstate == CC1020_OFF)
-    return 1;
+  // Discard the current read buffer when the radio is shutting down.
+  cc1020_rxlen = 0;
 
   LNA_POWER_OFF();		// power down lna
   s = splhigh();
@@ -275,6 +278,7 @@ cc1020_off(void)
   cc1020_state = CC1020_OFF;
   splx(s);
   cc1020_setupPD();		// power down radio
+  cc1020_state = CC1020_OFF;
 
   return 1;
 }
@@ -335,19 +339,17 @@ interrupt(UART0RX_VECTOR) cc1020_rxhandler(void)
     } else {
       return;
     }
-
     // Update RSSI.
     rssi = cc1020_read_reg(CC1020_RSS);
+    cc1020_rxstate = CC1020_RX_RECEIVING;
 
-    cc1020_rxstate = CC1020_RX_RECEIVE;
     break;
-  case CC1020_RX_RECEIVE:
+  case CC1020_RX_RECEIVING:
     if (syncbs == 0) {
       cc1020_rxbuf[cc1020_rxlen] = RXBUF0;
     } else {
       shiftbuf.b3 = shiftbuf.b4;
       shiftbuf.b4 = RXBUF0;
-
       if (syncbs < 0) {
         shiftbuf.i1 = shiftbuf.i2 << -syncbs;
         cc1020_rxbuf[cc1020_rxlen] = shiftbuf.b1;
@@ -359,14 +361,15 @@ interrupt(UART0RX_VECTOR) cc1020_rxhandler(void)
 
     cc1020_rxlen++;
     if (cc1020_rxlen > HDRSIZE) {
-      if (cc1020_rxlen == ((struct cc1020_header *) cc1020_rxbuf)->length) {
+      if (cc1020_rxlen == ((struct cc1020_header *)cc1020_rxbuf)->length) {
         // disable receiver
         DISABLE_RX_IRQ();
         cc1020_rxstate = CC1020_RX_PROCESSING;
 
         // call receiver to copy from buffer
-        if (receiver_callback != NULL)
+        if (receiver_callback != NULL) {
           receiver_callback(&cc1020_driver);
+        }
 
         // reset receiver
         cc1020_rxlen = 0;
@@ -387,11 +390,9 @@ PROCESS_THREAD(cc1020_sender_process, ev, data)
   dma_subscribe(0, &cc1020_sender_process);
 
   while (1) {
-    PROCESS_WAIT_UNTIL(cc1020_txlen > 0);
+    PROCESS_WAIT_UNTIL(cc1020_txlen > 0 && cc1020_state != CC1020_OFF);
 
-    // Radio could be in OFF or RX mode.
-    if (cc1020_state == CC1020_OFF)
-      cc1020_set_rx();
+    cc1020_set_rx();
 
     if (cc1020_rxstate != CC1020_RX_SEARCHING) {
       // Wait until the receiver is idle.
@@ -414,7 +415,7 @@ PROCESS_THREAD(cc1020_sender_process, ev, data)
 
     // clean up
     cc1020_txlen = 0;
-    cc1020_on();
+    cc1020_set_rx();
   }
 
   PROCESS_END();
@@ -643,11 +644,17 @@ cc1020_setupTX(int analog)
 static void
 cc1020_setupPD(void)
 {
-  // Put CC1020 into power-down
-  cc1020_write_reg(CC1020_MAIN, 0x1F);
+  /*
+   *  Power down components an reset all registers except MAIN
+   *  to their default values.
+   */
+  cc1020_write_reg(CC1020_MAIN,
+        RESET_N | BIAS_PD | FS_PD | XOSC_PD | PD_MODE_1);
 
-  // Turn off PA to minimise current draw
+  /* Turn off the power amplifier. */
   cc1020_write_reg(CC1020_PA_POWER, 0x00);
+
+  cc1020_write_reg(CC1020_POWERDOWN, 0x1F);
 }
 
 static void
