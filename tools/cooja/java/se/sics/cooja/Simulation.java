@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2006, Swedish Institute of Computer Science. All rights
  * reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  * 1. Redistributions of source code must retain the above copyright notice,
@@ -12,7 +12,7 @@
  * Institute nor the names of its contributors may be used to endorse or promote
  * products derived from this software without specific prior written
  * permission.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY THE INSTITUTE AND CONTRIBUTORS ``AS IS'' AND ANY
  * EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
  * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -23,8 +23,8 @@
  * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- * 
- * $Id: Simulation.java,v 1.17 2007/08/21 08:51:33 fros4943 Exp $
+ *
+ * $Id: Simulation.java,v 1.18 2007/10/03 14:20:57 fros4943 Exp $
  */
 
 package se.sics.cooja;
@@ -33,23 +33,21 @@ import java.util.*;
 import org.apache.log4j.Logger;
 import org.jdom.*;
 
-import se.sics.cooja.contikimote.ContikiMote;
-import se.sics.cooja.contikimote.interfaces.ContikiClock;
 import se.sics.cooja.dialogs.*;
 
 /**
  * A simulation consists of a number of motes and mote types.
- * 
+ *
  * The motes in the simulation are ticked one by one in a simulation loop. When
  * all motes have been ticked once, the simulation time is updated and then the
  * simulation sleeps for some specified delay time. Any tick observers are also
  * notified at this time.
- * 
+ *
  * When observing the simulation itself, the simulation state, added or deleted
  * motes etc. are observed, as opposed to individual mote changes. Changes of
  * individual motes should instead be observed via corresponding mote
  * interfaces.
- * 
+ *
  * @author Fredrik Osterlind
  */
 public class Simulation extends Observable implements Runnable {
@@ -87,7 +85,7 @@ public class Simulation extends Observable implements Runnable {
   private int maxMoteStartupDelay = 0;
 
   private Random tickListRandom = new Random();
-  
+
   private Random delayMotesRandom = new Random();
 
   // Tick observable
@@ -103,7 +101,7 @@ public class Simulation extends Observable implements Runnable {
   /**
    * Add tick observer. This observer is notified once every tick loop, that is,
    * when all motes have been ticked.
-   * 
+   *
    * @see #deleteTickObserver(Observer)
    * @param newObserver
    *          New observer
@@ -114,7 +112,7 @@ public class Simulation extends Observable implements Runnable {
 
   /**
    * Delete an existing tick observer.
-   * 
+   *
    * @see #addTickObserver(Observer)
    * @param observer
    *          Observer to delete
@@ -150,19 +148,20 @@ public class Simulation extends Observable implements Runnable {
         allLists[i][j] = motesClone.remove(moteNr);
       }
     }
-    
+
     while (isRunning) {
       try {
- 
+
         // Tick current mote subset
         for (Mote moteToTick : allLists[currentTickListIndex]) {
           moteToTick.tick(currentSimulationTime);
         }
-        
+
         // Select next mote subset (persistent)
         currentTickListIndex++;
-        if (currentTickListIndex >= nrTickLists)
+        if (currentTickListIndex >= nrTickLists) {
           currentTickListIndex = 0;
+        }
 
         // Increase simulation time
         currentSimulationTime += tickTime;
@@ -171,8 +170,9 @@ public class Simulation extends Observable implements Runnable {
         tickObservable.allTicksPerformed();
 
         // Sleep
-        if (delayTime > 0)
+        if (delayTime > 0) {
           Thread.sleep(delayTime);
+        }
 
         if (stopSimulation) {
           // We should only tick once (and we just did), so abort now
@@ -239,14 +239,15 @@ public class Simulation extends Observable implements Runnable {
       thread.interrupt();
 
       // Wait until simulation stops
-      if (Thread.currentThread() != thread)
+      if (Thread.currentThread() != thread) {
         while (thread != null && thread.isAlive()) {
           try {
             Thread.sleep(10);
           } catch (InterruptedException e) {
           }
         }
-    } 
+      }
+    }
   }
 
   /**
@@ -323,7 +324,7 @@ public class Simulation extends Observable implements Runnable {
   /**
    * Returns the current simulation config represented by XML elements. This
    * config also includes the current radio medium, all mote types and motes.
-   * 
+   *
    * @return Current simulation config
    */
   public Collection<Element> getConfigXML() {
@@ -366,8 +367,9 @@ public class Simulation extends Observable implements Runnable {
     element.setText(currentRadioMedium.getClass().getName());
 
     Collection radioMediumXML = currentRadioMedium.getConfigXML();
-    if (radioMediumXML != null)
+    if (radioMediumXML != null) {
       element.addContent(radioMediumXML);
+    }
     config.add(element);
 
     // Mote types
@@ -376,8 +378,9 @@ public class Simulation extends Observable implements Runnable {
       element.setText(moteType.getClass().getName());
 
       Collection moteTypeXML = moteType.getConfigXML();
-      if (moteTypeXML != null)
+      if (moteTypeXML != null) {
         element.addContent(moteTypeXML);
+      }
       config.add(element);
     }
 
@@ -387,8 +390,9 @@ public class Simulation extends Observable implements Runnable {
       element.setText(mote.getClass().getName());
 
       Collection moteXML = mote.getConfigXML();
-      if (moteXML != null)
+      if (moteXML != null) {
         element.addContent(moteXML);
+      }
       config.add(element);
     }
 
@@ -397,7 +401,7 @@ public class Simulation extends Observable implements Runnable {
 
   /**
    * Sets the current simulation config depending on the given XML elements.
-   * 
+   *
    * @see #getConfigXML()
    * @param configXML
    *          Config XML elements
@@ -534,7 +538,7 @@ public class Simulation extends Observable implements Runnable {
 
   /**
    * Removes a mote from this simulation
-   * 
+   *
    * @param mote
    *          Mote to remove
    */
@@ -543,8 +547,9 @@ public class Simulation extends Observable implements Runnable {
       stopSimulation();
       motes.remove(mote);
       startSimulation();
-    } else
+    } else {
       motes.remove(mote);
+    }
 
     currentRadioMedium.unregisterMote(mote, this);
     this.setChanged();
@@ -553,7 +558,7 @@ public class Simulation extends Observable implements Runnable {
 
   /**
    * Adds a mote to this simulation
-   * 
+   *
    * @param mote
    *          Mote to add
    */
@@ -562,13 +567,14 @@ public class Simulation extends Observable implements Runnable {
       stopSimulation();
       motes.add(mote);
       startSimulation();
-    } else
+    } else {
       motes.add(mote);
-
-    if (maxMoteStartupDelay > 0 && mote instanceof ContikiMote) {
-      ((ContikiClock) mote.getInterfaces().getClock()).setDrift(-delayMotesRandom.nextInt(maxMoteStartupDelay));
     }
-    
+
+    if (maxMoteStartupDelay > 0 && mote.getInterfaces().getClock() != null) {
+      mote.getInterfaces().getClock().setDrift(-delayMotesRandom.nextInt(maxMoteStartupDelay));
+    }
+
     currentRadioMedium.registerMote(mote, this);
     this.setChanged();
     this.notifyObservers(this);
@@ -576,7 +582,7 @@ public class Simulation extends Observable implements Runnable {
 
   /**
    * Get a mote from this simulation.
-   * 
+   *
    * @param pos
    *          Internal list position of mote
    * @return Mote
@@ -587,7 +593,7 @@ public class Simulation extends Observable implements Runnable {
 
   /**
    * Returns number of motes in this simulation.
-   * 
+   *
    * @return Number of motes
    */
   public int getMotesCount() {
@@ -596,7 +602,7 @@ public class Simulation extends Observable implements Runnable {
 
   /**
    * Returns all mote types in simulation.
-   * 
+   *
    * @return All mote types
    */
   public Vector<MoteType> getMoteTypes() {
@@ -605,22 +611,23 @@ public class Simulation extends Observable implements Runnable {
 
   /**
    * Returns mote type with given identifier.
-   * 
+   *
    * @param identifier
    *          Mote type identifier
    * @return Mote type or null if not found
    */
   public MoteType getMoteType(String identifier) {
     for (MoteType moteType : getMoteTypes()) {
-      if (moteType.getIdentifier().equals(identifier))
+      if (moteType.getIdentifier().equals(identifier)) {
         return moteType;
+      }
     }
     return null;
   }
 
   /**
    * Adds given mote type to simulation.
-   * 
+   *
    * @param newMoteType Mote type
    */
   public void addMoteType(MoteType newMoteType) {
@@ -633,7 +640,7 @@ public class Simulation extends Observable implements Runnable {
   /**
    * Set delay time to delayTime. When all motes have been ticked, the
    * simulation waits for this time before ticking again.
-   * 
+   *
    * @param delayTime
    *          New delay time (ms)
    */
@@ -646,7 +653,7 @@ public class Simulation extends Observable implements Runnable {
 
   /**
    * Returns current delay time.
-   * 
+   *
    * @return Delay time (ms)
    */
   public int getDelayTime() {
@@ -655,7 +662,7 @@ public class Simulation extends Observable implements Runnable {
 
   /**
    * Set simulation time to simulationTime.
-   * 
+   *
    * @param simulationTime
    *          New simulation time (ms)
    */
@@ -668,7 +675,7 @@ public class Simulation extends Observable implements Runnable {
 
   /**
    * Returns current simulation time.
-   * 
+   *
    * @return Simulation time (ms)
    */
   public int getSimulationTime() {
@@ -679,7 +686,7 @@ public class Simulation extends Observable implements Runnable {
    * Set tick time to tickTime. The tick time is the simulated time every tick
    * takes. When all motes have been ticked, current simulation time is
    * increased with tickTime. Default tick time is 1 ms.
-   * 
+   *
    * @see #getTickTime()
    * @see #getTickTimeInSeconds()
    * @param tickTime
@@ -694,15 +701,17 @@ public class Simulation extends Observable implements Runnable {
 
   /**
    * Changes radio medium of this simulation to the given.
-   * 
+   *
    * @param radioMedium
    *          New radio medium
    */
   public void setRadioMedium(RadioMedium radioMedium) {
     // Remove current radio medium from observing motes
-    if (currentRadioMedium != null)
-      for (int i = 0; i < motes.size(); i++)
+    if (currentRadioMedium != null) {
+      for (int i = 0; i < motes.size(); i++) {
         currentRadioMedium.unregisterMote(motes.get(i), this);
+      }
+    }
 
     // Change current radio medium to new one
     if (radioMedium == null) {
@@ -712,13 +721,14 @@ public class Simulation extends Observable implements Runnable {
     this.currentRadioMedium = radioMedium;
 
     // Add all current motes to the new radio medium
-    for (int i = 0; i < motes.size(); i++)
+    for (int i = 0; i < motes.size(); i++) {
       currentRadioMedium.registerMote(motes.get(i), this);
+    }
   }
 
   /**
    * Get currently used radio medium.
-   * 
+   *
    * @return Currently used radio medium
    */
   public RadioMedium getRadioMedium() {
@@ -727,7 +737,7 @@ public class Simulation extends Observable implements Runnable {
 
   /**
    * Get current tick time (ms).
-   * 
+   *
    * @see #setTickTime(int)
    * @return Current tick time (ms)
    */
@@ -737,17 +747,17 @@ public class Simulation extends Observable implements Runnable {
 
   /**
    * Get current tick time (seconds).
-   * 
+   *
    * @see #setTickTime(int)
    * @return Current tick time (seconds)
    */
   public double getTickTimeInSeconds() {
-    return ((double) tickTime) / 1000.0;
+    return (tickTime) / 1000.0;
   }
 
   /**
    * Return true is simulation is running.
-   * 
+   *
    * @return True if simulation is running
    */
   public boolean isRunning() {
@@ -756,7 +766,7 @@ public class Simulation extends Observable implements Runnable {
 
   /**
    * Get current simulation title (short description).
-   * 
+   *
    * @return Title
    */
   public String getTitle() {
@@ -765,7 +775,7 @@ public class Simulation extends Observable implements Runnable {
 
   /**
    * Set simulation title.
-   * 
+   *
    * @param title
    *          New title
    */
