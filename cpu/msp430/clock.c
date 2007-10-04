@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: clock.c,v 1.8 2007/09/03 19:22:37 joxe Exp $
+ * @(#)$Id: clock.c,v 1.9 2007/10/04 14:14:58 fros4943 Exp $
  */
 
 
@@ -47,16 +47,23 @@
 
 #define MAX_TICKS (~((clock_time_t)0) / 2)
 
+#define LT(a,b)     ((signed short)((a)-(b)) < 0)
+
 static volatile clock_time_t count = 0;
 static unsigned short last_tar = 0;
 /*---------------------------------------------------------------------------*/
 interrupt(TIMERA1_VECTOR) timera1 (void) {
   ENERGEST_ON(ENERGEST_TYPE_IRQ);
   if(TAIV == 2) {
-    TACCR1 += INTERVAL;
+    /* Make sure interrupt time is future */
+    do
+    {
+      TACCR1 += INTERVAL;
+      ++count;
+    }
+    while (LT(TACCR1, TAR+INTERVAL));
     last_tar = TAR;
-    ++count;
-
+    
     if(etimer_pending()
        && (etimer_next_expiration_time() - count - 1) > MAX_TICKS) {
       etimer_request_poll();
