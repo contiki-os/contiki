@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: clock.c,v 1.9 2007/10/04 14:14:58 fros4943 Exp $
+ * @(#)$Id: clock.c,v 1.10 2007/10/04 20:45:29 joxe Exp $
  */
 
 
@@ -47,9 +47,8 @@
 
 #define MAX_TICKS (~((clock_time_t)0) / 2)
 
-#define LT(a,b)     ((signed short)((a)-(b)) < 0)
-
 static volatile clock_time_t count = 0;
+/* last_tar is used for calculating clock_fine, last_ccr might be better? */
 static unsigned short last_tar = 0;
 /*---------------------------------------------------------------------------*/
 interrupt(TIMERA1_VECTOR) timera1 (void) {
@@ -61,9 +60,9 @@ interrupt(TIMERA1_VECTOR) timera1 (void) {
       TACCR1 += INTERVAL;
       ++count;
     }
-    while (LT(TACCR1, TAR+INTERVAL));
+    while ((TACCR1 - TAR) > INTERVAL);
     last_tar = TAR;
-    
+
     if(etimer_pending()
        && (etimer_next_expiration_time() - count - 1) > MAX_TICKS) {
       etimer_request_poll();
@@ -97,12 +96,10 @@ unsigned short
 clock_fine(void)
 {
   unsigned short t;
-
-  dint();
-  t = TAR;
-  eint();
-
-  return (unsigned short)((unsigned long)t - (unsigned long)last_tar);
+  /* Assign last_tar to local varible that can not be changed by interrupt */
+  t = last_tar;
+  /* perform calc based on t, TAR will not be changed during interrupt */
+  return (unsigned short) (TAR - t);
 }
 /*---------------------------------------------------------------------------*/
 void
