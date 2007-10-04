@@ -304,6 +304,7 @@ interrupt(UART0RX_VECTOR) cc1020_rxhandler(void)
       uint16_t i2;
     };
   } shiftbuf;
+  static unsigned char pktlen;
 
   switch (cc1020_rxstate) {
   case CC1020_RX_SEARCHING:
@@ -360,8 +361,14 @@ interrupt(UART0RX_VECTOR) cc1020_rxhandler(void)
     }
 
     cc1020_rxlen++;
-    if (cc1020_rxlen > HDRSIZE) {
-      if (cc1020_rxlen == ((struct cc1020_header *)cc1020_rxbuf)->length) {
+    if (cc1020_rxlen == HDRSIZE) {
+      pktlen = ((struct cc1020_header *)cc1020_rxbuf)->length;
+      if (pktlen == 0 || pktlen > sizeof (cc1020_rxbuf)) {
+	cc1020_rxlen = 0;
+	cc1020_rxstate = CC1020_RX_SEARCHING;
+      }
+    } else if (cc1020_rxlen > HDRSIZE) {
+      if (cc1020_rxlen == pktlen) {
         // disable receiver
         DISABLE_RX_IRQ();
         cc1020_rxstate = CC1020_RX_PROCESSING;
