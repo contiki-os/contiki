@@ -42,7 +42,7 @@
  *
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: etimer.c,v 1.2 2006/10/09 16:05:58 nifi Exp $
+ * $Id: etimer.c,v 1.3 2007/10/07 19:59:27 joxe Exp $
  */
 
 #include "contiki-conf.h"
@@ -58,7 +58,7 @@ PROCESS(etimer_process, "Event timer");
 static void
 update_time(void)
 {
-  clock_time_t nextt;
+  clock_time_t tdist;
   clock_time_t now;
   struct etimer *t;
 
@@ -67,14 +67,14 @@ update_time(void)
   } else {
     now = clock_time();
     t = timerlist;
-    /* Must take current time into account due to wraps */
-    nextt = t->timer.start + t->timer.interval - now;
+    /* Must calculate distance to next time into account due to wraps */
+    tdist = t->timer.start + t->timer.interval - now;
     for(t = t->next; t != NULL; t = t->next) {
-      if(t->timer.start + t->timer.interval - now < nextt) {
-	nextt = t->timer.start + t->timer.interval - now;
+      if(t->timer.start + t->timer.interval - now < tdist) {
+	tdist = t->timer.start + t->timer.interval - now;
       }
     }
-    next_expiration = nextt + now;
+    next_expiration = now + tdist;
   }
 }
 /*---------------------------------------------------------------------------*/
