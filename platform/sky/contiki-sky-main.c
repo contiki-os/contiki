@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#)$Id: contiki-sky-main.c,v 1.10 2007/05/25 08:08:36 adamdunkels Exp $
+ * @(#)$Id: contiki-sky-main.c,v 1.11 2007/10/12 12:47:32 nvt-se Exp $
  */
 
 #include <signal.h>
@@ -121,7 +121,7 @@ main(int argc, char **argv)
 #endif /* WITH_UIP */
   
   printf("Starting %s "
-	 "($Id: contiki-sky-main.c,v 1.10 2007/05/25 08:08:36 adamdunkels Exp $)\n", __FILE__);
+	 "($Id: contiki-sky-main.c,v 1.11 2007/10/12 12:47:32 nvt-se Exp $)\n", __FILE__);
   ds2411_init();
   sensors_light_init();
   sht11_init();
@@ -139,8 +139,6 @@ main(int argc, char **argv)
   printf("MAC %02x:%02x:%02x:%02x:%02x:%02x:%02x:%02x\n",
 	 ds2411_id[0], ds2411_id[1], ds2411_id[2], ds2411_id[3],
 	 ds2411_id[4], ds2411_id[5], ds2411_id[6], ds2411_id[7]);
-
-  simple_cc2420_set_chan_pan_addr(RF_CHANNEL, panId, 0 /*XXX*/, ds2411_id);
 
 #if WITH_UIP
   uip_init();
@@ -160,6 +158,7 @@ main(int argc, char **argv)
   set_rime_addr();
 
   simple_cc2420_init();
+  simple_cc2420_set_chan_pan_addr(RF_CHANNEL, panId, 0 /*XXX*/, ds2411_id);
 /*   nullmac_init(&simple_cc2420_driver); */
 /*   rime_init(&nullmac_driver); */
   xmac_init(&simple_cc2420_driver);
