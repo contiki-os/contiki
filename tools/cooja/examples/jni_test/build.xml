@@ -10,17 +10,20 @@ the compilation and linking stage of the Contiki libraries.
 Below follows a number of configurations that work for different users.
 
 Linux users with the GNU toolchain may try:
-        COMPILER_ARGS = 
-        LINK_COMMAND_1 = gcc -shared -Wl,-Map=$(MAPFILE) -o $(LIBFILE)
-        LINK_COMMAND_2 = 
-        PARSE_WITH_COMMAND=false
+	PATH_C_COMPILER = gcc
+	COMPILER_ARGS = 
+  LINK_COMMAND_1 = gcc -shared -Wl,-Map=$(MAPFILE) -o $(LIBFILE)
+  LINK_COMMAND_2 = 
+  PARSE_WITH_COMMAND=false
 			
 Windows users with recent Cygwin may try:
+	PATH_C_COMPILER = gcc
 	COMPILER_ARGS = -mno-cygwin -Wall -I'$(JAVA_HOME)/include' -I'$(JAVA_HOME)/include/win32'
 	LINK_COMMAND_1 = gcc -mno-cygwin -shared -Wl,-Map=$(MAPFILE) -Wl,--add-stdcall-alias -o $(LIBFILE)
 	LINK_COMMAND_2 = -L/usr/lib/mingw -lmsvcrt
 
 Windows users with older Cygwin may try:
+	PATH_C_COMPILER = gcc
 	COMPILER_ARGS = -mno-cygwin -I'$(JAVA_HOME)/include' -I'$(JAVA_HOME)/include/win32'
 	LINK_COMMAND_1 = ld -Map=$(MAPFILE) -shared --add-stdcall-alias /usr/lib/mingw/dllcrt2.o -o $(LIBFILE)
 	LINK_COMMAND_2 = -L/usr/lib/mingw -lmingw32 -lmingwex -lmsvcrt
@@ -30,21 +33,18 @@ In recent (early 2007) MinGW-Cygwin versions, the JNI support has been limited.
 This may cause COOJA not to be able to load libraries generated using gcc's -mno-cygwin flag.
 One possible solution is to download "real" MinGW (http://www.mingw.org), and install it separately
 from Cygwin (for example in c:\mingw). Try using the following settings:
+	PATH_C_COMPILER = gcc
 	COMPILER_ARGS = -Wall -D_JNI_IMPLEMENTATION_ -I'$(JAVA_HOME)/include' -I'$(JAVA_HOME)/include/win32'
 	LINK_COMMAND_1 = gcc -shared -Wl,-Map=$(MAPFILE) -Wall -D_JNI_IMPLEMENTATION_ -Wl,--kill-at -o $(LIBFILE)
 	LINK_COMMAND_2 = 
 
 Mac users may try (see Mac note below):
+	PATH_C_COMPILER = gcc
+	PARSE_WITH_COMMAND = true
+	PARSE_COMMAND = nmandsize $(LIBFILE)
 	COMPILER_ARGS = -Wall -I/System/Library/Frameworks/JavaVM.framework/Versions/CurrentJDK/Headers -dynamiclib -fno-common
 	LINK_COMMAND_1 = gcc -dynamiclib -fno-common -o $(LIBFILE)
 	LINK_COMMAND_2 = -framework JavaVM
-	PARSE_COMMAND = nmandsize $(LIBFILE)
-
-	COMMAND_VAR_NAME_ADDRESS = ^[ \t]*([0-9A-Fa-f][0-9A-Fa-f]*)[ \t]\\(__DATA,__[^ ]*\\) external _([^ ]*)
-	COMMAND_DATA_START = ^DATA SECTION START: 0x([0-9A-Fa-f][0-9A-Fa-f]*)$
-	COMMAND_DATA_END = ^DATA SECTION END: 0x([0-9A-Fa-f][0-9A-Fa-f]*)$
-	COMMAND_BSS_START = ^BSS SECTION START: 0x([0-9A-Fa-f][0-9A-Fa-f]*)$
-	COMMAND_BSS_END = ^BSS SECTION END: 0x([0-9A-Fa-f][0-9A-Fa-f]*)$
 
 Mac note:
 	The Mac OS X support is experimental, and currently depends on an external script to work.
