@@ -1,0 +1,23 @@
+#!/bin/bash
+
+nm -a -m $1
+
+DATA_START=`size -x -m -l $1 | grep "Section __data: 0x" | awk '{print $5}'`
+echo DATA SECTION START: $DATA_START
+
+DATA_SIZE=`size -x -m -l $1 | grep "Section __data: 0x" | awk '{print $3}'`
+echo DATA SECTION SIZE: $DATA_SIZE
+
+DATA_END=` echo $(($DATA_START+$DATA_SIZE)) | awk '{printf("0x%x", $0)}' `
+echo DATA SECTION END: $DATA_END
+
+BSS_START=$DATA_END
+echo BSS SECTION START: $BSS_START
+
+#TOTAL_SIZE=`size -x -m -l $1 | grep -m 1 -A 10000 "Segment __DATA" | grep -m 1 -B 10000 "total 0x" | grep total | awk '{print $2}'`
+#echo TOTAL SECTION SIZE: $TOTAL_SIZE
+
+TOTAL_SIZE=`size -x -m -l $1 | grep "Segment __DATA: 0x" | awk '{print $3}'`
+echo TOTAL SECTION SIZE: $TOTAL_SIZE
+
+echo BSS SECTION END: ` echo $(($DATA_START+$TOTAL_SIZE)) | awk '{printf("0x%x", $0)}' `
