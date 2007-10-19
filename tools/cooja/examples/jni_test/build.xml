@@ -34,11 +34,23 @@ from Cygwin (for example in c:\mingw). Try using the following settings:
 	LINK_COMMAND_1 = gcc -shared -Wl,-Map=$(MAPFILE) -Wall -D_JNI_IMPLEMENTATION_ -Wl,--kill-at -o $(LIBFILE)
 	LINK_COMMAND_2 = 
 
-Mac users may try:
-	COMPILER_ARGS = [PENDING]
-	LINK_COMMAND_1 = [PENDING]
-	LINK_COMMAND_2 = [PENDING]
-			
+Mac users may try (see Mac note below):
+	COMPILER_ARGS = -Wall -I/System/Library/Frameworks/JavaVM.framework/Versions/CurrentJDK/Headers -dynamiclib -fno-common
+	LINK_COMMAND_1 = gcc -dynamiclib -fno-common -o $(LIBFILE)
+	LINK_COMMAND_2 = -framework JavaVM
+	PARSE_COMMAND = nmandsize $(LIBFILE)
+
+	COMMAND_VAR_NAME_ADDRESS = ^[ \t]*([0-9A-Fa-f][0-9A-Fa-f]*)[ \t]\\(__DATA,__[^ ]*\\) external _([^ ]*)
+	COMMAND_DATA_START = ^DATA SECTION START: 0x([0-9A-Fa-f][0-9A-Fa-f]*)$
+	COMMAND_DATA_END = ^DATA SECTION END: 0x([0-9A-Fa-f][0-9A-Fa-f]*)$
+	COMMAND_BSS_START = ^BSS SECTION START: 0x([0-9A-Fa-f][0-9A-Fa-f]*)$
+	COMMAND_BSS_END = ^BSS SECTION END: 0x([0-9A-Fa-f][0-9A-Fa-f]*)$
+
+Mac note:
+	The Mac OS X support is experimental, and currently depends on an external script to work.
+	The script 'nmandsize' is available in the subdirectory 'mac_users' and depends on both 'nm' and 'size'.
+	The purpose of the script is to gather information which COOJA uses to determine the memory sections addresses.
+	Observe that, if used, this script must be in the path.
 		</echo>
 	</target>
 	
