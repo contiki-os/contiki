@@ -283,6 +283,8 @@ class Shepherd:
       if response.documentElement.tagName == 'error':
         raise chakana.error.CoojaError(response)
       return response
+    except socket.error:
+      debug(MajorEvent, 'Socket error catched')
     finally:
       self._connectionLock.release()
 
