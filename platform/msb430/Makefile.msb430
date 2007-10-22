@@ -1,4 +1,4 @@
-SENSORS    = sensors.c irq.c
+SENSORS    = sensors.c irq.c sht11.c
 #SD	   = sd.c sd_cache.c sd_erase.c sd_info.c
 MSB        = dma.c infomem.c node-id.c \
              msb430-uart1.c rs232.c msb430-slip-arch.c \

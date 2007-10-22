@@ -51,6 +51,7 @@
 
 #include "dev/adc.h"
 #include "dev/dma.h"
+#include "dev/sht11.h"
 #include "dev/slip.h"
 
 #include "net/mac/nullmac.h"
@@ -103,6 +104,7 @@ main(void)
   clock_init();
   leds_init();
   leds_on(LEDS_ALL);
+  sht11_init();
 
   // low level
   irq_init();
