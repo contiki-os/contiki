@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: test-sht11.c,v 1.1 2007/10/22 13:05:30 nvt-se Exp $
+ * $Id: test-sht11.c,v 1.2 2007/10/22 13:07:00 nvt-se Exp $
  */
 
 /**
@@ -52,8 +52,6 @@ PROCESS_THREAD(test_sht11_process, ev, data)
   static unsigned rh;
 
   PROCESS_BEGIN();
-
-  etimer_set(&et, CLOCK_SECOND);
 
   for (etimer_set(&et, CLOCK_SECOND);; etimer_reset(&et)) {
     PROCESS_YIELD();
