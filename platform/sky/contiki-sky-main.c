@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#)$Id: contiki-sky-main.c,v 1.11 2007/10/12 12:47:32 nvt-se Exp $
+ * @(#)$Id: contiki-sky-main.c,v 1.12 2007/10/23 21:29:40 adamdunkels Exp $
  */
 
 #include <signal.h>
@@ -53,6 +53,7 @@
 
 #include "node-id.h"
 
+#include "sys/profile.h"
 #include "net/rime.h"
 
 #include "sys/autostart.h"
@@ -67,6 +68,10 @@ SENSORS(&button_sensor);
 static struct uip_fw_netif slipif =
 {UIP_FW_NETIF(192,168,1,2, 255,255,255,255, slip_send)};
 #endif /* WITH_UIP */
+
+#ifdef EXPERIMENT_SETUP
+#include "experiment-setup.h"
+#endif
 
 /*---------------------------------------------------------------------------*/
 #if 0
@@ -121,7 +126,7 @@ main(int argc, char **argv)
 #endif /* WITH_UIP */
   
   printf("Starting %s "
-	 "($Id: contiki-sky-main.c,v 1.11 2007/10/12 12:47:32 nvt-se Exp $)\n", __FILE__);
+	 "($Id: contiki-sky-main.c,v 1.12 2007/10/23 21:29:40 adamdunkels Exp $)\n", __FILE__);
   ds2411_init();
   sensors_light_init();
   sht11_init();
@@ -154,15 +159,15 @@ main(int argc, char **argv)
   process_init();
   process_start(&etimer_process, NULL);
   process_start(&sensors_process, NULL);
+  profile_init();
+  ctimer_init();
 
   set_rime_addr();
 
   simple_cc2420_init();
   simple_cc2420_set_chan_pan_addr(RF_CHANNEL, panId, 0 /*XXX*/, ds2411_id);
-/*   nullmac_init(&simple_cc2420_driver); */
-/*   rime_init(&nullmac_driver); */
-  xmac_init(&simple_cc2420_driver);
-  rime_init(&xmac_driver);
+/*  rime_init(nullmac_init(&simple_cc2420_driver));*/
+  rime_init(xmac_init(&simple_cc2420_driver));
 
   /*  rimeaddr_set_node_addr*/
 #if WITH_UIP
@@ -184,9 +189,13 @@ main(int argc, char **argv)
   printf("process_run()...\n");
   ENERGEST_ON(ENERGEST_TYPE_CPU);
   while (1) {
+    int r;
+    profile_episode_start();
     do {
       /* Reset watchdog. */
-    } while(process_run() > 0);
+      r = process_run();
+    } while(r > 0);
+    profile_episode_end();
 
     /*
      * Idle processing.
@@ -203,7 +212,15 @@ main(int argc, char **argv)
 	 are asleep, so we discard the processing time done when we
 	 were awake. */
       energest_type_set(ENERGEST_TYPE_IRQ, irq_energest);
-      _BIS_SR(GIE | SCG0 | /*SCG1 |*/ CPUOFF); /* LPM3 sleep. */
+      
+      _BIS_SR(GIE | SCG0 | /*SCG1 |*/ CPUOFF); /* LPM3 sleep. This
+						  statement will block
+						  until the CPU is
+						  woken up by an
+						  interrupt that sets
+						  the wake up flag. */
+
+      
       /* We get the current processing time for interrupts that was
 	 done during the LPM and store it for next time around.  */
       dint();
@@ -211,6 +228,7 @@ main(int argc, char **argv)
       eint();
       ENERGEST_OFF(ENERGEST_TYPE_LPM);
       ENERGEST_ON(ENERGEST_TYPE_CPU);
+      profile_clear_timestamps();
     }
   }
 
