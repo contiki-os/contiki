@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: nullmac.h,v 1.2 2007/05/25 08:07:15 adamdunkels Exp $
+ * $Id: nullmac.h,v 1.3 2007/10/23 20:57:37 adamdunkels Exp $
  */
 
 /**
@@ -46,6 +46,6 @@
 
 extern const struct mac_driver nullmac_driver;
 
-void nullmac_init(const struct radio_driver *r);
+const struct mac_driver *nullmac_init(const struct radio_driver *r);
 
 #endif /* __NULLMAC_H__ */
