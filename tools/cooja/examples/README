@@ -1,5 +1,0 @@
-This folder contains a number of COOJA project directory examples.
-These can be imported in COOJA using from the "Settings" > "Manage Project Directories" menu option.
-
-The examples need to be compiled; the Ant build.xml can be used:
-> ant compile
