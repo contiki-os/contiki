@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: ruc.c,v 1.12 2007/05/22 21:53:15 adamdunkels Exp $
+ * $Id: ruc.c,v 1.13 2007/10/23 14:00:36 nifi Exp $
  */
 
 /**
@@ -67,8 +67,13 @@ sent_by_suc(struct suc_conn *suc)
 {
   struct ruc_conn *c = (struct ruc_conn *)suc;
 
-  RIMESTATS_ADD(rexmit);
-  
+  if(c->rxmit) {
+    RIMESTATS_ADD(rexmit);
+    PRINTF("%d.%d: ruc: packet %u resent %u\n",
+	   rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1],
+	   ((struct ruc_hdr *) rimebuf_dataptr())->seqno, c->rxmit);
+  }
+
   c->rxmit++;
   if(c->rxmit >= c->max_rxmit) {
     RIMESTATS_ADD(timedout);
@@ -180,7 +185,7 @@ ruc_send(struct ruc_conn *c, rimeaddr_t *receiver, u8_t max_retransmissions)
     c->max_rxmit = max_retransmissions;
     c->rxmit = 0;
     RIMESTATS_ADD(reliabletx);
-    PRINTF("%d.%d: ruc: sendign packet %d\n",
+    PRINTF("%d.%d: ruc: sending packet %d\n",
 	   rimeaddr_node_addr.u8[0],rimeaddr_node_addr.u8[1],
 	   c->sndnxt);
     return suc_send_stubborn(&c->c, receiver, REXMIT_TIME);
