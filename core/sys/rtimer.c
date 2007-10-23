@@ -42,7 +42,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: rtimer.c,v 1.4 2007/05/22 20:58:38 adamdunkels Exp $
+ * @(#)$Id: rtimer.c,v 1.5 2007/10/23 20:33:19 adamdunkels Exp $
  */
 
 #include "sys/rtimer.h"
@@ -75,8 +75,9 @@ rtimer_init(void)
 }
 /*---------------------------------------------------------------------------*/
 int
-rtimer_set(struct rtimer *rtimer, rtimer_clock_t time, rtimer_clock_t duration,
-	   void (* func)(struct rtimer *t, void *ptr), void *ptr)
+rtimer_set(struct rtimer *rtimer, rtimer_clock_t time,
+	   rtimer_clock_t duration,
+	   rtimer_callback_t func, void *ptr)
 {
   int i;
 

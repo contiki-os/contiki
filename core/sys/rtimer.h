@@ -45,7 +45,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: rtimer.h,v 1.5 2007/05/22 20:58:49 adamdunkels Exp $
+ * @(#)$Id: rtimer.h,v 1.6 2007/10/23 20:33:19 adamdunkels Exp $
  */
 #ifndef __RTIMER_H__
 #define __RTIMER_H__
@@ -62,6 +62,9 @@ typedef unsigned short rtimer_clock_t;
  */
 void rtimer_init(void);
 
+struct rtimer;
+typedef void (* rtimer_callback_t)(struct rtimer *t, void *ptr);
+
 /**
  * \brief      Repressentation of a real-time task
  *
@@ -71,7 +74,7 @@ void rtimer_init(void);
  */
 struct rtimer {
   rtimer_clock_t time;
-  void (* func)(struct rtimer *t, void *ptr);
+  rtimer_callback_t func;
   void *ptr;
 };
 
@@ -93,8 +96,8 @@ enum {
  *             time in the future.
  *
  */
-int rtimer_set(struct rtimer *t, rtimer_clock_t time, rtimer_clock_t duration,
-	       void (* func)(struct rtimer *t, void *ptr), void *ptr);
+int rtimer_set(struct rtimer *t, rtimer_clock_t time,
+	       rtimer_clock_t duration, rtimer_callback_t func, void *ptr);
 
 /**
  * \brief      Execute the next real-time task and schedule the next task, if any
