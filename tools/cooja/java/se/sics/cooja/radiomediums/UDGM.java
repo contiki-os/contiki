@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: UDGM.java,v 1.8 2007/08/21 13:31:26 fros4943 Exp $
+ * $Id: UDGM.java,v 1.9 2007/10/23 08:39:21 fros4943 Exp $
  */
 
 package se.sics.cooja.radiomediums;
@@ -80,7 +80,7 @@ public class UDGM extends AbstractRadioMedium {
 
   public static final double SS_OK_WORST = -30;
 
-  public static double PACKET_SUCCESS_RATIO = 1.0;
+  private static double SUCCESS_RATIO = 1.0;
 
   // Maximum ranges (SS indicator 100)
   private static double TRANSMITTING_RANGE = 50;
@@ -164,7 +164,7 @@ public class UDGM extends AbstractRadioMedium {
       interferenceModel.setMinimum(new Double(0.0));
 
       SpinnerNumberModel successRatioModel = new SpinnerNumberModel();
-      successRatioModel.setValue(new Double(PACKET_SUCCESS_RATIO));
+      successRatioModel.setValue(new Double(SUCCESS_RATIO));
       successRatioModel.setStepSize(new Double(0.01)); // 1%
       successRatioModel.setMinimum(new Double(0.0));
       successRatioModel.setMaximum(new Double(1.0));
@@ -209,7 +209,7 @@ public class UDGM extends AbstractRadioMedium {
 
       successRatioSpinner.addChangeListener(new ChangeListener() {
         public void stateChanged(ChangeEvent e) {
-          PACKET_SUCCESS_RATIO = ((SpinnerNumberModel) successRatioSpinner
+          SUCCESS_RATIO = ((SpinnerNumberModel) successRatioSpinner
               .getModel()).getNumber().doubleValue();
           repaint();
         }
@@ -415,7 +415,7 @@ public class UDGM extends AbstractRadioMedium {
         * (0.01 * sendingRadio.getCurrentOutputPowerIndicator());
 
     // If in random state, check if transmission fails
-    if (usingRandom && random.nextDouble() > PACKET_SUCCESS_RATIO) {
+    if (usingRandom && random.nextDouble() > SUCCESS_RATIO) {
       return newConnection;
     }
 
@@ -546,6 +546,10 @@ public class UDGM extends AbstractRadioMedium {
     element.setText("" + usingRandom);
     config.add(element);
 
+    element = new Element("success_ratio");
+    element.setText("" + SUCCESS_RATIO);
+    config.add(element);
+
     return config;
   }
 
@@ -565,6 +569,10 @@ public class UDGM extends AbstractRadioMedium {
         if (usingRandom) {
           random.setSeed(mySimulation.getRandomSeed());
         }
+      }
+
+      if (element.getName().equals("success_ratio")) {
+        SUCCESS_RATIO = Double.parseDouble(element.getText());
       }
     }
     return true;
