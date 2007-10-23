@@ -30,7 +30,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: xmac.c,v 1.7 2007/08/30 14:39:18 matsutsuka Exp $
+ * $Id: xmac.c,v 1.8 2007/10/23 21:27:57 adamdunkels Exp $
  */
 
 /**
@@ -426,19 +426,6 @@ read(void)
   return 0;
 }
 /*---------------------------------------------------------------------------*/
-void
-xmac_init(const struct radio_driver *d)
-{
-  radio_is_on = 0;
-  should_be_awake = 0;
-  PT_INIT(&pt);
-  rtimer_set(&rt, RTIMER_NOW() + OFF_TIME, 1,
-	     (void (*)(struct rtimer *, void *))powercycle, NULL);
-
-  radio = d;
-  radio->set_receive_function(input);
-}
-/*---------------------------------------------------------------------------*/
 static int
 on(void)
 {
@@ -459,3 +446,18 @@ const struct mac_driver xmac_driver =
     on,
     off
   };
+/*---------------------------------------------------------------------------*/
+const struct mac_driver *
+xmac_init(const struct radio_driver *d)
+{
+  radio_is_on = 0;
+  should_be_awake = 0;
+  PT_INIT(&pt);
+  rtimer_set(&rt, RTIMER_NOW() + OFF_TIME, 1,
+	     (void (*)(struct rtimer *, void *))powercycle, NULL);
+
+  radio = d;
+  radio->set_receive_function(input);
+  return &xmac_driver;
+}
+/*---------------------------------------------------------------------------*/
