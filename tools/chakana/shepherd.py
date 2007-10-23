@@ -282,11 +282,12 @@ class Shepherd:
       debug(Debug, response.toprettyxml())
       if response.documentElement.tagName == 'error':
         raise chakana.error.CoojaError(response)
+      self._connectionLock.release()
       return response
     except socket.error:
       debug(MajorEvent, 'Socket error catched')
-    finally:
-      self._connectionLock.release()
+    except AttributeError:
+      debug(MajorEvent, 'Attribute error catched')
 
   def readFromCooja(self):
     # XXX: Assume message ends with a newline
