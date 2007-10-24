@@ -124,6 +124,7 @@ main(void)
 #endif
 
   rtimer_init();
+  ctimer_init();
 
   /* System services */
   process_start(&etimer_process, NULL);
