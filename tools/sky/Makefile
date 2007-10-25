@@ -28,13 +28,7 @@ sky-motes:
 
 %.upload: %.ihex
 	cp $< $(IHEXFILE)
-	$(MAKE) sky-run
-
-sky-run:	sky-upload sky-reset-sequence
-	$(MAKE) -k -j $(NUMPAR) sky-run-sequence
-
-sky-run-sequence:	$(foreach PORT, $(MOTES), $(PORT).run)
-	@echo $(MOTES)
+	$(MAKE) sky-upload
 
 sky-upload:
 	$(MAKE) -j $(NUMPAR) sky-upload-sequence
