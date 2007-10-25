@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: simple-cc2420.c,v 1.12 2007/10/25 09:38:15 adamdunkels Exp $
+ * @(#)$Id: simple-cc2420.c,v 1.13 2007/10/25 13:29:21 adamdunkels Exp $
  */
 /*
  * This code is almost device independent and should be easy to port.
@@ -255,14 +255,11 @@ simple_cc2420_send(const u8_t *payload, u16_t payload_len)
   /* Wait for previous transmission to finish and RSSI. */
   do {
     spiStatusByte = status();
-    if(!(spiStatusByte & BV(CC2420_RSSI_VALID))) { /* RSSI needed by CCA */
-      continue;
-    }
-  } while(spiStatusByte & BV(CC2420_TX_ACTIVE));
+  } while(spiStatusByte & BV(CC2420_TX_ACTIVE) &&
+	  !(spiStatusByte & BV(CC2420_RSSI_VALID)));
 
-  /* Write packet to TX FIFO, appending FCS if AUTOCRC is enabled. */
-  strobe(CC2420_SFLUSHTX); /* Cancel send that never started. */
-
+  /* Write packet to TX FIFO. */
+  strobe(CC2420_SFLUSHTX);
   
   {
     u8_t total_len = /*2 +*/ payload_len + 2; /* 2 bytes time stamp,
@@ -310,7 +307,7 @@ simple_cc2420_send(const u8_t *payload, u16_t payload_len)
       ENERGEST_OFF(ENERGEST_TYPE_TRANSMIT);
       ENERGEST_ON(ENERGEST_TYPE_LISTEN);
       
-      RELEASE_LOCK();     
+      RELEASE_LOCK();
       return 0;			/* Transmission has started. */
     }
   }
@@ -371,7 +368,7 @@ simple_cc2420_set_chan_pan_addr(unsigned channel, /* 11 - 26 */
   u8_t spiStatusByte;
   u16_t f = channel;
         
-  f = 5*(f - 11) + 357 + 0x4000;
+  f = 5 * (f - 11) + 357 + 0x4000;
   /*
    * Writing RAM requires crystal oscillator to be stable.
    */
@@ -460,7 +457,7 @@ simple_cc2420_read(u8_t *buf, u16_t bufsize)
       RIMESTATS_ADD(tooshort);
     } else if(len - 2 > bufsize) {
       PRINTF("simple_cc2420_read too big len=%d bufsize %d\n", len, bufsize);
-      //      FASTSPI_READ_FIFO_GARBAGE(2);
+      //     FASTSPI_READ_FIFO_GARBAGE(2);
       FASTSPI_READ_FIFO_NO_WAIT(buf, bufsize);
       FASTSPI_READ_FIFO_GARBAGE(len - bufsize - 2);
       FASTSPI_READ_FIFO_NO_WAIT(footer, 2);
@@ -477,9 +474,6 @@ simple_cc2420_read(u8_t *buf, u16_t bufsize)
       if(footer[1] & FOOTER1_CRC_OK) {
 	simple_cc2420_last_rssi = footer[0];
 	simple_cc2420_last_correlation = footer[1] & FOOTER1_CORRELATION;
-	/*	if((h.fc0 & FC0_TYPE_MASK) == FC0_TYPE_DATA) {
-	  uip_len = len - 2;
-	  }*/
 	RIMESTATS_ADD(llrx);
       } else {
 	RIMESTATS_ADD(badcrc);
