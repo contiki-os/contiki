@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#)$Id: contiki-sky-main.c,v 1.12 2007/10/23 21:29:40 adamdunkels Exp $
+ * @(#)$Id: contiki-sky-main.c,v 1.13 2007/10/25 10:21:48 adamdunkels Exp $
  */
 
 #include <signal.h>
@@ -126,7 +126,7 @@ main(int argc, char **argv)
 #endif /* WITH_UIP */
   
   printf("Starting %s "
-	 "($Id: contiki-sky-main.c,v 1.12 2007/10/23 21:29:40 adamdunkels Exp $)\n", __FILE__);
+	 "($Id: contiki-sky-main.c,v 1.13 2007/10/25 10:21:48 adamdunkels Exp $)\n", __FILE__);
   ds2411_init();
   sensors_light_init();
   sht11_init();
@@ -159,7 +159,9 @@ main(int argc, char **argv)
   process_init();
   process_start(&etimer_process, NULL);
   process_start(&sensors_process, NULL);
+#if PROFILE_CONF_ON
   profile_init();
+#endif /* PROFILE_CONF_ON */
   ctimer_init();
 
   set_rime_addr();
@@ -190,13 +192,17 @@ main(int argc, char **argv)
   ENERGEST_ON(ENERGEST_TYPE_CPU);
   while (1) {
     int r;
+#if PROFILE_CONF_ON
     profile_episode_start();
+#endif /* PROFILE_CONF_ON */
     do {
       /* Reset watchdog. */
       r = process_run();
     } while(r > 0);
+#if PROFILE_CONF_ON
     profile_episode_end();
-
+#endif /* PROFILE_CONF_ON */
+    
     /*
      * Idle processing.
      */
@@ -228,7 +234,9 @@ main(int argc, char **argv)
       eint();
       ENERGEST_OFF(ENERGEST_TYPE_LPM);
       ENERGEST_ON(ENERGEST_TYPE_CPU);
+#if PROFILE_CONF_ON
       profile_clear_timestamps();
+#endif /* PROFILE_CONF_ON */
     }
   }
 
