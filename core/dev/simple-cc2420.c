@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: simple-cc2420.c,v 1.10 2007/09/18 10:36:31 nifi Exp $
+ * @(#)$Id: simple-cc2420.c,v 1.11 2007/10/25 09:30:39 adamdunkels Exp $
  */
 /*
  * This code is almost device independent and should be easy to port.
@@ -112,7 +112,7 @@ status(void)
 static void
 on(void)
 {
-  ENERGEST_ON(ENERGEST_TYPE_RECEIVE);
+  ENERGEST_ON(ENERGEST_TYPE_LISTEN);
   PRINTF("on\n");
   receive_on = 1;
   
@@ -134,7 +134,7 @@ off(void)
   
   strobe(CC2420_SRFOFF);
   DISABLE_FIFOP_INT();
-  ENERGEST_OFF(ENERGEST_TYPE_RECEIVE);
+  ENERGEST_OFF(ENERGEST_TYPE_LISTEN);
 }
 /*---------------------------------------------------------------------------*/
 static u8_t locked, lock_on, lock_off;

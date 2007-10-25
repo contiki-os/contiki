@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: tr1001.c,v 1.7 2007/08/07 11:11:20 nifi Exp $
+ * @(#)$Id: tr1001.c,v 1.8 2007/10/25 09:30:39 adamdunkels Exp $
  */
 /**
  * \addtogroup esb
@@ -241,7 +241,7 @@ tr1001_off(void)
   rxoff();
   rxclear();
 
-  ENERGEST_OFF(ENERGEST_TYPE_RECEIVE);
+  ENERGEST_OFF(ENERGEST_TYPE_LISTEN);
   return 1;
 }
 /*---------------------------------------------------------------------------*/
@@ -256,7 +256,7 @@ tr1001_on(void)
     return 1;
   }
 
-  ENERGEST_ON(ENERGEST_TYPE_RECEIVE);
+  ENERGEST_ON(ENERGEST_TYPE_LISTEN);
 
   onoroff = ON;
   rxon();
