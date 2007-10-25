@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: Demo.java,v 1.1 2007/10/25 12:56:28 adamdunkels Exp $
+ * $Id: Demo.java,v 1.2 2007/10/25 18:43:18 adamdunkels Exp $
  */
 
 /**
@@ -38,6 +38,8 @@
  *         Fredrik Österlind <fros@sics.se>
  */
 
+import java.awt.BorderLayout;
+import java.awt.Font;
 import java.awt.GraphicsEnvironment;
 import java.awt.GridLayout;
 import java.awt.Rectangle;
@@ -75,8 +77,8 @@ public class Demo extends JPanel {
   public static final int TOTAL_HEIGHT = 300;
   public static final int TOTAL_WIDTH = 900;
 
-  public static final String SERIALDUMP_WINDOWS = "../bin/serialdump-windows.exe";
-  public static final String SERIALDUMP_LINUX = ""; /* TODO Add Linux serialdump */
+  public static final String SERIALDUMP_WINDOWS = "../../../tools/sky/serialdump-windows.exe";
+  public static final String SERIALDUMP_LINUX = "../../../tools/sky/serialdump-linux";
 
   public static final int HISTORY_MAX_SECONDS = 120;
 
@@ -192,19 +194,32 @@ public class Demo extends JPanel {
     createAllCharts();
 
     /* Add charts */
-    this.setLayout(new GridLayout(2, 1));
+    this.setLayout(new BorderLayout());
+    JPanel contentPanel = new JPanel(new GridLayout(2, 1));
+    add(contentPanel);
+
     JPanel upperPanel = new JPanel(new GridLayout());
     totalLabel.setAlignmentX(JPanel.CENTER_ALIGNMENT);
     upperPanel.add(totalLabel);
-    add(upperPanel);
+    contentPanel.add(upperPanel);
 
     JPanel lowerPanel = new JPanel(new GridLayout(1, 2));
     relativeLabel.setAlignmentX(JPanel.CENTER_ALIGNMENT);
     lowerPanel.add(relativeLabel);
     nodeHistoryLabel.setAlignmentX(JPanel.CENTER_ALIGNMENT);
     lowerPanel.add(nodeHistoryLabel);
-    add(lowerPanel);
+    contentPanel.add(lowerPanel);
 
+    JLabel advertisementLabel = new JLabel("Contiki Sensor Node Energy Estimation",
+					   JLabel.CENTER);
+    advertisementLabel.setFont(new Font("Sans-serif", Font.BOLD, 40));
+    JLabel urlLabel = new JLabel("http://www.sics.se/contiki/",
+					   JLabel.CENTER);
+    urlLabel.setFont(new Font("Monospace", Font.BOLD, 36));
+
+    add(advertisementLabel, BorderLayout.NORTH);
+    add(urlLabel, BorderLayout.SOUTH);
+    
     /* Display the window */
     frame.pack();
     frame.setLocationRelativeTo(null);
@@ -326,7 +341,7 @@ public class Demo extends JPanel {
         totalDataset.addValue(0, category, getNodeNameFromIndex(i));
       }
     }
-    totalChart = ChartFactory.createStackedBarChart(null, null, "Power usage (mW)", totalDataset, PlotOrientation.VERTICAL, true, true, true);
+    totalChart = ChartFactory.createStackedBarChart(null, null, "Power (mW)", totalDataset, PlotOrientation.VERTICAL, true, true, true);
     ValueAxis rangeAxis = totalChart.getCategoryPlot().getRangeAxis();
     //    rangeAxis.setRange(0, CHARTS_MAX_MILLIWATTS);
 
@@ -345,7 +360,7 @@ public class Demo extends JPanel {
             totalDataset.addValue(0, CATEGORIES[(j + categoryOrder) % CATEGORIES.length], getNodeNameFromIndex(i));
           }
         }
-        totalChart = ChartFactory.createStackedBarChart(null, null, "Power usage (mW)", totalDataset, PlotOrientation.VERTICAL, true, true, true);
+        totalChart = ChartFactory.createStackedBarChart(null, null, "Power (mW)", totalDataset, PlotOrientation.VERTICAL, true, true, true);
         ValueAxis rangeAxis = totalChart.getCategoryPlot().getRangeAxis();
 //         rangeAxis.setRange(0, CHARTS_MAX_MILLIWATTS);
 
@@ -400,7 +415,7 @@ public class Demo extends JPanel {
     nodeHistorySerie.removeAgedItems(true);
     nodeHistorySerie.setMaximumItemCount(HISTORY_MAX_SECONDS);
     TimeSeriesCollection historyData = new TimeSeriesCollection(nodeHistorySerie);
-    nodeHistoryChart = ChartFactory.createTimeSeriesChart(getNodeNameFromIndex(index) + ": Total power usage (mW)", null, null, historyData, false, false, false);
+    nodeHistoryChart = ChartFactory.createTimeSeriesChart(getNodeNameFromIndex(index) + ": Total power (mW)", null, null, historyData, false, false, false);
     ValueAxis rangeAxis = nodeHistoryChart.getXYPlot().getRangeAxis();
     rangeAxis.setRange(0, CHARTS_MAX_MILLIWATTS);
     image = nodeHistoryChart.createBufferedImage(NODE_WIDTH,NODE_HEIGHT);
