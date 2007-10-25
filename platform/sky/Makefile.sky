@@ -1,4 +1,4 @@
-# $Id: Makefile.sky,v 1.9 2007/05/25 08:08:21 adamdunkels Exp $
+# $Id: Makefile.sky,v 1.10 2007/10/25 13:28:15 adamdunkels Exp $
 
 
 ARCH=msp430.c leds.c watchdog.c light.c button.c spi.c ds2411.c \
@@ -28,6 +28,8 @@ BSL=msp430-bsl
 ifndef COMPORT
   COMPORT := /dev/ttyUSB0
 endif
+
+-include $(CONTIKI)/tools/sky/Makefile
 
 %.u: %.ihex
 	$(BSL) --telosb -D -c $(COMPORT) -r -e -I -p $<
