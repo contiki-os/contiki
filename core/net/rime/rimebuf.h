@@ -40,7 +40,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: rimebuf.h,v 1.9 2007/05/15 08:09:21 adamdunkels Exp $
+ * $Id: rimebuf.h,v 1.10 2007/10/25 12:48:46 adamdunkels Exp $
  */
 
 /**
@@ -232,7 +232,7 @@ void rimebuf_compact(void);
  *             copied into the rimbuf is returned.
  *
  */
-int rimebuf_copyfrom(u8_t *from, u16_t len);
+int rimebuf_copyfrom(const u8_t *from, u16_t len);
 
 /**
  * \brief      Copy the entire rimebuf to an external buffer
