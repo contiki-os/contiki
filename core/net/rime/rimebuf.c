@@ -33,7 +33,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: rimebuf.c,v 1.8 2007/03/31 18:31:28 adamdunkels Exp $
+ * $Id: rimebuf.c,v 1.9 2007/10/25 12:48:46 adamdunkels Exp $
  */
 
 /**
@@ -75,7 +75,7 @@ rimebuf_clear(void)
 }
 /*---------------------------------------------------------------------------*/
 int
-rimebuf_copyfrom(u8_t *from, u16_t len)
+rimebuf_copyfrom(const u8_t *from, u16_t len)
 {
   u16_t l;
 
