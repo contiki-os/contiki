@@ -1,4 +1,4 @@
-# $Id: Makefile.avr,v 1.5 2006/12/22 16:54:36 barner Exp $
+# $Id: Makefile.avr,v 1.6 2007/11/01 16:26:31 fros4943 Exp $
 
 ### Check if we are running under Windows
 
@@ -18,12 +18,7 @@ CONTIKI_CPU=$(CONTIKI)/cpu/avr
 ### Define the source files we have in the AVR port
 
 AVR        = leds-arch.c leds.c clock.c
-SENSORS    = #sensors.c button.c pir.c irq.c vib.c sound.c radio.c ctsrts.c \
-             #lm71.c
-UIPDRIVERS = #me.c me_tabs.c slip.c tr1001-drv.c tr1001.c crc16.c
-SYSAPPS    = codeprop-tmp.c
 ELFLOADER  = elfloader.c elfloader-avr.c symtab-avr.c
-# loader-arch.c
 TARGETLIBS = clock.c flash.c mtarch.c
 
 CONTIKI_TARGET_SOURCEFILES += ${AVR} $(SENSORS) \
@@ -35,7 +30,7 @@ CONTIKI_SOURCEFILES        += $(CONTIKI_TARGET_SOURCEFILES)
 
 ### Compiler definitions
 CC       = avr-gcc
-LD       = avr-ld
+LD       = avr-gcc
 AS       = avr-as
 AR       = avr-ar
 OBJCOPY  = avr-objcopy
