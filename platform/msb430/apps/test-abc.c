@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: test-abc.c,v 1.1 2007/06/28 12:51:31 nvt-se Exp $
+ * $Id: test-abc.c,v 1.2 2007/11/06 14:44:42 nvt-se Exp $
  */
 
 /**
@@ -42,11 +42,12 @@
 #include "net/rime.h"
 #include "node-id.h"
 
-#include "dev/button-sensor.h"
-
+#include "dev/cc1020.h"
 #include "dev/leds.h"
+#include "dev/sht11.h"
 
 #include <stdio.h>
+
 /*---------------------------------------------------------------------------*/
 PROCESS(test_abc_process, "ABC test");
 AUTOSTART_PROCESSES(&test_abc_process);
@@ -71,6 +72,12 @@ static struct abc_conn abc;
 /*---------------------------------------------------------------------------*/
 PROCESS_THREAD(test_abc_process, ev, data)
 {
+  static unsigned i;
+  static struct etimer et;
+  static int len;
+  static char buf[32];
+  static unsigned h;
+
   PROCESS_EXITHANDLER(abc_close(&abc);)
     
   PROCESS_BEGIN();
@@ -78,15 +85,13 @@ PROCESS_THREAD(test_abc_process, ev, data)
   abc_open(&abc, 128, &abc_call);
 
   while(1) {
-    static struct etimer et;
-    
-    etimer_set(&et, CLOCK_SECOND * 3);
-    
-    PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&et));
-
-    rimebuf_copyfrom("Hej", 4);
-    abc_send(&abc);
-
+    etimer_set(&et, CLOCK_SECOND / 2);
+    PROCESS_WAIT_EVENT();
+    if (etimer_expired(&et)) {
+      len = snprintf(buf, sizeof (buf), "%u", ++i);
+      rimebuf_copyfrom(buf, len + 1);
+      abc_send(&abc);
+    }
   }
 
   PROCESS_END();
