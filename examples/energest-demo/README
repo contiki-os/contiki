@@ -4,7 +4,7 @@ available in the handouts/ directory and at the Contiki website:
 
 		     http://www.sics.se/contiki/
 
-* INSTALLATION
+* INSTALLATION INSTRUCTIONS
 
 Cygwin and Java (JRE) needs to be installed. The demo has been tested
 on Microsoft Windows, but probably works under Linux too.
@@ -36,6 +36,15 @@ Step 7: Upload Contiki to the node:
 
      make upload-node-42
 
+        This takes some time. The red LED should be lit when the
+        uploading is finished. We have found that in some cases brand
+        new Tmote Sky boards seem to cause a problem with Contiki and
+        the red LED does not light up. If so, try to wait a few
+        minutes (~10 minutes) with the Tmote Sky either inserted in
+        the PC, or powered with batteries. If the red LED goes on
+        after these minutes, repeat the "make upload-node-XX" to
+        upload Contiki again.
+     
 Step 8: Remove the Tmote Sky from the PC.
 
 Step 9: Insert batteries into the Tmote Sky. The red LED should light
@@ -45,7 +54,7 @@ Step 10: Repeat step 6 to step 9 for all non-sink nodes. Replace "make
         upload-node-42" with "make upload-node-43", "make
         upload-node-44", and so on.
 
-Step 11: Insert the sink node to the PC
+Step 11: Insert the sink node to the PC again.
 
 Step 12: Run the Java program:
 
@@ -53,7 +62,11 @@ Step 12: Run the Java program:
 
      NOTE: this uses the first Tmote Sky it finds as a
      sink. Therefore, make sure that only one Tmote Sky (the sink) is
-     inserted. 
+     inserted.
+
+Step 13: Push the "user" button on the Tmote Skys and watch their
+         power consumption go up and down.
+
 
 * DEMO DESCRIPTION
 
