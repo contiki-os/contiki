@@ -1,15 +1,30 @@
 
+ifndef CONTIKI
+CONTIKI = ../..
+endif
+
+zip: all jar
+	rm -rf contiki-energest-demo
+	mkdir contiki-energest-demo
+	cp nodeid/*.ihex contiki-energest-demo
+	cp energest-demo.ihex contiki-energest-demo
+	cp -r handouts contiki-energest-demo/
+	mkdir contiki-energest-demo/tools
+	cp -r $(CONTIKI)/tools/sky contiki-energest-demo/tools
+	cp dist/*.jar contiki-energest-demo
+	cp Makefile.contiki-energest-demo contiki-energest-demo/Makefile
+	zip -r contiki-energest-demo.zip contiki-energest-demo
+
 all: burn-nodeids javaapp energest-demo.ihex
 
 burn-nodeids:
 	(cd nodeid; $(MAKE))
 
+jar:
+	ant jar
+
 javaapp:
 	ant compile
-
-ifndef CONTIKI
-CONTIKI = ../..
-endif
 
 # Ensure that ./contiki-conf.h is included
 CFLAGS+=-I.
