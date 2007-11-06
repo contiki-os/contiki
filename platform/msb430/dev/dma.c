@@ -99,7 +99,7 @@ dma_subscribe(int line, struct process *p)
 }
 
 void
-dma_transfer(unsigned char *buf, unsigned len)
+dma_transfer(unsigned char *dst, unsigned char *src, unsigned len)
 {
   // Configure DMA Channel 0 for UART0 TXIFG.
   DMACTL0 = DMA0TSEL_4;
@@ -119,8 +119,8 @@ dma_transfer(unsigned char *buf, unsigned len)
    */
   DMA0CTL = DMADT_0 | DMADSTINCR_0 | DMASRCINCR_3 | DMASBDB | DMALEVEL;
 
-  DMA0SA = (unsigned) buf;
-  DMA0DA = (unsigned) &TXBUF0;
+  DMA0SA = (unsigned) src;
+  DMA0DA = (unsigned) dst;
   DMA0SZ = len;
 
   DMA0CTL |= DMAEN | DMAIE;	// enable DMA and interrupts
