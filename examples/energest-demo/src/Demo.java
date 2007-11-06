@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: Demo.java,v 1.2 2007/10/25 18:43:18 adamdunkels Exp $
+ * $Id: Demo.java,v 1.3 2007/11/06 14:46:14 adamdunkels Exp $
  */
 
 /**
@@ -77,8 +77,8 @@ public class Demo extends JPanel {
   public static final int TOTAL_HEIGHT = 300;
   public static final int TOTAL_WIDTH = 900;
 
-  public static final String SERIALDUMP_WINDOWS = "../../../tools/sky/serialdump-windows.exe";
-  public static final String SERIALDUMP_LINUX = "../../../tools/sky/serialdump-linux";
+  public static final String SERIALDUMP_WINDOWS = "./tools/sky/serialdump-windows.exe";
+  public static final String SERIALDUMP_LINUX = "./tools/sky/serialdump-linux";
 
   public static final int HISTORY_MAX_SECONDS = 120;
 
