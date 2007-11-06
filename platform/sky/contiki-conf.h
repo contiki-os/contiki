@@ -1,5 +1,5 @@
 /* -*- C -*- */
-/* @(#)$Id: contiki-conf.h,v 1.18 2007/09/19 14:09:31 nifi Exp $ */
+/* @(#)$Id: contiki-conf.h,v 1.19 2007/11/06 20:28:09 adamdunkels Exp $ */
 
 #ifndef CONTIKI_CONF_H
 #define CONTIKI_CONF_H
@@ -7,7 +7,9 @@
 #define HAVE_STDINT_H
 #include "msp430def.h"
 
+#ifndef RF_CHANNEL
 #define RF_CHANNEL              26
+#endif /* RF_CHANNEL */
 
 #define ELFLOADER_CONF_DATAMEMORY_SIZE 0x1800
 #define ELFLOADER_CONF_TEXTMEMORY_SIZE 0x1000
