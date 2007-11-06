@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: test-abc.c,v 1.2 2007/11/06 14:44:42 nvt-se Exp $
+ * $Id: test-abc.c,v 1.3 2007/11/06 14:48:18 nvt-se Exp $
  */
 
 /**
@@ -40,11 +40,6 @@
 
 #include "contiki.h"
 #include "net/rime.h"
-#include "node-id.h"
-
-#include "dev/cc1020.h"
-#include "dev/leds.h"
-#include "dev/sht11.h"
 
 #include <stdio.h>
 
@@ -76,7 +71,6 @@ PROCESS_THREAD(test_abc_process, ev, data)
   static struct etimer et;
   static int len;
   static char buf[32];
-  static unsigned h;
 
   PROCESS_EXITHANDLER(abc_close(&abc);)
     
