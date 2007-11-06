@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: dma.h,v 1.4 2007/08/16 13:51:57 nvt-se Exp $
+ * $Id: dma.h,v 1.5 2007/11/06 15:08:56 nvt-se Exp $
  */
 
 #ifndef DMA_H
@@ -38,7 +38,7 @@
 
 void dma_init(void);
 int dma_subscribe(int, struct process *);
-void dma_transfer(unsigned char *, unsigned);
+void dma_transfer(unsigned char *, unsigned char *, unsigned);
 
 extern process_event_t dma_event;
 
