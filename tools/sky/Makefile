@@ -9,6 +9,9 @@ ifdef OS
     MOTES = $(shell $(MOTELIST) | grep COM | \
        cut -f 4 -d \  | \
        perl -ne 'print $$1 - 1 . " " if(/COM(\d+)/);')
+    CMOTES = $(shell $(MOTELIST) | grep COM | \
+       cut -f 4 -d \  | \
+       perl -ne 'print $$1 . " " if(/COM(\d+)/);')
   endif
 endif
 
@@ -19,6 +22,7 @@ ifndef MOTELIST
   MOTES = $(shell $(MOTELIST) | grep USB | \
      cut -f 4 -d \  | \
      perl -ne 'print $$1 . " " if(m-(/dev/\w+)-);')
+  CMOTES=$(MOTES)
 endif
 
 sky-motelist:
