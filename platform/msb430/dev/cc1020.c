@@ -292,6 +292,7 @@ cc1020_off(void)
 uint8_t
 cc1020_get_rssi(void)
 {
+  rssi = cc1020_read_reg(CC1020_RSS);
   return rssi;
 }
 
