@@ -69,8 +69,12 @@
 #define SEQ_CAL_2		(1<<3)
 
 // For CC1020_STATUS
+#define CARRIER_SENSE		0x08
 #define LOCK_CONTINUOUS		0x10
+#define LOCK_INSTANT		0x20
+#define SEQ_ERROR		0x40
 #define CAL_COMPLETE		0x80
+
 #define PA_POWER		0x0F	// initial default for output power
 #define LOCK_NOK		0x00
 #define LOCK_OK			0x01
