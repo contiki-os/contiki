@@ -203,7 +203,7 @@ cc1020_sending(void)
 }
 
 int
-cc1020_send(const void *buf, unsigned short len)
+cc1020_send(const void *buf, unsigned len)
 {
   if (cc1020_state == CC1020_OFF)
     return -2;
@@ -235,9 +235,9 @@ cc1020_send(const void *buf, unsigned short len)
 }
 
 int
-cc1020_read(void *buf, unsigned short size)
+cc1020_read(void *buf, unsigned size)
 {
-  unsigned short len;
+  unsigned len;
 
   if (cc1020_rxlen <= HDRSIZE)
     return 0;
@@ -294,6 +294,14 @@ cc1020_get_rssi(void)
 {
   rssi = cc1020_read_reg(CC1020_RSS);
   return rssi;
+}
+
+int
+cc1020_carrier_sense(void)
+{
+  int carrier_sense;
+
+  return !!(cc1020_read_reg(CC1020_STATUS) & CARRIER_SENSE);
 }
 
 interrupt(UART0RX_VECTOR) cc1020_rxhandler(void)
