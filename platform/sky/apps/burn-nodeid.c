@@ -28,16 +28,17 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: burn-nodeid.c,v 1.1 2007/03/23 16:03:11 nifi Exp $
+ * $Id: burn-nodeid.c,v 1.2 2007/11/10 20:45:00 adamdunkels Exp $
  */
 
 /**
  * \file
- *         A brief description of what this file is.
+ *         A program for burning a node ID into the flash ROM of a Tmote Sky node.
  * \author
  *         Adam Dunkels <adam@sics.se>
  */
 
+#include "dev/leds.h"
 #include "node-id.h"
 #include "contiki.h"
 
@@ -49,15 +50,19 @@ AUTOSTART_PROCESSES(&burn_process);
 PROCESS_THREAD(burn_process, ev, data)
 {
   PROCESS_BEGIN();
+  leds_on(LEDS_RED);
 #if NODEID
   printf("Burning node id %d\n", NODEID);
   node_id_burn(NODEID);
+  leds_on(LEDS_BLUE);
   node_id_restore();
   printf("Restored node id %d\n", node_id);
 #else
+#error "burn-nodeid must be compiled with nodeid=<the ID of the node>"
   node_id_restore();
   printf("Restored node id %d\n", node_id);
 #endif
+  leds_off(LEDS_RED + LEDS_BLUE);
   while(1) {
     PROCESS_WAIT_EVENT();
   }
