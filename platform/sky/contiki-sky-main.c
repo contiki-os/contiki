@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#)$Id: contiki-sky-main.c,v 1.13 2007/10/25 10:21:48 adamdunkels Exp $
+ * @(#)$Id: contiki-sky-main.c,v 1.14 2007/11/10 20:44:30 adamdunkels Exp $
  */
 
 #include <signal.h>
@@ -49,6 +49,7 @@
 #include "dev/uart1.h"
 
 #include "net/mac/xmac.h"
+#include "net/mac/cxmac.h"
 #include "net/mac/nullmac.h"
 
 #include "node-id.h"
@@ -117,7 +118,7 @@ main(int argc, char **argv)
   msp430_cpu_init();
   clock_init();
   leds_init();
-  leds_toggle(LEDS_RED | LEDS_GREEN | LEDS_BLUE);
+  leds_on(LEDS_RED);
   
 #if WITH_UIP
   slip_arch_init(BAUD2UBR(115200)); /* Must come before first printf */
@@ -126,13 +127,15 @@ main(int argc, char **argv)
 #endif /* WITH_UIP */
   
   printf("Starting %s "
-	 "($Id: contiki-sky-main.c,v 1.13 2007/10/25 10:21:48 adamdunkels Exp $)\n", __FILE__);
+	 "($Id: contiki-sky-main.c,v 1.14 2007/11/10 20:44:30 adamdunkels Exp $)\n", __FILE__);
+  leds_on(LEDS_GREEN);
   ds2411_init();
   sensors_light_init();
   sht11_init();
+  leds_on(LEDS_BLUE);
   xmem_init();
-  leds_toggle(LEDS_RED | LEDS_GREEN | LEDS_BLUE);
 
+  leds_off(LEDS_RED);
   rtimer_init();
   /*
    * Hardware initialization done!
@@ -141,6 +144,8 @@ main(int argc, char **argv)
   /* Restore node id if such has been stored in external mem */
   node_id_restore();
 
+  leds_off(LEDS_BLUE);
+  
   printf("MAC %02x:%02x:%02x:%02x:%02x:%02x:%02x:%02x\n",
 	 ds2411_id[0], ds2411_id[1], ds2411_id[2], ds2411_id[3],
 	 ds2411_id[4], ds2411_id[5], ds2411_id[6], ds2411_id[7]);
@@ -164,6 +169,8 @@ main(int argc, char **argv)
 #endif /* PROFILE_CONF_ON */
   ctimer_init();
 
+  leds_off(LEDS_GREEN);
+  
   set_rime_addr();
 
   simple_cc2420_init();
