@@ -46,7 +46,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: ibc.h,v 1.8 2007/03/31 18:31:27 adamdunkels Exp $
+ * $Id: ibc.h,v 1.9 2007/11/12 12:34:29 nvt-se Exp $
  */
 
 /**
@@ -65,7 +65,7 @@
 struct ibc_conn;
 
 /**
- * \brief     Callback structure for abc
+ * \brief     Callback structure for ibc
  *
  */
 struct ibc_callbacks {
@@ -110,15 +110,15 @@ void ibc_open(struct ibc_conn *c, u16_t channel,
 void ibc_close(struct ibc_conn *c);
 
 /**
- * \brief      Send an anonymous best-effort broadcast packet
+ * \brief      Send an identified best-effort broadcast packet
  * \param c    The ibc connection on which the packet should be sent
  * \retval     Non-zero if the packet could be sent, zero otherwise
  *
- *             This function sends an anonymous best-effort broadcast
+ *             This function sends an identified best-effort broadcast
  *             packet. The packet must be present in the rimebuf
  *             before this function is called.
  *
- *             The parameter c must point to an abc connection that
+ *             The parameter c must point to an ibc connection that
  *             must have previously been set up with ibc_open().
  *
  */
