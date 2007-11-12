@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: print-stats.c,v 1.1 2007/09/27 22:22:40 adamdunkels Exp $
+ * $Id: print-stats.c,v 1.2 2007/11/12 22:27:44 adamdunkels Exp $
  */
 
 /**
@@ -49,7 +49,7 @@
 void
 print_stats(void)
 {
-  printf("S %d.%d clock %u tx %lu rx %lu rtx %lu rrx %lu rexmit %lu acktx %lu noacktx %lu ackrx %lu timedout %lu badackrx %lu toolong %lu tooshort %lu badsynch %lu badcrc %lu contentiondrop %lu sendingdrop %lu lltx %lu llrx %lu neighbors %lu\n",
+  printf("S %d.%d clock %u tx %lu rx %lu rtx %lu rrx %lu rexmit %lu acktx %lu noacktx %lu ackrx %lu timedout %lu badackrx %lu toolong %lu tooshort %lu badsynch %lu badcrc %lu contentiondrop %lu sendingdrop %lu lltx %lu llrx %lu\n",
 	 rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1],
 	 clock_time() / CLOCK_SECOND,
 	 rimestats.tx, rimestats.rx,
@@ -59,8 +59,7 @@ print_stats(void)
 	 rimestats.toolong, rimestats.tooshort,
 	 rimestats.badsynch, rimestats.badcrc,
 	 rimestats.contentiondrop, rimestats.sendingdrop,
-	 rimestats.lltx, rimestats.llrx,
-	 rimestats.neighbors);
+	 rimestats.lltx, rimestats.llrx);
 #if ENERGEST_CONF_ON
   printf("E %d.%d clock %u cpu %lu lpm %lu irq %lu gled %lu yled %lu rled %lu tx %lu listen %lu sensors %lu serial %lu\n",
 	 rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1],
