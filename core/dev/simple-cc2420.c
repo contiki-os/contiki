@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: simple-cc2420.c,v 1.13 2007/10/25 13:29:21 adamdunkels Exp $
+ * @(#)$Id: simple-cc2420.c,v 1.14 2007/11/12 22:26:03 adamdunkels Exp $
  */
 /*
  * This code is almost device independent and should be easy to port.
@@ -311,7 +311,7 @@ simple_cc2420_send(const u8_t *payload, u16_t payload_len)
       return 0;			/* Transmission has started. */
     }
   }
-
+  RIMESTATS_ADD(contentiondrop);
   PRINTF("simple_cc2420: do_send() transmission never started\n");
   RELEASE_LOCK();
   return -3;			/* Transmission never started! */
