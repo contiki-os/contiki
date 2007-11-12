@@ -8,6 +8,7 @@ zip: all jar
 	mkdir contiki-energest-demo
 	cp nodeid/*.ihex contiki-energest-demo
 	cp energest-demo.ihex contiki-energest-demo
+	cp README contiki-energest-demo
 	cp -r handouts contiki-energest-demo/
 	mkdir contiki-energest-demo/tools
 	cp -r $(CONTIKI)/tools/sky contiki-energest-demo/tools
