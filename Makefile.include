@@ -37,9 +37,9 @@ ifdef CHAMELEON
 include $(CONTIKI)/core/net/chameleon/Makefile.chameleon
 endif
 include $(CONTIKI)/core/net/mac/Makefile.mac
-SYSTEM  = process.c procinit.c autostart.c elfloader.c
+SYSTEM  = process.c procinit.c autostart.c elfloader.c profile.c profile-aggregates.c
 THREADS = mt.c
-LIBS    = memb.c timer.c list.c etimer.c energest.c rtimer.c
+LIBS    = memb.c timer.c list.c etimer.c energest.c rtimer.c print-stats.c
 CTK     = ctk.c
 UIP     = uip.c uiplib.c resolv.c tcpip.c psock.c hc.c uip-split.c \
           uip-fw.c uip-fw-drv.c uipbuf.c uip_arp.c uiplib.c tcpdump.c \
