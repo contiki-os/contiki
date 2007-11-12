@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: clock.c,v 1.10 2007/10/04 20:45:29 joxe Exp $
+ * @(#)$Id: clock.c,v 1.11 2007/11/12 21:07:39 adamdunkels Exp $
  */
 
 
@@ -166,8 +166,16 @@ clock_set_seconds(unsigned long sec)
 {
 
 }
+/*---------------------------------------------------------------------------*/
 unsigned long
 clock_seconds(void)
 {
   return count / CLOCK_SECOND;
 }
+/*---------------------------------------------------------------------------*/
+rtimer_clock_t
+clock_counter(void)
+{
+  return TAR;
+}
+/*---------------------------------------------------------------------------*/
