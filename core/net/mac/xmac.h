@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: xmac.h,v 1.5 2007/10/23 20:57:37 adamdunkels Exp $
+ * $Id: xmac.h,v 1.6 2007/11/12 22:29:37 adamdunkels Exp $
  */
 
 /**
@@ -41,11 +41,27 @@
 #ifndef __XMAC_H__
 #define __XMAC_H__
 
+#include "sys/rtimer.h"
 #include "net/mac/mac.h"
 #include "dev/radio.h"
+
+#define XMAC_RECEIVER "xmac.recv"
+#define XMAC_STROBES "xmac.strobes"
+#define XMAC_SEND_WITH_ACK "xmac.send.ack"
+#define XMAC_SEND_WITH_NOACK "xmac.send.noack"
+
+
+struct xmac_config {
+  rtimer_clock_t on_time;
+  rtimer_clock_t off_time;
+  rtimer_clock_t strobe_time;
+  rtimer_clock_t strobe_wait_time;
+};
 
 extern const struct mac_driver xmac_driver;
 
 const struct mac_driver *xmac_init(const struct radio_driver *d);
+
+extern struct xmac_config xmac_config;
 
 #endif /* __XMAC_H__ */
