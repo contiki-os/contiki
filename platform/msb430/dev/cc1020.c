@@ -420,7 +420,10 @@ PROCESS_THREAD(cc1020_sender_process, ev, data)
       // Wait until the receiver is idle.
       PROCESS_WAIT_UNTIL(cc1020_rxstate == CC1020_RX_SEARCHING);
 
-      // Wait for a short pseudo-random time before sending.
+      // Wait for the medium to become idle.
+      while (cc1020_carrier_sense());
+
+      // Then wait for a short pseudo-random time before sending.
       clock_delay(1 + 10 * (random_rand() & 0xff));
     }
 
