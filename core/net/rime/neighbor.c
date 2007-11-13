@@ -33,7 +33,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: neighbor.c,v 1.9 2007/05/22 21:15:17 adamdunkels Exp $
+ * $Id: neighbor.c,v 1.10 2007/11/13 20:39:29 adamdunkels Exp $
  */
 
 /**
@@ -52,7 +52,7 @@
 
 #define MAX_NEIGHBORS 5
 
-#define HOPCOUNT_MAX 32
+#define RTMETRIC_MAX 64
 
 static struct neighbor neighbors[MAX_NEIGHBORS];
 
@@ -64,13 +64,15 @@ static void
 periodic(void *ptr)
 {
   int i;
+
+  /* Go through all neighbors and remove old ones. */
   
   for(i = 0; i < MAX_NEIGHBORS; ++i) {
     if(!rimeaddr_cmp(&neighbors[i].addr, &rimeaddr_null) &&
        neighbors[i].time < max_time) {
       neighbors[i].time++;
       if(neighbors[i].time == max_time) {
-	neighbors[i].hopcount = HOPCOUNT_MAX;
+	neighbors[i].rtmetric = RTMETRIC_MAX;
 	/*	printf("%d: removing old neighbor %d\n", node_id, neighbors[i].nodeid);*/
 	rimeaddr_copy(&neighbors[i].addr, &rimeaddr_null);
       }
@@ -106,26 +108,57 @@ neighbor_find(rimeaddr_t *addr)
 }
 /*---------------------------------------------------------------------------*/
 void
-neighbor_update(struct neighbor *n, u8_t hopcount, u16_t signal)
+neighbor_update(struct neighbor *n, u8_t rtmetric, u8_t etx)
 {
   if(n != NULL) {
-    n->hopcount = hopcount;
-    n->signal = signal;
+    n->rtmetric = rtmetric;
     n->time = 0;
+    neighbor_update_etx(n, etx);
   }
 }
 /*---------------------------------------------------------------------------*/
 void
-neighbor_add(rimeaddr_t *addr, u8_t nhopcount, u16_t nsignal)
+neighbor_timedout_etx(struct neighbor *n, u8_t etx)
+{
+  if(n != NULL) {
+    n->etxs[n->etxptr] = etx;
+    n->etxptr = (n->etxptr + 1) % NEIGHBOR_NUM_ETXS;
+  }
+}
+/*---------------------------------------------------------------------------*/
+void
+neighbor_update_etx(struct neighbor *n, u8_t etx)
+{
+  if(n != NULL) {
+    n->etxs[n->etxptr] = etx;
+    n->etxptr = (n->etxptr + 1) % NEIGHBOR_NUM_ETXS;
+    n->time = 0;
+  }
+}
+/*---------------------------------------------------------------------------*/
+uint8_t
+neighbor_etx(struct neighbor *n)
+{
+  int i, etx;
+
+  etx = 0;
+  for(i = 0; i < NEIGHBOR_NUM_ETXS; ++i) {
+    etx += n->etxs[i];
+  }
+  return NEIGHBOR_ETX_SCALE * etx / NEIGHBOR_NUM_ETXS;
+}
+/*---------------------------------------------------------------------------*/
+void
+neighbor_add(rimeaddr_t *addr, u8_t nrtmetric, u8_t netx)
 {
   int i, n;
-  u8_t hopcount;
-  u16_t signal;
+  u8_t rtmetric;
+  u8_t etx;
 
   /* Find the first unused entry or the used entry with the highest
-     hopcount and lowest signal strength. */
-  hopcount = 0;
-  signal = USHRT_MAX;
+     rtmetric and highest etx. */
+  rtmetric = 0;
+  etx = 0;
 
   n = 0;
   for(i = 0; i < MAX_NEIGHBORS; ++i) {
@@ -135,30 +168,33 @@ neighbor_add(rimeaddr_t *addr, u8_t nhopcount, u16_t nsignal)
       break;
     }
     if(!rimeaddr_cmp(&neighbors[i].addr, &rimeaddr_null)) {
-      if(neighbors[i].hopcount > hopcount) {
-	hopcount = neighbors[i].hopcount;
-	signal = neighbors[i].signal;
+      if(neighbors[i].rtmetric > rtmetric) {
+	rtmetric = neighbors[i].rtmetric;
+	etx = neighbor_etx(&neighbors[i]);
 	n = i;
-      } else if(neighbors[i].hopcount == hopcount) {
-	if(neighbors[i].signal < signal) {
-	  hopcount = neighbors[i].hopcount;
-	  signal = neighbors[i].signal;
+      } else if(neighbors[i].rtmetric == rtmetric) {
+	if(neighbor_etx(&neighbors[i]) > etx) {
+	  rtmetric = neighbors[i].rtmetric;
+	  etx = neighbor_etx(&neighbors[i]);
 	  n = i;
-	  /*	printf("%d: found worst neighbor %d with hopcount %d, signal %d\n",
-		node_id, neighbors[n].nodeid, hopcount, signal);*/
+	  /*	printf("%d: found worst neighbor %d with rtmetric %d, signal %d\n",
+		node_id, neighbors[n].nodeid, rtmetric, signal);*/
 	}
       }
     }
   }
 
 
-  /*  printf("%d: adding neighbor %d with hopcount %d, signal %d at %d\n",
-      node_id, neighbors[n].nodeid, hopcount, signal, n);*/
+  /*  printf("%d: adding neighbor %d with rtmetric %d, signal %d at %d\n",
+      node_id, neighbors[n].nodeid, rtmetric, signal, n);*/
 
   neighbors[n].time = 0;
   rimeaddr_copy(&neighbors[i].addr, addr);
-  neighbors[n].hopcount = nhopcount;
-  neighbors[n].signal = nsignal;
+  neighbors[n].rtmetric = nrtmetric;
+  for(i = 0; i < NEIGHBOR_NUM_ETXS; ++i) {
+    neighbors[n].etxs[i] = netx;
+  }
+  neighbors[n].etxptr = 0;
 }
 /*---------------------------------------------------------------------------*/
 void
@@ -170,7 +206,7 @@ neighbor_remove(rimeaddr_t *addr)
     if(rimeaddr_cmp(&neighbors[i].addr, addr)) {
       printf("%d: removing %d @ %d\n", rimeaddr_node_addr.u16[0], addr->u16[0], i);
       rimeaddr_copy(&neighbors[i].addr, &rimeaddr_null);
-      neighbors[i].hopcount = HOPCOUNT_MAX;
+      neighbors[i].rtmetric = RTMETRIC_MAX;
       return;
     }
   }
@@ -181,37 +217,37 @@ neighbor_best(void)
 {
   int i, found;
   int lowest, best;
-  u8_t hopcount;
-  u16_t signal;
+  u8_t rtmetric;
+  u8_t etx;
 
-  hopcount = HOPCOUNT_MAX;
+  rtmetric = RTMETRIC_MAX;
   lowest = 0;
   found = 0;
 
   /*  printf("%d: ", node_id);*/
   
-  /* Find the lowest hopcount. */
+  /* Find the lowest rtmetric. */
   for(i = 0; i < MAX_NEIGHBORS; ++i) {
-    /*  printf("%d:%d ", neighbors[i].nodeid, neighbors[i].hopcount);*/
+    /*  printf("%d:%d ", neighbors[i].nodeid, neighbors[i].rtmetric);*/
     if(!rimeaddr_cmp(&neighbors[i].addr, &rimeaddr_null) &&
-       hopcount > neighbors[i].hopcount) {
-      hopcount = neighbors[i].hopcount;
+       rtmetric > neighbors[i].rtmetric) {
+      rtmetric = neighbors[i].rtmetric;
       lowest = i;
       found = 1;
     }
   }
   /*  printf("\n");*/
 
-  /* Find the neighbor with highest signal strength of the ones that
-     have the lowest hopcount. */
+  /* Find the neighbor with lowest etx of the ones that
+     have the lowest rtmetric. */
   if(found) {
-    signal = 0;
+    etx = 0;
     best = lowest;
     for(i = 0; i < MAX_NEIGHBORS; ++i) {
       if(!rimeaddr_cmp(&neighbors[i].addr, &rimeaddr_null) &&
-	 hopcount == neighbors[i].hopcount &&
-	 neighbors[i].signal > signal) {
-	signal = neighbors[i].signal;
+	 rtmetric == neighbors[i].rtmetric &&
+	 neighbor_etx(&neighbors[i]) < etx) {
+	etx = neighbor_etx(&neighbors[i]);
 	best = i;
       }
     }
