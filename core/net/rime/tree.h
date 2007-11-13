@@ -47,7 +47,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: tree.h,v 1.8 2007/05/22 20:57:44 adamdunkels Exp $
+ * $Id: tree.h,v 1.9 2007/11/13 20:39:29 adamdunkels Exp $
  */
 
 /**
@@ -62,6 +62,7 @@
 
 #include "net/rime/ipolite.h"
 #include "net/rime/ruc.h"
+#include "net/rime/nbh.h"
 
 struct tree_callbacks {
   void (* recv)(rimeaddr_t *originator, u8_t seqno,
@@ -69,12 +70,12 @@ struct tree_callbacks {
 };
 
 struct tree_conn {
-  struct ipolite_conn ipolite_conn;
+  struct nbh_conn nbh_conn;
   struct ruc_conn ruc_conn;
   const struct tree_callbacks *cb;
   struct ctimer t;
   u8_t forwarding;
-  u8_t hops_from_sink;
+  u8_t local_rtmetric;
   u8_t seqno;
 };
 
@@ -88,7 +89,7 @@ void tree_set_sink(struct tree_conn *c, int should_be_sink);
 
 int tree_depth(struct tree_conn *c);
 
-#define TREE_MAX_DEPTH 63
+#define TREE_MAX_DEPTH 255
 
 #endif /* __TREE_H__ */
 /** @} */

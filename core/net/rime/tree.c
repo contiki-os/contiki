@@ -33,7 +33,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: tree.c,v 1.12 2007/05/22 20:57:44 adamdunkels Exp $
+ * $Id: tree.c,v 1.13 2007/11/13 20:39:29 adamdunkels Exp $
  */
 
 /**
@@ -60,21 +60,23 @@
 #include <stdio.h>
 #include <stddef.h>
 
+/*
 struct adv_msg {
-  u8_t hopcount;
+  u8_t rtmetric;
   u8_t pad;
 };
+*/
 
 struct hdr {
   rimeaddr_t originator;
   u8_t originator_seqno;
-  u8_t hopcount;
+  u8_t rtmetric;
   u8_t hoplim;
   u8_t rexmits;
 };
 
 #define SINK 0
-#define HOPCOUNT_MAX TREE_MAX_DEPTH
+#define RTMETRIC_MAX TREE_MAX_DEPTH
 
 #define MAX_HOPLIM 10
 
@@ -91,6 +93,58 @@ struct hdr {
 
 /*---------------------------------------------------------------------------*/
 static void
+update_rtmetric(struct tree_conn *tc)
+{
+  struct neighbor *n;
+
+  /* We should only update the rtmetric if we are not the sink. */
+  if(tc->local_rtmetric != SINK) {
+
+    /* Find the neighbor with the lowest rtmetric. */
+    n = neighbor_best();
+
+    /* If n is NULL, we have no best neighbor. */
+    if(n == NULL) {
+
+      /* If we have don't have any neighbors, we set our rtmetric to
+	 the maximum value to indicate that we do not have a route. */
+      
+      if(tc->local_rtmetric != RTMETRIC_MAX) {
+	PRINTF("%d.%d: didn't find a best neighbor, setting rtmetric to max\n",
+	       rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1]);
+      }
+      tc->local_rtmetric = RTMETRIC_MAX;
+    } else {
+
+      /* We set our rtmetric to the rtmetric of our best neighbor plus
+	 the expected transmissions to reach that neighbor. */
+      if(n->rtmetric + neighbor_etx(n) != tc->local_rtmetric) {
+	tc->local_rtmetric = n->rtmetric + neighbor_etx(n);
+	nbh_start(&tc->nbh_conn, tc->local_rtmetric);
+	/*	send_adv(tc, MIN_INTERVAL);*/
+	PRINTF("%d.%d: new rtmetric %d\n",
+	       rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1],
+	       tc->local_rtmetric);
+      }
+    }
+  }
+
+  /*  DEBUG_PRINTF("%d: new rtmetric %d\n", node_id, rtmetric);*/
+#if NETSIM
+  {
+    char buf[8];
+    if(tc->local_rtmetric == RTMETRIC_MAX) {
+      strcpy(buf, " ");
+    } else {
+      snprintf(buf, sizeof(buf), "%d", tc->local_rtmetric);
+    }
+    ether_set_text(buf);
+  }
+#endif
+}
+#if 0
+/*---------------------------------------------------------------------------*/
+static void
 send_adv(struct tree_conn *tc, clock_time_t interval)
 {
   struct adv_msg *hdr;
@@ -98,46 +152,8 @@ send_adv(struct tree_conn *tc, clock_time_t interval)
   rimebuf_clear();
   rimebuf_set_datalen(sizeof(struct adv_msg));
   hdr = rimebuf_dataptr();
-  hdr->hopcount = tc->hops_from_sink;
+  hdr->rtmetric = tc->local_rtmetric;
   ipolite_send(&tc->ipolite_conn, interval, rimebuf_totlen());
-}
-/*---------------------------------------------------------------------------*/
-static void
-update_hopcount(struct tree_conn *tc)
-{
-  struct neighbor *n;
-  
-  if(tc->hops_from_sink != SINK) {
-    n = neighbor_best();
-    if(n == NULL) {
-      if(tc->hops_from_sink != HOPCOUNT_MAX) {
-	PRINTF("%d.%d: didn't find a best neighbor, setting hopcount to max\n",
-	       rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1]);
-      }
-      tc->hops_from_sink = HOPCOUNT_MAX;
-    } else {
-      if(n->hopcount + 1 != tc->hops_from_sink) {
-	tc->hops_from_sink = n->hopcount + 1;
-	send_adv(tc, MIN_INTERVAL);
-	PRINTF("%d.%d: new hopcount %d\n",
-	       rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1],
-	       tc->hops_from_sink);
-      }
-    }
-  }
-
-  /*  DEBUG_PRINTF("%d: new hopcount %d\n", node_id, hopcount);*/
-#if NETSIM
-  {
-    char buf[8];
-    if(tc->hops_from_sink == HOPCOUNT_MAX) {
-      strcpy(buf, " ");
-    } else {
-      snprintf(buf, sizeof(buf), "%d", tc->hops_from_sink);
-    }
-    ether_set_text(buf);
-  }
-#endif
 }
 /*---------------------------------------------------------------------------*/
 static void
@@ -148,23 +164,23 @@ adv_packet_received(struct ipolite_conn *c, rimeaddr_t *from)
   struct adv_msg *msg = rimebuf_dataptr();
   struct neighbor *n;
 
-  /*  PRINTF("%d.%d: adv_packet_received from %d.%d with hopcount %d\n",
+  /*  PRINTF("%d.%d: adv_packet_received from %d.%d with rtmetric %d\n",
 	 rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1],
-	 from->u8[0], from->u8[1], msg->hopcount);*/
+	 from->u8[0], from->u8[1], msg->rtmetric);*/
 
   n = neighbor_find(from);
 
   if(n == NULL) {
-    neighbor_add(from, msg->hopcount, radio_sensor.value(1));
+    neighbor_add(from, msg->rtmetric, radio_sensor.value(1));
   } else {
-    neighbor_update(n, msg->hopcount, radio_sensor.value(1));
+    neighbor_update(n, msg->rtmetric, radio_sensor.value(1));
     PRINTF("%d.%d: updating neighbor %d.%d, radio sensor %d, hops %d\n",
 	   rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1],
 	   n->addr.u8[0], n->addr.u8[1],
-	   radio_sensor.value(1), msg->hopcount);
+	   radio_sensor.value(1), msg->rtmetric);
   }
 
-  update_hopcount(tc);
+  update_rtmetric(tc);
 
 }
 /*---------------------------------------------------------------------------*/
@@ -192,6 +208,7 @@ send_timer(void *ptr)
   send_adv(tc, MAX_INTERVAL / 2);
   ctimer_set(&tc->t, MAX_INTERVAL, send_timer, tc);
 }
+#endif /* 0 */
 /*---------------------------------------------------------------------------*/
 static int
 node_packet_received(struct ruc_conn *c, rimeaddr_t *from, u8_t seqno)
@@ -201,28 +218,28 @@ node_packet_received(struct ruc_conn *c, rimeaddr_t *from, u8_t seqno)
   struct hdr *hdr = rimebuf_dataptr();
   struct neighbor *n;
 
-  if(tc->hops_from_sink == SINK) {
+  if(tc->local_rtmetric == SINK) {
 
     rimebuf_hdrreduce(sizeof(struct hdr));
     
-    PRINTF("%d.%d: sink received packet from %d.%d via %d.%d with hopcount %d\n",
+    PRINTF("%d.%d: sink received packet from %d.%d via %d.%d with rtmetric %d\n",
 	   rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1],
 	   hdr->originator.u8[0], hdr->originator.u8[1],
-	   from->u8[0], from->u8[1], hdr->hopcount);
+	   from->u8[0], from->u8[1], hdr->rtmetric);
     
     if(tc->cb->recv != NULL) {
       tc->cb->recv(&hdr->originator, hdr->originator_seqno,
-		   hdr->hopcount);
+		   hdr->rtmetric);
     }
     return 1;
-  } else if(hdr->hoplim > 1 && tc->hops_from_sink != HOPCOUNT_MAX) {
+  } else if(hdr->hoplim > 1 && tc->local_rtmetric != RTMETRIC_MAX) {
     hdr->hoplim--;
 
         
-    PRINTF("%d.%d: packet received from %d.%d via %d.%d with hopcount %d, best neighbor %p, forwarding %d\n",
+    PRINTF("%d.%d: packet received from %d.%d via %d.%d with rtmetric %d, best neighbor %p, forwarding %d\n",
 	   rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1],
 	   hdr->originator.u8[0], hdr->originator.u8[1],
-	   from->u8[0], from->u8[1], hdr->hopcount,
+	   from->u8[0], from->u8[1], hdr->rtmetric,
 	   neighbor_best(), tc->forwarding);
 
     if(!tc->forwarding) {
@@ -243,45 +260,75 @@ node_packet_received(struct ruc_conn *c, rimeaddr_t *from, u8_t seqno)
 }
 /*---------------------------------------------------------------------------*/
 static void
-node_packet_sent(struct ruc_conn *c)
+node_packet_sent(struct ruc_conn *c, rimeaddr_t *to, u8_t retransmissions)
 {
   struct tree_conn *tc = (struct tree_conn *)
     ((char *)c - offsetof(struct tree_conn, ruc_conn));
 
   tc->forwarding = 0;
+  neighbor_update_etx(neighbor_find(to), retransmissions);
 }
 /*---------------------------------------------------------------------------*/
 static void
-node_packet_timedout(struct ruc_conn *c)
+node_packet_timedout(struct ruc_conn *c, rimeaddr_t *to, u8_t retransmissions)
 {
   struct tree_conn *tc = (struct tree_conn *)
     ((char *)c - offsetof(struct tree_conn, ruc_conn));
 
   tc->forwarding = 0;
+  neighbor_timedout_etx(neighbor_find(to), retransmissions);
 }
 /*---------------------------------------------------------------------------*/
-static const struct ipolite_callbacks ipolite_callbacks =
-  {adv_packet_received, adv_packet_sent, adv_packet_dropped};
+static void
+adv_received(struct nbh_conn *c, rimeaddr_t *from, uint16_t rtmetric)
+{
+  struct tree_conn *tc = (struct tree_conn *)
+    ((char *)c - offsetof(struct tree_conn, nbh_conn));
+  struct neighbor *n;
+  
+  n = neighbor_find(from);
+
+  if(n == NULL) {
+    if(rtmetric < tc->local_rtmetric) {
+      neighbor_add(from, rtmetric, 1);
+    }
+  } else {
+    neighbor_update(n, rtmetric, 1);
+    PRINTF("%d.%d: updating neighbor %d.%d, etx %d, hops %d\n",
+	   rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1],
+	   n->addr.u8[0], n->addr.u8[1],
+	   1, rtmetric);
+  }
+
+  update_rtmetric(tc);
+}
+/*---------------------------------------------------------------------------*/
+/*static const struct ipolite_callbacks ipolite_callbacks =
+  {adv_packet_received, adv_packet_sent, adv_packet_dropped};*/
 static const struct ruc_callbacks ruc_callbacks = {node_packet_received,
 						   node_packet_sent,
 						   node_packet_timedout};
+static const struct nbh_callbacks nbh_callbacks = { adv_received,
+						    NULL};
 /*---------------------------------------------------------------------------*/
 void
 tree_open(struct tree_conn *tc, u16_t channels,
 	  const struct tree_callbacks *cb)
 {
-  ipolite_open(&tc->ipolite_conn, channels, &ipolite_callbacks);
+  /*  ipolite_open(&tc->ipolite_conn, channels, &ipolite_callbacks);*/
+  nbh_open(&tc->nbh_conn, channels, &nbh_callbacks);
   ruc_open(&tc->ruc_conn, channels + 1, &ruc_callbacks);
-  tc->hops_from_sink = HOPCOUNT_MAX;
+  tc->local_rtmetric = RTMETRIC_MAX;
   tc->cb = cb;
-  send_adv(tc, MAX_INTERVAL);
-  ctimer_set(&tc->t, MAX_INTERVAL, send_timer, tc);
+  /*  send_adv(tc, MAX_INTERVAL);
+      ctimer_set(&tc->t, MAX_INTERVAL, send_timer, tc);*/
 }
 /*---------------------------------------------------------------------------*/
 void
 tree_close(struct tree_conn *tc)
 {
-  ipolite_close(&tc->ipolite_conn);
+  /*  ipolite_close(&tc->ipolite_conn);*/
+  nbh_close(&tc->nbh_conn);
   ruc_close(&tc->ruc_conn);
 }
 /*---------------------------------------------------------------------------*/
@@ -289,12 +336,13 @@ void
 tree_set_sink(struct tree_conn *tc, int should_be_sink)
 {
   if(should_be_sink) {
-    tc->hops_from_sink = SINK;
-    send_adv(tc, MIN_INTERVAL);
+    tc->local_rtmetric = SINK;
+    /*    send_adv(tc, MIN_INTERVAL);*/
+    nbh_start(&tc->nbh_conn, tc->local_rtmetric);
   } else {
-    tc->hops_from_sink = HOPCOUNT_MAX;
+    tc->local_rtmetric = RTMETRIC_MAX;
   }
-  update_hopcount(tc);
+  update_rtmetric(tc);
 }
 /*---------------------------------------------------------------------------*/
 void
@@ -308,14 +356,14 @@ tree_send(struct tree_conn *tc, int rexmits)
     hdr = rimebuf_hdrptr();
     hdr->originator_seqno = tc->seqno++;
     rimeaddr_copy(&hdr->originator, &rimeaddr_node_addr);
-    hdr->hopcount = tc->hops_from_sink;
+    hdr->rtmetric = tc->local_rtmetric;
     hdr->hoplim = MAX_HOPLIM;
     hdr->rexmits = rexmits;
-    if(tc->hops_from_sink == 0) {
+    if(tc->local_rtmetric == 0) {
       if(tc->cb->recv != NULL) {
 	tc->cb->recv(&hdr->originator, hdr->originator_seqno,
-		     hdr->hopcount);
-      }      
+		     hdr->rtmetric);
+      }
     } else {
       n = neighbor_best();
       if(n != NULL) {
@@ -333,7 +381,7 @@ tree_send(struct tree_conn *tc, int rexmits)
 int
 tree_depth(struct tree_conn *tc)
 {
-  return tc->hops_from_sink;
+  return tc->local_rtmetric;
 }
 /*---------------------------------------------------------------------------*/
 /** @} */
