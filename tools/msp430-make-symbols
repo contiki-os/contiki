@@ -14,7 +14,7 @@ echo \#include '"symbols.h"' > symbols.c
 echo "const struct symbols symbols[$SYMBOLS] = {" >> symbols.c
 
 if [ -f $* ] ; then 
-    $NM $* | perl -ne 'print ".global $2\n$2 = 0x$1\n" if(/([0-9a-f]+) [ABDRST] (.+)$/);' | grep -v _reset_vector | grep = | perl -ne 'print "{\"$1\", (char *)$2},\n" if(/(\w+) = (\w+)/)' | sort >> symbols.c
+    $NM $* | perl -ne 'print ".global $2\n$2 = 0x$1\n" if(/([0-9a-f]+) [ABDRST] (.+)$/);' | grep -v ^_ | grep -v _reset_vector | grep = | perl -ne 'print "{\"$1\", (char *)$2},\n" if(/(\w+) = (\w+)/)' | sort >> symbols.c
 #    msp430-nm $* | perl -ne 'print ".global $2\n$2 = 0x$1\n" if(/([0-9a-f]+) [ABDRST] (.+)$/);' | grep -v ^_ | grep -v _reset_vector | grep = | perl -ne 'print "{\"$1\", (char *)$2},\n" if(/(\w+) = (\w+)/)' | sort
     status=$?
 fi
