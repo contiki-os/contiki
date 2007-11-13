@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: ruc.c,v 1.13 2007/10/23 14:00:36 nifi Exp $
+ * $Id: ruc.c,v 1.14 2007/11/13 20:58:46 adamdunkels Exp $
  */
 
 /**
@@ -78,7 +78,7 @@ sent_by_suc(struct suc_conn *suc)
   if(c->rxmit >= c->max_rxmit) {
     RIMESTATS_ADD(timedout);
     suc_cancel(&c->c);
-    c->u->timedout(c);
+    c->u->timedout(c, suc_receiver(&c->c), c->rxmit);
     PRINTF("%d.%d: ruc: packet %d timed out\n",
 	   rimeaddr_node_addr.u8[0],rimeaddr_node_addr.u8[1],
 	   c->sndnxt);
@@ -108,10 +108,9 @@ recv_from_suc(struct suc_conn *suc, rimeaddr_t *from)
 	     rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1],
 	     hdr->seqno);
       ++c->sndnxt;
-      c->rxmit = 0;
       suc_cancel(&c->c);
       if(c->u->sent != NULL) {
-	c->u->sent(c);
+	c->u->sent(c, suc_receiver(&c->c), c->rxmit);
       }
     } else {
       PRINTF("%d.%d: ruc: received bad ACK %d for %d\n",
@@ -121,8 +120,9 @@ recv_from_suc(struct suc_conn *suc, rimeaddr_t *from)
       RIMESTATS_ADD(badackrx);
     }
   } else if(hdr->type == TYPE_DATA) {
-    int send_ack = 1;
+    /*    int send_ack = 1;*/
     u16_t packet_seqno;
+    struct queuebuf *q;
 
     RIMESTATS_ADD(reliablerx);
 
@@ -133,27 +133,35 @@ recv_from_suc(struct suc_conn *suc, rimeaddr_t *from)
     packet_seqno = hdr->seqno;
 
     rimebuf_hdrreduce(sizeof(struct ruc_hdr));
+
+    q = queuebuf_new_from_rimebuf();
+    
+    PRINTF("%d.%d: ruc: Sending ACK to %d.%d for %d\n",
+	   rimeaddr_node_addr.u8[0],rimeaddr_node_addr.u8[1],
+	   from->u8[0], from->u8[1],
+	   packet_seqno);
+    rimebuf_clear();
+    rimebuf_hdralloc(sizeof(struct ruc_hdr));
+    hdr = rimebuf_hdrptr();
+    hdr->type = TYPE_ACK;
+    hdr->seqno = packet_seqno;
+    suc_send(&c->c, from);
+    RIMESTATS_ADD(acktx);
+
+    queuebuf_to_rimebuf(q);
+    queuebuf_free(q);
+      
     if(c->u->recv != NULL) {
-      send_ack = c->u->recv(c, from, packet_seqno);
+      c->u->recv(c, from, packet_seqno);
+      /*      send_ack = c->u->recv(c, from, packet_seqno);*/
     }
     
-    if(send_ack) {
-      PRINTF("%d.%d: ruc: Sending ACK to %d.%d for %d\n",
-	     rimeaddr_node_addr.u8[0],rimeaddr_node_addr.u8[1],
-	     from->u8[0], from->u8[1],
-	     packet_seqno);
-      rimebuf_clear();
-      rimebuf_hdralloc(sizeof(struct ruc_hdr));
-      hdr = rimebuf_hdrptr();
-      hdr->type = TYPE_ACK;
-      hdr->seqno = packet_seqno;
-      suc_send(&c->c, from);
-      RIMESTATS_ADD(acktx);
-    } else {
+    /*    if(send_ack) {*/
+      /*    } else {
       RIMESTATS_ADD(noacktx);
       PRINTF("%d.%d: Not sending ACK\n",
 	     rimeaddr_node_addr.u8[0],rimeaddr_node_addr.u8[1]);
-    }
+	     }*/
   }
 }
 /*---------------------------------------------------------------------------*/
