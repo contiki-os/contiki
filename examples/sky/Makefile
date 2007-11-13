@@ -7,4 +7,7 @@ endif
 
 all: blink test-button test-cfs tcprudolph0
 
+serialdump:
+	$(SERIALDUMP) -b115200 /dev/com$(firstword $(CMOTES)) | $(CONTIKI)/tools/timestamp | tee serialdump-`date +%Y%m%d-%H%M`
+
 include $(CONTIKI)/Makefile.include
