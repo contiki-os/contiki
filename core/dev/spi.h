@@ -1,5 +1,5 @@
 /* -*- C -*- */
-/* @(#)$Id: spi.h,v 1.2 2006/09/26 15:48:01 bg- Exp $ */
+/* @(#)$Id: spi.h,v 1.3 2007/11/13 06:45:29 fros4943 Exp $ */
 
 #ifndef SPI_H
 #define SPI_H
@@ -42,7 +42,8 @@ void spi_init(void);
 
 #define FASTSPI_TX_MANY(p,c)\
 	do {\
-		for (u8_t spiCnt = 0; spiCnt < (c); spiCnt++) {\
+        u8_t spiCnt;\
+        for (spiCnt = 0; spiCnt < (c); spiCnt++) {\
 			FASTSPI_TX(((u8_t*)(p))[spiCnt]);\
 		}\
 	} while(0)
