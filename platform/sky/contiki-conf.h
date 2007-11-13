@@ -1,8 +1,11 @@
 /* -*- C -*- */
-/* @(#)$Id: contiki-conf.h,v 1.19 2007/11/06 20:28:09 adamdunkels Exp $ */
+/* @(#)$Id: contiki-conf.h,v 1.20 2007/11/13 21:10:50 adamdunkels Exp $ */
 
 #ifndef CONTIKI_CONF_H
 #define CONTIKI_CONF_H
+
+#define PROFILE_CONF_ON 1
+#define ENERGEST_CONF_ON 1
 
 #define HAVE_STDINT_H
 #include "msp430def.h"
