@@ -28,21 +28,23 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: sky-treeroute.c,v 1.3 2007/05/22 21:05:09 adamdunkels Exp $
+ * $Id: sky-treeroute.c,v 1.4 2007/11/13 21:09:14 adamdunkels Exp $
  */
 
 /**
  * \file
- *         A brief description of what this file is.
+ *         A program that collects statistics from a network of Tmote Sky nodes
  * \author
  *         Adam Dunkels <adam@sics.se>
  */
 
 #include "contiki.h"
+#include "net/rime/neighbor.h"
 #include "net/rime.h"
 #include "net/rime/tree.h"
 #include "dev/leds.h"
 #include "dev/button-sensor.h"
+#include "dev/battery-sensor.h"
 
 #include "dev/light.h"
 #include "dev/sht11.h"
@@ -53,18 +55,37 @@
 static struct tree_conn tc;
 
 struct sky_treeroute_msg {
-  u16_t light1;
-  u16_t light2;
-  u16_t temperature;
-  u16_t humidity;
+  uint16_t light1;
+  uint16_t light2;
+  uint16_t temperature;
+  uint16_t humidity;
+  uint16_t battery;
+  uint16_t best_neighbor;
+  uint16_t best_neighbor_etx;
+  uint16_t best_neighbor_rtmetric;
+  uint32_t energy_lpm;
+  uint32_t energy_cpu;
+  uint32_t energy_rx;
+  uint32_t energy_tx;
+  uint32_t energy_rled;
+
+  uint16_t tx, rx;
+  uint16_t reliabletx, reliablerx,
+    rexmit, acktx, noacktx, ackrx, timedout, badackrx;
+  /* Reasons for dropping incoming packets: */
+  uint16_t toolong, tooshort, badsynch, badcrc;
+  uint16_t contentiondrop, /* Packet dropped due to contention */
+    sendingdrop; /* Packet dropped when we were sending a packet */
+  uint16_t lltx, llrx;
+
 };
+
+#define REXMITS 4
 
 /*---------------------------------------------------------------------------*/
 PROCESS(test_tree_process, "Test tree process");
 PROCESS(depth_blink_process, "Depth indicator");
-PROCESS(tcp_server_process, "TCP server");
-AUTOSTART_PROCESSES(&test_tree_process, &depth_blink_process,
-		    &tcp_server_process);
+AUTOSTART_PROCESSES(&test_tree_process, &depth_blink_process);
 /*---------------------------------------------------------------------------*/
 PROCESS_THREAD(depth_blink_process, ev, data)
 {
@@ -74,19 +95,20 @@ PROCESS_THREAD(depth_blink_process, ev, data)
   PROCESS_BEGIN();
 
   while(1) {
-    etimer_set(&et, CLOCK_SECOND * 4);
+    etimer_set(&et, CLOCK_SECOND * 10);
     PROCESS_WAIT_UNTIL(etimer_expired(&et));
     count = tree_depth(&tc);
     if(count == TREE_MAX_DEPTH) {
-      leds_on(LEDS_RED);
+      leds_on(LEDS_BLUE);
     } else {
-      leds_off(LEDS_RED);
+      leds_off(LEDS_BLUE);
+      count /= NEIGHBOR_ETX_SCALE;
       while(count > 0) {
 	leds_on(LEDS_RED);
-	etimer_set(&et, CLOCK_SECOND / 10);
+	etimer_set(&et, CLOCK_SECOND / 32);
 	PROCESS_WAIT_UNTIL(etimer_expired(&et));
 	leds_off(LEDS_RED);
-	etimer_set(&et, CLOCK_SECOND / 10);
+	etimer_set(&et, CLOCK_SECOND / 8);
 	PROCESS_WAIT_UNTIL(etimer_expired(&et));
 	--count;
       }
@@ -96,43 +118,27 @@ PROCESS_THREAD(depth_blink_process, ev, data)
   PROCESS_END();
 }
 /*---------------------------------------------------------------------------*/
-struct logbuf {
-  rimeaddr_t originator;
-  u8_t seqno, hops;
-  struct sky_treeroute_msg msg;
-};
-#define BUFSIZE 4
-static struct logbuf buffer[BUFSIZE];
-static int nextbuf, firstbuf;
-
 static void
 recv(rimeaddr_t *originator, u8_t seqno, u8_t hops)
 {
   struct sky_treeroute_msg *msg;
-  struct logbuf *log;
+  int lptr;
   
   msg = rimebuf_dataptr();
-  /*  printf("Got message from %d.%d, seqno %d, hops %d: len %d '%s'\n",
-	 originator->u8[0], originator->u8[1],
-	 seqno, hops,
-	 rimebuf_datalen(),
-	 (char *)rimebuf_dataptr());*/
-  printf("From %d.%d\n", originator->u8[0], originator->u8[1]);
+  printf("%u %u %u %u %u %u %u %u %u %u %u %lu %lu %lu %lu %lu ",
+	 originator->u16[0], seqno, hops,
+	 msg->light1, msg->light2, msg->temperature, msg->humidity,
+	 msg->battery,
 
-  log = &buffer[nextbuf];
-  rimeaddr_copy(&log->originator, originator);
-  log->seqno = seqno;
-  log->hops = hops;
-  memcpy(&log->msg, msg, sizeof(struct sky_treeroute_msg));
-  nextbuf = (nextbuf + 1) % BUFSIZE;
+	 msg->best_neighbor, msg->best_neighbor_etx, msg->best_neighbor_rtmetric,
+	 msg->energy_lpm, msg->energy_cpu, msg->energy_rx, msg->energy_tx, msg->energy_rled
+	 );
+  printf("%u %u %u %u %u %u %u %u %u %u %u %u %u %u %u %u %u %u\n",
+	 msg->tx, msg->rx, msg->reliabletx, msg->reliablerx, msg->rexmit,
+	 msg->acktx, msg->noacktx, msg->ackrx, msg->timedout, msg->badackrx,
+	 msg->toolong, msg->tooshort, msg->badsynch, msg->badcrc,
+	 msg->contentiondrop, msg->sendingdrop, msg->lltx, msg->llrx);
   
-  /*  memset(&buffer[nextbuf * BUFLINELEN], 0, BUFLINELEN);
-  snprintf(&buffer[nextbuf * BUFLINELEN], BUFLINELEN,
-	   "%d.%d %d %d %s%c",
-	   originator->u8[0], originator->u8[1],
-	   seqno, hops,
-	   (char *)rimebuf_dataptr(), 0);
-	   nextbuf = (nextbuf + 1) % BUFSIZE;*/
 }
 /*---------------------------------------------------------------------------*/
 static const struct tree_callbacks callbacks = { recv };
@@ -142,6 +148,7 @@ PROCESS_THREAD(test_tree_process, ev, data)
   PROCESS_EXITHANDLER(goto exit;)
   PROCESS_BEGIN();
 
+  battery_sensor.activate();
   button_sensor.activate();
   
   tree_open(&tc, 128, &callbacks);
@@ -155,13 +162,13 @@ PROCESS_THREAD(test_tree_process, ev, data)
     
     if(ev == sensors_event) {
       if(data == &button_sensor) {
-	printf("Button\n");
 	tree_set_sink(&tc, 1);
       }
     }
 
     if(etimer_expired(&et)) {
       struct sky_treeroute_msg *msg;
+      struct neighbor *n;
       /*      leds_toggle(LEDS_BLUE);*/
       rimebuf_clear();
       msg = (struct sky_treeroute_msg *)rimebuf_dataptr();
@@ -170,12 +177,41 @@ PROCESS_THREAD(test_tree_process, ev, data)
       msg->light2 = sensors_light2();
       msg->temperature = sht11_temp();
       msg->humidity = sht11_humidity();
-      /*      rimebuf_set_datalen(snprintf(rimebuf_dataptr(), RIMEBUF_SIZE,
-				   "%d %d %d %d",
-				  sensors_light1(), sensors_light2(),
-				  sht11_temp() - 3960, sht11_humidity()));*/
-      /*      printf("Sending '%s'\n", (char *)rimebuf_dataptr());*/
-      tree_send(&tc);
+      msg->battery = battery_sensor.value(0);
+      msg->energy_lpm = energest_type_time(ENERGEST_TYPE_LPM);
+      msg->energy_cpu = energest_type_time(ENERGEST_TYPE_CPU);
+      msg->energy_rx = energest_type_time(ENERGEST_TYPE_LISTEN);
+      msg->energy_tx = energest_type_time(ENERGEST_TYPE_TRANSMIT);
+      msg->energy_rled = energest_type_time(ENERGEST_TYPE_LED_RED);
+      msg->best_neighbor = msg->best_neighbor_etx =
+	msg->best_neighbor_rtmetric = 0;
+      n = neighbor_best();
+      if(n != NULL) {
+	msg->best_neighbor = n->addr.u16[0];
+	msg->best_neighbor_etx = neighbor_etx(n);
+	msg->best_neighbor_rtmetric = n->rtmetric;
+      }
+
+      msg->tx = rimestats.tx;
+      msg->rx = rimestats.rx;
+      msg->reliabletx = rimestats.reliabletx;
+      msg->reliablerx = rimestats.reliablerx;
+      msg->rexmit = rimestats.rexmit;
+      msg->acktx = rimestats.acktx;
+      msg->noacktx = rimestats.noacktx;
+      msg->ackrx = rimestats.ackrx;
+      msg->timedout = rimestats.timedout;
+      msg->badackrx = rimestats.badackrx;
+      msg->toolong = rimestats.toolong;
+      msg->tooshort = rimestats.tooshort;
+      msg->badsynch = rimestats.badsynch;
+      msg->badcrc = rimestats.badcrc;
+      msg->contentiondrop = rimestats.contentiondrop;
+      msg->sendingdrop = rimestats.sendingdrop;
+      msg->lltx = rimestats.lltx;
+      msg->llrx = rimestats.llrx;
+
+      tree_send(&tc, REXMITS);
     }
   }
  exit:
@@ -183,45 +219,3 @@ PROCESS_THREAD(test_tree_process, ev, data)
   PROCESS_END();
 }
 /*---------------------------------------------------------------------------*/
-static struct psock ps;
-static
-PT_THREAD(handle_connection(struct psock *p))
-{
-  PSOCK_BEGIN(p);
-  PSOCK_SEND_STR(p, "Contiki data collection server\n");
-  while(1) {
-    while(firstbuf != nextbuf) {
-      static char buf[50];
-      struct logbuf *l;
-
-      l = &buffer[firstbuf];
-      snprintf(buf, sizeof(buf), "%d.%d %d %d %u %u %u %u\n",
-	       l->originator.u8[0], l->originator.u8[1],
-	       l->seqno, l->hops,
-	       l->msg.light1, l->msg.light2,
-	       l->msg.temperature, l->msg.humidity);
-      PSOCK_SEND_STR(p, buf);
-      firstbuf = (firstbuf + 1) % BUFSIZE;
-    }
-    PSOCK_WAIT_UNTIL(p, nextbuf != firstbuf);
-  }
-  PSOCK_CLOSE(p);
-  PSOCK_END(p);
-}
-PROCESS_THREAD(tcp_server_process, ev, data)
-{
-  PROCESS_BEGIN();
-  tcp_listen(HTONS(1010));
-  while(1) {
-    PROCESS_WAIT_EVENT_UNTIL(ev == tcpip_event);
-    if(uip_connected()) {
-      tree_set_sink(&tc, 1);
-      PSOCK_INIT(&ps, NULL, 0);
-      while(!(uip_aborted() || uip_closed() || uip_timedout())) {
-	PROCESS_WAIT_EVENT_UNTIL(ev == tcpip_event);
-	handle_connection(&ps);
-      }
-    }
-  }
-  PROCESS_END();
-}
