@@ -4,6 +4,7 @@ IHEXFILE=tmpimage.ihex
 # Check if we are running under Windows
 ifdef OS
   ifneq (,$(findstring Windows,$(OS)))
+    SERIALDUMP = $(CONTIKI)/tools/sky/serialdump-windows
     MOTELIST = $(CONTIKI)/tools/sky/motelist-windows
     BSL = $(CONTIKI)/tools/sky/msp430-bsl-windows
     MOTES = $(shell $(MOTELIST) | grep COM | \
@@ -17,6 +18,7 @@ endif
 
 # If we are not running under Windows, we assume Linux
 ifndef MOTELIST
+  SERIALDUMP = $(CONTIKI)/tools/sky/serialdump-linux
   MOTELIST = $(CONTIKI)/tools/sky/motelist-linux
   BSL = $(CONTIKI)/tools/sky/msp430-bsl-linux
   MOTES = $(shell $(MOTELIST) | grep USB | \
@@ -30,7 +32,7 @@ sky-motelist:
 sky-motes:
 	echo $(MOTES)
 
-%.upload: %.ihex
+%.upload: %.ihex sky-reset
 	cp $< $(IHEXFILE)
 	$(MAKE) sky-upload
 
