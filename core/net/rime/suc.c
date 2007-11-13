@@ -33,7 +33,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: suc.c,v 1.10 2007/05/22 20:57:20 adamdunkels Exp $
+ * $Id: suc.c,v 1.11 2007/11/13 21:00:10 adamdunkels Exp $
  */
 
 /**
@@ -86,6 +86,12 @@ suc_close(struct suc_conn *c)
   if(c->buf != NULL) {
     queuebuf_free(c->buf);
   }
+}
+/*---------------------------------------------------------------------------*/
+rimeaddr_t *
+suc_receiver(struct suc_conn *c)
+{
+  return &c->receiver;
 }
 /*---------------------------------------------------------------------------*/
 static void
