@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#)$Id: contiki-sky-main.c,v 1.1 2007/10/25 12:56:28 adamdunkels Exp $
+ * @(#)$Id: contiki-sky-main.c,v 1.2 2007/11/15 13:08:38 nifi Exp $
  */
 
 #include <signal.h>
@@ -126,7 +126,7 @@ main(int argc, char **argv)
 #endif /* WITH_UIP */
   
   printf("Starting %s "
-	 "($Id: contiki-sky-main.c,v 1.1 2007/10/25 12:56:28 adamdunkels Exp $)\n", __FILE__);
+	 "($Id: contiki-sky-main.c,v 1.2 2007/11/15 13:08:38 nifi Exp $)\n", __FILE__);
   ds2411_init();
   sensors_light_init();
   sht11_init();
@@ -161,6 +161,7 @@ main(int argc, char **argv)
   process_init();
   process_start(&etimer_process, NULL);
   process_start(&sensors_process, NULL);
+  ctimer_init();
 
   set_rime_addr();
 
