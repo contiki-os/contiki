@@ -33,7 +33,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: nbh.c,v 1.2 2007/11/15 08:10:42 fros4943 Exp $
+ * $Id: nbh.c,v 1.3 2007/11/15 13:33:09 nifi Exp $
  */
 
 /**
@@ -51,6 +51,8 @@
 #include "net/rime/nbh.h"
 
 #include "dev/radio-sensor.h"
+
+#include "lib/random.h"
 
 #if NETSIM
 #include "ether.h"
@@ -101,7 +103,7 @@ adv_packet_received(struct ibc_conn *ibc, rimeaddr_t *from)
 {
   struct nbh_conn *c = (struct nbh_conn *)ibc;
   struct adv_msg *msg = rimebuf_dataptr();
-  struct neighbor *n;
+/*   struct neighbor *n; */
 
   PRINTF("%d.%d: adv_packet_received from %d.%d with val %d\n",
 	 rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1],
