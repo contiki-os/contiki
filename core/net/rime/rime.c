@@ -33,7 +33,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: rime.c,v 1.11 2007/09/26 11:34:49 nifi Exp $
+ * $Id: rime.c,v 1.12 2007/11/15 13:07:42 nifi Exp $
  */
 
 /**
@@ -64,7 +64,6 @@ input(const struct mac_driver *r)
 void
 rime_init(const struct mac_driver *m)
 {
-  ctimer_init();
   queuebuf_init();
   route_init();
   rimebuf_clear();

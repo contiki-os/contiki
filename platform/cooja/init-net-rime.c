@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: init-net-rime.c,v 1.3 2007/08/23 07:35:26 fros4943 Exp $
+ * @(#)$Id: init-net-rime.c,v 1.4 2007/11/15 13:11:41 nifi Exp $
  */
 
 #include "contiki.h"
@@ -42,6 +42,8 @@ void
 init_net(void)
 {
   rimeaddr_t rimeaddr;
+
+  ctimer_init();
 
   nullmac_init(&cooja_driver);
   rime_init(&nullmac_driver);

@@ -30,7 +30,7 @@
  *
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: contiki-main.c,v 1.17 2007/10/25 08:26:49 zhitao Exp $
+ * $Id: contiki-main.c,v 1.18 2007/11/15 13:11:42 nifi Exp $
  */
 
 #include "contiki.h"
@@ -96,6 +96,7 @@ contiki_main(int flag)
 
   uip_init();
   
+  ctimer_init();
   rime_init(nullmac_init(&ethernode_driver));
 
   uip_over_mesh_init(0);
