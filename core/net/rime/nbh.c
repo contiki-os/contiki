@@ -33,7 +33,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: nbh.c,v 1.1 2007/11/13 21:01:54 adamdunkels Exp $
+ * $Id: nbh.c,v 1.2 2007/11/15 08:10:42 fros4943 Exp $
  */
 
 /**
@@ -139,7 +139,7 @@ static const struct ibc_callbacks ibc_callbacks =
   {adv_packet_received};
 /*---------------------------------------------------------------------------*/
 void
-nbh_open(struct nbh_conn *c, u16_t channel,
+nbh_open(struct nbh_conn *c, uint16_t channel,
 	 const struct nbh_callbacks *cb)
 {
   ibc_open(&c->c, channel, &ibc_callbacks);
@@ -154,7 +154,7 @@ nbh_close(struct nbh_conn *c)
 }
 /*---------------------------------------------------------------------------*/
 void
-nbh_start(struct nbh_conn *c, u16_t val)
+nbh_start(struct nbh_conn *c, uint16_t val)
 {
   c->val = val;
   ctimer_set(&c->t, random_rand() % MIN_INTERVAL, send_timer, c);
