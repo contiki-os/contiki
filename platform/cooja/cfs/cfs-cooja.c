@@ -28,19 +28,18 @@
  *
  * This file is part of the Contiki operating system.
  * 
- * $Id: cfs-cooja.c,v 1.2 2007/05/19 21:37:54 oliverschmidt Exp $
+ * $Id: cfs-cooja.c,v 1.3 2007/11/16 09:21:49 fros4943 Exp $
  */
 #include <string.h>
 #include "lib/simEnvChange.h"
-
 #include "cfs/cfs.h"
-#include "dev/eeprom.h"
 
-struct filestate {
-  int flag;
 #define FLAG_FILE_CLOSED 0
 #define FLAG_FILE_OPEN   1
-  eeprom_addr_t fileptr;
+
+struct filestate {
+  char flag;
+  int fileptr;
 };
 
 static struct filestate file;
@@ -76,7 +75,7 @@ cfs_close(int f)
 int
 cfs_read(int f, char *buf, unsigned int len)
 {
-  if(f == 1) {
+  if(f == FLAG_FILE_OPEN) {
 	// TODO Should yield a few times?
 	memcpy(&buf[0], &simCFSData[0] + file.fileptr, len);
     file.fileptr += len;
@@ -91,7 +90,7 @@ cfs_read(int f, char *buf, unsigned int len)
 int
 cfs_write(int f, char *buf, unsigned int len)
 {
-  if(f == 1) {
+  if(f == FLAG_FILE_OPEN) {
 	// TODO Should yield a few times?
 	memcpy(&simCFSData[0] + file.fileptr, &buf[0], len);
     file.fileptr += len;
@@ -106,7 +105,7 @@ cfs_write(int f, char *buf, unsigned int len)
 int
 cfs_seek(int f, unsigned int o)
 {
-  if(f == 1) {
+  if(f == FLAG_FILE_OPEN) {
     file.fileptr = o;
     return o;
   } else {
