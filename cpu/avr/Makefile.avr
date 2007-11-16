@@ -1,4 +1,4 @@
-# $Id: Makefile.avr,v 1.6 2007/11/01 16:26:31 fros4943 Exp $
+# $Id: Makefile.avr,v 1.7 2007/11/16 09:19:22 fros4943 Exp $
 
 ### Check if we are running under Windows
 
@@ -17,13 +17,13 @@ CONTIKI_CPU=$(CONTIKI)/cpu/avr
 
 ### Define the source files we have in the AVR port
 
-AVR        = leds-arch.c leds.c clock.c
+AVR        = leds-arch.c leds.c clock.c random.c
 ELFLOADER  = elfloader.c elfloader-avr.c symtab-avr.c
 TARGETLIBS = clock.c flash.c mtarch.c
 
 CONTIKI_TARGET_SOURCEFILES += ${AVR} $(SENSORS) \
                               $(SYSAPPS) $(ELFLOADER) \
-                              $(TARGETLIBS) $(UIPDRIVERS)
+                              $(TARGETLIBS)
 
 CONTIKI_SOURCEFILES        += $(CONTIKI_TARGET_SOURCEFILES)
 
@@ -65,7 +65,7 @@ $(OBJECTDIR)/%.o: %.c
 %.ko: %.o
 	$(STRIP) -K _init -K _fini --strip-unneeded -g -x $< -o $@
 
-%.elf:	%.co $(PROJECT_OBJECTFILES) contiki-$(TARGET).a
+%.elf:	%.co $(PROJECT_OBJECTFILES) contiki-$(TARGET).a symbols.o
 	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $(filter-out %.a,$^) $(filter %.a,$^) $(LDLIBS)
 
 %.hex: %.out
@@ -94,13 +94,14 @@ $(OBJECTDIR)/%.o: %.c
 
 #%.ce: %.c
 #	$(CC) $(CFLAGS) -DPROCESS_LOADABLE -c $< -o $@
-	$(STRIP) --strip-unneeded -g -x $@
+#	$(STRIP) --strip-unneeded -g -x $@
 
-%.ce: 	%.co
-	$(LD) -i -r --unresolved-symbols=ignore-in-object-files -mavr5 -o $@ $^
-	$(STRIP) --strip-unneeded -g -x $@
+#%.ce: 	%.co
+#	$(LD) -i -r --unresolved-symbols=ignore-in-object-files -mavr5 -o $@ $^
+#	$(STRIP) --strip-unneeded -g -x $@
 
 %.co: %.c
+	$(CONTIKI)/tools/make-empty-symbols
 	$(CC) $(CFLAGS) -DAUTOSTART_ENABLE -c $< -o $@
 
 %-stripped.o: %.o
@@ -116,6 +117,5 @@ $(OBJECTDIR)/%.o: %.c
 %.u: %.hex
 	avrdude ${AVRDUDE_OPTIONS} -P ${AVRDUDE_PORT} -c ${AVRDUDE_PROGRAMMER} -p ${MCU} -U flash:w:$<
 
-.PHONY: symbols.c
 symbols.c:
-	${CONTIKI}/tools/avr-make-symbols core.firmware > symbols.c
+	@${CONTIKI}/tools/make-empty-symbols
