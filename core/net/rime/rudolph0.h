@@ -47,7 +47,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: rudolph0.h,v 1.4 2007/05/15 08:09:21 adamdunkels Exp $
+ * $Id: rudolph0.h,v 1.5 2007/11/16 09:17:22 fros4943 Exp $
  */
 
 /**
@@ -80,7 +80,11 @@ struct rudolph0_callbacks {
 		     int maxsize);
 };
 
+#ifdef RUDOLPH0_CONF_DATASIZE
+#define RUDOLPH0_DATASIZE RUDOLPH0_CONF_DATASIZE
+#else
 #define RUDOLPH0_DATASIZE 64
+#endif
 
 struct rudolph0_hdr {
   u8_t type;
