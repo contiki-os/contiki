@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: elfloader-avr.c,v 1.4 2006/12/22 17:10:54 barner Exp $
+ * @(#)$Id: elfloader-avr.c,v 1.5 2007/11/16 09:16:31 fros4943 Exp $
  */
 
 #include <stdio.h>
@@ -61,12 +61,26 @@
 
 #define ELF32_R_TYPE(info)      ((unsigned char)(info))
 
+#define DEBUG 0
+#if DEBUG
+/*#define PRINTF(...) rs232_print_p(RS232_PORT_1, __VA_ARGS__)*/
+#define PRINTF(...) printf(__VA_ARGS__)
+#else
+#define PRINTF(...)
+#endif
+
 static struct mmem module_heap;
 /*---------------------------------------------------------------------------*/
 void*
 elfloader_arch_allocate_ram(int size)
 {
-  /* Allocate RAM for module (TODO: we leak the memory) */
+  /* Free previously allocated memory */
+  /* TODO Assumes memory address 0 can't be allocated, use flag instead? */
+  if (MMEM_PTR(&module_heap) != 0) {
+    mmem_free(&module_heap);
+  }
+  
+  /* Allocate RAM for module */
   if (mmem_alloc (&module_heap, size) ==  0) {
     return NULL;
   }
@@ -166,8 +180,8 @@ elfloader_arch_relocate(int fd, unsigned int sectionoffset,
   switch(type) {
   case R_AVR_NONE:
   case R_AVR_32:
-    rs232_print_p (RS232_PORT_1, PSTR ("elfloader-avr.c: unsupported relocation type: "));
-    rs232_printf (RS232_PORT_1, "%d\n", type);
+    PRINTF(PSTR ("elfloader-avr.c: unsupported relocation type: "));
+    PRINTF("%d\n", type);
     break;
 
   case R_AVR_7_PCREL: { /* 4 */
@@ -257,14 +271,20 @@ elfloader_arch_relocate(int fd, unsigned int sectionoffset,
     break;
 
   case R_AVR_CALL: /* 18 */
-    addr = ((int16_t)addr >> 1);
-    instr[2] = (int16_t)addr & 0xff;
-    instr[3] = (int16_t)addr >> 8;
+  	/* old solution: 
+     addr = ((int16_t)addr >> 1);
+     instr[2] = (int16_t)addr & 0xff;
+     instr[3] = (int16_t)addr >> 8;
+	*/
+
+	/* new solution */
+    instr[2] = (u8_t) ((int16_t)addr) & 0xff;
+    instr[3] = ((int16_t)addr) >> 8;
     cfs_write(fd, instr, 4);
     break;
 
   default:
-    rs232_print_p (RS232_PORT_1, PSTR ("Unknown reloation type!\n"));
+    PRINTF(PSTR ("Unknown relocation type!\n"));
     break;
   }
 }
