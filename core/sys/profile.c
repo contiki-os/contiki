@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: profile.c,v 1.1 2007/10/23 20:39:07 adamdunkels Exp $
+ * $Id: profile.c,v 1.2 2007/11/17 10:14:19 adamdunkels Exp $
  */
 
 /**
@@ -57,6 +57,12 @@ static rtimer_clock_t episode_start_time;
    grained timer, and 32678 / 8 ticks per second for the coarse. */
 #define FINE_TICKS_PER_COARSE_TICK (2457600/(32678/8))
 
+/* XXX hack: we use a function called clock_counter() that is not part
+   of the clock API and currently is only implemented for the
+   MSP430. We therefore declare this function here instead of in
+   dev/clock.h. */
+rtimer_clock_t clock_counter(void);
+
 /*---------------------------------------------------------------------------*/
 rtimer_clock_t
 profile_timediff(const char *ptr1, const char *ptr2)
@@ -64,7 +70,7 @@ profile_timediff(const char *ptr1, const char *ptr2)
   int i;
   int t1, t2;
   int timestamp_ptr = PROFILE_TIMESTAMP_PTR;
-
+  
   /*  printf("profile_timestamp_ptr %d max %d\n", profile_timestamp_ptr, profile_max_queuelen);*/
   
   t1 = t2 = PROFILE_LIST_LENGTH;
@@ -160,6 +166,8 @@ profile_episode_end(void)
 /*   profile_print_stats(); */
 }
 /*---------------------------------------------------------------------------*/
+#if 0
+#include <stdio.h>
 void
 profile_print_stats(void)
 {
@@ -170,4 +178,5 @@ profile_print_stats(void)
 	 profile_invalid_episode_overflow,
 	 profile_invalid_episode_toolong);
 }
+#endif /* 0 */
 /*---------------------------------------------------------------------------*/

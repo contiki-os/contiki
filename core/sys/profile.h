@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: profile.h,v 1.1 2007/10/23 20:39:07 adamdunkels Exp $
+ * $Id: profile.h,v 1.2 2007/11/17 10:14:19 adamdunkels Exp $
  */
 
 /**
@@ -56,7 +56,7 @@
 #endif
 
 struct profile_timestamp {
-  const unsigned char *ptr;
+  const char *ptr;
   rtimer_clock_t time;
 };
 
