@@ -30,7 +30,7 @@
  *
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: cfs-posix.c,v 1.4 2007/11/17 18:01:00 adamdunkels Exp $
+ * $Id: cfs-posix.c,v 1.5 2007/11/17 20:04:44 oliverschmidt Exp $
  */
 #include "contiki.h"
 
@@ -117,7 +117,6 @@ cfs_readdir(struct cfs_dir *p, struct cfs_dirent *e)
 {
   struct cfs_posix_dir *dir = (struct cfs_posix_dir *)p;
   struct dirent *res;
-  int ret;
 
   if(dir->dirp == NULL) {
     return 1;
