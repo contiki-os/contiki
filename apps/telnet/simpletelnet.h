@@ -29,7 +29,7 @@
  *
  * This file is part of the Contiki desktop environment for the C64.
  *
- * $Id: simpletelnet.h,v 1.2 2007/09/29 04:02:06 matsutsuka Exp $
+ * $Id: simpletelnet.h,v 1.3 2007/11/17 22:27:09 oliverschmidt Exp $
  *
  */
 #ifndef __SIMPLETELNET_H__
@@ -50,7 +50,7 @@
 #ifdef TELNET_CONF_TEXTAREA_HEIGHT
 #define TELNET_TEXTAREA_HEIGHT TELNET_CONF_TEXTAREA_HEIGHT
 #else /* TELNET_CONF_TEXTAREA_HEIGHT */
-#define TELNET_TEXTAREA_HEIGHT TELNET_CONF_WINDOW_HEIGHT - 7
+#define TELNET_TEXTAREA_HEIGHT TELNET_WINDOW_HEIGHT - 7
 #endif /* TELNET_CONF_TEXTAREA_HEIGHT */
 
 #ifdef TELNET_CONF_ENTRY_WIDTH
