@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: sky-treeroute.c,v 1.4 2007/11/13 21:09:14 adamdunkels Exp $
+ * $Id: sky-treeroute.c,v 1.5 2007/11/17 10:28:49 adamdunkels Exp $
  */
 
 /**
@@ -122,7 +122,6 @@ static void
 recv(rimeaddr_t *originator, u8_t seqno, u8_t hops)
 {
   struct sky_treeroute_msg *msg;
-  int lptr;
   
   msg = rimebuf_dataptr();
   printf("%u %u %u %u %u %u %u %u %u %u %u %lu %lu %lu %lu %lu ",
