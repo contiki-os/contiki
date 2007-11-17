@@ -30,7 +30,7 @@
  *
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: uip-fw.c,v 1.7 2007/08/22 10:47:37 ksb Exp $
+ * $Id: uip-fw.c,v 1.8 2007/11/17 10:46:58 adamdunkels Exp $
  */
 /**
  * \addtogroup uip
@@ -360,7 +360,9 @@ u8_t
 uip_fw_output(void)
 {
   struct uip_fw_netif *netif;
+#if UIP_BROADCAST
   const struct uip_udpip_hdr *udp = (void *)BUF;
+#endif /* UIP_BROADCAST */
 
   if(uip_len == 0) {
     return UIP_FW_ZEROLEN;

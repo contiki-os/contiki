@@ -29,7 +29,7 @@
  *
  * This file is part of the Contiki OS
  *
- * $Id: contiki-main.c,v 1.3 2007/05/22 21:33:31 oliverschmidt Exp $
+ * $Id: contiki-main.c,v 1.4 2007/11/17 10:47:47 adamdunkels Exp $
  *
  */
 
@@ -58,7 +58,7 @@ main(void)
 
   procinit_init();
   
-  autostart_start(autostart_processes);
+  autostart_start((struct process **)autostart_processes);
   
   uip_ipaddr(&addr, 192,168,2,2);
   uip_sethostaddr(&addr);
