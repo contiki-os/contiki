@@ -33,7 +33,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: neighbor.c,v 1.10 2007/11/13 20:39:29 adamdunkels Exp $
+ * $Id: neighbor.c,v 1.11 2007/11/17 10:32:54 adamdunkels Exp $
  */
 
 /**
@@ -108,12 +108,11 @@ neighbor_find(rimeaddr_t *addr)
 }
 /*---------------------------------------------------------------------------*/
 void
-neighbor_update(struct neighbor *n, u8_t rtmetric, u8_t etx)
+neighbor_update(struct neighbor *n, u8_t rtmetric)
 {
   if(n != NULL) {
     n->rtmetric = rtmetric;
     n->time = 0;
-    neighbor_update_etx(n, etx);
   }
 }
 /*---------------------------------------------------------------------------*/
