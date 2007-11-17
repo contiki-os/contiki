@@ -33,7 +33,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: nbh.c,v 1.3 2007/11/15 13:33:09 nifi Exp $
+ * $Id: nbh.c,v 1.4 2007/11/17 10:34:17 adamdunkels Exp $
  */
 
 /**
@@ -96,6 +96,9 @@ send_adv(struct nbh_conn *c, clock_time_t interval)
   if(c->u->sent) {
     c->u->sent(c);
   }
+  PRINTF("%d.%d: sending neighbor advertisement with val %d\n",
+	 rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1],
+	 c->val);
 }
 /*---------------------------------------------------------------------------*/
 static void
@@ -130,7 +133,7 @@ static void
 send_timer(void *ptr)
 {
   struct nbh_conn *tc = ptr;
-
+  
   send_adv(tc, MAX_INTERVAL / 2);
   ctimer_set(&tc->t,
 	     MIN_INTERVAL + random_rand() % (MAX_INTERVAL - MIN_INTERVAL),
