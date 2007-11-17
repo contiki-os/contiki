@@ -30,7 +30,7 @@
  *
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: contiki-main.c,v 1.18 2007/11/15 13:11:42 nifi Exp $
+ * $Id: contiki-main.c,v 1.19 2007/11/17 18:09:18 adamdunkels Exp $
  */
 
 #include "contiki.h"
@@ -49,11 +49,13 @@
 #include "net/ethernode.h"
 #include "net/uip-over-mesh.h"
 
+#include "net/mac/nullmac.h"
+
 #include "ether.h"
 
-/*#include <stdio.h>
+#include <stdio.h>
 #include <stdlib.h>
-#include <unistd.h>*/
+#include <unistd.h>
 
 #include "dev/button-sensor.h"
 #include "dev/pir-sensor.h"
@@ -118,7 +120,7 @@ contiki_main(int flag)
 
   rtimer_init();
   
-  autostart_start(autostart_processes);
+  autostart_start((struct process **)autostart_processes);
   
   while(1) {
     int n;

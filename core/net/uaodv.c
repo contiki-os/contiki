@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: uaodv.c,v 1.32 2007/09/29 03:54:18 matsutsuka Exp $
+ * $Id: uaodv.c,v 1.33 2007/11/17 18:05:21 adamdunkels Exp $
  */
 
 /**
@@ -38,7 +38,6 @@
  *         Adam Dunkels <adam@sics.se>
  */
 
-#if UIP_UDP
 #include <stdio.h>
 #include <stdarg.h>
 
@@ -240,7 +239,7 @@ send_rerr(uip_ipaddr_t *addr, u32_t *seqno)
 {
   struct uaodv_msg_rerr *rm = (struct uaodv_msg_rerr *)uip_appdata;
   
-  print_debug("send RERR for %d.%d.%d.%d\n", uip_ipaddr_to_quad(addr));  
+  print_debug("send RERR for %d.%d.%d.%d\n", uip_ipaddr_to_quad(addr));
 
   rm->type = UAODV_RERR_TYPE;
   rm->reserved = 0;
@@ -358,7 +357,7 @@ handle_incoming_rreq(void)
 
     my_hseqno++;
     if(!(rm->flags & UAODV_RREQ_UNKSEQNO)
-       && SCMP32(my_hseqno, ntohl(rm->dest_seqno)) < 0) { 
+       && SCMP32(my_hseqno, ntohl(rm->dest_seqno)) < 0) {
       print_debug("New my_hseqno %lu\n", my_hseqno); /* We have rebooted. */
       my_hseqno = ntohl(rm->dest_seqno) + 1;
     }
@@ -626,4 +625,3 @@ PROCESS_THREAD(uaodv_process, ev, data)
   PROCESS_END();
 }
 /*---------------------------------------------------------------------------*/
-#endif /* UIP_UDP */

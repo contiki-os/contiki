@@ -47,7 +47,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: rudolph0.h,v 1.5 2007/11/16 09:17:22 fros4943 Exp $
+ * $Id: rudolph0.h,v 1.6 2007/11/17 18:05:21 adamdunkels Exp $
  */
 
 /**
@@ -75,8 +75,8 @@ enum {
 
 struct rudolph0_callbacks {
   void (* write_chunk)(struct rudolph0_conn *c, int offset, int flag,
-		       char *data, int len);
-  int (* read_chunk)(struct rudolph0_conn *c, int offset, char *to,
+		       uint8_t *data, int len);
+  int (* read_chunk)(struct rudolph0_conn *c, int offset, uint8_t *to,
 		     int maxsize);
 };
 

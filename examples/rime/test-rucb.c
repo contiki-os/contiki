@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: test-rucb.c,v 1.1 2007/09/27 22:21:27 adamdunkels Exp $
+ * $Id: test-rucb.c,v 1.2 2007/11/17 18:09:56 adamdunkels Exp $
  */
 
 /**
@@ -46,10 +46,15 @@
 #include "dev/leds.h"
 
 #include "cfs/cfs.h"
-
+#include "lib/print-stats.h"
 #include "sys/profile.h"
 
 #include <stdio.h>
+
+#if NETSIM
+#include "ether.h"
+#include "node.h"
+#endif /* NETSIM */
 
 #define FILESIZE 40000
 
@@ -87,7 +92,7 @@ read_chunk(struct rucb_conn *c, int offset, char *to, int maxsize)
   bytecount += size;
 
   if(bytecount == FILESIZE) {
-    printf("Completion time %u / %u\n", clock_time() - start_time, CLOCK_SECOND);
+    printf("Completion time %lu / %u\n", (unsigned long)clock_time() - start_time, CLOCK_SECOND);
     /*     profile_aggregates_print(); */
 /*     profile_print_stats(); */
     print_stats();
@@ -104,7 +109,6 @@ static struct rucb_conn rucb;
 
 PROCESS_THREAD(test_rucb_process, ev, data)
 {
-  static int fd;
   PROCESS_EXITHANDLER(rucb_close(&rucb);)
   PROCESS_BEGIN();
 
@@ -116,11 +120,11 @@ PROCESS_THREAD(test_rucb_process, ev, data)
 
   PROCESS_PAUSE();
   
-  if(rimeaddr_node_addr.u8[0] == 10 &&
+  if(rimeaddr_node_addr.u8[0] == 51 &&
      rimeaddr_node_addr.u8[1] == 0) {
     rimeaddr_t recv;
     
-    recv.u8[0] = 20;
+    recv.u8[0] = 52;
     recv.u8[1] = 0;
     start_time = clock_time();
     rucb_send(&rucb, &recv);

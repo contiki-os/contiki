@@ -39,7 +39,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: rudolph2.c,v 1.2 2007/11/17 10:13:17 adamdunkels Exp $
+ * $Id: rudolph2.c,v 1.3 2007/11/17 18:05:21 adamdunkels Exp $
  */
 
 /**
@@ -94,7 +94,7 @@ enum {
 
 /*---------------------------------------------------------------------------*/
 static int
-read_data(struct rudolph2_conn *c, char *dataptr, int chunk)
+read_data(struct rudolph2_conn *c, uint8_t *dataptr, int chunk)
 {
   int len = 0;
 
@@ -117,7 +117,7 @@ format_data(struct rudolph2_conn *c, int chunk)
   hdr->hops_from_base = c->hops_from_base;
   hdr->version = c->version;
   hdr->chunk = chunk;
-  len = read_data(c, (char *)hdr + sizeof(struct rudolph2_hdr), chunk);
+  len = read_data(c, (uint8_t *)hdr + sizeof(struct rudolph2_hdr), chunk);
   rimebuf_set_datalen(sizeof(struct rudolph2_hdr) + len);
 
   return len;

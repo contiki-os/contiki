@@ -28,10 +28,12 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: init.h,v 1.2 2006/10/06 08:25:30 adamdunkels Exp $
+ * @(#)$Id: init.h,v 1.3 2007/11/17 18:09:18 adamdunkels Exp $
  */
 #ifndef __INIT_H__
 #define __INIT_H__
+
+#include "ether.h"
 
 void init(void);
 

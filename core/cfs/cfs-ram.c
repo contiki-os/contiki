@@ -30,7 +30,7 @@
  *
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: cfs-ram.c,v 1.3 2007/05/19 21:05:49 oliverschmidt Exp $
+ * $Id: cfs-ram.c,v 1.4 2007/11/17 18:01:00 adamdunkels Exp $
  */
 #include "contiki.h"
 
@@ -77,7 +77,7 @@ cfs_close(int f)
 }
 /*---------------------------------------------------------------------------*/
 int
-cfs_read(int f, char *buf, unsigned int len)
+cfs_read(int f, void *buf, unsigned int len)
 {
   if(file.fileptr + len > sizeof(filemem)) {
     len = sizeof(filemem) - file.fileptr;
@@ -97,7 +97,7 @@ cfs_read(int f, char *buf, unsigned int len)
 }
 /*---------------------------------------------------------------------------*/
 int
-cfs_write(int f, char *buf, unsigned int len)
+cfs_write(int f, void *buf, unsigned int len)
 {
   if(file.fileptr >= sizeof(filemem)) {
     return 0;

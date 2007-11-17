@@ -30,7 +30,7 @@
  *
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: eeprom.c,v 1.1 2006/06/17 22:41:36 adamdunkels Exp $
+ * $Id: eeprom.c,v 1.2 2007/11/17 18:09:18 adamdunkels Exp $
  */
 #include "dev/eeprom.h"
 #include "node.h"
@@ -49,7 +49,7 @@ eeprom_write(eeprom_addr_t addr, unsigned char *buf, int size)
   int f;
   char name[400];
 
-  snprintf(name, sizeof(name), "eeprom.%d.%d", node_x(), node_y());
+  sprintf(name, "eeprom.%d.%d", node_x(), node_y());
   f = open(name, O_WRONLY | O_APPEND | O_CREAT, 0644);
   lseek(f, addr, SEEK_SET);
   write(f, buf, size);

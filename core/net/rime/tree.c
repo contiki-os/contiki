@@ -33,7 +33,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: tree.c,v 1.14 2007/11/17 10:32:54 adamdunkels Exp $
+ * $Id: tree.c,v 1.15 2007/11/17 18:05:21 adamdunkels Exp $
  */
 
 /**
@@ -139,7 +139,7 @@ update_rtmetric(struct tree_conn *tc)
     if(tc->local_rtmetric == RTMETRIC_MAX) {
       strcpy(buf, " ");
     } else {
-      snprintf(buf, sizeof(buf), "%d", tc->local_rtmetric);
+      sprintf(buf, "%d", tc->local_rtmetric);
     }
     ether_set_text(buf);
   }

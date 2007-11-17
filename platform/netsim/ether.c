@@ -30,7 +30,7 @@
  *
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: ether.c,v 1.9 2007/11/14 11:17:30 nvt-se Exp $
+ * $Id: ether.c,v 1.10 2007/11/17 18:09:18 adamdunkels Exp $
  */
 /**
  * \file
@@ -117,7 +117,7 @@ static int num_drops = 0;
 
 static struct timeval t1;
 /*-----------------------------------------------------------------------------------*/
-int
+void
 ether_print_stats(void)
 {
   unsigned long time;
@@ -132,8 +132,6 @@ ether_print_stats(void)
   printf("Total collisions: %d\n", num_collisions);
   printf("Total packets receptions: %d\n", num_received);
   printf("Total randomly dropped packets: %d\n", num_drops);
-
-  return 0;
 }
 /*-----------------------------------------------------------------------------------*/
 void
@@ -178,7 +176,7 @@ ether_server_init(void)
     perror("ether_server_init: socket");
   }
   
-  bzero((char *)&sa, sizeof(sa));
+  memset((char *)&sa, 0, sizeof(sa));
   
   sa.sin_family = AF_INET;
   sa.sin_addr.s_addr = inet_addr("127.0.0.1");/*htonl(INADDR_ANY);*/
@@ -206,7 +204,7 @@ ether_client_init(int port)
     perror("socket");
   }
   
-  bzero((char *)&sa, sizeof(sa));
+  memset((char *)&sa, 0, sizeof(sa));
   
   sa.sin_family = AF_INET;
   sa.sin_addr.s_addr = inet_addr("127.0.0.1");/*htonl(INADDR_ANY);*/
@@ -322,7 +320,7 @@ ether_server_poll(void)
       case PTYPE_DATA:
 	PRINTF("ether_poll: read %d bytes from (%d, %d)\n",
 	       ret, hdr->srcx, hdr->srcy);
-	ether_put(rxbuffer, ret, hdr->srcx, hdr->srcy);
+	ether_put((char *)rxbuffer, ret, hdr->srcx, hdr->srcy);
 	break;
       case PTYPE_LEDS:
 	nodes_set_leds(hdr->srcx, hdr->srcy, hdr->leds);
@@ -369,7 +367,7 @@ send_packet(char *data, int len, int port)
 {
   struct sockaddr_in sa;
   
-  bzero((char *)&sa , sizeof(sa));
+  memset((char *)&sa, 0, sizeof(sa));
   sa.sin_family = AF_INET;
   sa.sin_addr.s_addr = inet_addr("127.0.0.1");
   sa.sin_port = htons(port);
@@ -492,7 +490,7 @@ node_send_packet(char *data, int len)
 {
   struct sockaddr_in sa;
   
-  bzero((char *)&sa , sizeof(sa));
+  memset((char *)&sa, 0, sizeof(sa));
   sa.sin_family = AF_INET;
   sa.sin_addr.s_addr = inet_addr("127.0.0.1");
   sa.sin_port = htons(ETHER_PORT);

@@ -30,7 +30,7 @@
  *
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: cfs-xmem.c,v 1.4 2007/05/19 21:05:49 oliverschmidt Exp $
+ * $Id: cfs-xmem.c,v 1.5 2007/11/17 18:01:00 adamdunkels Exp $
  */
 #include "contiki.h"
 
@@ -84,7 +84,7 @@ cfs_close(int f)
 }
 /*---------------------------------------------------------------------------*/
 int
-cfs_read(int f, char *buf, unsigned int len)
+cfs_read(int f, void *buf, unsigned int len)
 {
   if(file.fileptr + len > CFS_XMEM_SIZE) {
     len = CFS_XMEM_SIZE - file.fileptr;
@@ -104,7 +104,7 @@ cfs_read(int f, char *buf, unsigned int len)
 }
 /*---------------------------------------------------------------------------*/
 int
-cfs_write(int f, char *buf, unsigned int len)
+cfs_write(int f, void *buf, unsigned int len)
 {
   if(file.fileptr >= CFS_XMEM_SIZE) {
     return 0;
@@ -159,4 +159,3 @@ cfs_closedir(struct cfs_dir *p)
   return 1;
 }
 /*---------------------------------------------------------------------------*/
-
