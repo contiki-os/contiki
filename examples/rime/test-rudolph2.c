@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: test-rudolph2.c,v 1.1 2007/05/15 08:10:32 adamdunkels Exp $
+ * $Id: test-rudolph2.c,v 1.2 2007/11/17 18:09:56 adamdunkels Exp $
  */
 
 /**
@@ -49,6 +49,11 @@
 
 #include <stdio.h>
 
+#if NETSIM
+#include "ether.h"
+#include "node.h"
+#endif /* NETSIM */
+
 #define FILESIZE 2000
 
 /*---------------------------------------------------------------------------*/
@@ -57,7 +62,7 @@ AUTOSTART_PROCESSES(&test_rudolph2_process);
 /*---------------------------------------------------------------------------*/
 static void
 write_chunk(struct rudolph2_conn *c, int offset, int flag,
-	    char *data, int datalen)
+	    uint8_t *data, int datalen)
 {
   int fd;
 #if NETSIM
@@ -109,7 +114,7 @@ write_chunk(struct rudolph2_conn *c, int offset, int flag,
   }
 }
 static int
-read_chunk(struct rudolph2_conn *c, int offset, char *to, int maxsize)
+read_chunk(struct rudolph2_conn *c, int offset, uint8_t *to, int maxsize)
 {
   int fd;
   int ret;

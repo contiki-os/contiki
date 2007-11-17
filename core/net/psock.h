@@ -30,7 +30,7 @@
  *
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: psock.h,v 1.3 2007/09/04 12:39:00 nvt-se Exp $
+ * $Id: psock.h,v 1.4 2007/11/17 18:05:21 adamdunkels Exp $
  */
 
 /**
@@ -117,7 +117,7 @@ struct psock {
   const u8_t *sendptr;   /* Pointer to the next data to be sent. */
   u8_t *readptr;         /* Pointer to the next data to be read. */
   
-  char *bufptr;          /* Pointer to the buffer used for buffering
+  uint8_t *bufptr;          /* Pointer to the buffer used for buffering
 			    incoming data. */
   
   u16_t sendlen;         /* The number of bytes left to be sent. */
@@ -130,7 +130,7 @@ struct psock {
   unsigned char state;   /* The state of the protosocket. */
 };
 
-void psock_init(struct psock *psock, char *buffer, unsigned int buffersize);
+void psock_init(struct psock *psock, uint8_t *buffer, unsigned int buffersize);
 /**
  * Initialize a protosocket.
  *
@@ -141,7 +141,7 @@ void psock_init(struct psock *psock, char *buffer, unsigned int buffersize);
  * \param psock (struct psock *) A pointer to the protosocket to be
  * initialized
  *
- * \param buffer (char *) A pointer to the input buffer for the
+ * \param buffer (uint8_t *) A pointer to the input buffer for the
  * protosocket.
  *
  * \param buffersize (unsigned int) The size of the input buffer.
@@ -164,7 +164,7 @@ void psock_init(struct psock *psock, char *buffer, unsigned int buffersize);
  */
 #define PSOCK_BEGIN(psock) PT_BEGIN(&((psock)->pt))
 
-PT_THREAD(psock_send(struct psock *psock, const char *buf, unsigned int len));
+PT_THREAD(psock_send(struct psock *psock, const uint8_t *buf, unsigned int len));
 /**
  * Send data.
  *
@@ -175,7 +175,7 @@ PT_THREAD(psock_send(struct psock *psock, const char *buf, unsigned int len));
  * \param psock (struct psock *) A pointer to the protosocket over which
  * data is to be sent.
  *
- * \param data (char *) A pointer to the data that is to be sent.
+ * \param data (uint8_t *) A pointer to the data that is to be sent.
  *
  * \param datalen (unsigned int) The length of the data that is to be
  * sent.

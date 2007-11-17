@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: uip-udp-packet.c,v 1.4 2007/09/29 03:54:18 matsutsuka Exp $
+ * $Id: uip-udp-packet.c,v 1.5 2007/11/17 18:05:21 adamdunkels Exp $
  */
 
 /**
@@ -38,17 +38,19 @@
  *         Adam Dunkels <adam@sics.se>
  */
 
-#if UIP_UDP
+#include "contiki-conf.h"
+
+extern u16_t uip_slen;
+
 #include "net/uip-udp-packet.h"
 
 #include <string.h>
-
-extern u16_t uip_slen;
 
 /*---------------------------------------------------------------------------*/
 void
 uip_udp_packet_send(struct uip_udp_conn *c, const void *data, int len)
 {
+#if UIP_UDP
   uip_udp_conn = c;
   uip_slen = len;
   memcpy(&uip_buf[UIP_LLH_LEN + UIP_IPUDPH_LEN], data, len > UIP_BUFSIZE? UIP_BUFSIZE: len);
@@ -57,6 +59,6 @@ uip_udp_packet_send(struct uip_udp_conn *c, const void *data, int len)
     tcpip_output();
   }
   uip_slen = 0;
+#endif /* UIP_UDP */
 }
 /*---------------------------------------------------------------------------*/
-#endif /* UIP_UDP */

@@ -30,7 +30,7 @@
  *
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: node.c,v 1.7 2007/03/29 22:25:39 adamdunkels Exp $
+ * $Id: node.c,v 1.8 2007/11/17 18:09:18 adamdunkels Exp $
  */
 #include "node.h"
 #include "contiki.h"
@@ -76,7 +76,7 @@ node_init(int id, int posx, int posy, int b)
     
 
 
-  drift = random() % 95726272;
+  drift = rand() % 95726272;
 
   init_node_log();
 }
@@ -141,9 +141,9 @@ node_log(const char *fmt, ...)
   char buf[4096];
   int len;
 
-  len = snprintf(buf, sizeof(buf), "Node %d (%d, %d): ", node.id, node.x, node.y);
+  len = sprintf(buf, "Node %d (%d, %d): ", node.id, node.x, node.y);
   va_start(ap, fmt);
-  vsnprintf(&buf[len], sizeof(buf) - len, fmt, ap);
+  vsprintf(&buf[len], fmt, ap);
   write(fd, buf, strlen(buf));
   va_end(ap);
 }

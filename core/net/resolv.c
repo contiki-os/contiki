@@ -23,25 +23,25 @@
  * \file
  * DNS host name to IP address resolver.
  * \author Adam Dunkels <adam@dunkels.com>
- * 
+ *
  * This file implements a DNS host name to IP address resolver.
  */
 
 /*
  * Copyright (c) 2002-2003, Adam Dunkels.
- * All rights reserved. 
+ * All rights reserved.
  *
- * Redistribution and use in source and binary forms, with or without 
- * modification, are permitted provided that the following conditions 
- * are met: 
- * 1. Redistributions of source code must retain the above copyright 
- *    notice, this list of conditions and the following disclaimer. 
- * 2. Redistributions in binary form must reproduce the above copyright 
- *    notice, this list of conditions and the following disclaimer in the 
- *    documentation and/or other materials provided with the distribution. 
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions
+ * are met:
+ * 1. Redistributions of source code must retain the above copyright
+ *    notice, this list of conditions and the following disclaimer.
+ * 2. Redistributions in binary form must reproduce the above copyright
+ *    notice, this list of conditions and the following disclaimer in the
+ *    documentation and/or other materials provided with the distribution.
  * 3. The name of the author may not be used to endorse or promote
  *    products derived from this software without specific prior
- *    written permission.  
+ *    written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS
  * OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
@@ -53,11 +53,11 @@
  * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
  * WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
- * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.  
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * This file is part of the uIP TCP/IP stack.
  *
- * $Id: resolv.c,v 1.6 2007/09/29 03:54:18 matsutsuka Exp $
+ * $Id: resolv.c,v 1.7 2007/11/17 18:05:21 adamdunkels Exp $
  *
  */
 
@@ -184,7 +184,7 @@ check_entries(void)
   static u8_t n;
   register struct namemap *namemapptr;
   
-  for(i = 0; i < RESOLV_ENTRIES; ++i) {    
+  for(i = 0; i < RESOLV_ENTRIES; ++i) {
     namemapptr = &names[i];
     if(namemapptr->state == STATE_NEW ||
        namemapptr->state == STATE_ASKING) {
@@ -196,7 +196,7 @@ check_entries(void)
 	    resolv_found(namemapptr->name, NULL);
 	    continue;
 	  }
-	  namemapptr->tmr = namemapptr->retries;	  
+	  namemapptr->tmr = namemapptr->retries;
 	} else {
 	  /*	  printf("Timer %d\n", namemapptr->tmr);*/
 	  /* Its timer has not run out, so we move on to next
@@ -246,7 +246,7 @@ check_entries(void)
 static void
 newdata(void)
 {
-  char *nameptr;
+  unsigned char *nameptr;
   struct dns_answer *ans;
   struct dns_hdr *hdr;
   static u8_t nquestions, nanswers;
@@ -290,18 +290,18 @@ newdata(void)
     /* Skip the name in the question. XXX: This should really be
        checked agains the name in the question, to be sure that they
        match. */
-    nameptr = parse_name((char *)uip_appdata + 12) + 4;
+    nameptr = parse_name((uint8_t *)uip_appdata + 12) + 4;
 
     while(nanswers > 0) {
       /* The first byte in the answer resource record determines if it
 	 is a compressed record or a normal one. */
-      if(*nameptr & 0xc0) {       
+      if(*nameptr & 0xc0) {
 	/* Compressed name. */
 	nameptr +=2;
 	/*	printf("Compressed anwser\n");*/
       } else {
 	/* Not compressed name. */
-	nameptr = parse_name((char *)nameptr);
+	nameptr = parse_name((uint8_t *)nameptr);
       }
 
       ans = (struct dns_answer *)nameptr;
@@ -348,7 +348,7 @@ PROCESS_THREAD(resolv_process, ev, data)
     names[i].state = STATE_UNUSED;
   }
   resolv_conn = NULL;
-  resolv_event_found = process_alloc_event();    
+  resolv_event_found = process_alloc_event();
   
   
   while(1) {
@@ -372,7 +372,7 @@ PROCESS_THREAD(resolv_process, ev, data)
 	}
 	if(uip_newdata()) {
 	  newdata();
-	}       
+	}
       }
     }
   }
@@ -445,12 +445,12 @@ resolv_lookup(char *name)
   for(i = 0; i < RESOLV_ENTRIES; ++i) {
     nameptr = &names[i];
     if(nameptr->state == STATE_DONE &&
-       strcmp(name, nameptr->name) == 0) {            
+       strcmp(name, nameptr->name) == 0) {
       return nameptr->ipaddr;
     }
   }
   return NULL;
-}  
+}
 /*-----------------------------------------------------------------------------------*/
 /**
  * Obtain the currently configured DNS server.

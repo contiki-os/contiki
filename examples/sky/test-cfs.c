@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: test-cfs.c,v 1.2 2007/05/19 21:07:07 oliverschmidt Exp $
+ * $Id: test-cfs.c,v 1.3 2007/11/17 18:10:54 adamdunkels Exp $
  */
 
 /**
@@ -41,6 +41,10 @@
 #include "contiki.h"
 #include "cfs/cfs.h"
 
+#include <stdio.h>
+
+PROCESS(cfs_process, "Test CFS process");
+AUTOSTART_PROCESSES(&cfs_process);
 /*---------------------------------------------------------------------------*/
 PROCESS_THREAD(cfs_process, ev, data)
 {

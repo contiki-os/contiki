@@ -33,7 +33,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: rudolph1.c,v 1.9 2007/05/15 08:09:21 adamdunkels Exp $
+ * $Id: rudolph1.c,v 1.10 2007/11/17 18:05:21 adamdunkels Exp $
  */
 
 /**
@@ -86,7 +86,7 @@ enum {
 
 /*---------------------------------------------------------------------------*/
 static int
-read_data(struct rudolph1_conn *c, char *dataptr, int chunk)
+read_data(struct rudolph1_conn *c, uint8_t *dataptr, int chunk)
 {
   int len = 0;
 

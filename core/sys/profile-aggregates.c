@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: profile-aggregates.c,v 1.2 2007/11/17 10:14:19 adamdunkels Exp $
+ * $Id: profile-aggregates.c,v 1.3 2007/11/17 18:07:40 adamdunkels Exp $
  */
 
 /**
@@ -44,7 +44,7 @@
 #include <stdio.h>
 
 struct aggregate {
-  const unsigned char *ptr;
+  const char *ptr;
   unsigned short episodes;
   unsigned long cycles;
 };

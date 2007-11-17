@@ -1,36 +1,36 @@
 /*
  * Copyright (c) 2007, Swedish Institute of Computer Science.
- * All rights reserved. 
+ * All rights reserved.
  *
- * Redistribution and use in source and binary forms, with or without 
- * modification, are permitted provided that the following conditions 
- * are met: 
- * 1. Redistributions of source code must retain the above copyright 
- *    notice, this list of conditions and the following disclaimer. 
- * 2. Redistributions in binary form must reproduce the above copyright 
- *    notice, this list of conditions and the following disclaimer in the 
- *    documentation and/or other materials provided with the distribution. 
- * 3. Neither the name of the Institute nor the names of its contributors 
- *    may be used to endorse or promote products derived from this software 
- *    without specific prior written permission. 
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions
+ * are met:
+ * 1. Redistributions of source code must retain the above copyright
+ *    notice, this list of conditions and the following disclaimer.
+ * 2. Redistributions in binary form must reproduce the above copyright
+ *    notice, this list of conditions and the following disclaimer in the
+ *    documentation and/or other materials provided with the distribution.
+ * 3. Neither the name of the Institute nor the names of its contributors
+ *    may be used to endorse or promote products derived from this software
+ *    without specific prior written permission.
  *
- * THIS SOFTWARE IS PROVIDED BY THE INSTITUTE AND CONTRIBUTORS ``AS IS'' AND 
- * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE 
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE 
- * ARE DISCLAIMED.  IN NO EVENT SHALL THE INSTITUTE OR CONTRIBUTORS BE LIABLE 
- * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL 
- * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS 
- * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) 
- * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT 
- * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY 
- * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF 
- * SUCH DAMAGE. 
+ * THIS SOFTWARE IS PROVIDED BY THE INSTITUTE AND CONTRIBUTORS ``AS IS'' AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED.  IN NO EVENT SHALL THE INSTITUTE OR CONTRIBUTORS BE LIABLE
+ * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+ * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+ * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+ * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+ * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+ * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+ * SUCH DAMAGE.
  *
  * This file is part of the Contiki operating system.
- * 
+ *
  * Author: Oliver Schmidt <ol.sc@web.de>
  *
- * $Id: wpcap.c,v 1.8 2007/05/22 22:01:03 oliverschmidt Exp $
+ * $Id: wpcap.c,v 1.9 2007/11/17 18:08:15 adamdunkels Exp $
  */
 
 #define WIN32_LEAN_AND_MEAN
@@ -42,9 +42,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <malloc.h>
+#include <alloca.h>
 
 /* Avoid 'conflicting types' errors. */
-#define htonl 
+#define htonl
 #define htons
 
 #include "contiki-net.h"
@@ -109,7 +110,7 @@ init_pcap(struct in_addr addr)
   while(interfaces != NULL) {
     log_message("init_pcap: found interface: ", interfaces->description);
 
-    if(interfaces->addresses != NULL && 
+    if(interfaces->addresses != NULL &&
        interfaces->addresses->addr != NULL &&
        interfaces->addresses->addr->sa_family == AF_INET) {
 
@@ -119,7 +120,7 @@ init_pcap(struct in_addr addr)
 
       if(interface_addr.s_addr == addr.s_addr) {
         break;
-      }     
+      }
     }
     interfaces = interfaces->next;
   }
@@ -207,10 +208,10 @@ wpcap_init(void)
   log_message("wpcap_init: cmdline address: ", inet_ntoa(addr));
 
   wpcap = LoadLibrary("wpcap.dll");
-  (FARPROC)pcap_findalldevs = GetProcAddress(wpcap, "pcap_findalldevs");
-  (FARPROC)pcap_open_live   = GetProcAddress(wpcap, "pcap_open_live");
-  (FARPROC)pcap_next_ex     = GetProcAddress(wpcap, "pcap_next_ex");
-  (FARPROC)pcap_sendpacket  = GetProcAddress(wpcap, "pcap_sendpacket");
+  pcap_findalldevs = (int (*)(struct pcap_if **, char *))GetProcAddress(wpcap, "pcap_findalldevs");
+  pcap_open_live   = (struct pcap *(*)(char *, int, int, int, char *))GetProcAddress(wpcap, "pcap_open_live");
+  pcap_next_ex     = (int (*)(struct pcap *, struct pcap_pkthdr **, unsigned char **))GetProcAddress(wpcap, "pcap_next_ex");
+  pcap_sendpacket  = (int (*)(struct pcap *, unsigned char *, int))GetProcAddress(wpcap, "pcap_sendpacket");
 
   if(pcap_findalldevs == NULL || pcap_open_live  == NULL ||
      pcap_next_ex     == NULL || pcap_sendpacket == NULL) {
@@ -228,7 +229,7 @@ wpcap_poll(void)
   unsigned char *packet;
 
   switch(pcap_next_ex(pcap, &packet_header, &packet)) {
-  case -1: 
+  case -1:
     error_exit("error on poll\n");
   case 0:
     return 0;

@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: test-rudolph0.c,v 1.5 2007/05/22 21:04:19 adamdunkels Exp $
+ * $Id: test-rudolph0.c,v 1.6 2007/11/17 18:09:56 adamdunkels Exp $
  */
 
 /**
@@ -39,6 +39,7 @@
  */
 
 #include "contiki.h"
+#include "cfs/cfs.h"
 #include "net/rime/rudolph0.h"
 
 #include "dev/button-sensor.h"
@@ -55,7 +56,7 @@ AUTOSTART_PROCESSES(&test_rudolph0_process);
 /*---------------------------------------------------------------------------*/
 static void
 write_chunk(struct rudolph0_conn *c, int offset, int flag,
-	    char *data, int datalen)
+	    uint8_t *data, int datalen)
 {
   int fd;
   
@@ -94,7 +95,7 @@ write_chunk(struct rudolph0_conn *c, int offset, int flag,
   }
 }
 static int
-read_chunk(struct rudolph0_conn *c, int offset, char *to, int maxsize)
+read_chunk(struct rudolph0_conn *c, int offset, uint8_t *to, int maxsize)
 {
   int fd;
   int ret;

@@ -30,7 +30,7 @@
  *
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: main.c,v 1.5 2007/03/22 18:59:34 adamdunkels Exp $
+ * $Id: main.c,v 1.6 2007/11/17 18:09:18 adamdunkels Exp $
  */
 
 /**
@@ -59,6 +59,8 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <sys/wait.h>
+
+void netsim_init(void);
 
 static int main_process = 0;
 
@@ -118,7 +120,7 @@ start_node(int x, int y, int b)
     /* This is the sensor process. */
     main_process = 0;
     
-    srandom(getpid());
+    srand(getpid());
 
     usleep(1000 * (rand() % 1000));
     
