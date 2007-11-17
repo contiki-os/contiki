@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki desktop OS.
  *
- * $Id: telnetd.c,v 1.6 2007/08/22 10:59:56 ksb Exp $
+ * $Id: telnetd.c,v 1.7 2007/11/17 20:13:54 oliverschmidt Exp $
  *
  */
 
@@ -276,7 +276,7 @@ sendopt(u8_t option, u8_t value)
   char *line;
   line = alloc_line();
   if(line != NULL) {
-    line[0] = TELNET_IAC;
+    line[0] = (char)TELNET_IAC;
     line[1] = option;
     line[2] = value;
     line[3] = 0;

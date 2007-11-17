@@ -43,7 +43,7 @@
  *
  * This file is part of the Contiki desktop OS
  *
- * $Id: program-handler.c,v 1.5 2007/08/30 14:39:18 matsutsuka Exp $
+ * $Id: program-handler.c,v 1.6 2007/11/17 20:14:43 oliverschmidt Exp $
  *
  */
 
@@ -265,10 +265,10 @@ program_handler_setscreensaver(char *name)
 }
 #endif /* CTK_CONF_SCREENSAVER */
 /*-----------------------------------------------------------------------------------*/
+#ifdef WITH_LOADER_ARCH
 static void
 make_windows(void)
 {
-#ifdef WITH_LOADER_ARCH
   ctk_window_new(&runwindow, 16, 3, "Run");
   
   CTK_WIDGET_ADD(&runwindow, &namelabel);
@@ -287,8 +287,8 @@ make_windows(void)
   CTK_WIDGET_ADD(&errordialog, &errortype);
   CTK_WIDGET_ADD(&errordialog, &errorokbutton);
   CTK_WIDGET_FOCUS(&errordialog, &errorokbutton);
-#endif /* WITH_LOADER_ARCH */
 }
+#endif /* WITH_LOADER_ARCH */
 /*-----------------------------------------------------------------------------------*/
 PROCESS_THREAD(program_handler_process, ev, data)
 {
