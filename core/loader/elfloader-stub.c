@@ -28,9 +28,11 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: elfloader-stub.c,v 1.2 2006/12/18 14:54:04 fros4943 Exp $
+ * @(#)$Id: elfloader-stub.c,v 1.3 2007/11/17 10:46:41 adamdunkels Exp $
  */
 #include "elfloader-arch.h"
+
+#include <stdio.h>
 
 static char datamemory[ELFLOADER_DATAMEMORY_SIZE];
 static const char textmemory[ELFLOADER_TEXTMEMORY_SIZE] = {0};
@@ -58,6 +60,9 @@ elfloader_arch_relocate(int fd, unsigned int sectionoffset,
 			char *sectionaddr,
 			struct elf32_rela *rela, char *addr)
 {
-  printf("elfloader_arch_relocate: sectionoffset 0x%04x, sectionaddr %p, r_offset 0x%04x, r_info 0x%04x, r_addend 0x%04x, addr %p\n", sectionoffset, sectionaddr, rela->r_offset, rela->r_info, rela->r_addend, addr);
+  printf("elfloader_arch_relocate: sectionoffset 0x%04x, sectionaddr %p, r_offset 0x%04x, r_info 0x%04x, r_addend 0x%04x, addr %p\n",
+	 sectionoffset, sectionaddr,
+	 (unsigned int)rela->r_offset, (unsigned int)rela->r_info,
+	 (unsigned int)rela->r_addend, addr);
 }
 /*---------------------------------------------------------------------------*/

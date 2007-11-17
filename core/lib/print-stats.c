@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: print-stats.c,v 1.2 2007/11/12 22:27:44 adamdunkels Exp $
+ * $Id: print-stats.c,v 1.3 2007/11/17 10:46:25 adamdunkels Exp $
  */
 
 /**
@@ -49,9 +49,9 @@
 void
 print_stats(void)
 {
-  printf("S %d.%d clock %u tx %lu rx %lu rtx %lu rrx %lu rexmit %lu acktx %lu noacktx %lu ackrx %lu timedout %lu badackrx %lu toolong %lu tooshort %lu badsynch %lu badcrc %lu contentiondrop %lu sendingdrop %lu lltx %lu llrx %lu\n",
+  printf("S %d.%d clock %lu tx %lu rx %lu rtx %lu rrx %lu rexmit %lu acktx %lu noacktx %lu ackrx %lu timedout %lu badackrx %lu toolong %lu tooshort %lu badsynch %lu badcrc %lu contentiondrop %lu sendingdrop %lu lltx %lu llrx %lu\n",
 	 rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1],
-	 clock_time() / CLOCK_SECOND,
+	 (unsigned long)clock_time() / CLOCK_SECOND,
 	 rimestats.tx, rimestats.rx,
 	 rimestats.reliabletx, rimestats.reliablerx,
 	 rimestats.rexmit, rimestats.acktx, rimestats.noacktx,
