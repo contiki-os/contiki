@@ -30,7 +30,7 @@
  *
  * Author: Oliver Schmidt <ol.sc@web.de>
  *
- * $Id: wpcap.c,v 1.10 2007/11/17 20:00:42 oliverschmidt Exp $
+ * $Id: wpcap.c,v 1.11 2007/11/17 21:33:53 oliverschmidt Exp $
  */
 
 #define WIN32_LEAN_AND_MEAN
@@ -41,8 +41,11 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <malloc.h>
+#ifdef __CYGWIN__
 #include <alloca.h>
+#else
+#include <malloc.h>
+#endif
 
 /* Avoid 'conflicting types' errors. */
 #define htonl
