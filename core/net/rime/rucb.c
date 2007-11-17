@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: rucb.c,v 1.1 2007/05/22 20:45:49 adamdunkels Exp $
+ * $Id: rucb.c,v 1.2 2007/11/17 09:59:48 adamdunkels Exp $
  */
 
 /**
@@ -68,7 +68,7 @@ read_data(struct rucb_conn *c)
 }
 /*---------------------------------------------------------------------------*/
 static void
-acked(struct ruc_conn *ruc)
+acked(struct ruc_conn *ruc, rimeaddr_t *to, u8_t retransmissions)
 {
   struct rucb_conn *c = (struct rucb_conn *)ruc;
   PRINTF("acked\n");
@@ -79,7 +79,7 @@ acked(struct ruc_conn *ruc)
 }
 /*---------------------------------------------------------------------------*/
 static void
-timedout(struct ruc_conn *ruc)
+timedout(struct ruc_conn *ruc, rimeaddr_t *to, u8_t retransmissions)
 {
   struct rucb_conn *c = (struct rucb_conn *)ruc;
   PRINTF("timedout\n");
