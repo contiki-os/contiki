@@ -28,7 +28,7 @@
  *
  * This file is part of the uIP TCP/IP stack.
  *
- * $Id: httpd-cgi.c,v 1.7 2007/08/30 14:39:18 matsutsuka Exp $
+ * $Id: httpd-cgi.c,v 1.8 2007/11/17 21:12:44 oliverschmidt Exp $
  *
  */
 
@@ -203,7 +203,7 @@ make_processes(void *p)
   return sprintf((char *)uip_appdata,
 		 "<tr align=\"center\"><td>%p</td><td>%s</td><td>%p</td><td>%s</td></tr>\r\n",
 		 p, name,
-		 (char *)((struct process *)p)->thread,
+		 *((char **)&(((struct process *)p)->thread)),
 		 states[9 + ((struct process *)p)->state]);
 }
 /*---------------------------------------------------------------------------*/
