@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: process.h,v 1.10 2007/08/30 14:39:17 matsutsuka Exp $
+ * @(#)$Id: process.h,v 1.11 2007/11/17 18:07:13 adamdunkels Exp $
  */
 
 /**
@@ -276,13 +276,6 @@ static PT_THREAD(process_thread_##name(struct pt *process_pt,	\
 				       process_event_t ev,	\
 				       process_data_t data))
 
-#if PROCESS_LOADABLE
-#define PROCESS_LOAD(name) const struct process *process_load = &name
-#else  /* PROCESS_LOADABLE */
-#define PROCESS_LOAD(name) extern int _dummy
-#endif /* PROCESS_LOADABLE */
-CLIF extern const struct process *process_load;
-
 /**
  * Declare the name of a process.
  *
@@ -293,10 +286,6 @@ CLIF extern const struct process *process_load;
  */
 #define PROCESS_NAME(name) extern struct process name
 
-#define PROCESS_NOLOAD(name, strname)			\
-  PROCESS_THREAD(name, ev, data);			\
-  struct process name = { NULL, strname,		\
-                          process_thread_##name }
 /**
  * Declare a process.
  *
@@ -309,9 +298,11 @@ CLIF extern const struct process *process_load;
  *
  * \hideinitializer
  */
-#define PROCESS(name, strname)			\
-  PROCESS_NOLOAD(name, strname);		\
-  PROCESS_LOAD(name)
+#define PROCESS(name, strname)			        \
+  PROCESS_THREAD(name, ev, data);			\
+  struct process name = { NULL, strname,		\
+                          process_thread_##name }
+
 
 /** @} */
 
