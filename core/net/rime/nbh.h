@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: nbh.h,v 1.1 2007/11/13 21:01:54 adamdunkels Exp $
+ * $Id: nbh.h,v 1.2 2007/11/17 10:32:54 adamdunkels Exp $
  */
 
 /**
@@ -46,7 +46,7 @@
 struct nbh_conn;
 
 struct nbh_callbacks {
-  int (* recv)(struct nbh_conn *c, rimeaddr_t *from, uint16_t val);
+  void (* recv)(struct nbh_conn *c, rimeaddr_t *from, uint16_t val);
   void (* sent)(struct nbh_conn *c);
 };
 
