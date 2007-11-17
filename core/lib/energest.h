@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: energest.h,v 1.5 2007/10/25 09:30:39 adamdunkels Exp $
+ * $Id: energest.h,v 1.6 2007/11/17 10:46:02 adamdunkels Exp $
  */
 
 /**
@@ -41,7 +41,7 @@
 #ifndef __ENERGEST_H__
 #define __ENERGEST_H__
 
-#include "rtimer-arch.h"
+#include "rtimer.h"
 
 typedef struct {
   /*  unsigned long cummulative[2];*/
