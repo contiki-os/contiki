@@ -29,7 +29,7 @@
  * IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY
  * OF SUCH DAMAGE.
  *
- * $Id: flash.c,v 1.1 2006/06/17 22:41:21 adamdunkels Exp $
+ * $Id: flash.c,v 1.2 2007/11/17 10:28:04 adamdunkels Exp $
  *
  * Author: Adam Dunkels <adam@sics.se>
  *
@@ -40,6 +40,7 @@
 #include <signal.h>
 
 #include "dev/flash.h"
+#include "dev/watchdog.h"
 
 #define FLASH_TIMEOUT 30
 #define FLASH_REQ_TIMEOUT 150
@@ -57,7 +58,7 @@ flash_setup(void)
   IFG1 = 0;
 
   /* Stop watchdog. */
-  WDTCTL = 0x5A80;    
+  watchdog_stop();
   
   /* DCO(SMCLK) is 2,4576MHz, /6 = 409600 Hz
      select SMCLK for flash timing, divider 5+1 */
@@ -80,7 +81,8 @@ flash_done(void)
   /* Enable interrupts. */
   IE1 = ie1;
   IE2 = ie2;
-  _EINT();  
+  _EINT();
+  watchdog_start();
 }
 /*---------------------------------------------------------------------------*/
 void
