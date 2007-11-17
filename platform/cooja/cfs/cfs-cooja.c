@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: cfs-cooja.c,v 1.4 2007/11/17 18:26:06 adamdunkels Exp $
+ * $Id: cfs-cooja.c,v 1.5 2007/11/17 18:28:23 adamdunkels Exp $
  */
 #include <string.h>
 #include "lib/simEnvChange.h"
@@ -77,7 +77,7 @@ cfs_read(int f, void *buf, unsigned int len)
 {
   if(f == FLAG_FILE_OPEN) {
 	// TODO Should yield a few times?
-	memcpy(&buf[0], &simCFSData[0] + file.fileptr, len);
+	memcpy(buf, &simCFSData[0] + file.fileptr, len);
     file.fileptr += len;
 	simCFSChanged = 1;
 	simCFSRead += len;
@@ -92,7 +92,7 @@ cfs_write(int f, void *buf, unsigned int len)
 {
   if(f == FLAG_FILE_OPEN) {
 	// TODO Should yield a few times?
-	memcpy(&simCFSData[0] + file.fileptr, &buf[0], len);
+	memcpy(&simCFSData[0] + file.fileptr, buf, len);
     file.fileptr += len;
 	simCFSChanged = 1;
 	simCFSWritten += len;
