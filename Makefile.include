@@ -42,8 +42,8 @@ THREADS = mt.c
 LIBS    = memb.c timer.c list.c etimer.c energest.c rtimer.c print-stats.c
 CTK     = ctk.c
 UIP     = uip.c uiplib.c resolv.c tcpip.c psock.c hc.c uip-split.c \
-          uip-fw.c uip-fw-drv.c uipbuf.c uip_arp.c uiplib.c tcpdump.c \
-          uip-neighbor.c uip-udp-packet.c rawpacket-udp.c uip-over-mesh.c
+          uip-fw.c uip-fw-drv.c uip_arp.c uiplib.c tcpdump.c \
+          uip-neighbor.c uip-udp-packet.c uip-over-mesh.c #rawpacket-udp.c
 NET     = $(UIP) uaodv.c uaodv-rt.c
 
 CTKVNC  = $(CTK) ctk-vncserver.c libconio.c vnc-server.c vnc-out.c \
