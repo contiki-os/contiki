@@ -54,7 +54,7 @@
  *
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: cfs.h,v 1.6 2007/11/17 18:01:00 adamdunkels Exp $
+ * $Id: cfs.h,v 1.7 2007/11/17 21:01:31 oliverschmidt Exp $
  */
 #ifndef __CFS_H__
 #define __CFS_H__
@@ -62,11 +62,11 @@
 #include "contiki.h"
 
 struct cfs_dir {
-  unsigned char dummy_space[32];
+  char dummy_space[32];
 };
 
 struct cfs_dirent {
-  unsigned char name[32];
+  char name[32];
   unsigned int size;
 };
 
