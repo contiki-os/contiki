@@ -29,9 +29,11 @@
  *
  * This an example program for the Contiki desktop OS
  *
- * $Id: calc.c,v 1.2 2006/08/16 22:11:16 oliverschmidt Exp $
+ * $Id: calc.c,v 1.3 2007/11/17 22:50:49 oliverschmidt Exp $
  *
  */
+
+#include <stddef.h>
 
 #include "contiki.h"
 #include "ctk/ctk.h"
@@ -221,25 +223,25 @@ PROCESS_THREAD(calc_process, ev, data)
     PROCESS_WAIT_EVENT();
 
     if(ev == ctk_signal_keypress) {
-      if((char)data >= '0' &&
-	 (char)data <= '9') {
-	add_to_input((char)data);
-      } else if((char)data == ' ') {
+      if((char)(size_t)data >= '0' &&
+	 (char)(size_t)data <= '9') {
+	add_to_input((char)(size_t)data);
+      } else if((char)(size_t)data == ' ') {
 	clear_input();
-      } else if((char)data == '+') {
+      } else if((char)(size_t)data == '+') {
 	input_to_operand1();
 	op = OP_ADD;
-      } else if((char)data == '-') {
+      } else if((char)(size_t)data == '-') {
 	input_to_operand1();
 	op = OP_SUB;
-      } else if((char)data == '*') {
+      } else if((char)(size_t)data == '*') {
 	input_to_operand1();
 	op = OP_MUL;
-      } else if((char)data == '/') {
+      } else if((char)(size_t)data == '/') {
 	input_to_operand1();
 	op = OP_DIV;
-      } else if((char)data == '=' ||
-		(char)data == CH_ENTER) {
+      } else if((char)(size_t)data == '=' ||
+		(char)(size_t)data == CH_ENTER) {
 	calculate();
       }
 	
