@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: xmac.c,v 1.9 2007/11/12 22:29:37 adamdunkels Exp $
+ * $Id: xmac.c,v 1.10 2007/11/17 10:12:39 adamdunkels Exp $
  */
 
 /**
@@ -124,6 +124,9 @@ static const struct radio_driver *radio;
 #include <stdio.h>
 #define PRINTF(...) printf(__VA_ARGS__)
 #else
+#undef LEDS_ON
+#undef LEDS_OFF
+#undef LEDS_TOGGLE
 #define LEDS_ON(x)
 #define LEDS_OFF(x)
 #define LEDS_TOGGLE(x)

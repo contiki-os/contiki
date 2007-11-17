@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: simple-cc2420.c,v 1.14 2007/11/12 22:26:03 adamdunkels Exp $
+ * @(#)$Id: simple-cc2420.c,v 1.15 2007/11/17 10:12:19 adamdunkels Exp $
  */
 /*
  * This code is almost device independent and should be easy to port.
@@ -72,9 +72,9 @@ static void (* receiver_callback)(const struct radio_driver *);
 int simple_cc2420_on(void);
 int simple_cc2420_off(void);
 
-u16_t simple_cc2420_read(u8_t *buf, u16_t bufsize);
+int simple_cc2420_read(void *buf, unsigned short bufsize);
 
-int simple_cc2420_send(const u8_t *data, u16_t len);
+int simple_cc2420_send(const void *data, unsigned short len);
 
 void simple_cc2420_set_receiver(void (* recv)(const struct radio_driver *d));
 
@@ -233,7 +233,7 @@ simple_cc2420_init(void)
 }
 /*---------------------------------------------------------------------------*/
 int
-simple_cc2420_send(const u8_t *payload, u16_t payload_len)
+simple_cc2420_send(const void *payload, unsigned short payload_len)
 {
   u8_t spiStatusByte;
   int i;
@@ -425,8 +425,8 @@ PROCESS_THREAD(simple_cc2420_process, ev, data)
   PROCESS_END();
 }
 /*---------------------------------------------------------------------------*/
-u16_t
-simple_cc2420_read(u8_t *buf, u16_t bufsize)
+int
+simple_cc2420_read(void *buf, unsigned short bufsize)
 {
   u8_t footer[2];
   int len;

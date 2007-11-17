@@ -39,7 +39,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: rudolph2.c,v 1.1 2007/05/15 08:07:46 adamdunkels Exp $
+ * $Id: rudolph2.c,v 1.2 2007/11/17 10:13:17 adamdunkels Exp $
  */
 
 /**
@@ -185,6 +185,7 @@ send_nack(struct rudolph2_conn *c)
   polite_send(&c->c, NACK_TIMEOUT, POLITE_HEADER);
 }
 /*---------------------------------------------------------------------------*/
+#if 0 /* Function below not currently used in the code */
 static void
 send_next(struct rudolph2_conn *c)
 {
@@ -212,6 +213,7 @@ send_next(struct rudolph2_conn *c)
   }
   c->nacks = 0;
 }
+#endif /* 0 */
 /*---------------------------------------------------------------------------*/
 static void
 sent(struct polite_conn *polite)
