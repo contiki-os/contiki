@@ -33,7 +33,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: rmh.c,v 1.1 2007/05/22 20:45:18 adamdunkels Exp $
+ * $Id: rmh.c,v 1.2 2007/11/17 09:47:55 adamdunkels Exp $
  */
 
 /**
@@ -97,13 +97,13 @@ received(struct ruc_conn *uc, rimeaddr_t *from, u8_t seqno)
 }
 /*---------------------------------------------------------------------------*/
 static void
-sent(struct ruc_conn *c)
+sent(struct ruc_conn *c, rimeaddr_t *to, uint8_t retransmissions)
 {
 
 }
 /*---------------------------------------------------------------------------*/
 static void
-timedout(struct ruc_conn *c)
+timedout(struct ruc_conn *c, rimeaddr_t *to, uint8_t retransmissions)
 {
 
 }
