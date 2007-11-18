@@ -1,6 +1,7 @@
 #include <debug-uart.h>
 #include <sys/stat.h>
 #include <errno.h>
+#include <stdio.h>
 
 int
 _open(const char *name, int flags, int mode) {
@@ -74,7 +75,7 @@ _sbrk(int incr)
   prev_heap_end = heap_end;
   if (heap_end + incr > &__heap_end__) {
     printf("Heap full (requested %d, available %d)\n",
-	    incr, &__heap_end__ - heap_end);
+	    incr, (int)(&__heap_end__ - heap_end));
     errno = ENOMEM;
     return (caddr_t)-1;
   }
