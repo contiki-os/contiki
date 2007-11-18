@@ -30,7 +30,7 @@
  *
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: httpd-cfs.c,v 1.2 2007/04/23 23:08:44 oliverschmidt Exp $
+ * $Id: httpd-cfs.c,v 1.3 2007/11/18 02:54:45 oliverschmidt Exp $
  */
 
 #include <string.h>
@@ -45,7 +45,7 @@
 #define STATE_WAITING 0
 #define STATE_OUTPUT  1
 
-#define SEND_STRING(s, str) PSOCK_SEND(s, str, strlen(str))
+#define SEND_STRING(s, str) PSOCK_SEND(s, (uint8_t *)str, strlen(str))
 MEMB(conns, struct httpd_state, 2);
 
 /*---------------------------------------------------------------------------*/
@@ -60,7 +60,7 @@ PT_THREAD(send_file(struct httpd_state *s))
 
     /* If there is data in the buffer, send it */
     if(s->len > 0) {
-      PSOCK_SEND(&s->sout, s->outputbuf, s->len);
+      PSOCK_SEND(&s->sout, (uint8_t *)s->outputbuf, s->len);
     } else {
       break;
     }
@@ -186,8 +186,8 @@ httpd_appcall(void *state)
       return;
     }
     tcp_markconn(uip_conn, s);
-    PSOCK_INIT(&s->sin, s->inputbuf, sizeof(s->inputbuf) - 1);
-    PSOCK_INIT(&s->sout, s->inputbuf, sizeof(s->inputbuf) - 1);
+    PSOCK_INIT(&s->sin, (uint8_t *)s->inputbuf, sizeof(s->inputbuf) - 1);
+    PSOCK_INIT(&s->sout, (uint8_t *)s->inputbuf, sizeof(s->inputbuf) - 1);
     PT_INIT(&s->outputpt);
     s->state = STATE_WAITING;
     timer_set(&s->timer, CLOCK_SECOND * 10);
