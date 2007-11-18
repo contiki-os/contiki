@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: uaodv.c,v 1.33 2007/11/17 18:05:21 adamdunkels Exp $
+ * $Id: uaodv.c,v 1.34 2007/11/18 11:21:29 nvt-se Exp $
  */
 
 /**
@@ -584,7 +584,7 @@ PROCESS_THREAD(uaodv_process, ev, data)
 
   PROCESS_BEGIN();
 
-  printf("uaodv_process starting %lu\n", my_hseqno);
+  printf("uaodv_process starting %lu\n", (unsigned long) my_hseqno);
 
   bcastconn = udp_broadcast_new(HTONS(UAODV_UDPPORT), NULL);
   unicastconn = udp_broadcast_new(HTONS(UAODV_UDPPORT), NULL);
