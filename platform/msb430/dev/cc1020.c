@@ -203,7 +203,7 @@ cc1020_sending(void)
 }
 
 int
-cc1020_send(const void *buf, unsigned len)
+cc1020_send(const void *buf, unsigned short len)
 {
   if (cc1020_state == CC1020_OFF)
     return -2;
@@ -235,7 +235,7 @@ cc1020_send(const void *buf, unsigned len)
 }
 
 int
-cc1020_read(void *buf, unsigned size)
+cc1020_read(void *buf, unsigned short size)
 {
   unsigned len;
 
@@ -299,8 +299,6 @@ cc1020_get_rssi(void)
 int
 cc1020_carrier_sense(void)
 {
-  int carrier_sense;
-
   return !!(cc1020_read_reg(CC1020_STATUS) & CARRIER_SENSE);
 }
 
