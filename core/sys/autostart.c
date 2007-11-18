@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: autostart.c,v 1.2 2007/03/25 17:16:57 adamdunkels Exp $
+ * $Id: autostart.c,v 1.3 2007/11/18 12:27:45 ksb Exp $
  */
 
 /**
@@ -50,7 +50,7 @@
 
 /*---------------------------------------------------------------------------*/
 void
-autostart_start(struct process *processes[])
+autostart_start(struct process * const processes[])
 {
   int i;
   
@@ -61,7 +61,7 @@ autostart_start(struct process *processes[])
 }
 /*---------------------------------------------------------------------------*/
 void
-autostart_exit(struct process *processes[])
+autostart_exit(struct process * const processes[])
 {
   int i;
   

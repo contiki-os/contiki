@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: autostart.h,v 1.2 2007/08/30 14:39:17 matsutsuka Exp $
+ * $Id: autostart.h,v 1.3 2007/11/18 12:27:45 ksb Exp $
  */
 
 /**
@@ -46,7 +46,7 @@
 #if ! CC_NO_VA_ARGS
 #if AUTOSTART_ENABLE
 #define AUTOSTART_PROCESSES(...)					\
-const struct process *autostart_processes[] = {__VA_ARGS__, NULL}
+struct process * const autostart_processes[] = {__VA_ARGS__, NULL}
 #else /* AUTOSTART_ENABLE */
 #define AUTOSTART_PROCESSES(...)					\
 extern int _dummy
@@ -55,9 +55,9 @@ extern int _dummy
 #error "C compiler must support __VA_ARGS__ macro"
 #endif
 
-extern const struct process *autostart_processes[];
+extern struct process * const autostart_processes[];
 
-void autostart_start(struct process *processes[]);
-void autostart_exit(struct process *processes[]);
+void autostart_start(struct process * const processes[]);
+void autostart_exit(struct process * const processes[]);
 
 #endif /* __AUTOSTART_H__ */

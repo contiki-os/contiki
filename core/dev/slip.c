@@ -29,7 +29,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: slip.c,v 1.4 2007/02/01 14:04:06 bg- Exp $
+ * @(#)$Id: slip.c,v 1.5 2007/11/18 12:27:44 ksb Exp $
  */
 
 
@@ -228,7 +228,7 @@ PROCESS_THREAD(slip_process, ev, data)
     uip_len = slip_poll_handler(&uip_buf[UIP_LLH_LEN],
 				UIP_BUFSIZE - UIP_LLH_LEN);
 
-    if(uip_len == 4 && strncmp(&uip_buf[UIP_LLH_LEN], "?IPA", 4) == 0) {
+    if(uip_len == 4 && strncmp((char*)&uip_buf[UIP_LLH_LEN], "?IPA", 4) == 0) {
       char buf[8];
       memcpy(&buf[0], "=IPA", 4);
       memcpy(&buf[4], &uip_hostaddr, 4);

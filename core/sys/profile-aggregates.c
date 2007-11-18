@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: profile-aggregates.c,v 1.3 2007/11/17 18:07:40 adamdunkels Exp $
+ * $Id: profile-aggregates.c,v 1.4 2007/11/18 12:27:45 ksb Exp $
  */
 
 /**
@@ -128,8 +128,8 @@ profile_aggregates_print(void)
 #endif
 
   printf("Memory for aggregates: %d * %d = %d\n",
-	 sizeof(struct aggregate), aggregates_list_ptr,
-	 sizeof(struct aggregate) * aggregates_list_ptr);
+	 (int)sizeof(struct aggregate), aggregates_list_ptr,
+	 (int)sizeof(struct aggregate) * aggregates_list_ptr);
 }
 /*---------------------------------------------------------------------------*/
 #if DETAILED_AGGREGATES
