@@ -21,7 +21,7 @@ int strcasecmp(const char*, const char*);
 char* strdup(const char*);
 #else
 #define strcasecmp _stricmp
-#define strdup _strdup
+#define strdup     _strdup
 #endif
 
 
