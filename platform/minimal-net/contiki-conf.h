@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: contiki-conf.h,v 1.5 2007/05/12 21:00:56 oliverschmidt Exp $
+ * @(#)$Id: contiki-conf.h,v 1.6 2007/11/18 00:46:51 oliverschmidt Exp $
  */
 
 #ifndef __CONTIKI_CONF_H__
@@ -62,5 +62,8 @@ typedef unsigned long clock_time_t;
 #define CLOCK_CONF_SECOND 1000
 
 #define LOG_CONF_ENABLED 1
+
+/* Not part of C99 but actually present */
+int strcasecmp(const char*, const char*);
 
 #endif /* __CONTIKI_CONF_H__ */
