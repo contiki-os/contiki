@@ -29,7 +29,7 @@
  *
  * This file is part of the Contiki desktop environment
  *
- * $Id: www.c,v 1.4 2006/10/06 21:39:45 oliverschmidt Exp $
+ * $Id: www.c,v 1.5 2007/11/18 01:24:39 oliverschmidt Exp $
  *
  */
 
@@ -463,7 +463,7 @@ PROCESS_THREAD(www_process, ev, data)
       } else if(w == (struct ctk_widget *)&wgetyesbutton) {
 	ctk_dialog_close();      
 	quit();
-	argptr = arg_alloc(WWW_CONF_MAX_URLLEN);
+	argptr = arg_alloc((char)WWW_CONF_MAX_URLLEN);
 	if(argptr != NULL) {
 	  strncpy(argptr, url, WWW_CONF_MAX_URLLEN);
 	} 
@@ -638,7 +638,7 @@ add_pagewidget(char *text, unsigned char len, unsigned char type,
 		unsigned char border)
 {  
   register struct ctk_widget *lptr;
-  register unsigned char *wptr;
+  register char *wptr;
   static unsigned char maxwidth;
   static void *dataptr;
 
@@ -824,7 +824,7 @@ htmlparser_word(char *word, unsigned char wordlen)
 void
 htmlparser_link(char *text, unsigned char textlen, char *url)
 {
-  static unsigned char *linkurlptr;
+  static char *linkurlptr;
 
   linkurlptr = add_pagewidget(text, textlen, CTK_WIDGET_HYPERLINK, 0);
   if(linkurlptr != NULL &&
