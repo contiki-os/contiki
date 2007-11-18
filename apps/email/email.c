@@ -29,7 +29,7 @@
  *
  * This file is part of the Contiki desktop environment for the C64.
  *
- * $Id: email.c,v 1.2 2007/09/29 04:12:15 matsutsuka Exp $
+ * $Id: email.c,v 1.3 2007/11/18 00:57:44 oliverschmidt Exp $
  *
  */
 
@@ -128,24 +128,29 @@ static char smtpserver[40];
 static struct ctk_textentry smtpservertextentry =
   {CTK_TEXTENTRY(0, 4, 26, 1, smtpserver, 39)};
 
+/*
 static struct ctk_label pop3serverlabel =
   {CTK_LABEL(0, 6, 20, 1, "Incoming mailserver")};
 static char pop3server[40];
 static struct ctk_textentry pop3servertextentry =
   {CTK_TEXTENTRY(0, 7, 26, 1, pop3server, 39)};
+*/
 
+/*
 static struct ctk_label pop3userlabel =
   {CTK_LABEL(0, 9, 20, 1, "Mailserver username")};
 static char pop3user[40];
 static struct ctk_textentry pop3usertextentry =
   {CTK_TEXTENTRY(0, 10, 26, 1, pop3user, 39)};
-  
+*/
+
+/*
 static struct ctk_label pop3passwordlabel =
   {CTK_LABEL(0, 12, 20, 1, "Mailserver password")};
 static char pop3password[40];
 static struct ctk_textentry pop3passwordtextentry =
   {CTK_TEXTENTRY(0, 13, 26, 1, pop3password, 39)};
-
+*/
 
 static struct ctk_button setupokbutton =
   {CTK_BUTTON(24, 15, 2, "Ok")};

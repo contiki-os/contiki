@@ -30,7 +30,7 @@
  * 
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: ircc.c,v 1.2 2006/08/21 21:39:49 oliverschmidt Exp $
+ * $Id: ircc.c,v 1.3 2007/11/18 01:09:00 oliverschmidt Exp $
  */
 
 #include "contiki.h"
@@ -50,7 +50,7 @@
 
 #define PORT 6667
 
-#define SEND_STRING(s, str) PSOCK_SEND(s, str, (unsigned int)strlen(str))
+#define SEND_STRING(s, str) PSOCK_SEND(s, (uint8_t *)str, (unsigned int)strlen(str))
 
 #define ISO_space 0x20
 #define ISO_bang  0x21
@@ -412,7 +412,7 @@ PT_THREAD(handle_connection(struct ircc_state *s))
 {
   PT_BEGIN(&s->pt);
 
-  PSOCK_INIT(&s->s, s->inputbuf, sizeof(s->inputbuf) - 1);
+  PSOCK_INIT(&s->s, (uint8_t *)s->inputbuf, sizeof(s->inputbuf) - 1);
   
   PT_WAIT_THREAD(&s->pt, setup_connection(s));
 
