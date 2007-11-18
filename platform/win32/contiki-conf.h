@@ -16,7 +16,9 @@
 
 
 
-#ifdef _MSC_VER
+#ifdef __CYGWIN__
+int strcasecmp(const char*, const char*);
+#else
 #define strcasecmp _stricmp
 #endif
 
