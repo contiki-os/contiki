@@ -30,17 +30,18 @@
  * 
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: ftp.c,v 1.3 2007/09/29 04:12:15 matsutsuka Exp $
+ * $Id: ftp.c,v 1.4 2007/11/18 01:05:10 oliverschmidt Exp $
  */
 /* Note to self: It would be nice to have a "View" option in the download dialog. */
+
+#include <string.h>
+#include <stddef.h>
 
 #include "ftpc.h"
 #include "contiki.h"
 #include "ctk/ctk.h"
 #include "cfs/cfs.h"
 #include "net/resolv.h"
-
-#include <string.h>
 
 #define MAX_USERNAMELEN 16
 #define MAX_PASSWORDLEN 16
@@ -451,7 +452,7 @@ PROCESS_THREAD(ftp_process, ev, data)
 	} else {
 	  ptrstate = PTRSTATE_LOCALFILES;
 	}
-      } else */ if((ctk_arch_key_t)data == CH_CURS_UP) {
+      } else */ if((ctk_arch_key_t)(size_t)data == CH_CURS_UP) {
 	clearptr();
 	if(ptrstate == PTRSTATE_LOCALFILES) {
 	  if(localptr > 0) {
@@ -462,7 +463,7 @@ PROCESS_THREAD(ftp_process, ev, data)
 	    --remoteptr;
 	  }
 	}
-      } else if((ctk_arch_key_t)data == CH_CURS_DOWN) {
+      } else if((ctk_arch_key_t)(size_t)data == CH_CURS_DOWN) {
 	clearptr();
 	if(ptrstate == PTRSTATE_LOCALFILES) {
 	  if(localptr < FILES_HEIGHT - 1) {
@@ -473,7 +474,7 @@ PROCESS_THREAD(ftp_process, ev, data)
 	    ++remoteptr;
 	  }
 	}
-      } else if((ctk_arch_key_t)data == CH_ENTER) {	
+      } else if((ctk_arch_key_t)(size_t)data == CH_ENTER) {	
 	if(ptrstate == PTRSTATE_LOCALFILES) {
 	  strncpy(localfilename,
 		  &localfiles[localptr * FILES_WIDTH], FILES_WIDTH);
@@ -490,7 +491,7 @@ PROCESS_THREAD(ftp_process, ev, data)
 	  /*	  make_downloaddialog();
 		  ctk_dialog_open(&dialog);*/
 	}
-      } else if((ctk_arch_key_t)data == 'u') {
+      } else if((ctk_arch_key_t)(size_t)data == 'u') {
 	ftpc_cdup(connection);
       }
       
