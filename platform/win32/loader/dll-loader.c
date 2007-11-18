@@ -30,7 +30,7 @@
  * 
  * Author: Oliver Schmidt <ol.sc@web.de>
  *
- * $Id: dll-loader.c,v 1.2 2007/11/18 02:36:07 oliverschmidt Exp $
+ * $Id: dll-loader.c,v 1.3 2007/11/18 13:24:34 oliverschmidt Exp $
  */
 
 #define WIN32_LEAN_AND_MEAN
@@ -62,8 +62,8 @@ dll_loader_load(char *name, char *arg)
   }
 
   /* Start the process. */
-  debug_printf("Starting '%s'\n", (**(struct process***)&p)->name);
-  process_start(**(struct process***)&p, arg);
+  debug_printf("Starting '%s'\n", (**(struct process ***)&p)->name);
+  process_start(**(struct process ***)&p, arg);
 
   return LOADER_OK;
 }
