@@ -30,7 +30,7 @@
  * 
  * Author: Oliver Schmidt <ol.sc@web.de>
  *
- * $Id: cfs-win32.c,v 1.2 2007/05/19 21:38:22 oliverschmidt Exp $
+ * $Id: cfs-win32.c,v 1.3 2007/11/18 02:36:30 oliverschmidt Exp $
  */
 
 #define WIN32_LEAN_AND_MEAN
@@ -39,15 +39,24 @@
 #include <stdio.h>
 #include <io.h>
 #include <fcntl.h>
+#ifdef __CYGWIN__
+#include <unistd.h>
+#else
+#define open   _open
+#define close  _close
+#define read   _read
+#define write  _write
+#define lseek  _lseek
+#endif
 
 #include "contiki.h"
 
 #include "cfs/cfs.h"
 
 struct cfs_win32_dir {
-  HANDLE         handle;
-  unsigned char* name;
-  unsigned int   size;
+  HANDLE       handle;
+  char*        name;
+  unsigned int size;
 };
 
 /*---------------------------------------------------------------------------*/
@@ -55,34 +64,34 @@ int
 cfs_open(const char *n, int f)
 {
   if(f == CFS_READ) {
-    return _open(n, O_RDONLY);
+    return open(n, O_RDONLY);
   } else {
-    return _open(n, O_CREAT|O_TRUNC|O_RDWR);
+    return open(n, O_CREAT|O_TRUNC|O_RDWR);
   }
 }
 /*---------------------------------------------------------------------------*/
 void
 cfs_close(int f)
 {
-  _close(f);
+  close(f);
 }
 /*---------------------------------------------------------------------------*/
 int
-cfs_read(int f, char *b, unsigned int l)
+cfs_read(int f, void *b, unsigned int l)
 {
-  return _read(f, b, l);
+  return read(f, b, l);
 }
 /*---------------------------------------------------------------------------*/
 int
-cfs_write(int f, char *b, unsigned int l)
+cfs_write(int f, void *b, unsigned int l)
 {
-  return _write(f, b, l);
+  return write(f, b, l);
 }
 /*---------------------------------------------------------------------------*/
 int
 cfs_seek(int f, unsigned int o)
 {
-  return _lseek(f, o, SEEK_SET);
+  return lseek(f, o, SEEK_SET);
 }
 /*---------------------------------------------------------------------------*/
 int
@@ -108,7 +117,7 @@ cfs_opendir(struct cfs_dir *p, const char *n)
     return 1;
   }
 
-  dir->name = _strdup(data.cFileName);
+  dir->name = strdup(data.cFileName);
   dir->size = ((data.nFileSizeLow + 511) / 512) % 1000;
 
   return 0;
@@ -133,7 +142,7 @@ cfs_readdir(struct cfs_dir *p, struct cfs_dirent *e)
     return 0;
   }
 
-  dir->name = _strdup(data.cFileName);
+  dir->name = strdup(data.cFileName);
   dir->size = ((data.nFileSizeLow + 511) / 512) % 1000;
 
   return 0;
