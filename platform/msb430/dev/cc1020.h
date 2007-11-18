@@ -62,8 +62,8 @@ int cc1020_carrier_sense(void);
 uint8_t cc1020_get_rssi(void);
 int cc1020_sending(void);
 
-int cc1020_send(const void *buf, unsigned size);
-int cc1020_read(void *buf, unsigned size);
+int cc1020_send(const void *buf, unsigned short size);
+int cc1020_read(void *buf, unsigned short size);
 void cc1020_set_receiver(void (*recv)(const struct radio_driver *));
 int cc1020_on(void);
 int cc1020_off(void);
