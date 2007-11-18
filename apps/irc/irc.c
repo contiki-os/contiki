@@ -30,8 +30,11 @@
  * 
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: irc.c,v 1.3 2007/09/29 04:12:16 matsutsuka Exp $
+ * $Id: irc.c,v 1.4 2007/11/18 01:06:43 oliverschmidt Exp $
  */
+
+#include <string.h>
+#include <stddef.h>
 
 #include "contiki-conf.h"
 #include "contiki.h"
@@ -43,9 +46,6 @@
 #include "lib/ctk-textentry-cmdline.h"
 
 #include "lib/petsciiconv.h"
-
-
-#include <string.h>
 
 #ifdef IRC_CONF_WIDTH
 #define LOG_WIDTH IRC_CONF_WIDTH
@@ -274,7 +274,7 @@ PROCESS_THREAD(irc_process, ev, data)
       }
 #endif /* UIP_UDP */
     } else if(ev == ctk_signal_keypress) {
-      c = (ctk_arch_key_t)data;
+      c = (ctk_arch_key_t)(size_t)data;
       if(c == CH_ENTER) {
 	parse_line();
       } else {
