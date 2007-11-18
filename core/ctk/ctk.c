@@ -44,7 +44,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: ctk.c,v 1.7 2007/08/30 14:39:17 matsutsuka Exp $
+ * $Id: ctk.c,v 1.8 2007/11/18 01:46:53 oliverschmidt Exp $
  *
  */
 
@@ -93,7 +93,6 @@ static unsigned char iconx, icony;
 #define ICONX_DELTA  -16
 #define ICONY_DELTA  -5
 #define ICONY_MAX    height
-#define ICONY_MIN    0
 
 #ifndef ctk_arch_isprint
 unsigned char ctk_arch_isprint(char c);
@@ -219,8 +218,7 @@ arrange_icons(void)
     icon->y = icony;
     
     icony += ICONY_DELTA;
-    if(icony >= ICONY_MAX ||
-       icony < ICONY_MIN) {
+    if(icony >= ICONY_MAX) {
       icony = ICONY_START;
       iconx += ICONX_DELTA;
     }
