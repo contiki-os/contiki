@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: profile.c,v 1.2 2007/11/17 10:14:19 adamdunkels Exp $
+ * $Id: profile.c,v 1.3 2007/11/18 19:16:49 oliverschmidt Exp $
  */
 
 /**
@@ -40,7 +40,7 @@
 
 #include "sys/profile.h"
 
-#include <stdlib.h> /* For NULL */
+#include <stddef.h> /* For NULL */
 
 unsigned int profile_timestamp_ptr;
 struct profile_timestamp profile_timestamps[PROFILE_LIST_LENGTH];
