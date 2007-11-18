@@ -349,10 +349,6 @@
 					>
 				</File>
 				<File
-					RelativePath="..\..\..\core\net\uipbuf.h"
-					>
-				</File>
-				<File
 					RelativePath="..\..\..\core\net\uiplib.c"
 					>
 				</File>
