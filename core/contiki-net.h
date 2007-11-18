@@ -30,7 +30,7 @@
  *
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: contiki-net.h,v 1.4 2007/05/21 14:13:04 bg- Exp $
+ * $Id: contiki-net.h,v 1.5 2007/11/18 01:19:31 oliverschmidt Exp $
  */
 #ifndef __CONTIKI_NET_H__
 #define __CONTIKI_NET_H__
@@ -43,7 +43,6 @@
 #include "net/uip-fw.h"
 #include "net/uip-fw-drv.h"
 #include "net/uip_arp.h"
-#include "net/uipbuf.h"
 #include "net/uiplib.h"
 #include "net/uip-udp-packet.h"
 
