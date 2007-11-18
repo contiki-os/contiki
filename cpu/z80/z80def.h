@@ -27,7 +27,7 @@
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * $Id: z80def.h,v 1.2 2007/09/19 12:44:01 matsutsuka Exp $
+ * $Id: z80def.h,v 1.3 2007/11/18 01:38:05 oliverschmidt Exp $
  *
  */
 
@@ -77,8 +77,6 @@ typedef unsigned int size_t;
 
 #define CC_CONF_ASSIGN_AGGREGATE(dest, src)	\
     memcpy(dest, src, sizeof(*dest))
-#define CC_CONF_INC_CAST_POINTER(type, data)	\
-    data = ((type)data) + 1
 
 #define uip_ipaddr_copy(dest, src)		\
     memcpy(dest, src, sizeof(*dest))
