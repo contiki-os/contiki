@@ -29,7 +29,7 @@
  *
  * This file is part of the Contiki desktop environment 
  *
- * $Id: htmlparser.c,v 1.6 2006/10/06 21:34:59 oliverschmidt Exp $
+ * $Id: htmlparser.c,v 1.7 2007/11/18 01:41:00 oliverschmidt Exp $
  *
  */
 
@@ -171,7 +171,7 @@ struct htmlparser_state {
 static struct htmlparser_state s;
 
 /*-----------------------------------------------------------------------------------*/
-static char last[1] = {0xff};
+static char last[1] = {(char)0xff};
 
 static const char *tags[] = {
 #define TAG_FIRST       0
