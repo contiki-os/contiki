@@ -1,5 +1,5 @@
 /* -*- C -*- */
-/* @(#)$Id: spi.h,v 1.3 2007/11/13 06:45:29 fros4943 Exp $ */
+/* @(#)$Id: spi.h,v 1.4 2007/11/18 12:27:44 ksb Exp $ */
 
 #ifndef SPI_H
 #define SPI_H
@@ -37,7 +37,7 @@ void spi_init(void);
 	do {\
     	SPI_TXBUF = 0;\
 		SPI_WAITFOREORx();\
-		SPI_RXBUF;\
+		(void)SPI_RXBUF;\
 	} while(0)
 
 #define FASTSPI_TX_MANY(p,c)\
@@ -148,7 +148,7 @@ void spi_init(void);
 	 do {\
 		  SPI_ENABLE();\
 		  FASTSPI_RX_ADDR(CC2420_RXFIFO);\
-		  SPI_RXBUF;\
+		  (void)SPI_RXBUF;\
 		  FASTSPI_RX(b);\
   		  clock_delay(1);\
 		  SPI_DISABLE();\
@@ -160,7 +160,7 @@ void spi_init(void);
 		  u8_t spiCnt;\
 		  SPI_ENABLE();\
 		  FASTSPI_RX_ADDR(CC2420_RXFIFO);\
-		  SPI_RXBUF;\
+		  (void)SPI_RXBUF;\
 		  for (spiCnt = 0; spiCnt < (c); spiCnt++) {\
 				FASTSPI_RX(((u8_t*)(p))[spiCnt]);\
 		  }\
@@ -175,7 +175,7 @@ void spi_init(void);
 		  u8_t spiCnt;\
 		  SPI_ENABLE();\
 		  FASTSPI_RX_ADDR(CC2420_RXFIFO);\
-		  SPI_RXBUF;\
+		  (void)SPI_RXBUF;\
 		  for (spiCnt = 0; spiCnt < (c); spiCnt++) {\
 				FASTSPI_RX_GARBAGE();\
 		  }\
