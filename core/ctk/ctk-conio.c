@@ -29,7 +29,7 @@
  *
  * This file is part of the "ctk" console GUI toolkit for cc65
  *
- * $Id: ctk-conio.c,v 1.4 2007/09/19 12:50:23 matsutsuka Exp $
+ * $Id: ctk-conio.c,v 1.5 2007/11/18 01:49:48 oliverschmidt Exp $
  *
  */
 
@@ -345,10 +345,10 @@ ctk_draw_window(struct ctk_window *window, unsigned char focus,
     }
 
     if(y >= clipy1) {
-      cputcxy(x, y, CH_ULCORNER);
+      cputcxy(x, y, (char)CH_ULCORNER);
       gotoxy(wherex() + window->titlelen + CTK_CONF_WINDOWMOVE * 2, wherey());
       chline(window->w - (wherex() - x) - 2);
-      cputcxy(x2, y, CH_URCORNER);
+      cputcxy(x2, y, (char)CH_URCORNER);
     }
 
     h = window->h;
@@ -375,9 +375,9 @@ ctk_draw_window(struct ctk_window *window, unsigned char focus,
 
     if(y + window->h >= clipy1 &&
        y + window->h < clipy2) {
-      cputcxy(x, y2, CH_LLCORNER);
+      cputcxy(x, y2, (char)CH_LLCORNER);
       chlinexy(x1, y2, window->w);
-      cputcxy(x2, y2, CH_LRCORNER);
+      cputcxy(x2, y2, (char)CH_LRCORNER);
     }
   }
 
@@ -413,10 +413,10 @@ ctk_draw_dialog(struct ctk_window *dialog)
   chlinexy(x1, y2,
 	   dialog->w);
 
-  cputcxy(x, y, CH_ULCORNER);
-  cputcxy(x, y2, CH_LLCORNER);
-  cputcxy(x2, y, CH_URCORNER);
-  cputcxy(x2, y2, CH_LRCORNER);
+  cputcxy(x, y, (char)CH_ULCORNER);
+  cputcxy(x, y2, (char)CH_LLCORNER);
+  cputcxy(x2, y, (char)CH_URCORNER);
+  cputcxy(x2, y2, (char)CH_LRCORNER);
   
   /* Clear dialog contents. */
   for(i = y1; i < y2; ++i) {
