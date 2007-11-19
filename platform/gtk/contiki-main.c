@@ -29,7 +29,7 @@
  *
  * This file is part of the Contiki desktop environment
  *
- * $Id: contiki-main.c,v 1.7 2007/05/23 22:03:41 oliverschmidt Exp $
+ * $Id: contiki-main.c,v 1.8 2007/11/19 12:23:02 adamdunkels Exp $
  *
  */
 
@@ -43,7 +43,6 @@
 #include "ctk/ctk.h"
 
 #include "ctk/ctk-vncserver.h"
-#include "ctk/ctk-termtelnet.h"
 
 #include "net/tapdev-drv.h"
 #include "program-handler.h"
@@ -53,7 +52,6 @@
 #include "about-dsc.h"
 #include "calc-dsc.h"
 #include "dhcp-dsc.h"
-#include "editor-dsc.h"
 #include "email-dsc.h"
 #include "ftp-dsc.h"
 #include "irc-dsc.h"
@@ -89,7 +87,6 @@ PROCESS_THREAD(init_process, ev, data)
   
   program_handler_add(&netconf_dsc, "Network setup", 1);
   program_handler_add(&ftp_dsc, "FTP client", 1);
-  program_handler_add(&editor_dsc, "Editor", 1);
   program_handler_add(&www_dsc, "Web browser", 1);
   program_handler_add(&processes_dsc, "Processes", 1);
   program_handler_add(&shell_dsc, "Command shell", 1);
