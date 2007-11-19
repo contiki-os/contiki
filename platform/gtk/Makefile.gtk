@@ -2,7 +2,7 @@ ifndef CONTIKI
   $(error CONTIKI not defined! You must specify where CONTIKI resides!)
 endif
 
-APPS+=process-list webserver program-handler editor irc calc webbrowser email \
+APPS+=process-list webserver program-handler irc calc webbrowser email \
       shell netconf dhcp ftp
 
 CONTIKI_TARGET_DIRS = . ctk net
