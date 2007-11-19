@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: tr1001-gcr.c,v 1.10 2007/10/25 09:30:39 adamdunkels Exp $
+ * @(#)$Id: tr1001-gcr.c,v 1.11 2007/11/19 09:50:54 adamdunkels Exp $
  */
 /**
  * \addtogroup esb
@@ -645,7 +645,7 @@ prepare_transmission(int synchbytes)
 }
 /*---------------------------------------------------------------------------*/
 int
-tr1001_send(const u8_t *packet, u16_t len)
+tr1001_send(const void *packet, unsigned short len)
 {
   int i;
   u16_t crc16;
@@ -671,7 +671,7 @@ tr1001_send(const u8_t *packet, u16_t len)
 
   /* Send packet data. */
   for(i = 0; i < len; ++i) {
-    crc16 = sendx_crc16(packet[i], crc16);
+    crc16 = sendx_crc16(((u8_t *)packet)[i], crc16);
   }
 
   /* Send CRC */
@@ -705,8 +705,8 @@ tr1001_send(const u8_t *packet, u16_t len)
   return 0;
 }
 /*---------------------------------------------------------------------------*/
-u16_t
-tr1001_read(u8_t *buf, u16_t bufsize)
+int
+tr1001_read(void *buf, unsigned short bufsize)
 {
   unsigned short tmplen;
 
