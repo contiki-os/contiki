@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: rtimer-arch.c,v 1.5 2007/09/03 19:22:37 joxe Exp $
+ * $Id: rtimer-arch.c,v 1.6 2007/11/19 22:38:57 joxe Exp $
  */
 
 /**
@@ -52,8 +52,6 @@
 #define PRINTF(...)
 #endif
 
-static rtimer_clock_t offset;
-
 /*---------------------------------------------------------------------------*/
 interrupt(TIMERB1_VECTOR) timerb1 (void) {
   ENERGEST_ON(ENERGEST_TYPE_IRQ);
@@ -67,8 +65,6 @@ void
 rtimer_arch_init(void)
 {
   dint();
-
-  offset = 0;
 
   /* Select SMCLK (2.4576MHz), clear TAR; This makes the rtimer count
      the number of processor cycles executed by the CPU. */
@@ -90,18 +86,5 @@ void
 rtimer_arch_schedule(rtimer_clock_t t)
 {
   PRINTF("rtimer_arch_schedule time %u\n", t);
-  TBCCR1 = t + offset;
+  TBCCR1 = t;
 }
-/*---------------------------------------------------------------------------*/
-/*rtimer_clock_t
-rtimer_arch_now(void)
-{
-  return TBR + offset;
-}*/
-/*---------------------------------------------------------------------------*/
-void
-rtimer_arch_set(rtimer_clock_t t)
-{
-  offset = t - TBR;
-}
-/*---------------------------------------------------------------------------*/
