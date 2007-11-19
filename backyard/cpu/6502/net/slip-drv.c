@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki OS
  *
- * $Id: slip-drv.c,v 1.1 2006/06/17 22:41:21 adamdunkels Exp $
+ * $Id: slip-drv.c,v 1.1 2007/11/19 23:00:56 oliverschmidt Exp $
  *
  */
 

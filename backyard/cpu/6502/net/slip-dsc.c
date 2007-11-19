@@ -29,7 +29,7 @@
  *
  * This file is part of the Contiki desktop environment
  *
- * $Id: slip-dsc.c,v 1.2 2007/09/06 01:36:11 matsutsuka Exp $
+ * $Id: slip-dsc.c,v 1.1 2007/11/19 23:00:56 oliverschmidt Exp $
  *
  */
 
