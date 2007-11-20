@@ -30,7 +30,7 @@
  * 
  * Author: Oliver Schmidt <ol.sc@web.de>
  *
- * $Id: contiki-main.c,v 1.4 2007/11/20 21:19:12 oliverschmidt Exp $
+ * $Id: contiki-main.c,v 1.5 2007/11/20 21:24:43 oliverschmidt Exp $
  */
 
 #include <stdio.h>
@@ -88,7 +88,7 @@ main(void)
 
   clock_init();
 
-  printf("Contiki initiated, now starting process scheduling\n");
+  printf("Contiki up and running ...\n");
   
   while(1) {
 
