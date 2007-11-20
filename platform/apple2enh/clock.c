@@ -30,9 +30,10 @@
  * 
  * Author: Oliver Schmidt <ol.sc@web.de>
  *
- * $Id: clock.c,v 1.1 2007/08/10 13:30:02 oliverschmidt Exp $
+ * $Id: clock.c,v 1.2 2007/11/20 21:54:06 oliverschmidt Exp $
  */
 
+#include <stdio.h>
 #include <apple2.h>
 
 #include "contiki.h"
@@ -44,8 +45,6 @@
 static unsigned char tick = 14;
 static clock_time_t time;
 
-#include <stdio.h>
-
 /*-----------------------------------------------------------------------------------*/
 void
 clock_init(void)
@@ -54,6 +53,7 @@ clock_init(void)
     if(*(signed char *)0xC036 < 0) {
       /* 5 / 14 = 1.0MHz / 2.8MHz */
       tick = 5;
+      fprintf(stderr, "Assuming 2.8 MHz ...\n");
     }
   }
 }
@@ -64,7 +64,7 @@ clock_update(void)
   static unsigned int count;
 
   count += tick;
-  if(count > 2500) {
+  if(count > 2000) {
     count = 0;
     ++time;
   }
