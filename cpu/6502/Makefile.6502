@@ -30,7 +30,7 @@
 #
 # Author: Oliver Schmidt <ol.sc@web.de>
 #
-# $Id: Makefile.6502,v 1.12 2007/08/30 20:47:14 oliverschmidt Exp $
+# $Id: Makefile.6502,v 1.13 2007/11/20 21:12:00 oliverschmidt Exp $
 #
 
 ifndef CONTIKI
@@ -49,12 +49,15 @@ ifndef LD65_OBJ
   ${error LD65_OBJ not defined! You must specify where the cc65 objects reside!}
 endif
 
+all: cs8900a.eth
+
 CONTIKI_TARGET_DIRS = .
 CONTIKI_CPU_DIRS    = . net sys
 CONTIKI_TARGET_MAIN = ${addprefix $(OBJECTDIR)/,contiki-main.o}
 
 CONTIKI_TARGET_SOURCEFILES = contiki-main.c
-CONTIKI_CPU_SOURCEFILES    = clock.c mtarch.c mtarch-asm.S lc-asm.S uip_arch.c
+CONTIKI_CPU_SOURCEFILES    = clock.c mtarch.c mtarch-asm.S lc-asm.S \
+                             uip_arch.c ethernet-drv.c ethernet.c
 
 CONTIKI_SOURCEFILES += $(CONTIKI_CPU_SOURCEFILES) $(CONTIKI_TARGET_SOURCEFILES)
 
@@ -93,3 +96,6 @@ CUSTOM_RULE_C_TO_CO = 1
 	$(CC) $(CFLAGS) -DAUTOSTART_ENABLE $< -o $(@:.co=.s)
 	@$(AS) $(ASFLAGS) $(@:.co=.s) -o $@
 	@rm -f $(@:.co=.s)
+
+%.eth: $(OBJECTDIR)/%.o
+	$(LD) -t module -m $@.map $< -o $@
