@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ContikiMoteType.java,v 1.21 2007/10/22 13:21:51 fros4943 Exp $
+ * $Id: ContikiMoteType.java,v 1.22 2007/11/20 04:16:13 fros4943 Exp $
  */
 
 package se.sics.cooja.contikimote;
@@ -259,13 +259,22 @@ public class ContikiMoteType implements MoteType {
           hasSystemSymbols, commStack, taskOutput
               .getInputStream(MessageList.NORMAL), taskOutput
               .getInputStream(MessageList.ERROR));
-      if (!libFile.exists() || !depFile.exists()) {
-        compilationSucceded = false;
+      if (!libFile.exists()) {
+        MoteTypeCreationException ex = new MoteTypeCreationException(
+        "Compilation error: " + libFile.getPath() + " does not exist");
+        ex.setCompilationOutput(taskOutput);
+        throw ex;
+      }
+      if (!depFile.exists()) {
+        MoteTypeCreationException ex = new MoteTypeCreationException(
+        "Compilation error: " + depFile.getPath() + " does not exist");
+        ex.setCompilationOutput(taskOutput);
+        throw ex;
       }
 
       if (!compilationSucceded) {
         MoteTypeCreationException ex = new MoteTypeCreationException(
-            "Compilation error");
+            "Compilation error: Unknown error");
         ex.setCompilationOutput(taskOutput);
         throw ex;
       }
