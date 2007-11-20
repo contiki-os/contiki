@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: RadioLogger.java,v 1.10 2007/08/21 13:28:52 fros4943 Exp $
+ * $Id: RadioLogger.java,v 1.11 2007/11/20 04:17:11 fros4943 Exp $
  */
 
 package se.sics.cooja.plugins;
@@ -261,6 +261,7 @@ public class RadioLogger extends VisPlugin {
           rowData.add(data);
         }
         model.fireTableRowsInserted(rowData.size() - newConnections.length + 1, rowData.size());
+        setTitle("Radio Logger: " + rowData.size() + " packets");
       }
     });
 
