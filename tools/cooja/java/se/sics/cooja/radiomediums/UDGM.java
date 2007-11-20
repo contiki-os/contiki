@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: UDGM.java,v 1.10 2007/10/31 13:58:21 fros4943 Exp $
+ * $Id: UDGM.java,v 1.11 2007/11/20 05:19:47 fros4943 Exp $
  */
 
 package se.sics.cooja.radiomediums;
@@ -397,6 +397,7 @@ public class UDGM extends AbstractRadioMedium {
 
     myRadioMedium = this;
     mySimulation = simulation;
+    random.setSeed(simulation.getRandomSeed());
   }
 
   public RadioConnection createConnections(Radio sendingRadio) {
@@ -560,6 +561,7 @@ public class UDGM extends AbstractRadioMedium {
         SUCCESS_RATIO = Double.parseDouble(element.getText());
       }
     }
+    random.setSeed(mySimulation.getRandomSeed());
     return true;
   }
 
