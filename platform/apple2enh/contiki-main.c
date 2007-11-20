@@ -30,12 +30,13 @@
  * 
  * Author: Oliver Schmidt <ol.sc@web.de>
  *
- * $Id: contiki-main.c,v 1.3 2007/08/10 13:30:02 oliverschmidt Exp $
+ * $Id: contiki-main.c,v 1.4 2007/11/20 21:19:12 oliverschmidt Exp $
  */
 
 #include <stdio.h>
 
 #include "contiki-net.h"
+#include "net/ethernet-drv.h"
 
 PROCINIT(&etimer_process,
 	 &tcpip_process);
@@ -66,7 +67,11 @@ main(void)
 
 #if 1
   {
+    static struct ethernet_config config = {0xC0B0, "CS8900A.ETH"};
     uip_ipaddr_t addr;
+
+    process_start((struct process *)&ethernet_process, (char *)&config);
+
     uip_ipaddr(&addr, 192,168,0,128);
     uip_sethostaddr(&addr);
 
