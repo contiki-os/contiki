@@ -36,7 +36,7 @@
  *
  * This file is part of the Contiki desktop environment
  *
- * $Id: ctk-textedit.h,v 1.1 2006/06/17 22:41:17 adamdunkels Exp $
+ * $Id: ctk-textedit.h,v 1.1 2007/11/20 20:41:54 oliverschmidt Exp $
  *
  */
 #ifndef __CTK_TEXTEDIT_H__
