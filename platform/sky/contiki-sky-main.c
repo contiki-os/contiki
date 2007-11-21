@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#)$Id: contiki-sky-main.c,v 1.15 2007/11/17 10:29:33 adamdunkels Exp $
+ * @(#)$Id: contiki-sky-main.c,v 1.16 2007/11/21 16:41:44 nifi Exp $
  */
 
 #include <signal.h>
@@ -93,7 +93,9 @@ void uip_log(char *msg) { puts(msg); }
 /* Radio stuff in network byte order. */
 static u16_t panId = 0x2024;
 
+#ifndef RF_CHANNEL
 #define RF_CHANNEL              26
+#endif
 /*---------------------------------------------------------------------------*/
 void
 force_inclusion(int d1, int d2)
@@ -109,6 +111,17 @@ set_rime_addr(void)
   rimeaddr_set_node_addr(&addr);
 }
 /*---------------------------------------------------------------------------*/
+static void
+print_processes(struct process **processes)
+{
+  printf("Starting");
+  while(*processes != NULL) {
+    printf(" '%s'", (*processes)->name);
+    processes++;
+  }
+  putchar('\n');
+}
+/*--------------------------------------------------------------------------*/
 int
 main(int argc, char **argv)
 {
@@ -126,8 +139,8 @@ main(int argc, char **argv)
   uart1_init(BAUD2UBR(115200)); /* Must come before first printf */
 #endif /* WITH_UIP */
   
-  printf("Starting %s "
-	 "($Id: contiki-sky-main.c,v 1.15 2007/11/17 10:29:33 adamdunkels Exp $)\n", __FILE__);
+/*   printf("Starting %s " */
+/* 	 "($Id: contiki-sky-main.c,v 1.16 2007/11/21 16:41:44 nifi Exp $)\n", __FILE__); */
   leds_on(LEDS_GREEN);
   ds2411_init();
   sensors_light_init();
@@ -145,7 +158,12 @@ main(int argc, char **argv)
   node_id_restore();
 
   leds_off(LEDS_BLUE);
-  
+  printf(CONTIKI_VERSION_STRING " started. ");
+  if(node_id > 0) {
+    printf("Node id is set to %u.\n", node_id);
+  } else {
+    printf("Node id is not set.\n");
+  }
   printf("MAC %02x:%02x:%02x:%02x:%02x:%02x:%02x:%02x\n",
 	 ds2411_id[0], ds2411_id[1], ds2411_id[2], ds2411_id[3],
 	 ds2411_id[4], ds2411_id[5], ds2411_id[6], ds2411_id[7]);
@@ -187,7 +205,8 @@ main(int argc, char **argv)
 
   button_sensor.activate();
   
-  printf("Autostarting processes\n");
+/*   printf("Autostarting processes\n"); */
+  print_processes((struct process **) autostart_processes);
   autostart_start((struct process **) autostart_processes);
 
   energest_init();
