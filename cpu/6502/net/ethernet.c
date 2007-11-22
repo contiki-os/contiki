@@ -30,7 +30,7 @@
  *
  * Author: Oliver Schmidt <ol.sc@web.de>
  *
- * @(#)$Id: ethernet.c,v 1.1 2007/11/20 21:10:21 oliverschmidt Exp $
+ * @(#)$Id: ethernet.c,v 1.2 2007/11/22 11:41:18 oliverschmidt Exp $
  */
 
 #include <stdio.h>
@@ -74,7 +74,7 @@ ethernet_init(struct ethernet_config *config)
   u8_t byte;
 
   module_control.callerdata = open(config->name, O_RDONLY);
-  if(module_control.callerdata == -1) {
+  if(module_control.callerdata < 0) {
     fprintf(stderr, "%s: %s\n", config->name, strerror(errno));
     error_exit();
   }
