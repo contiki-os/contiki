@@ -30,7 +30,7 @@
  * 
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: irc.c,v 1.4 2007/11/18 01:06:43 oliverschmidt Exp $
+ * $Id: irc.c,v 1.5 2007/11/22 12:02:24 oliverschmidt Exp $
  */
 
 #include <string.h>
@@ -42,7 +42,6 @@
 #include "ircc.h"
 
 #include "ctk/ctk.h"
-#include "lib/ctk-textedit.h"
 #include "lib/ctk-textentry-cmdline.h"
 
 #include "lib/petsciiconv.h"
