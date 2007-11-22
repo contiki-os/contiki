@@ -30,9 +30,8 @@
  *
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: cfs-eeprom.c,v 1.3 2007/11/17 18:01:00 adamdunkels Exp $
+ * $Id: cfs-eeprom.c,v 1.4 2007/11/22 11:29:13 oliverschmidt Exp $
  */
-#include "contiki.h"
 
 #include "cfs/cfs.h"
 #include "dev/eeprom.h"
@@ -95,7 +94,7 @@ cfs_write(int f, void *buf, unsigned int len)
   }
 }
 /*---------------------------------------------------------------------------*/
-int
+unsigned int
 cfs_seek(int f, unsigned int o)
 {
   if(f == 1) {
@@ -109,18 +108,17 @@ cfs_seek(int f, unsigned int o)
 int
 cfs_opendir(struct cfs_dir *p, const char *n)
 {
-  return 1;
+  return -1;
 }
 /*---------------------------------------------------------------------------*/
 int
 cfs_readdir(struct cfs_dir *p, struct cfs_dirent *e)
 {
-  return 1;
+  return -1;
 }
 /*---------------------------------------------------------------------------*/
-int
+void
 cfs_closedir(struct cfs_dir *p)
 {
-  return 1;
 }
 /*---------------------------------------------------------------------------*/
