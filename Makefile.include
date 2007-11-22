@@ -40,16 +40,12 @@ include $(CONTIKI)/core/net/mac/Makefile.mac
 SYSTEM  = process.c procinit.c autostart.c elfloader.c profile.c profile-aggregates.c
 THREADS = mt.c
 LIBS    = memb.c timer.c list.c etimer.c energest.c rtimer.c print-stats.c
-CTK     = ctk.c
-UIP     = uip.c uiplib.c resolv.c tcpip.c psock.c hc.c uip-split.c \
-          uip-fw.c uip-fw-drv.c uip_arp.c uiplib.c tcpdump.c \
-          uip-neighbor.c uip-udp-packet.c uip-over-mesh.c #rawpacket-udp.c
+UIP     = uip.c uiplib.c resolv.c tcpip.c psock.c hc.c uip-split.c uip-fw.c \
+          uip-fw-drv.c uip_arp.c tcpdump.c uip-neighbor.c uip-udp-packet.c \
+          uip-over-mesh.c #rawpacket-udp.c
 NET     = $(UIP) uaodv.c uaodv-rt.c
-
-CTKVNC  = $(CTK) ctk-vncserver.c libconio.c vnc-server.c vnc-out.c \
-          ctk-vncfont.c
-CTKTERM = $(CTK) libconio.c ctk-term.c ctk-term-in.c ctk-term-out.c \
-          ctk-termtelnet.c
+CTK     = ctk.c
+CTKVNC  = $(CTK) ctk-vncserver.c libconio.c vnc-server.c vnc-out.c ctk-vncfont.c
 
 CONTIKIFILES = $(SYSTEM) $(LIBS) $(NET) $(DHCP) $(THREADS)
 
