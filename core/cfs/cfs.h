@@ -54,7 +54,7 @@
  *
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: cfs.h,v 1.7 2007/11/17 21:01:31 oliverschmidt Exp $
+ * $Id: cfs.h,v 1.8 2007/11/22 11:27:08 oliverschmidt Exp $
  */
 #ifndef __CFS_H__
 #define __CFS_H__
@@ -172,7 +172,7 @@ CCIF int cfs_write(int fd, void *buf, unsigned int len);
  *             or written to the file will be at the position given by
  *             the offset parameter.
  */
-CCIF int cfs_seek(int fd, unsigned int offset);
+CCIF unsigned int cfs_seek(int fd, unsigned int offset);
 
 /**
  * \brief      Open a directory for reading directory entries.
@@ -190,7 +190,7 @@ CCIF int cfs_opendir(struct cfs_dir *dirp, const char *name);
  * \param dirp A pointer to a struct cfs_dir that has been opened with cfs_opendir().
  * \param dirent A pointer to a struct cfs_dirent that is filled in by cfs_readdir()
  * \retval 0   If a directory entry was read.
- * \retval 0   If no more directory entries can be read.
+ * \retval -1  If no more directory entries can be read.
  *
  * \sa         cfs_opendir()
  * \sa         cfs_closedir()
@@ -204,7 +204,7 @@ CCIF int cfs_readdir(struct cfs_dir *dirp, struct cfs_dirent *dirent);
  * \sa         cfs_opendir()
  * \sa         cfs_readdir()
  */
-CCIF int cfs_closedir(struct cfs_dir *dirp);
+CCIF void cfs_closedir(struct cfs_dir *dirp);
 
 #endif /* __CFS_H__ */
 
