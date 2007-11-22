@@ -30,7 +30,7 @@
  *
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: httpd-cfs.c,v 1.3 2007/11/18 02:54:45 oliverschmidt Exp $
+ * $Id: httpd-cfs.c,v 1.4 2007/11/22 11:25:08 oliverschmidt Exp $
  */
 
 #include <string.h>
@@ -46,7 +46,7 @@
 #define STATE_OUTPUT  1
 
 #define SEND_STRING(s, str) PSOCK_SEND(s, (uint8_t *)str, strlen(str))
-MEMB(conns, struct httpd_state, 2);
+MEMB(conns, struct httpd_state, 3);
 
 /*---------------------------------------------------------------------------*/
 static
@@ -106,19 +106,17 @@ PT_THREAD(handle_output(struct httpd_state *s))
     s->fd = cfs_open("404.html", CFS_READ);
     if(s->fd < 0) {
       uip_abort();
+      webserver_log_file(&uip_conn->ripaddr, "reset (no 404.html)");
       PT_EXIT(&s->outputpt);
     }
     PT_WAIT_THREAD(&s->outputpt,
 		   send_headers(s, "HTTP/1.0 404 Not found\r\n"));
-    PT_WAIT_THREAD(&s->outputpt,
-		   send_file(s));
   } else {
     PT_WAIT_THREAD(&s->outputpt,
 		   send_headers(s, "HTTP/1.0 200 OK\r\n"));
-    PT_WAIT_THREAD(&s->outputpt,
-		   send_file(s));
-    cfs_close(s->fd);
   }
+  PT_WAIT_THREAD(&s->outputpt, send_file(s));
+  cfs_close(s->fd);
   PSOCK_CLOSE(&s->sout);
   PT_END(&s->outputpt);
 }
@@ -154,7 +152,7 @@ PT_THREAD(handle_input(struct httpd_state *s))
 
     if(strncmp(s->inputbuf, "Referer:", 8) == 0) {
       s->inputbuf[PSOCK_DATALEN(&s->sin) - 2] = 0;
-      webserver_log(&s->inputbuf[9]);
+      webserver_log(s->inputbuf);
     }
   }
   
@@ -183,6 +181,7 @@ httpd_appcall(void *state)
     s = (struct httpd_state *)memb_alloc(&conns);
     if(s == NULL) {
       uip_abort();
+      webserver_log_file(&uip_conn->ripaddr, "reset (no memory block)");
       return;
     }
     tcp_markconn(uip_conn, s);
@@ -196,6 +195,7 @@ httpd_appcall(void *state)
     if(uip_poll()) {
       if(timer_expired(&s->timer)) {
 	uip_abort();
+        webserver_log_file(&uip_conn->ripaddr, "reset (timeout)");
       }
     } else {
       timer_reset(&s->timer);
