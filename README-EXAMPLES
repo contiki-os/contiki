@@ -5,8 +5,8 @@ To run the example programs, you need either to be running Linux or
 FreeBSD (or any other *nix-type system), or install Cygwin if you are
 running Microsoft Windows (http://www.cygwin.com/). As a minimum you
 will need to have the gcc C compiler installed. To run the examples in
-the "netsim" target, you need to have GTK 1.x development libraries
-installed. These are usually called "gtk-devel", "libgtk1-devel" or
+the 'netsim' target, you need to have GTK 1.x development libraries
+installed. These are usually called 'gtk-devel', 'libgtk1-devel' or
 similar in your Linux software installation programs.
 
 hello-world/
@@ -17,14 +17,14 @@ hello-world/
 
     cd examples/hello-world
 
-  Run the "make" command.
+  Run the 'make' command.
 
     make
 
-  This will compile the hello-world program for the "native"
-  platform. This causes the entire Contiki operating system and the
-  hello-world application to be compiled into a single program that
-  can be run by typing the following command:
+  This will compile the hello-world program in the 'native' target.
+  This causes the entire Contiki operating system and the hello-world
+  application to be compiled into a single program that can be run by
+  typing the following command:
 
     ./hello-world.native
 
@@ -36,11 +36,22 @@ hello-world/
   The program will then appear to hang, and must be stopped by
   pressing the C key while holding down the Control key.
 
+multi-threading/
+
+  A quite simple demonstration of the Contiki multi-threading library
+  employing two worker threads each running a recursive function. It
+  can be compiled and run in the 'native' target by typing the
+  following commands:
+
+    cd examples/multi-threading
+    make
+    ./multi-threading.native
+
 rime/
 
   Contains a set of examples on how to use the Rime communications
-  stack. To run those examples in the "netsim" target (a very simple
-  Contiki network simulator), compile the programs with
+  stack. To run those examples in the 'netsim' target (a very simple
+  Contiki network simulator), compile the programs with:
 
     make TARGET=netsim
 
@@ -77,8 +88,34 @@ sky/
 
 telnet-server/
 
-  A simple TCP telnet server with a simple command shell.
+  A simple TCP telnet server with a simple command shell. It can be
+  compiled and run in the 'minimal-net' target by typing the following
+  commands:
+
+    cd examples/telnet-server
+    make
+    ./telnet-server.minimal-net
+    
+  Most likely you'll have to adjust the TCP/IP values set in main() in
+  platform/minimal-net/contiki-main.c to match your needs.
 
 webserver/
 
-  A web server.
+  A web server supporting dynamic content creation using "scripts" which
+  are actually compiled-in C-functions. It can be compiled and run in the
+  'minimal-net' target by typing the following commands:
+
+    cd examples/webserver
+    make
+    ./webserver.minimal-net
+
+  As an alternative to the static and dynamic compiled-in content the web
+  server can instead support "external" static-only content loaded from
+  any storage supported by the 'Contiki File System' (CFS) interface. To
+  compile it in the 'minimal-net' target and have it load files from disk
+  use the following command:
+
+    make HTTPD-CFS=1
+
+  Most likely you'll have to adjust the TCP/IP values set in main() in
+  platform/minimal-net/contiki-main.c to match your needs.
