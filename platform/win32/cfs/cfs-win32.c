@@ -30,7 +30,7 @@
  * 
  * Author: Oliver Schmidt <ol.sc@web.de>
  *
- * $Id: cfs-win32.c,v 1.3 2007/11/18 02:36:30 oliverschmidt Exp $
+ * $Id: cfs-win32.c,v 1.4 2007/11/22 12:03:54 oliverschmidt Exp $
  */
 
 #define WIN32_LEAN_AND_MEAN
@@ -63,11 +63,7 @@ struct cfs_win32_dir {
 int
 cfs_open(const char *n, int f)
 {
-  if(f == CFS_READ) {
-    return open(n, O_RDONLY);
-  } else {
-    return open(n, O_CREAT|O_TRUNC|O_RDWR);
-  }
+  return open(n, f == CFS_READ? O_RDONLY: O_CREAT|O_RDWR);
 }
 /*---------------------------------------------------------------------------*/
 void
@@ -88,7 +84,7 @@ cfs_write(int f, void *b, unsigned int l)
   return write(f, b, l);
 }
 /*---------------------------------------------------------------------------*/
-int
+unsigned int
 cfs_seek(int f, unsigned int o)
 {
   return lseek(f, o, SEEK_SET);
@@ -101,9 +97,6 @@ cfs_opendir(struct cfs_dir *p, const char *n)
   WIN32_FIND_DATA data;
   char dirname[MAX_PATH];
 
-  if(n == NULL) {
-    n = "";
-  }
   if(*n == '/') {
     GetModuleFileName(NULL, dirname, sizeof(dirname));
     strcpy(strrchr(dirname, '\\'), "/*");
@@ -114,12 +107,10 @@ cfs_opendir(struct cfs_dir *p, const char *n)
   dir->handle = FindFirstFile(dirname, &data);
   if(dir->handle == INVALID_HANDLE_VALUE) {
     dir->name = NULL;
-    return 1;
+    return -1;
   }
-
   dir->name = strdup(data.cFileName);
-  dir->size = ((data.nFileSizeLow + 511) / 512) % 1000;
-
+  dir->size = ((data.nFileSizeLow + 511) / 512) % 1000;	
   return 0;
 }
 /*---------------------------------------------------------------------------*/
@@ -130,7 +121,7 @@ cfs_readdir(struct cfs_dir *p, struct cfs_dirent *e)
   WIN32_FIND_DATA data;
   
   if(dir->name == NULL) {
-    return 1;
+    return -1;
   }
 
   strncpy(e->name, dir->name, sizeof(e->name));
@@ -141,21 +132,17 @@ cfs_readdir(struct cfs_dir *p, struct cfs_dirent *e)
     dir->name = NULL;
     return 0;
   }
-
   dir->name = strdup(data.cFileName);
   dir->size = ((data.nFileSizeLow + 511) / 512) % 1000;
-
   return 0;
 }
 /*---------------------------------------------------------------------------*/
-int
+void
 cfs_closedir(struct cfs_dir *p)
 {
   struct cfs_win32_dir *dir = (struct cfs_win32_dir *)p;
 
   free(dir->name);
   FindClose(dir->handle);
-
-  return 1;
 }
 /*---------------------------------------------------------------------------*/
