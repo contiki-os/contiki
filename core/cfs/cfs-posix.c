@@ -30,25 +30,16 @@
  *
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: cfs-posix.c,v 1.5 2007/11/17 20:04:44 oliverschmidt Exp $
+ * $Id: cfs-posix.c,v 1.6 2007/11/22 11:37:34 oliverschmidt Exp $
  */
-#include "contiki.h"
 
-#include "cfs/cfs.h"
-
-#undef LITTLE_ENDIAN
-#undef BIG_ENDIAN
-#undef BYTE_ORDER
-#undef HTONS
-
+#include <stdio.h>
 #include <fcntl.h>
 #include <unistd.h>
-#include <sys/types.h>
-#include <sys/uio.h>
-#include <sys/types.h>
 #include <dirent.h>
 #include <string.h>
-#include <stdio.h>
+
+#include "cfs/cfs.h"
 
 struct cfs_posix_dir {
   DIR *dirp;
@@ -58,15 +49,7 @@ struct cfs_posix_dir {
 int
 cfs_open(const char *n, int f)
 {
-  char filename[255];
-
-  sprintf(filename, "cfs-root/%s", n);
-
-  if(f == CFS_READ) {
-    return open(filename, O_RDONLY);
-  } else {
-    return open(filename, O_CREAT|O_RDWR);
-  }
+  return open(n, f == CFS_READ? O_RDONLY: O_CREAT|O_RDWR);
 }
 /*---------------------------------------------------------------------------*/
 void
@@ -87,7 +70,7 @@ cfs_write(int f, void *b, unsigned int l)
   return write(f, b, l);
 }
 /*---------------------------------------------------------------------------*/
-int
+unsigned int
 cfs_seek(int f, unsigned int o)
 {
   return lseek(f, o, SEEK_SET);
@@ -97,18 +80,8 @@ int
 cfs_opendir(struct cfs_dir *p, const char *n)
 {
   struct cfs_posix_dir *dir = (struct cfs_posix_dir *)p;
-  char dirname[255];
 
-  if(n == NULL) {
-    n = "";
-  }
-  sprintf(dirname, "cfs-root/%s", n);
-  
-  dir->dirp = opendir(dirname);
-
-  if(dir->dirp == NULL) {
-    printf("cfs-posix: could not open directory '%s'\n", dirname);
-  }
+  dir->dirp = opendir(n);
   return dir->dirp == NULL;
 }
 /*---------------------------------------------------------------------------*/
@@ -119,24 +92,24 @@ cfs_readdir(struct cfs_dir *p, struct cfs_dirent *e)
   struct dirent *res;
 
   if(dir->dirp == NULL) {
-    return 1;
+    return -1;
   }
   res = readdir(dir->dirp);
   if(res == NULL) {
-    return 1;
+    return -1;
   }
   strncpy(e->name, res->d_name, sizeof(e->name));
   e->size = 0;
   return 0;
 }
 /*---------------------------------------------------------------------------*/
-int
+void
 cfs_closedir(struct cfs_dir *p)
 {
   struct cfs_posix_dir *dir = (struct cfs_posix_dir *)p;
+
   if(dir->dirp != NULL) {
     closedir(dir->dirp);
   }
-  return 1;
 }
 /*---------------------------------------------------------------------------*/
