@@ -1,4 +1,4 @@
-# $Id: Makefile.avr,v 1.7 2007/11/16 09:19:22 fros4943 Exp $
+# $Id: Makefile.avr,v 1.8 2007/11/23 06:22:52 fros4943 Exp $
 
 ### Check if we are running under Windows
 
@@ -75,10 +75,12 @@ $(OBJECTDIR)/%.o: %.c
 %.out: 	%.co $(PROJECT_OBJECTFILES) contiki-$(TARGET).a
 	$(CONTIKI)/tools/make-empty-symbols
 	$(CC) $(LDFLAGS) $(CFLAGS) -o $@ $^ $(LIBC) symbols.c
+ifdef SYMBOLS
 	$(CONTIKI)/tools/avr-make-symbols $@ 
 	$(CC) $(LDFLAGS) $(CFLAGS) -o $@ $^ $(LIBC) symbols.c
 	$(CONTIKI)/tools/avr-make-symbols $@
 	$(CC) $(LDFLAGS) $(CFLAGS) -o $@ $^ $(LIBC) symbols.c
+endif
 
 #%.hex: %.elf
 #	$(OBJCOPY) -R .eeprom $^ -O ihex $@
