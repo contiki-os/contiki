@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: SimInformation.java,v 1.3 2007/01/09 09:49:24 fros4943 Exp $
+ * $Id: SimInformation.java,v 1.4 2007/11/23 06:21:24 fros4943 Exp $
  */
 
 package se.sics.cooja.plugins;
@@ -68,29 +68,7 @@ public class SimInformation extends VisPlugin {
     super("Simulation Information", gui);
 
     simulation = simulationToView;
-    
-    // Register as simulation observer
-    simulation.addObserver(simObserver = new Observer() {
-      public void update(Observable obs, Object obj) {
-        if (simulation.isRunning()) {
-          labelStatus.setText("RUNNING");
-        } else {
-          labelStatus.setText("STOPPED");
-        }
-        labelNrMotes.setText(""  + simulation.getMotesCount());
-        labelNrMoteTypes.setText(""  + simulation.getMoteTypes().size());
-        
-      }
-    });
-    
-    // Register as tick observer
-    simulation.addTickObserver(tickObserver = new Observer() {
-      public void update(Observable obs, Object obj) {
-        if (labelSimTime != null)
-          labelSimTime.setText("" + simulation.getSimulationTime());
-      }
-    });
-    
+
     JLabel label;
     JPanel mainPane = new JPanel();
     mainPane.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
@@ -109,10 +87,11 @@ public class SimInformation extends VisPlugin {
     smallPane.add(Box.createHorizontalGlue());
 
     label = new JLabel();
-    if (simulation.isRunning())
+    if (simulation.isRunning()) {
       label.setText("RUNNING");
-    else
+    } else {
       label.setText("STOPPED");
+    }
 
     labelStatus = label;
     smallPane.add(label);
@@ -199,7 +178,7 @@ public class SimInformation extends VisPlugin {
     smallPane.add(Box.createHorizontalGlue());
 
     Class<? extends RadioMedium> radioMediumClass = simulation.getRadioMedium().getClass();
-    String description = GUI.getDescriptionOf(radioMediumClass);   
+    String description = GUI.getDescriptionOf(radioMediumClass);
     label = new JLabel(description);
 
     smallPane.add(label);
@@ -208,9 +187,35 @@ public class SimInformation extends VisPlugin {
 
     mainPane.add(Box.createRigidArea(new Dimension(0,5)));
 
-    
+
     this.setContentPane(mainPane);
     pack();
+
+    // Register as simulation observer
+    simulation.addObserver(simObserver = new Observer() {
+      public void update(Observable obs, Object obj) {
+        if (simulation == null) {
+          return;
+        }
+        if (simulation.isRunning()) {
+          labelStatus.setText("RUNNING");
+        } else {
+          labelStatus.setText("STOPPED");
+        }
+        labelNrMotes.setText(""  + simulation.getMotesCount());
+        labelNrMoteTypes.setText(""  + simulation.getMoteTypes().size());
+
+      }
+    });
+
+    // Register as tick observer
+    simulation.addTickObserver(tickObserver = new Observer() {
+      public void update(Observable obs, Object obj) {
+        if (labelSimTime != null) {
+          labelSimTime.setText("" + simulation.getSimulationTime());
+        }
+      }
+    });
 
     try {
       setSelected(true);
@@ -222,11 +227,13 @@ public class SimInformation extends VisPlugin {
 
   public void closePlugin() {
     // Remove log observer from all log interfaces
-    if (simObserver != null)
+    if (simObserver != null) {
       simulation.deleteObserver(simObserver);
-    
-    if (tickObserver != null)
+    }
+
+    if (tickObserver != null) {
       simulation.deleteTickObserver(tickObserver);
+    }
   }
 
 }
