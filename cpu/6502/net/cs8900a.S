@@ -30,7 +30,7 @@
 ; 
 ; Author: Adam Dunkels <adam@sics.se>, Oliver Schmidt <ol.sc@web.de>
 ;
-; $Id: cs8900a.S,v 1.1 2007/11/19 23:14:14 oliverschmidt Exp $
+; $Id: cs8900a.S,v 1.2 2007/11/24 12:57:09 oliverschmidt Exp $
 ;
 ;---------------------------------------------------------------------
 
@@ -119,7 +119,7 @@ init:
 
 	; Fixup address at location
 :	lda reg
-	eor (ptr),y		; Use XOR to support C64 RRNet
+	eor (ptr),y		; Use XOR to support C64 RR-Net
 	sta (ptr),y
 	iny
 	lda reg+1
