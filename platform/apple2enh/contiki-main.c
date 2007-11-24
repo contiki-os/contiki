@@ -30,7 +30,7 @@
  * 
  * Author: Oliver Schmidt <ol.sc@web.de>
  *
- * $Id: contiki-main.c,v 1.5 2007/11/20 21:24:43 oliverschmidt Exp $
+ * $Id: contiki-main.c,v 1.6 2007/11/24 13:02:27 oliverschmidt Exp $
  */
 
 #include <stdio.h>
@@ -54,6 +54,12 @@ void
 log_message(const char *part1, const char *part2)
 {
   fprintf(stderr, "%s%s\n", part1, part2);
+}
+/*-----------------------------------------------------------------------------------*/
+long int
+lseek(void)
+{
+  return -1;
 }
 /*-----------------------------------------------------------------------------------*/
 void
