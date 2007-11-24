@@ -30,7 +30,7 @@
  * 
  * Author: Oliver Schmidt <ol.sc@web.de>
  *
- * $Id: contiki-main.c,v 1.4 2007/11/24 13:00:27 oliverschmidt Exp $
+ * $Id: contiki-main.c,v 1.5 2007/11/24 21:29:07 oliverschmidt Exp $
  */
 
 #include <stdio.h>
@@ -72,10 +72,9 @@ readdir(void)
   return NULL;
 }
 /*-----------------------------------------------------------------------------------*/
-int
+void
 closedir(void)
 {
-  return -1;
 }
 /*-----------------------------------------------------------------------------------*/
 void
