@@ -30,7 +30,7 @@
  *
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: httpd.c,v 1.6 2007/11/17 20:44:07 oliverschmidt Exp $
+ * $Id: httpd.c,v 1.7 2007/11/24 13:16:30 oliverschmidt Exp $
  */
 
 #include <string.h>
@@ -266,7 +266,7 @@ PT_THREAD(handle_input(struct httpd_state *s))
 
     if(strncmp(s->inputbuf, http_referer, 8) == 0) {
       s->inputbuf[PSOCK_DATALEN(&s->sin) - 2] = 0;
-      webserver_log(&s->inputbuf[9]);
+      webserver_log(s->inputbuf);
     }
   }
   
