@@ -26,17 +26,8 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * This file is part of the Configurable Sensor Network Application
- * Architecture for sensor nodes running the Contiki operating system.
- *
- * $Id: node-id.h,v 1.1 2006/08/21 12:11:16 fros4943 Exp $
- *
- * -----------------------------------------------------------------
- *
- * Author  : Adam Dunkels, Joakim Eriksson, Niclas Finne
- * Created : 2005-12-09
- * Updated : $Date: 2006/08/21 12:11:16 $
- *           $Revision: 1.1 $
+ * $Id: node-id.h,v 1.2 2007/11/25 22:48:35 fros4943 Exp $
+ * 
  */
 
 #ifndef __NODE_ID_H__
