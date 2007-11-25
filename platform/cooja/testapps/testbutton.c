@@ -26,14 +26,35 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: testcfs.h,v 1.1 2006/10/11 14:15:16 fros4943 Exp $
+ * $Id: testbutton.c,v 1.1 2007/11/25 22:46:14 fros4943 Exp $
  */
 
-#ifndef __CFS_TEST_H__
-#define __CFS_TEST_H__
-
 #include "contiki.h"
+#include "dev/button-sensor.h"
 
-PROCESS_NAME(cfs_test_process);
+#include <stdio.h>
+#include "printf2log.h" /* COOJA specific: Transforms printf() to log_message() */
 
-#endif /* __CFS_TEST_H__ */
+PROCESS(test_button_process, "Test button process");
+AUTOSTART_PROCESSES(&test_button_process);
+
+PROCESS_THREAD(test_button_process, ev, data)
+{
+  static int counter = 0;
+
+  PROCESS_BEGIN();
+
+  printf("Starting Button test process (counter=%i)\n", counter);
+  button_sensor.activate();
+
+  while(1) {
+    PROCESS_WAIT_EVENT();
+
+    if (ev == sensors_event && data == &button_sensor && button_sensor.value(0)) {
+      counter++;
+      printf("Button pressed (counter=%i)\n", counter);
+    }
+  }
+
+  PROCESS_END();
+}

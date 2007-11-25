@@ -26,14 +26,34 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: testbutton.h,v 1.1 2006/08/21 12:11:18 fros4943 Exp $
+ * $Id: testetimer.c,v 1.1 2007/11/25 22:46:14 fros4943 Exp $
  */
 
-#ifndef __BUTTON_TEST_H__
-#define __BUTTON_TEST_H__
-
 #include "contiki.h"
+#include "sys/etimer.h"
 
-PROCESS_NAME(button_test_process);
+#include <stdio.h>
+#include "printf2log.h" /* COOJA specific: Transforms printf() to log_message() */
 
-#endif /* __BUTTON_TEST_H__ */
+PROCESS(test_etimer_process, "Event timer test process");
+AUTOSTART_PROCESSES(&test_etimer_process);
+
+PROCESS_THREAD(test_etimer_process, ev, data)
+{
+  static struct etimer et;
+  static u16_t counter = 0;
+
+  PROCESS_BEGIN();
+
+  printf("Starting event timer test process (counter=%i)\n", counter);
+
+  while(1) {
+    etimer_set(&et, CLOCK_SECOND/2);
+    PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&et));
+
+    counter++;
+    printf("Event timer triggered event at time %lu (counter=%i)\n", clock_time(), counter);
+  }
+
+  PROCESS_END();
+}

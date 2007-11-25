@@ -26,55 +26,48 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: testserial.c,v 1.2 2007/04/02 16:31:28 fros4943 Exp $
+ * $Id: testsensors.c,v 1.1 2007/11/25 22:46:14 fros4943 Exp $
  */
 
-
 #include "contiki.h"
-#include "sys/loader.h"
+#include "dev/button-sensor.h"
+#include "dev/pir-sensor.h"
+#include "dev/vib-sensor.h"
+#include "dev/radio-sensor.h"
 
 #include <stdio.h>
+#include "printf2log.h" /* COOJA specific: Transforms printf() to log_message() */
 
-#include "lib/list.h"
-#include "lib/random.h"
+PROCESS(test_sensors_process, "Test sensors process");
+AUTOSTART_PROCESSES(&test_sensors_process);
 
-#include "net/uip.h"
-
-#include "lib/sensors.h"
-#include "sys/log.h"
-#include "dev/serial.h"
-#include "dev/rs232.h"
-
-
-PROCESS(serial_test_process, "Serial test process");
-
-AUTOSTART_PROCESSES(&serial_test_process);
-
-PROCESS_THREAD(serial_test_process, ev, data)
+PROCESS_THREAD(test_sensors_process, ev, data)
 {
-  static struct etimer mytimer;
-
   PROCESS_BEGIN();
 
-  etimer_set(&mytimer, CLOCK_SECOND);
-
-  /* Starts the serial process among other */
-  serial_init();
-
-  log_message("Starting serial test process\n", "");
-
+  printf("Starting sensors test process\n");
+  button_sensor.activate();
+  pir_sensor.activate();
+  vib_sensor.activate();
+  radio_sensor.activate();
+  
   while(1) {
     PROCESS_WAIT_EVENT();
-	
-    if (etimer_expired(&mytimer)) {
-      log_message("Sending serial data now\n", "");
-      etimer_restart(&mytimer);
-      rs232_print("GNU's not Unix\n");
+
+    if (ev == sensors_event) {
+      if (data == &button_sensor) {
+        printf("Button\n");
+      } else if (data == &vib_sensor) {
+        printf("Vibration sensor\n");
+      } else if (data == &pir_sensor) {
+        printf("Passive IR sensor\n");
+      } else {
+        printf("Unknown sensor\n");
+      }
+    } else {
+      printf("Non-sensor event triggered\n");
     }
 
-    if(ev == serial_event_message) {
-      log_message("Message received: ", data);
-    }
   }
 
   PROCESS_END();

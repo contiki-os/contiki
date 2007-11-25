@@ -26,51 +26,55 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: testcfs.c,v 1.1 2006/10/11 14:15:16 fros4943 Exp $
+ * $Id: testcfs.c,v 1.1 2007/11/25 22:46:14 fros4943 Exp $
  */
 
-#include <stdio.h>
 #include "contiki.h"
 #include "sys/etimer.h"
 #include "sys/clock.h"
-#include "sys/log.h"
 #include "cfs/cfs.h"
 
-PROCESS(cfs_test_process, "CFS test process");
+#include <stdio.h>
+#include "printf2log.h" /* COOJA specific: Transforms printf() to log_message() */
 
-PROCESS_THREAD(cfs_test_process, ev, data)
+PROCESS(test_cfs_process, "Test CFS process");
+AUTOSTART_PROCESSES(&test_cfs_process);
+
+PROCESS_THREAD(test_cfs_process, ev, data)
 {
-  static struct etimer mytimer;
-  static char wroteLastTime = 0;
+  static struct etimer et;
   static int fd;
+  static u16_t counter;
   static char buf[30];
   
   PROCESS_BEGIN();
 
-  etimer_set(&mytimer, CLOCK_SECOND);
-  fd = cfs_open("ignored_name", CFS_READ | CFS_WRITE);
-
-  log_message("Starting CFS test process\n", "");
+  printf("Starting CFS test process\n");
 
   while(1) {
-    PROCESS_WAIT_EVENT();
+    etimer_set(&et, CLOCK_SECOND);
+    PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&et));
 
-    if (etimer_expired(&mytimer)) {
-	  if (wroteLastTime) {
-	  	wroteLastTime = !wroteLastTime;
-	    cfs_seek(fd, 5);
-	    cfs_read(fd, &buf[0], 9);
-	    buf[10] = '\0';
-        log_message("Read from filesystem:", buf);
-        log_message("\n", "");
-	  } else {
-	  	wroteLastTime = !wroteLastTime;
-	    cfs_seek(fd, 0);
-        cfs_write(fd, "tjobaloba labadobahoba", 22);
-        log_message("Wrote to filesystem\n", "");
-	  }
-      etimer_restart(&mytimer);
-    }
+    /* Write to filesystem */
+    sprintf(buf, "filedata%04ifiledata%04i", counter, counter);
+    fd = cfs_open("filename", CFS_READ | CFS_WRITE);
+    cfs_seek(fd, 0);
+    cfs_write(fd, buf, 24);
+    cfs_close(fd);
+    printf("Wrote to filesystem: '%s'\n", buf);
+    counter++;
+    
+    etimer_set(&et, CLOCK_SECOND);
+    PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&et));
+
+    /* Read from filesystem */
+    fd = cfs_open("file1", CFS_READ | CFS_WRITE);
+    cfs_seek(fd, 4);
+    cfs_read(fd, buf, 12);
+    cfs_close(fd);
+    buf[12] = '\0';
+    printf("Read from filesystem: '%s'\n", buf);
+
   }
 
   PROCESS_END();

@@ -26,53 +26,61 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: testetimer.c,v 1.2 2007/04/02 16:31:28 fros4943 Exp $
+ * $Id: testuip.c,v 1.1 2007/11/25 22:46:14 fros4943 Exp $
  */
 
+#include <stdlib.h>
+#include "net/uip.h"
+#include "dev/button-sensor.h"
+#include "dev/leds.h"
 
 #include <stdio.h>
-#include "contiki.h"
-#include "sys/loader.h"
+#include "printf2log.h" /* COOJA specific: Transforms printf() to log_message() */
 
-#include "lib/list.h"
-#include "lib/random.h"
+#define COOJA_PORT 1234
 
-#include "net/uip.h"
+PROCESS(test_uip_process, "uIP test process");
+AUTOSTART_PROCESSES(&test_uip_process);
 
-#include "sys/etimer.h"
-#include "sys/clock.h"
-
-#include "lib/sensors.h"
-#include "sys/log.h"
-
-
-PROCESS(etimer_test_process, "ETimer test process");
-
-PROCESS_THREAD(etimer_test_process, ev, data)
+static struct uip_udp_conn *broadcast_conn;
+/*---------------------------------------------------------------------*/
+PROCESS_THREAD(test_uip_process, ev, data)
 {
-  static struct etimer mytimer;
-
-  static int custom_counter = 0;
-  static char logMess[100];
-
   PROCESS_BEGIN();
 
-  etimer_set(&mytimer, 1111);
+  printf("uIP test process started\n");
 
-  sprintf(logMess, "Starting event timer test process (counter=%i)\n", custom_counter);
-  log_message(logMess, "");
+  broadcast_conn = udp_broadcast_new(COOJA_PORT, NULL);
+  button_sensor.activate();
 
   while(1) {
     PROCESS_WAIT_EVENT();
+    printf("An event occured: ");
 
-    if (etimer_expired(&mytimer)) {
-      custom_counter++;
-      sprintf(logMess, "Timed out (counter=%i)\n", custom_counter);
-      log_message(logMess, "");
+    if(ev == PROCESS_EVENT_EXIT) {
+      printf("shutting down\n");
+      break;
+    }
 
-      etimer_restart(&mytimer);
+    if(ev == sensors_event && data == &button_sensor && button_sensor.value(0)) {
+      printf("button clicked, sending packet\n");
+
+      tcpip_poll_udp(broadcast_conn);
+      PROCESS_WAIT_UNTIL(ev == tcpip_event && uip_poll());
+      uip_send("cooyah COOJA", 12);
+    }
+
+    if(ev == sensors_event && data == &button_sensor && !button_sensor.value(0)) {
+      printf("button released, ignoring event\n");
+    }
+
+    if(ev == tcpip_event && uip_newdata()) {
+      printf("a packet was received, toggling leds\n");
+      printf("packet data: '%s'\n", (char*) uip_appdata);
+      leds_toggle(LEDS_ALL);
     }
   }
 
   PROCESS_END();
 }
+/*---------------------------------------------------------------------*/
