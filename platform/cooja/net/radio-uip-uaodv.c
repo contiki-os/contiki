@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: radio-uip-uaodv.c,v 1.7 2007/10/23 12:16:13 fros4943 Exp $
+ * @(#)$Id: radio-uip-uaodv.c,v 1.8 2007/11/25 22:45:04 fros4943 Exp $
  */
 
 #include "radio-uip-uaodv.h"
@@ -189,14 +189,12 @@ receiver(const struct radio_driver *d)
     /* Send ack as soon as possible */
     u16_t crc;
     crc = radio_uip_calc_crc(&uip_buf[UIP_LLH_LEN], uip_len);
-    process_post(&radio_uip_process, EVENT_SEND_ACK, crc);
+    process_post(&radio_uip_process, EVENT_SEND_ACK, (void*) (u32_t) crc);
   }
 
   /* Strip header and receive packet */
   uip_len = radio_uip_uaodv_remove_header(&uip_buf[UIP_LLH_LEN], uip_len);
   tcpip_input();
-
-  return;
 }
 /*---------------------------------------------------------------------------*/
 u8_t
@@ -206,7 +204,7 @@ radio_uip_uaodv_send(void)
   
   /* Transmit broadcast packets without header */
   if (radio_uip_uaodv_is_broadcast(&((struct uip_udpip_hdr *)&uip_buf[UIP_LLH_LEN])->destipaddr)) {
-    return radio_uip_buffer_outgoing_packet(&uip_buf[UIP_LLH_LEN], uip_len, &uip_broadcast_addr, 1);
+    return radio_uip_buffer_outgoing_packet(&uip_buf[UIP_LLH_LEN], uip_len, (void*) &uip_broadcast_addr, 1);
   }
 
   /* Transmit uAODV packets with headers but without using route table */
