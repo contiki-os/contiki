@@ -29,7 +29,7 @@
  *
  * This file is part of the Contiki OS
  *
- * $Id: contiki-main.c,v 1.9 2007/11/17 20:15:48 oliverschmidt Exp $
+ * $Id: contiki-main.c,v 1.10 2007/11/25 15:00:32 oliverschmidt Exp $
  *
  */
 
@@ -64,13 +64,16 @@ main(void)
   autostart_start((struct process **)autostart_processes);
   
   uip_ipaddr(&addr, 192,168,2,2);
+  printf("IP Address:  %d.%d.%d.%d\n", uip_ipaddr_to_quad(&addr));
   uip_sethostaddr(&addr);
 
-  uip_ipaddr(&addr, 192,168,2,1);
-  uip_setdraddr(&addr);
-
   uip_ipaddr(&addr, 255,255,255,0);
+  printf("Subnet Mask: %d.%d.%d.%d\n", uip_ipaddr_to_quad(&addr));
   uip_setnetmask(&addr);
+
+  uip_ipaddr(&addr, 192,168,2,1);
+  printf("Def. Router: %d.%d.%d.%d\n", uip_ipaddr_to_quad(&addr));
+  uip_setdraddr(&addr);
 
   while(1) {
     int n;
@@ -89,16 +92,17 @@ void log_message(char *m1, char *m2)
 {
   printf("%s%s\n", m1, m2);
 }
-
+/*---------------------------------------------------------------------------*/
 void
 uip_log(char *m)
 {
   printf("uIP: '%s'\n", m);
 }
-
+/*---------------------------------------------------------------------------*/
 unsigned short
 sensors_light1(void)
 {
   static unsigned short count;
   return count++;
 }
+/*---------------------------------------------------------------------------*/
