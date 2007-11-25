@@ -28,7 +28,7 @@
  *
  * This file is part of the uIP TCP/IP stack.
  *
- * $Id: httpd-cgi.c,v 1.8 2007/11/17 21:12:44 oliverschmidt Exp $
+ * $Id: httpd-cgi.c,v 1.9 2007/11/25 17:13:56 oliverschmidt Exp $
  *
  */
 
@@ -239,8 +239,11 @@ HTTPD_CGI_CALL(proc, "processes", processes);
 void
 httpd_cgi_init(void)
 {
+  petsciiconv_toascii((char *)file.name, strlen(file.name));
   httpd_cgi_add(&file);
+  petsciiconv_toascii((char *)tcp.name, strlen(tcp.name));
   httpd_cgi_add(&tcp);
+  petsciiconv_toascii((char *)proc.name, strlen(proc.name));
   httpd_cgi_add(&proc);
 }
 /*---------------------------------------------------------------------------*/
