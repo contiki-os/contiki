@@ -28,7 +28,7 @@
  *
  * This file is part of the uIP TCP/IP stack.
  *
- * $Id: httpd-cgi.c,v 1.9 2007/11/25 17:13:56 oliverschmidt Exp $
+ * $Id: httpd-cgi.c,v 1.10 2007/11/25 18:39:06 oliverschmidt Exp $
  *
  */
 
@@ -78,8 +78,8 @@ static const char syn_sent[] = /*  "SYN-SENT",*/
 {0x53, 0x59, 0x4e, 0x2d, 0x53, 0x45, 0x4e, 
  0x54,  0};
 static const char established[] = /*  "ESTABLISHED",*/
-{0x45, 0x53, 0x54, 0x41, 0x42, 0x4c, 0x49, 0x53, 0x48, 
- 0x45, 0x44, 0};
+{0x45, 0x53, 0x54, 0x41, 0x42, 0x4c, 0x49,
+ 0x53, 0x48, 0x45, 0x44, 0};
 static const char fin_wait_1[] = /*  "FIN-WAIT-1",*/
 {0x46, 0x49, 0x4e, 0x2d, 0x57, 0x41, 0x49, 
  0x54, 0x2d, 0x31, 0};
@@ -95,10 +95,26 @@ static const char time_wait[] = /*  "TIME-WAIT,"*/
 static const char last_ack[] = /*  "LAST-ACK"*/
 {0x4c, 0x41, 0x53, 0x54, 0x2d, 0x41, 0x43, 
  0x4b, 0};
-static const char none[] = "NONE";
-static const char init[] = "INIT";
-static const char running[] = "RUNNING";
-static const char needs_poll[] = "NEEDS POLL";
+static const char none[] = /*  "NONE"*/
+{0x4e, 0x4f, 0x4e, 0x45, 0};
+static const char init[] = /*  "INIT"*/
+{0x49, 0x4e, 0x49, 0x54, 0};
+static const char running[] = /*  "RUNNING"*/
+{0x52, 0x55, 0x4e, 0x4e, 0x49, 0x4e, 0x47,
+ 0};
+static const char needs_poll[] = /*  "NEEDS POLL"*/
+{0x4e, 0x45, 0x45, 0x44, 0x53, 0x20, 0x50,
+ 0x4f, 0x4c, 0x4c, 0};
+static const char file_name[] = /*  "file-stats"*/
+{0x66, 0x69, 0x6c, 0x65, 0x2d, 0x73, 0x74,
+ 0x61, 0x74, 0x73, 0};
+static const char tcp_name[] = /*  "tcp-connections"*/
+{0x74, 0x63, 0x70, 0x2d, 0x63, 0x6f, 0x6e,
+ 0x6e, 0x65, 0x63, 0x74, 0x69, 0x6f, 0x6e,
+ 0x73, 0};
+static const char proc_name[] = /*  "processes"*/
+{0x70, 0x72, 0x6f, 0x63, 0x65, 0x73, 0x73,
+ 0x65, 0x73, 0};
 
 static const char *states[] = {
   closed,
@@ -232,18 +248,15 @@ httpd_cgi_add(struct httpd_cgi_call *c)
 }
 /*---------------------------------------------------------------------------*/
 
-HTTPD_CGI_CALL(file, "file-stats", file_stats);
-HTTPD_CGI_CALL(tcp, "tcp-connections", tcp_stats);
-HTTPD_CGI_CALL(proc, "processes", processes);
+HTTPD_CGI_CALL(file, file_name, file_stats);
+HTTPD_CGI_CALL(tcp, tcp_name, tcp_stats);
+HTTPD_CGI_CALL(proc, proc_name, processes);
 
 void
 httpd_cgi_init(void)
 {
-  petsciiconv_toascii((char *)file.name, strlen(file.name));
   httpd_cgi_add(&file);
-  petsciiconv_toascii((char *)tcp.name, strlen(tcp.name));
   httpd_cgi_add(&tcp);
-  petsciiconv_toascii((char *)proc.name, strlen(proc.name));
   httpd_cgi_add(&proc);
 }
 /*---------------------------------------------------------------------------*/
