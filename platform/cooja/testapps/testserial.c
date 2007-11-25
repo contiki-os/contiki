@@ -26,14 +26,45 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: testetimer.h,v 1.1 2006/08/21 12:11:17 fros4943 Exp $
+ * $Id: testserial.c,v 1.1 2007/11/25 22:46:14 fros4943 Exp $
  */
 
-#ifndef __ETIMER_TEST_H__
-#define __ETIMER_TEST_H__
-
 #include "contiki.h"
+#include "dev/serial.h"
+#include "dev/rs232.h"
 
-PROCESS_NAME(etimer_test_process);
+#include <stdio.h>
+#include "printf2log.h" /* COOJA specific: Transforms printf() to log_message() */
 
-#endif /* __ETIMER_TEST_H__ */
+PROCESS(test_serial_process, "Serial test process");
+AUTOSTART_PROCESSES(&test_serial_process);
+
+PROCESS_THREAD(test_serial_process, ev, data)
+{
+  static struct etimer et;
+
+  PROCESS_BEGIN();
+
+  etimer_set(&et, CLOCK_SECOND);
+
+  /* Start serial process */
+  serial_init();
+
+  printf("Starting serial test process\n");
+
+  while(1) {
+    PROCESS_WAIT_EVENT();
+	
+    if (etimer_expired(&et)) {
+      printf("Sending serial data now\n");
+      rs232_print("GNU's not Unix\n");
+      etimer_restart(&et);
+    }
+
+    if(ev == serial_event_message) {
+      printf("Message received: '%s'\n", data);
+    }
+  }
+
+  PROCESS_END();
+}

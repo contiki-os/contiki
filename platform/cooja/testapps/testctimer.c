@@ -26,46 +26,36 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: testbutton.c,v 1.3 2007/04/02 16:31:28 fros4943 Exp $
+ * $Id: testctimer.c,v 1.1 2007/11/25 22:46:14 fros4943 Exp $
  */
 
 #include "contiki.h"
-#include "sys/loader.h"
+#include "net/rime/ctimer.h"
 
 #include <stdio.h>
+#include "printf2log.h" /* COOJA specific: Transforms printf() to log_message() */
 
-#include "lib/list.h"
-#include "lib/random.h"
-
-#include "net/uip.h"
-
-#include "lib/sensors.h"
-#include "sys/log.h"
-#include "dev/button-sensor.h"
-
-
-PROCESS(button_test_process, "Button test process");
-
-PROCESS_THREAD(button_test_process, ev, data)
+PROCESS(test_ctimer_process, "Callback timer test process");
+AUTOSTART_PROCESSES(&test_ctimer_process);
+/*---------------------------------------------------------------------------*/
+static struct ctimer ct;
+static u16_t counter = 0;
+/*---------------------------------------------------------------------------*/
+static void
+callback(void *ptr)
 {
-  static int custom_counter = 0;
-  static char logMess[100];
-
+  counter++;
+  printf("Callback function called at time %lu (counter=%i)\n", clock_time(), counter);
+  ctimer_set(&ct, CLOCK_SECOND/2, callback, NULL);
+}
+/*---------------------------------------------------------------------------*/
+PROCESS_THREAD(test_ctimer_process, ev, data)
+{
   PROCESS_BEGIN();
 
-  sprintf(logMess, "Starting Button test process (counter=%i)\n", custom_counter);
-  log_message(logMess, "");
+  printf("Starting callback timer test process (counter=%i)\n", counter);
 
-  while(1) {
-    PROCESS_WAIT_EVENT();
-
-    if (ev == sensors_event && data == &button_sensor && button_sensor.value(0)) {
-      custom_counter++;
-
-      sprintf(logMess, "Button pressed (counter=%i)\n", custom_counter);
-      log_message(logMess, "");
-    }
-  }
+  ctimer_set(&ct, CLOCK_SECOND/2, callback, NULL);
 
   PROCESS_END();
 }
