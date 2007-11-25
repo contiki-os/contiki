@@ -26,12 +26,14 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ContikiMoteTypeDialog.java,v 1.36 2007/09/28 07:21:22 fros4943 Exp $
+ * $Id: ContikiMoteTypeDialog.java,v 1.37 2007/11/25 23:32:05 fros4943 Exp $
  */
 
 package se.sics.cooja.contikimote;
 
 import java.awt.*;
+import java.awt.datatransfer.Clipboard;
+import java.awt.datatransfer.StringSelection;
 import java.awt.event.*;
 import java.io.*;
 import java.lang.reflect.InvocationTargetException;
@@ -702,6 +704,11 @@ public class ContikiMoteTypeDialog extends JDialog {
     label = new JLabel("Communication stack");
 
     commStackComboBox = new JComboBox(CommunicationStack.values());
+    commStackComboBox.addActionListener(new ActionListener() {
+      public void actionPerformed(ActionEvent e) {
+        createButton.setEnabled(libraryCreatedOK = false);
+      }
+    });
     commStackComboBox.setSelectedIndex(0);
 
     smallPane.add(label);
@@ -1013,14 +1020,63 @@ public class ContikiMoteTypeDialog extends JDialog {
 
     taskOutput = new MessageList();
 
+    final Thread compilationThreadCopy = compilationThread;
     button = new JButton("Close/Abort");
     button.addActionListener(new ActionListener() {
       public void actionPerformed(ActionEvent e) {
-        if (compilationThread != null && compilationThread.isAlive()) {
-          compilationThread.interrupt();
+        if (compilationThreadCopy != null && compilationThreadCopy.isAlive()) {
+          compilationThreadCopy.interrupt();
         }
         if (progressDialog != null && progressDialog.isDisplayable()) {
           progressDialog.dispose();
+        }
+      }
+    });
+
+    final JPopupMenu popup = new JPopupMenu();
+    JMenuItem headerMenuItem = new JMenuItem("Compilation output:");
+    headerMenuItem.setEnabled(false);
+    popup.add(headerMenuItem);
+    popup.add(new JSeparator());
+
+    JMenuItem consoleOutputMenuItem = new JMenuItem("Output to console");
+    consoleOutputMenuItem.setEnabled(true);
+    consoleOutputMenuItem.addActionListener(new ActionListener() {
+      public void actionPerformed(ActionEvent e) {
+        int nrRows = taskOutput.getModel().getSize();
+        System.out.println("\nCOMPILATION OUTPUT:\n");
+        for (int n=0; n < nrRows; n++) {
+          System.out.println(taskOutput.getModel().getElementAt(n));
+        }
+        System.out.println();
+      }
+    });
+    popup.add(consoleOutputMenuItem);
+
+    JMenuItem clipboardMenuItem = new JMenuItem("Copy to clipboard");
+    clipboardMenuItem.setEnabled(true);
+    clipboardMenuItem.addActionListener(new ActionListener() {
+      public void actionPerformed(ActionEvent e) {
+        Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
+
+        String output = "";
+        int nrRows = taskOutput.getModel().getSize();
+        for (int n=0; n < nrRows; n++) {
+          output += taskOutput.getModel().getElementAt(n) + "\n";
+        }
+
+        StringSelection stringSelection = new StringSelection(output);
+        clipboard.setContents(stringSelection, null);
+
+        logger.info("Output copied to clipboard");
+      }
+    });
+    popup.add(clipboardMenuItem);
+
+    taskOutput.addMouseListener(new MouseAdapter() {
+      public void mouseClicked(MouseEvent e) {
+        if (e.isPopupTrigger() || SwingUtilities.isRightMouseButton(e)) {
+          popup.show(taskOutput, e.getX(), e.getY());
         }
       }
     });
@@ -1110,7 +1166,13 @@ public class ContikiMoteTypeDialog extends JDialog {
         // Add all project directories
         compilationFiles = (Vector<File>) myGUI
             .getProjectDirs().clone();
-        compilationFiles.addAll(moteTypeProjectDirs);
+
+
+        if (moteTypeProjectDirs == null || moteTypeProjectDirs.isEmpty()) {
+          compilationFiles.add(new File(textCoreDir.getText(), "testapps"));
+        } else {
+          compilationFiles.addAll(moteTypeProjectDirs);
+        }
 
         // Add source files from project configs
         String[] projectSourceFiles = newMoteTypeConfig.getStringArrayValue(
@@ -1135,9 +1197,9 @@ public class ContikiMoteTypeDialog extends JDialog {
         // Add selected process source files
         for (Component checkBox : processPanel.getComponents()) {
           if (((JCheckBox) checkBox).isSelected()) {
-            String processName = ((JCheckBox) checkBox).getToolTipText();
-            if (processName != null) {
-              compilationFiles.add(new File(processName));
+            String fileName = ((JCheckBox) checkBox).getToolTipText();
+            if (fileName != null) {
+              compilationFiles.add(new File(fileName));
             }
           }
         }
@@ -2276,19 +2338,24 @@ public class ContikiMoteTypeDialog extends JDialog {
         processPanel.removeAll();
         Vector<String[]> processes = new Vector<String[]>();
 
-        // Scan core platform for processes
-        processes.addAll(ContikiMoteTypeDialog.scanForProcesses(new File(
-            textCoreDir.getText())));
-
-        // If project directories exists, scan those too
+        /* Scan GUI project directories */
         for (File projectDir : myGUI.getProjectDirs()) {
           processes
-              .addAll(ContikiMoteTypeDialog.scanForProcesses(projectDir));
+          .addAll(ContikiMoteTypeDialog.scanForProcesses(projectDir));
         }
-        if (moteTypeProjectDirs != null) {
-          for (File projectDir : moteTypeProjectDirs) {
-            processes.addAll(ContikiMoteTypeDialog
-                .scanForProcesses(projectDir));
+
+        /* If mote type specific project directories, scan the testapps directory */
+        if (moteTypeProjectDirs == null || moteTypeProjectDirs.isEmpty()) {
+          logger.info("No project directories selected, scanning testapps");
+          processes.addAll(ContikiMoteTypeDialog.scanForProcesses(new File(
+              textCoreDir.getText(), "testapps")));
+        } else {
+          if (moteTypeProjectDirs != null) {
+            for (File projectDir : moteTypeProjectDirs) {
+              logger.info("Scanning " + projectDir.getPath());
+              processes.addAll(ContikiMoteTypeDialog
+                  .scanForProcesses(projectDir));
+            }
           }
         }
 
