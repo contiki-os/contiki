@@ -28,14 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: rtimer-arch.c,v 1.1 2007/04/11 12:46:13 fros4943 Exp $
- */
-
-/**
- * \file
- *         Native (non-specific) code for the Contiki real-time module rt
- * \author
- *         Adam Dunkels <adam@sics.se>
+ * $Id: rtimer-arch.c,v 1.2 2007/11/25 22:48:35 fros4943 Exp $
  */
 
 #include <signal.h>
