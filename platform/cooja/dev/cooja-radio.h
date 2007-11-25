@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: cooja-radio.h,v 1.3 2007/08/21 13:09:40 fros4943 Exp $
+ * $Id: cooja-radio.h,v 1.4 2007/11/25 22:44:40 fros4943 Exp $
  */
 
 #ifndef __COOJA_RADIO_H__
@@ -87,7 +87,7 @@ radio_set_txpower(unsigned char p);
  * Send a packet from the given buffer with the given length.
  */
 int
-radio_send(const u8_t *payload, u16_t payload_len);
+radio_send(const void *payload, unsigned short payload_len);
 
 /**
  * Check if an incoming packet has been received.
@@ -98,8 +98,8 @@ radio_send(const u8_t *payload, u16_t payload_len);
  * \return The length of the received packet, or 0 if no packet has
  * been received.
  */
-u16_t
-radio_read(u8_t *buf, u16_t bufsize);
+int
+radio_read(void *buf, unsigned short bufsize);
 
 /**
  * This function returns the signal strength of the last

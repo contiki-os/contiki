@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: cooja-radio.c,v 1.5 2007/08/21 13:09:40 fros4943 Exp $
+ * $Id: cooja-radio.c,v 1.6 2007/11/25 22:44:40 fros4943 Exp $
  */
 
 #include <string.h>
@@ -156,8 +156,8 @@ doInterfaceActionsBeforeTick(void)
   }
 }
 /*---------------------------------------------------------------------------*/
-u16_t
-radio_read(u8_t *buf, u16_t bufsize)
+int
+radio_read(void *buf, unsigned short bufsize)
 {
   int tmpInSize = simInSize;
   if(simInSize > 0) {
@@ -180,7 +180,7 @@ doInterfaceActionsAfterTick(void)
 }
 /*-----------------------------------------------------------------------------------*/
 int
-radio_send(const u8_t *payload, u16_t payload_len)
+radio_send(const void *payload, unsigned short payload_len)
 {
   /* If radio already actively transmitting, drop packet*/
   if(inSendFunction) {
