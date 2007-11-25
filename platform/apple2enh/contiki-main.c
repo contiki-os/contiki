@@ -30,7 +30,7 @@
  * 
  * Author: Oliver Schmidt <ol.sc@web.de>
  *
- * $Id: contiki-main.c,v 1.7 2007/11/25 15:06:00 oliverschmidt Exp $
+ * $Id: contiki-main.c,v 1.8 2007/11/25 15:16:00 oliverschmidt Exp $
  */
 
 #include <stdio.h>
@@ -77,6 +77,7 @@ main(void)
     uip_ipaddr_t addr;
 
     process_start((struct process *)&ethernet_process, (char *)&config);
+    printf("Eth. Driver: %s at $%X\n", config.name, config.addr);
 
     uip_ipaddr(&addr, 192,168,0,128);
     printf("IP Address:  %d.%d.%d.%d\n", uip_ipaddr_to_quad(&addr));
