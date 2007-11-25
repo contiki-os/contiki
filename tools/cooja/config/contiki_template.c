@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: contiki_template.c,v 1.5 2007/08/23 07:36:34 fros4943 Exp $
+ * $Id: contiki_template.c,v 1.6 2007/11/25 22:50:12 fros4943 Exp $
  */
 
 /**
@@ -36,8 +36,8 @@
 
 /**
  * \file
- *         C code template for generating contiki source code files from COOJA
- *         Simulator. This file should not be compiled directly.
+ *         C code template for generating Contiki main startup files from
+ *         inside the COOJA Simulator. This file should not be compiled directly.
  * \author
  *         Fredrik Osterlind <fros@sics.se>
  */
@@ -68,6 +68,7 @@
 
 #include "lib/simEnvChange.h"
 #include "lib/sensors.h"
+#include "dev/cooja-radio.h"
 #include "sys/etimer.h"
 #include "sys/cooja_mt.h"
 #include "net/init-net.h"
