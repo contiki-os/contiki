@@ -30,7 +30,7 @@
  *
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: ethernode.c,v 1.9 2007/11/17 18:09:19 adamdunkels Exp $
+ * $Id: ethernode.c,v 1.10 2007/11/26 23:28:33 adamdunkels Exp $
  */
 /**
  * \file
@@ -197,7 +197,8 @@ ethernode_send(void)
   static char tmpbuf[2048];
   struct hdr *hdr = (struct hdr *)tmpbuf;
   u8_t dest;
-  
+  struct timespec ts;
+
   if(uip_len > sizeof(tmpbuf)) {
     PRINTF(("Ethernode_send: too large uip_len %d\n", uip_len));
     return UIP_FW_TOOLARGE;
@@ -207,7 +208,9 @@ ethernode_send(void)
   len = uip_len + HDR_LEN;
 
   dest = ID_BROADCAST;
-  
+  ts.tv_sec = 0;
+  ts.tv_nsec = 1000;
+  nanosleep(&ts, NULL);
   usleep(1000 * (random_rand() % 1000));
 
   do_send(TYPE_DATA, dest, hdr, len);
