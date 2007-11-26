@@ -30,15 +30,17 @@
  *
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: httpd-cfs.c,v 1.4 2007/11/22 11:25:08 oliverschmidt Exp $
+ * $Id: httpd-cfs.c,v 1.5 2007/11/26 20:53:00 oliverschmidt Exp $
  */
 
 #include <string.h>
 
 #include "contiki-net.h"
-#include "cfs/cfs.h"
 
 #include "webserver.h"
+#include "cfs/cfs.h"
+#include "lib/petsciiconv.h"
+#include "http-strings.h"
 
 #include "httpd-cfs.h"
 
@@ -47,6 +49,11 @@
 
 #define SEND_STRING(s, str) PSOCK_SEND(s, (uint8_t *)str, strlen(str))
 MEMB(conns, struct httpd_state, 3);
+
+#define ISO_nl      0x0a
+#define ISO_space   0x20
+#define ISO_period  0x2e
+#define ISO_slash   0x2f
 
 /*---------------------------------------------------------------------------*/
 static
@@ -70,28 +77,27 @@ PT_THREAD(send_file(struct httpd_state *s))
 }
 /*---------------------------------------------------------------------------*/
 static
-PT_THREAD(send_headers(struct httpd_state *s, char *statushdr))
+PT_THREAD(send_headers(struct httpd_state *s, const char *statushdr))
 {
   char *ptr;
 
   PSOCK_BEGIN(&s->sout);
 
   SEND_STRING(&s->sout, statushdr);
-  SEND_STRING(&s->sout, "Server: " CONTIKI_VERSION_STRING "\r\n");
 
-  ptr = strrchr(s->filename, '.');
+  ptr = strrchr(s->filename, ISO_period);
   if(ptr == NULL) {
-    SEND_STRING(&s->sout, "Content-type: text/plain\r\n\r\n");
-  } else if(strncmp(".html", ptr, 5) == 0) {
-    SEND_STRING(&s->sout, "Content-type: text/html\r\n\r\n");
-  } else if(strncmp(".css", ptr, 4) == 0) {
-    SEND_STRING(&s->sout, "Content-type: text/css\r\n\r\n");
-  } else if(strncmp(".png", ptr, 4) == 0) {
-    SEND_STRING(&s->sout, "Content-type: image/png\r\n\r\n");
-  } else if(strncmp(".jpg", ptr, 4) == 0) {
-    SEND_STRING(&s->sout, "Content-type: image/jpeg\r\n\r\n");
+    SEND_STRING(&s->sout, http_content_type_plain);
+  } else if(strncmp(http_html, ptr, 5) == 0) {
+    SEND_STRING(&s->sout, http_content_type_html);
+  } else if(strncmp(http_css, ptr, 4) == 0) {
+    SEND_STRING(&s->sout, http_content_type_css);
+  } else if(strncmp(http_png, ptr, 4) == 0) {
+    SEND_STRING(&s->sout, http_content_type_png);
+  } else if(strncmp(http_jpg, ptr, 4) == 0) {
+    SEND_STRING(&s->sout, http_content_type_jpg);
   } else {
-    SEND_STRING(&s->sout, "Content-type: application/octet-stream\r\n\r\n");
+    SEND_STRING(&s->sout, http_content_type_binary);
   }
   PSOCK_END(&s->sout);
 }
@@ -101,6 +107,7 @@ PT_THREAD(handle_output(struct httpd_state *s))
 {
   PT_BEGIN(&s->outputpt);
 
+  petsciiconv_topetscii(s->filename, sizeof(s->filename));
   s->fd = cfs_open(s->filename, CFS_READ);
   if(s->fd < 0) {
     s->fd = cfs_open("404.html", CFS_READ);
@@ -110,10 +117,10 @@ PT_THREAD(handle_output(struct httpd_state *s))
       PT_EXIT(&s->outputpt);
     }
     PT_WAIT_THREAD(&s->outputpt,
-		   send_headers(s, "HTTP/1.0 404 Not found\r\n"));
+		   send_headers(s, http_header_404));
   } else {
     PT_WAIT_THREAD(&s->outputpt,
-		   send_headers(s, "HTTP/1.0 200 OK\r\n"));
+		   send_headers(s, http_header_200));
   }
   PT_WAIT_THREAD(&s->outputpt, send_file(s));
   cfs_close(s->fd);
@@ -126,19 +133,19 @@ PT_THREAD(handle_input(struct httpd_state *s))
 {
   PSOCK_BEGIN(&s->sin);
 
-  PSOCK_READTO(&s->sin, ' ');
+  PSOCK_READTO(&s->sin, ISO_space);
   
-  if(strncmp(s->inputbuf, "GET ", 4) != 0) {
+  if(strncmp(s->inputbuf, http_get, 4) != 0) {
     PSOCK_CLOSE_EXIT(&s->sin);
   }
-  PSOCK_READTO(&s->sin, ' ');
+  PSOCK_READTO(&s->sin, ISO_space);
 
-  if(s->inputbuf[0] != '/') {
+  if(s->inputbuf[0] != ISO_slash) {
     PSOCK_CLOSE_EXIT(&s->sin);
   }
 
-  if(s->inputbuf[1] == ' ') {
-    strncpy(s->filename, "index.html", sizeof(s->filename));
+  if(s->inputbuf[1] == ISO_space) {
+    strncpy(s->filename, http_index_html+1, sizeof(s->filename));
   } else {
     s->inputbuf[PSOCK_DATALEN(&s->sin) - 1] = 0;
     strncpy(s->filename, &s->inputbuf[1], sizeof(s->filename));
@@ -148,10 +155,11 @@ PT_THREAD(handle_input(struct httpd_state *s))
   s->state = STATE_OUTPUT;
 
   while(1) {
-    PSOCK_READTO(&s->sin, '\n');
+    PSOCK_READTO(&s->sin, ISO_nl);
 
-    if(strncmp(s->inputbuf, "Referer:", 8) == 0) {
+    if(strncmp(s->inputbuf, http_referer, 8) == 0) {
       s->inputbuf[PSOCK_DATALEN(&s->sin) - 2] = 0;
+      petsciiconv_topetscii(s->inputbuf, PSOCK_DATALEN(&s->sin) - 2);
       webserver_log(s->inputbuf);
     }
   }
