@@ -38,7 +38,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: neighbor.h,v 1.7 2007/11/17 10:32:54 adamdunkels Exp $
+ * $Id: neighbor.h,v 1.8 2007/11/26 23:30:13 adamdunkels Exp $
  */
 
 /**
@@ -78,6 +78,8 @@ void neighbor_set_lifetime(int seconds);
 
 uint8_t neighbor_etx(struct neighbor *n);
 
+int neighbor_num(void);
+struct neighbor *neighbor_get(int num);
 
 #endif /* __NEIGHBOR_H__ */
 /** @} */
