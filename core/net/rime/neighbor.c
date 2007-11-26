@@ -33,7 +33,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: neighbor.c,v 1.11 2007/11/17 10:32:54 adamdunkels Exp $
+ * $Id: neighbor.c,v 1.12 2007/11/26 23:30:13 adamdunkels Exp $
  */
 
 /**
@@ -259,6 +259,18 @@ void
 neighbor_set_lifetime(int seconds)
 {
   max_time = seconds;
+}
+/*---------------------------------------------------------------------------*/
+int
+neighbor_num(void)
+{
+  return MAX_NEIGHBORS;
+}
+/*---------------------------------------------------------------------------*/
+struct neighbor *
+neighbor_get(int num)
+{
+  return &neighbors[num];
 }
 /*---------------------------------------------------------------------------*/
 /** @} */
