@@ -18,8 +18,13 @@ zip: all jar
 
 all: burn-nodeids javaapp energest-demo.ihex
 
+upload:	energest-demo.upload
+
 burn-nodeids:
 	(cd nodeid; $(MAKE))
+
+rundemo: zip
+	cd contiki-energest-demo; make rundemo
 
 jar:
 	ant jar
@@ -45,11 +50,6 @@ CFLAGS += -DRF_CHANNEL=$(CHANNEL)
 else
 CFLAGS += -DRF_CHANNEL=20
 endif
-
-
-%.upload: %.ihex
-	cp $< ../testbed-server/image.ihex
-	(cd ../testbed-server; make upload)
 
 
 include $(CONTIKI)/Makefile.include
