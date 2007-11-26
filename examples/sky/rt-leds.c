@@ -16,7 +16,7 @@ struct fade {
   int addend;
 };
 /*---------------------------------------------------------------------------*/
-static void
+static char
 fade(struct rtimer *t, void *ptr)
 {
   struct fade *f = ptr;
@@ -25,11 +25,13 @@ fade(struct rtimer *t, void *ptr)
 
   while(1) {
     leds_on(f->led);
-    rtimer_set(t, RTIMER_TIME(t) + f->ontime, 1, fade, ptr);
+    rtimer_set(t, RTIMER_TIME(t) + f->ontime, 1,
+	       (rtimer_callback_t)fade, ptr);
     PT_YIELD(&f->pt);
     
     leds_off(f->led);
-    rtimer_set(t, RTIMER_TIME(t) + f->offtime, 1, fade, ptr);
+    rtimer_set(t, RTIMER_TIME(t) + f->offtime, 1,
+	       (rtimer_callback_t)fade, ptr);
 
     f->ontime += f->addend;
     f->offtime -= f->addend;
@@ -50,7 +52,7 @@ init_fade(struct fade *f, int led)
   f->ontime = 4;
   f->offtime = 100;
   PT_INIT(&f->pt);
-  rtimer_set(&f->rt, RTIMER_NOW() + led, 1, fade, f);
+  rtimer_set(&f->rt, RTIMER_NOW() + led, 1, (rtimer_callback_t)fade, f);
 }
 /*---------------------------------------------------------------------------*/
 PROCESS_THREAD(test_rtimer_process, ev, data)
