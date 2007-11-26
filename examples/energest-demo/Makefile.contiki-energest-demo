@@ -10,4 +10,4 @@ upload-node-%:
 upload-sink: upload-node-41
 
 rundemo:
-	java -jar energest.jar /dev/com$(CMOTES)
+	java -jar energest.jar /dev/com${firstword $(CMOTES)}
