@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: contiki-esb-main.c,v 1.11 2007/05/22 21:05:53 adamdunkels Exp $
+ * @(#)$Id: contiki-esb-main.c,v 1.12 2007/11/26 19:34:23 nifi Exp $
  */
 
 #include <io.h>
@@ -49,6 +49,17 @@ PROCINIT(&sensors_process, /*&ir_process,*/
 
 PROCESS(contiki_esb_main_init_process, "Contiki ESB init process");
 
+static void
+print_processes(struct process **processes)
+{
+  printf("Starting");
+  while(*processes != NULL) {
+    printf(" '%s'", (*processes)->name);
+    processes++;
+  }
+  printf("\n");
+}
+
 PROCESS_THREAD(contiki_esb_main_init_process, ev, data)
 {
   PROCESS_BEGIN();
@@ -65,6 +76,7 @@ PROCESS_THREAD(contiki_esb_main_init_process, ev, data)
 
   PROCESS_PAUSE();
 
+  print_processes((struct process **) autostart_processes);
   autostart_start((struct process **) autostart_processes);
 
   beep_spinup();
@@ -133,6 +145,8 @@ main(void)
   node_id_restore();
   
   process_start(&contiki_esb_main_init_process, NULL);
+
+  ctimer_init();
 
   /*  watchdog_init();*/
   
