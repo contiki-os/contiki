@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: tdma_mac.c,v 1.2 2007/09/18 10:37:17 fros4943 Exp $
+ * $Id: tdma_mac.c,v 1.3 2007/11/26 15:31:32 adamdunkels Exp $
  */
 
 #include "contiki.h"
@@ -96,20 +96,17 @@ transmitter(struct rtimer *t, void *ptr)
   slot_start = period_start + MY_SLOT*SLOT_LENGTH;
 
   /* Check if we are inside our slot */
-  if (now < slot_start ||
-      now > slot_start + SLOT_LENGTH - GUARD_PERIOD)
-  {
+  if(now < slot_start ||
+      now > slot_start + SLOT_LENGTH - GUARD_PERIOD) {
     PRINTF("TIMER We are outside our slot: %u != [%u,%u]\n", now, slot_start, slot_start + SLOT_LENGTH);
-    while (now > slot_start + SLOT_LENGTH - GUARD_PERIOD)
-    {
+    while(now > slot_start + SLOT_LENGTH - GUARD_PERIOD) {
       slot_start += PERIOD_LENGTH;
     }
     
     PRINTF("TIMER Rescheduling until %u\n", slot_start);
     r = rtimer_set(&rtimer, slot_start, 1,
         (void (*)(struct rtimer *, void *))transmitter, NULL);
-    if(r)
-    {
+    if(r) {
       PRINTF("TIMER Error #1: %d\n", r);
     }
 
@@ -117,19 +114,14 @@ transmitter(struct rtimer *t, void *ptr)
   }
 
   /* Transmit queued packets */
-  while (nextsend != freeslot)
-  {
+  while(nextsend != freeslot) {
     PRINTF("RADIO Transmitting packet #%i\n", id[nextsend]);
-    if(!radio->send(
-        queuebuf_dataptr(data[nextsend]), 
-        queuebuf_datalen(data[nextsend])))
-    {
+    if(!radio->send(queuebuf_dataptr(data[nextsend]),
+		    queuebuf_datalen(data[nextsend]))) {
       sent_counter++;
       PRINTF("RADIO Transmit OK for #%i, total=%i\n", id[nextsend], sent_counter);
       DLEDS_TOGGLE(LEDS_GREEN);
-    }
-    else
-    {
+    } else {
       PRINTF("RADIO Transmit failed for #%i, total=%i\n", id[nextsend], sent_counter);
       DLEDS_TOGGLE(LEDS_RED);
     }
@@ -137,8 +129,7 @@ transmitter(struct rtimer *t, void *ptr)
     nextsend = (nextsend + 1) % NUM_PACKETS;
 
     /* Recalculate new slot */
-    if (RTIMER_NOW() > slot_start + SLOT_LENGTH - GUARD_PERIOD)
-    {
+    if(RTIMER_NOW() > slot_start + SLOT_LENGTH - GUARD_PERIOD) {
       PRINTF("TIMER No more time to transmit\n");
       break;
     }
@@ -149,8 +140,7 @@ transmitter(struct rtimer *t, void *ptr)
   PRINTF("TIMER Rescheduling until %u\n", slot_start);
   r = rtimer_set(&rtimer, slot_start, 1,
       (void (*)(struct rtimer *, void *))transmitter, NULL);
-  if(r)
-  {
+  if(r) {
     PRINTF("TIMER Error #2: %d\n", r);
   }
   
@@ -164,8 +154,7 @@ send(void)
   id_counter++;
   
   /* Clean up already sent packets */
-  while (lastqueued != nextsend)
-  {
+  while(lastqueued != nextsend) {
     PRINTF("BUFFER Cleaning up packet #%i\n", id[lastqueued]);
     queuebuf_free(data[lastqueued]);
     data[lastqueued] = NULL;
@@ -173,8 +162,7 @@ send(void)
     lastqueued = (lastqueued + 1) % NUM_PACKETS;
   }
   
-  if ((freeslot + 1) % NUM_PACKETS == lastqueued)
-  {
+  if((freeslot + 1) % NUM_PACKETS == lastqueued) {
     PRINTF("BUFFER Buffer full, dropping packet #%i\n", (id_counter+1));
     return UIP_FW_DROPPED;
   }
@@ -182,8 +170,7 @@ send(void)
   /* Allocate queue buf for packet */
   data[freeslot] = queuebuf_new_from_rimebuf();
   id[freeslot] = id_counter;
-  if (data[freeslot] == NULL)
-  {
+  if(data[freeslot] == NULL) {
     PRINTF("BUFFER Queuebuffer full, dropping packet #%i\n", id[freeslot]);
     return UIP_FW_DROPPED;
   }
@@ -191,17 +178,13 @@ send(void)
 
   freeslot = (freeslot + 1) % NUM_PACKETS;
   
-  if (!timer_on) 
-  {
+  if(!timer_on) {
     PRINTF("TIMER Starting timer\n");
     r = rtimer_set(&rtimer, RTIMER_NOW() + RTIMER_SECOND, 1,
         (void (*)(struct rtimer *, void *))transmitter, NULL);
-    if(r)
-    {
+    if(r) {
       PRINTF("TIMER Error #3: %d\n", r);
-    }
-    else
-    {
+    } else {
       timer_on = 1;
     }
   }
@@ -247,8 +230,7 @@ void
 tdma_mac_init(const struct radio_driver *d)
 {
   int i;
-  for (i=0; i < NUM_PACKETS; i++)
-  {
+  for(i = 0; i < NUM_PACKETS; i++) {
     data[i] = NULL;
   }
 
