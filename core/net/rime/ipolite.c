@@ -33,7 +33,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: ipolite.c,v 1.2 2007/09/14 20:26:52 nvt-se Exp $
+ * $Id: ipolite.c,v 1.3 2007/11/26 23:22:41 adamdunkels Exp $
  */
 
 /**
@@ -49,7 +49,9 @@
 
 #include <string.h>
 
+#ifndef MAX
 #define MAX(a,b) ((a)>(b)?(a):(b))
+#endif /* MAX */
 
 /*---------------------------------------------------------------------------*/
 static void
