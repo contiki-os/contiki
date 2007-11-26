@@ -21,7 +21,7 @@ ifndef MOTELIST
   SERIALDUMP = $(CONTIKI)/tools/sky/serialdump-linux
   MOTELIST = $(CONTIKI)/tools/sky/motelist-linux
   BSL = $(CONTIKI)/tools/sky/msp430-bsl-linux
-  MOTES = $(shell $(MOTELIST) | grep USB | \
+  MOTES = $(shell $(MOTELIST) 2>&- | grep USB | \
      cut -f 4 -d \  | \
      perl -ne 'print $$1 . " " if(m-(/dev/\w+)-);')
   CMOTES=$(MOTES)
@@ -36,7 +36,7 @@ sky-motes:
 	cp $< $(IHEXFILE)
 	$(MAKE) sky-upload
 
-sky-upload:
+sky-upload: sky-reset
 	$(MAKE) -j $(NUMPAR) sky-upload-sequence
 
 sky-upload-sequence:	$(foreach PORT, $(MOTES), $(PORT).sky-u)
