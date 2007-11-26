@@ -30,7 +30,7 @@
  *
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: contiki-main.c,v 1.19 2007/11/17 18:09:18 adamdunkels Exp $
+ * $Id: contiki-main.c,v 1.20 2007/11/26 23:28:33 adamdunkels Exp $
  */
 
 #include "contiki.h"
@@ -55,6 +55,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <time.h>
 #include <unistd.h>
 
 #include "dev/button-sensor.h"
@@ -124,11 +125,15 @@ contiki_main(int flag)
   
   while(1) {
     int n;
+    struct timespec ts;
+
     n = process_run();
     /*    if(n > 0) {
       printf("%d processes in queue\n");
       }*/
-    usleep(1);
+    ts.tv_sec = 0;
+    ts.tv_nsec = 1000;
+    nanosleep(&ts, NULL);
     etimer_request_poll();
   }
 
