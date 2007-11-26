@@ -30,7 +30,7 @@
  * 
  * Author: Oliver Schmidt <ol.sc@web.de>
  *
- * $Id: contiki-conf.h,v 1.8 2007/11/26 21:39:14 oliverschmidt Exp $
+ * $Id: contiki-conf.h,v 1.9 2007/11/26 21:52:26 oliverschmidt Exp $
  */
 
 #ifndef __CONTIKI_CONF_H__
@@ -46,5 +46,6 @@
 #define UIP_CONF_LOGGING       1
 
 #define WEBSERVER_CONF_CGI_CONNS UIP_CONNS
+#define WEBSERVER_CONF_CFS_CONNS UIP_CONNS
 
 #endif /* __CONTIKI_CONF_H__ */
