@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: test-treeroute.c,v 1.5 2007/05/22 21:04:34 adamdunkels Exp $
+ * $Id: test-treeroute.c,v 1.6 2007/11/26 23:24:33 adamdunkels Exp $
  */
 
 /**
@@ -104,18 +104,19 @@ PROCESS_THREAD(test_tree_process, ev, data)
   tree_open(&tc, 128, &callbacks);
   
   while(1) {
+    static struct etimer et;
 
+    etimer_set(&et, CLOCK_SECOND * 10);
     PROCESS_WAIT_EVENT();
 
+    if(etimer_expired(&et)) {
+      rimebuf_clear();
+      rimebuf_set_datalen(sprintf(rimebuf_dataptr(),
+				  "%s", "Hello") + 1);
+      tree_send(&tc, 4);
+    }
+
     if(ev == sensors_event) {
-
-      if(data == &pir_sensor) {
-	rimebuf_clear();
-	rimebuf_set_datalen(sprintf(rimebuf_dataptr(),
-				    "%d", pir_sensor.value(0)));
-	tree_send(&tc, 10);
-      }
-
       if(data == &button_sensor) {
 	printf("Button\n");
 	tree_set_sink(&tc, 1);
