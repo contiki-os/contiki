@@ -127,6 +127,11 @@ INPUT                  = contiki-mainpage.txt net.txt dev.txt \
                          ../core/net/psock.c \
                          ../core/net/tcpip.h \
                          ../core/net/tcpip.c \
+                         ../core/net/mac/mac.h \
+                         ../core/net/mac/nullmac.h \
+                         ../core/net/mac/nullmac.c \
+                         ../core/net/mac/xmac.h \
+                         ../core/net/mac/xmac.c \
                          ../core/net/rime.h \
                          ../core/net/rime/abc.h \
                          ../core/net/rime/abc.c \
@@ -134,26 +139,38 @@ INPUT                  = contiki-mainpage.txt net.txt dev.txt \
                          ../core/net/rime/ctimer.c \
                          ../core/net/rime/ibc.h \
                          ../core/net/rime/ibc.c \
+                         ../core/net/rime/ipolite.h \
+                         ../core/net/rime/ipolite.c \
                          ../core/net/rime/mesh.h \
                          ../core/net/rime/mesh.c \
                          ../core/net/rime/mh.h \
                          ../core/net/rime/mh.c \
+                         ../core/net/rime/nbh.h \
+                         ../core/net/rime/nbh.c \
                          ../core/net/rime/neighbor.h \
                          ../core/net/rime/neighbor.c \
                          ../core/net/rime/nf.h \
                          ../core/net/rime/nf.c \
+                         ../core/net/rime/polite.h \
+                         ../core/net/rime/polite.c \
                          ../core/net/rime/queuebuf.h \
                          ../core/net/rime/queuebuf.c \
                          ../core/net/rime/rimeaddr.h \
                          ../core/net/rime/rimeaddr.c \
                          ../core/net/rime/rimebuf.h \
                          ../core/net/rime/rimebuf.c \
+                         ../core/net/rime/rimestats.h \
+                         ../core/net/rime/rimestats.c \
+                         ../core/net/rime/rmh.h \
+                         ../core/net/rime/rmh.c \
                          ../core/net/rime/route-discovery.h \
                          ../core/net/rime/route-discovery.c \
                          ../core/net/rime/route.h \
                          ../core/net/rime/route.c \
                          ../core/net/rime/ruc.h \
                          ../core/net/rime/ruc.c \
+                         ../core/net/rime/rucb.h \
+                         ../core/net/rime/rucb.c \
                          ../core/net/rime/sabc.h \
                          ../core/net/rime/sabc.c \
                          ../core/net/rime/sibc.h \
@@ -164,19 +181,13 @@ INPUT                  = contiki-mainpage.txt net.txt dev.txt \
                          ../core/net/rime/tree.c \
                          ../core/net/rime/trickle.h \
                          ../core/net/rime/trickle.c \
-                         ../core/net/rime/uabc.h \
-                         ../core/net/rime/uabc.c \
                          ../core/net/rime/uc.h \
                          ../core/net/rime/uc.c \
-                         ../core/net/rime/uibc.h \
-                         ../core/net/rime/uibc.c \
                          ../core/net/rime/rudolph0.h \
                          ../core/net/rime/rudolph0.c \
                          ../core/net/rime/rudolph1.h \
                          ../core/net/rime/rudolph1.c \
                          ../core/lib/petsciiconv.h \
-                         ../core/lib/ctk-textedit.h \
-                         ../core/lib/ctk-textedit.c \
                          ../core/lib/memb.h \
                          ../core/lib/memb.c \
                          ../core/lib/mmem.h \
