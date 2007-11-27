@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: hello-world.c,v 1.1 2007/11/27 20:50:54 adamdunkels Exp $
+ * $Id: hello-world.c,v 1.2 2007/11/27 21:58:07 adamdunkels Exp $
  */
 
 /**
@@ -50,7 +50,7 @@ PROCESS_THREAD(hello_world_process, ev, data)
   PROCESS_BEGIN();
 
   printf("Hello, world\n");
-  
+
   PROCESS_END();
 }
 /*---------------------------------------------------------------------------*/
