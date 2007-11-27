@@ -30,21 +30,21 @@
  *
  * Author: Oliver Schmidt <ol.sc@web.de>
  *
- * @(#)$Id: ethernet.c,v 1.2 2007/11/22 11:41:18 oliverschmidt Exp $
+ * @(#)$Id: ethernet.c,v 1.3 2007/11/27 20:52:52 oliverschmidt Exp $
  */
 
 #include <stdio.h>
 #include <errno.h>
 #include <fcntl.h>
 #include <unistd.h>
-#include <stdlib.h>
 #include <string.h>
 #include <modload.h>
 
 #include "contiki-net.h"
-#include "ethernet-drv.h"
+#include "lib/error.h"
+#include "net/ethernet-drv.h"
 
-#include "ethernet.h"
+#include "net/ethernet.h"
 
 struct {
   char                signature[4];
@@ -57,14 +57,6 @@ struct {
   void                (* exit)(void);
 } *module;
 
-/*---------------------------------------------------------------------------*/
-static void
-error_exit(void)
-{
-  fprintf(stderr, "Press any key to continue ...\n");
-  getchar();
-  exit(EXIT_FAILURE);
-}
 /*---------------------------------------------------------------------------*/
 void
 ethernet_init(struct ethernet_config *config)
