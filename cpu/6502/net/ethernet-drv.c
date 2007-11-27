@@ -28,16 +28,16 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: ethernet-drv.c,v 1.1 2007/11/20 21:10:20 oliverschmidt Exp $
+ * @(#)$Id: ethernet-drv.c,v 1.2 2007/11/27 20:54:10 oliverschmidt Exp $
  */
 
 #include <stdio.h>
 
 #include "contiki-net.h"
-#include "ethernet.h"
+#include "net/ethernet.h"
 #include "net/uip-neighbor.h"
 
-#include "ethernet-drv.h"
+#include "net/ethernet-drv.h"
 
 #define BUF ((struct uip_eth_hdr *)&uip_buf[0])
 
