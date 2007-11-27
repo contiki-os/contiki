@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: rucb.c,v 1.2 2007/11/17 09:59:48 adamdunkels Exp $
+ * $Id: rucb.c,v 1.3 2007/11/27 23:32:34 adamdunkels Exp $
  */
 
 /**
@@ -88,7 +88,7 @@ timedout(struct ruc_conn *ruc, rimeaddr_t *to, u8_t retransmissions)
   }
 }
 /*---------------------------------------------------------------------------*/
-static int
+static void
 recv(struct ruc_conn *ruc, rimeaddr_t *from, u8_t seqno)
 {
   struct rucb_conn *c = (struct rucb_conn *)ruc;
@@ -98,7 +98,7 @@ recv(struct ruc_conn *ruc, rimeaddr_t *from, u8_t seqno)
 	 from->u8[0], from->u8[1], rimebuf_totlen());
 
   if(seqno == c->last_seqno) {
-    return 1;
+    return;
   }
   c->last_seqno = seqno;
 
@@ -128,7 +128,6 @@ recv(struct ruc_conn *ruc, rimeaddr_t *from, u8_t seqno)
   if(rimebuf_datalen() < RUCB_DATASIZE) {
     rimeaddr_copy(&c->sender, &rimeaddr_null);
   }
-  return 1;
 }
 /*---------------------------------------------------------------------------*/
 static const struct ruc_callbacks ruc = {recv, acked, timedout};
