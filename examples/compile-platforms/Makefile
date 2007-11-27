@@ -12,6 +12,6 @@ native: native.platform netsim.platform minimal-net.platform
 	@cp *.c $*
 	@cp Makefile.platform $*/Makefile
 	@(echo; echo ------------------- $* -------------------; \
-          cd $* ; $(MAKE) TARGET=$* hello-world >& /dev/null ; \
-                  $(MAKE) TARGET=$* hello-world) >& $*.output || \
-          echo "$* failed"
+          cd $* ; ($(MAKE) TARGET=$* >& /dev/null) ; \
+                  $(MAKE) TARGET=$*) >& $*.output || \
+          (echo; echo "$* failed"; exit 1)
