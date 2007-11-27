@@ -30,7 +30,7 @@
  *
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: ethernode.c,v 1.10 2007/11/26 23:28:33 adamdunkels Exp $
+ * $Id: ethernode.c,v 1.11 2007/11/27 20:32:08 adamdunkels Exp $
  */
 /**
  * \file
@@ -51,6 +51,7 @@
 #include "lib/random.h"
 
 #include <stdio.h>
+#include <time.h>
 #include <unistd.h>
 
 #define BUF ((uip_tcpip_hdr *)&uip_buf[HDR_LEN])
