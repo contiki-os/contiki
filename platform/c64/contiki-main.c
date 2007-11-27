@@ -30,7 +30,7 @@
  * 
  * Author: Oliver Schmidt <ol.sc@web.de>
  *
- * $Id: contiki-main.c,v 1.9 2007/11/25 22:19:49 oliverschmidt Exp $
+ * $Id: contiki-main.c,v 1.10 2007/11/27 16:51:55 oliverschmidt Exp $
  */
 
 #include <stdio.h>
@@ -41,18 +41,6 @@
 PROCINIT(&etimer_process,
 	 &tcpip_process);
 
-/*-----------------------------------------------------------------------------------*/
-void
-uip_log(char *message)
-{
-  fprintf(stderr, "%s\n", message);
-}
-/*-----------------------------------------------------------------------------------*/
-void
-log_message(const char *part1, const char *part2)
-{
-  fprintf(stderr, "%s%s\n", part1, part2);
-}
 /*-----------------------------------------------------------------------------------*/
 long int
 lseek(void)
