@@ -33,7 +33,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: tree.c,v 1.16 2007/11/26 23:31:44 adamdunkels Exp $
+ * $Id: tree.c,v 1.17 2007/11/27 23:32:34 adamdunkels Exp $
  */
 
 /**
@@ -146,7 +146,7 @@ update_rtmetric(struct tree_conn *tc)
 #endif
 }
 /*---------------------------------------------------------------------------*/
-static int
+static void
 node_packet_received(struct ruc_conn *c, rimeaddr_t *from, u8_t seqno)
 {
   struct tree_conn *tc = (struct tree_conn *)
@@ -163,7 +163,7 @@ node_packet_received(struct ruc_conn *c, rimeaddr_t *from, u8_t seqno)
     if(recent_packets[i].seqno == hdr->originator_seqno &&
        rimeaddr_cmp(&recent_packets[i].originator, &hdr->originator)) {
       /* Drop the packet. */
-      return 1;
+      return;
     }
   }
   recent_packets[recent_packet_ptr].seqno = hdr->originator_seqno;
@@ -185,7 +185,7 @@ node_packet_received(struct ruc_conn *c, rimeaddr_t *from, u8_t seqno)
       tc->cb->recv(&hdr->originator, hdr->originator_seqno,
 		   hdr->hops);
     }
-    return 1;
+    return;
   } else if(hdr->hoplim > 1 && tc->local_rtmetric != RTMETRIC_MAX) {
 
     /* If we are not the sink, we forward the packet to the best
@@ -206,15 +206,15 @@ node_packet_received(struct ruc_conn *c, rimeaddr_t *from, u8_t seqno)
       if(n != NULL) {
 	ruc_send(c, &n->addr, hdr->rexmits);
       }
-      return 1;
+      return;
     } else {
 
-      PRINTF("%d.%d: still forwarding another packet, not sending ACK\n",
+      PRINTF("%d.%d: still forwarding another packet\n",
 	     rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1]);
-      return 0;
+      return;
     }
   }
-  return 1;
+  return;
 }
 /*---------------------------------------------------------------------------*/
 static void
