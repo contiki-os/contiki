@@ -30,12 +30,13 @@
  * 
  * Author: Oliver Schmidt <ol.sc@web.de>
  *
- * $Id: contiki-main.c,v 1.10 2007/11/27 16:50:02 oliverschmidt Exp $
+ * $Id: contiki-main.c,v 1.11 2007/11/27 21:50:19 oliverschmidt Exp $
  */
 
 #include <stdio.h>
 
 #include "contiki-net.h"
+#include "lib/config.h"
 #include "net/ethernet-drv.h"
 
 PROCINIT(&etimer_process,
@@ -53,6 +54,8 @@ lseek(void)
 void
 main(void)
 {
+  struct ethernet_config *ethernet_config;
+
   process_init();
 
   procinit_init();
@@ -60,34 +63,38 @@ main(void)
   autostart_start((struct process **)autostart_processes);
 
 #if 1
+
+  ethernet_config = config_read("contiki.cfg");
+
+#else
   {
     static struct ethernet_config config = {0xC0B0, "cs8900a.eth"};
     uip_ipaddr_t addr;
 
-    printf("Eth. Driver: %s at $%X\n", config.name, config.addr);
-    process_start((struct process *)&ethernet_process, (char *)&config);
-
     uip_ipaddr(&addr, 192,168,0,128);
-    printf("IP Address:  %d.%d.%d.%d\n", uip_ipaddr_to_quad(&addr));
+    fprintf(stderr, "IP Address:  %d.%d.%d.%d\n", uip_ipaddr_to_quad(&addr));
     uip_sethostaddr(&addr);
 
     uip_ipaddr(&addr, 255,255,255,0);
-    printf("Subnet Mask: %d.%d.%d.%d\n", uip_ipaddr_to_quad(&addr));
+    fprintf(stderr, "Subnet Mask: %d.%d.%d.%d\n", uip_ipaddr_to_quad(&addr));
     uip_setnetmask(&addr);
 
     uip_ipaddr(&addr, 192,168,0,1);
-    printf("Def. Router: %d.%d.%d.%d\n", uip_ipaddr_to_quad(&addr));
+    fprintf(stderr, "Def. Router: %d.%d.%d.%d\n", uip_ipaddr_to_quad(&addr));
     uip_setdraddr(&addr);
 
     uip_ipaddr(&addr, 192,168,0,1);
-    printf("DNS Server:  %d.%d.%d.%d\n", uip_ipaddr_to_quad(&addr));
+    fprintf(stderr, "DNS Server:  %d.%d.%d.%d\n", uip_ipaddr_to_quad(&addr));
     resolv_conf(&addr);
+
+    fprintf(stderr, "Eth. Driver: %s at $%X\n", config.name, config.addr);
+    ethernet_config = &config;
   }
 #endif
 
-  clock_init();
+  process_start((struct process *)&ethernet_process, (char *)ethernet_config);
 
-  printf("Contiki up and running ...\n");
+  fprintf(stderr, "Contiki up and running ...\n");
   
   while(1) {
 
