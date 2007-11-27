@@ -98,6 +98,9 @@ telnet-server/
     
   Most likely you'll have to adjust the TCP/IP values set in main() in
   platform/minimal-net/contiki-main.c to match your needs.
+  
+  Please consult cpu/native/net/README-WPCAP as well if you are running
+  Microsoft Windows.
 
 webserver/
 
@@ -119,3 +122,6 @@ webserver/
 
   Most likely you'll have to adjust the TCP/IP values set in main() in
   platform/minimal-net/contiki-main.c to match your needs.
+
+  Please consult cpu/native/net/README-WPCAP as well if you are running
+  Microsoft Windows.
