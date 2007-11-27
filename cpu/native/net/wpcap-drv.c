@@ -28,14 +28,14 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: wpcap-drv.c,v 1.2 2007/05/23 22:13:29 oliverschmidt Exp $
+ * @(#)$Id: wpcap-drv.c,v 1.3 2007/11/27 20:57:18 oliverschmidt Exp $
  */
 
 #include "contiki-net.h"
-#include "wpcap.h"
 #include "net/uip-neighbor.h"
+#include "net/wpcap.h"
 
-#include "wpcap-drv.h"
+#include "net/wpcap-drv.h"
 
 #define BUF ((struct uip_eth_hdr *)&uip_buf[0])
 
