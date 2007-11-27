@@ -30,7 +30,7 @@
  *
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: httpd-cfs.c,v 1.6 2007/11/26 21:50:46 oliverschmidt Exp $
+ * $Id: httpd-cfs.c,v 1.7 2007/11/27 23:36:07 oliverschmidt Exp $
  */
 
 #include <string.h>
@@ -119,6 +119,7 @@ PT_THREAD(handle_output(struct httpd_state *s))
     s->fd = cfs_open("404.html", CFS_READ);
     if(s->fd < 0) {
       uip_abort();
+      memb_free(&conns, s);
       webserver_log_file(&uip_conn->ripaddr, "reset (no 404.html)");
       PT_EXIT(&s->outputpt);
     }
@@ -151,7 +152,7 @@ PT_THREAD(handle_input(struct httpd_state *s))
   }
 
   if(s->inputbuf[1] == ISO_space) {
-    strncpy(s->filename, http_index_html+1, sizeof(s->filename));
+    strncpy(s->filename, &http_index_html[1], sizeof(s->filename));
   } else {
     s->inputbuf[PSOCK_DATALEN(&s->sin) - 1] = 0;
     strncpy(s->filename, &s->inputbuf[1], sizeof(s->filename));
@@ -209,6 +210,7 @@ httpd_appcall(void *state)
     if(uip_poll()) {
       if(timer_expired(&s->timer)) {
 	uip_abort();
+        memb_free(&conns, s);
         webserver_log_file(&uip_conn->ripaddr, "reset (timeout)");
       }
     } else {
