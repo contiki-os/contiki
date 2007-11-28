@@ -27,7 +27,7 @@
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * $Id: contiki-client-main.c,v 1.1 2007/09/29 04:13:14 matsutsuka Exp $
+ * $Id: contiki-client-main.c,v 1.2 2007/11/28 06:14:11 matsutsuka Exp $
  *
  */
 
@@ -61,8 +61,6 @@
 #include "email-dsc.h"
 #include "ftp-dsc.h"
 #include "irc-dsc.h"
-//#include "vnc-dsc.h"
-//#include "www-dsc.h"
 
 
 /*---------------------------------------------------------------------------*/
@@ -94,7 +92,7 @@ main(void)
   /* start services */
   process_start(&etimer_process, NULL);
   process_start(&ctk_process, NULL);
-  //  process_start(&program_handler_process, NULL);
+//  process_start(&program_handler_process, NULL);
   process_start(&tcpip_process, NULL);
   process_start(&slip_process, NULL);
   process_start(&uip_fw_process, NULL);
@@ -102,12 +100,11 @@ main(void)
 
 //  process_start(&email_process, NULL);
 //  process_start(&www_process, NULL);
-  process_start(&simpletelnet_process, NULL);
-//  process_start(&netconf_process, NULL);
 //  process_start(&ftp_process, NULL);
 //  process_start(&irc_process, NULL);
-//  process_start(&vnc_process, NULL);
 
+//  process_start(&netconf_process, NULL);
+  process_start(&simpletelnet_process, NULL);
 
 #if 0
   /* register programs to the program handler */
