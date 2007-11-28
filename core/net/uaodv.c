@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: uaodv.c,v 1.35 2007/11/28 10:15:44 matsutsuka Exp $
+ * $Id: uaodv.c,v 1.36 2007/11/28 12:52:34 adamdunkels Exp $
  */
 
 /**
@@ -44,8 +44,6 @@
 #include "contiki.h"
 #include "net/uaodv-def.h"
 #include "net/uaodv-rt.h"
-
-#if UIP_UDP
 
 #define NDEBUG
 #include "lib/assert.h"
@@ -626,5 +624,4 @@ PROCESS_THREAD(uaodv_process, ev, data)
   printf("uaodv_process exiting\n");
   PROCESS_END();
 }
-#endif /* UIP_UDP */
 /*---------------------------------------------------------------------------*/
