@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: radio-sensor.c,v 1.2 2006/10/09 11:55:42 adamdunkels Exp $
+ * @(#)$Id: radio-sensor.c,v 1.3 2007/11/28 21:26:35 nifi Exp $
  */
 
 #include "contiki-esb.h"
@@ -85,7 +85,7 @@ value(int type)
     return tr1001_sstrength();
   case RADIO_SENSOR_LAST_VALUE:
   default:
-    return radio_sensor_signal;
+    return ADC12MEM5; /* radio_sensor_signal; */
   }
 }
 /*---------------------------------------------------------------------------*/
