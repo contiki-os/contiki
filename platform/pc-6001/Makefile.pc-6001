@@ -2,7 +2,7 @@
 # Makefile for PC-6001 using z80/SDCC
 # @author Takahide Matsutsuka <markn@markn.org>
 #
-# $Id: Makefile.pc-6001,v 1.5 2007/11/28 09:43:01 matsutsuka Exp $
+# $Id: Makefile.pc-6001,v 1.6 2007/11/28 10:03:40 matsutsuka Exp $
 #
 
 ifndef CONTIKI
@@ -12,7 +12,6 @@ endif
 # Default values
 ARCH=PC6001
 MEMORY=32K
-APPS = $(APPS_DESKTOP)
 PLATFORM_APPS=$(PLATFORM_APPS_DESKTOP)
 CONTIKI_TARGET_MAIN = contiki-main.c
 CTKCONF = NORMAL
@@ -38,12 +37,11 @@ else ifeq ($(MAKECMDGOALS),load)
   LOADER = 1
   CONTIKI_TARGET_MAIN=contiki-loader-main.c
 else ifeq ($(MAKECMDGOALS),server)
-  CTKCONF=SERVER APPS="$(APPS_NETWORK_SERVER)"
+  CTKCONF=SERVER
   PLATFORM_APPS="$(PLATFORM_APPS_NETWORK)"
   CONTIKI_TARGET_MAIN=contiki-server-main.c
 else ifeq ($(MAKECMDGOALS),client)
   CTKCONF=CLIENT
-  APPS="$(APPS_NETWORK_CLIENT)"
   PLATFORM_APPS="$(PLATFORM_APPS_NETWORK)"
   CONTIKI_TARGET_MAIN=contiki-client-main.c
 endif
