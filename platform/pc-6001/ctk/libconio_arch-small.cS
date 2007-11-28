@@ -7,7 +7,7 @@
 ;;; 
 ;;; @author Takahide Matsutsuka <markn@markn.org>
 ;;; 
-;;; $Id: libconio_arch-small.cS,v 1.1 2007/09/30 12:46:34 matsutsuka Exp $
+;;; $Id: libconio_arch-small.cS,v 1.2 2007/11/28 09:38:21 matsutsuka Exp $
 ;;;
 
 	;; uses preprocessor to enable definitions
@@ -16,6 +16,7 @@
 	;; export symbols
 	.globl	_clrscr_arch
 	.globl	_libputc_arch
+	.globl	_libputs_arch
 	
 	.area	_DATA
 _screen_offset::
@@ -98,5 +99,17 @@ _libputc_arch_scroll_loop:
 	pop	hl
 	pop	de
 	jr	_libputc_arch_putc
-	
+
+_libputs_arch:
+	ld	hl, #2
+	add	hl, sp
+	ld	e, (hl)
+	inc	hl
+	ld	d, (hl)
+_libputs_arch_loop:
+	ld	a, (hl)
+	or	a
+	ret	z
+	call	_libputc_asm
+	jr	_libputs_arch_loop	
 _libconio_arch_small_end::

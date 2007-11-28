@@ -27,7 +27,7 @@
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * $Id: libconio_arch.h,v 1.2 2007/09/29 04:10:00 matsutsuka Exp $
+ * $Id: libconio_arch.h,v 1.3 2007/11/28 09:38:21 matsutsuka Exp $
  *
  */
 
@@ -51,9 +51,9 @@ void cvline_arch(unsigned char length);
 void clip_arch(unsigned char clip1, unsigned char clip2);
 void clearto_arch(unsigned char to);
 void revers_arch(unsigned char reversed);
+void gotoxy_arch(unsigned char x, unsigned char y);
 #endif /* LIBCONIO_CONF_EXPORT */
 unsigned char wherex_arch();
 unsigned char wherey_arch();
-void gotoxy_arch(unsigned char x, unsigned char y);
 
 #endif /* __LIBCONIO_ARCH_H__ */

@@ -27,7 +27,7 @@
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * $Id: ctk_arch-def.h,v 1.3 2007/09/29 04:10:00 matsutsuka Exp $
+ * $Id: ctk_arch-def.h,v 1.4 2007/11/28 09:38:21 matsutsuka Exp $
  *
  */
 
@@ -111,31 +111,48 @@
 
 /* Contiki toolkit options */
 
+#if defined(CTK_CLIENT) || defined(CTK_SERVER)
+/* If network is available, turn all options off by the memory reason */
+#define CTK_CONF_ICONS			0
+#define CTK_CONF_ICON_TEXTMAPS		0
+#define CTK_CONF_WINDOWCLOSE		0
+#define CTK_CONF_WINDOWMOVE		0
+#define CTK_CONF_MENUS			0
+#define CTK_CONF_HYPERLINK		0
+#elif defined(CTK_NOICON)
+/* In the case of loader arch, we omit the icons by the memory reason */
+#define CTK_CONF_ICONS			0
+#define CTK_CONF_ICON_TEXTMAPS		0
+#define CTK_CONF_WINDOWCLOSE		1
+#define CTK_CONF_WINDOWMOVE		1
+#define CTK_CONF_MENUS			1
+#define CTK_CONF_HYPERLINK		1
+#else /* CTK_MINIMUM */
 /* Toggles support for desktop icons. */
 #define CTK_CONF_ICONS			1
 /* Define if text icon is used. */
 #define CTK_CONF_ICON_TEXTMAPS		1
-/* Define if bitmap icon is used. */
-#define CTK_CONF_ICON_BITMAPS		0
 /* Toggles support for closable windows. */
 #define CTK_CONF_WINDOWCLOSE		1
 /* Toggles support for movable windows. */
 #define CTK_CONF_WINDOWMOVE		1
 /* Toggles support for menus. */
 #define CTK_CONF_MENUS			1
+/* Defines if hyperlink is supported. */
+#define CTK_CONF_HYPERLINK		1
+#endif /* CTK_MINIMUM */
+
+/* Define if bitmap icon is used. */
+#define CTK_CONF_ICON_BITMAPS		0
 /* Defines the default width of a menu. */
 #define CTK_CONF_MENUWIDTH		16
 /* Defines if screen saver is supported. */
 #define CTK_CONF_SCREENSAVER		0
 /* Defines if mouse is supported. */
 #define CTK_CONF_MOUSE_SUPPORT		0
-/* Defines if hyperlink is supported. */
-#define CTK_CONF_HYPERLINK		1
 
 /* The maximum number of menu items in each menu. */
 #define CTK_CONF_MAXMENUITEMS		4
-//#define CTK_CONF_MAX_REDRAWWIDGETS	2
-//#define CTK_CONF_MAX_REDRAWWINDOWS	2
 
 /* Key used to switch the frontmost window.  */
 #define CTK_CONF_WINDOWSWITCH_KEY	CH_F3
