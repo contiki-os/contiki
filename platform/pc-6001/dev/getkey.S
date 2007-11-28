@@ -17,9 +17,6 @@ _key:
 	.ds 1
 	
 	.area	_GSINIT
-	ld	hl, #_key
-	xor	(hl)
-	
 	.area	_CODE
 
 	;; ---------------------------------
