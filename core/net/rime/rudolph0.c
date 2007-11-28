@@ -33,7 +33,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: rudolph0.c,v 1.6 2007/08/30 14:39:17 matsutsuka Exp $
+ * $Id: rudolph0.c,v 1.7 2007/11/28 20:03:50 adamdunkels Exp $
  */
 
 /**
@@ -63,7 +63,7 @@ enum {
 
 #define VERSION_LT(a, b) ((signed char)((a) - (b)) < 0)
 
-#define DEBUG 1
+#define DEBUG 0
 #if DEBUG
 #include <stdio.h>
 #define PRINTF(...) printf(__VA_ARGS__)

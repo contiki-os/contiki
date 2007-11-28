@@ -39,7 +39,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: rudolph2.c,v 1.3 2007/11/17 18:05:21 adamdunkels Exp $
+ * $Id: rudolph2.c,v 1.4 2007/11/28 20:03:50 adamdunkels Exp $
  */
 
 /**
@@ -82,7 +82,7 @@ enum {
 #define FLAG_LAST_RECEIVED 0x02
 #define FLAG_IS_STOPPED    0x04
 
-#define DEBUG 1
+#define DEBUG 0
 #if DEBUG
 #include <stdio.h>
 #define PRINTF(...) printf(__VA_ARGS__)
