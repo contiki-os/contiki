@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: contiki-conf.h,v 1.7 2007/11/18 00:46:26 oliverschmidt Exp $
+ * @(#)$Id: contiki-conf.h,v 1.8 2007/11/28 15:32:25 adamdunkels Exp $
  */
 
 #ifndef __CONTIKI_CONF_H__
@@ -51,7 +51,7 @@ typedef uint32_t u32_t;
 typedef  int32_t s32_t;
 typedef unsigned short uip_stats_t;
 
-#define UIP_UDP                  1
+#define UIP_CONF_UDP             1
 #define UIP_CONF_MAX_CONNECTIONS 40
 #define UIP_CONF_MAX_LISTENPORTS 40
 #define UIP_CONF_BUFFER_SIZE     420
