@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: test-treeroute.c,v 1.6 2007/11/26 23:24:33 adamdunkels Exp $
+ * $Id: test-collect.c,v 1.1 2007/11/28 16:05:32 adamdunkels Exp $
  */
 
 /**
@@ -40,19 +40,20 @@
 
 #include "contiki.h"
 #include "net/rime.h"
-#include "net/rime/tree.h"
+#include "net/rime/collect.h"
+#include "net/rime/neighbor.h"
 #include "dev/leds.h"
 #include "dev/pir-sensor.h"
 #include "dev/button-sensor.h"
 
 #include <stdio.h>
 
-static struct tree_conn tc;
+static struct collect_conn tc;
 
 /*---------------------------------------------------------------------------*/
-PROCESS(test_tree_process, "Test tree process");
+PROCESS(test_collect_process, "Test collect process");
 PROCESS(depth_blink_process, "Depth indicator");
-AUTOSTART_PROCESSES(&test_tree_process, &depth_blink_process);
+AUTOSTART_PROCESSES(&test_collect_process, &depth_blink_process);
 /*---------------------------------------------------------------------------*/
 PROCESS_THREAD(depth_blink_process, ev, data)
 {
@@ -64,17 +65,18 @@ PROCESS_THREAD(depth_blink_process, ev, data)
   while(1) {
     etimer_set(&et, CLOCK_SECOND * 1);
     PROCESS_WAIT_UNTIL(etimer_expired(&et));
-    count = tree_depth(&tc);
-    if(count == TREE_MAX_DEPTH) {
+    count = collect_depth(&tc);
+    if(count == COLLECT_MAX_DEPTH) {
       leds_on(LEDS_RED);
     } else {
       leds_off(LEDS_RED);
+      count /= NEIGHBOR_ETX_SCALE;
       while(count > 0) {
 	leds_on(LEDS_RED);
-	etimer_set(&et, CLOCK_SECOND / 10);
+	etimer_set(&et, CLOCK_SECOND / 16);
 	PROCESS_WAIT_UNTIL(etimer_expired(&et));
 	leds_off(LEDS_RED);
-	etimer_set(&et, CLOCK_SECOND / 10);
+	etimer_set(&et, CLOCK_SECOND / 4);
 	PROCESS_WAIT_UNTIL(etimer_expired(&et));
 	--count;
       }
@@ -95,13 +97,13 @@ recv(rimeaddr_t *originator, u8_t seqno, u8_t hops)
 
 }
 /*---------------------------------------------------------------------------*/
-static const struct tree_callbacks callbacks = { recv };
+static const struct collect_callbacks callbacks = { recv };
 /*---------------------------------------------------------------------------*/
-PROCESS_THREAD(test_tree_process, ev, data)
+PROCESS_THREAD(test_collect_process, ev, data)
 {
   PROCESS_BEGIN();
 
-  tree_open(&tc, 128, &callbacks);
+  collect_open(&tc, 128, &callbacks);
   
   while(1) {
     static struct etimer et;
@@ -113,13 +115,13 @@ PROCESS_THREAD(test_tree_process, ev, data)
       rimebuf_clear();
       rimebuf_set_datalen(sprintf(rimebuf_dataptr(),
 				  "%s", "Hello") + 1);
-      tree_send(&tc, 4);
+      collect_send(&tc, 4);
     }
 
     if(ev == sensors_event) {
       if(data == &button_sensor) {
 	printf("Button\n");
-	tree_set_sink(&tc, 1);
+	collect_set_sink(&tc, 1);
       }
     }
     
