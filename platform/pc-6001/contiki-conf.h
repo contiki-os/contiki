@@ -27,7 +27,7 @@
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * $Id: contiki-conf.h,v 1.4 2007/09/29 04:05:20 matsutsuka Exp $
+ * $Id: contiki-conf.h,v 1.5 2007/11/28 09:44:03 matsutsuka Exp $
  *
  */
 
@@ -48,8 +48,7 @@
 #include <string.h>
 #include "ctk/ctk_arch.h"
 #include "strcasecmp.h"
-
-#define rtimer_arch_now()	clock_time()
+#include "log.h"
 
 /* Time type. */
 typedef unsigned long clock_time_t;
@@ -57,32 +56,17 @@ typedef unsigned long clock_time_t;
 /* Defines tick counts for a second. */
 #define CLOCK_CONF_SECOND		1024
 
+#define rtimer_arch_now()	clock_time()
+
 /* Memory filesystem RAM size. */
 #define CFS_RAM_CONF_SIZE		512
 
 /* Logging.. */
-#define LOG_CONF_ENABLED		1
-
-/* Application specific configurations. */
-
-/* Command shell */
-#define SHELL_GUI_CONF_XSIZE		26
-#define SHELL_GUI_CONF_YSIZE		10
-
-/* Text editor */
-#define EDITOR_CONF_WIDTH		26
-#define EDITOR_CONF_HEIGHT		8
-
-/* Process list */
-#define PROCESSLIST_CONF_HEIGHT	12
-
-/* File dialog */
-#define FILES_CONF_HEIGHT		6
+#define LOG_CONF_ENABLED		0
 
 #undef MALLOC_TEST
 
-#define SHELL_CONF_WITH_PROGRAM_HANDLER	1
-
+/*---------------------------------------------------------------------------*/
 /* screen properties */
 #define LIBCONIO_CONF_ATTRIBUTES_ENABLED
 #if defined(ARCH_PC6001MK2)
@@ -129,11 +113,10 @@ typedef unsigned long clock_time_t;
 #endif
 
 /* uIP configuration */
-#define UIP_CONF_MAX_CONNECTIONS	2
-#define UIP_CONF_MAX_LISTENPORTS	2
-#define UIP_CONF_BUFFER_SIZE		300
+#define UIP_CONF_MAX_CONNECTIONS	4
+#define UIP_CONF_MAX_LISTENPORTS	4
+#define UIP_CONF_BUFFER_SIZE		400
 #define UIP_CONF_BYTE_ORDER		LITTLE_ENDIAN
-//#define UIP_CONF_TCP_SPLIT		1
 #define UIP_CONF_TCP_SPLIT		0
 #define UIP_CONF_LOGGING		0
 
@@ -143,17 +126,50 @@ typedef unsigned long clock_time_t;
 #define UIP_CONF_LLH_LEN		0
 #undef UIP_CONF_BROADCAST
 #undef RS232_CONF_CALLBACK
+/* #define RS232_CONF_CALLBACK             serial_input_byte */
 #define slip_arch_init(ubr)             rs232_arch_init(ubr)
 #define slip_arch_writeb(c)             rs232_arch_writeb(c)
 
-/* Web sever configuration */
-#undef WEBSERVER_CONF_LOG_ENABLED
+#ifdef WITH_LOADER_ARCH
+//#define PROCESS_LOADABLE                1
+#define LOADER_CONF_ARCH                "loader_arch.h"
+#endif /* WITH_LOADER_ARCH */
 
-/* Telnet configuration */
+/*---------------------------------------------------------------------------*/
+/* Application specific configurations. */
+
+/* Command shell */
+#define SHELL_GUI_CONF_XSIZE		26
+#define SHELL_GUI_CONF_YSIZE		10
+
+/* Text editor */
+#define EDITOR_CONF_WIDTH		26
+#define EDITOR_CONF_HEIGHT		 8
+
+/* Process list */
+#define PROCESSLIST_CONF_HEIGHT	12
+
+/* File dialog */
+#define FILES_CONF_HEIGHT		 6
+
+/* Shell */
+//#define SHELL_CONF_WITH_PROGRAM_HANDLER	 1
+
+/* Telnet */
 #define TELNET_CONF_WINDOW_WIDTH        30
 #define TELNET_CONF_WINDOW_HEIGHT       13
 //#define TELNET_CONF_TEXTAREA_HEIGHT      5 // TELNET_WINDOW_HEIGHT - 8
 //#define TELNET_CONF_ENTRY_WIDTH         22 // TELNET_WINDOW_WIDTH - 8
+
+/* Telnetd */
+#define TELNETD_CONF_GUI                 0
+#define SHELL_CONF_WITH_PROGRAM_HANDLER              0
+
+/* Web server */
+#undef WEBSERVER_CONF_LOG_ENABLED
+#define HTTPD_CONF_CGI		0
+#define HTTPD_CONF_SCRIPT	0
+#define HTTPD_CONF_STATISTICS	0
 
 /* unused yet */
 #define VNC_CONF_REFRESH_ROWS    8
@@ -170,9 +186,5 @@ typedef unsigned long clock_time_t;
 #define WWW_CONF_MAX_INPUTNAMELEN   200
 #define WWW_CONF_MAX_INPUTVALUELEN  240
 #define WWW_CONF_PAGEVIEW 1
-
-#define HTTPD_CONF_CGI		0
-#define HTTPD_CONF_SCRIPT	0
-//#define WEBSERVER_CONF_SPRINTF(buf, address)	log_address(buf, address)
 
 #endif /* __CONTIKI_CONF_H__ */
