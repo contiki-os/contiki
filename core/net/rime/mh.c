@@ -33,7 +33,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: mh.c,v 1.3 2007/03/31 18:31:28 adamdunkels Exp $
+ * $Id: mh.c,v 1.4 2007/11/28 19:55:27 adamdunkels Exp $
  */
 
 /**
@@ -64,26 +64,12 @@ struct data_hdr {
 #endif
 
 /*---------------------------------------------------------------------------*/
-static void
-send_data(struct mh_conn *c, rimeaddr_t *to, struct route_entry *next)
-{
-  struct data_hdr *hdr;
-
-  if(rimebuf_hdralloc(sizeof(struct data_hdr))) {
-    hdr = rimebuf_hdrptr();
-    rimeaddr_copy(&hdr->dest, to);
-    rimeaddr_copy(&hdr->originator, &rimeaddr_node_addr);
-    uc_send(&c->c, &next->nexthop);
-  }
-}
-/*---------------------------------------------------------------------------*/
 void
 data_packet_received(struct uc_conn *uc, rimeaddr_t *from)
 {
   struct mh_conn *c = (struct mh_conn *)uc;
   struct data_hdr *msg = rimebuf_dataptr();
-  struct route_entry *rt;
-  int should_forward;
+  rimeaddr_t *nexthop;
 
   PRINTF("data_packet_received from %d towards %d len %d\n", from->u16[0],
 	 msg->dest.u16[0],
@@ -96,24 +82,15 @@ data_packet_received(struct uc_conn *uc, rimeaddr_t *from)
       c->cb->recv(c, &msg->originator);
     }
   } else {
-    if(c->cb->forwarding) {
-      should_forward = c->cb->forwarding(c);
-    } else {
-      should_forward = 1;
+    nexthop = NULL;
+    if(c->cb->forward) {
+      nexthop = c->cb->forward(c, &msg->originator,
+			       &msg->dest, from, msg->hops);
     }
-    if(should_forward) {
-      rt = route_lookup(&msg->dest);
-      if(rt != NULL) {
-	PRINTF("forwarding to %d\n", rt->nexthop.u16[0]);
-	/*      msg->hops++;*/
-	uc_send(&c->c, &rt->nexthop);
-      } else {
-	PRINTF("%d.%d: no route to %d.%d\n",
-	       rimeaddr_node_addr.u8[0],
-	       rimeaddr_node_addr.u8[1],
-	       msg->dest.u8[0],
-	       msg->dest.u8[1]);
-      }
+    if(nexthop) {
+      PRINTF("forwarding to %d\n", rt->nexthop.u16[0]);
+      msg->hops++;
+      uc_send(&c->c, nexthop);
     }
   }
 }
@@ -137,15 +114,23 @@ mh_close(struct mh_conn *c)
 int
 mh_send(struct mh_conn *c, rimeaddr_t *to)
 {
-  struct route_entry *rt;
-
-  rt = route_lookup(to);
-  if(rt == NULL) {
+  rimeaddr_t *nexthop;
+  struct data_hdr *hdr;
+  
+  nexthop = c->cb->forward(c, &rimeaddr_node_addr, to, NULL, 0);
+  
+  if(nexthop == NULL) {
     PRINTF("mh_send: no route\n");
     return 0;
   } else {
     PRINTF("mh_send: sending data\n");
-    send_data(c, to, rt);
+    if(rimebuf_hdralloc(sizeof(struct data_hdr))) {
+      hdr = rimebuf_hdrptr();
+      rimeaddr_copy(&hdr->dest, to);
+      rimeaddr_copy(&hdr->originator, &rimeaddr_node_addr);
+      hdr->hops = 0;
+      uc_send(&c->c, nexthop);
+    }
     return 1;
   }
 }
