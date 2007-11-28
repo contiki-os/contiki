@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: sky-treeroute.c,v 1.5 2007/11/17 10:28:49 adamdunkels Exp $
+ * $Id: sky-collect.c,v 1.1 2007/11/28 16:52:22 adamdunkels Exp $
  */
 
 /**
@@ -41,7 +41,7 @@
 #include "contiki.h"
 #include "net/rime/neighbor.h"
 #include "net/rime.h"
-#include "net/rime/tree.h"
+#include "net/rime/collect.h"
 #include "dev/leds.h"
 #include "dev/button-sensor.h"
 #include "dev/battery-sensor.h"
@@ -52,9 +52,9 @@
 #include <string.h>
 #include "contiki-net.h"
 
-static struct tree_conn tc;
+static struct collect_conn tc;
 
-struct sky_treeroute_msg {
+struct sky_collect_msg {
   uint16_t light1;
   uint16_t light2;
   uint16_t temperature;
@@ -83,9 +83,9 @@ struct sky_treeroute_msg {
 #define REXMITS 4
 
 /*---------------------------------------------------------------------------*/
-PROCESS(test_tree_process, "Test tree process");
+PROCESS(test_collect_process, "Test collect process");
 PROCESS(depth_blink_process, "Depth indicator");
-AUTOSTART_PROCESSES(&test_tree_process, &depth_blink_process);
+AUTOSTART_PROCESSES(&test_collect_process, &depth_blink_process);
 /*---------------------------------------------------------------------------*/
 PROCESS_THREAD(depth_blink_process, ev, data)
 {
@@ -97,8 +97,8 @@ PROCESS_THREAD(depth_blink_process, ev, data)
   while(1) {
     etimer_set(&et, CLOCK_SECOND * 10);
     PROCESS_WAIT_UNTIL(etimer_expired(&et));
-    count = tree_depth(&tc);
-    if(count == TREE_MAX_DEPTH) {
+    count = collect_depth(&tc);
+    if(count == COLLECT_MAX_DEPTH) {
       leds_on(LEDS_BLUE);
     } else {
       leds_off(LEDS_BLUE);
@@ -121,7 +121,7 @@ PROCESS_THREAD(depth_blink_process, ev, data)
 static void
 recv(rimeaddr_t *originator, u8_t seqno, u8_t hops)
 {
-  struct sky_treeroute_msg *msg;
+  struct sky_collect_msg *msg;
   
   msg = rimebuf_dataptr();
   printf("%u %u %u %u %u %u %u %u %u %u %u %lu %lu %lu %lu %lu ",
@@ -140,9 +140,9 @@ recv(rimeaddr_t *originator, u8_t seqno, u8_t hops)
   
 }
 /*---------------------------------------------------------------------------*/
-static const struct tree_callbacks callbacks = { recv };
+static const struct collect_callbacks callbacks = { recv };
 /*---------------------------------------------------------------------------*/
-PROCESS_THREAD(test_tree_process, ev, data)
+PROCESS_THREAD(test_collect_process, ev, data)
 {
   PROCESS_EXITHANDLER(goto exit;)
   PROCESS_BEGIN();
@@ -150,7 +150,7 @@ PROCESS_THREAD(test_tree_process, ev, data)
   battery_sensor.activate();
   button_sensor.activate();
   
-  tree_open(&tc, 128, &callbacks);
+  collect_open(&tc, 128, &callbacks);
   
   while(1) {
     static struct etimer et;
@@ -161,17 +161,17 @@ PROCESS_THREAD(test_tree_process, ev, data)
     
     if(ev == sensors_event) {
       if(data == &button_sensor) {
-	tree_set_sink(&tc, 1);
+	collect_set_sink(&tc, 1);
       }
     }
 
     if(etimer_expired(&et)) {
-      struct sky_treeroute_msg *msg;
+      struct sky_collect_msg *msg;
       struct neighbor *n;
       /*      leds_toggle(LEDS_BLUE);*/
       rimebuf_clear();
-      msg = (struct sky_treeroute_msg *)rimebuf_dataptr();
-      rimebuf_set_datalen(sizeof(struct sky_treeroute_msg));
+      msg = (struct sky_collect_msg *)rimebuf_dataptr();
+      rimebuf_set_datalen(sizeof(struct sky_collect_msg));
       msg->light1 = sensors_light1();
       msg->light2 = sensors_light2();
       msg->temperature = sht11_temp();
@@ -210,11 +210,11 @@ PROCESS_THREAD(test_tree_process, ev, data)
       msg->lltx = rimestats.lltx;
       msg->llrx = rimestats.llrx;
 
-      tree_send(&tc, REXMITS);
+      collect_send(&tc, REXMITS);
     }
   }
  exit:
-  tree_close(&tc);
+  collect_close(&tc);
   PROCESS_END();
 }
 /*---------------------------------------------------------------------------*/
