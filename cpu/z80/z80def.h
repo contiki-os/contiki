@@ -27,7 +27,7 @@
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * $Id: z80def.h,v 1.3 2007/11/18 01:38:05 oliverschmidt Exp $
+ * $Id: z80def.h,v 1.4 2007/11/28 09:36:06 matsutsuka Exp $
  *
  */
 
@@ -50,6 +50,9 @@
 
 
 /* Generic types. */
+typedef unsigned char   uint8_t;
+typedef unsigned short uint16_t;
+typedef unsigned long  uint32_t;
 typedef unsigned char   u8_t;      /* 8 bit type */
 typedef unsigned short u16_t;      /* 16 bit type */
 typedef unsigned long  u32_t;      /* 32 bit type */
