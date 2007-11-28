@@ -48,7 +48,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: rmh.h,v 1.1 2007/05/22 20:45:18 adamdunkels Exp $
+ * $Id: rmh.h,v 1.2 2007/11/28 20:00:07 adamdunkels Exp $
  */
 
 /**
@@ -61,7 +61,7 @@
 #ifndef __RMH_H__
 #define __RMH_H__
 
-#include "net/rime/abc.h"
+#include "net/rime/ruc.h"
 #include "net/rime/rimeaddr.h"
 
 struct rmh_conn;
