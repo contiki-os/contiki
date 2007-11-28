@@ -44,7 +44,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: ctk.c,v 1.8 2007/11/18 01:46:53 oliverschmidt Exp $
+ * $Id: ctk.c,v 1.9 2007/11/28 10:13:57 matsutsuka Exp $
  *
  */
 
@@ -390,6 +390,7 @@ ctk_window_open(CC_REGISTER_ARG struct ctk_window *w)
 void
 ctk_window_close(struct ctk_window *w)
 {
+#if CTK_CONF_WINDOWCLOSE
   static struct ctk_window *w2;
 
   if(w == NULL) {
@@ -429,6 +430,7 @@ ctk_window_close(struct ctk_window *w)
   make_desktopmenu();
 #endif /* CTK_CONF_MENUS */
   redraw |= REDRAW_ALL;
+#endif /* CTK_CONF_WINDOWCLOSE */
 }
 /*---------------------------------------------------------------------------*/
 /**
@@ -963,9 +965,12 @@ select_widget(struct ctk_widget *focus)
     /* The operation changed the focus, so we emit a "hover" signal
        for those widgets that support it. */
     
+#if CTK_CONF_HYPERLINK
     if(window->focused->type == CTK_WIDGET_HYPERLINK) {
       process_post(window->owner, ctk_signal_hyperlink_hover, window->focused);
-    } else if(window->focused->type == CTK_WIDGET_BUTTON) {
+    } else
+#endif /* CTK_CONF_HYPERLINK */
+    if(window->focused->type == CTK_WIDGET_BUTTON) {
       process_post(window->owner, ctk_signal_button_hover, window->focused);
     }
     
@@ -1132,8 +1137,10 @@ activate(CC_REGISTER_ARG struct ctk_widget *w)
       process_post(w->window->owner, ctk_signal_widget_activate, w);
     }
 #endif /* CTK_CONF_ICONS */
+#if CTK_CONF_HYPERLINK
   } else if(w->type == CTK_WIDGET_HYPERLINK) {
     process_post(PROCESS_BROADCAST, ctk_signal_hyperlink_activate, w);
+#endif /* CTK_CONF_HYPERLINK */
   } else if(w->type == CTK_WIDGET_TEXTENTRY) {
     if(w->widget.textentry.state == CTK_TEXTENTRY_NORMAL) {
       w->widget.textentry.state = CTK_TEXTENTRY_EDIT;
