@@ -1,4 +1,13 @@
-	;; crt0.S for Contiki
+;;; 
+;;; 
+;;; ctt0.S 
+;;; 
+;;; \file
+;;;     C runtime startup routine
+;;; 
+;;; \author
+;;;     Takahide Matsutsuka <markn@markn.org>
+;;; 
         .module crt0
        	.globl	_main
 
