@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: tr1001-gcr.c,v 1.11 2007/11/19 09:50:54 adamdunkels Exp $
+ * @(#)$Id: tr1001-gcr.c,v 1.12 2007/11/28 21:28:03 nifi Exp $
  */
 /**
  * \addtogroup esb
@@ -53,6 +53,7 @@
 #include "contiki-esb.h"
 
 #include "dev/tr1001.h"
+#include "dev/radio-sensor.h"
 #include "lib/gcr.h"
 #include "lib/crc16.h"
 
@@ -444,7 +445,7 @@ PT_THREAD(tr1001_default_rxhandler_pt(unsigned char incoming_byte))
   timer_restart(&rxtimer);
 
   if(tr1001_rxstate == RXSTATE_RECEVING) {
-    unsigned short signal = radio_sensor_signal;
+    unsigned short signal = radio_sensor.value(0);;
     tmp_sstrength += (signal >> 2);
     tmp_count++;
     if(signal < tmp_sstrength_min) {
