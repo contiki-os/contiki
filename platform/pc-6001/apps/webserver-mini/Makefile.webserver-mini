@@ -1,0 +1,2 @@
+webserver-mini_src = webserver-nogui.c httpd.c http-strings.c psock.c memb.c \
+                httpd-fs.c httpd-cgi.c
