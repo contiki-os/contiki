@@ -1,5 +1,5 @@
 /**
- * \addtogroup rimetree
+ * \addtogroup rimecollect
  * @{
  */
 
@@ -33,7 +33,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: tree.c,v 1.17 2007/11/27 23:32:34 adamdunkels Exp $
+ * $Id: collect.c,v 1.1 2007/11/28 16:04:41 adamdunkels Exp $
  */
 
 /**
@@ -48,7 +48,7 @@
 #include "net/rime.h"
 #include "net/rime/neighbor.h"
 #include "net/rime/nf.h"
-#include "net/rime/tree.h"
+#include "net/rime/collect.h"
 
 #include "dev/radio-sensor.h"
 
@@ -79,7 +79,7 @@ static struct recent_packet recent_packets[NUM_RECENT_PACKETS];
 static uint8_t recent_packet_ptr;
 
 #define SINK 0
-#define RTMETRIC_MAX TREE_MAX_DEPTH
+#define RTMETRIC_MAX COLLECT_MAX_DEPTH
 
 #define MAX_HOPLIM 10
 
@@ -96,7 +96,7 @@ static uint8_t recent_packet_ptr;
 
 /*---------------------------------------------------------------------------*/
 static void
-update_rtmetric(struct tree_conn *tc)
+update_rtmetric(struct collect_conn *tc)
 {
   struct neighbor *n;
 
@@ -149,8 +149,8 @@ update_rtmetric(struct tree_conn *tc)
 static void
 node_packet_received(struct ruc_conn *c, rimeaddr_t *from, u8_t seqno)
 {
-  struct tree_conn *tc = (struct tree_conn *)
-    ((char *)c - offsetof(struct tree_conn, ruc_conn));
+  struct collect_conn *tc = (struct collect_conn *)
+    ((char *)c - offsetof(struct collect_conn, ruc_conn));
   struct hdr *hdr = rimebuf_dataptr();
   struct neighbor *n;
   int i;
@@ -220,8 +220,8 @@ node_packet_received(struct ruc_conn *c, rimeaddr_t *from, u8_t seqno)
 static void
 node_packet_sent(struct ruc_conn *c, rimeaddr_t *to, u8_t retransmissions)
 {
-  struct tree_conn *tc = (struct tree_conn *)
-    ((char *)c - offsetof(struct tree_conn, ruc_conn));
+  struct collect_conn *tc = (struct collect_conn *)
+    ((char *)c - offsetof(struct collect_conn, ruc_conn));
 
   tc->forwarding = 0;
   neighbor_update_etx(neighbor_find(to), retransmissions);
@@ -231,8 +231,8 @@ node_packet_sent(struct ruc_conn *c, rimeaddr_t *to, u8_t retransmissions)
 static void
 node_packet_timedout(struct ruc_conn *c, rimeaddr_t *to, u8_t retransmissions)
 {
-  struct tree_conn *tc = (struct tree_conn *)
-    ((char *)c - offsetof(struct tree_conn, ruc_conn));
+  struct collect_conn *tc = (struct collect_conn *)
+    ((char *)c - offsetof(struct collect_conn, ruc_conn));
 
   tc->forwarding = 0;
   neighbor_timedout_etx(neighbor_find(to), retransmissions);
@@ -242,8 +242,8 @@ node_packet_timedout(struct ruc_conn *c, rimeaddr_t *to, u8_t retransmissions)
 static void
 adv_received(struct nbh_conn *c, rimeaddr_t *from, uint16_t rtmetric)
 {
-  struct tree_conn *tc = (struct tree_conn *)
-    ((char *)c - offsetof(struct tree_conn, nbh_conn));
+  struct collect_conn *tc = (struct collect_conn *)
+    ((char *)c - offsetof(struct collect_conn, nbh_conn));
   struct neighbor *n;
   
   n = neighbor_find(from);
@@ -268,8 +268,8 @@ static const struct nbh_callbacks nbh_callbacks = { adv_received,
 						    NULL};
 /*---------------------------------------------------------------------------*/
 void
-tree_open(struct tree_conn *tc, u16_t channels,
-	  const struct tree_callbacks *cb)
+collect_open(struct collect_conn *tc, u16_t channels,
+	     const struct collect_callbacks *cb)
 {
   nbh_open(&tc->nbh_conn, channels, &nbh_callbacks);
   ruc_open(&tc->ruc_conn, channels + 1, &ruc_callbacks);
@@ -278,14 +278,14 @@ tree_open(struct tree_conn *tc, u16_t channels,
 }
 /*---------------------------------------------------------------------------*/
 void
-tree_close(struct tree_conn *tc)
+collect_close(struct collect_conn *tc)
 {
   nbh_close(&tc->nbh_conn);
   ruc_close(&tc->ruc_conn);
 }
 /*---------------------------------------------------------------------------*/
 void
-tree_set_sink(struct tree_conn *tc, int should_be_sink)
+collect_set_sink(struct collect_conn *tc, int should_be_sink)
 {
   if(should_be_sink) {
     tc->local_rtmetric = SINK;
@@ -297,7 +297,7 @@ tree_set_sink(struct tree_conn *tc, int should_be_sink)
 }
 /*---------------------------------------------------------------------------*/
 void
-tree_send(struct tree_conn *tc, int rexmits)
+collect_send(struct collect_conn *tc, int rexmits)
 {
   struct neighbor *n;
   struct hdr *hdr;
@@ -330,7 +330,7 @@ tree_send(struct tree_conn *tc, int rexmits)
 }
 /*---------------------------------------------------------------------------*/
 int
-tree_depth(struct tree_conn *tc)
+collect_depth(struct collect_conn *tc)
 {
   return tc->local_rtmetric;
 }
