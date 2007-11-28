@@ -33,7 +33,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: nf.c,v 1.12 2007/05/15 08:09:21 adamdunkels Exp $
+ * $Id: nf.c,v 1.13 2007/11/28 20:03:50 adamdunkels Exp $
  */
 
 /**
@@ -56,7 +56,7 @@ struct nf_hdr {
   u16_t hops;
 };
 
-#define DEBUG 1
+#define DEBUG 0
 #if DEBUG
 #include <stdio.h>
 #define PRINTF(...) printf(__VA_ARGS__)

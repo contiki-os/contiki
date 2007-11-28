@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: rucb.c,v 1.3 2007/11/27 23:32:34 adamdunkels Exp $
+ * $Id: rucb.c,v 1.4 2007/11/28 20:03:50 adamdunkels Exp $
  */
 
 /**
@@ -44,7 +44,7 @@
 
 #define MAX_TRANSMISSIONS 8
 
-#define DEBUG 1
+#define DEBUG 0
 #if DEBUG
 #include <stdio.h>
 #define PRINTF(...) printf(__VA_ARGS__)
