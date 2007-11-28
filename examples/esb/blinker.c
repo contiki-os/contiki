@@ -26,14 +26,14 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: blinker.c,v 1.1 2007/11/28 20:28:56 nifi Exp $
+ * $Id: blinker.c,v 1.2 2007/11/28 20:31:30 nifi Exp $
  *
  * -----------------------------------------------------------------
  *
  * Author  : Adam Dunkels, Joakim Eriksson, Niclas Finne
  * Created : 2006-08-28
- * Updated : $Date: 2007/11/28 20:28:56 $
- *           $Revision: 1.1 $
+ * Updated : $Date: 2007/11/28 20:31:30 $
+ *           $Revision: 1.2 $
  */
 
 #include "contiki-esb.h"
@@ -98,5 +98,6 @@ PROCESS_THREAD(blinker_process, ev, data)
   }
 
  exit:
+  leds_off(LEDS_ALL);
   PROCESS_END();
 }
