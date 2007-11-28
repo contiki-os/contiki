@@ -1,0 +1,68 @@
+#!/usr/bin/perl
+
+while(<>) {
+	if(/^(\d+) (\d+) (\d+) \d+ \d+ \d+ \d+ \d+ \d+ (\d+) \d+ \d+ (\d+) (\d+) (\d+) (\d+) (\d+) /) {
+	    $node{$2}{$1} = $_;
+	    $lpm{$2} = $5;
+	    $cpu{$2} = $6;
+	    $rx{$2} = $7;
+	    $tx{$2} = $8;
+	    $rled{$2} = $9;
+	    $lasttime{$2} = $1;
+
+	    if($lastparent{$2} != $4) {
+		$parent{$2}{$1} = $4;
+	    }
+	    $lastparent{$2} = $4;
+
+	    if($lastseqno{$2} == $3) {
+		$dup{$2}{$1} = 1;
+	    }
+	    if(defined $lastseqno{$2} &&
+	       $3 != ($lastseqno{$2} + 1 % 256)) {
+		$lost{$2}{$1} = 1;
+	    }
+	    $lastseqno{$2} = $3;
+	    if($firsttime{$2} == 0) {
+		$firsttime{$2} = $1;
+	    }
+	}
+}
+
+open(F, "> power");
+close(F);
+
+foreach $n (sort {$a <=> $b} keys %node) {
+#    print "$n ";
+    open(F, "> data-$n");
+    foreach $k (sort keys %{$node{$n}}) {
+	print F $node{$n}{$k};
+    }
+    close(F);
+    open(F, "> dup-data-$n");
+    foreach $k (sort keys %{$node{$n}}) {
+	if($dup{$n}{$k} == 1) {
+	    print F "$k $dup{$n}{$k}\n";
+	}
+    }
+    close(F);
+    open(F, "> lost-data-$n");
+    foreach $k (sort keys %{$node{$n}}) {
+	if($lost{$n}{$k} == 1) {
+	    print F "$k $lost{$n}{$k}\n";
+	}
+    }
+    close(F);
+    open(F, "> parent-data-$n");
+    foreach $k (sort keys %{$node{$n}}) {
+	if($parent{$n}{$k} != 0) {
+	    print F "$k $parent{$n}{$k}\n";
+	}
+    }
+    close(F);
+    open(F, ">> power");
+    print F ($lasttime{$n} - $firsttime{$n}) . " $n $lpm{$n} $cpu{$n} $rx{$n} $tx{$n} $rled{$n}\n";
+    close(F);
+#    print "\n";
+}
+
