@@ -33,7 +33,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: rime.h,v 1.9 2007/05/25 08:06:44 adamdunkels Exp $
+ * $Id: rime.h,v 1.10 2007/11/28 19:54:24 adamdunkels Exp $
  */
 
 /**
@@ -53,7 +53,8 @@
 #include "net/rime/queuebuf.h"
 #include "net/rime/ruc.h"
 #include "net/rime/sibc.h"
-
+#include "net/rime/mh.h"
+#include "net/rime/rmh.h"
 #include "net/mac/mac.h"
 /**
  * \brief      Initialize Rime
