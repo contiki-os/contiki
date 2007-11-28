@@ -2,14 +2,14 @@
 # Makefile for PC-6001 using z80/SDCC
 # @author Takahide Matsutsuka <markn@markn.org>
 #
-# $Id: Makefile,v 1.5 2007/11/28 10:03:40 matsutsuka Exp $
+# $Id: Makefile,v 1.6 2007/11/28 10:11:55 matsutsuka Exp $
 #
 
 CONTIKI = ../..
 TARGET=pc-6001
 APPS_DESKTOP = program-handler calc process-list shell about
 APPS_NETWORK_CLIENT = $(APPS_DESKTOP) netconf webbrowser email telnet ftp irc
-APPS_NETWORK_SERVER = cmdd telnetd shell www
+APPS_NETWORK_SERVER = program-handler cmdd telnetd shell
 #	editor netconf dhcp webbrowser ftp irc email telnet telnetd
 #	cmdd codeprop webserver vnc
 #	directory
