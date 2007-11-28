@@ -7,5 +7,5 @@ The following C64 Ethernet cards are supported:
 - TFE:    Use driver cs8900a.eth with the address $DE00.
 
 In most cases it is desirable to use an emulator for the development and testing
-of a Contiki application. The VICE is especially well suited as it emulates both
-the RR-Net and TFE Ethernet cards. It is available at http://www.viceteam.org/.
+of a Contiki application. VICE is especially well suited as it emulates both the
+RR-Net and TFE Ethernet cards. It is available at http://www.viceteam.org/.
