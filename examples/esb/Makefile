@@ -3,6 +3,6 @@ ifndef TARGET
 TARGET=esb
 endif
 
-all: blink
+all: blinker
 
 include $(CONTIKI)/Makefile.include

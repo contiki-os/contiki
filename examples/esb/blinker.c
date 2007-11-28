@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007, Swedish Institute of Computer Science.
+ * Copyright (c) 2006, Swedish Institute of Computer Science.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -26,41 +26,77 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * This file is part of the Contiki operating system.
+ * $Id: blinker.c,v 1.1 2007/11/28 20:28:56 nifi Exp $
  *
- * $Id: blink.c,v 1.1 2007/11/27 22:32:38 nifi Exp $
+ * -----------------------------------------------------------------
+ *
+ * Author  : Adam Dunkels, Joakim Eriksson, Niclas Finne
+ * Created : 2006-08-28
+ * Updated : $Date: 2007/11/28 20:28:56 $
+ *           $Revision: 1.1 $
  */
 
-/**
- * \file
- *         A quick program that blinks the LEDs
- * \author
- *         Adam Dunkels <adam@sics.se>
- */
+#include "contiki-esb.h"
 
-#include "contiki.h"
-#include "dev/leds.h"
-/*---------------------------------------------------------------------------*/
-PROCESS(blink_process, "Blink");
-AUTOSTART_PROCESSES(&blink_process);
-/*---------------------------------------------------------------------------*/
-PROCESS_THREAD(blink_process, ev, data)
+PROCESS(blinker_process, "Blinker");
+
+AUTOSTART_PROCESSES(&blinker_process);
+
+PROCESS_THREAD(blinker_process, ev, data)
 {
-  PROCESS_EXITHANDLER(goto exit;)
+  static struct etimer etimer, pir_timer, vib_timer;
+  static int on = 0;
+  PROCESS_EXITHANDLER(goto exit);
   PROCESS_BEGIN();
 
+  etimer_stop(&pir_timer);
+  etimer_stop(&vib_timer);
+  etimer_set(&etimer, CLOCK_SECOND * 4);
+  button_sensor.activate();
+  vib_sensor.activate();
+  pir_sensor.activate();
+
   while(1) {
-    static struct etimer et;
-    etimer_set(&et, CLOCK_SECOND);
-    PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&et));
-    leds_on(LEDS_ALL);
-    etimer_set(&et, CLOCK_SECOND);
-    PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&et));
-    leds_off(LEDS_ALL);
+
+    PROCESS_WAIT_EVENT();
+
+    if(ev == sensors_event) {
+      if(data == &vib_sensor) {
+	if(etimer_expired(&vib_timer)) {
+	  leds_on(LEDS_RED);
+	  etimer_set(&vib_timer, CLOCK_SECOND);
+	} else {
+	  leds_off(LEDS_RED);
+	  etimer_stop(&vib_timer);
+	}
+	beep();
+
+      } else if(data == &pir_sensor) {
+	leds_on(LEDS_YELLOW);
+	etimer_set(&pir_timer, CLOCK_SECOND);
+
+      } else if(data == &button_sensor) {
+	beep_beep(100);
+      }
+
+    } else if(ev == PROCESS_EVENT_TIMER) {
+      if(data == &etimer) {
+	if(on) {
+	  etimer_set(&etimer, CLOCK_SECOND * 4);
+	  leds_off(LEDS_GREEN);
+	} else {
+	  etimer_set(&etimer, CLOCK_SECOND / 2);
+	  leds_on(LEDS_GREEN);
+	}
+	on = !on;
+      } else if(data == &pir_timer) {
+	leds_off(LEDS_YELLOW);
+      } else if(data == &vib_timer) {
+	leds_off(LEDS_RED);
+      }
+    }
   }
 
  exit:
-  leds_off(LEDS_ALL);
   PROCESS_END();
 }
-/*---------------------------------------------------------------------------*/
