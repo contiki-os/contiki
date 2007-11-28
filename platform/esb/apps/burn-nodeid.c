@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: burn-nodeid.c,v 1.2 2007/03/22 18:22:11 nifi Exp $
+ * $Id: burn-nodeid.c,v 1.3 2007/11/28 19:53:09 nifi Exp $
  */
 
 /**
@@ -57,6 +57,7 @@ PROCESS_THREAD(burn_process, ev, data)
   node_id_restore();
   printf("Restored node id %d\n", node_id);
 #else
+#error "burn-nodeid must be compiled with nodeid=<the ID of the node>"
   node_id_restore();
   printf("Restored node id %d\n", node_id);
 #endif
