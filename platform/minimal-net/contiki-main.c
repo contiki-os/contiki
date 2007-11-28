@@ -29,7 +29,7 @@
  *
  * This file is part of the Contiki OS
  *
- * $Id: contiki-main.c,v 1.11 2007/11/26 23:28:33 adamdunkels Exp $
+ * $Id: contiki-main.c,v 1.12 2007/11/28 12:54:41 adamdunkels Exp $
  *
  */
 
@@ -78,16 +78,16 @@ main(void)
 
   while(1) {
     int n;
-    struct timespec ts;
+    struct timeval tv;
     
     n = process_run();
     /*    if(n > 0) {
       printf("%d processes in queue\n");
       }*/
 
-    ts.tv_sec = 0;
-    ts.tv_nsec = 1000;
-    nanosleep(&ts, NULL);
+    tv.tv_sec = 0;
+    tv.tv_usec = 1;
+    select(0, NULL, NULL, NULL, &tv);
     etimer_request_poll();
   }
   
