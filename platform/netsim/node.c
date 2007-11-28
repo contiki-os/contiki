@@ -30,7 +30,7 @@
  *
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: node.c,v 1.8 2007/11/17 18:09:18 adamdunkels Exp $
+ * $Id: node.c,v 1.9 2007/11/28 13:01:02 nvt-se Exp $
  */
 #include "node.h"
 #include "contiki.h"
@@ -87,9 +87,8 @@ clock_time_t
 node_time(void)
 {
   struct timeval tv;
-  struct timezone tz;
   
-  gettimeofday(&tv, &tz);
+  gettimeofday(&tv, NULL);
  
   return tv.tv_sec * 1000 + tv.tv_usec / 1000/* + drift*/;
 }
@@ -98,9 +97,8 @@ unsigned long
 node_seconds(void)
 {
   struct timeval tv;
-  struct timezone tz;
   
-  gettimeofday(&tv, &tz);
+  gettimeofday(&tv, NULL);
  
   return tv.tv_sec;
 }
