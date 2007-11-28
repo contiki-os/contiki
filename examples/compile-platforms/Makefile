@@ -1,5 +1,7 @@
 all:
 	@rm -f *.output
+	@echo Compiling on:
+	@uname -a
 	@$(MAKE) -s -k compile || cat *.output
 
 compile: msp430 native
