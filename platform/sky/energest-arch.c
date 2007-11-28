@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: energest-arch.c,v 1.2 2007/10/25 09:30:39 adamdunkels Exp $
+ * $Id: energest-arch.c,v 1.3 2007/11/28 17:06:55 adamdunkels Exp $
  */
 
 /**
@@ -43,22 +43,22 @@
 #include "sys/clock.h"
 #include "sys/rtimer.h"
 
-#define DEC2FIX(h,d) ((h << 6) + (unsigned long)(0.64 * d))
-/*#define DEC2FIX(h, d) (h << 8)*/
+#define DEC2FIX(h,d) ((h * 64) + (unsigned long)(0.64 * d))
 
 /*---------------------------------------------------------------------------*/
 unsigned long
 energest_arch_current_estimate(void)
 {
-  return
-    energest_type_time(ENERGEST_TYPE_CPU)        * DEC2FIX(1,1) +
-    energest_type_time(ENERGEST_TYPE_LPM)        * DEC2FIX(1,0) +
-    energest_type_time(ENERGEST_TYPE_LED_GREEN)  * DEC2FIX(6,36)  +
-    energest_type_time(ENERGEST_TYPE_LED_YELLOW) * DEC2FIX(3,46) +
-    energest_type_time(ENERGEST_TYPE_LED_RED)    * DEC2FIX(3,69) +
-    energest_type_time(ENERGEST_TYPE_SENSORS)    * DEC2FIX(3,76) +
-    energest_type_time(ENERGEST_TYPE_TRANSMIT)   * DEC2FIX(5,1) +
-    energest_type_time(ENERGEST_TYPE_LISTEN)     * DEC2FIX(4,8);
+  return 3 * /* The voltage is 3 V */            /* The DEC2FIX() stuff is
+						    the current */
+    (energest_type_time(ENERGEST_TYPE_CPU)        * DEC2FIX(0,545) +
+     energest_type_time(ENERGEST_TYPE_LPM)        * DEC2FIX(18,0) +
+     energest_type_time(ENERGEST_TYPE_LED_GREEN)  * DEC2FIX(46,0)  + /* Not measured */
+     energest_type_time(ENERGEST_TYPE_LED_YELLOW) * DEC2FIX(46,0) +  /* Not measured */
+     energest_type_time(ENERGEST_TYPE_LED_RED)    * DEC2FIX(46,0) +
+     energest_type_time(ENERGEST_TYPE_SENSORS)    * DEC2FIX(60,0) +  /* Not measured */
+     energest_type_time(ENERGEST_TYPE_TRANSMIT)   * DEC2FIX(177,0) +
+     energest_type_time(ENERGEST_TYPE_LISTEN)     * DEC2FIX(200,0)) / 10;
 }
 /*---------------------------------------------------------------------------*/
 unsigned short
