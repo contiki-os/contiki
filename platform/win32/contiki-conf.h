@@ -68,6 +68,7 @@ typedef unsigned long clock_time_t;
 #define CTK_CONF_MAXMENUITEMS     10
 #define CTK_CONF_WIDGET_FLAGS     0
 #define CTK_CONF_SCREENSAVER      0
+#define CTK_CONF_HYPERLINK	  1
 
 #define COLOR_BLACK	(0)
 #define COLOR_BLUE	(1)
