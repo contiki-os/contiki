@@ -46,7 +46,7 @@
  *
  * This file is part of the uIP TCP/IP stack.
  *
- * $Id: uip.h,v 1.12 2007/08/22 10:45:42 ksb Exp $
+ * $Id: uip.h,v 1.13 2007/11/28 12:52:12 adamdunkels Exp $
  *
  */
 
@@ -384,7 +384,7 @@ void uip_setipid(u16_t id);
  * \hideinitializer
  */
 #define uip_udp_periodic(conn) do { uip_udp_conn = &uip_udp_conns[conn]; \
-                                uip_process(UIP_UDP_TIMER); } while (0)
+                                uip_process(UIP_UDP_TIMER); } while(0)
 
 /**
  * Periodic processing for a UDP connection identified by a pointer to
@@ -401,9 +401,11 @@ void uip_setipid(u16_t id);
  * \hideinitializer
  */
 #define uip_udp_periodic_conn(conn) do { uip_udp_conn = conn; \
-                                         uip_process(UIP_UDP_TIMER); } while (0)
+                                         uip_process(UIP_UDP_TIMER); } while(0)
 
-
+#else /* UIP_UDP */
+#define uip_udp_periodic(conn) do { } while(0)
+#define uip_udp_periodic_conn(conn) do { } while(0)
 #endif /* UIP_UDP */
 
 /**
@@ -1253,7 +1255,6 @@ extern u8_t uip_acc32[4];
 /** @} */
 
 
-#if UIP_UDP
 /**
  * Representation of a uIP UDP connection.
  */
@@ -1272,7 +1273,6 @@ struct uip_udp_conn {
  */
 extern struct uip_udp_conn *uip_udp_conn;
 extern struct uip_udp_conn uip_udp_conns[UIP_UDP_CONNS];
-#endif /* UIP_UDP */
 
 /**
  * The structure holding the TCP/IP statistics that are gathered if
