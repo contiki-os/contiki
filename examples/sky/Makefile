@@ -5,7 +5,7 @@ endif
 
 #APPS=rudolph
 
-all: blink rt-leds sky-treeroute #test-button test-cfs tcprudolph0
+all: blink sky-collect #rt-leds test-button test-cfs tcprudolph0
 
 serialdump:
 	$(SERIALDUMP) -b115200 /dev/com$(firstword $(CMOTES)) | $(CONTIKI)/tools/timestamp | tee serialdump-`date +%Y%m%d-%H%M`
