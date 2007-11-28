@@ -29,12 +29,13 @@
  *
  * This file is part of the Contiki OS
  *
- * $Id: contiki-main.c,v 1.12 2007/11/28 12:54:41 adamdunkels Exp $
+ * $Id: contiki-main.c,v 1.13 2007/11/28 14:16:12 adamdunkels Exp $
  *
  */
 
 #include <stdio.h>
 #include <time.h>
+#include <sys/select.h>
 #include <unistd.h>
 
 #include "contiki.h"
