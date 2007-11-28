@@ -30,7 +30,7 @@
  *
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: ethernode.c,v 1.12 2007/11/27 20:45:15 nvt-se Exp $
+ * $Id: ethernode.c,v 1.13 2007/11/28 12:54:42 adamdunkels Exp $
  */
 /**
  * \file
@@ -51,7 +51,7 @@
 #include "lib/random.h"
 
 #include <stdio.h>
-#include <time.h>
+#include <sys/select.h>
 #include <unistd.h>
 
 #define BUF ((uip_tcpip_hdr *)&uip_buf[HDR_LEN])
@@ -198,7 +198,7 @@ ethernode_send(void)
   static char tmpbuf[2048];
   struct hdr *hdr = (struct hdr *)tmpbuf;
   u8_t dest;
-  struct timespec ts;
+  struct timeval tv;
 
   if(uip_len > sizeof(tmpbuf)) {
     PRINTF(("Ethernode_send: too large uip_len %d\n", uip_len));
@@ -209,9 +209,9 @@ ethernode_send(void)
   len = uip_len + HDR_LEN;
 
   dest = ID_BROADCAST;
-  ts.tv_sec = 0;
-  ts.tv_nsec = 1000 * (random_rand() % 1000);
-  nanosleep(&ts, NULL);
+  tv.tv_sec = 0;
+  tv.tv_usec = (random_rand() % 1000);
+  select(0, NULL, NULL, NULL, &tv);
 
   do_send(TYPE_DATA, dest, hdr, len);
 

@@ -30,7 +30,7 @@
  *
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: main.c,v 1.7 2007/11/26 23:28:33 adamdunkels Exp $
+ * $Id: main.c,v 1.8 2007/11/28 12:54:42 adamdunkels Exp $
  */
 
 /**
@@ -111,7 +111,7 @@ static int
 start_node(int x, int y, int b)
 {
   pid_t pid;
-  struct timespec ts;
+  struct timeval tv;
   static unsigned short port = NODES_PORTBASE;
   
   pid = fork();
@@ -123,9 +123,9 @@ start_node(int x, int y, int b)
     
     srand(getpid());
 
-    ts.tv_sec = 0;
-    ts.tv_nsec = 1000000 * (rand() % 1000);
-    nanosleep(&ts, NULL);
+    tv.tv_sec = 0;
+    tv.tv_usec = 1000 * (rand() % 1000);
+    select(0, NULL, NULL, NULL, &tv);
     
     node_init(port - NODES_PORTBASE + 2, x, y, b);
     ethernode_init(port);
@@ -213,10 +213,10 @@ static signed long drift = 0;
 void
 clock_delay(unsigned int num)
 {
-  struct timespec ts;
-  ts.tv_sec = 0;
-  ts.tv_nsec = 100000 * num;
-  nanosleep(&ts, NULL);
+  struct timeval tv;
+  tv.tv_sec = 0;
+  tv.tv_usec = 100 * num;
+  select(0, NULL, NULL, NULL, &tv);
 }
 
 void
