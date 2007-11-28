@@ -8,7 +8,7 @@ LD       = gcc
 AS       = as
 OBJCOPY  = objcopy
 STRIP    = strip
-CFLAGSNO = -pedantic -std=c99 -Wall -Werror -g -I/usr/local/include
+CFLAGSNO = -Wall -Werror -g -I/usr/local/include #-pedantic -std=c99
 CFLAGS  += $(CFLAGSNO) -O
 LDFLAGS  = -Wl,-Map=contiki-$(TARGET).map,-export-dynamic
 
