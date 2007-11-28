@@ -33,7 +33,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: route.c,v 1.6 2007/03/31 18:31:28 adamdunkels Exp $
+ * $Id: route.c,v 1.7 2007/11/28 20:00:57 adamdunkels Exp $
  */
 
 /**
@@ -57,7 +57,7 @@ MEMB(route_mem, struct route_entry, NUM_RT_ENTRIES);
 
 static struct ctimer t;
 
-static int max_time = 10;
+static int max_time = 60;
 
 /*---------------------------------------------------------------------------*/
 static void
@@ -68,8 +68,8 @@ periodic(void *ptr)
   for(e = list_head(route_table); e != NULL; e = e->next) {
     e->time++;
     if(e->time >= max_time) {
-      printf("Route to %d.%d bropped\n",
-	     e->dest.u8[0], e->dest.u8[1]);
+      /*      printf("Route to %d.%d dropped\n",
+	      e->dest.u8[0], e->dest.u8[1]);*/
       list_remove(route_table, e);
       memb_free(&route_mem, e);
     }
@@ -132,8 +132,11 @@ route_lookup(rimeaddr_t *dest)
 	   uip_ipaddr2(&e->dest),
 	   uip_ipaddr3(&e->dest),
 	   uip_ipaddr4(&e->dest));*/
-	   
+
     if(rimeaddr_cmp(dest, &e->dest)) {
+      /* Refresh age of route so that used routes do not get thrown
+	 out. */
+      e->time = 0;
       return e;
     }
   }
