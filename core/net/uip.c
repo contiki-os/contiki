@@ -41,7 +41,7 @@
  *
  * This file is part of the uIP TCP/IP stack.
  *
- * $Id: uip.c,v 1.8 2007/04/04 11:37:40 bg- Exp $
+ * $Id: uip.c,v 1.9 2007/11/28 12:53:07 adamdunkels Exp $
  *
  */
 
@@ -1827,8 +1827,10 @@ uip_process(u8_t flag)
   /* Calculate TCP checksum. */
   BUF->tcpchksum = 0;
   BUF->tcpchksum = ~(uip_tcpchksum());
-  
+
+#if UIP_UDP
  ip_send_nolen:
+#endif /* UIP_UDP */
 
 #if UIP_CONF_IPV6
   BUF->vtc = 0x60;
