@@ -27,13 +27,13 @@
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * $Id: contiki-serial-main.c,v 1.3 2007/11/28 09:44:27 matsutsuka Exp $
+ * $Id: contiki-server-main.c,v 1.1 2007/11/28 09:44:27 matsutsuka Exp $
  *
  */
 
 /*
  * \file
- * 	This is a sample main file with serial.
+ * 	This is a sample main file with slip network.
  * \author
  * 	Takahide Matsutsuka <markn@markn.org>
  */
@@ -41,76 +41,46 @@
 #include "contiki.h"
 
 /* devices */
-#include "dev/serial.h"
+#include "uip.h"
+#include "dev/slip.h"
+#include "dev/rs232.h"
+
+/* network server programs */
+#include "webserver-nogui.h"
+#include "cmdd.h"
+#include "telnetd.h"
 #include "ctk/libconio_arch-small.h"
 
-#undef RS232_INTR
-#ifdef RS232_INTR
-void rs232_arch_writeb(u8_t ch);
-void rs232_arch_init(int (* callback)(unsigned char), unsigned long ubr);
-#else
-#include "dev/rs232.h"
-#endif
-
-PROCESS(stest_process, "Serial test process");
 /*---------------------------------------------------------------------------*/
-static void
-rs232_print(char* str) {
-  while (*str != 0) {
-    rs232_arch_writeb(*str++);
-  }
-}
+/* inteface */
+static struct uip_fw_netif slipif =
+  {UIP_FW_NETIF(0, 0, 0, 0,  0, 0, 0, 0, slip_send)};
+
+/* ip address of contiki */
+const uip_ipaddr_t hostaddr = { { 10, 0, 1, 10 } };
+
 /*---------------------------------------------------------------------------*/
-static void
-log_message(char* str) {
-  while (*str != 0) {
-    libputc_arch(*str++);
-  }
-}
-/*---------------------------------------------------------------------------*/
-PROCESS_THREAD(stest_process, ev, data)
-{
-  static struct etimer timer;
-  PROCESS_BEGIN();
-
-  clrscr_arch();
-#ifdef RS232_INTR
-  rs232_arch_init(serial_input_byte, 0);
-#endif
-
-  etimer_set(&timer, CLOCK_SECOND);
-
-  log_message("Starting serial test process");
-  while(1) {
-    PROCESS_WAIT_EVENT();
-
-    if (etimer_expired(&timer)) {
-      log_message("Sending serial data now");
-      rs232_print("GNU's not Unix\n");
-      etimer_reset(&timer);
-    }
-
-    if(ev == serial_event_message) {
-      log_message(data);
-    }
-  }
-
-  PROCESS_END();
-}
-/*---------------------------------------------------------------------------*/
-void
+int
 main(void)
 {
   /* initialize process manager. */
   process_init();
 
+  clrscr_arch();
+  uip_init();
+  uip_sethostaddr(&hostaddr);
+  uip_fw_default(&slipif);
+
   /* start services */
   process_start(&etimer_process, NULL);
-  process_start(&serial_process, NULL);
-#ifndef RS232_INTR
+  process_start(&tcpip_process, NULL);
+  process_start(&slip_process, NULL);
+  process_start(&uip_fw_process, NULL);
   process_start(&rs232_process, NULL);
-#endif
-  process_start(&stest_process, NULL);
+
+  process_start(&webserver_nogui_process, NULL);
+//  process_start(&cmdd_process, NULL);
+//  process_start(&telnetd_process, NULL);
 
   while(1) {
     process_run();
