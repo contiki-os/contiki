@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: AddMoteDialog.java,v 1.3 2007/01/10 14:59:07 fros4943 Exp $
+ * $Id: AddMoteDialog.java,v 1.4 2007/11/29 05:37:35 fros4943 Exp $
  */
 
 package se.sics.cooja.dialogs;
@@ -44,7 +44,7 @@ import se.sics.cooja.interfaces.*;
 
 /**
  * A dialog for adding motes.
- * 
+ *
  * @author Fredrik Osterlind
  */
 public class AddMoteDialog extends JDialog {
@@ -69,11 +69,11 @@ public class AddMoteDialog extends JDialog {
       startZ, endZ;
   private JComboBox positionDistributionBox, ipDistributionBox;
 
-  
+
   /**
    * Shows a dialog which enables a user to create and add motes of the given
    * type.
-   * 
+   *
    * @param parentFrame
    *          Parent frame for dialog
    * @param simulation
@@ -99,7 +99,7 @@ public class AddMoteDialog extends JDialog {
     super(frame, "Add motes (" + moteType.getDescription() + ")", true);
     this.moteType = moteType;
     this.simulation = simulation;
-    
+
     JLabel label;
     JPanel mainPane = new JPanel();
     mainPane.setLayout(new BoxLayout(mainPane, BoxLayout.Y_AXIS));
@@ -143,6 +143,7 @@ public class AddMoteDialog extends JDialog {
     numberField = new JFormattedTextField(integerFormat);
     numberField.setValue(new Integer(1));
     numberField.setColumns(10);
+    numberField.addFocusListener(myEventHandler);
     numberField.addPropertyChangeListener("value", myEventHandler);
     numberOfMotesField = numberField;
 
@@ -163,8 +164,9 @@ public class AddMoteDialog extends JDialog {
     Vector<Class<? extends IPDistributor>> ipDistributors = simulation.getGUI()
         .getRegisteredIPDistributors();
     String[] ipDistributions = new String[ipDistributors.size()];
-    for (int i = 0; i < ipDistributions.length; i++)
+    for (int i = 0; i < ipDistributions.length; i++) {
       ipDistributions[i] = GUI.getDescriptionOf(ipDistributors.get(i));
+    }
 
     comboBox = new JComboBox(ipDistributions);
 
@@ -191,8 +193,9 @@ public class AddMoteDialog extends JDialog {
     Vector<Class<? extends Positioner>> positioners = simulation.getGUI()
         .getRegisteredPositioners();
     String[] posDistributions = new String[positioners.size()];
-    for (int i = 0; i < posDistributions.length; i++)
+    for (int i = 0; i < posDistributions.length; i++) {
       posDistributions[i] = GUI.getDescriptionOf(positioners.get(i));
+    }
 
     comboBox = new JComboBox(posDistributions);
 
@@ -226,6 +229,7 @@ public class AddMoteDialog extends JDialog {
     numberField = new JFormattedTextField(doubleFormat);
     numberField.setValue(new Double(0.0));
     numberField.setColumns(4);
+    numberField.addFocusListener(myEventHandler);
     numberField.addPropertyChangeListener("value", myEventHandler);
     startX = numberField;
     smallPane.add(numberField);
@@ -238,6 +242,7 @@ public class AddMoteDialog extends JDialog {
     numberField = new JFormattedTextField(doubleFormat);
     numberField.setValue(new Double(100.0));
     numberField.setColumns(4);
+    numberField.addFocusListener(myEventHandler);
     numberField.addPropertyChangeListener("value", myEventHandler);
     endX = numberField;
     smallPane.add(numberField);
@@ -263,6 +268,7 @@ public class AddMoteDialog extends JDialog {
     numberField = new JFormattedTextField(doubleFormat);
     numberField.setValue(new Double(0.0));
     numberField.setColumns(4);
+    numberField.addFocusListener(myEventHandler);
     numberField.addPropertyChangeListener("value", myEventHandler);
     startY = numberField;
     smallPane.add(numberField);
@@ -275,6 +281,7 @@ public class AddMoteDialog extends JDialog {
     numberField = new JFormattedTextField(doubleFormat);
     numberField.setValue(new Double(100.0));
     numberField.setColumns(4);
+    numberField.addFocusListener(myEventHandler);
     numberField.addPropertyChangeListener("value", myEventHandler);
     endY = numberField;
     smallPane.add(numberField);
@@ -300,6 +307,7 @@ public class AddMoteDialog extends JDialog {
     numberField = new JFormattedTextField(doubleFormat);
     numberField.setValue(new Double(0.0));
     numberField.setColumns(4);
+    numberField.addFocusListener(myEventHandler);
     numberField.addPropertyChangeListener("value", myEventHandler);
     startZ = numberField;
     smallPane.add(numberField);
@@ -312,6 +320,7 @@ public class AddMoteDialog extends JDialog {
     numberField = new JFormattedTextField(doubleFormat);
     numberField.setValue(new Double(0.0));
     numberField.setColumns(4);
+    numberField.addFocusListener(myEventHandler);
     numberField.addPropertyChangeListener("value", myEventHandler);
     endZ = numberField;
     smallPane.add(numberField);
@@ -399,8 +408,14 @@ public class AddMoteDialog extends JDialog {
     public void propertyChange(PropertyChangeEvent e) {
       checkSettings();
     }
-    public void focusGained(FocusEvent e) {
-      // NOP
+    public void focusGained(final FocusEvent e) {
+      if (e.getSource() instanceof JFormattedTextField) {
+        SwingUtilities.invokeLater(new Runnable() {
+          public void run() {
+            ((JFormattedTextField) e.getSource()).selectAll();
+          }
+        });
+      }
     }
     public void focusLost(FocusEvent e) {
       checkSettings();
@@ -410,97 +425,112 @@ public class AddMoteDialog extends JDialog {
         newMotes = null;
         dispose();
       } else if (e.getActionCommand().equals("add")) {
-        newMotes = new Vector<Mote>();
+        try {
+          newMotes = new Vector<Mote>();
 
-        // Create new motes
-        int motesToAdd = ((Number) numberOfMotesField.getValue()).intValue();
-        while (newMotes.size() < motesToAdd) {
-          Mote newMote = moteType.generateMote(simulation);
-          newMotes.add(newMote);
-        }
-
-        // Position new motes
-        Class<? extends Positioner> positionerClass = null;
-        for (Class<? extends Positioner> positioner : simulation.getGUI()
-            .getRegisteredPositioners()) {
-          if (GUI.getDescriptionOf(positioner).equals(
-              (String) positionDistributionBox.getSelectedItem()))
-            positionerClass = positioner;
-        }
-
-        Positioner positioner = Positioner.generateInterface(positionerClass,
-            ((Number) numberOfMotesField.getValue()).intValue(),
-            ((Number) startX.getValue()).doubleValue(), ((Number) endX
-                .getValue()).doubleValue(), ((Number) startY.getValue())
-                .doubleValue(), ((Number) endY.getValue()).doubleValue(),
-            ((Number) startZ.getValue()).doubleValue(), ((Number) endZ
-                .getValue()).doubleValue());
-
-        if (positioner == null) {
-          logger.fatal("Could not create positioner");
-          dispose();
-          return;
-        }
-
-        for (int i = 0; i < newMotes.size(); i++) {
-          Position newPosition = newMotes.get(i).getInterfaces().getPosition();
-          if (newPosition != null) {
-            double[] newPositionArray = positioner.getNextPosition();
-            if (newPositionArray.length >= 3)
-              newPosition.setCoordinates(newPositionArray[0],
-                  newPositionArray[1], newPositionArray[2]);
-            else if (newPositionArray.length >= 2)
-              newPosition.setCoordinates(newPositionArray[0],
-                  newPositionArray[1], 0);
-            else if (newPositionArray.length >= 1)
-              newPosition.setCoordinates(newPositionArray[0], 0, 0);
-            else
-              newPosition.setCoordinates(0, 0, 0);
+          // Create new motes
+          int motesToAdd = ((Number) numberOfMotesField.getValue()).intValue();
+          while (newMotes.size() < motesToAdd) {
+            Mote newMote = moteType.generateMote(simulation);
+            newMotes.add(newMote);
           }
-        }
 
-        // Set unique mote id's for all new motes
-        int nextMoteID = 1;
-        for (int i = 0; i < simulation.getMotesCount(); i++) {
-          MoteID moteID = simulation.getMote(i).getInterfaces()
-              .getMoteID();
-          if (moteID != null && moteID.getMoteID() >= nextMoteID)
-            nextMoteID = moteID.getMoteID() + 1;
-        }
-
-        for (int i = 0; i < newMotes.size(); i++) {
-          MoteID moteID = newMotes.get(i).getInterfaces().getMoteID();
-          if (moteID != null) {
-            moteID.setMoteID(nextMoteID++);
+          // Position new motes
+          Class<? extends Positioner> positionerClass = null;
+          for (Class<? extends Positioner> positioner : simulation.getGUI()
+              .getRegisteredPositioners()) {
+            if (GUI.getDescriptionOf(positioner).equals(
+                positionDistributionBox.getSelectedItem())) {
+              positionerClass = positioner;
+            }
           }
-        }
 
-        // IP address new motes
-        Class<? extends IPDistributor> ipDistClass = null;
-        for (Class<? extends IPDistributor> ipDistributor : simulation.getGUI()
-            .getRegisteredIPDistributors()) {
-          if (GUI.getDescriptionOf(ipDistributor).equals(
-              (String) ipDistributionBox.getSelectedItem()))
-            ipDistClass = ipDistributor;
-        }
+          Positioner positioner = Positioner.generateInterface(positionerClass,
+              ((Number) numberOfMotesField.getValue()).intValue(),
+              ((Number) startX.getValue()).doubleValue(), ((Number) endX
+                  .getValue()).doubleValue(), ((Number) startY.getValue())
+                  .doubleValue(), ((Number) endY.getValue()).doubleValue(),
+                  ((Number) startZ.getValue()).doubleValue(), ((Number) endZ
+                      .getValue()).doubleValue());
 
-        IPDistributor ipDistributor = IPDistributor.generateIPDistributor(
-            ipDistClass, newMotes);
+          if (positioner == null) {
+            logger.fatal("Could not create positioner");
+            dispose();
+            return;
+          }
 
-        if (ipDistributor == null) {
-          logger.fatal("Could not create IP distributor");
+          for (int i = 0; i < newMotes.size(); i++) {
+            Position newPosition = newMotes.get(i).getInterfaces().getPosition();
+            if (newPosition != null) {
+              double[] newPositionArray = positioner.getNextPosition();
+              if (newPositionArray.length >= 3) {
+                newPosition.setCoordinates(newPositionArray[0],
+                    newPositionArray[1], newPositionArray[2]);
+              } else if (newPositionArray.length >= 2) {
+                newPosition.setCoordinates(newPositionArray[0],
+                    newPositionArray[1], 0);
+              } else if (newPositionArray.length >= 1) {
+                newPosition.setCoordinates(newPositionArray[0], 0, 0);
+              } else {
+                newPosition.setCoordinates(0, 0, 0);
+              }
+            }
+          }
+
+          // Set unique mote id's for all new motes
+          int nextMoteID = 1;
+          for (int i = 0; i < simulation.getMotesCount(); i++) {
+            MoteID moteID = simulation.getMote(i).getInterfaces()
+            .getMoteID();
+            if (moteID != null && moteID.getMoteID() >= nextMoteID) {
+              nextMoteID = moteID.getMoteID() + 1;
+            }
+          }
+
+          for (int i = 0; i < newMotes.size(); i++) {
+            MoteID moteID = newMotes.get(i).getInterfaces().getMoteID();
+            if (moteID != null) {
+              moteID.setMoteID(nextMoteID++);
+            }
+          }
+
+          // IP address new motes
+          Class<? extends IPDistributor> ipDistClass = null;
+          for (Class<? extends IPDistributor> ipDistributor : simulation.getGUI()
+              .getRegisteredIPDistributors()) {
+            if (GUI.getDescriptionOf(ipDistributor).equals(
+                ipDistributionBox.getSelectedItem())) {
+              ipDistClass = ipDistributor;
+            }
+          }
+
+          IPDistributor ipDistributor = IPDistributor.generateIPDistributor(
+              ipDistClass, newMotes);
+
+          if (ipDistributor == null) {
+            logger.fatal("Could not create IP distributor");
+            dispose();
+            return;
+          }
+
+          for (int i = 0; i < newMotes.size(); i++) {
+            String newIPString = ipDistributor.getNextIPAddress();
+            if (newMotes.get(i).getInterfaces().getIPAddress() != null) {
+              newMotes.get(i).getInterfaces().getIPAddress().setIPString(
+                  newIPString);
+            }
+          }
+
           dispose();
-          return;
+        } catch (OutOfMemoryError e2) {
+          JOptionPane.showMessageDialog(
+              AddMoteDialog.this,
+              "Out of memory!\nException message: \"" + e2.getMessage() + "\"\n\n" +
+              "Reduce number of nodes or start COOJA with more memory (\">ant run_bigmem\").",
+              "Not enough heap memory!", JOptionPane.ERROR_MESSAGE
+          );
+          newMotes = null;
         }
-
-        for (int i = 0; i < newMotes.size(); i++) {
-          String newIPString = ipDistributor.getNextIPAddress();
-          if (newMotes.get(i).getInterfaces().getIPAddress() != null)
-            newMotes.get(i).getInterfaces().getIPAddress().setIPString(
-                newIPString);
-        }
-
-        dispose();
       }
     }
   }
