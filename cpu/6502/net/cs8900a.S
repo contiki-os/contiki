@@ -30,7 +30,7 @@
 ; 
 ; Author: Adam Dunkels <adam@sics.se>, Oliver Schmidt <ol.sc@web.de>
 ;
-; $Id: cs8900a.S,v 1.2 2007/11/24 12:57:09 oliverschmidt Exp $
+; $Id: cs8900a.S,v 1.3 2007/11/29 21:56:55 oliverschmidt Exp $
 ;
 ;---------------------------------------------------------------------
 
@@ -261,6 +261,7 @@ fixup31:sta ppdata
 	ldx bufaddr+1
 	sta ptr
 	stx ptr+1
+	ldx cnt+1
   	ldy #$00
 read:
 fixup32:lda rxtxreg
@@ -273,7 +274,7 @@ fixup33:lda rxtxreg+1
 	inc ptr+1
 :	cpy cnt
 	bne read
-	dec cnt+1
+	dex
 	bpl read
   
 	; Return frame length
@@ -341,6 +342,7 @@ fixup44:sta ppdata
 	ldx bufaddr+1
 	sta ptr
 	stx ptr+1
+	ldx cnt+1
 	ldy #$00
 write:	lda (ptr),y
 fixup45:sta rxtxreg
@@ -352,7 +354,7 @@ fixup46:sta rxtxreg+1
 	inc ptr+1
 :	cpy cnt
 	bne write
-	dec cnt+1
+	dex
 	bpl write
 	rts
 
