@@ -1,4 +1,4 @@
-# $Id: Makefile.cooja,v 1.21 2007/11/25 22:47:43 fros4943 Exp $
+# $Id: Makefile.cooja,v 1.22 2007/11/29 04:57:04 fros4943 Exp $
 
 ## The COOJA Simulator Contiki platform Makefile
 ##
@@ -94,10 +94,6 @@ endif
 
 $(ARFILE): ${addprefix $(OBJECTDIR)/, $(CONTIKI_SOURCEFILES:.c=.o)}
 	$(AR_COMMAND_1) $^ $(AR_COMMAND_2)
-
-ifndef WINDIR
-.PHONY: symbols.c
-endif
 
 symbols.c:
 	# Create initial symbol files if not existing
