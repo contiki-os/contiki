@@ -1,4 +1,4 @@
-# $Id: Makefile.avr,v 1.8 2007/11/23 06:22:52 fros4943 Exp $
+# $Id: Makefile.avr,v 1.9 2007/11/29 02:44:05 fros4943 Exp $
 
 ### Check if we are running under Windows
 
@@ -72,7 +72,7 @@ $(OBJECTDIR)/%.o: %.c
 	$(OBJCOPY) $^ -O ihex $@
 
 # Add a namelist to the kernel
-%.out: 	%.co $(PROJECT_OBJECTFILES) contiki-$(TARGET).a
+%.out: %.co $(PROJECT_OBJECTFILES) contiki-$(TARGET).a
 	$(CONTIKI)/tools/make-empty-symbols
 	$(CC) $(LDFLAGS) $(CFLAGS) -o $@ $^ $(LIBC) symbols.c
 ifdef SYMBOLS
