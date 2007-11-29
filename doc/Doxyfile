@@ -205,8 +205,7 @@ INPUT                  = contiki-mainpage.txt net.txt dev.txt \
 			 ../platform/esb/dev/eeprom.c \
 			 ../platform/esb/dev/rs232.h \
 			 ../platform/esb/dev/rs232.c \
-			 ../platform/esb/dev/tr1001.c \
-			 ../platform/win32/doc/getting-started.txt
+			 ../platform/esb/dev/tr1001.c
 
 FILE_PATTERNS          = 
 RECURSIVE              = NO
