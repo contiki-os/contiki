@@ -177,8 +177,8 @@ INPUT                  = contiki-mainpage.txt net.txt dev.txt \
                          ../core/net/rime/sibc.c \
                          ../core/net/rime/suc.h \
                          ../core/net/rime/suc.c \
-                         ../core/net/rime/tree.h \
-                         ../core/net/rime/tree.c \
+                         ../core/net/rime/collect.h \
+                         ../core/net/rime/collect.c \
                          ../core/net/rime/trickle.h \
                          ../core/net/rime/trickle.c \
                          ../core/net/rime/uc.h \
