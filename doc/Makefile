@@ -4,7 +4,7 @@ dox:
 
 
 pdf:
-	gmake -C latex refman.pdf
+	$(MAKE) -C latex refman.pdf
 
 upload: dox  #pdf
 #	scp -C latex/refman.pdf adamdunkels@shell.sourceforge.net:/home/groups/c/co/contiki/htdocs/
