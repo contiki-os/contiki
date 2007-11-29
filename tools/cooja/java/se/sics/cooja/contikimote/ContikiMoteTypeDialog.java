@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ContikiMoteTypeDialog.java,v 1.37 2007/11/25 23:32:05 fros4943 Exp $
+ * $Id: ContikiMoteTypeDialog.java,v 1.38 2007/11/29 05:58:42 fros4943 Exp $
  */
 
 package se.sics.cooja.contikimote;
@@ -2593,10 +2593,10 @@ public class ContikiMoteTypeDialog extends JDialog {
         }
 
         if (!processWasSelected || sourceFilename == null) {
-          return;
+          createButton.setEnabled(libraryCreatedOK = false);
+        } else {
+          autoSelectDependencyProcesses(processName, sourceFilename, true);
         }
-
-        autoSelectDependencyProcesses(processName, sourceFilename, true);
 
       } else {
         logger.warn("Unhandled action: " + e.getActionCommand());
