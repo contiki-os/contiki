@@ -28,16 +28,80 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: rtimer-arch.h,v 1.3 2007/11/29 02:44:05 fros4943 Exp $
+ * $Id: rtimer-arch.c,v 1.1 2007/11/29 02:44:05 fros4943 Exp $
  */
 
-#ifndef __RTIMER_ARCH_H__
-#define __RTIMER_ARCH_H__
+/**
+ * \file
+ *         AVR-specific rtimer code
+ * \author
+ *         Fredrik Osterlind <fros@sics.se>
+ */
 
+/* OBS: 8 seconds maximum time! */
+
+#include <avr/io.h>
 #include <avr/interrupt.h>
 
-#define RTIMER_ARCH_SECOND (8192)
+#include "lib/energest.h"
+#include "sys/rtimer.h"
+#include "rtimer-arch.h"
 
-#define rtimer_arch_now() (TCNT3)
+/*---------------------------------------------------------------------------*/
+SIGNAL (SIG_OUTPUT_COMPARE3A) {
+  ENERGEST_ON(ENERGEST_TYPE_IRQ);
 
-#endif /* __RTIMER_ARCH_H__ */
+  ETIMSK &= ~((1 << OCIE3A) | (1 << OCIE3B) | (1 << TOIE3) |
+      (1 << TICIE3) | (1 << OCIE3C));
+
+  /* Call rtimer callback */
+  rtimer_run_next();
+
+  ENERGEST_OFF(ENERGEST_TYPE_IRQ);
+}
+/*---------------------------------------------------------------------------*/
+void
+rtimer_arch_init(void)
+{
+  /* Disable interrupts (store old state) */
+  uint8_t sreg;
+  sreg = SREG;
+  cli ();
+
+  ETIMSK &= ~((1 << OCIE3A) | (1 << OCIE3B) | (1 << TOIE3) |
+      (1 << TICIE3) | (1 << OCIE3C));
+  ETIFR |= (1 << ICF3) | (1 << OCF3A) | (1 << OCF3B) | (1 << TOV3) |
+  (1 << OCF3C); 
+
+  /* Default timer behaviour */
+  TCCR3A = 0;
+  TCCR3B = 0;
+  TCCR3C = 0;
+
+  /* Reset counter */
+  TCNT3 = 0;
+
+  /* Maximum prescaler */
+  TCCR3B |= 5;
+
+  /* Restore interrupt state */
+  SREG = sreg;
+}
+/*---------------------------------------------------------------------------*/
+void
+rtimer_arch_schedule(rtimer_clock_t t)
+{
+  /* Disable interrupts (store old state) */
+  uint8_t sreg;
+  sreg = SREG;
+  cli ();
+
+  /* Set compare register */
+  OCR3A = t;
+  ETIFR |= (1 << ICF3) | (1 << OCF3A) | (1 << OCF3B) | (1 << TOV3) |
+  (1 << OCF3C);
+  ETIMSK |= (1 << OCIE3A);
+
+  /* Restore interrupt state */
+  SREG = sreg;
+}
