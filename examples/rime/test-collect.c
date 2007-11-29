@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: test-collect.c,v 1.1 2007/11/28 16:05:32 adamdunkels Exp $
+ * $Id: test-collect.c,v 1.2 2007/11/29 10:29:03 nifi Exp $
  */
 
 /**
@@ -43,7 +43,6 @@
 #include "net/rime/collect.h"
 #include "net/rime/neighbor.h"
 #include "dev/leds.h"
-#include "dev/pir-sensor.h"
 #include "dev/button-sensor.h"
 
 #include <stdio.h>
