@@ -27,12 +27,12 @@
 #
 # This file is part of the Contiki desktop environment
 #
-# $Id: Makefile,v 1.2 2006/06/17 23:06:58 adamdunkels Exp $
+# $Id: Makefile,v 1.3 2007/11/29 07:56:46 adamdunkels Exp $
 #
 
 all: contiki-main
 
 CONTIKI=../..
-APPS=program-handler calc dhcp webbrowser editor ftp process-list shell irc netconf about vnc cmdd
+APPS=program-handler calc dhcp webbrowser editor ftp process-list shell irc netconf about cmdd
 TARGET=gtk
 -include $(CONTIKI)/Makefile.include

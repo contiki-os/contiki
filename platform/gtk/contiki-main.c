@@ -29,7 +29,7 @@
  *
  * This file is part of the Contiki desktop environment
  *
- * $Id: contiki-main.c,v 1.8 2007/11/19 12:23:02 adamdunkels Exp $
+ * $Id: contiki-main.c,v 1.9 2007/11/29 07:56:46 adamdunkels Exp $
  *
  */
 
@@ -58,7 +58,6 @@
 #include "netconf-dsc.h"
 #include "process-list-dsc.h"
 #include "shell-dsc.h"
-#include "vnc-dsc.h"
 #include "www-dsc.h"
 
 #include "cmdd.h"
