@@ -29,7 +29,7 @@
  *
  * This file is part of the Contiki desktop environment 
  *
- * $Id: htmlparser.c,v 1.7 2007/11/18 01:41:00 oliverschmidt Exp $
+ * $Id: htmlparser.c,v 1.8 2007/11/30 21:53:50 oliverschmidt Exp $
  *
  */
 
@@ -61,12 +61,13 @@ G * (<br>, <p>, <h>), the <li> tag (but does not even try to
  *
  */
 
+#include <string.h>
+
+#include "contiki.h"
+#include "html-strings.h"
+#include "www.h"
 
 #include "htmlparser.h"
-#include "html-strings.h"
-#include "contiki.h"
-
-#include <string.h>
 
 #if 1
 #define PRINTF(x)

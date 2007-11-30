@@ -29,15 +29,16 @@
  *
  * This file is part of the "contiki" web browser.
  *
- * $Id: webclient.c,v 1.4 2007/11/18 01:36:59 oliverschmidt Exp $
+ * $Id: webclient.c,v 1.5 2007/11/30 21:53:50 oliverschmidt Exp $
  *
  */
 
+#include <string.h>
+
 #include "contiki-net.h"
+#include "www.h"
 
 #include "webclient.h"
-
-#include <string.h>
 
 #define WEBCLIENT_TIMEOUT 100
 
