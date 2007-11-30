@@ -44,7 +44,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: ctk.c,v 1.10 2007/11/30 11:17:28 oliverschmidt Exp $
+ * $Id: ctk.c,v 1.11 2007/11/30 22:37:22 oliverschmidt Exp $
  *
  */
 
@@ -87,12 +87,14 @@ static struct ctk_widget *redraw_widgets[MAX_REDRAWWIDGETS];
 static unsigned char redraw_widgetptr;
 static unsigned char maxnitems;
 
+#if CTK_CONF_ICONS
 static unsigned char iconx, icony;
 #define ICONX_START  (width - 6)
 #define ICONY_START  (height - 7)
 #define ICONX_DELTA  -16
 #define ICONY_DELTA  -5
 #define ICONY_MAX    height
+#endif /* CTK_CONF_ICONS */
 
 #ifndef ctk_arch_isprint
 unsigned char ctk_arch_isprint(char c);
@@ -1349,9 +1351,7 @@ PROCESS_THREAD(ctk_process, ev, data)
     mouse_clicked;
   static unsigned char menux;
   register struct ctk_menu *menu;
-
 #endif /* CTK_CONF_MOUSE_SUPPORT */
-
   
   PROCESS_BEGIN();
   
@@ -1390,17 +1390,17 @@ PROCESS_THREAD(ctk_process, ev, data)
   ctk_signal_pointer_move = process_alloc_event();
   ctk_signal_pointer_button = process_alloc_event();
 
-
 #if CTK_CONF_SCREENSAVER
   ctk_signal_screensaver_start = process_alloc_event();
   ctk_signal_screensaver_stop = process_alloc_event();
 #endif /* CTK_CONF_SCREENSAVER */
-    
 
   mode = CTK_MODE_NORMAL;
 
+#if CTK_CONF_ICONS
   iconx = ICONX_START;
   icony = ICONY_START;
+#endif /* CTK_CONF_ICONS */
 
 #if CTK_CONF_SCREENSAVER
   timer_set(&timer, CLOCK_SECOND);
@@ -1448,7 +1448,6 @@ PROCESS_THREAD(ctk_process, ev, data)
     mxc = ctk_mouse_xtoc(mouse_x);
     myc = ctk_mouse_ytoc(mouse_y);
 #endif /* CTK_CONF_MOUSE_SUPPORT */
-
 
 #if CTK_CONF_SCREENSAVER
     if(mode == CTK_MODE_SCREENSAVER) {
@@ -1569,7 +1568,6 @@ PROCESS_THREAD(ctk_process, ev, data)
 		}
 	      }
 
-
 	      /* If we didn't find any window, and there are no windows
 		 open, the mouse pointer will definately be within the
 		 background desktop window. */
@@ -1622,7 +1620,6 @@ PROCESS_THREAD(ctk_process, ev, data)
 		    }
 		  }
 	    
-
 		  /* if the mouse is moved in the focused window, we emit
 		     a ctk_signal_pointer_move signal to the owner of the
 		     window. */
