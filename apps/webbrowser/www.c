@@ -29,7 +29,7 @@
  *
  * This file is part of the Contiki desktop environment
  *
- * $Id: www.c,v 1.5 2007/11/18 01:24:39 oliverschmidt Exp $
+ * $Id: www.c,v 1.6 2007/11/30 16:09:40 oliverschmidt Exp $
  *
  */
 
@@ -37,15 +37,15 @@
 
 #include "ctk/ctk.h"
 #include "contiki-net.h"
+#include "lib/petsciiconv.h"
+#include "sys/arg.h"
+#include "program-handler.h"
+
 #include "webclient.h"
 #include "htmlparser.h"
 #include "http-strings.h"
 
-#include "sys/arg.h"
-#include "lib/petsciiconv.h"
-
-#include "program-handler.h"
-
+#include "www.h"
 
 #if 1
 #define PRINTF(x)
@@ -95,6 +95,7 @@ static struct ctk_separator sep2 =
   {CTK_SEPARATOR(0, WWW_CONF_WEBPAGE_HEIGHT + 3,
 		 WWW_CONF_WEBPAGE_WIDTH)};
 
+#if WWW_CONF_WITH_WGET
 static struct ctk_window wgetdialog;
 static struct ctk_label wgetlabel1 =
   {CTK_LABEL(1, 1, 34, 1, "This web page cannot be displayed.")};
@@ -104,6 +105,7 @@ static struct ctk_button wgetnobutton =
   {CTK_BUTTON(1, 5, 6, "Cancel")};
 static struct ctk_button wgetyesbutton =
   {CTK_BUTTON(11, 5, 24, "Close browser & download")};
+#endif /* WWW_CONF_WITH_WGET */
 
 /* The char arrays that hold the history of visited URLs. */
 static char history[WWW_CONF_HISTORY_SIZE][WWW_CONF_MAX_URLLEN];
@@ -161,6 +163,7 @@ static char receivingmsgs[4][23] = {
 PROCESS(www_process, "Web browser");
 
 static void formsubmit(struct formattribs *attribs);
+
 /*-----------------------------------------------------------------------------------*/
 /* make_window()
  *
@@ -211,6 +214,7 @@ show_url(void)
   petsciiconv_topetscii(editurl + 7, WWW_CONF_MAX_URLLEN - 7);
   CTK_WIDGET_REDRAW(&urlentry);
 }
+/*-----------------------------------------------------------------------------------*/
 static void
 start_loading(void)
 {
@@ -359,7 +363,6 @@ open_link(char *link)
   show_url();
   open_url();
 
-
   start_loading();
 }
 /*-----------------------------------------------------------------------------------*/
@@ -388,17 +391,18 @@ quit(void)
   LOADER_UNLOAD();
 }
 /*-----------------------------------------------------------------------------------*/
-/* www_dispatcher():
+/* www_process():
  *
- * The program's signal dispatcher function. Is called by the ek
- * dispatcher whenever a signal arrives.
+ * The program's signal dispatcher function. Is called whenever a signal arrives.
  */
 PROCESS_THREAD(www_process, ev, data)
 {
   static struct ctk_widget *w;
   static unsigned char i;
+#if WWW_CONF_WITH_WGET
   static char *argptr;
-  
+#endif /* WWW_CONF_WITH_WGET */
+
   w = (struct ctk_widget *)data;
 
   PROCESS_BEGIN();
@@ -413,13 +417,15 @@ PROCESS_THREAD(www_process, ev, data)
 #endif /* WWW_CONF_HOMEPAGE */    
   CTK_WIDGET_FOCUS(&mainwindow, &urlentry);
   
+#if WWW_CONF_WITH_WGET
   /* Create download dialog.*/
   ctk_dialog_new(&wgetdialog, 38, 7);
   CTK_WIDGET_ADD(&wgetdialog, &wgetlabel1);
   CTK_WIDGET_ADD(&wgetdialog, &wgetlabel2);
   CTK_WIDGET_ADD(&wgetdialog, &wgetnobutton);
   CTK_WIDGET_ADD(&wgetdialog, &wgetyesbutton);
-  
+#endif /* WWW_CONF_WITH_WGET */
+
   ctk_window_open(&mainwindow);
   
   while(1) {
@@ -458,6 +464,7 @@ PROCESS_THREAD(www_process, ev, data)
       } else if(w == (struct ctk_widget *)&stopbutton) {
 	loading = 0;
 	webclient_close();
+#if WWW_CONF_WITH_WGET
       } else if(w == (struct ctk_widget *)&wgetnobutton) {
 	ctk_dialog_close();
       } else if(w == (struct ctk_widget *)&wgetyesbutton) {
@@ -468,7 +475,7 @@ PROCESS_THREAD(www_process, ev, data)
 	  strncpy(argptr, url, WWW_CONF_MAX_URLLEN);
 	} 
 	program_handler_load("wget.prg", argptr);
-	
+#endif /* WWW_CONF_WITH_WGET */	
 #if WWW_CONF_FORMS
       } else {
 	/* Check form buttons */
@@ -616,7 +623,9 @@ webclient_datahandler(char *data, u16_t len)
       redraw_window();
     } else {
       uip_abort();
+#if WWW_CONF_WITH_WGET
       ctk_dialog_open(&wgetdialog);
+#endif /* WWW_CONF_WITH_WGET */
     }
   } else {
     /* Clear remaining parts of page. */
@@ -892,7 +901,6 @@ formsubmit(struct formattribs *attribs)
   urlptr += strlen(urlptr);
   *urlptr = ISO_questionmark;
   ++urlptr;
-  
   
   /* Construct an URL by finding all input field forms with the same
      formname as the current submit button, and add the submit button
