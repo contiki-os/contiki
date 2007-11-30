@@ -29,14 +29,13 @@
  *
  * This file is part of the Contiki desktop environment
  *
- * $Id: telnetd.h,v 1.2 2007/04/13 22:15:52 oliverschmidt Exp $
+ * $Id: telnetd.h,v 1.3 2007/11/30 11:15:41 oliverschmidt Exp $
  *
  */
 #ifndef __TELNETD_H__
 #define __TELNETD_H__
 
 #include "contiki.h"
-
 
 PROCESS_NAME(telnetd_process);
 
