@@ -3,8 +3,6 @@
 
 #include "contiki.h"
 
-/*EK_PROCESS_INIT(cmdd_init, arg);*/
-
 PROCESS_NAME(cmdd_process);
 
 #endif /* __CMDD_H__ */
