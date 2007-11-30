@@ -29,11 +29,45 @@
  *
  * This file is part of the Contiki desktop environment for the C64.
  *
- * $Id: www.h,v 1.2 2007/11/30 11:16:45 oliverschmidt Exp $
+ * $Id: www.h,v 1.3 2007/11/30 21:51:59 oliverschmidt Exp $
  *
  */
 #ifndef __WWW_H__
 #define __WWW_H__
+
+#ifndef WWW_CONF_WEBPAGE_WIDTH
+#define WWW_CONF_WEBPAGE_WIDTH 80
+#endif
+#ifndef WWW_CONF_WEBPAGE_HEIGHT
+#define WWW_CONF_WEBPAGE_HEIGHT 20
+#endif
+#ifndef WWW_CONF_HISTORY_SIZE
+#define WWW_CONF_HISTORY_SIZE 40
+#endif
+#ifndef WWW_CONF_MAX_URLLEN
+#define WWW_CONF_MAX_URLLEN 200
+#endif
+#ifndef WWW_CONF_MAX_NUMPAGEWIDGETS
+#define WWW_CONF_MAX_NUMPAGEWIDGETS 80
+#endif
+#ifndef WWW_CONF_RENDERSTATE
+#define WWW_CONF_RENDERSTATE 1
+#endif
+#ifndef WWW_CONF_FORMS
+#define WWW_CONF_FORMS 1
+#endif
+#ifndef WWW_CONF_MAX_FORMACTIONLEN
+#define WWW_CONF_MAX_FORMACTIONLEN 200
+#endif
+#ifndef WWW_CONF_MAX_FORMNAMELEN
+#define WWW_CONF_MAX_FORMNAMELEN 200
+#endif
+#ifndef WWW_CONF_MAX_INPUTNAMELEN
+#define WWW_CONF_MAX_INPUTNAMELEN 200
+#endif
+#ifndef WWW_CONF_MAX_INPUTVALUELEN
+#define WWW_CONF_MAX_INPUTVALUELEN 200
+#endif
 
 PROCESS_NAME(www_process);
 
