@@ -30,7 +30,7 @@
 #
 # Author: Oliver Schmidt <ol.sc@web.de>
 #
-# $Id: Makefile.6502,v 1.17 2007/11/27 21:43:32 oliverschmidt Exp $
+# $Id: Makefile.6502,v 1.18 2007/11/30 12:34:08 oliverschmidt Exp $
 #
 
 ifndef CONTIKI
@@ -49,7 +49,7 @@ ifndef LD65_OBJ
   ${error LD65_OBJ not defined! You must specify where the cc65 objects reside!}
 endif
 
-all: cs8900a.eth
+all: cs8900a.eth lan91c96.eth
 
 CONTIKI_TARGET_DIRS = .
 CONTIKI_CPU_DIRS    = . lib net sys
