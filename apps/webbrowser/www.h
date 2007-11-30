@@ -29,12 +29,12 @@
  *
  * This file is part of the Contiki desktop environment for the C64.
  *
- * $Id: www.h,v 1.1 2006/06/17 22:41:14 adamdunkels Exp $
+ * $Id: www.h,v 1.2 2007/11/30 11:16:45 oliverschmidt Exp $
  *
  */
 #ifndef __WWW_H__
 #define __WWW_H__
 
-void www_init(void);
+PROCESS_NAME(www_process);
 
 #endif /* __WWW_H__ */
