@@ -29,7 +29,7 @@
  *
  * This file is part of the "ctk" console GUI toolkit for cc65
  *
- * $Id: ctk-conio.c,v 1.5 2007/11/18 01:49:48 oliverschmidt Exp $
+ * $Id: ctk-conio.c,v 1.6 2007/11/30 21:50:09 oliverschmidt Exp $
  *
  */
 
@@ -438,6 +438,7 @@ ctk_draw_clear(unsigned char y1, unsigned char y2)
   }
 }
 /*-----------------------------------------------------------------------------------*/
+#if CTK_CONF_MENUS
 static void
 draw_menu(struct ctk_menu *m, unsigned char open)
 {
@@ -504,6 +505,7 @@ ctk_draw_menus(struct ctk_menus *menus)
 
   revers(0);
 }
+#endif /* CTK_CONF_MENUS */
 /*-----------------------------------------------------------------------------------*/
 unsigned char
 ctk_draw_height(void)
