@@ -31,7 +31,7 @@
 ; Author: Adam Dunkels <adam@sics.se>, Josef Soucek <josef.soucek@ide64.org>,
 ;         Oliver Schmidt <ol.sc@web.de>
 ;
-; $Id: lan91c96.S,v 1.1 2007/11/30 12:32:07 oliverschmidt Exp $
+; $Id: lan91c96.S,v 1.2 2007/12/01 20:23:11 oliverschmidt Exp $
 ;
 ;---------------------------------------------------------------------
 
@@ -364,11 +364,9 @@ fixup36:sta ethdata
 	; The packet contains 3 extra words
 	lda len
 	adc #$05		; Actually 5 or 6 depending on carry
-	sta len
 fixup37:sta ethdata
 	lda len+1
 	adc #$00
-	sta len+1
 fixup38:sta ethdata
 
 	; Send the packet
