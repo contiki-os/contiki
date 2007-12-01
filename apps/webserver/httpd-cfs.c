@@ -30,7 +30,7 @@
  *
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: httpd-cfs.c,v 1.7 2007/11/27 23:36:07 oliverschmidt Exp $
+ * $Id: httpd-cfs.c,v 1.8 2007/12/01 21:27:48 oliverschmidt Exp $
  */
 
 #include <string.h>
@@ -131,6 +131,7 @@ PT_THREAD(handle_output(struct httpd_state *s))
   }
   PT_WAIT_THREAD(&s->outputpt, send_file(s));
   cfs_close(s->fd);
+  s->fd = -1;
   PSOCK_CLOSE(&s->sout);
   PT_END(&s->outputpt);
 }
@@ -190,6 +191,10 @@ httpd_appcall(void *state)
 
   if(uip_closed() || uip_aborted() || uip_timedout()) {
     if(s != NULL) {
+      if(s->fd >= 0) {
+        cfs_close(s->fd);
+	s->fd = -1;
+      }
       memb_free(&conns, s);
     }
   } else if(uip_connected()) {
@@ -203,6 +208,7 @@ httpd_appcall(void *state)
     PSOCK_INIT(&s->sin, (uint8_t *)s->inputbuf, sizeof(s->inputbuf) - 1);
     PSOCK_INIT(&s->sout, (uint8_t *)s->inputbuf, sizeof(s->inputbuf) - 1);
     PT_INIT(&s->outputpt);
+    s->fd = -1;
     s->state = STATE_WAITING;
     timer_set(&s->timer, CLOCK_SECOND * 10);
     handle_connection(s);
@@ -210,6 +216,10 @@ httpd_appcall(void *state)
     if(uip_poll()) {
       if(timer_expired(&s->timer)) {
 	uip_abort();
+	if(s->fd >= 0) {
+	  cfs_close(s->fd);
+	  s->fd = -1;
+	}
         memb_free(&conns, s);
         webserver_log_file(&uip_conn->ripaddr, "reset (timeout)");
       }
