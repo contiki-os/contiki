@@ -1,6 +1,6 @@
 /**
 
-\mainpage The Contiki Operating System 2.x
+\mainpage The Contiki Operating System 2.1
 
 \author Adam Dunkels <adam@sics.se>
 
