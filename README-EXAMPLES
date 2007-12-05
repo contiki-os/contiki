@@ -9,6 +9,20 @@ the 'netsim' target, you need to have GTK 1.x development libraries
 installed. These are usually called 'gtk-devel', 'libgtk1-devel' or
 similar in your Linux software installation programs.
 
+compile-platforms/
+
+  A test script that compiles Contiki for a number of platforms and
+  reports any errors found during the build.
+
+energest-demo/
+
+  A demo application that shows the energy consumption of eight Tmote
+  Sky boards in real-time. The graphical user interface requires Java.
+
+esb/
+
+  A set of demo applications for the ESB board.
+
 hello-world/
 
   A really simple Contiki program that shows how to write Contiki
@@ -65,7 +79,6 @@ rime/
     ./test-rudolph1.netsim
     ./test-treeroute.netsim
     ./test-trickle.netsim
-    ./test-uabc.netsim
 
   Most of the examples requires you to click with the middle mouse
   button on one of the simulated nodes for something to happen.
@@ -79,10 +92,10 @@ sky/
   The follwing programs are included:
 
     blink.c          A simple program that blinks the on-board LEDs
-    sky-treeroute.c  Collects sensor data to a sink (press button to
-                     make the node a sink)
-    tcprudolph0.c    TCP server that receives loadable ELF files and
-                     sends them to the network.
+    sky-collect.c    Collects sensor data and energy profile values
+                     to a sink. Press the "user" button on the Tmote
+                     Sky that is connected to the PC to make the node a
+                     sink.
     test-button.c    Toggles the LEDs when the button is pressed.
     test-cfs.c       Tests the 1 mb flash memory of the Tmote Sky
 
