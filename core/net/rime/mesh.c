@@ -33,7 +33,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: mesh.c,v 1.9 2007/12/05 13:26:13 adamdunkels Exp $
+ * $Id: mesh.c,v 1.10 2007/12/05 13:40:26 adamdunkels Exp $
  */
 
 /**
@@ -85,7 +85,15 @@ data_packet_forward(struct mh_conn *mh, rimeaddr_t *originator,
   struct mesh_conn *c = (struct mesh_conn *)
     ((char *)mh - offsetof(struct mesh_conn, mh));
 
-  return route_lookup(dest);
+  struct route_entry *rt;
+
+  rt = route_lookup(dest);
+
+  if(rt == NULL) {
+    return NULL;
+  }
+  
+  return &rt->nexthop;
 }
 /*---------------------------------------------------------------------------*/
 static void
