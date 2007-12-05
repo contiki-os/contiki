@@ -33,7 +33,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: rime.c,v 1.12 2007/11/15 13:07:42 nifi Exp $
+ * $Id: rime.c,v 1.13 2007/12/05 13:21:58 adamdunkels Exp $
  */
 
 /**
@@ -48,13 +48,13 @@
 #include "net/rime/route.h"
 #include "net/mac/mac.h"
 
-static const struct mac_driver *mac;
+const struct mac_driver *rime_mac;
 /*---------------------------------------------------------------------------*/
 static void
 input(const struct mac_driver *r)
 {
   int len;
-  len = mac->read();
+  len = rime_mac->read();
   if(len > 0) {
     RIMESTATS_ADD(rx);
     abc_input_packet();
@@ -68,8 +68,8 @@ rime_init(const struct mac_driver *m)
   route_init();
   rimebuf_clear();
   neighbor_init();
-  mac = m;
-  mac->set_receive_function(input);
+  rime_mac = m;
+  rime_mac->set_receive_function(input);
 }
 /*---------------------------------------------------------------------------*/
 void
@@ -77,8 +77,8 @@ rime_output(void)
 {
   RIMESTATS_ADD(tx);
   rimebuf_compact();
-  if(mac) {
-    mac->send();
+  if(rime_mac) {
+    rime_mac->send();
   }
 }
 /*---------------------------------------------------------------------------*/
