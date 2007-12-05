@@ -33,7 +33,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: mh.c,v 1.5 2007/12/05 13:25:07 adamdunkels Exp $
+ * $Id: mh.c,v 1.6 2007/12/05 13:40:34 adamdunkels Exp $
  */
 
 /**
@@ -88,7 +88,7 @@ data_packet_received(struct uc_conn *uc, rimeaddr_t *from)
 			       &msg->dest, from, msg->hops);
     }
     if(nexthop) {
-      PRINTF("forwarding to %d\n", rt->nexthop.u16[0]);
+      PRINTF("forwarding to %d.%d\n", nexthop->u8[0], nexthop->u8[1]);
       msg->hops++;
       uc_send(&c->c, nexthop);
     }
@@ -126,7 +126,8 @@ mh_send(struct mh_conn *c, rimeaddr_t *to)
     PRINTF("mh_send: no route\n");
     return 0;
   } else {
-    PRINTF("mh_send: sending data\n");
+    PRINTF("mh_send: sending data towards %d.%d\n",
+	   nexthop->u8[0], nexthop->u8[1]);
     if(rimebuf_hdralloc(sizeof(struct data_hdr))) {
       hdr = rimebuf_hdrptr();
       rimeaddr_copy(&hdr->dest, to);
