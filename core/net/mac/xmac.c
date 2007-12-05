@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: xmac.c,v 1.10 2007/11/17 10:12:39 adamdunkels Exp $
+ * $Id: xmac.c,v 1.11 2007/12/05 13:23:17 adamdunkels Exp $
  */
 
 /**
@@ -65,13 +65,6 @@ static
 rimeaddr_t uc_receiver;
 #endif /* !CHAMELEON */
 
-/* struct powercycle { */
-/*   struct pt pt; */
-/*   struct rtimer rt; */
-/*   rtimer_clock_t ontime, offtime; */
-/*   int num_strobes; */
-/* }; */
-
 struct xmac_hdr {
   rimeaddr_t sender;
   rimeaddr_t receiver;
@@ -99,6 +92,8 @@ struct xmac_config xmac_config = {
 #include <stdio.h>
 static struct rtimer rt;
 static struct pt pt;
+
+static int xmac_is_on = 0;
 
 static volatile unsigned char should_be_awake = 0;
 static volatile unsigned char someone_is_sending = 0;
@@ -149,9 +144,6 @@ powercycle(struct rtimer *t, void *ptr)
   PT_BEGIN(&pt);
 
   while(1) {
-/*     rtimer_clock_t t1, t2; */
-
-/*     t1 = rtimer_arch_now(); */
     if(we_are_sending) {
       PRINTF("xmac: we are sending 1, stopping timer\n");
       PT_YIELD(&pt);
@@ -164,7 +156,9 @@ powercycle(struct rtimer *t, void *ptr)
 
     if(xmac_config.off_time > 0) {
       if(should_be_awake == 0) {
-	radio->off();
+	if(xmac_is_on) {
+	  radio->off();
+	}
 	LEDS_OFF(LEDS_RED);
 	radio_is_on = 0;
       } else {
@@ -178,8 +172,6 @@ powercycle(struct rtimer *t, void *ptr)
       if(r) {
 	PRINTF("xmac: 1 could not set rtimer %d\n", r);
       }
-/*     t2 = rtimer_arch_now(); */
-/*     printf("xmac 1 %d\n", t2 - t1); */
       PT_YIELD(&pt);
     }
 
@@ -188,9 +180,10 @@ powercycle(struct rtimer *t, void *ptr)
       PT_YIELD(&pt);
     }
 
-/*     t1 = rtimer_arch_now(); */
     if(radio_is_on == 0) {
-      radio->on();
+      if(xmac_is_on) {
+	radio->on();
+      }
       LEDS_ON(LEDS_RED);
       radio_is_on = 1;
     }
@@ -199,8 +192,6 @@ powercycle(struct rtimer *t, void *ptr)
     if(r) {
       PRINTF("xmac: 2 could not set rtimer %d\n", r);
     }
-/*     t2 = rtimer_arch_now(); */
-/*     printf("xmac 2 %d\n", t2 - t1); */
 
     PT_YIELD(&pt);
 
@@ -214,7 +205,9 @@ powercycle(struct rtimer *t, void *ptr)
       if(xmac_config.off_time > 0) {
 	/* XXX should wait for a complete packet that is not destined to
 	   us to swisch past us. */
-	radio->off();
+	if(xmac_is_on) {
+	  radio->off();
+	}
 	LEDS_OFF(LEDS_RED);
 	radio_is_on = 0;
 	if(rtimer_set(t, RTIMER_TIME(t) + xmac_config.off_time, 1,
@@ -488,6 +481,7 @@ xmac_init(const struct radio_driver *d)
   rtimer_set(&rt, RTIMER_NOW() + xmac_config.off_time, 1,
 	     (void (*)(struct rtimer *, void *))powercycle, NULL);
 
+  xmac_is_on = 1;
   radio = d;
   radio->set_receive_function(input);
 
@@ -502,12 +496,14 @@ xmac_init(const struct radio_driver *d)
 static int
 on(void)
 {
-  return radio->on();
+  xmac_is_on = 1;
+  return 1;
 }
 /*---------------------------------------------------------------------------*/
 static int
 off(void)
 {
+  xmac_is_on = 0;
   return radio->off();
 }
 /*---------------------------------------------------------------------------*/
