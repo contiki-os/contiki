@@ -33,7 +33,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: rmh.c,v 1.3 2007/11/27 23:32:34 adamdunkels Exp $
+ * $Id: rmh.c,v 1.4 2007/12/05 13:25:07 adamdunkels Exp $
  */
 
 /**
@@ -131,6 +131,11 @@ rmh_send(struct rmh_conn *c, rimeaddr_t *to, u8_t num_rexmit, u8_t max_hops)
   struct data_hdr *hdr;
   
   c->num_rexmit = num_rexmit;
+  
+  if(c->cb->forward == NULL) {
+    return 0;
+  }
+  
   nexthop = c->cb->forward(c, &rimeaddr_node_addr, to, NULL, 0);
   if(nexthop == NULL) {
     PRINTF("rmh_send: no route\n");

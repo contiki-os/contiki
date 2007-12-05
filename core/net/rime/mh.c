@@ -33,7 +33,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: mh.c,v 1.4 2007/11/28 19:55:27 adamdunkels Exp $
+ * $Id: mh.c,v 1.5 2007/12/05 13:25:07 adamdunkels Exp $
  */
 
 /**
@@ -116,7 +116,10 @@ mh_send(struct mh_conn *c, rimeaddr_t *to)
 {
   rimeaddr_t *nexthop;
   struct data_hdr *hdr;
-  
+
+  if(c->cb->forward == NULL) {
+    return 0;
+  }
   nexthop = c->cb->forward(c, &rimeaddr_node_addr, to, NULL, 0);
   
   if(nexthop == NULL) {
