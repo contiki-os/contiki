@@ -30,7 +30,7 @@
  * 
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: mtarch.c,v 1.2 2007/08/10 10:45:35 oliverschmidt Exp $
+ * $Id: mtarch.c,v 1.3 2007/12/06 10:36:33 oliverschmidt Exp $
  */
 
 #include <string.h>
@@ -65,7 +65,7 @@ mtarch_start(struct mtarch_thread *thread,
   memset(thread->cstack,   0, sizeof(thread->cstack));
   
   /* Copy current zero page content as template. */
-  mtarch_asm_threadzp = &(thread->zp);
+  mtarch_asm_threadzp = thread->zp;
   mtarch_asm_start();
 
   /* Create a CPU stack frame with the appropriate values. */
