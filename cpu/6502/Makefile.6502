@@ -30,7 +30,7 @@
 #
 # Author: Oliver Schmidt <ol.sc@web.de>
 #
-# $Id: Makefile.6502,v 1.19 2007/12/08 22:18:46 oliverschmidt Exp $
+# $Id: Makefile.6502,v 1.20 2007/12/08 22:21:50 oliverschmidt Exp $
 #
 
 ifndef CONTIKI
@@ -55,9 +55,9 @@ CONTIKI_TARGET_DIRS = . lib
 CONTIKI_CPU_DIRS    = . lib net sys
 CONTIKI_TARGET_MAIN = ${addprefix $(OBJECTDIR)/,contiki-main.o}
 
-CONTIKI_TARGET_SOURCEFILES = contiki-main.c cfs-posix.c petsciiconv.c
-CONTIKI_CPU_SOURCEFILES    = log.c error.c config.c clock.c \
-                             mtarch.c mtarch-asm.S lc-asm.S \
+CONTIKI_TARGET_SOURCEFILES = contiki-main.c error.c cfs-posix.c petsciiconv.c
+CONTIKI_CPU_SOURCEFILES    = log.c config.c clock.c lc-asm.S \
+                             mtarch.c mtarch-asm.S \
                              uip_arch.c ethernet-drv.c ethernet.c
 
 CONTIKI_SOURCEFILES += $(CONTIKI_CPU_SOURCEFILES) $(CONTIKI_TARGET_SOURCEFILES)
