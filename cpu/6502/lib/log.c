@@ -30,7 +30,7 @@
  * 
  * Author: Oliver Schmidt <ol.sc@web.de>
  *
- * $Id: log.c,v 1.2 2007/12/08 21:47:26 oliverschmidt Exp $
+ * $Id: log.c,v 1.3 2007/12/08 22:34:59 oliverschmidt Exp $
  */
 
 #include <stdio.h>
@@ -39,11 +39,13 @@
 #include "sys/log.h"
 
 /*-----------------------------------------------------------------------------------*/
+#if UIP_LOGGING
 void
 uip_log(char *message)
 {
   fprintf(stderr, "%s\n", message);
 }
+#endif /* UIP_LOGGING */
 /*-----------------------------------------------------------------------------------*/
 #if LOG_CONF_ENABLED
 void
