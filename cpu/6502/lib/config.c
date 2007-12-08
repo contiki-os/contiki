@@ -30,7 +30,7 @@
  * 
  * Author: Oliver Schmidt <ol.sc@web.de>
  *
- * $Id: config.c,v 1.1 2007/11/27 21:42:02 oliverschmidt Exp $
+ * $Id: config.c,v 1.2 2007/12/08 21:48:49 oliverschmidt Exp $
  */
 
 #include <stdio.h>
@@ -73,7 +73,7 @@ config_read(char *filename)
   fprintf(stderr, "IP Address:  %d.%d.%d.%d\n", uip_ipaddr_to_quad(&config.hostaddr));
   fprintf(stderr, "Subnet Mask: %d.%d.%d.%d\n", uip_ipaddr_to_quad(&config.netmask));
   fprintf(stderr, "Def. Router: %d.%d.%d.%d\n", uip_ipaddr_to_quad(&config.draddr));
-  fprintf(stderr, "DNS Server:  %d.%d.%d.%d\n", uip_ipaddr_to_quad(&config.resolvaddr));
+//fprintf(stderr, "DNS Server:  %d.%d.%d.%d\n", uip_ipaddr_to_quad(&config.resolvaddr));
 
   fprintf(stderr, "Eth. Driver: %s at $%X\n", config.ethernetcfg.name,
 					      config.ethernetcfg.addr);
@@ -81,7 +81,7 @@ config_read(char *filename)
   uip_sethostaddr(&config.hostaddr);
   uip_setnetmask(&config.netmask);
   uip_setdraddr(&config.draddr);
-  resolv_conf(&config.resolvaddr);
+//resolv_conf(&config.resolvaddr);
 
   return &config.ethernetcfg;
 }
