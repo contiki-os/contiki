@@ -30,7 +30,7 @@
 ; 
 ; Author: Adam Dunkels <adam@sics.se>, Oliver Schmidt <ol.sc@web.de>
 ;
-; $Id: cs8900a.S,v 1.3 2007/11/29 21:56:55 oliverschmidt Exp $
+; $Id: cs8900a.S,v 1.4 2007/12/08 21:05:48 oliverschmidt Exp $
 ;
 ;---------------------------------------------------------------------
 
@@ -89,6 +89,7 @@ fixup:	.byte	fixup02-fixup01, fixup03-fixup02, fixup04-fixup03
 	.byte	fixup38-fixup37, fixup39-fixup38, fixup40-fixup39
 	.byte	fixup41-fixup40, fixup42-fixup41, fixup43-fixup42
 	.byte	fixup44-fixup43, fixup45-fixup44, fixup46-fixup45
+	.byte	fixup47-fixup46, fixup48-fixup47
 
 fixups	= * - fixup
 
@@ -97,6 +98,7 @@ fixups	= * - fixup
 rxtxreg		:= $FF00	; High byte patched at runtime
 txcmd		:= $FF04	; High byte patched at runtime
 txlen		:= $FF06	; High byte patched at runtime
+isq		:= $FF08	; High byte patched at runtime
 packetpp	:= $FF0A	; High byte patched at runtime
 ppdata		:= $FF0C	; High byte patched at runtime
 
@@ -138,56 +140,64 @@ init:
 	inc ptr+1
 	bcs :-			; Always
 
+	: Activate C64 RR clockport in order to operate RR-Net
+	; - RR config register overlays CS8900A ISQ register
+	; - No need to distinguish as ISQ access doesn't hurt
+:
+fixup01:lda isq+1
+	ora #$01		; Set clockport bit
+fixup02:sta isq+1
+
 	; Turn on transmission and reception of frames
 	; PACKETPP = $0112, PPDATA = $00C0
-:	lda #$12
+	lda #$12
 	ldx #$01
-fixup01:sta packetpp
-fixup02:stx packetpp+1
+fixup03:sta packetpp
+fixup04:stx packetpp+1
 	lda #$C0
 	ldx #$00
-fixup03:sta ppdata
-fixup04:stx ppdata+1
+fixup05:sta ppdata
+fixup06:stx ppdata+1
 
 	; Accept valid unicast + broadcast frames
 	; PACKETPP = $0104, PPDATA = $0D05
 	lda #$04
 	ldx #$01
-fixup05:sta packetpp
-fixup06:stx packetpp+1
+fixup07:sta packetpp
+fixup08:stx packetpp+1
 	lda #$05
 	ldx #$0D
-fixup07:sta ppdata
-fixup08:stx ppdata+1
+fixup09:sta ppdata
+fixup10:stx ppdata+1
 
 	; Set MAC address
 	; PACKETPP = $0158, PPDATA = MAC[0], MAC[1]
 	lda #$58
 	ldx #$01
-fixup09:sta packetpp
-fixup10:stx packetpp+1
+fixup11:sta packetpp
+fixup12:stx packetpp+1
 	lda mac
 	ldx mac+1
-fixup11:sta ppdata
-fixup12:stx ppdata+1
+fixup13:sta ppdata
+fixup14:stx ppdata+1
 	; PACKETPP = $015A, PPDATA = MAC[2], MAC[3]
 	lda #$5A
 	ldx #$01
-fixup13:sta packetpp
-fixup14:stx packetpp+1
+fixup15:sta packetpp
+fixup16:stx packetpp+1
 	lda mac+2
 	ldx mac+3
-fixup15:sta ppdata
-fixup16:stx ppdata+1
+fixup17:sta ppdata
+fixup18:stx ppdata+1
 	; PACKETPP = 0x015C, PPDATA = MAC[4], MAC[5]
 	lda #$5C
 	ldx #$01
-fixup17:sta packetpp
-fixup18:stx packetpp+1
+fixup19:sta packetpp
+fixup20:stx packetpp+1
 	lda mac+4
 	ldx mac+5
-fixup19:sta ppdata
-fixup20:stx ppdata+1
+fixup21:sta ppdata
+fixup22:stx ppdata+1
 	rts
 
 ;---------------------------------------------------------------------
@@ -198,9 +208,9 @@ poll:
 	; PACKETPP = $0124, PPDATA & $0D00 ?
 	lda #$24
 	ldx #$01
-fixup21:sta packetpp
-fixup22:stx packetpp+1
-fixup23:lda ppdata+1
+fixup23:sta packetpp
+fixup24:stx packetpp+1
+fixup25:lda ppdata+1
 	and #$0D
 	bne :+
 	
@@ -214,13 +224,13 @@ fixup23:lda ppdata+1
 	; Read receiver event and discard it
 	; RXTXREG
 :
-fixup24:ldx rxtxreg+1
-fixup25:lda rxtxreg
+fixup26:ldx rxtxreg+1
+fixup27:lda rxtxreg
   
 	; Read frame length
 	; cnt = len = RXTXREG
-fixup26:ldx rxtxreg+1
-fixup27:lda rxtxreg
+fixup28:ldx rxtxreg+1
+fixup29:lda rxtxreg
 	sta len
 	stx len+1
 	sta cnt
@@ -245,11 +255,11 @@ fixup27:lda rxtxreg
  	; PACKETPP = $0102, PPDATA = PPDATA | $0040
 	lda #$02
 	ldx #$01
-fixup28:sta packetpp
-fixup29:stx packetpp+1
-fixup30:lda ppdata
+fixup30:sta packetpp
+fixup31:stx packetpp+1
+fixup32:lda ppdata
 	ora #$40
-fixup31:sta ppdata
+fixup33:sta ppdata
 	
 	; No frame ready
 	lda #$00
@@ -264,10 +274,10 @@ fixup31:sta ppdata
 	ldx cnt+1
   	ldy #$00
 read:
-fixup32:lda rxtxreg
+fixup34:lda rxtxreg
 	sta (ptr),y
 	iny
-fixup33:lda rxtxreg+1
+fixup35:lda rxtxreg+1
 	sta (ptr),y
 	iny
 	bne :+
@@ -276,7 +286,7 @@ fixup33:lda rxtxreg+1
 	bne read
 	dex
 	bpl read
-  
+
 	; Return frame length
 	lda len
 	ldx len+1
@@ -292,12 +302,12 @@ send:
 	; Transmit command
 	lda #$C0
 	ldx #$00
-fixup34:sta txcmd
-fixup35:stx txcmd+1
+fixup36:sta txcmd
+fixup37:stx txcmd+1
 	lda cnt
 	ldx cnt+1
-fixup36:sta txlen
-fixup37:stx txlen+1
+fixup38:sta txlen
+fixup39:stx txlen+1
 
 	; Adjust odd frame length
 	lsr
@@ -313,9 +323,9 @@ fixup37:stx txlen+1
 	; PACKETPP = $0138, PPDATA & $0100 ?
 :	lda #$38
 	ldx #$01
-fixup38:sta packetpp
-fixup39:stx packetpp+1
-fixup40:lda ppdata+1
+fixup40:sta packetpp
+fixup41:stx packetpp+1
+fixup42:lda ppdata+1
 	and #$01
 	bne :+
 
@@ -323,11 +333,11 @@ fixup40:lda ppdata+1
  	; PACKETPP = $0102, PPDATA = PPDATA | $0040
 	lda #$02
 	ldx #$01
-fixup41:sta packetpp
-fixup42:stx packetpp+1
-fixup43:lda ppdata
+fixup43:sta packetpp
+fixup44:stx packetpp+1
+fixup45:lda ppdata
 	ora #$40
-fixup44:sta ppdata
+fixup46:sta ppdata
 
 	; And try again
 	dey
@@ -345,10 +355,10 @@ fixup44:sta ppdata
 	ldx cnt+1
 	ldy #$00
 write:	lda (ptr),y
-fixup45:sta rxtxreg
+fixup47:sta rxtxreg
 	iny
 	lda (ptr),y
-fixup46:sta rxtxreg+1
+fixup48:sta rxtxreg+1
 	iny
 	bne :+
 	inc ptr+1
