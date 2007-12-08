@@ -30,7 +30,7 @@
  *
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: tcpip.c,v 1.9 2007/09/29 03:54:18 matsutsuka Exp $
+ * $Id: tcpip.c,v 1.10 2007/12/08 23:06:02 oliverschmidt Exp $
  */
 
 #include "contiki-net.h"
@@ -103,6 +103,7 @@ packet_input(void)
   }
 }
 /*---------------------------------------------------------------------------*/
+#if UIP_ACTIVE_OPEN
 struct uip_conn *
 tcp_connect(uip_ipaddr_t *ripaddr, u16_t port, void *appstate)
 {
@@ -120,6 +121,7 @@ tcp_connect(uip_ipaddr_t *ripaddr, u16_t port, void *appstate)
   
   return c;
 }
+#endif /* UIP_ACTIVE_OPEN */
 /*---------------------------------------------------------------------------*/
 void
 tcp_unlisten(u16_t port)
