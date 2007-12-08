@@ -30,9 +30,10 @@
  * 
  * Author: Oliver Schmidt <ol.sc@web.de>
  *
- * $Id: error.c,v 1.1 2007/11/27 18:17:47 oliverschmidt Exp $
+ * $Id: error.c,v 1.1 2007/12/08 22:16:57 oliverschmidt Exp $
  */
 
+#include <conio.h>
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -43,7 +44,7 @@ void
 error_exit(void)
 {
   fprintf(stderr, "Press any key to continue ...\n");
-  getchar();
+  cgetc();
   exit(EXIT_FAILURE);
 }
 /*-----------------------------------------------------------------------------------*/
