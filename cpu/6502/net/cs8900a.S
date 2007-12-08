@@ -30,7 +30,7 @@
 ; 
 ; Author: Adam Dunkels <adam@sics.se>, Oliver Schmidt <ol.sc@web.de>
 ;
-; $Id: cs8900a.S,v 1.4 2007/12/08 21:05:48 oliverschmidt Exp $
+; $Id: cs8900a.S,v 1.5 2007/12/08 21:19:06 oliverschmidt Exp $
 ;
 ;---------------------------------------------------------------------
 
@@ -140,7 +140,7 @@ init:
 	inc ptr+1
 	bcs :-			; Always
 
-	: Activate C64 RR clockport in order to operate RR-Net
+	; Activate C64 RR clockport in order to operate RR-Net
 	; - RR config register overlays CS8900A ISQ register
 	; - No need to distinguish as ISQ access doesn't hurt
 :
