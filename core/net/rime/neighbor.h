@@ -38,7 +38,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: neighbor.h,v 1.8 2007/11/26 23:30:13 adamdunkels Exp $
+ * $Id: neighbor.h,v 1.9 2007/12/09 15:43:51 adamdunkels Exp $
  */
 
 /**
@@ -59,7 +59,7 @@
 struct neighbor {
   uint16_t time;
   rimeaddr_t addr;
-  uint8_t rtmetric;
+  uint16_t rtmetric;
   uint8_t etxptr;
   uint8_t etxs[NEIGHBOR_NUM_ETXS];
 };
