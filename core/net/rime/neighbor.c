@@ -33,7 +33,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: neighbor.c,v 1.12 2007/11/26 23:30:13 adamdunkels Exp $
+ * $Id: neighbor.c,v 1.13 2007/12/09 15:44:21 adamdunkels Exp $
  */
 
 /**
@@ -49,10 +49,11 @@
 #include "contiki.h"
 #include "net/rime/neighbor.h"
 #include "net/rime/ctimer.h"
+#include "net/rime/collect.h"
 
 #define MAX_NEIGHBORS 5
 
-#define RTMETRIC_MAX 64
+#define RTMETRIC_MAX COLLECT_MAX_DEPTH
 
 static struct neighbor neighbors[MAX_NEIGHBORS];
 
