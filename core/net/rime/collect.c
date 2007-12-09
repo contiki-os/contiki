@@ -1,3 +1,6 @@
+/* XXX: send explicit congestion notification if already forwarding
+   packet + add queue for keeping packets to forward. */
+
 /**
  * \addtogroup rimecollect
  * @{
@@ -33,7 +36,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: collect.c,v 1.1 2007/11/28 16:04:41 adamdunkels Exp $
+ * $Id: collect.c,v 1.2 2007/12/09 15:43:09 adamdunkels Exp $
  */
 
 /**
@@ -101,7 +104,7 @@ update_rtmetric(struct collect_conn *tc)
   struct neighbor *n;
 
   /* We should only update the rtmetric if we are not the sink. */
-  if(tc->local_rtmetric != SINK) {
+  if(tc->rtmetric != SINK) {
 
     /* Find the neighbor with the lowest rtmetric. */
     n = neighbor_best();
@@ -112,22 +115,22 @@ update_rtmetric(struct collect_conn *tc)
       /* If we have don't have any neighbors, we set our rtmetric to
 	 the maximum value to indicate that we do not have a route. */
       
-      if(tc->local_rtmetric != RTMETRIC_MAX) {
+      if(tc->rtmetric != RTMETRIC_MAX) {
 	PRINTF("%d.%d: didn't find a best neighbor, setting rtmetric to max\n",
 	       rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1]);
       }
-      tc->local_rtmetric = RTMETRIC_MAX;
+      tc->rtmetric = RTMETRIC_MAX;
     } else {
 
       /* We set our rtmetric to the rtmetric of our best neighbor plus
 	 the expected transmissions to reach that neighbor. */
-      if(n->rtmetric + neighbor_etx(n) != tc->local_rtmetric) {
-	tc->local_rtmetric = n->rtmetric + neighbor_etx(n);
-	nbh_start(&tc->nbh_conn, tc->local_rtmetric);
+      if(n->rtmetric + neighbor_etx(n) != tc->rtmetric) {
+	tc->rtmetric = n->rtmetric + neighbor_etx(n);
+	neighbor_discovery_start(&tc->neighbor_discovery_conn, tc->rtmetric);
 	/*	send_adv(tc, MIN_INTERVAL);*/
 	PRINTF("%d.%d: new rtmetric %d\n",
 	       rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1],
-	       tc->local_rtmetric);
+	       tc->rtmetric);
       }
     }
   }
@@ -136,10 +139,10 @@ update_rtmetric(struct collect_conn *tc)
 #if NETSIM
   {
     char buf[8];
-    if(tc->local_rtmetric == RTMETRIC_MAX) {
+    if(tc->rtmetric == RTMETRIC_MAX) {
       strcpy(buf, " ");
     } else {
-      sprintf(buf, "%d", tc->local_rtmetric);
+      sprintf(buf, "%d", tc->rtmetric);
     }
     ether_set_text(buf);
   }
@@ -170,7 +173,7 @@ node_packet_received(struct ruc_conn *c, rimeaddr_t *from, u8_t seqno)
   rimeaddr_copy(&recent_packets[recent_packet_ptr].originator, &hdr->originator);
   recent_packet_ptr = (recent_packet_ptr + 1) % NUM_RECENT_PACKETS;
   
-  if(tc->local_rtmetric == SINK) {
+  if(tc->rtmetric == SINK) {
 
     /* If we are the sink, we call the receive function. */
     
@@ -186,7 +189,7 @@ node_packet_received(struct ruc_conn *c, rimeaddr_t *from, u8_t seqno)
 		   hdr->hops);
     }
     return;
-  } else if(hdr->hoplim > 1 && tc->local_rtmetric != RTMETRIC_MAX) {
+  } else if(hdr->hoplim > 1 && tc->rtmetric != RTMETRIC_MAX) {
 
     /* If we are not the sink, we forward the packet to the best
        neighbor. */
@@ -240,10 +243,10 @@ node_packet_timedout(struct ruc_conn *c, rimeaddr_t *to, u8_t retransmissions)
 }
 /*---------------------------------------------------------------------------*/
 static void
-adv_received(struct nbh_conn *c, rimeaddr_t *from, uint16_t rtmetric)
+adv_received(struct neighbor_discovery_conn *c, rimeaddr_t *from, uint16_t rtmetric)
 {
   struct collect_conn *tc = (struct collect_conn *)
-    ((char *)c - offsetof(struct collect_conn, nbh_conn));
+    ((char *)c - offsetof(struct collect_conn, neighbor_discovery_conn));
   struct neighbor *n;
   
   n = neighbor_find(from);
@@ -264,23 +267,23 @@ adv_received(struct nbh_conn *c, rimeaddr_t *from, uint16_t rtmetric)
 static const struct ruc_callbacks ruc_callbacks = {node_packet_received,
 						   node_packet_sent,
 						   node_packet_timedout};
-static const struct nbh_callbacks nbh_callbacks = { adv_received,
-						    NULL};
+static const struct neighbor_discovery_callbacks neighbor_discovery_callbacks =
+  { adv_received, NULL};
 /*---------------------------------------------------------------------------*/
 void
 collect_open(struct collect_conn *tc, u16_t channels,
 	     const struct collect_callbacks *cb)
 {
-  nbh_open(&tc->nbh_conn, channels, &nbh_callbacks);
+  neighbor_discovery_open(&tc->neighbor_discovery_conn, channels, &neighbor_discovery_callbacks);
   ruc_open(&tc->ruc_conn, channels + 1, &ruc_callbacks);
-  tc->local_rtmetric = RTMETRIC_MAX;
+  tc->rtmetric = RTMETRIC_MAX;
   tc->cb = cb;
 }
 /*---------------------------------------------------------------------------*/
 void
 collect_close(struct collect_conn *tc)
 {
-  nbh_close(&tc->nbh_conn);
+  neighbor_discovery_close(&tc->neighbor_discovery_conn);
   ruc_close(&tc->ruc_conn);
 }
 /*---------------------------------------------------------------------------*/
@@ -288,10 +291,10 @@ void
 collect_set_sink(struct collect_conn *tc, int should_be_sink)
 {
   if(should_be_sink) {
-    tc->local_rtmetric = SINK;
-    nbh_start(&tc->nbh_conn, tc->local_rtmetric);
+    tc->rtmetric = SINK;
+    neighbor_discovery_start(&tc->neighbor_discovery_conn, tc->rtmetric);
   } else {
-    tc->local_rtmetric = RTMETRIC_MAX;
+    tc->rtmetric = RTMETRIC_MAX;
   }
   update_rtmetric(tc);
 }
@@ -310,7 +313,7 @@ collect_send(struct collect_conn *tc, int rexmits)
     hdr->hops = 0;
     hdr->hoplim = MAX_HOPLIM;
     hdr->rexmits = rexmits;
-    if(tc->local_rtmetric == 0) {
+    if(tc->rtmetric == 0) {
       if(tc->cb->recv != NULL) {
 	tc->cb->recv(&hdr->originator, hdr->originator_seqno,
 		     hdr->hops);
@@ -332,7 +335,7 @@ collect_send(struct collect_conn *tc, int rexmits)
 int
 collect_depth(struct collect_conn *tc)
 {
-  return tc->local_rtmetric;
+  return tc->rtmetric;
 }
 /*---------------------------------------------------------------------------*/
 /** @} */
