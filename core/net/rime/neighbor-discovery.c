@@ -1,5 +1,5 @@
 /**
- * \addtogroup rimenbh
+ * \addtogroup rimeneighbordiscovery
  * @{
  */
 
@@ -33,12 +33,12 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: nbh.c,v 1.4 2007/11/17 10:34:17 adamdunkels Exp $
+ * $Id: neighbor-discovery.c,v 1.1 2007/12/09 15:40:43 adamdunkels Exp $
  */
 
 /**
  * \file
- *         Neighborhood discovery
+ *         Neighbor discovery
  * \author
  *         Adam Dunkels <adam@sics.se>
  */
@@ -48,7 +48,7 @@
 #include "net/rime.h"
 #include "net/rime/neighbor.h"
 #include "net/rime/nf.h"
-#include "net/rime/nbh.h"
+#include "net/rime/neighbor-discovery.h"
 
 #include "dev/radio-sensor.h"
 
@@ -84,7 +84,7 @@ struct adv_msg {
 
 /*---------------------------------------------------------------------------*/
 static void
-send_adv(struct nbh_conn *c, clock_time_t interval)
+send_adv(struct neighbor_discovery_conn *c, clock_time_t interval)
 {
   struct adv_msg *hdr;
 
@@ -104,7 +104,7 @@ send_adv(struct nbh_conn *c, clock_time_t interval)
 static void
 adv_packet_received(struct ibc_conn *ibc, rimeaddr_t *from)
 {
-  struct nbh_conn *c = (struct nbh_conn *)ibc;
+  struct neighbor_discovery_conn *c = (struct neighbor_discovery_conn *)ibc;
   struct adv_msg *msg = rimebuf_dataptr();
 /*   struct neighbor *n; */
 
@@ -132,7 +132,7 @@ adv_packet_received(struct ibc_conn *ibc, rimeaddr_t *from)
 static void
 send_timer(void *ptr)
 {
-  struct nbh_conn *tc = ptr;
+  struct neighbor_discovery_conn *tc = ptr;
   
   send_adv(tc, MAX_INTERVAL / 2);
   ctimer_set(&tc->t,
@@ -144,22 +144,22 @@ static const struct ibc_callbacks ibc_callbacks =
   {adv_packet_received};
 /*---------------------------------------------------------------------------*/
 void
-nbh_open(struct nbh_conn *c, uint16_t channel,
-	 const struct nbh_callbacks *cb)
+neighbor_discovery_open(struct neighbor_discovery_conn *c, uint16_t channel,
+	 const struct neighbor_discovery_callbacks *cb)
 {
   ibc_open(&c->c, channel, &ibc_callbacks);
   c->u = cb;
 }
 /*---------------------------------------------------------------------------*/
 void
-nbh_close(struct nbh_conn *c)
+neighbor_discovery_close(struct neighbor_discovery_conn *c)
 {
   ibc_close(&c->c);
   ctimer_stop(&c->t);
 }
 /*---------------------------------------------------------------------------*/
 void
-nbh_start(struct nbh_conn *c, uint16_t val)
+neighbor_discovery_start(struct neighbor_discovery_conn *c, uint16_t val)
 {
   c->val = val;
   ctimer_set(&c->t, random_rand() % MIN_INTERVAL, send_timer, c);
