@@ -28,39 +28,39 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: nbh.h,v 1.2 2007/11/17 10:32:54 adamdunkels Exp $
+ * $Id: neighbor-discovery.h,v 1.1 2007/12/09 15:40:43 adamdunkels Exp $
  */
 
 /**
  * \file
- *         Neighborhood discovery header file
+ *         Neighbor discovery header file
  * \author
  *         Adam Dunkels <adam@sics.se>
  */
 
-#ifndef __NBH_H__
-#define __NBH_H__
+#ifndef __NEIGHBOR_DISCOVERY_H__
+#define __NEIGHBOR_DISCOVERY_H__
 
 #include "net/rime/ibc.h"
 
-struct nbh_conn;
+struct neighbor_discovery_conn;
 
-struct nbh_callbacks {
-  void (* recv)(struct nbh_conn *c, rimeaddr_t *from, uint16_t val);
-  void (* sent)(struct nbh_conn *c);
+struct neighbor_discovery_callbacks {
+  void (* recv)(struct neighbor_discovery_conn *c, rimeaddr_t *from, uint16_t val);
+  void (* sent)(struct neighbor_discovery_conn *c);
 };
 
-struct nbh_conn {
+struct neighbor_discovery_conn {
   struct ibc_conn c;
-  const struct nbh_callbacks *u;
+  const struct neighbor_discovery_callbacks *u;
   struct ctimer t;
   uint16_t val;
 };
 
-void nbh_open(struct nbh_conn *c, uint16_t channel,
-	       const struct nbh_callbacks *u);
-void nbh_close(struct nbh_conn *c);
+void neighbor_discovery_open(struct neighbor_discovery_conn *c, uint16_t channel,
+	       const struct neighbor_discovery_callbacks *u);
+void neighbor_discovery_close(struct neighbor_discovery_conn *c);
 
-void nbh_start(struct nbh_conn *c, uint16_t val);
+void neighbor_discovery_start(struct neighbor_discovery_conn *c, uint16_t val);
 
-#endif /* __NBH_H__ */
+#endif /* __NEIGHBOR_DISCOVERY_H__ */
