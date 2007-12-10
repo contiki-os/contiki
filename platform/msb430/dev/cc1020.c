@@ -163,6 +163,9 @@ cc1020_set_rx(void)
   cc1020_setupRX(RX_CURRENT);
   LNA_POWER_ON();		// enable amplifier
 
+  ENERGEST_OFF(ENERGEST_TYPE_TRANSMIT);
+  ENERGEST_ON(ENERGEST_TYPE_LISTEN);
+
   // activate
   IE1 |= URXIE0;		// enable interrupt
 }
@@ -185,6 +188,9 @@ cc1020_set_tx(void)
   P3SEL |= 0x0C;		// select Tx line and clk
   U0CTL |= SWRST;		// UART to reset mode
   IFG1 &= ~UTXIFG0;		// Reset IFG.
+
+  ENERGEST_OFF(ENERGEST_TYPE_LISTEN);
+  ENERGEST_ON(ENERGEST_TYPE_TRANSMIT);
 
   // configure driver
   cc1020_state = CC1020_TX;
@@ -285,6 +291,9 @@ cc1020_off(void)
   splx(s);
   cc1020_setupPD();		// power down radio
   cc1020_state = CC1020_OFF;
+
+  ENERGEST_OFF(ENERGEST_TYPE_LISTEN);
+  ENERGEST_OFF(ENERGEST_TYPE_TRANSMIT);
 
   return 1;
 }

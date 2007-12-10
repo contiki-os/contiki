@@ -126,15 +126,19 @@ main(void)
   rtimer_init();
   ctimer_init();
 
-  /* System services */
-  process_start(&etimer_process, NULL);
-  //process_start(&sensors_process, NULL);
-
-  cc1020_init(cc1020_config_19200);
-
-  // network configuration
+  energest_init();
   node_id_restore();
 
+  /* System services */
+  process_start(&etimer_process, NULL);
+#if 0
+  process_start(&sensors_process, NULL);
+#endif
+
+  /* Radio driver */
+  cc1020_init(cc1020_config_19200);
+
+  /* Network configuration */
 #if WITH_UIP
   uip_init();
   uip_sethostaddr(&slipif.ipaddr);
@@ -163,7 +167,11 @@ main(void)
   for (;;) {
     while (process_run() > 0);
     if (process_nevents() == 0) {
+      ENERGEST_OFF(ENERGEST_TYPE_CPU);
+      ENERGEST_ON(ENERGEST_TYPE_LPM);
       LPM_SLEEP();
+      ENERGEST_OFF(ENERGEST_TYPE_LPM);
+      ENERGEST_ON(ENERGEST_TYPE_CPU);
     }
   }
 
