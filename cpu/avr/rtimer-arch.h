@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: rtimer-arch.h,v 1.3 2007/11/29 02:44:05 fros4943 Exp $
+ * $Id: rtimer-arch.h,v 1.4 2007/12/11 17:21:14 joxe Exp $
  */
 
 #ifndef __RTIMER_ARCH_H__
@@ -38,6 +38,12 @@
 
 #define RTIMER_ARCH_SECOND (8192)
 
+/* Handle that not all AVRs have TCNT3 - this should be configuratble
+   in contiki-conf later! */
+#ifdef TCNT3
 #define rtimer_arch_now() (TCNT3)
+#else
+#define rtimer_arch_now() (0)
+#endif
 
 #endif /* __RTIMER_ARCH_H__ */

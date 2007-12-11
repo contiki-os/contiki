@@ -26,11 +26,15 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF 
  * SUCH DAMAGE. 
  *
- * @(#)$Id: avrdef.h,v 1.1 2007/08/16 13:20:09 bg- Exp $
+ * @(#)$Id: avrdef.h,v 1.2 2007/12/11 17:21:14 joxe Exp $
  */
 
 #ifndef AVRDEF_H
 #define AVRDEF_H
+
+/* SREG is defined in this file */
+#include <avr/io.h>
+#include <avr/interrupt.h>
 
 #ifdef HAVE_STDINT_H
 #include <stdint.h>
