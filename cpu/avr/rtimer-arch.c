@@ -28,14 +28,16 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: rtimer-arch.c,v 1.1 2007/11/29 02:44:05 fros4943 Exp $
+ * $Id: rtimer-arch.c,v 1.2 2007/12/11 17:21:14 joxe Exp $
  */
 
 /**
  * \file
  *         AVR-specific rtimer code
+ *         Currently only works on ATMEGAs that have Timer 3.
  * \author
  *         Fredrik Osterlind <fros@sics.se>
+ *         Joakim Eriksson <joakime@sics.se>
  */
 
 /* OBS: 8 seconds maximum time! */
@@ -48,6 +50,7 @@
 #include "rtimer-arch.h"
 
 /*---------------------------------------------------------------------------*/
+#ifdef TCNT3
 SIGNAL (SIG_OUTPUT_COMPARE3A) {
   ENERGEST_ON(ENERGEST_TYPE_IRQ);
 
@@ -59,6 +62,7 @@ SIGNAL (SIG_OUTPUT_COMPARE3A) {
 
   ENERGEST_OFF(ENERGEST_TYPE_IRQ);
 }
+#endif
 /*---------------------------------------------------------------------------*/
 void
 rtimer_arch_init(void)
@@ -67,6 +71,8 @@ rtimer_arch_init(void)
   uint8_t sreg;
   sreg = SREG;
   cli ();
+
+#ifdef TCNT3
 
   ETIMSK &= ~((1 << OCIE3A) | (1 << OCIE3B) | (1 << TOIE3) |
       (1 << TICIE3) | (1 << OCIE3C));
@@ -84,6 +90,8 @@ rtimer_arch_init(void)
   /* Maximum prescaler */
   TCCR3B |= 5;
 
+#endif
+
   /* Restore interrupt state */
   SREG = sreg;
 }
@@ -96,11 +104,14 @@ rtimer_arch_schedule(rtimer_clock_t t)
   sreg = SREG;
   cli ();
 
+#ifdef TCNT3
   /* Set compare register */
   OCR3A = t;
   ETIFR |= (1 << ICF3) | (1 << OCF3A) | (1 << OCF3B) | (1 << TOV3) |
   (1 << OCF3C);
   ETIMSK |= (1 << OCIE3A);
+
+#endif
 
   /* Restore interrupt state */
   SREG = sreg;
