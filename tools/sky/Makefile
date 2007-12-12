@@ -30,7 +30,7 @@ endif
 sky-motelist:
 	$(MOTELIST)
 sky-motes:
-	echo $(MOTES)
+	@echo $(MOTES)
 
 %.upload: %.ihex sky-reset
 	cp $< $(IHEXFILE)
