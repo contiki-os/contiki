@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: uaodv.h,v 1.2 2007/05/08 16:07:59 bg- Exp $
+ * $Id: uaodv.h,v 1.3 2007/12/13 10:04:59 fros4943 Exp $
  */
 
 /**
@@ -42,6 +42,7 @@
 #define __UAODV_H__
 
 #include "contiki.h"
+#include "uaodv-rt.h"
 
 PROCESS_NAME(uaodv_process);
 
