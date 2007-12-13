@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: UDGM.java,v 1.11 2007/11/20 05:19:47 fros4943 Exp $
+ * $Id: UDGM.java,v 1.12 2007/12/13 07:59:35 fros4943 Exp $
  */
 
 package se.sics.cooja.radiomediums;
@@ -80,7 +80,9 @@ public class UDGM extends AbstractRadioMedium {
 
   public static final double SS_OK_WORST = -30;
 
-  private static double SUCCESS_RATIO = 1.0;
+  private static double SUCCESS_RATIO_TX = 1.0;
+
+  private static double SUCCESS_RATIO_RX = 1.0;
 
   // Maximum ranges (SS indicator 100)
   private static double TRANSMITTING_RANGE = 50;
@@ -111,7 +113,9 @@ public class UDGM extends AbstractRadioMedium {
 
     private JSpinner interferenceSpinner = null;
 
-    private JSpinner successRatioSpinner = null;
+    private JSpinner successRatioTxSpinner = null;
+
+    private JSpinner successRatioRxSpinner = null;
 
     private Observer radioMediumObserver;
 
@@ -141,7 +145,8 @@ public class UDGM extends AbstractRadioMedium {
       }
 
       public void doAction(Mote mote) {
-        successRatioSpinner.setVisible(true);
+        successRatioTxSpinner.setVisible(true);
+        successRatioRxSpinner.setVisible(true);
         repaint();
       }
     };
@@ -161,11 +166,17 @@ public class UDGM extends AbstractRadioMedium {
       interferenceModel.setStepSize(new Double(1.0)); // 1m
       interferenceModel.setMinimum(new Double(0.0));
 
-      SpinnerNumberModel successRatioModel = new SpinnerNumberModel();
-      successRatioModel.setValue(new Double(SUCCESS_RATIO));
-      successRatioModel.setStepSize(new Double(0.01)); // 1%
-      successRatioModel.setMinimum(new Double(0.0));
-      successRatioModel.setMaximum(new Double(1.0));
+      SpinnerNumberModel successRatioTxModel = new SpinnerNumberModel();
+      successRatioTxModel.setValue(new Double(SUCCESS_RATIO_TX));
+      successRatioTxModel.setStepSize(new Double(0.001)); // 0.1%
+      successRatioTxModel.setMinimum(new Double(0.0));
+      successRatioTxModel.setMaximum(new Double(1.0));
+
+      SpinnerNumberModel successRatioRxModel = new SpinnerNumberModel();
+      successRatioRxModel.setValue(new Double(SUCCESS_RATIO_RX));
+      successRatioRxModel.setStepSize(new Double(0.001)); // 0.1%
+      successRatioRxModel.setMinimum(new Double(0.0));
+      successRatioRxModel.setMaximum(new Double(1.0));
 
       JSpinner.NumberEditor editor;
       transmissionSpinner = new JSpinner(transmissionModel);
@@ -174,20 +185,26 @@ public class UDGM extends AbstractRadioMedium {
       interferenceSpinner = new JSpinner(interferenceModel);
       editor = new JSpinner.NumberEditor(interferenceSpinner, "0m");
       interferenceSpinner.setEditor(editor);
-      successRatioSpinner = new JSpinner(successRatioModel);
-      editor = new JSpinner.NumberEditor(successRatioSpinner, "0%");
-      successRatioSpinner.setEditor(editor);
+      successRatioTxSpinner = new JSpinner(successRatioTxModel);
+      editor = new JSpinner.NumberEditor(successRatioTxSpinner, "0.0%");
+      successRatioTxSpinner.setEditor(editor);
+      successRatioRxSpinner = new JSpinner(successRatioRxModel);
+      editor = new JSpinner.NumberEditor(successRatioRxSpinner, "0.0%");
+      successRatioRxSpinner.setEditor(editor);
 
 
       ((JSpinner.DefaultEditor) transmissionSpinner.getEditor()).getTextField()
       .setColumns(5);
       ((JSpinner.DefaultEditor) interferenceSpinner.getEditor()).getTextField()
       .setColumns(5);
-      ((JSpinner.DefaultEditor) successRatioSpinner.getEditor()).getTextField()
+      ((JSpinner.DefaultEditor) successRatioTxSpinner.getEditor()).getTextField()
       .setColumns(5);
-      transmissionSpinner.setToolTipText("Transmitting range");
-      interferenceSpinner.setToolTipText("Interference range");
-      successRatioSpinner.setToolTipText("Transmission success ratio in green area");
+      ((JSpinner.DefaultEditor) successRatioRxSpinner.getEditor()).getTextField()
+      .setColumns(5);
+      transmissionSpinner.setToolTipText("Transmitting range (m)");
+      interferenceSpinner.setToolTipText("Interference range (m)");
+      successRatioTxSpinner.setToolTipText("Transmission success ratio (%)");
+      successRatioRxSpinner.setToolTipText("Reception success ratio (%)");
 
       transmissionSpinner.addChangeListener(new ChangeListener() {
         public void stateChanged(ChangeEvent e) {
@@ -205,9 +222,17 @@ public class UDGM extends AbstractRadioMedium {
         }
       });
 
-      successRatioSpinner.addChangeListener(new ChangeListener() {
+      successRatioTxSpinner.addChangeListener(new ChangeListener() {
         public void stateChanged(ChangeEvent e) {
-          SUCCESS_RATIO = ((SpinnerNumberModel) successRatioSpinner
+          SUCCESS_RATIO_TX = ((SpinnerNumberModel) successRatioTxSpinner
+              .getModel()).getNumber().doubleValue();
+          repaint();
+        }
+      });
+
+      successRatioRxSpinner.addChangeListener(new ChangeListener() {
+        public void stateChanged(ChangeEvent e) {
+          SUCCESS_RATIO_RX = ((SpinnerNumberModel) successRatioRxSpinner
               .getModel()).getNumber().doubleValue();
           repaint();
         }
@@ -215,10 +240,12 @@ public class UDGM extends AbstractRadioMedium {
 
       getCurrentCanvas().add(transmissionSpinner);
       getCurrentCanvas().add(interferenceSpinner);
-      getCurrentCanvas().add(successRatioSpinner);
+      getCurrentCanvas().add(successRatioTxSpinner);
+      getCurrentCanvas().add(successRatioRxSpinner);
       transmissionSpinner.setVisible(false);
       interferenceSpinner.setVisible(false);
-      successRatioSpinner.setVisible(false);
+      successRatioTxSpinner.setVisible(false);
+      successRatioRxSpinner.setVisible(false);
 
       // Add mouse listener for selecting motes
       getCurrentCanvas().addMouseListener(new MouseListener() {
@@ -240,7 +267,8 @@ public class UDGM extends AbstractRadioMedium {
             selectedMote = null;
             transmissionSpinner.setVisible(false);
             interferenceSpinner.setVisible(false);
-            successRatioSpinner.setVisible(false);
+            successRatioTxSpinner.setVisible(false);
+            successRatioRxSpinner.setVisible(false);
             repaint();
             return;
           }
@@ -411,8 +439,8 @@ public class UDGM extends AbstractRadioMedium {
     double moteInterferenceRange = INTERFERENCE_RANGE
         * (0.01 * sendingRadio.getCurrentOutputPowerIndicator());
 
-    // If in random state, check if transmission fails
-    if (SUCCESS_RATIO < 1.0 && random.nextDouble() > SUCCESS_RATIO) {
+    /* Fail transmission randomly (affects all receiving nodes) */
+    if (SUCCESS_RATIO_TX < 1.0 && random.nextDouble() > SUCCESS_RATIO_TX) {
       return newConnection;
     }
 
@@ -437,7 +465,8 @@ public class UDGM extends AbstractRadioMedium {
           // Keep interfering radio
           newConnection.addInterfered(listeningRadio);
 
-        } else if (listeningRadio.isReceiving()) {
+        } else if (listeningRadio.isReceiving() ||
+            (SUCCESS_RATIO_RX < 1.0 && random.nextDouble() > SUCCESS_RATIO_RX)) {
           newConnection.addInterfered(listeningRadio);
 
           // Start interfering radio
@@ -539,8 +568,14 @@ public class UDGM extends AbstractRadioMedium {
     element.setText(Double.toString(INTERFERENCE_RANGE));
     config.add(element);
 
-    element = new Element("success_ratio");
-    element.setText("" + SUCCESS_RATIO);
+    /* Transmission success probability */
+    element = new Element("success_ratio_tx");
+    element.setText("" + SUCCESS_RATIO_TX);
+    config.add(element);
+
+    /* Reception success probability */
+    element = new Element("success_ratio_rx");
+    element.setText("" + SUCCESS_RATIO_RX);
     config.add(element);
 
     return config;
@@ -557,8 +592,18 @@ public class UDGM extends AbstractRadioMedium {
         INTERFERENCE_RANGE = Double.parseDouble(element.getText());
       }
 
+      /* Backwards compatibility */
       if (element.getName().equals("success_ratio")) {
-        SUCCESS_RATIO = Double.parseDouble(element.getText());
+        SUCCESS_RATIO_TX = Double.parseDouble(element.getText());
+        logger.warn("Loading old COOJA Config, XML element \"sucess_ratio\" parsed at \"sucess_ratio_tx\"");
+      }
+
+      if (element.getName().equals("success_ratio_tx")) {
+        SUCCESS_RATIO_TX = Double.parseDouble(element.getText());
+      }
+
+      if (element.getName().equals("success_ratio_rx")) {
+        SUCCESS_RATIO_RX = Double.parseDouble(element.getText());
       }
     }
     random.setSeed(mySimulation.getRandomSeed());
