@@ -52,6 +52,7 @@ Berlin, 2006
 #include <string.h>
 #include <signal.h>
 
+#include "contiki.h"
 #include "contiki-msb430.h"
 #include "cc1020-internal.h"
 #include "cc1020.h"
@@ -59,6 +60,7 @@ Berlin, 2006
 #include "net/rime/rimestats.h"
 #include "dev/irq.h"
 #include "dev/dma.h"
+#include "energest.h"
 
 static int cc1020_calibrate(void);
 static int cc1020_setupTX(int);
@@ -76,16 +78,16 @@ static enum cc1020_state cc1020_state = CC1020_OFF;
 static volatile uint8_t cc1020_rxbuf[HDRSIZE + CC1020_BUFFERSIZE];
 static uint8_t cc1020_txbuf[PREAMBLESIZE + HDRSIZE + CC1020_BUFFERSIZE +
 			   TAILSIZE];
-static volatile enum cc1020_rxstate cc1020_rxstate = CC1020_RX_SEARCHING;
+//static volatile enum cc1020_rxstate cc1020_rxstate = CC1020_RX_SEARCHING;
 
-/// number of bytes in receive and transmit buffers respectively.
+// number of bytes in receive and transmit buffers respectively.
 static uint16_t cc1020_rxlen;
 static uint16_t cc1020_txlen;
 
-/// received signal strength indicator reading for last received packet
+// received signal strength indicator reading for last received packet
 static volatile uint8_t rssi;
 
-/// callback when a packet has been received
+// callback when a packet has been received
 static uint8_t cc1020_pa_power = PA_POWER;
 
 static void (*receiver_callback)(const struct radio_driver *);
@@ -155,16 +157,14 @@ cc1020_set_rx(void)
 
   // configure driver
   cc1020_rxlen = 0;		// receive buffer position to start
-  cc1020_rxstate = CC1020_RX_SEARCHING;	// rx state machine to searching mode
-  cc1020_state = CC1020_RX;	// driver state to receive mode
+  //cc1020_rxstate = CC1020_RX_SEARCHING;	// rx state machine to searching mode
+  CC1020_SET_OPSTATE(CC1020_RX | CC1020_RX_SEARCHING);	// driver state to receive mode
 
   // configure radio
+  ENERGEST_ON(ENERGEST_TYPE_LISTEN);
   cc1020_wakeupRX(RX_CURRENT);
   cc1020_setupRX(RX_CURRENT);
   LNA_POWER_ON();		// enable amplifier
-
-  ENERGEST_OFF(ENERGEST_TYPE_TRANSMIT);
-  ENERGEST_ON(ENERGEST_TYPE_LISTEN);
 
   // activate
   IE1 |= URXIE0;		// enable interrupt
@@ -176,6 +176,7 @@ cc1020_set_tx(void)
   int s;
 
   // configure radio rx
+  ENERGEST_OFF(ENERGEST_TYPE_LISTEN);
   LNA_POWER_OFF();		// power down LNA
   s = splhigh();
   DISABLE_RX_IRQ();
@@ -183,17 +184,15 @@ cc1020_set_tx(void)
   splx(s);
 
   // configure radio tx
+  ENERGEST_ON(ENERGEST_TYPE_TRANSMIT);
   cc1020_wakeupTX(TX_CURRENT);
   cc1020_setupTX(TX_CURRENT);
   P3SEL |= 0x0C;		// select Tx line and clk
   U0CTL |= SWRST;		// UART to reset mode
   IFG1 &= ~UTXIFG0;		// Reset IFG.
 
-  ENERGEST_OFF(ENERGEST_TYPE_LISTEN);
-  ENERGEST_ON(ENERGEST_TYPE_TRANSMIT);
-
   // configure driver
-  cc1020_state = CC1020_TX;
+  CC1020_SET_OPSTATE(CC1020_TX);
 }
 
 void
@@ -218,8 +217,10 @@ cc1020_send(const void *buf, unsigned short len)
     return -1;
 
   /* Previous data hasn't been sent yet. */
-  if (cc1020_txlen > 0)
-    return -1;
+  if (cc1020_txlen > 0) {
+	printf("data in buffer");
+	return -1;
+  }
 
   /* The preamble and the sync word are already in buffer. */
   cc1020_txlen = PREAMBLESIZE + SYNCWDSIZE;
@@ -235,7 +236,8 @@ cc1020_send(const void *buf, unsigned short len)
   cc1020_txbuf[cc1020_txlen++] = TAIL;
   cc1020_txbuf[cc1020_txlen++] = TAIL;
 
-  process_poll(&cc1020_sender_process);
+  //process_poll(&cc1020_sender_process);
+  process_post_synch(&cc1020_sender_process, PROCESS_EVENT_POLL, NULL);
 
   return len;
 }
@@ -269,6 +271,7 @@ cc1020_set_receiver(void (*recv)(const struct radio_driver *))
 int
 cc1020_on(void)
 {
+  cc1020_state &= ~CC1020_TURN_OFF;
   // Switch to receive mode
   cc1020_set_rx();
 
@@ -280,21 +283,22 @@ cc1020_off(void)
 {
   int s;
 
-  // Discard the current read buffer when the radio is shutting down.
-  cc1020_rxlen = 0;
+  if (cc1020_state & CC1020_RX_SEARCHING) {
+    // Discard the current read buffer when the radio is shutting down.
+    cc1020_rxlen = 0;
 
-  LNA_POWER_OFF();		// power down lna
-  s = splhigh();
-  cc1020_rxstate = CC1020_OFF;
-  DISABLE_RX_IRQ();
-  cc1020_state = CC1020_OFF;
-  splx(s);
-  cc1020_setupPD();		// power down radio
-  cc1020_state = CC1020_OFF;
-
-  ENERGEST_OFF(ENERGEST_TYPE_LISTEN);
-  ENERGEST_OFF(ENERGEST_TYPE_TRANSMIT);
-
+    LNA_POWER_OFF();		// power down lna
+    s = splhigh();
+    //cc1020_rxstate = CC1020_OFF;
+    DISABLE_RX_IRQ();
+    cc1020_state = CC1020_OFF;
+    splx(s);
+    cc1020_setupPD();		// power down radio
+    ENERGEST_OFF(ENERGEST_TYPE_LISTEN);
+    cc1020_state = CC1020_OFF;
+  } else {
+    cc1020_state |= CC1020_TURN_OFF;
+  }
   return 1;
 }
 
@@ -328,8 +332,7 @@ interrupt(UART0RX_VECTOR) cc1020_rxhandler(void)
   } shiftbuf;
   static unsigned char pktlen;
 
-  switch (cc1020_rxstate) {
-  case CC1020_RX_SEARCHING:
+  if (cc1020_state & CC1020_RX_SEARCHING) {
     shiftbuf.b1 = shiftbuf.b2;
     shiftbuf.b2 = shiftbuf.b3;
     shiftbuf.b3 = shiftbuf.b4;
@@ -364,10 +367,9 @@ interrupt(UART0RX_VECTOR) cc1020_rxhandler(void)
     }
     // Update RSSI.
     rssi = cc1020_read_reg(CC1020_RSS);
-    cc1020_rxstate = CC1020_RX_RECEIVING;
+	CC1020_SET_OPSTATE(CC1020_RX | CC1020_RX_RECEIVING);
 
-    break;
-  case CC1020_RX_RECEIVING:
+  } else if( cc1020_state & CC1020_RX_RECEIVING ) {
     if (syncbs == 0) {
       cc1020_rxbuf[cc1020_rxlen] = RXBUF0;
     } else {
@@ -387,13 +389,15 @@ interrupt(UART0RX_VECTOR) cc1020_rxhandler(void)
       pktlen = ((struct cc1020_header *)cc1020_rxbuf)->length;
       if (pktlen == 0 || pktlen > sizeof (cc1020_rxbuf)) {
 	cc1020_rxlen = 0;
-	cc1020_rxstate = CC1020_RX_SEARCHING;
+	CC1020_SET_OPSTATE(CC1020_RX | CC1020_RX_SEARCHING);
+	//cc1020_rxstate = CC1020_RX_SEARCHING;
       }
     } else if (cc1020_rxlen > HDRSIZE) {
       if (cc1020_rxlen == pktlen) {
         // disable receiver
         DISABLE_RX_IRQ();
-        cc1020_rxstate = CC1020_RX_PROCESSING;
+		CC1020_SET_OPSTATE(CC1020_RX | CC1020_RX_PROCESSING);
+        //cc1020_rxstate = CC1020_RX_PROCESSING;
 
         // call receiver to copy from buffer
         if (receiver_callback != NULL) {
@@ -402,18 +406,21 @@ interrupt(UART0RX_VECTOR) cc1020_rxhandler(void)
 
         // reset receiver
         cc1020_rxlen = 0;
-        cc1020_rxstate = CC1020_RX_SEARCHING;
-        ENABLE_RX_IRQ();
+	CC1020_SET_OPSTATE(CC1020_RX | CC1020_RX_SEARCHING);
+        //cc1020_rxstate = CC1020_RX_SEARCHING;
+	if ((cc1020_state & CC1020_TURN_OFF) && (cc1020_txlen == 0)) {
+	  cc1020_off();
+	} else {
+	  ENABLE_RX_IRQ();
+	}
       }
     }
-    break;
-  default:
-    break;
-  }
+  } 
 }
 
 PROCESS_THREAD(cc1020_sender_process, ev, data)
 {
+  int i;
   PROCESS_BEGIN();
 
   dma_subscribe(0, &cc1020_sender_process);
@@ -423,9 +430,9 @@ PROCESS_THREAD(cc1020_sender_process, ev, data)
 
     cc1020_set_rx();
 
-    if (cc1020_rxstate != CC1020_RX_SEARCHING) {
+    if((cc1020_state & CC1020_RX_SEARCHING) == 0) {
       // Wait until the receiver is idle.
-      PROCESS_WAIT_UNTIL(cc1020_rxstate == CC1020_RX_SEARCHING);
+      PROCESS_WAIT_UNTIL(cc1020_state & CC1020_RX_SEARCHING);
 
       // Wait for the medium to become idle.
       while (cc1020_carrier_sense());
@@ -437,17 +444,31 @@ PROCESS_THREAD(cc1020_sender_process, ev, data)
     // Switch to transceive mode.
     cc1020_set_tx();
 
+#if 0
+    U0CTL &= ~SWRST;
+    for (i = 0; i < cc1020_txlen; i++) {
+      UART0_TX = cc1020_txbuf[i];
+      UART0_WAIT_TX();
+    }
+#endif
+
     // Initiate radio transfer.
     dma_transfer(&TXBUF0, cc1020_txbuf, cc1020_txlen);
 
     // wait for DMA0 to finish
     PROCESS_WAIT_UNTIL(ev == dma_event);
+    ENERGEST_OFF(ENERGEST_TYPE_TRANSMIT);
 
     RIMESTATS_ADD(lltx);
 
     // clean up
     cc1020_txlen = 0;
-    cc1020_set_rx();
+    if (cc1020_state & CC1020_TURN_OFF) {
+      CC1020_SET_OPSTATE(CC1020_RX | CC1020_RX_SEARCHING);
+      cc1020_off();
+    } else {
+      cc1020_set_rx();
+    }
   }
 
   PROCESS_END();

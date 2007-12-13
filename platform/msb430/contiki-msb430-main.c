@@ -47,21 +47,21 @@
 
 #include "sys/procinit.h"
 #include "sys/autostart.h"
-#include "sys/rtimer.h"
 
 #include "dev/adc.h"
-#include "dev/dma.h"
-#include "dev/sht11.h"
-#include "dev/slip.h"
 
 #include "net/mac/nullmac.h"
 #include "net/mac/xmac.h"
+
+#include "dev/slip.h"
+
+extern volatile bool uart_edge;
 
 SENSORS(NULL);
 
 #if WITH_UIP
 static struct uip_fw_netif slipif =
-  {UIP_FW_NETIF(172,16,0,1, 255,255,255,0, slip_send)};
+{UIP_FW_NETIF(192,168,1,2, 255,255,255,255, slip_send)};
 #else
 int
 putchar(int c)
@@ -75,7 +75,6 @@ static void
 set_rime_addr(void)
 {
   rimeaddr_t addr;
-
   addr.u16[0] = node_id;
   rimeaddr_set_node_addr(&addr);
 }
@@ -83,12 +82,29 @@ set_rime_addr(void)
 static void
 msb_ports_init(void)
 {
-  P1DIR = 0x00; P1SEL = 0x00; P1OUT = 0x00;
-  P2DIR = 0x1A; P2SEL = 0x00; P2OUT = 0x18;
-  P3DIR = 0x21; P3SEL = 0x00; P3OUT = 0x09;
-  P4DIR = 0x00; P4SEL = 0x00; P4OUT = 0x07;
-  P5DIR = 0xFD; P5SEL = 0x0E; P5OUT = 0xF9;
-  P6DIR = 0xC8; P6SEL = 0x07; P6OUT = 0x00;
+  P1SEL = 0x00;
+  P1OUT = 0x00;
+  P1DIR = 0x00;
+
+  P2SEL = 0x00;
+  P2OUT = 0x18;
+  P2DIR = 0x1A;
+
+  P3SEL = 0x00;
+  P3OUT = 0x09;
+  P3DIR = 0x21;
+
+  P4SEL = 0x00;
+  P4OUT = 0x00;
+  P4DIR = 0x00;
+
+  P5SEL = 0x0E;
+  P5OUT = 0xF9;
+  P5DIR = 0xFD;
+
+  P6SEL = 0x07;
+  P6OUT = 0x00;
+  P6DIR = 0xC8;
 }
 
 int
@@ -99,12 +115,10 @@ main(void)
   /* Platform-specific initialization. */
   msb_ports_init();
   adc_init();
-  dma_init();
 
   clock_init();
   leds_init();
   leds_on(LEDS_ALL);
-  sht11_init();
 
   // low level
   irq_init();
@@ -123,55 +137,101 @@ main(void)
   slip_arch_init(BAUD2UBR(115200));
 #endif
 
-  rtimer_init();
-  ctimer_init();
-
-  energest_init();
-  node_id_restore();
-
   /* System services */
   process_start(&etimer_process, NULL);
-#if 0
-  process_start(&sensors_process, NULL);
-#endif
+  //process_start(&sensors_process, NULL);
 
-  /* Radio driver */
-  cc1020_init(cc1020_config_19200);
+  //cc1020_init(cc1020_config_19200);
 
-  /* Network configuration */
+  // network configuration
+  node_id_restore();
+ 
 #if WITH_UIP
   uip_init();
   uip_sethostaddr(&slipif.ipaddr);
   uip_setnetmask(&slipif.netmask);
-  /* Point-to-point, no default router. */
-  uip_fw_default(&slipif);
+  uip_fw_default(&slipif);	/* Point2point, no default router. */
   tcpip_set_forwarding(0);
-
-  process_start(&tcpip_process, NULL);
-  process_start(&uip_fw_process, NULL);
-  process_start(&slip_process, NULL);
 #endif /* WITH_UIP */
 
   nullmac_init(&cc1020_driver);
   rime_init(&nullmac_driver);
   set_rime_addr();
+
+#if WITH_UIP
+  process_start(&tcpip_process, NULL);
+  process_start(&uip_fw_process, NULL);	/* Start IP output */
+  process_start(&slip_process, NULL);
+#endif /* WITH_UIP */
  
-  printf(CONTIKI_VERSION_STRING " started. Node id %d.\n", node_id);
-
-  printf("Autostarting processes\n");
-  autostart_start((struct process **) autostart_processes);
-
+#if PROFILE_CONF_ON
+  profile_init();
+#endif /* PROFILE_CONF_ON */
+ 
   leds_off(LEDS_ALL);
   lpm_on();
 
-  for (;;) {
-    while (process_run() > 0);
-    if (process_nevents() == 0) {
+  printf(CONTIKI_VERSION_STRING " started. Node id %u.", node_id);
+
+  autostart_start((struct process **) autostart_processes);
+
+  energest_init();
+
+  /*
+   * This is the scheduler loop.
+   */
+  ENERGEST_ON(ENERGEST_TYPE_CPU);
+
+  while (1) {
+    int r;
+#if PROFILE_CONF_ON
+    profile_episode_start();
+#endif /* PROFILE_CONF_ON */
+    do {
+      /* Reset watchdog. */
+      r = process_run();
+    } while(r > 0);
+
+#if PROFILE_CONF_ON
+    profile_episode_end();
+#endif /* PROFILE_CONF_ON */
+
+    /*
+     * Idle processing.
+     */
+    int s = splhigh();		/* Disable interrupts. */
+    if (process_nevents() != 0) {
+      splx(s);			/* Re-enable interrupts. */
+    } else {
+      static unsigned long irq_energest = 0;
+      /* Re-enable interrupts and go to sleep atomically. */
       ENERGEST_OFF(ENERGEST_TYPE_CPU);
       ENERGEST_ON(ENERGEST_TYPE_LPM);
-      LPM_SLEEP();
+     /*
+      * We only want to measure the processing done in IRQs when we
+      * are asleep, so we discard the processing time done when we
+      * were awake.
+      */
+      energest_type_set(ENERGEST_TYPE_IRQ, irq_energest);
+
+      if (uart_edge) {
+	_BIS_SR(LPM1_bits + GIE);
+      } else {
+	_BIS_SR(LPM1_bits + GIE);
+      }
+
+      /*
+       * We get the current processing time for interrupts that was
+       * done during the LPM and store it for next time around. 
+       */
+      dint();
+      irq_energest = energest_type_time(ENERGEST_TYPE_IRQ);
+      eint();
       ENERGEST_OFF(ENERGEST_TYPE_LPM);
       ENERGEST_ON(ENERGEST_TYPE_CPU);
+#if PROFILE_CONF_ON
+      profile_clear_timestamps();
+#endif /* PROFILE_CONF_ON */
     }
   }
 

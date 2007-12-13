@@ -214,10 +214,20 @@ const uint8_t cc1020_config_115200[41] = {
 
 /// cc1020 state
 enum cc1020_state {
-  CC1020_OFF,
-  CC1020_RX,
-  CC1020_TX
+  CC1020_OFF = 0,
+  CC1020_RX  = 0x01,
+  CC1020_TX  = 0x02,
+  
+  CC1020_RX_SEARCHING = 0x10,		// searching for preamble + sync word
+  CC1020_RX_RECEIVING = 0x20,		// receiving bytes
+  CC1020_RX_PROCESSING = 0x40,		// processing data in buffer
+  
+  CC1020_OP_STATE = 0x73,
+  
+  CC1020_TURN_OFF = 0x80,
 };
+
+#define CC1020_SET_OPSTATE(opstate)		cc1020_state = ((cc1020_state & ~CC1020_OP_STATE) | (opstate))
 
 /******************************************************************************
  * @name	Packet specification
@@ -241,10 +251,3 @@ struct cc1020_header {
 #define HDRSIZE		(sizeof (struct cc1020_header))
 
 ///@}
-
-/// cc1020 receiver state
-enum cc1020_rxstate {
-  CC1020_RX_SEARCHING,		// searching for preamble + sync word
-  CC1020_RX_RECEIVING,		// receiving bytes
-  CC1020_RX_PROCESSING		// processing data in buffer
-};
