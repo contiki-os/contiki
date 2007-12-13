@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: radio-uip-uaodv.c,v 1.8 2007/11/25 22:45:04 fros4943 Exp $
+ * @(#)$Id: radio-uip-uaodv.c,v 1.9 2007/12/13 16:57:31 fros4943 Exp $
  */
 
 #include "radio-uip-uaodv.h"
@@ -117,13 +117,13 @@ PROCESS_THREAD(radio_uip_process, ev, data)
     if(ev == EVENT_SEND_ACK) {
 
       /* Prepare and send ack for given 16-bit CRC */
-      char ackPacket[ACK_PACKET_LENGTH];
+      u8_t ackPacket[ACK_PACKET_LENGTH];
       memcpy(ackPacket, ACK_ID, ACK_ID_LENGTH);
-      memcpy(&ackPacket[ACK_CRC], &data, 2);
+      ackPacket[ACK_CRC] = ((u16_t) data >> 8);
+      ackPacket[ACK_CRC+1] = ((u16_t) data & 0xff);
       radio->send(ackPacket, ACK_PACKET_LENGTH);
 
     } else if(ev == PROCESS_EVENT_TIMER) {
-
       /* Locate which packet acknowledgement timed out */
       for(packet = list_head(buf_packet_list);
           packet != NULL;
@@ -325,10 +325,11 @@ radio_uip_buffer_outgoing_packet(u8_t *buf, int len, uip_ipaddr_t *dest, int max
 int
 radio_uip_is_ack(u8_t *buf, int len)
 {
-  if (uip_len != ACK_PACKET_LENGTH)
+  if (len != ACK_PACKET_LENGTH)
     return 0;
   
-  return strncmp(buf, ACK_ID, ACK_ID_LENGTH) == 0;
+  return memcmp(buf, ACK_ID, ACK_ID_LENGTH) == 0;
+  
 }
 /*---------------------------------------------------------------------------*/
 int
@@ -337,7 +338,7 @@ radio_uip_handle_ack(u8_t *buf, int len)
   struct buf_packet *packet;
   u16_t ackCRC;
   
-  memcpy(&ackCRC, &buf[ACK_CRC], 2);
+  ackCRC = (u16_t) (buf[ACK_CRC] << 8) + (u16_t) (0xff&buf[ACK_CRC+1]);
   
   /* Locate which packet was acknowledged */
   for(packet = list_head(buf_packet_list);
