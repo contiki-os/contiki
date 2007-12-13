@@ -49,6 +49,8 @@
 #include "sys/autostart.h"
 
 #include "dev/adc.h"
+#include "dev/dma.h"
+#include "dev/sht11.h"
 
 #include "net/mac/nullmac.h"
 #include "net/mac/xmac.h"
@@ -75,6 +77,7 @@ static void
 set_rime_addr(void)
 {
   rimeaddr_t addr;
+
   addr.u16[0] = node_id;
   rimeaddr_set_node_addr(&addr);
 }
@@ -82,29 +85,17 @@ set_rime_addr(void)
 static void
 msb_ports_init(void)
 {
-  P1SEL = 0x00;
-  P1OUT = 0x00;
-  P1DIR = 0x00;
+  P1SEL = 0x00; P1OUT = 0x00; P1DIR = 0x00;
 
-  P2SEL = 0x00;
-  P2OUT = 0x18;
-  P2DIR = 0x1A;
+  P2SEL = 0x00; P2OUT = 0x18; P2DIR = 0x1A;
 
-  P3SEL = 0x00;
-  P3OUT = 0x09;
-  P3DIR = 0x21;
+  P3SEL = 0x00; P3OUT = 0x09; P3DIR = 0x21;
 
-  P4SEL = 0x00;
-  P4OUT = 0x00;
-  P4DIR = 0x00;
+  P4SEL = 0x00; P4OUT = 0x00; P4DIR = 0x00;
 
-  P5SEL = 0x0E;
-  P5OUT = 0xF9;
-  P5DIR = 0xFD;
+  P5SEL = 0x0E; P5OUT = 0xF9; P5DIR = 0xFD;
 
-  P6SEL = 0x07;
-  P6OUT = 0x00;
-  P6DIR = 0xC8;
+  P6SEL = 0x07; P6OUT = 0x00; P6DIR = 0xC8;
 }
 
 int
@@ -115,8 +106,13 @@ main(void)
   /* Platform-specific initialization. */
   msb_ports_init();
   adc_init();
+  dma_init();
 
   clock_init();
+  rtimer_init();
+  ctimer_init();
+
+  sht11_init();
   leds_init();
   leds_on(LEDS_ALL);
 
@@ -158,6 +154,8 @@ main(void)
   rime_init(&nullmac_driver);
   set_rime_addr();
 
+  energest_init();
+
 #if WITH_UIP
   process_start(&tcpip_process, NULL);
   process_start(&uip_fw_process, NULL);	/* Start IP output */
@@ -174,8 +172,6 @@ main(void)
   printf(CONTIKI_VERSION_STRING " started. Node id %u.", node_id);
 
   autostart_start((struct process **) autostart_processes);
-
-  energest_init();
 
   /*
    * This is the scheduler loop.
