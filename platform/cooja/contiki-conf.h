@@ -27,7 +27,7 @@
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * $Id: contiki-conf.h,v 1.8 2007/11/25 22:47:18 fros4943 Exp $
+ * $Id: contiki-conf.h,v 1.9 2007/12/13 08:00:51 fros4943 Exp $
  *
  */
 
@@ -38,6 +38,8 @@
 #define ENERGEST_CONF_ON 0
 
 #define COOJA 1
+
+#define QUEUEBUF_CONF_NUM 10
 
 #define CC_CONF_REGISTER_ARGS          1
 #define CC_CONF_FUNCTION_POINTER_ARGS  1
