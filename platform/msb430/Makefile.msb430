@@ -23,12 +23,6 @@ ifndef BASE_IP
 BASE_IP := 172.16.1.1
 endif
 
-send:	$(CONTIKI)/tools/codeprop.c
-	cc -Wall $^ -o send
-
-%.send:	%.cm send
-	send $(BASE_IP) $<
-
 ### System dependent Makefile
 
 ifndef WINDIR
