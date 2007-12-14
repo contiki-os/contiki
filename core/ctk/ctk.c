@@ -44,7 +44,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: ctk.c,v 1.12 2007/12/14 23:34:19 oliverschmidt Exp $
+ * $Id: ctk.c,v 1.13 2007/12/14 23:38:00 oliverschmidt Exp $
  *
  */
 
@@ -383,7 +383,6 @@ ctk_window_open(CC_REGISTER_ARG struct ctk_window *w)
   }
 #else /* CTK_CONF_WINDOWS */
   window = w;
-debug_printf("open:%d -> %d\n",w,window);
 #endif /* CTK_CONF_WINDOWS */
 
 #if CTK_CONF_MENUS
@@ -610,7 +609,6 @@ do_redraw_all(unsigned char clipy1, unsigned char clipy2)
     ctk_draw_dialog(dialog);
   }
 #else /* CTK_CONF_WINDOWS */
-  debug_printf("all: w:%d c1:%d c1:%d\n",window,clipy1,clipy2);
   if(window != NULL) {
     ctk_draw_clear_window(window, CTK_FOCUS_WINDOW, clipy1, clipy2);
     ctk_draw_window(window, CTK_FOCUS_WINDOW, clipy1, clipy2, 0);
@@ -1906,7 +1904,6 @@ PROCESS_THREAD(ctk_process, ev, data)
 #endif /* CTK_CONF_WINDOWMOVE */
       }
 
-debug_printf("redraw:%d %d\n",redraw,window);
     if(redraw & REDRAW_ALL) {
       do_redraw_all(1, height);
 #if CTK_CONF_MENUS
