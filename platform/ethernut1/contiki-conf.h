@@ -49,6 +49,9 @@ unsigned long clock_seconds(void);
 /* Toggles support for icon textmaps. */
 #define CTK_CONF_ICON_TEXTMAPS        1
 
+/* Toggles support for windows. */
+#define CTK_CONF_WINDOWS              1
+
 /* Toggles support for movable windows. */
 #define CTK_CONF_WINDOWMOVE           1 /* 333 bytes */
 
