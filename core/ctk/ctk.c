@@ -44,7 +44,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: ctk.c,v 1.11 2007/11/30 22:37:22 oliverschmidt Exp $
+ * $Id: ctk.c,v 1.12 2007/12/14 23:34:19 oliverschmidt Exp $
  *
  */
 
@@ -60,14 +60,19 @@ static unsigned char height, width;
 
 static unsigned char mode;
 
+#if CTK_CONF_WINDOWS
 static struct ctk_window desktop_window;
 static struct ctk_window *windows;
 static struct ctk_window *dialog;
+#else /* CTK_CONF_WINDOWS */
+static struct ctk_window *window;
+#endif /* CTK_CONF_WINDOWS */
 
 #if CTK_CONF_MENUS
 static struct ctk_menus menus;
 static struct ctk_menu *lastmenu;
 static struct ctk_menu desktopmenu;
+static unsigned char maxnitems;
 #endif /* CTK_CONF_MENUS */
 
 #ifndef NULL
@@ -85,7 +90,6 @@ static struct ctk_menu desktopmenu;
 static unsigned char redraw;
 static struct ctk_widget *redraw_widgets[MAX_REDRAWWIDGETS];
 static unsigned char redraw_widgetptr;
-static unsigned char maxnitems;
 
 #if CTK_CONF_ICONS
 static unsigned char iconx, icony;
@@ -133,24 +137,27 @@ process_event_t
   ctk_signal_hyperlink_activate,
 
   /** Same as ctk_signal_widget_select. */
-  ctk_signal_hyperlink_hover,
+  ctk_signal_hyperlink_hover;
 
+#if CTK_CONF_MENUS
   /** Emitted when a menu item is activated. The number of the menu
       item is passed as signal data. */
-  ctk_signal_menu_activate,
+process_event_t ctk_signal_menu_activate;
+#endif /* CTK_CONF_MENUS */
 
   /** Emitted when a window is closed. A pointer to the window is
       passed as signal data. */
-  ctk_signal_window_close,
+process_event_t ctk_signal_window_close;
 
+#if CTK_CONF_MOUSE_SUPPORT
   /** Emitted when the mouse pointer is moved. A NULL pointer is
       passed as signal data and it is up to the listening process to
       check the position of the mouse using the CTK mouse API.*/
-  ctk_signal_pointer_move,
-
+process_event_t ctk_signal_pointer_move,
   /** Emitted when a mouse button is pressed. The button is passed as
       signal data to the listening process. */
   ctk_signal_pointer_button;
+#endif /* CTK_CONF_MOUSE_SUPPORT */
 
 #if CTK_CONF_SCREENSAVER
 /** Emitted when the user has been idle long enough for the
@@ -307,6 +314,7 @@ ctk_icon_add(CC_REGISTER_ARG struct ctk_widget *icon, struct process *p)
   arrange_icons();
 #endif /* CTK_CONF_ICONS */
 }
+#if CTK_CONF_WINDOWS
 /*---------------------------------------------------------------------------*/
 /**
  * Open a dialog box.
@@ -332,6 +340,7 @@ ctk_dialog_close(void)
   dialog = NULL;
   redraw |= REDRAW_ALL;
 }
+#endif /* CTK_CONF_WINDOWS */
 /*---------------------------------------------------------------------------*/
 /**
  * Open a window, or bring window to front if already open.
@@ -342,6 +351,7 @@ ctk_dialog_close(void)
 void
 ctk_window_open(CC_REGISTER_ARG struct ctk_window *w)
 {
+#if CTK_CONF_WINDOWS
   struct ctk_window *w2;
   
   /* Check if already open. */
@@ -371,7 +381,11 @@ ctk_window_open(CC_REGISTER_ARG struct ctk_window *w)
       w->prev = NULL;
     }
   }
-  
+#else /* CTK_CONF_WINDOWS */
+  window = w;
+debug_printf("open:%d -> %d\n",w,window);
+#endif /* CTK_CONF_WINDOWS */
+
 #if CTK_CONF_MENUS
   /* Recreate the Desktop menu's window entries.*/
   make_desktopmenu();
@@ -433,6 +447,7 @@ ctk_window_close(struct ctk_window *w)
   redraw |= REDRAW_ALL;
 #endif /* CTK_CONF_WINDOWCLOSE */
 }
+#if CTK_CONF_WINDOWS
 /*---------------------------------------------------------------------------*/
 /**
  * \internal Create the move and close buttons on the window titlebar.
@@ -466,6 +481,7 @@ make_windowbuttons(CC_REGISTER_ARG struct ctk_window *window)
 #endif /* CTK_CONF_WINDOWCLOSE */
   CTK_WIDGET_ADD(window, &window->closebutton);
 }
+#endif /* CTK_CONF_WINDOWS */
 /*---------------------------------------------------------------------------*/
 /**
  * Remove all widgets from a window.
@@ -478,7 +494,9 @@ ctk_window_clear(struct ctk_window *w)
 {
   w->active = w->inactive = w->focused = NULL;
   
+#if CTK_CONF_WINDOWS
   make_windowbuttons(w);
+#endif /* CTK_CONF_WINDOWS */
 }
 /*---------------------------------------------------------------------------*/
 /**
@@ -548,9 +566,11 @@ ctk_menu_remove(struct ctk_menu *menu)
 static void CC_FASTCALL
 do_redraw_all(unsigned char clipy1, unsigned char clipy2)
 {
-  struct ctk_window *w;
+#if CTK_CONF_WINDOWS
   static struct ctk_widget *widget;
+  struct ctk_window *w;
   unsigned char focus;
+#endif /* CTK_CONF_WINDOWS */
 
   if(mode != CTK_MODE_NORMAL &&
      mode != CTK_MODE_WINDOWMOVE) {
@@ -559,12 +579,13 @@ do_redraw_all(unsigned char clipy1, unsigned char clipy2)
   
   ctk_draw_clear(clipy1, clipy2);
 
+#if CTK_CONF_WINDOWS  
   /* Draw widgets in root window */
   for(widget = desktop_window.active;
       widget != NULL; widget = widget->next) {
     ctk_draw_widget(widget, windows != NULL? 0: CTK_FOCUS_WINDOW, clipy1, clipy2);
   }
-  
+
   /* Draw windows */
   if(windows != NULL) {
     /* Find the last window.*/
@@ -588,11 +609,19 @@ do_redraw_all(unsigned char clipy1, unsigned char clipy2)
   if(dialog != NULL) {
     ctk_draw_dialog(dialog);
   }
+#else /* CTK_CONF_WINDOWS */
+  debug_printf("all: w:%d c1:%d c1:%d\n",window,clipy1,clipy2);
+  if(window != NULL) {
+    ctk_draw_clear_window(window, CTK_FOCUS_WINDOW, clipy1, clipy2);
+    ctk_draw_window(window, CTK_FOCUS_WINDOW, clipy1, clipy2, 0);
+  }
+#endif /* CTK_CONF_WINDOWS */
 
 #if CTK_CONF_MENUS
   ctk_draw_menus(&menus);
 #endif /* CTK_CONF_MENUS */
 }
+#if CTK_CONF_WINDOWS
 /*---------------------------------------------------------------------------*/
 /**
  * Redraw the entire desktop.
@@ -620,6 +649,7 @@ ctk_desktop_redraw(struct ctk_desktop *d)
     redraw |= REDRAW_ALL;
   }
 }
+#endif /* CTK_CONF_WINDOWS */
 /*---------------------------------------------------------------------------*/
 /**
  * Redraw a window.
@@ -639,15 +669,17 @@ ctk_window_redraw(struct ctk_window *w)
     return;
   }
   
+#if CTK_CONF_WINDOWS
   if(w == dialog) {
     ctk_draw_dialog(w);
   } else if(dialog == NULL &&
 #if CTK_CONF_MENUS
 	    menus.open == NULL &&
 #endif /* CTK_CONF_MENUS */
-	    windows == w) {
-    ctk_draw_window(w, CTK_FOCUS_WINDOW,
-		    0, height, 0);
+	    windows == w)
+#endif /* CTK_CONF_WINDOWS */
+  {
+    ctk_draw_window(w, CTK_FOCUS_WINDOW, 0, height, 0);
   }
 }
 /*---------------------------------------------------------------------------*/
@@ -665,7 +697,7 @@ window_new(CC_REGISTER_ARG struct ctk_window *window,
 	   unsigned char w, unsigned char h,
 	   char *title)
 {
-  
+#if CTK_CONF_WINDOWS
   if(w >= width - 2) {
     window->x = 0;
   } else {
@@ -676,6 +708,10 @@ window_new(CC_REGISTER_ARG struct ctk_window *window,
   } else {
     window->y = (height - h - 2 - ctk_draw_windowtitle_height) / 2;
   }
+#else /* CTK_CONF_WINDOWS */
+  window->x = -1;
+  window->y = -1;
+#endif /* CTK_CONF_WINDOWS */
 
   window->w = w;
   window->h = h;
@@ -686,7 +722,6 @@ window_new(CC_REGISTER_ARG struct ctk_window *window,
     window->titlelen = 0;
   }
   window->next = window->prev = NULL;
-  /*  window->owner = DISPATCHER_CURRENT();*/
   window->owner = PROCESS_CURRENT();
   window->active = window->inactive = window->focused = NULL;
 }
@@ -716,8 +751,11 @@ ctk_window_new(struct ctk_window *window,
 {
   window_new(window, w, h, title);
 
+#if CTK_CONF_WINDOWS
   make_windowbuttons(window);
+#endif /* CTK_CONF_WINDOWS */
 }
+#if CTK_CONF_WINDOWS
 /*---------------------------------------------------------------------------*/
 /**
  * Creates a new dialog.
@@ -737,6 +775,7 @@ ctk_dialog_new(CC_REGISTER_ARG struct ctk_window *dialog,
 {
   window_new(dialog, w, h, NULL);
 }
+#endif /* CTK_CONF_WINDOWS */
 /*---------------------------------------------------------------------------*/
 /**
  * Creates a new menu.
@@ -849,16 +888,19 @@ widget_redraw(struct ctk_widget *widget)
 #if CTK_CONF_MENUS
   if(menus.open == NULL)
 #endif /* CTK_CONF_MENUS */
+  {
+    window = widget->window;
+#if CTK_CONF_WINDOWS
+    if(window == dialog) {
+      ctk_draw_widget(widget, CTK_FOCUS_DIALOG, 0, height);
+    } else if(dialog == NULL &&
+	      (window == windows ||
+	       window == &desktop_window))
+#endif /* CTK_CONF_WINDOWS */
     {
-      window = widget->window;
-      if(window == dialog) {
-	ctk_draw_widget(widget, CTK_FOCUS_DIALOG, 0, height);
-      } else if(dialog == NULL &&
-		(window == windows ||
-		 window == &desktop_window)) {
 	ctk_draw_widget(widget, CTK_FOCUS_WINDOW, 0, height);
-      }
     }
+  }
 }
 /*---------------------------------------------------------------------------*/
 /**
@@ -977,9 +1019,7 @@ select_widget(struct ctk_widget *focus)
     add_redrawwidget(window->focused);
 
     process_post(focus->window->owner, ctk_signal_widget_select, focus);
-
   }
-
 }
 /*---------------------------------------------------------------------------*/
 #define UP 0
@@ -989,11 +1029,13 @@ select_widget(struct ctk_widget *focus)
 static void CC_FASTCALL
 switch_focus_widget(unsigned char direction)
 {
+#if CTK_CONF_WINDOWS
   register struct ctk_window *window;
+#endif /* CTK_CONF_WINDOWS */
   register struct ctk_widget *focus;
   struct ctk_widget *widget;
   
-  
+#if CTK_CONF_WINDOWS
   if(dialog != NULL) {
     window = dialog;
   } else {
@@ -1005,6 +1047,11 @@ switch_focus_widget(unsigned char direction)
   if(window == NULL) {
     window = &desktop_window;
   }
+#else /* CTK_CONF_WINDOWS */
+  if(window == NULL) {
+    return;
+  }
+#endif /* CTK_CONF_WINDOWS */
  
   focus = window->focused;
   if(focus == NULL) {
@@ -1107,7 +1154,6 @@ switch_menu_item(unsigned char updown)
       }
     }
   }
-  
 }
 #endif /* CTK_CONF_MENUS */
 /*---------------------------------------------------------------------------*/
@@ -1115,18 +1161,20 @@ static unsigned char CC_FASTCALL
 activate(CC_REGISTER_ARG struct ctk_widget *w)
 {
   if(w->type == CTK_WIDGET_BUTTON) {
-    if(w == (struct ctk_widget *)&windows->closebutton) {
 #if CTK_CONF_WINDOWCLOSE
+    if(w == (struct ctk_widget *)&windows->closebutton) {
       process_post(w->window->owner, ctk_signal_window_close, windows);
       ctk_window_close(windows);
       return REDRAW_ALL;
+    } else
 #endif /* CTK_CONF_WINDOWCLOSE */
-    } else if(w == (struct ctk_widget *)&windows->titlebutton) {
 #if CTK_CONF_WINDOWMOVE
+    if(w == (struct ctk_widget *)&windows->titlebutton) {
       mode = CTK_MODE_WINDOWMOVE;
       return REDRAW_ALL;
+    } else
 #endif /* CTK_CONF_WINDOWMOVE */
-    } else {
+    {
       process_post(w->window->owner, ctk_signal_widget_activate, w);
     }
 #if CTK_CONF_ICONS
@@ -1343,7 +1391,9 @@ PROCESS_THREAD(ctk_process, ev, data)
 {
   static ctk_arch_key_t c;
   static unsigned char i;
+#if CTK_CONF_WINDOWS
   register struct ctk_window *window;
+#endif /* CTK_CONF_WINDOWS */
   register struct ctk_widget *widget;
   register struct ctk_widget **widgetptr;
 #if CTK_CONF_MOUSE_SUPPORT
@@ -1355,9 +1405,6 @@ PROCESS_THREAD(ctk_process, ev, data)
   
   PROCESS_BEGIN();
   
-  windows = NULL;
-  dialog = NULL;
-
 #if CTK_CONF_MENUS
   ctk_menu_new(&desktopmenu, "Desktop");
   make_desktopmenu();
@@ -1371,8 +1418,10 @@ PROCESS_THREAD(ctk_process, ev, data)
   
   ctk_restore();
 
+#if CTK_CONF_WINDOWS
   desktop_window.owner = &ctk_process;
-  
+#endif /* CTK_CONF_WINDOWS */
+
   ctk_signal_keypress = process_alloc_event();
   
   ctk_signal_button_activate =
@@ -1384,11 +1433,16 @@ PROCESS_THREAD(ctk_process, ev, data)
   
   ctk_signal_hyperlink_activate = process_alloc_event();
 
+#if CTK_CONF_MENUS
   ctk_signal_menu_activate = process_alloc_event();
+#endif /* CTK_CONF_MENUS */
+
   ctk_signal_window_close = process_alloc_event();
 
+#if CTK_CONF_MOUSE_SUPPORT
   ctk_signal_pointer_move = process_alloc_event();
   ctk_signal_pointer_button = process_alloc_event();
+#endif /* CTK_CONF_MOUSE_SUPPORT */
 
 #if CTK_CONF_SCREENSAVER
   ctk_signal_screensaver_start = process_alloc_event();
@@ -1674,6 +1728,7 @@ PROCESS_THREAD(ctk_process, ev, data)
       
 	  c = ctk_arch_getkey();
       
+#if CTK_CONF_WINDOWS
 	  if(dialog != NULL) {
 	    window = dialog;
 	  } else if(windows != NULL) {
@@ -1681,7 +1736,12 @@ PROCESS_THREAD(ctk_process, ev, data)
 	  } else {
 	    window = &desktop_window;
 	  }
-      
+#else /* CTK_CONF_WINDOWS */
+	  if(window == NULL) {
+	    continue;
+	  }
+#endif /* CTK_CONF_WINDOWS */
+
 	  widget = window->focused;
 	  
 	  if(widget != NULL &&
@@ -1714,6 +1774,7 @@ PROCESS_THREAD(ctk_process, ev, data)
 	      }
 	      break;
 #endif /* CTK_CONF_MENUS */
+#if CTK_CONF_WINDOWS
 	    case CTK_CONF_WINDOWSWITCH_KEY:
 	      if(windows != NULL) {
 		for(window = windows; window->next != NULL;
@@ -1721,6 +1782,7 @@ PROCESS_THREAD(ctk_process, ev, data)
 		ctk_window_open(window);
 	      }
 	      break;
+#endif /* CTK_CONF_WINDOWS */
 	    default:
 
 	      if(c == CH_ENTER &&
@@ -1844,6 +1906,7 @@ PROCESS_THREAD(ctk_process, ev, data)
 #endif /* CTK_CONF_WINDOWMOVE */
       }
 
+debug_printf("redraw:%d %d\n",redraw,window);
     if(redraw & REDRAW_ALL) {
       do_redraw_all(1, height);
 #if CTK_CONF_MENUS
@@ -1853,6 +1916,7 @@ PROCESS_THREAD(ctk_process, ev, data)
       ctk_draw_menus(&menus);
 #endif /* CTK_CONF_MENUS */
     } else if(redraw & REDRAW_FOCUS) {
+#if CTK_CONF_WINDOWS
       if(dialog != NULL) {
 	ctk_window_redraw(dialog);
       } else if(windows != NULL) {
@@ -1860,6 +1924,11 @@ PROCESS_THREAD(ctk_process, ev, data)
       } else {
 	ctk_window_redraw(&desktop_window);
       }
+#else /* CTK_CONF_WINDOWS */
+      if(window != NULL) {
+	ctk_window_redraw(window);
+      }
+#endif /* CTK_CONF_WINDOWS */
     } else if(redraw & REDRAW_WIDGETS) {
       widgetptr = redraw_widgets;
       for(i = 0; i < MAX_REDRAWWIDGETS; ++i) {
