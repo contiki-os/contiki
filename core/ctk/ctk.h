@@ -43,7 +43,7 @@
  *
  * This file is part of the Contiki desktop OS.
  *
- * $Id: ctk.h,v 1.3 2007/08/30 14:39:17 matsutsuka Exp $
+ * $Id: ctk.h,v 1.4 2007/12/14 23:34:19 oliverschmidt Exp $
  *
  */
 
@@ -523,10 +523,17 @@ struct ctk_window {
   struct ctk_label titlebutton;
 #endif /* CTK_CONF_WINDOWMOVE */
 
+#if CTK_CONF_WINDOWS
   unsigned char x,             /**< The x coordinate of the window, in
 				  characters. */
     y;                         /**< The y coordinate of the window, in
 				  characters. */
+#else /* CTK_CONF_WINDOWS */
+  signed char x,               /**< The x coordinate of the window, in
+				  characters. */
+    y;                         /**< The y coordinate of the window, in
+				  characters. */
+#endif /* CTK_CONF_WINDOWS */
   unsigned char w,             /**< The width of the window, excluding
 				  window borders. */
     h;                         /**< The height of the window,
