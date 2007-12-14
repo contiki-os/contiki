@@ -35,6 +35,8 @@ typedef unsigned long clock_time_t;
 
 #define CTK_CONF_ICON_TEXTMAPS        1
 
+#define CTK_CONF_WINDOWS              1
+
 #define CTK_CONF_WINDOWMOVE           1
 
 #define CTK_CONF_WINDOWCLOSE          1
