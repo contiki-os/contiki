@@ -27,7 +27,7 @@
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * $Id: ctk_arch-def.h,v 1.4 2007/11/28 09:38:21 matsutsuka Exp $
+ * $Id: ctk_arch-def.h,v 1.5 2007/12/14 23:49:14 oliverschmidt Exp $
  *
  */
 
@@ -115,6 +115,7 @@
 /* If network is available, turn all options off by the memory reason */
 #define CTK_CONF_ICONS			0
 #define CTK_CONF_ICON_TEXTMAPS		0
+#define CTK_CONF_WINDOWS		1
 #define CTK_CONF_WINDOWCLOSE		0
 #define CTK_CONF_WINDOWMOVE		0
 #define CTK_CONF_MENUS			0
@@ -123,6 +124,7 @@
 /* In the case of loader arch, we omit the icons by the memory reason */
 #define CTK_CONF_ICONS			0
 #define CTK_CONF_ICON_TEXTMAPS		0
+#define CTK_CONF_WINDOWS		1
 #define CTK_CONF_WINDOWCLOSE		1
 #define CTK_CONF_WINDOWMOVE		1
 #define CTK_CONF_MENUS			1
@@ -132,6 +134,8 @@
 #define CTK_CONF_ICONS			1
 /* Define if text icon is used. */
 #define CTK_CONF_ICON_TEXTMAPS		1
+/* Toggles support for windows. */
+#define CTK_CONF_WINDOWS		1
 /* Toggles support for closable windows. */
 #define CTK_CONF_WINDOWCLOSE		1
 /* Toggles support for movable windows. */
