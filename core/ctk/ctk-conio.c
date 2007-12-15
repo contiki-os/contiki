@@ -29,7 +29,7 @@
  *
  * This file is part of the "ctk" console GUI toolkit for cc65
  *
- * $Id: ctk-conio.c,v 1.7 2007/12/15 20:46:15 oliverschmidt Exp $
+ * $Id: ctk-conio.c,v 1.8 2007/12/15 21:04:20 oliverschmidt Exp $
  *
  */
 
@@ -82,8 +82,7 @@ ctk_draw_init(void)
 static void
 draw_widget(struct ctk_widget *w,
 	    unsigned char x, unsigned char y,
-	    unsigned char clipx,
-	    unsigned char clipy,
+	    unsigned char clipx, unsigned char clipy,
 	    unsigned char clipy1, unsigned char clipy2,
 	    unsigned char focus)
 {
@@ -231,10 +230,8 @@ draw_widget(struct ctk_widget *w,
 }
 /*-----------------------------------------------------------------------------------*/
 void
-ctk_draw_widget(struct ctk_widget *w,
-		unsigned char focus,
-		unsigned char clipy1,
-		unsigned char clipy2)
+ctk_draw_widget(struct ctk_widget *w, unsigned char focus,
+		unsigned char clipy1, unsigned char clipy2)
 {
   struct ctk_window *win = w->window;
   unsigned char posx, posy;
@@ -246,11 +243,7 @@ ctk_draw_widget(struct ctk_widget *w,
     focus |= CTK_FOCUS_WIDGET;
   }
   
-  draw_widget(w, posx, posy,
-	      posx + win->w,
-	      posy + win->h,
-	      clipy1, clipy2,
-	      focus);
+  draw_widget(w, posx, posy, posx + win->w, posy + win->h, clipy1, clipy2, focus);
   
 #ifdef CTK_CONIO_CONF_UPDATE
   CTK_CONIO_CONF_UPDATE();
@@ -258,10 +251,8 @@ ctk_draw_widget(struct ctk_widget *w,
 }
 /*-----------------------------------------------------------------------------------*/
 void
-ctk_draw_clear_window(struct ctk_window *window,
-		      unsigned char focus,
-		      unsigned char clipy1,
-		      unsigned char clipy2)
+ctk_draw_clear_window(struct ctk_window *window, unsigned char focus,
+		      unsigned char clipy1, unsigned char clipy2)
 {
   unsigned char i;
   unsigned char h;
@@ -293,9 +284,7 @@ draw_window_contents(struct ctk_window *window, unsigned char focus,
   
   /* Draw inactive widgets. */
   for(w = window->inactive; w != NULL; w = w->next) {
-    draw_widget(w, x1, y1, x2, y2,
-		clipy1, clipy2,
-		focus);
+    draw_widget(w, x1, y1, x2, y2, clipy1, clipy2, focus);
   }
   
   /* Draw active widgets. */
@@ -305,9 +294,7 @@ draw_window_contents(struct ctk_window *window, unsigned char focus,
       wfocus |= CTK_FOCUS_WIDGET;
     }
 
-   draw_widget(w, x1, y1, x2, y2, 
-	       clipy1, clipy2,
-	       wfocus);
+   draw_widget(w, x1, y1, x2, y2, clipy1, clipy2, wfocus);
   }
 
 #ifdef CTK_CONIO_CONF_UPDATE
@@ -373,8 +360,7 @@ ctk_draw_window(struct ctk_window *window, unsigned char focus,
     cvlinexy(x, y1, h);
     cvlinexy(x2, y1, h);  
 
-    if(y + window->h >= clipy1 &&
-       y + window->h < clipy2) {
+    if(y + window->h >= clipy1 && y + window->h < clipy2) {
       cputcxy(x, y2, (char)CH_LLCORNER);
       chlinexy(x1, y2, window->w);
       cputcxy(x2, y2, (char)CH_LRCORNER);
@@ -403,15 +389,11 @@ ctk_draw_dialog(struct ctk_window *dialog)
   y2 = y1 + dialog->h;
 
   /* Draw dialog frame. */
-  cvlinexy(x, y1,
-	   dialog->h);
-  cvlinexy(x2, y1,
-	   dialog->h);
+  cvlinexy(x, y1, dialog->h);
+  cvlinexy(x2, y1, dialog->h);
 
-  chlinexy(x1, y,
-	   dialog->w);
-  chlinexy(x1, y2,
-	   dialog->w);
+  chlinexy(x1, y, dialog->w);
+  chlinexy(x1, y2, dialog->w);
 
   cputcxy(x, y, (char)CH_ULCORNER);
   cputcxy(x, y2, (char)CH_LLCORNER);
@@ -423,8 +405,7 @@ ctk_draw_dialog(struct ctk_window *dialog)
     cclearxy(x1, i, dialog->w);
   }
 
-  draw_window_contents(dialog, CTK_FOCUS_DIALOG, 0, sizey,
-		       x1, x2, y1, y2);
+  draw_window_contents(dialog, CTK_FOCUS_DIALOG, 0, sizey, x1, x2, y1, y2);
 }
 /*-----------------------------------------------------------------------------------*/
 void
