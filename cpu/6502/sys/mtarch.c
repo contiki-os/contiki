@@ -30,12 +30,12 @@
  * 
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: mtarch.c,v 1.3 2007/12/06 10:36:33 oliverschmidt Exp $
+ * $Id: mtarch.c,v 1.1 2007/12/15 00:14:19 oliverschmidt Exp $
  */
 
 #include <string.h>
 
-#include "mtarch.h"
+#include "sys/mtarch.h"
 
 unsigned char  mtarch_asm_threadspreg;
 unsigned char *mtarch_asm_threadzp;

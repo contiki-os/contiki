@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004, Adam Dunkels.
+ * Copyright (c) 2007, Swedish Institute of Computer Science.
  * All rights reserved. 
  *
  * Redistribution and use in source and binary forms, with or without 
@@ -28,23 +28,12 @@
  *
  * This file is part of the Contiki operating system.
  * 
- * Author: Adam Dunkels <adam@sics.se>
- *
- * $Id: mtarch.h,v 1.3 2007/08/10 10:45:35 oliverschmidt Exp $
+ * $Id: rtimer-arch.h,v 1.1 2007/12/15 00:14:19 oliverschmidt Exp $
  */
 
-#ifndef __MTARCH_H__
-#define __MTARCH_H__
+#ifndef __RTIMER_ARCH_H__
+#define __RTIMER_ARCH_H__
 
-#define MTARCH_CPUSTACKSIZE 256
-#define MTARCH_CSTACKSIZE   256
-#define MTARCH_ZPSIZE       26 // see <cc65 source>/asminc/zeropage.inc
+#define RTIMER_ARCH_SECOND 0
 
-struct mtarch_thread {
-  unsigned char spreg;
-  unsigned char cpustack[MTARCH_CPUSTACKSIZE];
-  unsigned char cstack  [MTARCH_CSTACKSIZE];
-  unsigned char zp      [MTARCH_ZPSIZE];
-};
-
-#endif /* __MTARCH_H__ */
+#endif /* __RTIMER_ARCH_H__ */

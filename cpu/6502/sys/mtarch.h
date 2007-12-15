@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007, Swedish Institute of Computer Science.
+ * Copyright (c) 2004, Adam Dunkels.
  * All rights reserved. 
  *
  * Redistribution and use in source and binary forms, with or without 
@@ -28,29 +28,23 @@
  *
  * This file is part of the Contiki operating system.
  * 
- * Author: Oliver Schmidt <ol.sc@web.de>
+ * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: clock.c,v 1.2 2007/05/29 22:25:49 oliverschmidt Exp $
+ * $Id: mtarch.h,v 1.1 2007/12/15 00:14:19 oliverschmidt Exp $
  */
 
-#include <time.h>
+#ifndef __MTARCH_H__
+#define __MTARCH_H__
 
-#include "contiki.h"
+#define MTARCH_CPUSTACKSIZE 256
+#define MTARCH_CSTACKSIZE   256
+#define MTARCH_ZPSIZE       26 // see <cc65 source>/asminc/zeropage.inc
 
-/*-----------------------------------------------------------------------------------*/
-clock_time_t
-clock_time(void)
-{
-  /* Contiki contains quite some calculations based on clock_time_t so we want
-   * to avoid defining clock_time_t to be 32 bit because that would mean a lot
-   * of overhead for cc65 targets.
-   * On the other hand we want to avoid wrapping around frequently so the idea
-   * is to reduce the clock resolution to the bare minimum. This is defined by
-   * the TCP/IP stack using a 1/2 second periodic timer. So CLOCK_CONF_SECOND
-   * needs to be defined at least as 2.
-   * The value 2 works out especially nicely as it allows us to implement the
-   * clock frequency devider below purely in (32 bit) integer arithmetic based
-   * on the educated guess of CLK_TCK being an even value. */
-  return clock() / (CLK_TCK / CLOCK_CONF_SECOND);
-}
-/*-----------------------------------------------------------------------------------*/
+struct mtarch_thread {
+  unsigned char spreg;
+  unsigned char cpustack[MTARCH_CPUSTACKSIZE];
+  unsigned char cstack  [MTARCH_CSTACKSIZE];
+  unsigned char zp      [MTARCH_ZPSIZE];
+};
+
+#endif /* __MTARCH_H__ */
