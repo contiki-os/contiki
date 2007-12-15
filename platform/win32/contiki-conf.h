@@ -74,8 +74,8 @@ typedef unsigned short uip_stats_t;
 
 #define CTK_CONF_MENU_KEY         -5  /* F10 */
 #define CTK_CONF_WINDOWSWITCH_KEY -6  /* Ctrl-Tab */
-#define CTK_CONF_WIDGETDOWN_KEY   '\t'
 #define CTK_CONF_WIDGETUP_KEY     -7  /* Shift-Tab */
+#define CTK_CONF_WIDGETDOWN_KEY   '\t'
 #define CTK_CONF_WIDGET_FLAGS     0
 #define CTK_CONF_SCREENSAVER      0
 
