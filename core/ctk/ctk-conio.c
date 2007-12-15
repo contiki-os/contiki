@@ -29,7 +29,7 @@
  *
  * This file is part of the "ctk" console GUI toolkit for cc65
  *
- * $Id: ctk-conio.c,v 1.6 2007/11/30 21:50:09 oliverschmidt Exp $
+ * $Id: ctk-conio.c,v 1.7 2007/12/15 20:46:15 oliverschmidt Exp $
  *
  */
 
@@ -240,7 +240,7 @@ ctk_draw_widget(struct ctk_widget *w,
   unsigned char posx, posy;
 
   posx = win->x + 1;
-  posy = win->y + 2;
+  posy = win->y + 1 + CTK_CONF_MENUS;
 
   if(w == win->focused) {
     focus |= CTK_FOCUS_WIDGET;
@@ -272,10 +272,10 @@ ctk_draw_clear_window(struct ctk_window *window,
     (void)textcolor(WINDOWCOLOR);
   }
   
-  h = window->y + 2 + window->h;
+  h = window->y + 1 + CTK_CONF_MENUS + window->h;
 
   /* Clear window contents. */
-  for(i = window->y + 2; i < h; ++i) {
+  for(i = window->y + 1 + CTK_CONF_MENUS; i < h; ++i) {
     if(i >= clipy1 && i < clipy2) {
       cclearxy(window->x + 1, i, window->w);
     }
@@ -324,12 +324,12 @@ ctk_draw_window(struct ctk_window *window, unsigned char focus,
   unsigned char h;
   unsigned char x1, y1, x2, y2;
 
-  if(window->y + 1 >= clipy2) {
+  if(window->y + CTK_CONF_MENUS >= clipy2) {
     return;
   }
     
   x = window->x;
-  y = window->y + 1;
+  y = window->y + CTK_CONF_MENUS;
   x1 = x + 1;
   y1 = y + 1;
   x2 = x1 + window->w;
@@ -356,7 +356,7 @@ ctk_draw_window(struct ctk_window *window, unsigned char focus,
     if(clipy1 > y1) {
       if(clipy1 - y1 < h) {
 	h = clipy1 - y1;
-	      y1 = clipy1;
+	y1 = clipy1;
       } else {
 	h = 0;
       }
@@ -395,7 +395,7 @@ ctk_draw_dialog(struct ctk_window *dialog)
   (void)textcolor(DIALOGCOLOR);
 
   x = dialog->x;
-  y = dialog->y + 1;
+  y = dialog->y + CTK_CONF_MENUS;
 
   x1 = x + 1;
   y1 = y + 1;

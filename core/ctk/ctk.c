@@ -44,7 +44,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: ctk.c,v 1.14 2007/12/15 11:34:59 oliverschmidt Exp $
+ * $Id: ctk.c,v 1.15 2007/12/15 20:46:15 oliverschmidt Exp $
  *
  */
 
@@ -94,7 +94,7 @@ static unsigned char redraw_widgetptr;
 #if CTK_CONF_ICONS
 static unsigned char iconx, icony;
 #define ICONX_START  (width - 6)
-#define ICONY_START  (height - 7)
+#define ICONY_START  (height - 6 - CTK_CONF_MENUS)
 #define ICONX_DELTA  -16
 #define ICONY_DELTA  -5
 #define ICONY_MAX    height
@@ -139,11 +139,9 @@ process_event_t
   /** Same as ctk_signal_widget_select. */
   ctk_signal_hyperlink_hover;
 
-#if CTK_CONF_MENUS
   /** Emitted when a menu item is activated. The number of the menu
       item is passed as signal data. */
 process_event_t ctk_signal_menu_activate;
-#endif /* CTK_CONF_MENUS */
 
   /** Emitted when a window is closed. A pointer to the window is
       passed as signal data. */
@@ -638,7 +636,7 @@ ctk_desktop_redraw(struct ctk_desktop *d)
     if(mode == CTK_MODE_NORMAL ||
        mode == CTK_MODE_WINDOWMOVE) {
       
-      do_redraw_all(1, height);
+      do_redraw_all(CTK_CONF_MENUS, height);
     }
   } else {
     height = ctk_draw_height();
@@ -1392,8 +1390,10 @@ PROCESS_THREAD(ctk_process, ev, data)
 #if CTK_CONF_MOUSE_SUPPORT
   static unsigned char mxc, myc, mouse_button_changed, mouse_moved,
     mouse_clicked;
+#if CTK_CONF_MENUS
   static unsigned char menux;
   register struct ctk_menu *menu;
+#endif /* CTK_CONF_MENUS */
 #endif /* CTK_CONF_MOUSE_SUPPORT */
   
   PROCESS_BEGIN();
@@ -1426,9 +1426,7 @@ PROCESS_THREAD(ctk_process, ev, data)
   
   ctk_signal_hyperlink_activate = process_alloc_event();
 
-#if CTK_CONF_MENUS
   ctk_signal_menu_activate = process_alloc_event();
-#endif /* CTK_CONF_MENUS */
 
   ctk_signal_window_close = process_alloc_event();
 
@@ -1519,6 +1517,7 @@ PROCESS_THREAD(ctk_process, ev, data)
 	  screensaver_timer = 0;
 #endif /* CTK_CONF_SCREENSAVER */
       
+#if CTK_CONF_MENUS
 	  if(myc == 0) {
 	    /* Here we should do whatever needs to be done when the mouse
 	       moves around and clicks in the menubar. */
@@ -1593,6 +1592,7 @@ PROCESS_THREAD(ctk_process, ev, data)
 		redraw |= REDRAW_MENUS;
 	      }
 	    } else {
+#endif /* CTK_CONF_MENUS */
 
 	      /* Walk through the windows from top to bottom to see in
 		 which window the mouse pointer is. */
@@ -1706,8 +1706,10 @@ PROCESS_THREAD(ctk_process, ev, data)
 		  }
 		}
 	      }
+#if CTK_CONF_MENUS
 	    }
 	  }
+#endif /* CTK_CONF_MENUS */
 	}
 #endif /* CTK_CONF_MOUSE_SUPPORT */
     
@@ -1839,9 +1841,11 @@ PROCESS_THREAD(ctk_process, ev, data)
 	  } else {
 	    window->y = myc;
 	  }
+#if CTK_CONF_MENUS
 	  if(window->y > 0) {
 	    --window->y;
 	  }
+#endif /* CTK_CONF_MENUS */
 
 	  redraw = REDRAW_ALL;
 	}
@@ -1879,7 +1883,7 @@ PROCESS_THREAD(ctk_process, ev, data)
 	    break;
 	  case CH_CURS_DOWN:
 	    ++window->y;
-	    if(window->y + window->h + 2 >= height) {
+	    if(window->y + window->h + 1 + CTK_CONF_MENUS >= height) {
 	      --window->y;
 	    }
 	    redraw = REDRAW_ALL;
@@ -1900,10 +1904,10 @@ PROCESS_THREAD(ctk_process, ev, data)
       }
 
     if(redraw & REDRAW_ALL) {
-      do_redraw_all(1, height);
+      do_redraw_all(CTK_CONF_MENUS, height);
 #if CTK_CONF_MENUS
     } else if(redraw & REDRAW_MENUPART) {
-      do_redraw_all(1, maxnitems + 1);
+      do_redraw_all(CTK_CONF_MENUS, maxnitems + 1);
     } else if(redraw & REDRAW_MENUS) {
       ctk_draw_menus(&menus);
 #endif /* CTK_CONF_MENUS */
