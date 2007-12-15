@@ -91,7 +91,7 @@ typedef unsigned short uip_stats_t;
 #define CTK_CONF_MENUWIDTH        16
 #define CTK_CONF_MAXMENUITEMS     10
 #else /* PLATFORM_BUILD */
-#define CTK_CONF_MOUSE_SUPPORT    0
+#define CTK_CONF_MOUSE_SUPPORT    1
 #define CTK_CONF_WINDOWS          0
 #define CTK_CONF_WINDOWMOVE       0
 #define CTK_CONF_WINDOWCLOSE      0
