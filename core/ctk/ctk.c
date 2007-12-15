@@ -44,7 +44,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: ctk.c,v 1.16 2007/12/15 21:04:20 oliverschmidt Exp $
+ * $Id: ctk.c,v 1.17 2007/12/15 21:29:46 oliverschmidt Exp $
  *
  */
 
@@ -1561,6 +1561,7 @@ PROCESS_THREAD(ctk_process, ev, data)
 	    } else {
 #endif /* CTK_CONF_MENUS */
 
+#if CTK_CONF_WINDOWS
 	      /* Walk through the windows from top to bottom to see in
 		 which window the mouse pointer is. */
 	      if(dialog != NULL) {
@@ -1598,8 +1599,10 @@ PROCESS_THREAD(ctk_process, ev, data)
 		 windows->focused != NULL){
 		unfocus_widget(windows->focused);
 	      }
+#endif /* CTK_CONF_WINDOWS */
 
 	      if(window != NULL) {
+#if CTK_CONF_WINDOWS
 		/* If the mouse was clicked outside of the current window,
 		   we bring the clicked window to front. */
 		if(dialog == NULL &&
@@ -1610,7 +1613,8 @@ PROCESS_THREAD(ctk_process, ev, data)
 		  ctk_window_open(window);
 		  redraw |= REDRAW_ALL;
 		} else {
-	  
+#endif /* CTK_CONF_WINDOWS */
+
 		  /* Find out which widget currently is under the mouse
 		     pointer and give it focus, unless it already has
 		     focus. */
@@ -1634,9 +1638,11 @@ PROCESS_THREAD(ctk_process, ev, data)
 		  /* if the mouse is moved in the focused window, we emit
 		     a ctk_signal_pointer_move signal to the owner of the
 		     window. */
-		  if(mouse_moved &&
-		     (window != &desktop_window ||
-		      windows == NULL)) {
+		  if(mouse_moved
+#if CTK_CONF_WINDOWS
+		     && (window != &desktop_window || windows == NULL)
+#endif /* CTK_CONF_WINDOWS */
+		      ) {
 
 		    process_post(window->owner, ctk_signal_pointer_move, NULL);
 
@@ -1661,7 +1667,9 @@ PROCESS_THREAD(ctk_process, ev, data)
 		      redraw |= activate(widget);
 		    }
 		  }
+#if CTK_CONF_WINDOWS
 		}
+#endif /* CTK_CONF_WINDOWS */
 	      }
 #if CTK_CONF_MENUS
 	    }
