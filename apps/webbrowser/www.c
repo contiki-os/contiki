@@ -29,7 +29,7 @@
  *
  * This file is part of the Contiki desktop environment
  *
- * $Id: www.c,v 1.6 2007/11/30 16:09:40 oliverschmidt Exp $
+ * $Id: www.c,v 1.7 2007/12/15 21:56:23 oliverschmidt Exp $
  *
  */
 
@@ -39,7 +39,9 @@
 #include "contiki-net.h"
 #include "lib/petsciiconv.h"
 #include "sys/arg.h"
+#if WWW_CONF_WITH_WGET
 #include "program-handler.h"
+#endif /* WWW_CONF_WITH_WGET */
 
 #include "webclient.h"
 #include "htmlparser.h"
@@ -172,7 +174,6 @@ static void formsubmit(struct formattribs *attribs);
 static void
 make_window(void)
 { 
-
   CTK_WIDGET_ADD(&mainwindow, &backbutton);
   CTK_WIDGET_ADD(&mainwindow, &downbutton);
   CTK_WIDGET_ADD(&mainwindow, &stopbutton);
