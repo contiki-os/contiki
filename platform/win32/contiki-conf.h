@@ -97,7 +97,7 @@ typedef unsigned short uip_stats_t;
 #define CTK_CONF_WINDOWCLOSE      0
 #define CTK_CONF_ICONS            0
 #define CTK_CONF_MENUS            0
-#endif  /* PLATFORM_BUILD */
+#endif /* PLATFORM_BUILD */
 
 #define COLOR_BLACK  (0)
 #define COLOR_BLUE   (1)
@@ -124,7 +124,7 @@ typedef unsigned short uip_stats_t;
 
 #ifdef PLATFORM_BUILD
 #define LOADER_CONF_ARCH "loader/dll-loader.h"
-#endif  /* PLATFORM_BUILD */
+#endif /* PLATFORM_BUILD */
 
 #define PROGRAM_HANDLER_CONF_MAX_NUMDSCS 10
 #define PROGRAM_HANDLER_CONF_QUIT_MENU   1
@@ -149,7 +149,9 @@ typedef unsigned short uip_stats_t;
 #define TELNETD_CONF_GUI 1
 
 
+#ifdef PLATFORM_BUILD
 #define WWW_CONF_WEBPAGE_WIDTH  76
 #define WWW_CONF_WEBPAGE_HEIGHT 30
+#endif /* PLATFORM_BUILD */
 
 #endif /* __CONTIKI_CONF_H__ */
