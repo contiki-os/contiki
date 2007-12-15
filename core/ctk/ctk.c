@@ -44,7 +44,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: ctk.c,v 1.15 2007/12/15 20:46:15 oliverschmidt Exp $
+ * $Id: ctk.c,v 1.16 2007/12/15 21:04:20 oliverschmidt Exp $
  *
  */
 
@@ -248,7 +248,6 @@ ctk_restore(void)
 }
 /*---------------------------------------------------------------------------*/
 
-
 /**
  * \addtogroup ctkappfunc
  * @{
@@ -298,15 +297,6 @@ void
 ctk_icon_add(CC_REGISTER_ARG struct ctk_widget *icon, struct process *p)
 {
 #if CTK_CONF_ICONS
-  /*  icon->x = iconx;
-  icon->y = icony;
-  icon->widget.icon.owner = id;
-
-  icony += ICONY_DELTA;
-  if(icony >= ICONY_MAX) {
-    icony = ICONY_START;
-    iconx += ICONX_DELTA;
-    }*/
   icon->widget.icon.owner = p;
   ctk_widget_add(&desktop_window, icon);
   arrange_icons();
@@ -409,8 +399,7 @@ ctk_window_close(struct ctk_window *w)
     return;
   }
   
-  /* Check if the window to be closed is the first window on the
-     list. */
+  /* Check if the window to be closed is the first window on the list. */
   if(w == windows) {
     windows = w->next;
     if(windows != NULL) {
@@ -424,8 +413,7 @@ ctk_window_close(struct ctk_window *w)
     for(w2 = windows; w2 != NULL && w2->next != w; w2 = w2->next);
 
     if(w2 == NULL) {
-      /* The window wasn't open, so there is nothing more for us to
-	 do. */
+      /* The window wasn't open, so there is nothing more for us to do. */
       return;
     }
 
@@ -569,8 +557,7 @@ do_redraw_all(unsigned char clipy1, unsigned char clipy2)
   unsigned char focus;
 #endif /* CTK_CONF_WINDOWS */
 
-  if(mode != CTK_MODE_NORMAL &&
-     mode != CTK_MODE_WINDOWMOVE) {
+  if(mode != CTK_MODE_NORMAL && mode != CTK_MODE_WINDOWMOVE) {
     return;
   }
   
@@ -633,9 +620,7 @@ void
 ctk_desktop_redraw(struct ctk_desktop *d)
 {
   if(PROCESS_CURRENT() == &ctk_process) {
-    if(mode == CTK_MODE_NORMAL ||
-       mode == CTK_MODE_WINDOWMOVE) {
-      
+    if(mode == CTK_MODE_NORMAL || mode == CTK_MODE_WINDOWMOVE) {
       do_redraw_all(CTK_CONF_MENUS, height);
     }
   } else {
@@ -690,8 +675,7 @@ ctk_window_redraw(struct ctk_window *w)
 /*---------------------------------------------------------------------------*/
 static void
 window_new(CC_REGISTER_ARG struct ctk_window *window,
-	   unsigned char w, unsigned char h,
-	   char *title)
+	   unsigned char w, unsigned char h, char *title)
 {
 #if CTK_CONF_WINDOWS
   if(w >= width - 2) {
@@ -742,8 +726,7 @@ window_new(CC_REGISTER_ARG struct ctk_window *window,
 /*---------------------------------------------------------------------------*/
 void
 ctk_window_new(struct ctk_window *window,
-	       unsigned char w, unsigned char h,
-	       char *title)
+	       unsigned char w, unsigned char h, char *title)
 {
   window_new(window, w, h, title);
 
@@ -785,8 +768,7 @@ ctk_dialog_new(CC_REGISTER_ARG struct ctk_window *dialog,
  */
 /*---------------------------------------------------------------------------*/
 void
-ctk_menu_new(CC_REGISTER_ARG struct ctk_menu *menu,
-	     char *title)
+ctk_menu_new(CC_REGISTER_ARG struct ctk_menu *menu, char *title)
 {
 #if CTK_CONF_MENUS
   menu->next = NULL;
@@ -811,8 +793,7 @@ ctk_menu_new(CC_REGISTER_ARG struct ctk_menu *menu,
  */
 /*---------------------------------------------------------------------------*/
 unsigned char
-ctk_menuitem_add(CC_REGISTER_ARG struct ctk_menu *menu,
-		 char *name)
+ctk_menuitem_add(CC_REGISTER_ARG struct ctk_menu *menu, char *name)
 {
 #if CTK_CONF_MENUS
   if(menu->nitems == CTK_MAXMENUITEMS) {
@@ -894,7 +875,7 @@ widget_redraw(struct ctk_widget *widget)
 	       window == &desktop_window))
 #endif /* CTK_CONF_WINDOWS */
     {
-	ctk_draw_widget(widget, CTK_FOCUS_WINDOW, 0, height);
+      ctk_draw_widget(widget, CTK_FOCUS_WINDOW, 0, height);
     }
   }
 }
@@ -949,9 +930,6 @@ ctk_widget_add(CC_REGISTER_ARG struct ctk_window *window,
     widget->next = window->active;
     window->active = widget;
     widget->window = window;
-    /*    if(window->focused == NULL) {
-      window->focused = widget;
-      }*/
   }
 }
 /*---------------------------------------------------------------------------*/
@@ -1111,12 +1089,6 @@ switch_open_menu(unsigned char rightleft)
   }
 
   menus.open->active = 0;
-
-  /*  if(menus.open->nitems > maxnitems) {
-    maxnitems = menus.open->nitems;
-    }*/
-
-  /*  ctk_desktop_redraw();*/
 }
 /*---------------------------------------------------------------------------*/
 static void
@@ -1197,8 +1169,7 @@ activate(CC_REGISTER_ARG struct ctk_widget *w)
 }
 /*---------------------------------------------------------------------------*/
 static void CC_FASTCALL
-textentry_input(ctk_arch_key_t c,
-		CC_REGISTER_ARG struct ctk_textentry *t)
+textentry_input(ctk_arch_key_t c, CC_REGISTER_ARG struct ctk_textentry *t)
 {
   register char *cptr, *cptr2;
   static unsigned char len, txpos, typos, tlen;
@@ -1239,7 +1210,6 @@ textentry_input(ctk_arch_key_t c,
     break;
     
   case CH_ENTER:
-    /*    t->state = CTK_TEXTENTRY_NORMAL;*/
     activate((struct ctk_widget *)t);
     switch_focus_widget(DOWN);
     break;
@@ -1309,16 +1279,13 @@ activate_menu(void)
 static unsigned char
 menus_input(ctk_arch_key_t c)
 {
-
   if(menus.open->nitems > maxnitems) {
     maxnitems = menus.open->nitems;
   }
-
   
   switch(c) {
   case CH_CURS_RIGHT:
     switch_open_menu(1);
-	
     return REDRAW_MENUPART;
 
   case CH_CURS_DOWN:
@@ -1629,9 +1596,6 @@ PROCESS_THREAD(ctk_process, ev, data)
 	      if(windows != NULL &&
 		 window != windows &&
 		 windows->focused != NULL){
-		/*add_redrawwidget(windows->focused);
-		  windows->focused = NULL;
-		  redraw |= REDRAW_WIDGETS;*/
 		unfocus_widget(windows->focused);
 	      }
 
@@ -1681,13 +1645,6 @@ PROCESS_THREAD(ctk_process, ev, data)
 		       redraw it. */
 		    if(window->focused != NULL &&
 		       widget != window->focused) {
-		      /*		  add_redrawwidget(window->focused);
-					  if(CTK_WIDGET_TYPE(window->focused) ==
-					  CTK_WIDGET_TEXTENTRY) {
-					  ((struct ctk_textentry *)(window->focused))->state =
-					  CTK_TEXTENTRY_NORMAL;
-					  }
-					  window->focused = NULL;*/
 		      unfocus_widget(window->focused);
 		    }
 		    redraw |= REDRAW_WIDGETS;
@@ -1793,7 +1750,6 @@ PROCESS_THREAD(ctk_process, ev, data)
 		  textentry_input(c, (struct ctk_textentry *)widget);
 		  add_redrawwidget(widget);
 		} else {
-		  /*	      window->focused = NULL;*/
 		  unfocus_widget(window->focused);
 		  process_post_synch(window->owner, ctk_signal_keypress,
 				     (process_data_t)(size_t)c);
