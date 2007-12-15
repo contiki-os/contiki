@@ -30,7 +30,7 @@
 ; 
 ; Author: Adam Dunkels <adam@sics.se>
 ;
-; $Id: mtarch-asm.S,v 1.2 2007/08/10 10:45:35 oliverschmidt Exp $
+; $Id: mtarch-asm.S,v 1.1 2007/12/15 00:14:19 oliverschmidt Exp $
 ;
 ;---------------------------------------------------------------------       
 	.import		__ZP_START__
