@@ -29,7 +29,7 @@
  *
  * This file is part of the Contiki desktop environment
  *
- * $Id: directory.c,v 1.3 2006/10/06 20:48:12 oliverschmidt Exp $
+ * $Id: directory.c,v 1.4 2007/12/15 21:04:51 oliverschmidt Exp $
  *
  */
 
@@ -226,7 +226,7 @@ PROCESS_THREAD(directory_process, ev, data)
   PROCESS_BEGIN();
   
   width = ctk_draw_width() - 2;
-  height = ctk_draw_height() - 3;
+  height = ctk_draw_height() - 2 - CTK_CONF_MENUS;
   
   ctk_window_new(&window, width, height, "Directory");
   
