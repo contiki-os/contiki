@@ -29,7 +29,7 @@
  *
  * This file is part of the "ctk" console GUI toolkit for cc65
  *
- * $Id: ctk-conio.c,v 1.8 2007/12/15 21:04:20 oliverschmidt Exp $
+ * $Id: ctk-conio.c,v 1.9 2007/12/15 22:18:13 oliverschmidt Exp $
  *
  */
 
@@ -89,7 +89,10 @@ draw_widget(struct ctk_widget *w,
   unsigned char xpos, ypos, xscroll;
   unsigned char i, j;
   char c, *text;
-  unsigned char len, wfocus;
+  unsigned char wfocus;
+#if CTK_CONF_ICONS
+  unsigned char len;
+#endif /* CTK_CONF_ICONS */
 
   wfocus = 0;
   if(focus & CTK_FOCUS_WINDOW) {    
@@ -308,8 +311,10 @@ ctk_draw_window(struct ctk_window *window, unsigned char focus,
 		unsigned char draw_borders)
 {
   unsigned char x, y;
-  unsigned char h;
   unsigned char x1, y1, x2, y2;
+#if CTK_CONF_WINDOWS
+  unsigned char h;
+#endif /* CTK_CONF_WINDOWS */
 
   if(window->y + CTK_CONF_MENUS >= clipy2) {
     return;
@@ -322,6 +327,7 @@ ctk_draw_window(struct ctk_window *window, unsigned char focus,
   x2 = x1 + window->w;
   y2 = y1 + window->h;
 
+#if CTK_CONF_WINDOWS
   if(draw_borders) {
 
     /* Draw window frame. */  
@@ -366,11 +372,12 @@ ctk_draw_window(struct ctk_window *window, unsigned char focus,
       cputcxy(x2, y2, (char)CH_LRCORNER);
     }
   }
+#endif /* CTK_CONF_WINDOWS */
 
-  draw_window_contents(window, focus, clipy1, clipy2,
-		       x1, x2, y + 1, y2);
+  draw_window_contents(window, focus, clipy1, clipy2, x1, x2, y + 1, y2);
 }
 /*-----------------------------------------------------------------------------------*/
+#if CTK_CONF_WINDOWS
 void
 ctk_draw_dialog(struct ctk_window *dialog)
 {
@@ -407,6 +414,7 @@ ctk_draw_dialog(struct ctk_window *dialog)
 
   draw_window_contents(dialog, CTK_FOCUS_DIALOG, 0, sizey, x1, x2, y1, y2);
 }
+#endif /* CTK_CONF_WINDOWS */
 /*-----------------------------------------------------------------------------------*/
 void
 ctk_draw_clear(unsigned char y1, unsigned char y2)
