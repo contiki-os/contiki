@@ -43,7 +43,7 @@
  *
  * This file is part of the Contiki desktop OS
  *
- * $Id: program-handler.c,v 1.6 2007/11/17 20:14:43 oliverschmidt Exp $
+ * $Id: program-handler.c,v 1.7 2007/12/15 13:03:17 oliverschmidt Exp $
  *
  */
 
@@ -91,6 +91,7 @@ static struct ctk_button quitnobutton =
 #endif /* QUIT_MENU */
 
 #if WITH_LOADER_ARCH
+
 /* "Run..." window */
 static struct ctk_window runwindow;
 static unsigned char runmenuitem;
@@ -118,7 +119,6 @@ static struct ctk_label errortype =
   {CTK_LABEL(4, 5, 16, 1, "")};
 static struct ctk_button errorokbutton =
   {CTK_BUTTON(9, 7, 2, "Ok")};
-
 
 #endif /* WITH_LOADER_ARCH */
 
