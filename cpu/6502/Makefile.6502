@@ -30,7 +30,7 @@
 #
 # Author: Oliver Schmidt <ol.sc@web.de>
 #
-# $Id: Makefile.6502,v 1.20 2007/12/08 22:21:50 oliverschmidt Exp $
+# $Id: Makefile.6502,v 1.21 2007/12/15 11:05:38 oliverschmidt Exp $
 #
 
 ifndef CONTIKI
@@ -51,8 +51,8 @@ endif
 
 all: cs8900a.eth lan91c96.eth
 
-CONTIKI_TARGET_DIRS = . lib
-CONTIKI_CPU_DIRS    = . lib net sys
+CONTIKI_TARGET_DIRS = . lib sys
+CONTIKI_CPU_DIRS    = . lib sys net
 CONTIKI_TARGET_MAIN = ${addprefix $(OBJECTDIR)/,contiki-main.o}
 
 CONTIKI_TARGET_SOURCEFILES = contiki-main.c error.c cfs-posix.c petsciiconv.c

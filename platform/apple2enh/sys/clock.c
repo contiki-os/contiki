@@ -30,7 +30,7 @@
  * 
  * Author: Oliver Schmidt <ol.sc@web.de>
  *
- * $Id: clock.c,v 1.2 2007/11/20 21:54:06 oliverschmidt Exp $
+ * $Id: clock.c,v 1.1 2007/12/15 11:04:11 oliverschmidt Exp $
  */
 
 #include <stdio.h>
