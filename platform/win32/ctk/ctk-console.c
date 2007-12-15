@@ -30,7 +30,7 @@
  * 
  * Author: Oliver Schmidt <ol.sc@web.de>
  *
- * $Id: ctk-console.c,v 1.9 2007/04/15 13:30:16 oliverschmidt Exp $
+ * $Id: ctk-console.c,v 1.10 2007/12/15 20:12:28 oliverschmidt Exp $
  */
 
 #define WIN32_LEAN_AND_MEAN
@@ -196,14 +196,14 @@ clrscr(void)
 void
 bgcolor(unsigned char c)
 {
-  /* Presume this to be one the first calls. */
+  /* Presume this to be one of the first calls. */
   console_init();
 }
 /*-----------------------------------------------------------------------------------*/
 void
 bordercolor(unsigned char c)
 {
-  /* Presume this to be one the first calls. */
+  /* Presume this to be one of the first calls. */
   console_init();
 }
 /*-----------------------------------------------------------------------------------*/
