@@ -30,7 +30,7 @@
  * 
  * Author: Oliver Schmidt <ol.sc@web.de>
  *
- * $Id: contiki-main.c,v 1.12 2007/05/23 22:01:14 oliverschmidt Exp $
+ * $Id: contiki-main.c,v 1.13 2007/12/15 00:00:34 oliverschmidt Exp $
  */
 
 #define WIN32_LEAN_AND_MEAN
@@ -53,9 +53,11 @@
 PROCINIT(&etimer_process,
 	 &wpcap_process,
 	 &ctk_process,
+#ifdef PLATFORM_BUILD
+	 &program_handler_process,
+#endif  /* PLATFORM_BUILD */
 	 &tcpip_process,
-	 &resolv_process,
-	 &program_handler_process);
+	 &resolv_process);
 
 /*-----------------------------------------------------------------------------------*/
 void
@@ -90,8 +92,12 @@ main(void)
 
   procinit_init();
 
+#ifdef PLATFORM_BUILD
   program_handler_add(&directory_dsc, "Directory",   1);
   program_handler_add(&www_dsc,       "Web browser", 1);
+#else /* PLATFORM_BUILD */
+  autostart_start((struct process **)autostart_processes);
+#endif /* PLATFORM_BUILD */
 
 #if 1
   {

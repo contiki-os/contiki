@@ -30,7 +30,7 @@
 #
 # Author: Oliver Schmidt <ol.sc@web.de>
 #
-# $Id: Makefile.win32,v 1.10 2007/05/20 21:43:21 oliverschmidt Exp $
+# $Id: Makefile.win32,v 1.11 2007/12/15 00:00:34 oliverschmidt Exp $
 #
 
 ifndef CONTIKI
@@ -43,7 +43,7 @@ CONTIKI_TARGET_DIRS = . cfs ctk loader
 CONTIKI_TARGET_MAIN = ${addprefix $(OBJECTDIR)/,contiki-main.o}
 
 CONTIKI_TARGET_SOURCEFILES = contiki-main.c clock.c cfs-win32.c \
-                             ctk-console.c dll-loader.c
+                             ctk-console.c
 
 CONTIKI_SOURCEFILES += $(CTK) ctk-conio.c wpcap.c wpcap-drv.c \
                        $(CONTIKI_TARGET_SOURCEFILES)
@@ -54,9 +54,12 @@ CONTIKI_SOURCEFILES += $(CTK) ctk-conio.c wpcap.c wpcap-drv.c \
 CONTIKI_CPU = $(CONTIKI)/cpu/native
 include $(CONTIKI)/cpu/native/Makefile.native
 
-CFLAGS += -DWITH_LOADER_ARCH
+ifdef PLATFORM_BUILD
+CONTIKI_TARGET_SOURCEFILES += dll-loader.c
+CFLAGS += -DPLATFORM_BUILD -DWITH_LOADER_ARCH
 LDFLAGS += -Wl,--out-implib=contiki-main.$(TARGET).a \
            -u _cfs_open -u _uiplib_ipaddrconv
+endif
 
 ### Generate the module-link prerequisites
 define prg_template
