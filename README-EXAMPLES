@@ -115,6 +115,20 @@ telnet-server/
   Please consult cpu/native/net/README-WPCAP as well if you are running
   Microsoft Windows.
 
+webbrowser/
+
+  A text mode web browser supporting links and forms. It can be compiled
+  and run in the 'win32' target by typing the following commands:
+
+    cd examples/webbrowser
+    make
+    ./webbrowser.win32
+
+  Most likely you'll have to adjust the TCP/IP values set in main() in
+  platform/win32/contiki-main.c to match your needs.
+
+  Please consult cpu/native/net/README-WPCAP as well.
+
 webserver/
 
   A web server supporting dynamic content creation using "scripts" which
