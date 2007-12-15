@@ -30,7 +30,7 @@
  *
  * Author: Oliver Schmidt <ol.sc@web.de>
  *
- * @(#)$Id: 6502def.h,v 1.2 2007/11/17 23:42:23 oliverschmidt Exp $
+ * @(#)$Id: 6502def.h,v 1.3 2007/12/15 00:06:27 oliverschmidt Exp $
  */
 
 #ifndef __6502DEF_H__
@@ -39,10 +39,10 @@
 #include <stdint.h>
 
 /* These names are deprecated, use C99 names. */
-typedef unsigned char   u8_t;
-typedef unsigned short u16_t;
-typedef unsigned long  u32_t;
-typedef          long  s32_t;
+typedef uint8_t   u8_t;
+typedef uint16_t u16_t;
+typedef uint32_t u32_t;
+typedef int32_t  s32_t;
 
 typedef unsigned short uip_stats_t;
 
