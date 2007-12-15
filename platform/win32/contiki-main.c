@@ -30,7 +30,7 @@
  * 
  * Author: Oliver Schmidt <ol.sc@web.de>
  *
- * $Id: contiki-main.c,v 1.13 2007/12/15 00:00:34 oliverschmidt Exp $
+ * $Id: contiki-main.c,v 1.14 2007/12/15 21:54:54 oliverschmidt Exp $
  */
 
 #define WIN32_LEAN_AND_MEAN
@@ -48,7 +48,9 @@
 
 #include "sys/etimer.h"
 #include "net/wpcap-drv.h"
+#ifdef PLATFORM_BUILD
 #include "program-handler.h"
+#endif  /* PLATFORM_BUILD */
 
 PROCINIT(&etimer_process,
 	 &wpcap_process,
