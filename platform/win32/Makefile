@@ -30,7 +30,7 @@
 #
 # Author: Oliver Schmidt <ol.sc@web.de>
 #
-# $Id: Makefile,v 1.6 2007/11/18 01:15:35 oliverschmidt Exp $
+# $Id: Makefile,v 1.7 2007/12/15 00:00:34 oliverschmidt Exp $
 #
 
 PRGS = about calc dhcp directory email ftp irc netconf processes shell \
@@ -47,7 +47,9 @@ override telnetd_src = telnetd.c telnetd-gui.c memb.c shell.c
 # Use webserver.c instead of webserver-nogui.c to get CTK support
 override webserver_src = webserver.c httpd.c http-strings.c psock.c \
 			 memb.c httpd-fs.c httpd-cgi.c
-                
+
+PLATFORM_BUILD = 1
+
 CONTIKI = ../..
 APPS = program-handler ${call appname,$(PRGS)}
 TARGET = win32

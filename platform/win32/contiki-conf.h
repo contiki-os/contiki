@@ -2,25 +2,25 @@
 #define __CONTIKI_CONF_H__
 
 #define CC_CONF_REGISTER_ARGS 1
-#define CC_CONF_FASTCALL      __fastcall
-#define CC_CONF_INLINE        __inline
+#define CC_CONF_FASTCALL __fastcall
+#define CC_CONF_INLINE   __inline
 
 
 #if _USRDLL
 #define CCIF __declspec(dllimport)
-#else
+#else /* _USRDLL */
 #define CCIF __declspec(dllexport)
-#endif
+#endif /* _USRDLL */
 #define CLIF __declspec(dllexport)
 
 
 #ifdef __CYGWIN__
 int strcasecmp(const char*, const char*);
 char* strdup(const char*);
-#else
+#else /* __CYGWIN__ */
 #define strcasecmp _stricmp
 #define strdup     _strdup
-#endif
+#endif /* __CYGWIN__ */
 
 
 #define LOG_CONF_ENABLED 1
@@ -76,26 +76,36 @@ typedef unsigned short uip_stats_t;
 #define CTK_CONF_WINDOWSWITCH_KEY -6  /* Ctrl-Tab */
 #define CTK_CONF_WIDGETDOWN_KEY   '\t'
 #define CTK_CONF_WIDGETUP_KEY     -7  /* Shift-Tab */
-#define CTK_CONF_MOUSE_SUPPORT    1
-#define CTK_CONF_WINDOWS          1
-#define CTK_CONF_ICONS            1
-#define CTK_CONF_ICON_BITMAPS     0
-#define CTK_CONF_ICON_TEXTMAPS    1
-#define CTK_CONF_WINDOWMOVE       1
-#define CTK_CONF_WINDOWCLOSE      1
-#define CTK_CONF_MENUS            1
-#define CTK_CONF_MENUWIDTH        16
-#define CTK_CONF_MAXMENUITEMS     10
 #define CTK_CONF_WIDGET_FLAGS     0
 #define CTK_CONF_SCREENSAVER      0
 #define CTK_CONF_HYPERLINK	  1
 
-#define COLOR_BLACK	(0)
-#define COLOR_BLUE	(1)
-#define COLOR_GRAY	(1 | 2 | 4)
-#define COLOR_CYAN	(1 | 2 | 8)
-#define COLOR_YELLOW	(2 | 4 | 8)
-#define COLOR_WHITE	(1 | 2 | 4 | 8)
+#ifdef PLATFORM_BUILD
+#define CTK_CONF_MOUSE_SUPPORT    1
+#define CTK_CONF_WINDOWS          1
+#define CTK_CONF_WINDOWMOVE       1
+#define CTK_CONF_WINDOWCLOSE      1
+#define CTK_CONF_ICONS            1
+#define CTK_CONF_ICON_BITMAPS     0
+#define CTK_CONF_ICON_TEXTMAPS    1
+#define CTK_CONF_MENUS            1
+#define CTK_CONF_MENUWIDTH        16
+#define CTK_CONF_MAXMENUITEMS     10
+#else /* PLATFORM_BUILD */
+#define CTK_CONF_MOUSE_SUPPORT    0
+#define CTK_CONF_WINDOWS          0
+#define CTK_CONF_WINDOWMOVE       0
+#define CTK_CONF_WINDOWCLOSE      0
+#define CTK_CONF_ICONS            0
+#define CTK_CONF_MENUS            0
+#endif  /* PLATFORM_BUILD */
+
+#define COLOR_BLACK  (0)
+#define COLOR_BLUE   (1)
+#define COLOR_GRAY   (1 | 2 | 4)
+#define COLOR_CYAN   (1 | 2 | 8)
+#define COLOR_YELLOW (2 | 4 | 8)
+#define COLOR_WHITE  (1 | 2 | 4 | 8)
 
 #define BORDERCOLOR         COLOR_BLACK
 #define SCREENCOLOR         COLOR_BLACK
@@ -113,7 +123,9 @@ typedef unsigned short uip_stats_t;
 #define ACTIVEMENUITEMCOLOR COLOR_YELLOW | COLOR_BLUE * 0x10
 
 
+#ifdef PLATFORM_BUILD
 #define LOADER_CONF_ARCH "loader/dll-loader.h"
+#endif  /* PLATFORM_BUILD */
 
 #define PROGRAM_HANDLER_CONF_MAX_NUMDSCS 10
 #define PROGRAM_HANDLER_CONF_QUIT_MENU   1
