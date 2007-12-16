@@ -30,10 +30,11 @@
  * 
  * Author: Oliver Schmidt <ol.sc@web.de>
  *
- * $Id: log.c,v 1.3 2007/12/08 22:34:59 oliverschmidt Exp $
+ * $Id: log.c,v 1.4 2007/12/16 13:11:01 oliverschmidt Exp $
  */
 
-#include <stdio.h>
+#include <unistd.h>
+#include <string.h>
 
 #include "net/uip.h"
 #include "sys/log.h"
@@ -43,7 +44,8 @@
 void
 uip_log(char *message)
 {
-  fprintf(stderr, "%s\n", message);
+  write(STDERR_FILENO, message, strlen(message));
+  write(STDERR_FILENO, "\n", 1);
 }
 #endif /* UIP_LOGGING */
 /*-----------------------------------------------------------------------------------*/
@@ -51,7 +53,9 @@ uip_log(char *message)
 void
 log_message(const char *part1, const char *part2)
 {
-  fprintf(stderr, "%s%s\n", part1, part2);
+  write(STDERR_FILENO, part1, strlen(part1));
+  write(STDERR_FILENO, part2, strlen(part2));
+  write(STDERR_FILENO, "\n", 1);
 }
 #endif /* LOG_CONF_ENABLED */
 /*-----------------------------------------------------------------------------------*/
