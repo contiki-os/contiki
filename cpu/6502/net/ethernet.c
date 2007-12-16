@@ -30,17 +30,15 @@
  *
  * Author: Oliver Schmidt <ol.sc@web.de>
  *
- * @(#)$Id: ethernet.c,v 1.3 2007/11/27 20:52:52 oliverschmidt Exp $
+ * @(#)$Id: ethernet.c,v 1.4 2007/12/16 17:02:37 oliverschmidt Exp $
  */
 
-#include <stdio.h>
-#include <errno.h>
 #include <fcntl.h>
 #include <unistd.h>
-#include <string.h>
 #include <modload.h>
 
 #include "contiki-net.h"
+#include "sys/log.h"
 #include "lib/error.h"
 #include "net/ethernet-drv.h"
 
@@ -67,26 +65,23 @@ ethernet_init(struct ethernet_config *config)
 
   module_control.callerdata = open(config->name, O_RDONLY);
   if(module_control.callerdata < 0) {
-    fprintf(stderr, "%s: %s\n", config->name, strerror(errno));
+    log_message(config->name, ": File not found");
     error_exit();
   }
 
   byte = mod_load(&module_control);
   if(byte != MLOAD_OK) {
-    if(byte == MLOAD_ERR_MEM) {
-      fprintf(stderr, "%s: %s\n", config->name, strerror(ENOMEM));
-    } else {
-      fprintf(stderr, "%s: %s %d\n", config->name, "Error", byte);
-    }
+    log_message(config->name, byte == MLOAD_ERR_MEM? ": Out of memory":
+						     ": No module");
     error_exit();
   }
 
   close(module_control.callerdata);
   module = module_control.module;
 
-  for(byte = 0; byte < 4; byte++) {
+  for(byte = 0; byte < 4; ++byte) {
     if(module->signature[byte] != signature[byte]) {
-      fprintf(stderr, "%s: %s\n", config->name, "No ETH Driver");
+      log_message(config->name, ": No ETH driver");
       error_exit();
     }
   }
