@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: nullmac.c,v 1.4 2007/10/23 21:27:57 adamdunkels Exp $
+ * $Id: nullmac.c,v 1.5 2007/12/16 14:31:43 adamdunkels Exp $
  */
 
 /**
@@ -53,7 +53,9 @@ send(void)
 static void
 input(const struct radio_driver *d)
 {
-  receiver_callback(&nullmac_driver);
+  if(receiver_callback) {
+    receiver_callback(&nullmac_driver);
+  }
 }
 /*---------------------------------------------------------------------------*/
 static int
