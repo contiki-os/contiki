@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: simple-cc2420.h,v 1.5 2007/12/05 13:21:05 adamdunkels Exp $
+ * $Id: simple-cc2420.h,v 1.6 2007/12/16 14:30:36 adamdunkels Exp $
  */
 
 /**
@@ -72,5 +72,11 @@ void simple_cc2420_set_txpower(u8_t power);
  *
  */
 int simple_cc2420_interrupt(void);
+
+/* XXX hack: these will be made as Chameleon packet attributes */
+extern rtimer_clock_t simple_cc2420_time_of_arrival,
+  simple_cc2420_time_of_departure;
+extern rtimer_clock_t simple_cc2420_time_for_transmission;
+extern int simple_cc2420_authority_level_of_sender;
 
 #endif /* __SIMPLE_CC2420_H__ */
