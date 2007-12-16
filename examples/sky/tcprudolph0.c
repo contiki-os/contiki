@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: tcprudolph0.c,v 1.8 2007/11/17 18:16:48 adamdunkels Exp $
+ * @(#)$Id: tcprudolph0.c,v 1.9 2007/12/16 14:37:02 adamdunkels Exp $
  */
 
 #include <stdio.h>
@@ -294,7 +294,7 @@ PROCESS_THREAD(tcp_loader_process, ev, data)
   PROCESS_END();
 }
 /*---------------------------------------------------------------------*/
-#include "net/rime/tree.h"
+#include "net/rime/collect.h"
 #include "net/rime/mesh.h"
 #include "net/rime/rudolph0.h"
 #include "net/rime/rudolph1.h"
@@ -302,7 +302,7 @@ void
 dummy(void)
 {
   /* Make sure that all Rime modules are present in the core */
-  tree_close(NULL);
+  collect_close(NULL);
   mesh_close(NULL);
   ipolite_close(NULL);
   polite_close(NULL);
