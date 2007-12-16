@@ -30,12 +30,14 @@
  *
  * Author: Oliver Schmidt <ol.sc@web.de>
  *
- * @(#)$Id: 6502def.h,v 1.3 2007/12/15 00:06:27 oliverschmidt Exp $
+ * @(#)$Id: 6502def.h,v 1.4 2007/12/16 17:03:27 oliverschmidt Exp $
  */
 
 #ifndef __6502DEF_H__
 #define __6502DEF_H__
 
+#include <ctype.h>
+#include <conio.h>
 #include <stdint.h>
 
 /* These names are deprecated, use C99 names. */
@@ -43,8 +45,6 @@ typedef uint8_t   u8_t;
 typedef uint16_t u16_t;
 typedef uint32_t u32_t;
 typedef int32_t  s32_t;
-
-typedef unsigned short uip_stats_t;
 
 #define CC_CONF_REGISTER_ARGS 1
 #define CC_CONF_FASTCALL      __fastcall__
@@ -55,7 +55,13 @@ typedef unsigned short uip_stats_t;
 #define CLOCK_CONF_SECOND 2
 typedef unsigned short clock_time_t;
 
+typedef unsigned short uip_stats_t;
+
 #define UIP_ARCH_ADD32  1
 #define UIP_ARCH_CHKSUM 1
+
+#define ctk_arch_keyavail kbhit
+#define ctk_arch_getkey   cgetc
+#define ctk_arch_isprint  isprint
 
 #endif /* __6502DEF_H__ */
