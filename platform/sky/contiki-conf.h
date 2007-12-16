@@ -1,8 +1,10 @@
 /* -*- C -*- */
-/* @(#)$Id: contiki-conf.h,v 1.20 2007/11/13 21:10:50 adamdunkels Exp $ */
+/* @(#)$Id: contiki-conf.h,v 1.21 2007/12/16 15:05:04 adamdunkels Exp $ */
 
 #ifndef CONTIKI_CONF_H
 #define CONTIKI_CONF_H
+
+#define SIMPLE_CC2420_CONF_TIMESTAMPS 1
 
 #define PROFILE_CONF_ON 1
 #define ENERGEST_CONF_ON 1
