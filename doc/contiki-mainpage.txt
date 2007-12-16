@@ -2,8 +2,6 @@
 
 \mainpage The Contiki Operating System 2.1
 
-\author Adam Dunkels <adam@sics.se>
-
 Contiki is an open source, highly portable, multi-tasking operating
 system for memory-constrained networked embedded systems written by
 Adam Dunkels at the Networked Embedded Systems group at the Swedish

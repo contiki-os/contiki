@@ -1,3 +1,9 @@
+/**
+ * \addtogroup rimeruc
+ * @{
+ */
+
+
 /*
  * Copyright (c) 2006, Swedish Institute of Computer Science.
  * All rights reserved.
@@ -28,7 +34,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: ruc.c,v 1.14 2007/11/13 20:58:46 adamdunkels Exp $
+ * $Id: ruc.c,v 1.15 2007/12/16 14:33:32 adamdunkels Exp $
  */
 
 /**
@@ -201,3 +207,4 @@ ruc_send(struct ruc_conn *c, rimeaddr_t *receiver, u8_t max_retransmissions)
   return 0;
 }
 /*---------------------------------------------------------------------------*/
+/** @} */
