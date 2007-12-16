@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: simple-cc2420.c,v 1.16 2007/12/05 13:21:05 adamdunkels Exp $
+ * @(#)$Id: simple-cc2420.c,v 1.17 2007/12/16 14:30:36 adamdunkels Exp $
  */
 /*
  * This code is almost device independent and should be easy to port.
@@ -51,6 +51,22 @@
 
 #include "net/rime/rimestats.h"
 
+
+#define FOOTER_LEN 2
+
+#if SIMPLE_CC2420_CONF_TIMESTAMPS
+#include "sys/timesynch.h"
+#define TIMESTAMP_LEN 3
+#else /* SIMPLE_CC2420_CONF_TIMESTAMPS */
+#define TIMESTAMP_LEN 0
+#endif /* SIMPLE_CC2420_CONF_TIMESTAMPS */
+
+struct timestamp {
+  uint16_t time;
+  uint8_t authority_level;
+};
+
+
 #define FOOTER1_CRC_OK      0x80
 #define FOOTER1_CORRELATION 0x7f
 
@@ -62,6 +78,12 @@
 #endif
 
 void simple_cc2420_arch_init(void);
+
+/* XXX hack: these will be made as Chameleon packet attributes */
+rtimer_clock_t simple_cc2420_time_of_arrival, simple_cc2420_time_of_departure;
+rtimer_clock_t simple_cc2420_time_for_transmission;
+
+int simple_cc2420_authority_level_of_sender;
 
 /*---------------------------------------------------------------------------*/
 PROCESS(simple_cc2420_process, "CC2420 driver");
@@ -235,8 +257,10 @@ simple_cc2420_init(void)
 int
 simple_cc2420_send(const void *payload, unsigned short payload_len)
 {
-  u8_t spiStatusByte;
+  uint8_t spiStatusByte;
   int i;
+  uint8_t total_len;
+  struct timestamp timestamp;
   
   /* This code uses the CC2420 CCA (Clear Channel Assessment) to
    * implement Carrier Sense Multiple Access with Collision Avoidance
@@ -261,19 +285,16 @@ simple_cc2420_send(const void *payload, unsigned short payload_len)
   /* Write packet to TX FIFO. */
   strobe(CC2420_SFLUSHTX);
   
-  {
-    u8_t total_len = /*2 +*/ payload_len + 2; /* 2 bytes time stamp,
-					     2 bytes footer. */
-    FASTSPI_WRITE_FIFO(&total_len, 1);
-  }
+  total_len = payload_len + TIMESTAMP_LEN + FOOTER_LEN;
+  FASTSPI_WRITE_FIFO(&total_len, 1);
   
   FASTSPI_WRITE_FIFO(payload, payload_len);
 
-  /*  {
-    rtimer_clock_t t;
-    t = rtimer_arch_now();
-    FASTSPI_WRITE_FIFO(&t, 2);
-    }*/
+#if SIMPLE_CC2420_CONF_TIMESTAMPS
+  timestamp.authority_level = timesynch_authority_level();
+  timestamp.time = timesynch_time();
+  FASTSPI_WRITE_FIFO(&timestamp, TIMESTAMP_LEN);
+#endif /* SIMPLE_CC2420_CONF_TIMESTAMPS */
 
   if(FIFOP_IS_1 && !FIFO_IS_1) {
     /* RXFIFO overflow, send on retransmit. */
@@ -304,6 +325,9 @@ simple_cc2420_send(const void *payload, unsigned short payload_len)
       do {
 	spiStatusByte = status();
       } while(spiStatusByte & BV(CC2420_TX_ACTIVE));
+#if SIMPLE_CC2420_CONF_TIMESTAMPS
+      simple_cc2420_time_for_transmission = timesynch_time() - timestamp.time;
+#endif /* SIMPLE_CC2420_CONF_TIMESTAMPS */
       ENERGEST_OFF(ENERGEST_TYPE_TRANSMIT);
       ENERGEST_ON(ENERGEST_TYPE_LISTEN);
       
@@ -407,10 +431,12 @@ simple_cc2420_set_chan_pan_addr(unsigned channel, /* 11 - 26 */
  * interrupt priority rather than poll priority.
  */
 static volatile rtimer_clock_t interrupt_time;
+static volatile int interrupt_time_set;
 int
 simple_cc2420_interrupt(void)
 {
-  interrupt_time = rtimer_arch_now();
+  interrupt_time = timesynch_time();
+  interrupt_time_set = 1;
   
   CLEAR_FIFOP_INT();
   process_poll(&simple_cc2420_process);
@@ -444,11 +470,21 @@ simple_cc2420_read(void *buf, unsigned short bufsize)
 {
   u8_t footer[2];
   int len;
-
+  struct timestamp t;
+  
   if(!packet_seen) {
     return 0;
   }
 
+  if(interrupt_time_set) {
+#if SIMPLE_CC2420_CONF_TIMESTAMPS
+    simple_cc2420_time_of_arrival = interrupt_time;
+#endif /* SIMPLE_CC2420_CONF_TIMESTAMPS */
+    interrupt_time_set = 0;
+  } else {
+    simple_cc2420_time_of_arrival = 0;
+  }
+  simple_cc2420_time_of_departure = 0;
   GET_LOCK();
 
   FASTSPI_READ_FIFO_BYTE(len);
@@ -466,24 +502,27 @@ simple_cc2420_read(void *buf, unsigned short bufsize)
   if(len > 0) {
     /* Read payload and two bytes of footer */
     PRINTF("simple_cc2420_read: len %d\n", len);
-    if(len < 2) {
+    if(len < FOOTER_LEN + TIMESTAMP_LEN) {
       FASTSPI_READ_FIFO_GARBAGE(len);
       RIMESTATS_ADD(tooshort);
-    } else if(len - 2 > bufsize) {
+    } else if(len - FOOTER_LEN - TIMESTAMP_LEN > bufsize) {
       PRINTF("simple_cc2420_read too big len=%d bufsize %d\n", len, bufsize);
       //     FASTSPI_READ_FIFO_GARBAGE(2);
       FASTSPI_READ_FIFO_NO_WAIT(buf, bufsize);
-      FASTSPI_READ_FIFO_GARBAGE(len - bufsize - 2);
-      FASTSPI_READ_FIFO_NO_WAIT(footer, 2);
+      FASTSPI_READ_FIFO_GARBAGE(len - bufsize - FOOTER_LEN - TIMESTAMP_LEN);
+#if SIMPLE_CC2420_CONF_TIMESTAMPS
+      FASTSPI_READ_FIFO_NO_WAIT(&t, TIMESTAMP_LEN); /* Time stamp */
+#endif /* SIMPLE_CC2420_CONF_TIMESTAMPS */
+      FASTSPI_READ_FIFO_NO_WAIT(footer, FOOTER_LEN);
       //      len = bufsize - 2; /* We eventually return len - 2 */
-      len = 2;
+      len = TIMESTAMP_LEN + FOOTER_LEN;
       RIMESTATS_ADD(toolong);
     } else {
-      //      rtimer_clock_t t;
-      //      FASTSPI_READ_FIFO_NO_WAIT(&t, 2); /* Time stamp */
-      FASTSPI_READ_FIFO_NO_WAIT(buf, len - 2);
+
+      FASTSPI_READ_FIFO_NO_WAIT(buf, len - FOOTER_LEN - TIMESTAMP_LEN);
       /*      PRINTF("simple_cc2420_read: data\n");*/
-      FASTSPI_READ_FIFO_NO_WAIT(footer, 2);
+      FASTSPI_READ_FIFO_NO_WAIT(&t, TIMESTAMP_LEN); /* Time stamp */
+      FASTSPI_READ_FIFO_NO_WAIT(footer, FOOTER_LEN);
       /*      PRINTF("simple_cc2420_read: footer\n");*/
       if(footer[1] & FOOTER1_CRC_OK) {
 	simple_cc2420_last_rssi = footer[0];
@@ -491,10 +530,12 @@ simple_cc2420_read(void *buf, unsigned short bufsize)
 	RIMESTATS_ADD(llrx);
       } else {
 	RIMESTATS_ADD(badcrc);
-	len = 2;
+	len = TIMESTAMP_LEN + FOOTER_LEN;
       }
-      //      PRINTF("Time 0x%02x\n", t);
-
+#if SIMPLE_CC2420_CONF_TIMESTAMPS
+      simple_cc2420_time_of_departure = t.time;
+      simple_cc2420_authority_level_of_sender = t.authority_level;
+#endif /* SIMPLE_CC2420_CONF_TIMESTAMPS */
     }
   }
   
@@ -520,11 +561,11 @@ simple_cc2420_read(void *buf, unsigned short bufsize)
   
   RELEASE_LOCK();
   
-  if(len < 2) {
+  if(len < FOOTER_LEN + TIMESTAMP_LEN) {
     return 0;
   }
 
-  return len - 2; /* Remove two bytes for the footer, two bytes for time stamp. */
+  return len - FOOTER_LEN - TIMESTAMP_LEN;
 }
 /*---------------------------------------------------------------------------*/
 void
