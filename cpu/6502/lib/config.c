@@ -30,19 +30,34 @@
  * 
  * Author: Oliver Schmidt <ol.sc@web.de>
  *
- * $Id: config.c,v 1.2 2007/12/08 21:48:49 oliverschmidt Exp $
+ * $Id: config.c,v 1.3 2007/12/16 13:10:14 oliverschmidt Exp $
  */
 
-#include <stdio.h>
-#include <errno.h>
 #include <fcntl.h>
 #include <unistd.h>
+#include <stdlib.h>
 #include <string.h>
 
 #include "contiki-net.h"
+#include "sys/log.h"
 #include "lib/error.h"
 #include "net/ethernet-drv.h"
 
+/*-----------------------------------------------------------------------------------*/
+static char *
+ipaddrtoa(uip_ipaddr_t *ipaddr, char *buffer)
+{
+  char *ptr = buffer;
+  u8_t i;
+
+  for(i = 0; i < 4; ++i) {
+    *ptr = '.';
+    utoa(ipaddr->u8[i], ++ptr, 10);
+    ptr += strlen(ptr);
+  }
+
+  return buffer + 1;
+}
 /*-----------------------------------------------------------------------------------*/
 struct ethernet_config *
 config_read(char *filename)
@@ -58,25 +73,25 @@ config_read(char *filename)
 
   file = open(filename, O_RDONLY);
   if(file < 0) {
-    fprintf(stderr, "%s: %s\n", filename, strerror(errno));
+    log_message(filename, ": File not found");
     error_exit();
   }
 
   if(read(file, &config, sizeof(config)) < sizeof(config)
 					 - sizeof(config.ethernetcfg.name)) {
-    fprintf(stderr, "%s: %s\n", filename, "No Config File");
+    log_message(filename, ": No config file");
     error_exit();
   }
 
   close(file);
 
-  fprintf(stderr, "IP Address:  %d.%d.%d.%d\n", uip_ipaddr_to_quad(&config.hostaddr));
-  fprintf(stderr, "Subnet Mask: %d.%d.%d.%d\n", uip_ipaddr_to_quad(&config.netmask));
-  fprintf(stderr, "Def. Router: %d.%d.%d.%d\n", uip_ipaddr_to_quad(&config.draddr));
-//fprintf(stderr, "DNS Server:  %d.%d.%d.%d\n", uip_ipaddr_to_quad(&config.resolvaddr));
+  log_message("IP Address:  ",  ipaddrtoa(&config.hostaddr, uip_buf));
+  log_message("Subnet Mask: ",  ipaddrtoa(&config.netmask, uip_buf));
+  log_message("Def. Router: ",  ipaddrtoa(&config.draddr, uip_buf));
+//log_message("DNS Server:  ",  ipaddrtoa(&config.resolvaddr, uip_buf));
 
-  fprintf(stderr, "Eth. Driver: %s at $%X\n", config.ethernetcfg.name,
-					      config.ethernetcfg.addr);
+  log_message("Eth. Driver: ",  config.ethernetcfg.name);
+  log_message("Driver Port: $", utoa(config.ethernetcfg.addr, uip_buf, 16));
 
   uip_sethostaddr(&config.hostaddr);
   uip_setnetmask(&config.netmask);
