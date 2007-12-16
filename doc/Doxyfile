@@ -110,6 +110,8 @@ INPUT                  = contiki-mainpage.txt net.txt dev.txt \
                          ../core/ctk/ctk-draw.h \
                          ../core/sys/timer.h \
                          ../core/sys/timer.c \
+                         ../core/sys/timesynch.h \
+                         ../core/sys/timesynch.c \
                          ../core/net/uip.h \
                          ../core/net/uip.c \
                          ../core/net/uipopt.h \
@@ -145,8 +147,8 @@ INPUT                  = contiki-mainpage.txt net.txt dev.txt \
                          ../core/net/rime/mesh.c \
                          ../core/net/rime/mh.h \
                          ../core/net/rime/mh.c \
-                         ../core/net/rime/nbh.h \
-                         ../core/net/rime/nbh.c \
+                         ../core/net/rime/neighbor-discovery.h \
+                         ../core/net/rime/neighbor-discovery.c \
                          ../core/net/rime/neighbor.h \
                          ../core/net/rime/neighbor.c \
                          ../core/net/rime/nf.h \

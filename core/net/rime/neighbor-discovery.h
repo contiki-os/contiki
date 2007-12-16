@@ -1,3 +1,22 @@
+/**
+ * \addtogroup rime
+ * @{
+ */
+
+/**
+ * \defgroup rimeneighbordiscovery Neighbor discovery
+ * @{
+ *
+ * The neighbor-discovery module implements a periodic neighbor
+ * discovery mechanism. A callback is invoked for every incoming
+ * neighbor discovery message.
+ *
+ * \section channels Channels
+ *
+ * The neighbor-discovery module uses 1 channel.
+ *
+ */
+
 /*
  * Copyright (c) 2006, Swedish Institute of Computer Science.
  * All rights reserved.
@@ -28,7 +47,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: neighbor-discovery.h,v 1.1 2007/12/09 15:40:43 adamdunkels Exp $
+ * $Id: neighbor-discovery.h,v 1.2 2007/12/16 14:33:32 adamdunkels Exp $
  */
 
 /**
@@ -64,3 +83,5 @@ void neighbor_discovery_close(struct neighbor_discovery_conn *c);
 void neighbor_discovery_start(struct neighbor_discovery_conn *c, uint16_t val);
 
 #endif /* __NEIGHBOR_DISCOVERY_H__ */
+/** @} */
+/** @} */
