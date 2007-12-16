@@ -29,13 +29,12 @@
  *
  * This file is part of the "ctk" console GUI toolkit for cc65
  *
- * $Id: ctk-conio.c,v 1.9 2007/12/15 22:18:13 oliverschmidt Exp $
+ * $Id: ctk-conio.c,v 1.10 2007/12/16 13:00:51 oliverschmidt Exp $
  *
  */
 
 #include <string.h>
 #include <ctype.h>
-#include "lib/libconio.h"
 
 #include "contiki.h"
 
@@ -101,12 +100,14 @@ draw_widget(struct ctk_widget *w,
       (void)textcolor(WIDGETCOLOR_FOCUS);
       wfocus = 1;
     }
+#if CTK_CONF_WINDOWS
   } else if(focus & CTK_FOCUS_DIALOG) {
     (void)textcolor(WIDGETCOLOR_DIALOG);
     if(focus & CTK_FOCUS_WIDGET) {
       (void)textcolor(WIDGETCOLOR_FOCUS);
       wfocus = 1;
     }
+#endif /* CTK_CONF_WINDOWS */
   } else {
     (void)textcolor(WIDGETCOLOR);
   }
