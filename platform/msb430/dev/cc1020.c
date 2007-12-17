@@ -362,7 +362,7 @@ PROCESS_THREAD(cc1020_receiver_process, ev, data)
   PROCESS_BEGIN();
 
   while(1) {
-    ev = NULL;
+    ev = PROCESS_EVENT_NONE;
     PROCESS_YIELD_UNTIL(ev == PROCESS_EVENT_POLL);
 
     if(receiver_callback != NULL) {
