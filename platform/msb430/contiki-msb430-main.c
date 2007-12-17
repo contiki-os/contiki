@@ -112,7 +112,7 @@ main(void)
  
   leds_off(LEDS_ALL);
 
-  printf(CONTIKI_VERSION_STRING " started. Node id %u.", node_id);
+  printf(CONTIKI_VERSION_STRING " started. Node id %u.\n", node_id);
 
   autostart_start((struct process **) autostart_processes);
 
