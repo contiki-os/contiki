@@ -210,12 +210,6 @@ cc1020_set_power(uint8_t pa_power)
 }
 
 int
-cc1020_sending(void)
-{
-  return !!cc1020_txlen;
-}
-
-int
 cc1020_send(const void *buf, unsigned short len)
 {
   if (cc1020_state == CC1020_OFF)
