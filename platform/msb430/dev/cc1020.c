@@ -90,6 +90,8 @@ static volatile uint8_t rssi;
 // callback when a packet has been received
 static uint8_t cc1020_pa_power = PA_POWER;
 
+static int dma_done;
+
 static void (*receiver_callback)(const struct radio_driver *);
 
 const struct radio_driver cc1020_driver =
@@ -101,7 +103,11 @@ const struct radio_driver cc1020_driver =
     cc1020_off
   };
 
-PROCESS(cc1020_sender_process, "CC1020 sender");
+static void
+dma_callback(void)
+{
+  dma_done = 1;
+}
 
 void
 cc1020_init(const uint8_t *config)
@@ -127,7 +133,7 @@ cc1020_init(const uint8_t *config)
   // power down
   cc1020_setupPD();
 
-  process_start(&cc1020_sender_process, NULL);
+  dma_subscribe(0, dma_callback);
 }
 
 void
@@ -236,8 +242,38 @@ cc1020_send(const void *buf, unsigned short len)
   cc1020_txbuf[cc1020_txlen++] = TAIL;
   cc1020_txbuf[cc1020_txlen++] = TAIL;
 
-  //process_poll(&cc1020_sender_process);
-  process_post_synch(&cc1020_sender_process, PROCESS_EVENT_POLL, NULL);
+  cc1020_set_rx();
+
+  if ((cc1020_state & CC1020_RX_SEARCHING) == 0) {
+    // Wait until the receiver is idle.
+    while (cc1020_state & CC1020_RX_SEARCHING);
+
+    // Wait for the medium to become idle.
+    while (cc1020_carrier_sense());
+
+    // Then wait for a short pseudo-random time before sending.
+    clock_delay(1 + 10 * (random_rand() & 0xff));
+  }
+
+  // Switch to transceive mode.
+  cc1020_set_tx();
+
+  // Initiate radio transfer.
+  dma_done = 0;
+  dma_transfer(&TXBUF0, cc1020_txbuf, cc1020_txlen);
+  while (!dma_done);
+
+  ENERGEST_OFF(ENERGEST_TYPE_TRANSMIT);
+  RIMESTATS_ADD(lltx);
+
+  // clean up
+  cc1020_txlen = 0;
+  if (cc1020_state & CC1020_TURN_OFF) {
+    CC1020_SET_OPSTATE(CC1020_RX | CC1020_RX_SEARCHING);
+    cc1020_off();
+  } else {
+    cc1020_set_rx();
+  }
 
   return len;
 }
@@ -416,62 +452,6 @@ interrupt(UART0RX_VECTOR) cc1020_rxhandler(void)
       }
     }
   } 
-}
-
-PROCESS_THREAD(cc1020_sender_process, ev, data)
-{
-  int i;
-  PROCESS_BEGIN();
-
-  dma_subscribe(0, &cc1020_sender_process);
-
-  while (1) {
-    PROCESS_WAIT_UNTIL(cc1020_txlen > 0 && cc1020_state != CC1020_OFF);
-
-    cc1020_set_rx();
-
-    if((cc1020_state & CC1020_RX_SEARCHING) == 0) {
-      // Wait until the receiver is idle.
-      PROCESS_WAIT_UNTIL(cc1020_state & CC1020_RX_SEARCHING);
-
-      // Wait for the medium to become idle.
-      while (cc1020_carrier_sense());
-
-      // Then wait for a short pseudo-random time before sending.
-      clock_delay(1 + 10 * (random_rand() & 0xff));
-    }
-
-    // Switch to transceive mode.
-    cc1020_set_tx();
-
-#if 0
-    U0CTL &= ~SWRST;
-    for (i = 0; i < cc1020_txlen; i++) {
-      UART0_TX = cc1020_txbuf[i];
-      UART0_WAIT_TX();
-    }
-#endif
-
-    // Initiate radio transfer.
-    dma_transfer(&TXBUF0, cc1020_txbuf, cc1020_txlen);
-
-    // wait for DMA0 to finish
-    PROCESS_WAIT_UNTIL(ev == dma_event);
-    ENERGEST_OFF(ENERGEST_TYPE_TRANSMIT);
-
-    RIMESTATS_ADD(lltx);
-
-    // clean up
-    cc1020_txlen = 0;
-    if (cc1020_state & CC1020_TURN_OFF) {
-      CC1020_SET_OPSTATE(CC1020_RX | CC1020_RX_SEARCHING);
-      cc1020_off();
-    } else {
-      cc1020_set_rx();
-    }
-  }
-
-  PROCESS_END();
 }
 
 static void

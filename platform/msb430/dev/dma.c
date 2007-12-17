@@ -44,31 +44,30 @@
 #include "dev/cc1020.h"
 #include "dev/dma.h"
 
-static struct process *subscribers[DMA_LINES];
-process_event_t dma_event;
+static void (*callbacks[DMA_LINES])(void);
 
 interrupt(DACDMA_VECTOR) irq_dacdma(void)
 {
   if (DMA0CTL & DMAIFG) {
     DMA0CTL &= ~(DMAIFG | DMAIE);
-    if (subscribers[0] != NULL) {
-      process_post(subscribers[0], dma_event, NULL);
+    if (callbacks[0] != NULL) {
+      callbacks[0]();
     }
     LPM_AWAKE();
   }
 
   if (DMA1CTL & DMAIFG) {
     DMA1CTL &= ~(DMAIFG | DMAIE);
-    if (subscribers[1] != NULL) {
-      process_post(subscribers[1], dma_event, NULL);
+    if (callbacks[1] != NULL) {
+      callbacks[1]();
     }
     LPM_AWAKE();
   }
 
   if (DMA2CTL & DMAIFG) {
     DMA2CTL &= ~(DMAIFG | DMAIE);
-    if (subscribers[2] != NULL) {
-      process_post(subscribers[2], dma_event, NULL);
+    if (callbacks[2] != NULL) {
+      callbacks[2]();
     }
     LPM_AWAKE();
   }
@@ -82,19 +81,13 @@ interrupt(DACDMA_VECTOR) irq_dacdma(void)
   }
 }
 
-void
-dma_init(void)
-{
-  dma_event = process_alloc_event();
-}
-
 int
-dma_subscribe(int line, struct process *p)
+dma_subscribe(int line, void (*callback)(void))
 {
   if (line >= DMA_LINES)
     return -1;
 
-  subscribers[line] = p;
+  callbacks[line] = callback;
   return 0;
 }
 
