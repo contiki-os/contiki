@@ -1,5 +1,5 @@
 %.u:	%.ihex
-	msp430-jtag --lpt=TIUSB -mI $^
+	msp430-jtag -mI $^
 
 #CW=cw23
 
