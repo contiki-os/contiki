@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#)$Id: contiki-sky-main.c,v 1.19 2007/12/16 15:03:35 adamdunkels Exp $
+ * @(#)$Id: contiki-sky-main.c,v 1.20 2007/12/17 12:35:23 adamdunkels Exp $
  */
 
 #include <signal.h>
@@ -108,7 +108,16 @@ static void
 set_rime_addr(void)
 {
   rimeaddr_t addr;
-  addr.u16[0] = node_id;
+  int i;
+  memset(&addr, 0, sizeof(rimeaddr_t));
+  if(node_id == 0) {
+    for(i = 0; i < sizeof(rimeaddr_t); ++i) {
+      addr.u8[i] = ds2411_id[7 - i];
+    }
+  } else {
+    addr.u8[0] = node_id & 0xff;
+    addr.u8[1] = node_id >> 8;
+  }
   rimeaddr_set_node_addr(&addr);
 }
 /*---------------------------------------------------------------------------*/
@@ -141,7 +150,7 @@ main(int argc, char **argv)
 #endif /* WITH_UIP */
   
 /*   printf("Starting %s " */
-/* 	 "($Id: contiki-sky-main.c,v 1.19 2007/12/16 15:03:35 adamdunkels Exp $)\n", __FILE__); */
+/* 	 "($Id: contiki-sky-main.c,v 1.20 2007/12/17 12:35:23 adamdunkels Exp $)\n", __FILE__); */
   leds_on(LEDS_GREEN);
   ds2411_init();
   sensors_light_init();
@@ -200,7 +209,7 @@ main(int argc, char **argv)
   rime_init(timesynch_init(xmac_init(&simple_cc2420_driver)));
 
 
-  timesynch_set_authority_level(node_id);
+  timesynch_set_authority_level(rimeaddr_node_addr.u8[0]);
 
   /*  rimeaddr_set_node_addr*/
 #if WITH_UIP
@@ -254,12 +263,12 @@ main(int argc, char **argv)
 	 were awake. */
       energest_type_set(ENERGEST_TYPE_IRQ, irq_energest);
       watchdog_stop();
-      _BIS_SR(GIE | SCG0 | /*SCG1 |*/ CPUOFF); /* LPM3 sleep. This
-						  statement will block
-						  until the CPU is
-						  woken up by an
-						  interrupt that sets
-						  the wake up flag. */
+      _BIS_SR(GIE | SCG0 | SCG1 | CPUOFF); /* LPM3 sleep. This
+					      statement will block
+					      until the CPU is
+					      woken up by an
+					      interrupt that sets
+					      the wake up flag. */
 
       
       /* We get the current processing time for interrupts that was
