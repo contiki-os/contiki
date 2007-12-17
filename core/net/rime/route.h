@@ -39,7 +39,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: route.h,v 1.5 2007/03/31 18:31:28 adamdunkels Exp $
+ * $Id: route.h,v 1.6 2007/12/17 09:14:08 adamdunkels Exp $
  */
 
 /**
@@ -52,8 +52,7 @@
 #ifndef __ROUTE_H__
 #define __ROUTE_H__
 
-#include "contiki-net.h"
-#include "net/rime.h"
+#include "net/rime/rimeaddr.h"
 
 struct route_entry {
   struct route_entry *next;

@@ -33,7 +33,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: nf.c,v 1.13 2007/11/28 20:03:50 adamdunkels Exp $
+ * $Id: nf.c,v 1.14 2007/12/17 09:14:08 adamdunkels Exp $
  */
 
 /**
@@ -44,7 +44,6 @@
  */
 
 #include "net/rime/nf.h"
-#include "net/rime.h"
 #include "lib/rand.h"
 #include <string.h>
 

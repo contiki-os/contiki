@@ -33,7 +33,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: route.c,v 1.7 2007/11/28 20:00:57 adamdunkels Exp $
+ * $Id: route.c,v 1.8 2007/12/17 09:14:08 adamdunkels Exp $
  */
 
 /**
@@ -45,6 +45,9 @@
 
 #include <stdio.h>
 
+#include "lib/list.h"
+#include "lib/memb.h"
+#include "net/rime/ctimer.h"
 #include "net/rime/route.h"
 
 #define NUM_RT_ENTRIES 8

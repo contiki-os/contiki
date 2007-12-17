@@ -45,7 +45,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: trickle.h,v 1.4 2007/05/15 08:09:21 adamdunkels Exp $
+ * $Id: trickle.h,v 1.5 2007/12/17 09:14:08 adamdunkels Exp $
  */
 
 /**
@@ -58,7 +58,6 @@
 #ifndef __TRICKLE_H__
 #define __TRICKLE_H__
 
-#include "net/rime.h"
 #include "net/rime/nf.h"
 
 struct trickle_conn;

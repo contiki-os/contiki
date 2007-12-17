@@ -46,7 +46,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: polite.h,v 1.1 2007/05/15 07:41:22 adamdunkels Exp $
+ * $Id: polite.h,v 1.2 2007/12/17 09:14:08 adamdunkels Exp $
  */
 
 /**
@@ -59,7 +59,9 @@
 #ifndef __POLITE_H__
 #define __POLITE_H__
 
-#include "net/rime.h"
+#include "net/rime/abc.h"
+#include "net/rime/queuebuf.h"
+#include "net/rime/ctimer.h"
 
 struct polite_conn;
 
