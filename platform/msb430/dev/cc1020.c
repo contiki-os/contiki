@@ -90,7 +90,7 @@ static volatile uint8_t rssi;
 // callback when a packet has been received
 static uint8_t cc1020_pa_power = PA_POWER;
 
-static int dma_done;
+static volatile int dma_done;
 
 static void (*receiver_callback)(const struct radio_driver *);
 
@@ -108,6 +108,8 @@ dma_callback(void)
 {
   dma_done = 1;
 }
+
+PROCESS(cc1020_receiver_process, "CC1020 receiver");
 
 void
 cc1020_init(const uint8_t *config)
@@ -133,6 +135,7 @@ cc1020_init(const uint8_t *config)
   // power down
   cc1020_setupPD();
 
+  process_start(&cc1020_receiver_process, NULL);
   dma_subscribe(0, dma_callback);
 }
 
@@ -295,6 +298,17 @@ cc1020_read(void *buf, unsigned short size)
   memcpy(buf, (char *)cc1020_rxbuf + HDRSIZE, len);
   RIMESTATS_ADD(llrx);
 
+  CC1020_SET_OPSTATE(CC1020_RX | CC1020_RX_SEARCHING);
+  //cc1020_rxstate = CC1020_RX_SEARCHING;
+  if ((cc1020_state & CC1020_TURN_OFF) && (cc1020_txlen == 0)) {
+    cc1020_off();
+  } else {
+    ENABLE_RX_IRQ();
+  }
+
+  // reset receiver
+  cc1020_rxlen = 0;
+
   return len;
 }
 
@@ -349,6 +363,24 @@ int
 cc1020_carrier_sense(void)
 {
   return !!(cc1020_read_reg(CC1020_STATUS) & CARRIER_SENSE);
+}
+
+PROCESS_THREAD(cc1020_receiver_process, ev, data)
+{
+  PROCESS_BEGIN();
+
+  while(1) {
+    ev = NULL;
+    PROCESS_YIELD_UNTIL(ev == PROCESS_EVENT_POLL);
+
+    if(receiver_callback != NULL) {
+      receiver_callback(&cc1020_driver);
+    } else {
+      printf("cc1020_receiver_process no callback function defined\n");
+    }
+  }
+
+  PROCESS_END();
 }
 
 interrupt(UART0RX_VECTOR) cc1020_rxhandler(void)
@@ -436,19 +468,7 @@ interrupt(UART0RX_VECTOR) cc1020_rxhandler(void)
         //cc1020_rxstate = CC1020_RX_PROCESSING;
 
         // call receiver to copy from buffer
-        if (receiver_callback != NULL) {
-          receiver_callback(&cc1020_driver);
-        }
-
-        // reset receiver
-        cc1020_rxlen = 0;
-	CC1020_SET_OPSTATE(CC1020_RX | CC1020_RX_SEARCHING);
-        //cc1020_rxstate = CC1020_RX_SEARCHING;
-	if ((cc1020_state & CC1020_TURN_OFF) && (cc1020_txlen == 0)) {
-	  cc1020_off();
-	} else {
-	  ENABLE_RX_IRQ();
-	}
+        process_poll(&cc1020_receiver_process);
       }
     }
   } 
