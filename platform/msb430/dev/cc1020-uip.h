@@ -28,48 +28,12 @@
  *
  * This file is part of the Contiki operating system.
  *
+ * @(#)$Id: cc1020-uip.h,v 1.1 2007/12/17 13:33:09 nvt-se Exp $
  */
+#ifndef CC1020_UIP_H
+#define CC1020_UIP_H
 
-/**
- * \file
- *	uIP initialization for the MSB-430 port.
- * \author
- * 	Nicolas Tsiftes <nvt@sics.se>
- */
+void cc1020_uip_init(void);
+uint8_t cc1020_uip_send(void);
 
-#include "contiki.h"
-#include "contiki-net.h"
-#include "node-id.h"
-#include "dev/slip.h"
-#include "dev/cc1020-uip.h"
-
-static struct uip_fw_netif slipif =
-{UIP_FW_NETIF(192,168,1,2, 255,255,255,255, slip_send)};
-
-static struct uip_fw_netif wsnif =
-{UIP_FW_NETIF(0,0,0,0, 0,0,0,0, cc1020_uip_send)};
-
-void
-init_net(void)
-{
-  uip_ipaddr_t hostaddr;
-
-  uip_init();
-  uip_fw_init();
-
-  rs232_set_input(slip_input_byte);
-
-  cc1020_uip_init();
-
-  if (node_id > 0) {
-    uip_ipaddr(&hostaddr, 172, 16, 1, node_id);
-    uip_sethostaddr(&hostaddr);
-  }
-
-  uip_fw_register(&slipif);
-  uip_fw_default(&wsnif);
-
-  process_start(&tcpip_process, NULL);
-  process_start(&slip_process, NULL);
-  process_start(&uip_fw_process, NULL);
-}
+#endif /* !CC1020_UIP_H */

@@ -28,48 +28,41 @@
  *
  * This file is part of the Contiki operating system.
  *
+ * @(#)$Id: cc1020-uip.c,v 1.1 2007/12/17 13:33:09 nvt-se Exp $
  */
 
 /**
  * \file
- *	uIP initialization for the MSB-430 port.
+ *	Chipcon CC1020 glue driver for uIP
  * \author
- * 	Nicolas Tsiftes <nvt@sics.se>
+ *	Nicolas Tsiftes <nvt@sics.se>
  */
 
 #include "contiki.h"
-#include "contiki-net.h"
-#include "node-id.h"
-#include "dev/slip.h"
-#include "dev/cc1020-uip.h"
+#include "cc1020.h"
+#include "cc1020-uip.h"
+#include "net/uip.h"
+#include "net/hc.h"
 
-static struct uip_fw_netif slipif =
-{UIP_FW_NETIF(192,168,1,2, 255,255,255,255, slip_send)};
-
-static struct uip_fw_netif wsnif =
-{UIP_FW_NETIF(0,0,0,0, 0,0,0,0, cc1020_uip_send)};
+static void
+receiver(const struct radio_driver *d)
+{
+  uip_len = cc1020_read(&uip_buf[UIP_LLH_LEN], UIP_BUFSIZE - UIP_LLH_LEN);
+  if(uip_len > 0) {
+    uip_len = hc_inflate(&uip_buf[UIP_LLH_LEN], uip_len);
+    tcpip_input();
+  }
+}
 
 void
-init_net(void)
+cc1020_uip_init(void)
 {
-  uip_ipaddr_t hostaddr;
+  cc1020_set_receiver(&receiver);
+}
 
-  uip_init();
-  uip_fw_init();
-
-  rs232_set_input(slip_input_byte);
-
-  cc1020_uip_init();
-
-  if (node_id > 0) {
-    uip_ipaddr(&hostaddr, 172, 16, 1, node_id);
-    uip_sethostaddr(&hostaddr);
-  }
-
-  uip_fw_register(&slipif);
-  uip_fw_default(&wsnif);
-
-  process_start(&tcpip_process, NULL);
-  process_start(&slip_process, NULL);
-  process_start(&uip_fw_process, NULL);
+uint8_t
+cc1020_uip_send(void)
+{
+  uip_len = hc_compress(&uip_buf[UIP_LLH_LEN], uip_len);
+  return cc1020_send(&uip_buf[UIP_LLH_LEN], uip_len);
 }
