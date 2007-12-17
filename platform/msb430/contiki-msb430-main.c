@@ -132,7 +132,7 @@ main(void)
   process_start(&etimer_process, NULL);
   //process_start(&sensors_process, NULL);
 
-  //cc1020_init(cc1020_config_19200);
+  cc1020_init(cc1020_config_19200);
 
   // network configuration
   node_id_restore();
