@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: energest-arch.c,v 1.3 2007/11/28 17:06:55 adamdunkels Exp $
+ * $Id: energest-arch.c,v 1.4 2007/12/17 18:47:17 nvt-se Exp $
  */
 
 /**
@@ -51,8 +51,8 @@ energest_arch_current_estimate(void)
 {
   return 3 * /* The voltage is 3 V */            /* The DEC2FIX() stuff is
 						    the current */
-    (energest_type_time(ENERGEST_TYPE_CPU)        * DEC2FIX(0,545) +
-     energest_type_time(ENERGEST_TYPE_LPM)        * DEC2FIX(18,0) +
+    (energest_type_time(ENERGEST_TYPE_CPU)        * DEC2FIX(18,0) +
+     energest_type_time(ENERGEST_TYPE_LPM)        * DEC2FIX(0,545) +
      energest_type_time(ENERGEST_TYPE_LED_GREEN)  * DEC2FIX(46,0)  + /* Not measured */
      energest_type_time(ENERGEST_TYPE_LED_YELLOW) * DEC2FIX(46,0) +  /* Not measured */
      energest_type_time(ENERGEST_TYPE_LED_RED)    * DEC2FIX(46,0) +
