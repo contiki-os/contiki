@@ -69,7 +69,6 @@ main(void)
   /* Platform-specific initialization. */
   msb_ports_init();
   adc_init();
-  dma_init();
 
   clock_init();
   rtimer_init();
