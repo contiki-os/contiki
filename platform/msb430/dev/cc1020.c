@@ -103,13 +103,13 @@ const struct radio_driver cc1020_driver =
     cc1020_off
   };
 
+PROCESS(cc1020_receiver_process, "CC1020 receiver");
+
 static void
 dma_callback(void)
 {
   dma_done = 1;
 }
-
-PROCESS(cc1020_receiver_process, "CC1020 receiver");
 
 void
 cc1020_init(const uint8_t *config)
@@ -166,7 +166,6 @@ cc1020_set_rx(void)
 
   // configure driver
   cc1020_rxlen = 0;		// receive buffer position to start
-  //cc1020_rxstate = CC1020_RX_SEARCHING;	// rx state machine to searching mode
   CC1020_SET_OPSTATE(CC1020_RX | CC1020_RX_SEARCHING);	// driver state to receive mode
 
   // configure radio
@@ -224,12 +223,6 @@ cc1020_send(const void *buf, unsigned short len)
 
   if (len > CC1020_BUFFERSIZE)
     return -1;
-
-  /* Previous data hasn't been sent yet. */
-  if (cc1020_txlen > 0) {
-	printf("data in buffer");
-	return -1;
-  }
 
   /* The preamble and the sync word are already in buffer. */
   cc1020_txlen = PREAMBLESIZE + SYNCWDSIZE;
