@@ -291,16 +291,15 @@ cc1020_read(void *buf, unsigned short size)
   memcpy(buf, (char *)cc1020_rxbuf + HDRSIZE, len);
   RIMESTATS_ADD(llrx);
 
+  // reset receiver
+  cc1020_rxlen = 0;
+
   CC1020_SET_OPSTATE(CC1020_RX | CC1020_RX_SEARCHING);
-  //cc1020_rxstate = CC1020_RX_SEARCHING;
   if ((cc1020_state & CC1020_TURN_OFF) && (cc1020_txlen == 0)) {
     cc1020_off();
   } else {
     ENABLE_RX_IRQ();
   }
-
-  // reset receiver
-  cc1020_rxlen = 0;
 
   return len;
 }
@@ -451,14 +450,12 @@ interrupt(UART0RX_VECTOR) cc1020_rxhandler(void)
       if (pktlen == 0 || pktlen > sizeof (cc1020_rxbuf)) {
 	cc1020_rxlen = 0;
 	CC1020_SET_OPSTATE(CC1020_RX | CC1020_RX_SEARCHING);
-	//cc1020_rxstate = CC1020_RX_SEARCHING;
       }
     } else if (cc1020_rxlen > HDRSIZE) {
       if (cc1020_rxlen == pktlen) {
         // disable receiver
         DISABLE_RX_IRQ();
-		CC1020_SET_OPSTATE(CC1020_RX | CC1020_RX_PROCESSING);
-        //cc1020_rxstate = CC1020_RX_PROCESSING;
+	CC1020_SET_OPSTATE(CC1020_RX | CC1020_RX_PROCESSING);
 
         // call receiver to copy from buffer
         process_poll(&cc1020_receiver_process);
