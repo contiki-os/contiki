@@ -76,8 +76,8 @@ static void cc1020_reset(void);
 // current mode of cc1020 chip
 static enum cc1020_state cc1020_state = CC1020_OFF;
 static volatile uint8_t cc1020_rxbuf[HDRSIZE + CC1020_BUFFERSIZE];
-static uint8_t cc1020_txbuf[PREAMBLESIZE + HDRSIZE + CC1020_BUFFERSIZE +
-			   TAILSIZE];
+static uint8_t cc1020_txbuf[PREAMBLESIZE + SYNCWDSIZE + HDRSIZE +
+			   CC1020_BUFFERSIZE + TAILSIZE];
 //static volatile enum cc1020_rxstate cc1020_rxstate = CC1020_RX_SEARCHING;
 
 // number of bytes in receive and transmit buffers respectively.
