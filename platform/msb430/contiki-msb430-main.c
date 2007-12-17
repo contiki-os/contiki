@@ -43,44 +43,12 @@
 #include <stdio.h>
 #include <string.h>
 
+#include "contiki.h"
 #include "contiki-msb430.h"
-
-#include "sys/procinit.h"
-#include "sys/autostart.h"
-
-#include "dev/adc.h"
-#include "dev/dma.h"
-#include "dev/sht11.h"
-
-#include "net/mac/nullmac.h"
-#include "net/mac/xmac.h"
-
-#include "dev/slip.h"
 
 extern volatile bool uart_edge;
 
 SENSORS(NULL);
-
-#if WITH_UIP
-static struct uip_fw_netif slipif =
-{UIP_FW_NETIF(192,168,1,2, 255,255,255,255, slip_send)};
-#else
-int
-putchar(int c)
-{
-  rs232_send(c);
-  return c;
-}
-#endif /* WITH_UIP */
-
-static void
-set_rime_addr(void)
-{
-  rimeaddr_t addr;
-
-  addr.u16[0] = node_id;
-  rimeaddr_set_node_addr(&addr);
-}
 
 static void
 msb_ports_init(void)
@@ -130,32 +98,14 @@ main(void)
 
   /* System services */
   process_start(&etimer_process, NULL);
-  //process_start(&sensors_process, NULL);
 
   cc1020_init(cc1020_config_19200);
 
-  // network configuration
   node_id_restore();
- 
-#if WITH_UIP
-  uip_init();
-  uip_sethostaddr(&slipif.ipaddr);
-  uip_setnetmask(&slipif.netmask);
-  uip_fw_default(&slipif);	/* Point2point, no default router. */
-  tcpip_set_forwarding(0);
-#endif /* WITH_UIP */
 
-  nullmac_init(&cc1020_driver);
-  rime_init(&nullmac_driver);
-  set_rime_addr();
+  init_net();
 
   energest_init();
-
-#if WITH_UIP
-  process_start(&tcpip_process, NULL);
-  process_start(&uip_fw_process, NULL);	/* Start IP output */
-  process_start(&slip_process, NULL);
-#endif /* WITH_UIP */
  
 #if PROFILE_CONF_ON
   profile_init();
