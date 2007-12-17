@@ -44,7 +44,7 @@
 #include "dev/cc1020-uip.h"
 
 static struct uip_fw_netif slipif =
-{UIP_FW_NETIF(192,168,1,2, 255,255,255,255, slip_send)};
+{UIP_FW_NETIF(172,16,0,0, 255,255,255,0, slip_send)};
 
 static struct uip_fw_netif wsnif =
 {UIP_FW_NETIF(0,0,0,0, 0,0,0,0, cc1020_uip_send)};
@@ -56,11 +56,17 @@ init_net(void)
 
   uip_init();
   uip_fw_init();
+  /*tcpip_set_forwarding(1);*/
 
+  process_start(&tcpip_process, NULL);
+  process_start(&slip_process, NULL);
+  process_start(&uip_fw_process, NULL);
+  
   rs232_set_input(slip_input_byte);
 
   cc1020_uip_init();
-
+  cc1020_on();
+  
   if (node_id > 0) {
     uip_ipaddr(&hostaddr, 172, 16, 1, node_id);
     uip_sethostaddr(&hostaddr);
@@ -68,8 +74,4 @@ init_net(void)
 
   uip_fw_register(&slipif);
   uip_fw_default(&wsnif);
-
-  process_start(&tcpip_process, NULL);
-  process_start(&slip_process, NULL);
-  process_start(&uip_fw_process, NULL);
 }
