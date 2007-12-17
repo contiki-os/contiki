@@ -86,15 +86,10 @@ static void
 msb_ports_init(void)
 {
   P1SEL = 0x00; P1OUT = 0x00; P1DIR = 0x00;
-
   P2SEL = 0x00; P2OUT = 0x18; P2DIR = 0x1A;
-
   P3SEL = 0x00; P3OUT = 0x09; P3DIR = 0x21;
-
   P4SEL = 0x00; P4OUT = 0x00; P4DIR = 0x00;
-
   P5SEL = 0x0E; P5OUT = 0xF9; P5DIR = 0xFD;
-
   P6SEL = 0x07; P6OUT = 0x00; P6DIR = 0xC8;
 }
 
@@ -167,7 +162,6 @@ main(void)
 #endif /* PROFILE_CONF_ON */
  
   leds_off(LEDS_ALL);
-  lpm_on();
 
   printf(CONTIKI_VERSION_STRING " started. Node id %u.", node_id);
 
