@@ -45,7 +45,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: route-discovery.h,v 1.3 2007/03/31 18:31:28 adamdunkels Exp $
+ * $Id: route-discovery.h,v 1.4 2007/12/17 09:14:08 adamdunkels Exp $
  */
 
 /**
@@ -58,7 +58,7 @@
 #ifndef __ROUTE_DISCOVERY_H__
 #define __ROUTE_DISCOVERY_H__
 
-#include "net/rime.h"
+#include "net/rime/uc.h"
 #include "net/rime/nf.h"
 
 struct route_discovery_conn;

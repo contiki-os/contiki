@@ -49,7 +49,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: mesh.h,v 1.8 2007/03/31 18:31:27 adamdunkels Exp $
+ * $Id: mesh.h,v 1.9 2007/12/17 09:14:08 adamdunkels Exp $
  */
 
 /**
@@ -62,7 +62,7 @@
 #ifndef __MESH_H__
 #define __MESH_H__
 
-#include "net/rime.h"
+#include "net/rime/queuebuf.h"
 #include "net/rime/mh.h"
 #include "net/rime/route-discovery.h"
 

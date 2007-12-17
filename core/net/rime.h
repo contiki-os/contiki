@@ -33,7 +33,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: rime.h,v 1.11 2007/12/05 13:21:58 adamdunkels Exp $
+ * $Id: rime.h,v 1.12 2007/12/17 09:14:08 adamdunkels Exp $
  */
 
 /**
@@ -55,6 +55,13 @@
 #include "net/rime/sibc.h"
 #include "net/rime/mh.h"
 #include "net/rime/rmh.h"
+#include "net/rime/polite.h"
+#include "net/rime/ipolite.h"
+#include "net/rime/nf.h"
+#include "net/rime/route-discovery.h"
+#include "net/rime/neighbor-discovery.h"
+#include "net/rime/collect.h"
+#include "net/rime/mesh.h"
 #include "net/mac/mac.h"
 /**
  * \brief      Initialize Rime

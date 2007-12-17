@@ -47,7 +47,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: rudolph1.h,v 1.6 2007/11/17 18:05:21 adamdunkels Exp $
+ * $Id: rudolph1.h,v 1.7 2007/12/17 09:14:08 adamdunkels Exp $
  */
 
 /**
@@ -60,10 +60,8 @@
 #ifndef __RUDOLPH1_H__
 #define __RUDOLPH1_H__
 
-#include "net/rime.h"
 #include "net/rime/trickle.h"
-#include "net/rime/uabc.h"
-#include "contiki-net.h"
+#include "net/rime/ipolite.h"
 
 struct rudolph1_conn;
 
