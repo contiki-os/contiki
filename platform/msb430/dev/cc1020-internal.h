@@ -86,7 +86,7 @@
 #define RX_CURRENT 		0x86
 
 // CC1020 driver configuration
-#define CC1020_BUFFERSIZE	250
+#define CC1020_BUFFERSIZE	128
 
 // PDI (Data in) is on P21
 #define PDO		(P2IN & 0x01)
