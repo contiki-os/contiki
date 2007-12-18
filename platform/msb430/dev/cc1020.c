@@ -272,7 +272,6 @@ int
 cc1020_read(void *buf, unsigned short size)
 {
   unsigned len;
-printf("Read time: %lu\n", RTIMER_NOW());
 
   if (cc1020_rxlen <= HDRSIZE)
     return 0;
@@ -452,7 +451,6 @@ interrupt(UART0RX_VECTOR) cc1020_rxhandler(void)
         DISABLE_RX_IRQ();
 	CC1020_SET_OPSTATE(CC1020_RX | CC1020_RX_PROCESSING);
 	_BIC_SR_IRQ(LPM3_bits);
-printf("Poll time: %lu\n", RTIMER_NOW());
         // call receiver to copy from buffer
         process_poll(&cc1020_receiver_process);
       }
