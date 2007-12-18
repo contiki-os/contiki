@@ -1,5 +1,13 @@
+ifndef JTAG_PORT
+  JTAG_PORT = LPT1
+endif
+
+ifdef DEBUG
+  DEBUG_ARGS = -D -D -D -D
+endif
+
 %.u:	%.ihex
-	msp430-jtag -mI $^
+	msp430-jtag $(DEBUG_ARGS) -l $(JTAG_PORT) -mI $^
 
 #CW=cw23
 
