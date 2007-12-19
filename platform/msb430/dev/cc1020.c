@@ -166,7 +166,7 @@ cc1020_set_rx(void)
 
   // configure driver
   cc1020_rxlen = 0;		// receive buffer position to start
-  CC1020_SET_OPSTATE(CC1020_RX | CC1020_RX_SEARCHING);	// driver state to receive mode
+  CC1020_SET_OPSTATE(CC1020_RX | CC1020_RX_SEARCHING); // driver state to receive mode
 
   // configure radio
   ENERGEST_ON(ENERGEST_TYPE_LISTEN);
@@ -232,13 +232,8 @@ cc1020_send(const void *buf, unsigned short len)
   cc1020_txbuf[cc1020_txlen++] = TAIL;
   cc1020_txbuf[cc1020_txlen++] = TAIL;
 
-  cc1020_set_rx();
-
-  if ((cc1020_state & CC1020_RX_SEARCHING) == 0) {
-    // Wait until the receiver is idle.
-    while (cc1020_state & CC1020_RX_SEARCHING);
-
-    // Wait for the medium to become idle.
+  // Wait for the medium to become idle.
+  if (cc1020_carrier_sense()) {
     while (cc1020_carrier_sense());
 
     // Then wait for a short pseudo-random time before sending.
@@ -259,7 +254,6 @@ cc1020_send(const void *buf, unsigned short len)
   // clean up
   cc1020_txlen = 0;
   if (cc1020_state & CC1020_TURN_OFF) {
-    CC1020_SET_OPSTATE(CC1020_RX | CC1020_RX_SEARCHING);
     cc1020_off();
   } else {
     cc1020_set_rx();
@@ -288,10 +282,10 @@ cc1020_read(void *buf, unsigned short size)
   // reset receiver
   cc1020_rxlen = 0;
 
-  CC1020_SET_OPSTATE(CC1020_RX | CC1020_RX_SEARCHING);
   if ((cc1020_state & CC1020_TURN_OFF) && (cc1020_txlen == 0)) {
     cc1020_off();
   } else {
+    CC1020_SET_OPSTATE(CC1020_RX | CC1020_RX_SEARCHING);
     ENABLE_RX_IRQ();
   }
 
@@ -361,8 +355,6 @@ PROCESS_THREAD(cc1020_receiver_process, ev, data)
 
     if(receiver_callback != NULL) {
       receiver_callback(&cc1020_driver);
-    } else {
-      printf("cc1020_receiver_process no callback function defined\n");
     }
   }
 
@@ -422,7 +414,7 @@ interrupt(UART0RX_VECTOR) cc1020_rxhandler(void)
     // Update RSSI.
     rssi = cc1020_read_reg(CC1020_RSS);
     CC1020_SET_OPSTATE(CC1020_RX | CC1020_RX_RECEIVING);
-  } else if( cc1020_state & CC1020_RX_RECEIVING ) {
+  } else if (cc1020_state & CC1020_RX_RECEIVING) {
     if (syncbs == 0) {
       cc1020_rxbuf[cc1020_rxlen] = RXBUF0;
     } else {
