@@ -74,7 +74,7 @@ static void cc1020_load_config(const uint8_t *);
 static void cc1020_reset(void);
 
 // current mode of cc1020 chip
-static enum cc1020_state cc1020_state = CC1020_OFF;
+static volatile enum cc1020_state cc1020_state = CC1020_OFF;
 static volatile uint8_t cc1020_rxbuf[HDRSIZE + CC1020_BUFFERSIZE];
 static uint8_t cc1020_txbuf[PREAMBLESIZE + SYNCWDSIZE + HDRSIZE +
 			   CC1020_BUFFERSIZE + TAILSIZE];
@@ -421,8 +421,7 @@ interrupt(UART0RX_VECTOR) cc1020_rxhandler(void)
     }
     // Update RSSI.
     rssi = cc1020_read_reg(CC1020_RSS);
-	CC1020_SET_OPSTATE(CC1020_RX | CC1020_RX_RECEIVING);
-
+    CC1020_SET_OPSTATE(CC1020_RX | CC1020_RX_RECEIVING);
   } else if( cc1020_state & CC1020_RX_RECEIVING ) {
     if (syncbs == 0) {
       cc1020_rxbuf[cc1020_rxlen] = RXBUF0;
