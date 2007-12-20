@@ -44,7 +44,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: ctk.c,v 1.17 2007/12/15 21:29:46 oliverschmidt Exp $
+ * $Id: ctk.c,v 1.18 2007/12/20 20:45:06 oliverschmidt Exp $
  *
  */
 
@@ -688,9 +688,6 @@ window_new(CC_REGISTER_ARG struct ctk_window *window,
   } else {
     window->y = (height - h - 2 - ctk_draw_windowtitle_height) / 2;
   }
-#else /* CTK_CONF_WINDOWS */
-  window->x = -1;
-  window->y = -1;
 #endif /* CTK_CONF_WINDOWS */
 
   window->w = w;
@@ -1613,13 +1610,13 @@ PROCESS_THREAD(ctk_process, ev, data)
 		  ctk_window_open(window);
 		  redraw |= REDRAW_ALL;
 		} else {
-#endif /* CTK_CONF_WINDOWS */
 
 		  /* Find out which widget currently is under the mouse
 		     pointer and give it focus, unless it already has
 		     focus. */
 		  mxc = mxc - window->x - ctk_draw_windowborder_width;
 		  myc = myc - window->y - ctk_draw_windowtitle_height;
+#endif /* CTK_CONF_WINDOWS */
 	    
 		  /* See if the mouse pointer is on a widget. If so, it
 		     should be selected and, if the button is clicked,

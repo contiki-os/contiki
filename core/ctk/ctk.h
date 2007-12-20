@@ -43,7 +43,7 @@
  *
  * This file is part of the Contiki desktop OS.
  *
- * $Id: ctk.h,v 1.4 2007/12/14 23:34:19 oliverschmidt Exp $
+ * $Id: ctk.h,v 1.5 2007/12/20 20:45:06 oliverschmidt Exp $
  *
  */
 
@@ -525,11 +525,6 @@ struct ctk_window {
 
 #if CTK_CONF_WINDOWS
   unsigned char x,             /**< The x coordinate of the window, in
-				  characters. */
-    y;                         /**< The y coordinate of the window, in
-				  characters. */
-#else /* CTK_CONF_WINDOWS */
-  signed char x,               /**< The x coordinate of the window, in
 				  characters. */
     y;                         /**< The y coordinate of the window, in
 				  characters. */
