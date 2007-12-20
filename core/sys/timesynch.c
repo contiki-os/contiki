@@ -34,7 +34,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: timesynch.c,v 1.2 2007/12/16 14:48:33 adamdunkels Exp $
+ * $Id: timesynch.c,v 1.3 2007/12/20 20:30:55 oliverschmidt Exp $
  */
 
 /**
@@ -49,7 +49,6 @@
 #include "net/rime.h"
 #include "dev/simple-cc2420.h"
 
-static const struct mac_driver timesynch_driver;
 static const struct mac_driver *mac;
 static void (* receiver_callback)(const struct mac_driver *);
 
@@ -93,14 +92,6 @@ static int
 send(void)
 {
   return mac->send();
-}
-/*---------------------------------------------------------------------------*/
-static void
-input(const struct mac_driver *d)
-{
-  if(receiver_callback) {
-    receiver_callback(&timesynch_driver);
-  }
 }
 /*---------------------------------------------------------------------------*/
 static void
@@ -160,6 +151,14 @@ static const struct mac_driver timesynch_driver = {
   on,
   off,
 };
+/*---------------------------------------------------------------------------*/
+static void
+input(const struct mac_driver *d)
+{
+  if(receiver_callback) {
+    receiver_callback(&timesynch_driver);
+  }
+}
 /*---------------------------------------------------------------------------*/
 const struct mac_driver *
 timesynch_init(const struct mac_driver *d)
