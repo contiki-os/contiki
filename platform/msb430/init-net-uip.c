@@ -42,6 +42,7 @@
 #include "node-id.h"
 #include "dev/slip.h"
 #include "dev/cc1020-uip.h"
+#include "contiki-msb430.h"
 
 static struct uip_fw_netif slipif =
 {UIP_FW_NETIF(172,16,0,0, 255,255,255,0, slip_send)};
@@ -53,6 +54,7 @@ void
 init_net(void)
 {
   uip_ipaddr_t hostaddr;
+  cc1020_init(cc1020_config_19200);
 
   uip_init();
   uip_fw_init();
