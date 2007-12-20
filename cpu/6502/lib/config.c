@@ -30,7 +30,7 @@
  * 
  * Author: Oliver Schmidt <ol.sc@web.de>
  *
- * $Id: config.c,v 1.3 2007/12/16 13:10:14 oliverschmidt Exp $
+ * $Id: config.c,v 1.4 2007/12/20 20:49:59 oliverschmidt Exp $
  */
 
 #include <fcntl.h>
@@ -44,6 +44,7 @@
 #include "net/ethernet-drv.h"
 
 /*-----------------------------------------------------------------------------------*/
+#if LOG_CONF_ENABLED
 static char *
 ipaddrtoa(uip_ipaddr_t *ipaddr, char *buffer)
 {
@@ -58,6 +59,7 @@ ipaddrtoa(uip_ipaddr_t *ipaddr, char *buffer)
 
   return buffer + 1;
 }
+#endif /* LOG_CONF_ENABLED */
 /*-----------------------------------------------------------------------------------*/
 struct ethernet_config *
 config_read(char *filename)
