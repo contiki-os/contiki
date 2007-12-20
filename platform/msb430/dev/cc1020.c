@@ -214,6 +214,8 @@ cc1020_set_power(uint8_t pa_power)
 int
 cc1020_send(const void *buf, unsigned short len)
 {
+  int try;
+
   if (cc1020_state == CC1020_OFF)
     return -2;
 
@@ -237,7 +239,15 @@ cc1020_send(const void *buf, unsigned short len)
 
   // Wait for the medium to become idle.
   if (cc1020_carrier_sense()) {
-    while (cc1020_carrier_sense());
+    for (try = 0; try < CC1020_CONF_CCA_TIMEOUT; try++) {
+      MS_DELAY(1);
+      if (!cc1020_carrier_sense()) {
+	break;
+      }
+    }
+    if (try == CC1020_CONF_CCA_TIMEOUT) {
+      return -3;
+    }
 
     // Then wait for a short pseudo-random time before sending.
     clock_delay(100 * ((random_rand() + 1) & 0xf));
