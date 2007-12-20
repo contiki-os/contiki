@@ -28,12 +28,13 @@
  *
  * This file is part of the Contiki operating system.
  * 
- * $Id: rtimer-arch.h,v 1.1 2007/12/15 00:14:19 oliverschmidt Exp $
+ * $Id: rtimer-arch.h,v 1.2 2007/12/20 20:28:34 oliverschmidt Exp $
  */
 
 #ifndef __RTIMER_ARCH_H__
 #define __RTIMER_ARCH_H__
 
 #define RTIMER_ARCH_SECOND 0
+#define rtimer_arch_now() (0)
 
 #endif /* __RTIMER_ARCH_H__ */
