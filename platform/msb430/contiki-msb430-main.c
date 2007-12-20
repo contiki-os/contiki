@@ -98,8 +98,6 @@ main(void)
   /* System services */
   process_start(&etimer_process, NULL);
 
-  cc1020_init(cc1020_config_19200);
-
   node_id_restore();
 
   init_net();

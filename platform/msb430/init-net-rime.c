@@ -42,12 +42,14 @@
 #include "dev/cc1020.h"
 #include "net/mac/nullmac.h"
 #include "net/rime.h"
+#include "contiki-msb430.h"
 
 void
 init_net(void)
 {
   rimeaddr_t rimeaddr;
-
+  
+  cc1020_init(cc1020_config_19200);
   rime_init(nullmac_init(&cc1020_driver));
   rimeaddr.u16[0] = node_id;
   rimeaddr_set_node_addr(&rimeaddr);
