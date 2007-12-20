@@ -24,13 +24,14 @@
 
 #define CC_CONF_REGISTER_ARGS		1
 #define CC_CONF_FUNCTION_POINTER_ARGS	1
-
 #define CC_CONF_INLINE			inline
-
 #define CC_CONF_VA_ARGS			1
 
 #define CCIF
 #define CLIF
+
+/* Clear channel assessment timeout for sending with the CC1020 radio. (ms) */
+#define CC1020_CONF_CCA_TIMEOUT		50
 
 // Clock
 typedef unsigned short clock_time_t;
