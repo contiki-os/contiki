@@ -29,7 +29,7 @@
  *
  * This file is part of the "ctk" console GUI toolkit for cc65
  *
- * $Id: ctk-conio.c,v 1.10 2007/12/16 13:00:51 oliverschmidt Exp $
+ * $Id: ctk-conio.c,v 1.11 2007/12/20 20:45:06 oliverschmidt Exp $
  *
  */
 
@@ -240,8 +240,13 @@ ctk_draw_widget(struct ctk_widget *w, unsigned char focus,
   struct ctk_window *win = w->window;
   unsigned char posx, posy;
 
+#if CTK_CONF_WINDOWS
   posx = win->x + 1;
   posy = win->y + 1 + CTK_CONF_MENUS;
+#else /* CTK_CONF_WINDOWS */
+  posx = 0;
+  posy = 0;
+#endif /* CTK_CONF_WINDOWS */
 
   if(w == win->focused) {
     focus |= CTK_FOCUS_WIDGET;
@@ -259,7 +264,9 @@ ctk_draw_clear_window(struct ctk_window *window, unsigned char focus,
 		      unsigned char clipy1, unsigned char clipy2)
 {
   unsigned char i;
+#if CTK_CONF_WINDOWS
   unsigned char h;
+#endif /* CTK_CONF_WINDOWS */
 
   if(focus & CTK_FOCUS_WINDOW) {
     (void)textcolor(WINDOWCOLOR_FOCUS);
@@ -267,6 +274,7 @@ ctk_draw_clear_window(struct ctk_window *window, unsigned char focus,
     (void)textcolor(WINDOWCOLOR);
   }
   
+#if CTK_CONF_WINDOWS
   h = window->y + 1 + CTK_CONF_MENUS + window->h;
 
   /* Clear window contents. */
@@ -275,6 +283,13 @@ ctk_draw_clear_window(struct ctk_window *window, unsigned char focus,
       cclearxy(window->x + 1, i, window->w);
     }
   }
+#else /* CTK_CONF_WINDOWS */
+  for(i = 0; i < window->h; ++i) {
+    if(i >= clipy1 && i < clipy2) {
+      cclearxy(0, i, window->w);
+    }
+  }
+#endif /* CTK_CONF_WINDOWS */
 }
 /*-----------------------------------------------------------------------------------*/
 static void
@@ -311,11 +326,10 @@ ctk_draw_window(struct ctk_window *window, unsigned char focus,
 		unsigned char clipy1, unsigned char clipy2,
 		unsigned char draw_borders)
 {
+#if CTK_CONF_WINDOWS
   unsigned char x, y;
   unsigned char x1, y1, x2, y2;
-#if CTK_CONF_WINDOWS
   unsigned char h;
-#endif /* CTK_CONF_WINDOWS */
 
   if(window->y + CTK_CONF_MENUS >= clipy2) {
     return;
@@ -328,7 +342,6 @@ ctk_draw_window(struct ctk_window *window, unsigned char focus,
   x2 = x1 + window->w;
   y2 = y1 + window->h;
 
-#if CTK_CONF_WINDOWS
   if(draw_borders) {
 
     /* Draw window frame. */  
@@ -373,9 +386,14 @@ ctk_draw_window(struct ctk_window *window, unsigned char focus,
       cputcxy(x2, y2, (char)CH_LRCORNER);
     }
   }
-#endif /* CTK_CONF_WINDOWS */
 
   draw_window_contents(window, focus, clipy1, clipy2, x1, x2, y + 1, y2);
+
+#else /* CTK_CONF_WINDOWS */
+
+  draw_window_contents(window, focus, clipy1, clipy2, 0, window->w, 0, window->h);
+
+#endif /* CTK_CONF_WINDOWS */
 }
 /*-----------------------------------------------------------------------------------*/
 #if CTK_CONF_WINDOWS
