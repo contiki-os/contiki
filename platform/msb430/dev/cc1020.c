@@ -224,6 +224,7 @@ cc1020_send(const void *buf, unsigned short len)
   cc1020_txlen = PREAMBLESIZE + SYNCWDSIZE;
 
   // header
+  cc1020_txbuf[cc1020_txlen++] = 0x00;
   cc1020_txbuf[cc1020_txlen++] = HDRSIZE + len;
 
   // data to send

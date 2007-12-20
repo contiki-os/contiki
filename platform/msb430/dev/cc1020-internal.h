@@ -238,6 +238,7 @@ const uint8_t syncword[2] = {0xD3,0x91};
 
 // header: number of bytes in packet including header
 struct cc1020_header {
+  uint8_t  pad;
   uint8_t  length;
 } __attribute__((packed));
 
