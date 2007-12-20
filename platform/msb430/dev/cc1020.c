@@ -103,6 +103,8 @@ const struct radio_driver cc1020_driver =
     cc1020_off
   };
 
+#define MS_DELAY(x) clock_delay(354 * (x))
+
 PROCESS(cc1020_receiver_process, "CC1020 receiver");
 
 static void
@@ -237,7 +239,7 @@ cc1020_send(const void *buf, unsigned short len)
     while (cc1020_carrier_sense());
 
     // Then wait for a short pseudo-random time before sending.
-    clock_delay(1 + 10 * (random_rand() & 0xff));
+    clock_delay(100 * ((random_rand() + 1) & 0xf));
   }
 
   // Switch to transceive mode.
@@ -319,7 +321,6 @@ cc1020_off(void)
 
     LNA_POWER_OFF();		// power down lna
     s = splhigh();
-    //cc1020_rxstate = CC1020_OFF;
     DISABLE_RX_IRQ();
     cc1020_state = CC1020_OFF;
     splx(s);
@@ -383,7 +384,7 @@ interrupt(UART0RX_VECTOR) cc1020_rxhandler(void)
     shiftbuf.b2 = shiftbuf.b3;
     shiftbuf.b3 = shiftbuf.b4;
     shiftbuf.b4 = RXBUF0;
-    if (shiftbuf.i1 == 0xAAD3 && shiftbuf.i2 == 0x9100) {
+    if (shiftbuf.i1 == 0xAAD3 && shiftbuf.b3 == 0x91) {
       // 0  AA D3 91 00 | FF 00 |
       syncbs = 0;
       cc1020_rxbuf[cc1020_rxlen++] = shiftbuf.b4;
@@ -438,11 +439,10 @@ interrupt(UART0RX_VECTOR) cc1020_rxhandler(void)
       }
     } else if (cc1020_rxlen > HDRSIZE) {
       if (cc1020_rxlen == pktlen) {
-        // disable receiver
+        /* Disable interrupts while processing the packet. */
         DISABLE_RX_IRQ();
 	CC1020_SET_OPSTATE(CC1020_RX | CC1020_RX_PROCESSING);
 	_BIC_SR_IRQ(LPM3_bits);
-        // call receiver to copy from buffer
         process_poll(&cc1020_receiver_process);
       }
     }
@@ -490,7 +490,6 @@ cc1020_write_reg(uint8_t addr, uint8_t adata)
     nop();
     if (data & 0x80)
       PDI_HIGH;
-
     else
       PDI_LOW;
     data = data << 1;
@@ -567,7 +566,6 @@ cc1020_load_config(const uint8_t * config)
 static void
 cc1020_reset(void)
 {
-
   // Reset CC1020
   cc1020_write_reg(CC1020_MAIN, 0x0FU & ~0x01U);
 
@@ -585,9 +583,9 @@ cc1020_calibrate(void)
 
   // Start calibration
   cc1020_write_reg(CC1020_CALIBRATE, 0xB5);
-  clock_delay(1200);
+  MS_DELAY(3);
   while ((cc1020_read_reg(CC1020_STATUS) & CAL_COMPLETE) == 0);
-  clock_delay(800);
+  MS_DELAY(2);
 
   // Monitor lock
   for (timeout_cnt = LOCK_TIMEOUT; timeout_cnt > 0; timeout_cnt--) {
@@ -617,14 +615,11 @@ cc1020_lock(void)
 
   if (lock_status == LOCK_CONTINUOUS) {
     return LOCK_OK;
-  } else {
-    // If recalibration ok
-    if (cc1020_calibrate())
-      return LOCK_RECAL_OK;	// Indicate PLL in LOCK
-    else
-      return LOCK_NOK;		// Indicate PLL out of LOCK
   }
+
+  return cc1020_calibrate() ? LOCK_RECAL_OK : LOCK_NOK;
 }
+
 static int
 cc1020_setupRX(int analog)
 {
@@ -635,7 +630,7 @@ cc1020_setupRX(int analog)
 
   // Setup bias current adjustment
   cc1020_write_reg(CC1020_ANALOG, analog);
-  clock_delay(400);		// Wait for 1 msec  
+  MS_DELAY(1);
   lock_status = cc1020_lock();
 
   // Switch RX part of CC1020 on
@@ -656,7 +651,7 @@ cc1020_setupTX(int analog)
 
   // Switch into TX, switch to freq. reg B
   cc1020_write_reg(CC1020_MAIN, 0xC1);
-  clock_delay(400);		// Wait for 1 msec
+  MS_DELAY(1);
   lock_status = cc1020_lock();
 
   // Restore PA_POWER
@@ -694,13 +689,14 @@ cc1020_wakeupRX(int analog)
   // Setup bias current adjustment.
   cc1020_write_reg(CC1020_ANALOG, analog);
 
-  // Insert wait routine here, must wait for xtal oscillator to stabilise, 
-  // typically takes 2-5ms.
-  clock_delay(1200);		// DelayMs(5);
+  /*
+   * Wait for the crystal oscillator to stabilize.
+   * This typically takes 2-5 ms.
+   */
+  MS_DELAY(5);
 
   // Turn on bias generator.
   cc1020_write_reg(CC1020_MAIN, 0x19);
-  clock_delay(400);		// NOT NEEDED?
 
   // Turn on frequency synthesizer.
   cc1020_write_reg(CC1020_MAIN, 0x11);
@@ -715,15 +711,16 @@ cc1020_wakeupTX(int analog)
   // Setup bias current adjustment.
   cc1020_write_reg(CC1020_ANALOG, analog);
 
-  // Insert wait routine here, must wait for xtal oscillator to stabilise, 
-  // typically takes 2-5ms.
-  clock_delay(1200);		// DelayMs(5);
+  /*
+   * Wait for the crystal oscillator to stabilize.
+   * This typically takes 2-5 ms.
+   */
+  MS_DELAY(5);
 
   // Turn on bias generator.
   cc1020_write_reg(CC1020_MAIN, 0xD9);
-  clock_delay(400);		// NOT NEEDED?
 
   // Turn on frequency synthesizer.
-  clock_delay(400);
+  MS_DELAY(1);
   cc1020_write_reg(CC1020_MAIN, 0xD1);
 }
