@@ -30,7 +30,7 @@
  * 
  * Author: Oliver Schmidt <ol.sc@web.de>
  *
- * $Id: contiki-conf.h,v 1.10 2007/11/28 00:00:29 oliverschmidt Exp $
+ * $Id: contiki-conf.h,v 1.11 2007/12/20 20:54:15 oliverschmidt Exp $
  */
 
 #ifndef __CONTIKI_CONF_H__
@@ -45,7 +45,39 @@
 #define UIP_CONF_UDP_CHECKSUMS 1
 #define UIP_CONF_LOGGING       1
 
+#define CTK_CONF_MENU_KEY         CH_F1
+#define CTK_CONF_WINDOWSWITCH_KEY CH_F3
+#define CTK_CONF_WIDGETUP_KEY     CH_F5
+#define CTK_CONF_WIDGETDOWN_KEY   CH_F7
+#define CTK_CONF_WIDGET_FLAGS     0
+#define CTK_CONF_WINDOWS          0
+#define CTK_CONF_WINDOWMOVE       0
+#define CTK_CONF_WINDOWCLOSE      0
+#define CTK_CONF_ICONS            0
+#define CTK_CONF_MENUS            0
+#define CTK_CONF_SCREENSAVER      0
+#define CTK_CONF_MOUSE_SUPPORT    0
+
+#define BORDERCOLOR       COLOR_LIGHTBLUE
+#define SCREENCOLOR       COLOR_BLUE
+#define BACKGROUNDCOLOR   COLOR_BLUE
+#define WINDOWCOLOR       COLOR_GRAY1
+#define WINDOWCOLOR_FOCUS COLOR_LIGHTBLUE
+#define WIDGETCOLOR       COLOR_GRAY1
+#define WIDGETCOLOR_FOCUS COLOR_YELLOW
+#define WIDGETCOLOR_FWIN  COLOR_LIGHTBLUE
+#define WIDGETCOLOR_HLINK COLOR_CYAN
+
 #define WEBSERVER_CONF_CGI_CONNS UIP_CONNS
 #define WEBSERVER_CONF_CFS_CONNS 8
+
+#define WWW_CONF_WEBPAGE_WIDTH      40
+#define WWW_CONF_HISTORY_SIZE        4
+#define WWW_CONF_MAX_URLLEN         38
+#define WWW_CONF_MAX_NUMPAGEWIDGETS 20
+#define WWW_CONF_MAX_FORMACTIONLEN  20
+#define WWW_CONF_MAX_FORMNAMELEN    20
+#define WWW_CONF_MAX_INPUTNAMELEN   20
+#define WWW_CONF_MAX_INPUTVALUELEN  20
 
 #endif /* __CONTIKI_CONF_H__ */
