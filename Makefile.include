@@ -76,6 +76,11 @@ endif
 
 include $(CONTIKI)/platform/$(TARGET)/Makefile.$(TARGET)
 
+### Forward comma-separated list of arbitrary defines to the compiler
+
+COMMA := ,
+CFLAGS += ${addprefix -D,${subst $(COMMA), ,$(DEFINES)}}
+
 ### Setup directory search path for source and header files
 
 CONTIKI_TARGET_DIRS_CONCAT = ${addprefix $(CONTIKI)/platform/$(TARGET)/, \
