@@ -30,13 +30,13 @@
  * 
  * Author: Oliver Schmidt <ol.sc@web.de>
  *
- * $Id: ethernet.h,v 1.1 2007/11/20 21:10:21 oliverschmidt Exp $
+ * $Id: ethernet.h,v 1.2 2007/12/21 01:13:44 oliverschmidt Exp $
  */
 
 #ifndef __ETHERNET_H__
 #define __ETHERNET_H__
 
-void ethernet_init(struct ethernet_config *config);
+void CC_FASTCALL ethernet_init(struct ethernet_config *config);
 u16_t ethernet_poll(void);
 void ethernet_send(void);
 void ethernet_exit(void);

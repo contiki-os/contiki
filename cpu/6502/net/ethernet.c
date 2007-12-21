@@ -30,7 +30,7 @@
  *
  * Author: Oliver Schmidt <ol.sc@web.de>
  *
- * @(#)$Id: ethernet.c,v 1.4 2007/12/16 17:02:37 oliverschmidt Exp $
+ * @(#)$Id: ethernet.c,v 1.5 2007/12/21 01:13:44 oliverschmidt Exp $
  */
 
 #include <fcntl.h>
@@ -56,7 +56,7 @@ struct {
 } *module;
 
 /*---------------------------------------------------------------------------*/
-void
+void CC_FASTCALL
 ethernet_init(struct ethernet_config *config)
 {
   static const char signature[4] = {0x65, 0x74, 0x68, 0x01};
