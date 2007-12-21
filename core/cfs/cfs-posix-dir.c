@@ -30,43 +30,54 @@
  *
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: cfs-posix.c,v 1.7 2007/12/21 01:36:01 oliverschmidt Exp $
+ * $Id: cfs-posix-dir.c,v 1.1 2007/12/21 01:36:01 oliverschmidt Exp $
  */
 
 #include <stdio.h>
-#include <fcntl.h>
-#include <unistd.h>
+#include <dirent.h>
+#include <string.h>
 
 #include "cfs/cfs.h"
 
+struct cfs_posix_dir {
+  DIR *dirp;
+};
+
 /*---------------------------------------------------------------------------*/
 int
-cfs_open(const char *n, int f)
+cfs_opendir(struct cfs_dir *p, const char *n)
 {
-  return open(n, f == CFS_READ? O_RDONLY: O_CREAT|O_RDWR);
+  struct cfs_posix_dir *dir = (struct cfs_posix_dir *)p;
+
+  dir->dirp = opendir(n);
+  return dir->dirp == NULL;
+}
+/*---------------------------------------------------------------------------*/
+int
+cfs_readdir(struct cfs_dir *p, struct cfs_dirent *e)
+{
+  struct cfs_posix_dir *dir = (struct cfs_posix_dir *)p;
+  struct dirent *res;
+
+  if(dir->dirp == NULL) {
+    return -1;
+  }
+  res = readdir(dir->dirp);
+  if(res == NULL) {
+    return -1;
+  }
+  strncpy(e->name, res->d_name, sizeof(e->name));
+  e->size = 0;
+  return 0;
 }
 /*---------------------------------------------------------------------------*/
 void
-cfs_close(int f)
+cfs_closedir(struct cfs_dir *p)
 {
-  close(f);
-}
-/*---------------------------------------------------------------------------*/
-int
-cfs_read(int f, void *b, unsigned int l)
-{
-  return read(f, b, l);
-}
-/*---------------------------------------------------------------------------*/
-int
-cfs_write(int f, void *b, unsigned int l)
-{
-  return write(f, b, l);
-}
-/*---------------------------------------------------------------------------*/
-unsigned int
-cfs_seek(int f, unsigned int o)
-{
-  return lseek(f, o, SEEK_SET);
+  struct cfs_posix_dir *dir = (struct cfs_posix_dir *)p;
+
+  if(dir->dirp != NULL) {
+    closedir(dir->dirp);
+  }
 }
 /*---------------------------------------------------------------------------*/
