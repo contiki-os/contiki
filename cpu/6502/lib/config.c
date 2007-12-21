@@ -30,22 +30,21 @@
  * 
  * Author: Oliver Schmidt <ol.sc@web.de>
  *
- * $Id: config.c,v 1.4 2007/12/20 20:49:59 oliverschmidt Exp $
+ * $Id: config.c,v 1.5 2007/12/21 01:04:29 oliverschmidt Exp $
  */
 
-#include <fcntl.h>
-#include <unistd.h>
 #include <stdlib.h>
 #include <string.h>
 
 #include "contiki-net.h"
+#include "cfs/cfs.h"
 #include "sys/log.h"
 #include "lib/error.h"
 #include "net/ethernet-drv.h"
 
 /*-----------------------------------------------------------------------------------*/
 #if LOG_CONF_ENABLED
-static char *
+static char * CC_FASTCALL
 ipaddrtoa(uip_ipaddr_t *ipaddr, char *buffer)
 {
   char *ptr = buffer;
@@ -61,7 +60,7 @@ ipaddrtoa(uip_ipaddr_t *ipaddr, char *buffer)
 }
 #endif /* LOG_CONF_ENABLED */
 /*-----------------------------------------------------------------------------------*/
-struct ethernet_config *
+struct ethernet_config * CC_FASTCALL
 config_read(char *filename)
 {
   static struct {
@@ -73,19 +72,19 @@ config_read(char *filename)
   } config;
   int file;
 
-  file = open(filename, O_RDONLY);
+  file = cfs_open(filename, CFS_READ);
   if(file < 0) {
     log_message(filename, ": File not found");
     error_exit();
   }
 
-  if(read(file, &config, sizeof(config)) < sizeof(config)
-					 - sizeof(config.ethernetcfg.name)) {
+  if(cfs_read(file, &config, sizeof(config)) < sizeof(config)
+					     - sizeof(config.ethernetcfg.name)) {
     log_message(filename, ": No config file");
     error_exit();
   }
 
-  close(file);
+  cfs_close(file);
 
   log_message("IP Address:  ",  ipaddrtoa(&config.hostaddr, uip_buf));
   log_message("Subnet Mask: ",  ipaddrtoa(&config.netmask, uip_buf));

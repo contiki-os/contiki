@@ -30,12 +30,12 @@
  * 
  * Author: Oliver Schmidt <ol.sc@web.de>
  *
- * $Id: config.h,v 1.1 2007/11/27 21:42:02 oliverschmidt Exp $
+ * $Id: config.h,v 1.2 2007/12/21 01:04:29 oliverschmidt Exp $
  */
 
 #ifndef __CONFIG_H__
 #define __CONFIG_H__
 
-struct ethernet_config *config_read(char *filename);
+struct ethernet_config * CC_FASTCALL config_read(char *filename);
 
 #endif /* __CONFIG_H__ */
