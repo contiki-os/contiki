@@ -2,7 +2,7 @@
 # Makefile for z80/SDCC
 # @author Takahide Matsutsuka <markn@markn.org>
 #
-# $Id: Makefile.z80,v 1.10 2007/11/28 06:13:24 matsutsuka Exp $
+# $Id: Makefile.z80,v 1.11 2007/12/21 00:49:57 oliverschmidt Exp $
 #
 
 ### Compiler definitions
@@ -38,6 +38,7 @@ CONTIKI_SOURCEFILES += strcasecmp.c mtarch.c uip_arch.c \
 CONTIKI_ASMFILES += uip_arch-asm.S crt0.S 
 #crt-prg.S
 
+CONTIKI_ASMOBJECTFILES = ${addprefix $(OBJECTDIR)/,$(CONTIKI_ASMFILES:.S=.o)}
 
 CONTIKI_CASMOBJECTFILES = ${addprefix $(OBJECTDIR)/,$(CONTIKI_CASMFILES:.cS=.o)}
 
