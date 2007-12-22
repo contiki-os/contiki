@@ -58,7 +58,7 @@
  *
  * This file is part of the uIP TCP/IP stack.
  *
- * $Id: uipopt.h,v 1.5 2007/12/08 23:04:34 oliverschmidt Exp $
+ * $Id: uipopt.h,v 1.6 2007/12/22 12:02:43 oliverschmidt Exp $
  *
  */
 
@@ -321,7 +321,7 @@
 /**
  * The size of the advertised receiver's window.
  *
- * Should be set low (i.e., to the size of the uip_buf buffer) is the
+ * Should be set low (i.e., to the size of the uip_buf buffer) if the
  * application is slow to process incoming data, or high (32768 bytes)
  * if the application processes data quickly.
  *
