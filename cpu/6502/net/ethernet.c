@@ -30,14 +30,13 @@
  *
  * Author: Oliver Schmidt <ol.sc@web.de>
  *
- * @(#)$Id: ethernet.c,v 1.5 2007/12/21 01:13:44 oliverschmidt Exp $
+ * @(#)$Id: ethernet.c,v 1.6 2007/12/23 15:37:28 oliverschmidt Exp $
  */
 
-#include <fcntl.h>
-#include <unistd.h>
 #include <modload.h>
 
 #include "contiki-net.h"
+#include "cfs/cfs.h"
 #include "sys/log.h"
 #include "lib/error.h"
 #include "net/ethernet-drv.h"
@@ -60,10 +59,10 @@ void CC_FASTCALL
 ethernet_init(struct ethernet_config *config)
 {
   static const char signature[4] = {0x65, 0x74, 0x68, 0x01};
-  struct mod_ctrl module_control = {read};
+  struct mod_ctrl module_control = {cfs_read};
   u8_t byte;
 
-  module_control.callerdata = open(config->name, O_RDONLY);
+  module_control.callerdata = cfs_open(config->name, CFS_READ);
   if(module_control.callerdata < 0) {
     log_message(config->name, ": File not found");
     error_exit();
@@ -76,7 +75,7 @@ ethernet_init(struct ethernet_config *config)
     error_exit();
   }
 
-  close(module_control.callerdata);
+  cfs_close(module_control.callerdata);
   module = module_control.module;
 
   for(byte = 0; byte < 4; ++byte) {
