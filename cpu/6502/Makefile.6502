@@ -30,7 +30,7 @@
 #
 # Author: Oliver Schmidt <ol.sc@web.de>
 #
-# $Id: Makefile.6502,v 1.24 2007/12/21 01:36:35 oliverschmidt Exp $
+# $Id: Makefile.6502,v 1.25 2007/12/23 15:29:19 oliverschmidt Exp $
 #
 
 ifndef CONTIKI
@@ -60,8 +60,7 @@ CONTIKI_CPU_SOURCEFILES    = log.c error.c config.c clock.c ctk-mouse.c \
                              mtarch.c mtarch-asm.S lc-asm.S \
                              uip_arch.c ethernet-drv.c ethernet.c
 
-CONTIKI_SOURCEFILES += cfs-posix.c cfs-posix-dir.c \
-                       $(CTK) ctk-conio.c petsciiconv.c \
+CONTIKI_SOURCEFILES += $(CTK) ctk-conio.c petsciiconv.c cfs-posix-dir.c \
                        $(CONTIKI_TARGET_SOURCEFILES) $(CONTIKI_CPU_SOURCEFILES)
                        
 TARGET_STARTFILES = $(TARGET).o --start-group
