@@ -30,7 +30,7 @@
  * 
  * Author: Oliver Schmidt <ol.sc@web.de>
  *
- * $Id: contiki-main.c,v 1.13 2007/12/20 22:54:22 oliverschmidt Exp $
+ * $Id: contiki-main.c,v 1.14 2007/12/23 12:35:03 oliverschmidt Exp $
  */
 
 #include <string.h>
@@ -41,7 +41,21 @@
 #include "lib/config.h"
 #include "net/ethernet-drv.h"
 
+#if WITH_GUI
+#define CTK_PROCESS &ctk_process,
+#else /* WITH_GUI */
+#define CTK_PROCESS
+#endif /* WITH_GUI */
+
+#if WITH_DNS
+#define RESOLV_PROCESS &resolv_process,
+#else /* WITH_DNS */
+#define RESOLV_PROCESS
+#endif /* WITH_DNS */
+
 PROCINIT(&etimer_process,
+	 CTK_PROCESS
+	 RESOLV_PROCESS
 	 &tcpip_process);
 
 /*-----------------------------------------------------------------------------------*/
@@ -106,7 +120,7 @@ main(void)
 
   process_start((struct process *)&ethernet_process, (char *)ethernet_config);
 
-#if CTK_CONF_MOUSE_SUPPORT
+#if (WITH_GUI && WITH_MOUSE)
   {
     static const u8_t mouse_sprite[64] = {
       0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
@@ -121,7 +135,7 @@ main(void)
     memcpy((void*)0x0340, mouse_sprite, sizeof(mouse_sprite));
     *(u8_t*)0x07F8 = 0x0340 / 64;
   }
-#endif /* CTK_CONF_MOUSE_SUPPORT */
+#endif /* WITH_GUI && WITH_MOUSE */
 
   log_message("Contiki up and running ...", "");
   

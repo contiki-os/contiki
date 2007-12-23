@@ -30,15 +30,30 @@
  * 
  * Author: Oliver Schmidt <ol.sc@web.de>
  *
- * $Id: contiki-main.c,v 1.12 2007/12/16 13:08:09 oliverschmidt Exp $
+ * $Id: contiki-main.c,v 1.13 2007/12/23 12:35:38 oliverschmidt Exp $
  */
 
 #include "contiki-net.h"
+#include "ctk/ctk.h"
 #include "sys/log.h"
 #include "lib/config.h"
 #include "net/ethernet-drv.h"
 
+#if WITH_GUI
+#define CTK_PROCESS &ctk_process,
+#else /* WITH_GUI */
+#define CTK_PROCESS
+#endif /* WITH_GUI */
+
+#if WITH_DNS
+#define RESOLV_PROCESS &resolv_process,
+#else /* WITH_DNS */
+#define RESOLV_PROCESS
+#endif /* WITH_DNS */
+
 PROCINIT(&etimer_process,
+	 CTK_PROCESS
+	 RESOLV_PROCESS
 	 &tcpip_process);
 
 void clock_update(void);
