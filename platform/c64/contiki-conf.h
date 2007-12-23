@@ -30,7 +30,7 @@
  * 
  * Author: Oliver Schmidt <ol.sc@web.de>
  *
- * $Id: contiki-conf.h,v 1.12 2007/12/20 22:52:18 oliverschmidt Exp $
+ * $Id: contiki-conf.h,v 1.13 2007/12/23 12:38:09 oliverschmidt Exp $
  */
 
 #ifndef __CONTIKI_CONF_H__
@@ -40,23 +40,14 @@
 
 #define LOG_CONF_ENABLED 1
 
-#define UIP_CONF_BUFFER_SIZE   1500
-#define UIP_CONF_TCP_SPLIT     1
-#define UIP_CONF_UDP_CHECKSUMS 1
-#define UIP_CONF_LOGGING       1
+#define UIP_CONF_BUFFER_SIZE 1500
+#define UIP_CONF_TCP_SPLIT   1
+#define UIP_CONF_LOGGING     1
 
 #define CTK_CONF_MENU_KEY         CH_F1
 #define CTK_CONF_WINDOWSWITCH_KEY CH_F3
 #define CTK_CONF_WIDGETUP_KEY     CH_F5
 #define CTK_CONF_WIDGETDOWN_KEY   CH_F7
-#define CTK_CONF_WIDGET_FLAGS     0
-#define CTK_CONF_WINDOWS          0
-#define CTK_CONF_WINDOWMOVE       0
-#define CTK_CONF_WINDOWCLOSE      0
-#define CTK_CONF_ICONS            0
-#define CTK_CONF_MENUS            0
-#define CTK_CONF_SCREENSAVER      0
-#define CTK_CONF_MOUSE_SUPPORT    1
 
 #define MOUSE_CONF_DRIVER  "c64-1351.mou"
 #define MOUSE_CONF_XTOC(x) ((x) / 8)
