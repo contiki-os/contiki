@@ -30,7 +30,7 @@
  * 
  * Author: Oliver Schmidt <ol.sc@web.de>
  *
- * $Id: config.c,v 1.5 2007/12/21 01:04:29 oliverschmidt Exp $
+ * $Id: config.c,v 1.6 2007/12/23 12:33:57 oliverschmidt Exp $
  */
 
 #include <stdlib.h>
@@ -89,7 +89,7 @@ config_read(char *filename)
   log_message("IP Address:  ",  ipaddrtoa(&config.hostaddr, uip_buf));
   log_message("Subnet Mask: ",  ipaddrtoa(&config.netmask, uip_buf));
   log_message("Def. Router: ",  ipaddrtoa(&config.draddr, uip_buf));
-//log_message("DNS Server:  ",  ipaddrtoa(&config.resolvaddr, uip_buf));
+  log_message("DNS Server:  ",  ipaddrtoa(&config.resolvaddr, uip_buf));
 
   log_message("Eth. Driver: ",  config.ethernetcfg.name);
   log_message("Driver Port: $", utoa(config.ethernetcfg.addr, uip_buf, 16));
@@ -97,7 +97,9 @@ config_read(char *filename)
   uip_sethostaddr(&config.hostaddr);
   uip_setnetmask(&config.netmask);
   uip_setdraddr(&config.draddr);
-//resolv_conf(&config.resolvaddr);
+#if WITH_DNS
+  resolv_conf(&config.resolvaddr);
+#endif /* WITH_DNS */
 
   return &config.ethernetcfg;
 }
