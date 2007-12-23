@@ -30,7 +30,7 @@
  *
  * Author: Oliver Schmidt <ol.sc@web.de>
  *
- * @(#)$Id: 6502def.h,v 1.4 2007/12/16 17:03:27 oliverschmidt Exp $
+ * @(#)$Id: 6502def.h,v 1.5 2007/12/23 12:32:43 oliverschmidt Exp $
  */
 
 #ifndef __6502DEF_H__
@@ -59,6 +59,34 @@ typedef unsigned short uip_stats_t;
 
 #define UIP_ARCH_ADD32  1
 #define UIP_ARCH_CHKSUM 1
+
+#if WITH_CLIENT
+#define UIP_CONF_ACTIVE_OPEN 1
+#else /* WITH_CLIENT */
+#define UIP_CONF_ACTIVE_OPEN 0
+#endif /* WITH_CLIENT */
+
+#if WITH_DNS
+#define UIP_CONF_UDP           1
+#define UIP_CONF_UDP_CHECKSUMS 1
+#else /* WITH_DNS */
+#define UIP_CONF_UDP           0
+#define UIP_CONF_UDP_CHECKSUMS 0
+#endif /* WITH_DNS */
+
+#define CTK_CONF_WIDGET_FLAGS 0
+#define CTK_CONF_WINDOWS      0
+#define CTK_CONF_WINDOWMOVE   0
+#define CTK_CONF_WINDOWCLOSE  0
+#define CTK_CONF_ICONS        0
+#define CTK_CONF_MENUS        0
+#define CTK_CONF_SCREENSAVER  0
+
+#if WITH_MOUSE
+#define CTK_CONF_MOUSE_SUPPORT 1
+#else /* WITH_MOUSE */
+#define CTK_CONF_MOUSE_SUPPORT 0
+#endif /* WITH_MOUSE */
 
 #define ctk_arch_keyavail kbhit
 #define ctk_arch_getkey   cgetc
