@@ -30,7 +30,7 @@
  * 
  * Author: Oliver Schmidt <ol.sc@web.de>
  *
- * $Id: contiki-main.c,v 1.14 2007/12/23 12:35:03 oliverschmidt Exp $
+ * $Id: contiki-main.c,v 1.15 2007/12/23 15:30:22 oliverschmidt Exp $
  */
 
 #include <string.h>
@@ -58,12 +58,6 @@ PROCINIT(&etimer_process,
 	 RESOLV_PROCESS
 	 &tcpip_process);
 
-/*-----------------------------------------------------------------------------------*/
-long int
-lseek(void)
-{
-  return -1;
-}
 /*-----------------------------------------------------------------------------------*/
 void *
 opendir(void)

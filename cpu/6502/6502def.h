@@ -30,7 +30,7 @@
  *
  * Author: Oliver Schmidt <ol.sc@web.de>
  *
- * @(#)$Id: 6502def.h,v 1.6 2007/12/23 13:55:38 oliverschmidt Exp $
+ * @(#)$Id: 6502def.h,v 1.7 2007/12/23 15:29:19 oliverschmidt Exp $
  */
 
 #ifndef __6502DEF_H__
@@ -38,6 +38,8 @@
 
 #include <ctype.h>
 #include <conio.h>
+#include <fcntl.h>
+#include <unistd.h>
 #include <stdint.h>
 
 /* These names are deprecated, use C99 names. */
@@ -103,5 +105,13 @@ typedef unsigned short uip_stats_t;
 #define ctk_arch_keyavail kbhit
 #define ctk_arch_getkey   cgetc
 #define ctk_arch_isprint  isprint
+
+#define CFS_READ  (O_RDONLY)
+#define CFS_WRITE (O_CREAT | O_TRUNC | O_RDWR)
+
+#define cfs_open  open
+#define cfs_close close
+#define cfs_read  read
+#define cfs_write write
 
 #endif /* __6502DEF_H__ */
