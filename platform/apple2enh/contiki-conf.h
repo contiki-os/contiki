@@ -30,7 +30,7 @@
  * 
  * Author: Oliver Schmidt <ol.sc@web.de>
  *
- * $Id: contiki-conf.h,v 1.10 2007/12/23 12:36:41 oliverschmidt Exp $
+ * $Id: contiki-conf.h,v 1.11 2007/12/23 13:57:08 oliverschmidt Exp $
  */
 
 #ifndef __CONTIKI_CONF_H__
@@ -40,9 +40,7 @@
 
 #define LOG_CONF_ENABLED 1
 
-#define UIP_CONF_BUFFER_SIZE 1500
-#define UIP_CONF_TCP_SPLIT   1
-#define UIP_CONF_LOGGING     1
+#define UIP_CONF_LOGGING 0
 
 #define CTK_CONF_MENU_KEY         CH_ESC
 #define CTK_CONF_WINDOWSWITCH_KEY 0x17	/* Ctrl-W */
