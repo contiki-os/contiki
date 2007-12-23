@@ -30,7 +30,7 @@
  *
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: cfs-posix.c,v 1.7 2007/12/21 01:36:01 oliverschmidt Exp $
+ * $Id: cfs-posix.c,v 1.8 2007/12/23 14:12:44 oliverschmidt Exp $
  */
 
 #include <stdio.h>
@@ -43,7 +43,7 @@
 int
 cfs_open(const char *n, int f)
 {
-  return open(n, f == CFS_READ? O_RDONLY: O_CREAT|O_RDWR);
+  return open(n, f == CFS_READ? O_RDONLY: O_CREAT|O_TRUNC|O_RDWR);
 }
 /*---------------------------------------------------------------------------*/
 void
