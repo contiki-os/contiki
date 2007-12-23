@@ -58,7 +58,7 @@
  *
  * This file is part of the uIP TCP/IP stack.
  *
- * $Id: uipopt.h,v 1.6 2007/12/22 12:02:43 oliverschmidt Exp $
+ * $Id: uipopt.h,v 1.7 2007/12/23 20:24:46 oliverschmidt Exp $
  *
  */
 
@@ -384,7 +384,7 @@
  * The size of the uIP packet buffer.
  *
  * The uIP packet buffer should not be smaller than 60 bytes, and does
- * not need to be larger than 1500 bytes. Lower size results in lower
+ * not need to be larger than 1514 bytes. Lower size results in lower
  * TCP throughput, larger size results in higher TCP throughput.
  *
  * \hideinitializer
