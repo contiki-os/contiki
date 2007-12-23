@@ -54,7 +54,7 @@
  *
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: cfs.h,v 1.8 2007/11/22 11:27:08 oliverschmidt Exp $
+ * $Id: cfs.h,v 1.9 2007/12/23 15:22:33 oliverschmidt Exp $
  */
 #ifndef __CFS_H__
 #define __CFS_H__
@@ -80,7 +80,9 @@ struct cfs_dirent {
  *
  * \sa cfs_open()
  */
+#ifndef CFS_READ
 #define CFS_READ  1
+#endif
 
 /**
  * Specify that cfs_open() should open a file for writing.
@@ -92,7 +94,9 @@ struct cfs_dirent {
  *
  * \sa cfs_open()
  */
+#ifndef CFS_WRITE
 #define CFS_WRITE 2
+#endif
 
 /**
  * Specify that cfs_open() should append written data to the file rather than overwriting it.
@@ -104,7 +108,9 @@ struct cfs_dirent {
  *
  * \sa cfs_open()
  */
+#ifndef CFS_APPEND
 #define CFS_APPEND 4
+#endif
 
 /**
  * \brief      Open a file.
@@ -124,7 +130,9 @@ struct cfs_dirent {
  * \sa         CFS_WRITE
  * \sa         cfs_close()
  */
+#ifndef cfs_open
 CCIF int cfs_open(const char *name, int flags);
+#endif
 
 /**
  * \brief      Close an open file.
@@ -133,7 +141,9 @@ CCIF int cfs_open(const char *name, int flags);
  *             This function closes a file that has previously been
  *             opened with cfs_open().
  */
+#ifndef cfs_close
 CCIF void cfs_close(int fd);
+#endif
 
 /**
  * \brief      Read data from an open file.
@@ -146,7 +156,9 @@ CCIF void cfs_close(int fd);
  *             buffer. The file must have first been opened with
  *             cfs_open() and the CFS_READ flag.
  */
+#ifndef cfs_read
 CCIF int cfs_read(int fd, void *buf, unsigned int len);
+#endif
 
 /**
  * \brief      Write data to an open file.
@@ -159,7 +171,9 @@ CCIF int cfs_read(int fd, void *buf, unsigned int len);
  *             an open file. The file must have been opened with
  *             cfs_open() and the CFS_WRITE flag.
  */
+#ifndef cfs_write
 CCIF int cfs_write(int fd, void *buf, unsigned int len);
+#endif
 
 /**
  * \brief      Seek to a specified position in an open file.
@@ -172,7 +186,9 @@ CCIF int cfs_write(int fd, void *buf, unsigned int len);
  *             or written to the file will be at the position given by
  *             the offset parameter.
  */
+#ifndef cfs_seek
 CCIF unsigned int cfs_seek(int fd, unsigned int offset);
+#endif
 
 /**
  * \brief      Open a directory for reading directory entries.
@@ -183,7 +199,9 @@ CCIF unsigned int cfs_seek(int fd, unsigned int offset);
  * \sa         cfs_readdir()
  * \sa         cfs_closedir()
  */
+#ifndef cfs_opendir
 CCIF int cfs_opendir(struct cfs_dir *dirp, const char *name);
+#endif
 
 /**
  * \brief      Read a directory entry
@@ -195,7 +213,9 @@ CCIF int cfs_opendir(struct cfs_dir *dirp, const char *name);
  * \sa         cfs_opendir()
  * \sa         cfs_closedir()
  */
+#ifndef cfs_readdir
 CCIF int cfs_readdir(struct cfs_dir *dirp, struct cfs_dirent *dirent);
+#endif
 
 /**
  * \brief      Close a directory opened with cfs_opendir().
@@ -204,7 +224,9 @@ CCIF int cfs_readdir(struct cfs_dir *dirp, struct cfs_dirent *dirent);
  * \sa         cfs_opendir()
  * \sa         cfs_readdir()
  */
+#ifndef cfs_closedir
 CCIF void cfs_closedir(struct cfs_dir *dirp);
+#endif
 
 #endif /* __CFS_H__ */
 
