@@ -34,7 +34,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: timesynch.c,v 1.3 2007/12/20 20:30:55 oliverschmidt Exp $
+ * $Id: timesynch.c,v 1.4 2007/12/23 14:57:11 oliverschmidt Exp $
  */
 
 /**
@@ -89,7 +89,7 @@ timesynch_offset(void)
 }
 /*---------------------------------------------------------------------------*/
 static int
-send(void)
+send_packet(void)
 {
   return mac->send();
 }
@@ -101,7 +101,7 @@ adjust_offset(rtimer_clock_t authoritative_time, rtimer_clock_t local_time)
 }
 /*---------------------------------------------------------------------------*/
 static int
-read(void)
+read_packet(void)
 {
   int len;
 
@@ -145,15 +145,15 @@ off(void)
 }
 /*---------------------------------------------------------------------------*/
 static const struct mac_driver timesynch_driver = {
-  send,
-  read,
+  send_packet,
+  read_packet,
   set_receive_function,
   on,
   off,
 };
 /*---------------------------------------------------------------------------*/
 static void
-input(const struct mac_driver *d)
+input_packet(const struct mac_driver *d)
 {
   if(receiver_callback) {
     receiver_callback(&timesynch_driver);
@@ -164,7 +164,7 @@ const struct mac_driver *
 timesynch_init(const struct mac_driver *d)
 {
   mac = d;
-  mac->set_receive_function(input);
+  mac->set_receive_function(input_packet);
   mac->on();
   return &timesynch_driver;
 }

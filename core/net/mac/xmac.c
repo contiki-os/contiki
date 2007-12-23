@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: xmac.c,v 1.11 2007/12/05 13:23:17 adamdunkels Exp $
+ * $Id: xmac.c,v 1.12 2007/12/23 14:56:54 oliverschmidt Exp $
  */
 
 /**
@@ -225,7 +225,7 @@ powercycle(struct rtimer *t, void *ptr)
 }
 /*---------------------------------------------------------------------------*/
 static int
-send(void)
+send_packet(void)
 {
   rtimer_clock_t t0;
   rtimer_clock_t t;
@@ -361,7 +361,7 @@ send(void)
 /*---------------------------------------------------------------------------*/
 static struct queuebuf *queued_packet;
 static int
-qsend(void)
+qsend_packet(void)
 {
   if(someone_is_sending) {
     PRINTF("xmac: should queue packet, now just dropping %d %d %d %d.\n",
@@ -380,13 +380,13 @@ qsend(void)
     }
   } else {
     PRINTF("xmac: send immediately.\n");
-    return send();
+    return send_packet();
   }
 
 }
 /*---------------------------------------------------------------------------*/
 static void
-input(const struct radio_driver *d)
+input_packet(const struct radio_driver *d)
 {
   if(receiver_callback) {
     receiver_callback(&xmac_driver);
@@ -394,7 +394,7 @@ input(const struct radio_driver *d)
 }
 /*---------------------------------------------------------------------------*/
 static int
-read(void)
+read_packet(void)
 {
   struct xmac_hdr *hdr;
   u8_t len;
@@ -483,7 +483,7 @@ xmac_init(const struct radio_driver *d)
 
   xmac_is_on = 1;
   radio = d;
-  radio->set_receive_function(input);
+  radio->set_receive_function(input_packet);
 
   BB_SET("xmac.state_addr", (int) &should_be_awake);
   BB_SET(XMAC_RECEIVER, 0);
@@ -509,8 +509,8 @@ off(void)
 /*---------------------------------------------------------------------------*/
 const struct mac_driver xmac_driver =
   {
-    qsend,
-    read,
+    qsend_packet,
+    read_packet,
     set_receive_function,
     on,
     off
