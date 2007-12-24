@@ -11,11 +11,16 @@ ifeq ($(TARGET),)
     ifeq ($(DEFAULT_TARGET),)
       DEFAULT_TARGET=native
     endif
-    ${warning TARGET not defined, using target '$(DEFAULT_TARGET)'}
+    ${info TARGET not defined, using target '$(DEFAULT_TARGET)'}
     TARGET=$(DEFAULT_TARGET)
   else
-    ${warning using saved target '$(TARGET)'}
+    ${info using saved target '$(TARGET)'}
   endif
+endif
+
+ifeq ($(DEFINES),)
+  -include Makefile.$(TARGET).defines
+  ${info using saved defines '$(DEFINES)'}
 endif
 
 usage:
@@ -26,7 +31,13 @@ targets:
 
 savetarget:
 	-@rm -f Makefile.target
+	@echo "saving Makefile.target"
 	@echo >Makefile.target "TARGET = $(TARGET)"
+
+savedefines:
+	-@rm -f Makefile.$(TARGET).defines
+	@echo "saving Makefile.$(TARGET).defines"
+	@echo >Makefile.$(TARGET).defines "DEFINES = $(DEFINES)"
 
 ifeq (${wildcard $(OBJECTDIR)},)
 DUMMY := ${shell mkdir $(OBJECTDIR)}
