@@ -30,27 +30,41 @@
  * 
  * Author: Oliver Schmidt <ol.sc@web.de>
  *
- * $Id: ctk-mouse.c,v 1.1 2007/12/20 22:47:39 oliverschmidt Exp $
+ * $Id: ctk-mouse.c,v 1.2 2007/12/24 00:13:28 oliverschmidt Exp $
  */
 
 #include <mouse.h>
 #include <stdlib.h>
+#include <modload.h>
 
+#include "cfs/cfs.h"
 #include "ctk.h"
 #include "ctk-mouse.h"
 
 #if CTK_CONF_MOUSE_SUPPORT
 
 static struct mouse_pos pos;
-static unsigned char okay;
+static u8_t okay;
 
 /*-----------------------------------------------------------------------------------*/
 void
 ctk_mouse_init(void)
 {
-  okay = mouse_load_driver(&mouse_def_callbacks, MOUSE_CONF_DRIVER) == MOUSE_ERR_OK;
+  struct mod_ctrl module_control = {cfs_read};
+
+  module_control.callerdata = cfs_open(MOUSE_CONF_DRIVER, CFS_READ);
+  okay = module_control.callerdata >= 0;
   if(okay) {
-    atexit((void (*)(void))mouse_unload);
+    okay = mod_load(&module_control) == MLOAD_OK;
+    if(okay) {
+      okay = mouse_install(&mouse_def_callbacks, module_control.module) == MOUSE_ERR_OK;
+      if(okay) {
+	atexit((void (*)(void))mouse_uninstall);
+      } else {
+	mod_free(module_control.module);
+      }
+    }
+    cfs_close(module_control.callerdata);
   }
 }
 /*-----------------------------------------------------------------------------------*/
