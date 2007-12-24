@@ -30,7 +30,7 @@
  * 
  * Author: Oliver Schmidt <ol.sc@web.de>
  *
- * $Id: contiki-main.c,v 1.15 2007/12/23 15:30:22 oliverschmidt Exp $
+ * $Id: contiki-main.c,v 1.16 2007/12/24 15:01:49 oliverschmidt Exp $
  */
 
 #include <string.h>
@@ -128,6 +128,7 @@ main(void)
 
     memcpy((void*)0x0340, mouse_sprite, sizeof(mouse_sprite));
     *(u8_t*)0x07F8 = 0x0340 / 64;
+    VIC.spr0_color = COLOR_WHITE;
   }
 #endif /* WITH_GUI && WITH_MOUSE */
 
