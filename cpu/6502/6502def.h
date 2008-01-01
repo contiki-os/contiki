@@ -30,7 +30,7 @@
  *
  * Author: Oliver Schmidt <ol.sc@web.de>
  *
- * @(#)$Id: 6502def.h,v 1.7 2007/12/23 15:29:19 oliverschmidt Exp $
+ * @(#)$Id: 6502def.h,v 1.8 2008/01/01 17:44:24 oliverschmidt Exp $
  */
 
 #ifndef __6502DEF_H__
@@ -106,12 +106,18 @@ typedef unsigned short uip_stats_t;
 #define ctk_arch_getkey   cgetc
 #define ctk_arch_isprint  isprint
 
+#if WITH_PFS
+#define cfs_open  pfs_open
+#define cfs_close pfs_close
+#define cfs_read  pfs_read
+#define cfs_write pfs_write
+#else /* WITH_PFS */
 #define CFS_READ  (O_RDONLY)
 #define CFS_WRITE (O_CREAT | O_TRUNC | O_RDWR)
-
 #define cfs_open  open
 #define cfs_close close
 #define cfs_read  read
 #define cfs_write write
+#endif /* WITH_PFS */
 
 #endif /* __6502DEF_H__ */
