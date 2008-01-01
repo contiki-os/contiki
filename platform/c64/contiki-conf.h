@@ -30,15 +30,13 @@
  * 
  * Author: Oliver Schmidt <ol.sc@web.de>
  *
- * $Id: contiki-conf.h,v 1.14 2007/12/23 13:57:25 oliverschmidt Exp $
+ * $Id: contiki-conf.h,v 1.15 2008/01/01 19:48:46 oliverschmidt Exp $
  */
 
 #ifndef __CONTIKI_CONF_H__
 #define __CONTIKI_CONF_H__
 
 #include "6502def.h"
-
-#define LOG_CONF_ENABLED 1
 
 #define UIP_CONF_LOGGING 0
 
