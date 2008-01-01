@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007, Swedish Institute of Computer Science.
+ * Copyright (c) 2008, Swedish Institute of Computer Science.
  * All rights reserved. 
  *
  * Redistribution and use in source and binary forms, with or without 
@@ -30,39 +30,14 @@
  * 
  * Author: Oliver Schmidt <ol.sc@web.de>
  *
- * $Id: contiki-conf.h,v 1.12 2008/01/01 18:49:50 oliverschmidt Exp $
+ * $Id: pfs.h,v 1.1 2008/01/01 18:49:51 oliverschmidt Exp $
  */
 
-#ifndef __CONTIKI_CONF_H__
-#define __CONTIKI_CONF_H__
+#ifndef __PFS_H__
+#define __PFS_H__
 
-#include "6502def.h"
+int  __fastcall__ pfs_open(const char* name, int flags);
+void __fastcall__ pfs_close(int fd);
+int  __fastcall__ pfs_read(int fd, void* buf, unsigned int len);
 
-#include "pfs.h"
-
-#define LOG_CONF_ENABLED 1
-
-#define UIP_CONF_LOGGING 0
-
-#define CTK_CONF_MENU_KEY         CH_ESC
-#define CTK_CONF_WINDOWSWITCH_KEY 0x17	/* Ctrl-W */
-#define CTK_CONF_WIDGETUP_KEY     0x01	/* Ctrl-A */
-#define CTK_CONF_WIDGETDOWN_KEY   '\t'	/* Tab or Ctrl-I */
-
-#define MOUSE_CONF_DRIVER  "a2e.stdmou.mou"
-#define MOUSE_CONF_XTOC(x) ((x) * 2 / 7)
-#define MOUSE_CONF_YTOC(y) ((y) / 8)
-
-#define WEBSERVER_CONF_CGI_CONNS UIP_CONNS
-#define WEBSERVER_CONF_CFS_CONNS 3
-
-#define WWW_CONF_WEBPAGE_HEIGHT     19
-#define WWW_CONF_HISTORY_SIZE        4
-#define WWW_CONF_MAX_URLLEN         78
-#define WWW_CONF_MAX_NUMPAGEWIDGETS 20
-#define WWW_CONF_MAX_FORMACTIONLEN  20
-#define WWW_CONF_MAX_FORMNAMELEN    20
-#define WWW_CONF_MAX_INPUTNAMELEN   20
-#define WWW_CONF_MAX_INPUTVALUELEN  20
-
-#endif /* __CONTIKI_CONF_H__ */
+#endif /* __PFS_H__ */
