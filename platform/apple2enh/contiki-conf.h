@@ -30,7 +30,7 @@
  * 
  * Author: Oliver Schmidt <ol.sc@web.de>
  *
- * $Id: contiki-conf.h,v 1.12 2008/01/01 18:49:50 oliverschmidt Exp $
+ * $Id: contiki-conf.h,v 1.13 2008/01/01 19:47:53 oliverschmidt Exp $
  */
 
 #ifndef __CONTIKI_CONF_H__
@@ -39,8 +39,6 @@
 #include "6502def.h"
 
 #include "pfs.h"
-
-#define LOG_CONF_ENABLED 1
 
 #define UIP_CONF_LOGGING 0
 
