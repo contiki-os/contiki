@@ -30,7 +30,7 @@
  * 
  * Author: Oliver Schmidt <ol.sc@web.de>
  *
- * $Id: cfs-win32.c,v 1.4 2007/11/22 12:03:54 oliverschmidt Exp $
+ * $Id: cfs-win32.c,v 1.5 2008/01/04 21:59:59 oliverschmidt Exp $
  */
 
 #define WIN32_LEAN_AND_MEAN
@@ -41,13 +41,13 @@
 #include <fcntl.h>
 #ifdef __CYGWIN__
 #include <unistd.h>
-#else
+#else /* __CYGWIN__ */
 #define open   _open
 #define close  _close
 #define read   _read
 #define write  _write
 #define lseek  _lseek
-#endif
+#endif /* __CYGWIN__ */
 
 #include "contiki.h"
 
