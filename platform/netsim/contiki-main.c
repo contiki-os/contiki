@@ -30,7 +30,7 @@
  *
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: contiki-main.c,v 1.23 2008/01/04 21:58:40 oliverschmidt Exp $
+ * $Id: contiki-main.c,v 1.24 2008/01/04 22:21:04 oliverschmidt Exp $
  */
 
 #include "contiki.h"
@@ -137,7 +137,7 @@ contiki_main(int flag)
 #endif /* __CYGWIN__ */
     uip_fw_register(&meshif);
     uip_fw_default(&extif);
-    printf("uip_hostaddr %02x%02x\n", uip_hostaddr.u16[0], uip_hostaddr.u16[1]);
+    printf("uip_hostaddr %d.%d.%d.%d\n", uip_ipaddr_to_quad(&uip_hostaddr));
   } else {
     uip_fw_default(&meshif);
   }
