@@ -30,7 +30,7 @@
  *
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: contiki-main.c,v 1.22 2007/12/17 01:12:09 oliverschmidt Exp $
+ * $Id: contiki-main.c,v 1.23 2008/01/04 21:58:40 oliverschmidt Exp $
  */
 
 #include "contiki.h"
@@ -41,9 +41,9 @@
 
 #ifdef __CYGWIN__
 #include "net/wpcap-drv.h"
-#else
+#else /* __CYGWIN__ */
 #include "net/tapdev-drv.h"
-#endif
+#endif /* __CYGWIN__ */
 #include "net/ethernode-uip.h"
 #include "net/ethernode-rime.h"
 #include "net/ethernode.h"
@@ -67,10 +67,10 @@
 #ifdef __CYGWIN__
 static struct uip_fw_netif extif =
   {UIP_FW_NETIF(0,0,0,0, 0,0,0,0, wpcap_output)};
-#else
+#else /* __CYGWIN__ */
 static struct uip_fw_netif extif =
   {UIP_FW_NETIF(0,0,0,0, 0,0,0,0, tapdev_output)};
-#endif
+#endif /* __CYGWIN__ */
 static struct uip_fw_netif meshif =
   {UIP_FW_NETIF(172,16,0,0, 255,255,0,0, uip_over_mesh_send)};
 /*static struct uip_fw_netif ethernodeif =
@@ -97,7 +97,7 @@ remove_route(int s)
   system(buf);
   _exit(0);
 }
-#endif
+#endif /* __CYGWIN__ */
 /*---------------------------------------------------------------------------*/
 void
 contiki_main(int flag)
@@ -132,9 +132,9 @@ contiki_main(int flag)
       system(buf);
       signal(SIGTERM, remove_route);
     }
-#else
+#else /* __CYGWIN__ */
     process_start(&tapdev_process, NULL);
-#endif
+#endif /* __CYGWIN__ */
     uip_fw_register(&meshif);
     uip_fw_default(&extif);
     printf("uip_hostaddr %02x%02x\n", uip_hostaddr.u16[0], uip_hostaddr.u16[1]);
