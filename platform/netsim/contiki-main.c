@@ -30,7 +30,7 @@
  *
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: contiki-main.c,v 1.24 2008/01/04 22:21:04 oliverschmidt Exp $
+ * $Id: contiki-main.c,v 1.25 2008/01/04 23:09:03 oliverschmidt Exp $
  */
 
 #include "contiki.h"
@@ -161,7 +161,6 @@ contiki_main(int flag)
     select(0, NULL, NULL, NULL, &tv);
     etimer_request_poll();
   }
-
 }
 /*---------------------------------------------------------------------------*/
 process_event_t codeprop_event_quit;
