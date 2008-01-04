@@ -30,7 +30,7 @@
  *
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: node.c,v 1.9 2007/11/28 13:01:02 nvt-se Exp $
+ * $Id: node.c,v 1.10 2008/01/04 23:23:29 oliverschmidt Exp $
  */
 #include "node.h"
 #include "contiki.h"
@@ -38,6 +38,9 @@
 #include "net/rime.h"
 #include <string.h>
 #include <stdlib.h>
+#include <arpa/inet.h>
+
+extern in_addr_t gwaddr;
 
 static clock_time_t drift, timer;
 
@@ -59,10 +62,13 @@ node_init(int id, int posx, int posy, int b)
   /*  node.type = NODE_TYPE_NORMAL;*/
 
   if(b) {
+#ifdef __CYGWIN__
+    addr = *(uip_ipaddr_t *)&gwaddr;
+#else /* __CYGWIN__ */
     uip_ipaddr(&addr, 192,168,1,2);
+#endif /* __CYGWIN__ */
   } else {
     uip_ipaddr(&addr, 172,16,posx,posy);
-
   }
   uip_sethostaddr(&addr);
   
@@ -73,8 +79,6 @@ node_init(int id, int posx, int posy, int b)
     nodeaddr.u8[1] = posy;
     rimeaddr_set_node_addr(&nodeaddr);
   }
-    
-
 
   drift = rand() % 95726272;
 
