@@ -30,7 +30,7 @@
  *
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: main.c,v 1.8 2007/11/28 12:54:42 adamdunkels Exp $
+ * $Id: main.c,v 1.9 2008/01/04 23:23:29 oliverschmidt Exp $
  */
 
 /**
@@ -59,6 +59,9 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <sys/wait.h>
+#include <arpa/inet.h>
+
+in_addr_t gwaddr;
 
 void netsim_init(void);
 
@@ -158,6 +161,16 @@ main_add_base(int x, int y)
 int
 main(int argc, char **argv)
 {
+#ifdef __CYGWIN__
+  if(argc < 3 || inet_addr(argv[1]) == INADDR_NONE ||
+		 inet_addr(argv[2]) == INADDR_NONE) {
+    printf("usage: <program> <ip addr of ethernet card to share> "
+			    "<ip addr of netsim gateway>\n");
+    exit(1);
+  }
+  gwaddr = inet_addr(argv[2]);
+#endif /* __CYGWIN__ */
+
   /*  system("ifconfig tap0 inet 192.168.250.1");*/
   /*  system("route delete 172.16.0.0/16");
       system("route add 172.16.0.0/16 192.168.250.2");*/
@@ -179,7 +192,12 @@ main(int argc, char **argv)
     usleep(100);
   }
 #endif /* 0 */
+
+#ifdef __CYGWIN__
+  if(argc > 3 && strcmp(argv[3], "-q") == 0) {
+#else /* __CYGWIN__ */
   if(argc > 1 && strcmp(argv[1], "-q") == 0) {
+#endif /* __CYGWIN__ */
     display_init(idle, 50, 0);
   } else {
     display_init(idle, 50, 1);
@@ -188,14 +206,12 @@ main(int argc, char **argv)
 
   signal(SIGCHLD, sigchld_handler);
   
-
   display_run();
   
   return 0;
 
   argv = argv;
   argc = argc;
-
 }
 /*-----------------------------------------------------------------------------------*/
 char *arg_alloc(char size) {return NULL;}
