@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF 
  * SUCH DAMAGE. 
  *
- * @(#)$Id: client.c,v 1.7 2007/05/21 14:21:35 bg- Exp $
+ * @(#)$Id: client.c,v 1.8 2008/01/04 23:36:56 oliverschmidt Exp $
  */
 
 /*
@@ -75,8 +75,6 @@
 
 #include "codeprop/codeprop.h"
 
-#define ip2quad(p) uip_ipaddr1(p),uip_ipaddr2(p),uip_ipaddr3(p),uip_ipaddr4(p)
-
 /* This is how we force inclusion of the psock library. */
 #include "net/psock.h"
 void *force_psock_inclusion = &psock_init;
@@ -106,7 +104,7 @@ main(int argc, char **argv)
   leds_toggle(LEDS_ALL);
   slip_arch_init(BAUD2UBR(115200)); /* Must come before first printf */
   printf("Starting %s "
-	 "($Id: client.c,v 1.7 2007/05/21 14:21:35 bg- Exp $)\n", __FILE__);
+	 "($Id: client.c,v 1.8 2008/01/04 23:36:56 oliverschmidt Exp $)\n", __FILE__);
   ds2411_init();
   sensors_light_init();
   cc2420_init();
@@ -126,7 +124,9 @@ main(int argc, char **argv)
   uip_ipaddr_copy(&uip_netmask, &cc2420if.netmask);
   uip_ipaddr(&uip_draddr, 172,16,0,1);
   printf("IP %d.%d.%d.%d netmask %d.%d.%d.%d default router %d.%d.%d.%d\n",
-	 ip2quad(&uip_hostaddr), ip2quad(&uip_netmask), ip2quad(&uip_draddr));
+	 uip_ipaddr_to_quad(&uip_hostaddr),
+	 uip_ipaddr_to_quad(&uip_netmask),
+	 uip_ipaddr_to_quad(&uip_draddr));
   cc2420_set_chan_pan_addr(RF_CHANNEL, panId, uip_hostaddr.u16[1], ds2411_id);
 
   /*

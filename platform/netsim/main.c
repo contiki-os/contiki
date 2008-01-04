@@ -30,7 +30,7 @@
  *
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: main.c,v 1.9 2008/01/04 23:23:29 oliverschmidt Exp $
+ * $Id: main.c,v 1.10 2008/01/04 23:28:33 oliverschmidt Exp $
  */
 
 /**
@@ -260,23 +260,14 @@ uip_log(char *m)
 
   uip_gethostaddr(&addr);
 
-  printf("uIP log at %d.%d.%d.%d: %s\n",
-	 uip_ipaddr1(&addr),
-	 uip_ipaddr2(&addr),
-	 uip_ipaddr3(&addr),
-	 uip_ipaddr4(&addr),
-	 m);
+  printf("uIP log at %d.%d.%d.%d: %s\n", uip_ipaddr_to_quad(&addr), m);
   fflush(NULL);
 }
 void
 configurator_send_config(uip_ipaddr_t *addr, unsigned long seconds)
 {
   printf("Configurator: address %d.%d.%d.%d, seconds %lu\n",
-	 uip_ipaddr1(addr),
-	 uip_ipaddr2(addr),
-	 uip_ipaddr3(addr),
-	 uip_ipaddr4(addr),
-	 seconds);
+	 uip_ipaddr_to_quad(addr), seconds);
 }
 
 
