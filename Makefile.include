@@ -20,7 +20,9 @@ endif
 
 ifeq ($(DEFINES),)
   -include Makefile.$(TARGET).defines
-  ${info using saved defines '$(DEFINES)'}
+  ifneq ($(DEFINES),)
+    ${info using saved defines '$(DEFINES)'}
+  endif
 endif
 
 usage:
