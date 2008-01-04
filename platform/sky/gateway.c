@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF 
  * SUCH DAMAGE. 
  *
- * @(#)$Id: gateway.c,v 1.10 2007/06/04 18:09:14 bg- Exp $
+ * @(#)$Id: gateway.c,v 1.11 2008/01/04 23:36:56 oliverschmidt Exp $
  */
 
 /*
@@ -75,8 +75,6 @@
 #include "dev/button.h"
 
 #include "codeprop/codeprop.h"
-
-#define ip2quad(p) uip_ipaddr1(p),uip_ipaddr2(p),uip_ipaddr3(p),uip_ipaddr4(p)
 
 /*
  * This is how we force inclusion of the psock library and the button
@@ -127,7 +125,7 @@ main(int argc, char **argv)
   leds_toggle(LEDS_ALL);
   slip_arch_init(BAUD2UBR(115200)); /* Must come before first printf */
   printf("Starting %s "
-	 "($Id: gateway.c,v 1.10 2007/06/04 18:09:14 bg- Exp $)\n", __FILE__);
+	 "($Id: gateway.c,v 1.11 2008/01/04 23:36:56 oliverschmidt Exp $)\n", __FILE__);
   ds2411_init();
   sensors_light_init();
   cc2420_init();
@@ -145,7 +143,7 @@ main(int argc, char **argv)
   uip_ipaddr_copy(&uip_hostaddr, &cc2420if.ipaddr);
   uip_ipaddr_copy(&uip_netmask, &cc2420if.netmask);
   printf("IP %d.%d.%d.%d netmask %d.%d.%d.%d\n",
-	 ip2quad(&uip_hostaddr), ip2quad(&uip_netmask));
+	 uip_ipaddr_to_quad(&uip_hostaddr), uip_ipaddr_to_quad(&uip_netmask));
   cc2420_set_chan_pan_addr(RF_CHANNEL, panId, uip_hostaddr.u16[1], ds2411_id);
 
   srand(rand() +

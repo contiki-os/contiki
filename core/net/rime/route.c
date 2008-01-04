@@ -33,7 +33,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: route.c,v 1.9 2007/12/17 09:20:16 adamdunkels Exp $
+ * $Id: route.c,v 1.10 2008/01/04 23:33:09 oliverschmidt Exp $
  */
 
 /**
@@ -132,14 +132,7 @@ route_lookup(rimeaddr_t *dest)
 
   for(e = list_head(route_table); e != NULL; e = e->next) {
     /*    printf("route_lookup: comparing %d.%d.%d.%d with %d.%d.%d.%d\n",
-	   uip_ipaddr1(dest),
-	   uip_ipaddr2(dest),
-	   uip_ipaddr3(dest),
-	   uip_ipaddr4(dest),
-	   uip_ipaddr1(&e->dest),
-	   uip_ipaddr2(&e->dest),
-	   uip_ipaddr3(&e->dest),
-	   uip_ipaddr4(&e->dest));*/
+	   uip_ipaddr_to_quad(dest), uip_ipaddr_to_quad(&e->dest));*/
 
     if(rimeaddr_cmp(dest, &e->dest)) {
       /* Refresh age of route so that used routes do not get thrown

@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF 
  * SUCH DAMAGE. 
  *
- * @(#)$Id: dhclient.c,v 1.10 2007/05/21 14:21:53 bg- Exp $
+ * @(#)$Id: dhclient.c,v 1.11 2008/01/04 23:36:56 oliverschmidt Exp $
  */
 
 /*
@@ -102,7 +102,7 @@ main(int argc, char **argv)
   leds_toggle(LEDS_ALL);
   slip_arch_init(BAUD2UBR(115200)); /* Must come before first printf */
   printf("Starting %s "
-	 "($Id: dhclient.c,v 1.10 2007/05/21 14:21:53 bg- Exp $)\n", __FILE__);
+	 "($Id: dhclient.c,v 1.11 2008/01/04 23:36:56 oliverschmidt Exp $)\n", __FILE__);
   ds2411_init();
   sensors_light_init();
   cc2420_init();
@@ -228,15 +228,13 @@ PROCESS_THREAD(dhclient_process, ev, data)
 
 static char is_configured;
 
-#define ip2quad(p) uip_ipaddr1(p),uip_ipaddr2(p),uip_ipaddr3(p),uip_ipaddr4(p)
-
 void
 dhcpc_configured(const struct dhcpc_state *s)
 {
   if(is_configured)
-    printf("dhcp reconfigure %d.%d.%d.%d\n", ip2quad(&s->ipaddr));
+    printf("dhcp reconfigure %d.%d.%d.%d\n", uip_ipaddr_to_quad(&s->ipaddr));
   else {
-    printf("dhcpc_configured %d.%d.%d.%d\n", ip2quad(&s->ipaddr));
+    printf("dhcpc_configured %d.%d.%d.%d\n", uip_ipaddr_to_quad(&s->ipaddr));
     leds_toggle(LEDS_GREEN);
     is_configured = 1;
     process_start(&uaodv_process, NULL);
