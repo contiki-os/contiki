@@ -27,7 +27,7 @@
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.  
  *
- * $Id: ctk-arch.h,v 1.1 2006/06/17 22:41:29 adamdunkels Exp $
+ * $Id: ctk-arch.h,v 1.1 2008/01/05 21:08:26 oliverschmidt Exp $
  *
  */
 

@@ -29,7 +29,7 @@
  *
  * This file is part of the Contiki desktop environment
  *
- * $Id: contiki-main.c,v 1.9 2007/11/29 07:56:46 adamdunkels Exp $
+ * $Id: contiki-main.c,v 1.1 2008/01/05 21:08:26 oliverschmidt Exp $
  *
  */
 
