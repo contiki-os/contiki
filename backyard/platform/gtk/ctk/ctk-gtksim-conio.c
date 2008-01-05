@@ -32,7 +32,7 @@
  *
  * This file is part of the "ctk" console GUI toolkit for cc65
  *
- * $Id: ctk-gtksim-conio.c,v 1.1 2006/06/17 22:41:29 adamdunkels Exp $
+ * $Id: ctk-gtksim-conio.c,v 1.1 2008/01/05 21:08:26 oliverschmidt Exp $
  *
  */
 
