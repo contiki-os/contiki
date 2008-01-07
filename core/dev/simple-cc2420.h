@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: simple-cc2420.h,v 1.6 2007/12/16 14:30:36 adamdunkels Exp $
+ * $Id: simple-cc2420.h,v 1.7 2008/01/07 14:41:34 adamdunkels Exp $
  */
 
 /**
@@ -66,6 +66,8 @@ extern const struct radio_driver simple_cc2420_driver;
  * \param power Between 1 and 31.
  */
 void simple_cc2420_set_txpower(u8_t power);
+#define SIMPLE_CC2420_TXPOWER_MAX  31
+#define SIMPLE_CC2420_TXPOWER_MIN   0
 
 /**
  * Interrupt function, called from the simple-cc2420-arch driver.
@@ -76,7 +78,10 @@ int simple_cc2420_interrupt(void);
 /* XXX hack: these will be made as Chameleon packet attributes */
 extern rtimer_clock_t simple_cc2420_time_of_arrival,
   simple_cc2420_time_of_departure;
-extern rtimer_clock_t simple_cc2420_time_for_transmission;
 extern int simple_cc2420_authority_level_of_sender;
+
+int simple_cc2420_on(void);
+int simple_cc2420_off(void);
+
 
 #endif /* __SIMPLE_CC2420_H__ */
