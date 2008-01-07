@@ -36,7 +36,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: collect.c,v 1.2 2007/12/09 15:43:09 adamdunkels Exp $
+ * $Id: collect.c,v 1.3 2008/01/07 14:52:23 adamdunkels Exp $
  */
 
 /**
@@ -274,10 +274,12 @@ void
 collect_open(struct collect_conn *tc, u16_t channels,
 	     const struct collect_callbacks *cb)
 {
-  neighbor_discovery_open(&tc->neighbor_discovery_conn, channels, &neighbor_discovery_callbacks);
+  neighbor_discovery_open(&tc->neighbor_discovery_conn, channels,
+			  &neighbor_discovery_callbacks);
   ruc_open(&tc->ruc_conn, channels + 1, &ruc_callbacks);
   tc->rtmetric = RTMETRIC_MAX;
   tc->cb = cb;
+  neighbor_discovery_start(&tc->neighbor_discovery_conn, tc->rtmetric);
 }
 /*---------------------------------------------------------------------------*/
 void
@@ -310,10 +312,11 @@ collect_send(struct collect_conn *tc, int rexmits)
     hdr = rimebuf_hdrptr();
     hdr->originator_seqno = tc->seqno++;
     rimeaddr_copy(&hdr->originator, &rimeaddr_node_addr);
-    hdr->hops = 0;
+    hdr->hops = 1;
     hdr->hoplim = MAX_HOPLIM;
     hdr->rexmits = rexmits;
     if(tc->rtmetric == 0) {
+      hdr->hops = 0;
       if(tc->cb->recv != NULL) {
 	tc->cb->recv(&hdr->originator, hdr->originator_seqno,
 		     hdr->hops);
