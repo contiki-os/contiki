@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: simple-cc2420.c,v 1.17 2007/12/16 14:30:36 adamdunkels Exp $
+ * @(#)$Id: simple-cc2420.c,v 1.18 2008/01/07 14:08:02 adamdunkels Exp $
  */
 /*
  * This code is almost device independent and should be easy to port.
@@ -53,6 +53,7 @@
 
 
 #define FOOTER_LEN 2
+#define CRC_LEN 2
 
 #if SIMPLE_CC2420_CONF_TIMESTAMPS
 #include "sys/timesynch.h"
@@ -81,9 +82,12 @@ void simple_cc2420_arch_init(void);
 
 /* XXX hack: these will be made as Chameleon packet attributes */
 rtimer_clock_t simple_cc2420_time_of_arrival, simple_cc2420_time_of_departure;
-rtimer_clock_t simple_cc2420_time_for_transmission;
 
 int simple_cc2420_authority_level_of_sender;
+
+static rtimer_clock_t setup_time_for_transmission;
+static unsigned long total_time_for_transmission, total_transmission_len;
+static int num_transmissions;
 
 /*---------------------------------------------------------------------------*/
 PROCESS(simple_cc2420_process, "CC2420 driver");
@@ -318,6 +322,7 @@ simple_cc2420_send(const void *payload, unsigned short payload_len)
   strobe(CC2420_STXONCCA);
   for(i = LOOP_20_SYMBOLS; i > 0; i--) {
     if(SFD_IS_1) {
+      rtimer_clock_t txtime = timesynch_time();
       /*      PRINTF("simple_cc2420: do_send() transmission has started\n");*/
 
       ENERGEST_OFF(ENERGEST_TYPE_LISTEN);
@@ -326,7 +331,14 @@ simple_cc2420_send(const void *payload, unsigned short payload_len)
 	spiStatusByte = status();
       } while(spiStatusByte & BV(CC2420_TX_ACTIVE));
 #if SIMPLE_CC2420_CONF_TIMESTAMPS
-      simple_cc2420_time_for_transmission = timesynch_time() - timestamp.time;
+      setup_time_for_transmission = txtime - timestamp.time;
+      
+      if(num_transmissions < 10000) {
+	total_time_for_transmission += timesynch_time() - txtime;
+	total_transmission_len += total_len;
+	num_transmissions++;
+      }
+
 #endif /* SIMPLE_CC2420_CONF_TIMESTAMPS */
       ENERGEST_OFF(ENERGEST_TYPE_TRANSMIT);
       ENERGEST_ON(ENERGEST_TYPE_LISTEN);
@@ -502,7 +514,7 @@ simple_cc2420_read(void *buf, unsigned short bufsize)
   if(len > 0) {
     /* Read payload and two bytes of footer */
     PRINTF("simple_cc2420_read: len %d\n", len);
-    if(len < FOOTER_LEN + TIMESTAMP_LEN) {
+    if(len <= FOOTER_LEN + TIMESTAMP_LEN) {
       FASTSPI_READ_FIFO_GARBAGE(len);
       RIMESTATS_ADD(tooshort);
     } else if(len - FOOTER_LEN - TIMESTAMP_LEN > bufsize) {
@@ -514,7 +526,6 @@ simple_cc2420_read(void *buf, unsigned short bufsize)
       FASTSPI_READ_FIFO_NO_WAIT(&t, TIMESTAMP_LEN); /* Time stamp */
 #endif /* SIMPLE_CC2420_CONF_TIMESTAMPS */
       FASTSPI_READ_FIFO_NO_WAIT(footer, FOOTER_LEN);
-      //      len = bufsize - 2; /* We eventually return len - 2 */
       len = TIMESTAMP_LEN + FOOTER_LEN;
       RIMESTATS_ADD(toolong);
     } else {
@@ -533,8 +544,13 @@ simple_cc2420_read(void *buf, unsigned short bufsize)
 	len = TIMESTAMP_LEN + FOOTER_LEN;
       }
 #if SIMPLE_CC2420_CONF_TIMESTAMPS
-      simple_cc2420_time_of_departure = t.time;
+      simple_cc2420_time_of_departure =
+	t.time +
+	setup_time_for_transmission +
+	(total_time_for_transmission * (len - 2)) / total_transmission_len;
+
       simple_cc2420_authority_level_of_sender = t.authority_level;
+
 #endif /* SIMPLE_CC2420_CONF_TIMESTAMPS */
     }
   }
