@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: watchdog.h,v 1.2 2007/11/17 10:15:50 adamdunkels Exp $
+ * @(#)$Id: watchdog.h,v 1.3 2008/01/07 14:42:35 adamdunkels Exp $
  */
 #ifndef __WATCHDOG_H__
 #define __WATCHDOG_H__
@@ -37,5 +37,7 @@ void watchdog_init(void);
 void watchdog_start(void);
 void watchdog_periodic(void);
 void watchdog_stop(void);
+
+void watchdog_reboot(void);
 
 #endif /* __WATCHDOG_H__ */
