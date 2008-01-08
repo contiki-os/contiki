@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ContikiMoteTypeDialog.java,v 1.38 2007/11/29 05:58:42 fros4943 Exp $
+ * $Id: ContikiMoteTypeDialog.java,v 1.39 2008/01/08 12:33:25 fros4943 Exp $
  */
 
 package se.sics.cooja.contikimote;
@@ -247,7 +247,17 @@ public class ContikiMoteTypeDialog extends JDialog {
         // Try to find process in current list
         boolean foundAndSelectedProcess = false;
         for (Component processCheckBox : myDialog.processPanel.getComponents()) {
-          if (presetProcess.equals(((JCheckBox) processCheckBox).getText())) {
+          boolean inCompileFile = false;
+
+          for (File compileFile: moteTypeToConfigure.getCompilationFiles()) {
+            if (compileFile.getName().equals(((JCheckBox) processCheckBox).getToolTipText())) {
+              inCompileFile = true;
+              break;
+            }
+          }
+
+          if (inCompileFile &&
+              presetProcess.equals(((JCheckBox) processCheckBox).getText())) {
             ((JCheckBox) processCheckBox).setSelected(true);
             foundAndSelectedProcess = true;
             break;
