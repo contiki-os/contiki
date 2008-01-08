@@ -34,7 +34,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: timesynch.c,v 1.4 2007/12/23 14:57:11 oliverschmidt Exp $
+ * $Id: timesynch.c,v 1.5 2008/01/08 07:54:16 adamdunkels Exp $
  */
 
 /**
@@ -107,24 +107,35 @@ read_packet(void)
 
   len = mac->read();
 
+  if(len == 0) {
+    return 0;
+  }
+  
   /* We check the authority level of the sender of the incoming
      packet. If the sending node has a lower authority level than we
      have, we synchronize to the time of the sending node and set our
      own authority level to be one more than the sending node. */
   if(simple_cc2420_authority_level_of_sender < authority_level) {
-    adjust_offset(simple_cc2420_time_of_departure +
-		  simple_cc2420_time_for_transmission,
+    
+    adjust_offset(simple_cc2420_time_of_departure,
 		  simple_cc2420_time_of_arrival);
     if(simple_cc2420_authority_level_of_sender + 1 != authority_level) {
       authority_level = simple_cc2420_authority_level_of_sender + 1;
     }
 
-    /* XXX the authority level should be increased over time except
-       for the sink node. */
   }
   
   return len;
 }
+/*---------------------------------------------------------------------------*/
+#if 0
+static void
+periodic_authority_increase(void *ptr)
+{
+  /* XXX the authority level should be increased over time except
+     for the sink node (which has authority 0). */
+}
+#endif
 /*---------------------------------------------------------------------------*/
 static void
 set_receive_function(void (* recv)(const struct mac_driver *))
