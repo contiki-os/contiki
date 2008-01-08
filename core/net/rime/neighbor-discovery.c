@@ -33,7 +33,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: neighbor-discovery.c,v 1.1 2007/12/09 15:40:43 adamdunkels Exp $
+ * $Id: neighbor-discovery.c,v 1.2 2008/01/08 08:27:25 adamdunkels Exp $
  */
 
 /**
@@ -73,6 +73,7 @@ struct adv_msg {
 
 #define MAX_INTERVAL CLOCK_SECOND * 20
 #define MIN_INTERVAL CLOCK_SECOND * 10
+#define NEW_VAL_INTERVAL CLOCK_SECOND * 2
 
 #define DEBUG 0
 #if DEBUG
@@ -112,18 +113,6 @@ adv_packet_received(struct ibc_conn *ibc, rimeaddr_t *from)
 	 rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1],
 	 from->u8[0], from->u8[1], msg->val);
 
-/*   n = neighbor_find(from); */
-
-/*   if(n == NULL) { */
-/*     neighbor_add(from, msg->val, radio_sensor.value(1)); */
-/*   } else { */
-/*     neighbor_update(n, msg->val, radio_sensor.value(1)); */
-/*     PRINTF("%d.%d: updating neighbor %d.%d, radio sensor %d, hops %d\n", */
-/* 	   rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1], */
-/* 	   n->addr.u8[0], n->addr.u8[1], */
-/* 	   radio_sensor.value(1), msg->val); */
-/*   } */
-
   if(c->u->recv) {
     c->u->recv(c, from, msg->val);
   }
@@ -161,8 +150,12 @@ neighbor_discovery_close(struct neighbor_discovery_conn *c)
 void
 neighbor_discovery_start(struct neighbor_discovery_conn *c, uint16_t val)
 {
+  if(val < c->val) {
+    ctimer_set(&c->t, random_rand() % NEW_VAL_INTERVAL, send_timer, c);
+  } else {
+    ctimer_set(&c->t, random_rand() % MIN_INTERVAL, send_timer, c);
+  }
   c->val = val;
-  ctimer_set(&c->t, random_rand() % MIN_INTERVAL, send_timer, c);
 }
 /*---------------------------------------------------------------------------*/
 /** @} */
