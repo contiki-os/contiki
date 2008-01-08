@@ -33,7 +33,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: rime.h,v 1.12 2007/12/17 09:14:08 adamdunkels Exp $
+ * $Id: rime.h,v 1.13 2008/01/08 07:52:31 adamdunkels Exp $
  */
 
 /**
@@ -58,10 +58,14 @@
 #include "net/rime/polite.h"
 #include "net/rime/ipolite.h"
 #include "net/rime/nf.h"
-#include "net/rime/route-discovery.h"
+#include "net/rime/neighbor.h"
+#include "net/rime/route.h"
 #include "net/rime/neighbor-discovery.h"
+#include "net/rime/route-discovery.h"
 #include "net/rime/collect.h"
+#include "net/rime/trickle.h"
 #include "net/rime/mesh.h"
+
 #include "net/mac/mac.h"
 /**
  * \brief      Initialize Rime
@@ -100,6 +104,8 @@ void rime_driver_send(void);
 
 void rime_set_output(void (*output_function)(void));
 void rime_output(void);
+
+void rime_set_sniffer(void (*sniffer_callback)(void));
 
 extern const struct mac_driver *rime_mac;
 
