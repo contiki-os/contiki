@@ -6,6 +6,7 @@ CONTIKI_SOURCEFILES += mtarch.c rtimer-arch.c elfloader-stub.c
 CC       = gcc
 LD       = gcc
 AS       = as
+NM       = nm
 OBJCOPY  = objcopy
 STRIP    = strip
 CFLAGSNO = -Wall -g -I/usr/local/include #-pedantic -std=c99 -Werror
@@ -17,10 +18,10 @@ LDFLAGS  = -Wl,-Map=contiki-$(TARGET).map,-export-dynamic
 %.so: $(OBJECTDIR)/%.o
 	$(LD) -shared -o $@ $^
 
-# .PHONY: symbols.c symbols.h
 ifdef CORE
+.PHONY: symbols.c symbols.h
 symbols.c symbols.h:
-	$(NM) $(CORE) | awk -f ../../tools/mknmlist > symbols.c
+	$(NM) -C $(CORE) | grep -v @ | grep -v dll_crt0 | awk -f ../../tools/mknmlist > symbols.c
 #	@${CONTIKI}/tools/make-symbols $(CORE)
 else
 symbols.c symbols.h:
