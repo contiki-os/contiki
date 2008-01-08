@@ -1,9 +1,13 @@
 /* -*- C -*- */
-/* @(#)$Id: contiki-conf.h,v 1.21 2007/12/16 15:05:04 adamdunkels Exp $ */
+/* @(#)$Id: contiki-conf.h,v 1.22 2008/01/08 08:19:56 adamdunkels Exp $ */
 
 #ifndef CONTIKI_CONF_H
 #define CONTIKI_CONF_H
 
+#define SHELL_VARS_CONF_RAM_BEGIN 0x1100
+#define SHELL_VARS_CONF_RAM_END 0x2000
+
+#define TIMESYNCH_CONF_ENABLED 1
 #define SIMPLE_CC2420_CONF_TIMESTAMPS 1
 
 #define PROFILE_CONF_ON 1
@@ -34,7 +38,7 @@
 #define TMOTE_SKY 1
 #define WITH_ASCII 1
 
-#define PROCESS_CONF_FASTPOLL    4
+/*#define PROCESS_CONF_FASTPOLL    4*/
 
 /* CPU target speed in Hz */
 #define F_CPU 2457600uL
