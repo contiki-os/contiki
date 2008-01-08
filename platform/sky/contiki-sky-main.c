@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#)$Id: contiki-sky-main.c,v 1.20 2007/12/17 12:35:23 adamdunkels Exp $
+ * @(#)$Id: contiki-sky-main.c,v 1.21 2008/01/08 08:21:03 adamdunkels Exp $
  */
 
 #include <signal.h>
@@ -45,6 +45,7 @@
 #include "dev/xmem.h"
 #include "dev/simple-cc2420.h"
 #include "dev/watchdog.h"
+#include "dev/serial.h"
 #include "dev/slip.h"
 #include "dev/uart1.h"
 
@@ -150,7 +151,7 @@ main(int argc, char **argv)
 #endif /* WITH_UIP */
   
 /*   printf("Starting %s " */
-/* 	 "($Id: contiki-sky-main.c,v 1.20 2007/12/17 12:35:23 adamdunkels Exp $)\n", __FILE__); */
+/* 	 "($Id: contiki-sky-main.c,v 1.21 2008/01/08 08:21:03 adamdunkels Exp $)\n", __FILE__); */
   leds_on(LEDS_GREEN);
   ds2411_init();
   sensors_light_init();
@@ -192,6 +193,12 @@ main(int argc, char **argv)
   process_init();
   process_start(&etimer_process, NULL);
   process_start(&sensors_process, NULL);
+
+#if !WITH_UIP
+  uart1_set_input(serial_input_byte);
+  serial_init();
+#endif
+  
 #if PROFILE_CONF_ON
   profile_init();
 #endif /* PROFILE_CONF_ON */
@@ -230,8 +237,6 @@ main(int argc, char **argv)
   /*
    * This is the scheduler loop.
    */
-  printf("process_run()...\n");
-
   watchdog_start();
   while (1) {
     int r;
@@ -263,7 +268,7 @@ main(int argc, char **argv)
 	 were awake. */
       energest_type_set(ENERGEST_TYPE_IRQ, irq_energest);
       watchdog_stop();
-      _BIS_SR(GIE | SCG0 | SCG1 | CPUOFF); /* LPM3 sleep. This
+      _BIS_SR(GIE | SCG0 | /*SCG1 | */CPUOFF); /* LPM3 sleep. This
 					      statement will block
 					      until the CPU is
 					      woken up by an
