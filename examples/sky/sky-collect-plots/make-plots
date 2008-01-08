@@ -14,6 +14,7 @@ for f in `echo data-*`
   cp lost-$f lost
   cp dup-$f dup
   cp parent-$f parent
+  cp power-$f power
   gnuplot plot-all
   for p in `echo plot-*.eps`
     do

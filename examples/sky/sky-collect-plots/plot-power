@@ -8,18 +8,18 @@ set style fill pattern
 #set key top left Left width -5
 
 plot [:] [0:] \
-'power' using \
+'total-power' using \
 2:((0.0545 * $3 + 1.8 * $4 + 20.0 * $5 + 17.7 * $6 + 4.6 * $7) / 4096) * 3 / $1 \
 with boxes title "Red LED", \
-'power' using \
+'total-power' using \
 2:((0.0545 * $3 + 1.8 * $4 + 20.0 * $5 + 17.7 * $6) / 4096) * 3 / $1 \
 with boxes title "Radio transmit", \
-'power' using \
+'total-power' using \
 2:((0.0545 * $3 + 1.8 * $4 + 20.0 * $5) / 4096) * 3 / $1 \
 with boxes title "CPU low-power mode", \
-'power' using \
+'total-power' using \
 2:((1.8 * $4 + 20.0 * $5) / 4096) * 3 / $1 \
 with boxes title "CPU active mode", \
-'power' using \
+'total-power' using \
 2:((20.0 * $5) / 4096) * 3 / $1 \
 with boxes title "Radio reception"
