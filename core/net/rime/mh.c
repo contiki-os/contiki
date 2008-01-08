@@ -33,7 +33,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: mh.c,v 1.6 2007/12/05 13:40:34 adamdunkels Exp $
+ * $Id: mh.c,v 1.7 2008/01/08 07:55:56 adamdunkels Exp $
  */
 
 /**
@@ -79,7 +79,7 @@ data_packet_received(struct uc_conn *uc, rimeaddr_t *from)
     PRINTF("for us!\n");
     rimebuf_hdrreduce(sizeof(struct data_hdr));
     if(c->cb->recv) {
-      c->cb->recv(c, &msg->originator);
+      c->cb->recv(c, &msg->originator, msg->hops);
     }
   } else {
     nexthop = NULL;
@@ -132,7 +132,7 @@ mh_send(struct mh_conn *c, rimeaddr_t *to)
       hdr = rimebuf_hdrptr();
       rimeaddr_copy(&hdr->dest, to);
       rimeaddr_copy(&hdr->originator, &rimeaddr_node_addr);
-      hdr->hops = 0;
+      hdr->hops = 1;
       uc_send(&c->c, nexthop);
     }
     return 1;

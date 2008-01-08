@@ -48,7 +48,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: rmh.h,v 1.2 2007/11/28 20:00:07 adamdunkels Exp $
+ * $Id: rmh.h,v 1.3 2008/01/08 07:55:56 adamdunkels Exp $
  */
 
 /**
@@ -67,7 +67,7 @@
 struct rmh_conn;
 
 struct rmh_callbacks {
-  void (* recv)(struct rmh_conn *ptr, rimeaddr_t *sender);
+  void (* recv)(struct rmh_conn *ptr, rimeaddr_t *sender, u8_t hops);
   rimeaddr_t *(* forward)(struct rmh_conn *ptr,
 			  rimeaddr_t *originator,
 			  rimeaddr_t *dest,
