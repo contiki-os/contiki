@@ -47,7 +47,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: collect.h,v 1.2 2007/12/09 15:43:09 adamdunkels Exp $
+ * $Id: collect.h,v 1.3 2008/01/08 07:55:00 adamdunkels Exp $
  */
 
 /**
@@ -79,7 +79,7 @@ struct collect_conn {
   u8_t seqno;
 };
 
-void collect_open(struct collect_conn *c, u16_t channels,
+void collect_open(struct collect_conn *c, uint16_t channels,
 	       const struct collect_callbacks *callbacks);
 void collect_close(struct collect_conn *c);
 
