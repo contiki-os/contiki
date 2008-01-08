@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#)$Id: uart1.c,v 1.3 2007/09/06 11:45:08 nvt-se Exp $
+ * @(#)$Id: uart1.c,v 1.4 2008/01/08 08:04:09 adamdunkels Exp $
  */
 
 /*
@@ -40,11 +40,13 @@
 #include "lib/energest.h"
 #include "dev/uart1.h"
 
-static void (*uart1_input_handler)(unsigned char c);
+#include "dev/leds.h"
+
+static int (*uart1_input_handler)(unsigned char c);
 
 /*---------------------------------------------------------------------------*/
 void
-uart1_set_input(void (*input)(unsigned char c))
+uart1_set_input(int (*input)(unsigned char c))
 {
   uart1_input_handler = input;
 }
@@ -53,7 +55,7 @@ void
 uart1_writeb(unsigned char c)
 {
   /* Loop until the transmission buffer is available. */
-  while ((IFG2 & UTXIFG1) == 0);
+  while((IFG2 & UTXIFG1) == 0);
 
   /* Transmit the data. */
   TXBUF1 = c;
@@ -126,9 +128,10 @@ uart1_interrupt(void)
     volatile unsigned dummy;
     dummy = RXBUF1;   /* Clear error flags by forcing a dummy read. */
   } else {
-      if (uart1_input_handler != NULL) {
-	uart1_input_handler(RXBUF1);
-	LPM4_EXIT;
+      if(uart1_input_handler != NULL) {
+	if(uart1_input_handler(RXBUF1)) {
+	  LPM4_EXIT;
+	}
       }
   }
   ENERGEST_OFF(ENERGEST_TYPE_IRQ);
