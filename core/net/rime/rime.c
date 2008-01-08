@@ -33,7 +33,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: rime.c,v 1.13 2007/12/05 13:21:58 adamdunkels Exp $
+ * $Id: rime.c,v 1.14 2008/01/08 07:53:02 adamdunkels Exp $
  */
 
 /**
@@ -49,6 +49,15 @@
 #include "net/mac/mac.h"
 
 const struct mac_driver *rime_mac;
+
+static void (*sniffer_callback)(void);
+
+/*---------------------------------------------------------------------------*/
+void
+rime_set_sniffer(void (* sniffer)(void))
+{
+  sniffer_callback = sniffer;
+}
 /*---------------------------------------------------------------------------*/
 static void
 input(const struct mac_driver *r)
@@ -56,6 +65,9 @@ input(const struct mac_driver *r)
   int len;
   len = rime_mac->read();
   if(len > 0) {
+    if(sniffer_callback != NULL) {
+      sniffer_callback();
+    }
     RIMESTATS_ADD(rx);
     abc_input_packet();
   }
