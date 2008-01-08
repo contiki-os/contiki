@@ -7,7 +7,7 @@ CONTIKI_TARGET_MAIN = ${addprefix $(OBJECTDIR)/,contiki-main.o}
 
 CONTIKI_TARGET_SOURCEFILES = contiki-main.c clock.c leds.c leds-arch.c \
                 button-sensor.c pir-sensor.c vib-sensor.c \
-                sensors.c irq.c random.c serial.c cfs-posix-dir.c
+                sensors.c irq.c random.c serial.c cfs-posix.c cfs-posix-dir.c
 
 CONTIKI_SOURCEFILES += $(CONTIKI_TARGET_SOURCEFILES)
 
