@@ -45,7 +45,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: trickle.h,v 1.5 2007/12/17 09:14:08 adamdunkels Exp $
+ * $Id: trickle.h,v 1.6 2008/01/08 08:00:13 adamdunkels Exp $
  */
 
 /**
@@ -77,7 +77,7 @@ struct trickle_conn {
 };
 
 void trickle_open(struct trickle_conn *c, clock_time_t interval,
-		  u16_t channel, const struct trickle_callbacks *cb);
+		  uint16_t channel, const struct trickle_callbacks *cb);
 void trickle_close(struct trickle_conn *c);
 
 void trickle_send(struct trickle_conn *c);
