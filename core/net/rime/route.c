@@ -33,7 +33,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: route.c,v 1.10 2008/01/04 23:33:09 oliverschmidt Exp $
+ * $Id: route.c,v 1.11 2008/01/08 07:58:23 adamdunkels Exp $
  */
 
 /**
@@ -170,6 +170,33 @@ void
 route_set_lifetime(int seconds)
 {
   max_time = seconds;
+}
+/*---------------------------------------------------------------------------*/
+int
+route_num(void)
+{
+  struct route_entry *e;
+  int i = 0;
+
+  for(e = list_head(route_table); e != NULL; e = e->next) {
+    i++;
+  }
+  return i;
+}
+/*---------------------------------------------------------------------------*/
+struct route_entry *
+route_get(int num)
+{
+  struct route_entry *e;
+  int i = 0;
+
+  for(e = list_head(route_table); e != NULL; e = e->next) {
+    if(i == num) {
+      return e;
+    }
+    i++;
+  }
+  return NULL;
 }
 /*---------------------------------------------------------------------------*/
 /** @} */

@@ -39,7 +39,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: route.h,v 1.6 2007/12/17 09:14:08 adamdunkels Exp $
+ * $Id: route.h,v 1.7 2008/01/08 07:58:23 adamdunkels Exp $
  */
 
 /**
@@ -70,6 +70,9 @@ struct route_entry *route_lookup(rimeaddr_t *dest);
 void route_remove(struct route_entry *e);
 void route_flush_all(void);
 void route_set_lifetime(int seconds);
+
+int route_num(void);
+struct route_entry *route_get(int num);
 
 #endif /* __ROUTE_H__ */
 /** @} */
