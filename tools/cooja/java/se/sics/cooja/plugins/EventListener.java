@@ -24,7 +24,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * $Id: EventListener.java,v 1.5 2008/01/08 12:12:15 fros4943 Exp $
+ * $Id: EventListener.java,v 1.6 2008/01/08 12:19:25 fros4943 Exp $
  */
 
 package se.sics.cooja.plugins;
@@ -347,6 +347,7 @@ public class EventListener extends VisPlugin {
             JCheckBox checkBox = (JCheckBox) comp;
             if (checkBox.getText().equals(element.getText())) {
               checkBox.setSelected(true);
+              generalCheckBoxListener.actionPerformed(new ActionEvent(checkBox, ActionEvent.ACTION_PERFORMED, ""));
             }
           }
         }
@@ -359,6 +360,7 @@ public class EventListener extends VisPlugin {
             JCheckBox checkBox = (JCheckBox) comp;
             if (checkBox.getText().equals(element.getText())) {
               checkBox.setSelected(true);
+              interfaceCheckBoxListener.actionPerformed(new ActionEvent(checkBox, ActionEvent.ACTION_PERFORMED, ""));
             }
           }
         }
