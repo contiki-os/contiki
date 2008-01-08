@@ -54,7 +54,7 @@
  *
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: cfs.h,v 1.9 2007/12/23 15:22:33 oliverschmidt Exp $
+ * $Id: cfs.h,v 1.10 2008/01/08 14:27:06 adamdunkels Exp $
  */
 #ifndef __CFS_H__
 #define __CFS_H__
@@ -115,7 +115,7 @@ struct cfs_dirent {
 /**
  * \brief      Open a file.
  * \param name The name of the file.
- * \param flags CFS_READ, or CFS_WRITE, or both.
+ * \param flags CFS_READ, or CFS_WRITE/CFS_APPEND, or both.
  * \return     A file descriptor, if the file could be opened, or -1 if
  *             the file could not be opened.
  *
