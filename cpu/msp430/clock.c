@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: clock.c,v 1.11 2007/11/12 21:07:39 adamdunkels Exp $
+ * @(#)$Id: clock.c,v 1.12 2008/01/08 08:01:41 adamdunkels Exp $
  */
 
 
@@ -55,12 +55,11 @@ interrupt(TIMERA1_VECTOR) timera1 (void) {
   ENERGEST_ON(ENERGEST_TYPE_IRQ);
   if(TAIV == 2) {
     /* Make sure interrupt time is future */
-    do
-    {
+    do {
       TACCR1 += INTERVAL;
       ++count;
-    }
-    while ((TACCR1 - TAR) > INTERVAL);
+    } while((TACCR1 - TAR) > INTERVAL);
+
     last_tar = TAR;
 
     if(etimer_pending()
