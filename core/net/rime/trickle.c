@@ -33,7 +33,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: trickle.c,v 1.5 2007/05/15 08:09:21 adamdunkels Exp $
+ * $Id: trickle.c,v 1.6 2008/01/08 07:59:51 adamdunkels Exp $
  */
 
 /**
@@ -50,6 +50,15 @@
 
 #define SEQNO_LT(a, b) ((signed char)((a) - (b)) < 0)
 
+#define DEBUG 0
+#if DEBUG
+#include <stdio.h>
+#define PRINTF(...) printf(__VA_ARGS__)
+#else
+#define PRINTF(...)
+#endif
+
+
 /*---------------------------------------------------------------------------*/
 static void
 send(void *ptr)
@@ -61,6 +70,9 @@ send(void *ptr)
     nf_send(&c->c, c->seqno);
     ctimer_set(&c->t, c->interval << c->interval_scaling,
 	       send, c);
+  } else {
+    PRINTF("%d.%d: trickle send but c->q == NULL\n",
+	 rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1]);
   }
 }
 /*---------------------------------------------------------------------------*/
@@ -69,6 +81,10 @@ recv(struct nf_conn *nf, rimeaddr_t *from,
      rimeaddr_t *originator, u8_t seqno, u8_t hops)
 {
   struct trickle_conn *c = (struct trickle_conn *)nf;
+
+  PRINTF("%d.%d: trickle recv seqno %d our %d\n",
+	 rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1],
+	 seqno, c->seqno);
 
   if(seqno == c->seqno) {
     /*    c->cb->recv(c);*/
@@ -124,8 +140,14 @@ trickle_close(struct trickle_conn *c)
 void
 trickle_send(struct trickle_conn *c)
 {
+  if(c->q != NULL) {
+    queuebuf_free(c->q);
+  }
   c->q = queuebuf_new_from_rimebuf();
   c->seqno++;
+  PRINTF("%d.%d: trickle send seqno %d\n",
+	 rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1],
+	 c->seqno);
   send(c);
 }
 /*---------------------------------------------------------------------------*/
