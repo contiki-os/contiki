@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: sky-collect.c,v 1.1 2007/11/28 16:52:22 adamdunkels Exp $
+ * $Id: sky-collect.c,v 1.2 2008/01/08 08:05:34 adamdunkels Exp $
  */
 
 /**
@@ -44,10 +44,10 @@
 #include "net/rime/collect.h"
 #include "dev/leds.h"
 #include "dev/button-sensor.h"
-#include "dev/battery-sensor.h"
 
 #include "dev/light.h"
 #include "dev/sht11.h"
+#include "sys/timesynch.h"
 #include <stdio.h>
 #include <string.h>
 #include "contiki-net.h"
@@ -59,7 +59,7 @@ struct sky_collect_msg {
   uint16_t light2;
   uint16_t temperature;
   uint16_t humidity;
-  uint16_t battery;
+  uint16_t rssi;
   uint16_t best_neighbor;
   uint16_t best_neighbor_etx;
   uint16_t best_neighbor_rtmetric;
@@ -78,6 +78,7 @@ struct sky_collect_msg {
     sendingdrop; /* Packet dropped when we were sending a packet */
   uint16_t lltx, llrx;
 
+  rtimer_clock_t timestamp;
 };
 
 #define REXMITS 4
@@ -118,6 +119,50 @@ PROCESS_THREAD(depth_blink_process, ev, data)
   PROCESS_END();
 }
 /*---------------------------------------------------------------------------*/
+#define MAX(a, b) ((a) > (b)? (a): (b))
+#define MIN(a, b) ((a) < (b)? (a): (b))
+struct spectrum {
+  int channel[16];
+};
+#define NUM_SAMPLES 4
+static struct spectrum rssi_samples[NUM_SAMPLES];
+static int
+do_rssi(void)
+{
+  static int sample;
+  int rssi_max;
+  int channel, i;
+  rtimer_clock_t r;
+  
+  rime_mac->off();
+
+  simple_cc2420_on();
+  for(channel = 11; channel <= 26; ++channel) {
+    simple_cc2420_set_channel(channel);
+    //    simple_cc2420_on();
+    rssi_samples[sample].channel[channel - 11] = simple_cc2420_rssi() + 53;
+    //    simple_cc2420_off();
+  }
+  
+  rime_mac->on();
+  
+  sample = (sample + 1) % NUM_SAMPLES;
+
+  {
+    int channel, tot;
+    tot = 0;
+    for(channel = 0; channel < 16; ++channel) {
+      int max = -256;
+      int i;
+      for(i = 0; i < NUM_SAMPLES; ++i) {
+	max = MAX(max, rssi_samples[i].channel[channel]);
+      }
+      tot += max / 20;
+    }
+    return tot;
+  }
+}
+/*---------------------------------------------------------------------------*/
 static void
 recv(rimeaddr_t *originator, u8_t seqno, u8_t hops)
 {
@@ -127,16 +172,18 @@ recv(rimeaddr_t *originator, u8_t seqno, u8_t hops)
   printf("%u %u %u %u %u %u %u %u %u %u %u %lu %lu %lu %lu %lu ",
 	 originator->u16[0], seqno, hops,
 	 msg->light1, msg->light2, msg->temperature, msg->humidity,
-	 msg->battery,
+	 msg->rssi,
 
 	 msg->best_neighbor, msg->best_neighbor_etx, msg->best_neighbor_rtmetric,
 	 msg->energy_lpm, msg->energy_cpu, msg->energy_rx, msg->energy_tx, msg->energy_rled
 	 );
-  printf("%u %u %u %u %u %u %u %u %u %u %u %u %u %u %u %u %u %u\n",
+  printf("%u %u %u %u %u %u %u %u %u %u %u %u %u %u %u %u %u %u ",
 	 msg->tx, msg->rx, msg->reliabletx, msg->reliablerx, msg->rexmit,
 	 msg->acktx, msg->noacktx, msg->ackrx, msg->timedout, msg->badackrx,
 	 msg->toolong, msg->tooshort, msg->badsynch, msg->badcrc,
 	 msg->contentiondrop, msg->sendingdrop, msg->lltx, msg->llrx);
+
+  printf("%u\n", timesynch_time() - msg->timestamp);
   
 }
 /*---------------------------------------------------------------------------*/
@@ -147,7 +194,6 @@ PROCESS_THREAD(test_collect_process, ev, data)
   PROCESS_EXITHANDLER(goto exit;)
   PROCESS_BEGIN();
 
-  battery_sensor.activate();
   button_sensor.activate();
   
   collect_open(&tc, 128, &callbacks);
@@ -176,7 +222,7 @@ PROCESS_THREAD(test_collect_process, ev, data)
       msg->light2 = sensors_light2();
       msg->temperature = sht11_temp();
       msg->humidity = sht11_humidity();
-      msg->battery = battery_sensor.value(0);
+      msg->rssi = do_rssi();
       msg->energy_lpm = energest_type_time(ENERGEST_TYPE_LPM);
       msg->energy_cpu = energest_type_time(ENERGEST_TYPE_CPU);
       msg->energy_rx = energest_type_time(ENERGEST_TYPE_LISTEN);
@@ -209,7 +255,7 @@ PROCESS_THREAD(test_collect_process, ev, data)
       msg->sendingdrop = rimestats.sendingdrop;
       msg->lltx = rimestats.lltx;
       msg->llrx = rimestats.llrx;
-
+      msg->timestamp = timesynch_time();
       collect_send(&tc, REXMITS);
     }
   }
