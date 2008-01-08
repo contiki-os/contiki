@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: watchdog.c,v 1.2 2007/11/17 10:16:48 adamdunkels Exp $
+ * @(#)$Id: watchdog.c,v 1.3 2008/01/08 08:03:02 adamdunkels Exp $
  */
 #include <io.h>
 #include "dev/watchdog.h"
@@ -62,5 +62,11 @@ void
 watchdog_stop(void)
 {
   WDTCTL = WDTPW | WDTHOLD;
+}
+/*---------------------------------------------------------------------------*/
+void
+watchdog_reboot(void)
+{
+  WDTCTL = 0;
 }
 /*---------------------------------------------------------------------------*/
