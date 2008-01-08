@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2006, Swedish Institute of Computer Science. All rights
  * reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  * 1. Redistributions of source code must retain the above copyright notice,
@@ -12,7 +12,7 @@
  * Institute nor the names of its contributors may be used to endorse or promote
  * products derived from this software without specific prior written
  * permission.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY THE INSTITUTE AND CONTRIBUTORS ``AS IS'' AND ANY
  * EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
  * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -23,16 +23,18 @@
  * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- * 
- * $Id: EventListener.java,v 1.4 2007/01/26 15:12:00 fros4943 Exp $
+ *
+ * $Id: EventListener.java,v 1.5 2008/01/08 12:12:15 fros4943 Exp $
  */
 
 package se.sics.cooja.plugins;
 
+import java.awt.Component;
 import java.awt.event.*;
 import java.util.*;
 import javax.swing.*;
 import org.apache.log4j.Logger;
+import org.jdom.Element;
 
 import se.sics.cooja.*;
 import se.sics.cooja.contikimote.ContikiMoteType;
@@ -41,7 +43,7 @@ import se.sics.cooja.interfaces.*;
 /**
  * Allows a user to observe several different parts of the simulator, stopping a
  * simulation whenever an object changes.
- * 
+ *
  * @author Fredrik Osterlind
  */
 @ClassDescription("Event Listener")
@@ -60,6 +62,10 @@ public class EventListener extends VisPlugin {
   private JLabel messageLabel = null;
 
   private JButton actionButton = null;
+
+  private JPanel interfacePanel = null;
+
+  private JPanel generalPanel = null;
 
   protected abstract class EventObserver implements Observer {
     protected Observable myObservation = null;
@@ -99,8 +105,9 @@ public class EventListener extends VisPlugin {
     public void update(Observable obs, Object obj) {
       final MoteInterface moteInterface = (MoteInterface) obs;
       int moteID = -1;
-      if (myMote.getInterfaces().getMoteID() != null)
+      if (myMote.getInterfaces().getMoteID() != null) {
         moteID = myMote.getInterfaces().getMoteID().getMoteID();
+      }
 
       myParent.actOnChange("'" + GUI.getDescriptionOf(moteInterface.getClass())
           + "'" + " of mote '" + (moteID > 0 ? Integer.toString(moteID) : "?")
@@ -131,13 +138,11 @@ public class EventListener extends VisPlugin {
   }
 
   /**
-   * Create a new simulation control panel.
-   * 
    * @param simulationToControl
    *          Simulation to control
    */
   public EventListener(Simulation simulationToControl, GUI gui) {
-    super("Event Breaker", gui);
+    super("Event Listener", gui);
 
     mySimulation = simulationToControl;
     myPlugin = this;
@@ -165,7 +170,8 @@ public class EventListener extends VisPlugin {
         allMoteTypes.add(moteTypeClass);
       }
     }
-    JPanel interfacePanel = new JPanel();
+
+    interfacePanel = new JPanel();
     interfacePanel.setLayout(new BoxLayout(interfacePanel, BoxLayout.Y_AXIS));
     interfacePanel.setBorder(BorderFactory.createEmptyBorder(10, 5, 10, 5));
     for (Class<? extends MoteInterface> moteTypeClass : allMoteTypes) {
@@ -182,7 +188,7 @@ public class EventListener extends VisPlugin {
     }
 
     // Create general selectable list
-    JPanel generalPanel = new JPanel();
+    generalPanel = new JPanel();
     generalPanel.setLayout(new BoxLayout(generalPanel, BoxLayout.Y_AXIS));
     generalPanel.setBorder(BorderFactory.createEmptyBorder(10, 5, 10, 5));
 
@@ -226,20 +232,19 @@ public class EventListener extends VisPlugin {
   }
 
   private void actOnChange(final String message, final Action action) {
-    if (!mySimulation.isRunning())
+    if (!mySimulation.isRunning()) {
       return;
+    }
 
     mySimulation.stopSimulation();
 
-    // Update plugin in separate thread
-    Thread t = new Thread(new Runnable() {
+    SwingUtilities.invokeLater(new Runnable() {
       public void run() {
         messageLabel.setText(message);
         actionButton.setAction(action);
         actionButton.setVisible(action != null);
       }
     });
-    t.start();
   }
 
   private ActionListener interfaceCheckBoxListener = new ActionListener() {
@@ -298,6 +303,73 @@ public class EventListener extends VisPlugin {
     for (EventObserver obs : allObservers) {
       obs.detachFromObject();
     }
+  }
+
+  public Collection<Element> getConfigXML() {
+    Vector<Element> config = new Vector<Element>();
+
+    Element element;
+
+    /* Save general observers */
+    for (Component comp: generalPanel.getComponents()) {
+      if (comp instanceof JCheckBox) {
+        JCheckBox checkBox = (JCheckBox) comp;
+        if (checkBox.isSelected()) {
+          element = new Element("general");
+          element.setText(checkBox.getText());
+          config.add(element);
+        }
+      }
+    }
+
+    /* Save interface observers */
+    for (Component comp: interfacePanel.getComponents()) {
+      if (comp instanceof JCheckBox) {
+        JCheckBox checkBox = (JCheckBox) comp;
+        if (checkBox.isSelected()) {
+          element = new Element("interface");
+          element.setText(checkBox.getText());
+          config.add(element);
+        }
+      }
+    }
+
+    return config;
+  }
+
+  public boolean setConfigXML(Collection<Element> configXML, boolean visAvailable) {
+
+    /* Load general observers */
+    for (Element element : configXML) {
+      if (element.getName().equals("general")) {
+        for (Component comp: generalPanel.getComponents()) {
+          if (comp instanceof JCheckBox) {
+            JCheckBox checkBox = (JCheckBox) comp;
+            if (checkBox.getText().equals(element.getText())) {
+              checkBox.setSelected(true);
+            }
+          }
+        }
+      }
+
+      /* Load interface observers */
+      else if (element.getName().equals("interface")) {
+        for (Component comp: interfacePanel.getComponents()) {
+          if (comp instanceof JCheckBox) {
+            JCheckBox checkBox = (JCheckBox) comp;
+            if (checkBox.getText().equals(element.getText())) {
+              checkBox.setSelected(true);
+            }
+          }
+        }
+      }
+
+      else {
+        return false;
+      }
+    }
+
+    return true;
   }
 
 }
