@@ -28,16 +28,15 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: serial.c,v 1.2 2006/07/03 11:29:16 nifi Exp $
+ * @(#)$Id: serial.c,v 1.3 2008/01/08 07:49:51 adamdunkels Exp $
  */
 #include "serial.h"
 #include <string.h> /* for memcpy() */
 
-
 #ifdef SERIAL_CONF_BUFSIZE
 #define BUFSIZE SERIAL_CONF_BUFSIZE
 #else /* SERIAL_CONF_BUFSIZE */
-#define BUFSIZE 40
+#define BUFSIZE 80
 #endif /* SERIAL_CONF_BUFSIZE */
 
 #define IGNORE_CHAR(c) (c == 0x0d)
@@ -50,6 +49,7 @@ static volatile char buffer_full = 0;
 PROCESS(serial_process, "Serial driver");
 
 process_event_t serial_event_message;
+
 
 /*---------------------------------------------------------------------------*/
 int
