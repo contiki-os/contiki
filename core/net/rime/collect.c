@@ -36,7 +36,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: collect.c,v 1.3 2008/01/07 14:52:23 adamdunkels Exp $
+ * $Id: collect.c,v 1.4 2008/01/08 07:54:40 adamdunkels Exp $
  */
 
 /**
@@ -86,9 +86,6 @@ static uint8_t recent_packet_ptr;
 
 #define MAX_HOPLIM 10
 
-#define MAX_INTERVAL CLOCK_SECOND * 10
-#define MIN_INTERVAL CLOCK_SECOND * 2
-
 #define DEBUG 0
 #if DEBUG
 #include <stdio.h>
@@ -127,7 +124,6 @@ update_rtmetric(struct collect_conn *tc)
       if(n->rtmetric + neighbor_etx(n) != tc->rtmetric) {
 	tc->rtmetric = n->rtmetric + neighbor_etx(n);
 	neighbor_discovery_start(&tc->neighbor_discovery_conn, tc->rtmetric);
-	/*	send_adv(tc, MIN_INTERVAL);*/
 	PRINTF("%d.%d: new rtmetric %d\n",
 	       rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1],
 	       tc->rtmetric);
