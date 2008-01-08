@@ -30,7 +30,7 @@
  *
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: cfs-xmem.c,v 1.6 2007/11/22 11:29:13 oliverschmidt Exp $
+ * $Id: cfs-xmem.c,v 1.7 2008/01/08 14:27:06 adamdunkels Exp $
  */
 
 #include "cfs/cfs.h"
@@ -65,10 +65,17 @@ cfs_open(const char *n, int f)
 {
   if(file.flag == FLAG_FILE_CLOSED) {
     file.flag = FLAG_FILE_OPEN;
-    file.fileptr = 0;
-    if((f & CFS_WRITE) && !(f & CFS_APPEND)) {
-      file.filesize = 0;
-      xmem_erase(CFS_XMEM_SIZE, CFS_XMEM_OFFSET);
+    if(f & CFS_READ) {
+      file.fileptr = 0;
+    }
+    if(f & CFS_WRITE){
+      if(f & CFS_APPEND) {
+	file.fileptr = file.filesize;
+      } else {
+	file.fileptr = 0;
+	file.filesize = 0;
+	xmem_erase(CFS_XMEM_SIZE, CFS_XMEM_OFFSET);
+      }
     }
     return 1;
   } else {
