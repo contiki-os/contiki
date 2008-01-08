@@ -1,19 +1,17 @@
-# $Id: Makefile.sky,v 1.13 2007/11/28 23:31:53 adamdunkels Exp $
+# $Id: Makefile.sky,v 1.14 2008/01/08 08:18:00 adamdunkels Exp $
 
 
 ARCH=msp430.c leds.c watchdog.c light.c spi.c ds2411.c \
      xmem.c i2c.c sht11.c battery-sensor.c \
      simple-cc2420.c simple-cc2420-arch.c irq.c energest-arch.c \
      node-id.c sensors.c button-sensor.c cfs-xmem.c \
-     radio-sensor.c uart1.c uip-ipchksum.c\
+     radio-sensor.c uart1.c uip-ipchksum.c \
      #slip.c slip_uart1.c
 
 CONTIKI_TARGET_DIRS = . dev apps net
 ifndef CONTIKI_TARGET_MAIN
 CONTIKI_TARGET_MAIN = contiki-sky-main.c
 endif
-
-CFLAGS += -DENERGEST_CONF_ON=1
 
 CONTIKI_TARGET_SOURCEFILES += $(ARCH) $(UIPDRIVERS) $(CONTIKI_TARGET_MAIN)
 
