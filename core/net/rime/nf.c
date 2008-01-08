@@ -33,7 +33,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: nf.c,v 1.14 2007/12/17 09:14:08 adamdunkels Exp $
+ * $Id: nf.c,v 1.15 2008/01/08 08:26:48 adamdunkels Exp $
  */
 
 /**
@@ -169,7 +169,7 @@ nf_send(struct nf_conn *c, u8_t seqno)
     PRINTF("%d.%d: nf sending '%s'\n",
 	   rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1],
 	   (char *)rimebuf_dataptr());
-    return send(c);
+    return ipolite_send(&c->c, 0, 4);
   }
   return 0;
 }
