@@ -1,4 +1,4 @@
-# $Id: Makefile.msp430,v 1.21 2007/11/26 23:23:20 adamdunkels Exp $
+# $Id: Makefile.msp430,v 1.22 2008/01/08 08:01:01 adamdunkels Exp $
 
 ifdef nodeid
 CFLAGS += -DNODEID=$(nodeid)
@@ -39,7 +39,10 @@ NM       = msp430-nm
 OBJCOPY  = msp430-objcopy
 STRIP    = msp430-strip
 BSL      = msp430-bsl
-CFLAGSNO = -Wall -mmcu=$(MCU) -g #-Werror
+ifdef WERROR
+CFLAGSWERROR=-Werror
+endif
+CFLAGSNO = -Wall -mmcu=$(MCU) -g $(CFLAGSWERROR)
 CFLAGS  += $(CFLAGSNO) -Os
 LDFLAGS += -mmcu=$(MCU) -Wl,-Map=contiki-$(TARGET).map
 
