@@ -30,7 +30,7 @@
  *
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: cfs-eeprom.c,v 1.5 2008/01/08 14:27:06 adamdunkels Exp $
+ * $Id: cfs-eeprom.c,v 1.6 2008/01/09 08:12:52 adamdunkels Exp $
  */
 
 #include "cfs/cfs.h"
@@ -41,6 +41,7 @@ struct filestate {
 #define FLAG_FILE_CLOSED 0
 #define FLAG_FILE_OPEN   1
   eeprom_addr_t fileptr;
+  eeprom_addr_t filesize;
 };
 
 static struct filestate file;
