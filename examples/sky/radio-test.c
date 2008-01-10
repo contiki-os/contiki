@@ -26,21 +26,21 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: radio-test.c,v 1.1 2008/01/10 09:59:33 nifi Exp $
+ * $Id: radio-test.c,v 1.2 2008/01/10 13:40:20 nifi Exp $
  *
  * -----------------------------------------------------------------
  *
  * Author  : Adam Dunkels, Joakim Eriksson, Niclas Finne
  * Created : 2006-03-07
- * Updated : $Date: 2008/01/10 09:59:33 $
- *           $Revision: 1.1 $
+ * Updated : $Date: 2008/01/10 13:40:20 $
+ *           $Revision: 1.2 $
  *
  * Simple application to indicate connectivity between two nodes:
  *
  * - Red led indicates a packet sent via radio (one packet sent each second)
- * - Yellow led indicates that this node can hear the other node but not
+ * - Green led indicates that this node can hear the other node but not
  *   necessary vice versa (unidirectional communication).
- * - Green led indicates that both nodes can communicate with each
+ * - Blue led indicates that both nodes can communicate with each
  *   other (bidirectional communication)
  */
 
@@ -161,7 +161,7 @@ PROCESS_THREAD(radio_test_process, ev, data)
 	leds_blink();
       }
       simple_cc2420_set_txpower(txpower);
-      printf("Set txpower to %u\n", txpower);
+      printf("txpower set to %u\n", txpower);
     }
   }
   PROCESS_END();
