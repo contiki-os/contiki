@@ -26,28 +26,25 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * This file is part of the Configurable Sensor Network Application
- * Architecture for sensor nodes running the Contiki operating system.
- *
- * $Id: printf2log.h,v 1.2 2007/11/25 22:48:35 fros4943 Exp $
+ * $Id: printf2log.h,v 1.3 2008/01/11 15:37:38 fros4943 Exp $
  *
  */
 
 #ifndef __PRINTF2LOG_H__
 #define __PRINTF2LOG_H__
 
+#include <string.h>
+#include <stdio.h>
 #include "sys/log.h"
 
-void simlog(const char *message);
+#define PRINTF2LOG_SIZE 128
 
-#define MAX_SIZE 256
-
-#define printf(...)                                  \
-  {                                                  \
-    char printf2log_buf[MAX_SIZE];                   \
-    int c = sprintf(printf2log_buf, __VA_ARGS__);    \
-    printf2log_buf[c] = 0;                           \
-    simlog(printf2log_buf);                          \
-  }
+#define printf(...)                                         \
+  do {                                                      \
+    char printf2log_buf[PRINTF2LOG_SIZE];                   \
+    snprintf(printf2log_buf, PRINTF2LOG_SIZE, __VA_ARGS__); \
+    printf2log_buf[PRINTF2LOG_SIZE - 1] = 0;                \
+    simlog(printf2log_buf);                                 \
+  } while (0)
 
 #endif /* __PRINTF2LOG_H__ */
