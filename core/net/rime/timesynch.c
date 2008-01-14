@@ -34,7 +34,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: timesynch.c,v 1.1 2008/01/14 14:22:16 adamdunkels Exp $
+ * $Id: timesynch.c,v 1.2 2008/01/14 14:50:01 adamdunkels Exp $
  */
 
 /**
@@ -48,9 +48,6 @@
 #include "net/rime/rimebuf.h"
 #include "net/rime.h"
 #include "dev/simple-cc2420.h"
-
-static const struct mac_driver *mac;
-static void (* receiver_callback)(const struct mac_driver *);
 
 #include <stdio.h>
 
@@ -88,44 +85,28 @@ timesynch_offset(void)
   return offset;
 }
 /*---------------------------------------------------------------------------*/
-static int
-send_packet(void)
-{
-  return mac->send();
-}
-/*---------------------------------------------------------------------------*/
 static void
 adjust_offset(rtimer_clock_t authoritative_time, rtimer_clock_t local_time)
 {
   offset = offset + authoritative_time - local_time;
 }
 /*---------------------------------------------------------------------------*/
-static int
-read_packet(void)
+static void
+incoming_packet(void)
 {
-  int len;
-
-  len = mac->read();
-
-  if(len == 0) {
-    return 0;
-  }
-  
-  /* We check the authority level of the sender of the incoming
-     packet. If the sending node has a lower authority level than we
-     have, we synchronize to the time of the sending node and set our
-     own authority level to be one more than the sending node. */
-  if(simple_cc2420_authority_level_of_sender < authority_level) {
-    
-    adjust_offset(simple_cc2420_time_of_departure,
-		  simple_cc2420_time_of_arrival);
-    if(simple_cc2420_authority_level_of_sender + 1 != authority_level) {
-      authority_level = simple_cc2420_authority_level_of_sender + 1;
+  if(rimebuf_totlen() != 0) {
+    /* We check the authority level of the sender of the incoming
+       packet. If the sending node has a lower authority level than we
+       have, we synchronize to the time of the sending node and set our
+       own authority level to be one more than the sending node. */
+    if(simple_cc2420_authority_level_of_sender < authority_level) {
+      adjust_offset(simple_cc2420_time_of_departure,
+		    simple_cc2420_time_of_arrival);
+      if(simple_cc2420_authority_level_of_sender + 1 != authority_level) {
+	authority_level = simple_cc2420_authority_level_of_sender + 1;
+      }
     }
-
   }
-  
-  return len;
 }
 /*---------------------------------------------------------------------------*/
 #if 0
@@ -137,47 +118,12 @@ periodic_authority_increase(void *ptr)
 }
 #endif
 /*---------------------------------------------------------------------------*/
-static void
-set_receive_function(void (* recv)(const struct mac_driver *))
-{
-  receiver_callback = recv;
-}
+RIME_SNIFFER(sniffer, incoming_packet, NULL);
 /*---------------------------------------------------------------------------*/
-static int
-on(void)
+void
+timesynch_init(void)
 {
-  return mac->on();
-}
-/*---------------------------------------------------------------------------*/
-static int
-off(void)
-{
-  return mac->off();
-}
-/*---------------------------------------------------------------------------*/
-static const struct mac_driver timesynch_driver = {
-  send_packet,
-  read_packet,
-  set_receive_function,
-  on,
-  off,
-};
-/*---------------------------------------------------------------------------*/
-static void
-input_packet(const struct mac_driver *d)
-{
-  if(receiver_callback) {
-    receiver_callback(&timesynch_driver);
-  }
-}
-/*---------------------------------------------------------------------------*/
-const struct mac_driver *
-timesynch_init(const struct mac_driver *d)
-{
-  mac = d;
-  mac->set_receive_function(input_packet);
-  mac->on();
-  return &timesynch_driver;
+  rime_sniffer_add(&sniffer);
 }
 /*---------------------------------------------------------------------------*/
 /** @} */

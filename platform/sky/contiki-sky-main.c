@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#)$Id: contiki-sky-main.c,v 1.22 2008/01/14 14:22:17 adamdunkels Exp $
+ * @(#)$Id: contiki-sky-main.c,v 1.23 2008/01/14 14:50:02 adamdunkels Exp $
  */
 
 #include <signal.h>
@@ -151,7 +151,7 @@ main(int argc, char **argv)
 #endif /* WITH_UIP */
   
 /*   printf("Starting %s " */
-/* 	 "($Id: contiki-sky-main.c,v 1.22 2008/01/14 14:22:17 adamdunkels Exp $)\n", __FILE__); */
+/* 	 "($Id: contiki-sky-main.c,v 1.23 2008/01/14 14:50:02 adamdunkels Exp $)\n", __FILE__); */
   leds_on(LEDS_GREEN);
   ds2411_init();
   sensors_light_init();
@@ -211,9 +211,9 @@ main(int argc, char **argv)
   simple_cc2420_init();
   simple_cc2420_set_chan_pan_addr(RF_CHANNEL, panId, 0 /*XXX*/, ds2411_id);
 /*  rime_init(nullmac_init(&simple_cc2420_driver));*/
-/*  rime_init(xmac_init(&simple_cc2420_driver));*/
-/*  rime_init(timesynch_init(nullmac_init(&simple_cc2420_driver)));*/
-  rime_init(timesynch_init(xmac_init(&simple_cc2420_driver)));
+  rime_init(xmac_init(&simple_cc2420_driver));
+
+  timesynch_init();
 
 
   timesynch_set_authority_level(rimeaddr_node_addr.u8[0]);
