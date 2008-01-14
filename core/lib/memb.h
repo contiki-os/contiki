@@ -30,7 +30,7 @@
  *
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: memb.h,v 1.3 2007/03/25 17:15:43 adamdunkels Exp $
+ * $Id: memb.h,v 1.4 2008/01/14 09:22:50 adamdunkels Exp $
  */
 
 /**
@@ -64,13 +64,7 @@
 #ifndef __MEMB_H__
 #define __MEMB_H__
 
-/*
- * Here we define a C preprocessing macro for concatenating to
- * strings. We need use two macros in order to allow concatenation of
- * two #defined macros.
- */
-#define MEMB_CONCAT2(s1, s2) s1##s2
-#define MEMB_CONCAT(s1, s2) MEMB_CONCAT2(s1, s2)
+#include "sys/cc.h"
 
 /**
  * Declare a memory block.
@@ -94,11 +88,11 @@ MEMB(connections, struct connection, 16);
  *
  */
 #define MEMB(name, structure, num) \
-        static char MEMB_CONCAT(name,_memb_count)[num]; \
-        static structure MEMB_CONCAT(name,_memb_mem)[num]; \
+        static char CC_CONCAT(name,_memb_count)[num]; \
+        static structure CC_CONCAT(name,_memb_mem)[num]; \
         static struct memb_blocks name = {sizeof(structure), num, \
-                                          MEMB_CONCAT(name,_memb_count), \
-                                          (void *)MEMB_CONCAT(name,_memb_mem)}
+                                          CC_CONCAT(name,_memb_count), \
+                                          (void *)CC_CONCAT(name,_memb_mem)}
 
 struct memb_blocks {
   unsigned short size;
