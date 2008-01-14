@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: xmac.c,v 1.12 2007/12/23 14:56:54 oliverschmidt Exp $
+ * $Id: xmac.c,v 1.13 2008/01/14 09:26:42 adamdunkels Exp $
  */
 
 /**
@@ -73,18 +73,20 @@ struct xmac_hdr {
 #ifdef XMAC_CONF_ON_TIME
 #define DEFAULT_ON_TIME (XMAC_CONF_ON_TIME)
 #else
-#define DEFAULT_ON_TIME (RTIMER_ARCH_SECOND / 50)
+#define DEFAULT_ON_TIME (RTIMER_ARCH_SECOND / 100)
 #endif
 
 #ifdef XMAC_CONF_OFF_TIME
 #define DEFAULT_OFF_TIME (XMAC_CONF_OFF_TIME)
 #else
-#define DEFAULT_OFF_TIME ((RTIMER_ARCH_SECOND / 5) - DEFAULT_ON_TIME)
+#define DEFAULT_OFF_TIME ((RTIMER_ARCH_SECOND / 2) - DEFAULT_ON_TIME)
 #endif
 
 #define DEFAULT_STROBE_WAIT_TIME (DEFAULT_ON_TIME) / 2
+
 struct xmac_config xmac_config = {
-  DEFAULT_ON_TIME, DEFAULT_OFF_TIME,
+  DEFAULT_ON_TIME,
+  DEFAULT_OFF_TIME,
   DEFAULT_ON_TIME + DEFAULT_OFF_TIME,
   DEFAULT_STROBE_WAIT_TIME
 };
@@ -99,13 +101,14 @@ static volatile unsigned char should_be_awake = 0;
 static volatile unsigned char someone_is_sending = 0;
 static volatile unsigned char we_are_sending = 0;
 static volatile unsigned char radio_is_on = 0;
-static volatile unsigned char long_off = 0;
 
 static const struct radio_driver *radio;
 
 #undef LEDS_ON
 #undef LEDS_OFF
 #undef LEDS_TOGGLE
+
+
 
 #define BB_SET(x,y)
 #define BB_INC(x,y)
@@ -141,14 +144,11 @@ powercycle(struct rtimer *t, void *ptr)
 {
   int r;
 
+  /*  printf("%d\n", pt.lc);*/
+  
   PT_BEGIN(&pt);
 
   while(1) {
-    if(we_are_sending) {
-      PRINTF("xmac: we are sending 1, stopping timer\n");
-      PT_YIELD(&pt);
-    }
-
     /* Only wait for some cycles to pass for someone to start sending */
     if(someone_is_sending > 0) {
       someone_is_sending--;
@@ -156,11 +156,11 @@ powercycle(struct rtimer *t, void *ptr)
 
     if(xmac_config.off_time > 0) {
       if(should_be_awake == 0) {
-	if(xmac_is_on) {
+	if(xmac_is_on && we_are_sending == 0) {
 	  radio->off();
+	  LEDS_OFF(LEDS_RED);
+	  radio_is_on = 0;
 	}
-	LEDS_OFF(LEDS_RED);
-	radio_is_on = 0;
       } else {
 	should_be_awake++;
 	if(should_be_awake > 2) {
@@ -175,17 +175,12 @@ powercycle(struct rtimer *t, void *ptr)
       PT_YIELD(&pt);
     }
 
-    if(we_are_sending) {
-      PRINTF("xmac: we are sending 1, stopping timer\n");
-      PT_YIELD(&pt);
-    }
-
     if(radio_is_on == 0) {
-      if(xmac_is_on) {
+      if(xmac_is_on && we_are_sending == 0 && should_be_awake == 0) {
 	radio->on();
+	LEDS_ON(LEDS_RED);
+	radio_is_on = 1;
       }
-      LEDS_ON(LEDS_RED);
-      radio_is_on = 1;
     }
     r = rtimer_set(t, RTIMER_TIME(t) + xmac_config.on_time, 1,
 		   (void (*)(struct rtimer *, void *))powercycle, ptr);
@@ -194,31 +189,6 @@ powercycle(struct rtimer *t, void *ptr)
     }
 
     PT_YIELD(&pt);
-
-    if(we_are_sending) {
-      PRINTF("xmac: we are sending 2, stopping timer\n");
-      PT_YIELD(&pt);
-    }
-
-    if(long_off) {
-
-      if(xmac_config.off_time > 0) {
-	/* XXX should wait for a complete packet that is not destined to
-	   us to swisch past us. */
-	if(xmac_is_on) {
-	  radio->off();
-	}
-	LEDS_OFF(LEDS_RED);
-	radio_is_on = 0;
-	if(rtimer_set(t, RTIMER_TIME(t) + xmac_config.off_time, 1,
-		      (void (*)(struct rtimer *, void *))powercycle, ptr)) {
-	  PRINTF("xmac: could not set long off rtimer\n");
-	}
-      }
-      long_off = 0;
-      someone_is_sending = 0;
-    }
-
   }
 
   PT_END(&pt);
@@ -256,9 +226,6 @@ send_packet(void)
   rimeaddr_copy(&hdr->receiver, &uc_receiver);
 #endif
   rimebuf_compact();
-
-  /*  should_be_awake = 1;
-      while(!radio_is_on) {}*/
 
   t0 = RTIMER_NOW();
   strobes = 0;
@@ -302,7 +269,6 @@ send_packet(void)
 		msg.sender.u8[0],msg.sender.u8[1],
 		msg.receiver.u8[0],msg.receiver.u8[1],
 		rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1]);
-/* 	if(rimeaddr_cmp(&msg.receiver, &rimeaddr_node_addr)) { */
 	if(rimeaddr_cmp(&msg.sender, &rimeaddr_node_addr) &&
 	   rimeaddr_cmp(&msg.receiver, &rimeaddr_node_addr)) {
 
@@ -310,14 +276,6 @@ send_packet(void)
 	     the packet. */
 	  got_ack = 1;
 	  break;
-
-/* 	} else if(rimeaddr_cmp(&msg.sender, &hdr->receiver)) { */
-/* 	  /\* We did not get an ACK from the receiver, but the receiver */
-/* 	     is active so we can send the packet after a short random */
-/* 	     duration. *\/ */
-/* 	  clock_delay(random_rand() & 0x1ff); */
-/* 	  got_ack = 1; */
-/* 	  break; */
 
 	} else {
 	  /*	  RIMESTATS_ADD(sendingdrop);*/
@@ -349,12 +307,6 @@ send_packet(void)
 
   we_are_sending = 0;
   LEDS_OFF(LEDS_GREEN);
-  PT_INIT(&pt);
-  if((len = rtimer_set(&rt, RTIMER_NOW() + xmac_config.on_time, 1,
-		(void (*)(struct rtimer *, void *))powercycle, NULL)) != 0) {
-    PRINTF("xmac: could not set rtimer after send (%d)\n", len);
-  }
-/*   we_are_sending = 0; */
   return 1;
 
 }
@@ -413,6 +365,8 @@ read_packet(void)
     rimebuf_hdrreduce(sizeof(struct xmac_hdr));
     if(rimeaddr_cmp(&hdr->receiver, &rimeaddr_node_addr)) {
       should_be_awake = 1;
+      radio->on();
+      radio_is_on = 1;
       PRINTF("xmac: for us\n");
 
       /* Only send strobe ack if the packet itself is not a strobe ack
@@ -423,7 +377,7 @@ read_packet(void)
 	PRINTF("xmac: got sender %d.%d receiver %d.%d\n",
 	       hdr->sender.u8[0],hdr->sender.u8[1],
 	       hdr->receiver.u8[0],hdr->receiver.u8[1]);
-	while(!radio_is_on) {}
+	/*	while(!radio_is_on) { printf(".");}*/
 
 	{
 	  struct xmac_hdr msg;
@@ -446,14 +400,15 @@ read_packet(void)
     } else {
       /* Go back to sleep. XXX should not turn on the radio again
 	 until this packet has passed.  */
+      radio->off();
+      radio_is_on = 0;
       should_be_awake = 0;
-      long_off = 1;
+      /*      long_off = 1;*/
       /* XXX set timer to turn someone_is_sending off again and send queued packet. */
       /*      PRINTF("xmac: not for us\n");*/
     }
 
     if(rimebuf_totlen() > 0) {
-
       /* We have received the final packet, so we can go back to being
 	 asleep. */
       someone_is_sending = 0;
