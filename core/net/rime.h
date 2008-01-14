@@ -33,7 +33,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: rime.h,v 1.13 2008/01/08 07:52:31 adamdunkels Exp $
+ * $Id: rime.h,v 1.14 2008/01/14 09:35:53 adamdunkels Exp $
  */
 
 /**
@@ -52,6 +52,7 @@
 #include "net/rime/rimebuf.h"
 #include "net/rime/queuebuf.h"
 #include "net/rime/ruc.h"
+#include "net/rime/rucb.h"
 #include "net/rime/sibc.h"
 #include "net/rime/mh.h"
 #include "net/rime/rmh.h"
@@ -105,9 +106,19 @@ void rime_driver_send(void);
 void rime_set_output(void (*output_function)(void));
 void rime_output(void);
 
-void rime_set_sniffer(void (*sniffer_callback)(void));
-
 extern const struct mac_driver *rime_mac;
+
+struct rime_sniffer {
+  struct rime_sniffer *next;
+  void (* input_callback)(void);
+  void (* output_callback)(void);
+};
+
+#define RIME_SNIFFER(name, input_callback, output_callback) \
+static struct rime_sniffer name = { NULL, input_callback, output_callback }
+
+void rime_sniffer_add(struct rime_sniffer *s);
+void rime_sniffer_remove(struct rime_sniffer *s);
 
 #endif /* __RIME_H__ */
 
