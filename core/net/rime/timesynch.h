@@ -55,7 +55,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: timesynch.h,v 1.1 2008/01/14 14:22:16 adamdunkels Exp $
+ * $Id: timesynch.h,v 1.2 2008/01/14 14:50:02 adamdunkels Exp $
  */
 
 /**
@@ -72,16 +72,13 @@
 #include "sys/rtimer.h"
 
 /**
- * \brief      Initialize the timesynch module; should be called during the MAC initialization procedure
- * \param r    The underlying MAC driver
- * \return     A pointer to the timesynch module's meta MAC driver
+ * \brief      Initialize the timesynch module
  *
- *             This function initializes the timesynch module. The
- *             function should be called as part of the MAC
- *             initialization procedure.
+ *             This function initializes the timesynch module. This
+ *             function must not be called before rime_init().
  *
  */
-const struct mac_driver *timesynch_init(const struct mac_driver *r);
+void timesynch_init(void);
 
 /**
  * \brief      Get the current time-synchronized time
