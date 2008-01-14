@@ -33,7 +33,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: rime.c,v 1.14 2008/01/08 07:53:02 adamdunkels Exp $
+ * $Id: rime.c,v 1.15 2008/01/14 09:42:00 adamdunkels Exp $
  */
 
 /**
@@ -48,25 +48,36 @@
 #include "net/rime/route.h"
 #include "net/mac/mac.h"
 
+#include "lib/list.h"
+
 const struct mac_driver *rime_mac;
 
-static void (*sniffer_callback)(void);
+LIST(sniffers);
 
 /*---------------------------------------------------------------------------*/
 void
-rime_set_sniffer(void (* sniffer)(void))
+rime_sniffer_add(struct rime_sniffer *s)
 {
-  sniffer_callback = sniffer;
+  list_add(sniffers, s);
+}
+/*---------------------------------------------------------------------------*/
+void
+rime_sniffer_remove(struct rime_sniffer *s)
+{
+  list_remove(sniffers, s);
 }
 /*---------------------------------------------------------------------------*/
 static void
 input(const struct mac_driver *r)
 {
   int len;
+  struct rime_sniffer *s;
   len = rime_mac->read();
   if(len > 0) {
-    if(sniffer_callback != NULL) {
-      sniffer_callback();
+    for(s = list_head(sniffers); s != NULL; s = s->next) {
+      if(s->input_callback != NULL) {
+	s->input_callback();
+      }
     }
     RIMESTATS_ADD(rx);
     abc_input_packet();
@@ -87,8 +98,17 @@ rime_init(const struct mac_driver *m)
 void
 rime_output(void)
 {
+  struct rime_sniffer *s;
+    
   RIMESTATS_ADD(tx);
   rimebuf_compact();
+
+  for(s = list_head(sniffers); s != NULL; s = s->next) {
+    if(s->output_callback != NULL) {
+      s->output_callback();
+    }
+  }
+  
   if(rime_mac) {
     rime_mac->send();
   }
