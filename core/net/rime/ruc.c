@@ -34,7 +34,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: ruc.c,v 1.16 2008/01/08 07:58:49 adamdunkels Exp $
+ * $Id: ruc.c,v 1.17 2008/01/14 09:34:33 adamdunkels Exp $
  */
 
 /**
@@ -158,18 +158,10 @@ recv_from_suc(struct suc_conn *suc, rimeaddr_t *from)
 
     queuebuf_to_rimebuf(q);
     queuebuf_free(q);
-      
+
     if(c->u->recv != NULL) {
       c->u->recv(c, from, packet_seqno);
-      /*      send_ack = c->u->recv(c, from, packet_seqno);*/
     }
-    
-    /*    if(send_ack) {*/
-      /*    } else {
-      RIMESTATS_ADD(noacktx);
-      PRINTF("%d.%d: Not sending ACK\n",
-	     rimeaddr_node_addr.u8[0],rimeaddr_node_addr.u8[1]);
-	     }*/
   }
 }
 /*---------------------------------------------------------------------------*/
