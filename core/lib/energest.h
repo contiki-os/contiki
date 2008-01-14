@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: energest.h,v 1.7 2007/11/17 21:24:50 oliverschmidt Exp $
+ * $Id: energest.h,v 1.8 2008/01/14 16:18:39 thiemovoigt Exp $
  */
 
 /**
@@ -67,6 +67,9 @@ enum energest_type {
 
 void energest_init(void);
 unsigned long energest_type_time(int type);
+#ifdef ENERGEST_CONF_LEVELDEVICE_LEVELS
+unsigned long energest_leveldevice_leveltime(int powerlevel);
+#endif
 void energest_type_set(int type, unsigned long value);
 
 #if ENERGEST_CONF_ON
@@ -74,17 +77,30 @@ void energest_type_set(int type, unsigned long value);
 extern energest_t energest_total_time[ENERGEST_TYPE_MAX];
 extern unsigned short energest_current_time[ENERGEST_TYPE_MAX];
 
+#ifdef ENERGEST_CONF_LEVELDEVICE_LEVELS
+extern energest_t energest_leveldevice_current_leveltime[ENERGEST_CONF_LEVELDEVICE_LEVELS];
+#endif
+
 #define ENERGEST_ON(type)  do { \
                            /*++energest_total_count;*/ \
                            energest_current_time[type] = RTIMER_NOW(); \
                            } while(0)
+
 #define ENERGEST_OFF(type) do { \
                            energest_total_time[type].current += (unsigned long)((signed short)RTIMER_NOW() - \
                            (signed short)energest_current_time[type]); \
-                           } while(0)
+                           } while(0) 
+
+#define ENERGEST_OFF_LEVEL(type,level) do { \
+                                        energest_leveldevice_current_leveltime[level].current += (unsigned long)((signed short)RTIMER_NOW() - \
+			                (signed short)energest_current_time[type]); \
+                                        } while(0) 
+
+
 #else /* ENERGEST_CONF_ON */
 #define ENERGEST_ON(type) do { } while(0)
 #define ENERGEST_OFF(type) do { } while(0)
+#define ENERGEST_OFF_LEVEL(type,level) do { } while(0)
 #endif /* ENERGEST_CONF_ON */
 
 unsigned long energest_arch_current_estimate(void);

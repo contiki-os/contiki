@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: energest.c,v 1.5 2007/11/12 22:27:21 adamdunkels Exp $
+ * $Id: energest.c,v 1.6 2008/01/14 16:18:39 thiemovoigt Exp $
  */
 
 /**
@@ -46,6 +46,9 @@
 int energest_total_count;
 energest_t energest_total_time[ENERGEST_TYPE_MAX];
 unsigned short energest_current_time[ENERGEST_TYPE_MAX];
+#ifdef ENERGEST_CONF_LEVELDEVICE_LEVELS
+energest_t energest_leveldevice_current_leveltime[ENERGEST_CONF_LEVELDEVICE_LEVELS];
+#endif
 
 /*---------------------------------------------------------------------------*/
 void
@@ -55,12 +58,27 @@ energest_init(void)
   for(i = 0; i < ENERGEST_TYPE_MAX; ++i) {
     energest_total_time[i].current = energest_current_time[i] = 0;
   }
+#ifdef ENERGEST_CONF_LEVELDEVICE_LEVELS 
+  for(i = 0; i < ENERGEST_CONF_LEVELDEVICE_LEVELS; ++i) {
+    energest_leveldevice_current_leveltime[i].current = 0;
+  }
+#endif
 }
 /*---------------------------------------------------------------------------*/
 unsigned long
 energest_type_time(int type)
 {
   return energest_total_time[type].current;
+}
+/*---------------------------------------------------------------------------*/
+unsigned long
+energest_leveldevice_leveltime(int powerlevel)
+{
+#ifdef ENERGEST_CONF_LEVELDEVICE_LEVELS
+  return energest_leveldevice_current_leveltime[powerlevel].current;
+#else
+  return 0;
+#endif
 }
 /*---------------------------------------------------------------------------*/
 void
