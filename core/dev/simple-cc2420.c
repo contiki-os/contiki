@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: simple-cc2420.c,v 1.18 2008/01/07 14:08:02 adamdunkels Exp $
+ * @(#)$Id: simple-cc2420.c,v 1.19 2008/01/14 14:22:17 adamdunkels Exp $
  */
 /*
  * This code is almost device independent and should be easy to port.
@@ -56,7 +56,7 @@
 #define CRC_LEN 2
 
 #if SIMPLE_CC2420_CONF_TIMESTAMPS
-#include "sys/timesynch.h"
+#include "net/rime/timesynch.h"
 #define TIMESTAMP_LEN 3
 #else /* SIMPLE_CC2420_CONF_TIMESTAMPS */
 #define TIMESTAMP_LEN 0

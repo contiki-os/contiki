@@ -52,8 +52,7 @@ endif
 include $(CONTIKI)/core/net/mac/Makefile.mac
 SYSTEM  = process.c procinit.c autostart.c elfloader.c profile.c profile-aggregates.c
 THREADS = mt.c
-LIBS    = memb.c timer.c list.c etimer.c energest.c rtimer.c print-stats.c \
-          timesynch.c
+LIBS    = memb.c timer.c list.c etimer.c energest.c rtimer.c print-stats.c
 UIP     = uip.c uiplib.c resolv.c tcpip.c psock.c hc.c uip-split.c uip-fw.c \
           uip-fw-drv.c uip_arp.c tcpdump.c uip-neighbor.c uip-udp-packet.c \
           uip-over-mesh.c #rawpacket-udp.c
