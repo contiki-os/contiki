@@ -33,7 +33,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: neighbor-discovery.c,v 1.2 2008/01/08 08:27:25 adamdunkels Exp $
+ * $Id: neighbor-discovery.c,v 1.3 2008/01/14 09:34:00 adamdunkels Exp $
  */
 
 /**
@@ -71,7 +71,7 @@ struct adv_msg {
 
 #define MAX_HOPLIM 10
 
-#define MAX_INTERVAL CLOCK_SECOND * 20
+#define MAX_INTERVAL CLOCK_SECOND * 30
 #define MIN_INTERVAL CLOCK_SECOND * 10
 #define NEW_VAL_INTERVAL CLOCK_SECOND * 2
 
@@ -93,7 +93,8 @@ send_adv(struct neighbor_discovery_conn *c, clock_time_t interval)
   rimebuf_set_datalen(sizeof(struct adv_msg));
   hdr = rimebuf_dataptr();
   hdr->val = c->val;
-  ibc_send(&c->c);
+  /*  ibc_send(&c->c);*/
+  ipolite_send(&c->c, interval, sizeof(struct adv_msg));
   if(c->u->sent) {
     c->u->sent(c);
   }
@@ -103,7 +104,8 @@ send_adv(struct neighbor_discovery_conn *c, clock_time_t interval)
 }
 /*---------------------------------------------------------------------------*/
 static void
-adv_packet_received(struct ibc_conn *ibc, rimeaddr_t *from)
+/*adv_packet_received(struct ibc_conn *ibc, rimeaddr_t *from)*/
+adv_packet_received(struct ipolite_conn *ibc, rimeaddr_t *from)
 {
   struct neighbor_discovery_conn *c = (struct neighbor_discovery_conn *)ibc;
   struct adv_msg *msg = rimebuf_dataptr();
@@ -123,39 +125,49 @@ send_timer(void *ptr)
 {
   struct neighbor_discovery_conn *tc = ptr;
   
-  send_adv(tc, MAX_INTERVAL / 2);
-  ctimer_set(&tc->t,
+  send_adv(tc, MAX_INTERVAL);
+  /*  ctimer_set(&tc->t,
 	     MIN_INTERVAL + random_rand() % (MAX_INTERVAL - MIN_INTERVAL),
+	     send_timer, tc);*/
+  ctimer_set(&tc->t,
+	     MAX_INTERVAL,
 	     send_timer, tc);
 }
 /*---------------------------------------------------------------------------*/
-static const struct ibc_callbacks ibc_callbacks =
+/*static const struct ibc_callbacks ibc_callbacks =
+  {adv_packet_received};*/
+static const struct ipolite_callbacks ipolite_callbacks =
   {adv_packet_received};
 /*---------------------------------------------------------------------------*/
 void
 neighbor_discovery_open(struct neighbor_discovery_conn *c, uint16_t channel,
 	 const struct neighbor_discovery_callbacks *cb)
 {
-  ibc_open(&c->c, channel, &ibc_callbacks);
+  /*  ibc_open(&c->c, channel, &ibc_callbacks);*/
+  ipolite_open(&c->c, channel, &ipolite_callbacks);
   c->u = cb;
 }
 /*---------------------------------------------------------------------------*/
 void
 neighbor_discovery_close(struct neighbor_discovery_conn *c)
 {
-  ibc_close(&c->c);
+  /*  ibc_close(&c->c);*/
   ctimer_stop(&c->t);
+  ipolite_close(&c->c);
 }
 /*---------------------------------------------------------------------------*/
 void
 neighbor_discovery_start(struct neighbor_discovery_conn *c, uint16_t val)
 {
   if(val < c->val) {
-    ctimer_set(&c->t, random_rand() % NEW_VAL_INTERVAL, send_timer, c);
+    c->val = val;
+    send_adv(c, NEW_VAL_INTERVAL);
+    ctimer_set(&c->t, NEW_VAL_INTERVAL, send_timer, c);
   } else {
-    ctimer_set(&c->t, random_rand() % MIN_INTERVAL, send_timer, c);
+    c->val = val;
+    send_adv(c, MIN_INTERVAL);
+    ctimer_set(&c->t, MIN_INTERVAL, send_timer, c);
   }
-  c->val = val;
 }
 /*---------------------------------------------------------------------------*/
 /** @} */
