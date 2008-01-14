@@ -30,7 +30,7 @@
  *
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: contiki-main.c,v 1.25 2008/01/04 23:09:03 oliverschmidt Exp $
+ * $Id: contiki-main.c,v 1.26 2008/01/14 09:38:16 adamdunkels Exp $
  */
 
 #include "contiki.h"
@@ -63,6 +63,12 @@
 #include "dev/vib-sensor.h"
 #include "dev/radio-sensor.h"
 #include "dev/leds.h"
+
+#ifdef __CYGWIN__
+__attribute__((dllimport)) extern int __argc;
+__attribute__((dllimport)) extern char **__argv[];
+#endif /* __CYGWIN__ */
+
 
 #ifdef __CYGWIN__
 static struct uip_fw_netif extif =
@@ -111,8 +117,10 @@ contiki_main(int flag)
 
   procinit_init();
 
-  uip_init();
+  serial_init();
   
+  uip_init();
+ 
   ctimer_init();
   rime_init(nullmac_init(&ethernode_driver));
 
@@ -120,17 +128,19 @@ contiki_main(int flag)
   
   if(flag == 1) {
 #ifdef __CYGWIN__
-    process_start(&wpcap_process, NULL);
-    {
-      char buf[1024];
-
-      snprintf(buf, sizeof(buf), "route add %d.%d.%d.%d mask %d.%d.%d.%d %d.%d.%d.%d",
-	                         uip_ipaddr_to_quad(&meshif.ipaddr),
-				 uip_ipaddr_to_quad(&meshif.netmask),
-				 uip_ipaddr_to_quad(&uip_hostaddr));
-      printf("%s\n", buf);
-      system(buf);
-      signal(SIGTERM, remove_route);
+    if(__argc > 2 && (*__argv)[1][0] != '-') {
+      process_start(&wpcap_process, NULL);
+      {
+	char buf[1024];
+	
+	snprintf(buf, sizeof(buf), "route add %d.%d.%d.%d mask %d.%d.%d.%d %d.%d.%d.%d",
+		 uip_ipaddr_to_quad(&meshif.ipaddr),
+		 uip_ipaddr_to_quad(&meshif.netmask),
+		 uip_ipaddr_to_quad(&uip_hostaddr));
+	printf("%s\n", buf);
+	system(buf);
+	signal(SIGTERM, remove_route);
+      }
     }
 #else /* __CYGWIN__ */
     process_start(&tapdev_process, NULL);
