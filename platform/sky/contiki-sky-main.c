@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#)$Id: contiki-sky-main.c,v 1.21 2008/01/08 08:21:03 adamdunkels Exp $
+ * @(#)$Id: contiki-sky-main.c,v 1.22 2008/01/14 14:22:17 adamdunkels Exp $
  */
 
 #include <signal.h>
@@ -52,7 +52,7 @@
 #include "net/mac/xmac.h"
 #include "net/mac/nullmac.h"
 
-#include "sys/timesynch.h"
+#include "net/rime/timesynch.h"
 
 #include "node-id.h"
 
@@ -151,7 +151,7 @@ main(int argc, char **argv)
 #endif /* WITH_UIP */
   
 /*   printf("Starting %s " */
-/* 	 "($Id: contiki-sky-main.c,v 1.21 2008/01/08 08:21:03 adamdunkels Exp $)\n", __FILE__); */
+/* 	 "($Id: contiki-sky-main.c,v 1.22 2008/01/14 14:22:17 adamdunkels Exp $)\n", __FILE__); */
   leds_on(LEDS_GREEN);
   ds2411_init();
   sensors_light_init();
