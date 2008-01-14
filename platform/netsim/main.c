@@ -30,7 +30,7 @@
  *
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: main.c,v 1.10 2008/01/04 23:28:33 oliverschmidt Exp $
+ * $Id: main.c,v 1.11 2008/01/14 09:38:16 adamdunkels Exp $
  */
 
 /**
@@ -123,6 +123,10 @@ start_node(int x, int y, int b)
 
     /* This is the sensor process. */
     main_process = 0;
+
+    /* Make standard output unbuffered. */
+    setvbuf(stdout, (char *)NULL, _IONBF, 0);
+  
     
     srand(getpid());
 
@@ -137,6 +141,11 @@ start_node(int x, int y, int b)
     
     /* NOTREACHED */
   }
+
+  if(b) {
+    nodes_base_node_port = port;
+  }
+  
   /*  printf("Adding sensor %d at (%d,%d)\n", pid, x, y);*/
   main_process = 1;
   nodes_add(pid, x, y, port, port - NODES_PORTBASE + 2);
@@ -162,13 +171,15 @@ int
 main(int argc, char **argv)
 {
 #ifdef __CYGWIN__
-  if(argc < 3 || inet_addr(argv[1]) == INADDR_NONE ||
-		 inet_addr(argv[2]) == INADDR_NONE) {
-    printf("usage: <program> <ip addr of ethernet card to share> "
-			    "<ip addr of netsim gateway>\n");
+  if(argc == 3 &&
+     inet_addr(argv[1]) == INADDR_NONE &&
+     inet_addr(argv[2]) == INADDR_NONE) {
+    printf("usage: %s <ip addr of ethernet card to share> "
+	   "<ip addr of netsim gateway>\n", argv[0]);
     exit(1);
+  } else if(argc == 2) {
+    gwaddr = inet_addr(argv[2]);
   }
-  gwaddr = inet_addr(argv[2]);
 #endif /* __CYGWIN__ */
 
   /*  system("ifconfig tap0 inet 192.168.250.1");*/
@@ -194,7 +205,9 @@ main(int argc, char **argv)
 #endif /* 0 */
 
 #ifdef __CYGWIN__
-  if(argc > 3 && strcmp(argv[3], "-q") == 0) {
+  if(argc > 1 && (strcmp(argv[1], "-q") ||
+		  strcmp(argv[2], "-q") ||
+		  strcmp(argv[3], "-q")) == 0) {
 #else /* __CYGWIN__ */
   if(argc > 1 && strcmp(argv[1], "-q") == 0) {
 #endif /* __CYGWIN__ */

@@ -30,7 +30,7 @@
  *
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: nodes.c,v 1.5 2007/11/17 18:09:18 adamdunkels Exp $
+ * $Id: nodes.c,v 1.6 2008/01/14 09:38:16 adamdunkels Exp $
  */
 #include <signal.h>
 #include <stdio.h>
@@ -44,6 +44,7 @@ static int numnodes;
 
 static struct nodes_node nodes[2000];
 
+int nodes_base_node_port = 0;
 /*---------------------------------------------------------------------------*/
 void
 nodes_init(void)

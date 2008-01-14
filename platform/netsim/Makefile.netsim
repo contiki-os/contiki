@@ -8,8 +8,8 @@ SENSORS = sensors.c beep.c button-sensor.c pir-sensor.c vib-sensor.c \
 	  radio-sensor.c irq.c eeprom.c \
 	  dummy-sensors.c leds.c leds-arch.c esb-sensors.c
 NETSIM = cfs-ram.c ether.c ethernode.c ethernode-uip.c lpm.c rs232.c flash.c \
-	 node.c nodes.c sensor.c display.c random.c radio.c \
-	 dlloader.c main.c netsim-init.c contiki-main.c symtab.c symbols.c tr1001.c tr1001-drv.c 
+	 node.c nodes.c sensor.c display.c random.c radio.c serial.c \
+	 dlloader.c main.c netsim-init.c contiki-main.c symtab.c symbols.c tr1001.c tr1001-drv.c
 
 ifeq ($(OS),Windows_NT)
 CONTIKI_TARGET_SOURCEFILES = $(NETSIM) $(SENSORS) wpcap-drv.c wpcap.c

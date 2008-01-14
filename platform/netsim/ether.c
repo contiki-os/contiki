@@ -30,7 +30,7 @@
  *
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: ether.c,v 1.10 2007/11/17 18:09:18 adamdunkels Exp $
+ * $Id: ether.c,v 1.11 2008/01/14 09:38:16 adamdunkels Exp $
  */
 /**
  * \file
@@ -61,6 +61,8 @@
 
 #include "dev/radio-sensor.h"
 
+#include "dev/serial.h"
+
 #include "sensor.h"
 
 #include "node.h"
@@ -90,6 +92,9 @@ static int s, sc;
 #define PTYPE_LEDS   4
 #define PTYPE_TEXT   5
 #define PTYPE_DONE   6
+#define PTYPE_SERIAL 7
+
+#define SERIAL_LEN 80
 
 struct ether_hdr {
   int type;
@@ -101,7 +106,7 @@ struct ether_hdr {
   int srcid;
   int srcnodetype;
   int leds;
-  char text[NODES_TEXTLEN];
+  char text[NODES_TEXTLEN + SERIAL_LEN];
 };
 
 static int strength;
@@ -211,7 +216,7 @@ ether_client_init(int port)
 
   sa.sin_port = htons(port);
 
-  /*    printf("ether_client_init: binding id %d to port %d\n", id, PORTBASE + id);*/
+  /*  printf("ether_client_init: binding to port %d\n", port);*/
   if(bind(sc, (struct sockaddr *)&sa, sizeof(sa)) < 0) {
     printf("Bind to port %d\n", port);
     perror("bind");
@@ -224,6 +229,7 @@ ether_client_poll(void)
 {
   fd_set fdset;
   struct timeval tv;
+  int ret;
 
   FD_ZERO(&fdset);
   FD_SET(sc, &fdset);
@@ -231,7 +237,12 @@ ether_client_poll(void)
   tv.tv_sec = 0;
   tv.tv_usec = 10000;
   
-  return select(sc + 1, &fdset, NULL, NULL, &tv);
+  ret = select(sc + 1, &fdset, NULL, NULL, &tv);
+
+  if(ret < 0) {
+    perror("ether_client_poll: select");
+  }
+  return ret == 1;
 }
 /*-----------------------------------------------------------------------------------*/
 u16_t
@@ -248,15 +259,16 @@ ether_client_read(u8_t *buf, int bufsize)
   tv.tv_sec = 0;
   tv.tv_usec = 10000;
 
-  
   ret = select(sc + 1, &fdset, NULL, NULL, &tv);
+  
   if(ret == 0) {
+    /*    printf("ret 0\n");*/
     return 0;
   }
   if(FD_ISSET(sc, &fdset)) {
     ret = recv(sc, &rxbuffer[0], sizeof(rxbuffer), 0);
     if(ret == -1) {
-      perror("ether_client_poll: read");
+      perror("ether_client_poll: recv");
       return 0;
     }
     len = ret;
@@ -266,6 +278,8 @@ ether_client_read(u8_t *buf, int bufsize)
 	     len, bufsize);
       len = bufsize;
     }
+
+    /*    printf("Incoming len %d\n", len);*/
     memcpy(buf, &rxbuffer[sizeof(struct ether_hdr)], len);
     radio_sensor_signal = hdr->signal;
 
@@ -280,6 +294,12 @@ ether_client_read(u8_t *buf, int bufsize)
       /*      printf("Dist %d \n", strength);*/
       if(strength > 0) {
 	sensor_input(&hdr->sensor_data, strength);
+      }
+    } else if(hdr->type == PTYPE_SERIAL) {
+      char *ptr = hdr->text;
+      /*      printf("serial input %s\n", ptr);*/
+      for(ptr = hdr->text; *ptr != 0; ++ptr) {
+	serial_input_byte(*ptr);
       }
     }
   }
@@ -330,6 +350,8 @@ ether_server_poll(void)
 	break;
       case PTYPE_DONE:
 	nodes_done(hdr->srcid);
+	break;
+      case PTYPE_SERIAL:
 	break;
       }
     }
@@ -597,5 +619,28 @@ ether_send_done(void)
 
   node_send_packet((char *)&hdr, sizeof(struct ether_hdr));
 
+}
+/*-----------------------------------------------------------------------------------*/
+void
+ether_send_serial(char *str)
+{
+  struct ether_hdr hdr;
+  int len;
+
+  
+  hdr.srcx = node.x;
+  hdr.srcy = node.y;
+  hdr.type = PTYPE_SERIAL;
+  hdr.srcid = node.id;
+  len = strlen(str) + 1;
+  if(len > sizeof(hdr.text)) {
+    len = sizeof(hdr.text);
+  }
+  memcpy(&hdr.text, str, len);
+  hdr.text[len] = 0;
+
+  /*  printf("ether_send_serial '%s' to %d len %d\n", str, nodes_base_node_port, sizeof(struct ether_hdr));*/
+  
+  send_packet((char *)&hdr, sizeof(struct ether_hdr), nodes_base_node_port);
 }
 /*-----------------------------------------------------------------------------------*/

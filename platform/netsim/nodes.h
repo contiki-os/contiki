@@ -30,7 +30,7 @@
  *
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: nodes.h,v 1.3 2006/10/23 09:01:06 adamdunkels Exp $
+ * $Id: nodes.h,v 1.4 2008/01/14 09:38:16 adamdunkels Exp $
  */
 #ifndef __NODES_H__
 #define __NODES_H__
@@ -62,5 +62,7 @@ struct nodes_node {
 };
 
 #define NODES_PORTBASE 5000
+
+extern int nodes_base_node_port;
 
 #endif /* __NODES_H__ */

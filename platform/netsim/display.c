@@ -24,7 +24,7 @@
  * IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY
  * OF SUCH DAMAGE.
  *
- * $Id: display.c,v 1.6 2007/11/17 18:09:18 adamdunkels Exp $
+ * $Id: display.c,v 1.7 2008/01/14 09:38:16 adamdunkels Exp $
  *
  * Author: Adam Dunkels <adam@sics.se>
  *
@@ -43,6 +43,7 @@
 
 #include <stdlib.h>
 #include <stdio.h>
+#include <unistd.h>
 
 static GdkPixmap *pixmap = NULL;
 static GtkWidget *drawing_area;
@@ -486,6 +487,17 @@ get_color(unsigned short r, unsigned short g, unsigned short b)
 				GDK_GC_FOREGROUND);
 }
 /*-----------------------------------------------------------------------------------*/
+static void
+stdin_callback(gpointer data, gint source, GdkInputCondition condition)
+{
+  char buf[1000];
+  int len;
+  
+  len = read(STDIN_FILENO, &buf, sizeof(buf));
+  buf[len] = 0;
+  ether_send_serial(buf);
+}
+/*-----------------------------------------------------------------------------------*/
 void
 display_init(void (* idlefunc)(void), int time, int with_gui)
 {
@@ -624,6 +636,8 @@ display_init(void (* idlefunc)(void), int time, int with_gui)
     black = get_color(0, 0, 0);
     white = get_color(0xffff, 0xffff, 0xffff);
   }
+
+  gdk_input_add(STDIN_FILENO, GDK_INPUT_READ, stdin_callback, NULL);
 }
 /*-----------------------------------------------------------------------------------*/
 void
