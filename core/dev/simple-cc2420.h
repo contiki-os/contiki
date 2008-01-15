@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: simple-cc2420.h,v 1.7 2008/01/07 14:41:34 adamdunkels Exp $
+ * $Id: simple-cc2420.h,v 1.8 2008/01/15 08:53:52 nvt-se Exp $
  */
 
 /**
@@ -66,6 +66,7 @@ extern const struct radio_driver simple_cc2420_driver;
  * \param power Between 1 and 31.
  */
 void simple_cc2420_set_txpower(u8_t power);
+int simple_cc2420_get_txpower(void);
 #define SIMPLE_CC2420_TXPOWER_MAX  31
 #define SIMPLE_CC2420_TXPOWER_MIN   0
 
