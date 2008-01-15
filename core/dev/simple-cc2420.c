@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: simple-cc2420.c,v 1.22 2008/01/15 08:52:16 nvt-se Exp $
+ * @(#)$Id: simple-cc2420.c,v 1.23 2008/01/15 08:53:52 nvt-se Exp $
  */
 /*
  * This code is almost device independent and should be easy to port.
@@ -600,7 +600,7 @@ simple_cc2420_set_txpower(u8_t power)
 }
 /*---------------------------------------------------------------------------*/
 int
-simple_cc2420_get_txpower()
+simple_cc2420_get_txpower(void)
 {
   return (int)(getreg(CC2420_TXCTRL) & 0x001f);
 }
