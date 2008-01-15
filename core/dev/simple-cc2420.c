@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: simple-cc2420.c,v 1.21 2008/01/15 08:33:02 nvt-se Exp $
+ * @(#)$Id: simple-cc2420.c,v 1.22 2008/01/15 08:52:16 nvt-se Exp $
  */
 /*
  * This code is almost device independent and should be easy to port.
@@ -327,10 +327,6 @@ simple_cc2420_send(const void *payload, unsigned short payload_len)
 
       ENERGEST_OFF(ENERGEST_TYPE_LISTEN);
       ENERGEST_ON(ENERGEST_TYPE_TRANSMIT);
-      /* add time for power level also */
-#ifdef ENERGEST_CONF_LEVELDEVICE_LEVELS 
-      ENERGEST_ON_LEVEL(ENERGEST_TYPE_TRANSMIT,simple_cc2420_get_txpower());
-#endif
       do {
 	spiStatusByte = status();
       } while(spiStatusByte & BV(CC2420_TX_ACTIVE));
