@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: profile.c,v 1.3 2007/11/18 19:16:49 oliverschmidt Exp $
+ * $Id: profile.c,v 1.4 2008/01/17 12:19:26 adamdunkels Exp $
  */
 
 /**
@@ -39,144 +39,159 @@
  */
 
 #include "sys/profile.h"
+#include "sys/clock.h"
 
-#include <stddef.h> /* For NULL */
+#include <stdio.h>
 
-unsigned int profile_timestamp_ptr;
-struct profile_timestamp profile_timestamps[PROFILE_LIST_LENGTH];
-rtimer_clock_t profile_timestamp_time;
+/* XXX: the profiling code is under development and may not work at
+   present. */
 
-int profile_invalid_episode_overflow, profile_invalid_episode_toolong;
 
-int profile_max_queuelen = 0;
+TIMETABLE_NONSTATIC(profile_timetable);
+
+TIMETABLE_NONSTATIC(profile_begin_timetable);
+TIMETABLE_NONSTATIC(profile_end_timetable);
+TIMETABLE_AGGREGATE(profile_aggregate, PROFILE_AGGREGATE_SIZE);
 
 static rtimer_clock_t episode_start_time;
+static unsigned int invalid_episode_overflow, invalid_episode_toolong,
+  max_queuelen;
 
 /* The number of fine grained ticks per coarse grained ticks. We
    currently (MSP430) have 2457600 ticks per second for the fine
    grained timer, and 32678 / 8 ticks per second for the coarse. */
-#define FINE_TICKS_PER_COARSE_TICK (2457600/(32678/8))
+#define XXX_HACK_FINE_TICKS_PER_COARSE_TICK (2457600/(32678/8))
 
-/* XXX hack: we use a function called clock_counter() that is not part
-   of the clock API and currently is only implemented for the
-   MSP430. We therefore declare this function here instead of in
-   dev/clock.h. */
-rtimer_clock_t clock_counter(void);
-
-/*---------------------------------------------------------------------------*/
-rtimer_clock_t
-profile_timediff(const char *ptr1, const char *ptr2)
-{
-  int i;
-  int t1, t2;
-  int timestamp_ptr = PROFILE_TIMESTAMP_PTR;
-  
-  /*  printf("profile_timestamp_ptr %d max %d\n", profile_timestamp_ptr, profile_max_queuelen);*/
-  
-  t1 = t2 = PROFILE_LIST_LENGTH;
-  
-  for(i = timestamp_ptr - 1; i >= 0; --i) {
-    /*    printf("Checking 1 %s %u == %s i %d\n",
-	   profile_timestamps[i].ptr,
-	   profile_timestamps[i].time,
-	   ptr1, i);*/
-    if(profile_timestamps[i].ptr == ptr1) {
-      t1 = i;
-      break;
-    }
-  }
-  
-  for(i = i - 1; i >= 0; --i) {
-    /*    printf("Checking 2 %s %u == %s i %d\n",
-	   profile_timestamps[i].ptr,
-	   profile_timestamps[i].time,
-	   ptr1, i);*/
-    if(profile_timestamps[i].ptr == ptr2) {
-      t2 = i;
-      break;
-    }
-  }
-  /*  printf("t1 %d t2 %d\n", t1, t2);*/
-  if(t1 != PROFILE_LIST_LENGTH && t2 != PROFILE_LIST_LENGTH) {
-    return profile_timestamps[t1].time - profile_timestamps[t2].time;
-  }
-  
-  return 0;
-}
-/*---------------------------------------------------------------------------*/
-void
-profile_clear_timestamps(void)
-{
-  /*  int i;
-  for(i = 0; i < PROFILE_LIST_LENGTH; ++i) {
-    profile_timestamps[i].str = "NULL";
-    profile_timestamps[i].time = 0;
-    }*/
-  profile_timestamp_ptr = 0;
-}
 /*---------------------------------------------------------------------------*/
 void
 profile_init(void)
 {
-  profile_clear_timestamps();
-
-  /* Measure the time for taking a timestamp. */
-  PROFILE_TIMESTAMP(NULL);
-  PROFILE_TIMESTAMP(NULL);
-  profile_timestamp_time = profile_timestamps[1].time - profile_timestamps[0].time;
-
-  profile_clear_timestamps();
+  timetable_init();
+  timetable_clear(&profile_begin_timetable);
+  timetable_clear(&profile_end_timetable);
 }
 /*---------------------------------------------------------------------------*/
 void
 profile_episode_start(void)
 {
-  profile_timestamp_ptr = 0;
+  struct timetable_timestamp *e;
+  timetable_clear(&profile_begin_timetable);
+  timetable_clear(&profile_end_timetable);
+  episode_start_time = clock_time();
   
-  episode_start_time = clock_counter();
-  
-  profile_timestamps[PROFILE_LIST_LENGTH - 1].ptr = NULL;
+  e = timetable_entry(&profile_begin_timetable,
+		      PROFILE_TIMETABLE_SIZE - 1);
+  if(e != NULL) {
+    e->id = NULL;
+  }
+  e = timetable_entry(&profile_end_timetable,
+		      PROFILE_TIMETABLE_SIZE - 1);
+  if(e != NULL) {
+    e->id = NULL;
+  }
 }
 /*---------------------------------------------------------------------------*/
 void
 profile_episode_end(void)
 {
-  rtimer_clock_t episode_end_time = clock_counter();
+  struct timetable_timestamp *e;
+  rtimer_clock_t episode_end_time = clock_time();
 
-  PROFILE_TIMESTAMP("profile_episode_end");
-  
-/*   printf("profile_episode_end start %u, end %u, max time %u\n", episode_start_time, episode_end_time, 65536/FINE_TICKS_PER_COARSE_TICK); */
-  if(profile_timestamps[PROFILE_LIST_LENGTH - 1].ptr != NULL) {
+/*   printf("timetable_episode_end start %u, end %u, max time %u\n", episode_start_time, episode_end_time, 65536/FINE_TICKS_PER_COARSE_TICK); */
+  e = timetable_entry(&profile_begin_timetable,
+		      PROFILE_TIMETABLE_SIZE - 1);
+  if(e != NULL && e->id != NULL) {
     /* Invalid episode because of list overflow. */
-    profile_invalid_episode_overflow++;
-    profile_max_queuelen = PROFILE_LIST_LENGTH;
-  } else if(episode_end_time - episode_start_time > 65536/FINE_TICKS_PER_COARSE_TICK) {
+    invalid_episode_overflow++;
+    max_queuelen = PROFILE_TIMETABLE_SIZE;
+  } else if(episode_end_time - episode_start_time >
+	    65536/XXX_HACK_FINE_TICKS_PER_COARSE_TICK) {
     /* Invalid episode because of timer overflow. */
-    profile_invalid_episode_toolong++;
+    invalid_episode_toolong++;
   } else {
     /* Compute aggregates. */
-    if(PROFILE_TIMESTAMP_PTR > profile_max_queuelen) {
-      profile_max_queuelen = PROFILE_TIMESTAMP_PTR;
+    if(timetable_ptr(&profile_begin_timetable) > max_queuelen) {
+      max_queuelen = timetable_ptr(&profile_begin_timetable);
     }
-    profile_aggregates_compute();
-    /*    printf("Episode length %d\n", profile_timestamp_ptr);*/
+    /*    timetable_aggregates_compute();*/
   }
-
-/*   profile_aggregates_print(); */
-/*   profile_print_stats(); */
 }
 /*---------------------------------------------------------------------------*/
-#if 0
-#include <stdio.h>
-void
-profile_print_stats(void)
+/*
+ *
+ * Find a specific aggregate ID in the list of aggregates.
+ *
+ */
+static struct timetable_aggregate_entry *
+find_aggregate(struct timetable_aggregate *a,
+	       const char *id)
 {
-  printf("Memory for profiling: %d * %d = %d\n",
-	 sizeof(struct profile_timestamp), profile_max_queuelen,
-	 sizeof(struct profile_timestamp) * profile_max_queuelen);
-  printf("Invalid episodes overflow %d time %d\n",
-	 profile_invalid_episode_overflow,
-	 profile_invalid_episode_toolong);
+  int i;
+  for(i = 0; i < a->ptr; ++i) {
+    if(a->entries[i].id == id) {
+      return &a->entries[i];
+    }
+  }
+  if(i == a->size) {
+    return NULL;
+  }
+  a->entries[a->ptr].id = NULL;
+  return &a->entries[a->ptr++];
 }
-#endif /* 0 */
+/*---------------------------------------------------------------------------*/
+void
+profile_aggregate_print_detailed(void)
+{
+  int i;
+  struct timetable_aggregate *a = &profile_aggregate;
+  
+  /*  printf("timetable_aggregate_print_detailed: a ptr %d\n", a->ptr);*/
+  for(i = 0; i < a->ptr; ++i) {
+    printf("-- %s: %lu / %u = %lu\n", a->entries[i].id,
+	   a->entries[i].time,
+	   a->entries[i].episodes,
+	   a->entries[i].time / a->entries[i].episodes);
+  }
+  
+  printf("Memory for entries: %d * %d = %d\n",
+	 (int)sizeof(struct timetable_aggregate), a->ptr,
+	 (int)sizeof(struct timetable_aggregate) * a->ptr);
+}
+/*---------------------------------------------------------------------------*/
+void
+profile_aggregate_compute_detailed(void)
+{
+  int i;
+  int last;
+  rtimer_clock_t t;
+  struct timetable_aggregate *a = &profile_aggregate;
+  struct timetable *timetable = &profile_timetable;
+  struct timetable_aggregate_entry *entry;
+
+  last = timetable_ptr(&profile_begin_timetable);
+  t = profile_begin_timetable.timestamps[0].time;
+  for(i = 0; i < last; ++i) {
+
+    entry = find_aggregate(a, profile_begin_timetable.timestamps[i].id);
+    if(entry == NULL) {
+      /* The list is full, skip this entry */
+      /*      printf("detailed_timetable_aggregate_compute: list full\n");*/
+    } else if(entry->id == NULL) {
+      /* The id was found in the list, so we add it. */
+      entry->id = timetable->timestamps[i - 1].id;
+      entry->time = (unsigned long)(timetable->timestamps[i].time - t -
+				    timetable_timestamp_time);
+      entry->episodes = 1;
+      /*      printf("New entry %s %lu\n", entry->id, entry->time);*/
+    } else {
+      entry->time += (unsigned long)(timetable->timestamps[i].time - t -
+				     timetable_timestamp_time);
+				     entry->episodes++;
+    }
+    t = timetable->timestamps[i].time;
+    /*    printf("a ptr %d\n", a->ptr);*/
+
+  }
+
+}
 /*---------------------------------------------------------------------------*/
