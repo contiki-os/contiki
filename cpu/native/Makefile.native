@@ -9,7 +9,10 @@ AS       = as
 NM       = nm
 OBJCOPY  = objcopy
 STRIP    = strip
-CFLAGSNO = -Wall -g -I/usr/local/include #-pedantic -std=c99 -Werror
+ifdef WERROR
+CFLAGSWERROR=-Werror -pedantic -std=c99 -Werror
+endif
+CFLAGSNO = -Wall -g -I/usr/local/include $(CFLAGSWERROR)
 CFLAGS  += $(CFLAGSNO) -O
 LDFLAGS  = -Wl,-Map=contiki-$(TARGET).map,-export-dynamic
 
