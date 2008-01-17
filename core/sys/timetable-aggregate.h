@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007, Swedish Institute of Computer Science.
+ * Copyright (c) 2008, Swedish Institute of Computer Science.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,61 +28,64 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: profile.h,v 1.3 2008/01/17 12:19:26 adamdunkels Exp $
+ * $Id: timetable-aggregate.h,v 1.1 2008/01/17 12:19:26 adamdunkels Exp $
  */
 
 /**
  * \file
- *         Header file for the Contiki profiling system
+ *         A brief description of what this file is.
  * \author
  *         Adam Dunkels <adam@sics.se>
  */
 
-#ifndef __PROFILE_H__
-#define __PROFILE_H__
+#ifndef __TIMETABLE_AGGREGATE_H__
+#define __TIMETABLE_AGGREGATE_H__
 
-/* XXX: the profiling code is under development and may not work at
-   present. */
-
-#define TIMETABLE_WITH_TYPE 1
 #include "sys/timetable.h"
+#include "sys/cc.h"
 
-#ifdef PROFILE_CONF_TIMETABLE_SIZE
-#define PROFILE_TIMETABLE_SIZE PROFILE_CONF_TIMETABLE_SIZE
-#else
-#define PROFILE_TIMETABLE_SIZE 128
-#endif
+struct timetable_aggregate_entry {
+  const char *id;
+  unsigned short episodes;
+  unsigned long time;
+};
 
-#ifdef PROFILE_CONF_AGGREGATE_SIZE
-#define PROFILE_AGGREGATE_SIZE PROFILE_CONF_AGGREGATE_SIZE
-#else
-#define PROFILE_AGGREGATE_SIZE 128
-#endif
-
-#define PROFILE_BEGIN(id) TIMETABLE_TIMESTAMP_TYPE(profile_timetable, id, 1)
-#define PROFILE_END(id) TIMETABLE_TIMESTAMP_TYPE(profile_timetable, id, 2)
-
-/*#define PROFILE_COND_BEGIN(cond, id) TIMETABLE_COND_TIMESTAMP(profile_begin_timetable, \
-								  cond, id)
-#define PROFILE_COND_END(cond, id) TIMETABLE_COND_TIMESTAMP(profile_end_timetable, \
-								  cond, id)
-*/
-
-#define profile_begin_timetable_size PROFILE_TIMETABLE_SIZE
-TIMETABLE_DECLARE(profile_begin_timetable);
-#define profile_end_timetable_size PROFILE_TIMETABLE_SIZE
-TIMETABLE_DECLARE(profile_end_timetable);
-
-#define profile_timetable_size PROFILE_TIMETABLE_SIZE
-TIMETABLE_DECLARE(profile_timetable);
-
-void profile_init(void);
-
-void profile_episode_start(void);
-void profile_episode_end(void);
-
-void profile_aggregate_print_detailed(void);
-void profile_aggregate_compute_detailed(void);
+struct timetable_aggregate {
+  struct timetable_aggregate_entry *entries;
+  int ptr;
+  const int size;
+};
 
 
-#endif /* __PROFILE_H__ */
+#define TIMETABLE_AGGREGATE_DECLARE(name)				\
+struct timetable_aggregate name
+
+
+#define TIMETABLE_AGGREGATE(name, size)				\
+static struct timetable_aggregate_entry CC_CONCAT(name,_entries)[size];	\
+static struct timetable_aggregate name = {				\
+  CC_CONCAT(name,_entries),						\
+  0,									\
+  size									\
+}
+
+#define TIMETABLE_AGGREGATE_NONSTATIC(name, size)		      	\
+static struct timetable_aggregate_entry CC_CONCAT(name,_entries)[size];	\
+struct timetable_aggregate name = {				\
+  CC_CONCAT(name,_entries),						\
+  0,									\
+  size									\
+}
+
+void timetable_aggregate_print_detailed(struct timetable_aggregate *a);
+
+void timetable_aggregate_print_categories(struct timetable_aggregate *a);
+
+void timetable_aggregate_compute_detailed(struct timetable_aggregate *a,
+					  struct timetable *timetable);
+void timetable_aggregate_compute_categories(struct timetable_aggregate *a,
+					     struct timetable *timetable);
+
+
+
+#endif /* __TIMETABLE_AGGREGATE_H__ */
