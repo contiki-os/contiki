@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: simple-cc2420.c,v 1.23 2008/01/15 08:53:52 nvt-se Exp $
+ * @(#)$Id: simple-cc2420.c,v 1.24 2008/01/17 15:38:45 fros4943 Exp $
  */
 /*
  * This code is almost device independent and should be easy to port.
@@ -283,7 +283,7 @@ simple_cc2420_send(const void *payload, unsigned short payload_len)
   /* Wait for previous transmission to finish and RSSI. */
   do {
     spiStatusByte = status();
-  } while(spiStatusByte & BV(CC2420_TX_ACTIVE) &&
+  } while(spiStatusByte & BV(CC2420_TX_ACTIVE) ||
 	  !(spiStatusByte & BV(CC2420_RSSI_VALID)));
 
   /* Write packet to TX FIFO. */
