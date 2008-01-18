@@ -1,10 +1,10 @@
-# $Id: Makefile.esb,v 1.9 2007/11/26 19:35:06 nifi Exp $
+# $Id: Makefile.esb,v 1.10 2008/01/18 18:26:02 nifi Exp $
 
 SENSORS    = sensors.c irq.c button-sensor.c pir-sensor.c vib-sensor.c \
              sound-sensor.c radio-sensor.c ctsrts-sensor.c battery-sensor.c \
              temperature-sensor.c
 ESB        = ir.c beep.c ds1629.c tr1001-uip.c tr1001-gcr.c gcr.c \
-             esb-sensors.c node-id.c eeprom.c cfs-eeprom.c
+             esb-sensors.c node-id.c eeprom.c cfs-eeprom.c energest-arch.c
 CONTIKI_TARGET_DIRS = . dev apps net loader
 ifndef CONTIKI_TARGET_MAIN
 CONTIKI_TARGET_MAIN = contiki-esb-main.c
