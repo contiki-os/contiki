@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#)$Id: contiki-sky-main.c,v 1.23 2008/01/14 14:50:02 adamdunkels Exp $
+ * @(#)$Id: contiki-sky-main.c,v 1.24 2008/01/19 06:57:44 adamdunkels Exp $
  */
 
 #include <signal.h>
@@ -151,7 +151,7 @@ main(int argc, char **argv)
 #endif /* WITH_UIP */
   
 /*   printf("Starting %s " */
-/* 	 "($Id: contiki-sky-main.c,v 1.23 2008/01/14 14:50:02 adamdunkels Exp $)\n", __FILE__); */
+/* 	 "($Id: contiki-sky-main.c,v 1.24 2008/01/19 06:57:44 adamdunkels Exp $)\n", __FILE__); */
   leds_on(LEDS_GREEN);
   ds2411_init();
   sensors_light_init();
@@ -284,9 +284,6 @@ main(int argc, char **argv)
       watchdog_start();
       ENERGEST_OFF(ENERGEST_TYPE_LPM);
       ENERGEST_ON(ENERGEST_TYPE_CPU);
-#if PROFILE_CONF_ON
-      profile_clear_timestamps();
-#endif /* PROFILE_CONF_ON */
     }
   }
 
