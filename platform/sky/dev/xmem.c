@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#)$Id: xmem.c,v 1.3 2007/11/10 20:45:29 adamdunkels Exp $
+ * @(#)$Id: xmem.c,v 1.4 2008/01/21 10:28:44 nvt-se Exp $
  */
 
 /**
@@ -49,6 +49,7 @@
 
 #include "dev/spi.h"
 #include "dev/xmem.h"
+#include "dev/watchdog.h"
 
 #if 0
 #define PRINTF(...) printf(__VA_ARGS__)
@@ -250,8 +251,10 @@ xmem_erase(long size, off_t addr)
     return -1;
   }
 
-  for (; addr < end; addr += XMEM_ERASE_UNIT_SIZE)
+  for (; addr < end; addr += XMEM_ERASE_UNIT_SIZE) {
+    watchdog_periodic();
     erase_sector(addr);
+  }
 
   return size;
 }
