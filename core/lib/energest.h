@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: energest.h,v 1.8 2008/01/14 16:18:39 thiemovoigt Exp $
+ * $Id: energest.h,v 1.9 2008/01/21 12:36:17 adamdunkels Exp $
  */
 
 /**
@@ -102,6 +102,8 @@ extern energest_t energest_leveldevice_current_leveltime[ENERGEST_CONF_LEVELDEVI
 #define ENERGEST_OFF(type) do { } while(0)
 #define ENERGEST_OFF_LEVEL(type,level) do { } while(0)
 #endif /* ENERGEST_CONF_ON */
+
+#define ENERGEST_SECOND RTIMER_ARCH_SECOND
 
 unsigned long energest_arch_current_estimate(void);
 unsigned short energest_arch_now(void);
