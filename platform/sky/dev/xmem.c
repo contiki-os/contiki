@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#)$Id: xmem.c,v 1.4 2008/01/21 10:28:44 nvt-se Exp $
+ * @(#)$Id: xmem.c,v 1.5 2008/01/21 10:40:26 nvt-se Exp $
  */
 
 /**
@@ -251,10 +251,13 @@ xmem_erase(long size, off_t addr)
     return -1;
   }
 
+  watchdog_stop();
+
   for (; addr < end; addr += XMEM_ERASE_UNIT_SIZE) {
-    watchdog_periodic();
     erase_sector(addr);
   }
+
+  watchdog_start();
 
   return size;
 }
