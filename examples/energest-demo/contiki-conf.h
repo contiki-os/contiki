@@ -1,15 +1,24 @@
 /* -*- C -*- */
-/* @(#)$Id: contiki-conf.h,v 1.1 2007/10/25 12:56:28 adamdunkels Exp $ */
+/* @(#)$Id: contiki-conf.h,v 1.2 2008/01/22 15:00:24 zhitao Exp $ */
 
 #ifndef CONTIKI_CONF_H
 #define CONTIKI_CONF_H
+
+#define SHELL_VARS_CONF_RAM_BEGIN 0x1100
+#define SHELL_VARS_CONF_RAM_END 0x2000
+
+#define TIMESYNCH_CONF_ENABLED 1
+#define SIMPLE_CC2420_CONF_TIMESTAMPS 1
+
+#define PROFILE_CONF_ON 1
+#define ENERGEST_CONF_ON 1
 
 #define HAVE_STDINT_H
 #include "msp430def.h"
 
 #ifndef RF_CHANNEL
 #define RF_CHANNEL              26
-#endif
+#endif /* RF_CHANNEL */
 
 #define ELFLOADER_CONF_DATAMEMORY_SIZE 0x1800
 #define ELFLOADER_CONF_TEXTMEMORY_SIZE 0x1000
@@ -29,7 +38,7 @@
 #define TMOTE_SKY 1
 #define WITH_ASCII 1
 
-#define PROCESS_CONF_FASTPOLL    4
+/*#define PROCESS_CONF_FASTPOLL    4*/
 
 /* CPU target speed in Hz */
 #define F_CPU 2457600uL
