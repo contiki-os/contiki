@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: energest-demo.c,v 1.2 2007/11/26 23:36:09 adamdunkels Exp $
+ * $Id: energest-demo.c,v 1.3 2008/01/22 14:58:41 zhitao Exp $
  */
 
 /**
@@ -150,7 +150,6 @@ PROCESS_THREAD(output_process, ev, data)
   PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&et));
 
   /* Energy time init */
-  energest_init();
   last.cpu = energest_type_time(ENERGEST_TYPE_CPU);
   last.lpm = energest_type_time(ENERGEST_TYPE_LPM);
   last.transmit = energest_type_time(ENERGEST_TYPE_TRANSMIT);
