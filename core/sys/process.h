@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: process.h,v 1.12 2007/11/17 22:11:19 adamdunkels Exp $
+ * @(#)$Id: process.h,v 1.13 2008/01/23 15:18:06 adamdunkels Exp $
  */
 
 /**
@@ -275,7 +275,6 @@ typedef unsigned char process_num_events_t;
 static PT_THREAD(process_thread_##name(struct pt *process_pt,	\
 				       process_event_t ev,	\
 				       process_data_t data))
-
 #if PROCESS_LOADABLE
 #define PROCESS_LOAD(name) const struct process *process_load = &name
 #else  /* PROCESS_LOADABLE */
@@ -320,7 +319,7 @@ struct process {
   const char *name;
   PT_THREAD((* thread)(struct pt *, process_event_t, process_data_t));
   struct pt pt;
-  unsigned char state;
+  unsigned char state, needspoll;
 };
 
 /**
@@ -337,7 +336,7 @@ struct process {
  * process
  *
  */
-void process_start(struct process *p, char *arg);
+void process_start(struct process *p, const char *arg);
 
 /**
  * Post an asynchronous event.
@@ -496,6 +495,18 @@ void process_init(void);
  * event queue.
  */
 int process_run(void);
+
+
+/**
+ * Check if a process is running.
+ *
+ * This function checks if a specific process is running.
+ *
+ * \param p The process.
+ * \retval Non-zero if the process is running.
+ * \retval Zero if the process is not running.
+ */
+int process_is_running(struct process *p);
 
 /**
  *  Number of events waiting to be processed.
