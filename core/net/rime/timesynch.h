@@ -55,7 +55,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: timesynch.h,v 1.2 2008/01/14 14:50:02 adamdunkels Exp $
+ * $Id: timesynch.h,v 1.3 2008/01/23 15:07:05 adamdunkels Exp $
  */
 
 /**
@@ -91,7 +91,7 @@ void timesynch_init(void);
 rtimer_clock_t timesynch_time(void);
 
 /**
- * \brief      Get the current time-synchronized rtimer time, suitable for use with the rtimer module
+ * \brief      Get the current time-synchronized time, suitable for use with the rtimer module
  * \return     The current time-synchronized rtimer time
  *
  *             This function returns the (local) rtimer-equivalent
@@ -102,6 +102,16 @@ rtimer_clock_t timesynch_time(void);
  *
  */
 rtimer_clock_t timesynch_time_to_rtimer(rtimer_clock_t synched_time);
+
+/**
+ * \brief      Get the synchronized equivalent of an rtimer time
+ * \return     The synchronized equivalent of an rtimer time
+ *
+ *             This function returns the time synchronized equivalent
+ *             time corresponding to a (local) rtimer time.
+ *
+ */
+rtimer_clock_t timesynch_rtimer_to_time(rtimer_clock_t rtimer_time);
 
 /**
  * \brief      Get the current time-synchronized offset from the rtimer clock, which is used mainly for debugging
