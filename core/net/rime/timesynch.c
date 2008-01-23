@@ -34,7 +34,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: timesynch.c,v 1.2 2008/01/14 14:50:01 adamdunkels Exp $
+ * $Id: timesynch.c,v 1.3 2008/01/23 15:07:05 adamdunkels Exp $
  */
 
 /**
@@ -77,6 +77,12 @@ rtimer_clock_t
 timesynch_time_to_rtimer(rtimer_clock_t synched_time)
 {
   return synched_time - offset;
+}
+/*---------------------------------------------------------------------------*/
+rtimer_clock_t
+timesynch_rtimer_to_time(rtimer_clock_t rtimer_time)
+{
+  return rtimer_time + offset;
 }
 /*---------------------------------------------------------------------------*/
 rtimer_clock_t
