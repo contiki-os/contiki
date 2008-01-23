@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: simple-cc2420.h,v 1.8 2008/01/15 08:53:52 nvt-se Exp $
+ * $Id: simple-cc2420.h,v 1.9 2008/01/23 14:57:19 adamdunkels Exp $
  */
 
 /**
@@ -49,14 +49,14 @@ void simple_cc2420_init(void);
 #define SIMPLE_CC2420_MAX_PACKET_LEN      127
 
 void simple_cc2420_set_channel(int channel);
+int simple_cc2420_get_channel(void);
 
-void simple_cc2420_set_chan_pan_addr(unsigned channel, /* 11 - 26 */
-				     unsigned pan,
-				     unsigned addr,
-				     const u8_t *ieee_addr);
+void simple_cc2420_set_pan_addr(unsigned pan,
+				unsigned addr,
+				const uint8_t *ieee_addr);
 
 extern signed char simple_cc2420_last_rssi;
-extern u8_t simple_cc2420_last_correlation;
+extern uint8_t simple_cc2420_last_correlation;
 
 int simple_cc2420_rssi(void);
 
@@ -65,7 +65,7 @@ extern const struct radio_driver simple_cc2420_driver;
 /**
  * \param power Between 1 and 31.
  */
-void simple_cc2420_set_txpower(u8_t power);
+void simple_cc2420_set_txpower(uint8_t power);
 int simple_cc2420_get_txpower(void);
 #define SIMPLE_CC2420_TXPOWER_MAX  31
 #define SIMPLE_CC2420_TXPOWER_MIN   0
