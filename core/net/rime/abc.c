@@ -36,7 +36,7 @@
  *
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: abc.c,v 1.15 2008/01/21 12:19:27 adamdunkels Exp $
+ * $Id: abc.c,v 1.16 2008/01/23 16:10:10 adamdunkels Exp $
  */
 
 /**
@@ -105,11 +105,10 @@ abc_input_packet(void)
 
   hdr = rimebuf_dataptr();
 
-  PRINTF("%d.%d: abc: abc_input_packet on channel %d\n",
-	 rimeaddr_node_addr.u8[0],rimeaddr_node_addr.u8[1],
-	 hdr->channel);
-  
   if(rimebuf_hdrreduce(sizeof(struct abc_hdr))) {
+    PRINTF("%d.%d: abc: abc_input_packet on channel %d\n",
+	   rimeaddr_node_addr.u8[0],rimeaddr_node_addr.u8[1],
+	   hdr->channel);
 
     for(c = list_head(channels); c != NULL; c = c->next) {
       if(c->channel == hdr->channel) {
