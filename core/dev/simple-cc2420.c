@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: simple-cc2420.c,v 1.24 2008/01/17 15:38:45 fros4943 Exp $
+ * @(#)$Id: simple-cc2420.c,v 1.25 2008/01/23 14:57:19 adamdunkels Exp $
  */
 /*
  * This code is almost device independent and should be easy to port.
@@ -51,6 +51,9 @@
 
 #include "net/rime/rimestats.h"
 
+#include "sys/timetable.h"
+
+#define WITH_SEND_CCA 0
 
 #define FOOTER_LEN 2
 #define CRC_LEN 2
@@ -106,7 +109,7 @@ void simple_cc2420_set_receiver(void (* recv)(const struct radio_driver *d));
 
 
 signed char simple_cc2420_last_rssi;
-u8_t simple_cc2420_last_correlation;
+uint8_t simple_cc2420_last_correlation;
 
 const struct radio_driver simple_cc2420_driver =
   {
@@ -117,9 +120,12 @@ const struct radio_driver simple_cc2420_driver =
     simple_cc2420_off,
   };
 
-static u8_t receive_on;
+static uint8_t receive_on;
 /* Radio stuff in network byte order. */
-static u16_t pan_id;
+static uint16_t pan_id;
+
+static int channel;
+
 /*---------------------------------------------------------------------------*/
 static void
 strobe(enum cc2420_register regname)
@@ -130,7 +136,7 @@ strobe(enum cc2420_register regname)
 static unsigned int
 status(void)
 {
-  u8_t status;
+  uint8_t status;
   FASTSPI_UPD_STATUS(status);
   return status;
 }
@@ -138,18 +144,21 @@ status(void)
 static void
 on(void)
 {
+  uint8_t dummy;
   ENERGEST_ON(ENERGEST_TYPE_LISTEN);
   PRINTF("on\n");
   receive_on = 1;
   
   strobe(CC2420_SRXON);
+  FASTSPI_READ_FIFO_BYTE(dummy);
+  strobe(CC2420_SFLUSHRX);
   strobe(CC2420_SFLUSHRX);
   ENABLE_FIFOP_INT();
 }
 static void
 off(void)
 {
-  u8_t spiStatusByte;
+  uint8_t spiStatusByte;
   
   PRINTF("off\n");
   receive_on = 0;
@@ -163,7 +172,7 @@ off(void)
   ENERGEST_OFF(ENERGEST_TYPE_LISTEN);
 }
 /*---------------------------------------------------------------------------*/
-static u8_t locked, lock_on, lock_off;
+static uint8_t locked, lock_on, lock_off;
 #define GET_LOCK() locked = 1
 static void RELEASE_LOCK(void) {
   if(lock_on) {
@@ -207,7 +216,7 @@ simple_cc2420_set_receiver(void (* recv)(const struct radio_driver *))
 void
 simple_cc2420_init(void)
 {
-  u16_t reg;
+  uint16_t reg;
   {
     int s = splhigh();
     simple_cc2420_arch_init();		/* Initalize ports and SPI. */
@@ -253,7 +262,8 @@ simple_cc2420_init(void)
   reg &= ~RXFIFO_PROTECTION;
   setreg(CC2420_SECCTRL0, reg);
 
-  simple_cc2420_set_chan_pan_addr(11, 0xffff, 0x0000, NULL);
+  simple_cc2420_set_pan_addr(0xffff, 0x0000, NULL);
+  simple_cc2420_set_channel(26);
 
   process_start(&simple_cc2420_process, NULL);
 }
@@ -261,53 +271,33 @@ simple_cc2420_init(void)
 int
 simple_cc2420_send(const void *payload, unsigned short payload_len)
 {
-  uint8_t spiStatusByte;
   int i;
   uint8_t total_len;
   struct timestamp timestamp;
   
-  /* This code uses the CC2420 CCA (Clear Channel Assessment) to
-   * implement Carrier Sense Multiple Access with Collision Avoidance
-   * (CSMA-CA) and requires the receiver to be enabled and ready.
-   */
-  if(!receive_on) {
-    return -2;
-  }
-
-  /*  PRINTF("simple_cc2420_send: %d bytes\n", payload_len);*/
-  
   GET_LOCK();
 
   RIMESTATS_ADD(lltx);
-  
-  /* Wait for previous transmission to finish and RSSI. */
-  do {
-    spiStatusByte = status();
-  } while(spiStatusByte & BV(CC2420_TX_ACTIVE) ||
-	  !(spiStatusByte & BV(CC2420_RSSI_VALID)));
 
+  
+  /* Wait for any previous transmission to finish. */
+  while(status() & BV(CC2420_TX_ACTIVE));
+  
   /* Write packet to TX FIFO. */
   strobe(CC2420_SFLUSHTX);
-  
+
   total_len = payload_len + TIMESTAMP_LEN + FOOTER_LEN;
   FASTSPI_WRITE_FIFO(&total_len, 1);
   
   FASTSPI_WRITE_FIFO(payload, payload_len);
-
+  
 #if SIMPLE_CC2420_CONF_TIMESTAMPS
   timestamp.authority_level = timesynch_authority_level();
   timestamp.time = timesynch_time();
   FASTSPI_WRITE_FIFO(&timestamp, TIMESTAMP_LEN);
 #endif /* SIMPLE_CC2420_CONF_TIMESTAMPS */
 
-  if(FIFOP_IS_1 && !FIFO_IS_1) {
-    /* RXFIFO overflow, send on retransmit. */
-    PRINTF("rxfifo overflow!\n");
-    RELEASE_LOCK();
-    return -4;
-  }
-
-  /* The TX FIFO can only hold one packet! Make sure to not overrun
+  /* The TX FIFO can only hold one packet. Make sure to not overrun
    * FIFO by waiting for transmission to start here and synchronizing
    * with the CC2420_TX_ACTIVE check in cc2420_send.
    *
@@ -319,20 +309,29 @@ simple_cc2420_send(const void *payload, unsigned short payload_len)
 #elif __AVR__
 #define LOOP_20_SYMBOLS 500	/* XXX */
 #endif
+
+#if WITH_SEND_CCA
+  strobe(CC2420_SRXON);
+  while(!(status() & BV(CC2420_RSSI_VALID)));
   strobe(CC2420_STXONCCA);
+#else /* WITH_SEND_CCA */
+  strobe(CC2420_STXON);
+#endif /* WITH_SEND_CCA */
+  
   for(i = LOOP_20_SYMBOLS; i > 0; i--) {
     if(SFD_IS_1) {
+#if SIMPLE_CC2420_CONF_TIMESTAMPS
       rtimer_clock_t txtime = timesynch_time();
-      /*      PRINTF("simple_cc2420: do_send() transmission has started\n");*/
+#endif /* SIMPLE_CC2420_CONF_TIMESTAMPS */
 
       ENERGEST_OFF(ENERGEST_TYPE_LISTEN);
       ENERGEST_ON(ENERGEST_TYPE_TRANSMIT);
-      do {
-	spiStatusByte = status();
-      } while(spiStatusByte & BV(CC2420_TX_ACTIVE));
+
+      while(status() & BV(CC2420_TX_ACTIVE));
+
 #if SIMPLE_CC2420_CONF_TIMESTAMPS
       setup_time_for_transmission = txtime - timestamp.time;
-      
+
       if(num_transmissions < 10000) {
 	total_time_for_transmission += timesynch_time() - txtime;
 	total_transmission_len += total_len;
@@ -340,23 +339,27 @@ simple_cc2420_send(const void *payload, unsigned short payload_len)
       }
 
 #endif /* SIMPLE_CC2420_CONF_TIMESTAMPS */
-#ifdef ENERGEST_CONF_LEVELDEVICE_LEVELS 
-	ENERGEST_OFF_LEVEL(ENERGEST_TYPE_TRANSMIT,simple_cc2420_get_txpower());
+
+#ifdef ENERGEST_CONF_LEVELDEVICE_LEVELS
+      ENERGEST_OFF_LEVEL(ENERGEST_TYPE_TRANSMIT,simple_cc2420_get_txpower());
 #endif
       ENERGEST_OFF(ENERGEST_TYPE_TRANSMIT);
       ENERGEST_ON(ENERGEST_TYPE_LISTEN);
-      
+
       RELEASE_LOCK();
       return 0;			/* Transmission has started. */
     }
   }
+  
+  /* If we are using WITH_SEND_CCA, we get here if the packet wasn't
+     transmitted because of other channel activity. */
   RIMESTATS_ADD(contentiondrop);
   PRINTF("simple_cc2420: do_send() transmission never started\n");
   RELEASE_LOCK();
   return -3;			/* Transmission never started! */
 }
 /*---------------------------------------------------------------------------*/
-static volatile u8_t packet_seen;
+static volatile uint8_t packet_seen;
 /*---------------------------------------------------------------------------*/
 int
 simple_cc2420_off(void)
@@ -394,12 +397,24 @@ simple_cc2420_on(void)
   return 1;
 }
 /*---------------------------------------------------------------------------*/
-void
-simple_cc2420_set_channel(int channel)
+int
+simple_cc2420_get_channel(void)
 {
-  u16_t f = channel;
+  return channel;
+}
+/*---------------------------------------------------------------------------*/
+void
+simple_cc2420_set_channel(int c)
+{
+  uint16_t f;
+  /*
+   * Subtract the base channel (11), multiply by 5, which is the
+   * channel spacing. 357 is 2405-2048 and 0x4000 is LOCK_THR = 1.
+   */
+
+  channel = c;
   
-  f = 5 * (f - 11) + 357 + 0x4000;
+  f = 5 * (c - 11) + 357 + 0x4000;
   /*
    * Writing RAM requires crystal oscillator to be stable.
    */
@@ -409,28 +424,17 @@ simple_cc2420_set_channel(int channel)
 }
 /*---------------------------------------------------------------------------*/
 void
-simple_cc2420_set_chan_pan_addr(unsigned channel, /* 11 - 26 */
-				unsigned pan,
-				unsigned addr,
-				const u8_t *ieee_addr)
+simple_cc2420_set_pan_addr(unsigned pan,
+			   unsigned addr,
+			   const uint8_t *ieee_addr)
 {
-  /*
-   * Subtract the base channel (11), multiply by 5, which is the
-   * channel spacing. 357 is 2405-2048 and 0x4000 is LOCK_THR = 1.
-   */
-  u8_t spiStatusByte;
-  u16_t f = channel;
-        
-  f = 5 * (f - 11) + 357 + 0x4000;
+  uint16_t f = 0;
   /*
    * Writing RAM requires crystal oscillator to be stable.
    */
-  do {
-    spiStatusByte = status();
-  } while(!(spiStatusByte & (BV(CC2420_XOSC16M_STABLE))));
+  while(!(status() & (BV(CC2420_XOSC16M_STABLE))));
 
   pan_id = pan;
-  setreg(CC2420_FSCTRL, f);
   FASTSPI_WRITE_RAM_LE(&pan, CC2420RAM_PANID, 2, f);
   FASTSPI_WRITE_RAM_LE(&addr, CC2420RAM_SHORTADDR, 2, f);
   if(ieee_addr != NULL) {
@@ -439,23 +443,28 @@ simple_cc2420_set_chan_pan_addr(unsigned channel, /* 11 - 26 */
 }
 /*---------------------------------------------------------------------------*/
 /*
- * Interrupt either leaves frame intact in FIFO or reads *only* the
- * MAC header and sets rx_fifo_remaining_bytes.
- *
- * In order to quickly empty the FIFO ack processing is done at
- * interrupt priority rather than poll priority.
+ * Interrupt either leaves frame intact in FIFO.
  */
 static volatile rtimer_clock_t interrupt_time;
 static volatile int interrupt_time_set;
+#if SIMPLE_CC2420_TIMETABLE_PROFILING
+#define simple_cc2420_timetable_size 16
+TIMETABLE(simple_cc2420_timetable);
+TIMETABLE_AGGREGATE(aggregate_time, 10);
+#endif /* SIMPLE_CC2420_TIMETABLE_PROFILING */
 int
 simple_cc2420_interrupt(void)
 {
   interrupt_time = timesynch_time();
   interrupt_time_set = 1;
-  
+
   CLEAR_FIFOP_INT();
   process_poll(&simple_cc2420_process);
-  packet_seen = 1;
+  packet_seen++;
+#if SIMPLE_CC2420_TIMETABLE_PROFILING
+  timetable_clear(&simple_cc2420_timetable);
+  TIMETABLE_TIMESTAMP(simple_cc2420_timetable, "interrupt");
+#endif /* SIMPLE_CC2420_TIMETABLE_PROFILING */
   return 1;
 }
 /*---------------------------------------------------------------------------*/
@@ -465,13 +474,22 @@ PROCESS_THREAD(simple_cc2420_process, ev, data)
 
   while(1) {
     PROCESS_YIELD_UNTIL(ev == PROCESS_EVENT_POLL);
-
-    /*    printf("Diff %d\n", rtimer_arch_now() - interrupt_time);*/
-    
+#if SIMPLE_CC2420_TIMETABLE_PROFILING
+    TIMETABLE_TIMESTAMP(simple_cc2420_timetable, "poll");
+#endif /* SIMPLE_CC2420_TIMETABLE_PROFILING */
+        
     if(receiver_callback != NULL) {
       receiver_callback(&simple_cc2420_driver);
+#if SIMPLE_CC2420_TIMETABLE_PROFILING
+      TIMETABLE_TIMESTAMP(simple_cc2420_timetable, "end");
+      timetable_aggregate_compute_detailed(&aggregate_time,
+					   &simple_cc2420_timetable);
+      timetable_clear(&simple_cc2420_timetable);
+#endif /* SIMPLE_CC2420_TIMETABLE_PROFILING */
     } else {
+      uint8_t dummy;
       PRINTF("simple_cc2420_process not receiving function\n");
+      FASTSPI_READ_FIFO_BYTE(dummy);
       FASTSPI_STROBE(CC2420_SFLUSHRX);
       FASTSPI_STROBE(CC2420_SFLUSHRX);
     }
@@ -483,13 +501,14 @@ PROCESS_THREAD(simple_cc2420_process, ev, data)
 int
 simple_cc2420_read(void *buf, unsigned short bufsize)
 {
-  u8_t footer[2];
+  uint8_t footer[2];
   int len;
   struct timestamp t;
   
-  if(!packet_seen) {
+  if(packet_seen == 0) {
     return 0;
   }
+  packet_seen = 0;
 
   if(interrupt_time_set) {
 #if SIMPLE_CC2420_CONF_TIMESTAMPS
@@ -501,14 +520,15 @@ simple_cc2420_read(void *buf, unsigned short bufsize)
   }
   simple_cc2420_time_of_departure = 0;
   GET_LOCK();
-
+  
   FASTSPI_READ_FIFO_BYTE(len);
 
   if(len > SIMPLE_CC2420_MAX_PACKET_LEN) {
+    uint8_t dummy;
     /* Oops, we must be out of sync. */
+    FASTSPI_READ_FIFO_BYTE(dummy);
     FASTSPI_STROBE(CC2420_SFLUSHRX);
     FASTSPI_STROBE(CC2420_SFLUSHRX);
-    packet_seen = 0;
     RIMESTATS_ADD(badsynch);
     RELEASE_LOCK();
     return 0;
@@ -532,7 +552,6 @@ simple_cc2420_read(void *buf, unsigned short bufsize)
       len = TIMESTAMP_LEN + FOOTER_LEN;
       RIMESTATS_ADD(toolong);
     } else {
-
       FASTSPI_READ_FIFO_NO_WAIT(buf, len - FOOTER_LEN - TIMESTAMP_LEN);
       /*      PRINTF("simple_cc2420_read: data\n");*/
       FASTSPI_READ_FIFO_NO_WAIT(&t, TIMESTAMP_LEN); /* Time stamp */
@@ -562,20 +581,15 @@ simple_cc2420_read(void *buf, unsigned short bufsize)
    * length frame and is signaled by FIFOP = 1 and FIFO = 0.
    */
   if(FIFOP_IS_1 && !FIFO_IS_1) {
-    PRINTF("simple_cc2420_read: FIFOP_IS_1 1\n");
+    uint8_t dummy;
+    /*    printf("simple_cc2420_read: FIFOP_IS_1 1\n");*/
+    FASTSPI_READ_FIFO_BYTE(dummy);
     strobe(CC2420_SFLUSHRX);
     strobe(CC2420_SFLUSHRX);
-  }
-  
-  if(FIFOP_IS_1) {
-    PRINTF("simple_cc2420_read: FIFOP_IS_1 2\n");
-    /*    strobe(CC2420_SFLUSHRX);
-	  strobe(CC2420_SFLUSHRX);*/
+  } else if(FIFOP_IS_1) {
     /* Another packet has been received and needs attention. */
     process_poll(&simple_cc2420_process);
     packet_seen = 1;
-  } else {
-    packet_seen = 0;
   }
   
   RELEASE_LOCK();
@@ -588,9 +602,9 @@ simple_cc2420_read(void *buf, unsigned short bufsize)
 }
 /*---------------------------------------------------------------------------*/
 void
-simple_cc2420_set_txpower(u8_t power)
+simple_cc2420_set_txpower(uint8_t power)
 {
-  u16_t reg;
+  uint16_t reg;
 
   GET_LOCK();
   reg = getreg(CC2420_TXCTRL);
