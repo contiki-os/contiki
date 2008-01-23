@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: process.c,v 1.6 2008/01/23 15:18:06 adamdunkels Exp $
+ * @(#)$Id: process.c,v 1.7 2008/01/23 21:06:25 adamdunkels Exp $
  */
 
 /**
@@ -48,8 +48,6 @@
 
 #include "sys/process.h"
 #include "sys/arg.h"
-
-PROCESS_NAME(simple_cc2420_process);
 
 /*
  * Pointer to the currently running process structure.
