@@ -1,6 +1,9 @@
 #ifndef __CONTIKI_CONF_H__
 #define __CONTIKI_CONF_H__
 
+#define XMAC_CONF_ON_TIME RTIMER_SECOND
+#define XMAC_CONF_OFF_TIME RTIMER_SECOND * 2
+
 /*
  * Copyright (c) 2003, Adam Dunkels.
  * All rights reserved.
@@ -32,7 +35,7 @@
  *
  * This file is part of the Contiki desktop OS
  *
- * $Id: contiki-conf.h,v 1.7 2007/05/12 21:01:54 oliverschmidt Exp $
+ * $Id: contiki-conf.h,v 1.8 2008/01/24 23:09:40 adamdunkels Exp $
  *
  */
 
@@ -106,6 +109,8 @@ typedef unsigned long clock_time_t;
 
 #define RIMEBUF_CONF_SIZE        128
 #define RIMEBUF_CONF_HDR_SIZE    32
+
+#define UIP_CONF_ICMP_DEST_UNREACH 1
 
 #define UIP_CONF_MAX_CONNECTIONS 40
 #define UIP_CONF_MAX_LISTENPORTS 40
