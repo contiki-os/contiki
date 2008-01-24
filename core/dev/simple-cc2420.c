@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: simple-cc2420.c,v 1.25 2008/01/23 14:57:19 adamdunkels Exp $
+ * @(#)$Id: simple-cc2420.c,v 1.26 2008/01/24 13:09:16 adamdunkels Exp $
  */
 /*
  * This code is almost device independent and should be easy to port.
@@ -158,14 +158,11 @@ on(void)
 static void
 off(void)
 {
-  uint8_t spiStatusByte;
-  
   PRINTF("off\n");
   receive_on = 0;
+  
   /* Wait for transmission to end before turning radio off. */
-  do {
-    spiStatusByte = status();
-  } while(spiStatusByte & BV(CC2420_TX_ACTIVE));
+  while(status() & BV(CC2420_TX_ACTIVE));
   
   strobe(CC2420_SRFOFF);
   DISABLE_FIFOP_INT();
@@ -274,23 +271,22 @@ simple_cc2420_send(const void *payload, unsigned short payload_len)
   int i;
   uint8_t total_len;
   struct timestamp timestamp;
-  
+
   GET_LOCK();
 
   RIMESTATS_ADD(lltx);
 
-  
   /* Wait for any previous transmission to finish. */
   while(status() & BV(CC2420_TX_ACTIVE));
-  
+
   /* Write packet to TX FIFO. */
   strobe(CC2420_SFLUSHTX);
 
   total_len = payload_len + TIMESTAMP_LEN + FOOTER_LEN;
   FASTSPI_WRITE_FIFO(&total_len, 1);
-  
+
   FASTSPI_WRITE_FIFO(payload, payload_len);
-  
+
 #if SIMPLE_CC2420_CONF_TIMESTAMPS
   timestamp.authority_level = timesynch_authority_level();
   timestamp.time = timesynch_time();
@@ -327,6 +323,8 @@ simple_cc2420_send(const void *payload, unsigned short payload_len)
       ENERGEST_OFF(ENERGEST_TYPE_LISTEN);
       ENERGEST_ON(ENERGEST_TYPE_TRANSMIT);
 
+      /* We wait until transmission has ended so that we get an
+	 accurate measurement of the transmission time.*/
       while(status() & BV(CC2420_TX_ACTIVE));
 
 #if SIMPLE_CC2420_CONF_TIMESTAMPS
@@ -347,7 +345,7 @@ simple_cc2420_send(const void *payload, unsigned short payload_len)
       ENERGEST_ON(ENERGEST_TYPE_LISTEN);
 
       RELEASE_LOCK();
-      return 0;			/* Transmission has started. */
+      return 0;
     }
   }
   
@@ -419,8 +417,18 @@ simple_cc2420_set_channel(int c)
    * Writing RAM requires crystal oscillator to be stable.
    */
   while(!(status() & (BV(CC2420_XOSC16M_STABLE))));
-  
+
+  /* Wait for any transmission to end. */
+  while(status() & BV(CC2420_TX_ACTIVE));
+
   setreg(CC2420_FSCTRL, f);
+
+  /* If we are in receive mode, we issue an SRXON command to ensure
+     that the VCO is calibrated. */
+  if(receive_on) {
+    strobe(CC2420_SRXON);
+  }
+
 }
 /*---------------------------------------------------------------------------*/
 void
