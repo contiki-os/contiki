@@ -33,7 +33,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: ipolite.c,v 1.4 2008/01/07 14:53:04 adamdunkels Exp $
+ * $Id: ipolite.c,v 1.5 2008/01/24 21:10:50 adamdunkels Exp $
  */
 
 /**
@@ -52,6 +52,14 @@
 #ifndef MAX
 #define MAX(a,b) ((a)>(b)?(a):(b))
 #endif /* MAX */
+
+#define DEBUG 0
+#if DEBUG
+#include <stdio.h>
+#define PRINTF(...) printf(__VA_ARGS__)
+#else
+#define PRINTF(...)
+#endif
 
 /*---------------------------------------------------------------------------*/
 static void
@@ -80,7 +88,11 @@ static void
 send(void *ptr)
 {
   struct ipolite_conn *c = ptr;
-
+  
+  PRINTF("%d.%d: ipolite: send queuebuf %p\n",
+	 rimeaddr_node_addr.u8[0],rimeaddr_node_addr.u8[1],
+	 c->q);
+  
   if(c->q != NULL) {
     queuebuf_to_rimebuf(c->q);
     queuebuf_free(c->q);
@@ -118,13 +130,17 @@ ipolite_send(struct ipolite_conn *c, clock_time_t interval, u8_t hdrsize)
 {
   if(c->q != NULL) {
     /* If we are already about to send a packet, we cancel the old one. */
+    PRINTF("%d.%d: ipolite_send: cancel old send\n",
+	   rimeaddr_node_addr.u8[0],rimeaddr_node_addr.u8[1]);
     queuebuf_free(c->q);
   }
   c->hdrsize = hdrsize;
   c->q = queuebuf_new_from_rimebuf();
   if(c->q != NULL) {
     if(interval == 0) {
-      ctimer_set(&c->t, 0, send, c);
+      PRINTF("%d.%d: ipolite_send: interval 0\n",
+	     rimeaddr_node_addr.u8[0],rimeaddr_node_addr.u8[1]);
+      send(c);
     } else {
       ctimer_set(&c->t,
 		 interval / 2 + (random_rand() % (interval / 2)),
@@ -132,6 +148,8 @@ ipolite_send(struct ipolite_conn *c, clock_time_t interval, u8_t hdrsize)
     }
     return 1;
   }
+  PRINTF("%d.%d: ipolite_send: could not allocate queue buffer\n",
+	 rimeaddr_node_addr.u8[0],rimeaddr_node_addr.u8[1]);
   return 0;
 }
 /*---------------------------------------------------------------------------*/
