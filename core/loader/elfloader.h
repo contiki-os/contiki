@@ -70,7 +70,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: elfloader.h,v 1.2 2006/12/18 14:45:49 fros4943 Exp $
+ * @(#)$Id: elfloader.h,v 1.3 2008/01/24 13:09:33 adamdunkels Exp $
  */
 #ifndef __ELFLOADER_H__
 #define __ELFLOADER_H__
@@ -151,7 +151,7 @@ int elfloader_load(int fd);
 /**
  * A pointer to the processes loaded with elfloader_load().
  */
-extern struct process **elfloader_autostart_processes;
+extern struct process * const * elfloader_autostart_processes;
 
 /**
  * If elfloader_load() could not find a specific symbol, it is copied
