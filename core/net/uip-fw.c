@@ -30,7 +30,7 @@
  *
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: uip-fw.c,v 1.8 2007/11/17 10:46:58 adamdunkels Exp $
+ * $Id: uip-fw.c,v 1.9 2008/01/24 23:07:37 adamdunkels Exp $
  */
 /**
  * \addtogroup uip
@@ -226,7 +226,6 @@ ipaddr_maskcmp(uip_ipaddr_t *ipaddr,
 static void
 time_exceeded(void)
 {
-  uip_ipaddr_t tmpip;
 
   /* We don't send out ICMP errors for ICMP messages. */
   if(ICMPBUF->proto == UIP_PROTO_ICMP) {
@@ -234,7 +233,7 @@ time_exceeded(void)
     return;
   }
   /* Copy fields from packet header into payload of this ICMP packet. */
-  memcpy(&(ICMPBUF->payload[0]), ICMPBUF, 28);
+  memcpy(&(ICMPBUF->payload[0]), ICMPBUF, UIP_IPH_LEN + 8);
 
   /* Set the ICMP type and code. */
   ICMPBUF->type = ICMP_TE;
@@ -246,12 +245,7 @@ time_exceeded(void)
 
   /* Set the IP destination address to be the source address of the
      original packet. */
-  uip_ipaddr_copy(&tmpip, &BUF->destipaddr);
   uip_ipaddr_copy(&BUF->destipaddr, &BUF->srcipaddr);
-  uip_ipaddr_copy(&BUF->srcipaddr, &tmpip);
-  uip_ipaddr_copy(&tmpip, &BUF->destipaddr);
-  uip_ipaddr_copy(&BUF->destipaddr, &BUF->srcipaddr);
-  uip_ipaddr_copy(&BUF->srcipaddr, &tmpip);
 
   /* Set our IP address as the source address. */
   uip_ipaddr_copy(&BUF->srcipaddr, &uip_hostaddr);
@@ -458,6 +452,7 @@ uip_fw_forward(void)
   /* If the TTL reaches zero we produce an ICMP time exceeded message
      in the uip_buf buffer and forward that packet back to the sender
      of the packet. */
+
   if(BUF->ttl <= 1) {
     /* No time exceeded for broadcasts and multicasts! */
     if(uip_ipaddr_cmp(&BUF->destipaddr, &uip_broadcast_addr)) {
