@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: process.c,v 1.7 2008/01/23 21:06:25 adamdunkels Exp $
+ * @(#)$Id: process.c,v 1.8 2008/01/24 21:00:51 adamdunkels Exp $
  */
 
 /**
@@ -234,17 +234,15 @@ do_poll(void)
 {
   struct process *p;
 
-  do {
-    poll_requested = 0;
-    /* Call the processes that needs to be polled. */
-    for(p = process_list; p != NULL; p = p->next) {
-      if(p->needspoll) {
-	p->state = PROCESS_STATE_RUNNING;
-	p->needspoll = 0;
-	call_process(p, PROCESS_EVENT_POLL, NULL);
-      }
+  poll_requested = 0;
+  /* Call the processes that needs to be polled. */
+  for(p = process_list; p != NULL; p = p->next) {
+    if(p->needspoll) {
+      p->state = PROCESS_STATE_RUNNING;
+      p->needspoll = 0;
+      call_process(p, PROCESS_EVENT_POLL, NULL);
     }
-  } while(poll_requested);
+  }
 }
 /*---------------------------------------------------------------------------*/
 /*
