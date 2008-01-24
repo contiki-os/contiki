@@ -30,7 +30,7 @@
  *
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: cfs-posix.c,v 1.9 2008/01/08 14:27:06 adamdunkels Exp $
+ * $Id: cfs-posix.c,v 1.10 2008/01/24 13:08:35 adamdunkels Exp $
  */
 
 #include <stdio.h>
@@ -75,7 +75,7 @@ cfs_read(int f, void *b, unsigned int l)
 }
 /*---------------------------------------------------------------------------*/
 int
-cfs_write(int f, void *b, unsigned int l)
+cfs_write(int f, const void *b, unsigned int l)
 {
   return write(f, b, l);
 }

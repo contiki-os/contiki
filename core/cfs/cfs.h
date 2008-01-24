@@ -54,7 +54,7 @@
  *
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: cfs.h,v 1.10 2008/01/08 14:27:06 adamdunkels Exp $
+ * $Id: cfs.h,v 1.11 2008/01/24 13:08:35 adamdunkels Exp $
  */
 #ifndef __CFS_H__
 #define __CFS_H__
@@ -172,7 +172,7 @@ CCIF int cfs_read(int fd, void *buf, unsigned int len);
  *             cfs_open() and the CFS_WRITE flag.
  */
 #ifndef cfs_write
-CCIF int cfs_write(int fd, void *buf, unsigned int len);
+CCIF int cfs_write(int fd, const void *buf, unsigned int len);
 #endif
 
 /**
