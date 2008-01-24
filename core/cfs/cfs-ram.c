@@ -30,7 +30,7 @@
  *
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: cfs-ram.c,v 1.6 2008/01/08 14:27:06 adamdunkels Exp $
+ * $Id: cfs-ram.c,v 1.7 2008/01/24 13:08:35 adamdunkels Exp $
  */
 
 #include <string.h>
@@ -106,7 +106,7 @@ cfs_read(int f, void *buf, unsigned int len)
 }
 /*---------------------------------------------------------------------------*/
 int
-cfs_write(int f, void *buf, unsigned int len)
+cfs_write(int f, const void *buf, unsigned int len)
 {
   printf("write file.fileptr %d len %d filesize %d\n",
 	 file.fileptr, len, file.filesize);

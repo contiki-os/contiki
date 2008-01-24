@@ -30,7 +30,7 @@
  *
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: cfs-eeprom.c,v 1.6 2008/01/09 08:12:52 adamdunkels Exp $
+ * $Id: cfs-eeprom.c,v 1.7 2008/01/24 13:08:35 adamdunkels Exp $
  */
 
 #include "cfs/cfs.h"
@@ -94,7 +94,7 @@ cfs_read(int f, void *buf, unsigned int len)
 }
 /*---------------------------------------------------------------------------*/
 int
-cfs_write(int f, void *buf, unsigned int len)
+cfs_write(int f, const void *buf, unsigned int len)
 {
   if(f == 1) {
     eeprom_write(CFS_EEPROM_OFFSET + file.fileptr, buf, len);

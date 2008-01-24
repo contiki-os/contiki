@@ -30,7 +30,7 @@
  *
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: cfs-xmem.c,v 1.7 2008/01/08 14:27:06 adamdunkels Exp $
+ * $Id: cfs-xmem.c,v 1.8 2008/01/24 13:08:35 adamdunkels Exp $
  */
 
 #include "cfs/cfs.h"
@@ -110,7 +110,7 @@ cfs_read(int f, void *buf, unsigned int len)
 }
 /*---------------------------------------------------------------------------*/
 int
-cfs_write(int f, void *buf, unsigned int len)
+cfs_write(int f, const void *buf, unsigned int len)
 {
   if(file.fileptr >= CFS_XMEM_SIZE) {
     return 0;
