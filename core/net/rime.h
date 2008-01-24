@@ -33,7 +33,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: rime.h,v 1.14 2008/01/14 09:35:53 adamdunkels Exp $
+ * $Id: rime.h,v 1.15 2008/01/24 06:17:33 adamdunkels Exp $
  */
 
 /**
@@ -46,26 +46,27 @@
 #ifndef __RIME_H__
 #define __RIME_H__
 
-#include "net/rime/rimestats.h"
-#include "net/rime/rimeaddr.h"
+#include "net/rime/collect.h"
 #include "net/rime/ctimer.h"
-#include "net/rime/rimebuf.h"
+#include "net/rime/ipolite.h"
+#include "net/rime/mesh.h"
+#include "net/rime/mh.h"
+#include "net/rime/neighbor-discovery.h"
+#include "net/rime/neighbor.h"
+#include "net/rime/nf.h"
+#include "net/rime/polite.h"
 #include "net/rime/queuebuf.h"
+#include "net/rime/rimeaddr.h"
+#include "net/rime/rimebuf.h"
+#include "net/rime/rimestats.h"
+#include "net/rime/rmh.h"
+#include "net/rime/route-discovery.h"
+#include "net/rime/route.h"
 #include "net/rime/ruc.h"
 #include "net/rime/rucb.h"
 #include "net/rime/sibc.h"
-#include "net/rime/mh.h"
-#include "net/rime/rmh.h"
-#include "net/rime/polite.h"
-#include "net/rime/ipolite.h"
-#include "net/rime/nf.h"
-#include "net/rime/neighbor.h"
-#include "net/rime/route.h"
-#include "net/rime/neighbor-discovery.h"
-#include "net/rime/route-discovery.h"
-#include "net/rime/collect.h"
+#include "net/rime/timesynch.h"
 #include "net/rime/trickle.h"
-#include "net/rime/mesh.h"
 
 #include "net/mac/mac.h"
 /**
@@ -120,6 +121,14 @@ static struct rime_sniffer name = { NULL, input_callback, output_callback }
 void rime_sniffer_add(struct rime_sniffer *s);
 void rime_sniffer_remove(struct rime_sniffer *s);
 
+
+/* Generic Rime return values. */
+enum {
+  RIME_OK,
+  RIME_ERR,
+  RIME_ERR_CONTENTION,
+  RIME_ERR_NOACK,
+};
 #endif /* __RIME_H__ */
 
 /** @} */
