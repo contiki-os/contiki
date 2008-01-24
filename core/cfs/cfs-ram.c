@@ -30,7 +30,7 @@
  *
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: cfs-ram.c,v 1.7 2008/01/24 13:08:35 adamdunkels Exp $
+ * $Id: cfs-ram.c,v 1.8 2008/01/24 23:07:05 adamdunkels Exp $
  */
 
 #include <string.h>
@@ -86,8 +86,6 @@ cfs_close(int f)
 int
 cfs_read(int f, void *buf, unsigned int len)
 {
-  printf("read file.fileptr %d len %d filesize %d\n",
-	 file.fileptr, len, file.filesize);
   if(file.fileptr + len > sizeof(filemem)) {
     len = sizeof(filemem) - file.fileptr;
   }
@@ -108,9 +106,6 @@ cfs_read(int f, void *buf, unsigned int len)
 int
 cfs_write(int f, const void *buf, unsigned int len)
 {
-  printf("write file.fileptr %d len %d filesize %d\n",
-	 file.fileptr, len, file.filesize);
-
   if(file.fileptr >= sizeof(filemem)) {
     return 0;
   }
