@@ -41,7 +41,7 @@
  *
  * This file is part of the uIP TCP/IP stack.
  *
- * $Id: uip.c,v 1.9 2007/11/28 12:53:07 adamdunkels Exp $
+ * $Id: uip.c,v 1.10 2008/01/24 23:08:58 adamdunkels Exp $
  *
  */
 
@@ -195,6 +195,9 @@ static u16_t tmp16;
 
 #define ICMP_ECHO_REPLY 0
 #define ICMP_ECHO       8
+
+#define ICMP_DEST_UNREACHABLE        3
+#define ICMP_PORT_UNREACHABLE        3
 
 #define ICMP6_ECHO_REPLY             129
 #define ICMP6_ECHO                   128
@@ -1104,7 +1107,37 @@ uip_process(u8_t flag)
     }
   }
   UIP_LOG("udp: no matching connection found");
+#if UIP_CONF_ICMP_DEST_UNREACH && !UIP_CONF_IPV6
+  /* Copy fields from packet header into payload of this ICMP packet. */
+  memcpy(&(ICMPBUF->payload[0]), ICMPBUF, UIP_IPH_LEN + 8);
+
+  /* Set the ICMP type and code. */
+  ICMPBUF->type = ICMP_DEST_UNREACHABLE;
+  ICMPBUF->icode = ICMP_PORT_UNREACHABLE;
+
+  /* Calculate the ICMP checksum. */
+  ICMPBUF->icmpchksum = 0;
+  ICMPBUF->icmpchksum = ~uip_chksum((u16_t *)&(ICMPBUF->type), 36);
+
+  /* Set the IP destination address to be the source address of the
+     original packet. */
+  uip_ipaddr_copy(&BUF->destipaddr, &BUF->srcipaddr);
+
+  /* Set our IP address as the source address. */
+  uip_ipaddr_copy(&BUF->srcipaddr, &uip_hostaddr);
+
+  /* The size of the ICMP destination unreachable packet is 36 + the
+     size of the IP header (20) = 56. */
+  uip_len = 36 + UIP_IPH_LEN;
+  ICMPBUF->len[0] = 0;
+  ICMPBUF->len[1] = (u8_t)uip_len;
+  ICMPBUF->ttl = UIP_TTL;
+  ICMPBUF->proto = UIP_PROTO_ICMP;
+
+  goto ip_send_nolen;
+#else /* UIP_CONF_ICMP_DEST_UNREACH */
   goto drop;
+#endif /* UIP_CONF_ICMP_DEST_UNREACH */
   
  udp_found:
   uip_conn = NULL;
