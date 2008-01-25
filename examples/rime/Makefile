@@ -2,7 +2,8 @@ CONTIKI = ../..
 ifndef TARGET
 TARGET=netsim
 endif
-all: test-abc test-meshroute test-collect test-trickle test-polite \
-     test-rudolph0 test-rudolph1 test-rudolph2 test-rucb
+all: example-abc example-mesh example-collect example-trickle example-polite \
+     example-rudolph0 example-rudolph1 example-rudolph2 example-rucb \
+     example-ruc example-uc
 
 include $(CONTIKI)/Makefile.include

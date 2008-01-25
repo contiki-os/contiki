@@ -5,8 +5,8 @@
 #include <stdio.h>
 
 /*---------------------------------------------------------------------------*/
-PROCESS(test_polite_process, "");
-AUTOSTART_PROCESSES(&test_polite_process);
+PROCESS(example_polite_process, "");
+AUTOSTART_PROCESSES(&example_polite_process);
 /*---------------------------------------------------------------------------*/
 static void
 recv(struct polite_conn *c)
@@ -25,7 +25,7 @@ dropped(struct polite_conn *c)
 }
 static const struct polite_callbacks callbacks = { recv, sent, dropped };
 /*---------------------------------------------------------------------------*/
-PROCESS_THREAD(test_polite_process, ev, data)
+PROCESS_THREAD(example_polite_process, ev, data)
 {
   static struct polite_conn c;
 

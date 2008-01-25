@@ -28,53 +28,96 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: test-trickle.c,v 1.5 2007/05/15 08:10:32 adamdunkels Exp $
+ * $Id: example-meshconn.c,v 1.1 2008/01/25 18:00:50 adamdunkels Exp $
  */
 
 /**
  * \file
- *         Testing the trickle code in Rime
+ *         A brief description of what this file is.
  * \author
  *         Adam Dunkels <adam@sics.se>
  */
 
 #include "contiki.h"
-#include "net/rime/trickle.h"
+#include "net/rime.h"
+#include "net/rime/meshconn.h"
 
 #include "dev/button-sensor.h"
 
 #include "dev/leds.h"
 
 #include <stdio.h>
+
+static struct meshconn_conn meshconn;
 /*---------------------------------------------------------------------------*/
-PROCESS(test_trickle_process, "TRICKLE test");
-AUTOSTART_PROCESSES(&test_trickle_process);
+PROCESS(test_meshconn_process, "Meshconnconn test");
+AUTOSTART_PROCESSES(&test_meshconn_process);
 /*---------------------------------------------------------------------------*/
 static void
-trickle_recv(struct trickle_conn *c)
+connected(struct meshconn_conn *c)
 {
-  printf("%d.%d: trickle message received '%s'\n",
-	 rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1],
-	 (char *)rimebuf_dataptr());
+  printf("connected\n");
 }
-const static struct trickle_callbacks trickle_call = {trickle_recv};
-static struct trickle_conn trickle;
-/*---------------------------------------------------------------------------*/
-PROCESS_THREAD(test_trickle_process, ev, data)
+static void
+closed(struct meshconn_conn *c)
 {
-  PROCESS_EXITHANDLER(trickle_close(&trickle);)
+  printf("closed\n");
+}
+static void
+reset(struct meshconn_conn *c)
+{
+  printf("reset\n");
+}
+static void
+timedout(struct meshconn_conn *c)
+{
+  printf("timedout\n");
+}
+static void
+recv(struct meshconn_conn *c)
+{
+  printf("Data received from %.*s (%d)\n",
+	 rimebuf_datalen(), (char *)rimebuf_dataptr(), rimebuf_datalen());
+
+  /*  meshconn_send(&meshconn, from);*/
+}
+
+const static struct meshconn_callbacks callbacks = { connected,
+						     recv,
+						     closed,
+						     timedout,
+						     reset };
+/*---------------------------------------------------------------------------*/
+PROCESS_THREAD(test_meshconn_process, ev, data)
+{
+  PROCESS_EXITHANDLER(meshconn_close(&meshconn);)
   PROCESS_BEGIN();
 
-  trickle_open(&trickle, CLOCK_SECOND, 128, &trickle_call);
-  button_sensor.activate();
+  meshconn_open(&meshconn, 128, &callbacks);
+
+  /* button_sensor.activate();*/
 
   while(1) {
-    PROCESS_WAIT_EVENT_UNTIL(ev == sensors_event &&
-			     data == &button_sensor);
+    rimeaddr_t addr;
+    static struct etimer et;
 
-    rimebuf_copyfrom("Hello, world", 13);
-    trickle_send(&trickle);
+    etimer_set(&et, CLOCK_SECOND * 4);
+    PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&et) ||
+			     (ev == sensors_event && data == &button_sensor));
 
+    printf("Button\n");
+
+    /*
+     * Send a message containing "Hej" (3 characters) to node number
+     * 6.
+     */
+
+    addr.u8[0] = 53;
+    addr.u8[1] = 0;
+    meshconn_connect(&meshconn, addr);
+    
+    rimebuf_copyfrom("Hej", 3);
+    meshconn_send(&meshconn, &addr);
   }
   PROCESS_END();
 }

@@ -28,82 +28,66 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: test-meshroute.c,v 1.3 2007/03/25 12:10:29 adamdunkels Exp $
+ * $Id: example-mh.c,v 1.1 2008/01/25 18:00:50 adamdunkels Exp $
  */
 
 /**
  * \file
- *         A brief description of what this file is.
+ *         Testing the multihop forwarding layer (mh) in Rime
  * \author
  *         Adam Dunkels <adam@sics.se>
  */
 
 #include "contiki.h"
 #include "net/rime.h"
-#include "net/rime/mesh.h"
 
 #include "dev/button-sensor.h"
 
 #include "dev/leds.h"
 
 #include <stdio.h>
-
-static struct mesh_conn mesh;
 /*---------------------------------------------------------------------------*/
-PROCESS(test_mesh_process, "Mesh test");
-AUTOSTART_PROCESSES(&test_mesh_process);
+PROCESS(example_mh_process, "mh example");
+AUTOSTART_PROCESSES(&example_mh_process);
 /*---------------------------------------------------------------------------*/
 static void
-sent(struct mesh_conn *c)
+recv(struct mh_conn *c, rimeaddr_t *sender)
 {
-  printf("packet sent\n");
+  printf("mh message received '%s'\n", (char *)rimebuf_dataptr());
 }
-static void
-timedout(struct mesh_conn *c)
+static rimeaddr_t *
+forward(struct mh_conn *c, rimeaddr_t *originator, rimeaddr_t *dest,
+	rimeaddr_t *prevhop, u8_t hops)
 {
-  printf("packet timedout\n");
+  printf("Forwarding message '%s'\n", (char *)rimebuf_dataptr());
+  return NULL;
 }
-static void
-recv(struct mesh_conn *c, rimeaddr_t *from)
-{
-  printf("Data received from %d: %.*s (%d)\n", from->u16[0],
-	 rimebuf_datalen(), (char *)rimebuf_dataptr(), rimebuf_datalen());
-
-  rimebuf_copyfrom("Hopp", 4);
-  mesh_send(&mesh, from);
-}
-
-const static struct mesh_callbacks callbacks = {recv, sent, timedout};
+static const struct mh_callbacks mh_call = {recv, forward};
+static struct mh_conn mh;
 /*---------------------------------------------------------------------------*/
-PROCESS_THREAD(test_mesh_process, ev, data)
+PROCESS_THREAD(example_mh_process, ev, data)
 {
-  PROCESS_EXITHANDLER(mesh_close(&mesh);)
+  PROCESS_EXITHANDLER(mh_close(&mh);)
+    
   PROCESS_BEGIN();
 
-  mesh_open(&mesh, 128, &callbacks);
-
-  button_sensor.activate();
+  mh_open(&mh, 128, &mh_call);
 
   while(1) {
-    rimeaddr_t addr;
     static struct etimer et;
-
-    /*    etimer_set(&et, CLOCK_SECOND * 4);*/
-    PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&et) ||
-			     (ev == sensors_event && data == &button_sensor));
-
-    printf("Button\n");
-
-    /*
-     * Send a message containing "Hej" (3 characters) to node number
-     * 6.
-     */
+    rimeaddr_t to;
     
-    rimebuf_copyfrom("Hej", 3);
-    addr.u8[0] = 161;
-    addr.u8[1] = 161;
-    mesh_send(&mesh, &addr);
+    etimer_set(&et, CLOCK_SECOND);
+    
+    PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&et));
+
+    rimebuf_copyfrom("Hej", 4);
+    to.u8[0] = 161;
+    to.u8[1] = 161;
+    mh_send(&mh, &to);
+
   }
+
   PROCESS_END();
 }
 /*---------------------------------------------------------------------------*/
