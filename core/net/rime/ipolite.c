@@ -33,7 +33,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: ipolite.c,v 1.5 2008/01/24 21:10:50 adamdunkels Exp $
+ * $Id: ipolite.c,v 1.6 2008/01/25 01:06:25 adamdunkels Exp $
  */
 
 /**
@@ -135,13 +135,17 @@ ipolite_send(struct ipolite_conn *c, clock_time_t interval, u8_t hdrsize)
     queuebuf_free(c->q);
   }
   c->hdrsize = hdrsize;
-  c->q = queuebuf_new_from_rimebuf();
-  if(c->q != NULL) {
-    if(interval == 0) {
-      PRINTF("%d.%d: ipolite_send: interval 0\n",
-	     rimeaddr_node_addr.u8[0],rimeaddr_node_addr.u8[1]);
-      send(c);
-    } else {
+  if(interval == 0) {
+    PRINTF("%d.%d: ipolite_send: interval 0\n",
+	   rimeaddr_node_addr.u8[0],rimeaddr_node_addr.u8[1]);
+    ibc_send(&c->c);
+    if(c->cb->sent) {
+      c->cb->sent(c);
+    }
+    return 1;
+  } else {
+    c->q = queuebuf_new_from_rimebuf();
+    if(c->q != NULL) {
       ctimer_set(&c->t,
 		 interval / 2 + (random_rand() % (interval / 2)),
 		 send, c);
