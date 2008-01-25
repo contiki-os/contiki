@@ -28,118 +28,104 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: test-rucb.c,v 1.2 2007/11/17 18:09:56 adamdunkels Exp $
+ * $Id: example-collect.c,v 1.1 2008/01/25 18:00:50 adamdunkels Exp $
  */
 
 /**
  * \file
- *         Testing the rucb code in Rime
+ *         A brief description of what this file is.
  * \author
  *         Adam Dunkels <adam@sics.se>
  */
 
 #include "contiki.h"
-#include "net/rime/rucb.h"
-
-#include "dev/button-sensor.h"
-
+#include "net/rime.h"
+#include "net/rime/collect.h"
+#include "net/rime/neighbor.h"
 #include "dev/leds.h"
-
-#include "cfs/cfs.h"
-#include "lib/print-stats.h"
-#include "sys/profile.h"
+#include "dev/button-sensor.h"
 
 #include <stdio.h>
 
-#if NETSIM
-#include "ether.h"
-#include "node.h"
-#endif /* NETSIM */
-
-#define FILESIZE 40000
-
-static unsigned long bytecount;
-static clock_time_t start_time;
-
-extern int profile_max_queuelen;
+static struct collect_conn tc;
 
 /*---------------------------------------------------------------------------*/
-PROCESS(test_rucb_process, "Rucb test");
-AUTOSTART_PROCESSES(&test_rucb_process);
+PROCESS(example_collect_process, "Test collect process");
+PROCESS(depth_blink_process, "Depth indicator");
+AUTOSTART_PROCESSES(&example_collect_process, &depth_blink_process);
 /*---------------------------------------------------------------------------*/
-static void
-write_chunk(struct rucb_conn *c, int offset, int flag,
-	    char *data, int datalen)
+PROCESS_THREAD(depth_blink_process, ev, data)
 {
-#if NETSIM
-  {
-    char buf[100];
-    printf("received %d; %d\n", offset, datalen);
-    sprintf(buf, "%d%%", (100 * (offset + datalen)) / FILESIZE);
-    ether_set_text(buf);
-  }
-#endif /* NETSIM */
+  static struct etimer et;
+  static int count;
 
-}
-static int
-read_chunk(struct rucb_conn *c, int offset, char *to, int maxsize)
-{
-  int size;
-  size = maxsize;
-  if(bytecount + maxsize >= FILESIZE) {
-    size = FILESIZE - bytecount;
-  }
-  bytecount += size;
-
-  if(bytecount == FILESIZE) {
-    printf("Completion time %lu / %u\n", (unsigned long)clock_time() - start_time, CLOCK_SECOND);
-    /*     profile_aggregates_print(); */
-/*     profile_print_stats(); */
-    print_stats();
-  }
-
-  /*  printf("bytecount %lu\n", bytecount);*/
-  return size;
-}
-const static struct rucb_callbacks rucb_call = {write_chunk, read_chunk,
-						NULL};
-static struct rucb_conn rucb;
-/*---------------------------------------------------------------------------*/
-#include "node-id.h"
-
-PROCESS_THREAD(test_rucb_process, ev, data)
-{
-  PROCESS_EXITHANDLER(rucb_close(&rucb);)
   PROCESS_BEGIN();
 
-  PROCESS_PAUSE();
-
-  
-  rucb_open(&rucb, 128, &rucb_call);
-  button_sensor.activate();
-
-  PROCESS_PAUSE();
-  
-  if(rimeaddr_node_addr.u8[0] == 51 &&
-     rimeaddr_node_addr.u8[1] == 0) {
-    rimeaddr_t recv;
-    
-    recv.u8[0] = 52;
-    recv.u8[1] = 0;
-    start_time = clock_time();
-    rucb_send(&rucb, &recv);
-#if NETSIM
-    ether_send_done();
-#endif /* NETSIM */
+  while(1) {
+    etimer_set(&et, CLOCK_SECOND * 1);
+    PROCESS_WAIT_UNTIL(etimer_expired(&et));
+    count = collect_depth(&tc);
+    if(count == COLLECT_MAX_DEPTH) {
+      leds_on(LEDS_RED);
+    } else {
+      leds_off(LEDS_RED);
+      count /= NEIGHBOR_ETX_SCALE;
+      while(count > 0) {
+	leds_on(LEDS_RED);
+	etimer_set(&et, CLOCK_SECOND / 16);
+	PROCESS_WAIT_UNTIL(etimer_expired(&et));
+	leds_off(LEDS_RED);
+	etimer_set(&et, CLOCK_SECOND / 4);
+	PROCESS_WAIT_UNTIL(etimer_expired(&et));
+	--count;
+      }
+    }
   }
+  
+  PROCESS_END();
+}
+/*---------------------------------------------------------------------------*/
+static void
+recv(rimeaddr_t *originator, u8_t seqno, u8_t hops)
+{
+  printf("Sink got message from %d.%d, seqno %d, hops %d: len %d '%s'\n",
+	 originator->u8[0], originator->u8[1],
+	 seqno, hops,
+	 rimebuf_datalen(),
+	 (char *)rimebuf_dataptr());
+
+}
+/*---------------------------------------------------------------------------*/
+static const struct collect_callbacks callbacks = { recv };
+/*---------------------------------------------------------------------------*/
+PROCESS_THREAD(example_collect_process, ev, data)
+{
+  PROCESS_BEGIN();
+
+  collect_open(&tc, 128, &callbacks);
   
   while(1) {
+    static struct etimer et;
 
-    PROCESS_WAIT_EVENT_UNTIL(ev == sensors_event &&
-			     data == &button_sensor);
-    /*rucb_stop(&rucb);*/
+    etimer_set(&et, CLOCK_SECOND * 10);
+    PROCESS_WAIT_EVENT();
 
+    if(etimer_expired(&et)) {
+      rimebuf_clear();
+      rimebuf_set_datalen(sprintf(rimebuf_dataptr(),
+				  "%s", "Hello") + 1);
+      collect_send(&tc, 4);
+    }
+
+    if(ev == sensors_event) {
+      if(data == &button_sensor) {
+	printf("Button\n");
+	collect_set_sink(&tc, 1);
+      }
+    }
+    
   }
+  
   PROCESS_END();
 }
 /*---------------------------------------------------------------------------*/

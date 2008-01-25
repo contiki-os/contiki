@@ -28,56 +28,82 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: test-abc.c,v 1.4 2007/09/14 20:07:26 nvt-se Exp $
+ * $Id: example-mesh.c,v 1.1 2008/01/25 18:00:50 adamdunkels Exp $
  */
 
 /**
  * \file
- *         Testing the abc layer in Rime
+ *         A brief description of what this file is.
  * \author
  *         Adam Dunkels <adam@sics.se>
  */
 
 #include "contiki.h"
 #include "net/rime.h"
+#include "net/rime/mesh.h"
 
 #include "dev/button-sensor.h"
 
 #include "dev/leds.h"
 
 #include <stdio.h>
+
+static struct mesh_conn mesh;
 /*---------------------------------------------------------------------------*/
-PROCESS(test_abc_process, "ABC test");
-AUTOSTART_PROCESSES(&test_abc_process);
+PROCESS(example_mesh_process, "Mesh example");
+AUTOSTART_PROCESSES(&example_mesh_process);
 /*---------------------------------------------------------------------------*/
 static void
-abc_recv(struct abc_conn *c)
+sent(struct mesh_conn *c)
 {
-  printf("abc message received '%s'\n", (char *)rimebuf_dataptr());
+  printf("packet sent\n");
 }
-static const struct abc_callbacks abc_call = {abc_recv};
-static struct abc_conn abc;
-/*---------------------------------------------------------------------------*/
-PROCESS_THREAD(test_abc_process, ev, data)
+static void
+timedout(struct mesh_conn *c)
 {
-  PROCESS_EXITHANDLER(abc_close(&abc);)
-    
+  printf("packet timedout\n");
+}
+static void
+recv(struct mesh_conn *c, rimeaddr_t *from)
+{
+  printf("Data received from %d: %.*s (%d)\n", from->u16[0],
+	 rimebuf_datalen(), (char *)rimebuf_dataptr(), rimebuf_datalen());
+
+  rimebuf_copyfrom("Hopp", 4);
+  mesh_send(&mesh, from);
+}
+
+const static struct mesh_callbacks callbacks = {recv, sent, timedout};
+/*---------------------------------------------------------------------------*/
+PROCESS_THREAD(example_mesh_process, ev, data)
+{
+  PROCESS_EXITHANDLER(mesh_close(&mesh);)
   PROCESS_BEGIN();
 
-  abc_open(&abc, 128, &abc_call);
+  mesh_open(&mesh, 128, &callbacks);
+
+  button_sensor.activate();
 
   while(1) {
+    rimeaddr_t addr;
     static struct etimer et;
-    
-    etimer_set(&et, CLOCK_SECOND);
-    
-    PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&et));
 
-    rimebuf_copyfrom("Hej", 4);
-    abc_send(&abc);
+    /*    etimer_set(&et, CLOCK_SECOND * 4);*/
+    PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&et) ||
+			     (ev == sensors_event && data == &button_sensor));
 
+    printf("Button\n");
+
+    /*
+     * Send a message containing "Hej" (3 characters) to node number
+     * 6.
+     */
+    
+    rimebuf_copyfrom("Hej", 3);
+    addr.u8[0] = 161;
+    addr.u8[1] = 161;
+    mesh_send(&mesh, &addr);
   }
-
   PROCESS_END();
 }
 /*---------------------------------------------------------------------------*/

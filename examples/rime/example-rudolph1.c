@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: test-rudolph1.c,v 1.8 2007/11/17 18:09:56 adamdunkels Exp $
+ * $Id: example-rudolph1.c,v 1.1 2008/01/25 18:00:51 adamdunkels Exp $
  */
 
 /**
@@ -59,8 +59,8 @@
 #define FILESIZE 2000
 
 /*---------------------------------------------------------------------------*/
-PROCESS(test_rudolph1_process, "Rudolph1 test");
-AUTOSTART_PROCESSES(&test_rudolph1_process);
+PROCESS(example_rudolph1_process, "Rudolph1 example");
+AUTOSTART_PROCESSES(&example_rudolph1_process);
 /*---------------------------------------------------------------------------*/
 static void
 write_chunk(struct rudolph1_conn *c, int offset, int flag,
@@ -149,7 +149,7 @@ log_queuelen(struct rtimer *t, void *ptr)
 }
 /*---------------------------------------------------------------------------*/
 
-PROCESS_THREAD(test_rudolph1_process, ev, data)
+PROCESS_THREAD(example_rudolph1_process, ev, data)
 {
   static int fd;
   static struct rtimer t;
