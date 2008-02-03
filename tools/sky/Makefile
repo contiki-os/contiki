@@ -32,9 +32,9 @@ sky-motelist:
 sky-motes:
 	@echo $(MOTES)
 
-%.upload: %.ihex sky-reset
+%.upload: %.ihex
 	cp $< $(IHEXFILE)
-	$(MAKE) sky-upload
+	$(MAKE) sky-reset sky-upload
 
 sky-upload: sky-reset
 	$(MAKE) -j $(NUMPAR) sky-upload-sequence
