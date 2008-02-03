@@ -24,7 +24,7 @@
  * IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY
  * OF SUCH DAMAGE.
  *
- * $Id: display.c,v 1.7 2008/01/14 09:38:16 adamdunkels Exp $
+ * $Id: display.c,v 1.8 2008/02/03 20:49:50 adamdunkels Exp $
  *
  * Author: Adam Dunkels <adam@sics.se>
  *
@@ -207,6 +207,21 @@ display_redraw(void)
 			   y * SCALE + 2,
 			   4, 4);
       }
+      if(n->linex != 0 && n->liney != 0) {
+	gdk_draw_line(pixmap,
+		      green,
+		      x * SCALE,
+		      y * SCALE,
+		      n->linex * SCALE,
+		      n->liney * SCALE);
+	gdk_draw_rectangle(pixmap,
+			   green,
+			   TRUE,
+			   n->linex * SCALE - 2,
+			   n->liney * SCALE - 2,
+			   4, 4);
+      }
+
     }
 
   }

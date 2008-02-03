@@ -30,7 +30,7 @@
  *
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: ether.c,v 1.11 2008/01/14 09:38:16 adamdunkels Exp $
+ * $Id: ether.c,v 1.12 2008/02/03 20:49:50 adamdunkels Exp $
  */
 /**
  * \file
@@ -86,6 +86,7 @@ static clock_time_t timer;
 
 static int s, sc;
 
+#define PTYPE_NONE   0
 #define PTYPE_CLOCK  1
 #define PTYPE_DATA   2
 #define PTYPE_SENSOR 3
@@ -100,6 +101,7 @@ struct ether_hdr {
   int type;
   struct sensor_data sensor_data;
   clock_time_t clock;
+  int linex, liney;
   int signal;
   int srcx, srcy;
   int srcpid;
@@ -121,6 +123,9 @@ static int num_drops = 0;
 #include <sys/time.h>
 
 static struct timeval t1;
+
+static int linex, liney;
+
 /*-----------------------------------------------------------------------------------*/
 void
 ether_print_stats(void)
@@ -336,6 +341,7 @@ ether_server_poll(void)
 	perror("ether_poll: read");
 	return;
       }
+      nodes_set_line(hdr->srcx, hdr->srcy, hdr->linex, hdr->liney);
       switch(hdr->type) {
       case PTYPE_DATA:
 	PRINTF("ether_poll: read %d bytes from (%d, %d)\n",
@@ -538,7 +544,8 @@ ether_send(char *data, int len)
   /*  hdr->srcnodetype = node.type;*/
   hdr->srcid = node.id;
 
-
+  hdr->linex = linex;
+  hdr->liney = liney;
   node_send_packet(tmpbuf, len + sizeof(struct ether_hdr));
   
   return UIP_FW_OK;
@@ -556,6 +563,8 @@ ether_set_leds(int leds)
   hdr.leds = leds;
   /*  hdr.srcnodetype = node.type;*/
   hdr.srcid = node.id;
+  hdr.linex = linex;
+  hdr.liney = liney;
 
   node_send_packet((char *)&hdr, sizeof(struct ether_hdr));
 
@@ -572,6 +581,8 @@ ether_set_text(char *text)
   strncpy(hdr.text, text, NODES_TEXTLEN);
   /*  hdr.srcnodetype = node.type;*/
   hdr.srcid = node.id;
+  hdr.linex = linex;
+  hdr.liney = liney;
 
   node_send_packet((char *)&hdr, sizeof(struct ether_hdr));
 
@@ -642,5 +653,24 @@ ether_send_serial(char *str)
   /*  printf("ether_send_serial '%s' to %d len %d\n", str, nodes_base_node_port, sizeof(struct ether_hdr));*/
   
   send_packet((char *)&hdr, sizeof(struct ether_hdr), nodes_base_node_port);
+}
+/*-----------------------------------------------------------------------------------*/
+void
+ether_set_line(int x, int y)
+{
+  struct ether_hdr hdr;
+  
+  linex = x;
+  liney = y;
+
+  
+  hdr.srcx = node.x;
+  hdr.srcy = node.y;
+  hdr.type = PTYPE_NONE;
+  hdr.srcid = node.id;
+  hdr.linex = linex;
+  hdr.liney = liney;
+
+  node_send_packet((char *)&hdr, sizeof(struct ether_hdr));
 }
 /*-----------------------------------------------------------------------------------*/

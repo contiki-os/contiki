@@ -30,13 +30,14 @@
  *
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: contiki-main.c,v 1.26 2008/01/14 09:38:16 adamdunkels Exp $
+ * $Id: contiki-main.c,v 1.27 2008/02/03 20:49:50 adamdunkels Exp $
  */
 
 #include "contiki.h"
 #include "contiki-net.h"
 #include "contiki-lib.h"
 
+#include "dev/serial.h"
 #include "net/rime.h"
 
 #ifdef __CYGWIN__
@@ -54,6 +55,10 @@
 #include "ether.h"
 
 #include <stdio.h>
+#ifndef HAVE_SNPRINTF
+int snprintf(char *str, size_t size, const char *format, ...);
+#endif /* HAVE_SNPRINTF */
+
 #include <stdlib.h>
 #include <sys/select.h>
 #include <unistd.h>

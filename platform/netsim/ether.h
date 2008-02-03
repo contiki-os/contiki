@@ -30,7 +30,7 @@
  *
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: ether.h,v 1.7 2008/01/14 09:38:16 adamdunkels Exp $
+ * $Id: ether.h,v 1.8 2008/02/03 20:49:50 adamdunkels Exp $
  */
 #ifndef __ETHER_H__
 #define __ETHER_H__
@@ -82,5 +82,8 @@ void ether_set_collisions(int c);
 void ether_set_drop_probability(double p);
 
 void ether_print_stats(void);
+
+void ether_set_line(int x, int y);
+
 
 #endif /* __ETHER_H__ */
