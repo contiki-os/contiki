@@ -1,5 +1,5 @@
 /* -*- C -*- */
-/* @(#)$Id: contiki-conf.h,v 1.22 2008/01/08 08:19:56 adamdunkels Exp $ */
+/* @(#)$Id: contiki-conf.h,v 1.23 2008/02/03 21:01:36 adamdunkels Exp $ */
 
 #ifndef CONTIKI_CONF_H
 #define CONTIKI_CONF_H
@@ -10,7 +10,7 @@
 #define TIMESYNCH_CONF_ENABLED 1
 #define SIMPLE_CC2420_CONF_TIMESTAMPS 1
 
-#define PROFILE_CONF_ON 1
+#define PROFILE_CONF_ON 0
 #define ENERGEST_CONF_ON 1
 
 #define HAVE_STDINT_H
@@ -20,7 +20,7 @@
 #define RF_CHANNEL              26
 #endif /* RF_CHANNEL */
 
-#define ELFLOADER_CONF_DATAMEMORY_SIZE 0x1800
+#define ELFLOADER_CONF_DATAMEMORY_SIZE 0x800
 #define ELFLOADER_CONF_TEXTMEMORY_SIZE 0x1000
 
 #define IRQ_PORT1 0x01
@@ -38,6 +38,8 @@
 #define TMOTE_SKY 1
 #define WITH_ASCII 1
 
+#define PROCESS_CONF_NUMEVENTS 8
+#define PROCESS_CONF_STATS 1
 /*#define PROCESS_CONF_FASTPOLL    4*/
 
 /* CPU target speed in Hz */
@@ -47,6 +49,8 @@
 #define CLOCK_CONF_SECOND 64
 
 #define BAUD2UBR(baud) ((F_CPU/baud))
+
+#define UIP_CONF_ICMP_DEST_UNREACH 1
 
 #define UIP_CONF_DHCP_LIGHT
 #define UIP_CONF_LLH_LEN         0
@@ -83,9 +87,6 @@ typedef unsigned short clock_time_t;
 typedef unsigned long off_t;
 #define ROM_ERASE_UNIT_SIZE  512
 #define XMEM_ERASE_UNIT_SIZE (64*1024L)
-
-#define XMAC_CONF_ON_TIME RTIMER_ARCH_SECOND / 100
-#define XMAC_CONF_OFF_TIME RTIMER_ARCH_SECOND / 10
 
 /* Use the first 64k of external flash for node configuration */
 #define NODE_ID_XMEM_OFFSET     (0 * XMEM_ERASE_UNIT_SIZE)
