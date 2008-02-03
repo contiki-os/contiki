@@ -1,4 +1,4 @@
-# $Id: Makefile.msp430,v 1.22 2008/01/08 08:01:01 adamdunkels Exp $
+# $Id: Makefile.msp430,v 1.23 2008/02/03 20:59:35 adamdunkels Exp $
 
 ifdef nodeid
 CFLAGS += -DNODEID=$(nodeid)
@@ -14,7 +14,7 @@ CONTIKI_CPU=$(CONTIKI)/cpu/msp430
 CONTIKI_CPU_DIRS = . dev
 
 MSP430     = msp430.c flash.c clock.c leds.c leds-arch.c \
-             watchdog.c lpm.c mtarch.c uart1.c rtimer-arch.c
+             watchdog.c lpm.c mtarch.c uart1.c slip_uart1.c rtimer-arch.c
 UIPDRIVERS = me.c me_tabs.c slip.c crc16.c
 #UIPDRIVERS = me.c me_tabs.c crc16.c ppp/ahdlc.c ppp/ipcp.c ppp/lcp.c ppp/pap.c ppp/ppp.c ppp/ppp_process.c
 SYSAPPS    = #codeprop-tmp.c
