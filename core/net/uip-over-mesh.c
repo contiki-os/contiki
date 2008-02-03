@@ -28,12 +28,12 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: uip-over-mesh.c,v 1.5 2007/08/30 14:39:17 matsutsuka Exp $
+ * $Id: uip-over-mesh.c,v 1.6 2008/02/03 20:56:07 adamdunkels Exp $
  */
 
 /**
  * \file
- *         Code for tunnelling uIP packets over the mesh routing module
+ *         Code for tunnelling uIP packets over the Rime mesh routing module
  * \author
  *         Adam Dunkels <adam@sics.se>
  */
@@ -52,13 +52,19 @@ static rimeaddr_t queued_receiver;
 static struct route_discovery_conn route_discovery;
 static struct uc_conn dataconn;
 
-#define DEBUG 0
+#define DEBUG 1
 #if DEBUG
 #include <stdio.h>
 #define PRINTF(...) printf(__VA_ARGS__)
 #else
 #define PRINTF(...)
 #endif
+
+#define BUF ((struct uip_tcpip_hdr *)&uip_buf[UIP_LLH_LEN])
+
+static struct uip_fw_netif *gw_netif;
+static rimeaddr_t gateway;
+static uip_ipaddr_t netaddr, netmask;
 
 /*---------------------------------------------------------------------------*/
 static void
@@ -119,10 +125,10 @@ void
 uip_over_mesh_init(u16_t channels)
 {
 
-  /*  printf("Our address is %d.%d (%d.%d.%d.%d)\n",
+  printf("Our address is %d.%d (%d.%d.%d.%d)\n",
 	 rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1],
 	 uip_hostaddr.u8[0], uip_hostaddr.u8[1],
-	 uip_hostaddr.u8[2], uip_hostaddr.u8[3]); */
+	 uip_hostaddr.u8[2], uip_hostaddr.u8[3]);
 
   uc_open(&dataconn, channels, &data_callbacks);
   route_discovery_open(&route_discovery, CLOCK_SECOND / 4,
@@ -141,8 +147,28 @@ uip_over_mesh_send(void)
      packet. We try to send the IP packet to the next hop route, or we
      queue the packet and send out a route request for the final
      receiver of the packet. */
-  
-  receiver.u16[0] = ((struct uip_udpip_hdr *)&uip_buf[UIP_LLH_LEN])->destipaddr.u16[1];
+
+  /* Packets destined to this network is sent using mesh, whereas
+     packets destined to a network outside this network is sent towards
+     the gateway node. */
+
+  if(uip_ipaddr_maskcmp(&BUF->destipaddr, &netaddr, &netmask)) {
+    receiver.u8[0] = BUF->destipaddr.u8[2];
+    receiver.u8[1] = BUF->destipaddr.u8[3];
+  } else {
+    if(rimeaddr_cmp(&gateway, &rimeaddr_node_addr)) {
+      PRINTF("I am gateway, should forward over a local interface\n");
+      if(gw_netif != NULL) {
+	return gw_netif->output();
+      }
+      return UIP_FW_DROPPED;
+    } else if(rimeaddr_cmp(&gateway, &rimeaddr_null)) {
+      PRINTF("No gateway setup, dropping packet\n");
+      return UIP_FW_OK;
+    } else {
+      rimeaddr_copy(&receiver, &gateway);
+    }
+  }
 
   PRINTF("uIP over mesh send to %d.%d with len %d\n",
 	 receiver.u8[0], receiver.u8[1],
@@ -166,5 +192,24 @@ uip_over_mesh_send(void)
     send_data(&rt->nexthop);
   }
   return UIP_FW_OK;
+}
+/*---------------------------------------------------------------------------*/
+void
+uip_over_mesh_set_gateway_netif(struct uip_fw_netif *n)
+{
+  gw_netif = n;
+}
+/*---------------------------------------------------------------------------*/
+void
+uip_over_mesh_set_gateway(rimeaddr_t *gw)
+{
+  rimeaddr_copy(&gateway, gw);
+}
+/*---------------------------------------------------------------------------*/
+void
+uip_over_mesh_set_net(uip_ipaddr_t *addr, uip_ipaddr_t *mask)
+{
+  uip_ipaddr_copy(&netaddr, addr);
+  uip_ipaddr_copy(&netmask, mask);
 }
 /*---------------------------------------------------------------------------*/

@@ -28,12 +28,12 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: uip-over-mesh.h,v 1.1 2007/03/22 18:58:40 adamdunkels Exp $
+ * $Id: uip-over-mesh.h,v 1.2 2008/02/03 20:56:07 adamdunkels Exp $
  */
 
 /**
  * \file
- *         A brief description of what this file is.
+ *         Header file for tunnelling uIP over Rime mesh
  * \author
  *         Adam Dunkels <adam@sics.se>
  */
@@ -41,7 +41,15 @@
 #ifndef __UIP_OVER_MESH_H__
 #define __UIP_OVER_MESH_H__
 
+#include "net/uip.h"
+#include "net/uip-fw.h"
+#include "net/rime.h"
+
 void uip_over_mesh_init(u16_t channels);
 u8_t uip_over_mesh_send(void);
+
+void uip_over_mesh_set_gateway_netif(struct uip_fw_netif *netif);
+void uip_over_mesh_set_gateway(rimeaddr_t *gw);
+void uip_over_mesh_set_net(uip_ipaddr_t *addr, uip_ipaddr_t *mask);
 
 #endif /* __UIP-OVER-MESH_H__ */
