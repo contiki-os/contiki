@@ -33,7 +33,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: neighbor.c,v 1.13 2007/12/09 15:44:21 adamdunkels Exp $
+ * $Id: neighbor.c,v 1.14 2008/02/03 20:44:11 adamdunkels Exp $
  */
 
 /**
@@ -47,50 +47,75 @@
 #include <stdio.h>
 
 #include "contiki.h"
+#include "lib/memb.h"
+#include "lib/list.h"
 #include "net/rime/neighbor.h"
 #include "net/rime/ctimer.h"
 #include "net/rime/collect.h"
 
-#define MAX_NEIGHBORS 5
+#define MAX_NEIGHBORS 8
 
 #define RTMETRIC_MAX COLLECT_MAX_DEPTH
 
-static struct neighbor neighbors[MAX_NEIGHBORS];
+MEMB(neighbors_mem, struct neighbor, MAX_NEIGHBORS);
+LIST(neighbors_list);
+
+/*static struct neighbor neighbors[MAX_NEIGHBORS];*/
 
 static struct ctimer t;
 
-static int max_time = 30;
+static int max_time = 120;
+
+#define DEBUG 0
+#if DEBUG
+#include <stdio.h>
+#define PRINTF(...) printf(__VA_ARGS__)
+#else
+#define PRINTF(...)
+#endif
+
+
 /*---------------------------------------------------------------------------*/
 static void
 periodic(void *ptr)
-{
-  int i;
+{  
+  struct neighbor *n, *next;
 
   /* Go through all neighbors and remove old ones. */
-  
-  for(i = 0; i < MAX_NEIGHBORS; ++i) {
-    if(!rimeaddr_cmp(&neighbors[i].addr, &rimeaddr_null) &&
-       neighbors[i].time < max_time) {
-      neighbors[i].time++;
-      if(neighbors[i].time == max_time) {
-	neighbors[i].rtmetric = RTMETRIC_MAX;
-	/*	printf("%d: removing old neighbor %d\n", node_id, neighbors[i].nodeid);*/
-	rimeaddr_copy(&neighbors[i].addr, &rimeaddr_null);
+  for(n = list_head(neighbors_list); n != NULL; n = next) {
+    next = NULL;
+    /*  for(i = 0; i < MAX_NEIGHBORS; ++i) {*/
+    if(!rimeaddr_cmp(&n->addr, &rimeaddr_null) &&
+       n->time < max_time) {
+      n->time++;
+      if(n->time == max_time) {
+	n->rtmetric = RTMETRIC_MAX;
+	PRINTF("%d.%d: removing old neighbor %d.%d\n",
+	       rimeaddr_node_addr.u8[0],rimeaddr_node_addr.u8[1],
+	       n->addr.u8[0], n->addr.u8[1]);
+	rimeaddr_copy(&n->addr, &rimeaddr_null);
+	next = n->next;
+	list_remove(neighbors_list, n);
+	memb_free(&neighbors_mem, n);
       }
     }
+    if(next == NULL) {
+      next = n->next;
+    }
   }
-  /*  printf("neighbor periodic\n");*/
+  /*  PRINTF("neighbor periodic\n");*/
   ctimer_set(&t, CLOCK_SECOND, periodic, NULL);
 }
 /*---------------------------------------------------------------------------*/
 void
 neighbor_init(void)
 {
-  int i;
-
-  for(i = 0; i < MAX_NEIGHBORS; ++i) {
+  
+  memb_init(&neighbors_mem);
+  list_init(neighbors_list);
+  /*  for(i = 0; i < MAX_NEIGHBORS; ++i) {
     rimeaddr_copy(&neighbors[i].addr, &rimeaddr_null);
-  }
+    }*/
   
   ctimer_set(&t, CLOCK_SECOND, periodic, NULL);
 }
@@ -98,11 +123,10 @@ neighbor_init(void)
 struct neighbor *
 neighbor_find(rimeaddr_t *addr)
 {
-  int i;
-  
-  for(i = 0; i < MAX_NEIGHBORS; ++i) {
-    if(rimeaddr_cmp(&neighbors[i].addr, addr)) {
-      return &neighbors[i];
+  struct neighbor *n;
+  for(n = list_head(neighbors_list); n != NULL; n = n->next) {
+    if(rimeaddr_cmp(&n->addr, addr)) {
+      return n;
     }
   }
   return NULL;
@@ -151,107 +175,145 @@ neighbor_etx(struct neighbor *n)
 void
 neighbor_add(rimeaddr_t *addr, u8_t nrtmetric, u8_t netx)
 {
-  int i, n;
-  u8_t rtmetric;
-  u8_t etx;
+  uint16_t rtmetric;
+  uint16_t etx;
+  struct neighbor *n, *max;
+  int i;
 
-  /* Find the first unused entry or the used entry with the highest
-     rtmetric and highest etx. */
-  rtmetric = 0;
-  etx = 0;
-
-  n = 0;
-  for(i = 0; i < MAX_NEIGHBORS; ++i) {
-    if(rimeaddr_cmp(&neighbors[i].addr, &rimeaddr_null) ||
-       rimeaddr_cmp(&neighbors[i].addr, addr)) {
-      n = i;
+  PRINTF("neighbor_add: adding %d.%d\n", addr->u8[0], addr->u8[1]);
+  
+  /* Check if the neighbor is already on the list. */
+  for(n = list_head(neighbors_list); n != NULL; n = n->next) {
+    if(rimeaddr_cmp(&n->addr, &rimeaddr_null) ||
+       rimeaddr_cmp(&n->addr, addr)) {
+      PRINTF("neighbor_add: already on list %d.%d\n", addr->u8[0], addr->u8[1]);
       break;
     }
-    if(!rimeaddr_cmp(&neighbors[i].addr, &rimeaddr_null)) {
-      if(neighbors[i].rtmetric > rtmetric) {
-	rtmetric = neighbors[i].rtmetric;
-	etx = neighbor_etx(&neighbors[i]);
-	n = i;
-      } else if(neighbors[i].rtmetric == rtmetric) {
-	if(neighbor_etx(&neighbors[i]) > etx) {
-	  rtmetric = neighbors[i].rtmetric;
-	  etx = neighbor_etx(&neighbors[i]);
-	  n = i;
-	  /*	printf("%d: found worst neighbor %d with rtmetric %d, signal %d\n",
+  }
+
+  /* If the neighbor was not on the list, we try to allocate memory
+     for it. */
+  if(n == NULL) {
+    PRINTF("neighbor_add: not on list, allocating %d.%d\n", addr->u8[0], addr->u8[1]);
+    n = memb_alloc(&neighbors_mem);
+    if(n != NULL) {
+      list_add(neighbors_list, n);
+    }
+  }
+  
+  /* If we could not allocate memory, we try to recycle an old
+     neighbor */
+  if(n == NULL) {
+    PRINTF("neighbor_add: not on list, not allocated, recycling %d.%d\n", addr->u8[0], addr->u8[1]);
+   /* Find the first unused entry or the used entry with the highest
+     rtmetric and highest etx. */
+    rtmetric = 0;
+    etx = 0;
+    max = NULL;
+
+    for(n = list_head(neighbors_list); n != NULL; n = n->next) {
+      if(!rimeaddr_cmp(&n->addr, &rimeaddr_null)) {
+	if(n->rtmetric > rtmetric) {
+	  rtmetric = n->rtmetric;
+	  etx = neighbor_etx(n);
+	  max = n;
+	} else if(n->rtmetric == rtmetric) {
+	  if(neighbor_etx(n) > etx) {
+	    rtmetric = n->rtmetric;
+	    etx = neighbor_etx(n);
+	    max = n;
+	    /*	PRINTF("%d: found worst neighbor %d with rtmetric %d, signal %d\n",
 		node_id, neighbors[n].nodeid, rtmetric, signal);*/
+	  }
 	}
       }
     }
+    n = max;
   }
 
 
-  /*  printf("%d: adding neighbor %d with rtmetric %d, signal %d at %d\n",
+  /*  PRINTF("%d: adding neighbor %d with rtmetric %d, signal %d at %d\n",
       node_id, neighbors[n].nodeid, rtmetric, signal, n);*/
-
-  neighbors[n].time = 0;
-  rimeaddr_copy(&neighbors[i].addr, addr);
-  neighbors[n].rtmetric = nrtmetric;
-  for(i = 0; i < NEIGHBOR_NUM_ETXS; ++i) {
-    neighbors[n].etxs[i] = netx;
+  if(n != NULL) {
+    n->time = 0;
+    rimeaddr_copy(&n->addr, addr);
+    n->rtmetric = nrtmetric;
+    for(i = 0; i < NEIGHBOR_NUM_ETXS; ++i) {
+      n->etxs[i] = netx;
+    }
+    n->etxptr = 0;
   }
-  neighbors[n].etxptr = 0;
 }
 /*---------------------------------------------------------------------------*/
 void
 neighbor_remove(rimeaddr_t *addr)
 {
-  int i;
+  struct neighbor *n;
+
+  for(n = list_head(neighbors_list); n != NULL; n = n->next) {
+    if(rimeaddr_cmp(&n->addr, addr)) {
+      PRINTF("%d: removing %d\n", rimeaddr_node_addr.u16[0], addr->u16[0]);
+      rimeaddr_copy(&n->addr, &rimeaddr_null);
+      n->rtmetric = RTMETRIC_MAX;
+      list_remove(neighbors_list, n);
+      memb_free(&neighbors_mem, n);
+      return;
+    }
+  }
+  /*  int i;
 
   for(i = 0; i < MAX_NEIGHBORS; ++i) {
     if(rimeaddr_cmp(&neighbors[i].addr, addr)) {
-      printf("%d: removing %d @ %d\n", rimeaddr_node_addr.u16[0], addr->u16[0], i);
+      PRINTF("%d: removing %d @ %d\n", rimeaddr_node_addr.u16[0], addr->u16[0], i);
       rimeaddr_copy(&neighbors[i].addr, &rimeaddr_null);
       neighbors[i].rtmetric = RTMETRIC_MAX;
       return;
     }
-  }
+    }*/
 }
 /*---------------------------------------------------------------------------*/
 struct neighbor *
 neighbor_best(void)
 {
-  int i, found;
-  int lowest, best;
+  int found;
+  /*  int lowest, best;*/
+  struct neighbor *n, *lowest, *best;
   u8_t rtmetric;
   u8_t etx;
 
   rtmetric = RTMETRIC_MAX;
-  lowest = 0;
+  lowest = best = NULL;
   found = 0;
 
-  /*  printf("%d: ", node_id);*/
+  /*  PRINTF("%d: ", node_id);*/
   
   /* Find the lowest rtmetric. */
-  for(i = 0; i < MAX_NEIGHBORS; ++i) {
-    /*  printf("%d:%d ", neighbors[i].nodeid, neighbors[i].rtmetric);*/
-    if(!rimeaddr_cmp(&neighbors[i].addr, &rimeaddr_null) &&
-       rtmetric > neighbors[i].rtmetric) {
-      rtmetric = neighbors[i].rtmetric;
-      lowest = i;
+  for(n = list_head(neighbors_list); n != NULL; n = n->next) {
+    if(!rimeaddr_cmp(&n->addr, &rimeaddr_null) &&
+       rtmetric > n->rtmetric) {
+      rtmetric = n->rtmetric;
+      lowest = n;
       found = 1;
     }
   }
-  /*  printf("\n");*/
+
+  /*  PRINTF("\n");*/
 
   /* Find the neighbor with lowest etx of the ones that
      have the lowest rtmetric. */
   if(found) {
     etx = 0;
     best = lowest;
-    for(i = 0; i < MAX_NEIGHBORS; ++i) {
-      if(!rimeaddr_cmp(&neighbors[i].addr, &rimeaddr_null) &&
-	 rtmetric == neighbors[i].rtmetric &&
-	 neighbor_etx(&neighbors[i]) < etx) {
-	etx = neighbor_etx(&neighbors[i]);
-	best = i;
+    for(n = list_head(neighbors_list); n != NULL; n = n->next) {
+      /*    for(i = 0; i < MAX_NEIGHBORS; ++i) {*/
+      if(!rimeaddr_cmp(&n->addr, &rimeaddr_null) &&
+	 rtmetric == n->rtmetric &&
+	 neighbor_etx(n) < etx) {
+	etx = neighbor_etx(n);
+	best = n;
       }
     }
-    return &neighbors[best];
+    return best;
   }
   return NULL;
 }
@@ -265,13 +327,27 @@ neighbor_set_lifetime(int seconds)
 int
 neighbor_num(void)
 {
-  return MAX_NEIGHBORS;
+  PRINTF("neighbor_num %d\n", list_length(neighbors_list));
+  return list_length(neighbors_list);
 }
 /*---------------------------------------------------------------------------*/
 struct neighbor *
 neighbor_get(int num)
 {
-  return &neighbors[num];
+  int i;
+  struct neighbor *n;
+
+  PRINTF("neighbor_get %d\n", num);
+  
+  i = 0;
+  for(n = list_head(neighbors_list); n != NULL; n = n->next) {
+    if(i == num) {
+      PRINTF("neighbor_get found %d.%d\n", n->addr.u8[0], n->addr.u8[1]);
+      return n;
+    }
+    i++;
+  }
+  return NULL;
 }
 /*---------------------------------------------------------------------------*/
 /** @} */
