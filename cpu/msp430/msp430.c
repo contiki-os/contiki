@@ -28,20 +28,22 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: msp430.c,v 1.7 2007/11/17 10:28:18 adamdunkels Exp $
+ * @(#)$Id: msp430.c,v 1.8 2008/02/03 20:58:11 adamdunkels Exp $
  */
 #include <io.h>
 #include <signal.h>
 #include <sys/unistd.h>
+#include "msp430.h"
 #include "dev/watchdog.h"
 #include "net/uip.h"
+
 
 /*---------------------------------------------------------------------------*/
 void
 msp430_init_dco(void)
 {
     /* This code taken from the FU Berlin sources and reformatted. */
-#define DELTA    600
+#define DELTA    ((MSP430_CPU_SPEED) / (32768 / 8))
 
   unsigned int compare, oldcapture = 0;
   unsigned int i;
@@ -54,7 +56,9 @@ msp430_init_dco(void)
 		     crystal DCO frquenzy = 2,4576 MHz  */
 
   BCSCTL1 |= DIVA1 + DIVA0;             /* ACLK = LFXT1CLK/8 */
-  for(i = 0xffff; i > 0; i--);          /* Delay for XTAL to settle */
+  for(i = 0xffff; i > 0; i--) {         /* Delay for XTAL to settle */
+    asm("nop");
+  }
 
   CCTL2 = CCIS0 + CM0 + CAP;            // Define CCR2, CAP, ACLK
   TACTL = TASSEL1 + TACLR + MC1;        // SMCLK, continous mode
@@ -162,6 +166,7 @@ msp430_cpu_init(void)
   if((uintptr_t)cur_break & 1) { /* Workaround for msp430-ld bug! */
     cur_break++;
   }
+  watchdog_start();
 }
 /*---------------------------------------------------------------------------*/
 #define asmv(arg) __asm__ __volatile__(arg)

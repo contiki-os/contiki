@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: msp430.h,v 1.1 2007/03/15 21:38:22 adamdunkels Exp $
+ * $Id: msp430.h,v 1.2 2008/02/03 20:58:11 adamdunkels Exp $
  */
 
 /**
@@ -41,6 +41,12 @@
 #ifndef __MSP430_H__
 #define __MSP430_H__
 
+#include "contiki-conf.h"
+
+#ifdef F_CPU
+#define MSP430_CPU_SPEED F_CPU
+#else
 #define MSP430_CPU_SPEED 2457600UL
+#endif
 
 #endif /* __MSP430_H__ */
