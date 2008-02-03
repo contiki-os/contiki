@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#)$Id: contiki-sky-main.c,v 1.25 2008/01/23 14:58:01 adamdunkels Exp $
+ * @(#)$Id: contiki-sky-main.c,v 1.26 2008/02/03 21:03:19 adamdunkels Exp $
  */
 
 #include <signal.h>
@@ -39,37 +39,44 @@
 
 #include "dev/button-sensor.h"
 #include "dev/ds2411.h"
-#include "dev/sht11.h"
 #include "dev/leds.h"
 #include "dev/light.h"
-#include "dev/xmem.h"
-#include "dev/simple-cc2420.h"
-#include "dev/watchdog.h"
 #include "dev/serial.h"
+#include "dev/sht11.h"
+#include "dev/simple-cc2420.h"
 #include "dev/slip.h"
 #include "dev/uart1.h"
+#include "dev/watchdog.h"
+#include "dev/xmem.h"
 
-#include "net/mac/xmac.h"
 #include "net/mac/nullmac.h"
+#include "net/mac/xmac.h"
 
-#include "net/rime/timesynch.h"
-
-#include "node-id.h"
-
-#include "sys/profile.h"
 #include "net/rime.h"
 
+#include "node-id.h"
 #include "sys/autostart.h"
+#include "sys/profile.h"
 
-/*#include "codeprop/codeprop.h"*/
 
 SENSORS(&button_sensor);
 
+#ifndef WITH_UIP
 #define WITH_UIP 0
+#endif
 
 #if WITH_UIP
+#include "net/uip.h"
+#include "net/uip-fw.h"
+#include "net/uip-fw-drv.h"
+#include "net/uip-over-mesh.h"
 static struct uip_fw_netif slipif =
-{UIP_FW_NETIF(192,168,1,2, 255,255,255,255, slip_send)};
+  {UIP_FW_NETIF(192,168,1,2, 255,255,255,255, slip_send)};
+static struct uip_fw_netif meshif =
+  {UIP_FW_NETIF(172,16,0,0, 255,255,0,0, uip_over_mesh_send)};
+
+#define UIP_OVER_MESH_CHANNEL 1
+
 #endif /* WITH_UIP */
 
 #ifdef EXPERIMENT_SETUP
@@ -123,8 +130,9 @@ set_rime_addr(void)
 }
 /*---------------------------------------------------------------------------*/
 static void
-print_processes(struct process **processes)
+print_processes(struct process * const processes[])
 {
+  /*  const struct process * const * p = processes;*/
   printf("Starting");
   while(*processes != NULL) {
     printf(" '%s'", (*processes)->name);
@@ -143,15 +151,14 @@ main(int argc, char **argv)
   clock_init();
   leds_init();
   leds_on(LEDS_RED);
-  
+
 #if WITH_UIP
-  slip_arch_init(BAUD2UBR(115200)); /* Must come before first printf */
-#else /* WITH_UIP */
+  uart1_init(BAUD2UBR(57600)); /* Must come before first printf */
+  slip_arch_init(BAUD2UBR(57600));
+#else
   uart1_init(BAUD2UBR(115200)); /* Must come before first printf */
 #endif /* WITH_UIP */
   
-/*   printf("Starting %s " */
-/* 	 "($Id: contiki-sky-main.c,v 1.25 2008/01/23 14:58:01 adamdunkels Exp $)\n", __FILE__); */
   leds_on(LEDS_GREEN);
   ds2411_init();
   sensors_light_init();
@@ -175,16 +182,30 @@ main(int argc, char **argv)
   } else {
     printf("Node id is not set.\n");
   }
+  set_rime_addr();
   printf("MAC %02x:%02x:%02x:%02x:%02x:%02x:%02x:%02x\n",
 	 ds2411_id[0], ds2411_id[1], ds2411_id[2], ds2411_id[3],
 	 ds2411_id[4], ds2411_id[5], ds2411_id[6], ds2411_id[7]);
 
 #if WITH_UIP
-  uip_init();
-  uip_sethostaddr(&slipif.ipaddr);
-  uip_setnetmask(&slipif.netmask);
-  uip_fw_default(&slipif);	/* Point2point, no default router. */
-  tcpip_set_forwarding(0);
+  {
+    uip_ipaddr_t hostaddr, netmask;
+    
+    uip_init();
+
+    uip_ipaddr(&hostaddr, 172,16,
+	       rimeaddr_node_addr.u8[0],rimeaddr_node_addr.u8[1]);
+    uip_ipaddr(&netmask, 255,255,0,0);
+    uip_ipaddr_copy(&meshif.ipaddr, &hostaddr);
+    
+    uip_sethostaddr(&hostaddr);
+    uip_setnetmask(&netmask);
+    uip_over_mesh_set_net(&hostaddr, &netmask);
+    /*    uip_fw_register(&slipif);*/
+    uip_over_mesh_set_gateway_netif(&slipif);
+    uip_fw_default(&meshif);
+    uip_over_mesh_init(UIP_OVER_MESH_CHANNEL);
+  }
 #endif /* WITH_UIP */
 
   /*
@@ -206,20 +227,21 @@ main(int argc, char **argv)
 
   leds_off(LEDS_GREEN);
   
-  set_rime_addr();
 
   simple_cc2420_init();
   simple_cc2420_set_pan_addr(panId, 0 /*XXX*/, ds2411_id);
   simple_cc2420_set_channel(RF_CHANNEL);
-  /*  rime_init(nullmac_init(&simple_cc2420_driver));*/
+#if WITH_NULLMAC
+  rime_init(nullmac_init(&simple_cc2420_driver));
+#else
   rime_init(xmac_init(&simple_cc2420_driver));
+#endif
 
   timesynch_init();
 
 
   timesynch_set_authority_level(rimeaddr_node_addr.u8[0]);
 
-  /*  rimeaddr_set_node_addr*/
 #if WITH_UIP
   process_start(&tcpip_process, NULL);
   process_start(&uip_fw_process, NULL);	/* Start IP output */
@@ -231,9 +253,8 @@ main(int argc, char **argv)
   energest_init();
   ENERGEST_ON(ENERGEST_TYPE_CPU);
   
-/*   printf("Autostarting processes\n"); */
-  print_processes((struct process **) autostart_processes);
-  autostart_start((struct process **) autostart_processes);
+  print_processes(autostart_processes);
+  autostart_start(autostart_processes);
   
   /*
    * This is the scheduler loop.
