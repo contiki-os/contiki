@@ -30,7 +30,7 @@
  *
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: nodes.c,v 1.6 2008/01/14 09:38:16 adamdunkels Exp $
+ * $Id: nodes.c,v 1.7 2008/02/03 20:49:50 adamdunkels Exp $
  */
 #include <signal.h>
 #include <stdio.h>
@@ -111,6 +111,20 @@ nodes_set_text(int x, int y, char *text)
   for(i = numnodes; i >= 0; --i) {
     if(nodes[i].x == x && nodes[i].y == y) {
       strncpy(nodes[i].text, text, NODES_TEXTLEN);
+      return;
+    }
+  }
+}
+/*---------------------------------------------------------------------------*/
+void
+nodes_set_line(int x, int y, int linex, int liney)
+{
+  int i;
+
+  for(i = numnodes; i >= 0; --i) {
+    if(nodes[i].x == x && nodes[i].y == y) {
+      nodes[i].linex = linex;
+      nodes[i].liney = liney;
       return;
     }
   }
