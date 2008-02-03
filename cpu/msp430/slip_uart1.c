@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#)$Id: slip_uart1.c,v 1.7 2007/05/22 21:00:27 adamdunkels Exp $
+ * @(#)$Id: slip_uart1.c,v 1.8 2008/02/03 20:59:35 adamdunkels Exp $
  */
 
 /*
@@ -39,23 +39,22 @@
 #include "contiki.h"
 
 #include "dev/slip.h"
-
+#include "dev/uart1.h"
+/*---------------------------------------------------------------------------*/
 void
 slip_arch_writeb(unsigned char c)
 {
-  /* Loop until the transmission buffer is available. */
-  while ((IFG2 & UTXIFG1) == 0);
-
-  /* Transmit the data. */
-  TXBUF1 = c;
+  uart1_writeb(c);
 }
-
+/*---------------------------------------------------------------------------*/
 /*
  * The serial line is used to transfer IP packets using slip. To make
  * it possible to send debug output over the same line we send debug
  * output as slip frames (i.e delimeted by SLIP_END).
  *
  */
+/*---------------------------------------------------------------------------*/
+#if WITH_UIP
 int
 putchar(int c)
 {
@@ -81,7 +80,8 @@ putchar(int c)
 
   return c;
 }
-
+#endif
+/*---------------------------------------------------------------------------*/
 /**
  * Initalize the RS232 port and the SLIP driver.
  *
@@ -89,62 +89,6 @@ putchar(int c)
 void
 slip_arch_init(unsigned long ubr)
 {
-  /* RS232 */
-  P3DIR &= ~0x80;			/* Select P37 for input (UART1RX) */
-  P3DIR |= 0x40;			/* Select P36 for output (UART1TX) */
-  P3SEL |= 0xC0;			/* Select P36,P37 for UART1{TX,RX} */
-
-  UCTL1 = SWRST | CHAR;                 /* 8-bit character, UART mode */
-
-#if 0
-   U1RCTL &= ~URXEIE; /* even erroneous characters trigger interrupts */
-#endif
-
-  UTCTL1 = SSEL1;                       /* UCLK = MCLK */
-
-  UBR01 = ubr;
-  UBR11 = ubr >> 8;		/* always zero */
-  /*
-   * UMCTL1 values calculated using
-   * http://mspgcc.sourceforge.net/baudrate.html and are not
-   * complete. Also the table assumes that F_CPU = 2,457,600 Hz.
-   */
-  switch (ubr) {
-  case BAUD2UBR(115200):
-    UMCTL1 = 0x4a;
-    break;
-  case BAUD2UBR(57600):
-    UMCTL1 = 0x5b;
-    break;
-  case BAUD2UBR(19600):
-    UMCTL1 = 0x4a;
-    break;
-  default:
-    UMCTL1 = 0x00;
-  }
-
-  ME2 &= ~USPIE1;			/* USART1 SPI module disable */
-  ME2 |= (UTXE1 | URXE1);               /* Enable USART1 TXD/RXD */
-
-  UCTL1 &= ~SWRST;
-
-  /* XXX Clear pending interrupts before enable!!! */
-
-  IE2 |= URXIE1;                        /* Enable USART1 RX interrupt  */
+  uart1_set_input(slip_input_byte);
 }
-
-interrupt(UART1RX_VECTOR)
-__uart1_intr()
-{
-  ENERGEST_ON(ENERGEST_TYPE_IRQ);
-  /* Check status register for receive errors. */
-  if(URCTL1 & RXERR) {
-    volatile unsigned dummy;
-    dummy = RXBUF1;   /* Clear error flags by forcing a dummy read. */
-  } else {
-    if(slip_input_byte(RXBUF1)) {
-      LPM4_EXIT;
-    }
-  }
-  ENERGEST_OFF(ENERGEST_TYPE_IRQ);
-}
+/*---------------------------------------------------------------------------*/
