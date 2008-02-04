@@ -1,2 +1,7 @@
-shell_src = shell-gui.c shell.c ctk-textentry-cmdline.c
+shell_src = shell.c serial-shell.c shell-reboot.c \
+             shell-vars.c shell-ps.c shell-rime.c shell-sendtest.c \
+             shell-blink.c shell-text.c shell-time.c \
+             shell-file.c shell-netfile.c shell-exec.c \
+             shell-rime-ping.c shell-rime-sniff.c \
+             shell-sky.c #shell-rsh.c
 shell_dsc = shell-dsc.c
