@@ -33,7 +33,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: mesh.c,v 1.11 2008/01/08 07:55:56 adamdunkels Exp $
+ * $Id: mesh.c,v 1.12 2008/02/05 20:16:48 adamdunkels Exp $
  */
 
 /**
@@ -50,13 +50,7 @@
 
 #include <stddef.h> /* For offsetof */
 
-struct data_hdr {
-  rimeaddr_t dest;
-  rimeaddr_t originator;
-  u16_t seqno;
-};
-
-#define PACKET_TIMEOUT (CLOCK_SECOND * 4)
+#define PACKET_TIMEOUT (CLOCK_SECOND * 10)
 
 #define DEBUG 0
 #if DEBUG
@@ -68,7 +62,8 @@ struct data_hdr {
 
 /*---------------------------------------------------------------------------*/
 static void
-data_packet_received(struct mh_conn *mh, rimeaddr_t *from, u8_t hops)
+data_packet_received(struct mh_conn *mh, rimeaddr_t *from,
+		     rimeaddr_t *prevhop, u8_t hops)
 {
   struct mesh_conn *c = (struct mesh_conn *)
     ((char *)mh - offsetof(struct mesh_conn, mh));
@@ -135,7 +130,7 @@ mesh_open(struct mesh_conn *c, u16_t channels,
 {
   mh_open(&c->mh, channels, &data_callbacks);
   route_discovery_open(&c->route_discovery_conn,
-		       CLOCK_SECOND / 2,
+		       CLOCK_SECOND * 2,
 		       channels + 1,
 		       &route_discovery_callbacks);
   c->cb = callbacks;
