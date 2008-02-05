@@ -33,7 +33,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: mh.c,v 1.7 2008/01/08 07:55:56 adamdunkels Exp $
+ * $Id: mh.c,v 1.8 2008/02/05 20:17:43 adamdunkels Exp $
  */
 
 /**
@@ -47,6 +47,8 @@
 #include "net/rime.h"
 #include "net/rime/mh.h"
 #include "net/rime/route.h"
+
+#include <string.h>
 
 struct data_hdr {
   rimeaddr_t dest;
@@ -68,28 +70,33 @@ void
 data_packet_received(struct uc_conn *uc, rimeaddr_t *from)
 {
   struct mh_conn *c = (struct mh_conn *)uc;
-  struct data_hdr *msg = rimebuf_dataptr();
+  struct data_hdr msg;
   rimeaddr_t *nexthop;
 
+  memcpy(&msg, rimebuf_dataptr(), sizeof(struct data_hdr));
+  
   PRINTF("data_packet_received from %d towards %d len %d\n", from->u16[0],
 	 msg->dest.u16[0],
 	 rimebuf_datalen());
 
-  if(rimeaddr_cmp(&msg->dest, &rimeaddr_node_addr)) {
+  if(rimeaddr_cmp(&msg.dest, &rimeaddr_node_addr)) {
     PRINTF("for us!\n");
     rimebuf_hdrreduce(sizeof(struct data_hdr));
     if(c->cb->recv) {
-      c->cb->recv(c, &msg->originator, msg->hops);
+      c->cb->recv(c, &msg.originator, from, msg.hops);
     }
   } else {
     nexthop = NULL;
     if(c->cb->forward) {
-      nexthop = c->cb->forward(c, &msg->originator,
-			       &msg->dest, from, msg->hops);
+      rimebuf_hdrreduce(sizeof(struct data_hdr));
+      nexthop = c->cb->forward(c, &msg.originator,
+			       &msg.dest, from, msg.hops);
+      rimebuf_hdralloc(sizeof(struct data_hdr));
+      msg.hops++;
+      memcpy(rimebuf_hdrptr(), &msg, sizeof(struct data_hdr));
     }
     if(nexthop) {
       PRINTF("forwarding to %d.%d\n", nexthop->u8[0], nexthop->u8[1]);
-      msg->hops++;
       uc_send(&c->c, nexthop);
     }
   }
@@ -120,6 +127,7 @@ mh_send(struct mh_conn *c, rimeaddr_t *to)
   if(c->cb->forward == NULL) {
     return 0;
   }
+  rimebuf_compact();
   nexthop = c->cb->forward(c, &rimeaddr_node_addr, to, NULL, 0);
   
   if(nexthop == NULL) {
