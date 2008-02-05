@@ -34,7 +34,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: uc.c,v 1.11 2007/05/22 20:58:00 adamdunkels Exp $
+ * $Id: uc.c,v 1.12 2008/02/05 20:18:57 adamdunkels Exp $
  */
 
 /**
@@ -96,7 +96,7 @@ uc_close(struct uc_conn *c)
 }
 /*---------------------------------------------------------------------------*/
 int
-uc_send(struct uc_conn *c, rimeaddr_t *receiver)
+uc_send(struct uc_conn *c, const rimeaddr_t *receiver)
 {
   PRINTF("%d.%d: uc_send to %d.%d\n",
 	 rimeaddr_node_addr.u8[0],rimeaddr_node_addr.u8[1],

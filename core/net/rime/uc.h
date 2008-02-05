@@ -45,7 +45,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: uc.h,v 1.6 2007/03/31 18:31:29 adamdunkels Exp $
+ * $Id: uc.h,v 1.7 2008/02/05 20:18:58 adamdunkels Exp $
  */
 
 /**
@@ -71,11 +71,11 @@ struct uc_conn {
   const struct uc_callbacks *u;
 };
 
-void uc_open(struct uc_conn *c, u16_t channel,
+void uc_open(struct uc_conn *c, uint16_t channel,
 	      const struct uc_callbacks *u);
 void uc_close(struct uc_conn *c);
 
-int uc_send(struct uc_conn *c, rimeaddr_t *receiver);
+int uc_send(struct uc_conn *c, const rimeaddr_t *receiver);
 
 #endif /* __UC_H__ */
 /** @} */
