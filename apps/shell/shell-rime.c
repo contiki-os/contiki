@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: shell-rime.c,v 1.1 2008/02/04 23:42:17 adamdunkels Exp $
+ * $Id: shell-rime.c,v 1.2 2008/02/05 12:23:32 adamdunkels Exp $
  */
 
 /**
@@ -53,7 +53,7 @@
 
 #include "net/rime/timesynch.h"
 
-#define WITH_DEBUG_COMMANDS 1
+#define WITH_DEBUG_COMMANDS 0
 
 #if NETSIM
 #include "ether.h"
@@ -70,12 +70,10 @@ int snprintf(char *str, size_t size, const char *format, ...);
 
 enum {
   TRICKLE_TYPE_NODES,
-  TRICKLE_TYPE_NETCMD,
 };
 
 struct trickle_msg {
   uint8_t type;
-  char netcmd[1];
 };
 
 #define COLLECT_MSG_HDRSIZE 2
@@ -114,12 +112,6 @@ SHELL_COMMAND(nodes_command,
 	      "nodes",
 	      "nodes: get a list of nodes in the network",
 	      &shell_nodes_process);
-PROCESS(shell_netcmd_process, "netcmd");
-PROCESS(shell_netcmd_server_process, "netcmd server");
-SHELL_COMMAND(netcmd_command,
-	      "netcmd",
-	      "netcmd <command>: run a command on all nodes in the network",
-	      &shell_netcmd_process);
 PROCESS(shell_send_process, "send");
 SHELL_COMMAND(send_command,
 	      "send",
@@ -266,53 +258,6 @@ PROCESS_THREAD(shell_neighbors_process, ev, data)
       msg.etx = neighbor_etx(n);
       shell_output(&neighbors_command, &msg, sizeof(msg), "", 0);
     }
-  }
-  
-  PROCESS_END();
-}
-/*---------------------------------------------------------------------------*/
-PROCESS_THREAD(shell_netcmd_server_process, ev, data)
-{
-  static struct process *child_command;
-  int err;
-  PROCESS_BEGIN();
-
-  /* XXX: direct output to null. */
-  printf("netcmd server got command string '%s'\n", (char *)data);
-  err = shell_start_command(data, strlen((char * )data), NULL, &child_command);
-  if(err == SHELL_FOREGROUND && process_is_running(child_command)) {
-    PROCESS_WAIT_EVENT_UNTIL(ev == PROCESS_EVENT_EXIT ||
-			     (ev == PROCESS_EVENT_EXITED &&
-			      data == child_command));
-    if(ev == PROCESS_EVENT_EXIT) {
-      process_exit(child_command);
-    }
-  }
-
-  PROCESS_END();
-}
-/*---------------------------------------------------------------------------*/
-PROCESS_THREAD(shell_netcmd_process, ev, data)
-{
-  struct trickle_msg *msg;
-  int len;
-  
-  PROCESS_BEGIN();
-
-  len = strlen((char *)data);
-  if(len > RIMEBUF_SIZE) {
-    char buf[32];
-    snprintf(buf, sizeof(buf), "%d", len);
-    shell_output_str(&netcmd_command, "command line too large: ", buf);
-  } else {
-    
-    rimebuf_clear();
-    msg = rimebuf_dataptr();
-    rimebuf_set_datalen(1 + len + 1);
-    msg->type = TRICKLE_TYPE_NETCMD;
-    strcpy(msg->netcmd, data);
-    printf("netcmd sending '%s'\n", msg->netcmd);
-    trickle_send(&trickle);
   }
   
   PROCESS_END();
@@ -599,17 +544,6 @@ recv_trickle(struct trickle_conn *c)
   if(msg->type == TRICKLE_TYPE_NODES) {
     ctimer_set(&ctimer, random_rand() % (CLOCK_SECOND * 2),
 	       send_collect, NULL);
-  } else if(msg->type == TRICKLE_TYPE_NETCMD) {
-    /* First ensure that the old process is killed. */
-    process_exit(&shell_netcmd_server_process);
-
-    /* Make sure that the incoming command is null-terminated (which
-       is should be already). */
-
-    msg->netcmd[rimebuf_datalen() - 2] = 0;
-
-    /* Start the server process with the incoming command. */
-    process_start(&shell_netcmd_server_process, msg->netcmd);
   }
 }
 const static struct trickle_callbacks trickle_callbacks = { recv_trickle };
@@ -622,7 +556,6 @@ shell_rime_init(void)
   
   shell_register_command(&collect_command);
   shell_register_command(&neighbors_command);
-  shell_register_command(&netcmd_command);
   shell_register_command(&nodes_command);
   shell_register_command(&packetize_command);
   shell_register_command(&routes_command);
