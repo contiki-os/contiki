@@ -30,7 +30,7 @@
  * 
  * Author: Oliver Schmidt <ol.sc@web.de>
  *
- * $Id: cfs-win32.c,v 1.5 2008/01/04 21:59:59 oliverschmidt Exp $
+ * $Id: cfs-win32.c,v 1.6 2008/02/06 16:41:19 oliverschmidt Exp $
  */
 
 #define WIN32_LEAN_AND_MEAN
@@ -79,7 +79,7 @@ cfs_read(int f, void *b, unsigned int l)
 }
 /*---------------------------------------------------------------------------*/
 int
-cfs_write(int f, void *b, unsigned int l)
+cfs_write(int f, const void *b, unsigned int l)
 {
   return write(f, b, l);
 }
