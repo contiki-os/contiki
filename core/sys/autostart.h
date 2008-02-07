@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: autostart.h,v 1.3 2007/11/18 12:27:45 ksb Exp $
+ * $Id: autostart.h,v 1.4 2008/02/07 15:47:28 oliverschmidt Exp $
  */
 
 /**
@@ -46,7 +46,7 @@
 #if ! CC_NO_VA_ARGS
 #if AUTOSTART_ENABLE
 #define AUTOSTART_PROCESSES(...)					\
-struct process * const autostart_processes[] = {__VA_ARGS__, NULL}
+CLIF struct process * const autostart_processes[] = {__VA_ARGS__, NULL}
 #else /* AUTOSTART_ENABLE */
 #define AUTOSTART_PROCESSES(...)					\
 extern int _dummy
