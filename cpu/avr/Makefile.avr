@@ -1,4 +1,4 @@
-# $Id: Makefile.avr,v 1.9 2007/11/29 02:44:05 fros4943 Exp $
+# $Id: Makefile.avr,v 1.10 2008/02/07 19:56:56 oliverschmidt Exp $
 
 ### Check if we are running under Windows
 
@@ -95,7 +95,7 @@ endif
 	$(STRIP) --strip-unneeded -g -x $@
 
 #%.ce: %.c
-#	$(CC) $(CFLAGS) -DPROCESS_LOADABLE -c $< -o $@
+#	$(CC) $(CFLAGS) -c $< -o $@
 #	$(STRIP) --strip-unneeded -g -x $@
 
 #%.ce: 	%.co
