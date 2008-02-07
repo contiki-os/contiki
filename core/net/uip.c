@@ -41,7 +41,7 @@
  *
  * This file is part of the uIP TCP/IP stack.
  *
- * $Id: uip.c,v 1.10 2008/01/24 23:08:58 adamdunkels Exp $
+ * $Id: uip.c,v 1.11 2008/02/07 01:34:25 adamdunkels Exp $
  *
  */
 
@@ -107,7 +107,7 @@ const uip_ipaddr_t uip_broadcast_addr =
 #else /* UIP_CONF_IPV6 */
   { { 0xff, 0xff, 0xff, 0xff } };
 #endif /* UIP_CONF_IPV6 */
-const uip_ipaddr_t all_zeroes_addr = { { 0x0, /* rest is 0 */ } };
+const uip_ipaddr_t uip_all_zeroes_addr = { { 0x0, /* rest is 0 */ } };
 
 #if UIP_FIXEDETHADDR
 const struct uip_eth_addr uip_ethaddr = {{UIP_ETHADDR0,
@@ -877,7 +877,7 @@ uip_process(u8_t flag)
   }
 #endif /* UIP_CONF_IPV6 */
 
-  if(uip_ipaddr_cmp(&uip_hostaddr, &all_zeroes_addr)) {
+  if(uip_ipaddr_cmp(&uip_hostaddr, &uip_all_zeroes_addr)) {
     /* If we are configured to use ping IP address configuration and
        hasn't been assigned an IP address yet, we accept all ICMP
        packets. */
@@ -975,7 +975,7 @@ uip_process(u8_t flag)
      the destination IP address of this ping packet and assign it to
      ourself. */
 #if UIP_PINGADDRCONF
-  if(uip_ipaddr_cmp(&uip_hostaddr, &all_zeroes_addr)) {
+  if(uip_ipaddr_cmp(&uip_hostaddr, &uip_all_zeroes_addr)) {
     uip_hostaddr = BUF->destipaddr;
   }
 #endif /* UIP_PINGADDRCONF */
@@ -993,7 +993,8 @@ uip_process(u8_t flag)
   uip_ipaddr_copy(&BUF->srcipaddr, &uip_hostaddr);
 
   UIP_STAT(++uip_stat.icmp.sent);
-  goto send;
+  BUF->ttl = UIP_TTL;
+  goto ip_send_nolen;
 
   /* End of IPv4 input header processing code. */
 #else /* !UIP_CONF_IPV6 */
@@ -1100,7 +1101,7 @@ uip_process(u8_t flag)
        UDPBUF->destport == uip_udp_conn->lport &&
        (uip_udp_conn->rport == 0 ||
         UDPBUF->srcport == uip_udp_conn->rport) &&
-       (uip_ipaddr_cmp(&uip_udp_conn->ripaddr, &all_zeroes_addr) ||
+       (uip_ipaddr_cmp(&uip_udp_conn->ripaddr, &uip_all_zeroes_addr) ||
 	uip_ipaddr_cmp(&uip_udp_conn->ripaddr, &uip_broadcast_addr) ||
 	uip_ipaddr_cmp(&BUF->srcipaddr, &uip_udp_conn->ripaddr))) {
       goto udp_found;
