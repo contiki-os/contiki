@@ -1,0 +1,42 @@
+<?xml version="1.0"?>
+
+<project name="MSPSim COOJA support" default="jar" basedir=".">
+  <property name="src" location="src"/>
+  <property name="build" location="build"/>
+  <property name="lib" location="lib"/>
+
+	<property name="cooja" location="../.."/>
+  
+	<property name="cooja_jar" value="${cooja}/dist/cooja.jar"/>
+  <property name="mspsim_jar" value="${lib}/mspsim.jar"/>
+  <property name="cooja_mspsim_jar" value="${lib}/cooja_mspsim.jar"/>
+
+  <target name="init">
+    <tstamp/>
+  </target>
+
+  <target name="clean" depends="init">
+    <delete dir="${build}"/>
+    <delete file="${cooja_mspsim_jar}"/>
+  </target>
+
+  <target name="compile" depends="init, clean">
+    <mkdir dir="${build}"/>
+    <javac srcdir="${src}" destdir="${build}" debug="on">
+      <classpath>
+        <pathelement location="lib/mspsim.jar"/>
+        <pathelement location="${cooja_jar}"/>
+      </classpath>
+    </javac>
+  </target>
+
+  <target name="jar" depends="clean, init, compile">
+    <jar destfile="${cooja_mspsim_jar}" basedir="${build}">
+      <fileset dir="${build}"/>
+      <manifest>
+        <attribute name="Class-Path" value="."/>
+      </manifest>
+    </jar>
+  </target>
+
+</project>
