@@ -30,7 +30,7 @@
  *
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: uip-fw.c,v 1.9 2008/01/24 23:07:37 adamdunkels Exp $
+ * $Id: uip-fw.c,v 1.10 2008/02/07 01:33:47 adamdunkels Exp $
  */
 /**
  * \addtogroup uip
@@ -227,8 +227,9 @@ static void
 time_exceeded(void)
 {
 
-  /* We don't send out ICMP errors for ICMP messages. */
-  if(ICMPBUF->proto == UIP_PROTO_ICMP) {
+  /* We don't send out ICMP errors for ICMP messages (unless they are pings). */
+  if(ICMPBUF->proto == UIP_PROTO_ICMP &&
+     ICMPBUF->type != ICMP_ECHO) {
     uip_len = 0;
     return;
   }
