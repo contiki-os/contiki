@@ -58,7 +58,7 @@
  *
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: etimer.h,v 1.2 2006/08/26 23:59:39 oliverschmidt Exp $
+ * $Id: etimer.h,v 1.3 2008/02/07 23:04:35 oliverschmidt Exp $
  */
 #ifndef __ETIMER_H__
 #define __ETIMER_H__
@@ -113,7 +113,7 @@ CCIF void etimer_set(struct etimer *et, clock_time_t interval);
  *
  * \sa etimer_restart()
  */
-void etimer_reset(struct etimer *et);
+CCIF void etimer_reset(struct etimer *et);
 
 /**
  * \brief      Restart an event timer from the current point in time
