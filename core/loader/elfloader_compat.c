@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: elfloader_compat.c,v 1.6 2007/06/04 17:51:41 bg- Exp $
+ * @(#)$Id: elfloader_compat.c,v 1.7 2008/02/07 15:53:43 oliverschmidt Exp $
  */
 
 /*
@@ -165,7 +165,7 @@ elfloader_load(off_t eepromaddr)
 
   /* Find _init, _fini, and loaded_process. */
   elfloader_loaded_process = cle_lookup(&h, xmem_pread, eepromaddr,
-					"process_load");
+					"autostart_processes");
   elfloader_fini = cle_lookup(&h, xmem_pread, eepromaddr, "_fini");
   elfloader_init = cle_lookup(&h, xmem_pread, eepromaddr, "_init");
 

@@ -30,7 +30,7 @@
  * 
  * Author: Oliver Schmidt <ol.sc@web.de>
  *
- * $Id: dll-loader.c,v 1.3 2007/11/18 13:24:34 oliverschmidt Exp $
+ * $Id: dll-loader.c,v 1.4 2008/02/07 15:54:50 oliverschmidt Exp $
  */
 
 #define WIN32_LEAN_AND_MEAN
@@ -54,10 +54,10 @@ dll_loader_load(char *name, char *arg)
     return LOADER_ERR_OPEN;
   } 
 
-  /* Find the main process of the loaded program. */
-  p = GetProcAddress(handle, "process_load");
+  /* Find the processes to be started from the loaded program. */
+  p = GetProcAddress(handle, "autostart_processes");
   if(p == NULL) {
-    debug_printf("dll_loader_load: could not find process startpoint 'process_load'\n");
+    debug_printf("dll_loader_load: could not find symbol 'autostart_processes'\n");
     return LOADER_ERR_READ;
   }
 
