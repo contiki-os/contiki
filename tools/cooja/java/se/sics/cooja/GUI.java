@@ -24,7 +24,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * $Id: GUI.java,v 1.65 2007/11/18 12:21:41 adamdunkels Exp $
+ * $Id: GUI.java,v 1.66 2008/02/07 10:30:19 fros4943 Exp $
  */
 
 package se.sics.cooja;
@@ -529,12 +529,44 @@ public class GUI {
         JMenuItem menuItem;
 
         for (Class<? extends MoteType> moteTypeClass : moteTypeClasses) {
+          /* Sort mote types according to abstraction level */
+          String abstractionLevelDescription = GUI.getAbstractionLevelDescriptionOf(moteTypeClass);
+          if(abstractionLevelDescription == null) {
+            abstractionLevelDescription = "[unknown cross-level]";
+          }
+
+          /* Check if abstraction description already exists */
+          JSeparator abstractionLevelSeparator = null;
+          for (Component component: menuMoteTypeClasses.getMenuComponents()) {
+            if (component == null || !(component instanceof JSeparator)) {
+              continue;
+            }
+            JSeparator existing = (JSeparator) component;
+            if (abstractionLevelDescription.equals(existing.getToolTipText())) {
+              abstractionLevelSeparator = existing;
+              break;
+            }
+          }
+          if (abstractionLevelSeparator == null) {
+            abstractionLevelSeparator = new JSeparator();
+            abstractionLevelSeparator.setToolTipText(abstractionLevelDescription);
+            menuMoteTypeClasses.add(abstractionLevelSeparator);
+          }
+
           String description = GUI.getDescriptionOf(moteTypeClass);
           menuItem = new JMenuItem(description);
           menuItem.setActionCommand("create mote type");
           menuItem.putClientProperty("class", moteTypeClass);
+          menuItem.setToolTipText(abstractionLevelDescription);
           menuItem.addActionListener(guiEventHandler);
-          menuMoteTypeClasses.add(menuItem);
+
+          /* Add new item directly after cross level separator */
+          for (int i=0; i < menuMoteTypeClasses.getMenuComponentCount(); i++) {
+            if (menuMoteTypeClasses.getMenuComponent(i) == abstractionLevelSeparator) {
+              menuMoteTypeClasses.add(menuItem, i+1);
+              break;
+            }
+          }
         }
       }
 
@@ -2749,6 +2781,20 @@ public class GUI {
       return clazz.getAnnotation(ClassDescription.class).value();
     }
     return clazz.getSimpleName();
+  }
+
+  /**
+   * Help method that returns the abstraction level description for given mote type class.
+   *
+   * @param clazz
+   *          Class
+   * @return Description
+   */
+  public static String getAbstractionLevelDescriptionOf(Class<? extends MoteType> clazz) {
+    if (clazz.isAnnotationPresent(AbstractionLevelDescription.class)) {
+      return clazz.getAnnotation(AbstractionLevelDescription.class).value();
+    }
+    return null;
   }
 
   /**
