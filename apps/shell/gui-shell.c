@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki desktop OS.
  *
- * $Id: shell-gui.c,v 1.4 2008/02/07 23:08:48 oliverschmidt Exp $
+ * $Id: gui-shell.c,v 1.1 2008/02/07 23:11:56 oliverschmidt Exp $
  *
  */
 
