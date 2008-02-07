@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * 
+ *
  */
 
 package se.sics.cooja.motes;
@@ -42,11 +42,12 @@ import se.sics.cooja.*;
 import se.sics.cooja.interfaces.Position;
 
 /**
- * 
+ *
  *
  * @author Fredrik Osterlind, Thiemo Voigt
  */
 @ClassDescription("Disturber Mote Type")
+@AbstractionLevelDescription("Application level")
 public class DisturberMoteType implements MoteType {
   private static Logger logger = Logger.getLogger(DisturberMoteType.class);
 
@@ -118,7 +119,7 @@ public class DisturberMoteType implements MoteType {
   /* TV: add next two for interfaces */
   /**
    * Returns all mote interfaces of this mote type
-   * 
+   *
    * @return All mote interfaces
    */
   public Vector<Class<? extends MoteInterface>> getMoteInterfaces() {
@@ -127,7 +128,7 @@ public class DisturberMoteType implements MoteType {
 
   /**
    * Set mote interfaces of this mote type
-   * 
+   *
    * @param moteInterfaces
    *          New mote interfaces
    */
