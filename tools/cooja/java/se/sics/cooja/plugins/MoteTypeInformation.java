@@ -26,13 +26,15 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: MoteTypeInformation.java,v 1.2 2007/01/09 09:49:24 fros4943 Exp $
+ * $Id: MoteTypeInformation.java,v 1.3 2008/02/07 13:14:42 fros4943 Exp $
  */
 
 package se.sics.cooja.plugins;
 
 import java.awt.*;
+
 import javax.swing.*;
+
 import org.apache.log4j.Logger;
 
 import se.sics.cooja.*;
@@ -78,13 +80,13 @@ public class MoteTypeInformation extends VisPlugin {
 
     mainPane.add(smallPane);
     mainPane.add(Box.createRigidArea(new Dimension(0,10)));
-    
+
     for (MoteType moteType: mySimulation.getMoteTypes()) {
       smallPane = new JPanel();
       smallPane.setLayout(new BorderLayout());
 
       label = new JLabel(GUI.getDescriptionOf(moteType) +": " +
-          "ID=" + moteType.getIdentifier() + 
+          "ID=" + moteType.getIdentifier() +
           ", \"" + moteType.getDescription() + "\"");
       label.setAlignmentX(JLabel.CENTER_ALIGNMENT);
       smallPane.add(BorderLayout.NORTH, label);
@@ -93,30 +95,30 @@ public class MoteTypeInformation extends VisPlugin {
       if (moteTypeVisualizer != null) {
         moteTypeVisualizer.setBorder(BorderFactory.createEtchedBorder());
         smallPane.add(BorderLayout.CENTER, moteTypeVisualizer);
-      } else
+      } else {
         smallPane.add(BorderLayout.CENTER, Box.createVerticalStrut(25));
-        
-      
+      }
+
+
       mainPane.add(smallPane);
       mainPane.add(Box.createRigidArea(new Dimension(0,25)));
     }
-    
-    
-    this.setContentPane(new JScrollPane(mainPane,
+
+    this.getContentPane().add(BorderLayout.NORTH, new JScrollPane(mainPane,
         JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,
         JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED));
     pack();
     setPreferredSize(new Dimension(350,500));
     setSize(new Dimension(350,500));
-    
+
     try {
       setSelected(true);
     } catch (java.beans.PropertyVetoException e) {
       // Could not select
     }
-    
+
   }
-  
+
   public void closePlugin() {
   }
 
