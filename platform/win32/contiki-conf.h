@@ -131,7 +131,7 @@ typedef unsigned short uip_stats_t;
 
 
 #define EMAIL_CONF_WIDTH  76
-#define EMAIL_CONF_HEIGHT 25
+#define EMAIL_CONF_HEIGHT 30
 
 
 #define IRC_CONF_WIDTH         78
@@ -142,8 +142,8 @@ typedef unsigned short uip_stats_t;
 #define SHELL_CONF_WITH_PROGRAM_HANDLER 1
 
 
-#define SHELL_GUI_CONF_XSIZE 46
-#define SHELL_GUI_CONF_YSIZE 22
+#define SHELL_GUI_CONF_XSIZE 78
+#define SHELL_GUI_CONF_YSIZE 30
 
 
 #define TELNETD_CONF_GUI 1
