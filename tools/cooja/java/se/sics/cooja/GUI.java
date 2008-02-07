@@ -24,7 +24,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * $Id: GUI.java,v 1.66 2008/02/07 10:30:19 fros4943 Exp $
+ * $Id: GUI.java,v 1.67 2008/02/07 22:25:26 fros4943 Exp $
  */
 
 package se.sics.cooja;
@@ -2725,7 +2725,7 @@ public class GUI {
     for (int j = projectDirs.size() - 1; j >= 0; j--) {
       File projectDir = projectDirs.get(j);
       try {
-        urls.add((new File(projectDir, "java")).toURL());
+        urls.add((new File(projectDir, "java")).toURI().toURL());
 
         // Read configuration to check if any JAR files should be loaded
         ProjectConfig projectConfig = new ProjectConfig(false);
@@ -2738,7 +2738,7 @@ public class GUI {
             if (jarpath == null) {
               throw new FileNotFoundException(jarfile);
             }
-            urls.add(jarpath.toURL());
+            urls.add(jarpath.toURI().toURL());
           }
         }
 
@@ -2750,8 +2750,8 @@ public class GUI {
       }
     }
 
-    return new URLClassLoader(urls.toArray(new URL[urls.size()]),
-        parent);
+    URL[] urlsArray = urls.toArray(new URL[urls.size()]);
+    return new URLClassLoader(urlsArray, parent);
   }
 
   /**
