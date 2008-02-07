@@ -29,7 +29,7 @@
  *
  * This file is part of the Contiki desktop environment
  *
- * $Id: directory.c,v 1.4 2007/12/15 21:04:51 oliverschmidt Exp $
+ * $Id: directory.c,v 1.5 2008/02/07 16:29:08 oliverschmidt Exp $
  *
  */
 
@@ -75,6 +75,10 @@ static struct ctk_button reloadbutton =
   {CTK_BUTTON(30, 20, 6, "Reload")};
 
 PROCESS(directory_process, "Directory browser");
+
+#if SELFSTART_PROCESS
+AUTOSTART_PROCESSES(&directory_process);
+#endif /* SELFSTART_PROCESS */
 
 static unsigned char width, height;
 

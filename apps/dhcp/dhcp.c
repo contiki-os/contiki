@@ -6,6 +6,10 @@
 
 PROCESS(dhcp_process, "DHCP");
 
+#if SELFSTART_PROCESS
+AUTOSTART_PROCESSES(&dhcp_process);
+#endif /* SELFSTART_PROCESS */
+
 static struct ctk_window window;
 static struct ctk_button getbutton =
   {CTK_BUTTON(0, 0, 16, "Request address")};

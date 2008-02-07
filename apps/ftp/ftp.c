@@ -30,7 +30,7 @@
  * 
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: ftp.c,v 1.4 2007/11/18 01:05:10 oliverschmidt Exp $
+ * $Id: ftp.c,v 1.5 2008/02/07 16:30:08 oliverschmidt Exp $
  */
 /* Note to self: It would be nice to have a "View" option in the download dialog. */
 
@@ -51,6 +51,10 @@
 #define FILES_HEIGHT 18
 
 PROCESS(ftp_process, "FTP client");
+
+#if SELFSTART_PROCESS
+AUTOSTART_PROCESSES(&ftp_process);
+#endif /* SELFSTART_PROCESS */
 
 static void *connection;
 

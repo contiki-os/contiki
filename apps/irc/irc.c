@@ -30,7 +30,7 @@
  * 
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: irc.c,v 1.5 2007/11/22 12:02:24 oliverschmidt Exp $
+ * $Id: irc.c,v 1.6 2008/02/07 16:30:24 oliverschmidt Exp $
  */
 
 #include <string.h>
@@ -59,6 +59,10 @@
 #endif
 
 PROCESS(irc_process, "IRC client");
+
+#if SELFSTART_PROCESS
+AUTOSTART_PROCESSES(&irc_process);
+#endif /* SELFSTART_PROCESS */
 
 static struct ctk_window window;
 static char log[LOG_WIDTH * LOG_HEIGHT];
