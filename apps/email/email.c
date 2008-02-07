@@ -29,7 +29,7 @@
  *
  * This file is part of the Contiki desktop environment for the C64.
  *
- * $Id: email.c,v 1.3 2007/11/18 00:57:44 oliverschmidt Exp $
+ * $Id: email.c,v 1.4 2008/02/07 16:29:24 oliverschmidt Exp $
  *
  */
 
@@ -156,6 +156,10 @@ static struct ctk_button setupokbutton =
   {CTK_BUTTON(24, 15, 2, "Ok")};
 
 PROCESS(email_process, "E-mail client");
+
+#if SELFSTART_PROCESS
+AUTOSTART_PROCESSES(&email_process);
+#endif /* SELFSTART_PROCESS */
 
 /*-----------------------------------------------------------------------------------*/
 static void

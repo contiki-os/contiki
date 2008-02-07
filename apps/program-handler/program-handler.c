@@ -43,7 +43,7 @@
  *
  * This file is part of the Contiki desktop OS
  *
- * $Id: program-handler.c,v 1.7 2007/12/15 13:03:17 oliverschmidt Exp $
+ * $Id: program-handler.c,v 1.8 2008/02/07 16:31:14 oliverschmidt Exp $
  *
  */
 
@@ -123,6 +123,10 @@ static struct ctk_button errorokbutton =
 #endif /* WITH_LOADER_ARCH */
 
 PROCESS(program_handler_process, "Program handler");
+
+#if SELFSTART_PROCESS
+AUTOSTART_PROCESSES(&program_handler_process);
+#endif /* SELFSTART_PROCESS */
 
 static const char * const errormsgs[] = {
   "Ok",

@@ -29,7 +29,7 @@
  *
  * This file is part of the Contiki desktop environment
  *
- * $Id: netconf.c,v 1.6 2007/09/29 04:12:16 matsutsuka Exp $
+ * $Id: netconf.c,v 1.7 2008/02/07 16:30:42 oliverschmidt Exp $
  *
  */
 
@@ -66,6 +66,10 @@ static struct ctk_button tcpipclosebutton =
   {CTK_BUTTON(0, 9, 2, "Ok")};
 
 PROCESS(netconf_process, "Network configurator");
+
+#if SELFSTART_PROCESS
+AUTOSTART_PROCESSES(&netconf_process);
+#endif /* SELFSTART_PROCESS */
 
 static void makestrings(void);
 

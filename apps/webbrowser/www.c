@@ -29,7 +29,7 @@
  *
  * This file is part of the Contiki desktop environment
  *
- * $Id: www.c,v 1.7 2007/12/15 21:56:23 oliverschmidt Exp $
+ * $Id: www.c,v 1.8 2008/02/07 16:31:51 oliverschmidt Exp $
  *
  */
 
@@ -163,6 +163,10 @@ static char receivingmsgs[4][23] = {
 };
 
 PROCESS(www_process, "Web browser");
+
+#if SELFSTART_PROCESS
+AUTOSTART_PROCESSES(&www_process);
+#endif /* SELFSTART_PROCESS */
 
 static void formsubmit(struct formattribs *attribs);
 
