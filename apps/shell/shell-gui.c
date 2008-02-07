@@ -28,10 +28,9 @@
  *
  * This file is part of the Contiki desktop OS.
  *
- * $Id: shell-gui.c,v 1.3 2006/12/29 23:05:19 oliverschmidt Exp $
+ * $Id: shell-gui.c,v 1.4 2008/02/07 23:08:48 oliverschmidt Exp $
  *
  */
-
 
 #include "program-handler.h"
 #include "contiki.h"
@@ -54,7 +53,6 @@
 #define SHELL_GUI_YSIZE 10
 #endif
 
-
 static struct ctk_window window;
 static char log[SHELL_GUI_XSIZE * SHELL_GUI_YSIZE];
 static struct ctk_label loglabel =
@@ -66,6 +64,10 @@ static struct ctk_textentry commandentry =
 
 PROCESS(shell_gui_process, "Command shell");
 
+#if SELFSTART_PROCESS
+AUTOSTART_PROCESSES(&shell_gui_process);
+#endif /* SELFSTART_PROCESS */
+
 /*-----------------------------------------------------------------------------------*/
 void
 shell_quit(char *str)
@@ -76,24 +78,30 @@ shell_quit(char *str)
 }
 /*-----------------------------------------------------------------------------------*/
 void
-shell_output(char *str1, char *str2)
+shell_default_output(const char *str1, int len1, const char *str2, int len2)
 {
-  static unsigned char i, len;
+  static unsigned char i;
   
   for(i = 1; i < SHELL_GUI_YSIZE; ++i) {
     memcpy(&log[(i - 1) * SHELL_GUI_XSIZE],
 	   &log[i * SHELL_GUI_XSIZE], SHELL_GUI_XSIZE);
   }
-  memset(&log[(SHELL_GUI_YSIZE - 1) * SHELL_GUI_XSIZE],
-	 0, SHELL_GUI_XSIZE);
 
-  len = (unsigned char)strlen(str1);
+  if(str1[len1 - 1] == '\n') {
+    --len1;
+  }
+  if(str2[len2 - 1] == '\n') {
+    --len2;
+  }
 
   strncpy(&log[(SHELL_GUI_YSIZE - 1) * SHELL_GUI_XSIZE],
 	  str1, SHELL_GUI_XSIZE);
-  if(len < SHELL_GUI_XSIZE) {
-    strncpy(&log[(SHELL_GUI_YSIZE - 1) * SHELL_GUI_XSIZE] + len,
-	    str2, SHELL_GUI_XSIZE - len);
+  if(len1 < SHELL_GUI_XSIZE) {
+    strncpy(&log[(SHELL_GUI_YSIZE - 1) * SHELL_GUI_XSIZE] + len1,
+	    str2, SHELL_GUI_XSIZE - len1);
+    if(len1 + len2 < SHELL_GUI_XSIZE) {
+      log[(SHELL_GUI_YSIZE - 1) * SHELL_GUI_XSIZE + len1 + len2] = 0;
+    }
   }
 
   CTK_WIDGET_REDRAW(&loglabel);
@@ -102,12 +110,10 @@ shell_output(char *str1, char *str2)
 void
 shell_prompt(char *str)
 {
-  
 }
 /*-----------------------------------------------------------------------------------*/
 PROCESS_THREAD(shell_gui_process, ev, data)
 {
-
   PROCESS_BEGIN();
     
   ctk_window_new(&window, SHELL_GUI_XSIZE,
@@ -117,19 +123,23 @@ PROCESS_THREAD(shell_gui_process, ev, data)
   CTK_WIDGET_ADD(&window, &commandentry);
   /*    CTK_WIDGET_SET_FLAG(&commandentry, CTK_WIDGET_FLAG_MONOSPACE);*/
   CTK_WIDGET_FOCUS(&window, &commandentry);
-  memset(log, 0, sizeof(log));
   
   shell_init();
+  shell_file_init();
+  shell_ps_init();
+  shell_text_init();
+  shell_time_init();
+
   ctk_window_open(&window);
-  shell_start();
 
   while(1) {
     PROCESS_WAIT_EVENT();
     
     if(ev == ctk_signal_widget_activate &&
        data == (process_data_t)&commandentry) {
-      shell_output("> ", command);
-      shell_input(command);
+      int command_len = strlen(command);
+      shell_default_output("> ", 2, command, command_len);
+      shell_input(command, command_len);
       if(shell_gui_process.state) {
         CTK_TEXTENTRY_CLEAR(&commandentry);
         CTK_WIDGET_REDRAW(&commandentry);
@@ -137,8 +147,6 @@ PROCESS_THREAD(shell_gui_process, ev, data)
     } else if(ev == ctk_signal_window_close ||
 	      ev == PROCESS_EVENT_EXIT) {
       shell_quit(NULL);
-    } else {
-      shell_eventhandler(ev, data);
     }
   }
   PROCESS_END();
