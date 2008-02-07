@@ -54,7 +54,7 @@
  *
  * This file is part of the uIP TCP/IP stack.
  *
- * $Id: uip_arp.c,v 1.4 2007/08/30 14:39:17 matsutsuka Exp $
+ * $Id: uip_arp.c,v 1.5 2008/02/07 01:35:00 adamdunkels Exp $
  *
  */
 
@@ -154,7 +154,7 @@ uip_arp_timer(void)
   ++arptime;
   for(i = 0; i < UIP_ARPTAB_SIZE; ++i) {
     tabptr = &arp_table[i];
-    if(uip_ipaddr_cmp(&tabptr->ipaddr, &all_zeroes_addr) &&
+    if(uip_ipaddr_cmp(&tabptr->ipaddr, &uip_all_zeroes_addr) &&
        arptime - tabptr->time >= UIP_ARP_MAXAGE) {
       memset(&tabptr->ipaddr, 0, 4);
     }
@@ -173,7 +173,7 @@ uip_arp_update(uip_ipaddr_t *ipaddr, struct uip_eth_addr *ethaddr)
 
     tabptr = &arp_table[i];
     /* Only check those entries that are actually in use. */
-    if(!uip_ipaddr_cmp(&tabptr->ipaddr, &all_zeroes_addr)) {
+    if(!uip_ipaddr_cmp(&tabptr->ipaddr, &uip_all_zeroes_addr)) {
 
       /* Check if the source IP address of the incoming packet matches
          the IP address in this ARP table entry. */
@@ -194,7 +194,7 @@ uip_arp_update(uip_ipaddr_t *ipaddr, struct uip_eth_addr *ethaddr)
   /* First, we try to find an unused entry in the ARP table. */
   for(i = 0; i < UIP_ARPTAB_SIZE; ++i) {
     tabptr = &arp_table[i];
-    if(uip_ipaddr_cmp(&tabptr->ipaddr, &all_zeroes_addr)) {
+    if(uip_ipaddr_cmp(&tabptr->ipaddr, &uip_all_zeroes_addr)) {
       break;
     }
   }
@@ -306,8 +306,7 @@ uip_arp_arpin(void)
 	 with this host in the future. */
       uip_arp_update(&BUF->sipaddr, &BUF->shwaddr);
       
-      /* The reply opcode is 2. */
-      BUF->opcode = HTONS(2);
+      BUF->opcode = HTONS(ARP_REPLY);
 
       memcpy(BUF->dhwaddr.addr, BUF->shwaddr.addr, 6);
       memcpy(BUF->shwaddr.addr, uip_ethaddr.addr, 6);
@@ -324,8 +323,6 @@ uip_arp_arpin(void)
   case HTONS(ARP_REPLY):
     /* ARP reply. We insert or update the ARP table if it was meant
        for us. */
-    /*    if(BUF->dipaddr[0] == uip_hostaddr[0] &&
-	  BUF->dipaddr[1] == uip_hostaddr[1]) {*/
     if(uip_ipaddr_cmp(&BUF->dipaddr, &uip_hostaddr)) {
       uip_arp_update(&BUF->sipaddr, &BUF->shwaddr);
     }
