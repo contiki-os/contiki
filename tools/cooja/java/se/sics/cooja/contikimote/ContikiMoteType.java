@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ContikiMoteType.java,v 1.22 2007/11/20 04:16:13 fros4943 Exp $
+ * $Id: ContikiMoteType.java,v 1.23 2008/02/07 10:34:45 fros4943 Exp $
  */
 
 package se.sics.cooja.contikimote;
@@ -65,6 +65,7 @@ import se.sics.cooja.dialogs.MessageList;
  * @author Fredrik Osterlind
  */
 @ClassDescription("Contiki Mote Type")
+@AbstractionLevelDescription("OS level")
 public class ContikiMoteType implements MoteType {
   private static Logger logger = Logger.getLogger(ContikiMoteType.class);
 
@@ -470,7 +471,7 @@ public class ContikiMoteType implements MoteType {
   }
 
   /**
-   * Parses specified parse command output for variable 
+   * Parses specified parse command output for variable
    * name to addresses mappings. The mappings are added
    * to the given properties object.
    *
