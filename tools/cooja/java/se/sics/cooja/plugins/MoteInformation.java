@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: MoteInformation.java,v 1.4 2007/04/02 16:44:44 fros4943 Exp $
+ * $Id: MoteInformation.java,v 1.5 2008/02/07 13:15:22 fros4943 Exp $
  */
 
 package se.sics.cooja.plugins;
@@ -62,9 +62,9 @@ public class MoteInformation extends VisPlugin {
 
   private Observer stateObserver;
   private Vector<JPanel> visibleMoteInterfaces = new Vector<JPanel>();
-  
+
   private Simulation mySimulation;
-  
+
   /**
    * Create a new mote information window.
    *
@@ -75,7 +75,7 @@ public class MoteInformation extends VisPlugin {
 
     mote = moteToView;
     mySimulation = simulation;
-    
+
     JLabel label;
     JPanel mainPane = new JPanel();
     mainPane.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
@@ -87,7 +87,7 @@ public class MoteInformation extends VisPlugin {
     label = new JLabel("Remove mote");
     label.setPreferredSize(new Dimension(LABEL_WIDTH,LABEL_HEIGHT));
     smallPane.add(BorderLayout.WEST, label);
-    
+
     JButton button = new JButton("Remove");
     button.setActionCommand("removeMote");
     button.addActionListener(new ActionListener() {
@@ -96,22 +96,23 @@ public class MoteInformation extends VisPlugin {
         dispose();
       }
     });
-    
+
     smallPane.add(BorderLayout.EAST, button);
     mainPane.add(smallPane);
     mainPane.add(Box.createRigidArea(new Dimension(0,25)));
 
-    // Visualize mote type
+    // Visualize state
     smallPane = new JPanel(new BorderLayout());
     label = new JLabel("-- STATE --");
     label.setPreferredSize(new Dimension(LABEL_WIDTH,LABEL_HEIGHT));
     smallPane.add(BorderLayout.WEST, label);
-    if (mote.getState() == Mote.State.ACTIVE)
+    if (mote.getState() == Mote.State.ACTIVE) {
       label = new JLabel("active");
-    else if (mote.getState() == State.LPM)
+    } else if (mote.getState() == State.LPM) {
       label = new JLabel("low power mode");
-    else
+    } else {
       label = new JLabel("dead");
+    }
 
     label.setPreferredSize(new Dimension(LABEL_WIDTH,LABEL_HEIGHT));
     stateLabel = label;
@@ -126,16 +127,13 @@ public class MoteInformation extends VisPlugin {
     smallPane = new JPanel(new BorderLayout());
     label = new JLabel("-- MOTE TYPE --");
     label.setPreferredSize(new Dimension(LABEL_WIDTH,LABEL_HEIGHT));
-    smallPane.add(BorderLayout.NORTH, label);
-    JPanel moteVis = mote.getType().getTypeVisualizer();
-    if (moteVis != null) {
-      moteVis.setBorder(BorderFactory.createEtchedBorder());
-      smallPane.add(moteVis);
-      
-      mainPane.add(smallPane);
-      mainPane.add(Box.createRigidArea(new Dimension(0,25)));
-    }
+    smallPane.add(BorderLayout.WEST, label);
+    label = new JLabel(moteToView.getType().getIdentifier() + ": \"" + moteToView.getType().getDescription() + "\"");
+    label.setPreferredSize(new Dimension(LABEL_WIDTH,LABEL_HEIGHT));
+    smallPane.add(BorderLayout.EAST, label);
 
+    mainPane.add(smallPane);
+    mainPane.add(Box.createRigidArea(new Dimension(0,25)));
 
     // All interfaces
     smallPane = new JPanel(new BorderLayout());
@@ -145,7 +143,7 @@ public class MoteInformation extends VisPlugin {
 
     mainPane.add(smallPane);
     mainPane.add(Box.createRigidArea(new Dimension(0,10)));
-    
+
     for (int i=0; i < mote.getInterfaces().getAllActiveInterfaces().size(); i++) {
       smallPane = new JPanel();
       smallPane.setLayout(new BorderLayout());
@@ -156,7 +154,7 @@ public class MoteInformation extends VisPlugin {
       label = new JLabel(interfaceDescription);
       label.setAlignmentX(JLabel.CENTER_ALIGNMENT);
       smallPane.add(BorderLayout.NORTH, label);
-      
+
       if (interfaceVisualizer != null) {
         interfaceVisualizer.setBorder(BorderFactory.createEtchedBorder());
         smallPane.add(BorderLayout.CENTER, interfaceVisualizer);
@@ -165,7 +163,7 @@ public class MoteInformation extends VisPlugin {
 				interfaceVisualizer.putClientProperty("my_interface", moteInterface);
         visibleMoteInterfaces.add(interfaceVisualizer);
       }
-      
+
       mainPane.add(smallPane);
       mainPane.add(Box.createRigidArea(new Dimension(0,5)));
     }
@@ -175,12 +173,12 @@ public class MoteInformation extends VisPlugin {
 
       MoteInterface moteInterface = mote.getInterfaces().getAllPassiveInterfaces().get(i);
       String interfaceDescription = GUI.getDescriptionOf(moteInterface);
-      
+
       JPanel interfaceVisualizer = moteInterface.getInterfaceVisualizer();
       label = new JLabel(interfaceDescription);
       label.setAlignmentX(JLabel.CENTER_ALIGNMENT);
       smallPane.add(BorderLayout.NORTH, label);
-      
+
       if (interfaceVisualizer != null) {
         interfaceVisualizer.setBorder(BorderFactory.createEtchedBorder());
         smallPane.add(BorderLayout.CENTER, interfaceVisualizer);
@@ -189,49 +187,51 @@ public class MoteInformation extends VisPlugin {
         interfaceVisualizer.putClientProperty("my_interface", moteInterface);
         visibleMoteInterfaces.add(interfaceVisualizer);
       }
-      
+
       mainPane.add(smallPane);
       mainPane.add(Box.createRigidArea(new Dimension(0,5)));
     }
-    
-    
+
+
     this.getContentPane().add(BorderLayout.NORTH, new JScrollPane(mainPane,
         JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,
         JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED));
     pack();
     setPreferredSize(new Dimension(350,500));
     setSize(new Dimension(350,500));
-    
+
     try {
       setSelected(true);
     } catch (java.beans.PropertyVetoException e) {
       // Could not select
     }
-    
+
     // Register as state observer to detect if mote changes state
     mote.addStateObserver(stateObserver = new Observer() {
       public void update(Observable obs, Object obj) {
-        if (mote.getState() == State.ACTIVE)
+        if (mote.getState() == State.ACTIVE) {
           stateLabel.setText("active");
-        else if (mote.getState() == Mote.State.LPM)
+        } else if (mote.getState() == Mote.State.LPM) {
           stateLabel.setText("low power mode");
-        else
+        } else {
           stateLabel.setText("dead");
+        }
       }
     });
   }
-  
+
   public void closePlugin() {
 	  // Remove state observer
     mote.deleteStateObserver(stateObserver);
-    
+
     // Release all interface visualizations
     for (JPanel interfaceVisualization: visibleMoteInterfaces) {
       MoteInterface moteInterface = (MoteInterface) interfaceVisualization.getClientProperty("my_interface");
-      if (moteInterface != null && interfaceVisualization != null)
+      if (moteInterface != null && interfaceVisualization != null) {
         moteInterface.releaseInterfaceVisualizer(interfaceVisualization);
-      else
+      } else {
         logger.warn("Could not release panel");
+      }
     }
   }
 
