@@ -53,7 +53,7 @@
  *
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: clock.h,v 1.3 2007/09/07 10:20:30 fros4943 Exp $
+ * $Id: clock.h,v 1.4 2008/02/07 23:04:35 oliverschmidt Exp $
  */
 #ifndef __CLOCK_H__
 #define __CLOCK_H__
@@ -78,7 +78,7 @@ void clock_init(void);
  *
  * \return The current clock time, measured in system ticks.
  */
-clock_time_t clock_time(void);
+CCIF clock_time_t clock_time(void);
 
 void clock_delay(unsigned int);
 

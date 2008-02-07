@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: process.h,v 1.14 2008/02/07 15:43:37 oliverschmidt Exp $
+ * @(#)$Id: process.h,v 1.15 2008/02/07 23:04:35 oliverschmidt Exp $
  */
 
 /**
@@ -327,7 +327,7 @@ struct process {
  * process
  *
  */
-void process_start(struct process *p, const char *arg);
+CCIF void process_start(struct process *p, const char *arg);
 
 /**
  * Post an asynchronous event.
@@ -362,8 +362,8 @@ CCIF int process_post(struct process *p, process_event_t ev, void* data);
  * \param data A pointer to additional data that is posted together
  * with the event.
  */
-void process_post_synch(struct process *p,
-			process_event_t ev, void* data);
+CCIF void process_post_synch(struct process *p,
+			     process_event_t ev, void* data);
 
 /**
  * \brief      Cause a process to exit
@@ -438,7 +438,7 @@ process_current = p
  * \note       There currently is no way to deallocate an allocated event
  *             number.
  */
-process_event_t process_alloc_event(void);
+CCIF process_event_t process_alloc_event(void);
 
 /** @} */
 
@@ -497,7 +497,7 @@ int process_run(void);
  * \retval Non-zero if the process is running.
  * \retval Zero if the process is not running.
  */
-int process_is_running(struct process *p);
+CCIF int process_is_running(struct process *p);
 
 /**
  *  Number of events waiting to be processed.
