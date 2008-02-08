@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki desktop OS.
  *
- * $Id: gui-shell.c,v 1.1 2008/02/07 23:11:56 oliverschmidt Exp $
+ * $Id: gui-shell.c,v 1.2 2008/02/08 12:49:54 oliverschmidt Exp $
  *
  */
 
@@ -127,6 +127,7 @@ PROCESS_THREAD(shell_gui_process, ev, data)
   shell_init();
   shell_file_init();
   shell_ps_init();
+  shell_run_init();
   shell_text_init();
   shell_time_init();
 
