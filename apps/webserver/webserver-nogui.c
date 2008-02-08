@@ -29,7 +29,7 @@
  *
  * This file is part of the Contiki OS.
  *
- * $Id: webserver-nogui.c,v 1.4 2007/04/23 21:19:55 oliverschmidt Exp $
+ * $Id: webserver-nogui.c,v 1.5 2008/02/08 22:53:32 oliverschmidt Exp $
  *
  */
 
@@ -44,6 +44,9 @@
 #include "httpd.h"
 
 PROCESS(webserver_nogui_process, "Web server");
+
+AUTOSTART_PROCESSES(&webserver_nogui_process);
+
 /*---------------------------------------------------------------------------*/
 PROCESS_THREAD(webserver_nogui_process, ev, data)
 {

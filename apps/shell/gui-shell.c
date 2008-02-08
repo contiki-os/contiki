@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki desktop OS.
  *
- * $Id: gui-shell.c,v 1.2 2008/02/08 12:49:54 oliverschmidt Exp $
+ * $Id: gui-shell.c,v 1.3 2008/02/08 22:52:18 oliverschmidt Exp $
  *
  */
 
@@ -64,9 +64,7 @@ static struct ctk_textentry commandentry =
 
 PROCESS(shell_gui_process, "Command shell");
 
-#if SELFSTART_PROCESS
 AUTOSTART_PROCESSES(&shell_gui_process);
-#endif /* SELFSTART_PROCESS */
 
 /*-----------------------------------------------------------------------------------*/
 void

@@ -29,7 +29,7 @@
  *
  * This file is part of the Contiki desktop environment
  *
- * $Id: process-list.c,v 1.7 2008/02/07 16:30:58 oliverschmidt Exp $
+ * $Id: process-list.c,v 1.8 2008/02/08 22:51:27 oliverschmidt Exp $
  *
  */
 
@@ -65,9 +65,7 @@ static struct ctk_button processclosebutton =
 
 PROCESS(processes_process, "Process listing");
 
-#if SELFSTART_PROCESS
 AUTOSTART_PROCESSES(&processes_process);
-#endif /* SELFSTART_PROCESS */
 
 enum {
   EVENT_UPDATE
