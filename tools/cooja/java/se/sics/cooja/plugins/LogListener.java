@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: LogListener.java,v 1.6 2007/04/02 17:44:43 fros4943 Exp $
+ * $Id: LogListener.java,v 1.7 2008/02/08 14:42:33 fros4943 Exp $
  */
 
 package se.sics.cooja.plugins;
@@ -49,7 +49,7 @@ import se.sics.cooja.interfaces.Log;
  * When instantiated, is registers as a listener on all currently existing
  * motes' log interfaces. (Observe that if new motes are added to a simulation,
  * a new log listener must be created to listen to those motes also).
- * 
+ *
  * @author Fredrik Osterlind
  */
 @ClassDescription("Log Listener")
@@ -74,12 +74,13 @@ public class LogListener extends VisPlugin {
     super("Log Listener - Listening on ?? mote logs", gui);
     simulation = simulationToControl;
     int nrLogs = 0;
-    
+
     // Log observer
     logObserver = new Observer() {
       public void update(Observable obs, Object obj) {
-        if (logTextArea == null)
+        if (logTextArea == null) {
           return;
+        }
 
         Mote mote = (Mote) obj;
         Log moteLogInterface = (Log) obs;
@@ -88,13 +89,14 @@ public class LogListener extends VisPlugin {
           outputString = outputString.concat("ID:" + mote.getInterfaces().getMoteID().getMoteID() + "\t");
         }
         // Match against filter (if any)
-        if (filterText != null && !filterText.equals("") && 
-            !moteLogInterface.getLastLogMessages().contains(filterText))
+        if (filterText != null && !filterText.equals("") &&
+            !moteLogInterface.getLastLogMessages().contains(filterText)) {
           return;
-        
+        }
+
         outputString = outputString.concat(moteLogInterface.getLastLogMessages());
 
-        
+
         final String str = outputString;
         SwingUtilities.invokeLater(new Runnable() {
           public void run() {
@@ -105,7 +107,7 @@ public class LogListener extends VisPlugin {
         });
       }
     };
-    
+
     // Register as loglistener on all currently active motes
     for (int i=0; i < simulation.getMotesCount(); i++) {
       if (simulation.getMote(i).getInterfaces().getLog() != null) {
@@ -113,6 +115,21 @@ public class LogListener extends VisPlugin {
         nrLogs++;
       }
     }
+
+    simulation.addObserver(new Observer() {
+      public void update(Observable obs, Object obj) {
+        /* Reregister as log listener */
+        int nrLogs = 0;
+        for (int i=0; i < simulation.getMotesCount(); i++) {
+          if (simulation.getMote(i).getInterfaces().getLog() != null) {
+            simulation.getMote(i).getInterfaces().getLog().deleteObserver(logObserver);
+            simulation.getMote(i).getInterfaces().getLog().addObserver(logObserver);
+            nrLogs++;
+          }
+        }
+        setTitle("Log Listener - Listening on " + nrLogs + " mote logs");
+      }
+    });
 
     // Main panel
     logTextArea = new JTextArea(8,50);
@@ -170,13 +187,14 @@ public class LogListener extends VisPlugin {
               logger.fatal("Could not write to file: " + saveFile);
               return;
             }
-            
-          } else
+
+          } else {
             logger.fatal("No write access to file");
+          }
         }
       }
     });
-    
+
     getContentPane().add(BorderLayout.CENTER, new JScrollPane(logTextArea));
     getContentPane().add(BorderLayout.SOUTH, new JScrollPane(filterPanel));
 
@@ -194,16 +212,17 @@ public class LogListener extends VisPlugin {
   public void closePlugin() {
     // Remove log observer from all log interfaces
     for (int i=0; i < simulation.getMotesCount(); i++) {
-      if (simulation.getMote(i).getInterfaces().getLog() != null)
-        simulation.getMote(i).getInterfaces().getLog().deleteObserver(logObserver); 
+      if (simulation.getMote(i).getInterfaces().getLog() != null) {
+        simulation.getMote(i).getInterfaces().getLog().deleteObserver(logObserver);
+      }
     }
   }
 
   public Collection<Element> getConfigXML() {
     Vector<Element> config = new Vector<Element>();
-    
+
     Element element;
-    
+
     // Selected variable name
     element = new Element("filter");
     element.setText(filterText);
@@ -213,16 +232,16 @@ public class LogListener extends VisPlugin {
   }
 
   public boolean setConfigXML(Collection<Element> configXML, boolean visAvailable) {
-    
+
     for (Element element : configXML) {
       if (element.getName().equals("filter")) {
         filterText = element.getText();
         filterTextField.setText(filterText);
       }
     }
-    
+
     return true;
   }
 
-  
+
 }
