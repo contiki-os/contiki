@@ -29,7 +29,7 @@
  *
  * This an example program for the Contiki desktop OS
  *
- * $Id: calc.c,v 1.4 2008/02/07 16:28:27 oliverschmidt Exp $
+ * $Id: calc.c,v 1.5 2008/02/08 22:48:47 oliverschmidt Exp $
  *
  */
 
@@ -82,9 +82,7 @@ static struct ctk_button calcbutton =
 
 PROCESS(calc_process, "Calculator");
 
-#if SELFSTART_PROCESS
 AUTOSTART_PROCESSES(&calc_process);
-#endif /* SELFSTART_PROCESS */
 
 static unsigned long operand1, operand2;
 static unsigned char op;

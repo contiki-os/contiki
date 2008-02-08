@@ -29,7 +29,7 @@
  *
  * This file is part of the Contiki desktop environment for the C64.
  *
- * $Id: webserver.c,v 1.4 2008/02/07 16:32:11 oliverschmidt Exp $
+ * $Id: webserver.c,v 1.5 2008/02/08 22:53:32 oliverschmidt Exp $
  *
  */
 
@@ -51,9 +51,7 @@ static struct ctk_label message =
 
 PROCESS(webserver_process, "Web server");
 
-#if SELFSTART_PROCESS
 AUTOSTART_PROCESSES(&webserver_process);
-#endif /* SELFSTART_PROCESS */
 
 #define LOG_WIDTH  38
 #define LOG_HEIGHT 16

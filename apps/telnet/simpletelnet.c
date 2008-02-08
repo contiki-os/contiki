@@ -29,7 +29,7 @@
  *
  * This file is part of the Contiki desktop environment
  *
- * $Id: simpletelnet.c,v 1.4 2008/02/07 16:31:34 oliverschmidt Exp $
+ * $Id: simpletelnet.c,v 1.5 2008/02/08 22:52:43 oliverschmidt Exp $
  *
  */
 
@@ -91,9 +91,7 @@ static char sendline[31+2];
 
 PROCESS(simpletelnet_process, "Telnet client");
 
-#if SELFSTART_PROCESS
 AUTOSTART_PROCESSES(&simpletelnet_process);
-#endif /* SELFSTART_PROCESS */
 
 /*-----------------------------------------------------------------------------------*/
 static void

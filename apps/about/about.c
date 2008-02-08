@@ -29,7 +29,7 @@
  *
  * This file is part of the Contiki desktop environment
  *
- * $Id: about.c,v 1.3 2008/02/07 16:28:11 oliverschmidt Exp $
+ * $Id: about.c,v 1.4 2008/02/08 22:48:28 oliverschmidt Exp $
  *
  */
 
@@ -60,9 +60,7 @@ static struct ctk_button aboutclose =
 
 PROCESS(about_process, "About Contiki");
 
-#if SELFSTART_PROCESS
 AUTOSTART_PROCESSES(&about_process);
-#endif /* SELFSTART_PROCESS */
 
 /*-----------------------------------------------------------------------------------*/
 static void
