@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: shell-time.c,v 1.1 2008/02/04 23:42:17 adamdunkels Exp $
+ * $Id: shell-time.c,v 1.2 2008/02/08 20:40:10 adamdunkels Exp $
  */
 
 /**
@@ -55,12 +55,12 @@
 PROCESS(shell_time_process, "time");
 SHELL_COMMAND(time_command,
 	      "time",
-	      "time [seconds]: print time or set time in seconds since 1970",
+	      "time [seconds]: output time in binary format, or set time in seconds since 1970",
 	      &shell_time_process);
 PROCESS(shell_timestamp_process, "timestamp");
 SHELL_COMMAND(timestamp_command,
 	      "timestamp",
-	      "timestamp: prepent a timestamp to data",
+	      "timestamp: prepend a timestamp to data",
 	      &shell_timestamp_process);
 PROCESS(shell_repeat_process, "repeat");
 PROCESS(shell_repeat_server_process, "repeat server");
