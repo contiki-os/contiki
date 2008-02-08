@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: MspMoteType.java,v 1.1 2008/02/07 14:53:29 fros4943 Exp $
+ * $Id: MspMoteType.java,v 1.2 2008/02/08 14:30:28 fros4943 Exp $
  */
 
 package se.sics.cooja.mspmote;
@@ -216,6 +216,7 @@ public abstract class MspMoteType implements MoteType {
         try {
           compiler.compileFirmware(getSourceFile(), null, null, compilationOutput,
               true);
+
         } catch (Exception e) {
           MoteTypeCreationException newException = new MoteTypeCreationException(
               "Mote type creation failed: " + e.getMessage());
@@ -223,11 +224,6 @@ public abstract class MspMoteType implements MoteType {
           newException.setCompilationOutput(compilationOutput);
           throw newException;
         }
-
-        /*File parentFile = getSourceFile().getParentFile();*/
-        /*final String filenameNoExtension = getSourceFile().getName().substring(0,
-            getSourceFile().getName().length() - 2);*/
-        /*setELFFile(new File(parentFile, filenameNoExtension + firmwareFileExtension));*/
 
         setSourceFile(compiler.getSourceFile());
         setELFFile(compiler.getOutputFile());
@@ -239,46 +235,57 @@ public abstract class MspMoteType implements MoteType {
 
     // Check dependency files
     if (getELFFile() == null || !getELFFile().exists()) {
-      if (visAvailable) {
-        JFileChooser fc = new JFileChooser();
+      if (!visAvailable) {
+        throw new MoteTypeCreationException("ELF file does not exist: " + getELFFile());
+      }
 
-        // Select previous directory
-        if (lastParentDirectory != null) {
-          fc.setCurrentDirectory(lastParentDirectory);
-        } else {
-          fc.setCurrentDirectory(new java.io.File(GUI
-              .getExternalToolsSetting("PATH_CONTIKI")));
-        }
-        fc.setFileSelectionMode(JFileChooser.FILES_ONLY);
-        fc.addChoosableFileFilter(new FileFilter() {
-          public boolean accept(File f) {
-            if (f.isDirectory()) {
+      JFileChooser fc = new JFileChooser();
+
+      // Select previous directory
+      if (lastParentDirectory != null) {
+        fc.setCurrentDirectory(lastParentDirectory);
+      } else {
+        fc.setCurrentDirectory(new java.io.File(GUI
+            .getExternalToolsSetting("PATH_CONTIKI")));
+      }
+      fc.setFileSelectionMode(JFileChooser.FILES_ONLY);
+      fc.addChoosableFileFilter(new FileFilter() {
+        public boolean accept(File f) {
+          if (f.isDirectory()) {
+            return true;
+          }
+
+          String filename = f.getName();
+          if (filename != null) {
+            if (filename.endsWith(firmwareFileExtension)) {
               return true;
             }
-
-            String filename = f.getName();
-            if (filename != null) {
-              if (filename.endsWith(firmwareFileExtension)) {
-                return true;
-              }
-            }
-            return false;
           }
-
-          public String getDescription() {
-            return "ELF file";
-          }
-        });
-        fc.setDialogTitle("Select ELF file");
-
-        if (fc.showOpenDialog(parentFrame) == JFileChooser.APPROVE_OPTION) {
-          lastParentDirectory = fc.getSelectedFile().getParentFile();
-          setELFFile(fc.getSelectedFile());
-        } else {
           return false;
         }
+
+        public String getDescription() {
+          return "ELF file";
+        }
+      });
+      fc.setDialogTitle("Select ELF file");
+
+      if (fc.showOpenDialog(parentFrame) == JFileChooser.APPROVE_OPTION) {
+        File selectedFile = fc.getSelectedFile();
+
+        if (!selectedFile.exists()) {
+          logger.fatal("Selected file \"" + selectedFile + "\" does not exist");
+          return false;
+        }
+
+        if (!selectedFile.getName().endsWith(firmwareFileExtension)) {
+          logger.fatal("Selected file \"" + selectedFile + "\" does not end with " + firmwareFileExtension);
+          return false;
+        }
+
+        setELFFile(fc.getSelectedFile());
       } else {
-        throw new MoteTypeCreationException("No ELF file was created");
+        return false;
       }
     }
     return true;
@@ -412,7 +419,7 @@ public abstract class MspMoteType implements MoteType {
       final String filenameNoExtension = sourceFile.getName().substring(0,
           sourceFile.getName().length() - 2);
 
-      String command = getCompileCommand(filenameNoExtension);
+      final String command = getCompileCommand(filenameNoExtension);
       logger.info("Compile command: " + command);
 
       compilationOutput.clearMessages();
@@ -514,6 +521,9 @@ public abstract class MspMoteType implements MoteType {
 
             listNormal.println("");
             listNormal.println("Compilation succeded");
+            MspELFCompiler.this.lastCompileCommand = command;
+            MspELFCompiler.this.sourceFile = sourceFile;
+            MspELFCompiler.this.ELFFile = ELFFile;
             if (successAction != null) {
               successAction.actionPerformed(null);
             }
@@ -579,7 +589,6 @@ public abstract class MspMoteType implements MoteType {
               updateDialog(DialogState.COMPILED_SOURCE);
               File parentFile = selectedSourceFile.getParentFile();
 
-              lastCompileCommand = getCompileCommand(filenameNoExtension);
               sourceFile = selectedSourceFile;
               ELFFile = new File(parentFile, filenameNoExtension + firmwareFileExtension);
             }
