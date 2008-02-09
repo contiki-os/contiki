@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: rtimer-arch.c,v 1.2 2007/03/31 11:19:08 adamdunkels Exp $
+ * $Id: rtimer-arch.c,v 1.3 2008/02/09 14:02:12 oliverschmidt Exp $
  */
 
 /**
@@ -83,11 +83,5 @@ rtimer_arch_schedule(rtimer_clock_t t)
 
   val.it_interval.tv_sec = val.it_interval.tv_usec = 0;
   setitimer(ITIMER_REAL, &val, NULL);
-}
-/*---------------------------------------------------------------------------*/
-rtimer_clock_t
-rtimer_arch_now(void)
-{
-  return clock_time();
 }
 /*---------------------------------------------------------------------------*/
