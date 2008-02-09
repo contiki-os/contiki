@@ -46,7 +46,7 @@
  *
  * This file is part of the uIP TCP/IP stack.
  *
- * $Id: uip.h,v 1.15 2008/02/07 01:35:00 adamdunkels Exp $
+ * $Id: uip.h,v 1.16 2008/02/09 16:22:22 oliverschmidt Exp $
  *
  */
 
@@ -62,7 +62,9 @@
 typedef union uip_ip4addr_t {
   u8_t  u8[4];			/* Initializer, must come first!!! */
   u16_t u16[2];
-  u32_t u32[1];
+#if 0
+  u32_t u32[1];			/* Might cause 32-bit alignment !!! */
+#endif
 } uip_ip4addr_t;
 
 typedef union uip_ip6addr_t {
