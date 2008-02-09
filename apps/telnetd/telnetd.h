@@ -29,7 +29,7 @@
  *
  * This file is part of the Contiki desktop environment
  *
- * $Id: telnetd.h,v 1.3 2007/11/30 11:15:41 oliverschmidt Exp $
+ * $Id: telnetd.h,v 1.4 2008/02/09 17:15:58 oliverschmidt Exp $
  *
  */
 #ifndef __TELNETD_H__
@@ -42,7 +42,7 @@ PROCESS_NAME(telnetd_process);
 void telnetd_gui_eventhandler(process_event_t ev, process_data_t data);
 void telnetd_appcall(void *data);
 void telnetd_gui_init(void);
-void telnetd_gui_output(char *str1, char *str2);
+void telnetd_gui_output(const char *str1, int len1, const char *str2, int len2);
 void telnetd_gui_quit(void);
 void telnetd_quit(void);
 

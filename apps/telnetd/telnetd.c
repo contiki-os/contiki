@@ -28,19 +28,18 @@
  *
  * This file is part of the Contiki desktop OS.
  *
- * $Id: telnetd.c,v 1.7 2007/11/17 20:13:54 oliverschmidt Exp $
+ * $Id: telnetd.c,v 1.8 2008/02/09 17:15:58 oliverschmidt Exp $
  *
  */
 
+#include <string.h>
+
+#include "contiki-lib.h"
 #include "contiki-net.h"
 #include "lib/petsciiconv.h"
-#include "contiki-lib.h"
-
 #include "shell.h"
+
 #include "telnetd.h"
-
-
-#include <string.h>
 
 #define ISO_nl       0x0a
 #define ISO_cr       0x0d
@@ -50,6 +49,8 @@
 
 PROCESS(telnetd_process, "Shell server");
 
+AUTOSTART_PROCESSES(&telnetd_process);
+
 #ifndef TELNETD_CONF_LINELEN
 #define TELNETD_CONF_LINELEN 40
 #endif
@@ -58,13 +59,13 @@ PROCESS(telnetd_process, "Shell server");
 #endif
 
 struct telnetd_line {
-  char line[TELNETD_CONF_LINELEN];
+  char line[TELNETD_CONF_LINELEN + 1];
 };
 MEMB(linemem, struct telnetd_line, TELNETD_CONF_NUMLINES);
 
 struct telnetd_state {
   char *lines[TELNETD_CONF_NUMLINES];
-  char buf[TELNETD_CONF_LINELEN];
+  char buf[TELNETD_CONF_LINELEN + 1];
   char bufptr;
   u8_t numsent;
   u8_t state;
@@ -142,20 +143,30 @@ shell_prompt(char *str)
 }
 /*-----------------------------------------------------------------------------------*/
 void
-shell_output(char *str1, char *str2)
+shell_default_output(const char *str1, int len1, const char *str2, int len2)
 {
   static unsigned len;
   char *line;
 
+  if(str1[len1 - 1] == '\n') {
+    --len1;
+  }
+  if(str2[len2 - 1] == '\n') {
+    --len2;
+  }
+
 #if TELNETD_CONF_GUI
-  telnetd_gui_output(str1, str2);
+  telnetd_gui_output(str1, len1, str2, len2);
 #endif /* TELNETD_CONF_GUI */
   line = alloc_line();
   if(line != NULL) {
-    len = (unsigned int)strlen(str1);
+    line[TELNETD_CONF_LINELEN] = 0;
     strncpy(line, str1, TELNETD_CONF_LINELEN);
-    if(len < TELNETD_CONF_LINELEN) {
-      strncpy(line + len, str2, TELNETD_CONF_LINELEN - len);
+    if(len1 < TELNETD_CONF_LINELEN) {
+      strncpy(line + len1, str2, TELNETD_CONF_LINELEN - len1);
+      if(len1 + len2 < TELNETD_CONF_LINELEN) {
+	line[len1 + len2] = 0;
+      }
     }
     len = (unsigned int)strlen(line);
     if(len < TELNETD_CONF_LINELEN - 2) {
@@ -174,7 +185,14 @@ PROCESS_THREAD(telnetd_process, ev, data)
   
   tcp_listen(HTONS(23));
   memb_init(&linemem);
+
   shell_init();
+  shell_file_init();
+  shell_ps_init();
+  shell_run_init();
+  shell_text_init();
+  shell_time_init();
+
 #if TELNETD_CONF_GUI
   telnetd_gui_init();
 #endif /* TELNETD_CONF_GUI */
@@ -186,7 +204,6 @@ PROCESS_THREAD(telnetd_process, ev, data)
     } else if(ev == PROCESS_EVENT_EXIT) {
       telnetd_quit();
     } else {
-      shell_eventhandler(ev, data);
 #if TELNETD_CONF_GUI
       telnetd_gui_eventhandler(ev, data);
 #endif /* TELNETD_CONF_GUI */
@@ -263,7 +280,7 @@ get_char(u8_t c)
       s.buf[(int)s.bufptr] = 0;
       petsciiconv_topetscii(s.buf, TELNETD_CONF_LINELEN);
     }
-    shell_input(s.buf);
+    shell_input(s.buf, s.bufptr);
     s.bufptr = 0;
   } else {
     ++s.bufptr;
@@ -364,8 +381,6 @@ telnetd_appcall(void *ts)
     }
     s.bufptr = 0;
     s.state = STATE_NORMAL;
-
-    shell_start();
   }
 
   if(s.state == STATE_CLOSE) {
