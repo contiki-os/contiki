@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki desktop OS.
  *
- * $Id: telnetd.c,v 1.8 2008/02/09 17:15:58 oliverschmidt Exp $
+ * $Id: telnetd.c,v 1.9 2008/02/09 18:51:56 oliverschmidt Exp $
  *
  */
 
@@ -52,10 +52,10 @@ PROCESS(telnetd_process, "Shell server");
 AUTOSTART_PROCESSES(&telnetd_process);
 
 #ifndef TELNETD_CONF_LINELEN
-#define TELNETD_CONF_LINELEN 40
+#define TELNETD_CONF_LINELEN 80
 #endif
 #ifndef TELNETD_CONF_NUMLINES
-#define TELNETD_CONF_NUMLINES 16
+#define TELNETD_CONF_NUMLINES 25
 #endif
 
 struct telnetd_line {

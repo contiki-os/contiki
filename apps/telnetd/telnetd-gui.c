@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki desktop OS.
  *
- * $Id: telnetd-gui.c,v 1.3 2008/02/09 17:15:58 oliverschmidt Exp $
+ * $Id: telnetd-gui.c,v 1.4 2008/02/09 18:51:56 oliverschmidt Exp $
  *
  */
 
@@ -44,8 +44,8 @@
 #define ISO_nl       0x0a
 #define ISO_cr       0x0d
 
-#define XSIZE 36
-#define YSIZE 12
+#define XSIZE 78
+#define YSIZE 30
 
 static struct ctk_window window;
 static char log[XSIZE * YSIZE];
