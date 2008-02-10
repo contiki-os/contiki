@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: shell-text.c,v 1.1 2008/02/04 23:42:17 adamdunkels Exp $
+ * $Id: shell-text.c,v 1.2 2008/02/10 12:29:54 oliverschmidt Exp $
  */
 
 /**
@@ -80,7 +80,7 @@ PROCESS_THREAD(shell_echo_process, ev, data)
 {
   PROCESS_BEGIN();
 
-  shell_output(&echo_command, data, strlen(data), "\n", 1);
+  shell_output(&echo_command, data, (int)strlen(data), "\n", 1);
   
   PROCESS_END();
 }
@@ -131,9 +131,9 @@ base64_add_char(struct base64_decoder_state *s, char c)
   ++s->sextets;
   if(s->sextets == 4) {
     s->sextets = 0;
-    s->data[s->dataptr] = (s->tmpdata >> 16) & 0xff;
-    s->data[s->dataptr + 1] = (s->tmpdata >> 8) & 0xff;
-    s->data[s->dataptr + 2] = (s->tmpdata) & 0xff;
+    s->data[s->dataptr] = (uint8_t)(s->tmpdata >> 16);
+    s->data[s->dataptr + 1] = (uint8_t)(s->tmpdata >> 8);
+    s->data[s->dataptr + 2] = (uint8_t)(s->tmpdata);
     s->dataptr += 3;
     if(s->dataptr == sizeof(s->data)) {
       return 0;
@@ -176,10 +176,11 @@ PROCESS_THREAD(shell_dec64_process, ev, data)
 PROCESS_THREAD(shell_hd_process, ev, data)
 {
   struct shell_input *input;
-  PROCESS_BEGIN();
   uint16_t *ptr;
   int i;
   char buf[57], *bufptr;
+
+  PROCESS_BEGIN();
 
   while(1) {
     PROCESS_WAIT_EVENT_UNTIL(ev == shell_event_input);
@@ -220,10 +221,11 @@ PROCESS_THREAD(shell_hd_process, ev, data)
 PROCESS_THREAD(shell_binprint_process, ev, data)
 {
   struct shell_input *input;
-  PROCESS_BEGIN();
   uint16_t *ptr;
   int i;
   char buf[2*64], *bufptr;
+
+  PROCESS_BEGIN();
 
   while(1) {
     PROCESS_WAIT_EVENT_UNTIL(ev == shell_event_input);
