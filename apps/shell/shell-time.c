@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: shell-time.c,v 1.2 2008/02/08 20:40:10 adamdunkels Exp $
+ * $Id: shell-time.c,v 1.3 2008/02/10 12:24:43 oliverschmidt Exp $
  */
 
 /**
@@ -96,8 +96,8 @@ PROCESS_THREAD(shell_time_process, ev, data)
     }
   }
   
-  msg.clock = clock_time();
-  msg.rtimer = rtimer_arch_now();
+  msg.clock = (uint16_t)clock_time();
+  msg.rtimer = (uint16_t)rtimer_arch_now();
 #if TIMESYNCH_CONF_ENABLED
   msg.timesynch = timesynch_time();
   msg.timesynch_authority = timesynch_authority_level();
@@ -105,8 +105,8 @@ PROCESS_THREAD(shell_time_process, ev, data)
   msg.timesynch = 0;
   msg.timesynch_authority = -1;
 #endif
-  msg.time[0] = shell_time() >> 16;
-  msg.time[1] = shell_time();
+  msg.time[0] = (uint16_t)(shell_time() >> 16);
+  msg.time[1] = (uint16_t)(shell_time());
   msg.len = 6;
 
   shell_output(&time_command, &msg, sizeof(msg), "", 0);
@@ -134,8 +134,8 @@ PROCESS_THREAD(shell_timestamp_process, ev, data)
     }
     
     msg.len = 3 + *(uint16_t *)input->data1;
-    msg.time[0] = shell_time() >> 16;
-    msg.time[1] = shell_time();
+    msg.time[0] = (uint16_t)(shell_time() >> 16);
+    msg.time[1] = (uint16_t)(shell_time());
 #if TIMESYNCH_CONF_ENABLED
     msg.timesynch = timesynch_time();
 #else /* TIMESYNCH_CONF_ENABLED */
@@ -171,7 +171,7 @@ PROCESS_THREAD(shell_repeat_server_process, ev, data)
     int ret;
     static struct process *started_process;
     strncpy(command_copy, command, MAX_COMMANDLENGTH);
-    ret = shell_start_command(command_copy, strlen(command_copy),
+    ret = shell_start_command(command_copy, (int)strlen(command_copy),
 			      &repeat_command, &started_process);
     
     if(started_process != NULL &&
@@ -324,7 +324,7 @@ PROCESS_THREAD(shell_randwait_process, ev, data)
 /*   printf("Starting '%s' child %p (%s)\n", command, randwait_command.child, */
 /* 	 randwait_command.child == NULL? "null": randwait_command.child->command); */
   
-  ret = shell_start_command(command, strlen(command),
+  ret = shell_start_command(command, (int)strlen(command),
 			    randwait_command.child, &started_process);
   
   if(started_process != NULL &&

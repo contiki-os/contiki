@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: shell.c,v 1.6 2008/02/04 23:42:17 adamdunkels Exp $
+ * $Id: shell.c,v 1.7 2008/02/10 12:24:43 oliverschmidt Exp $
  */
 
 /**
@@ -225,10 +225,10 @@ start_command(char *commandline, struct shell_command *child)
   }
 
   if(args == NULL) {
-    command_len = strlen(commandline);
+    command_len = (int)strlen(commandline);
     args = &commandline[command_len];
   } else {
-    command_len = args - commandline - 1;
+    command_len = (int)(args - commandline - 1);
   }
   
 
@@ -338,11 +338,11 @@ void
 shell_output_str(struct shell_command *c, char *text1, const char *text2)
 {
   if(c != NULL && c->child != NULL) {
-    input_to_child_command(c->child, text1, strlen(text1),
-			   text2, strlen(text2));
+    input_to_child_command(c->child, text1, (int)strlen(text1),
+			   text2, (int)strlen(text2));
   } else {
-    shell_default_output(text1, strlen(text1),
-			 text2, strlen(text2));
+    shell_default_output(text1, (int)strlen(text1),
+			 text2, (int)strlen(text2));
   }
 }
 /*---------------------------------------------------------------------------*/
