@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: random.c,v 1.1 2006/06/17 22:41:18 adamdunkels Exp $
+ * @(#)$Id: random.c,v 1.2 2008/02/10 12:30:57 oliverschmidt Exp $
  */
 
 /*
@@ -61,7 +61,7 @@ random_rand(void)
 
   rv = tv = 0;
 
-  tv = time + clock_time();
+  tv = (unsigned short)(time + clock_time());
   rv = tv ^ key;
 
   key = ~tv + 4711;
