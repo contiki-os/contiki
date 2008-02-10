@@ -29,7 +29,7 @@
  *
  * This file is part of the Contiki OS
  *
- * $Id: ethernut-main.c,v 1.3 2007/05/26 23:06:31 oliverschmidt Exp $
+ * $Id: ethernut-main.c,v 1.4 2008/02/10 22:41:05 oliverschmidt Exp $
  *
  */
 
@@ -82,7 +82,7 @@ main(void)
   
   procinit_init();
   
-  autostart_start((struct process **) autostart_processes);
+  autostart_start(autostart_processes);
 
   rs232_print("Initialized\n");
   

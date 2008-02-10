@@ -29,7 +29,7 @@
  *
  * This file is part of the Contiki OS
  *
- * $Id: contiki-main.c,v 1.7 2008/01/08 08:08:57 adamdunkels Exp $
+ * $Id: contiki-main.c,v 1.8 2008/02/10 22:39:26 oliverschmidt Exp $
  *
  */
 
@@ -59,7 +59,7 @@ main(void)
 
   procinit_init();
   
-  autostart_start((struct process **)autostart_processes);
+  autostart_start(autostart_processes);
 
   /* Make standard output unbuffered. */
   setvbuf(stdout, (char *)NULL, _IONBF, 0);

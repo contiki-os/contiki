@@ -30,7 +30,7 @@
  * 
  * Author: Oliver Schmidt <ol.sc@web.de>
  *
- * $Id: contiki-main.c,v 1.1 2008/01/05 22:30:23 oliverschmidt Exp $
+ * $Id: contiki-main.c,v 1.2 2008/02/10 22:43:58 oliverschmidt Exp $
  */
 
 #include <string.h>
@@ -85,7 +85,7 @@ main(void)
 
   procinit_init();
 
-  autostart_start((struct process **)autostart_processes);
+  autostart_start(autostart_processes);
 
 #if 1
 

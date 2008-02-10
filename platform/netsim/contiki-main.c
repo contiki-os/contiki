@@ -30,7 +30,7 @@
  *
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: contiki-main.c,v 1.27 2008/02/03 20:49:50 adamdunkels Exp $
+ * $Id: contiki-main.c,v 1.28 2008/02/10 22:38:21 oliverschmidt Exp $
  */
 
 #include "contiki.h"
@@ -161,7 +161,7 @@ contiki_main(int flag)
 
   rtimer_init();
   
-  autostart_start((struct process **)autostart_processes);
+  autostart_start(autostart_processes);
   
   while(1) {
     int n;

@@ -112,7 +112,7 @@ main(void)
 
   printf(CONTIKI_VERSION_STRING " started. Node id %u.\n", node_id);
 
-  autostart_start((struct process **) autostart_processes);
+  autostart_start(autostart_processes);
 
   /*
    * This is the scheduler loop.
