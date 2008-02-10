@@ -30,7 +30,7 @@
  * 
  * Author: Oliver Schmidt <ol.sc@web.de>
  *
- * $Id: contiki-main.c,v 1.14 2007/12/15 21:54:54 oliverschmidt Exp $
+ * $Id: contiki-main.c,v 1.15 2008/02/10 11:30:41 oliverschmidt Exp $
  */
 
 #define WIN32_LEAN_AND_MEAN
@@ -48,6 +48,7 @@
 
 #include "sys/etimer.h"
 #include "net/wpcap-drv.h"
+
 #ifdef PLATFORM_BUILD
 #include "program-handler.h"
 #endif  /* PLATFORM_BUILD */
@@ -55,9 +56,6 @@
 PROCINIT(&etimer_process,
 	 &wpcap_process,
 	 &ctk_process,
-#ifdef PLATFORM_BUILD
-	 &program_handler_process,
-#endif  /* PLATFORM_BUILD */
 	 &tcpip_process,
 	 &resolv_process);
 
@@ -94,11 +92,11 @@ main(void)
 
   procinit_init();
 
+  autostart_start((struct process **)autostart_processes);
+
 #ifdef PLATFORM_BUILD
   program_handler_add(&directory_dsc, "Directory",   1);
   program_handler_add(&www_dsc,       "Web browser", 1);
-#else /* PLATFORM_BUILD */
-  autostart_start((struct process **)autostart_processes);
 #endif /* PLATFORM_BUILD */
 
 #if 1
