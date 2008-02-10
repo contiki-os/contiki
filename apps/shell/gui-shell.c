@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki desktop OS.
  *
- * $Id: gui-shell.c,v 1.3 2008/02/08 22:52:18 oliverschmidt Exp $
+ * $Id: gui-shell.c,v 1.4 2008/02/10 12:24:43 oliverschmidt Exp $
  *
  */
 
@@ -136,7 +136,7 @@ PROCESS_THREAD(shell_gui_process, ev, data)
     
     if(ev == ctk_signal_widget_activate &&
        data == (process_data_t)&commandentry) {
-      int command_len = strlen(command);
+      int command_len = (int)strlen(command);
       shell_default_output("> ", 2, command, command_len);
       shell_input(command, command_len);
       if(shell_gui_process.state) {
