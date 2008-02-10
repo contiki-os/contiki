@@ -30,7 +30,7 @@
  * 
  * Author: Oliver Schmidt <ol.sc@web.de>
  *
- * $Id: contiki-main.c,v 1.16 2008/02/10 19:14:48 oliverschmidt Exp $
+ * $Id: contiki-main.c,v 1.17 2008/02/10 22:48:17 oliverschmidt Exp $
  */
 
 #define WIN32_LEAN_AND_MEAN
@@ -97,7 +97,7 @@ main(void)
   program_handler_add(&www_dsc,       "Web browser", 1);
 #endif /* PLATFORM_BUILD */
 
-  autostart_start((struct process **)autostart_processes);
+  autostart_start(autostart_processes);
 
 #if 1
   {

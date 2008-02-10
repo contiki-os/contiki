@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: contiki_template.c,v 1.6 2007/11/25 22:50:12 fros4943 Exp $
+ * $Id: contiki_template.c,v 1.7 2008/02/10 22:36:36 oliverschmidt Exp $
  */
 
 /**
@@ -120,7 +120,7 @@ start_process_run_loop(void *data)
     init_net();
   
     /* Start user applications */
-    autostart_start((struct process **) autostart_processes);
+    autostart_start(autostart_processes);
   
     while(1)
 	{

@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: contiki-esb-main.c,v 1.12 2007/11/26 19:34:23 nifi Exp $
+ * @(#)$Id: contiki-esb-main.c,v 1.13 2008/02/10 22:42:07 oliverschmidt Exp $
  */
 
 #include <io.h>
@@ -77,7 +77,7 @@ PROCESS_THREAD(contiki_esb_main_init_process, ev, data)
   PROCESS_PAUSE();
 
   print_processes((struct process **) autostart_processes);
-  autostart_start((struct process **) autostart_processes);
+  autostart_start(autostart_processes);
 
   beep_spinup();
   leds_on(LEDS_RED);
