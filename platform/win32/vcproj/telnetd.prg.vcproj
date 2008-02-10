@@ -178,6 +178,14 @@
 			Name="lib"
 			>
 			<File
+				RelativePath="..\..\..\core\lib\list.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\core\lib\list.h"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\core\lib\memb.c"
 				>
 			</File>
@@ -185,10 +193,110 @@
 				RelativePath="..\..\..\core\lib\memb.h"
 				>
 			</File>
+			<File
+				RelativePath="..\..\..\core\lib\random.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\core\lib\random.h"
+				>
+			</File>
 		</Filter>
 		<Filter
 			Name="shell"
 			>
+			<File
+				RelativePath="..\..\..\apps\shell\shell-blink.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\apps\shell\shell-exec.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\apps\shell\shell-file.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\apps\shell\shell-file.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\apps\shell\shell-netfile.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\apps\shell\shell-profile.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\apps\shell\shell-ps.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\apps\shell\shell-ps.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\apps\shell\shell-reboot.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\apps\shell\shell-rime-netcmd.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\apps\shell\shell-rime-ping.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\apps\shell\shell-rime-sniff.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\apps\shell\shell-rime.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\apps\shell\shell-rsh.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\apps\shell\shell-run.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\apps\shell\shell-run.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\apps\shell\shell-sendtest.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\apps\shell\shell-sky.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\apps\shell\shell-text.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\apps\shell\shell-text.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\apps\shell\shell-time.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\apps\shell\shell-time.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\apps\shell\shell-vars.h"
+				>
+			</File>
 			<File
 				RelativePath="..\..\..\apps\shell\shell.c"
 				>

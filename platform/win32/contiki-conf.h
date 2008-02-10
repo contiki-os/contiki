@@ -18,6 +18,8 @@
 int strcasecmp(const char*, const char*);
 char* strdup(const char*);
 #else /* __CYGWIN__ */
+#define HAVE_SNPRINTF
+#define snprintf   _snprintf
 #define strcasecmp _stricmp
 #define strdup     _strdup
 #endif /* __CYGWIN__ */
