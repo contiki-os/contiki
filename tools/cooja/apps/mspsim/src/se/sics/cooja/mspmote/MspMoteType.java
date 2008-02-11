@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: MspMoteType.java,v 1.2 2008/02/08 14:30:28 fros4943 Exp $
+ * $Id: MspMoteType.java,v 1.3 2008/02/11 15:17:30 fros4943 Exp $
  */
 
 package se.sics.cooja.mspmote;
@@ -420,7 +420,8 @@ public abstract class MspMoteType implements MoteType {
           sourceFile.getName().length() - 2);
 
       final String command = getCompileCommand(filenameNoExtension);
-      logger.info("Compile command: " + command);
+      logger.info("-- Compiling MSP430 Firmware --");
+      logger.info("command: " + command);
 
       compilationOutput.clearMessages();
 
@@ -880,9 +881,20 @@ public abstract class MspMoteType implements MoteType {
     smallPane.add(BorderLayout.EAST, label);
     panel.add(smallPane);
 
+    // Icon (if available)
+    Icon moteTypeIcon = getMoteTypeIcon();
+    if (moteTypeIcon != null) {
+      smallPane = new JPanel(new BorderLayout());
+      label = new JLabel(moteTypeIcon);
+      smallPane.add(BorderLayout.CENTER, label);
+      panel.add(smallPane);
+    }
+
     panel.add(Box.createRigidArea(new Dimension(0, 5)));
     return panel;
   }
+
+  public abstract Icon getMoteTypeIcon();
 
   public ProjectConfig getConfig() {
     logger.warn("Msp mote type project config not implemented");
