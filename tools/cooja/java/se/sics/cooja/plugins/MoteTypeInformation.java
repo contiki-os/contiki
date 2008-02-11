@@ -26,21 +26,21 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: MoteTypeInformation.java,v 1.3 2008/02/07 13:14:42 fros4943 Exp $
+ * $Id: MoteTypeInformation.java,v 1.4 2008/02/11 14:37:17 fros4943 Exp $
  */
 
 package se.sics.cooja.plugins;
 
 import java.awt.*;
-
+import java.util.Observable;
+import java.util.Observer;
 import javax.swing.*;
-
 import org.apache.log4j.Logger;
 
 import se.sics.cooja.*;
 
 /**
- * Shows a summary of all created mote types.
+ * Shows a summary of all mote types.
  *
  * @author Fredrik Osterlind
  */
@@ -53,8 +53,7 @@ public class MoteTypeInformation extends VisPlugin {
 
   private Simulation mySimulation;
 
-  private final static int LABEL_WIDTH = 170;
-  private final static int LABEL_HEIGHT = 15;
+  private Observer simObserver;
 
   /**
    * Create a new mote type information window.
@@ -62,25 +61,46 @@ public class MoteTypeInformation extends VisPlugin {
    * @param simulation Simulation
    */
   public MoteTypeInformation(Simulation simulation, GUI gui) {
-    super("Mote Type Information *frozen*", gui);
-
+    super("Mote Type Information", gui);
     mySimulation = simulation;
 
+    this.getContentPane().add(BorderLayout.CENTER,
+        new JScrollPane(createPanel(),
+        JScrollPane.VERTICAL_SCROLLBAR_ALWAYS,
+        JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED));
+    pack();
+    setPreferredSize(new Dimension(350,500));
+    setSize(new Dimension(350,500));
+
+    mySimulation.addObserver(simObserver = new Observer() {
+      public void update(Observable obs, Object obj) {
+        MoteTypeInformation.this.getContentPane().removeAll();
+        MoteTypeInformation.this.getContentPane().add(BorderLayout.CENTER,
+            new JScrollPane(createPanel(),
+                JScrollPane.VERTICAL_SCROLLBAR_ALWAYS,
+                JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED));
+        setPreferredSize(MoteTypeInformation.this.getSize());
+        pack();
+      }
+    });
+
+    try {
+      setSelected(true);
+    } catch (java.beans.PropertyVetoException e) {
+      // Could not select
+    }
+
+  }
+
+  private JPanel createPanel() {
     JLabel label;
-    JPanel mainPane = new JPanel();
-    mainPane.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
-    mainPane.setLayout(new BoxLayout(mainPane, BoxLayout.Y_AXIS));
     JPanel smallPane;
 
+    JPanel panel = new JPanel();
+    panel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+    panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
+
     // Visualize mote types
-    smallPane = new JPanel(new BorderLayout());
-    label = new JLabel("-- MOTE TYPES AT TIME " + simulation.getSimulationTime() + " --");
-    label.setPreferredSize(new Dimension(LABEL_WIDTH,LABEL_HEIGHT));
-    smallPane.add(BorderLayout.NORTH, label);
-
-    mainPane.add(smallPane);
-    mainPane.add(Box.createRigidArea(new Dimension(0,10)));
-
     for (MoteType moteType: mySimulation.getMoteTypes()) {
       smallPane = new JPanel();
       smallPane.setLayout(new BorderLayout());
@@ -99,27 +119,16 @@ public class MoteTypeInformation extends VisPlugin {
         smallPane.add(BorderLayout.CENTER, Box.createVerticalStrut(25));
       }
 
-
-      mainPane.add(smallPane);
-      mainPane.add(Box.createRigidArea(new Dimension(0,25)));
+      panel.add(smallPane);
+      panel.add(Box.createRigidArea(new Dimension(0,20)));
     }
 
-    this.getContentPane().add(BorderLayout.NORTH, new JScrollPane(mainPane,
-        JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,
-        JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED));
-    pack();
-    setPreferredSize(new Dimension(350,500));
-    setSize(new Dimension(350,500));
-
-    try {
-      setSelected(true);
-    } catch (java.beans.PropertyVetoException e) {
-      // Could not select
-    }
-
+    return panel;
   }
 
+
   public void closePlugin() {
+    mySimulation.deleteObserver(simObserver);
   }
 
 }
