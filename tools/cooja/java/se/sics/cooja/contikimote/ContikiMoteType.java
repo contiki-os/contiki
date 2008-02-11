@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ContikiMoteType.java,v 1.23 2008/02/07 10:34:45 fros4943 Exp $
+ * $Id: ContikiMoteType.java,v 1.24 2008/02/11 14:00:19 fros4943 Exp $
  */
 
 package se.sics.cooja.contikimote;
@@ -93,7 +93,7 @@ public class ContikiMoteType implements MoteType {
    * Communication stacks in Contiki.
    */
   public enum CommunicationStack {
-    UIP, UIP_UAODV, RIME;
+    RIME, UIP, UIP_UAODV;
 
     public String toString() {
       if (this == UIP) {
@@ -160,7 +160,7 @@ public class ContikiMoteType implements MoteType {
 
   private boolean hasSystemSymbols = false;
 
-  private CommunicationStack commStack = CommunicationStack.UIP;
+  private CommunicationStack commStack = CommunicationStack.RIME;
 
   // Simulation holding this mote type
   private Simulation mySimulation = null;
