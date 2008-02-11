@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#)$Id: xmem.c,v 1.5 2008/01/21 10:40:26 nvt-se Exp $
+ * @(#)$Id: xmem.c,v 1.6 2008/02/11 10:43:31 adamdunkels Exp $
  */
 
 /**
@@ -130,7 +130,6 @@ static void
 erase_sector(off_t offset)
 {
   int s;
-
   wait_ready();
 
   write_enable();
@@ -168,7 +167,6 @@ xmem_pread(void *_p, int size, off_t offset)
   unsigned char *p = _p;
   const unsigned char *end = p + size;
   int s;
-
   wait_ready();
 
   s = splhigh();
@@ -228,8 +226,9 @@ xmem_pwrite(const void *_buf, int size, off_t addr)
   
   for(i = addr; i < end;) {
     next_page = (i | 0xff) + 1;
-    if(next_page > end)
+    if(next_page > end) {
       next_page = end;
+    }
     p = program_page(i, p, next_page - i);
     i = next_page;
   }
