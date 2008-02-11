@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: MspMoteID.java,v 1.1 2008/02/07 14:54:16 fros4943 Exp $
+ * $Id: MspMoteID.java,v 1.2 2008/02/11 16:09:47 fros4943 Exp $
  */
 
 package se.sics.cooja.mspmote.interfaces;
@@ -43,6 +43,7 @@ import org.apache.log4j.Logger;
 import org.jdom.Element;
 
 import se.sics.cooja.*;
+import se.sics.cooja.AddressMemory.UnknownVariableException;
 import se.sics.cooja.interfaces.MoteID;
 import se.sics.cooja.mspmote.MspMote;
 import se.sics.cooja.mspmote.MspMoteMemory;
@@ -74,14 +75,25 @@ public class MspMoteID extends MoteID {
   }
 
   public int getMoteID() {
-    return moteMem.getIntValueOf("node_id");
+    try {
+      return moteMem.getIntValueOf("node_id");
+    } catch (UnknownVariableException e) {
+      logger.fatal("Contiki variable 'node_id' not found");
+    }
+    return -1;
   }
 
   public void setMoteID(int newID) {
     if (mote.getInterfaces().getClock().getTime() < PERSISTENT_ID_TIME) {
       persistentID = newID;
     }
-    moteMem.setIntValueOf("node_id", newID);
+
+    try {
+      moteMem.setIntValueOf("node_id", newID);
+    } catch (UnknownVariableException e) {
+      logger.fatal("Contiki variable 'node_id' not found");
+    }
+
     setChanged();
     notifyObservers();
   }
