@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: cfs-cooja.c,v 1.6 2007/11/25 22:44:06 fros4943 Exp $
+ * $Id: cfs-cooja.c,v 1.7 2008/02/11 18:40:16 fros4943 Exp $
  */
 #include <string.h>
 #include "lib/simEnvChange.h"
@@ -88,7 +88,7 @@ cfs_read(int f, void *buf, unsigned int len)
 }
 /*---------------------------------------------------------------------------*/
 int
-cfs_write(int f, void *buf, unsigned int len)
+cfs_write(int f, const void *buf, unsigned int len)
 {
   if(f == FLAG_FILE_OPEN) {
 	// TODO Should yield a few times?
