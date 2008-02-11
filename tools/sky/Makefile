@@ -58,3 +58,8 @@ sky-reset-sequence:	$(foreach PORT, $(MOTES), $(PORT).sky-r)
 
 %.sky-r:
 	$(BSL) --telosb -c $(basename $@) -r
+
+sizeplot:
+	msp430-size $(OBJECTDIR)/*.o | $(CONTIKI)/tools/sky/check-size > size-data
+	gnuplot $(CONTIKI)/tools/sky/plot-size
+	gv size.pdf
