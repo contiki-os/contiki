@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: MspStackWatcher.java,v 1.1 2008/02/07 14:55:18 fros4943 Exp $
+ * $Id: MspStackWatcher.java,v 1.2 2008/02/11 11:48:38 fros4943 Exp $
  */
 
 package se.sics.cooja.mspmote.plugins;
@@ -36,12 +36,13 @@ import java.awt.GridLayout;
 import java.awt.event.*;
 import java.util.*;
 import javax.swing.*;
+
 import org.apache.log4j.Logger;
 
 import se.sics.cooja.*;
 import se.sics.cooja.mspmote.MspMote;
 import se.sics.mspsim.core.MSP430;
-import se.sics.mspsim.util.StackUI;
+import se.sics.mspsim.ui.StackUI;
 import se.sics.mspsim.util.Utils;
 
 @ClassDescription("Msp Stack Watcher")
@@ -106,13 +107,13 @@ public class MspStackWatcher extends VisPlugin {
     final StackUI stackUI = new StackUI(cpu, MspMote.NR_CYCLES_PER_MSEC);
 
     // Register as log listener
-    if (logObserver == null && mspMote.getInterfaces().getLog() != null) {
+    /*if (logObserver == null && mspMote.getInterfaces().getLog() != null) {
       mspMote.getInterfaces().getLog().addObserver(logObserver = new Observer() {
         public void update(Observable obs, Object obj) {
           stackUI.addNote(mspMote.getInterfaces().getLog().getLastLogMessages());
         }
       });
-    }
+    }*/
 
     JPanel controlPanel = new JPanel(new GridLayout(2,1));
     controlPanel.add(startButton);
