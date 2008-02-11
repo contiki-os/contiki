@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#)$Id: contiki-sky-main.c,v 1.26 2008/02/03 21:03:19 adamdunkels Exp $
+ * @(#)$Id: contiki-sky-main.c,v 1.27 2008/02/11 10:44:12 adamdunkels Exp $
  */
 
 #include <signal.h>
@@ -153,8 +153,8 @@ main(int argc, char **argv)
   leds_on(LEDS_RED);
 
 #if WITH_UIP
-  uart1_init(BAUD2UBR(57600)); /* Must come before first printf */
-  slip_arch_init(BAUD2UBR(57600));
+  uart1_init(BAUD2UBR(115200)); /* Must come before first printf */
+  slip_arch_init(BAUD2UBR(115200));
 #else
   uart1_init(BAUD2UBR(115200)); /* Must come before first printf */
 #endif /* WITH_UIP */
