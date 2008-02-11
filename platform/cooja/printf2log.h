@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: printf2log.h,v 1.3 2008/01/11 15:37:38 fros4943 Exp $
+ * $Id: printf2log.h,v 1.4 2008/02/11 18:45:18 fros4943 Exp $
  *
  */
 
@@ -36,6 +36,8 @@
 #include <string.h>
 #include <stdio.h>
 #include "sys/log.h"
+
+void simlog(char*);
 
 #define PRINTF2LOG_SIZE 128
 
