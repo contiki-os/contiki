@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: VariableWatcher.java,v 1.5 2007/03/22 11:13:19 fros4943 Exp $
+ * $Id: VariableWatcher.java,v 1.6 2008/02/11 14:03:19 fros4943 Exp $
  */
 
 package se.sics.cooja.plugins;
@@ -39,13 +39,13 @@ import java.util.Collection;
 import java.util.Vector;
 import javax.swing.*;
 import org.jdom.Element;
-
 import se.sics.cooja.*;
+import se.sics.cooja.AddressMemory.UnknownVariableException;
 
 /**
  * Variable Watcher enables a user to watch mote variables during a simulation.
- * Variables can be read or written either as bytes, integers (4 bytes) or byte arrays.
- * 
+ * Variables can be read or written either as bytes, integers or byte arrays.
+ *
  * User can also see which variables seems to be available on the selected node.
  *
  * @author Fredrik Osterlind
@@ -63,7 +63,7 @@ public class VariableWatcher extends VisPlugin {
   private final static int BYTE_INDEX = 0;
   private final static int INT_INDEX = 1;
   private final static int ARRAY_INDEX = 2;
-  
+
   private JPanel lengthPane;
   private JPanel valuePane;
   private JComboBox varName;
@@ -102,9 +102,10 @@ public class VariableWatcher extends VisPlugin {
     varName.setSelectedItem("[enter or pick name]");
 
     String[] allPotentialVarNames = moteMemory.getVariableNames();
-    for (String aVarName: allPotentialVarNames)
+    for (String aVarName: allPotentialVarNames) {
       varName.addItem(aVarName);
-    
+    }
+
     varName.addKeyListener(new KeyListener() {
       public void keyPressed(KeyEvent e) {
         writeButton.setEnabled(false);
@@ -128,9 +129,9 @@ public class VariableWatcher extends VisPlugin {
 
     varType = new JComboBox();
     varType.addItem("Byte (1 byte)"); // BYTE_INDEX = 0
-    varType.addItem("Integer (4 bytes)"); // INT_INDEX = 1
+    varType.addItem("Integer (" + moteMemory.getIntegerLength() + " bytes)"); // INT_INDEX = 1
     varType.addItem("Byte array (x bytes)"); // ARRAY_INDEX = 2
-    
+
     varType.addActionListener(new ActionListener() {
       public void actionPerformed(ActionEvent e) {
         if (varType.getSelectedIndex() == ARRAY_INDEX) {
@@ -143,7 +144,7 @@ public class VariableWatcher extends VisPlugin {
         pack();
       }
     });
-    
+
     smallPane.add(BorderLayout.EAST, varType);
     mainPane.add(smallPane);
 
@@ -161,37 +162,37 @@ public class VariableWatcher extends VisPlugin {
         setNumberOfValues(((Number) varLength.getValue()).intValue());
       }
     });
-    
+
     lengthPane.add(BorderLayout.EAST, varLength);
     mainPane.add(lengthPane);
     mainPane.add(Box.createRigidArea(new Dimension(0,25)));
 
     lengthPane.setVisible(false);
-    
+
     // Variable value label
     label = new JLabel("Variable value");
     label.setAlignmentX(JLabel.CENTER_ALIGNMENT);
     label.setPreferredSize(new Dimension(LABEL_WIDTH,LABEL_HEIGHT));
     mainPane.add(label);
-    
+
     // Variable value(s)
     valuePane = new JPanel();
     valuePane.setLayout(new BoxLayout(valuePane, BoxLayout.X_AXIS));
-    
+
     varValues = new JFormattedTextField[1];
     varValues[0] = new JFormattedTextField(integerFormat);
     varValues[0].setValue(new Integer(0));
     varValues[0].setColumns(3);
     varValues[0].setText("?");
-    
+
     for (JFormattedTextField varValue: varValues) {
       valuePane.add(varValue);
-      
+
     }
 
     mainPane.add(valuePane);
     mainPane.add(Box.createRigidArea(new Dimension(0,25)));
-    
+
     // Read/write buttons
     smallPane = new JPanel(new BorderLayout());
     JButton button = new JButton("Read");
@@ -203,7 +204,7 @@ public class VariableWatcher extends VisPlugin {
             varValues[0].setValue(new Integer(val));
             varName.setBackground(Color.WHITE);
             writeButton.setEnabled(true);
-          } catch (Exception ex) {
+          } catch (UnknownVariableException ex) {
             varName.setBackground(Color.RED);
             writeButton.setEnabled(false);
           }
@@ -213,7 +214,7 @@ public class VariableWatcher extends VisPlugin {
             varValues[0].setValue(new Integer(val));
             varName.setBackground(Color.WHITE);
             writeButton.setEnabled(true);
-          } catch (Exception ex) {
+          } catch (UnknownVariableException ex) {
             varName.setBackground(Color.RED);
             writeButton.setEnabled(false);
           }
@@ -221,11 +222,12 @@ public class VariableWatcher extends VisPlugin {
           try {
             int length = ((Number) varLength.getValue()).intValue();
             byte[] vals = moteMemory.getByteArray((String) varName.getSelectedItem(), length);
-            for (int i=0; i < length; i++)
+            for (int i=0; i < length; i++) {
               varValues[i].setValue(new Integer(vals[i]));
+            }
             varName.setBackground(Color.WHITE);
             writeButton.setEnabled(true);
-          } catch (Exception ex) {
+          } catch (UnknownVariableException ex) {
             varName.setBackground(Color.RED);
             writeButton.setEnabled(false);
           }
@@ -233,7 +235,7 @@ public class VariableWatcher extends VisPlugin {
       }
     });
     smallPane.add(BorderLayout.WEST, button);
-    
+
     button = new JButton("Write");
     button.addActionListener(new ActionListener() {
       public void actionPerformed(ActionEvent e) {
@@ -242,7 +244,7 @@ public class VariableWatcher extends VisPlugin {
             byte val = (byte) ((Number) varValues[0].getValue()).intValue();
             moteMemory.setByteValueOf((String) varName.getSelectedItem(), val);
             varName.setBackground(Color.WHITE);
-          } catch (Exception ex) {
+          } catch (UnknownVariableException ex) {
             varName.setBackground(Color.RED);
           }
         } else if (varType.getSelectedIndex() == INT_INDEX) {
@@ -250,7 +252,7 @@ public class VariableWatcher extends VisPlugin {
             int val = ((Number) varValues[0].getValue()).intValue();
             moteMemory.setIntValueOf((String) varName.getSelectedItem(), val);
             varName.setBackground(Color.WHITE);
-          } catch (Exception ex) {
+          } catch (UnknownVariableException ex) {
             varName.setBackground(Color.RED);
           }
         } else if (varType.getSelectedIndex() == ARRAY_INDEX) {
@@ -260,11 +262,11 @@ public class VariableWatcher extends VisPlugin {
             for (int i=0; i < length; i++) {
               vals[i] = (byte) ((Number) varValues[i].getValue()).intValue();
             }
-            
+
             moteMemory.setByteArray((String) varName.getSelectedItem(), vals);
             varName.setBackground(Color.WHITE);
             writeButton.setEnabled(true);
-          } catch (Exception ex) {
+          } catch (UnknownVariableException ex) {
             varName.setBackground(Color.RED);
             writeButton.setEnabled(false);
           }
@@ -275,7 +277,7 @@ public class VariableWatcher extends VisPlugin {
     button.setEnabled(false);
     writeButton = button;
 
-    
+
     mainPane.add(smallPane);
     mainPane.add(Box.createRigidArea(new Dimension(0,25)));
 
@@ -294,7 +296,7 @@ public class VariableWatcher extends VisPlugin {
 
   private void setNumberOfValues(int nr) {
     valuePane.removeAll();
-    
+
     if (nr > 0) {
       varValues = new JFormattedTextField[nr];
       for (int i=0; i < nr; i++) {
@@ -314,9 +316,9 @@ public class VariableWatcher extends VisPlugin {
   public Collection<Element> getConfigXML() {
     // Return currently watched variable and type
     Vector<Element> config = new Vector<Element>();
-    
+
     Element element;
-    
+
     // Selected variable name
     element = new Element("varname");
     element.setText((String) varName.getSelectedItem());
@@ -339,7 +341,7 @@ public class VariableWatcher extends VisPlugin {
       element.setText(varLength.getValue().toString());
       config.add(element);
     }
-    
+
     return config;
   }
 
@@ -347,7 +349,7 @@ public class VariableWatcher extends VisPlugin {
     lengthPane.setVisible(false);
     setNumberOfValues(1);
     varLength.setValue(1);
-    
+
     for (Element element : configXML) {
       if (element.getName().equals("varname")) {
         varName.setSelectedItem(element.getText());
@@ -366,8 +368,8 @@ public class VariableWatcher extends VisPlugin {
         varLength.setValue(nrValues);
       }
     }
-    
+
     return true;
   }
-  
+
 }
