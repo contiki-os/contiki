@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ContikiLED.java,v 1.3 2007/01/29 14:29:39 fros4943 Exp $
+ * $Id: ContikiLED.java,v 1.4 2008/02/11 15:53:28 fros4943 Exp $
  */
 
 package se.sics.cooja.contikimote.interfaces;
@@ -43,7 +43,7 @@ import se.sics.cooja.interfaces.LED;
 
 /**
  * This class represents three mote LEDs.
- * 
+ *
  * It needs read access to the following core variables:
  * <ul>
  * <li>char simLedsValue
@@ -56,7 +56,7 @@ import se.sics.cooja.interfaces.LED;
  * <p>
  * This observable is changed and notifies observers whenever any led has
  * changed.
- * 
+ *
  * @author Fredrik Osterlind
  */
 public class ContikiLED extends LED implements ContikiMoteInterface {
@@ -108,7 +108,7 @@ public class ContikiLED extends LED implements ContikiMoteInterface {
 
   /**
    * Creates an interface to the led at mote.
-   * 
+   *
    * @param mote
    *          Led's mote.
    * @see Mote
@@ -178,12 +178,15 @@ public class ContikiLED extends LED implements ContikiMoteInterface {
     }
 
     myEnergyConsumption = 0.0;
-    if ((newLedsValue & LEDS_GREEN) > 0)
+    if ((newLedsValue & LEDS_GREEN) > 0) {
       myEnergyConsumption += energyOfGreenLedPerTick;
-    if ((newLedsValue & LEDS_YELLOW) > 0)
+    }
+    if ((newLedsValue & LEDS_YELLOW) > 0) {
       myEnergyConsumption += energyOfYellowLedPerTick;
-    if ((newLedsValue & LEDS_RED) > 0)
+    }
+    if ((newLedsValue & LEDS_RED) > 0) {
       myEnergyConsumption += energyOfRedLedPerTick;
+    }
 
     oldLedValue = newLedsValue;
     return ledChanged;
@@ -194,28 +197,42 @@ public class ContikiLED extends LED implements ContikiMoteInterface {
       public void paintComponent(Graphics g) {
         super.paintComponent(g);
 
+        int x = 20;
+        int y = 25;
+        int d = 25;
+
         if (isGreenOn()) {
           g.setColor(GREEN);
-          g.fillOval(20, 20, 20, 20);
+          g.fillOval(x, y, d, d);
+          g.setColor(Color.BLACK);
+          g.drawOval(x, y, d, d);
         } else {
           g.setColor(DARK_GREEN);
-          g.fillOval(20, 20, 20, 20);
+          g.fillOval(x + 5, y + 5, d-10, d-10);
         }
 
-        if (isYellowOn()) {
-          g.setColor(YELLOW);
-          g.fillOval(60, 20, 20, 20);
-        } else {
-          g.setColor(DARK_YELLOW);
-          g.fillOval(60, 20, 20, 20);
-        }
+        x += 40;
 
         if (isRedOn()) {
           g.setColor(RED);
-          g.fillOval(100, 20, 20, 20);
+          g.fillOval(x, y, d, d);
+          g.setColor(Color.BLACK);
+          g.drawOval(x, y, d, d);
         } else {
           g.setColor(DARK_RED);
-          g.fillOval(100, 20, 20, 20);
+          g.fillOval(x + 5, y + 5, d-10, d-10);
+        }
+
+        x += 40;
+
+        if (isYellowOn()) {
+          g.setColor(YELLOW);
+          g.fillOval(x, y, d, d);
+          g.setColor(Color.BLACK);
+          g.drawOval(x, y, d, d);
+        } else {
+          g.setColor(DARK_YELLOW);
+          g.fillOval(x + 5, y + 5, d-10, d-10);
         }
       }
     };

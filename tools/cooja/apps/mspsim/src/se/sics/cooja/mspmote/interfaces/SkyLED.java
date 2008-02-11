@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ESBLED.java,v 1.2 2008/02/11 15:53:28 fros4943 Exp $
+ * $Id: SkyLED.java,v 1.1 2008/02/11 15:53:28 fros4943 Exp $
  */
 
 package se.sics.cooja.mspmote.interfaces;
@@ -38,42 +38,51 @@ import org.apache.log4j.Logger;
 import org.jdom.Element;
 
 import se.sics.cooja.*;
-import se.sics.mspsim.core.*;
-import se.sics.mspsim.platform.esb.ESBNode;
 import se.sics.cooja.interfaces.LED;
-import se.sics.cooja.mspmote.ESBMote;
+import se.sics.cooja.mspmote.SkyMote;
+import se.sics.mspsim.core.IOPort;
+import se.sics.mspsim.core.IOUnit;
+import se.sics.mspsim.core.PortListener;
+import se.sics.mspsim.platform.sky.SkyNode;
 
 /**
  * @author Fredrik Osterlind
  */
-@ClassDescription("ESB LED")
-public class ESBLED extends LED implements PortListener {
-  private static Logger logger = Logger.getLogger(ESBLED.class);
+@ClassDescription("Sky LED")
+public class SkyLED extends LED {
+  private static Logger logger = Logger.getLogger(SkyLED.class);
 
-  private ESBMote mspMote;
-  private boolean redOn = false;
+  private SkyMote mspMote;
+  private boolean blueOn = false;
   private boolean greenOn = false;
-  private boolean yellowOn = false;
+  private boolean redOn = false;
 
+  private static final Color DARK_BLUE = new Color(0, 0, 100);
   private static final Color DARK_GREEN = new Color(0, 100, 0);
-  private static final Color DARK_YELLOW = new Color(100, 100, 0);
   private static final Color DARK_RED = new Color(100, 0, 0);
+  private static final Color BLUE = new Color(0, 0, 255);
   private static final Color GREEN = new Color(0, 255, 0);
-  private static final Color YELLOW = new Color(255, 255, 0);
   private static final Color RED = new Color(255, 0, 0);
 
-  public ESBLED(Mote mote) {
-    mspMote = (ESBMote) mote;
+  public SkyLED(Mote mote) {
+    mspMote = (SkyMote) mote;
 
-    /* Listen for port writes */
-    IOUnit unit = mspMote.getCPU().getIOUnit("Port 2");
+    IOUnit unit = mspMote.getCPU().getIOUnit("Port 5");
     if (unit instanceof IOPort) {
-      ((IOPort) unit).setPortListener(this);
+      ((IOPort) unit).setPortListener(new PortListener() {
+        public void portWrite(IOPort source, int data) {
+          blueOn = (data & SkyNode.BLUE_LED) == 0;
+          greenOn = (data & SkyNode.GREEN_LED) == 0;
+          redOn = (data & SkyNode.RED_LED) == 0;
+          setChanged();
+          notifyObservers();
+        }
+      });
     }
   }
 
   public boolean isAnyOn() {
-    return redOn || greenOn || yellowOn;
+    return blueOn || greenOn || redOn;
   }
 
   public boolean isGreenOn() {
@@ -81,7 +90,7 @@ public class ESBLED extends LED implements PortListener {
   }
 
   public boolean isYellowOn()  {
-    return yellowOn;
+    return blueOn; /* Returning blue */
   }
 
   public boolean isRedOn() {
@@ -132,12 +141,12 @@ public class ESBLED extends LED implements PortListener {
         x += 40;
 
         if (isYellowOn()) {
-          g.setColor(YELLOW);
+          g.setColor(BLUE);
           g.fillOval(x, y, d, d);
           g.setColor(Color.BLACK);
           g.drawOval(x, y, d, d);
         } else {
-          g.setColor(DARK_YELLOW);
+          g.setColor(DARK_BLUE);
           g.fillOval(x + 5, y + 5, d-10, d-10);
         }
       }
@@ -175,16 +184,6 @@ public class ESBLED extends LED implements PortListener {
   }
 
   public void setConfigXML(Collection<Element> configXML, boolean visAvailable) {
-  }
-
-
-  public void portWrite(IOPort source, int data) {
-    redOn = (data & ESBNode.RED_LED) != 0;
-    greenOn = (data & ESBNode.GREEN_LED) != 0;
-    yellowOn = (data & ESBNode.YELLOW_LED) != 0;
-
-    setChanged();
-    notifyObservers();
   }
 
 }
