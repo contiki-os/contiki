@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: MspMote.java,v 1.1 2008/02/07 14:53:29 fros4943 Exp $
+ * $Id: MspMote.java,v 1.2 2008/02/11 14:07:38 fros4943 Exp $
  */
 
 package se.sics.cooja.mspmote;
@@ -39,8 +39,9 @@ import org.jdom.Element;
 import se.sics.cooja.*;
 import se.sics.cooja.mspmote.interfaces.TR1001Radio;
 import se.sics.mspsim.core.MSP430;
-import se.sics.mspsim.core.MapTable;
 import se.sics.mspsim.util.ELF;
+import se.sics.mspsim.util.MapEntry;
+import se.sics.mspsim.util.MapTable;
 
 /**
  * @author Fredrik Osterlind
@@ -179,13 +180,8 @@ public abstract class MspMote implements Mote {
     /* TODO Need new memory type including size and type as well */
 
     /* Create mote address memory */
-    Properties varAddresses = new Properties();
-    for (int i=0; i < map.functionNames.length; i++) {
-      if (map.functionNames[i] != null) {
-        varAddresses.put(map.functionNames[i], new Integer(i));
-      }
-    }
-    myMemory = new MspMoteMemory(varAddresses, myCpu);
+    ArrayList<MapEntry> allEntries = map.getAllEntries();
+    myMemory = new MspMoteMemory(allEntries, myCpu);
 
     myCpu.reset();
   }
@@ -249,7 +245,9 @@ public abstract class MspMote implements Mote {
     if (monitorStackUsage) {
       // CPU loop with stack observer
       int newStack;
-      while (!stopNextInstruction && cpu.step() < cycleCounter) {
+      while (!stopNextInstruction && cpu.cycles < cycleCounter) {
+        cpu.step(cycleCounter);
+
         /* Check if radio has pending incoming bytes */
         if (myRadio != null && myRadio.hasPendingBytes()) {
           myRadio.tryDeliverNextByte(cpu.cycles);
@@ -267,12 +265,14 @@ public abstract class MspMote implements Mote {
         }
       }
     } else { /* Fast CPU loop */
-      do {
+      while (!stopNextInstruction && cpu.cycles < cycleCounter) {
+        cpu.step(cycleCounter);
+
         /* Check if radio has pending incoming bytes */
         if (myRadio != null && myRadio.hasPendingBytes()) {
           myRadio.tryDeliverNextByte(cpu.cycles);
         }
-      } while (!stopNextInstruction && (cpu.step() < cycleCounter) );
+      }
     }
 
     // Reset abort flag
