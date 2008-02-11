@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: MspCycleWatcher.java,v 1.1 2008/02/07 14:55:18 fros4943 Exp $
+ * $Id: MspCycleWatcher.java,v 1.2 2008/02/11 11:50:44 fros4943 Exp $
  */
 
 package se.sics.cooja.mspmote.plugins;
@@ -84,7 +84,7 @@ public class MspCycleWatcher extends VisPlugin {
 
     JPanel controlPanel = new JPanel(new GridLayout(2,3,5,5));
     controlPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
-    controlPanel.add(new JLabel("Total cycles:"));
+    controlPanel.add(new JLabel("Cycle counter:"));
     controlPanel.add(cycleTextField);
     controlPanel.add(updateButton);
     controlPanel.add(new JLabel("Since reset:"));

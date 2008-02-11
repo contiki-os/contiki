@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: MspCodeWatcher.java,v 1.1 2008/02/07 14:55:18 fros4943 Exp $
+ * $Id: MspCodeWatcher.java,v 1.2 2008/02/11 11:50:44 fros4943 Exp $
  */
 
 package se.sics.cooja.mspmote.plugins;
@@ -50,7 +50,7 @@ import se.sics.cooja.mspmote.MspMote;
 import se.sics.cooja.mspmote.MspMoteType;
 import se.sics.mspsim.core.CPUMonitor;
 import se.sics.mspsim.core.MSP430;
-import se.sics.mspsim.util.DebugUI;
+import se.sics.mspsim.ui.DebugUI;
 import se.sics.mspsim.util.Utils;
 
 @ClassDescription("Msp Code Watcher")
@@ -73,6 +73,9 @@ public class MspCodeWatcher extends VisPlugin {
   private Breakpoints breakpoints = null;
 
   private JLabel filenameLabel;
+
+  private Vector<File> files;
+  private JComboBox fileComboBox;
 
   /**
    * Mini-debugger for MSP Motes.
@@ -106,7 +109,7 @@ public class MspCodeWatcher extends VisPlugin {
     JPanel controlPanel = new JPanel();
 
     // Extract files found in debugging info
-    final Vector<File> files = new Vector<File>();
+    files = new Vector<File>();
     Enumeration fileEnum = debuggingInfo.keys();
     while (fileEnum.hasMoreElements()) {
       File file = (File) fileEnum.nextElement();
@@ -121,26 +124,18 @@ public class MspCodeWatcher extends VisPlugin {
       files.add(index, file);
     }
     String[] fileNames = new String[files.size() + 1];
-    fileNames[0] = "[select file]";
+    fileNames[0] = "[view sourcefile]";
     for (int i=0; i < files.size(); i++) {
       fileNames[i+1] = files.get(i).getName();
     }
-    JComboBox fileComboBox = new JComboBox(fileNames);
+    fileComboBox = new JComboBox(fileNames);
     fileComboBox.setSelectedIndex(0);
     fileComboBox.addActionListener(new ActionListener() {
       public void actionPerformed(ActionEvent e) {
-        JComboBox source = (JComboBox)e.getSource();
-        int index = source.getSelectedIndex();
-        if (index == 0) {
-          return;
-        }
-
-        File selectedFile = files.get(index-1);
-        Vector<String> codeData = readTextFile(selectedFile);
-        codeUI.displayNewCode(selectedFile, codeData, -1);
-        codeFile = null;
+        sourceFileSelectionChanged();
       }
     });
+
     fileComboBox.setRenderer(new BasicComboBoxRenderer() {
       public Component getListCellRendererComponent(JList list, Object value,
           int index, boolean isSelected, boolean cellHasFocus) {
@@ -172,7 +167,7 @@ public class MspCodeWatcher extends VisPlugin {
     stepButton.addActionListener(new ActionListener() {
       public void actionPerformed(ActionEvent e) {
         // TODO Perform single step here
-        mspMote.getCPU().step();
+        mspMote.getCPU().step(mspMote.getCPU().cycles+1);
         updateInfo();
       }
     });
@@ -207,6 +202,18 @@ public class MspCodeWatcher extends VisPlugin {
     } catch (java.beans.PropertyVetoException e) {
       // Could not select
     }
+  }
+
+  private void sourceFileSelectionChanged() {
+    int index = fileComboBox.getSelectedIndex();
+    if (index == 0) {
+      return;
+    }
+
+    File selectedFile = files.get(index-1);
+    Vector<String> codeData = readTextFile(selectedFile);
+    codeUI.displayNewCode(selectedFile, codeData, -1);
+    codeFile = null;
   }
 
   /**
@@ -580,7 +587,9 @@ public class MspCodeWatcher extends VisPlugin {
     } else {
       filenameLabel.setText("");
     }
-}
+
+    fileComboBox.setSelectedIndex(0);
+   }
 
   public void closePlugin() {
     mySimulation.deleteObserver(simObserver);
