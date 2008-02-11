@@ -26,13 +26,18 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ESBMoteType.java,v 1.1 2008/02/07 14:53:29 fros4943 Exp $
+ * $Id: ESBMoteType.java,v 1.2 2008/02/11 15:17:30 fros4943 Exp $
  */
 
 package se.sics.cooja.mspmote;
 
+import java.awt.Image;
+import java.awt.MediaTracker;
+import java.awt.Toolkit;
+import java.net.URL;
 import javax.swing.*;
 import org.apache.log4j.Logger;
+
 import se.sics.cooja.*;
 
 @ClassDescription("ESB Mote Type")
@@ -49,6 +54,24 @@ public class ESBMoteType extends MspMoteType {
   public ESBMoteType(String identifier) {
     setIdentifier(identifier);
     setDescription(targetNice + " Mote Type #" + identifier);
+  }
+
+  public Icon getMoteTypeIcon() {
+    Toolkit toolkit = Toolkit.getDefaultToolkit();
+    URL imageURL = this.getClass().getClassLoader().getResource("images/esb.jpg");
+    Image image = toolkit.getImage(imageURL);
+    MediaTracker tracker = new MediaTracker(GUI.frame);
+    tracker.addImage(image, 1);
+    try {
+      tracker.waitForAll();
+    } catch (InterruptedException ex) {
+    }
+    if (image.getHeight(GUI.frame) > 0 && image.getWidth(GUI.frame) > 0) {
+      image = image.getScaledInstance((100*image.getWidth(GUI.frame)/image.getHeight(GUI.frame)), 100, Image.SCALE_DEFAULT);
+      return new ImageIcon(image);
+    }
+
+    return null;
   }
 
   public Mote generateMote(Simulation simulation) {
