@@ -24,7 +24,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * $Id: GUI.java,v 1.67 2008/02/07 22:25:26 fros4943 Exp $
+ * $Id: GUI.java,v 1.68 2008/02/11 14:04:51 fros4943 Exp $
  */
 
 package se.sics.cooja;
@@ -3438,8 +3438,8 @@ public class GUI {
       JButton retryButton = new JButton("Retry");
       retryButton.addActionListener(new ActionListener() {
         public void actionPerformed(ActionEvent e) {
-          errorDialog.dispose();
           errorDialog.setTitle("-RETRY-");
+          errorDialog.dispose();
         }
       });
       buttonBox.add(retryButton);
