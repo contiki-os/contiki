@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: burn-nodeid.c,v 1.2 2007/11/10 20:45:00 adamdunkels Exp $
+ * $Id: burn-nodeid.c,v 1.3 2008/02/11 10:43:47 adamdunkels Exp $
  */
 
 /**
@@ -39,6 +39,7 @@
  */
 
 #include "dev/leds.h"
+#include "dev/watchdog.h"
 #include "node-id.h"
 #include "contiki.h"
 
@@ -50,6 +51,8 @@ AUTOSTART_PROCESSES(&burn_process);
 PROCESS_THREAD(burn_process, ev, data)
 {
   PROCESS_BEGIN();
+
+  watchdog_stop();
   leds_on(LEDS_RED);
 #if NODEID
   printf("Burning node id %d\n", NODEID);
@@ -63,6 +66,7 @@ PROCESS_THREAD(burn_process, ev, data)
   printf("Restored node id %d\n", node_id);
 #endif
   leds_off(LEDS_RED + LEDS_BLUE);
+  watchdog_start();
   while(1) {
     PROCESS_WAIT_EVENT();
   }
