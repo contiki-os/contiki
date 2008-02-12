@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: UDGM.java,v 1.12 2007/12/13 07:59:35 fros4943 Exp $
+ * $Id: UDGM.java,v 1.13 2008/02/12 15:31:22 fros4943 Exp $
  */
 
 package se.sics.cooja.radiomediums;
@@ -59,7 +59,8 @@ import se.sics.cooja.plugins.Visualizer2D;
  * The radio output power indicator (0-100) is used in a very simple way; the
  * total transmission (and interfering) range is multiplied with [power_ind]%.
  *
- * @see #SS_OK
+ * @see #SS_OK_BEST
+ * @see #SS_OK_WORST
  * @see #SS_NOISE
  * @see #SS_NOTHING
  *

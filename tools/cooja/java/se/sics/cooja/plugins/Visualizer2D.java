@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: Visualizer2D.java,v 1.12 2008/02/12 15:11:40 fros4943 Exp $
+ * $Id: Visualizer2D.java,v 1.13 2008/02/12 15:31:22 fros4943 Exp $
  */
 
 package se.sics.cooja.plugins;
@@ -186,7 +186,7 @@ public abstract class Visualizer2D extends VisPlugin {
     simObserver.update(null, null);
 
     // Detect mote highligts
-    myGUI.addMoteHighligtObserver(moteHighligtObserver = new Observer() {
+    myGUI.addMoteHighlightObserver(moteHighligtObserver = new Observer() {
       public void update(Observable obs, Object obj) {
         if (!(obj instanceof Mote)) {
           return;
@@ -614,7 +614,7 @@ public abstract class Visualizer2D extends VisPlugin {
 
   public void closePlugin() {
     if (moteHighligtObserver != null) {
-      myGUI.deleteMoteHighligtObserver(moteHighligtObserver);
+      myGUI.deleteMoteHighlightObserver(moteHighligtObserver);
     }
 
     if (simObserver != null) {
