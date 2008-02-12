@@ -26,12 +26,13 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: MspMoteType.java,v 1.3 2008/02/11 15:17:30 fros4943 Exp $
+ * $Id: MspMoteType.java,v 1.4 2008/02/12 15:12:38 fros4943 Exp $
  */
 
 package se.sics.cooja.mspmote;
 
 import java.awt.*;
+import java.awt.Dialog.ModalityType;
 import java.awt.event.*;
 import java.io.*;
 import java.util.*;
@@ -131,7 +132,7 @@ public abstract class MspMoteType implements MoteType {
   /**
    * Configures and initialized Msp mote types.
    *
-   * @param parentFrame Graphical parent frame
+   * @param parentContainer Graphical parent container
    * @param simulation Current simulation
    * @param visAvailable Enable graphical interfaces and user input
    * @param target Contiki target platform name
@@ -139,7 +140,7 @@ public abstract class MspMoteType implements MoteType {
    * @return True is successful
    * @throws MoteTypeCreationException Mote type creation failed
    */
-  protected boolean configureAndInitMspType(JFrame parentFrame, Simulation simulation,
+  protected boolean configureAndInitMspType(Container parentContainer, Simulation simulation,
       boolean visAvailable, String target, String targetNice)
   throws MoteTypeCreationException {
     boolean compileFromSource = false;
@@ -178,7 +179,7 @@ public abstract class MspMoteType implements MoteType {
           + "If you want to use an already existing file, click 'Select'.\n\n"
           + "To compile this file from source, click 'Compile'";
       String title = "Select or compile " + targetNice + " firmware";
-      int answer = JOptionPane.showOptionDialog(GUI.frame,
+      int answer = JOptionPane.showOptionDialog(GUI.getTopParentContainer(),
           question, title, JOptionPane.YES_NO_OPTION,
           JOptionPane.QUESTION_MESSAGE, null, options, options[0]);
 
@@ -202,7 +203,7 @@ public abstract class MspMoteType implements MoteType {
       compiler.setCompileCommand(compileCommand);
 
       if (visAvailable) {
-        boolean success = compiler.showDialog(GUI.frame, this);
+        boolean success = compiler.showDialog(GUI.getTopParentContainer(), this);
         if (success) {
           setSourceFile(compiler.getSourceFile());
           setELFFile(compiler.getOutputFile());
@@ -270,7 +271,7 @@ public abstract class MspMoteType implements MoteType {
       });
       fc.setDialogTitle("Select ELF file");
 
-      if (fc.showOpenDialog(parentFrame) == JFileChooser.APPROVE_OPTION) {
+      if (fc.showOpenDialog(parentContainer) == JFileChooser.APPROVE_OPTION) {
         File selectedFile = fc.getSelectedFile();
 
         if (!selectedFile.exists()) {
@@ -558,8 +559,19 @@ public abstract class MspMoteType implements MoteType {
       }
     }
 
-    public boolean showDialog(Frame parentFrame, final MspMoteType moteType) {
-      myDialog = new JDialog(parentFrame, "Compile ELF file", true);
+    public boolean showDialog(Container parentContainer, final MspMoteType moteType) {
+
+      if (parentContainer instanceof Window) {
+        myDialog = new JDialog((Window)parentContainer, "Compile ELF file", ModalityType.APPLICATION_MODAL);
+      } else if (parentContainer instanceof Dialog) {
+        myDialog = new JDialog((Dialog)parentContainer, "Compile ELF file", ModalityType.APPLICATION_MODAL);
+      } else if (parentContainer instanceof Frame) {
+        myDialog = new JDialog((Frame)parentContainer, "Compile ELF file", ModalityType.APPLICATION_MODAL);
+      } else {
+        logger.fatal("Unknown parent container type: " + parentContainer);
+        return false;
+      }
+
       final MessageList taskOutput = new MessageList();
 
       // BOTTOM BUTTON PART
@@ -780,7 +792,7 @@ public abstract class MspMoteType implements MoteType {
       contentPane.add(buttonBox, BorderLayout.SOUTH);
 
       myDialog.pack();
-      myDialog.setLocationRelativeTo(parentFrame);
+      myDialog.setLocationRelativeTo(parentContainer);
       myDialog.getRootPane().setDefaultButton(compileButton);
 
       // Dispose on escape key
@@ -957,7 +969,7 @@ public abstract class MspMoteType implements MoteType {
       }
     }
 
-    return configureAndInit(GUI.frame, simulation, visAvailable);
+    return configureAndInit(GUI.getTopParentContainer(), simulation, visAvailable);
   }
 
 }

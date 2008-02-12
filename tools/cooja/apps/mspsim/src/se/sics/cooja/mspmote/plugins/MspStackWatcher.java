@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: MspStackWatcher.java,v 1.2 2008/02/11 11:48:38 fros4943 Exp $
+ * $Id: MspStackWatcher.java,v 1.3 2008/02/12 15:13:11 fros4943 Exp $
  */
 
 package se.sics.cooja.mspmote.plugins;
@@ -53,7 +53,6 @@ public class MspStackWatcher extends VisPlugin {
   private MSP430 cpu;
   private Simulation simulation;
   private Observer stackObserver = null;
-  private Observer logObserver = null;
   private JButton startButton;
   private JButton stopButton;
 
