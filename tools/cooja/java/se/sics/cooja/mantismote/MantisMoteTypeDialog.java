@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: MantisMoteTypeDialog.java,v 1.6 2008/02/12 15:10:49 fros4943 Exp $
+ * $Id: MantisMoteTypeDialog.java,v 1.7 2008/02/12 15:25:42 fros4943 Exp $
  */
 
 package se.sics.cooja.mantismote;
@@ -195,15 +195,15 @@ public class MantisMoteTypeDialog extends JDialog {
   }
 
   private MantisMoteTypeDialog(Dialog dialog) {
-    super(dialog, "Configure Mantis Mote Type", ModalityType.TOOLKIT_MODAL);
+    super(dialog, "Configure Mantis Mote Type", ModalityType.APPLICATION_MODAL);
     setupDialog();
   }
   private MantisMoteTypeDialog(Window window) {
-    super(window, "Configure Mantis Mote Type", ModalityType.TOOLKIT_MODAL);
+    super(window, "Configure Mantis Mote Type", ModalityType.APPLICATION_MODAL);
     setupDialog();
   }
   private MantisMoteTypeDialog(Frame frame) {
-    super(frame, "Configure Mantis Mote Type", ModalityType.TOOLKIT_MODAL);
+    super(frame, "Configure Mantis Mote Type", ModalityType.APPLICATION_MODAL);
     setupDialog();
   }
 
