@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: AddMoteDialog.java,v 1.4 2007/11/29 05:37:35 fros4943 Exp $
+ * $Id: AddMoteDialog.java,v 1.5 2008/02/12 15:05:14 fros4943 Exp $
  */
 
 package se.sics.cooja.dialogs;
@@ -74,19 +74,30 @@ public class AddMoteDialog extends JDialog {
    * Shows a dialog which enables a user to create and add motes of the given
    * type.
    *
-   * @param parentFrame
-   *          Parent frame for dialog
+   * @param parentContainer
+   *          Parent container for dialog
    * @param simulation
    *          Simulation
    * @param moteType
    *          Mote type
    * @return New motes or null if aborted
    */
-  public static Vector<Mote> showDialog(Frame parentFrame,
+  public static Vector<Mote> showDialog(Container parentContainer,
       Simulation simulation, MoteType moteType) {
 
-    AddMoteDialog myDialog = new AddMoteDialog(parentFrame, simulation, moteType);
-    myDialog.setLocationRelativeTo(parentFrame);
+    AddMoteDialog myDialog = null;
+    if (parentContainer instanceof Window) {
+      myDialog = new AddMoteDialog((Window)parentContainer, simulation, moteType);
+    } else if (parentContainer instanceof Dialog) {
+      myDialog = new AddMoteDialog((Dialog)parentContainer, simulation, moteType);
+    } else if (parentContainer instanceof Frame) {
+      myDialog = new AddMoteDialog((Frame)parentContainer, simulation, moteType);
+    } else {
+      logger.fatal("Unknown parent container type: " + parentContainer);
+      return null;
+    }
+
+    myDialog.setLocationRelativeTo(parentContainer);
     myDialog.checkSettings();
 
     if (myDialog != null) {
@@ -96,7 +107,19 @@ public class AddMoteDialog extends JDialog {
   }
 
   private AddMoteDialog(Frame frame, Simulation simulation, MoteType moteType) {
-    super(frame, "Add motes (" + moteType.getDescription() + ")", true);
+    super(frame, "Add motes (" + moteType.getDescription() + ")", ModalityType.APPLICATION_MODAL);
+    setupDialog(simulation, moteType);
+  }
+  private AddMoteDialog(Window window, Simulation simulation, MoteType moteType) {
+    super(window, "Add motes (" + moteType.getDescription() + ")", ModalityType.APPLICATION_MODAL);
+    setupDialog(simulation, moteType);
+  }
+  private AddMoteDialog(Dialog dialog, Simulation simulation, MoteType moteType) {
+    super(dialog, "Add motes (" + moteType.getDescription() + ")", ModalityType.APPLICATION_MODAL);
+    setupDialog(simulation, moteType);
+  }
+
+  private void setupDialog(Simulation simulation, MoteType moteType) {
     this.moteType = moteType;
     this.simulation = simulation;
 

@@ -26,12 +26,13 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: MantisMoteType.java,v 1.5 2007/09/18 11:33:58 fros4943 Exp $
+ * $Id: MantisMoteType.java,v 1.6 2008/02/12 15:10:49 fros4943 Exp $
  */
 
 package se.sics.cooja.mantismote;
 
 import java.awt.BorderLayout;
+import java.awt.Container;
 import java.awt.Dimension;
 import java.io.File;
 import java.util.*;
@@ -40,7 +41,6 @@ import java.util.regex.Pattern;
 
 import javax.swing.Box;
 import javax.swing.BoxLayout;
-import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import org.apache.log4j.Logger;
@@ -61,7 +61,7 @@ import se.sics.cooja.contikimote.ContikiMoteType;
  * Mantis system in order to create the initial memory. When a new mote is
  * created the createInitialMemory() method should be called to get this initial
  * memory for the mote.
- * 
+ *
  * @author Fredrik Osterlind
  */
 @ClassDescription("Mantis Mote Type")
@@ -96,7 +96,7 @@ public class MantisMoteType implements MoteType {
    * loaded by the first available CoreComm. Each mote generated from this mote
    * type will have the interfaces specified in the given mote interface class
    * list.
-   * 
+   *
    * @param libFile
    *          Library file to load
    * @param objFile
@@ -106,21 +106,22 @@ public class MantisMoteType implements MoteType {
    */
   public MantisMoteType(File libFile, File objFile,
       Vector<Class<? extends MoteInterface>> moteInterfaceClasses) {
-    if (!doInit(libFile, objFile, moteInterfaceClasses))
+    if (!doInit(libFile, objFile, moteInterfaceClasses)) {
       logger.fatal("Mantis mote type creation failed!");
+    }
   }
- 
+
   /**
    * This is an mote type initialization method and should normally never be
    * called by any other part than the mote type constructor. It is called from
    * the constructor with an identifier argument, but not from the standard
    * constructor. This method may be called from the simulator when loading
    * configuration files, and the libraries must be recompiled.
-   * 
+   *
    * This method allocates a core communicator, loads the Mantis library file,
    * creates variable name to address mappings and finally creates the Mantis
    * mote initial memory.
-   * 
+   *
    * @param libFile Library file
    * @param objFile Object file
    * @param moteInterfaceClasses Mote interface classes
@@ -131,7 +132,7 @@ public class MantisMoteType implements MoteType {
     myObjectFilename = objFile.getAbsolutePath();
     myIdentifier = libFile.getName();
     myDescription = libFile.getAbsolutePath();
-    
+
     // Allocate core communicator class
     libraryClassName = CoreComm.getAvailableClassName();
     try {
@@ -195,7 +196,7 @@ public class MantisMoteType implements MoteType {
       logger.fatal("BSS section size parsing failed");
       return false;
     }
-    
+
     // Get offset between relative and absolute addresses
     offsetRelToAbs = myCoreComm.getReferenceAbsAddr() - (Integer) varAddresses.get("referenceVar");
 
@@ -209,17 +210,17 @@ public class MantisMoteType implements MoteType {
     myInitialMemory = new SectionMoteMemory(varAddresses);
     myInitialMemory.setMemorySegment(relDataSectionAddr, initialDataSection);
     myInitialMemory.setMemorySegment(relBssSectionAddr, initialBssSection);
-    
+
     this.moteInterfaceClasses = moteInterfaceClasses;
-    
+
     return true;
   }
-  
+
   /**
    * Creates and returns a copy of this mote type's initial memory (just after
    * the init function has been run). When a new mote is created it should get
    * it's memory from here.
-   * 
+   *
    * @return Initial memory of a mote type
    */
   public SectionMoteMemory createInitialMemory() {
@@ -237,7 +238,7 @@ public class MantisMoteType implements MoteType {
   /**
    * Copy core memory to given memory. This should not be used directly, but
    * instead via MantisMote.getMemory().
-   * 
+   *
    * @param mem
    *          Memory to set
    */
@@ -246,7 +247,7 @@ public class MantisMoteType implements MoteType {
       int startAddr = mem.getStartAddrOfSection(i);
       int size = mem.getSizeOfSection(i);
       byte[] data = mem.getDataOfSection(i);
-      
+
       getCoreMemory(startAddr + offsetRelToAbs,
           size, data);
     }
@@ -255,7 +256,7 @@ public class MantisMoteType implements MoteType {
   /**
    * Copy given memory to the Mantis system. This should not be used directly,
    * but instead via MantisMote.setMemory().
-   * 
+   *
    * @param mem
    *          New memory
    */
@@ -277,7 +278,7 @@ public class MantisMoteType implements MoteType {
 
   /**
    * Returns all mote interfaces of this mote type
-   * 
+   *
    * @return All mote interfaces
    */
   public Vector<Class<? extends MoteInterface>> getMoteInterfaces() {
@@ -296,7 +297,7 @@ public class MantisMoteType implements MoteType {
     return myIdentifier;
   }
 
-  public void setIdentifier(String identifier) {    
+  public void setIdentifier(String identifier) {
     myIdentifier = identifier;
   }
 
@@ -360,9 +361,11 @@ public class MantisMoteType implements MoteType {
     return new MantisMote(this, mySimulation);
   }
 
-  public boolean configureAndInit(JFrame parentFrame, Simulation simulation, boolean visAvailable) {
-    if (!visAvailable) logger.fatal(">>>>>>> NOT IMPLEMENTED");
-    return MantisMoteTypeDialog.showDialog(parentFrame, simulation, this);
+  public boolean configureAndInit(Container parentContainer, Simulation simulation, boolean visAvailable) {
+    if (!visAvailable) {
+      logger.fatal(">>>>>>> NOT IMPLEMENTED");
+    }
+    return MantisMoteTypeDialog.showDialog(parentContainer, simulation, this);
   }
 
   public Collection<Element> getConfigXML() {
@@ -406,7 +409,7 @@ public class MantisMoteType implements MoteType {
       }
     }
 
-    boolean createdOK = configureAndInit(GUI.frame, simulation, visAvailable);
+    boolean createdOK = configureAndInit(GUI.getTopParentContainer(), simulation, visAvailable);
     return createdOK;
   }
 

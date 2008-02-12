@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ContikiMoteTypeDialog.java,v 1.39 2008/01/08 12:33:25 fros4943 Exp $
+ * $Id: ContikiMoteTypeDialog.java,v 1.40 2008/02/12 15:04:20 fros4943 Exp $
  */
 
 package se.sics.cooja.contikimote;
@@ -116,19 +116,29 @@ public class ContikiMoteTypeDialog extends JDialog {
    * Shows a dialog for configuring a Contiki mote type and compiling the shared
    * library it uses.
    *
-   * @param parentFrame
-   *          Parent frame for dialog
+   * @param parentContainer
+   *          Parent container for dialog
    * @param simulation
    *          Simulation holding (or that will hold) mote type
    * @param moteTypeToConfigure
    *          Mote type to configure
-   * @return True if compilation succeded and library is ready to be loaded
+   * @return True if compilation succeeded and library is ready to be loaded
    */
-  public static boolean showDialog(Frame parentFrame, Simulation simulation,
+  public static boolean showDialog(Container parentContainer, Simulation simulation,
       ContikiMoteType moteTypeToConfigure) {
 
-    final ContikiMoteTypeDialog myDialog = new ContikiMoteTypeDialog(
-        parentFrame);
+    ContikiMoteTypeDialog myDialog = null;
+    if (parentContainer instanceof Window) {
+      myDialog = new ContikiMoteTypeDialog((Window) parentContainer);
+    } else if (parentContainer instanceof Dialog) {
+      myDialog = new ContikiMoteTypeDialog((Dialog) parentContainer);
+    } else if (parentContainer instanceof Frame) {
+      myDialog = new ContikiMoteTypeDialog((Frame) parentContainer);
+    } else {
+      logger.fatal("Unknown parent container type: " + parentContainer);
+      return false;
+    }
+
     myDialog.setDefaultCloseOperation(JDialog.DO_NOTHING_ON_CLOSE);
 
     myDialog.myMoteType = moteTypeToConfigure;
@@ -403,7 +413,7 @@ public class ContikiMoteTypeDialog extends JDialog {
 
     // Set position and focus of dialog
     myDialog.pack();
-    myDialog.setLocationRelativeTo(parentFrame);
+    myDialog.setLocationRelativeTo(parentContainer);
     myDialog.textDescription.requestFocus();
     myDialog.textDescription.select(0, myDialog.textDescription.getText()
         .length());
@@ -428,9 +438,20 @@ public class ContikiMoteTypeDialog extends JDialog {
     return false;
   }
 
+  private ContikiMoteTypeDialog(Dialog dialog) {
+    super(dialog, "Add Mote Type", ModalityType.TOOLKIT_MODAL);
+    setupDialog();
+  }
+  private ContikiMoteTypeDialog(Window window) {
+    super(window, "Add Mote Type", ModalityType.TOOLKIT_MODAL);
+    setupDialog();
+  }
   private ContikiMoteTypeDialog(Frame frame) {
-    super(frame, "Add Mote Type", true);
+    super(frame, "Add Mote Type", ModalityType.TOOLKIT_MODAL);
+    setupDialog();
+  }
 
+  private void setupDialog() {
     myDialog = this;
 
     JLabel label;
@@ -2513,8 +2534,8 @@ public class ContikiMoteTypeDialog extends JDialog {
         // Find and load the mote interface classes
         for (String moteInterface : moteInterfaces) {
           try {
-            Class<? extends MoteInterface> newMoteInterfaceClass = classLoader
-                .loadClass(moteInterface).asSubclass(MoteInterface.class);
+            Class<? extends MoteInterface> newMoteInterfaceClass =
+              myGUI.tryLoadClass(this, MoteInterface.class, moteInterface);
             moteIntfClasses.add(newMoteInterfaceClass);
             // logger.info("Loaded mote interface: " + newMoteInterfaceClass);
           } catch (Exception ce) {

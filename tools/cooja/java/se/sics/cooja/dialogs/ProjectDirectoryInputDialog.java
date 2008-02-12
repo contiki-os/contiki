@@ -21,9 +21,20 @@ class ProjectDirectoryInputDialog extends JDialog implements ActionListener, Pro
   private String buttonAdd = "Add";
   private String buttonCancel = "Cancel";
 
-  public ProjectDirectoryInputDialog(Frame parent) {
-    super(parent, true);
+  public ProjectDirectoryInputDialog(Window window) {
+    super(window, ModalityType.APPLICATION_MODAL);
+    setupDialog();
+  }
+  public ProjectDirectoryInputDialog(Dialog dialog) {
+    super(dialog, ModalityType.APPLICATION_MODAL);
+    setupDialog();
+  }
+  public ProjectDirectoryInputDialog(Frame frame) {
+    super(frame, ModalityType.APPLICATION_MODAL);
+    setupDialog();
+  }
 
+  public void setupDialog() {
     setTitle("Enter path");
 
     textField = new JTextField(10);
@@ -37,7 +48,7 @@ class ProjectDirectoryInputDialog extends JDialog implements ActionListener, Pro
       public void changedUpdate(DocumentEvent e) {
         pathChanged();
       }
-    });    
+    });
 
     Object[] objects = {"Enter path to project directory", textField};
     Object[] options = {buttonAdd, buttonCancel};

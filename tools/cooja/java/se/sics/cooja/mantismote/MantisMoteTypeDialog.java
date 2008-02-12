@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: MantisMoteTypeDialog.java,v 1.5 2007/03/24 00:44:55 fros4943 Exp $
+ * $Id: MantisMoteTypeDialog.java,v 1.6 2008/02/12 15:10:49 fros4943 Exp $
  */
 
 package se.sics.cooja.mantismote;
@@ -44,15 +44,15 @@ import se.sics.cooja.dialogs.MessageList;
 
 /**
  * A dialog for configuring Mantis mote types and compiling KMantis mote type
- * libraries. 
- * 
+ * libraries.
+ *
  * The dialog takes a Mantis mote type as argument and pre-selects the values
  * already set in that mote type before showing the dialog. Any changes made to
  * the settings are written to the mote type if the compilation is successful
  * and the user presses OK.
- * 
+ *
  * This dialog uses external tools to scan for sources and compile libraries.
- * 
+ *
  * @author Fredrik Osterlind
  */
 public class MantisMoteTypeDialog extends JDialog {
@@ -74,12 +74,12 @@ public class MantisMoteTypeDialog extends JDialog {
 
   private JTextField textID, textOutputFiles, textDescription, textMantisBinary;
   private JButton createButton, compileButton;
-  
+
   private File objFile = null;
   private File workingDir = null;
   private File libFile = null;
   private File srcFile = null;
-  
+
   private Vector<Class<? extends MoteInterface>> moteInterfaceClasses = null;
 
   private boolean settingsOK = false; // Do all settings seem correct?
@@ -92,20 +92,29 @@ public class MantisMoteTypeDialog extends JDialog {
 
   /**
    * Shows a dialog for configuring a Mantis mote type.
-   * 
-   * @param parentFrame
-   *          Parent frame for dialog
+   *
+   * @param parentContainer
+   *          Parent container for dialog
    * @param simulation
    *          Simulation holding (or that will hold) mote type
    * @param moteTypeToConfigure
    *          Mote type to configure
    * @return True if mote type configuration succeded and library is ready to be loaded
    */
-  public static boolean showDialog(Frame parentFrame, Simulation simulation,
+  public static boolean showDialog(Container parentContainer, Simulation simulation,
       MantisMoteType moteTypeToConfigure) {
 
-    final MantisMoteTypeDialog myDialog = new MantisMoteTypeDialog(
-        parentFrame);
+    MantisMoteTypeDialog myDialog = null;
+    if (parentContainer instanceof Window) {
+      myDialog = new MantisMoteTypeDialog((Window) parentContainer);
+    } else if (parentContainer instanceof Dialog) {
+      myDialog = new MantisMoteTypeDialog((Dialog) parentContainer);
+    } else if (parentContainer instanceof Frame) {
+      myDialog = new MantisMoteTypeDialog((Frame) parentContainer);
+    } else {
+      logger.fatal("Unknown parent container type: " + parentContainer);
+      return false;
+    }
 
     myDialog.myMoteType = moteTypeToConfigure;
     myDialog.allOtherTypes = simulation.getMoteTypes();
@@ -160,7 +169,7 @@ public class MantisMoteTypeDialog extends JDialog {
     myDialog.moteInterfaceClasses = new Vector<Class<? extends MoteInterface>>();
     for (String moteInterface : moteInterfaces) {
       try {
-        Class<? extends MoteInterface> newMoteInterfaceClass = 
+        Class<? extends MoteInterface> newMoteInterfaceClass =
           simulation.getGUI().tryLoadClass(simulation.getGUI(), MoteInterface.class, moteInterface);
         myDialog.moteInterfaceClasses.add(newMoteInterfaceClass);
         /*logger.info("Loaded Mantis mote interface: " + newMoteInterfaceClass);*/
@@ -172,7 +181,7 @@ public class MantisMoteTypeDialog extends JDialog {
 
     // Set position and focus of dialog
     myDialog.pack();
-    myDialog.setLocationRelativeTo(parentFrame);
+    myDialog.setLocationRelativeTo(parentContainer);
     myDialog.textDescription.requestFocus();
     myDialog.textDescription.select(0, myDialog.textDescription.getText().length());
     myDialog.pathsWereUpdated();
@@ -185,9 +194,20 @@ public class MantisMoteTypeDialog extends JDialog {
     return false;
   }
 
+  private MantisMoteTypeDialog(Dialog dialog) {
+    super(dialog, "Configure Mantis Mote Type", ModalityType.TOOLKIT_MODAL);
+    setupDialog();
+  }
+  private MantisMoteTypeDialog(Window window) {
+    super(window, "Configure Mantis Mote Type", ModalityType.TOOLKIT_MODAL);
+    setupDialog();
+  }
   private MantisMoteTypeDialog(Frame frame) {
-    super(frame, "Configure Mantis Mote Type", true);
+    super(frame, "Configure Mantis Mote Type", ModalityType.TOOLKIT_MODAL);
+    setupDialog();
+  }
 
+  private void setupDialog() {
     myDialog = this;
 
     JLabel label;
@@ -361,8 +381,9 @@ public class MantisMoteTypeDialog extends JDialog {
         if (compilationThread != null && compilationThread.isAlive()) {
           compilationThread.interrupt();
         }
-        if (progressDialog != null && progressDialog.isDisplayable())
+        if (progressDialog != null && progressDialog.isDisplayable()) {
           progressDialog.dispose();
+        }
       }
     });
 
@@ -385,30 +406,31 @@ public class MantisMoteTypeDialog extends JDialog {
       if (srcFile.exists()) {
         srcFile.delete();
       }
-      
+
       if (srcFile.exists()) {
         throw new Exception("could not remove old source file");
       }
-      
+
       generateSourceFile(srcFile);
-      
+
       if (!srcFile.exists()) {
         throw new Exception("source file not created");
       }
     } catch (Exception e) {
       libraryCreatedOK = false;
       progressBar.setBackground(Color.ORANGE);
-      if (e.getMessage() != null)
+      if (e.getMessage() != null) {
         progressBar.setString("source file generation failed: " + e.getMessage());
-      else
+      } else {
         progressBar.setString("source file generation failed");
-         
+      }
+
       progressBar.setIndeterminate(false);
       progressBar.setValue(0);
       createButton.setEnabled(libraryCreatedOK);
       return;
     }
-    
+
     // Test compile shared library
     progressBar.setString("..compiling..");
 
@@ -418,7 +440,7 @@ public class MantisMoteTypeDialog extends JDialog {
 
     compilationThread = new Thread(new Runnable() {
       public void run() {
-        compilationSucceded = 
+        compilationSucceded =
           MantisMoteTypeDialog.compileLibrary(
               libFile,
               objFile,
@@ -445,8 +467,9 @@ public class MantisMoteTypeDialog extends JDialog {
       libraryCreatedOK = false;
     } else {
       libraryCreatedOK = true;
-      if (!libFile.exists())
+      if (!libFile.exists()) {
         libraryCreatedOK = false;
+      }
     }
 
     if (libraryCreatedOK) {
@@ -467,7 +490,7 @@ public class MantisMoteTypeDialog extends JDialog {
   /**
    * Generates new source file by reading default source template and replacing
    * certain field in order to be loadable from given Java class.
-   * 
+   *
    * @param outputFile Source file to create
    * @throws Exception
    */
@@ -500,7 +523,7 @@ public class MantisMoteTypeDialog extends JDialog {
       }
 
       sourceFile = new BufferedReader(reader);
-      
+
       destFile = new BufferedWriter(new OutputStreamWriter(
           new FileOutputStream(outputFile)));
 
@@ -515,10 +538,12 @@ public class MantisMoteTypeDialog extends JDialog {
       sourceFile.close();
     } catch (Exception e) {
       try {
-        if (destFile != null)
+        if (destFile != null) {
           destFile.close();
-        if (sourceFile != null)
+        }
+        if (sourceFile != null) {
           sourceFile.close();
+        }
       } catch (Exception e2) {
       }
 
@@ -526,10 +551,10 @@ public class MantisMoteTypeDialog extends JDialog {
       throw e;
     }
   }
-  
+
   /**
    * Compiles a mote type shared library using the standard Mantis makefile.
-   * 
+   *
    * @param libFile Library file to create
    * @param binFile Binary file to link against
    * @param sourceFile Source file to compile
@@ -545,42 +570,48 @@ public class MantisMoteTypeDialog extends JDialog {
 
     // Check needed files
     if (!workingDir.exists()) {
-      if (errorStream != null)
+      if (errorStream != null) {
         errorStream.println("Bad paths");
+      }
       logger.fatal("Working directory does not exist");
       return false;
     }
     if (!workingDir.isDirectory()) {
-      if (errorStream != null)
+      if (errorStream != null) {
         errorStream.println("Bad paths");
+      }
       logger.fatal("Working directory is not a directory");
       return false;
     }
 
     if (libFile.exists()) {
-      if (errorStream != null)
+      if (errorStream != null) {
         errorStream.println("Bad output filenames");
+      }
       logger.fatal("Library already exists");
       return false;
     }
 
     if (!sourceFile.exists()) {
-      if (errorStream != null)
+      if (errorStream != null) {
         errorStream.println("Bad dependency files");
+      }
       logger.fatal("Source file not found");
       return false;
     }
 
     if (!binFile.exists()) {
-      if (errorStream != null)
+      if (errorStream != null) {
         errorStream.println("Bad dependency files");
+      }
       logger.fatal("Link object file not found");
       return false;
     }
 
     if (CoreComm.hasLibraryFileBeenLoaded(libFile)) {
-      if (errorStream != null)
+      if (errorStream != null) {
         errorStream.println("Bad output filenames");
+      }
       logger.fatal("A library has already been loaded with the same name before");
       return false;
     }
@@ -606,8 +637,9 @@ public class MantisMoteTypeDialog extends JDialog {
           String readLine;
           try {
             while ((readLine = input.readLine()) != null) {
-              if (outputStream != null && readLine != null)
+              if (outputStream != null && readLine != null) {
                 outputStream.println(readLine);
+              }
             }
           } catch (IOException e) {
             logger.warn("Error while reading from process");
@@ -620,8 +652,9 @@ public class MantisMoteTypeDialog extends JDialog {
           String readLine;
           try {
             while ((readLine = err.readLine()) != null) {
-              if (errorStream != null && readLine != null)
+              if (errorStream != null && readLine != null) {
                 errorStream.println(readLine);
+              }
             }
           } catch (IOException e) {
             logger.warn("Error while reading from process");
@@ -711,39 +744,42 @@ public class MantisMoteTypeDialog extends JDialog {
     } else {
       textOutputFiles.setText("");
     }
-    
+
     createButton.setEnabled(libraryCreatedOK = false);
     compileButton.setEnabled(settingsOK);
   }
-  
+
 
   private class MoteTypeEventHandler
       implements
         ActionListener,
         DocumentListener {
     public void insertUpdate(DocumentEvent e) {
-      if (myDialog.isVisible())
+      if (myDialog.isVisible()) {
         javax.swing.SwingUtilities.invokeLater(new Runnable() {
           public void run() {
             pathsWereUpdated();
           }
         });
+      }
     }
     public void removeUpdate(DocumentEvent e) {
-      if (myDialog.isVisible())
+      if (myDialog.isVisible()) {
         javax.swing.SwingUtilities.invokeLater(new Runnable() {
           public void run() {
             pathsWereUpdated();
           }
         });
+      }
     }
     public void changedUpdate(DocumentEvent e) {
-      if (myDialog.isVisible())
+      if (myDialog.isVisible()) {
         javax.swing.SwingUtilities.invokeLater(new Runnable() {
           public void run() {
             pathsWereUpdated();
           }
         });
+      }
     }
     public void actionPerformed(ActionEvent e) {
       if (e.getActionCommand().equals("cancel")) {
@@ -783,8 +819,9 @@ public class MantisMoteTypeDialog extends JDialog {
         }
         createButton.setEnabled(libraryCreatedOK = false);
         pathsWereUpdated();
-      } else
+      } else {
         logger.warn("Unhandled action: " + e.getActionCommand());
+      }
 
       createButton.setEnabled(libraryCreatedOK = false);
 

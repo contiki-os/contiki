@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ProjectDirectoriesDialog.java,v 1.4 2007/08/21 14:18:04 fros4943 Exp $
+ * $Id: ProjectDirectoriesDialog.java,v 1.5 2008/02/12 15:06:09 fros4943 Exp $
  */
 
 package se.sics.cooja.dialogs;
@@ -63,30 +63,37 @@ public class ProjectDirectoriesDialog extends JDialog {
   private List changableProjectsList = new List();
   private List fixedProjectsList = null;
   private Vector<File> changableProjects = null;
-  private Vector<File> fixedProjects = null;
 
   private ProjectDirectoriesDialog myDialog;
-  private Frame myParentFrame = null;
-  private Dialog myParentDialog = null;
 
   /**
    * Allows user to alter the given project directories list by adding new,
    * reordering or removing project directories. Only the changable project directories
    * can be altered.
    *
-   * @param parentFrame
-   *          Parent frame
+   * @param parentContainer
+   *          Parent container
    * @param changableProjects
    *          Changeable project directories
    * @param fixedProjects
    *          Fixed project directory
    * @return Null if dialog aborted, else the new CHANGEABLE project directory list.
    */
-  public static Vector<File> showDialog(Frame parentFrame,
+  public static Vector<File> showDialog(Container parentContainer,
       Vector<File> changableProjects, Vector<File> fixedProjects) {
-    ProjectDirectoriesDialog myDialog = new ProjectDirectoriesDialog(parentFrame,
-        changableProjects, fixedProjects);
-    myDialog.setLocationRelativeTo(parentFrame);
+
+    ProjectDirectoriesDialog myDialog = null;
+    if (parentContainer instanceof Window) {
+      myDialog = new ProjectDirectoriesDialog((Window) parentContainer, changableProjects, fixedProjects);
+    } else if (parentContainer instanceof Dialog) {
+      myDialog = new ProjectDirectoriesDialog((Dialog) parentContainer, changableProjects, fixedProjects);
+    } else if (parentContainer instanceof Frame) {
+      myDialog = new ProjectDirectoriesDialog((Frame) parentContainer, changableProjects, fixedProjects);
+    } else {
+      logger.fatal("Unknown parent container type: " + parentContainer);
+      return null;
+    }
+    myDialog.setLocationRelativeTo(parentContainer);
 
     if (myDialog != null) {
       myDialog.setVisible(true);
@@ -123,19 +130,23 @@ public class ProjectDirectoriesDialog extends JDialog {
 
   private ProjectDirectoriesDialog(Frame frame, Vector<File> changableProjects,
       Vector<File> fixedProjects) {
-    super(frame, "Manage Project Directories", true);
-    myParentFrame = frame;
-    init(changableProjects, fixedProjects);
+    super(frame, "Manage Project Directories", ModalityType.APPLICATION_MODAL);
+    setupDialog(changableProjects, fixedProjects);
   }
 
   private ProjectDirectoriesDialog(Dialog dialog, Vector<File> changableProjects,
       Vector<File> fixedProjects) {
-    super(dialog, "Manage Project Directories", true);
-    myParentDialog = dialog;
-    init(changableProjects, fixedProjects);
+    super(dialog, "Manage Project Directories", ModalityType.APPLICATION_MODAL);
+    setupDialog(changableProjects, fixedProjects);
   }
 
-  private void init(Vector<File> changablePlatforms, Vector<File> fixedProjects) {
+  private ProjectDirectoriesDialog(Window window, Vector<File> changableProjects,
+      Vector<File> fixedProjects) {
+    super(window, "Manage Project Directories", ModalityType.APPLICATION_MODAL);
+    setupDialog(changableProjects, fixedProjects);
+  }
+
+  private void setupDialog(Vector<File> changablePlatforms, Vector<File> fixedProjects) {
     myDialog = this;
 
     JPanel mainPane = new JPanel();
@@ -339,11 +350,7 @@ public class ProjectDirectoriesDialog extends JDialog {
         }
 
         // Show merged configuration
-        if (myParentFrame != null) {
-          ConfigViewer.showDialog(myParentFrame, config);
-        } else {
-          ConfigViewer.showDialog(myParentDialog, config);
-        }
+        ConfigViewer.showDialog(ProjectDirectoriesDialog.this, config);
       }
     });
     addRemovePane.add(button);
@@ -353,10 +360,10 @@ public class ProjectDirectoriesDialog extends JDialog {
     button = new JButton("Add manually");
     button.addActionListener(new ActionListener() {
       public void actionPerformed(ActionEvent e) {
-        ProjectDirectoryInputDialog pathDialog = new ProjectDirectoryInputDialog(myParentFrame);
+        ProjectDirectoryInputDialog pathDialog = new ProjectDirectoryInputDialog(ProjectDirectoriesDialog.this);
         pathDialog.pack();
 
-        pathDialog.setLocationRelativeTo(myParentFrame);
+        pathDialog.setLocationRelativeTo(ProjectDirectoriesDialog.this);
         pathDialog.setVisible(true);
 
         File projectPath = pathDialog.getProjectDirectory();

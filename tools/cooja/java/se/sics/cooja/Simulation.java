@@ -24,7 +24,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * $Id: Simulation.java,v 1.18 2007/10/03 14:20:57 fros4943 Exp $
+ * $Id: Simulation.java,v 1.19 2008/02/12 15:03:43 fros4943 Exp $
  */
 
 package se.sics.cooja;
@@ -470,7 +470,7 @@ public class Simulation extends Observable implements Runnable {
         // Show configure simulation dialog
         boolean createdOK = false;
         if (visAvailable) {
-          createdOK = CreateSimDialog.showDialog(GUI.frame, this);
+          createdOK = CreateSimDialog.showDialog(GUI.getTopParentContainer(), this);
         } else {
           createdOK = true;
         }

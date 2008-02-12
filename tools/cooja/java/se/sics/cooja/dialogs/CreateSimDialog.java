@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: CreateSimDialog.java,v 1.7 2007/09/30 12:03:49 fros4943 Exp $
+ * $Id: CreateSimDialog.java,v 1.8 2008/02/12 15:06:09 fros4943 Exp $
  */
 
 package se.sics.cooja.dialogs;
@@ -70,12 +70,22 @@ public class CreateSimDialog extends JDialog {
   /**
    * Shows a dialog for configuring a simulation.
    *
-   * @param parentFrame Parent frame for dialog
+   * @param parentContainer Parent container for dialog
    * @param simulationToConfigure Simulation to configure
    * @return True if simulation configured correctly
    */
-  public static boolean showDialog(Frame parentFrame, Simulation simulationToConfigure) {
-    final CreateSimDialog myDialog = new CreateSimDialog(parentFrame, simulationToConfigure.getGUI());
+  public static boolean showDialog(Container parentContainer, Simulation simulationToConfigure) {
+    final CreateSimDialog myDialog;
+    if (parentContainer instanceof Window) {
+      myDialog = new CreateSimDialog((Window) parentContainer, simulationToConfigure.getGUI());
+    } else if (parentContainer instanceof Dialog) {
+      myDialog = new CreateSimDialog((Dialog) parentContainer, simulationToConfigure.getGUI());
+    } else if (parentContainer instanceof Frame) {
+      myDialog = new CreateSimDialog((Frame) parentContainer, simulationToConfigure.getGUI());
+    } else {
+      logger.fatal("Unknown parent container type: " + parentContainer);
+      return false;
+    }
 
     myDialog.setDefaultCloseOperation(JDialog.DO_NOTHING_ON_CLOSE);
     myDialog.addWindowListener(new WindowListener() {
@@ -149,7 +159,7 @@ public class CreateSimDialog extends JDialog {
 
 
     // Set position and focus of dialog
-    myDialog.setLocationRelativeTo(parentFrame);
+    myDialog.setLocationRelativeTo(parentContainer);
     myDialog.title.requestFocus();
     myDialog.title.select(0, myDialog.title.getText().length());
 
@@ -172,9 +182,20 @@ public class CreateSimDialog extends JDialog {
     return false;
   }
 
+  private CreateSimDialog(Dialog dialog, GUI gui) {
+    super(dialog, "Create new simulation", ModalityType.TOOLKIT_MODAL);
+    setupDialog(gui);
+  }
+  private CreateSimDialog(Window window, GUI gui) {
+    super(window, "Create new simulation", ModalityType.TOOLKIT_MODAL);
+    setupDialog(gui);
+  }
   private CreateSimDialog(Frame frame, GUI gui) {
-    super(frame, "Create new simulation", true);
+    super(frame, "Create new simulation", ModalityType.TOOLKIT_MODAL);
+    setupDialog(gui);
+  }
 
+  private void setupDialog(GUI gui) {
     myDialog = this;
     myGUI = gui;
 

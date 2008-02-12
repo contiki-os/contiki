@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2007, Swedish Institute of Computer Science. All rights
  * reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  * 1. Redistributions of source code must retain the above copyright notice,
@@ -12,7 +12,7 @@
  * Institute nor the names of its contributors may be used to endorse or promote
  * products derived from this software without specific prior written
  * permission.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY THE INSTITUTE AND CONTRIBUTORS ``AS IS'' AND ANY
  * EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
  * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -23,13 +23,14 @@
  * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- * 
- * $Id: AbstractApplicationMoteType.java,v 1.1 2007/05/31 07:21:29 fros4943 Exp $
+ *
+ * $Id: AbstractApplicationMoteType.java,v 1.2 2008/02/12 15:10:49 fros4943 Exp $
  */
 
 package se.sics.cooja.motes;
 
 import java.awt.BorderLayout;
+import java.awt.Container;
 import java.awt.Dimension;
 import java.util.*;
 import javax.swing.*;
@@ -62,7 +63,7 @@ public abstract class AbstractApplicationMoteType implements MoteType {
     description = "Application Mote Type #" + identifier;
   }
 
-  public boolean configureAndInit(JFrame parentFrame, Simulation simulation, boolean visAvailable) {
+  public boolean configureAndInit(Container parentContainer, Simulation simulation, boolean visAvailable) {
 
     if (identifier == null) {
       // Create unique identifier
@@ -104,7 +105,7 @@ public abstract class AbstractApplicationMoteType implements MoteType {
 
   /**
    * Returns all mote interfaces of this mote type
-   * 
+   *
    * @return All mote interfaces
    */
   public Vector<Class<? extends MoteInterface>> getMoteInterfaces() {
@@ -113,7 +114,7 @@ public abstract class AbstractApplicationMoteType implements MoteType {
 
   /**
    * Set mote interfaces of this mote type
-   * 
+   *
    * @param moteInterfaces
    *          New mote interfaces
    */
@@ -233,7 +234,7 @@ public abstract class AbstractApplicationMoteType implements MoteType {
       }
     }
 
-    boolean createdOK = configureAndInit(GUI.frame, simulation, visAvailable);
+    boolean createdOK = configureAndInit(GUI.getTopParentContainer(), simulation, visAvailable);
     return createdOK;
   }
 

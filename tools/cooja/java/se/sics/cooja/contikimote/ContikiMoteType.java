@@ -26,12 +26,13 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ContikiMoteType.java,v 1.24 2008/02/11 14:00:19 fros4943 Exp $
+ * $Id: ContikiMoteType.java,v 1.25 2008/02/12 15:04:43 fros4943 Exp $
  */
 
 package se.sics.cooja.contikimote;
 
 import java.awt.BorderLayout;
+import java.awt.Container;
 import java.awt.Dimension;
 import java.io.*;
 import java.security.*;
@@ -202,10 +203,10 @@ public class ContikiMoteType implements MoteType {
     return new ContikiMote(this, simulation);
   }
 
-  public boolean configureAndInit(JFrame parentFrame, Simulation simulation,
+  public boolean configureAndInit(Container parentContainer, Simulation simulation,
       boolean visAvailable) throws MoteTypeCreationException {
     if (visAvailable) {
-      return ContikiMoteTypeDialog.showDialog(parentFrame, simulation, this);
+      return ContikiMoteTypeDialog.showDialog(parentContainer, simulation, this);
     } else {
 
       // Create temp output directory if not already exists
@@ -1401,7 +1402,7 @@ public class ContikiMoteType implements MoteType {
     }
 
     mySimulation = simulation;
-    boolean createdOK = configureAndInit(GUI.frame, simulation, visAvailable);
+    boolean createdOK = configureAndInit(GUI.getTopParentContainer(), simulation, visAvailable);
     return createdOK;
   }
 
