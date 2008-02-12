@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: CreateSimDialog.java,v 1.8 2008/02/12 15:06:09 fros4943 Exp $
+ * $Id: CreateSimDialog.java,v 1.9 2008/02/12 15:25:41 fros4943 Exp $
  */
 
 package se.sics.cooja.dialogs;
@@ -183,15 +183,15 @@ public class CreateSimDialog extends JDialog {
   }
 
   private CreateSimDialog(Dialog dialog, GUI gui) {
-    super(dialog, "Create new simulation", ModalityType.TOOLKIT_MODAL);
+    super(dialog, "Create new simulation", ModalityType.APPLICATION_MODAL);
     setupDialog(gui);
   }
   private CreateSimDialog(Window window, GUI gui) {
-    super(window, "Create new simulation", ModalityType.TOOLKIT_MODAL);
+    super(window, "Create new simulation", ModalityType.APPLICATION_MODAL);
     setupDialog(gui);
   }
   private CreateSimDialog(Frame frame, GUI gui) {
-    super(frame, "Create new simulation", ModalityType.TOOLKIT_MODAL);
+    super(frame, "Create new simulation", ModalityType.APPLICATION_MODAL);
     setupDialog(gui);
   }
 

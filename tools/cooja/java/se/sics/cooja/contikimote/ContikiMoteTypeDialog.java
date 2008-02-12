@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ContikiMoteTypeDialog.java,v 1.40 2008/02/12 15:04:20 fros4943 Exp $
+ * $Id: ContikiMoteTypeDialog.java,v 1.41 2008/02/12 15:25:41 fros4943 Exp $
  */
 
 package se.sics.cooja.contikimote;
@@ -439,15 +439,15 @@ public class ContikiMoteTypeDialog extends JDialog {
   }
 
   private ContikiMoteTypeDialog(Dialog dialog) {
-    super(dialog, "Add Mote Type", ModalityType.TOOLKIT_MODAL);
+    super(dialog, "Add Mote Type", ModalityType.APPLICATION_MODAL);
     setupDialog();
   }
   private ContikiMoteTypeDialog(Window window) {
-    super(window, "Add Mote Type", ModalityType.TOOLKIT_MODAL);
+    super(window, "Add Mote Type", ModalityType.APPLICATION_MODAL);
     setupDialog();
   }
   private ContikiMoteTypeDialog(Frame frame) {
-    super(frame, "Add Mote Type", ModalityType.TOOLKIT_MODAL);
+    super(frame, "Add Mote Type", ModalityType.APPLICATION_MODAL);
     setupDialog();
   }
 

@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ExternalToolsDialog.java,v 1.8 2008/02/12 15:06:09 fros4943 Exp $
+ * $Id: ExternalToolsDialog.java,v 1.9 2008/02/12 15:25:41 fros4943 Exp $
  */
 
 package se.sics.cooja.dialogs;
@@ -85,15 +85,15 @@ public class ExternalToolsDialog extends JDialog {
   }
 
   private ExternalToolsDialog(Dialog dialog) {
-    super(dialog, "Edit Settings", ModalityType.TOOLKIT_MODAL);
+    super(dialog, "Edit Settings", ModalityType.APPLICATION_MODAL);
     setupDialog();
   }
   private ExternalToolsDialog(Window window) {
-    super(window, "Edit Settings", ModalityType.TOOLKIT_MODAL);
+    super(window, "Edit Settings", ModalityType.APPLICATION_MODAL);
     setupDialog();
   }
   private ExternalToolsDialog(Frame frame) {
-    super(frame, "Edit Settings", ModalityType.TOOLKIT_MODAL);
+    super(frame, "Edit Settings", ModalityType.APPLICATION_MODAL);
     setupDialog();
   }
 
