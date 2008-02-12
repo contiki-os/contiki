@@ -24,12 +24,13 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * $Id: GUI.java,v 1.68 2008/02/11 14:04:51 fros4943 Exp $
+ * $Id: GUI.java,v 1.69 2008/02/12 15:20:56 fros4943 Exp $
  */
 
 package se.sics.cooja;
 
 import java.awt.*;
+import java.awt.Dialog.ModalityType;
 import java.awt.event.*;
 import java.beans.PropertyVetoException;
 import java.io.*;
@@ -133,10 +134,9 @@ public class GUI {
     }
   };
 
-  /**
-   * Main frame for current GUI. Null when COOJA is run without visualizer!
-   */
-  public static JFrame frame;
+  private static JFrame frame = null;
+
+  private static JApplet applet = null;
 
   private static final long serialVersionUID = 1L;
 
@@ -276,7 +276,7 @@ public class GUI {
       logger.fatal("Error when loading project directories: " + e.getMessage());
       e.printStackTrace();
       if (myDesktopPane != null) {
-        JOptionPane.showMessageDialog(frame,
+        JOptionPane.showMessageDialog(GUI.getTopParentContainer(),
             "Loading project directories failed.\nStack trace printed to console.",
             "Error", JOptionPane.ERROR_MESSAGE);
       }
@@ -317,23 +317,60 @@ public class GUI {
   /**
    * @return True if simulator is visualized
    */
-  public boolean isVisualized() {
+  public static boolean isVisualized() {
+    return isVisualizedInFrame() || isVisualizedInApplet();
+  }
+
+  public static Container getTopParentContainer() {
+    if (isVisualizedInFrame()) {
+      return frame;
+    }
+
+    if (isVisualizedInApplet()) {
+      /* Find parent frame for applet */
+      Container container = applet;
+      while((container = container.getParent()) != null){
+        if (container instanceof Frame) {
+          return container;
+        }
+        if (container instanceof Dialog) {
+          return container;
+        }
+        if (container instanceof Window) {
+          return container;
+        }
+      }
+
+      logger.fatal("Returning null top owner container");
+    }
+
+    return null;
+  }
+
+  public static boolean isVisualizedInFrame() {
     return frame != null;
   }
 
+  public static boolean isVisualizedInApplet() {
+    return applet != null;
+  }
+
   /**
-   * EXPERIMENTAL!
    * Tries to create/remove simulator visualizer.
    *
    * @param visualized Visualized
    */
-  public void setVisualized(boolean visualized) {
-    if (!isVisualized() && visualized) {
-      configureFrame(myGUI, false);
+  public void setVisualizedInFrame(boolean visualized) {
+    if (visualized) {
+      if (!isVisualizedInFrame()) {
+        configureFrame(myGUI, false);
+      }
     } else {
-      frame.setVisible(false);
-      frame.dispose();
-      frame = null;
+      if (frame != null) {
+        frame.setVisible(false);
+        frame.dispose();
+        frame = null;
+      }
     }
   }
 
@@ -694,28 +731,53 @@ public class GUI {
     frame.addWindowListener(gui.guiEventHandler);
 
     // Restore last frame size and position
-    if (frame != null) {
-      int framePosX = Integer.parseInt(getExternalToolsSetting("FRAME_POS_X", "-1"));
-      int framePosY = Integer.parseInt(getExternalToolsSetting("FRAME_POS_Y", "-1"));
-      int frameWidth = Integer.parseInt(getExternalToolsSetting("FRAME_WIDTH", "-1"));
-      int frameHeight = Integer.parseInt(getExternalToolsSetting("FRAME_HEIGHT", "-1"));
-      if (framePosX >= 0 && framePosY >= 0 && frameWidth > 0 && frameHeight > 0) {
-        frame.setLocation(framePosX, framePosY);
-        frame.setSize(frameWidth, frameHeight);
+    int framePosX = Integer.parseInt(getExternalToolsSetting("FRAME_POS_X", "-1"));
+    int framePosY = Integer.parseInt(getExternalToolsSetting("FRAME_POS_Y", "-1"));
+    int frameWidth = Integer.parseInt(getExternalToolsSetting("FRAME_WIDTH", "-1"));
+    int frameHeight = Integer.parseInt(getExternalToolsSetting("FRAME_HEIGHT", "-1"));
+    if (framePosX >= 0 && framePosY >= 0 && frameWidth > 0 && frameHeight > 0) {
+      frame.setLocation(framePosX, framePosY);
+      frame.setSize(frameWidth, frameHeight);
 
-        // Assume window was maximized if loaded size matches maximum bounds
-        if (maxSize != null
-            && framePosX == 0
-            && framePosY == 0
-            && frameWidth == maxSize.width
-            && frameHeight == maxSize.height) {
-          frame.setExtendedState(JFrame.MAXIMIZED_BOTH);
-        }
+      // Assume window was maximized if loaded size matches maximum bounds
+      if (maxSize != null
+          && framePosX == 0
+          && framePosY == 0
+          && frameWidth == maxSize.width
+          && frameHeight == maxSize.height) {
+        frame.setExtendedState(JFrame.MAXIMIZED_BOTH);
       }
     }
 
     // Display the window.
     frame.setVisible(true);
+
+    if (createSimDialog) {
+      SwingUtilities.invokeLater(new Runnable() {
+        public void run() {
+          gui.doCreateSimulation(true);
+        }
+      });
+    }
+  }
+
+  private static void configureApplet(final GUI gui, boolean createSimDialog) {
+    applet = CoojaApplet.applet;
+
+    // Make sure we have nice window decorations.
+    try {
+      UIManager.setLookAndFeel(UIManager.getCrossPlatformLookAndFeelClassName());
+    } catch (Exception e) {
+    }
+
+    // Add menu bar
+    JMenuBar menuBar = gui.createMenuBar();
+    applet.setJMenuBar(menuBar);
+
+    JComponent newContentPane = gui.getDesktopPane();
+    newContentPane.setOpaque(true);
+    applet.setContentPane(newContentPane);
+    applet.setSize(700, 700);
 
     if (createSimDialog) {
       SwingUtilities.invokeLater(new Runnable() {
@@ -1884,8 +1946,7 @@ public class GUI {
     boolean moteTypeOK = false;
     try {
       newMoteType = moteTypeClass.newInstance();
-      moteTypeOK = newMoteType.configureAndInit(frame, mySimulation,
-          isVisualized());
+      moteTypeOK = newMoteType.configureAndInit(GUI.getTopParentContainer(), mySimulation, isVisualized());
     } catch (InstantiationException e) {
       logger.fatal("Exception when creating mote type: " + e);
       return;
@@ -1916,7 +1977,7 @@ public class GUI {
         String s1 = "Remove";
         String s2 = "Cancel";
         Object[] options = { s1, s2 };
-        int n = JOptionPane.showOptionDialog(frame,
+        int n = JOptionPane.showOptionDialog(GUI.getTopParentContainer(),
             "You have an active simulation.\nDo you want to remove it?",
             "Remove current simulation?", JOptionPane.YES_NO_OPTION,
             JOptionPane.QUESTION_MESSAGE, null, options, s1);
@@ -1948,7 +2009,9 @@ public class GUI {
       }
 
       // Reset frame title
-      frame.setTitle("COOJA Simulator");
+      if (isVisualizedInFrame()) {
+        frame.setTitle("COOJA Simulator");
+      }
     }
   }
 
@@ -1962,9 +2025,7 @@ public class GUI {
   public void doLoadConfig(boolean askForConfirmation, final boolean quick, File configFile) {
 
     if (CoreComm.hasLibraryBeenLoaded()) {
-      JOptionPane
-      .showMessageDialog(
-          frame,
+      JOptionPane.showMessageDialog(GUI.getTopParentContainer(),
           "Shared libraries has already been loaded.\nYou need to restart the simulator!",
           "Can't load simulation", JOptionPane.ERROR_MESSAGE);
       return;
@@ -1974,7 +2035,7 @@ public class GUI {
       String s1 = "Remove";
       String s2 = "Cancel";
       Object[] options = { s1, s2 };
-      int n = JOptionPane.showOptionDialog(frame,
+      int n = JOptionPane.showOptionDialog(GUI.getTopParentContainer(),
           "You have an active simulation.\nDo you want to remove it?",
           "Remove current simulation?", JOptionPane.YES_NO_OPTION,
           JOptionPane.QUESTION_MESSAGE, null, options, s1);
@@ -2003,7 +2064,7 @@ public class GUI {
         fc.setSelectedFile(suggestedFile);
       }
 
-      int returnVal = fc.showOpenDialog(frame);
+      int returnVal = fc.showOpenDialog(GUI.getTopParentContainer());
       if (returnVal == JFileChooser.APPROVE_OPTION) {
         configFile = fc.getSelectedFile();
 
@@ -2025,7 +2086,18 @@ public class GUI {
     }
 
     // Load simulation in separate thread, while showing progress monitor
-    final JDialog progressDialog = new JDialog(frame, "Loading", true);
+    final JDialog progressDialog;
+    if (GUI.getTopParentContainer() instanceof Window) {
+      progressDialog = new JDialog((Window) GUI.getTopParentContainer(), "Loading", ModalityType.APPLICATION_MODAL);
+    } else if (GUI.getTopParentContainer() instanceof Frame) {
+      progressDialog = new JDialog((Frame) GUI.getTopParentContainer(), "Loading", ModalityType.APPLICATION_MODAL);
+    } else if (GUI.getTopParentContainer() instanceof Dialog) {
+      progressDialog = new JDialog((Dialog) GUI.getTopParentContainer(), "Loading", ModalityType.APPLICATION_MODAL);
+    } else {
+      logger.warn("No parent container");
+      progressDialog = new JDialog((Frame) null, "Loading", ModalityType.APPLICATION_MODAL);
+    }
+
     final File fileToLoad = configFile;
     final Thread loadThread = new Thread(new Runnable() {
       public void run() {
@@ -2037,14 +2109,14 @@ public class GUI {
             progressDialog.dispose();
           }
         } catch (UnsatisfiedLinkError e) {
-          showErrorDialog(frame, "Simulation load error", e, false);
+          showErrorDialog(GUI.getTopParentContainer(), "Simulation load error", e, false);
 
           if (progressDialog != null && progressDialog.isDisplayable()) {
             progressDialog.dispose();
           }
           newSim = null;
         } catch (SimulationCreationException e) {
-          showErrorDialog(frame, "Simulation load error", e, false);
+          showErrorDialog(GUI.getTopParentContainer(), "Simulation load error", e, false);
 
           if (progressDialog != null && progressDialog.isDisplayable()) {
             progressDialog.dispose();
@@ -2087,7 +2159,7 @@ public class GUI {
     progressDialog.pack();
 
     progressDialog.getRootPane().setDefaultButton(button);
-    progressDialog.setLocationRelativeTo(frame);
+    progressDialog.setLocationRelativeTo(GUI.getTopParentContainer());
     progressDialog.setDefaultCloseOperation(JDialog.DO_NOTHING_ON_CLOSE);
     loadThread.start();
     if (quick) {
@@ -2275,7 +2347,7 @@ public class GUI {
             Object[] options = { s1, s2 };
             int n = JOptionPane
                 .showOptionDialog(
-                    frame,
+                    GUI.getTopParentContainer(),
                     "A file with the same name already exists.\nDo you want to remove it?",
                     "Overwrite existing file?", JOptionPane.YES_NO_OPTION,
                     JOptionPane.QUESTION_MESSAGE, null, options, s1);
@@ -2305,7 +2377,7 @@ public class GUI {
     if (mySimulation != null) {
       mySimulation.stopSimulation();
 
-      Vector<Mote> newMotes = AddMoteDialog.showDialog(frame, mySimulation,
+      Vector<Mote> newMotes = AddMoteDialog.showDialog(getTopParentContainer(), mySimulation,
           moteType);
       if (newMotes != null) {
         for (Mote newMote : newMotes) {
@@ -2329,7 +2401,7 @@ public class GUI {
       String s1 = "Remove";
       String s2 = "Cancel";
       Object[] options = { s1, s2 };
-      int n = JOptionPane.showOptionDialog(frame,
+      int n = JOptionPane.showOptionDialog(GUI.getTopParentContainer(),
           "You have an active simulation.\nDo you want to remove it?",
           "Remove current simulation?", JOptionPane.YES_NO_OPTION,
           JOptionPane.QUESTION_MESSAGE, null, options, s1);
@@ -2341,7 +2413,7 @@ public class GUI {
     // Create new simulation
     doRemoveSimulation(false);
     Simulation newSim = new Simulation(this);
-    boolean createdOK = CreateSimDialog.showDialog(frame, newSim);
+    boolean createdOK = CreateSimDialog.showDialog(GUI.getTopParentContainer(), newSim);
     if (createdOK) {
       myGUI.setSimulation(newSim);
     }
@@ -2358,7 +2430,8 @@ public class GUI {
       String s1 = "Quit";
       String s2 = "Cancel";
       Object[] options = { s1, s2 };
-      int n = JOptionPane.showOptionDialog(frame, "Sure you want to quit?",
+      int n = JOptionPane.showOptionDialog(GUI.getTopParentContainer(),
+          "Sure you want to quit?",
           "Close COOJA Simulator", JOptionPane.YES_NO_OPTION,
           JOptionPane.QUESTION_MESSAGE, null, options, s1);
       if (n != JOptionPane.YES_OPTION) {
@@ -2373,13 +2446,13 @@ public class GUI {
     }
 
     // Restore last frame size and position
-    if (frame != null) {
+    if (isVisualizedInFrame()) {
       setExternalToolsSetting("FRAME_POS_X", "" + frame.getLocationOnScreen().x);
       setExternalToolsSetting("FRAME_POS_Y", "" + frame.getLocationOnScreen().y);
       setExternalToolsSetting("FRAME_WIDTH", "" + frame.getWidth());
       setExternalToolsSetting("FRAME_HEIGHT", "" + frame.getHeight());
-      saveExternalToolsUserSettings();
     }
+    saveExternalToolsUserSettings();
 
     System.exit(0);
   }
@@ -2593,7 +2666,7 @@ public class GUI {
         myGUI.doAddMotes((MoteType) ((JMenuItem) e.getSource())
             .getClientProperty("motetype"));
       } else if (e.getActionCommand().equals("edit paths")) {
-        ExternalToolsDialog.showDialog(frame);
+        ExternalToolsDialog.showDialog(GUI.getTopParentContainer());
       } else if (e.getActionCommand().equals("close plugins")) {
         Object[] plugins = startedPlugins.toArray();
         for (Object plugin : plugins) {
@@ -2610,8 +2683,8 @@ public class GUI {
           }
         }
       } else if (e.getActionCommand().equals("manage projects")) {
-        Vector<File> newProjects = ProjectDirectoriesDialog.showDialog(frame,
-            currentProjectDirs, null);
+        Vector<File> newProjects = ProjectDirectoriesDialog.showDialog(
+            GUI.getTopParentContainer(), currentProjectDirs, null);
         if (newProjects != null) {
           currentProjectDirs = newProjects;
           try {
@@ -2620,7 +2693,7 @@ public class GUI {
             logger.fatal("Error when loading projects: " + e2.getMessage());
             e2.printStackTrace();
             if (myGUI.isVisualized()) {
-              JOptionPane.showMessageDialog(frame,
+              JOptionPane.showMessageDialog(GUI.getTopParentContainer(),
                   "Error when loading projects.\nStack trace printed to console.",
                   "Error", JOptionPane.ERROR_MESSAGE);
             }
@@ -2674,6 +2747,7 @@ public class GUI {
         return projectDirClassLoader.loadClass(className).asSubclass(
             classType);
       }
+    } catch (NoClassDefFoundError e) {
     } catch (ClassNotFoundException e) {
     } catch (UnsupportedClassVersionError e) {
     }
@@ -2751,6 +2825,7 @@ public class GUI {
     }
 
     URL[] urlsArray = urls.toArray(new URL[urls.size()]);
+    /* TODO Load from webserver if applet */
     return new URLClassLoader(urlsArray, parent);
   }
 
@@ -2934,9 +3009,21 @@ public class GUI {
         }
       });
 
+    } else if (args.length > 0 && args[0].startsWith("-applet")) {
+
+      // Applet start-up
+      javax.swing.SwingUtilities.invokeLater(new Runnable() {
+        public void run() {
+          JDesktopPane desktop = new JDesktopPane();
+          desktop.setDragMode(JDesktopPane.OUTLINE_DRAG_MODE);
+          GUI gui = new GUI(desktop);
+          configureApplet(gui, false);
+        }
+      });
+
     } else {
 
-      // Regular start-up
+      // Frame start-up
       javax.swing.SwingUtilities.invokeLater(new Runnable() {
         public void run() {
           JDesktopPane desktop = new JDesktopPane();
