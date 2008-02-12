@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2006, Swedish Institute of Computer Science. All rights
  * reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  * 1. Redistributions of source code must retain the above copyright notice,
@@ -12,7 +12,7 @@
  * Institute nor the names of its contributors may be used to endorse or promote
  * products derived from this software without specific prior written
  * permission.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY THE INSTITUTE AND CONTRIBUTORS ``AS IS'' AND ANY
  * EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
  * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -23,14 +23,14 @@
  * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- * 
- * $Id: MoteType.java,v 1.7 2007/05/10 17:00:03 fros4943 Exp $
+ *
+ * $Id: MoteType.java,v 1.8 2008/02/12 15:03:22 fros4943 Exp $
  */
 
 package se.sics.cooja;
 
+import java.awt.Container;
 import java.util.Collection;
-import javax.swing.JFrame;
 import javax.swing.JPanel;
 import org.jdom.Element;
 
@@ -42,24 +42,24 @@ import se.sics.cooja.dialogs.MessageList;
  * mote of that type is initialized, which hardware peripherals each mote has
  * etc.
  * Every simulated motes must belong to a mote type.
- * 
+ *
  * A mote type may also hold the connection to an underlying simulation
  * framework, such as a compiled Contiki system.
- * 
+ *
  * @author Fredrik Osterlind
  */
 public interface MoteType {
 
   /**
    * Returns the mote type description.
-   * 
+   *
    * @return Description
    */
   public String getDescription();
 
   /**
    * Sets the mote type description.
-   * 
+   *
    * @param description
    *          New description
    */
@@ -67,14 +67,14 @@ public interface MoteType {
 
   /**
    * Returns the mote type identifier.
-   * 
+   *
    * @return Mote type identifier
    */
   public String getIdentifier();
 
   /**
    * Sets the mote type identifier.
-   * 
+   *
    * @param identifier
    *          New identifier
    */
@@ -82,21 +82,21 @@ public interface MoteType {
 
   /**
    * Returns a panel with interesting data for this mote type.
-   * 
+   *
    * @return Mote type visualizer
    */
   public JPanel getTypeVisualizer();
 
   /**
    * Returns this mote type's project configuration.
-   * 
+   *
    * @return Project configuration
    */
   public ProjectConfig getConfig();
 
   /**
    * Generates a mote of this mote type.
-   * 
+   *
    * @param simulation
    *          Simulation that will contain mote
    * @return New mote
@@ -108,25 +108,25 @@ public interface MoteType {
    * called from the simulator when a new mote type is created. It may simply
    * confirm that all settings are valid and return true, or display a dialog
    * allowing a user to manually configure the mote type.
-   * 
+   *
    * This method need normally only be run once per mote type!
-   * 
-   * @param parentFrame
-   *          Parent frame or null
+   *
+   * @param parentContainer
+   *          Parent container. May be null if not visualized.
    * @param simulation
    *          Simulation holding (or that should hold) mote type
    * @param visAvailable
    *          True if this method is allowed to show a visualizer
    * @return True if mote type has valid settings and is ready to be used
    */
-  public boolean configureAndInit(JFrame parentFrame, Simulation simulation,
+  public boolean configureAndInit(Container parentContainer, Simulation simulation,
       boolean visAvailable) throws MoteTypeCreationException;
 
   /**
    * Returns XML elements representing the current config of this mote type.
    * This is fetched by the simulator for example when saving a simulation
    * configuration file. For example a Contiki base directory may be saved.
-   * 
+   *
    * @see #setConfigXML(Simulation, Collection, boolean)
    * @return XML elements representing the current mote type's config
    */
@@ -137,7 +137,7 @@ public interface MoteType {
    * Observe that this method is responsible for restoring the configuration
    * depending on the given arguments. This may include recompiling and loading
    * libraries.
-   * 
+   *
    * @see #getConfigXML()
    * @param simulation
    *          Simulation that will hold the mote type
