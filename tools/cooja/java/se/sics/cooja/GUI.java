@@ -24,7 +24,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * $Id: GUI.java,v 1.69 2008/02/12 15:20:56 fros4943 Exp $
+ * $Id: GUI.java,v 1.70 2008/02/12 15:31:22 fros4943 Exp $
  */
 
 package se.sics.cooja;
@@ -295,22 +295,22 @@ public class GUI {
   /**
    * Add mote highlight observer.
    *
-   * @see #deleteTickObserver(Observer)
+   * @see #deleteMoteHighlightObserver(Observer)
    * @param newObserver
    *          New observer
    */
-  public void addMoteHighligtObserver(Observer newObserver) {
+  public void addMoteHighlightObserver(Observer newObserver) {
     moteHighlightObservable.addObserver(newObserver);
   }
 
   /**
    * Delete an mote highlight observer.
    *
-   * @see #addTickObserver(Observer)
+   * @see #addMoteHighlightObserver(Observer)
    * @param observer
    *          Observer to delete
    */
-  public void deleteMoteHighligtObserver(Observer observer) {
+  public void deleteMoteHighlightObserver(Observer observer) {
     moteHighlightObservable.deleteObserver(observer);
   }
 
@@ -1382,11 +1382,8 @@ public class GUI {
    * files were not parsed correctly.
    *
    * Any registered temporary plugins will be saved and reregistered.
-   *
-   * @return True if external configuration files were found and parsed OK
    */
-  public void reparseProjectConfig()
-  throws ParseProjectsException {
+  public void reparseProjectConfig() throws ParseProjectsException {
     // Backup temporary plugins
     Vector<Class<? extends Plugin>> oldTempPlugins = (Vector<Class<? extends Plugin>>) pluginClassesTemporary
         .clone();
@@ -3571,7 +3568,7 @@ public class GUI {
    * listeners will be notified. An example application of mote highlightinh is
    * a simulator visualizer that highlights the mote.
    *
-   * @see #addMoteHighligtObserver(Observer)
+   * @see #addMoteHighlightObserver(Observer)
    * @param m
    *          Mote to highlight
    */
