@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2006, Swedish Institute of Computer Science. All rights
  * reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  * 1. Redistributions of source code must retain the above copyright notice,
@@ -12,7 +12,7 @@
  * Institute nor the names of its contributors may be used to endorse or promote
  * products derived from this software without specific prior written
  * permission.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY THE INSTITUTE AND CONTRIBUTORS ``AS IS'' AND ANY
  * EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
  * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -23,8 +23,8 @@
  * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- * 
- * $Id: CoreComm.java,v 1.10 2007/05/11 10:15:42 fros4943 Exp $
+ *
+ * $Id: CoreComm.java,v 1.11 2008/02/12 15:03:02 fros4943 Exp $
  */
 
 package se.sics.cooja;
@@ -52,7 +52,7 @@ import se.sics.cooja.dialogs.MessageList;
  * that even if a mote type is deleted, a new one cannot be created using the
  * same corecomm class without restarting the JVM and thus the entire
  * simulation.
- * 
+ *
  * Each implemented CoreComm class needs read access to the following core
  * variables:
  * <ul>
@@ -65,7 +65,7 @@ import se.sics.cooja.dialogs.MessageList;
  * <li>getReferenceAbsAddr()
  * <li>getMemory(int start, int length, byte[] mem)
  * <li>setMemory(int start, int length, byte[] mem)
- * 
+ *
  * @author Fredrik Osterlind
  */
 public abstract class CoreComm {
@@ -80,7 +80,7 @@ public abstract class CoreComm {
   /**
    * Has any library been loaded? Since libraries can't be unloaded the entire
    * simulator may have to be restarted.
-   * 
+   *
    * @return True if any library has been loaded this session
    */
   public static boolean hasLibraryBeenLoaded() {
@@ -92,24 +92,26 @@ public abstract class CoreComm {
    * library can be removed, but not unloaded during one session. And a new
    * library file, named the same as an earlier loaded and removed file, can't
    * be loaded either.
-   * 
+   *
    * @param libraryFile
    *          Library file
    * @return True if a library has already been loaded from the given file's
    *         filename
    */
   public static boolean hasLibraryFileBeenLoaded(File libraryFile) {
-    for (File loadedFile : coreCommFiles)
+    for (File loadedFile : coreCommFiles) {
       if (loadedFile != null
-          && loadedFile.getName().equals(libraryFile.getName()))
+          && loadedFile.getName().equals(libraryFile.getName())) {
         return true;
+      }
+    }
     return false;
   }
 
   /**
    * Get the class name of next free core communicator class. If null is
    * returned, no classes are available.
-   * 
+   *
    * @return Class name
    */
   public static String getAvailableClassName() {
@@ -119,7 +121,7 @@ public abstract class CoreComm {
   /**
    * Generates new source file by reading default source template and replacing
    * the class name field.
-   * 
+   *
    * @param className
    *          Java class name (without extension)
    * @throws MoteTypeCreationException
@@ -151,8 +153,9 @@ public abstract class CoreComm {
       destFilename = className + ".java";
 
       File dir = new File("se/sics/cooja/corecomm");
-      if (!dir.exists())
+      if (!dir.exists()) {
         dir.mkdirs();
+      }
 
       sourceFileWriter = new BufferedWriter(new OutputStreamWriter(
           new FileOutputStream("se/sics/cooja/corecomm/" + destFilename)));
@@ -168,10 +171,12 @@ public abstract class CoreComm {
       templateFileReader.close();
     } catch (Exception e) {
       try {
-        if (sourceFileWriter != null)
+        if (sourceFileWriter != null) {
           sourceFileWriter.close();
-        if (templateFileReader != null)
+        }
+        if (templateFileReader != null) {
           templateFileReader.close();
+        }
       } catch (Exception e2) {
       }
 
@@ -181,16 +186,17 @@ public abstract class CoreComm {
     }
 
     File genFile = new File("se/sics/cooja/corecomm/" + destFilename);
-    if (genFile.exists())
+    if (genFile.exists()) {
       return;
+    }
 
-    throw (MoteTypeCreationException) new MoteTypeCreationException(
+    throw new MoteTypeCreationException(
         "Could not generate corecomm source file: " + className + ".java");
   }
 
   /**
    * Compiles Java class.
-   * 
+   *
    * @param className
    *          Java class name (without extension)
    * @throws MoteTypeCreationException
@@ -222,8 +228,9 @@ public abstract class CoreComm {
       }
       p.waitFor();
 
-      if (classFile.exists())
+      if (classFile.exists()) {
         return;
+      }
 
       // Try including cooja.jar
       cmd = new String[] {
@@ -246,8 +253,9 @@ public abstract class CoreComm {
       }
       p.waitFor();
 
-      if (classFile.exists())
+      if (classFile.exists()) {
         return;
+      }
 
     } catch (IOException e) {
       MoteTypeCreationException exception = (MoteTypeCreationException) new MoteTypeCreationException(
@@ -271,7 +279,7 @@ public abstract class CoreComm {
 
   /**
    * Loads given Java class file from disk.
-   * 
+   *
    * @param classFile
    *          Java class (without extension)
    * @return Loaded class
@@ -282,8 +290,9 @@ public abstract class CoreComm {
       throws MoteTypeCreationException {
     Class loadedClass = null;
     try {
-      ClassLoader urlClassLoader = new URLClassLoader(new URL[] { new File(".")
-          .toURL() }, CoreComm.class.getClassLoader());
+      ClassLoader urlClassLoader = new URLClassLoader(
+          new URL[] { new File(".").toURI().toURL() },
+          CoreComm.class.getClassLoader());
       loadedClass = urlClassLoader.loadClass("se.sics.cooja.corecomm."
           + className);
 
@@ -296,9 +305,10 @@ public abstract class CoreComm {
           "Could not load corecomm class file: " + className + ".class")
           .initCause(e);
     }
-    if (loadedClass == null)
-      throw (MoteTypeCreationException) new MoteTypeCreationException(
+    if (loadedClass == null) {
+      throw new MoteTypeCreationException(
           "Could not load corecomm class file: " + className + ".class");
+    }
 
     return loadedClass;
   }
@@ -306,7 +316,7 @@ public abstract class CoreComm {
   /**
    * Create and return an instance of the core communicator identified by
    * className. This core communicator will load the native library libFile.
-   * 
+   *
    * @param className
    *          Class name of core communicator
    * @param libFile
@@ -353,14 +363,14 @@ public abstract class CoreComm {
   /**
    * Returns absolute memory location of the core variable referenceVar. Used to
    * get offset between relative and absolute memory addresses.
-   * 
+   *
    * @return Absolute memory address
    */
   public abstract int getReferenceAbsAddr();
 
   /**
    * Fills an byte array with memory segment identified by start and length.
-   * 
+   *
    * @param start
    *          Start address of segment
    * @param length
@@ -372,7 +382,7 @@ public abstract class CoreComm {
 
   /**
    * Overwrites a memory segment identified by start and length.
-   * 
+   *
    * @param start
    *          Start address of segment
    * @param length

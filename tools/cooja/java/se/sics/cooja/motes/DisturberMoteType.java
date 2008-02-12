@@ -32,6 +32,7 @@
 package se.sics.cooja.motes;
 
 import java.awt.BorderLayout;
+import java.awt.Container;
 import java.awt.Dimension;
 import java.util.*;
 import javax.swing.*;
@@ -76,7 +77,7 @@ public class DisturberMoteType implements MoteType {
     return new DisturberMote(this, simulation);
   }
 
-  public boolean configureAndInit(JFrame parentFrame, Simulation simulation, boolean visAvailable) {
+  public boolean configureAndInit(Container parentContainer, Simulation simulation, boolean visAvailable) {
 
     if (identifier == null) {
       // Create unique identifier
@@ -251,7 +252,7 @@ public class DisturberMoteType implements MoteType {
       }
     }
 
-    boolean createdOK = configureAndInit(GUI.frame, simulation, visAvailable);
+    boolean createdOK = configureAndInit(GUI.getTopParentContainer(), simulation, visAvailable);
     return createdOK;
   }
 

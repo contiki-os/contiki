@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: LogListener.java,v 1.7 2008/02/08 14:42:33 fros4943 Exp $
+ * $Id: LogListener.java,v 1.8 2008/02/12 15:11:40 fros4943 Exp $
  */
 
 package se.sics.cooja.plugins;
@@ -155,7 +155,7 @@ public class LogListener extends VisPlugin {
       public void actionPerformed(ActionEvent ev) {
         JFileChooser fc = new JFileChooser();
 
-        int returnVal = fc.showSaveDialog(GUI.frame);
+        int returnVal = fc.showSaveDialog(GUI.getTopParentContainer());
         if (returnVal == JFileChooser.APPROVE_OPTION) {
           File saveFile = fc.getSelectedFile();
 
@@ -163,9 +163,8 @@ public class LogListener extends VisPlugin {
             String s1 = "Overwrite";
             String s2 = "Cancel";
             Object[] options = { s1, s2 };
-            int n = JOptionPane
-            .showOptionDialog(
-                GUI.frame,
+            int n = JOptionPane.showOptionDialog(
+                GUI.getTopParentContainer(),
                 "A file with the same name already exists.\nDo you want to remove it?",
                 "Overwrite existing file?", JOptionPane.YES_NO_OPTION,
                 JOptionPane.QUESTION_MESSAGE, null, options, s1);

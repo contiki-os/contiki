@@ -26,11 +26,12 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: DummyMoteType.java,v 1.4 2008/02/07 10:34:45 fros4943 Exp $
+ * $Id: DummyMoteType.java,v 1.5 2008/02/12 15:10:49 fros4943 Exp $
  */
 
 package se.sics.cooja.motes;
 
+import java.awt.Container;
 import java.util.*;
 
 import javax.swing.*;
@@ -61,7 +62,7 @@ public class DummyMoteType implements MoteType {
     return new DummyMote(this, simulation);
   }
 
-  public boolean configureAndInit(JFrame parentFrame, Simulation simulation, boolean visAvailable) {
+  public boolean configureAndInit(Container parentContainer, Simulation simulation, boolean visAvailable) {
 
     if (identifier == null) {
       // Create unique identifier
@@ -152,7 +153,7 @@ public class DummyMoteType implements MoteType {
       }
     }
 
-    boolean createdOK = configureAndInit(GUI.frame, simulation, visAvailable);
+    boolean createdOK = configureAndInit(GUI.getTopParentContainer(), simulation, visAvailable);
     return createdOK;
   }
 

@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: Visualizer2D.java,v 1.11 2007/05/30 20:57:58 fros4943 Exp $
+ * $Id: Visualizer2D.java,v 1.12 2008/02/12 15:11:40 fros4943 Exp $
  */
 
 package se.sics.cooja.plugins;
@@ -45,17 +45,17 @@ import se.sics.cooja.interfaces.*;
 /**
  * Visualizer2D is an abstract mote visualizer for simulations. All motes are
  * painted in the XY-plane, as seen from positive Z axis.
- * 
+ *
  * An implementation of this class must colorize the different motes, each mote
  * has two different colors; inner and outer.
- * 
+ *
  * By right-clicking the mouse on a mote a popup menu will be displayed. From
  * this menu mote plugins can be started. or the mote can be moved. Each
  * implementation may also register its own actions to be accessed from this
  * menu.
- * 
+ *
  * A Visualizer2D observers both the simulation and all mote positions.
- * 
+ *
  * @author Fredrik Osterlind
  */
 @ClassDescription("2D Mote Visualizer")
@@ -89,7 +89,7 @@ public abstract class Visualizer2D extends VisPlugin {
   private Mote highlightedMote = null;
   private Color highlightColor = Color.GRAY;
   private Timer highlightTimer = null;
-  
+
   public interface MoteMenuAction {
     public boolean isEnabled(Mote mote);
     public String getDescription(Mote mote);
@@ -126,7 +126,7 @@ public abstract class Visualizer2D extends VisPlugin {
 
   /**
    * Registers as an simulation observer and initializes the canvas.
-   * 
+   *
    * @param simulationToVisualize
    *          Simulation to visualize
    */
@@ -188,12 +188,14 @@ public abstract class Visualizer2D extends VisPlugin {
     // Detect mote highligts
     myGUI.addMoteHighligtObserver(moteHighligtObserver = new Observer() {
       public void update(Observable obs, Object obj) {
-        if (!(obj instanceof Mote))
+        if (!(obj instanceof Mote)) {
           return;
-        
-        if (highlightTimer != null && highlightTimer.isRunning())
+        }
+
+        if (highlightTimer != null && highlightTimer.isRunning()) {
           highlightTimer.stop();
-        
+        }
+
         highlightTimer = new Timer(100, null);
         highlightedMote = (Mote) obj;
         highlightTimer.addActionListener(new ActionListener() {
@@ -207,15 +209,16 @@ public abstract class Visualizer2D extends VisPlugin {
             }
 
             // Toggle color
-            if (highlightColor == Color.GRAY)
+            if (highlightColor == Color.GRAY) {
               highlightColor = Color.CYAN;
-            else
-              highlightColor = Color.GRAY; 
+            } else {
+              highlightColor = Color.GRAY;
+            }
             highlightTimer.setDelay(highlightTimer.getDelay()-1);
             repaint();
           }
         });
-        highlightTimer.start();          
+        highlightTimer.start();
       }
     });
 
@@ -231,31 +234,34 @@ public abstract class Visualizer2D extends VisPlugin {
     // Detect mouse events
     canvas.addMouseListener(new MouseListener() {
       public void mousePressed(MouseEvent e) {
-        if (e.isPopupTrigger())
+        if (e.isPopupTrigger()) {
           myPlugin.handlePopupRequest(e.getPoint().x, e.getPoint().y);
-        else if (SwingUtilities.isLeftMouseButton(e)){
+        } else if (SwingUtilities.isLeftMouseButton(e)){
           //myPlugin.handleMoveRequest(e.getPoint().x, e.getPoint().y, false);
           beginMoveRequest(e.getPoint().x, e.getPoint().y);
         }
       }
       public void mouseReleased(MouseEvent e) {
-        if (e.isPopupTrigger())
+        if (e.isPopupTrigger()) {
           myPlugin.handlePopupRequest(e.getPoint().x, e.getPoint().y);
-        else {
+        } else {
           myPlugin.handleMoveRequest(e.getPoint().x, e.getPoint().y, true);
         }
       }
       public void mouseEntered(MouseEvent e) {
-        if (e.isPopupTrigger())
+        if (e.isPopupTrigger()) {
           myPlugin.handlePopupRequest(e.getPoint().x, e.getPoint().y);
+        }
       }
       public void mouseExited(MouseEvent e) {
-        if (e.isPopupTrigger())
+        if (e.isPopupTrigger()) {
           myPlugin.handlePopupRequest(e.getPoint().x, e.getPoint().y);
+        }
       }
       public void mouseClicked(MouseEvent e) {
-        if (e.isPopupTrigger())
+        if (e.isPopupTrigger()) {
           myPlugin.handlePopupRequest(e.getPoint().x, e.getPoint().y);
+        }
       }
     });
 
@@ -283,7 +289,7 @@ public abstract class Visualizer2D extends VisPlugin {
 
     // Add menu action for clicking mote button
     addMoteMenuAction(new ButtonClickMoteMenuAction());
-    
+
     try {
       setSelected(true);
     } catch (java.beans.PropertyVetoException e) {
@@ -293,7 +299,7 @@ public abstract class Visualizer2D extends VisPlugin {
 
   /**
    * Add new mote menu action.
-   * 
+   *
    * @see MoteMenuAction
    * @param menuAction Menu action
    */
@@ -303,8 +309,9 @@ public abstract class Visualizer2D extends VisPlugin {
 
   private void handlePopupRequest(final int x, final int y) {
     final Vector<Mote> foundMotes = findMotesAtPosition(x, y);
-    if (foundMotes == null || foundMotes.size() == 0)
+    if (foundMotes == null || foundMotes.size() == 0) {
       return;
+    }
 
     JPopupMenu pickMoteMenu = new JPopupMenu();
     pickMoteMenu.add(new JLabel("Select action:"));
@@ -312,10 +319,6 @@ public abstract class Visualizer2D extends VisPlugin {
 
     // Add 'show mote plugins'-actions
     for (final Mote mote : foundMotes) {
-      final Point pos = new Point(canvas.getLocationOnScreen().x + x, canvas
-          .getLocationOnScreen().y
-          + y);
-
       pickMoteMenu.add(simulation.getGUI().createMotePluginsSubmenu(mote));
     }
 
@@ -345,8 +348,9 @@ public abstract class Visualizer2D extends VisPlugin {
 
   private void beginMoveRequest(final int x, final int y) {
     final Vector<Mote> foundMotes = findMotesAtPosition(x, y);
-    if (foundMotes == null || foundMotes.size() == 0)
+    if (foundMotes == null || foundMotes.size() == 0) {
       return;
+    }
 
     moteMoveBeginTime = System.currentTimeMillis();
     beginMoveRequest(foundMotes.get(0));
@@ -360,7 +364,7 @@ public abstract class Visualizer2D extends VisPlugin {
 
   private void handleMoveRequest(final int x, final int y,
       boolean wasJustReleased) {
-    
+
     if (!moteIsBeingMoved) {
       return;
     }
@@ -374,7 +378,7 @@ public abstract class Visualizer2D extends VisPlugin {
     // Stopped moving mote
     canvas.setCursor(Cursor.getDefaultCursor());
     moteIsBeingMoved = false;
-    
+
     Position newXYValues = transformPixelToPositon(new Point(x, y));
 
     if (moteMoveBeginTime <= 0 || System.currentTimeMillis() - moteMoveBeginTime > 300) {
@@ -382,7 +386,7 @@ public abstract class Visualizer2D extends VisPlugin {
           + "\nX=" + newXYValues.getXCoordinate() + "\nY="
           + newXYValues.getYCoordinate() + "\nZ="
           + moteToMove.getInterfaces().getPosition().getZCoordinate());
-      
+
       if (returnValue == JOptionPane.OK_OPTION) {
         moteToMove.getInterfaces().getPosition().setCoordinates(
             newXYValues.getXCoordinate(), newXYValues.getYCoordinate(),
@@ -396,7 +400,7 @@ public abstract class Visualizer2D extends VisPlugin {
 
   /**
    * Returns all motes at given position.
-   * 
+   *
    * @param clickedX
    *          X coordinate
    * @param clickedY
@@ -428,8 +432,9 @@ public abstract class Visualizer2D extends VisPlugin {
         motesFound.add(simulation.getMote(i));
       }
     }
-    if (motesFound.size() == 0)
+    if (motesFound.size() == 0) {
       return null;
+    }
 
     return motesFound;
   }
@@ -437,13 +442,13 @@ public abstract class Visualizer2D extends VisPlugin {
   /**
    * Get colors a certain mote should be painted with. May be overridden to get
    * a different color scheme.
-   * 
+   *
    * Normally this method returns an array of two colors, one for the state
    * (outer circle), the other for the type (inner circle).
-   * 
+   *
    * If this method only returns one color, the entire mote will be painted
    * using that.
-   * 
+   *
    * @param mote
    *          Mote to paint
    * @return Color[] { Inner color, Outer color }
@@ -479,7 +484,7 @@ public abstract class Visualizer2D extends VisPlugin {
         g.setColor(moteColors[0]);
         g.fillOval(x - MOTE_RADIUS, y - MOTE_RADIUS, 2 * MOTE_RADIUS,
             2 * MOTE_RADIUS);
-      } 
+      }
 
       g.setColor(Color.BLACK);
       g.drawOval(x - MOTE_RADIUS, y - MOTE_RADIUS, 2 * MOTE_RADIUS,
@@ -511,37 +516,43 @@ public abstract class Visualizer2D extends VisPlugin {
     for (int i = 0; i < simulation.getMotesCount(); i++) {
       motePos = simulation.getMote(i).getInterfaces().getPosition();
 
-      if (motePos.getXCoordinate() < smallestXCoord)
+      if (motePos.getXCoordinate() < smallestXCoord) {
         smallestXCoord = motePos.getXCoordinate();
+      }
 
-      if (motePos.getXCoordinate() > biggestXCoord)
+      if (motePos.getXCoordinate() > biggestXCoord) {
         biggestXCoord = motePos.getXCoordinate();
+      }
 
-      if (motePos.getYCoordinate() < smallestYCoord)
+      if (motePos.getYCoordinate() < smallestYCoord) {
         smallestYCoord = motePos.getYCoordinate();
+      }
 
-      if (motePos.getYCoordinate() > biggestYCoord)
+      if (motePos.getYCoordinate() > biggestYCoord) {
         biggestYCoord = motePos.getYCoordinate();
+      }
 
     }
 
     if ((biggestXCoord - smallestXCoord) == 0) {
       factorXCoordToPixel = 1;
-    } else
+    } else {
       factorXCoordToPixel = ((double) canvas.getPreferredSize().width - 2 * CANVAS_BORDER_WIDTH)
           / (biggestXCoord - smallestXCoord);
+    }
 
     if ((biggestYCoord - smallestYCoord) == 0) {
       factorYCoordToPixel = 1;
-    } else
+    } else {
       factorYCoordToPixel = ((double) canvas.getPreferredSize().height - 2 * CANVAS_BORDER_WIDTH)
           / (biggestYCoord - smallestYCoord);
+    }
   }
 
   /**
    * Transforms a real-world position to a pixel which can be painted onto the
    * current sized canvas.
-   * 
+   *
    * @param pos
    *          Real-world position
    * @return Pixel coordinates
@@ -554,7 +565,7 @@ public abstract class Visualizer2D extends VisPlugin {
   /**
    * Transforms real-world coordinates to a pixel which can be painted onto the
    * current sized canvas.
-   * 
+   *
    * @param x Real world X
    * @param y Real world Y
    * @param z Real world Z (ignored)
@@ -566,7 +577,7 @@ public abstract class Visualizer2D extends VisPlugin {
 
   /**
    * Transforms a pixel coordinate to a real-world. Z-value will always be 0.
-   * 
+   *
    * @param pixelPos
    *          On-screen pixel coordinate
    * @return Real world coordinate (z=0).
@@ -593,11 +604,11 @@ public abstract class Visualizer2D extends VisPlugin {
         + CANVAS_BORDER_WIDTH;
   }
   private double factorXPixelToCoord(int xPixel) {
-    return ((double) (xPixel - CANVAS_BORDER_WIDTH) / factorXCoordToPixel)
+    return ((xPixel - CANVAS_BORDER_WIDTH) / factorXCoordToPixel)
         + smallestXCoord;
   }
   private double factorYPixelToCoord(int yPixel) {
-    return ((double) (yPixel - CANVAS_BORDER_WIDTH) / factorYCoordToPixel)
+    return ((yPixel - CANVAS_BORDER_WIDTH) / factorYCoordToPixel)
         + smallestYCoord;
   }
 
