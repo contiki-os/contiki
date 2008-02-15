@@ -27,7 +27,7 @@
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * $Id: contiki-conf.h,v 1.5 2007/11/28 09:44:03 matsutsuka Exp $
+ * $Id: contiki-conf.h,v 1.6 2008/02/15 16:51:06 oliverschmidt Exp $
  *
  */
 
@@ -131,7 +131,7 @@ typedef unsigned long clock_time_t;
 #define slip_arch_writeb(c)             rs232_arch_writeb(c)
 
 #ifdef WITH_LOADER_ARCH
-//#define PROCESS_LOADABLE                1
+//#define AUTOSTART_ENABLE                1
 #define LOADER_CONF_ARCH                "loader_arch.h"
 #endif /* WITH_LOADER_ARCH */
 
