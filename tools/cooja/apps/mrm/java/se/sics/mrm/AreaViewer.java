@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006, Swedish Institute of Computer Science.
+ * Copyright (c) 2008, Swedish Institute of Computer Science.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: AreaViewer.java,v 1.3 2007/03/23 21:13:43 fros4943 Exp $
+ * $Id: AreaViewer.java,v 1.4 2008/02/15 13:20:23 fros4943 Exp $
  */
 
 package se.sics.mrm;
@@ -50,14 +50,14 @@ import se.sics.cooja.interfaces.*;
 
 /**
  * The class AreaViewer belongs to the MRM package.
- * 
- * It is used to visualize available radios, traffic between them as well 
+ *
+ * It is used to visualize available radios, traffic between them as well
  * as the current radio propagation area of single radios.
  * Users may also add background images (such as maps) and color-analyze them
  * in order to add simulated obstacles in the radio medium.
- * 
+ *
  * For more information about MRM see MRM.java
- * 
+ *
  * @see MRM
  * @author Fredrik Osterlind
  */
@@ -66,13 +66,13 @@ import se.sics.cooja.interfaces.*;
 public class AreaViewer extends VisPlugin {
   private static final long serialVersionUID = 1L;
   private static Logger logger = Logger.getLogger(AreaViewer.class);
-  
+
   private final JPanel canvas;
   private final VisPlugin thisPlugin;
 
   ChannelModel.TransmissionData dataTypeToVisualize = ChannelModel.TransmissionData.SIGNAL_STRENGTH;
   ButtonGroup visTypeSelectionGroup;
-  
+
   // General drawing parameters
   private Point lastHandledPosition = new Point(0,0);
   private double zoomCenterX = 0.0;
@@ -105,7 +105,7 @@ public class AreaViewer extends VisPlugin {
   private double obstacleWidth = 0.0;
   private double obstacleHeight = 0.0;
   private Image obstacleImage = null;
-  
+
   // Channel probabilities drawing parameters (meters)
   private double channelStartX = 0.0;
   private double channelStartY = 0.0;
@@ -116,20 +116,20 @@ public class AreaViewer extends VisPlugin {
   private JSlider resolutionSlider;
   private JPanel controlPanel;
   private JScrollPane scrollControlPanel;
-  
+
   private Simulation currentSimulation;
   private MRM currentRadioMedium;
   private ChannelModel currentChannelModel;
-  
+
   private final String antennaImageFilename = "antenna.png";
   private final Image antennaImage;
-  
+
   private Radio selectedRadio = null;
   private boolean inSelectMode = true;
   private boolean inTrackMode = false;
-  
+
   private Vector<Line2D> trackedComponents = null;
-  
+
   // Coloring variables
   private JPanel coloringIntervalPanel = null;
   private double coloringHighest = 0;
@@ -137,7 +137,7 @@ public class AreaViewer extends VisPlugin {
   private boolean coloringIsFixed = true;
 
   private Thread attenuatorThread = null;
-  
+
   private JCheckBox showSettingsBox;
   private JCheckBox backgroundCheckBox;
   private JCheckBox obstaclesCheckBox;
@@ -145,10 +145,12 @@ public class AreaViewer extends VisPlugin {
   private JCheckBox radiosCheckBox;
   private JCheckBox radioActivityCheckBox;
   private JCheckBox arrowCheckBox;
-  
+
+  private JRadioButton noneButton = null;
+
   /**
    * Initializes an AreaViewer.
-   * 
+   *
    * @param simulationToVisualize Simulation using MRM
    */
   public AreaViewer(Simulation simulationToVisualize, GUI gui) {
@@ -157,17 +159,17 @@ public class AreaViewer extends VisPlugin {
     currentSimulation = simulationToVisualize;
     currentRadioMedium = (MRM) currentSimulation.getRadioMedium();
     currentChannelModel = currentRadioMedium.getChannelModel();
-    
+
     // We want to listen to changes both in the channel model as well as in the radio medium
     currentChannelModel.addSettingsObserver(channelModelSettingsObserver);
     currentRadioMedium.addSettingsObserver(radioMediumSettingsObserver);
     currentRadioMedium.addRadioMediumObserver(radioMediumActivityObserver);
-    
+
     // Set initial size etc.
     setSize(500, 500);
     setVisible(true);
     thisPlugin = this;
-    
+
     // Canvas mode radio buttons + show settings checkbox
     showSettingsBox = new JCheckBox ("settings", true);
     showSettingsBox.setAlignmentY(Component.TOP_ALIGNMENT);
@@ -193,13 +195,13 @@ public class AreaViewer extends VisPlugin {
     zoomModeButton.setContentAreaFilled(false);
     zoomModeButton.setActionCommand("set zoom mode");
     zoomModeButton.addActionListener(canvasModeHandler);
-    
+
     JRadioButton trackModeButton = new JRadioButton ("track rays");
     trackModeButton.setAlignmentY(Component.BOTTOM_ALIGNMENT);
     trackModeButton.setContentAreaFilled(false);
     trackModeButton.setActionCommand("set track rays mode");
     trackModeButton.addActionListener(canvasModeHandler);
-    
+
     ButtonGroup group = new ButtonGroup();
     group.add(selectModeButton);
     group.add(panModeButton);
@@ -218,7 +220,7 @@ public class AreaViewer extends VisPlugin {
     canvas.setBackground(Color.WHITE);
     canvas.setLayout(new BorderLayout());
     canvas.addMouseListener(canvasMouseHandler);
-    
+
     // Create canvas mode panel
     JPanel canvasModePanel = new JPanel();
     canvasModePanel.setOpaque(false);
@@ -238,23 +240,23 @@ public class AreaViewer extends VisPlugin {
     graphicsComponentsPanel.setBorder(BorderFactory.createEmptyBorder(10,10,10,10));
     graphicsComponentsPanel.setAlignmentX(Component.CENTER_ALIGNMENT);
 
-    graphicsComponentsPanel.add(new JLabel("Show components:"));
+    graphicsComponentsPanel.add(new JLabel("Show/Hide:"));
 
-    backgroundCheckBox = new JCheckBox("Background", true);
+    backgroundCheckBox = new JCheckBox("Background image", true);
     backgroundCheckBox.setActionCommand("toggle background");
     backgroundCheckBox.addActionListener(selectGraphicsHandler);
     graphicsComponentsPanel.add(backgroundCheckBox);
-    
+
     obstaclesCheckBox = new JCheckBox("Obstacles", true);
     obstaclesCheckBox.setActionCommand("toggle obstacles");
     obstaclesCheckBox.addActionListener(selectGraphicsHandler);
     graphicsComponentsPanel.add(obstaclesCheckBox);
-    
-    channelCheckBox = new JCheckBox("Channel probability", true);
+
+    channelCheckBox = new JCheckBox("Channel", true);
     channelCheckBox.setActionCommand("toggle channel");
     channelCheckBox.addActionListener(selectGraphicsHandler);
     graphicsComponentsPanel.add(channelCheckBox);
-    
+
     radiosCheckBox = new JCheckBox("Radios", true);
     radiosCheckBox.setActionCommand("toggle radios");
     radiosCheckBox.addActionListener(selectGraphicsHandler);
@@ -271,48 +273,71 @@ public class AreaViewer extends VisPlugin {
     graphicsComponentsPanel.add(arrowCheckBox);
 
     graphicsComponentsPanel.add(Box.createRigidArea(new Dimension(0,20)));
-    graphicsComponentsPanel.add(new JLabel("Configure attenuating obstacles:"));
+    graphicsComponentsPanel.add(new JLabel("Obstacle configuration:"));
 
-    JButton addBackgroundButton = new JButton("Set background image");
-    addBackgroundButton.setActionCommand("set background image");
-    addBackgroundButton.addActionListener(setBackgroundHandler);
-    graphicsComponentsPanel.add(addBackgroundButton);
-    
-    JButton analyzeObstaclesButton = new JButton("Analyze background for obstacles");
-    analyzeObstaclesButton.setActionCommand("analyze for obstacles");
-    analyzeObstaclesButton.addActionListener(analyzeObstaclesHandler);
-    graphicsComponentsPanel.add(analyzeObstaclesButton);
-    
+    noneButton = new JRadioButton("No obstacles");
+    noneButton.setActionCommand("set no obstacles");
+    noneButton.addActionListener(obstacleHandler);
+    noneButton.setSelected(true);
+
+    JRadioButton pre1Button = new JRadioButton("Predefined 1");
+    pre1Button.setActionCommand("set predefined 1");
+    pre1Button.addActionListener(obstacleHandler);
+
+    JRadioButton pre2Button = new JRadioButton("Predefined 2");
+    pre2Button.setActionCommand("set predefined 2");
+    pre2Button.addActionListener(obstacleHandler);
+
+    JRadioButton customButton = new JRadioButton("From bitmap");
+    customButton.setActionCommand("set custom bitmap");
+    customButton.addActionListener(obstacleHandler);
+    if (GUI.isVisualizedInApplet()) {
+      customButton.setEnabled(false);
+    }
+
+    group = new ButtonGroup();
+    group.add(noneButton);
+    group.add(pre1Button);
+    group.add(pre2Button);
+    group.add(customButton);
+    graphicsComponentsPanel.add(noneButton);
+    graphicsComponentsPanel.add(pre1Button);
+    graphicsComponentsPanel.add(pre2Button);
+    graphicsComponentsPanel.add(customButton);
+
     // Create visualize channel output panel
     JPanel visualizeChannelPanel = new JPanel();
     visualizeChannelPanel.setLayout(new BoxLayout(visualizeChannelPanel, BoxLayout.Y_AXIS));
     visualizeChannelPanel.setBorder(BorderFactory.createEmptyBorder(10,10,10,10));
-    visualizeChannelPanel.setAlignmentX(Component.CENTER_ALIGNMENT);
+    visualizeChannelPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
 
     // Channel coloring intervals
-    visualizeChannelPanel.add(new JLabel("Color intervals:"));
+    visualizeChannelPanel.add(new JLabel("Channel coloring:"));
 
-    JRadioButton fixedColoringButton = new JRadioButton("Fixed channel coloring");
+    JPanel fixedVsRelative = new JPanel(new GridLayout(1, 2));
+    JRadioButton fixedColoringButton = new JRadioButton("Fixed");
     fixedColoringButton.setSelected(true);
     fixedColoringButton.addActionListener(new ActionListener() {
       public void actionPerformed(ActionEvent e) {
         coloringIsFixed = true;
       }
     });
-    visualizeChannelPanel.add(fixedColoringButton);
+    fixedVsRelative.add(fixedColoringButton);
 
-    JRadioButton relativeColoringButton = new JRadioButton("Relative channel coloring");
+    JRadioButton relativeColoringButton = new JRadioButton("Relative");
     relativeColoringButton.setSelected(true);
     relativeColoringButton.addActionListener(new ActionListener() {
       public void actionPerformed(ActionEvent e) {
         coloringIsFixed = false;
       }
     });
-    visualizeChannelPanel.add(relativeColoringButton);
-
+    fixedVsRelative.add(relativeColoringButton);
     ButtonGroup coloringGroup = new ButtonGroup();
     coloringGroup.add(fixedColoringButton);
     coloringGroup.add(relativeColoringButton);
+
+    fixedVsRelative.setAlignmentX(Component.LEFT_ALIGNMENT);
+    visualizeChannelPanel.add(fixedVsRelative);
 
     coloringIntervalPanel = new JPanel() {
       public void paintComponent(Graphics g) {
@@ -332,7 +357,7 @@ public class AreaViewer extends VisPlugin {
           g.drawString(stringToDraw, width/2 - g.getFontMetrics().stringWidth(stringToDraw)/2, height/2 + textHeight/2);
           return;
         }
-        
+
         // Check for infinite values
         if (Double.isInfinite(coloringHighest) || Double.isInfinite(coloringLowest)) {
           g.setColor(Color.WHITE);
@@ -342,7 +367,7 @@ public class AreaViewer extends VisPlugin {
           g.drawString(stringToDraw, width/2 - g.getFontMetrics().stringWidth(stringToDraw)/2, height/2 + textHeight/2);
           return;
         }
-        
+
         // Check if values are constant
         if (diff == 0) {
           g.setColor(Color.WHITE);
@@ -359,10 +384,10 @@ public class AreaViewer extends VisPlugin {
           g.setColor(
               new Color(
                   getColorOfSignalStrength(paintValue, coloringLowest, coloringHighest)));
-          
+
           g.drawLine(i, 0, i, height);
         }
-        
+
         if (dataTypeToVisualize == ChannelModel.TransmissionData.PROB_OF_RECEPTION) {
           NumberFormat formatter = DecimalFormat.getPercentInstance();
           g.setColor(Color.BLACK);
@@ -390,7 +415,7 @@ public class AreaViewer extends VisPlugin {
           String stringToDraw = formatter.format(coloringHighest) + "us";
           g.drawString(stringToDraw, width - g.getFontMetrics().stringWidth(stringToDraw) - 3, textHeight);
         }
-        
+
       }
     };
     coloringIntervalPanel.setBorder(BorderFactory.createLineBorder(Color.BLACK));
@@ -403,7 +428,7 @@ public class AreaViewer extends VisPlugin {
 
     // Choose channel output to visualize
     visualizeChannelPanel.add(Box.createRigidArea(new Dimension(0,20)));
-    visualizeChannelPanel.add(new JLabel("Visualize radio output:"));
+    visualizeChannelPanel.add(new JLabel("Visualize:"));
 
     JRadioButton signalStrengthButton = new JRadioButton("Signal strength");
     signalStrengthButton.setActionCommand("signalStrengthButton");
@@ -424,7 +449,7 @@ public class AreaViewer extends VisPlugin {
       }
     });
     visualizeChannelPanel.add(signalStrengthVarButton);
-   
+
     JRadioButton SNRButton = new JRadioButton("Signal to Noise ratio");
     SNRButton.setActionCommand("SNRButton");
     SNRButton.setSelected(false);
@@ -434,7 +459,7 @@ public class AreaViewer extends VisPlugin {
       }
     });
     visualizeChannelPanel.add(SNRButton);
-  
+
     JRadioButton SNRVarButton = new JRadioButton("Signal to Noise variance");
     SNRVarButton.setActionCommand("SNRVarButton");
     SNRVarButton.setSelected(false);
@@ -444,7 +469,7 @@ public class AreaViewer extends VisPlugin {
       }
     });
     visualizeChannelPanel.add(SNRVarButton);
-   
+
     JRadioButton probabilityButton = new JRadioButton("Probability of reception");
     probabilityButton.setActionCommand("probabilityButton");
     probabilityButton.setSelected(false);
@@ -464,7 +489,7 @@ public class AreaViewer extends VisPlugin {
       }
     });
     visualizeChannelPanel.add(rmsDelaySpreadButton);
-    
+
     visTypeSelectionGroup = new ButtonGroup();
     visTypeSelectionGroup.add(signalStrengthButton);
     visTypeSelectionGroup.add(signalStrengthVarButton);
@@ -475,57 +500,60 @@ public class AreaViewer extends VisPlugin {
 
     visualizeChannelPanel.add(Box.createRigidArea(new Dimension(0,20)));
 
-    visualizeChannelPanel.add(new JLabel("Image resolution:"));
-    
-    resolutionSlider = new JSlider(JSlider.HORIZONTAL, 30, 600, 200);
+    visualizeChannelPanel.add(new JLabel("Resolution:"));
+
+    resolutionSlider = new JSlider(JSlider.HORIZONTAL, 30, 600, 100);
     resolutionSlider.setMajorTickSpacing(100);
     resolutionSlider.setPaintTicks(true);
     resolutionSlider.setPaintLabels(true);
+    resolutionSlider.setAlignmentX(Component.LEFT_ALIGNMENT);
     visualizeChannelPanel.add(resolutionSlider);
 
     visualizeChannelPanel.add(Box.createRigidArea(new Dimension(0,20)));
 
-    JButton recalculateVisibleButton = new JButton("Recalculate visible area");
+    JButton recalculateVisibleButton = new JButton("Paint radio channel");
     recalculateVisibleButton.setActionCommand("recalculate visible area");
     recalculateVisibleButton.addActionListener(formulaHandler);
     visualizeChannelPanel.add(recalculateVisibleButton);
-    
+
     // Create control panel
     controlPanel = new JPanel();
     controlPanel.setLayout(new BoxLayout(controlPanel, BoxLayout.Y_AXIS));
+    graphicsComponentsPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
     controlPanel.add(graphicsComponentsPanel);
     controlPanel.add(new JSeparator());
     controlPanel.add(Box.createRigidArea(new Dimension(0, 5)));
+    visualizeChannelPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
     controlPanel.add(visualizeChannelPanel);
     controlPanel.setPreferredSize(new Dimension(250,700));
-    controlPanel.setAlignmentX(Component.CENTER_ALIGNMENT);
+    controlPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
     scrollControlPanel = new JScrollPane(
         controlPanel,
-        JScrollPane.VERTICAL_SCROLLBAR_ALWAYS, 
+        JScrollPane.VERTICAL_SCROLLBAR_ALWAYS,
         JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
     scrollControlPanel.setPreferredSize(new Dimension(250,0));
-    
+
     // Add everything
     this.setLayout(new BorderLayout());
     this.add(BorderLayout.CENTER, canvas); // Add canvas
     this.add(BorderLayout.EAST, scrollControlPanel);
-       
+
     // Load external images (antenna)
     Toolkit toolkit = Toolkit.getDefaultToolkit();
     URL imageURL = this.getClass().getClassLoader().getResource(antennaImageFilename);
     antennaImage = toolkit.getImage(imageURL);
-    
+
     MediaTracker tracker = new MediaTracker(canvas);
     tracker.addImage(antennaImage, 1);
-    
+
     try {
       tracker.waitForAll();
     } catch (InterruptedException ex) {
       logger.fatal("Interrupted during image loading, aborting");
       return;
     }
-    
-    
+
+
     // Try to select current plugin
     try {
       setSelected(true);
@@ -533,7 +561,7 @@ public class AreaViewer extends VisPlugin {
       // Could not select
     }
   }
-  
+
   /**
    * Listens to mouse event on canvas
    */
@@ -555,9 +583,10 @@ public class AreaViewer extends VisPlugin {
           return;
         }
 
-        if (hitRadios.size() == 1 && hitRadios.firstElement() == selectedRadio)
+        if (hitRadios.size() == 1 && hitRadios.firstElement() == selectedRadio) {
           return;
-        
+        }
+
         if (selectedRadio == null || !hitRadios.contains(selectedRadio)) {
           selectedRadio = hitRadios.firstElement();
         } else {
@@ -566,23 +595,23 @@ public class AreaViewer extends VisPlugin {
               (hitRadios.indexOf(selectedRadio)+1) % hitRadios.size()
           );
         }
-       
+
         channelImage = null;
         canvas.repaint();
       } else if (inTrackMode && selectedRadio != null) {
         // Calculate real clicked position
-        double realClickedX = e.getX() / currentZoomX - currentPanX; 
-        double realClickedY = e.getY() / currentZoomY - currentPanY; 
+        double realClickedX = e.getX() / currentZoomX - currentPanX;
+        double realClickedY = e.getY() / currentZoomY - currentPanY;
 
         Position radioPosition = currentRadioMedium.getRadioPosition(selectedRadio);
         final double radioX = radioPosition.getXCoordinate();
         final double radioY = radioPosition.getYCoordinate();
-        
+
         trackedComponents = currentChannelModel.getRaysOfTransmission(radioX, radioY, realClickedX, realClickedY);
-        
+
         canvas.repaint();
       }
-      
+
     }
     public void mouseEntered(MouseEvent e) {
     }
@@ -590,12 +619,12 @@ public class AreaViewer extends VisPlugin {
       lastHandledPosition = new Point(e.getX(), e.getY());
 
       // Set zoom center (real world)
-      zoomCenterX = e.getX() / currentZoomX - currentPanX; 
-      zoomCenterY = e.getY() / currentZoomY - currentPanY; 
+      zoomCenterX = e.getX() / currentZoomX - currentPanX;
+      zoomCenterY = e.getY() / currentZoomY - currentPanY;
       zoomCenterPoint = e.getPoint();
     }
   };
-  
+
   /**
    * Listens to mouse movements when in pan mode
    */
@@ -610,14 +639,14 @@ public class AreaViewer extends VisPlugin {
 
       // Pan relative to mouse movement and current zoom
       // This way the mouse "lock" to the canvas
-      currentPanX += ((float) (e.getX() - lastHandledPosition.x)) / currentZoomX;
-      currentPanY += ((float) (e.getY() - lastHandledPosition.y)) / currentZoomY;
+      currentPanX += ((e.getX() - lastHandledPosition.x)) / currentZoomX;
+      currentPanY += ((e.getY() - lastHandledPosition.y)) / currentZoomY;
       lastHandledPosition = e.getPoint();
-      
+
       canvas.repaint();
     }
   };
-  
+
   /**
    * Listens to mouse movements when in zoom mode
    */
@@ -631,20 +660,20 @@ public class AreaViewer extends VisPlugin {
       }
 
       // Zoom relative to mouse movement (keep XY-proportions)
-      currentZoomY += 0.005 * currentZoomY * ((double) (lastHandledPosition.y - e.getY()));
-      currentZoomY = Math.max(0.05, currentZoomY); 
-      currentZoomY = Math.min(1500, currentZoomY); 
+      currentZoomY += 0.005 * currentZoomY * ((lastHandledPosition.y - e.getY()));
+      currentZoomY = Math.max(0.05, currentZoomY);
+      currentZoomY = Math.min(1500, currentZoomY);
       currentZoomX = currentZoomY;
 
       // We also need to update the current pan in order to zoom towards the mouse
       currentPanX =  zoomCenterPoint.x/currentZoomX - zoomCenterX;
       currentPanY =  zoomCenterPoint.y/currentZoomY - zoomCenterY;
-      
+
       lastHandledPosition = e.getPoint();
       canvas.repaint();
     }
   };
-  
+
   /**
    * Selects which mouse mode the canvas should be in (select/pan/zoom)
    */
@@ -652,65 +681,71 @@ public class AreaViewer extends VisPlugin {
     public void actionPerformed(ActionEvent e) {
       if (e.getActionCommand().equals("set select mode")) {
         // Select mode, no mouse motion listener needed
-        for (MouseMotionListener reggedListener: canvas.getMouseMotionListeners())
+        for (MouseMotionListener reggedListener: canvas.getMouseMotionListeners()) {
           canvas.removeMouseMotionListener(reggedListener);
+        }
 
         inTrackMode = false;
         inSelectMode = true;
       } else if (e.getActionCommand().equals("set pan mode")) {
         // Remove all other mouse motion listeners
-        for (MouseMotionListener reggedListener: canvas.getMouseMotionListeners())
+        for (MouseMotionListener reggedListener: canvas.getMouseMotionListeners()) {
           canvas.removeMouseMotionListener(reggedListener);
+        }
         inSelectMode = false;
         inTrackMode = false;
-   
+
         // Add the special pan mouse motion listener
         canvas.addMouseMotionListener(canvasPanModeHandler);
       } else if (e.getActionCommand().equals("set zoom mode")) {
         // Remove all other mouse motion listeners
-        for (MouseMotionListener reggedListener: canvas.getMouseMotionListeners())
+        for (MouseMotionListener reggedListener: canvas.getMouseMotionListeners()) {
           canvas.removeMouseMotionListener(reggedListener);
+        }
         inSelectMode = false;
         inTrackMode = false;
-   
+
         // Add the special zoom mouse motion listener
         canvas.addMouseMotionListener(canvasZoomModeHandler);
       } else if (e.getActionCommand().equals("set track rays mode")) {
         // Remove all other mouse motion listeners
-        for (MouseMotionListener reggedListener: canvas.getMouseMotionListeners())
+        for (MouseMotionListener reggedListener: canvas.getMouseMotionListeners()) {
           canvas.removeMouseMotionListener(reggedListener);
+        }
         inSelectMode = false;
         inTrackMode = true;
-        
+
       } else if (e.getActionCommand().equals("toggle show settings")) {
-        if (((JCheckBox) e.getSource()).isSelected())
+        if (((JCheckBox) e.getSource()).isSelected()) {
           scrollControlPanel.setVisible(true);
-          else
-            scrollControlPanel.setVisible(false);
+        } else {
+          scrollControlPanel.setVisible(false);
+        }
         thisPlugin.invalidate();
         thisPlugin.revalidate();
 
       }
     }
   };
-  
+
   /**
    * Selects which graphical parts should be painted
    */
   private ActionListener selectGraphicsHandler = new ActionListener() {
     public void actionPerformed(ActionEvent e) {
-      if (e.getActionCommand().equals("toggle background"))
+      if (e.getActionCommand().equals("toggle background")) {
         drawBackgroundImage = ((JCheckBox) e.getSource()).isSelected();
-      else if (e.getActionCommand().equals("toggle obstacles"))
+      } else if (e.getActionCommand().equals("toggle obstacles")) {
         drawCalculatedObstacles = ((JCheckBox) e.getSource()).isSelected();
-      else if (e.getActionCommand().equals("toggle channel"))
+      } else if (e.getActionCommand().equals("toggle channel")) {
         drawChannelProbabilities = ((JCheckBox) e.getSource()).isSelected();
-      else if (e.getActionCommand().equals("toggle radios"))
+      } else if (e.getActionCommand().equals("toggle radios")) {
         drawRadios = ((JCheckBox) e.getSource()).isSelected();
-      else if (e.getActionCommand().equals("toggle radio activity"))
+      } else if (e.getActionCommand().equals("toggle radio activity")) {
         drawRadioActivity = ((JCheckBox) e.getSource()).isSelected();
-      else if (e.getActionCommand().equals("toggle arrow"))
+      } else if (e.getActionCommand().equals("toggle arrow")) {
         drawScaleArrow = ((JCheckBox) e.getSource()).isSelected();
+      }
 
       canvas.repaint();
     }
@@ -719,8 +754,8 @@ public class AreaViewer extends VisPlugin {
   /**
    * Helps user set a background image which can be analysed for obstacles/freespace.
    */
-  private ActionListener setBackgroundHandler = new ActionListener() {
-    
+  private ActionListener obstacleHandler = new ActionListener() {
+
     /**
      * Choosable file filter that supports tif, gif, jpg, png, bmp.
      */
@@ -729,35 +764,35 @@ public class AreaViewer extends VisPlugin {
         if (f.isDirectory()) {
           return true;
         }
-        
+
         String filename = f.getName();
-        if (filename != null) {
-          if (filename.endsWith(".tiff") ||
-              filename.endsWith(".tif") ||
-              filename.endsWith(".gif") ||
-              filename.endsWith(".jpg") ||
-              filename.endsWith(".jpeg") ||
-              filename.endsWith(".png") ||
-              filename.endsWith(".bmp")) {
-            return true;
-          } 
+        if (filename == null) {
+          return false;
         }
+
+        if (filename.endsWith(".gif") || filename.endsWith(".GIF") ||
+            filename.endsWith(".jpg") || filename.endsWith(".JPG") ||
+            filename.endsWith(".jpeg") || filename.endsWith(".JPEG") ||
+            filename.endsWith(".png") || filename.endsWith(".PNG")){
+          return true;
+        }
+
         return false;
       }
-      
+
       public String getDescription() {
         return "All supported images";
       }
     }
-    
+
     class ImageSettingsDialog extends JDialog {
-      
+
       private double
       virtualStartX = 0.0,
       virtualStartY = 0.0,
       virtualWidth = 0.0,
       virtualHeight = 0.0;
-      
+
       private JFormattedTextField
       virtualStartXField,
       virtualStartYField,
@@ -765,53 +800,67 @@ public class AreaViewer extends VisPlugin {
       virtualHeightField;
 
       private boolean terminatedOK = false;
-      
+
       private NumberFormat doubleFormat = NumberFormat.getNumberInstance();
 
       /**
        * Creates a new dialog for settings background parameters
        */
-      protected ImageSettingsDialog(File imageFile, Image image, Frame owner) {
-        super(owner, "Image settings");
-        
-        JPanel tempPanel;
+      protected ImageSettingsDialog(File imageFile, Image image, Frame frame) {
+        super(frame, "Image settings");
+        setupDialog();
+      }
+      protected ImageSettingsDialog(File imageFile, Image image, Dialog dialog) {
+        super(dialog, "Image settings");
+        setupDialog();
+      }
+      protected ImageSettingsDialog(File imageFile, Image image, Window window) {
+        super(window, "Image settings");
+        setupDialog();
+      }
+
+      private void setupDialog() {
+        JPanel mainPanel, tempPanel;
         setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
-        
-        // Set layout and add components
         doubleFormat.setMinimumIntegerDigits(1);
-        setLayout(new BoxLayout(this.getContentPane(), BoxLayout.Y_AXIS));
+
+        setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+
+        // Set layout and add components
+        mainPanel = new JPanel();
+        mainPanel.setLayout(new BoxLayout(mainPanel, BoxLayout.Y_AXIS));
 
         tempPanel = new JPanel(new GridLayout(1, 2));
         tempPanel.add(new JLabel("Start X (m)     "));
         virtualStartXField = new JFormattedTextField(doubleFormat);
         virtualStartXField.setValue(new Double(0.0));
         tempPanel.add(virtualStartXField);
-        add(tempPanel);
+        mainPanel.add(tempPanel);
 
         tempPanel = new JPanel(new GridLayout(1, 2));
         tempPanel.add(new JLabel("Start Y (m)"));
         virtualStartYField = new JFormattedTextField(doubleFormat);
         virtualStartYField.setValue(new Double(0.0));
         tempPanel.add(virtualStartYField);
-        add(tempPanel);
+        mainPanel.add(tempPanel);
 
         tempPanel = new JPanel(new GridLayout(1, 2));
         tempPanel.add(new JLabel("Width (m)"));
         virtualWidthField = new JFormattedTextField(doubleFormat);
         virtualWidthField.setValue(new Double(100.0));
         tempPanel.add(virtualWidthField);
-        add(tempPanel);
+        mainPanel.add(tempPanel);
 
         tempPanel = new JPanel(new GridLayout(1, 2));
         tempPanel.add(new JLabel("Height (m)"));
         virtualHeightField = new JFormattedTextField(doubleFormat);
         virtualHeightField.setValue(new Double(100.0));
         tempPanel.add(virtualHeightField);
-        add(tempPanel);
+        mainPanel.add(tempPanel);
 
-        add(Box.createVerticalGlue());
-        add(Box.createVerticalStrut(10));
-        
+        mainPanel.add(Box.createVerticalGlue());
+        mainPanel.add(Box.createVerticalStrut(10));
+
         tempPanel = new JPanel();
         tempPanel.setLayout(new BoxLayout(tempPanel, BoxLayout.X_AXIS));
         tempPanel.add(Box.createHorizontalGlue());
@@ -836,15 +885,18 @@ public class AreaViewer extends VisPlugin {
             dispose();
           }
         });
-        
+
         tempPanel.add(okButton);
         tempPanel.add(cancelButton);
-        add(tempPanel);
+        mainPanel.add(tempPanel);
+
+        mainPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+        add(mainPanel);
 
         // Show dialog
         setModal(true);
         pack();
-        setLocationRelativeTo(owner);
+        setLocationRelativeTo(this.getParent());
         setVisible(true);
       }
 
@@ -863,170 +915,338 @@ public class AreaViewer extends VisPlugin {
       public double getVirtualHeight() {
         return virtualHeight;
       }
-    
+
     }
 
     public void actionPerformed(ActionEvent e) {
-      if (e.getActionCommand().equals("set background image")) {
-        
-        // Let user select image file
-        JFileChooser fileChooser = new JFileChooser();
-        ImageFilter filter = new ImageFilter();
-        fileChooser.addChoosableFileFilter(filter);
-        
-        int returnVal = fileChooser.showOpenDialog(canvas);
-        
-        if (returnVal != JFileChooser.APPROVE_OPTION) {
-          // User cancelled
-          return;
-        } 
-        
-        File file = fileChooser.getSelectedFile();
-        
-        // User selected non-supported file, aborting
-        if (!filter.accept(file)) {
-          logger.fatal("Non-supported file type, aborting");
-          return;
-        }
-        
-        logger.info("Opening: " + file.getName() + ".");
-        
-        // Load image using toolkit and media tracker
-        Toolkit toolkit = Toolkit.getDefaultToolkit();
-        Image image = toolkit.getImage(file.getAbsolutePath());
-        
-        MediaTracker tracker = new MediaTracker(canvas);
-        tracker.addImage(image, 1);
-        
-        try {
-          tracker.waitForAll();
-          if (tracker.isErrorAny()) {
-            logger.fatal("Error when loading image: ");
-            image = null;
-          }
-          if (image == null) {
-            logger.fatal("Image is null, aborting");
-            return;
-          }
-        } catch (InterruptedException ex) {
-          logger.fatal("Interrupted during image loading, aborting");
-          return;
-        }
-        
-        // Let user set virtual size of loaded image
-        ImageSettingsDialog dialog = new ImageSettingsDialog(file, image, GUI.frame);
-        
-        if (!dialog.terminatedOK()) {
-          logger.fatal("User cancelled, aborting");
-          return;
-        }
+      if (e.getActionCommand().equals("set custom bitmap")) {
+        if (!setCustomBitmap() || !analyzeBitmapForObstacles()) {
+          backgroundImage = null;
+          currentChannelModel.removeAllObstacles();
 
-        // Add background image
-        backgroundStartX = dialog.getVirtualStartX();
-        backgroundStartY = dialog.getVirtualStartY();
-        backgroundWidth = dialog.getVirtualWidth();
-        backgroundHeight = dialog.getVirtualHeight();
-        
-        backgroundImage = image;
-        backgroundImageFile = file;
+          noneButton.setSelected(true);
+          repaint();
+        }
+      } else if (e.getActionCommand().equals("set predefined 1")) {
+        currentChannelModel.removeAllObstacles();
+        currentChannelModel.addRectObstacle(0, 0, 50, 5, false);
+        currentChannelModel.addRectObstacle(0, 5, 5, 50, false);
+
+        currentChannelModel.addRectObstacle(70, 0, 20, 5, false);
+        currentChannelModel.addRectObstacle(0, 70, 5, 20, false);
+
+        currentChannelModel.notifySettingsChanged();
+        repaint();
+      } else if (e.getActionCommand().equals("set predefined 2")) {
+        currentChannelModel.removeAllObstacles();
+        currentChannelModel.addRectObstacle(0, 0, 10, 10, false);
+        currentChannelModel.addRectObstacle(30, 0, 10, 10, false);
+        currentChannelModel.addRectObstacle(60, 0, 10, 10, false);
+        currentChannelModel.addRectObstacle(90, 0, 10, 10, false);
+
+        currentChannelModel.addRectObstacle(5, 90, 10, 10, false);
+        currentChannelModel.addRectObstacle(25, 90, 10, 10, false);
+        currentChannelModel.addRectObstacle(45, 90, 10, 10, false);
+        currentChannelModel.addRectObstacle(65, 90, 10, 10, false);
+        currentChannelModel.addRectObstacle(85, 90, 10, 10, false);
+        currentChannelModel.notifySettingsChanged();
+        repaint();
+      } else if (e.getActionCommand().equals("set no obstacles")) {
+        backgroundImage = null;
+        currentChannelModel.removeAllObstacles();
+        repaint();
+      } else {
+        logger.fatal("Unhandled action command: " + e.getActionCommand());
       }
     }
+
+    private boolean setCustomBitmap() {
+
+      /* Select image file */
+      JFileChooser fileChooser = new JFileChooser();
+      ImageFilter filter = new ImageFilter();
+      fileChooser.addChoosableFileFilter(filter);
+
+      int returnVal = fileChooser.showOpenDialog(canvas);
+      if (returnVal != JFileChooser.APPROVE_OPTION) {
+        return false;
+      }
+
+      File file = fileChooser.getSelectedFile();
+      if (!filter.accept(file)) {
+        logger.fatal("Non-supported file type, aborting");
+        return false;
+      }
+
+      logger.info("Opening '" + file.getAbsolutePath() + "'");
+
+      /* Load image data */
+      Toolkit toolkit = Toolkit.getDefaultToolkit();
+      Image image = toolkit.getImage(file.getAbsolutePath());
+
+      MediaTracker tracker = new MediaTracker(canvas);
+      tracker.addImage(image, 1);
+
+      try {
+        tracker.waitForAll();
+        if (tracker.isErrorAny() || image == null) {
+          logger.info("Error when loading '" + file.getAbsolutePath() + "'");
+          image = null;
+          return false;
+        }
+      } catch (InterruptedException ex) {
+        logger.fatal("Interrupted during image loading, aborting");
+        return false;
+      }
+
+      /* Set virtual size of image */
+      Container topParent = GUI.getTopParentContainer();
+      ImageSettingsDialog dialog;
+      if (topParent instanceof Frame) {
+        dialog = new ImageSettingsDialog(file, image, (Frame) topParent);
+      } else if (topParent instanceof Dialog) {
+        dialog = new ImageSettingsDialog(file, image, (Dialog) topParent);
+      } else if (topParent instanceof Window) {
+        dialog = new ImageSettingsDialog(file, image, (Window) topParent);
+      } else {
+        logger.fatal("Unknown parent container, aborting");
+        return false;
+      }
+
+      if (!dialog.terminatedOK()) {
+        logger.fatal("User canceled, aborting");
+        image = null;
+        return false;
+      }
+
+      /* Show loaded image */
+      backgroundStartX = dialog.getVirtualStartX();
+      backgroundStartY = dialog.getVirtualStartY();
+      backgroundWidth = dialog.getVirtualWidth();
+      backgroundHeight = dialog.getVirtualHeight();
+
+      backgroundImage = image;
+      backgroundImageFile = file;
+
+      return true;
+    }
+
+    private boolean analyzeBitmapForObstacles() {
+      if (backgroundImage == null) {
+        return false;
+      }
+
+      /* Show obstacle finder dialog */
+      ObstacleFinderDialog obstacleFinderDialog;
+      Container parentContainer = GUI.getTopParentContainer();
+      if (parentContainer instanceof Window) {
+        obstacleFinderDialog = new ObstacleFinderDialog(
+            backgroundImage, currentChannelModel, (Window) GUI.getTopParentContainer()
+        );
+      } else if (parentContainer instanceof Frame) {
+        obstacleFinderDialog = new ObstacleFinderDialog(
+            backgroundImage, currentChannelModel, (Frame) GUI.getTopParentContainer()
+        );
+      } else if (parentContainer instanceof Dialog) {
+        obstacleFinderDialog = new ObstacleFinderDialog(
+            backgroundImage, currentChannelModel, (Dialog) GUI.getTopParentContainer()
+        );
+      } else {
+        logger.fatal("Unknown parent container");
+        return false;
+      }
+
+      if (!obstacleFinderDialog.exitedOK) {
+        return false;
+      }
+
+      /* Register obstacles */
+      final boolean[][] obstacleArray = obstacleFinderDialog.obstacleArray;
+      final int boxSize = obstacleFinderDialog.sizeSlider.getValue();
+
+      // Create progress monitor
+      final ProgressMonitor pm = new ProgressMonitor(
+          GUI.getTopParentContainer(),
+          "Registering obstacles",
+          null,
+          0,
+          obstacleArray.length - 1
+      );
+
+      // Thread that will perform the work
+      final Runnable runnable = new Runnable() {
+        public void run() {
+          try {
+            /* Remove already existing obstacles */
+            currentChannelModel.removeAllObstacles();
+
+            int foundObstacles = 0;
+            for (int x=0; x < obstacleArray.length; x++) {
+              for (int y=0; y < (obstacleArray[0]).length; y++) {
+
+                if (obstacleArray[x][y]) {
+                  /* Register obstacle */
+                  double realWidth = (boxSize * backgroundWidth) / backgroundImage.getWidth(null);
+                  double realHeight = (boxSize * backgroundHeight) / backgroundImage.getHeight(null);
+                  double realStartX = backgroundStartX + x * realWidth;
+                  double realStartY = backgroundStartY + y * realHeight;
+
+                  foundObstacles++;
+
+                  if (realStartX + realWidth > backgroundStartX + backgroundWidth) {
+                    realWidth = backgroundStartX + backgroundWidth - realStartX;
+                  }
+                  if (realStartY + realHeight > backgroundStartY + backgroundHeight) {
+                    realHeight = backgroundStartY + backgroundHeight - realStartY;
+                  }
+
+                  currentChannelModel.addRectObstacle(
+                      realStartX, realStartY,
+                      realWidth, realHeight,
+                      false
+                  );
+                }
+              }
+
+              /* Check if user has aborted */
+              if (pm.isCanceled()) {
+                return;
+              }
+
+              /* Update progress monitor */
+              pm.setProgress(x);
+              pm.setNote("After/Before merging: " +
+                  currentChannelModel.getNumberOfObstacles() + "/" + foundObstacles);
+            }
+
+            currentChannelModel.notifySettingsChanged();
+            thisPlugin.repaint();
+
+          } catch (Exception ex) {
+            if (pm.isCanceled()) {
+              return;
+            }
+            logger.fatal("Obstacle adding exception: " + ex.getMessage());
+            ex.printStackTrace();
+            pm.close();
+            return;
+          }
+          pm.close();
+        }
+      };
+
+      /* Start thread */
+      Thread thread = new Thread(runnable);
+      thread.start();
+
+      return true;
+    }
+
   };
 
-  /**
-   * Helps user analyze a background for obstacles.
-   */
-  private ActionListener analyzeObstaclesHandler = new ActionListener() {
-    
-    class AnalyzeImageDialog extends JDialog {
-      
-      private NumberFormat intFormat = NumberFormat.getIntegerInstance();
-      private BufferedImage imageToAnalyze = null;
-      private BufferedImage obstacleImage = null;
-      private JPanel canvasPanel = null;
-      private boolean[][] obstacleArray = null;
-      private boolean exitedOK = false;
-      
-      private JSlider redSlider, greenSlider, blueSlider, toleranceSlider, sizeSlider;
-      
-      /**
-       * Listens to preview mouse motion event (when picking color)
-       */
-      private MouseMotionListener myMouseMotionListener = new MouseMotionListener() {
-        public void mouseDragged(MouseEvent e) {
-          
-        }
-        public void mouseMoved(MouseEvent e) {
-          // Convert from mouse to image pixel position
-          Point pixelPoint = new Point(
-              (int) (e.getX() * (((double) imageToAnalyze.getWidth()) / ((double) canvasPanel.getWidth()))),
-              (int) (e.getY() * (((double) imageToAnalyze.getHeight()) / ((double) canvasPanel.getHeight())))
-          );
-          
-          // Fetch color
-          int color = imageToAnalyze.getRGB(pixelPoint.x, pixelPoint.y);
-          int red = (color & 0x00ff0000) >> 16;
-          int green = (color & 0x0000ff00) >> 8;
-          int blue = color & 0x000000ff;
+  class ObstacleFinderDialog extends JDialog {
+    private NumberFormat intFormat = NumberFormat.getIntegerInstance();
+    private BufferedImage imageToAnalyze = null;
+    private BufferedImage obstacleImage = null;
+    private JPanel canvasPanel = null;
+    private boolean[][] obstacleArray = null;
+    private boolean exitedOK = false;
 
-          // Update sliders
-          redSlider.setValue(red);
-          redSlider.repaint();
-          greenSlider.setValue(green);
-          greenSlider.repaint();
-          blueSlider.setValue(blue);
-          blueSlider.repaint();
-        }
-      };
-      
-      /**
-       * Listens to preview mouse event (when picking color)
-       */
-      private MouseListener myMouseListener = new MouseListener() {
-        public void mouseClicked(MouseEvent e) {
-          
-        }
-        public void mouseReleased(MouseEvent e) {
-          
-        }
-        public void mouseEntered(MouseEvent e) {
-          
-        }
-        public void mouseExited(MouseEvent e) {
-          
-        }
-        public void mousePressed(MouseEvent e) {
-          // Stop picking color again; remove mouse listeners and reset mouse cursor
-          MouseListener[] allMouseListeners = canvasPanel.getMouseListeners();
-          for (MouseListener mouseListener: allMouseListeners)
-            canvasPanel.removeMouseListener(mouseListener);
-          
-          MouseMotionListener[] allMouseMotionListeners = canvasPanel.getMouseMotionListeners();
-          for (MouseMotionListener mouseMotionListener: allMouseMotionListeners)
-            canvasPanel.removeMouseMotionListener(mouseMotionListener);
+    private JSlider redSlider, greenSlider, blueSlider, toleranceSlider, sizeSlider;
 
-          canvasPanel.setCursor(Cursor.getDefaultCursor());
+    /**
+     * Listens to preview mouse motion event (when picking color)
+     */
+    private MouseMotionListener myMouseMotionListener = new MouseMotionListener() {
+      public void mouseDragged(MouseEvent e) {
+
+      }
+      public void mouseMoved(MouseEvent e) {
+        // Convert from mouse to image pixel position
+        Point pixelPoint = new Point(
+            (int) (e.getX() * (((double) imageToAnalyze.getWidth()) / ((double) canvasPanel.getWidth()))),
+            (int) (e.getY() * (((double) imageToAnalyze.getHeight()) / ((double) canvasPanel.getHeight())))
+        );
+
+        // Fetch color
+        int color = imageToAnalyze.getRGB(pixelPoint.x, pixelPoint.y);
+        int red = (color & 0x00ff0000) >> 16;
+        int green = (color & 0x0000ff00) >> 8;
+        int blue = color & 0x000000ff;
+
+        // Update sliders
+        redSlider.setValue(red);
+        redSlider.repaint();
+        greenSlider.setValue(green);
+        greenSlider.repaint();
+        blueSlider.setValue(blue);
+        blueSlider.repaint();
+      }
+    };
+
+    /**
+     * Listens to preview mouse event (when picking color)
+     */
+    private MouseListener myMouseListener = new MouseListener() {
+      public void mouseClicked(MouseEvent e) {
+
+      }
+      public void mouseReleased(MouseEvent e) {
+
+      }
+      public void mouseEntered(MouseEvent e) {
+
+      }
+      public void mouseExited(MouseEvent e) {
+
+      }
+      public void mousePressed(MouseEvent e) {
+        // Stop picking color again; remove mouse listeners and reset mouse cursor
+        MouseListener[] allMouseListeners = canvasPanel.getMouseListeners();
+        for (MouseListener mouseListener: allMouseListeners) {
+          canvasPanel.removeMouseListener(mouseListener);
         }
-      };
-      
+
+        MouseMotionListener[] allMouseMotionListeners = canvasPanel.getMouseMotionListeners();
+        for (MouseMotionListener mouseMotionListener: allMouseMotionListeners) {
+          canvasPanel.removeMouseMotionListener(mouseMotionListener);
+        }
+
+        canvasPanel.setCursor(Cursor.getDefaultCursor());
+      }
+    };
+
       /**
        * Creates a new dialog for settings background parameters
        */
-      protected AnalyzeImageDialog(Image currentImage, ChannelModel currentChannelModel, Frame owner) {
-        super(owner, "Analyze for obstacles");
-        
+      protected ObstacleFinderDialog(Image currentImage, ChannelModel currentChannelModel, Frame frame) {
+        super(frame, "Analyze for obstacles");
+        setupDialog(currentImage, currentChannelModel);
+      }
+      protected ObstacleFinderDialog(Image currentImage, ChannelModel currentChannelModel, Window window) {
+        super(window, "Analyze for obstacles");
+        setupDialog(currentImage, currentChannelModel);
+      }
+      protected ObstacleFinderDialog(Image currentImage, ChannelModel currentChannelModel, Dialog dialog) {
+        super(dialog, "Analyze for obstacles");
+        setupDialog(currentImage, currentChannelModel);
+      }
+
+      private void setupDialog(Image currentImage, ChannelModel currentChannelModel) {
+        JPanel mainPanel = new JPanel();
+        mainPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
         JPanel tempPanel;
         JLabel tempLabel;
         JSlider tempSlider;
         JButton tempButton;
-        
+
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         Dimension labelDimension = new Dimension(100, 20);
 
         // Convert Image to BufferedImage
         imageToAnalyze = new BufferedImage(
-            currentImage.getWidth(this), 
-            currentImage.getHeight(this), 
+            currentImage.getWidth(this),
+            currentImage.getHeight(this),
             BufferedImage.TYPE_INT_ARGB
         );
         Graphics2D g = imageToAnalyze.createGraphics();
@@ -1034,23 +1254,23 @@ public class AreaViewer extends VisPlugin {
 
         // Prepare initial obstacle image
         obstacleImage = new BufferedImage(
-            currentImage.getWidth(this), 
-            currentImage.getHeight(this), 
+            currentImage.getWidth(this),
+            currentImage.getHeight(this),
             BufferedImage.TYPE_INT_ARGB
         );
-        
+
         // Set layout and add components
         intFormat.setMinimumIntegerDigits(1);
         intFormat.setMaximumIntegerDigits(3);
         intFormat.setParseIntegerOnly(true);
-        setLayout(new BoxLayout(this.getContentPane(), BoxLayout.Y_AXIS));
-        
+        mainPanel.setLayout(new BoxLayout(mainPanel, BoxLayout.Y_AXIS));
+
         // Obstacle color
         tempPanel = new JPanel();
         tempPanel.setLayout(new BoxLayout(tempPanel, BoxLayout.X_AXIS));
         tempPanel.add(tempLabel = new JLabel("Obstacle"));
         tempLabel.setPreferredSize(labelDimension);
-        add(tempPanel);
+        mainPanel.add(tempPanel);
 
         tempPanel = new JPanel();
         tempPanel.setLayout(new BoxLayout(tempPanel, BoxLayout.X_AXIS));
@@ -1061,7 +1281,7 @@ public class AreaViewer extends VisPlugin {
         tempSlider.setMajorTickSpacing(50);
         tempSlider.setPaintTicks(true);
         tempSlider.setPaintLabels(true);
-        add(tempPanel);
+        mainPanel.add(tempPanel);
         redSlider = tempSlider;
 
         tempPanel = new JPanel();
@@ -1073,7 +1293,7 @@ public class AreaViewer extends VisPlugin {
         tempSlider.setMajorTickSpacing(50);
         tempSlider.setPaintTicks(true);
         tempSlider.setPaintLabels(true);
-        add(tempPanel);
+        mainPanel.add(tempPanel);
         greenSlider = tempSlider;
 
         tempPanel = new JPanel();
@@ -1085,7 +1305,7 @@ public class AreaViewer extends VisPlugin {
         tempSlider.setMajorTickSpacing(50);
         tempSlider.setPaintTicks(true);
         tempSlider.setPaintLabels(true);
-        add(tempPanel);
+        mainPanel.add(tempPanel);
         blueSlider = tempSlider;
 
         // Tolerance
@@ -1098,9 +1318,9 @@ public class AreaViewer extends VisPlugin {
         tempSlider.setMajorTickSpacing(25);
         tempSlider.setPaintTicks(true);
         tempSlider.setPaintLabels(true);
-        add(tempPanel);
+        mainPanel.add(tempPanel);
         toleranceSlider = tempSlider;
-        
+
         // Obstacle size
         tempPanel = new JPanel();
         tempPanel.setLayout(new BoxLayout(tempPanel, BoxLayout.X_AXIS));
@@ -1112,9 +1332,9 @@ public class AreaViewer extends VisPlugin {
         tempSlider.setMajorTickSpacing(5);
         tempSlider.setPaintTicks(true);
         tempSlider.setPaintLabels(true);
-        add(tempPanel);
+        mainPanel.add(tempPanel);
         sizeSlider = tempSlider;
-        
+
         // Buttons: Pick color, Preview obstacles etc.
         tempPanel = new JPanel();
         tempPanel.setLayout(new BoxLayout(tempPanel, BoxLayout.X_AXIS));
@@ -1138,9 +1358,9 @@ public class AreaViewer extends VisPlugin {
             canvasPanel.repaint();
           }
         });
-        add(tempPanel);
+        mainPanel.add(tempPanel);
 
-        add(Box.createVerticalStrut(10));
+        mainPanel.add(Box.createVerticalStrut(10));
 
         // Preview image
         tempPanel = new JPanel() {
@@ -1155,9 +1375,9 @@ public class AreaViewer extends VisPlugin {
                 BorderFactory.createLineBorder(Color.BLACK), "Preview"));
         tempPanel.setPreferredSize(new Dimension(400, 400));
         tempPanel.setBackground(Color.CYAN);
-        add(tempPanel);
+        mainPanel.add(tempPanel);
         canvasPanel = tempPanel; // Saved in canvasPanel
-        
+
         // Buttons: Cancel, OK
         tempPanel = new JPanel();
         tempPanel.setLayout(new BoxLayout(tempPanel, BoxLayout.X_AXIS));
@@ -1177,16 +1397,30 @@ public class AreaViewer extends VisPlugin {
             dispose();
           }
         });
-        add(tempPanel);
+        mainPanel.add(tempPanel);
 
+        mainPanel.add(Box.createVerticalGlue());
+        mainPanel.add(Box.createVerticalStrut(10));
 
-        add(Box.createVerticalGlue());
-        add(Box.createVerticalStrut(10));
-        
+        add(mainPanel);
+
         // Show dialog
         setModal(true);
         pack();
-        setLocationRelativeTo(owner);
+        setLocationRelativeTo(this.getParent());
+
+        /* Make sure dialog is not too big */
+        Rectangle maxSize = GraphicsEnvironment.getLocalGraphicsEnvironment().getMaximumWindowBounds();
+        if (maxSize != null &&
+            (getSize().getWidth() > maxSize.getWidth() ||
+                getSize().getHeight() > maxSize.getHeight())) {
+          Dimension newSize = new Dimension();
+          newSize.height = Math.min((int) maxSize.getHeight(),
+              (int) getSize().getHeight());
+          newSize.width = Math.min((int) maxSize.getWidth(),
+              (int) getSize().getWidth());
+          setSize(newSize);
+        }
         setVisible(true);
       }
 
@@ -1194,16 +1428,16 @@ public class AreaViewer extends VisPlugin {
        * Create obstacle image by analyzing current background image
        * and using the current obstacle color, size and tolerance.
        * This method also creates the boolean array obstacleArray.
-       * 
+       *
        * @return New obstacle image
        */
       private BufferedImage createObstacleImage() {
         int nrObstacles = 0;
-        
+
         // Create new obstacle image all transparent (no obstacles)
         BufferedImage newObstacleImage = new BufferedImage(
-            imageToAnalyze.getWidth(), 
-            imageToAnalyze.getHeight(), 
+            imageToAnalyze.getWidth(),
+            imageToAnalyze.getHeight(),
             BufferedImage.TYPE_INT_ARGB
         );
         for (int x=0; x < imageToAnalyze.getWidth(); x++) {
@@ -1211,7 +1445,7 @@ public class AreaViewer extends VisPlugin {
             newObstacleImage.setRGB(x, y, 0x00000000);
           }
         }
-        
+
         // Get target color to match against
         int targetRed = redSlider.getValue();
         int targetGreen = greenSlider.getValue();
@@ -1220,7 +1454,7 @@ public class AreaViewer extends VisPlugin {
         // Get obstacle resolution and size
         int boxSize = sizeSlider.getValue();
         int tolerance = toleranceSlider.getValue();
-        
+
         // Divide image into boxes and check each box for obstacles
         int arrayWidth = (int) Math.ceil((double) imageToAnalyze.getWidth() / (double) boxSize);
         int arrayHeight = (int) Math.ceil((double) imageToAnalyze.getHeight() / (double) boxSize);
@@ -1229,7 +1463,7 @@ public class AreaViewer extends VisPlugin {
         for (int x=0; x < imageToAnalyze.getWidth(); x+=boxSize) {
           for (int y=0; y < imageToAnalyze.getHeight(); y+=boxSize) {
             boolean boxIsObstacle = false;
-            
+
             // Check all pixels in box for obstacles
             for (int xx=x; xx < x + boxSize && xx < imageToAnalyze.getWidth(); xx++) {
               for (int yy=y; yy < y + boxSize && yy < imageToAnalyze.getHeight(); yy++) {
@@ -1239,21 +1473,22 @@ public class AreaViewer extends VisPlugin {
                 int red = (color & 0x00ff0000) >> 16;
                 int green = (color & 0x0000ff00) >> 8;
                 int blue = color & 0x000000ff;
-            
+
                 // Calculate difference from target color
                 int difference =
-                  Math.abs(red - targetRed) + 
+                  Math.abs(red - targetRed) +
                   Math.abs(green - targetGreen) +
                   Math.abs(blue - targetBlue);
-            
+
                 // If difference is small enough make this box an obstacle
                 if (difference <= tolerance) {
                   boxIsObstacle = true;
                   break;
                 }
               }
-              if (boxIsObstacle)
+              if (boxIsObstacle) {
                 break;
+              }
             }
 
             // If box is obstacle, colorize it
@@ -1267,110 +1502,19 @@ public class AreaViewer extends VisPlugin {
                   newObstacleImage.setRGB(xx, yy, 0x9922ff22);
                 }
               }
-            } else
+            } else {
               obstacleArray[x/boxSize][y/boxSize] = false;
+            }
 
-            
+
           }
         } // End of "divide into boxes" for-loop
-        
+
         return newObstacleImage;
       }
 
     }
-    public void actionPerformed(ActionEvent e) {
-      if (e.getActionCommand().equals("analyze for obstacles")) {
-        if (backgroundImage == null)
-          return;
-        
-        AnalyzeImageDialog analyzer = new AnalyzeImageDialog(
-            backgroundImage, 
-            currentChannelModel, 
-            GUI.frame
-        );
-        
-        // Check return value from analyzer
-        if (analyzer.exitedOK) {
-          // Remove old obstacle and register new
-          final boolean[][] obstacleArray = analyzer.obstacleArray;
 
-          final int boxSize = analyzer.sizeSlider.getValue();
-          
-          // Create progress monitor
-          final ProgressMonitor pm = new ProgressMonitor(
-              GUI.frame,
-              "Registering obstacles",
-              null,
-              0,
-              obstacleArray.length - 1
-          );
-
-          // Thread that will perform the work
-          final Runnable runnable = new Runnable() { 
-            public void run() { 
-              try {
-                int foundObstacles = 0;
-                
-                // Clear all old obstacles
-                currentChannelModel.removeAllObstacles();
-
-                for (int x=0; x < obstacleArray.length; x++) {
-                  for (int y=0; y < (obstacleArray[0]).length; y++) {
-                    // If obstacle, register it
-                    if (obstacleArray[x][y]) {
-                      double realWidth = ((double) boxSize * backgroundWidth) / (double) backgroundImage.getWidth(null);
-                      double realHeight = ((double) boxSize * backgroundHeight) / (double) backgroundImage.getHeight(null);
-                      double realStartX = backgroundStartX + (double) x * realWidth;
-                      double realStartY = backgroundStartY + (double) y * realHeight;
-
-                      foundObstacles++;
-                      
-                      if (realStartX + realWidth > backgroundStartX + backgroundWidth)
-                        realWidth = backgroundStartX + backgroundWidth - realStartX;
-                      if (realStartY + realHeight > backgroundStartY + backgroundHeight)
-                        realHeight = backgroundStartY + backgroundHeight - realStartY;
-
-                      currentChannelModel.addRectObstacle(
-                          realStartX, 
-                          realStartY, 
-                          realWidth,
-                          realHeight, 
-                          false
-                      );
-                    }
-                  }
-                  // Check if the dialog has been cancelled
-                  if (pm.isCanceled()) return;
-                  
-                  // Update progress
-                  pm.setProgress(x);
-                  pm.setNote("After/Before merging: " + 
-                      currentChannelModel.getNumberOfObstacles() + 
-                      "/" +
-                      foundObstacles);
-                }
-                currentChannelModel.notifySettingsChanged();
-                
-                thisPlugin.repaint();
-                
-              } catch (Exception ex) {
-                if (pm.isCanceled()) return;
-                logger.fatal("Obstacle adding aborted..: ");
-                ex.printStackTrace();
-                pm.close();
-              }
-              pm.close();
-            } 
-          };
-          
-          // Start thread
-          Thread thread = new Thread(runnable);
-          thread.start();
-        }
-      }
-    }
-  };
-    
   /**
    * Listens to settings changes in the radio medium.
    */
@@ -1382,7 +1526,7 @@ public class AreaViewer extends VisPlugin {
       canvas.repaint();
     }
   };
-  
+
   /**
    * Listens to settings changes in the radio medium.
    */
@@ -1392,7 +1536,7 @@ public class AreaViewer extends VisPlugin {
       canvas.repaint();
     }
   };
-  
+
   /**
    * Listens to settings changes in the channel model.
    */
@@ -1402,10 +1546,10 @@ public class AreaViewer extends VisPlugin {
       canvas.repaint();
     }
   };
-  
+
   /**
    * Returns a color corresponding to given value where higher values are more green, and lower values are more red.
-   * 
+   *
    * @param value Signal strength of received signal (dB)
    * @param lowBorder
    * @param highBorder
@@ -1416,7 +1560,7 @@ public class AreaViewer extends VisPlugin {
     double lowerLimit = lowBorder; // Bad signal adds red
     double intervalSize = (upperLimit - lowerLimit) / 2;
     double middleValue = lowerLimit + (upperLimit - lowerLimit) / 2;
-    
+
     if (value > highBorder) {
       return 0xCC00FF00;
     }
@@ -1424,9 +1568,9 @@ public class AreaViewer extends VisPlugin {
     if (value < lowerLimit) {
       return 0xCCFF0000;
     }
-    
+
     int red = 0, green = 0, blue = 0, alpha = 0xCC;
-    
+
     // Upper limit (green)
     if (value > upperLimit - intervalSize) {
       green = (int) (255 - 255*(upperLimit - value)/intervalSize);
@@ -1444,7 +1588,7 @@ public class AreaViewer extends VisPlugin {
 
     return (alpha << 24) | (red << 16) | (green << 8) | blue;
   }
-  
+
   /**
    * Helps user adjust and calculate the channel propagation formula
    */
@@ -1465,7 +1609,7 @@ public class AreaViewer extends VisPlugin {
           return;
         }
 
-        // Get new location/size of area to attenuate 
+        // Get new location/size of area to attenuate
         final double startX = -currentPanX;
         final double startY = -currentPanY;
         final double width = canvas.getWidth() / currentZoomX;
@@ -1478,28 +1622,28 @@ public class AreaViewer extends VisPlugin {
 
         // Create temporary image
         final BufferedImage tempChannelImage = new BufferedImage(resolution.width, resolution.height, BufferedImage.TYPE_INT_ARGB);
-        
+
         // Save time for later analysis
         final long timeBeforeCalculating = System.currentTimeMillis();
-        
+
         // Create progress monitor
         final ProgressMonitor pm = new ProgressMonitor(
-            GUI.frame,
+            GUI.getTopParentContainer(),
             "Calculating channel attenuation",
             null,
             0,
             resolution.width - 1
         );
-        
+
         // Thread that will perform the work
-        final Runnable runnable = new Runnable() { 
-          public void run() { 
+        final Runnable runnable = new Runnable() {
+          public void run() {
             try {
 
               // Available signal strength intervals
               double lowestImageValue = Double.MAX_VALUE;
               double highestImageValue = -Double.MAX_VALUE;
-              
+
               // Create image values (calculate each pixel)
               double[][] imageValues = new double[resolution.width][resolution.height];
               for (int x=0; x < resolution.width; x++) {
@@ -1510,51 +1654,57 @@ public class AreaViewer extends VisPlugin {
                     double[] signalStrength = currentChannelModel.getReceivedSignalStrength(
                         radioX,
                         radioY,
-                        startX + width * x/(double) resolution.width,
-                        startY + height * y/(double) resolution.height
+                        startX + width * x/resolution.width,
+                        startY + height * y/resolution.height
                     );
-                    
+
                     // Collecting signal strengths
-                    if (signalStrength[0] < lowestImageValue)
+                    if (signalStrength[0] < lowestImageValue) {
                       lowestImageValue = signalStrength[0];
-                    if (signalStrength[0] > highestImageValue)
+                    }
+                    if (signalStrength[0] > highestImageValue) {
                       highestImageValue = signalStrength[0];
-                    
+                    }
+
                     imageValues[x][y] = signalStrength[0];
-                    
+
                   } else if (dataTypeToVisualize == ChannelModel.TransmissionData.SIGNAL_STRENGTH_VAR) {
                     // Attenuate
                     double[] signalStrength = currentChannelModel.getReceivedSignalStrength(
                         radioX,
                         radioY,
-                        startX + width * x/(double) resolution.width,
-                        startY + height * y/(double) resolution.height
+                        startX + width * x/resolution.width,
+                        startY + height * y/resolution.height
                     );
-                    
+
                     // Collecting variances
-                    if (signalStrength[1] < lowestImageValue)
+                    if (signalStrength[1] < lowestImageValue) {
                       lowestImageValue = signalStrength[1];
-                    if (signalStrength[1] > highestImageValue)
+                    }
+                    if (signalStrength[1] > highestImageValue) {
                       highestImageValue = signalStrength[1];
-                    
+                    }
+
                     imageValues[x][y] = signalStrength[1];
-                    
+
                   } else if (dataTypeToVisualize == ChannelModel.TransmissionData.SNR) {
                     // Get signal to noise ratio
                     double[] snr = currentChannelModel.getSINR(
                         radioX,
                         radioY,
-                        startX + width * x/(double) resolution.width,
-                        startY + height * y/(double) resolution.height,
+                        startX + width * x/resolution.width,
+                        startY + height * y/resolution.height,
                         -Double.MAX_VALUE
                     );
-                    
+
                     // Collecting signal to noise ratio
-                    if (snr[0] < lowestImageValue)
+                    if (snr[0] < lowestImageValue) {
                       lowestImageValue = snr[0];
-                    if (snr[0] > highestImageValue)
+                    }
+                    if (snr[0] > highestImageValue) {
                       highestImageValue = snr[0];
-                    
+                    }
+
                     imageValues[x][y] = snr[0];
 
                   } else if (dataTypeToVisualize == ChannelModel.TransmissionData.SNR_VAR) {
@@ -1562,59 +1712,67 @@ public class AreaViewer extends VisPlugin {
                     double[] snr = currentChannelModel.getSINR(
                         radioX,
                         radioY,
-                        startX + width * x/(double) resolution.width,
-                        startY + height * y/(double) resolution.height,
+                        startX + width * x/resolution.width,
+                        startY + height * y/resolution.height,
                         -Double.MAX_VALUE
                     );
-                    
+
                     // Collecting variances
-                    if (snr[1] < lowestImageValue)
+                    if (snr[1] < lowestImageValue) {
                       lowestImageValue = snr[1];
-                    if (snr[1] > highestImageValue)
+                    }
+                    if (snr[1] > highestImageValue) {
                       highestImageValue = snr[1];
-                    
+                    }
+
                     imageValues[x][y] = snr[1];
                   } else if (dataTypeToVisualize == ChannelModel.TransmissionData.PROB_OF_RECEPTION) {
                     // Get probability of receiving a packet TODO What size? Does it matter?
                     double probability = currentChannelModel.getProbability(
                         radioX,
                         radioY,
-                        startX + width * x/(double) resolution.width,
-                        startY + height * y/(double) resolution.height,
+                        startX + width * x/resolution.width,
+                        startY + height * y/resolution.height,
                         -Double.MAX_VALUE
                     )[0];
-                    
+
                     // Collecting variances
-                    if (probability < lowestImageValue)
+                    if (probability < lowestImageValue) {
                       lowestImageValue = probability;
-                    if (probability > highestImageValue)
+                    }
+                    if (probability > highestImageValue) {
                       highestImageValue = probability;
-                    
+                    }
+
                     imageValues[x][y] = probability;
                   } else if (dataTypeToVisualize == ChannelModel.TransmissionData.DELAY_SPREAD_RMS) {
                     // Get RMS delay spread of receiving a packet
                     double rmsDelaySpread = currentChannelModel.getRMSDelaySpread(
                         radioX,
                         radioY,
-                        startX + width * x/(double) resolution.width,
-                        startY + height * y/(double) resolution.height
+                        startX + width * x/resolution.width,
+                        startY + height * y/resolution.height
                     );
-                    
+
                     // Collecting variances
-                    if (rmsDelaySpread < lowestImageValue)
+                    if (rmsDelaySpread < lowestImageValue) {
                       lowestImageValue = rmsDelaySpread;
-                    if (rmsDelaySpread > highestImageValue)
+                    }
+                    if (rmsDelaySpread > highestImageValue) {
                       highestImageValue = rmsDelaySpread;
-                    
+                    }
+
                     imageValues[x][y] = rmsDelaySpread;
                   }
-                  
-                  // Check if the dialog has been cancelled
-                  if (pm.isCanceled()) return;
-                  
+
+                  // Check if the dialog has been canceled
+                  if (pm.isCanceled()) {
+                    return;
+                  }
+
                   // Update progress
                   pm.setProgress(x);
-                  
+
                 }
               }
 
@@ -1640,24 +1798,24 @@ public class AreaViewer extends VisPlugin {
                   highestImageValue = 5;
                 }
               }
-              
+
               // Save coloring high-low interval
               coloringHighest = highestImageValue;
               coloringLowest = lowestImageValue;
-              
+
               // Create image
               for (int x=0; x < resolution.width; x++) {
                 for (int y=0; y < resolution.height; y++) {
-                  
+
                   tempChannelImage.setRGB(
-                      x, 
-                      y, 
+                      x,
+                      y,
                       getColorOfSignalStrength(imageValues[x][y], lowestImageValue, highestImageValue)
                   );
                 }
               }
               logger.info("Attenuating area done, time=" + (System.currentTimeMillis() - timeBeforeCalculating));
-              
+
               // Repaint to show the new channel propagation
               channelStartX = startX;
               channelStartY = startY;
@@ -1667,17 +1825,19 @@ public class AreaViewer extends VisPlugin {
 
               thisPlugin.repaint();
               coloringIntervalPanel.repaint();
-              
+
             } catch (Exception ex) {
-              if (pm.isCanceled()) return;
+              if (pm.isCanceled()) {
+                return;
+              }
               logger.fatal("Attenuation aborted: " + ex);
               ex.printStackTrace();
               pm.close();
             }
             pm.close();
-          } 
+          }
         };
-        
+
         // Start thread
         attenuatorThread = new Thread(runnable);
         attenuatorThread.start();
@@ -1685,7 +1845,7 @@ public class AreaViewer extends VisPlugin {
     }
   };
 
-  /** 
+  /**
    * Repaint the canvas
    * @param g2d Current graphics to paint on
    */
@@ -1698,19 +1858,19 @@ public class AreaViewer extends VisPlugin {
     AffineTransform realWorldTransform = g2d.getTransform();
     g2d.scale(0.01, 0.01);
     AffineTransform realWorldTransformScaled = g2d.getTransform();
-    
+
     // -- Draw background image if any --
     if (drawBackgroundImage && backgroundImage != null) {
       g2d.setTransform(realWorldTransformScaled);
-      
+
       g2d.drawImage(backgroundImage,
-          (int) ((double) backgroundStartX * 100.0),
-          (int) ((double) backgroundStartY * 100.0),
-          (int) ((double) backgroundWidth * 100.0),
-          (int) ((double) backgroundHeight * 100.0),
+          (int) (backgroundStartX * 100.0),
+          (int) (backgroundStartY * 100.0),
+          (int) (backgroundWidth * 100.0),
+          (int) (backgroundHeight * 100.0),
           this);
     }
-    
+
     // -- Draw calculated obstacles --
     if (drawCalculatedObstacles) {
 
@@ -1728,55 +1888,60 @@ public class AreaViewer extends VisPlugin {
 
           double tempVal = 0;
           for (int i=0; i < currentChannelModel.getNumberOfObstacles(); i++) {
-            if ((tempVal = currentChannelModel.getObstacle(i).getMinX()) < obstacleStartX)
+            if ((tempVal = currentChannelModel.getObstacle(i).getMinX()) < obstacleStartX) {
               obstacleStartX = tempVal;
-            if ((tempVal = currentChannelModel.getObstacle(i).getMinY()) < obstacleStartY)
+            }
+            if ((tempVal = currentChannelModel.getObstacle(i).getMinY()) < obstacleStartY) {
               obstacleStartY = tempVal;
-            if ((tempVal = currentChannelModel.getObstacle(i).getMaxX()) > obstacleWidth)
+            }
+            if ((tempVal = currentChannelModel.getObstacle(i).getMaxX()) > obstacleWidth) {
               obstacleWidth = tempVal;
-            if ((tempVal = currentChannelModel.getObstacle(i).getMaxY()) > obstacleHeight)
+            }
+            if ((tempVal = currentChannelModel.getObstacle(i).getMaxY()) > obstacleHeight) {
               obstacleHeight = tempVal;
+            }
           }
           obstacleWidth -= obstacleStartX;
           obstacleHeight -= obstacleStartY;
 
           // Create new obstacle image
           BufferedImage tempObstacleImage;
-          if (backgroundImage != null)
+          if (backgroundImage != null) {
             tempObstacleImage = new BufferedImage(
                 Math.max(600, backgroundImage.getWidth(null)),
                 Math.max(600, backgroundImage.getHeight(null)),
                 BufferedImage.TYPE_INT_ARGB
             );
-          else
+          } else {
             tempObstacleImage = new BufferedImage(
                 600,
                 600,
                 BufferedImage.TYPE_INT_ARGB
             );
-            
+          }
+
           Graphics2D obstacleGraphics = (Graphics2D) tempObstacleImage.getGraphics();
 
           // Set real world transform
           obstacleGraphics.scale(
-              (double) tempObstacleImage.getWidth()/obstacleWidth,
-              (double) tempObstacleImage.getHeight()/obstacleHeight
+              tempObstacleImage.getWidth()/obstacleWidth,
+              tempObstacleImage.getHeight()/obstacleHeight
           );
           obstacleGraphics.translate(-obstacleStartX, -obstacleStartY);
 
-          
+
           // Paint all obstacles
           obstacleGraphics.setColor(new Color(0, 0, 0, 128));
 
           // DEBUG: Use random obstacle color to distinguish different obstacles
           //Random random = new Random();
-          
+
           for (int i=0; i < currentChannelModel.getNumberOfObstacles(); i++) {
             //obstacleGraphics.setColor((new Color(random.nextInt(255), random.nextInt(255), random.nextInt(255), 128)));
             obstacleGraphics.fill(currentChannelModel.getObstacle(i));
           }
           obstacleImage = tempObstacleImage;
- 
+
         } else {
 
           // No obstacles exist - create dummy obstacle image
@@ -1790,33 +1955,33 @@ public class AreaViewer extends VisPlugin {
               BufferedImage.TYPE_INT_ARGB
           );
         }
-        
+
         needToRepaintObstacleImage = false;
       }
-      
+
       // Painting in real world coordinates
       g2d.setTransform(realWorldTransformScaled);
-      
+
       g2d.drawImage(obstacleImage,
-          (int) ((double) obstacleStartX * 100.0),
-          (int) ((double) obstacleStartY * 100.0),
-          (int) ((double) obstacleWidth * 100.0),
-          (int) ((double) obstacleHeight * 100.0),
-          this); 
+          (int) (obstacleStartX * 100.0),
+          (int) (obstacleStartY * 100.0),
+          (int) (obstacleWidth * 100.0),
+          (int) (obstacleHeight * 100.0),
+          this);
     }
-    
+
     // -- Draw channel probabilities if calculated --
     if (drawChannelProbabilities && channelImage != null) {
       g2d.setTransform(realWorldTransformScaled);
 
       g2d.drawImage(channelImage,
-          (int) ((double) channelStartX * 100.0),
-          (int) ((double) channelStartY * 100.0),
-          (int) ((double) channelWidth * 100.0),
-          (int) ((double) channelHeight * 100.0),
-          this); 
+          (int) (channelStartX * 100.0),
+          (int) (channelStartY * 100.0),
+          (int) (channelWidth * 100.0),
+          (int) (channelHeight * 100.0),
+          this);
     }
-    
+
     // -- Draw radios --
     if (drawRadios) {
       for (int i=0; i < currentRadioMedium.getRegisteredRadioCount(); i++) {
@@ -1843,21 +2008,21 @@ public class AreaViewer extends VisPlugin {
           g2d.fillRect(
               (int) xPos - antennaImage.getWidth(this)/2,
               (int) yPos - antennaImage.getHeight(this)/2,
-              (int) antennaImage.getWidth(this),
-              (int) antennaImage.getHeight(this)
+              antennaImage.getWidth(this),
+              antennaImage.getHeight(this)
           );
           g2d.setColor(Color.BLUE);
           g2d.drawRect(
               (int) xPos - antennaImage.getWidth(this)/2,
               (int) yPos - antennaImage.getHeight(this)/2,
-              (int) antennaImage.getWidth(this),
-              (int) antennaImage.getHeight(this)
+              antennaImage.getWidth(this),
+              antennaImage.getHeight(this)
           );
         }
 
         g2d.drawImage(antennaImage, (int) xPos - antennaImage.getWidth(this)/2, (int) yPos - antennaImage.getHeight(this)/2, this);
 
-      } 
+      }
     }
 
     // -- Draw radio activity --
@@ -1868,7 +2033,7 @@ public class AreaViewer extends VisPlugin {
         // Paint scaled (otherwise bad rounding to integers may occur)
         g2d.setTransform(realWorldTransformScaled);
         g2d.setStroke(new BasicStroke((float) 0.0));
-        
+
         for (Radio receivingRadio: connection.getDestinations()) {
           g2d.setColor(Color.GREEN);
 
@@ -1896,10 +2061,10 @@ public class AreaViewer extends VisPlugin {
               destinationPosition.getYCoordinate()*100.0
           ));
         }
-        
+
         g2d.setColor(Color.BLUE);
         g2d.setTransform(realWorldTransform);
-       
+
         g2d.translate(
             sourcePosition.getXCoordinate(),
             sourcePosition.getYCoordinate()
@@ -1915,8 +2080,8 @@ public class AreaViewer extends VisPlugin {
         g2d.fillOval(
             (int) xPos,
             (int) yPos,
-            (int) 5,
-            (int) 5
+            5,
+            5
         );
 
       }
@@ -1927,25 +2092,30 @@ public class AreaViewer extends VisPlugin {
       g2d.setStroke(new BasicStroke((float) .0));
 
       g2d.setColor(Color.BLACK);
-      
+
       // Decide on scale comparator
       double currentArrowDistance = 0.1; // in meters
-      if (currentZoomX < canvas.getWidth() / 2)
+      if (currentZoomX < canvas.getWidth() / 2) {
         currentArrowDistance = 0.1; // 0.1m
-      if (currentZoomX < canvas.getWidth() / 2)
+      }
+      if (currentZoomX < canvas.getWidth() / 2) {
         currentArrowDistance = 1; // 1m
-      if (10 * currentZoomX < canvas.getWidth() / 2)
+      }
+      if (10 * currentZoomX < canvas.getWidth() / 2) {
         currentArrowDistance = 10; // 10m
-      if (100 * currentZoomX < canvas.getWidth() / 2)
+      }
+      if (100 * currentZoomX < canvas.getWidth() / 2) {
         currentArrowDistance = 100; // 100m
-      if (1000 * currentZoomX < canvas.getWidth() / 2)
+      }
+      if (1000 * currentZoomX < canvas.getWidth() / 2) {
         currentArrowDistance = 1000; // 100m
-      
+      }
+
       // "Arrow" points
       int pixelArrowLength = (int) (currentArrowDistance * currentZoomX);
-      int xPoints[] = new int[] { -pixelArrowLength, -pixelArrowLength, -pixelArrowLength, 0, 0, 0 };   
+      int xPoints[] = new int[] { -pixelArrowLength, -pixelArrowLength, -pixelArrowLength, 0, 0, 0 };
       int yPoints[] = new int[] { -5, 5, 0, 0, -5, 5 };
-      
+
       // Paint arrow and text
       g2d.setTransform(originalTransform);
       g2d.translate(canvas.getWidth() - 120, canvas.getHeight() - 20);
@@ -1968,36 +2138,37 @@ public class AreaViewer extends VisPlugin {
             originalLine.getX2()*100.0,
             originalLine.getY2()*100.0
         );
-            
+
         g2d.draw(newLine);
       }
     }
-    
+
     g2d.setTransform(originalTransform);
   }
-  
+
   /**
    * Tracks an on-screen position and returns all hit radios.
    * May for example be used by a mouse listener to determine
    * if user clicked on a radio.
-   * 
+   *
    * @param clickedPoint On-screen position
    * @return All hit radios
    */
   protected Vector<Radio> trackClickedRadio(Point clickedPoint) {
     Vector<Radio> hitRadios = new Vector<Radio>();
-    if (currentRadioMedium.getRegisteredRadioCount() == 0)
+    if (currentRadioMedium.getRegisteredRadioCount() == 0) {
       return null;
+    }
 
-    double realIconHalfWidth = antennaImage.getWidth(this) / (currentZoomX*2.0); 
-    double realIconHalfHeight = antennaImage.getHeight(this) / (currentZoomY*2.0); 
-    double realClickedX = clickedPoint.x / currentZoomX - currentPanX; 
-    double realClickedY = clickedPoint.y / currentZoomY - currentPanY; 
+    double realIconHalfWidth = antennaImage.getWidth(this) / (currentZoomX*2.0);
+    double realIconHalfHeight = antennaImage.getHeight(this) / (currentZoomY*2.0);
+    double realClickedX = clickedPoint.x / currentZoomX - currentPanX;
+    double realClickedY = clickedPoint.y / currentZoomY - currentPanY;
 
     for (int i=0; i < currentRadioMedium.getRegisteredRadioCount(); i++) {
       Radio testRadio = currentRadioMedium.getRegisteredRadio(i);
       Position testPosition = currentRadioMedium.getRadioPosition(testRadio);
-      
+
       if (realClickedX > testPosition.getXCoordinate() - realIconHalfWidth &&
           realClickedX < testPosition.getXCoordinate() + realIconHalfWidth &&
           realClickedY > testPosition.getYCoordinate() - realIconHalfHeight &&
@@ -2006,8 +2177,9 @@ public class AreaViewer extends VisPlugin {
       }
     }
 
-    if (hitRadios.size() == 0)
+    if (hitRadios.size() == 0) {
       return null;
+    }
     return hitRadios;
   }
 
@@ -2032,11 +2204,11 @@ public class AreaViewer extends VisPlugin {
       logger.fatal("Could not remove observer: " + radioMediumActivityObserver);
     }
   }
-  
+
 
   /**
    * Returns XML elements representing the current configuration.
-   * 
+   *
    * @see #setConfigXML(Collection)
    * @return XML element collection
    */
@@ -2082,7 +2254,7 @@ public class AreaViewer extends VisPlugin {
     element = new Element("show_arrow");
     element.setText(Boolean.toString(drawScaleArrow));
     config.add(element);
-    
+
     // Visualization type
     element = new Element("vis_type");
     element.setText(visTypeSelectionGroup.getSelection().getActionCommand());
@@ -2093,7 +2265,7 @@ public class AreaViewer extends VisPlugin {
       element = new Element("background_image");
       element.setText(backgroundImageFile.getPath());
       config.add(element);
-      
+
       element = new Element("back_start_x");
       element.setText(Double.toString(backgroundStartX));
       config.add(element);
@@ -2118,7 +2290,7 @@ public class AreaViewer extends VisPlugin {
 
   /**
    * Sets the configuration depending on the given XML elements.
-   * 
+   *
    * @see #getConfigXML()
    * @param configXML
    *          Config XML elements
@@ -2179,7 +2351,7 @@ public class AreaViewer extends VisPlugin {
         if (backgroundImageFile.exists()) {
           Toolkit toolkit = Toolkit.getDefaultToolkit();
           backgroundImage = toolkit.getImage(backgroundImageFile.getAbsolutePath());
-          
+
           MediaTracker tracker = new MediaTracker(canvas);
           tracker.addImage(backgroundImage, 1);
 
@@ -2189,7 +2361,7 @@ public class AreaViewer extends VisPlugin {
             logger.fatal("Interrupted during image loading, aborting");
             backgroundImage = null;
           }
-          
+
         }
       } else if (element.getName().equals("back_start_x")) {
         backgroundStartX = Double.parseDouble(element.getText());
@@ -2207,7 +2379,7 @@ public class AreaViewer extends VisPlugin {
     }
 
     canvas.repaint();
-    return true;    
+    return true;
   }
 
 
