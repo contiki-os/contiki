@@ -30,7 +30,7 @@
  *
  * Author: Oliver Schmidt <ol.sc@web.de>
  *
- * @(#)$Id: 6502def.h,v 1.9 2008/01/01 19:47:03 oliverschmidt Exp $
+ * @(#)$Id: 6502def.h,v 1.10 2008/02/16 08:56:29 oliverschmidt Exp $
  */
 
 #ifndef __6502DEF_H__
@@ -53,6 +53,9 @@ typedef int32_t  s32_t;
 
 #define CCIF
 #define CLIF
+
+#define HAVE_SNPRINTF
+#define snprintf(buf, len, ...) sprintf(buf, __VA_ARGS__)
 
 #define CLOCK_CONF_SECOND 2
 typedef unsigned short clock_time_t;
