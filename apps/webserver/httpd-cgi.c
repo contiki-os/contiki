@@ -28,7 +28,7 @@
  *
  * This file is part of the uIP TCP/IP stack.
  *
- * $Id: httpd-cgi.c,v 1.10 2007/11/25 18:39:06 oliverschmidt Exp $
+ * $Id: httpd-cgi.c,v 1.11 2008/02/17 13:59:22 oliverschmidt Exp $
  *
  */
 
@@ -42,6 +42,8 @@
  *
  */
 
+#include <stdio.h>
+#include <string.h>
 
 #include "contiki-net.h"
 #include "httpd.h"
@@ -50,24 +52,7 @@
 
 #include "lib/petsciiconv.h"
 
-#include <stdio.h>
-#include <string.h>
-
-
 static struct httpd_cgi_call *calls = NULL;
-
-/*struct cgifunction {
-  char *name;
-  httpd_cgifunction function;
-};
-
-static struct cgifunction cgitab[] = {
-  {"file-stats", file_stats},
-  {"tcp-connections", tcp_stats},
-  {"processes", processes},
-  {NULL, NULL}
-  };*/
-
 
 static const char closed[] =   /*  "CLOSED",*/
 {0x43, 0x4c, 0x4f, 0x53, 0x45, 0x44, 0};
@@ -97,14 +82,11 @@ static const char last_ack[] = /*  "LAST-ACK"*/
  0x4b, 0};
 static const char none[] = /*  "NONE"*/
 {0x4e, 0x4f, 0x4e, 0x45, 0};
-static const char init[] = /*  "INIT"*/
-{0x49, 0x4e, 0x49, 0x54, 0};
 static const char running[] = /*  "RUNNING"*/
 {0x52, 0x55, 0x4e, 0x4e, 0x49, 0x4e, 0x47,
  0};
-static const char needs_poll[] = /*  "NEEDS POLL"*/
-{0x4e, 0x45, 0x45, 0x44, 0x53, 0x20, 0x50,
- 0x4f, 0x4c, 0x4c, 0};
+static const char called[] = /*  "CALLED"*/
+{0x43, 0x41, 0x4c, 0x4c, 0x45, 0x44, 0};
 static const char file_name[] = /*  "file-stats"*/
 {0x66, 0x69, 0x6c, 0x65, 0x2d, 0x73, 0x74,
  0x61, 0x74, 0x73, 0};
@@ -127,10 +109,8 @@ static const char *states[] = {
   time_wait,
   last_ack,
   none,
-  init,
   running,
-  needs_poll};
-  
+  called};
 
 /*---------------------------------------------------------------------------*/
 static
