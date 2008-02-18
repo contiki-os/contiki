@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ExternalToolsDialog.java,v 1.9 2008/02/12 15:25:41 fros4943 Exp $
+ * $Id: ExternalToolsDialog.java,v 1.10 2008/02/18 08:18:18 fros4943 Exp $
  */
 
 package se.sics.cooja.dialogs;
@@ -65,6 +65,9 @@ public class ExternalToolsDialog extends JDialog {
    *          Parent container for dialog
    */
   public static void showDialog(Container parentContainer) {
+    if (GUI.isVisualizedInApplet()) {
+      return;
+    }
 
     ExternalToolsDialog myDialog = null;
     if (parentContainer instanceof Window) {
