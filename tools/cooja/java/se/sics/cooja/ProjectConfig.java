@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ProjectConfig.java,v 1.1 2007/03/23 23:34:33 fros4943 Exp $
+ * $Id: ProjectConfig.java,v 1.2 2008/02/18 08:18:18 fros4943 Exp $
  */
 
 package se.sics.cooja;
@@ -38,49 +38,49 @@ import org.apache.log4j.Logger;
 /**
  * A project configuration may hold the configuration for one or several project
  * directories as well as a general simulator configuration.
- * 
+ *
  * The configuration for a project directory may for example consist of which
  * plugins, interfaces and processes that the specific project directory supplies.
  * Each project directory configuration is read from the property file cooja.config, a
  * file which is required in each project directory.
- * 
+ *
  * Values can be fetched as String, Boolean, Integer, Double or String array.
- * 
+ *
  * Several configurations can be merged, together forming a final overall
  * configuration. The order of the how configurations are merged matter - later
  * values will overwrite earlier. For example merging two configurations with
  * the key 'SOMEKEY' in the following order:
- * 
+ *
  * SOMEKEY = a b c
- * 
+ *
  * SOMEKEY = d e
- * 
+ *
  * will result in the final value "d e".
- * 
+ *
  * If a specific value should be extended instead of overwritten, the value must
  * start with a single space-surrounded '+'. For example, merging two
  * configurations with the key as above in the following order:
- * 
+ *
  * SOMEKEY = a b c
- * 
+ *
  * SOMEKEY = + d e
- * 
+ *
  * will result in the final value "a b c d e".
- * 
+ *
  * The simulator will hold a merged project configuration, depending on which
  * project directories are used. Additionally. each mote type may also have a
  * configuration of its own, that differs from the general simulator
  * configuration.
- * 
+ *
  * Often, but not necessarily, keys are named depending on which class is
  * associated with the information. For example, let's say a battery interface
  * wants to store its initial capacity (a double) using this approach. Data
  * stored in the external configuration file can look like the following:
  * se.sics.cooja.interfaces.Battery.initial_capacity 54.123321
- * 
+ *
  * This value is then be read by: myMoteTypeConfig.getDoubleValue(Battery.class,
  * "initial_capacity");
- * 
+ *
  * @author Fredrik Osterlind
  */
 public class ProjectConfig {
@@ -91,7 +91,7 @@ public class ProjectConfig {
 
   /**
    * Creates new project configuration.
-   * 
+   *
    * @param useDefault
    *          If true the default configuration will be loaded
    * @throws FileNotFoundException
@@ -104,6 +104,7 @@ public class ProjectConfig {
     // Create empty configuration
     myConfig = new Properties();
     myProjectDirHistory = new Vector<File>();
+
 
     if (useDefault) {
       InputStream input = GUI.class
@@ -123,7 +124,7 @@ public class ProjectConfig {
   /**
    * Appends the given project directory's config file. This method also saves a
    * local history of which project directories has been loaded.
-   * 
+   *
    * @param projectDir
    *          Project directory
    * @return True if loaded OK
@@ -147,7 +148,7 @@ public class ProjectConfig {
    * element is non-null, then the project directory that added this element will be
    * returned instead. If no such project directory can be found null is returned
    * instead.
-   * 
+   *
    * @param callingClass
    *          Class which value belong to
    * @param key
@@ -162,14 +163,15 @@ public class ProjectConfig {
     if (getStringValue(callingClass, key, null) == null) {
       return null;
     }
-    
+
     // Check that element really exists, if any
     if (arrayElement != null) {
       String[] array = getStringArrayValue(callingClass, key);
       boolean foundValue = false;
-      for (int c=0; c < array.length; c++) {
-        if (array[c].equals(arrayElement))
+      for (String element : array) {
+        if (element.equals(arrayElement)) {
           foundValue = true;
+        }
       }
       if (!foundValue) {
         return null;
@@ -179,16 +181,17 @@ public class ProjectConfig {
     // Search in all project directory in reversed order
     try {
       ProjectConfig remadeConfig = new ProjectConfig(false);
-      
+
       for (int i=myProjectDirHistory.size()-1; i >= 0; i--) {
         remadeConfig.appendProjectDir(myProjectDirHistory.get(i));
 
         if (arrayElement != null) {
           // Look for array
           String[] array = remadeConfig.getStringArrayValue(callingClass, key);
-          for (int c=0; c < array.length; c++) {
-            if (array[c].equals(arrayElement))
+          for (String element : array) {
+            if (element.equals(arrayElement)) {
               return myProjectDirHistory.get(i);
+            }
           }
         } else {
           // Look for key
@@ -197,12 +200,12 @@ public class ProjectConfig {
           }
         }
       }
-      
+
     } catch (Exception e) {
       logger.fatal("Exception when searching in project directory history: " + e);
       return null;
     }
-    
+
     return null;
   }
 
@@ -210,10 +213,10 @@ public class ProjectConfig {
    * Loads the given property file and appends it to the current configuration.
    * If a property already exists it will be overwritten, unless the new value
    * begins with a '+' in which case the old value will be extended.
-   * 
+   *
    * WARNING! The project directory history will not be saved if this method is
    * called, instead the appendUserPlatform method should be used.
-   * 
+   *
    * @param propertyFile
    *          Property file to read
    * @return True if file was read ok, false otherwise
@@ -233,10 +236,10 @@ public class ProjectConfig {
    * configuration. If a property already exists it will be overwritten, unless
    * the new value begins with a '+' in which case the old value will be
    * extended.
-   * 
+   *
    * WARNING! The project directory history will not be saved if this method is
    * called, instead the appendUserPlatform method should be used.
-   * 
+   *
    * @param configFileStream
    *          Stream to read from
    * @return True if stream was read ok, false otherwise
@@ -262,13 +265,15 @@ public class ProjectConfig {
       String key = (String) en.nextElement();
       String property = newProps.getProperty(key);
       if (property.startsWith("+ ")) {
-        if (currentValues.getProperty(key) != null)
+        if (currentValues.getProperty(key) != null) {
           currentValues.setProperty(key, currentValues.getProperty(key) + " "
               + property.substring(1).trim());
-        else
+        } else {
           currentValues.setProperty(key, property.substring(1).trim());
-      } else
+        }
+      } else {
         currentValues.setProperty(key, property);
+      }
     }
 
     return true;
@@ -283,7 +288,7 @@ public class ProjectConfig {
 
   /**
    * Get string value with given id.
-   * 
+   *
    * @param callingClass
    *          Class which value belongs to
    * @param id
@@ -312,21 +317,22 @@ public class ProjectConfig {
 
   /**
    * Returns value of given name.
-   * 
+   *
    * @param name
    *          Name
    * @return Value as string
    */
   public String getStringValue(String name) {
-    if (!myConfig.containsKey(name))
+    if (!myConfig.containsKey(name)) {
       logger.debug("Could not find key named '" + name + "'");
+    }
 
     return myConfig.getProperty(name);
   }
 
   /**
    * Get string value with given id.
-   * 
+   *
    * @param callingClass
    *          Class which value belongs to
    * @param id
@@ -339,7 +345,7 @@ public class ProjectConfig {
 
   /**
    * Get string array value with given id.
-   * 
+   *
    * @param callingClass
    *          Class which value belongs to
    * @param id
@@ -348,15 +354,16 @@ public class ProjectConfig {
    */
   public String[] getStringArrayValue(Class callingClass, String id) {
     String stringVal = getStringValue(callingClass, id, null);
-    if (stringVal == null)
+    if (stringVal == null) {
       return new String[0];
+    }
 
     return getStringValue(callingClass, id, "").split(" ");
   }
 
   /**
    * Get string value with given id.
-   * 
+   *
    * @param callingClass
    *          Class which value belongs to
    * @param id
@@ -369,22 +376,23 @@ public class ProjectConfig {
 
   /**
    * Get string array value with given id.
-   * 
+   *
    * @param id
    *          Id of value to return
    * @return Value or null if id wasn't found
    */
   public String[] getStringArrayValue(String id) {
     String stringVal = getStringValue(id);
-    if (stringVal == null)
+    if (stringVal == null) {
       return new String[0];
+    }
 
     return getStringValue(id).split(" ");
   }
 
   /**
    * Get integer value with given id.
-   * 
+   *
    * @param callingClass
    *          Class which value belongs to
    * @param id
@@ -395,15 +403,16 @@ public class ProjectConfig {
    */
   public int getIntegerValue(Class callingClass, String id, int defaultValue) {
     String str = getStringValue(callingClass, id);
-    if (str == null)
+    if (str == null) {
       return defaultValue;
+    }
 
     return Integer.parseInt(str);
   }
 
   /**
    * Get integer value with given id.
-   * 
+   *
    * @param callingClass
    *          Class which value belongs to
    * @param id
@@ -416,7 +425,7 @@ public class ProjectConfig {
 
   /**
    * Get double value with given id.
-   * 
+   *
    * @param callingClass
    *          Class which value belongs to
    * @param id
@@ -428,15 +437,16 @@ public class ProjectConfig {
   public double getDoubleValue(Class callingClass, String id,
       double defaultValue) {
     String str = getStringValue(callingClass, id);
-    if (str == null)
+    if (str == null) {
       return defaultValue;
+    }
 
     return Double.parseDouble(str);
   }
 
   /**
    * Get double value with given id.
-   * 
+   *
    * @param callingClass
    *          Class which value belongs to
    * @param id
@@ -449,7 +459,7 @@ public class ProjectConfig {
 
   /**
    * Get boolean value with given id.
-   * 
+   *
    * @param callingClass
    *          Class which value belongs to
    * @param id
@@ -461,15 +471,16 @@ public class ProjectConfig {
   public boolean getBooleanValue(Class callingClass, String id,
       boolean defaultValue) {
     String str = getStringValue(callingClass, id);
-    if (str == null)
+    if (str == null) {
       return defaultValue;
+    }
 
     return Boolean.parseBoolean(str);
   }
 
   /**
    * Get boolean value with given id.
-   * 
+   *
    * @param callingClass
    *          Class which value belongs to
    * @param id

@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ProjectDirectoriesDialog.java,v 1.5 2008/02/12 15:06:09 fros4943 Exp $
+ * $Id: ProjectDirectoriesDialog.java,v 1.6 2008/02/18 08:18:18 fros4943 Exp $
  */
 
 package se.sics.cooja.dialogs;
@@ -81,6 +81,9 @@ public class ProjectDirectoriesDialog extends JDialog {
    */
   public static Vector<File> showDialog(Container parentContainer,
       Vector<File> changableProjects, Vector<File> fixedProjects) {
+    if (GUI.isVisualizedInApplet()) {
+      return null;
+    }
 
     ProjectDirectoriesDialog myDialog = null;
     if (parentContainer instanceof Window) {

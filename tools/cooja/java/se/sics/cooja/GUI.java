@@ -24,7 +24,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * $Id: GUI.java,v 1.70 2008/02/12 15:31:22 fros4943 Exp $
+ * $Id: GUI.java,v 1.71 2008/02/18 08:18:01 fros4943 Exp $
  */
 
 package se.sics.cooja;
@@ -36,6 +36,7 @@ import java.beans.PropertyVetoException;
 import java.io.*;
 import java.net.URL;
 import java.net.URLClassLoader;
+import java.security.AccessControlException;
 import java.util.*;
 import java.util.List;
 import javax.swing.*;
@@ -88,8 +89,7 @@ public class GUI {
    * External tools user settings filename.
    */
   public static final String EXTERNAL_TOOLS_USER_SETTINGS_FILENAME = ".cooja.user.properties";
-  public static File externalToolsUserSettingsFile =
-    new File(System.getProperty("user.home"), EXTERNAL_TOOLS_USER_SETTINGS_FILENAME);
+  public static File externalToolsUserSettingsFile;
   private static boolean externalToolsUserSettingsFileReadOnly = false;
 
   private static String specifiedContikiPath = null;
@@ -102,7 +102,7 @@ public class GUI {
   /**
    * Default project configuration filename.
    */
-  public static final String PROJECT_DEFAULT_CONFIG_FILENAME = "/cooja_default.config";
+  public static String PROJECT_DEFAULT_CONFIG_FILENAME = null;
 
   /**
    * User project configuration filename.
@@ -258,27 +258,29 @@ public class GUI {
     String defaultProjectDirs = getExternalToolsSetting(
         "DEFAULT_PROJECTDIRS", null);
     if (defaultProjectDirs != null) {
-      String[] defaultProjectDirsArr = defaultProjectDirs.split(";");
-      if (defaultProjectDirsArr.length > 0) {
-        for (String defaultProjectDir : defaultProjectDirsArr) {
-          File projectDir = new File(defaultProjectDir);
-          if (projectDir.exists() && projectDir.isDirectory()) {
-            currentProjectDirs.add(projectDir);
+      if (!isVisualizedInApplet()) {
+        String[] defaultProjectDirsArr = defaultProjectDirs.split(";");
+        if (defaultProjectDirsArr.length > 0) {
+          for (String defaultProjectDir : defaultProjectDirsArr) {
+            File projectDir = new File(defaultProjectDir);
+            if (projectDir.exists() && projectDir.isDirectory()) {
+              currentProjectDirs.add(projectDir);
+            }
           }
         }
       }
-    }
 
-    // Load extendable parts (using current project config)
-    try {
-      reparseProjectConfig();
-    } catch (ParseProjectsException e) {
-      logger.fatal("Error when loading project directories: " + e.getMessage());
-      e.printStackTrace();
-      if (myDesktopPane != null) {
-        JOptionPane.showMessageDialog(GUI.getTopParentContainer(),
-            "Loading project directories failed.\nStack trace printed to console.",
-            "Error", JOptionPane.ERROR_MESSAGE);
+      // Load extendable parts (using current project config)
+      try {
+        reparseProjectConfig();
+      } catch (ParseProjectsException e) {
+        logger.fatal("Error when loading project directories: " + e.getMessage());
+        e.printStackTrace();
+        if (myDesktopPane != null) {
+          JOptionPane.showMessageDialog(GUI.getTopParentContainer(),
+              "Loading project directories failed.\nStack trace printed to console.",
+              "Error", JOptionPane.ERROR_MESSAGE);
+        }
       }
     }
 
@@ -423,6 +425,10 @@ public class GUI {
   private void updateOpenHistoryMenuItems() {
     menuConfOpenSimulation.removeAll();
 
+    if (isVisualizedInApplet()) {
+      return;
+    }
+
     JMenuItem browseItem = new JMenuItem("Browse...");
     browseItem.setActionCommand("confopen sim");
     browseItem.addActionListener(guiEventHandler);
@@ -502,16 +508,28 @@ public class GUI {
     menuOpenSimulation = new JMenu("Open simulation");
     menuOpenSimulation.setMnemonic(KeyEvent.VK_O);
     menu.add(menuOpenSimulation);
+    if (isVisualizedInApplet()) {
+      menuOpenSimulation.setEnabled(false);
+      menuOpenSimulation.setToolTipText("Not available in applet version");
+    }
 
     menuConfOpenSimulation = new JMenu("Open & Reconfigure simulation");
     menuConfOpenSimulation.setMnemonic(KeyEvent.VK_R);
     menu.add(menuConfOpenSimulation);
+    if (isVisualizedInApplet()) {
+      menuConfOpenSimulation.setEnabled(false);
+      menuConfOpenSimulation.setToolTipText("Not available in applet version");
+    }
 
     menuItem = new JMenuItem("Save simulation");
     menuItem.setMnemonic(KeyEvent.VK_S);
     menuItem.setActionCommand("save sim");
     menuItem.addActionListener(guiEventHandler);
     menu.add(menuItem);
+    if (isVisualizedInApplet()) {
+      menuItem.setEnabled(false);
+      menuItem.setToolTipText("Not available in applet version");
+    }
 
     menu.addSeparator();
 
@@ -529,6 +547,10 @@ public class GUI {
     menuItem.setActionCommand("quit");
     menuItem.addActionListener(guiEventHandler);
     menu.add(menuItem);
+    if (isVisualizedInApplet()) {
+      menuItem.setEnabled(false);
+      menuItem.setToolTipText("Not available in applet version");
+    }
 
     // Simulation menu
     menu = new JMenu("Simulation");
@@ -596,6 +618,10 @@ public class GUI {
           menuItem.putClientProperty("class", moteTypeClass);
           menuItem.setToolTipText(abstractionLevelDescription);
           menuItem.addActionListener(guiEventHandler);
+          if (isVisualizedInApplet() && moteTypeClass.equals(ContikiMoteType.class)) {
+            menuItem.setEnabled(false);
+            menuItem.setToolTipText("Not available in applet version");
+          }
 
           /* Add new item directly after cross level separator */
           for (int i=0; i < menuMoteTypeClasses.getMenuComponentCount(); i++) {
@@ -683,11 +709,19 @@ public class GUI {
     menuItem.setActionCommand("edit paths");
     menuItem.addActionListener(guiEventHandler);
     menu.add(menuItem);
+    if (isVisualizedInApplet()) {
+      menuItem.setEnabled(false);
+      menuItem.setToolTipText("Not available in applet version");
+    }
 
     menuItem = new JMenuItem("Manage project directories");
     menuItem.setActionCommand("manage projects");
     menuItem.addActionListener(guiEventHandler);
     menu.add(menuItem);
+    if (isVisualizedInApplet()) {
+      menuItem.setEnabled(false);
+      menuItem.setToolTipText("Not available in applet version");
+    }
 
     menu.addSeparator();
 
@@ -1384,6 +1418,14 @@ public class GUI {
    * Any registered temporary plugins will be saved and reregistered.
    */
   public void reparseProjectConfig() throws ParseProjectsException {
+    if (PROJECT_DEFAULT_CONFIG_FILENAME == null) {
+      if (isVisualizedInApplet()) {
+        PROJECT_DEFAULT_CONFIG_FILENAME = "/cooja_applet.config";
+      } else {
+        PROJECT_DEFAULT_CONFIG_FILENAME = "/cooja_default.config";
+      }
+    }
+
     // Backup temporary plugins
     Vector<Class<? extends Plugin>> oldTempPlugins = (Vector<Class<? extends Plugin>>) pluginClassesTemporary
         .clone();
@@ -1412,31 +1454,33 @@ public class GUI {
           + PROJECT_DEFAULT_CONFIG_FILENAME).initCause(e);
     }
 
-    // Append project directory configurations
-    for (File projectDir : currentProjectDirs) {
-
-      try {
-        // Append config to general config
-        projectConfig.appendProjectDir(projectDir);
-      } catch (FileNotFoundException e) {
-        logger.fatal("Could not find project config file: " + projectDir);
-        throw (ParseProjectsException) new ParseProjectsException(
-            "Could not find project config file: " + projectDir).initCause(e);
-      } catch (IOException e) {
-        logger.fatal("Error when reading project config file: " + projectDir);
-        throw (ParseProjectsException) new ParseProjectsException(
-            "Error when reading project config file: " + projectDir).initCause(e);
+    if (!isVisualizedInApplet()) {
+      // Append project directory configurations
+      for (File projectDir : currentProjectDirs) {
+        try {
+          // Append config to general config
+          projectConfig.appendProjectDir(projectDir);
+        } catch (FileNotFoundException e) {
+          logger.fatal("Could not find project config file: " + projectDir);
+          throw (ParseProjectsException) new ParseProjectsException(
+              "Could not find project config file: " + projectDir).initCause(e);
+        } catch (IOException e) {
+          logger.fatal("Error when reading project config file: " + projectDir);
+          throw (ParseProjectsException) new ParseProjectsException(
+              "Error when reading project config file: " + projectDir).initCause(e);
+        }
       }
-    }
 
-    // Create class loader
-    try {
-    projectDirClassLoader = createClassLoader(currentProjectDirs);
-    } catch (ClassLoaderCreationException e) {
-      throw (ParseProjectsException) new ParseProjectsException(
-          "Error when creating class loader").initCause(e);
+      // Create class loader
+      try {
+        projectDirClassLoader = createClassLoader(currentProjectDirs);
+      } catch (ClassLoaderCreationException e) {
+        throw (ParseProjectsException) new ParseProjectsException(
+        "Error when creating class loader").initCause(e);
+      }
+    } else {
+      projectDirClassLoader = null;
     }
-
 
     // Register mote types
     String[] moteTypeClassNames = projectConfig.getStringArrayValue(GUI.class,
@@ -1527,6 +1571,9 @@ public class GUI {
     // Register radio mediums
     String[] radioMediumsClassNames = projectConfig.getStringArrayValue(
         GUI.class, "RADIOMEDIUMS");
+    for (String s: radioMediumsClassNames) {
+      System.out.println(">>>: " + s);
+    }
     if (radioMediumsClassNames != null) {
       for (String radioMediumClassName : radioMediumsClassNames) {
         Class<? extends RadioMedium> radioMediumClass = tryLoadClass(this,
@@ -2020,6 +2067,9 @@ public class GUI {
    * @param configFile Configuration file to load, if null a dialog will appear
    */
   public void doLoadConfig(boolean askForConfirmation, final boolean quick, File configFile) {
+    if (isVisualizedInApplet()) {
+      return;
+    }
 
     if (CoreComm.hasLibraryBeenLoaded()) {
       JOptionPane.showMessageDialog(GUI.getTopParentContainer(),
@@ -2315,6 +2365,10 @@ public class GUI {
    *          Ask for confirmation before overwriting file
    */
   public void doSaveConfig(boolean askForConfirmation) {
+    if (isVisualizedInApplet()) {
+      return;
+    }
+
     if (mySimulation != null) {
       mySimulation.stopSimulation();
 
@@ -2423,6 +2477,10 @@ public class GUI {
    *          Should we ask for confirmation before quitting?
    */
   public void doQuit(boolean askForConfirmation) {
+    if (isVisualizedInApplet()) {
+      return;
+    }
+
     if (askForConfirmation) {
       String s1 = "Quit";
       String s2 = "Cancel";
@@ -2557,6 +2615,10 @@ public class GUI {
    * Load user values from external properties file
    */
   public static void loadExternalToolsUserSettings() {
+    if (externalToolsUserSettingsFile == null) {
+      return;
+    }
+
     try {
       FileInputStream in = new FileInputStream(externalToolsUserSettingsFile);
       Properties settings = new Properties();
@@ -2581,6 +2643,10 @@ public class GUI {
    * Save external tools user settings to file.
    */
   public static void saveExternalToolsUserSettings() {
+    if (isVisualizedInApplet()) {
+      return;
+    }
+
     if (externalToolsUserSettingsFileReadOnly) {
       return;
     }
@@ -2739,14 +2805,16 @@ public class GUI {
     } catch (UnsupportedClassVersionError e) {
     }
 
-    try {
-      if (projectDirClassLoader != null) {
-        return projectDirClassLoader.loadClass(className).asSubclass(
-            classType);
+    if (!isVisualizedInApplet()) {
+      try {
+        if (projectDirClassLoader != null) {
+          return projectDirClassLoader.loadClass(className).asSubclass(
+              classType);
+        }
+      } catch (NoClassDefFoundError e) {
+      } catch (ClassNotFoundException e) {
+      } catch (UnsupportedClassVersionError e) {
       }
-    } catch (NoClassDefFoundError e) {
-    } catch (ClassNotFoundException e) {
-    } catch (UnsupportedClassVersionError e) {
     }
 
     return null;
@@ -2877,12 +2945,18 @@ public class GUI {
    */
   public static void main(String[] args) {
 
+    try {
     // Configure logger
     if ((new File(LOG_CONFIG_FILE)).exists()) {
       DOMConfigurator.configure(LOG_CONFIG_FILE);
     } else {
       // Used when starting from jar
       DOMConfigurator.configure(GUI.class.getResource("/" + LOG_CONFIG_FILE));
+    }
+
+    externalToolsUserSettingsFile = new File(System.getProperty("user.home"), EXTERNAL_TOOLS_USER_SETTINGS_FILENAME);
+    } catch (AccessControlException e) {
+      externalToolsUserSettingsFile = null;
     }
 
     // Parse general command arguments
@@ -3013,6 +3087,7 @@ public class GUI {
         public void run() {
           JDesktopPane desktop = new JDesktopPane();
           desktop.setDragMode(JDesktopPane.OUTLINE_DRAG_MODE);
+          applet = CoojaApplet.applet;
           GUI gui = new GUI(desktop);
           configureApplet(gui, false);
         }
