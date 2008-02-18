@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: MRM.java,v 1.5 2007/03/23 21:22:37 fros4943 Exp $
+ * $Id: MRM.java,v 1.6 2008/02/18 08:21:59 fros4943 Exp $
  */
 
 package se.sics.mrm;
@@ -42,18 +42,18 @@ import se.sics.cooja.radiomediums.AbstractRadioMedium;
 /**
  * This is the main class of the COOJA Multi-path Ray-tracing Medium (MRM)
  * package.
- * 
+ *
  * MRM is meant to be an alternative to the simpler radio mediums available in
  * COOJA. It is packet based and uses a 2D ray-tracing approach to approximate
  * signal strength attenuations between simulated radios. Currently the
  * ray-tracing only supports reflections and refractions through homogeneous
  * obstacles.
- * 
+ *
  * MRM provides a number of plugins for example a plugin for visualizing radio
  * environments, and a plugin for configuring the radio medium.
- * 
+ *
  * Future work includes adding diffractions and scattering support.
- * 
+ *
  * @author Fredrik Osterlind
  */
 @ClassDescription("Multi-path Ray-tracer Medium (MRM)")
@@ -62,20 +62,20 @@ public class MRM extends AbstractRadioMedium {
 
   private ChannelModel currentChannelModel = null;
   private Simulation mySimulation = null;
-  
+
   private Random random = new Random();
 
   /**
    * Notifies observers when this radio medium has changed settings.
    */
   private SettingsObservable settingsObservable = new SettingsObservable();
-    
+
   /**
    * Creates a new Multi-path Ray-tracing Medium (MRM).
    */
   public MRM(Simulation simulation) {
     super(simulation);
-    
+
     // Create the channel model
     currentChannelModel = new ChannelModel();
 
@@ -91,20 +91,22 @@ public class MRM extends AbstractRadioMedium {
     // Loop through all radios
     for (Radio listeningRadio: getRegisteredRadios()) {
       // Ignore sending radio and radios on different channels
-      if (sendingRadio == listeningRadio)
+      if (sendingRadio == listeningRadio) {
         continue;
-      if (sendingRadio.getChannel() != listeningRadio.getChannel())
+      }
+      if (sendingRadio.getChannel() != listeningRadio.getChannel()) {
         continue;
+      }
 
       double listeningPositionX = listeningRadio.getPosition().getXCoordinate();
       double listeningPositionY = listeningRadio.getPosition().getYCoordinate();
 
       // Calculate probability of reception of listening radio
       double[] probData = currentChannelModel.getProbability(
-          sendingPosition.getXCoordinate(), 
-          sendingPosition.getYCoordinate(), 
-          listeningPositionX, 
-          listeningPositionY, 
+          sendingPosition.getXCoordinate(),
+          sendingPosition.getYCoordinate(),
+          listeningPositionX,
+          listeningPositionY,
           -Double.MAX_VALUE
       );
 
@@ -148,7 +150,7 @@ public class MRM extends AbstractRadioMedium {
         // Interfere radio
         newConnection.addInterfered(listeningRadio, probData[1]);
         listeningRadio.interfereAnyReception();
-        
+
         // TODO Radios always get interfered right now, should recalculate probability
 //      if (maxInterferenceSignalStrength + SOME_RELEVANT_LIMIT > transmissionSignalStrength) {
 //      // Recalculating probability of delivery
@@ -166,7 +168,7 @@ public class MRM extends AbstractRadioMedium {
       }
 
     }
-    
+
     return newConnection;
   }
 
@@ -188,8 +190,9 @@ public class MRM extends AbstractRadioMedium {
 //    ((MRMRadioConnection) conn).getSource().setCurrentSignalStrength(12345); // TODO Set signal strength on source?
       for (Radio dstRadio : ((MRMRadioConnection) conn).getDestinations()) {
         double signalStrength = ((MRMRadioConnection) conn).getDestinationSignalStrength(dstRadio);
-        if (signalStrength > dstRadio.getCurrentSignalStrength())
+        if (signalStrength > dstRadio.getCurrentSignalStrength()) {
           dstRadio.setCurrentSignalStrength(signalStrength);
+        }
       }
     }
 
@@ -197,8 +200,9 @@ public class MRM extends AbstractRadioMedium {
     for (RadioConnection conn : getActiveConnections()) {
       for (Radio interferedRadio : ((MRMRadioConnection) conn).getInterfered()) {
         double signalStrength = ((MRMRadioConnection) conn).getInterferenceSignalStrength(interferedRadio);
-        if (signalStrength > interferedRadio.getCurrentSignalStrength())
+        if (signalStrength > interferedRadio.getCurrentSignalStrength()) {
           interferedRadio.setCurrentSignalStrength(signalStrength);
+        }
 
         if (!interferedRadio.isInterfered()) {
           // Set to interfered again
@@ -226,20 +230,20 @@ public class MRM extends AbstractRadioMedium {
     // Forwarding to current channel model
     return currentChannelModel.getConfigXML();
   }
-  
+
   public boolean setConfigXML(Collection<Element> configXML,
       boolean visAvailable) {
     // Forwarding to current channel model
     return currentChannelModel.setConfigXML(configXML);
   }
 
-  
+
   // -- MRM specific methods --
 
   /**
    * Adds an observer which is notified when this radio medium has
    * changed settings, such as added or removed radios.
-   * 
+   *
    * @param obs New observer
    */
   public void addSettingsObserver(Observer obs) {
@@ -248,24 +252,24 @@ public class MRM extends AbstractRadioMedium {
 
   /**
    * Deletes an earlier registered setting observer.
-   * 
+   *
    * @param osb
    *          Earlier registered observer
    */
   public void deleteSettingsObserver(Observer obs) {
     settingsObservable.deleteObserver(obs);
   }
-  
+
   /**
    * Returns position of given radio.
-   * 
+   *
    * @param radio Registered radio
    * @return Position of given radio
    */
   public Position getRadioPosition(Radio radio) {
     return radio.getPosition();
   }
-  
+
   /**
    * @return Number of registered radios.
    */
@@ -275,7 +279,7 @@ public class MRM extends AbstractRadioMedium {
 
   /**
    * Returns radio at given index.
-   * 
+   *
    * @param index Index of registered radio.
    * @return Radio at given index
    */
@@ -286,7 +290,7 @@ public class MRM extends AbstractRadioMedium {
   /**
    * Returns the current channel model object, responsible for
    * all probability and transmission calculations.
-   * 
+   *
    * @return Current channel model
    */
   public ChannelModel getChannelModel() {
@@ -302,11 +306,11 @@ public class MRM extends AbstractRadioMedium {
 
   class MRMRadioConnection extends RadioConnection {
     private Hashtable<Radio, Double> signalStrengths = new Hashtable<Radio, Double>();
-    
+
     public MRMRadioConnection(Radio sourceRadio) {
       super(sourceRadio);
     }
-    
+
     public void addDestination(Radio radio, double signalStrength) {
       signalStrengths.put(radio, signalStrength);
       addDestination(radio);
@@ -325,5 +329,5 @@ public class MRM extends AbstractRadioMedium {
       return signalStrengths.get(radio);
     }
   }
-  
+
 }

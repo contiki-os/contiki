@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: FormulaViewer.java,v 1.2 2007/03/23 21:13:43 fros4943 Exp $
+ * $Id: FormulaViewer.java,v 1.3 2008/02/18 08:21:59 fros4943 Exp $
  */
 
 package se.sics.mrm;
@@ -45,7 +45,7 @@ import se.sics.cooja.*;
 
 /**
  * This plugin allows a user to reconfigure current radio channel parameters.
- * 
+ *
  * @author Fredrik Osterlind
  */
 @ClassDescription("MRM - Formula Viewer")
@@ -61,11 +61,11 @@ public class FormulaViewer extends se.sics.cooja.VisPlugin {
   private static Dimension labelDimension = new Dimension(240, 20);
   private static NumberFormat doubleFormat = NumberFormat.getNumberInstance();
   private static NumberFormat integerFormat = NumberFormat.getIntegerInstance();
-  
+
   private Vector<JFormattedTextField> allIntegerParameters = new Vector<JFormattedTextField>();
   private Vector<JFormattedTextField> allDoubleParameters = new Vector<JFormattedTextField>();
   private Vector<JCheckBox> allBooleanParameters = new Vector<JCheckBox>();
-  
+
   private JPanel areaGeneral;
   private JPanel areaTransmitter;
   private JPanel areaReceiver;
@@ -74,12 +74,12 @@ public class FormulaViewer extends se.sics.cooja.VisPlugin {
 
   /**
    * Creates a new formula viewer.
-   * 
+   *
    * @param simulationToVisualize Simulation which holds the MRM channel model.
    */
   public FormulaViewer(Simulation simulationToVisualize, GUI gui) {
     super("MRM - Formula Viewer", gui);
-    
+
     currentSimulation = simulationToVisualize;
     currentRadioMedium = (MRM) currentSimulation.getRadioMedium();
     currentChannelModel = currentRadioMedium.getChannelModel();
@@ -96,7 +96,7 @@ public class FormulaViewer extends se.sics.cooja.VisPlugin {
     setContentPane(scrollPane);
 
     JPanel collapsableArea;
-    
+
     // General parameters
     collapsableArea = createCollapsableArea("General parameters", allComponents);
     areaGeneral = collapsableArea;
@@ -135,14 +135,14 @@ public class FormulaViewer extends se.sics.cooja.VisPlugin {
         collapsableArea,
         currentChannelModel.getParameterDoubleValue("system_gain_mean")
     );
-    
+
     addDoubleParameter(
         "system_gain_var",
         currentChannelModel.getParameterDescription("system_gain_var"),
         collapsableArea,
         currentChannelModel.getParameterDoubleValue("system_gain_var")
     );
-    
+
     addDoubleParameter(
         "wavelength",
         currentChannelModel.getParameterDescription("wavelength"),
@@ -160,7 +160,7 @@ public class FormulaViewer extends se.sics.cooja.VisPlugin {
         collapsableArea,
         currentChannelModel.getParameterDoubleValue("tx_power")
     );
-    
+
     addDoubleParameter(
         "tx_antenna_gain",
         currentChannelModel.getParameterDescription("tx_antenna_gain"),
@@ -185,7 +185,7 @@ public class FormulaViewer extends se.sics.cooja.VisPlugin {
         collapsableArea,
         currentChannelModel.getParameterDoubleValue("rx_antenna_gain")
     );
-    
+
     // Ray Tracer parameters
     collapsableArea = createCollapsableArea("Ray Tracer parameters", allComponents);
     areaRayTracer = collapsableArea;
@@ -238,7 +238,7 @@ public class FormulaViewer extends se.sics.cooja.VisPlugin {
         collapsableArea,
         currentChannelModel.getParameterIntegerValue("rt_max_diffractions")
     );
-    
+
 /*    addBooleanParameter(
         "rt_use_scattering",
         currentChannelModel.getParameterDescription("rt_use_scattering"),
@@ -266,14 +266,14 @@ public class FormulaViewer extends se.sics.cooja.VisPlugin {
         collapsableArea,
         currentChannelModel.getParameterDoubleValue("rt_diffr_coefficient")
     );
-    
+
 /*    addDoubleParameter(
         "rt_scatt_coefficient",
         currentChannelModel.getParameterDescription("rt_scatt_coefficient"),
         collapsableArea,
         currentChannelModel.getParameterDoubleValue("rt_scatt_coefficient")
     );
-*/    
+*/
     // Shadowing parameters
     collapsableArea = createCollapsableArea("Shadowing parameters", allComponents);
     areaShadowing = collapsableArea;
@@ -285,22 +285,22 @@ public class FormulaViewer extends se.sics.cooja.VisPlugin {
         currentChannelModel.getParameterDoubleValue("obstacle_attenuation")
     );
 
-    
-    
+
+
     // Add channel model observer responsible to keep all GUI components synched
     currentChannelModel.addSettingsObserver(channelModelSettingsObserver);
-    
+
     // Set initial size etc.
     pack();
     setVisible(true);
-    
+
     // Tries to select this plugin
     try {
       setSelected(true);
     } catch (java.beans.PropertyVetoException e) {
       // Could not select
     }
-    
+
   }
 
   /**
@@ -325,43 +325,44 @@ public class FormulaViewer extends se.sics.cooja.VisPlugin {
     };
     collapsableArea.setLayout(new BoxLayout(collapsableArea, BoxLayout.Y_AXIS));
     collapsableArea.setVisible(false);
-    
+
     JPanel titlePanel = new JPanel(new BorderLayout()) {
       public Dimension getMaximumSize() {
         return new Dimension(super.getMaximumSize().width, getPreferredSize().height);
       }
     };
-    
+
     titlePanel.add(BorderLayout.WEST, new JLabel(title));
     JCheckBox collapseCheckBox = new JCheckBox("show settings", false);
     collapseCheckBox.addActionListener(new ActionListener() {
       public void actionPerformed(ActionEvent e) {
-        if (((JCheckBox) e.getSource()).isSelected())
+        if (((JCheckBox) e.getSource()).isSelected()) {
           collapsableArea.setVisible(true);
-        else
+        } else {
           collapsableArea.setVisible(false);
+        }
       }
     });
     collapsableArea.putClientProperty("my_checkbox", collapseCheckBox);
 
     titlePanel.add(BorderLayout.EAST, collapseCheckBox);
-    
+
     collapsableArea.setBorder(
         BorderFactory.createLineBorder(Color.LIGHT_GRAY)
-    );   
+    );
     collapsableArea.setAlignmentY(Component.TOP_ALIGNMENT);
-    
+
     holdingPanel.add(titlePanel);
     holdingPanel.add(collapsableArea);
 
     contentPane.add(holdingPanel);
     return collapsableArea;
   }
-  
+
   /**
-   * Creates and adds a panel with a label and a 
+   * Creates and adds a panel with a label and a
    * text field which accepts doubles.
-   * 
+   *
    * @param id Identifier of new parameter
    * @param description Description of new parameter
    * @param contentPane Where to add created panel
@@ -372,7 +373,7 @@ public class FormulaViewer extends se.sics.cooja.VisPlugin {
     JPanel panel = new JPanel();
     JLabel label;
     JFormattedTextField textField;
-    
+
     panel.setLayout(new BoxLayout(panel, BoxLayout.X_AXIS));
     panel.setAlignmentY(Component.TOP_ALIGNMENT);
     panel.add(Box.createHorizontalStrut(10));
@@ -392,16 +393,16 @@ public class FormulaViewer extends se.sics.cooja.VisPlugin {
       }
     });
     allDoubleParameters.add(textField);
-    
+
     contentPane.add(panel);
 
     return textField;
   }
-  
+
   /**
-   * Creates and adds a panel with a label and a 
+   * Creates and adds a panel with a label and a
    * text field which accepts integers.
-   * 
+   *
    * @param id Identifier of new parameter
    * @param description Description of new parameter
    * @param contentPane Where to add created panel
@@ -412,7 +413,7 @@ public class FormulaViewer extends se.sics.cooja.VisPlugin {
     JPanel panel = new JPanel();
     JLabel label;
     JFormattedTextField textField;
-    
+
     panel.setLayout(new BoxLayout(panel, BoxLayout.X_AXIS));
     panel.setAlignmentY(Component.TOP_ALIGNMENT);
     panel.add(Box.createHorizontalStrut(10));
@@ -438,11 +439,11 @@ public class FormulaViewer extends se.sics.cooja.VisPlugin {
 
     return textField;
   }
-  
+
   /**
-   * Creates and adds a panel with a label and a 
+   * Creates and adds a panel with a label and a
    * boolean checkbox.
-   * 
+   *
    * @param id Identifier of new parameter
    * @param description Description of new parameter
    * @param contentPane Where to add created panel
@@ -453,7 +454,7 @@ public class FormulaViewer extends se.sics.cooja.VisPlugin {
     JPanel panel = new JPanel();
     JLabel label;
     JCheckBox checkBox;
-    
+
     panel.setLayout(new BoxLayout(panel, BoxLayout.X_AXIS));
     panel.setAlignmentY(Component.TOP_ALIGNMENT);
     panel.add(Box.createHorizontalStrut(10));
@@ -479,10 +480,10 @@ public class FormulaViewer extends se.sics.cooja.VisPlugin {
 
     return checkBox;
   }
-  
+
   /**
    * Creates and adds a panel with a description label.
-   * 
+   *
    * @param description Description of new parameter
    * @param contentPane Where to add created panel
    * @return Created label
@@ -490,7 +491,7 @@ public class FormulaViewer extends se.sics.cooja.VisPlugin {
   private JLabel addLabelParameter(String description, Container contentPane) {
     JPanel panel = new JPanel();
     JLabel label;
-    
+
     panel.setLayout(new BoxLayout(panel, BoxLayout.X_AXIS));
     panel.setAlignmentY(Component.TOP_ALIGNMENT);
     panel.add(Box.createHorizontalStrut(10));
@@ -502,7 +503,7 @@ public class FormulaViewer extends se.sics.cooja.VisPlugin {
 
     return label;
   }
-  
+
   /**
    * Listens to settings changes in the channel model.
    * If it changes, all GUI parameters are updated accordingly.
@@ -511,21 +512,21 @@ public class FormulaViewer extends se.sics.cooja.VisPlugin {
     public void update(Observable obs, Object obj) {
       // Update all integers
       for (int i=0; i < allIntegerParameters.size(); i++) {
-        JFormattedTextField textField = (JFormattedTextField) allIntegerParameters.get(i);
+        JFormattedTextField textField = allIntegerParameters.get(i);
         String id = (String) textField.getClientProperty("id");
         textField.setValue(currentChannelModel.getParameterValue(id));
       }
 
       // Update all doubles
       for (int i=0; i < allDoubleParameters.size(); i++) {
-        JFormattedTextField textField = (JFormattedTextField) allDoubleParameters.get(i);
+        JFormattedTextField textField = allDoubleParameters.get(i);
         String id = (String) textField.getClientProperty("id");
         textField.setValue(currentChannelModel.getParameterValue(id));
       }
 
       // Update all booleans
       for (int i=0; i < allBooleanParameters.size(); i++) {
-        JCheckBox checkBox = (JCheckBox) allBooleanParameters.get(i);
+        JCheckBox checkBox = allBooleanParameters.get(i);
         String id = (String) checkBox.getClientProperty("id");
         checkBox.setSelected(currentChannelModel.getParameterBooleanValue(id));
       }
@@ -533,7 +534,7 @@ public class FormulaViewer extends se.sics.cooja.VisPlugin {
       repaint();
     }
   };
-  
+
   public void closePlugin() {
     // Remove the channel model observer
     if (currentChannelModel != null && channelModelSettingsObserver != null) {
@@ -542,12 +543,12 @@ public class FormulaViewer extends se.sics.cooja.VisPlugin {
       logger.fatal("Can't remove channel model observer: " + channelModelSettingsObserver);
     }
   }
-  
+
   /**
    * Returns XML elements representing the current configuration.
-   * 
+   *
    * @see #setConfigXML(Collection)
-   * @return XML element collection 
+   * @return XML element collection
    */
   public Collection<Element> getConfigXML() {
     Vector<Element> config = new Vector<Element>();
@@ -573,7 +574,7 @@ public class FormulaViewer extends se.sics.cooja.VisPlugin {
 
   /**
    * Sets the configuration depending on the given XML elements.
-   * 
+   *
    * @see #getConfigXML()
    * @param configXML
    *          Config XML elements
@@ -608,7 +609,7 @@ public class FormulaViewer extends se.sics.cooja.VisPlugin {
             ActionEvent.ACTION_PERFORMED, ""));
       }
     }
-    return true;    
+    return true;
   }
 
 }
