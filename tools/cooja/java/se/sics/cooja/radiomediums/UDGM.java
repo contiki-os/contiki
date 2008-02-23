@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: UDGM.java,v 1.13 2008/02/12 15:31:22 fros4943 Exp $
+ * $Id: UDGM.java,v 1.14 2008/02/23 10:10:42 fros4943 Exp $
  */
 
 package se.sics.cooja.radiomediums;
@@ -40,6 +40,7 @@ import org.jdom.Element;
 import org.apache.log4j.Logger;
 
 import se.sics.cooja.*;
+import se.sics.cooja.contikimote.interfaces.ContikiRadio;
 import se.sics.cooja.interfaces.*;
 import se.sics.cooja.plugins.Visualizer2D;
 
@@ -315,15 +316,19 @@ public class UDGM extends AbstractRadioMedium {
     public Color[] getColorOf(Mote mote) {
       Radio moteRadio = mote.getInterfaces().getRadio();
       if (moteRadio == null) {
-        return new Color[] { Color.GRAY };
+        return new Color[] { Color.BLACK };
       }
 
       if (mote.getState() == Mote.State.DEAD) {
-        return new Color[] { Color.GRAY };
+        return new Color[] { Color.BLACK };
       }
 
       if (selectedMote != null && mote == selectedMote) {
         return new Color[] { Color.CYAN };
+      }
+
+      if (moteRadio instanceof ContikiRadio && !((ContikiRadio) moteRadio).isOn()) {
+        return new Color[] { Color.GRAY };
       }
 
       if (moteRadio.isTransmitting()) {
