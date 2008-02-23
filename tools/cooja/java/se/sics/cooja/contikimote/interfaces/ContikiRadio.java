@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ContikiRadio.java,v 1.16 2007/05/31 07:19:11 fros4943 Exp $
+ * $Id: ContikiRadio.java,v 1.17 2008/02/23 10:10:42 fros4943 Exp $
  */
 
 package se.sics.cooja.contikimote.interfaces;
@@ -51,7 +51,7 @@ import se.sics.cooja.interfaces.Radio;
  * received by this radio the Contiki system, the entitiy transferring the
  * packet may explicitly lock the radio in receiving mode. After some time it
  * should then deliver the packet.
- * 
+ *
  * It needs read/write access to the following core variables:
  * <ul>
  * <li>char simTransmitting (1=mote radio is transmitting)
@@ -74,7 +74,7 @@ import se.sics.cooja.interfaces.Radio;
  * <li>radio_interface
  * </ul>
  * <p>
- * 
+ *
  * @author Fredrik Osterlind
  */
 public class ContikiRadio extends Radio implements ContikiMoteInterface,
@@ -124,7 +124,7 @@ public class ContikiRadio extends Radio implements ContikiMoteInterface,
 
   /**
    * Creates an interface to the radio at mote.
-   * 
+   *
    * @param mote
    *          Radio's mote.
    * @see Mote
@@ -138,14 +138,15 @@ public class ContikiRadio extends Radio implements ContikiMoteInterface,
         ContikiRadio.class, "EXTERNAL_INTERRUPT_bool");
     RADIO_TRANSMISSION_RATE_kbps = mote.getType().getConfig().getDoubleValue(
         ContikiRadio.class, "RADIO_TRANSMISSION_RATE_kbps");
-    
+
     this.myMote = mote;
     this.myMoteMemory = (SectionMoteMemory) mote.getMemory();
 
     // Calculate energy consumption of a listening radio
-    if (energyListeningRadioPerTick < 0)
+    if (energyListeningRadioPerTick < 0) {
       energyListeningRadioPerTick = ENERGY_CONSUMPTION_RADIO_mA
           * mote.getSimulation().getTickTimeInSeconds();
+    }
 
     radioOn = myMoteMemory.getByteValueOf("simRadioHWOn") == 1;
   }
@@ -169,13 +170,18 @@ public class ContikiRadio extends Radio implements ContikiMoteInterface,
   }
 
   /* General radio support */
+  public boolean isOn() {
+    return radioOn;
+  }
+
   public boolean isTransmitting() {
     return isTransmitting;
   }
 
   public boolean isReceiving() {
-    if (isLockedAtReceiving())
+    if (isLockedAtReceiving()) {
       return true;
+    }
 
     return myMoteMemory.getIntValueOf("simInSize") != 0;
   }
@@ -252,7 +258,7 @@ public class ContikiRadio extends Radio implements ContikiMoteInterface,
   }
 
   public int getCurrentOutputPowerIndicator() {
-    return (int) myMoteMemory.getByteValueOf("simPower");
+    return myMoteMemory.getByteValueOf("simPower");
   }
 
   public double getCurrentSignalStrength() {
@@ -290,10 +296,12 @@ public class ContikiRadio extends Radio implements ContikiMoteInterface,
   private void lockInReceivingMode() {
     // If mote is inactive, try to wake it up
     if (myMote.getState() != Mote.State.ACTIVE) {
-      if (RAISES_EXTERNAL_INTERRUPT)
+      if (RAISES_EXTERNAL_INTERRUPT) {
         myMote.setState(Mote.State.ACTIVE);
-      if (myMote.getState() != Mote.State.ACTIVE)
+      }
+      if (myMote.getState() != Mote.State.ACTIVE) {
         return;
+      }
     }
 
     // Lock core radio in receiving loop
@@ -317,8 +325,9 @@ public class ContikiRadio extends Radio implements ContikiMoteInterface,
         myMoteMemory.setIntValueOf("simOutSize", 0);
         isTransmitting = false;
         lastEvent = RadioEvent.HW_OFF;
-      } else
+      } else {
         lastEvent = RadioEvent.HW_ON;
+      }
 
       lastEventTime = myMote.getSimulation().getSimulationTime();
       this.setChanged();
@@ -371,7 +380,7 @@ public class ContikiRadio extends Radio implements ContikiMoteInterface,
       isTransmitting = true;
 
       // Calculate transmission duration (ms)
-      int duration = (int) ((double) (280 + 10 * size) / RADIO_TRANSMISSION_RATE_kbps);
+      int duration = (int) ((280 + 10 * size) / RADIO_TRANSMISSION_RATE_kbps);
       transmissionEndTime = myMote.getSimulation().getSimulationTime()
           + Math.max(1, duration);
       lastEventTime = myMote.getSimulation().getSimulationTime();
@@ -414,14 +423,15 @@ public class ContikiRadio extends Radio implements ContikiMoteInterface,
     Observer observer;
     this.addObserver(observer = new Observer() {
       public void update(Observable obs, Object obj) {
-        if (isTransmitting())
+        if (isTransmitting()) {
           statusLabel.setText("Transmitting packet now!");
-        else if (isReceiving())
+        } else if (isReceiving()) {
           statusLabel.setText("Receiving packet now!");
-        else if (radioOn)
+        } else if (radioOn) {
           statusLabel.setText("Listening...");
-        else
+        } else {
           statusLabel.setText("HW turned off");
+        }
 
         lastEventLabel.setText("Last event (time=" + lastEventTime + "): "
             + lastEvent);
