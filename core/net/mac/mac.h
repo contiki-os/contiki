@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: mac.h,v 1.1 2007/05/25 06:40:19 adamdunkels Exp $
+ * $Id: mac.h,v 1.2 2008/02/24 21:05:28 adamdunkels Exp $
  */
 
 /**
@@ -58,7 +58,7 @@ struct mac_driver {
   int (* on)(void);
 
   /** Turn the MAC layer off. */
-  int (* off)(void);
+  int (* off)(int keep_radio_on);
 };
 
 
