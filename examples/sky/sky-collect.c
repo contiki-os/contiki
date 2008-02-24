@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: sky-collect.c,v 1.2 2008/01/08 08:05:34 adamdunkels Exp $
+ * $Id: sky-collect.c,v 1.3 2008/02/24 22:16:32 adamdunkels Exp $
  */
 
 /**
@@ -164,7 +164,7 @@ do_rssi(void)
 }
 /*---------------------------------------------------------------------------*/
 static void
-recv(rimeaddr_t *originator, u8_t seqno, u8_t hops)
+recv(rimeaddr_t *originator, uint8_t seqno, uint8_t hops)
 {
   struct sky_collect_msg *msg;
   

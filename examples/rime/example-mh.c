@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: example-mh.c,v 1.1 2008/01/25 18:00:50 adamdunkels Exp $
+ * $Id: example-mh.c,v 1.2 2008/02/24 22:15:46 adamdunkels Exp $
  */
 
 /**
@@ -57,7 +57,7 @@ recv(struct mh_conn *c, rimeaddr_t *sender)
 }
 static rimeaddr_t *
 forward(struct mh_conn *c, rimeaddr_t *originator, rimeaddr_t *dest,
-	rimeaddr_t *prevhop, u8_t hops)
+	rimeaddr_t *prevhop, uint8_t hops)
 {
   printf("Forwarding message '%s'\n", (char *)rimebuf_dataptr());
   return NULL;

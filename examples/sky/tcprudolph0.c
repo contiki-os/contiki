@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: tcprudolph0.c,v 1.9 2007/12/16 14:37:02 adamdunkels Exp $
+ * @(#)$Id: tcprudolph0.c,v 1.10 2008/02/24 22:16:32 adamdunkels Exp $
  */
 
 #include <stdio.h>
@@ -63,8 +63,8 @@ AUTOSTART_PROCESSES(&tcp_loader_process);
 
 static
 struct codeprop_state {
-  u16_t addr;
-  u16_t len;
+  uint16_t addr;
+  uint16_t len;
   struct pt tcpthread_pt;
   int fd;
 } s;

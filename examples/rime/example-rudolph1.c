@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: example-rudolph1.c,v 1.1 2008/01/25 18:00:51 adamdunkels Exp $
+ * $Id: example-rudolph1.c,v 1.2 2008/02/24 22:15:46 adamdunkels Exp $
  */
 
 /**
@@ -139,7 +139,7 @@ static void
 log_queuelen(struct rtimer *t, void *ptr)
 {
 #if NETSIM
-  extern u8_t queuebuf_len, queuebuf_ref_len;
+  extern uint8_t queuebuf_len, queuebuf_ref_len;
   node_log("%d %d\n",
 	   queuebuf_len,
 	   queuebuf_ref_len);
