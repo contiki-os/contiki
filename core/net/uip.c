@@ -41,7 +41,7 @@
  *
  * This file is part of the uIP TCP/IP stack.
  *
- * $Id: uip.c,v 1.12 2008/02/15 17:12:46 oliverschmidt Exp $
+ * $Id: uip.c,v 1.13 2008/02/24 21:03:24 adamdunkels Exp $
  *
  */
 
@@ -1036,6 +1036,7 @@ uip_process(u8_t flag)
       memcpy(&(ICMPBUF->options[2]), &uip_ethaddr, sizeof(uip_ethaddr));
       ICMPBUF->icmpchksum = 0;
       ICMPBUF->icmpchksum = ~uip_icmp6chksum();
+      
       goto send;
       
     }
@@ -1225,8 +1226,9 @@ uip_process(u8_t flag)
   tmp16 = BUF->destport;
   /* Next, check listening connections. */
   for(c = 0; c < UIP_LISTENPORTS; ++c) {
-    if(tmp16 == uip_listenports[c])
+    if(tmp16 == uip_listenports[c]) {
       goto found_listen;
+    }
   }
   
   /* No matching connection found, so we send a RST packet. */
@@ -1411,7 +1413,7 @@ uip_process(u8_t flag)
     UIP_APPCALL();
     goto drop;
   }
-  /* Calculated the length of the data, if the application has sent
+  /* Calculate the length of the data, if the application has sent
      any data to us. */
   c = (BUF->tcpoffset >> 4) << 2;
   /* uip_len will contain the length of the actual TCP data. This is
@@ -1881,8 +1883,9 @@ uip_process(u8_t flag)
   DEBUG_PRINTF("uip ip_send_nolen: chkecum 0x%04x\n", uip_ipchksum());
 #endif /* UIP_CONF_IPV6 */   
   UIP_STAT(++uip_stat.tcp.sent);
-
+#if UIP_CONF_IPV6
  send:
+#endif /* UIP_CONF_IPV6 */
   DEBUG_PRINTF("Sending packet with length %d (%d)\n", uip_len,
 	       (BUF->len[0] << 8) | BUF->len[1]);
   
@@ -1912,11 +1915,16 @@ htonl(u32_t val)
 void
 uip_send(const void *data, int len)
 {
-  if(len > 0) {
-    uip_slen = len;
+  int copylen;
+#define MIN(a,b) ((a) < (b)? (a): (b))
+  copylen = MIN(len, UIP_BUFSIZE - UIP_LLH_LEN - UIP_TCPIP_HLEN -
+		((char *)uip_sappdata - (char *)&uip_buf[UIP_LLH_LEN + UIP_TCPIP_HLEN]));
+  if(copylen > 0) {
+    uip_slen = copylen;
     if(data != uip_sappdata) {
       memcpy(uip_sappdata, (data), uip_slen);
     }
   }
 }
+/*---------------------------------------------------------------------------*/
 /** @} */
