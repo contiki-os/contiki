@@ -33,7 +33,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: neighbor-discovery.c,v 1.3 2008/01/14 09:34:00 adamdunkels Exp $
+ * $Id: neighbor-discovery.c,v 1.4 2008/02/24 22:05:27 adamdunkels Exp $
  */
 
 /**
@@ -63,7 +63,7 @@
 #include <stddef.h>
 
 struct adv_msg {
-  u16_t val;
+  uint16_t val;
 };
 
 #define SINK 0

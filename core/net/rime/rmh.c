@@ -33,7 +33,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: rmh.c,v 1.5 2008/01/08 07:55:56 adamdunkels Exp $
+ * $Id: rmh.c,v 1.6 2008/02/24 22:05:27 adamdunkels Exp $
  */
 
 /**
@@ -50,8 +50,8 @@
 struct data_hdr {
   rimeaddr_t dest;
   rimeaddr_t originator;
-  u8_t hops;
-  u8_t max_rexmits;
+  uint8_t hops;
+  uint8_t max_rexmits;
 };
 
 #define DEBUG 0
@@ -64,7 +64,7 @@ struct data_hdr {
 
 /*---------------------------------------------------------------------------*/
 static void
-received(struct ruc_conn *uc, rimeaddr_t *from, u8_t seqno)
+received(struct ruc_conn *uc, rimeaddr_t *from, uint8_t seqno)
 {
   struct rmh_conn *c = (struct rmh_conn *)uc;
   struct data_hdr *msg = rimebuf_dataptr();
@@ -111,7 +111,7 @@ static const struct ruc_callbacks data_callbacks = { received ,
 						     timedout};
 /*---------------------------------------------------------------------------*/
 void
-rmh_open(struct rmh_conn *c, u16_t channel,
+rmh_open(struct rmh_conn *c, uint16_t channel,
 	const struct rmh_callbacks *callbacks)
 {
   ruc_open(&c->c, channel, &data_callbacks);
@@ -125,7 +125,7 @@ rmh_close(struct rmh_conn *c)
 }
 /*---------------------------------------------------------------------------*/
 int
-rmh_send(struct rmh_conn *c, rimeaddr_t *to, u8_t num_rexmit, u8_t max_hops)
+rmh_send(struct rmh_conn *c, rimeaddr_t *to, uint8_t num_rexmit, uint8_t max_hops)
 {
   rimeaddr_t *nexthop;
   struct data_hdr *hdr;

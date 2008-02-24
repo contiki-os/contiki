@@ -45,7 +45,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: trickle.h,v 1.6 2008/01/08 08:00:13 adamdunkels Exp $
+ * $Id: trickle.h,v 1.7 2008/02/24 22:05:27 adamdunkels Exp $
  */
 
 /**
@@ -72,8 +72,8 @@ struct trickle_conn {
   struct ctimer t;
   struct queuebuf *q;
   clock_time_t interval;
-  u8_t seqno;
-  u8_t interval_scaling;
+  uint8_t seqno;
+  uint8_t interval_scaling;
 };
 
 void trickle_open(struct trickle_conn *c, clock_time_t interval,

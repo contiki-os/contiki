@@ -33,7 +33,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: nf.c,v 1.15 2008/01/08 08:26:48 adamdunkels Exp $
+ * $Id: nf.c,v 1.16 2008/02/24 22:05:27 adamdunkels Exp $
  */
 
 /**
@@ -50,9 +50,9 @@
 #define HOPS_MAX 16
 
 struct nf_hdr {
-  u16_t originator_seqno;
+  uint16_t originator_seqno;
   rimeaddr_t originator;
-  u16_t hops;
+  uint16_t hops;
 };
 
 #define DEBUG 0
@@ -77,7 +77,7 @@ recv_from_ipolite(struct ipolite_conn *ipolite, rimeaddr_t *from)
 {
   struct nf_conn *c = (struct nf_conn *)ipolite;
   struct nf_hdr *hdr = rimebuf_dataptr();
-  u8_t hops;
+  uint8_t hops;
   struct queuebuf *queuebuf;
 
   hops = hdr->hops;
@@ -144,7 +144,7 @@ static const struct ipolite_callbacks nf = {recv_from_ipolite, sent, dropped};
 /*---------------------------------------------------------------------------*/
 void
 nf_open(struct nf_conn *c, clock_time_t queue_time,
-	u16_t channel, const struct nf_callbacks *u)
+	uint16_t channel, const struct nf_callbacks *u)
 {
   ipolite_open(&c->c, channel, &nf);
   c->u = u;
@@ -158,7 +158,7 @@ nf_close(struct nf_conn *c)
 }
 /*---------------------------------------------------------------------------*/
 int
-nf_send(struct nf_conn *c, u8_t seqno)
+nf_send(struct nf_conn *c, uint8_t seqno)
 {
   if(rimebuf_hdralloc(sizeof(struct nf_hdr))) {
     struct nf_hdr *hdr = rimebuf_hdrptr();

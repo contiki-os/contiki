@@ -48,7 +48,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: sabc.h,v 1.7 2007/03/31 18:31:28 adamdunkels Exp $
+ * $Id: sabc.h,v 1.8 2008/02/24 22:05:27 adamdunkels Exp $
  */
 
 /**
@@ -100,7 +100,7 @@ struct sabc_conn {
  *             that operates on the connection is called.
  *
  */
-void sabc_open(struct sabc_conn *c, u16_t channel,
+void sabc_open(struct sabc_conn *c, uint16_t channel,
 		const struct sabc_callbacks *u);
 void sabc_close(struct sabc_conn *c);
 

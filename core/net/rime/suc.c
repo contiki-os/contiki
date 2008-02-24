@@ -33,7 +33,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: suc.c,v 1.11 2007/11/13 21:00:10 adamdunkels Exp $
+ * $Id: suc.c,v 1.12 2008/02/24 22:05:27 adamdunkels Exp $
  */
 
 /**
@@ -71,7 +71,7 @@ recv_from_uc(struct uc_conn *uc, rimeaddr_t *from)
 static const struct uc_callbacks suc = {recv_from_uc};
 /*---------------------------------------------------------------------------*/
 void
-suc_open(struct suc_conn *c, u16_t channel,
+suc_open(struct suc_conn *c, uint16_t channel,
 	  const struct suc_callbacks *u)
 {
   uc_open(&c->c, channel, &suc);

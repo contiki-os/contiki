@@ -36,7 +36,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: collect.c,v 1.7 2008/02/24 21:08:37 adamdunkels Exp $
+ * $Id: collect.c,v 1.8 2008/02/24 22:05:27 adamdunkels Exp $
  */
 
 /**
@@ -65,10 +65,10 @@
 
 struct hdr {
   rimeaddr_t originator;
-  u8_t originator_seqno;
-  u8_t hops;
-  u8_t hoplim;
-  u8_t rexmits;
+  uint8_t originator_seqno;
+  uint8_t hops;
+  uint8_t hoplim;
+  uint8_t rexmits;
 };
 
 #define NUM_RECENT_PACKETS 4
@@ -146,7 +146,7 @@ update_rtmetric(struct collect_conn *tc)
 }
 /*---------------------------------------------------------------------------*/
 static void
-node_packet_received(struct ruc_conn *c, rimeaddr_t *from, u8_t seqno)
+node_packet_received(struct ruc_conn *c, rimeaddr_t *from, uint8_t seqno)
 {
   struct collect_conn *tc = (struct collect_conn *)
     ((char *)c - offsetof(struct collect_conn, ruc_conn));
@@ -220,7 +220,7 @@ node_packet_received(struct ruc_conn *c, rimeaddr_t *from, u8_t seqno)
 }
 /*---------------------------------------------------------------------------*/
 static void
-node_packet_sent(struct ruc_conn *c, rimeaddr_t *to, u8_t retransmissions)
+node_packet_sent(struct ruc_conn *c, rimeaddr_t *to, uint8_t retransmissions)
 {
   struct collect_conn *tc = (struct collect_conn *)
     ((char *)c - offsetof(struct collect_conn, ruc_conn));
@@ -231,7 +231,7 @@ node_packet_sent(struct ruc_conn *c, rimeaddr_t *to, u8_t retransmissions)
 }
 /*---------------------------------------------------------------------------*/
 static void
-node_packet_timedout(struct ruc_conn *c, rimeaddr_t *to, u8_t retransmissions)
+node_packet_timedout(struct ruc_conn *c, rimeaddr_t *to, uint8_t retransmissions)
 {
   struct collect_conn *tc = (struct collect_conn *)
     ((char *)c - offsetof(struct collect_conn, ruc_conn));

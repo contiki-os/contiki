@@ -46,7 +46,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: polite.h,v 1.2 2007/12/17 09:14:08 adamdunkels Exp $
+ * $Id: polite.h,v 1.3 2008/02/24 22:05:27 adamdunkels Exp $
  */
 
 /**
@@ -76,13 +76,13 @@ struct polite_conn {
   const struct polite_callbacks *cb;
   struct ctimer t;
   struct queuebuf *q;
-  u8_t hdrsize;
+  uint8_t hdrsize;
 };
 
-void polite_open(struct polite_conn *c, u16_t channel,
+void polite_open(struct polite_conn *c, uint16_t channel,
 	       const struct polite_callbacks *cb);
 void polite_close(struct polite_conn *c);
-int  polite_send(struct polite_conn *c, clock_time_t interval, u8_t hdrsize);
+int  polite_send(struct polite_conn *c, clock_time_t interval, uint8_t hdrsize);
 void polite_cancel(struct polite_conn *c);
 
 #endif /* __POLITE_H__ */

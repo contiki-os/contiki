@@ -46,7 +46,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: ibc.h,v 1.9 2007/11/12 12:34:29 nvt-se Exp $
+ * $Id: ibc.h,v 1.10 2008/02/24 22:05:27 adamdunkels Exp $
  */
 
 /**
@@ -94,7 +94,7 @@ struct ibc_conn {
  *             when a packet arrives on the channel.
  *
  */
-void ibc_open(struct ibc_conn *c, u16_t channel,
+void ibc_open(struct ibc_conn *c, uint16_t channel,
 	       const struct ibc_callbacks *u);
 
 /**

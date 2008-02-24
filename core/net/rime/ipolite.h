@@ -46,7 +46,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: ipolite.h,v 1.2 2007/12/17 09:14:08 adamdunkels Exp $
+ * $Id: ipolite.h,v 1.3 2008/02/24 22:05:27 adamdunkels Exp $
  */
 
 /**
@@ -76,13 +76,13 @@ struct ipolite_conn {
   const struct ipolite_callbacks *cb;
   struct ctimer t;
   struct queuebuf *q;
-  u8_t hdrsize;
+  uint8_t hdrsize;
 };
 
-void ipolite_open(struct ipolite_conn *c, u16_t channel,
+void ipolite_open(struct ipolite_conn *c, uint16_t channel,
 	       const struct ipolite_callbacks *cb);
 void ipolite_close(struct ipolite_conn *c);
-int  ipolite_send(struct ipolite_conn *c, clock_time_t interval, u8_t hdrsize);
+int  ipolite_send(struct ipolite_conn *c, clock_time_t interval, uint8_t hdrsize);
 void ipolite_cancel(struct ipolite_conn *c);
 
 #endif /* __IPOLITE_H__ */

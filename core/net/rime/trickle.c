@@ -33,7 +33,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: trickle.c,v 1.6 2008/01/08 07:59:51 adamdunkels Exp $
+ * $Id: trickle.c,v 1.7 2008/02/24 22:05:27 adamdunkels Exp $
  */
 
 /**
@@ -78,7 +78,7 @@ send(void *ptr)
 /*---------------------------------------------------------------------------*/
 static int
 recv(struct nf_conn *nf, rimeaddr_t *from,
-     rimeaddr_t *originator, u8_t seqno, u8_t hops)
+     rimeaddr_t *originator, uint8_t seqno, uint8_t hops)
 {
   struct trickle_conn *c = (struct trickle_conn *)nf;
 
@@ -122,7 +122,7 @@ static const struct nf_callbacks nf = {recv,
 /*---------------------------------------------------------------------------*/
 void
 trickle_open(struct trickle_conn *c, clock_time_t interval,
-	     u16_t channel, const struct trickle_callbacks *cb)
+	     uint16_t channel, const struct trickle_callbacks *cb)
 {
   nf_open(&c->c, interval, channel, &nf);
   c->cb = cb;

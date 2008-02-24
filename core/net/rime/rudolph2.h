@@ -47,7 +47,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: rudolph2.h,v 1.3 2007/12/17 09:14:08 adamdunkels Exp $
+ * $Id: rudolph2.h,v 1.4 2008/02/24 22:05:27 adamdunkels Exp $
  */
 
 /**
@@ -83,14 +83,14 @@ struct rudolph2_conn {
   struct polite_conn c;
   const struct rudolph2_callbacks *cb;
   struct ctimer t;
-  u16_t snd_nxt, rcv_nxt;
-  u16_t version;
-  u8_t hops_from_base;
-  u8_t nacks;
-  u8_t flags;
+  uint16_t snd_nxt, rcv_nxt;
+  uint16_t version;
+  uint8_t hops_from_base;
+  uint8_t nacks;
+  uint8_t flags;
 };
 
-void rudolph2_open(struct rudolph2_conn *c, u16_t channel,
+void rudolph2_open(struct rudolph2_conn *c, uint16_t channel,
 		   const struct rudolph2_callbacks *cb);
 void rudolph2_close(struct rudolph2_conn *c);
 void rudolph2_send(struct rudolph2_conn *c, clock_time_t interval);

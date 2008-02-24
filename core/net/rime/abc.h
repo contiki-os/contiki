@@ -46,7 +46,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: abc.h,v 1.12 2007/05/15 08:09:21 adamdunkels Exp $
+ * $Id: abc.h,v 1.13 2008/02/24 22:05:27 adamdunkels Exp $
  */
 /**
  * \file
@@ -80,7 +80,7 @@ struct abc_conn {
   struct chameleon_channel channel;
 #else /* CHAMELEON */
   struct abc_conn *next;
-  u16_t channel;
+  uint16_t channel;
 #endif /* CHAMELEON */
   const struct abc_callbacks *u;
 };
@@ -101,7 +101,7 @@ struct abc_conn {
  *             when a packet arrives on the channel.
  *
  */
-void abc_open(struct abc_conn *c, u16_t channel,
+void abc_open(struct abc_conn *c, uint16_t channel,
 	       const struct abc_callbacks *u);
 
 /**

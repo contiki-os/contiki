@@ -33,7 +33,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: ipolite.c,v 1.6 2008/01/25 01:06:25 adamdunkels Exp $
+ * $Id: ipolite.c,v 1.7 2008/02/24 22:05:27 adamdunkels Exp $
  */
 
 /**
@@ -107,7 +107,7 @@ send(void *ptr)
 static const struct ibc_callbacks ibc = { recv };
 /*---------------------------------------------------------------------------*/
 void
-ipolite_open(struct ipolite_conn *c, u16_t channel,
+ipolite_open(struct ipolite_conn *c, uint16_t channel,
 	  const struct ipolite_callbacks *cb)
 {
   ibc_open(&c->c, channel, &ibc);
@@ -126,7 +126,7 @@ ipolite_close(struct ipolite_conn *c)
 }
 /*---------------------------------------------------------------------------*/
 int
-ipolite_send(struct ipolite_conn *c, clock_time_t interval, u8_t hdrsize)
+ipolite_send(struct ipolite_conn *c, clock_time_t interval, uint8_t hdrsize)
 {
   if(c->q != NULL) {
     /* If we are already about to send a packet, we cancel the old one. */

@@ -34,7 +34,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: ruc.c,v 1.17 2008/01/14 09:34:33 adamdunkels Exp $
+ * $Id: ruc.c,v 1.18 2008/02/24 22:05:27 adamdunkels Exp $
  */
 
 /**
@@ -55,8 +55,8 @@
 #define TYPE_ACK  1
 
 struct ruc_hdr {
-  u8_t type;
-  u8_t seqno;
+  uint8_t type;
+  uint8_t seqno;
 };
 
 #define DEBUG 0
@@ -129,7 +129,7 @@ recv_from_suc(struct suc_conn *suc, rimeaddr_t *from)
     }
   } else if(hdr->type == TYPE_DATA) {
     /*    int send_ack = 1;*/
-    u16_t packet_seqno;
+    uint16_t packet_seqno;
     struct queuebuf *q;
 
     RIMESTATS_ADD(reliablerx);
@@ -168,7 +168,7 @@ recv_from_suc(struct suc_conn *suc, rimeaddr_t *from)
 static const struct suc_callbacks ruc = {recv_from_suc, sent_by_suc};
 /*---------------------------------------------------------------------------*/
 void
-ruc_open(struct ruc_conn *c, u16_t channel,
+ruc_open(struct ruc_conn *c, uint16_t channel,
 	  const struct ruc_callbacks *u)
 {
   suc_open(&c->c, channel, &ruc);
@@ -184,7 +184,7 @@ ruc_close(struct ruc_conn *c)
 }
 /*---------------------------------------------------------------------------*/
 int
-ruc_send(struct ruc_conn *c, rimeaddr_t *receiver, u8_t max_retransmissions)
+ruc_send(struct ruc_conn *c, rimeaddr_t *receiver, uint8_t max_retransmissions)
 {
   if(rimebuf_hdralloc(sizeof(struct ruc_hdr))) {
     struct ruc_hdr *hdr = rimebuf_hdrptr();

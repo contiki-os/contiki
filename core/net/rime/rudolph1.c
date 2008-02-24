@@ -33,7 +33,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: rudolph1.c,v 1.10 2007/11/17 18:05:21 adamdunkels Exp $
+ * $Id: rudolph1.c,v 1.11 2008/02/24 22:05:27 adamdunkels Exp $
  */
 
 /**
@@ -56,17 +56,17 @@
 #define REPAIR_TIMEOUT CLOCK_SECOND / 4
 
 struct rudolph1_hdr {
-  u8_t type;
-  u8_t version;
-  u16_t chunk;
+  uint8_t type;
+  uint8_t version;
+  uint16_t chunk;
 };
 
 #define RUDOLPH1_DATASIZE 64
 
 struct rudolph1_datapacket {
   struct rudolph1_hdr h;
-  u8_t datalen;
-  u8_t data[RUDOLPH1_DATASIZE];
+  uint8_t datalen;
+  uint8_t data[RUDOLPH1_DATASIZE];
 };
 
 enum {
@@ -115,7 +115,7 @@ format_data(struct rudolph1_conn *c, int chunk)
 }
 /*---------------------------------------------------------------------------*/
 static void
-write_data(struct rudolph1_conn *c, int chunk, u8_t *data, int datalen)
+write_data(struct rudolph1_conn *c, int chunk, uint8_t *data, int datalen)
 {
   if(chunk == 0) {
     c->cb->write_chunk(c, 0, RUDOLPH1_FLAG_NEWFILE, data, 0);
@@ -299,7 +299,7 @@ static const struct ipolite_callbacks ipolite = { recv_ipolite, sent_ipolite, dr
 static const struct trickle_callbacks trickle = { recv_trickle };
 /*---------------------------------------------------------------------------*/
 void
-rudolph1_open(struct rudolph1_conn *c, u16_t channel,
+rudolph1_open(struct rudolph1_conn *c, uint16_t channel,
 	      const struct rudolph1_callbacks *cb)
 {
   trickle_open(&c->trickle, TRICKLE_INTERVAL, channel, &trickle);
