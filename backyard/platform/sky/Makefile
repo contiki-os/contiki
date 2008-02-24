@@ -1,4 +1,4 @@
-# $Id: Makefile,v 1.15 2007/05/31 14:26:58 bg- Exp $
+# $Id: Makefile,v 1.1 2008/02/24 22:22:17 adamdunkels Exp $
 #
 # This makefile requires GNU make!
 
