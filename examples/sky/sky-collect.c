@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: sky-collect.c,v 1.3 2008/02/24 22:16:32 adamdunkels Exp $
+ * $Id: sky-collect.c,v 1.4 2008/02/24 22:27:41 adamdunkels Exp $
  */
 
 /**
@@ -47,6 +47,7 @@
 
 #include "dev/light.h"
 #include "dev/sht11.h"
+#include "dev/simple-cc2420.h"
 #include "sys/timesynch.h"
 #include <stdio.h>
 #include <string.h>
@@ -130,11 +131,9 @@ static int
 do_rssi(void)
 {
   static int sample;
-  int rssi_max;
-  int channel, i;
-  rtimer_clock_t r;
+  int channel;
   
-  rime_mac->off();
+  rime_mac->off(0);
 
   simple_cc2420_on();
   for(channel = 11; channel <= 26; ++channel) {
