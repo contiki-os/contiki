@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: shell-rime-ping.c,v 1.1 2008/02/04 23:42:17 adamdunkels Exp $
+ * $Id: shell-rime-ping.c,v 1.2 2008/02/24 20:33:38 adamdunkels Exp $
  */
 
 /**
@@ -92,7 +92,7 @@ PROCESS_THREAD(shell_ping_process, ev, data)
 #if TIMESYNCH_CONF_ENABLED
     ping->pingtime = timesynch_time();
 #else
-    ping->pingtime = 0;
+    ping->pingtime = rtimer_arch_now();
 #endif
     mesh_send(&mesh, &receiver);
     
@@ -121,7 +121,7 @@ static void
 recv_mesh(struct mesh_conn *c, rimeaddr_t *from, u8_t hops)
 {
   struct ping_msg *ping;
-  char buf[32];
+  char buf[64];
   rtimer_clock_t pingrecvtime;
 
   ping = rimebuf_dataptr();
@@ -130,23 +130,23 @@ recv_mesh(struct mesh_conn *c, rimeaddr_t *from, u8_t hops)
 #if TIMESYNCH_CONF_ENABLED
     ping->pongtime = timesynch_time();
 #else
-    ping->pongtime = 0;
+    ping->pongtime = ping->pingtime;
 #endif
     mesh_send(&mesh, from);
   } else {
 #if TIMESYNCH_CONF_ENABLED
     pingrecvtime = timesynch_time();
 #else
-    pingrecvtime = 0;
+    pingrecvtime = rtimer_arch_now();
 #endif
-    snprintf(buf, sizeof(buf), "%lu, %lu, %lu, %d.",
+    snprintf(buf, sizeof(buf), "%lu ms (%lu + %lu), %d hops.",
 	    (1000L * (pingrecvtime - ping->pingtime)) / RTIMER_ARCH_SECOND,
 	    (1000L * (ping->pongtime - ping->pingtime)) / RTIMER_ARCH_SECOND,
 	    (1000L * (pingrecvtime - ping->pongtime)) / RTIMER_ARCH_SECOND,
 	    hops);
     
     shell_output_str(&ping_command,
-		     "Pong recived; rtt (ms), latency 1 (ms), latency 2 (ms), hops: ", buf);
+		     "Pong recived; rtt ", buf);
     waiting_for_pong = 0;
     process_post(&shell_ping_process, PROCESS_EVENT_CONTINUE, NULL);
   }
