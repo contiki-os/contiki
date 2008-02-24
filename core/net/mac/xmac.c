@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: xmac.c,v 1.16 2008/02/24 21:07:28 adamdunkels Exp $
+ * $Id: xmac.c,v 1.17 2008/02/24 22:10:30 adamdunkels Exp $
  */
 
 /**
@@ -350,13 +350,13 @@ send_packet(void)
     }
 #endif
     /* Send the strobe packet. */
-    radio->send((const u8_t *)&msg, sizeof(struct xmac_hdr));
+    radio->send((const uint8_t *)&msg, sizeof(struct xmac_hdr));
     CPRINTF("+");
 
     while(got_ack == 0 &&
 	  RTIMER_CLOCK_LT(RTIMER_NOW(), t + xmac_config.strobe_wait_time)) {
       /* See if we got an ACK */
-      len = radio->read((u8_t *)&msg, sizeof(struct xmac_hdr));
+      len = radio->read((uint8_t *)&msg, sizeof(struct xmac_hdr));
       if(len > 0) {
 	CPRINTF("_");
 	if(rimeaddr_cmp(&msg.sender, &rimeaddr_node_addr) &&
@@ -463,7 +463,7 @@ static int
 read_packet(void)
 {
   struct xmac_hdr *hdr;
-  u8_t len;
+  uint8_t len;
 
   rimebuf_clear();
 
@@ -506,7 +506,7 @@ read_packet(void)
 	  someone_is_sending = 1;
 	  waiting_for_packet = 1;
 	  on();
-	  radio->send((const u8_t *)&msg, sizeof(struct xmac_hdr));
+	  radio->send((const uint8_t *)&msg, sizeof(struct xmac_hdr));
 	}
       } else if(rimeaddr_cmp(&hdr->receiver, &rimeaddr_null)) {
 	/* If the receiver address is null, the strobe is sent to
