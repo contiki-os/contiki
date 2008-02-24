@@ -29,7 +29,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: slip.c,v 1.6 2008/02/03 20:43:35 adamdunkels Exp $
+ * @(#)$Id: slip.c,v 1.7 2008/02/24 21:00:53 adamdunkels Exp $
  */
 
 
@@ -86,7 +86,13 @@ static u16_t begin, end;
 static u8_t rxbuf[RX_BUFSIZE];
 static u16_t pkt_end;		/* SLIP_END tracker. */
 
-
+static void (* input_callback)(void) = NULL;
+/*---------------------------------------------------------------------------*/
+void
+slip_set_input_callback(void (*c)(void))
+{
+  input_callback = c;
+}
 /*---------------------------------------------------------------------------*/
 u8_t
 slip_send(void)
@@ -116,7 +122,7 @@ slip_send(void)
 
   return UIP_FW_OK;
 }
-
+/*---------------------------------------------------------------------------*/
 u8_t
 slip_write(const void *_ptr, int len)
 {
@@ -141,7 +147,6 @@ slip_write(const void *_ptr, int len)
 
   return len;
 }
-
 /*---------------------------------------------------------------------------*/
 static void
 rxbuf_init(void)
@@ -191,10 +196,12 @@ slip_poll_handler(u8_t *outbuf, u16_t blen)
 	len = 0;
       } else {
 	unsigned i;
-	for(i = begin; i < RX_BUFSIZE; i++)
+	for(i = begin; i < RX_BUFSIZE; i++) {
 	  *outbuf++ = rxbuf[i];
-	for(i = 0; i < pkt_end; i++)
+	}
+	for(i = 0; i < pkt_end; i++) {
 	  *outbuf++ = rxbuf[i];
+	}
       }
     }
 
@@ -232,6 +239,9 @@ PROCESS_THREAD(slip_process, ev, data)
       char buf[8];
       memcpy(&buf[0], "=IPA", 4);
       memcpy(&buf[4], &uip_hostaddr, 4);
+      if(input_callback) {
+	input_callback();
+      }
       slip_write(buf, 8);
     } else if(uip_len > 0
        && uip_len == (((u16_t)(BUF->len[0]) << 8) + BUF->len[1])
