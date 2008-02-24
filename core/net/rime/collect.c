@@ -36,7 +36,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: collect.c,v 1.6 2008/02/03 20:52:41 adamdunkels Exp $
+ * $Id: collect.c,v 1.7 2008/02/24 21:08:37 adamdunkels Exp $
  */
 
 /**
@@ -270,7 +270,7 @@ static const struct neighbor_discovery_callbacks neighbor_discovery_callbacks =
   { adv_received, NULL};
 /*---------------------------------------------------------------------------*/
 void
-collect_open(struct collect_conn *tc, u16_t channels,
+collect_open(struct collect_conn *tc, uint16_t channels,
 	     const struct collect_callbacks *cb)
 {
   neighbor_discovery_open(&tc->neighbor_discovery_conn, channels,
