@@ -30,7 +30,7 @@
  *
  * Author: Oliver Schmidt <ol.sc@web.de>
  *
- * $Id: wpcap.c,v 1.1 2008/02/07 09:39:35 adamdunkels Exp $
+ * $Id: wpcap.c,v 1.2 2008/02/24 21:14:25 adamdunkels Exp $
  */
 
 
@@ -471,14 +471,14 @@ do_arp(void *buf, int len)
   if(hdr->ethhdr.type == HTONS(UIP_ETHTYPE_ARP)) {
     if(hdr->opcode == HTONS(ARP_REQUEST)) {
       /* Check if the ARP is for our network */
-      printf("ARP for %d.%d.%d.%d we are %d.%d.%d.%d/%d.%d.%d.%d\n",
+      /*      printf("ARP for %d.%d.%d.%d we are %d.%d.%d.%d/%d.%d.%d.%d\n",
 	     uip_ipaddr_to_quad(&hdr->dipaddr),
 	     uip_ipaddr_to_quad(&netaddr),
-	     uip_ipaddr_to_quad(&netmask));
+	     uip_ipaddr_to_quad(&netmask));*/
       if(uip_ipaddr_maskcmp(&hdr->dipaddr, &netaddr, &netmask)) {
 	uip_ipaddr_t tmpaddr;
 	
-	printf("ARP for us.\n");
+	/*	printf("ARP for us.\n");*/
 	uip_arp_update(&hdr->sipaddr, &hdr->shwaddr);
 	
 	hdr->opcode = HTONS(ARP_REPLY);

@@ -30,7 +30,7 @@
  *
  * Author: Oliver Schmidt <ol.sc@web.de>
  *
- * $Id: wpcapslip.c,v 1.1 2008/02/07 09:39:35 adamdunkels Exp $
+ * $Id: wpcapslip.c,v 1.2 2008/02/24 21:14:25 adamdunkels Exp $
  */
 
 
@@ -71,6 +71,21 @@ void wpcap_send(void *buf, int len);
 
 uint16_t wpcap_poll(char **buf);
 
+#include "net/tcpdump.h"
+static int should_print = 0;
+
+#define IP_HLEN 20
+
+/*---------------------------------------------------------------------------*/
+static void
+print_packet(uint8_t *packet, int len)
+{
+  char buf[2000];
+  if(should_print) {
+    tcpdump_format(packet, len, buf, sizeof(buf));
+    printf("%s\n", buf);
+  }
+}
 /*---------------------------------------------------------------------------*/
 void cleanup(void);
 /*---------------------------------------------------------------------------*/
@@ -109,7 +124,7 @@ struct ip {
   u_int16_t uh_sum;		/* udp checksum */
 };
 
-static int ip_id;
+static int ip_id, last_id;
 
 int
 ssystem(const char *fmt, ...) __attribute__((__format__ (__printf__, 1, 2)));
@@ -163,6 +178,12 @@ ip4sum(u_int16_t sum, const void *_p, u_int16_t len)
   return sum;
 }
 
+static uint16_t
+chksum(const void *p, uint16_t len)
+{
+  uint16_t sum = ip4sum(0, p, len);
+  return (sum == 0) ? 0xffff : htons(sum);
+}
 
 int
 check_ip(const struct ip *ip, unsigned ip_len)
@@ -170,20 +191,24 @@ check_ip(const struct ip *ip, unsigned ip_len)
   u_int16_t sum, ip_hl;
   
   /* Check IP version and length. */
-  if((ip->ip_vhl & IP_V) != IP_V4)
+  if((ip->ip_vhl & IP_V) != IP_V4) {
     return -1;
+  }
 
-  if(ntohs(ip->ip_len) > ip_len)
+  if(ntohs(ip->ip_len) > ip_len) {
     return -2;
+  }
 
-  if(ntohs(ip->ip_len) < ip_len)
+  if(ntohs(ip->ip_len) < ip_len) {
     return -3;
+  }
 
   /* Check IP header. */
   ip_hl = 4*(ip->ip_vhl & IP_HL);
   sum = ip4sum(0, ip, ip_hl);
-  if(sum != 0xffff && sum != 0x0)
+  if(sum != 0xffff && sum != 0x0) {
     return -4;
+  }
 
   if(ip->ip_p == 6 || ip->ip_p == 17) {	/* Check TCP or UDP header. */
     u_int16_t tcp_len = ip_len - ip_hl;
@@ -196,21 +221,23 @@ check_ip(const struct ip *ip, unsigned ip_len)
     sum = ip4sum(sum, (u_int8_t*)ip + ip_hl, tcp_len);
     
     /* Failed checksum test? */
-    if (sum != 0xffff && sum != 0x0) {
-      if (ip->ip_p == 6) {	/* TCP == 6 */
+    if(sum != 0xffff && sum != 0x0) {
+      if(ip->ip_p == 6) {	/* TCP == 6 */
 	return -5;
       } else {			/* UDP */
 	/* Deal with disabled UDP checksums. */
-	if (ip->uh_sum != 0)
+	if(ip->uh_sum != 0) {
 	  return -6;
+	}
       }
     }
   } else if (ip->ip_p == 1) {	/* ICMP */
     u_int16_t icmp_len = ip_len - ip_hl;
 
     sum = ip4sum(0, (u_int8_t*)ip + ip_hl, icmp_len);
-    if(sum != 0xffff && sum != 0x0)
+    if(sum != 0xffff && sum != 0x0) {
       return -7;
+    }
   }
   return 0;
 }
@@ -331,6 +358,7 @@ serial_to_wpcap(FILE *inslip)
 	err(1, "serial_to_tun: write");
 	}*/
       /*      printf("Sending to wpcap\n");*/
+      print_packet(uip.inbuf, inbufptr);
       wpcap_send(uip.inbuf, inbufptr);
       /*      printf("After sending to wpcap\n");*/
       inbufptr = 0;
@@ -429,9 +457,23 @@ write_to_serial(int outfd, void *inbuf, int len)
     }
     ecode = check_ip(inbuf, len);
     if(ecode < 0) {
-      fprintf(stderr, "tun_to_serial: drop packet %d\n", ecode);
+      fprintf(stderr, "write_to_serial: drop packet %d\n", ecode);
       return;
     }
+  }
+
+
+  iphdr->ip_ttl = htons(htons(iphdr->ip_ttl) + 1);
+  if(iphdr->ip_ttl == 0) {
+    fprintf(stderr, "Packet with ttl %d dropped\n", iphdr->ip_ttl);
+    return;
+  }
+  iphdr->ip_sum = 0;
+  iphdr->ip_sum = ~chksum(iphdr, 4 * (iphdr->ip_vhl & IP_HL));
+  ecode = check_ip(inbuf, len);
+  if(ecode < 0) {
+    fprintf(stderr, "write_to_serial: drop packet %d\n", ecode);
+    return;
   }
 
   /* It would be ``nice'' to send a SLIP_END here but it's not
@@ -456,6 +498,7 @@ write_to_serial(int outfd, void *inbuf, int len)
     
   }
   slip_send(outfd, SLIP_END);
+  /*  printf("slip end\n");*/
   PROGRESS("t");
 }
 /*---------------------------------------------------------------------------*/
@@ -626,7 +669,7 @@ main(int argc, char **argv)
 
   setvbuf(stdout, NULL, _IOLBF, 0); /* Line buffered output. */
 
-  while((c = getopt(argc, argv, "B:D:hs:t:")) != -1) {
+  while((c = getopt(argc, argv, "B:D:hs:t:T")) != -1) {
     switch (c) {
     case 'B':
       baudrate = atoi(optarg);
@@ -653,11 +696,15 @@ main(int argc, char **argv)
       }
       break;
 #endif /* 0 */
+
+    case 'T':
+      should_print = 1;
+      break;
       
     case '?':
     case 'h':
     default:
-      err(1, "usage: wpcapslip [-B baudrate] [-s siodev] [-D dhcp-server] ipaddress netmask [dhcp-server]");
+      err(1, "usage: wpcapslip [-B baudrate] [-s siodev] [-D dhcp-server] [-T] ipaddress netmask [dhcp-server]");
       break;
     }
   }
@@ -665,7 +712,7 @@ main(int argc, char **argv)
   argv += (optind - 1);
 
   if(argc != 4) {
-    err(1, "usage: wpcapslip [-s siodev] [-D dhcp-server] <IP address of local Ethernet card> <IP address of SLIP network> <netmask of SLIP network>");
+    err(1, "usage: wpcapslip [-s siodev] [-D dhcp-server] [-T] <IP address of local Ethernet card> <IP address of SLIP network> <netmask of SLIP network>");
   }
   /*  ipaddr = argv[1];
       netmask = argv[2];*/
@@ -848,11 +895,15 @@ main(int argc, char **argv)
       
       ret = wpcap_poll(&pbuf);
       if(ret > 0) {
-	/*	printf("wpcap_poll ret %d", ret);
-		printf("IP packet\n");*/
-	write_to_serial(slipfd, pbuf, ret);
-	slip_flushbuf(slipfd);
-	sigalarm_reset();
+	struct ip *iphdr = (struct ip *)pbuf;
+	if(iphdr->ip_id != last_id) {
+	  last_id = iphdr->ip_id;
+	  /*	  printf("------ wpcap_poll ret %d\n", ret);*/
+	  print_packet(pbuf, ret);
+	  write_to_serial(slipfd, pbuf, ret);
+	  slip_flushbuf(slipfd);
+	  sigalarm_reset();
+	}
       }
       /*    } else {
 	    printf("!slip_empty\n");*/
