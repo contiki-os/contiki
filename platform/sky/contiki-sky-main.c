@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#)$Id: contiki-sky-main.c,v 1.27 2008/02/11 10:44:12 adamdunkels Exp $
+ * @(#)$Id: contiki-sky-main.c,v 1.28 2008/02/24 21:13:03 adamdunkels Exp $
  */
 
 #include <signal.h>
@@ -75,7 +75,8 @@ static struct uip_fw_netif slipif =
 static struct uip_fw_netif meshif =
   {UIP_FW_NETIF(172,16,0,0, 255,255,0,0, uip_over_mesh_send)};
 
-#define UIP_OVER_MESH_CHANNEL 1
+#define SLIP_TRICKLE_CHANNEL 8
+#define UIP_OVER_MESH_CHANNEL 9
 
 #endif /* WITH_UIP */
 
@@ -127,6 +128,7 @@ set_rime_addr(void)
     addr.u8[1] = node_id >> 8;
   }
   rimeaddr_set_node_addr(&addr);
+  printf("Rime started with address %d.%d\n", addr.u8[0], addr.u8[1]);
 }
 /*---------------------------------------------------------------------------*/
 static void
@@ -141,6 +143,49 @@ print_processes(struct process * const processes[])
   putchar('\n');
 }
 /*--------------------------------------------------------------------------*/
+#if WITH_UIP
+struct gateway_msg {
+  rimeaddr_t gateway;
+};
+
+static uint8_t is_gateway;
+
+static void
+trickle_recv(struct trickle_conn *c)
+{
+  struct gateway_msg *msg;
+  msg = rimebuf_dataptr();
+  printf("%d.%d: gateway message: %d.%d\n",
+	 rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1],
+	 msg->gateway.u8[0], msg->gateway.u8[1]);
+
+  if(!is_gateway) {
+    uip_over_mesh_set_gateway(&msg->gateway);
+  }
+  
+}
+const static struct trickle_callbacks trickle_call = {trickle_recv};
+static struct trickle_conn trickle;
+/*---------------------------------------------------------------------------*/
+static void
+set_gateway(void)
+{
+  struct gateway_msg msg;
+  /* Make this node the gateway node, unless it already is the
+     gateway. */
+  if(!is_gateway) {
+    leds_on(LEDS_RED);
+    printf("%d.%d: making myself the gateway\n",
+	   rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1]);
+    uip_over_mesh_set_gateway(&rimeaddr_node_addr);
+    rimeaddr_copy(&(msg.gateway), &rimeaddr_node_addr);
+    rimebuf_copyfrom(&msg, sizeof(struct gateway_msg));
+    trickle_send(&trickle);
+    is_gateway = 1;
+  }
+}
+#endif /* WITH_UIP */
+/*---------------------------------------------------------------------------*/
 int
 main(int argc, char **argv)
 {
@@ -151,12 +196,10 @@ main(int argc, char **argv)
   clock_init();
   leds_init();
   leds_on(LEDS_RED);
-
+  
+  uart1_init(BAUD2UBR(115200)); /* Must come before first printf */
 #if WITH_UIP
-  uart1_init(BAUD2UBR(115200)); /* Must come before first printf */
   slip_arch_init(BAUD2UBR(115200));
-#else
-  uart1_init(BAUD2UBR(115200)); /* Must come before first printf */
 #endif /* WITH_UIP */
   
   leds_on(LEDS_GREEN);
@@ -205,6 +248,8 @@ main(int argc, char **argv)
     uip_over_mesh_set_gateway_netif(&slipif);
     uip_fw_default(&meshif);
     uip_over_mesh_init(UIP_OVER_MESH_CHANNEL);
+    printf("uIP started with IP address %d.%d.%d.%d\n",
+	   uip_ipaddr_to_quad(&hostaddr));
   }
 #endif /* WITH_UIP */
 
@@ -246,6 +291,11 @@ main(int argc, char **argv)
   process_start(&tcpip_process, NULL);
   process_start(&uip_fw_process, NULL);	/* Start IP output */
   process_start(&slip_process, NULL);
+  
+  trickle_open(&trickle, CLOCK_SECOND * 4, SLIP_TRICKLE_CHANNEL,
+	       &trickle_call);
+  slip_set_input_callback(set_gateway);
+
 #endif /* WITH_UIP */
 
   button_sensor.activate();
