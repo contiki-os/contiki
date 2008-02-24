@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: shell.h,v 1.4 2008/02/08 12:49:54 oliverschmidt Exp $
+ * $Id: shell.h,v 1.5 2008/02/24 20:35:03 adamdunkels Exp $
  */
 
 /**
@@ -52,6 +52,8 @@ struct shell_command {
 };
 
 void shell_init(void);
+
+void shell_start(void);
 
 void shell_input(char *commandline, int commandline_len);
 int shell_start_command(char *commandline, int commandline_len,

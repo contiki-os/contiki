@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: shell.c,v 1.7 2008/02/10 12:24:43 oliverschmidt Exp $
+ * $Id: shell.c,v 1.8 2008/02/24 20:35:03 adamdunkels Exp $
  */
 
 /**
@@ -323,7 +323,7 @@ shell_input(char *commandline, int commandline_len)
     if(front_process != &shell_process) {
       process_exit(front_process);
     }
-  } else {  
+  } else {
     if(process_is_running(front_process)) {
       input.data1 = commandline;
       input.len1 = commandline_len;
@@ -509,5 +509,13 @@ void
 shell_set_time(unsigned long seconds)
 {
   time_offset = seconds - clock_time() / CLOCK_SECOND;
+}
+/*---------------------------------------------------------------------------*/
+void
+shell_start(void)
+{
+  shell_output_str(NULL, "Contiki command shell", "");
+  shell_output_str(NULL, "Type '?' and return for help", "");
+  shell_prompt("Contiki> ");
 }
 /*---------------------------------------------------------------------------*/
