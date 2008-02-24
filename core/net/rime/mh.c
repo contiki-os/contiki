@@ -33,7 +33,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: mh.c,v 1.8 2008/02/05 20:17:43 adamdunkels Exp $
+ * $Id: mh.c,v 1.9 2008/02/24 21:09:08 adamdunkels Exp $
  */
 
 /**
@@ -75,8 +75,9 @@ data_packet_received(struct uc_conn *uc, rimeaddr_t *from)
 
   memcpy(&msg, rimebuf_dataptr(), sizeof(struct data_hdr));
   
-  PRINTF("data_packet_received from %d towards %d len %d\n", from->u16[0],
-	 msg->dest.u16[0],
+  PRINTF("data_packet_received from %d.%d towards %d.%d len %d\n",
+	 from->u8[0], from->u8[1],
+	 msg.dest.u8[0], msg.dest.u8[1],
 	 rimebuf_datalen());
 
   if(rimeaddr_cmp(&msg.dest, &rimeaddr_node_addr)) {
