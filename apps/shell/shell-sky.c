@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: shell-sky.c,v 1.1 2008/02/04 23:42:17 adamdunkels Exp $
+ * $Id: shell-sky.c,v 1.2 2008/02/24 20:34:05 adamdunkels Exp $
  */
 
 /**
@@ -112,7 +112,7 @@ do_rssi(void)
   static int sample;
   int channel;
   
-  rime_mac->off();
+  rime_mac->off(0);
 
   simple_cc2420_on();
   for(channel = 11; channel <= 26; ++channel) {
@@ -185,14 +185,21 @@ PROCESS_THREAD(shell_senseconv_process, ev, data)
     if(msg != NULL) {
       char buf[40];
       snprintf(buf, sizeof(buf),
-	       "l1 %d l2 %d t %d.%d h %d r %d\n",
-	       10 * msg->light1 / 7,
-	       46 * msg->light2 / 10,
-	       (msg->temp / 10 - 396) / 10,
-	       (msg->temp / 10 - 396) % 10,
-	       (int)(-4L + 405L * msg->humidity / 10000L),
-	       msg->rssi);
-      shell_output(&senseconv_command, buf, strlen(buf), "", 0);
+	       "%d", 10 * msg->light1 / 7);
+      shell_output_str(&senseconv_command, "Light 1 ", buf);
+      snprintf(buf, sizeof(buf),
+	       "%d", 46 * msg->light2 / 10);
+      shell_output_str(&senseconv_command, "Light 2 ", buf);
+      snprintf(buf, sizeof(buf),
+	       "%d.%d", (msg->temp / 10 - 396) / 10,
+	       (msg->temp / 10 - 396) % 10);
+      shell_output_str(&senseconv_command, "Temperature ", buf);
+      snprintf(buf, sizeof(buf),
+	       "%d", (int)(-4L + 405L * msg->humidity / 10000L));
+      shell_output_str(&senseconv_command, "Relative humidity ", buf);
+      snprintf(buf, sizeof(buf),
+	       "%d", msg->rssi);
+      shell_output_str(&senseconv_command, "RSSI ", buf);
     }
   }
   PROCESS_END();
