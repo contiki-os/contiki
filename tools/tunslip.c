@@ -1,18 +1,18 @@
 /*
  * Copyright (c) 2001, Adam Dunkels.
- * All rights reserved. 
+ * All rights reserved.
  *
- * Redistribution and use in source and binary forms, with or without 
- * modification, are permitted provided that the following conditions 
- * are met: 
- * 1. Redistributions of source code must retain the above copyright 
- *    notice, this list of conditions and the following disclaimer. 
- * 2. Redistributions in binary form must reproduce the above copyright 
- *    notice, this list of conditions and the following disclaimer in the 
- *    documentation and/or other materials provided with the distribution. 
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions
+ * are met:
+ * 1. Redistributions of source code must retain the above copyright
+ *    notice, this list of conditions and the following disclaimer.
+ * 2. Redistributions in binary form must reproduce the above copyright
+ *    notice, this list of conditions and the following disclaimer in the
+ *    documentation and/or other materials provided with the distribution.
  * 3. The name of the author may not be used to endorse or promote
  *    products derived from this software without specific prior
- *    written permission.  
+ *    written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS
  * OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
@@ -24,11 +24,11 @@
  * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
  * WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
- * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.  
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * This file is part of the uIP TCP/IP stack.
  *
- * $Id: tunslip.c,v 1.14 2007/05/21 15:22:56 bg- Exp $
+ * $Id: tunslip.c,v 1.15 2008/02/24 21:13:36 adamdunkels Exp $
  *
  */
 
@@ -139,7 +139,7 @@ struct dhcp_light_msg {
 #define DHCPDECLINE   4
 #define DHCPACK       5
 #define DHCPNAK       6
-#define DHCPRELEASE   7 
+#define DHCPRELEASE   7
 
 #define BOOTP_BROADCAST 0x8000
 
@@ -416,11 +416,13 @@ int
 is_sensible_string(const unsigned char *s, int len)
 {
   int i;
-  for(i = 1; i < len; i++)
-    if (s[i] == 0 || s[i] == '\r' || s[i] == '\n' || s[i] == '\t')
+  for(i = 1; i < len; i++) {
+    if(s[i] == 0 || s[i] == '\r' || s[i] == '\n' || s[i] == '\t') {
       continue;
-    else if (s[i] < ' ' || '~' < s[i])
+    } else if(s[i] < ' ' || '~' < s[i]) {
       return 0;
+    }
+  }
   return 1;
 }
 
@@ -475,13 +477,15 @@ serial_to_tun(FILE *inslip, int outfd)
 #ifdef linux
  after_fread:
 #endif
-  if(ret == -1) err(1, "serial_to_tun: read");
+  if(ret == -1) {
+    err(1, "serial_to_tun: read");
+  }
   if(ret == 0) {
     clearerr(inslip);
     return;
     fprintf(stderr, "serial_to_tun: EOF\n");
     exit(1);
-  } 
+  }
   /*  fprintf(stderr, ".");*/
   switch(c) {
   case SLIP_END:
@@ -496,8 +500,9 @@ serial_to_tun(FILE *inslip, int outfd)
 	static struct in_addr ipa;
 
 	inbufptr = 0;
-	if(memcmp(&ipa, &uip.inbuf[4], sizeof(ipa)) == 0)
+	if(memcmp(&ipa, &uip.inbuf[4], sizeof(ipa)) == 0) {
 	  break;
+	}
 
 	/* New address. */
 	if(ipa.s_addr != 0) {
@@ -525,28 +530,31 @@ serial_to_tun(FILE *inslip, int outfd)
 	/*
 	 * If sensible ASCII string, print it as debug info!
 	 */
-	if (uip.inbuf[0] == DEBUG_LINE_MARKER)
+	if(uip.inbuf[0] == DEBUG_LINE_MARKER) {
 	  fwrite(uip.inbuf + 1, inbufptr - 1, 1, stderr);
-	else if (is_sensible_string(uip.inbuf, inbufptr))
+	} else if(is_sensible_string(uip.inbuf, inbufptr)) {
 	  fwrite(uip.inbuf, inbufptr, 1, stderr);
-	else
+	} else {
 	  fprintf(stderr,
 		  "serial_to_tun: drop packet len=%d ecode=%d\n",
 		  inbufptr, ecode);
+	}
 	inbufptr = 0;
 	break;
       }
       PROGRESS("s");
 
-      if (dhsock != -1) {
+      if(dhsock != -1) {
 	struct ip *ip = (void *)uip.inbuf;
-	if (ip->ip_p == 17 && ip->ip_dst == 0xffffffff /* UDP and broadcast */
-	    && ip->uh_sport == ntohs(BOOTPC) && ip->uh_dport == ntohs(BOOTPS)){
+	if(ip->ip_p == 17 && ip->ip_dst == 0xffffffff /* UDP and broadcast */
+	    && ip->uh_sport == ntohs(BOOTPC) && ip->uh_dport == ntohs(BOOTPS)) {
 	  relay_dhcp_to_server(ip, inbufptr);
 	  inbufptr = 0;
 	}
       }
-      if(write(outfd, uip.inbuf, inbufptr) != inbufptr) err(1, "serial_to_tun: write");
+      if(write(outfd, uip.inbuf, inbufptr) != inbufptr) {
+	err(1, "serial_to_tun: write");
+      }
       inbufptr = 0;
     }
     break;
@@ -566,7 +574,7 @@ serial_to_tun(FILE *inslip, int outfd)
     case SLIP_ESC_ESC:
       c = SLIP_ESC;
       break;
-    }    
+    }
     /* FALLTHROUGH */
   default:
     uip.inbuf[inbufptr++] = c;
@@ -604,14 +612,15 @@ slip_flushbuf(int fd)
   
   n = write(fd, slip_buf + slip_begin, (slip_end - slip_begin));
 
-  if (n == -1 && errno != EAGAIN)
+  if(n == -1 && errno != EAGAIN) {
     err(1, "slip_flushbuf write failed");
-  else if (n == -1)
+  } else if(n == -1) {
     PROGRESS("Q");		/* Outqueueis full! */
-  else {
+  } else {
     slip_begin += n;
-    if (slip_begin == slip_end)
+    if(slip_begin == slip_end) {
       slip_begin = slip_end = 0;
+    }
   }
 }
 
@@ -631,13 +640,14 @@ write_to_serial(int outfd, void *inbuf, int len)
     return;
   }
 
-  if (iphdr->ip_id == 0 && iphdr->ip_off & IP_DF) {
+  if(iphdr->ip_id == 0 && iphdr->ip_off & IP_DF) {
     uint16_t nid = htons(ip_id++);
     iphdr->ip_id = nid;
     nid = ~nid;			/* negate */
     iphdr->ip_sum += nid;	/* add */
-    if (iphdr->ip_sum < nid)	/* 1-complement overflow? */
+    if(iphdr->ip_sum < nid) {	/* 1-complement overflow? */
       iphdr->ip_sum++;
+    }
     ecode = check_ip(inbuf, len);
     if(ecode < 0) {
       fprintf(stderr, "tun_to_serial: drop packet %d\n", ecode);
@@ -759,12 +769,12 @@ tun_alloc(char *dev)
 
   memset(&ifr, 0, sizeof(ifr));
 
-  /* Flags: IFF_TUN   - TUN device (no Ethernet headers) 
-   *        IFF_TAP   - TAP device  
+  /* Flags: IFF_TUN   - TUN device (no Ethernet headers)
+   *        IFF_TAP   - TAP device
    *
-   *        IFF_NO_PI - Do not provide packet information  
-   */ 
-  ifr.ifr_flags = IFF_TUN | IFF_NO_PI; 
+   *        IFF_NO_PI - Do not provide packet information
+   */
+  ifr.ifr_flags = IFF_TUN | IFF_NO_PI;
   if(*dev != 0)
     strncpy(ifr.ifr_name, dev, IFNAMSIZ);
 
@@ -836,14 +846,16 @@ ifconf(const char *tundev, const char *ipaddr, const char *netmask)
 
 #ifdef linux
   ssystem("ifconfig %s inet `hostname` up", tundev);
-  if (strcmp(ipaddr, "0.0.0.0") != 0)
+  if(strcmp(ipaddr, "0.0.0.0") != 0) {
     ssystem("route add -net %s netmask %s dev %s",
 	    inet_ntoa(netname), netmask, tundev);
+  }
 #else
   ssystem("ifconfig %s inet `hostname` %s up", tundev, ipaddr);
-  if (strcmp(ipaddr, "0.0.0.0") != 0)
+  if(strcmp(ipaddr, "0.0.0.0") != 0) {
     ssystem("route add -net %s -netmask %s -interface %s",
 	    inet_ntoa(netname), netmask, tundev);
+  }
   ssystem("sysctl -w net.inet.ip.forwarding=1");
 #endif /* !linux */
 
@@ -867,7 +879,7 @@ main(int argc, char **argv)
 
   setvbuf(stdout, NULL, _IOLBF, 0); /* Line buffered output. */
 
-  while ((c = getopt(argc, argv, "B:D:hs:t:")) != -1) {
+  while((c = getopt(argc, argv, "B:D:hs:t:")) != -1) {
     switch (c) {
     case 'B':
       baudrate = atoi(optarg);
@@ -878,17 +890,19 @@ main(int argc, char **argv)
       break;
 
     case 's':
-      if (strncmp("/dev/", optarg, 5) == 0)
+      if(strncmp("/dev/", optarg, 5) == 0) {
 	siodev = optarg + 5;
-      else
+      } else {
 	siodev = optarg;
+      }
       break;
 
     case 't':
-      if (strncmp("/dev/", optarg, 5) == 0)
+      if(strncmp("/dev/", optarg, 5) == 0) {
 	strcpy(tundev, optarg + 5);
-      else
+      } else {
 	strcpy(tundev, optarg);
+      }
       break;
 
     case '?':
@@ -901,14 +915,15 @@ main(int argc, char **argv)
   argc -= (optind - 1);
   argv += (optind - 1);
 
-  if (argc != 3 && argc != 4)
+  if(argc != 3 && argc != 4) {
     err(1, "usage: tunslip [-s siodev] [-t tundev] [-D dhcp-server] ipaddress netmask [dhcp-server]");
+  }
   ipaddr = argv[1];
   netmask = argv[2];
   circuit_addr = inet_addr(ipaddr);
   netaddr = inet_addr(ipaddr) & inet_addr(netmask);
 
-  switch (baudrate) {
+  switch(baudrate) {
   case -2:
     break;			/* Use default. */
   case 9600:
@@ -935,22 +950,23 @@ main(int argc, char **argv)
    * Set up DHCP relay agent socket and find the address of this relay
    * agent.
    */
-  if (argc == 4) {
+  if(argc == 4) {
     dhcp_server = argv[3];
   }
-  if (dhcp_server != NULL) {
+  if(dhcp_server != NULL) {
     struct sockaddr_in myaddr;
     socklen_t len;
     in_addr_t a;
 
-    if (strchr(dhcp_server, ':') != NULL) {
+    if(strchr(dhcp_server, ':') != NULL) {
       dhport = atoi(strchr(dhcp_server, ':') + 1);
       myport = dhport + 1;
       *strchr(dhcp_server, ':') = '\0';
     }
     a = inet_addr(dhcp_server);
-    if (a == -1)
+    if(a == -1) {
       err(1, "illegal dhcp-server address");
+    }
 #ifndef linux
     dhaddr.sin_len = sizeof(dhaddr);
 #endif
@@ -959,8 +975,9 @@ main(int argc, char **argv)
     dhaddr.sin_addr.s_addr = a;
 
     dhsock = socket(AF_INET, SOCK_DGRAM, 0);
-    if (dhsock < 0)
+    if(dhsock < 0) {
       err (1, "socket");
+    }
     memset(&myaddr, 0x0, sizeof(myaddr));
 #ifndef linux
     myaddr.sin_len = sizeof(myaddr);
@@ -968,15 +985,18 @@ main(int argc, char **argv)
     myaddr.sin_family = AF_INET;
     myaddr.sin_addr.s_addr = INADDR_ANY;
     myaddr.sin_port = htons(myport);
-    if (bind(dhsock, (struct sockaddr *)&myaddr, sizeof(myaddr)) < 0)
+    if(bind(dhsock, (struct sockaddr *)&myaddr, sizeof(myaddr)) < 0) {
       err(1, "bind dhcp-relay");
+    }
 
-    if (connect(dhsock, (struct sockaddr *)&dhaddr, sizeof(dhaddr)) < 0)
+    if(connect(dhsock, (struct sockaddr *)&dhaddr, sizeof(dhaddr)) < 0) {
       err(1, "connect to dhcp-server");
+    }
 
     len = sizeof(myaddr);
-    if (getsockname(dhsock, (struct sockaddr *)&myaddr, &len) < 0)
+    if(getsockname(dhsock, (struct sockaddr *)&myaddr, &len) < 0) {
       err(1, "getsockname dhsock");
+    }
 
     giaddr = myaddr.sin_addr.s_addr;
 
@@ -985,19 +1005,23 @@ main(int argc, char **argv)
      */
     close(dhsock);
     dhsock = socket(AF_INET, SOCK_DGRAM, 0);
-    if (dhsock < 0)
+    if(dhsock < 0) {
       err (1, "socket");
+    }
     myaddr.sin_family = AF_INET;
     myaddr.sin_addr.s_addr = INADDR_ANY;
     myaddr.sin_port = htons(myport);
-    if (bind(dhsock, (struct sockaddr *)&myaddr, sizeof(myaddr)) < 0)
+    if(bind(dhsock, (struct sockaddr *)&myaddr, sizeof(myaddr)) < 0) {
       err(1, "bind dhcp-relay");
+    }
     fprintf(stderr, "DHCP server at %s:%d\n", dhcp_server, dhport);
   }
 
-  if (siodev != NULL) {
+  if(siodev != NULL) {
       slipfd = devopen(siodev, O_RDWR | O_NONBLOCK);
-      if (slipfd == -1) err(1, "can't open siodev ``/dev/%s''", siodev);
+      if(slipfd == -1) {
+	err(1, "can't open siodev ``/dev/%s''", siodev);
+      }
   } else {
     static const char *siodevs[] = {
       "ttyUSB0", "cuaU0", "ucom0" /* linux, fbsd6, fbsd5 */
@@ -1009,7 +1033,9 @@ main(int argc, char **argv)
       if (slipfd != -1)
 	break;
     }
-    if (slipfd == -1) err(1, "can't open siodev");
+    if(slipfd == -1) {
+      err(1, "can't open siodev");
+    }
   }
   fprintf(stderr, "slip started on ``/dev/%s''\n", siodev);
   stty_telos(slipfd);
@@ -1043,8 +1069,9 @@ main(int argc, char **argv)
       got_sigalarm = 0;
     }
 
-    if (!slip_empty())		/* Anything to flush? */
+    if(!slip_empty()) {		/* Anything to flush? */
       FD_SET(slipfd, &wset);
+    }
 
     FD_SET(slipfd, &rset);	/* Read from slip ASAP! */
     if(slipfd > maxfd) maxfd = slipfd;
@@ -1060,12 +1087,13 @@ main(int argc, char **argv)
     }
 
     ret = select(maxfd + 1, &rset, &wset, NULL, NULL);
-    if(ret == -1 && errno != EINTR)
+    if(ret == -1 && errno != EINTR) {
       err(1, "select");
-    else if(ret > 0) {
-      if(FD_ISSET(slipfd, &rset))
+    } else if(ret > 0) {
+      if(FD_ISSET(slipfd, &rset)) {
         serial_to_tun(inslip, tunfd);
-
+      }
+      
       if(FD_ISSET(slipfd, &wset)) {
 	slip_flushbuf(slipfd);
 	sigalarm_reset();
