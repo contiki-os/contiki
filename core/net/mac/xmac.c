@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: xmac.c,v 1.15 2008/01/24 06:17:51 adamdunkels Exp $
+ * $Id: xmac.c,v 1.16 2008/02/24 21:07:28 adamdunkels Exp $
  */
 
 /**
@@ -45,6 +45,7 @@
 #include "net/rime.h"
 #include "net/rime/timesynch.h"
 #include "dev/radio.h"
+#include "dev/watchdog.h"
 #include "lib/random.h"
 /*#include "lib/bb.h"*/
 
@@ -58,7 +59,7 @@
 
 #define WITH_TIMETABLE 0
 #define WITH_CHANNEL_CHECK 0   /* Seems to work bad when enabled */
-#define WITH_TIMESYNCH 1
+#define WITH_TIMESYNCH 0
 #define WITH_RECEIVER 1
 #define WITH_QUEUE 0
 
@@ -79,21 +80,21 @@ struct xmac_hdr {
 #ifdef XMAC_CONF_ON_TIME
 #define DEFAULT_ON_TIME (XMAC_CONF_ON_TIME)
 #else
-#define DEFAULT_ON_TIME (RTIMER_ARCH_SECOND / 100)
+#define DEFAULT_ON_TIME (RTIMER_ARCH_SECOND / 200)
 #endif
 
 #ifdef XMAC_CONF_OFF_TIME
 #define DEFAULT_OFF_TIME (XMAC_CONF_OFF_TIME)
 #else
-#define DEFAULT_OFF_TIME (RTIMER_ARCH_SECOND / 2 - DEFAULT_ON_TIME)
+#define DEFAULT_OFF_TIME (RTIMER_ARCH_SECOND / 8 - DEFAULT_ON_TIME)
 #endif
 
-#define DEFAULT_STROBE_WAIT_TIME (DEFAULT_ON_TIME / 2)
+#define DEFAULT_STROBE_WAIT_TIME (7 * DEFAULT_ON_TIME / 8)
 
 struct xmac_config xmac_config = {
   DEFAULT_ON_TIME,
   DEFAULT_OFF_TIME,
-  2 * DEFAULT_ON_TIME + DEFAULT_OFF_TIME,
+  20 * DEFAULT_ON_TIME + DEFAULT_OFF_TIME,
   DEFAULT_STROBE_WAIT_TIME
 };
 
@@ -141,7 +142,7 @@ static const struct radio_driver *radio;
 static void (* receiver_callback)(const struct mac_driver *);
 
 #if WITH_TIMETABLE
-#define xmac_timetable_size 256
+#define xmac_timetable_size 1024
 TIMETABLE_NONSTATIC(xmac_timetable);
 #endif /* WITH_TIMETABLE */
 /*---------------------------------------------------------------------------*/
@@ -154,7 +155,7 @@ set_receive_function(void (* recv)(const struct mac_driver *))
 static void
 on(void)
 {
-  if(radio_is_on == 0) {
+  if(xmac_is_on && radio_is_on == 0) {
     radio_is_on = 1;
     radio->on();
     LEDS_ON(LEDS_RED);
@@ -168,7 +169,7 @@ on(void)
 static void
 off(void)
 {
-  if(radio_is_on != 0) {
+  if(xmac_is_on && radio_is_on != 0) {
     radio_is_on = 0;
     radio->off();
 #if WITH_TIMETABLE
@@ -199,8 +200,7 @@ powercycle(struct rtimer *t, void *ptr)
 
     if(xmac_config.off_time > 0) {
       if(waiting_for_packet == 0) {
-	if(xmac_is_on &&
-	   we_are_sending == 0) {
+	if(we_are_sending == 0) {
 	  off();
 	}
       } else {
@@ -244,8 +244,7 @@ powercycle(struct rtimer *t, void *ptr)
       PT_YIELD(&pt);
     }
 
-    if(xmac_is_on &&
-       we_are_sending == 0 &&
+    if(we_are_sending == 0 &&
        waiting_for_packet == 0) {
       on();
     }
@@ -327,6 +326,7 @@ send_packet(void)
      broadcasts, don't turn radio on at all. */
   on();
 
+  watchdog_stop();
   got_ack = 0;
   for(strobes = 0;
       got_ack == 0 &&
@@ -343,7 +343,11 @@ send_packet(void)
 #endif
 
 #if WITH_TIMETABLE
-    TIMETABLE_TIMESTAMP(xmac_timetable, "send strobe");
+    if(rimeaddr_cmp(&msg.receiver, &rimeaddr_null)) {
+      TIMETABLE_TIMESTAMP(xmac_timetable, "send broadcast strobe");
+    } else {
+      TIMETABLE_TIMESTAMP(xmac_timetable, "send strobe");
+    }
 #endif
     /* Send the strobe packet. */
     radio->send((const u8_t *)&msg, sizeof(struct xmac_hdr));
@@ -384,6 +388,9 @@ send_packet(void)
 #endif
     on(); /* Wait for possible ACK packet */
   } else {
+#if WITH_TIMETABLE
+    TIMETABLE_TIMESTAMP(xmac_timetable, "send no ack received");
+#endif
     on(); /* shell ping don't seem to work with off() here, so we'll
 	     keep it on() for a while. */
   }
@@ -395,6 +402,7 @@ send_packet(void)
     radio->send(rimebuf_hdrptr(), rimebuf_totlen());
     CPRINTF("#");
   }
+  watchdog_start();
 
   PRINTF("xmac: send (strobes=%u,len=%u,%s), done\n", strobes,
 	 rimebuf_totlen(), got_ack ? "ack" : "no ack");
@@ -572,10 +580,14 @@ turn_on(void)
 }
 /*---------------------------------------------------------------------------*/
 static int
-turn_off(void)
+turn_off(int keep_radio_on)
 {
   xmac_is_on = 0;
-  return radio->off();
+  if(keep_radio_on) {
+    return radio->on();
+  } else {
+    return radio->off();
+  }
 }
 /*---------------------------------------------------------------------------*/
 const struct mac_driver xmac_driver =
