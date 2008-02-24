@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: shell-rime.c,v 1.2 2008/02/05 12:23:32 adamdunkels Exp $
+ * $Id: shell-rime.c,v 1.3 2008/02/24 20:58:35 adamdunkels Exp $
  */
 
 /**
@@ -107,6 +107,11 @@ static int is_sink = 0;
 
 
 /*---------------------------------------------------------------------------*/
+PROCESS(shell_mac_process, "mac");
+SHELL_COMMAND(mac_command,
+	      "mac",
+	      "mac <onoroff>: turn MAC protocol on (1) or off (0)",
+	      &shell_mac_process);
 PROCESS(shell_nodes_process, "nodes");
 SHELL_COMMAND(nodes_command,
 	      "nodes",
@@ -144,6 +149,27 @@ SHELL_COMMAND(packetize_command,
 	      "packetize",
 	      "packetize: put data into one packet",
 	      &shell_packetize_process);
+/*---------------------------------------------------------------------------*/
+PROCESS_THREAD(shell_mac_process, ev, data)
+{
+  int onoroff;
+  const char *next;
+  
+  PROCESS_BEGIN();
+  onoroff = shell_strtolong((char *)data, &next);
+  if(next == data) {
+    shell_output_str(&mac_command, "usage: ", mac_command.description);
+  } else {
+    if(onoroff) {
+      rime_mac->on();
+      shell_output_str(&mac_command, "mac: turned MAC on", "");
+    } else {
+      rime_mac->off(1);
+      shell_output_str(&mac_command, "mac: turned MAC off (keeping radio on)", "");
+    }
+  }
+  PROCESS_END();
+}
 /*---------------------------------------------------------------------------*/
 #if WITH_DEBUG_COMMANDS
 PROCESS(shell_broadcast_process, "broadcast");
@@ -555,6 +581,7 @@ shell_rime_init(void)
   collect_open(&collect, 17, &collect_callbacks);
   
   shell_register_command(&collect_command);
+  shell_register_command(&mac_command);
   shell_register_command(&neighbors_command);
   shell_register_command(&nodes_command);
   shell_register_command(&packetize_command);
