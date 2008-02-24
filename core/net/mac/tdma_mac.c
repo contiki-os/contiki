@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: tdma_mac.c,v 1.3 2007/11/26 15:31:32 adamdunkels Exp $
+ * $Id: tdma_mac.c,v 1.4 2008/02/24 22:10:30 adamdunkels Exp $
  */
 
 #include "contiki.h"
@@ -68,14 +68,14 @@
 
 /* Buffers */
 #define NUM_PACKETS 8
-u8_t lastqueued = 0;
-u8_t nextsend = 0;
-u8_t freeslot = 0;
+uint8_t lastqueued = 0;
+uint8_t nextsend = 0;
+uint8_t freeslot = 0;
 struct queuebuf* data[NUM_PACKETS];
 int id[NUM_PACKETS];
 
 static struct rtimer rtimer;
-u8_t timer_on = 0;
+uint8_t timer_on = 0;
 
 static const struct radio_driver *radio;
 static void (* receiver_callback)(const struct mac_driver *);

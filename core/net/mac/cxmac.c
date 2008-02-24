@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: cxmac.c,v 1.1 2007/09/18 10:35:39 fros4943 Exp $
+ * $Id: cxmac.c,v 1.2 2008/02/24 22:10:30 adamdunkels Exp $
  */
 
 /**
@@ -290,7 +290,7 @@ send(void)
 	   msg.sender.u8[0],msg.sender.u8[1],
 	   msg.receiver.u8[0],msg.receiver.u8[1],
 	   rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1]);*/
-    radio->send((const u8_t *)&msg, sizeof(struct xmac_hdr));
+    radio->send((const uint8_t *)&msg, sizeof(struct xmac_hdr));
 
     /*    while(RTIMER_CLOCK_LT(RTIMER_NOW(), t + STROBE_WAIT_TIME)) {*/
     while(clock_time() < t + STROBE_WAIT_TIME) {
@@ -298,7 +298,7 @@ send(void)
 	      RTIMER_NOW(), t, STROBE_WAIT_TIME);*/
       /* See if we got an ACK */
       /*      printf("befor read\n");*/
-      len = radio->read((u8_t *)&msg, sizeof(struct xmac_hdr));
+      len = radio->read((uint8_t *)&msg, sizeof(struct xmac_hdr));
       /*      printf("after read len %d\n", len);*/
       if(len > 0) {
 	PRINTF("xmac len %d sender %d.%d receiver %d.%d node %d.%d.\n", len,
@@ -403,7 +403,7 @@ static int
 read(void)
 {
   struct xmac_hdr *hdr;
-  u8_t len;
+  uint8_t len;
   
   rimebuf_clear();
 
@@ -440,7 +440,7 @@ read(void)
 	  PRINTF("xmac: sending sender %d.%d receiver %d.%d\n",
 		 msg.sender.u8[0],msg.sender.u8[1],
 		 msg.receiver.u8[0],msg.receiver.u8[1]);
-	  radio->send((const u8_t *)&msg, sizeof(struct xmac_hdr));
+	  radio->send((const uint8_t *)&msg, sizeof(struct xmac_hdr));
 	}
       }
     } else if(rimeaddr_cmp(&hdr->receiver, &rimeaddr_null)) {
