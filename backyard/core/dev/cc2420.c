@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: cc2420.c,v 1.21 2007/07/30 14:54:49 bg- Exp $
+ * @(#)$Id: cc2420.c,v 1.1 2008/02/24 22:29:08 adamdunkels Exp $
  */
 /*
  * This code is almost device independent and should be easy to port.
