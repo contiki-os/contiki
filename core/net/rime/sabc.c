@@ -33,7 +33,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: sabc.c,v 1.7 2007/03/31 18:31:28 adamdunkels Exp $
+ * $Id: sabc.c,v 1.8 2008/02/24 22:05:27 adamdunkels Exp $
  */
 
 /**
@@ -62,7 +62,7 @@ recv_from_abc(struct abc_conn *abc)
 static const struct abc_callbacks sabc = {recv_from_abc};
 /*---------------------------------------------------------------------------*/
 void
-sabc_open(struct sabc_conn *c, u16_t channel,
+sabc_open(struct sabc_conn *c, uint16_t channel,
 	  const struct sabc_callbacks *u)
 {
   abc_open(&c->c, channel, &sabc);

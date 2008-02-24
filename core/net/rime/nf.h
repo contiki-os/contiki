@@ -45,7 +45,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: nf.h,v 1.10 2007/05/15 08:09:21 adamdunkels Exp $
+ * $Id: nf.h,v 1.11 2008/02/24 22:05:27 adamdunkels Exp $
  */
 
 /**
@@ -67,7 +67,7 @@ struct nf_conn;
 
 struct nf_callbacks {
   int (* recv)(struct nf_conn *c, rimeaddr_t *from,
-	       rimeaddr_t *originator, u8_t seqno, u8_t hops);
+	       rimeaddr_t *originator, uint8_t seqno, uint8_t hops);
   void (* sent)(struct nf_conn *c);
   void (* dropped)(struct nf_conn *c);
 };
@@ -77,14 +77,14 @@ struct nf_conn {
   const struct nf_callbacks *u;
   clock_time_t queue_time;
   rimeaddr_t last_originator;
-  u8_t last_originator_seqno;
+  uint8_t last_originator_seqno;
 };
 
 void nf_open(struct nf_conn *c, clock_time_t queue_time,
-	     u16_t channel, const struct nf_callbacks *u);
+	     uint16_t channel, const struct nf_callbacks *u);
 void nf_close(struct nf_conn *c);
 
-int nf_send(struct nf_conn *c, u8_t seqno);
+int nf_send(struct nf_conn *c, uint8_t seqno);
 
 #endif /* __SIBC_H__ */
 /** @} */

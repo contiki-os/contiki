@@ -33,7 +33,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: route-discovery.c,v 1.8 2008/02/03 20:52:41 adamdunkels Exp $
+ * $Id: route-discovery.c,v 1.9 2008/02/24 22:05:27 adamdunkels Exp $
  */
 
 /**
@@ -52,13 +52,13 @@
 
 struct route_msg {
   rimeaddr_t dest;
-  u8_t rreq_id;
-  u8_t pad;
+  uint8_t rreq_id;
+  uint8_t pad;
 };
 
 struct rrep_hdr {
-  u8_t rreq_id;
-  u8_t hops;
+  uint8_t rreq_id;
+  uint8_t hops;
   rimeaddr_t dest;
   rimeaddr_t originator;
 };
@@ -117,7 +117,7 @@ send_rrep(struct route_discovery_conn *c, rimeaddr_t *dest)
 }
 /*---------------------------------------------------------------------------*/
 static void
-insert_route(rimeaddr_t *originator, rimeaddr_t *last_hop, u8_t hops)
+insert_route(rimeaddr_t *originator, rimeaddr_t *last_hop, uint8_t hops)
 {
   struct route_entry *rt;
   
@@ -175,7 +175,7 @@ rrep_packet_received(struct uc_conn *uc, rimeaddr_t *from)
 /*---------------------------------------------------------------------------*/
 static int
 rreq_packet_received(struct nf_conn *nf, rimeaddr_t *from,
-		      rimeaddr_t *originator, u8_t seqno, u8_t hops)
+		      rimeaddr_t *originator, uint8_t seqno, uint8_t hops)
 {
   struct route_msg *msg = rimebuf_dataptr();
   struct route_discovery_conn *c = (struct route_discovery_conn *)
@@ -224,7 +224,7 @@ static const struct nf_callbacks rreq_callbacks = {rreq_packet_received, NULL, N
 void
 route_discovery_open(struct route_discovery_conn *c,
 		     clock_time_t time,
-		     u16_t channels,
+		     uint16_t channels,
 		     const struct route_discovery_callbacks *callbacks)
 {
   nf_open(&c->rreqconn, time, channels + 0, &rreq_callbacks);

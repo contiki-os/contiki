@@ -33,7 +33,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: neighbor.c,v 1.14 2008/02/03 20:44:11 adamdunkels Exp $
+ * $Id: neighbor.c,v 1.15 2008/02/24 22:05:27 adamdunkels Exp $
  */
 
 /**
@@ -133,7 +133,7 @@ neighbor_find(rimeaddr_t *addr)
 }
 /*---------------------------------------------------------------------------*/
 void
-neighbor_update(struct neighbor *n, u8_t rtmetric)
+neighbor_update(struct neighbor *n, uint8_t rtmetric)
 {
   if(n != NULL) {
     n->rtmetric = rtmetric;
@@ -142,7 +142,7 @@ neighbor_update(struct neighbor *n, u8_t rtmetric)
 }
 /*---------------------------------------------------------------------------*/
 void
-neighbor_timedout_etx(struct neighbor *n, u8_t etx)
+neighbor_timedout_etx(struct neighbor *n, uint8_t etx)
 {
   if(n != NULL) {
     n->etxs[n->etxptr] = etx;
@@ -151,7 +151,7 @@ neighbor_timedout_etx(struct neighbor *n, u8_t etx)
 }
 /*---------------------------------------------------------------------------*/
 void
-neighbor_update_etx(struct neighbor *n, u8_t etx)
+neighbor_update_etx(struct neighbor *n, uint8_t etx)
 {
   if(n != NULL) {
     n->etxs[n->etxptr] = etx;
@@ -173,7 +173,7 @@ neighbor_etx(struct neighbor *n)
 }
 /*---------------------------------------------------------------------------*/
 void
-neighbor_add(rimeaddr_t *addr, u8_t nrtmetric, u8_t netx)
+neighbor_add(rimeaddr_t *addr, uint8_t nrtmetric, uint8_t netx)
 {
   uint16_t rtmetric;
   uint16_t etx;
@@ -278,8 +278,8 @@ neighbor_best(void)
   int found;
   /*  int lowest, best;*/
   struct neighbor *n, *lowest, *best;
-  u8_t rtmetric;
-  u8_t etx;
+  uint8_t rtmetric;
+  uint8_t etx;
 
   rtmetric = RTMETRIC_MAX;
   lowest = best = NULL;

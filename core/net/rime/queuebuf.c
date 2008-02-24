@@ -33,7 +33,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: queuebuf.c,v 1.10 2007/11/17 18:05:21 adamdunkels Exp $
+ * $Id: queuebuf.c,v 1.11 2008/02/24 22:05:27 adamdunkels Exp $
  */
 
 /**
@@ -60,15 +60,15 @@
 #endif
 
 struct queuebuf {
-  u16_t len;
-  u8_t data[RIMEBUF_SIZE + RIMEBUF_HDR_SIZE];
+  uint16_t len;
+  uint8_t data[RIMEBUF_SIZE + RIMEBUF_HDR_SIZE];
 };
 
 struct queuebuf_ref {
-  u16_t len;
-  u8_t *ref;
-  u8_t hdr[RIMEBUF_HDR_SIZE];
-  u8_t hdrlen;
+  uint16_t len;
+  uint8_t *ref;
+  uint8_t hdr[RIMEBUF_HDR_SIZE];
+  uint8_t hdrlen;
 };
 
 MEMB(bufmem, struct queuebuf, QUEUEBUF_NUM);
@@ -84,7 +84,7 @@ MEMB(refbufmem, struct queuebuf_ref, QUEUEBUF_REF_NUM);
 
 #define QUEUEBUF_STATS 1
 #if QUEUEBUF_STATS
-u8_t queuebuf_len, queuebuf_ref_len, queuebuf_max_len;
+uint8_t queuebuf_len, queuebuf_ref_len, queuebuf_max_len;
 #endif /* QUEUEBUF_STATS */
 
 /*---------------------------------------------------------------------------*/

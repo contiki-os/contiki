@@ -33,7 +33,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: mh.c,v 1.9 2008/02/24 21:09:08 adamdunkels Exp $
+ * $Id: mh.c,v 1.10 2008/02/24 22:05:27 adamdunkels Exp $
  */
 
 /**
@@ -53,8 +53,8 @@
 struct data_hdr {
   rimeaddr_t dest;
   rimeaddr_t originator;
-  u8_t hops;
-  u8_t pad;
+  uint8_t hops;
+  uint8_t pad;
 };
 
 #define DEBUG 0
@@ -106,7 +106,7 @@ data_packet_received(struct uc_conn *uc, rimeaddr_t *from)
 static const struct uc_callbacks data_callbacks = { data_packet_received };
 /*---------------------------------------------------------------------------*/
 void
-mh_open(struct mh_conn *c, u16_t channel,
+mh_open(struct mh_conn *c, uint16_t channel,
 	const struct mh_callbacks *callbacks)
 {
   uc_open(&c->c, channel, &data_callbacks);

@@ -47,7 +47,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: rudolph0.h,v 1.7 2007/12/17 09:14:08 adamdunkels Exp $
+ * $Id: rudolph0.h,v 1.8 2008/02/24 22:05:27 adamdunkels Exp $
  */
 
 /**
@@ -85,15 +85,15 @@ struct rudolph0_callbacks {
 #endif
 
 struct rudolph0_hdr {
-  u8_t type;
-  u8_t version;
-  u16_t chunk;
+  uint8_t type;
+  uint8_t version;
+  uint16_t chunk;
 };
 
 struct rudolph0_datapacket {
   struct rudolph0_hdr h;
-  u8_t datalen;
-  u8_t data[RUDOLPH0_DATASIZE];
+  uint8_t datalen;
+  uint8_t data[RUDOLPH0_DATASIZE];
 };
 
 struct rudolph0_conn {
@@ -101,11 +101,11 @@ struct rudolph0_conn {
   struct polite_conn nackc;
   const struct rudolph0_callbacks *cb;
   clock_time_t send_interval;
-  u8_t state;
+  uint8_t state;
   struct rudolph0_datapacket current;
 };
 
-void rudolph0_open(struct rudolph0_conn *c, u16_t channel,
+void rudolph0_open(struct rudolph0_conn *c, uint16_t channel,
 		   const struct rudolph0_callbacks *cb);
 void rudolph0_close(struct rudolph0_conn *c);
 void rudolph0_send(struct rudolph0_conn *c, clock_time_t interval);

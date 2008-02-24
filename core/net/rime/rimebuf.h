@@ -40,7 +40,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: rimebuf.h,v 1.11 2007/11/17 18:05:21 adamdunkels Exp $
+ * $Id: rimebuf.h,v 1.12 2008/02/24 22:05:27 adamdunkels Exp $
  */
 
 /**
@@ -127,7 +127,7 @@ void *rimebuf_hdrptr(void);
  *             rimebuf_hdrptr() function.
  *
  */
-u8_t rimebuf_hdrlen(void);
+uint8_t rimebuf_hdrlen(void);
 
 
 /**
@@ -146,14 +146,14 @@ u8_t rimebuf_hdrlen(void);
  *             length of the packet - both header and data.
  *
  */
-u16_t rimebuf_datalen(void);
+uint16_t rimebuf_datalen(void);
 
 /**
  * \brief      Get the total length of the header and data in the rimebuf
  * \return     Length of data and header in the rimebuf
  *
  */
-u16_t rimebuf_totlen(void);
+uint16_t rimebuf_totlen(void);
 
 /**
  * \brief      Set the length of the data in the rimebuf
@@ -163,7 +163,7 @@ u16_t rimebuf_totlen(void);
  *             parts: header and data. This function is used to set
  *             the length of the data in the rimebuf.
  */
-void rimebuf_set_datalen(u16_t len);
+void rimebuf_set_datalen(uint16_t len);
 
 /**
  * \brief      Point the rimebuf to external data
@@ -176,7 +176,7 @@ void rimebuf_set_datalen(u16_t len);
  *             specifies the length of the external data that the
  *             rimebuf references.
  */
-void rimebuf_reference(void *ptr, u16_t len);
+void rimebuf_reference(void *ptr, uint16_t len);
 
 /**
  * \brief      Check if the rimebuf references external data
@@ -232,7 +232,7 @@ void rimebuf_compact(void);
  *             copied into the rimbuf is returned.
  *
  */
-int rimebuf_copyfrom(const void *from, u16_t len);
+int rimebuf_copyfrom(const void *from, uint16_t len);
 
 /**
  * \brief      Copy the entire rimebuf to an external buffer
@@ -268,7 +268,7 @@ int rimebuf_copyto(void *to);
  *             copied to the external buffer is returned.
  *
  */
-int rimebuf_copyto_hdr(u8_t *to);
+int rimebuf_copyto_hdr(uint8_t *to);
 
 /**
  * \brief      Extend the header of the rimebuf, for outbound packets

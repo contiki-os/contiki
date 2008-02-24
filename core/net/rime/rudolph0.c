@@ -33,7 +33,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: rudolph0.c,v 1.7 2007/11/28 20:03:50 adamdunkels Exp $
+ * $Id: rudolph0.c,v 1.8 2008/02/24 22:05:27 adamdunkels Exp $
  */
 
 /**
@@ -183,7 +183,7 @@ static const struct polite_callbacks polite = { recv_nack, 0, 0 };
 static const struct sabc_callbacks sabc = { recv, sent };
 /*---------------------------------------------------------------------------*/
 void
-rudolph0_open(struct rudolph0_conn *c, u16_t channel,
+rudolph0_open(struct rudolph0_conn *c, uint16_t channel,
 	      const struct rudolph0_callbacks *cb)
 {
   sabc_open(&c->c, channel, &sabc);

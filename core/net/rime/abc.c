@@ -36,7 +36,7 @@
  *
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: abc.c,v 1.16 2008/01/23 16:10:10 adamdunkels Exp $
+ * $Id: abc.c,v 1.17 2008/02/24 22:05:27 adamdunkels Exp $
  */
 
 /**
@@ -50,7 +50,7 @@
 #include "net/rime.h"
 
 struct abc_hdr {
-  u16_t channel;
+  uint16_t channel;
 };
 
 LIST(channels);
@@ -65,7 +65,7 @@ LIST(channels);
 
 /*---------------------------------------------------------------------------*/
 void
-abc_open(struct abc_conn *c, u16_t channel,
+abc_open(struct abc_conn *c, uint16_t channel,
 	  const struct abc_callbacks *callbacks)
 {
   c->channel = channel;

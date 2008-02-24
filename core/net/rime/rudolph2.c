@@ -39,7 +39,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: rudolph2.c,v 1.4 2007/11/28 20:03:50 adamdunkels Exp $
+ * $Id: rudolph2.c,v 1.5 2008/02/24 22:05:27 adamdunkels Exp $
  */
 
 /**
@@ -63,10 +63,10 @@
 #define NACK_TIMEOUT CLOCK_SECOND / 4
 
 struct rudolph2_hdr {
-  u8_t type;
-  u8_t hops_from_base;
-  u16_t version;
-  u16_t chunk;
+  uint8_t type;
+  uint8_t hops_from_base;
+  uint16_t version;
+  uint16_t chunk;
 };
 
 #define POLITE_HEADER 1
@@ -124,7 +124,7 @@ format_data(struct rudolph2_conn *c, int chunk)
 }
 /*---------------------------------------------------------------------------*/
 static void
-write_data(struct rudolph2_conn *c, int chunk, u8_t *data, int datalen)
+write_data(struct rudolph2_conn *c, int chunk, uint8_t *data, int datalen)
 {
   /* xxx Don't write any data if the application has been stopped. */
   if(c->flags & FLAG_IS_STOPPED) {
@@ -364,7 +364,7 @@ recv(struct polite_conn *polite)
 static const struct polite_callbacks polite = { recv, sent, dropped };
 /*---------------------------------------------------------------------------*/
 void
-rudolph2_open(struct rudolph2_conn *c, u16_t channel,
+rudolph2_open(struct rudolph2_conn *c, uint16_t channel,
 	      const struct rudolph2_callbacks *cb)
 {
   polite_open(&c->c, channel, &polite);
