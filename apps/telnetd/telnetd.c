@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki desktop OS.
  *
- * $Id: telnetd.c,v 1.9 2008/02/09 18:51:56 oliverschmidt Exp $
+ * $Id: telnetd.c,v 1.10 2008/02/24 20:43:28 adamdunkels Exp $
  *
  */
 
@@ -44,10 +44,7 @@
 #define ISO_nl       0x0a
 #define ISO_cr       0x0d
 
-#define XSIZE 36
-#define YSIZE 12
-
-PROCESS(telnetd_process, "Shell server");
+PROCESS(telnetd_process, "Telnet server");
 
 AUTOSTART_PROCESSES(&telnetd_process);
 
@@ -58,16 +55,10 @@ AUTOSTART_PROCESSES(&telnetd_process);
 #define TELNETD_CONF_NUMLINES 25
 #endif
 
-struct telnetd_line {
-  char line[TELNETD_CONF_LINELEN + 1];
-};
-MEMB(linemem, struct telnetd_line, TELNETD_CONF_NUMLINES);
-
 struct telnetd_state {
-  char *lines[TELNETD_CONF_NUMLINES];
   char buf[TELNETD_CONF_LINELEN + 1];
   char bufptr;
-  u8_t numsent;
+  uint16_t numsent;
   u8_t state;
 #define STATE_NORMAL 0
 #define STATE_IAC    1
@@ -85,25 +76,74 @@ static struct telnetd_state s;
 #define TELNET_WONT  252
 #define TELNET_DO    253
 #define TELNET_DONT  254
-/*-----------------------------------------------------------------------------------*/
-static char *
-alloc_line(void)
-{
-  return memb_alloc(&linemem);
-}
-/*-----------------------------------------------------------------------------------*/
+
+#define DEBUG 0
+#if DEBUG
+#include <stdio.h>
+#define PRINTF(...) printf(__VA_ARGS__)
+#else
+#define PRINTF(...)
+#endif
+
+struct telnetd_buf {
+  char bufmem[TELNETD_CONF_NUMLINES * TELNETD_CONF_LINELEN];
+  int ptr;
+  int size;
+};
+
+static struct telnetd_buf buf;
+
+#define MIN(a, b) ((a) < (b)? (a): (b))
+/*---------------------------------------------------------------------------*/
 static void
-dealloc_line(char *line)
+buf_init(struct telnetd_buf *buf)
 {
-  memb_free(&linemem, line);
+  buf->ptr = 0;
+  buf->size = TELNETD_CONF_NUMLINES * TELNETD_CONF_LINELEN;
 }
-/*-----------------------------------------------------------------------------------*/
+/*---------------------------------------------------------------------------*/
+static int
+buf_append(struct telnetd_buf *buf, const char *data, int len)
+{
+  int copylen;
+
+  PRINTF("buf_append len %d (%d) '%.*s'\n", len, buf->ptr, len, data);
+  copylen = MIN(len, buf->size - buf->ptr);
+  memcpy(&buf->bufmem[buf->ptr], data, copylen);
+  buf->ptr += copylen;
+
+  return copylen;
+}
+/*---------------------------------------------------------------------------*/
+static void
+buf_copyto(struct telnetd_buf *buf, char *to, int len)
+{
+  memcpy(to, &buf->bufmem[0], len);
+}
+/*---------------------------------------------------------------------------*/
+static void
+buf_pop(struct telnetd_buf *buf, int len)
+{
+  int poplen;
+
+  PRINTF("buf_pop len %d (%d)\n", len, buf->ptr);
+  poplen = MIN(len, buf->ptr);
+  memcpy(&buf->bufmem[0], &buf->bufmem[poplen], buf->ptr - poplen);
+  buf->ptr -= poplen;
+}
+/*---------------------------------------------------------------------------*/
+static int
+buf_len(struct telnetd_buf *buf)
+{
+  return buf->ptr;
+}
+/*---------------------------------------------------------------------------*/
 void
 shell_quit(char *str)
 {
   s.state = STATE_CLOSE;
 }
-/*-----------------------------------------------------------------------------------*/
+/*---------------------------------------------------------------------------*/
 void
 telnetd_quit(void)
 {
@@ -113,41 +153,16 @@ telnetd_quit(void)
   process_exit(&telnetd_process);
   LOADER_UNLOAD();
 }
-/*-----------------------------------------------------------------------------------*/
-static void
-sendline(char *line)
-{
-  static unsigned int i;
-  
-  for(i = 0; i < TELNETD_CONF_NUMLINES; ++i) {
-    if(s.lines[i] == NULL) {
-      s.lines[i] = line;
-      break;
-    }
-  }
-  if(i == TELNETD_CONF_NUMLINES) {
-    dealloc_line(line);
-  }
-}
-/*-----------------------------------------------------------------------------------*/
+/*---------------------------------------------------------------------------*/
 void
 shell_prompt(char *str)
 {
-  char *line;
-  line = alloc_line();
-  if(line != NULL) {
-    strncpy(line, str, TELNETD_CONF_LINELEN);
-    petsciiconv_toascii(line, TELNETD_CONF_LINELEN);
-    sendline(line);
-  }
+  buf_append(&buf, str, strlen(str));
 }
-/*-----------------------------------------------------------------------------------*/
+/*---------------------------------------------------------------------------*/
 void
 shell_default_output(const char *str1, int len1, const char *str2, int len2)
 {
-  static unsigned len;
-  char *line;
-
   if(str1[len1 - 1] == '\n') {
     --len1;
   }
@@ -155,43 +170,24 @@ shell_default_output(const char *str1, int len1, const char *str2, int len2)
     --len2;
   }
 
+  /*  PRINTF("shell_default_output: %.*s %.*s\n", len1, str1, len2, str2);*/
+  
 #if TELNETD_CONF_GUI
   telnetd_gui_output(str1, len1, str2, len2);
 #endif /* TELNETD_CONF_GUI */
-  line = alloc_line();
-  if(line != NULL) {
-    line[TELNETD_CONF_LINELEN] = 0;
-    strncpy(line, str1, TELNETD_CONF_LINELEN);
-    if(len1 < TELNETD_CONF_LINELEN) {
-      strncpy(line + len1, str2, TELNETD_CONF_LINELEN - len1);
-      if(len1 + len2 < TELNETD_CONF_LINELEN) {
-	line[len1 + len2] = 0;
-      }
-    }
-    len = (unsigned int)strlen(line);
-    if(len < TELNETD_CONF_LINELEN - 2) {
-      line[len] = ISO_cr;
-      line[len+1] = ISO_nl;
-      line[len+2] = 0;
-    }
-    petsciiconv_toascii(line, TELNETD_CONF_LINELEN);
-    sendline(line);
-  }
+  buf_append(&buf, str1, len1);
+  buf_append(&buf, str2, len2);
+  buf_append(&buf, "\r\n", 2);
 }
-/*-----------------------------------------------------------------------------------*/
+/*---------------------------------------------------------------------------*/
 PROCESS_THREAD(telnetd_process, ev, data)
 {
   PROCESS_BEGIN();
   
   tcp_listen(HTONS(23));
-  memb_init(&linemem);
+  buf_init(&buf);
 
   shell_init();
-  shell_file_init();
-  shell_ps_init();
-  shell_run_init();
-  shell_text_init();
-  shell_time_init();
 
 #if TELNETD_CONF_GUI
   telnetd_gui_init();
@@ -212,106 +208,80 @@ PROCESS_THREAD(telnetd_process, ev, data)
   
   PROCESS_END();
 }
-/*-----------------------------------------------------------------------------------*/
+/*---------------------------------------------------------------------------*/
 static void
 acked(void)
 {
-  static unsigned int i;
-  
-  while(s.numsent > 0) {
-    dealloc_line(s.lines[0]);
-    for(i = 1; i < TELNETD_CONF_NUMLINES; ++i) {
-      s.lines[i - 1] = s.lines[i];
-    }
-    s.lines[TELNETD_CONF_NUMLINES - 1] = NULL;
-    --s.numsent;
-  }
+  buf_pop(&buf, s.numsent);
 }
-/*-----------------------------------------------------------------------------------*/
+/*---------------------------------------------------------------------------*/
 static void
 senddata(void)
 {
-  static char *bufptr, *lineptr;
-  static int buflen, linelen;
-  
-  bufptr = uip_appdata;
-  buflen = 0;
-  for(s.numsent = 0; s.numsent < TELNETD_CONF_NUMLINES &&
-	s.lines[s.numsent] != NULL ; ++s.numsent) {
-    lineptr = s.lines[s.numsent];
-    linelen = (int)strlen(lineptr);
-    if(linelen > TELNETD_CONF_LINELEN) {
-      linelen = TELNETD_CONF_LINELEN;
-    }
-    if(buflen + linelen < uip_mss()) {
-      memcpy(bufptr, lineptr, linelen);
-      bufptr += linelen;
-      buflen += linelen;
-    } else {
-      break;
-    }
-  }
-  uip_send(uip_appdata, buflen);
+  int len;
+  len = MIN(buf_len(&buf), uip_mss());
+  PRINTF("senddata len %d\n", len);
+  buf_copyto(&buf, uip_appdata, len);
+  uip_send(uip_appdata, len);
+  s.numsent = len;
 }
-/*-----------------------------------------------------------------------------------*/
+/*---------------------------------------------------------------------------*/
 static void
 closed(void)
 {
-  static unsigned int i;
-  
-  for(i = 0; i < TELNETD_CONF_NUMLINES; ++i) {
-    if(s.lines[i] != NULL) {
-      dealloc_line(s.lines[i]);
-    }
-  }
 }
-/*-----------------------------------------------------------------------------------*/
+/*---------------------------------------------------------------------------*/
 static void
 get_char(u8_t c)
 {
-  if(c == ISO_cr) {
+  PRINTF("telnetd: get_char '%c' %d %d\n", c, c, s.bufptr);
+
+  if(c == 0) {
     return;
   }
-  
-  s.buf[(int)s.bufptr] = c;
-  if(s.buf[(int)s.bufptr] == ISO_nl ||
-     s.bufptr == sizeof(s.buf) - 1) {
-    if(s.bufptr > 0) {
-      s.buf[(int)s.bufptr] = 0;
-      petsciiconv_topetscii(s.buf, TELNETD_CONF_LINELEN);
-    }
-    shell_input(s.buf, s.bufptr);
-    s.bufptr = 0;
-  } else {
+
+  if(c != ISO_nl && c != ISO_cr) {
+    s.buf[(int)s.bufptr] = c;
     ++s.bufptr;
   }
+  if(((c == ISO_nl || c == ISO_cr) && s.bufptr > 0) ||
+     s.bufptr == sizeof(s.buf)) {
+    if(s.bufptr < sizeof(s.buf)) {
+      s.buf[(int)s.bufptr] = 0;
+    }
+    petsciiconv_topetscii(s.buf, TELNETD_CONF_LINELEN);
+    PRINTF("telnetd: get_char '%.*s'\n", s.bufptr, s.buf);
+    shell_input(s.buf, s.bufptr);
+    s.bufptr = 0;
+  }
 }
-/*-----------------------------------------------------------------------------------*/
+/*---------------------------------------------------------------------------*/
 static void
 sendopt(u8_t option, u8_t value)
 {
-  char *line;
-  line = alloc_line();
-  if(line != NULL) {
-    line[0] = (char)TELNET_IAC;
-    line[1] = option;
-    line[2] = value;
-    line[3] = 0;
-    sendline(line);
-  }
+  char line[4];
+  line[0] = (char)TELNET_IAC;
+  line[1] = option;
+  line[2] = value;
+  line[3] = 0;
+  buf_append(&buf, line, 4);
 }
-/*-----------------------------------------------------------------------------------*/
+/*---------------------------------------------------------------------------*/
 static void
 newdata(void)
 {
   u16_t len;
   u8_t c;
+  uint8_t *ptr;
     
   len = uip_datalen();
-  
+  PRINTF("newdata len %d '%.*s'\n", len, len, (char *)uip_appdata);
+
+  ptr = uip_appdata;
   while(len > 0 && s.bufptr < sizeof(s.buf)) {
-    c = *(char *)uip_appdata;
-    uip_appdata = (char *)uip_appdata + 1;
+    c = *ptr;
+    PRINTF("newdata char '%c' %d %d state %d\n", c, c, len, s.state);
+    ++ptr;
     --len;
     switch(s.state) {
     case STATE_IAC:
@@ -369,18 +339,16 @@ newdata(void)
     }
   }
 }
-/*-----------------------------------------------------------------------------------*/
+/*---------------------------------------------------------------------------*/
 void
 telnetd_appcall(void *ts)
 {
-  static unsigned int i;
   if(uip_connected()) {
     tcp_markconn(uip_conn, &s);
-    for(i = 0; i < TELNETD_CONF_NUMLINES; ++i) {
-      s.lines[i] = NULL;
-    }
+    buf_init(&buf);
     s.bufptr = 0;
     s.state = STATE_NORMAL;
+    shell_start();
   }
 
   if(s.state == STATE_CLOSE) {
@@ -388,21 +356,17 @@ telnetd_appcall(void *ts)
     uip_close();
     return;
   }
-  
   if(uip_closed() ||
      uip_aborted() ||
      uip_timedout()) {
     closed();
   }
-  
   if(uip_acked()) {
     acked();
   }
-  
   if(uip_newdata()) {
     newdata();
   }
-  
   if(uip_rexmit() ||
      uip_newdata() ||
      uip_acked() ||
@@ -411,4 +375,4 @@ telnetd_appcall(void *ts)
     senddata();
   }
 }
-/*-----------------------------------------------------------------------------------*/
+/*---------------------------------------------------------------------------*/
