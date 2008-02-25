@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: energest-demo.c,v 1.3 2008/01/22 14:58:41 zhitao Exp $
+ * $Id: energest-demo.c,v 1.4 2008/02/25 12:03:25 thiemovoigt Exp $
  */
 
 /**
@@ -124,7 +124,8 @@ static void
 do_sending(void)
 {
   int i;
-  simple_cc2420_set_chan_pan_addr(11, 0x2024, node_id, NULL);
+
+  simple_cc2420_set_channel(11);
   simple_cc2420_set_txpower(1);
 
   for(i = 0;i < send_amount; i++) {
@@ -135,7 +136,7 @@ do_sending(void)
     mac->off();
   }
   simple_cc2420_set_txpower(31);
-  simple_cc2420_set_chan_pan_addr(RF_CHANNEL, 0x2024, node_id, NULL);
+  simple_cc2420_set_channel(RF_CHANNEL);
 }
 /*---------------------------------------------------------------------------*/
 PROCESS_THREAD(output_process, ev, data)
