@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#)$Id: contiki-sky-main.c,v 1.3 2008/02/10 22:47:07 oliverschmidt Exp $
+ * @(#)$Id: contiki-sky-main.c,v 1.4 2008/02/25 12:04:41 thiemovoigt Exp $
  */
 
 #include <signal.h>
@@ -126,7 +126,7 @@ main(int argc, char **argv)
 #endif /* WITH_UIP */
   
   printf("Starting %s "
-	 "($Id: contiki-sky-main.c,v 1.3 2008/02/10 22:47:07 oliverschmidt Exp $)\n", __FILE__);
+	 "($Id: contiki-sky-main.c,v 1.4 2008/02/25 12:04:41 thiemovoigt Exp $)\n", __FILE__);
   ds2411_init();
   sensors_light_init();
   sht11_init();
@@ -166,7 +166,9 @@ main(int argc, char **argv)
   set_rime_addr();
 
   simple_cc2420_init();
-  simple_cc2420_set_chan_pan_addr(RF_CHANNEL, panId, 0 /*XXX*/, ds2411_id);
+  simple_cc2420_set_pan_addr(panId, 0 /*XXX*/, ds2411_id);
+  simple_cc2420_set_channel(RF_CHANNEL);
+
   simple_cc2420_set_txpower(31);
   nullmac_init(&simple_cc2420_driver);
   rime_init(&nullmac_driver);
