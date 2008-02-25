@@ -47,7 +47,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: rudolph0.h,v 1.8 2008/02/24 22:05:27 adamdunkels Exp $
+ * $Id: rudolph0.h,v 1.9 2008/02/25 02:14:35 adamdunkels Exp $
  */
 
 /**
@@ -110,6 +110,9 @@ void rudolph0_open(struct rudolph0_conn *c, uint16_t channel,
 void rudolph0_close(struct rudolph0_conn *c);
 void rudolph0_send(struct rudolph0_conn *c, clock_time_t interval);
 void rudolph0_stop(struct rudolph0_conn *c);
+
+/* Force the sender to restart sending the file from the start. */
+void rudolph0_force_restart(struct rudolph0_conn *c);
 
 void rudolph0_set_version(struct rudolph0_conn *c, int version);
 int rudolph0_version(struct rudolph0_conn *c);

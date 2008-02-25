@@ -33,7 +33,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: rimebuf.c,v 1.11 2008/02/24 22:05:27 adamdunkels Exp $
+ * $Id: rimebuf.c,v 1.12 2008/02/25 02:14:35 adamdunkels Exp $
  */
 
 /**
@@ -49,6 +49,34 @@
 #include "net/rime/rimebuf.h"
 #include "net/rime.h"
 
+struct rimebuf_attr rimebuf_attrs[RIMEBUF_NUM_ATTRS];
+struct rimebuf_addr rimebuf_addrs[RIMEBUF_NUM_ADDRS];
+
+const char *rimebuf_attr_strings[] =
+  {
+    "RIMEBUF_ATTR_NONE",
+    "RIMEBUF_ATTR_CHANNEL",
+    "RIMEBUF_ATTR_PACKET_ID",
+    "RIMEBUF_ATTR_PACKET_TYPE",
+    "RIMEBUF_ATTR_EPACKET_ID",
+    "RIMEBUF_ATTR_EPACKET_TYPE",
+    "RIMEBUF_ATTR_HOPS",
+    "RIMEBUF_ATTR_TTL",
+    "RIMEBUF_ATTR_REXMIT",
+    "RIMEBUF_ATTR_MAX_REXMIT",
+    "RIMEBUF_ATTR_NUM_REXMIT",
+    "RIMEBUF_ATTR_LINK_QUALITY",
+
+    "RIMEBUF_ATTR_RELIABLE",
+    "RIMEBUF_ATTR_ERELIABLE",
+
+    "RIMEBUF_ADDR_SENDER",
+    "RIMEBUF_ADDR_RECEIVER",
+    "RIMEBUF_ADDR_ESENDER",
+    "RIMEBUF_ADDR_ERECEIVER",
+
+    "RIMEBUF_ATTR_MAX",
+  };
 
 static uint16_t buflen, bufptr;
 static uint8_t hdrptr;
@@ -224,4 +252,66 @@ rimebuf_totlen(void)
   return rimebuf_hdrlen() + rimebuf_datalen();
 }
 /*---------------------------------------------------------------------------*/
+
+
+
+void
+rimebuf_attr_clear(void)
+{
+  int i;
+  for(i = 0; i < RIMEBUF_NUM_ATTRS; ++i) {
+    rimebuf_attrs[i].type = RIMEBUF_ATTR_NONE;
+  }
+  for(i = 0; i < RIMEBUF_NUM_ADDRS; ++i) {
+    rimebuf_addrs[i].type = RIMEBUF_ATTR_NONE;
+    rimebuf_addrs[i].addr = rimeaddr_null;
+  }
+}
+/*---------------------------------------------------------------------------*/
+void
+rimebuf_attr_copyto(struct rimebuf_attr *attrs,
+		    struct rimebuf_addr *addrs)
+{
+  memcpy(attrs, rimebuf_attrs, sizeof(rimebuf_attrs));
+  memcpy(addrs, rimebuf_addrs, sizeof(rimebuf_addrs));
+}
+/*---------------------------------------------------------------------------*/
+void
+rimebuf_attr_copyfrom(struct rimebuf_attr *attrs,
+		      struct rimebuf_addr *addrs)
+{
+  memcpy(rimebuf_attrs, attrs, sizeof(rimebuf_attrs));
+  memcpy(rimebuf_addrs, addrs, sizeof(rimebuf_addrs));
+}
+/*---------------------------------------------------------------------------*/
+#if !RIMEBUF_CONF_ATTRS_INLINE
+int
+rimebuf_set_attr(uint8_t type, const rimebuf_attr_t val)
+{
+  rimebuf_attrs[type].type = type;
+  rimebuf_attrs[type].val = val;
+  return 1;
+}
+/*---------------------------------------------------------------------------*/
+rimebuf_attr_t
+rimebuf_attr(uint8_t type)
+{
+  return rimebuf_attrs[type].val;
+}
+/*---------------------------------------------------------------------------*/
+int
+rimebuf_set_addr(uint8_t type, const rimeaddr_t *addr)
+{
+  rimebuf_addrs[type].type = type;
+  rimeaddr_copy(&rimebuf_addrs[type].addr, addr);
+  return 1;
+}
+/*---------------------------------------------------------------------------*/
+const rimeaddr_t *
+rimebuf_addr(uint8_t type)
+{
+  return &rimebuf_addrs[type].addr;
+}
+/*---------------------------------------------------------------------------*/
+#endif /* RIMEBUF_CONF_ATTRS_INLINE */
 /** @} */

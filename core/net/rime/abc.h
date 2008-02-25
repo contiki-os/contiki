@@ -46,7 +46,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: abc.h,v 1.13 2008/02/24 22:05:27 adamdunkels Exp $
+ * $Id: abc.h,v 1.14 2008/02/25 02:14:34 adamdunkels Exp $
  */
 /**
  * \file
@@ -59,8 +59,11 @@
 #define __ABC_H__
 
 #include "net/rime/rimebuf.h"
+#include "net/rime/channel.h"
 
 struct abc_conn;
+
+#define ABC_ATTRIBUTES
 
 /**
  * \brief     Callback structure for abc
@@ -71,17 +74,8 @@ struct abc_callbacks {
   void (* recv)(struct abc_conn *ptr);
 };
 
-#ifdef CHAMELEON
-#include "net/chameleon/chameleon.h"
-#endif /* CHAMELEON */
-
 struct abc_conn {
-#ifdef CHAMELEON
-  struct chameleon_channel channel;
-#else /* CHAMELEON */
-  struct abc_conn *next;
-  uint16_t channel;
-#endif /* CHAMELEON */
+  struct channel channel;
   const struct abc_callbacks *u;
 };
 
@@ -139,7 +133,8 @@ int abc_send(struct abc_conn *c);
  *             directly.
  *
  */
-void abc_input_packet(void);
+void abc_input(struct channel *channel);
+
 
 #endif /* __ABC_H__ */
 /** @} */

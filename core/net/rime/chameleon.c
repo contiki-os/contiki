@@ -1,10 +1,5 @@
-/**
- * \addtogroup rimeibc
- * @{
- */
-
 /*
- * Copyright (c) 2006, Swedish Institute of Computer Science.
+ * Copyright (c) 2007, Swedish Institute of Computer Science.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,23 +28,24 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: ibc.c,v 1.14 2008/02/25 02:14:34 adamdunkels Exp $
+ * $Id: chameleon.c,v 1.1 2008/02/25 02:14:34 adamdunkels Exp $
  */
 
 /**
  * \file
- *         Identified best-effort local area broadcast (ibc)
+ *         Chameleon, Rime's header processing module
  * \author
  *         Adam Dunkels <adam@sics.se>
  */
 
-#include "contiki-net.h"
-#include <string.h>
+#include "net/rime/chameleon.h"
+#include "net/rime/channel.h"
+#include "net/rime.h"
+#include "lib/list.h"
 
-static const struct rimebuf_attrlist attributes[] =
-  {
-    IBC_ATTRIBUTES RIMEBUF_ATTR_LAST
-  };
+#include <stdio.h>
+
+static const struct chameleon_module *header_module;
 
 #define DEBUG 0
 #if DEBUG
@@ -60,44 +56,92 @@ static const struct rimebuf_attrlist attributes[] =
 #endif
 
 /*---------------------------------------------------------------------------*/
+void
+chameleon_init(const struct chameleon_module *m)
+{
+  header_module = m;
+  channel_init();
+}
+/*---------------------------------------------------------------------------*/
 static void
-recv_from_abc(struct abc_conn *bc)
+printbin(int n, int digits)
 {
-  rimeaddr_t sender;
-  struct ibc_conn *c = (struct ibc_conn *)bc;
+  int i;
+  char output[128];
 
-  rimeaddr_copy(&sender, rimebuf_addr(RIMEBUF_ADDR_SENDER));
-  
-  PRINTF("%d.%d: ibc: from %d.%d\n",
-	 rimeaddr_node_addr.u8[0],rimeaddr_node_addr.u8[1],
-	 sender.u8[0], sender.u8[1]);
-  c->u->recv(c, &sender);
+  for(i = 0; i < digits; ++i) {
+    output[digits - i - 1] = (n & 1) + '0';
+    n >>= 1;
+  }
+  output[i] = 0;
+
+  printf(output);
+}
+
+static void
+printhdr(uint8_t *hdr, int len)
+{
+  int i, j;
+
+  j = 0;
+  for(i = 0; i < len; ++i) {
+    printbin(hdr[i], 8);
+    printf(" (0x%0x), ", hdr[i]);
+    ++j;
+    if(j == 10) {
+      printf("\n");
+      j = 0;
+    }
+  }
+
+  if(j != 0) {
+    printf("\n");
+  }
 }
 /*---------------------------------------------------------------------------*/
-static const struct abc_callbacks ibc = {recv_from_abc};
-/*---------------------------------------------------------------------------*/
 void
-ibc_open(struct ibc_conn *c, uint16_t channel,
-	  const struct ibc_callbacks *u)
+chameleon_input(void)
 {
-  abc_open(&c->c, channel, &ibc);
-  c->u = u;
-  channel_set_attributes(channel, attributes);
-}
-/*---------------------------------------------------------------------------*/
-void
-ibc_close(struct ibc_conn *c)
-{
-  abc_close(&c->c);
+  struct channel *c;
+  PRINTF("%d.%d: chameleon_input\n",
+	 rimeaddr_node_addr.u8[0],rimeaddr_node_addr.u8[1]);
+  printhdr(rimebuf_dataptr(), rimebuf_datalen());
+  c = header_module->input();
+  if(c != NULL) {
+    PRINTF("%d.%d: chameleon_input channel %d\n",
+	   rimeaddr_node_addr.u8[0],rimeaddr_node_addr.u8[1],
+	   c->channelno);
+    abc_input(c);
+  } else {
+    PRINTF("%d.%d: chameleon_input channel not found for incoming packet\n",
+	   rimeaddr_node_addr.u8[0],rimeaddr_node_addr.u8[1]);
+  }
 }
 /*---------------------------------------------------------------------------*/
 int
-ibc_send(struct ibc_conn *c)
+chameleon_output(struct channel *c)
 {
-  PRINTF("%d.%d: ibc_send\n",
-	 rimeaddr_node_addr.u8[0],rimeaddr_node_addr.u8[1]);
-  rimebuf_set_addr(RIMEBUF_ADDR_SENDER, &rimeaddr_node_addr);
-  return abc_send(&c->c);
+  int ret;
+
+  PRINTF("%d.%d: chameleon_output channel %d\n",
+	 rimeaddr_node_addr.u8[0],rimeaddr_node_addr.u8[1],
+	 c->channelno);
+    
+  ret = header_module->output(c);
+
+  rimebuf_set_attr(RIMEBUF_ATTR_CHANNEL, c->channelno);
+  
+  printhdr(rimebuf_hdrptr(), rimebuf_hdrlen());
+  if(ret) {
+    rime_output();
+    return 1;
+  }
+  return 0;
 }
 /*---------------------------------------------------------------------------*/
-/** @} */
+int
+chameleon_hdrsize(const struct rimebuf_attrlist attrlist[])
+{
+  return header_module->hdrsize(attrlist);
+}
+/*---------------------------------------------------------------------------*/

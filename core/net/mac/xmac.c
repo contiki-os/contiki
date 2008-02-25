@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: xmac.c,v 1.17 2008/02/24 22:10:30 adamdunkels Exp $
+ * $Id: xmac.c,v 1.18 2008/02/25 02:14:35 adamdunkels Exp $
  */
 
 /**
@@ -58,19 +58,9 @@
 #endif
 
 #define WITH_TIMETABLE 0
-#define WITH_CHANNEL_CHECK 0   /* Seems to work bad when enabled */
+#define WITH_CHANNEL_CHECK 0   /* Seems to work badly when enabled */
 #define WITH_TIMESYNCH 0
-#define WITH_RECEIVER 1
 #define WITH_QUEUE 0
-
-#if !CHAMELEON
-#if WITH_RECEIVER
-extern
-#else
-static
-#endif
-rimeaddr_t uc_receiver;
-#endif /* !CHAMELEON */
 
 struct xmac_hdr {
   rimeaddr_t sender;
@@ -306,11 +296,7 @@ send_packet(void)
   rimebuf_hdralloc(sizeof(struct xmac_hdr));
   hdr = rimebuf_hdrptr();
   rimeaddr_copy(&hdr->sender, &rimeaddr_node_addr);
-#if CHAMELEON
-  rimeaddr_copy(&hdr->receiver, packattr_aget(PACKATTR_RECEIVER));
-#else
-  rimeaddr_copy(&hdr->receiver, &uc_receiver);
-#endif
+  rimeaddr_copy(&hdr->receiver, rimebuf_addr(RIMEBUF_ADDR_RECEIVER));
   rimebuf_compact();
 
   t0 = RTIMER_NOW();
@@ -336,11 +322,7 @@ send_packet(void)
     t = RTIMER_NOW();
 
     rimeaddr_copy(&msg.sender, &rimeaddr_node_addr);
-#if CHAMELEON
-    rimeaddr_copy(&msg.receiver, packattr_aget(PACKATTR_RECEIVER));
-#else
-    rimeaddr_copy(&msg.receiver, &uc_receiver);
-#endif
+    rimeaddr_copy(&msg.receiver, rimebuf_addr(RIMEBUF_ADDR_RECEIVER));
 
 #if WITH_TIMETABLE
     if(rimeaddr_cmp(&msg.receiver, &rimeaddr_null)) {

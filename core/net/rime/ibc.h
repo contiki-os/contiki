@@ -46,7 +46,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: ibc.h,v 1.10 2008/02/24 22:05:27 adamdunkels Exp $
+ * $Id: ibc.h,v 1.11 2008/02/25 02:14:34 adamdunkels Exp $
  */
 
 /**
@@ -63,6 +63,9 @@
 #include "net/rime/rimeaddr.h"
 
 struct ibc_conn;
+
+#define IBC_ATTRIBUTES  { RIMEBUF_ADDR_SENDER, RIMEBUF_ADDRSIZE }, \
+                        ABC_ATTRIBUTES
 
 /**
  * \brief     Callback structure for ibc

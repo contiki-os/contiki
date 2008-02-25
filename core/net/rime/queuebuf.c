@@ -33,7 +33,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: queuebuf.c,v 1.11 2008/02/24 22:05:27 adamdunkels Exp $
+ * $Id: queuebuf.c,v 1.12 2008/02/25 02:14:34 adamdunkels Exp $
  */
 
 /**
@@ -62,6 +62,8 @@
 struct queuebuf {
   uint16_t len;
   uint8_t data[RIMEBUF_SIZE + RIMEBUF_HDR_SIZE];
+  struct rimebuf_attr attrs[RIMEBUF_NUM_ATTRS];
+  struct rimebuf_addr addrs[RIMEBUF_NUM_ADDRS];
 };
 
 struct queuebuf_ref {
@@ -139,6 +141,7 @@ queuebuf_new_from_rimebuf(void)
 #endif /* NETSIM */
 #endif /* QUEUEBUF_STATS */
       buf->len = rimebuf_copyto(buf->data);
+      rimebuf_attr_copyto(buf->attrs, buf->addrs);
     } else {
       PRINTF("queuebuf_new_from_rimebuf: could not allocate a queuebuf\n");
     }
@@ -179,6 +182,7 @@ queuebuf_to_rimebuf(struct queuebuf *b)
   
   if(memb_inmemb(&bufmem, b)) {
     rimebuf_copyfrom(b->data, b->len);
+    rimebuf_attr_copyfrom(b->attrs, b->addrs);
   } else if(memb_inmemb(&refbufmem, b)) {
     r = (struct queuebuf_ref *)b;
     rimebuf_clear();

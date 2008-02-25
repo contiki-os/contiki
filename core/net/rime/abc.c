@@ -36,7 +36,7 @@
  *
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: abc.c,v 1.17 2008/02/24 22:05:27 adamdunkels Exp $
+ * $Id: abc.c,v 1.18 2008/02/25 02:14:34 adamdunkels Exp $
  */
 
 /**
@@ -49,11 +49,6 @@
 #include "contiki-net.h"
 #include "net/rime.h"
 
-struct abc_hdr {
-  uint16_t channel;
-};
-
-LIST(channels);
 
 #define DEBUG 0
 #if DEBUG
@@ -63,59 +58,43 @@ LIST(channels);
 #define PRINTF(...)
 #endif
 
+static const struct rimebuf_attrlist attributes[] =
+  { ABC_ATTRIBUTES RIMEBUF_ATTR_LAST };
+
 /*---------------------------------------------------------------------------*/
 void
-abc_open(struct abc_conn *c, uint16_t channel,
+abc_open(struct abc_conn *c, uint16_t channelno,
 	  const struct abc_callbacks *callbacks)
 {
-  c->channel = channel;
+  channel_open(&c->channel, channelno);
   c->u = callbacks;
-
-  list_add(channels, c);
+  channel_set_attributes(channelno, attributes);
 }
 /*---------------------------------------------------------------------------*/
 void
 abc_close(struct abc_conn *c)
 {
-  list_remove(channels, c);
+  channel_close(&c->channel);
 }
 /*---------------------------------------------------------------------------*/
 int
 abc_send(struct abc_conn *c)
 {
-  if(rimebuf_hdralloc(sizeof(struct abc_hdr))) {
-    struct abc_hdr *hdr = rimebuf_hdrptr();
-
-    PRINTF("%d.%d: abc: abc_send on channel %d\n",
-	   rimeaddr_node_addr.u8[0],rimeaddr_node_addr.u8[1],
-	   c->channel);
-    
-    hdr->channel = c->channel;
-    rime_output();
-    return 1;
-  }
-  return 0;
+  PRINTF("%d.%d: abc: abc_send on channel %d\n",
+	 rimeaddr_node_addr.u8[0],rimeaddr_node_addr.u8[1],
+	 c->channel.channelno);
+  return chameleon_output(&c->channel);
 }
 /*---------------------------------------------------------------------------*/
 void
-abc_input_packet(void)
+abc_input(struct channel *channel)
 {
-  struct abc_hdr *hdr;
-  struct abc_conn *c;
+  struct abc_conn *c = (struct abc_conn *)channel;
+  PRINTF("%d.%d: abc: abc_input_packet on channel %d\n",
+	 rimeaddr_node_addr.u8[0],rimeaddr_node_addr.u8[1],
+	 channel->channelno);
 
-  hdr = rimebuf_dataptr();
-
-  if(rimebuf_hdrreduce(sizeof(struct abc_hdr))) {
-    PRINTF("%d.%d: abc: abc_input_packet on channel %d\n",
-	   rimeaddr_node_addr.u8[0],rimeaddr_node_addr.u8[1],
-	   hdr->channel);
-
-    for(c = list_head(channels); c != NULL; c = c->next) {
-      if(c->channel == hdr->channel) {
-	c->u->recv(c);
-      }
-    }
-  }
+  c->u->recv(c);
 }
 /*---------------------------------------------------------------------------*/
 
