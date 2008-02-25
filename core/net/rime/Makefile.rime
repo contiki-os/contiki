@@ -7,4 +7,5 @@ CONTIKI_SOURCEFILES += rimebuf.c queuebuf.c rimeaddr.c ctimer.c rime.c timesynch
                collect.c neighbor.c \
                trickle.c \
                rudolph0.c rudolph1.c rudolph2.c \
-	       rmesh.c meshconn.c $(CHAMELEON)
+               $(CHAMELEON)
+#	       rmesh.c meshconn.c
