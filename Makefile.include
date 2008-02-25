@@ -46,9 +46,6 @@ DUMMY := ${shell mkdir $(OBJECTDIR)}
 endif
 
 include $(CONTIKI)/core/net/rime/Makefile.rime
-ifdef CHAMELEON
-include $(CONTIKI)/core/net/chameleon/Makefile.chameleon
-endif
 include $(CONTIKI)/core/net/mac/Makefile.mac
 SYSTEM  = process.c procinit.c autostart.c elfloader.c profile.c timetable.c timetable-aggregate.c
 THREADS = mt.c
