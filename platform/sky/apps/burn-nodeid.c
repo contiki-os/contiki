@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: burn-nodeid.c,v 1.3 2008/02/11 10:43:47 adamdunkels Exp $
+ * $Id: burn-nodeid.c,v 1.4 2008/02/25 16:34:56 fros4943 Exp $
  */
 
 /**
@@ -42,8 +42,11 @@
 #include "dev/watchdog.h"
 #include "node-id.h"
 #include "contiki.h"
+#include "sys/etimer.h"
 
 #include <stdio.h>
+
+static struct etimer etimer;
 
 PROCESS(burn_process, "Burn node id");
 AUTOSTART_PROCESSES(&burn_process);
@@ -51,6 +54,9 @@ AUTOSTART_PROCESSES(&burn_process);
 PROCESS_THREAD(burn_process, ev, data)
 {
   PROCESS_BEGIN();
+
+  etimer_set(&etimer, 5*CLOCK_SECOND);
+  PROCESS_WAIT_UNTIL(etimer_expired(&etimer));
 
   watchdog_stop();
   leds_on(LEDS_RED);
