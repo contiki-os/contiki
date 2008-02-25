@@ -33,7 +33,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: rudolph0.c,v 1.8 2008/02/24 22:05:27 adamdunkels Exp $
+ * $Id: rudolph0.c,v 1.9 2008/02/25 02:14:35 adamdunkels Exp $
  */
 
 /**
@@ -213,6 +213,13 @@ rudolph0_send(struct rudolph0_conn *c, clock_time_t send_interval)
   rimebuf_reference(&c->current, sizeof(struct rudolph0_datapacket));
   c->send_interval = send_interval;
   sabc_send_stubborn(&c->c, c->send_interval);
+}
+/*---------------------------------------------------------------------------*/
+void
+rudolph0_force_restart(struct rudolph0_conn *c)
+{
+  c->current.h.chunk = 0;
+  send_nack(c);
 }
 /*---------------------------------------------------------------------------*/
 void

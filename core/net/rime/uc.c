@@ -34,7 +34,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: uc.c,v 1.13 2008/02/24 22:05:27 adamdunkels Exp $
+ * $Id: uc.c,v 1.14 2008/02/25 02:14:35 adamdunkels Exp $
  */
 
 /**
@@ -48,13 +48,11 @@
 #include "net/rime/uc.h"
 #include <string.h>
 
-/* XXX This is a hack: MAC protocols may use this address as the
-   receiver address of packets. */
-rimeaddr_t uc_receiver;
-
-struct uc_hdr {
-  rimeaddr_t receiver;
-};
+static const struct rimebuf_attrlist attributes[] =
+  {
+    UC_ATTRIBUTES
+    RIMEBUF_ATTR_LAST
+  };
 
 #define DEBUG 0
 #if DEBUG
@@ -69,12 +67,12 @@ static void
 recv_from_ibc(struct ibc_conn *ibc, rimeaddr_t *from)
 {
   struct uc_conn *c = (struct uc_conn *)ibc;
-  struct uc_hdr *hdr = rimebuf_dataptr();
+
   PRINTF("%d.%d: uc: recv_from_ibc, receiver %d.%d\n",
 	 rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1],
-	 hdr->receiver.u8[0], hdr->receiver.u8[1]);
-  if(rimeaddr_cmp(&hdr->receiver, &rimeaddr_node_addr)) {
-    rimebuf_hdrreduce(sizeof(struct uc_hdr));
+	 rimebuf_addr(RIMEBUF_ADDR_RECEIVER)->u8[0],
+	 rimebuf_addr(RIMEBUF_ADDR_RECEIVER)->u8[1]);
+  if(rimeaddr_cmp(rimebuf_addr(RIMEBUF_ADDR_RECEIVER), &rimeaddr_node_addr)) {
     c->u->recv(c, from);
   }
 }
@@ -87,6 +85,7 @@ uc_open(struct uc_conn *c, uint16_t channel,
 {
   ibc_open(&c->c, channel, &uc);
   c->u = u;
+  channel_set_attributes(channel, attributes);
 }
 /*---------------------------------------------------------------------------*/
 void
@@ -101,16 +100,8 @@ uc_send(struct uc_conn *c, const rimeaddr_t *receiver)
   PRINTF("%d.%d: uc_send to %d.%d\n",
 	 rimeaddr_node_addr.u8[0],rimeaddr_node_addr.u8[1],
 	 receiver->u8[0], receiver->u8[1]);
-  if(rimebuf_hdralloc(sizeof(struct uc_hdr))) {
-    int ret;
-    struct uc_hdr *hdr = rimebuf_hdrptr();
-    rimeaddr_copy(&hdr->receiver, receiver);
-    rimeaddr_copy(&uc_receiver, receiver);
-    ret = ibc_send(&c->c);
-    rimeaddr_copy(&uc_receiver, &rimeaddr_null);
-    return ret;
-  }
-  return 0;
+  rimebuf_set_addr(RIMEBUF_ADDR_RECEIVER, receiver);
+  return ibc_send(&c->c);
 }
 /*---------------------------------------------------------------------------*/
 /** @} */

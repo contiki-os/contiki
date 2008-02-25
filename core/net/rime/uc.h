@@ -45,7 +45,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: uc.h,v 1.7 2008/02/05 20:18:58 adamdunkels Exp $
+ * $Id: uc.h,v 1.8 2008/02/25 02:14:35 adamdunkels Exp $
  */
 
 /**
@@ -61,6 +61,9 @@
 #include "net/rime/ibc.h"
 
 struct uc_conn;
+
+#define UC_ATTRIBUTES   { RIMEBUF_ADDR_RECEIVER, RIMEBUF_ADDRSIZE }, \
+                        IBC_ATTRIBUTES
 
 struct uc_callbacks {
   void (* recv)(struct uc_conn *c, rimeaddr_t *from);

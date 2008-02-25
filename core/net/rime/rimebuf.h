@@ -40,7 +40,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: rimebuf.h,v 1.12 2008/02/24 22:05:27 adamdunkels Exp $
+ * $Id: rimebuf.h,v 1.13 2008/02/25 02:14:35 adamdunkels Exp $
  */
 
 /**
@@ -54,6 +54,7 @@
 #define __RIMEBUF_H__
 
 #include "contiki-conf.h"
+#include "net/rime/rimeaddr.h"
 
 /**
  * \brief      The size of the rimebuf, in bytes
@@ -297,6 +298,136 @@ int rimebuf_hdralloc(int size);
  *
  */
 int rimebuf_hdrreduce(int size);
+
+/* Packet attributes stuff below: */
+
+typedef uint16_t rimebuf_attr_t;
+
+struct rimebuf_attr {
+  uint8_t type;
+  rimebuf_attr_t val;
+};
+struct rimebuf_addr {
+  uint8_t type;
+  rimeaddr_t addr;
+};
+
+extern const char *rimebuf_attr_strings[];
+
+#define RIMEBUF_ATTR_PACKET_TYPE_DATA 0
+#define RIMEBUF_ATTR_PACKET_TYPE_ACK 1
+enum {
+  RIMEBUF_ATTR_NONE,
+  RIMEBUF_ATTR_CHANNEL,
+  RIMEBUF_ATTR_PACKET_ID,
+  RIMEBUF_ATTR_PACKET_TYPE,
+  RIMEBUF_ATTR_EPACKET_ID,
+  RIMEBUF_ATTR_EPACKET_TYPE,
+  RIMEBUF_ATTR_HOPS,
+  RIMEBUF_ATTR_TTL,
+  RIMEBUF_ATTR_REXMIT,
+  RIMEBUF_ATTR_MAX_REXMIT,
+  RIMEBUF_ATTR_NUM_REXMIT,
+  RIMEBUF_ATTR_LINK_QUALITY,
+  RIMEBUF_ATTR_RELIABLE,
+  RIMEBUF_ATTR_ERELIABLE,
+
+  RIMEBUF_ADDR_SENDER,
+  RIMEBUF_ADDR_RECEIVER,
+  RIMEBUF_ADDR_ESENDER,
+  RIMEBUF_ADDR_ERECEIVER,
+
+  RIMEBUF_ATTR_MAX,
+};
+
+#define RIMEBUF_NUM_ADDRS 4
+#define RIMEBUF_NUM_ATTRS (RIMEBUF_ATTR_MAX - RIMEBUF_NUM_ADDRS)
+
+
+#if RIMEBUF_CONF_ATTRS_INLINE
+
+extern struct rimebuf_attr rimebuf_attrs[];
+extern struct rimebuf_addr rimebuf_addrs[];
+
+static int               rimebuf_set_attr(uint8_t type, const rimebuf_attr_t val);
+static rimebuf_attr_t    rimebuf_attr(uint8_t type);
+static int               rimebuf_set_addr(uint8_t type, const rimeaddr_t *addr);
+static const rimeaddr_t *rimebuf_addr(uint8_t type);
+
+static inline int
+rimebuf_set_attr(uint8_t type, const rimebuf_attr_t val)
+{
+  rimebuf_attrs[type].type = type;
+  rimebuf_attrs[type].val = val;
+  return 1;
+}
+static inline rimebuf_attr_t
+rimebuf_attr(uint8_t type)
+{
+  return rimebuf_attrs[type].val;
+}
+
+static inline int
+rimebuf_set_addr(uint8_t type, const rimeaddr_t *addr)
+{
+  rimebuf_addrs[type].type = type;
+  rimeaddr_copy(&rimebuf_addrs[type].addr, addr);
+  return 1;
+}
+
+static inline const rimeaddr_t *
+rimebuf_addr(uint8_t type)
+{
+  return &rimebuf_addrs[type].addr;
+}
+#else /* RIMEBUF_CONF_ATTRS_INLINE */
+int               rimebuf_set_attr(uint8_t type, const rimebuf_attr_t val);
+rimebuf_attr_t rimebuf_attr(uint8_t type);
+int               rimebuf_set_addr(uint8_t type, const rimeaddr_t *addr);
+const rimeaddr_t *rimebuf_addr(uint8_t type);
+#endif /* RIMEBUF_CONF_ATTRS_INLINE */
+
+void              rimebuf_attr_clear(void);
+int               rimebuf_attr_isset(uint8_t type);
+
+void              rimebuf_attr_copyto(struct rimebuf_attr *attrs,
+				      struct rimebuf_addr *addrs);
+void              rimebuf_attr_copyfrom(struct rimebuf_attr *attrs,
+					struct rimebuf_addr *addrs);
+
+#define RIMEBUF_ATTRIBUTES(...) { __VA_ARGS__ RIMEBUF_ATTR_LAST }
+#define RIMEBUF_ATTR_LAST { RIMEBUF_ATTR_NONE, 0 }
+
+#define RIMEBUF_ATTR_BIT  1
+#define RIMEBUF_ATTR_BYTE 8
+#define RIMEBUF_ADDRSIZE (sizeof(rimeaddr_t) * RIMEBUF_ATTR_BYTE)
+
+struct rimebuf_attrlist {
+  uint8_t type;
+  uint8_t len;
+};
+
+/* XXX The definitions below will be placed the corresponding .h files: */
+
+#define RMH_ATTRIBUTES  { RIMEBUF_ADDR_ESENDER, RIMEBUF_ADDRSIZE }, \
+                        { RIMEBUF_ADDR_ERECEIVER, RIMEBUF_ADDRSIZE }, \
+                        { RIMEBUF_ATTR_TTL, RIMEBUF_ATTR_BIT * 5 }, \
+                        { RIMEBUF_ATTR_MAX_REXMIT, RIMEBUF_ATTR_BIT * 5 }, \
+                        RUC_ATTRIBUTES
+
+#define MH_ATTRIBUTES   { RIMEBUF_ADDR_ESENDER, RIMEBUF_ADDRSIZE }, \
+                        { RIMEBUF_ADDR_ERECEIVER, RIMEBUF_ADDRSIZE }, \
+                        { RIMEBUF_ATTR_TTL, RIMEBUF_ATTR_BIT * 5 }, \
+                        UC_ATTRIBUTES
+
+#define POLITE_ATTRIBUTES ABC_ATTRIBUTES
+
+#define IPOLITE_ATTRIBUTES IBC_ATTRIBUTES
+
+#define NF_ATTRIBUTES   { RIMEBUF_ADDR_ESENDER, RIMEBUF_ADDRSIZE }, \
+                        { RIMEBUF_ATTR_HOPS, RIMEBUF_ATTR_BIT * 5 }, \
+                        { RIMEBUF_ATTR_EPACKET_ID, RIMEBUF_ATTR_BIT * 4 }, \
+                        IPOLITE_ATTRIBUTES
 
 #endif /* __RIMEBUF_H__ */
 /** @} */

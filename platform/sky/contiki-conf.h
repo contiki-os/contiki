@@ -1,8 +1,10 @@
 /* -*- C -*- */
-/* @(#)$Id: contiki-conf.h,v 1.24 2008/02/24 21:11:35 adamdunkels Exp $ */
+/* @(#)$Id: contiki-conf.h,v 1.25 2008/02/25 02:14:34 adamdunkels Exp $ */
 
 #ifndef CONTIKI_CONF_H
 #define CONTIKI_CONF_H
+
+#define RIMEBUF_CONF_ATTRS_INLINE 1
 
 #define SHELL_VARS_CONF_RAM_BEGIN 0x1100
 #define SHELL_VARS_CONF_RAM_END 0x2000

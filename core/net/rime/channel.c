@@ -1,10 +1,5 @@
-/**
- * \addtogroup rimeibc
- * @{
- */
-
 /*
- * Copyright (c) 2006, Swedish Institute of Computer Science.
+ * Copyright (c) 2007, Swedish Institute of Computer Science.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,71 +28,63 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: ibc.c,v 1.14 2008/02/25 02:14:34 adamdunkels Exp $
+ * $Id: channel.c,v 1.1 2008/02/25 02:14:34 adamdunkels Exp $
  */
 
 /**
  * \file
- *         Identified best-effort local area broadcast (ibc)
+ *         Rime's channel abstraction
  * \author
  *         Adam Dunkels <adam@sics.se>
  */
 
-#include "contiki-net.h"
-#include <string.h>
+#include "net/rime/chameleon.h"
+#include "net/rime.h"
+#include "lib/list.h"
 
-static const struct rimebuf_attrlist attributes[] =
-  {
-    IBC_ATTRIBUTES RIMEBUF_ATTR_LAST
-  };
+LIST(channel_list);
 
-#define DEBUG 0
-#if DEBUG
-#include <stdio.h>
-#define PRINTF(...) printf(__VA_ARGS__)
-#else
-#define PRINTF(...)
-#endif
-
-/*---------------------------------------------------------------------------*/
-static void
-recv_from_abc(struct abc_conn *bc)
-{
-  rimeaddr_t sender;
-  struct ibc_conn *c = (struct ibc_conn *)bc;
-
-  rimeaddr_copy(&sender, rimebuf_addr(RIMEBUF_ADDR_SENDER));
-  
-  PRINTF("%d.%d: ibc: from %d.%d\n",
-	 rimeaddr_node_addr.u8[0],rimeaddr_node_addr.u8[1],
-	 sender.u8[0], sender.u8[1]);
-  c->u->recv(c, &sender);
-}
-/*---------------------------------------------------------------------------*/
-static const struct abc_callbacks ibc = {recv_from_abc};
 /*---------------------------------------------------------------------------*/
 void
-ibc_open(struct ibc_conn *c, uint16_t channel,
-	  const struct ibc_callbacks *u)
+channel_init(void)
 {
-  abc_open(&c->c, channel, &ibc);
-  c->u = u;
-  channel_set_attributes(channel, attributes);
+  list_init(channel_list);
 }
 /*---------------------------------------------------------------------------*/
 void
-ibc_close(struct ibc_conn *c)
+channel_set_attributes(uint16_t channelno,
+		       const struct rimebuf_attrlist attrlist[])
 {
-  abc_close(&c->c);
+  struct channel *c;
+  c = channel_lookup(channelno);
+  if(c != NULL) {
+    c->attrlist = attrlist;
+    c->hdrsize = chameleon_hdrsize(attrlist);
+  }
 }
 /*---------------------------------------------------------------------------*/
-int
-ibc_send(struct ibc_conn *c)
+void
+channel_open(struct channel *c, uint16_t channelno)
 {
-  PRINTF("%d.%d: ibc_send\n",
-	 rimeaddr_node_addr.u8[0],rimeaddr_node_addr.u8[1]);
-  rimebuf_set_addr(RIMEBUF_ADDR_SENDER, &rimeaddr_node_addr);
-  return abc_send(&c->c);
+  c->channelno = channelno;
+  list_add(channel_list, c);
 }
 /*---------------------------------------------------------------------------*/
-/** @} */
+void
+channel_close(struct channel *c)
+{
+  list_remove(channel_list, c);
+}
+/*---------------------------------------------------------------------------*/
+struct channel *
+channel_lookup(uint16_t channelno)
+{
+  struct channel *c;
+  for(c = list_head(channel_list); c != NULL; c = c->next) {
+    if(c->channelno == channelno) {
+      return c;
+    }
+  }
+  return NULL;
+}
+/*---------------------------------------------------------------------------*/

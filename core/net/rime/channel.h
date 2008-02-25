@@ -1,22 +1,5 @@
-/**
- * \addtogroup rime
- * @{
- */
-
-/**
- * \defgroup rimesuc Stubborn unicast
- * @{
- *
- * The suc module takes one packet and sends it repetedly.
- *
- * \section channels Channels
- *
- * The suc module uses 1 channel.
- *
- */
-
 /*
- * Copyright (c) 2006, Swedish Institute of Computer Science.
+ * Copyright (c) 2007, Swedish Institute of Computer Science.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -45,54 +28,38 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: suc.h,v 1.11 2008/02/25 02:14:35 adamdunkels Exp $
+ * $Id: channel.h,v 1.1 2008/02/25 02:14:34 adamdunkels Exp $
  */
 
 /**
  * \file
- *         Stubborn unicast header file
+ *         Header file for Rime's channel abstraction
  * \author
  *         Adam Dunkels <adam@sics.se>
  */
 
-#ifndef __SUC_H__
-#define __SUC_H__
+#ifndef __CHANNEL_H__
+#define __CHANNEL_H__
 
-#include "net/rime/uc.h"
-#include "net/rime/ctimer.h"
-#include "net/rime/queuebuf.h"
+struct channel;
 
-struct suc_conn;
+#include "contiki-conf.h"
+#include "net/rime/rimebuf.h"
+#include "net/rime/chameleon.h"
 
-#define SUC_ATTRIBUTES  UC_ATTRIBUTES
-
-struct suc_callbacks {
-  void (* recv)(struct suc_conn *c, rimeaddr_t *from);
-  void (* sent)(struct suc_conn *c);
+struct channel {
+  struct channel *next;
+  uint16_t channelno;
+  const struct rimebuf_attrlist *attrlist;
+  uint8_t hdrsize;
 };
 
-struct suc_conn {
-  struct uc_conn c;
-  struct ctimer t;
-  struct queuebuf *buf;
-  const struct suc_callbacks *u;
-  rimeaddr_t receiver;
-};
+struct channel *channel_lookup(uint16_t channelno);
 
-void suc_open(struct suc_conn *c, uint16_t channel,
-	       const struct suc_callbacks *u);
-void suc_close(struct suc_conn *c);
+void channel_set_attributes(uint16_t channelno,
+			    const struct rimebuf_attrlist attrlist[]);
+void channel_open(struct channel *c, uint16_t channelno);
+void channel_close(struct channel *c);
+void channel_init(void);
 
-int suc_send_stubborn(struct suc_conn *c, rimeaddr_t *receiver,
-		      clock_time_t rxmittime);
-void suc_cancel(struct suc_conn *c);
-
-int suc_send(struct suc_conn *c, rimeaddr_t *receiver);
-
-void suc_set_timer(struct suc_conn *c, clock_time_t t);
-
-rimeaddr_t *suc_receiver(struct suc_conn *c);
-
-#endif /* __SUC_H__ */
-/** @} */
-/** @} */
+#endif /* __CHANNEL_H__ */

@@ -33,7 +33,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: neighbor-discovery.c,v 1.4 2008/02/24 22:05:27 adamdunkels Exp $
+ * $Id: neighbor-discovery.c,v 1.5 2008/02/25 02:14:34 adamdunkels Exp $
  */
 
 /**
@@ -71,7 +71,7 @@ struct adv_msg {
 
 #define MAX_HOPLIM 10
 
-#define MAX_INTERVAL CLOCK_SECOND * 30
+#define MAX_INTERVAL CLOCK_SECOND * 60
 #define MIN_INTERVAL CLOCK_SECOND * 10
 #define NEW_VAL_INTERVAL CLOCK_SECOND * 2
 
