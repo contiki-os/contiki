@@ -41,7 +41,7 @@
  *
  * This file is part of the uIP TCP/IP stack.
  *
- * $Id: uip.c,v 1.13 2008/02/24 21:03:24 adamdunkels Exp $
+ * $Id: uip.c,v 1.14 2008/02/28 23:59:05 oliverschmidt Exp $
  *
  */
 
@@ -1918,7 +1918,7 @@ uip_send(const void *data, int len)
   int copylen;
 #define MIN(a,b) ((a) < (b)? (a): (b))
   copylen = MIN(len, UIP_BUFSIZE - UIP_LLH_LEN - UIP_TCPIP_HLEN -
-		((char *)uip_sappdata - (char *)&uip_buf[UIP_LLH_LEN + UIP_TCPIP_HLEN]));
+		(int)((char *)uip_sappdata - (char *)&uip_buf[UIP_LLH_LEN + UIP_TCPIP_HLEN]));
   if(copylen > 0) {
     uip_slen = copylen;
     if(data != uip_sappdata) {

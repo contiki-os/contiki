@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki desktop OS.
  *
- * $Id: telnetd.c,v 1.11 2008/02/28 23:50:38 oliverschmidt Exp $
+ * $Id: telnetd.c,v 1.12 2008/02/28 23:59:27 oliverschmidt Exp $
  *
  */
 
@@ -152,7 +152,7 @@ telnetd_quit(void)
 void
 shell_prompt(char *str)
 {
-  buf_append(&buf, str, strlen(str));
+  buf_append(&buf, str, (int)strlen(str));
 }
 /*---------------------------------------------------------------------------*/
 void
