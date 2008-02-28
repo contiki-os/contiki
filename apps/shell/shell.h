@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: shell.h,v 1.5 2008/02/24 20:35:03 adamdunkels Exp $
+ * $Id: shell.h,v 1.6 2008/02/28 23:29:07 adamdunkels Exp $
  */
 
 /**
@@ -77,6 +77,9 @@ unsigned long shell_strtolong(const char *str, const char **retstr);
 
 unsigned long shell_time(void);
 void shell_set_time(unsigned long seconds);
+
+void shell_quit(void);
+
 
 #define SHELL_COMMAND(name, command, description, process) \
 static struct shell_command name = { NULL, command, \
