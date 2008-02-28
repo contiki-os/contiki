@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: timetable.h,v 1.1 2008/01/17 12:19:26 adamdunkels Exp $
+ * $Id: timetable.h,v 1.2 2008/02/28 22:11:30 oliverschmidt Exp $
  */
 
 /**
@@ -58,24 +58,24 @@ struct timetable {
   unsigned int * const ptr;
 };
 
-#define TIMETABLE_NONSTATIC(name)				\
-struct timetable_timestamp CC_CONCAT(name,_timestamps)[CC_CONCAT(name,_size)];	\
-unsigned int CC_CONCAT(name,_ptr);				\
-struct timetable name = {						\
-  CC_CONCAT(name,_timestamps),					\
-    CC_CONCAT(name,_size),							\
+#define TIMETABLE_NONSTATIC(name)					       \
+struct timetable_timestamp CC_CONCAT(name,_timestamps)[CC_CONCAT(name,_size)]; \
+unsigned int CC_CONCAT(name,_ptr);					       \
+struct timetable name = {						       \
+  CC_CONCAT(name,_timestamps),						       \
+    CC_CONCAT(name,_size),						       \
     &CC_CONCAT(name,_ptr)}
 
-#define TIMETABLE_STATIC(name)					\
-static struct timetable_timestamp CC_CONCAT(name,_timestamps)[CC_CONCAT(name,_size)];	\
-static unsigned int CC_CONCAT(name,_ptr);				\
-static struct timetable name = {					\
-  CC_CONCAT(name,_timestamps),						\
-    CC_CONCAT(name,_size),								\
+#define TIMETABLE_STATIC(name)							      \
+static struct timetable_timestamp CC_CONCAT(name,_timestamps)[CC_CONCAT(name,_size)]; \
+static unsigned int CC_CONCAT(name,_ptr);					      \
+static struct timetable name = {						      \
+  CC_CONCAT(name,_timestamps),							      \
+    CC_CONCAT(name,_size),							      \
     &CC_CONCAT(name,_ptr)}
 
-#define TIMETABLE_DECLARE(name)		\
-extern unsigned int CC_CONCAT(name,_ptr); \
+#define TIMETABLE_DECLARE(name)							       \
+extern unsigned int CC_CONCAT(name,_ptr);					       \
 extern struct timetable_timestamp CC_CONCAT(name, _timestamps)[CC_CONCAT(name,_size)]; \
 extern struct timetable name
 
@@ -86,17 +86,17 @@ do {									 \
   CC_CONCAT(name,_timestamps)[CC_CONCAT(name,_ptr)].id = str;		 \
   CC_CONCAT(name,_timestamps)[CC_CONCAT(name,_ptr)].time = RTIMER_NOW(); \
   CC_CONCAT(name,_ptr) = (CC_CONCAT(name,_ptr) + 1) %			 \
-    CC_CONCAT(name,_size); \
+    CC_CONCAT(name,_size);						 \
 } while(0)
 
 #if TIMETABLE_WITH_TYPE
-#define TIMETABLE_TIMESTAMP_TYPE(name, str, t)					 \
+#define TIMETABLE_TIMESTAMP_TYPE(name, str, t)				 \
 do {									 \
   CC_CONCAT(name,_timestamps)[CC_CONCAT(name,_ptr)].id = str;		 \
   CC_CONCAT(name,_timestamps)[CC_CONCAT(name,_ptr)].type = t;		 \
   CC_CONCAT(name,_timestamps)[CC_CONCAT(name,_ptr)].time = RTIMER_NOW(); \
   CC_CONCAT(name,_ptr) = (CC_CONCAT(name,_ptr) + 1) %			 \
-    CC_CONCAT(name,_size); \
+    CC_CONCAT(name,_size);						 \
 } while(0)
 #else /* TIMETABLE_WITH_TYPE */
 #define TIMETABLE_TIMESTAMP_TYPE(name, str, t) TIMETABLE_TIMESTAMP(name, str)
