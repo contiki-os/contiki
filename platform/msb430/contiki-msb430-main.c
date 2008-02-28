@@ -64,7 +64,12 @@ msb_ports_init(void)
 int
 main(void)
 {
+#ifdef WITH_SDC
+  sd_cache_t sd_cache;
+#endif
+
   msp430_cpu_init();	
+  watchdog_stop();
 
   /* Platform-specific initialization. */
   msb_ports_init();
@@ -84,10 +89,6 @@ main(void)
 
   // serial interface
   rs232_init();
-
-#ifdef WITH_SDC
-  spi_init();
-#endif
 
   uart_lock(UART_MODE_RS232);
   uart_unlock(UART_MODE_RS232);
@@ -109,6 +110,14 @@ main(void)
 #endif /* PROFILE_CONF_ON */
  
   leds_off(LEDS_ALL);
+
+#ifdef WITH_SDC
+  spi_init();
+  sd_init();
+  if (sd_init_card(&sd_cache) == SD_INIT_SUCCESS) {
+    printf("SD card initialized\n");
+  }
+#endif
 
   printf(CONTIKI_VERSION_STRING " started. Node id %u.\n", node_id);
 
