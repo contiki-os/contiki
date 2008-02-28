@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki desktop OS.
  *
- * $Id: gui-shell.c,v 1.4 2008/02/10 12:24:43 oliverschmidt Exp $
+ * $Id: gui-shell.c,v 1.5 2008/02/28 23:50:02 oliverschmidt Exp $
  *
  */
 
@@ -66,14 +66,6 @@ PROCESS(shell_gui_process, "Command shell");
 
 AUTOSTART_PROCESSES(&shell_gui_process);
 
-/*-----------------------------------------------------------------------------------*/
-void
-shell_quit(char *str)
-{
-  ctk_window_close(&window);
-  process_exit(&shell_gui_process);
-  LOADER_UNLOAD();
-}
 /*-----------------------------------------------------------------------------------*/
 void
 shell_default_output(const char *str1, int len1, const char *str2, int len2)
@@ -145,7 +137,10 @@ PROCESS_THREAD(shell_gui_process, ev, data)
       }
     } else if(ev == ctk_signal_window_close ||
 	      ev == PROCESS_EVENT_EXIT) {
-      shell_quit(NULL);
+      shell_quit();
+      ctk_window_close(&window);
+      process_exit(&shell_gui_process);
+      LOADER_UNLOAD();
     }
   }
   PROCESS_END();
