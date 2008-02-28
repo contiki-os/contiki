@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: telnet-server.c,v 1.1 2006/06/17 22:41:24 adamdunkels Exp $
+ * $Id: telnet-server.c,v 1.2 2008/02/28 23:12:47 oliverschmidt Exp $
  */
 
 /**
@@ -40,7 +40,23 @@
 
 #include "contiki-net.h"
 #include "telnetd.h"
+#include "shell.h"
 
 /*---------------------------------------------------------------------------*/
-AUTOSTART_PROCESSES(&telnetd_process);
+PROCESS(shell_init_process, "Shell init process");
+/*---------------------------------------------------------------------------*/
+PROCESS_THREAD(shell_init_process, ev, data)
+{
+  PROCESS_BEGIN();
+
+  shell_file_init();   
+  shell_ps_init();   
+  shell_run_init();   
+  shell_text_init();   
+  shell_time_init();   
+  
+  PROCESS_END();
+}
+/*---------------------------------------------------------------------------*/
+AUTOSTART_PROCESSES(&telnetd_process, &shell_init_process);
 /*---------------------------------------------------------------------------*/
