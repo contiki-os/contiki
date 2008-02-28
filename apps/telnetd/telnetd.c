@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki desktop OS.
  *
- * $Id: telnetd.c,v 1.10 2008/02/24 20:43:28 adamdunkels Exp $
+ * $Id: telnetd.c,v 1.11 2008/02/28 23:50:38 oliverschmidt Exp $
  *
  */
 
@@ -139,14 +139,9 @@ buf_len(struct telnetd_buf *buf)
 }
 /*---------------------------------------------------------------------------*/
 void
-shell_quit(char *str)
-{
-  s.state = STATE_CLOSE;
-}
-/*---------------------------------------------------------------------------*/
-void
 telnetd_quit(void)
 {
+  shell_quit();
 #if TELNETD_CONF_GUI
   telnetd_gui_quit();
 #endif /* TELNETD_CONF_GUI */
