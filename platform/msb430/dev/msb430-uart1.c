@@ -62,90 +62,22 @@ Berlin, 2007
 #define U1ME	ME2
 #endif
 
-void _uart_configure(unsigned char mode);
-void _uart_set_mode(unsigned char mode);
-
-volatile unsigned char 		uart_mode = UART_MODE_RESET;
-volatile unsigned char		uart_lockcnt = 0;
+static volatile unsigned char uart_mode = UART_MODE_RESET;
+static volatile unsigned char uart_lockcnt = 0;
 volatile uint8_t uart_edge = 0;
 
-static unsigned char		_uart_speed_br0[UART_NUM_MODES];
-static unsigned char		_uart_speed_br1[UART_NUM_MODES];
-static unsigned char		_uart_speed_bmn[UART_NUM_MODES];
-static fp_uart_handler		_uart_handler[UART_NUM_MODES] = {NULL, NULL};
+static unsigned char uart_speed_br0[UART_NUM_MODES];
+static unsigned char uart_speed_br1[UART_NUM_MODES];
+static unsigned char uart_speed_bmn[UART_NUM_MODES];
+static fp_uart_handler uart_handler[UART_NUM_MODES] = {NULL, NULL};
 
 /*---------------------------------------------------------------------------*/
-void
-uart_set_speed(unsigned char mode, unsigned char ubr0,
-		unsigned char ubr1, unsigned char umctl)
+static void
+uart_configure(unsigned mode)
 {
-  // store setting
-  _uart_speed_br0[mode] = ubr0;		// baudrate
-  _uart_speed_br1[mode] = ubr1;		// baudrate
-  _uart_speed_bmn[mode] = umctl;	// modulation
+  _DINT();		// disable interrupts
 
-  // reconfigure, if mode active
-  if (uart_mode == mode)
-    _uart_configure(mode);
-}
-/*---------------------------------------------------------------------------*/
-void
-uart_set_handler(unsigned char mode, fp_uart_handler fpHandler)
-{
-  // store setting
-  _uart_handler[mode] = fpHandler;
-  if (mode == uart_mode) {
-    if (fpHandler == NULL)
-      IE2 &= ~URXIE1;			// Disable USART1 RX interrupt
-    else
-      IE2 |= URXIE1;			// Enable USART1 RX interrupt
-  }
-}
-/*---------------------------------------------------------------------------*/
-int
-uart_lock(unsigned char mode)
-{
-  // already locked?
-  if ((mode != uart_mode) && (uart_lockcnt)) {
-    return 0;
-  } else {
-    // increase lock count
-    uart_lockcnt++;
-    // switch mode (if neccessary)
-    _uart_set_mode(mode);
-    return 1;
-  }
-}
-/*---------------------------------------------------------------------------*/
-int
-uart_unlock(unsigned char mode)
-{
-  /*
-  Do we wan't strict checking?
-  if( (uart_lockcnt == 0) || (mode != uart_mode) )
-    return false;
-  */
-
-  // decrement lock
-  if (uart_lockcnt > 0) {
-    uart_lockcnt--;
-
-    // if no more locks, switch back to default mode
-    if (uart_lockcnt == 0) {
-      _uart_set_mode(UART_MODE_DEFAULT);
-    }
-    return 1;
-  }
-  return 0;
-}
-/*---------------------------------------------------------------------------*/
-void
-_uart_configure(unsigned char mode)
-{
-  _DINT();					// disable interrupts
-
-  UART_WAIT_TXDONE();							
-// wait till all buffered data has been transmitted
+  UART_WAIT_TXDONE();	// wait till all buffered data has been transmitted
 
   // configure
   if (mode == UART_MODE_RS232) {
@@ -171,26 +103,89 @@ _uart_configure(unsigned char mode)
   }
 
   // restore speed settings
-  UBR01  = _uart_speed_br0[mode];	// set baudrate
-  UBR11  = _uart_speed_br1[mode];			
-  UMCTL1 = _uart_speed_bmn[mode];	// set modulation
+  UBR01  = uart_speed_br0[mode];	// set baudrate
+  UBR11  = uart_speed_br1[mode];			
+  UMCTL1 = uart_speed_bmn[mode];	// set modulation
 
   UCTL1 &= ~SWRST;			// clear reset flag
   _EINT();				// enable interrupts
 }
 /*---------------------------------------------------------------------------*/
 void
-_uart_set_mode(unsigned char mode)
+uart_set_speed(unsigned mode, unsigned ubr0,
+		unsigned ubr1, unsigned umctl)
+{
+  // store setting
+  uart_speed_br0[mode] = ubr0;		// baudrate
+  uart_speed_br1[mode] = ubr1;		// baudrate
+  uart_speed_bmn[mode] = umctl;	// modulation
+
+  // reconfigure, if mode active
+  if (uart_mode == mode)
+    uart_configure(mode);
+}
+/*---------------------------------------------------------------------------*/
+void
+uart_set_handler(unsigned mode, fp_uart_handler fpHandler)
+{
+  // store setting
+  uart_handler[mode] = fpHandler;
+  if (mode == uart_mode) {
+    if (fpHandler == NULL) {
+      IE2 &= ~URXIE1;			// Disable USART1 RX interrupt
+    } else {
+      IE2 |= URXIE1;			// Enable USART1 RX interrupt
+    }
+  }
+}
+/*---------------------------------------------------------------------------*/
+int
+uart_lock(unsigned mode)
+{
+  // already locked?
+  if (uart_lockcnt > 0) {
+    return 0;
+  }
+
+  // increase lock count
+  uart_lockcnt++;
+  // switch mode (if neccessary)
+  uart_set_mode(mode);
+  return 1;
+}
+/*---------------------------------------------------------------------------*/
+int
+uart_unlock(unsigned mode)
+{
+  if ((uart_lockcnt == 0) || (mode != uart_mode)) {
+    return 0;
+  }
+
+  // decrement lock
+  if (uart_lockcnt > 0) {
+    uart_lockcnt--;
+
+    // if no more locks, switch back to default mode
+    if (uart_lockcnt == 0) {
+      uart_set_mode(UART_MODE_DEFAULT);
+    }
+    return 1;
+  }
+  return 0;
+}
+/*---------------------------------------------------------------------------*/
+void
+uart_set_mode(unsigned mode)
 {
   // do nothing if mode already set
   if (mode == uart_mode)
     return;
 
   IE2 &= ~(URXIE1 | UTXIE1);		// disable irq
-  _uart_configure(mode);		// configure uart parameters
+  uart_configure(mode);			// configure uart parameters
   uart_mode = mode;
 	
-  if (_uart_handler[mode] != NULL)
+  if (uart_handler[mode] != NULL)
     IE2 |= URXIE1;			// Enable USART1 RX interrupt
 }
 /*---------------------------------------------------------------------------*/
@@ -200,9 +195,10 @@ uart_get_mode(void)
   return uart_mode;
 }
 /*---------------------------------------------------------------------------*/
-interrupt(UART1RX_VECTOR)_uart_rx(void)
+interrupt(UART1RX_VECTOR)
+uart_rx(void)
 {
-  fp_uart_handler handler = _uart_handler[uart_mode];
+  fp_uart_handler handler = uart_handler[uart_mode];
   int c;
 	
   if (!(IFG2 & URXIFG1)) {

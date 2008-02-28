@@ -58,8 +58,8 @@ Berlin, 2007
  * Header file for MSP430 UART driver.
  */
 
-#ifndef __UART_H__
-#define __UART_H__
+#ifndef MSB430_UART_H
+#define MSB430_UART_H
 
 #define	UART_RX				RXBUF1
 #define	UART_TX				TXBUF1
@@ -89,14 +89,7 @@ extern volatile unsigned char uart_lockcnt;
 #define UART_WAIT_LOCK(x)	( (uart_mode != x ) && (uart_lockcnt) )
 #define UART_MODE_IS(x)		( uart_mode == x )
 
-#if 0
-#ifdef __SCATTERWEB__
-	typedef void(*fp_uart_handler)(void);
-#else
-	typedef unsigned int(*fp_uart_handler)(unsigned char);
-#endif
-#endif
-	typedef unsigned int(*fp_uart_handler)(unsigned char);
+typedef unsigned int(*fp_uart_handler)(unsigned char);
 
 /**
  * \brief      Initialize the UART module
@@ -106,17 +99,14 @@ extern volatile unsigned char uart_lockcnt;
  */
 void uart_init(void);
 
-void uart_set_speed(unsigned char mode, unsigned char ubr0, unsigned char ubr1, unsigned char umctl);
-
-void uart_set_handler(unsigned char mode, fp_uart_handler fpHandler);
-
-int uart_lock(unsigned char mode);
-
-int uart_unlock(unsigned char mode);
-
+void uart_set_speed(unsigned mode, unsigned ubr0, unsigned ubr1, unsigned umctl);
+void uart_set_handler(unsigned mode, fp_uart_handler fpHandler);
+int uart_lock(unsigned mode);
+int uart_unlock(unsigned mode);
+void uart_set_mode(unsigned);
 int uart_get_mode(void);
 
-#endif /* __UART_H__ */
+#endif /* !UART_H */
 
 /** @} */
 /** @} */
