@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: timetable.c,v 1.1 2008/01/17 12:19:26 adamdunkels Exp $
+ * $Id: timetable.c,v 1.2 2008/02/28 22:43:40 oliverschmidt Exp $
  */
 
 /**
@@ -101,7 +101,7 @@ timetable_init(void)
 {
   char dummy1, dummy2;
 #define temp_size 4
-  TIMETABLE_NONSTATIC(temp);
+  TIMETABLE_STATIC(temp);
   
   timetable_clear(&temp);
 
