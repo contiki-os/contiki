@@ -1,15 +1,16 @@
 SENSORS    = sensors.c irq.c sht11.c
-#SD	   = sd.c sd_cache.c sd_erase.c sd_info.c
+SD	   = sd.c sd_cache.c sd_erase.c sd_info.c
 MSB        = dma.c infomem.c node-id.c \
-             msb430-uart1.c rs232.c msb430-slip-arch.c \
-             cc1020.c cc1020-uip.c adc.c init-net-rime.c
+             msb430-uart1.c rs232.c \
+             cc1020.c cc1020-uip.c adc.c init-net-rime.c \
+	     msb430-slip-arch.c sdspi.c
 
 CONTIKI_TARGET_DIRS = . dev dev/sd apps net loader
 ifndef CONTIKI_TARGET_MAIN
 CONTIKI_TARGET_MAIN = contiki-msb430-main.c
 endif
 
-CONTIKI_TARGET_SOURCEFILES += $(SENSORS) $(MSB) $(CONTIKI_TARGET_MAIN)
+CONTIKI_TARGET_SOURCEFILES += $(SENSORS) $(SD) $(MSB) $(CONTIKI_TARGET_MAIN)
 
 include $(CONTIKI)/platform/$(TARGET)/apps/Makefile.apps
 
