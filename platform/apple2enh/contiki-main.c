@@ -30,7 +30,7 @@
  * 
  * Author: Oliver Schmidt <ol.sc@web.de>
  *
- * $Id: contiki-main.c,v 1.16 2008/02/17 14:11:48 oliverschmidt Exp $
+ * $Id: contiki-main.c,v 1.17 2008/02/28 21:36:37 oliverschmidt Exp $
  */
 
 #include "contiki-net.h"
@@ -64,12 +64,16 @@ main(void)
 {
   struct ethernet_config *ethernet_config;
 
+#if !WITH_PFS
+  close(STDIN_FILENO);
+  close(STDOUT_FILENO);
+  close(STDERR_FILENO);
+#endif /* !WITH_PFS */
+
   process_init();
 
 #if 1
-
   ethernet_config = config_read("contiki.cfg");
-
 #else
   {
     static struct ethernet_config config = {0xC0B0, "cs8900a.eth"};
