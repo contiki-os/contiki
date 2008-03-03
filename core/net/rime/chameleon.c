@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: chameleon.c,v 1.2 2008/02/27 10:39:17 fros4943 Exp $
+ * $Id: chameleon.c,v 1.3 2008/03/03 20:20:33 adamdunkels Exp $
  */
 
 /**
@@ -63,6 +63,7 @@ chameleon_init(const struct chameleon_module *m)
   channel_init();
 }
 /*---------------------------------------------------------------------------*/
+#if DEBUG
 static void
 printbin(int n, int digits)
 {
@@ -98,6 +99,7 @@ printhdr(uint8_t *hdr, int len)
     printf("\n");
   }
 }
+#endif /* DEBUG */
 /*---------------------------------------------------------------------------*/
 void
 chameleon_input(void)
@@ -105,16 +107,20 @@ chameleon_input(void)
   struct channel *c;
   PRINTF("%d.%d: chameleon_input\n",
 	 rimeaddr_node_addr.u8[0],rimeaddr_node_addr.u8[1]);
-  /*printhdr(rimebuf_dataptr(), rimebuf_datalen());*/
-  c = header_module->input();
-  if(c != NULL) {
-    PRINTF("%d.%d: chameleon_input channel %d\n",
-	   rimeaddr_node_addr.u8[0],rimeaddr_node_addr.u8[1],
-	   c->channelno);
-    abc_input(c);
-  } else {
-    PRINTF("%d.%d: chameleon_input channel not found for incoming packet\n",
-	   rimeaddr_node_addr.u8[0],rimeaddr_node_addr.u8[1]);
+#if DEBUG
+  printhdr(rimebuf_dataptr(), rimebuf_datalen());
+#endif /* DEBUG */
+  if(header_module) {
+    c = header_module->input();
+    if(c != NULL) {
+      PRINTF("%d.%d: chameleon_input channel %d\n",
+	     rimeaddr_node_addr.u8[0],rimeaddr_node_addr.u8[1],
+	     c->channelno);
+      abc_input(c);
+    } else {
+      PRINTF("%d.%d: chameleon_input channel not found for incoming packet\n",
+	     rimeaddr_node_addr.u8[0],rimeaddr_node_addr.u8[1]);
+    }
   }
 }
 /*---------------------------------------------------------------------------*/
@@ -126,15 +132,17 @@ chameleon_output(struct channel *c)
   PRINTF("%d.%d: chameleon_output channel %d\n",
 	 rimeaddr_node_addr.u8[0],rimeaddr_node_addr.u8[1],
 	 c->channelno);
-    
-  ret = header_module->output(c);
 
-  rimebuf_set_attr(RIMEBUF_ATTR_CHANNEL, c->channelno);
-  
-  /*printhdr(rimebuf_hdrptr(), rimebuf_hdrlen());*/
-  if(ret) {
-    rime_output();
-    return 1;
+  if(header_module) {
+    ret = header_module->output(c);
+    rimebuf_set_attr(RIMEBUF_ATTR_CHANNEL, c->channelno);
+#if DEBUG
+    printhdr(rimebuf_hdrptr(), rimebuf_hdrlen());
+#endif /* DEBUG */
+    if(ret) {
+      rime_output();
+      return 1;
+    }
   }
   return 0;
 }
