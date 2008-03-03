@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#)$Id: contiki-sky-main.c,v 1.28 2008/02/24 21:13:03 adamdunkels Exp $
+ * @(#)$Id: contiki-sky-main.c,v 1.29 2008/03/03 20:23:53 adamdunkels Exp $
  */
 
 #include <signal.h>
@@ -161,6 +161,11 @@ trickle_recv(struct trickle_conn *c)
 
   if(!is_gateway) {
     uip_over_mesh_set_gateway(&msg->gateway);
+  } else {
+    /* We've received an erroneous message so we send out our own. */
+    rimeaddr_copy(&msg->gateway, &rimeaddr_node_addr);
+    rimebuf_copyfrom(msg, sizeof(struct gateway_msg));
+    trickle_send(c);
   }
   
 }
@@ -219,6 +224,23 @@ main(int argc, char **argv)
   node_id_restore();
 
   leds_off(LEDS_BLUE);
+  /*
+   * Initialize Contiki and our processes.
+   */
+  process_init();
+  process_start(&etimer_process, NULL);
+  process_start(&sensors_process, NULL);
+
+
+  simple_cc2420_init();
+  simple_cc2420_set_pan_addr(panId, 0 /*XXX*/, ds2411_id);
+  simple_cc2420_set_channel(RF_CHANNEL);
+#if WITH_NULLMAC
+  rime_init(nullmac_init(&simple_cc2420_driver));
+#else
+  rime_init(xmac_init(&simple_cc2420_driver));
+#endif
+  
   printf(CONTIKI_VERSION_STRING " started. ");
   if(node_id > 0) {
     printf("Node id is set to %u.\n", node_id);
@@ -229,7 +251,7 @@ main(int argc, char **argv)
   printf("MAC %02x:%02x:%02x:%02x:%02x:%02x:%02x:%02x\n",
 	 ds2411_id[0], ds2411_id[1], ds2411_id[2], ds2411_id[3],
 	 ds2411_id[4], ds2411_id[5], ds2411_id[6], ds2411_id[7]);
-
+  
 #if WITH_UIP
   {
     uip_ipaddr_t hostaddr, netmask;
@@ -253,13 +275,6 @@ main(int argc, char **argv)
   }
 #endif /* WITH_UIP */
 
-  /*
-   * Initialize Contiki and our processes.
-   */
-  process_init();
-  process_start(&etimer_process, NULL);
-  process_start(&sensors_process, NULL);
-
 #if !WITH_UIP
   uart1_set_input(serial_input_byte);
   serial_init();
@@ -272,15 +287,6 @@ main(int argc, char **argv)
 
   leds_off(LEDS_GREEN);
   
-
-  simple_cc2420_init();
-  simple_cc2420_set_pan_addr(panId, 0 /*XXX*/, ds2411_id);
-  simple_cc2420_set_channel(RF_CHANNEL);
-#if WITH_NULLMAC
-  rime_init(nullmac_init(&simple_cc2420_driver));
-#else
-  rime_init(xmac_init(&simple_cc2420_driver));
-#endif
 
   timesynch_init();
 
@@ -310,6 +316,7 @@ main(int argc, char **argv)
    * This is the scheduler loop.
    */
   watchdog_start();
+  /*  watchdog_stop();*/
   while (1) {
     int r;
 #if PROFILE_CONF_ON
