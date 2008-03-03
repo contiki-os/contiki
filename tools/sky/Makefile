@@ -63,3 +63,11 @@ sizeplot:
 	msp430-size $(OBJECTDIR)/*.o | $(CONTIKI)/tools/sky/check-size > size-data
 	gnuplot $(CONTIKI)/tools/sky/plot-size
 	gv size.pdf
+
+slip:
+ifdef INTERFACE
+	$(CONTIKI)/tools/wpcapslip/wpcapslip -s /dev/com$(firstword $(CMOTES)) $(INTERFACE) 172.16.0.0 255.255.0.0
+else
+	@echo "Usage: \"$(MAKE) $@ INTERFACE=<the IP address of a local network interface>\""
+	@echo "Use the \"ipconfig\" command to find out the IP addresses of the local interfaces"
+endif
