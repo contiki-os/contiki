@@ -35,7 +35,7 @@
  *
  * This file is part of the Contiki desktop OS
  *
- * $Id: contiki-conf.h,v 1.8 2008/01/24 23:09:40 adamdunkels Exp $
+ * $Id: contiki-conf.h,v 1.9 2008/03/03 20:21:59 adamdunkels Exp $
  *
  */
 
@@ -109,6 +109,8 @@ typedef unsigned long clock_time_t;
 
 #define RIMEBUF_CONF_SIZE        128
 #define RIMEBUF_CONF_HDR_SIZE    32
+
+#define UIP_CONF_UIP_IP4ADDR_T_WITH_U32 1
 
 #define UIP_CONF_ICMP_DEST_UNREACH 1
 

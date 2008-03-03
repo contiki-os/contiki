@@ -30,7 +30,7 @@
  *
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: contiki-main.c,v 1.28 2008/02/10 22:38:21 oliverschmidt Exp $
+ * $Id: contiki-main.c,v 1.29 2008/03/03 20:21:59 adamdunkels Exp $
  */
 
 #include "contiki.h"
@@ -137,11 +137,14 @@ contiki_main(int flag)
       process_start(&wpcap_process, NULL);
       {
 	char buf[1024];
+	uip_ipaddr_t ifaddr;
+	
+	ifaddr.u32[0] = inet_addr(__argv[1]);
 	
 	snprintf(buf, sizeof(buf), "route add %d.%d.%d.%d mask %d.%d.%d.%d %d.%d.%d.%d",
 		 uip_ipaddr_to_quad(&meshif.ipaddr),
 		 uip_ipaddr_to_quad(&meshif.netmask),
-		 uip_ipaddr_to_quad(&uip_hostaddr));
+		 uip_ipaddr_to_quad(&ifaddr));
 	printf("%s\n", buf);
 	system(buf);
 	signal(SIGTERM, remove_route);
