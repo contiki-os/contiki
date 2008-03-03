@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: shell-sendtest.c,v 1.1 2008/02/04 23:42:17 adamdunkels Exp $
+ * $Id: shell-sendtest.c,v 1.2 2008/03/03 16:10:09 adamdunkels Exp $
  */
 
 /**
@@ -44,6 +44,13 @@
 
 #include <stdio.h>
 #include <string.h>
+
+#if NETSIM
+#include "ether.h"
+#endif /* NETSIM */
+#ifndef HAVE_SNPRINTF
+int snprintf(char *str, size_t size, const char *format, ...);
+#endif /* HAVE_SNPRINTF */
 
 /*---------------------------------------------------------------------------*/
 PROCESS(shell_sendtest_process, "sendtest");
@@ -63,7 +70,7 @@ write_chunk(struct rucb_conn *c, int offset, int flag,
   {
     char buf[100];
     printf("received %d; %d\n", offset, datalen);
-    sprintf(buf, "%d%%", (100 * (offset + datalen)) / filesize);
+    sprintf(buf, "%lu%%", (100 * (offset + datalen)) / filesize);
     ether_set_text(buf);
   }
 #endif /* NETSIM */
