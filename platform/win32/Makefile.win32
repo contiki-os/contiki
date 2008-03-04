@@ -30,7 +30,7 @@
 #
 # Author: Oliver Schmidt <ol.sc@web.de>
 #
-# $Id: Makefile.win32,v 1.13 2008/02/08 22:55:59 oliverschmidt Exp $
+# $Id: Makefile.win32,v 1.14 2008/03/04 22:55:54 oliverschmidt Exp $
 #
 
 ifndef CONTIKI
@@ -40,8 +40,6 @@ endif
 TARGET_LIBFILES = /lib/w32api/libws2_32.a /lib/w32api/libiphlpapi.a
 
 CONTIKI_TARGET_DIRS = . cfs ctk loader
-CONTIKI_TARGET_MAIN = ${addprefix $(OBJECTDIR)/,contiki-main.o}
-
 CONTIKI_TARGET_SOURCEFILES = contiki-main.c clock.c cfs-win32.c \
                              ctk-console.c
 
@@ -56,7 +54,7 @@ include $(CONTIKI)/cpu/native/Makefile.native
 
 ifdef PLATFORM_BUILD
 CONTIKI_TARGET_SOURCEFILES += dll-loader.c
-CFLAGS += -DPLATFORM_BUILD -DWITH_LOADER_ARCH
+CFLAGS += -DPLATFORM_BUILD -DWITH_LOADER_ARCH -DAUTOSTART_ENABLE
 LDFLAGS += -Wl,--out-implib=contiki-main.$(TARGET).a \
            -u _cfs_open -u _uiplib_ipaddrconv
 endif
@@ -75,7 +73,7 @@ ${foreach DSC,$(DSCS),${eval ${call dsc_template,$(DSC),${call appname,$(DSC)}}}
 ### (The *.d files contain the full module-compile prerequisites)
 ${sort ${foreach PRG,$(PRGS), ${addprefix $(OBJECTDIR)/, \
                                 $(${call appname,$(PRG)_src:.c=.o})}}}:
-	$(CC) $(CFLAGS) -DAUTOSTART_ENABLE -D_USRDLL -c $< -o $@
+	$(CC) $(CFLAGS) -D_USRDLL -c $< -o $@
 $(PRGS:=.prg):
 	$(LD) -shared $^ contiki-main.$(TARGET).a -o $@
 $(DSCS:=.dsc):
