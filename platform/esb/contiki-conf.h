@@ -1,11 +1,25 @@
 #ifndef __CONTIKI_CONF_H__
 #define __CONTIKI_CONF_H__
 
+#define RIMEBUF_CONF_ATTRS_INLINE 1
+#define QUEUEBUF_CONF_NUM 1
+#define QUEUEBUF_CONF_REF_NUM 1
+#define ROUTE_CONF_ENTRIES 4
+
+#define SERIAL_CONF_BUFSIZE 60
+
+#define TIMESYNCH_CONF_ENABLED 0
+#define PROFILE_CONF_ON 0
+#define ENERGEST_CONF_ON 1
+
 #define HAVE_STDINT_H
 #include <msp430def.h>
 
-#define QUEUEBUF_CONF_NUM 2
-#define ENERGEST_CONF_ON 1
+#define PROCESS_CONF_NUMEVENTS 8
+#define PROCESS_CONF_STATS 0
+
+/* CPU target speed in Hz */
+#define F_CPU 2457600uL
 
 #define IRQ_PORT1_VECTOR 1
 
@@ -29,14 +43,10 @@
 typedef unsigned short clock_time_t;
 #define CLOCK_CONF_SECOND 100
 
-void clock_delay(unsigned int us2);
-
 void clock_wait(int ms10);
 
 void clock_set_seconds(unsigned long s);
 unsigned long clock_seconds(void);
-
-#include "ctk/ctk-vncarch.h"
 
 #define LOG_CONF_ENABLED 0
 

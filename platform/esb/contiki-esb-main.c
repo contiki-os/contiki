@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: contiki-esb-main.c,v 1.13 2008/02/10 22:42:07 oliverschmidt Exp $
+ * @(#)$Id: contiki-esb-main.c,v 1.14 2008/03/07 17:54:22 nifi Exp $
  */
 
 #include <io.h>
@@ -36,7 +36,9 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "sys/procinit.h"
+#include "contiki.h"
+
+#include "dev/watchdog.h"
 #include "sys/autostart.h"
 #include "contiki-esb.h"
 
@@ -44,13 +46,9 @@ SENSORS(&button_sensor, &sound_sensor, &vib_sensor,
 	&pir_sensor, &radio_sensor, &battery_sensor, &ctsrts_sensor,
 	&temperature_sensor);
 
-PROCINIT(&sensors_process, /*&ir_process,*/
-	 &etimer_process);
-
-PROCESS(contiki_esb_main_init_process, "Contiki ESB init process");
-
+/*---------------------------------------------------------------------------*/
 static void
-print_processes(struct process **processes)
+print_processes(struct process * const processes[])
 {
   printf("Starting");
   while(*processes != NULL) {
@@ -58,35 +56,6 @@ print_processes(struct process **processes)
     processes++;
   }
   printf("\n");
-}
-
-PROCESS_THREAD(contiki_esb_main_init_process, ev, data)
-{
-  PROCESS_BEGIN();
-
-  procinit_init();
-
-  PROCESS_PAUSE();
-
-  init_net();
-
-  PROCESS_PAUSE();
-
-  init_apps();
-
-  PROCESS_PAUSE();
-
-  print_processes((struct process **) autostart_processes);
-  autostart_start(autostart_processes);
-
-  beep_spinup();
-  leds_on(LEDS_RED);
-  clock_delay(100);
-  leds_off(LEDS_RED);
-
-  energest_init();
-  
-  PROCESS_END();
 }
 /*---------------------------------------------------------------------------*/
 static void init_ports_toberemoved() {
@@ -144,13 +113,12 @@ main(void)
 
   node_id_restore();
   
-  process_start(&contiki_esb_main_init_process, NULL);
+  process_start(&etimer_process, NULL);
+  process_start(&sensors_process, NULL);
 
   ctimer_init();
 
-  /*  watchdog_init();*/
-  
-  /*  beep();*/
+  init_net();
 
   printf(CONTIKI_VERSION_STRING " started. ");
   if(node_id > 0) {
@@ -159,13 +127,41 @@ main(void)
     printf("Node id is not set.\n");
   }
 
-  
+  beep_spinup();
+  leds_on(LEDS_RED);
+  clock_delay(100);
+  leds_off(LEDS_RED);
+
+#if PROFILE_CONF_ON
+  profile_init();
+#endif /* PROFILE_CONF_ON */
+
+#if ENERGEST_CONF_ON
+  energest_init();
   ENERGEST_ON(ENERGEST_TYPE_CPU);
+#endif /* ENERGEST_CONF_ON */
+
+  init_apps();
+  print_processes(autostart_processes);
+  autostart_start(autostart_processes);
+
+  /*
+   * This is the scheduler loop.
+   */
+  watchdog_start();
   while (1) {
-    static unsigned long irq_energest = 0;
+    int r;
+#if PROFILE_CONF_ON
+    profile_episode_start();
+#endif /* PROFILE_CONF_ON */
     do {
       /* Reset watchdog. */
-    } while(process_run() > 0);
+      watchdog_periodic();
+      r = process_run();
+    } while(r > 0);
+#if PROFILE_CONF_ON
+    profile_episode_end();
+#endif /* PROFILE_CONF_ON */
 
     /*
      * Idle processing.
@@ -174,6 +170,8 @@ main(void)
     if(process_nevents() != 0) {
       eint();
     } else {
+#if ENERGEST_CONF_ON
+      static unsigned long irq_energest = 0;
       /* Re-enable interrupts and go to sleep atomically. */
       ENERGEST_OFF(ENERGEST_TYPE_CPU);
       ENERGEST_ON(ENERGEST_TYPE_LPM);
@@ -182,33 +180,31 @@ main(void)
 	 are asleep, so we discard the processing time done when we
 	 were awake. */
       energest_type_set(ENERGEST_TYPE_IRQ, irq_energest);
-      
+#endif /* ENERGEST_CONF_ON */
+
+      watchdog_stop();
       _BIS_SR(GIE | SCG0 | CPUOFF); /* LPM1 sleep. */
 
+#if ENERGEST_CONF_ON
       /* We get the current processing time for interrupts that was
 	 done during the LPM and store it for next time around.  */
       dint();
       irq_energest = energest_type_time(ENERGEST_TYPE_IRQ);
       eint();
-
       ENERGEST_OFF(ENERGEST_TYPE_LPM);
       ENERGEST_ON(ENERGEST_TYPE_CPU);
+#endif /* ENERGEST_CONF_ON */
+
+      watchdog_start();
     }
   }
-
-  while(1) {
-    /*    watchdog_restart();*/
-    while(process_run() > 0);
-    LPM_SLEEP();
-  }
-
 
   return 0;
 }
 /*---------------------------------------------------------------------------*/
-char *arg_alloc(char size) {return NULL;}
-void  arg_init(void) {}
-void  arg_free(char *arg) {}
+/* char *arg_alloc(char size) {return NULL;} */
+/* void  arg_init(void) {} */
+/* void  arg_free(char *arg) {} */
 /*---------------------------------------------------------------------------*/
 
 void
