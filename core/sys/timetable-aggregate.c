@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: timetable-aggregate.c,v 1.1 2008/01/17 12:19:26 adamdunkels Exp $
+ * $Id: timetable-aggregate.c,v 1.2 2008/03/13 14:27:34 fros4943 Exp $
  */
 
 /**
@@ -112,6 +112,16 @@ timetable_aggregate_print_detailed(struct timetable_aggregate *a)
   printf("Memory for entries: %d * %d = %d\n",
 	 (int)sizeof(struct timetable_aggregate), a->ptr,
 	 (int)sizeof(struct timetable_aggregate) * a->ptr);
+}
+/*---------------------------------------------------------------------------*/
+void
+timetable_aggregate_reset(struct timetable_aggregate *a)
+{
+  int i;
+  for(i = 0; i < a->ptr; ++i) {
+    a->entries[i].time = 0;
+    a->entries[i].episodes = 0;
+  }
 }
 /*---------------------------------------------------------------------------*/
 void
