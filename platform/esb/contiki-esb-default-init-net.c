@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: contiki-esb-default-init-net.c,v 1.10 2007/12/17 13:04:10 nifi Exp $
+ * @(#)$Id: contiki-esb-default-init-net.c,v 1.11 2008/03/13 15:59:43 nifi Exp $
  */
 
 #include "contiki-esb.h"
@@ -40,8 +40,6 @@ void
 init_net(void)
 {
   rimeaddr_t rimeaddr;
-
-  ctimer_init();
 
   tr1001_init();
   rime_init(nullmac_init(&tr1001_driver));
