@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: timetable-aggregate.h,v 1.1 2008/01/17 12:19:26 adamdunkels Exp $
+ * $Id: timetable-aggregate.h,v 1.2 2008/03/13 14:27:34 fros4943 Exp $
  */
 
 /**
@@ -80,6 +80,8 @@ struct timetable_aggregate name = {				\
 void timetable_aggregate_print_detailed(struct timetable_aggregate *a);
 
 void timetable_aggregate_print_categories(struct timetable_aggregate *a);
+
+void timetable_aggregate_reset(struct timetable_aggregate *a);
 
 void timetable_aggregate_compute_detailed(struct timetable_aggregate *a,
 					  struct timetable *timetable);
