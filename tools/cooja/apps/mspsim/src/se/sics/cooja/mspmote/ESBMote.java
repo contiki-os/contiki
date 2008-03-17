@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ESBMote.java,v 1.1 2008/02/07 14:53:29 fros4943 Exp $
+ * $Id: ESBMote.java,v 1.2 2008/03/17 09:54:19 fros4943 Exp $
  */
 
 package se.sics.cooja.mspmote;
@@ -52,14 +52,14 @@ public class ESBMote extends MspMote {
   }
 
   public ESBMote(MoteType moteType, Simulation sim) {
-    super((ESBMoteType) moteType, sim);
+    super((MspMoteType) moteType, sim);
   }
 
   protected boolean initEmulator(File fileELF) {
     try {
-      createCPUAndMemory(fileELF);
-
-      esbNode = new ESBNode(getCPU());
+      esbNode = new ESBNode();
+      esbNode.setupNodePorts();
+      prepareMote(fileELF, esbNode.getCPU());
 
     } catch (Exception e) {
       logger.fatal("Error when creating ESB mote: " + e);
@@ -70,6 +70,7 @@ public class ESBMote extends MspMote {
 
   protected MoteInterfaceHandler createMoteInterfaceHandler() {
     MoteInterfaceHandler moteInterfaceHandler = new MoteInterfaceHandler();
+
     // Add position interface
     Position motePosition = new Position(this);
     Random random = new Random();

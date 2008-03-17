@@ -24,7 +24,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * $Id: MspMoteMemory.java,v 1.2 2008/02/11 14:07:38 fros4943 Exp $
+ * $Id: MspMoteMemory.java,v 1.3 2008/03/17 09:54:19 fros4943 Exp $
  */
 
 package se.sics.cooja.mspmote;
@@ -43,7 +43,7 @@ public class MspMoteMemory implements MoteMemory, AddressMemory {
 
   private MSP430 cpu;
 
-  public MspMoteMemory(ArrayList<MapEntry> allEntries, MSP430 cpu) {
+  public MspMoteMemory(MapEntry[] allEntries, MSP430 cpu) {
     this.mapEntries = new ArrayList<MapEntry>();
 
     for (MapEntry entry: allEntries) {
