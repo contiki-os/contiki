@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: TR1001Radio.java,v 1.1 2008/02/07 14:55:35 fros4943 Exp $
+ * $Id: TR1001Radio.java,v 1.2 2008/03/17 09:52:03 fros4943 Exp $
  */
 
 package se.sics.cooja.mspmote.interfaces;
@@ -355,6 +355,10 @@ public class TR1001Radio extends Radio implements USARTListener, ByteRadio {
   public double getCurrentOutputPower() {
     // TODO Implement method
     return 1.5;
+  }
+
+  public int getOutputPowerIndicatorMax() {
+    return 100;
   }
 
   public int getCurrentOutputPowerIndicator() {

@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: DisturberRadio.java,v 1.4 2007/05/30 10:53:18 fros4943 Exp $
+ * $Id: DisturberRadio.java,v 1.5 2008/03/17 09:50:27 fros4943 Exp $
  */
 
 package se.sics.cooja.motes;
@@ -44,7 +44,7 @@ import se.sics.cooja.interfaces.*;
 
 /**
  * This radio periodically transmits data on a configurable channel.
- * 
+ *
  * @author Fredrik Osterlind, Thiemo Voigt
  */
 public class DisturberRadio extends Radio implements PacketRadio {
@@ -69,7 +69,7 @@ public class DisturberRadio extends Radio implements PacketRadio {
 
   /**
    * Creates an interface to the radio at mote.
-   * 
+   *
    * @param mote
    *          Radio's mote.
    * @see Mote
@@ -78,7 +78,7 @@ public class DisturberRadio extends Radio implements PacketRadio {
   public DisturberRadio(Mote mote) {
     this.myMote = mote;
   }
-  
+
   /* Packet radio support */
   public byte[] getLastPacketTransmitted() {
     return packetFromMote;
@@ -118,7 +118,7 @@ public class DisturberRadio extends Radio implements PacketRadio {
   public Position getPosition() {
     return myMote.getInterfaces().getPosition();
   }
-  
+
   public RadioEvent getLastEvent() {
     return lastEvent;
   }
@@ -134,6 +134,10 @@ public class DisturberRadio extends Radio implements PacketRadio {
     // TODO Implement method
     logger.warn("Not implemeted, always returning 1.5 dBm");
     return 1.5;
+  }
+
+  public int getOutputPowerIndicatorMax() {
+    return 100;
   }
 
   public int getCurrentOutputPowerIndicator() {
@@ -185,17 +189,18 @@ public class DisturberRadio extends Radio implements PacketRadio {
     panel.add(channelLabel);
     panel.add(channelPicker);
     panel.add(Box.createVerticalGlue());
-    
+
     channelPicker.setValue(distChannel);
     channelPicker.setColumns(3);
     channelPicker.setText(Integer.toString(distChannel));
 
     final Observer observer = new Observer() {
       public void update(Observable obs, Object obj) {
-        if (isTransmitting())
+        if (isTransmitting()) {
           statusLabel.setText("Transmitting now!");
-        else
+        } else {
           statusLabel.setText("Disturber resting...");
+        }
 
         channelLabel.setText("Channel: " + getChannel());
 
@@ -207,8 +212,9 @@ public class DisturberRadio extends Radio implements PacketRadio {
     channelPicker.addPropertyChangeListener("value", new PropertyChangeListener() {
       public void propertyChange(PropertyChangeEvent e) {
         distChannel = ((Number) channelPicker.getValue()).intValue();
-        if (observer != null)
+        if (observer != null) {
           observer.update(null, null);
+        }
       }
     });
 
@@ -252,11 +258,12 @@ public class DisturberRadio extends Radio implements PacketRadio {
 
       if (name.equals("channel")) {
         distChannel = Integer.parseInt(element.getText());
-      } else
+      } else {
         logger.fatal("Read unknown configuration: " + name);
+      }
     }
   }
-  
+
   public Mote getMote() {
     return myMote;
   }
