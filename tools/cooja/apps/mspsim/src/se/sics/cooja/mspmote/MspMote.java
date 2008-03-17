@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: MspMote.java,v 1.2 2008/02/11 14:07:38 fros4943 Exp $
+ * $Id: MspMote.java,v 1.3 2008/03/17 09:54:19 fros4943 Exp $
  */
 
 package se.sics.cooja.mspmote;
@@ -60,7 +60,6 @@ public abstract class MspMote implements Mote {
   private MspMoteType myMoteType = null;
   private MspMoteMemory myMemory = null;
   private MoteInterfaceHandler myMoteInterfaceHandler = null;
-  private ELF myELFModule = null;
 
   protected TR1001Radio myRadio = null; /* TODO Only used by ESB (TR1001) */
 
@@ -101,6 +100,10 @@ public abstract class MspMote implements Mote {
    */
   public MSP430 getCPU() {
     return myCpu;
+  }
+
+  public void setCPU(MSP430 cpu) {
+    myCpu = cpu;
   }
 
   public MoteMemory getMemory() {
@@ -159,19 +162,19 @@ public abstract class MspMote implements Mote {
   }
 
   /**
-   * Creates MSP430 CPU object and address memory for current object.
-   * This method should normally not be called from outside constructor.
+   * Prepares CPU, memory and ELF module.
    *
    * @param fileELF ELF file
-   * @throws IOException File loading failed
+   * @param cpu MSP430 cpu
+   * @throws IOException Preparing mote failed
    */
-  protected void createCPUAndMemory(File fileELF) throws IOException {
-    myCpu = new MSP430(0);
+  protected void prepareMote(File fileELF, MSP430 cpu) throws IOException {
+    myCpu = cpu;
     myCpu.setMonitorExec(true);
 
     int[] memory = myCpu.getMemory();
 
-    myELFModule = ELF.readELF(fileELF.getPath());
+    ELF myELFModule = ELF.readELF(fileELF.getPath());
     myELFModule.loadPrograms(memory);
     MapTable map = myELFModule.getMap();
     myCpu.getDisAsm().setMap(map);
@@ -180,7 +183,7 @@ public abstract class MspMote implements Mote {
     /* TODO Need new memory type including size and type as well */
 
     /* Create mote address memory */
-    ArrayList<MapEntry> allEntries = map.getAllEntries();
+    MapEntry[] allEntries = map.getAllEntries();
     myMemory = new MspMoteMemory(allEntries, myCpu);
 
     myCpu.reset();
