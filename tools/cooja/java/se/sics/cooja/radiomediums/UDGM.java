@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: UDGM.java,v 1.16 2008/03/17 10:10:17 fros4943 Exp $
+ * $Id: UDGM.java,v 1.17 2008/03/17 10:18:37 fros4943 Exp $
  */
 
 package se.sics.cooja.radiomediums;
@@ -359,9 +359,9 @@ public class UDGM extends AbstractRadioMedium {
         if (selectedMote.getInterfaces().getRadio() != null) {
           Radio selectedRadio = selectedMote.getInterfaces().getRadio();
           double moteInterferenceRange = INTERFERENCE_RANGE
-              * (selectedRadio.getCurrentOutputPowerIndicator() / selectedRadio.getOutputPowerIndicatorMax());
+              * ((double) selectedRadio.getCurrentOutputPowerIndicator() / (double) selectedRadio.getOutputPowerIndicatorMax());
           double moteTransmissionRange = TRANSMITTING_RANGE
-              * (selectedRadio.getCurrentOutputPowerIndicator() / selectedRadio.getOutputPowerIndicatorMax());
+              * ((double) selectedRadio.getCurrentOutputPowerIndicator() / (double) selectedRadio.getOutputPowerIndicatorMax());
 
           Point translatedZero = transformPositionToPixel(0.0, 0.0, 0.0);
           Point translatedInterference = transformPositionToPixel(
@@ -439,9 +439,9 @@ public class UDGM extends AbstractRadioMedium {
 
     // Fetch current output power indicator (scale with as percent)
     double moteTransmissionRange = TRANSMITTING_RANGE
-        * (sendingRadio.getCurrentOutputPowerIndicator() / sendingRadio.getOutputPowerIndicatorMax());
+        * ((double) sendingRadio.getCurrentOutputPowerIndicator() / (double) sendingRadio.getOutputPowerIndicatorMax());
     double moteInterferenceRange = INTERFERENCE_RANGE
-        * (sendingRadio.getCurrentOutputPowerIndicator() / sendingRadio.getOutputPowerIndicatorMax());
+        * ((double) sendingRadio.getCurrentOutputPowerIndicator() / (double) sendingRadio.getOutputPowerIndicatorMax());
 
     /* Fail transmission randomly (affects all receiving nodes) */
     if (SUCCESS_RATIO_TX < 1.0 && random.nextDouble() > SUCCESS_RATIO_TX) {
@@ -525,7 +525,11 @@ public class UDGM extends AbstractRadioMedium {
       conn.getSource().setCurrentSignalStrength(SS_STRONG);
       for (Radio dstRadio : conn.getDestinations()) {
         double dist = conn.getSource().getPosition().getDistanceTo(dstRadio.getPosition());
-        double distFactor = dist/TRANSMITTING_RANGE;
+
+        double maxTxDist = TRANSMITTING_RANGE
+        * ((double) conn.getSource().getCurrentOutputPowerIndicator() / (double) conn.getSource().getOutputPowerIndicatorMax());
+        double distFactor = dist/maxTxDist;
+
         double signalStrength = SS_STRONG + distFactor*(SS_WEAK - SS_STRONG);
         dstRadio.setCurrentSignalStrength(signalStrength);
       }
@@ -535,7 +539,11 @@ public class UDGM extends AbstractRadioMedium {
     for (RadioConnection conn : getActiveConnections()) {
       for (Radio intfRadio : conn.getInterfered()) {
         double dist = conn.getSource().getPosition().getDistanceTo(intfRadio.getPosition());
-        double distFactor = dist/TRANSMITTING_RANGE;
+
+        double maxTxDist = TRANSMITTING_RANGE
+        * ((double) conn.getSource().getCurrentOutputPowerIndicator() / (double) conn.getSource().getOutputPowerIndicatorMax());
+        double distFactor = dist/maxTxDist;
+
         if (distFactor < 1) {
           double signalStrength = SS_STRONG + distFactor*(SS_WEAK - SS_STRONG);
           intfRadio.setCurrentSignalStrength(signalStrength);
