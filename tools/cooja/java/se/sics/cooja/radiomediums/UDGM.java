@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: UDGM.java,v 1.15 2008/03/17 09:49:44 fros4943 Exp $
+ * $Id: UDGM.java,v 1.16 2008/03/17 10:10:17 fros4943 Exp $
  */
 
 package se.sics.cooja.radiomediums;
@@ -536,8 +536,12 @@ public class UDGM extends AbstractRadioMedium {
       for (Radio intfRadio : conn.getInterfered()) {
         double dist = conn.getSource().getPosition().getDistanceTo(intfRadio.getPosition());
         double distFactor = dist/TRANSMITTING_RANGE;
-        double signalStrength = SS_STRONG + distFactor*(SS_WEAK - SS_STRONG);
-        intfRadio.setCurrentSignalStrength(signalStrength);
+        if (distFactor < 1) {
+          double signalStrength = SS_STRONG + distFactor*(SS_WEAK - SS_STRONG);
+          intfRadio.setCurrentSignalStrength(signalStrength);
+        } else {
+          intfRadio.setCurrentSignalStrength(SS_WEAK);
+        }
 
         if (!intfRadio.isInterfered()) {
           // Set to interfered again
