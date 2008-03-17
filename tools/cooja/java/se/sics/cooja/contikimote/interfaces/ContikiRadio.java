@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ContikiRadio.java,v 1.17 2008/02/23 10:10:42 fros4943 Exp $
+ * $Id: ContikiRadio.java,v 1.18 2008/03/17 09:50:27 fros4943 Exp $
  */
 
 package se.sics.cooja.contikimote.interfaces;
@@ -255,6 +255,10 @@ public class ContikiRadio extends Radio implements ContikiMoteInterface,
     // TODO Implement method
     logger.warn("Not implemeted, always returning 1.5 dBm");
     return 1.5;
+  }
+
+  public int getOutputPowerIndicatorMax() {
+    return 100;
   }
 
   public int getCurrentOutputPowerIndicator() {

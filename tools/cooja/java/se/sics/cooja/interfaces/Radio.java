@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2006, Swedish Institute of Computer Science. All rights
  * reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  * 1. Redistributions of source code must retain the above copyright notice,
@@ -12,7 +12,7 @@
  * Institute nor the names of its contributors may be used to endorse or promote
  * products derived from this software without specific prior written
  * permission.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY THE INSTITUTE AND CONTRIBUTORS ``AS IS'' AND ANY
  * EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
  * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -23,8 +23,8 @@
  * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- * 
- * $Id: Radio.java,v 1.7 2007/05/30 10:52:57 fros4943 Exp $
+ *
+ * $Id: Radio.java,v 1.8 2008/03/17 09:50:27 fros4943 Exp $
  */
 
 package se.sics.cooja.interfaces;
@@ -33,15 +33,15 @@ import se.sics.cooja.*;
 
 /**
  * A Radio represents a mote radio transceiver.
- * 
+ *
  * A radio can support different abstraction levels such as transmitting and
  * receiving on a byte or packet-basis. In order to support communication
  * between different levels the general rule in COOJA is that all radios at a
  * lower abstraction level must also implement all higher levels.
- * 
+ *
  * @see PacketRadio
  * @see ByteRadio
- * 
+ *
  * @author Fredrik Osterlind
  */
 @ClassDescription("Packet Radio")
@@ -57,7 +57,7 @@ public abstract class Radio extends MoteInterface {
   /**
    * Signal that a new reception just begun. This method should normally be
    * called from the radio medium.
-   * 
+   *
    * @see #signalReceptionEnd()
    */
   public abstract void signalReceptionStart();
@@ -65,7 +65,7 @@ public abstract class Radio extends MoteInterface {
   /**
    * Signal that the current reception was ended. This method should normally be
    * called from the radio medium.
-   * 
+   *
    * @see #signalReceptionStart()
    */
   public abstract void signalReceptionEnd();
@@ -73,7 +73,7 @@ public abstract class Radio extends MoteInterface {
   /**
    * Returns last event at this radio. This method should be used to learn the
    * reason when a radio notifies a change to observers.
-   * 
+   *
    * @return Last radio event
    */
   public abstract RadioEvent getLastEvent();
@@ -81,7 +81,7 @@ public abstract class Radio extends MoteInterface {
   /**
    * Returns true if this radio is transmitting, or just finished transmitting,
    * data.
-   * 
+   *
    * @see #isReceiving()
    * @return True if radio is transmitting data
    */
@@ -89,7 +89,7 @@ public abstract class Radio extends MoteInterface {
 
   /**
    * Returns true if this radio is receiving data.
-   * 
+   *
    * @see #isTransmitting()
    * @return True if radio is receiving data
    */
@@ -98,7 +98,7 @@ public abstract class Radio extends MoteInterface {
   /**
    * Returns true if this radio had a connection that was dropped due to
    * interference.
-   * 
+   *
    * @return True if this radio is interfered
    */
   public abstract boolean isInterfered();
@@ -116,9 +116,14 @@ public abstract class Radio extends MoteInterface {
   public abstract double getCurrentOutputPower();
 
   /**
-   * @return Current output power indicator (1-100)
+   * @return Current output power indicator
    */
   public abstract int getCurrentOutputPowerIndicator();
+
+  /**
+   * @return Maximum output power indicator
+   */
+  public abstract int getOutputPowerIndicatorMax();
 
   /**
    * @return Current surrounding signal strength
@@ -128,7 +133,7 @@ public abstract class Radio extends MoteInterface {
   /**
    * Sets surrounding signal strength. This method should normally be called by
    * the radio medium.
-   * 
+   *
    * @param signalStrength
    *          Current surrounding signal strength
    */
@@ -136,7 +141,7 @@ public abstract class Radio extends MoteInterface {
 
   /**
    * Returns the current radio channel number.
-   * 
+   *
    * @return Current channel number
    */
   public abstract int getChannel();
@@ -144,7 +149,7 @@ public abstract class Radio extends MoteInterface {
   /**
    * Returns the radio position.
    * This is typically the position of the mote.
-   * 
+   *
    * @return Radio position
    */
   public abstract Position getPosition();
@@ -152,9 +157,9 @@ public abstract class Radio extends MoteInterface {
   /**
    * This is a convenience function.
    * It returns the mote, if any, that holds this radio.
-   * 
+   *
    * @return Mote
    */
   public abstract Mote getMote();
-  
+
 }

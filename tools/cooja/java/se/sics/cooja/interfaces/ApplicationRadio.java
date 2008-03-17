@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ApplicationRadio.java,v 1.2 2007/05/30 10:52:57 fros4943 Exp $
+ * $Id: ApplicationRadio.java,v 1.3 2008/03/17 09:50:27 fros4943 Exp $
  */
 
 package se.sics.cooja.interfaces;
@@ -44,7 +44,7 @@ import se.sics.cooja.*;
  * Application radio. May for example be used by Java-based mote to implement
  * radio functionality. Support radio channels and output power functionality.
  * The mote should observe the radio for incoming radio packet data.
- * 
+ *
  * @author Fredrik Osterlind
  */
 public class ApplicationRadio extends Radio implements PacketRadio {
@@ -68,15 +68,15 @@ public class ApplicationRadio extends Radio implements PacketRadio {
   private byte[] outPacket = null;
   private int outPacketDuration = -1;
 
-  private double signalStrength = -200;
+  private double signalStrength = -100;
   private int radioChannel = 1;
   private double outputPower = 0;
   private int outputPowerIndicator = 100;
-  
+
   public ApplicationRadio(Mote mote) {
     this.myMote = mote;
   }
-  
+
   /* Packet radio support */
   public byte[] getLastPacketTransmitted() {
     return packetFromMote;
@@ -141,7 +141,7 @@ public class ApplicationRadio extends Radio implements PacketRadio {
   public Position getPosition() {
     return myMote.getInterfaces().getPosition();
   }
-  
+
   public RadioEvent getLastEvent() {
     return lastEvent;
   }
@@ -165,10 +165,14 @@ public class ApplicationRadio extends Radio implements PacketRadio {
     return outputPower;
   }
 
+  public int getOutputPowerIndicatorMax() {
+    return outputPowerIndicator;
+  }
+
   public int getCurrentOutputPowerIndicator() {
     return outputPowerIndicator;
   }
-  
+
   public double getCurrentSignalStrength() {
     return signalStrength;
   }
@@ -178,10 +182,10 @@ public class ApplicationRadio extends Radio implements PacketRadio {
   }
 
   /* Application radio support */
-  
+
   /**
    * Start transmitting given packet.
-   * 
+   *
    * @param packet Packet data
    * @param duration Duration to transmit
    */
@@ -190,14 +194,14 @@ public class ApplicationRadio extends Radio implements PacketRadio {
     outPacketDuration = duration;
     outPacket = packet;
   }
-  
+
   /**
    * @param i New output power indicator
    */
   public void setOutputPowerIndicator(int i) {
     outputPowerIndicator = i;
   }
-  
+
   /**
    * @param p New output power
    */
@@ -211,7 +215,7 @@ public class ApplicationRadio extends Radio implements PacketRadio {
   public void setChannel(int channel) {
     radioChannel = channel;
   }
-  
+
   public void doActionsBeforeTick() {
     int currentTime = myMote.getSimulation().getSimulationTime();
 
@@ -230,7 +234,7 @@ public class ApplicationRadio extends Radio implements PacketRadio {
       this.setChanged();
       this.notifyObservers();
     }
-    
+
     if (isTransmitting && currentTime >= transmissionEndTime) {
       isTransmitting = false;
       lastEvent = RadioEvent.TRANSMISSION_FINISHED;
@@ -261,7 +265,7 @@ public class ApplicationRadio extends Radio implements PacketRadio {
     panel.add(Box.createVerticalStrut(3));
     panel.add(channelLabel);
     panel.add(Box.createVerticalGlue());
-    
+
     updateButton.addActionListener(new ActionListener() {
       public void actionPerformed(ActionEvent e) {
         ssLabel.setText("Signal strength (not auto-updated): "
@@ -271,12 +275,14 @@ public class ApplicationRadio extends Radio implements PacketRadio {
 
     final Observer observer = new Observer() {
       public void update(Observable obs, Object obj) {
-        if (isTransmitting())
+        if (isTransmitting()) {
           statusLabel.setText("Transmitting");
-        if (isReceiving())
+        }
+        if (isReceiving()) {
           statusLabel.setText("Receiving");
-        else
+        } else {
           statusLabel.setText("Listening");
+        }
 
         lastEventLabel.setText("Last event (time=" + lastEventTime + "): " + lastEvent);
         ssLabel.setText("Signal strength (not auto-updated): "
@@ -313,7 +319,7 @@ public class ApplicationRadio extends Radio implements PacketRadio {
 
   public void setConfigXML(Collection<Element> configXML, boolean visAvailable) {
   }
-  
+
   public Mote getMote() {
     return myMote;
   }
