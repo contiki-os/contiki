@@ -24,7 +24,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * $Id: Simulation.java,v 1.20 2008/02/12 15:31:22 fros4943 Exp $
+ * $Id: Simulation.java,v 1.21 2008/03/17 08:35:10 fros4943 Exp $
  */
 
 package se.sics.cooja;
@@ -543,6 +543,7 @@ public class Simulation extends Observable implements Runnable {
    *          Mote to remove
    */
   public void removeMote(Mote mote) {
+
     if (isRunning()) {
       stopSimulation();
       motes.remove(mote);
@@ -551,7 +552,9 @@ public class Simulation extends Observable implements Runnable {
       motes.remove(mote);
     }
 
+    myGUI.closeMotePlugins(mote);
     currentRadioMedium.unregisterMote(mote, this);
+
     this.setChanged();
     this.notifyObservers(this);
   }
