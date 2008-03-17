@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: UDGM.java,v 1.14 2008/02/23 10:10:42 fros4943 Exp $
+ * $Id: UDGM.java,v 1.15 2008/03/17 09:49:44 fros4943 Exp $
  */
 
 package se.sics.cooja.radiomediums;
@@ -60,9 +60,8 @@ import se.sics.cooja.plugins.Visualizer2D;
  * The radio output power indicator (0-100) is used in a very simple way; the
  * total transmission (and interfering) range is multiplied with [power_ind]%.
  *
- * @see #SS_OK_BEST
- * @see #SS_OK_WORST
- * @see #SS_NOISE
+ * @see #SS_STRONG
+ * @see #SS_WEAK
  * @see #SS_NOTHING
  *
  * @see VisUDGM
@@ -74,13 +73,13 @@ public class UDGM extends AbstractRadioMedium {
 
   private static RadioMedium myRadioMedium;
 
-  public static final double SS_NOTHING = -200;
+  /* Signal strengths in dBm.
+   * Approx. values measured on TmoteSky */
+  public static final double SS_NOTHING = -100;
 
-  public static final double SS_NOISE = -60;
+  public static final double SS_STRONG = -10;
 
-  public static final double SS_OK_BEST = 0;
-
-  public static final double SS_OK_WORST = -30;
+  public static final double SS_WEAK = -95;
 
   private static double SUCCESS_RATIO_TX = 1.0;
 
@@ -358,12 +357,11 @@ public class UDGM extends AbstractRadioMedium {
 
         // Fetch current output power indicator (scale with as percent)
         if (selectedMote.getInterfaces().getRadio() != null) {
+          Radio selectedRadio = selectedMote.getInterfaces().getRadio();
           double moteInterferenceRange = INTERFERENCE_RANGE
-              * (0.01 * selectedMote.getInterfaces().getRadio()
-                  .getCurrentOutputPowerIndicator());
+              * (selectedRadio.getCurrentOutputPowerIndicator() / selectedRadio.getOutputPowerIndicatorMax());
           double moteTransmissionRange = TRANSMITTING_RANGE
-              * (0.01 * selectedMote.getInterfaces().getRadio()
-                  .getCurrentOutputPowerIndicator());
+              * (selectedRadio.getCurrentOutputPowerIndicator() / selectedRadio.getOutputPowerIndicatorMax());
 
           Point translatedZero = transformPositionToPixel(0.0, 0.0, 0.0);
           Point translatedInterference = transformPositionToPixel(
@@ -441,9 +439,9 @@ public class UDGM extends AbstractRadioMedium {
 
     // Fetch current output power indicator (scale with as percent)
     double moteTransmissionRange = TRANSMITTING_RANGE
-        * (0.01 * sendingRadio.getCurrentOutputPowerIndicator());
+        * (sendingRadio.getCurrentOutputPowerIndicator() / sendingRadio.getOutputPowerIndicatorMax());
     double moteInterferenceRange = INTERFERENCE_RANGE
-        * (0.01 * sendingRadio.getCurrentOutputPowerIndicator());
+        * (sendingRadio.getCurrentOutputPowerIndicator() / sendingRadio.getOutputPowerIndicatorMax());
 
     /* Fail transmission randomly (affects all receiving nodes) */
     if (SUCCESS_RATIO_TX < 1.0 && random.nextDouble() > SUCCESS_RATIO_TX) {
@@ -524,23 +522,26 @@ public class UDGM extends AbstractRadioMedium {
 
     // Set signal strength on all OK transmissions
     for (RadioConnection conn : getActiveConnections()) {
-      conn.getSource().setCurrentSignalStrength(SS_OK_BEST);
+      conn.getSource().setCurrentSignalStrength(SS_STRONG);
       for (Radio dstRadio : conn.getDestinations()) {
         double dist = conn.getSource().getPosition().getDistanceTo(dstRadio.getPosition());
         double distFactor = dist/TRANSMITTING_RANGE;
-        distFactor = distFactor*distFactor;
-        double signalStrength = SS_OK_BEST + distFactor*(SS_OK_WORST - SS_OK_BEST);
+        double signalStrength = SS_STRONG + distFactor*(SS_WEAK - SS_STRONG);
         dstRadio.setCurrentSignalStrength(signalStrength);
       }
     }
 
     // Set signal strength on all interferences
     for (RadioConnection conn : getActiveConnections()) {
-      for (Radio dstRadio : conn.getInterfered()) {
-        dstRadio.setCurrentSignalStrength(SS_NOISE);
-        if (!dstRadio.isInterfered()) {
+      for (Radio intfRadio : conn.getInterfered()) {
+        double dist = conn.getSource().getPosition().getDistanceTo(intfRadio.getPosition());
+        double distFactor = dist/TRANSMITTING_RANGE;
+        double signalStrength = SS_STRONG + distFactor*(SS_WEAK - SS_STRONG);
+        intfRadio.setCurrentSignalStrength(signalStrength);
+
+        if (!intfRadio.isInterfered()) {
           // Set to interfered again
-          dstRadio.interfereAnyReception();
+          intfRadio.interfereAnyReception();
         }
       }
     }
