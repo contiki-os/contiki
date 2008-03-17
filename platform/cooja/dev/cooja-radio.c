@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: cooja-radio.c,v 1.6 2007/11/25 22:44:40 fros4943 Exp $
+ * $Id: cooja-radio.c,v 1.7 2008/03/17 09:48:00 fros4943 Exp $
  */
 
 #include <string.h>
@@ -37,8 +37,12 @@
 #include "lib/simEnvChange.h"
 #include "sys/cooja_mt.h"
 
-#define MAX_RETRIES 100
-#define SS_INTERFERENCE -70
+#define USING_CCA 1
+#define USING_CCA_BUSYWAIT 1
+#define CCA_BUSYWAIT_MS 100
+#define CCA_SS_THRESHOLD -95
+
+#define SS_NOTHING -100
 
 const struct simInterface radio_interface;
 
@@ -53,8 +57,8 @@ char simOutDataBuffer[COOJA_RADIO_BUFSIZE];
 int simOutSize = 0;
 
 char simRadioHWOn = 1;
-int simSignalStrength = -200;
-int simLastSignalStrength = -200;
+int simSignalStrength = SS_NOTHING;
+int simLastSignalStrength = SS_NOTHING;
 char simPower = 100;
 int simRadioChannel = 1;
 int inSendFunction = 0;
@@ -207,30 +211,32 @@ radio_send(const void *payload, unsigned short payload_len)
     return COOJA_RADIO_ZEROLEN;
   }
   
-  /* ** Good place to add explicit manchester/gcr-decoding */
-  
   /* Copy packet data to temporary storage */
   memcpy(simOutDataBuffer, payload, payload_len);
   simOutSize = payload_len;
   
+#if USING_CCA_BUSYWAIT
   /* Busy-wait until both radio HW and ether is ready */
   {
     int retries = 0;
-    while(retries < MAX_RETRIES && !simNoYield &&
-	  (simSignalStrength > SS_INTERFERENCE || simReceiving)) {
+    while(retries < CCA_BUSYWAIT_MS && !simNoYield &&
+	  (simSignalStrength > CCA_SS_THRESHOLD || simReceiving)) {
       retries++;
       cooja_mt_yield();
-      if(!(simSignalStrength > SS_INTERFERENCE || simReceiving)) {
-	/* Wait one extra tick before transmission starts */
-	cooja_mt_yield();
+      if(!(simSignalStrength > CCA_SS_THRESHOLD || simReceiving)) {
+        /* Wait one extra tick before transmission starts */
+        cooja_mt_yield();
       }
     }
   }
-  
-  if(simSignalStrength > SS_INTERFERENCE || simReceiving) {
+#endif /* USING_CCA_BUSYWAIT */
+
+#if USING_CCA
+  if(simSignalStrength > CCA_SS_THRESHOLD || simReceiving) {
     inSendFunction = 0;
     return COOJA_RADIO_DROPPED;
   }
+#endif /* USING_CCA */
   
   if(simOutSize <= 0) {
     inSendFunction = 0;
