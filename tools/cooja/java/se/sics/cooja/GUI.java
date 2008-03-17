@@ -24,7 +24,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * $Id: GUI.java,v 1.71 2008/02/18 08:18:01 fros4943 Exp $
+ * $Id: GUI.java,v 1.72 2008/03/17 08:35:10 fros4943 Exp $
  */
 
 package se.sics.cooja;
@@ -1645,6 +1645,32 @@ public class GUI {
 
     // Mote plugin to front
     myDesktopPane.moveToFront(plugin);
+  }
+
+  /**
+   * Close all mote plugins for given mote.
+   *
+   * @param mote Mote
+   */
+  public void closeMotePlugins(Mote mote) {
+    Vector<Plugin> pluginsToRemove = new Vector<Plugin>();
+
+    for (Plugin startedPlugin : startedPlugins) {
+      int pluginType = startedPlugin.getClass().getAnnotation(PluginType.class).value();
+
+      if (pluginType != PluginType.MOTE_PLUGIN) {
+        continue;
+      }
+
+      Mote pluginMote = (Mote) startedPlugin.getTag();
+      if (pluginMote == mote) {
+        pluginsToRemove.add(startedPlugin);
+      }
+    }
+
+    for (Plugin pluginToRemove: pluginsToRemove) {
+      removePlugin(pluginToRemove, false);
+    }
   }
 
   /**
