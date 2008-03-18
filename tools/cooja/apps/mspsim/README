@@ -1,27 +1,7 @@
-MSPSim - ESB (MSP430) emulation support for the COOJA Simulator
-
-Note:
-This functionality is still under development and will in the future be added as a default application in COOJA.
-
-Usage:
-Add project directory "../apps/mspsim" in COOJA.
-Create an MSP mote type by providing paths to three pre-compiled files:
-	* IHEX-file (the actual file currently interpreted by MSPSim)
-	* Firmware-file (contains debug-section with sourcecode-pointers)
-	* Map-file (typically exported as contiki-esb.map at compile-time)
-
-Example:
-> make helloworld.firmware TARGET=esb && make helloworld.ihex TARGET=esb
-Use the three files generated; helloworld.firmware, helloworld.ihex and contiki-esb.map.
-
-There also exists a pre-compiled example in the tools/cooja/apps/mspsim/example folder.
-Source code debugging will however not be available when using this example since it relies on the actual source code files pointed to by the debug-section in helloworld.firmware.
+MSPSim support for the COOJA Simulator
+--------------------------------------
 
 MSPSim source code access:
-MSPSim is available as a standalone project (no need for COOJA).
-It is maintained by Joakim Eriksson (joakime@sics.se) and Niclas Finne (nfi@sics.se).
-For questions regarding interfaces towards COOJA, contact Fredrik Österlind (fros@sics.se).
+Standalone MSPSim is available from http://sourceforge.net/projects/mspsim.
 
---
-Fredrik Österlind
-1/2 2007
+-- Fredrik Österlind, 18/3 2008
