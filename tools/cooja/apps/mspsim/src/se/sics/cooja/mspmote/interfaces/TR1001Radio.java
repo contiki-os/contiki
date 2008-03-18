@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: TR1001Radio.java,v 1.2 2008/03/17 09:52:03 fros4943 Exp $
+ * $Id: TR1001Radio.java,v 1.3 2008/03/18 13:15:41 fros4943 Exp $
  */
 
 package se.sics.cooja.mspmote.interfaces;
@@ -49,13 +49,13 @@ import se.sics.cooja.mspmote.ESBMote;
  * @author Fredrik Osterlind
  */
 @ClassDescription("TR1001 Radio")
-public class TR1001Radio extends Radio implements USARTListener, ByteRadio {
+public class TR1001Radio extends Radio implements USARTListener, CustomDataRadio {
   private static Logger logger = Logger.getLogger(TR1001Radio.class);
 
   /**
    * Minimum delay in CPU cycles between each byte fed to USART.
    */
-  private static final long CYCLES_BETWEEN_BYTES = 1200; /* ~19.200 bps */
+  public static final long CYCLES_BETWEEN_BYTES = 1200; /* ~19.200 bps */
 
   private ESBMote mspMote;
 
@@ -71,12 +71,12 @@ public class TR1001Radio extends Radio implements USARTListener, ByteRadio {
 
   private USART radioUSART = null;
 
-  private byte[] packetToMote = null;
+  private RadioPacket packetToMote = null;
 
-  private byte[] packetFromMote = null;
+  private RadioPacket packetFromMote = null;
 
   /* Outgoing packet data buffer */
-  private byte[] outgoingData = new byte[1024]; // TODO Decrease max size
+  private TR1001RadioByte[] outgoingData = new TR1001RadioByte[128]; /* TODO Adaptive max size */
 
   private int outgoingDataLength = 0;
 
@@ -88,15 +88,13 @@ public class TR1001Radio extends Radio implements USARTListener, ByteRadio {
   private Vector<Long> bufferedByteDelays = new Vector<Long>();
 
   /* Outgoing byte data buffer */
-  private byte byteFromMote = -1;
+  private TR1001RadioByte tr1001ByteFromMote = null;
+
+  private TR1001RadioByte tr1001ByteToMote = null;
 
   private long transmissionStartCycles = -1;
 
-  private long byteFromMoteDelay = -1;
-
   /* Incoming byte data buffer */
-  private byte byteToMote = -1;
-
   private byte lastDeliveredByte = -1;
 
   private long lastDeliveredByteTimestamp = -1;
@@ -125,17 +123,17 @@ public class TR1001Radio extends Radio implements USARTListener, ByteRadio {
   }
 
   /* Packet radio support */
-  public byte[] getLastPacketTransmitted() {
+  public RadioPacket getLastPacketTransmitted() {
     return packetFromMote;
   }
 
-  public byte[] getLastPacketReceived() {
+  public RadioPacket getLastPacketReceived() {
     return packetToMote;
   }
 
-  public void setReceivedPacket(byte[] p) {
-    packetToMote = p;
-    if (packetToMote == null || packetToMote.length == 0) {
+  public void setReceivedPacket(RadioPacket packet) {
+    packetToMote = packet;
+    if (packetToMote.getPacketData() == null || packetToMote.getPacketData().length == 0) {
       logger.fatal("Received null packet");
       return;
     }
@@ -146,31 +144,30 @@ public class TR1001Radio extends Radio implements USARTListener, ByteRadio {
     }
 
     /* Convert to TR1001 packet data */
-    byte[] tr1001Frame = TR1001RadioPacketConverter.fromCoojaToTR1001(p);
+    TR1001RadioByte[] tr1001bytes = TR1001RadioPacketConverter.fromCoojaToTR1001(packetToMote);
 
     /* Feed to the CPU "slowly" */
-    for (byte element : tr1001Frame) {
-      receiveByte(element, CYCLES_BETWEEN_BYTES);
+    for (TR1001RadioByte b : tr1001bytes) {
+      receiveCustomData(b);
     }
   }
 
-  /* Byte radio support */
-  public byte getLastByteTransmitted() {
-    return byteFromMote;
+  /* Custom data radio support */
+  public Object getLastCustomDataTransmitted() {
+    return tr1001ByteFromMote;
   }
 
-  public long getLastByteTransmittedDelay() {
-    return byteFromMoteDelay;
+  public Object getLastCustomDataReceived() {
+    return tr1001ByteToMote;
   }
 
-  public byte getLastByteReceived() {
-    return byteToMote;
-  }
+  public void receiveCustomData(Object data) {
+    if (data instanceof TR1001RadioByte) {
+      tr1001ByteToMote = ((TR1001RadioByte) data);
 
-  public void receiveByte(byte b, long delay) {
-    byteToMote = b;
-    bufferedBytes.add(b);
-    bufferedByteDelays.add(delay);
+      bufferedBytes.add(tr1001ByteToMote.getByte());
+      bufferedByteDelays.add(tr1001ByteToMote.getDelay());
+    }
   }
 
   /**
@@ -238,8 +235,10 @@ public class TR1001Radio extends Radio implements USARTListener, ByteRadio {
       transmitting = true;
       lastEventTime = mspMote.getSimulation().getSimulationTime();
       lastEvent = RadioEvent.TRANSMISSION_STARTED;
+
       transmissionStartCycles = mspMote.getCPU().cycles;
       lastDeliveredByteTimestamp = transmissionStartCycles;
+
       this.setChanged();
       this.notifyObservers();
     }
@@ -252,36 +251,27 @@ public class TR1001Radio extends Radio implements USARTListener, ByteRadio {
       return;
     }
 
-    // Store packet data
-    outgoingData[outgoingDataLength++] = (byte) data;
-
-    // Deliver byte to radio medium
-    lastEvent = RadioEvent.BYTE_TRANSMITTED;
-    byteFromMote = (byte) data;
-    byteFromMoteDelay = mspMote.getCPU().cycles - lastDeliveredByteTimestamp;
+    // Deliver byte to radio medium as custom data
+    lastEvent = RadioEvent.CUSTOM_DATA_TRANSMITTED;
+    tr1001ByteFromMote = new TR1001RadioByte((byte) data, mspMote.getCPU().cycles - lastDeliveredByteTimestamp);
+    outgoingData[outgoingDataLength++] = tr1001ByteFromMote;
     lastDeliveredByteTimestamp = mspMote.getCPU().cycles;
-    if (byteFromMoteDelay < 0) {
-      byteFromMoteDelay = 0;
-    }
-
     this.setChanged();
     this.notifyObservers();
 
     // Feed to application level immediately
-    boolean finished = tr1001PacketConverter.fromTR1001ToCoojaAccumulated(byteFromMote);
+    boolean finished = tr1001PacketConverter.fromTR1001ToCoojaAccumulated(tr1001ByteFromMote);
     if (finished) {
         /* Transmission finished - deliver packet immediately */
         if (tr1001PacketConverter.accumulatedConversionIsOk()) {
-          packetFromMote = tr1001PacketConverter.getAccumulatedConvertedData();
-        } else {
-          packetFromMote = new byte[0];
-        }
+          packetFromMote = tr1001PacketConverter.getAccumulatedConvertedCoojaPacket();
 
-        /* Notify observers of new prepared packet */
-        /*logger.debug("----- MSP DELIVERED PACKET -----");*/
-        lastEvent = RadioEvent.PACKET_TRANSMITTED;
-        this.setChanged();
-        this.notifyObservers();
+          /* Notify observers of new prepared packet */
+          /*logger.debug("----- MSP DELIVERED PACKET -----");*/
+          lastEvent = RadioEvent.PACKET_TRANSMITTED;
+          this.setChanged();
+          this.notifyObservers();
+        }
 
         // Reset counters and wait for next packet
         outgoingDataLength = 0;
@@ -387,13 +377,7 @@ public class TR1001Radio extends Radio implements USARTListener, ByteRadio {
     // Detect transmission end due to inactivity
     if (isTransmitting() && ticksSinceLastSend > 4) {
       /* Dropping packet due to inactivity */
-      packetFromMote = new byte[0];
-
-      /* Notify observers of new empty packet */
-      logger.warn("----- DELIVERED MSP NULL PACKET -----");
-      lastEvent = RadioEvent.PACKET_TRANSMITTED;
-      this.setChanged();
-      this.notifyObservers();
+      packetFromMote = null;
 
       // Reset counters and wait for next packet
       outgoingDataLength = 0;
