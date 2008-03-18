@@ -24,7 +24,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * $Id: Radio.java,v 1.8 2008/03/17 09:50:27 fros4943 Exp $
+ * $Id: Radio.java,v 1.9 2008/03/18 13:01:13 fros4943 Exp $
  */
 
 package se.sics.cooja.interfaces;
@@ -34,25 +34,41 @@ import se.sics.cooja.*;
 /**
  * A Radio represents a mote radio transceiver.
  *
- * A radio can support different abstraction levels such as transmitting and
- * receiving on a byte or packet-basis. In order to support communication
- * between different levels the general rule in COOJA is that all radios at a
- * lower abstraction level must also implement all higher levels.
- *
- * @see PacketRadio
- * @see ByteRadio
+ * @see RadioPacket
+ * @see CustomDataRadio
  *
  * @author Fredrik Osterlind
  */
-@ClassDescription("Packet Radio")
+@ClassDescription("Radio")
 public abstract class Radio extends MoteInterface {
 
   /**
    * Events that radios should notify observers about.
    */
   public enum RadioEvent {
-    UNKNOWN, HW_OFF, HW_ON, RECEPTION_STARTED, RECEPTION_FINISHED, RECEPTION_INTERFERED, TRANSMISSION_STARTED, TRANSMISSION_FINISHED, PACKET_TRANSMITTED, BYTE_TRANSMITTED
+    UNKNOWN, HW_OFF, HW_ON,
+    RECEPTION_STARTED, RECEPTION_FINISHED, RECEPTION_INTERFERED,
+    TRANSMISSION_STARTED, TRANSMISSION_FINISHED,
+    PACKET_TRANSMITTED, CUSTOM_DATA_TRANSMITTED
   }
+
+  /**
+   * Register the radio packet that is being received during a connection. This
+   * packet should be supplied to the radio medium as soon as possible.
+   *
+   * @param packet Packet data
+   */
+  public abstract void setReceivedPacket(RadioPacket packet);
+
+  /**
+   * @return Last packet transmitted by radio
+   */
+  public abstract RadioPacket getLastPacketTransmitted();
+
+  /**
+   * @return Last packet received by radio
+   */
+  public abstract RadioPacket getLastPacketReceived();
 
   /**
    * Signal that a new reception just begun. This method should normally be
