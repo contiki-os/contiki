@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: RadioLogger.java,v 1.11 2007/11/20 04:17:11 fros4943 Exp $
+ * $Id: RadioLogger.java,v 1.12 2008/03/18 13:06:19 fros4943 Exp $
  */
 
 package se.sics.cooja.plugins;
@@ -45,7 +45,6 @@ import org.apache.log4j.Logger;
 import org.jdom.Element;
 
 import se.sics.cooja.*;
-import se.sics.cooja.interfaces.PacketRadio;
 import se.sics.cooja.interfaces.Radio;
 
 /**
@@ -252,11 +251,7 @@ public class RadioLogger extends VisPlugin {
           data[DATAPOS_TIME] = new Integer(simulation.getSimulationTime());
           data[DATAPOS_CONNECTION] = newConnection;
 
-          if (newConnection.getSource() instanceof PacketRadio) {
-            data[DATAPOS_DATA] = ((PacketRadio) newConnection.getSource()).getLastPacketTransmitted();
-          } else {
-            data[DATAPOS_DATA] = null;
-          }
+          data[DATAPOS_DATA] = newConnection.getSource().getLastPacketTransmitted().getPacketData();
 
           rowData.add(data);
         }
