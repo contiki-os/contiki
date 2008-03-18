@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: SkyRadio.java,v 1.3 2008/03/18 15:48:00 fros4943 Exp $
+ * $Id: SkyRadio.java,v 1.4 2008/03/18 16:36:48 fros4943 Exp $
  */
 
 package se.sics.cooja.mspmote.interfaces;
@@ -337,6 +337,7 @@ public class SkyRadio extends Radio implements CustomDataRadio {
 
     this.deleteObserver(observer);
   }
+
   public Mote getMote() {
     return myMote;
   }
