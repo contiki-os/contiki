@@ -26,13 +26,15 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: TR1001Radio.java,v 1.4 2008/03/18 15:48:24 fros4943 Exp $
+ * $Id: TR1001Radio.java,v 1.5 2008/03/18 16:36:48 fros4943 Exp $
  */
 
 package se.sics.cooja.mspmote.interfaces;
 
 import java.util.*;
 import javax.swing.*;
+import java.awt.BorderLayout;
+import java.awt.GridLayout;
 import java.awt.event.*;
 import org.apache.log4j.Logger;
 import org.jdom.Element;
@@ -303,8 +305,7 @@ public class TR1001Radio extends Radio implements USARTListener, CustomDataRadio
   }
 
   public int getChannel() {
-    // TODO Implement support for channels
-    return 1;
+    return -1;
   }
 
   public void signalReceptionStart() {
@@ -400,23 +401,38 @@ public class TR1001Radio extends Radio implements USARTListener, CustomDataRadio
 
   public JPanel getInterfaceVisualizer() {
     // Location
-    JPanel panel = new JPanel();
-    panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
+    JPanel wrapperPanel = new JPanel(new BorderLayout());
+    JPanel panel = new JPanel(new GridLayout(5, 2));
 
     final JLabel statusLabel = new JLabel("");
     final JLabel lastEventLabel = new JLabel("");
+    final JLabel channelLabel = new JLabel("ALL CHANNELS (-1)");
+    final JLabel powerLabel = new JLabel("");
     final JLabel ssLabel = new JLabel("");
-    final JButton updateButton = new JButton("Update SS");
+    final JButton updateButton = new JButton("Update");
 
+    panel.add(new JLabel("STATE:"));
     panel.add(statusLabel);
+
+    panel.add(new JLabel("LAST EVENT:"));
     panel.add(lastEventLabel);
-    panel.add(ssLabel);
-    panel.add(updateButton);
+
+    panel.add(new JLabel("CHANNEL:"));
+    panel.add(channelLabel);
+
+    panel.add(new JLabel("OUTPUT POWER:"));
+    panel.add(powerLabel);
+
+    panel.add(new JLabel("SIGNAL STRENGTH:"));
+    JPanel smallPanel = new JPanel(new GridLayout(1, 2));
+    smallPanel.add(ssLabel);
+    smallPanel.add(updateButton);
+    panel.add(smallPanel);
 
     updateButton.addActionListener(new ActionListener() {
       public void actionPerformed(ActionEvent e) {
-        ssLabel.setText("Signal strength (not auto-updated): "
-            + getCurrentSignalStrength() + " dBm");
+        powerLabel.setText(getCurrentOutputPower() + " dBm (indicator=" + getCurrentOutputPowerIndicator() + "/" + getOutputPowerIndicatorMax() + ")");
+        ssLabel.setText(getCurrentSignalStrength() + " dBm");
       }
     });
 
@@ -424,19 +440,19 @@ public class TR1001Radio extends Radio implements USARTListener, CustomDataRadio
     this.addObserver(observer = new Observer() {
       public void update(Observable obs, Object obj) {
         if (isTransmitting()) {
-          statusLabel.setText("Transmitting packet now!");
+          statusLabel.setText("transmitting");
         } else if (isReceiving()) {
-          statusLabel.setText("Receiving packet now!");
+          statusLabel.setText("receiving");
         } else if (radioOn) {
-          statusLabel.setText("Listening...");
+          statusLabel.setText("listening for traffic");
         } else {
-          statusLabel.setText("HW turned off");
+          statusLabel.setText("HW off");
         }
 
-        lastEventLabel.setText("Last event (time=" + lastEventTime + "): "
-            + lastEvent);
-        ssLabel.setText("Signal strength (not auto-updated): "
-            + getCurrentSignalStrength() + " dBm");
+        lastEventLabel.setText(lastEvent + " @ time=" + lastEventTime);
+
+        powerLabel.setText(getCurrentOutputPower() + " dBm (indicator=" + getCurrentOutputPowerIndicator() + "/" + getOutputPowerIndicatorMax() + ")");
+        ssLabel.setText(getCurrentSignalStrength() + " dBm");
       }
     });
 
@@ -445,7 +461,8 @@ public class TR1001Radio extends Radio implements USARTListener, CustomDataRadio
     // Saving observer reference for releaseInterfaceVisualizer
     panel.putClientProperty("intf_obs", observer);
 
-    return panel;
+    wrapperPanel.add(BorderLayout.NORTH, panel);
+    return wrapperPanel;
   }
 
   public void releaseInterfaceVisualizer(JPanel panel) {
