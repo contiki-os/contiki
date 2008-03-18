@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ApplicationRadio.java,v 1.3 2008/03/17 09:50:27 fros4943 Exp $
+ * $Id: ApplicationRadio.java,v 1.4 2008/03/18 13:03:24 fros4943 Exp $
  */
 
 package se.sics.cooja.interfaces;
@@ -42,18 +42,18 @@ import se.sics.cooja.*;
 
 /**
  * Application radio. May for example be used by Java-based mote to implement
- * radio functionality. Support radio channels and output power functionality.
+ * radio functionality. Supports radio channels and output power functionality.
  * The mote should observe the radio for incoming radio packet data.
  *
  * @author Fredrik Osterlind
  */
-public class ApplicationRadio extends Radio implements PacketRadio {
+public class ApplicationRadio extends Radio {
   private Mote myMote;
 
   private static Logger logger = Logger.getLogger(ApplicationRadio.class);
 
-  private static byte[] packetFromMote = null;
-  private static byte[] packetToMote = null;
+  private RadioPacket packetFromMote = null;
+  private RadioPacket packetToMote = null;
 
   private boolean isTransmitting = false;
   private boolean isReceiving = false;
@@ -65,7 +65,7 @@ public class ApplicationRadio extends Radio implements PacketRadio {
   private int lastEventTime = 0;
 
   private boolean outPacketExists = false;
-  private byte[] outPacket = null;
+  private RadioPacket outPacket = null;
   private int outPacketDuration = -1;
 
   private double signalStrength = -100;
@@ -78,16 +78,16 @@ public class ApplicationRadio extends Radio implements PacketRadio {
   }
 
   /* Packet radio support */
-  public byte[] getLastPacketTransmitted() {
+  public RadioPacket getLastPacketTransmitted() {
     return packetFromMote;
   }
 
-  public byte[] getLastPacketReceived() {
+  public RadioPacket getLastPacketReceived() {
     return packetToMote;
   }
 
-  public void setReceivedPacket(byte[] data) {
-    packetToMote = data;
+  public void setReceivedPacket(RadioPacket packet) {
+    packetToMote = packet;
   }
 
   /* General radio support */
@@ -189,7 +189,7 @@ public class ApplicationRadio extends Radio implements PacketRadio {
    * @param packet Packet data
    * @param duration Duration to transmit
    */
-  public void startTransmittingPacket(byte[] packet, int duration) {
+  public void startTransmittingPacket(RadioPacket packet, int duration) {
     outPacketExists = true;
     outPacketDuration = duration;
     outPacket = packet;
