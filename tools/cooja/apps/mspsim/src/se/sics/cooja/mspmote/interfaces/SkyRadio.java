@@ -1,3 +1,34 @@
+/*
+ * Copyright (c) 2008, Swedish Institute of Computer Science.
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions
+ * are met:
+ * 1. Redistributions of source code must retain the above copyright
+ *    notice, this list of conditions and the following disclaimer.
+ * 2. Redistributions in binary form must reproduce the above copyright
+ *    notice, this list of conditions and the following disclaimer in the
+ *    documentation and/or other materials provided with the distribution.
+ * 3. Neither the name of the Institute nor the names of its contributors
+ *    may be used to endorse or promote products derived from this software
+ *    without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE INSTITUTE AND CONTRIBUTORS ``AS IS'' AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED.  IN NO EVENT SHALL THE INSTITUTE OR CONTRIBUTORS BE LIABLE
+ * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+ * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+ * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+ * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+ * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+ * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+ * SUCH DAMAGE.
+ *
+ * $Id: SkyRadio.java,v 1.2 2008/03/18 13:34:20 fros4943 Exp $
+ */
+
 package se.sics.cooja.mspmote.interfaces;
 
 import java.awt.BorderLayout;
@@ -5,22 +36,24 @@ import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.*;
-
 import javax.swing.*;
-
 import org.apache.log4j.Logger;
 import org.jdom.Element;
 
 import se.sics.cooja.*;
-import se.sics.cooja.interfaces.PacketRadio;
 import se.sics.cooja.interfaces.Position;
 import se.sics.cooja.interfaces.Radio;
 import se.sics.cooja.mspmote.SkyMote;
 import se.sics.mspsim.chip.CC2420;
 import se.sics.mspsim.chip.PacketListener;
 
+/**
+ * CC2420 to COOJA wrapper.
+ *
+ * @author Fredrik Osterlind
+ */
 @ClassDescription("CC2420")
-public class SkyRadio extends Radio implements PacketRadio {
+public class SkyRadio extends Radio {
   private static Logger logger = Logger.getLogger(SkyRadio.class);
 
   private int lastEventTime = 0;
@@ -39,9 +72,13 @@ public class SkyRadio extends Radio implements PacketRadio {
 
   private boolean radioOn = true;
 
-  private byte[] lastOutgoingPacket = null;
+  private CC2420RadioPacket lastOutgoingCC2420Packet = null;
 
-  private byte[] lastIncomingPacket = null;
+  private RadioPacket lastIncomingCC2420Packet = null;
+
+  private RadioPacket lastOutgoingPacket = null;
+
+  private RadioPacket lastIncomingPacket = null;
 
   //TODO: HW on/off
 
@@ -58,10 +95,20 @@ public class SkyRadio extends Radio implements PacketRadio {
       }
 
       public void transmissionEnded(int[] receivedData) {
-        lastOutgoingPacket = new byte[receivedData.length];
+        byte[] outgoingCC2420Data = new byte[receivedData.length];
         for (int i=0; i < receivedData.length; i++) {
-          lastOutgoingPacket[i] = (byte) receivedData[i];
+          outgoingCC2420Data[i] = (byte) receivedData[i];
         }
+
+        lastOutgoingCC2420Packet = new CC2420RadioPacket(outgoingCC2420Data);
+
+        lastEventTime = myMote.getSimulation().getSimulationTime();
+        lastEvent = RadioEvent.CUSTOM_DATA_TRANSMITTED;
+        setChanged();
+        notifyObservers();
+
+        lastOutgoingPacket = CC2420RadioPacketConverter.fromCC2420ToCooja(lastOutgoingCC2420Packet);
+
         lastEventTime = myMote.getSimulation().getSimulationTime();
         lastEvent = RadioEvent.PACKET_TRANSMITTED;
         setChanged();
@@ -76,16 +123,17 @@ public class SkyRadio extends Radio implements PacketRadio {
   }
 
   /* Packet radio support */
-  public byte[] getLastPacketTransmitted() {
+  public RadioPacket getLastPacketTransmitted() {
     return lastOutgoingPacket;
   }
 
-  public byte[] getLastPacketReceived() {
+  public RadioPacket getLastPacketReceived() {
     return lastIncomingPacket;
   }
 
-  public void setReceivedPacket(byte[] data) {
-    lastIncomingPacket = data;
+  public void setReceivedPacket(RadioPacket packet) {
+    lastIncomingPacket = packet;
+    lastIncomingCC2420Packet = CC2420RadioPacketConverter.fromCoojaToCC24240(packet);
   }
 
   /* General radio support */
@@ -122,10 +170,11 @@ public class SkyRadio extends Radio implements PacketRadio {
 
   public void signalReceptionEnd() {
     /* Deliver packet data */
-    if (isReceiving && !isInterfered && lastIncomingPacket != null) {
-      int[] incomingDataInts = new int[lastIncomingPacket.length];
-      for (int i=0; i < lastIncomingPacket.length; i++) {
-        incomingDataInts[i] = lastIncomingPacket[i];
+    if (isReceiving && !isInterfered && lastIncomingCC2420Packet != null) {
+      byte[] packetData = lastIncomingCC2420Packet.getPacketData();
+      int[] incomingDataInts = new int[packetData.length];
+      for (int i=0; i < packetData.length; i++) {
+        incomingDataInts[i] = packetData[i];
       }
 
       cc2420.setIncomingPacket(incomingDataInts);
@@ -149,8 +198,8 @@ public class SkyRadio extends Radio implements PacketRadio {
     isInterfered = true;
     isReceiving = false;
     lastIncomingPacket = null;
+    lastIncomingCC2420Packet = null;
     cc2420.setCCA(true);
-    logger.info("[interfered]: CCA true");
 
     lastEventTime = myMote.getSimulation().getSimulationTime();
     lastEvent = RadioEvent.RECEPTION_INTERFERED;
