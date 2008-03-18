@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: Visualizer2D.java,v 1.13 2008/02/12 15:31:22 fros4943 Exp $
+ * $Id: Visualizer2D.java,v 1.14 2008/03/18 16:20:56 fros4943 Exp $
  */
 
 package se.sics.cooja.plugins;
@@ -119,6 +119,18 @@ public abstract class Visualizer2D extends VisPlugin {
     }
     public void doAction(Mote mote) {
       mote.getInterfaces().getButton().clickButton();
+    }
+  };
+
+  private class DeleteMoteMenuAction implements MoteMenuAction {
+    public boolean isEnabled(Mote mote) {
+      return true;
+    }
+    public String getDescription(Mote mote) {
+      return "Delete " + mote;
+    }
+    public void doAction(Mote mote) {
+      simulation.removeMote(mote);
     }
   };
 
@@ -289,6 +301,9 @@ public abstract class Visualizer2D extends VisPlugin {
 
     // Add menu action for clicking mote button
     addMoteMenuAction(new ButtonClickMoteMenuAction());
+
+    // Add menu action for deleting mote
+    addMoteMenuAction(new DeleteMoteMenuAction());
 
     try {
       setSelected(true);
