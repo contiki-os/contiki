@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: RadioLogger.java,v 1.12 2008/03/18 13:06:19 fros4943 Exp $
+ * $Id: RadioLogger.java,v 1.13 2008/03/18 15:42:35 fros4943 Exp $
  */
 
 package se.sics.cooja.plugins;
@@ -62,7 +62,7 @@ public class RadioLogger extends VisPlugin {
 
   private final int DATAPOS_TIME = 0;
   private final int DATAPOS_CONNECTION = 1;
-  private final int DATAPOS_DATA = 2;
+  private final int DATAPOS_PACKET = 2;
 
   private final int COLUMN_TIME = 0;
   private final int COLUMN_FROM = 1;
@@ -114,7 +114,12 @@ public class RadioLogger extends VisPlugin {
         } else if (col == COLUMN_TO) {
           return "[" + ((RadioConnection)rowData.get(row)[DATAPOS_CONNECTION]).getDestinations().length + " motes]";
         } else if (col == COLUMN_DATA) {
-          return transformDataToString((byte[]) rowData.get(row)[DATAPOS_DATA]);
+          RadioPacket packet = (RadioPacket) rowData.get(row)[DATAPOS_PACKET];
+          if (packet == null) {
+            return "[null]";
+          }
+
+          return transformDataToString(packet.getPacketData());
         } else {
           logger.fatal("Bad row/col: " + row + "/" + col);
         }
@@ -184,12 +189,17 @@ public class RadioLogger extends VisPlugin {
 
         String tip = "";
         if (realColumnIndex == COLUMN_DATA) {
-          byte[] data = (byte[]) rowData.get(rowIndex)[DATAPOS_DATA];
-
-          Packet packet = analyzePacket(data);
+          RadioPacket packet = (RadioPacket) rowData.get(rowIndex)[DATAPOS_PACKET];
           if (packet != null) {
-            tip = packet.getToolTip();
+            byte[] data = packet.getPacketData();
+
+            LoggedPacket logPacket = analyzePacket(data);
+            if (logPacket != null) {
+              tip = logPacket.getToolTip();
+            }
           }
+
+
         } else {
           tip = super.getToolTipText(e);
         }
@@ -251,7 +261,7 @@ public class RadioLogger extends VisPlugin {
           data[DATAPOS_TIME] = new Integer(simulation.getSimulationTime());
           data[DATAPOS_CONNECTION] = newConnection;
 
-          data[DATAPOS_DATA] = newConnection.getSource().getLastPacketTransmitted().getPacketData();
+          data[DATAPOS_PACKET] = newConnection.getSource().getLastPacketTransmitted();
 
           rowData.add(data);
         }
@@ -278,7 +288,7 @@ public class RadioLogger extends VisPlugin {
       return "[unknown data]";
     }
 
-    Packet packet = analyzePacket(data);
+    LoggedPacket packet = analyzePacket(data);
     if (packet == null) {
       return "Unknown packet, size " + data.length;
     } else {
@@ -286,12 +296,12 @@ public class RadioLogger extends VisPlugin {
     }
   }
 
-  static abstract class Packet {
+  static abstract class LoggedPacket {
     public abstract String getShortDescription();
     public abstract String getToolTip();
   }
 
-  static class PacketAODV_RREQ extends Packet {
+  static class PacketAODV_RREQ extends LoggedPacket {
     public final static int SIZE = 52;
     public final static int HEADER_SIZE = 24;
     public final static int TYPE = 1;
@@ -387,7 +397,7 @@ public class RadioLogger extends VisPlugin {
     }
   };
 
-  static class PacketAODV_RREP extends Packet {
+  static class PacketAODV_RREP extends LoggedPacket {
     public final static int SIZE = 56;
     public final static int HEADER_SIZE = 20;
     public final static int TYPE = 2;
@@ -474,7 +484,7 @@ public class RadioLogger extends VisPlugin {
     }
   };
 
-  static class PacketAODV_RERR extends Packet {
+  static class PacketAODV_RERR extends LoggedPacket {
     public final static int SIZE = 40;
     public final static int HEADER_SIZE = 12;
     public final static int TYPE = 3;
@@ -545,7 +555,7 @@ public class RadioLogger extends VisPlugin {
     }
   };
 
-  static class AckPacket extends Packet {
+  static class AckPacket extends LoggedPacket {
     public final static int SIZE = 5;
 
     private byte[] data;
@@ -627,7 +637,7 @@ public class RadioLogger extends VisPlugin {
     }
   }
 
-  static class PacketUnknown extends Packet {
+  static class PacketUnknown extends LoggedPacket {
     private byte[] data = null;
 
     public PacketUnknown(byte[] data) {
@@ -661,7 +671,7 @@ public class RadioLogger extends VisPlugin {
 
   }
 
-  private Packet analyzePacket(byte[] data) {
+  private LoggedPacket analyzePacket(byte[] data) {
 
     if (PacketAODV_RREQ.dataFits(data)) {
       return new PacketAODV_RREQ(data);
