@@ -26,13 +26,15 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ContikiRadio.java,v 1.19 2008/03/18 12:52:01 fros4943 Exp $
+ * $Id: ContikiRadio.java,v 1.20 2008/03/18 16:20:16 fros4943 Exp $
  */
 
 package se.sics.cooja.contikimote.interfaces;
 
 import java.util.*;
 import javax.swing.*;
+import java.awt.BorderLayout;
+import java.awt.GridLayout;
 import java.awt.event.*;
 import org.apache.log4j.Logger;
 import org.jdom.Element;
@@ -251,8 +253,8 @@ public class ContikiRadio extends Radio implements ContikiMoteInterface {
 
   public double getCurrentOutputPower() {
     // TODO Implement method
-    logger.warn("Not implemeted, always returning 1.5 dBm");
-    return 1.5;
+    logger.warn("Not implemeted, always returning 0 dBm");
+    return 0;
   }
 
   public int getOutputPowerIndicatorMax() {
@@ -402,23 +404,39 @@ public class ContikiRadio extends Radio implements ContikiMoteInterface {
 
   public JPanel getInterfaceVisualizer() {
     // Location
-    JPanel panel = new JPanel();
-    panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
+    JPanel wrapperPanel = new JPanel(new BorderLayout());
+    JPanel panel = new JPanel(new GridLayout(5, 2));
 
     final JLabel statusLabel = new JLabel("");
     final JLabel lastEventLabel = new JLabel("");
+    final JLabel channelLabel = new JLabel("");
+    final JLabel powerLabel = new JLabel("");
     final JLabel ssLabel = new JLabel("");
-    final JButton updateButton = new JButton("Update SS");
+    final JButton updateButton = new JButton("Update");
 
+    panel.add(new JLabel("STATE:"));
     panel.add(statusLabel);
+
+    panel.add(new JLabel("LAST EVENT:"));
     panel.add(lastEventLabel);
-    panel.add(ssLabel);
-    panel.add(updateButton);
+
+    panel.add(new JLabel("CHANNEL:"));
+    panel.add(channelLabel);
+
+    panel.add(new JLabel("OUTPUT POWER:"));
+    panel.add(powerLabel);
+
+    panel.add(new JLabel("SIGNAL STRENGTH:"));
+    JPanel smallPanel = new JPanel(new GridLayout(1, 2));
+    smallPanel.add(ssLabel);
+    smallPanel.add(updateButton);
+    panel.add(smallPanel);
 
     updateButton.addActionListener(new ActionListener() {
       public void actionPerformed(ActionEvent e) {
-        ssLabel.setText("Signal strength (not auto-updated): "
-            + getCurrentSignalStrength() + " dBm");
+        channelLabel.setText("" + getChannel());
+        powerLabel.setText(getCurrentOutputPower() + " dBm (indicator=" + getCurrentOutputPowerIndicator() + "/" + getOutputPowerIndicatorMax() + ")");
+        ssLabel.setText(getCurrentSignalStrength() + " dBm");
       }
     });
 
@@ -426,19 +444,20 @@ public class ContikiRadio extends Radio implements ContikiMoteInterface {
     this.addObserver(observer = new Observer() {
       public void update(Observable obs, Object obj) {
         if (isTransmitting()) {
-          statusLabel.setText("Transmitting packet now!");
+          statusLabel.setText("transmitting");
         } else if (isReceiving()) {
-          statusLabel.setText("Receiving packet now!");
+          statusLabel.setText("receiving");
         } else if (radioOn) {
-          statusLabel.setText("Listening...");
+          statusLabel.setText("listening for traffic");
         } else {
-          statusLabel.setText("HW turned off");
+          statusLabel.setText("HW off");
         }
 
-        lastEventLabel.setText("Last event (time=" + lastEventTime + "): "
-            + lastEvent);
-        ssLabel.setText("Signal strength (not auto-updated): "
-            + getCurrentSignalStrength() + " dBm");
+        lastEventLabel.setText(lastEvent + " @ time=" + lastEventTime);
+
+        channelLabel.setText("" + getChannel());
+        powerLabel.setText(getCurrentOutputPower() + " dBm (indicator=" + getCurrentOutputPowerIndicator() + "/" + getOutputPowerIndicatorMax() + ")");
+        ssLabel.setText(getCurrentSignalStrength() + " dBm");
       }
     });
 
@@ -447,7 +466,8 @@ public class ContikiRadio extends Radio implements ContikiMoteInterface {
     // Saving observer reference for releaseInterfaceVisualizer
     panel.putClientProperty("intf_obs", observer);
 
-    return panel;
+    wrapperPanel.add(BorderLayout.NORTH, panel);
+    return wrapperPanel;
   }
 
   public void releaseInterfaceVisualizer(JPanel panel) {
