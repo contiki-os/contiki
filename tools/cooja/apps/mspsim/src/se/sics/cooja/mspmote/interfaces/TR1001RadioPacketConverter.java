@@ -26,12 +26,15 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: TR1001RadioPacketConverter.java,v 1.1 2008/02/07 14:55:35 fros4943 Exp $
+ * $Id: TR1001RadioPacketConverter.java,v 1.2 2008/03/18 13:13:56 fros4943 Exp $
  */
 
 package se.sics.cooja.mspmote.interfaces;
 
 import org.apache.log4j.Logger;
+
+import se.sics.cooja.COOJARadioPacket;
+import se.sics.cooja.RadioPacket;
 
 /**
  * Converts radio packets between TR1001/ESB and COOJA.
@@ -104,10 +107,12 @@ public class TR1001RadioPacketConverter {
    *          COOJA radio packet
    * @return TR1001 radio packet
    */
-  public static byte[] fromCoojaToTR1001(byte[] coojaPacket) {
+  public static TR1001RadioByte[] fromCoojaToTR1001(RadioPacket coojaPacket) {
+
+    byte[] coojaPacketData = coojaPacket.getPacketData();
 
     /* Create "ESB" packet: add length header and CRC16 footer */
-    byte[] esbPacket = addLengthAndCRC(coojaPacket);
+    byte[] esbPacket = addLengthAndCRC(coojaPacketData);
 
     /* GCR encode radio frame */
     byte[] encodedData = gcrCoder.gcrEncode(esbPacket, esbPacket.length);
@@ -134,7 +139,11 @@ public class TR1001RadioPacketConverter {
     tr1001Frame[TR1001_HEADER_LENGTH + encodedData.length + 2] = (byte) 0x33;
     tr1001Frame[TR1001_HEADER_LENGTH + encodedData.length + 3] = (byte) 0xcc;
 
-    return tr1001Frame;
+    TR1001RadioByte[] tr1001Bytes = new TR1001RadioByte[tr1001Frame.length];
+    for (int i=0; i < tr1001Frame.length; i++) {
+      tr1001Bytes[i] = new TR1001RadioByte(tr1001Frame[i], TR1001Radio.CYCLES_BETWEEN_BYTES);
+    }
+    return tr1001Bytes;
   }
 
   /**
@@ -153,8 +162,13 @@ public class TR1001RadioPacketConverter {
    *          TR1001 packet data length
    * @return COOJA radio packet
    */
-  public static byte[] fromTR1001ToCooja(byte[] tr1001Data,
-      int tr1001DataLength) {
+  public static RadioPacket fromTR1001ToCooja(TR1001RadioByte[] tr1001Bytes, int tr1001DataLength) {
+
+    byte[] tr1001Data = new byte[tr1001Bytes.length];
+    for (int i=0; i < tr1001Bytes.length; i++) {
+      tr1001Data[i] = tr1001Bytes[i].getByte();
+    }
+
     /* Remove TR1001 specifics: preamble, synch and trail bytes */
     System.arraycopy(tr1001Data, TR1001_HEADER_LENGTH, tr1001Data, 0,
         tr1001DataLength - TR1001_HEADER_LENGTH - TR1001_FOOTER_LENGTH);
@@ -172,7 +186,7 @@ public class TR1001RadioPacketConverter {
         logger.fatal("Decoded data is smaller than specified data length: "
             + (dataLength + ESB_HEADER_LENGTH + ESB_HEADER_LENGTH) + " vs "
             + decodedData.length);
-        return new byte[0];
+        return null;
       }
 
       /* Remove ESB header and CRC footer */
@@ -180,13 +194,11 @@ public class TR1001RadioPacketConverter {
       System.arraycopy(decodedData, ESB_HEADER_LENGTH, packetData, 0,
           dataLength);
 
-      return packetData;
+      return new COOJARadioPacket(packetData);
     }
 
-    logger
-        .fatal("Error when converting emulated to application level, returning empty: "
-            + tr1001DataLength);
-    return new byte[0];
+    logger.fatal("Error when converting emulated to application level, returning null packet");
+    return null;
   }
 
   /**
@@ -231,7 +243,9 @@ public class TR1001RadioPacketConverter {
    *          Byte
    * @return True if conversion finished (either successful of failed).
    */
-  public boolean fromTR1001ToCoojaAccumulated(byte b) {
+  public boolean fromTR1001ToCoojaAccumulated(TR1001RadioByte tr1001Byte) {
+    byte b = tr1001Byte.getByte();
+
     if (accumulatedConversionState == AccumulatedConversionState.TR1001_PREAMBLE) {
       if (b == (byte) 0xaa || b == (byte) 0xff) {
         return false;
@@ -301,12 +315,12 @@ public class TR1001RadioPacketConverter {
   /**
    * @return Converted data (application level)
    */
-  public byte[] getAccumulatedConvertedData() {
+  public RadioPacket getAccumulatedConvertedCoojaPacket() {
     byte[] dataArrayByte = new byte[accumulatedConversionDataArray.length];
     for (int i = 0; i < accumulatedConversionDataArray.length; i++) {
       dataArrayByte[i] = (byte) accumulatedConversionDataArray[i];
     }
-    return dataArrayByte;
+    return new COOJARadioPacket(dataArrayByte);
   }
 
   /**
