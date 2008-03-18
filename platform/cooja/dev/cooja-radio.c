@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: cooja-radio.c,v 1.7 2008/03/17 09:48:00 fros4943 Exp $
+ * $Id: cooja-radio.c,v 1.8 2008/03/18 16:22:00 fros4943 Exp $
  */
 
 #include <string.h>
@@ -60,7 +60,7 @@ char simRadioHWOn = 1;
 int simSignalStrength = SS_NOTHING;
 int simLastSignalStrength = SS_NOTHING;
 char simPower = 100;
-int simRadioChannel = 1;
+int simRadioChannel = 26;
 int inSendFunction = 0;
 
 static void (* receiver_callback)(const struct radio_driver *);
