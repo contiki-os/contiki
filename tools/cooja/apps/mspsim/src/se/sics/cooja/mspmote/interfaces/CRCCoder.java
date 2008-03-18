@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: CRCCoder.java,v 1.1 2008/02/07 14:54:16 fros4943 Exp $
+ * $Id: CRCCoder.java,v 1.2 2008/03/18 16:55:44 fros4943 Exp $
  */
 
 package se.sics.cooja.mspmote.interfaces;
@@ -46,8 +46,8 @@ public class CRCCoder {
    * Updates given accumulated CRC16 checksum with given byte.
    *
    * @param b Byte to be added to CRC
-   * @param crc Accumulated CRC that is to be updated
-   * @return
+   * @param acc Accumulated CRC that is to be updated
+   * @return New accumulated CRC
    */
   public static short crc16Add(byte b, short acc) {
     acc ^= 0xff & b;
