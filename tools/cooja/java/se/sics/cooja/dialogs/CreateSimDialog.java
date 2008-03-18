@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: CreateSimDialog.java,v 1.9 2008/02/12 15:25:41 fros4943 Exp $
+ * $Id: CreateSimDialog.java,v 1.10 2008/03/18 13:02:10 fros4943 Exp $
  */
 
 package se.sics.cooja.dialogs;
@@ -468,12 +468,6 @@ public class CreateSimDialog extends JDialog {
             break;
           }
         }
-
-/*        if (logCheckBox.isSelected()) {
-          ConnectionLogger connLogger = new ConnectionLogger(new File(logFilename.getText()));
-          mySimulation.getRadioMedium().setConnectionLogger(connLogger);
-        }
-*/
 
         mySimulation.setRandomSeed(((Number) randomSeed.getValue()).longValue());
         mySimulation.setNrTickLists(((Number) tickLists.getValue()).intValue());
