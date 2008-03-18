@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006, Swedish Institute of Computer Science.
+ * Copyright (c) 2008, Swedish Institute of Computer Science.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: RadioMedium.java,v 1.5 2007/02/28 09:47:45 fros4943 Exp $
+ * $Id: RadioMedium.java,v 1.6 2008/03/18 12:57:04 fros4943 Exp $
  */
 
 package se.sics.cooja;
@@ -43,23 +43,23 @@ import se.sics.cooja.interfaces.Radio;
  * mediums. Radios registered in this medium can both send and receive radio
  * data. Depending on the implementation of this interface, more or less
  * accurate radio behaviour imitation is aquired.
- * 
+ *
  * Often a radio medium, at initialization, registers one or several dynamic
  * plugins. These plugins shows the user some radio medium specific details,
  * such as radio transmission radius etc.
- * 
+ *
  * @author Fredrik Osterlind
  */
 public abstract class RadioMedium {
 
   /**
    * Registers a mote to this medium.
-   * 
+   *
    * How radio data will be received from and sent to this mote depends on the
    * medium implementation. Common factors may be random, distance from sending
    * to receiving mote and interference with other radio transmitters in some
    * range.
-   * 
+   *
    * @param mote
    *          Mote to register
    * @param sim
@@ -69,7 +69,7 @@ public abstract class RadioMedium {
 
   /**
    * Unregisters a mote from this medium.
-   * 
+   *
    * @param mote
    *          Mote to unregister
    * @param sim
@@ -79,11 +79,11 @@ public abstract class RadioMedium {
 
   /**
    * Register a radio to this radio medium.
-   * 
+   *
    * Concerning radio data, this radio will be treated the same way as a mote's
    * radio. This method can be used to add non-mote radio devices, such as a
    * packet generator or a sniffer.
-   * 
+   *
    * @param radio
    *          Radio
    * @param sim
@@ -93,7 +93,7 @@ public abstract class RadioMedium {
 
   /**
    * Unregister given radio interface from this medium.
-   * 
+   *
    * @param radio
    *          Radio interface to unregister
    * @param sim
@@ -108,7 +108,7 @@ public abstract class RadioMedium {
    * network data by being notified every time the radio medium has delivered
    * data. The radio medium observable MUST notify observers every time the
    * getLastTickConnections returns a new value, even if the new value is null.
-   * 
+   *
    * @see #getLastTickConnections()
    * @see #deleteRadioMediumObserver(Observer)
    * @param observer
@@ -123,7 +123,7 @@ public abstract class RadioMedium {
 
   /**
    * Deletes an radio medium observer.
-   * 
+   *
    * @see #addRadioMediumObserver(Observer)
    * @param observer
    *          Observer to delete
@@ -132,26 +132,17 @@ public abstract class RadioMedium {
 
   /**
    * Returns all connections made during last tick loop.
-   * 
+   *
    * Typically a radio medium is a tick observer and transfers data between
    * radios after each tick loop. When these calculations are finished, it will
    * in turn notify all radio medium observers. A radio medium observer may get
    * information about which connections were made by using this method. Observe
    * that this method may return null of no connections were made.
-   * 
+   *
    * @see RadioConnection
    * @return All connections made during last tick loop or null if none
    */
   public abstract RadioConnection[] getLastTickConnections();
-
-  /**
-   * Set an overall connection logger. This logger will see all connections in
-   * the radio medium.
-   * 
-   * @param logger
-   *          New overall connection logger.
-   */
-  public abstract void setConnectionLogger(ConnectionLogger logger);
 
   /**
    * Returns XML elements representing the current config of this radio medium.
@@ -160,7 +151,7 @@ public abstract class RadioMedium {
    * range parameters. This method should however not return state specific
    * information such as a current radio status. (All nodes are restarted when
    * loading a simulation.)
-   * 
+   *
    * @see #setConfigXML(Collection, boolean)
    * @return XML elements representing the current radio medium config
    */
@@ -168,7 +159,7 @@ public abstract class RadioMedium {
 
   /**
    * Sets the current radio medium config depending on the given XML elements.
-   * 
+   *
    * @see #getConfigXML()
    * @param configXML
    *          Config XML elements
@@ -180,7 +171,7 @@ public abstract class RadioMedium {
    * This method creates an instance of the given class with the given
    * simulation constructor argument. Instead of calling the constructors
    * directly this method may be used.
-   * 
+   *
    * @return Radio medium instance
    */
   public static final RadioMedium generateRadioMedium(
