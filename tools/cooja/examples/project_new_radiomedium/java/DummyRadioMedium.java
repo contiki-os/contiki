@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: DummyRadioMedium.java,v 1.1 2007/03/23 23:33:54 fros4943 Exp $
+ * $Id: DummyRadioMedium.java,v 1.2 2008/03/18 13:24:38 fros4943 Exp $
  */
 
 import java.util.Collection;
@@ -82,10 +82,6 @@ public class DummyRadioMedium extends RadioMedium {
 
   public RadioConnection[] getLastTickConnections() {
     return null;
-  }
-
-  public void setConnectionLogger(ConnectionLogger connection) {
-    // Do nothing
   }
 
   public Collection<Element> getConfigXML() {
