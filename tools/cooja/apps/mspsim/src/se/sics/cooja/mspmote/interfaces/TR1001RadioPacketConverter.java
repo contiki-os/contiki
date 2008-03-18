@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: TR1001RadioPacketConverter.java,v 1.2 2008/03/18 13:13:56 fros4943 Exp $
+ * $Id: TR1001RadioPacketConverter.java,v 1.3 2008/03/18 16:55:44 fros4943 Exp $
  */
 
 package se.sics.cooja.mspmote.interfaces;
@@ -156,10 +156,8 @@ public class TR1001RadioPacketConverter {
    * - Read length header
    * - Remove both length header and CRC footer
    *
-   * @param tr1001Data
-   *          TR1001 packet data
-   * @param tr1001DataLength
-   *          TR1001 packet data length
+   * @param tr1001Bytes TR1001 bytes
+   * @param tr1001DataLength TR1001 specified packet length
    * @return COOJA radio packet
    */
   public static RadioPacket fromTR1001ToCooja(TR1001RadioByte[] tr1001Bytes, int tr1001DataLength) {
@@ -238,10 +236,8 @@ public class TR1001RadioPacketConverter {
    * Adds another another byte to the accumulated conversion from TR1001
    * to Cooja.
    *
-   * @see #accumulatedConversionIsOk()
-   * @param b
-   *          Byte
-   * @return True if conversion finished (either successful of failed).
+   * @param tr1001Byte New TR1001 packet data byte
+   * @return True if conversion finished (either successful of failed)
    */
   public boolean fromTR1001ToCoojaAccumulated(TR1001RadioByte tr1001Byte) {
     byte b = tr1001Byte.getByte();

@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: CC2420RadioPacketConverter.java,v 1.1 2008/03/18 13:34:29 fros4943 Exp $
+ * $Id: CC2420RadioPacketConverter.java,v 1.2 2008/03/18 16:55:44 fros4943 Exp $
  */
 
 package se.sics.cooja.mspmote.interfaces;
@@ -48,21 +48,20 @@ public class CC2420RadioPacketConverter {
   /* CC2420/802.15.4 packet: PREAMBLE(4) _ SYNCH(2) _ LENGTH(1) _ PAYLOAD(<27) _ CRCFOOTER(2) */
 
   /**
-   * Converts radio packet data from COOJA to CC2420.
+   * Converts a COOJA radio packet to a CC2420 radio packet.
    *
-   * @param coojaPacket COOJA packet
-   * @return CC2420 packet
+   * @param coojaPacket COOJA radio packet
+   * @return CC2420 radio packet
    */
   public static CC2420RadioPacket fromCoojaToCC24240(RadioPacket coojaPacket) {
     return new CC2420RadioPacket(coojaPacket.getPacketData());
   }
 
   /**
-   * Converts radio packet data from CC24240 to COOJA.
+   * Converts a CC2420 radio packet to a COOJA radio packet.
    *
-   * @param cc24240Data CC24240 data
-   * @param cc24240DataLength CC24240 data length
-   * @return
+   * @param cc2420RadioPacket CC24240 radio packet
+   * @return COOJA radio packet
    */
   public static COOJARadioPacket fromCC2420ToCooja(CC2420RadioPacket cc2420RadioPacket) {
     return new COOJARadioPacket(cc2420RadioPacket.getPacketData());
