@@ -24,7 +24,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * $Id: GUI.java,v 1.72 2008/03/17 08:35:10 fros4943 Exp $
+ * $Id: GUI.java,v 1.73 2008/03/18 12:49:18 fros4943 Exp $
  */
 
 package se.sics.cooja;
@@ -1571,9 +1571,6 @@ public class GUI {
     // Register radio mediums
     String[] radioMediumsClassNames = projectConfig.getStringArrayValue(
         GUI.class, "RADIOMEDIUMS");
-    for (String s: radioMediumsClassNames) {
-      System.out.println(">>>: " + s);
-    }
     if (radioMediumsClassNames != null) {
       for (String radioMediumClassName : radioMediumsClassNames) {
         Class<? extends RadioMedium> radioMediumClass = tryLoadClass(this,
