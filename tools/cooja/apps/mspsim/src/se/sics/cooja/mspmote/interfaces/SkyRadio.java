@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: SkyRadio.java,v 1.2 2008/03/18 13:34:20 fros4943 Exp $
+ * $Id: SkyRadio.java,v 1.3 2008/03/18 15:48:00 fros4943 Exp $
  */
 
 package se.sics.cooja.mspmote.interfaces;
@@ -41,6 +41,7 @@ import org.apache.log4j.Logger;
 import org.jdom.Element;
 
 import se.sics.cooja.*;
+import se.sics.cooja.interfaces.CustomDataRadio;
 import se.sics.cooja.interfaces.Position;
 import se.sics.cooja.interfaces.Radio;
 import se.sics.cooja.mspmote.SkyMote;
@@ -53,7 +54,7 @@ import se.sics.mspsim.chip.PacketListener;
  * @author Fredrik Osterlind
  */
 @ClassDescription("CC2420")
-public class SkyRadio extends Radio {
+public class SkyRadio extends Radio implements CustomDataRadio {
   private static Logger logger = Logger.getLogger(SkyRadio.class);
 
   private int lastEventTime = 0;
@@ -90,6 +91,7 @@ public class SkyRadio extends Radio {
       public void transmissionStarted() {
         lastEventTime = myMote.getSimulation().getSimulationTime();
         lastEvent = RadioEvent.TRANSMISSION_STARTED;
+        /*logger.debug("----- SKY TRANSMISSION STARTED -----");*/
         setChanged();
         notifyObservers();
       }
@@ -104,6 +106,7 @@ public class SkyRadio extends Radio {
 
         lastEventTime = myMote.getSimulation().getSimulationTime();
         lastEvent = RadioEvent.CUSTOM_DATA_TRANSMITTED;
+        /*logger.debug("----- SKY CUSTOM DATA TRANSMITTED -----");*/
         setChanged();
         notifyObservers();
 
@@ -111,10 +114,12 @@ public class SkyRadio extends Radio {
 
         lastEventTime = myMote.getSimulation().getSimulationTime();
         lastEvent = RadioEvent.PACKET_TRANSMITTED;
+        /*logger.debug("----- SKY PACKET TRANSMITTED -----");*/
         setChanged();
         notifyObservers();
 
         lastEventTime = myMote.getSimulation().getSimulationTime();
+        /*logger.debug("----- SKY TRANSMISSION FINISHED -----");*/
         lastEvent = RadioEvent.TRANSMISSION_FINISHED;
         setChanged();
         notifyObservers();
@@ -134,6 +139,21 @@ public class SkyRadio extends Radio {
   public void setReceivedPacket(RadioPacket packet) {
     lastIncomingPacket = packet;
     lastIncomingCC2420Packet = CC2420RadioPacketConverter.fromCoojaToCC24240(packet);
+  }
+
+  /* Custom data radio support */
+  public Object getLastCustomDataTransmitted() {
+    return lastOutgoingCC2420Packet;
+  }
+
+  public Object getLastCustomDataReceived() {
+    return lastIncomingCC2420Packet;
+  }
+
+  public void receiveCustomData(Object data) {
+    if (data instanceof CC2420RadioPacket) {
+      lastIncomingCC2420Packet = (CC2420RadioPacket) data;
+    }
   }
 
   /* General radio support */
@@ -164,6 +184,7 @@ public class SkyRadio extends Radio {
 
     lastEventTime = myMote.getSimulation().getSimulationTime();
     lastEvent = RadioEvent.RECEPTION_STARTED;
+    /*logger.debug("----- SKY RECEPTION STARTED -----");*/
     setChanged();
     notifyObservers();
   }
@@ -186,6 +207,7 @@ public class SkyRadio extends Radio {
 
     lastEventTime = myMote.getSimulation().getSimulationTime();
     lastEvent = RadioEvent.RECEPTION_FINISHED;
+    /*logger.debug("----- SKY RECEPTION FINISHED -----");*/
     setChanged();
     notifyObservers();
   }
@@ -203,6 +225,7 @@ public class SkyRadio extends Radio {
 
     lastEventTime = myMote.getSimulation().getSimulationTime();
     lastEvent = RadioEvent.RECEPTION_INTERFERED;
+    /*logger.debug("----- SKY RECEPTION INTERFERED -----");*/
     setChanged();
     notifyObservers();
   }
