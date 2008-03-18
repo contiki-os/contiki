@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: TR1001Radio.java,v 1.5 2008/03/18 16:36:48 fros4943 Exp $
+ * $Id: TR1001Radio.java,v 1.6 2008/03/18 16:47:17 fros4943 Exp $
  */
 
 package se.sics.cooja.mspmote.interfaces;
@@ -104,6 +104,8 @@ public class TR1001Radio extends Radio implements USARTListener, CustomDataRadio
   private long lastDeliveredByteDelay = -1;
 
   private TR1001RadioPacketConverter tr1001PacketConverter = null;
+
+  private double signalStrength = 0;
 
   /**
    * Creates an interface to the TR1001 radio at mote.
@@ -287,7 +289,7 @@ public class TR1001Radio extends Radio implements USARTListener, CustomDataRadio
         this.setChanged();
         this.notifyObservers();
 
-        /*logger.debug("----- TR1001  TRANSMISSION ENDED -----");*/
+        /*logger.debug("----- TR1001 TRANSMISSION ENDED -----");*/
     }
   }
 
@@ -347,7 +349,7 @@ public class TR1001Radio extends Radio implements USARTListener, CustomDataRadio
 
   public double getCurrentOutputPower() {
     // TODO Implement method
-    return 1.5;
+    return 0;
   }
 
   public int getOutputPowerIndicatorMax() {
@@ -360,13 +362,11 @@ public class TR1001Radio extends Radio implements USARTListener, CustomDataRadio
   }
 
   public double getCurrentSignalStrength() {
-    // TODO Implement signal strength
-    return 100;
+    return signalStrength;
   }
 
   public void setCurrentSignalStrength(double signalStrength) {
-    // TODO Implement signal strength
-    // logger.warn("Not implemented");
+    this.signalStrength = signalStrength;
   }
 
   public Position getPosition() {
