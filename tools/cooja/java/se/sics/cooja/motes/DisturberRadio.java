@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: DisturberRadio.java,v 1.5 2008/03/17 09:50:27 fros4943 Exp $
+ * $Id: DisturberRadio.java,v 1.6 2008/03/18 12:54:39 fros4943 Exp $
  */
 
 package se.sics.cooja.motes;
@@ -43,16 +43,16 @@ import se.sics.cooja.*;
 import se.sics.cooja.interfaces.*;
 
 /**
- * This radio periodically transmits data on a configurable channel.
+ * This radio transmits data packet over and over again on a configurable channel.
  *
  * @author Fredrik Osterlind, Thiemo Voigt
  */
-public class DisturberRadio extends Radio implements PacketRadio {
+public class DisturberRadio extends Radio {
   private Mote myMote;
 
   private static Logger logger = Logger.getLogger(DisturberRadio.class);
 
-  private static byte[] packetFromMote = new byte[] { 1, 2, 3, 4, 5 };
+  private RadioPacket packetFromMote = new COOJARadioPacket(new byte[] { 1, 2, 3, 4, 5 });
 
   private boolean transmitting = false;
 
@@ -80,15 +80,15 @@ public class DisturberRadio extends Radio implements PacketRadio {
   }
 
   /* Packet radio support */
-  public byte[] getLastPacketTransmitted() {
+  public RadioPacket getLastPacketTransmitted() {
     return packetFromMote;
   }
 
-  public byte[] getLastPacketReceived() {
+  public RadioPacket getLastPacketReceived() {
     return null;
   }
 
-  public void setReceivedPacket(byte[] data) {
+  public void setReceivedPacket(RadioPacket packet) {
   }
 
 
