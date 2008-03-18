@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ContikiRadio.java,v 1.18 2008/03/17 09:50:27 fros4943 Exp $
+ * $Id: ContikiRadio.java,v 1.19 2008/03/18 12:52:01 fros4943 Exp $
  */
 
 package se.sics.cooja.contikimote.interfaces;
@@ -39,12 +39,11 @@ import org.jdom.Element;
 
 import se.sics.cooja.*;
 import se.sics.cooja.contikimote.ContikiMoteInterface;
-import se.sics.cooja.interfaces.PacketRadio;
 import se.sics.cooja.interfaces.Position;
 import se.sics.cooja.interfaces.Radio;
 
 /**
- * This class represents a radio transciever. In order to simulate different
+ * This class represents a radio transceiver. In order to simulate different
  * transmission rates, the underlying Contiki system can be locked in either
  * transmission or reception states (using multi-threading). When a transmission
  * is initiated, it will automatically lock the Contiki system. When a packet is
@@ -77,8 +76,7 @@ import se.sics.cooja.interfaces.Radio;
  *
  * @author Fredrik Osterlind
  */
-public class ContikiRadio extends Radio implements ContikiMoteInterface,
-    PacketRadio {
+public class ContikiRadio extends Radio implements ContikiMoteInterface {
   private Mote myMote;
 
   private SectionMoteMemory myMoteMemory;
@@ -102,9 +100,9 @@ public class ContikiRadio extends Radio implements ContikiMoteInterface,
 
   private double energyListeningRadioPerTick = -1;
 
-  private byte[] packetToMote = null;
+  private RadioPacket packetToMote = null;
 
-  private byte[] packetFromMote = null;
+  private RadioPacket packetFromMote = null;
 
   private boolean radioOn = true;
 
@@ -157,16 +155,16 @@ public class ContikiRadio extends Radio implements ContikiMoteInterface,
   }
 
   /* Packet radio support */
-  public byte[] getLastPacketTransmitted() {
+  public RadioPacket getLastPacketTransmitted() {
     return packetFromMote;
   }
 
-  public byte[] getLastPacketReceived() {
+  public RadioPacket getLastPacketReceived() {
     return packetToMote;
   }
 
-  public void setReceivedPacket(byte[] data) {
-    packetToMote = data;
+  public void setReceivedPacket(RadioPacket packet) {
+    packetToMote = packet;
   }
 
   /* General radio support */
@@ -227,8 +225,8 @@ public class ContikiRadio extends Radio implements ContikiMoteInterface,
     myMoteMemory.setByteValueOf("simReceiving", (byte) 0);
 
     // Set data
-    myMoteMemory.setIntValueOf("simInSize", packetToMote.length);
-    myMoteMemory.setByteArray("simInDataBuffer", packetToMote);
+    myMoteMemory.setIntValueOf("simInSize", packetToMote.getPacketData().length);
+    myMoteMemory.setByteArray("simInDataBuffer", packetToMote.getPacketData());
 
     lastEventTime = myMote.getSimulation().getSimulationTime();
     lastEvent = RadioEvent.RECEPTION_FINISHED;
@@ -374,8 +372,8 @@ public class ContikiRadio extends Radio implements ContikiMoteInterface,
         myMoteMemory.setByteValueOf("simTransmitting", (byte) 0);
         return;
       }
-      packetFromMote = myMoteMemory.getByteArray("simOutDataBuffer", size);
-      if (packetFromMote == null || packetFromMote.length == 0) {
+      packetFromMote = new COOJARadioPacket(myMoteMemory.getByteArray("simOutDataBuffer", size));
+      if (packetFromMote.getPacketData() == null || packetFromMote.getPacketData().length == 0) {
         logger.warn("Skipping zero sized Contiki packet (no buffer)");
         myMoteMemory.setByteValueOf("simTransmitting", (byte) 0);
         return;
