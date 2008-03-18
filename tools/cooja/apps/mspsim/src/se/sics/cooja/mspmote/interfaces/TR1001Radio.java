@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: TR1001Radio.java,v 1.3 2008/03/18 13:15:41 fros4943 Exp $
+ * $Id: TR1001Radio.java,v 1.4 2008/03/18 15:48:24 fros4943 Exp $
  */
 
 package se.sics.cooja.mspmote.interfaces;
@@ -229,16 +229,16 @@ public class TR1001Radio extends Radio implements USARTListener, CustomDataRadio
   public void dataReceived(USART source, int data) {
     if (outgoingDataLength == 0 && !isTransmitting()) {
       /* New transmission discovered */
-      //logger.debug("----- NEW MSP TRANSMISSION DETECTED -----");
+      /*logger.debug("----- NEW TR1001 TRANSMISSION DETECTED -----");*/
       tr1001PacketConverter = new TR1001RadioPacketConverter();
 
       transmitting = true;
-      lastEventTime = mspMote.getSimulation().getSimulationTime();
-      lastEvent = RadioEvent.TRANSMISSION_STARTED;
 
       transmissionStartCycles = mspMote.getCPU().cycles;
       lastDeliveredByteTimestamp = transmissionStartCycles;
 
+      lastEvent = RadioEvent.TRANSMISSION_STARTED;
+      lastEventTime = mspMote.getSimulation().getSimulationTime();
       this.setChanged();
       this.notifyObservers();
     }
@@ -252,12 +252,14 @@ public class TR1001Radio extends Radio implements USARTListener, CustomDataRadio
     }
 
     // Deliver byte to radio medium as custom data
+    /*logger.debug("----- TR1001 DELIVERED BYTE -----");*/
     lastEvent = RadioEvent.CUSTOM_DATA_TRANSMITTED;
     tr1001ByteFromMote = new TR1001RadioByte((byte) data, mspMote.getCPU().cycles - lastDeliveredByteTimestamp);
-    outgoingData[outgoingDataLength++] = tr1001ByteFromMote;
-    lastDeliveredByteTimestamp = mspMote.getCPU().cycles;
     this.setChanged();
     this.notifyObservers();
+
+    lastDeliveredByteTimestamp = mspMote.getCPU().cycles;
+    outgoingData[outgoingDataLength++] = tr1001ByteFromMote;
 
     // Feed to application level immediately
     boolean finished = tr1001PacketConverter.fromTR1001ToCoojaAccumulated(tr1001ByteFromMote);
@@ -267,7 +269,7 @@ public class TR1001Radio extends Radio implements USARTListener, CustomDataRadio
           packetFromMote = tr1001PacketConverter.getAccumulatedConvertedCoojaPacket();
 
           /* Notify observers of new prepared packet */
-          /*logger.debug("----- MSP DELIVERED PACKET -----");*/
+          /*logger.debug("----- TR1001 DELIVERED PACKET -----");*/
           lastEvent = RadioEvent.PACKET_TRANSMITTED;
           this.setChanged();
           this.notifyObservers();
@@ -283,7 +285,7 @@ public class TR1001Radio extends Radio implements USARTListener, CustomDataRadio
         this.setChanged();
         this.notifyObservers();
 
-        /*logger.debug("----- MSP TRANSMISSION ENDED -----");*/
+        /*logger.debug("----- TR1001  TRANSMISSION ENDED -----");*/
     }
   }
 
