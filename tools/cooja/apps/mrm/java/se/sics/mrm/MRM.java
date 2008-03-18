@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: MRM.java,v 1.6 2008/02/18 08:21:59 fros4943 Exp $
+ * $Id: MRM.java,v 1.7 2008/03/18 16:37:35 fros4943 Exp $
  */
 
 package se.sics.mrm;
@@ -94,7 +94,9 @@ public class MRM extends AbstractRadioMedium {
       if (sendingRadio == listeningRadio) {
         continue;
       }
-      if (sendingRadio.getChannel() != listeningRadio.getChannel()) {
+      if (sendingRadio.getChannel() >= 0 &&
+          listeningRadio.getChannel() >= 0 &&
+          sendingRadio.getChannel() != listeningRadio.getChannel()) {
         continue;
       }
 
