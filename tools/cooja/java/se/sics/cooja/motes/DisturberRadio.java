@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: DisturberRadio.java,v 1.6 2008/03/18 12:54:39 fros4943 Exp $
+ * $Id: DisturberRadio.java,v 1.7 2008/03/18 13:55:46 fros4943 Exp $
  */
 
 package se.sics.cooja.motes;
@@ -52,7 +52,7 @@ public class DisturberRadio extends Radio {
 
   private static Logger logger = Logger.getLogger(DisturberRadio.class);
 
-  private RadioPacket packetFromMote = new COOJARadioPacket(new byte[] { 1, 2, 3, 4, 5 });
+  private final RadioPacket packetFromMote = new COOJARadioPacket(new byte[] { 1, 2, 3, 4, 5 });
 
   private boolean transmitting = false;
 
