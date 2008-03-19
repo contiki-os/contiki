@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ContikiMoteTypeDialog.java,v 1.41 2008/02/12 15:25:41 fros4943 Exp $
+ * $Id: ContikiMoteTypeDialog.java,v 1.42 2008/03/19 09:41:03 fros4943 Exp $
  */
 
 package se.sics.cooja.contikimote;
@@ -157,35 +157,8 @@ public class ContikiMoteTypeDialog extends JDialog {
       myDialog.setTitle("Recompile Mote Type");
     } else {
       // Suggest new identifier
-      int counter = 0;
-      String testIdentifier = "";
-      boolean identifierOK = false;
-      while (!identifierOK) {
-        counter++;
-        testIdentifier = ID_PREFIX + counter;
-        identifierOK = true;
-
-        // Check if identifier is already used by some other type
-        for (MoteType existingMoteType : myDialog.allOtherTypes) {
-          if (existingMoteType != myDialog.myMoteType
-              && existingMoteType.getIdentifier().equals(testIdentifier)) {
-            identifierOK = false;
-            break;
-          }
-        }
-
-        // Check if library file with given identifier has already been loaded
-        if (identifierOK
-            && CoreComm.hasLibraryFileBeenLoaded(new File(
-                ContikiMoteType.tempOutputDirectory,
-                    testIdentifier
-                    + ContikiMoteType.librarySuffix))) {
-          identifierOK = false;
-        }
-      }
-
-      myDialog.textID.setText(testIdentifier);
-
+      String suggestedID = ContikiMoteType.generateUniqueMoteTypeID(myDialog.allOtherTypes, null);
+      myDialog.textID.setText(suggestedID);
     }
 
     // Set preset description of mote type
