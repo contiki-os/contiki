@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: CodeUI.java,v 1.2 2008/03/19 14:52:04 fros4943 Exp $
+ * $Id: CodeUI.java,v 1.3 2008/03/19 14:53:58 fros4943 Exp $
  */
 
 package se.sics.cooja.mspmote.plugins;
@@ -426,8 +426,6 @@ public class CodeUI extends JPanel {
             break;
           }
 
-          logger.debug(subToken.symbol.name + " is type " + subToken.symbol.type + " and gets color: " + colorString);
-
           /* Extract part of token residing in current line */
           int tokenLinePos;
           String subCode;
@@ -449,9 +447,7 @@ public class CodeUI extends JPanel {
             tokenLinePos + subToken.symbol.name.length() >= code.length()?
                 "":code.substring(tokenLinePos + subToken.symbol.name.length());
 
-            logger.debug(" IN>> '" + code + "'");
             code = firstPart + coloredSubCode + lastPart;
-            logger.debug("OUT>> '" + code + "'");
         }
 
         code = code.replace("  ", " &nbsp;");
