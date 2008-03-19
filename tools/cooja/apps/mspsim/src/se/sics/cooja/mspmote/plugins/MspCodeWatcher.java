@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: MspCodeWatcher.java,v 1.4 2008/03/19 15:26:18 fros4943 Exp $
+ * $Id: MspCodeWatcher.java,v 1.5 2008/03/19 17:27:35 fros4943 Exp $
  */
 
 package se.sics.cooja.mspmote.plugins;
@@ -37,9 +37,7 @@ import java.awt.event.*;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
-import java.io.InputStreamReader;
 import java.util.*;
-
 import javax.swing.*;
 import javax.swing.plaf.basic.BasicComboBoxRenderer;
 import org.apache.log4j.Logger;
@@ -74,7 +72,7 @@ public class MspCodeWatcher extends VisPlugin {
 
   private JLabel filenameLabel;
 
-  private Vector<File> files;
+  private Vector<File> sourceFilesAlpha;
   private JComboBox fileComboBox;
 
   /**
@@ -110,27 +108,25 @@ public class MspCodeWatcher extends VisPlugin {
 
     JPanel controlPanel = new JPanel();
 
-    // Extract files found in debugging info
-    files = new Vector<File>();
-    Enumeration fileEnum = debuggingInfo.keys();
-    while (fileEnum.hasMoreElements()) {
-      File file = (File) fileEnum.nextElement();
-
-      // Insert file on correct position
+    /* Create source file list */
+    File[] sourceFiles = getAllSourceFileNames();
+    sourceFilesAlpha = new Vector<File>();
+    for (File file: sourceFiles) {
+      /* Insert files alphabetically */
       int index = 0;
-      for (index=0; index < files.size(); index++) {
-        if (file.getName().compareToIgnoreCase(files.get(index).getName()) < 0) {
+      for (index=0; index < sourceFilesAlpha.size(); index++) {
+        if (file.getName().compareToIgnoreCase(sourceFilesAlpha.get(index).getName()) < 0) {
           break;
         }
       }
-      files.add(index, file);
+      sourceFilesAlpha.add(index, file);
     }
-    String[] fileNames = new String[files.size() + 1];
-    fileNames[0] = "[view sourcefile]";
-    for (int i=0; i < files.size(); i++) {
-      fileNames[i+1] = files.get(i).getName();
+    String[] sourceFilesAlphaArray = new String[sourceFilesAlpha.size() + 1];
+    sourceFilesAlphaArray[0] = "[view sourcefile]";
+    for (int i=0; i < sourceFilesAlpha.size(); i++) {
+      sourceFilesAlphaArray[i+1] = sourceFilesAlpha.get(i).getName();
     }
-    fileComboBox = new JComboBox(fileNames);
+    fileComboBox = new JComboBox(sourceFilesAlphaArray);
     fileComboBox.setSelectedIndex(0);
     fileComboBox.addActionListener(new ActionListener() {
       public void actionPerformed(ActionEvent e) {
@@ -145,7 +141,7 @@ public class MspCodeWatcher extends VisPlugin {
           setBackground(list.getSelectionBackground());
           setForeground(list.getSelectionForeground());
           if (index > 0) {
-            list.setToolTipText(files.get(index-1).getPath());
+            list.setToolTipText(sourceFilesAlpha.get(index-1).getPath());
           }
         } else {
           setBackground(list.getBackground());
@@ -216,7 +212,7 @@ public class MspCodeWatcher extends VisPlugin {
       return;
     }
 
-    File selectedFile = files.get(index-1);
+    File selectedFile = sourceFilesAlpha.get(index-1);
     Vector<String> codeData = readTextFile(selectedFile);
     codeUI.displayNewCode(selectedFile, codeData, -1);
     codeFile = null;
@@ -577,6 +573,9 @@ public class MspCodeWatcher extends VisPlugin {
     // Try locate source file
     File oldCodeFile = codeFile;
     updateCurrentSourceCodeFile();
+    if (codeFile == null) {
+      return;
+    }
 
     // If found and not already loaded, load source file
     if (oldCodeFile == null || !oldCodeFile.getPath().equals(codeFile.getPath())) {
@@ -609,10 +608,19 @@ public class MspCodeWatcher extends VisPlugin {
     codeFile = null;
 
     try {
-      DebugInfo debugInfo = mspMote.myELFModule.getDebugInfo(mspMote.getCPU().reg[MSP430.PC]);
+      DebugInfo debugInfo = mspMote.getELF().getDebugInfo(mspMote.getCPU().reg[MSP430.PC]);
+
+      if (debugInfo == null) {
+        return;
+      }
 
       /* Nasty Cygwin-Windows fix */
       String path = debugInfo.getPath();
+
+      if (path == null) {
+        return;
+      }
+
       if (path.contains("/cygdrive/")) {
         int index = path.indexOf("/cygdrive/");
         char driveCharacter = path.charAt(index+10);
@@ -624,89 +632,75 @@ public class MspCodeWatcher extends VisPlugin {
       lineNumber = debugInfo.getLine();
 
     } catch (Exception e) {
-      logger.fatal(e);
+      logger.fatal("Exception: " + e);
       codeFile = null;
       lineNumber = -1;
     }
   }
 
-  private Hashtable<File, Hashtable<Integer, Integer>> getFirmwareDebugInfo() {
-    return getFirmwareDebugInfo(moteType.getELFFile());
-  }
+  private File[] getAllSourceFileNames() {
+    String[] sourceFiles = mspMote.getELF().debug.getSourceFiles();
+    Vector<File> files = new Vector<File>();
 
-  /**
-   * Tries to read debugging information from firmware file using objdump.
-   *
-   * @return Hashtable with debugging information
-   */
-  public static Hashtable<File, Hashtable<Integer, Integer>> getFirmwareDebugInfo(File firmware) {
-    Hashtable<File, Hashtable<Integer, Integer>> debuggingInfo =
-      new Hashtable<File, Hashtable<Integer, Integer>>();
-
-    Hashtable<Integer, Integer> currentHashtable = null;
-    try {
-      String[] cmd = new String[]{
-          "objdump",
-          "-g",
-          firmware.getPath()
-      };
-
-      Process p = Runtime.getRuntime().exec(cmd);
-
-      BufferedReader input =
-        new BufferedReader(
-            new InputStreamReader(
-                p.getInputStream()));
-
-      String line = null;
-      while ((line = input.readLine()) != null) {
-        line = line.trim();
-
-        /* Check for new source file */
-        if (line.endsWith(":")) {
-          String fileName = line.substring(0, line.length()-1);
-          fileName = fileName.replace("/cygdrive/c/", "c:/");
-          currentHashtable = null;
-
-          // Try path unchanged
-          File file = new File(fileName);
-          if (currentHashtable == null && file.exists()) {
-            currentHashtable = new Hashtable<Integer, Integer>();
-            debuggingInfo.put(file, currentHashtable);
-          }
-
-          // Try adding firmwarepath
-          file = new File(firmware.getParent(), fileName);
-          if (currentHashtable == null && file.exists()) {
-            currentHashtable = new Hashtable<Integer, Integer>();
-            debuggingInfo.put(file, currentHashtable);
-          }
-
-          if (currentHashtable == null) { // TODO Currently always true
-            logger.warn("Can't locate file: " + fileName);
-          }
-        }
-
-        /* Check for source file line info */
-        if (currentHashtable != null && line.startsWith("/* file ")) {
-          String[] lineInfo = line.split(" ");
-
-          String lineNrString = lineInfo[lineInfo.length-4];
-          String addressString = lineInfo[lineInfo.length-2];
-
-          int lineNr = Integer.parseInt(lineNrString);
-          int address = Integer.parseInt(addressString.substring(2), 16);
-
-          currentHashtable.put(new Integer(lineNr), new Integer(address));
-        }
+    for (String sourceFile: sourceFiles) {
+      /* Nasty Cygwin-Windows fix */
+      if (sourceFile.contains("/cygdrive/")) {
+        int index = sourceFile.indexOf("/cygdrive/");
+        char driveCharacter = sourceFile.charAt(index+10);
+        sourceFile = sourceFile.replace("/cygdrive/" + driveCharacter + "/", driveCharacter + ":/");
       }
 
-      input.close();
-
-    } catch (Exception e) {
-      logger.fatal("Error while calling objdump: " + e);
+      File file = new File(sourceFile);
+      if (!file.exists() || !file.isFile()) {
+        logger.warn("Can't locate source file, skipping: " + file.getPath());
+      } else {
+        files.add(file);
+      }
     }
-    return debuggingInfo;
+
+    File[] filesArray = new File[files.size()];
+    for (int i=0; i < filesArray.length; i++) {
+      filesArray[i] = files.get(i);
+    }
+
+    return filesArray;
+  }
+
+  private Hashtable<File, Hashtable<Integer, Integer>> getFirmwareDebugInfo() {
+
+    /* Fetch all executable addresses */
+    ArrayList<Integer> addresses = mspMote.getELF().debug.getExecutableAddresses();
+
+    Hashtable<File, Hashtable<Integer, Integer>> fileToLineHash =
+      new Hashtable<File, Hashtable<Integer, Integer>>();
+
+    for (int address: addresses) {
+      DebugInfo info = mspMote.getELF().getDebugInfo(address);
+
+      if (info != null && info.getPath() != null && info.getFile() != null && info.getLine() >= 0) {
+
+        /* Nasty Cygwin-Windows fix */
+        String path = info.getPath();
+        if (path.contains("/cygdrive/")) {
+          int index = path.indexOf("/cygdrive/");
+          char driveCharacter = path.charAt(index+10);
+
+          path = path.replace("/cygdrive/" + driveCharacter + "/", driveCharacter + ":/");
+        }
+
+        File file = new File(path, info.getFile());
+
+        Hashtable<Integer, Integer> lineToAddrHash = fileToLineHash.get(file);
+        if (lineToAddrHash == null) {
+          lineToAddrHash = new Hashtable<Integer, Integer>();
+          fileToLineHash.put(file, lineToAddrHash);
+        }
+
+        lineToAddrHash.put(info.getLine(), address);
+      }
+    }
+
+    return fileToLineHash;
   }
 
   /**
