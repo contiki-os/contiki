@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: CodeUI.java,v 1.1 2008/02/07 14:55:18 fros4943 Exp $
+ * $Id: CodeUI.java,v 1.2 2008/03/19 14:52:04 fros4943 Exp $
  */
 
 package se.sics.cooja.mspmote.plugins;
@@ -37,11 +37,15 @@ import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.io.File;
+import java.util.Enumeration;
 import java.util.Vector;
 import javax.swing.*;
 import org.apache.log4j.Logger;
 
 import se.sics.cooja.mspmote.plugins.MspCodeWatcher.Breakpoints;
+import se.sics.mspsim.extutil.highlight.CScanner;
+import se.sics.mspsim.extutil.highlight.Token;
+import se.sics.mspsim.extutil.highlight.TokenTypes;
 
 /**
  * Displays source code and allows a user to add and remove breakpoints.
@@ -56,6 +60,9 @@ public class CodeUI extends JPanel {
   private File currentFile = null;
 
   private Breakpoints breakpoints = null;
+
+  private Token tokensArray[][] = null;
+  private int tokensStartPos[] = null;
 
   /**
    * @param breakpoints Breakpoints
@@ -75,6 +82,7 @@ public class CodeUI extends JPanel {
         }
       }
     });
+
   }
 
   /**
@@ -92,6 +100,74 @@ public class CodeUI extends JPanel {
     return;
   }
 
+  private void createTokens(Vector<String> codeData) {
+
+    /* Merge code lines */
+    String code = "";
+    for (String line: codeData) {
+      code += line + "\n";
+    }
+
+    /* Scan code */
+    CScanner cScanner = new CScanner();
+    cScanner.change(0, 0, code.length());
+    int nrTokens;
+    nrTokens = cScanner.scan(code.toCharArray(), 0, code.length());
+
+    /* Extract tokens */
+    Vector<Token> codeTokensVector = new Vector<Token>();
+    for (int i=0; i < nrTokens; i++) {
+      Token token = cScanner.getToken(i);
+      codeTokensVector.add(token);
+    }
+
+    /* Create new line token array */
+    Token newTokensArray[][] = new Token[codeData.size()][];
+    int[] newTokensStartPos = new int[codeData.size()];
+    int lineStart=0, lineEnd=-1;
+    Enumeration<Token> tokensEnum = codeTokensVector.elements();
+    Token currentToken = tokensEnum.nextElement();
+    for (int i=0; i < newTokensArray.length; i++) {
+      lineStart = lineEnd + 1;
+      lineEnd = lineStart + codeData.get(i).length();
+
+      newTokensStartPos[i] = lineStart;;
+
+      /* Advance tokens until correct line */
+      while (currentToken.position + currentToken.symbol.name.length() < lineStart) {
+        if (!tokensEnum.hasMoreElements()) {
+          break;
+        }
+        currentToken = tokensEnum.nextElement();
+      }
+
+      /* Advance tokens until last token on line */
+      Vector<Token> lineTokens = new Vector<Token>();
+      while (currentToken.position < lineEnd) {
+        lineTokens.add(currentToken);
+
+        if (!tokensEnum.hasMoreElements()) {
+          break;
+        }
+        currentToken = tokensEnum.nextElement();
+      }
+
+      if (currentToken == null) {
+        break;
+      }
+
+      /* Store line tokens */
+      Token[] lineTokensArray = new Token[lineTokens.size()];
+      for (int j=0; j < lineTokens.size(); j++) {
+        lineTokensArray[j] = lineTokens.get(j);
+      }
+      newTokensArray[i] = lineTokensArray;
+    }
+
+    /* Start using tokens array */
+    tokensArray = newTokensArray;
+    tokensStartPos = newTokensStartPos;
+  }
 
   /**
    * Display given source code and mark given line.
@@ -133,6 +209,8 @@ public class CodeUI extends JPanel {
         });
         panel.removeAll();
         panel.add(codeList);
+
+        createTokens(codeData);
         displayLine(lineNr);
       }
     });
@@ -252,6 +330,58 @@ public class CodeUI extends JPanel {
     }
   }
 
+  /* FROM: http://www.rgagnon.com/javadetails/java-0306.html, 03/19/2008 */
+  private static String stringToHTMLString(String string) {
+    StringBuffer sb = new StringBuffer(string.length());
+    boolean lastWasBlankChar = false;
+    int len = string.length();
+    char c;
+
+    for (int i = 0; i < len; i++)
+    {
+      c = string.charAt(i);
+      if (c == ' ') {
+        if (lastWasBlankChar) {
+          lastWasBlankChar = false;
+          sb.append("&nbsp;");
+        }
+        else {
+          lastWasBlankChar = true;
+          sb.append(' ');
+        }
+      }
+      else {
+        lastWasBlankChar = false;
+        //
+        // HTML Special Chars
+        if (c == '"') {
+          sb.append("&quot;");
+        } else if (c == '&') {
+          sb.append("&amp;");
+        } else if (c == '<') {
+          sb.append("&lt;");
+        } else if (c == '>') {
+          sb.append("&gt;");
+        } else if (c == '\n') {
+          // Handle Newline
+          sb.append("&lt;br/&gt;");
+        } else {
+          int ci = 0xffff & c;
+          if (ci < 160 ) {
+            // nothing special only 7 Bit
+            sb.append(c);
+          } else {
+            // Not 7 Bit use the unicode system
+            sb.append("&#");
+            sb.append(new Integer(ci).toString());
+            sb.append(';');
+          }
+        }
+      }
+    }
+    return sb.toString();
+  }
+
   private class CodeCellRenderer extends JLabel implements ListCellRenderer {
     private int currentIndex;
 
@@ -263,6 +393,76 @@ public class CodeUI extends JPanel {
       this.currentIndex = currentLineNr - 1;
     }
 
+    private String getColoredLabelText(int lineNr, int lineStartPos, Token[] tokens, String code) {
+      String html = "<html>";
+
+      /* Add line number */
+      html += "<font color=\"333333\">" + lineNr + ":  </font>";
+
+      /* Add code */
+      if (tokens == null || tokens.length == 0 || lineStartPos < 0) {
+        html += "<font color=\"000000\">" + code + "</font>";
+      } else {
+        for (int i=tokens.length-1; i >= 0; i--) {
+          Token subToken = tokens[i];
+
+          String colorString = "000000";
+
+          /* Determine code color */
+          final int type = subToken.symbol.type;
+          switch (type) {
+          case TokenTypes.COMMENT:
+          case TokenTypes.START_COMMENT:
+          case TokenTypes.MID_COMMENT:
+          case TokenTypes.END_COMMENT:
+            colorString = "00AA00";
+            break;
+          case TokenTypes.STRING:
+            colorString = "0000AA";
+            break;
+          case TokenTypes.KEYWORD:
+          case TokenTypes.KEYWORD2:
+            colorString = "AA0000";
+            break;
+          }
+
+          logger.debug(subToken.symbol.name + " is type " + subToken.symbol.type + " and gets color: " + colorString);
+
+          /* Extract part of token residing in current line */
+          int tokenLinePos;
+          String subCode;
+          if (subToken.position < lineStartPos) {
+            subCode = subToken.symbol.name.substring(lineStartPos - subToken.position);
+            tokenLinePos = 0;
+          } else if (subToken.position + subToken.symbol.name.length() > lineStartPos + code.length()) {
+            subCode = subToken.symbol.name.substring(0, code.length() + lineStartPos - subToken.position);
+            tokenLinePos = subToken.position - lineStartPos;
+          } else {
+            subCode = subToken.symbol.name;
+            tokenLinePos = subToken.position - lineStartPos;
+          }
+
+          subCode = stringToHTMLString(subCode);
+          String firstPart = code.substring(0, tokenLinePos);
+          String coloredSubCode = "<font color=\"" + colorString + "\">" + subCode + "</font>";
+          String lastPart =
+            tokenLinePos + subToken.symbol.name.length() >= code.length()?
+                "":code.substring(tokenLinePos + subToken.symbol.name.length());
+
+            logger.debug(" IN>> '" + code + "'");
+            code = firstPart + coloredSubCode + lastPart;
+            logger.debug("OUT>> '" + code + "'");
+        }
+
+        code = code.replace("  ", " &nbsp;");
+        html += code;
+      }
+
+      html += "</html>";
+      return html;
+    }
+
+
     public Component getListCellRendererComponent(
        JList list,
        Object value,
@@ -272,7 +472,12 @@ public class CodeUI extends JPanel {
      {
       int lineNr = index + 1;
 
-      setText(lineNr + ":  " + value);
+      if (tokensArray != null && index < tokensArray.length && tokensArray[index] != null) {
+        setText(getColoredLabelText(lineNr, tokensStartPos[index], tokensArray[index], (String) value));
+      } else {
+        setText(getColoredLabelText(lineNr, 0, null, (String) value));
+      }
+
       if (index == currentIndex) {
         setBackground(Color.green);
       } else if (isSelected) {
@@ -290,6 +495,7 @@ public class CodeUI extends JPanel {
       } else {
         setFont(list.getFont());
       }
+
       setOpaque(true);
 
       return this;
