@@ -24,7 +24,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * $Id: GUI.java,v 1.73 2008/03/18 12:49:18 fros4943 Exp $
+ * $Id: GUI.java,v 1.74 2008/03/19 09:40:38 fros4943 Exp $
  */
 
 package se.sics.cooja;
@@ -39,6 +39,8 @@ import java.net.URLClassLoader;
 import java.security.AccessControlException;
 import java.util.*;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import javax.swing.*;
 import javax.swing.event.MenuEvent;
 import javax.swing.event.MenuListener;
@@ -2094,12 +2096,12 @@ public class GUI {
       return;
     }
 
-    if (CoreComm.hasLibraryBeenLoaded()) {
+    /*if (CoreComm.hasLibraryBeenLoaded()) {
       JOptionPane.showMessageDialog(GUI.getTopParentContainer(),
           "Shared libraries has already been loaded.\nYou need to restart the simulator!",
           "Can't load simulation", JOptionPane.ERROR_MESSAGE);
       return;
-    }
+    }*/
 
     if (askForConfirmation && mySimulation != null) {
       String s1 = "Remove";
@@ -2255,78 +2257,23 @@ public class GUI {
     final Thread loadThread = new Thread(new Runnable() {
       public void run() {
 
-        // Create mappings to new mote type identifiers
-        Properties moteTypeNames = new Properties();
-        for (MoteType moteType: getSimulation().getMoteTypes()) {
-          if (moteType.getClass().equals(ContikiMoteType.class)) {
-            // Suggest new identifier
-            int counter = 0;
-            String testIdentifier = "";
-            boolean identifierOK = false;
-            while (!identifierOK) {
-              counter++;
-              testIdentifier = ContikiMoteTypeDialog.ID_PREFIX + counter;
-              identifierOK = true;
-
-              // Check if identifier already reserved for some other type
-              if (moteTypeNames.containsValue(testIdentifier)) {
-                identifierOK = false;
-              }
-
-              // Check if identifier is already used by some other type
-              for (MoteType existingMoteType : getSimulation().getMoteTypes()) {
-                if (existingMoteType != moteType
-                    && existingMoteType.getIdentifier().equals(testIdentifier)) {
-                  identifierOK = false;
-                  break;
-                }
-              }
-
-              // Check if library file with given identifier has already been loaded
-              if (identifierOK
-                  && CoreComm.hasLibraryFileBeenLoaded(new File(
-                      ContikiMoteType.tempOutputDirectory,
-                      testIdentifier
-                      + ContikiMoteType.librarySuffix))) {
-                identifierOK = false;
-              }
-            }
-
-            moteTypeNames.setProperty(moteType.getIdentifier(), testIdentifier);
-          }
-        }
-
-        // Get current simulation configuration
+        /* Get current simulation configuration */
+        Element root = new Element("simconf");
         Element simulationElement = new Element("simulation");
         simulationElement.addContent(getSimulation().getConfigXML());
-        Collection<Element> pluginsConfig = getPluginsConfigXML();
-
-        // Scan and replace old configuration mote type names
-        Element root = new Element("simconf");
         root.addContent(simulationElement);
-
+        Collection<Element> pluginsConfig = getPluginsConfigXML();
         if (pluginsConfig != null) {
           root.addContent(pluginsConfig);
         }
 
-        Document doc = new Document(root);
-        XMLOutputter outputter = new XMLOutputter();
-        outputter.setFormat(Format.getPrettyFormat());
-        String configXML = outputter.outputString(doc);
-
-        Enumeration oldNames = moteTypeNames.keys();
-        while (oldNames.hasMoreElements()) {
-          String oldName = (String) oldNames.nextElement();
-          configXML = configXML.replaceAll(">" + oldName + "<", ">" + moteTypeNames.get(oldName) + "<");
-        }
-
-        // Reload altered simulation config
+        /* Remove current simulation, and load config */
         boolean shouldRetry = false;
         do {
           try {
             shouldRetry = false;
             myGUI.doRemoveSimulation(false);
-            Simulation newSim = loadSimulationConfig(new StringReader(configXML), true);
+            Simulation newSim = loadSimulationConfig(root, true);
             myGUI.setSimulation(newSim);
           } catch (UnsatisfiedLinkError e) {
             shouldRetry = showErrorDialog(frame, "Simulation reload error", e, true);
@@ -3188,6 +3135,45 @@ public class GUI {
         logger.fatal("Not a valid COOJA simulation config!");
         return null;
       }
+
+      /* GENERATE UNIQUE MOTE TYPE IDENTIFIERS */
+      root.detach();
+      String configString = new XMLOutputter().outputString(new Document(root));
+
+      /* Locate Contiki mote types in config */
+      Properties moteTypeIDMappings = new Properties();
+      String identifierExtraction = ContikiMoteType.class.getName() + "[\\s\\n]*<identifier>([^<]*)</identifier>";
+      Matcher matcher = Pattern.compile(identifierExtraction).matcher(configString);
+      while (matcher.find()) {
+        moteTypeIDMappings.setProperty(matcher.group(1), "");
+      }
+
+      /* Create old to new identifier mappings */
+      Enumeration existingIdentifiers = moteTypeIDMappings.keys();
+      while (existingIdentifiers.hasMoreElements()) {
+        String existingIdentifier = (String) existingIdentifiers.nextElement();
+        Collection<MoteType> existingMoteTypes = null;
+        if (mySimulation != null) {
+          existingMoteTypes = mySimulation.getMoteTypes();
+        }
+        String newID = ContikiMoteType.generateUniqueMoteTypeID(existingMoteTypes, moteTypeIDMappings.values());
+        moteTypeIDMappings.setProperty(existingIdentifier, newID);
+      }
+
+      /* Create new config */
+      existingIdentifiers = moteTypeIDMappings.keys();
+      while (existingIdentifiers.hasMoreElements()) {
+        String existingIdentifier = (String) existingIdentifiers.nextElement();
+        configString = configString.replaceAll(
+            "<identifier>" + existingIdentifier + "</identifier>",
+            "<identifier>" + moteTypeIDMappings.get(existingIdentifier) + "</identifier>");
+        configString = configString.replaceAll(
+            "<motetype_identifier>" + existingIdentifier + "</motetype_identifier>",
+            "<motetype_identifier>" + moteTypeIDMappings.get(existingIdentifier) + "</motetype_identifier>");
+      }
+
+      /* Replace existing config */
+      root = new SAXBuilder().build(new StringReader(configString)).getRootElement();
 
       // Create new simulation from config
       for (Object element : root.getChildren()) {
