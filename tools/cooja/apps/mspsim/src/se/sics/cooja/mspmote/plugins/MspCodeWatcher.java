@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: MspCodeWatcher.java,v 1.3 2008/03/19 15:17:22 fros4943 Exp $
+ * $Id: MspCodeWatcher.java,v 1.4 2008/03/19 15:26:18 fros4943 Exp $
  */
 
 package se.sics.cooja.mspmote.plugins;
@@ -105,6 +105,8 @@ public class MspCodeWatcher extends VisPlugin {
         new JScrollPane(instructionsUI, JScrollPane.VERTICAL_SCROLLBAR_ALWAYS, JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED),
         new JScrollPane(breakpointsUI, JScrollPane.VERTICAL_SCROLLBAR_ALWAYS, JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED)
     );
+    leftPanel.setOneTouchExpandable(true);
+    leftPanel.setResizeWeight(0.5);
 
     JPanel controlPanel = new JPanel();
 
@@ -173,11 +175,15 @@ public class MspCodeWatcher extends VisPlugin {
     });
     controlPanel.add(stepButton);
 
-    add(BorderLayout.CENTER, new JSplitPane(
+    JSplitPane splitPane = new JSplitPane(
         JSplitPane.HORIZONTAL_SPLIT,
         leftPanel,
-        new JScrollPane(codeUI)
-    ));
+        new JScrollPane(codeUI));
+    splitPane.setOneTouchExpandable(true);
+    splitPane.setResizeWeight(0.1);
+
+    add(BorderLayout.CENTER, splitPane);
+
     add(BorderLayout.SOUTH, controlPanel);
     add(BorderLayout.NORTH, topPanel);
 
