@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: MspMote.java,v 1.3 2008/03/17 09:54:19 fros4943 Exp $
+ * $Id: MspMote.java,v 1.4 2008/03/19 15:17:59 fros4943 Exp $
  */
 
 package se.sics.cooja.mspmote;
@@ -60,6 +60,7 @@ public abstract class MspMote implements Mote {
   private MspMoteType myMoteType = null;
   private MspMoteMemory myMemory = null;
   private MoteInterfaceHandler myMoteInterfaceHandler = null;
+  public ELF myELFModule = null;
 
   protected TR1001Radio myRadio = null; /* TODO Only used by ESB (TR1001) */
 
@@ -174,7 +175,7 @@ public abstract class MspMote implements Mote {
 
     int[] memory = myCpu.getMemory();
 
-    ELF myELFModule = ELF.readELF(fileELF.getPath());
+    myELFModule = ELF.readELF(fileELF.getPath());
     myELFModule.loadPrograms(memory);
     MapTable map = myELFModule.getMap();
     myCpu.getDisAsm().setMap(map);
