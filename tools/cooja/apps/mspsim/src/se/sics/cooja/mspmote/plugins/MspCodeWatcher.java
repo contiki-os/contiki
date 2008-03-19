@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: MspCodeWatcher.java,v 1.2 2008/02/11 11:50:44 fros4943 Exp $
+ * $Id: MspCodeWatcher.java,v 1.3 2008/03/19 15:17:22 fros4943 Exp $
  */
 
 package se.sics.cooja.mspmote.plugins;
@@ -51,7 +51,7 @@ import se.sics.cooja.mspmote.MspMoteType;
 import se.sics.mspsim.core.CPUMonitor;
 import se.sics.mspsim.core.MSP430;
 import se.sics.mspsim.ui.DebugUI;
-import se.sics.mspsim.util.Utils;
+import se.sics.mspsim.util.DebugInfo;
 
 @ClassDescription("Msp Code Watcher")
 @PluginType(PluginType.MOTE_PLUGIN)
@@ -603,40 +603,22 @@ public class MspCodeWatcher extends VisPlugin {
     codeFile = null;
 
     try {
-      String[] cmd = new String[]{
-          "addr2line",
-          "-e",
-          moteType.getELFFile().getPath(),
-          Utils.hex16(mspMote.getCPU().reg[MSP430.PC])
-      };
+      DebugInfo debugInfo = mspMote.myELFModule.getDebugInfo(mspMote.getCPU().reg[MSP430.PC]);
 
-      Process p = Runtime.getRuntime().exec(cmd);
+      /* Nasty Cygwin-Windows fix */
+      String path = debugInfo.getPath();
+      if (path.contains("/cygdrive/")) {
+        int index = path.indexOf("/cygdrive/");
+        char driveCharacter = path.charAt(index+10);
 
-      BufferedReader input =
-        new BufferedReader(
-            new InputStreamReader(
-                p.getInputStream()));
-
-      String output = input.readLine();
-      input.close();
-
-      if (output == null || output.startsWith("?")) {
-        return;
+        path = path.replace("/cygdrive/" + driveCharacter + "/", driveCharacter + ":/");
       }
 
-      String[] fileInfo = output.split(":");
-      if (fileInfo.length != 2) {
-        return;
-      }
-
-      // TODO Ugly Cygwin-Windows support
-      fileInfo[0] = fileInfo[0].replace("/cygdrive/c/", "c:/");
-
-      codeFile = new File(fileInfo[0]);
-      lineNumber = Integer.parseInt(fileInfo[1]);
+      codeFile = new File(path, debugInfo.getFile());
+      lineNumber = debugInfo.getLine();
 
     } catch (Exception e) {
-      logger.fatal("Error while calling addr2line: " + e);
+      logger.fatal(e);
       codeFile = null;
       lineNumber = -1;
     }
