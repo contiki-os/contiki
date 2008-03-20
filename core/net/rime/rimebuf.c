@@ -33,7 +33,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: rimebuf.c,v 1.12 2008/02/25 02:14:35 adamdunkels Exp $
+ * $Id: rimebuf.c,v 1.13 2008/03/20 09:40:31 adamdunkels Exp $
  */
 
 /**
@@ -264,7 +264,7 @@ rimebuf_attr_clear(void)
   }
   for(i = 0; i < RIMEBUF_NUM_ADDRS; ++i) {
     rimebuf_addrs[i].type = RIMEBUF_ATTR_NONE;
-    rimebuf_addrs[i].addr = rimeaddr_null;
+    rimeaddr_copy(&rimebuf_addrs[i].addr, &rimeaddr_null);
   }
 }
 /*---------------------------------------------------------------------------*/
