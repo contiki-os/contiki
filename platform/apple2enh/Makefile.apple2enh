@@ -1,4 +1,15 @@
 CONTIKI_SOURCEFILES += log-asm.S pfs.S
 
+HIGHCODE_SOURCEFILES = process.c etimer.c uip_arp.c
+
+define highcode_template
+$(OBJECTDIR)/$(1:.c=.o): $(1)
+	$$(CC) --code-name HIGHCODE $$(CFLAGS) --create-dep $$< -o $$(@:.o=.s)
+	@$$(AS) $$(ASFLAGS) $$(@:.o=.s) -o $$@
+	@sed 's!.s:!.o:!' < $$(@:.o=.u) > $$(@:.o=.d)
+	@rm -f $$(@:.o=.s) $$(@:.o=.u)
+endef
+${foreach OBJECT,$(HIGHCODE_SOURCEFILES),${eval ${call highcode_template,$(OBJECT)}}}
+
 CONTIKI_CPU = $(CONTIKI)/cpu/6502
 include $(CONTIKI_CPU)/Makefile.6502
