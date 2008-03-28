@@ -112,10 +112,17 @@ main(void)
   leds_off(LEDS_ALL);
 
 #ifdef WITH_SDC
-  spi_init();
-  sd_init();
-  if (sd_init_card(&sd_cache) == SD_INIT_SUCCESS) {
-    printf("SD card initialized\n");
+  {
+    int r;
+    sdspi_init();
+    sd_init();
+    r = sd_init_card(&sd_cache);
+    if (r == SD_INIT_SUCCESS) {
+      printf("Found SD card (%lu bytes)\n", sd_get_size());
+      uart_set_mode(UART_MODE_SPI);
+    } else {
+      printf("SD card initialization failed: %d\n", r);
+    }
   }
 #endif
 
