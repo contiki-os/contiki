@@ -116,13 +116,14 @@ uart_set_speed(unsigned mode, unsigned ubr0,
 		unsigned ubr1, unsigned umctl)
 {
   // store setting
-  uart_speed_br0[mode] = ubr0;		// baudrate
-  uart_speed_br1[mode] = ubr1;		// baudrate
+  uart_speed_br0[mode] = ubr0;	// baudrate
+  uart_speed_br1[mode] = ubr1;	// baudrate
   uart_speed_bmn[mode] = umctl;	// modulation
 
   // reconfigure, if mode active
-  if (uart_mode == mode)
+  if (uart_mode == mode) {
     uart_configure(mode);
+  }
 }
 /*---------------------------------------------------------------------------*/
 void
@@ -143,7 +144,7 @@ int
 uart_lock(unsigned mode)
 {
   // already locked?
-  if (uart_lockcnt > 0) {
+  if (uart_mode != mode && uart_lockcnt > 0) {
     return 0;
   }
 
@@ -155,16 +156,26 @@ uart_lock(unsigned mode)
 }
 /*---------------------------------------------------------------------------*/
 int
+uart_lock_wait(unsigned mode)
+{
+  while (UART_WAIT_LOCK(mode)) {
+    _NOP();
+  }
+  return uart_lock(mode);
+}
+/*---------------------------------------------------------------------------*/
+int
 uart_unlock(unsigned mode)
 {
   if ((uart_lockcnt == 0) || (mode != uart_mode)) {
+    uart_lockcnt = 0;
+    uart_set_mode(UART_MODE_DEFAULT);
     return 0;
   }
 
   // decrement lock
   if (uart_lockcnt > 0) {
     uart_lockcnt--;
-
     // if no more locks, switch back to default mode
     if (uart_lockcnt == 0) {
       uart_set_mode(UART_MODE_DEFAULT);
@@ -178,15 +189,17 @@ void
 uart_set_mode(unsigned mode)
 {
   // do nothing if mode already set
-  if (mode == uart_mode)
+  if (mode == uart_mode) {
     return;
+  }
 
   IE2 &= ~(URXIE1 | UTXIE1);		// disable irq
   uart_configure(mode);			// configure uart parameters
   uart_mode = mode;
 	
-  if (uart_handler[mode] != NULL)
+  if (uart_handler[mode] != NULL) {
     IE2 |= URXIE1;			// Enable USART1 RX interrupt
+  }
 }
 /*---------------------------------------------------------------------------*/
 int
