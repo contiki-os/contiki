@@ -1,6 +1,5 @@
-telnetd_src = telnetd.c memb.c \
-	      shell.c shell-file.c shell-ps.c shell-run.c \
-	      shell-text.c shell-time.c list.c random.c
+telnetd_src = telnetd.c memb.c list.c random.c
 telnetd_dsc = telnetd-dsc.c
-APPS+=shell
--include $(CONTIKI)/apps/shell/Makefile.shell
+
+APPS += shell
+include $(CONTIKI)/apps/shell/Makefile.shell
