@@ -99,10 +99,11 @@ typedef unsigned int(*fp_uart_handler)(unsigned char);
  */
 void uart_init(void);
 
-void uart_set_speed(unsigned mode, unsigned ubr0, unsigned ubr1, unsigned umctl);
-void uart_set_handler(unsigned mode, fp_uart_handler fpHandler);
-int uart_lock(unsigned mode);
-int uart_unlock(unsigned mode);
+void uart_set_speed(unsigned, unsigned, unsigned, unsigned);
+void uart_set_handler(unsigned, fp_uart_handler);
+int uart_lock(unsigned);
+int uart_lock_wait(unsigned);
+int uart_unlock(unsigned);
 void uart_set_mode(unsigned);
 int uart_get_mode(void);
 
