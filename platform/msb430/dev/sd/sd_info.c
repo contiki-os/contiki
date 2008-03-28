@@ -1,4 +1,3 @@
-
 /*
 Copyright 2007, Freie Universitaet Berlin. All rights reserved.
 
@@ -48,11 +47,10 @@ Berlin, 2007
  * @brief	MMC-/SD-Card library, Additional Information
  * 
  * @author	Michael Baar	<baar@inf.fu-berlin.de>
- * @version	$Revision: 1.2 $
+ * @version	$Revision: 1.3 $
  *
- * $Id: sd_info.c,v 1.2 2008/03/28 15:58:44 nvt-se Exp $
+ * $Id: sd_info.c,v 1.3 2008/03/28 23:03:05 nvt-se Exp $
  */
-
 
 /**
  * @addtogroup	libsd
@@ -64,45 +62,27 @@ Berlin, 2007
 unsigned int
 sd_read_cid(struct sd_cid *pCID)
 {
-
   return _sd_read_register(pCID, SD_CMD_SEND_CID, sizeof (struct sd_cid));
-
 }
 
 unsigned long
-
-sd_get_size()
+sd_get_size(void)
 {
-
   uint32_t size = 0;
 
-
   if (uart_lock(UART_MODE_SPI)) {
-
     struct sd_csd csd;
 
-
     if (_sd_read_register(&csd, SD_CMD_SEND_CSD, sizeof (struct sd_csd))) {
-
       size = SD_CSD_C_SIZE(csd) + 1;
-
       size <<= SD_CSD_C_MULT(csd);
-
       size <<= 2;
-
       size <<= sd_state.MaxBlockLen_bit;
-
     }
-
     uart_unlock(UART_MODE_SPI);
-
   }
 
-
   return size;
-
 }
-
-
 
 /** @} */

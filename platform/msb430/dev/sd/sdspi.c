@@ -1,4 +1,3 @@
-
 /*
 Copyright 2007, Freie Universitaet Berlin. All rights reserved.
 
@@ -48,9 +47,9 @@ Berlin, 2007
  * @brief	Serial Peripheral Interface for SD library
  * 
  * @author	Michael Baar	<baar@inf.fu-berlin.de>
- * @version	$Revision: 1.1 $
+ * @version	$Revision: 1.2 $
  *
- * $Id: sdspi.c,v 1.1 2008/03/28 15:58:44 nvt-se Exp $
+ * $Id: sdspi.c,v 1.2 2008/03/28 23:03:05 nvt-se Exp $
  */
 
 #include <msp430x16x.h>
