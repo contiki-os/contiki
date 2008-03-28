@@ -1,4 +1,3 @@
-
 /*
 Copyright 2007, Freie Universitaet Berlin. All rights reserved.
 
@@ -48,11 +47,10 @@ Berlin, 2007
  * @brief	MMC-/SD-Card library, Block erase
  * 
  * @author	Michael Baar	<baar@inf.fu-berlin.de>
- * @version	$Revision: 1.2 $
+ * @version	$Revision: 1.3 $
  *
- * $Id: sd_erase.c,v 1.2 2008/03/28 15:58:44 nvt-se Exp $
+ * $Id: sd_erase.c,v 1.3 2008/03/28 23:03:05 nvt-se Exp $
  */
-
 
 /**
  * @addtogroup	libsd

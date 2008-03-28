@@ -1,4 +1,3 @@
-
 /*
 Copyright 2007, Freie Universitaet Berlin. All rights reserved.
 
@@ -47,9 +46,9 @@ Berlin, 2007
  * @brief	MMC-/SD-Card library, Public interface
  * 
  * @author	Michael Baar	<baar@inf.fu-berlin.de>
- * @version	$Revision: 1.2 $
+ * @version	$Revision: 1.3 $
  *
- * $Id: sd.h,v 1.2 2008/03/28 15:58:43 nvt-se Exp $
+ * $Id: sd.h,v 1.3 2008/03/28 23:03:05 nvt-se Exp $
  */
 
 /**
@@ -130,28 +129,30 @@ __attribute__ ((packed))
 /// Card access library state
 #define SD_CACHE_LOCKED			0x01
 #define SD_CACHE_DIRTY			0x02
-     typedef struct {
-       char buffer[SD_WRITE_BLOCKLENGTH];
-       uint32_t address;
-       uint8_t state;
-     } sd_cache_t;
-     typedef struct {
-       uint16_t MinBlockLen_bit:4;	///< minimum supported blocklength
-       uint16_t MaxBlockLen_bit:4;	///< maximum supported blocklength
-       uint16_t Flags:8;	///< feature flags
-       uint8_t BlockLen_bit;	///< currently selected blocklength as bit value (n where BlockLen is 2^n)
-       uint16_t BlockLen;	///< currently selected blocklength for reading and writing
-#if SD_CACHE
-       sd_cache_t *Cache;
-#endif
-     } sd_state_t;
 
-     extern volatile sd_state_t sd_state;	///< Card access library state
+typedef struct {
+  char buffer[SD_WRITE_BLOCKLENGTH];
+  uint32_t address;
+  uint8_t state;
+} sd_cache_t;
+
+typedef struct {
+  uint16_t MinBlockLen_bit:4;	///< minimum supported blocklength
+  uint16_t MaxBlockLen_bit:4;	///< maximum supported blocklength
+  uint16_t Flags:8;	///< feature flags
+  uint8_t BlockLen_bit;	///< currently selected blocklength as bit value (n where BlockLen is 2^n)
+  uint16_t BlockLen;	///< currently selected blocklength for reading and writing
+#if SD_CACHE
+  sd_cache_t *Cache;
+#endif
+} sd_state_t;
+
+extern volatile sd_state_t sd_state;	///< Card access library state
 
 /**
  * @brief 	Library initialisation
  */
-     void sd_Init(void);
+void sd_init(void);
 
 /**
  * @brief	Setup ports for sd card communication
@@ -167,25 +168,25 @@ __attribute__ ((packed))
 /**
  * @brief	Return value of ::sd_init function
  */
-     enum sd_init_ret {
-       SD_INIT_SUCCESS = 0,
-       SD_INIT_NOCARD = 1,
-       SD_INIT_FAILED = 2,
-       SD_INIT_NOTSUPP = 3
-     };
+enum sd_init_ret {
+  SD_INIT_SUCCESS = 0,
+  SD_INIT_NOCARD = 1,
+  SD_INIT_FAILED = 2,
+  SD_INIT_NOTSUPP = 3
+};
 
 /**
  * @brief	Return value of write functions
  * @see ::sd_write, ::sd_write_block
  */
-     enum sd_write_ret {
-       SD_WRITE_SUCCESS = 0,	///< writing successfull
-       SD_WRITE_PROTECTED_ERR = 1,	///< card write protected
-       SD_WRITE_INTERFACE_ERR = 2,	///< error in UART SPI interface
-       SD_WRITE_COMMAND_ERR = 3,	///< error in write command or command arguments (e.g. target address)
-       SD_WRITE_STORE_ERR = 4,	///< storing written data to persistant memory on card failed
-       SD_WRITE_DMA_ERR = 5
-     };
+enum sd_write_ret {
+  SD_WRITE_SUCCESS = 0,	///< writing successfull
+  SD_WRITE_PROTECTED_ERR = 1,	///< card write protected
+  SD_WRITE_INTERFACE_ERR = 2,	///< error in UART SPI interface
+  SD_WRITE_COMMAND_ERR = 3,	///< error in write command or command arguments (e.g. target address)
+  SD_WRITE_STORE_ERR = 4,	///< storing written data to persistant memory on card failed
+  SD_WRITE_DMA_ERR = 5
+};
 
 /**
  * @brief	Initialize card and state
@@ -195,12 +196,12 @@ __attribute__ ((packed))
  * functionality. Initializes the global state struct sd_state.
  * Should be invoked once immediately after ::sd_setup.
  */
-     enum sd_init_ret sd_init_card(sd_cache_t * pCache);
+enum sd_init_ret sd_init_card(sd_cache_t * pCache);
 
 /**
  * @brief	Last operation to call when finished with using the card.
  */
-     void sd_close(void);
+void sd_close(void);
 
 /**
  * @brief SD Card physically present?
@@ -248,7 +249,7 @@ __attribute__ ((packed))
  * @param[in,out]	pAddress	address to align, will be modified to be block aligned
  * @return			Offset from aligned address to original address
  */
-     uint16_t sd_AlignAddress(uint32_t * pAddress);
+uint16_t sd_AlignAddress(uint32_t * pAddress);
 
 /**
  * @brief	Read one complete block from a block aligned address into buffer
@@ -265,60 +266,58 @@ __attribute__ ((packed))
  * 
  * @return		Number of bytes read (should always be = sd_state.BlockLen)
  */
-     uint16_t sd_read_block(void (*const pBuffer), const uint32_t address);
+uint16_t sd_read_block(void (*const pBuffer), const uint32_t address);
 
 #if SD_READ_BYTE
-
-	/**
-	 * @brief	Read one byte from any address
-	 * This function reads a single byte from any address. It is optimized for best speed
-	 * at any blocklength.
-	 * \Note: blocklength is modified
-	 * 
-	 * @param[out]	pBuffer		Pointer to a buffer to which data is read. It should be least
-	 * 							1 byte large
-	 * @param[in]	address		The address of the byte that shall be read to pBuffer
-	 * 
-	 * @return	Number of bytes read (usually 1)
-	 */
-     bool sd_read_byte(void *pBuffer, const uint32_t address);
+/**
+  * @brief	Read one byte from any address
+  * This function reads a single byte from any address. It is optimized for best speed
+  * at any blocklength.
+  * \Note: blocklength is modified
+  * 
+  * @param[out]	pBuffer		Pointer to a buffer to which data is read. It should be least
+  * 							1 byte large
+  * @param[in]	address		The address of the byte that shall be read to pBuffer
+  * 
+  * @return	Number of bytes read (usually 1)
+  */
+bool sd_read_byte(void *pBuffer, const uint32_t address);
 #endif
 
 #if SD_WRITE
+ /**
+  * @brief Write one complete block at a block aligned address from buffer to card
+  * 
+  * @param[in]	address		block aligned address to write to
+  * @param[in]	pBuffer		pointer to buffer with a block of data to write
+  * @return		result code (see enum #sd_write_ret)
+  * 
+  * \Note
+  * Only supported block size for writing is usually 512 bytes.
+  */
+enum sd_write_ret sd_write_block(const uint32_t address,
+				 void const (*const pBuffer));
 
-	/**
-	 * @brief Write one complete block at a block aligned address from buffer to card
-	 * 
-	 * @param[in]	address		block aligned address to write to
-	 * @param[in]	pBuffer		pointer to buffer with a block of data to write
-	 * @return		result code (see enum #sd_write_ret)
-	 * 
-	 * \Note
-	 * Only supported block size for writing is usually 512 bytes.
-	 */
-     enum sd_write_ret sd_write_block(const uint32_t address,
-				      void const (*const pBuffer));
+ /**
+  * @brief		Fill one complete block at a block aligned address with
+  * 				a single character.
+  * 
+  * @param[in]	address		block aligned address to write to
+  * @param[in]	pChar		pointer to buffer with a character to write
+  * @return		result code (see enum #sd_write_ret)
+  * 
+  * @note		Use this for settings blocks to 0x00. 
+  *				Only supported block size for writing is usually 512 bytes.
+  */
+enum sd_write_ret sd_set_block(const uint32_t address,
+			       const char (*const pChar));
 
-	/**
-	 * @brief		Fill one complete block at a block aligned address with
-	 * 				a single character.
-	 * 
-	 * @param[in]	address		block aligned address to write to
-	 * @param[in]	pChar		pointer to buffer with a character to write
-	 * @return		result code (see enum #sd_write_ret)
-	 * 
-	 * @note		Use this for settings blocks to 0x00. 
-	 *				Only supported block size for writing is usually 512 bytes.
-	 */
-     enum sd_write_ret sd_set_block(const uint32_t address,
-				    const char (*const pChar));
-
-	/**
-	 * @brief		Flush the DMA write buffer
-	 * 
-	 * Wait for a running DMA write operation to finish
-	 */
-     enum sd_write_ret sd_write_flush(void);
+ /**
+  * @brief		Flush the DMA write buffer
+  * 
+  * Wait for a running DMA write operation to finish
+  */
+enum sd_write_ret sd_write_flush(void);
 #endif
 
 #if SD_CACHE
@@ -326,22 +325,22 @@ __attribute__ ((packed))
 #define SD_GET_LOCK(x)	do { while( x ->state & SD_CACHE_LOCKED ) { _NOP(); }; x ->state |= SD_CACHE_LOCKED; } while(0)
 #define SD_FREE_LOCK(x)	do { x ->state &= ~SD_CACHE_LOCKED; } while(0)
 
-	/**
-	 * @brief	Flush the sd cache
-	 * 
-	 * Writes back the cache buffer, if it has been modified. Call this if
-	 * a high level operation has finished and you want to store all data
-	 * persistantly. The write back operation does not use timers.
-	 */
-     void sd_cache_flush(void);
+ /**
+  * @brief	Flush the sd cache
+  * 
+  * Writes back the cache buffer, if it has been modified. Call this if
+  * a high level operation has finished and you want to store all data
+  * persistantly. The write back operation does not use timers.
+  */
+void sd_cache_flush(void);
 
-	/**
-	 * @brief	Read a block into the cache buffer
-	 * @internal
-	 * 
-	 * You won't usually need this operation.
-	 */
-     sd_cache_t *sd_cache_read_block(const uint32_t * blAdr);
+ /**
+  * @brief	Read a block into the cache buffer
+  * @internal
+  * 
+  * You won't usually need this operation.
+  */
+sd_cache_t *sd_cache_read_block(const uint32_t * blAdr);
 #endif
 
 /**
@@ -372,15 +371,13 @@ __attribute__ ((packed))
      uint32_t sd_get_size(void);
 
 #if SD_READ_ANY
-
-	/**
-	 * @brief	Read any number of bytes from any address into buffer
-	 * 
-	 * @param[out]	pBuffer		Pointer to a buffer to which data is read. It should be least
-	 * 							size bytes large
-	 * @param[in]	address		The address of the first byte that shall be read to pBuffer
-	 * @param[in]	size		Number of bytes which shall be read starting at address
-	 */
+ /**
+  * @brief	Read any number of bytes from any address into buffer
+  * 
+  * @param[out]	pBuffer		Pointer to a buffer to which data is read. It should be least
+  * 							size bytes large
+  * @param[in]	address		The address of the first byte that shall be read to pBuffer
+  * @param[in]	size		Number of bytes which shall be read starting at address	 */
      uint16_t sd_read(void *pBuffer, uint32_t address, uint16_t size);
 #endif
 

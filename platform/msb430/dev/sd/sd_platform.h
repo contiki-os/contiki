@@ -1,4 +1,3 @@
-
 /*
 Copyright 2007, Freie Universitaet Berlin. All rights reserved.
 
@@ -48,11 +47,11 @@ Berlin, 2007
  * 
  * @author	Michael Baar	<baar@inf.fu-berlin.de>
  * @date	Jan 2007
- * @version	$Revision: 1.1 $
+ * @version	$Revision: 1.2 $
  * 
  * Replace this file for use on another platform.
  *
- * $Id: sd_platform.h,v 1.1 2008/03/28 15:58:44 nvt-se Exp $
+ * $Id: sd_platform.h,v 1.2 2008/03/28 23:03:05 nvt-se Exp $
  */
 
 #ifndef __SCATTERWEB_SD_PLATFORM__

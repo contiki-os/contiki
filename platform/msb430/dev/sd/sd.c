@@ -1,4 +1,3 @@
-
 /*
 Copyright 2007, Freie Universitaet Berlin. All rights reserved.
 
@@ -48,9 +47,9 @@ Berlin, 2007
  * @brief	MMC-/SD-Card library
  * 
  * @author	Michael Baar	<baar@inf.fu-berlin.de>
- * @version	$Revision: 1.2 $
+ * @version	$Revision: 1.3 $
  *
- * $Id: sd.c,v 1.2 2008/03/28 15:58:43 nvt-se Exp $
+ * $Id: sd.c,v 1.3 2008/03/28 23:03:05 nvt-se Exp $
  * 
  * Initialisation and basic functions for read and write access
  */
