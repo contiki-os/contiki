@@ -1,3 +1,4 @@
+
 /*
 Copyright 2007, Freie Universitaet Berlin. All rights reserved.
 
@@ -41,13 +42,14 @@ Berlin, 2007
 */
 
 /**
- * @file	ScatterWeb.sd.h
+ * @file	ScatterWeb.Sd.h
  * @ingroup	libsd
  * @brief	MMC-/SD-Card library, Public interface
  * 
  * @author	Michael Baar	<baar@inf.fu-berlin.de>
- * @date	Jan 2007
- * @version	0.2
+ * @version	$Revision: 1.2 $
+ *
+ * $Id: sd.h,v 1.2 2008/03/28 15:58:43 nvt-se Exp $
  */
 
 /**
@@ -55,12 +57,13 @@ Berlin, 2007
  * @{
  */
 
-#ifndef SD_H
-#define SD_H
+#ifndef __SD_H__
+#define __SD_H__
 
 #define SD_BLOCKLENGTH_INVALID		0xFF
 #define	SD_WRITE_BLOCKLENGTH_BIT	9
 #define SD_WRITE_BLOCKLENGTH		0x200
+
 
 /******************************************************************************
  * @name	Setup, initialisation, configuration
@@ -68,12 +71,15 @@ Berlin, 2007
  */
 
 /**
- * @name SD Flags
+ * @brief SD Flags
  * @see sd_state_t
  * @{
  */
-#define SD_READ_PARTIAL		0x80
-#define SD_WRITE_PARTIAL	0x40
+enum sd_state_flags {
+  SD_READ_PARTIAL = 0x80,
+  SD_WRITE_PARTIAL = 0x40,
+  SD_INITIALIZED = 0x01
+};
 
 /** @} */
 
@@ -87,61 +93,65 @@ Berlin, 2007
 #ifndef __TI_COMPILER_VERSION__
 __attribute__ ((packed))
 #endif
-typedef struct sd_cid {
-  uint8_t mid;
-  char oid[2];
-  char pnm[5];
-  uint8_t revision;
-  uint32_t psn;
-  uint16_t:4;
-  uint16_t mdt:12;
-  uint8_t crc7:7;
-  uint8_t:1;
-} sd_cid_t;
+#if defined(__MSP430GCC__)
+  __attribute__ ((packed))
+#endif
+     struct sd_cid {
+       uint8_t mid;
+       char oid[2];
+       char pnm[5];
+       uint8_t revision;
+       uint32_t psn;
+         uint16_t:4;
+       uint16_t mdt:12;
+       uint8_t crc7:7;
+         uint8_t:1;
+     };
+#ifdef __TI_COMPILER_VERSION__
+#pragma pack()
+#endif
 
 /**
  * @name	Card Specific Data register
  * @{
  */
-typedef struct sd_csd {
-  uint8_t raw[16];
-} sd_csd_t;
-
-#define SD_CSD_READ_BL_LEN(csd)		((csd).raw[5] & 0x0F)	// uchar : 4
-#define SD_CSD_READ_PARTIAL(csd)	((csd).raw[6] & 0x80)	// bool
-#define SD_CSD_CCC(csd)			(((csd).raw[4]<<4) | ((csd).raw[5]>>4))	// uchar
-#define SD_CSD_WRITE_PARTIAL(csd)	((csd).raw[13] & 0x04)	// bool
-#define SD_CSD_C_SIZE(csd)		((((csd).raw[6] & 0x03)<<10) | ((csd).raw[7]<<2) | ((csd).raw[8]>>6))	// uint : 12
-#define SD_CSD_C_MULT(csd)		((((csd).raw[9] & 0x03)<<1) | ((csd).raw[10]>>7))	// uchar : 4
+     struct sd_csd {
+       uint8_t raw[16];
+     };
+#define SD_CSD_READ_BL_LEN(csd)		(( csd ).raw[5] & 0x0F)	// uchar : 4
+#define SD_CSD_READ_PARTIAL(csd)	(( csd ).raw[ 6] & 0x80)	// bool
+#define SD_CSD_CCC(csd)				( (( csd ).raw[4]<<4) | (( csd ).raw[5]>>4) )	// uchar
+#define SD_CSD_WRITE_PARTIAL(csd)	(( csd ).raw[13] & 0x04)	// bool
+#define SD_CSD_C_SIZE(csd)			( ((( csd ).raw[6] & 0x03)<<10) | (( csd ).raw[7]<<2) | (( csd ).raw[8]>>6) )	// uint : 12
+#define SD_CSD_C_MULT(csd)			( ((( csd ).raw[9] & 0x03)<<1) | (( csd ).raw[10]>>7) )	// uchar : 4
 
 /** @} */
 
-#ifdef __TI_COMPILER_VERSION__
-#pragma pack()
-#endif
-
-/* Card access library state */
+/// Card access library state
 #define SD_CACHE_LOCKED			0x01
 #define SD_CACHE_DIRTY			0x02
-
-typedef struct {
-  char buffer[SD_WRITE_BLOCKLENGTH];
-  uint32_t address;
-  uint8_t state;
-} sd_cache_t;
-
-typedef struct {
-  uint16_t MinBlockLen_bit:4;	// minimum supported blocklength
-  uint16_t MaxBlockLen_bit:4;	// maximum supported blocklength
-  uint16_t Flags:8;		// feature flags
-  uint8_t BlockLen_bit;		// currently selected blocklength as bit value (n where BlockLen is 2^n)
-  uint16_t BlockLen;		// currently selected blocklength for reading and writing
+     typedef struct {
+       char buffer[SD_WRITE_BLOCKLENGTH];
+       uint32_t address;
+       uint8_t state;
+     } sd_cache_t;
+     typedef struct {
+       uint16_t MinBlockLen_bit:4;	///< minimum supported blocklength
+       uint16_t MaxBlockLen_bit:4;	///< maximum supported blocklength
+       uint16_t Flags:8;	///< feature flags
+       uint8_t BlockLen_bit;	///< currently selected blocklength as bit value (n where BlockLen is 2^n)
+       uint16_t BlockLen;	///< currently selected blocklength for reading and writing
 #if SD_CACHE
-  sd_cache_t *Cache;
+       sd_cache_t *Cache;
 #endif
-} sd_state_t;
+     } sd_state_t;
 
-extern volatile sd_state_t sd_state;	// Card access library state
+     extern volatile sd_state_t sd_state;	///< Card access library state
+
+/**
+ * @brief 	Library initialisation
+ */
+     void sd_Init(void);
 
 /**
  * @brief	Setup ports for sd card communication
@@ -152,13 +162,30 @@ extern volatile sd_state_t sd_state;	// Card access library state
  * If you need to reconfigure the UART for other operations only call
  * ::Spi_enable to return to SPI mode. ::sd_setup needs to be run only once.
  */
-void sd_init(void);
+     void sd_init_platform(void);
 
 /**
  * @brief	Return value of ::sd_init function
  */
-enum sd_init_ret { SD_INIT_SUCCESS = 0, SD_INIT_FAILED = 1,
-		   SD_INIT_NOTSUPP = 2 };
+     enum sd_init_ret {
+       SD_INIT_SUCCESS = 0,
+       SD_INIT_NOCARD = 1,
+       SD_INIT_FAILED = 2,
+       SD_INIT_NOTSUPP = 3
+     };
+
+/**
+ * @brief	Return value of write functions
+ * @see ::sd_write, ::sd_write_block
+ */
+     enum sd_write_ret {
+       SD_WRITE_SUCCESS = 0,	///< writing successfull
+       SD_WRITE_PROTECTED_ERR = 1,	///< card write protected
+       SD_WRITE_INTERFACE_ERR = 2,	///< error in UART SPI interface
+       SD_WRITE_COMMAND_ERR = 3,	///< error in write command or command arguments (e.g. target address)
+       SD_WRITE_STORE_ERR = 4,	///< storing written data to persistant memory on card failed
+       SD_WRITE_DMA_ERR = 5
+     };
 
 /**
  * @brief	Initialize card and state
@@ -168,12 +195,12 @@ enum sd_init_ret { SD_INIT_SUCCESS = 0, SD_INIT_FAILED = 1,
  * functionality. Initializes the global state struct sd_state.
  * Should be invoked once immediately after ::sd_setup.
  */
-enum sd_init_ret sd_init_card(sd_cache_t *);
+     enum sd_init_ret sd_init_card(sd_cache_t * pCache);
 
 /**
  * @brief	Last operation to call when finished with using the card.
  */
-void sd_close(void);
+     void sd_close(void);
 
 /**
  * @brief SD Card physically present?
@@ -214,14 +241,14 @@ void sd_close(void);
  * 			SD_BLOCKLENGTH_INVALID otherwise.
  * 
  */
-uint8_t sd_set_blocklength(const uint8_t blocklength_bit);
+     uint8_t sd_set_blocklength(const uint8_t blocklength_bit);
 
 /**
  * @brief			Align byte address to current blocklength
  * @param[in,out]	pAddress	address to align, will be modified to be block aligned
  * @return			Offset from aligned address to original address
  */
-uint16_t sd_align_address(uint32_t * pAddress);
+     uint16_t sd_AlignAddress(uint32_t * pAddress);
 
 /**
  * @brief	Read one complete block from a block aligned address into buffer
@@ -238,92 +265,83 @@ uint16_t sd_align_address(uint32_t * pAddress);
  * 
  * @return		Number of bytes read (should always be = sd_state.BlockLen)
  */
-uint16_t sd_read_block(void (*const pBuffer), const uint32_t address);
+     uint16_t sd_read_block(void (*const pBuffer), const uint32_t address);
 
 #if SD_READ_BYTE
-/**
- * @brief	Read one byte from any address
- * This function reads a single byte from any address. It is optimized
- * for best speed at any blocklength.
- * \Note: blocklength is modified
- * 
- * @param[out]	pBuffer		Pointer to a buffer to which data is read. It should be least
- * 				1 byte large
- * @param[in]	address		The address of the byte that shall be read to pBuffer
- * 
- * @return	Number of bytes read (usually 1)
- */
-bool sd_read_byte(void *pBuffer, const uint32_t address);
 
-#endif /*  */
+	/**
+	 * @brief	Read one byte from any address
+	 * This function reads a single byte from any address. It is optimized for best speed
+	 * at any blocklength.
+	 * \Note: blocklength is modified
+	 * 
+	 * @param[out]	pBuffer		Pointer to a buffer to which data is read. It should be least
+	 * 							1 byte large
+	 * @param[in]	address		The address of the byte that shall be read to pBuffer
+	 * 
+	 * @return	Number of bytes read (usually 1)
+	 */
+     bool sd_read_byte(void *pBuffer, const uint32_t address);
+#endif
 
 #if SD_WRITE
-/**
- * @brief Write one complete block at a block aligned address from buffer to card
- * 
- * @param[in]	address		block aligned address to write to
- * @param[in]	pBuffer		pointer to buffer with a block of data to write
- * @return		number of bytes successfully written, zero if write failed
- * 
- * \Note
- * Only supported block size for writing is usually 512 bytes.
- */
-uint16_t sd_write_block(const uint32_t address, void const (*const pBuffer));
 
-/**
- * @brief		Fill one complete block at a block aligned address with
- * 				a single character.
- * 
- * @param[in]	address		block aligned address to write to
- * @param[in]	pChar		pointer to buffer with a character to write
- * @return		number of bytes successfully written, zero if write failed
- * 
- * @note		Use this for settings blocks to 0x00. 
- *				Only supported block size for writing is usually 512 bytes.
- */
-uint16_t sd_set_block(const uint32_t address, const char (*const pChar));
+	/**
+	 * @brief Write one complete block at a block aligned address from buffer to card
+	 * 
+	 * @param[in]	address		block aligned address to write to
+	 * @param[in]	pBuffer		pointer to buffer with a block of data to write
+	 * @return		result code (see enum #sd_write_ret)
+	 * 
+	 * \Note
+	 * Only supported block size for writing is usually 512 bytes.
+	 */
+     enum sd_write_ret sd_write_block(const uint32_t address,
+				      void const (*const pBuffer));
 
-/**
- * @brief		Flush the DMA write buffer
- * 
- * Wait for a running DMA write operation to finish
- */
-uint16_t sd_write_flush(void);
+	/**
+	 * @brief		Fill one complete block at a block aligned address with
+	 * 				a single character.
+	 * 
+	 * @param[in]	address		block aligned address to write to
+	 * @param[in]	pChar		pointer to buffer with a character to write
+	 * @return		result code (see enum #sd_write_ret)
+	 * 
+	 * @note		Use this for settings blocks to 0x00. 
+	 *				Only supported block size for writing is usually 512 bytes.
+	 */
+     enum sd_write_ret sd_set_block(const uint32_t address,
+				    const char (*const pChar));
 
+	/**
+	 * @brief		Flush the DMA write buffer
+	 * 
+	 * Wait for a running DMA write operation to finish
+	 */
+     enum sd_write_ret sd_write_flush(void);
 #endif
 
 #if SD_CACHE
-#define	SD_WAIT_LOCK(x)						\
-	while( x ->state & SD_CACHE_LOCKED ) { _NOP(); }
+#define	SD_WAIT_LOCK(x)	while( x ->state & SD_CACHE_LOCKED ) { _NOP(); }
+#define SD_GET_LOCK(x)	do { while( x ->state & SD_CACHE_LOCKED ) { _NOP(); }; x ->state |= SD_CACHE_LOCKED; } while(0)
+#define SD_FREE_LOCK(x)	do { x ->state &= ~SD_CACHE_LOCKED; } while(0)
 
-#define SD_GET_LOCK(x)						\
-	do {							\
-	  while( x ->state & SD_CACHE_LOCKED ) { _NOP(); };	\
-	  x ->state |= SD_CACHE_LOCKED; }			\
-	while(0)
+	/**
+	 * @brief	Flush the sd cache
+	 * 
+	 * Writes back the cache buffer, if it has been modified. Call this if
+	 * a high level operation has finished and you want to store all data
+	 * persistantly. The write back operation does not use timers.
+	 */
+     void sd_cache_flush(void);
 
-#define SD_FREE_LOCK(x)						\
-	do {							\
-	  x ->state &= ~SD_CACHE_LOCKED;			\
-	} while(0)
-
-/**
- * @brief	Flush the sd cache
- * 
- * Writes back the cache buffer, if it has been modified. Call this if
- * a high level operation has finished and you want to store all data
- * persistantly. The write back operation does not use timers.
- */
-void sd_cache_flush(void);
-
-/**
- * @brief	Read a block into the cache buffer
- * @internal
- * 
- * You won't usually need this operation.
- */
-sd_cache_t *sd_cache_read_block(const uint32_t * blAdr);
-
+	/**
+	 * @brief	Read a block into the cache buffer
+	 * @internal
+	 * 
+	 * You won't usually need this operation.
+	 */
+     sd_cache_t *sd_cache_read_block(const uint32_t * blAdr);
 #endif
 
 /**
@@ -334,7 +352,7 @@ sd_cache_t *sd_cache_read_block(const uint32_t * blAdr);
  * @note		Data can only be erased in whole blocks. All bytes will be set
  *				predifined character (see CSD). Common cards use 0xFF.
  */
-bool sd_erase_blocks(const uint32_t address, const uint16_t numBlocks);
+     bool sd_erase_blocks(const uint32_t address, const uint16_t numBlocks);
 
 /**
  * @brief		Read card identification register (CID)
@@ -343,7 +361,7 @@ bool sd_erase_blocks(const uint32_t address, const uint16_t numBlocks);
  *
  * @see			::sd_cid_t
  */
-uint16_t sd_read_cid(sd_cid_t * pCID);
+     uint16_t sd_read_cid(struct sd_cid *pCID);
 
 /**
  * @brief	Read size of card
@@ -351,8 +369,21 @@ uint16_t sd_read_cid(sd_cid_t * pCID);
  *
  * Reads the number of bytes in the card memory from the CSD register.
  */
-uint32_t sd_get_size(void);
+     uint32_t sd_get_size(void);
 
-#endif /* !SD_H */
+#if SD_READ_ANY
+
+	/**
+	 * @brief	Read any number of bytes from any address into buffer
+	 * 
+	 * @param[out]	pBuffer		Pointer to a buffer to which data is read. It should be least
+	 * 							size bytes large
+	 * @param[in]	address		The address of the first byte that shall be read to pBuffer
+	 * @param[in]	size		Number of bytes which shall be read starting at address
+	 */
+     uint16_t sd_read(void *pBuffer, uint32_t address, uint16_t size);
+#endif
+
+#endif /*__SD_H__*/
 
 /** @} */

@@ -41,15 +41,18 @@ scatterweb@lists.spline.inf.fu-berlin.de (subscription via the Website).
 Berlin, 2007
 */
 
+
 /**
- * @file	ScatterWeb.sd.erase.c
+ * @file	ScatterWeb.Sd.erase.c
  * @ingroup	libsd
  * @brief	MMC-/SD-Card library, Block erase
  * 
  * @author	Michael Baar	<baar@inf.fu-berlin.de>
- * @date	Feb 2007
- * @version	0.2
+ * @version	$Revision: 1.2 $
+ *
+ * $Id: sd_erase.c,v 1.2 2008/03/28 15:58:44 nvt-se Exp $
  */
+
 
 /**
  * @addtogroup	libsd
@@ -64,21 +67,26 @@ sd_erase_blocks(uint32_t address, uint16_t numBlocks)
   uint8_t ret, r1;
   uint32_t endAdr;
 
-  if (sd_protected())
+  if (sd_protected()) {
     return FALSE;
-  ret =
-    sd_send_cmd(SD_CMD_ERASE_WR_BLK_START_ADDR, SD_RESPONSE_TYPE_R1,
-		&address, &r1);
-  if (!ret | r1)
+  }
+
+  ret = _sd_send_cmd(SD_CMD_ERASE_WR_BLK_START_ADDR, SD_RESPONSE_SIZE_R1,
+		 &address, &r1);
+  if (!ret | r1) {
     return FALSE;
+  }
+
   endAdr = (numBlocks - 1) * sd_state.BlockLen;
   endAdr += address;
-  ret =
-    sd_send_cmd(SD_CMD_ERASE_WR_BLK_END_ADDR, SD_RESPONSE_TYPE_R1, &endAdr,
-		&r1);
-  if (!ret | r1)
+
+  ret = _sd_send_cmd(SD_CMD_ERASE_WR_BLK_END_ADDR, SD_RESPONSE_SIZE_R1, 
+		&endAdr, &r1);
+  if (!ret | r1) {
     return FALSE;
-  ret = sd_send_cmd(SD_CMD_ERASE, SD_RESPONSE_TYPE_R1, NULL, &r1);
+  }
+
+  ret = _sd_send_cmd(SD_CMD_ERASE, SD_RESPONSE_SIZE_R1, NULL, &r1);
   return ret;
 }
 

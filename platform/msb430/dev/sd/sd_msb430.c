@@ -43,66 +43,50 @@ Berlin, 2007
 
 
 /**
- * @file	ScatterWeb.Sd.info.c
+ * @file	ScatterWeb.Sd.MSB430.c
  * @ingroup	libsd
- * @brief	MMC-/SD-Card library, Additional Information
+ * @brief	MMC-/SD-Card library initialisation for MSB430
  * 
  * @author	Michael Baar	<baar@inf.fu-berlin.de>
- * @version	$Revision: 1.2 $
+ * @date	Jan 2007
+ * @version	$Revision: 1.1 $
+ * 
+ * Replace this file for use on another platform.
  *
- * $Id: sd_info.c,v 1.2 2008/03/28 15:58:44 nvt-se Exp $
+ * $Id: sd_msb430.c,v 1.1 2008/03/28 15:58:44 nvt-se Exp $
  */
 
+#include "sd_internals.h"
+
+void
+sd_init_platform(void)
+{
+  sdspi_init();
+
+  P5SEL |= 0x0E;		// 00 00 11 10  -> Dout, Din, Clk = peripheral (now done in UART module)
+  P5SEL &= ~0x01;		// 00 00 00 01  -> Cs = I/O
+  P5OUT |= 0x01;		// 00 00 00 01  -> Cs = High
+  P5DIR |= 0x0D;		// 00 00 11 01  -> Dout, Clk, Cs = output
+  P5DIR &= ~0x02;		// 00 00 00 10  -> Din = Input
+  P2SEL &= ~0x40;		// 11 00 00 00  -> protect, detect = I/O
+  P2DIR &= ~0x40;		// 11 00 00 00  -> protect, detect = input     
+}
 
 /**
- * @addtogroup	libsd
- * @{
+ * @brief Activate SD Card on SPI Bus
+ * \internal
  */
-#include "sd_internals.h"
-#include "sd.h"
-
-unsigned int
-sd_read_cid(struct sd_cid *pCID)
+__inline void
+sdspi_select()
 {
-
-  return _sd_read_register(pCID, SD_CMD_SEND_CID, sizeof (struct sd_cid));
-
+  P5OUT &= ~0x01;		// Card Select
 }
 
-unsigned long
-
-sd_get_size()
+__inline void
+sdspi_unselect()
 {
+  UART_WAIT_TXDONE();
 
-  uint32_t size = 0;
-
-
-  if (uart_lock(UART_MODE_SPI)) {
-
-    struct sd_csd csd;
-
-
-    if (_sd_read_register(&csd, SD_CMD_SEND_CSD, sizeof (struct sd_csd))) {
-
-      size = SD_CSD_C_SIZE(csd) + 1;
-
-      size <<= SD_CSD_C_MULT(csd);
-
-      size <<= 2;
-
-      size <<= sd_state.MaxBlockLen_bit;
-
-    }
-
-    uart_unlock(UART_MODE_SPI);
-
-  }
-
-
-  return size;
-
+  P5OUT |= 0x01;		// Card Deselect
+  sdspi_tx(0xFF);
 }
-
-
-
-/** @} */

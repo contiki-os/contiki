@@ -41,68 +41,101 @@ scatterweb@lists.spline.inf.fu-berlin.de (subscription via the Website).
 Berlin, 2007
 */
 
+
 /**
- * @file	ScatterWeb.sd.cache.c
+ * @file	ScatterWeb.Sd.cache.c
  * @ingroup	libsd
  * @brief	MMC-/SD-Card library, cached read and write
  * 
  * @author	Michael Baar	<baar@inf.fu-berlin.de>
- * @date	Jan 2007
- * @version	0.2
+ * @version	$Revision: 1.2 $
+ *
+ * $Id: sd_cache.c,v 1.2 2008/03/28 15:58:43 nvt-se Exp $
  */
+
 
 /**
  * @addtogroup	libsd
  * @{
  */
 #include "sd_internals.h"
-#include "sd.h"
 
 #if SD_CACHE
+
 void
-sd_cache_init(void)
+_sd_cache_init()
 {
+
   uint32_t adr = 0;
 
+
   sd_state.Cache->address = 1;
+
   sd_state.Cache->state = 0;
 
   // pre-read first block
   sd_cache_read_block(&adr);
+
   SD_FREE_LOCK(sd_state.Cache);
+
 }
 
 void
-sd_cache_flush(void)
+_sd_cache_flush()
 {
+
 #if SD_WRITE
   SD_GET_LOCK(sd_state.Cache);
+
   if (sd_state.Cache->state & SD_CACHE_DIRTY) {
+
     sd_set_blocklength(SD_WRITE_BLOCKLENGTH_BIT);
+
     sd_write_block(sd_state.Cache->address, sd_state.Cache->buffer);
+
     sd_state.Cache->state &= ~SD_CACHE_DIRTY;
+
   }
+
   SD_FREE_LOCK(sd_state.Cache);
-#endif
+
+#endif /* 
+        */
 }
+
 
 sd_cache_t *
 sd_cache_read_block(const uint32_t * pblAdr)
 {
+
   SD_GET_LOCK(sd_state.Cache);
+
   if (sd_state.Cache->address != *pblAdr) {
+
     sd_set_blocklength(SD_WRITE_BLOCKLENGTH_BIT);
+
     if (sd_state.Cache->state & SD_CACHE_DIRTY) {
+
       sd_write_block(sd_state.Cache->address, sd_state.Cache->buffer);
+
       sd_state.Cache->state &= ~SD_CACHE_DIRTY;
+
     }
+
     sd_state.Cache->address = *pblAdr;
+
     if (!sd_read_block(sd_state.Cache->buffer, *pblAdr)) {
+
       SD_FREE_LOCK(sd_state.Cache);
-      return FALSE;
+
+      return false;
+
     }
+
   }
+
   return sd_state.Cache;
+
 }
 
 
@@ -110,45 +143,72 @@ sd_cache_read_block(const uint32_t * pblAdr)
 uint16_t
 sd_read(void *pBuffer, uint32_t address, uint16_t size)
 {
+
   uint16_t offset;		// bytes from aligned address to start of first byte to keep
   char *p;			// pointer to current pos in receive buffer
   uint16_t bytes_left;		// num bytes to read
   uint16_t read_count;		// num bytes to read from current block
 
+
   //
   // parameter processing
   //
-  p = (char *) pBuffer;
+  p = (char *)pBuffer;
+
   bytes_left = size;
 
   // align to block
-  offset = sd_align_address(&address);
+  offset = sd_AlignAddress(&address);
 
   //
   // Data transfer
   //
   do {
+
     // calculate block
     if ((offset == 0) && (bytes_left >= sd_state.BlockLen)) {
+
       read_count = sd_state.BlockLen;
+
       sd_read_block(p, address);
+
     } else {
+
       sd_cache_read_block(&address);
+
       read_count = bytes_left + offset;
+
       if (read_count > sd_state.BlockLen)
+
 	read_count = sd_state.BlockLen - offset;
+
       else
+
 	read_count = bytes_left;
+
+
       memcpy(p, sd_state.Cache->buffer + offset, read_count);
+
       SD_FREE_LOCK(sd_state.Cache);
+
     }
+
+
     bytes_left -= read_count;
+
     if (bytes_left == 0)
+
       return size;
+
+
     p += read_count;
+
     address += sd_state.BlockLen;
+
   } while (1);
+
 }
+
 
 #endif // SD_READ_ANY
 
@@ -156,19 +216,24 @@ sd_read(void *pBuffer, uint32_t address, uint16_t size)
 uint16_t
 sd_write(uint32_t address, void *pBuffer, uint16_t size)
 {
+
   uint16_t offset;		// bytes from aligned address to start of first byte to keep
   char *p;			// pointer to current pos in receive buffer
   uint16_t bytes_left;		// num bytes to read
   uint16_t read_count;		// num bytes to read from current block
 
+
   //
   // parameter processing
   //
-  p = (char *) pBuffer;
+  p = (char *)pBuffer;
+
   bytes_left = size;
 
   // align to block
-  offset = sd_align_address(&address);
+  offset = sd_AlignAddress(&address);
+
+
   sd_set_blocklength(SD_WRITE_BLOCKLENGTH_BIT);
 
   //
@@ -178,30 +243,55 @@ sd_write(uint32_t address, void *pBuffer, uint16_t size)
 
     // calculate block
     if ((offset == 0) && (bytes_left >= sd_state.BlockLen)) {
+
       read_count = sd_state.BlockLen;
+
       sd_write_block(address, p);
+
     } else {
+
       sd_cache_read_block(&address);
+
       read_count = bytes_left + offset;
+
       if (read_count > sd_state.BlockLen)
+
 	read_count = sd_state.BlockLen - offset;
 
       else
+
 	read_count = bytes_left;
+
+
       memcpy(sd_state.Cache->buffer + offset, p, read_count);
+
+      sd_state.Cache->state |= SD_CACHE_DIRTY;
+
+
       SD_FREE_LOCK(sd_state.Cache);
+
     }
+
+
     if (bytes_left == 0)
+
       return size;
+
+
     p += read_count;
+
     bytes_left -= read_count;
+
     address += sd_state.BlockLen;
+
   } while (1);
+
 }
 
 
 #endif // SD_WRITE
 
 #endif // SD_CACHE
+
 
 /** @} */

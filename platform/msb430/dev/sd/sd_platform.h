@@ -41,68 +41,25 @@ scatterweb@lists.spline.inf.fu-berlin.de (subscription via the Website).
 Berlin, 2007
 */
 
-
 /**
- * @file	ScatterWeb.Sd.info.c
+ * @file	ScatterWeb.Sd.Platform.h
  * @ingroup	libsd
- * @brief	MMC-/SD-Card library, Additional Information
+ * @brief	MMC-/SD-Card library initialisation for MSB430
  * 
  * @author	Michael Baar	<baar@inf.fu-berlin.de>
- * @version	$Revision: 1.2 $
+ * @date	Jan 2007
+ * @version	$Revision: 1.1 $
+ * 
+ * Replace this file for use on another platform.
  *
- * $Id: sd_info.c,v 1.2 2008/03/28 15:58:44 nvt-se Exp $
+ * $Id: sd_platform.h,v 1.1 2008/03/28 15:58:44 nvt-se Exp $
  */
 
+#ifndef __SCATTERWEB_SD_PLATFORM__
+#define __SCATTERWEB_SD_PLATFORM__
 
-/**
- * @addtogroup	libsd
- * @{
- */
-#include "sd_internals.h"
-#include "sd.h"
+#include <msp430x16x.h>
+#include "contiki.h"
+#include "dev/msb430-uart1.h"
 
-unsigned int
-sd_read_cid(struct sd_cid *pCID)
-{
-
-  return _sd_read_register(pCID, SD_CMD_SEND_CID, sizeof (struct sd_cid));
-
-}
-
-unsigned long
-
-sd_get_size()
-{
-
-  uint32_t size = 0;
-
-
-  if (uart_lock(UART_MODE_SPI)) {
-
-    struct sd_csd csd;
-
-
-    if (_sd_read_register(&csd, SD_CMD_SEND_CSD, sizeof (struct sd_csd))) {
-
-      size = SD_CSD_C_SIZE(csd) + 1;
-
-      size <<= SD_CSD_C_MULT(csd);
-
-      size <<= 2;
-
-      size <<= sd_state.MaxBlockLen_bit;
-
-    }
-
-    uart_unlock(UART_MODE_SPI);
-
-  }
-
-
-  return size;
-
-}
-
-
-
-/** @} */
+#endif
