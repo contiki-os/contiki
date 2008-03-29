@@ -30,7 +30,7 @@
  *
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: cfs-posix-dir.c,v 1.1 2007/12/21 01:36:01 oliverschmidt Exp $
+ * $Id: cfs-posix-dir.c,v 1.2 2008/03/29 13:54:56 oliverschmidt Exp $
  */
 
 #include <stdio.h>
@@ -67,7 +67,11 @@ cfs_readdir(struct cfs_dir *p, struct cfs_dirent *e)
     return -1;
   }
   strncpy(e->name, res->d_name, sizeof(e->name));
+#if defined(__APPLE2__) || defined(__APPLE2ENH__)
+  e->size = res->d_blocks;
+#else /* __APPLE2__ || __APPLE2ENH__ */
   e->size = 0;
+#endif /* __APPLE2__ || __APPLE2ENH__ */
   return 0;
 }
 /*---------------------------------------------------------------------------*/
