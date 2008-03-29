@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#)$Id: contiki-sky-main.c,v 1.4 2008/02/25 12:04:41 thiemovoigt Exp $
+ * @(#)$Id: contiki-sky-main.c,v 1.5 2008/03/29 15:20:48 oliverschmidt Exp $
  */
 
 #include <signal.h>
@@ -126,7 +126,7 @@ main(int argc, char **argv)
 #endif /* WITH_UIP */
   
   printf("Starting %s "
-	 "($Id: contiki-sky-main.c,v 1.4 2008/02/25 12:04:41 thiemovoigt Exp $)\n", __FILE__);
+	 "($Id: contiki-sky-main.c,v 1.5 2008/03/29 15:20:48 oliverschmidt Exp $)\n", __FILE__);
   ds2411_init();
   sensors_light_init();
   sht11_init();
@@ -152,7 +152,6 @@ main(int argc, char **argv)
   uip_sethostaddr(&slipif.ipaddr);
   uip_setnetmask(&slipif.netmask);
   uip_fw_default(&slipif);	/* Point2point, no default router. */
-  tcpip_set_forwarding(0);
 #endif /* WITH_UIP */
 
   /*
