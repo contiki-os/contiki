@@ -60,7 +60,7 @@
  *
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: tcpip.h,v 1.10 2007/05/20 21:29:40 oliverschmidt Exp $
+ * $Id: tcpip.h,v 1.11 2008/03/29 15:19:25 oliverschmidt Exp $
  */
 #ifndef __TCPIP_H__
 #define __TCPIP_H__
@@ -300,19 +300,12 @@ CCIF void tcpip_input(void);
  * This function is called on IP packet output.
  */
 extern u8_t (* tcpip_output)(void);
-
-/*
- * Is forwarding generally enabled?
- */
-extern unsigned char tcpip_do_forwarding;
+#define tcpip_set_outputfunc(outputfunc) tcpip_output = (outputfunc)
 
 /*
  * Are we at the moment forwarding the contents of uip_buf[]?
  */
 extern unsigned char tcpip_is_forwarding;
-
-#define tcpip_set_outputfunc(outputfunc) tcpip_output        = (outputfunc)
-#define tcpip_set_forwarding(forwarding) tcpip_do_forwarding = (forwarding)
 
 /** @} */
 

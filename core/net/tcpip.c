@@ -30,7 +30,7 @@
  *
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: tcpip.c,v 1.10 2007/12/08 23:06:02 oliverschmidt Exp $
+ * $Id: tcpip.c,v 1.11 2008/03/29 15:19:25 oliverschmidt Exp $
  */
 
 #include "contiki-net.h"
@@ -66,8 +66,9 @@ enum {
 
 u8_t (* tcpip_output)(void); /* Called on IP packet output. */
 
-unsigned char tcpip_do_forwarding; /* Forwarding enabled.   */
+#if UIP_CONF_TCP_FORWARD
 unsigned char tcpip_is_forwarding; /* Forwarding right now? */
+#endif /* UIP_CONF_TCP_FORWARD */
 
 PROCESS(tcpip_process, "TCP/IP stack");
 
@@ -75,32 +76,34 @@ PROCESS(tcpip_process, "TCP/IP stack");
 static void
 packet_input(void)
 {
+#if UIP_CONF_TCP_FORWARD
   if(uip_len > 0) {
-    if(tcpip_do_forwarding) {
-      tcpip_is_forwarding = 1;
-      if(uip_fw_forward() == UIP_FW_LOCAL) {
-	tcpip_is_forwarding = 0;
-	uip_input();
-	if(uip_len > 0) {
-#if UIP_CONF_TCP_SPLIT
-	  uip_split_output();
-#else
-	  tcpip_output();
-#endif
-	}
-      }
+    tcpip_is_forwarding = 1;
+    if(uip_fw_forward() == UIP_FW_LOCAL) {
       tcpip_is_forwarding = 0;
-    } else {
       uip_input();
       if(uip_len > 0) {
 #if UIP_CONF_TCP_SPLIT
 	uip_split_output();
-#else
+#else /* UIP_CONF_TCP_SPLIT */
 	tcpip_output();
-#endif
+#endif /* UIP_CONF_TCP_SPLIT */
       }
     }
+    tcpip_is_forwarding = 0;
   }
+#else /* UIP_CONF_TCP_FORWARD */
+  if(uip_len > 0) {
+    uip_input();
+    if(uip_len > 0) {
+#if UIP_CONF_TCP_SPLIT
+      uip_split_output();
+#else /* UIP_CONF_TCP_SPLIT */
+      tcpip_output();
+#endif /* UIP_CONF_TCP_SPLIT */
+    }
+  }
+#endif /* UIP_CONF_TCP_FORWARD */
 }
 /*---------------------------------------------------------------------------*/
 #if UIP_ACTIVE_OPEN
@@ -284,14 +287,9 @@ eventhandler(process_event_t ev, process_data_t data)
 	    }
 	  }
 	}
-	
-	/*	for(i = 0; i < UIP_UDP_CONNS; i++) {
-	  uip_udp_periodic(i);
-	  if(uip_len > 0) {
-	    tcpip_output();
-	  }
-	  }*/
+#if UIP_CONF_TCP_FORWARD
 	uip_fw_periodic();
+#endif /* UIP_CONF_TCP_FORWARD */
       }
     }
     break;
