@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2006, Swedish Institute of Computer Science. All rights
  * reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  * 1. Redistributions of source code must retain the above copyright notice,
@@ -12,7 +12,7 @@
  * Institute nor the names of its contributors may be used to endorse or promote
  * products derived from this software without specific prior written
  * permission.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY THE INSTITUTE AND CONTRIBUTORS ``AS IS'' AND ANY
  * EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
  * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -23,8 +23,8 @@
  * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- * 
- * $Id: Mote.java,v 1.4 2007/01/10 14:57:42 fros4943 Exp $
+ *
+ * $Id: Mote.java,v 1.5 2008/03/31 15:22:42 fros4943 Exp $
  */
 
 package se.sics.cooja;
@@ -35,17 +35,17 @@ import org.jdom.Element;
 
 /**
  * A simulated mote.
- * 
+ *
  * A mote is always in some state, describing the status of the CPU etc. Motes
  * in different states may be handled differently by for example the simulation
  * loop and plugins.
- * 
+ *
  * All motes must also have an interface handler, a mote type and a mote memory.
- * 
+ *
  * @see se.sics.cooja.MoteInterfaceHandler
  * @see se.sics.cooja.MoteMemory
  * @see se.sics.cooja.MoteType
- * 
+ *
  * @author Fredrik Osterlind
  */
 public interface Mote {
@@ -65,7 +65,7 @@ public interface Mote {
   /**
    * Tries to change state to given argument. A dead mote can typically not
    * change state, while a sleeping or active mote can.
-   * 
+   *
    * @param newState
    *          New state of mote.
    */
@@ -78,7 +78,7 @@ public interface Mote {
 
   /**
    * Adds new state observer. This observer is notified if mote changes state.
-   * 
+   *
    * @see #deleteStateObserver(Observer)
    * @param newObserver
    *          New observer
@@ -87,7 +87,7 @@ public interface Mote {
 
   /**
    * Delete existing state observer.
-   * 
+   *
    * @see #addStateObserver(Observer)
    * @param newObserver
    *          Registered state observer
@@ -96,7 +96,7 @@ public interface Mote {
 
   /**
    * Returns the interface handler of this mote.
-   * 
+   *
    * @see #setInterfaces(MoteInterfaceHandler)
    * @return Mote interface handler
    */
@@ -104,7 +104,7 @@ public interface Mote {
 
   /**
    * Sets the interface handler of this mote.
-   * 
+   *
    * @param moteInterfaceHandler
    *          New interface handler
    * @see #getInterfaces()
@@ -113,7 +113,7 @@ public interface Mote {
 
   /**
    * Returns the memory of this mote.
-   * 
+   *
    * @see #setMemory(MoteMemory)
    * @return Mote memory
    */
@@ -121,7 +121,7 @@ public interface Mote {
 
   /**
    * Sets the memory of this mote.
-   * 
+   *
    * @see #getMemory()
    * @param memory
    *          Mote memory
@@ -130,7 +130,7 @@ public interface Mote {
 
   /**
    * Returns mote type.
-   * 
+   *
    * @see #setType(MoteType)
    * @return Mote type
    */
@@ -138,7 +138,7 @@ public interface Mote {
 
   /**
    * Sets mote type to given argument.
-   * 
+   *
    * @see #getType()
    * @param type
    *          New type
@@ -147,7 +147,7 @@ public interface Mote {
 
   /**
    * Returns simulation which holds this mote.
-   * 
+   *
    * @see #setSimulation(Simulation)
    * @return Simulation
    */
@@ -155,7 +155,7 @@ public interface Mote {
 
   /**
    * Sets the simulation which holds this mote.
-   * 
+   *
    * @see #getSimulation()
    * @param simulation
    *          Simulation
@@ -164,21 +164,22 @@ public interface Mote {
 
   /**
    * Ticks this mote and increases any internal time to given argument.
-   * 
+   *
    * Each mote implementation may handle calls to this method differently, but
    * typically the simulated mote should at least handle one event.
-   * 
+   *
    * This method is responsible for updating the mote interfaces, the memory and
    * the mote state.
-   * 
+   *
    * A call to this method typically polls all interfaces, activates the memory,
    * lets the underlying mote software handle one event, fetches the updated
    * memory and finally polls all interfaces again.
-   * 
+   *
    * @param simTime
    *          New simulation time
+   * @return True is mote accepts another immediate tick
    */
-  public void tick(int simTime);
+  public boolean tick(int simTime);
 
   /**
    * Returns XML elements representing the current config of this mote. This is
@@ -186,7 +187,7 @@ public interface Mote {
    * file. For example a mote may return the configs of all its interfaces. This
    * method should however not return state specific information such as the
    * mote state. (All nodes are restarted when loading a simulation.)
-   * 
+   *
    * @see #setConfigXML(Simulation, Collection, boolean)
    * @return XML elements representing the current mote config
    */
@@ -194,12 +195,12 @@ public interface Mote {
 
   /**
    * Sets the current mote config depending on the given XML elements.
-   * 
+   *
    * @param simulation
    *          Simulation holding this mote
    * @param configXML
    *          Config XML elements
-   * 
+   *
    * @see #getConfigXML()
    */
   public abstract boolean setConfigXML(Simulation simulation,

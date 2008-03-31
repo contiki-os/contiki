@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2006, Swedish Institute of Computer Science. All rights
  * reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  * 1. Redistributions of source code must retain the above copyright notice,
@@ -12,7 +12,7 @@
  * Institute nor the names of its contributors may be used to endorse or promote
  * products derived from this software without specific prior written
  * permission.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY THE INSTITUTE AND CONTRIBUTORS ``AS IS'' AND ANY
  * EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
  * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -23,8 +23,8 @@
  * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- * 
- * $Id: DisturberMote.java,v 1.2 2007/01/09 10:01:14 fros4943 Exp $
+ *
+ * $Id: DisturberMote.java,v 1.3 2008/03/31 15:22:42 fros4943 Exp $
  */
 
 package se.sics.cooja.motes;
@@ -42,7 +42,7 @@ import se.sics.cooja.motes.DisturberRadio;
  * A disturber mote is a purely Java-based mote. It is used to disturb
  * transmission of other nodes on a certain channel (currently this is
  * hard-coded in the DisturberRadio.
- * 
+ *
  * @author Fredrik Osterlind, Thiemo Voigt
  */
 public class DisturberMote implements Mote {
@@ -70,7 +70,7 @@ public class DisturberMote implements Mote {
   /**
    * Creates a new dummy mote of the given type in the given simulation. An
    * empty mote memory and a position interface is added to this mote.
-   * 
+   *
    * @param moteType
    *          Mote type
    * @param sim
@@ -141,11 +141,12 @@ public class DisturberMote implements Mote {
     this.mySim = simulation;
   }
 
-  public void tick(int simTime) {
+  public boolean tick(int simTime) {
     myInterfaceHandler.doPassiveActionsBeforeTick();
     myInterfaceHandler.doActiveActionsBeforeTick();
     myInterfaceHandler.doActiveActionsAfterTick();
     myInterfaceHandler.doPassiveActionsAfterTick();
+    return false;
   }
 
   public Collection<Element> getConfigXML() {
@@ -173,7 +174,7 @@ public class DisturberMote implements Mote {
         config.add(element);
       }
     }
-   
+
     // Passive interface configs (if any)
     for (MoteInterface moteInterface: getInterfaces().getAllPassiveInterfaces()) {
       element = new Element("interface_config");
@@ -201,7 +202,7 @@ public class DisturberMote implements Mote {
     myDisturberRadio = new DisturberRadio(this);
     myInterfaceHandler.addActiveInterface(myDisturberRadio);
 
-    
+
     for (Element element : configXML) {
       String name = element.getName();
 
@@ -228,8 +229,9 @@ public class DisturberMote implements Mote {
   public String toString() {
     if (getInterfaces().getMoteID() != null) {
       return "Disturber Mote, ID=" + getInterfaces().getMoteID().getMoteID();
-    } else
+    } else {
       return "Disturber Mote, ID=null";
+    }
   }
 
 }

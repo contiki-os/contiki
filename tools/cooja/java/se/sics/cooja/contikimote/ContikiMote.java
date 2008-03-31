@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ContikiMote.java,v 1.6 2007/07/13 09:08:24 fros4943 Exp $
+ * $Id: ContikiMote.java,v 1.7 2008/03/31 15:22:43 fros4943 Exp $
  */
 
 package se.sics.cooja.contikimote;
@@ -42,15 +42,15 @@ import se.sics.cooja.*;
  * a loaded shared library and JNI.
  * It contains a section mote memory, a mote interface handler and a
  * Contiki mote type.
- * 
+ *
  * The mote type is responsible for the connection to the loaded
  * Contiki system.
- * 
+ *
  * When ticked a Contiki mote polls all interfaces, copies the mote
- * memory to the core, lets the Contiki system handle one event, 
- * fetches the updated memory and finally polls all interfaces again. 
+ * memory to the core, lets the Contiki system handle one event,
+ * fetches the updated memory and finally polls all interfaces again.
  * The mote state is also updated during a mote tick.
- * 
+ *
  * @author      Fredrik Osterlind
  */
 public class ContikiMote implements Mote {
@@ -75,21 +75,21 @@ public class ContikiMote implements Mote {
   }
   private StateObservable stateObservable = new StateObservable();
 
-  
+
   /**
    * Creates a new uninitialized Contiki mote.
-   * 
+   *
    * This mote needs at least a type, a memory, a mote interface handler
    * and to be connected to a simulation.
    */
   public ContikiMote() {
   }
-  
+
   /**
    * Creates a new mote of given type.
    * Both the initial mote memory and the interface handler
    * are supplied from the mote type.
-   * 
+   *
    * @param moteType Mote type
    * @param sim Mote's simulation
    */
@@ -97,8 +97,8 @@ public class ContikiMote implements Mote {
     this.mySim = sim;
     this.myType = moteType;
     this.myMemory = moteType.createInitialMemory();
-    this.myInterfaceHandler = new MoteInterfaceHandler((Mote) this, moteType.getMoteInterfaces());
-    
+    this.myInterfaceHandler = new MoteInterfaceHandler(this, moteType.getMoteInterfaces());
+
     myState = State.ACTIVE;
   }
 
@@ -116,7 +116,7 @@ public class ContikiMote implements Mote {
       myState = newState;
       stateObservable.stateChanged();
     }
-    
+
     if (myState == State.DEAD) {
       mySim.getRadioMedium().unregisterMote(this, mySim);
     }
@@ -133,11 +133,11 @@ public class ContikiMote implements Mote {
   public void deleteStateObserver(Observer newObserver) {
     stateObservable.deleteObserver(newObserver);
   }
-  
+
   public MoteInterfaceHandler getInterfaces() {
     return myInterfaceHandler;
   }
-  
+
   public void setInterfaces(MoteInterfaceHandler newInterfaces) {
     myInterfaceHandler = newInterfaces;
   }
@@ -176,12 +176,13 @@ public class ContikiMote implements Mote {
    *
    * @param simTime Current simulation time
    */
-  public void tick(int simTime) {
+  public boolean tick(int simTime) {
     State currentState = getState();
-    
+
     // If mote is dead, do nothing at all
-    if (currentState == State.DEAD)
-      return;
+    if (currentState == State.DEAD) {
+      return false;
+    }
 
     // If mote is sleeping and has a wake up time, should it wake up now?
     if (currentState == State.LPM && wakeUpTime > 0 && wakeUpTime <= simTime) {
@@ -204,7 +205,7 @@ public class ContikiMote implements Mote {
     // If mote is still active, complete this tick
     currentState = getState();
     if (currentState == State.ACTIVE) {
-      
+
       // Copy mote memory to core
       myType.setCoreMemory(myMemory);
 
@@ -228,18 +229,20 @@ public class ContikiMote implements Mote {
       int processRunValue = myMemory.getIntValueOf("simProcessRunValue");
       int etimersPending = myMemory.getIntValueOf("simEtimerPending");
       int nextExpirationTime = myMemory.getIntValueOf("simNextExpirationTime");
-      
+
       if (processRunValue == 0 && etimersPending == 0) {
         setState(State.LPM);
         wakeUpTime = 0;
       }
-      
+
       if (processRunValue == 0 && etimersPending == 1 && nextExpirationTime > 0) {
         setState(State.LPM);
         wakeUpTime = nextExpirationTime;
       }
-      
+
     }
+
+    return false;
   }
 
   /**
@@ -250,9 +253,9 @@ public class ContikiMote implements Mote {
    */
   public Collection<Element> getConfigXML() {
     Vector<Element> config = new Vector<Element>();
-    
+
     Element element;
-    
+
     // Mote type identifier
     element = new Element("motetype_identifier");
     element.setText(getType().getIdentifier());
@@ -269,7 +272,7 @@ public class ContikiMote implements Mote {
         config.add(element);
       }
     }
-   
+
     // Passive interface configs (if any)
     for (MoteInterface moteInterface: getInterfaces().getAllPassiveInterfaces()) {
       element = new Element("interface_config");
@@ -281,47 +284,49 @@ public class ContikiMote implements Mote {
         config.add(element);
       }
     }
-   
+
     return config;
   }
-  
+
   public boolean setConfigXML(Simulation simulation, Collection<Element> configXML, boolean visAvailable) {
     mySim = simulation;
     myState = State.ACTIVE;
-    
+
     for (Element element: configXML) {
       String name = element.getName();
 
       if (name.equals("motetype_identifier")) {
         myType = (ContikiMoteType) simulation.getMoteType(element.getText());
         myMemory = myType.createInitialMemory();
-        myInterfaceHandler = new MoteInterfaceHandler((Mote) this, myType.getMoteInterfaces());
+        myInterfaceHandler = new MoteInterfaceHandler(this, myType.getMoteInterfaces());
 
       } else if (name.equals("interface_config")) {
-        Class<? extends MoteInterface> moteInterfaceClass = 
+        Class<? extends MoteInterface> moteInterfaceClass =
           simulation.getGUI().tryLoadClass(this, MoteInterface.class, element.getText().trim());
 
         if (moteInterfaceClass == null) {
           logger.fatal("Could not load mote interface class: " + element.getText().trim());
           return false;
         }
-        
+
         MoteInterface moteInterface = myInterfaceHandler.getInterfaceOfType(moteInterfaceClass);
-        if (moteInterface != null)
+        if (moteInterface != null) {
           moteInterface.setConfigXML(element.getChildren(), visAvailable);
-        else
+        } else {
           logger.warn("Can't restore configuration for non-existing interface: " + moteInterfaceClass.getName());
+        }
       }
     }
-    
+
     return true;
   }
-  
+
   public String toString() {
     if (getInterfaces().getMoteID() != null) {
       return "Contiki Mote, ID=" + getInterfaces().getMoteID().getMoteID();
-    } else
+    } else {
       return "Contiki Mote, ID=null";
+    }
   }
-  
+
 }
