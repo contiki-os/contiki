@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: MspCodeWatcher.java,v 1.6 2008/03/19 17:42:44 fros4943 Exp $
+ * $Id: MspCodeWatcher.java,v 1.7 2008/03/31 15:19:27 fros4943 Exp $
  */
 
 package se.sics.cooja.mspmote.plugins;
@@ -91,6 +91,11 @@ public class MspCodeWatcher extends VisPlugin {
 
     Hashtable<File, Hashtable<Integer, Integer>> debuggingInfo = getFirmwareDebugInfo();
     breakpoints = new Breakpoints(debuggingInfo, mspMote);
+    breakpoints.addBreakpointListener(new ActionListener() {
+      public void actionPerformed(ActionEvent e) {
+        updateInfo();
+      }
+    });
 
     getContentPane().setLayout(new BorderLayout());
 
