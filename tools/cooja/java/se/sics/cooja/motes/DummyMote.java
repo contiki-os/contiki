@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: DummyMote.java,v 1.3 2007/01/09 10:01:14 fros4943 Exp $
+ * $Id: DummyMote.java,v 1.4 2008/03/31 15:22:41 fros4943 Exp $
  */
 
 package se.sics.cooja.motes;
@@ -46,17 +46,17 @@ import se.sics.cooja.interfaces.Position;
 /**
  * A dummy mote is a purely Java-based mote, and can be used as an example of
  * how to implement motes other than the usual Contiki mote.
- * 
+ *
  * The dummy mote uses an empty section mote memory without any variable
  * mappings.
- * 
+ *
  * The mote interface handler has a position interface, added when the mote is
  * constructed.
- * 
+ *
  * When the dummy mote is ticked all (one!) interfaces are polled and a random
  * variable decides if the position should be changed. The node never leaves the
  * active state.
- * 
+ *
  * @author Fredrik Osterlind
  */
 public class DummyMote implements Mote {
@@ -79,7 +79,7 @@ public class DummyMote implements Mote {
   /**
    * Creates a new dummy mote of the given type in the given simulation. An
    * empty mote memory and a position interface is added to this mote.
-   * 
+   *
    * @param moteType
    *          Mote type
    * @param sim
@@ -146,7 +146,7 @@ public class DummyMote implements Mote {
     this.mySim = simulation;
   }
 
-  public void tick(int simTime) {
+  public boolean tick(int simTime) {
 
     // Perform some dummy task
     if (myRandom.nextDouble() > 0.9) {
@@ -157,6 +157,7 @@ public class DummyMote implements Mote {
           + myRandom.nextDouble() - 0.5, myPosition.getZCoordinate()
           + myRandom.nextDouble() - 0.5);
     }
+    return false;
   }
 
   public Collection<Element> getConfigXML() {
@@ -215,8 +216,9 @@ public class DummyMote implements Mote {
   public String toString() {
     if (getInterfaces().getMoteID() != null) {
       return "Dummy Mote, ID=" + getInterfaces().getMoteID().getMoteID();
-    } else
+    } else {
       return "Dummy Mote, ID=null";
+    }
   }
 
 }
