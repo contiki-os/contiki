@@ -46,9 +46,9 @@ Berlin, 2007
  * @brief	MMC-/SD-Card library, Public interface
  * 
  * @author	Michael Baar	<baar@inf.fu-berlin.de>
- * @version	$Revision: 1.3 $
+ * @version	$Revision: 1.4 $
  *
- * $Id: sd.h,v 1.3 2008/03/28 23:03:05 nvt-se Exp $
+ * $Id: sd.h,v 1.4 2008/03/31 13:48:03 nvt-se Exp $
  */
 
 /**
@@ -58,6 +58,8 @@ Berlin, 2007
 
 #ifndef __SD_H__
 #define __SD_H__
+
+#include "contiki-conf.h"
 
 #define SD_BLOCKLENGTH_INVALID		0xFF
 #define	SD_WRITE_BLOCKLENGTH_BIT	9
