@@ -47,9 +47,9 @@ Berlin, 2007
  * @brief	MMC-/SD-Card library, cached read and write
  * 
  * @author	Michael Baar	<baar@inf.fu-berlin.de>
- * @version	$Revision: 1.3 $
+ * @version	$Revision: 1.4 $
  *
- * $Id: sd_cache.c,v 1.3 2008/03/28 23:03:05 nvt-se Exp $
+ * $Id: sd_cache.c,v 1.4 2008/03/31 14:32:00 nvt-se Exp $
  */
 
 
@@ -57,6 +57,7 @@ Berlin, 2007
  * @addtogroup	libsd
  * @{
  */
+#include "sd.h"
 #include "sd_internals.h"
 
 #if SD_CACHE
@@ -100,7 +101,7 @@ sd_cache_read_block(const uint32_t * pblAdr)
     sd_state.Cache->address = *pblAdr;
     if (!sd_read_block(sd_state.Cache->buffer, *pblAdr)) {
       SD_FREE_LOCK(sd_state.Cache);
-      return false;
+      return NULL;
     }
   }
   return sd_state.Cache;
