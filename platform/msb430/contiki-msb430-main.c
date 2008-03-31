@@ -77,7 +77,6 @@ main(void)
 
   clock_init();
   rtimer_init();
-  ctimer_init();
 
   sht11_init();
   leds_init();
@@ -98,6 +97,7 @@ main(void)
 
   /* System services */
   process_start(&etimer_process, NULL);
+  ctimer_init();
 
   node_id_restore();
 
