@@ -47,7 +47,6 @@
 #include "dev/infomem.h"
 #include "dev/msb430-uart1.h"
 #include "dev/rs232.h"
-#include "dev/sdspi.h"
 
 #include "dev/serial.h"
 #include "dev/slip.h"
@@ -55,7 +54,7 @@
 
 #ifdef WITH_SDC
 #include "dev/sd/sd.h"
-#include "cfs/cfs-sd.h"
+#include "dev/sd/sdspi.h"
 #endif
 
 #include "node-id.h"
