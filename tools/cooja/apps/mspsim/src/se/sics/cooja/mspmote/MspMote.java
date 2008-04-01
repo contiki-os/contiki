@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: MspMote.java,v 1.5 2008/03/19 17:23:47 fros4943 Exp $
+ * $Id: MspMote.java,v 1.6 2008/04/01 08:08:58 fros4943 Exp $
  */
 
 package se.sics.cooja.mspmote;
@@ -242,56 +242,52 @@ public abstract class MspMote implements Mote {
    */
   protected abstract boolean initEmulator(File ELFFile);
 
-  public void tick(int simTime) {
-    // Let all interfaces act
-    myMoteInterfaceHandler.doPassiveActionsBeforeTick();
-    myMoteInterfaceHandler.doActiveActionsBeforeTick();
+  private int currentSimTime = -1;
+  public boolean tick(int simTime) {
+    if (stopNextInstruction) {
+      stopNextInstruction = false;
+      throw new RuntimeException("Request simulation stop");
+    }
 
-    stopNextInstruction = false;
+    if (currentSimTime < 0) {
+      currentSimTime = simTime;
+    }
+
+    if (currentSimTime != simTime) {
+      currentSimTime = simTime;
+    }
+
+    long maxSimTimeCycles = NR_CYCLES_PER_MSEC*(simTime+1);
+    if (maxSimTimeCycles <= cycleCounter) {
+      return false;
+    }
 
     // Leave control to emulated CPU
+    cycleCounter += 1;
+
     MSP430 cpu = getCPU();
-    cycleCounter += NR_CYCLES_PER_MSEC;
+    cpu.step(cycleCounter);
+
+    /* Check if radio has pending incoming bytes */
+    if (myRadio != null && myRadio.hasPendingBytes()) {
+      myRadio.tryDeliverNextByte(cpu.cycles);
+    }
 
     if (monitorStackUsage) {
-      // CPU loop with stack observer
-      int newStack;
-      while (!stopNextInstruction && cpu.cycles < cycleCounter) {
-        cpu.step(cycleCounter);
+      int newStack = cpu.reg[MSP430.SP];
+      if (newStack < stackPointerLow && newStack > 0) {
+        stackPointerLow = cpu.reg[MSP430.SP];
 
-        /* Check if radio has pending incoming bytes */
-        if (myRadio != null && myRadio.hasPendingBytes()) {
-          myRadio.tryDeliverNextByte(cpu.cycles);
-        }
-
-        newStack = cpu.reg[MSP430.SP];
-        if (newStack < stackPointerLow && newStack > 0) {
-          stackPointerLow = cpu.reg[MSP430.SP];
-
-          // Check if stack is writing in memory
-          if (stackPointerLow < heapStartAddress) {
-            stackOverflowObservable.signalStackOverflow();
-            stopNextInstruction = true;
-          }
-        }
-      }
-    } else { /* Fast CPU loop */
-      while (!stopNextInstruction && cpu.cycles < cycleCounter) {
-        cpu.step(cycleCounter);
-
-        /* Check if radio has pending incoming bytes */
-        if (myRadio != null && myRadio.hasPendingBytes()) {
-          myRadio.tryDeliverNextByte(cpu.cycles);
+        // Check if stack is writing in memory
+        if (stackPointerLow < heapStartAddress) {
+          stackOverflowObservable.signalStackOverflow();
+          stopNextInstruction = true;
+          getSimulation().stopSimulation();
         }
       }
     }
 
-    // Reset abort flag
-    stopNextInstruction = false;
-
-    // Let all interfaces act after tick
-    myMoteInterfaceHandler.doActiveActionsAfterTick();
-    myMoteInterfaceHandler.doPassiveActionsAfterTick();
+    return true;
   }
 
   public boolean setConfigXML(Simulation simulation, Collection<Element> configXML, boolean visAvailable) {
