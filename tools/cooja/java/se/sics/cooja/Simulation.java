@@ -24,7 +24,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * $Id: Simulation.java,v 1.21 2008/03/17 08:35:10 fros4943 Exp $
+ * $Id: Simulation.java,v 1.22 2008/04/01 08:12:16 fros4943 Exp $
  */
 
 package se.sics.cooja;
@@ -130,9 +130,17 @@ public class Simulation extends Observable implements Runnable {
     this.setChanged();
     this.notifyObservers(this);
 
+    /* Experimental: Tick MSP motes separately */
+    ArrayList<Mote> mspMotes = new ArrayList<Mote>();
+    for (Mote mote: motes) {
+      if (mote.getType().getClass().toString().contains(".mspmote.")) {
+        mspMotes.add(mote);
+      }
+    }
+
     // Distribute motes in tick lists according to random seed
     // TODO Timeconsuming approach (but only performed once)
-    int motesToDistribute = motes.size();
+    int motesToDistribute = motes.size() - mspMotes.size();
     Mote[][] allLists = new Mote[nrTickLists][];
     for (int i=0; i < nrTickLists; i++) {
       allLists[i] = new Mote[(int) Math.ceil((double)motesToDistribute/(double)(nrTickLists - i))];
@@ -141,7 +149,12 @@ public class Simulation extends Observable implements Runnable {
 
     // Distribute motes according to seed
     tickListRandom.setSeed(randomSeed);
-    Vector<Mote> motesClone = (Vector<Mote>) motes.clone();
+    Vector<Mote> motesClone = new Vector<Mote>();
+    for (Mote mote: motes) {
+      if (!mote.getType().getClass().toString().contains(".mspmote.")) {
+        motesClone.add(mote);
+      }
+    }
     for (int i=0; i < allLists.length; i++) {
       for (int j=0; j < allLists[i].length; j++) {
         int moteNr = tickListRandom.nextInt(motesClone.size());
@@ -151,6 +164,24 @@ public class Simulation extends Observable implements Runnable {
 
     while (isRunning) {
       try {
+
+        /* Tick MSP motes */
+        try {
+          boolean wantMoreTicks = true;
+          while (wantMoreTicks) {
+            /* Tick all MSP motes until none need more ticks */
+            wantMoreTicks = false;
+            for (Mote moteToTick : mspMotes) {
+              if (moteToTick.tick(currentSimulationTime)) {
+                wantMoreTicks = true;
+              }
+            }
+          }
+        } catch (RuntimeException e) {
+          isRunning = false;
+          thread = null;
+          break;
+        }
 
         // Tick current mote subset
         for (Mote moteToTick : allLists[currentTickListIndex]) {
