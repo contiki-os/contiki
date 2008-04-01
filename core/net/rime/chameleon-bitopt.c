@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: chameleon-bitopt.c,v 1.2 2008/02/28 21:25:34 oliverschmidt Exp $
+ * $Id: chameleon-bitopt.c,v 1.3 2008/04/01 13:10:22 nifi Exp $
  */
 
 /**
@@ -45,7 +45,7 @@
 #include <string.h>
 
 struct bitopt_hdr {
-  uint16_t channel;
+  uint8_t channel[2];
 };
 
 static const uint8_t bitmask[9] = { 0x00, 0x80, 0xc0, 0xe0, 0xf0,
@@ -268,7 +268,8 @@ pack_header(struct channel *c)
 
   rimebuf_hdralloc(sizeof(struct bitopt_hdr));
   hdr = (struct bitopt_hdr *)rimebuf_hdrptr();
-  hdr->channel = c->channelno;
+  hdr->channel[0] = c->channelno & 0xff;
+  hdr->channel[1] = (c->channelno & 0xff) << 8;
   
   return 1; /* Send out packet */
 }
@@ -288,7 +289,7 @@ unpack_header(void)
      for. */
   hdr = (struct bitopt_hdr *)rimebuf_dataptr();
   rimebuf_hdrreduce(sizeof(struct bitopt_hdr));
-  c = channel_lookup(hdr->channel);
+  c = channel_lookup((hdr->channel[1] << 8) + (hdr->channel[0]));
   if(c == NULL) {
     PRINTF("chameleon-bitopt: input: channel %d not found\n", hdr->channel);
     return NULL;
