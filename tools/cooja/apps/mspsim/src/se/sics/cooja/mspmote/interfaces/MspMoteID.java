@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: MspMoteID.java,v 1.2 2008/02/11 16:09:47 fros4943 Exp $
+ * $Id: MspMoteID.java,v 1.3 2008/04/01 08:07:58 fros4943 Exp $
  */
 
 package se.sics.cooja.mspmote.interfaces;
@@ -52,14 +52,12 @@ import se.sics.cooja.mspmote.MspMoteMemory;
  * @author Fredrik Osterlind
  */
 public class MspMoteID extends MoteID {
-  private final int PERSISTENT_ID_TIME = 100;
-
   private static Logger logger = Logger.getLogger(MspMoteID.class);
 
   private MspMote mote;
   private MspMoteMemory moteMem = null;
 
-  private int persistentID = -1;
+  public static final boolean GENERATE_ID_HEADER = true;
 
   /**
    * Creates an interface to the mote ID at mote.
@@ -84,8 +82,10 @@ public class MspMoteID extends MoteID {
   }
 
   public void setMoteID(int newID) {
-    if (mote.getInterfaces().getClock().getTime() < PERSISTENT_ID_TIME) {
-      persistentID = newID;
+    /* Write node ID to flash */
+    if (GENERATE_ID_HEADER) {
+      SkyFlash flash = mote.getInterfaces().getInterfaceOfType(SkyFlash.class);
+      flash.writeIDheader(newID);
     }
 
     try {
@@ -102,13 +102,6 @@ public class MspMoteID extends MoteID {
   }
 
   public void doActionsAfterTick() {
-    if (persistentID > 0) {
-      if (mote.getInterfaces().getClock().getTime() < PERSISTENT_ID_TIME) {
-        setMoteID(persistentID);
-      } else {
-        persistentID = 0;
-      }
-    }
   }
 
   public JPanel getInterfaceVisualizer() {
