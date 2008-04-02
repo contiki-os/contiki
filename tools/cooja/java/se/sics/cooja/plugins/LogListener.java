@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: LogListener.java,v 1.8 2008/02/12 15:11:40 fros4943 Exp $
+ * $Id: LogListener.java,v 1.9 2008/04/02 16:42:39 fros4943 Exp $
  */
 
 package se.sics.cooja.plugins;
@@ -174,7 +174,6 @@ public class LogListener extends VisPlugin {
           }
 
           if (!saveFile.exists() || saveFile.canWrite()) {
-            logger.debug("SAVING NOW!");
             try {
               BufferedWriter outStream = new BufferedWriter(
                   new OutputStreamWriter(
@@ -193,6 +192,11 @@ public class LogListener extends VisPlugin {
         }
       }
     });
+
+    if (gui.isVisualizedInApplet()) {
+      saveButton.setToolTipText("Not available in applet");
+      saveButton.setEnabled(false);
+    }
 
     getContentPane().add(BorderLayout.CENTER, new JScrollPane(logTextArea));
     getContentPane().add(BorderLayout.SOUTH, new JScrollPane(filterPanel));
