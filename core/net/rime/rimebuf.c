@@ -33,7 +33,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: rimebuf.c,v 1.13 2008/03/20 09:40:31 adamdunkels Exp $
+ * $Id: rimebuf.c,v 1.14 2008/04/02 14:49:21 nifi Exp $
  */
 
 /**
@@ -117,12 +117,17 @@ rimebuf_copyfrom(const void *from, uint16_t len)
 void
 rimebuf_compact(void)
 {
+  int i, len;
+
   if(rimebuf_is_reference()) {
     memcpy(&rimebuf[RIMEBUF_HDR_SIZE], rimebuf_reference_ptr(),
 	   rimebuf_datalen());
-  } else {
-    memcpy(&rimebuf[RIMEBUF_HDR_SIZE], &rimebuf[bufptr + RIMEBUF_HDR_SIZE],
-	   rimebuf_datalen());
+  } else if (bufptr > 0) {
+    len = rimebuf_datalen() + RIMEBUF_HDR_SIZE;
+    for (i = RIMEBUF_HDR_SIZE; i < len; i++) {
+      rimebuf[i] = rimebuf[bufptr + i];
+    }
+
     bufptr = 0;
   }
 }
@@ -260,10 +265,11 @@ rimebuf_attr_clear(void)
 {
   int i;
   for(i = 0; i < RIMEBUF_NUM_ATTRS; ++i) {
-    rimebuf_attrs[i].type = RIMEBUF_ATTR_NONE;
+/*     rimebuf_attrs[i].type = RIMEBUF_ATTR_NONE; */
+    rimebuf_attrs[i].val = 0;
   }
   for(i = 0; i < RIMEBUF_NUM_ADDRS; ++i) {
-    rimebuf_addrs[i].type = RIMEBUF_ATTR_NONE;
+/*     rimebuf_addrs[i].type = RIMEBUF_ATTR_NONE; */
     rimeaddr_copy(&rimebuf_addrs[i].addr, &rimeaddr_null);
   }
 }
@@ -288,7 +294,7 @@ rimebuf_attr_copyfrom(struct rimebuf_attr *attrs,
 int
 rimebuf_set_attr(uint8_t type, const rimebuf_attr_t val)
 {
-  rimebuf_attrs[type].type = type;
+/*   rimebuf_attrs[type].type = type; */
   rimebuf_attrs[type].val = val;
   return 1;
 }
@@ -302,15 +308,15 @@ rimebuf_attr(uint8_t type)
 int
 rimebuf_set_addr(uint8_t type, const rimeaddr_t *addr)
 {
-  rimebuf_addrs[type].type = type;
-  rimeaddr_copy(&rimebuf_addrs[type].addr, addr);
+/*   rimebuf_addrs[type - RIMEBUF_ADDR_FIRST].type = type; */
+  rimeaddr_copy(&rimebuf_addrs[type - RIMEBUF_ADDR_FIRST].addr, addr);
   return 1;
 }
 /*---------------------------------------------------------------------------*/
 const rimeaddr_t *
 rimebuf_addr(uint8_t type)
 {
-  return &rimebuf_addrs[type].addr;
+  return &rimebuf_addrs[type - RIMEBUF_ADDR_FIRST].addr;
 }
 /*---------------------------------------------------------------------------*/
 #endif /* RIMEBUF_CONF_ATTRS_INLINE */
