@@ -40,7 +40,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: rimebuf.h,v 1.13 2008/02/25 02:14:35 adamdunkels Exp $
+ * $Id: rimebuf.h,v 1.14 2008/04/02 14:49:21 nifi Exp $
  */
 
 /**
@@ -304,11 +304,11 @@ int rimebuf_hdrreduce(int size);
 typedef uint16_t rimebuf_attr_t;
 
 struct rimebuf_attr {
-  uint8_t type;
+/*   uint8_t type; */
   rimebuf_attr_t val;
 };
 struct rimebuf_addr {
-  uint8_t type;
+/*   uint8_t type; */
   rimeaddr_t addr;
 };
 
@@ -337,11 +337,12 @@ enum {
   RIMEBUF_ADDR_ESENDER,
   RIMEBUF_ADDR_ERECEIVER,
 
-  RIMEBUF_ATTR_MAX,
+  RIMEBUF_ATTR_MAX
 };
 
 #define RIMEBUF_NUM_ADDRS 4
 #define RIMEBUF_NUM_ATTRS (RIMEBUF_ATTR_MAX - RIMEBUF_NUM_ADDRS)
+#define RIMEBUF_ADDR_FIRST RIMEBUF_ADDR_SENDER
 
 
 #if RIMEBUF_CONF_ATTRS_INLINE
@@ -357,7 +358,7 @@ static const rimeaddr_t *rimebuf_addr(uint8_t type);
 static inline int
 rimebuf_set_attr(uint8_t type, const rimebuf_attr_t val)
 {
-  rimebuf_attrs[type].type = type;
+/*   rimebuf_attrs[type].type = type; */
   rimebuf_attrs[type].val = val;
   return 1;
 }
@@ -370,15 +371,15 @@ rimebuf_attr(uint8_t type)
 static inline int
 rimebuf_set_addr(uint8_t type, const rimeaddr_t *addr)
 {
-  rimebuf_addrs[type].type = type;
-  rimeaddr_copy(&rimebuf_addrs[type].addr, addr);
+/*   rimebuf_addrs[type - RIMEBUF_ADDR_FIRST].type = type; */
+  rimeaddr_copy(&rimebuf_addrs[type - RIMEBUF_ADDR_FIRST].addr, addr);
   return 1;
 }
 
 static inline const rimeaddr_t *
 rimebuf_addr(uint8_t type)
 {
-  return &rimebuf_addrs[type].addr;
+  return &rimebuf_addrs[type - RIMEBUF_ADDR_FIRST].addr;
 }
 #else /* RIMEBUF_CONF_ATTRS_INLINE */
 int               rimebuf_set_attr(uint8_t type, const rimebuf_attr_t val);
