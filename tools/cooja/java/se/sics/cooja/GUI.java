@@ -24,7 +24,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * $Id: GUI.java,v 1.74 2008/03/19 09:40:38 fros4943 Exp $
+ * $Id: GUI.java,v 1.75 2008/04/02 16:41:46 fros4943 Exp $
  */
 
 package se.sics.cooja;
@@ -45,6 +45,7 @@ import javax.swing.*;
 import javax.swing.event.MenuEvent;
 import javax.swing.event.MenuListener;
 import javax.swing.filechooser.FileFilter;
+import org.apache.log4j.BasicConfigurator;
 import org.apache.log4j.Logger;
 import org.apache.log4j.xml.DOMConfigurator;
 import org.jdom.Document;
@@ -2916,16 +2917,17 @@ public class GUI {
   public static void main(String[] args) {
 
     try {
-    // Configure logger
-    if ((new File(LOG_CONFIG_FILE)).exists()) {
-      DOMConfigurator.configure(LOG_CONFIG_FILE);
-    } else {
-      // Used when starting from jar
-      DOMConfigurator.configure(GUI.class.getResource("/" + LOG_CONFIG_FILE));
-    }
+      // Configure logger
+      if ((new File(LOG_CONFIG_FILE)).exists()) {
+        DOMConfigurator.configure(LOG_CONFIG_FILE);
+      } else {
+        // Used when starting from jar
+        DOMConfigurator.configure(GUI.class.getResource("/" + LOG_CONFIG_FILE));
+      }
 
-    externalToolsUserSettingsFile = new File(System.getProperty("user.home"), EXTERNAL_TOOLS_USER_SETTINGS_FILENAME);
+      externalToolsUserSettingsFile = new File(System.getProperty("user.home"), EXTERNAL_TOOLS_USER_SETTINGS_FILENAME);
     } catch (AccessControlException e) {
+      BasicConfigurator.configure();
       externalToolsUserSettingsFile = null;
     }
 
