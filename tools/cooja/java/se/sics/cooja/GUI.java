@@ -24,7 +24,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * $Id: GUI.java,v 1.75 2008/04/02 16:41:46 fros4943 Exp $
+ * $Id: GUI.java,v 1.76 2008/04/03 13:59:37 fros4943 Exp $
  */
 
 package se.sics.cooja;
@@ -354,6 +354,10 @@ public class GUI {
 
   public static boolean isVisualizedInFrame() {
     return frame != null;
+  }
+
+  public static URL getAppletCodeBase() {
+    return applet.getCodeBase();
   }
 
   public static boolean isVisualizedInApplet() {
@@ -3054,13 +3058,35 @@ public class GUI {
 
     } else if (args.length > 0 && args[0].startsWith("-applet")) {
 
+      String tmpWebPath=null, tmpBuildPath=null, tmpEsbFirmware=null, tmpSkyFirmware=null;
+      for (int i = 1; i < args.length; i++) {
+        if (args[i].startsWith("-web=")) {
+          tmpWebPath = args[i].substring("-web=".length());
+        } else if (args[i].startsWith("-sky_firmware=")) {
+          tmpSkyFirmware = args[i].substring("-sky_firmware=".length());
+        } else if (args[i].startsWith("-esb_firmware=")) {
+          tmpEsbFirmware = args[i].substring("-esb_firmware=".length());
+        } else if (args[i].startsWith("-build=")) {
+          tmpBuildPath = args[i].substring("-build=".length());
+        }
+      }
+
       // Applet start-up
+      final String webPath = tmpWebPath, buildPath = tmpBuildPath;
+      final String skyFirmware = tmpSkyFirmware, esbFirmware = tmpEsbFirmware;
       javax.swing.SwingUtilities.invokeLater(new Runnable() {
         public void run() {
           JDesktopPane desktop = new JDesktopPane();
           desktop.setDragMode(JDesktopPane.OUTLINE_DRAG_MODE);
           applet = CoojaApplet.applet;
           GUI gui = new GUI(desktop);
+
+          GUI.setExternalToolsSetting("PATH_CONTIKI_BUILD", buildPath);
+          GUI.setExternalToolsSetting("PATH_CONTIKI_WEB", webPath);
+
+          GUI.setExternalToolsSetting("SKY_FIRMWARE", skyFirmware);
+          GUI.setExternalToolsSetting("ESB_FIRMWARE", esbFirmware);
+
           configureApplet(gui, false);
         }
       });
