@@ -44,7 +44,6 @@
 
   <target name="jar" depends="clean, init, compile">
     <jar destfile="${cooja_mspsim_jar}" basedir="${build}">
-      <fileset dir="${build}"/>
       <manifest>
         <attribute name="Class-Path" value="."/>
       </manifest>
