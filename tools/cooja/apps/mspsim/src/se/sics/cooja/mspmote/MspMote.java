@@ -26,12 +26,14 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: MspMote.java,v 1.6 2008/04/01 08:08:58 fros4943 Exp $
+ * $Id: MspMote.java,v 1.7 2008/04/03 14:01:06 fros4943 Exp $
  */
 
 package se.sics.cooja.mspmote;
 
 import java.io.*;
+import java.net.URL;
+import java.net.URLConnection;
 import java.util.*;
 import org.apache.log4j.Logger;
 import org.jdom.Element;
@@ -90,7 +92,6 @@ public abstract class MspMote implements Mote {
   public MspMote(MspMoteType moteType, Simulation simulation) {
     myMoteType = moteType;
     mySimulation = simulation;
-
     initEmulator(myMoteType.getELFFile());
 
     myMoteInterfaceHandler = createMoteInterfaceHandler();
@@ -182,7 +183,23 @@ public abstract class MspMote implements Mote {
 
     int[] memory = myCpu.getMemory();
 
-    myELFModule = ELF.readELF(fileELF.getPath());
+    if (GUI.isVisualizedInApplet()) {
+      URLConnection urlConnection = new URL(GUI.getAppletCodeBase(), fileELF.getName()).openConnection();
+      urlConnection.setDoInput(true);
+      urlConnection.setUseCaches(false);
+      DataInputStream inputStream = new DataInputStream(urlConnection.getInputStream());
+      ByteArrayOutputStream byteStream = new ByteArrayOutputStream();
+      byte[] firmwareData = new byte[2048];
+      for(int read; (read = inputStream.read(firmwareData)) != -1; byteStream.write(firmwareData, 0, read)) { }
+      inputStream.close();
+      firmwareData = null;
+      firmwareData = byteStream.toByteArray();
+
+      myELFModule = new ELF(firmwareData);
+      myELFModule.readAll();
+    } else {
+      myELFModule = ELF.readELF(fileELF.getPath());
+    }
     myELFModule.loadPrograms(memory);
     MapTable map = myELFModule.getMap();
     myCpu.getDisAsm().setMap(map);
