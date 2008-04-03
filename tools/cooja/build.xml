@@ -81,6 +81,12 @@ The COOJA Simulator
     </java>
   </target>
 
+  <target name="jar_all" depends="init">
+  	<ant antfile="build.xml" dir="." target="jar" inheritAll="false"/>
+  	<ant antfile="build.xml" dir="apps/mrm" target="jar" inheritAll="false"/>
+  	<ant antfile="build.xml" dir="apps/mspsim" target="jar" inheritAll="false"/>
+  </target>
+	
   <target name="run_nogui" depends="init, compile, copy configs">
     <java fork="yes" dir="${build}" classname="se.sics.cooja.GUI">
       <arg line="-nogui ${args}"/>
@@ -102,10 +108,9 @@ The COOJA Simulator
     </exec>
   </target>
 	
-  <target name="jar" depends="clean, init, compile, copy configs">
+  <target name="jar" depends="init, clean, compile, copy configs">
     <mkdir dir="${dist}"/>
     <jar destfile="${dist}/cooja.jar" basedir="${build}">
-      <fileset dir="${build}"/>
       <manifest>
         <attribute name="Main-Class" value="se.sics.cooja.GUI"/>
         <attribute name="Class-Path" value=". lib/log4j.jar lib/jdom.jar"/>
@@ -116,6 +121,5 @@ The COOJA Simulator
       <fileset dir="${lib}"/>
     </copy>
   </target>
-
 
 </project>
