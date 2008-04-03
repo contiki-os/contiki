@@ -33,7 +33,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: rimebuf.c,v 1.14 2008/04/02 14:49:21 nifi Exp $
+ * $Id: rimebuf.c,v 1.15 2008/04/03 09:07:28 nifi Exp $
  */
 
 /**
@@ -100,6 +100,7 @@ rimebuf_clear(void)
   hdrptr = RIMEBUF_HDR_SIZE;
 
   rimebufptr = &rimebuf[RIMEBUF_HDR_SIZE];
+  rimebuf_attr_clear();
 }
 /*---------------------------------------------------------------------------*/
 int
