@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: SkyMote.java,v 1.3 2008/04/01 08:09:35 fros4943 Exp $
+ * $Id: SkyMote.java,v 1.4 2008/04/03 14:02:20 fros4943 Exp $
  */
 
 package se.sics.cooja.mspmote;
@@ -59,7 +59,7 @@ public class SkyMote extends MspMote {
   protected boolean initEmulator(File fileELF) {
     try {
       skyNode = new SkyNode();
-      skyNode.setupNodePorts();
+      skyNode.setupNodePorts(false);
       prepareMote(fileELF, skyNode.getCPU());
 
     } catch (Exception e) {
