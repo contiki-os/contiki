@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: MspCodeWatcher.java,v 1.7 2008/03/31 15:19:27 fros4943 Exp $
+ * $Id: MspCodeWatcher.java,v 1.8 2008/04/03 14:03:30 fros4943 Exp $
  */
 
 package se.sics.cooja.mspmote.plugins;
@@ -37,6 +37,11 @@ import java.awt.event.*;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.net.URLConnection;
 import java.util.*;
 import javax.swing.*;
 import javax.swing.plaf.basic.BasicComboBoxRenderer;
@@ -656,9 +661,14 @@ public class MspCodeWatcher extends VisPlugin {
       }
 
       File file = new File(sourceFile);
-      if (!file.exists() || !file.isFile()) {
-        logger.warn("Can't locate source file, skipping: " + file.getPath());
+      if (!GUI.isVisualizedInApplet()) {
+        if (!file.exists() || !file.isFile()) {
+          logger.warn("Can't locate source file, skipping: " + file.getPath());
+        } else {
+          files.add(file);
+        }
       } else {
+        /* Accept all files without existence check */
         files.add(file);
       }
     }
@@ -714,7 +724,54 @@ public class MspCodeWatcher extends VisPlugin {
    * @param textFile File
    * @return Line-by-line text in file
    */
+  public static Vector<String> readTextFile(URL textFile) throws IOException {
+    URLConnection urlConnection = textFile.openConnection();
+    urlConnection.setDoInput(true);
+    urlConnection.setUseCaches(false);
+
+    Vector<String> data = new Vector<String>();
+    BufferedReader reader = new BufferedReader(new InputStreamReader(urlConnection.getInputStream()));
+    String line;
+    while ((line = reader.readLine()) != null) {
+      data.add(line);
+    }
+
+    return data;
+  }
+
+  /**
+   * Tries to open and read given text file.
+   *
+   * @param textFile File
+   * @return Line-by-line text in file
+   */
   public static Vector<String> readTextFile(File textFile) {
+    if (GUI.isVisualizedInApplet()) {
+      /* Download from web server instead */
+      String path = textFile.getPath();
+
+      /* Extract Contiki build path */
+      String contikiBuildPath = GUI.getExternalToolsSetting("PATH_CONTIKI_BUILD");
+      String contikiWebPath = GUI.getExternalToolsSetting("PATH_CONTIKI_WEB");
+
+      if (!path.startsWith(contikiBuildPath)) {
+        return null;
+      }
+
+      try {
+        /* Replace Contiki parent path with web server code base */
+        path = contikiWebPath + '/' + path.substring(contikiBuildPath.length());
+        URL url = new URL(GUI.getAppletCodeBase(), path);
+        return readTextFile(url);
+      } catch (MalformedURLException e) {
+        logger.warn("Failure to read source code: " + e);
+        return null;
+      } catch (IOException e) {
+        logger.warn("Failure to read source code: " + e);
+        return null;
+      }
+    }
+
     try {
       BufferedReader in =
         new BufferedReader(
