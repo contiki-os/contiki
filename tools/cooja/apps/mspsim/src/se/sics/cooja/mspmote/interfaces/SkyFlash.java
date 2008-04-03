@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: SkyFlash.java,v 1.1 2008/04/01 08:06:57 fros4943 Exp $
+ * $Id: SkyFlash.java,v 1.2 2008/04/03 14:02:47 fros4943 Exp $
  */
 
 package se.sics.cooja.mspmote.interfaces;
@@ -96,6 +96,12 @@ public class SkyFlash extends MoteInterface {
     final JButton downloadButton = new JButton("Store to file");
     panel.add(downloadButton);
 
+    if (GUI.isVisualizedInApplet()) {
+      uploadButton.setEnabled(false);
+      uploadButton.setToolTipText("Not available in applet mode");
+      downloadButton.setEnabled(false);
+      downloadButton.setToolTipText("Not available in applet mode");
+    }
 
     uploadButton.addActionListener(new ActionListener() {
       public void actionPerformed(ActionEvent e) {
