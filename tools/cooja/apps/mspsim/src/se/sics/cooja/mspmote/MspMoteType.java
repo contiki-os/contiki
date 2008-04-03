@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: MspMoteType.java,v 1.4 2008/02/12 15:12:38 fros4943 Exp $
+ * $Id: MspMoteType.java,v 1.5 2008/04/03 14:00:21 fros4943 Exp $
  */
 
 package se.sics.cooja.mspmote;
@@ -179,14 +179,19 @@ public abstract class MspMoteType implements MoteType {
           + "If you want to use an already existing file, click 'Select'.\n\n"
           + "To compile this file from source, click 'Compile'";
       String title = "Select or compile " + targetNice + " firmware";
-      int answer = JOptionPane.showOptionDialog(GUI.getTopParentContainer(),
-          question, title, JOptionPane.YES_NO_OPTION,
-          JOptionPane.QUESTION_MESSAGE, null, options, options[0]);
 
-      if (answer != JOptionPane.YES_OPTION && answer != JOptionPane.NO_OPTION) {
-        return false;
+      if (GUI.isVisualizedInApplet()) {
+        compileFromSource = false;
+      } else {
+        int answer = JOptionPane.showOptionDialog(GUI.getTopParentContainer(),
+            question, title, JOptionPane.YES_NO_OPTION,
+            JOptionPane.QUESTION_MESSAGE, null, options, options[0]);
+
+        if (answer != JOptionPane.YES_OPTION && answer != JOptionPane.NO_OPTION) {
+          return false;
+        }
+        compileFromSource = answer != JOptionPane.YES_OPTION;
       }
-      compileFromSource = answer != JOptionPane.YES_OPTION;
     }
 
     /* Description */
@@ -232,6 +237,10 @@ public abstract class MspMoteType implements MoteType {
 
         return true;
       }
+    }
+
+    if (GUI.isVisualizedInApplet()) {
+      return true;
     }
 
     // Check dependency files
@@ -884,6 +893,7 @@ public abstract class MspMoteType implements MoteType {
     smallPane = new JPanel(new BorderLayout());
     label = new JLabel("Source file");
     smallPane.add(BorderLayout.WEST, label);
+    logger.debug(">>>> " + getSourceFile());
     if (getSourceFile() != null) {
       label = new JLabel(getSourceFile().getName());
       label.setToolTipText(getSourceFile().getPath());
@@ -894,10 +904,17 @@ public abstract class MspMoteType implements MoteType {
     panel.add(smallPane);
 
     // Icon (if available)
-    Icon moteTypeIcon = getMoteTypeIcon();
-    if (moteTypeIcon != null) {
+    if (!GUI.isVisualizedInApplet()) {
+      Icon moteTypeIcon = getMoteTypeIcon();
+      if (moteTypeIcon != null) {
+        smallPane = new JPanel(new BorderLayout());
+        label = new JLabel(moteTypeIcon);
+        smallPane.add(BorderLayout.CENTER, label);
+        panel.add(smallPane);
+      }
+    } else {
       smallPane = new JPanel(new BorderLayout());
-      label = new JLabel(moteTypeIcon);
+      label = new JLabel("No icon available in applet mode");
       smallPane.add(BorderLayout.CENTER, label);
       panel.add(smallPane);
     }
