@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: energest-demo.c,v 1.4 2008/02/25 12:03:25 thiemovoigt Exp $
+ * $Id: energest-demo.c,v 1.5 2008/04/16 10:49:50 zhitao Exp $
  */
 
 /**
@@ -133,7 +133,7 @@ do_sending(void)
 
     mac->on();
     abc_send(&abc);
-    mac->off();
+    mac->off(0);
   }
   simple_cc2420_set_txpower(31);
   simple_cc2420_set_channel(RF_CHANNEL);
@@ -179,7 +179,7 @@ PROCESS_THREAD(output_process, ev, data)
     ENERGEST_OFF(ENERGEST_TYPE_CPU);
     ENERGEST_ON(ENERGEST_TYPE_CPU);
     mac->on();
-    mac->off();
+    mac->off(0);
 
     /* Energy time diff */
     diff.source = node_id;
@@ -202,12 +202,12 @@ PROCESS_THREAD(output_process, ev, data)
     abc_send(&abc);
 
     if(sending) {
-      mac->off();
+      mac->off(0);
       do_sending();
     } else if(radio_off) {
-      mac->off();
+      mac->off(0);
     } else {
-      mac->off();
+      mac->off(0);
       etimer_set(&et2, sleep_cycles);
       PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&et2));
       mac->on();
