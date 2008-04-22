@@ -1,0 +1,2 @@
+java -jar ../dist/cooja.jar -nogui -test=test001
+java -jar ../dist/cooja.jar -nogui -test=test002
