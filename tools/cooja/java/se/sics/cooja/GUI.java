@@ -24,7 +24,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * $Id: GUI.java,v 1.76 2008/04/03 13:59:37 fros4943 Exp $
+ * $Id: GUI.java,v 1.77 2008/04/22 13:04:43 fros4943 Exp $
  */
 
 package se.sics.cooja;
@@ -71,7 +71,7 @@ import se.sics.cooja.plugins.*;
  *
  * @author Fredrik Osterlind
  */
-public class GUI {
+public class GUI extends Observable {
 
   /**
    * External tools default Win32 settings filename.
@@ -501,7 +501,7 @@ public class GUI {
     menuItem = new JMenuItem("Reload simulation");
     menuItem.addActionListener(new ActionListener() {
       public void actionPerformed(ActionEvent e) {
-        reloadCurrentSimulation();
+        reloadCurrentSimulation(false);
       }
     });
     menu.add(menuItem);
@@ -1998,6 +1998,9 @@ public class GUI {
         }
       }
     }
+
+    setChanged();
+    notifyObservers();
   }
 
   /**
@@ -2086,6 +2089,9 @@ public class GUI {
       if (isVisualizedInFrame()) {
         frame.setTitle("COOJA Simulator");
       }
+
+      setChanged();
+      notifyObservers();
     }
   }
 
@@ -2252,7 +2258,7 @@ public class GUI {
    * Reloads current simulation.
    * This may include recompiling libraries and renaming mote type identifiers.
    */
-  private void reloadCurrentSimulation() {
+  public void reloadCurrentSimulation(final boolean autoStart) {
     if (getSimulation() == null) {
       logger.fatal("No simulation to reload");
       return;
@@ -2280,6 +2286,9 @@ public class GUI {
             myGUI.doRemoveSimulation(false);
             Simulation newSim = loadSimulationConfig(root, true);
             myGUI.setSimulation(newSim);
+            if (autoStart) {
+              newSim.startSimulation();
+            }
           } catch (UnsatisfiedLinkError e) {
             shouldRetry = showErrorDialog(frame, "Simulation reload error", e, true);
 
@@ -3047,12 +3056,62 @@ public class GUI {
 
     } else if (args.length > 0 && args[0].startsWith("-nogui")) {
 
-      // No GUI start-up
+      /* Parse optional script argument */
+      String tmpTest=null;
+      for (int i=1; i < args.length; i++) {
+        if (args[i].startsWith("-test=")) {
+          tmpTest = args[i].substring("-test=".length());
+        } else {
+          logger.fatal("Unknown argument: " + args[i]);
+          System.exit(1);
+        }
+
+      }
+
+      final File scriptFile;
+      final File configFile;
+      final File logFile;
+      if (tmpTest != null) {
+        /* Locate script and simulation config files */
+        scriptFile = new File(tmpTest + ".js");
+        configFile = new File(tmpTest + ".csc");
+        logFile = new File(tmpTest + ".log");
+        if (!scriptFile.exists()) {
+          logger.fatal("Can't locate script: " + scriptFile);
+          System.exit(1);
+        }
+        if (!configFile.exists()) {
+          logger.fatal("Can't locate simulation config: " + configFile);
+          System.exit(1);
+        }
+        if (logFile.exists()) {
+          logFile.delete();
+        }
+        if (logFile.exists() && !logFile.canWrite()) {
+          logger.fatal("Can't write to log file: " + logFile);
+          System.exit(1);
+        }
+      } else {
+        scriptFile = null;
+        configFile = null;
+        logFile = null;
+      }
+
+      /* No GUI start-up */
       javax.swing.SwingUtilities.invokeLater(new Runnable() {
         public void run() {
           JDesktopPane desktop = new JDesktopPane();
           desktop.setDragMode(JDesktopPane.OUTLINE_DRAG_MODE);
-          new GUI(desktop);
+          GUI gui = new GUI(desktop);
+
+          if (scriptFile != null && configFile != null) {
+            /* Load and start script plugin (no-GUI version) */
+            gui.registerPlugin(ScriptRunnerNoGUI.class, false);
+            ScriptRunnerNoGUI scriptPlugin = (ScriptRunnerNoGUI) gui.startPlugin(ScriptRunnerNoGUI.class, gui, null, null);
+
+            /* Activate test */
+            scriptPlugin.activateTest(configFile, scriptFile, logFile);
+          }
         }
       });
 
@@ -3208,6 +3267,7 @@ public class GUI {
         if (((Element) element).getName().equals("simulation")) {
           Collection<Element> config = ((Element) element).getChildren();
           newSim = new Simulation(this);
+          System.gc();
           boolean createdOK = newSim.setConfigXML(config, !quick);
           if (!createdOK) {
             logger.info("Simulation not loaded");
