@@ -88,7 +88,7 @@ The COOJA Simulator
   </target>
 	
   <target name="run_nogui" depends="init, compile, copy configs">
-    <java fork="yes" dir="${build}" classname="se.sics.cooja.GUI">
+    <java fork="yes" dir="${build}" classname="se.sics.cooja.GUI" maxmemory="512m">
       <arg line="-nogui ${args}"/>
     	<env key="LD_LIBRARY_PATH" value="."/>
       <classpath>
@@ -98,7 +98,7 @@ The COOJA Simulator
       </classpath>
     </java>
   </target>
-
+	
   <target name="run_applet" depends="init, compile, copy configs">
     <exec executable="appletviewer" dir="${build}">
       <arg value="-J-Djava.security.policy=cooja.policy"/>
