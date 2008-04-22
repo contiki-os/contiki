@@ -1,0 +1,13 @@
+#!/usr/bin/env bash
+
+echo "Running tests"
+
+rm *.log
+
+for myfile in ./*.csc
+do
+    TEST=`basename $myfile .csc`
+    echo Starting test: $TEST
+
+    java -jar ../dist/cooja.jar -nogui -test=$TEST
+done
