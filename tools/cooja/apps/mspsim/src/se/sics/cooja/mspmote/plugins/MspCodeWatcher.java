@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: MspCodeWatcher.java,v 1.8 2008/04/03 14:03:30 fros4943 Exp $
+ * $Id: MspCodeWatcher.java,v 1.9 2008/04/22 13:06:36 fros4943 Exp $
  */
 
 package se.sics.cooja.mspmote.plugins;
@@ -761,6 +761,7 @@ public class MspCodeWatcher extends VisPlugin {
       try {
         /* Replace Contiki parent path with web server code base */
         path = contikiWebPath + '/' + path.substring(contikiBuildPath.length());
+        path = path.replace('\\', '/');
         URL url = new URL(GUI.getAppletCodeBase(), path);
         return readTextFile(url);
       } catch (MalformedURLException e) {
