@@ -1,13 +1,46 @@
-#!/usr/bin/env bash
+#!/bin/bash
 
 echo "Running tests"
+rm -f *.log
 
-rm *.log
+LOG="TEST-`date '+%F'`.log"
+touch $LOG
 
 for myfile in ./*.csc
 do
     TEST=`basename $myfile .csc`
-    echo Starting test: $TEST
+    echo ">>>>>>> Starting test: $TEST <<<<<<<<"
 
     java -jar ../dist/cooja.jar -nogui -test=$TEST
+    if [ -f "COOJA.log" ]; then
+      mv COOJA.log $TEST.cooja_log
+    fi
+
+    if [ -f "$TEST.log" ]; then
+      OK=`grep "TEST OK" $TEST.log | wc -l`
+ 
+      if [ $OK == 0 ]; then
+        echo "$TEST: FAIL" >> $LOG
+        if [ -f "$TEST.info" ]; then
+          echo "--LOG INFO START --" >> $LOG
+          cat $TEST.info >> $LOG
+          echo "--LOG INFO END --" >> $LOG
+          echo "" >> $LOG
+        fi
+
+      else
+        echo "$TEST: OK" >> $LOG
+      fi
+
+    else
+      echo "$TEST: FAIL (no output)" >> $LOG
+      if [ -f "$TEST.info" ]; then
+        echo "--LOG INFO START --" >> $LOG
+        cat $TEST.info >> $LOG
+        echo "--LOG INFO END --" >> $LOG
+        echo "" >> $LOG
+      fi
+    fi
+
+    echo "" >> $LOG   
 done
