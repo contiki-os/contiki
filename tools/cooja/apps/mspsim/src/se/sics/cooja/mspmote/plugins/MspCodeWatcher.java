@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: MspCodeWatcher.java,v 1.9 2008/04/22 13:06:36 fros4943 Exp $
+ * $Id: MspCodeWatcher.java,v 1.10 2008/04/23 13:47:18 fros4943 Exp $
  */
 
 package se.sics.cooja.mspmote.plugins;
@@ -231,7 +231,7 @@ public class MspCodeWatcher extends VisPlugin {
   /**
    * Contains currently active breakpoints.
    *
-   * @author Fredrik Österlind
+   * @author Fredrik Osterlind
    */
   static class Breakpoints {
     private Hashtable<File, Hashtable<Integer, Integer>> debuggingInfo = null;
