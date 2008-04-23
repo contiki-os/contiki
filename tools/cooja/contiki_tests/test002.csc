@@ -2,7 +2,7 @@
 <simconf>
   <simulation>
     <title>My simulation</title>
-    <delaytime>5</delaytime>
+    <delaytime>0</delaytime>
     <ticktime>1</ticktime>
     <randomseed>123456</randomseed>
     <nrticklists>1</nrticklists>
@@ -20,9 +20,9 @@
       <description>Contiki Mote #1</description>
       <contikibasedir>../../..</contikibasedir>
       <contikicoredir>../../../platform/cooja</contikicoredir>
-      <compilefile>..\apps\mrm</compilefile>
-      <compilefile>..\apps\mspsim</compilefile>
-      <compilefile>..\..\..\platform\cooja\testapps</compilefile>
+      <compilefile>../apps/mrm</compilefile>
+      <compilefile>../apps/mspsim</compilefile>
+      <compilefile>../../../platform/cooja/testapps</compilefile>
       <compilefile>hello-world.c</compilefile>
       <process>hello_world_process</process>
       <sensor>button_sensor</sensor>
