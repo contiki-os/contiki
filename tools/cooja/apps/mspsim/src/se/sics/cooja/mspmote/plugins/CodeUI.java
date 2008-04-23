@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: CodeUI.java,v 1.3 2008/03/19 14:53:58 fros4943 Exp $
+ * $Id: CodeUI.java,v 1.4 2008/04/23 13:47:18 fros4943 Exp $
  */
 
 package se.sics.cooja.mspmote.plugins;
@@ -50,7 +50,7 @@ import se.sics.mspsim.extutil.highlight.TokenTypes;
 /**
  * Displays source code and allows a user to add and remove breakpoints.
  *
- * @author Fredrik Österlind
+ * @author Fredrik Osterlind
  */
 public class CodeUI extends JPanel {
   private static Logger logger = Logger.getLogger(CodeUI.class);
