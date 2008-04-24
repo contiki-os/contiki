@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: example-rucb.c,v 1.2 2008/04/24 11:41:50 fros4943 Exp $
+ * $Id: example-rucb.c,v 1.3 2008/04/24 11:50:04 fros4943 Exp $
  */
 
 /**
@@ -120,14 +120,20 @@ PROCESS_THREAD(example_rucb_process, ev, data)
 
   PROCESS_PAUSE();
   
-  /*  if(rimeaddr_node_addr.u8[0] == 51 &&
-       rimeaddr_node_addr.u8[1] == 0) { */
-  if(rimeaddr_node_addr.u16[0] == 2) {
+#if NETSIM
+  if(rimeaddr_node_addr.u8[0] == 51 &&
+      rimeaddr_node_addr.u8[1] == 0) {
+#else
+    if(rimeaddr_node_addr.u16[0] == 2) {
+#endif
     rimeaddr_t recv;
     
+#if NETSIM
+    recv.u8[0] = 52;
+    recv.u8[1] = 0;
+#else
     recv.u16[0] = 1;
-    /*recv.u8[0] = 52;
-    recv.u8[1] = 0;*/
+#endif
     start_time = clock_time();
     rucb_send(&rucb, &recv);
 #if NETSIM
