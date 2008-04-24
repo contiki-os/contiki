@@ -1,10 +1,16 @@
 #!/bin/bash
 
-echo "Running tests"
-rm -f *.log
+echo "Setting environment"
+export JAVAC=
+export JAVA_HOME=~/jdk1.6.0_10
+export PATH=~/apache-ant-1.7.0/bin:~/jdk1.6.0_10/bin:$PATH
 
+
+rm -f *.log
 LOG="TEST-`date '+%F'`.log"
 touch $LOG
+echo "Starting test run ($LOG)"
+
 
 for myfile in ./*.csc
 do
@@ -22,10 +28,12 @@ do
       if [ $OK == 0 ]; then
         echo "$TEST: FAIL" >> $LOG
         if [ -f "$TEST.info" ]; then
-          echo "--LOG INFO START --" >> $LOG
+          echo "--LOG INFO START ($TEST.info) --" >> $LOG
           cat $TEST.info >> $LOG
           echo "--LOG INFO END --" >> $LOG
           echo "" >> $LOG
+        else
+          echo "-- NO TEST INFO AVAILABLE ($TEST.info) --" >> $LOG
         fi
 
       else
@@ -35,10 +43,12 @@ do
     else
       echo "$TEST: FAIL (no output)" >> $LOG
       if [ -f "$TEST.info" ]; then
-        echo "--LOG INFO START --" >> $LOG
+        echo "--LOG INFO START ($TEST.info) --" >> $LOG
         cat $TEST.info >> $LOG
-        echo "--LOG INFO END --" >> $LOG
+        echo "-- TEST INFO END --" >> $LOG
         echo "" >> $LOG
+      else
+        echo "-- NO TEST INFO AVAILABLE ($TEST.info) --" >> $LOG
       fi
     fi
 
