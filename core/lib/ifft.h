@@ -33,8 +33,8 @@
  *
  * Author  : Joakim Eriksson
  * Created : 2008-03-27
- * Updated : $Date: 2008/03/27 12:12:24 $
- *           $Revision: 1.1 $
+ * Updated : $Date: 2008/04/25 22:12:25 $
+ *           $Revision: 1.2 $
  */
 
 #ifndef IFFT_H
@@ -53,6 +53,6 @@
    FFT:s since to large sample arrays might cause it to overflow during
    calculations.
 */
-void ifft(int16_t xre[], uint16_t n);
+void ifft(int16_t xre[], int16_t xim[], uint16_t n);
 
 #endif /* IFFT_H */

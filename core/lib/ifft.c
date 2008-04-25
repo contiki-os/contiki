@@ -32,8 +32,8 @@
  *
  * Author  : Joakim Eriksson
  * Created : 2008-03-27
- * Updated : $Date: 2008/03/27 12:12:24 $
- *           $Revision: 1.1 $
+ * Updated : $Date: 2008/04/25 22:12:25 $
+ *           $Revision: 1.2 $
  */
 #include "lib/ifft.h"
 
@@ -59,7 +59,8 @@ static const int8_t SIN_TAB[] = {
 };
 
 
-static uint16_t bitrev(uint16_t j, uint16_t nu) {
+static uint16_t bitrev(uint16_t j, uint16_t nu) 
+{
   uint16_t k;
   k = 0;
   for (; nu > 0; nu--) {
@@ -71,17 +72,20 @@ static uint16_t bitrev(uint16_t j, uint16_t nu) {
 
 
 /* Non interpolating sine... which takes an angle of 0 - 999 */
-static int16_t sinI(uint16_t angleMilli) {
+static int16_t sinI(uint16_t angleMilli) 
+{
   uint16_t pos;
   pos = (uint16_t) ((SIN_TAB_LEN * (uint32_t) angleMilli) / 1000);
   return SIN_TAB[pos % SIN_TAB_LEN];
 }
 
-static int16_t cosI(uint16_t angleMilli) {
+static int16_t cosI(uint16_t angleMilli) 
+{
   return sinI(angleMilli + 250);
 }
 
-static uint16_t log2(uint16_t val) {
+static uint16_t log2(uint16_t val) 
+{
   uint16_t log;
   log = 0;
   val = val >> 1; /* The 20 = 1 => log = 0 => val = 0 */
@@ -97,7 +101,8 @@ static uint16_t log2(uint16_t val) {
    An integer version of FFT that takes in-samples in an int16_t array
    and does an fft on n samples in the array.
    The result of the FFT is stored in the same array as the samples
-   was stored.
+   was stored. Them imaginary part of the result is stored in xim which
+   needs to be of the same size as xre (e.g. n ints).
 
    Note: This fft is designed to be used with 8 bit values (e.g. not
    16 bit values). The reason for the int16_t array is for keeping some
@@ -105,11 +110,12 @@ static uint16_t log2(uint16_t val) {
    FFT:s since to large sample arrays might cause it to overflow during
    calculations.
 */
-void ifft(int16_t xre[], uint16_t n) {
+void
+ifft(int16_t xre[], int16_t xim[], uint16_t n) 
+{
   uint16_t nu;
   uint16_t n2;
   uint16_t nu1;
-  int16_t xim[n];
   int p, k, l, i;
   int32_t c, s, tr, ti;
 
