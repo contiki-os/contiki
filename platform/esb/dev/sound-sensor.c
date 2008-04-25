@@ -28,24 +28,32 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: sound-sensor.c,v 1.1 2006/06/18 07:49:33 adamdunkels Exp $
+ * @(#)$Id: sound-sensor.c,v 1.2 2008/04/25 15:55:37 joxe Exp $
  */
 #include <stdlib.h>
 #include "contiki-esb.h"
 #include "dev/irq.h"
 
 #define MIC_MIN_SENS 150
+#define SAMPLE 1
 
 const struct sensors_sensor sound_sensor;
 
 static unsigned int sound, micdiff, micmax, avgmax;
 char sound_pause;
+static int8_t mode;
+static int8_t sample_div;
+static int8_t ctr;
+static int16_t *sample_buffer;
+static int buffer_size;
+static int buf_pos;
 
 /*---------------------------------------------------------------------------*/
 static void
 init(void)
 {
   /* Initialization of ADC12 done by irq */
+  mode = 0;
 }
 /*---------------------------------------------------------------------------*/
 static int
@@ -54,6 +62,20 @@ irq(void)
 
   if (!sound_pause) {
     micdiff = micdiff + abs(ADC12MEM4 - sound) - (micdiff >> 3);
+
+    if(mode == SAMPLE) {
+      leds_invert(LEDS_RED);
+      ctr++;
+      if(ctr >= sample_div) {
+	ctr = 0;
+	sample_buffer[buf_pos++] = ADC12MEM4;
+	if(buf_pos >= buffer_size) {
+	  mode = 0;
+	  leds_off(LEDS_RED);
+	  sensors_changed(&sound_sensor);
+	}
+      }
+    }
 
 
 /*   if (micdiff > MIC_MIN_SENS) { */
@@ -84,7 +106,6 @@ irq(void)
 
   sound = ADC12MEM4;
 
-
   return 0;
 }
 /*---------------------------------------------------------------------------*/
@@ -93,6 +114,10 @@ activate(void)
 {
   sound = micdiff = micmax = 0;
   sound_pause = 0;
+  mode = 0;
+  ctr = 0;
+  sample_div = 0;
+  buf_pos = 0;
   avgmax = 5000;
   irq_adc12_activate(&sound_sensor, 4, INCH_0 + SREF_0);
 }
@@ -123,12 +148,29 @@ value(int type)
 static int
 configure(int type, void *c)
 {
+  if(type == SOUND_SET_BUFFER_PTR) {
+    sample_buffer = (int16_t *) c;
+  } else if (type == SOUND_SET_BUFFER_SIZE) {
+    buffer_size = (int) c;
+  } else if (type == SOUND_SET_DIV) {
+    sample_div = (int8_t) c;
+  } else if(type == SOUND_START_SAMPLE) {
+    if(buffer_size > 0) {
+      leds_on(LEDS_RED);
+      buf_pos = 0;
+      ctr = 0;
+      mode = SAMPLE;
+    }
+  }
   return 0;
 }
 /*---------------------------------------------------------------------------*/
 static void *
 status(int type)
 {
+  if(type == SOUND_SAMPLING) {
+    return (void *) (mode == SAMPLE);
+  }
   return NULL;
 }
 /*---------------------------------------------------------------------------*/

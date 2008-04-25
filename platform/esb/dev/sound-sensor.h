@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: sound-sensor.h,v 1.1 2006/06/18 07:49:33 adamdunkels Exp $
+ * @(#)$Id: sound-sensor.h,v 1.2 2008/04/25 15:55:37 joxe Exp $
  */
 #ifndef __SOUND_SENSOR_H__
 #define __SOUND_SENSOR_H__
@@ -38,5 +38,10 @@
 extern const struct sensors_sensor sound_sensor;
 
 #define SOUND_SENSOR "Sound"
+#define SOUND_SET_BUFFER_PTR 1
+#define SOUND_SET_BUFFER_SIZE 2
+#define SOUND_START_SAMPLE 3
+#define SOUND_SET_DIV 4
+#define SOUND_SAMPLING 1
 
 #endif /* __SOUND_SENSOR_H__ */
