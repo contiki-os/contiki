@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: irq.c,v 1.3 2007/05/22 21:01:32 adamdunkels Exp $
+ * @(#)$Id: irq.c,v 1.4 2008/04/25 15:53:55 joxe Exp $
  */
 #include "lib/sensors.h"
 #include "dev/irq.h"
@@ -85,7 +85,7 @@ irq_init(void)
 
   /* Use sampling timer, repeat-sequence-of-channels */
 /*   ADC12CTL1 = SHP | CONSEQ_3 | ADC12DIV_3; */
-  ADC12CTL1 = SHP | CONSEQ_3;
+  ADC12CTL1 = SHP | CONSEQ_3 | ADC12DIV_7;
 }
 /*---------------------------------------------------------------------------*/
 /* Set lowest ADC to be start in sequence and highest to be interrupt
@@ -116,8 +116,8 @@ sethilo(void)
      interrupt for each sequence of conversions. */
   for(c = 0; c < 8; c++) {
     if(adcflags & (128 >> c)) {
-      /*ADC12IE |= 128 >> c;*/
-	      /*	      ADC12MCTL_NO(7 - c) |= EOS;*/
+      ADC12IE |= 128 >> c;
+      ADC12MCTL_NO(7 - c) |= EOS;
       break;
     }
   }
