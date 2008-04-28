@@ -3,7 +3,7 @@
 #---------------------------------------------------------------------------
 # Project related configuration options
 #---------------------------------------------------------------------------
-PROJECT_NAME           = "Contiki 2.1"
+PROJECT_NAME           = "Contiki 2.x"
 PROJECT_NUMBER         = 
 OUTPUT_DIRECTORY       = .
 CREATE_SUBDIRS         = NO
@@ -15,8 +15,8 @@ ABBREVIATE_BRIEF       =
 ALWAYS_DETAILED_SEC    = NO
 INLINE_INHERITED_MEMB  = NO
 FULL_PATH_NAMES        = YES
-STRIP_FROM_PATH        = ../
-STRIP_FROM_INC_PATH    = 
+STRIP_FROM_PATH        = $(docroot)
+STRIP_FROM_INC_PATH    = $(docroot)
 SHORT_NAMES            = YES
 JAVADOC_AUTOBRIEF      = YES
 MULTILINE_CPP_IS_BRIEF = NO
@@ -66,150 +66,13 @@ WARN_IF_UNDOCUMENTED   = NO
 WARN_IF_DOC_ERROR      = YES
 WARN_NO_PARAMDOC       = NO
 WARN_FORMAT            = "$file:$line: $text"
-WARN_LOGFILE           = 
+WARN_LOGFILE           = doxygen.log
 #---------------------------------------------------------------------------
 # configuration options related to the input files
 #---------------------------------------------------------------------------
-INPUT                  = contiki-mainpage.txt net.txt dev.txt \
-                         mem.txt \
-                         sys.txt \
-                         lib.txt \
-                         platform.txt \
-                         uip-doc.txt \
-                         rime-doc.txt \
-                         code-style.txt \
-                         examples.txt \
-                         uip-doc.txt build-system.txt \
-                         ../apps/program-handler/program-handler.c \
-                         ../core/sys/process.c \
-                         ../core/sys/process.h \
-                         ../core/sys/cc.h \
-                         ../core/sys/etimer.c \
-                         ../core/sys/etimer.h \
-                         ../core/sys/procinit.h \
-                         ../core/sys/procinit.c \
-                         ../core/sys/arg.c \
-                         ../core/sys/dsc.h \
-                         ../core/sys/loader.h \
-                         ../core/sys/pt.h \
-                         ../core/sys/lc.h \
-                         ../core/sys/lc-switch.h \
-                         ../core/sys/lc-addrlabels.h \
-                         ../core/sys/pt-sem.h \
-                         ../core/sys/clock.h \
-                         ../core/sys/mt.h \
-                         ../core/sys/mt.c \
-                         ../core/dev/eeprom.h \
-                         ../core/dev/radio.h \
-                         ../core/loader/elfloader.h \
-                         ../core/loader/elfloader-arch.h \
-                         pt-doc.txt \
-                         ../core/cfs/cfs.h \
-                         ../core/ctk/ctk.h \
-                         ../core/ctk/ctk.c \
-                         ../core/ctk/ctk-draw.h \
-                         ../core/sys/timer.h \
-                         ../core/sys/timer.c \
-                         ../core/sys/timesynch.h \
-                         ../core/sys/timesynch.c \
-                         ../core/net/uip.h \
-                         ../core/net/uip.c \
-                         ../core/net/uipopt.h \
-                         ../core/net/uip_arp.h \
-                         ../core/net/uip_arp.c \
-                         ../core/net/uip-split.h \
-                         ../core/net/uip-split.c \
-                         ../core/net/uip-fw.h \
-                         ../core/net/uip-fw.c \
-                         ../core/net/uiplib.h \
-                         ../core/net/uiplib.c \
-                         ../core/net/resolv.h \
-                         ../core/net/resolv.c \
-                         ../core/net/psock.h \
-                         ../core/net/psock.c \
-                         ../core/net/tcpip.h \
-                         ../core/net/tcpip.c \
-                         ../core/net/mac/mac.h \
-                         ../core/net/mac/nullmac.h \
-                         ../core/net/mac/nullmac.c \
-                         ../core/net/mac/xmac.h \
-                         ../core/net/mac/xmac.c \
-                         ../core/net/rime.h \
-                         ../core/net/rime/abc.h \
-                         ../core/net/rime/abc.c \
-                         ../core/net/rime/ctimer.h \
-                         ../core/net/rime/ctimer.c \
-                         ../core/net/rime/ibc.h \
-                         ../core/net/rime/ibc.c \
-                         ../core/net/rime/ipolite.h \
-                         ../core/net/rime/ipolite.c \
-                         ../core/net/rime/mesh.h \
-                         ../core/net/rime/mesh.c \
-                         ../core/net/rime/mh.h \
-                         ../core/net/rime/mh.c \
-                         ../core/net/rime/neighbor-discovery.h \
-                         ../core/net/rime/neighbor-discovery.c \
-                         ../core/net/rime/neighbor.h \
-                         ../core/net/rime/neighbor.c \
-                         ../core/net/rime/nf.h \
-                         ../core/net/rime/nf.c \
-                         ../core/net/rime/polite.h \
-                         ../core/net/rime/polite.c \
-                         ../core/net/rime/queuebuf.h \
-                         ../core/net/rime/queuebuf.c \
-                         ../core/net/rime/rimeaddr.h \
-                         ../core/net/rime/rimeaddr.c \
-                         ../core/net/rime/rimebuf.h \
-                         ../core/net/rime/rimebuf.c \
-                         ../core/net/rime/rimestats.h \
-                         ../core/net/rime/rimestats.c \
-                         ../core/net/rime/rmh.h \
-                         ../core/net/rime/rmh.c \
-                         ../core/net/rime/route-discovery.h \
-                         ../core/net/rime/route-discovery.c \
-                         ../core/net/rime/route.h \
-                         ../core/net/rime/route.c \
-                         ../core/net/rime/ruc.h \
-                         ../core/net/rime/ruc.c \
-                         ../core/net/rime/rucb.h \
-                         ../core/net/rime/rucb.c \
-                         ../core/net/rime/sabc.h \
-                         ../core/net/rime/sabc.c \
-                         ../core/net/rime/sibc.h \
-                         ../core/net/rime/sibc.c \
-                         ../core/net/rime/suc.h \
-                         ../core/net/rime/suc.c \
-                         ../core/net/rime/collect.h \
-                         ../core/net/rime/collect.c \
-                         ../core/net/rime/trickle.h \
-                         ../core/net/rime/trickle.c \
-                         ../core/net/rime/uc.h \
-                         ../core/net/rime/uc.c \
-                         ../core/net/rime/rudolph0.h \
-                         ../core/net/rime/rudolph0.c \
-                         ../core/net/rime/rudolph1.h \
-                         ../core/net/rime/rudolph1.c \
-                         ../core/lib/petsciiconv.h \
-                         ../core/lib/memb.h \
-                         ../core/lib/memb.c \
-                         ../core/lib/mmem.h \
-                         ../core/lib/mmem.c \
-                         ../core/lib/list.h \
-                         ../core/lib/list.c \
-                         ../core/lib/me.h \
-                         ../core/lib/me.c \
-                         ../core/lib/crc16.h \
-                         ../core/lib/crc16.c \
-			 ../platform/sky/doc/sky.txt \
-			 ../platform/esb/doc/esb.txt \
-			 ../platform/esb/doc/slipintro.txt \
-			 ../platform/esb/dev/beep.h \
-			 ../platform/esb/dev/eeprom.c \
-			 ../platform/esb/dev/rs232.h \
-			 ../platform/esb/dev/rs232.c \
-			 ../platform/esb/dev/tr1001.c
+INPUT                  = $(docsrc)
 
-FILE_PATTERNS          = 
+FILE_PATTERNS          = *.h *.c *.doc.html
 RECURSIVE              = NO
 EXCLUDE                = 
 EXCLUDE_SYMLINKS       = NO
@@ -259,7 +122,7 @@ TREEVIEW_WIDTH         = 250
 #---------------------------------------------------------------------------
 # configuration options related to the LaTeX output
 #---------------------------------------------------------------------------
-GENERATE_LATEX         = YES
+GENERATE_LATEX         = $(doclatex)
 LATEX_OUTPUT           = latex
 LATEX_CMD_NAME         = latex
 MAKEINDEX_CMD_NAME     = makeindex
@@ -318,7 +181,8 @@ INCLUDE_FILE_PATTERNS  =
 PREDEFINED             = CC_FUNCTION_POINTER_ARGS \
                          UIP_UDP \
                          WITH_LOADER_ARCH \
-                         DOXYGEN
+                         DOXYGEN \
+						 "ASCCMD(name, flags, args)=void CMD_ASCII(name)"
 EXPAND_AS_DEFINED      = 
 SKIP_FUNCTION_MACROS   = YES
 #---------------------------------------------------------------------------
