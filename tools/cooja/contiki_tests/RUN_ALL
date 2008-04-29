@@ -1,14 +1,21 @@
 #!/bin/bash
 
-echo "Setting environment"
-export JAVAC=
-export JAVA_HOME=~/jdk1.6.0_10
-export PATH=~/apache-ant-1.7.0/bin:~/jdk1.6.0_10/bin:$PATH
+echo ">>>>>>> Cleaning up previous tests <<<<<<<<"
+rm -f *.log *.cooja_log
+rm -fr se obj_cooja
+rm -f symbols.c symbols.h
 
+echo ">>>>>>> Updating from CVS <<<<<<<<"
+(cd $CONTIKI && cvs update -dP)
 
+echo ">>>>>>> Building COOJA <<<<<<<<"
+(cd $CONTIKI/tools/cooja && ant jar)
+
+echo ">>>>>>> Creating test log <<<<<<<<"
 rm -f *.log
 LOG="TEST-`date '+%F'`.log"
 touch $LOG
+echo "" >> $LOG
 echo "Starting test run ($LOG)"
 
 
@@ -54,3 +61,6 @@ do
 
     echo "" >> $LOG   
 done
+
+echo "Sending mail"
+cat $LOG | mail -s "Test results (simulation-based)" [email]
