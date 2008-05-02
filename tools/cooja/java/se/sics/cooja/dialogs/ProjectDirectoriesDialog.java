@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ProjectDirectoriesDialog.java,v 1.6 2008/02/18 08:18:18 fros4943 Exp $
+ * $Id: ProjectDirectoriesDialog.java,v 1.7 2008/05/02 05:47:53 fros4943 Exp $
  */
 
 package se.sics.cooja.dialogs;
@@ -60,38 +60,38 @@ public class ProjectDirectoriesDialog extends JDialog {
   private static final long serialVersionUID = 1L;
   private static Logger logger = Logger.getLogger(ProjectDirectoriesDialog.class);
 
-  private List changableProjectsList = new List();
+  private List changeableProjectsList = new List();
   private List fixedProjectsList = null;
-  private Vector<File> changableProjects = null;
+  private Vector<File> changeableProjects = null;
 
   private ProjectDirectoriesDialog myDialog;
 
   /**
    * Allows user to alter the given project directories list by adding new,
-   * reordering or removing project directories. Only the changable project directories
+   * reordering or removing project directories. Only the changeable project directories
    * can be altered.
    *
    * @param parentContainer
    *          Parent container
-   * @param changableProjects
+   * @param changeableProjects
    *          Changeable project directories
    * @param fixedProjects
    *          Fixed project directory
    * @return Null if dialog aborted, else the new CHANGEABLE project directory list.
    */
   public static Vector<File> showDialog(Container parentContainer,
-      Vector<File> changableProjects, Vector<File> fixedProjects) {
+      Vector<File> changeableProjects, Vector<File> fixedProjects) {
     if (GUI.isVisualizedInApplet()) {
       return null;
     }
 
     ProjectDirectoriesDialog myDialog = null;
     if (parentContainer instanceof Window) {
-      myDialog = new ProjectDirectoriesDialog((Window) parentContainer, changableProjects, fixedProjects);
+      myDialog = new ProjectDirectoriesDialog((Window) parentContainer, changeableProjects, fixedProjects);
     } else if (parentContainer instanceof Dialog) {
-      myDialog = new ProjectDirectoriesDialog((Dialog) parentContainer, changableProjects, fixedProjects);
+      myDialog = new ProjectDirectoriesDialog((Dialog) parentContainer, changeableProjects, fixedProjects);
     } else if (parentContainer instanceof Frame) {
-      myDialog = new ProjectDirectoriesDialog((Frame) parentContainer, changableProjects, fixedProjects);
+      myDialog = new ProjectDirectoriesDialog((Frame) parentContainer, changeableProjects, fixedProjects);
     } else {
       logger.fatal("Unknown parent container type: " + parentContainer);
       return null;
@@ -102,54 +102,54 @@ public class ProjectDirectoriesDialog extends JDialog {
       myDialog.setVisible(true);
     }
 
-    return myDialog.changableProjects;
+    return myDialog.changeableProjects;
   }
 
   /**
    * Allows user to alter the given project directories list by adding new,
-   * reordering or removing project directories. Only the changable project directories
+   * reordering or removing project directories. Only the changeable project directories
    * may be altered.
    *
    * @param parentDialog
    *          Parent dialog
-   * @param changableProjects
+   * @param changeableProjects
    *          Changeable project directories
    * @param fixedProjects
    *          Fixed project directory
    * @return Null if dialog aborted, else the new CHANGEABLE project directory list.
    */
   public static Vector<File> showDialog(Dialog parentDialog,
-      Vector<File> changableProjects, Vector<File> fixedProjects) {
+      Vector<File> changeableProjects, Vector<File> fixedProjects) {
     ProjectDirectoriesDialog myDialog = new ProjectDirectoriesDialog(parentDialog,
-        changableProjects, fixedProjects);
+        changeableProjects, fixedProjects);
     myDialog.setLocationRelativeTo(parentDialog);
 
     if (myDialog != null) {
       myDialog.setVisible(true);
     }
 
-    return myDialog.changableProjects;
+    return myDialog.changeableProjects;
   }
 
-  private ProjectDirectoriesDialog(Frame frame, Vector<File> changableProjects,
+  private ProjectDirectoriesDialog(Frame frame, Vector<File> changeableProjects,
       Vector<File> fixedProjects) {
     super(frame, "Manage Project Directories", ModalityType.APPLICATION_MODAL);
-    setupDialog(changableProjects, fixedProjects);
+    setupDialog(changeableProjects, fixedProjects);
   }
 
-  private ProjectDirectoriesDialog(Dialog dialog, Vector<File> changableProjects,
+  private ProjectDirectoriesDialog(Dialog dialog, Vector<File> changeableProjects,
       Vector<File> fixedProjects) {
     super(dialog, "Manage Project Directories", ModalityType.APPLICATION_MODAL);
-    setupDialog(changableProjects, fixedProjects);
+    setupDialog(changeableProjects, fixedProjects);
   }
 
-  private ProjectDirectoriesDialog(Window window, Vector<File> changableProjects,
+  private ProjectDirectoriesDialog(Window window, Vector<File> changeableProjects,
       Vector<File> fixedProjects) {
     super(window, "Manage Project Directories", ModalityType.APPLICATION_MODAL);
-    setupDialog(changableProjects, fixedProjects);
+    setupDialog(changeableProjects, fixedProjects);
   }
 
-  private void setupDialog(Vector<File> changablePlatforms, Vector<File> fixedProjects) {
+  private void setupDialog(Vector<File> changeablePlatforms, Vector<File> fixedProjects) {
     myDialog = this;
 
     JPanel mainPane = new JPanel();
@@ -167,7 +167,7 @@ public class ProjectDirectoriesDialog extends JDialog {
     button = new JButton("Cancel");
     button.addActionListener(new ActionListener() {
       public void actionPerformed(ActionEvent e) {
-        changableProjects = null;
+        changeableProjects = null;
         dispose();
       }
     });
@@ -182,7 +182,7 @@ public class ProjectDirectoriesDialog extends JDialog {
           Object[] options = { "Ok", "Cancel" };
 
           String newDefaultProjectDirs = "";
-          for (String directory : changableProjectsList.getItems()) {
+          for (String directory : changeableProjectsList.getItems()) {
             if (newDefaultProjectDirs != "") {
               newDefaultProjectDirs += ";";
             }
@@ -218,11 +218,11 @@ public class ProjectDirectoriesDialog extends JDialog {
     button = new JButton("OK");
     button.addActionListener(new ActionListener() {
       public void actionPerformed(ActionEvent e) {
-        changableProjects = new Vector<File>();
-        for (String directory : changableProjectsList.getItems()) {
+        changeableProjects = new Vector<File>();
+        for (String directory : changeableProjectsList.getItems()) {
           File projectDir = new File(directory);
           if (projectDir.exists() && projectDir.isDirectory()) {
-            changableProjects.add(projectDir);
+            changeableProjects.add(projectDir);
           } else {
             logger.fatal("Can't find project directory: " + projectDir);
           }
@@ -248,8 +248,8 @@ public class ProjectDirectoriesDialog extends JDialog {
       listPane2.add(fixedProjectsList);
     }
 
-    listPane2.add(new JLabel("Changable:"));
-    listPane2.add(changableProjectsList);
+    listPane2.add(new JLabel("Changeable:"));
+    listPane2.add(changeableProjectsList);
 
     listPane.add(listPane2);
 
@@ -259,16 +259,16 @@ public class ProjectDirectoriesDialog extends JDialog {
     button = new JButton("Move up");
     button.addActionListener(new ActionListener() {
       public void actionPerformed(ActionEvent e) {
-        int selectedIndex = changableProjectsList.getSelectedIndex();
+        int selectedIndex = changeableProjectsList.getSelectedIndex();
         if (selectedIndex <= 0) {
           return;
         }
 
-        File file = new File(changableProjectsList.getItem(selectedIndex));
+        File file = new File(changeableProjectsList.getItem(selectedIndex));
 
         removeProjectDir(selectedIndex);
         addProjectDir(file, selectedIndex - 1);
-        changableProjectsList.select(selectedIndex - 1);
+        changeableProjectsList.select(selectedIndex - 1);
       }
     });
     smallPane.add(button);
@@ -276,18 +276,18 @@ public class ProjectDirectoriesDialog extends JDialog {
     button = new JButton("Move down");
     button.addActionListener(new ActionListener() {
       public void actionPerformed(ActionEvent e) {
-        int selectedIndex = changableProjectsList.getSelectedIndex();
+        int selectedIndex = changeableProjectsList.getSelectedIndex();
         if (selectedIndex < 0) {
           return;
         }
-        if (selectedIndex >= changableProjectsList.getItemCount() - 1) {
+        if (selectedIndex >= changeableProjectsList.getItemCount() - 1) {
           return;
         }
 
-        File file = new File(changableProjectsList.getItem(selectedIndex));
+        File file = new File(changeableProjectsList.getItem(selectedIndex));
         removeProjectDir(selectedIndex);
         addProjectDir(file, selectedIndex + 1);
-        changableProjectsList.select(selectedIndex + 1);
+        changeableProjectsList.select(selectedIndex + 1);
       }
     });
     smallPane.add(button);
@@ -297,11 +297,11 @@ public class ProjectDirectoriesDialog extends JDialog {
     button = new JButton("Remove");
     button.addActionListener(new ActionListener() {
       public void actionPerformed(ActionEvent e) {
-        if (changableProjectsList.getSelectedIndex() < 0) {
+        if (changeableProjectsList.getSelectedIndex() < 0) {
           return;
         }
 
-        removeProjectDir(changableProjectsList.getSelectedIndex());
+        removeProjectDir(changeableProjectsList.getSelectedIndex());
       }
     });
     smallPane.add(button);
@@ -343,7 +343,7 @@ public class ProjectDirectoriesDialog extends JDialog {
         }
 
         // Add the project directory configurations
-        for (String projectDir : changableProjectsList.getItems()) {
+        for (String projectDir : changeableProjectsList.getItems()) {
           try {
             config.appendProjectDir(new File(projectDir));
           } catch (Exception ex) {
@@ -388,7 +388,22 @@ public class ProjectDirectoriesDialog extends JDialog {
         fc.setDialogTitle("Select project directory");
 
         if (fc.showOpenDialog(myDialog) == JFileChooser.APPROVE_OPTION) {
-          addProjectDir(fc.getSelectedFile());
+          File dir = fc.getSelectedFile();
+          String selectedPath = null;
+          try {
+            selectedPath = dir.getCanonicalPath().replace('\\', '/');
+            String contikiPath =
+              new File(GUI.getExternalToolsSetting("PATH_CONTIKI", null)).
+              getCanonicalPath().replace('\\', '/');
+            if (contikiPath != null && selectedPath.startsWith(contikiPath)) {
+              selectedPath = selectedPath.replaceFirst(
+                  contikiPath, GUI.getExternalToolsSetting("PATH_CONTIKI"));
+            }
+            addProjectDir(new File(selectedPath));
+          } catch (IOException ex) {
+            logger.fatal("Error in path extraction: " + ex);
+          }
+
         }
       }
     });
@@ -409,7 +424,7 @@ public class ProjectDirectoriesDialog extends JDialog {
     }
 
     // Add already existing project directories
-    for (File projectDir : changablePlatforms) {
+    for (File projectDir : changeablePlatforms) {
       addProjectDir(projectDir);
     }
 
@@ -417,7 +432,7 @@ public class ProjectDirectoriesDialog extends JDialog {
   }
 
   private void addProjectDir(File projectDir) {
-    addProjectDir(projectDir, changableProjectsList.getItemCount());
+    addProjectDir(projectDir, changeableProjectsList.getItemCount());
   }
 
   private void addProjectDir(File projectDir, int index) {
@@ -460,11 +475,11 @@ public class ProjectDirectoriesDialog extends JDialog {
       }
     }
 
-    changableProjectsList.add(projectDir.getPath(), index);
+    changeableProjectsList.add(projectDir.getPath(), index);
   }
 
   private void removeProjectDir(int index) {
-    changableProjectsList.remove(index);
+    changeableProjectsList.remove(index);
   }
 
 }

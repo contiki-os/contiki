@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ExternalToolsDialog.java,v 1.10 2008/02/18 08:18:18 fros4943 Exp $
+ * $Id: ExternalToolsDialog.java,v 1.11 2008/05/02 05:47:52 fros4943 Exp $
  */
 
 package se.sics.cooja.dialogs;
@@ -152,7 +152,7 @@ public class ExternalToolsDialog extends JDialog {
     // MAIN PART
     textFields = new JTextField[GUI.getExternalToolsSettingsCount()];
     for (int i = 0; i < GUI.getExternalToolsSettingsCount(); i++) {
-      // Add text fields for every changable property
+      // Add text fields for every changeable property
       smallPane = new JPanel();
       smallPane.setAlignmentX(Component.LEFT_ALIGNMENT);
       smallPane.setLayout(new BoxLayout(smallPane, BoxLayout.X_AXIS));
