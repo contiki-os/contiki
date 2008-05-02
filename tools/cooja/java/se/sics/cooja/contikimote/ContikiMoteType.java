@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ContikiMoteType.java,v 1.26 2008/03/19 09:41:03 fros4943 Exp $
+ * $Id: ContikiMoteType.java,v 1.27 2008/05/02 05:47:22 fros4943 Exp $
  */
 
 package se.sics.cooja.contikimote;
@@ -1336,14 +1336,14 @@ public class ContikiMoteType implements MoteType {
     // User project directory
     for (File projectDir : projectDirs) {
       element = new Element("projectdir");
-      element.setText(projectDir.getPath());
+      element.setText(projectDir.getPath().replace('\\', '/'));
       config.add(element);
     }
 
     // Compilation files
     for (File compileFile : compilationFiles) {
       element = new Element("compilefile");
-      element.setText(compileFile.getPath());
+      element.setText(compileFile.getPath().replace('\\', '/'));
       config.add(element);
     }
 
