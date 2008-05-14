@@ -35,7 +35,7 @@
  *
  * This file is part of the Contiki desktop OS
  *
- * $Id: contiki-conf.h,v 1.9 2008/03/03 20:21:59 adamdunkels Exp $
+ * $Id: contiki-conf.h,v 1.10 2008/05/14 19:19:29 adamdunkels Exp $
  *
  */
 
@@ -121,6 +121,8 @@ typedef unsigned long clock_time_t;
 #define UIP_CONF_BYTE_ORDER      UIP_LITTLE_ENDIAN
 
 #define UIP_CONF_BROADCAST	 1
+
+#define UIP_CONF_IP_FORWARD      1
 
 /* TCP splitting does not work well with multi hop routing. */
 #define UIP_CONF_TCP_SPLIT       0

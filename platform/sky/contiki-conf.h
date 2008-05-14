@@ -1,5 +1,5 @@
 /* -*- C -*- */
-/* @(#)$Id: contiki-conf.h,v 1.25 2008/02/25 02:14:34 adamdunkels Exp $ */
+/* @(#)$Id: contiki-conf.h,v 1.26 2008/05/14 19:19:29 adamdunkels Exp $ */
 
 #ifndef CONTIKI_CONF_H
 #define CONTIKI_CONF_H
@@ -54,6 +54,7 @@
 
 #define UIP_CONF_ICMP_DEST_UNREACH 1
 
+#define UIP_CONF_IP_FORWARD      1
 #define UIP_CONF_DHCP_LIGHT
 #define UIP_CONF_LLH_LEN         0
 #define UIP_CONF_BUFFER_SIZE     110

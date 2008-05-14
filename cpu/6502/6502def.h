@@ -30,7 +30,7 @@
  *
  * Author: Oliver Schmidt <ol.sc@web.de>
  *
- * @(#)$Id: 6502def.h,v 1.12 2008/03/29 15:22:39 oliverschmidt Exp $
+ * @(#)$Id: 6502def.h,v 1.13 2008/05/14 19:19:29 adamdunkels Exp $
  */
 
 #ifndef __6502DEF_H__
@@ -84,9 +84,9 @@ typedef unsigned short uip_stats_t;
 #endif /* WITH_BOOST */
 
 #if WITH_FORWARDING
-#define UIP_CONF_TCP_FORWARD 1
+#define UIP_CONF_IP_FORWARD 1
 #else /* WITH_FORWARDING */
-#define UIP_CONF_TCP_FORWARD 0
+#define UIP_CONF_IP_FORWARD 0
 #endif /* WITH_FORWARDING */
 
 #if WITH_CLIENT
