@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: simple-cc2420.c,v 1.26 2008/01/24 13:09:16 adamdunkels Exp $
+ * @(#)$Id: simple-cc2420.c,v 1.27 2008/05/14 19:44:30 adamdunkels Exp $
  */
 /*
  * This code is almost device independent and should be easy to port.
@@ -45,6 +45,7 @@
 #include <io.h>
 #endif
 
+#include "dev/leds.h"
 #include "dev/spi.h"
 #include "dev/simple-cc2420.h"
 #include "dev/cc2420_const.h"
@@ -145,6 +146,7 @@ static void
 on(void)
 {
   uint8_t dummy;
+
   ENERGEST_ON(ENERGEST_TYPE_LISTEN);
   PRINTF("on\n");
   receive_on = 1;
@@ -274,6 +276,8 @@ simple_cc2420_send(const void *payload, unsigned short payload_len)
 
   GET_LOCK();
 
+  PRINTF("simple_cc2420: sending %d bytes\n", payload_len);
+  
   RIMESTATS_ADD(lltx);
 
   /* Wait for any previous transmission to finish. */
@@ -320,7 +324,9 @@ simple_cc2420_send(const void *payload, unsigned short payload_len)
       rtimer_clock_t txtime = timesynch_time();
 #endif /* SIMPLE_CC2420_CONF_TIMESTAMPS */
 
-      ENERGEST_OFF(ENERGEST_TYPE_LISTEN);
+      if(receive_on) {
+	ENERGEST_OFF(ENERGEST_TYPE_LISTEN);
+      }
       ENERGEST_ON(ENERGEST_TYPE_TRANSMIT);
 
       /* We wait until transmission has ended so that we get an
@@ -342,7 +348,9 @@ simple_cc2420_send(const void *payload, unsigned short payload_len)
       ENERGEST_OFF_LEVEL(ENERGEST_TYPE_TRANSMIT,simple_cc2420_get_txpower());
 #endif
       ENERGEST_OFF(ENERGEST_TYPE_TRANSMIT);
-      ENERGEST_ON(ENERGEST_TYPE_LISTEN);
+      if(receive_on) {
+	ENERGEST_ON(ENERGEST_TYPE_LISTEN);
+      }
 
       RELEASE_LOCK();
       return 0;
@@ -480,6 +488,8 @@ PROCESS_THREAD(simple_cc2420_process, ev, data)
 {
   PROCESS_BEGIN();
 
+  PRINTF("simple_cc2420_process: started\n");
+  
   while(1) {
     PROCESS_YIELD_UNTIL(ev == PROCESS_EVENT_POLL);
 #if SIMPLE_CC2420_TIMETABLE_PROFILING
@@ -487,6 +497,7 @@ PROCESS_THREAD(simple_cc2420_process, ev, data)
 #endif /* SIMPLE_CC2420_TIMETABLE_PROFILING */
         
     if(receiver_callback != NULL) {
+      PRINTF("simple_cc2420_process: calling receiver callback\n");
       receiver_callback(&simple_cc2420_driver);
 #if SIMPLE_CC2420_TIMETABLE_PROFILING
       TIMETABLE_TIMESTAMP(simple_cc2420_timetable, "end");
