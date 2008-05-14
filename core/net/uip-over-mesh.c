@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: uip-over-mesh.c,v 1.7 2008/02/24 21:02:09 adamdunkels Exp $
+ * $Id: uip-over-mesh.c,v 1.8 2008/05/14 19:20:28 adamdunkels Exp $
  */
 
 /**
@@ -133,7 +133,7 @@ uip_over_mesh_init(u16_t channels)
   uc_open(&dataconn, channels, &data_callbacks);
   route_discovery_open(&route_discovery, CLOCK_SECOND / 4,
 		       channels + 1, &rdc);
-  tcpip_set_forwarding(1);
+  /*  tcpip_set_forwarding(1);*/
 
 }
 /*---------------------------------------------------------------------------*/
