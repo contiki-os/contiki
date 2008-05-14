@@ -30,7 +30,7 @@
  *
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: ether.c,v 1.12 2008/02/03 20:49:50 adamdunkels Exp $
+ * $Id: ether.c,v 1.13 2008/05/14 19:22:58 adamdunkels Exp $
  */
 /**
  * \file
@@ -94,6 +94,7 @@ static int s, sc;
 #define PTYPE_TEXT   5
 #define PTYPE_DONE   6
 #define PTYPE_SERIAL 7
+#define PTYPE_RADIO_STATUS 8
 
 #define SERIAL_LEN 80
 
@@ -108,6 +109,7 @@ struct ether_hdr {
   int srcid;
   int srcnodetype;
   int leds;
+  int radio_status;
   char text[NODES_TEXTLEN + SERIAL_LEN];
 };
 
@@ -359,6 +361,9 @@ ether_server_poll(void)
 	break;
       case PTYPE_SERIAL:
 	break;
+      case PTYPE_RADIO_STATUS:
+	nodes_set_radio_status(hdr->srcx, hdr->srcy, hdr->radio_status);
+	break;
       }
     }
     /*    tv.tv_sec = 0;
@@ -580,6 +585,23 @@ ether_set_text(char *text)
   hdr.type = PTYPE_TEXT;
   strncpy(hdr.text, text, NODES_TEXTLEN);
   /*  hdr.srcnodetype = node.type;*/
+  hdr.srcid = node.id;
+  hdr.linex = linex;
+  hdr.liney = liney;
+
+  node_send_packet((char *)&hdr, sizeof(struct ether_hdr));
+
+}
+/*-----------------------------------------------------------------------------------*/
+void
+ether_set_radio_status(int onoroff)
+{
+  struct ether_hdr hdr;
+  
+  hdr.srcx = node.x;
+  hdr.srcy = node.y;
+  hdr.type = PTYPE_RADIO_STATUS;
+  hdr.radio_status = onoroff;
   hdr.srcid = node.id;
   hdr.linex = linex;
   hdr.liney = liney;

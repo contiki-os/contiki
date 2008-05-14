@@ -24,7 +24,7 @@
  * IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY
  * OF SUCH DAMAGE.
  *
- * $Id: display.c,v 1.8 2008/02/03 20:49:50 adamdunkels Exp $
+ * $Id: display.c,v 1.9 2008/05/14 19:22:57 adamdunkels Exp $
  *
  * Author: Adam Dunkels <adam@sics.se>
  *
@@ -41,6 +41,7 @@
 
 #include <gtk/gtk.h>
 
+#include <sys/time.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <unistd.h>
@@ -59,12 +60,15 @@ static GdkFont *font;
 
 #define MARK_SIZE 8
 
+#define RADIO_SIZE 20
+
 #define DOT_SIZE ether_strength()
 #define DOT_INTENSITY 3
 
 struct dot {
   struct dot *next;
   int x, y;
+  int destx, desty;
   int size;
   int intensity;
 };
@@ -222,6 +226,17 @@ display_redraw(void)
 			   4, 4);
       }
 
+      if(n->radio_status) {
+	gdk_draw_arc(pixmap,
+		     green,
+		     FALSE,
+		     x * SCALE - RADIO_SIZE * SCALE,
+		     y * SCALE - RADIO_SIZE * SCALE,
+		     RADIO_SIZE * 2 * SCALE, RADIO_SIZE * 2 * SCALE,
+		     0, 360 * 64);
+      }
+
+
     }
 
   }
@@ -350,6 +365,9 @@ key_press_event (GtkWidget * widget, GdkEventKey * event)
   if(event->keyval == 'q') {
     gtk_exit(0);
     /*   exit(0);*/
+  }
+  if(event->keyval == 'p') {
+    display_output_fig();
   }
   return TRUE;
 }
@@ -659,5 +677,61 @@ void
 display_run(void)
 {
   gtk_main();
+}
+/*-----------------------------------------------------------------------------------*/
+void
+display_output_fig(void)
+{
+  int i;
+  struct nodes_node *n;
+  int x, y;
+  int dot_radius = 75;
+  int scale = 50;
+  FILE *fp;
+  char name[40];
+  struct timeval tv;
+
+  gettimeofday(&tv, NULL);
+  snprintf(name, sizeof(name), "network-%lu.fig", tv.tv_sec);
+  
+  fp = fopen(name, "w");
+  fprintf(fp, "#FIG 3.2\n"
+	 "Landscape\n"
+	 "Center\n"
+	 "Inches\n"
+	 "Letter\n"
+	 "100.00\n"
+	 "Single\n"
+	 "-2\n"
+	 "1200 2\n"
+	 );
+
+  for(i = 0; i < nodes_num(); ++i) {
+    n = nodes_node(i);
+    x = n->x * scale;
+    y = n->y * scale;
+
+    fprintf(fp, "1 3 1 1 0 7 50 -1 0 4.000 1 0.0000 %d %d %d %d %d %d %d %d\n",
+	   x, y,
+	   dot_radius, dot_radius,
+	   x, y,
+	   x + dot_radius, y + dot_radius);
+
+    if(strlen(n->text) > 0) {
+      fprintf(fp, "4 0 0 50 -1 16 18 0.0000 4 135 720 %d %d %s\\001\n",
+	      x + 2 * scale, y, n->text);
+    }
+
+    if(n->linex != 0 && n->liney != 0) {
+      fprintf(fp, "2 1 1 1 0 7 50 -1 -1 0.000 0 0 -1 0 1 2\n"
+	      "1 1 4.00 60.00 120.00\n"
+	      "%d %d %d %d\n",
+	      x, y,
+	      n->linex * scale, n->liney * scale);
+    }
+
+  }
+
+  fclose(fp);
 }
 /*-----------------------------------------------------------------------------------*/

@@ -30,7 +30,7 @@
  *
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: main.c,v 1.11 2008/01/14 09:38:16 adamdunkels Exp $
+ * $Id: main.c,v 1.12 2008/05/14 19:22:58 adamdunkels Exp $
  */
 
 /**
@@ -177,7 +177,7 @@ main(int argc, char **argv)
     printf("usage: %s <ip addr of ethernet card to share> "
 	   "<ip addr of netsim gateway>\n", argv[0]);
     exit(1);
-  } else if(argc == 2) {
+  } else if(argc >= 2) {
     gwaddr = inet_addr(argv[2]);
   }
 #endif /* __CYGWIN__ */

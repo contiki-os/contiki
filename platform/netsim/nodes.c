@@ -30,7 +30,7 @@
  *
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: nodes.c,v 1.7 2008/02/03 20:49:50 adamdunkels Exp $
+ * $Id: nodes.c,v 1.8 2008/05/14 19:22:58 adamdunkels Exp $
  */
 #include <signal.h>
 #include <stdio.h>
@@ -90,44 +90,45 @@ nodes_node(int num)
   return &nodes[num];
 }
 /*---------------------------------------------------------------------------*/
-void
-nodes_set_leds(int x, int y, int leds)
+static struct nodes_node *
+find_node(int x, int y)
 {
   int i;
 
   for(i = numnodes; i >= 0; --i) {
     if(nodes[i].x == x && nodes[i].y == y) {
-      nodes[i].leds = leds;
-      return;
+      return &nodes[i];
     }
   }
+  return &nodes[0];
+}
+/*---------------------------------------------------------------------------*/
+void
+nodes_set_leds(int x, int y, int leds)
+{
+  find_node(x, y)->leds = leds;
 }
 /*---------------------------------------------------------------------------*/
 void
 nodes_set_text(int x, int y, char *text)
 {
-  int i;
-
-  for(i = numnodes; i >= 0; --i) {
-    if(nodes[i].x == x && nodes[i].y == y) {
-      strncpy(nodes[i].text, text, NODES_TEXTLEN);
-      return;
-    }
-  }
+  strncpy(find_node(x, y)->text, text, NODES_TEXTLEN);
+}
+/*---------------------------------------------------------------------------*/
+void
+nodes_set_radio_status(int x, int y, int radio_status)
+{
+  find_node(x, y)->radio_status = radio_status;
 }
 /*---------------------------------------------------------------------------*/
 void
 nodes_set_line(int x, int y, int linex, int liney)
 {
-  int i;
+  struct nodes_node *n;
 
-  for(i = numnodes; i >= 0; --i) {
-    if(nodes[i].x == x && nodes[i].y == y) {
-      nodes[i].linex = linex;
-      nodes[i].liney = liney;
-      return;
-    }
-  }
+  n = find_node(x, y);
+  n->linex = linex;
+  n->liney = liney;
 }
 /*---------------------------------------------------------------------------*/
 struct nodes_node *
