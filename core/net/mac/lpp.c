@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: lpp.c,v 1.1 2008/05/15 08:56:29 adamdunkels Exp $
+ * $Id: lpp.c,v 1.2 2008/05/15 08:59:48 adamdunkels Exp $
  */
 
 /**
@@ -81,7 +81,7 @@ static struct ctimer timer;
 
 static struct queuebuf *queued_packet;
 
-#define LISTEN_TIME CLOCK_SECOND / 128
+#define LISTEN_TIME CLOCK_SECOND / 64
 #define OFF_TIME CLOCK_SECOND / 2
 
 #define DUMP_QUEUED_PACKET 1
