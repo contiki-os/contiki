@@ -1,1 +1,1 @@
-CONTIKI_SOURCEFILES += xmac.c nullmac.c
+CONTIKI_SOURCEFILES += xmac.c nullmac.c lpp.c #xmac2.c
