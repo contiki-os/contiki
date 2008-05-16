@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: lpp.c,v 1.3 2008/05/16 15:04:10 adamdunkels Exp $
+ * $Id: lpp.c,v 1.4 2008/05/16 21:31:57 oliverschmidt Exp $
  */
 
 /**
@@ -51,6 +51,7 @@
  */
 
 #include "dev/leds.h"
+#include "lib/random.h"
 
 #include "net/rime.h"
 #include "net/mac/mac.h"
@@ -136,7 +137,7 @@ dutycycle(void *ptr)
       
       /* We are currently sending a packet so we should keep the radio
 	 turned on and not send any probes at this point. */
-      ctimer_set(t, OFF_TIME * 2, dutycycle, t);
+      ctimer_set(t, OFF_TIME * 2, (void (*)(void *))dutycycle, t);
       PT_YIELD(&pt);
       queuebuf_free(queued_packet);
       queued_packet = NULL;
@@ -144,14 +145,15 @@ dutycycle(void *ptr)
     }
     turn_radio_on();
     send_probe();
-    ctimer_set(t, LISTEN_TIME, dutycycle, t);
+    ctimer_set(t, LISTEN_TIME, (void (*)(void *))dutycycle, t);
     PT_YIELD(&pt);
     turn_radio_off();
 
     /* There is a bit of randomness here right now to avoid collisions
        due to synchronization effects. Not sure how needed it is
        though. XXX */
-    ctimer_set(t, OFF_TIME / 2 + (random_rand() % OFF_TIME / 2), dutycycle, t);
+    ctimer_set(t, OFF_TIME / 2 + (random_rand() % OFF_TIME / 2),
+	       (void (*)(void *))dutycycle, t);
     PT_YIELD(&pt);
   }
 
@@ -309,7 +311,7 @@ lpp_init(const struct radio_driver *d)
 {
   radio = d;
   radio->set_receive_function(input_packet);
-  ctimer_set(&timer, LISTEN_TIME, dutycycle, &timer);
+  ctimer_set(&timer, LISTEN_TIME, (void (*)(void *))dutycycle, &timer);
   return &lpp_driver;
 }
 /*---------------------------------------------------------------------------*/
