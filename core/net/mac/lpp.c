@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: lpp.c,v 1.2 2008/05/15 08:59:48 adamdunkels Exp $
+ * $Id: lpp.c,v 1.3 2008/05/16 15:04:10 adamdunkels Exp $
  */
 
 /**
@@ -187,8 +187,7 @@ send_packet(void)
   rimebuf_compact();
   PRINTF("queueing packet type %d\n", hdr->type);
 
-  if(rimebuf_attr_isset(RIMEBUF_ATTR_PACKET_TYPE) &&
-     rimebuf_attr(RIMEBUF_ATTR_PACKET_TYPE) == RIMEBUF_ATTR_PACKET_TYPE_ACK) {
+  if(rimebuf_attr(RIMEBUF_ATTR_PACKET_TYPE) == RIMEBUF_ATTR_PACKET_TYPE_ACK) {
     /* Immediately send ACKs - we're assuming that the other node is
        listening. */
     /*    printf("Immediately sending ACK\n");*/
