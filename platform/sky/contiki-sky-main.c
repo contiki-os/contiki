@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#)$Id: contiki-sky-main.c,v 1.29 2008/03/03 20:23:53 adamdunkels Exp $
+ * @(#)$Id: contiki-sky-main.c,v 1.30 2008/05/19 12:07:49 adamdunkels Exp $
  */
 
 #include <signal.h>
@@ -230,7 +230,7 @@ main(int argc, char **argv)
   process_init();
   process_start(&etimer_process, NULL);
   process_start(&sensors_process, NULL);
-
+  ctimer_init();
 
   simple_cc2420_init();
   simple_cc2420_set_pan_addr(panId, 0 /*XXX*/, ds2411_id);
@@ -283,7 +283,6 @@ main(int argc, char **argv)
 #if PROFILE_CONF_ON
   profile_init();
 #endif /* PROFILE_CONF_ON */
-  ctimer_init();
 
   leds_off(LEDS_GREEN);
   
