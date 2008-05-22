@@ -30,23 +30,19 @@
 #
 # Author: Oliver Schmidt <ol.sc@web.de>
 #
-# $Id: Makefile.6502,v 1.26 2008/03/04 22:56:54 oliverschmidt Exp $
+# $Id: Makefile.6502,v 1.27 2008/05/22 19:43:37 oliverschmidt Exp $
 #
 
-ifndef CONTIKI
-  ${error CONTIKI not defined! You must specify where CONTIKI resides!}
-endif
-
 ifndef CC65_INC
-  ${error CC65_INC not defined! You must specify where the cc65 headers reside!}
+  ${error CC65_INC not defined! You must specify where the cc65 headers reside}
 endif
 
 ifndef LD65_LIB
-  ${error LD65_LIB not defined! You must specify where the cc65 libraries reside!}
+  ${error LD65_LIB not defined! You must specify where the cc65 libraries reside}
 endif
 
 ifndef LD65_OBJ
-  ${error LD65_OBJ not defined! You must specify where the cc65 objects reside!}
+  ${error LD65_OBJ not defined! You must specify where the cc65 objects reside}
 endif
 
 all: cs8900a.eth lan91c96.eth

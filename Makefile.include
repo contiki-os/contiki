@@ -1,5 +1,5 @@
 ifndef CONTIKI
-  ${error CONTIKI not defined! You must specify where CONTIKI resides!}
+  ${error CONTIKI not defined! You must specify where CONTIKI resides}
 endif
 
 OBJECTDIR = obj_$(TARGET)
