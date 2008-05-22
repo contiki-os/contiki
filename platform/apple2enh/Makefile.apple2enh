@@ -1,3 +1,38 @@
+#
+# Copyright (c) 2007, Adam Dunkels.
+# All rights reserved.
+#
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions
+# are met:
+# 1. Redistributions of source code must retain the above copyright
+#    notice, this list of conditions and the following disclaimer.
+# 2. Redistributions in binary form must reproduce the above copyright
+#    notice, this list of conditions and the following disclaimer in the
+#    documentation and/or other materials provided with the distribution.
+# 3. The name of the author may not be used to endorse or promote
+#    products derived from this software without specific prior
+#    written permission.
+#
+# THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS
+# OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+# WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+# ARE DISCLAIMED.  IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY
+# DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+# DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE
+# GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+# INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+# WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+# NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+# SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+#
+# This file is part of the Contiki operating system.
+#
+# Author: Oliver Schmidt <ol.sc@web.de>
+#
+# $Id: Makefile.apple2enh,v 1.5 2008/05/22 22:21:43 oliverschmidt Exp $
+#
+
 CONTIKI_SOURCEFILES += log-asm.S pfs.S
 
 HIGHCODE_SOURCEFILES = process.c etimer.c uip_arp.c
@@ -13,3 +48,27 @@ ${foreach OBJECT,$(HIGHCODE_SOURCEFILES),${eval ${call highcode_template,$(OBJEC
 
 CONTIKI_CPU = $(CONTIKI)/cpu/6502
 include $(CONTIKI_CPU)/Makefile.6502
+
+ifeq ($(MAKECMDGOALS),disk)
+  ifndef AC
+    ${error AC not defined! You must specify where the AppleCommander jar resides}
+  endif
+endif
+
+DISK = ${basename ${wildcard *.$(TARGET)}}.dsk
+disk: all
+	cp $(CONTIKI)/tools/$(TARGET)/prodos.dsk $(DISK)
+	java -jar $(AC) -p    $(DISK) contiki.system sys 0 < $(CONTIKI)/tools/$(TARGET)/loader-reboot.system
+	java -jar $(AC) -cc65 $(DISK) contiki        bin   < ${wildcard *.$(TARGET)}
+	java -jar $(AC) -p    $(DISK) contiki.cfg    bin 0 < $(CONTIKI)/tools/$(TARGET)/sample.cfg
+	java -jar $(AC) -p    $(DISK) cs8900a.eth    rel 0 < cs8900a.eth
+	java -jar $(AC) -p    $(DISK) lan91c96.eth   rel 0 < lan91c96.eth
+ifeq ($(findstring WITH_MOUSE,$(DEFINES)),WITH_MOUSE)
+	java -jar $(AC) -p    $(DISK) a2e.stdmou.mou rel 0 < $(LD65_LIB)/../mou/a2e.stdmou.mou
+endif
+ifeq ($(HTTPD-CFS),1)
+	java -jar $(AC) -p    $(DISK) index.html     bin 0 < httpd-cfs/index.html
+	java -jar $(AC) -p    $(DISK) background.gif bin 0 < httpd-cfs/background.gif
+	java -jar $(AC) -p    $(DISK) contiki.gif    bin 0 < httpd-cfs/contiki.gif
+	java -jar $(AC) -p    $(DISK) notfound.html  bin 0 < httpd-cfs/notfound.html
+endif
