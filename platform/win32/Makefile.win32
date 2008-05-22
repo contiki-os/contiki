@@ -30,12 +30,8 @@
 #
 # Author: Oliver Schmidt <ol.sc@web.de>
 #
-# $Id: Makefile.win32,v 1.14 2008/03/04 22:55:54 oliverschmidt Exp $
+# $Id: Makefile.win32,v 1.15 2008/05/22 19:45:47 oliverschmidt Exp $
 #
-
-ifndef CONTIKI
-  ${error CONTIKI not defined! You must specify where CONTIKI resides!}
-endif
 
 TARGET_LIBFILES = /lib/w32api/libws2_32.a /lib/w32api/libiphlpapi.a
 
