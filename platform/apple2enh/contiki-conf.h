@@ -30,7 +30,7 @@
  * 
  * Author: Oliver Schmidt <ol.sc@web.de>
  *
- * $Id: contiki-conf.h,v 1.13 2008/01/01 19:47:53 oliverschmidt Exp $
+ * $Id: contiki-conf.h,v 1.14 2008/05/23 23:13:41 oliverschmidt Exp $
  */
 
 #ifndef __CONTIKI_CONF_H__
@@ -52,7 +52,7 @@
 #define MOUSE_CONF_YTOC(y) ((y) / 8)
 
 #define WEBSERVER_CONF_CGI_CONNS UIP_CONNS
-#define WEBSERVER_CONF_CFS_CONNS 3
+#define WEBSERVER_CONF_CFS_CONNS 7
 
 #define WWW_CONF_WEBPAGE_HEIGHT     19
 #define WWW_CONF_HISTORY_SIZE        4
