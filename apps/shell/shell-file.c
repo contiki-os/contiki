@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: shell-file.c,v 1.2 2008/03/29 13:57:30 oliverschmidt Exp $
+ * $Id: shell-file.c,v 1.3 2008/05/24 08:31:56 oliverschmidt Exp $
  */
 
 /**
@@ -173,7 +173,7 @@ PROCESS_THREAD(shell_read_process, ev, data)
 
   if(fd <= 0) {
     shell_output_str(&write_command,
-		     "Could not open file for writing: ", data);
+		     "Could not open file for reading: ", data);
   }
   
 
