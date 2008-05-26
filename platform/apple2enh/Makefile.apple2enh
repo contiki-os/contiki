@@ -30,7 +30,7 @@
 #
 # Author: Oliver Schmidt <ol.sc@web.de>
 #
-# $Id: Makefile.apple2enh,v 1.5 2008/05/22 22:21:43 oliverschmidt Exp $
+# $Id: Makefile.apple2enh,v 1.6 2008/05/26 10:13:32 oliverschmidt Exp $
 #
 
 CONTIKI_SOURCEFILES += log-asm.S pfs.S
@@ -55,11 +55,11 @@ ifeq ($(MAKECMDGOALS),disk)
   endif
 endif
 
-DISK = ${basename ${wildcard *.$(TARGET)}}.dsk
+DISK = $(CONTIKI_PROJECT).dsk
 disk: all
 	cp $(CONTIKI)/tools/$(TARGET)/prodos.dsk $(DISK)
 	java -jar $(AC) -p    $(DISK) contiki.system sys 0 < $(CONTIKI)/tools/$(TARGET)/loader-reboot.system
-	java -jar $(AC) -cc65 $(DISK) contiki        bin   < ${wildcard *.$(TARGET)}
+	java -jar $(AC) -cc65 $(DISK) contiki        bin   < $(CONTIKI_PROJECT).$(TARGET)
 	java -jar $(AC) -p    $(DISK) contiki.cfg    bin 0 < $(CONTIKI)/tools/$(TARGET)/sample.cfg
 	java -jar $(AC) -p    $(DISK) cs8900a.eth    rel 0 < cs8900a.eth
 	java -jar $(AC) -p    $(DISK) lan91c96.eth   rel 0 < lan91c96.eth
