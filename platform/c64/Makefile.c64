@@ -30,7 +30,7 @@
 #
 # Author: Oliver Schmidt <ol.sc@web.de>
 #
-# $Id: Makefile.c64,v 1.4 2008/05/22 22:18:25 oliverschmidt Exp $
+# $Id: Makefile.c64,v 1.5 2008/05/26 10:14:28 oliverschmidt Exp $
 #
 
 CFLAGS += -DWITH_PETSCII
@@ -44,10 +44,10 @@ ifeq ($(MAKECMDGOALS),disk)
   endif
 endif
 
-DISK = ${basename ${wildcard *.$(TARGET)}}.d64
+DISK = $(CONTIKI_PROJECT).d64
 disk: all
 	$(C1541) -format contiki,00 d64 $(DISK)
-	$(C1541) -attach $(DISK) -write ${wildcard *.$(TARGET)}               contiki
+	$(C1541) -attach $(DISK) -write $(CONTIKI_PROJECT).$(TARGET)          contiki
 	$(C1541) -attach $(DISK) -write $(CONTIKI)/tools/$(TARGET)/sample.cfg contiki.cfg
 	$(C1541) -attach $(DISK) -write cs8900a.eth                           cs8900a.eth
 	$(C1541) -attach $(DISK) -write lan91c96.eth                          lan91c96.eth
