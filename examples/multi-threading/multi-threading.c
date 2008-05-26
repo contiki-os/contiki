@@ -30,7 +30,7 @@
  * 
  * Author: Oliver Schmidt <ol.sc@web.de>
  *
- * $Id: multi-threading.c,v 1.3 2007/08/10 10:33:28 oliverschmidt Exp $
+ * $Id: multi-threading.c,v 1.4 2008/05/26 09:12:22 oliverschmidt Exp $
  */
 
 /**
@@ -41,28 +41,16 @@
  *         Oliver Schmidt <ol.sc@web.de>
  */
 
-#ifdef __CYGWIN__
-
-#define WIN32_LEAN_AND_MEAN
-#include <windows.h>
-
 /* The Contiki Multi-threading library is on Windows implemented using
  * Win32 fibers. The Cygwin C-library implements Thread-Local-Storage
  * in a way that is incompatible with fibers. Therefore most Cygwin
- * C-library functions don't work when called from a Contiki thread.
- *
- * So the sample application calls the Win32 function wsprintf instead
- * of the Cygwin function sprintf from its Contiki threads. */
-#define sprintf wsprintf
-
-#endif /* __CYGWIN__ */
-
-#include <stdio.h>
+ * C-library functions don't work when called from a Contiki thread. */
 
 #include "contiki.h"
+#include "sys/log.h"
 #include "sys/mt.h"
 
-static char buf[12];
+static char *ptr;
 
 PROCESS(multi_threading_process, "Multi-threading process");
 AUTOSTART_PROCESSES(&multi_threading_process);
@@ -71,7 +59,7 @@ AUTOSTART_PROCESSES(&multi_threading_process);
 static void
 thread_func(char *str, int len)
 {
-  sprintf(buf, "%s\n", str + len);
+  ptr = str + len;
   mt_yield();
 
   if(len) {
@@ -79,7 +67,7 @@ thread_func(char *str, int len)
     mt_yield();
   }
 
-  sprintf(buf, "%s\n", str + len);
+  ptr = str + len;
 }
 /*---------------------------------------------------------------------------*/
 static void
@@ -117,7 +105,7 @@ PROCESS_THREAD(multi_threading_process, ev, data)
 	mt_exec(&count_thread);
 	toggle++;
       }
-      printf(buf);
+      log_message(ptr, "");
 
       etimer_set(&timer, CLOCK_SECOND / 2);
     }
