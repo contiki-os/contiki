@@ -59,8 +59,10 @@ from the apps/ directory that should be included in the Contiki
 system. The Makefile used in the hello-world example project looks
 like this:
 
+CONTIKI_PROJECT = hello-world
+all: $(CONTIKI_PROJECT)
+
 CONTIKI = ../..
-all: hello-world
 include $(CONTIKI)/Makefile.include
 
 First, the location of the Contiki source code tree is given by
