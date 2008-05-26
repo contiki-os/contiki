@@ -30,21 +30,14 @@
 #
 # Author: Oliver Schmidt <ol.sc@web.de>
 #
-# $Id: Makefile.apple2enh,v 1.6 2008/05/26 10:13:32 oliverschmidt Exp $
+# $Id: Makefile.apple2enh,v 1.7 2008/05/26 11:26:57 oliverschmidt Exp $
 #
 
 CONTIKI_SOURCEFILES += log-asm.S pfs.S
-
 HIGHCODE_SOURCEFILES = process.c etimer.c uip_arp.c
 
-define highcode_template
-$(OBJECTDIR)/$(1:.c=.o): $(1)
-	$$(CC) --code-name HIGHCODE $$(CFLAGS) --create-dep $$< -o $$(@:.o=.s)
-	@$$(AS) $$(ASFLAGS) $$(@:.o=.s) -o $$@
-	@sed 's!.s:!.o:!' < $$(@:.o=.u) > $$(@:.o=.d)
-	@rm -f $$(@:.o=.s) $$(@:.o=.u)
-endef
-${foreach OBJECT,$(HIGHCODE_SOURCEFILES),${eval ${call highcode_template,$(OBJECT)}}}
+# Set a target-specific variable value
+${addprefix $(OBJECTDIR)/,${call oname, $(HIGHCODE_SOURCEFILES)}}: CFLAGS += --code-name HIGHCODE
 
 CONTIKI_CPU = $(CONTIKI)/cpu/6502
 include $(CONTIKI_CPU)/Makefile.6502
