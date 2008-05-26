@@ -1,7 +1,9 @@
-all: testv6
-APPS=webserver
-DEFAULT_TARGET=minimal-net
-CFLAGS=-DUIP_CONF_IPV6
+CONTIKI_PROJECT = testv6
+all: $(CONTIKI_PROJECT)
+
+APPS = webserver
+DEFAULT_TARGET = minimal-net
+CFLAGS = -DUIP_CONF_IPV6
 
 CONTIKI = ../..
 include $(CONTIKI)/Makefile.include
