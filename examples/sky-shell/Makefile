@@ -2,8 +2,6 @@ CONTIKI_PROJECT = sky-shell
 all: $(CONTIKI_PROJECT)
 
 APPS = shell
-DEFAULT_TARGET = sky
-
 CONTIKI = ../..
 
 ifdef MOTE

@@ -2,8 +2,6 @@ CONTIKI_PROJECT = telnet-webserver
 all: $(CONTIKI_PROJECT)
 
 APPS = telnetd webserver
-DEFAULT_TARGET = sky
-
 CFLAGS = -DWITH_UIP=1 #-DWITH_NULLMAC=1
 
 # The webserver application normally contains a built-in file system and support

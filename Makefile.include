@@ -8,11 +8,8 @@ CFLAGS += -DCONTIKI_TARGET=$(TARGET)
 ifeq ($(TARGET),)
   -include Makefile.target
   ifeq ($(TARGET),)
-    ifeq ($(DEFAULT_TARGET),)
-      DEFAULT_TARGET=native
-    endif
-    ${info TARGET not defined, using target '$(DEFAULT_TARGET)'}
-    TARGET=$(DEFAULT_TARGET)
+    ${info TARGET not defined, using target 'native'}
+    TARGET=native
   else
     ${info using saved target '$(TARGET)'}
   endif
