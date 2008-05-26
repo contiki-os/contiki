@@ -1,7 +1,10 @@
+CONTIKI_PROJECT = sky-shell
+all: $(CONTIKI_PROJECT)
+
+APPS = shell
+DEFAULT_TARGET = sky
+
 CONTIKI = ../..
-APPS=shell
-DEFAULT_TARGET=sky
-all: sky-shell
 
 ifdef MOTE
 login:
