@@ -47,15 +47,16 @@ Berlin, 2007
  * @brief	MMC-/SD-Card library
  * 
  * @author	Michael Baar	<baar@inf.fu-berlin.de>
- * @version	$Revision: 1.4 $
+ * @version	$Revision: 1.5 $
  *
- * $Id: sd.c,v 1.4 2008/05/27 14:04:15 nvt-se Exp $
+ * $Id: sd.c,v 1.5 2008/05/27 14:05:09 nvt-se Exp $
  * 
  * Initialisation and basic functions for read and write access
  */
 
 #include "sd_internals.h"
 #include "sd.h"
+#include "sdspi.h"
 
 volatile sd_state_t sd_state;
 
