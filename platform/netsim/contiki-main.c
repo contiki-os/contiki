@@ -30,7 +30,7 @@
  *
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: contiki-main.c,v 1.29 2008/03/03 20:21:59 adamdunkels Exp $
+ * $Id: contiki-main.c,v 1.30 2008/05/27 19:07:20 adamdunkels Exp $
  */
 
 #include "contiki.h"
@@ -51,6 +51,7 @@
 #include "net/uip-over-mesh.h"
 
 #include "net/mac/nullmac.h"
+#include "net/mac/lpp.h"
 
 #include "ether.h"
 
