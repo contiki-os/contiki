@@ -88,4 +88,8 @@ typedef int bool;
 #define SD_LED_WRITE_ON			SD_LED_READ_ON
 #define SD_LED_WRITE_OFF		SD_LED_READ_OFF
 
+#define SPI_WRITE			SD_WRITE
+#define SPI_DMA_READ			0
+#define SPI_DMA_WRITE			0
+
 #endif /* !CONTIKI_CONF_H */
