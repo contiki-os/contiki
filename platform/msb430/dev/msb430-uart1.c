@@ -196,6 +196,7 @@ uart_set_mode(unsigned mode)
   IE2 &= ~(URXIE1 | UTXIE1);		// disable irq
   uart_configure(mode);			// configure uart parameters
   uart_mode = mode;
+  uart_lockcnt = 0;
 	
   if (uart_handler[mode] != NULL) {
     IE2 |= URXIE1;			// Enable USART1 RX interrupt
