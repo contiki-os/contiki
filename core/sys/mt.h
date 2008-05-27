@@ -30,7 +30,7 @@
  *
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: mt.h,v 1.4 2007/04/03 18:47:21 oliverschmidt Exp $
+ * $Id: mt.h,v 1.5 2008/05/27 14:00:09 adamdunkels Exp $
  */
 
 /** \addtogroup sys
@@ -237,29 +237,6 @@ void mt_start(struct mt_thread *thread, void (* function)(void *), void *data);
 void mt_exec(struct mt_thread *thread);
 
 /**
- * Post an event to a thread.
- *
- * This function posts an event to a thread. The thread will be
- * scheduled if the thread currently is waiting for the posted event
- * number. If the thread is not waiting for the event, this function
- * does nothing.
- *
- * \note The thread library must first be initialized with the mt_init()
- * function.
- *
- * \param thread A pointer to a struct mt_thread block that must be
- * allocated by the caller.
- *
- * \param s The event that is posted to the thread.
- *
- * \param data An opaque pointer to a user specified structure
- * containing additonal information, or NULL if no additional
- * information is needed.
- */
-/*void mt_exec_event(struct mt_thread *thread, process_event_t s,
-  process_data_t data);*/
-
-/**
  * Voluntarily give up the processor.
  *
  * This function is called by a running thread in order to give up
@@ -267,42 +244,6 @@ void mt_exec(struct mt_thread *thread);
  *
  */
 void mt_yield(void);
-
-/**
- * Post an event to another process.
- *
- * This function is called by a running thread and will emit a signal
- * to another Contiki process. This will cause the currently executing
- * thread to yield.
- *
- * \param p The process receiving the signal, or PROCESS_BROADCAST
- * for a broadcast event.
- *
- * \param ev The event to be posted.
- *
- * \param data A pointer to a message that is to be delivered together
- * with the signal.
- *
- */
-/*void mt_post(struct process *p, process_event_t ev, process_data_t data);*/
-
-/**
- * Block and wait for an event to occur.
- *
- * This function can be called by a running thread in order to block
- * and wait for an event. The function returns when an event has
- * occured. The event number and the associated data are placed in the
- * variables pointed to by the function arguments.
- *
- * \param ev A pointer to a process_event_t variable. The variable
- * will be filled with the number event that woke the thread.
- *
- * \param data A pointer to a process_data_t variable. The variable
- * will be filled with the data associated with the event that woke
- * the thread.
- *
- */
-/*void mt_wait(process_event_t *ev, process_data_t *data);*/
 
 /**
  * Exit a thread.
@@ -325,77 +266,6 @@ void mt_exit(void);
  */
 void mt_stop(struct mt_thread *thread);
 
-#if 0
-/**
- * \defgroup mtp Multi-threading library convenience functions
- * @{
- *
- * The Contiki multi-threading library has an interface that might be
- * hard to use. Therefore, the mtp module provides a simpler
- * interface.
- *
- * Example:
-\code
-static void
-example_thread_code(void *data)
-{
-  while(1) {
-    printf("Test\n");
-    mt_yield();
-  }
-}
-MTP(example_thread, "Example thread", p1, t1, t1_idle);
-
-int
-main(int argc, char *argv[])
-{
-  mtp_start(&example_thread, example_thread_code, NULL);
-}
-\endcode
-*
-*/
-
-
-/**
- * Declare a multithreaded process.
- *
- * This macro is used to declare a multithreaded process.
- *
- * \hideinitializer
- */
-#define MT_PROCESS(name, strname) \
-extern struct mt_process name##mt_process; \
-struct process name = { NULL, strname, mt_process_thread }; \
-static struct mt_process thread = {&name}
-
-struct mt_process {
-  struct process *p;
-  struct mt_thread t;
-};
-
-/**
- * Start a thread.
- *
- * This function starts the process in which the thread is to run, and
- * also sets up the thread to run within the process. The function
- * should be passed variable names declared with the MTP() macro.
- *
- * \param t A pointer to a thread structure previously declared with MTP().
- *
- * \param function A pointer to the function that the thread should
- * start executing.
- *
- * \param data A pointer that the function should be passed when first
- * invocated.
- */
-void mtp_start(struct mt_process *p,
-	       void (* function)(void *), void *data);
-
-void mtp_exit(void);
-void mtp_eventhandler(process_event_t ev, process_data_t data);
-
-/** @} */
-#endif /* 0 */
 /** @} */
 /** @} */
 #endif /* __MT_H__ */
