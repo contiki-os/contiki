@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: rs232.c,v 1.4 2008/03/28 15:59:58 nvt-se Exp $
+ * @(#)$Id: rs232.c,v 1.5 2008/05/27 13:03:19 nvt-se Exp $
  */
 
 /** \addtogroup esbrs232
@@ -79,11 +79,12 @@ rs232_send(char c)
 int
 putchar(int c)
 {
-  if (uart_get_mode() == UART_MODE_RS232) {
+  if (uart_lock(UART_MODE_RS232)) {
     /* Loop until the transmission buffer is available. */
     UART_WAIT_TX();
     /* Transmit the data. */
     UART_TX = c;
+    uart_unlock(UART_MODE_RS232);
     return c;
   } else {
     return -1;
@@ -108,13 +109,9 @@ rs232_set_speed(enum rs232_speed speed)
 void
 rs232_print(char *cptr)
 {
-  // lock UART for print operation
-  if (uart_lock(UART_MODE_RS232)) {
-    while(*cptr != 0) {
-      rs232_send(*cptr);
-      ++cptr;
-    }
-    uart_unlock(UART_MODE_RS232);
+  while(*cptr != 0) {
+    rs232_send(*cptr);
+    ++cptr;
   }
 }
 /*---------------------------------------------------------------------------*/
