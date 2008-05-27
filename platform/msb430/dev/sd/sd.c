@@ -47,9 +47,9 @@ Berlin, 2007
  * @brief	MMC-/SD-Card library
  * 
  * @author	Michael Baar	<baar@inf.fu-berlin.de>
- * @version	$Revision: 1.5 $
+ * @version	$Revision: 1.6 $
  *
- * $Id: sd.c,v 1.5 2008/05/27 14:05:09 nvt-se Exp $
+ * $Id: sd.c,v 1.6 2008/05/27 14:22:55 nvt-se Exp $
  * 
  * Initialisation and basic functions for read and write access
  */
@@ -645,7 +645,7 @@ _sd_send_cmd(const uint8_t command,
     if ((data & 0x80) == 0) {
       goto _sd_send_cmd_response;
     }
-  } while (i);
+  } while (i--);
 
   goto sd_send_cmd_fail;
 
