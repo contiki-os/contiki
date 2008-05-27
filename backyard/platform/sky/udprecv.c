@@ -28,12 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: udpsend.c,v 1.2 2006/08/09 16:13:40 bg- Exp $
- */
-
-/* Set the IP destination address to something different from the
- * broadcast address. Use commas (",") rather than the normal dots
- * (".") in addresses.
+ * @(#)$Id: udprecv.c,v 1.1 2008/05/27 13:16:34 adamdunkels Exp $
  */
 
 #include <stdio.h>
@@ -42,44 +37,38 @@
 #include "contiki.h"
 #include "net/uip.h"
 
-#include "dev/leds.h"
-#include "dev/light.h"
+PROCESS(udprecv_process, "UDP recv process");
 
-PROCESS(udpsend_process, "UDP send process");
-
-PROCESS_THREAD(udpsend_process, ev, data)
+PROCESS_THREAD(udprecv_process, ev, data)
 {
-  static struct etimer etimer;
   static struct uip_udp_conn *c;
 
   PROCESS_EXITHANDLER(goto exit);
   PROCESS_BEGIN();
 
-  printf("udpsend_process starting\n");
+  printf("udprecv_process starting\n");
 
   {
-    uip_ipaddr_t addr;
-    uip_ipaddr(&addr, 255,255,255,255); /* Change address here! */
-    c = udp_new(&addr, HTONS(4321), NULL);
-    c->ttl = 1;			/* One hop only. */
+    uip_ipaddr_t any;
+    uip_ipaddr(&any, 0,0,0,0);
+    c = udp_new(&any, HTONS(0), NULL);
+    uip_udp_bind(c, HTONS(4321));
   }
-
+  
   while(1) {
-    etimer_set(&etimer, CLOCK_SECOND);
-    PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&etimer));
+    PROCESS_YIELD();
 
-    tcpip_poll_udp(c);
-    PROCESS_WAIT_EVENT_UNTIL(ev == tcpip_event);
-
-    char buf[64];
-    sprintf(buf, "light sensors %d %d", sensors_light1(), sensors_light2());
-    uip_send(buf, strlen(buf) + 1);
+    if(ev == tcpip_event && uip_newdata()) {
+      u8_t *src = ((struct uip_udpip_hdr *)&uip_buf[UIP_LLH_LEN])->srcipaddr.u8;
+      printf("%d.%d.%d.%d: %s\n",
+	     src[0], src[1], src[2], src[3], (char *)uip_appdata);
+    }
   }
 
  exit:
   /* Contiki does automatic garbage collection of uIP state and we
    * need not worry about that. */
-  printf("udpsend_process exiting\n");
+  printf("udprecv_process exiting\n");
   PROCESS_END();
 }
 
@@ -89,7 +78,7 @@ PROCESS_THREAD(udpsend_process, ev, data)
 void
 _init(void)
 {
-  process_start(&udpsend_process, NULL);
+  process_start(&udprecv_process, NULL);
 }
 
 /*
@@ -98,5 +87,5 @@ _init(void)
 void
 _fini(void)
 {
-  process_exit(&udpsend_process);
+  process_exit(&udprecv_process);
 }

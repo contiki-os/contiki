@@ -26,19 +26,20 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF 
  * SUCH DAMAGE. 
  *
- * @(#)$Id: client.c,v 1.8 2008/01/04 23:36:56 oliverschmidt Exp $
+ * @(#)$Id: gateway.c,v 1.1 2008/05/27 13:16:34 adamdunkels Exp $
  */
 
 /*
- * Example configuration with one statically configured IP interface.
+ * Example gateway configuration with two IP interfaces, one SLIP over
+ * USB and one over 802.11.4 radio.
  *
- * The IP address is hardcoded to 172.16.0.9 and the 172.16/16 network
+ * The IP address is hardcoded to 172.16.0.1 and the 172.16/16 network
  * is on the radio interface.
  *
- * The default route and gateway is at 172.16.0.1.
+ * The default route is over the SLIP interface.
  *
- * On the SLIP gateway run a standard SLIP implementation or the
- * tunslip program that can also view debug printfs, example:
+ * On the SLIP host run a standard SLIP implementation or the tunslip
+ * program that can also view debug printfs, example:
  *
  * sliphost# ./tunslip 172.16.0.1 255.255.0.0
  *
@@ -46,14 +47,13 @@
  * This kernel has no application code but new modules can be uploaded
  * using the codeprop program, example:
  *
- * datan$ ./codeprop 172.16.0.9 loadable_prg.ko
+ * datan$ ./codeprop 172.16.0.1 loadable_prg.ko
  * File successfully sent (1116 bytes)
  * Reply: ok
  *
  */
 
 #include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
 
 #include <io.h>
@@ -70,20 +70,41 @@
 #include "dev/leds.h"
 #include "dev/light.h"
 #include "dev/xmem.h"
+#include "lib/rand.h"
 
 #include "dev/button.h"
 
 #include "codeprop/codeprop.h"
 
-/* This is how we force inclusion of the psock library. */
+/*
+ * This is how we force inclusion of the psock library and the button
+ * device driver.
+ */
 #include "net/psock.h"
-void *force_psock_inclusion = &psock_init;
-void *force_udp_inclusion = &uip_udp_packet_send;
+void *force_inclusion[] = {
+  &psock_init,
+  &button_init,
+  &uip_udp_packet_send,
+};
+#if 0
+int
+force_float_inclusion()
+{
+  extern int __fixsfsi;
+  extern int __floatsisf;
+  extern int __mulsf3;
+  extern int __subsf3;
 
+  return __fixsfsi + __floatsisf + __mulsf3 + __subsf3;
+}
+#endif
+
+/* We have two IP interfaces. */
 struct uip_fw_netif cc2420if =
-{UIP_FW_NETIF(172,16,0,9, 255,255,0,0, cc2420_send_uaodv)};
+{UIP_FW_NETIF(172,16,0,1, 255,255,0,0, cc2420_send_uaodv)};
 
-PROCESS(button_process, "Button process");
+static struct uip_fw_netif slipif =
+{UIP_FW_NETIF(0,0,0,0, 255,255,255,255, slip_send)};
 
 /* Radio stuff in network byte order. */
 static u16_t panId = HTONS(0x2024);
@@ -104,12 +125,11 @@ main(int argc, char **argv)
   leds_toggle(LEDS_ALL);
   slip_arch_init(BAUD2UBR(115200)); /* Must come before first printf */
   printf("Starting %s "
-	 "($Id: client.c,v 1.8 2008/01/04 23:36:56 oliverschmidt Exp $)\n", __FILE__);
+	 "($Id: gateway.c,v 1.1 2008/05/27 13:16:34 adamdunkels Exp $)\n", __FILE__);
   ds2411_init();
   sensors_light_init();
   cc2420_init();
   xmem_init();
-  button_init(&button_process);
   leds_toggle(LEDS_ALL);
   /*
    * Hardware initialization done!
@@ -122,12 +142,13 @@ main(int argc, char **argv)
 
   uip_ipaddr_copy(&uip_hostaddr, &cc2420if.ipaddr);
   uip_ipaddr_copy(&uip_netmask, &cc2420if.netmask);
-  uip_ipaddr(&uip_draddr, 172,16,0,1);
-  printf("IP %d.%d.%d.%d netmask %d.%d.%d.%d default router %d.%d.%d.%d\n",
-	 uip_ipaddr_to_quad(&uip_hostaddr),
-	 uip_ipaddr_to_quad(&uip_netmask),
-	 uip_ipaddr_to_quad(&uip_draddr));
+  printf("IP %d.%d.%d.%d netmask %d.%d.%d.%d\n",
+	 uip_ipaddr_to_quad(&uip_hostaddr), uip_ipaddr_to_quad(&uip_netmask));
   cc2420_set_chan_pan_addr(RF_CHANNEL, panId, uip_hostaddr.u16[1], ds2411_id);
+
+  srand(rand() +
+	(ds2411_id[3]<<8) + (ds2411_id[4]<<6) + (ds2411_id[5]<<4) +
+	(ds2411_id[6]<<2) +  ds2411_id[7]);
 
   /*
    * Initialize Contiki and our processes.
@@ -137,17 +158,18 @@ main(int argc, char **argv)
 
   /* Configure IP stack. */
   uip_init();
-  uip_fw_default(&cc2420if);
+  uip_fw_default(&slipif);	/* Point2point, no default router. */
+  uip_fw_register(&cc2420if);
   tcpip_set_forwarding(1);
   
   /* Start IP stack. */
   process_start(&tcpip_process, NULL);
   process_start(&uip_fw_process, NULL);	/* Start IP output */
+  process_start(&slip_process, NULL);
   process_start(&cc2420_process, NULL);
   cc2420_on();
   process_start(&uaodv_process, NULL);
 
-  process_start(&button_process, NULL);
   process_start(&tcp_loader_process, NULL);
 
   /*
@@ -158,46 +180,8 @@ main(int argc, char **argv)
     do {
       /* Reset watchdog. */
     } while(process_run() > 0);
-
-    /*
-     * Idle processing.
-     */
-    int s = splhigh();		/* Disable interrupts. */
-    if(process_nevents() != 0) {
-      splx(s);			/* Re-enable interrupts. */
-    } else {
-      /* Re-enable interrupts and go to sleep atomically. */
-      _BIS_SR(GIE | SCG0 | CPUOFF); /* LPM1 sleep. */
-    }
+    /* Idle! */
   }
 
   return 0;
-}
-
-PROCESS_THREAD(button_process, ev, data)
-{
-  static struct etimer etimer;
-
-  PROCESS_EXITHANDLER(goto exit);
-  PROCESS_BEGIN();
-
-  printf("button_process starting\n");
-
-  while(1) {
-    PROCESS_WAIT_EVENT();
-
-    if(ev == PROCESS_EVENT_MSG && data != NULL
-       && ((struct button_msg *)data)->type == BUTTON_MSG_TYPE) {
-      printf("button press\n");
-
-      leds_toggle(LEDS_ALL);
-      etimer_set(&etimer, CLOCK_SECOND);
-      PROCESS_WAIT_UNTIL(etimer_expired(&etimer));
-      leds_toggle(LEDS_ALL);
-    }
-  }
-
- exit:
-  printf("button_process exiting\n");
-  PROCESS_END();
 }
