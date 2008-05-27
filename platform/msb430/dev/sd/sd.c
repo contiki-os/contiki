@@ -47,9 +47,9 @@ Berlin, 2007
  * @brief	MMC-/SD-Card library
  * 
  * @author	Michael Baar	<baar@inf.fu-berlin.de>
- * @version	$Revision: 1.3 $
+ * @version	$Revision: 1.4 $
  *
- * $Id: sd.c,v 1.3 2008/03/28 23:03:05 nvt-se Exp $
+ * $Id: sd.c,v 1.4 2008/05/27 14:04:15 nvt-se Exp $
  * 
  * Initialisation and basic functions for read and write access
  */
@@ -479,7 +479,6 @@ _sd_write_block(const uint32_t * pAddress, const void *pBuffer, int increment)
 		pAddress, &r1);
   if (!ret | r1) {
     uart_unlock(UART_MODE_SPI);
-printf("r1 = %u\n", r1);
     SD_LED_WRITE_OFF;
     return SD_WRITE_COMMAND_ERR;
   }
