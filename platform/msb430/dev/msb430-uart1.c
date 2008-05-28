@@ -143,16 +143,18 @@ uart_set_handler(unsigned mode, fp_uart_handler fpHandler)
 int
 uart_lock(unsigned mode)
 {
-  // already locked?
-  if (uart_mode != mode && uart_lockcnt > 0) {
-    return 0;
+  if (uart_mode == mode) {
+    uart_lockcnt++;
+    return 1;
   }
 
-  // increase lock count
-  uart_lockcnt++;
-  // switch mode (if neccessary)
-  uart_set_mode(mode);
-  return 1;
+  if (uart_lockcnt == 0) {
+    uart_set_mode(mode);
+    uart_lockcnt++;
+    return 1;
+  }
+
+  return 0;
 }
 /*---------------------------------------------------------------------------*/
 int
@@ -167,22 +169,14 @@ uart_lock_wait(unsigned mode)
 int
 uart_unlock(unsigned mode)
 {
-  if ((uart_lockcnt == 0) || (mode != uart_mode)) {
-    uart_lockcnt = 0;
-    uart_set_mode(UART_MODE_DEFAULT);
+  if (uart_lockcnt == 0 || mode != uart_mode) {
     return 0;
   }
 
-  // decrement lock
-  if (uart_lockcnt > 0) {
-    uart_lockcnt--;
-    // if no more locks, switch back to default mode
-    if (uart_lockcnt == 0) {
+  if (--uart_lockcnt == 0) {
       uart_set_mode(UART_MODE_DEFAULT);
-    }
-    return 1;
   }
-  return 0;
+  return 1;
 }
 /*---------------------------------------------------------------------------*/
 void
@@ -196,7 +190,6 @@ uart_set_mode(unsigned mode)
   IE2 &= ~(URXIE1 | UTXIE1);		// disable irq
   uart_configure(mode);			// configure uart parameters
   uart_mode = mode;
-  uart_lockcnt = 0;
 	
   if (uart_handler[mode] != NULL) {
     IE2 |= URXIE1;			// Enable USART1 RX interrupt
