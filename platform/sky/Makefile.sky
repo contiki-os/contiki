@@ -1,4 +1,4 @@
-# $Id: Makefile.sky,v 1.14 2008/01/08 08:18:00 adamdunkels Exp $
+# $Id: Makefile.sky,v 1.15 2008/05/29 20:15:49 adamdunkels Exp $
 
 
 ARCH=msp430.c leds.c watchdog.c light.c spi.c ds2411.c \
@@ -27,10 +27,112 @@ ifndef COMPORT
   COMPORT := /dev/ttyUSB0
 endif
 
--include $(CONTIKI)/tools/sky/Makefile
+#-include $(CONTIKI)/tools/sky/Makefile
 
 %.u: %.ihex
 	$(BSL) --telosb -D -c $(COMPORT) -r -e -I -p $<
 
 %.send: %.ce
 	$(CONTIKI)/tools/codeprop 192.168.1.2 $<
+
+NUMPAR=20
+IHEXFILE=tmpimage.ihex
+
+# Check if we are running under Windows
+ifdef OS
+  ifneq (,$(findstring Windows,$(OS)))
+    USBDEVPREFIX=/dev/com
+    SERIALDUMP = $(CONTIKI)/tools/sky/serialdump-windows
+    MOTELIST = $(CONTIKI)/tools/sky/motelist-windows
+    BSL = $(CONTIKI)/tools/sky/msp430-bsl-windows
+    MOTES = $(shell $(MOTELIST) | grep COM | \
+       cut -f 4 -d \  | \
+       perl -ne 'print $$1 - 1 . " " if(/COM(\d+)/);')
+    CMOTES = $(shell $(MOTELIST) | grep COM | \
+       cut -f 4 -d \  | \
+       perl -ne 'print $$1 . " " if(/COM(\d+)/);')
+  endif
+endif
+
+# If we are not running under Windows, we assume Linux
+ifndef MOTELIST
+  USBDEVPREFIX=
+  SERIALDUMP = $(CONTIKI)/tools/sky/serialdump-linux
+  MOTELIST = $(CONTIKI)/tools/sky/motelist-linux
+  BSL = $(CONTIKI)/tools/sky/msp430-bsl-linux
+  MOTES = $(shell $(MOTELIST) 2>&- | grep USB | \
+     cut -f 4 -d \  | \
+     perl -ne 'print $$1 . " " if(m-(/dev/\w+)-);')
+  CMOTES=$(MOTES)
+endif
+
+sky-motelist:
+	$(MOTELIST)
+sky-motes:
+	@echo $(MOTES)
+
+%.upload: %.ihex
+	cp $< $(IHEXFILE)
+	$(MAKE) sky-reset sky-upload
+
+sky-upload: sky-reset
+	$(MAKE) -j $(NUMPAR) sky-upload-sequence
+
+sky-upload-sequence:	$(foreach PORT, $(MOTES), $(PORT).sky-u)
+	@echo Done
+
+sky-reset:
+	$(MAKE) -k -j $(NUMPAR) sky-reset-sequence
+
+sky-reset-sequence:	$(foreach PORT, $(MOTES), $(PORT).sky-r)
+	@echo Done
+
+%.sky-u:
+	@echo +++++ Erasing $(basename $@) ; \
+	$(BSL) --telosb -c $(basename $@) -e && sleep 2 ; \
+	echo +++++ Programming $(basename $@) ; \
+	$(BSL) --telosb -c $(basename $@) -I -p $(IHEXFILE) && sleep 2 ; \
+	echo +++++ Resetting $(basename $@) ; \
+	$(BSL) --telosb -c $(basename $@) -r
+
+%.sky-r:
+	$(BSL) --telosb -c $(basename $@) -r
+
+sizeplot:
+	msp430-size $(OBJECTDIR)/*.o | $(CONTIKI)/tools/sky/check-size > size-data
+	gnuplot $(CONTIKI)/tools/sky/plot-size
+	gv size.pdf
+
+winslip:
+ifdef INTERFACE
+	$(CONTIKI)/tools/wpcapslip/wpcapslip -s $(USBDEVPREFIX)$(firstword $(CMOTES)) $(INTERFACE) 172.16.0.0 255.255.0.0
+else
+	@echo "Usage: \"$(MAKE) $@ INTERFACE=<the IP address of a local network interface>\""
+	@echo "Use the \"ipconfig\" command to find out the IP addresses of the local interfaces"
+endif
+
+linslip: $(CONTIKI)/tools/tunslip
+	$(CONTIKI)/tools/tunslip -s $(USBDEVPREFIX)$(firstword $(CMOTES)) 172.16.0.0 255.255.0.0
+
+$(CONTIKI)/tools/tunslip:
+	(cd $(CONTIKI)/tools; $(MAKE) tunslip)
+
+ifdef MOTE
+serialdump:
+	$(SERIALDUMP) -b115200 $(USBDEVPREFIX)$(word $(MOTE), $(CMOTES)) | $(CONTIKI)/tools/timestamp | tee serialdump-`date +%Y%m%d-%H%M`
+
+serialview:
+	$(SERIALDUMP) -b115200 $(USBDEVPREFIX)$(word $(MOTE), $(CMOTES)) | $(CONTIKI)/tools/timestamp
+
+login:
+	$(SERIALDUMP) -b115200 $(USBDEVPREFIX)$(word $(MOTE), $(CMOTES))
+else
+serialdump:
+	$(SERIALDUMP) -b115200 $(USBDEVPREFIX)$(firstword $(CMOTES)) | $(CONTIKI)/tools/timestamp | tee serialdump-`date +%Y%m%d-%H%M`
+
+serialview:
+	$(SERIALDUMP) -b115200 $(USBDEVPREFIX)$(firstword $(CMOTES)) | $(CONTIKI)/tools/timestamp
+
+login:
+	$(SERIALDUMP) -b115200 $(USBDEVPREFIX)$(firstword $(CMOTES))
+endif
