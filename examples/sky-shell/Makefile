@@ -4,14 +4,6 @@ all: $(CONTIKI_PROJECT)
 APPS = shell
 CONTIKI = ../..
 
-ifdef MOTE
-login:
-	$(SERIALDUMP) -b115200 /dev/com$(word $(MOTE), $(CMOTES))
-else
-login:
-	$(SERIALDUMP) -b115200 /dev/com$(firstword $(CMOTES))
-endif
-
 %.shell-upload: %.ce
 	(echo; sleep 4; echo "~K"; sleep 4; \
          echo "dec64 | write file | null"; sleep 4; \
@@ -107,11 +99,3 @@ collect-energy:
          echo 'collect | timestamp | write file | hd &') | make login
 
 include $(CONTIKI)/Makefile.include
-
-sizeplot:
-	msp430-size $(OBJECTDIR)/*.o | $(CONTIKI)/tools/sky/check-size > size-data && \
-	gnuplot $(CONTIKI)/tools/sky/plot-size && gv size.pdf
-
-sizeacro:
-	msp430-size $(OBJECTDIR)/*.o | $(CONTIKI)/tools/sky/check-size > size-data && \
-	gnuplot $(CONTIKI)/tools/sky/plot-size && rundll32 url.dll,FileProtocolHandler size.pdf
