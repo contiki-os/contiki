@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: energest.c,v 1.6 2008/01/14 16:18:39 thiemovoigt Exp $
+ * $Id: energest.c,v 1.7 2008/06/02 13:12:07 nifi Exp $
  */
 
 /**
@@ -49,6 +49,7 @@ unsigned short energest_current_time[ENERGEST_TYPE_MAX];
 #ifdef ENERGEST_CONF_LEVELDEVICE_LEVELS
 energest_t energest_leveldevice_current_leveltime[ENERGEST_CONF_LEVELDEVICE_LEVELS];
 #endif
+unsigned char energest_current_mode[ENERGEST_TYPE_MAX];
 
 /*---------------------------------------------------------------------------*/
 void
@@ -57,8 +58,9 @@ energest_init(void)
   int i;
   for(i = 0; i < ENERGEST_TYPE_MAX; ++i) {
     energest_total_time[i].current = energest_current_time[i] = 0;
+    energest_current_mode[i] = 0;
   }
-#ifdef ENERGEST_CONF_LEVELDEVICE_LEVELS 
+#ifdef ENERGEST_CONF_LEVELDEVICE_LEVELS
   for(i = 0; i < ENERGEST_CONF_LEVELDEVICE_LEVELS; ++i) {
     energest_leveldevice_current_leveltime[i].current = 0;
   }
@@ -68,6 +70,15 @@ energest_init(void)
 unsigned long
 energest_type_time(int type)
 {
+  /* Note: does not support ENERGEST_CONF_LEVELDEVICE_LEVELS! */
+#ifndef ENERGEST_CONF_LEVELDEVICE_LEVELS
+  if(energest_current_mode[type]) {
+    rtimer_clock_t now = RTIMER_NOW();
+    energest_total_time[type].current += (unsigned long)
+      ((signed short)now - (signed short)energest_current_time[type]);
+    energest_current_time[type] = now;
+  }
+#endif /* ENERGEST_CONF_LEVELDEVICE_LEVELS */
   return energest_total_time[type].current;
 }
 /*---------------------------------------------------------------------------*/
@@ -87,8 +98,25 @@ energest_type_set(int type, unsigned long val)
   energest_total_time[type].current = val;
 }
 /*---------------------------------------------------------------------------*/
+/* Note: does not support ENERGEST_CONF_LEVELDEVICE_LEVELS! */
+void
+energest_flush(void)
+{
+  rtimer_clock_t now;
+  int i;
+  for(i = 0; i < ENERGEST_TYPE_MAX; i++) {
+    if(energest_current_mode[i]) {
+      now = RTIMER_NOW();
+      energest_total_time[i].current += (unsigned long)
+	((signed short)now - (signed short)energest_current_time[i]);
+      energest_current_time[i] = now;
+    }
+  }
+}
+/*---------------------------------------------------------------------------*/
 #else /* ENERGEST_CONF_ON */
 void energest_type_set(int type, unsigned long val) {}
 void energest_init(void) {}
 unsigned long energest_type_time(int type) { return 0; }
+void energest_flush(void) {}
 #endif /* ENERGEST_CONF_ON */
