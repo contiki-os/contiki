@@ -1,5 +1,4 @@
 CONTIKI_PROJECT = telnet-webserver
-DEFAULT_TARGET=sky
 all: $(CONTIKI_PROJECT)
 
 APPS = telnetd webserver
