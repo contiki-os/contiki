@@ -11,7 +11,7 @@
  </head>
  <body>
   <form action="download.php">
-   <h4 align="center">Download your custom generated Contiki configuration</h4>
+   <h4 align="center">Download your custom generated Contiki</h4>
    <table align="center" cellpadding="0" cellspacing="0">
     <tr class="p">
      <td>
@@ -104,6 +104,22 @@
     </tr><tr class="bg">
      <td colspan="3" />
     </tr><tr class="p">
+     <td colspan="3">
+      <table width="100%" cellpadding="0" cellspacing="0">
+       <tr>
+        <td>
+         <input type="radio" name="disk" id="disk" value="1" checked="checked" />
+         <label for="disk">Complete Disk Image</label>
+        </td><td align="right">
+         <input type="radio" name="disk" id="conf" value="0" />
+         <label for="conf">Configuration File Only</label>
+        </td>
+       </tr>
+      </table>
+     </td>
+    </tr><tr class="bg">
+     <td colspan="3" />
+    </tr><tr class="p">
      <td colspan="3" align="center">
       <input type="submit" value="Download" />
      </td>
@@ -111,4 +127,4 @@
    </table>
   </form>
  </body>
-</html> 
+</html>
