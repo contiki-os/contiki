@@ -15,7 +15,7 @@ special Contiki platform that builds an entire Contiki system as a
 program that runs on the development system. After compiling the
 application for the native target it is possible to run the Contiki
 system with the application by running the file hello-world.native. To
-compile the application and a Contiki system for the ESB platform" the
+compile the application and a Contiki system for the ESB platform the
 command make TARGET=esb is used. This produces a hello-world.esb file
 that can be loaded into an ESB board.
 
@@ -28,9 +28,17 @@ To avoid having to type TARGET= every time make is run, it is possible
 to run make TARGET=esb savetarget to save the selected target as the
 default target platform for subsequent invocations of make. A file
 called Makefile.target containing the currently saved target is saved
-in the project's directory.  Makefiles used in the Contiki build
-system The Contiki build system is composed of a number of
-Makefiles. These are:
+in the project's directory.
+
+Beside TARGET= there's DEFINES= which allows to set arbitrary variables
+for the C preprocessor in form of a comma-separated list. Again it is
+possible to avoid having to re-type i.e. DEFINES=MYTRACE,MYVALUE=4711
+by running make TARGET=esb DEFINES=MYTRACE,MYVALUE=4711 savedefines. A
+file called Makefile.esb.defines is saved in the project's directory
+containing the currently saved defines for the ESB platform.
+
+Makefiles used in the Contiki build system The Contiki build system is
+composed of a number of Makefiles. These are:
 
     * Makefile: the project's makefile, located in the project directory.
 
