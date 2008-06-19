@@ -30,7 +30,7 @@
  *
  * Author: Oliver Schmidt <ol.sc@web.de>
  *
- * $Id: wpcapslip.c,v 1.2 2008/02/24 21:14:25 adamdunkels Exp $
+ * $Id: wpcapslip.c,v 1.3 2008/06/19 07:52:28 adamdunkels Exp $
  */
 
 
@@ -65,7 +65,7 @@
 
 #define PROGRESS(x)
 
-void wpcap_start(char *ethifaddr, char *netaddr, char *netmask);
+void wpcap_start(char *ethifaddr, char *netaddr, char *netmask, int logging);
 
 void wpcap_send(void *buf, int len);
 
@@ -663,13 +663,13 @@ main(int argc, char **argv)
   /*  u_int16_t myport = BOOTPS, dhport = BOOTPS;*/
   int baudrate = -2;
   char buf[4000];
-
+  int logging = 0;
 
   ip_id = getpid() * time(NULL);
 
   setvbuf(stdout, NULL, _IOLBF, 0); /* Line buffered output. */
 
-  while((c = getopt(argc, argv, "B:D:hs:t:T")) != -1) {
+  while((c = getopt(argc, argv, "B:D:hls:t:T")) != -1) {
     switch (c) {
     case 'B':
       baudrate = atoi(optarg);
@@ -700,6 +700,10 @@ main(int argc, char **argv)
     case 'T':
       should_print = 1;
       break;
+
+    case 'l':
+      logging = 1;
+      break;
       
     case '?':
     case 'h':
@@ -716,7 +720,7 @@ main(int argc, char **argv)
   }
   /*  ipaddr = argv[1];
       netmask = argv[2];*/
-  wpcap_start(argv[1], argv[2], argv[3]);
+  wpcap_start(argv[1], argv[2], argv[3], logging);
   /*  netaddr = inet_addr(ipaddr) & inet_addr(netmask);*/
 
   switch(baudrate) {
