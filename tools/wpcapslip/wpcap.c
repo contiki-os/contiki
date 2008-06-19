@@ -30,7 +30,7 @@
  *
  * Author: Oliver Schmidt <ol.sc@web.de>
  *
- * $Id: wpcap.c,v 1.2 2008/02/24 21:14:25 adamdunkels Exp $
+ * $Id: wpcap.c,v 1.3 2008/06/19 07:52:28 adamdunkels Exp $
  */
 
 
@@ -78,17 +78,19 @@ static void raw_send(void *buf, int len);
 
 struct pcap;
 
+struct pcap_addr {
+  struct pcap_addr *next;
+  struct sockaddr *addr;
+  struct sockaddr *netmask;
+  struct sockaddr *broadaddr;
+  struct sockaddr *dstaddr;
+};
+
 struct pcap_if {
   struct pcap_if *next;
   char *name;
   char *description;
-  struct pcap_addr {
-    struct pcap_addr *next;
-    struct sockaddr *addr;
-    struct sockaddr *netmask;
-    struct sockaddr *broadaddr;
-    struct sockaddr *dstaddr;
-  } *addresses;
+  struct pcap_addr *addresses;
   DWORD flags;
 };
 
@@ -165,10 +167,14 @@ static uip_ipaddr_t ifaddr, netaddr, netmask;
 
 static int arptime;
 
+static int logging;
+
 static void
 log_message(char *msg1, char *msg2)
 {
-  /*  printf("Log: %s %s\n", msg1, msg2);*/
+  if(logging) {
+    printf("Log: %s %s\n", msg1, msg2);
+  }
 }
 /*---------------------------------------------------------------------------*/
 static void
@@ -182,6 +188,7 @@ static void
 init_pcap(struct in_addr addr)
 {
   struct pcap_if *interfaces;
+  struct pcap_addr *paddr;
   char error[256];
 
   if(pcap_findalldevs(&interfaces, error) == -1) {
@@ -191,16 +198,24 @@ init_pcap(struct in_addr addr)
   while(interfaces != NULL) {
     log_message("init_pcap: found interface: ", interfaces->description);
 
-    if(interfaces->addresses != NULL &&
-       interfaces->addresses->addr != NULL &&
-       interfaces->addresses->addr->sa_family == AF_INET) {
-
-      struct in_addr interface_addr;
-      interface_addr = ((struct sockaddr_in *)interfaces->addresses->addr)->sin_addr;
-      log_message("init_pcap:    with address: ", inet_ntoa(interface_addr));
-
-      if(interface_addr.s_addr == addr.s_addr) {
-        break;
+    if(interfaces->addresses != NULL) {
+      for(paddr = interfaces->addresses;
+	  paddr != NULL;
+	  paddr = paddr->next) {
+	if(paddr->addr != NULL && paddr->addr->sa_family == AF_INET) {
+	  
+	  struct in_addr interface_addr;
+	  interface_addr = ((struct sockaddr_in *)paddr->addr)->sin_addr;
+	  log_message("init_pcap:    with address: ", inet_ntoa(interface_addr));
+	  
+	  if(interface_addr.s_addr == addr.s_addr) {
+	    pcap = pcap_open_live(interfaces->name, BUFSIZE, 0, -1, error);
+	    if(pcap == NULL) {
+	      error_exit(error);
+	    }
+	    return;
+	  }
+	}
       }
     }
     interfaces = interfaces->next;
@@ -208,11 +223,6 @@ init_pcap(struct in_addr addr)
 
   if(interfaces == NULL) {
     error_exit("no interface found with ip addr specified on cmdline\n");
-  }
-
-  pcap = pcap_open_live(interfaces->name, BUFSIZE, 0, -1, error);
-  if(pcap == NULL) {
-    error_exit(error);
   }
 }
 /*---------------------------------------------------------------------------*/
@@ -530,10 +540,12 @@ remove_route(int s)
 }
 /*---------------------------------------------------------------------------*/
 void
-wpcap_start(char *ethcardaddr, char *slipnetaddr, char *slipnetmask)
+wpcap_start(char *ethcardaddr, char *slipnetaddr, char *slipnetmask, int log)
 {
   struct in_addr addr;
   char buf[4000];
+  
+  logging = log;
   
   addr.s_addr = inet_addr(ethcardaddr);
   ifaddr.u32[0] = inet_addr(ethcardaddr);
