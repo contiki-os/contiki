@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: shell-sky.c,v 1.2 2008/02/24 20:34:05 adamdunkels Exp $
+ * $Id: shell-sky.c,v 1.3 2008/06/21 18:33:22 adamdunkels Exp $
  */
 
 /**
@@ -98,6 +98,11 @@ SHELL_COMMAND(powerconv_command,
 	      "powerconv",
 	      "powerconv: convert power profile to human readable output",
 	      &shell_powerconv_process);
+PROCESS(shell_powergraph_process, "powergraph");
+SHELL_COMMAND(powergraph_command,
+	      "powergraph",
+	      "powergraph: convert power profile to a 'graphical' repressentation",
+	      &shell_powergraph_process);
 /*---------------------------------------------------------------------------*/
 #define MAX(a, b) ((a) > (b)? (a): (b))
 #define MIN(a, b) ((a) < (b)? (a): (b))
@@ -355,11 +360,68 @@ PROCESS_THREAD(shell_powerconv_process, ev, data)
   PROCESS_END();
 }
 /*---------------------------------------------------------------------------*/
+#define MAX_POWERGRAPH 34
+static void
+printpowergraph(struct power_msg *msg)
+{
+  int i, j;
+  unsigned long avg_power;
+  unsigned long time;
+  char buf[MAX_POWERGRAPH];
+
+  time = msg->cpu + msg->lpm;
+  
+  avg_power = (3L *
+	       (msg->cpu       * DEC2FIX(1L,800L) +
+		msg->lpm       * DEC2FIX(0L,545L) +
+		msg->transmit  * DEC2FIX(17L,700L) +
+		msg->listen    * DEC2FIX(20L,0))) / ((64L * time) / 1000);
+  memset(buf, 0, MAX_POWERGRAPH);
+  for(i = 0; avg_power > 0 && i < MAX_POWERGRAPH; ++i) {
+    buf[i] = '*';
+    avg_power -= MIN(2000, avg_power);
+  }
+  shell_output_str(&powergraph_command, buf, "");
+}
+/*---------------------------------------------------------------------------*/
+PROCESS_THREAD(shell_powergraph_process, ev, data)
+{
+  struct power_msg *msg;
+  struct shell_input *input;
+  int len;
+
+  PROCESS_BEGIN();
+  while(1) {
+    PROCESS_WAIT_EVENT_UNTIL(ev == shell_event_input);
+    input = data;
+    
+    if(input->len1 + input->len2 == 0) {
+      PROCESS_EXIT();
+    }
+    len = input->len1;
+    for(msg = (struct power_msg *)input->data1;
+	len > 0;
+	msg++, len -= sizeof(struct power_msg)) {
+      printpowergraph(msg);
+    }
+    len = input->len2;
+    for(msg = (struct power_msg *)input->data2;
+	len > 0;
+	msg++, len -= sizeof(struct power_msg)) {
+      printpowergraph(msg);
+    }
+
+  }
+  
+  PROCESS_END();
+}
+/*---------------------------------------------------------------------------*/
 void
 shell_sky_init(void)
 {
   shell_register_command(&power_command);
   shell_register_command(&powerconv_command);
+  shell_register_command(&powergraph_command);
   shell_register_command(&energy_command);
   shell_register_command(&txpower_command);
   shell_register_command(&rfchannel_command);
