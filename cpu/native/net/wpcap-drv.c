@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: wpcap-drv.c,v 1.3 2007/11/27 20:57:18 oliverschmidt Exp $
+ * @(#)$Id: wpcap-drv.c,v 1.4 2008/06/23 19:53:16 adamdunkels Exp $
  */
 
 #include "contiki-net.h"
@@ -38,6 +38,7 @@
 #include "net/wpcap-drv.h"
 
 #define BUF ((struct uip_eth_hdr *)&uip_buf[0])
+#define IPBUF ((struct uip_tcpip_hdr *)&uip_buf[UIP_LLH_LEN])
 
 PROCESS(wpcap_process, "WinPcap driver");
 
