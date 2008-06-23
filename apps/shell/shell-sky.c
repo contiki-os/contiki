@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: shell-sky.c,v 1.3 2008/06/21 18:33:22 adamdunkels Exp $
+ * $Id: shell-sky.c,v 1.4 2008/06/23 19:51:29 adamdunkels Exp $
  */
 
 /**
@@ -81,7 +81,7 @@ SHELL_COMMAND(txpower_command,
 PROCESS(shell_rfchannel_process, "rfchannel");
 SHELL_COMMAND(rfchannel_command,
 	      "rfchannel",
-	      "rfchannel <power>: change CC2420 transmission power (0 - 31)",
+	      "rfchannel <channel>: change CC2420 radio channel (11 - 26)",
 	      &shell_rfchannel_process);
 PROCESS(shell_power_process, "power");
 SHELL_COMMAND(power_command,
@@ -246,14 +246,12 @@ PROCESS_THREAD(shell_rfchannel_process, ev, data)
   const char *newptr;
   PROCESS_BEGIN();
 
-  msg.channel = shell_strtolong(data, &newptr);
-
   /* If no channel was given on the command line, we print out the
      current channel. */
-  
   if(newptr == data) {
     msg.channel = simple_cc2420_get_channel();
   } else {
+    msg.channel = shell_strtolong(data, &newptr);
     simple_cc2420_set_channel(msg.channel);
   }
 
