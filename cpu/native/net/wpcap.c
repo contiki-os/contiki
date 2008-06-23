@@ -30,7 +30,7 @@
  *
  * Author: Oliver Schmidt <ol.sc@web.de>
  *
- * $Id: wpcap.c,v 1.13 2008/01/04 21:53:32 oliverschmidt Exp $
+ * $Id: wpcap.c,v 1.14 2008/06/23 19:52:44 adamdunkels Exp $
  */
 
 #define WIN32_LEAN_AND_MEAN
@@ -105,6 +105,7 @@ static void
 init_pcap(struct in_addr addr)
 {
   struct pcap_if *interfaces;
+  struct pcap_addr *paddr;
   char error[256];
 
   if(pcap_findalldevs(&interfaces, error) == -1) {
@@ -114,16 +115,24 @@ init_pcap(struct in_addr addr)
   while(interfaces != NULL) {
     log_message("init_pcap: found interface: ", interfaces->description);
 
-    if(interfaces->addresses != NULL &&
-       interfaces->addresses->addr != NULL &&
-       interfaces->addresses->addr->sa_family == AF_INET) {
-
-      struct in_addr interface_addr;
-      interface_addr = ((struct sockaddr_in *)interfaces->addresses->addr)->sin_addr;
-      log_message("init_pcap:    with address: ", inet_ntoa(interface_addr));
-
-      if(interface_addr.s_addr == addr.s_addr) {
-        break;
+    if(interfaces->addresses != NULL) {
+      for(paddr = interfaces->addresses;
+	  paddr != NULL;
+	  paddr = paddr->next) {
+	if(paddr->addr != NULL && paddr->addr->sa_family == AF_INET) {
+	  
+	  struct in_addr interface_addr;
+	  interface_addr = ((struct sockaddr_in *)paddr->addr)->sin_addr;
+	  log_message("init_pcap:    with address: ", inet_ntoa(interface_addr));
+	  
+	  if(interface_addr.s_addr == addr.s_addr) {
+	    pcap = pcap_open_live(interfaces->name, UIP_BUFSIZE, 0, -1, error);
+	    if(pcap == NULL) {
+	      error_exit(error);
+	    }
+	    return;
+	  }
+	}
       }
     }
     interfaces = interfaces->next;
@@ -131,11 +140,6 @@ init_pcap(struct in_addr addr)
 
   if(interfaces == NULL) {
     error_exit("no interface found with ip addr specified on cmdline\n");
-  }
-
-  pcap = pcap_open_live(interfaces->name, UIP_BUFSIZE, 0, -1, error);
-  if(pcap == NULL) {
-    error_exit(error);
   }
 }
 /*---------------------------------------------------------------------------*/
@@ -254,6 +258,13 @@ wpcap_poll(void)
 void
 wpcap_send(void)
 {
+  /*  if(rand() % 1000 > 900) {
+    printf("Drop\n");
+    return;
+  } else {
+    printf("Send\n");
+    }*/
+
   if(pcap_sendpacket(pcap, uip_buf, uip_len) == -1) {
     error_exit("error on send\n");
   }
