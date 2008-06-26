@@ -48,7 +48,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: sibc.h,v 1.7 2008/02/24 22:05:27 adamdunkels Exp $
+ * $Id: sibc.h,v 1.8 2008/06/26 11:19:22 adamdunkels Exp $
  */
 
 /**
@@ -61,7 +61,7 @@
 #ifndef __SIBC_H__
 #define __SIBC_H__
 
-#include "net/rime/uc.h"
+#include "net/rime/broadcast.h"
 #include "net/rime/ctimer.h"
 #include "net/rime/queuebuf.h"
 
@@ -73,7 +73,7 @@ struct sibc_callbacks {
 };
 
 struct sibc_conn {
-  struct ibc_conn c;
+  struct broadcast_conn c;
   struct ctimer t;
   struct queuebuf *buf;
   const struct sibc_callbacks *u;

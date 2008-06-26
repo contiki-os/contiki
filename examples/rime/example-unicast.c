@@ -1,11 +1,5 @@
-
-/**
- * \addtogroup rimeuc
- * @{
- */
-
 /*
- * Copyright (c) 2006, Swedish Institute of Computer Science.
+ * Copyright (c) 2007, Swedish Institute of Computer Science.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,74 +28,61 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: uc.c,v 1.14 2008/02/25 02:14:35 adamdunkels Exp $
+ * $Id: example-unicast.c,v 1.1 2008/06/26 11:20:22 adamdunkels Exp $
  */
 
 /**
  * \file
- *         Single-hop unicast
+ *         Best-effort single-hop unicast example
  * \author
  *         Adam Dunkels <adam@sics.se>
  */
 
+#include "contiki.h"
 #include "net/rime.h"
-#include "net/rime/uc.h"
-#include <string.h>
 
-static const struct rimebuf_attrlist attributes[] =
-  {
-    UC_ATTRIBUTES
-    RIMEBUF_ATTR_LAST
-  };
+#include "dev/button-sensor.h"
 
-#define DEBUG 0
-#if DEBUG
+#include "dev/leds.h"
+
 #include <stdio.h>
-#define PRINTF(...) printf(__VA_ARGS__)
-#else
-#define PRINTF(...)
-#endif
 
+/*---------------------------------------------------------------------------*/
+PROCESS(example_unicast_process, "Example unicast");
+AUTOSTART_PROCESSES(&example_unicast_process);
 /*---------------------------------------------------------------------------*/
 static void
-recv_from_ibc(struct ibc_conn *ibc, rimeaddr_t *from)
+recv_uc(struct unicast_conn *c, rimeaddr_t *from)
 {
-  struct uc_conn *c = (struct uc_conn *)ibc;
+  printf("unicast message received from %d.%d\n",
+	 from->u8[0], from->u8[1]);
+}
+static const struct unicast_callbacks unicast_callbacks = {recv_uc};
+static struct unicast_conn uc;
+/*---------------------------------------------------------------------------*/
+PROCESS_THREAD(example_unicast_process, ev, data)
+{
+  PROCESS_EXITHANDLER(unicast_close(&uc);)
+    
+  PROCESS_BEGIN();
 
-  PRINTF("%d.%d: uc: recv_from_ibc, receiver %d.%d\n",
-	 rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1],
-	 rimebuf_addr(RIMEBUF_ADDR_RECEIVER)->u8[0],
-	 rimebuf_addr(RIMEBUF_ADDR_RECEIVER)->u8[1]);
-  if(rimeaddr_cmp(rimebuf_addr(RIMEBUF_ADDR_RECEIVER), &rimeaddr_node_addr)) {
-    c->u->recv(c, from);
+  unicast_open(&uc, 128, &unicast_callbacks);
+
+  while(1) {
+    static struct etimer et;
+    rimeaddr_t addr;
+    
+    etimer_set(&et, CLOCK_SECOND);
+    
+    PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&et));
+
+    rimebuf_copyfrom("Hello", 5);
+    addr.u8[0] = 41;
+    addr.u8[1] = 41;
+    unicast_send(&uc, &addr);
+
   }
+
+  PROCESS_END();
 }
 /*---------------------------------------------------------------------------*/
-static const struct ibc_callbacks uc = {recv_from_ibc};
-/*---------------------------------------------------------------------------*/
-void
-uc_open(struct uc_conn *c, uint16_t channel,
-	 const struct uc_callbacks *u)
-{
-  ibc_open(&c->c, channel, &uc);
-  c->u = u;
-  channel_set_attributes(channel, attributes);
-}
-/*---------------------------------------------------------------------------*/
-void
-uc_close(struct uc_conn *c)
-{
-  ibc_close(&c->c);
-}
-/*---------------------------------------------------------------------------*/
-int
-uc_send(struct uc_conn *c, const rimeaddr_t *receiver)
-{
-  PRINTF("%d.%d: uc_send to %d.%d\n",
-	 rimeaddr_node_addr.u8[0],rimeaddr_node_addr.u8[1],
-	 receiver->u8[0], receiver->u8[1]);
-  rimebuf_set_addr(RIMEBUF_ADDR_RECEIVER, receiver);
-  return ibc_send(&c->c);
-}
-/*---------------------------------------------------------------------------*/
-/** @} */

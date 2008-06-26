@@ -33,7 +33,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: sibc.c,v 1.7 2008/02/24 22:05:27 adamdunkels Exp $
+ * $Id: sibc.c,v 1.8 2008/06/26 11:19:22 adamdunkels Exp $
  */
 
 /**
@@ -49,29 +49,29 @@
 
 /*---------------------------------------------------------------------------*/
 static void
-recv_from_ibc(struct ibc_conn *ibc, rimeaddr_t *from)
+recv_from_broadcast(struct broadcast_conn *ibc, rimeaddr_t *from)
 {
   register struct sibc_conn *c = (struct sibc_conn *)ibc;
-  /*  DEBUGF(3, "sibc: recv_from_ibc from %d\n", from_id);*/
+  /*  DEBUGF(3, "sibc: recv_from_broadcast from %d\n", from_id);*/
   if(c->u->recv != NULL) {
     c->u->recv(c, from);
   }
 }
 /*---------------------------------------------------------------------------*/
-static const struct ibc_callbacks sibc = {recv_from_ibc};
+static const struct broadcast_callbacks sibc = {recv_from_broadcast};
 /*---------------------------------------------------------------------------*/
 void
 sibc_open(struct sibc_conn *c, uint16_t channel,
 	  const struct sibc_callbacks *u)
 {
-  ibc_open(&c->c, channel, &sibc);
+  broadcast_open(&c->c, channel, &sibc);
   c->u = u;
 }
 /*---------------------------------------------------------------------------*/
 void
 sibc_close(struct sibc_conn *c)
 {
-  ibc_close(&c->c);
+  broadcast_close(&c->c);
   ctimer_stop(&c->t);
 }
 /*---------------------------------------------------------------------------*/
@@ -82,7 +82,7 @@ send(void *ptr)
 
   /*  DEBUGF(3, "sibc: send()\n");*/
   queuebuf_to_rimebuf(c->buf);
-  ibc_send(&c->c);
+  broadcast_send(&c->c);
   ctimer_reset(&c->t);
   if(c->u->sent != NULL) {
     c->u->sent(c);

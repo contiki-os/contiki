@@ -45,7 +45,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: uc.h,v 1.8 2008/02/25 02:14:35 adamdunkels Exp $
+ * $Id: unicast.h,v 1.1 2008/06/26 11:19:22 adamdunkels Exp $
  */
 
 /**
@@ -55,31 +55,31 @@
  *         Adam Dunkels <adam@sics.se>
  */
 
-#ifndef __UC_H__
-#define __UC_H__
+#ifndef __UNICAST_H__
+#define __UNICAST_H__
 
-#include "net/rime/ibc.h"
+#include "net/rime/broadcast.h"
 
-struct uc_conn;
+struct unicast_conn;
 
-#define UC_ATTRIBUTES   { RIMEBUF_ADDR_RECEIVER, RIMEBUF_ADDRSIZE }, \
-                        IBC_ATTRIBUTES
+#define UNICAST_ATTRIBUTES   { RIMEBUF_ADDR_RECEIVER, RIMEBUF_ADDRSIZE }, \
+                        BROADCAST_ATTRIBUTES
 
-struct uc_callbacks {
-  void (* recv)(struct uc_conn *c, rimeaddr_t *from);
+struct unicast_callbacks {
+  void (* recv)(struct unicast_conn *c, rimeaddr_t *from);
 };
 
-struct uc_conn {
-  struct ibc_conn c;
-  const struct uc_callbacks *u;
+struct unicast_conn {
+  struct broadcast_conn c;
+  const struct unicast_callbacks *u;
 };
 
-void uc_open(struct uc_conn *c, uint16_t channel,
-	      const struct uc_callbacks *u);
-void uc_close(struct uc_conn *c);
+void unicast_open(struct unicast_conn *c, uint16_t channel,
+	      const struct unicast_callbacks *u);
+void unicast_close(struct unicast_conn *c);
 
-int uc_send(struct uc_conn *c, const rimeaddr_t *receiver);
+int unicast_send(struct unicast_conn *c, const rimeaddr_t *receiver);
 
-#endif /* __UC_H__ */
+#endif /* __UNICAST_H__ */
 /** @} */
 /** @} */

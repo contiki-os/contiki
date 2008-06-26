@@ -1,5 +1,5 @@
 /**
- * \addtogroup rimeibc
+ * \addtogroup rimebroadcast
  * @{
  */
 
@@ -33,12 +33,12 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: ibc.c,v 1.14 2008/02/25 02:14:34 adamdunkels Exp $
+ * $Id: broadcast.c,v 1.1 2008/06/26 11:19:22 adamdunkels Exp $
  */
 
 /**
  * \file
- *         Identified best-effort local area broadcast (ibc)
+ *         Identified best-effort local area broadcast (broadcast)
  * \author
  *         Adam Dunkels <adam@sics.se>
  */
@@ -48,7 +48,7 @@
 
 static const struct rimebuf_attrlist attributes[] =
   {
-    IBC_ATTRIBUTES RIMEBUF_ATTR_LAST
+    BROADCAST_ATTRIBUTES RIMEBUF_ATTR_LAST
   };
 
 #define DEBUG 0
@@ -64,37 +64,37 @@ static void
 recv_from_abc(struct abc_conn *bc)
 {
   rimeaddr_t sender;
-  struct ibc_conn *c = (struct ibc_conn *)bc;
+  struct broadcast_conn *c = (struct broadcast_conn *)bc;
 
   rimeaddr_copy(&sender, rimebuf_addr(RIMEBUF_ADDR_SENDER));
   
-  PRINTF("%d.%d: ibc: from %d.%d\n",
+  PRINTF("%d.%d: broadcast: from %d.%d\n",
 	 rimeaddr_node_addr.u8[0],rimeaddr_node_addr.u8[1],
 	 sender.u8[0], sender.u8[1]);
   c->u->recv(c, &sender);
 }
 /*---------------------------------------------------------------------------*/
-static const struct abc_callbacks ibc = {recv_from_abc};
+static const struct abc_callbacks broadcast = {recv_from_abc};
 /*---------------------------------------------------------------------------*/
 void
-ibc_open(struct ibc_conn *c, uint16_t channel,
-	  const struct ibc_callbacks *u)
+broadcast_open(struct broadcast_conn *c, uint16_t channel,
+	  const struct broadcast_callbacks *u)
 {
-  abc_open(&c->c, channel, &ibc);
+  abc_open(&c->c, channel, &broadcast);
   c->u = u;
   channel_set_attributes(channel, attributes);
 }
 /*---------------------------------------------------------------------------*/
 void
-ibc_close(struct ibc_conn *c)
+broadcast_close(struct broadcast_conn *c)
 {
   abc_close(&c->c);
 }
 /*---------------------------------------------------------------------------*/
 int
-ibc_send(struct ibc_conn *c)
+broadcast_send(struct broadcast_conn *c)
 {
-  PRINTF("%d.%d: ibc_send\n",
+  PRINTF("%d.%d: broadcast_send\n",
 	 rimeaddr_node_addr.u8[0],rimeaddr_node_addr.u8[1]);
   rimebuf_set_addr(RIMEBUF_ADDR_SENDER, &rimeaddr_node_addr);
   return abc_send(&c->c);

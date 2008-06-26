@@ -7,12 +7,12 @@
  * \defgroup rimeibc Identified best-effort local area broadcast
  * @{
  *
- * The ibc module sends packets to all local area neighbors with an a
+ * The broadcast module sends packets to all local area neighbors with an a
  * header that identifies the sender.
  *
  * \section channels Channels
  *
- * The ibc module uses 1 channel.
+ * The broadcast module uses 1 channel.
  *
  */
 
@@ -46,7 +46,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: ibc.h,v 1.11 2008/02/25 02:14:34 adamdunkels Exp $
+ * $Id: broadcast.h,v 1.1 2008/06/26 11:19:22 adamdunkels Exp $
  */
 
 /**
@@ -56,77 +56,77 @@
  *         Adam Dunkels <adam@sics.se>
  */
 
-#ifndef __IBC_H__
-#define __IBC_H__
+#ifndef __BROADCAST_H__
+#define __BROADCAST_H__
 
 #include "net/rime/abc.h"
 #include "net/rime/rimeaddr.h"
 
-struct ibc_conn;
+struct broadcast_conn;
 
-#define IBC_ATTRIBUTES  { RIMEBUF_ADDR_SENDER, RIMEBUF_ADDRSIZE }, \
+#define BROADCAST_ATTRIBUTES  { RIMEBUF_ADDR_SENDER, RIMEBUF_ADDRSIZE }, \
                         ABC_ATTRIBUTES
 
 /**
- * \brief     Callback structure for ibc
+ * \brief     Callback structure for broadcast
  *
  */
-struct ibc_callbacks {
-  /** Called when a packet has been received by the ibc module. */
-  void (* recv)(struct ibc_conn *ptr, rimeaddr_t *sender);
+struct broadcast_callbacks {
+  /** Called when a packet has been received by the broadcast module. */
+  void (* recv)(struct broadcast_conn *ptr, rimeaddr_t *sender);
 };
 
-struct ibc_conn {
+struct broadcast_conn {
   struct abc_conn c;
-  const struct ibc_callbacks *u;
+  const struct broadcast_callbacks *u;
 };
 
 /**
  * \brief      Set up an identified best-effort broadcast connection
- * \param c    A pointer to a struct ibc_conn
+ * \param c    A pointer to a struct broadcast_conn
  * \param channel The channel on which the connection will operate
- * \param u    A struct ibc_callbacks with function pointers to functions that will be called when a packet has been received
+ * \param u    A struct broadcast_callbacks with function pointers to functions that will be called when a packet has been received
  *
- *             This function sets up an ibc connection on the
+ *             This function sets up a broadcast connection on the
  *             specified channel. The caller must have allocated the
- *             memory for the struct ibc_conn, usually by declaring it
+ *             memory for the struct broadcast_conn, usually by declaring it
  *             as a static variable.
  *
- *             The struct ibc_callbacks pointer must point to a structure
+ *             The struct broadcast_callbacks pointer must point to a structure
  *             containing a pointer to a function that will be called
  *             when a packet arrives on the channel.
  *
  */
-void ibc_open(struct ibc_conn *c, uint16_t channel,
-	       const struct ibc_callbacks *u);
+void broadcast_open(struct broadcast_conn *c, uint16_t channel,
+	       const struct broadcast_callbacks *u);
 
 /**
- * \brief      Close an ibc connection
- * \param c    A pointer to a struct ibc_conn
+ * \brief      Close a broadcast connection
+ * \param c    A pointer to a struct broadcast_conn
  *
- *             This function closes an ibc connection that has
- *             previously been opened with ibc_open().
+ *             This function closes a broadcast connection that has
+ *             previously been opened with broadcast_open().
  *
  *             This function typically is called as an exit handler.
  *
  */
-void ibc_close(struct ibc_conn *c);
+void broadcast_close(struct broadcast_conn *c);
 
 /**
  * \brief      Send an identified best-effort broadcast packet
- * \param c    The ibc connection on which the packet should be sent
+ * \param c    The broadcast connection on which the packet should be sent
  * \retval     Non-zero if the packet could be sent, zero otherwise
  *
  *             This function sends an identified best-effort broadcast
  *             packet. The packet must be present in the rimebuf
  *             before this function is called.
  *
- *             The parameter c must point to an ibc connection that
- *             must have previously been set up with ibc_open().
+ *             The parameter c must point to a broadcast connection that
+ *             must have previously been set up with broadcast_open().
  *
  */
-int ibc_send(struct ibc_conn *c);
+int broadcast_send(struct broadcast_conn *c);
 
-#endif /* __IBC_H__ */
+#endif /* __BROADCAST_H__ */
 /** @} */
 /** @} */

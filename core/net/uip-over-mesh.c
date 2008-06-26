@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: uip-over-mesh.c,v 1.8 2008/05/14 19:20:28 adamdunkels Exp $
+ * $Id: uip-over-mesh.c,v 1.9 2008/06/26 11:19:40 adamdunkels Exp $
  */
 
 /**
@@ -50,7 +50,7 @@
 static struct queuebuf *queued_packet;
 static rimeaddr_t queued_receiver;
 static struct route_discovery_conn route_discovery;
-static struct uc_conn dataconn;
+static struct unicast_conn dataconn;
 
 #define DEBUG 0
 #if DEBUG
@@ -68,7 +68,7 @@ static uip_ipaddr_t netaddr, netmask;
 
 /*---------------------------------------------------------------------------*/
 static void
-recv_data(struct uc_conn *c, rimeaddr_t *from)
+recv_data(struct unicast_conn *c, rimeaddr_t *from)
 {
   uip_len = rimebuf_copyto(&uip_buf[UIP_LLH_LEN]);
 
@@ -85,7 +85,7 @@ send_data(rimeaddr_t *next)
   PRINTF("uip-over-mesh: %d.%d: send_data with len %d\n",
 	 rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1],
 	 rimebuf_totlen());
-  uc_send(&dataconn, next);
+  unicast_send(&dataconn, next);
 }
 /*---------------------------------------------------------------------------*/
 static void
@@ -118,7 +118,7 @@ timedout(struct route_discovery_conn *c)
   }
 }
 /*---------------------------------------------------------------------------*/
-static const struct uc_callbacks data_callbacks = { recv_data };
+static const struct unicast_callbacks data_callbacks = { recv_data };
 static const struct route_discovery_callbacks rdc = { new_route, timedout };
 /*---------------------------------------------------------------------------*/
 void
@@ -130,7 +130,7 @@ uip_over_mesh_init(u16_t channels)
 	 uip_hostaddr.u8[0], uip_hostaddr.u8[1],
 	 uip_hostaddr.u8[2], uip_hostaddr.u8[3]);
 
-  uc_open(&dataconn, channels, &data_callbacks);
+  unicast_open(&dataconn, channels, &data_callbacks);
   route_discovery_open(&route_discovery, CLOCK_SECOND / 4,
 		       channels + 1, &rdc);
   /*  tcpip_set_forwarding(1);*/

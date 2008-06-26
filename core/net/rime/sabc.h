@@ -48,7 +48,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: sabc.h,v 1.8 2008/02/24 22:05:27 adamdunkels Exp $
+ * $Id: sabc.h,v 1.9 2008/06/26 11:19:22 adamdunkels Exp $
  */
 
 /**
@@ -61,7 +61,7 @@
 #ifndef __SABC_H__
 #define __SABC_H__
 
-#include "net/rime/uc.h"
+#include "net/rime/abc.h"
 #include "net/rime/ctimer.h"
 #include "net/rime/queuebuf.h"
 

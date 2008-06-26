@@ -46,7 +46,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: ipolite.h,v 1.3 2008/02/24 22:05:27 adamdunkels Exp $
+ * $Id: ipolite.h,v 1.4 2008/06/26 11:19:22 adamdunkels Exp $
  */
 
 /**
@@ -59,7 +59,7 @@
 #ifndef __IPOLITE_H__
 #define __IPOLITE_H__
 
-#include "net/rime/ibc.h"
+#include "net/rime/broadcast.h"
 #include "net/rime/ctimer.h"
 #include "net/rime/queuebuf.h"
 
@@ -72,7 +72,7 @@ struct ipolite_callbacks {
 };
 
 struct ipolite_conn {
-  struct ibc_conn c;
+  struct broadcast_conn c;
   const struct ipolite_callbacks *cb;
   struct ctimer t;
   struct queuebuf *q;
