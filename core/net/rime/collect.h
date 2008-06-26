@@ -47,7 +47,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: collect.h,v 1.4 2008/02/24 22:05:27 adamdunkels Exp $
+ * $Id: collect.h,v 1.5 2008/06/26 11:38:59 nifi Exp $
  */
 
 /**
@@ -83,7 +83,7 @@ void collect_open(struct collect_conn *c, uint16_t channels,
 	       const struct collect_callbacks *callbacks);
 void collect_close(struct collect_conn *c);
 
-void collect_send(struct collect_conn *c, int rexmits);
+int collect_send(struct collect_conn *c, int rexmits);
 
 void collect_set_sink(struct collect_conn *c, int should_be_sink);
 
