@@ -33,7 +33,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: mh.c,v 1.10 2008/02/24 22:05:27 adamdunkels Exp $
+ * $Id: mh.c,v 1.11 2008/06/26 11:19:22 adamdunkels Exp $
  */
 
 /**
@@ -67,7 +67,7 @@ struct data_hdr {
 
 /*---------------------------------------------------------------------------*/
 void
-data_packet_received(struct uc_conn *uc, rimeaddr_t *from)
+data_packet_received(struct unicast_conn *uc, rimeaddr_t *from)
 {
   struct mh_conn *c = (struct mh_conn *)uc;
   struct data_hdr msg;
@@ -98,25 +98,25 @@ data_packet_received(struct uc_conn *uc, rimeaddr_t *from)
     }
     if(nexthop) {
       PRINTF("forwarding to %d.%d\n", nexthop->u8[0], nexthop->u8[1]);
-      uc_send(&c->c, nexthop);
+      unicast_send(&c->c, nexthop);
     }
   }
 }
 /*---------------------------------------------------------------------------*/
-static const struct uc_callbacks data_callbacks = { data_packet_received };
+static const struct unicast_callbacks data_callbacks = { data_packet_received };
 /*---------------------------------------------------------------------------*/
 void
 mh_open(struct mh_conn *c, uint16_t channel,
 	const struct mh_callbacks *callbacks)
 {
-  uc_open(&c->c, channel, &data_callbacks);
+  unicast_open(&c->c, channel, &data_callbacks);
   c->cb = callbacks;
 }
 /*---------------------------------------------------------------------------*/
 void
 mh_close(struct mh_conn *c)
 {
-  uc_close(&c->c);
+  unicast_close(&c->c);
 }
 /*---------------------------------------------------------------------------*/
 int
@@ -142,7 +142,7 @@ mh_send(struct mh_conn *c, rimeaddr_t *to)
       rimeaddr_copy(&hdr->dest, to);
       rimeaddr_copy(&hdr->originator, &rimeaddr_node_addr);
       hdr->hops = 1;
-      uc_send(&c->c, nexthop);
+      unicast_send(&c->c, nexthop);
     }
     return 1;
   }

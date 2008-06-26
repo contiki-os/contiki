@@ -48,7 +48,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: mh.h,v 1.6 2008/02/24 22:05:27 adamdunkels Exp $
+ * $Id: mh.h,v 1.7 2008/06/26 11:19:22 adamdunkels Exp $
  */
 
 /**
@@ -61,7 +61,7 @@
 #ifndef __MH_H__
 #define __MH_H__
 
-#include "net/rime/uc.h"
+#include "net/rime/unicast.h"
 #include "net/rime/rimeaddr.h"
 
 struct mh_conn;
@@ -79,7 +79,7 @@ struct mh_callbacks {
 };
 
 struct mh_conn {
-  struct uc_conn c;
+  struct unicast_conn c;
   const struct mh_callbacks *cb;
 };
 

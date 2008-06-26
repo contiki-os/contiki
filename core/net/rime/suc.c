@@ -33,7 +33,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: suc.c,v 1.12 2008/02/24 22:05:27 adamdunkels Exp $
+ * $Id: suc.c,v 1.13 2008/06/26 11:19:22 adamdunkels Exp $
  */
 
 /**
@@ -57,7 +57,7 @@
 
 /*---------------------------------------------------------------------------*/
 static void
-recv_from_uc(struct uc_conn *uc, rimeaddr_t *from)
+recv_from_uc(struct unicast_conn *uc, rimeaddr_t *from)
 {
   register struct suc_conn *c = (struct suc_conn *)uc;
   PRINTF("%d.%d: suc: recv_from_uc from %d.%d\n",
@@ -68,20 +68,20 @@ recv_from_uc(struct uc_conn *uc, rimeaddr_t *from)
   }
 }
 /*---------------------------------------------------------------------------*/
-static const struct uc_callbacks suc = {recv_from_uc};
+static const struct unicast_callbacks suc = {recv_from_uc};
 /*---------------------------------------------------------------------------*/
 void
 suc_open(struct suc_conn *c, uint16_t channel,
 	  const struct suc_callbacks *u)
 {
-  uc_open(&c->c, channel, &suc);
+  unicast_open(&c->c, channel, &suc);
   c->u = u;
 }
 /*---------------------------------------------------------------------------*/
 void
 suc_close(struct suc_conn *c)
 {
-  uc_close(&c->c);
+  unicast_close(&c->c);
   ctimer_stop(&c->t);
   if(c->buf != NULL) {
     queuebuf_free(c->buf);
@@ -103,7 +103,7 @@ send(void *ptr)
 	 rimeaddr_node_addr.u8[0],rimeaddr_node_addr.u8[1],
 	 c->receiver.u8[0], c->receiver.u8[1]);
   queuebuf_to_rimebuf(c->buf);
-  uc_send(&c->c, &c->receiver);
+  unicast_send(&c->c, &c->receiver);
   suc_set_timer(c, CLOCK_SECOND);
   if(c->u->sent != NULL) {
     c->u->sent(c);
@@ -133,7 +133,7 @@ suc_send_stubborn(struct suc_conn *c, rimeaddr_t *receiver,
   PRINTF("%d.%d: suc_send_stubborn to %d.%d\n",
 	 rimeaddr_node_addr.u8[0],rimeaddr_node_addr.u8[1],
 	 c->receiver.u8[0],c->receiver.u8[1]);
-  uc_send(&c->c, &c->receiver);
+  unicast_send(&c->c, &c->receiver);
   if(c->u->sent != NULL) {
     c->u->sent(c);
   }
@@ -148,7 +148,7 @@ suc_send(struct suc_conn *c, rimeaddr_t *receiver)
   PRINTF("%d.%d: suc_send to %d.%d\n",
 	 rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1],
 	 receiver->u8[0], receiver->u8[1]);
-  return uc_send(&c->c, receiver);
+  return unicast_send(&c->c, receiver);
 }
 /*---------------------------------------------------------------------------*/
 void

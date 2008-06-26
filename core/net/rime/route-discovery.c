@@ -33,7 +33,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: route-discovery.c,v 1.9 2008/02/24 22:05:27 adamdunkels Exp $
+ * $Id: route-discovery.c,v 1.10 2008/06/26 11:19:22 adamdunkels Exp $
  */
 
 /**
@@ -112,7 +112,7 @@ send_rrep(struct route_discovery_conn *c, rimeaddr_t *dest)
 	   rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1],
 	   dest->u8[0],dest->u8[1],
 	   rt->nexthop.u8[0],rt->nexthop.u8[1]);
-    uc_send(&c->rrepconn, &rt->nexthop);
+    unicast_send(&c->rrepconn, &rt->nexthop);
   }
 }
 /*---------------------------------------------------------------------------*/
@@ -137,7 +137,7 @@ insert_route(rimeaddr_t *originator, rimeaddr_t *last_hop, uint8_t hops)
 }
 /*---------------------------------------------------------------------------*/
 static void
-rrep_packet_received(struct uc_conn *uc, rimeaddr_t *from)
+rrep_packet_received(struct unicast_conn *uc, rimeaddr_t *from)
 {
   struct rrep_hdr *msg = rimebuf_dataptr();
   struct route_entry *rt;
@@ -166,7 +166,7 @@ rrep_packet_received(struct uc_conn *uc, rimeaddr_t *from)
     if(rt != NULL) {
       PRINTF("forwarding to %d\n", rt->nexthop.u16[0]);
       msg->hops++;
-      uc_send(&c->rrepconn, &rt->nexthop);
+      unicast_send(&c->rrepconn, &rt->nexthop);
     } else {
       PRINTF("%d: no route to %d\n", rimeaddr_node_addr.u16[0], msg->dest.u16[0]);
     }
@@ -218,7 +218,7 @@ rreq_packet_received(struct nf_conn *nf, rimeaddr_t *from,
   return 0; /* Don't forward packet. */
 }
 /*---------------------------------------------------------------------------*/
-static const struct uc_callbacks rrep_callbacks = {rrep_packet_received};
+static const struct unicast_callbacks rrep_callbacks = {rrep_packet_received};
 static const struct nf_callbacks rreq_callbacks = {rreq_packet_received, NULL, NULL};
 /*---------------------------------------------------------------------------*/
 void
@@ -228,14 +228,14 @@ route_discovery_open(struct route_discovery_conn *c,
 		     const struct route_discovery_callbacks *callbacks)
 {
   nf_open(&c->rreqconn, time, channels + 0, &rreq_callbacks);
-  uc_open(&c->rrepconn, channels + 1, &rrep_callbacks);
+  unicast_open(&c->rrepconn, channels + 1, &rrep_callbacks);
   c->cb = callbacks;
 }
 /*---------------------------------------------------------------------------*/
 void
 route_discovery_close(struct route_discovery_conn *c)
 {
-  uc_close(&c->rrepconn);
+  unicast_close(&c->rrepconn);
   nf_close(&c->rreqconn);
   ctimer_stop(&c->t);
 }

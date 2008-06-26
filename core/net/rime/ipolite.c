@@ -33,7 +33,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: ipolite.c,v 1.7 2008/02/24 22:05:27 adamdunkels Exp $
+ * $Id: ipolite.c,v 1.8 2008/06/26 11:19:22 adamdunkels Exp $
  */
 
 /**
@@ -63,9 +63,9 @@
 
 /*---------------------------------------------------------------------------*/
 static void
-recv(struct ibc_conn *ibc, rimeaddr_t *from)
+recv(struct broadcast_conn *broadcast, rimeaddr_t *from)
 {
-  struct ipolite_conn *c = (struct ipolite_conn *)ibc;
+  struct ipolite_conn *c = (struct ipolite_conn *)broadcast;
   if(c->q != NULL &&
      rimebuf_datalen() == queuebuf_datalen(c->q) &&
      memcmp(rimebuf_dataptr(), queuebuf_dataptr(c->q),
@@ -97,27 +97,27 @@ send(void *ptr)
     queuebuf_to_rimebuf(c->q);
     queuebuf_free(c->q);
     c->q = NULL;
-    ibc_send(&c->c);
+    broadcast_send(&c->c);
     if(c->cb->sent) {
       c->cb->sent(c);
     }
   }
 }
 /*---------------------------------------------------------------------------*/
-static const struct ibc_callbacks ibc = { recv };
+static const struct broadcast_callbacks broadcast = { recv };
 /*---------------------------------------------------------------------------*/
 void
 ipolite_open(struct ipolite_conn *c, uint16_t channel,
 	  const struct ipolite_callbacks *cb)
 {
-  ibc_open(&c->c, channel, &ibc);
+  broadcast_open(&c->c, channel, &broadcast);
   c->cb = cb;
 }
 /*---------------------------------------------------------------------------*/
 void
 ipolite_close(struct ipolite_conn *c)
 {
-  ibc_close(&c->c);
+  broadcast_close(&c->c);
   ctimer_stop(&c->t);
   if(c->q != NULL) {
     queuebuf_free(c->q);
@@ -138,7 +138,7 @@ ipolite_send(struct ipolite_conn *c, clock_time_t interval, uint8_t hdrsize)
   if(interval == 0) {
     PRINTF("%d.%d: ipolite_send: interval 0\n",
 	   rimeaddr_node_addr.u8[0],rimeaddr_node_addr.u8[1]);
-    ibc_send(&c->c);
+    broadcast_send(&c->c);
     if(c->cb->sent) {
       c->cb->sent(c);
     }

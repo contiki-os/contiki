@@ -33,7 +33,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: neighbor-discovery.c,v 1.5 2008/02/25 02:14:34 adamdunkels Exp $
+ * $Id: neighbor-discovery.c,v 1.6 2008/06/26 11:19:22 adamdunkels Exp $
  */
 
 /**
@@ -71,9 +71,9 @@ struct adv_msg {
 
 #define MAX_HOPLIM 10
 
-#define MAX_INTERVAL CLOCK_SECOND * 60
+/*#define MAX_INTERVAL CLOCK_SECOND * 60
 #define MIN_INTERVAL CLOCK_SECOND * 10
-#define NEW_VAL_INTERVAL CLOCK_SECOND * 2
+#define NEW_VAL_INTERVAL CLOCK_SECOND * 2*/
 
 #define DEBUG 0
 #if DEBUG
@@ -125,12 +125,12 @@ send_timer(void *ptr)
 {
   struct neighbor_discovery_conn *tc = ptr;
   
-  send_adv(tc, MAX_INTERVAL);
+  send_adv(tc, tc->max_interval);
   /*  ctimer_set(&tc->t,
 	     MIN_INTERVAL + random_rand() % (MAX_INTERVAL - MIN_INTERVAL),
 	     send_timer, tc);*/
   ctimer_set(&tc->t,
-	     MAX_INTERVAL,
+	     tc->max_interval,
 	     send_timer, tc);
 }
 /*---------------------------------------------------------------------------*/
@@ -141,11 +141,17 @@ static const struct ipolite_callbacks ipolite_callbacks =
 /*---------------------------------------------------------------------------*/
 void
 neighbor_discovery_open(struct neighbor_discovery_conn *c, uint16_t channel,
-	 const struct neighbor_discovery_callbacks *cb)
+			clock_time_t initial,
+			clock_time_t min,
+			clock_time_t max,
+			const struct neighbor_discovery_callbacks *cb)
 {
   /*  ibc_open(&c->c, channel, &ibc_callbacks);*/
   ipolite_open(&c->c, channel, &ipolite_callbacks);
   c->u = cb;
+  c->initial_interval = initial;
+  c->min_interval = min;
+  c->max_interval = max;
 }
 /*---------------------------------------------------------------------------*/
 void
@@ -161,12 +167,12 @@ neighbor_discovery_start(struct neighbor_discovery_conn *c, uint16_t val)
 {
   if(val < c->val) {
     c->val = val;
-    send_adv(c, NEW_VAL_INTERVAL);
-    ctimer_set(&c->t, NEW_VAL_INTERVAL, send_timer, c);
+    send_adv(c, c->initial_interval);
+    ctimer_set(&c->t, c->initial_interval, send_timer, c);
   } else {
     c->val = val;
-    send_adv(c, MIN_INTERVAL);
-    ctimer_set(&c->t, MIN_INTERVAL, send_timer, c);
+    send_adv(c, c->min_interval);
+    ctimer_set(&c->t, c->min_interval, send_timer, c);
   }
 }
 /*---------------------------------------------------------------------------*/
