@@ -33,7 +33,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: ipolite.c,v 1.8 2008/06/26 11:19:22 adamdunkels Exp $
+ * $Id: ipolite.c,v 1.9 2008/06/26 11:38:59 nifi Exp $
  */
 
 /**
@@ -138,22 +138,24 @@ ipolite_send(struct ipolite_conn *c, clock_time_t interval, uint8_t hdrsize)
   if(interval == 0) {
     PRINTF("%d.%d: ipolite_send: interval 0\n",
 	   rimeaddr_node_addr.u8[0],rimeaddr_node_addr.u8[1]);
-    broadcast_send(&c->c);
-    if(c->cb->sent) {
-      c->cb->sent(c);
+    if (broadcast_send(&c->c)) {
+      if(c->cb->sent) {
+	c->cb->sent(c);
+      }
+      return 1;
     }
-    return 1;
+
   } else {
     c->q = queuebuf_new_from_rimebuf();
     if(c->q != NULL) {
       ctimer_set(&c->t,
 		 interval / 2 + (random_rand() % (interval / 2)),
 		 send, c);
+      return 1;
     }
-    return 1;
+    PRINTF("%d.%d: ipolite_send: could not allocate queue buffer\n",
+	   rimeaddr_node_addr.u8[0],rimeaddr_node_addr.u8[1]);
   }
-  PRINTF("%d.%d: ipolite_send: could not allocate queue buffer\n",
-	 rimeaddr_node_addr.u8[0],rimeaddr_node_addr.u8[1]);
   return 0;
 }
 /*---------------------------------------------------------------------------*/

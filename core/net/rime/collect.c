@@ -36,7 +36,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: collect.c,v 1.8 2008/02/24 22:05:27 adamdunkels Exp $
+ * $Id: collect.c,v 1.9 2008/06/26 11:38:59 nifi Exp $
  */
 
 /**
@@ -300,7 +300,7 @@ collect_set_sink(struct collect_conn *tc, int should_be_sink)
   update_rtmetric(tc);
 }
 /*---------------------------------------------------------------------------*/
-void
+int
 collect_send(struct collect_conn *tc, int rexmits)
 {
   struct neighbor *n;
@@ -320,6 +320,7 @@ collect_send(struct collect_conn *tc, int rexmits)
 	tc->cb->recv(&hdr->originator, hdr->originator_seqno,
 		     hdr->hops);
       }
+      return 1;
     } else {
       n = neighbor_best();
       if(n != NULL) {
@@ -327,7 +328,7 @@ collect_send(struct collect_conn *tc, int rexmits)
 #if NETSIM
 	ether_set_line(n->addr.u8[0], n->addr.u8[1]);
 #endif /* NETSIM */
-	ruc_send(&tc->ruc_conn, &n->addr, rexmits);
+	return ruc_send(&tc->ruc_conn, &n->addr, rexmits);
       } else {
 	/*      printf("Didn't find any neighbor\n");*/
 	PRINTF("%d.%d: did not find any neighbor to send to\n",
@@ -335,6 +336,7 @@ collect_send(struct collect_conn *tc, int rexmits)
       }
     }
   }
+  return 0;
 }
 /*---------------------------------------------------------------------------*/
 int
