@@ -26,13 +26,12 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: SkyFlash.java,v 1.2 2008/04/03 14:02:47 fros4943 Exp $
+ * $Id: SkyFlash.java,v 1.3 2008/06/27 14:05:08 nifi Exp $
  */
 
 package se.sics.cooja.mspmote.interfaces;
 
 import java.awt.Component;
-import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.*;
@@ -40,7 +39,6 @@ import java.util.*;
 import javax.swing.*;
 import org.apache.log4j.Logger;
 import org.jdom.Element;
-
 import se.sics.cooja.*;
 import se.sics.cooja.mspmote.SkyMote;
 
@@ -58,8 +56,8 @@ public class SkyFlash extends MoteInterface {
 
   public SkyFlash(Mote mote) {
     this.mote = (SkyMote) mote;
-    m24p80 = new CoojaM25P80(this.mote.getCPU());
-    this.mote.skyNode.setFlash(m24p80);
+    this.m24p80 = new CoojaM25P80(this.mote.getCPU());
+    this.mote.skyNode.setFlash(this.m24p80);
   }
 
   /**
@@ -89,7 +87,7 @@ public class SkyFlash extends MoteInterface {
 
   public JPanel getInterfaceVisualizer() {
     JPanel panel = new JPanel();
-    panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
+//    panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
 
     final JButton uploadButton = new JButton("Upload file");
     panel.add(uploadButton);
@@ -134,8 +132,8 @@ public class SkyFlash extends MoteInterface {
     // Saving observer reference for releaseInterfaceVisualizer
     panel.putClientProperty("intf_obs", observer);
 
-    panel.setMinimumSize(new Dimension(140, 60));
-    panel.setPreferredSize(new Dimension(140, 60));
+//    panel.setMinimumSize(new Dimension(140, 60));
+//    panel.setPreferredSize(new Dimension(140, 60));
 
     return panel;
   }
