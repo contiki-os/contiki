@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: SkyRadio.java,v 1.4 2008/03/18 16:36:48 fros4943 Exp $
+ * $Id: SkyRadio.java,v 1.5 2008/06/27 14:11:52 nifi Exp $
  */
 
 package se.sics.cooja.mspmote.interfaces;
@@ -47,6 +47,8 @@ import se.sics.cooja.interfaces.Radio;
 import se.sics.cooja.mspmote.SkyMote;
 import se.sics.mspsim.chip.CC2420;
 import se.sics.mspsim.chip.PacketListener;
+import se.sics.mspsim.core.Chip;
+import se.sics.mspsim.core.OperatingModeListener;
 
 /**
  * CC2420 to COOJA wrapper.
@@ -70,6 +72,7 @@ public class SkyRadio extends Radio implements CustomDataRadio {
   private boolean isTransmitting = false;
 
   private boolean isReceiving = false;
+//  private boolean hasFailedReception = false;
 
   private boolean radioOn = true;
 
@@ -80,6 +83,8 @@ public class SkyRadio extends Radio implements CustomDataRadio {
   private RadioPacket lastOutgoingPacket = null;
 
   private RadioPacket lastIncomingPacket = null;
+
+//  private int mode;
 
   //TODO: HW on/off
 
@@ -96,12 +101,7 @@ public class SkyRadio extends Radio implements CustomDataRadio {
         notifyObservers();
       }
 
-      public void transmissionEnded(int[] receivedData) {
-        byte[] outgoingCC2420Data = new byte[receivedData.length];
-        for (int i=0; i < receivedData.length; i++) {
-          outgoingCC2420Data[i] = (byte) receivedData[i];
-        }
-
+      public void transmissionEnded(byte[] outgoingCC2420Data) {
         lastOutgoingCC2420Packet = new CC2420RadioPacket(outgoingCC2420Data);
 
         lastEventTime = myMote.getSimulation().getSimulationTime();
@@ -125,6 +125,13 @@ public class SkyRadio extends Radio implements CustomDataRadio {
         notifyObservers();
       }
     });
+//    cc2420.addOperatingModeListener(new OperatingModeListener() {
+//
+//      public void modeChanged(Chip source, int mode) {
+//        SkyRadio.this.mode = mode;        
+//      }
+//      
+//    });
   }
 
   /* Packet radio support */
@@ -178,8 +185,9 @@ public class SkyRadio extends Radio implements CustomDataRadio {
   }
 
   public void signalReceptionStart() {
-    isReceiving = true;
     cc2420.setCCA(true);
+//    hasFailedReception = mode == CC2420.MODE_TXRX_OFF;
+    isReceiving = true;
     /* TODO cc2420.setSFD(true); */
 
     lastEventTime = myMote.getSimulation().getSimulationTime();
@@ -191,17 +199,13 @@ public class SkyRadio extends Radio implements CustomDataRadio {
 
   public void signalReceptionEnd() {
     /* Deliver packet data */
-    if (isReceiving && !isInterfered && lastIncomingCC2420Packet != null) {
+    if (isReceiving && !isInterfered && lastIncomingCC2420Packet != null /* && !hasFailedReception */) {
       byte[] packetData = lastIncomingCC2420Packet.getPacketData();
-      int[] incomingDataInts = new int[packetData.length];
-      for (int i=0; i < packetData.length; i++) {
-        incomingDataInts[i] = packetData[i];
-      }
-
-      cc2420.setIncomingPacket(incomingDataInts);
+      cc2420.setIncomingPacket(packetData);
     }
 
     isReceiving = false;
+//    hasFailedReception = false;
     isInterfered = false;
     cc2420.setCCA(false);
 
@@ -219,6 +223,7 @@ public class SkyRadio extends Radio implements CustomDataRadio {
   public void interfereAnyReception() {
     isInterfered = true;
     isReceiving = false;
+//    hasFailedReception = false;
     lastIncomingPacket = null;
     lastIncomingCC2420Packet = null;
     cc2420.setCCA(true);
@@ -305,7 +310,7 @@ public class SkyRadio extends Radio implements CustomDataRadio {
           statusLabel.setText("transmitting");
         } else if (isReceiving()) {
           statusLabel.setText("receiving");
-        } else if (radioOn) {
+        } else if (radioOn /* mode != CC2420.MODE_TXRX_OFF */) {
           statusLabel.setText("listening for traffic");
         } else {
           statusLabel.setText("HW off");
@@ -321,10 +326,10 @@ public class SkyRadio extends Radio implements CustomDataRadio {
 
     observer.update(null, null);
 
-    // Saving observer reference for releaseInterfaceVisualizer
-    panel.putClientProperty("intf_obs", observer);
-
     wrapperPanel.add(BorderLayout.NORTH, panel);
+
+    // Saving observer reference for releaseInterfaceVisualizer
+    wrapperPanel.putClientProperty("intf_obs", observer);
     return wrapperPanel;
   }
 
