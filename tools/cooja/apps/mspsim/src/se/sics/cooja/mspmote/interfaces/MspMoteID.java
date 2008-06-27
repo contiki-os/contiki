@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: MspMoteID.java,v 1.3 2008/04/01 08:07:58 fros4943 Exp $
+ * $Id: MspMoteID.java,v 1.4 2008/06/27 14:04:46 nifi Exp $
  */
 
 package se.sics.cooja.mspmote.interfaces;
@@ -35,14 +35,11 @@ import java.util.Collection;
 import java.util.Observable;
 import java.util.Observer;
 import java.util.Vector;
-
 import javax.swing.JLabel;
 import javax.swing.JPanel;
-
 import org.apache.log4j.Logger;
 import org.jdom.Element;
-
-import se.sics.cooja.*;
+import se.sics.cooja.Mote;
 import se.sics.cooja.AddressMemory.UnknownVariableException;
 import se.sics.cooja.interfaces.MoteID;
 import se.sics.cooja.mspmote.MspMote;
@@ -85,7 +82,9 @@ public class MspMoteID extends MoteID {
     /* Write node ID to flash */
     if (GENERATE_ID_HEADER) {
       SkyFlash flash = mote.getInterfaces().getInterfaceOfType(SkyFlash.class);
-      flash.writeIDheader(newID);
+      if (flash != null) {
+        flash.writeIDheader(newID);
+      }
     }
 
     try {
