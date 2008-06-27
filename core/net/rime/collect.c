@@ -36,7 +36,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: collect.c,v 1.9 2008/06/26 11:38:59 nifi Exp $
+ * $Id: collect.c,v 1.10 2008/06/27 16:44:58 adamdunkels Exp $
  */
 
 /**
@@ -274,6 +274,9 @@ collect_open(struct collect_conn *tc, uint16_t channels,
 	     const struct collect_callbacks *cb)
 {
   neighbor_discovery_open(&tc->neighbor_discovery_conn, channels,
+			  CLOCK_SECOND * 2,
+			  CLOCK_SECOND * 10,
+			  CLOCK_SECOND * 60,
 			  &neighbor_discovery_callbacks);
   ruc_open(&tc->ruc_conn, channels + 1, &ruc_callbacks);
   tc->rtmetric = RTMETRIC_MAX;
