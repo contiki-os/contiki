@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: MspMote.java,v 1.7 2008/04/03 14:01:06 fros4943 Exp $
+ * $Id: MspMote.java,v 1.8 2008/06/27 14:09:26 nifi Exp $
  */
 
 package se.sics.cooja.mspmote;
@@ -37,13 +37,10 @@ import java.net.URLConnection;
 import java.util.*;
 import org.apache.log4j.Logger;
 import org.jdom.Element;
-
 import se.sics.cooja.*;
 import se.sics.cooja.mspmote.interfaces.TR1001Radio;
 import se.sics.mspsim.core.MSP430;
-import se.sics.mspsim.util.ELF;
-import se.sics.mspsim.util.MapEntry;
-import se.sics.mspsim.util.MapTable;
+import se.sics.mspsim.util.*;
 
 /**
  * @author Fredrik Osterlind
@@ -92,9 +89,13 @@ public abstract class MspMote implements Mote {
   public MspMote(MspMoteType moteType, Simulation simulation) {
     myMoteType = moteType;
     mySimulation = simulation;
-    initEmulator(myMoteType.getELFFile());
+  }
 
-    myMoteInterfaceHandler = createMoteInterfaceHandler();
+  protected void initMote() {
+    if (myMoteType != null) {
+      initEmulator(myMoteType.getELFFile());
+      myMoteInterfaceHandler = createMoteInterfaceHandler();
+    }
   }
 
   /**
