@@ -26,20 +26,16 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ESBMoteType.java,v 1.4 2008/04/03 14:01:33 fros4943 Exp $
+ * $Id: ESBMoteType.java,v 1.5 2008/06/27 14:09:26 nifi Exp $
  */
 
 package se.sics.cooja.mspmote;
 
-import java.awt.Container;
-import java.awt.Image;
-import java.awt.MediaTracker;
-import java.awt.Toolkit;
+import java.awt.*;
 import java.io.File;
 import java.net.URL;
 import javax.swing.*;
 import org.apache.log4j.Logger;
-
 import se.sics.cooja.*;
 
 @ClassDescription("ESB Mote Type")
@@ -76,7 +72,7 @@ public class ESBMoteType extends MspMoteType {
     return null;
   }
 
-  public Mote generateMote(Simulation simulation) {
+  protected MspMote createMote(Simulation simulation) {
     return new ESBMote(this, simulation);
   }
 

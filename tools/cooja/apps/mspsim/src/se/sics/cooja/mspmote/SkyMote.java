@@ -26,16 +26,16 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: SkyMote.java,v 1.4 2008/04/03 14:02:20 fros4943 Exp $
+ * $Id: SkyMote.java,v 1.5 2008/06/27 14:09:26 nifi Exp $
  */
 
 package se.sics.cooja.mspmote;
 
 import java.io.File;
-import java.util.*;
+import java.util.Random;
 import org.apache.log4j.Logger;
-
-import se.sics.cooja.*;
+import se.sics.cooja.MoteInterfaceHandler;
+import se.sics.cooja.Simulation;
 import se.sics.cooja.interfaces.*;
 import se.sics.cooja.mspmote.interfaces.*;
 import se.sics.mspsim.platform.sky.SkyNode;
@@ -52,8 +52,8 @@ public class SkyMote extends MspMote {
     super();
   }
 
-  public SkyMote(MoteType moteType, Simulation sim) {
-    super((SkyMoteType) moteType, sim);
+  public SkyMote(MspMoteType moteType, Simulation sim) {
+    super(moteType, sim);
   }
 
   protected boolean initEmulator(File fileELF) {
@@ -63,7 +63,7 @@ public class SkyMote extends MspMote {
       prepareMote(fileELF, skyNode.getCPU());
 
     } catch (Exception e) {
-      logger.fatal("Error when creating Sky mote: " + e);
+      logger.fatal("Error when creating Sky mote:", e);
       return false;
     }
     return true;
@@ -82,10 +82,14 @@ public class SkyMote extends MspMote {
     Clock moteClock = new MspClock(this);
     moteInterfaceHandler.addActiveInterface(moteClock);
 
+    // Add button interface
+    Button moteButton = new SkyButton(this);
+    moteInterfaceHandler.addActiveInterface(moteButton);
+
     // Add Flash interface
     SkyFlash moteFlash = new SkyFlash(this);
     moteInterfaceHandler.addActiveInterface(moteFlash);
-
+    
     // Add ID interface
     MoteID moteID = new MspMoteID(this);
     moteInterfaceHandler.addActiveInterface(moteID);
@@ -106,12 +110,12 @@ public class SkyMote extends MspMote {
   }
 
   public String toString() {
-    if (getInterfaces().getMoteID() != null) {
-      return "Sky Mote, ID=" + getInterfaces().getMoteID().getMoteID();
+    MoteID moteID = getInterfaces() != null ? getInterfaces().getMoteID() : null;
+    if (moteID != null) {
+      return "Sky Mote, ID=" + moteID.getMoteID();
     } else {
       return "Sky Mote, ID=null";
     }
   }
 
 }
-

@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: MspMoteType.java,v 1.5 2008/04/03 14:00:21 fros4943 Exp $
+ * $Id: MspMoteType.java,v 1.6 2008/06/27 14:09:26 nifi Exp $
  */
 
 package se.sics.cooja.mspmote;
@@ -35,14 +35,14 @@ import java.awt.*;
 import java.awt.Dialog.ModalityType;
 import java.awt.event.*;
 import java.io.*;
-import java.util.*;
+import java.util.Collection;
+import java.util.Vector;
 import javax.swing.*;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.filechooser.FileFilter;
 import org.apache.log4j.Logger;
 import org.jdom.Element;
-
 import se.sics.cooja.*;
 import se.sics.cooja.dialogs.MessageList;
 
@@ -128,6 +128,14 @@ public abstract class MspMoteType implements MoteType {
   public File getSourceFile() {
     return fileSource;
   }
+
+  public final Mote generateMote(Simulation simulation) {
+    MspMote mote = createMote(simulation);
+    mote.initMote();
+    return mote;
+  }
+
+  protected abstract MspMote createMote(Simulation simulation);
 
   /**
    * Configures and initialized Msp mote types.
