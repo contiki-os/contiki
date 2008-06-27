@@ -26,22 +26,22 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ESBLED.java,v 1.2 2008/02/11 15:53:28 fros4943 Exp $
+ * $Id: ESBLED.java,v 1.3 2008/06/27 14:10:00 nifi Exp $
  */
 
 package se.sics.cooja.mspmote.interfaces;
 
 import java.awt.*;
 import java.util.*;
-import javax.swing.*;
+import javax.swing.JPanel;
 import org.apache.log4j.Logger;
 import org.jdom.Element;
-
-import se.sics.cooja.*;
-import se.sics.mspsim.core.*;
-import se.sics.mspsim.platform.esb.ESBNode;
+import se.sics.cooja.ClassDescription;
+import se.sics.cooja.Mote;
 import se.sics.cooja.interfaces.LED;
 import se.sics.cooja.mspmote.ESBMote;
+import se.sics.mspsim.core.*;
+import se.sics.mspsim.platform.esb.ESBNode;
 
 /**
  * @author Fredrik Osterlind
@@ -179,9 +179,9 @@ public class ESBLED extends LED implements PortListener {
 
 
   public void portWrite(IOPort source, int data) {
-    redOn = (data & ESBNode.RED_LED) != 0;
-    greenOn = (data & ESBNode.GREEN_LED) != 0;
-    yellowOn = (data & ESBNode.YELLOW_LED) != 0;
+    redOn = (data & ESBNode.RED_LED) == 0;
+    greenOn = (data & ESBNode.GREEN_LED) == 0;
+    yellowOn = (data & ESBNode.YELLOW_LED) == 0;
 
     setChanged();
     notifyObservers();
