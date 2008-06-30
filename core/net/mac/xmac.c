@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: xmac.c,v 1.18 2008/02/25 02:14:35 adamdunkels Exp $
+ * $Id: xmac.c,v 1.19 2008/06/30 08:10:02 adamdunkels Exp $
  */
 
 /**
@@ -76,7 +76,7 @@ struct xmac_hdr {
 #ifdef XMAC_CONF_OFF_TIME
 #define DEFAULT_OFF_TIME (XMAC_CONF_OFF_TIME)
 #else
-#define DEFAULT_OFF_TIME (RTIMER_ARCH_SECOND / 8 - DEFAULT_ON_TIME)
+#define DEFAULT_OFF_TIME (RTIMER_ARCH_SECOND / 2 - DEFAULT_ON_TIME)
 #endif
 
 #define DEFAULT_STROBE_WAIT_TIME (7 * DEFAULT_ON_TIME / 8)
@@ -260,6 +260,7 @@ send_packet(void)
   int got_ack = 0;
   struct xmac_hdr msg;
   int len;
+  int is_broadcast = 0;
 
 #if WITH_TIMETABLE
   TIMETABLE_TIMESTAMP(xmac_timetable, "send");
@@ -297,6 +298,9 @@ send_packet(void)
   hdr = rimebuf_hdrptr();
   rimeaddr_copy(&hdr->sender, &rimeaddr_node_addr);
   rimeaddr_copy(&hdr->receiver, rimebuf_addr(RIMEBUF_ADDR_RECEIVER));
+  if(rimeaddr_cmp(&hdr->receiver, &rimeaddr_null)) {
+    is_broadcast = 1;
+  }
   rimebuf_compact();
 
   t0 = RTIMER_NOW();
@@ -308,9 +312,10 @@ send_packet(void)
 
   /* Send a train of strobes until the receiver answers with an ACK. */
 
-  /* Turn on the radio to listen for the strobe ACK. XXX for
-     broadcasts, don't turn radio on at all. */
-  on();
+  /* Turn on the radio to listen for the strobe ACK. */
+  if(!is_broadcast) {
+    on();
+  }
 
   watchdog_stop();
   got_ack = 0;
@@ -377,6 +382,7 @@ send_packet(void)
 	     keep it on() for a while. */
   }
 
+  /* Send the data packet. */
   if(rimeaddr_cmp(&hdr->receiver, &rimeaddr_null) || got_ack) {
 #if WITH_TIMETABLE
     TIMETABLE_TIMESTAMP(xmac_timetable, "send packet");
@@ -574,6 +580,7 @@ turn_off(int keep_radio_on)
 /*---------------------------------------------------------------------------*/
 const struct mac_driver xmac_driver =
   {
+    "X-MAC",
     qsend_packet,
     read_packet,
     set_receive_function,
