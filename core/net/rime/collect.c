@@ -36,7 +36,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: collect.c,v 1.10 2008/06/27 16:44:58 adamdunkels Exp $
+ * $Id: collect.c,v 1.11 2008/06/30 09:15:22 adamdunkels Exp $
  */
 
 /**
@@ -63,13 +63,11 @@
 #include <stdio.h>
 #include <stddef.h>
 
-struct hdr {
-  rimeaddr_t originator;
-  uint8_t originator_seqno;
-  uint8_t hops;
-  uint8_t hoplim;
-  uint8_t rexmits;
-};
+static const struct rimebuf_attrlist attributes[] =
+  {
+    COLLECT_ATTRIBUTES
+    RIMEBUF_ATTR_LAST
+  };
 
 #define NUM_RECENT_PACKETS 4
 
@@ -150,7 +148,6 @@ node_packet_received(struct ruc_conn *c, rimeaddr_t *from, uint8_t seqno)
 {
   struct collect_conn *tc = (struct collect_conn *)
     ((char *)c - offsetof(struct collect_conn, ruc_conn));
-  struct hdr *hdr = rimebuf_dataptr();
   struct neighbor *n;
   int i;
 
@@ -159,44 +156,48 @@ node_packet_received(struct ruc_conn *c, rimeaddr_t *from, uint8_t seqno)
      packet exists in the list, we drop the packet. */
 
   for(i = 0; i < NUM_RECENT_PACKETS; i++) {
-    if(recent_packets[i].seqno == hdr->originator_seqno &&
-       rimeaddr_cmp(&recent_packets[i].originator, &hdr->originator)) {
+    if(recent_packets[i].seqno == rimebuf_attr(RIMEBUF_ATTR_EPACKET_ID)&&
+	  rimeaddr_cmp(&recent_packets[i].originator,
+		       rimebuf_addr(RIMEBUF_ADDR_ESENDER))) {
       /* Drop the packet. */
       return;
     }
   }
-  recent_packets[recent_packet_ptr].seqno = hdr->originator_seqno;
-  rimeaddr_copy(&recent_packets[recent_packet_ptr].originator, &hdr->originator);
+  recent_packets[recent_packet_ptr].seqno = rimebuf_attr(RIMEBUF_ATTR_EPACKET_ID);
+  rimeaddr_copy(&recent_packets[recent_packet_ptr].originator,
+		rimebuf_addr(RIMEBUF_ADDR_ESENDER));
   recent_packet_ptr = (recent_packet_ptr + 1) % NUM_RECENT_PACKETS;
   
   if(tc->rtmetric == SINK) {
 
     /* If we are the sink, we call the receive function. */
     
-    rimebuf_hdrreduce(sizeof(struct hdr));
-    
-    PRINTF("%d.%d: sink received packet from %d.%d via %d.%d with rtmetric %d\n",
+    PRINTF("%d.%d: sink received packet from %d.%d via %d.%d\n",
 	   rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1],
-	   hdr->originator.u8[0], hdr->originator.u8[1],
-	   from->u8[0], from->u8[1], hdr->rtmetric);
-    
+	   rimebuf_addr(RIMEBUF_ADDR_ESENDER)->u8[0],
+	   rimebuf_addr(RIMEBUF_ADDR_ESENDER)->u8[1],
+	   from->u8[0], from->u8[1]);
+
     if(tc->cb->recv != NULL) {
-      tc->cb->recv(&hdr->originator, hdr->originator_seqno,
-		   hdr->hops);
+      tc->cb->recv(rimebuf_addr(RIMEBUF_ADDR_ESENDER),
+		   rimebuf_attr(RIMEBUF_ATTR_EPACKET_ID),
+		   rimebuf_attr(RIMEBUF_ATTR_HOPS));
     }
     return;
-  } else if(hdr->hoplim > 1 && tc->rtmetric != RTMETRIC_MAX) {
+  } else if(rimebuf_attr(RIMEBUF_ATTR_TTL) > 1 &&
+	    tc->rtmetric != RTMETRIC_MAX) {
 
     /* If we are not the sink, we forward the packet to the best
        neighbor. */
-    hdr->hops++;
-    hdr->hoplim--;
+    rimebuf_set_attr(RIMEBUF_ATTR_HOPS, rimebuf_attr(RIMEBUF_ATTR_HOPS) + 1);
+    rimebuf_set_attr(RIMEBUF_ATTR_TTL, rimebuf_attr(RIMEBUF_ATTR_TTL) - 1);
 
         
-    PRINTF("%d.%d: packet received from %d.%d via %d.%d with rtmetric %d, best neighbor %p, forwarding %d\n",
+    PRINTF("%d.%d: packet received from %d.%d via %d.%d, best neighbor %p, forwarding %d\n",
 	   rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1],
-	   hdr->originator.u8[0], hdr->originator.u8[1],
-	   from->u8[0], from->u8[1], hdr->rtmetric,
+	   rimebuf_addr(RIMEBUF_ADDR_ESENDER)->u8[0],
+	   rimebuf_addr(RIMEBUF_ADDR_ESENDER)->u8[1],
+	   from->u8[0], from->u8[1],
 	   neighbor_best(), tc->forwarding);
 
     if(!tc->forwarding) {
@@ -206,7 +207,7 @@ node_packet_received(struct ruc_conn *c, rimeaddr_t *from, uint8_t seqno)
 #if NETSIM
 	ether_set_line(n->addr.u8[0], n->addr.u8[1]);
 #endif /* NETSIM */
-	ruc_send(c, &n->addr, hdr->rexmits);
+	ruc_send(c, &n->addr, rimebuf_attr(RIMEBUF_ATTR_MAX_REXMIT));
       }
       return;
     } else {
@@ -279,6 +280,7 @@ collect_open(struct collect_conn *tc, uint16_t channels,
 			  CLOCK_SECOND * 60,
 			  &neighbor_discovery_callbacks);
   ruc_open(&tc->ruc_conn, channels + 1, &ruc_callbacks);
+  channel_set_attributes(channels + 1, attributes);
   tc->rtmetric = RTMETRIC_MAX;
   tc->cb = cb;
   neighbor_discovery_start(&tc->neighbor_discovery_conn, tc->rtmetric);
@@ -307,36 +309,32 @@ int
 collect_send(struct collect_conn *tc, int rexmits)
 {
   struct neighbor *n;
-  struct hdr *hdr;
-
   
-  if(rimebuf_hdralloc(sizeof(struct hdr))) {
-    hdr = rimebuf_hdrptr();
-    hdr->originator_seqno = tc->seqno++;
-    rimeaddr_copy(&hdr->originator, &rimeaddr_node_addr);
-    hdr->hops = 1;
-    hdr->hoplim = MAX_HOPLIM;
-    hdr->rexmits = rexmits;
-    if(tc->rtmetric == 0) {
-      hdr->hops = 0;
-      if(tc->cb->recv != NULL) {
-	tc->cb->recv(&hdr->originator, hdr->originator_seqno,
-		     hdr->hops);
-      }
-      return 1;
-    } else {
-      n = neighbor_best();
-      if(n != NULL) {
-	/*      printf("Sending to best neighbor\n");*/
+  rimebuf_set_attr(RIMEBUF_ATTR_EPACKET_ID, tc->seqno++);
+  rimebuf_set_addr(RIMEBUF_ADDR_ESENDER, &rimeaddr_node_addr);
+  rimebuf_set_attr(RIMEBUF_ATTR_HOPS, 1);
+  rimebuf_set_attr(RIMEBUF_ATTR_TTL, MAX_HOPLIM);
+  rimebuf_set_attr(RIMEBUF_ATTR_MAX_REXMIT, rexmits);
+
+  if(tc->rtmetric == 0) {
+    rimebuf_set_attr(RIMEBUF_ATTR_HOPS, 0);
+    if(tc->cb->recv != NULL) {
+      tc->cb->recv(rimebuf_addr(RIMEBUF_ADDR_ESENDER),
+		   rimebuf_attr(RIMEBUF_ATTR_EPACKET_ID),
+		   rimebuf_attr(RIMEBUF_ATTR_HOPS));
+    }
+    return 1;
+  } else {
+    n = neighbor_best();
+    if(n != NULL) {
 #if NETSIM
-	ether_set_line(n->addr.u8[0], n->addr.u8[1]);
+      ether_set_line(n->addr.u8[0], n->addr.u8[1]);
 #endif /* NETSIM */
-	return ruc_send(&tc->ruc_conn, &n->addr, rexmits);
-      } else {
-	/*      printf("Didn't find any neighbor\n");*/
-	PRINTF("%d.%d: did not find any neighbor to send to\n",
-	       rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1]);
-      }
+      return ruc_send(&tc->ruc_conn, &n->addr, rexmits);
+    } else {
+      /*      printf("Didn't find any neighbor\n");*/
+      PRINTF("%d.%d: did not find any neighbor to send to\n",
+	     rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1]);
     }
   }
   return 0;
