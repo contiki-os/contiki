@@ -33,7 +33,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: rudolph0.c,v 1.9 2008/02/25 02:14:35 adamdunkels Exp $
+ * $Id: rudolph0.c,v 1.10 2008/06/30 08:28:53 adamdunkels Exp $
  */
 
 /**
@@ -103,25 +103,25 @@ send_nack(struct rudolph0_conn *c)
 }
 /*---------------------------------------------------------------------------*/
 static void
-sent(struct sabc_conn *sabc)
+sent(struct stbroadcast_conn *stbroadcast)
 {
-  struct rudolph0_conn *c = (struct rudolph0_conn *)sabc;
+  struct rudolph0_conn *c = (struct rudolph0_conn *)stbroadcast;
 
   if(c->current.datalen == RUDOLPH0_DATASIZE) {
     c->current.h.chunk++;
     PRINTF("Sending data chunk %d next time\n", c->current.h.chunk);
     read_new_datapacket(c);
   } else {
-    sabc_set_timer(&c->c, STEADY_TIME);
+    stbroadcast_set_timer(&c->c, STEADY_TIME);
     PRINTF("Steady: Sending the same data chunk next time datalen %d, %d\n",
 	   c->current.datalen, RUDOLPH0_DATASIZE);
   }
 }
 /*---------------------------------------------------------------------------*/
 static void
-recv(struct sabc_conn *sabc)
+recv(struct stbroadcast_conn *stbroadcast)
 {
-  struct rudolph0_conn *c = (struct rudolph0_conn *)sabc;
+  struct rudolph0_conn *c = (struct rudolph0_conn *)stbroadcast;
   struct rudolph0_datapacket *p = rimebuf_dataptr();
 
   if(p->h.type == TYPE_DATA) {
@@ -175,18 +175,18 @@ recv_nack(struct polite_conn *polite)
       c->current.h.chunk = 0;
     }
     read_new_datapacket(c);
-    sabc_set_timer(&c->c, c->send_interval);
+    stbroadcast_set_timer(&c->c, c->send_interval);
   }
 }
 /*---------------------------------------------------------------------------*/
 static const struct polite_callbacks polite = { recv_nack, 0, 0 };
-static const struct sabc_callbacks sabc = { recv, sent };
+static const struct stbroadcast_callbacks stbroadcast = { recv, sent };
 /*---------------------------------------------------------------------------*/
 void
 rudolph0_open(struct rudolph0_conn *c, uint16_t channel,
 	      const struct rudolph0_callbacks *cb)
 {
-  sabc_open(&c->c, channel, &sabc);
+  stbroadcast_open(&c->c, channel, &stbroadcast);
   polite_open(&c->nackc, channel + 1, &polite);
   c->cb = cb;
   c->current.h.version = 0;
@@ -197,7 +197,7 @@ rudolph0_open(struct rudolph0_conn *c, uint16_t channel,
 void
 rudolph0_close(struct rudolph0_conn *c)
 {
-  sabc_close(&c->c);
+  stbroadcast_close(&c->c);
   polite_close(&c->nackc);
 }
 /*---------------------------------------------------------------------------*/
@@ -212,7 +212,7 @@ rudolph0_send(struct rudolph0_conn *c, clock_time_t send_interval)
   read_new_datapacket(c);
   rimebuf_reference(&c->current, sizeof(struct rudolph0_datapacket));
   c->send_interval = send_interval;
-  sabc_send_stubborn(&c->c, c->send_interval);
+  stbroadcast_send_stubborn(&c->c, c->send_interval);
 }
 /*---------------------------------------------------------------------------*/
 void
@@ -225,7 +225,7 @@ rudolph0_force_restart(struct rudolph0_conn *c)
 void
 rudolph0_stop(struct rudolph0_conn *c)
 {
-  sabc_cancel(&c->c);
+  stbroadcast_cancel(&c->c);
 }
 /*---------------------------------------------------------------------------*/
 int
