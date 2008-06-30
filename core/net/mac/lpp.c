@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: lpp.c,v 1.4 2008/05/16 21:31:57 oliverschmidt Exp $
+ * $Id: lpp.c,v 1.5 2008/06/30 08:08:59 adamdunkels Exp $
  */
 
 /**
@@ -82,8 +82,8 @@ static struct ctimer timer;
 
 static struct queuebuf *queued_packet;
 
-#define LISTEN_TIME CLOCK_SECOND / 64
-#define OFF_TIME CLOCK_SECOND / 2
+#define LISTEN_TIME CLOCK_SECOND / 128
+#define OFF_TIME CLOCK_SECOND / 4
 
 #define DUMP_QUEUED_PACKET 1
 
@@ -291,6 +291,7 @@ off(int keep_radio_on)
 }
 /*---------------------------------------------------------------------------*/
 static const struct mac_driver lpp_driver = {
+  "LPP",
   send_packet,
   read_packet,
   set_receive_function,
