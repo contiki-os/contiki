@@ -4,17 +4,17 @@
 */
 
 /**
- * \defgroup rimesabc Stubborn anonymous best-effort local area broadcast
+ * \defgroup rimestbroadcast Stubborn best-effort local area broadcast
  * @{
  *
- * The sabc module provides stubborn anonymous best-effort local area
- * broadcast. A message sent with the sabc module is repeated until
+ * The stbroadcast module provides stubborn anonymous best-effort local area
+ * broadcast. A message sent with the stbroadcast module is repeated until
  * either the mssage is canceled or a new message is sent. Messages
- * sent with the sabc module are not identified with a sender ID.
+ * sent with the stbroadcast module are not identified with a sender ID.
  *
  * \section channels Channels
  *
- * The sabc module uses 1 channel.
+ * The stbroadcast module uses 1 channel.
  *
  */
 
@@ -48,51 +48,51 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: sabc.h,v 1.9 2008/06/26 11:19:22 adamdunkels Exp $
+ * $Id: stbroadcast.h,v 1.1 2008/06/30 08:28:53 adamdunkels Exp $
  */
 
 /**
  * \file
- *         Header file for the Rime module Stubborn Anonymous BroadCast (sabc)
+ *         Header file for the Rime module Stubborn Anonymous BroadCast (stbroadcast)
  * \author
  *         Adam Dunkels <adam@sics.se>
  */
 
-#ifndef __SABC_H__
-#define __SABC_H__
+#ifndef __STBROADCAST_H__
+#define __STBROADCAST_H__
 
-#include "net/rime/abc.h"
+#include "net/rime/broadcast.h"
 #include "net/rime/ctimer.h"
 #include "net/rime/queuebuf.h"
 
-struct sabc_conn;
+struct stbroadcast_conn;
 
-struct sabc_callbacks {
-  void (* recv)(struct sabc_conn *c);
-  void (* sent)(struct sabc_conn *c);
+struct stbroadcast_callbacks {
+  void (* recv)(struct stbroadcast_conn *c);
+  void (* sent)(struct stbroadcast_conn *c);
 };
 
 /**
- * A sabc connection. This is an opaque structure with no user-visible
- * fields. The sabc_open() function is used for setting up a sabc
+ * A stbroadcast connection. This is an opaque structure with no user-visible
+ * fields. The stbroadcast_open() function is used for setting up a stbroadcast
  * connection.
  */
-struct sabc_conn {
-  struct abc_conn c;
+struct stbroadcast_conn {
+  struct broadcast_conn c;
   struct ctimer t;
   struct queuebuf *buf;
-  const struct sabc_callbacks *u;
+  const struct stbroadcast_callbacks *u;
 };
 
 
 /**
- * \brief      Set up a sabc connection.
- * \param c    A pointer to a user-supplied struct sabc variable.
+ * \brief      Set up a stbroadcast connection.
+ * \param c    A pointer to a user-supplied struct stbroadcast variable.
  * \param channel The Rime channel on which messages should be sent.
  * \param u    Pointer to the upper layer functions that should be used
  *             for this connection.
  *
- *             This function sets up a sabc connection on the
+ *             This function sets up a stbroadcast connection on the
  *             specified channel. No checks are made if the channel is
  *             currently used by another connection.
  *
@@ -100,14 +100,14 @@ struct sabc_conn {
  *             that operates on the connection is called.
  *
  */
-void sabc_open(struct sabc_conn *c, uint16_t channel,
-		const struct sabc_callbacks *u);
-void sabc_close(struct sabc_conn *c);
+void stbroadcast_open(struct stbroadcast_conn *c, uint16_t channel,
+		const struct stbroadcast_callbacks *u);
+void stbroadcast_close(struct stbroadcast_conn *c);
 
 /**
  * \brief      Send a stubborn message.
- * \param c    A sabc connection that must have been previously set up
- *             with sabc_open()
+ * \param c    A stbroadcast connection that must have been previously set up
+ *             with stbroadcast_open()
  * \param t    The time between message retransmissions.
  *
  *             This function sends a message from the Rime buffer. The
@@ -119,35 +119,35 @@ void sabc_close(struct sabc_conn *c);
  *             message is canceled.
  *
  */
-int sabc_send_stubborn(struct sabc_conn *c, clock_time_t t);
+int stbroadcast_send_stubborn(struct stbroadcast_conn *c, clock_time_t t);
 
 /**
  * \brief      Cancel the current stubborn message.
- * \param c    A sabc connection that must have been previously set up
- *             with sabc_open()
+ * \param c    A stbroadcast connection that must have been previously set up
+ *             with stbroadcast_open()
  *
  *             This function cancels a stubborn message that has
- *             previously been sent with the sabc_send_stubborn()
+ *             previously been sent with the stbroadcast_send_stubborn()
  *             function.
  *
  */
-void sabc_cancel(struct sabc_conn *c);
+void stbroadcast_cancel(struct stbroadcast_conn *c);
 
 
 
 /**
  * \brief      Set the retransmission time of the current stubborn message.
- * \param c    A sabc connection that must have been previously set up
- *             with sabc_open()
+ * \param c    A stbroadcast connection that must have been previously set up
+ *             with stbroadcast_open()
  * \param t    The new time between message retransmissions.
  *
  *             This function sets the retransmission timer for the
  *             current stubborn message to a new value.
  *
  */
-void sabc_set_timer(struct sabc_conn *c, clock_time_t t);
+void stbroadcast_set_timer(struct stbroadcast_conn *c, clock_time_t t);
 
-#endif /* __SABC_H__ */
+#endif /* __STBROADCAST_H__ */
 
 /** @} */
 /** @} */

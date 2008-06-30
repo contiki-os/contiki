@@ -1,5 +1,5 @@
 /**
- * \addtogroup rimesabc
+ * \addtogroup rimestbroadcast
  * @{
  */
     
@@ -33,57 +33,57 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: sabc.c,v 1.8 2008/02/24 22:05:27 adamdunkels Exp $
+ * $Id: stbroadcast.c,v 1.1 2008/06/30 08:28:53 adamdunkels Exp $
  */
 
 /**
  * \file
  *         Implementation of the Rime module Stubborn Anonymous
- *         BroadCast (sabc)
+ *         BroadCast (stbroadcast)
  * \author
  *         Adam Dunkels <adam@sics.se>
  */
 
-#include "net/rime/sabc.h"
+#include "net/rime/stbroadcast.h"
 #include "net/rime.h"
 #include <string.h>
 
 /*---------------------------------------------------------------------------*/
 static void
-recv_from_abc(struct abc_conn *abc)
+recv_from_broadcast(struct broadcast_conn *broadcast, rimeaddr_t *sender)
 {
-  register struct sabc_conn *c = (struct sabc_conn *)abc;
-  /*  DEBUGF(3, "sabc: recv_from_abc from %d\n", from_id);*/
+  register struct stbroadcast_conn *c = (struct stbroadcast_conn *)broadcast;
+  /*  DEBUGF(3, "stbroadcast: recv_from_broadcast from %d\n", from_id);*/
   if(c->u->recv != NULL) {
     c->u->recv(c);
   }
 }
 /*---------------------------------------------------------------------------*/
-static const struct abc_callbacks sabc = {recv_from_abc};
+static const struct broadcast_callbacks stbroadcast = {recv_from_broadcast};
 /*---------------------------------------------------------------------------*/
 void
-sabc_open(struct sabc_conn *c, uint16_t channel,
-	  const struct sabc_callbacks *u)
+stbroadcast_open(struct stbroadcast_conn *c, uint16_t channel,
+	  const struct stbroadcast_callbacks *u)
 {
-  abc_open(&c->c, channel, &sabc);
+  broadcast_open(&c->c, channel, &stbroadcast);
   c->u = u;
 }
 /*---------------------------------------------------------------------------*/
 void
-sabc_close(struct sabc_conn *c)
+stbroadcast_close(struct stbroadcast_conn *c)
 {
-  abc_close(&c->c);
+  broadcast_close(&c->c);
   ctimer_stop(&c->t);
 }
 /*---------------------------------------------------------------------------*/
 static void
 send(void *ptr)
 {
-  struct sabc_conn *c = ptr;
+  struct stbroadcast_conn *c = ptr;
 
-  /*  DEBUGF(3, "sabc: send()\n");*/
+  /*  DEBUGF(3, "stbroadcast: send()\n");*/
   queuebuf_to_rimebuf(c->buf);
-  abc_send(&c->c);
+  broadcast_send(&c->c);
   ctimer_reset(&c->t);
   if(c->u->sent != NULL) {
     c->u->sent(c);
@@ -91,13 +91,13 @@ send(void *ptr)
 }
 /*---------------------------------------------------------------------------*/
 void
-sabc_set_timer(struct sabc_conn *c, clock_time_t t)
+stbroadcast_set_timer(struct stbroadcast_conn *c, clock_time_t t)
 {
   ctimer_set(&c->t, t, send, c);
 }
 /*---------------------------------------------------------------------------*/
 int
-sabc_send_stubborn(struct sabc_conn *c, clock_time_t t)
+stbroadcast_send_stubborn(struct stbroadcast_conn *c, clock_time_t t)
 {
   if(c->buf != NULL) {
     queuebuf_free(c->buf);
@@ -107,13 +107,13 @@ sabc_send_stubborn(struct sabc_conn *c, clock_time_t t)
     return 0;
   }
   send(c);
-  sabc_set_timer(c, t);
+  stbroadcast_set_timer(c, t);
   return 1;
   
 }
 /*---------------------------------------------------------------------------*/
 void
-sabc_cancel(struct sabc_conn *c)
+stbroadcast_cancel(struct stbroadcast_conn *c)
 {
   ctimer_stop(&c->t);
 }
