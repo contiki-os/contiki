@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: nullmac.c,v 1.7 2008/02/24 21:05:28 adamdunkels Exp $
+ * $Id: nullmac.c,v 1.8 2008/06/30 08:09:17 adamdunkels Exp $
  */
 
 /**
@@ -91,6 +91,7 @@ off(int keep_radio_on)
 }
 /*---------------------------------------------------------------------------*/
 const struct mac_driver nullmac_driver = {
+  "nullmac",
   send_packet,
   read_packet,
   set_receive_function,
