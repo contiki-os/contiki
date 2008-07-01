@@ -1,5 +1,5 @@
 /* -*- C -*- */
-/* @(#)$Id: contiki-conf.h,v 1.2 2008/01/22 15:00:24 zhitao Exp $ */
+/* @(#)$Id: contiki-conf.h,v 1.3 2008/07/01 21:02:51 adamdunkels Exp $ */
 
 #ifndef CONTIKI_CONF_H
 #define CONTIKI_CONF_H
@@ -98,7 +98,6 @@ typedef unsigned long off_t;
 
 #define CFS_RAM_CONF_SIZE 4096
 
-#define CC2420_RADIO
 /*
  * SPI bus configuration for the TMote Sky.
  */

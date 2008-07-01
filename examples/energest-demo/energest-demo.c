@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: energest-demo.c,v 1.5 2008/04/16 10:49:50 zhitao Exp $
+ * $Id: energest-demo.c,v 1.6 2008/07/01 21:02:51 adamdunkels Exp $
  */
 
 /**
@@ -44,7 +44,7 @@
 #include "net/mac/nullmac.h"
 #include "dev/button-sensor.h"
 
-#include "dev/simple-cc2420.h"
+#include "dev/cc2420.h"
 
 #include "dev/leds.h"
 #include "node-id.h"

@@ -26,14 +26,14 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: radio-test.c,v 1.2 2008/01/10 13:40:20 nifi Exp $
+ * $Id: radio-test.c,v 1.3 2008/07/01 21:02:51 adamdunkels Exp $
  *
  * -----------------------------------------------------------------
  *
  * Author  : Adam Dunkels, Joakim Eriksson, Niclas Finne
  * Created : 2006-03-07
- * Updated : $Date: 2008/01/10 13:40:20 $
- *           $Revision: 1.2 $
+ * Updated : $Date: 2008/07/01 21:02:51 $
+ *           $Revision: 1.3 $
  *
  * Simple application to indicate connectivity between two nodes:
  *
@@ -48,7 +48,7 @@
 #include "net/rime.h"
 #include "dev/leds.h"
 #include "dev/button-sensor.h"
-#include "dev/simple-cc2420.h"
+#include "dev/cc2420.h"
 #include <stdio.h>
 #include <string.h>
 
