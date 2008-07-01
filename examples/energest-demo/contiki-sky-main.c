@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#)$Id: contiki-sky-main.c,v 1.5 2008/03/29 15:20:48 oliverschmidt Exp $
+ * @(#)$Id: contiki-sky-main.c,v 1.6 2008/07/01 21:02:51 adamdunkels Exp $
  */
 
 #include <signal.h>
@@ -43,7 +43,7 @@
 #include "dev/leds.h"
 #include "dev/light.h"
 #include "dev/xmem.h"
-#include "dev/simple-cc2420.h"
+#include "dev/cc2420.h"
 
 #include "dev/slip.h"
 #include "dev/uart1.h"
@@ -126,7 +126,7 @@ main(int argc, char **argv)
 #endif /* WITH_UIP */
   
   printf("Starting %s "
-	 "($Id: contiki-sky-main.c,v 1.5 2008/03/29 15:20:48 oliverschmidt Exp $)\n", __FILE__);
+	 "($Id: contiki-sky-main.c,v 1.6 2008/07/01 21:02:51 adamdunkels Exp $)\n", __FILE__);
   ds2411_init();
   sensors_light_init();
   sht11_init();
@@ -223,7 +223,7 @@ main(int argc, char **argv)
       eint();
       ENERGEST_OFF(ENERGEST_TYPE_LPM);
       ENERGEST_ON(ENERGEST_TYPE_CPU);
-    } 
+    }
     }
   }
 

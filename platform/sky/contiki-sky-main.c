@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#)$Id: contiki-sky-main.c,v 1.30 2008/05/19 12:07:49 adamdunkels Exp $
+ * @(#)$Id: contiki-sky-main.c,v 1.31 2008/07/01 21:02:51 adamdunkels Exp $
  */
 
 #include <signal.h>
@@ -43,7 +43,7 @@
 #include "dev/light.h"
 #include "dev/serial.h"
 #include "dev/sht11.h"
-#include "dev/simple-cc2420.h"
+#include "dev/cc2420.h"
 #include "dev/slip.h"
 #include "dev/uart1.h"
 #include "dev/watchdog.h"

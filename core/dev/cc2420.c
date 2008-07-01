@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: simple-cc2420.c,v 1.27 2008/05/14 19:44:30 adamdunkels Exp $
+ * @(#)$Id: cc2420.c,v 1.23 2008/07/01 21:02:51 adamdunkels Exp $
  */
 /*
  * This code is almost device independent and should be easy to port.
@@ -47,7 +47,7 @@
 
 #include "dev/leds.h"
 #include "dev/spi.h"
-#include "dev/simple-cc2420.h"
+#include "dev/cc2420.h"
 #include "dev/cc2420_const.h"
 
 #include "net/rime/rimestats.h"

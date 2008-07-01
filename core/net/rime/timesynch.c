@@ -34,7 +34,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: timesynch.c,v 1.3 2008/01/23 15:07:05 adamdunkels Exp $
+ * $Id: timesynch.c,v 1.4 2008/07/01 21:02:51 adamdunkels Exp $
  */
 
 /**
@@ -47,7 +47,7 @@
 #include "net/rime/timesynch.h"
 #include "net/rime/rimebuf.h"
 #include "net/rime.h"
-#include "dev/simple-cc2420.h"
+#include "dev/cc2420.h"
 
 #include <stdio.h>
 

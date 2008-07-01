@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: shell-sky.c,v 1.4 2008/06/23 19:51:29 adamdunkels Exp $
+ * $Id: shell-sky.c,v 1.5 2008/07/01 21:02:51 adamdunkels Exp $
  */
 
 /**
@@ -44,7 +44,7 @@
 #include "dev/watchdog.h"
 
 #include "net/rime.h"
-#include "dev/simple-cc2420.h"
+#include "dev/cc2420.h"
 #include "dev/leds.h"
 #include "dev/light.h"
 #include "dev/sht11.h"
