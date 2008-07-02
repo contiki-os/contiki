@@ -27,7 +27,7 @@
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * $Id: contiki-main.c,v 1.1 2007/09/11 12:12:59 matsutsuka Exp $
+ * $Id: contiki-main.c,v 1.2 2008/07/02 15:03:44 matsutsuka Exp $
  *
  */
 
@@ -67,13 +67,13 @@ main(void)
 #if WITH_LOADER_ARCH
   program_handler_add(&directory_dsc, "Directory", 1);
   program_handler_add(&processes_dsc, "Processes", 1);
-  program_handler_add(&shell_dsc, "Command shell", 1);
+  //  program_handler_add(&shell_dsc, "Command shell", 1);
 #else
   program_handler_add(&processes_dsc, "Processes", 1);
   program_handler_add(&mttest_dsc, "Multithread", 1);
 //  program_handler_add(&calc_dsc, "Calculator", 1);
   program_handler_add(&about_dsc, "About", 1);
-  program_handler_add(&shell_dsc, "Command shell", 1);
+//  program_handler_add(&shell_dsc, "Command shell", 1);
 #endif
 
   while(1) {
