@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: shell-file.c,v 1.3 2008/05/24 08:31:56 oliverschmidt Exp $
+ * $Id: shell-file.c,v 1.4 2008/07/02 14:06:46 adamdunkels Exp $
  */
 
 /**
@@ -75,7 +75,7 @@ PROCESS_THREAD(shell_ls_process, ev, data)
   char buf[32];
   PROCESS_BEGIN();
   
-  if(cfs_opendir(&dir, ".") != 0) {
+  if(cfs_opendir(&dir, "/") != 0) {
     shell_output_str(&ls_command, "Cannot open directory", "");
   } else {
     totsize = 0;
@@ -101,27 +101,27 @@ PROCESS_THREAD(shell_append_process, ev, data)
 
   fd = cfs_open(data, CFS_WRITE | CFS_APPEND);
 
-  if(fd <= 0) {
+  if(fd < 0) {
     shell_output_str(&append_command,
-		     "Could not open file for writing: ", data);
-  }
-  
-  while(1) {
-    struct shell_input *input;
-    PROCESS_WAIT_EVENT_UNTIL(ev == shell_event_input);
-    input = data;
-    /*    printf("cat input %d %d\n", input->len1, input->len2);*/
-    if(input->len1 + input->len2 == 0) {
-      cfs_close(fd);
-      PROCESS_EXIT();
+		     "append: could not open file for writing: ", data);
+  } else {
+    while(1) {
+      struct shell_input *input;
+      PROCESS_WAIT_EVENT_UNTIL(ev == shell_event_input);
+      input = data;
+      /*    printf("cat input %d %d\n", input->len1, input->len2);*/
+      if(input->len1 + input->len2 == 0) {
+	cfs_close(fd);
+	PROCESS_EXIT();
+      }
+      
+      cfs_write(fd, input->data1, input->len1);
+      cfs_write(fd, input->data2, input->len2);
+      
+      shell_output(&append_command,
+		   input->data1, input->len1,
+		   input->data2, input->len2);
     }
-
-    cfs_write(fd, input->data1, input->len1);
-    cfs_write(fd, input->data2, input->len2);
-    
-    shell_output(&append_command,
-		 input->data1, input->len1,
-		 input->data2, input->len2);
   }
   
   PROCESS_END();
@@ -137,27 +137,27 @@ PROCESS_THREAD(shell_write_process, ev, data)
 
   fd = cfs_open(data, CFS_WRITE);
 
-  if(fd <= 0) {
+  if(fd < 0) {
     shell_output_str(&write_command,
-		     "Could not open file for writing: ", data);
-  }
-  
-  while(1) {
-    struct shell_input *input;
-    PROCESS_WAIT_EVENT_UNTIL(ev == shell_event_input);
-    input = data;
-    /*    printf("cat input %d %d\n", input->len1, input->len2);*/
-    if(input->len1 + input->len2 == 0) {
-      cfs_close(fd);
-      PROCESS_EXIT();
+		     "write: could not open file for writing: ", data);
+  } else {
+    while(1) {
+      struct shell_input *input;
+      PROCESS_WAIT_EVENT_UNTIL(ev == shell_event_input);
+      input = data;
+      /*    printf("cat input %d %d\n", input->len1, input->len2);*/
+      if(input->len1 + input->len2 == 0) {
+	cfs_close(fd);
+	PROCESS_EXIT();
+      }
+      
+      cfs_write(fd, input->data1, input->len1);
+      cfs_write(fd, input->data2, input->len2);
+      
+      shell_output(&write_command,
+		   input->data1, input->len1,
+		   input->data2, input->len2);
     }
-
-    cfs_write(fd, input->data1, input->len1);
-    cfs_write(fd, input->data2, input->len2);
-    
-    shell_output(&write_command,
-		 input->data1, input->len1,
-		 input->data2, input->len2);
   }
   
   PROCESS_END();
@@ -171,35 +171,35 @@ PROCESS_THREAD(shell_read_process, ev, data)
 
   fd = cfs_open(data, CFS_READ);
 
-  if(fd <= 0) {
-    shell_output_str(&write_command,
-		     "Could not open file for reading: ", data);
-  }
-  
+  if(fd < 0) {
+    shell_output_str(&read_command,
+		     "read: could not open file for reading: ", data);
+  } else {
 
-  while(1) {
-    char buf[40];
-    int len;
-    struct shell_input *input;
-    
-    len = cfs_read(fd, buf, sizeof(buf));
-    if(len <= 0) {
-      cfs_close(fd);
-      PROCESS_EXIT();
-    }
-    shell_output(&read_command,
-		 buf, len, "", 0);
-
-    process_post(&shell_read_process, PROCESS_EVENT_CONTINUE, NULL);
-    PROCESS_WAIT_EVENT_UNTIL(ev == PROCESS_EVENT_CONTINUE ||
-			     ev == shell_event_input);
-
-    if(ev == shell_event_input) {
-      input = data;
-      /*    printf("cat input %d %d\n", input->len1, input->len2);*/
-      if(input->len1 + input->len2 == 0) {
+    while(1) {
+      char buf[40];
+      int len;
+      struct shell_input *input;
+      
+      len = cfs_read(fd, buf, sizeof(buf));
+      if(len <= 0) {
 	cfs_close(fd);
 	PROCESS_EXIT();
+      }
+      shell_output(&read_command,
+		   buf, len, "", 0);
+      
+      process_post(&shell_read_process, PROCESS_EVENT_CONTINUE, NULL);
+      PROCESS_WAIT_EVENT_UNTIL(ev == PROCESS_EVENT_CONTINUE ||
+			       ev == shell_event_input);
+      
+      if(ev == shell_event_input) {
+	input = data;
+	/*    printf("cat input %d %d\n", input->len1, input->len2);*/
+	if(input->len1 + input->len2 == 0) {
+	  cfs_close(fd);
+	  PROCESS_EXIT();
+	}
       }
     }
   }
