@@ -539,6 +539,7 @@ flush_log(uint16_t file_page)
 
   offset = 0;
   do {
+    watchdog_periodic();
     n = cfs_read(fd, buf, sizeof (buf));
     if(n < 0) {
       remove_by_page(new_file_page, 0, 0);
@@ -802,6 +803,7 @@ cfs_read(int fd, void *buf, unsigned size)
    * ordinary file if the page has no log entry.
    */
   while(remains) {
+    watchdog_periodic();
     r = -1;
     if(COFFEE_PAGE_MODIFIED(hdr)) {
       lp.offset = base + offset;
