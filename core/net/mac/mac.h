@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: mac.h,v 1.3 2008/06/30 08:08:27 adamdunkels Exp $
+ * $Id: mac.h,v 1.4 2008/07/02 14:10:28 adamdunkels Exp $
  */
 
 /**
@@ -42,7 +42,7 @@
 #define __MAC_H__
 
 /**
- * The structure of a device driver for a radio in Contiki.
+ * The structure of a MAC protocol driver in Contiki.
  */
 struct mac_driver {
   char *name;
