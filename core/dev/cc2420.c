@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: cc2420.c,v 1.23 2008/07/01 21:02:51 adamdunkels Exp $
+ * @(#)$Id: cc2420.c,v 1.24 2008/07/02 09:05:40 adamdunkels Exp $
  */
 /*
  * This code is almost device independent and should be easy to port.
@@ -59,12 +59,12 @@
 #define FOOTER_LEN 2
 #define CRC_LEN 2
 
-#if SIMPLE_CC2420_CONF_TIMESTAMPS
+#if CC2420_CONF_TIMESTAMPS
 #include "net/rime/timesynch.h"
 #define TIMESTAMP_LEN 3
-#else /* SIMPLE_CC2420_CONF_TIMESTAMPS */
+#else /* CC2420_CONF_TIMESTAMPS */
 #define TIMESTAMP_LEN 0
-#endif /* SIMPLE_CC2420_CONF_TIMESTAMPS */
+#endif /* CC2420_CONF_TIMESTAMPS */
 
 struct timestamp {
   uint16_t time;
@@ -82,43 +82,43 @@ struct timestamp {
 #define PRINTF(...) do {} while (0)
 #endif
 
-void simple_cc2420_arch_init(void);
+void cc2420_arch_init(void);
 
 /* XXX hack: these will be made as Chameleon packet attributes */
-rtimer_clock_t simple_cc2420_time_of_arrival, simple_cc2420_time_of_departure;
+rtimer_clock_t cc2420_time_of_arrival, cc2420_time_of_departure;
 
-int simple_cc2420_authority_level_of_sender;
+int cc2420_authority_level_of_sender;
 
 static rtimer_clock_t setup_time_for_transmission;
 static unsigned long total_time_for_transmission, total_transmission_len;
 static int num_transmissions;
 
 /*---------------------------------------------------------------------------*/
-PROCESS(simple_cc2420_process, "CC2420 driver");
+PROCESS(cc2420_process, "CC2420 driver");
 /*---------------------------------------------------------------------------*/
 
 static void (* receiver_callback)(const struct radio_driver *);
 
-int simple_cc2420_on(void);
-int simple_cc2420_off(void);
+int cc2420_on(void);
+int cc2420_off(void);
 
-int simple_cc2420_read(void *buf, unsigned short bufsize);
+int cc2420_read(void *buf, unsigned short bufsize);
 
-int simple_cc2420_send(const void *data, unsigned short len);
+int cc2420_send(const void *data, unsigned short len);
 
-void simple_cc2420_set_receiver(void (* recv)(const struct radio_driver *d));
+void cc2420_set_receiver(void (* recv)(const struct radio_driver *d));
 
 
-signed char simple_cc2420_last_rssi;
-uint8_t simple_cc2420_last_correlation;
+signed char cc2420_last_rssi;
+uint8_t cc2420_last_correlation;
 
-const struct radio_driver simple_cc2420_driver =
+const struct radio_driver cc2420_driver =
   {
-    simple_cc2420_send,
-    simple_cc2420_read,
-    simple_cc2420_set_receiver,
-    simple_cc2420_on,
-    simple_cc2420_off,
+    cc2420_send,
+    cc2420_read,
+    cc2420_set_receiver,
+    cc2420_on,
+    cc2420_off,
   };
 
 static uint8_t receive_on;
@@ -207,18 +207,18 @@ setreg(enum cc2420_register regname, unsigned value)
 #define RXBPF_LOCUR (1 << 13);
 /*---------------------------------------------------------------------------*/
 void
-simple_cc2420_set_receiver(void (* recv)(const struct radio_driver *))
+cc2420_set_receiver(void (* recv)(const struct radio_driver *))
 {
   receiver_callback = recv;
 }
 /*---------------------------------------------------------------------------*/
 void
-simple_cc2420_init(void)
+cc2420_init(void)
 {
   uint16_t reg;
   {
     int s = splhigh();
-    simple_cc2420_arch_init();		/* Initalize ports and SPI. */
+    cc2420_arch_init();		/* Initalize ports and SPI. */
     DISABLE_FIFOP_INT();
     FIFOP_INT_INIT();
     splx(s);
@@ -261,14 +261,14 @@ simple_cc2420_init(void)
   reg &= ~RXFIFO_PROTECTION;
   setreg(CC2420_SECCTRL0, reg);
 
-  simple_cc2420_set_pan_addr(0xffff, 0x0000, NULL);
-  simple_cc2420_set_channel(26);
+  cc2420_set_pan_addr(0xffff, 0x0000, NULL);
+  cc2420_set_channel(26);
 
-  process_start(&simple_cc2420_process, NULL);
+  process_start(&cc2420_process, NULL);
 }
 /*---------------------------------------------------------------------------*/
 int
-simple_cc2420_send(const void *payload, unsigned short payload_len)
+cc2420_send(const void *payload, unsigned short payload_len)
 {
   int i;
   uint8_t total_len;
@@ -276,7 +276,7 @@ simple_cc2420_send(const void *payload, unsigned short payload_len)
 
   GET_LOCK();
 
-  PRINTF("simple_cc2420: sending %d bytes\n", payload_len);
+  PRINTF("cc2420: sending %d bytes\n", payload_len);
   
   RIMESTATS_ADD(lltx);
 
@@ -291,11 +291,11 @@ simple_cc2420_send(const void *payload, unsigned short payload_len)
 
   FASTSPI_WRITE_FIFO(payload, payload_len);
 
-#if SIMPLE_CC2420_CONF_TIMESTAMPS
+#if CC2420_CONF_TIMESTAMPS
   timestamp.authority_level = timesynch_authority_level();
   timestamp.time = timesynch_time();
   FASTSPI_WRITE_FIFO(&timestamp, TIMESTAMP_LEN);
-#endif /* SIMPLE_CC2420_CONF_TIMESTAMPS */
+#endif /* CC2420_CONF_TIMESTAMPS */
 
   /* The TX FIFO can only hold one packet. Make sure to not overrun
    * FIFO by waiting for transmission to start here and synchronizing
@@ -320,9 +320,9 @@ simple_cc2420_send(const void *payload, unsigned short payload_len)
   
   for(i = LOOP_20_SYMBOLS; i > 0; i--) {
     if(SFD_IS_1) {
-#if SIMPLE_CC2420_CONF_TIMESTAMPS
+#if CC2420_CONF_TIMESTAMPS
       rtimer_clock_t txtime = timesynch_time();
-#endif /* SIMPLE_CC2420_CONF_TIMESTAMPS */
+#endif /* CC2420_CONF_TIMESTAMPS */
 
       if(receive_on) {
 	ENERGEST_OFF(ENERGEST_TYPE_LISTEN);
@@ -333,7 +333,7 @@ simple_cc2420_send(const void *payload, unsigned short payload_len)
 	 accurate measurement of the transmission time.*/
       while(status() & BV(CC2420_TX_ACTIVE));
 
-#if SIMPLE_CC2420_CONF_TIMESTAMPS
+#if CC2420_CONF_TIMESTAMPS
       setup_time_for_transmission = txtime - timestamp.time;
 
       if(num_transmissions < 10000) {
@@ -342,10 +342,10 @@ simple_cc2420_send(const void *payload, unsigned short payload_len)
 	num_transmissions++;
       }
 
-#endif /* SIMPLE_CC2420_CONF_TIMESTAMPS */
+#endif /* CC2420_CONF_TIMESTAMPS */
 
 #ifdef ENERGEST_CONF_LEVELDEVICE_LEVELS
-      ENERGEST_OFF_LEVEL(ENERGEST_TYPE_TRANSMIT,simple_cc2420_get_txpower());
+      ENERGEST_OFF_LEVEL(ENERGEST_TYPE_TRANSMIT,cc2420_get_txpower());
 #endif
       ENERGEST_OFF(ENERGEST_TYPE_TRANSMIT);
       if(receive_on) {
@@ -360,7 +360,7 @@ simple_cc2420_send(const void *payload, unsigned short payload_len)
   /* If we are using WITH_SEND_CCA, we get here if the packet wasn't
      transmitted because of other channel activity. */
   RIMESTATS_ADD(contentiondrop);
-  PRINTF("simple_cc2420: do_send() transmission never started\n");
+  PRINTF("cc2420: do_send() transmission never started\n");
   RELEASE_LOCK();
   return -3;			/* Transmission never started! */
 }
@@ -368,7 +368,7 @@ simple_cc2420_send(const void *payload, unsigned short payload_len)
 static volatile uint8_t packet_seen;
 /*---------------------------------------------------------------------------*/
 int
-simple_cc2420_off(void)
+cc2420_off(void)
 {
   if(receive_on == 0) {
     return 1;
@@ -389,7 +389,7 @@ simple_cc2420_off(void)
 }
 /*---------------------------------------------------------------------------*/
 int
-simple_cc2420_on(void)
+cc2420_on(void)
 {
   if(receive_on) {
     return 1;
@@ -404,13 +404,13 @@ simple_cc2420_on(void)
 }
 /*---------------------------------------------------------------------------*/
 int
-simple_cc2420_get_channel(void)
+cc2420_get_channel(void)
 {
   return channel;
 }
 /*---------------------------------------------------------------------------*/
 void
-simple_cc2420_set_channel(int c)
+cc2420_set_channel(int c)
 {
   uint16_t f;
   /*
@@ -440,7 +440,7 @@ simple_cc2420_set_channel(int c)
 }
 /*---------------------------------------------------------------------------*/
 void
-simple_cc2420_set_pan_addr(unsigned pan,
+cc2420_set_pan_addr(unsigned pan,
 			   unsigned addr,
 			   const uint8_t *ieee_addr)
 {
@@ -463,51 +463,51 @@ simple_cc2420_set_pan_addr(unsigned pan,
  */
 static volatile rtimer_clock_t interrupt_time;
 static volatile int interrupt_time_set;
-#if SIMPLE_CC2420_TIMETABLE_PROFILING
-#define simple_cc2420_timetable_size 16
-TIMETABLE(simple_cc2420_timetable);
+#if CC2420_TIMETABLE_PROFILING
+#define cc2420_timetable_size 16
+TIMETABLE(cc2420_timetable);
 TIMETABLE_AGGREGATE(aggregate_time, 10);
-#endif /* SIMPLE_CC2420_TIMETABLE_PROFILING */
+#endif /* CC2420_TIMETABLE_PROFILING */
 int
-simple_cc2420_interrupt(void)
+cc2420_interrupt(void)
 {
   interrupt_time = timesynch_time();
   interrupt_time_set = 1;
 
   CLEAR_FIFOP_INT();
-  process_poll(&simple_cc2420_process);
+  process_poll(&cc2420_process);
   packet_seen++;
-#if SIMPLE_CC2420_TIMETABLE_PROFILING
-  timetable_clear(&simple_cc2420_timetable);
-  TIMETABLE_TIMESTAMP(simple_cc2420_timetable, "interrupt");
-#endif /* SIMPLE_CC2420_TIMETABLE_PROFILING */
+#if CC2420_TIMETABLE_PROFILING
+  timetable_clear(&cc2420_timetable);
+  TIMETABLE_TIMESTAMP(cc2420_timetable, "interrupt");
+#endif /* CC2420_TIMETABLE_PROFILING */
   return 1;
 }
 /*---------------------------------------------------------------------------*/
-PROCESS_THREAD(simple_cc2420_process, ev, data)
+PROCESS_THREAD(cc2420_process, ev, data)
 {
   PROCESS_BEGIN();
 
-  PRINTF("simple_cc2420_process: started\n");
+  PRINTF("cc2420_process: started\n");
   
   while(1) {
     PROCESS_YIELD_UNTIL(ev == PROCESS_EVENT_POLL);
-#if SIMPLE_CC2420_TIMETABLE_PROFILING
-    TIMETABLE_TIMESTAMP(simple_cc2420_timetable, "poll");
-#endif /* SIMPLE_CC2420_TIMETABLE_PROFILING */
+#if CC2420_TIMETABLE_PROFILING
+    TIMETABLE_TIMESTAMP(cc2420_timetable, "poll");
+#endif /* CC2420_TIMETABLE_PROFILING */
         
     if(receiver_callback != NULL) {
-      PRINTF("simple_cc2420_process: calling receiver callback\n");
-      receiver_callback(&simple_cc2420_driver);
-#if SIMPLE_CC2420_TIMETABLE_PROFILING
-      TIMETABLE_TIMESTAMP(simple_cc2420_timetable, "end");
+      PRINTF("cc2420_process: calling receiver callback\n");
+      receiver_callback(&cc2420_driver);
+#if CC2420_TIMETABLE_PROFILING
+      TIMETABLE_TIMESTAMP(cc2420_timetable, "end");
       timetable_aggregate_compute_detailed(&aggregate_time,
-					   &simple_cc2420_timetable);
-      timetable_clear(&simple_cc2420_timetable);
-#endif /* SIMPLE_CC2420_TIMETABLE_PROFILING */
+					   &cc2420_timetable);
+      timetable_clear(&cc2420_timetable);
+#endif /* CC2420_TIMETABLE_PROFILING */
     } else {
       uint8_t dummy;
-      PRINTF("simple_cc2420_process not receiving function\n");
+      PRINTF("cc2420_process not receiving function\n");
       FASTSPI_READ_FIFO_BYTE(dummy);
       FASTSPI_STROBE(CC2420_SFLUSHRX);
       FASTSPI_STROBE(CC2420_SFLUSHRX);
@@ -518,7 +518,7 @@ PROCESS_THREAD(simple_cc2420_process, ev, data)
 }
 /*---------------------------------------------------------------------------*/
 int
-simple_cc2420_read(void *buf, unsigned short bufsize)
+cc2420_read(void *buf, unsigned short bufsize)
 {
   uint8_t footer[2];
   int len;
@@ -530,19 +530,19 @@ simple_cc2420_read(void *buf, unsigned short bufsize)
   packet_seen = 0;
 
   if(interrupt_time_set) {
-#if SIMPLE_CC2420_CONF_TIMESTAMPS
-    simple_cc2420_time_of_arrival = interrupt_time;
-#endif /* SIMPLE_CC2420_CONF_TIMESTAMPS */
+#if CC2420_CONF_TIMESTAMPS
+    cc2420_time_of_arrival = interrupt_time;
+#endif /* CC2420_CONF_TIMESTAMPS */
     interrupt_time_set = 0;
   } else {
-    simple_cc2420_time_of_arrival = 0;
+    cc2420_time_of_arrival = 0;
   }
-  simple_cc2420_time_of_departure = 0;
+  cc2420_time_of_departure = 0;
   GET_LOCK();
   
   FASTSPI_READ_FIFO_BYTE(len);
 
-  if(len > SIMPLE_CC2420_MAX_PACKET_LEN) {
+  if(len > CC2420_MAX_PACKET_LEN) {
     uint8_t dummy;
     /* Oops, we must be out of sync. */
     FASTSPI_READ_FIFO_BYTE(dummy);
@@ -555,44 +555,44 @@ simple_cc2420_read(void *buf, unsigned short bufsize)
 
   if(len > 0) {
     /* Read payload and two bytes of footer */
-    PRINTF("simple_cc2420_read: len %d\n", len);
+    PRINTF("cc2420_read: len %d\n", len);
     if(len <= FOOTER_LEN + TIMESTAMP_LEN) {
       FASTSPI_READ_FIFO_GARBAGE(len);
       RIMESTATS_ADD(tooshort);
     } else if(len - FOOTER_LEN - TIMESTAMP_LEN > bufsize) {
-      PRINTF("simple_cc2420_read too big len=%d bufsize %d\n", len, bufsize);
+      PRINTF("cc2420_read too big len=%d bufsize %d\n", len, bufsize);
       //     FASTSPI_READ_FIFO_GARBAGE(2);
       FASTSPI_READ_FIFO_NO_WAIT(buf, bufsize);
       FASTSPI_READ_FIFO_GARBAGE(len - bufsize - FOOTER_LEN - TIMESTAMP_LEN);
-#if SIMPLE_CC2420_CONF_TIMESTAMPS
+#if CC2420_CONF_TIMESTAMPS
       FASTSPI_READ_FIFO_NO_WAIT(&t, TIMESTAMP_LEN); /* Time stamp */
-#endif /* SIMPLE_CC2420_CONF_TIMESTAMPS */
+#endif /* CC2420_CONF_TIMESTAMPS */
       FASTSPI_READ_FIFO_NO_WAIT(footer, FOOTER_LEN);
       len = TIMESTAMP_LEN + FOOTER_LEN;
       RIMESTATS_ADD(toolong);
     } else {
       FASTSPI_READ_FIFO_NO_WAIT(buf, len - FOOTER_LEN - TIMESTAMP_LEN);
-      /*      PRINTF("simple_cc2420_read: data\n");*/
+      /*      PRINTF("cc2420_read: data\n");*/
       FASTSPI_READ_FIFO_NO_WAIT(&t, TIMESTAMP_LEN); /* Time stamp */
       FASTSPI_READ_FIFO_NO_WAIT(footer, FOOTER_LEN);
-      /*      PRINTF("simple_cc2420_read: footer\n");*/
+      /*      PRINTF("cc2420_read: footer\n");*/
       if(footer[1] & FOOTER1_CRC_OK) {
-	simple_cc2420_last_rssi = footer[0];
-	simple_cc2420_last_correlation = footer[1] & FOOTER1_CORRELATION;
+	cc2420_last_rssi = footer[0];
+	cc2420_last_correlation = footer[1] & FOOTER1_CORRELATION;
 	RIMESTATS_ADD(llrx);
       } else {
 	RIMESTATS_ADD(badcrc);
 	len = TIMESTAMP_LEN + FOOTER_LEN;
       }
-#if SIMPLE_CC2420_CONF_TIMESTAMPS
-      simple_cc2420_time_of_departure =
+#if CC2420_CONF_TIMESTAMPS
+      cc2420_time_of_departure =
 	t.time +
 	setup_time_for_transmission +
 	(total_time_for_transmission * (len - 2)) / total_transmission_len;
 
-      simple_cc2420_authority_level_of_sender = t.authority_level;
+      cc2420_authority_level_of_sender = t.authority_level;
 
-#endif /* SIMPLE_CC2420_CONF_TIMESTAMPS */
+#endif /* CC2420_CONF_TIMESTAMPS */
     }
   }
   
@@ -601,13 +601,13 @@ simple_cc2420_read(void *buf, unsigned short bufsize)
    */
   if(FIFOP_IS_1 && !FIFO_IS_1) {
     uint8_t dummy;
-    /*    printf("simple_cc2420_read: FIFOP_IS_1 1\n");*/
+    /*    printf("cc2420_read: FIFOP_IS_1 1\n");*/
     FASTSPI_READ_FIFO_BYTE(dummy);
     strobe(CC2420_SFLUSHRX);
     strobe(CC2420_SFLUSHRX);
   } else if(FIFOP_IS_1) {
     /* Another packet has been received and needs attention. */
-    process_poll(&simple_cc2420_process);
+    process_poll(&cc2420_process);
     packet_seen = 1;
   }
   
@@ -621,7 +621,7 @@ simple_cc2420_read(void *buf, unsigned short bufsize)
 }
 /*---------------------------------------------------------------------------*/
 void
-simple_cc2420_set_txpower(uint8_t power)
+cc2420_set_txpower(uint8_t power)
 {
   uint16_t reg;
 
@@ -633,29 +633,29 @@ simple_cc2420_set_txpower(uint8_t power)
 }
 /*---------------------------------------------------------------------------*/
 int
-simple_cc2420_get_txpower(void)
+cc2420_get_txpower(void)
 {
   return (int)(getreg(CC2420_TXCTRL) & 0x001f);
 }
 /*---------------------------------------------------------------------------*/
 int
-simple_cc2420_rssi(void)
+cc2420_rssi(void)
 {
   int rssi;
   int radio_was_off = 0;
   
   if(!receive_on) {
     radio_was_off = 1;
-    simple_cc2420_on();
+    cc2420_on();
   }
   while(!(status() & BV(CC2420_RSSI_VALID))) {
-    /*    printf("simple_cc2420_rssi: RSSI not valid.\n");*/
+    /*    printf("cc2420_rssi: RSSI not valid.\n");*/
   }
 
   rssi = (int)((signed char)getreg(CC2420_RSSI));
 
   if(radio_was_off) {
-    simple_cc2420_off();
+    cc2420_off();
   }
   return rssi;
 }

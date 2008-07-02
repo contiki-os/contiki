@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#)$Id: contiki-sky-main.c,v 1.6 2008/07/01 21:02:51 adamdunkels Exp $
+ * @(#)$Id: contiki-sky-main.c,v 1.7 2008/07/02 09:05:41 adamdunkels Exp $
  */
 
 #include <signal.h>
@@ -126,7 +126,7 @@ main(int argc, char **argv)
 #endif /* WITH_UIP */
   
   printf("Starting %s "
-	 "($Id: contiki-sky-main.c,v 1.6 2008/07/01 21:02:51 adamdunkels Exp $)\n", __FILE__);
+	 "($Id: contiki-sky-main.c,v 1.7 2008/07/02 09:05:41 adamdunkels Exp $)\n", __FILE__);
   ds2411_init();
   sensors_light_init();
   sht11_init();
@@ -164,14 +164,14 @@ main(int argc, char **argv)
 
   set_rime_addr();
 
-  simple_cc2420_init();
-  simple_cc2420_set_pan_addr(panId, 0 /*XXX*/, ds2411_id);
-  simple_cc2420_set_channel(RF_CHANNEL);
+  cc2420_init();
+  cc2420_set_pan_addr(panId, 0 /*XXX*/, ds2411_id);
+  cc2420_set_channel(RF_CHANNEL);
 
-  simple_cc2420_set_txpower(31);
-  nullmac_init(&simple_cc2420_driver);
+  cc2420_set_txpower(31);
+  nullmac_init(&cc2420_driver);
   rime_init(&nullmac_driver);
-//  xmac_init(&simple_cc2420_driver);
+//  xmac_init(&cc2420_driver);
 //  rime_init(&xmac_driver);
 
   /*  rimeaddr_set_node_addr*/

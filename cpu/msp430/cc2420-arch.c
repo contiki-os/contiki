@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#)$Id: cc2420-arch.c,v 1.1 2008/07/01 21:02:51 adamdunkels Exp $
+ * @(#)$Id: cc2420-arch.c,v 1.2 2008/07/02 09:05:40 adamdunkels Exp $
  */
 
 #include <io.h>
@@ -40,17 +40,17 @@
 
 /*---------------------------------------------------------------------------*/
 interrupt(PORT1_VECTOR)
-simple_cc24240_port1_interrupt(void)
+cc24240_port1_interrupt(void)
 {
   ENERGEST_ON(ENERGEST_TYPE_IRQ);
-  if(simple_cc2420_interrupt()) {
+  if(cc2420_interrupt()) {
     LPM4_EXIT;
   }
   ENERGEST_OFF(ENERGEST_TYPE_IRQ);
 }
 /*---------------------------------------------------------------------------*/
 void
-simple_cc2420_arch_init(void)
+cc2420_arch_init(void)
 {
   spi_init();
 
