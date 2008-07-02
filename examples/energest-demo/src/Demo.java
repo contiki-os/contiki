@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: Demo.java,v 1.3 2007/11/06 14:46:14 adamdunkels Exp $
+ * $Id: Demo.java,v 1.4 2008/07/02 14:12:48 adamdunkels Exp $
  */
 
 /**
@@ -150,7 +150,7 @@ public class Demo extends JPanel {
         .getMaximumWindowBounds();
 
     /* Create and set up the window */
-    frame = new JFrame("Contiki Energy Estimation Demo (ACM SenSys 2007)");
+    frame = new JFrame("Sensor Node Power Profiling with Contiki (ACM SenSys 2007)");
     if (maxSize != null) {
       frame.setMaximizedBounds(maxSize);
     }
@@ -210,7 +210,7 @@ public class Demo extends JPanel {
     lowerPanel.add(nodeHistoryLabel);
     contentPanel.add(lowerPanel);
 
-    JLabel advertisementLabel = new JLabel("Contiki Sensor Node Energy Estimation",
+    JLabel advertisementLabel = new JLabel("Sensor Node Power Profiling with Contiki",
 					   JLabel.CENTER);
     advertisementLabel.setFont(new Font("Sans-serif", Font.BOLD, 40));
     JLabel urlLabel = new JLabel("http://www.sics.se/contiki/",
