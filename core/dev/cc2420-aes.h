@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: cc2420-aes.h,v 1.1 2008/07/02 08:46:13 adamdunkels Exp $
+ * $Id: cc2420-aes.h,v 1.2 2008/07/02 09:02:39 nifi Exp $
  */
 
 /**
@@ -70,7 +70,7 @@ void cc2420_aes_set_key(uint8_t *key, int index);
  *             function overwrites the data with the encrypted data.
  *
  */
-void cc2420_aes_cihper(uint8_t *data, int len, int key_index);
+void cc2420_aes_cipher(uint8_t *data, int len, int key_index);
 
 
 #endif /* __CC2420_AES_H__ */

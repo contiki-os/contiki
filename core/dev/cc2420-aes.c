@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: cc2420-aes.c,v 1.1 2008/07/02 08:46:13 adamdunkels Exp $
+ * $Id: cc2420-aes.c,v 1.2 2008/07/02 09:02:39 nifi Exp $
  */
 
 /**
@@ -79,7 +79,7 @@ cipher16(uint8_t *data, int len)
 }
 /*---------------------------------------------------------------------------*/
 void
-cc2420_aes_cihper(uint8_t *data, int len, int key_index)
+cc2420_aes_cipher(uint8_t *data, int len, int key_index)
 {
   int i;
   uint16_t secctrl0;
