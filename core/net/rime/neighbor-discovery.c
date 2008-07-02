@@ -33,7 +33,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: neighbor-discovery.c,v 1.6 2008/06/26 11:19:22 adamdunkels Exp $
+ * $Id: neighbor-discovery.c,v 1.7 2008/07/02 15:02:33 matsutsuka Exp $
  */
 
 /**
@@ -124,7 +124,7 @@ static void
 send_timer(void *ptr)
 {
   struct neighbor_discovery_conn *tc = ptr;
-  
+
   send_adv(tc, tc->max_interval);
   /*  ctimer_set(&tc->t,
 	     MIN_INTERVAL + random_rand() % (MAX_INTERVAL - MIN_INTERVAL),
@@ -136,7 +136,7 @@ send_timer(void *ptr)
 /*---------------------------------------------------------------------------*/
 /*static const struct ibc_callbacks ibc_callbacks =
   {adv_packet_received};*/
-static const struct ipolite_callbacks ipolite_callbacks =
+CC_CONST_FUNCTION static struct ipolite_callbacks ipolite_callbacks =
   {adv_packet_received};
 /*---------------------------------------------------------------------------*/
 void

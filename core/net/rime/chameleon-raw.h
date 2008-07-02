@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: chameleon-raw.h,v 1.1 2008/02/25 02:14:34 adamdunkels Exp $
+ * $Id: chameleon-raw.h,v 1.2 2008/07/02 15:02:33 matsutsuka Exp $
  */
 
 /**
@@ -41,6 +41,6 @@
 #ifndef __CHAMELEON_RAW_H__
 #define __CHAMELEON_RAW_H__
 
-extern const struct chameleon_module chameleon_raw;
+extern CC_CONST_FUNCTION struct chameleon_module chameleon_raw;
 
 #endif /* __CHAMELEON_RAW_H__ */
