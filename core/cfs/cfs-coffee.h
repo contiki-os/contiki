@@ -1,6 +1,3 @@
-#ifndef CFS_COFFEE_H
-#define CFS_COFFEE_H
-
 /*
  * Copyright (c) 2008, Swedish Institute of Computer Science
  * All rights reserved.
@@ -40,82 +37,13 @@
  * 	Nicolas Tsiftes <nvt@sics.se>
  */
 
-#include "contiki-conf.h"
-#include "cfs-coffee-arch.h"
+#ifndef CFS_COFFEE_H
+#define CFS_COFFEE_H
 
-#define kb			* 1024UL
-
-#define COFFEE_FD_READ		0x1
-#define COFFEE_FD_WRITE		0x2
-#define COFFEE_FD_APPEND	0x4
-#define COFFEE_FD_FREE		0x0
-
-struct file_desc {
-  uint32_t offset;
-  uint32_t end;
-  uint16_t file_page;
-  uint8_t flags;
-  uint16_t max_pages;
-  uint16_t next_log_entry;
-};
-
-#define COFFEE_FLAG_ALLOCATED	0x1
-#define COFFEE_FLAG_OBSOLETE	0x2
-#define COFFEE_FLAG_MODIFIED	0x4
-#define COFFEE_FLAG_LOG		0x8
-
-#define CFS_PAGE_ALLOCATED(hdr)						\
-  ((hdr).flags & COFFEE_FLAG_ALLOCATED)
-#define CFS_PAGE_FREE(hdr)						\
-  !CFS_PAGE_ALLOCATED(hdr)
-#define CFS_PAGE_OBSOLETE(hdr)						\
-  ((hdr).flags & COFFEE_FLAG_OBSOLETE)
-#define CFS_PAGE_ACTIVE(hdr)						\
-  (CFS_PAGE_ALLOCATED(hdr) && !CFS_PAGE_OBSOLETE(hdr))
-#define CFS_PAGE_LOG(hdr)						\
-  ((hdr).flags & COFFEE_FLAG_LOG)
-#define CFS_PAGE_MODIFIED(hdr)						\
-  ((hdr).flags & COFFEE_FLAG_MODIFIED)
-
-#define FD_VALID(fd)							\
-		((fd) < COFFEE_FD_SET_SIZE && fd_set[(fd)].flags != COFFEE_FD_FREE)
-#define FD_READABLE(fd)							\
-  (fd_set[(fd)].flags & CFS_READ)
-#define FD_WRITABLE(fd)							\
-  (fd_set[(fd)].flags & CFS_WRITE)
-#define FD_APPENDABLE(fd)						\
-  (fd_set[(fd)].flags & CFS_APPEND)
-
-#define LOG_CMD_MAGIC		0x7a
-
-struct dir_cache {
-  char filename_start;
-  int32_t page;
-};
-
-struct file_header {
-  unsigned flags:4;
-  unsigned max_pages:12;
-  unsigned log_page:16;
-  unsigned eof_locator:16;
-  unsigned log_entries:16;
-  unsigned log_entry_size:16;
-  char name[COFFEE_NAME_LENGTH];
-} __attribute__((packed));
-
-/* This is needed because of a buggy compiler. */
-struct log_param {
-  uint32_t offset;
-  const char *buf;
-  uint16_t size;
-};
-
-#define ABS_OFFSET(file_page, file_offset)					\
-		((file_page) * COFFEE_PAGE_SIZE + sizeof (struct file_header) + (file_offset))
-
-int cfs_remove(const char *name);
-int cfs_reserve(const char *name, uint32_t size);
-int cfs_configure_log(const char *file, unsigned log_size,
+int cfs_coffee_remove(const char *name);
+int cfs_coffee_reserve(const char *name, uint32_t size);
+int cfs_coffee_configure_log(const char *file, unsigned log_size,
 	unsigned log_entry_size);
+int cfs_coffee_format(void);
 
 #endif /* !COFFEE_H */
