@@ -1,5 +1,5 @@
 /* -*- C -*- */
-/* @(#)$Id: contiki-conf.h,v 1.27 2008/07/01 21:02:51 adamdunkels Exp $ */
+/* @(#)$Id: contiki-conf.h,v 1.28 2008/07/02 09:38:06 adamdunkels Exp $ */
 
 #ifndef CONTIKI_CONF_H
 #define CONTIKI_CONF_H
@@ -10,7 +10,7 @@
 #define SHELL_VARS_CONF_RAM_END 0x2000
 
 #define TIMESYNCH_CONF_ENABLED 1
-#define SIMPLE_CC2420_CONF_TIMESTAMPS 1
+#define CC2420_CONF_TIMESTAMPS 1
 
 #define PROFILE_CONF_ON 0
 #define ENERGEST_CONF_ON 1
