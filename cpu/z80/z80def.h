@@ -27,18 +27,18 @@
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * $Id: z80def.h,v 1.5 2008/07/02 07:13:22 matsutsuka Exp $
+ * $Id: z80def.h,v 1.6 2008/07/02 15:02:33 matsutsuka Exp $
  *
  */
 
 /*
  * \file
- *	This file contains a set of configuration for using SDCC as a compiler. 
- * 
+ *	This file contains a set of configuration for using SDCC as a compiler.
+ *
  * \author
  *	Takahide Matsutsuka <markn@markn.org>
  */
- 
+
 #ifndef __Z80_DEF_H__
 #define __Z80_DEF_H__
 
@@ -69,6 +69,7 @@ typedef unsigned int size_t;
 /* Compiler configurations */
 #define CCIF
 #define CLIF
+#define CC_CONF_CONST_FUNCTION_BUG
 
 /*
  * Enable architecture-depend checksum calculation

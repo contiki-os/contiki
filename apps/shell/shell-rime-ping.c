@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: shell-rime-ping.c,v 1.2 2008/02/24 20:33:38 adamdunkels Exp $
+ * $Id: shell-rime-ping.c,v 1.3 2008/07/02 15:02:33 matsutsuka Exp $
  */
 
 /**
@@ -70,7 +70,7 @@ PROCESS_THREAD(shell_ping_process, ev, data)
   struct ping_msg *ping;
   const char *nextptr;
   char buf[32];
-  
+
   PROCESS_BEGIN();
 
   receiver.u8[0] = shell_strtolong(data, &nextptr);
@@ -84,7 +84,7 @@ PROCESS_THREAD(shell_ping_process, ev, data)
 
   snprintf(buf, sizeof(buf), "%d.%d", receiver.u8[0], receiver.u8[1]);
   shell_output_str(&ping_command, "Sending 4 pings to ", buf);
-  
+
   for(i = 0; i < 4; ++i) {
     rimebuf_clear();
     ping = rimebuf_dataptr();
@@ -95,7 +95,7 @@ PROCESS_THREAD(shell_ping_process, ev, data)
     ping->pingtime = rtimer_arch_now();
 #endif
     mesh_send(&mesh, &receiver);
-    
+
     etimer_set(&timeout, CLOCK_SECOND * 8);
     etimer_set(&periodic, CLOCK_SECOND * 1);
     waiting_for_pong = 1;
@@ -125,7 +125,7 @@ recv_mesh(struct mesh_conn *c, rimeaddr_t *from, u8_t hops)
   rtimer_clock_t pingrecvtime;
 
   ping = rimebuf_dataptr();
-  
+
   if(waiting_for_pong == 0) {
 #if TIMESYNCH_CONF_ENABLED
     ping->pongtime = timesynch_time();
@@ -144,14 +144,14 @@ recv_mesh(struct mesh_conn *c, rimeaddr_t *from, u8_t hops)
 	    (1000L * (ping->pongtime - ping->pingtime)) / RTIMER_ARCH_SECOND,
 	    (1000L * (pingrecvtime - ping->pongtime)) / RTIMER_ARCH_SECOND,
 	    hops);
-    
+
     shell_output_str(&ping_command,
 		     "Pong recived; rtt ", buf);
     waiting_for_pong = 0;
     process_post(&shell_ping_process, PROCESS_EVENT_CONTINUE, NULL);
   }
 }
-const static struct mesh_callbacks mesh_callbacks = { recv_mesh,
+CC_CONST_FUNCTION static struct mesh_callbacks mesh_callbacks = { recv_mesh,
 						      NULL,
 						      timedout_mesh };
 /*---------------------------------------------------------------------------*/
@@ -159,7 +159,7 @@ void
 shell_rime_ping_init(void)
 {
   mesh_open(&mesh, 19, &mesh_callbacks);
-  
+
   shell_register_command(&ping_command);
 }
 /*---------------------------------------------------------------------------*/
