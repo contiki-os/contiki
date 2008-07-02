@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: radio-sensor.c,v 1.2 2008/07/01 21:02:51 adamdunkels Exp $
+ * @(#)$Id: radio-sensor.c,v 1.3 2008/07/02 09:05:41 adamdunkels Exp $
  */
 
 #include "lib/sensors.h"
@@ -71,10 +71,10 @@ value(int type)
 {
   switch(type) {
   case RADIO_SENSOR_LAST_PACKET:
-    return simple_cc2420_last_correlation;
+    return cc2420_last_correlation;
   case RADIO_SENSOR_LAST_VALUE:
   default:
-    return simple_cc2420_last_rssi;
+    return cc2420_last_rssi;
   }
 }
 /*---------------------------------------------------------------------------*/

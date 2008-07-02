@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: sky-collect.c,v 1.5 2008/07/01 21:02:51 adamdunkels Exp $
+ * $Id: sky-collect.c,v 1.6 2008/07/02 09:05:41 adamdunkels Exp $
  */
 
 /**
@@ -134,10 +134,10 @@ do_rssi(void)
   
   rime_mac->off(0);
 
-  simple_cc2420_on();
+  cc2420_on();
   for(channel = 11; channel <= 26; ++channel) {
-    simple_cc2420_set_channel(channel);
-    rssi_samples[sample].channel[channel - 11] = simple_cc2420_rssi() + 53;
+    cc2420_set_channel(channel);
+    rssi_samples[sample].channel[channel - 11] = cc2420_rssi() + 53;
   }
   
   rime_mac->on();
@@ -160,7 +160,7 @@ do_rssi(void)
 }
 /*---------------------------------------------------------------------------*/
 static void
-recv(rimeaddr_t *originator, uint8_t seqno, uint8_t hops)
+recv(const rimeaddr_t *originator, uint8_t seqno, uint8_t hops)
 {
   struct sky_collect_msg *msg;
   
@@ -180,7 +180,7 @@ recv(rimeaddr_t *originator, uint8_t seqno, uint8_t hops)
 	 msg->contentiondrop, msg->sendingdrop, msg->lltx, msg->llrx);
 
   printf("%u\n", timesynch_time() - msg->timestamp);
-  
+
 }
 /*---------------------------------------------------------------------------*/
 static const struct collect_callbacks callbacks = { recv };

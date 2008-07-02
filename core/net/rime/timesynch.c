@@ -34,7 +34,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: timesynch.c,v 1.4 2008/07/01 21:02:51 adamdunkels Exp $
+ * $Id: timesynch.c,v 1.5 2008/07/02 09:05:40 adamdunkels Exp $
  */
 
 /**
@@ -105,11 +105,11 @@ incoming_packet(void)
        packet. If the sending node has a lower authority level than we
        have, we synchronize to the time of the sending node and set our
        own authority level to be one more than the sending node. */
-    if(simple_cc2420_authority_level_of_sender < authority_level) {
-      adjust_offset(simple_cc2420_time_of_departure,
-		    simple_cc2420_time_of_arrival);
-      if(simple_cc2420_authority_level_of_sender + 1 != authority_level) {
-	authority_level = simple_cc2420_authority_level_of_sender + 1;
+    if(cc2420_authority_level_of_sender < authority_level) {
+      adjust_offset(cc2420_time_of_departure,
+		    cc2420_time_of_arrival);
+      if(cc2420_authority_level_of_sender + 1 != authority_level) {
+	authority_level = cc2420_authority_level_of_sender + 1;
       }
     }
   }

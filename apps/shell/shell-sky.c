@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: shell-sky.c,v 1.5 2008/07/01 21:02:51 adamdunkels Exp $
+ * $Id: shell-sky.c,v 1.6 2008/07/02 09:05:40 adamdunkels Exp $
  */
 
 /**
@@ -119,10 +119,10 @@ do_rssi(void)
   
   rime_mac->off(0);
 
-  simple_cc2420_on();
+  cc2420_on();
   for(channel = 11; channel <= 26; ++channel) {
-    simple_cc2420_set_channel(channel);
-    rssi_samples[sample].channel[channel - 11] = simple_cc2420_rssi() + 53;
+    cc2420_set_channel(channel);
+    rssi_samples[sample].channel[channel - 11] = cc2420_rssi() + 53;
   }
   
   rime_mac->on();
@@ -225,9 +225,9 @@ PROCESS_THREAD(shell_txpower_process, ev, data)
      out the current txpower. */
   
   if(newptr == data) {
-    msg.txpower = simple_cc2420_get_txpower();
+    msg.txpower = cc2420_get_txpower();
   } else {
-    simple_cc2420_set_txpower(msg.txpower);
+    cc2420_set_txpower(msg.txpower);
   }
 
   msg.len = 1;
@@ -249,10 +249,10 @@ PROCESS_THREAD(shell_rfchannel_process, ev, data)
   /* If no channel was given on the command line, we print out the
      current channel. */
   if(newptr == data) {
-    msg.channel = simple_cc2420_get_channel();
+    msg.channel = cc2420_get_channel();
   } else {
     msg.channel = shell_strtolong(data, &newptr);
-    simple_cc2420_set_channel(msg.channel);
+    cc2420_set_channel(msg.channel);
   }
 
   msg.len = 1;
