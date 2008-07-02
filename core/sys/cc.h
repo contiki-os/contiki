@@ -39,7 +39,7 @@
  *
  * This file is part of the Contiki desktop OS
  *
- * $Id: cc.h,v 1.5 2008/01/14 09:22:22 adamdunkels Exp $
+ * $Id: cc.h,v 1.6 2008/07/02 08:35:29 adamdunkels Exp $
  *
  */
 #ifndef __CC_H__
@@ -75,6 +75,15 @@
 #define CC_FASTCALL CC_CONF_FASTCALL
 #else /* CC_CONF_FASTCALL */
 #define CC_FASTCALL
+#endif /* CC_CONF_FASTCALL */
+
+/**
+ * Configure if the C compiler have problems with const function pointers
+ */
+#ifdef CC_CONF_CONST_FUNCTION_BUG
+#define CC_CONST_FUNCTION
+#else /* CC_CONF_FASTCALL */
+#define CC_CONST_FUNCTION const
 #endif /* CC_CONF_FASTCALL */
 
 /**
