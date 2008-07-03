@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: shell-sky.c,v 1.8 2008/07/03 09:52:15 adamdunkels Exp $
+ * $Id: shell-sky.c,v 1.9 2008/07/03 17:56:17 adamdunkels Exp $
  */
 
 /**
@@ -49,8 +49,6 @@
 #include "dev/light.h"
 #include "dev/sht11.h"
 
-#include "cfs/cfs-coffee.h"
-
 #include "net/rime/timesynch.h"
 
 #include <stdio.h>
@@ -65,11 +63,6 @@ struct power_msg {
 };
 
 /*---------------------------------------------------------------------------*/
-PROCESS(shell_format_process, "format");
-SHELL_COMMAND(format_command,
-	      "format",
-	      "format: format the flash-based Coffee file system",
-	      &shell_format_process);
 PROCESS(shell_sense_process, "sense");
 SHELL_COMMAND(sense_command,
 	      "sense",
@@ -110,29 +103,6 @@ SHELL_COMMAND(powergraph_command,
 	      "powergraph",
 	      "powergraph: convert power profile to a 'graphical' repressentation",
 	      &shell_powergraph_process);
-/*---------------------------------------------------------------------------*/
-PROCESS_THREAD(shell_format_process, ev, data)
-{
-  struct shell_input *input;
-  PROCESS_BEGIN();
-
-  shell_output_str(&format_command, "format: this command will erase all files. Do you want to format? [y/n]", "");
-  
-  PROCESS_WAIT_EVENT_UNTIL(ev == shell_event_input);
-  input = data;
-  
-  if(input->len1 > 0 &&
-     (input->data1[0] == 'y' || input->data1[0] == 'Y')) {
-    
-    shell_output_str(&format_command, "format: formatting file system", "");
-    if(cfs_coffee_format() == 0) {
-      shell_output_str(&format_command, "format: formatting complete", "");
-    } else {
-      shell_output_str(&format_command, "format: formatting failed", "");
-    }
-  }
-  PROCESS_END();
-}
 /*---------------------------------------------------------------------------*/
 #define MAX(a, b) ((a) > (b)? (a): (b))
 #define MIN(a, b) ((a) < (b)? (a): (b))
@@ -455,6 +425,5 @@ shell_sky_init(void)
   shell_register_command(&rfchannel_command);
   shell_register_command(&sense_command);
   shell_register_command(&senseconv_command);
-  shell_register_command(&format_command);
 }
 /*---------------------------------------------------------------------------*/
