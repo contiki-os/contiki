@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: energest-arch.c,v 1.4 2007/12/17 18:47:17 nvt-se Exp $
+ * $Id: energest-arch.c,v 1.5 2008/07/03 23:59:20 adamdunkels Exp $
  */
 
 /**
@@ -38,28 +38,32 @@
  *         Adam Dunkels <adam@sics.se>
  */
 
-#include "lib/energest.h"
+#include "sys/energest.h"
 
 #include "sys/clock.h"
 #include "sys/rtimer.h"
 
-#define DEC2FIX(h,d) ((h * 64) + (unsigned long)(0.64 * d))
+#define DEC2FIX(h,d) ((h * 64L) + (unsigned long)((d * 64L) / 1000L))
 
 /*---------------------------------------------------------------------------*/
+#if 0
 unsigned long
 energest_arch_current_estimate(void)
 {
-  return 3 * /* The voltage is 3 V */            /* The DEC2FIX() stuff is
-						    the current */
-    (energest_type_time(ENERGEST_TYPE_CPU)        * DEC2FIX(18,0) +
-     energest_type_time(ENERGEST_TYPE_LPM)        * DEC2FIX(0,545) +
-     energest_type_time(ENERGEST_TYPE_LED_GREEN)  * DEC2FIX(46,0)  + /* Not measured */
-     energest_type_time(ENERGEST_TYPE_LED_YELLOW) * DEC2FIX(46,0) +  /* Not measured */
-     energest_type_time(ENERGEST_TYPE_LED_RED)    * DEC2FIX(46,0) +
-     energest_type_time(ENERGEST_TYPE_SENSORS)    * DEC2FIX(60,0) +  /* Not measured */
-     energest_type_time(ENERGEST_TYPE_TRANSMIT)   * DEC2FIX(177,0) +
-     energest_type_time(ENERGEST_TYPE_LISTEN)     * DEC2FIX(200,0)) / 10;
+  return /* The voltage is 3 V */            /* The DEC2FIX() stuff is
+						the current */
+    (3 * (energest_type_time(ENERGEST_TYPE_CPU)        * DEC2FIX(1L,800L) +
+	  energest_type_time(ENERGEST_TYPE_LPM)        * DEC2FIX(0L,545L) +
+	  energest_type_time(ENERGEST_TYPE_LED_GREEN)  * DEC2FIX(4L,600L)  + /* Not measured */
+	  energest_type_time(ENERGEST_TYPE_LED_YELLOW) * DEC2FIX(4L,600L) +  /* Not measured */
+	  energest_type_time(ENERGEST_TYPE_LED_RED)    * DEC2FIX(4L,600L) +
+	  energest_type_time(ENERGEST_TYPE_SENSORS)    * DEC2FIX(6L,000L) +  /* Not measured */
+	  energest_type_time(ENERGEST_TYPE_TRANSMIT)   * DEC2FIX(17L,700L) +
+	  energest_type_time(ENERGEST_TYPE_LISTEN)     * DEC2FIX(20L,000L))) /
+    (64 * ENERGEST_SECOND / 1000);
+  return 0;
 }
+#endif
 /*---------------------------------------------------------------------------*/
 unsigned short
 energest_arch_now(void)

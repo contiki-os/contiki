@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#)$Id: uart1.c,v 1.5 2008/02/03 20:59:35 adamdunkels Exp $
+ * @(#)$Id: uart1.c,v 1.6 2008/07/03 23:59:20 adamdunkels Exp $
  */
 
 /*
@@ -37,7 +37,7 @@
 #include <io.h>
 #include <signal.h>
 
-#include "lib/energest.h"
+#include "sys/energest.h"
 #include "dev/uart1.h"
 #include "dev/leds.h"
 #include "dev/watchdog.h"
