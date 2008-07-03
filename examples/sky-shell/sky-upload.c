@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: sky-upload.c,v 1.1 2008/02/04 23:52:33 adamdunkels Exp $
+ * $Id: sky-upload.c,v 1.2 2008/07/03 23:32:19 adamdunkels Exp $
  */
 
 /**
@@ -87,21 +87,15 @@ PROCESS_THREAD(test_shell_process, ev, data)
   PROCESS_BEGIN();
 
   serial_shell_init();
-  
-  shell_blink_init();
+
+  shell_coffee_init();
   shell_exec_init();
   shell_file_init();
   shell_netfile_init();
   shell_ps_init();
   shell_rime_init();
-  shell_rime_sniff_init();
-  /*  shell_rime_ping_init();*/
-/*   shell_rsh_init(); */
-/*  shell_sendtest_init();*/
-  /*shell_sky_init();*/
-    shell_text_init();
-  /*  shell_time_init();*/
-  /*  shell_vars_init();*/
+  shell_rime_netcmd_init();
+  shell_text_init();
 
 #if 0
   shell_register_command(&xmacprofile_command);
