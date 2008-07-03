@@ -899,7 +899,7 @@ cfs_readdir(struct cfs_dir *dir, struct cfs_dirent *entry)
   for(page = *(uint16_t *)dir->dummy_space; page < COFFEE_PAGE_COUNT;) {
     watchdog_periodic();
     READ_HEADER(&hdr, page);
-    if(COFFEE_PAGE_ACTIVE(hdr)) {
+    if(COFFEE_PAGE_ACTIVE(hdr) && !COFFEE_PAGE_LOG(hdr)) {
       memcpy(entry->name, hdr.name, sizeof (entry->name));
       entry->name[sizeof (entry->name) - 1] = '\0';
       entry->size = find_offset_in_file(page);
