@@ -47,7 +47,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: collect.h,v 1.7 2008/07/03 17:58:10 adamdunkels Exp $
+ * $Id: collect.h,v 1.8 2008/07/03 21:52:25 adamdunkels Exp $
  */
 
 /**
@@ -61,7 +61,7 @@
 #define __COLLECT_H__
 
 #include "net/rime/ipolite.h"
-#include "net/rime/ruc.h"
+#include "net/rime/runicast.h"
 #include "net/rime/neighbor-discovery.h"
 
 #define COLLECT_ATTRIBUTES  { RIMEBUF_ADDR_ESENDER,    RIMEBUF_ADDRSIZE }, \
@@ -69,7 +69,7 @@
                             { RIMEBUF_ATTR_TTL,        RIMEBUF_ATTR_BIT * 4 }, \
                             { RIMEBUF_ATTR_HOPS,       RIMEBUF_ATTR_BIT * 4 }, \
                             { RIMEBUF_ATTR_MAX_REXMIT, RIMEBUF_ATTR_BIT * 3 }, \
-                            RUC_ATTRIBUTES
+                            RUNICAST_ATTRIBUTES
 
 struct collect_callbacks {
   void (* recv)(const rimeaddr_t *originator, uint8_t seqno,
@@ -78,7 +78,7 @@ struct collect_callbacks {
 
 struct collect_conn {
   struct neighbor_discovery_conn neighbor_discovery_conn;
-  struct ruc_conn ruc_conn;
+  struct runicast_conn runicast_conn;
   const struct collect_callbacks *cb;
   struct ctimer t;
   uint16_t rtmetric;

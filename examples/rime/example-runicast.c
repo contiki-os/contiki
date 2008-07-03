@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: example-ruc.c,v 1.1 2008/01/25 18:00:51 adamdunkels Exp $
+ * $Id: example-runicast.c,v 1.1 2008/07/03 21:52:25 adamdunkels Exp $
  */
 
 /**
@@ -50,39 +50,39 @@
 #define MAX_RETRANSMISSIONS 4
 
 /*---------------------------------------------------------------------------*/
-PROCESS(test_ruc_process, "ruc test");
-AUTOSTART_PROCESSES(&test_ruc_process);
+PROCESS(test_runicast_process, "runicast test");
+AUTOSTART_PROCESSES(&test_runicast_process);
 /*---------------------------------------------------------------------------*/
 static void
-recv_ruc(struct ruc_conn *c, rimeaddr_t *from, uint8_t seqno)
+recv_runicast(struct runicast_conn *c, rimeaddr_t *from, uint8_t seqno)
 {
-  printf("ruc message received from %d.%d, seqno %d\n",
+  printf("runicast message received from %d.%d, seqno %d\n",
 	 from->u8[0], from->u8[1], seqno);
 }
 static void
-sent_ruc(struct ruc_conn *c, rimeaddr_t *to, uint8_t retransmissions)
+sent_runicast(struct runicast_conn *c, rimeaddr_t *to, uint8_t retransmissions)
 {
-  printf("ruc message sent to %d.%d, retransmissions %d\n",
+  printf("runicast message sent to %d.%d, retransmissions %d\n",
 	 to->u8[0], to->u8[1], retransmissions);
 }
 static void
-timedout_ruc(struct ruc_conn *c, rimeaddr_t *to, uint8_t retransmissions)
+timedout_runicast(struct runicast_conn *c, rimeaddr_t *to, uint8_t retransmissions)
 {
-  printf("ruc message timed out when sending to %d.%d, retransmissions %d\n",
+  printf("runicast message timed out when sending to %d.%d, retransmissions %d\n",
 	 to->u8[0], to->u8[1], retransmissions);
 }
-static const struct ruc_callbacks ruc_callbacks = {recv_ruc,
-						   sent_ruc,
-						   timedout_ruc};
-static struct ruc_conn ruc;
+static const struct runicast_callbacks runicast_callbacks = {recv_runicast,
+						   sent_runicast,
+						   timedout_runicast};
+static struct runicast_conn runicast;
 /*---------------------------------------------------------------------------*/
-PROCESS_THREAD(test_ruc_process, ev, data)
+PROCESS_THREAD(test_runicast_process, ev, data)
 {
-  PROCESS_EXITHANDLER(ruc_close(&ruc);)
+  PROCESS_EXITHANDLER(runicast_close(&runicast);)
     
   PROCESS_BEGIN();
 
-  ruc_open(&ruc, 128, &ruc_callbacks);
+  runicast_open(&runicast, 128, &runicast_callbacks);
 
   while(1) {
     static struct etimer et;
@@ -95,7 +95,7 @@ PROCESS_THREAD(test_ruc_process, ev, data)
     rimebuf_copyfrom("Hello", 5);
     addr.u8[0] = 41;
     addr.u8[1] = 41;
-    ruc_send(&ruc, &addr, MAX_RETRANSMISSIONS);
+    runicast_send(&runicast, &addr, MAX_RETRANSMISSIONS);
 
   }
 

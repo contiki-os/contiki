@@ -1,5 +1,5 @@
 /**
- * \addtogroup rimeruc
+ * \addtogroup rimerunicast
  * @{
  */
 
@@ -34,7 +34,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: ruc.c,v 1.20 2008/07/03 21:35:46 adamdunkels Exp $
+ * $Id: runicast.c,v 1.1 2008/07/03 21:52:25 adamdunkels Exp $
  */
 
 /**
@@ -44,18 +44,18 @@
  *         Adam Dunkels <adam@sics.se>
  */
 
-#include "net/rime/ruc.h"
+#include "net/rime/runicast.h"
 #include "net/rime/neighbor.h"
 #include "net/rime.h"
 #include <string.h>
 
-#define RUC_PACKET_ID_BITS 2
+#define RUNICAST_PACKET_ID_BITS 2
 
 #define REXMIT_TIME CLOCK_SECOND
 
 static const struct rimebuf_attrlist attributes[] =
   {
-    RUC_ATTRIBUTES
+    RUNICAST_ATTRIBUTES
     RIMEBUF_ATTR_LAST
   };
 
@@ -71,11 +71,11 @@ static const struct rimebuf_attrlist attributes[] =
 static void
 sent_by_stunicast(struct stunicast_conn *stunicast)
 {
-  struct ruc_conn *c = (struct ruc_conn *)stunicast;
+  struct runicast_conn *c = (struct runicast_conn *)stunicast;
 
   if(c->rxmit != 0) {
     RIMESTATS_ADD(rexmit);
-    PRINTF("%d.%d: ruc: packet %u resent %u\n",
+    PRINTF("%d.%d: runicast: packet %u resent %u\n",
 	   rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1],
 	   rimebuf_attr(RIMEBUF_ATTR_PACKET_ID), c->rxmit);
   }
@@ -87,7 +87,7 @@ sent_by_stunicast(struct stunicast_conn *stunicast)
     if(c->u->timedout) {
       c->u->timedout(c, stunicast_receiver(&c->c), c->rxmit);
     }
-    PRINTF("%d.%d: ruc: packet %d timed out\n",
+    PRINTF("%d.%d: runicast: packet %d timed out\n",
 	   rimeaddr_node_addr.u8[0],rimeaddr_node_addr.u8[1],
 	   c->sndnxt);
   } else {
@@ -101,10 +101,10 @@ sent_by_stunicast(struct stunicast_conn *stunicast)
 static void
 recv_from_stunicast(struct stunicast_conn *stunicast, rimeaddr_t *from)
 {
-  struct ruc_conn *c = (struct ruc_conn *)stunicast;
-  /*  struct ruc_hdr *hdr = rimebuf_dataptr();*/
+  struct runicast_conn *c = (struct runicast_conn *)stunicast;
+  /*  struct runicast_hdr *hdr = rimebuf_dataptr();*/
 
-  PRINTF("%d.%d: ruc: recv_from_stunicast from %d.%d type %d seqno %d\n",
+  PRINTF("%d.%d: runicast: recv_from_stunicast from %d.%d type %d seqno %d\n",
 	 rimeaddr_node_addr.u8[0],rimeaddr_node_addr.u8[1],
 	 from->u8[0], from->u8[1],
 	 rimebuf_attr(RIMEBUF_ATTR_PACKET_TYPE),
@@ -114,16 +114,16 @@ recv_from_stunicast(struct stunicast_conn *stunicast, rimeaddr_t *from)
      RIMEBUF_ATTR_PACKET_TYPE_ACK) {
     if(rimebuf_attr(RIMEBUF_ATTR_PACKET_ID) == c->sndnxt) {
       RIMESTATS_ADD(ackrx);
-      PRINTF("%d.%d: ruc: ACKed %d\n",
+      PRINTF("%d.%d: runicast: ACKed %d\n",
 	     rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1],
 	     rimebuf_attr(RIMEBUF_ATTR_PACKET_ID));
-      c->sndnxt = (c->sndnxt + 1) % (1 << RUC_PACKET_ID_BITS);
+      c->sndnxt = (c->sndnxt + 1) % (1 << RUNICAST_PACKET_ID_BITS);
       stunicast_cancel(&c->c);
       if(c->u->sent != NULL) {
 	c->u->sent(c, stunicast_receiver(&c->c), c->rxmit);
       }
     } else {
-      PRINTF("%d.%d: ruc: received bad ACK %d for %d\n",
+      PRINTF("%d.%d: runicast: received bad ACK %d for %d\n",
 	     rimeaddr_node_addr.u8[0],rimeaddr_node_addr.u8[1],
 	     rimebuf_attr(RIMEBUF_ATTR_PACKET_ID),
 	     c->sndnxt);
@@ -137,22 +137,22 @@ recv_from_stunicast(struct stunicast_conn *stunicast, rimeaddr_t *from)
 
     RIMESTATS_ADD(reliablerx);
 
-    PRINTF("%d.%d: ruc: got packet %d\n",
+    PRINTF("%d.%d: runicast: got packet %d\n",
 	   rimeaddr_node_addr.u8[0],rimeaddr_node_addr.u8[1],
 	   rimebuf_attr(RIMEBUF_ATTR_PACKET_ID));
 
     packet_seqno = rimebuf_attr(RIMEBUF_ATTR_PACKET_ID);
 
-    /*    rimebuf_hdrreduce(sizeof(struct ruc_hdr));*/
+    /*    rimebuf_hdrreduce(sizeof(struct runicast_hdr));*/
 
     q = queuebuf_new_from_rimebuf();
     
-    PRINTF("%d.%d: ruc: Sending ACK to %d.%d for %d\n",
+    PRINTF("%d.%d: runicast: Sending ACK to %d.%d for %d\n",
 	   rimeaddr_node_addr.u8[0],rimeaddr_node_addr.u8[1],
 	   from->u8[0], from->u8[1],
 	   packet_seqno);
     rimebuf_clear();
-    /*    rimebuf_hdralloc(sizeof(struct ruc_hdr));
+    /*    rimebuf_hdralloc(sizeof(struct runicast_hdr));
     hdr = rimebuf_hdrptr();
     hdr->type = TYPE_ACK;
     hdr->seqno = packet_seqno;*/
@@ -170,13 +170,13 @@ recv_from_stunicast(struct stunicast_conn *stunicast, rimeaddr_t *from)
   }
 }
 /*---------------------------------------------------------------------------*/
-static const struct stunicast_callbacks ruc = {recv_from_stunicast, sent_by_stunicast};
+static const struct stunicast_callbacks runicast = {recv_from_stunicast, sent_by_stunicast};
 /*---------------------------------------------------------------------------*/
 void
-ruc_open(struct ruc_conn *c, uint16_t channel,
-	  const struct ruc_callbacks *u)
+runicast_open(struct runicast_conn *c, uint16_t channel,
+	  const struct runicast_callbacks *u)
 {
-  stunicast_open(&c->c, channel, &ruc);
+  stunicast_open(&c->c, channel, &runicast);
   channel_set_attributes(channel, attributes);
   c->u = u;
   c->rxmit = 0;
@@ -184,13 +184,13 @@ ruc_open(struct ruc_conn *c, uint16_t channel,
 }
 /*---------------------------------------------------------------------------*/
 void
-ruc_close(struct ruc_conn *c)
+runicast_close(struct runicast_conn *c)
 {
   stunicast_close(&c->c);
 }
 /*---------------------------------------------------------------------------*/
 int
-ruc_send(struct ruc_conn *c, rimeaddr_t *receiver, uint8_t max_retransmissions)
+runicast_send(struct runicast_conn *c, rimeaddr_t *receiver, uint8_t max_retransmissions)
 {
   rimebuf_set_attr(RIMEBUF_ATTR_RELIABLE, 1);
   rimebuf_set_attr(RIMEBUF_ATTR_PACKET_TYPE, RIMEBUF_ATTR_PACKET_TYPE_DATA);
@@ -198,7 +198,7 @@ ruc_send(struct ruc_conn *c, rimeaddr_t *receiver, uint8_t max_retransmissions)
   c->max_rxmit = max_retransmissions;
   c->rxmit = 0;
   RIMESTATS_ADD(reliabletx);
-  PRINTF("%d.%d: ruc: sending packet %d\n",
+  PRINTF("%d.%d: runicast: sending packet %d\n",
 	 rimeaddr_node_addr.u8[0],rimeaddr_node_addr.u8[1],
 	 c->sndnxt);
   return stunicast_send_stubborn(&c->c, receiver, REXMIT_TIME);

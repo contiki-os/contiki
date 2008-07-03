@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: rucb.c,v 1.7 2008/02/25 02:14:35 adamdunkels Exp $
+ * $Id: rucb.c,v 1.8 2008/07/03 21:52:25 adamdunkels Exp $
  */
 
 /**
@@ -69,14 +69,14 @@ read_data(struct rucb_conn *c)
 }
 /*---------------------------------------------------------------------------*/
 static void
-acked(struct ruc_conn *ruc, rimeaddr_t *to, uint8_t retransmissions)
+acked(struct runicast_conn *ruc, rimeaddr_t *to, uint8_t retransmissions)
 {
   struct rucb_conn *c = (struct rucb_conn *)ruc;
   PRINTF("%d.%d: rucb acked\n",
 	 rimeaddr_node_addr.u8[0],rimeaddr_node_addr.u8[1]);
   c->chunk++;
   if(read_data(c) > 0) {
-    ruc_send(&c->c, &c->receiver, MAX_TRANSMISSIONS);
+    runicast_send(&c->c, &c->receiver, MAX_TRANSMISSIONS);
     /*    {
       extern struct timetable cc2420_timetable;
       timetable_print(&cc2420_timetable);
@@ -85,7 +85,7 @@ acked(struct ruc_conn *ruc, rimeaddr_t *to, uint8_t retransmissions)
 }
 /*---------------------------------------------------------------------------*/
 static void
-timedout(struct ruc_conn *ruc, rimeaddr_t *to, uint8_t retransmissions)
+timedout(struct runicast_conn *ruc, rimeaddr_t *to, uint8_t retransmissions)
 {
   struct rucb_conn *c = (struct rucb_conn *)ruc;
   PRINTF("%d.%d: rucb timedout\n",
@@ -96,7 +96,7 @@ timedout(struct ruc_conn *ruc, rimeaddr_t *to, uint8_t retransmissions)
 }
 /*---------------------------------------------------------------------------*/
 static void
-recv(struct ruc_conn *ruc, rimeaddr_t *from, uint8_t seqno)
+recv(struct runicast_conn *ruc, rimeaddr_t *from, uint8_t seqno)
 {
   struct rucb_conn *c = (struct rucb_conn *)ruc;
 
@@ -137,13 +137,13 @@ recv(struct ruc_conn *ruc, rimeaddr_t *from, uint8_t seqno)
   }
 }
 /*---------------------------------------------------------------------------*/
-static const struct ruc_callbacks ruc = {recv, acked, timedout};
+static const struct runicast_callbacks ruc = {recv, acked, timedout};
 /*---------------------------------------------------------------------------*/
 void
 rucb_open(struct rucb_conn *c, uint16_t channel,
 	  const struct rucb_callbacks *u)
 {
-  ruc_open(&c->c, channel, &ruc);
+  runicast_open(&c->c, channel, &ruc);
   c->u = u;
   c->last_seqno = -1;
 }
@@ -151,7 +151,7 @@ rucb_open(struct rucb_conn *c, uint16_t channel,
 void
 rucb_close(struct rucb_conn *c)
 {
-  ruc_close(&c->c);
+  runicast_close(&c->c);
 }
 /*---------------------------------------------------------------------------*/
 int
@@ -160,7 +160,7 @@ rucb_send(struct rucb_conn *c, rimeaddr_t *receiver)
   read_data(c);
   rimeaddr_copy(&c->receiver, receiver);
   rimeaddr_copy(&c->sender, &rimeaddr_node_addr);
-  ruc_send(&c->c, receiver, MAX_TRANSMISSIONS);
+  runicast_send(&c->c, receiver, MAX_TRANSMISSIONS);
   return 0;
 }
 /*---------------------------------------------------------------------------*/
