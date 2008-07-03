@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: rucb.h,v 1.2 2008/02/24 22:05:27 adamdunkels Exp $
+ * $Id: rucb.h,v 1.3 2008/07/03 21:52:25 adamdunkels Exp $
  */
 
 /**
@@ -41,7 +41,7 @@
 #ifndef __RUCB_H__
 #define __RUCB_H__
 
-#include "net/rime/ruc.h"
+#include "net/rime/runicast.h"
 
 struct rucb_conn;
 
@@ -62,7 +62,7 @@ struct rucb_callbacks {
 #define RUCB_DATASIZE 64
 
 struct rucb_conn {
-  struct ruc_conn c;
+  struct runicast_conn c;
   const struct rucb_callbacks *u;
   rimeaddr_t receiver, sender;
   uint16_t chunk;

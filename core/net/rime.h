@@ -33,7 +33,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: rime.h,v 1.17 2008/06/30 20:00:53 adamdunkels Exp $
+ * $Id: rime.h,v 1.18 2008/07/03 21:52:25 adamdunkels Exp $
  */
 
 /**
@@ -62,7 +62,7 @@
 #include "net/rime/rmh.h"
 #include "net/rime/route-discovery.h"
 #include "net/rime/route.h"
-#include "net/rime/ruc.h"
+#include "net/rime/runicast.h"
 #include "net/rime/rucb.h"
 #include "net/rime/timesynch.h"
 #include "net/rime/trickle.h"

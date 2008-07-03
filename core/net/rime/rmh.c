@@ -33,7 +33,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: rmh.c,v 1.6 2008/02/24 22:05:27 adamdunkels Exp $
+ * $Id: rmh.c,v 1.7 2008/07/03 21:52:25 adamdunkels Exp $
  */
 
 /**
@@ -64,7 +64,7 @@ struct data_hdr {
 
 /*---------------------------------------------------------------------------*/
 static void
-received(struct ruc_conn *uc, rimeaddr_t *from, uint8_t seqno)
+received(struct runicast_conn *uc, rimeaddr_t *from, uint8_t seqno)
 {
   struct rmh_conn *c = (struct rmh_conn *)uc;
   struct data_hdr *msg = rimebuf_dataptr();
@@ -89,24 +89,24 @@ received(struct ruc_conn *uc, rimeaddr_t *from, uint8_t seqno)
     if(nexthop) {
       PRINTF("forwarding to %d\n", rt->nexthop.u16[0]);
       msg->hops++;
-      ruc_send(&c->c, nexthop, c->num_rexmit);
+      runicast_send(&c->c, nexthop, c->num_rexmit);
     }
   }
 }
 /*---------------------------------------------------------------------------*/
 static void
-sent(struct ruc_conn *c, rimeaddr_t *to, uint8_t retransmissions)
+sent(struct runicast_conn *c, rimeaddr_t *to, uint8_t retransmissions)
 {
 
 }
 /*---------------------------------------------------------------------------*/
 static void
-timedout(struct ruc_conn *c, rimeaddr_t *to, uint8_t retransmissions)
+timedout(struct runicast_conn *c, rimeaddr_t *to, uint8_t retransmissions)
 {
 
 }
 /*---------------------------------------------------------------------------*/
-static const struct ruc_callbacks data_callbacks = { received ,
+static const struct runicast_callbacks data_callbacks = { received ,
 						     sent,
 						     timedout};
 /*---------------------------------------------------------------------------*/
@@ -114,14 +114,14 @@ void
 rmh_open(struct rmh_conn *c, uint16_t channel,
 	const struct rmh_callbacks *callbacks)
 {
-  ruc_open(&c->c, channel, &data_callbacks);
+  runicast_open(&c->c, channel, &data_callbacks);
   c->cb = callbacks;
 }
 /*---------------------------------------------------------------------------*/
 void
 rmh_close(struct rmh_conn *c)
 {
-  ruc_close(&c->c);
+  runicast_close(&c->c);
 }
 /*---------------------------------------------------------------------------*/
 int
@@ -150,7 +150,7 @@ rmh_send(struct rmh_conn *c, rimeaddr_t *to, uint8_t num_rexmit, uint8_t max_hop
       rimeaddr_copy(&hdr->originator, &rimeaddr_node_addr);
       hdr->hops = 1;
       hdr->max_rexmits = num_rexmit;
-      ruc_send(&c->c, nexthop, num_rexmit);
+      runicast_send(&c->c, nexthop, num_rexmit);
     }
     return 1;
   }

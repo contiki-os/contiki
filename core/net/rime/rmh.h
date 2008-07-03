@@ -48,7 +48,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: rmh.h,v 1.4 2008/02/24 22:05:27 adamdunkels Exp $
+ * $Id: rmh.h,v 1.5 2008/07/03 21:52:25 adamdunkels Exp $
  */
 
 /**
@@ -61,7 +61,7 @@
 #ifndef __RMH_H__
 #define __RMH_H__
 
-#include "net/rime/ruc.h"
+#include "net/rime/runicast.h"
 #include "net/rime/rimeaddr.h"
 
 struct rmh_conn;
@@ -76,7 +76,7 @@ struct rmh_callbacks {
 };
 
 struct rmh_conn {
-  struct ruc_conn c;
+  struct runicast_conn c;
   const struct rmh_callbacks *cb;
   uint8_t num_rexmit;
 };

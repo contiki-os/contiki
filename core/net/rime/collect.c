@@ -36,7 +36,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: collect.c,v 1.11 2008/06/30 09:15:22 adamdunkels Exp $
+ * $Id: collect.c,v 1.12 2008/07/03 21:52:25 adamdunkels Exp $
  */
 
 /**
@@ -144,10 +144,10 @@ update_rtmetric(struct collect_conn *tc)
 }
 /*---------------------------------------------------------------------------*/
 static void
-node_packet_received(struct ruc_conn *c, rimeaddr_t *from, uint8_t seqno)
+node_packet_received(struct runicast_conn *c, rimeaddr_t *from, uint8_t seqno)
 {
   struct collect_conn *tc = (struct collect_conn *)
-    ((char *)c - offsetof(struct collect_conn, ruc_conn));
+    ((char *)c - offsetof(struct collect_conn, runicast_conn));
   struct neighbor *n;
   int i;
 
@@ -207,7 +207,7 @@ node_packet_received(struct ruc_conn *c, rimeaddr_t *from, uint8_t seqno)
 #if NETSIM
 	ether_set_line(n->addr.u8[0], n->addr.u8[1]);
 #endif /* NETSIM */
-	ruc_send(c, &n->addr, rimebuf_attr(RIMEBUF_ATTR_MAX_REXMIT));
+	runicast_send(c, &n->addr, rimebuf_attr(RIMEBUF_ATTR_MAX_REXMIT));
       }
       return;
     } else {
@@ -221,10 +221,11 @@ node_packet_received(struct ruc_conn *c, rimeaddr_t *from, uint8_t seqno)
 }
 /*---------------------------------------------------------------------------*/
 static void
-node_packet_sent(struct ruc_conn *c, rimeaddr_t *to, uint8_t retransmissions)
+node_packet_sent(struct runicast_conn *c, rimeaddr_t *to,
+		 uint8_t retransmissions)
 {
   struct collect_conn *tc = (struct collect_conn *)
-    ((char *)c - offsetof(struct collect_conn, ruc_conn));
+    ((char *)c - offsetof(struct collect_conn, runicast_conn));
 
   tc->forwarding = 0;
   neighbor_update_etx(neighbor_find(to), retransmissions);
@@ -232,10 +233,11 @@ node_packet_sent(struct ruc_conn *c, rimeaddr_t *to, uint8_t retransmissions)
 }
 /*---------------------------------------------------------------------------*/
 static void
-node_packet_timedout(struct ruc_conn *c, rimeaddr_t *to, uint8_t retransmissions)
+node_packet_timedout(struct runicast_conn *c, rimeaddr_t *to,
+		     uint8_t retransmissions)
 {
   struct collect_conn *tc = (struct collect_conn *)
-    ((char *)c - offsetof(struct collect_conn, ruc_conn));
+    ((char *)c - offsetof(struct collect_conn, runicast_conn));
 
   tc->forwarding = 0;
   neighbor_timedout_etx(neighbor_find(to), retransmissions);
@@ -264,7 +266,7 @@ adv_received(struct neighbor_discovery_conn *c, rimeaddr_t *from, uint16_t rtmet
   update_rtmetric(tc);
 }
 /*---------------------------------------------------------------------------*/
-static const struct ruc_callbacks ruc_callbacks = {node_packet_received,
+static const struct runicast_callbacks runicast_callbacks = {node_packet_received,
 						   node_packet_sent,
 						   node_packet_timedout};
 static const struct neighbor_discovery_callbacks neighbor_discovery_callbacks =
@@ -279,7 +281,7 @@ collect_open(struct collect_conn *tc, uint16_t channels,
 			  CLOCK_SECOND * 10,
 			  CLOCK_SECOND * 60,
 			  &neighbor_discovery_callbacks);
-  ruc_open(&tc->ruc_conn, channels + 1, &ruc_callbacks);
+  runicast_open(&tc->runicast_conn, channels + 1, &runicast_callbacks);
   channel_set_attributes(channels + 1, attributes);
   tc->rtmetric = RTMETRIC_MAX;
   tc->cb = cb;
@@ -290,7 +292,7 @@ void
 collect_close(struct collect_conn *tc)
 {
   neighbor_discovery_close(&tc->neighbor_discovery_conn);
-  ruc_close(&tc->ruc_conn);
+  runicast_close(&tc->runicast_conn);
 }
 /*---------------------------------------------------------------------------*/
 void
@@ -330,7 +332,7 @@ collect_send(struct collect_conn *tc, int rexmits)
 #if NETSIM
       ether_set_line(n->addr.u8[0], n->addr.u8[1]);
 #endif /* NETSIM */
-      return ruc_send(&tc->ruc_conn, &n->addr, rexmits);
+      return runicast_send(&tc->runicast_conn, &n->addr, rexmits);
     } else {
       /*      printf("Didn't find any neighbor\n");*/
       PRINTF("%d.%d: did not find any neighbor to send to\n",
