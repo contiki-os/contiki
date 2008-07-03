@@ -33,7 +33,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: mh.c,v 1.11 2008/06/26 11:19:22 adamdunkels Exp $
+ * $Id: multihop.c,v 1.1 2008/07/03 22:36:03 adamdunkels Exp $
  */
 
 /**
@@ -45,7 +45,7 @@
 
 #include "contiki.h"
 #include "net/rime.h"
-#include "net/rime/mh.h"
+#include "net/rime/multihop.h"
 #include "net/rime/route.h"
 
 #include <string.h>
@@ -69,7 +69,7 @@ struct data_hdr {
 void
 data_packet_received(struct unicast_conn *uc, rimeaddr_t *from)
 {
-  struct mh_conn *c = (struct mh_conn *)uc;
+  struct multihop_conn *c = (struct multihop_conn *)uc;
   struct data_hdr msg;
   rimeaddr_t *nexthop;
 
@@ -106,21 +106,21 @@ data_packet_received(struct unicast_conn *uc, rimeaddr_t *from)
 static const struct unicast_callbacks data_callbacks = { data_packet_received };
 /*---------------------------------------------------------------------------*/
 void
-mh_open(struct mh_conn *c, uint16_t channel,
-	const struct mh_callbacks *callbacks)
+multihop_open(struct multihop_conn *c, uint16_t channel,
+	const struct multihop_callbacks *callbacks)
 {
   unicast_open(&c->c, channel, &data_callbacks);
   c->cb = callbacks;
 }
 /*---------------------------------------------------------------------------*/
 void
-mh_close(struct mh_conn *c)
+multihop_close(struct multihop_conn *c)
 {
   unicast_close(&c->c);
 }
 /*---------------------------------------------------------------------------*/
 int
-mh_send(struct mh_conn *c, rimeaddr_t *to)
+multihop_send(struct multihop_conn *c, rimeaddr_t *to)
 {
   rimeaddr_t *nexthop;
   struct data_hdr *hdr;
@@ -132,10 +132,10 @@ mh_send(struct mh_conn *c, rimeaddr_t *to)
   nexthop = c->cb->forward(c, &rimeaddr_node_addr, to, NULL, 0);
   
   if(nexthop == NULL) {
-    PRINTF("mh_send: no route\n");
+    PRINTF("multihop_send: no route\n");
     return 0;
   } else {
-    PRINTF("mh_send: sending data towards %d.%d\n",
+    PRINTF("multihop_send: sending data towards %d.%d\n",
 	   nexthop->u8[0], nexthop->u8[1]);
     if(rimebuf_hdralloc(sizeof(struct data_hdr))) {
       hdr = rimebuf_hdrptr();

@@ -33,7 +33,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: mesh.c,v 1.13 2008/02/24 22:05:27 adamdunkels Exp $
+ * $Id: mesh.c,v 1.14 2008/07/03 22:36:02 adamdunkels Exp $
  */
 
 /**
@@ -62,11 +62,11 @@
 
 /*---------------------------------------------------------------------------*/
 static void
-data_packet_received(struct mh_conn *mh, rimeaddr_t *from,
+data_packet_received(struct multihop_conn *multihop, rimeaddr_t *from,
 		     rimeaddr_t *prevhop, uint8_t hops)
 {
   struct mesh_conn *c = (struct mesh_conn *)
-    ((char *)mh - offsetof(struct mesh_conn, mh));
+    ((char *)multihop - offsetof(struct mesh_conn, multihop));
 
   if(c->cb->recv) {
     c->cb->recv(c, from, hops);
@@ -74,7 +74,7 @@ data_packet_received(struct mh_conn *mh, rimeaddr_t *from,
 }
 /*---------------------------------------------------------------------------*/
 static rimeaddr_t *
-data_packet_forward(struct mh_conn *mh, rimeaddr_t *originator,
+data_packet_forward(struct multihop_conn *multihop, rimeaddr_t *originator,
 		    rimeaddr_t *dest, rimeaddr_t *prevhop, uint8_t hops)
 {
   struct route_entry *rt;
@@ -99,7 +99,7 @@ found_route(struct route_discovery_conn *rdc, rimeaddr_t *dest)
     queuebuf_to_rimebuf(c->queued_data);
     queuebuf_free(c->queued_data);
     c->queued_data = NULL;
-    mh_send(&c->mh, dest);
+    multihop_send(&c->multihop, dest);
   }
 }
 /*---------------------------------------------------------------------------*/
@@ -119,7 +119,7 @@ route_timed_out(struct route_discovery_conn *rdc)
   }
 }
 /*---------------------------------------------------------------------------*/
-static const struct mh_callbacks data_callbacks = { data_packet_received,
+static const struct multihop_callbacks data_callbacks = { data_packet_received,
 						    data_packet_forward };
 static const struct route_discovery_callbacks route_discovery_callbacks =
   { found_route, route_timed_out };
@@ -128,7 +128,7 @@ void
 mesh_open(struct mesh_conn *c, uint16_t channels,
 	  const struct mesh_callbacks *callbacks)
 {
-  mh_open(&c->mh, channels, &data_callbacks);
+  multihop_open(&c->multihop, channels, &data_callbacks);
   route_discovery_open(&c->route_discovery_conn,
 		       CLOCK_SECOND * 2,
 		       channels + 1,
@@ -139,7 +139,7 @@ mesh_open(struct mesh_conn *c, uint16_t channels,
 void
 mesh_close(struct mesh_conn *c)
 {
-  mh_close(&c->mh);
+  multihop_close(&c->multihop);
   route_discovery_close(&c->route_discovery_conn);
 }
 /*---------------------------------------------------------------------------*/
@@ -148,7 +148,7 @@ mesh_send(struct mesh_conn *c, rimeaddr_t *to)
 {
   int could_send;
 
-  could_send = mh_send(&c->mh, to);
+  could_send = multihop_send(&c->multihop, to);
 
   if(!could_send) {
     if(c->queued_data != NULL) {
