@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: shell-rime.c,v 1.4 2008/07/02 14:08:06 adamdunkels Exp $
+ * $Id: shell-rime.c,v 1.5 2008/07/03 09:52:15 adamdunkels Exp $
  */
 
 /**
@@ -505,7 +505,7 @@ static const struct uc_callbacks uc_callbacks = {recv_uc};
 #endif /* WITH_DEBUG_COMMANDS */
 /*---------------------------------------------------------------------------*/
 static void
-recv_collect(rimeaddr_t *originator, u8_t seqno, u8_t hops)
+recv_collect(const rimeaddr_t *originator, u8_t seqno, u8_t hops)
 {
   struct collect_msg *collect_msg;
   rtimer_clock_t latency;
