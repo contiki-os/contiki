@@ -1,5 +1,5 @@
 /**
- * \addtogroup rimenf
+ * \addtogroup rimenetflood
  * @{
  */
 
@@ -33,23 +33,23 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: nf.c,v 1.16 2008/02/24 22:05:27 adamdunkels Exp $
+ * $Id: netflood.c,v 1.1 2008/07/03 22:25:22 adamdunkels Exp $
  */
 
 /**
  * \file
- *         Best-effort network flooding (nf)
+ *         Best-effort network flooding (netflood)
  * \author
  *         Adam Dunkels <adam@sics.se>
  */
 
-#include "net/rime/nf.h"
+#include "net/rime/netflood.h"
 #include "lib/rand.h"
 #include <string.h>
 
 #define HOPS_MAX 16
 
-struct nf_hdr {
+struct netflood_hdr {
   uint16_t originator_seqno;
   rimeaddr_t originator;
   uint16_t hops;
@@ -65,9 +65,9 @@ struct nf_hdr {
 
 /*---------------------------------------------------------------------------*/
 static int
-send(struct nf_conn *c)
+send(struct netflood_conn *c)
 {
-  PRINTF("%d.%d: nf send to ipolite\n",
+  PRINTF("%d.%d: netflood send to ipolite\n",
 	 rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1]);
   return ipolite_send(&c->c, c->queue_time, 4);
 }
@@ -75,8 +75,8 @@ send(struct nf_conn *c)
 static void
 recv_from_ipolite(struct ipolite_conn *ipolite, rimeaddr_t *from)
 {
-  struct nf_conn *c = (struct nf_conn *)ipolite;
-  struct nf_hdr *hdr = rimebuf_dataptr();
+  struct netflood_conn *c = (struct netflood_conn *)ipolite;
+  struct netflood_hdr *hdr = rimebuf_dataptr();
   uint8_t hops;
   struct queuebuf *queuebuf;
 
@@ -85,7 +85,7 @@ recv_from_ipolite(struct ipolite_conn *ipolite, rimeaddr_t *from)
   /* Remember packet if we need to forward it. */
   queuebuf = queuebuf_new_from_rimebuf();
 
-  rimebuf_hdrreduce(sizeof(struct nf_hdr));
+  rimebuf_hdrreduce(sizeof(struct netflood_hdr));
   if(c->u->recv != NULL) {
     if(!(rimeaddr_cmp(&hdr->originator, &c->last_originator) &&
 	 hdr->originator_seqno <= c->last_originator_seqno)) {
@@ -101,7 +101,7 @@ recv_from_ipolite(struct ipolite_conn *ipolite, rimeaddr_t *from)
 	  
 	  /* Rebroadcast received packet. */
 	  if(hops < HOPS_MAX) {
-	    PRINTF("%d.%d: nf rebroadcasting %d.%d/%d (%d.%d/%d) hops %d\n",
+	    PRINTF("%d.%d: netflood rebroadcasting %d.%d/%d (%d.%d/%d) hops %d\n",
 		   rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1],
 		   hdr->originator.u8[0], hdr->originator.u8[1],
 		   hdr->originator_seqno,
@@ -125,7 +125,7 @@ recv_from_ipolite(struct ipolite_conn *ipolite, rimeaddr_t *from)
 static void
 sent(struct ipolite_conn *ipolite)
 {
-  struct nf_conn *c = (struct nf_conn *)ipolite;
+  struct netflood_conn *c = (struct netflood_conn *)ipolite;
   if(c->u->sent != NULL) {
     c->u->sent(c);
   }
@@ -134,39 +134,39 @@ sent(struct ipolite_conn *ipolite)
 static void
 dropped(struct ipolite_conn *ipolite)
 {
-  struct nf_conn *c = (struct nf_conn *)ipolite;
+  struct netflood_conn *c = (struct netflood_conn *)ipolite;
   if(c->u->dropped != NULL) {
     c->u->dropped(c);
   }
 }
 /*---------------------------------------------------------------------------*/
-static const struct ipolite_callbacks nf = {recv_from_ipolite, sent, dropped};
+static const struct ipolite_callbacks netflood = {recv_from_ipolite, sent, dropped};
 /*---------------------------------------------------------------------------*/
 void
-nf_open(struct nf_conn *c, clock_time_t queue_time,
-	uint16_t channel, const struct nf_callbacks *u)
+netflood_open(struct netflood_conn *c, clock_time_t queue_time,
+	uint16_t channel, const struct netflood_callbacks *u)
 {
-  ipolite_open(&c->c, channel, &nf);
+  ipolite_open(&c->c, channel, &netflood);
   c->u = u;
   c->queue_time = queue_time;
 }
 /*---------------------------------------------------------------------------*/
 void
-nf_close(struct nf_conn *c)
+netflood_close(struct netflood_conn *c)
 {
   ipolite_close(&c->c);
 }
 /*---------------------------------------------------------------------------*/
 int
-nf_send(struct nf_conn *c, uint8_t seqno)
+netflood_send(struct netflood_conn *c, uint8_t seqno)
 {
-  if(rimebuf_hdralloc(sizeof(struct nf_hdr))) {
-    struct nf_hdr *hdr = rimebuf_hdrptr();
+  if(rimebuf_hdralloc(sizeof(struct netflood_hdr))) {
+    struct netflood_hdr *hdr = rimebuf_hdrptr();
     rimeaddr_copy(&hdr->originator, &rimeaddr_node_addr);
     rimeaddr_copy(&c->last_originator, &hdr->originator);
     c->last_originator_seqno = hdr->originator_seqno = seqno;
     hdr->hops = 0;
-    PRINTF("%d.%d: nf sending '%s'\n",
+    PRINTF("%d.%d: netflood sending '%s'\n",
 	   rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1],
 	   (char *)rimebuf_dataptr());
     return ipolite_send(&c->c, 0, 4);
@@ -175,7 +175,7 @@ nf_send(struct nf_conn *c, uint8_t seqno)
 }
 /*---------------------------------------------------------------------------*/
 void
-nf_cancel(struct nf_conn *c)
+netflood_cancel(struct netflood_conn *c)
 {
   ipolite_cancel(&c->c);
 }

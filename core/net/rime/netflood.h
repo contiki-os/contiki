@@ -4,14 +4,14 @@
  */
 
 /**
- * \defgroup rimenf Best-effort network flooding
+ * \defgroup rimenetflood Best-effort network flooding
  * @{
  *
- * The nf module does best-effort flooding.
+ * The netflood module does best-effort flooding.
  *
  * \section channels Channels
  *
- * The nf module uses 1 channel.
+ * The netflood module uses 1 channel.
  *
  */
 
@@ -45,46 +45,46 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: nf.h,v 1.11 2008/02/24 22:05:27 adamdunkels Exp $
+ * $Id: netflood.h,v 1.1 2008/07/03 22:25:22 adamdunkels Exp $
  */
 
 /**
  * \file
- *         Header file for the best-effort network flooding (nf)
+ *         Header file for the best-effort network flooding (netflood)
  * \author
  *         Adam Dunkels <adam@sics.se>
  */
 
-#ifndef __NF_H__
-#define __NF_H__
+#ifndef __NETFLOOD_H__
+#define __NETFLOOD_H__
 
 
 #include "net/rime/ctimer.h"
 #include "net/rime/queuebuf.h"
 #include "net/rime/ipolite.h"
 
-struct nf_conn;
+struct netflood_conn;
 
-struct nf_callbacks {
-  int (* recv)(struct nf_conn *c, rimeaddr_t *from,
+struct netflood_callbacks {
+  int (* recv)(struct netflood_conn *c, rimeaddr_t *from,
 	       rimeaddr_t *originator, uint8_t seqno, uint8_t hops);
-  void (* sent)(struct nf_conn *c);
-  void (* dropped)(struct nf_conn *c);
+  void (* sent)(struct netflood_conn *c);
+  void (* dropped)(struct netflood_conn *c);
 };
 
-struct nf_conn {
+struct netflood_conn {
   struct ipolite_conn c;
-  const struct nf_callbacks *u;
+  const struct netflood_callbacks *u;
   clock_time_t queue_time;
   rimeaddr_t last_originator;
   uint8_t last_originator_seqno;
 };
 
-void nf_open(struct nf_conn *c, clock_time_t queue_time,
-	     uint16_t channel, const struct nf_callbacks *u);
-void nf_close(struct nf_conn *c);
+void netflood_open(struct netflood_conn *c, clock_time_t queue_time,
+	     uint16_t channel, const struct netflood_callbacks *u);
+void netflood_close(struct netflood_conn *c);
 
-int nf_send(struct nf_conn *c, uint8_t seqno);
+int netflood_send(struct netflood_conn *c, uint8_t seqno);
 
 #endif /* __SIBC_H__ */
 /** @} */
