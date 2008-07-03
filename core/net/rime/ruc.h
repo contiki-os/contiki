@@ -45,7 +45,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: ruc.h,v 1.13 2008/02/25 02:14:35 adamdunkels Exp $
+ * $Id: ruc.h,v 1.14 2008/07/03 21:35:46 adamdunkels Exp $
  */
 
 /**
@@ -58,13 +58,13 @@
 #ifndef __RUC_H__
 #define __RUC_H__
 
-#include "net/rime/suc.h"
+#include "net/rime/stunicast.h"
 
 struct ruc_conn;
 
 #define RUC_ATTRIBUTES  { RIMEBUF_ATTR_PACKET_TYPE, RIMEBUF_ATTR_BIT }, \
                         { RIMEBUF_ATTR_PACKET_ID, RIMEBUF_ATTR_BIT * 2 }, \
-                        SUC_ATTRIBUTES
+                        STUNICAST_ATTRIBUTES
 struct ruc_callbacks {
   void (* recv)(struct ruc_conn *c, rimeaddr_t *from, uint8_t seqno);
   void (* sent)(struct ruc_conn *c, rimeaddr_t *to, uint8_t retransmissions);
@@ -72,7 +72,7 @@ struct ruc_callbacks {
 };
 
 struct ruc_conn {
-  struct suc_conn c;
+  struct stunicast_conn c;
   const struct ruc_callbacks *u;
   uint8_t sndnxt;
   uint8_t rxmit;

@@ -34,7 +34,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: ruc.c,v 1.19 2008/02/25 02:14:35 adamdunkels Exp $
+ * $Id: ruc.c,v 1.20 2008/07/03 21:35:46 adamdunkels Exp $
  */
 
 /**
@@ -53,9 +53,6 @@
 
 #define REXMIT_TIME CLOCK_SECOND
 
-#define TYPE_DATA 0
-#define TYPE_ACK  1
-
 static const struct rimebuf_attrlist attributes[] =
   {
     RUC_ATTRIBUTES
@@ -72,9 +69,9 @@ static const struct rimebuf_attrlist attributes[] =
 
 /*---------------------------------------------------------------------------*/
 static void
-sent_by_suc(struct suc_conn *suc)
+sent_by_stunicast(struct stunicast_conn *stunicast)
 {
-  struct ruc_conn *c = (struct ruc_conn *)suc;
+  struct ruc_conn *c = (struct ruc_conn *)stunicast;
 
   if(c->rxmit != 0) {
     RIMESTATS_ADD(rexmit);
@@ -86,9 +83,9 @@ sent_by_suc(struct suc_conn *suc)
   c->rxmit++;
   if(c->rxmit >= c->max_rxmit) {
     RIMESTATS_ADD(timedout);
-    suc_cancel(&c->c);
+    stunicast_cancel(&c->c);
     if(c->u->timedout) {
-      c->u->timedout(c, suc_receiver(&c->c), c->rxmit);
+      c->u->timedout(c, stunicast_receiver(&c->c), c->rxmit);
     }
     PRINTF("%d.%d: ruc: packet %d timed out\n",
 	   rimeaddr_node_addr.u8[0],rimeaddr_node_addr.u8[1],
@@ -97,17 +94,17 @@ sent_by_suc(struct suc_conn *suc)
     int shift;
 
     shift = c->rxmit > 4? 4: c->rxmit;
-    suc_set_timer(&c->c, (REXMIT_TIME) << shift);
+    stunicast_set_timer(&c->c, (REXMIT_TIME) << shift);
   }
 }
 /*---------------------------------------------------------------------------*/
 static void
-recv_from_suc(struct suc_conn *suc, rimeaddr_t *from)
+recv_from_stunicast(struct stunicast_conn *stunicast, rimeaddr_t *from)
 {
-  struct ruc_conn *c = (struct ruc_conn *)suc;
+  struct ruc_conn *c = (struct ruc_conn *)stunicast;
   /*  struct ruc_hdr *hdr = rimebuf_dataptr();*/
 
-  PRINTF("%d.%d: ruc: recv_from_suc from %d.%d type %d seqno %d\n",
+  PRINTF("%d.%d: ruc: recv_from_stunicast from %d.%d type %d seqno %d\n",
 	 rimeaddr_node_addr.u8[0],rimeaddr_node_addr.u8[1],
 	 from->u8[0], from->u8[1],
 	 rimebuf_attr(RIMEBUF_ATTR_PACKET_TYPE),
@@ -121,9 +118,9 @@ recv_from_suc(struct suc_conn *suc, rimeaddr_t *from)
 	     rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1],
 	     rimebuf_attr(RIMEBUF_ATTR_PACKET_ID));
       c->sndnxt = (c->sndnxt + 1) % (1 << RUC_PACKET_ID_BITS);
-      suc_cancel(&c->c);
+      stunicast_cancel(&c->c);
       if(c->u->sent != NULL) {
-	c->u->sent(c, suc_receiver(&c->c), c->rxmit);
+	c->u->sent(c, stunicast_receiver(&c->c), c->rxmit);
       }
     } else {
       PRINTF("%d.%d: ruc: received bad ACK %d for %d\n",
@@ -161,7 +158,7 @@ recv_from_suc(struct suc_conn *suc, rimeaddr_t *from)
     hdr->seqno = packet_seqno;*/
     rimebuf_set_attr(RIMEBUF_ATTR_PACKET_TYPE, RIMEBUF_ATTR_PACKET_TYPE_ACK);
     rimebuf_set_attr(RIMEBUF_ATTR_PACKET_ID, packet_seqno);
-    suc_send(&c->c, from);
+    stunicast_send(&c->c, from);
     RIMESTATS_ADD(acktx);
 
     queuebuf_to_rimebuf(q);
@@ -173,13 +170,13 @@ recv_from_suc(struct suc_conn *suc, rimeaddr_t *from)
   }
 }
 /*---------------------------------------------------------------------------*/
-static const struct suc_callbacks ruc = {recv_from_suc, sent_by_suc};
+static const struct stunicast_callbacks ruc = {recv_from_stunicast, sent_by_stunicast};
 /*---------------------------------------------------------------------------*/
 void
 ruc_open(struct ruc_conn *c, uint16_t channel,
 	  const struct ruc_callbacks *u)
 {
-  suc_open(&c->c, channel, &ruc);
+  stunicast_open(&c->c, channel, &ruc);
   channel_set_attributes(channel, attributes);
   c->u = u;
   c->rxmit = 0;
@@ -189,7 +186,7 @@ ruc_open(struct ruc_conn *c, uint16_t channel,
 void
 ruc_close(struct ruc_conn *c)
 {
-  suc_close(&c->c);
+  stunicast_close(&c->c);
 }
 /*---------------------------------------------------------------------------*/
 int
@@ -204,7 +201,7 @@ ruc_send(struct ruc_conn *c, rimeaddr_t *receiver, uint8_t max_retransmissions)
   PRINTF("%d.%d: ruc: sending packet %d\n",
 	 rimeaddr_node_addr.u8[0],rimeaddr_node_addr.u8[1],
 	 c->sndnxt);
-  return suc_send_stubborn(&c->c, receiver, REXMIT_TIME);
+  return stunicast_send_stubborn(&c->c, receiver, REXMIT_TIME);
 }
 /*---------------------------------------------------------------------------*/
 /** @} */

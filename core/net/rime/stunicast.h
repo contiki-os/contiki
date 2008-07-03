@@ -4,14 +4,14 @@
  */
 
 /**
- * \defgroup rimesuc Stubborn unicast
+ * \defgroup rimestunicast Stubborn unicast
  * @{
  *
- * The suc module takes one packet and sends it repetedly.
+ * The stunicast module takes one packet and sends it repetedly.
  *
  * \section channels Channels
  *
- * The suc module uses 1 channel.
+ * The stunicast module uses 1 channel.
  *
  */
 
@@ -45,7 +45,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: suc.h,v 1.12 2008/06/26 11:19:22 adamdunkels Exp $
+ * $Id: stunicast.h,v 1.1 2008/07/03 21:35:46 adamdunkels Exp $
  */
 
 /**
@@ -55,44 +55,44 @@
  *         Adam Dunkels <adam@sics.se>
  */
 
-#ifndef __SUC_H__
-#define __SUC_H__
+#ifndef __STUNICAST_H__
+#define __STUNICAST_H__
 
 #include "net/rime/unicast.h"
 #include "net/rime/ctimer.h"
 #include "net/rime/queuebuf.h"
 
-struct suc_conn;
+struct stunicast_conn;
 
-#define SUC_ATTRIBUTES  UNICAST_ATTRIBUTES
+#define STUNICAST_ATTRIBUTES  UNICAST_ATTRIBUTES
 
-struct suc_callbacks {
-  void (* recv)(struct suc_conn *c, rimeaddr_t *from);
-  void (* sent)(struct suc_conn *c);
+struct stunicast_callbacks {
+  void (* recv)(struct stunicast_conn *c, rimeaddr_t *from);
+  void (* sent)(struct stunicast_conn *c);
 };
 
-struct suc_conn {
+struct stunicast_conn {
   struct unicast_conn c;
   struct ctimer t;
   struct queuebuf *buf;
-  const struct suc_callbacks *u;
+  const struct stunicast_callbacks *u;
   rimeaddr_t receiver;
 };
 
-void suc_open(struct suc_conn *c, uint16_t channel,
-	       const struct suc_callbacks *u);
-void suc_close(struct suc_conn *c);
+void stunicast_open(struct stunicast_conn *c, uint16_t channel,
+	       const struct stunicast_callbacks *u);
+void stunicast_close(struct stunicast_conn *c);
 
-int suc_send_stubborn(struct suc_conn *c, rimeaddr_t *receiver,
+int stunicast_send_stubborn(struct stunicast_conn *c, rimeaddr_t *receiver,
 		      clock_time_t rxmittime);
-void suc_cancel(struct suc_conn *c);
+void stunicast_cancel(struct stunicast_conn *c);
 
-int suc_send(struct suc_conn *c, rimeaddr_t *receiver);
+int stunicast_send(struct stunicast_conn *c, rimeaddr_t *receiver);
 
-void suc_set_timer(struct suc_conn *c, clock_time_t t);
+void stunicast_set_timer(struct stunicast_conn *c, clock_time_t t);
 
-rimeaddr_t *suc_receiver(struct suc_conn *c);
+rimeaddr_t *stunicast_receiver(struct stunicast_conn *c);
 
-#endif /* __SUC_H__ */
+#endif /* __STUNICAST_H__ */
 /** @} */
 /** @} */
