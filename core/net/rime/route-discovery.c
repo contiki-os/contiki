@@ -33,7 +33,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: route-discovery.c,v 1.10 2008/06/26 11:19:22 adamdunkels Exp $
+ * $Id: route-discovery.c,v 1.11 2008/07/03 22:02:10 adamdunkels Exp $
  */
 
 /**
@@ -90,7 +90,7 @@ send_rreq(struct route_discovery_conn *c, rimeaddr_t *dest)
   msg->rreq_id = c->rreq_id;
   rimeaddr_copy(&msg->dest, dest);
 
-  nf_send(&c->rreqconn, c->rreq_id);
+  netflood_send(&c->rreqconn, c->rreq_id);
   c->rreq_id++;
 }
 /*---------------------------------------------------------------------------*/
@@ -174,7 +174,7 @@ rrep_packet_received(struct unicast_conn *uc, rimeaddr_t *from)
 }
 /*---------------------------------------------------------------------------*/
 static int
-rreq_packet_received(struct nf_conn *nf, rimeaddr_t *from,
+rreq_packet_received(struct netflood_conn *nf, rimeaddr_t *from,
 		      rimeaddr_t *originator, uint8_t seqno, uint8_t hops)
 {
   struct route_msg *msg = rimebuf_dataptr();
@@ -219,7 +219,7 @@ rreq_packet_received(struct nf_conn *nf, rimeaddr_t *from,
 }
 /*---------------------------------------------------------------------------*/
 static const struct unicast_callbacks rrep_callbacks = {rrep_packet_received};
-static const struct nf_callbacks rreq_callbacks = {rreq_packet_received, NULL, NULL};
+static const struct netflood_callbacks rreq_callbacks = {rreq_packet_received, NULL, NULL};
 /*---------------------------------------------------------------------------*/
 void
 route_discovery_open(struct route_discovery_conn *c,
@@ -227,7 +227,7 @@ route_discovery_open(struct route_discovery_conn *c,
 		     uint16_t channels,
 		     const struct route_discovery_callbacks *callbacks)
 {
-  nf_open(&c->rreqconn, time, channels + 0, &rreq_callbacks);
+  netflood_open(&c->rreqconn, time, channels + 0, &rreq_callbacks);
   unicast_open(&c->rrepconn, channels + 1, &rrep_callbacks);
   c->cb = callbacks;
 }
@@ -236,7 +236,7 @@ void
 route_discovery_close(struct route_discovery_conn *c)
 {
   unicast_close(&c->rrepconn);
-  nf_close(&c->rreqconn);
+  netflood_close(&c->rreqconn);
   ctimer_stop(&c->t);
 }
 /*---------------------------------------------------------------------------*/

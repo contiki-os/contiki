@@ -33,7 +33,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: trickle.c,v 1.8 2008/02/25 02:14:35 adamdunkels Exp $
+ * $Id: trickle.c,v 1.9 2008/07/03 22:02:10 adamdunkels Exp $
  */
 
 /**
@@ -71,7 +71,7 @@ send(void *ptr)
 
   if(c->q != NULL) {
     queuebuf_to_rimebuf(c->q);
-    nf_send(&c->c, c->seqno);
+    netflood_send(&c->c, c->seqno);
     ctimer_set(&c->t, c->interval << c->interval_scaling,
 	       send, c);
   } else {
@@ -81,7 +81,7 @@ send(void *ptr)
 }
 /*---------------------------------------------------------------------------*/
 static int
-recv(struct nf_conn *nf, rimeaddr_t *from,
+recv(struct netflood_conn *nf, rimeaddr_t *from,
      rimeaddr_t *originator, uint8_t seqno, uint8_t hops)
 {
   struct trickle_conn *c = (struct trickle_conn *)nf;
@@ -113,7 +113,7 @@ recv(struct nf_conn *nf, rimeaddr_t *from,
 }
 /*---------------------------------------------------------------------------*/
 static void
-sent_or_dropped(struct nf_conn *nf)
+sent_or_dropped(struct netflood_conn *nf)
 {
   struct trickle_conn *c = (struct trickle_conn *)nf;
   
@@ -123,7 +123,7 @@ sent_or_dropped(struct nf_conn *nf)
   }
 }
 /*---------------------------------------------------------------------------*/
-static const struct nf_callbacks nf = {recv,
+static const struct netflood_callbacks nf = {recv,
 				       sent_or_dropped,
 				       sent_or_dropped};
 /*---------------------------------------------------------------------------*/
@@ -131,7 +131,7 @@ void
 trickle_open(struct trickle_conn *c, clock_time_t interval,
 	     uint16_t channel, const struct trickle_callbacks *cb)
 {
-  nf_open(&c->c, interval, channel, &nf);
+  netflood_open(&c->c, interval, channel, &nf);
   c->cb = cb;
   c->q = NULL;
   c->interval = interval;
@@ -140,7 +140,7 @@ trickle_open(struct trickle_conn *c, clock_time_t interval,
 void
 trickle_close(struct trickle_conn *c)
 {
-  nf_close(&c->c);
+  netflood_close(&c->c);
   ctimer_stop(&c->t);
 }
 /*---------------------------------------------------------------------------*/
