@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#)$Id: xmem.c,v 1.6 2008/02/11 10:43:31 adamdunkels Exp $
+ * @(#)$Id: xmem.c,v 1.7 2008/07/03 23:12:10 adamdunkels Exp $
  */
 
 /**
@@ -127,7 +127,7 @@ wait_ready(void)
  * Erase 64k bytes of data. It takes about 1s before WIP goes low!
  */
 static void
-erase_sector(off_t offset)
+erase_sector(unsigned long offset)
 {
   int s;
   wait_ready();
@@ -162,7 +162,7 @@ xmem_init(void)
 }
 /*---------------------------------------------------------------------------*/
 int
-xmem_pread(void *_p, int size, off_t offset)
+xmem_pread(void *_p, int size, unsigned long offset)
 {
   unsigned char *p = _p;
   const unsigned char *end = p + size;
@@ -190,7 +190,7 @@ xmem_pread(void *_p, int size, off_t offset)
 }
 /*---------------------------------------------------------------------------*/
 static const char *
-program_page(off_t offset, const unsigned char *p, int nbytes)
+program_page(unsigned long offset, const unsigned char *p, int nbytes)
 {
   const unsigned char *end = p + nbytes;
   int s;
@@ -218,11 +218,11 @@ program_page(off_t offset, const unsigned char *p, int nbytes)
 }
 /*---------------------------------------------------------------------------*/
 int
-xmem_pwrite(const void *_buf, int size, off_t addr)
+xmem_pwrite(const void *_buf, int size, unsigned long addr)
 {
   const unsigned char *p = _buf;
-  const off_t end = addr + size;
-  off_t i, next_page;
+  const unsigned long end = addr + size;
+  unsigned long i, next_page;
   
   for(i = addr; i < end;) {
     next_page = (i | 0xff) + 1;
@@ -236,9 +236,9 @@ xmem_pwrite(const void *_buf, int size, off_t addr)
 }
 /*---------------------------------------------------------------------------*/
 int
-xmem_erase(long size, off_t addr)
+xmem_erase(long size, unsigned long addr)
 {
-  off_t end = addr + size;
+  unsigned long end = addr + size;
 
   if(size % XMEM_ERASE_UNIT_SIZE != 0) {
     PRINTF("xmem_erase: bad size\n");
