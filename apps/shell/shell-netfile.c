@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: shell-netfile.c,v 1.3 2008/07/03 09:50:23 adamdunkels Exp $
+ * $Id: shell-netfile.c,v 1.4 2008/07/03 21:14:29 adamdunkels Exp $
  */
 
 /**
@@ -121,15 +121,16 @@ PROCESS_THREAD(shell_netfile_process, ev, data)
 
   PROCESS_BEGIN();
 
-  rudolph0_send(&rudolph0_conn, CLOCK_SECOND);
   if(data != NULL) {
-    strcpy(filename, data);
-  }
-  fd = cfs_open(filename, CFS_READ);
-  if(fd < 0) {
-    shell_output_str(&netfile_command, "netfile: could not open file ", filename);
-  } else {
-    cfs_close(fd);
+    rudolph0_send(&rudolph0_conn, CLOCK_SECOND);
+    
+    strncpy(filename, data, FILENAME_LEN);
+    fd = cfs_open(filename, CFS_READ);
+    if(fd < 0) {
+      shell_output_str(&netfile_command, "netfile: could not open file ", filename);
+    } else {
+      cfs_close(fd);
+    }
   }
 
   PROCESS_END();
