@@ -6,14 +6,14 @@ CONTIKI = ../..
 
 %.shell-upload: %.ce
 	(echo; sleep 4; echo "~K"; sleep 4; \
-         echo "dec64 | write file | null"; sleep 4; \
+         echo "dec64 | write $*.ce | null"; sleep 4; \
 	 ../../tools/base64-encode < $<; sleep 4; \
-         echo "read file | size"; sleep 4) | make login
+         echo "read $*.ce | size"; sleep 4) | make login
 
-netsend:
+%.netsend: %.shell-upload
 	(echo; sleep 4; echo "~K"; sleep 4; \
-         echo "netcmd { recvnetfile | write file | size send } "; sleep 4; \
-         echo "netfile file"; sleep 4;\
+         echo "netcmd { recvnetfile | write $*.ce | size send } "; sleep 4; \
+         echo "netfile $*.ce"; sleep 4;\
          echo "collect | binprint"; sleep 40) | make login
 
 %.tgz: %.ihex
@@ -78,6 +78,14 @@ setup-sensor:
 	 echo "killall "; \
 	 echo "time `date +%s` | null"; \
          echo 'netcmd { repeat 10000 20 { randwait 20 sense | blink | send } }'; \
+	 sleep 2; \
+         echo 'collect | timestamp | blink | write file | binprint &') | make login
+
+setup-sensor-alldata:
+	(echo "~K"; \
+	 echo "killall "; \
+	 echo "time `date +%s` | null"; \
+         echo 'netcmd { repeat 0 20 { randwait 20 sky-alldata | blink | send } }'; \
 	 sleep 2; \
          echo 'collect | timestamp | blink | write file | binprint &') | make login
 
