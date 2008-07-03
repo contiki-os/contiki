@@ -32,8 +32,8 @@
  *
  * Author  : Joakim Eriksson
  * Created : 2008-03-27
- * Updated : $Date: 2008/04/25 22:12:25 $
- *           $Revision: 1.2 $
+ * Updated : $Date: 2008/07/03 23:40:12 $
+ *           $Revision: 1.3 $
  */
 #include "lib/ifft.h"
 
@@ -59,7 +59,7 @@ static const int8_t SIN_TAB[] = {
 };
 
 
-static uint16_t bitrev(uint16_t j, uint16_t nu) 
+static uint16_t bitrev(uint16_t j, uint16_t nu)
 {
   uint16_t k;
   k = 0;
@@ -72,19 +72,19 @@ static uint16_t bitrev(uint16_t j, uint16_t nu)
 
 
 /* Non interpolating sine... which takes an angle of 0 - 999 */
-static int16_t sinI(uint16_t angleMilli) 
+static int16_t sinI(uint16_t angleMilli)
 {
   uint16_t pos;
   pos = (uint16_t) ((SIN_TAB_LEN * (uint32_t) angleMilli) / 1000);
   return SIN_TAB[pos % SIN_TAB_LEN];
 }
 
-static int16_t cosI(uint16_t angleMilli) 
+static int16_t cosI(uint16_t angleMilli)
 {
   return sinI(angleMilli + 250);
 }
 
-static uint16_t log2(uint16_t val) 
+static uint16_t ilog2(uint16_t val)
 {
   uint16_t log;
   log = 0;
@@ -111,7 +111,7 @@ static uint16_t log2(uint16_t val)
    calculations.
 */
 void
-ifft(int16_t xre[], int16_t xim[], uint16_t n) 
+ifft(int16_t xre[], int16_t xim[], uint16_t n)
 {
   uint16_t nu;
   uint16_t n2;
@@ -119,7 +119,7 @@ ifft(int16_t xre[], int16_t xim[], uint16_t n)
   int p, k, l, i;
   int32_t c, s, tr, ti;
 
-  nu = log2(n);
+  nu = ilog2(n);
   nu1 = nu - 1;
   n2 = n / 2;
 
