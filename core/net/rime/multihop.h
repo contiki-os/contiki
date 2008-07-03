@@ -4,17 +4,17 @@
  */
 
 /**
- * \defgroup rimemh Best-effort multihop forwarding
+ * \defgroup rimemultihop Best-effort multihop forwarding
  * @{
  *
- * The mh module implements a multihop forwarding mechanism. Routes
+ * The multihop module implements a multihop forwarding mechanism. Routes
  * must have already been setup with the route_add() function. Setting
  * up routes is done with another Rime module such as the \ref
  * routediscovery "route-discovery module".
  *
  * \section channels Channels
  *
- * The mh module uses 1 channel.
+ * The multihop module uses 1 channel.
  *
  */
 
@@ -48,7 +48,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: mh.h,v 1.7 2008/06/26 11:19:22 adamdunkels Exp $
+ * $Id: multihop.h,v 1.1 2008/07/03 22:36:03 adamdunkels Exp $
  */
 
 /**
@@ -58,36 +58,36 @@
  *         Adam Dunkels <adam@sics.se>
  */
 
-#ifndef __MH_H__
-#define __MH_H__
+#ifndef __MULTIHOP_H__
+#define __MULTIHOP_H__
 
 #include "net/rime/unicast.h"
 #include "net/rime/rimeaddr.h"
 
-struct mh_conn;
+struct multihop_conn;
 
-struct mh_callbacks {
-  void (* recv)(struct mh_conn *ptr,
+struct multihop_callbacks {
+  void (* recv)(struct multihop_conn *ptr,
 		rimeaddr_t *sender,
 		rimeaddr_t *prevhop,
 		uint8_t hops);
-  rimeaddr_t *(* forward)(struct mh_conn *ptr,
+  rimeaddr_t *(* forward)(struct multihop_conn *ptr,
 			  rimeaddr_t *originator,
 			  rimeaddr_t *dest,
 			  rimeaddr_t *prevhop,
 			  uint8_t hops);
 };
 
-struct mh_conn {
+struct multihop_conn {
   struct unicast_conn c;
-  const struct mh_callbacks *cb;
+  const struct multihop_callbacks *cb;
 };
 
-void mh_open(struct mh_conn *c, uint16_t channel,
-	     const struct mh_callbacks *u);
-void mh_close(struct mh_conn *c);
-int mh_send(struct mh_conn *c, rimeaddr_t *to);
+void multihop_open(struct multihop_conn *c, uint16_t channel,
+	     const struct multihop_callbacks *u);
+void multihop_close(struct multihop_conn *c);
+int multihop_send(struct multihop_conn *c, rimeaddr_t *to);
 
-#endif /* __MH_H__ */
+#endif /* __MULTIHOP_H__ */
 /** @} */
 /** @} */

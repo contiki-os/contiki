@@ -28,12 +28,12 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: example-mh.c,v 1.2 2008/02/24 22:15:46 adamdunkels Exp $
+ * $Id: example-multihop.c,v 1.1 2008/07/03 22:36:02 adamdunkels Exp $
  */
 
 /**
  * \file
- *         Testing the multihop forwarding layer (mh) in Rime
+ *         Testing the multihop forwarding layer (multihop) in Rime
  * \author
  *         Adam Dunkels <adam@sics.se>
  */
@@ -47,31 +47,31 @@
 
 #include <stdio.h>
 /*---------------------------------------------------------------------------*/
-PROCESS(example_mh_process, "mh example");
-AUTOSTART_PROCESSES(&example_mh_process);
+PROCESS(example_multihop_process, "multihop example");
+AUTOSTART_PROCESSES(&example_multihop_process);
 /*---------------------------------------------------------------------------*/
 static void
-recv(struct mh_conn *c, rimeaddr_t *sender)
+recv(struct multihop_conn *c, rimeaddr_t *sender)
 {
-  printf("mh message received '%s'\n", (char *)rimebuf_dataptr());
+  printf("multihop message received '%s'\n", (char *)rimebuf_dataptr());
 }
 static rimeaddr_t *
-forward(struct mh_conn *c, rimeaddr_t *originator, rimeaddr_t *dest,
+forward(struct multihop_conn *c, rimeaddr_t *originator, rimeaddr_t *dest,
 	rimeaddr_t *prevhop, uint8_t hops)
 {
   printf("Forwarding message '%s'\n", (char *)rimebuf_dataptr());
   return NULL;
 }
-static const struct mh_callbacks mh_call = {recv, forward};
-static struct mh_conn mh;
+static const struct multihop_callbacks multihop_call = {recv, forward};
+static struct multihop_conn multihop;
 /*---------------------------------------------------------------------------*/
-PROCESS_THREAD(example_mh_process, ev, data)
+PROCESS_THREAD(example_multihop_process, ev, data)
 {
-  PROCESS_EXITHANDLER(mh_close(&mh);)
+  PROCESS_EXITHANDLER(multihop_close(&multihop);)
     
   PROCESS_BEGIN();
 
-  mh_open(&mh, 128, &mh_call);
+  multihop_open(&multihop, 128, &multihop_call);
 
   while(1) {
     static struct etimer et;
@@ -84,7 +84,7 @@ PROCESS_THREAD(example_mh_process, ev, data)
     rimebuf_copyfrom("Hej", 4);
     to.u8[0] = 161;
     to.u8[1] = 161;
-    mh_send(&mh, &to);
+    multihop_send(&multihop, &to);
 
   }
 
