@@ -47,7 +47,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: collect.h,v 1.6 2008/06/30 09:15:22 adamdunkels Exp $
+ * $Id: collect.h,v 1.7 2008/07/03 17:58:10 adamdunkels Exp $
  */
 
 /**
@@ -72,7 +72,7 @@
                             RUC_ATTRIBUTES
 
 struct collect_callbacks {
-  void (* recv)(rimeaddr_t *originator, uint8_t seqno,
+  void (* recv)(const rimeaddr_t *originator, uint8_t seqno,
 		uint8_t hops);
 };
 
