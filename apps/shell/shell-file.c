@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: shell-file.c,v 1.4 2008/07/02 14:06:46 adamdunkels Exp $
+ * $Id: shell-file.c,v 1.5 2008/07/03 21:13:54 adamdunkels Exp $
  */
 
 /**
@@ -44,6 +44,8 @@
 
 #include <stdio.h>
 #include <string.h>
+
+#define MAX_FILENAME_LEN 40
 
 /*---------------------------------------------------------------------------*/
 PROCESS(shell_ls_process, "ls");
@@ -64,7 +66,7 @@ SHELL_COMMAND(write_command,
 PROCESS(shell_read_process, "read");
 SHELL_COMMAND(read_command,
 	      "read",
-	      "read <filename>: read from file",
+	      "read <filename> [offset]: read from file, with an optional offset",
 	      &shell_read_process);
 /*---------------------------------------------------------------------------*/
 PROCESS_THREAD(shell_ls_process, ev, data)
@@ -82,6 +84,7 @@ PROCESS_THREAD(shell_ls_process, ev, data)
     while(cfs_readdir(&dir, &dirent) == 0) {
       totsize += dirent.size;
       sprintf(buf, "%3d ", dirent.size);
+      /*      printf("'%s'\n", dirent.name);*/
       shell_output_str(&ls_command, buf, dirent.name);
     }
     cfs_closedir(&dir);
@@ -166,39 +169,67 @@ PROCESS_THREAD(shell_write_process, ev, data)
 PROCESS_THREAD(shell_read_process, ev, data)
 {
   static int fd = 0;
+  char *next;
+  char filename[MAX_FILENAME_LEN];
+  int len;
+  int offset = 0;
   PROCESS_EXITHANDLER(cfs_close(fd));
   PROCESS_BEGIN();
 
-  fd = cfs_open(data, CFS_READ);
-
-  if(fd < 0) {
-    shell_output_str(&read_command,
-		     "read: could not open file for reading: ", data);
-  } else {
-
-    while(1) {
-      char buf[40];
-      int len;
-      struct shell_input *input;
-      
-      len = cfs_read(fd, buf, sizeof(buf));
+  if(data != NULL) {
+    next = strchr(data, ' ');
+    if(next == NULL) {
+      strncpy(filename, data, sizeof(filename));
+    } else {
+      len = next - (char *)data;
       if(len <= 0) {
-	cfs_close(fd);
+	shell_output_str(&read_command,
+		       "read: filename too short: ", data);
 	PROCESS_EXIT();
       }
-      shell_output(&read_command,
-		   buf, len, "", 0);
+      if(len > MAX_FILENAME_LEN) {
+	shell_output_str(&read_command,
+		       "read: filename too long: ", data);
+	PROCESS_EXIT();
+      }
+      memcpy(filename, data, len);
+      filename[len] = 0;
+
+      offset = shell_strtolong(next, NULL);
+    }
+    
+    fd = cfs_open(filename, CFS_READ);
+    cfs_seek(fd, offset);
+    
+    if(fd < 0) {
+      shell_output_str(&read_command,
+		       "read: could not open file for reading: ", filename);
+    } else {
       
-      process_post(&shell_read_process, PROCESS_EVENT_CONTINUE, NULL);
-      PROCESS_WAIT_EVENT_UNTIL(ev == PROCESS_EVENT_CONTINUE ||
-			       ev == shell_event_input);
-      
-      if(ev == shell_event_input) {
-	input = data;
-	/*    printf("cat input %d %d\n", input->len1, input->len2);*/
-	if(input->len1 + input->len2 == 0) {
+      while(1) {
+	char buf[40];
+	int len;
+	struct shell_input *input;
+	
+	len = cfs_read(fd, buf, sizeof(buf));
+	if(len <= 0) {
 	  cfs_close(fd);
 	  PROCESS_EXIT();
+	}
+	shell_output(&read_command,
+		     buf, len, "", 0);
+	
+	process_post(&shell_read_process, PROCESS_EVENT_CONTINUE, NULL);
+	PROCESS_WAIT_EVENT_UNTIL(ev == PROCESS_EVENT_CONTINUE ||
+				 ev == shell_event_input);
+	
+	if(ev == shell_event_input) {
+	  input = data;
+	  /*    printf("cat input %d %d\n", input->len1, input->len2);*/
+	  if(input->len1 + input->len2 == 0) {
+	    cfs_close(fd);
+	    PROCESS_EXIT();
+	  }
 	}
       }
     }
