@@ -12,7 +12,7 @@ CONTIKI = ../..
 
 %.netsend: %.shell-upload
 	(echo; sleep 4; echo "~K"; sleep 4; \
-         echo "netcmd { recvnetfile | write $*.ce | size send } "; sleep 4; \
+         echo "netcmd { recvnetfile | write $*.ce | size | send } "; sleep 4; \
          echo "netfile $*.ce"; sleep 4;\
          echo "collect | binprint"; sleep 40) | make login
 
