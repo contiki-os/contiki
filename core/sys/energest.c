@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: energest.c,v 1.7 2008/06/02 13:12:07 nifi Exp $
+ * $Id: energest.c,v 1.1 2008/07/03 23:36:30 adamdunkels Exp $
  */
 
 /**
@@ -38,7 +38,7 @@
  *         Adam Dunkels <adam@sics.se>
  */
 
-#include "lib/energest.h"
+#include "sys/energest.h"
 #include "contiki-conf.h"
 
 #if ENERGEST_CONF_ON

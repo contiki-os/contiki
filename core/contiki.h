@@ -30,7 +30,7 @@
  *
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: contiki.h,v 1.4 2007/05/26 23:23:56 oliverschmidt Exp $
+ * $Id: contiki.h,v 1.5 2008/07/03 23:36:30 adamdunkels Exp $
  */
 #ifndef __CONTIKI_H__
 #define __CONTIKI_H__
@@ -52,6 +52,6 @@
 #include "sys/loader.h"
 #include "sys/clock.h"
 
-#include "lib/energest.h"
+#include "sys/energest.h"
 
 #endif /* __CONTIKI_H__ */

@@ -28,12 +28,12 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: leds.c,v 1.4 2007/03/19 00:33:25 adamdunkels Exp $
+ * @(#)$Id: leds.c,v 1.5 2008/07/03 23:36:30 adamdunkels Exp $
  */
 
 #include "dev/leds.h"
 #include "sys/clock.h"
-#include "lib/energest.h"
+#include "sys/energest.h"
 
 static unsigned char leds, invert;
 /*---------------------------------------------------------------------------*/
