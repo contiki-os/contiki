@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: shell-sky.c,v 1.7 2008/07/02 14:14:37 adamdunkels Exp $
+ * $Id: shell-sky.c,v 1.8 2008/07/03 09:52:15 adamdunkels Exp $
  */
 
 /**
@@ -48,6 +48,8 @@
 #include "dev/leds.h"
 #include "dev/light.h"
 #include "dev/sht11.h"
+
+#include "cfs/cfs-coffee.h"
 
 #include "net/rime/timesynch.h"
 
@@ -390,7 +392,7 @@ PROCESS_THREAD(shell_powerconv_process, ev, data)
 static void
 printpowergraph(struct power_msg *msg)
 {
-  int i, j;
+  int i;
   unsigned long avg_power;
   unsigned long time;
   char buf[MAX_POWERGRAPH];
