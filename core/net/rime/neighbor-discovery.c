@@ -33,7 +33,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: neighbor-discovery.c,v 1.7 2008/07/02 15:02:33 matsutsuka Exp $
+ * $Id: neighbor-discovery.c,v 1.8 2008/07/03 22:02:10 adamdunkels Exp $
  */
 
 /**
@@ -47,7 +47,6 @@
 
 #include "net/rime.h"
 #include "net/rime/neighbor.h"
-#include "net/rime/nf.h"
 #include "net/rime/neighbor-discovery.h"
 
 #include "dev/radio-sensor.h"

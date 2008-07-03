@@ -45,7 +45,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: route-discovery.h,v 1.6 2008/06/26 11:19:22 adamdunkels Exp $
+ * $Id: route-discovery.h,v 1.7 2008/07/03 22:02:10 adamdunkels Exp $
  */
 
 /**
@@ -59,7 +59,7 @@
 #define __ROUTE_DISCOVERY_H__
 
 #include "net/rime/unicast.h"
-#include "net/rime/nf.h"
+#include "net/rime/netflood.h"
 
 struct route_discovery_conn;
 
@@ -71,7 +71,7 @@ struct route_discovery_callbacks {
 #define ROUTE_DISCOVERY_ENTRIES 8
 
 struct route_discovery_conn {
-  struct nf_conn rreqconn;
+  struct netflood_conn rreqconn;
   struct unicast_conn rrepconn;
   struct ctimer t;
   rimeaddr_t last_rreq_originator;
