@@ -43,7 +43,6 @@
 #include "cfs/cfs-coffee.h"
 #include "dev/watchdog.h"
 
-#include <stdio.h>
 #include <string.h>
 
 #define DEBUG 0
@@ -240,10 +239,10 @@ find_file(const char *name)
   
   offset = COFFEE_START;
   do {
-    COFFEE_READ(&hdr, sizeof (hdr), offset);
+    READ_HEADER(&hdr, offset);
     if(COFFEE_PAGE_ACTIVE(hdr)) {
       if(strcmp(name, hdr.name) == 0) {
-	page = offset / COFFEE_PAGE_SIZE;
+	page = (offset - COFFEE_START) / COFFEE_PAGE_SIZE;
 	dir_cache_add(name[0], page);
 	return page;
       }
