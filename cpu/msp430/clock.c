@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: clock.c,v 1.12 2008/01/08 08:01:41 adamdunkels Exp $
+ * @(#)$Id: clock.c,v 1.13 2008/07/03 23:59:20 adamdunkels Exp $
  */
 
 
@@ -37,7 +37,7 @@
 
 #include "contiki-conf.h"
 
-#include "lib/energest.h"
+#include "sys/energest.h"
 #include "sys/clock.h"
 #include "sys/etimer.h"
 
@@ -108,6 +108,7 @@ clock_init(void)
 
   /* Select SMCLK (2.4576MHz), clear TAR */
   /* TACTL = TASSEL1 | TACLR | ID_3; */
+  
   /* Select ACLK 32768Hz clock, divide by 8 */
   TACTL = TASSEL0 | TACLR | ID_3;
 
