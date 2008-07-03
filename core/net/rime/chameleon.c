@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: chameleon.c,v 1.3 2008/03/03 20:20:33 adamdunkels Exp $
+ * $Id: chameleon.c,v 1.4 2008/07/03 23:13:31 adamdunkels Exp $
  */
 
 /**
@@ -150,6 +150,11 @@ chameleon_output(struct channel *c)
 int
 chameleon_hdrsize(const struct rimebuf_attrlist attrlist[])
 {
-  return header_module->hdrsize(attrlist);
+  if(header_module != NULL &&
+     header_module->hdrsize != NULL) {
+    return header_module->hdrsize(attrlist);
+  } else {
+    return 0;
+  }
 }
 /*---------------------------------------------------------------------------*/
