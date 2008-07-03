@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: print-stats.c,v 1.3 2007/11/17 10:46:25 adamdunkels Exp $
+ * $Id: print-stats.c,v 1.4 2008/07/03 23:36:30 adamdunkels Exp $
  */
 
 /**
@@ -41,7 +41,7 @@
 #include "lib/print-stats.h"
 
 #include "net/rime.h"
-#include "lib/energest.h"
+#include "sys/energest.h"
 
 #include <stdio.h>
 
