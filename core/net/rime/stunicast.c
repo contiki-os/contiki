@@ -1,5 +1,5 @@
 /**
- * \addtogroup rimesuc
+ * \addtogroup rimestunicast
  * @{
  */
 
@@ -33,7 +33,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: suc.c,v 1.13 2008/06/26 11:19:22 adamdunkels Exp $
+ * $Id: stunicast.c,v 1.1 2008/07/03 21:35:46 adamdunkels Exp $
  */
 
 /**
@@ -43,7 +43,7 @@
  *         Adam Dunkels <adam@sics.se>
  */
 
-#include "net/rime/suc.h"
+#include "net/rime/stunicast.h"
 #include "net/rime.h"
 #include <string.h>
 
@@ -59,8 +59,8 @@
 static void
 recv_from_uc(struct unicast_conn *uc, rimeaddr_t *from)
 {
-  register struct suc_conn *c = (struct suc_conn *)uc;
-  PRINTF("%d.%d: suc: recv_from_uc from %d.%d\n",
+  register struct stunicast_conn *c = (struct stunicast_conn *)uc;
+  PRINTF("%d.%d: stunicast: recv_from_uc from %d.%d\n",
 	 rimeaddr_node_addr.u8[0],rimeaddr_node_addr.u8[1],
 	from->u8[0], from->u8[1]);
   if(c->u->recv != NULL) {
@@ -68,18 +68,18 @@ recv_from_uc(struct unicast_conn *uc, rimeaddr_t *from)
   }
 }
 /*---------------------------------------------------------------------------*/
-static const struct unicast_callbacks suc = {recv_from_uc};
+static const struct unicast_callbacks stunicast = {recv_from_uc};
 /*---------------------------------------------------------------------------*/
 void
-suc_open(struct suc_conn *c, uint16_t channel,
-	  const struct suc_callbacks *u)
+stunicast_open(struct stunicast_conn *c, uint16_t channel,
+	  const struct stunicast_callbacks *u)
 {
-  unicast_open(&c->c, channel, &suc);
+  unicast_open(&c->c, channel, &stunicast);
   c->u = u;
 }
 /*---------------------------------------------------------------------------*/
 void
-suc_close(struct suc_conn *c)
+stunicast_close(struct stunicast_conn *c)
 {
   unicast_close(&c->c);
   ctimer_stop(&c->t);
@@ -89,7 +89,7 @@ suc_close(struct suc_conn *c)
 }
 /*---------------------------------------------------------------------------*/
 rimeaddr_t *
-suc_receiver(struct suc_conn *c)
+stunicast_receiver(struct stunicast_conn *c)
 {
   return &c->receiver;
 }
@@ -97,27 +97,27 @@ suc_receiver(struct suc_conn *c)
 static void
 send(void *ptr)
 {
-  struct suc_conn *c = ptr;
+  struct stunicast_conn *c = ptr;
 
-  PRINTF("%d.%d: suc: resend to %d.%d\n",
+  PRINTF("%d.%d: stunicast: resend to %d.%d\n",
 	 rimeaddr_node_addr.u8[0],rimeaddr_node_addr.u8[1],
 	 c->receiver.u8[0], c->receiver.u8[1]);
   queuebuf_to_rimebuf(c->buf);
   unicast_send(&c->c, &c->receiver);
-  suc_set_timer(c, CLOCK_SECOND);
+  stunicast_set_timer(c, CLOCK_SECOND);
   if(c->u->sent != NULL) {
     c->u->sent(c);
   }
 }
 /*---------------------------------------------------------------------------*/
 void
-suc_set_timer(struct suc_conn *c, clock_time_t t)
+stunicast_set_timer(struct stunicast_conn *c, clock_time_t t)
 {
   ctimer_set(&c->t, t, send, c);
 }
 /*---------------------------------------------------------------------------*/
 int
-suc_send_stubborn(struct suc_conn *c, rimeaddr_t *receiver,
+stunicast_send_stubborn(struct stunicast_conn *c, rimeaddr_t *receiver,
 		  clock_time_t rxmittime)
 {
   if(c->buf != NULL) {
@@ -130,7 +130,7 @@ suc_send_stubborn(struct suc_conn *c, rimeaddr_t *receiver,
   rimeaddr_copy(&c->receiver, receiver);
   ctimer_set(&c->t, rxmittime, send, c);
 
-  PRINTF("%d.%d: suc_send_stubborn to %d.%d\n",
+  PRINTF("%d.%d: stunicast_send_stubborn to %d.%d\n",
 	 rimeaddr_node_addr.u8[0],rimeaddr_node_addr.u8[1],
 	 c->receiver.u8[0],c->receiver.u8[1]);
   unicast_send(&c->c, &c->receiver);
@@ -143,16 +143,16 @@ suc_send_stubborn(struct suc_conn *c, rimeaddr_t *receiver,
 }
 /*---------------------------------------------------------------------------*/
 int
-suc_send(struct suc_conn *c, rimeaddr_t *receiver)
+stunicast_send(struct stunicast_conn *c, rimeaddr_t *receiver)
 {
-  PRINTF("%d.%d: suc_send to %d.%d\n",
+  PRINTF("%d.%d: stunicast_send to %d.%d\n",
 	 rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1],
 	 receiver->u8[0], receiver->u8[1]);
   return unicast_send(&c->c, receiver);
 }
 /*---------------------------------------------------------------------------*/
 void
-suc_cancel(struct suc_conn *c)
+stunicast_cancel(struct stunicast_conn *c)
 {
   ctimer_stop(&c->t);
 }
