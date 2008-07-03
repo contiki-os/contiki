@@ -491,7 +491,7 @@ create_log(int16_t file_page, struct file_header *hdr)
   uint16_t log_entry_size, log_entries;
   uint32_t size;
   
-  log_entry_size = hdr->log_entry_size = 0 ?
+  log_entry_size = hdr->log_entry_size == 0 ?
 	COFFEE_PAGE_SIZE : hdr->log_entry_size;
   log_entries = hdr->log_entries == 0 ?
 	COFFEE_LOG_SIZE / log_entry_size : hdr->log_entries;
