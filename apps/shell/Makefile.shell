@@ -7,5 +7,5 @@ shell_src = shell.c serial-shell.c shell-reboot.c \
 shell_dsc = shell-dsc.c
 
 ifeq ($(TARGET),sky)
-	shell_src += shell-sky.c shell-exec.c
+	shell_src += shell-sky.c shell-exec.c shell-coffee.c
 endif
