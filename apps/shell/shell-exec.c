@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: shell-exec.c,v 1.1 2008/02/04 23:42:17 adamdunkels Exp $
+ * $Id: shell-exec.c,v 1.2 2008/07/03 21:13:13 adamdunkels Exp $
  */
 
 /**
@@ -49,7 +49,7 @@
 PROCESS(shell_exec_process, "exec");
 SHELL_COMMAND(exec_command,
 	      "exec",
-	      "exec: load and execute an ELF file",
+	      "exec <filename>: load and execute the ELF file filename",
 	      &shell_exec_process);
 /*---------------------------------------------------------------------------*/
 PROCESS_THREAD(shell_exec_process, ev, data)

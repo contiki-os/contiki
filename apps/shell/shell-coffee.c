@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: shell-coffee.c,v 1.1 2008/07/03 17:56:17 adamdunkels Exp $
+ * $Id: shell-coffee.c,v 1.2 2008/07/03 21:13:13 adamdunkels Exp $
  */
 
 /**
@@ -71,7 +71,7 @@ PROCESS_THREAD(shell_format_process, ev, data)
   if(input->len1 > 0 &&
      (input->data1[0] == 'y' || input->data1[0] == 'Y')) {
     
-    shell_output_str(&format_command, "format: formatting file system", "");
+    shell_output_str(&format_command, "format: formatting file system, please wait...", "");
     if(cfs_coffee_format() == 0) {
       shell_output_str(&format_command, "format: formatting complete", "");
     } else {
