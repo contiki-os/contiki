@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: sky-shell-collect.c,v 1.1 2008/07/03 18:40:18 adamdunkels Exp $
+ * $Id: sky-shell-collect.c,v 1.2 2008/07/04 00:01:06 adamdunkels Exp $
  */
 
 /**
@@ -172,7 +172,7 @@ PROCESS_THREAD(sky_shell_process, ev, data)
   shell_file_init();
   shell_coffee_init();
   shell_netfile_init();
-  shell_ps_init();
+  /*  shell_ps_init();*/
   shell_reboot_init();
   shell_rime_init();
   shell_rime_netcmd_init();
