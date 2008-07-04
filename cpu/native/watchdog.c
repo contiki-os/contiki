@@ -28,9 +28,9 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: watchdog.c,v 1.1 2008/07/03 23:10:26 adamdunkels Exp $
+ * @(#)$Id: watchdog.c,v 1.2 2008/07/04 03:03:41 nvt-se Exp $
  */
-#include <io.h>
+
 #include "dev/watchdog.h"
 
 /*---------------------------------------------------------------------------*/
