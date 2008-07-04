@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: shell.h,v 1.7 2008/07/03 17:57:26 adamdunkels Exp $
+ * $Id: shell.h,v 1.8 2008/07/04 08:23:00 adamdunkels Exp $
  */
 
 /**
@@ -99,6 +99,8 @@ struct shell_input {
   int len1, len2;
 };
 
+#include "serial-shell.h"
+
 #include "shell-blink.h"
 #include "shell-coffee.h"
 #include "shell-exec.h"
@@ -106,6 +108,7 @@ struct shell_input {
 #include "shell-netfile.h"
 #include "shell-ps.h"
 #include "shell-reboot.h"
+#include "shell-rime-debug.h"
 #include "shell-rime-netcmd.h"
 #include "shell-rime-ping.h"
 #include "shell-rime-sniff.h"

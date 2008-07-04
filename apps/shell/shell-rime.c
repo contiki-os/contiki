@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: shell-rime.c,v 1.5 2008/07/03 09:52:15 adamdunkels Exp $
+ * $Id: shell-rime.c,v 1.6 2008/07/04 08:23:00 adamdunkels Exp $
  */
 
 /**
@@ -52,8 +52,6 @@
 #include "net/rime/trickle.h"
 
 #include "net/rime/timesynch.h"
-
-#define WITH_DEBUG_COMMANDS 0
 
 #if NETSIM
 #include "ether.h"
@@ -81,11 +79,6 @@ struct collect_msg {
   uint16_t timestamp;
   uint8_t data[1];
 };
-
-#if WITH_DEBUG_COMMANDS
-static struct abc_conn abc;
-static struct uc_conn uc;
-#endif /* WITH_DEBUG_COMMANDS */
 
 static struct collect_conn collect;
 static struct trickle_conn trickle;
@@ -172,19 +165,6 @@ PROCESS_THREAD(shell_mac_process, ev, data)
   }
   PROCESS_END();
 }
-/*---------------------------------------------------------------------------*/
-#if WITH_DEBUG_COMMANDS
-PROCESS(shell_broadcast_process, "broadcast");
-SHELL_COMMAND(broadcast_command,
-	      "broadcast",
-	      "broadcast: broadcast data to all neighbors",
-	      &shell_broadcast_process);
-PROCESS(shell_unicast_process, "unicast");
-SHELL_COMMAND(unicast_command,
-	      "unicast",
-	      "unicast <node addr>: unicast data to specific neighbor",
-	      &shell_unicast_process);
-#endif /* WITH_DEBUG_COMMANDS */
 /*---------------------------------------------------------------------------*/
 PROCESS_THREAD(shell_packetize_process, ev, data)
 {
@@ -403,107 +383,6 @@ PROCESS_THREAD(shell_send_process, ev, data)
   PROCESS_END();
 }
 /*---------------------------------------------------------------------------*/
-#if WITH_DEBUG_COMMANDS
-PROCESS_THREAD(shell_broadcast_process, ev, data)
-{
-  struct shell_input *input;
-  int len;
-  struct collect_msg *msg;
-  
-  PROCESS_BEGIN();
-
-  while(1) {
-    PROCESS_WAIT_EVENT_UNTIL(ev == shell_event_input);
-    input = data;
-
-    len = input->len1 + input->len2;
-
-    if(len == 0) {
-      PROCESS_EXIT();
-    }
-
-    if(len < RIMEBUF_SIZE) {
-      rimebuf_clear();
-      rimebuf_set_datalen(len + COLLECT_MSG_HDRSIZE);
-      msg = rimebuf_dataptr();
-      memcpy(msg->data, input->data1, input->len1);
-      memcpy(msg->data + input->len1, input->data2, input->len2);
-#if TIMESYNCH_CONF_ENABLED
-      msg->timestamp = timesynch_time();
-#else
-      msg->timestamp = 0;
-#endif
-      /*      printf("Sending %d bytes\n", len);*/
-      abc_send(&abc);
-    }
-  }
-  PROCESS_END();
-}
-static void
-recv_abc(struct abc_conn *c)
-{
-  printf("abc message received\n");
-}
-static const struct abc_callbacks abc_callbacks = {recv_abc};
-/*---------------------------------------------------------------------------*/
-PROCESS_THREAD(shell_unicast_process, ev, data)
-{
-  struct shell_input *input;
-  static rimeaddr_t receiver;
-  int len;
-  const char *nextptr;
-  struct collect_msg *msg;
-  char buf[30];
-  
-  PROCESS_BEGIN();
-  
-  receiver.u8[0] = shell_strtolong(data, &nextptr);
-  if(nextptr == data || *nextptr != '.') {
-    shell_output_str(&unicast_command,
-		     "unicast <receiver>: recevier must be specified", "");
-    PROCESS_EXIT();
-  }
-  ++nextptr;
-  receiver.u8[1] = shell_strtolong(nextptr, &nextptr);
-
-  snprintf(buf, sizeof(buf), "%d.%d", receiver.u8[0], receiver.u8[1]);
-  shell_output_str(&unicast_command, "Sending unicast packets to ", buf);
-
-  while(1) {
-    PROCESS_WAIT_EVENT_UNTIL(ev == shell_event_input);
-    input = data;
-
-    len = input->len1 + input->len2;
-
-    if(len == 0) {
-      PROCESS_EXIT();
-    }
-    
-    if(len < RIMEBUF_SIZE) {
-      rimebuf_clear();
-      rimebuf_set_datalen(len + COLLECT_MSG_HDRSIZE);
-      msg = rimebuf_dataptr();
-      memcpy(msg->data, input->data1, input->len1);
-      memcpy(msg->data + input->len1, input->data2, input->len2);
-#if TIMESYNCH_CONF_ENABLED
-      msg->timestamp = timesynch_time();
-#else
-      msg->timestamp = 0;
-#endif
-      /*      printf("Sending %d bytes\n", len);*/
-      uc_send(&uc, &receiver);
-    }
-  }
-  PROCESS_END();
-}
-static void
-recv_uc(struct uc_conn *c, rimeaddr_t *from)
-{
-  printf("uc message received from %d.%d\n", from->u8[0], from->u8[1]);
-}
-static const struct uc_callbacks uc_callbacks = {recv_uc};
-#endif /* WITH_DEBUG_COMMANDS */
-/*---------------------------------------------------------------------------*/
 static void
 recv_collect(const rimeaddr_t *originator, u8_t seqno, u8_t hops)
 {
@@ -594,11 +473,5 @@ shell_rime_init(void)
   shell_register_command(&treedepth_command);
 #endif /* WITH_TREEDEPTH */
 
-#if WITH_DEBUG_COMMANDS
-  uc_open(&uc, 14, &uc_callbacks);
-  abc_open(&abc, 15, &abc_callbacks);
-  shell_register_command(&broadcast_command);
-  shell_register_command(&unicast_command);
-#endif /* WITH_DEBUG_COMMANDS */
 }
 /*---------------------------------------------------------------------------*/
