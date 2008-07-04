@@ -3,7 +3,7 @@ shell_src = shell.c serial-shell.c shell-reboot.c \
             shell-blink.c shell-text.c shell-time.c \
             shell-file.c shell-netfile.c shell-run.c \
             shell-rime-ping.c shell-rime-sniff.c shell-rime-netcmd.c \
-            shell-coffee.c
+            shell-rime-debug.c shell-coffee.c
             #shell-rsh.c
 shell_dsc = shell-dsc.c
 
