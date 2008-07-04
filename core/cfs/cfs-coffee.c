@@ -248,7 +248,10 @@ find_file(const char *name)
     } else if(COFFEE_PAGE_OBSOLETE(hdr)) {
       page += hdr.max_pages;
     } else {
-      page++;
+      /* It follows from the properties of the page allocation algorithm 
+	 that if a free page is encountered, the rest of the sector is 
+	 also free. */
+      page = (page + COFFEE_PAGES_PER_SECTOR) & ~(COFFEE_PAGES_PER_SECTOR - 1);
     }
     watchdog_periodic();
   } while(page < COFFEE_PAGE_COUNT);
@@ -906,8 +909,11 @@ cfs_readdir(struct cfs_dir *dir, struct cfs_dirent *entry)
       page += hdr.max_pages;
        *(uint16_t *)dir->dummy_space = page;
       return 0;
+    } else if (COFFEE_PAGE_FREE(hdr)) {
+      page = (page + COFFEE_PAGES_PER_SECTOR) & ~(COFFEE_PAGES_PER_SECTOR - 1);
+    } else {
+      page += hdr.max_pages;
     }
-    page += COFFEE_PAGE_OBSOLETE(hdr) ? hdr.max_pages : 1;
   }
 
   return -1;
