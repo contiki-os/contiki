@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: energest-arch.c,v 1.2 2007/10/25 09:30:39 adamdunkels Exp $
+ * $Id: energest-arch.c,v 1.3 2008/07/04 02:58:58 nvt-se Exp $
  */
 
 /**
@@ -38,9 +38,8 @@
  *         Adam Dunkels <adam@sics.se>
  */
 
-#include "lib/energest.h"
-
 #include "sys/clock.h"
+#include "sys/energest.h"
 #include "sys/rtimer.h"
 
 #define DEC2FIX(h,d) ((h << 6) + (unsigned long)(0.64 * d))
