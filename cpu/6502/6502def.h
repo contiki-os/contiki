@@ -30,7 +30,7 @@
  *
  * Author: Oliver Schmidt <ol.sc@web.de>
  *
- * @(#)$Id: 6502def.h,v 1.14 2008/06/16 11:20:22 oliverschmidt Exp $
+ * @(#)$Id: 6502def.h,v 1.15 2008/07/06 07:28:05 oliverschmidt Exp $
  */
 
 #ifndef __6502DEF_H__
@@ -122,17 +122,19 @@ typedef unsigned short uip_stats_t;
 #define ctk_arch_isprint  isprint
 
 #if WITH_PFS
-#define cfs_open  pfs_open
-#define cfs_close pfs_close
-#define cfs_read  pfs_read
-#define cfs_write pfs_write
+#define cfs_open          pfs_open
+#define cfs_close         pfs_close
+#define cfs_read          pfs_read
+#define cfs_write         pfs_write
+#define cfs_seek          pfs_seek
 #else /* WITH_PFS */
-#define CFS_READ  (O_RDONLY)
-#define CFS_WRITE (O_CREAT | O_TRUNC | O_WRONLY)
-#define cfs_open  open
-#define cfs_close close
-#define cfs_read  read
-#define cfs_write write
+#define CFS_READ          (O_RDONLY)
+#define CFS_WRITE         (O_CREAT | O_TRUNC | O_WRONLY)
+#define cfs_open          open
+#define cfs_close         close
+#define cfs_read          read
+#define cfs_write         write
+#define cfs_seek(fd, ofs) lseek((fd), (ofs), SEEK_SET)
 #endif /* WITH_PFS */
 
 #endif /* __6502DEF_H__ */
