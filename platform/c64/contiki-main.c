@@ -30,7 +30,7 @@
  * 
  * Author: Oliver Schmidt <ol.sc@web.de>
  *
- * $Id: contiki-main.c,v 1.20 2008/07/06 07:28:42 oliverschmidt Exp $
+ * $Id: contiki-main.c,v 1.21 2008/07/06 07:32:20 oliverschmidt Exp $
  */
 
 #include <string.h>
@@ -62,7 +62,7 @@ PROCINIT(&etimer_process,
 off_t __fastcall__
 lseek(int, off_t, int)
 {
-  return 0;
+  return -1;
 }
 /*-----------------------------------------------------------------------------------*/
 void * __fastcall__
