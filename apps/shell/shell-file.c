@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: shell-file.c,v 1.5 2008/07/03 21:13:54 adamdunkels Exp $
+ * $Id: shell-file.c,v 1.6 2008/07/06 10:34:44 oliverschmidt Exp $
  */
 
 /**
@@ -181,7 +181,7 @@ PROCESS_THREAD(shell_read_process, ev, data)
     if(next == NULL) {
       strncpy(filename, data, sizeof(filename));
     } else {
-      len = next - (char *)data;
+      len = (int)(next - (char *)data);
       if(len <= 0) {
 	shell_output_str(&read_command,
 		       "read: filename too short: ", data);
