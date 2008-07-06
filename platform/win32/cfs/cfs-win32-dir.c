@@ -30,24 +30,13 @@
  * 
  * Author: Oliver Schmidt <ol.sc@web.de>
  *
- * $Id: cfs-win32.c,v 1.6 2008/02/06 16:41:19 oliverschmidt Exp $
+ * $Id: cfs-win32-dir.c,v 1.1 2008/07/06 10:24:38 oliverschmidt Exp $
  */
 
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 #include <stdlib.h>
 #include <stdio.h>
-#include <io.h>
-#include <fcntl.h>
-#ifdef __CYGWIN__
-#include <unistd.h>
-#else /* __CYGWIN__ */
-#define open   _open
-#define close  _close
-#define read   _read
-#define write  _write
-#define lseek  _lseek
-#endif /* __CYGWIN__ */
 
 #include "contiki.h"
 
@@ -59,36 +48,6 @@ struct cfs_win32_dir {
   unsigned int size;
 };
 
-/*---------------------------------------------------------------------------*/
-int
-cfs_open(const char *n, int f)
-{
-  return open(n, f == CFS_READ? O_RDONLY: O_CREAT|O_RDWR);
-}
-/*---------------------------------------------------------------------------*/
-void
-cfs_close(int f)
-{
-  close(f);
-}
-/*---------------------------------------------------------------------------*/
-int
-cfs_read(int f, void *b, unsigned int l)
-{
-  return read(f, b, l);
-}
-/*---------------------------------------------------------------------------*/
-int
-cfs_write(int f, const void *b, unsigned int l)
-{
-  return write(f, b, l);
-}
-/*---------------------------------------------------------------------------*/
-unsigned int
-cfs_seek(int f, unsigned int o)
-{
-  return lseek(f, o, SEEK_SET);
-}
 /*---------------------------------------------------------------------------*/
 int
 cfs_opendir(struct cfs_dir *p, const char *n)
