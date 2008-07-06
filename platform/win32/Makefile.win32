@@ -30,16 +30,16 @@
 #
 # Author: Oliver Schmidt <ol.sc@web.de>
 #
-# $Id: Makefile.win32,v 1.15 2008/05/22 19:45:47 oliverschmidt Exp $
+# $Id: Makefile.win32,v 1.16 2008/07/06 08:29:37 oliverschmidt Exp $
 #
 
 TARGET_LIBFILES = /lib/w32api/libws2_32.a /lib/w32api/libiphlpapi.a
 
 CONTIKI_TARGET_DIRS = . cfs ctk loader
-CONTIKI_TARGET_SOURCEFILES = contiki-main.c clock.c cfs-win32.c \
+CONTIKI_TARGET_SOURCEFILES = contiki-main.c clock.c cfs-win32-dir.c \
                              ctk-console.c
 
-CONTIKI_SOURCEFILES += $(CTK) ctk-conio.c wpcap.c wpcap-drv.c \
+CONTIKI_SOURCEFILES += $(CTK) cfs-posix.c ctk-conio.c wpcap.c wpcap-drv.c \
                        $(CONTIKI_TARGET_SOURCEFILES)
 
 .SUFFIXES:
@@ -52,7 +52,7 @@ ifdef PLATFORM_BUILD
 CONTIKI_TARGET_SOURCEFILES += dll-loader.c
 CFLAGS += -DPLATFORM_BUILD -DWITH_LOADER_ARCH -DAUTOSTART_ENABLE
 LDFLAGS += -Wl,--out-implib=contiki-main.$(TARGET).a \
-           -u _cfs_open -u _uiplib_ipaddrconv
+           -u _cfs_open -u _cfs_opendir -u _uiplib_ipaddrconv
 endif
 
 ### Generate the module-link prerequisites
