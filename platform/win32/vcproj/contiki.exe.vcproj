@@ -41,7 +41,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="0"
 				AdditionalIncludeDirectories="..;../../../cpu/native;../../../core;../../../apps/program-handler"
-				PreprocessorDefinitions="WIN32;_DEBUG;_CONSOLE;_CRT_SECURE_NO_DEPRECATE;PLATFORM_BUILD;WITH_LOADER_ARCH;AUTOSTART_ENABLE"
+				PreprocessorDefinitions="WIN32;_DEBUG;_CONSOLE;_CRT_NONSTDC_NO_DEPRECATE;_CRT_SECURE_NO_DEPRECATE;PLATFORM_BUILD;WITH_LOADER_ARCH;AUTOSTART_ENABLE"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="3"
 				WarningLevel="3"
@@ -118,7 +118,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				AdditionalIncludeDirectories="..;../../../cpu/native;../../../core;../../../apps/program-handler"
-				PreprocessorDefinitions="WIN32;NDEBUG;_CONSOLE;_CRT_SECURE_NO_DEPRECATE;PLATFORM_BUILD;WITH_LOADER_ARCH;AUTOSTART_ENABLE"
+				PreprocessorDefinitions="WIN32;NDEBUG;_CONSOLE;_CRT_NONSTDC_NO_DEPRECATE;_CRT_SECURE_NO_DEPRECATE;PLATFORM_BUILD;WITH_LOADER_ARCH;AUTOSTART_ENABLE"
 				RuntimeLibrary="2"
 				WarningLevel="3"
 				Detect64BitPortabilityProblems="true"
@@ -236,6 +236,10 @@
 			<Filter
 				Name="cfs"
 				>
+				<File
+					RelativePath="..\..\..\core\cfs\cfs-posix.c"
+					>
+				</File>
 				<File
 					RelativePath="..\..\..\core\cfs\cfs.h"
 					>
@@ -485,7 +489,7 @@
 				Name="cfs"
 				>
 				<File
-					RelativePath="..\cfs\cfs-win32.c"
+					RelativePath="..\cfs\cfs-win32-dir.c"
 					>
 				</File>
 			</Filter>
