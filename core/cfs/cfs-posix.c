@@ -30,12 +30,16 @@
  *
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: cfs-posix.c,v 1.10 2008/01/24 13:08:35 adamdunkels Exp $
+ * $Id: cfs-posix.c,v 1.11 2008/07/06 11:08:07 oliverschmidt Exp $
  */
 
 #include <stdio.h>
 #include <fcntl.h>
+#ifdef _MSC_VER
+#include <io.h>
+#else
 #include <unistd.h>
+#endif
 
 #include "cfs/cfs.h"
 
