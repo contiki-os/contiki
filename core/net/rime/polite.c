@@ -33,7 +33,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: polite.c,v 1.4 2008/02/24 22:05:27 adamdunkels Exp $
+ * $Id: polite.c,v 1.5 2008/07/07 23:27:05 adamdunkels Exp $
  */
 
 /**
@@ -53,6 +53,11 @@
 #define MAX(a,b) ((a)>(b)?(a):(b))
 #endif /* MAX */
 
+#ifndef MIN
+#define MIN(a, b) ((a) > (b)? (a) : (b))
+#endif /* MIN */
+
+
 /*---------------------------------------------------------------------------*/
 static void
 recv(struct abc_conn *abc)
@@ -61,7 +66,7 @@ recv(struct abc_conn *abc)
   if(c->q != NULL &&
      rimebuf_datalen() == queuebuf_datalen(c->q) &&
      memcmp(rimebuf_dataptr(), queuebuf_dataptr(c->q),
-	    MAX(c->hdrsize, rimebuf_datalen())) == 0) {
+	    MIN(c->hdrsize, rimebuf_datalen())) == 0) {
     /* We received a copy of our own packet, so we do not send out
        packet. */
     queuebuf_free(c->q);
