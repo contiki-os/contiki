@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: clock.c,v 1.13 2008/07/03 23:59:20 adamdunkels Exp $
+ * @(#)$Id: clock.c,v 1.14 2008/07/07 23:38:09 adamdunkels Exp $
  */
 
 
@@ -47,6 +47,8 @@
 
 #define MAX_TICKS (~((clock_time_t)0) / 2)
 
+static volatile unsigned short seconds;
+
 static volatile clock_time_t count = 0;
 /* last_tar is used for calculating clock_fine, last_ccr might be better? */
 static unsigned short last_tar = 0;
@@ -58,12 +60,24 @@ interrupt(TIMERA1_VECTOR) timera1 (void) {
     do {
       TACCR1 += INTERVAL;
       ++count;
+
+      /* Make sure the CLOCK_CONF_SECOND is a power of two, to ensure
+	 that the modulo operation below becomes a logical and and not
+	 an expensive divide. Algorithm from Wikipedia:
+	 http://en.wikipedia.org/wiki/Power_of_two */
+#if (CLOCK_CONF_SECOND & (CLOCK_CONF_SECOND - 1)) != 0
+#error CLOCK_CONF_SECOND must be a power of two (i.e., 1, 2, 4, 8, 16, 32, 64, ...).
+#error Change CLOCK_CONF_SECOND in contiki-conf.h.
+#endif
+      if(count % CLOCK_CONF_SECOND == 0) {
+	++seconds;
+      }
     } while((TACCR1 - TAR) > INTERVAL);
 
     last_tar = TAR;
 
-    if(etimer_pending()
-       && (etimer_next_expiration_time() - count - 1) > MAX_TICKS) {
+    if(etimer_pending() &&
+       (etimer_next_expiration_time() - count - 1) > MAX_TICKS) {
       etimer_request_poll();
       LPM4_EXIT;
     }
@@ -170,7 +184,22 @@ clock_set_seconds(unsigned long sec)
 unsigned long
 clock_seconds(void)
 {
-  return count / CLOCK_SECOND;
+  static unsigned long offset;
+  static unsigned long last_time;
+  unsigned long new_time;
+
+  new_time = seconds + offset;
+
+  /*  printf("Seconds %d new_time %lu offset %lu\n", seconds, new_time, offset);*/
+  
+  if(new_time < last_time) {
+    offset += 0x10000L;
+    new_time += 0x10000L;
+  }
+
+  last_time = new_time;
+
+  return new_time;
 }
 /*---------------------------------------------------------------------------*/
 rtimer_clock_t
