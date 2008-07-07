@@ -44,9 +44,11 @@ endif
 
 include $(CONTIKI)/core/net/rime/Makefile.rime
 include $(CONTIKI)/core/net/mac/Makefile.mac
+#include $(CONTIKI)/core/net/ipv6/Makefile.ipv6
 SYSTEM  = process.c procinit.c autostart.c elfloader.c profile.c timetable.c timetable-aggregate.c
 THREADS = mt.c
-LIBS    = memb.c timer.c list.c etimer.c energest.c rtimer.c print-stats.c ifft.c
+LIBS    = memb.c timer.c list.c etimer.c energest.c rtimer.c print-stats.c \
+          ifft.c crc16.c
 UIP     = uip.c uiplib.c resolv.c tcpip.c psock.c hc.c uip-split.c uip-fw.c \
           uip-fw-drv.c uip_arp.c tcpdump.c uip-neighbor.c uip-udp-packet.c \
           uip-over-mesh.c #rawpacket-udp.c
