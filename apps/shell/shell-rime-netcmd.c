@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: shell-rime-netcmd.c,v 1.2 2008/07/03 09:51:21 adamdunkels Exp $
+ * $Id: shell-rime-netcmd.c,v 1.3 2008/07/07 23:22:38 adamdunkels Exp $
  */
 
 /**
@@ -44,6 +44,7 @@
 
 #include "dev/leds.h"
 
+#include "lib/crc16.h"
 #include "lib/random.h"
 
 #include "net/rime.h"
@@ -66,7 +67,10 @@ int snprintf(char *str, size_t size, const char *format, ...);
 
 #define COLLECT_REXMITS 4
 
+#define TRICKLEMSG_HDR_SIZE 2
+
 struct trickle_msg {
+  uint16_t crc;
   char netcmd[1];
 };
 
@@ -116,8 +120,9 @@ PROCESS_THREAD(shell_netcmd_process, ev, data)
     
     rimebuf_clear();
     msg = rimebuf_dataptr();
-    rimebuf_set_datalen(len + 2);
+    rimebuf_set_datalen(len + 2 + TRICKLEMSG_HDR_SIZE);
     strcpy(msg->netcmd, data);
+    msg->crc = crc16_data(msg->netcmd, len, 0);
     /*    printf("netcmd sending '%s'\n", msg->netcmd);*/
     trickle_send(&trickle);
   }
@@ -129,19 +134,26 @@ static void
 recv_trickle(struct trickle_conn *c)
 {
   struct trickle_msg *msg;
+  int len;
   
   msg = rimebuf_dataptr();
 
-  /* First ensure that the old process is killed. */
-  process_exit(&shell_netcmd_server_process);
-  
-  /* Make sure that the incoming command is null-terminated (which
-     is should be already). */
-  
-  msg->netcmd[rimebuf_datalen() - 2] = 0;
+  if(rimebuf_datalen() > 2 + TRICKLEMSG_HDR_SIZE) {
     
-  /* Start the server process with the incoming command. */
-  process_start(&shell_netcmd_server_process, msg->netcmd);
+    /* First ensure that the old process is killed. */
+    process_exit(&shell_netcmd_server_process);
+    
+    len = rimebuf_datalen() - 2 - TRICKLEMSG_HDR_SIZE;
+    
+    /* Make sure that the incoming command is null-terminated (which
+       is should be already). */
+    msg->netcmd[len] = 0;
+
+    if(msg->crc == crc16_data(msg->netcmd, len, 0)) {
+      /* Start the server process with the incoming command. */
+      process_start(&shell_netcmd_server_process, msg->netcmd);
+    }
+  }
 }
 const static struct trickle_callbacks trickle_callbacks = { recv_trickle };
 /*---------------------------------------------------------------------------*/
