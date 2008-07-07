@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: shell.c,v 1.10 2008/07/03 21:15:12 adamdunkels Exp $
+ * $Id: shell.c,v 1.11 2008/07/07 23:46:12 adamdunkels Exp $
  */
 
 /**
@@ -520,13 +520,13 @@ unsigned long
 shell_time(void)
 {
   /* XXX todo: fix process to avoid wrap-around */
-  return clock_time() / CLOCK_SECOND + time_offset;
+  return clock_seconds() + time_offset;
 }
 /*---------------------------------------------------------------------------*/
 void
 shell_set_time(unsigned long seconds)
 {
-  time_offset = seconds - clock_time() / CLOCK_SECOND;
+  time_offset = seconds - clock_seconds();
 }
 /*---------------------------------------------------------------------------*/
 void
