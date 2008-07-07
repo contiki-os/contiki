@@ -1,8 +1,8 @@
-CONTIKI_PROJECT = telnet-webserver
+CONTIKI_PROJECT = sky-webserver
 all: $(CONTIKI_PROJECT)
 
 APPS = telnetd webserver
-CFLAGS = -DWITH_UIP=1 #-DWITH_NULLMAC=1
+CFLAGS = -DWITH_UIP=1 -I. #-DWITH_NULLMAC=1
 
 # The webserver application normally contains a built-in file system and support
 # for server-side includes.
@@ -18,6 +18,8 @@ endif
 
 CONTIKI = ../..
 include $(CONTIKI)/Makefile.include
+
+sky-webserver.$(TARGET): $(OBJECTDIR)/ajax-cgi.o
 
 # Intentionally httpd.c and httpd-cfs.c implement the same interface. When
 # switching from one webserver alternative to the other with an existent
