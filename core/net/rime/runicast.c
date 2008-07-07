@@ -34,7 +34,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: runicast.c,v 1.1 2008/07/03 21:52:25 adamdunkels Exp $
+ * $Id: runicast.c,v 1.2 2008/07/07 23:27:57 adamdunkels Exp $
  */
 
 /**
@@ -146,24 +146,24 @@ recv_from_stunicast(struct stunicast_conn *stunicast, rimeaddr_t *from)
     /*    rimebuf_hdrreduce(sizeof(struct runicast_hdr));*/
 
     q = queuebuf_new_from_rimebuf();
-    
-    PRINTF("%d.%d: runicast: Sending ACK to %d.%d for %d\n",
-	   rimeaddr_node_addr.u8[0],rimeaddr_node_addr.u8[1],
-	   from->u8[0], from->u8[1],
-	   packet_seqno);
-    rimebuf_clear();
-    /*    rimebuf_hdralloc(sizeof(struct runicast_hdr));
-    hdr = rimebuf_hdrptr();
-    hdr->type = TYPE_ACK;
-    hdr->seqno = packet_seqno;*/
-    rimebuf_set_attr(RIMEBUF_ATTR_PACKET_TYPE, RIMEBUF_ATTR_PACKET_TYPE_ACK);
-    rimebuf_set_attr(RIMEBUF_ATTR_PACKET_ID, packet_seqno);
-    stunicast_send(&c->c, from);
-    RIMESTATS_ADD(acktx);
-
-    queuebuf_to_rimebuf(q);
-    queuebuf_free(q);
-
+    if(q != NULL) {
+      PRINTF("%d.%d: runicast: Sending ACK to %d.%d for %d\n",
+	     rimeaddr_node_addr.u8[0],rimeaddr_node_addr.u8[1],
+	     from->u8[0], from->u8[1],
+	     packet_seqno);
+      rimebuf_clear();
+      /*    rimebuf_hdralloc(sizeof(struct runicast_hdr));
+	    hdr = rimebuf_hdrptr();
+	    hdr->type = TYPE_ACK;
+	    hdr->seqno = packet_seqno;*/
+      rimebuf_set_attr(RIMEBUF_ATTR_PACKET_TYPE, RIMEBUF_ATTR_PACKET_TYPE_ACK);
+      rimebuf_set_attr(RIMEBUF_ATTR_PACKET_ID, packet_seqno);
+      stunicast_send(&c->c, from);
+      RIMESTATS_ADD(acktx);
+      
+      queuebuf_to_rimebuf(q);
+      queuebuf_free(q);
+    }      
     if(c->u->recv != NULL) {
       c->u->recv(c, from, packet_seqno);
     }
