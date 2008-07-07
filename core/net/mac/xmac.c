@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: xmac.c,v 1.19 2008/06/30 08:10:02 adamdunkels Exp $
+ * $Id: xmac.c,v 1.20 2008/07/07 23:25:12 adamdunkels Exp $
  */
 
 /**
@@ -336,8 +336,14 @@ send_packet(void)
       TIMETABLE_TIMESTAMP(xmac_timetable, "send strobe");
     }
 #endif
-    /* Send the strobe packet. */
-    radio->send((const uint8_t *)&msg, sizeof(struct xmac_hdr));
+    if(is_broadcast) {
+      /* If we are sending a broadcast, we don't send strobes, we
+	 simply send the data packet repetedly */
+      radio->send(rimebuf_hdrptr(), rimebuf_totlen());
+    } else {
+      /* Send the strobe packet. */
+      radio->send((const uint8_t *)&msg, sizeof(struct xmac_hdr));
+    }
     CPRINTF("+");
 
     while(got_ack == 0 &&
@@ -383,7 +389,7 @@ send_packet(void)
   }
 
   /* Send the data packet. */
-  if(rimeaddr_cmp(&hdr->receiver, &rimeaddr_null) || got_ack) {
+  if(is_broadcast || got_ack) {
 #if WITH_TIMETABLE
     TIMETABLE_TIMESTAMP(xmac_timetable, "send packet");
 #endif
