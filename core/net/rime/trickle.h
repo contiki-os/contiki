@@ -45,7 +45,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: trickle.h,v 1.8 2008/07/03 22:02:10 adamdunkels Exp $
+ * $Id: trickle.h,v 1.9 2008/07/07 23:29:30 adamdunkels Exp $
  */
 
 /**
@@ -58,7 +58,12 @@
 #ifndef __TRICKLE_H__
 #define __TRICKLE_H__
 
-#include "net/rime/netflood.h"
+#include "net/rime/broadcast.h"
+#include "net/rime/ctimer.h"
+#include "net/rime/queuebuf.h"
+
+#define TRICKLE_ATTRIBUTES  { RIMEBUF_ATTR_EPACKET_ID, RIMEBUF_ATTR_BIT * 8 },\
+                            BROADCAST_ATTRIBUTES
 
 struct trickle_conn;
 
@@ -67,13 +72,15 @@ struct trickle_callbacks {
 };
 
 struct trickle_conn {
-  struct netflood_conn c;
+  struct broadcast_conn c;
   const struct trickle_callbacks *cb;
-  struct ctimer t;
+  struct ctimer t, interval_timer;
+  struct pt pt;
   struct queuebuf *q;
   clock_time_t interval;
   uint8_t seqno;
   uint8_t interval_scaling;
+  uint8_t duplicates;
 };
 
 void trickle_open(struct trickle_conn *c, clock_time_t interval,
