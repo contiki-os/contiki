@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#)$Id: contiki-sky-main.c,v 1.32 2008/07/02 09:05:41 adamdunkels Exp $
+ * @(#)$Id: contiki-sky-main.c,v 1.33 2008/07/07 23:44:58 adamdunkels Exp $
  */
 
 #include <signal.h>
@@ -230,6 +230,9 @@ main(int argc, char **argv)
   process_init();
   process_start(&etimer_process, NULL);
   process_start(&sensors_process, NULL);
+  
+  sensors_light_init();
+  
   ctimer_init();
 
   cc2420_init();
