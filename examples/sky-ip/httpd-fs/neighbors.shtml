@@ -1,0 +1,10 @@
+%!: /header.html
+<h1>Node
+%! nodeid
+</h1>
+<h2>Neighbors</h2>
+<ul>
+%! neighbors
+</ul>
+%!: /footer.html
+
