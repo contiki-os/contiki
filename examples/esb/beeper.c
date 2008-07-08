@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: beeper.c,v 1.1 2007/11/27 22:32:38 nifi Exp $
+ * @(#)$Id: beeper.c,v 1.2 2008/07/08 12:54:41 nifi Exp $
  */
 #include "contiki-esb.h"
 
@@ -81,5 +81,6 @@ PROCESS_THREAD(beeper_process, ev, data)
     
   }
  exit:
+  ;
   PROCESS_END();
 }
