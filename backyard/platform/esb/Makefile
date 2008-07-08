@@ -1,4 +1,4 @@
-# $Id: Makefile,v 1.2 2006/06/20 21:23:10 adamdunkels Exp $
+# $Id: Makefile,v 1.1 2008/07/08 11:21:53 nifi Exp $
 
 all: core
 upload: core core.u
