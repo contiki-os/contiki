@@ -1,32 +1,32 @@
 /*
  * Copyright (c) 2007, Swedish Institute of Computer Science
- * All rights reserved. 
+ * All rights reserved.
  *
- * Redistribution and use in source and binary forms, with or without 
- * modification, are permitted provided that the following conditions 
- * are met: 
- * 1. Redistributions of source code must retain the above copyright 
- *    notice, this list of conditions and the following disclaimer. 
- * 2. Redistributions in binary form must reproduce the above copyright 
- *    notice, this list of conditions and the following disclaimer in the 
- *    documentation and/or other materials provided with the distribution. 
- * 3. Neither the name of the Institute nor the names of its contributors 
- *    may be used to endorse or promote products derived from this software 
- *    without specific prior written permission. 
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions
+ * are met:
+ * 1. Redistributions of source code must retain the above copyright
+ *    notice, this list of conditions and the following disclaimer.
+ * 2. Redistributions in binary form must reproduce the above copyright
+ *    notice, this list of conditions and the following disclaimer in the
+ *    documentation and/or other materials provided with the distribution.
+ * 3. Neither the name of the Institute nor the names of its contributors
+ *    may be used to endorse or promote products derived from this software
+ *    without specific prior written permission.
  *
- * THIS SOFTWARE IS PROVIDED BY THE INSTITUTE AND CONTRIBUTORS ``AS IS'' AND 
- * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE 
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE 
- * ARE DISCLAIMED.  IN NO EVENT SHALL THE INSTITUTE OR CONTRIBUTORS BE LIABLE 
- * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL 
- * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS 
- * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) 
- * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT 
- * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY 
- * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF 
- * SUCH DAMAGE. 
+ * THIS SOFTWARE IS PROVIDED BY THE INSTITUTE AND CONTRIBUTORS ``AS IS'' AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED.  IN NO EVENT SHALL THE INSTITUTE OR CONTRIBUTORS BE LIABLE
+ * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+ * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+ * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+ * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+ * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+ * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+ * SUCH DAMAGE.
  *
- * @(#)$Id: sht11.c,v 1.1 2007/10/22 12:19:58 nvt-se Exp $
+ * @(#)$Id: sht11.c,v 1.2 2008/07/08 08:23:47 adamdunkels Exp $
  */
 
 /*
@@ -57,7 +57,7 @@
 
 /* This can probably be reduced to 250ns according to data sheet. */
 #define delay_400ns() _NOP()
-
+/*---------------------------------------------------------------------------*/
 static void
 sstart(void)
 {
@@ -75,20 +75,21 @@ sstart(void)
   delay_400ns();
   SCL_0();
 }
-
+/*---------------------------------------------------------------------------*/
 static void
 sreset(void)
 {
   int i;
-  SDA_1(); SCL_0();
-  for (i = 0; i < 9 ; i++) {
+  SDA_1();
+  SCL_0();
+  for(i = 0; i < 9 ; i++) {
     SCL_1();
     delay_400ns();
     SCL_0();
   }
   sstart();			/* Start transmission, why??? */
 }
-
+/*---------------------------------------------------------------------------*/
 /*
  * Return true if we received an ACK.
  */
@@ -99,11 +100,12 @@ swrite(unsigned _c)
   int i;
   int ret;
 
-  for (i = 0; i < 8; i++, c <<= 1) {
-    if (c & 0x80)
+  for(i = 0; i < 8; i++, c <<= 1) {
+    if(c & 0x80) {
       SDA_1();
-    else
+    } else {
       SDA_0();
+    }
     SCL_1();
     delay_400ns();
     SCL_0();
@@ -118,7 +120,7 @@ swrite(unsigned _c)
 
   return ret;
 }
-
+/*---------------------------------------------------------------------------*/
 static unsigned
 sread(int send_ack)
 {
@@ -126,17 +128,19 @@ sread(int send_ack)
   unsigned char c = 0x00;
 
   SDA_1();
-  for (i = 0; i < 8; i++) {
+  for(i = 0; i < 8; i++) {
     c <<= 1;
     SCL_1();
     delay_400ns();
-    if (SDA_IS_1)
+    if(SDA_IS_1) {
       c |= 0x1;
+    }
     SCL_0();
   }
 
-  if (send_ack)
+  if(send_ack) {
     SDA_0();
+  }
   SCL_1();
   delay_400ns();
   SCL_0();
@@ -145,7 +149,7 @@ sread(int send_ack)
 
   return c;
 }
-
+/*---------------------------------------------------------------------------*/
 #define CRC_CHECK
 #ifdef CRC_CHECK
 static unsigned char
@@ -154,7 +158,7 @@ rev8bits(unsigned char v)
   unsigned char r = v;
   int s = 7;
 
-  for (v >>= 1; v; v >>= 1) {   
+  for (v >>= 1; v; v >>= 1) {
     r <<= 1;
     r |= v & 1;
     s--;
@@ -162,23 +166,24 @@ rev8bits(unsigned char v)
   r <<= s;		    /* Shift when v's highest bits are zero */
   return r;
 }
-
+/*---------------------------------------------------------------------------*/
 /* BEWARE: Bit reversed CRC8 using polynomial ^8 + ^5 + ^4 + 1 */
 static unsigned
 crc8_add(unsigned acc, unsigned byte)
 {
   int i;
   acc ^= byte;
-  for (i = 0; i < 8; i++)
-    if (acc & 0x80)
+  for(i = 0; i < 8; i++) {
+    if(acc & 0x80) {
       acc = (acc << 1) ^ 0x31;
-    else
+    } else {
       acc <<= 1;
-
+    }
+  }
   return acc & 0xff;
 }
 #endif /* CRC_CHECK */
-
+/*---------------------------------------------------------------------------*/
 /*
  * Power up the device. The device can be used after an additional
  * 11ms waiting time.
@@ -195,7 +200,7 @@ sht11_init(void)
   SHT11_PxOUT &= ~(BV(SHT11_ARCH_SDA) | BV(SHT11_ARCH_SCL));
   SHT11_PxDIR |= BV(SHT11_ARCH_PWR) | BV(SHT11_ARCH_SCL);
 }
-
+/*---------------------------------------------------------------------------*/
 /*
  * Power of device.
  */
@@ -206,24 +211,26 @@ sht11_off(void)
   SHT11_PxOUT &= ~(BV(SHT11_ARCH_SDA) | BV(SHT11_ARCH_SCL));
   SHT11_PxDIR |= BV(SHT11_ARCH_PWR) | BV(SHT11_ARCH_SCL);
 }
-
+/*---------------------------------------------------------------------------*/
 /*
  * Only commands MEASURE_HUMI or MEASURE_TEMP!
  */
-static unsigned
+static unsigned int
 scmd(unsigned cmd)
 {
   unsigned long n;
 
-  if (cmd != MEASURE_HUMI && cmd != MEASURE_TEMP)
+  if(cmd != MEASURE_HUMI && cmd != MEASURE_TEMP) {
     return -1;
+  }
 
   sstart();			/* Start transmission */
-  if (!swrite(cmd))
+  if(!swrite(cmd)) {
     goto fail;
+  }
 
-  for (n = 0; n < 250000; n++)
-    if (!SDA_IS_1) {
+  for(n = 0; n < 250000; n++) {
+    if(!SDA_IS_1) {
       unsigned t0, t1, rcrc;
       t0 = sread(1);
       t1 = sread(1);
@@ -234,36 +241,38 @@ scmd(unsigned cmd)
 	crc = crc8_add(0x0, cmd);
 	crc = crc8_add(crc, t0);
 	crc = crc8_add(crc, t1);
-	if (crc != rev8bits(rcrc))
+	if(crc != rev8bits(rcrc)) {
 	  goto fail;
+	}
       }
 #endif
       return (t0 << 8) | t1;
     }
+  }
 
  fail:
   sreset();
   return -1;
 }
-
+/*---------------------------------------------------------------------------*/
 /*
  * Call may take up to 210ms.
  */
-unsigned
+unsigned int
 sht11_temp(void)
 {
   return scmd(MEASURE_TEMP);
 }
-
+/*---------------------------------------------------------------------------*/
 /*
  * Call may take up to 210ms.
  */
-unsigned
+unsigned int
 sht11_humidity(void)
 {
   return scmd(MEASURE_HUMI);
 }
-
+/*---------------------------------------------------------------------------*/
 #if 0 /* But ok! */
 unsigned
 sht11_sreg(void)
@@ -271,8 +280,9 @@ sht11_sreg(void)
   unsigned sreg, rcrc;
 
   sstart();			/* Start transmission */
-  if (!swrite(STATUS_REG_R))
+  if(!swrite(STATUS_REG_R)) {
     goto fail;
+  }
 
   sreg = sread(1);
   rcrc = sread(0);
@@ -294,16 +304,18 @@ sht11_sreg(void)
   return -1;
 }
 #endif
-
+/*---------------------------------------------------------------------------*/
 #if 0
 int
 sht11_set_sreg(unsigned sreg)
 {
   sstart();			/* Start transmission */
-  if (!swrite(STATUS_REG_W))
+  if(!swrite(STATUS_REG_W)) {
     goto fail;
-  if (!swrite(sreg))
+  }
+  if(!swrite(sreg)) {
     goto fail;
+  }
 
   return 0;
 
@@ -312,14 +324,15 @@ sht11_set_sreg(unsigned sreg)
   return -1;
 }
 #endif
-
+/*---------------------------------------------------------------------------*/
 #if 0
 int
 sht11_reset(void)
 {
   sstart();			/* Start transmission */
-  if (!swrite(RESET))
+  if(!swrite(RESET)) {
     goto fail;
+  }
 
   return 0;
 
@@ -328,3 +341,4 @@ sht11_reset(void)
   return -1;
 }
 #endif
+/*---------------------------------------------------------------------------*/
