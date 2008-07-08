@@ -33,7 +33,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: trickle.c,v 1.10 2008/07/07 23:29:30 adamdunkels Exp $
+ * $Id: trickle.c,v 1.11 2008/07/08 10:59:31 adamdunkels Exp $
  */
 
 /**
@@ -132,7 +132,7 @@ run_trickle(struct trickle_conn *c)
   PT_END(&c->pt);
 }
 /*---------------------------------------------------------------------------*/
-static int
+static void
 recv(struct broadcast_conn *bc, rimeaddr_t *from)
 {
   struct trickle_conn *c = (struct trickle_conn *)bc;
@@ -163,7 +163,6 @@ recv(struct broadcast_conn *bc, rimeaddr_t *from)
     send(c);
     c->cb->recv(c);
   }
-  return 0;
 }
 /*---------------------------------------------------------------------------*/
 static CC_CONST_FUNCTION struct broadcast_callbacks bc = { recv };
