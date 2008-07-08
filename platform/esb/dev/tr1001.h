@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: tr1001.h,v 1.6 2007/11/19 09:50:54 adamdunkels Exp $
+ * @(#)$Id: tr1001.h,v 1.7 2008/07/08 12:27:22 nifi Exp $
  */
 #ifndef __TR1001_H__
 #define __TR1001_H__
@@ -139,23 +139,5 @@ extern volatile unsigned char tr1001_rxstate;
  * has been received.
  */
 unsigned short tr1001_sstrength(void);
-
-#ifdef TR1001_CONF_STATISTICS
-#define TR1001_STATISTICS TR1001_CONF_STATISTICS
-#else
-#define TR1001_STATISTICS 1
-#endif
-
-#if TR1001_STATISTICS
-#define TR1001_SSTRENGTH_DROPPED 1
-#define TR1001_SSTRENGTH_MAX	 2
-#define TR1001_SSTRENGTH_MIN	 3
-unsigned short tr1001_packets_ok(void);
-unsigned short tr1001_packets_dropped(void);
-void tr1001_clear_packets(void);
-unsigned short tr1001_sstrength_value(unsigned int type);
-unsigned char tr1001_active(void);
-void tr1001_clear_active(void);
-#endif /* TR1001_STATISTICS */
 
 #endif /* __TR1001_H__ */
