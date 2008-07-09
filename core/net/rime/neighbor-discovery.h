@@ -47,7 +47,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: neighbor-discovery.h,v 1.5 2008/06/26 11:19:22 adamdunkels Exp $
+ * $Id: neighbor-discovery.h,v 1.6 2008/07/09 09:33:58 adamdunkels Exp $
  */
 
 /**
@@ -61,7 +61,6 @@
 #define __NEIGHBOR_DISCOVERY_H__
 
 #include "net/rime/broadcast.h"
-#include "net/rime/ipolite.h"
 
 struct neighbor_discovery_conn;
 
@@ -72,10 +71,9 @@ struct neighbor_discovery_callbacks {
 };
 
 struct neighbor_discovery_conn {
-  /*  struct broadcast_conn c;*/
-  struct ipolite_conn c;
+  struct broadcast_conn c;
   const struct neighbor_discovery_callbacks *u;
-  struct ctimer t;
+  struct ctimer t, interval_timer;
   clock_time_t initial_interval, min_interval, max_interval;
   uint16_t val;
 };
