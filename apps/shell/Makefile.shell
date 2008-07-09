@@ -1,4 +1,4 @@
-shell_src = shell.c serial-shell.c shell-reboot.c \
+shell_src = shell.c shell-reboot.c \
             shell-vars.c shell-ps.c shell-rime.c shell-sendtest.c \
             shell-blink.c shell-text.c shell-time.c \
             shell-file.c shell-netfile.c shell-run.c \
