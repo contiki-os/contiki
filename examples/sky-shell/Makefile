@@ -1,7 +1,17 @@
 CONTIKI_PROJECT = sky-shell
 all: $(CONTIKI_PROJECT)
 
-APPS = shell
+dumptest:
+	(echo "~K"; \
+	 echo "killall "; \
+	 echo "time `date +%s` | null"; \
+         echo 'netcmd { repeat 0 10 { randwait 10 echo 0123456789abcdef | blink | send } }'; \
+	 sleep 2; \
+	 echo "killall "; \
+	 sleep 2; \
+         echo 'collect | binprint &') | make login		
+
+APPS = serial-shell
 CONTIKI = ../..
 
 %.shell-upload: %.ce
@@ -77,7 +87,7 @@ setup-sensor:
 	(echo "~K"; \
 	 echo "killall "; \
 	 echo "time `date +%s` | null"; \
-         echo 'netcmd { repeat 10000 20 { randwait 20 sense | blink | send } }'; \
+         echo 'netcmd { repeat 0 20 { randwait 20 sense | blink | send } }'; \
 	 sleep 2; \
          echo 'collect | timestamp | blink | write file | binprint &') | make login
 
