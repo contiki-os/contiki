@@ -26,14 +26,14 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: radio-test.c,v 1.3 2008/07/01 21:02:51 adamdunkels Exp $
+ * $Id: radio-test.c,v 1.4 2008/07/09 21:49:20 nifi Exp $
  *
  * -----------------------------------------------------------------
  *
  * Author  : Adam Dunkels, Joakim Eriksson, Niclas Finne
  * Created : 2006-03-07
- * Updated : $Date: 2008/07/01 21:02:51 $
- *           $Revision: 1.3 $
+ * Updated : $Date: 2008/07/09 21:49:20 $
+ *           $Revision: 1.4 $
  *
  * Simple application to indicate connectivity between two nodes:
  *
@@ -116,7 +116,7 @@ PROCESS_THREAD(radio_test_process, ev, data)
   static uint8_t txpower;
   PROCESS_BEGIN();
 
-  txpower = SIMPLE_CC2420_TXPOWER_MAX;
+  txpower = CC2420_TXPOWER_MAX;
 
   /* Initialize the indicators */
   recv.onoff = other.onoff = flash.onoff = OFF;
@@ -157,10 +157,10 @@ PROCESS_THREAD(radio_test_process, ev, data)
       if(txpower > 5) {
 	txpower -= 5;
       } else {
-	txpower = SIMPLE_CC2420_TXPOWER_MAX;
+	txpower = CC2420_TXPOWER_MAX;
 	leds_blink();
       }
-      simple_cc2420_set_txpower(txpower);
+      cc2420_set_txpower(txpower);
       printf("txpower set to %u\n", txpower);
     }
   }
