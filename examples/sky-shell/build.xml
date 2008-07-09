@@ -1,0 +1,61 @@
+<?xml version="1.0"?>
+
+<project name="Sensor Data Collect with Contiki" default="dist" basedir=".">
+  <property name="java" location="src"/>
+  <property name="build" location="build"/>
+  <property name="lib" location="lib"/>
+  <property name="dist" location="dist"/>
+  <property name="contiki" location="../.."/>
+  <property name="archive" value="collect-demo.jar"/>
+  <property name="main" value="se.sics.contiki.collect.CollectServer"/>
+
+  <target name="init">
+    <tstamp/>
+    <mkdir dir="${build}"/>
+  </target>
+
+  <target name="compile" depends="init">
+    <javac srcdir="${java}" destdir="${build}">
+      <classpath>
+        <fileset dir="${lib}">
+          <include name="**/*.jar"/>
+        </fileset>
+      </classpath>
+    </javac>
+  </target>
+
+  <target name="dist" depends="compile">
+    <mkdir dir="${dist}"/>
+    <jar destfile="${dist}/${archive}" basedir="${build}">
+<!--       <fileset dir="${build}"/> -->
+      <manifest>
+        <attribute name="Main-Class" value="${main}"/>
+        <attribute name="Class-Path" value="lib/jcommon-1.0.13.jar lib/jfreechart-1.0.10.jar"/>
+      </manifest>
+    </jar>
+    <copy todir="${dist}" file="collect-init.script"/>
+    <mkdir dir="${dist}/lib"/>
+    <copy todir="${dist}/lib">
+      <fileset dir="${lib}">
+        <include name="**/*.jar"/>
+      </fileset>
+    </copy>
+    <mkdir dir="${dist}/tools"/>
+    <copy todir="${dist}/tools">
+      <fileset dir="${contiki}/tools/sky">
+        <include name="**/motelist*"/>
+        <include name="**/serialdump*"/>
+      </fileset>
+    </copy>
+  </target>
+
+  <target name="run" depends="dist">
+    <java fork="yes" dir="${dist}" jar="${dist}/${archive}"/>
+  </target>
+
+  <target name="clean">
+    <delete dir="${build}"/>
+    <delete dir="${dist}"/>
+  </target>
+
+</project>
