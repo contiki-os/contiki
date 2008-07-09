@@ -28,97 +28,201 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: sky-shell.c,v 1.3 2008/07/07 23:45:35 adamdunkels Exp $
+ * $Id: sky-shell.c,v 1.4 2008/07/09 20:39:27 adamdunkels Exp $
  */
 
 /**
  * \file
- *         A brief description of what this file is.
+ *         Tmote Sky-specific Contiki shell 
  * \author
  *         Adam Dunkels <adam@sics.se>
  */
 
 #include "contiki.h"
 #include "shell.h"
-#include "serial-shell.h"
+
+#include "net/rime/neighbor.h"
+#include "dev/watchdog.h"
+
+#include "net/rime.h"
+#include "dev/cc2420.h"
+#include "dev/leds.h"
+#include "dev/light.h"
+#include "dev/sht11.h"
 
 #include "net/rime/timesynch.h"
 
-#include "sys/profile.h"
-
 #include <stdio.h>
+#include <string.h>
+
+#include <io.h>
+#include <signal.h>
+
+#define DEBUG_SNIFFERS 0
 
 /*---------------------------------------------------------------------------*/
-PROCESS(test_shell_process, "Test Contiki shell");
-AUTOSTART_PROCESSES(&test_shell_process);
+PROCESS(sky_shell_process, "Sky Contiki shell");
+AUTOSTART_PROCESSES(&sky_shell_process);
 /*---------------------------------------------------------------------------*/
-#if 0
-PROCESS(shell_xmacprofile_process, "xmacprofile");
-SHELL_COMMAND(xmacprofile_command,
-	      "xmacprofile",
-	      "xmacprofile: show aggregate time",
-	      &shell_xmacprofile_process);
-/*---------------------------------------------------------------------------*/
-#define xmac_timetable_size 256
-TIMETABLE_DECLARE(xmac_timetable);
-PROCESS_THREAD(shell_xmacprofile_process, ev, data)
+#if DEBUG_SNIFFERS
+static void
+input_sniffer(void)
 {
   int i;
-  unsigned long add;
-  rtimer_clock_t time, lasttime;
-  char buf[40];
+  uint8_t *dataptr;
+
+  printf("x %d ", rimebuf_totlen());
+  dataptr = rimebuf_dataptr();
+  printf("%02x ", dataptr[0]);
+  /*  if(dataptr[0] == 18) {*/
+    for(i = 1; i < rimebuf_totlen(); ++i) {
+      printf("%02x ", dataptr[i]);
+    }
+    /*  }*/
+  printf("\n");
+}
+/*---------------------------------------------------------------------------*/
+static void
+output_sniffer(void)
+{
+  uint8_t *dataptr;
+  printf("- %d ", rimebuf_totlen());
+  dataptr = rimebuf_dataptr();
+  printf("%02x\n", dataptr[0]);
+}
+/*---------------------------------------------------------------------------*/
+RIME_SNIFFER(s, input_sniffer, output_sniffer);
+#endif /* DEBUG_SNIFFERS */
+/*---------------------------------------------------------------------------*/
+PROCESS(shell_sky_alldata_process, "sky-alldata");
+SHELL_COMMAND(sky_alldata_command,
+	      "sky-alldata",
+	      "sky-alldata: sensor data, power consumption, network stats",
+	      &shell_sky_alldata_process);
+/*---------------------------------------------------------------------------*/
+#define MAX(a, b) ((a) > (b)? (a): (b))
+#define MIN(a, b) ((a) < (b)? (a): (b))
+struct spectrum {
+  int channel[16];
+};
+#define NUM_SAMPLES 4
+static struct spectrum rssi_samples[NUM_SAMPLES];
+static int
+do_rssi(void)
+{
+  static int sample;
+  int channel;
+  
+  rime_mac->off(0);
+
+  cc2420_on();
+  for(channel = 11; channel <= 26; ++channel) {
+    cc2420_set_channel(channel);
+    rssi_samples[sample].channel[channel - 11] = cc2420_rssi() + 53;
+  }
+  
+  rime_mac->on();
+  
+  sample = (sample + 1) % NUM_SAMPLES;
+
+  {
+    int channel, tot;
+    tot = 0;
+    for(channel = 0; channel < 16; ++channel) {
+      int max = -256;
+      int i;
+      for(i = 0; i < NUM_SAMPLES; ++i) {
+	max = MAX(max, rssi_samples[i].channel[channel]);
+      }
+      tot += max / 20;
+    }
+    return tot;
+  }
+}
+/*---------------------------------------------------------------------------*/
+struct sky_alldata_msg {
+  uint16_t len;
+  uint16_t clock;
+  uint16_t timesynch_time;
+  uint16_t light1;
+  uint16_t light2;
+  uint16_t temp;
+  uint16_t humidity;
+  uint16_t rssi;
+  uint16_t cpu;
+  uint16_t lpm;
+  uint16_t transmit;
+  uint16_t listen;
+  uint16_t best_neighbor;
+  uint16_t best_neighbor_etx;
+  uint16_t best_neighbor_rtmetric;
+};
+/*---------------------------------------------------------------------------*/
+PROCESS_THREAD(shell_sky_alldata_process, ev, data)
+{
+  static unsigned long last_cpu, last_lpm, last_transmit, last_listen;
+  struct sky_alldata_msg msg;
+  struct neighbor *n;
   PROCESS_BEGIN();
 
-  add = 0;
-  lasttime = 0;
-  for(i = 0; i < xmac_timetable_size; ++i) {
-    if(xmac_timetable.timestamps[i].id != NULL) {
-      time = add + xmac_timetable.timestamps[i].time + timesynch_offset();
-      if(time < lasttime) {
-	add = 65536;
-	time += 65536;
-      }
-      snprintf(buf, sizeof(buf), "%u %u \"%s\"",
-	       time,
-	       (unsigned short)xmac_timetable.timestamps[i].id,
-	       xmac_timetable.timestamps[i].id);
-      shell_output_str(&xmacprofile_command, buf, "");
-    }
-  }
-  /*  xmacprofile_aggregate_print_detailed();*/
+  
+  msg.len = sizeof(struct sky_alldata_msg) / sizeof(uint16_t);
+  msg.clock = clock_time();
+  msg.timesynch_time = timesynch_time();
+  msg.light1 = sensors_light1();
+  msg.light2 = sensors_light2();
+  msg.temp = sht11_temp();
+  msg.humidity = sht11_humidity();
+  msg.rssi = do_rssi();
 
+  energest_flush();
+  
+  msg.cpu = energest_type_time(ENERGEST_TYPE_CPU) - last_cpu;
+  msg.lpm = energest_type_time(ENERGEST_TYPE_LPM) - last_lpm;
+  msg.transmit = energest_type_time(ENERGEST_TYPE_TRANSMIT) - last_transmit;
+  msg.listen = energest_type_time(ENERGEST_TYPE_LISTEN) - last_listen;
+
+
+  last_cpu = energest_type_time(ENERGEST_TYPE_CPU);
+  last_lpm = energest_type_time(ENERGEST_TYPE_LPM);
+  last_transmit = energest_type_time(ENERGEST_TYPE_TRANSMIT);
+  last_listen = energest_type_time(ENERGEST_TYPE_LISTEN);
+
+  msg.best_neighbor = msg.best_neighbor_etx =
+    msg.best_neighbor_rtmetric = 0;
+  n = neighbor_best();
+  if(n != NULL) {
+    msg.best_neighbor = n->addr.u16[0];
+    msg.best_neighbor_etx = neighbor_etx(n);
+    msg.best_neighbor_rtmetric = n->rtmetric;
+  }
+  shell_output(&sky_alldata_command, &msg, sizeof(msg), "", 0);
   PROCESS_END();
 }
-#endif
 /*---------------------------------------------------------------------------*/
-PROCESS_THREAD(test_shell_process, ev, data)
+PROCESS_THREAD(sky_shell_process, ev, data)
 {
   PROCESS_BEGIN();
 
   serial_shell_init();
-  
   shell_blink_init();
-  shell_coffee_init();
-  /*  shell_exec_init();*/
   shell_file_init();
-  /*  shell_netfile_init();*/
+  shell_coffee_init();
   shell_ps_init();
   shell_reboot_init();
   shell_rime_init();
-  shell_rime_debug_init();
   shell_rime_netcmd_init();
   shell_rime_ping_init();
   shell_rime_sniff_init();
-  /*  shell_rsh_init();*/
-  /*  shell_sendtest_init();*/
   shell_sky_init();
   shell_text_init();
   shell_time_init();
-  /*  shell_vars_init();*/
 
-#if 0
-  shell_register_command(&xmacprofile_command);
-#endif
+  shell_register_command(&sky_alldata_command);
+
+#if DEBUG_SNIFFERS
+  rime_sniffer_add(&s);
+#endif /* DEBUG_SNIFFERS */
   
   PROCESS_END();
 }
