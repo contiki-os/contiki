@@ -1,0 +1,4 @@
+serial_shell_src = serial-shell.c
+
+APPS += shell
+include $(CONTIKI)/apps/shell/Makefile.shell
