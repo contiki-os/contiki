@@ -4,14 +4,13 @@
 /** \example example-packet-drv.c */
 /** \example example-psock-server.c */
 
-/** \example example-abc.c */
+/** \example example-broadcast.c */
 /** \example example-collect.c */
 /** \example example-mesh.c */
-/** \example example-ruc.c */
+/** \example example-runicast.c */
 /** \example example-rucb.c */
 /** \example example-rudolph0.c */
 /** \example example-rudolph1.c */
 /** \example example-rudolph2.c */
-/** \example example-treeroute.c */
 /** \example example-trickle.c */
-/** \example example-uc.c */
+/** \example example-unicast.c */
