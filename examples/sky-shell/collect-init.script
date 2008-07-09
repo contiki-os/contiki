@@ -1,0 +1,10 @@
+echo ~K
+echo killall
+sleep 2
+echo time %TIME% | null
+sleep 2
+echo netcmd { repeat 0 20 { randwait 20 sky-alldata | blink | send } }
+sleep 2
+echo mac 0
+sleep 2
+echo collect | timestamp | blink | binprint &
