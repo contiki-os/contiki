@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: elfloader.c,v 1.8 2008/01/24 13:09:32 adamdunkels Exp $
+ * @(#)$Id: elfloader.c,v 1.9 2008/07/09 20:56:25 adamdunkels Exp $
  */
 
 #include "contiki.h"
@@ -43,7 +43,8 @@
 #include <string.h>
 #include <stdio.h>
 
-#if 0
+#define DEBUG 0
+#if DEBUG
 #include <stdio.h>
 #define PRINTF(...) printf(__VA_ARGS__)
 #else
@@ -150,6 +151,17 @@ seek_read(int fd, unsigned int offset, char *buf, int len)
 {
   cfs_seek(fd, offset);
   cfs_read(fd, buf, len);
+#if DEBUG
+  {
+    int i;
+    PRINTF("seek_read: Read len %d from offset %d\n",
+	   len, offset);
+    for(i = 0; i < len; ++i ) {
+      PRINTF("%02x ", buf[i]);
+    }
+    printf("\n");
+  }
+#endif /* DEBUG */
 }
 /*---------------------------------------------------------------------------*/
 /*
@@ -368,6 +380,8 @@ elfloader_load(int fd)
   shdrsize = ehdr.e_shentsize;
   shdrnum = ehdr.e_shnum;
 
+  PRINTF("Section header: size %d num %d\n", shdrsize, shdrnum);
+  
   /* The string table section: holds the names of the sections. */
   seek_read(fd, ehdr.e_shoff + shdrsize * ehdr.e_shstrndx,
 	    (char *)&strtable, sizeof(strtable));
@@ -377,6 +391,8 @@ elfloader_load(int fd)
      file (these are in the sybtam section). */
   strs = strtable.sh_offset;
 
+  PRINTF("Strtable offset %d\n", strs);
+  
   /* Go through all sections and pick out the relevant ones. The
      ".text" segment holds the actual code from the ELF file, the
      ".data" segment contains initialized data, the ".bss" segment
