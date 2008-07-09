@@ -33,7 +33,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: neighbor-discovery.c,v 1.8 2008/07/03 22:02:10 adamdunkels Exp $
+ * $Id: neighbor-discovery.c,v 1.9 2008/07/09 09:33:58 adamdunkels Exp $
  */
 
 /**
@@ -84,16 +84,16 @@ struct adv_msg {
 
 /*---------------------------------------------------------------------------*/
 static void
-send_adv(struct neighbor_discovery_conn *c, clock_time_t interval)
+send_adv(void *ptr)
 {
+  struct neighbor_discovery_conn *c = ptr;
   struct adv_msg *hdr;
 
   rimebuf_clear();
   rimebuf_set_datalen(sizeof(struct adv_msg));
   hdr = rimebuf_dataptr();
   hdr->val = c->val;
-  /*  ibc_send(&c->c);*/
-  ipolite_send(&c->c, interval, sizeof(struct adv_msg));
+  broadcast_send(&c->c);
   if(c->u->sent) {
     c->u->sent(c);
   }
@@ -103,17 +103,21 @@ send_adv(struct neighbor_discovery_conn *c, clock_time_t interval)
 }
 /*---------------------------------------------------------------------------*/
 static void
-/*adv_packet_received(struct ibc_conn *ibc, rimeaddr_t *from)*/
-adv_packet_received(struct ipolite_conn *ibc, rimeaddr_t *from)
+adv_packet_received(struct broadcast_conn *ibc, rimeaddr_t *from)
 {
   struct neighbor_discovery_conn *c = (struct neighbor_discovery_conn *)ibc;
   struct adv_msg *msg = rimebuf_dataptr();
-/*   struct neighbor *n; */
 
   PRINTF("%d.%d: adv_packet_received from %d.%d with val %d\n",
 	 rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1],
 	 from->u8[0], from->u8[1], msg->val);
 
+  /* If we receive an announcement with a lower value than ours, we
+     cancel our own announcement. */
+  if(msg->val < c->val) {
+    ctimer_stop(&c->t);
+  }
+  
   if(c->u->recv) {
     c->u->recv(c, from, msg->val);
   }
@@ -124,18 +128,16 @@ send_timer(void *ptr)
 {
   struct neighbor_discovery_conn *tc = ptr;
 
-  send_adv(tc, tc->max_interval);
-  /*  ctimer_set(&tc->t,
-	     MIN_INTERVAL + random_rand() % (MAX_INTERVAL - MIN_INTERVAL),
-	     send_timer, tc);*/
+  /*  send_adv(tc, tc->max_interval);*/
   ctimer_set(&tc->t,
+	     tc->max_interval / 2 + random_rand() % (tc->max_interval / 2),
+	     send_timer, tc);
+  ctimer_set(&tc->interval_timer,
 	     tc->max_interval,
 	     send_timer, tc);
 }
 /*---------------------------------------------------------------------------*/
-/*static const struct ibc_callbacks ibc_callbacks =
-  {adv_packet_received};*/
-CC_CONST_FUNCTION static struct ipolite_callbacks ipolite_callbacks =
+static CC_CONST_FUNCTION struct broadcast_callbacks broadcast_callbacks =
   {adv_packet_received};
 /*---------------------------------------------------------------------------*/
 void
@@ -145,34 +147,34 @@ neighbor_discovery_open(struct neighbor_discovery_conn *c, uint16_t channel,
 			clock_time_t max,
 			const struct neighbor_discovery_callbacks *cb)
 {
-  /*  ibc_open(&c->c, channel, &ibc_callbacks);*/
-  ipolite_open(&c->c, channel, &ipolite_callbacks);
+  broadcast_open(&c->c, channel, &broadcast_callbacks);
   c->u = cb;
   c->initial_interval = initial;
   c->min_interval = min;
   c->max_interval = max;
+  ctimer_set(&c->interval_timer, max, send_timer, c);
 }
 /*---------------------------------------------------------------------------*/
 void
 neighbor_discovery_close(struct neighbor_discovery_conn *c)
 {
-  /*  ibc_close(&c->c);*/
+  broadcast_close(&c->c);
   ctimer_stop(&c->t);
-  ipolite_close(&c->c);
 }
 /*---------------------------------------------------------------------------*/
 void
 neighbor_discovery_start(struct neighbor_discovery_conn *c, uint16_t val)
 {
+  clock_time_t interval;
+
   if(val < c->val) {
-    c->val = val;
-    send_adv(c, c->initial_interval);
-    ctimer_set(&c->t, c->initial_interval, send_timer, c);
+    interval = c->initial_interval;
   } else {
-    c->val = val;
-    send_adv(c, c->min_interval);
-    ctimer_set(&c->t, c->min_interval, send_timer, c);
+    interval = c->min_interval;
   }
+  c->val = val;
+  ctimer_set(&c->t, interval / 2 + random_rand() % (interval / 2),
+	     send_adv, c);
 }
 /*---------------------------------------------------------------------------*/
 /** @} */
