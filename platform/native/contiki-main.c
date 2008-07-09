@@ -29,7 +29,7 @@
  *
  * This file is part of the Contiki OS
  *
- * $Id: contiki-main.c,v 1.8 2008/02/10 22:39:26 oliverschmidt Exp $
+ * $Id: contiki-main.c,v 1.9 2008/07/09 20:58:25 adamdunkels Exp $
  *
  */
 
@@ -55,6 +55,7 @@ SENSORS(&pir_sensor, &vib_sensor, &button_sensor);
 int
 main(void)
 {
+  printf("Starting Contiki\n");
   process_init();
 
   procinit_init();
@@ -63,8 +64,6 @@ main(void)
 
   /* Make standard output unbuffered. */
   setvbuf(stdout, (char *)NULL, _IONBF, 0);
-  
-  printf("Contiki started\n");
   
   while(1) {
     fd_set fds;
