@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: shell-sky.c,v 1.9 2008/07/03 17:56:17 adamdunkels Exp $
+ * $Id: shell-sky.c,v 1.10 2008/07/09 09:32:54 adamdunkels Exp $
  */
 
 /**
@@ -268,6 +268,8 @@ PROCESS_THREAD(shell_power_process, ev, data)
   struct power_msg msg;
 
   PROCESS_BEGIN();
+
+  energest_flush();
   
   msg.len = 8;
   msg.cpu = energest_type_time(ENERGEST_TYPE_CPU) - last_cpu;
@@ -290,6 +292,8 @@ PROCESS_THREAD(shell_energy_process, ev, data)
   struct power_msg msg;
 
   PROCESS_BEGIN();
+
+  energest_flush();
   
   msg.len = 8;
   msg.cpu = energest_type_time(ENERGEST_TYPE_CPU);
