@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: SerialConnection.java,v 1.1 2008/07/09 23:18:06 nifi Exp $
+ * $Id: SerialConnection.java,v 1.2 2008/07/10 14:52:59 nifi Exp $
  *
  * -----------------------------------------------------------------
  *
@@ -34,8 +34,8 @@
  *
  * Authors : Joakim Eriksson, Niclas Finne
  * Created : 5 jul 2008
- * Updated : $Date: 2008/07/09 23:18:06 $
- *           $Revision: 1.1 $
+ * Updated : $Date: 2008/07/10 14:52:59 $
+ *           $Revision: 1.2 $
  */
 
 package se.sics.contiki.collect;
@@ -56,9 +56,9 @@ public abstract class SerialConnection {
   private String comPort;
   private Process serialDumpProcess;
   private PrintWriter serialOutput;
-  private boolean isRunning;
-  private boolean isOpen;
-  private String lastError;
+  protected boolean isOpen;
+  protected boolean isClosed = true;
+  protected String lastError;
 
   public boolean isOpen() {
     return isOpen;
@@ -68,14 +68,21 @@ public abstract class SerialConnection {
     return comPort;
   }
 
+  public void setComPort(String comPort) {
+    this.comPort = comPort;
+  }
+
   public String getLastError() {
     return lastError;
   }
 
   public void open(String comPort) {
+    if (comPort == null) {
+      throw new IllegalStateException("no com port");
+    }
     close();
-
     this.comPort = comPort;
+
     /* Connect to COM using external serialdump application */
     String osName = System.getProperty("os.name").toLowerCase();
     String fullCommand;
@@ -85,7 +92,7 @@ public abstract class SerialConnection {
       fullCommand = SERIALDUMP_LINUX + " " + "-b115200" + " " + comPort;
     }
 
-    isRunning = true;
+    isClosed = false;
     try {
       String[] cmd = fullCommand.split(" ");
 
@@ -161,13 +168,13 @@ public abstract class SerialConnection {
   }
 
   public void close() {
-    isOpen = false;
-    isRunning = false;
+    isClosed = true;
     lastError = null;
     closeConnection();
   }
 
   protected void closeConnection() {
+    isOpen = false;
     if (serialOutput != null) {
       serialOutput.close();
       serialOutput = null;
@@ -176,10 +183,7 @@ public abstract class SerialConnection {
       serialDumpProcess.destroy();
       serialDumpProcess = null;
     }
-    if (isRunning) {
-      isRunning = false;
-      serialClosed();
-    }
+    serialClosed();
   }
 
   protected abstract void serialData(String line);
