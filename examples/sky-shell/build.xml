@@ -27,13 +27,13 @@
   <target name="dist" depends="compile">
     <mkdir dir="${dist}"/>
     <jar destfile="${dist}/${archive}" basedir="${build}">
-<!--       <fileset dir="${build}"/> -->
       <manifest>
         <attribute name="Main-Class" value="${main}"/>
         <attribute name="Class-Path" value="lib/jcommon-1.0.13.jar lib/jfreechart-1.0.10.jar"/>
       </manifest>
     </jar>
     <copy todir="${dist}" file="collect-init.script"/>
+    <copy todir="${dist}" file="sky-shell.ihex"/>
     <mkdir dir="${dist}/lib"/>
     <copy todir="${dist}/lib">
       <fileset dir="${lib}">
@@ -42,10 +42,7 @@
     </copy>
     <mkdir dir="${dist}/tools"/>
     <copy todir="${dist}/tools">
-      <fileset dir="${contiki}/tools/sky">
-        <include name="**/motelist*"/>
-        <include name="**/serialdump*"/>
-      </fileset>
+      <fileset dir="${contiki}/tools/sky"/>
     </copy>
     <copy file="${contiki}/tools/cygwin/cygwin1.dll" todir="${dist}/tools"/>
   </target>

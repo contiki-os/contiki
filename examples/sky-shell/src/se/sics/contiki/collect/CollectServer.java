@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: CollectServer.java,v 1.3 2008/07/10 00:19:20 nifi Exp $
+ * $Id: CollectServer.java,v 1.4 2008/07/10 14:52:59 nifi Exp $
  *
  * -----------------------------------------------------------------
  *
@@ -34,8 +34,8 @@
  *
  * Authors : Joakim Eriksson, Niclas Finne
  * Created : 3 jul 2008
- * Updated : $Date: 2008/07/10 00:19:20 $
- *           $Revision: 1.3 $
+ * Updated : $Date: 2008/07/10 14:52:59 $
+ *           $Revision: 1.4 $
  */
 
 package se.sics.contiki.collect;
@@ -89,13 +89,12 @@ import se.sics.contiki.collect.gui.TimeChartPanel;
 public class CollectServer {
 
   public static final String WINDOW_TITLE = "Sensor Data Collect with Contiki";
-  public static final double TICKS_PER_SECOND = 4096; /* TODO Convert from TimerB ticks to seconds */
-  public static final double UPDATE_PERIOD = 1; /* TODO Set update period (1 second?) */
 
   public static final String CONFIG_FILE = "collect.conf";
   public static final String SENSORDATA_FILE = "sensordata.log";
   public static final String CONFIG_DATA_FILE = "collect-data.conf";
   public static final String INIT_SCRIPT = "collect-init.script";
+  public static final String FIRMWARE_FILE = "sky-shell.ihex";
 
   private Properties config = new Properties();
 
@@ -110,6 +109,7 @@ public class CollectServer {
 
   private JFrame window;
   private JTabbedPane mainPanel;
+  private JMenuItem serialItem;
 
   private Visualizer[] visualizers;
   private MapPanel mapPanel;
@@ -158,9 +158,6 @@ public class CollectServer {
     nodeModel = new DefaultListModel();
     nodeList = new JList(nodeModel);
     nodeList.setPrototypeCellValue("Node 88888");
-//    DefaultListCellRenderer l = new DefaultListCellRenderer();
-//    l.setHorizontalAlignment(DefaultListCellRenderer.RIGHT);
-//    nodeList.setCellRenderer(l);
     nodeList.addListSelectionListener(new ListSelectionListener() {
 
       @Override
@@ -207,11 +204,11 @@ public class CollectServer {
         mapPanel,
         new BarChartPanel(this, "Instantaneous Power", "Instantaneous Power Consumption", null, "Power (mW)",
             new String[] { "LPM", "CPU", "Radio listen", "Radio transmit" }) {
-	  {
+          {
             ValueAxis axis = chart.getCategoryPlot().getRangeAxis();
             axis.setLowerBound(0.0);
             axis.setUpperBound(75.0);
-	  }
+          }
           protected void addSensorData(SensorData data) {
             Node node = data.getNode();
             String nodeName = node.getName();
@@ -293,7 +290,14 @@ public class CollectServer {
     JMenu fileMenu = new JMenu("File");
     fileMenu.setMnemonic(KeyEvent.VK_F);
     menuBar.add(fileMenu);
+    serialItem = new JMenuItem("Connect to serial");
+    serialItem.addActionListener(new SerialItemHandler());
+    fileMenu.add(serialItem);
+    JMenuItem item = new JMenuItem("Program Sky nodes...");
+    item.addActionListener(new ProgramItemHandler());
+    fileMenu.add(item);
 
+    fileMenu.addSeparator();
     final JMenuItem clearMapItem = new JMenuItem("Remove Map Background");
     clearMapItem.addActionListener(new ActionListener() {
 
@@ -306,7 +310,7 @@ public class CollectServer {
     });
     clearMapItem.setEnabled(mapPanel.getMapBackground() != null);
 
-    JMenuItem item = new JMenuItem("Select Map Background...");
+    item = new JMenuItem("Select Map Background...");
     item.addActionListener(new ActionListener() {
 
       public void actionPerformed(ActionEvent e) {
@@ -404,12 +408,6 @@ public class CollectServer {
       }
     });
 
-    if (comPort == null) {
-      comPort = MoteFinder.selectComPort(window);
-//      if (comPort == null) {
-//        exit();
-//      }
-    }
     serialConnection = new SerialConnection() {
 
       private boolean hasOpened;
@@ -448,25 +446,27 @@ public class CollectServer {
         } else {
           prefix = "Failed to connect to " + getComPort() + '\n';
         }
-        String options[] = {"Retry", "Search for connected nodes", "Cancel"};
-        int value = JOptionPane.showOptionDialog(window,
-            prefix + "Do you want to retry or search for connected nodes?",
-            "Reconnect to serial port?",
-            JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE,
-            null, options, options[0]);
-        if (value == JOptionPane.CLOSED_OPTION || value == 2) {
+        if (!isClosed) {
+          String options[] = {"Retry", "Search for connected nodes", "Cancel"};
+          int value = JOptionPane.showOptionDialog(window,
+              prefix + "Do you want to retry or search for connected nodes?",
+              "Reconnect to serial port?",
+              JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE,
+              null, options, options[0]);
+          if (value == JOptionPane.CLOSED_OPTION || value == 2) {
 //          exit();
-        } else {
-          if (value == 1) {
-            // Select new serial port
-            comPort = MoteFinder.selectComPort(window);
-            if (comPort == null) {
+          } else {
+            if (value == 1) {
+              // Select new serial port
+              comPort = MoteFinder.selectComPort(window);
+              if (comPort == null) {
 //              exit();
+              }
             }
-          }
-          // Try to open com port again
-          if (comPort != null) {
-            open(comPort);
+            // Try to open com port again
+            if (comPort != null) {
+              open(comPort);
+            }
           }
         }
       }
@@ -478,7 +478,20 @@ public class CollectServer {
 
     };
     if (comPort != null) {
-      serialConnection.open(comPort);
+      serialConnection.setComPort(comPort);
+    }
+    connectToSerial();
+  }
+
+  protected void connectToSerial() {
+    if (!serialConnection.isOpen()) {
+      String comPort = serialConnection.getComPort();
+      if (comPort == null) {
+        comPort = MoteFinder.selectComPort(window);
+      }
+      if (comPort != null) {
+        serialConnection.open(comPort);
+      }
     }
   }
 
@@ -551,7 +564,9 @@ public class CollectServer {
         } else {
           window.setTitle(WINDOW_TITLE + " (" + message + ')');
         }
+        serialItem.setText(serialConnection.isOpen() ? "Disconnect from serial" : "Connect to serial");
       }
+
     });
   }
 
@@ -858,6 +873,77 @@ public class CollectServer {
     // Remove the sensor data log
     new File(SENSORDATA_FILE).delete();
     this.sensorDataOutput = null;
+  }
+
+  protected class SerialItemHandler implements ActionListener, Runnable {
+
+    private boolean isRunning;
+
+    public void actionPerformed(ActionEvent e) {
+      if (!isRunning) {
+        isRunning = true;
+        new Thread(this, "serial").start();
+      }
+    }
+
+    public void run() {
+      try {
+        if (serialConnection != null && serialConnection.isOpen()) {
+          serialConnection.close();
+        } else {
+          connectToSerial();
+        }
+      } finally {
+        isRunning = false;
+      }
+    }
+
+  }
+
+  protected class ProgramItemHandler implements ActionListener, Runnable {
+
+    private boolean isRunning = false;
+    public void actionPerformed(ActionEvent e) {
+      if (!isRunning) {
+        isRunning = true;
+        new Thread(this, "program thread").start();
+      }
+    }
+
+    @Override
+    public void run() {
+      try {
+        MoteProgrammer mp = new MoteProgrammer();
+        mp.setParentComponent(window);
+        mp.setFirmwareFile(FIRMWARE_FILE);
+        mp.searchForMotes();
+        int[] motes = mp.getMotes();
+        if (motes == null || motes.length == 0) {
+          JOptionPane.showMessageDialog(window, "Could not find any connected Sky nodes", "Error", JOptionPane.ERROR_MESSAGE);
+          return;
+        }
+        int reply = JOptionPane.showConfirmDialog(window, "Found " + motes.length + " connected Sky nodes.\n"
+            + "Do you want to upload the firmware " + FIRMWARE_FILE + '?');
+        if (reply == JFileChooser.APPROVE_OPTION) {
+          boolean wasOpen = serialConnection.isOpen();
+          serialConnection.close();
+          if (wasOpen) {
+            Thread.sleep(1000);
+          }
+          mp.programMotes();
+          mp.waitForProcess();
+          if (wasOpen) {
+            connectToSerial();
+          }
+        }
+      } catch (Exception e) {
+        e.printStackTrace();
+        JOptionPane.showMessageDialog(window, "Programming failed: " + e, "Error", JOptionPane.ERROR_MESSAGE);
+      } finally {
+        isRunning = false;
+      }
+    }
+
   }
 
   // -------------------------------------------------------------------
