@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: CollectServer.java,v 1.4 2008/07/10 14:52:59 nifi Exp $
+ * $Id: CollectServer.java,v 1.5 2008/07/10 20:05:09 adamdunkels Exp $
  *
  * -----------------------------------------------------------------
  *
@@ -34,8 +34,8 @@
  *
  * Authors : Joakim Eriksson, Niclas Finne
  * Created : 3 jul 2008
- * Updated : $Date: 2008/07/10 14:52:59 $
- *           $Revision: 1.4 $
+ * Updated : $Date: 2008/07/10 20:05:09 $
+ *           $Revision: 1.5 $
  */
 
 package se.sics.contiki.collect;
@@ -272,7 +272,7 @@ public class CollectServer {
             dataset.addValue(data.getValue(SensorData.HOPS), categories[0], data.getNode().getName());
           }
         },
-        new TimeChartPanel(this, "Latency", "Latency", "Time", "Milliseconds") {
+        new TimeChartPanel(this, "Latency", "Latency", "Time", "Seconds") {
           protected double getSensorDataValue(SensorData data) {
             return data.getLatency();
           }
