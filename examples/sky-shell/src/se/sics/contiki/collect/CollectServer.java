@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: CollectServer.java,v 1.2 2008/07/09 23:33:33 nifi Exp $
+ * $Id: CollectServer.java,v 1.3 2008/07/10 00:19:20 nifi Exp $
  *
  * -----------------------------------------------------------------
  *
@@ -34,8 +34,8 @@
  *
  * Authors : Joakim Eriksson, Niclas Finne
  * Created : 3 jul 2008
- * Updated : $Date: 2008/07/09 23:33:33 $
- *           $Revision: 1.2 $
+ * Updated : $Date: 2008/07/10 00:19:20 $
+ *           $Revision: 1.3 $
  */
 
 package se.sics.contiki.collect;
@@ -207,6 +207,11 @@ public class CollectServer {
         mapPanel,
         new BarChartPanel(this, "Instantaneous Power", "Instantaneous Power Consumption", null, "Power (mW)",
             new String[] { "LPM", "CPU", "Radio listen", "Radio transmit" }) {
+	  {
+            ValueAxis axis = chart.getCategoryPlot().getRangeAxis();
+            axis.setLowerBound(0.0);
+            axis.setUpperBound(75.0);
+	  }
           protected void addSensorData(SensorData data) {
             Node node = data.getNode();
             String nodeName = node.getName();
@@ -214,9 +219,6 @@ public class CollectServer {
             dataset.addValue(data.getCPUPower(), categories[1], nodeName);
             dataset.addValue(data.getListenPower(), categories[2], nodeName);
             dataset.addValue(data.getTransmitPower(), categories[3], nodeName);
-            ValueAxis axis = chart.getCategoryPlot().getRangeAxis();
-            axis.setLowerBound(0.0);
-	    axis.setUpperBound(75.0);
           }
         },
         new TimeChartPanel(this, "Power History", "Historical Power Consumption", "Time", "mW") {
