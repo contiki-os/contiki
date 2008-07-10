@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: shell.h,v 1.8 2008/07/04 08:23:00 adamdunkels Exp $
+ * $Id: shell.h,v 1.9 2008/07/10 16:56:27 adamdunkels Exp $
  */
 
 /**
@@ -98,8 +98,6 @@ struct shell_input {
   const char *data2;
   int len1, len2;
 };
-
-#include "serial-shell.h"
 
 #include "shell-blink.h"
 #include "shell-coffee.h"
