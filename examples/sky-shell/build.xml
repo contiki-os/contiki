@@ -47,6 +47,7 @@
         <include name="**/serialdump*"/>
       </fileset>
     </copy>
+    <copy file="${contiki}/tools/cygwin/cygwin1.dll" todir="${dist}/tools"/>
   </target>
 
   <target name="run" depends="dist">
