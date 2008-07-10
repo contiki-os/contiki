@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: clock.c,v 1.1 2006/06/17 22:41:30 adamdunkels Exp $
+ * $Id: clock.c,v 1.2 2008/07/10 17:10:39 adamdunkels Exp $
  */
 
 /**
@@ -51,6 +51,17 @@ clock_time(void)
   gettimeofday(&tv, &tz);
  
   return tv.tv_sec * 1000 + tv.tv_usec / 1000;
+}
+/*---------------------------------------------------------------------------*/
+unsigned long
+clock_seconds(void)
+{
+  struct timeval tv;
+  struct timezone tz;
+   
+  gettimeofday(&tv, &tz);
+ 
+  return tv.tv_sec;
 }
 /*---------------------------------------------------------------------------*/
 void
