@@ -1,6 +1,3 @@
-#ifndef CFS_COFFEE_ARCH_H
-#define CFS_COFFEE_ARCH_H
-
 /*
  * Copyright (c) 2008, Swedish Institute of Computer Science
  * All rights reserved.
@@ -40,6 +37,9 @@
  * 	Nicolas Tsiftes <nvt@sics.se>
  */
 
+#ifndef CFS_COFFEE_ARCH_H
+#define CFS_COFFEE_ARCH_H
+
 #include "contiki-conf.h"
 #include "dev/xmem.h"
 
@@ -52,7 +52,6 @@
 #define COFFEE_NAME_LENGTH		16
 #define COFFEE_DYN_SIZE			(16 kb)
 #define COFFEE_FD_SET_SIZE		8
-#define COFFEE_LOG_DIVISOR		4
 #define COFFEE_LOG_SIZE			(8 kb)
 #define COFFEE_LOG_TABLE_LIMIT		256
 #define COFFEE_DIR_CACHE_ENTRIES	16
@@ -65,11 +64,5 @@
 
 #define COFFEE_ERASE(sector)					\
   		xmem_erase(COFFEE_SECTOR_SIZE, COFFEE_START + (sector) * COFFEE_SECTOR_SIZE)
-
-#define READ_HEADER(hdr, page)						\
-  COFFEE_READ((hdr), sizeof (*hdr), (page) * COFFEE_PAGE_SIZE)
-
-#define WRITE_HEADER(hdr, page)						\
-  COFFEE_WRITE((hdr), sizeof (*hdr), (page) * COFFEE_PAGE_SIZE)
 
 #endif /* !COFFEE_ARCH_H */

@@ -91,6 +91,12 @@ struct file_desc {
 #define FD_WRITABLE(fd)		(coffee_fd_set[(fd)].flags & CFS_WRITE)
 #define FD_APPENDABLE(fd)	(coffee_fd_set[(fd)].flags & CFS_APPEND)
 
+#define READ_HEADER(hdr, page)			\
+  COFFEE_READ((hdr), sizeof (*hdr), (page) * COFFEE_PAGE_SIZE)
+
+#define WRITE_HEADER(hdr, page)			\
+  COFFEE_WRITE((hdr), sizeof (*hdr), (page) * COFFEE_PAGE_SIZE)
+
 struct dir_cache {
   char filename_start;
   int32_t page;
