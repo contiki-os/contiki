@@ -61,14 +61,8 @@
 #define COFFEE_FD_APPEND	0x4
 #define COFFEE_FD_FREE		0x0
 
-struct file_desc {
-  uint32_t offset;
-  uint32_t end;
-  uint16_t file_page;
-  uint8_t flags;
-  uint16_t max_pages;
-  uint16_t next_log_entry;
-};
+#define COFFEE_PAGE_COUNT	(COFFEE_SIZE / COFFEE_PAGE_SIZE)
+#define COFFEE_PAGES_PER_SECTOR	(COFFEE_SECTOR_SIZE / COFFEE_PAGE_SIZE)
 
 #define COFFEE_FLAG_ALLOCATED	0x1
 #define COFFEE_FLAG_OBSOLETE	0x2
@@ -97,9 +91,18 @@ struct file_desc {
 #define WRITE_HEADER(hdr, page)			\
   COFFEE_WRITE((hdr), sizeof (*hdr), (page) * COFFEE_PAGE_SIZE)
 
+struct file_desc {
+  uint32_t offset;
+  uint32_t end;
+  uint16_t file_page;
+  uint8_t flags;
+  uint16_t max_pages;
+  uint16_t next_log_entry;
+};
+
 struct dir_cache {
-  char filename_start;
   int32_t page;
+  char filename_start;
 };
 
 struct file_header {
