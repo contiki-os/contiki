@@ -1,6 +1,3 @@
-#ifndef CFS_COFFEE_ARCH_H
-#define CFS_COFFEE_ARCH_H
-
 /*
  * Copyright (c) 2008, Swedish Institute of Computer Science
  * All rights reserved.
@@ -41,6 +38,9 @@
  * 	Niclas Finne <nfi@sics.se>
  */
 
+#ifndef CFS_COFFEE_ARCH_H
+#define CFS_COFFEE_ARCH_H
+
 #include "contiki-conf.h"
 #include "dev/eeprom.h"
 
@@ -65,12 +65,6 @@
   		eeprom_read(COFFEE_START + (offset), (unsigned char *)(buf), (size))
 
 #define COFFEE_ERASE(sector) cfs_coffee_arch_erase(sector)
-
-#define READ_HEADER(hdr, page)						\
-  COFFEE_READ((hdr), sizeof (*hdr), (page) * COFFEE_PAGE_SIZE)
-
-#define WRITE_HEADER(hdr, page)						\
-  COFFEE_WRITE((hdr), sizeof (*hdr), (page) * COFFEE_PAGE_SIZE)
 
 void cfs_coffee_arch_erase(uint16_t sector);
 
