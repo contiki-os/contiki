@@ -30,14 +30,14 @@
  * 
  * Author: Oliver Schmidt <ol.sc@web.de>
  *
- * $Id: clock.c,v 1.1 2007/12/15 00:14:19 oliverschmidt Exp $
+ * $Id: clock.c,v 1.2 2008/07/12 14:44:37 oliverschmidt Exp $
  */
 
 #include <time.h>
 
 #include "contiki.h"
 
-/*-----------------------------------------------------------------------------------*/
+/*---------------------------------------------------------------------------*/
 clock_time_t
 clock_time(void)
 {
@@ -53,4 +53,10 @@ clock_time(void)
    * on the educated guess of CLK_TCK being an even value. */
   return clock() / (CLK_TCK / CLOCK_CONF_SECOND);
 }
-/*-----------------------------------------------------------------------------------*/
+/*---------------------------------------------------------------------------*/
+unsigned long
+clock_seconds(void)
+{
+  return clock() / CLK_TCK;
+}
+/*---------------------------------------------------------------------------*/
