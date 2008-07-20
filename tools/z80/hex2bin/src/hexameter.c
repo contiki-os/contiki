@@ -38,29 +38,24 @@
  * A main file for hex2cas.
  */
 
+#define MAX_PATH 1024
 
-#if __CYGWIN32__
-#include <windows.h>
-#else
-#include <stdlib.h>
-#endif
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include <unistd.h>
-#ifndef TRUE
-#define TRUE 1
-#endif
+#include <ctype.h>
 
 #include "ihx2bin.h"
 
 #define MAXFILES 256
 
-struct Configuration {
+typedef struct {
   char* output;
-  char* prefix;
-  char* suffix;
   char* dir;
-  char archname[6];
   char *files[MAXFILES];
+  unsigned int defsize;
+  struct ConvertDefinition defs[DEF_MAX];
   unsigned char verbose;
   // number of the ihx files
   int length;
@@ -68,9 +63,33 @@ struct Configuration {
   int size;
   // output file wriiten size
   int written;
-};
+} Configuration;
 
-static char *changeExt(const char *path, const char* ext) {
+static
+const char* IHXEXT = ".ihx";
+
+static
+const char *strcasestr(const char *haystack, const char *needle) {
+  int haypos;
+  int needlepos;
+
+  haypos = 0;
+  while (haystack[haypos]) {
+    if (tolower (haystack[haypos]) == tolower(needle[0])) {
+      needlepos = 1;
+      while ( (needle[needlepos]) &&
+              (tolower(haystack[haypos + needlepos])
+               == tolower(needle[needlepos])) )
+          ++needlepos;
+      if (! needle[needlepos]) return (haystack + haypos);
+    }
+    ++haypos;
+  }
+  return NULL;
+}
+
+static
+char *changeExt(const char *path, const char* ext) {
   char *p;
   char *tail;
   char *changed;
@@ -79,7 +98,6 @@ static char *changeExt(const char *path, const char* ext) {
 
   for (tail = (char*) path; *tail != 0; tail++);
   for (p = tail; p > path; p--) {
-
     if (*p == '.') {
       len = p - path;
       changed = (char*) malloc(len + extlen + 2);
@@ -98,47 +116,50 @@ static char *changeExt(const char *path, const char* ext) {
   return changed;
 }
 
-static unsigned char analyzeOption(int argc, char **argv, struct Configuration *config) {
+static
+unsigned char analyzeOption(int argc, char **argv, Configuration *config) {
   int c;
+  char *defval;
+
   opterr = 0;
-  while ((c = getopt(argc, argv, "hvo:p:s:n:b:")) != EOF) {
-    int i;
+  while ((c = getopt(argc, argv, "hvo:d:b:")) != EOF) {
     switch (c) {
     case 'v':
-      config->verbose = TRUE;
+      config->verbose = 1;
       break;
     case 'o':
       config->output = optarg;
       break;
-    case 'p':
-      config->prefix = optarg;
-      break;
-    case 's':
-      config->suffix = optarg;
-      break;
     case 'b':
       sscanf(optarg, "%x", &config->size);
       break;
-//     case 'n':
-//       for (i = 0; i < 6; i++) {
-//         if (optarg[i] == 0) {
-//           break;
-//       	}
-//       	config->archname[i] = optarg[i];
-//       }
-//       break;
+    case 'd':
+      if (config->defsize >= DEF_MAX) {
+	printf("excess number of definitions\n");
+	return 1;
+      }
+      defval = strchr(optarg, '=');
+      if (defval) {
+	*defval = 0;
+	config->defs[config->defsize].name = optarg;
+	config->defs[config->defsize].value = defval + 1;
+	config->defsize++;
+      } else {
+	printf("definition value required:%s\n", optarg);
+	return 1;
+      }
+
+      break;
     case 'h':
-      printf("%s : Convert Intel HEX file (ihx) to binary file, ver. 2.0.0\n", getprogname());
+      printf("Hexameter: Convert Intel HEX file (ihx) to binary file, ver. 2.1.0\n");
       printf("Copyright (c) 2003-2008 Takahide Matsutsuka <markn@markn.org>\n");
-      printf("Usage: %s [options] <ihx> [<ihx>...]\n", argv[0]);
+      printf("Usage: hexameter [options] <ihx|bin> [<ihx|bin>...]\n");
       printf("Options:\n");
       printf(" -v verbose output\n");
       printf(" -o <output file name>\n");
-//       printf(" -n <cassette file name> (for NEC PC series)\n");
-      printf(" -p <prefix file>\n");
-      printf(" -s <suffix file>\n");
+      printf(" -d <name>=<value> define property\n");
       printf(" -b <output file size in hexadecimal bytes>\n");
-      printf(" -h print this help\n");
+      printf(" -h show this help\n");
     
       return 1;
     default:
@@ -150,7 +171,9 @@ static unsigned char analyzeOption(int argc, char **argv, struct Configuration *
   return 0;
 }
 
-static int isFileExists(const char *dir, const char *filename) {
+#if 0
+static
+int isFileExists(const char *dir, const char *filename) {
   char path[MAX_PATH];
   FILE *f;
 
@@ -171,19 +194,25 @@ static int isFileExists(const char *dir, const char *filename) {
 
   return 0;
 }
+#endif
 
+/**
+ * @return 1 if given filename has an extension of ".ihx"
+ */
+static
+int isIhx(const char *filename) {
+  const char* pos = strcasestr(filename, IHXEXT);
+  if (pos && pos[strlen(IHXEXT)] == 0) {
+    return 1;
+  }
+  return 0;
+}
 
-static int checkExistence(struct Configuration *config) {
+static
+int checkExistence(Configuration *config) {
   int i;
-  int r;
   FILE *f;
-  fclose(f);
-  if (r = isFileExists(config->dir, config->prefix)) {
-    return r;
-  }
-  if (r = isFileExists(config->dir, config->suffix)) {
-    return r;
-  }
+
   for (i = 0; i < config->length; i++) {
     f = fopen(config->files[i], "r");
     if (!f) {
@@ -201,7 +230,7 @@ static int checkExistence(struct Configuration *config) {
 static
 int copy(FILE *out, const char* dir, const char* filename, unsigned char verbose) {
   FILE *in;
-  char ch;
+  int ch;
   char path[MAX_PATH];
   int bytes = 0;
   if (!filename) {
@@ -213,31 +242,42 @@ int copy(FILE *out, const char* dir, const char* filename, unsigned char verbose
   } else {
     strcpy(path, filename);
   }
-  if (verbose) {
-    printf("importing file: %s\n", path);
-  }
   in = fopen(path, "rb");
   while ((ch = getc(in)) != EOF) {
     putc(ch, out);
     bytes++;
   }
+  fclose(in);
+  if (verbose) {
+    printf("imported file: %s, size=%d\n", path, bytes);
+  }
   return bytes;
 }
 
-static int output(struct Configuration *config) {
+static
+int output(Configuration *config) {
   FILE *out;
   int i;
-  // TODO: ARCH FILE NAME
 
   if (!(out = fopen(config->output, "wb"))) {
     printf("cannot open output file:%s\n", config->output);
     return 1;
   }
-  config->written += copy(out, config->dir, config->prefix, config->verbose);
+
   for (i = 0; i < config->length; i++) {
-    config->written += ihx2bin(out, config->files[i], config->verbose);
+    struct ConvertInfo info;
+    info.out = out;
+    info.filename = config->files[i];
+    info.verbose = config->verbose;
+    info.defsize = config->defsize;
+    info.defs = config->defs;
+
+    if (isIhx(config->files[i])) {
+      config->written += ihx2bin(&info);
+    } else {
+      config->written += copy(out, NULL, config->files[i], config->verbose);
+    }
   }
-  config->written += copy(out, config->dir, config->suffix, config->verbose);
 
   if (config->size) {
     if (config->verbose) {
@@ -254,27 +294,14 @@ static int output(struct Configuration *config) {
 
 
 int main(int argc, char **argv) {
-  struct Configuration config;
+  Configuration config;
   unsigned char r;
 
-  memset(&config, 0, sizeof(struct Configuration));
-
-#if __CYGWIN32__
-   char path[MAX_PATH];
-   GetModuleFileName(NULL, path, MAX_PATH);
-   int len = strlen(path);
-   while (len > 0) {
-     if (path[len] == '\\') {
-       path[len + 1] = 0;
-       break;
-     }
-     len--;
-   }
-   config.dir = path;
-#endif
+  memset(&config, 0, sizeof(Configuration));
 
   while (optind < argc) {
-    if (r = analyzeOption(argc, argv, &config)) {
+    r = analyzeOption(argc, argv, &config);
+    if (r) {
       return r;
     }
     if (optind == argc) {
@@ -298,13 +325,15 @@ int main(int argc, char **argv) {
     config.output = changeExt(config.files[0], "bin");
   }
 
-  if (r = checkExistence(&config)) {
+  r = checkExistence(&config);
+  if (r) {
     return r;
   }
   if (config.verbose) {
     printf("Generating file: %s\n", config.output);
   }
-  if (r = output(&config)) {
+  r = output(&config);
+  if (r) {
     return r;
   }
 

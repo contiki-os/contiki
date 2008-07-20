@@ -2,7 +2,7 @@
 # Makefile for PC-6001 using z80/SDCC
 # @author Takahide Matsutsuka <markn@markn.org>
 #
-# $Id: Makefile.pc-6001,v 1.9 2008/07/02 15:04:07 matsutsuka Exp $
+# $Id: Makefile.pc-6001,v 1.10 2008/07/20 07:44:39 matsutsuka Exp $
 #
 
 ifndef CONTIKI
@@ -48,7 +48,8 @@ endif
 
 ### setup default values
 ifndef HEX2BIN
-  HEX2BIN = ../../tools/z80/hex2bin/hexameter
+  HEX2BINDIR = ../../tools/z80/hex2bin/
+  HEX2BIN = $(HEX2BINDIR)/hexameter
 endif
 
 ### setup flags to be used in compiler, assembler, and HEX2BIN
@@ -59,16 +60,16 @@ CFLAGS  += -DMEMORY_$(MEMORY) -DARCH_$(ARCH) -DCTK_$(CTKCONF)
 
 ifeq ($(MEMORY),16K)
   LDFLAGS      += --code-loc 0xc40f --data-loc 0
-  HEX2BINFLAGS  = -p mode1 -s suffix -o contiki.p6
+  HEX2BINFLAGS  = -d TAPE=contki $(HEX2BINDIR)/ihx/mode1.ihx -o contiki.p6
 else ifeq ($(MEMORY),ROM)
   LDFLAGS      += --code-loc 0x4004 --data-loc 0xf000
-  HEX2BINFLAGS  = -p rom60 -o contiki.rom
+  HEX2BINFLAGS  = -d ROMEXEC=4004 $(HEX2BINDIR)/ihx/rom60.ihx -b 4000 -o contiki.rom
 else ifeq ($(ARCH),PC6001MK2)
   LDFLAGS      += --code-loc 0x800f --data-loc 0
-  HEX2BINFLAGS  = -p mode5 -s suffix -o contiki2.p6
+  HEX2BINFLAGS  = -d TAPE=contki $(HEX2BINDIR)/ihx/mode5.ihx -o contiki2.p6
 else
   LDFLAGS      += --code-loc 0x840f --data-loc 0
-  HEX2BINFLAGS  = -p mode2 -s suffix -o contiki.p6
+  HEX2BINFLAGS  = -d TAPE=contki $(HEX2BINDIR)/ihx/mode2.ihx -o contiki.p6
 endif
 
 ifeq ($(LOADER),1)
@@ -108,12 +109,12 @@ contiki: $(HEX2BIN) contiki.p6
 .SUFFIXES:
 
 %.p6:	%.ihx
-	$(HEX2BIN) $(HEX2BINFLAGS) $<
+	$(HEX2BIN) $(HEX2BINFLAGS) $< $(HEX2BINDIR)/ihx/suffix.ihx
 %.rom:	%.ihx
-	$(HEX2BIN) $(HEX2BIN) $(HEX2BINFLAGS) $<
+	$(HEX2BIN) $(HEX2BINFLAGS) $<
 
 $(HEX2BIN):
-	cd ../../tools/z80/hex2bin/; make
+	cd $(HEX2BINDIR); make
 
 remove-ctk:
 	rm -f obj_$(TARGET)/ctk*;
