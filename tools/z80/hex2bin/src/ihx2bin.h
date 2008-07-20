@@ -27,7 +27,7 @@
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * $Id: ihx2bin.h,v 1.1 2008/07/02 07:17:14 matsutsuka Exp $
+ * $Id: ihx2bin.h,v 1.2 2008/07/20 07:44:39 matsutsuka Exp $
  *
  */
 
@@ -39,9 +39,27 @@
 #ifndef __IHX2BIN_H__
 #define __IHX2BIN_H__
 
+#define DEF_MAX         1024
+#define DEF_NAMELEN     256
+#define DEF_VALUELEN    256
+
+struct ConvertDefinition {
+  char *name;
+  char *value;
+};
+
+struct ConvertInfo {
+  FILE* out;
+  char* filename;
+  unsigned char verbose;
+  unsigned int defsize;
+  struct ConvertDefinition *defs;
+};
+
 /* A default architecture-depend file name. */
 #define DEFAULT_ARCH_FILENAME  "noname"
 
-int ihx2bin(FILE* dst, const char *src, unsigned char verbose);
+// int ihx2bin(FILE* dst, const char *src, unsigned char verbose);
+int ihx2bin(struct ConvertInfo* info);
 
 #endif /* __IHX2BIN_H__ */

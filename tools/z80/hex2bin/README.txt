@@ -1,5 +1,5 @@
 hexameter : Convert Intel hex files to a binary file
-version 2.0.0
+version 2.1.0
                              Copyright (c) 2003-2008, Takahide Matsutsuka.
 
 1/ What is it?
@@ -13,15 +13,15 @@ other old computers.
 
 2/ Installation
 
-Installation can be done in following steps.
+Installation can be done in the following steps.
 
 a) Download and install SDCC from http://sdcc.sf.net/
-   Version 2.8.0 is tested.
+   Version 2.8.0 has been tested.
    SDCC is a cross-compiler for Z80 and other 8bit CPUs.
    Extract an archive on your disk, say "c:/sdcc".
 
-b) Copy hexameter.exe to any path-available directory. for exmaple
-   "c:/sdcc/bin".
+b) Place hexameter.exe and prefix/suffix files to any path-available
+   directory.
 
 
 3/ Use
@@ -60,38 +60,30 @@ b) Compile your code using SDCC.
 
 c) Convert ihx file to cas file using hex2cas.
 
-   hexameter YOUR_CODE.ihx [YOUR_CODE2.ihx ...]
+   hexameter <ihx_file|binary_file> [ihx_file|binary_file ...]
    The ihx files are just attached in the specified order.
 
    Here you can take some options:
-     -p <filename>   specify prefix file name.
-     -s <filename>   specify suffix file name.
-     -n <name>       specify PC-6001 cassette file name,
-                     must be 6 characters or less.
-     -v              verbose output
-     -o <filename>   specify output file name
-     -b <size>       size of the output file in hexadecimal bytes.
-                     only if the size of the output is less than the size
-		     specified, the trailing bytes will filled by zeroes.
-		     note that it doesn't mean the size of output is
-		     restricted by the given size.
-     -h		     displays simple usage
+     -o <filename>     specify output file name
+     -d <name>=<value> define ihx-specific value replacement
+     -v                verbose output
+     -b <size>         size of the output file in hexadecimal bytes.
+                       only if the size of the output is less than the size
+		       specified, the trailing bytes will filled by zeroes.
+		       note that it doesn't mean the size of output is
+		       restricted by the given size.
+     -h		       displays simple usage
 
-   Prefixes and suffixes are provided by files, which should be in the same
-   directory as hexameter.exe.
-   mode1
-   mode2
-   mode5
-   n88
-   rom60
-   rom62
-   suffix
+   You can find various predefined library file in "lib" directory.
+   Each of them may take its own optional value, which you can specify
+   with -d option.
 
 d) Example
 
    The following is a typical example to convert from ihx files to
    PC-6001 loadable cassette format.
-   % hexameter -p mode2 -s suffix mycode1.ihx mycode2.ihx -o myapp.p6
+   % hexameter -v TAPE=myfile mode2.ihx mycode2.ihx -o myapp.p6
+   Note that TAPE value is defined in mode2.ihx, defines cassette file name.
 
 e) Load your cas file into your 6001 emulator.
 
@@ -105,15 +97,52 @@ e) Load your cas file into your 6001 emulator.
      http://bernie.hp.infoseek.co.jp/develop/pc6001vw.html
 
 
-4/ Note
+4/ IHX extentions
 
-- While I've tested the tool on Cigwin on Win32, I think it works
-  on other environments with a little work.
+To support run-time user specified values in ihx files, Hexameter supports
+extended ihx files.  Examples are located in ihx directory.
+
+For example, mode2.ihx has the following line.
+
+:06000a02TAPE
+
+As in normal ihx format, the first 9 characters conform to the following
+format:
+
+:AABBBBCC
+AA    bytes encoded in this line
+BBBB  start address of this line
+CC    type of this line
+
+The normal ihx file, which sdcc emits, has the type 00 (data) and 01 (end of
+file).  In addition to this, Hexameter supports the following types.
+
+02    string
+03    byte
+04    word (encoded in little endian)
+
+The rest of line defines a name of the definition.  In the example above,
+the name TAPE is assigned to this line.  You can use latin alphabets,
+numbers, and underscore (_) for the name.  Letters are case-sensitive.
+
+When you run Hexameter, you can specify a value for this definition like:
+hexameter -d TAPE=xxxx
+
+Since this example defines 06 in the bytes field, TAPE can have up to
+six characters.  This string will override the memory location 000a
+specified in the second field.
+
+For type 03 (byte) and 04 (word), bytes field has no effect.
+
+
+5/ Note
+
+- Cygwin dependency has been removed.
 
 - SDCC has many isuues regarding compilation.  Don't blame me about them! :)
 
 
-5/ History
+6/ History
 
 3/29/2003 1.0.0 First version
 4/20/2003 1.0.1 Mode option has been added
@@ -123,6 +152,8 @@ e) Load your cas file into your 6001 emulator.
 4/28/2008 1.4.0 Header file option introduced
 
 5/17/2008 2.0.0 Migrated to hexameter, to support more flexible configurations
+7/16/2008 2.1.0 Support arguments in ihx file, remove prefix/suffix instead
+7/18/2008 2.1.1 Cygwin dependency has been removed
 
 
 Enjoy!

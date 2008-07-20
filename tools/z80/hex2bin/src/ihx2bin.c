@@ -35,19 +35,41 @@
  */
 
 /*
- * Intel HEX format to PC-6001 CAS format conversion utility.
+ * Intel HEX format (extended) to binary format conversion utility.
  */
 
 #include <stdio.h>
+#include <string.h>
 #include "ihx2bin.h"
+
+#define TYPE_DATA  0
+#define TYPE_END   1
+#define TYPE_STRING  2
+#define TYPE_BYTE  3
+#define TYPE_WORD  4
+
+#define MEMORY_SIZE 0x10000
+
+typedef struct {
+  unsigned int start;
+  unsigned int end;
+  unsigned char buffer[MEMORY_SIZE];
+  // current line
+  int type;
+  unsigned int address;
+  unsigned int length;
+} Memory;
+
+static
+const char NAME_CHARS[] = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz_";
 
 /**
  * Convert a character to a value.
  * @param ch a character to convert
  * @return integer value represents the given character
  */
-static int aton(const unsigned char ch) {
-  int n;
+static
+int aton(const unsigned char ch) {
   if (ch >= '0' && ch <= '9') {
     return ch - '0';
   }
@@ -66,18 +88,94 @@ static int aton(const unsigned char ch) {
  * @param in file
  * @return -1 if EOF
  */
-static int getByte(FILE *in) {
+static
+int getByte(FILE *in) {
   int ch1, ch2;
-  ch1 = getc(in);
-  if (ch1 == EOF) {
+  if (feof(in)) {
+    printf("eof");
     return -1;
   }
-  ch2 = getc(in);
-  if (ch2 == EOF) {
+  ch1 = fgetc(in);
+  if (feof(in)) {
+    printf("eof");
     return -1;
   }
+  ch2 = fgetc(in);
   return 16 * aton(ch1) + aton(ch2);
 }
+
+/**
+ * @return non-zero if error
+ */
+static
+void replace(FILE* in, struct ConvertInfo *info, Memory *memory) {
+  int i, j;
+  char name[DEF_NAMELEN];
+  int len = 0;
+  // read name
+  while (len < DEF_NAMELEN - 1) {
+    char ch = fgetc(in);
+    if (!strchr(NAME_CHARS, ch)) {
+      break;
+    }
+    name[len] = ch;
+    len++;
+  }
+  name[len] = 0;
+
+  for (i = 0; i < info->defsize; i++) {
+    if (!strcmp(name, info->defs[i].name)) {
+      int tmp;
+      char value[DEF_VALUELEN];
+
+      // replace!
+      switch (memory->type) {
+      case TYPE_STRING:
+	for (j = 0; j < memory->length; j++) {
+	  memory->buffer[memory->address] = value[j] = info->defs[i].value[j];
+	  memory->address++;
+	}
+	value[j] = 0;
+	if (info->verbose) {
+	  printf("[%s]->[%s], ", name, value);
+	}
+	break;
+      case TYPE_BYTE:
+	tmp = 0;
+	for (j = 0; j < 2; j++) {
+	  if (aton(info->defs[i].value[j])) {
+	    tmp = tmp * 16 + aton(info->defs[i].value[j]);
+	  }
+	}
+	memory->buffer[memory->address] = tmp;
+	if (info->verbose) {
+	  printf("[%s]->[%02x], ", name, tmp);
+	}
+	break;
+      case TYPE_WORD:
+	tmp = 0;
+	for (j = 0; j < 2; j++) {
+	  tmp = tmp * 16 + aton(info->defs[i].value[j]);
+	}
+	memory->buffer[memory->address + 1] = tmp;
+	tmp = 0;
+	for (j = 2; j < 4; j++) {
+	  tmp = tmp * 16 + aton(info->defs[i].value[j]);
+	}
+	memory->buffer[memory->address] = tmp;
+	if (info->verbose) {
+	  printf("[%s]->[%02x%02x], ", name,
+		 memory->buffer[memory->address + 1],
+		 memory->buffer[memory->address]);
+	}
+	break;
+      }
+      break;
+    }
+  }
+}
+
+
 
 /**
  * Extract a 64kB memory map from given file.
@@ -86,6 +184,7 @@ static int getByte(FILE *in) {
  * A_  : size of this chunk
  * B___: address (big endian)
  * C_  : record type (00: notmal data, 01: end)
+ *        extension: 02: char, 03: byte(hex), 04: word(hex, little-endian)
  * D_....D_: data
  * E_  : check sum
  * :0DCCCF00673008D620D607D63013C937C904
@@ -95,68 +194,71 @@ static int getByte(FILE *in) {
  * @param end pointer to end address
  * @return 0 if noerror, otherwise if error
  */
-static int ihx2mem(const char *inFilename, unsigned char *buffer, unsigned int *start, unsigned int *end) {
+static
+int ihx2mem(struct ConvertInfo *info, Memory *memory) {
   FILE *in;
-  *start = 0xffff;
-  *end = 0;
+  memory->start = MEMORY_SIZE - 1;
+  memory->end = 0;
 
-  in = fopen(inFilename, "rb");
+  in = fopen(info->filename, "rb");
   if (in == NULL) {
     printf("cannot open input file\n");
     return 1;
   }
 
   while(1) {
-    int ch;
-    int length;
-    unsigned int address;
     int tmp;
 
     // skip checksum and cr/lf
-    while ((ch = getc(in)) != ':') {
-      if (ch == EOF) {
+    while (!feof(in)) {
+      if (fgetc(in) == ':') {
         break;
       }
     }
-    if (ch == EOF) {
+    if (feof(in)) {
       break;
     }
 
     // get length of this chunk
-    length = getByte(in);
-    if (length <= 0) {
-      // TODO: end of bytes, retrieve variables
+    if ((memory->length = getByte(in)) < 0) {
       break;
     }
 
     // make an address
-    tmp = getByte(in);
-    if (tmp < 0) {
+    if ((tmp = getByte(in)) < 0) {
       break;
     }
-    address = tmp * 256;
-    tmp = getByte(in);
-    if (tmp < 0) {
+    memory->address = tmp * 256;
+    if ((tmp = getByte(in)) < 0) {
       break;
     }
-    address += tmp;    
-    if (*start > address) {
-      *start = address;
-    }
+    memory->address += tmp;    
 
-    if (*end < (address + length)) {
-      *end = address + length;
-    }
-
-    // ignore record type
-    if (getByte(in) < 0) {
+    // process record type
+    if ((memory->type = getByte(in)) < 0) {
       break;
     }
 
-    while (length > 0) {
-      buffer[address] = getByte(in);
-      address++;
-      length--;
+    if (memory->type != TYPE_END) {
+      // modify start and end
+      if (memory->start > memory->address) {
+	memory->start = memory->address;
+      }
+      if (memory->end < (memory->address + memory->length)) {
+	memory->end = memory->address + memory->length;
+      }
+    }
+
+    if (memory->type == TYPE_DATA) {
+      while (memory->length > 0) {
+	memory->buffer[memory->address] = getByte(in);
+	memory->address++;
+	memory->length--;
+      }
+    } else if (memory->type == TYPE_STRING
+	       || memory->type == TYPE_BYTE
+	       || memory->type == TYPE_WORD) {
+      replace(in, info, memory);
     }
   }
 
@@ -167,24 +269,28 @@ static int ihx2mem(const char *inFilename, unsigned char *buffer, unsigned int *
 /**
  * @return written size
  */
-int ihx2bin(FILE* dst, const char *src, unsigned char verbose) {
-  unsigned int start, end;
-  unsigned char buffer[65536];
+int ihx2bin(struct ConvertInfo *info) {
+  Memory memory;
   unsigned int i;
 
-  memset(buffer, 0, 65536);
+  memset(&memory, 0, sizeof(Memory));
   
-  if (ihx2mem(src, buffer, &start, &end)) {
-    printf("cannot open input file: %s\n", src);
+  if (info->verbose) {
+    printf("importing ihx: %s, ", info->filename);
+  }
+
+  if (ihx2mem(info, &memory)) {
+    printf("cannot open input file: %s\n", info->filename);
     return 0;
   }
 
-  if (verbose) {
-    printf("importing ihx : %s (%04x:%04x)\n", src, start, end);
-  }
-  for (i = start; i < end; i++) {
-    putc(buffer[i], dst);
+  if (info->verbose) {
+    printf("(%04x:%04x)\n", memory.start, memory.end);
   }
 
-  return (end - start);
+  for (i = memory.start; i < memory.end; i++) {
+    putc(memory.buffer[i], info->out);
+  }
+
+  return (memory.end - memory.start);
 }
