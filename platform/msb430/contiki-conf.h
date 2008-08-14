@@ -35,7 +35,7 @@
 
 // Clock
 typedef unsigned short clock_time_t;
-#define CLOCK_CONF_SECOND		100
+#define CLOCK_CONF_SECOND		64
 #define F_CPU				2457600uL // CPU target speed in Hz
 
 #define BAUD2UBR(baud)			(F_CPU/(baud))
