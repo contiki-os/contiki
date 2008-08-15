@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: shell-sky.c,v 1.10 2008/07/09 09:32:54 adamdunkels Exp $
+ * $Id: shell-sky.c,v 1.11 2008/08/15 19:07:04 adamdunkels Exp $
  */
 
 /**
@@ -51,6 +51,8 @@
 
 #include "net/rime/timesynch.h"
 
+#include "node-id.h"
+
 #include <stdio.h>
 #include <string.h>
 
@@ -62,7 +64,14 @@ struct power_msg {
   uint32_t listen;
 };
 
+#define WITH_POWERGRAPH 0
+
 /*---------------------------------------------------------------------------*/
+PROCESS(shell_nodeid_process, "nodeid");
+SHELL_COMMAND(nodeid_command,
+	      "nodeid",
+	      "nodeid: set node ID",
+	      &shell_nodeid_process);
 PROCESS(shell_sense_process, "sense");
 SHELL_COMMAND(sense_command,
 	      "sense",
@@ -98,11 +107,13 @@ SHELL_COMMAND(powerconv_command,
 	      "powerconv",
 	      "powerconv: convert power profile to human readable output",
 	      &shell_powerconv_process);
+#if WITH_POWERGRAPH
 PROCESS(shell_powergraph_process, "powergraph");
 SHELL_COMMAND(powergraph_command,
 	      "powergraph",
 	      "powergraph: convert power profile to a 'graphical' repressentation",
 	      &shell_powergraph_process);
+#endif /* WITH_POWERGRAPH */
 /*---------------------------------------------------------------------------*/
 #define MAX(a, b) ((a) > (b)? (a): (b))
 #define MIN(a, b) ((a) < (b)? (a): (b))
@@ -246,12 +257,13 @@ PROCESS_THREAD(shell_rfchannel_process, ev, data)
   const char *newptr;
   PROCESS_BEGIN();
 
+  msg.channel = shell_strtolong(data, &newptr);
+  
   /* If no channel was given on the command line, we print out the
      current channel. */
   if(newptr == data) {
     msg.channel = cc2420_get_channel();
   } else {
-    msg.channel = shell_strtolong(data, &newptr);
     cc2420_set_channel(msg.channel);
   }
 
@@ -362,6 +374,7 @@ PROCESS_THREAD(shell_powerconv_process, ev, data)
   PROCESS_END();
 }
 /*---------------------------------------------------------------------------*/
+#if WITH_POWERGRAPH
 #define MAX_POWERGRAPH 34
 static void
 printpowergraph(struct power_msg *msg)
@@ -417,17 +430,52 @@ PROCESS_THREAD(shell_powergraph_process, ev, data)
   
   PROCESS_END();
 }
+#endif /* WITH_POWERGRAPH */
+/*---------------------------------------------------------------------------*/
+PROCESS_THREAD(shell_nodeid_process, ev, data)
+{
+  uint16_t nodeid;
+  char buf[20];
+  const char *newptr;
+  PROCESS_BEGIN();
+
+  nodeid = shell_strtolong(data, &newptr);
+  
+  /* If no node ID was given on the command line, we print out the
+     current channel. Else we burn the new node ID. */
+  if(newptr == data) {
+    nodeid = node_id;
+  } else {
+    nodeid = shell_strtolong(data, &newptr);
+    watchdog_stop();
+    leds_on(LEDS_RED);
+    node_id_burn(nodeid);
+    leds_on(LEDS_BLUE);
+    node_id_restore();
+    leds_off(LEDS_RED + LEDS_BLUE);
+    watchdog_start();
+  }
+
+  snprintf(buf, sizeof(buf), "%d", nodeid);
+  shell_output_str(&nodeid_command, "Node ID: ", buf);
+
+  PROCESS_END();
+}
 /*---------------------------------------------------------------------------*/
 void
 shell_sky_init(void)
 {
   shell_register_command(&power_command);
   shell_register_command(&powerconv_command);
-  shell_register_command(&powergraph_command);
   shell_register_command(&energy_command);
   shell_register_command(&txpower_command);
   shell_register_command(&rfchannel_command);
   shell_register_command(&sense_command);
   shell_register_command(&senseconv_command);
+  shell_register_command(&nodeid_command);
+
+#if WITH_POWERGRAPH
+  shell_register_command(&powergraph_command);
+#endif /* WITH_POWERGRAPH */
 }
 /*---------------------------------------------------------------------------*/
