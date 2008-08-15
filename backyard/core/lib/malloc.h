@@ -27,7 +27,7 @@
   POSSIBILITY OF SUCH DAMAGE.
 */
 
-/* $Id: malloc.h,v 1.2 2006/08/11 13:41:31 bg- Exp $ */
+/* $Id: malloc.h,v 1.1 2008/08/15 19:05:17 adamdunkels Exp $ */
 
 #ifndef MALLOC_H
 #define MALLOC_H
