@@ -30,7 +30,7 @@
  *
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: contiki-main.c,v 1.30 2008/05/27 19:07:20 adamdunkels Exp $
+ * $Id: contiki-main.c,v 1.31 2008/08/15 19:34:07 adamdunkels Exp $
  */
 
 #include "contiki.h"
@@ -173,7 +173,7 @@ contiki_main(int flag)
 
     n = process_run();
     /*    if(n > 0) {
-      printf("%d processes in queue\n");
+      printf("%d processes in queue\n", n);
       }*/
     tv.tv_sec = 0;
     tv.tv_usec = 1;
