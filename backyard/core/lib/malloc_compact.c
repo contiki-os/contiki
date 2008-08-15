@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#)$Id: malloc_compact.c,v 1.1 2006/06/17 22:41:18 adamdunkels Exp $
+ * @(#)$Id: malloc_compact.c,v 1.1 2008/08/15 19:05:17 adamdunkels Exp $
  */
 
 #include <stdlib.h>
