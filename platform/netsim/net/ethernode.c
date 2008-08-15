@@ -30,7 +30,7 @@
  *
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: ethernode.c,v 1.15 2008/05/14 19:22:58 adamdunkels Exp $
+ * $Id: ethernode.c,v 1.16 2008/08/15 19:54:58 adamdunkels Exp $
  */
 /**
  * \file
@@ -263,8 +263,9 @@ PROCESS_THREAD(ethernode_process, ev, data)
   PROCESS_BEGIN();
 
   while(1) {
-    PROCESS_PAUSE();
-
+    process_post(PROCESS_CURRENT(), PROCESS_EVENT_CONTINUE, NULL);
+    PROCESS_WAIT_EVENT_UNTIL(ev == PROCESS_EVENT_CONTINUE);
+    
     if(ethernode_poll()) {
       if(receiver_callback) {
 	receiver_callback(&ethernode_driver);
