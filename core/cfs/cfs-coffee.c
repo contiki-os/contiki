@@ -32,7 +32,7 @@
 
 /**
  * \file
- *	Coffee: A flash file system on memory-contrained sensor systems.
+ *	Coffee: A flash file system for memory-contrained sensor systems.
  * \author
  * 	Nicolas Tsiftes <nvt@sics.se>
  */
@@ -64,10 +64,11 @@
 #define COFFEE_PAGE_COUNT	(COFFEE_SIZE / COFFEE_PAGE_SIZE)
 #define COFFEE_PAGES_PER_SECTOR	(COFFEE_SECTOR_SIZE / COFFEE_PAGE_SIZE)
 
-#define COFFEE_FLAG_ALLOCATED	0x1
-#define COFFEE_FLAG_OBSOLETE	0x2
-#define COFFEE_FLAG_MODIFIED	0x4
-#define COFFEE_FLAG_LOG		0x8
+#define COFFEE_FLAG_VALID	0x1
+#define COFFEE_FLAG_ALLOCATED	0x2
+#define COFFEE_FLAG_OBSOLETE	0x4
+#define COFFEE_FLAG_MODIFIED	0x8
+#define COFFEE_FLAG_LOG		0x10
 
 #define LOG_CMD_MAGIC		0x7a
 
@@ -95,9 +96,9 @@ struct file_desc {
   uint32_t offset;
   uint32_t end;
   uint16_t file_page;
-  uint8_t flags;
   uint16_t max_pages;
   uint16_t next_log_entry;
+  uint8_t flags;
 };
 
 struct dir_cache {
@@ -106,12 +107,12 @@ struct dir_cache {
 };
 
 struct file_header {
-  unsigned flags:4;
-  unsigned max_pages:12;
-  unsigned log_page:16;
-  unsigned eof_locator:16;
-  unsigned log_entries:16;
-  unsigned log_entry_size:16;
+  uint16_t log_page;
+  uint16_t log_entries;
+  uint16_t log_entry_size;
+  uint16_t max_pages;
+  uint8_t eof_hint;
+  uint8_t flags;
   char name[COFFEE_NAME_LENGTH];
 } __attribute__((packed));
 
@@ -136,7 +137,7 @@ get_sector_status(uint16_t sector, uint16_t *active,
   uint32_t offset;
   uint32_t end;
   struct file_header hdr;
-  static uint16_t skip_pages;
+  static int16_t skip_pages;
   static int last_pages_are_active;
   
   *active = *free = *obsolete = 0;
@@ -164,25 +165,25 @@ get_sector_status(uint16_t sector, uint16_t *active,
   while(offset < end) {
     COFFEE_READ(&hdr, sizeof (hdr), offset);
     if(COFFEE_PAGE_ACTIVE(hdr)) {
-      offset += hdr.max_pages * COFFEE_PAGE_SIZE;
       last_pages_are_active = 1;
+      offset += hdr.max_pages * COFFEE_PAGE_SIZE;
       *active += hdr.max_pages;
     } else if(COFFEE_PAGE_OBSOLETE(hdr)) {
       last_pages_are_active = 0;
       offset += hdr.max_pages * COFFEE_PAGE_SIZE;
       *obsolete += hdr.max_pages;
     } else if(COFFEE_PAGE_FREE(hdr)) {
-      ++*free;
-      offset += COFFEE_PAGE_SIZE;
+      *free = (end - offset) / COFFEE_PAGE_SIZE;
+      break;
     }
   }
   
-  skip_pages = *active + *free + *obsolete - COFFEE_PAGES_PER_SECTOR;
+  skip_pages = *active + *obsolete - COFFEE_PAGES_PER_SECTOR;
   if(skip_pages > 0) {
     if(last_pages_are_active) {
-      *active = COFFEE_PAGES_PER_SECTOR - *free - *obsolete;
+      *active = COFFEE_PAGES_PER_SECTOR - *obsolete;
     } else {
-      *obsolete = COFFEE_PAGES_PER_SECTOR - *free - *active;
+      *obsolete = COFFEE_PAGES_PER_SECTOR - *active;
     }
   }
 }
@@ -258,8 +259,8 @@ find_file(const char *name)
       page += hdr.max_pages;
     } else {
       /* It follows from the properties of the page allocation algorithm 
-	 that if a free page is encountered, the rest of the sector is 
-	 also free. */
+	 that if a free page is encountered, then the rest of the sector
+	 is also free. */
       page = (page + COFFEE_PAGES_PER_SECTOR) & ~(COFFEE_PAGES_PER_SECTOR - 1);
     }
     watchdog_periodic();
@@ -278,14 +279,14 @@ find_offset_in_file(int first_page)
   
   READ_HEADER(&hdr, first_page);
   
-  /* 
+  /*
    * Move from the end of the file towards the beginning and look for
    * a byte that has been modified.
    *
-   * One important implication of this is that if the last written bytes
+   * An important implication of this is that if the last written bytes
    * are zeroes, then these are skipped from the calculation.
-   * 
-   */  
+   */
+  
   for(page = first_page + hdr.max_pages - 1; page >= first_page; page--) {
     watchdog_periodic();
     COFFEE_READ(buf, sizeof (buf), page * COFFEE_PAGE_SIZE);
@@ -321,7 +322,7 @@ find_contiguous_pages(unsigned wanted)
 	  return start;
 	}
       }
-      page++;
+      page = (page + COFFEE_PAGES_PER_SECTOR) & ~(COFFEE_PAGES_PER_SECTOR - 1);
     } else {
       start = -1;
       page += hdr.max_pages;
@@ -955,13 +956,13 @@ cfs_coffee_reserve(const char *name, uint32_t size)
       return -1;
     }
   }
-  
+
   memcpy(hdr.name, name, sizeof (hdr.name));
   hdr.name[sizeof (hdr.name) - 1] = '\0';
   hdr.max_pages = need_pages;
-  hdr.flags = COFFEE_FLAG_ALLOCATED;
+  hdr.flags = COFFEE_FLAG_ALLOCATED | COFFEE_FLAG_VALID;
   hdr.log_page = 0;
-  hdr.eof_locator = 0;
+  hdr.eof_hint = 0;
   hdr.log_entries = 0;
   hdr.log_entry_size = 0;
   WRITE_HEADER(&hdr, page);
