@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: chameleon.c,v 1.4 2008/07/03 23:13:31 adamdunkels Exp $
+ * $Id: chameleon.c,v 1.5 2008/08/15 18:59:22 adamdunkels Exp $
  */
 
 /**
@@ -116,6 +116,7 @@ chameleon_input(void)
       PRINTF("%d.%d: chameleon_input channel %d\n",
 	     rimeaddr_node_addr.u8[0],rimeaddr_node_addr.u8[1],
 	     c->channelno);
+      rimebuf_set_attr(RIMEBUF_ATTR_CHANNEL, c->channelno);
       abc_input(c);
     } else {
       PRINTF("%d.%d: chameleon_input channel not found for incoming packet\n",
