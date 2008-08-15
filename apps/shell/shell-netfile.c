@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: shell-netfile.c,v 1.4 2008/07/03 21:14:29 adamdunkels Exp $
+ * $Id: shell-netfile.c,v 1.5 2008/08/15 18:58:42 adamdunkels Exp $
  */
 
 /**
@@ -167,6 +167,7 @@ shell_netfile_init(void)
   shell_register_command(&netfile_command);
   shell_register_command(&recvnetfile_command);
 
-  rudolph0_open(&rudolph0_conn, 26, &rudolph0_callbacks);
+  rudolph0_open(&rudolph0_conn, SHELL_RIME_CHANNEL_NETFILE,
+		&rudolph0_callbacks);
 }
 /*---------------------------------------------------------------------------*/

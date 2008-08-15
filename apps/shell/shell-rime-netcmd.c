@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: shell-rime-netcmd.c,v 1.3 2008/07/07 23:22:38 adamdunkels Exp $
+ * $Id: shell-rime-netcmd.c,v 1.4 2008/08/15 18:58:42 adamdunkels Exp $
  */
 
 /**
@@ -160,7 +160,8 @@ const static struct trickle_callbacks trickle_callbacks = { recv_trickle };
 void
 shell_rime_netcmd_init(void)
 {
-  trickle_open(&trickle, CLOCK_SECOND * 4, 28, &trickle_callbacks);
+  trickle_open(&trickle, CLOCK_SECOND * 4, SHELL_RIME_CHANNEL_NETCMD,
+	       &trickle_callbacks);
   shell_register_command(&netcmd_command);
 }
 /*---------------------------------------------------------------------------*/

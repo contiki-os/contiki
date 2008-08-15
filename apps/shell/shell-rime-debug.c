@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: shell-rime-debug.c,v 1.1 2008/07/04 08:23:00 adamdunkels Exp $
+ * $Id: shell-rime-debug.c,v 1.2 2008/08/15 18:58:42 adamdunkels Exp $
  */
 
 /**
@@ -212,8 +212,10 @@ static const struct unicast_callbacks unicast_callbacks = {recv_uc};
 void
 shell_rime_debug_init(void)
 {
-  unicast_open(&uc, 14, &unicast_callbacks);
-  broadcast_open(&broadcast, 15, &broadcast_callbacks);
+  unicast_open(&uc, SHELL_RIME_CHANNEL_UNICAST,
+	       &unicast_callbacks);
+  broadcast_open(&broadcast, SHELL_RIME_CHANNEL_BROADCAST,
+		 &broadcast_callbacks);
   shell_register_command(&broadcast_command);
   shell_register_command(&unicast_command);
 }
