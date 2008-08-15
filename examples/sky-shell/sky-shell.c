@@ -28,18 +28,19 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: sky-shell.c,v 1.4 2008/07/09 20:39:27 adamdunkels Exp $
+ * $Id: sky-shell.c,v 1.5 2008/08/15 18:46:28 adamdunkels Exp $
  */
 
 /**
  * \file
- *         Tmote Sky-specific Contiki shell 
+ *         Tmote Sky-specific Contiki shell
  * \author
  *         Adam Dunkels <adam@sics.se>
  */
 
 #include "contiki.h"
 #include "shell.h"
+#include "serial-shell.h"
 
 #include "net/rime/neighbor.h"
 #include "dev/watchdog.h"
@@ -211,6 +212,7 @@ PROCESS_THREAD(sky_shell_process, ev, data)
   shell_ps_init();
   shell_reboot_init();
   shell_rime_init();
+  shell_rime_debug_init();
   shell_rime_netcmd_init();
   shell_rime_ping_init();
   shell_rime_sniff_init();
