@@ -36,7 +36,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: collect.c,v 1.13 2008/07/03 22:02:10 adamdunkels Exp $
+ * $Id: collect.c,v 1.14 2008/08/15 19:00:38 adamdunkels Exp $
  */
 
 /**
@@ -68,7 +68,7 @@ static const struct rimebuf_attrlist attributes[] =
     RIMEBUF_ATTR_LAST
   };
 
-#define NUM_RECENT_PACKETS 4
+#define NUM_RECENT_PACKETS 2
 
 struct recent_packet {
   rimeaddr_t originator;
@@ -115,12 +115,18 @@ update_rtmetric(struct collect_conn *tc)
       }
       tc->rtmetric = RTMETRIC_MAX;
     } else {
-
       /* We set our rtmetric to the rtmetric of our best neighbor plus
 	 the expected transmissions to reach that neighbor. */
       if(n->rtmetric + neighbor_etx(n) != tc->rtmetric) {
-	tc->rtmetric = n->rtmetric + neighbor_etx(n);
-	neighbor_discovery_start(&tc->neighbor_discovery_conn, tc->rtmetric);
+	uint16_t new_rtmetric = n->rtmetric + neighbor_etx(n);
+	
+	if(tc->rtmetric == RTMETRIC_MAX) {
+	  neighbor_discovery_start(&tc->neighbor_discovery_conn, new_rtmetric);
+	} else {
+	  neighbor_discovery_set_val(&tc->neighbor_discovery_conn, new_rtmetric);
+	}
+	tc->rtmetric = new_rtmetric;
+
 	PRINTF("%d.%d: new rtmetric %d\n",
 	       rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1],
 	       tc->rtmetric);
@@ -156,8 +162,13 @@ node_packet_received(struct runicast_conn *c, rimeaddr_t *from, uint8_t seqno)
 
   for(i = 0; i < NUM_RECENT_PACKETS; i++) {
     if(recent_packets[i].seqno == rimebuf_attr(RIMEBUF_ATTR_EPACKET_ID)&&
-	  rimeaddr_cmp(&recent_packets[i].originator,
-		       rimebuf_addr(RIMEBUF_ADDR_ESENDER))) {
+       rimeaddr_cmp(&recent_packets[i].originator,
+		    rimebuf_addr(RIMEBUF_ADDR_ESENDER))) {
+      PRINTF("%d.%d: collect: dropping duplicate packet %d from %d.%d\n",
+	     rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1],
+	     rimebuf_attr(RIMEBUF_ATTR_EPACKET_ID),
+	     rimebuf_addr(RIMEBUF_ADDR_ESENDER)->u8[0],
+	     rimebuf_addr(RIMEBUF_ADDR_ESENDER)->u8[1]);
       /* Drop the packet. */
       return;
     }
@@ -284,7 +295,7 @@ collect_open(struct collect_conn *tc, uint16_t channels,
   channel_set_attributes(channels + 1, attributes);
   tc->rtmetric = RTMETRIC_MAX;
   tc->cb = cb;
-  neighbor_discovery_start(&tc->neighbor_discovery_conn, tc->rtmetric);
+  neighbor_discovery_set_val(&tc->neighbor_discovery_conn, tc->rtmetric);
 }
 /*---------------------------------------------------------------------------*/
 void
@@ -331,6 +342,9 @@ collect_send(struct collect_conn *tc, int rexmits)
 #if NETSIM
       ether_set_line(n->addr.u8[0], n->addr.u8[1]);
 #endif /* NETSIM */
+      PRINTF("%d.%d: sending to %d.%d\n",
+	     rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1],
+	     n->addr.u8[0], n->addr.u8[1]);
       return runicast_send(&tc->runicast_conn, &n->addr, rexmits);
     } else {
       /*      printf("Didn't find any neighbor\n");*/

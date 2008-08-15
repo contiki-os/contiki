@@ -47,7 +47,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: neighbor-discovery.h,v 1.6 2008/07/09 09:33:58 adamdunkels Exp $
+ * $Id: neighbor-discovery.h,v 1.7 2008/08/15 19:00:38 adamdunkels Exp $
  */
 
 /**
@@ -73,7 +73,7 @@ struct neighbor_discovery_callbacks {
 struct neighbor_discovery_conn {
   struct broadcast_conn c;
   const struct neighbor_discovery_callbacks *u;
-  struct ctimer t, interval_timer;
+  struct ctimer send_timer, interval_timer;
   clock_time_t initial_interval, min_interval, max_interval;
   uint16_t val;
 };
@@ -85,6 +85,7 @@ void neighbor_discovery_open(struct neighbor_discovery_conn *c,
 			     clock_time_t max,
 			     const struct neighbor_discovery_callbacks *u);
 void neighbor_discovery_close(struct neighbor_discovery_conn *c);
+void neighbor_discovery_set_val(struct neighbor_discovery_conn *c, uint16_t val);
 
 void neighbor_discovery_start(struct neighbor_discovery_conn *c, uint16_t val);
 
