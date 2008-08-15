@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: shell-rime.c,v 1.7 2008/07/07 23:22:59 adamdunkels Exp $
+ * $Id: shell-rime.c,v 1.8 2008/08/15 19:06:14 adamdunkels Exp $
  */
 
 /**
@@ -50,7 +50,7 @@
 #include "net/rime.h"
 #include "net/rime/neighbor.h"
 #include "net/rime/route.h"
-#include "net/rime/trickle.h"
+#include "net/rime/netflood.h"
 
 #include "net/rime/timesynch.h"
 
@@ -68,12 +68,14 @@ int snprintf(char *str, size_t size, const char *format, ...);
 #define COLLECT_REXMITS 4
 
 enum {
-  TRICKLE_TYPE_NODES,
+  NETFLOOD_TYPE_NODES,
 };
 
-struct trickle_msg {
+struct netflood_msg {
   uint8_t type;
 };
+
+static uint8_t nodes_seqno;
 
 #define COLLECT_MSG_HDRSIZE 4
 struct collect_msg {
@@ -83,7 +85,7 @@ struct collect_msg {
 };
 
 static struct collect_conn collect;
-static struct trickle_conn trickle;
+static struct netflood_conn netflood;
 static struct ctimer ctimer;
 static int waiting_for_nodes = 0;
 static int waiting_for_collect = 0;
@@ -276,7 +278,7 @@ PROCESS_THREAD(shell_neighbors_process, ev, data)
 PROCESS_THREAD(shell_nodes_process, ev, data)
 {
   static struct etimer etimer;
-  struct trickle_msg *msg;
+  struct netflood_msg *msg;
   char buf[10];
   PROCESS_BEGIN();
 
@@ -296,9 +298,9 @@ PROCESS_THREAD(shell_nodes_process, ev, data)
   
   rimebuf_clear();
   msg = rimebuf_dataptr();
-  rimebuf_set_datalen(sizeof(struct trickle_msg));
-  msg->type = TRICKLE_TYPE_NODES;
-  trickle_send(&trickle);
+  rimebuf_set_datalen(sizeof(struct netflood_msg));
+  msg->type = NETFLOOD_TYPE_NODES;
+  netflood_send(&netflood, nodes_seqno++);
 
   etimer_set(&etimer, CLOCK_SECOND * 10);
   waiting_for_nodes = 1;
@@ -452,23 +454,25 @@ send_collect(void *dummy)
 }
 /*---------------------------------------------------------------------------*/
 static void
-recv_trickle(struct trickle_conn *c)
+recv_netflood(struct netflood_conn *c)
 {
-  struct trickle_msg *msg;
+  struct netflood_msg *msg;
   
   msg = rimebuf_dataptr();
-  if(msg->type == TRICKLE_TYPE_NODES) {
-    ctimer_set(&ctimer, random_rand() % (CLOCK_SECOND * 2),
+  if(msg->type == NETFLOOD_TYPE_NODES) {
+    ctimer_set(&ctimer, random_rand() % (CLOCK_SECOND * 8),
 	       send_collect, NULL);
   }
 }
-const static struct trickle_callbacks trickle_callbacks = { recv_trickle };
+const static struct netflood_callbacks netflood_callbacks = { recv_netflood,
+							      NULL, NULL };
 /*---------------------------------------------------------------------------*/
 void
 shell_rime_init(void)
 {
-  trickle_open(&trickle, CLOCK_SECOND * 4, 16, &trickle_callbacks);
-  collect_open(&collect, 17, &collect_callbacks);
+  netflood_open(&netflood, CLOCK_SECOND * 8,
+		SHELL_RIME_CHANNEL_NODES, &netflood_callbacks);
+  collect_open(&collect, SHELL_RIME_CHANNEL_COLLECT, &collect_callbacks);
   
   shell_register_command(&collect_command);
   shell_register_command(&mac_command);
