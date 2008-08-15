@@ -28,7 +28,7 @@
   ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
   POSSIBILITY OF SUCH DAMAGE.
 */
-/* $Id: realloc.c,v 1.2 2007/01/25 18:19:57 bg- Exp $ */
+/* $Id: realloc.c,v 1.1 2008/08/15 19:57:13 adamdunkels Exp $ */
 
 #include <stdlib.h>
 #include <string.h>
