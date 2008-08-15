@@ -53,6 +53,11 @@
 #define PRINTF(...)
 #endif
 
+#if COFFEE_PAGES_PER_SECTOR & (COFFEE_PAGES_PER_SECTOR - 1)
+#error COFFEE_PAGES_PER_SECTOR must be a power of two.
+#error Change COFFEE_PAGES_PER_SECTOR in cfs-coffee-arch.h.
+#endif
+
 #define kb			* 1024UL
 #define Mb			* (1024 kb)
 
@@ -322,6 +327,7 @@ find_contiguous_pages(unsigned wanted)
 	  return start;
 	}
       }
+      /* Jump to the next sector. */
       page = (page + COFFEE_PAGES_PER_SECTOR) & ~(COFFEE_PAGES_PER_SECTOR - 1);
     } else {
       start = -1;
@@ -378,7 +384,7 @@ remove_by_page(uint16_t page, int remove_log, int close_fds)
   struct file_header hdr;
   int i;
   uint16_t log_page;
-  
+
   if(page >= COFFEE_PAGE_COUNT) {
     return -1;
   }
