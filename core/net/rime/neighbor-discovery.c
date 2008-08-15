@@ -33,7 +33,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: neighbor-discovery.c,v 1.9 2008/07/09 09:33:58 adamdunkels Exp $
+ * $Id: neighbor-discovery.c,v 1.10 2008/08/15 19:00:38 adamdunkels Exp $
  */
 
 /**
@@ -115,7 +115,7 @@ adv_packet_received(struct broadcast_conn *ibc, rimeaddr_t *from)
   /* If we receive an announcement with a lower value than ours, we
      cancel our own announcement. */
   if(msg->val < c->val) {
-    ctimer_stop(&c->t);
+    ctimer_stop(&c->send_timer);
   }
   
   if(c->u->recv) {
@@ -128,10 +128,9 @@ send_timer(void *ptr)
 {
   struct neighbor_discovery_conn *tc = ptr;
 
-  /*  send_adv(tc, tc->max_interval);*/
-  ctimer_set(&tc->t,
+  ctimer_set(&tc->send_timer,
 	     tc->max_interval / 2 + random_rand() % (tc->max_interval / 2),
-	     send_timer, tc);
+	     send_adv, tc);
   ctimer_set(&tc->interval_timer,
 	     tc->max_interval,
 	     send_timer, tc);
@@ -152,14 +151,20 @@ neighbor_discovery_open(struct neighbor_discovery_conn *c, uint16_t channel,
   c->initial_interval = initial;
   c->min_interval = min;
   c->max_interval = max;
-  ctimer_set(&c->interval_timer, max, send_timer, c);
 }
 /*---------------------------------------------------------------------------*/
 void
 neighbor_discovery_close(struct neighbor_discovery_conn *c)
 {
   broadcast_close(&c->c);
-  ctimer_stop(&c->t);
+  ctimer_stop(&c->send_timer);
+  ctimer_stop(&c->interval_timer);
+}
+/*---------------------------------------------------------------------------*/
+void
+neighbor_discovery_set_val(struct neighbor_discovery_conn *c, uint16_t val)
+{
+  c->val = val;
 }
 /*---------------------------------------------------------------------------*/
 void
@@ -173,7 +178,8 @@ neighbor_discovery_start(struct neighbor_discovery_conn *c, uint16_t val)
     interval = c->min_interval;
   }
   c->val = val;
-  ctimer_set(&c->t, interval / 2 + random_rand() % (interval / 2),
+  ctimer_set(&c->interval_timer, interval, send_timer, c);
+  ctimer_set(&c->send_timer, interval / 2 + random_rand() % (interval / 2),
 	     send_adv, c);
 }
 /*---------------------------------------------------------------------------*/
