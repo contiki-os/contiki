@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: shell-sendtest.c,v 1.2 2008/03/03 16:10:09 adamdunkels Exp $
+ * $Id: shell-sendtest.c,v 1.3 2008/08/15 18:58:42 adamdunkels Exp $
  */
 
 /**
@@ -170,7 +170,7 @@ PROCESS_THREAD(shell_sendtest_process, ev, data)
 void
 shell_sendtest_init(void)
 {
-  rucb_open(&rucb, 22, &rucb_callbacks);
+  rucb_open(&rucb, SHELL_RIME_CHANNEL_SENDTEST, &rucb_callbacks);
   shell_register_command(&sendtest_command);
 }
 /*---------------------------------------------------------------------------*/

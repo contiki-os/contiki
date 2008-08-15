@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: shell-rime.h,v 1.1 2008/02/04 23:42:17 adamdunkels Exp $
+ * $Id: shell-rime.h,v 1.2 2008/08/15 18:58:42 adamdunkels Exp $
  */
 
 /**
@@ -44,5 +44,29 @@
 #include "shell.h"
 
 void shell_rime_init(void);
+
+/* Rime channel used by the 'unicast' debug command, which uses 1 channel */
+#define SHELL_RIME_CHANNEL_UNICAST   20
+
+/* Rime channel used by the 'broadcast' debug command, which uses 1 channel */
+#define SHELL_RIME_CHANNEL_BROADCAST SHELL_RIME_CHANNEL_UNICAST + 1
+
+/* Rime channel used by the 'nodes' command, which uses 1 channel */
+#define SHELL_RIME_CHANNEL_NODES     SHELL_RIME_CHANNEL_BROADCAST + 1
+
+/* Rime channel used by the 'collect' command, which uses 2 channels */
+#define SHELL_RIME_CHANNEL_COLLECT   SHELL_RIME_CHANNEL_NODES + 1
+
+/* Rime channel used by the 'ping' command, which uses 3 channels */
+#define SHELL_RIME_CHANNEL_PING      SHELL_RIME_CHANNEL_COLLECT + 2
+
+/* Rime channel used by the 'netcmd' command, which uses 1 channels */
+#define SHELL_RIME_CHANNEL_NETCMD   SHELL_RIME_CHANNEL_PING + 3
+
+/* Rime channel used by the 'netfile' command, which uses 2 channels */
+#define SHELL_RIME_CHANNEL_NETFILE   SHELL_RIME_CHANNEL_NETCMD + 1
+
+/* Rime channel used by the 'sendtest' command, which uses 1 channels */
+#define SHELL_RIME_CHANNEL_SENDTEST  SHELL_RIME_CHANNEL_NETFILE + 2
 
 #endif /* __SHELL_RIME_H__ */
