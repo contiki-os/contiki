@@ -1,5 +1,6 @@
 all: print-version hello-world
 CONTIKI = ../../..
+APPS=serial-shell webserver telnetd
 include $(CONTIKI)/Makefile.include
 print-version:
-	@$(CC) --version
+	@$(CC) --version || echo
