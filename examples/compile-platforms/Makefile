@@ -6,6 +6,7 @@ all:
 
 compile: msp430 native
 
+6502:	c64.platform apple2enh.platform
 msp430: sky.platform esb.platform # msb430.platform
 native: native.platform netsim.platform minimal-net.platform
 
@@ -14,6 +15,6 @@ native: native.platform netsim.platform minimal-net.platform
 	@cp *.c $*
 	@cp Makefile.platform $*/Makefile
 	@((echo; echo ------------------- $* -------------------; \
-           cd $* ; ($(MAKE) TARGET=$* >& /dev/null) ; \
-                   $(MAKE) TARGET=$*) >& $*.output && echo "$* succeeded") || \
+           cd $* ; ($(MAKE) TARGET=$* > /dev/null 2>&1 ) ; \
+                   $(MAKE) TARGET=$*) > $*.output 2>&1 && echo "$* succeeded") || \
            (echo; echo "$* failed"; exit 1)
