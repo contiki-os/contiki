@@ -6,7 +6,7 @@ all:
 
 compile: msp430 native
 
-6502:	c64.platform apple2enh.platform
+6502:	c64.platform c128.platform apple2enh.platform
 msp430: sky.platform esb.platform # msb430.platform
 native: native.platform netsim.platform minimal-net.platform
 
