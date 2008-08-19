@@ -4,7 +4,7 @@ all:
 	@uname -a
 	@$(MAKE) -s -k compile || cat *.output
 
-compile: msp430 native
+compile: 6502 msp430 native
 
 6502:	c64.platform c128.platform apple2enh.platform
 msp430: sky.platform esb.platform # msb430.platform
