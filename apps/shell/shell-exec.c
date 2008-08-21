@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: shell-exec.c,v 1.2 2008/07/03 21:13:13 adamdunkels Exp $
+ * $Id: shell-exec.c,v 1.3 2008/08/21 19:15:41 nvt-se Exp $
  */
 
 /**
@@ -73,7 +73,7 @@ PROCESS_THREAD(shell_exec_process, ev, data)
 
   
   fd = cfs_open(name, CFS_READ);
-  if(fd <= 0) {
+  if(fd < 0) {
     shell_output_str(&exec_command,
 		     "exec: could not open ", name);
   } else {
