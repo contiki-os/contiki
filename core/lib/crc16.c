@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: crc16.c,v 1.2 2008/07/07 23:24:36 adamdunkels Exp $
+ * @(#)$Id: crc16.c,v 1.3 2008/08/26 21:46:06 adamdunkels Exp $
  */
 
 /** \addtogroup crc16
@@ -64,7 +64,7 @@ crc16_add(unsigned char b, unsigned short acc)
 }
 /*---------------------------------------------------------------------------*/
 unsigned short
-crc16_data(unsigned char *data, int len, unsigned short acc)
+crc16_data(const unsigned char *data, int len, unsigned short acc)
 {
   int i;
   unsigned short crc = 0;
