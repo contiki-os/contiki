@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: mtarch.c,v 1.4 2007/09/14 20:21:01 nvt-se Exp $
+ * @(#)$Id: mtarch.c,v 1.5 2008/08/27 13:10:29 fros4943 Exp $
  */
 
 #include <stdio.h>
@@ -39,7 +39,7 @@
 void
 mtarch_init(void)
 {
-  
+
 }
 /*--------------------------------------------------------------------------*/
 void
@@ -72,7 +72,7 @@ sw(void)
 {
 
   sptmp = running->sp;
-    
+
   __asm__("push r4");
   __asm__("push r5");
   __asm__("push r6");
@@ -85,7 +85,7 @@ sw(void)
   __asm__("push r13");
   __asm__("push r14");
   __asm__("push r15");
-    
+
   __asm__("mov.w r1,%0" : "=r" (running->sp));
   __asm__("mov.w %0,r1" : : "m" (sptmp));
 
@@ -126,13 +126,19 @@ mtarch_yield(void)
 void
 mtarch_pstop(void)
 {
-  
+
 }
 /*--------------------------------------------------------------------------*/
 void
 mtarch_pstart(void)
 {
-  
+
+}
+/*--------------------------------------------------------------------------*/
+void
+mtarch_stop(struct mtarch_thread *thread)
+{
+
 }
 /*--------------------------------------------------------------------------*/
 int
