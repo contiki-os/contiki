@@ -306,7 +306,8 @@ find_offset_in_file(int first_page)
   unsigned char buf[COFFEE_PAGE_SIZE];
   int page;
   int i;
-  int search_limit, range_start, range_end, part_size;
+  int search_limit;
+  uint32_t range_start, range_end, part_size;
 
   READ_HEADER(&hdr, first_page);
   for(search_limit = i = 0; i < sizeof(hdr.eof_hint) * CHAR_BIT; i++) {
@@ -315,6 +316,9 @@ find_offset_in_file(int first_page)
     }
   }
   part_size = hdr.max_pages / sizeof(hdr.eof_hint) / CHAR_BIT;
+  if(part_size == 0) {
+    part_size = 1;
+  }
   range_start = part_size * search_limit;
   range_end = range_start + part_size;
 
@@ -612,12 +616,13 @@ flush_log(uint16_t file_page)
     return -1;
   }
   
-  /* Copy the log configuration. */
+  /* Copy the log configuration and the EOF hint. */
   READ_HEADER(&hdr2, new_file_page);
   hdr2.log_entry_size = hdr.log_entry_size;
   hdr2.log_entries = hdr.log_entries;
+  hdr2.eof_hint = hdr.eof_hint;
   WRITE_HEADER(&hdr2, new_file_page);
-  
+
   /* Point the file descriptors to the new file page. */
   for(n = 0; n < COFFEE_FD_SET_SIZE; n++) {
     if(coffee_fd_set[n].file_page == file_page) {
@@ -799,7 +804,9 @@ cfs_close(int fd)
     READ_HEADER(&hdr, coffee_fd_set[fd].file_page);
     current_page = (coffee_fd_set[fd].end + COFFEE_PAGE_SIZE - 1) / COFFEE_PAGE_SIZE;
     part_size = hdr.max_pages / (sizeof(hdr.eof_hint) * CHAR_BIT);
-
+    if(part_size == 0) {
+      part_size = 1;
+    }
     for(i = eof_hint = 0; i < sizeof(eof_hint) * CHAR_BIT; i++) {
       eof_hint |= (current_page > (i + 1) * part_size) << i;
     }
@@ -821,13 +828,13 @@ cfs_seek(int fd, unsigned offset)
   if(!FD_VALID(fd)) {
     return -1;
   }
-
   READ_HEADER(&hdr, coffee_fd_set[fd].file_page);
-  if(sizeof(hdr) + offset >= hdr.max_pages * COFFEE_PAGE_SIZE) {
+  if(sizeof(hdr) + offset >= hdr.max_pages * COFFEE_PAGE_SIZE ||
+     sizeof(hdr) + offset < offset) {
     /* XXX: Try to extend the file here? */
     return -1;
   }
-  
+
   if(coffee_fd_set[fd].end < offset) {
     coffee_fd_set[fd].end = offset;
   }
@@ -1002,7 +1009,7 @@ cfs_closedir(struct cfs_dir *dir)
 }
 /*---------------------------------------------------------------------------*/
 int
-cfs_coffee_reserve(const char *name, uint32_t size)
+cfs_coffee_reserve(const char *name, uint16_t size)
 {
   struct file_header hdr;
   unsigned need_pages;
