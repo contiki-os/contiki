@@ -1009,7 +1009,7 @@ cfs_closedir(struct cfs_dir *dir)
 }
 /*---------------------------------------------------------------------------*/
 int
-cfs_coffee_reserve(const char *name, uint16_t size)
+cfs_coffee_reserve(const char *name, uint32_t size)
 {
   struct file_header hdr;
   unsigned need_pages;
