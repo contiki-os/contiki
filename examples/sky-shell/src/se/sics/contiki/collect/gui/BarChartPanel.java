@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: BarChartPanel.java,v 1.1 2008/07/09 23:18:06 nifi Exp $
+ * $Id: BarChartPanel.java,v 1.2 2008/08/28 07:32:24 nifi Exp $
  *
  * -----------------------------------------------------------------
  *
@@ -34,8 +34,8 @@
  *
  * Authors : Joakim Eriksson, Niclas Finne
  * Created : 5 jul 2008
- * Updated : $Date: 2008/07/09 23:18:06 $
- *           $Revision: 1.1 $
+ * Updated : $Date: 2008/08/28 07:32:24 $
+ *           $Revision: 1.2 $
  */
 
 package se.sics.contiki.collect.gui;
@@ -68,6 +68,8 @@ public abstract class BarChartPanel extends JPanel implements Visualizer {
   protected final JFreeChart chart;
   protected final ChartPanel chartPanel;
   protected final DefaultCategoryDataset dataset;
+
+  private boolean isShowingAllNodes = false;
   private int categoryOrder = 0;
 
   protected BarChartPanel(CollectServer server, String title, String chartTitle, String domainAxisLabel, String valueAxisLabel,
@@ -103,13 +105,26 @@ public abstract class BarChartPanel extends JPanel implements Visualizer {
     return this;
   }
 
+  public boolean isShowingAllNodes() {
+    return isShowingAllNodes;
+  }
+  
+  public void setShowingAllNodes(boolean isShowingAllNodes) {
+    if (this.isShowingAllNodes != isShowingAllNodes) {
+      this.isShowingAllNodes = isShowingAllNodes;
+      if (isVisible()) {
+        updateCharts();
+      }
+    }
+  }
+  
   @Override
   public void nodeAdded(Node node) {
     if (isVisible()) {
-      for (int j = 0, m = categories.length; j < m; j++) {
-        dataset.addValue(0, categories[(j + categoryOrder) % categories.length], node.getName());
-      }
       int count = node.getSensorDataCount();
+      if (count > 0 || isShowingAllNodes) {
+        addNode(node);
+      }
       if (count > 0) {
         addSensorData(node.getSensorData(count - 1));
       }
@@ -139,14 +154,21 @@ public abstract class BarChartPanel extends JPanel implements Visualizer {
     Node[] nodes = server.getNodes();
     if (nodes != null) {
       for (int i = 0, n = nodes.length; i < n; i++) {
-        for (int j = 0, m = categories.length; j < m; j++) {
-          dataset.addValue(0, categories[(j + categoryOrder) % categories.length], nodes[i].getName());
-        }
         int count = nodes[i].getSensorDataCount();
+        if (count > 0 || isShowingAllNodes) {
+          addNode(nodes[i]);
+        }
         if (count > 0) {
           addSensorData(nodes[i].getSensorData(count - 1));
         }
       }
+    }
+  }
+
+  private void addNode(Node node) {
+    String name = node.getName();
+    for (int j = 0, m = categories.length; j < m; j++) {
+      dataset.addValue(0, categories[(j + categoryOrder) % categories.length], name);
     }
   }
 
