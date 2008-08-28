@@ -192,14 +192,14 @@ get_sector_status(uint16_t sector, uint16_t *active,
       last_pages_are_active = 1;
       offset += hdr.max_pages * COFFEE_PAGE_SIZE;
       *active += hdr.max_pages;
-    } else if(COFFEE_PAGE_OBSOLETE(hdr)) {
-      last_pages_are_active = 0;
-      offset += hdr.max_pages * COFFEE_PAGE_SIZE;
-      *obsolete += hdr.max_pages;
     } else if(COFFEE_PAGE_ISOLATED(hdr)) {
       last_pages_are_active = 0;
       offset += COFFEE_PAGE_SIZE;
       *obsolete++;
+    } else if(COFFEE_PAGE_OBSOLETE(hdr)) {
+      last_pages_are_active = 0;
+      offset += hdr.max_pages * COFFEE_PAGE_SIZE;
+      *obsolete += hdr.max_pages;
     } else if(COFFEE_PAGE_FREE(hdr)) {
       *free = (end - offset) / COFFEE_PAGE_SIZE;
       break;
@@ -283,10 +283,10 @@ find_file(const char *name)
 	return page;
       }
       page += hdr.max_pages;
-    } else if(COFFEE_PAGE_OBSOLETE(hdr)) {
-      page += hdr.max_pages;
     } else if(COFFEE_PAGE_ISOLATED(hdr)) {
       ++page;
+    } else if(COFFEE_PAGE_OBSOLETE(hdr)) {
+      page += hdr.max_pages;
     } else {
       /* It follows from the properties of the page allocation algorithm 
 	 that if a free page is encountered, then the rest of the sector
@@ -314,7 +314,7 @@ find_offset_in_file(int first_page)
       search_limit = i + 1;
     }
   }
-  part_size = hdr.max_pages / (sizeof(hdr.eof_hint) * CHAR_BIT);
+  part_size = hdr.max_pages / sizeof(hdr.eof_hint) / CHAR_BIT;
   range_start = part_size * search_limit;
   range_end = range_start + part_size;
 
@@ -497,16 +497,17 @@ read_log_page(struct file_header *hdr, int16_t last_entry, struct log_param *lp)
 
       base -= current_batch_size * sizeof(indices[0]);
       COFFEE_READ(&indices, sizeof(indices[0]) * current_batch_size, base);
-      
+
       for(i = current_batch_size - 1; i >= 0; i--) {
 	if(indices[i] - 1 == page) {
 	  match_index = search_entries - processed - (current_batch_size - i);
 	  break;
 	}
       }
-      
+
       processed += current_batch_size;
     }
+
     if(match_index == -1) {
       return -1;
     }
@@ -553,6 +554,7 @@ create_log(int16_t file_page, struct file_header *hdr)
 
   size = log_entries * sizeof(uint16_t);
   size += log_entries * log_entry_size;
+
   log_page = cfs_coffee_reserve(create_log_name(log_name, sizeof(log_name), hdr->name),
       size);
   if(log_page < 0) {
@@ -757,6 +759,7 @@ cfs_open(const char *name, int flags)
 
   fd = get_available_fd();
   if(fd < 0) {
+    PRINTF("Coffee: failed to allocate a new file descriptor!\n");
     return -1;
   }
   
@@ -977,15 +980,14 @@ cfs_readdir(struct cfs_dir *dir, struct cfs_dirent *entry)
       page = (page + COFFEE_PAGES_PER_SECTOR) & ~(COFFEE_PAGES_PER_SECTOR - 1);
     } else if(COFFEE_PAGE_ISOLATED(hdr)) {
       ++page;
-    } else {
-      if(COFFEE_PAGE_ACTIVE(hdr) && !COFFEE_PAGE_LOG(hdr)) {
+    } else if(COFFEE_PAGE_ACTIVE(hdr) && !COFFEE_PAGE_LOG(hdr)) {
 	memcpy(entry->name, hdr.name, sizeof(entry->name));
 	entry->name[sizeof(entry->name) - 1] = '\0';
 	entry->size = find_offset_in_file(page);
+        page += hdr.max_pages;
 	*(uint16_t *)dir->dummy_space = page;
-	page += hdr.max_pages;
 	return 0;
-      }
+    } else {
       page += hdr.max_pages;
     }
   }
