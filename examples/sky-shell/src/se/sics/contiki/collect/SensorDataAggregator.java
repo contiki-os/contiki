@@ -26,16 +26,16 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: SensorData.java,v 1.3 2008/08/29 09:00:15 nifi Exp $
+ * $Id: SensorDataAggregator.java,v 1.1 2008/08/29 09:00:15 nifi Exp $
  *
  * -----------------------------------------------------------------
  *
- * SensorData
+ * SensorDataAggregator
  *
  * Authors : Joakim Eriksson, Niclas Finne
- * Created : 3 jul 2008
+ * Created : 20 aug 2008
  * Updated : $Date: 2008/08/29 09:00:15 $
- *           $Revision: 1.3 $
+ *           $Revision: 1.1 $
  */
 
 package se.sics.contiki.collect;
@@ -43,16 +43,15 @@ package se.sics.contiki.collect;
 /**
  *
  */
-public class SensorData implements SensorInfo {
+public class SensorDataAggregator implements SensorInfo {
 
   private final Node node;
-  private final int[] values;
-  private final long time;
+  private long[] values;
+  private int dataCount;
 
-  public SensorData(Node node, int[] values) {
+  public SensorDataAggregator(Node node) {
     this.node = node;
-    this.values = values;
-    this.time = ((values[TIMESTAMP1] << 16) + values[TIMESTAMP2]) * 1000L;
+    this.values = new long[VALUES_COUNT];
   }
 
   public Node getNode() {
@@ -63,16 +62,34 @@ public class SensorData implements SensorInfo {
     return node.getID();
   }
 
-  public int getValue(int index) {
+  public long getValue(int index) {
     return values[index];
+  }
+
+  public long getAverageValue(int index) {
+    return dataCount > 0 ? values[index] / dataCount : 0;
   }
 
   public int getValueCount() {
     return values.length;
   }
 
-  public long getTime() {
-    return time;
+  public int getDataCount() {
+    return dataCount;
+  }
+
+  public void addSensorData(SensorData data) {
+    for (int i = 0, n = Math.max(VALUES_COUNT, data.getValueCount()); i < n; i++) {
+      values[i] += data.getValue(i);
+    }
+    dataCount++;
+  }
+
+  public void clear() {
+    for (int i = 0, n = values.length; i < n; i++) {
+      values[i] = 0L;
+    }
+    dataCount = 0;
   }
 
   public String toString() {
@@ -82,38 +99,6 @@ public class SensorData implements SensorInfo {
       sb.append(values[i]);
     }
     return sb.toString();
-  }
-
-  public static SensorData parseSensorData(CollectServer server, String line) {
-    String[] components = line.split(" ");
-    if (components.length != SensorData.VALUES_COUNT) {
-      return null;
-    }
-    // Sensor data line (probably)
-    int[] data = parseToInt(components);
-    if (data == null || data[0] != VALUES_COUNT) {
-      System.err.println("Failed to parse data line: '" + line + "'");
-      return null;
-    }
-    String nodeID = mapNodeID(data[NODE_ID]);
-    Node node = server.addNode(nodeID);
-    return new SensorData(node, data);
-  }
-
-  public static String mapNodeID(int nodeID) {
-    return "" + (nodeID & 0xff) + '.' + ((nodeID >> 8) & 0xff);
-  }
-
-  private static int[] parseToInt(String[] text) {
-    try {
-      int[] data = new int[text.length];
-      for (int i = 0, n = data.length; i < n; i++) {
-        data[i] = Integer.parseInt(text[i]);
-      }
-      return data;
-    } catch (NumberFormatException e) {
-      return null;
-    }
   }
 
   public double getCPUPower() {
@@ -142,41 +127,36 @@ public class SensorData implements SensorInfo {
     return (1000L * (values[TIME_CPU] + values[TIME_LPM])) / TICKS_PER_SECOND;
   }
 
-  public double getTemperature() {
-    return -39.6 + 0.01 * values[TEMPERATURE];
+  public double getAverageTemperature() {
+    return dataCount > 0 ? (-39.6 + 0.01 * (values[TEMPERATURE] / dataCount)) : 0.0;
   }
 
-  public double getRadioIntensity() {
-    return values[RSSI];
+  public double getAverageRadioIntensity() {
+    return getAverageValue(RSSI);
   }
 
-  public double getLatency() {
-    return values[LATENCY] / 4096.0;
+  public double getAverageLatency() {
+    return getAverageValue(LATENCY) / 4096.0;
   }
 
-  public double getHumidity() {
-    double v = -4.0 + 405.0 * values[HUMIDITY] / 10000.0;
-    if(v > 100) {
-      return 100;
-    } else {
-      return v;
+  public double getAverageHumidity() {
+    double v = 0.0;
+    if (dataCount > 0) {
+      v = -4.0 + 405.0 * (values[HUMIDITY] / dataCount) / 10000.0;
     }
+    return v > 100 ? 100 : v;
   }
 
-  public double getLight1() {
-    return 10.0 * values[LIGHT1] / 7.0;
+  public double getAverageLight1() {
+    return 10.0 * getAverageValue(LIGHT1) / 7.0;
   }
 
-  public double getLight2() {
-    return 46.0 * values[LIGHT2] / 10.0;
+  public double getAverageLight2() {
+    return 46.0 * getAverageValue(LIGHT2) / 10.0;
   }
 
-  public String getBestNeighborID() {
-    return values[BEST_NEIGHBOR] > 0 ? mapNodeID(values[BEST_NEIGHBOR]): null;
-  }
-
-  public double getBestNeighborETX() {
-    return values[BEST_NEIGHBOR_ETX] / 16.0;
+  public double getAverageBestNeighborETX() {
+    return getAverageValue(BEST_NEIGHBOR_ETX) / 16.0;
   }
 
 }
