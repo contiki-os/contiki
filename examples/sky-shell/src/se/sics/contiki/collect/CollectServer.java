@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: CollectServer.java,v 1.5 2008/07/10 20:05:09 adamdunkels Exp $
+ * $Id: CollectServer.java,v 1.6 2008/08/29 09:00:15 nifi Exp $
  *
  * -----------------------------------------------------------------
  *
@@ -34,8 +34,8 @@
  *
  * Authors : Joakim Eriksson, Niclas Finne
  * Created : 3 jul 2008
- * Updated : $Date: 2008/07/10 20:05:09 $
- *           $Revision: 1.5 $
+ * Updated : $Date: 2008/08/29 09:00:15 $
+ *           $Revision: 1.6 $
  */
 
 package se.sics.contiki.collect;
@@ -110,6 +110,7 @@ public class CollectServer {
   private JFrame window;
   private JTabbedPane mainPanel;
   private JMenuItem serialItem;
+  private JMenuItem runInitScriptItem;
 
   private Visualizer[] visualizers;
   private MapPanel mapPanel;
@@ -121,6 +122,7 @@ public class CollectServer {
   private Node[] selectedNodes;
 
   private SerialConnection serialConnection;
+  private String initScript;
 
   @SuppressWarnings("serial")
   public CollectServer(String comPort) {
@@ -133,6 +135,7 @@ public class CollectServer {
     if (comPort == null) {
       comPort = configTable.getProperty("collect.serialport");
     }
+    this.initScript = config.getProperty("init.script", INIT_SCRIPT);
 
     /* Make sure we have nice window decorations */
 //    JFrame.setDefaultLookAndFeelDecorated(true);
@@ -200,8 +203,26 @@ public class CollectServer {
     if (image != null) {
       mapPanel.setMapBackground(image);
     }
+    final int defaultMaxItemCount = 250;
     visualizers = new Visualizer[] {
         mapPanel,
+        new BarChartPanel(this, "Average Power", "Average Power Consumption", null, "Power (mW)",
+            new String[] { "LPM", "CPU", "Radio listen", "Radio transmit" }) {
+          {
+            ValueAxis axis = chart.getCategoryPlot().getRangeAxis();
+            axis.setLowerBound(0.0);
+            axis.setUpperBound(75.0);
+          }
+          protected void addSensorData(SensorData data) {
+            Node node = data.getNode();
+            String nodeName = node.getName();
+            SensorDataAggregator aggregator = node.getSensorDataAggregator();
+            dataset.addValue(aggregator.getLPMPower(), categories[0], nodeName);
+            dataset.addValue(aggregator.getCPUPower(), categories[1], nodeName);
+            dataset.addValue(aggregator.getListenPower(), categories[2], nodeName);
+            dataset.addValue(aggregator.getTransmitPower(), categories[3], nodeName);
+          }
+        },
         new BarChartPanel(this, "Instantaneous Power", "Instantaneous Power Consumption", null, "Power (mW)",
             new String[] { "LPM", "CPU", "Radio listen", "Radio transmit" }) {
           {
@@ -219,8 +240,23 @@ public class CollectServer {
           }
         },
         new TimeChartPanel(this, "Power History", "Historical Power Consumption", "Time", "mW") {
+          {
+            setMaxItemCount(defaultMaxItemCount);
+          }
           protected double getSensorDataValue(SensorData data) {
             return data.getAveragePower();
+          }
+        },
+        new BarChartPanel(this, "Average Temperature", "Temperature", null, "Celsius",
+            new String[] { "Celsius" }) {
+          {
+            chart.getCategoryPlot().getRangeAxis().setStandardTickUnits(NumberAxis.createIntegerTickUnits());
+          }
+          protected void addSensorData(SensorData data) {
+            Node node = data.getNode();
+            String nodeName = node.getName();
+            SensorDataAggregator aggregator = node.getSensorDataAggregator();
+            dataset.addValue(aggregator.getAverageTemperature(), categories[0], nodeName);
           }
         },
         new TimeChartPanel(this, "Temperature", "Temperature", "Time", "Celsius") {
@@ -229,6 +265,7 @@ public class CollectServer {
             setRangeTick(5);
             setRangeMinimumSize(10.0);
             setGlobalRange(true);
+            setMaxItemCount(defaultMaxItemCount);
           }
           protected double getSensorDataValue(SensorData data) {
             return data.getTemperature();
@@ -236,6 +273,7 @@ public class CollectServer {
         },
         new TimeChartPanel(this, "Relative Humidity", "Humidity", "Time", "%") {
           {
+            setMaxItemCount(defaultMaxItemCount);
             chart.getXYPlot().getRangeAxis().setRange(0.0, 100.0);
           }
           protected double getSensorDataValue(SensorData data) {
@@ -243,11 +281,17 @@ public class CollectServer {
           }
         },
         new TimeChartPanel(this, "Light 1", "Light 1", "Time", "-") {
+          {
+            setMaxItemCount(defaultMaxItemCount);
+          }
           protected double getSensorDataValue(SensorData data) {
             return data.getLight1();
           }
         },
         new TimeChartPanel(this, "Light 2", "Light 2", "Time", "-") {
+          {
+            setMaxItemCount(defaultMaxItemCount);
+          }
           protected double getSensorDataValue(SensorData data) {
             return data.getLight2();
           }
@@ -258,6 +302,7 @@ public class CollectServer {
             axis.setLowerBound(0.0);
 	    axis.setUpperBound(4.0);
             axis.setStandardTickUnits(NumberAxis.createIntegerTickUnits());
+            setMaxItemCount(defaultMaxItemCount);
           }
           protected double getSensorDataValue(SensorData data) {
             return data.getValue(SensorData.HOPS);
@@ -273,6 +318,9 @@ public class CollectServer {
           }
         },
         new TimeChartPanel(this, "Latency", "Latency", "Time", "Seconds") {
+          {
+            setMaxItemCount(defaultMaxItemCount);
+          }
           protected double getSensorDataValue(SensorData data) {
             return data.getLatency();
           }
@@ -368,6 +416,23 @@ public class CollectServer {
     toolsMenu.setMnemonic(KeyEvent.VK_T);
     menuBar.add(toolsMenu);
 
+    runInitScriptItem = new JMenuItem("Run Init Script");
+    runInitScriptItem.addActionListener(new ActionListener() {
+
+      public void actionPerformed(ActionEvent e) {
+        mainPanel.setSelectedComponent(serialConsole.getPanel());
+        if (serialConnection != null && serialConnection.isOpen()) {
+          runInitScript();
+        } else {
+          JOptionPane.showMessageDialog(mainPanel, "No serial port connection", "No connected node", JOptionPane.ERROR_MESSAGE);
+        }
+      }
+
+    });
+    runInitScriptItem.setEnabled(false);
+    toolsMenu.add(runInitScriptItem);
+    toolsMenu.addSeparator();
+
     final JCheckBoxMenuItem scrollItem = new JCheckBoxMenuItem("Scroll Layout");
     scrollItem.addActionListener(new ActionListener() {
 
@@ -425,11 +490,11 @@ public class CollectServer {
         if (!hasSentInit) {
           hasSentInit = true;
 
-          String initScript = config.getProperty("init.script", INIT_SCRIPT);
-          if (initScript != null) {
+          if (hasInitScript()) {
             // Wait a short time before running the init script
             sleep(3000);
-            runScript(initScript);
+
+            runInitScript();
           }
         }
       }
@@ -515,36 +580,46 @@ public class CollectServer {
     }
   }
 
-  private boolean runScript(String script) {
-    try {
-      BufferedReader in = new BufferedReader(new FileReader(script));
-      String line;
-      while ((line = in.readLine()) != null) {
-        if (line.length() == 0 || line.charAt(0) == '#') {
-          // Ignore empty lines and comments
-        } else if (line.startsWith("echo ")) {
-          line = line.substring(5).trim();
-          if (line.indexOf('%') >= 0) {
-            line = line.replace("%TIME%", "" + (System.currentTimeMillis() / 1000));
+  protected boolean hasInitScript() {
+    return initScript != null && new File(initScript).canRead();
+  }
+
+  protected void runInitScript() {
+    if (initScript != null) {
+      runScript(initScript);
+    }
+  }
+
+  protected void runScript(final String scriptFileName) {
+    new Thread("scripter") {
+      public void run() {
+        try {
+          BufferedReader in = new BufferedReader(new FileReader(scriptFileName));
+          String line;
+          while ((line = in.readLine()) != null) {
+            if (line.length() == 0 || line.charAt(0) == '#') {
+              // Ignore empty lines and comments
+            } else if (line.startsWith("echo ")) {
+              line = line.substring(5).trim();
+              if (line.indexOf('%') >= 0) {
+                line = line.replace("%TIME%", "" + (System.currentTimeMillis() / 1000));
+              }
+              sendToNode(line);
+            } else if (line.startsWith("sleep ")) {
+              long delay = Integer.parseInt(line.substring(6).trim());
+              Thread.sleep(delay * 1000);
+            } else {
+              System.err.println("Unknown script command: " + line);
+              break;
+            }
           }
-          sendToNode(line);
-        } else if (line.startsWith("sleep ")) {
-          long delay = Integer.parseInt(line.substring(6).trim());
-          Thread.sleep(delay * 1000);
-        } else {
-          System.err.println("Unknown script comand: " + line);
-          return false;
+          in.close();
+        } catch (Exception e) {
+          System.err.println("Failed to run script: " + scriptFileName);
+          e.printStackTrace();
         }
       }
-      in.close();
-      return true;
-    } catch (FileNotFoundException e) {
-      return false;
-    } catch (Exception e) {
-      System.err.println("Failed to run script: " + script);
-      e.printStackTrace();
-      return false;
-    }
+    }.start();
   }
 
   public String getConfig(String property) {
@@ -559,12 +634,14 @@ public class CollectServer {
     SwingUtilities.invokeLater(new Runnable() {
 
       public void run() {
+        boolean isOpen = serialConnection.isOpen();
         if (message == null) {
           window.setTitle(WINDOW_TITLE);
         } else {
           window.setTitle(WINDOW_TITLE + " (" + message + ')');
         }
-        serialItem.setText(serialConnection.isOpen() ? "Disconnect from serial" : "Connect to serial");
+        serialItem.setText(isOpen ? "Disconnect from serial" : "Connect to serial");
+        runInitScriptItem.setEnabled(isOpen && hasInitScript());
       }
 
     });

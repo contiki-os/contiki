@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: Node.java,v 1.1 2008/07/09 23:18:06 nifi Exp $
+ * $Id: Node.java,v 1.2 2008/08/29 09:00:15 nifi Exp $
  *
  * -----------------------------------------------------------------
  *
@@ -34,8 +34,8 @@
  *
  * Authors : Joakim Eriksson, Niclas Finne
  * Created : 3 jul 2008
- * Updated : $Date: 2008/07/09 23:18:06 $
- *           $Revision: 1.1 $
+ * Updated : $Date: 2008/08/29 09:00:15 $
+ *           $Revision: 1.2 $
  */
 
 package se.sics.contiki.collect;
@@ -47,6 +47,7 @@ import java.util.Hashtable;
  */
 public class Node implements Comparable<Node> {
 
+  private SensorDataAggregator sensorDataAggregator;
   private ArrayList<SensorData> sensorDataList = new ArrayList<SensorData>();
   private ArrayList<Link> links = new ArrayList<Link>();
 
@@ -62,6 +63,7 @@ public class Node implements Comparable<Node> {
   public Node(String nodeID) {
     this.id = nodeID;
     this.name = "Node " + nodeID;
+    sensorDataAggregator = new SensorDataAggregator(this);
   }
 
   public final String getID() {
@@ -141,13 +143,17 @@ public class Node implements Comparable<Node> {
   // SensorData
   // -------------------------------------------------------------------
 
+  public SensorDataAggregator getSensorDataAggregator() {
+    return sensorDataAggregator;
+  }
+
   public SensorData[] getAllSensorData() {
     return sensorDataList.toArray(new SensorData[sensorDataList.size()]);
   }
 
-
   public void removeAllSensorData() {
     sensorDataList.clear();
+    sensorDataAggregator.clear();
   }
 
   public SensorData getSensorData(int index) {
@@ -170,6 +176,7 @@ public class Node implements Comparable<Node> {
       }
     }
     sensorDataList.add(data);
+    sensorDataAggregator.addSensorData(data);
     return true;
   }
 
