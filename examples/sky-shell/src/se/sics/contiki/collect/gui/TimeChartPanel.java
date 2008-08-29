@@ -26,16 +26,16 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: TimeChartPanel.java,v 1.1 2008/07/09 23:18:07 nifi Exp $
+ * $Id: TimeChartPanel.java,v 1.2 2008/08/29 08:42:30 nifi Exp $
  *
  * -----------------------------------------------------------------
  *
- * PowerPanel
+ * TimeChartPanel
  *
  * Authors : Joakim Eriksson, Niclas Finne
  * Created : 3 jul 2008
- * Updated : $Date: 2008/07/09 23:18:07 $
- *           $Revision: 1.1 $
+ * Updated : $Date: 2008/08/29 08:42:30 $
+ *           $Revision: 1.2 $
  */
 
 package se.sics.contiki.collect.gui;
@@ -74,6 +74,7 @@ public abstract class TimeChartPanel extends JPanel implements Visualizer {
   private double maxValue;
   private int rangeTick = 0;
   private boolean hasGlobalRange;
+  private int maxItemCount;
 
   public TimeChartPanel(CollectServer server, String title,
       String chartTitle, String timeAxisLabel, String valueAxisLabel) {
@@ -141,7 +142,13 @@ public abstract class TimeChartPanel extends JPanel implements Visualizer {
       for (int i = 0, n = selectedNodes.length; i < n; i++) {
         if (node == selectedNodes[i]) {
           TimeSeries series = timeSeries.getSeries(i);
-          series.addOrUpdate(new Second(new Date(data.getTime())), getSensorDataValue(data));
+          int groupSize = getGroupSize(node);
+          if (groupSize > 1) {
+            series.clear();
+            updateSeries(series, node, groupSize);
+          } else {
+            series.addOrUpdate(new Second(new Date(data.getTime())), getSensorDataValue(data));
+          }
           chartPanel.repaint();
           break;
         }
@@ -161,12 +168,45 @@ public abstract class TimeChartPanel extends JPanel implements Visualizer {
     if (this.selectedNodes != null) {
       for(Node node: this.selectedNodes) {
         TimeSeries series = new TimeSeries(node.getName(), Second.class);
-        for (int i = 0, n = node.getSensorDataCount(); i < n; i++) {
-          SensorData data = node.getSensorData(i);
-          series.addOrUpdate(new Second(new Date(data.getTime())), getSensorDataValue(data));
+        // Reduce the number of items by grouping them and use the average for each group
+        int groupSize = getGroupSize(node);
+        if (groupSize > 1) {
+          updateSeries(series, node, groupSize);
+        } else {
+          for (int i = 0, n = node.getSensorDataCount(); i < n; i++) {
+            SensorData data = node.getSensorData(i);
+            series.addOrUpdate(new Second(new Date(data.getTime())), getSensorDataValue(data));
+          }
         }
         timeSeries.addSeries(series);
       }
+    }
+  }
+
+  protected int getGroupSize(Node node) {
+    if (maxItemCount > 0) {
+      int sensorDataCount = node.getSensorDataCount();
+      if (sensorDataCount > maxItemCount) {
+        int groupSize = sensorDataCount / maxItemCount;
+        if (sensorDataCount / groupSize > maxItemCount) {
+          groupSize++;
+        }
+        return groupSize;
+      }
+    }
+    return 1;
+  }
+
+  protected void updateSeries(TimeSeries series, Node node, int groupSize) {
+    for (int i = 0, n = node.getSensorDataCount(); i < n; i += groupSize) {
+      double value = 0.0;
+      long time = 0L;
+      for (int j = 0; j < groupSize; j++) {
+        SensorData data = node.getSensorData(i);
+        value += getSensorDataValue(data);
+        time += data.getTime() / 1000L;
+      }
+      series.addOrUpdate(new Second(new Date((time / groupSize) * 1000L)), value / groupSize);
     }
   }
 
@@ -232,7 +272,29 @@ public abstract class TimeChartPanel extends JPanel implements Visualizer {
     }
   }
 
-  protected abstract double getSensorDataValue(SensorData data);
+  /**
+   * Returns the maximal number of chart items to display for each node.
+   *
+   * @return the maximal number of chart items to display for each node or <code>0</code>
+   * for unlimited number of chart items.
+   */
+  public int getMaxItemCount() {
+    return maxItemCount;
+  }
+
+  /**
+   * Sets the maximal number of chart items to display for each node. Items will be
+   * grouped and replaced by the average value when needed.
+   *
+   * @param maxItemCount - the maximal number of chart items to display for each node or
+   * <code>0</code> for unlimited number (default)
+   */
+  public void setMaxItemCount(int maxItemCount) {
+    this.maxItemCount = maxItemCount;
+    if (isVisible()) {
+      updateCharts();
+    }
+  }
 
   public void setVisible(boolean visible) {
     if (visible) {
@@ -243,5 +305,7 @@ public abstract class TimeChartPanel extends JPanel implements Visualizer {
     }
     super.setVisible(visible);
   }
+
+  protected abstract double getSensorDataValue(SensorData data);
 
 }
