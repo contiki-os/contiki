@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: SensorData.java,v 1.3 2008/08/29 09:00:15 nifi Exp $
+ * $Id: SensorData.java,v 1.4 2008/08/29 10:00:23 nifi Exp $
  *
  * -----------------------------------------------------------------
  *
@@ -34,11 +34,12 @@
  *
  * Authors : Joakim Eriksson, Niclas Finne
  * Created : 3 jul 2008
- * Updated : $Date: 2008/08/29 09:00:15 $
- *           $Revision: 1.3 $
+ * Updated : $Date: 2008/08/29 10:00:23 $
+ *           $Revision: 1.4 $
  */
 
 package se.sics.contiki.collect;
+import java.util.Arrays;
 
 /**
  *
@@ -47,12 +48,14 @@ public class SensorData implements SensorInfo {
 
   private final Node node;
   private final int[] values;
-  private final long time;
+  private final long nodeTime;
+  private final long systemTime;
 
-  public SensorData(Node node, int[] values) {
+  public SensorData(Node node, int[] values, long systemTime) {
     this.node = node;
     this.values = values;
-    this.time = ((values[TIMESTAMP1] << 16) + values[TIMESTAMP2]) * 1000L;
+    this.nodeTime = ((values[TIMESTAMP1] << 16) + values[TIMESTAMP2]) * 1000L;
+    this.systemTime = systemTime;
   }
 
   public Node getNode() {
@@ -71,12 +74,19 @@ public class SensorData implements SensorInfo {
     return values.length;
   }
 
-  public long getTime() {
-    return time;
+  public long getNodeTime() {
+    return nodeTime;
+  }
+
+  public long getSystemTime() {
+    return systemTime;
   }
 
   public String toString() {
     StringBuilder sb = new StringBuilder();
+    if (systemTime > 0L) {
+      sb.append(systemTime).append(' ');
+    }
     for (int i = 0, n = values.length; i < n; i++) {
       if (i > 0) sb.append(' ');
       sb.append(values[i]);
@@ -85,7 +95,20 @@ public class SensorData implements SensorInfo {
   }
 
   public static SensorData parseSensorData(CollectServer server, String line) {
+    return parseSensorData(server, line, 0);
+  }
+
+  public static SensorData parseSensorData(CollectServer server, String line, long systemTime) {
     String[] components = line.split(" ");
+    if (components.length == SensorData.VALUES_COUNT + 1) {
+      // Sensor data with system time
+      try {
+        systemTime = Long.parseLong(components[0]);
+        components = Arrays.copyOfRange(components, 1, components.length);
+      } catch (NumberFormatException e) {
+        // First column does not seem to be system time
+      }
+    }
     if (components.length != SensorData.VALUES_COUNT) {
       return null;
     }
@@ -97,7 +120,7 @@ public class SensorData implements SensorInfo {
     }
     String nodeID = mapNodeID(data[NODE_ID]);
     Node node = server.addNode(nodeID);
-    return new SensorData(node, data);
+    return new SensorData(node, data, systemTime);
   }
 
   public static String mapNodeID(int nodeID) {
