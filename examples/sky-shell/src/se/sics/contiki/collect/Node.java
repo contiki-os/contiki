@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: Node.java,v 1.2 2008/08/29 09:00:15 nifi Exp $
+ * $Id: Node.java,v 1.3 2008/08/29 10:00:23 nifi Exp $
  *
  * -----------------------------------------------------------------
  *
@@ -34,8 +34,8 @@
  *
  * Authors : Joakim Eriksson, Niclas Finne
  * Created : 3 jul 2008
- * Updated : $Date: 2008/08/29 09:00:15 $
- *           $Revision: 1.2 $
+ * Updated : $Date: 2008/08/29 10:00:23 $
+ *           $Revision: 1.3 $
  */
 
 package se.sics.contiki.collect;
@@ -168,9 +168,9 @@ public class Node implements Comparable<Node> {
     if (sensorDataList.size() > 0) {
       SensorData last = sensorDataList.get(sensorDataList.size() - 1);
       // TODO should check seqno!
-      if (data.getTime() <= last.getTime()) {
+      if (data.getNodeTime() <= last.getNodeTime()) {
         // Sensor data already added
-        System.out.println("SensorData: ignoring (time " + (data.getTime() - last.getTime())
+        System.out.println("SensorData: ignoring (time " + (data.getNodeTime() - last.getNodeTime())
             + "msec): " + data);
         return false;
       }

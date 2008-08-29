@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: CollectServer.java,v 1.6 2008/08/29 09:00:15 nifi Exp $
+ * $Id: CollectServer.java,v 1.7 2008/08/29 10:00:23 nifi Exp $
  *
  * -----------------------------------------------------------------
  *
@@ -34,8 +34,8 @@
  *
  * Authors : Joakim Eriksson, Niclas Finne
  * Created : 3 jul 2008
- * Updated : $Date: 2008/08/29 09:00:15 $
- *           $Revision: 1.6 $
+ * Updated : $Date: 2008/08/29 10:00:23 $
+ *           $Revision: 1.7 $
  */
 
 package se.sics.contiki.collect;
@@ -538,7 +538,7 @@ public class CollectServer {
 
       @Override
       protected void serialData(String line) {
-        parseIncomingLine(line);
+        parseIncomingLine(System.currentTimeMillis(), line);
       }
 
     };
@@ -568,6 +568,10 @@ public class CollectServer {
     }
     if (serialConnection != null) {
       serialConnection.close();
+    }
+    PrintWriter output = this.sensorDataOutput;
+    if (output != null) {
+      output.close();
     }
     System.exit(0);
   }
@@ -820,8 +824,8 @@ public class CollectServer {
     return false;
   }
 
-  protected void parseIncomingLine(String line) {
-    SensorData sensorData = SensorData.parseSensorData(this, line);
+  protected void parseIncomingLine(long systemTime, String line) {
+    SensorData sensorData = SensorData.parseSensorData(this, line, systemTime);
     if (sensorData != null) {
       // Sensor data received
       handleSensorData(sensorData);
@@ -869,7 +873,7 @@ public class CollectServer {
       Node source = sensorData.getNode();
       Link link = source.getLink(neighbor);
       link.setETX(sensorData.getBestNeighborETX());
-      link.setLastActive(sensorData.getTime());
+      link.setLastActive(sensorData.getNodeTime());
     }
   }
 
@@ -924,6 +928,7 @@ public class CollectServer {
     }
     if (output != null) {
       output.println(data.toString());
+      output.flush();
     }
   }
 

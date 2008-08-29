@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: TimeChartPanel.java,v 1.2 2008/08/29 08:42:30 nifi Exp $
+ * $Id: TimeChartPanel.java,v 1.3 2008/08/29 10:00:23 nifi Exp $
  *
  * -----------------------------------------------------------------
  *
@@ -34,8 +34,8 @@
  *
  * Authors : Joakim Eriksson, Niclas Finne
  * Created : 3 jul 2008
- * Updated : $Date: 2008/08/29 08:42:30 $
- *           $Revision: 1.2 $
+ * Updated : $Date: 2008/08/29 10:00:23 $
+ *           $Revision: 1.3 $
  */
 
 package se.sics.contiki.collect.gui;
@@ -147,7 +147,7 @@ public abstract class TimeChartPanel extends JPanel implements Visualizer {
             series.clear();
             updateSeries(series, node, groupSize);
           } else {
-            series.addOrUpdate(new Second(new Date(data.getTime())), getSensorDataValue(data));
+            series.addOrUpdate(new Second(new Date(data.getNodeTime())), getSensorDataValue(data));
           }
           chartPanel.repaint();
           break;
@@ -175,7 +175,7 @@ public abstract class TimeChartPanel extends JPanel implements Visualizer {
         } else {
           for (int i = 0, n = node.getSensorDataCount(); i < n; i++) {
             SensorData data = node.getSensorData(i);
-            series.addOrUpdate(new Second(new Date(data.getTime())), getSensorDataValue(data));
+            series.addOrUpdate(new Second(new Date(data.getNodeTime())), getSensorDataValue(data));
           }
         }
         timeSeries.addSeries(series);
@@ -204,7 +204,7 @@ public abstract class TimeChartPanel extends JPanel implements Visualizer {
       for (int j = 0; j < groupSize; j++) {
         SensorData data = node.getSensorData(i);
         value += getSensorDataValue(data);
-        time += data.getTime() / 1000L;
+        time += data.getNodeTime() / 1000L;
       }
       series.addOrUpdate(new Second(new Date((time / groupSize) * 1000L)), value / groupSize);
     }
