@@ -20,7 +20,7 @@
     <delete file="${cooja_mspsim_jar}"/>
   </target>
 
-  <target name="compile" depends="init, clean">
+  <target name="compile" depends="init">
     <mkdir dir="${build}"/>
     <javac srcdir="${src}" destdir="${build}" debug="on">
       <classpath>
@@ -42,7 +42,7 @@
     </javadoc>
   </target>
 
-  <target name="jar" depends="clean, init, compile">
+  <target name="jar" depends="init, compile">
     <jar destfile="${cooja_mspsim_jar}" basedir="${build}">
       <manifest>
         <attribute name="Class-Path" value="."/>

@@ -57,7 +57,7 @@ The COOJA Simulator
     <delete dir="${dist}"/>
   </target>
 
-  <target name="run" depends="init, compile, copy configs">
+  <target name="run" depends="init, compile, jar, copy configs">
     <java fork="yes" dir="${build}" classname="se.sics.cooja.GUI">
       <arg line="${args}"/>
     	<env key="LD_LIBRARY_PATH" value="."/>
@@ -81,8 +81,7 @@ The COOJA Simulator
     </java>
   </target>
 
-  <target name="jar" depends="init">
-  	<ant antfile="build.xml" dir="." target="jar_cooja" inheritAll="false"/>
+  <target name="jar" depends="jar_cooja">
   	<ant antfile="build.xml" dir="apps/mrm" target="jar" inheritAll="false"/>
   	<ant antfile="build.xml" dir="apps/mspsim" target="jar" inheritAll="false"/>
   </target>
@@ -114,7 +113,7 @@ The COOJA Simulator
     </exec>
   </target>
 	
-  <target name="jar_cooja" depends="init, clean, compile, copy configs">
+  <target name="jar_cooja" depends="init, compile, copy configs">
     <mkdir dir="${dist}"/>
     <jar destfile="${dist}/cooja.jar" basedir="${build}">
       <manifest>
