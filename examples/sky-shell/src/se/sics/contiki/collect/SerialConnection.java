@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: SerialConnection.java,v 1.2 2008/07/10 14:52:59 nifi Exp $
+ * $Id: SerialConnection.java,v 1.3 2008/09/03 13:35:21 nifi Exp $
  *
  * -----------------------------------------------------------------
  *
@@ -34,8 +34,8 @@
  *
  * Authors : Joakim Eriksson, Niclas Finne
  * Created : 5 jul 2008
- * Updated : $Date: 2008/07/10 14:52:59 $
- *           $Revision: 1.2 $
+ * Updated : $Date: 2008/09/03 13:35:21 $
+ *           $Revision: 1.3 $
  */
 
 package se.sics.contiki.collect;
@@ -115,8 +115,10 @@ public abstract class SerialConnection {
           } catch (IOException e) {
             lastError = "Error when reading from serialdump process: " + e;
             System.err.println(lastError);
-            e.printStackTrace();
-            closeConnection();
+            if (!isClosed) {
+              e.printStackTrace();
+              closeConnection();
+            }
           }
         }
       }, "read input stream thread");
@@ -136,8 +138,10 @@ public abstract class SerialConnection {
             }
             err.close();
           } catch (IOException e) {
-            System.err.println("Error when reading from serialdump process: " + e);
-            e.printStackTrace();
+            if (!isClosed) {
+              System.err.println("Error when reading from serialdump process: " + e);
+              e.printStackTrace();
+            }
           }
         }
       }, "read error stream thread");

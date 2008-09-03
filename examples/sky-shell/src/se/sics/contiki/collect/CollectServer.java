@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: CollectServer.java,v 1.7 2008/08/29 10:00:23 nifi Exp $
+ * $Id: CollectServer.java,v 1.8 2008/09/03 13:35:21 nifi Exp $
  *
  * -----------------------------------------------------------------
  *
@@ -34,8 +34,8 @@
  *
  * Authors : Joakim Eriksson, Niclas Finne
  * Created : 3 jul 2008
- * Updated : $Date: 2008/08/29 10:00:23 $
- *           $Revision: 1.7 $
+ * Updated : $Date: 2008/09/03 13:35:21 $
+ *           $Revision: 1.8 $
  */
 
 package se.sics.contiki.collect;
@@ -999,7 +999,7 @@ public class CollectServer {
         mp.setParentComponent(window);
         mp.setFirmwareFile(FIRMWARE_FILE);
         mp.searchForMotes();
-        int[] motes = mp.getMotes();
+        String[] motes = mp.getMotes();
         if (motes == null || motes.length == 0) {
           JOptionPane.showMessageDialog(window, "Could not find any connected Sky nodes", "Error", JOptionPane.ERROR_MESSAGE);
           return;
