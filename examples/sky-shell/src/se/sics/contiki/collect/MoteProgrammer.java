@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: MoteProgrammer.java,v 1.1 2008/07/10 14:52:59 nifi Exp $
+ * $Id: MoteProgrammer.java,v 1.2 2008/09/03 13:35:21 nifi Exp $
  *
  * -----------------------------------------------------------------
  *
@@ -34,8 +34,8 @@
  *
  * Authors : Joakim Eriksson, Niclas Finne
  * Created : 10 jul 2008
- * Updated : $Date: 2008/07/10 14:52:59 $
- *           $Revision: 1.1 $
+ * Updated : $Date: 2008/09/03 13:35:21 $
+ *           $Revision: 1.2 $
  */
 
 package se.sics.contiki.collect;
@@ -48,6 +48,7 @@ import java.io.IOException;
 import javax.swing.JButton;
 import javax.swing.JDialog;
 import javax.swing.JPanel;
+import javax.swing.JProgressBar;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.SwingUtilities;
@@ -58,10 +59,11 @@ import javax.swing.SwingUtilities;
 public class MoteProgrammer {
 
   private MoteProgrammerProcess[] processes;
-  private int[] motes;
+  private String[] motes;
   private String firmwareFile;
 
   private Window parent;
+  private JProgressBar progressBar;
   protected JTextArea logTextArea;
   protected JDialog dialog;
   protected JButton closeButton;
@@ -82,11 +84,11 @@ public class MoteProgrammer {
     return motes != null && motes.length > 0;
   }
 
-  public int[] getMotes() {
+  public String[] getMotes() {
     return motes;
   }
 
-  public void setMotes(int[] motes) {
+  public void setMotes(String[] motes) {
     this.motes = motes;
   }
 
@@ -118,6 +120,13 @@ public class MoteProgrammer {
     if (parent != null) {
       // Use GUI
       dialog = new JDialog(parent, "Mote Programmer");
+      progressBar = new JProgressBar(0, 100);
+      progressBar.setValue(0);
+      progressBar.setString("Programming...");
+      progressBar.setStringPainted(true);
+      progressBar.setIndeterminate(true);
+      dialog.getContentPane().add(progressBar, BorderLayout.NORTH);
+
       logTextArea = new JTextArea(28, 80);
       logTextArea.setEditable(false);
       logTextArea.setLineWrap(true);
@@ -190,7 +199,7 @@ public class MoteProgrammer {
 
   protected void handleProcessEnded(MoteProgrammerProcess process) {
     // Another process has finished
-    log("Mote@" + process.getMote() + "> finished" + (process.hasError() ? " with errors": ""), null);
+    log("Mote@" + process.getMoteID() + "> finished" + (process.hasError() ? " with errors": ""), null);
     MoteProgrammerProcess[] processes = this.processes;
     if (processes != null) {
       int running = 0;
@@ -205,11 +214,14 @@ public class MoteProgrammer {
       if (running == 0) {
         // All processes has finished
         isDone = true;
-
-        log("Programming finished with " + errors + " errors.", null);
+        final String doneMessage = "Programming finished with " + errors + " errors."; 
+        log(doneMessage, null);
         if (closeButton != null) {
           SwingUtilities.invokeLater(new Runnable() {
             public void run() {
+              progressBar.setValue(100);
+              progressBar.setIndeterminate(false);
+              progressBar.setString(doneMessage);
               closeButton.setText("Close");
             }});
         }
@@ -222,7 +234,7 @@ public class MoteProgrammer {
 
   protected boolean handleLogLine(MoteProgrammerProcess moteProgrammerProcess,
       String line, boolean stderr, final Throwable e) {
-    log("Mote@" + moteProgrammerProcess.getMote() + "> " + line, e);
+    log("Mote@" + moteProgrammerProcess.getMoteID() + "> " + line, e);
     return true;
   }
 
@@ -255,7 +267,7 @@ public class MoteProgrammer {
     }
     mp.setFirmwareFile(args[0]);
     if (args.length == 2) {
-      mp.setMotes(new int[] { Integer.parseInt(args[1]) });
+      mp.setMotes(new String[] { args[1] });
     } else {
       mp.searchForMotes();
     }

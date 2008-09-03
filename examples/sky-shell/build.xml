@@ -15,7 +15,7 @@
   </target>
 
   <target name="compile" depends="init">
-    <javac srcdir="${java}" destdir="${build}">
+    <javac srcdir="${java}" destdir="${build}" debug="true">
       <classpath>
         <fileset dir="${lib}">
           <include name="**/*.jar"/>
@@ -45,6 +45,7 @@
       <fileset dir="${contiki}/tools/sky"/>
     </copy>
     <copy file="${contiki}/tools/cygwin/cygwin1.dll" todir="${dist}/tools"/>
+    <chmod dir="${dist}/tools" perm="a+x" includes="**/*"/>
   </target>
 
   <target name="run" depends="dist">

@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: MoteFinder.java,v 1.1 2008/07/09 23:18:06 nifi Exp $
+ * $Id: MoteFinder.java,v 1.2 2008/09/03 13:35:21 nifi Exp $
  *
  * -----------------------------------------------------------------
  *
@@ -34,8 +34,8 @@
  *
  * Authors : Joakim Eriksson, Niclas Finne
  * Created : 4 jul 2008
- * Updated : $Date: 2008/07/09 23:18:06 $
- *           $Revision: 1.1 $
+ * Updated : $Date: 2008/09/03 13:35:21 $
+ *           $Revision: 1.2 $
  */
 
 package se.sics.contiki.collect;
@@ -57,17 +57,19 @@ public class MoteFinder {
   public static final String MOTELIST_LINUX = "./tools/motelist-linux";
 
   private final Pattern motePattern;
+  private final boolean isWindows;
   private Process moteListProcess;
 //  private boolean hasVerifiedProcess;
   private ArrayList<String> comList = new ArrayList<String>();
-  private int[] moteList = new int[10];
-  private int moteCount = 0;
+  private ArrayList<String> moteList = new ArrayList<String>();
 
   public MoteFinder() {
+    String osName = System.getProperty("os.name", "").toLowerCase();
+    isWindows = osName.startsWith("win");
     motePattern = Pattern.compile("\\s(COM|/dev/[a-zA-Z]+)(\\d+)\\s");
   }
 
-  public int[] getMotes() throws IOException {
+  public String[] getMotes() throws IOException {
     searchForMotes();
     return getMoteList();
   }
@@ -79,13 +81,12 @@ public class MoteFinder {
 
   private void searchForMotes() throws IOException {
     comList.clear();
-    moteCount = 0;
+    moteList.clear();
 //    hasVerifiedProcess = false;
 
     /* Connect to COM using external serialdump application */
-    String osName = System.getProperty("os.name").toLowerCase();
     String fullCommand;
-    if (osName.startsWith("win")) {
+    if (isWindows) {
       fullCommand = MOTELIST_WINDOWS;
     } else {
       fullCommand = MOTELIST_LINUX;
@@ -123,8 +124,7 @@ public class MoteFinder {
             }
             err.close();
           } catch (IOException e) {
-            System.err.println("Exception when reading from motelist");
-            e.printStackTrace();
+            System.err.println("Exception when reading from motelist error stream: " + e);
           }
         }
       }, "read motelist error stream thread");
@@ -143,13 +143,8 @@ public class MoteFinder {
     return comList.toArray(new String[comList.size()]);
   }
 
-  private int[] getMoteList() {
-    if (moteCount < moteList.length) {
-      int[] tmp = new int[moteCount];
-      System.arraycopy(moteList, 0, tmp, 0, tmp.length);
-      moteList = tmp;
-    }
-    return moteList;
+  private String[] getMoteList() {
+    return moteList.toArray(new String[moteList.size()]);
   }
 
   public void close() {
@@ -168,13 +163,17 @@ public class MoteFinder {
     } else {
       Matcher matcher = motePattern.matcher(line);
       if (matcher.find()) {
-        if (moteCount == moteList.length) {
-          int[] tmp = new int[moteCount + 10];
-          System.arraycopy(moteList, 0, tmp, 0, moteCount);
-          moteList = tmp;
+        String dev = matcher.group(1);
+        String no = matcher.group(2);
+        String comPort = dev + no;
+        String moteID = comPort;
+        if (isWindows) {
+          // Special handling of mote id under Windows
+          int moteNumber = Integer.parseInt(no);
+          moteID = Integer.toString(moteNumber - 1);
         }
-        comList.add(matcher.group(1) + matcher.group(2));
-        moteList[moteCount++] = Integer.parseInt(matcher.group(2));
+        comList.add(comPort);
+        moteList.add(moteID);
       } else {
         System.err.println("Motelist> " + line);
       }
@@ -208,12 +207,13 @@ public class MoteFinder {
 
   public static void main(String[] args) throws IOException {
     MoteFinder finder = new MoteFinder();
-    String[] motes = finder.getComPorts();
+    String[] comPorts = args.length > 0 && "-v".equals(args[0]) ?
+        finder.getMotes() : finder.getComPorts();
     finder.close();
-    if (motes == null || motes.length == 0) {
+    if (comPorts == null || comPorts.length == 0) {
       System.out.println("No motes connected");
     } else {
-      for(String port: motes) {
+      for(String port: comPorts) {
         System.out.println("Found Sky at " + port);
       }
     }
