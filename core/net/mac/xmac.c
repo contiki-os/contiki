@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: xmac.c,v 1.20 2008/07/07 23:25:12 adamdunkels Exp $
+ * $Id: xmac.c,v 1.21 2008/09/04 17:44:01 adamdunkels Exp $
  */
 
 /**
@@ -380,7 +380,7 @@ send_packet(void)
     TIMETABLE_TIMESTAMP(xmac_timetable, "send got ack");
 #endif
     on(); /* Wait for possible ACK packet */
-  } else {
+  } else if(!is_broadcast) {
 #if WITH_TIMETABLE
     TIMETABLE_TIMESTAMP(xmac_timetable, "send no ack received");
 #endif
