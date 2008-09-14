@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#)$Id: contiki-sky-main.c,v 1.34 2008/07/08 08:23:24 adamdunkels Exp $
+ * @(#)$Id: contiki-sky-main.c,v 1.35 2008/09/14 20:47:30 joxe Exp $
  */
 
 #include <signal.h>
@@ -209,8 +209,7 @@ main(int argc, char **argv)
   
   leds_on(LEDS_GREEN);
   ds2411_init();
-  sensors_light_init();
-  sht11_init();
+
   leds_on(LEDS_BLUE);
   xmem_init();
 
@@ -231,6 +230,9 @@ main(int argc, char **argv)
   process_start(&etimer_process, NULL);
   process_start(&sensors_process, NULL);
   
+  /*
+   * Initialize light and humitity/temp sensors.
+   */
   sensors_light_init();
   sht11_init();
   
