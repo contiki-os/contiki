@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ScriptRunner.java,v 1.2 2008/09/17 15:22:39 fros4943 Exp $
+ * $Id: ScriptRunner.java,v 1.3 2008/09/17 16:30:57 fros4943 Exp $
  */
 
 package se.sics.cooja.plugins;
@@ -71,15 +71,14 @@ public class ScriptRunner extends VisPlugin {
 
   private JTextArea scriptTextArea;
   private JTextArea logTextArea;
-
   private GUI gui;
-
   private LogScriptEngine scriptTester = null;
-
   private JButton toggleButton;
+  private String oldTestName = null;
+  private String oldInfo = null;
 
   public ScriptRunner(GUI gui) {
-    super("Script Runner (Log)", gui);
+    super("(GUI) Test Script Editor", gui);
     this.gui = gui;
 
     scriptTextArea = new JTextArea(8,50);
@@ -95,7 +94,12 @@ public class ScriptRunner extends VisPlugin {
         "log.log('TIME=' + mote.getSimulation().getSimulationTime() + '\\n');\n" +
         "log.log('MSG=' + msg + '\\n');\n" +
         "\n" +
+        "log.log('STORED VAR=' + global.get('storedVar') + '\\n');\n" +
+        "global.put('storedVar', msg);\n" +
+        "\n" +
         "log.log('TEST OK\\n'); /* Report test success */\n" +
+        "\n" +
+        "/* To increase test run speed, close the simulator when done */\n" +
         "//mote.getSimulation().getGUI().doQuit(false); /* Quit simulator (to end test run)*/\n" +
         "\n" +
         "//mote.getSimulation().getGUI().reloadCurrentSimulation(true); /* Reload simulation */\n"
@@ -103,7 +107,7 @@ public class ScriptRunner extends VisPlugin {
 
     logTextArea = new JTextArea(8,50);
     logTextArea.setMargin(new Insets(5,5,5,5));
-    logTextArea.setEditable(false);
+    logTextArea.setEditable(true);
     logTextArea.setCursor(null);
 
     toggleButton = new JButton("Activate");
@@ -111,12 +115,13 @@ public class ScriptRunner extends VisPlugin {
       public void actionPerformed(ActionEvent ev) {
         if (toggleButton.getText().equals("Activate")) {
           scriptTester = new LogScriptEngine(ScriptRunner.this.gui, scriptTextArea.getText());
-          scriptTester.activateScript();
           scriptTester.setScriptLogObserver(new Observer() {
             public void update(Observable obs, Object obj) {
               logTextArea.append((String) obj);
+              logTextArea.setCaretPosition(logTextArea.getText().length());
             }
           });
+          scriptTester.activateScript();
           toggleButton.setText("Deactivate");
           scriptTextArea.setEnabled(false);
 
@@ -160,13 +165,17 @@ public class ScriptRunner extends VisPlugin {
         }
 
         /* Name test to export */
+        if (oldTestName == null) {
+          oldTestName = "mytest";
+        }
         String testName = (String) JOptionPane.showInputDialog(GUI.getTopParentContainer(),
             "Enter test name. No spaces or strange chars allowed.",
             "Test name", JOptionPane.PLAIN_MESSAGE, null, null,
-            "mytest");
+            oldTestName);
         if (testName == null) {
           return;
         }
+        oldTestName = testName;
         if (testName.equals("") || testName.contains(" ")) {
           JOptionPane.showMessageDialog(GUI.getTopParentContainer(),
               "Bad test name: '" + testName + "'", "Bad test name", JOptionPane.ERROR_MESSAGE);
@@ -231,7 +240,7 @@ public class ScriptRunner extends VisPlugin {
           }
           configString = configString.replace(
               "<delaytime>" + matcher.group(1) + "</delaytime>",
-              "<delaytime>0</delaytime>");
+          "<delaytime>0</delaytime>");
         }
 
         /* Export .csc */
@@ -263,14 +272,21 @@ public class ScriptRunner extends VisPlugin {
 
         /* Export .info (optional) */
         try {
-          String info = JOptionPane.showInputDialog(GUI.getTopParentContainer(),
-              "(OPTIONAL) Enter test description",
-              "Optional test info", JOptionPane.QUESTION_MESSAGE);
+          if (oldInfo == null) {
+            oldInfo = "";
+          }
+          String info = (String) JOptionPane.showInputDialog(GUI.getTopParentContainer(),
+              "Optional test info",
+              "(OPTIONAL) Enter test description", JOptionPane.PLAIN_MESSAGE, null, null,
+              oldInfo);
           if (info != null && !info.equals("")) {
+            oldInfo = info;
             BufferedWriter writer =
               new BufferedWriter(new OutputStreamWriter(new FileOutputStream(infoFile)));
             writer.write(info);
             writer.close();
+          } else {
+            oldInfo = null;
           }
         } catch (Exception ex) {
           ex.printStackTrace();
@@ -309,7 +325,7 @@ public class ScriptRunner extends VisPlugin {
           final BufferedReader input = new BufferedReader(new InputStreamReader(externalCoojaProcess.getInputStream()));
           final BufferedReader err = new BufferedReader(new InputStreamReader(externalCoojaProcess.getErrorStream()));
 
-          JButton button = new JButton("Abort test/Close dialog");
+          final JButton button = new JButton("Abort test");
           button.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
               if (externalCoojaProcess != null) {
@@ -339,7 +355,7 @@ public class ScriptRunner extends VisPlugin {
               String readLine;
               try {
                 while ((readLine = input.readLine()) != null) {
-                  if (normal != null && readLine != null) {
+                  if (normal != null) {
                     normal.println(readLine);
                   }
                 }
@@ -348,22 +364,33 @@ public class ScriptRunner extends VisPlugin {
                 logger.warn("Error while reading from process");
               }
 
-            /* Parse log file for success info */
+              normal.println("");
+              normal.println("");
+              normal.println("");
+
+              /* Parse log file for success info */
               try {
                 BufferedReader in = new BufferedReader(new InputStreamReader(
                     new FileInputStream(logFile)));
                 boolean testSucceeded = false;
+
                 while (in.ready()) {
                   String line = in.readLine();
+                  if (line == null) {
+                    line = "";
+                  }
+                  normal.println(line);
                   if (line.contains("TEST OK")) {
                     testSucceeded = true;
-                    break;
+                   break;
                   }
                 }
                 if (testSucceeded) {
                   progressDialog.setTitle("Test run completed. Test succeeded!");
+                  button.setText("Test OK");
                 } else {
                   progressDialog.setTitle("Test run completed. Test failed!");
+                  button.setText("Test failed");
                 }
               } catch (FileNotFoundException e) {
                 logger.fatal("File not found: " + e);
@@ -379,7 +406,7 @@ public class ScriptRunner extends VisPlugin {
               String readLine;
               try {
                 while ((readLine = err.readLine()) != null) {
-                  if (error != null && readLine != null) {
+                  if (error != null) {
                     error.println(readLine);
                   }
                 }
