@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: MspMote.java,v 1.8 2008/06/27 14:09:26 nifi Exp $
+ * $Id: MspMote.java,v 1.9 2008/09/17 12:09:20 fros4943 Exp $
  */
 
 package se.sics.cooja.mspmote;
@@ -279,6 +279,8 @@ public abstract class MspMote implements Mote {
     if (maxSimTimeCycles <= cycleCounter) {
       return false;
     }
+
+    myMoteInterfaceHandler.doActiveActionsBeforeTick();
 
     // Leave control to emulated CPU
     cycleCounter += 1;
