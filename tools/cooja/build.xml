@@ -55,6 +55,8 @@ The COOJA Simulator
   <target name="clean" depends="init">
     <delete dir="${build}"/>
     <delete dir="${dist}"/>
+  	<ant antfile="build.xml" dir="apps/mrm" target="clean" inheritAll="false"/>
+  	<ant antfile="build.xml" dir="apps/mspsim" target="clean" inheritAll="false"/>
   </target>
 
   <target name="run" depends="init, compile, jar, copy configs">
