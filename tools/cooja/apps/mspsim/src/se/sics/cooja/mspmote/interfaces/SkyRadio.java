@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: SkyRadio.java,v 1.5 2008/06/27 14:11:52 nifi Exp $
+ * $Id: SkyRadio.java,v 1.6 2008/09/17 12:08:45 fros4943 Exp $
  */
 
 package se.sics.cooja.mspmote.interfaces;
@@ -47,8 +47,7 @@ import se.sics.cooja.interfaces.Radio;
 import se.sics.cooja.mspmote.SkyMote;
 import se.sics.mspsim.chip.CC2420;
 import se.sics.mspsim.chip.PacketListener;
-import se.sics.mspsim.core.Chip;
-import se.sics.mspsim.core.OperatingModeListener;
+import se.sics.mspsim.platform.sky.RadioWrapper;
 
 /**
  * CC2420 to COOJA wrapper.
@@ -66,6 +65,8 @@ public class SkyRadio extends Radio implements CustomDataRadio {
   private SkyMote myMote;
 
   private CC2420 cc2420;
+
+  private RadioWrapper cc2420Wrapped;
 
   private boolean isInterfered = false;
 
@@ -90,9 +91,9 @@ public class SkyRadio extends Radio implements CustomDataRadio {
 
   public SkyRadio(SkyMote mote) {
     this.myMote = mote;
-    this.cc2420 = mote.skyNode.radio;
+    this.cc2420Wrapped = new RadioWrapper(mote.skyNode.radio);
 
-    cc2420.setPacketListener(new PacketListener() {
+    cc2420Wrapped.setPacketListener(new PacketListener() {
       public void transmissionStarted() {
         lastEventTime = myMote.getSimulation().getSimulationTime();
         lastEvent = RadioEvent.TRANSMISSION_STARTED;
@@ -201,7 +202,7 @@ public class SkyRadio extends Radio implements CustomDataRadio {
     /* Deliver packet data */
     if (isReceiving && !isInterfered && lastIncomingCC2420Packet != null /* && !hasFailedReception */) {
       byte[] packetData = lastIncomingCC2420Packet.getPacketData();
-      cc2420.setIncomingPacket(packetData);
+      cc2420Wrapped.packetReceived(packetData);
     }
 
     isReceiving = false;
