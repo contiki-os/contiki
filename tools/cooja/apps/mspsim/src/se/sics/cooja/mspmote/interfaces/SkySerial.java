@@ -26,12 +26,14 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: SkySerial.java,v 1.1 2008/02/11 15:23:37 fros4943 Exp $
+ * $Id: SkySerial.java,v 1.2 2008/09/17 12:05:45 fros4943 Exp $
  */
 
 package se.sics.cooja.mspmote.interfaces;
 
 import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.util.*;
 import javax.swing.*;
 import org.apache.log4j.Logger;
@@ -40,26 +42,59 @@ import org.jdom.Element;
 import se.sics.cooja.*;
 import se.sics.mspsim.core.*;
 import se.sics.cooja.interfaces.Log;
+import se.sics.cooja.interfaces.SerialPort;
 import se.sics.cooja.mspmote.SkyMote;
 
 /**
  * @author Fredrik Osterlind
  */
 @ClassDescription("Serial port")
-public class SkySerial extends Log implements USARTListener {
+public class SkySerial extends Log implements SerialPort, USARTListener {
   private static Logger logger = Logger.getLogger(SkySerial.class);
 
   private Mote myMote;
   private String lastLogMessage = "";
   private String newMessage = "";
 
+  private JTextArea logTextPane = null;
+  private USART usart;
+
+  private class SerialDataObservable extends Observable {
+    private void notifyNewData() {
+      setChanged();
+      notifyObservers(SkySerial.this);
+    }
+  }
+  private SerialDataObservable serialDataObservable = new SerialDataObservable();
+  private byte lastSerialData = 0;
+
+  private Vector<Byte> incomingData = new Vector<Byte>();
+
   public SkySerial(SkyMote mote) {
     myMote = mote;
 
     /* Listen to port writes */
-    IOUnit usart = mote.getCPU().getIOUnit("USART 1");
-    if (usart instanceof USART) {
-      ((USART) usart).setUSARTListener(this);
+    IOUnit ioUnit = mote.getCPU().getIOUnit("USART 1");
+    if (ioUnit instanceof USART) {
+      usart = (USART) ioUnit;
+      usart.setUSARTListener(this);
+    }
+  }
+
+  public void writeByte(byte b) {
+    incomingData.add(b);
+  }
+
+  public void writeString(String s) {
+    for (int i=0; i < s.length(); i++) {
+      writeByte((byte) s.charAt(i));
+    }
+    writeByte((byte) 10);
+  }
+
+  public void writeArray(byte[] s) {
+    for (byte element : s) {
+      writeByte(element);
     }
   }
 
@@ -67,7 +102,25 @@ public class SkySerial extends Log implements USARTListener {
     return lastLogMessage;
   }
 
+  public void addSerialDataObserver(Observer o) {
+    serialDataObservable.addObserver(o);
+  }
+  public void deleteSerialDataObserver(Observer o) {
+    serialDataObservable.deleteObserver(o);
+  }
+
+  public byte getLastSerialData() {
+    return lastSerialData;
+  }
+
   public void doActionsBeforeTick() {
+    /* Send bytes */
+    if (!incomingData.isEmpty()) {
+      if (usart.isReceiveFlagCleared()) {
+        byte b = incomingData.remove(0);
+        usart.byteReceived(b);
+      }
+    }
   }
 
   public void doActionsAfterTick() {
@@ -76,7 +129,24 @@ public class SkySerial extends Log implements USARTListener {
   public JPanel getInterfaceVisualizer() {
     JPanel panel = new JPanel();
     panel.setLayout(new BorderLayout());
-    final JTextArea logTextPane = new JTextArea();
+
+    if (logTextPane == null) {
+      logTextPane = new JTextArea();
+    }
+
+    // Send RS232 data visualizer
+    JPanel sendPane = new JPanel();
+    final JTextField sendTextField = new JTextField(15);
+    JButton sendButton = new JButton("Send data");
+    sendButton.addActionListener(new ActionListener() {
+      public void actionPerformed(ActionEvent e) {
+        writeString(sendTextField.getText());
+      }
+    });
+    sendPane.add(BorderLayout.WEST, sendTextField);
+    sendPane.add(BorderLayout.EAST, sendButton);
+
+    // Receive RS232 data visualizer
     logTextPane.setOpaque(false);
     logTextPane.setEditable(false);
 
@@ -89,7 +159,7 @@ public class SkySerial extends Log implements USARTListener {
     Observer observer;
     this.addObserver(observer = new Observer() {
       public void update(Observable obs, Object obj) {
-        logTextPane.append(getLastLogMessages());
+        logTextPane.append("< " + getLastLogMessages() + "\n");
         logTextPane.setCaretPosition(logTextPane.getDocument().getLength());
       }
     });
@@ -98,10 +168,13 @@ public class SkySerial extends Log implements USARTListener {
     panel.putClientProperty("intf_obs", observer);
 
     JScrollPane scrollPane = new JScrollPane(logTextPane);
-    scrollPane.setPreferredSize(new Dimension(100,100));
-    panel.add(BorderLayout.NORTH, new JLabel("Last log messages:"));
+    scrollPane.setPreferredSize(new Dimension(100, 100));
+    panel.add(BorderLayout.NORTH, new JLabel("Last serial data:"));
     panel.add(BorderLayout.CENTER, scrollPane);
+    panel.add(BorderLayout.SOUTH, sendPane);
     return panel;
+
+
   }
 
   public void releaseInterfaceVisualizer(JPanel panel) {
@@ -133,6 +206,15 @@ public class SkySerial extends Log implements USARTListener {
       this.setChanged();
       this.notifyObservers(myMote);
     }
+
+    lastSerialData = (byte) data;
+    serialDataObservable.notifyNewData();
+  }
+
+  public void close() {
+  }
+
+  public void flushInput() {
   }
 
 }
