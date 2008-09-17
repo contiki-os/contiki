@@ -22,9 +22,11 @@
 
   <target name="clean" depends="init">
     <delete dir="${build}"/>
+    <delete dir="${lib}"/>
   </target>
 
   <target name="jar" depends="init, compile">
+    <mkdir dir="${lib}"/>
     <jar destfile="${lib}/mrm.jar" basedir="${build}">
       <fileset dir="images"/>
       <manifest>
