@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: CC2420RadioPacket.java,v 1.1 2008/03/18 13:34:29 fros4943 Exp $
+ * $Id: CC2420RadioPacket.java,v 1.2 2008/09/17 12:09:03 fros4943 Exp $
  */
 
 package se.sics.cooja.mspmote.interfaces;
@@ -37,6 +37,13 @@ public class CC2420RadioPacket implements RadioPacket {
 
   public CC2420RadioPacket(byte[] data) {
     this.data = data;
+  }
+
+  public CC2420RadioPacket(int[] intData) {
+    this.data = new byte[intData.length];
+    for (int i=0; i < intData.length; i++) {
+      this.data[i] = (byte) intData[i];
+    }
   }
 
   public byte[] getPacketData() {
