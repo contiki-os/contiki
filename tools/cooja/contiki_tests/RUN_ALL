@@ -1,5 +1,15 @@
 #!/bin/bash
 
+if [ -z "$CONTIKI" ]; then 
+  echo Undefined variable: CONTIKI
+  exit
+fi
+
+if [ -z "$MAILTO" ]; then 
+  echo Undefined variable: MAILTO
+  exit
+fi
+
 echo ">>>>>>> Cleaning up previous tests <<<<<<<<"
 rm -f *.log *.cooja_log
 rm -fr se obj_cooja
@@ -9,7 +19,7 @@ echo ">>>>>>> Updating from CVS <<<<<<<<"
 (cd $CONTIKI && cvs update -dP)
 
 echo ">>>>>>> Building COOJA <<<<<<<<"
-(cd $CONTIKI/tools/cooja && ant jar)
+(cd $CONTIKI/tools/cooja && ant clean && ant jar)
 
 echo ">>>>>>> Creating test log <<<<<<<<"
 rm -f *.log
@@ -18,49 +28,13 @@ touch $LOG
 echo "" >> $LOG
 echo "Starting test run ($LOG)"
 
-
 for myfile in ./*.csc
 do
-    TEST=`basename $myfile .csc`
-    echo ">>>>>>> Starting test: $TEST <<<<<<<<"
-
-    java -jar ../dist/cooja.jar -nogui -test=$TEST
-    if [ -f "COOJA.log" ]; then
-      mv COOJA.log $TEST.cooja_log
-    fi
-
-    if [ -f "$TEST.log" ]; then
-      OK=`grep "TEST OK" $TEST.log | wc -l`
- 
-      if [ $OK == 0 ]; then
-        echo "$TEST: FAIL" >> $LOG
-        if [ -f "$TEST.info" ]; then
-          echo "--LOG INFO START ($TEST.info) --" >> $LOG
-          cat $TEST.info >> $LOG
-          echo "--LOG INFO END --" >> $LOG
-          echo "" >> $LOG
-        else
-          echo "-- NO TEST INFO AVAILABLE ($TEST.info) --" >> $LOG
-        fi
-
-      else
-        echo "$TEST: OK" >> $LOG
-      fi
-
-    else
-      echo "$TEST: FAIL (no output)" >> $LOG
-      if [ -f "$TEST.info" ]; then
-        echo "--LOG INFO START ($TEST.info) --" >> $LOG
-        cat $TEST.info >> $LOG
-        echo "-- TEST INFO END --" >> $LOG
-        echo "" >> $LOG
-      else
-        echo "-- NO TEST INFO AVAILABLE ($TEST.info) --" >> $LOG
-      fi
-    fi
-
-    echo "" >> $LOG   
+  TEST=`basename $myfile .csc`
+  ./RUN_TEST $TEST $LOG
+  echo "" >> $LOG   
 done
 
-echo "Sending mail"
-cat $LOG | mail -s "Test results (simulation-based)" [email]
+echo ">>>>>>> Sending mail <<<<<<<<"
+cp $LOG ~/lastlog.log
+cat $LOG | mail -s "Contiki test results" $MAILTO
