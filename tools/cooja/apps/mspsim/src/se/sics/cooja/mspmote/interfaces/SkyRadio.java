@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: SkyRadio.java,v 1.6 2008/09/17 12:08:45 fros4943 Exp $
+ * $Id: SkyRadio.java,v 1.7 2008/09/17 14:37:23 nifi Exp $
  */
 
 package se.sics.cooja.mspmote.interfaces;
@@ -91,7 +91,8 @@ public class SkyRadio extends Radio implements CustomDataRadio {
 
   public SkyRadio(SkyMote mote) {
     this.myMote = mote;
-    this.cc2420Wrapped = new RadioWrapper(mote.skyNode.radio);
+    this.cc2420 = mote.skyNode.radio;
+    this.cc2420Wrapped = new RadioWrapper(this.cc2420);
 
     cc2420Wrapped.setPacketListener(new PacketListener() {
       public void transmissionStarted() {
