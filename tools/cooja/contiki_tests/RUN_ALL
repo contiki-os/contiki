@@ -19,8 +19,8 @@ echo ">>>>>>> Creating test log <<<<<<<<"
 #LOG="TEST-`date '+%F'`.log"
 LOG=currentlog.log
 touch $LOG
-echo "Starting test run ($LOG)"
-echo "Test run started: ($LOG)" >> $LOG
+echo "Starting test run `date '+%F %T'`"
+echo "Test run started at `date '+%F %T'`" >> $LOG
 echo "" >> $LOG
 
 echo ">>>>>>> Updating from CVS <<<<<<<<"
@@ -32,6 +32,7 @@ echo "Building COOJA" >> $LOG
 (cd $CONTIKI/tools/cooja && ant clean && ant jar)
 
 echo "Starting tests" >> $LOG
+echo "" >> $LOG
 for myfile in ./*.csc
 do
   TEST=`basename $myfile .csc`

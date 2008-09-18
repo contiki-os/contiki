@@ -14,34 +14,27 @@ if [ -f "COOJA.log" ]; then
   mv COOJA.log $TEST.cooja_log
 fi
 
+OK=0
 if [ -f "$TEST.log" ]; then
   OK=`grep "TEST OK" $TEST.log | wc -l`
+fi
 
-  if [ $OK == 0 ]; then
-    echo "$TEST: FAIL" >> $LOG
-    if [ -f "$TEST.info" ]; then
-      echo "--LOG INFO START ($TEST.info) --" >> $LOG
-      cat $TEST.info >> $LOG
-      echo "" >> $LOG
-      echo "--LOG INFO END --" >> $LOG
-    else
-      echo "-- NO TEST INFO AVAILABLE ($TEST.info) --" >> $LOG
-    fi
-
-  else
-    echo "$TEST: OK" >> $LOG
-  fi
-
-else
-  echo "$TEST: FAIL (no output)" >> $LOG
+if [ $OK == 0 ]; then
+  echo "$TEST: FAIL" >> $LOG
   if [ -f "$TEST.info" ]; then
     echo "--LOG INFO START ($TEST.info) --" >> $LOG
     cat $TEST.info >> $LOG
     echo "" >> $LOG
-    echo "-- TEST INFO END --" >> $LOG
+    echo "--LOG INFO END --" >> $LOG
   else
-    echo "-- NO TEST INFO AVAILABLE ($TEST.info) --" >> $LOG
+    echo "-- NO LOG INFO AVAILABLE ($TEST.info) --" >> $LOG
   fi
+  echo "-- OUTPUT TAIL START ($TEST.cooja_log) --" >> $LOG
+  tail -5 $TEST.cooja_log >> $LOG
+  echo "-- OUTPUT TAIL END --" >> $LOG
+
+else
+  echo "$TEST: OK" >> $LOG
 fi
 
 echo "" >> $LOG
