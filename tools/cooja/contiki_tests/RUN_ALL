@@ -15,19 +15,23 @@ rm -f *.log *.cooja_log
 rm -fr se obj_cooja
 rm -f symbols.c symbols.h
 
-echo ">>>>>>> Updating from CVS <<<<<<<<"
-(cd $CONTIKI && cvs update -dP)
-
-echo ">>>>>>> Building COOJA <<<<<<<<"
-(cd $CONTIKI/tools/cooja && ant clean && ant jar)
-
 echo ">>>>>>> Creating test log <<<<<<<<"
 rm -f *.log
 LOG="TEST-`date '+%F'`.log"
 touch $LOG
 echo "" >> $LOG
 echo "Starting test run ($LOG)"
+echo "Test started: ($LOG)" >> $LOG
 
+echo ">>>>>>> Updating from CVS <<<<<<<<"
+echo "Updating anonymous Sourceforge CVS" >> $LOG
+(cd $CONTIKI && cvs update -dP)
+
+echo ">>>>>>> Building COOJA <<<<<<<<"
+echo "Building COOJA" >> $LOG
+(cd $CONTIKI/tools/cooja && ant clean && ant jar)
+
+echo "Starting tests" >> $LOG
 for myfile in ./*.csc
 do
   TEST=`basename $myfile .csc`
@@ -36,5 +40,6 @@ do
 done
 
 echo ">>>>>>> Sending mail <<<<<<<<"
+echo "Mailing test report" >> $LOG
 cp $LOG ~/lastlog.log
 cat $LOG | mail -s "Contiki test results" $MAILTO
