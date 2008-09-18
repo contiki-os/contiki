@@ -24,7 +24,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * $Id: GUI.java,v 1.79 2008/09/18 14:24:46 fros4943 Exp $
+ * $Id: GUI.java,v 1.80 2008/09/18 14:46:24 fros4943 Exp $
  */
 
 package se.sics.cooja;
@@ -3112,7 +3112,6 @@ public class GUI extends Observable {
 
             /* Activate test */
             scriptPlugin.activateTest(configFile, scriptFile, logFile);
-            System.exit(1);
           }
         }
       });
