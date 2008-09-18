@@ -26,14 +26,14 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: battery-sensor.c,v 1.1 2007/11/13 20:29:07 adamdunkels Exp $
+ * $Id: battery-sensor.c,v 1.2 2008/09/18 21:29:06 joxe Exp $
  *
  * -----------------------------------------------------------------
  *
  * Author  : Adam Dunkels, Joakim Eriksson, Niclas Finne
  * Created : 2005-11-01
- * Updated : $Date: 2007/11/13 20:29:07 $
- *           $Revision: 1.1 $
+ * Updated : $Date: 2008/09/18 21:29:06 $
+ *           $Revision: 1.2 $
  */
 
 #include "dev/battery-sensor.h"
@@ -60,21 +60,26 @@ irq(void)
 static void
 activate(void)
 {
-  SVSCTL = 0xf0;
+  /* This assumes that some other sensor system already did setup the ADC */
+  /* (in the case of the sky platform it is sensors_light_init that does it) */
+
   P6SEL |= 0x80;
   P6DIR = 0xff;
   P6OUT = 0x00;
 
-  /* Set up the ADC. */
-  //  ADC12CTL2 = SHT0_6 + SHT1_6 + MSC; // Setup ADC12, ref., sampling time
-  ADC12MCTL2 = (INCH_11 + SREF_0);
+  
+  /* stop converting immediately */
+  ADC12CTL0 &= ~ENC;
+  ADC12CTL1 &= ~CONSEQ_3; 
 
-/*   ADC12CTL2 |= ADC12ON + REFON; */
+  /* Configure ADC12_2 to sample channel 11 (voltage) and use */
+  /* the Vref+ as reference (SREF_1) since it is a stable reference */
+  ADC12MCTL2 = (INCH_11 + SREF_1);
 
-/*   ADC12CTL2 |= ENC;		// enable conversion */
-/*   ADC12CTL2 |= ADC12SC;		// sample & convert */
+  ADC12CTL1 |= CONSEQ_3;
+  ADC12CTL0 |= ENC | ADC12SC; 
 
-  //  Irq_adc12_activate(&battery_sensor, 6, (INCH_11 + SREF_0));
+  /*  Irq_adc12_activate(&battery_sensor, 6, (INCH_11 + SREF_1)); */
 }
 /*---------------------------------------------------------------------------*/
 static void
