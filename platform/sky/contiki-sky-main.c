@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#)$Id: contiki-sky-main.c,v 1.36 2008/09/18 17:58:21 joxe Exp $
+ * @(#)$Id: contiki-sky-main.c,v 1.37 2008/09/18 21:29:06 joxe Exp $
  */
 
 #include <signal.h>
@@ -41,6 +41,7 @@
 #include "dev/ds2411.h"
 #include "dev/leds.h"
 #include "dev/light.h"
+#include "dev/battery-sensor.h"
 #include "dev/serial.h"
 #include "dev/sht11.h"
 #include "dev/cc2420.h"
@@ -234,6 +235,7 @@ main(int argc, char **argv)
    * Initialize light and humitity/temp sensors.
    */
   sensors_light_init();
+  battery_sensor.activate();
   sht11_init();
   
   ctimer_init();
