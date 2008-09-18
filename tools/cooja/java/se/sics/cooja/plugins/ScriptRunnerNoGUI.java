@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ScriptRunnerNoGUI.java,v 1.1 2008/04/22 13:05:18 fros4943 Exp $
+ * $Id: ScriptRunnerNoGUI.java,v 1.2 2008/09/18 14:24:46 fros4943 Exp $
  */
 
 package se.sics.cooja.plugins;
@@ -170,10 +170,13 @@ public class ScriptRunnerNoGUI implements Plugin {
       /* Start simulation and leave control to script */
       sim.startSimulation();
     } catch (IOException e) {
+      logger.fatal("Error when running script: " + e);
       return false;
     } catch (UnsatisfiedLinkError e) {
+      logger.fatal("Error when running script: " + e);
       return false;
     } catch (SimulationCreationException e) {
+      logger.fatal("Error when running script: " + e);
       return false;
     }
 
