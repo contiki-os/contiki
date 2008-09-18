@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: shell-sky.c,v 1.11 2008/08/15 19:07:04 adamdunkels Exp $
+ * $Id: shell-sky.c,v 1.12 2008/09/18 21:30:24 joxe Exp $
  */
 
 /**
@@ -47,6 +47,7 @@
 #include "dev/cc2420.h"
 #include "dev/leds.h"
 #include "dev/light.h"
+#include "dev/battery-sensor.h"
 #include "dev/sht11.h"
 
 #include "net/rime/timesynch.h"
@@ -164,6 +165,7 @@ struct sense_msg {
   uint16_t temp;
   uint16_t humidity;
   uint16_t rssi;
+  uint16_t voltage;
 };
 /*---------------------------------------------------------------------------*/
 PROCESS_THREAD(shell_sense_process, ev, data)
@@ -179,6 +181,7 @@ PROCESS_THREAD(shell_sense_process, ev, data)
   msg.temp = sht11_temp();
   msg.humidity = sht11_humidity();
   msg.rssi = do_rssi();
+  msg.voltage = battery_sensor.value(0);
 
   shell_output(&sense_command, &msg, sizeof(msg), "", 0);
   PROCESS_END();
@@ -216,6 +219,9 @@ PROCESS_THREAD(shell_senseconv_process, ev, data)
       snprintf(buf, sizeof(buf),
 	       "%d", msg->rssi);
       shell_output_str(&senseconv_command, "RSSI ", buf);
+      snprintf(buf, sizeof(buf), /* 819 = 4096 / 5 */
+	       "%d.%d", (msg->voltage / 819), (10 * msg->voltage / 819) % 10);
+      shell_output_str(&senseconv_command, "Voltage ", buf);
     }
   }
   PROCESS_END();
