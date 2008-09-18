@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: MspMoteType.java,v 1.6 2008/06/27 14:09:26 nifi Exp $
+ * $Id: MspMoteType.java,v 1.7 2008/09/18 14:04:45 fros4943 Exp $
  */
 
 package se.sics.cooja.mspmote;
@@ -956,6 +956,7 @@ public abstract class MspMoteType implements MoteType {
     // Source file
     if (fileSource != null) {
       element = new Element("source");
+      fileSource = GUI.stripAbsoluteContikiPath(fileSource);
       element.setText(fileSource.getPath());
       config.add(element);
       element = new Element("command");
@@ -964,6 +965,7 @@ public abstract class MspMoteType implements MoteType {
     } else {
       // ELF file
       element = new Element("elf");
+      fileELF = GUI.stripAbsoluteContikiPath(fileELF);
       element.setText(fileELF.getPath());
       config.add(element);
     }
