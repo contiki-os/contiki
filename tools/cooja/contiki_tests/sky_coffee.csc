@@ -18,7 +18,7 @@
       se.sics.cooja.mspmote.SkyMoteType
       <identifier>sky1</identifier>
       <description>Sky Mote Type #1</description>
-      <source>/home/nvt/contiki-2.x-clean/examples/sky/test-coffee.c</source>
+      <source>../../../examples/sky/test-coffee.c</source>
       <command>make test-coffee.firmware TARGET=sky</command>
     </motetype>
     <mote>
