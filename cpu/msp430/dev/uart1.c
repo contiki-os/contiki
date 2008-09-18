@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#)$Id: uart1.c,v 1.6 2008/07/03 23:59:20 adamdunkels Exp $
+ * @(#)$Id: uart1.c,v 1.7 2008/09/18 17:59:27 joxe Exp $
  */
 
 /*
@@ -118,24 +118,34 @@ uart1_init(unsigned long ubr)
   UCTL1 &= ~SWRST;
 
   /* XXX Clear pending interrupts before enable!!! */
+  U1TCTL |= URXSE;
 
   IE2 |= URXIE1;                        /* Enable USART1 RX interrupt  */
+
 }
 /*---------------------------------------------------------------------------*/
 interrupt(UART1RX_VECTOR)
 uart1_interrupt(void)
 {
   ENERGEST_ON(ENERGEST_TYPE_IRQ);
-  /* Check status register for receive errors. */
-  if(URCTL1 & RXERR) {
-    volatile unsigned dummy;
-    dummy = RXBUF1;   /* Clear error flags by forcing a dummy read. */
+
+  if (!(URXIFG1 & IFG2)) {
+    /* Edge detect if IFG not set? */
+    U1TCTL &= ~URXSE; /* Clear the URXS signal */
+    U1TCTL |= URXSE;  /* Re-enable URXS - needed here?*/
+    LPM4_EXIT;
   } else {
+    /* Check status register for receive errors. */
+    if(URCTL1 & RXERR) {
+      volatile unsigned dummy;
+      dummy = RXBUF1;   /* Clear error flags by forcing a dummy read. */
+    } else {
       if(uart1_input_handler != NULL) {
 	if(uart1_input_handler(RXBUF1)) {
 	  LPM4_EXIT;
 	}
       }
+    }
   }
   ENERGEST_OFF(ENERGEST_TYPE_IRQ);
 }
