@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: MspMoteType.java,v 1.7 2008/09/18 14:04:45 fros4943 Exp $
+ * $Id: MspMoteType.java,v 1.8 2008/09/18 14:14:58 fros4943 Exp $
  */
 
 package se.sics.cooja.mspmote;
@@ -236,6 +236,8 @@ public abstract class MspMoteType implements MoteType {
               "Mote type creation failed: " + e.getMessage());
           newException = (MoteTypeCreationException) newException.initCause(e);
           newException.setCompilationOutput(compilationOutput);
+
+          logger.fatal("Compilation error: " + e.getMessage());
           throw newException;
         }
 
@@ -439,7 +441,7 @@ public abstract class MspMoteType implements MoteType {
 
       final String command = getCompileCommand(filenameNoExtension);
       logger.info("-- Compiling MSP430 Firmware --");
-      logger.info("command: " + command);
+      logger.info("Compilation command: " + command);
 
       compilationOutput.clearMessages();
 
