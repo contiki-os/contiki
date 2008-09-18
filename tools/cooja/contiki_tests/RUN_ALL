@@ -16,12 +16,12 @@ rm -fr se obj_cooja
 rm -f symbols.c symbols.h
 
 echo ">>>>>>> Creating test log <<<<<<<<"
-rm -f *.log
-LOG="TEST-`date '+%F'`.log"
+#LOG="TEST-`date '+%F'`.log"
+LOG=currentlog.log
 touch $LOG
-echo "" >> $LOG
 echo "Starting test run ($LOG)"
-echo "Test started: ($LOG)" >> $LOG
+echo "Test run started: ($LOG)" >> $LOG
+echo "" >> $LOG
 
 echo ">>>>>>> Updating from CVS <<<<<<<<"
 echo "Updating anonymous Sourceforge CVS" >> $LOG
