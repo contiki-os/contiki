@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#)$Id: contiki-sky-main.c,v 1.35 2008/09/14 20:47:30 joxe Exp $
+ * @(#)$Id: contiki-sky-main.c,v 1.36 2008/09/18 17:58:21 joxe Exp $
  */
 
 #include <signal.h>
@@ -352,7 +352,7 @@ main(int argc, char **argv)
 	 were awake. */
       energest_type_set(ENERGEST_TYPE_IRQ, irq_energest);
       watchdog_stop();
-      _BIS_SR(GIE | SCG0 | /*SCG1 | */CPUOFF); /* LPM3 sleep. This
+      _BIS_SR(GIE | SCG0 | SCG1 | CPUOFF); /* LPM3 sleep. This
 					      statement will block
 					      until the CPU is
 					      woken up by an
