@@ -24,7 +24,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * $Id: GUI.java,v 1.77 2008/04/22 13:04:43 fros4943 Exp $
+ * $Id: GUI.java,v 1.78 2008/09/18 14:04:13 fros4943 Exp $
  */
 
 package se.sics.cooja;
@@ -34,6 +34,7 @@ import java.awt.Dialog.ModalityType;
 import java.awt.event.*;
 import java.beans.PropertyVetoException;
 import java.io.*;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.security.AccessControlException;
@@ -3746,5 +3747,89 @@ public class GUI extends Observable {
    */
   public void signalMoteHighlight(Mote m) {
     moteHighlightObservable.highlightMote(m);
+  }
+
+  public static File stripTrailingUpDirs(File file) {
+    file = file.getAbsoluteFile();
+
+    /* Strip trailing "..":s */
+    boolean deletedDirs = false;
+    do {
+      int nrDirs = 0;
+      deletedDirs = false;
+
+      while (file.getName().equals("..")) {
+        nrDirs++;
+        file = file.getParentFile();
+        deletedDirs = true;
+      }
+
+      while (nrDirs > 0 && !file.getName().equals("..")) {
+        nrDirs--;
+        file = file.getParentFile();
+      }
+    } while (deletedDirs);
+
+    return file;
+  }
+
+  public static File resolveShortAbsolutePath(File file) {
+    file = file.getAbsoluteFile();
+
+    File todo = file, doneFile = null;
+    String done = null;
+
+    while (todo != null) {
+      todo = stripTrailingUpDirs(todo);
+
+      if (done != null) {
+        done = todo.getName() + File.separatorChar + done;
+      } else {
+        done = todo.getName();
+      }
+
+      if (todo.getParentFile() == null) {
+        doneFile = new File(todo, done);
+        break;
+      }
+      todo = todo.getParentFile();
+    }
+
+    return doneFile;
+  }
+
+  public static File stripAbsoluteContikiPath(File file) {
+    if (file == null || !file.exists()) {
+      logger.fatal("Can't strip file path. File does not exist: " + file);
+      return file;
+    }
+
+    try {
+
+      String abstractContikiFile = getExternalToolsSetting("PATH_CONTIKI");
+      File contikiFile = new File(abstractContikiFile);
+
+      contikiFile = resolveShortAbsolutePath(contikiFile);
+      File shortFile = resolveShortAbsolutePath(file);
+
+      String contikiFileString = contikiFile.toURI().toURL().toExternalForm();
+      String fileString = shortFile.toURI().toURL().toExternalForm();
+
+      if (fileString.contains(contikiFileString)) {
+        fileString = fileString.replace(contikiFileString, "");
+      }
+      File strippedFile = new File(abstractContikiFile, fileString);
+
+      if (!strippedFile.exists()) {
+        logger.warn("Error when stripping file path. New file does not exist: " + strippedFile);
+        return file;
+      }
+
+      return strippedFile;
+
+    } catch (MalformedURLException e) {
+      logger.warn("Could not convert file path for " + file + ": " + e.getMessage());
+      return file;
+    }
   }
 }
