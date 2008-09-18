@@ -10,8 +10,6 @@ LOG=$2
 
 echo ">>>>>>> Starting test: $TEST <<<<<<<<"
 java -jar ../dist/cooja.jar -nogui -test=$TEST
-
-java -jar ../dist/cooja.jar -nogui -test=$TEST
 if [ -f "COOJA.log" ]; then
   mv COOJA.log $TEST.cooja_log
 fi
@@ -24,8 +22,8 @@ if [ -f "$TEST.log" ]; then
     if [ -f "$TEST.info" ]; then
       echo "--LOG INFO START ($TEST.info) --" >> $LOG
       cat $TEST.info >> $LOG
-      echo "--LOG INFO END --" >> $LOG
       echo "" >> $LOG
+      echo "--LOG INFO END --" >> $LOG
     else
       echo "-- NO TEST INFO AVAILABLE ($TEST.info) --" >> $LOG
     fi
@@ -39,9 +37,11 @@ else
   if [ -f "$TEST.info" ]; then
     echo "--LOG INFO START ($TEST.info) --" >> $LOG
     cat $TEST.info >> $LOG
-    echo "-- TEST INFO END --" >> $LOG
     echo "" >> $LOG
+    echo "-- TEST INFO END --" >> $LOG
   else
     echo "-- NO TEST INFO AVAILABLE ($TEST.info) --" >> $LOG
   fi
 fi
+
+echo "" >> $LOG
