@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: rs232.c,v 1.5 2008/05/27 13:03:19 nvt-se Exp $
+ * @(#)$Id: rs232.c,v 1.6 2008/09/19 12:18:04 nvt-se Exp $
  */
 
 /** \addtogroup esbrs232
@@ -61,7 +61,6 @@
 void
 rs232_init(void)
 {
-//  rs232_set_speed(RS232_57600);
   rs232_set_speed(RS232_115200);
 }
 /*---------------------------------------------------------------------------*/
@@ -95,7 +94,8 @@ void
 rs232_set_speed(enum rs232_speed speed)
 {
   // baud
-  const unsigned char br_table[4][3] = {
+  const unsigned char br_table[5][3] = {
+	{0x00, 0x01, 0x00},		// 9600
 	{0x80, 0x00, 0x00},		// 19200
 	{0x40, 0x00, 0x00},		// 38400
 	{0x2a, 0x00, 0x5b},		// 57600

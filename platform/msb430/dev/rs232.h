@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: rs232.h,v 1.2 2007/08/20 11:01:14 nvt-se Exp $
+ * @(#)$Id: rs232.h,v 1.3 2008/09/19 12:18:04 nvt-se Exp $
  */
 
 /** \addtogroup esb
@@ -50,10 +50,11 @@
 #define __RS232_H__
 
 enum rs232_speed {
-	RS232_19200 =	0,
-	RS232_38400 =	1,
-	RS232_57600 =	2,
-	RS232_115200 =	3
+	RS232_9600   = 0,
+	RS232_19200  = 1,
+	RS232_38400  = 2,
+	RS232_57600  = 3,
+	RS232_115200 = 4
 };
 
 /**
@@ -88,8 +89,8 @@ void rs232_set_input(fp_uart_handler f);
  * \param speed The speed
  *
  *             This function configures the speed of the RS232
- *             hardware. The allowed parameters are RS232_19200,
- *             RS232_38400, RS232_57600, and RS232_115200.
+ *             hardware. The allowed parameters are RS232_9600,
+ *             RS232_19200, RS232_38400, RS232_57600, and RS232_115200.
  */
 void rs232_set_speed(enum rs232_speed speed);
 
