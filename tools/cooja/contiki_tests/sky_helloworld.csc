@@ -18,7 +18,7 @@
       se.sics.cooja.mspmote.SkyMoteType
       <identifier>sky1</identifier>
       <description>Sky Mote Type #1</description>
-      <source>..\..\..\examples\hello-world\hello-world.c</source>
+      <source>../../../examples/hello-world/hello-world.c</source>
       <command>make hello-world.firmware TARGET=sky</command>
     </motetype>
     <mote>

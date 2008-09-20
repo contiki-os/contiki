@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: MspCodeWatcher.java,v 1.12 2008/09/18 14:05:00 fros4943 Exp $
+ * $Id: MspCodeWatcher.java,v 1.13 2008/09/20 09:16:28 fros4943 Exp $
  */
 
 package se.sics.cooja.mspmote.plugins;
@@ -466,7 +466,7 @@ public class MspCodeWatcher extends VisPlugin {
         if (codeFile != null) {
           element = new Element("codefile");
           codeFile = GUI.stripAbsoluteContikiPath(codeFile);
-          element.setText(codeFile.getPath());
+          element.setText(codeFile.getPath().replaceAll("\\\\", "/"));
           config.add(element);
         }
 
