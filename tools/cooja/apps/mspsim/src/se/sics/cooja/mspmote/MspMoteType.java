@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: MspMoteType.java,v 1.8 2008/09/18 14:14:58 fros4943 Exp $
+ * $Id: MspMoteType.java,v 1.9 2008/09/20 08:05:07 fros4943 Exp $
  */
 
 package se.sics.cooja.mspmote;
@@ -237,6 +237,16 @@ public abstract class MspMoteType implements MoteType {
           newException = (MoteTypeCreationException) newException.initCause(e);
           newException.setCompilationOutput(compilationOutput);
 
+          if (compilationOutput != null) {
+            try { Thread.sleep(500); } catch (InterruptedException ignore) { }
+            ListModel tmp = compilationOutput.getModel();
+            for (int i=tmp.getSize()-5; i < tmp.getSize(); i++) {
+              if (i < 0) {
+                continue;
+              }
+              logger.fatal(">> " + tmp.getElementAt(i));
+            }
+          }
           logger.fatal("Compilation error: " + e.getMessage());
           throw newException;
         }
@@ -456,10 +466,8 @@ public abstract class MspMoteType implements MoteType {
         final BufferedReader processError = new BufferedReader(
             new InputStreamReader(compileProcess.getErrorStream()));
 
-        final PrintStream listNormal = compilationOutput
-            .getInputStream(MessageList.NORMAL);
-        final PrintStream listError = compilationOutput
-            .getInputStream(MessageList.ERROR);
+        final PrintStream listNormal = compilationOutput.getInputStream(MessageList.NORMAL);
+        final PrintStream listError = compilationOutput.getInputStream(MessageList.ERROR);
 
         final File ELFFile = new File(parentDirectory, filenameNoExtension + firmwareFileExtension);
         if (ELFFile.exists()) {
@@ -476,12 +484,10 @@ public abstract class MspMoteType implements MoteType {
 
         Thread readInput = new Thread(new Runnable() {
           public void run() {
-            String readLine;
             try {
+              String readLine;
               while ((readLine = processNormal.readLine()) != null) {
-                if (listNormal != null && readLine != null) {
-                  listNormal.println(readLine);
-                }
+                listNormal.println(readLine);
               }
             } catch (IOException e) {
               logger.warn("Error while reading from process");
@@ -491,12 +497,10 @@ public abstract class MspMoteType implements MoteType {
 
         Thread readError = new Thread(new Runnable() {
           public void run() {
-            String readLine;
             try {
+              String readLine;
               while ((readLine = processError.readLine()) != null) {
-                if (listError != null && readLine != null) {
-                  listError.println(readLine);
-                }
+                listError.println(readLine);
               }
             } catch (IOException e) {
               logger.warn("Error while reading from process");
@@ -513,6 +517,7 @@ public abstract class MspMoteType implements MoteType {
             try {
               compileProcess.waitFor();
             } catch (Exception e) {
+              listError.println(e.getMessage());
               syncException.setCompilationOutput(new MessageList());
               syncException.fillInStackTrace();
               return;
@@ -520,8 +525,7 @@ public abstract class MspMoteType implements MoteType {
 
             /* Check return value */
             if (compileProcess.exitValue() != 0) {
-              listError.println("Process returned error code "
-                  + compileProcess.exitValue());
+              listError.println("Process returned error code " + compileProcess.exitValue());
               if (failAction != null) {
                 failAction.actionPerformed(null);
               }
@@ -563,9 +567,10 @@ public abstract class MspMoteType implements MoteType {
                 "Compilation error: " + e.getMessage()).initCause(e);
           }
 
+          /* Detect error manually */
           if (syncException.hasCompilationOutput()) {
             throw (MoteTypeCreationException) new MoteTypeCreationException(
-                "Compilation error").initCause(syncException);
+                "Bad return value").initCause(syncException);
           }
         }
 
