@@ -77,7 +77,7 @@ RECURSIVE              = NO
 EXCLUDE                = 
 EXCLUDE_SYMLINKS       = NO
 EXCLUDE_PATTERNS       = 
-EXAMPLE_PATH           = . ../examples/rime
+EXAMPLE_PATH           = . ../examples/rime ../examples/multi-threading
 EXAMPLE_PATTERNS       = 
 EXAMPLE_RECURSIVE      = NO
 IMAGE_PATH             = 
@@ -198,7 +198,7 @@ PERL_PATH              = /usr/bin/perl
 #---------------------------------------------------------------------------
 CLASS_DIAGRAMS         = NO
 HIDE_UNDOC_RELATIONS   = YES
-HAVE_DOT               = YES
+HAVE_DOT               = NO 
 CLASS_GRAPH            = NO
 COLLABORATION_GRAPH    = NO
 GROUP_GRAPHS           = NO

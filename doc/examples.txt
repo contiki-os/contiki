@@ -4,6 +4,8 @@
 /** \example example-packet-drv.c */
 /** \example example-psock-server.c */
 
+/** \example multi-threading.c */
+
 /** \example example-broadcast.c */
 /** \example example-collect.c */
 /** \example example-mesh.c */
