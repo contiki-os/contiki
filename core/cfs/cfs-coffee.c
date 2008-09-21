@@ -574,7 +574,8 @@ create_log(int16_t file_page, struct file_header *hdr)
   hdr->flags |= COFFEE_FLAG_LOG;
   WRITE_HEADER(hdr, log_page);
   for(i = 0; i < COFFEE_FD_SET_SIZE; i++) {
-    if(coffee_fd_set[i].file_page == file_page) {
+    if(coffee_fd_set[i].file_page == file_page &&
+       coffee_fd_set[i].flags != COFFEE_FD_FREE) {
       coffee_fd_set[i].flags |= COFFEE_FD_MODIFIED;
     }
   }
@@ -605,6 +606,7 @@ flush_log(uint16_t file_page)
   new_file_page = cfs_coffee_reserve(hdr.name,
 			(hdr.max_pages - 1) * COFFEE_PAGE_SIZE);
   if(new_file_page < 0) {
+    cfs_close(fd);
     return -1;
   }
 
@@ -640,6 +642,7 @@ flush_log(uint16_t file_page)
   for(n = 0; n < COFFEE_FD_SET_SIZE; n++) {
     if(coffee_fd_set[n].file_page == file_page) {
 	coffee_fd_set[n].file_page = new_file_page;
+	coffee_fd_set[n].flags &= ~COFFEE_FD_MODIFIED;
     }
   }
 
@@ -777,7 +780,7 @@ cfs_open(const char *name, int flags)
 
   fd = get_available_fd();
   if(fd < 0) {
-    PRINTF("Coffee: failed to allocate a new file descriptor!\n");
+    PRINTF("Coffee: Failed to allocate a new file descriptor!\n");
     return -1;
   }
   
