@@ -794,13 +794,13 @@ cfs_open(const char *name, int flags)
   } else {
     READ_HEADER(&hdr, page);
     if(COFFEE_PAGE_MODIFIED(hdr)) {
-      coffee_fd_set[fd].flags |= COFFEE_FD_MODIFIED;
-    }
+      coffee_fd_set[fd].flags = COFFEE_FD_MODIFIED;
+    } else
     coffee_fd_set[fd].max_pages = hdr.max_pages;
   }
 
   coffee_fd_set[fd].file_page = page;
-  coffee_fd_set[fd].flags = flags;
+  coffee_fd_set[fd].flags |= flags;
   coffee_fd_set[fd].end = find_offset_in_file(page);
   coffee_fd_set[fd].offset = flags & CFS_APPEND ? coffee_fd_set[fd].end : 0;
   coffee_fd_set[fd].next_log_entry = 0;
@@ -890,6 +890,10 @@ cfs_read(int fd, void *buf, unsigned size)
     size = fdp->end - fdp->offset;
   }
 
+  if(FD_MODIFIED(fd)) {
+    READ_HEADER(&hdr, fdp->file_page);
+  }
+
   remains = size;
   base = fdp->offset;
   offset = 0;
@@ -904,7 +908,6 @@ cfs_read(int fd, void *buf, unsigned size)
       lp.offset = base + offset;
       lp.buf = (char *)buf + offset;
       lp.size = remains;
-      READ_HEADER(&hdr, fdp->file_page);
       r = read_log_page(&hdr,
 		fdp->next_log_entry > 0 ? fdp->next_log_entry - 1 : -1, &lp);
       if(r >= 0) {
