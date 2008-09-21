@@ -62,10 +62,11 @@
 #define kb			* 1024UL
 #define Mb			* (1024 kb)
 
+#define COFFEE_FD_FREE		0x0
 #define COFFEE_FD_READ		0x1
 #define COFFEE_FD_WRITE		0x2
 #define COFFEE_FD_APPEND	0x4
-#define COFFEE_FD_FREE		0x0
+#define COFFEE_FD_MODIFIED	0x8
 
 #define FD_VALID(fd)						\
 		((fd) >= 0 && (fd) < COFFEE_FD_SET_SIZE && 	\
@@ -73,6 +74,7 @@
 #define FD_READABLE(fd)		(coffee_fd_set[(fd)].flags & CFS_READ)
 #define FD_WRITABLE(fd)		(coffee_fd_set[(fd)].flags & CFS_WRITE)
 #define FD_APPENDABLE(fd)	(coffee_fd_set[(fd)].flags & CFS_APPEND)
+#define FD_MODIFIED(fd)		(coffee_fd_set[(fd)].flags & COFFEE_FD_MODIFIED)
 
 /* File header flags. */
 #define COFFEE_FLAG_VALID	0x1	/* Completely written header. */
@@ -550,6 +552,7 @@ create_log(int16_t file_page, struct file_header *hdr)
   unsigned char log_name[sizeof(hdr->name)];
   uint16_t log_entry_size, log_entries;
   uint32_t size;
+  int i;
   
   log_entry_size = hdr->log_entry_size == 0 ?
 	COFFEE_PAGE_SIZE : hdr->log_entry_size;
@@ -570,6 +573,11 @@ create_log(int16_t file_page, struct file_header *hdr)
   READ_HEADER(hdr, log_page);
   hdr->flags |= COFFEE_FLAG_LOG;
   WRITE_HEADER(hdr, log_page);
+  for(i = 0; i < COFFEE_FD_SET_SIZE; i++) {
+    if(coffee_fd_set[i].file_page == file_page) {
+      coffee_fd_set[i].flags |= COFFEE_FD_MODIFIED;
+    }
+  }
   return log_page;
 }
 /*---------------------------------------------------------------------------*/
@@ -785,6 +793,9 @@ cfs_open(const char *name, int flags)
 				   COFFEE_PAGE_SIZE - 1) / COFFEE_PAGE_SIZE;
   } else {
     READ_HEADER(&hdr, page);
+    if(COFFEE_PAGE_MODIFIED(hdr)) {
+      coffee_fd_set[fd].flags |= COFFEE_FD_MODIFIED;
+    }
     coffee_fd_set[fd].max_pages = hdr.max_pages;
   }
 
@@ -870,7 +881,7 @@ cfs_read(int fd, void *buf, unsigned size)
   int32_t base, offset;
   struct log_param lp;
   
-  if(!FD_VALID(fd) || !FD_READABLE(fd)) {
+  if(!(FD_VALID(fd) && FD_READABLE(fd))) {
     return -1;
   }
 
@@ -879,8 +890,6 @@ cfs_read(int fd, void *buf, unsigned size)
     size = fdp->end - fdp->offset;
   }
 
-  READ_HEADER(&hdr, fdp->file_page);
-  
   remains = size;
   base = fdp->offset;
   offset = 0;
@@ -891,10 +900,11 @@ cfs_read(int fd, void *buf, unsigned size)
   while(remains) {
     watchdog_periodic();
     r = -1;
-    if(COFFEE_PAGE_MODIFIED(hdr)) {
+    if(FD_MODIFIED(fd)) {
       lp.offset = base + offset;
       lp.buf = (char *)buf + offset;
       lp.size = remains;
+      READ_HEADER(&hdr, fdp->file_page);
       r = read_log_page(&hdr,
 		fdp->next_log_entry > 0 ? fdp->next_log_entry - 1 : -1, &lp);
       if(r >= 0) {
@@ -921,7 +931,7 @@ cfs_write(int fd, const void *buf, unsigned size)
   int i;
   struct log_param lp;
 
-  if(!FD_VALID(fd) || !FD_WRITABLE(fd)) {
+  if(!(FD_VALID(fd) && FD_WRITABLE(fd))) {
     return -1;
   }
   
