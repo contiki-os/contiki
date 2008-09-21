@@ -68,7 +68,7 @@
 #define COFFEE_FD_FREE		0x0
 
 #define FD_VALID(fd)						\
-		((fd) < COFFEE_FD_SET_SIZE && 			\
+		((fd) >= 0 && (fd) < COFFEE_FD_SET_SIZE && 	\
 		coffee_fd_set[(fd)].flags != COFFEE_FD_FREE)
 #define FD_READABLE(fd)		(coffee_fd_set[(fd)].flags & CFS_READ)
 #define FD_WRITABLE(fd)		(coffee_fd_set[(fd)].flags & CFS_WRITE)
@@ -589,8 +589,13 @@ flush_log(uint16_t file_page)
     return -1;
   }
 
+  /*
+   * The reservation function adds extra space for the header, which has
+   * already been calculated with in the previous reservation. Therefore
+   * we subtract max_pages by 1.
+   */
   new_file_page = cfs_coffee_reserve(hdr.name,
-			hdr.max_pages * COFFEE_PAGE_SIZE);
+			(hdr.max_pages - 1) * COFFEE_PAGE_SIZE);
   if(new_file_page < 0) {
     return -1;
   }
@@ -1093,6 +1098,11 @@ cfs_coffee_format(void)
     PRINTF(".");
   }
   watchdog_start();
+
+  /* All file descriptors have become invalid. */
+  for(i = 0; i < COFFEE_FD_SET_SIZE; i++) {
+    coffee_fd_set[i].flags = COFFEE_FD_FREE;
+  }
 
   PRINTF("done!\n");
 
