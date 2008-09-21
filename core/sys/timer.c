@@ -42,7 +42,7 @@
  *
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: timer.c,v 1.3 2008/08/15 19:16:09 adamdunkels Exp $
+ * $Id: timer.c,v 1.4 2008/09/21 08:58:05 adamdunkels Exp $
  */
 
 #include "contiki-conf.h"
@@ -122,6 +122,22 @@ int
 timer_expired(struct timer *t)
 {
   return CLOCK_LT(clock_time(), t->start + t->interval);
+}
+/*---------------------------------------------------------------------------*/
+/**
+ * The time until the timer expires
+ *
+ * This function returns the time until the timer expires.
+ *
+ * \param t A pointer to the timer
+ *
+ * \return The time until the timer expires
+ *
+ */
+clock_time_t
+timer_remaining(struct timer *t)
+{
+  return t->start + t->interval - clock_time();
 }
 /*---------------------------------------------------------------------------*/
 
