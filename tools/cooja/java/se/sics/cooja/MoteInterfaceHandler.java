@@ -24,7 +24,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * 
- * $Id: MoteInterfaceHandler.java,v 1.2 2007/01/10 14:57:42 fros4943 Exp $
+ * $Id: MoteInterfaceHandler.java,v 1.3 2008/09/22 16:18:22 joxe Exp $
  */
 
 package se.sics.cooja;
@@ -74,7 +74,8 @@ public class MoteInterfaceHandler {
   private Radio myRadio;
 
   private Vector<MoteInterface> myActiveInterfaces = new Vector<MoteInterface>();
-
+  private MoteInterface[] activeCache = null;
+  
   private Vector<MoteInterface> myPassiveInterfaces = new Vector<MoteInterface>();
 
   /**
@@ -283,8 +284,15 @@ public class MoteInterfaceHandler {
    * tick before the mote software is executed.
    */
   public void doActiveActionsBeforeTick() {
-    for (int i = 0; i < myActiveInterfaces.size(); i++)
-      myActiveInterfaces.get(i).doActionsBeforeTick();
+	  // Assuming only one caller!!!
+    if (activeCache == null) {
+	  activeCache = (MoteInterface[]) myActiveInterfaces.toArray(new MoteInterface[myActiveInterfaces.size()]);
+	}
+//    for (int i = 0; i < myActiveInterfaces.size(); i++)
+//      myActiveInterfaces.get(i).doActionsBeforeTick();
+    for (int i = 0, n = activeCache.length; i < n; i++) {
+      activeCache[i].doActionsBeforeTick();
+    }
   }
 
   /**
@@ -352,6 +360,7 @@ public class MoteInterfaceHandler {
    */
   public void addActiveInterface(MoteInterface newInterface) {
     myActiveInterfaces.add(newInterface);
+    activeCache = null;
   }
 
   /**

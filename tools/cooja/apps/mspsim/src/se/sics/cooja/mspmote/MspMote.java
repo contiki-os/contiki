@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: MspMote.java,v 1.11 2008/09/22 09:32:13 joxe Exp $
+ * $Id: MspMote.java,v 1.12 2008/09/22 16:18:48 joxe Exp $
  */
 
 package se.sics.cooja.mspmote;
@@ -262,6 +262,8 @@ public abstract class MspMote implements Mote {
   protected abstract boolean initEmulator(File ELFFile);
 
   private int currentSimTime = -1;
+  
+  /* return false when done - e.g. true means more work to do before finished with this tick */
   public boolean tick(int simTime) {
     if (stopNextInstruction) {
       stopNextInstruction = false;
@@ -281,12 +283,16 @@ public abstract class MspMote implements Mote {
       return false;
     }
 
-    myMoteInterfaceHandler.doActiveActionsBeforeTick();
-
     // Leave control to emulated CPU
     cycleCounter += 1;
 
     MSP430 cpu = getCPU();
+    if (cpu.cycles > cycleCounter) {
+      /* CPU already ticked too far - just wait it out */
+      return true;
+    }
+    myMoteInterfaceHandler.doActiveActionsBeforeTick();
+    
     cpu.step(cycleCounter);
 
     /* Check if radio has pending incoming bytes */

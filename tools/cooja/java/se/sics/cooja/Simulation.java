@@ -24,7 +24,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * $Id: Simulation.java,v 1.22 2008/04/01 08:12:16 fros4943 Exp $
+ * $Id: Simulation.java,v 1.23 2008/09/22 16:18:22 joxe Exp $
  */
 
 package se.sics.cooja;
@@ -162,26 +162,27 @@ public class Simulation extends Observable implements Runnable {
       }
     }
 
+    Mote[] mspArray = mspMotes.toArray(new Mote[mspMotes.size()]);
+    try {
     while (isRunning) {
-      try {
 
         /* Tick MSP motes */
-        try {
+//        try {
           boolean wantMoreTicks = true;
           while (wantMoreTicks) {
             /* Tick all MSP motes until none need more ticks */
             wantMoreTicks = false;
-            for (Mote moteToTick : mspMotes) {
-              if (moteToTick.tick(currentSimulationTime)) {
+            for (int i = 0, n = mspArray.length; i < n; i++) {
+              if (mspArray[i].tick(currentSimulationTime)) {
                 wantMoreTicks = true;
               }
             }
           }
-        } catch (RuntimeException e) {
-          isRunning = false;
-          thread = null;
-          break;
-        }
+//        } catch (RuntimeException e) {
+//          isRunning = false;
+//          thread = null;
+//          break;
+//        }
 
         // Tick current mote subset
         for (Mote moteToTick : allLists[currentTickListIndex]) {
@@ -212,23 +213,23 @@ public class Simulation extends Observable implements Runnable {
           thread = null;
         }
 
-      } catch (InterruptedException e) {
+
+    }
+    } catch (InterruptedException e) {
         isRunning = false;
         thread = null;
-        break;
+//        break;
       } catch (IllegalArgumentException e) {
         logger.warn("llegalArgumentException:" + e);
         isRunning = false;
         thread = null;
-        break;
+//        break;
       } catch (IllegalMonitorStateException e) {
         logger.warn("IllegalMonitorStateException:" + e);
         isRunning = false;
         thread = null;
-        break;
+//        break;
       }
-    }
-
     isRunning = false;
     thread = null;
     stopSimulation = false;
