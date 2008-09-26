@@ -1,7 +1,7 @@
 #!/bin/bash
 
-if [ -z "$2" ]; then 
-  echo Usage: $0 [test] [logfile]
+if [ -z "$2" ]; then
+  echo "Usage: $0 <test> <logfile>"
   exit
 fi
 
@@ -9,6 +9,7 @@ TEST=$1
 LOG=$2
 
 echo ">>>>>>> Starting test: $TEST <<<<<<<<"
+echo -n "[`date '+%F %T'`] $TEST: " >> $LOG
 java -jar ../dist/cooja.jar -nogui -test=$TEST
 if [ -f "COOJA.log" ]; then
   mv COOJA.log $TEST.cooja_log
@@ -20,11 +21,10 @@ if [ -f "$TEST.log" ]; then
 fi
 
 if [ $OK == 0 ]; then
-  echo "$TEST: FAIL" >> $LOG
+  echo "FAIL" >> $LOG
   if [ -f "$TEST.info" ]; then
     echo "--LOG INFO START ($TEST.info) --" >> $LOG
     cat $TEST.info >> $LOG
-    echo "" >> $LOG
     echo "--LOG INFO END --" >> $LOG
   else
     echo "-- NO LOG INFO AVAILABLE ($TEST.info) --" >> $LOG
@@ -32,9 +32,9 @@ if [ $OK == 0 ]; then
   echo "-- OUTPUT TAIL START ($TEST.cooja_log) --" >> $LOG
   tail -5 $TEST.cooja_log >> $LOG
   echo "-- OUTPUT TAIL END --" >> $LOG
-
+  echo >> $LOG
 else
-  echo "$TEST: OK" >> $LOG
+  echo "OK" >> $LOG
 fi
 
-echo "" >> $LOG
+echo >> $LOG
