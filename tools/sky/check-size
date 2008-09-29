@@ -8,7 +8,7 @@
 @{$rime{$_}} = (0, 0) foreach (@rime);
 
 @sky = ( "battery-sensor", "button-sensor", "cfs-xmem", "clock",
-	 "contiki-sky-main", "ds2411", "energest-arch", "flash", "msp430",
+	 "contiki-sky-main", "ds2411", "flash", "msp430",
 	 "mtarch",
 	 "i2c", "leds-arch", "light", "radio-sensor", "sht11",
 	 "simple-cc2420-arch", "simple-cc2420", "spi", "slip",
