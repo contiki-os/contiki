@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: energest.c,v 1.1 2008/07/03 23:36:30 adamdunkels Exp $
+ * $Id: energest.c,v 1.2 2008/09/29 11:44:37 joxe Exp $
  */
 
 /**
@@ -45,7 +45,7 @@
 
 int energest_total_count;
 energest_t energest_total_time[ENERGEST_TYPE_MAX];
-unsigned short energest_current_time[ENERGEST_TYPE_MAX];
+rtimer_clock_t energest_current_time[ENERGEST_TYPE_MAX];
 #ifdef ENERGEST_CONF_LEVELDEVICE_LEVELS
 energest_t energest_leveldevice_current_leveltime[ENERGEST_CONF_LEVELDEVICE_LEVELS];
 #endif
@@ -74,8 +74,8 @@ energest_type_time(int type)
 #ifndef ENERGEST_CONF_LEVELDEVICE_LEVELS
   if(energest_current_mode[type]) {
     rtimer_clock_t now = RTIMER_NOW();
-    energest_total_time[type].current += (unsigned long)
-      ((signed short)now - (signed short)energest_current_time[type]);
+    energest_total_time[type].current += (rtimer_clock_t)
+      (now - energest_current_time[type]);
     energest_current_time[type] = now;
   }
 #endif /* ENERGEST_CONF_LEVELDEVICE_LEVELS */
@@ -107,8 +107,8 @@ energest_flush(void)
   for(i = 0; i < ENERGEST_TYPE_MAX; i++) {
     if(energest_current_mode[i]) {
       now = RTIMER_NOW();
-      energest_total_time[i].current += (unsigned long)
-	((signed short)now - (signed short)energest_current_time[i]);
+      energest_total_time[i].current += (rtimer_clock_t)
+	(now - energest_current_time[i]);
       energest_current_time[i] = now;
     }
   }
