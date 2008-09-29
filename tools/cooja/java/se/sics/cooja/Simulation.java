@@ -24,7 +24,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * $Id: Simulation.java,v 1.23 2008/09/22 16:18:22 joxe Exp $
+ * $Id: Simulation.java,v 1.24 2008/09/29 23:04:27 fros4943 Exp $
  */
 
 package se.sics.cooja;
@@ -82,7 +82,7 @@ public class Simulation extends Observable implements Runnable {
 
   private int nrTickLists = 1;
 
-  private int maxMoteStartupDelay = 0;
+  private int maxMoteStartupDelay = 1000;
 
   private Random tickListRandom = new Random();
 
@@ -216,20 +216,14 @@ public class Simulation extends Observable implements Runnable {
 
     }
     } catch (InterruptedException e) {
-        isRunning = false;
-        thread = null;
-//        break;
-      } catch (IllegalArgumentException e) {
-        logger.warn("llegalArgumentException:" + e);
-        isRunning = false;
-        thread = null;
-//        break;
-      } catch (IllegalMonitorStateException e) {
-        logger.warn("IllegalMonitorStateException:" + e);
-        isRunning = false;
-        thread = null;
-//        break;
-      }
+      logger.warn("InterruptedException:" + e);
+    } catch (IllegalArgumentException e) {
+      logger.warn("llegalArgumentException:" + e);
+    } catch (IllegalMonitorStateException e) {
+      logger.warn("IllegalMonitorStateException:" + e);
+    } catch (RuntimeException e) {
+      logger.warn("Simulation stop requested");
+    }
     isRunning = false;
     thread = null;
     stopSimulation = false;
