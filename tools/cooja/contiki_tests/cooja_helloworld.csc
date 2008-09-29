@@ -16,7 +16,7 @@
     </radiomedium>
     <motetype>
       se.sics.cooja.contikimote.ContikiMoteType
-      <identifier>mtype3</identifier>
+      <identifier>mtype1</identifier>
       <description>Contiki Mote #1</description>
       <contikibasedir>../../..</contikibasedir>
       <contikicoredir>../../../platform/cooja</contikicoredir>
@@ -60,7 +60,7 @@
     </motetype>
     <mote>
       se.sics.cooja.contikimote.ContikiMote
-      <motetype_identifier>mtype3</motetype_identifier>
+      <motetype_identifier>mtype1</motetype_identifier>
       <interface_config>
         se.sics.cooja.interfaces.Position
         <x>91.48300003917207</x>
@@ -81,5 +81,36 @@
       </interface_config>
     </mote>
   </simulation>
+  <plugin>
+    se.sics.cooja.plugins.SimControl
+    <width>315</width>
+    <z>2</z>
+    <height>199</height>
+    <location_x>13</location_x>
+    <location_y>7</location_y>
+    <minimized>false</minimized>
+  </plugin>
+  <plugin>
+    se.sics.cooja.radiomediums.UDGM$VisUDGM
+    <width>300</width>
+    <z>3</z>
+    <height>115</height>
+    <location_x>354</location_x>
+    <location_y>14</location_y>
+    <minimized>false</minimized>
+  </plugin>
+  <plugin>
+    se.sics.cooja.plugins.LogListener
+    <plugin_config>
+      <filter />
+      <history>256</history>
+    </plugin_config>
+    <width>573</width>
+    <z>1</z>
+    <height>200</height>
+    <location_x>87</location_x>
+    <location_y>211</location_y>
+    <minimized>false</minimized>
+  </plugin>
 </simconf>
 
