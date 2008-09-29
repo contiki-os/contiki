@@ -24,7 +24,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * $Id: GUI.java,v 1.80 2008/09/18 14:46:24 fros4943 Exp $
+ * $Id: GUI.java,v 1.81 2008/09/29 13:02:15 fros4943 Exp $
  */
 
 package se.sics.cooja;
@@ -384,7 +384,7 @@ public class GUI extends Observable {
     }
   }
 
-  private Vector<File> getFileHistory() {
+  public Vector<File> getFileHistory() {
     Vector<File> history = new Vector<File>();
 
     // Fetch current history
@@ -397,7 +397,7 @@ public class GUI extends Observable {
     return history;
   }
 
-  private void addToFileHistory(File file) {
+  public void addToFileHistory(File file) {
     // Fetch current history
     String[] history = getExternalToolsSetting("SIMCFG_HISTORY", "").split(";");
 
@@ -1740,7 +1740,7 @@ public class GUI extends Observable {
         pluginClass.asSubclass(VisPlugin.class);
 
         // Cast succeded, plugin is visualizer plugin!
-        logger.fatal("Can't start visualizer plugin (no GUI): " + pluginClass);
+        logger.warn("Can't start visualizer plugin (no GUI): " + pluginClass);
         return null;
       } catch (ClassCastException e) {
       }
@@ -2131,7 +2131,7 @@ public class GUI extends Observable {
     doRemoveSimulation(false);
 
     // Check already selected file, or select file using filechooser
-    if (configFile != null) {
+    if (configFile != null && !configFile.isDirectory()) {
       if (!configFile.exists() || !configFile.canRead()) {
         logger.fatal("No read access to file");
         return;
@@ -2141,11 +2141,15 @@ public class GUI extends Observable {
 
       fc.setFileFilter(GUI.SAVED_SIMULATIONS_FILES);
 
-      // Suggest file using history
-      Vector<File> history = getFileHistory();
-      if (history != null && history.size() > 0) {
-        File suggestedFile = getFileHistory().firstElement();
-        fc.setSelectedFile(suggestedFile);
+      if (configFile != null && configFile.isDirectory()) {
+        fc.setCurrentDirectory(configFile);
+      } else {
+        // Suggest file using history
+        Vector<File> history = getFileHistory();
+        if (history != null && history.size() > 0) {
+          File suggestedFile = getFileHistory().firstElement();
+          fc.setSelectedFile(suggestedFile);
+        }
       }
 
       int returnVal = fc.showOpenDialog(GUI.getTopParentContainer());
@@ -2169,90 +2173,83 @@ public class GUI extends Observable {
       }
     }
 
-    // Load simulation in separate thread, while showing progress monitor
     final JDialog progressDialog;
-    if (GUI.getTopParentContainer() instanceof Window) {
-      progressDialog = new JDialog((Window) GUI.getTopParentContainer(), "Loading", ModalityType.APPLICATION_MODAL);
-    } else if (GUI.getTopParentContainer() instanceof Frame) {
-      progressDialog = new JDialog((Frame) GUI.getTopParentContainer(), "Loading", ModalityType.APPLICATION_MODAL);
-    } else if (GUI.getTopParentContainer() instanceof Dialog) {
-      progressDialog = new JDialog((Dialog) GUI.getTopParentContainer(), "Loading", ModalityType.APPLICATION_MODAL);
-    } else {
-      logger.warn("No parent container");
-      progressDialog = new JDialog((Frame) null, "Loading", ModalityType.APPLICATION_MODAL);
-    }
 
-    final File fileToLoad = configFile;
-    final Thread loadThread = new Thread(new Runnable() {
-      public void run() {
-        Simulation newSim = null;
-        try {
-          newSim = loadSimulationConfig(fileToLoad, quick);
-          addToFileHistory(fileToLoad);
-          if (progressDialog != null && progressDialog.isDisplayable()) {
-            progressDialog.dispose();
-          }
-        } catch (UnsatisfiedLinkError e) {
-          showErrorDialog(GUI.getTopParentContainer(), "Simulation load error", e, false);
-
-          if (progressDialog != null && progressDialog.isDisplayable()) {
-            progressDialog.dispose();
-          }
-          newSim = null;
-        } catch (SimulationCreationException e) {
-          showErrorDialog(GUI.getTopParentContainer(), "Simulation load error", e, false);
-
-          if (progressDialog != null && progressDialog.isDisplayable()) {
-            progressDialog.dispose();
-          }
-          newSim = null;
-        }
-        if (newSim != null) {
-          myGUI.setSimulation(newSim);
-        }
-      }
-    });
-
-    JPanel progressPanel = new JPanel(new BorderLayout());
-    JProgressBar progressBar;
-    JButton button;
-
-    progressBar = new JProgressBar(0, 100);
-    progressBar.setValue(0);
-    progressBar.setIndeterminate(true);
-    button = new JButton("Cancel");
-    button.addActionListener(new ActionListener() {
-      public void actionPerformed(ActionEvent e) {
-        if (loadThread != null && loadThread.isAlive()) {
-          loadThread.interrupt();
-          doRemoveSimulation(false);
-        }
-        if (progressDialog != null && progressDialog.isDisplayable()) {
-          progressDialog.dispose();
-        }
-      }
-    });
-
-    progressPanel.add(BorderLayout.CENTER, progressBar);
-    progressPanel.add(BorderLayout.SOUTH, button);
-    progressPanel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
-
-    progressPanel.setVisible(true);
-
-    progressDialog.getContentPane().add(progressPanel);
-    progressDialog.pack();
-
-    progressDialog.getRootPane().setDefaultButton(button);
-    progressDialog.setLocationRelativeTo(GUI.getTopParentContainer());
-    progressDialog.setDefaultCloseOperation(JDialog.DO_NOTHING_ON_CLOSE);
-    loadThread.start();
     if (quick) {
+      if (GUI.getTopParentContainer() instanceof Window) {
+        progressDialog = new JDialog((Window) GUI.getTopParentContainer(), "Loading", ModalityType.APPLICATION_MODAL);
+      } else if (GUI.getTopParentContainer() instanceof Frame) {
+        progressDialog = new JDialog((Frame) GUI.getTopParentContainer(), "Loading", ModalityType.APPLICATION_MODAL);
+      } else if (GUI.getTopParentContainer() instanceof Dialog) {
+        progressDialog = new JDialog((Dialog) GUI.getTopParentContainer(), "Loading", ModalityType.APPLICATION_MODAL);
+      } else {
+        logger.warn("No parent container");
+        progressDialog = new JDialog((Frame) null, "Loading", ModalityType.APPLICATION_MODAL);
+      }
+
+      final Thread loadThread = Thread.currentThread();
       SwingUtilities.invokeLater(new Runnable() {
         public void run() {
+          JPanel progressPanel = new JPanel(new BorderLayout());
+          JProgressBar progressBar;
+          JButton button;
+
+          progressBar = new JProgressBar(0, 100);
+          progressBar.setValue(0);
+          progressBar.setIndeterminate(true);
+          button = new JButton("Cancel");
+
+          button.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+              if (loadThread != null && loadThread.isAlive()) {
+                loadThread.interrupt();
+                doRemoveSimulation(false);
+              }
+              if (progressDialog != null && progressDialog.isDisplayable()) {
+                progressDialog.dispose();
+              }
+            }
+          });
+
+          progressPanel.add(BorderLayout.CENTER, progressBar);
+          progressPanel.add(BorderLayout.SOUTH, button);
+          progressPanel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
+
+          progressPanel.setVisible(true);
+
+          progressDialog.getContentPane().add(progressPanel);
+          progressDialog.pack();
+
+          progressDialog.getRootPane().setDefaultButton(button);
+          progressDialog.setLocationRelativeTo(GUI.getTopParentContainer());
+          progressDialog.setDefaultCloseOperation(JDialog.DO_NOTHING_ON_CLOSE);
           progressDialog.setVisible(true);
         }
       });
+    } else {
+      progressDialog = null;
     }
+
+    // Load simulation in this thread, while showing progress monitor
+    final File fileToLoad = configFile;
+    Simulation newSim = null;
+    try {
+      newSim = loadSimulationConfig(fileToLoad, quick);
+      addToFileHistory(fileToLoad);
+    } catch (UnsatisfiedLinkError e) {
+      showErrorDialog(GUI.getTopParentContainer(), "Simulation load error", e, false);
+    } catch (SimulationCreationException e) {
+      showErrorDialog(GUI.getTopParentContainer(), "Simulation load error", e, false);
+    }
+
+    if (progressDialog != null && progressDialog.isDisplayable()) {
+      progressDialog.dispose();
+    }
+    if (newSim != null) {
+      myGUI.setSimulation(newSim);
+    }
+
+    return;
   }
 
   /**
@@ -2694,15 +2691,31 @@ public class GUI extends Observable {
       } else if (e.getActionCommand().equals("close sim")) {
         myGUI.doRemoveSimulation(true);
       } else if (e.getActionCommand().equals("confopen sim")) {
-        myGUI.doLoadConfig(true, false, null);
+        new Thread(new Runnable() {
+          public void run() {
+            myGUI.doLoadConfig(true, false, null);
+          }
+        }).start();
       } else if (e.getActionCommand().equals("confopen last sim")) {
-        File file = (File) ((JMenuItem) e.getSource()).getClientProperty("file");
-        myGUI.doLoadConfig(true, false, file);
+        final File file = (File) ((JMenuItem) e.getSource()).getClientProperty("file");
+        new Thread(new Runnable() {
+          public void run() {
+            myGUI.doLoadConfig(true, false, file);
+          }
+        }).start();
       } else if (e.getActionCommand().equals("open sim")) {
-        myGUI.doLoadConfig(true, true, null);
+        new Thread(new Runnable() {
+          public void run() {
+            myGUI.doLoadConfig(true, true, null);
+          }
+        }).start();
       } else if (e.getActionCommand().equals("open last sim")) {
-        File file = (File) ((JMenuItem) e.getSource()).getClientProperty("file");
-        myGUI.doLoadConfig(true, true, file);
+        final File file = (File) ((JMenuItem) e.getSource()).getClientProperty("file");
+        new Thread(new Runnable() {
+          public void run() {
+            myGUI.doLoadConfig(true, true, file);
+          }
+        }).start();
       } else if (e.getActionCommand().equals("save sim")) {
         myGUI.doSaveConfig(true);
       } else if (e.getActionCommand().equals("quit")) {
@@ -3435,9 +3448,9 @@ public class GUI extends Observable {
 
         // Read plugin class
         String pluginClassName = pluginElement.getText().trim();
-        Class<? extends Plugin> visPluginClass = tryLoadClass(this,
+        Class<? extends Plugin> pluginClass = tryLoadClass(this,
             Plugin.class, pluginClassName);
-        if (visPluginClass == null) {
+        if (pluginClass == null) {
           logger.fatal("Could not load plugin class: " + pluginClassName);
           return false;
         }
@@ -3455,15 +3468,21 @@ public class GUI extends Observable {
         }
 
         // Start plugin (before applying rest of config)
-        Plugin startedPlugin = startPlugin(visPluginClass, this, simulation,
-            mote);
+        Plugin startedPlugin = startPlugin(pluginClass, this, simulation, mote);
+
+        /* Ignore visualized plugins if Cooja not visualized */
+        try {
+          if (!visAvailable && startedPlugin == null && pluginClass.asSubclass(VisPlugin.class) != null) {
+            continue;
+          }
+        } catch (ClassCastException e) { }
+
 
         // Apply plugin specific configuration
         for (Element pluginSubElement : (List<Element>) pluginElement
             .getChildren()) {
           if (pluginSubElement.getName().equals("plugin_config")) {
-            startedPlugin.setConfigXML(pluginSubElement.getChildren(),
-                visAvailable);
+            startedPlugin.setConfigXML(pluginSubElement.getChildren(), visAvailable);
           }
         }
 
