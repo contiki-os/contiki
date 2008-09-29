@@ -1,10 +1,10 @@
-# $Id: Makefile.esb,v 1.11 2008/07/11 15:27:57 nifi Exp $
+# $Id: Makefile.esb,v 1.12 2008/09/29 12:38:18 joxe Exp $
 
 SENSORS    = sensors.c irq.c button-sensor.c pir-sensor.c vib-sensor.c \
              sound-sensor.c radio-sensor.c ctsrts-sensor.c battery-sensor.c \
              temperature-sensor.c
 ESB        = ir.c beep.c ds1629.c tr1001-uip.c tr1001-gcr.c gcr.c \
-             esb-sensors.c node-id.c eeprom.c energest-arch.c
+             esb-sensors.c node-id.c eeprom.c
 CFS_EEPROM = cfs-eeprom.c
 CFS_COFFEE = cfs-coffee.c cfs-coffee-arch.c
 
