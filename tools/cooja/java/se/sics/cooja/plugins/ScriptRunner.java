@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ScriptRunner.java,v 1.4 2008/09/29 13:03:29 fros4943 Exp $
+ * $Id: ScriptRunner.java,v 1.5 2008/09/29 13:24:41 fros4943 Exp $
  */
 
 package se.sics.cooja.plugins;
@@ -86,13 +86,17 @@ public class ScriptRunner extends VisPlugin {
     "log.log('TIME=' + mote.getSimulation().getSimulationTime() + '\\n');\n" +
     "log.log('MSG=' + msg + '\\n');\n" +
     "\n" +
+    "/* Hashtable global may be used to store state across script invokes */\n" +
     "log.log('STORED VAR=' + global.get('storedVar') + '\\n');\n" +
     "global.put('storedVar', msg);\n" +
     "\n" +
-    "log.log('TEST OK\\n'); /* Report test success */\n" +
-    "\n" +
-    "/* To increase test run speed, close the simulator when done */\n" +
-    "//mote.getSimulation().getGUI().doQuit(false); /* Quit simulator (to end test run)*/\n" +
+    "/* Contiki test script example */\n" +
+    "if (msg.startsWith('Hello, world')) {\n" +
+    "  log.log('TEST OK\\n'); /* Report test success */\n" +
+    "  \n" +
+    "  /* To increase test run speed, close the simulator when done */\n" +
+    "  //mote.getSimulation().getGUI().doQuit(false); /* Quit simulator (to end test run)*/\n" +
+    "}\n" +
     "\n" +
     "//mote.getSimulation().getGUI().reloadCurrentSimulation(true); /* Reload simulation */\n";
 
@@ -183,17 +187,20 @@ public class ScriptRunner extends VisPlugin {
   }
 
   private void importContikiTest() {
-    Simulation simulation = ScriptRunner.this.gui.getSimulation();
-
-    /* Load config from test directory */
-    final File proposedDir = new File(GUI.getExternalToolsSetting("PATH_CONTIKI") + "/tools/cooja/contiki_tests");
-    if (!proposedDir.exists()) {
-      logger.fatal("Test directory does not exist: " + proposedDir.getPath());
-      return;
-    }
-
     new Thread(new Runnable() {
       public void run() {
+        Simulation simulation = ScriptRunner.this.gui.getSimulation();
+
+        /* Load config from test directory */
+        final File proposedDir = new File(GUI.getExternalToolsSetting("PATH_CONTIKI") + "/tools/cooja/contiki_tests");
+        if (!proposedDir.exists()) {
+          logger.fatal("Test directory does not exist: " + proposedDir.getPath());
+          return;
+        }
+
+        scriptTextArea.setText("");
+        logTextArea.setText("");
+
         gui.doLoadConfig(false, true, proposedDir);
         Vector<File> history = gui.getFileHistory();
 
@@ -217,7 +224,6 @@ public class ScriptRunner extends VisPlugin {
 
         /* Import .js */
         try {
-          scriptTextArea.setText("");
           BufferedReader reader =
             new BufferedReader(new InputStreamReader(new FileInputStream(jsFile)));
           String line;
