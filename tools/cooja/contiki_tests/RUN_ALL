@@ -91,7 +91,7 @@ echo >> $LOG
 for myfile in ./*.csc
 do
   TEST=`basename $myfile .csc`
-  ./RUN_TEST $TEST $LOG
+  bash RUN_TEST $TEST $LOG
 done
 
 mail_report
