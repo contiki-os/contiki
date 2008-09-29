@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: energest.h,v 1.1 2008/07/03 23:36:30 adamdunkels Exp $
+ * $Id: energest.h,v 1.2 2008/09/29 11:44:37 joxe Exp $
  */
 
 /**
@@ -57,11 +57,11 @@ enum energest_type {
   ENERGEST_TYPE_LED_RED,
   ENERGEST_TYPE_TRANSMIT,
   ENERGEST_TYPE_LISTEN,
-  
+
   ENERGEST_TYPE_SENSORS,
 
   ENERGEST_TYPE_SERIAL,
-  
+
   ENERGEST_TYPE_MAX
 };
 
@@ -76,7 +76,7 @@ void energest_flush(void);
 #if ENERGEST_CONF_ON
 /*extern int energest_total_count;*/
 extern energest_t energest_total_time[ENERGEST_TYPE_MAX];
-extern unsigned short energest_current_time[ENERGEST_TYPE_MAX];
+extern rtimer_clock_t energest_current_time[ENERGEST_TYPE_MAX];
 extern unsigned char energest_current_mode[ENERGEST_TYPE_MAX];
 
 #ifdef ENERGEST_CONF_LEVELDEVICE_LEVELS
@@ -90,16 +90,16 @@ extern energest_t energest_leveldevice_current_leveltime[ENERGEST_CONF_LEVELDEVI
                            } while(0)
 
 #define ENERGEST_OFF(type) do { \
-                           energest_total_time[type].current += (unsigned long)((signed short)RTIMER_NOW() - \
-                           (signed short)energest_current_time[type]); \
+                           energest_total_time[type].current += (rtimer_clock_t)(RTIMER_NOW() - \
+                           energest_current_time[type]); \
 			   energest_current_mode[type] = 0; \
-                           } while(0) 
+                           } while(0)
 
 #define ENERGEST_OFF_LEVEL(type,level) do { \
-                                        energest_leveldevice_current_leveltime[level].current += (unsigned long)((signed short)RTIMER_NOW() - \
-			                (signed short)energest_current_time[type]); \
+                                        energest_leveldevice_current_leveltime[level].current += (rtimer_clock_t)(RTIMER_NOW() - \
+			                energest_current_time[type]); \
 			   energest_current_mode[type] = 0; \
-                                        } while(0) 
+                                        } while(0)
 
 
 #else /* ENERGEST_CONF_ON */
@@ -107,10 +107,5 @@ extern energest_t energest_leveldevice_current_leveltime[ENERGEST_CONF_LEVELDEVI
 #define ENERGEST_OFF(type) do { } while(0)
 #define ENERGEST_OFF_LEVEL(type,level) do { } while(0)
 #endif /* ENERGEST_CONF_ON */
-
-#define ENERGEST_SECOND RTIMER_ARCH_SECOND
-
-unsigned long energest_arch_current_estimate(void);
-unsigned short energest_arch_now(void);
 
 #endif /* __ENERGEST_H__ */
