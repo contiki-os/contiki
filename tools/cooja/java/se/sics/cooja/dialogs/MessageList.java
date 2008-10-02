@@ -26,14 +26,14 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: MessageList.java,v 1.5 2008/09/20 08:05:29 fros4943 Exp $
+ * $Id: MessageList.java,v 1.6 2008/10/02 21:19:47 fros4943 Exp $
  *
  * -----------------------------------------------------------------
  *
  * Author  : Adam Dunkels, Joakim Eriksson, Niclas Finne, Fredrik Osterlind
  * Created : 2006-06-14
- * Updated : $Date: 2008/09/20 08:05:29 $
- *           $Revision: 1.5 $
+ * Updated : $Date: 2008/10/02 21:19:47 $
+ *           $Revision: 1.6 $
  */
 package se.sics.cooja.dialogs;
 import java.awt.Color;
@@ -50,6 +50,7 @@ import javax.swing.DefaultListModel;
 import javax.swing.JList;
 import javax.swing.ListModel;
 import javax.swing.ListSelectionModel;
+import javax.swing.SwingUtilities;
 
 public class MessageList extends JList {
 
@@ -126,13 +127,17 @@ public class MessageList extends JList {
     addMessage(message, NORMAL);
   }
 
-  public void addMessage(String message, int type) {
-    boolean scroll = getLastVisibleIndex() >= getModel().getSize() - 1;
-    MessageContainer msg = new MessageContainer(message, type);
-    ((DefaultListModel) getModel()).addElement(msg);
-    if (scroll) {
-      ensureIndexIsVisible(getModel().getSize() - 1);
-    }
+  public void addMessage(final String message, final int type) {
+    SwingUtilities.invokeLater(new Runnable() {
+      public void run() {
+        boolean scroll = getLastVisibleIndex() >= getModel().getSize() - 2;
+        MessageContainer msg = new MessageContainer(message, type);
+        ((DefaultListModel) getModel()).addElement(msg);
+        if (scroll) {
+          ensureIndexIsVisible(getModel().getSize() - 1);
+        }
+      }
+  });
   }
 
   public void clearMessages() {
