@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: MspMoteType.java,v 1.11 2008/09/20 09:16:28 fros4943 Exp $
+ * $Id: MspMoteType.java,v 1.12 2008/10/02 21:23:03 fros4943 Exp $
  */
 
 package se.sics.cooja.mspmote;
@@ -351,6 +351,8 @@ public abstract class MspMoteType implements MoteType {
 
     private String customizedCompileCommand = null;
 
+    private Process compileProcess;
+
     static enum DialogState {
       NO_SOURCE, SELECTED_SOURCE, IS_COMPILING, COMPILED_SOURCE
     }
@@ -458,7 +460,7 @@ public abstract class MspMoteType implements MoteType {
       try {
         String[] cmd = command.split(" ");
 
-        final Process compileProcess = Runtime.getRuntime().exec(cmd, null,
+        compileProcess = Runtime.getRuntime().exec(cmd, null,
             parentDirectory);
 
         final BufferedReader processNormal = new BufferedReader(
@@ -606,6 +608,9 @@ public abstract class MspMoteType implements MoteType {
           sourceFile = null;
           ELFFile = null;
 
+          if (compileProcess != null) {
+            compileProcess.destroy();
+          }
           myDialog.dispose();
         }
       });
