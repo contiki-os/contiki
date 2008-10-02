@@ -64,14 +64,12 @@
  *
  * Author: Adam Dunkels <adam@sics.se>, Nicolas Tsiftes <nvt@sics.se>
  *
- * $Id: stimer.h,v 1.1 2008/10/02 10:17:48 nvt-se Exp $
+ * $Id: stimer.h,v 1.2 2008/10/02 15:04:37 nvt-se Exp $
  */
 #ifndef __STIMER_H__
 #define __STIMER_H__
 
 #include "sys/clock.h"
-
-typedef unsigned long clock_second_t;
 
 /**
  * A timer.
@@ -82,15 +80,15 @@ typedef unsigned long clock_second_t;
  * \hideinitializer
  */
 struct stimer {
-  clock_second_t start;
-  clock_second_t interval;
+  unsigned long start;
+  unsigned long interval;
 };
 
-void stimer_set(struct stimer *t, clock_second_t interval);
+void stimer_set(struct stimer *t, unsigned long interval);
 void stimer_reset(struct stimer *t);
 void stimer_restart(struct stimer *t);
 int stimer_expired(struct stimer *t);
-clock_second_t stimer_remaining(struct stimer *t);
+unsigned long stimer_remaining(struct stimer *t);
 
 
 #endif /* __STIMER_H__ */
