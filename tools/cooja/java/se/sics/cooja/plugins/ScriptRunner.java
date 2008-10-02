@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ScriptRunner.java,v 1.5 2008/09/29 13:24:41 fros4943 Exp $
+ * $Id: ScriptRunner.java,v 1.6 2008/10/02 21:20:26 fros4943 Exp $
  */
 
 package se.sics.cooja.plugins;
@@ -467,9 +467,9 @@ public class ScriptRunner extends VisPlugin {
 
       progressDialog.getContentPane().add(progressPanel);
       progressDialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
-      progressDialog.pack();
 
       progressDialog.getRootPane().setDefaultButton(button);
+      progressDialog.setSize(500, 300);
       progressDialog.setLocationRelativeTo(ScriptRunner.this);
       progressDialog.setVisible(true);
 
