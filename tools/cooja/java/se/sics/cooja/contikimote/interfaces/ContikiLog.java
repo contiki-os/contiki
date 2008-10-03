@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ContikiLog.java,v 1.2 2007/01/09 10:05:19 fros4943 Exp $
+ * $Id: ContikiLog.java,v 1.3 2008/10/03 10:36:39 fros4943 Exp $
  */
 
 package se.sics.cooja.contikimote.interfaces;
@@ -96,17 +96,20 @@ public class ContikiLog extends Log implements ContikiMoteInterface {
       int totalLength = moteMem.getIntValueOf("simLoggedLength");
       byte[] bytes = moteMem.getByteArray("simLoggedData", totalLength);
       char[] chars = new char[bytes.length];
-      for (int i=0; i < chars.length; i++)
+      for (int i=0; i < chars.length; i++) {
         chars[i] = (char) bytes[i];
-
-      String message = String.valueOf(chars);
-      lastLogMessage = message;
+      }
 
       moteMem.setByteValueOf("simLoggedFlag", (byte) 0);
-      moteMem.setIntValueOf("simLoggedLength", (int) 0);
+      moteMem.setIntValueOf("simLoggedLength", 0);
 
-      this.setChanged();
-      this.notifyObservers(mote);
+      String fullMessage[] = String.valueOf(chars).split("\n");
+      for (String message: fullMessage) {
+        lastLogMessage = message;
+
+        this.setChanged();
+        this.notifyObservers(mote);
+      }
     }
   }
 
@@ -121,10 +124,11 @@ public class ContikiLog extends Log implements ContikiMoteInterface {
     logTextPane.setOpaque(false);
     logTextPane.setEditable(false);
 
-    if (lastLogMessage == null)
+    if (lastLogMessage == null) {
       logTextPane.setText("");
-    else
+    } else {
       logTextPane.append(lastLogMessage);
+    }
 
     Observer observer;
     this.addObserver(observer = new Observer() {
@@ -150,10 +154,10 @@ public class ContikiLog extends Log implements ContikiMoteInterface {
       logger.fatal("Error when releasing panel, observer is null");
       return;
     }
-    
+
     this.deleteObserver(observer);
   }
-  
+
   public double energyConsumptionPerTick() {
     // Does not require energy
     return 0.0;
@@ -162,7 +166,7 @@ public class ContikiLog extends Log implements ContikiMoteInterface {
   public Collection<Element> getConfigXML() {
     return null;
   }
-  
+
   public void setConfigXML(Collection<Element> configXML, boolean visAvailable) {
   }
 
