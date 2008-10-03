@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: CreateSimDialog.java,v 1.10 2008/03/18 13:02:10 fros4943 Exp $
+ * $Id: CreateSimDialog.java,v 1.11 2008/10/03 13:54:27 fros4943 Exp $
  */
 
 package se.sics.cooja.dialogs;
@@ -314,6 +314,7 @@ public class CreateSimDialog extends JDialog {
     numberField = new JFormattedTextField(integerFormat);
     numberField.setValue(new Integer(0));
     numberField.setColumns(4);
+    numberField.setEnabled(false); /* Disabled: Almost never used */
     simulationTime = numberField;
 
     horizBox.add(label);
@@ -334,6 +335,7 @@ public class CreateSimDialog extends JDialog {
     numberField = new JFormattedTextField(integerFormat);
     numberField.setValue(new Integer(1));
     numberField.setColumns(4);
+    numberField.setEnabled(false); /* Disabled: Almost never used */
     tickTime = numberField;
 
     horizBox.add(label);
@@ -418,6 +420,7 @@ public class CreateSimDialog extends JDialog {
     numberField = new JFormattedTextField(integerFormat);
     numberField.setValue(new Integer(1));
     numberField.setColumns(4);
+    numberField.setEnabled(false); /* Disabled: Almost never used */
     tickLists = numberField;
 
     horizBox.add(label);
