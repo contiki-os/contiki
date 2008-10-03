@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ContikiLog.java,v 1.4 2008/10/03 10:39:49 fros4943 Exp $
+ * $Id: ContikiLog.java,v 1.5 2008/10/03 15:18:48 fros4943 Exp $
  */
 
 package se.sics.cooja.contikimote.interfaces;
@@ -60,7 +60,7 @@ import se.sics.cooja.interfaces.Log;
  * <p>
  * This observable is changed and notifies observers whenever a log message has
  * been received from the core (checked after each tick). The public method
- * getLastLogMessages gives access to the last log message(s).
+ * getLastLogMessage gives access to the last log message.
  *
  * @author      Fredrik Osterlind
  */

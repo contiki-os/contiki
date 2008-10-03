@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: MspStackWatcher.java,v 1.3 2008/02/12 15:13:11 fros4943 Exp $
+ * $Id: MspStackWatcher.java,v 1.4 2008/10/03 15:18:48 fros4943 Exp $
  */
 
 package se.sics.cooja.mspmote.plugins;
@@ -109,7 +109,7 @@ public class MspStackWatcher extends VisPlugin {
     /*if (logObserver == null && mspMote.getInterfaces().getLog() != null) {
       mspMote.getInterfaces().getLog().addObserver(logObserver = new Observer() {
         public void update(Observable obs, Object obj) {
-          stackUI.addNote(mspMote.getInterfaces().getLog().getLastLogMessages());
+          stackUI.addNote(mspMote.getInterfaces().getLog().getLastLogMessage());
         }
       });
     }*/

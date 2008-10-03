@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: LogScriptEngine.java,v 1.3 2008/09/22 16:18:22 joxe Exp $
+ * $Id: LogScriptEngine.java,v 1.4 2008/10/03 15:18:48 fros4943 Exp $
  */
 
 package se.sics.cooja.plugins;
@@ -181,7 +181,7 @@ public class LogScriptEngine {
         "if (obj != null) {" +
         "  mote = obj;" +
         "  id = mote.getInterfaces().getMoteID().getMoteID();" +
-        "  msg = mote.getInterfaces().getLog().getLastLogMessages();" +
+        "  msg = mote.getInterfaces().getLog().getLastLogMessage();" +
         "  node.setMoteMsg(mote, msg);" +
         "} else {" +
         "  return;" +
