@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: MspMoteType.java,v 1.12 2008/10/02 21:23:03 fros4943 Exp $
+ * $Id: MspMoteType.java,v 1.13 2008/10/03 15:02:21 fros4943 Exp $
  */
 
 package se.sics.cooja.mspmote;
@@ -328,6 +328,8 @@ public abstract class MspMoteType implements MoteType {
 
     private JButton cancelButton = new JButton("Cancel");
 
+    private JButton cleanButton = new JButton("Clean");
+
     private JButton compileButton = new JButton("Compile");
 
     private JButton createButton = new JButton("Create");
@@ -448,16 +450,31 @@ public abstract class MspMoteType implements MoteType {
         final Action successAction, final Action failAction,
         final MessageList compilationOutput, boolean synchronous) throws Exception {
       final File parentDirectory = sourceFile.getParentFile();
+
       final String filenameNoExtension = sourceFile.getName().substring(0,
           sourceFile.getName().length() - 2);
 
       final String command = getCompileCommand(filenameNoExtension);
       logger.info("-- Compiling MSP430 Firmware --");
-      logger.info("Compilation command: " + command);
 
-      compilationOutput.clearMessages();
+      compileFirmware(command, filenameNoExtension + firmwareFileExtension,
+          parentDirectory,
+          successAction, failAction,
+          compilationOutput, synchronous);
+    }
+
+    protected void compileFirmware(
+        final String command, final String firmware,
+        final File parentDirectory,
+        final Action successAction, final Action failAction,
+        final MessageList compilationOutput, boolean synchronous) throws Exception {
+
+      if (compilationOutput != null) {
+        compilationOutput.clearMessages();
+      }
 
       try {
+        logger.info("Compilation command: " + command);
         String[] cmd = command.split(" ");
 
         compileProcess = Runtime.getRuntime().exec(cmd, null,
@@ -468,16 +485,20 @@ public abstract class MspMoteType implements MoteType {
         final BufferedReader processError = new BufferedReader(
             new InputStreamReader(compileProcess.getErrorStream()));
 
-        final File ELFFile = new File(parentDirectory, filenameNoExtension + firmwareFileExtension);
-        if (ELFFile.exists()) {
-          ELFFile.delete();
+        if (firmware != null) {
+          final File ELFFile = new File(parentDirectory, firmware);
           if (ELFFile.exists()) {
-            compilationOutput.addMessage("Error when deleting old " + ELFFile.getName(), MessageList.ERROR);
-            if (failAction != null) {
-              failAction.actionPerformed(null);
+            ELFFile.delete();
+            if (ELFFile.exists()) {
+              if (compilationOutput != null) {
+                compilationOutput.addMessage("Error when deleting old " + ELFFile.getName(), MessageList.ERROR);
+              }
+              if (failAction != null) {
+                failAction.actionPerformed(null);
+              }
+              throw new MoteTypeCreationException("Error when deleting old "
+                  + ELFFile.getName());
             }
-            throw new MoteTypeCreationException("Error when deleting old "
-                + ELFFile.getName());
           }
         }
 
@@ -486,7 +507,9 @@ public abstract class MspMoteType implements MoteType {
             try {
               String readLine;
               while ((readLine = processNormal.readLine()) != null) {
-                compilationOutput.addMessage(readLine, MessageList.NORMAL);
+                if (compilationOutput != null) {
+                  compilationOutput.addMessage(readLine, MessageList.NORMAL);
+                }
               }
             } catch (IOException e) {
               logger.warn("Error while reading from process");
@@ -499,7 +522,9 @@ public abstract class MspMoteType implements MoteType {
             try {
               String readLine;
               while ((readLine = processError.readLine()) != null) {
-                compilationOutput.addMessage(readLine, MessageList.ERROR);
+                if (compilationOutput != null) {
+                  compilationOutput.addMessage(readLine, MessageList.ERROR);
+                }
               }
             } catch (IOException e) {
               logger.warn("Error while reading from process");
@@ -516,7 +541,9 @@ public abstract class MspMoteType implements MoteType {
             try {
               compileProcess.waitFor();
             } catch (Exception e) {
-              compilationOutput.addMessage(e.getMessage(), MessageList.ERROR);
+              if (compilationOutput != null) {
+                compilationOutput.addMessage(e.getMessage(), MessageList.ERROR);
+              }
               syncException.setCompilationOutput(new MessageList());
               syncException.fillInStackTrace();
               return;
@@ -524,17 +551,25 @@ public abstract class MspMoteType implements MoteType {
 
             /* Check return value */
             if (compileProcess.exitValue() != 0) {
-              compilationOutput.addMessage("Process returned error code " + compileProcess.exitValue(), MessageList.ERROR);
+              if (compilationOutput != null) {
+                compilationOutput.addMessage("Process returned error code " + compileProcess.exitValue(), MessageList.ERROR);
+              }
               if (failAction != null) {
                 failAction.actionPerformed(null);
               }
               syncException.setCompilationOutput(new MessageList());
               syncException.fillInStackTrace();
+              return;
+            }
+
+            if (firmware == null) {
               return;
             }
 
             if (!ELFFile.exists()) {
-              compilationOutput.addMessage("Can't locate output file " + ELFFile, MessageList.ERROR);
+              if (compilationOutput != null) {
+                compilationOutput.addMessage("Can't locate output file " + ELFFile, MessageList.ERROR);
+              }
               if (failAction != null) {
                 failAction.actionPerformed(null);
               }
@@ -543,8 +578,10 @@ public abstract class MspMoteType implements MoteType {
               return;
             }
 
-            compilationOutput.addMessage("", MessageList.NORMAL);
-            compilationOutput.addMessage("Compilation succeded", MessageList.NORMAL);
+            if (compilationOutput != null) {
+              compilationOutput.addMessage("", MessageList.NORMAL);
+              compilationOutput.addMessage("Compilation succeded", MessageList.NORMAL);
+            }
             MspELFCompiler.this.lastCompileCommand = command;
             MspELFCompiler.this.sourceFile = sourceFile;
             MspELFCompiler.this.ELFFile = ELFFile;
@@ -573,7 +610,9 @@ public abstract class MspMoteType implements MoteType {
           }
         }
 
-      } catch (IOException ex) {
+       else {
+          }
+        } catch (IOException ex) {
         if (failAction != null) {
           failAction.actionPerformed(null);
         }
@@ -615,6 +654,18 @@ public abstract class MspMoteType implements MoteType {
         }
       });
 
+      cleanButton.addActionListener(new ActionListener() {
+        public void actionPerformed(ActionEvent e) {
+          try {
+            File parentDir = new File(sourceTextField.getText()).getParentFile();
+            compileFirmware(
+                "make clean TARGET=" + target, null,
+                parentDir, null, null, taskOutput, true);
+          } catch (Exception e2) {
+          }
+        }
+      });
+
       compileButton.addActionListener(new ActionListener() {
         public void actionPerformed(ActionEvent e) {
           final File selectedSourceFile = new File(sourceTextField.getText());
@@ -640,7 +691,7 @@ public abstract class MspMoteType implements MoteType {
 
           updateDialog(DialogState.IS_COMPILING);
           try {
-            compileFirmware(new File(sourceTextField.getText()), successAction,
+            compileFirmware(selectedSourceFile, successAction,
                 failAction, taskOutput, false);
           } catch (Exception e2) {
           }
@@ -654,6 +705,8 @@ public abstract class MspMoteType implements MoteType {
       });
 
       buttonBox.add(cancelButton);
+      buttonBox.add(Box.createHorizontalStrut(5));
+      buttonBox.add(cleanButton);
       buttonBox.add(Box.createHorizontalStrut(5));
       buttonBox.add(compileButton);
       buttonBox.add(Box.createHorizontalStrut(5));
