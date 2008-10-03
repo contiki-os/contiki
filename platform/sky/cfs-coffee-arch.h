@@ -43,6 +43,7 @@
 #include "contiki-conf.h"
 #include "dev/xmem.h"
 
+/* Coffee configuration parameters. */
 #define COFFEE_SECTOR_SIZE		65536UL
 #define COFFEE_PAGE_SIZE		256UL
 #define COFFEE_START			COFFEE_SECTOR_SIZE
@@ -54,6 +55,7 @@
 #define COFFEE_LOG_TABLE_LIMIT		256
 #define COFFEE_DIR_CACHE_ENTRIES	16
 
+/* Flash operations. */
 #define COFFEE_WRITE(buf, size, offset)				\
 		xmem_pwrite((char *)(buf), (size), COFFEE_START + (offset))
 
@@ -62,5 +64,9 @@
 
 #define COFFEE_ERASE(sector)					\
   		xmem_erase(COFFEE_SECTOR_SIZE, COFFEE_START + (sector) * COFFEE_SECTOR_SIZE)
+
+/* Coffee types. */
+typedef int16_t coffee_page_t;
+typedef int32_t coffee_offset_t;
 
 #endif /* !COFFEE_ARCH_H */

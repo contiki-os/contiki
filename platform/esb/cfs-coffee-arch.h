@@ -65,4 +65,7 @@
 
 void cfs_coffee_arch_erase(uint16_t sector);
 
+typedef int16_t coffee_page_t;
+typedef uint16_t coffee_offset_t;
+
 #endif /* !COFFEE_ARCH_H */

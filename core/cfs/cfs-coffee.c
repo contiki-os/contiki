@@ -103,24 +103,24 @@
   COFFEE_WRITE((hdr), sizeof(*hdr), (page) * COFFEE_PAGE_SIZE)
 
 struct file_desc {
-  uint32_t offset;
-  uint32_t end;
-  uint16_t file_page;
-  uint16_t max_pages;
+  coffee_offset_t offset;
+  coffee_offset_t end;
+  coffee_page_t file_page;
+  coffee_page_t max_pages;
   uint16_t next_log_entry;
   uint8_t flags;
 };
 
 struct dir_cache {
-  int32_t page;
+  coffee_offset_t page;
   char filename_start;
 };
 
 struct file_header {
-  uint16_t log_page;
+  coffee_page_t log_page;
   uint16_t log_entries;
   uint16_t log_entry_size;
-  uint16_t max_pages;
+  coffee_page_t max_pages;
   uint8_t eof_hint;
   uint8_t flags;
   char name[COFFEE_NAME_LENGTH];
@@ -128,7 +128,7 @@ struct file_header {
 
 /* This is needed because of a buggy compiler. */
 struct log_param {
-  uint32_t offset;
+  coffee_offset_t offset;
   const char *buf;
   uint16_t size;
 };
@@ -142,12 +142,12 @@ static struct file_desc coffee_fd_set[COFFEE_FD_SET_SIZE];
 
 /*---------------------------------------------------------------------------*/
 static void
-get_sector_status(uint16_t sector, uint16_t *active,
-		  uint16_t *free, uint16_t *obsolete) {
-  uint32_t offset, sector_start;
-  uint32_t end;
+get_sector_status(uint16_t sector, coffee_page_t *active,
+		  coffee_page_t *free, coffee_page_t *obsolete) {
+  coffee_offset_t offset, sector_start;
+  coffee_offset_t end;
   struct file_header hdr;
-  static int16_t skip_pages;
+  static coffee_page_t skip_pages;
   static int last_pages_are_active;
   int i;
   
@@ -219,7 +219,7 @@ get_sector_status(uint16_t sector, uint16_t *active,
 }
 /*---------------------------------------------------------------------------*/
 static void
-dir_cache_add(char c, int32_t page)
+dir_cache_add(char c, coffee_offset_t page)
 {
   int i;
   
@@ -233,7 +233,7 @@ dir_cache_add(char c, int32_t page)
 }
 /*---------------------------------------------------------------------------*/
 static void
-dir_cache_del(int32_t page)
+dir_cache_del(coffee_offset_t page)
 {
   int i;
   
@@ -245,7 +245,7 @@ dir_cache_del(int32_t page)
   }
 }
 /*---------------------------------------------------------------------------*/
-static int32_t
+static coffee_offset_t
 dir_cache_find(const char *name)
 {
   int i;
@@ -265,11 +265,11 @@ dir_cache_find(const char *name)
   return -1;
 }
 /*---------------------------------------------------------------------------*/
-static int32_t
+static coffee_offset_t
 find_file(const char *name)
 {
   struct file_header hdr;
-  int32_t page;
+  coffee_offset_t page;
 
   page = dir_cache_find(name);
   if(page >= 0) {
@@ -301,7 +301,7 @@ find_file(const char *name)
   return -1;
 }
 /*---------------------------------------------------------------------------*/
-static int32_t
+static coffee_offset_t
 find_offset_in_file(int first_page)
 {
   struct file_header hdr;
@@ -309,7 +309,7 @@ find_offset_in_file(int first_page)
   int page;
   int i;
   int search_limit;
-  uint32_t range_start, range_end, part_size;
+  coffee_offset_t range_start, range_end, part_size;
 
   READ_HEADER(&hdr, first_page);
   for(search_limit = i = 0; i < sizeof(hdr.eof_hint) * CHAR_BIT; i++) {
@@ -387,7 +387,7 @@ static int
 cfs_garbage_collect(void)
 {
   uint16_t sector;
-  uint16_t active_pages, free_pages, obsolete_pages;
+  coffee_page_t active_pages, free_pages, obsolete_pages;
   uint8_t sectors_in_row, longest_row;
   
   watchdog_stop();
@@ -421,11 +421,11 @@ cfs_garbage_collect(void)
 }
 /*---------------------------------------------------------------------------*/
 static int
-remove_by_page(uint16_t page, int remove_log, int close_fds)
+remove_by_page(coffee_page_t page, int remove_log, int close_fds)
 {
   struct file_header hdr;
   int i;
-  uint16_t log_page;
+  coffee_page_t log_page;
 
   if(page >= COFFEE_PAGE_COUNT) {
     return -1;
@@ -462,7 +462,7 @@ remove_by_page(uint16_t page, int remove_log, int close_fds)
 static int
 read_log_page(struct file_header *hdr, int16_t last_entry, struct log_param *lp)
 {
-  uint16_t page;
+  coffee_page_t page;
   int16_t match_index;
   int16_t i;
   uint16_t log_entry_size;
@@ -545,13 +545,13 @@ create_log_name(unsigned char *new, int max_size, unsigned char *old)
   return new;
 }
 /*---------------------------------------------------------------------------*/
-static int16_t
-create_log(int16_t file_page, struct file_header *hdr)
+static coffee_page_t
+create_log(coffee_page_t file_page, struct file_header *hdr)
 {
-  int16_t log_page;
+  coffee_page_t log_page;
   unsigned char log_name[sizeof(hdr->name)];
   uint16_t log_entry_size, log_entries;
-  uint32_t size;
+  coffee_offset_t size;
   int i;
   
   log_entry_size = hdr->log_entry_size == 0 ?
@@ -583,13 +583,13 @@ create_log(int16_t file_page, struct file_header *hdr)
 }
 /*---------------------------------------------------------------------------*/
 static int
-flush_log(uint16_t file_page)
+flush_log(coffee_page_t file_page)
 {
-  int16_t log_page, new_file_page;
+  coffee_page_t log_page, new_file_page;
   struct file_header hdr, hdr2;
   int fd, n;
   char buf[64];
-  int32_t offset;
+  coffee_offset_t offset;
 
   READ_HEADER(&hdr, file_page);
   log_page = hdr.log_page;
@@ -655,8 +655,8 @@ static int
 write_log_page(struct file_desc *fdp, struct log_param *lp)
 {
   struct file_header hdr;
-  uint16_t page;
-  int log_page;
+  coffee_page_t page;
+  coffee_page_t log_page;
   int16_t log_entry;
   uint16_t log_entry_size;
   uint16_t log_entries;
@@ -815,8 +815,8 @@ void
 cfs_close(int fd)
 {
   struct file_header hdr;
-  uint16_t current_page, i;
-  int part_size;
+  coffee_page_t current_page;
+  int part_size, i;
   uint8_t eof_hint;
 
   if(FD_VALID(fd)) {
@@ -881,7 +881,7 @@ cfs_read(int fd, void *buf, unsigned size)
   struct file_desc *fdp;
   unsigned remains;
   int r;
-  int32_t base, offset;
+  coffee_offset_t base, offset;
   struct log_param lp;
   
   if(!(FD_VALID(fd) && FD_READABLE(fd))) {
@@ -990,7 +990,7 @@ cfs_opendir(struct cfs_dir *dir, const char *name)
     return -1;
   }
 
-  *(uint16_t *)dir->dummy_space = 0;
+  *(coffee_page_t *)dir->dummy_space = 0;
   
   return 0;
 }
@@ -999,9 +999,9 @@ int
 cfs_readdir(struct cfs_dir *dir, struct cfs_dirent *entry)
 {
   struct file_header hdr;
-  uint16_t page;
-  
-  for(page = *(uint16_t *)dir->dummy_space; page < COFFEE_PAGE_COUNT;) {
+  coffee_page_t page;
+
+  for(page = *(coffee_page_t *)dir->dummy_space; page < COFFEE_PAGE_COUNT;) {
     watchdog_periodic();
     READ_HEADER(&hdr, page);
     if(COFFEE_PAGE_FREE(hdr)) {
@@ -1013,7 +1013,7 @@ cfs_readdir(struct cfs_dir *dir, struct cfs_dirent *entry)
 	entry->name[sizeof(entry->name) - 1] = '\0';
 	entry->size = find_offset_in_file(page);
         page += hdr.max_pages;
-	*(uint16_t *)dir->dummy_space = page;
+	*(coffee_page_t *)dir->dummy_space = page;
 	return 0;
     } else {
       page += hdr.max_pages;
@@ -1071,7 +1071,7 @@ cfs_coffee_reserve(const char *name, uint32_t size)
 int
 cfs_coffee_configure_log(const char *file, unsigned log_size, unsigned log_entry_size)
 {
-  int16_t page;
+  coffee_page_t page;
   struct file_header hdr;
  
   page = find_file(file);
