@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ContikiMoteTypeDialog.java,v 1.42 2008/03/19 09:41:03 fros4943 Exp $
+ * $Id: ContikiMoteTypeDialog.java,v 1.43 2008/10/03 10:25:56 fros4943 Exp $
  */
 
 package se.sics.cooja.contikimote;
@@ -2132,9 +2132,7 @@ public class ContikiMoteTypeDialog extends JDialog {
 
     // Check that all project directories are valid
     for (File projectDir : moteTypeProjectDirs) {
-      File userProjectConfig = new File(projectDir.getPath(),
-          GUI.PROJECT_CONFIG_FILENAME);
-      if (!userProjectConfig.exists()) {
+      if (!projectDir.exists()) {
         textProjectDirs.setBackground(Color.RED);
         textProjectDirs.setToolTipText("Invalid project directory: "
             + projectDir);
