@@ -8,8 +8,6 @@ import javax.swing.*;
 import javax.swing.event.*;
 import org.apache.log4j.Logger;
 
-import se.sics.cooja.GUI;
-
 class ProjectDirectoryInputDialog extends JDialog implements ActionListener, PropertyChangeListener {
   private static Logger logger = Logger.getLogger(ProjectDirectoryInputDialog.class);
 
@@ -105,11 +103,11 @@ class ProjectDirectoryInputDialog extends JDialog implements ActionListener, Pro
       return;
     }
 
-    if (!new File(projectDir, GUI.PROJECT_CONFIG_FILENAME).exists()) {
-      textField.setBackground(Color.LIGHT_GRAY);
-      textField.setToolTipText("No configuration file found");
-      return;
-    }
+//    if (!new File(projectDir, GUI.PROJECT_CONFIG_FILENAME).exists()) {
+//      textField.setBackground(Color.LIGHT_GRAY);
+//      textField.setToolTipText("No configuration file found");
+//      return;
+//    }
 
     textField.setBackground(Color.WHITE);
     textField.setToolTipText("");

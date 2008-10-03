@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ProjectDirectoriesDialog.java,v 1.7 2008/05/02 05:47:53 fros4943 Exp $
+ * $Id: ProjectDirectoriesDialog.java,v 1.8 2008/10/03 10:26:16 fros4943 Exp $
  */
 
 package se.sics.cooja.dialogs;
@@ -383,7 +383,7 @@ public class ProjectDirectoriesDialog extends JDialog {
     button.addActionListener(new ActionListener() {
       public void actionPerformed(ActionEvent e) {
         JFileChooser fc = new JFileChooser();
-        fc.setCurrentDirectory(new java.io.File("."));
+        fc.setCurrentDirectory(new java.io.File(GUI.getExternalToolsSetting("PATH_CONTIKI")));
         fc.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
         fc.setDialogTitle("Select project directory");
 
@@ -446,34 +446,34 @@ public class ProjectDirectoriesDialog extends JDialog {
       return;
     }
 
-    File projectConfigFile = new File(projectDir.getPath(),
-        GUI.PROJECT_CONFIG_FILENAME);
-    if (!projectConfigFile.exists()) {
-
-      Object[] options = {"Create",
-                          "Cancel"};
-
-      int n = JOptionPane.showOptionDialog(
-          this,
-          "No " + GUI.PROJECT_CONFIG_FILENAME + " file exists in specified directory!"
-          + "\nCreate an empty " + GUI.PROJECT_CONFIG_FILENAME + " file?",
-          "Create project directory configuration?",
-          JOptionPane.YES_NO_OPTION,
-          JOptionPane.QUESTION_MESSAGE,
-          null, options, options[1]);
-
-      if (n == JOptionPane.NO_OPTION) {
-        return;
-      }
-
-      try {
-        projectConfigFile.createNewFile();
-      } catch (IOException e) {
-        logger.fatal("Could not create project directory configuration file: "
-            + projectConfigFile);
-        return;
-      }
-    }
+//    File projectConfigFile = new File(projectDir.getPath(),
+//        GUI.PROJECT_CONFIG_FILENAME);
+//    if (!projectConfigFile.exists()) {
+//
+//      Object[] options = {"Create",
+//                          "Cancel"};
+//
+//      int n = JOptionPane.showOptionDialog(
+//          this,
+//          "No " + GUI.PROJECT_CONFIG_FILENAME + " file exists in specified directory!"
+//          + "\nCreate an empty " + GUI.PROJECT_CONFIG_FILENAME + " file?",
+//          "Create project directory configuration?",
+//          JOptionPane.YES_NO_OPTION,
+//          JOptionPane.QUESTION_MESSAGE,
+//          null, options, options[1]);
+//
+//      if (n == JOptionPane.NO_OPTION) {
+//        return;
+//      }
+//
+//      try {
+//        projectConfigFile.createNewFile();
+//      } catch (IOException e) {
+//        logger.fatal("Could not create project directory configuration file: "
+//            + projectConfigFile);
+//        return;
+//      }
+//    }
 
     changeableProjectsList.add(projectDir.getPath(), index);
   }

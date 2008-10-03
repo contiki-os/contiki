@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ProjectConfig.java,v 1.2 2008/02/18 08:18:18 fros4943 Exp $
+ * $Id: ProjectConfig.java,v 1.3 2008/10/03 10:23:33 fros4943 Exp $
  */
 
 package se.sics.cooja;
@@ -135,10 +135,15 @@ public class ProjectConfig {
    */
   public boolean appendProjectDir(File projectDir)
       throws FileNotFoundException, IOException {
+    myProjectDirHistory.add(projectDir);
+
     File projectConfig = new File(projectDir.getPath(),
         GUI.PROJECT_CONFIG_FILENAME);
-    myProjectDirHistory.add(projectDir);
-    return appendConfigFile(projectConfig);
+    if (projectConfig.exists()) {
+      return appendConfigFile(projectConfig);
+    }
+
+    return true;
   }
 
 
@@ -227,6 +232,11 @@ public class ProjectConfig {
    */
   public boolean appendConfigFile(File propertyFile)
       throws FileNotFoundException, IOException {
+    if (!propertyFile.exists()) {
+      logger.warn("Trying to import non-existant project configuration");
+      return true;
+    }
+
     FileInputStream in = new FileInputStream(propertyFile);
     return appendConfigStream(myConfig, in);
   }
