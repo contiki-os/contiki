@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ProjectDirectoriesDialog.java,v 1.8 2008/10/03 10:26:16 fros4943 Exp $
+ * $Id: ProjectDirectoriesDialog.java,v 1.9 2008/10/03 13:46:30 fros4943 Exp $
  */
 
 package se.sics.cooja.dialogs;
@@ -588,6 +588,16 @@ class ConfigViewer extends JDialog {
     contentPane.add(buttonPane, BorderLayout.SOUTH);
 
     pack();
+
+    /* Respect screen size */
+    Rectangle maxSize = GraphicsEnvironment.getLocalGraphicsEnvironment().getMaximumWindowBounds();
+    if (maxSize != null && (getSize().width > maxSize.width)) {
+      setSize(maxSize.width, getSize().height);
+    }
+    if (maxSize != null && (getSize().height > maxSize.height)) {
+      setSize(getSize().width, maxSize.height);
+    }
+
   }
 
 }
