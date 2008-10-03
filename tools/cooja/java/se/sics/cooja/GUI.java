@@ -24,7 +24,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * $Id: GUI.java,v 1.85 2008/10/03 13:40:56 fros4943 Exp $
+ * $Id: GUI.java,v 1.86 2008/10/03 14:31:32 fros4943 Exp $
  */
 
 package se.sics.cooja;
@@ -1612,11 +1612,13 @@ public class GUI extends Observable {
     }
 
     // Set location if not already visible
-    if (!plugin.isVisible()) {
-      plugin.setLocation((nrFrames + 1) * FRAME_NEW_OFFSET, (nrFrames + 1)
-          * FRAME_NEW_OFFSET);
-      plugin.setVisible(true);
+    if (plugin.getLocation().x <= 0 && plugin.getLocation().y <= 0) {
+      plugin.setLocation(
+          nrFrames * FRAME_NEW_OFFSET,
+          nrFrames * FRAME_NEW_OFFSET);
     }
+
+    plugin.setVisible(true);
 
     // Deselect all other plugins before selecting the new one
     try {
