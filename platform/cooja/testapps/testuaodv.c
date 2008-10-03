@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: testuaodv.c,v 1.1 2007/11/25 22:46:14 fros4943 Exp $
+ * $Id: testuaodv.c,v 1.2 2008/10/03 09:39:38 fros4943 Exp $
  */
 
 #include <stdlib.h>
@@ -38,7 +38,6 @@
 #include "net/uaodv-rt.h"
 
 #include <stdio.h>
-#include "printf2log.h" /* COOJA specific: Transforms printf() to log_message() */
 
 #define COOJA_PORT 1234
 
@@ -87,7 +86,7 @@ PROCESS_THREAD(test_uaodv_process, ev, data)
     if(ev == tcpip_event && uip_newdata()) {
       ((char*) uip_appdata)[uip_datalen()] = 0;
       printf("data received from %d.%d.%d.%d: %s\n",
-          uip_ipaddr_to_quad(&((struct uip_udpip_hdr *)&uip_buf[UIP_LLH_LEN])->srcipaddr), 
+          uip_ipaddr_to_quad(&((struct uip_udpip_hdr *)&uip_buf[UIP_LLH_LEN])->srcipaddr),
           (char *)uip_appdata);
       leds_toggle(LEDS_ALL);
     }
