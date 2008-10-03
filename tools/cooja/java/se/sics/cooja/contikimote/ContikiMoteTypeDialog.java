@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ContikiMoteTypeDialog.java,v 1.43 2008/10/03 10:25:56 fros4943 Exp $
+ * $Id: ContikiMoteTypeDialog.java,v 1.44 2008/10/03 13:08:58 fros4943 Exp $
  */
 
 package se.sics.cooja.contikimote;
@@ -231,16 +231,17 @@ public class ContikiMoteTypeDialog extends JDialog {
         boolean foundAndSelectedProcess = false;
         for (Component processCheckBox : myDialog.processPanel.getComponents()) {
           boolean inCompileFile = false;
+          ContikiProcess process = (ContikiProcess) ((JCheckBox) processCheckBox).getClientProperty("process");
 
           for (File compileFile: moteTypeToConfigure.getCompilationFiles()) {
-            if (compileFile.getName().equals(((JCheckBox) processCheckBox).getToolTipText())) {
+            if (process != null && compileFile.getName().equals(process.getSourceFile().getName())) {
               inCompileFile = true;
               break;
             }
           }
 
           if (inCompileFile &&
-              presetProcess.equals(((JCheckBox) processCheckBox).getText())) {
+              presetProcess.equals(process.getProcessName())) {
             ((JCheckBox) processCheckBox).setSelected(true);
             foundAndSelectedProcess = true;
             break;
@@ -1013,7 +1014,7 @@ public class ContikiMoteTypeDialog extends JDialog {
     JPanel progressPanel = new JPanel(new BorderLayout());
     final JDialog progressDialog = new JDialog(myDialog, (String) null);
     JProgressBar progressBar;
-    JButton button;
+
     final MessageList taskOutput;
     progressDialog.setLocationRelativeTo(myDialog);
 
@@ -1025,7 +1026,7 @@ public class ContikiMoteTypeDialog extends JDialog {
     taskOutput = new MessageList();
 
     final Thread compilationThreadCopy = compilationThread;
-    button = new JButton("Close/Abort");
+    final JButton button = new JButton("Abort compilation");
     button.addActionListener(new ActionListener() {
       public void actionPerformed(ActionEvent e) {
         if (compilationThreadCopy != null && compilationThreadCopy.isAlive()) {
@@ -1123,15 +1124,15 @@ public class ContikiMoteTypeDialog extends JDialog {
     Vector<String> userProcesses = new Vector<String>();
     for (Component checkBox : processPanel.getComponents()) {
       if (((JCheckBox) checkBox).isSelected()) {
-        userProcesses.add(((JCheckBox) checkBox).getText());
+        ContikiProcess process =
+          (ContikiProcess) ((JCheckBox) checkBox).getClientProperty("process");
+        userProcesses.add(process.getProcessName());
       }
     }
 
-    // Generate main contiki source file
-    String filename = null;
+    // Generate Contiki main file
     try {
-      filename = generateSourceFile(textID.getText(), sensors, coreInterfaces,
-          userProcesses);
+      generateSourceFile(textID.getText(), sensors, coreInterfaces, userProcesses);
     } catch (Exception e) {
       libraryCreatedOK = false;
       progressBar.setBackground(Color.ORANGE);
@@ -1165,65 +1166,51 @@ public class ContikiMoteTypeDialog extends JDialog {
       mapFile.delete();
     }
 
-    compilationThread = new Thread(new Runnable() {
-      public void run() {
-        // Add all project directories
-        compilationFiles = (Vector<File>) myGUI
-            .getProjectDirs().clone();
+    // Add all project directories
+    compilationFiles = (Vector<File>) myGUI.getProjectDirs().clone();
 
+    if (moteTypeProjectDirs == null || moteTypeProjectDirs.isEmpty()) {
+      compilationFiles.add(new File(textCoreDir.getText(), "testapps"));
+    } else {
+      compilationFiles.addAll(moteTypeProjectDirs);
+    }
 
-        if (moteTypeProjectDirs == null || moteTypeProjectDirs.isEmpty()) {
-          compilationFiles.add(new File(textCoreDir.getText(), "testapps"));
-        } else {
-          compilationFiles.addAll(moteTypeProjectDirs);
-        }
-
-        // Add source files from project configs
-        String[] projectSourceFiles = newMoteTypeConfig.getStringArrayValue(
-            ContikiMoteType.class, "C_SOURCES");
-        for (String projectSourceFile : projectSourceFiles) {
-          if (!projectSourceFile.equals("")) {
-            File file = new File(projectSourceFile);
-            if (file.getParent() != null) {
-              // Find which project directory added this file
-              File projectDir = newMoteTypeConfig.getUserProjectDefining(
-                  ContikiMoteType.class, "C_SOURCES", projectSourceFile);
-              if (projectDir != null) {
-                // We found a project directory; add it to path
-                compilationFiles.add(new File(projectDir.getPath(), file
-                    .getParent()));
-              }
-            }
-            compilationFiles.add(new File(file.getName()));
+    // Add source files from project configs
+    String[] projectSourceFiles =
+      newMoteTypeConfig.getStringArrayValue(ContikiMoteType.class, "C_SOURCES");
+    for (String projectSourceFile : projectSourceFiles) {
+      if (!projectSourceFile.equals("")) {
+        File file = new File(projectSourceFile);
+        if (file.getParent() != null) {
+          // Find which project directory added this file
+          File projectDir = newMoteTypeConfig.getUserProjectDefining(
+              ContikiMoteType.class, "C_SOURCES", projectSourceFile);
+          if (projectDir != null) {
+            // We found a project directory; add it to path
+            compilationFiles.add(new File(projectDir.getPath(), file.getParent()));
           }
         }
-
-        // Add selected process source files
-        for (Component checkBox : processPanel.getComponents()) {
-          if (((JCheckBox) checkBox).isSelected()) {
-            String fileName = ((JCheckBox) checkBox).getToolTipText();
-            if (fileName != null) {
-              compilationFiles.add(new File(fileName));
-            }
-          }
-        }
-
-        compilationSucceded = ContikiMoteTypeDialog.compileLibrary(identifier,
-            contikiDir, compilationFiles, symbolsCheckBox.isSelected(),
-            (ContikiMoteType.CommunicationStack) commStackComboBox.getSelectedItem(),
-            taskOutput.getInputStream(MessageList.NORMAL),
-            taskOutput.getInputStream(MessageList.ERROR));
-      }
-    }, "compilation thread");
-    compilationThread.start();
-
-    while (compilationThread.isAlive()) {
-      try {
-        Thread.sleep(100);
-      } catch (InterruptedException e) {
-        // NOP
+        compilationFiles.add(new File(file.getName()));
       }
     }
+
+    // Add selected process source files
+    for (Component checkBox : processPanel.getComponents()) {
+      if (((JCheckBox) checkBox).isSelected()) {
+        ContikiProcess process =
+          (ContikiProcess) ((JCheckBox) checkBox).getClientProperty("process");
+        if (process.getSourceFile() != null) {
+          compilationFiles.add(process.getSourceFile().getParentFile());
+          compilationFiles.add(process.getSourceFile());
+        }
+      }
+    }
+
+    compilationSucceded = ContikiMoteTypeDialog.compileLibrary(identifier,
+        contikiDir, compilationFiles, symbolsCheckBox.isSelected(),
+        (ContikiMoteType.CommunicationStack) commStackComboBox.getSelectedItem(),
+        taskOutput.getInputStream(MessageList.NORMAL),
+        taskOutput.getInputStream(MessageList.ERROR));
 
     if (!compilationSucceded) {
       if (libFile.exists()) {
@@ -1246,11 +1233,13 @@ public class ContikiMoteTypeDialog extends JDialog {
     }
 
     if (libraryCreatedOK) {
+      button.setText("Compilation succeeded!");
       progressBar.setBackground(Color.GREEN);
       progressBar.setString("compilation succeded");
       button.grabFocus();
       myDialog.getRootPane().setDefaultButton(createButton);
     } else {
+      button.setText("Compilation failed!");
       progressBar.setBackground(Color.ORANGE);
       progressBar.setString("compilation failed");
       myDialog.getRootPane().setDefaultButton(testButton);
@@ -1669,18 +1658,18 @@ public class ContikiMoteTypeDialog extends JDialog {
    * @return Process definitions found under rootDirectory, {sourcefile,
    *         processname}
    */
-  public static Vector<String[]> scanForProcesses(File rootDirectory) {
+  public static Vector<ContikiProcess> scanForProcesses(File rootDirectory) {
     if (!rootDirectory.isDirectory()) {
       logger.fatal("Not a directory: " + rootDirectory);
-      return null;
+      return new Vector<ContikiProcess>();
     }
 
     if (!rootDirectory.exists()) {
       logger.fatal("Does not exist: " + rootDirectory);
-      return null;
+      return new Vector<ContikiProcess>();
     }
 
-    Vector<String[]> processes = new Vector<String[]>();
+    Vector<ContikiProcess> processes = new Vector<ContikiProcess>();
 
     // Scan in rootDirectory
     try {
@@ -1688,8 +1677,7 @@ public class ContikiMoteTypeDialog extends JDialog {
       String cmdString = GUI.getExternalToolsSetting("CMD_GREP_PROCESSES")
           + " '" + rootDirectory.getPath().replace(File.separatorChar, '/')
           + "'/*.[ch]";
-      Pattern pattern = Pattern.compile(GUI
-          .getExternalToolsSetting("REGEXP_PARSE_PROCESSES"));
+      Pattern pattern = Pattern.compile(GUI.getExternalToolsSetting("REGEXP_PARSE_PROCESSES"));
 
       String[] cmd = new String[3];
       cmd[0] = GUI.getExternalToolsSetting("PATH_SHELL");
@@ -1697,20 +1685,23 @@ public class ContikiMoteTypeDialog extends JDialog {
       cmd[2] = cmdString;
 
       Process p = Runtime.getRuntime().exec(cmd);
-      BufferedReader input = new BufferedReader(new InputStreamReader(p
-          .getInputStream()));
+      BufferedReader input = new BufferedReader(new InputStreamReader(p.getInputStream()));
       while ((line = input.readLine()) != null) {
         Matcher matcher = pattern.matcher(line);
         if (matcher.find()) {
-          processes.add(new String[]{matcher.group(1), matcher.group(2)});
+          File sourceFile = new File(rootDirectory, matcher.group(1));
+          if (!sourceFile.exists()) {
+            logger.fatal("Error during scan: Found file does not exist: " + sourceFile);
+          }
+          ContikiProcess process = new ContikiProcess(sourceFile, matcher.group(2));
+          processes.add(process);
         }
       }
       input.close();
 
-//      BufferedReader err = new BufferedReader(new InputStreamReader(p
-//          .getErrorStream()));
+//      BufferedReader err = new BufferedReader(new InputStreamReader(p.getErrorStream()));
 //      if (err.ready())
-//        logger.warn("Error occured during scan:");
+//        logger.warn("Error occurred during scan:");
 //      while ((line = err.readLine()) != null) {
 //        logger.warn(line);
 //      }
@@ -1893,39 +1884,16 @@ public class ContikiMoteTypeDialog extends JDialog {
     return foundProcesses;
   }
 
-  private boolean autoSelectDependencyProcesses(String processName,
-      String sourceFilename, boolean confirmSelection) {
+  private boolean autoSelectDependencyProcesses(ContikiProcess process, boolean confirmSelection) {
 
-    // Locate source file
-    File sourceFile = new File(textCoreDir.getText(), sourceFilename);
-
-    boolean foundFile = sourceFile.exists();
-    if (!foundFile) {
-      for (File projectDir : myGUI.getProjectDirs()) {
-        sourceFile = new File(projectDir, sourceFilename);
-        if (foundFile = sourceFile.exists()) {
-          break;
-        }
-      }
-    }
-
-    if (!foundFile) {
-      for (File projectDir : moteTypeProjectDirs) {
-        sourceFile = new File(projectDir, sourceFilename);
-        if (foundFile = sourceFile.exists()) {
-          break;
-        }
-      }
-    }
-
-    if (!foundFile) {
+    if (process.getSourceFile() == null || !process.getSourceFile().exists()) {
       // Die quietly
       return false;
     }
 
     Vector<String> autostartProcesses = null;
     try {
-      autostartProcesses = parseAutostartProcesses(sourceFile);
+      autostartProcesses = parseAutostartProcesses(process.getSourceFile());
     } catch (Exception e) {
       return false;
     }
@@ -1936,27 +1904,26 @@ public class ContikiMoteTypeDialog extends JDialog {
     }
 
     for (String autostartProcess : autostartProcesses) {
-      // Does this process already exist?
+      /* Is dependency process already selected? */
       boolean processAlreadySelected = false;
       for (Component checkBox : processPanel.getComponents()) {
-        JCheckBox checkBox2 = (JCheckBox) checkBox;
-        String existingProcess = checkBox2.getText();
-        boolean selected = checkBox2.isSelected();
-        if (existingProcess.equals(autostartProcess) && selected) {
+        ContikiProcess existingProcess =
+          ((ContikiProcess) ((JCheckBox) checkBox).getClientProperty("process"));
+        boolean selected = ((JCheckBox) checkBox).isSelected();
+        if (existingProcess.getProcessName().equals(autostartProcess) && selected) {
           processAlreadySelected = true;
         }
       }
 
       if (!processAlreadySelected) {
-
         boolean processShouldBeSelected = false;
         if (confirmSelection) {
           // Let user choose whether to add process
           Object[] options = { "Add", "Cancel" };
 
-          String question = "The process " + processName
-              + " depends on the following process: " + autostartProcess
-              + "\nDo you want to select this as well?";
+          String question = "The process '" + process.getProcessName()
+              + "' depends on the following process: '" + autostartProcess
+              + "'\nDo you want to select this as well?";
           String title = "Select dependency process?";
           int answer = JOptionPane.showOptionDialog(myDialog, question, title,
               JOptionPane.DEFAULT_OPTION, JOptionPane.QUESTION_MESSAGE, null,
@@ -1966,28 +1933,30 @@ public class ContikiMoteTypeDialog extends JDialog {
             processShouldBeSelected = true;
           }
         } else {
-          // Add process
+          /* Add process */
           processShouldBeSelected = true;
         }
 
         if (processShouldBeSelected) {
-          // Get checkbox to select
+          /* Find checkbox to select */
           JCheckBox processToSelectCheckBox = null;
           for (Component checkBox : processPanel.getComponents()) {
-            JCheckBox checkBox2 = (JCheckBox) checkBox;
-            if (checkBox2.getText().equals(autostartProcess)) {
-              processToSelectCheckBox = checkBox2;
+            ContikiProcess existingProcesses =
+              (ContikiProcess) ((JCheckBox) checkBox).getClientProperty("process");
+            if (existingProcesses != null && autostartProcess.equals(existingProcesses.getProcessName())) {
+              processToSelectCheckBox = ((JCheckBox) checkBox);
               break;
             }
           }
 
           if (processToSelectCheckBox == null) {
             // Create new check box
-            processToSelectCheckBox = new JCheckBox(autostartProcess, true);
+            processToSelectCheckBox = new JCheckBox(autostartProcess + " (unknown source)", true);
+            processToSelectCheckBox.setToolTipText("[unknown source file - autodependency]");
+            processToSelectCheckBox.putClientProperty("process", new ContikiProcess(null, autostartProcess));
             processToSelectCheckBox.setAlignmentX(Component.LEFT_ALIGNMENT);
 
-            processToSelectCheckBox.setActionCommand("process_clicked: "
-                + autostartProcess);
+            processToSelectCheckBox.setActionCommand("process_clicked");
             processToSelectCheckBox.addActionListener(myEventHandler);
 
             processPanel.add(processToSelectCheckBox);
@@ -2254,7 +2223,9 @@ public class ContikiMoteTypeDialog extends JDialog {
         Vector<String> processes = new Vector<String>();
         for (Component checkBox : processPanel.getComponents()) {
           if (((JCheckBox) checkBox).isSelected()) {
-            processes.add(((JCheckBox) checkBox).getText());
+            ContikiProcess process = (ContikiProcess)
+            ((JCheckBox) checkBox).getClientProperty("process");
+            processes.add(process.getProcessName());
           }
         }
         myMoteType.setProcesses(processes);
@@ -2338,44 +2309,44 @@ public class ContikiMoteTypeDialog extends JDialog {
       } else if (e.getActionCommand().equals("scanprocesses")) {
         // Clear process panel
         processPanel.removeAll();
-        Vector<String[]> processes = new Vector<String[]>();
+        Vector<ContikiProcess> processes = new Vector<ContikiProcess>();
 
         /* Scan GUI project directories */
         for (File projectDir : myGUI.getProjectDirs()) {
-          processes
-          .addAll(ContikiMoteTypeDialog.scanForProcesses(projectDir));
+          processes.addAll(ContikiMoteTypeDialog.scanForProcesses(projectDir));
         }
 
         /* If mote type specific project directories, scan the testapps directory */
         if (moteTypeProjectDirs == null || moteTypeProjectDirs.isEmpty()) {
           logger.info("No project directories selected, scanning testapps");
-          processes.addAll(ContikiMoteTypeDialog.scanForProcesses(new File(
-              textCoreDir.getText(), "testapps")));
+          processes.addAll(ContikiMoteTypeDialog.scanForProcesses(
+              new File(textCoreDir.getText(), "testapps")));
         } else {
           if (moteTypeProjectDirs != null) {
             for (File projectDir : moteTypeProjectDirs) {
               logger.info("Scanning " + projectDir.getPath());
-              processes.addAll(ContikiMoteTypeDialog
-                  .scanForProcesses(projectDir));
+              processes.addAll(ContikiMoteTypeDialog.scanForProcesses(projectDir));
             }
           }
         }
 
-        if (processes != null) {
-          for (String[] processInfo : processes) {
-            JCheckBox processCheckBox = new JCheckBox(processInfo[1], false);
-            processCheckBox.setToolTipText(processInfo[0]);
+        if (processes.isEmpty()) {
+          logger.warn("No processes found during scan. Check project directories");
+          testButton.setEnabled(settingsOK = false);
+        } else {
+          for (ContikiProcess processInfo : processes) {
+            JCheckBox processCheckBox =
+              new JCheckBox(processInfo.getProcessName() + " (" + processInfo.getSourceFile().getName() + ")", false);
+            processCheckBox.setToolTipText(processInfo.getSourceFile().getAbsolutePath());
+            processCheckBox.putClientProperty("process", processInfo);
+
             processCheckBox.setAlignmentX(Component.LEFT_ALIGNMENT);
 
-            processCheckBox.setActionCommand("process_clicked: "
-                + processInfo[1]);
+            processCheckBox.setActionCommand("process_clicked");
             processCheckBox.addActionListener(myEventHandler);
 
             processPanel.add(processCheckBox);
           }
-        } else {
-          logger.warn("No processes found during scan");
-          testButton.setEnabled(settingsOK = false);
         }
 
         processPanel.revalidate();
@@ -2538,15 +2509,18 @@ public class ContikiMoteTypeDialog extends JDialog {
         moteInterfacePanel.repaint();
         createButton.setEnabled(libraryCreatedOK = false);
       } else if (e.getActionCommand().equals("addprocess")) {
-        String newProcessName = JOptionPane.showInputDialog(myDialog,
-            "Enter process name");
-        if (newProcessName != null) {
-          JCheckBox processCheckBox = new JCheckBox(newProcessName, false);
-          processCheckBox.setAlignmentX(Component.LEFT_ALIGNMENT);
-          processCheckBox.setSelected(true);
+        String newProcessName = (String) JOptionPane.showInputDialog(GUI.getTopParentContainer(),
+            "Enter Contiki process name manually:",
+            "Enter process name", JOptionPane.PLAIN_MESSAGE, null, null,
+            "");
 
-          processCheckBox
-              .setActionCommand("process_clicked: " + newProcessName);
+        if (newProcessName != null && !newProcessName.equals("")) {
+          JCheckBox processCheckBox = new JCheckBox(newProcessName + " (manually added)", true);
+          processCheckBox.setToolTipText("[unknown source file - manually added]");
+          processCheckBox.putClientProperty("process", new ContikiProcess(null, newProcessName));
+          processCheckBox.setAlignmentX(Component.LEFT_ALIGNMENT);
+
+          processCheckBox.setActionCommand("process_clicked");
           processCheckBox.addActionListener(myEventHandler);
 
           processPanel.add(processCheckBox);
@@ -2577,27 +2551,14 @@ public class ContikiMoteTypeDialog extends JDialog {
         }
       } else if (e.getActionCommand().equals("recheck_interface_dependencies")) {
         recheckInterfaceDependencies();
-      } else if (e.getActionCommand().startsWith("process_clicked")) {
+      } else if (e.getActionCommand().equals("process_clicked")) {
+        createButton.setEnabled(libraryCreatedOK = false);
 
-        boolean processWasSelected = false;
-        String sourceFilename = null;
-        String processName = e.getActionCommand().split(": ")[1].trim();
+        JCheckBox checkBox = (JCheckBox) e.getSource();
+        ContikiProcess process = (ContikiProcess) checkBox.getClientProperty("process");
 
-        // Was the process selected or unselected?
-        for (Component checkBox : processPanel.getComponents()) {
-          JCheckBox processCheckbox = (JCheckBox) checkBox;
-          if (processCheckbox.isSelected()
-              && processCheckbox.getText().equals(processName)) {
-            processWasSelected = true;
-            sourceFilename = ((JCheckBox) checkBox).getToolTipText();
-            break;
-          }
-        }
-
-        if (!processWasSelected || sourceFilename == null) {
-          createButton.setEnabled(libraryCreatedOK = false);
-        } else {
-          autoSelectDependencyProcesses(processName, sourceFilename, true);
+        if (checkBox.isSelected()) {
+          autoSelectDependencyProcesses(process, true);
         }
 
       } else {
