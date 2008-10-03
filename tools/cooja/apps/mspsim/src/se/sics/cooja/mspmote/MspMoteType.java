@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: MspMoteType.java,v 1.13 2008/10/03 15:02:21 fros4943 Exp $
+ * $Id: MspMoteType.java,v 1.14 2008/10/03 15:08:17 fros4943 Exp $
  */
 
 package se.sics.cooja.mspmote;
@@ -485,8 +485,8 @@ public abstract class MspMoteType implements MoteType {
         final BufferedReader processError = new BufferedReader(
             new InputStreamReader(compileProcess.getErrorStream()));
 
+        final File ELFFile = new File(parentDirectory, firmware);
         if (firmware != null) {
-          final File ELFFile = new File(parentDirectory, firmware);
           if (ELFFile.exists()) {
             ELFFile.delete();
             if (ELFFile.exists()) {
