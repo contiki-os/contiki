@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ContikiMoteTypeDialog.java,v 1.45 2008/10/03 13:39:49 fros4943 Exp $
+ * $Id: ContikiMoteTypeDialog.java,v 1.46 2008/10/03 15:43:44 fros4943 Exp $
  */
 
 package se.sics.cooja.contikimote;
@@ -1607,7 +1607,7 @@ public class ContikiMoteTypeDialog extends JDialog {
           String readLine;
           try {
             while ((readLine = input.readLine()) != null) {
-              if (outputStream != null && readLine != null) {
+              if (outputStream != null) {
                 outputStream.println(readLine);
               }
             }
@@ -1622,8 +1622,12 @@ public class ContikiMoteTypeDialog extends JDialog {
           String readLine;
           try {
             while ((readLine = err.readLine()) != null) {
-              if (errorStream != null && readLine != null) {
+              if (errorStream != null) {
                 errorStream.println(readLine);
+
+                if (!GUI.isVisualized()) {
+                  logger.warn("COMPILATION OUTPUT: " + readLine);
+                }
               }
             }
           } catch (IOException e) {
