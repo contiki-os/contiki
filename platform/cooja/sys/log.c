@@ -26,15 +26,18 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: log.c,v 1.4 2007/11/25 22:45:32 fros4943 Exp $
+ * $Id: log.c,v 1.5 2008/10/03 09:41:16 fros4943 Exp $
  */
 
 #include <stdio.h>
+#include <stdarg.h>
 #include <string.h>
 #include "sys/log.h"
 #include "lib/simEnvChange.h"
 
+#define IMPLEMENT_PUTCHAR 1
 #define MAX_LOG_LENGTH 1024
+
 const struct simInterface simlog_interface;
 
 // COOJA variables
@@ -44,14 +47,26 @@ char simLoggedFlag;
 
 /*-----------------------------------------------------------------------------------*/
 void
+simlog_char(char c)
+{
+  if (simLoggedLength + 1 > MAX_LOG_LENGTH) {
+    /* Dropping message due to buffer overflow */
+    return;
+  }
+
+  simLoggedData[simLoggedLength] = c;
+  simLoggedLength += 1;
+  simLoggedFlag = 1;
+}
+/*-----------------------------------------------------------------------------------*/
+void
 simlog(const char *message)
 {
   if (simLoggedLength + strlen(message) > MAX_LOG_LENGTH) {
     /* Dropping message due to buffer overflow */
-    printf("Warning. Dropping log message due to buffer overflow\n");
     return;
   }
-  
+
   memcpy(&simLoggedData[0] + simLoggedLength, &message[0], strlen(message));
   simLoggedLength += strlen(message);
   simLoggedFlag = 1;
@@ -72,7 +87,45 @@ doInterfaceActionsBeforeTick(void)
 static void
 doInterfaceActionsAfterTick(void)
 {
+  fflush(stdout);
 }
+/*-----------------------------------------------------------------------------------*/
+#if IMPLEMENT_PUTCHAR
+int
+putc(int c, FILE *f)
+{
+  simlog_char(c);
+  return c;
+}
+/*-----------------------------------------------------------------------------------*/
+int
+putchar(int c)
+{
+  simlog_char(c);
+  return c;
+}
+/*-----------------------------------------------------------------------------------*/
+int
+puts(const char* s)
+{
+  simlog(s);
+  return 0;
+}
+/*-----------------------------------------------------------------------------------*/
+int
+printf(const char *fmt, ...)
+{
+  int res;
+  static char buf[MAX_LOG_LENGTH];
+  va_list ap;
+  va_start (ap, fmt);
+  res = vsnprintf (buf, MAX_LOG_LENGTH, fmt, ap);
+  va_end(ap);
+
+  simlog(buf);
+  return res;
+}
+#endif /* IMPLEMENTS_PUTCHAR */
 /*-----------------------------------------------------------------------------------*/
 
 SIM_INTERFACE(simlog_interface,
