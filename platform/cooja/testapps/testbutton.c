@@ -26,14 +26,13 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: testbutton.c,v 1.1 2007/11/25 22:46:14 fros4943 Exp $
+ * $Id: testbutton.c,v 1.2 2008/10/03 09:39:38 fros4943 Exp $
  */
 
 #include "contiki.h"
 #include "dev/button-sensor.h"
 
 #include <stdio.h>
-#include "printf2log.h" /* COOJA specific: Transforms printf() to log_message() */
 
 PROCESS(test_button_process, "Test button process");
 AUTOSTART_PROCESSES(&test_button_process);

@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: testserial.c,v 1.1 2007/11/25 22:46:14 fros4943 Exp $
+ * $Id: testserial.c,v 1.2 2008/10/03 09:39:38 fros4943 Exp $
  */
 
 #include "contiki.h"
@@ -34,7 +34,6 @@
 #include "dev/rs232.h"
 
 #include <stdio.h>
-#include "printf2log.h" /* COOJA specific: Transforms printf() to log_message() */
 
 PROCESS(test_serial_process, "Serial test process");
 AUTOSTART_PROCESSES(&test_serial_process);
@@ -54,7 +53,7 @@ PROCESS_THREAD(test_serial_process, ev, data)
 
   while(1) {
     PROCESS_WAIT_EVENT();
-	
+
     if (etimer_expired(&et)) {
       printf("Sending serial data now\n");
       rs232_print("GNU's not Unix\n");

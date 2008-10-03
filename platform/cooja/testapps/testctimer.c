@@ -26,14 +26,13 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: testctimer.c,v 1.1 2007/11/25 22:46:14 fros4943 Exp $
+ * $Id: testctimer.c,v 1.2 2008/10/03 09:39:38 fros4943 Exp $
  */
 
 #include "contiki.h"
 #include "net/rime/ctimer.h"
 
 #include <stdio.h>
-#include "printf2log.h" /* COOJA specific: Transforms printf() to log_message() */
 
 PROCESS(test_ctimer_process, "Callback timer test process");
 AUTOSTART_PROCESSES(&test_ctimer_process);

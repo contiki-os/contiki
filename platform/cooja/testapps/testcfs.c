@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: testcfs.c,v 1.1 2007/11/25 22:46:14 fros4943 Exp $
+ * $Id: testcfs.c,v 1.2 2008/10/03 09:39:38 fros4943 Exp $
  */
 
 #include "contiki.h"
@@ -35,7 +35,6 @@
 #include "cfs/cfs.h"
 
 #include <stdio.h>
-#include "printf2log.h" /* COOJA specific: Transforms printf() to log_message() */
 
 PROCESS(test_cfs_process, "Test CFS process");
 AUTOSTART_PROCESSES(&test_cfs_process);
@@ -46,7 +45,7 @@ PROCESS_THREAD(test_cfs_process, ev, data)
   static int fd;
   static u16_t counter;
   static char buf[30];
-  
+
   PROCESS_BEGIN();
 
   printf("Starting CFS test process\n");
@@ -63,7 +62,7 @@ PROCESS_THREAD(test_cfs_process, ev, data)
     cfs_close(fd);
     printf("Wrote to filesystem: '%s'\n", buf);
     counter++;
-    
+
     etimer_set(&et, CLOCK_SECOND);
     PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&et));
 

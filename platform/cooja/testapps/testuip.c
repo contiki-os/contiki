@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: testuip.c,v 1.1 2007/11/25 22:46:14 fros4943 Exp $
+ * $Id: testuip.c,v 1.2 2008/10/03 09:39:38 fros4943 Exp $
  */
 
 #include <stdlib.h>
@@ -35,7 +35,6 @@
 #include "dev/leds.h"
 
 #include <stdio.h>
-#include "printf2log.h" /* COOJA specific: Transforms printf() to log_message() */
 
 #define COOJA_PORT 1234
 

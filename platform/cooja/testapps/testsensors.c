@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: testsensors.c,v 1.1 2007/11/25 22:46:14 fros4943 Exp $
+ * $Id: testsensors.c,v 1.2 2008/10/03 09:39:38 fros4943 Exp $
  */
 
 #include "contiki.h"
@@ -36,7 +36,6 @@
 #include "dev/radio-sensor.h"
 
 #include <stdio.h>
-#include "printf2log.h" /* COOJA specific: Transforms printf() to log_message() */
 
 PROCESS(test_sensors_process, "Test sensors process");
 AUTOSTART_PROCESSES(&test_sensors_process);
@@ -50,7 +49,7 @@ PROCESS_THREAD(test_sensors_process, ev, data)
   pir_sensor.activate();
   vib_sensor.activate();
   radio_sensor.activate();
-  
+
   while(1) {
     PROCESS_WAIT_EVENT();
 

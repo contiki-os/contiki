@@ -28,14 +28,13 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: hello-world.c,v 1.1 2008/04/22 13:07:49 fros4943 Exp $
+ * $Id: hello-world.c,v 1.2 2008/10/03 09:39:38 fros4943 Exp $
  */
 
 #include "contiki.h"
 
-#include "printf2log.h"
+#include <stdio.h>
 
-#include <stdio.h> /* For printf() */
 /*---------------------------------------------------------------------------*/
 PROCESS(hello_world_process, "Hello world process");
 AUTOSTART_PROCESSES(&hello_world_process);
