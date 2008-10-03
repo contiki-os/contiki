@@ -24,7 +24,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * $Id: GUI.java,v 1.83 2008/10/03 13:10:09 fros4943 Exp $
+ * $Id: GUI.java,v 1.84 2008/10/03 13:17:28 fros4943 Exp $
  */
 
 package se.sics.cooja;
@@ -2017,8 +2017,11 @@ public class GUI extends Observable {
     }
 
     // Add mote type to simulation
-    if (newMoteType != null && moteTypeOK) {
+    if (moteTypeOK) {
       mySimulation.addMoteType(newMoteType);
+
+      /* Allow user to immediately add motes */
+      doAddMotes(newMoteType);
     }
   }
 
