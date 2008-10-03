@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ContikiMoteTypeDialog.java,v 1.44 2008/10/03 13:08:58 fros4943 Exp $
+ * $Id: ContikiMoteTypeDialog.java,v 1.45 2008/10/03 13:39:49 fros4943 Exp $
  */
 
 package se.sics.cooja.contikimote;
@@ -154,7 +154,7 @@ public class ContikiMoteTypeDialog extends JDialog {
       myDialog.textID.setEnabled(false);
 
       // Change title to indicate this is a recompilation
-      myDialog.setTitle("Recompile Mote Type");
+      myDialog.setTitle("Recreate Mote Type");
     } else {
       // Suggest new identifier
       String suggestedID = ContikiMoteType.generateUniqueMoteTypeID(myDialog.allOtherTypes, null);
@@ -413,15 +413,15 @@ public class ContikiMoteTypeDialog extends JDialog {
   }
 
   private ContikiMoteTypeDialog(Dialog dialog) {
-    super(dialog, "Add Mote Type", ModalityType.APPLICATION_MODAL);
+    super(dialog, "Create Mote Type", ModalityType.APPLICATION_MODAL);
     setupDialog();
   }
   private ContikiMoteTypeDialog(Window window) {
-    super(window, "Add Mote Type", ModalityType.APPLICATION_MODAL);
+    super(window, "Create Mote Type", ModalityType.APPLICATION_MODAL);
     setupDialog();
   }
   private ContikiMoteTypeDialog(Frame frame) {
-    super(frame, "Add Mote Type", ModalityType.APPLICATION_MODAL);
+    super(frame, "Create Mote Type", ModalityType.APPLICATION_MODAL);
     setupDialog();
   }
 
@@ -448,13 +448,13 @@ public class ContikiMoteTypeDialog extends JDialog {
 
     buttonPane.add(Box.createHorizontalGlue());
 
-    button = new JButton("Clean intermediate files");
+    button = new JButton("Clean");
     button.setActionCommand("clean");
     button.addActionListener(myEventHandler);
     buttonPane.add(Box.createRigidArea(new Dimension(10, 0)));
     buttonPane.add(button);
 
-    button = new JButton("Compile & Test");
+    button = new JButton("Compile");
     button.setActionCommand("testsettings");
     button.addActionListener(myEventHandler);
     testButton = button;
@@ -584,11 +584,13 @@ public class ContikiMoteTypeDialog extends JDialog {
     textField = new JTextField();
     textField.setText(GUI.getExternalToolsSetting("PATH_CONTIKI"));
     textField.getDocument().addDocumentListener(myEventHandler);
+    textField.setEnabled(false); /* Disabled: Almost never used */
     textContikiDir = textField;
     label.setLabelFor(textField);
 
     button = new JButton("Browse");
     button.setActionCommand("browsecontiki");
+    button.setEnabled(false); /* Disabled: Almost never used */
     button.addActionListener(myEventHandler);
 
     smallPane.add(label);
@@ -611,6 +613,7 @@ public class ContikiMoteTypeDialog extends JDialog {
     textField.setText(textContikiDir.getText()
         + GUI.getExternalToolsSetting("PATH_COOJA_CORE_RELATIVE"));
     textField.setEditable(false);
+    textField.setEnabled(false); /* Disabled: Almost never used */
     textCoreDir = textField;
     label.setLabelFor(textField);
 
@@ -627,7 +630,7 @@ public class ContikiMoteTypeDialog extends JDialog {
     smallPane = new JPanel();
     smallPane.setAlignmentX(Component.LEFT_ALIGNMENT);
     smallPane.setLayout(new BoxLayout(smallPane, BoxLayout.X_AXIS));
-    label = new JLabel("Mote type project directories");
+    label = new JLabel("Contiki code search paths");
     label.setPreferredSize(new Dimension(LABEL_WIDTH, LABEL_HEIGHT));
 
     textField = new JTextField();
@@ -686,7 +689,11 @@ public class ContikiMoteTypeDialog extends JDialog {
     rescanButton = new JButton("Scan now");
     rescanButton.addActionListener(new ActionListener() {
       public void actionPerformed(ActionEvent e) {
-        rescanDirectories();
+        new Thread(new Runnable() {
+          public void run() {
+            rescanDirectories();
+          }
+        }).start();
       }
     });
 
@@ -1013,26 +1020,24 @@ public class ContikiMoteTypeDialog extends JDialog {
 
     JPanel progressPanel = new JPanel(new BorderLayout());
     final JDialog progressDialog = new JDialog(myDialog, (String) null);
-    JProgressBar progressBar;
-
     final MessageList taskOutput;
-    progressDialog.setLocationRelativeTo(myDialog);
 
-    progressBar = new JProgressBar(0, 100);
+    progressDialog.setLocationRelativeTo(myDialog);
+    JProgressBar progressBar = new JProgressBar(0, 100);
     progressBar.setValue(0);
     progressBar.setStringPainted(true);
     progressBar.setIndeterminate(true);
 
     taskOutput = new MessageList();
 
-    final Thread compilationThreadCopy = compilationThread;
+    final Thread compilationThreadCopy = Thread.currentThread();
     final JButton button = new JButton("Abort compilation");
     button.addActionListener(new ActionListener() {
       public void actionPerformed(ActionEvent e) {
         if (compilationThreadCopy != null && compilationThreadCopy.isAlive()) {
           compilationThreadCopy.interrupt();
         }
-        if (progressDialog != null && progressDialog.isDisplayable()) {
+        if (progressDialog.isDisplayable()) {
           progressDialog.dispose();
         }
       }
@@ -1094,7 +1099,7 @@ public class ContikiMoteTypeDialog extends JDialog {
 
     progressDialog.getContentPane().add(progressPanel);
     progressDialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
-    progressDialog.pack();
+    progressDialog.setSize(500, 300);
 
     progressDialog.getRootPane().setDefaultButton(button);
     progressDialog.setVisible(true);
@@ -2305,6 +2310,12 @@ public class ContikiMoteTypeDialog extends JDialog {
 
           createButton.setEnabled(libraryCreatedOK = false);
           pathsWereUpdated();
+
+          new Thread(new Runnable() {
+            public void run() {
+              rescanDirectories();
+            }
+          }).start();
         }
       } else if (e.getActionCommand().equals("scanprocesses")) {
         // Clear process panel
@@ -2318,7 +2329,7 @@ public class ContikiMoteTypeDialog extends JDialog {
 
         /* If mote type specific project directories, scan the testapps directory */
         if (moteTypeProjectDirs == null || moteTypeProjectDirs.isEmpty()) {
-          logger.info("No project directories selected, scanning testapps");
+          logger.info("No code search paths specified, scanning default directory");
           processes.addAll(ContikiMoteTypeDialog.scanForProcesses(
               new File(textCoreDir.getText(), "testapps")));
         } else {
