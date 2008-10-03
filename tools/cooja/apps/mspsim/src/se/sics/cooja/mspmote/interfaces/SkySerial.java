@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: SkySerial.java,v 1.2 2008/09/17 12:05:45 fros4943 Exp $
+ * $Id: SkySerial.java,v 1.3 2008/10/03 10:39:29 fros4943 Exp $
  */
 
 package se.sics.cooja.mspmote.interfaces;
@@ -98,7 +98,7 @@ public class SkySerial extends Log implements SerialPort, USARTListener {
     }
   }
 
-  public String getLastLogMessages() {
+  public String getLastLogMessage() {
     return lastLogMessage;
   }
 
@@ -150,16 +150,16 @@ public class SkySerial extends Log implements SerialPort, USARTListener {
     logTextPane.setOpaque(false);
     logTextPane.setEditable(false);
 
-    if (getLastLogMessages() == null) {
+    if (getLastLogMessage() == null) {
       logTextPane.setText("");
     } else {
-      logTextPane.append(getLastLogMessages());
+      logTextPane.append(getLastLogMessage());
     }
 
     Observer observer;
     this.addObserver(observer = new Observer() {
       public void update(Observable obs, Object obj) {
-        logTextPane.append("< " + getLastLogMessages() + "\n");
+        logTextPane.append("< " + getLastLogMessage() + "\n");
         logTextPane.setCaretPosition(logTextPane.getDocument().getLength());
       }
     });

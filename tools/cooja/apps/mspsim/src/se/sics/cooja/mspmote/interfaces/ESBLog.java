@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ESBLog.java,v 1.1 2008/02/07 14:54:16 fros4943 Exp $
+ * $Id: ESBLog.java,v 1.2 2008/10/03 10:39:29 fros4943 Exp $
  */
 
 package se.sics.cooja.mspmote.interfaces;
@@ -63,7 +63,7 @@ public class ESBLog extends Log implements USARTListener {
     }
   }
 
-  public String getLastLogMessages() {
+  public String getLastLogMessage() {
     return lastLogMessage;
   }
 
@@ -80,16 +80,16 @@ public class ESBLog extends Log implements USARTListener {
     logTextPane.setOpaque(false);
     logTextPane.setEditable(false);
 
-    if (getLastLogMessages() == null) {
+    if (getLastLogMessage() == null) {
       logTextPane.setText("");
     } else {
-      logTextPane.append(getLastLogMessages());
+      logTextPane.append(getLastLogMessage());
     }
 
     Observer observer;
     this.addObserver(observer = new Observer() {
       public void update(Observable obs, Object obj) {
-        logTextPane.append(getLastLogMessages());
+        logTextPane.append(getLastLogMessage());
         logTextPane.setCaretPosition(logTextPane.getDocument().getLength());
       }
     });
