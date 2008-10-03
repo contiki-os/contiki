@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ContikiLog.java,v 1.3 2008/10/03 10:36:39 fros4943 Exp $
+ * $Id: ContikiLog.java,v 1.4 2008/10/03 10:39:49 fros4943 Exp $
  */
 
 package se.sics.cooja.contikimote.interfaces;
@@ -113,7 +113,7 @@ public class ContikiLog extends Log implements ContikiMoteInterface {
     }
   }
 
-  public String getLastLogMessages() {
+  public String getLastLogMessage() {
     return lastLogMessage;
   }
 
