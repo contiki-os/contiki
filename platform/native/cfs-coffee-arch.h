@@ -1,6 +1,3 @@
-#ifndef CFS_COFFEE_ARCH_H
-#define CFS_COFFEE_ARCH_H
-
 /*
  * Copyright (c) 2008, Swedish Institute of Computer Science
  * All rights reserved.
@@ -35,10 +32,13 @@
 
 /**
  * \file
- *	Coffee architecture-dependent header for the Tmote Sky platform.
+ *	Coffee architecture-dependent header for the native platform.
  * \author
  * 	Nicolas Tsiftes <nvt@sics.se>
  */
+
+#ifndef CFS_COFFEE_ARCH_H
+#define CFS_COFFEE_ARCH_H
 
 #include "contiki-conf.h"
 #include "dev/xmem.h"
@@ -71,5 +71,9 @@
 
 #define WRITE_HEADER(hdr, page)						\
   COFFEE_WRITE((hdr), sizeof (*hdr), (page) * COFFEE_PAGE_SIZE)
+
+/* Coffee types. */
+typedef int16_t coffee_page_t;
+typedef int32_t coffee_offset_t;
 
 #endif /* !COFFEE_ARCH_H */
