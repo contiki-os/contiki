@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: VisState.java,v 1.4 2007/01/09 09:49:24 fros4943 Exp $
+ * $Id: VisState.java,v 1.5 2008/10/03 14:30:51 fros4943 Exp $
  */
 
 package se.sics.cooja.plugins;
@@ -41,21 +41,21 @@ import se.sics.cooja.Mote.State;
 /**
  * A State Visualizer indicates mote states by painting them in different colors.
  * Active motes are green, sleeping motes are gray and dead motes are read.
- * 
+ *
  * The inner color indicates the mote type.
  *
  * A VisState observes both the simulation and all mote states.
- * 
+ *
  * @author Fredrik Osterlind
  */
 @ClassDescription("State Visualizer")
-@PluginType(PluginType.SIM_PLUGIN)
+@PluginType(PluginType.SIM_STANDARD_PLUGIN)
 public class VisState extends Visualizer2D {
   private static final long serialVersionUID = 1L;
   private static Logger logger = Logger.getLogger(VisState.class);
 
   private Simulation simulation;
-  
+
   private static final Color moteTypeColors[] = new Color[] {
     Color.MAGENTA,
     Color.CYAN,
@@ -71,15 +71,15 @@ public class VisState extends Visualizer2D {
 
   /**
    * Creates a new state visualizer.
-   * 
+   *
    * @param simulationToVisualize Simulation to visualize
    */
   public VisState(Simulation simulationToVisualize, GUI gui) {
     super(simulationToVisualize, gui);
     setTitle("State Visualizer");
-    
+
     simulation = simulationToVisualize;
-    
+
     // Always observe all motes in simulation
     stateObserver = new Observer() {
       public void update(Observable obs, Object obj) {
@@ -98,35 +98,37 @@ public class VisState extends Visualizer2D {
       }
     });
     simObserver.update(null, null);
-    
+
+    setLocation(
+        gui.getDesktopPane().getWidth() - getWidth(),
+        0);
+
   }
-  
+
   public Color[] getColorOf(Mote mote) {
     Color[] returnColors = new Color[2];
-    
-    // If mote is sleeping, make outer circle blue 
-    if (mote.getState() == Mote.State.LPM)
+
+    // If mote is sleeping, make outer circle blue
+    if (mote.getState() == Mote.State.LPM) {
       returnColors[1] = Color.GRAY;
-    
-    // If mote is dead, make outer circle red
-    else if (mote.getState() == State.DEAD)
+    } else if (mote.getState() == State.DEAD) {
       returnColors[1] = Color.RED;
-    
-    else
+    } else {
       returnColors[1] = Color.GREEN; // make outer circle green
-    
-    
+    }
+
+
     // Associate different colors with different mote types
     Vector<MoteType> allTypes = simulation.getMoteTypes();
     int numberOfTypes = allTypes.size();
-    
+
     for (int colCounter=0; colCounter < numberOfTypes && colCounter < moteTypeColors.length; colCounter++) {
       if (mote.getType() == allTypes.get(colCounter)) {
         returnColors[0] = moteTypeColors[colCounter];
         return returnColors;
       }
-    } 
-    
+    }
+
     returnColors[0] = Color.WHITE;
     return returnColors;
   }
