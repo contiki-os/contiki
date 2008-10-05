@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: MspMoteType.java,v 1.14 2008/10/03 15:08:17 fros4943 Exp $
+ * $Id: MspMoteType.java,v 1.15 2008/10/05 15:49:10 fros4943 Exp $
  */
 
 package se.sics.cooja.mspmote;
@@ -963,7 +963,6 @@ public abstract class MspMoteType implements MoteType {
     smallPane = new JPanel(new BorderLayout());
     label = new JLabel("Source file");
     smallPane.add(BorderLayout.WEST, label);
-    logger.debug(">>>> " + getSourceFile());
     if (getSourceFile() != null) {
       label = new JLabel(getSourceFile().getName());
       label.setToolTipText(getSourceFile().getPath());
