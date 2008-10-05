@@ -20,10 +20,12 @@
       <description>Contiki Mote #1</description>
       <contikibasedir>../../..</contikibasedir>
       <contikicoredir>../../../platform/cooja</contikicoredir>
+      <projectdir>../../../examples/hello-world</projectdir>
       <compilefile>../apps/mrm</compilefile>
       <compilefile>../apps/mspsim</compilefile>
-      <compilefile>../../../platform/cooja/testapps</compilefile>
-      <compilefile>hello-world.c</compilefile>
+      <compilefile>../../../examples/hello-world</compilefile>
+      <compilefile>../../../examples/hello-world</compilefile>
+      <compilefile>../../../examples/hello-world/hello-world.c</compilefile>
       <process>hello_world_process</process>
       <sensor>button_sensor</sensor>
       <sensor>pir_sensor</sensor>
@@ -84,7 +86,7 @@
   <plugin>
     se.sics.cooja.plugins.SimControl
     <width>315</width>
-    <z>2</z>
+    <z>1</z>
     <height>199</height>
     <location_x>13</location_x>
     <location_y>7</location_y>
@@ -93,7 +95,7 @@
   <plugin>
     se.sics.cooja.radiomediums.UDGM$VisUDGM
     <width>300</width>
-    <z>3</z>
+    <z>2</z>
     <height>115</height>
     <location_x>354</location_x>
     <location_y>14</location_y>
@@ -106,10 +108,10 @@
       <history>256</history>
     </plugin_config>
     <width>573</width>
-    <z>1</z>
+    <z>3</z>
     <height>200</height>
-    <location_x>87</location_x>
-    <location_y>211</location_y>
+    <location_x>379</location_x>
+    <location_y>277</location_y>
     <minimized>false</minimized>
   </plugin>
 </simconf>
