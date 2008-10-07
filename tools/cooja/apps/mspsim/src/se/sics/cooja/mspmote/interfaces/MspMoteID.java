@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: MspMoteID.java,v 1.5 2008/10/07 08:18:54 fros4943 Exp $
+ * $Id: MspMoteID.java,v 1.6 2008/10/07 08:21:05 fros4943 Exp $
  */
 
 package se.sics.cooja.mspmote.interfaces;
@@ -54,7 +54,7 @@ public class MspMoteID extends MoteID {
   private MspMoteMemory moteMem = null;
 
   public static final boolean GENERATE_ID_HEADER = true;
-  public static final boolean PERSISTENT_SET_ID = false;
+  public static final boolean PERSISTENT_SET_ID = true;
   private int persistentSetIDCounter = 1000;
 
   private enum ID_LOCATION {
@@ -99,7 +99,7 @@ public class MspMoteID extends MoteID {
       }
     }
 
-    logger.debug("ID location: " + location);
+    /*logger.debug("ID location: " + location);*/
   }
 
   public int getMoteID() {
@@ -170,7 +170,7 @@ public class MspMoteID extends MoteID {
     if (persistentSetIDCounter-- > 0)
     {
       setMoteID(moteID);
-      logger.debug("Persistent set ID: " + moteID);
+      /*logger.debug("Persistent set ID: " + moteID);*/
     }
   }
 
