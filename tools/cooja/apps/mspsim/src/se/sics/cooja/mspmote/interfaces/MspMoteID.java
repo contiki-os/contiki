@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: MspMoteID.java,v 1.4 2008/06/27 14:04:46 nifi Exp $
+ * $Id: MspMoteID.java,v 1.5 2008/10/07 08:18:54 fros4943 Exp $
  */
 
 package se.sics.cooja.mspmote.interfaces;
@@ -40,7 +40,6 @@ import javax.swing.JPanel;
 import org.apache.log4j.Logger;
 import org.jdom.Element;
 import se.sics.cooja.Mote;
-import se.sics.cooja.AddressMemory.UnknownVariableException;
 import se.sics.cooja.interfaces.MoteID;
 import se.sics.cooja.mspmote.MspMote;
 import se.sics.cooja.mspmote.MspMoteMemory;
@@ -55,6 +54,19 @@ public class MspMoteID extends MoteID {
   private MspMoteMemory moteMem = null;
 
   public static final boolean GENERATE_ID_HEADER = true;
+  public static final boolean PERSISTENT_SET_ID = false;
+  private int persistentSetIDCounter = 1000;
+
+  private enum ID_LOCATION {
+    VARIABLE_NODE_ID,
+    VARIABLE_TOS_NODE_ID,
+    VARIABLES_BOTH,
+    JAVA_ONLY
+  }
+
+  private ID_LOCATION location = ID_LOCATION.JAVA_ONLY;
+
+  private int moteID = -1; /* Only used for location IN_JAVA_ONLY */
 
   /**
    * Creates an interface to the mote ID at mote.
@@ -67,37 +79,99 @@ public class MspMoteID extends MoteID {
   public MspMoteID(Mote mote) {
     this.mote = (MspMote) mote;
     this.moteMem = (MspMoteMemory) mote.getMemory();
+
+    String[] variables = moteMem.getVariableNames();
+
+    location = ID_LOCATION.JAVA_ONLY;
+    for (String variable: variables) {
+      if (variable.equals("TOS_NODE_ID")) {
+        if (location == ID_LOCATION.VARIABLE_NODE_ID) {
+          location = ID_LOCATION.VARIABLES_BOTH;
+        } else {
+          location = ID_LOCATION.VARIABLE_TOS_NODE_ID;
+        }
+      } else if (variable.equals("node_id")) {
+        if (location == ID_LOCATION.VARIABLE_TOS_NODE_ID) {
+          location = ID_LOCATION.VARIABLES_BOTH;
+        } else {
+          location = ID_LOCATION.VARIABLE_NODE_ID;
+        }
+      }
+    }
+
+    logger.debug("ID location: " + location);
   }
 
   public int getMoteID() {
-    try {
+    if (location == ID_LOCATION.VARIABLE_NODE_ID) {
       return moteMem.getIntValueOf("node_id");
-    } catch (UnknownVariableException e) {
-      logger.fatal("Contiki variable 'node_id' not found");
     }
+
+    if (location == ID_LOCATION.VARIABLES_BOTH) {
+      return moteMem.getIntValueOf("node_id");
+    }
+
+    if (location == ID_LOCATION.VARIABLE_TOS_NODE_ID) {
+      return moteMem.getIntValueOf("TOS_NODE_ID");
+    }
+
+    if (location == ID_LOCATION.JAVA_ONLY) {
+      return moteID;
+    }
+
+    logger.fatal("Unknown node ID location");
     return -1;
   }
 
   public void setMoteID(int newID) {
-    /* Write node ID to flash */
-    if (GENERATE_ID_HEADER) {
-      SkyFlash flash = mote.getInterfaces().getInterfaceOfType(SkyFlash.class);
-      if (flash != null) {
-        flash.writeIDheader(newID);
+    moteID = newID;
+
+    if (location == ID_LOCATION.VARIABLE_NODE_ID) {
+      if (GENERATE_ID_HEADER) {
+        /* Write to external flash */
+        SkyFlash flash = mote.getInterfaces().getInterfaceOfType(SkyFlash.class);
+        if (flash != null) {
+          flash.writeIDheader(newID);
+        }
       }
+      moteMem.setIntValueOf("node_id", newID);
+      return;
     }
 
-    try {
+    if (location == ID_LOCATION.VARIABLES_BOTH) {
+      if (GENERATE_ID_HEADER) {
+        /* Write to external flash */
+        SkyFlash flash = mote.getInterfaces().getInterfaceOfType(SkyFlash.class);
+        if (flash != null) {
+          flash.writeIDheader(newID);
+        }
+      }
       moteMem.setIntValueOf("node_id", newID);
-    } catch (UnknownVariableException e) {
-      logger.fatal("Contiki variable 'node_id' not found");
+      moteMem.setIntValueOf("TOS_NODE_ID", newID);
+      return;
     }
+
+    if (location == ID_LOCATION.VARIABLE_TOS_NODE_ID) {
+      moteMem.setIntValueOf("TOS_NODE_ID", newID);
+      return;
+    }
+
+    if (location == ID_LOCATION.JAVA_ONLY) {
+      return;
+    }
+
+    logger.fatal("Unknown node ID location");
 
     setChanged();
     notifyObservers();
   }
 
   public void doActionsBeforeTick() {
+    if (persistentSetIDCounter-- > 0)
+    {
+      setMoteID(moteID);
+      logger.debug("Persistent set ID: " + moteID);
+    }
   }
 
   public void doActionsAfterTick() {
