@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: MspMoteID.java,v 1.6 2008/10/07 08:21:05 fros4943 Exp $
+ * $Id: MspMoteID.java,v 1.7 2008/10/09 09:41:27 joxe Exp $
  */
 
 package se.sics.cooja.mspmote.interfaces;
@@ -148,11 +148,14 @@ public class MspMoteID extends MoteID {
       }
       moteMem.setIntValueOf("node_id", newID);
       moteMem.setIntValueOf("TOS_NODE_ID", newID);
+      moteMem.setIntValueOf("ActiveMessageAddressC$addr", newID);
+
       return;
     }
 
     if (location == ID_LOCATION.VARIABLE_TOS_NODE_ID) {
       moteMem.setIntValueOf("TOS_NODE_ID", newID);
+      moteMem.setIntValueOf("ActiveMessageAddressC$addr", newID);
       return;
     }
 
