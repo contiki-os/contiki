@@ -49,11 +49,11 @@
 #define COFFEE_START			CFS_EEPROM_CONF_OFFSET
 #define COFFEE_SIZE			((32 kb) - COFFEE_START)
 #define COFFEE_NAME_LENGTH		16
-#define COFFEE_DYN_SIZE			(1 kb)
 #define COFFEE_FD_SET_SIZE		2
-#define COFFEE_LOG_SIZE			(256)
 #define COFFEE_LOG_TABLE_LIMIT		16
 #define COFFEE_DIR_CACHE_ENTRIES	1
+#define COFFEE_DYN_SIZE			(1 kb)
+#define COFFEE_LOG_SIZE			(256)
 
 #define COFFEE_WRITE(buf, size, offset)				\
 		eeprom_write(COFFEE_START + (offset), (unsigned char *)(buf), (size))
