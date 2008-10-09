@@ -49,11 +49,11 @@
 #define COFFEE_START			COFFEE_SECTOR_SIZE
 #define COFFEE_SIZE			((1024 kb) - COFFEE_START)
 #define COFFEE_NAME_LENGTH		16
-#define COFFEE_DYN_SIZE			(16 kb)
 #define COFFEE_FD_SET_SIZE		8
-#define COFFEE_LOG_SIZE			(8 kb)
 #define COFFEE_LOG_TABLE_LIMIT		256
 #define COFFEE_DIR_CACHE_ENTRIES	16
+#define COFFEE_DYN_SIZE			(4 kb)
+#define COFFEE_LOG_SIZE			(1 kb)
 
 /* Flash operations. */
 #define COFFEE_WRITE(buf, size, offset)				\
