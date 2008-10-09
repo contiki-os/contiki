@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: SkyMote.java,v 1.5 2008/06/27 14:09:26 nifi Exp $
+ * $Id: SkyMote.java,v 1.6 2008/10/09 11:11:30 joxe Exp $
  */
 
 package se.sics.cooja.mspmote;
@@ -95,7 +95,9 @@ public class SkyMote extends MspMote {
     moteInterfaceHandler.addActiveInterface(moteID);
 
     // Add radio interface
-    SkyRadio moteRadio = new SkyRadio(this);
+//  SkyRadio moteRadio = new SkyRadio(this);
+//  moteInterfaceHandler.addActiveInterface(moteRadio);
+    SkyByteRadio moteRadio = new SkyByteRadio(this);
     moteInterfaceHandler.addActiveInterface(moteRadio);
 
     // Add serial interface
