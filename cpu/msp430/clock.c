@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: clock.c,v 1.15 2008/09/16 12:00:48 fros4943 Exp $
+ * @(#)$Id: clock.c,v 1.16 2008/10/10 12:36:58 nifi Exp $
  */
 
 
@@ -47,7 +47,7 @@
 
 #define MAX_TICKS (~((clock_time_t)0) / 2)
 
-static volatile unsigned short seconds;
+static volatile unsigned long seconds;
 
 static volatile clock_time_t count = 0;
 /* last_tar is used for calculating clock_fine, last_ccr might be better? */
@@ -189,22 +189,12 @@ clock_set_seconds(unsigned long sec)
 unsigned long
 clock_seconds(void)
 {
-  static unsigned long offset;
-  static unsigned long last_time;
-  unsigned long new_time;
-
-  new_time = seconds + offset;
-
-  /*  printf("Seconds %d new_time %lu offset %lu\n", seconds, new_time, offset);*/
-  
-  if(new_time < last_time) {
-    offset += 0x10000L;
-    new_time += 0x10000L;
-  }
-
-  last_time = new_time;
-
-  return new_time;
+  unsigned long t1, t2;
+  do {
+    t1 = seconds;
+    t2 = seconds;
+  } while(t1 != t2);
+  return t1;
 }
 /*---------------------------------------------------------------------------*/
 rtimer_clock_t
