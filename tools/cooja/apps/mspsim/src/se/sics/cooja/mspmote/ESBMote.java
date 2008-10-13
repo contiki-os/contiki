@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ESBMote.java,v 1.3 2008/06/27 14:09:26 nifi Exp $
+ * $Id: ESBMote.java,v 1.4 2008/10/13 14:50:50 nifi Exp $
  */
 
 package se.sics.cooja.mspmote;
@@ -59,8 +59,7 @@ public class ESBMote extends MspMote {
   protected boolean initEmulator(File fileELF) {
     try {
       esbNode = new ESBNode();
-      esbNode.setupNodePorts();
-      prepareMote(fileELF, esbNode.getCPU());
+      prepareMote(fileELF, esbNode);
 
     } catch (Exception e) {
       logger.fatal("Error when creating ESB mote:", e);

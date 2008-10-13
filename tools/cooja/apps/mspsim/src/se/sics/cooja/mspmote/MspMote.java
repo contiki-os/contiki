@@ -26,21 +26,37 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: MspMote.java,v 1.13 2008/10/07 16:49:21 fros4943 Exp $
+ * $Id: MspMote.java,v 1.14 2008/10/13 14:50:50 nifi Exp $
  */
 
 package se.sics.cooja.mspmote;
-
-import java.io.*;
+import java.io.File;
+import java.io.IOException;
+import java.io.PrintStream;
 import java.net.URL;
-import java.net.URLConnection;
-import java.util.*;
+import java.util.Collection;
+import java.util.Observable;
+import java.util.Observer;
+import java.util.Vector;
 import org.apache.log4j.Logger;
 import org.jdom.Element;
-import se.sics.cooja.*;
+import se.sics.cooja.GUI;
+import se.sics.cooja.Mote;
+import se.sics.cooja.MoteInterface;
+import se.sics.cooja.MoteInterfaceHandler;
+import se.sics.cooja.MoteMemory;
+import se.sics.cooja.MoteType;
+import se.sics.cooja.Simulation;
 import se.sics.cooja.mspmote.interfaces.TR1001Radio;
+import se.sics.mspsim.cli.CommandHandler;
+import se.sics.mspsim.cli.LineListener;
+import se.sics.mspsim.cli.LineOutputStream;
 import se.sics.mspsim.core.MSP430;
-import se.sics.mspsim.util.*;
+import se.sics.mspsim.platform.GenericNode;
+import se.sics.mspsim.util.ConfigManager;
+import se.sics.mspsim.util.ELF;
+import se.sics.mspsim.util.MapEntry;
+import se.sics.mspsim.util.MapTable;
 
 /**
  * @author Fredrik Osterlind
@@ -56,6 +72,8 @@ public abstract class MspMote implements Mote {
   public int cycleDrift = 0;
 
   private Simulation mySimulation = null;
+  private CommandHandler commandHandler;
+  private LineListener commandListener;
   private MSP430 myCpu = null;
   private MspMoteType myMoteType = null;
   private MspMoteMemory myMemory = null;
@@ -97,6 +115,20 @@ public abstract class MspMote implements Mote {
       initEmulator(myMoteType.getELFFile());
       myMoteInterfaceHandler = createMoteInterfaceHandler();
     }
+  }
+
+  public void sendCLICommand(String line) {
+    if (commandHandler != null) {
+      commandHandler.lineRead(line);
+    }
+  }
+
+  public boolean hasCLIListener() {
+    return this.commandListener != null;
+  }
+
+  public void setCLIListener(LineListener listener) {
+    this.commandListener = listener;
   }
 
   /**
@@ -179,37 +211,36 @@ public abstract class MspMote implements Mote {
    * @param cpu MSP430 cpu
    * @throws IOException Preparing mote failed
    */
-  protected void prepareMote(File fileELF, MSP430 cpu) throws IOException {
-    myCpu = cpu;
-    myCpu.setMonitorExec(true);
+  protected void prepareMote(File fileELF, GenericNode node) throws IOException {
+    LineOutputStream lout = new LineOutputStream(new LineListener() {
+      @Override
+      public void lineRead(String line) {
+        LineListener listener = commandListener;
+        if (listener != null) {
+          listener.lineRead(line);
+        }
+      }});
+    PrintStream out = new PrintStream(lout);
+    this.commandHandler = new CommandHandler(out, out);
+    node.setCommandHandler(commandHandler);
+
+    ConfigManager config = new ConfigManager();
+    node.setup(config);
+
+    this.myCpu = node.getCPU();
+    this.myCpu.setMonitorExec(true);
 
     int[] memory = myCpu.getMemory();
-
     if (GUI.isVisualizedInApplet()) {
-      URLConnection urlConnection = new URL(GUI.getAppletCodeBase(), fileELF.getName()).openConnection();
-      urlConnection.setDoInput(true);
-      urlConnection.setUseCaches(false);
-      DataInputStream inputStream = new DataInputStream(urlConnection.getInputStream());
-      ByteArrayOutputStream byteStream = new ByteArrayOutputStream();
-      byte[] firmwareData = new byte[2048];
-      for(int read; (read = inputStream.read(firmwareData)) != -1; byteStream.write(firmwareData, 0, read)) { }
-      inputStream.close();
-      firmwareData = null;
-      firmwareData = byteStream.toByteArray();
-
-      myELFModule = new ELF(firmwareData);
-      myELFModule.readAll();
+      myELFModule = node.loadFirmware(new URL(GUI.getAppletCodeBase(), fileELF.getName()), memory);
     } else {
-      myELFModule = ELF.readELF(fileELF.getPath());
+      myELFModule = node.loadFirmware(fileELF.getPath(), memory);
     }
-    myELFModule.loadPrograms(memory);
-    MapTable map = myELFModule.getMap();
-    myCpu.getDisAsm().setMap(map);
-    myCpu.setMap(map);
 
     /* TODO Need new memory type including size and type as well */
 
     /* Create mote address memory */
+    MapTable map = myELFModule.getMap();
     MapEntry[] allEntries = map.getAllEntries();
     myMemory = new MspMoteMemory(allEntries, myCpu);
 
@@ -360,7 +391,7 @@ public abstract class MspMote implements Mote {
       element = new Element("interface_config");
       element.setText(moteInterface.getClass().getName());
 
-      Collection interfaceXML = moteInterface.getConfigXML();
+      Collection<Element> interfaceXML = moteInterface.getConfigXML();
       if (interfaceXML != null) {
         element.addContent(interfaceXML);
         config.add(element);
@@ -372,7 +403,7 @@ public abstract class MspMote implements Mote {
       element = new Element("interface_config");
       element.setText(moteInterface.getClass().getName());
 
-      Collection interfaceXML = moteInterface.getConfigXML();
+      Collection<Element> interfaceXML = moteInterface.getConfigXML();
       if (interfaceXML != null) {
         element.addContent(interfaceXML);
         config.add(element);
@@ -383,4 +414,3 @@ public abstract class MspMote implements Mote {
   }
 
 }
-
