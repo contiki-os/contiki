@@ -1,4 +1,4 @@
-# $Id: Makefile.avr,v 1.10 2008/02/07 19:56:56 oliverschmidt Exp $
+# $Id: Makefile.avr,v 1.11 2008/10/14 09:44:12 adamdunkels Exp $
 
 ### Check if we are running under Windows
 
@@ -11,6 +11,9 @@ ifndef WINDIR
 endif
 
 .SUFFIXES:
+
+### Optimization setting
+OPTI=s
 
 ### Define the CPU directory
 CONTIKI_CPU=$(CONTIKI)/cpu/avr
@@ -35,12 +38,12 @@ AS       = avr-as
 AR       = avr-ar
 OBJCOPY  = avr-objcopy
 STRIP    = avr-strip
-CFLAGSNO = -I. -I$(CONTIKI)/core -I$(CONTIKI_CPU) \
+CFLAGSNO = -I. -I$(CONTIKI)/core -I$(CONTIKI_CPU) $(USB_INCLUDES) \
            -I$(CONTIKI)/platform/$(TARGET) \
            ${addprefix -I,$(APPDIRS)} \
-           -Wall -mmcu=$(MCU) -gstabs
-CFLAGS   = $(CFLAGSNO) -Os
-BOOTLOADER_START = 0x1e000
+           -Wall -mmcu=$(MCU) -gdwarf-2 $(CONTIKI_PLAT_DEFS)
+CFLAGS   += $(CFLAGSNO) -O$(OPTI)
+BOOTLOADER_START = 0x1FC00
 LDFLAGS  = -mmcu=$(MCU) -Wl,-Map=contiki-$(TARGET).map \
 		-Wl,--section-start=.bootloader=$(BOOTLOADER_START)
 
@@ -50,9 +53,11 @@ LDFLAGS  = -mmcu=$(MCU) -Wl,-Map=contiki-$(TARGET).map \
 CONTIKI_TARGET_DIRS_CONCAT = ${addprefix $(CONTIKI)/platform/$(TARGET)/, \
                                $(CONTIKI_TARGET_DIRS)}
 
-vpath %.c $(PROJECTDIRS) $(CONTIKI)/cpu/avr/dev \
+vpath %.c $(PROJECTDIRS) $(CONTIKI)/cpu/avr/dev $(CONTIKI)/cpu/avr/dev/usb \
+      $(CONTIKI)/cpu/avr/dev/usb/rndis $(CONTIKI)/cpu/avr/dev/usb/serial \
+      $(CONTIKI)/cpu/avr/dev/usb/storage \
 	  $(CONTIKIDIRS) $(APPDIRS) $(CONTIKI_TARGET_DIRS_CONCAT) \
-	  $(CONTIKI_CPU)
+	  $(CONTIKI_CPU) $(CONTIKI)/cpu/avr/radio/rf230 $(CONTIKI)/cpu/avr/radio/mac
 
 ### Compilation rules
 
