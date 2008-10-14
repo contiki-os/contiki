@@ -1,5 +1,5 @@
 ifndef CONTIKI
-  ${error CONTIKI not defined! You must specify where CONTIKI resides!}
+  ${error CONTIKI not defined! You must specify where CONTIKI resides}
 endif
 
 OBJECTDIR = obj_$(TARGET)
@@ -8,11 +8,8 @@ CFLAGS += -DCONTIKI_TARGET=$(TARGET)
 ifeq ($(TARGET),)
   -include Makefile.target
   ifeq ($(TARGET),)
-    ifeq ($(DEFAULT_TARGET),)
-      DEFAULT_TARGET=native
-    endif
-    ${info TARGET not defined, using target '$(DEFAULT_TARGET)'}
-    TARGET=$(DEFAULT_TARGET)
+    ${info TARGET not defined, using target 'native'}
+    TARGET=native
   else
     ${info using saved target '$(TARGET)'}
   endif
@@ -47,20 +44,21 @@ endif
 
 include $(CONTIKI)/core/net/rime/Makefile.rime
 include $(CONTIKI)/core/net/mac/Makefile.mac
+#include $(CONTIKI)/core/net/ipv6/Makefile.ipv6
 SYSTEM  = process.c procinit.c autostart.c elfloader.c profile.c timetable.c timetable-aggregate.c
 THREADS = mt.c
-LIBS    = timer.c etimer.c random.c memb.c list.c energest.c print-stats.c rtimer.c stimer.c
-ifndef UIP_CONF_IPV6
-UIP     = uip.c tcpip.c uip-split.c  psock.c uip-udp-packet.c uip-over-mesh.c resolv.c hc.c tcpdump.c uiplib.c 
-else
-UIP     = uip6.c tcpip.c uip-split.c  psock.c uip-udp-packet.c uip-over-mesh.c resolv.c hc.c tcpdump.c uiplib.c
-endif
-#rawpacket-udp.c
-ifndef UIP_CONF_IPV6
-NET     = $(UIP) uaodv.c uaodv-rt.c
-else
+LIBS    = memb.c timer.c list.c etimer.c energest.c rtimer.c stimer.c \
+          print-stats.c ifft.c crc16.c random.c
+ifdef UIP_CONF_IPV6
+UIP     = uip6.c tcpip.c psock.c uip-udp-packet.c uip-split.c \
+          uip-over-mesh.c resolv.c hc.c tcpdump.c uiplib.c
 NET     = $(UIP) uip-icmp6.c uip-nd6.c uip-nd6-io.c uip-netif.c sicslowpan.c
-endif
+else # UIP_CONF_IPV6
+UIP     = uip.c uiplib.c resolv.c tcpip.c psock.c hc.c uip-split.c uip-fw.c \
+          uip-fw-drv.c uip_arp.c tcpdump.c uip-neighbor.c uip-udp-packet.c \
+          uip-over-mesh.c #rawpacket-udp.c
+NET     = $(UIP) uaodv.c uaodv-rt.c
+endif # UIP_CONF_IPV6
 CTK     = ctk.c
 CTKVNC  = $(CTK) ctk-vncserver.c libconio.c vnc-server.c vnc-out.c ctk-vncfont.c
 
@@ -73,7 +71,7 @@ endif
 CONTIKI_SOURCEFILES += $(CONTIKIFILES)
 
 CONTIKIDIRS += ${addprefix $(CONTIKI)/core/,dev lib net net/mac net/rime sys \
-                 cfs ctk lib/ctk loader net/sicslow_interop . }
+                 cfs ctk lib/ctk loader . }
 
 oname = ${patsubst %.c,%.o,${patsubst %.S,%.o,$(1)}}
 
