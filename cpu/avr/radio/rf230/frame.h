@@ -49,7 +49,7 @@
  *  This file converts to and from a structure to a packed 802.15.4
  *  frame.
  *
- *    $Id: frame.h,v 1.1 2008/10/14 09:43:40 adamdunkels Exp $
+ *    $Id: frame.h,v 1.2 2008/10/14 18:37:28 c_oflynn Exp $
 */
 
 
@@ -172,28 +172,6 @@ typedef struct{
     uint8_t payload_len;  /**< Length of payload field */
 } frame_create_params_t;
 
-
-
-/**
- *   \brief 802.15.4 frame structure, including the LQI, RSSI, and frame time
- *   fields.
-*/
-/* typedef struct{ */
-/*     fcf_t       fcf;               /\**< The FCF of the frame. *\/ */
-/*     uint8_t     seqNum;            /\**< The sequence number of the frame. *\/ */
-/*     uint16_t    dest_pid;          /\**< Destination PAN ID. *\/ */
-/*     addr_t      dest_addr;         /\**< Destination address. *\/ */
-/*     uint16_t    src_pid;           /\**< PAN ID *\/ */
-/*     addr_t      src_addr;          /\**< Source address *\/ */
-/*     uint8_t     aux_sec_hdr[14];   /\**< 802.15.4 Aux security header *\/ */
-/*     uint8_t     payload_length;    /\**< Length of payload section of frame *\/ */
-/*     uint8_t     payload[118];      /\**< Frame payload *\/ */
-/*     uint8_t     lqi;               /\**< Link quality indication value *\/ */
-/*     uint8_t     rssi;              /\**< Received signal strength indication value *\/ */
-/*     uint32_t    time;              /\**< Time stamp of received frame *\/ */
-/*     bool   fcs:1;                  /\**< True if checksum has passed *\/ */
-/*     bool   in_use:1;               /\**< Is this frame struct being used? *\/ */
-/* }FRAME_t; */
 
 typedef struct{
     fcf_t      * fcf;               /**< The FCF of the frame. */
