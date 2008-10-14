@@ -41,7 +41,7 @@
  *
  * This file is part of the uIP TCP/IP stack.
  *
- * $Id: uip6.c,v 1.1 2008/10/14 09:42:33 julienabeille Exp $
+ * $Id: uip6.c,v 1.2 2008/10/14 12:26:18 adamdunkels Exp $
  *
  */
 
@@ -71,12 +71,9 @@
  * the packet back to the peer.
  */
 
-//#include "net/uip.h"
-//#include "net/uipopt.h"
 #include "net/uip-icmp6.h"
 #include "net/uip-nd6.h"
 #include "net/uip-netif.h"
-#include "raven-lcd.h"
 
 #include <string.h>
 
@@ -124,8 +121,8 @@ uip_lladdr_t uip_lladdr = {{0x00,0x06,0x98,0x00,0x02,0x32}};
 /*---------------------------------------------------------------------------*/
 /**
  * \brief Type of the next header in IPv6 header or extension headers
- * 
- * Can be the next header field in the IPv6 header or in an extension header. 
+ *
+ * Can be the next header field in the IPv6 header or in an extension header.
  * When doing fragment reassembly, we must change the value of the next header
  * field in the header before the fragmentation header, hence we need a pointer
  * to this field.
@@ -134,7 +131,7 @@ u8_t *uip_next_hdr;
 /** \brief bitmap we use to record which IPv6 headers we have already seen */
 u8_t uip_ext_bitmap = 0;
 /**
- * \brief length of the extension headers read. updated each time we process 
+ * \brief length of the extension headers read. updated each time we process
  * a header
  */
 u8_t uip_ext_len = 0;
@@ -167,17 +164,17 @@ u8_t uip_ext_opt_offset = 0;
  */
 /** Packet buffer for incoming and outgoing packets */
 #ifndef UIP_CONF_EXTERNAL_BUFFER
-u8_t uip_buf[UIP_BUFSIZE + 2];   
+u8_t uip_buf[UIP_BUFSIZE + 2];
 #endif /* UIP_CONF_EXTERNAL_BUFFER */
 
 /* The uip_appdata pointer points to application data. */
-void *uip_appdata;  
+void *uip_appdata;
 /* The uip_appdata pointer points to the application data which is to be sent*/
-void *uip_sappdata;              
+void *uip_sappdata;
 
 #if UIP_URGDATA > 0
 /* The uip_urgdata pointer points to urgent data (out-of-band data), if present */
-void *uip_urgdata;               
+void *uip_urgdata;
 u16_t uip_urglen, uip_surglen;
 #endif /* UIP_URGDATA > 0 */
 
@@ -194,7 +191,7 @@ and the application program. */
 u8_t uip_flags;
 
 /* uip_conn always points to the current connection (set to NULL for UDP). */
-struct uip_conn *uip_conn;   
+struct uip_conn *uip_conn;
 
 /* Temporary variables. */
 #if (UIP_TCP || UIP_UDP)
@@ -203,7 +200,7 @@ static u8_t c;
 
 #if UIP_ACTIVE_OPEN
 /* Keeps track of the last port used for a new connection. */
-static u16_t lastport;     
+static u16_t lastport;
 #endif /* UIP_ACTIVE_OPEN */
 /** @} */
 
@@ -269,7 +266,7 @@ struct uip_icmp6_conn uip_icmp6_conns;
 /*---------------------------------------------------------------------------*/
 /* Functions                                                                 */
 /*---------------------------------------------------------------------------*/
-#if (!UIP_ARCH_ADD32 && UIP_TCP) 
+#if (!UIP_ARCH_ADD32 && UIP_TCP)
 void
 uip_add32(u8_t *op32, u16_t op16)
 {
@@ -588,7 +585,7 @@ static u8_t uip_reassflags;
 
 /*
  * See RFC 2460 for a description of fragmentation in IPv6
- * A typical Ipv6 fragment 
+ * A typical Ipv6 fragment
  *  +------------------+--------+--------------+
  *  |  Unfragmentable  |Fragment|    first     |
  *  |       Part       | Header |   fragment   |
@@ -632,8 +629,8 @@ uip_reass(void)
    */
   if(uip_ipaddr_cmp(&FBUF->srcipaddr, &UIP_IP_BUF->srcipaddr) &&
      uip_ipaddr_cmp(&FBUF->destipaddr, &UIP_IP_BUF->destipaddr) &&
-     UIP_FRAG_BUF->id == uip_id) {     
-    len = uip_len - uip_ext_len - UIP_IPH_LEN - UIP_FRAGH_LEN;  
+     UIP_FRAG_BUF->id == uip_id) {
+    len = uip_len - uip_ext_len - UIP_IPH_LEN - UIP_FRAGH_LEN;
     offset = (ntohs(UIP_FRAG_BUF->offsetresmore) & 0xfff8);
     /* in byte, originaly in multiple of 8 bytes*/
     PRINTF("len %d\n", len);
@@ -665,8 +662,8 @@ uip_reass(void)
     }
 
     /* If this fragment has the More Fragments flag set to zero, it is the
-       last fragment*/ 
-    if((ntohs(UIP_FRAG_BUF->offsetresmore) & IP_MF) == 0) {    
+       last fragment*/
+    if((ntohs(UIP_FRAG_BUF->offsetresmore) & IP_MF) == 0) {
       uip_reassflags |= UIP_REASS_FLAG_LASTFRAG;
       /*calculate the size of the entire packet*/
       uip_reasslen = offset + len;
@@ -675,7 +672,7 @@ uip_reass(void)
       /* If len is not a multiple of 8 octets and the M flag of that fragment
          is 1, then that fragment must be discarded and an ICMP Parameter
          Problem, Code 0, message should be sent to the source of the fragment,
-         pointing to the Payload Length field of the fragment packet. */ 
+         pointing to the Payload Length field of the fragment packet. */
       if(len % 8 != 0){
         uip_icmp6_error_output(ICMP6_PARAM_PROB, ICMP6_PARAMPROB_HEADER, 4);
         uip_reassflags |= UIP_REASS_FLAG_ERROR_MSG;
@@ -714,7 +711,7 @@ uip_reass(void)
        this by checking if we have the last fragment and if all bits
        in the bitmap are set. */
     
-    if(uip_reassflags & UIP_REASS_FLAG_LASTFRAG) {   
+    if(uip_reassflags & UIP_REASS_FLAG_LASTFRAG) {
       /* Check all bytes up to and including all but the last byte in
          the bitmap. */
       for(i = 0; i < (uip_reasslen >> 6); ++i) {
@@ -801,8 +798,8 @@ uip_add_rcv_nxt(u16_t n)
  */
 static u8_t
 ext_hdr_options_process() {
- /* 
-  * Length field in the extension header: length of th eheader in units of 
+ /*
+  * Length field in the extension header: length of th eheader in units of
   * 8 bytes, excluding the first 8 bytes
   * length field in an option : the length of data in the option
   */
@@ -812,7 +809,7 @@ ext_hdr_options_process() {
       /*
        * for now we do not support any options except padding ones
        * PAD1 does not make sense as the header must be 8bytes aligned,
-       * hence we can only have 
+       * hence we can only have
        */
       case UIP_EXT_HDR_OPT_PAD1:
         PRINTF("Processing PAD1 option\n");
@@ -823,7 +820,7 @@ ext_hdr_options_process() {
         uip_ext_opt_offset += UIP_EXT_HDR_OPT_PADN_BUF->opt_len + 2;
         break;
       default:
-        /*  
+        /*
          * check the two highest order bits of the option
          * - 00 skip over this option and continue processing the header.
          * - 01 discard the packet.
@@ -845,9 +842,9 @@ ext_hdr_options_process() {
           case 0xC0:
             if(uip_is_addr_mcast(&UIP_IP_BUF->destipaddr)) {
               return 1;
-            } 
+            }
           case 0x80:
-            uip_icmp6_error_output(ICMP6_PARAM_PROB, ICMP6_PARAMPROB_OPTION, 
+            uip_icmp6_error_output(ICMP6_PARAM_PROB, ICMP6_PARAMPROB_OPTION,
                              (u32_t)UIP_IPH_LEN + uip_ext_len + uip_ext_opt_offset);
             return 2;
         }
@@ -866,7 +863,7 @@ uip_process(u8_t flag)
 {
 #if UIP_TCP
   register struct uip_conn *uip_connr = uip_conn;
-#endif /* UIP_TCP */    
+#endif /* UIP_TCP */
 #if UIP_UDP
   if(flag == UIP_UDP_SEND_CONN) {
     goto udp_send;
@@ -885,7 +882,7 @@ uip_process(u8_t flag)
       goto appsend;
     }
     goto drop;
-#endif /* UIP_TCP */          
+#endif /* UIP_TCP */
     /* Check if we were invoked because of the perodic timer fireing. */
   } else if(flag == UIP_TIMER) {
     /* Reset the length variables. */
@@ -918,7 +915,7 @@ uip_process(u8_t flag)
       /*
        * If the connection has outstanding data, we increase the
        * connection's timer and see if it has reached the RTO value
-       * in which case we retransmit. 
+       * in which case we retransmit.
        */
       if(uip_outstanding(uip_connr)) {
         if(uip_connr->timer-- == 0) {
@@ -928,10 +925,10 @@ uip_process(u8_t flag)
               uip_connr->nrtx == UIP_MAXSYNRTX)) {
             uip_connr->tcpstateflags = UIP_CLOSED;
                   
-            /* 
+            /*
              * We call UIP_APPCALL() with uip_flags set to
              * UIP_TIMEDOUT to inform the application that the
-             * connection has timed out. 
+             * connection has timed out.
              */
             uip_flags = UIP_TIMEDOUT;
             UIP_APPCALL();
@@ -953,7 +950,7 @@ uip_process(u8_t flag)
            * call upon the application so that it may prepare the
            * data for the retransmit. In SYN_RCVD, we resend the
            * SYNACK that we sent earlier and in LAST_ACK we have to
-           * retransmit our FINACK. 
+           * retransmit our FINACK.
            */
           UIP_STAT(++uip_stat.tcp.rexmit);
           switch(uip_connr->tcpstateflags & UIP_TS_MASK) {
@@ -989,7 +986,7 @@ uip_process(u8_t flag)
       } else if((uip_connr->tcpstateflags & UIP_TS_MASK) == UIP_ESTABLISHED) {
         /*
          * If there was no need for a retransmission, we poll the
-         * application for new data. 
+         * application for new data.
          */
         uip_flags = UIP_POLL;
         UIP_APPCALL();
@@ -1033,7 +1030,7 @@ uip_process(u8_t flag)
    * that the packet has been corrupted in transit. If the size of
    * uip_len is larger than the size reported in the IP packet header,
    * the packet has been padded and we set uip_len to the correct
-   * value.. 
+   * value..
    */
    
   if((UIP_IP_BUF->len[0] << 8) + UIP_IP_BUF->len[1] <= uip_len) {
@@ -1047,17 +1044,17 @@ uip_process(u8_t flag)
      * problem as the length field in the IPv4 header
      * contains the length of the entire packet. But
      * for IPv6 we need to add the size of the IPv6
-     * header (40 bytes). 
+     * header (40 bytes).
      */
   } else {
     UIP_LOG("ip: packet shorter than reported in IP header.");
     goto drop;
-  }  
+  }
    
 
   if(uip_is_addr_mcast(&UIP_IP_BUF->srcipaddr)){
     UIP_STAT(++uip_stat.ip.drop);
-    goto drop; 
+    goto drop;
   }
       
   if(!uip_netif_is_addr_my_unicast(&UIP_IP_BUF->destipaddr) &&
@@ -1069,7 +1066,7 @@ uip_process(u8_t flag)
   
  
   /*
-   * Next header field processing. In IPv6, we can have extension headers, 
+   * Next header field processing. In IPv6, we can have extension headers,
    * they are processed here
    */
   uip_next_hdr = &UIP_IP_BUF->proto;
@@ -1103,10 +1100,10 @@ uip_process(u8_t flag)
 #endif /*UIP_CONF_IPV6_CHECKS*/
         switch(ext_hdr_options_process()) {
           case 0:
-            /*continue*/ 
+            /*continue*/
             uip_next_hdr = &UIP_EXT_BUF->next;
             uip_ext_len += (UIP_EXT_BUF->len << 3) + 8;
-            break; 
+            break;
           case 1:
             /*silently discard*/
             goto drop;
@@ -1132,10 +1129,10 @@ uip_process(u8_t flag)
 #endif /*UIP_CONF_IPV6_CHECKS*/
         switch(ext_hdr_options_process()) {
           case 0:
-            /*continue*/ 
+            /*continue*/
             uip_next_hdr = &UIP_EXT_BUF->next;
             uip_ext_len += (UIP_EXT_BUF->len << 3) + 8;
-            break; 
+            break;
           case 1:
             /*silently discard*/
             goto drop;
@@ -1154,8 +1151,8 @@ uip_process(u8_t flag)
           uip_ext_bitmap |= UIP_EXT_HDR_BITMAP_ROUTING;
         }
 #endif /*UIP_CONF_IPV6_CHECKS*/
-        /* 
-         * Routing Header  length field is in units of 8 bytes, excluding 
+        /*
+         * Routing Header  length field is in units of 8 bytes, excluding
          * As per RFC2460 section 4.4, if routing type is unrecognized:
          * if segments left = 0, ignore the header
          * if segments left > 0, discard packet and send icmp error pointing
@@ -1183,8 +1180,8 @@ uip_process(u8_t flag)
         if(uip_reassflags & UIP_REASS_FLAG_ERROR_MSG){
           /* we are not done with reassembly, this is an error message */
           goto send;
-        } 
-        /*packet is reassembled, reset the next hdr to the beginning 
+        }
+        /*packet is reassembled, reset the next hdr to the beginning
            of the IP header and restart the parsing of the reassembled pkt*/
         PRINTF("Processing reassembled packet\n");
         uip_ext_len = 0;
@@ -1196,16 +1193,16 @@ uip_process(u8_t flag)
         UIP_STAT(++uip_stat.ip.fragerr);
         UIP_LOG("ip: fragment dropped.");
         goto drop;
-#endif /* UIP_CONF_IPV6_REASSEMBLY */        
+#endif /* UIP_CONF_IPV6_REASSEMBLY */
       case UIP_PROTO_NONE:
-        goto drop; 
+        goto drop;
       default:
         goto bad_hdr;
     }
   }
   bad_hdr:
-  /* 
-   * RFC 2460 send error message parameterr problem, code unrecognized 
+  /*
+   * RFC 2460 send error message parameterr problem, code unrecognized
    * next header, pointing to the next header field
    */
   uip_icmp6_error_output(ICMP6_PARAM_PROB, ICMP6_PARAMPROB_NEXTHEADER, (u32_t)((void *)uip_next_hdr - (void *)UIP_IP_BUF));
@@ -1221,7 +1218,7 @@ uip_process(u8_t flag)
 
 #if UIP_CONF_IPV6_CHECKS
   /* Compute and check the ICMP header checksum */
-  if(uip_icmp6chksum() != 0xffff) { 
+  if(uip_icmp6chksum() != 0xffff) {
     UIP_STAT(++uip_stat.icmp.drop);
     UIP_STAT(++uip_stat.icmp.chkerr);
     UIP_LOG("icmpv6: bad checksum.");
@@ -1235,7 +1232,7 @@ uip_process(u8_t flag)
    * For echo request, we send echo reply
    * For ND pkts, we call the appropriate function in uip-nd6-io.c
    * We do not treat Error messages for now
-   * If no pkt is to be sent as an answer to the incoming one, we 
+   * If no pkt is to be sent as an answer to the incoming one, we
    * "goto drop". Else we just break; then at the after the "switch"
    * we "goto send"
    */
