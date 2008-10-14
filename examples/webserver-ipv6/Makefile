@@ -1,9 +1,8 @@
-all: 
-	make -f Makefile.example TARGET=avr-raven webserver6.elf
-	avr-objcopy -O ihex -R .eeprom webserver6.elf webserver6.hex
-	avr-size -C webserver6.elf
+all: webserver6
+APPS=webserver
+DEFAULT_TARGET=minimal-net
 
-clean:
-	make -f Makefile.example TARGET=avr-raven clean
-	rm symbols.c symbols.h webserver6.elf webserver6.hex
-	rm -rf obj_avr-raven
+UIP_CONF_IPV6=1
+
+CONTIKI = ../..
+include $(CONTIKI)/Makefile.include
