@@ -48,9 +48,9 @@ include $(CONTIKI)/core/net/mac/Makefile.mac
 SYSTEM  = process.c procinit.c autostart.c elfloader.c profile.c timetable.c timetable-aggregate.c
 THREADS = mt.c
 LIBS    = memb.c timer.c list.c etimer.c energest.c rtimer.c stimer.c \
-          print-stats.c ifft.c crc16.c
+          print-stats.c ifft.c crc16.c random.c
 ifdef UIP_CONF_IPV6
-UIP     = uip6.c tcpip.c uip-split.c  psock.c uip-udp-packet.c \
+UIP     = uip6.c tcpip.c psock.c uip-udp-packet.c \
           uip-over-mesh.c resolv.c hc.c tcpdump.c uiplib.c
 NET     = $(UIP) uip-icmp6.c uip-nd6.c uip-nd6-io.c uip-netif.c sicslowpan.c
 else # UIP_CONF_IPV6
