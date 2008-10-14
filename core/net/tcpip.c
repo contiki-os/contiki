@@ -28,19 +28,63 @@
  *
  * This file is part of the Contiki operating system.
  *
- * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: tcpip.c,v 1.12 2008/05/14 19:19:28 adamdunkels Exp $
+ * $Id: tcpip.c,v 1.13 2008/10/14 09:40:56 julienabeille Exp $
  */
-
+/**
+ * \file
+ *         Code for tunnelling uIP packets over the Rime mesh routing module
+ * 
+ * \author  Adam Dunkels <adam@sics.se>\author
+ * \author  Mathilde Durvy <mdurvy@cisco.com> (IPv6 related code)
+ * \author  Julien Abeille <jabeille@cisco.com> (IPv6 related code)
+ */
 #include "contiki-net.h"
 
 #include "net/uip-split.h"
 
 #include <string.h>
 
+#if UIP_CONF_IPV6
+#include "net/uip-nd6.h"
+#include "net/uip-netif.h"
+#endif
+
+#define DEBUG 0
+#if DEBUG
+#include <stdio.h>
+#define PRINTF(...) printf(__VA_ARGS__)
+#define PRINT6ADDR(addr) PRINTF(" %02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x ", ((u8_t *)addr)[0], ((u8_t *)addr)[1], ((u8_t *)addr)[2], ((u8_t *)addr)[3], ((u8_t *)addr)[4], ((u8_t *)addr)[5], ((u8_t *)addr)[6], ((u8_t *)addr)[7], ((u8_t *)addr)[8], ((u8_t *)addr)[9], ((u8_t *)addr)[10], ((u8_t *)addr)[11], ((u8_t *)addr)[12], ((u8_t *)addr)[13], ((u8_t *)addr)[14], ((u8_t *)addr)[15])
+#define PRINTLLADDR(lladdr) PRINTF(" %02x:%02x:%02x:%02x:%02x:%02x ",lladdr->addr[0], lladdr->addr[1], lladdr->addr[2], lladdr->addr[3],lladdr->addr[4], lladdr->addr[5])
+#else
+#define PRINTF(...)
+#define PRINT6ADDR(addr)
+#endif
+
+#if UIP_LOGGING
+#include <stdio.h>
+void uip_log(char *msg);
+#define UIP_LOG(m) uip_log(m)
+#else
+#define UIP_LOG(m)
+#endif
+
+#define UIP_ICMP_BUF ((struct uip_icmp_hdr *)&uip_buf[UIP_LLIPH_LEN + uip_ext_len])
+#define UIP_IP_BUF ((struct uip_ip_hdr *)&uip_buf[UIP_LLH_LEN])
+
 process_event_t tcpip_event;
 
+/*static struct tcpip_event_args ev_args;*/
+
+/*periodic check of active connections*/
+static struct etimer periodic;
+
+#if UIP_CONF_IPV6 && UIP_CONF_IPV6_REASSEMBLY
+/*timer for reassembly*/
+extern struct etimer uip_reass_timer;
+#endif
+
+#if UIP_TCP
 /**
  * \internal Structure for holding a TCP port and a process ID.
  */
@@ -49,14 +93,11 @@ struct listenport {
   struct process *p;
 };
 
-/*static struct tcpip_event_args ev_args;*/
-
-static struct etimer periodic;
-
 static struct internal_state {
   struct listenport listenports[UIP_LISTENPORTS];
   struct process *p;
 } s;
+#endif
 
 enum {
   TCP_POLL,
@@ -64,7 +105,12 @@ enum {
   PACKET_INPUT
 };
 
-u8_t (* tcpip_output)(void); /* Called on IP packet output. */
+/* Called on IP packet output. */
+#if UIP_CONF_IPV6
+u8_t (* tcpip_output)(uip_lladdr_t *);
+#else
+u8_t (* tcpip_output)(void); 
+#endif
 
 #if UIP_CONF_IP_FORWARD
 unsigned char tcpip_is_forwarding; /* Forwarding right now? */
@@ -84,9 +130,13 @@ packet_input(void)
       uip_input();
       if(uip_len > 0) {
 #if UIP_CONF_TCP_SPLIT
-	uip_split_output();
+        uip_split_output();
 #else /* UIP_CONF_TCP_SPLIT */
-	tcpip_output();
+#if UIP_CONF_IPV6
+        tcpip_ipv6_output();
+#else
+        tcpip_output();
+#endif
 #endif /* UIP_CONF_TCP_SPLIT */
       }
     }
@@ -99,13 +149,22 @@ packet_input(void)
 #if UIP_CONF_TCP_SPLIT
       uip_split_output();
 #else /* UIP_CONF_TCP_SPLIT */
+#if UIP_CONF_IPV6
+      tcpip_ipv6_output();
+#else
       tcpip_output();
+#endif
 #endif /* UIP_CONF_TCP_SPLIT */
     }
   }
 #endif /* UIP_CONF_IP_FORWARD */
 }
+
 /*---------------------------------------------------------------------------*/
+/*---------------------------------------------------------------------------*/
+
+#if UIP_TCP
+
 #if UIP_ACTIVE_OPEN
 struct uip_conn *
 tcp_connect(uip_ipaddr_t *ripaddr, u16_t port, void *appstate)
@@ -172,7 +231,12 @@ tcp_attach(struct uip_conn *conn,
   s->p = PROCESS_CURRENT();
   s->state = appstate;
 }
+
+#endif /* UIP_TCP */
+
 /*---------------------------------------------------------------------------*/
+/*---------------------------------------------------------------------------*/
+
 #if UIP_UDP
 void
 udp_attach(struct uip_udp_conn *conn,
@@ -217,111 +281,190 @@ udp_broadcast_new(u16_t port, void *appstate)
   return conn;
 }
 #endif /* UIP_UDP */
+
 /*---------------------------------------------------------------------------*/
+/*---------------------------------------------------------------------------*/
+#if UIP_CONF_ICMP6
+u8_t 
+icmp6_new(void *appstate) {
+  if(uip_icmp6_conns.appstate.p == PROCESS_NONE) {
+    uip_icmp6_conns.appstate.p = PROCESS_CURRENT();
+    uip_icmp6_conns.appstate.state = appstate;
+    return 0;
+  }
+  return 1;
+}
+
+void tcpip_icmp6_call(u8_t type) {
+  process_post_synch(uip_icmp6_conns.appstate.p, type, 0);
+  return;
+}
+
+#endif /*UIP_CONF_ICMP6*/
+/*---------------------------------------------------------------------------*/
+
 static void
 eventhandler(process_event_t ev, process_data_t data)
 {
+#if UIP_TCP      
   static unsigned char i;
   register struct listenport *l;
+#endif /*UIP_TCP*/    
   struct process *p;
-  
+   
   switch(ev) {
-  case PROCESS_EVENT_EXITED:
-    /* This is the event we get if a process has exited. We go through
-       the TCP/IP tables to see if this process had any open
-       connections or listening TCP ports. If so, we'll close those
-       connections. */
-    p = (struct process *)data;
-    l = s.listenports;
-    for(i = 0; i < UIP_LISTENPORTS; ++i) {
-      if(l->p == p) {
-	uip_unlisten(l->port);
-	l->port = 0;
-	l->p = PROCESS_NONE;
+    case PROCESS_EVENT_EXITED:
+      /* This is the event we get if a process has exited. We go through
+         the TCP/IP tables to see if this process had any open
+         connections or listening TCP ports. If so, we'll close those
+         connections. */
+
+      p = (struct process *)data;
+#if UIP_TCP      
+      l = s.listenports;
+      for(i = 0; i < UIP_LISTENPORTS; ++i) {
+        if(l->p == p) {
+          uip_unlisten(l->port);
+          l->port = 0;
+          l->p = PROCESS_NONE;
+        }
+        ++l;
       }
-      ++l;
-    }
-    
-    {
-      register struct uip_conn *cptr;
-     
-      for(cptr = &uip_conns[0]; cptr < &uip_conns[UIP_CONNS]; ++cptr) {
-	if(cptr->appstate.p == p) {
-	  cptr->appstate.p = PROCESS_NONE;
-	  cptr->tcpstateflags = UIP_CLOSED;
-	}
-      
+	 
+      {
+        register struct uip_conn *cptr;
+	    
+        for(cptr = &uip_conns[0]; cptr < &uip_conns[UIP_CONNS]; ++cptr) {
+          if(cptr->appstate.p == p) {
+            cptr->appstate.p = PROCESS_NONE;
+            cptr->tcpstateflags = UIP_CLOSED;
+          }
+	       
+        }
+	    
       }
-      
-    }
+#endif /* UIP_TCP */ 
 #if UIP_UDP
-    {
-      register struct uip_udp_conn *cptr;
-      for(cptr = &uip_udp_conns[0];
-	  cptr < &uip_udp_conns[UIP_UDP_CONNS]; ++cptr) {
-	if(cptr->appstate.p == p) {
-	  cptr->lport = 0;
-	}
-      }
+      {
+        register struct uip_udp_conn *cptr;
+        for(cptr = &uip_udp_conns[0];
+            cptr < &uip_udp_conns[UIP_UDP_CONNS]; ++cptr) {
+          if(cptr->appstate.p == p) {
+            cptr->lport = 0;
+          }
+        }
       
-    }
+      }
 #endif /* UIP_UDP */
-    break;
+      break;
 
-  case PROCESS_EVENT_TIMER:
-    /* We get this event if one of our timers have expired. */
-    {
-      static unsigned char i;
-
-      /* Check the clock so see if we should call the periodic uIP
-	 processing. */
-      if(etimer_expired(&periodic)) {
-	for(i = 0; i < UIP_CONNS; ++i) {
-	  if(uip_conn_active(i)) {
-	    /* Only restart the timer if there are active
-	       connections. */
-	    etimer_restart(&periodic);
-	    uip_periodic(i);
-	    if(uip_len > 0) {
-	      tcpip_output();
-	    }
-	  }
-	}
+    case PROCESS_EVENT_TIMER:
+      /* We get this event if one of our timers have expired. */
+      {
+        /* Check the clock so see if we should call the periodic uIP
+           processing. */   
+        if(data == &periodic &&
+           etimer_expired(&periodic)) {
+#if UIP_TCP
+          for(i = 0; i < UIP_CONNS; ++i) {
+            if(uip_conn_active(i)) {
+              /* Only restart the timer if there are active
+                 connections. */
+              etimer_restart(&periodic);
+              uip_periodic(i);
+#if UIP_CONF_IPV6
+              tcpip_ipv6_output();
+#else
+              if(uip_len > 0) {
+                tcpip_output();
+              }
+#endif /* UIP_CONF_IPV6 */ 
+            }
+          }
+#endif /* UIP_TCP */          
 #if UIP_CONF_IP_FORWARD
-	uip_fw_periodic();
+          uip_fw_periodic();
 #endif /* UIP_CONF_IP_FORWARD */
-      }
-    }
-    break;
-    
-  case TCP_POLL:
-    if(data != NULL) {
-      uip_poll_conn(data);
-      if(uip_len > 0) {
-	tcpip_output();
-      }
+        }
+        
+#if UIP_CONF_IPV6
+#if UIP_CONF_IPV6_REASSEMBLY
+        /*
+         * check the timer for reassembly
+         */
+        if(data == &uip_reass_timer &&
+           etimer_expired(&uip_reass_timer)) {
+          uip_reass_over();
+          tcpip_ipv6_output();
+        }
+#endif /* UIP_CONF_IPV6_REASSEMBLY */
+        /*
+         * check the different timers for neighbor discovery and
+         * stateless autoconfiguration
+         */
+        if(data == &uip_nd6_timer_periodic &&
+           etimer_expired(&uip_nd6_timer_periodic)) {
+          uip_nd6_periodic();
+          tcpip_ipv6_output();
+        }
+	    
+        if(data == &uip_netif_timer_dad &&
+           etimer_expired(&uip_netif_timer_dad)){
+          uip_netif_dad();
+          tcpip_ipv6_output();
+        }
+	    
+        if(data == &uip_netif_timer_rs &&
+           etimer_expired(&uip_netif_timer_rs)){
+          uip_netif_send_rs();
+          tcpip_ipv6_output();
+        }
 
-      /* Start the periodic polling, if it isn't already active. */
-      if(etimer_expired(&periodic)) {
-	etimer_restart(&periodic);
+        if(data == &uip_netif_timer_periodic &&
+           etimer_expired(&uip_netif_timer_periodic)){
+          uip_netif_periodic();
+        }
+#endif /* UIP_CONF_IPV6 */
       }
-
-    }
-    break;
+      break;
+	 
+#if UIP_TCP
+    case TCP_POLL:
+      if(data != NULL) {
+        uip_poll_conn(data);
+#if UIP_CONF_IPV6
+        tcpip_ipv6_output();
+#else
+        if(uip_len > 0) {
+          tcpip_output();
+        }
+#endif /* UIP_CONF_IPV6 */
+        /* Start the periodic polling, if it isn't already active. */
+        if(etimer_expired(&periodic)) {
+          etimer_restart(&periodic);
+        }
+        
+      }
+      break;
+#endif /* UIP_TCP */
 #if UIP_UDP
-  case UDP_POLL:
-    if(data != NULL) {
-      uip_udp_periodic_conn(data);
-      if(uip_len > 0) {
-	tcpip_output();
+    case UDP_POLL:
+      if(data != NULL) {
+        uip_udp_periodic_conn(data);
+#if UIP_CONF_IPV6
+        tcpip_ipv6_output();
+#else
+        if(uip_len > 0) {
+          tcpip_output();
+        }
+#endif /* UIP_UDP */    
       }
-    }
-    break;
+      break;
 #endif /* UIP_UDP */
 
-  case PACKET_INPUT:
-    packet_input();
-    break;
+    case PACKET_INPUT:
+      packet_input();
+      break;
   };
 }
 /*---------------------------------------------------------------------------*/
@@ -330,7 +473,130 @@ tcpip_input(void)
 {
   process_post_synch(&tcpip_process, PACKET_INPUT, NULL);
   uip_len = 0;
+#if UIP_CONF_IPV6
+  uip_ext_len = 0;
+#endif /*UIP_CONF_IPV6*/
 }
+/*---------------------------------------------------------------------------*/
+#if UIP_CONF_IPV6
+void
+tcpip_ipv6_output(void)
+{
+  struct uip_nd6_neighbor *nbc = NULL;
+  struct uip_nd6_defrouter *dr = NULL;
+  
+  if(uip_len == 0)
+    return;
+
+  if(uip_len > UIP_LINK_MTU){
+    UIP_LOG("tcpip_ipv6_output: Packet to big");
+    uip_len = 0;
+    return;
+  }
+  if(uip_is_addr_unspecified(&UIP_IP_BUF->destipaddr)){
+    UIP_LOG("tcpip_ipv6_output: Destination address unspecified");
+    uip_len = 0;
+    return; 
+  }
+  if(!uip_is_addr_mcast(&UIP_IP_BUF->destipaddr)) {
+    /*If destination is on link */
+    if(uip_nd6_is_addr_onlink(&UIP_IP_BUF->destipaddr)){
+      nbc = uip_nd6_nbrcache_lookup(&UIP_IP_BUF->destipaddr);
+    } else {
+      /*destination is not on link*/
+      dr = uip_nd6_choose_defrouter();
+      if(dr != NULL){
+        nbc = dr->nb;
+      } else {
+        /* shall we send a icmp error message destination unreachable ?*/
+        UIP_LOG("tcpip_ipv6_output: Destination off-link but no router");
+        uip_len = 0;
+        return;
+      } 
+    }
+    /* there are two cases where the entry logically does not exist:
+     * 1 it really does not exist. 2 it is in the NO_STATE state */
+    if (nbc == NULL || nbc->state == NO_STATE) {
+      if (nbc == NULL) {
+        /* create neighbor cache entry, original packet is replaced by NS*/
+        nbc = uip_nd6_nbrcache_add(&UIP_IP_BUF->destipaddr, NULL, 0, INCOMPLETE);
+      } else {
+        nbc->state = INCOMPLETE;
+      }
+#if UIP_CONF_IPV6_QUEUE_PKT 
+      /* copy outgoing pkt in the queuing buffer for later transmmit */
+      memcpy(nbc->queue_buf, UIP_IP_BUF, uip_len);
+      nbc->queue_buf_len = uip_len;
+#endif
+      /* RFC4861, 7.2.2:
+       * "If the source address of the packet prompting the solicitation is the
+       * same as one of the addresses assigned to the outgoing interface, that
+       * address SHOULD be placed in the IP Source Address of the outgoing
+       * solicitation.  Otherwise, any one of the addresses assigned to the
+       * interface should be used."*/
+      if(uip_netif_is_addr_my_unicast(&UIP_IP_BUF->srcipaddr)){
+        uip_nd6_io_ns_output(&UIP_IP_BUF->srcipaddr, NULL, &nbc->ipaddr);
+      } else {
+        uip_nd6_io_ns_output(NULL, NULL, &nbc->ipaddr);
+      }
+
+      timer_set(&(nbc->last_send),
+                uip_netif_physical_if.retrans_timer/1000*CLOCK_SECOND);
+      nbc->count_send = 1;
+    } else {
+      if (nbc->state == INCOMPLETE){
+        PRINTF("tcpip_ipv6_output: neighbor cache entry incomplete\n");
+#if UIP_CONF_IPV6_QUEUE_PKT     
+        /* copy outgoing pkt in the queuing buffer for later transmmit and set
+           the destination neighbor to nbc */
+        memcpy(nbc->queue_buf, UIP_IP_BUF, uip_len);
+        nbc->queue_buf_len = uip_len;
+        uip_len = 0;
+#endif /*UIP_CONF_IPV6_QUEUE_PKT*/
+        return;
+      }
+      /* if running NUD (nbc->state == STALE, DELAY, or PROBE ) keep
+         sending in parallel see rfc 4861 Node behavior in section 7.7.3*/
+	 
+      if (nbc->state == STALE){
+        nbc->state = DELAY;
+        timer_set(&(nbc->reachable),
+                  UIP_ND6_DELAY_FIRST_PROBE_TIME*CLOCK_SECOND);
+        PRINTF("tcpip_ipv6_output: neighbor cache entry stale moving to delay\n");
+      }
+      
+      timer_set(&(nbc->last_send),
+                uip_netif_physical_if.retrans_timer/1000*CLOCK_SECOND);
+      
+      tcpip_output(&(nbc->lladdr));
+
+
+#if UIP_CONF_IPV6_QUEUE_PKT
+      /* Send the queued packets from here, may not be 100% perfect though.
+       * This happens in a few cases, for example when instead of receiving a
+       * NA after sendiong a NS, you receive a NS with SLLAO: the entry moves
+       *to STALE, and you must both send a NA and the queued packet
+       */
+      if(nbc->queue_buf_len != 0) {
+        uip_len = nbc->queue_buf_len;     
+        memcpy(UIP_IP_BUF, nbc->queue_buf, uip_len);
+        nbc->queue_buf_len = 0;     
+        tcpip_output(&(nbc->lladdr));
+      }
+#endif /*UIP_CONF_IPV6_QUEUE_PKT*/
+
+      uip_len = 0;
+      return;
+    }
+  }
+   
+  /*multicast IP detination address */
+  tcpip_output(NULL);
+  uip_len = 0;
+  uip_ext_len = 0;
+   
+}
+#endif
 /*---------------------------------------------------------------------------*/
 #if UIP_UDP
 void
@@ -340,19 +606,19 @@ tcpip_poll_udp(struct uip_udp_conn *conn)
 }
 #endif /* UIP_UDP */
 /*---------------------------------------------------------------------------*/
+#if UIP_TCP
 void
 tcpip_poll_tcp(struct uip_conn *conn)
 {
   process_post(&tcpip_process, TCP_POLL, conn);
 }
+#endif /* UIP_TCP */
 /*---------------------------------------------------------------------------*/
 void
 tcpip_uipcall(void)
 {
   register uip_udp_appstate_t *ts;
-  static unsigned char i;
-  register struct listenport *l;
-
+  
 #if UIP_UDP
   if(uip_conn != NULL) {
     ts = &uip_conn->appstate;
@@ -363,16 +629,20 @@ tcpip_uipcall(void)
   ts = &uip_conn->appstate;
 #endif /* UIP_UDP */
 
+#if UIP_TCP 
+ static unsigned char i;
+ register struct listenport *l;
+ 
   /* If this is a connection request for a listening port, we must
      mark the connection with the right process ID. */
   if(uip_connected()) {
     l = &s.listenports[0];
     for(i = 0; i < UIP_LISTENPORTS; ++i) {
       if(l->port == uip_conn->lport &&
-	 l->p != PROCESS_NONE) {
-	ts->p = l->p;
-	ts->state = NULL;
-	break;
+         l->p != PROCESS_NONE) {
+        ts->p = l->p;
+        ts->state = NULL;
+        break;
       }
       ++l;
     }
@@ -382,7 +652,8 @@ tcpip_uipcall(void)
       etimer_restart(&periodic);
     }
   }
-
+#endif
+  
   if(ts->p != NULL) {
     process_post_synch(ts->p, tcpip_event, ts->state);
   }
@@ -390,14 +661,17 @@ tcpip_uipcall(void)
 /*---------------------------------------------------------------------------*/
 PROCESS_THREAD(tcpip_process, ev, data)
 {
-  int i;
-  
   PROCESS_BEGIN();
-  
+
+#if UIP_TCP
+  static unsigned char i;
+
   for(i = 0; i < UIP_LISTENPORTS; ++i) {
     s.listenports[i].port = 0;
   }
   s.p = PROCESS_CURRENT();
+#endif
+  
   tcpip_event = process_alloc_event();
   etimer_set(&periodic, CLOCK_SECOND/2);
 

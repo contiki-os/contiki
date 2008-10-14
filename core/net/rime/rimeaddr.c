@@ -33,7 +33,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: rimeaddr.c,v 1.7 2008/04/01 13:10:22 nifi Exp $
+ * $Id: rimeaddr.c,v 1.8 2008/10/14 09:40:56 julienabeille Exp $
  */
 
 /**
@@ -46,21 +46,35 @@
 #include "net/rime/rimeaddr.h"
 
 rimeaddr_t rimeaddr_node_addr;
+#if RIMEADDR_SIZE == 2
 const rimeaddr_t rimeaddr_null = { { 0, 0 } };
+#else /*RIMEADDR_SIZE == 2*/
+#if RIMEADDR_SIZE == 8
+const rimeaddr_t rimeaddr_null = { { 0, 0, 0, 0, 0, 0, 0, 0 } };
+#endif /*RIMEADDR_SIZE == 8*/
+#endif /*RIMEADDR_SIZE == 2*/
+
 
 /*---------------------------------------------------------------------------*/
 void
 rimeaddr_copy(rimeaddr_t *dest, const rimeaddr_t *src)
 {
-  dest->u8[0] = src->u8[0];
-  dest->u8[1] = src->u8[1];
+  u8_t i;
+  for(i = 0; i < RIMEADDR_SIZE / 2; i++) {
+    dest->u16[i] = src->u16[i];
+  }
 }
 /*---------------------------------------------------------------------------*/
 int
 rimeaddr_cmp(const rimeaddr_t *addr1, const rimeaddr_t *addr2)
 {
-  return addr1->u8[0] == addr2->u8[0] &&
-    addr1->u8[1] == addr2->u8[1];
+  u8_t i;
+  for(i = 0; i < RIMEADDR_SIZE / 2; i++) {
+    if(addr1->u16[i] != addr2->u16[i]) {
+      return 0;
+    }
+  }
+  return 1;
 }
 /*---------------------------------------------------------------------------*/
 void
