@@ -30,7 +30,7 @@
  * 
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: httpd-fs.h,v 1.2 2008/10/14 09:40:11 julienabeille Exp $
+ * $Id: httpd-fs.h,v 1.3 2008/10/14 11:07:57 adamdunkels Exp $
  */
 #ifndef __HTTPD_FS_H__
 #define __HTTPD_FS_H__
@@ -38,8 +38,6 @@
 #include "contiki-net.h"
 
 #define HTTPD_FS_STATISTICS 1
-
-#include <avr/pgmspace.h>
 
 struct httpd_fs_file {
   char *data;
@@ -57,9 +55,5 @@ u16_t httpd_fs_count(char *name);
 #endif /* HTTPD_FS_STATISTICS */
 
 void httpd_fs_init(void);
-
-#define httpd_fs_cpy                    memcpy_P
-#define httpd_fs_strchr                 strchr_P
-#define httpd_fs_getchar(x)     pgm_read_byte(x)
 
 #endif /* __HTTPD_FS_H__ */

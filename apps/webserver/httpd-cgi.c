@@ -28,7 +28,7 @@
  *
  * This file is part of the uIP TCP/IP stack.
  *
- * $Id: httpd-cgi.c,v 1.13 2008/10/14 09:40:11 julienabeille Exp $
+ * $Id: httpd-cgi.c,v 1.14 2008/10/14 11:07:57 adamdunkels Exp $
  *
  */
 
@@ -40,7 +40,7 @@
  * non-zero value indicates that the function has completed and that
  * the web server should move along to the next script line.
  *
- */ 
+ */
 
 #include <stdio.h>
 #include <string.h>
@@ -51,8 +51,6 @@
 #include "httpd-fs.h"
 
 #include "lib/petsciiconv.h"
-
-#include "sensors.h"
 
 static struct httpd_cgi_call *calls = NULL;
 
@@ -100,10 +98,6 @@ static const char proc_name[] = /*  "processes"*/
 {0x70, 0x72, 0x6f, 0x63, 0x65, 0x73, 0x73,
  0x65, 0x73, 0};
 
-static const char sensor_name[] = "sensors";
-
-char sensor_temperature[12];
-
 static const char *states[] = {
   closed,
   syn_rcvd,
@@ -117,15 +111,6 @@ static const char *states[] = {
   none,
   running,
   called};
-
-  uint8_t sprint_ip6(uip_ip6addr_t addr, char * result);
-
-
-void
-web_set_temp(char *s)
-{
-    strcpy(sensor_temperature, s);
-}
 
 /*---------------------------------------------------------------------------*/
 static
@@ -172,25 +157,20 @@ make_tcp_stats(void *arg)
   struct uip_conn *conn;
   struct httpd_state *s = (struct httpd_state *)arg;
     
-  uint16_t numprinted;
-
   conn = &uip_conns[s->u.count];
-
-  numprinted = snprintf((char *)uip_appdata, uip_mss(),
-                 "<tr align=\"center\"><td>%d</td><td>", 
-                 htons(conn->lport));
-                 
-  numprinted += sprint_ip6(conn->ripaddr, uip_appdata + numprinted);             
-  numprinted +=  snprintf((char *)uip_appdata + numprinted, uip_mss() - numprinted,              
-                 "-%u</td><td>%s</td><td>%u</td><td>%u</td><td>%c %c</td></tr>\r\n",
-                 htons(conn->rport),
-                 states[conn->tcpstateflags & UIP_TS_MASK],
-                 conn->nrtx,
-                 conn->timer,
-                 (uip_outstanding(conn))? '*':' ',
-                 (uip_stopped(conn))? '!':' ');
-
-  return numprinted;
+  return snprintf((char *)uip_appdata, uip_mss(),
+		 "<tr align=\"center\"><td>%d</td><td>%u.%u.%u.%u:%u</td><td>%s</td><td>%u</td><td>%u</td><td>%c %c</td></tr>\r\n",
+		 htons(conn->lport),
+		 conn->ripaddr.u8[0],
+		 conn->ripaddr.u8[1],
+		 conn->ripaddr.u8[2],
+		 conn->ripaddr.u8[3],
+		 htons(conn->rport),
+		 states[conn->tcpstateflags & UIP_TS_MASK],
+		 conn->nrtx,
+		 conn->timer,
+		 (uip_outstanding(conn))? '*':' ',
+		 (uip_stopped(conn))? '!':' ');
 }
 /*---------------------------------------------------------------------------*/
 static
@@ -233,22 +213,6 @@ PT_THREAD(processes(struct httpd_state *s, char *ptr))
   PSOCK_END(&s->sout);
 }
 /*---------------------------------------------------------------------------*/
-static unsigned short
-generate_sensor_readings(void *arg)
-{
-  return snprintf((char *)uip_appdata, uip_mss(), "<em>Temperature:</em> %s\n", sensor_temperature);
-}
-/*---------------------------------------------------------------------------*/
-static
-PT_THREAD(sensor_readings(struct httpd_state *s, char *ptr))
-{
-  PSOCK_BEGIN(&s->sout);
-
-  PSOCK_GENERATOR_SEND(&s->sout, generate_sensor_readings, s);
-  
-  PSOCK_END(&s->sout);
-}
-/*---------------------------------------------------------------------------*/
 void
 httpd_cgi_add(struct httpd_cgi_call *c)
 {
@@ -267,7 +231,6 @@ httpd_cgi_add(struct httpd_cgi_call *c)
 HTTPD_CGI_CALL(file, file_name, file_stats);
 HTTPD_CGI_CALL(tcp, tcp_name, tcp_stats);
 HTTPD_CGI_CALL(proc, proc_name, processes);
-HTTPD_CGI_CALL(sensors, sensor_name, sensor_readings);
 
 void
 httpd_cgi_init(void)
@@ -275,56 +238,5 @@ httpd_cgi_init(void)
   httpd_cgi_add(&file);
   httpd_cgi_add(&tcp);
   httpd_cgi_add(&proc);
-  httpd_cgi_add(&sensors);
 }
 /*---------------------------------------------------------------------------*/
-
-
-
-uint8_t sprint_ip6(uip_ip6addr_t addr, char * result)
-        {
-        unsigned char zerocnt = 0;
-        unsigned char numprinted = 0;
-        char * starting = result;
-
-    unsigned char i = 0;
-
-        while (numprinted < 8)
-                {
-                //Address is zero, have we used our ability to
-                //replace a bunch with : yet?
-                if ((addr.u16[i] == 0) && (zerocnt == 0))
-                        {
-                        //How mant zeros?
-                        zerocnt = 0;
-                        while(addr.u16[zerocnt + i] == 0)
-                                zerocnt++;
-
-                        //just one, don't waste our zeros...
-                        if (zerocnt == 1)
-                                {
-                                *result++ = '0';
-                                numprinted++;
-                                break;
-                                }
-
-                        //Cool - can replace a bunch of zeros
-                        i += zerocnt;
-                        numprinted += zerocnt;
-                        }
-                //Normal address, just print it
-                else
-                        {
-                        result += sprintf(result, "%x", (unsigned int)(ntohs(addr.u16[i])));
-                        i++;
-                        numprinted++;
-                        }
-
-                //Don't print : on last one
-                if (numprinted != 8)
-                        *result++ = ':';
-                }
-
-    return (result - starting);
-        }
-

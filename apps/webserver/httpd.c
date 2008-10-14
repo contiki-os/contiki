@@ -30,11 +30,11 @@
  *
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: httpd.c,v 1.10 2008/10/14 09:40:11 julienabeille Exp $
+ * $Id: httpd.c,v 1.11 2008/10/14 11:07:57 adamdunkels Exp $
  */
 
 #include <string.h>
- 
+
 #include "contiki-net.h"
 
 #include "webserver.h"
@@ -76,8 +76,7 @@ generate(void *state)
   } else {
     s->len = s->file.len;
   }
-    
-  httpd_fs_cpy(uip_appdata, s->file.data, s->len);
+  memcpy(uip_appdata, s->file.data, s->len);
   
   return s->len;
 }
@@ -87,7 +86,7 @@ PT_THREAD(send_file(struct httpd_state *s))
 {
   PSOCK_BEGIN(&s->sout);
   
-  do { 
+  do {
     PSOCK_GENERATOR_SEND(&s->sout, generate, s);
     s->file.len -= s->len;
     s->file.data += s->len;
@@ -100,27 +99,8 @@ static
 PT_THREAD(send_part_of_file(struct httpd_state *s))
 {
   PSOCK_BEGIN(&s->sout);
-  
-  static int oldfilelen, oldlen;
-  static char * olddata;
-  
-  //Store stuff that gets clobbered...
-  oldfilelen = s->file.len;
-  oldlen = s->len;
-  olddata = s->file.data;
-  
-  //How much to send  
-  s->file.len = s->len;
-  
-  do { 
-    PSOCK_GENERATOR_SEND(&s->sout, generate, s);
-    s->file.len -= s->len;
-    s->file.data += s->len;
-  } while(s->file.len > 0);
-  
-  s->len = oldlen;
-  s->file.len = oldfilelen;
-  s->file.data = olddata;
+
+  PSOCK_SEND(&s->sout, (uint8_t *)s->file.data, s->len);
   
   PSOCK_END(&s->sout);
 }
@@ -130,7 +110,7 @@ next_scriptstate(struct httpd_state *s)
 {
   char *p;
 
-  if((p = (char *)httpd_fs_strchr(s->scriptptr, ISO_nl)) != NULL) {
+  if((p = strchr(s->scriptptr, ISO_nl)) != NULL) {
     p += 1;
     s->scriptlen -= (unsigned short)(p - s->scriptptr);
     s->scriptptr = p;
@@ -147,27 +127,22 @@ static
 PT_THREAD(handle_script(struct httpd_state *s))
 {
   char *ptr;
-
-  char filenamebuf[25];
   
   PT_BEGIN(&s->scriptpt);
 
   while(s->file.len > 0) {
 
     /* Check if we should start executing a script. */
-    if(httpd_fs_getchar(s->file.data) == ISO_percent &&
-       httpd_fs_getchar(s->file.data + 1) == ISO_bang) {
+    if(*s->file.data == ISO_percent &&
+       *(s->file.data + 1) == ISO_bang) {
       s->scriptptr = s->file.data + 3;
-      s->scriptlen = s->file.len - 3; 
-
-      memcpy_P(filenamebuf, s->scriptptr, 25);
-
-      if(httpd_fs_getchar(s->scriptptr - 1) == ISO_colon) {
-        httpd_fs_open(filenamebuf + 1, &s->file);
-        PT_WAIT_THREAD(&s->scriptpt, send_file(s));
+      s->scriptlen = s->file.len - 3;
+      if(*(s->scriptptr - 1) == ISO_colon) {
+	httpd_fs_open(s->scriptptr + 1, &s->file);
+	PT_WAIT_THREAD(&s->scriptpt, send_file(s));
       } else {
-        PT_WAIT_THREAD(&s->scriptpt,
-                       httpd_cgi(filenamebuf)(s, s->scriptptr));
+	PT_WAIT_THREAD(&s->scriptpt,
+		       httpd_cgi(s->scriptptr)(s, s->scriptptr));
       }
       next_scriptstate(s);
       
@@ -182,16 +157,16 @@ PT_THREAD(handle_script(struct httpd_state *s))
       if(s->file.len > uip_mss()) {
 	s->len = uip_mss();
       } else {
-        s->len = s->file.len;
+	s->len = s->file.len;
       }
 
-      if(httpd_fs_getchar(s->file.data) == ISO_percent) {
-        ptr = (char *) httpd_fs_strchr(s->file.data + 1, ISO_percent);
+      if(*s->file.data == ISO_percent) {
+	ptr = strchr(s->file.data + 1, ISO_percent);
       } else {
-        ptr = (char *) httpd_fs_strchr(s->file.data, ISO_percent);
+	ptr = strchr(s->file.data, ISO_percent);
       }
       if(ptr != NULL &&
-         ptr != s->file.data) {
+	 ptr != s->file.data) {
 	s->len = (int)(ptr - s->file.data);
 	if(s->len >= uip_mss()) {
 	  s->len = uip_mss();
@@ -202,7 +177,7 @@ PT_THREAD(handle_script(struct httpd_state *s))
       s->file.len -= s->len;
     }
   }
-   
+  
   PT_END(&s->scriptpt);
 }
 /*---------------------------------------------------------------------------*/
@@ -268,8 +243,8 @@ PT_THREAD(handle_output(struct httpd_state *s))
 /*---------------------------------------------------------------------------*/
 static
 PT_THREAD(handle_input(struct httpd_state *s))
-{ 
-  PSOCK_BEGIN(&s->sin); 
+{
+  PSOCK_BEGIN(&s->sin);
 
   PSOCK_READTO(&s->sin, ISO_space);
   

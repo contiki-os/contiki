@@ -29,7 +29,7 @@
  *
  * This file is part of the Contiki OS
  *
- * $Id: webserver-nogui.h,v 1.3 2008/10/14 09:40:11 julienabeille Exp $
+ * $Id: webserver-nogui.h,v 1.4 2008/10/14 11:07:57 adamdunkels Exp $
  *
  */
 #ifndef __WEBSERVER_NOGUI_H__
@@ -38,7 +38,6 @@
 #include "contiki-net.h"
 
 PROCESS_NAME(webserver_nogui_process);
-PROCESS_NAME(raven_lcd_process);
 
 void webserver_log(char *msg);
 void webserver_log_file(uip_ipaddr_t *requester, char *file);
