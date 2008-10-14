@@ -1,0 +1,24 @@
+%!: /header.html
+ <h1>File statistics</h1><br><table width="100%">
+ <tr><td><a href="/index.html">/index.html</a></td>
+ <td>%! file-stats /index.html
+</td></tr>
+<tr><td><a href="/files.shtml">/files.shtml</a></td>
+<td>%! file-stats /files.shtml
+</td></tr>
+<tr><td><a href="/tcp.shtml">/tcp.shtml</a></td>
+<td>%! file-stats /tcp.shtml
+</td></tr>
+<tr><td><a href="/processes.shtml">/processes.shtml</a></td>
+<td>%! file-stats /processes.shtml
+</td></tr>
+<tr><td><a href="/style.css">/style.css</a></td>
+<td>%! file-stats /contiki.css
+</td></tr>
+<tr><td><a href="/404.html">/404.html</a></td>
+<td>%! file-stats /404.html
+</td></tr>
+<tr><td><a href="/img/screenshot.png">/img/screenshot.png</a></td>
+<td>%! file-stats /img/screenshot.png
+</td></tr></table>
+%!: /footer.html
