@@ -24,10 +24,12 @@
 
 /**
  * \file
- * Header for the Contiki/uIP interface.
- * \author
- * Adam Dunkels <adam@sics.se>
+ *          Header for the Contiki/uIP interface.
+ * \author  Adam Dunkels <adam@sics.se>
+ * \author  Mathilde Durvy <mdurvy@cisco.com> (IPv6 related code)
+ * \author  Julien Abeille <jabeille@cisco.com> (IPv6 related code)
  */
+
 /*
  * Copyright (c) 2004, Swedish Institute of Computer Science.
  * All rights reserved.
@@ -60,7 +62,7 @@
  *
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: tcpip.h,v 1.11 2008/03/29 15:19:25 oliverschmidt Exp $
+ * $Id: tcpip.h,v 1.12 2008/10/14 09:40:56 julienabeille Exp $
  */
 #ifndef __TCPIP_H__
 #define __TCPIP_H__
@@ -76,13 +78,14 @@ struct tcpip_uipstate {
 
 #define UIP_APPCALL tcpip_uipcall
 #define UIP_UDP_APPCALL tcpip_uipcall
+#define UIP_ICMP6_APPCALL tcpip_icmp6_call
+
 /*#define UIP_APPSTATE_SIZE sizeof(struct tcpip_uipstate)*/
 
 typedef struct tcpip_uipstate uip_udp_appstate_t;
 typedef struct tcpip_uipstate uip_tcp_appstate_t;
-
+typedef struct tcpip_uipstate uip_icmp6_appstate_t;
 #include "net/uip.h"
-
 void tcpip_uipcall(void);
 
 /**
@@ -272,7 +275,36 @@ struct uip_udp_conn *udp_broadcast_new(u16_t port, void *appstate);
 CCIF void tcpip_poll_udp(struct uip_udp_conn *conn);
 
 /** @} */
+ 
+/**
+ * \name ICMPv6 functions
+ * @{
+ */
 
+#if UIP_CONF_ICMP6
+/**
+ * \brief register an ICMPv6 callback
+ * \return 0 if success, 1 if failure (one application already registered)
+ *
+ * This function just registers a process to be polled when
+ * an ICMPv6 message is received.
+ * If no application registers, some ICMPv6 packets will be 
+ * processed by the "kernel" as usual (NS, NA, RS, RA, Echo request),
+ * others will be dropped.
+ * If an appplication registers here, it will be polled with a
+ * process_post_synch everytime an ICMPv6 packet is received. 
+ */
+u8_t icmp6_new(void *appstate);
+
+/**
+ * This function is called at reception of an ICMPv6 packet
+ * If an application registered as an ICMPv6 listener (with
+ * icmp6_new), it will be called through a process_post_synch()
+ */
+void tcpip_icmp6_call(u8_t type);
+#endif /*UIP_CONF_ICMP6*/
+
+/** @} */
 /**
  * The uIP event.
  *
@@ -296,16 +328,35 @@ CCIF extern process_event_t tcpip_event;
  */
 CCIF void tcpip_input(void);
 
-/*
- * This function is called on IP packet output.
+/**
+ * \brief Output packet to layer 2
+ * The eventual parameter is the MAC address of the destination.
  */
+#if UIP_CONF_IPV6
+extern u8_t (* tcpip_output)(uip_lladdr_t *);
+#else
 extern u8_t (* tcpip_output)(void);
-#define tcpip_set_outputfunc(outputfunc) tcpip_output = (outputfunc)
+#endif
+
+/**
+ * \brief This function does address resolution and then calls tcpip_output
+ */
+#if UIP_CONF_IPV6
+void tcpip_ipv6_output(void);
+#endif
+
+/**
+ * \brief Is forwarding generally enabled?
+ */
+extern unsigned char tcpip_do_forwarding;
 
 /*
  * Are we at the moment forwarding the contents of uip_buf[]?
  */
 extern unsigned char tcpip_is_forwarding;
+
+#define tcpip_set_outputfunc(outputfunc) tcpip_output        = (outputfunc)
+#define tcpip_set_forwarding(forwarding) tcpip_do_forwarding = (forwarding)
 
 /** @} */
 

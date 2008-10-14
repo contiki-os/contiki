@@ -58,7 +58,7 @@
  *
  * This file is part of the uIP TCP/IP stack.
  *
- * $Id: uipopt.h,v 1.7 2007/12/23 20:24:46 oliverschmidt Exp $
+ * $Id: uipopt.h,v 1.8 2008/10/14 09:40:56 julienabeille Exp $
  *
  */
 
@@ -87,8 +87,10 @@
  * netmask, default router and Ethernet address are appliciable only
  * if uIP should be run over Ethernet.
  *
+ * This options are meaningful only for the IPv4 code.
+ *
  * All of these should be changed to suit your project.
-*/
+ */
 
 /**
  * Determines if uIP should use a fixed IP address or not.
@@ -146,6 +148,13 @@
 #define UIP_TTL         64
 
 /**
+ * The maximum time an IP fragment should wait in the reassembly
+ * buffer before it is dropped.
+ *
+ */
+#define UIP_REASS_MAXAGE 60 /*60s*/
+
+/**
  * Turn on support for IP packet reassembly.
  *
  * uIP supports reassembly of fragmented IP packets. This features
@@ -158,15 +167,62 @@
  *
  * \hideinitializer
  */
+#ifdef UIP_CONF_REASSEMBLY
+#define UIP_REASSEMBLY UIP_CONF_REASSEMBLY
+#else /* UIP_CONF_REASSEMBLY */
 #define UIP_REASSEMBLY 0
+#endif /* UIP_CONF_REASSEMBLY */
+/** @} */
 
+/*------------------------------------------------------------------------------*/
 /**
- * The maximum time an IP fragment should wait in the reassembly
- * buffer before it is dropped.
+ * \defgroup uipoptipv6 IPv6 configuration options
+ * @{
  *
  */
-#define UIP_REASS_MAXAGE 40
 
+/** The maximum transmission unit at the IP Layer*/
+#define UIP_LINK_MTU 1280
+
+#ifndef UIP_CONF_IPV6
+/** Do we use IPv6 or not (default: no) */
+#define UIP_CONF_IPV6                 0
+#endif
+
+#ifndef UIP_CONF_IPV6_QUEUE_PKT
+/** Do we do per %neighbor queuing during address resolution (default: no) */
+#define UIP_CONF_IPV6_QUEUE_PKT       0
+#endif
+
+#ifndef UIP_CONF_IPV6_CHECKS 
+/** Do we do IPv6 consistency checks (highly recommended, default: yes) */
+#define UIP_CONF_IPV6_CHECKS          1
+#endif
+
+#ifndef UIP_CONF_IPV6_REASSEMBLY 
+/** Do we do IPv6 fragmentation (default: no) */
+#define UIP_CONF_IPV6_REASSEMBLY      0
+#endif
+
+#ifndef UIP_CONF_NETIF_MAX_ADDRESSES
+/** Default number of IPv6 addresses associated to the node's interface */
+#define UIP_CONF_NETIF_MAX_ADDRESSES  3
+#endif
+
+#ifndef UIP_CONF_ND6_MAX_PREFIXES 
+/** Default number of IPv6 prefixes associated to the node's interface */
+#define UIP_CONF_ND6_MAX_PREFIXES     3
+#endif
+
+#ifndef UIP_CONF_ND6_MAX_NEIGHBORS 
+/** Default number of neighbors that can be stored in the %neighbor cache */
+#define UIP_CONF_ND6_MAX_NEIGHBORS    4  
+#endif
+
+#ifndef UIP_CONF_ND6_MAX_DEFROUTERS
+/** Minimum number of default routers */
+#define UIP_CONF_ND6_MAX_DEFROUTERS   2
+#endif
 /** @} */
 
 /*------------------------------------------------------------------------------*/
@@ -229,6 +285,17 @@
  * \defgroup uipopttcp TCP configuration options
  * @{
  */
+
+/**
+ * Toggles wether UDP support should be compiled in or not.
+ *
+ * \hideinitializer
+ */
+#ifdef UIP_CONF_TCP
+#define UIP_TCP UIP_CONF_TCP
+#else /* UIP_CONF_UDP */
+#define UIP_TCP           1
+#endif /* UIP_CONF_UDP */
 
 /**
  * Determines if support for opening connections from uIP should be
@@ -371,6 +438,53 @@
  */
 #define UIP_ARP_MAXAGE 120
 
+
+/** @} */
+
+/*------------------------------------------------------------------------------*/
+
+/**
+ * \defgroup uipoptmac layer 2 options (for ipv6)
+ * @{
+ */
+
+#define UIP_DEFAULT_PREFIX_LEN 64
+
+/** @} */
+
+/*------------------------------------------------------------------------------*/
+
+/**
+ * \defgroup uipoptsics 6lowpan options (for ipv6)
+ * @{
+ */
+/**
+ * Timeout for packet reassembly at the 6lowpan layer
+ * (should be < 60s)
+ */
+#define SICSLOWPAN_REASS_MAXAGE 20
+
+/**
+ * Do we compress the IP header or not (default: no)
+ */
+#ifndef SICSLOWPAN_CONF_COMPRESSION
+#define SICSLOWPAN_CONF_COMPRESSION 0
+#endif
+
+/**
+ * If we use IPHC compression, how many address contexts do we support
+ */
+#ifndef SICSLOWPAN_CONF_MAX_ADDR_CONTEXTS 
+#define SICSLOWPAN_CONF_MAX_ADDR_CONTEXTS 1
+#endif
+
+/**
+ * Do we support 6lowpan fragmentation
+ */
+#ifndef SICSLOWPAN_CONF_FRAG  
+#define SICSLOWPAN_CONF_FRAG  0
+#endif
+
 /** @} */
 
 /*------------------------------------------------------------------------------*/
@@ -390,7 +504,7 @@
  * \hideinitializer
  */
 #ifndef UIP_CONF_BUFFER_SIZE
-#define UIP_BUFSIZE     400
+#define UIP_BUFSIZE UIP_LINK_MTU + UIP_LLH_LEN
 #else /* UIP_CONF_BUFFER_SIZE */
 #define UIP_BUFSIZE UIP_CONF_BUFFER_SIZE
 #endif /* UIP_CONF_BUFFER_SIZE */
@@ -454,11 +568,16 @@ void uip_log(char *msg);
  * found. For Ethernet, this should be set to 14. For SLIP, this
  * should be set to 0.
  *
+ * \note we probably won't use this constant for other link layers than
+ * ethernet as they have variable header length (this is due to variable
+ * number and type of address fields and to optional security features)
+ * E.g.: 802.15.4 -> 2 + (1/2*4/8) + 0/5/6/10/14
+ *       802.11 -> 4 + (6*3/4) + 2
  * \hideinitializer
  */
 #ifdef UIP_CONF_LLH_LEN
 #define UIP_LLH_LEN UIP_CONF_LLH_LEN
-#else /* UIP_CONF_LLH_LEN */
+#else /* UIP_LLH_LEN */
 #define UIP_LLH_LEN     14
 #endif /* UIP_CONF_LLH_LEN */
 
@@ -511,18 +630,18 @@ void uip_log(char *msg);
  * The following example illustrates how this can look.
  \code
 
-void httpd_appcall(void);
-#define UIP_APPCALL     httpd_appcall
+ void httpd_appcall(void);
+ #define UIP_APPCALL     httpd_appcall
 
-struct httpd_state {
-  u8_t state;
-  u16_t count;
-  char *dataptr;
-  char *script;
-};
-typedef struct httpd_state uip_tcp_appstate_t
+ struct httpd_state {
+ u8_t state;
+ u16_t count;
+ char *dataptr;
+ char *script;
+ };
+ typedef struct httpd_state uip_tcp_appstate_t
  \endcode
- */
+*/
 
 /**
  * \var #define UIP_APPCALL
