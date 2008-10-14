@@ -30,7 +30,7 @@
  * 
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: httpd-fs.c,v 1.3 2007/04/22 09:53:50 oliverschmidt Exp $
+ * $Id: httpd-fs.c,v 1.4 2008/10/14 09:40:11 julienabeille Exp $
  */
 
 #include "contiki-net.h"
@@ -38,7 +38,7 @@
 #include "httpd-fs.h"
 #include "httpd-fsdata.h"
 
-#include "httpd-fsdata.c"
+#include "httpd-fsdata.c" 
 
 #if HTTPD_FS_STATISTICS
 static u16_t count[HTTPD_FS_NUMFILES];
@@ -52,14 +52,14 @@ httpd_fs_strcmp(const char *str1, const char *str2)
   i = 0;
 
 loop:
-  if(str2[i] == 0 ||
+  if( pgm_read_byte(str2 + i) == 0 ||
      str1[i] == '\r' || 
      str1[i] == '\n') {
     return 0;
   }
 
-  if(str1[i] != str2[i]) {
-    return 1;
+  if(str1[i] !=  pgm_read_byte(str2 + i)) {
+    return 1; 
   }
 
   ++i;
