@@ -1,0 +1,13 @@
+all: ravenusbstick
+DEFAULT_TARGET=avr-ravenusb
+
+CONTIKI_NO_NET=1
+
+CONTIKI = ../..
+
+include $(CONTIKI)/Makefile.include
+
+
+
+
+
