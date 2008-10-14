@@ -1,0 +1,6 @@
+
+CONTIKI_TARGET_SOURCEFILES += radio.c hal.c frame.c
+# timer.c
+
+APPDIRS += $(CONTIKI)/cpu/avr/radio/rf230
+
