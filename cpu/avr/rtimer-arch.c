@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: rtimer-arch.c,v 1.2 2007/12/11 17:21:14 joxe Exp $
+ * $Id: rtimer-arch.c,v 1.3 2008/10/14 09:44:12 adamdunkels Exp $
  */
 
 /**
@@ -49,9 +49,20 @@
 #include "sys/rtimer.h"
 #include "rtimer-arch.h"
 
+#if defined(__AVR_ATmega1284P__)
+	#define ETIMSK TIMSK3
+    #define ETIFR TIFR3
+	#define TICIE3 ICIE3
+
+	//Has no 'C', so we just set it to B. The code doesn't really use C so this
+	//is safe to do but lets it compile
+	#define OCIE3C	OCIE3B
+	#define OCF3C	OCF3B
+#endif
+
 /*---------------------------------------------------------------------------*/
 #ifdef TCNT3
-SIGNAL (SIG_OUTPUT_COMPARE3A) {
+ISR (TIMER3_COMPA_vect) {
   ENERGEST_ON(ENERGEST_TYPE_IRQ);
 
   ETIMSK &= ~((1 << OCIE3A) | (1 << OCIE3B) | (1 << TOIE3) |
@@ -62,6 +73,10 @@ SIGNAL (SIG_OUTPUT_COMPARE3A) {
 
   ENERGEST_OFF(ENERGEST_TYPE_IRQ);
 }
+
+#else
+#error "No Timer3 in rtimer-arch.c"
+
 #endif
 /*---------------------------------------------------------------------------*/
 void
@@ -90,6 +105,9 @@ rtimer_arch_init(void)
   /* Maximum prescaler */
   TCCR3B |= 5;
 
+#else
+#error "No Timer3 in rtimer-arch.c"
+
 #endif
 
   /* Restore interrupt state */
@@ -110,6 +128,9 @@ rtimer_arch_schedule(rtimer_clock_t t)
   ETIFR |= (1 << ICF3) | (1 << OCF3A) | (1 << OCF3B) | (1 << TOV3) |
   (1 << OCF3C);
   ETIMSK |= (1 << OCIE3A);
+
+#else
+#error "No Timer3 in rtimer-arch.c"
 
 #endif
 
