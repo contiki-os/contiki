@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006, Technical University of Munich
+ * Copyright (c) 2008, Technical University of Munich
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,11 +32,8 @@
  */
 
 /**
- * \file
- *        Sample Contiki kernel for STK 501 development board
+ * \addtogroup usbstick
  *
- * \author
- *         Simon Barner <barner@in.tum.de
  */
 
 #ifndef __CONTIKI_RAVEN_H__

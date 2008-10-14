@@ -28,7 +28,6 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: ravenusbstick.c,v 1.1 2008/10/14 10:01:52 julienabeille Exp $
  */
 
 /*---------------------------------------------------------------------------*/

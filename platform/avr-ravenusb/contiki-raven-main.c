@@ -40,6 +40,8 @@
  */
 
 #include <avr/pgmspace.h>
+#include <avr/fuse.h>
+#include <avr/eeprom.h>
 #include <util/delay.h>
 #include <stdio.h>
 
@@ -62,6 +64,17 @@
 #include "serial/cdc_task.h"
 #include "rndis/rndis_task.h"
 #include "storage/storage_task.h"
+
+FUSES = 
+	{
+		.low = 0xde,
+		.high = 0x99,
+		.extended = 0xff,
+	};
+
+/* Put default MAC address in EEPROM */
+uint8_t mac_address[8] EEMEM = {0x02, 0x12, 0x13, 0xff, 0xfe, 0x14, 0x15, 0x16};
+
 
 PROCINIT(&etimer_process, &mac_process);
 
