@@ -1,0 +1,5 @@
+%!: /header.html
+<h1>Sensor Readings</h1><br>
+%! sensors
+%!: /footer.html
+
