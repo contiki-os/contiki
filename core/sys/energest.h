@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: energest.h,v 1.2 2008/09/29 11:44:37 joxe Exp $
+ * $Id: energest.h,v 1.3 2008/10/14 12:46:39 nvt-se Exp $
  */
 
 /**
@@ -44,7 +44,7 @@
 #include "sys/rtimer.h"
 
 typedef struct {
-  /*  unsigned long cummulative[2];*/
+  /*  unsigned long cumulative[2];*/
   unsigned long current;
 } energest_t;
 

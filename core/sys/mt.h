@@ -30,7 +30,7 @@
  *
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: mt.h,v 1.5 2008/05/27 14:00:09 adamdunkels Exp $
+ * $Id: mt.h,v 1.6 2008/10/14 12:46:39 nvt-se Exp $
  */
 
 /** \addtogroup sys
@@ -43,7 +43,7 @@
  * The event driven Contiki kernel does not provide multi-threading
  * by itself - instead, preemptive multi-threading is implemented
  * as a library that optionally can be linked with applications. This
- * library constists of two parts: a platform independent part, which is
+ * library consists of two parts: a platform independent part, which is
  * the same for all platforms on which Contiki runs, and a platform
  * specific part, which must be implemented specifically for the
  * platform that the multi-threading library should run.
@@ -56,7 +56,7 @@
  * @{
  *
  * The Contiki multi-threading library requires some architecture
- * specific support for seting up and switching stacks. This support
+ * specific support for setting up and switching stacks. This support
  * requires four stack manipulation functions to be implemented:
  * mtarch_start(), which sets up the stack frame for a new thread,
  * mtarch_exec(), which switches in the stack of a thread,
@@ -66,9 +66,9 @@
  * (if any) must be implemented: mtarch_pstart() and mtarch_pstop().
  * If no preemption is used, these functions can be implemented as
  * empty functions. Finally, the function mtarch_init() is called by
- * mt_init(), and can be used for initalization of timer interrupts,
+ * mt_init(), and can be used for initialization of timer interrupts,
  * or any other mechanisms required for correct operation of the
- * architecture specific support funcions while mtarch_remove() is
+ * architecture specific support functions while mtarch_remove() is
  * called by mt_remove() to clean up those resources.
  *
  */
@@ -101,7 +101,7 @@ struct mtarch_thread;
  * This function is implemented by the architecture specific functions
  * for the multi-thread library and is called by the mt_init()
  * function as part of the initialization of the library. The
- * mtarch_init() function can be used for, e.g., starting preemtion
+ * mtarch_init() function can be used for, e.g., starting preemption
  * timers or other architecture specific mechanisms required for the
  * operation of the library.
  */

@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: process.h,v 1.15 2008/02/07 23:04:35 oliverschmidt Exp $
+ * @(#)$Id: process.h,v 1.16 2008/10/14 12:46:39 nvt-se Exp $
  */
 
 /**
@@ -257,7 +257,7 @@ typedef unsigned char process_num_events_t;
 /** @} */
 
 /**
- * \name Process declaration and definion
+ * \name Process declaration and definition
  * @{
  */
 
@@ -294,7 +294,7 @@ static PT_THREAD(process_thread_##name(struct pt *process_pt,	\
  * and a human readable string name, which is used when debugging.
  *
  * \param name The variable name of the process structure.
- * \param strname The string repressentation of the process' name.
+ * \param strname The string representation of the process' name.
  *
  * \hideinitializer
  */
@@ -340,7 +340,7 @@ CCIF void process_start(struct process *p, const char *arg);
  *
  * \param ev The event to be posted.
  *
- * \param data The auxillary data to be sent with the event
+ * \param data The auxiliary data to be sent with the event
  *
  * \param p The process to which the event should be posted, or
  * PROCESS_BROADCAST if the event should be posted to all processes.

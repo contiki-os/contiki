@@ -56,7 +56,7 @@
  *
  * This file is part of the Contiki desktop environment
  *
- * $Id: dsc.h,v 1.3 2007/08/30 14:39:17 matsutsuka Exp $
+ * $Id: dsc.h,v 1.4 2008/10/14 12:46:39 nvt-se Exp $
  *
  */
 #ifndef __DSC_H__
@@ -96,7 +96,7 @@ struct dsc {
 };
 
 /**
- * Intantiating macro for the DSC structure.
+ * Instantiating macro for the DSC structure.
  *
  * \param dscname The name of the C variable which is to contain the
  * DSC.

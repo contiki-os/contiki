@@ -30,7 +30,7 @@
  *
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: pt.h,v 1.2 2006/09/26 20:57:58 adamdunkels Exp $
+ * $Id: pt.h,v 1.3 2008/10/14 12:46:39 nvt-se Exp $
  */
 
 /**
@@ -259,7 +259,7 @@ struct pt {
 /**
  * Schedule a protothread.
  *
- * This function shedules a protothread. The return value of the
+ * This function schedules a protothread. The return value of the
  * function is non-zero if the protothread is running or zero if the
  * protothread has exited.
  *
