@@ -31,7 +31,6 @@
 #include "contiki-lib.h"
 #include "contiki-net.h"
 
-#include "frame.h"
 #include "mac.h"
 
 #include <string.h>

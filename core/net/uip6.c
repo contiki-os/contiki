@@ -41,7 +41,7 @@
  *
  * This file is part of the uIP TCP/IP stack.
  *
- * $Id: uip6.c,v 1.2 2008/10/14 12:26:18 adamdunkels Exp $
+ * $Id: uip6.c,v 1.3 2008/10/14 13:39:12 julienabeille Exp $
  *
  */
 
@@ -71,6 +71,8 @@
  * the packet back to the peer.
  */
 
+#include "net/uip.h"
+#include "net/uipopt.h"
 #include "net/uip-icmp6.h"
 #include "net/uip-nd6.h"
 #include "net/uip-netif.h"

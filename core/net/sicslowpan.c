@@ -32,7 +32,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: sicslowpan.c,v 1.2 2008/10/14 12:26:18 adamdunkels Exp $
+ * $Id: sicslowpan.c,v 1.3 2008/10/14 13:39:12 julienabeille Exp $
  */
 /**
  * \file
@@ -52,7 +52,6 @@
 #include "net/uip-netif.h"
 #include "net/rime.h"
 #include "net/sicslowpan.h"
-
 
 #define DEBUG 0
 #if DEBUG
@@ -1049,15 +1048,6 @@ send_packet(rimeaddr_t *dest)
   if(mac != NULL) {
   /** \todo: Fix sending delays so they aren't blocking, or even better would
    *         be to figure out how to get rid of delays entirely */
-
-  
-#if DEBUG
-    #warning "*************************************************************"
-    #warning "Debug code enabled in sicslowpan.c, you MUST enable debug    "
-	#warning "code in sicslowmac.c as well, and ALL nodes on network must  "
-	#warning "have debug code in sicslowmac.c enabled. See documentation   "
-    #warning "*************************************************************"
-#endif
     mac->send();
   }
 }
