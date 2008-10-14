@@ -2,12 +2,12 @@
  *  All rights reserved.
  *
  *  Additional fixes for AVR contributed by:
- *	Colin O'Flynn coflynn@newae.com
- *	Eric Gnoske egnoske@gmail.com
- *	Blake Leverett bleverett@gmail.com
- *	Mike Vidales mavida404@gmail.com
- *	Kevin Brown kbrown3@uccs.edu
- *	Nate Bohlmann nate@elfwerks.com
+ *      Colin O'Flynn coflynn@newae.com
+ *      Eric Gnoske egnoske@gmail.com
+ *      Blake Leverett bleverett@gmail.com
+ *      Mike Vidales mavida404@gmail.com
+ *      Kevin Brown kbrown3@uccs.edu
+ *      Nate Bohlmann nate@elfwerks.com
  *
  *   All rights reserved.
  *
@@ -36,7 +36,7 @@
  *  ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  *  POSSIBILITY OF SUCH DAMAGE.
  *
- * $Id: radio.c,v 1.1 2008/10/14 09:43:40 adamdunkels Exp $
+ * $Id: radio.c,v 1.2 2008/10/14 18:37:28 c_oflynn Exp $
 */
 
 /**
@@ -113,8 +113,7 @@ static uint8_t rssi_val;
 static uint8_t rx_mode;
 uint8_t rxMode = RX_AACK_ON;
 static hal_rx_frame_t rx_frame;
-parsed_frame_t parsed_frame;
-
+static parsed_frame_t parsed_frame;
 
 /*============================ PROTOTYPES ====================================*/
 bool radio_is_sleeping(void);
@@ -185,8 +184,8 @@ radio_init(bool cal_rc_osc,
         else {
             if (hal_register_read(RG_MAN_ID_0) != SUPPORTED_MANUFACTURER_ID)
                 init_status = RADIO_UNSUPPORTED_DEVICE;
-            else
-                hal_register_write(RG_IRQ_MASK, RF230_SUPPORTED_INTERRUPT_MASK);
+    else
+        hal_register_write(RG_IRQ_MASK, RF230_SUPPORTED_INTERRUPT_MASK);
         }
     }
 
@@ -200,6 +199,19 @@ radio_init(bool cal_rc_osc,
     rx_frame_callback = rx_callback;
 
     return init_status;
+}
+
+/*---------------------------------------------------------------------------*/
+uint8_t *
+radio_frame_data(void)
+{
+        return rx_frame.data;
+}
+
+uint8_t
+radio_frame_length(void)
+{
+        return rx_frame.length;
 }
 
 /*---------------------------------------------------------------------------*/
@@ -236,10 +248,10 @@ radio_trx_end_event(uint32_t const isr_timestamp)
         /* radio has received frame, store it away */
         parsed_frame.time = isr_timestamp;
         parsed_frame.rssi = rssi_val;
-
+        
         hal_frame_read(&rx_frame, NULL);
         rx_frame_parse(&rx_frame, &parsed_frame);
-    }
+        }
 
     if (!rx_mode){
         /*  Put radio back into receive mode. */
@@ -594,23 +606,23 @@ radio_get_clock_speed(void)
 radio_status_t
 radio_set_clock_speed(bool direct, uint8_t clock_speed)
 {
-    /*Check function parameter and current clock speed.*/
+        /*Check function parameter and current clock speed.*/
     if (clock_speed > CLKM_16MHZ){
-        return RADIO_INVALID_ARGUMENT;
+            return RADIO_INVALID_ARGUMENT;
     }
 
     if (radio_get_clock_speed() == clock_speed){
         return RADIO_SUCCESS;
     }
 
-    /*Select to change the CLKM frequency directly or after returning from SLEEP.*/
+        /*Select to change the CLKM frequency directly or after returning from SLEEP.*/
     if (direct == false){
-        hal_subregister_write(SR_CLKM_SHA_SEL, 1);
+            hal_subregister_write(SR_CLKM_SHA_SEL, 1);
     } else {
-        hal_subregister_write(SR_CLKM_SHA_SEL, 0);
+            hal_subregister_write(SR_CLKM_SHA_SEL, 0);
     }
-
-    hal_subregister_write(SR_CLKM_CTRL, clock_speed);
+        
+        hal_subregister_write(SR_CLKM_CTRL, clock_speed);
 
     return RADIO_SUCCESS;
 }
@@ -776,6 +788,8 @@ bool radio_is_sleeping(void)
 radio_status_t
 radio_set_trx_state(uint8_t new_state)
 {
+    uint8_t original_state;
+
     /*Check function paramter and current state of the radio transceiver.*/
     if (!((new_state == TRX_OFF)    ||
           (new_state == RX_ON)      ||
@@ -789,18 +803,21 @@ radio_set_trx_state(uint8_t new_state)
         return RADIO_WRONG_STATE;
     }
 
-    uint8_t original_state = radio_get_trx_state();
-
-    if ((original_state == BUSY_RX) ||
-        (original_state == BUSY_TX) ||
-        (original_state == BUSY_RX_AACK) ||
-        (original_state == BUSY_TX_ARET)){
-        return RADIO_BUSY_STATE;
+    // Wait for radio to finish previous operation
+    for(;;)
+    {
+        original_state = radio_get_trx_state();
+        if (original_state != BUSY_TX_ARET &&
+            original_state != BUSY_RX_AACK &&
+            original_state != BUSY_RX && 
+            original_state != BUSY_TX)
+            break;
     }
 
     if (new_state == original_state){
         return RADIO_SUCCESS;
     }
+
 
     /* At this point it is clear that the requested new_state is: */
     /* TRX_OFF, RX_ON, PLL_ON, RX_AACK_ON or TX_ARET_ON. */
@@ -849,7 +866,7 @@ radio_set_trx_state(uint8_t new_state)
             rx_mode = true;
         } else {
             rx_mode = false;
-        }
+    }
     }
 
     return set_state_status;
@@ -1190,7 +1207,7 @@ radio_configure_csma(uint8_t seed0, uint8_t be_csma_seed1)
 bool
 calibrate_rc_osc_clkm(void)
 {
-    bool success = false;
+        bool success = false;
 
     /*  Use the 1 MHz CLK_M from the AT86RF230. */
     uint16_t temp, counter;
@@ -1204,72 +1221,72 @@ calibrate_rc_osc_clkm(void)
 #define TARGETVAL ((1000000ULL * 256 * 32) / F_CPU)
 
 
-    osccal_saved = OSCCAL;
-    cli();
+        osccal_saved = OSCCAL;
+        cli();
 
-    radio_set_clock_speed(true, CLKM_1MHz);
+        radio_set_clock_speed(true, CLKM_1MHz);
 
     /*  Save current values of timer status. */
-    tccr2b = TCCR2B;
-    tccr1b = TCCR1B;
-    tccr1a = TCCR1A;
+        tccr2b = TCCR2B;
+        tccr1b = TCCR1B;
+        tccr1a = TCCR1A;
 
     /*  Stop timers 1 and 2. */
     /*  Set timer 1 to normal mode (no CTC, no PWM, just count). */
-    TCCR2B = 0;
-    TCCR1B = 0;
-    TCCR1A = 0;
+        TCCR2B = 0;
+        TCCR1B = 0;
+        TCCR1A = 0;
 
     for (counter = 0; counter < 1000;  counter++){
         /*  Delete pending timer 1 and 2 interrupts, and clear the */
         /*  counters. */
-        TIFR1 = 0xFF;
-        TIFR2 = 0xFF;
-        TCNT2 = 0;
-        TCNT1 = 0;
+            TIFR1 = 0xFF;
+            TIFR2 = 0xFF;
+            TCNT2 = 0;
+            TCNT1 = 0;
         /*  Timer 2 driven from clock divided by 32 */
-        TCCR2B = (1 << CS21) | (1 << CS20);
+            TCCR2B = (1 << CS21) | (1 << CS20);
         /*  Timer 1 driven with external clock */
-        TCCR1B = (1 << CS12) | (1 << CS11);
+            TCCR1B = (1 << CS12) | (1 << CS11);
 
         /*  Wait for timer 2 to overflow. */
         while (!(TIFR2 & (1 << TOV2))){
-            ;
+                ;
         }
 
         /*  Stop timer 1.  Now, TCNT1 contains the number of CPU cycles */
         /*  counted while timer 2 was counting */
-        TCCR1B = 0;
-        TCCR2B = 0;
+            TCCR1B = 0;
+            TCCR2B = 0;
 
-        temp = TCNT1;
+            temp = TCNT1;
 
         if (temp < (uint16_t)(0.995 * TARGETVAL)){
             /*  Too fast, slow down */
-            OSCCAL--;
+                OSCCAL--;
         } else if (temp > (uint16_t)(1.005 * TARGETVAL)){
             /*  Too slow, speed up */
-            OSCCAL++;
+                OSCCAL++;
         } else {
             /*  We are within +/- 0.5 % of our target frequency, so we're */
             /*  done. */
-            success = true;
-            break;
+                success = true;
+                break;
+            }
         }
-    }
 
-    radio_set_clock_speed(true, CLKM_DISABLED);
+        radio_set_clock_speed(true, CLKM_DISABLED);
 
     /*  restore timer status regs */
-    TCCR2B = tccr2b;
-    TCCR1B = tccr1b;
-    TCCR1A = tccr1a;
+        TCCR2B = tccr2b;
+        TCCR1B = tccr1b;
+        TCCR1A = tccr1a;
     if (!success){
         /*  We failed, therefore restore previous OSCCAL value. */
-        OSCCAL = osccal_saved;
-    }
+            OSCCAL = osccal_saved;
+        }
 
-    return success;
+        return success;
 }
 
 /*----------------------------------------------------------------------------*/
@@ -1293,7 +1310,7 @@ calibrate_rc_osc_32k(void)
      */
     uint8_t osccal_original = OSCCAL;
     volatile uint16_t temp;
-
+        
     /* This is bad practice, but seems to work. */
     OSCCAL = 0x80;
 
@@ -1331,7 +1348,7 @@ calibrate_rc_osc_32k(void)
          */
         while (!(TIFR2 & (1 << TOV2))){
             ;
-        }
+            }
         temp = TCNT1;
 
         TCCR1B = 0;

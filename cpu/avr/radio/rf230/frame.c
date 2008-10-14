@@ -39,7 +39,7 @@
  *  ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  *  POSSIBILITY OF SUCH DAMAGE.
  *
- *  $Id: frame.c,v 1.1 2008/10/14 09:43:40 adamdunkels Exp $
+ *  $Id: frame.c,v 1.2 2008/10/14 18:37:28 c_oflynn Exp $
 */
 /*
  *  \brief This file is where the main functions that relate to frame
@@ -77,7 +77,7 @@
 #include "radio.h"
 #include "frame.h"
 //#include "mac_event.h"
-#include "mac.h"
+#include "zmac.h"
 #include "process.h"
 #include "sicslowmac.h"
 

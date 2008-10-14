@@ -45,7 +45,7 @@
  *  \file
  *  \brief This file contains radio driver code.
  *
- *   $Id: radio.h,v 1.1 2008/10/14 09:43:40 adamdunkels Exp $
+ *   $Id: radio.h,v 1.2 2008/10/14 18:37:28 c_oflynn Exp $
  */
 
 #ifndef RADIO_H
@@ -212,6 +212,8 @@ void           radio_set_extended_address( uint8_t *extended_address );
 radio_status_t radio_configure_csma( uint8_t seed0, uint8_t be_csma_seed1 );
 bool           calibrate_rc_osc_clkm(void);
 void           calibrate_rc_osc_32k(void);
+uint8_t * radio_frame_data(void);
+uint8_t radio_frame_length(void);
 #define delay_us( us )   ( _delay_loop_2( ( F_CPU / 4000000UL ) * ( us ) ) )
 
 #endif
