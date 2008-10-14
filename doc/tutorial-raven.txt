@@ -100,7 +100,7 @@ The binaries needed are:
 
 To compile each of them, type in Cygwin:
 \verbatim
-cd c:/contiki/examples/webserver-ipv6
+cd c:/contiki/examples/webserver-ipv6-raven
 make TARGET=avr-raven webserver6.elf
 \endverbatim
 \verbatim
