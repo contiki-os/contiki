@@ -30,7 +30,7 @@
  *
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: uip-split.c,v 1.1 2006/06/17 22:41:19 adamdunkels Exp $
+ * $Id: uip-split.c,v 1.2 2008/10/14 13:39:12 julienabeille Exp $
  */
 
 #include <string.h>
@@ -48,6 +48,7 @@
 void
 uip_split_output(void)
 {
+#if UIP_TCP
   u16_t tcplen, len1, len2;
 
   /* We only try to split maximum sized TCP segments. */
@@ -87,8 +88,12 @@ uip_split_output(void)
     
     /* Transmit the first packet. */
     /*    uip_fw_output();*/
+#if UIP_CONF_IPV6
+    tcpip_ipv6_output();
+#else
     tcpip_output();
-
+#endif /* UIP_CONF_IPV6 */
+   
     /* Now, create the second packet. To do this, it is not enough to
        just alter the length field, but we must also update the TCP
        sequence number and point the uip_appdata to a new place in
@@ -126,11 +131,21 @@ uip_split_output(void)
 
     /* Transmit the second packet. */
     /*    uip_fw_output();*/
+#if UIP_CONF_IPV6
+    tcpip_ipv6_output();
+#else
     tcpip_output();
-  } else {
-    /*    uip_fw_output();*/
-    tcpip_output();
+#endif /* UIP_CONF_IPV6 */
+    return;
   }
-     
+#endif /* UIP_TCP */
+
+  /*    uip_fw_output();*/
+#if UIP_CONF_IPV6
+     tcpip_ipv6_output();
+#else
+     tcpip_output();
+#endif /* UIP_CONF_IPV6 */
 }
+
 /*-----------------------------------------------------------------------------*/

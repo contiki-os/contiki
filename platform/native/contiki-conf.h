@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: contiki-conf.h,v 1.8 2007/11/28 15:32:25 adamdunkels Exp $
+ * @(#)$Id: contiki-conf.h,v 1.9 2008/10/14 13:39:12 julienabeille Exp $
  */
 
 #ifndef __CONTIKI_CONF_H__
@@ -59,6 +59,16 @@ typedef unsigned short uip_stats_t;
 #define UIP_CONF_TCP_SPLIT       1
 #define UIP_CONF_LOGGING         0
 #define UIP_CONF_UDP_CHECKSUMS   1
+
+#define UIP_CONF_IPV6            1
+#define UIP_CONF_IPV6_CHECKS     1
+#define UIP_CONF_IPV6_QUEUE_PKT  1
+#define UIP_CONF_IPV6_REASSEMBLY 0
+#define UIP_CONF_NETIF_MAX_ADDRESSES  3
+#define UIP_CONF_ND6_MAX_PREFIXES     3
+#define UIP_CONF_ND6_MAX_NEIGHBORS    4
+#define UIP_CONF_ND6_MAX_DEFROUTERS   2
+#define UIP_CONF_ICMP6           1
 
 typedef unsigned long clock_time_t;
 #define CLOCK_CONF_SECOND 1000
