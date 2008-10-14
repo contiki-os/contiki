@@ -49,7 +49,7 @@
  *
  * This file is part of the Contiki desktop OS
  *
- * $Id: loader.h,v 1.1 2006/06/17 22:41:20 adamdunkels Exp $
+ * $Id: loader.h,v 1.2 2008/10/14 12:46:39 nvt-se Exp $
  *
  */
 #ifndef __LOADER_H__
@@ -76,7 +76,7 @@
  * Load and execute a program.
  *
  * This macro is used for loading and executing a program, and
- * requires support from the architecture dependant code. The actual
+ * requires support from the architecture dependent code. The actual
  * program loading is made by architecture specific functions.
  *
  * \note A program loaded with LOADER_LOAD() must call the

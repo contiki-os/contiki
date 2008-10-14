@@ -2,7 +2,7 @@
  * \defgroup rt Real-time task scheduling
  *
  * The real-time module handles the scheduling and execution of
- * real-time tasks (with predictible execution times).
+ * real-time tasks (with predictable execution times).
  *
  * @{
  */
@@ -45,7 +45,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: rtimer.h,v 1.6 2007/10/23 20:33:19 adamdunkels Exp $
+ * @(#)$Id: rtimer.h,v 1.7 2008/10/14 12:46:39 nvt-se Exp $
  */
 #ifndef __RTIMER_H__
 #define __RTIMER_H__
@@ -66,7 +66,7 @@ struct rtimer;
 typedef void (* rtimer_callback_t)(struct rtimer *t, void *ptr);
 
 /**
- * \brief      Repressentation of a real-time task
+ * \brief      Representation of a real-time task
  *
  *             This structure represents a real-time task and is used
  *             by the real-time module and the architecture specific
