@@ -28,87 +28,33 @@
  *
  * This file is part of the Contiki operating system.
  *
- * Author: Simon Barner <barner@in.tum.de>
- *
  * @(#)$$
  */
-#include "contiki-raven.h"
 
-#include "contiki.h"
-#include "usb_drv.h"
-#include "usb_descriptors.h"
-#include "usb_specific_request.h"
-#include <util/delay.h>
+/**
+ * \file
+ *         AVR specific definitions for the rs232 port.   
+ *
+ * \author
+ *         Simon Barner <barner@in.tum.de
+ */
 
-uint8_t checkForFinger(void);
+#ifndef __RS232_AT90USB1287__
+#define __RS232_AT90USB1287__
+/******************************************************************************/
+/***   Includes                                                               */
+/******************************************************************************/
+#include <avr/io.h>
 
-uint8_t fingerPresent = 0;
+/******************************************************************************/
+/***   RS232 ports                                                            */
+/******************************************************************************/
+#define RS232_PORT_0 0
+#define RS232_PORT_1 1
 
-/* Defining this allows you to mount the USB Stick as a mass storage device by shorting the two pins. See docs. */
-//#define WINXPSP2
-
-void
-init_lowlevel(void)
-{
-    Leds_init();
-    Leds_off();
-
-        if (checkForFinger()) {
-#ifdef WINXPSP2
-				usb_mode = mass_storage;
-#else
-                fingerPresent = 1;
-#endif
-        }
-
- return;
-
-}
+/******************************************************************************/
+/***   Baud rates                                                             */
+/******************************************************************************/
 
 
-uint8_t checkForFinger(void)
-{
-  uint8_t tests;
-  uint8_t matches;
- 
- /*    
-         Three pads on RZUSBSTICK go: GND PD3 PD2
-     
-         We pulse PD3, and check for that pattern on PD2.
-
-          A (moist) finger across those three pads should be enough
-          to bridge these
-  */
-
-  //Output
-  DDRD |= 1<<PD3;
- 
-  //Input
-  DDRD &= ~(1<<PD2);
-
-
-
-  tests = 100;
-  matches = 0;
-  while(tests) {
-
-      //Set bit PD3 to value of LSB of 'tests'
-          PORTD = (PORTD & ~(1<<PD3)) | ( (tests & 0x01) << PD3);
-
-          //Allow changes to propogate
-          _delay_us(1);
-
-          //Check if PD2 matches what we set PD3 to
-          if ((PIND & (1<<PD2)) == ((tests & 0x01) << PD2)) {
-                        matches++;      
-          }
-
-          tests--;
-   }
-
-   if (matches > 70) {
-      return 1;
-   }
-
-   return 0;
-}
+#endif /* #ifndef __RS232_AT90USB1287__ */

@@ -6,7 +6,7 @@ CONTIKI_TARGET_MAIN = ${CONTIKI_CORE}.o
 USB       = uart_usb_lib.c   \
             cdc_task.c       \
             rndis_task.c      \
-                        rndis.c           \
+            rndis.c           \
             usb_descriptors.c       \
             usb_drv.c               \
             usb_specific_request.c  \
@@ -17,7 +17,7 @@ USB       = uart_usb_lib.c   \
             storage_task.c     \
             avr_flash.c
 
-CONTIKI_TARGET_SOURCEFILES +=   slip.c cfs-eeprom.c eeprom.c random.c \
+CONTIKI_TARGET_SOURCEFILES +=   cfs-eeprom.c eeprom.c random.c \
                                 mmem.c contiki-raven-default-init-lowlevel.c \
                                 contiki-raven-default-init-net.c contiki-raven-main.c \
                                 sicslow_ethernet.c \
@@ -28,7 +28,7 @@ USB_INCLUDES = -I$(CONTIKI_CPU)/dev/usb
 CONTIKIAVR=$(CONTIKI)/cpu/avr
 CONTIKIBOARD=.
 
-CONTIKI_PLAT_DEFS = -DF_CPU=8000000UL -DAVRGCC -DAUTO_CRC_PADDING=2
+CONTIKI_PLAT_DEFS = -DF_CPU=8000000UL -DAVRGCC -DAUTO_CRC_PADDING=2 -DJACKDAW=1
 
 
 MCU=at90usb1287

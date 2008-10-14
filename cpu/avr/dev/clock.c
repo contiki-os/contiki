@@ -1,5 +1,6 @@
 
 #include "sys/clock.h"
+#include "dev/clock-avr.h"
 #include "sys/etimer.h"
 
 #include <avr/io.h>
@@ -8,7 +9,8 @@
 static volatile clock_time_t count;
 
 /*---------------------------------------------------------------------------*/
-SIGNAL(SIG_OUTPUT_COMPARE0)
+//SIGNAL(SIG_OUTPUT_COMPARE0)
+ISR(AVR_OUTPUT_COMPARE_INT)
 {
   ++count;
   if(etimer_pending()) {
@@ -49,35 +51,8 @@ clock_init(void)
 {
   cli ();
 
-  /* Select internal clock */
-  ASSR = 0x00;
 
-  /* Set counter to zero */
-  TCNT0 = 0;
-
-  /*
-   * Set comparison register: 
-   * Crystal freq. is 16000000,
-   * pre-scale factor is 1024, i.e. we have 125 "ticks" / sec:
-   * 16000000 = 1024 * 125 * 125
-   */
-  OCR0 = 125;
-  
-  /*
-   * Set timer control register:
-   *  - prescale: 1024 (CS00 - CS02)
-   *  - counter reset via comparison register (WGM01)
-   */
-  TCCR0 =  _BV(CS00) | _BV(CS01) |  _BV(CS02) |  _BV(WGM01);
-  
-  /* Clear interrupt flag register */
-  TIFR = 0x00;
-
-  /*
-   * Raise interrupt when value in OCR0 is reached. Note that the
-   * counter value in TCNT0 is cleared automatically.
-   */
-  TIMSK = _BV (OCIE0);
+  OCRSetup();
 
   /*
    * Counts the number of ticks. Since clock_time_t is an unsigned

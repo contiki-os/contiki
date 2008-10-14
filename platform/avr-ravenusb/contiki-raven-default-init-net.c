@@ -35,7 +35,7 @@
 
 #include "contiki-raven.h"
 
-#include "mac.h"
+#include "zmac.h"
 #include "sicslowpan.h"
 extern uint64_t rndis_ethernet_addr;
 
@@ -43,12 +43,25 @@ void
 init_net(void)
 {
 
-  /* Set the Ethernet address to the 15.4 MAC address low 5 bytes...*/
-  rndis_ethernet_addr =  macLongAddr & 0x0000ffffffffffffUL;
-  /* Set as locally administed address */
-  rndis_ethernet_addr |= 0x020000000000UL;
 
-  ieee15_4ManagerAddress.set_long_addr(rndis_ethernet_addr); 
+ 
+ 
+  /* Set local bit, Clear translate bit, Clear Multicast bit */
+  macLongAddr &= ~(0x0700000000000000ULL);
+  macLongAddr |=   0x0200000000000000ULL;
+ 
+
+  /* Set the Ethernet address to the 15.4 MAC address */
+  rndis_ethernet_addr =  macLongAddr;
+  
+  /* Remove the middle two bytes... */
+  rndis_ethernet_addr = (rndis_ethernet_addr & 0xffffffUL) | ((rndis_ethernet_addr & 0xffffff0000000000ULL) >> 16);
+
+  /* Change ieee802.15.4 address to correspond with what the ethernet's
+     IPv6 address will be. This will have ff:fe in the middle.         */
+  macLongAddr = (macLongAddr & 0xffffff0000ffffffULL) | (0x000000fffe000000ULL);
+
+  ieee15_4ManagerAddress.set_long_addr(macLongAddr); 
 }
 
 

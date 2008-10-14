@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: rs232.c,v 1.2 2006/12/22 17:00:45 barner Exp $
+ * @(#)$Id: rs232.c,v 1.3 2008/10/14 19:06:51 c_oflynn Exp $
  */
 
 #include <stdio.h>
@@ -49,7 +49,7 @@
 #define RS232_PRINTF_BUFFER_LENGTH 64
 #endif
 
-#if MCU == atmega128
+#if defined (__AVR_ATmega128__) || defined(__AVR_ATmega1284P__)
 typedef struct {
   volatile uint8_t * UDR;
   volatile uint8_t * UBRRH;
@@ -86,13 +86,13 @@ static rs232_t rs232_ports[2] = {
 #endif
 
 /*---------------------------------------------------------------------------*/
-SIGNAL(SIG_UART0_TRANS)
+ISR(USART0_TX_vect)
 {
   rs232_ports[RS232_PORT_0].txwait = 0;
 }
 
 /*---------------------------------------------------------------------------*/
-SIGNAL(SIG_UART0_RECV)
+ISR(USART0_RX_vect)
 {
   unsigned char c;
 
@@ -104,13 +104,13 @@ SIGNAL(SIG_UART0_RECV)
 }
 
 /*---------------------------------------------------------------------------*/
-SIGNAL(SIG_UART1_TRANS)
+ISR(USART1_TX_vect)
 {
   rs232_ports[RS232_PORT_1].txwait = 0;
 }
 
 /*---------------------------------------------------------------------------*/
-SIGNAL(SIG_UART1_RECV)
+ISR(USART1_RX_vect)
 {
   unsigned char c;
 
