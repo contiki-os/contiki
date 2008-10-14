@@ -28,28 +28,34 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: tapdev-drv.c,v 1.4 2007/08/10 14:59:59 oliverschmidt Exp $
+ * @(#)$Id: tapdev-drv.c,v 1.5 2008/10/14 14:38:10 julienabeille Exp $
  */
 
 #include "contiki-net.h"
+
+#if UIP_CONF_IPV6
+#include "tapdev6.h"
+#else
 #include "tapdev.h"
-#include "net/uip-neighbor.h"
+#endif /* UIP_CONF_IPV6 */
 
 #include "tapdev-drv.h"
 
 #define BUF ((struct uip_eth_hdr *)&uip_buf[0])
+#define IPBUF ((struct uip_tcpip_hdr *)&uip_buf[UIP_LLH_LEN])
 
 PROCESS(tapdev_process, "TAP driver");
 
 /*---------------------------------------------------------------------------*/
+#if !UIP_CONF_IPV6
 u8_t
 tapdev_output(void)
 {
-  uip_arp_out();
-  tapdev_send();
-  
-  return 0;
+   uip_arp_out();
+   tapdev_send();  
+   return 0;
 }
+#endif
 /*---------------------------------------------------------------------------*/
 static void
 pollhandler(void)
@@ -60,7 +66,6 @@ pollhandler(void)
   if(uip_len > 0) {
 #if UIP_CONF_IPV6
     if(BUF->type == htons(UIP_ETHTYPE_IPV6)) {
-      uip_neighbor_add(&IPBUF->srcipaddr, &BUF->src);
       tcpip_input();
     } else
 #endif /* UIP_CONF_IPV6 */
@@ -68,13 +73,17 @@ pollhandler(void)
       uip_len -= sizeof(struct uip_eth_hdr);
       tcpip_input();
     } else if(BUF->type == htons(UIP_ETHTYPE_ARP)) {
-      uip_arp_arpin();
-      /* If the above function invocation resulted in data that
-	 should be sent out on the network, the global variable
-	 uip_len is set to a value > 0. */
-      if(uip_len > 0) {
-	tapdev_send();
-      }
+#if !UIP_CONF_IPV6 //math
+       uip_arp_arpin();
+       /* If the above function invocation resulted in data that
+	  should be sent out on the network, the global variable
+	  uip_len is set to a value > 0. */
+       if(uip_len > 0) {
+	  tapdev_send();
+       }
+#endif              
+    } else {
+      uip_len = 0;
     }
   }
 }
@@ -86,9 +95,11 @@ PROCESS_THREAD(tapdev_process, ev, data)
   PROCESS_BEGIN();
 
   tapdev_init();
-
+#if !UIP_CONF_IPV6
   tcpip_set_outputfunc(tapdev_output);
-
+#else
+  tcpip_set_outputfunc(tapdev_send);
+#endif
   process_poll(&tapdev_process);
 
   PROCESS_WAIT_UNTIL(ev == PROCESS_EVENT_EXIT);
