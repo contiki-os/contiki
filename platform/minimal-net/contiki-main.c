@@ -29,7 +29,7 @@
  *
  * This file is part of the Contiki OS
  *
- * $Id: contiki-main.c,v 1.15 2008/02/10 22:52:41 oliverschmidt Exp $
+ * $Id: contiki-main.c,v 1.16 2008/10/14 10:06:26 julienabeille Exp $
  *
  */
 
@@ -39,6 +39,7 @@
 #include <unistd.h>
 
 #include "contiki.h"
+#include "contiki-net.h" //math
 
 #include "net/uip.h"
 #ifdef __CYGWIN__
@@ -50,21 +51,22 @@
 #ifdef __CYGWIN__
 PROCINIT(&etimer_process, &tcpip_process, &wpcap_process);
 #else /* __CYGWIN__ */
-PROCINIT(&etimer_process, &tcpip_process, &tapdev_process);
+PROCINIT(&etimer_process, &tapdev_process, &tcpip_process);
 #endif /* __CYGWIN__ */
 
 /*---------------------------------------------------------------------------*/
 int
 main(void)
 {
-  uip_ipaddr_t addr;
 
   process_init();
 
   procinit_init();
-  
+
   autostart_start(autostart_processes);
-  
+    
+#if !UIP_CONF_IPV6   
+  uip_ipaddr_t addr;
   uip_ipaddr(&addr, 192,168,2,2);
   printf("IP Address:  %d.%d.%d.%d\n", uip_ipaddr_to_quad(&addr));
   uip_sethostaddr(&addr);
@@ -76,6 +78,8 @@ main(void)
   uip_ipaddr(&addr, 192,168,2,1);
   printf("Def. Router: %d.%d.%d.%d\n", uip_ipaddr_to_quad(&addr));
   uip_setdraddr(&addr);
+#endif
+  //
 
   while(1) {
     int n;

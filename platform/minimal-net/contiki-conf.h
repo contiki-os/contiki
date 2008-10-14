@@ -28,13 +28,14 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: contiki-conf.h,v 1.6 2007/11/18 00:46:51 oliverschmidt Exp $
+ * @(#)$Id: contiki-conf.h,v 1.7 2008/10/14 10:06:26 julienabeille Exp $
  */
 
 #ifndef __CONTIKI_CONF_H__
 #define __CONTIKI_CONF_H__
 
 #include <inttypes.h>
+#include <limits.h>
 
 #define CC_CONF_REGISTER_ARGS          1
 #define CC_CONF_FUNCTION_POINTER_ARGS  1
@@ -50,16 +51,28 @@ typedef uint32_t u32_t;
 typedef  int32_t s32_t;
 typedef unsigned short uip_stats_t;
 
-#define UIP_CONF_MAX_CONNECTIONS 40
-#define UIP_CONF_MAX_LISTENPORTS 40
-#define UIP_CONF_BUFFER_SIZE     600
-#define UIP_CONF_BYTE_ORDER      UIP_LITTLE_ENDIAN
-#define UIP_CONF_TCP_SPLIT       1
-#define UIP_CONF_LOGGING         1
-#define UIP_CONF_UDP_CHECKSUMS   1
+#define UIP_CONF_MAX_CONNECTIONS      40
+#define UIP_CONF_MAX_LISTENPORTS      40
+#define UIP_CONF_BYTE_ORDER           UIP_LITTLE_ENDIAN
+#define UIP_CONF_TCP_SPLIT            0
+#define UIP_CONF_IP_FORWARD           0
+#define UIP_CONF_LOGGING              0
+#define UIP_CONF_UDP_CHECKSUMS        0
+
+#define UIP_CONF_UDP                  0
+#define UIP_CONF_TCP                  0
+#define UIP_CONF_IPV6                 1
+#define UIP_CONF_IPV6_QUEUE_PKT       1
+#define UIP_CONF_IPV6_CHECKS          1
+#define UIP_CONF_IPV6_REASSEMBLY      1
+#define UIP_CONF_NETIF_MAX_ADDRESSES  3
+#define UIP_CONF_ND6_MAX_PREFIXES     3
+#define UIP_CONF_ND6_MAX_NEIGHBORS    4  
+#define UIP_CONF_ND6_MAX_DEFROUTERS   2
 
 typedef unsigned long clock_time_t;
 #define CLOCK_CONF_SECOND 1000
+#define INFINITE_TIME ULONG_MAX
 
 #define LOG_CONF_ENABLED 1
 
