@@ -36,7 +36,7 @@
 #include <string.h>
 #include <stdio.h>
 
-#define MACDEBUG 1
+#define MACDEBUG 0 
 
 #define DEBUG 0
 #if DEBUG
