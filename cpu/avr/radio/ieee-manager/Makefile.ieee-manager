@@ -1,0 +1,5 @@
+
+CONTIKI_TARGET_SOURCEFILES += ieee-15-4-manager.c
+
+APPDIRS += $(CONTIKI)/cpu/avr/radio/ieee-manager
+
