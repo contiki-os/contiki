@@ -3,8 +3,6 @@
 @{
 */
 
-
-
 /**
 \defgroup uip The uIP TCP/IP stack
 @{
@@ -25,6 +23,7 @@ low as a few hundred bytes.
 uIP can be found at the uIP web page: http://www.sics.se/~adam/uip/
 
 \sa \ref tcpip 
+\sa \ref uip6 and sicslowpan
 \sa \ref uipopt "uIP Compile-time configuration options"
 \sa \ref uipconffunc "uIP Run-time configuration functions"
 \sa \ref uipinit "uIP initialization functions"

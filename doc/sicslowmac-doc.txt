@@ -1,0 +1,127 @@
+/**
+\addtogroup rf230mac
+@{
+*/
+
+/**
+ * \defgroup macdoc SICSLoWMAC Implementation
+ * @{
+
+    \section macintro 1. Introduction
+
+The phase1 MAC implemented to support the IPv6/6LoWPAN stack within the Contiki
+project is a light weight yet adequate beginning. This phase supports point to
+point data connectivity between a router device and an end device. The router is
+the RZ USB stick from the ATAVRRZRAVEN kit. The end node is the AVR
+Raven from the ATAVRRZRAVEN kit. The picture below shows the complete ATAVRRZRAVEN kit.
+
+    \image html raven.png
+
+The next phases will implement a commissioning concept including scan, and
+beacon generation. These kinds of primitives will allow dynamic network
+formation. Additionally, routing and low power/sleep will be implemented in
+following phases.
+
+    \section macprereqs 2. Prerequisites
+
+See the \ref tutorialraven for required systems setup configuration.
+
+    \section macoverview 3. MAC Overview
+
+This MAC follows the recommendations of RFC4944 with respect to data frames and
+acknowledgements (i.e. all data frames are acknowledged). At the time of this
+writing (phase 1) beacons (frames) and association events are not implemented.
+Additionally, data frames always carry both source and destination addresses.
+PANID compression (intra-pan) is not used so both source and destination PANID's
+are present in the frame.
+
+The SICSLoWMAC supports the IEEE 802.15.4 Data Request primitive and the Data
+Request Indication primitive. The data request primitive constructs a <b>proper</b>
+802.15.4 frame for transmission over the air while the data indication parses a
+received frame for processing in higher layers (6LoWPAN). The source code for
+the mac can be found in the sicslowmac.[c,h] files.
+
+To assemble a frame a MAC header is constructed with certain presumptions:
+-#  Long source and destination addresses are used.
+-#  A hard coded PANID is used.
+-#  A hard coded channel is used.
+-#  Acknowledgements are used.
+-#  Up to 3 auto retry attempts are used.
+
+These and other variables are defined in mac.h.
+
+Given this data and the output of the 6LoWPAN function, the MAC can construct
+the data frame and the Frame Control Field for transmission.
+
+An IEEE 802.15.4 MAC data frame consists of the fields shown below:
+
+    \image html dataframe.png
+
+The Frame Control Field (FCF) consist of the fields shown below:
+
+    \image html fcf.jpg
+
+    \note The MAC address of each node is expected to be stored in EEPROM and
+retrieved during the initialization process immediately after power on.
+
+    \section macrelationship 4. 6LoWPAN, MAC and Radio Relationship
+
+The output function of the 6LoWPAN layer (sicslowpan.c) is the input function
+to the MAC (sicslowmac.c). The output function of the MAC is the input function
+of the radio (radio.c). When the radio receives a frame over the air it processes
+it in its TRX_END event function. If the frame passes address and CRC filtering
+it is queued in the MAC event queue. Subsequently, when the MAC task is processed,
+the received frame is parsed and handed off to the 6LoWPAN layer via its input
+function. These relationships are depicted below:
+
+    \image html layers.png
+
+    \section maccode 5. Source Code Location
+
+The source code for the MAC, Radio and support functions is located in the path:
+- \\cpu\\avr\\radio
+    - \\rf230
+    - \\mac
+    - \\ieee-manager
+
+-#  The \\rf230 folder contains the low level HAL drivers to access and control
+the radio as well as the low level frame formatting and parsing functions.
+-#  The \\mac folder contains the MAC layer code, the generic MAC initialization
+functions and the defines mentioned in section 3.
+-#  The \\ieee-manager folder contains the access functions for various PIB
+variables and radio functions such as channel setting.
+
+The source code for the Raven platforms is located in the path:
+- \\platform
+    - \\avr-raven
+    - \\avr-ravenlcd
+    - \\avr-ravenusb
+-#  The \\avr-raven folder contains the source code to initialize and start the
+raven board.
+-#  The \\avr-ravenlcd folder contains the complete source code to initialize
+and start the ATmega3209P on raven board in a user interface capacity. See the
+Doxygen generated documentation for more information.
+-#  The \\avr-ravenusb folder contains the source code to initialize and start
+the raven USB stick as a network interface on either Linux or Windows platforms.
+Note that appropriate drivers are located in the path:
+    - \\cpu\\avr\\dev\\usb\\INF
+
+    \section macavrstudio 6. AVR Studio Project Location
+
+There are two projects that utilize the Logo Certified IPv6 and 6LoWPAN layers
+contributed to the Contiki project by Cisco. These are ping-ipv6and webserver-ipv6
+applications. They are located in the following paths:
+- \\examples\\webserver-ipv6
+and
+- \\examples\\ping-ipv6
+
+The ping-ipv6 application will allow the USB stick to ping the Raven board while
+the webserver-ipv6 application will allow the raven board to serve a web page.
+When the ravenlcd-3290 application is programmed into the ATmega3290P on the
+Raven board, the Raven board can ping the USB stick and it can periodically update
+the temperature in the appropriate web page when served.
+
+
+*/
+/** @} */
+/** @} */

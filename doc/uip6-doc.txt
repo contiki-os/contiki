@@ -1,0 +1,383 @@
+/**
+\addtogroup uip
+@{
+*/
+
+/**
+ * \defgroup uip6 uIP IPv6 specific features
+ * @{
+The uIP IPv6 stack provides new Internet communication abilities to Contiki. 
+This document describes Ipv6 specific features. For features that
+are common to the IPv4 and IPv6 code please refer to \ref uip "uIP".
+
+<HR>
+
+\section intro Introduction
+Ipv6 is to replace IPv4 in a near future. Indeed, to move to a real
+<em> Internet of Things </em> a larger address space is required. This extended
+address space (2^128 instead of 2^32) is one of the key features of
+IPv6 together with its simplified header format, its improved support
+for extensions and options, and its new QoS and security capabilities.
+
+The uip IPv6 stack implementation targets constrained devices such as
+sensors. The code size is around 11.5Kbyte and the RAM usage around
+1.7Kbyte (see \ref size "below" for more detailed information). 
+Our implementation follows closely RFC 4294 <em>IPv6 Node Requirements</em>
+whose goal is to allow "IPv6 to function well and
+interoperate in a large number of situations and deployments".
+
+The implementation currently does not support any router features (it does not forward packets, send RAs...)
+
+<HR>
+
+\section protocol IPv6 Protocol Implementation
+This section gives a short overview of the different protocols that
+are part of the uIP IPv6 stack. A complete description can be found in the
+corresponding IETF standards which are available at
+http://www.ietf.org/rfc.html.
+
+\note The #UIP_CONF_IPV6 compilation flag is used to enable IPv6 (and
+disable IPv4). It is also recommended to set #UIP_CONF_IPV6_CHECKS to
+1 if one cannot guarantee that the incoming packets are correctly formed. 
+
+\subsection ipv6 IPv6 (RFC 2460)
+The IP packets are processed in the #uip_process function.
+After a few validity checks on the IPv6 header, the extension headers
+are processed until an upper layer (ICMPv6, UDP or TCP) header is found. 
+We support 4 extension headers:
+\li Hop-by-Hop Options: this header is used to carry optional
+information that need to be examined only by a packet's destination node.
+\li Routing: this header is used by an IPv6 source to list one or more
+intermediate nodes to be "visited" on the way to a packet's destination.
+\li Fragment: this header is used when a large packet is divided into
+smaller fragments.
+\li Destination Options: this header is used to carry optional
+information that need be examined only by a packet's destination node
+The Authentication and ESP headers are not currently supported.
+
+The IPv6 header, extension headers, and options are defined in uip.h.
+
+Although we can receive packets with the extension headers listed
+above, we do not offer support to send packets with extension headers.
+
+
+<b>Fragment Reassembly</b><br>
+This part of the code is very similar to the \ref ipreass "IPv4 fragmentation code". The only difference is that the fragmented packet
+is not assumed to be a TCP packet. As a result, we use a different
+%timer to time-out reassembly if all fragments have not been received
+after #UIP_REASS_MAXAGE = 60s.
+\note Fragment reassembly is enabled if #UIP_CONF_REASSEMBLY is set to 1.
+\note We can only reassemble packet of at most #UIP_LINK_MTU = 1280
+bytes as we do not have larger buffers.
+
+
+\subsection address Interface and Addressing (RFC 4291, RFC 4861 p.51, RFC 4862 p.10)
+An IPv6 address has 128 bits and is defined as follows:
+\code
+typedef union uip_ip6addr_t {
+  u8_t  u8[16]
+  u16_t u16[8];
+} uip_ip6addr_t;
+\endcode
+
+We assume that each node has a <em>single interface</em> of type
+#uip_netif. 
+
+Each interface can have up to #UIP_NETIF_MAX_ADDRESSES unicast IPv6
+addresses including its link-local address. It also has a
+solicited-node multicast address. We assume that the unicast
+addresses are obtained via \ref autoconf "stateless address autoconfiguration" 
+so that the solicited-node address is the same for all the
+unicast addresses. Indeed, the solicited-node multicast address
+is formed by combining the prefix FF02::1:FF00:0/104 and the
+last 24-bits of the corresponding IPv6 address. When using stateless address
+autoconfiguration these bits are always equal to the last 24-bits of
+the link-layer address. 
+
+\subsection multicast Multicast support
+We do not support applications using multicast. Nevertheless, our node
+should join the all-nodes multicast address, as well as its solicited-node
+multicast address. Joining the all-nodes multicast address does not
+require any action. Joining the solicited-node multicast address is
+done using Multicast Listener Discovery (MLD or MLDv2). More exactly,
+the node should send a MLD report packet. However this step can be
+safely skipped and we do so.
+
+\subsection nd Neighbor Discovery (RFC 4861)
+"IPv6 nodes on the same link use Neighbor Discovery to discover each
+other's presence, to determine each other's link-layer addresses, to
+find routers, and to maintain reachability information about the paths
+to active neighbors" (citation from the abstract of RFC
+4861). 
+
+\note  In IPv6 terminology, a \em link is a communication medium over
+which nodes can communicate at the link layer, i.e., the layer
+immediately below IP (e.g.: ethernet, 802.11, etc.). Neighbors are
+thus nodes attached to the same link.
+
+Neighbor Discovery (ND) replaces ARP in IPv4 but does much
+more.
+
+<b>Neighbor discovery messages </b><br>
+
+\li Neighbor Solicitation (NS)\n
+Sent by a node during duplicate address detection, address resolution or
+%neighbor unreachability detection (see explanations below).\n
+Possible option: Source link-layer address
+\li Neighbor Advertisement (NA)\n
+Sent by a node in response to a NS.\n
+Possible option: Target link-layer address
+\li Router Advertisement (RA)\n
+Sent periodically by routers to advertise their presence together with
+various link and Internet parameters.\n
+Possible options: Source link-layer address, MTU, Prefix Information
+\li Router Solicitation (RS)\n
+Sent by a host to request routers to generate a RA immediately rather
+than at their next scheduled time. Received RS are discarded.\n
+Possible option: Source link-layer address
+\li Redirect Message\n
+Not supported
+
+The structures corresponding to the different message headers and
+options are in uip-nd6.h. The functions used to send / %process this
+messages are also described in uip-nd6.h although the actual code is in
+uip-nd6-io.c.
+
+<b>Neighbor discovery structures </b><br>
+We use the following %neighbor discovery structures (declared in uip-nd6.c):
+\li A <em>%neighbor cache</em> with entries of type #uip_nd6_neighbor
+\li A <em>prefix list</em> with entries of type #uip_nd6_prefix
+\li A <em>default router list</em> with entries of type #uip_nd6_defrouter 
+
+Each of this structure has its own add, remove and lookup
+functions. To update an entry in a ND structure, we first do a lookup
+to obtain a pointer to the entry, we then directly modify the
+different entry fields.
+
+<b>Neighbor discovery processes </b><br>
+\li Address resolution\n
+Determine the link-layer address of a %neighbor given its IPv6 address.\n
+-> send a NS (done in #tcpip_ipv6_output). 
+\li Neighbor unreachability detection\n
+Verify that a neighbor is still reachable via a cached link-layer
+address.\n
+-> send a NS (done in #uip_nd6_periodic). 
+\li Next-hop determination\n
+Map an IPv6 destination address into the IPv6 address of the %neighbor
+to which traffic for the destination should be sent.\n
+-> look at on-link prefixes, if the destination is not on-link,
+choose a default router, else send directly (done in #tcpip_ipv6_output).
+\li Router, prefix, and parameter discovery\n
+Update the list of default routers, on-link prefixes, and the network
+parameters.\n
+-> receive a RA (see #uip_nd6_io_ra_input).
+
+\subsection autoconf Stateless Address Autoconfiguration (RFC 4862)
+RFC 4862 defines two main processes:
+\li Duplicate Address Detection (DAD)\n
+Make sure that an address the node wished to use is not already in use
+by another node.\n
+-> send a NS (done in #uip_netif_dad)
+\li Address Autoconfiguration\n
+Configure an address for an interface by combining a received prefix
+and the interface ID (see #uip_netif_addr_add). The interface ID is
+obtained from the link-layer address using #uip_netif_get_interface_id.\n
+-> Receive a RA with a prefix information option that has the
+autonomous flag set. 
+
+When an interface becomes active, its link-local address is created
+by combining the FE80::0/64 prefix and the interface ID. DAD is then
+performed for this link-local address. Available routers are
+discovered by sending up to #UIP_ND6_MAX_RTR_SOLICITATIONS RS
+packets. Address autoconfiguration is then performed based on the
+prefix information received in the RA. The interface initialization is
+performed in #uip_netif_init.
+
+\subsection icmpv6 ICMPv6 (RFC 4443)
+We support ICMPv6 Error messages as well as Echo Reply and Echo Request
+messages. The application used for sending Echo Requests (see ping6.c)
+is not part of the IP stack. 
+
+\note RFC 4443 stipulates that 'Every ICMPv6 error message MUST
+include as much of the IPv6 offending (invoking) packet as
+possible'. In a constrained environment this is not very resource
+friendly.
+
+The ICMPv6 message headers and constants are defined in uip-icmp6.h. 
+
+<HR>
+
+\section timers IPv6 Timers and Processes
+The IPv6 stack (like the IPv4 stack) is a Contiki process
+\code
+PROCESS(tcpip_process, "TCP/IP stack");
+\endcode
+In addition to the \ref mainloop "periodic timer" that is used by TCP,
+five IPv6 specific timers are attached to this %process:
+\li The #uip_nd6_timer_periodic is used for periodic checking of the
+%neighbor discovery structures. 
+\li The #uip_netif_timer_dad is used to properly paced the Neighbor
+Solicitation packets sent for Duplicate Address Detection.
+\li The #uip_netif_timer_rs is use to delay the sending of Router Solicitations
+packets in particular during the router discovery %process.
+\li The #uip_netif_timer_periodic is used to periodically check the
+validity of the addresses attached to the network interface. 
+\li The #uip_reass_timer is used to time-out the fragment reassembly
+%process.
+\n
+
+Both #uip_nd6_timer_periodic and #uip_netif_timer_periodic run continuously. 
+This could be avoided by using callback timers to handle ND and Netif structures timeouts.
+
+<HR>
+
+\section compileflags Compile time flags and variables
+This section just lists all IPv6 related compile time flags. Each flag 
+function is documented in this page in the appropriate section.
+\code
+/*Boolean flags*/
+UIP_CONF_IPV6        
+UIP_CONF_IPV6_CHECKS
+UIP_CONF_IPV6_QUEUE_PKT	
+UIP_CONF_IPV6_REASSEMBLY	
+/*Integer flags*/
+UIP_NETIF_MAX_ADDRESSES	
+UIP_ND6_MAX_PREFIXES   
+UIP_ND6_MAX_NEIGHBORS   
+UIP_ND6_MAX_DEFROUTER  
+\endcode
+
+<HR>
+
+\section buffers IPv6 Buffers
+The IPv6 code uses the same \ref memory "single global buffer" as the
+IPv4 code. This buffer should be large enough to contain one 
+packet of maximum size, i.e., #UIP_LINK_MTU = 1280 bytes. When \ref
+reass "fragment reassembly" is enabled an additional buffer of the
+same size is used. 
+
+The only difference with the IPv4 code is the per %neighbor buffering
+that is available when  #UIP_CONF_QUEUE_PKT is set to 1. This
+additional buffering is used to queue one packet per %neighbor while
+performing address resolution for it. This is a very costly feature as
+it increases the RAM usage by approximately #UIP_ND6_MAX_NEIGHBORS *
+#UIP_LINK_MTU bytes.
+
+<HR>
+
+\section size IPv6 Code Size
+
+\note We used Atmel's RAVEN boards with the Atmega1284P MCU (128Kbyte
+of flash and 16Kbyte of SRAM)  to benchmark
+our code. These numbers are obtained using 'avr-gcc 4.2.2 (WinAVR
+20071221)'. Elf is the output format.
+
+\note The following compilation flags were used:
+\code
+UIP_CONF_IPV6	         1	
+UIP_CONF_IPV6_CHECKS     1	
+UIP_CONF_IPV6_QUEUE_PKT	 0	
+UIP_CONF_IPV6_REASSEMBLY 0	
+
+UIP_NETIF_MAX_ADDRESSES	3
+UIP_ND6_MAX_PREFIXES    3
+UIP_ND6_MAX_NEIGHBORS   4
+UIP_ND6_MAX_DEFROUTER   2
+\endcode
+
+The total IPv6 code size is approximately 11.5Kbyte and the RAM usage around
+1.8Kbyte. For an additional NEIGHBOR count 35bytes, 25 for an additional
+PREFIX, 7 for an additional DEFROUTER, and 25 for an additional ADDRESS. 
+
+<HR>
+
+\section l2 IPv6 Link Layer dependencies
+The IPv6 stack can potentially run on very different link layers
+(ethernet, 802.15.4, 802.11, etc).
+The link-layer influences the following IP layer objects:
+\li #uip_lladdr_t, the link-layer address type, and its length,
+#UIP_LLADDR_LEN.
+\code
+struct uip_eth_addr {
+  u8_t addr[6];
+};
+typedef struct uip_eth_addr uip_lladdr_t;
+#define UIP_LLADDR_LEN 6
+\endcode
+\li #uip_lladdr, the link-layer address of the node.
+\code
+uip_lladdr_t uip_lladdr = {{0x00,0x06,0x98,0x00,0x02,0x32}};
+\endcode
+\li #UIP_ND6_OPT_LLAO_LEN, the length of the link-layer option in the
+different ND messages
+
+Moreover, #tcpip_output should point to the
+link-layer function used to send a packet. Similarly, the link-layer
+should call #tcpip_input when an IP packet is received.
+
+The code corresponding to the desired link layer is selected at
+compilation time (see for example the #UIP_LL_802154 flag).
+
+<HR>
+
+\section l45 IPv6 interaction with upper layers
+The TCP and the UDP protocol are part of the \ref uip "uIP" stack and were left
+unchanged by the IPv6 implementation.
+For the application layer, please refer to the \ref api "application program interface".
+
+<HR>
+
+\section compliance IPv6 compliance
+\subsection rfc4294 IPv6 Node Requirements, RFC4294
+This section describes which parts of RFC4294 we are compliant with. For each section, we put between brackets the requirement level.\n
+When all IPv6 related compile flags are set, our stack is fully compliant with RFC4294 (i.e. we implemement all the MUSTs), except for MLD support and redirect function support.\n
+\note RFC4294 is currently being updated by IETF 6man WG. One of the important points for us in the update is that after discussion on the 6man mailing list, IPSec support will become a SHOULD (was a MUST).\n
+
+<b>Sub IP layer</b><br>
+We support RFC2464 transmission of IPv6 packets over Ethernet\n
+We will soon support RFC4944 transmission of IPv6 packets over 802.15.4\n
+
+<b>IP layer</b><br>
+
+\li IPv6 RFC2460 (MUST): When the compile flags UIP_CONF_IPV6_CHECKS and UIP_CONF_REASSEMBLY are set, full support
+\li Neighbor Discovery RFC4861 (MUST): When the UIP_CONF_CHECKS and UIP_CONF_QUEUE_PKT flag are set, full support except redirect function
+\li Address Autoconfiguration RFC4862 (MUST): When the UIP_CONF_CHECKS flag is set, full support except sending MLD report (see MLD)
+\li Path MTU Discovery RFC 1981 (SHOULD): no support
+\li Jumbograms RFC 2675 (MAY): no support
+\li ICMPv6 RFC 4443 (MUST): full support
+\li IPv6 addressing architecture RFC 3513 (MUST): full support
+\li Privacy extensions for address autoconfiguration RFC 3041 (SHOULD): no support.
+\li Default Address Selection RFC 3484 (MUST): full support. 
+\li MLDv1 (RFC 2710) and MLDv2 (RFC 3810) (conditional MUST applying here): no support. As we run IPv6 over Multicast or broadcast capable links (Ethernet or 802.15.4), the conditional MUST applies. We should be able to send an MLD report when joining a solicited node multicast group at address configuration time. This will be available in a later release.
+
+<b>DNS (RFC 1034, 1035, 3152, 3363, 3596) and DHCPv6 (RFC 3315) (conditional MUST)</b><br>
+no support
+
+<b>IPv4 Transition mechanisms RFC 4213 (conditional MUST)</b><br>
+no support
+
+<b>Mobile IP RFC 3775 (MAY / SHOULD)</b><br>
+no support
+
+<b>IPSec RFC 4301 4302 4303 2410 2404 2451 3602(MUSTs) 4305 (SHOULD)</b><br>
+no support
+
+<b>SNMP (MAY)</b><br>
+no support
+
+
+\subsection ipv6ready IPv6 certification through ipv6ready alliance
+IPv6ready is the certification authority for IPv6 implementations (http://www.ipv6ready.org). It delivers two certificates (phase 1 and phase 2).\n
+When all the IPv6 related compile flags are set, we pass all the tests for phase 1.\n
+We pass all the tests for phase 2 except:
+\li the tests related to the redirect function
+\li the tests related to PMTU discovery
+\li test v6LC1.3.2C: A "bug" in the test suite (fragmentation states are not deleted after test v6LC1.3.2B) makes us fail this test unless we run it individually.
+\li 5.1.3: UDP port unreachable (the UDP message is too large for our implementation and the UDP code does not send any ICMP error message)
+
+
+<HR>
+
+*/
+/** @} */
+/** @} */
