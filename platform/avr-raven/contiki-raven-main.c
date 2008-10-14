@@ -40,6 +40,8 @@
  */
 
 #include <avr/pgmspace.h>
+#include <avr/fuse.h>
+#include <avr/eeprom.h>
 #include <stdio.h>
 
 #include "lib/mmem.h"
@@ -63,6 +65,16 @@
 
 #include "sicslowmac.h"
 
+FUSES = 
+	{
+		.low = 0xe2,
+		.high = 0x99,
+		.extended = 0xff,
+	};
+	
+
+/* Put default MAC address in EEPROM */
+uint8_t mac_address[8] EEMEM = {0x02, 0x11, 0x22, 0xff, 0xfe, 0x33, 0x44, 0x55};
 
 PROCINIT(&etimer_process, &mac_process, &tcpip_process, &raven_lcd_process);
 
@@ -108,7 +120,7 @@ main(void)
   autostart_start(autostart_processes);
 
   //Give ourselves a prefix
-    init_net();
+  //init_net();
 
   printf_P(PSTR("\n********BOOTING CONTIKI*********\n"));
 

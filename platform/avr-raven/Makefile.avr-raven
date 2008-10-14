@@ -2,7 +2,7 @@ CONTIKI_TARGET_DIRS = . rf230 apps net loader
 CONTIKI_CORE=contiki-raven-main
 CONTIKI_TARGET_MAIN = ${CONTIKI_CORE}.o
 
-CONTIKI_TARGET_SOURCEFILES +=	rs232.c slip.c cfs-eeprom.c eeprom.c random.c \
+CONTIKI_TARGET_SOURCEFILES +=	rs232.c cfs-eeprom.c eeprom.c random.c \
 				mmem.c contiki-raven-main.c contiki-raven-default-init-net.c
 
 CONTIKIAVR=$(CONTIKI)/cpu/avr
@@ -19,7 +19,6 @@ AVRDUDE_PROGRAMMER=jtag2
 # The example is for an JTAGICE mkII used to program an ATmega128:
 # avrdude -v -P usb:xxxx -c jtag2 -p atmega128
 AVRDUDE_PORT=usb:00B000000D79
-
 
 
 # Additional avrdude options
