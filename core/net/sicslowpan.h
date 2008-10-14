@@ -33,7 +33,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: sicslowpan.h,v 1.1 2008/10/14 09:42:33 julienabeille Exp $
+ * $Id: sicslowpan.h,v 1.2 2008/10/14 12:26:18 adamdunkels Exp $
  */
 /**
  * \file
@@ -49,9 +49,8 @@
 #ifndef __SICSLOWPAN_H__
 #define __SICSLOWPAN_H__
 #include "net/uip.h"
-#include "sicslowmac.h"
 
-/** 
+/**
  * \name General sicslowpan defines
  * @{
  */
@@ -61,7 +60,7 @@
 /** @} */
 
 
-/** 
+/**
  * \name 6lowpan dispatchs
  * @{
  */
@@ -86,7 +85,7 @@
 #define SICSLOWPAN_HC_UDP_ALL_C                     0xE0
 /** @} */
 
-/** 
+/**
  * \name IPHC encoding
  * @{
  */
@@ -119,7 +118,7 @@
 /** @} */
 
 
-/** 
+/**
  * \name LOWPAN_UDP encoding (works together with IPHC)
  * @{
  */
@@ -142,13 +141,13 @@
 /** @} */
 
 /**
- * \brief The header for fragments 
+ * \brief The header for fragments
  * \note We do not define different structuresfor FRAG1
- * and FRAGN headers, which are different. For FRAG1, the 
+ * and FRAGN headers, which are different. For FRAG1, the
  * offset field is just not used
  */
 struct sicslowpan_frag_hdr {
-  u16_t dispatch_size; 
+  u16_t dispatch_size;
   u16_t tag;
   u8_t offset;
 };
@@ -159,7 +158,7 @@ struct sicslowpan_frag_hdr {
  * When all fields are compressed and HC_UDP is not used,
  * we use this structure. If HC_UDP is used, the ttl is
  * in another spot, and we use the sicslowpan_hc1_hc_udp
- * structure 
+ * structure
  */
 struct sicslowpan_hc1_hdr {
   u8_t dispatch;
@@ -232,9 +231,9 @@ struct sicslowpan_addr_context {
     ((*(a + 1) == 0x01) || (*(a + 1) == 0x02)))
 
 /**
- * \brief check whether the 112-bit group-id of the 
+ * \brief check whether the 112-bit group-id of the
  * multicast address is mapable to a 9-bit group-id
- * It is true if the group is the all nodes or all 
+ * It is true if the group is the all nodes or all
  * routers group.
 */
 #define sicslowpan_is_mcast_addr_compressable(a) \
