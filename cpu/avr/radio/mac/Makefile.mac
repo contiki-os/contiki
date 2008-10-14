@@ -1,4 +1,0 @@
-CONTIKI_TARGET_SOURCEFILES += mac.c sicslowmac.c
-
-APPDIRS += $(CONTIKI)/cpu/avr/radio/mac
-
