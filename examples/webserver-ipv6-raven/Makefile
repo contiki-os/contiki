@@ -1,8 +1,9 @@
-all: webserver6
-APPS=raven-webserver raven-lcd-interface
-TARGET=avr-raven
+all: 
+	make -f Makefile.webserver TARGET=avr-raven webserver6.elf
+	avr-objcopy -O ihex -R .eeprom webserver6.elf webserver6.hex
+	avr-size -C webserver6.elf
 
-UIP_CONF_IPV6=1
-
-CONTIKI = ../..
-include $(CONTIKI)/Makefile.include
+clean:
+	make -f Makefile.webserver TARGET=avr-raven clean
+	rm symbols.c symbols.h webserver6.elf webserver6.hex
+	rm -rf obj_avr-raven
