@@ -40,7 +40,7 @@
 
 #include "key.h"
 #include "temp.h"
-#include <avr/pgmspace.h>
+#include "lcd.h"
 
 /**
  *  \addtogroup lcd

@@ -1,15 +1,19 @@
+/*
+ *     \mainpage ATmega3290p LCD Driver Software for Raven
+*/
 /**
- *     \section ATmega3290p LCD Driver Software for Raven
+ *     \image html raven.png
+ *     \ingroup platform
+ *     \defgroup lcdraven RZRAVEN LCD 3290p
  *
- *
- *     \subsection intro_lcd LCD Introduction
+ *     \section intro_lcd LCD Introduction
  *
  *  This Raven LCD Driver application software was designed for a user interface
  *  to the Contiki 6LoWPAN collaboration on board the ATmega3290p. The
  *  LCD functionality uses the binary command set described in the release notes.
  *  These binary commands can also be found in a list of main.h.
  *
- *     \subsection compile_lcd Compiling Raven LCD Driver
+ *     \section compile_lcd Compiling Raven LCD Driver
  *
  *  Raven LCD Driver can be compiled on the following platforms:
  *
@@ -22,9 +26,8 @@
  *      required for GCC/avr-libc to recognize new devices.  The avr-libc
  *      webpage includes a concise guide on how to patch and build the AVR
  *      toolchain.
- *   -# <b>IAR EWB-AVR.</b> is currently not supported.
  *
- *     \subsection fuses Board fuse settings
+ *     \section fuses_lcd Board fuse settings
  *
  *  The Raven LCD (3290p device) requires the proper fuse settings to function
  *  properly. These settings have been summarized below:
@@ -33,7 +36,7 @@
  *      -# High: <b>0x99</b> (JTAG and ISP enabled, No OCDEN or EEPROM saving required)
  *      -# Low: <b>0xE2</b> (Use Int RC OSC - Start-up Time:6CK + 65ms)
  *
- *     \subsection notes Operation Release Notes
+ *     \section notes_lcd Operation Release Notes
  *
  *  After programming the Raven LCD 3290p with the proper image, you will be introduced to
  *  the menu in the picture below:
@@ -56,7 +59,13 @@
  *   to the webserver for Sensor Reading Data (<b>Once</b> or <b>Auto</b>). The webserver will
  *   only update the html data when <b>refreshed</b>.
  *
- *     \subsection binary Binary Command Description
+ *   More information about the operation of the Contiki 6LoWPAN system can be found
+ *   at the \ref tutorialraven.
+ *
+ *   More information about the 802.15.4 MAC designed for the Contiki 6LoWPAN system
+ *   can be found at the \ref macdoc.
+ *
+ *     \section binary_lcd Binary Command Description
  *
  *  Using the binary commmand list described in main.h, the 3290p will contruct a binary
  *  command serial frame to control the 1284p. An example command frame is contructed below:
@@ -124,7 +133,18 @@
 #include "menu.h"
 #include "temp.h"
 
-/** \defgroup lcd LCD Functions and data
+#include <avr/io.h>
+#include <avr/fuse.h>
+FUSES =
+	{
+		.low = 0xe2,
+		.high = 0x99,
+		.extended = 0xff,
+	};
+
+
+/** \ingroup lcdraven
+    \defgroup lcd LCD Functions and data
  *  \{
 */
 
@@ -276,6 +296,8 @@ main(void)
     key_init();
 
     uart_init();
+
+    eeprom_init();
 
     temp_init();
 
