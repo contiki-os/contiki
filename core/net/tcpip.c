@@ -29,12 +29,12 @@
  * This file is part of the Contiki operating system.
  *
  *
- * $Id: tcpip.c,v 1.13 2008/10/14 09:40:56 julienabeille Exp $
+ * $Id: tcpip.c,v 1.14 2008/10/15 07:59:34 adamdunkels Exp $
  */
 /**
  * \file
  *         Code for tunnelling uIP packets over the Rime mesh routing module
- * 
+ *
  * \author  Adam Dunkels <adam@sics.se>\author
  * \author  Mathilde Durvy <mdurvy@cisco.com> (IPv6 related code)
  * \author  Julien Abeille <jabeille@cisco.com> (IPv6 related code)
@@ -109,7 +109,7 @@ enum {
 #if UIP_CONF_IPV6
 u8_t (* tcpip_output)(uip_lladdr_t *);
 #else
-u8_t (* tcpip_output)(void); 
+u8_t (* tcpip_output)(void);
 #endif
 
 #if UIP_CONF_IP_FORWARD
@@ -285,7 +285,7 @@ udp_broadcast_new(u16_t port, void *appstate)
 /*---------------------------------------------------------------------------*/
 /*---------------------------------------------------------------------------*/
 #if UIP_CONF_ICMP6
-u8_t 
+u8_t
 icmp6_new(void *appstate) {
   if(uip_icmp6_conns.appstate.p == PROCESS_NONE) {
     uip_icmp6_conns.appstate.p = PROCESS_CURRENT();
@@ -306,10 +306,10 @@ void tcpip_icmp6_call(u8_t type) {
 static void
 eventhandler(process_event_t ev, process_data_t data)
 {
-#if UIP_TCP      
+#if UIP_TCP
   static unsigned char i;
   register struct listenport *l;
-#endif /*UIP_TCP*/    
+#endif /*UIP_TCP*/
   struct process *p;
    
   switch(ev) {
@@ -320,7 +320,7 @@ eventhandler(process_event_t ev, process_data_t data)
          connections. */
 
       p = (struct process *)data;
-#if UIP_TCP      
+#if UIP_TCP
       l = s.listenports;
       for(i = 0; i < UIP_LISTENPORTS; ++i) {
         if(l->p == p) {
@@ -343,7 +343,7 @@ eventhandler(process_event_t ev, process_data_t data)
         }
 	    
       }
-#endif /* UIP_TCP */ 
+#endif /* UIP_TCP */
 #if UIP_UDP
       {
         register struct uip_udp_conn *cptr;
@@ -362,7 +362,7 @@ eventhandler(process_event_t ev, process_data_t data)
       /* We get this event if one of our timers have expired. */
       {
         /* Check the clock so see if we should call the periodic uIP
-           processing. */   
+           processing. */
         if(data == &periodic &&
            etimer_expired(&periodic)) {
 #if UIP_TCP
@@ -378,10 +378,10 @@ eventhandler(process_event_t ev, process_data_t data)
               if(uip_len > 0) {
                 tcpip_output();
               }
-#endif /* UIP_CONF_IPV6 */ 
+#endif /* UIP_CONF_IPV6 */
             }
           }
-#endif /* UIP_TCP */          
+#endif /* UIP_TCP */
 #if UIP_CONF_IP_FORWARD
           uip_fw_periodic();
 #endif /* UIP_CONF_IP_FORWARD */
@@ -457,7 +457,7 @@ eventhandler(process_event_t ev, process_data_t data)
         if(uip_len > 0) {
           tcpip_output();
         }
-#endif /* UIP_UDP */    
+#endif /* UIP_UDP */
       }
       break;
 #endif /* UIP_UDP */
@@ -496,7 +496,7 @@ tcpip_ipv6_output(void)
   if(uip_is_addr_unspecified(&UIP_IP_BUF->destipaddr)){
     UIP_LOG("tcpip_ipv6_output: Destination address unspecified");
     uip_len = 0;
-    return; 
+    return;
   }
   if(!uip_is_addr_mcast(&UIP_IP_BUF->destipaddr)) {
     /*If destination is on link */
@@ -512,7 +512,7 @@ tcpip_ipv6_output(void)
         UIP_LOG("tcpip_ipv6_output: Destination off-link but no router");
         uip_len = 0;
         return;
-      } 
+      }
     }
     /* there are two cases where the entry logically does not exist:
      * 1 it really does not exist. 2 it is in the NO_STATE state */
@@ -523,7 +523,7 @@ tcpip_ipv6_output(void)
       } else {
         nbc->state = INCOMPLETE;
       }
-#if UIP_CONF_IPV6_QUEUE_PKT 
+#if UIP_CONF_IPV6_QUEUE_PKT
       /* copy outgoing pkt in the queuing buffer for later transmmit */
       memcpy(nbc->queue_buf, UIP_IP_BUF, uip_len);
       nbc->queue_buf_len = uip_len;
@@ -546,7 +546,7 @@ tcpip_ipv6_output(void)
     } else {
       if (nbc->state == INCOMPLETE){
         PRINTF("tcpip_ipv6_output: neighbor cache entry incomplete\n");
-#if UIP_CONF_IPV6_QUEUE_PKT     
+#if UIP_CONF_IPV6_QUEUE_PKT
         /* copy outgoing pkt in the queuing buffer for later transmmit and set
            the destination neighbor to nbc */
         memcpy(nbc->queue_buf, UIP_IP_BUF, uip_len);
@@ -578,9 +578,9 @@ tcpip_ipv6_output(void)
        *to STALE, and you must both send a NA and the queued packet
        */
       if(nbc->queue_buf_len != 0) {
-        uip_len = nbc->queue_buf_len;     
+        uip_len = nbc->queue_buf_len;
         memcpy(UIP_IP_BUF, nbc->queue_buf, uip_len);
-        nbc->queue_buf_len = 0;     
+        nbc->queue_buf_len = 0;
         tcpip_output(&(nbc->lladdr));
       }
 #endif /*UIP_CONF_IPV6_QUEUE_PKT*/
@@ -629,29 +629,31 @@ tcpip_uipcall(void)
   ts = &uip_conn->appstate;
 #endif /* UIP_UDP */
 
-#if UIP_TCP 
- static unsigned char i;
- register struct listenport *l;
- 
-  /* If this is a connection request for a listening port, we must
-     mark the connection with the right process ID. */
-  if(uip_connected()) {
-    l = &s.listenports[0];
-    for(i = 0; i < UIP_LISTENPORTS; ++i) {
-      if(l->port == uip_conn->lport &&
-         l->p != PROCESS_NONE) {
-        ts->p = l->p;
-        ts->state = NULL;
-        break;
-      }
-      ++l;
-    }
-
-    /* Start the periodic polling, if it isn't already active. */
-    if(etimer_expired(&periodic)) {
-      etimer_restart(&periodic);
-    }
-  }
+#if UIP_TCP
+ {
+   static unsigned char i;
+   register struct listenport *l;
+   
+   /* If this is a connection request for a listening port, we must
+      mark the connection with the right process ID. */
+   if(uip_connected()) {
+     l = &s.listenports[0];
+     for(i = 0; i < UIP_LISTENPORTS; ++i) {
+       if(l->port == uip_conn->lport &&
+	  l->p != PROCESS_NONE) {
+	 ts->p = l->p;
+	 ts->state = NULL;
+	 break;
+       }
+       ++l;
+     }
+     
+     /* Start the periodic polling, if it isn't already active. */
+     if(etimer_expired(&periodic)) {
+       etimer_restart(&periodic);
+     }
+   }
+ }
 #endif
   
   if(ts->p != NULL) {
