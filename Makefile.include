@@ -44,12 +44,13 @@ endif
 
 include $(CONTIKI)/core/net/rime/Makefile.rime
 include $(CONTIKI)/core/net/mac/Makefile.mac
-#include $(CONTIKI)/core/net/ipv6/Makefile.ipv6
 SYSTEM  = process.c procinit.c autostart.c elfloader.c profile.c timetable.c timetable-aggregate.c
 THREADS = mt.c
 LIBS    = memb.c timer.c list.c etimer.c energest.c rtimer.c stimer.c \
           print-stats.c ifft.c crc16.c random.c
+
 ifdef UIP_CONF_IPV6
+CFLAGS+=-DUIP_CONF_IPV6=1
 UIP     = uip6.c tcpip.c psock.c uip-udp-packet.c uip-split.c \
           uip-over-mesh.c resolv.c hc.c tcpdump.c uiplib.c
 NET     = $(UIP) uip-icmp6.c uip-nd6.c uip-nd6-io.c uip-netif.c sicslowpan.c
@@ -59,6 +60,7 @@ UIP     = uip.c uiplib.c resolv.c tcpip.c psock.c hc.c uip-split.c uip-fw.c \
           uip-over-mesh.c #rawpacket-udp.c
 NET     = $(UIP) uaodv.c uaodv-rt.c
 endif # UIP_CONF_IPV6
+
 CTK     = ctk.c
 CTKVNC  = $(CTK) ctk-vncserver.c libconio.c vnc-server.c vnc-out.c ctk-vncfont.c
 
