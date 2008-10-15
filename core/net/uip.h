@@ -47,7 +47,7 @@
  *
  * This file is part of the uIP TCP/IP stack.
  *
- * $Id: uip.h,v 1.19 2008/10/15 07:55:00 adamdunkels Exp $
+ * $Id: uip.h,v 1.20 2008/10/15 08:56:44 adamdunkels Exp $
  *
  */
 
@@ -1336,7 +1336,6 @@ CCIF extern struct uip_conn uip_conns[UIP_CONNS];
 extern u8_t uip_acc32[4];
 /** @} */
 
-#if UIP_UDP
 /**
  * Representation of a uIP UDP connection.
  */
@@ -1355,7 +1354,6 @@ struct uip_udp_conn {
  */
 extern struct uip_udp_conn *uip_udp_conn;
 extern struct uip_udp_conn uip_udp_conns[UIP_UDP_CONNS];
-#endif
 
 #if UIP_CONF_ICMP6
 struct uip_icmp6_conn {
