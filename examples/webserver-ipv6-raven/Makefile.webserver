@@ -1,0 +1,10 @@
+
+all: webserver6
+
+APPS=raven-webserver raven-lcd-interface
+TARGET=avr-raven
+UIP_CONF_IPV6=1
+CONTIKI = ../..
+
+
+include $(CONTIKI)/Makefile.include
