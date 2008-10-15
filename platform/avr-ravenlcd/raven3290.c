@@ -1,15 +1,15 @@
 /**
- *     \mainpage ATmega3290p LCD Driver Software for Raven
+ *     \section ATmega3290p LCD Driver Software for Raven
  *
  *
- *     \section intro_lcd LCD Introduction
+ *     \subsection intro_lcd LCD Introduction
  *
  *  This Raven LCD Driver application software was designed for a user interface
  *  to the Contiki 6LoWPAN collaboration on board the ATmega3290p. The
  *  LCD functionality uses the binary command set described in the release notes.
  *  These binary commands can also be found in a list of main.h.
  *
- *     \section compile_lcd Compiling Raven LCD Driver
+ *     \subsection compile_lcd Compiling Raven LCD Driver
  *
  *  Raven LCD Driver can be compiled on the following platforms:
  *
@@ -24,7 +24,7 @@
  *      toolchain.
  *   -# <b>IAR EWB-AVR.</b> is currently not supported.
  *
- *     \section fuses Board fuse settings
+ *     \subsection fuses Board fuse settings
  *
  *  The Raven LCD (3290p device) requires the proper fuse settings to function
  *  properly. These settings have been summarized below:
@@ -33,7 +33,7 @@
  *      -# High: <b>0x99</b> (JTAG and ISP enabled, No OCDEN or EEPROM saving required)
  *      -# Low: <b>0xE2</b> (Use Int RC OSC - Start-up Time:6CK + 65ms)
  *
- *     \section notes Operation Release Notes
+ *     \subsection notes Operation Release Notes
  *
  *  After programming the Raven LCD 3290p with the proper image, you will be introduced to
  *  the menu in the picture below:
@@ -56,7 +56,7 @@
  *   to the webserver for Sensor Reading Data (<b>Once</b> or <b>Auto</b>). The webserver will
  *   only update the html data when <b>refreshed</b>.
  *
- *     \section binary Binary Command Description
+ *     \subsection binary Binary Command Description
  *
  *  Using the binary commmand list described in main.h, the 3290p will contruct a binary
  *  command serial frame to control the 1284p. An example command frame is contructed below:
