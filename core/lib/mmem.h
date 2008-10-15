@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: mmem.h,v 1.1 2006/06/17 22:41:18 adamdunkels Exp $
+ * @(#)$Id: mmem.h,v 1.2 2008/10/15 14:17:28 nvt-se Exp $
  */
 /**
  * \addtogroup mem
@@ -65,7 +65,7 @@
  * \brief      Get a pointer to the managed memory
  * \param m    A pointer to the struct mmem 
  * \return     A pointer to the memory block, or NULL if memory could
- *             not be allcated. 
+ *             not be allocated. 
  * \author     Adam Dunkels
  *
  *             This macro is used to get a pointer to a memory block

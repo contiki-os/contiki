@@ -29,11 +29,11 @@
  *
  * This file is part of the Contiki desktop environment for the C64.
  *
- * $Id: strncasecmp.c,v 1.1 2006/06/17 22:41:18 adamdunkels Exp $
+ * $Id: strncasecmp.c,v 1.2 2008/10/15 14:17:28 nvt-se Exp $
  *
  */
 
-/* This file contains a naive and non-stanrdards compliant
+/* This file contains a naive and non-standards compliant
    implementation of strncasecmp() for systems that don't implement
    the function. It works with Contiki, but should most probably not
    be used anywhere else.

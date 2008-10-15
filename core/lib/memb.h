@@ -30,7 +30,7 @@
  *
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: memb.h,v 1.4 2008/01/14 09:22:50 adamdunkels Exp $
+ * $Id: memb.h,v 1.5 2008/10/15 14:17:28 nvt-se Exp $
  */
 
 /**
@@ -69,7 +69,7 @@
 /**
  * Declare a memory block.
  *
- * This macro is used to staticall declare a block of memory that can
+ * This macro is used to statically declare a block of memory that can
  * be used by the block allocation functions. The macro statically
  * declares a C array with a size that matches the specified number of
  * blocks and their individual sizes.
@@ -104,14 +104,14 @@ struct memb_blocks {
 /**
  * Initialize a memory block that was declared with MEMB().
  *
- * \param m A memory block previosly declared with MEMB().
+ * \param m A memory block previously declared with MEMB().
  */
 void  memb_init(struct memb_blocks *m);
 
 /**
  * Allocate a memory block from a block of memory declared with MEMB().
  *
- * \param m A memory block previosly declared with MEMB().
+ * \param m A memory block previously declared with MEMB().
  */
 void *memb_alloc(struct memb_blocks *m);
 
@@ -119,7 +119,7 @@ void *memb_alloc(struct memb_blocks *m);
  * Deallocate a memory block from a memory block previously declared
  * with MEMB().
  *
- * \param m m A memory block previosly declared with MEMB().
+ * \param m m A memory block previously declared with MEMB().
  *
  * \param ptr A pointer to the memory block that is to be deallocated.
  *

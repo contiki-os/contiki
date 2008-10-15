@@ -29,7 +29,7 @@
  *
  * This file is part of the Contiki desktop environment
  *
- * $Id: libconio.h,v 1.1 2006/06/17 22:41:17 adamdunkels Exp $
+ * $Id: libconio.h,v 1.2 2008/10/15 14:17:28 nvt-se Exp $
  *
  */
 
@@ -37,7 +37,7 @@
 #define __LIBCONIO_H__
 
 /* This function must be implemented specifically for the
-   architecure: */
+   architecture: */
 void ctk_arch_draw_char(char c,
 			unsigned char xpos,
 			unsigned char ypos,

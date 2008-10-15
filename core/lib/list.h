@@ -17,7 +17,7 @@
  * either sides of the list (list_push(), list_add(), list_pop(),
  * list_chop()). A specified element can also be removed from inside a
  * list with list_remove(). The head and tail of a list can be
- * extracted using list_head() and list_tail(), respecitively.
+ * extracted using list_head() and list_tail(), respectively.
  *
  * @{
  */
@@ -64,7 +64,7 @@
  *
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: list.h,v 1.1 2006/06/17 22:41:18 adamdunkels Exp $
+ * $Id: list.h,v 1.2 2008/10/15 14:17:28 nvt-se Exp $
  */
 #ifndef __LIST_H__
 #define __LIST_H__

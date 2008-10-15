@@ -2,12 +2,12 @@
  * @{ */
 
 /**
- * \defgroup crc16 Cyclic Redundancy Check 16 (CRC16) calculcation
+ * \defgroup crc16 Cyclic Redundancy Check 16 (CRC16) calculation
  *
  * The Cyclic Redundancy Check 16 is a hash function that produces a
  * checksum that is used to detect errors in transmissions. The CRC16
  * calculation module is an iterative CRC calculator that can be used
- * to cummulatively update a CRC checksum for every incoming byte.
+ * to cumulatively update a CRC checksum for every incoming byte.
  *
  * @{
  */
@@ -50,7 +50,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: crc16.h,v 1.3 2008/08/26 21:46:07 adamdunkels Exp $
+ * @(#)$Id: crc16.h,v 1.4 2008/10/15 14:17:28 nvt-se Exp $
  */
 #ifndef __CRC16_H__
 #define __CRC16_H__
