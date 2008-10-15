@@ -61,7 +61,9 @@
 #include "dev/serial.h"
 #include "dev/slip.h"
 
+#ifdef RAVEN_LCD_INTERFACE
 #include "raven-lcd.h"
+#endif
 
 #include "sicslowmac.h"
 
@@ -76,18 +78,23 @@ FUSES =
 /* Put default MAC address in EEPROM */
 uint8_t mac_address[8] EEMEM = {0x02, 0x11, 0x22, 0xff, 0xfe, 0x33, 0x44, 0x55};
 
+#ifdef RAVEN_LCD_INTERFACE
 PROCINIT(&etimer_process, &mac_process, &tcpip_process, &raven_lcd_process);
-
+#else
+PROCINIT(&etimer_process, &mac_process, &tcpip_process);
+#endif
 
 void
 init_lowlevel(void)
 {
+#ifdef RAVEN_LCD_INTERFACE
   /* First rs232 port for Raven 3290 port */
   rs232_init(RS232_PORT_0, USART_BAUD_38400,
              USART_PARITY_NONE | USART_STOP_BITS_1 | USART_DATA_BITS_8);
 
   /* Set input handler for 3290 port */
   rs232_set_input(0,raven_lcd_serial_input);
+#endif
 
   /* Second rs232 port for debugging */
   rs232_init(RS232_PORT_1, USART_BAUD_57600,
