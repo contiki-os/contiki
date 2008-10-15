@@ -49,7 +49,7 @@
 
 #define PROGMEM_DECLARE(x) x __attribute__((__progmem__))
 
-/** \addtogroup grNTC */
+/** \addtogroup lcd */
 /** \{ */
 /** Type used with \ref temp_get() to select temperature unit */
 typedef enum {

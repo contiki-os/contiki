@@ -39,6 +39,7 @@
  *
  */
 
+#include <avr/eeprom.h>
 #include "menu.h"
 #include "main.h"
 #include "lcd.h"
@@ -127,6 +128,27 @@ uint8_t
     }
 
     return ++p;
+}
+
+/*---------------------------------------------------------------------------*/
+
+/**
+ *  \brief This will check for DEBUG mode after power up.
+*/
+void
+eeprom_init(void)
+{
+    uint8_t val;
+    if(0xFF == eeprom_read_byte(EEPROM_DEBUG_ADDR)){
+        /* Disable - Reverse logic. */
+        val = 1;
+        menu_debug_mode(&val);
+    }
+    else{
+        /* Enable - Reverse logic. */
+        val = 0;
+        menu_debug_mode(&val);
+    }
 }
 
 /*---------------------------------------------------------------------------*/
@@ -252,16 +274,20 @@ menu_debug_mode(uint8_t *val)
     uint8_t sreg = SREG;
     cli();
     if(*val){
-        /* Could use inline ASM to meet timing requirements. */
+        /* Disable - Could use inline ASM to meet timing requirements. */
         MCUCR |= (1 << JTD);
         MCUCR |= (1 << JTD);
         /* Needed for timing critical JTD disable. */
         temp_init();
+        /* Store setting in EEPROM. */
+        eeprom_write_byte(EEPROM_DEBUG_ADDR, 0xFF);
     }
     else{
-        /* Could use inline ASM to meet timing requirements. */
+        /* Enable - Could use inline ASM to meet timing requirements. */
         MCUCR &= ~(1 << JTD);
         MCUCR &= ~(1 << JTD);
+        /* Store setting in EEPROM. */
+        eeprom_write_byte(EEPROM_DEBUG_ADDR, 0x01);
     }
     SREG = sreg;
 }
