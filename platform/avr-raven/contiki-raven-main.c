@@ -31,14 +31,6 @@
  * @(#)$$
  */
 
-/**
- * \file
- *         Sample Contiki kernel for STK 501 development board
- *
- * \author
- *         Simon Barner <barner@in.tum.de
- */
-
 #include <avr/pgmspace.h>
 #include <avr/fuse.h>
 #include <avr/eeprom.h>
