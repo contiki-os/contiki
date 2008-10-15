@@ -26,12 +26,10 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: VisUAODV.java,v 1.1 2007/03/23 23:33:54 fros4943 Exp $
+ * $Id: VisUAODV.java,v 1.2 2008/10/15 09:00:52 nifi Exp $
  */
 
 import java.awt.*;
-import org.apache.log4j.Logger;
-
 import se.sics.cooja.*;
 import se.sics.cooja.interfaces.*;
 import se.sics.cooja.plugins.*;
@@ -50,7 +48,6 @@ import se.sics.cooja.plugins.*;
 @PluginType(PluginType.SIM_PLUGIN)
 public class VisUAODV extends VisTraffic {
   private static final long serialVersionUID = 1L;
-  private static Logger logger = Logger.getLogger(VisUAODV.class);
   
   /**
    * Creates a new VisUAODV visualizer.
@@ -68,29 +65,33 @@ public class VisUAODV extends VisTraffic {
       Point destPixelPosition = transformPositionToPixel(destPosition);
       g2d.setColor(getColorOf(connection));
 
-      byte[] packet = ((PacketRadio)destRadio).getLastPacketReceived();
-      if (isRouteReply(packet)) {
-        ((Graphics2D) g2d).setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 1.0f));
-      }
+      RadioPacket radioPacket = destRadio.getLastPacketReceived();
+      if (radioPacket != null) {
+        byte[] packet = radioPacket.getPacketData();
+        if (isRouteReply(packet)) {
+          ((Graphics2D) g2d).setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 1.0f));
+        }
 
-      g2d.drawLine(sourcePixelPosition.x, sourcePixelPosition.y,
+        g2d.drawLine(sourcePixelPosition.x, sourcePixelPosition.y,
           destPixelPosition.x, destPixelPosition.y);
 
-      int hopCount = getHopCount(packet);
-      if (hopCount >= 0)
-        g2d.drawString("" + hopCount, sourcePixelPosition.x, sourcePixelPosition.y);
+        int hopCount = getHopCount(packet);
+        if (hopCount >= 0)
+          g2d.drawString("" + hopCount, sourcePixelPosition.x, sourcePixelPosition.y);
+      }
     }
   }
   
   protected Color getColorOf(RadioConnection conn) {
-    byte[] packet = ((PacketRadio)conn.getSource()).getLastPacketReceived();
-
-    if (isRouteRequest(packet))
-      return Color.RED;
-    else if (isRouteReply(packet))
-      return Color.GREEN;
-    else
-      return Color.BLACK;
+    RadioPacket radioPacket = conn.getSource().getLastPacketReceived();
+    if (radioPacket != null) {
+      byte[] packet = radioPacket.getPacketData();
+      if (isRouteRequest(packet))
+        return Color.RED;
+      else if (isRouteReply(packet))
+        return Color.GREEN;
+    }
+    return Color.BLACK;
   }
 
   private boolean isRouteRequest(byte[] data) {
@@ -105,7 +106,7 @@ public class VisUAODV extends VisTraffic {
   }
   private int getHopCount(byte[] data) {
     if (data.length > 31)
-      return (int) data[31];
+      return data[31];
     return -1;
   }
   
