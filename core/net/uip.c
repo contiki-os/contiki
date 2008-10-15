@@ -41,7 +41,7 @@
  *
  * This file is part of the uIP TCP/IP stack.
  *
- * $Id: uip.c,v 1.14 2008/02/28 23:59:05 oliverschmidt Exp $
+ * $Id: uip.c,v 1.15 2008/10/15 08:08:32 adamdunkels Exp $
  *
  */
 
@@ -75,6 +75,12 @@
 #include "net/uipopt.h"
 #include "net/uip_arp.h"
 #include "net/uip_arch.h"
+
+#if !UIP_CONF_IPV6 /* If UIP_CONF_IPV6 is defined, we compile the
+		      uip6.c file instead of this one. Therefore
+		      this #ifndef removes the entire compilation
+		      output of the uip.c file */
+
 
 #if UIP_CONF_IPV6
 #include "net/uip-neighbor.h"
@@ -1928,3 +1934,4 @@ uip_send(const void *data, int len)
 }
 /*---------------------------------------------------------------------------*/
 /** @} */
+#endif /* UIP_CONF_IPV6 */
