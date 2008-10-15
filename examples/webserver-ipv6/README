@@ -13,6 +13,10 @@ code as follows:
 - Then configure a global address by sending a router advertisement (RA)
   with a prefix option. You can use radvd for example to generate such a
   packet. 
+  Note: You should set the preferred and valid lifetime to reasonable
+  value to avoid clock wrap-around. E.g.:
+        AdvPreferredLifetime 400; 
+        AdvValidLifetime 600;
   Assume the prefix in the RA is:
   3ffe:0501:ffff:0100:0000:0000:0000:0000/64.
   and that the resulting address created by the contiki stack is: 
