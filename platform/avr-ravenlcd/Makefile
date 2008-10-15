@@ -15,13 +15,13 @@ COMMON += -DF_CPU=8000000UL
 
 ## Compile options common for all C compilation units.
 CFLAGS = $(COMMON) $(CEXTRA)
-CFLAGS += -D AVRGCC -Wall -gstabs  -Os -fsigned-char
+CFLAGS += -D AVRGCC -Wall -gdwarf-2  -Os -fsigned-char
 CFLAGS += -MD -MP -MT $(*F).o -MF dep/$(@F).d
 CFLAGS += -fshort-enums
 
 ## Assembly specific flags
 ASMFLAGS = $(COMMON)
-ASMFLAGS += -x assembler-with-cpp -Wa,-gstabs
+ASMFLAGS += -x assembler-with-cpp -Wa,-gdwarf-2
 
 ## Linker flags
 LDFLAGS = $(COMMON)
