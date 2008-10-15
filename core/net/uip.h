@@ -47,7 +47,7 @@
  *
  * This file is part of the uIP TCP/IP stack.
  *
- * $Id: uip.h,v 1.18 2008/10/14 09:40:56 julienabeille Exp $
+ * $Id: uip.h,v 1.19 2008/10/15 07:55:00 adamdunkels Exp $
  *
  */
 
@@ -1040,7 +1040,7 @@ struct uip_udp_conn *uip_udp_new(const uip_ipaddr_t *ripaddr, u16_t rport);
     (((u16_t *)addr2)[0] & ((u16_t *)mask)[0])) &&      \
    ((((u16_t *)addr1)[1] & ((u16_t *)mask)[1]) ==       \
     (((u16_t *)addr2)[1] & ((u16_t *)mask)[1])))
-#else 
+#else
 #define uip_ipaddr_prefixcmp(addr1, addr2, length) (memcmp(addr1, addr2, length>>3) == 0)
 #endif
 
@@ -1261,7 +1261,7 @@ extern void *uip_urgdata;
 CCIF extern u16_t uip_len;
 
 /**
- * The length of the extension headers 
+ * The length of the extension headers
  */
 extern u8_t uip_ext_len;
 /** @} */
@@ -1437,7 +1437,7 @@ struct uip_stats {
 			     checksum. */
   } udp;                  /**< UDP statistics. */
 #endif /* UIP_UDP */
-#if UIP_CONF_IPV6 
+#if UIP_CONF_IPV6
   struct {
     uip_stats_t drop;     /**< Number of dropped ND6 packets. */
     uip_stats_t recv;     /**< Number of recived ND6 packets */
@@ -1502,7 +1502,7 @@ CCIF extern u8_t uip_flags;
 
 /**
  * \brief process the options within a hob by hop or detsination option header
- * \retval 0: nothing to send, 
+ * \retval 0: nothing to send,
  * \retval 1: drop pkt
  * \retval 2: ICMP error message to send
 */
@@ -1615,6 +1615,7 @@ struct uip_icmpip_hdr {
   u16_t icmpchksum;
 #if !UIP_CONF_IPV6
   u16_t id, seqno;
+  u8_t payload[1];
 #endif /* !UIP_CONF_IPV6 */
 };
 
@@ -1649,10 +1650,10 @@ struct uip_udpip_hdr {
   u16_t udpchksum;
 };
 
-/* 
+/*
  * In IPv6 the length of the L3 headers before the transport header is
  * not fixed, due to the possibility to include extension option headers
- * after the IP header. hence we split here L3 and L4 headers 
+ * after the IP header. hence we split here L3 and L4 headers
  */
 /* The IP header */
 struct uip_ip_hdr {
@@ -1681,22 +1682,22 @@ struct uip_ip_hdr {
 
 /*
  * IPv6 extension option headers: we are able to process
- * the 4 extension headers defined in RFC2460 (IPv6): 
+ * the 4 extension headers defined in RFC2460 (IPv6):
  * - Hop by hop option header, destination option header:
- *   These two are not used by any core IPv6 protocol, hence 
+ *   These two are not used by any core IPv6 protocol, hence
  *   we just read them and go to the next. They convey options,
- *   the options defined in RFC2460 are Pad1 and PadN, which do 
- *   some padding, and that we do not need to read (the length 
+ *   the options defined in RFC2460 are Pad1 and PadN, which do
+ *   some padding, and that we do not need to read (the length
  *   field in the header is enough)
- * - Routing header: this one is most notably used by MIPv6, 
- *   which we do not implement, hence we just read it and go 
+ * - Routing header: this one is most notably used by MIPv6,
+ *   which we do not implement, hence we just read it and go
  *   to the next
- * - Fragmentation header: we read this header and are able to 
+ * - Fragmentation header: we read this header and are able to
  *   reassemble packets
  *
  * We do not offer any means to send packets with extension headers
  *
- * We do not implement Authentication and ESP headers, which are 
+ * We do not implement Authentication and ESP headers, which are
  * used in IPSec and defined in RFC4302,4303,4305,4385
  */
 /* common header part */
@@ -1720,7 +1721,7 @@ struct uip_desto_hdr {
 /* We do not define structures for PAD1 and PADN options */
 
 /*
- * routing header 
+ * routing header
  * the routing header as 4 common bytes, then routing header type
  * specific data there are several types of routing header. Type 0 was
  * deprecated as per RFC5095 most notable other type is 2, used in
@@ -1743,7 +1744,7 @@ struct uip_frag_hdr {
 };
 
 /*
- * an option within the destination or hop by hop option headers 
+ * an option within the destination or hop by hop option headers
  * it contains type an length, which is true for all options but PAD1
  */
 struct uip_ext_hdr_opt {
@@ -1758,7 +1759,7 @@ struct uip_ext_hdr_opt_padn {
 };
 
 /* TCP header */
-struct uip_tcp_hdr { 
+struct uip_tcp_hdr {
   u16_t srcport;
   u16_t destport;
   u8_t seqno[4];
@@ -1818,7 +1819,7 @@ struct uip_udp_hdr {
 /** \brief  extension headers types */
 #define UIP_PROTO_HBHO        0
 #define UIP_PROTO_DESTO       60
-#define UIP_PROTO_ROUTING     43 
+#define UIP_PROTO_ROUTING     43
 #define UIP_PROTO_FRAG        44
 #define UIP_PROTO_NONE        59
 /** @} */
@@ -1831,12 +1832,12 @@ struct uip_udp_hdr {
 
 /** @{ */
 /**
- * \brief Bitmaps for extension header processing 
- * 
- * When processing extension headers, we should record somehow which one we 
+ * \brief Bitmaps for extension header processing
+ *
+ * When processing extension headers, we should record somehow which one we
  * see, because you cannot have twice the same header, except for destination
  * We store all this in one u8_t bitmap one bit for each header expected. The
- * order in the bitmap is the order recommended in RFC2460 
+ * order in the bitmap is the order recommended in RFC2460
  */
 #define UIP_EXT_HDR_BITMAP_HBHO 0x01
 #define UIP_EXT_HDR_BITMAP_DESTO1 0x02
@@ -1909,8 +1910,8 @@ CCIF extern uip_lladdr_t uip_lladdr;
 #ifdef UIP_CONF_IPV6
 /**
  * \brief Is IPv6 addresss a the unspecified address
- * a is of type uip_ipaddr_t 
- */ 
+ * a is of type uip_ipaddr_t
+ */
 #define uip_is_addr_unspecified(a)               \
   ((((a)->u16[0]) == 0) &&                       \
    (((a)->u16[1]) == 0) &&                       \
@@ -1944,8 +1945,8 @@ CCIF extern uip_lladdr_t uip_lladdr;
 #define uip_create_linklocal_allrouters_mcast(a) uip_ip6addr(a, 0xff02, 0, 0, 0, 0, 0, 0, 0x0002)
 
 /**
- * \brief  is addr (a) a solicited node multicast address, see RFC3513 
- *  a is of type uip_ipaddr_t* 
+ * \brief  is addr (a) a solicited node multicast address, see RFC3513
+ *  a is of type uip_ipaddr_t*
  */
 #define uip_is_addr_solicited_node(a)           \
   ((((a)->u8[0]) == 0xFF) &&                     \
@@ -1955,7 +1956,7 @@ CCIF extern uip_lladdr_t uip_lladdr;
   (((a)->u16[3]) == 0) &&                       \
   (((a)->u16[4]) == 0) &&                       \
   (((a)->u16[5]) == 1) &&                       \
-  (((a)->u8[12]) == 0xFF)) 
+  (((a)->u8[12]) == 0xFF))
 
 /**
  * \briefput in b the solicited node address corresponding to address a
@@ -1975,16 +1976,16 @@ CCIF extern uip_lladdr_t uip_lladdr;
   (((b)->u16[7]) = ((a)->u16[7]))
 
 /**
- * \brief is addr (a) a link local unicast address, see RFC3513 
+ * \brief is addr (a) a link local unicast address, see RFC3513
  *  i.e. is (a) on prefix FE80::/10
- *  a is of type uip_ipaddr_t* 
+ *  a is of type uip_ipaddr_t*
  */
 #define uip_is_addr_link_local(a) \
   ((((a)->u8[0]) == 0xFE) && \
   (((a)->u8[1]) == 0x80))
 
 /**
- * \brief was addr (a) forged based on the mac address m 
+ * \brief was addr (a) forged based on the mac address m
  * a type is uip_ipaddr_t
  * m type is uiplladdr_t
  */
@@ -2000,16 +2001,16 @@ CCIF extern uip_lladdr_t uip_lladdr;
    (((a)->u8[15]) == (m)->addr[7]))
 #endif /*UIP_CONF_LL_802154*/
 
-/** 
- * \brief is address a multicast address, see RFC 3513 
- * a is of type uip_ipaddr_t* 
+/**
+ * \brief is address a multicast address, see RFC 3513
+ * a is of type uip_ipaddr_t*
  * */
 #define uip_is_addr_mcast(a)                    \
-  (((a)->u8[0]) == 0xFF)  
+  (((a)->u8[0]) == 0xFF)
 
 /**
  * \brief is group-id of multicast address a
- * the all nodes group-id 
+ * the all nodes group-id
  */
 #define uip_is_mcast_group_id_all_nodes(a) \
   ((((a)->u16[1])  == 0) &&                 \
@@ -2019,11 +2020,11 @@ CCIF extern uip_lladdr_t uip_lladdr;
    (((a)->u16[5])  == 0) &&                 \
    (((a)->u16[6])  == 0) &&                 \
    (((a)->u8[14])  == 0) &&                 \
-   (((a)->u8[15])  == 1)) 
+   (((a)->u8[15])  == 1))
 
 /**
  * \brief is group-id of multicast address a
- * the all routers group-id 
+ * the all routers group-id
  */
 #define uip_is_mcast_group_id_all_routers(a) \
   ((((a)->u16[1])  == 0) &&                 \
@@ -2033,7 +2034,7 @@ CCIF extern uip_lladdr_t uip_lladdr;
    (((a)->u16[5])  == 0) &&                 \
    (((a)->u16[6])  == 0) &&                 \
    (((a)->u8[14])  == 0) &&                 \
-   (((a)->u8[15])  == 2)) 
+   (((a)->u8[15])  == 2))
 
 
 #endif /*UIP_CONF_IPV6*/
@@ -2091,7 +2092,7 @@ u16_t uip_udpchksum(void);
 
 /**
  * Calculate the ICMP checksum of the packet in uip_buf.
- * 
+ *
  * \return The ICMP checksum of the ICMP packet in uip_buf
  */
 u16_t uip_icmp6chksum(void);
