@@ -29,7 +29,7 @@
  * This file is part of the Contiki operating system.
  *
  *
- * $Id: tcpip.c,v 1.14 2008/10/15 07:59:34 adamdunkels Exp $
+ * $Id: tcpip.c,v 1.15 2008/10/15 08:52:30 adamdunkels Exp $
  */
 /**
  * \file
@@ -666,12 +666,14 @@ PROCESS_THREAD(tcpip_process, ev, data)
   PROCESS_BEGIN();
 
 #if UIP_TCP
-  static unsigned char i;
-
-  for(i = 0; i < UIP_LISTENPORTS; ++i) {
-    s.listenports[i].port = 0;
-  }
-  s.p = PROCESS_CURRENT();
+ {
+   static unsigned char i;
+   
+   for(i = 0; i < UIP_LISTENPORTS; ++i) {
+     s.listenports[i].port = 0;
+   }
+   s.p = PROCESS_CURRENT();
+ }
 #endif
   
   tcpip_event = process_alloc_event();
