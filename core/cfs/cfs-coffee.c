@@ -730,12 +730,12 @@ write_log_page(struct file_desc *fdp, struct log_param *lp)
 
   {
     unsigned char copy_buf[log_entry_size];
-    
+
     lp_out.offset = page * log_entry_size;
     lp_out.buf = copy_buf;
     lp_out.size = log_entry_size;
 
-    if((lp->offset > 0 || log_entry_size == COFFEE_PAGE_SIZE) &&
+    if((lp->offset > 0 || lp->size != log_entry_size) &&
 	read_log_page(&hdr, fdp->next_log_entry > 0 ? fdp->next_log_entry - 1 : -1, &lp_out) < 0) {
       COFFEE_READ(copy_buf, sizeof(copy_buf),
 	  ABS_OFFSET(fdp->file_page, page * log_entry_size));
@@ -1042,6 +1042,10 @@ cfs_coffee_reserve(const char *name, uint32_t size)
   struct file_header hdr;
   unsigned need_pages;
   int page;
+
+  if(find_file(name) >= 0) {
+    return -1;
+  }
 
   need_pages = (size + sizeof(hdr) + COFFEE_PAGE_SIZE - 1) / COFFEE_PAGE_SIZE;
 
