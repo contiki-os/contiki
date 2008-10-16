@@ -735,7 +735,7 @@ write_log_page(struct file_desc *fdp, struct log_param *lp)
     lp_out.buf = copy_buf;
     lp_out.size = log_entry_size;
 
-    if(lp->offset > 0 &&
+    if((lp->offset > 0 || log_entry_size == COFFEE_PAGE_SIZE) &&
 	read_log_page(&hdr, fdp->next_log_entry > 0 ? fdp->next_log_entry - 1 : -1, &lp_out) < 0) {
       COFFEE_READ(copy_buf, sizeof(copy_buf),
 	  ABS_OFFSET(fdp->file_page, page * log_entry_size));
@@ -936,6 +936,7 @@ cfs_write(int fd, const void *buf, unsigned size)
   struct file_desc *fdp;
   int i;
   struct log_param lp;
+  coffee_offset_t remains;
 
   if(!(FD_VALID(fd) && FD_WRITABLE(fd))) {
     return -1;
@@ -950,23 +951,29 @@ cfs_write(int fd, const void *buf, unsigned size)
   }
   
   if(fdp->offset < fdp->end) {
-    lp.offset = fdp->offset;
-    lp.buf = buf;
-    lp.size = size;
+    remains = size;
+    while(remains) {
+      lp.offset = fdp->offset;
+      lp.buf = buf;
+      lp.size = remains;
 
-    size = write_log_page(fdp, &lp);
-    if(size == 0) {
-      /* The log got flushed. Try again. */
-      size = write_log_page(fdp, &lp);
-    }
-    if(size < 0) {
-      return -1;
+      i = write_log_page(fdp, &lp);
+      if(i == 0) {
+        /* The log got flushed. Try again. */
+        i = write_log_page(fdp, &lp);
+      }
+      if(i < 0) {
+        return size - remains > 0 ? size - remains : -1;
+      }
+      remains -= i;
+      fdp->offset += i;
     }
   } else {
     COFFEE_WRITE(buf, size,
 	ABS_OFFSET(fdp->file_page, fdp->offset));
+    fdp->offset += size;
   }
-  fdp->offset += size;
+
   if(fdp->offset > fdp->end) {
     /*
      * The file has been extended and the file descriptors
