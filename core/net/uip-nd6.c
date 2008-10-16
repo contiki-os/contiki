@@ -383,7 +383,7 @@ uip_nd6_periodic(void)
     if(uip_nd6_defrouter_list[i].used == 1) {
       router = &(uip_nd6_defrouter_list[i]);
       if (timer_expired(&(router->lifetime))) {
-          ;//uip_nd6_defrouter_rm(router);
+          uip_nd6_defrouter_rm(router);
       }
     }
   }
