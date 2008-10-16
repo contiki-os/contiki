@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: test-coffee.c,v 1.1 2008/09/18 10:35:30 nvt-se Exp $
+ * $Id: test-coffee.c,v 1.2 2008/10/16 10:14:41 nvt-se Exp $
  */
 
 /**
@@ -195,7 +195,6 @@ run_consistency_test(void)
     }
 
     offset = random_rand() % 8192;
-    offset &= ~0xffU;
 
     for(r = 0; r < sizeof(buf); r++) {
       buf[r] = r;
