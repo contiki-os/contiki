@@ -1085,7 +1085,7 @@ cfs_coffee_configure_log(const char *file, unsigned log_size, unsigned log_entry
   coffee_page_t page;
   struct file_header hdr;
 
-  if(log_entry_size > COFFEE_PAGE_SIZE || log_size < log_entry_size) {
+  if(log_entry_size == 0 || log_entry_size > COFFEE_PAGE_SIZE || log_size < log_entry_size) {
     return -1;
   }
 
