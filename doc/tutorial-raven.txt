@@ -198,7 +198,8 @@ Install the radvd deamon and configure it so the usb0
 interface advertises the aaaa::/64 prefix as on link
 and usable for address autoconfiguration.
 
-Example radvd configuration (usually in /etc/radvd.conf)
+
+Radvd configuration (usually in /etc/radvd.conf)
 \verbatim
 interface usb0
 {
@@ -206,15 +207,20 @@ interface usb0
     AdvLinkMTU 1280;
     AdvCurHopLimit 128;
     AdvReachableTime 360000;
-    MinRtrAdvInterval 500;
-    MaxRtrAdvInterval 1000;
+    MinRtrAdvInterval 100;
+    MaxRtrAdvInterval 150;
+    AdvDefaultLifetime 200;
     prefix AAAA::/64
     {
         AdvOnLink on;
         AdvAutonomous on;
+        AdvPreferredLifetime 4294967295; 
+        AdvValidLifetime 4294967295; 
     };
 };
 \endverbatim
+\note This values have been carefuly chosen to work on platform using
+a 16bit clock.
 
 Restart the radvd daemon. Example command:
 \verbatim
@@ -278,7 +284,8 @@ To do so, type:
 \code
 ipv6 ifc [interface index] advertises forwards
 ipv6 adu [interface index]/aaaa::1
-ipv6 rtu ::/0 [ethernet interface index]/[ethernet link-local address] publish
+ipv6 rtu ::/0 [ethernet interface index]/[ethernet link-local address]
+life 250 publish
 ipv6 rtu aaaa::/64 [interface index] publish
 \endcode
 
