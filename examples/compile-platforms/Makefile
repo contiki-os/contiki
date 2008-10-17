@@ -9,7 +9,7 @@ compile: 6502 msp430 native avr
 6502:	c64.platform c128.platform apple2enh.platform
 msp430: sky.platform esb.platform # msb430.platform
 native: native.platform netsim.platform minimal-net.platform
-avr:    avr-raven
+avr:    avr-raven.platform
 
 %.platform:
 	@mkdir -p $*
