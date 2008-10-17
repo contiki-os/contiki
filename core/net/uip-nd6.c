@@ -104,7 +104,7 @@ void uip_log(char *msg);
 
 
 /**
- * \brief Timer for maintenance of neighbor cache, prefix list, and default 
+ * \brief Timer for maintenance of neighbor cache, prefix list, and default
  * router lists
  */
 struct etimer uip_nd6_timer_periodic;
@@ -135,7 +135,7 @@ uip_nd6_init(void)
     uip_nd6_defrouter_list[i].used = 0;
   }
   for(i = 0; i < UIP_CONF_ND6_MAX_PREFIXES; i ++) {
-    uip_nd6_prefix_list[i].used = 0;  
+    uip_nd6_prefix_list[i].used = 0;
   }
    
   /* create link local prefix */
@@ -144,7 +144,7 @@ uip_nd6_init(void)
   uip_nd6_prefix_list[0].used = 1;
   uip_nd6_prefix_list[0].is_infinite = 1;
 
-  /* we check the ND structures every 100ms */  
+  /* we check the ND structures every 100ms */
   etimer_set(&uip_nd6_timer_periodic, 0.1 * CLOCK_SECOND);
 }
 
@@ -173,7 +173,7 @@ uip_nd6_nbrcache_add(uip_ipaddr_t *ipaddr, uip_lladdr_t *lladdr,
 
   for(i = 0; i < UIP_CONF_ND6_MAX_NEIGHBORS; ++i) {
     if(uip_nd6_nbrcache_list[i].used == 0) {
-      break;   
+      break;
     }
   }
   if(i == UIP_CONF_ND6_MAX_NEIGHBORS){
@@ -187,7 +187,7 @@ uip_nd6_nbrcache_add(uip_ipaddr_t *ipaddr, uip_lladdr_t *lladdr,
     memcpy(&(neighbor->lladdr), lladdr, UIP_LLADDR_LEN);
   } else {
     memset(&(neighbor->lladdr), 0, UIP_LLADDR_LEN);
-  } 
+  }
   PRINTF("Adding neighbor with ip addr");
   PRINT6ADDR(ipaddr);
   PRINTF("link addr");
@@ -197,8 +197,8 @@ uip_nd6_nbrcache_add(uip_ipaddr_t *ipaddr, uip_lladdr_t *lladdr,
   neighbor->isrouter = isrouter;
   neighbor->state = state;
   /* timers are set separately, for now we put them in expired state */
-  timer_set(&(neighbor->reachable),0); 
-  timer_set(&(neighbor->last_send),0); 
+  timer_set(&(neighbor->reachable),0);
+  timer_set(&(neighbor->last_send),0);
   neighbor->count_send = 0;
   neighbor->used = 1;
   return neighbor;
@@ -266,7 +266,7 @@ uip_nd6_defrouter_add(struct uip_nd6_neighbor *neighbor, clock_time_t interval)
   
   for(i = 0; i < UIP_CONF_ND6_MAX_DEFROUTERS; ++i) {
     if(uip_nd6_defrouter_list[i].used == 0) {
-      break; 
+      break;
     }
   }
   if(i == UIP_CONF_ND6_MAX_DEFROUTERS){
@@ -305,13 +305,13 @@ uip_nd6_is_addr_onlink(uip_ipaddr_t *ipaddr)
 
 struct uip_nd6_prefix *
 uip_nd6_prefix_lookup(uip_ipaddr_t *ipaddr)
-{  
+{
   prefix = NULL;
   
   for (i = 0; i < UIP_CONF_ND6_MAX_PREFIXES; i ++) {
     if (uip_nd6_prefix_list[i].used == 0){
       continue;
-    } 
+    }
     if (uip_ipaddr_cmp(&uip_nd6_prefix_list[i].ipaddr, ipaddr)) {
       prefix = &uip_nd6_prefix_list[i];
       break;
@@ -328,16 +328,16 @@ uip_nd6_prefix_add(uip_ipaddr_t *ipaddr, u8_t length, clock_time_t interval){
   /*
    * we start at 1: we do not want to overwrite the link local
    * prefix
-   */ 
+   */
   for(i = 1; i < UIP_CONF_ND6_MAX_PREFIXES; ++i) {
     if(uip_nd6_prefix_list[i].used == 0) {
       break;
     }
-  } 
+  }
   if(i ==  UIP_CONF_ND6_MAX_PREFIXES){
     UIP_LOG("Prefix list full");
     /*
-     * we do not want it to pick the  first entry, which 
+     * we do not want it to pick the  first entry, which
      * is the link local prefix
      */
     i = (u8_t)(random_rand()%(UIP_CONF_ND6_MAX_PREFIXES -1) + 1);
@@ -351,7 +351,7 @@ uip_nd6_prefix_add(uip_ipaddr_t *ipaddr, u8_t length, clock_time_t interval){
   PRINT6ADDR(&prefix->ipaddr);
   PRINTF("length %d, vlifetime * CLOCK_SECOND %d\n", length, (u16_t)interval);
  
-  if(interval != 0){ 
+  if(interval != 0){
     timer_set(&(prefix->vlifetime),interval);
     prefix->is_infinite = 0;
   } else {
@@ -364,11 +364,11 @@ uip_nd6_prefix_add(uip_ipaddr_t *ipaddr, u8_t length, clock_time_t interval){
 
 
 void uip_nd6_prefix_rm(struct uip_nd6_prefix *prefix) {
-    PRINTF("Removing prefix ");                 
-    PRINT6ADDR(&prefix->ipaddr);                
-    PRINTF("length %d\n", prefix->length);      
-    prefix->used = 0;            
-} 
+    PRINTF("Removing prefix ");
+    PRINT6ADDR(&prefix->ipaddr);
+    PRINTF("length %d\n", prefix->length);
+    prefix->used = 0;
+}
 
 
 void
@@ -382,9 +382,20 @@ uip_nd6_periodic(void)
   for(i = 0; i < UIP_CONF_ND6_MAX_DEFROUTERS; i ++) {
     if(uip_nd6_defrouter_list[i].used == 1) {
       router = &(uip_nd6_defrouter_list[i]);
-      if (timer_expired(&(router->lifetime))) {
-          uip_nd6_defrouter_rm(router);
+      
+      /* XXX when run on a platform with a 16-bit clock_time_t, the
+      timer_expired() below causes the default route to be immediately
+      be removed causing communucation problems. We comment it out as
+      a quick-fix to this problem on the Atmel RAven platform, but
+      since this is needed for IPv6 compliance, we will solve the
+      problem by making clock_time_t 32 bits instead after the uIPv6
+      snapshot release.
+	 
+      if(timer_expired(&(router->lifetime))) {
+	uip_nd6_defrouter_rm(router);
       }
+
+      */
     }
   }
   /*PERIODIC PROCESSING FOR NEIGHBOR CACHE*/
@@ -398,7 +409,7 @@ uip_nd6_periodic(void)
             uip_nd6_nbrcache_list[i].used = 0;
           }
           else if(timer_expired(&(neighbor->last_send))) {
-            PRINTF("INCOMPLETE: NS %d\n",neighbor->count_send+1); 
+            PRINTF("INCOMPLETE: NS %d\n",neighbor->count_send+1);
             uip_nd6_io_ns_output(NULL, NULL, &neighbor->ipaddr);
             timer_set(&(neighbor->last_send),
                       uip_netif_physical_if.retrans_timer/1000*CLOCK_SECOND);
@@ -440,7 +451,7 @@ uip_nd6_periodic(void)
           }
           if(timer_expired(&(neighbor->last_send))){
             PRINTF("PROBE: NS %d\n",neighbor->count_send+1);
-            uip_nd6_io_ns_output(NULL, &neighbor->ipaddr, &neighbor->ipaddr); 
+            uip_nd6_io_ns_output(NULL, &neighbor->ipaddr, &neighbor->ipaddr);
             timer_set(&(neighbor->last_send),
                       uip_netif_physical_if.retrans_timer/1000*CLOCK_SECOND);
             neighbor->count_send++;
@@ -450,7 +461,7 @@ uip_nd6_periodic(void)
           break;
       }
     }
-  }   
+  }
   /*PERIODIC PROCESSING FOR PREFIX LIST*/
   prefix = NULL;
   /*
@@ -466,6 +477,6 @@ uip_nd6_periodic(void)
         uip_nd6_prefix_rm(prefix);
       }
     }
-  }    
+  }
 }
 /** @} */
