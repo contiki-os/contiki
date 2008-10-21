@@ -913,10 +913,6 @@ cfs_read(int fd, void *buf, unsigned size)
       lp.size = remains;
       r = read_log_page(&hdr,
 		fdp->next_log_entry > 0 ? fdp->next_log_entry - 1 : -1, &lp);
-      if(r >= 0) {
-	offset += r;
-	break;
-      }
     }
     if(r < 0) {
       r = remains > COFFEE_PAGE_SIZE ? COFFEE_PAGE_SIZE : remains;
