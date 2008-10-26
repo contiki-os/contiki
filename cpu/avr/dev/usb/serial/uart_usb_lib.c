@@ -179,6 +179,10 @@ char uart_usb_getchar(void)
   data_rx=Usb_read_byte();
   rx_counter--;
   if (!rx_counter) Usb_ack_receive_out();
+  
+  //Local echo
+  uart_usb_putchar(data_rx);
+  
   return data_rx;
 }
 
