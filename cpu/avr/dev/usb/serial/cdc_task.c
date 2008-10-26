@@ -55,6 +55,7 @@
 #include "serial/uart_usb_lib.h"
 #include "rndis/rndis_protocol.h"
 #include "sicslow_ethernet.h"
+#include "radio.h"
 #include <stdio.h>
 
 #include <avr/pgmspace.h>
@@ -174,6 +175,7 @@ void menu_print(void)
 		PRINTF_P(PSTR("*  m               Print current mode    *\n\r"));
 		PRINTF_P(PSTR("*  s               Set to sniffer mode   *\n\r"));
 		PRINTF_P(PSTR("*  n               Set to network mode   *\n\r"));
+		PRINTF_P(PSTR("*  c               Set RF channel        *\n\r"));
 		PRINTF_P(PSTR("*  6               Toggle 6lowpan        *\n\r"));
 		PRINTF_P(PSTR("*  r               Toggle raw mode       *\n\r"));
 		PRINTF_P(PSTR("*  u               Switch to mass-storage*\n\r"));
@@ -188,93 +190,160 @@ void menu_print(void)
  */
 void menu_process(char c)
 {
-	uint8_t i;
-	switch(c) {
-		case '\r':
-		case '\n':
-			break;
 
-		case 'h':
-		case '?':
-			menu_print();
-			break;
+	static enum menustate_enum            /* Defines an enumeration type    */
+	{
+		normal,
+		channel
+	} menustate = normal;
+	
+	static char channel_string[3];
+	static uint8_t channel_string_i = 0;
+	
+	int tempchannel;
+	
 
-		case 's':
-			PRINTF_P(PSTR("Jackdaw now in sniffer mode\n\r"));
-			usbstick_mode.sendToRf = 0;
-			usbstick_mode.translate = 0;
-			break;
+	if (menustate == channel) {
 
-		case 'n':
-			PRINTF_P(PSTR("Jackdaw now in network mode\n\r"));
-			usbstick_mode.sendToRf = 1;
-			usbstick_mode.translate = 1;
-			break;
+		switch(c) {
+			case '\r':
+			case '\n':		
+				channel_string[channel_string_i] = 0;
+								
+				//Will return zero in event of error...
+				tempchannel = atoi(channel_string);
+				
+				//Bounds check only if user had real input
+				if ( ((channel_string_i) && (tempchannel < 11)) || (tempchannel > 26))  {
+					PRINTF_P(PSTR("\n\rInvalid input\n\r"));				
+				}
+				
+				//If valid input, change it
+				if (tempchannel) {
+					radio_set_operating_channel(tempchannel);
+				}
 
-		case '6':
-			if (usbstick_mode.sicslowpan) {
-				PRINTF_P(PSTR("Jackdaw does not perform 6lowpan translation\n\r"));
-				usbstick_mode.sicslowpan = 0;
-			} else {
-				PRINTF_P(PSTR("Jackdaw now performs 6lowpan translations\n\r"));
-				usbstick_mode.sicslowpan = 1;
-			}	
-			
-			break;
-
-		case 'r':
-			if (usbstick_mode.raw) {
-				PRINTF_P(PSTR("Jackdaw does not capture raw frames\n\r"));
-				usbstick_mode.raw = 0;
-			} else {
-				PRINTF_P(PSTR("Jackdaw now captures raw frames\n\r"));
-				usbstick_mode.raw = 1;
-			}	
-			break;
-			
+				menustate = normal;
+				break;
 		
-		case 'm':
-			PRINTF_P(PSTR("Currently Jackdaw:\n\r  * Will "));
-			if (usbstick_mode.sendToRf == 0) { PRINTF_P(PSTR("not "));}
-			PRINTF_P(PSTR("send data over RF\n\r  * Will "));
-			if (usbstick_mode.translate == 0) { PRINTF_P(PSTR("not "));}
-			PRINTF_P(PSTR("change link-local addresses inside IP messages\n\r  * Will "));
-			if (usbstick_mode.sicslowpan == 0) { PRINTF_P(PSTR("not "));}
-			PRINTF_P(PSTR("decompress 6lowpan headers\n\r  * Will "));
-			if (usbstick_mode.raw == 0) { PRINTF_P(PSTR("not "));}
-			PRINTF_P(PSTR("Output raw 802.15.4 frames\n\r "));
-			break;
-
-        case 'u':
-
-		    //Mass storage mode
-		    usb_mode = mass_storage;
-
-			//No more serial port
-			stdout = NULL;
-
-			//RNDIS is over
-			rndis_state = 	rndis_uninitialized;
-			Leds_off();
-
-			//Deatch USB
-			Usb_detach();
-
-			//Wait a few seconds
-			for(i = 0; i < 50; i++)
-				_delay_ms(100);
-
-			//Attach USB
-			Usb_attach();
+			case '\b':
+			
+				if (channel_string_i)
+					channel_string_i--;
+				break;
+					
+			default:
+			
+				if (channel_string_i > 1) {
+					menustate = normal;
+					PRINTF_P(PSTR("\n\rInput too long!\n\r"));
+					break;
+				}
+				
+				channel_string[channel_string_i] = c;
+				channel_string_i++;
+		}
 
 
-			break;
+	} else {
 
-		default:
-			PRINTF_P(PSTR("%c is not a valid option! h for menu\n\r"), c);
-			break;
+		uint8_t i;
+		switch(c) {
+			case '\r':
+			case '\n':
+				break;
+
+			case 'h':
+			case '?':
+				menu_print();
+				break;
+
+			case 's':
+				PRINTF_P(PSTR("Jackdaw now in sniffer mode\n\r"));
+				usbstick_mode.sendToRf = 0;
+				usbstick_mode.translate = 0;
+				break;
+
+			case 'n':
+				PRINTF_P(PSTR("Jackdaw now in network mode\n\r"));
+				usbstick_mode.sendToRf = 1;
+				usbstick_mode.translate = 1;
+				break;
+
+			case '6':
+				if (usbstick_mode.sicslowpan) {
+					PRINTF_P(PSTR("Jackdaw does not perform 6lowpan translation\n\r"));
+					usbstick_mode.sicslowpan = 0;
+				} else {
+					PRINTF_P(PSTR("Jackdaw now performs 6lowpan translations\n\r"));
+					usbstick_mode.sicslowpan = 1;
+				}	
+				
+				break;
+
+			case 'r':
+				if (usbstick_mode.raw) {
+					PRINTF_P(PSTR("Jackdaw does not capture raw frames\n\r"));
+					usbstick_mode.raw = 0;
+				} else {
+					PRINTF_P(PSTR("Jackdaw now captures raw frames\n\r"));
+					usbstick_mode.raw = 1;
+				}	
+				break;
+
+			case 'c':
+				PRINTF_P(PSTR("Select 802.15.4 Channel in range 11-26 [%d]: "), radio_get_operating_channel());
+				menustate = channel;
+				channel_string_i = 0;
+				break;
+				
+				
+			
+			case 'm':
+				PRINTF_P(PSTR("Currently Jackdaw:\n\r  * Will "));
+				if (usbstick_mode.sendToRf == 0) { PRINTF_P(PSTR("not "));}
+				PRINTF_P(PSTR("send data over RF\n\r  * Will "));
+				if (usbstick_mode.translate == 0) { PRINTF_P(PSTR("not "));}
+				PRINTF_P(PSTR("change link-local addresses inside IP messages\n\r  * Will "));
+				if (usbstick_mode.sicslowpan == 0) { PRINTF_P(PSTR("not "));}
+				PRINTF_P(PSTR("decompress 6lowpan headers\n\r  * Will "));
+				if (usbstick_mode.raw == 0) { PRINTF_P(PSTR("not "));}
+				PRINTF_P(PSTR("Output raw 802.15.4 frames\n\r "));
+				PRINTF_P(PSTR("  * Operates on channel %d\n\r"), radio_get_operating_channel());
+				break;
+
+			case 'u':
+
+				//Mass storage mode
+				usb_mode = mass_storage;
+
+				//No more serial port
+				stdout = NULL;
+
+				//RNDIS is over
+				rndis_state = 	rndis_uninitialized;
+				Leds_off();
+
+				//Deatch USB
+				Usb_detach();
+
+				//Wait a few seconds
+				for(i = 0; i < 50; i++)
+					_delay_ms(100);
+
+				//Attach USB
+				Usb_attach();
+
+
+				break;
+
+			default:
+				PRINTF_P(PSTR("%c is not a valid option! h for menu\n\r"), c);
+				break;
+		}
+
+
 	}
-
 
 	return;
 
