@@ -128,7 +128,7 @@ Bool usb_user_read_request(U8 type, U8 request)
 	
 	/* We don't have a real serial port - so these aren't applicable. We
 	   advertise that we support nothing, so shouldn't get them anyway */
-	/*	case GET_LINE_CODING:
+		case GET_LINE_CODING:
 				cdc_get_line_coding();
 				return TRUE;
       			break;
@@ -142,8 +142,7 @@ Bool usb_user_read_request(U8 type, U8 request)
 				cdc_set_control_line_state();
       			return TRUE;
       			break;
-     */
- 		default:
+     	default:
 				break;
 
 	}
