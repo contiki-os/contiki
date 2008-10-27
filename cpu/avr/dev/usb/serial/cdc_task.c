@@ -59,6 +59,7 @@
 #include <stdio.h>
 
 #include <avr/pgmspace.h>
+#include <avr/eeprom.h>
 #include <util/delay.h>
 
 #define BUF ((struct uip_eth_hdr *)&uip_buf[0])
@@ -221,6 +222,8 @@ void menu_process(char c)
 				//If valid input, change it
 				if (tempchannel) {
 					radio_set_operating_channel(tempchannel);
+					eeprom_write_byte(9, tempchannel);   //Write channel
+					eeprom_write_byte(10, ~tempchannel); //Bit inverse as check
 				}
 
 				menustate = normal;
