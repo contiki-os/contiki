@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: CreateSimDialog.java,v 1.11 2008/10/03 13:54:27 fros4943 Exp $
+ * $Id: CreateSimDialog.java,v 1.12 2008/10/28 12:58:32 fros4943 Exp $
  */
 
 package se.sics.cooja.dialogs;
@@ -129,9 +129,6 @@ public class CreateSimDialog extends JDialog {
     // Set simulation time
     myDialog.simulationTime.setValue(new Integer(simulationToConfigure.getSimulationTime()));
 
-    // Set tick time
-    myDialog.tickTime.setValue(new Integer(simulationToConfigure.getTickTime()));
-
     // Select radio medium
     if (simulationToConfigure.getRadioMedium() != null) {
       Class<? extends RadioMedium> radioMediumClass =
@@ -150,9 +147,6 @@ public class CreateSimDialog extends JDialog {
 
     // Set random seed
     myDialog.randomSeed.setValue(new Long(simulationToConfigure.getRandomSeed()));
-
-    // Set number of tick lists
-    myDialog.tickLists.setValue(new Integer(simulationToConfigure.getNrTickLists()));
 
     // Set delayed mote startup time
     myDialog.delayedStartup.setValue(new Integer(simulationToConfigure.getDelayedMoteStartupTime()));
@@ -325,32 +319,11 @@ public class CreateSimDialog extends JDialog {
     advancedBox.add(horizBox);
     advancedBox.add(Box.createRigidArea(new Dimension(0,5)));
 
-    // Tick time
-    horizBox = Box.createHorizontalBox();
-    horizBox.setMaximumSize(new Dimension(Integer.MAX_VALUE,LABEL_HEIGHT));
-    horizBox.setAlignmentX(Component.LEFT_ALIGNMENT);
-    label = new JLabel("Simulation tick time (ms)");
-    label.setPreferredSize(new Dimension(LABEL_WIDTH,LABEL_HEIGHT));
-
-    numberField = new JFormattedTextField(integerFormat);
-    numberField.setValue(new Integer(1));
-    numberField.setColumns(4);
-    numberField.setEnabled(false); /* Disabled: Almost never used */
-    tickTime = numberField;
-
-    horizBox.add(label);
-    horizBox.add(Box.createHorizontalStrut(150));
-    horizBox.add(numberField);
-    horizBox.setToolTipText("Simulated time increase each simulation loop");
-
-    advancedBox.add(horizBox);
-    advancedBox.add(Box.createRigidArea(new Dimension(0,5)));
-
     // Delayed startup
     horizBox = Box.createHorizontalBox();
     horizBox.setMaximumSize(new Dimension(Integer.MAX_VALUE,LABEL_HEIGHT));
     horizBox.setAlignmentX(Component.LEFT_ALIGNMENT);
-    label = new JLabel("Mote startup delay (max, ms)");
+    label = new JLabel("Random startup (max, ms)");
     label.setPreferredSize(new Dimension(LABEL_WIDTH,LABEL_HEIGHT));
 
     numberField = new JFormattedTextField(integerFormat);
@@ -383,7 +356,7 @@ public class CreateSimDialog extends JDialog {
     horizBox.add(label);
     horizBox.add(Box.createHorizontalStrut(150));
     horizBox.add(numberField);
-    horizBox.setToolTipText("Delay between each simulated time step");
+    horizBox.setToolTipText("Delay between each simulated millisecond. Controls simulation speed.");
 
     advancedBox.add(horizBox);
     advancedBox.add(Box.createVerticalStrut(5));
@@ -410,28 +383,6 @@ public class CreateSimDialog extends JDialog {
     advancedBox.add(horizBox);
     advancedBox.add(Box.createVerticalStrut(5));
 
-    // Tick lists
-    horizBox = Box.createHorizontalBox();
-    horizBox.setMaximumSize(new Dimension(Integer.MAX_VALUE,LABEL_HEIGHT));
-    horizBox.setAlignmentX(Component.LEFT_ALIGNMENT);
-    label = new JLabel("Number of tick lists");
-    label.setPreferredSize(new Dimension(LABEL_WIDTH,LABEL_HEIGHT));
-
-    numberField = new JFormattedTextField(integerFormat);
-    numberField.setValue(new Integer(1));
-    numberField.setColumns(4);
-    numberField.setEnabled(false); /* Disabled: Almost never used */
-    tickLists = numberField;
-
-    horizBox.add(label);
-    horizBox.add(Box.createHorizontalStrut(150));
-    horizBox.add(numberField);
-    horizBox.setToolTipText("<html>Number of tick lists.<p>Every simulated mote belongs to a tick list, and each simulated loop only one list is allowed to act.<br>If the number of tick lists is 1, all motes are tick every simulation time increase.</html>");
-
-    advancedBox.add(horizBox);
-    advancedBox.add(Box.createVerticalGlue());
-
-
     vertBox.add(advancedBox);
     vertBox.add(Box.createVerticalGlue());
 
@@ -452,7 +403,6 @@ public class CreateSimDialog extends JDialog {
       } else if (e.getActionCommand().equals("create")) {
         mySimulation.setDelayTime(((Number) delayTime.getValue()).intValue());
         mySimulation.setSimulationTime(((Number) simulationTime.getValue()).intValue());
-        mySimulation.setTickTime(((Number) tickTime.getValue()).intValue());
         mySimulation.setTitle(title.getText());
 
         String currentRadioMediumDescription = (String) radioMediumBox.getSelectedItem();
@@ -473,7 +423,6 @@ public class CreateSimDialog extends JDialog {
         }
 
         mySimulation.setRandomSeed(((Number) randomSeed.getValue()).longValue());
-        mySimulation.setNrTickLists(((Number) tickLists.getValue()).intValue());
         mySimulation.setDelayedMoteStartupTime(((Number) delayedStartup.getValue()).intValue());
 
         dispose();
