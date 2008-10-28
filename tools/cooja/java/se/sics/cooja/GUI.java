@@ -24,7 +24,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * $Id: GUI.java,v 1.86 2008/10/03 14:31:32 fros4943 Exp $
+ * $Id: GUI.java,v 1.87 2008/10/28 13:36:26 fros4943 Exp $
  */
 
 package se.sics.cooja;
@@ -1182,7 +1182,6 @@ public class GUI extends Observable {
     simulation.setTitle("Quickstarted: " + filename);
     simulation.setDelayTime(delayTime);
     simulation.setSimulationTime(0);
-    simulation.setTickTime(1);
     String radioMediumClassName = null;
     try {
       radioMediumClassName = gui.getProjectConfig().getStringArrayValue(
