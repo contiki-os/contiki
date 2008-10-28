@@ -24,7 +24,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * $Id: Simulation.java,v 1.26 2008/10/03 13:18:29 fros4943 Exp $
+ * $Id: Simulation.java,v 1.27 2008/10/28 13:35:59 fros4943 Exp $
  */
 
 package se.sics.cooja;
@@ -38,17 +38,13 @@ import se.sics.cooja.dialogs.*;
 /**
  * A simulation consists of a number of motes and mote types.
  *
- * The motes in the simulation are ticked one by one in a simulation loop. When
- * all motes have been ticked once, the simulation time is updated and then the
- * simulation sleeps for some specified delay time. Any tick observers are also
- * notified at this time.
+ * The motes in the simulation are ticked every millisecond.
  *
- * When observing the simulation itself, the simulation state, added or deleted
- * motes etc. are observed, as opposed to individual mote changes. Changes of
- * individual motes should instead be observed via corresponding mote
- * interfaces.
+ * A simulation is observable:
+ * changed simulation state, added or deleted motes etc are observed.
+ * To track mote changes, observe the mote (interfaces) itself.
  *
- * @author Fredrik Osterlind
+ * @author Fredrik Österlind
  */
 public class Simulation extends Observable implements Runnable {
 
@@ -78,13 +74,7 @@ public class Simulation extends Observable implements Runnable {
 
   private long randomSeed = 123456;
 
-  private int currentTickListIndex = 0;
-
-  private int nrTickLists = 1;
-
   private int maxMoteStartupDelay = 1000;
-
-  private Random tickListRandom = new Random();
 
   private Random delayMotesRandom = new Random();
 
@@ -121,97 +111,106 @@ public class Simulation extends Observable implements Runnable {
     tickObservable.deleteObserver(observer);
   }
 
+  /**
+   * Schedule event to be handled by event loop.
+   *
+   * @param e Event
+   * @param time Simulated time
+   */
+  public void scheduleEvent(TimeEvent e, int time) {
+    eventQueue.addEvent(e, time);
+  }
+
+  private EventQueue eventQueue = new EventQueue();
+
+  private Mote[] mspMoteArray;
+  private TimeEvent tickMspMotesEvent = new TimeEvent(0) {
+    public void execute(int t) {
+      /*logger.info("MSP motes tick at: " + t);*/
+
+      /* Tick MSP motes */
+      boolean wantMoreTicks = true;
+      while (wantMoreTicks) {
+        /* Tick all MSP motes until none need more ticks */
+        wantMoreTicks = false;
+        for (Mote element : mspMoteArray) {
+          if (element.tick(currentSimulationTime)) {
+            wantMoreTicks = true;
+          }
+        }
+      }
+
+      /* Reschedule MSP motes */
+      scheduleEvent(this, t+1);
+    }
+  };
+
+  private Mote[] moteArray;
+  private TimeEvent tickMotesEvent = new TimeEvent(0) {
+    public void execute(int t) {
+      /*logger.info("Contiki motes tick at: " + t);*/
+
+      /* Tick Contiki motes */
+      for (Mote mote : moteArray) {
+        mote.tick(t);
+      }
+
+      /* Reschedule Contiki motes */
+      scheduleEvent(this, t+1);
+    }
+  };
+
+  private TimeEvent delayEvent = new TimeEvent(0) {
+    public void execute(int t) {
+      /*logger.info("Delay at: " + t);*/
+
+      if (delayTime > 0) {
+        try { Thread.sleep(delayTime); } catch (InterruptedException e) { }
+        scheduleEvent(this, t+1);
+      }
+    }
+  };
+
   public void run() {
     long lastStartTime = System.currentTimeMillis();
     logger.info("Simulation main loop started, system time: " + lastStartTime);
     isRunning = true;
 
-    // Notify observers simulation is starting
+    /* Simulation starting */
     this.setChanged();
     this.notifyObservers(this);
 
-    /* Experimental: Tick MSP motes separately */
+    /* Tick MSP motes separately */
     ArrayList<Mote> mspMotes = new ArrayList<Mote>();
+    ArrayList<Mote> contikiMotes = new ArrayList<Mote>();
     for (Mote mote: motes) {
       if (mote.getType().getClass().toString().contains(".mspmote.")) {
         mspMotes.add(mote);
+      } else {
+        contikiMotes.add(mote);
       }
     }
+    mspMoteArray = mspMotes.toArray(new Mote[mspMotes.size()]);
+    moteArray = contikiMotes.toArray(new Mote[mspMotes.size()]);
 
-    // Distribute motes in tick lists according to random seed
-    // TODO Timeconsuming approach (but only performed once)
-    int motesToDistribute = motes.size() - mspMotes.size();
-    Mote[][] allLists = new Mote[nrTickLists][];
-    for (int i=0; i < nrTickLists; i++) {
-      allLists[i] = new Mote[(int) Math.ceil((double)motesToDistribute/(double)(nrTickLists - i))];
-      motesToDistribute -= allLists[i].length;
-    }
-
-    // Distribute motes according to seed
-    tickListRandom.setSeed(randomSeed);
-    Vector<Mote> motesClone = new Vector<Mote>();
-    for (Mote mote: motes) {
-      if (!mote.getType().getClass().toString().contains(".mspmote.")) {
-        motesClone.add(mote);
-      }
-    }
-    for (int i=0; i < allLists.length; i++) {
-      for (int j=0; j < allLists[i].length; j++) {
-        int moteNr = tickListRandom.nextInt(motesClone.size());
-        allLists[i][j] = motesClone.remove(moteNr);
-      }
-    }
-
-    Mote[] mspArray = mspMotes.toArray(new Mote[mspMotes.size()]);
     try {
-    while (isRunning) {
+      while (isRunning) {
 
-        /* Tick MSP motes */
-//        try {
-          boolean wantMoreTicks = true;
-          while (wantMoreTicks) {
-            /* Tick all MSP motes until none need more ticks */
-            wantMoreTicks = false;
-            for (int i = 0, n = mspArray.length; i < n; i++) {
-              if (mspArray[i].tick(currentSimulationTime)) {
-                wantMoreTicks = true;
-              }
-            }
-          }
-//        } catch (RuntimeException e) {
-//          isRunning = false;
-//          thread = null;
-//          break;
-//        }
-
-        // Tick current mote subset
-        for (Mote moteToTick : allLists[currentTickListIndex]) {
-          moteToTick.tick(currentSimulationTime);
+        TimeEvent nextEvent = eventQueue.popFirst();
+        if (nextEvent == null) {
+          throw new RuntimeException("No more events");
         }
 
-        // Select next mote subset (persistent)
-        currentTickListIndex++;
-        if (currentTickListIndex >= nrTickLists) {
-          currentTickListIndex = 0;
-        }
+        currentSimulationTime = nextEvent.time;
+        nextEvent.execute(currentSimulationTime);
 
-        // Increase simulation time
-        currentSimulationTime += tickTime;
-
-        // Notify tick observers
+        /* Notify tick observers */
         tickObservable.allTicksPerformed();
-
-        // Sleep
-        if (delayTime > 0) {
-          Thread.sleep(delayTime);
-        }
 
         if (stopSimulation) {
           isRunning = false;
         }
-
-    }
-    } catch (InterruptedException e) {
+      }
     } catch (IllegalArgumentException e) {
       logger.warn("llegalArgumentException:" + e);
     } catch (IllegalMonitorStateException e) {
@@ -238,6 +237,13 @@ public class Simulation extends Observable implements Runnable {
   public Simulation(GUI gui) {
     myGUI = gui;
     delayMotesRandom.setSeed(randomSeed);
+
+    /* XXX Remove me */
+    scheduleEvent(tickMotesEvent, currentSimulationTime);
+    /* XXX Remove me */
+    scheduleEvent(tickMspMotesEvent, currentSimulationTime);
+    /* XXX Remove me? */
+    scheduleEvent(delayEvent, currentSimulationTime);
   }
 
   /**
@@ -315,20 +321,6 @@ public class Simulation extends Observable implements Runnable {
   }
 
   /**
-   * @return Number of tick lists
-   */
-  public int getNrTickLists() {
-    return nrTickLists;
-  }
-
-  /**
-   * @param nrTickLists Number of tick lists
-   */
-  public void setNrTickLists(int nrTickLists) {
-    this.nrTickLists = Math.max(1, nrTickLists);
-  }
-
-  /**
    * @return Maximum mote startup delay
    */
   public int getDelayedMoteStartupTime() {
@@ -371,11 +363,6 @@ public class Simulation extends Observable implements Runnable {
     // Random seed
     element = new Element("randomseed");
     element.setText(Long.toString(randomSeed));
-    config.add(element);
-
-    // Number of tick lists
-    element = new Element("nrticklists");
-    element.setText(Integer.toString(nrTickLists));
     config.add(element);
 
     // Max mote startup delay
@@ -458,11 +445,6 @@ public class Simulation extends Observable implements Runnable {
       if (element.getName().equals("randomseed")) {
         randomSeed = Long.parseLong(element.getText());
         delayMotesRandom.setSeed(randomSeed);
-      }
-
-      // Number of tick lists
-      if (element.getName().equals("nrticklists")) {
-        nrTickLists = Integer.parseInt(element.getText());
       }
 
       // Max mote startup delay
@@ -670,6 +652,8 @@ public class Simulation extends Observable implements Runnable {
    */
   public void setDelayTime(int delayTime) {
     this.delayTime = delayTime;
+
+    scheduleEvent(delayEvent, currentSimulationTime);
 
     this.setChanged();
     this.notifyObservers(this);
