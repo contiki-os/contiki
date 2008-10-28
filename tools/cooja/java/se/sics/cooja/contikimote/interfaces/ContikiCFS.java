@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006, Swedish Institute of Computer Science.
+ * Copyright (c) 2008, Swedish Institute of Computer Science.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ContikiCFS.java,v 1.4 2007/01/09 10:05:19 fros4943 Exp $
+ * $Id: ContikiCFS.java,v 1.5 2008/10/28 09:53:23 fros4943 Exp $
  */
 
 package se.sics.cooja.contikimote.interfaces;
@@ -38,18 +38,17 @@ import java.awt.event.ActionListener;
 import java.io.*;
 import java.util.*;
 import javax.swing.*;
-
 import org.apache.log4j.Logger;
 import org.jdom.Element;
 
 import se.sics.cooja.*;
 import se.sics.cooja.contikimote.ContikiMoteInterface;
+import se.sics.cooja.interfaces.PolledAfterActiveTicks;
 
 /**
- * The class represents a Contiki filesystem, for example an EEPROM or external
- * flash memory.
- * 
- * It needs read/write access to the following core variables:
+ * Contiki FileSystem (CFS) interface (such as external flash).
+ *
+ * Contiki variables:
  * <ul>
  * <li>char[] simCFSData
  * <li>char simCFSChanged (1=filesystem has been altered)
@@ -57,28 +56,28 @@ import se.sics.cooja.contikimote.ContikiMoteInterface;
  * <li>int simCFSWritten (bytes written to filesystem)
  * </ul>
  * <p>
- * Dependency core interfaces are:
+ *
+ * Core interface:
  * <ul>
  * <li>cfs_interface
  * </ul>
  * <p>
- * This observable is changed and notifies observers whenever the filesystem has
- * been read from or written to.
- * 
- * @author Fredrik Osterlind
+ * This observable notifies when the filesystem is used (read/write).
+ *
+ * @author Fredrik Österlind
  */
-@ClassDescription("Filesystem")
-public class ContikiCFS extends MoteInterface implements ContikiMoteInterface {
+@ClassDescription("Filesystem (CFS)")
+public class ContikiCFS extends MoteInterface implements ContikiMoteInterface, PolledAfterActiveTicks {
   private static Logger logger = Logger.getLogger(ContikiCFS.class);
 
-  public int FILESYSTEM_SIZE = 60*1024;
+  public int FILESYSTEM_SIZE = 60*1024; /* Configure me */
 
   private Mote mote = null;
   private SectionMoteMemory moteMem = null;
 
   private int lastRead = 0;
   private int lastWritten = 0;
-  
+
   /**
    * Approximate energy consumption of every character read from filesystem (mQ).
    */
@@ -89,7 +88,7 @@ public class ContikiCFS extends MoteInterface implements ContikiMoteInterface {
 
   /**
    * Creates an interface to the filesystem at mote.
-   * 
+   *
    * @param mote
    *          Mote.
    * @see Mote
@@ -110,9 +109,11 @@ public class ContikiCFS extends MoteInterface implements ContikiMoteInterface {
     return new String[]{"cfs_interface"};
   }
 
-  public void doActionsBeforeTick() {
-    // Nothing to do
-  }
+  private TimeEvent doneEvent = new TimeEvent(0) {
+    public void execute(int t) {
+      myEnergyConsumption = 0.0;
+    }
+  };
 
   public void doActionsAfterTick() {
     if (moteMem.getByteValueOf("simCFSChanged") == 1) {
@@ -123,19 +124,21 @@ public class ContikiCFS extends MoteInterface implements ContikiMoteInterface {
       moteMem.setIntValueOf("simCFSWritten", 0);
       moteMem.setByteValueOf("simCFSChanged", (byte) 0);
 
-      myEnergyConsumption = 
-        ENERGY_CONSUMPTION_PER_READ_CHAR_mQ*lastRead + 
+      myEnergyConsumption =
+        ENERGY_CONSUMPTION_PER_READ_CHAR_mQ*lastRead +
         ENERGY_CONSUMPTION_PER_WRITTEN_CHAR_mQ*lastWritten;
-      
+
       this.setChanged();
       this.notifyObservers(mote);
-    } else
-      myEnergyConsumption = 0.0;
+
+      /* Reset energy consumption */
+      mote.getSimulation().addEvent(doneEvent, mote.getSimulation().getSimulationTime());
+    }
   }
 
   /**
    * Set filesystem data.
-   * 
+   *
    * @param data Data
    * @return True if operation successful
    */
@@ -151,7 +154,7 @@ public class ContikiCFS extends MoteInterface implements ContikiMoteInterface {
 
   /**
    * Get filesystem data.
-   * 
+   *
    * @return Filesystem data
    */
   public byte[] getFilesystemData() {
@@ -176,7 +179,7 @@ public class ContikiCFS extends MoteInterface implements ContikiMoteInterface {
     JPanel panel = new JPanel();
     panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
 
-    final JLabel lastTimeLabel = new JLabel("Last change at: [unknown]");
+    final JLabel lastTimeLabel = new JLabel("Last change at: ?");
     final JLabel lastReadLabel = new JLabel("Last change read bytes: 0");
     final JLabel lastWrittenLabel = new JLabel("Last change wrote bytes: 0");
     final JButton uploadButton = new JButton("Upload binary file");
@@ -196,7 +199,7 @@ public class ContikiCFS extends MoteInterface implements ContikiMoteInterface {
         }
       }
     });
-    
+
     Observer observer;
     this.addObserver(observer = new Observer() {
       public void update(Observable obs, Object obj) {
@@ -238,8 +241,8 @@ public class ContikiCFS extends MoteInterface implements ContikiMoteInterface {
   }
 
   /**
-   * Opens a file dialog and returns the contents of the selected fileor null if dialog aborted.
-   * 
+   * Opens a file dialog and returns the contents of the selected file or null if dialog aborted.
+   *
    * @param parent Dialog parent, may be null
    * @return Binary contents of user selected file
    */
@@ -249,12 +252,13 @@ public class ContikiCFS extends MoteInterface implements ContikiMoteInterface {
     JFileChooser fileChooser = new JFileChooser();
     fileChooser.setCurrentDirectory(new java.io.File("."));
     fileChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
-    fileChooser.setDialogTitle("Select Contiki executable (.ce)");
+    fileChooser.setDialogTitle("Select binary data");
 
     if (fileChooser.showOpenDialog(parent) == JFileChooser.APPROVE_OPTION) {
       file = fileChooser.getSelectedFile();
-    } else
+    } else {
       return null;
+    }
 
     // Read file data
     long fileSize = file.length();
@@ -281,5 +285,5 @@ public class ContikiCFS extends MoteInterface implements ContikiMoteInterface {
 
     return fileData;
   }
-  
+
 }
