@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: SkyButton.java,v 1.1 2008/06/27 14:07:05 nifi Exp $
+ * $Id: SkyButton.java,v 1.2 2008/10/28 17:03:37 fros4943 Exp $
  */
 
 package se.sics.cooja.mspmote.interfaces;
@@ -72,14 +72,8 @@ public class SkyButton extends Button {
     return false;
   }
 
-  public void doActionsBeforeTick() {
-  }
-
-  public void doActionsAfterTick() {
-  }
-
-  public double energyConsumptionPerTick() {
-    return 0.0;
+  public double energyConsumption() {
+    return 0;
   }
 
   public JPanel getInterfaceVisualizer() {

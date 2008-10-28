@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: MspClock.java,v 1.2 2008/09/17 17:39:37 nifi Exp $
+ * $Id: MspClock.java,v 1.3 2008/10/28 17:03:37 fros4943 Exp $
  */
 
 package se.sics.cooja.mspmote.interfaces;
@@ -69,12 +69,6 @@ public class MspClock extends Clock {
     myMote.cycleDrift = MspMote.NR_CYCLES_PER_MSEC * drift;
   }
 
-  public void doActionsBeforeTick() {
-  }
-
-  public void doActionsAfterTick() {
-  }
-
   public JPanel getInterfaceVisualizer() {
     return null;
   }
@@ -82,8 +76,8 @@ public class MspClock extends Clock {
   public void releaseInterfaceVisualizer(JPanel panel) {
   }
 
-  public double energyConsumptionPerTick() {
-    return 0.0;
+  public double energyConsumption() {
+    return 0;
   }
 
   public Collection<Element> getConfigXML() {

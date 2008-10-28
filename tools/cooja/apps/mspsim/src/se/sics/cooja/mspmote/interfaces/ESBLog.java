@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ESBLog.java,v 1.2 2008/10/03 10:39:29 fros4943 Exp $
+ * $Id: ESBLog.java,v 1.3 2008/10/28 17:02:58 fros4943 Exp $
  */
 
 package se.sics.cooja.mspmote.interfaces;
@@ -65,12 +65,6 @@ public class ESBLog extends Log implements USARTListener {
 
   public String getLastLogMessage() {
     return lastLogMessage;
-  }
-
-  public void doActionsBeforeTick() {
-  }
-
-  public void doActionsAfterTick() {
   }
 
   public JPanel getInterfaceVisualizer() {
@@ -114,8 +108,8 @@ public class ESBLog extends Log implements USARTListener {
     this.deleteObserver(observer);
   }
 
-  public double energyConsumptionPerTick() {
-    return 0.0;
+  public double energyConsumption() {
+    return 0;
   }
 
   public Collection<Element> getConfigXML() {
