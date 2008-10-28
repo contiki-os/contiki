@@ -562,8 +562,8 @@ create_log(coffee_page_t file_page, struct file_header *hdr)
   size = log_entries * sizeof(uint16_t);
   size += log_entries * log_entry_size;
 
-  log_page = cfs_coffee_reserve(create_log_name(log_name, sizeof(log_name), hdr->name),
-      size);
+  log_page = reserve(create_log_name(log_name, sizeof(log_name), hdr->name),
+	      size, 0);
   if(log_page < 0) {
     return -1;
   }
@@ -593,6 +593,7 @@ flush_log(coffee_page_t file_page)
 
   READ_HEADER(&hdr, file_page);
   log_page = hdr.log_page;
+
   fd = cfs_open(hdr.name, CFS_READ);
   if(fd < 0) {
     return -1;
@@ -603,8 +604,7 @@ flush_log(coffee_page_t file_page)
    * already been calculated with in the previous reservation. Therefore
    * we subtract max_pages by 1.
    */
-  new_file_page = cfs_coffee_reserve(hdr.name,
-			(hdr.max_pages - 1) * COFFEE_PAGE_SIZE);
+  new_file_page = reserve(hdr.name, (hdr.max_pages - 1) * COFFEE_PAGE_SIZE, 1);
   if(new_file_page < 0) {
     cfs_close(fd);
     return -1;
@@ -630,7 +630,7 @@ flush_log(coffee_page_t file_page)
     cfs_close(fd);
     return -1;
   }
-  
+
   /* Copy the log configuration and the EOF hint. */
   READ_HEADER(&hdr2, new_file_page);
   hdr2.log_entry_size = hdr.log_entry_size;
@@ -647,7 +647,7 @@ flush_log(coffee_page_t file_page)
   }
 
   cfs_close(fd);
-  
+
   return 0;
 }
 /*---------------------------------------------------------------------------*/
@@ -789,7 +789,7 @@ cfs_open(const char *name, int flags)
     if((flags & (CFS_READ | CFS_WRITE)) == CFS_READ) {
       return -1;
     }
-    if((page = cfs_coffee_reserve(name, COFFEE_DYN_SIZE)) < 0) {
+    if((page = reserve(name, COFFEE_DYN_SIZE, 1)) < 0) {
 	return -1;
     }
     coffee_fd_set[fd].max_pages = (COFFEE_DYN_SIZE + sizeof(hdr) + 
@@ -1032,14 +1032,14 @@ cfs_closedir(struct cfs_dir *dir)
   return;
 }
 /*---------------------------------------------------------------------------*/
-int
-cfs_coffee_reserve(const char *name, uint32_t size)
+static
+reserve(const char *name, uint32_t size, int allow_duplicates)
 {
   struct file_header hdr;
   unsigned need_pages;
   int page;
 
-  if(find_file(name) >= 0) {
+  if(!allow_duplicates && find_file(name) >= 0) {
     return -1;
   }
 
@@ -1073,6 +1073,12 @@ cfs_coffee_reserve(const char *name, uint32_t size)
   dir_cache_add(name[0], page);
 
   return page;
+}
+/*---------------------------------------------------------------------------*/
+int
+cfs_coffee_reserve(const char *name, uint32_t size)
+{
+  return reserve(name, size, 0);
 }
 /*---------------------------------------------------------------------------*/
 int
