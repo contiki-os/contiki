@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ContikiCFS.java,v 1.6 2008/10/28 12:55:20 fros4943 Exp $
+ * $Id: ContikiCFS.java,v 1.7 2008/10/28 13:37:11 fros4943 Exp $
  */
 
 package se.sics.cooja.contikimote.interfaces;
@@ -132,7 +132,7 @@ public class ContikiCFS extends MoteInterface implements ContikiMoteInterface, P
       this.notifyObservers(mote);
 
       /* Reset energy consumption */
-      mote.getSimulation().addEvent(doneEvent, mote.getSimulation().getSimulationTime());
+      mote.getSimulation().scheduleEvent(doneEvent, mote.getSimulation().getSimulationTime());
     }
   }
 
