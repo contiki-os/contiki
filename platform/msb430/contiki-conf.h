@@ -4,16 +4,13 @@
 #define HAVE_STDINT_H
 #include "msp430def.h"
 
+#define WITH_SDC			1
+
 #define ENERGEST_CONF_ON		1
 
 #define IRQ_PORT1			0x01
 #define IRQ_PORT2			0x02
 #define IRQ_ADC				0x03
-
-// MSB430 SD Card driver
-#define SD_CACHE			1
-#define SD_READ_ANY			1
-#define SD_WRITE			1
 
 // MSP430 Infomemory
 #define INFOMEM_START			0x1000
@@ -88,6 +85,14 @@ typedef int bool;
 #define SD_LED_WRITE_ON			SD_LED_READ_ON
 #define SD_LED_WRITE_OFF		SD_LED_READ_OFF
 
+// MSB430 SD Card driver
+#define SD_READ_BYTE			0
+#define	SD_READ_ANY			1
+#define SD_INFO				0
+#define SD_WRITE			1
+#define SD_FIND_FILE			0
+#define SD_ERASE			0			
+#define	SD_CACHE			0
 #define SPI_WRITE			SD_WRITE
 #define SPI_DMA_READ			0
 #define SPI_DMA_WRITE			0
