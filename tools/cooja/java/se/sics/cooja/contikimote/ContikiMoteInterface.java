@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ContikiMoteInterface.java,v 1.1 2006/08/21 12:13:09 fros4943 Exp $
+ * $Id: ContikiMoteInterface.java,v 1.2 2008/10/28 12:05:30 fros4943 Exp $
  */
 
 package se.sics.cooja.contikimote;
@@ -34,15 +34,14 @@ package se.sics.cooja.contikimote;
 /**
  * A Contiki mote interface has information about which, if any, core interfaces
  * it needs.
- * 
- * All classes implementing this interface should also define a static method:
- * public String[] getCoreInterfaceDependencies() {
- * ...
- * }
- * 
+ *
+ * All classes implementing this interface must define the static method:
+ * public static String[] getCoreInterfaceDependencies();
+ *
  * The method should return the names of all needed core interfaces.
- * 
- * @author Fredrik Osterlind
+ *
+ * @author Fredrik Österlind
  */
 public interface ContikiMoteInterface {
+  /*public static String[] getCoreInterfaceDependencies();*/
 }
