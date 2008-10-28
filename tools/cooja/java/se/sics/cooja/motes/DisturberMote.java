@@ -24,7 +24,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * $Id: DisturberMote.java,v 1.3 2008/03/31 15:22:42 fros4943 Exp $
+ * $Id: DisturberMote.java,v 1.4 2008/10/28 13:39:24 fros4943 Exp $
  */
 
 package se.sics.cooja.motes;
@@ -88,11 +88,11 @@ public class DisturberMote implements Mote {
     Position myPosition = new Position(this);
     myPosition.setCoordinates(myRandom.nextDouble() * 100, myRandom
         .nextDouble() * 100, myRandom.nextDouble() * 100);
-    myInterfaceHandler.addPassiveInterface(myPosition);
+    myInterfaceHandler.addInterface(myPosition);
 
     // create interface handler for radio
     myDisturberRadio = new DisturberRadio(this);
-    myInterfaceHandler.addActiveInterface(myDisturberRadio);
+    myInterfaceHandler.addInterface(myDisturberRadio);
   }
 
   public void setState(State newState) {
@@ -163,20 +163,8 @@ public class DisturberMote implements Mote {
     element = new Element("interface_config");
     element.setText(myInterfaceHandler.getPosition().getClass().getName());
 
-    // Active interface configs (if any)
-    for (MoteInterface moteInterface: getInterfaces().getAllActiveInterfaces()) {
-      element = new Element("interface_config");
-      element.setText(moteInterface.getClass().getName());
-
-      Collection interfaceXML = moteInterface.getConfigXML();
-      if (interfaceXML != null) {
-        element.addContent(interfaceXML);
-        config.add(element);
-      }
-    }
-
-    // Passive interface configs (if any)
-    for (MoteInterface moteInterface: getInterfaces().getAllPassiveInterfaces()) {
+    // Interfaces
+    for (MoteInterface moteInterface: getInterfaces().getInterfaces()) {
       element = new Element("interface_config");
       element.setText(moteInterface.getClass().getName());
 
@@ -198,9 +186,9 @@ public class DisturberMote implements Mote {
     myMemory = new SectionMoteMemory(new Properties());
     myInterfaceHandler = new MoteInterfaceHandler();
     Position myPosition = new Position(this);
-    myInterfaceHandler.addPassiveInterface(myPosition);
+    myInterfaceHandler.addInterface(myPosition);
     myDisturberRadio = new DisturberRadio(this);
-    myInterfaceHandler.addActiveInterface(myDisturberRadio);
+    myInterfaceHandler.addInterface(myDisturberRadio);
 
 
     for (Element element : configXML) {
