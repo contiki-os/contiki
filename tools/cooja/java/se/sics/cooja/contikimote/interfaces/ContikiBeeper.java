@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006, Swedish Institute of Computer Science.
+ * Copyright (c) 2008, Swedish Institute of Computer Science.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ContikiBeeper.java,v 1.4 2007/01/09 10:05:19 fros4943 Exp $
+ * $Id: ContikiBeeper.java,v 1.5 2008/10/28 09:33:00 fros4943 Exp $
  */
 
 package se.sics.cooja.contikimote.interfaces;
@@ -41,26 +41,28 @@ import org.jdom.Element;
 import se.sics.cooja.*;
 import se.sics.cooja.contikimote.ContikiMoteInterface;
 import se.sics.cooja.interfaces.Beeper;
+import se.sics.cooja.interfaces.PolledAfterActiveTicks;
 
 /**
- * Ths class represents a beeper.
- * 
- * It needs read access to the following core variables:
+ * Beeper mote interface.
+ *
+ * Contiki variables:
  * <ul>
  * <li>char simBeeped (1=on, else off)
  * </ul>
  * <p>
- * Dependency core interfaces are:
+ *
+ * Core interface:
  * <ul>
  * <li>beep_interface
  * </ul>
  * <p>
- * This observable is changed and notifies observers whenever the beeper changes
- * state.
- * 
- * @author Fredrik Osterlind
+ *
+ * This observable is changed and notifies observers when the mote beeps.
+ *
+ * @author Fredrik Österlind
  */
-public class ContikiBeeper extends Beeper implements ContikiMoteInterface {
+public class ContikiBeeper extends Beeper implements ContikiMoteInterface, PolledAfterActiveTicks {
   private Mote mote = null;
   private SectionMoteMemory moteMem = null;
   private static Logger logger = Logger.getLogger(ContikiBeeper.class);
@@ -74,11 +76,9 @@ public class ContikiBeeper extends Beeper implements ContikiMoteInterface {
 
   private double myEnergyConsumption = 0.0;
 
-  private boolean justBeeped = false;
-  
   /**
    * Creates an interface to the beeper at mote.
-   * 
+   *
    * @param mote
    *          Beeper's mote.
    * @see Mote
@@ -94,42 +94,51 @@ public class ContikiBeeper extends Beeper implements ContikiMoteInterface {
   }
 
   public boolean isBeeping() {
-    return justBeeped;
+    return moteMem.getByteValueOf("simBeeped") == 1;
   }
-  
+
   public static String[] getCoreInterfaceDependencies() {
     return new String[]{"beep_interface"};
   }
 
-  public void doActionsBeforeTick() {
-    // Nothing to do
-    justBeeped = false;
-  }
+  private TimeEvent stopBeepEvent = new TimeEvent(0) {
+    public void execute(int t) {
+      myEnergyConsumption = 0.0;
+    }
+  };
 
   public void doActionsAfterTick() {
     if (moteMem.getByteValueOf("simBeeped") == 1) {
+      myEnergyConsumption = ENERGY_CONSUMPTION_BEEP;
+
       this.setChanged();
       this.notifyObservers(mote);
-      justBeeped = true;
+
       moteMem.setByteValueOf("simBeeped", (byte) 0);
-      myEnergyConsumption = ENERGY_CONSUMPTION_BEEP;
-    } else
-      myEnergyConsumption = 0.0;
+
+      /* Schedule stop beeping (reset energy consumption) */
+      mote.getSimulation().addEvent(stopBeepEvent, mote.getSimulation().getSimulationTime());
+    }
   }
 
   public JPanel getInterfaceVisualizer() {
     JPanel panel = new JPanel();
     panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
 
-    final JLabel statusLabel = new JLabel("Beeping active");
+    final JLabel statusLabel = new JLabel("Last beep at time: ?");
     panel.add(statusLabel);
-    
+
     Observer observer;
     this.addObserver(observer = new Observer() {
       public void update(Observable obs, Object obj) {
+        if (!isBeeping()) {
+          return;
+        }
+
         int currentTime = mote.getSimulation().getSimulationTime();
-        statusLabel.setText("Beeping active: last beep at " + currentTime);
-        // Beep on speakers
+        statusLabel.setText("Last beep at time: " + currentTime);
+
+        /* Beep on speakers */
         Toolkit.getDefaultToolkit().beep();
       }
     });
