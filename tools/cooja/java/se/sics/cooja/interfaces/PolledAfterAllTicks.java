@@ -26,13 +26,15 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: PolledAfterAllTicks.java,v 1.1 2008/10/28 12:09:14 fros4943 Exp $
+ * $Id: PolledAfterAllTicks.java,v 1.2 2008/10/28 12:30:48 fros4943 Exp $
  */
 
 package se.sics.cooja.interfaces;
 
 /**
  * A mote interface polled after ALL mote ticks.
+ *
+ * @see Battery
  *
  * @author Fredrik Österlind
  */

@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ApplicationRadio.java,v 1.4 2008/03/18 13:03:24 fros4943 Exp $
+ * $Id: ApplicationRadio.java,v 1.5 2008/10/28 12:30:48 fros4943 Exp $
  */
 
 package se.sics.cooja.interfaces;
@@ -45,9 +45,9 @@ import se.sics.cooja.*;
  * radio functionality. Supports radio channels and output power functionality.
  * The mote should observe the radio for incoming radio packet data.
  *
- * @author Fredrik Osterlind
+ * @author Fredrik Österlind
  */
-public class ApplicationRadio extends Radio {
+public class ApplicationRadio extends Radio implements PolledBeforeActiveTicks {
   private Mote myMote;
 
   private static Logger logger = Logger.getLogger(ApplicationRadio.class);
@@ -242,9 +242,6 @@ public class ApplicationRadio extends Radio {
       this.setChanged();
       this.notifyObservers();
     }
-  }
-
-  public void doActionsAfterTick() {
   }
 
   public JPanel getInterfaceVisualizer() {

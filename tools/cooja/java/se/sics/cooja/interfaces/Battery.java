@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006, Swedish Institute of Computer Science.
+ * Copyright (c) 2008, Swedish Institute of Computer Science.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -26,13 +26,12 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: Battery.java,v 1.4 2007/01/09 10:02:44 fros4943 Exp $
+ * $Id: Battery.java,v 1.5 2008/10/28 12:30:48 fros4943 Exp $
  */
 
 package se.sics.cooja.interfaces;
 
 import java.util.*;
-
 import javax.swing.*;
 import org.apache.log4j.Logger;
 import org.jdom.Element;
@@ -41,27 +40,25 @@ import se.sics.cooja.*;
 
 /**
  * A Battery represents the energy source for a mote. This implementation has no
- * connection with any underlying simulated software, hence a mote does not know
- * the current energy levels.
+ * connection with underlying simulated software: a mote does not know about energy.
  * <p>
- * This Battery decreases current energy left each tick depending on the current
- * mote state. If the mote is sleeping all passive interfaces' energy
- * consumptions will be summed up and detracted from the current energy. If the
- * mote is awake both the active and passive interfaces' energy consumptions
- * will be used. Also, the energy used by the CPU (depends on mote state) will
- * be detracted each tick.
+ * This Battery updates energy after each mote tick:
+ * the energy consumption of each interface is summed up.
+ * In addtion, the energy used by the CPU (depends on mote state) is
+ * detracted each tick.
  * <p>
- * This observable is changed and notifies observers every time the energy left
- * is changed. When current energy left has decreased below 0 the mote state is
- * set to dead.
- * 
+ *
+ * This observable notifies every tick (!).
+ *
+ * When energy left is below 0 the mote is dead.
+ *
  * @see MoteInterface
  * @see MoteInterface#energyConsumptionPerTick()
- * 
- * @author Fredrik Osterlind
+ *
+ * @author Fredrik Österlind
  */
 @ClassDescription("Battery")
-public class Battery extends MoteInterface implements PassiveMoteInterface {
+public class Battery extends MoteInterface implements PolledAfterAllTicks {
 
   /**
    * Approximate energy consumption of a mote's CPU in active mode (mA). ESB
@@ -91,10 +88,10 @@ public class Battery extends MoteInterface implements PassiveMoteInterface {
   private double myEnergy;
   private boolean hasInfiniteEnergy;
   private double lastEnergyConsumption = 0;
-  
+
   /**
    * Creates a new battery connected to given mote.
-   * 
+   *
    * @see #INITIAL_ENERGY
    * @param mote
    *          Mote holding battery
@@ -111,61 +108,36 @@ public class Battery extends MoteInterface implements PassiveMoteInterface {
         Battery.class, "INFINITE_ENERGY_bool");
 
     if (energyConsumptionAwakePerTick < 0) {
-      energyConsumptionAwakePerTick = ENERGY_CONSUMPTION_AWAKE_mA
-          * mote.getSimulation().getTickTimeInSeconds();
-      energyConsumptionLPMPerTick = ENERGY_CONSUMPTION_LPM_mA
-          * mote.getSimulation().getTickTimeInSeconds();
+      energyConsumptionAwakePerTick = ENERGY_CONSUMPTION_AWAKE_mA * 0.001;
+      energyConsumptionLPMPerTick = ENERGY_CONSUMPTION_LPM_mA * 0.001;
     }
 
     this.mote = mote;
     myEnergy = INITIAL_ENERGY;
   }
 
-  public void doActionsBeforeTick() {
-    // Nothing to do
-  }
-
   public void doActionsAfterTick() {
     lastEnergyConsumption = 0;
-    
+
     // If infinite energy, do nothing
-    if (hasInfiniteEnergy)
+    if (hasInfiniteEnergy) {
       return;
+    }
 
     // If mote is dead, do nothing
-    if (mote.getState() == Mote.State.DEAD)
+    if (mote.getState() == Mote.State.DEAD) {
       return;
-
-    // Check mote state
-    if (mote.getState() == Mote.State.LPM) {
-      // Mote is sleeping. Sum up energy usage.
-      double totalEnergyConsumption = 0.0;
-      totalEnergyConsumption += energyConsumptionLPMPerTick;
-
-      for (MoteInterface passiveInterface : mote.getInterfaces()
-          .getAllPassiveInterfaces()) {
-        totalEnergyConsumption += passiveInterface.energyConsumptionPerTick();
-      }
-
-      decreaseEnergy(totalEnergyConsumption);
-      lastEnergyConsumption += totalEnergyConsumption;
-    } else {
-      // Mote is awake. Sum up energy usage.
-      double totalEnergyConsumption = 0.0;
-      totalEnergyConsumption += energyConsumptionAwakePerTick;
-
-      for (MoteInterface activeInterface : mote.getInterfaces()
-          .getAllActiveInterfaces()) {
-        totalEnergyConsumption += activeInterface.energyConsumptionPerTick();
-      }
-      for (MoteInterface passiveInterface : mote.getInterfaces()
-          .getAllPassiveInterfaces()) {
-        totalEnergyConsumption += passiveInterface.energyConsumptionPerTick();
-      }
-
-      decreaseEnergy(totalEnergyConsumption);
-      lastEnergyConsumption += totalEnergyConsumption;
     }
+
+    double totalEnergyConsumption = 0.0;
+
+    totalEnergyConsumption += energyConsumptionLPMPerTick;
+    for (MoteInterface intf : mote.getInterfaces().getInterfaces()) {
+      totalEnergyConsumption += intf.energyConsumptionPerTick();
+    }
+
+    decreaseEnergy(totalEnergyConsumption);
+    lastEnergyConsumption += totalEnergyConsumption;
 
     // Check if we are out of energy
     if (getCurrentEnergy() <= 0.0) {
@@ -176,8 +148,7 @@ public class Battery extends MoteInterface implements PassiveMoteInterface {
   }
 
   /**
-   * @param inf
-   *          Set infinite energy state
+   * @param inf Infinite energy
    */
   public void setInfiniteEnergy(boolean inf) {
     hasInfiniteEnergy = inf;
@@ -187,7 +158,7 @@ public class Battery extends MoteInterface implements PassiveMoteInterface {
   }
 
   /**
-   * @return True if this battery has inifinite energy
+   * @return True if battery has infinite energy
    */
   public boolean hasInfiniteEnergy() {
     return hasInfiniteEnergy;
