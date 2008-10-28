@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006, Swedish Institute of Computer Science.
+ * Copyright (c) 2008, Swedish Institute of Computer Science.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ContikiMoteID.java,v 1.3 2007/01/12 10:43:19 fros4943 Exp $
+ * $Id: ContikiMoteID.java,v 1.4 2008/10/28 11:11:52 fros4943 Exp $
  */
 
 package se.sics.cooja.contikimote.interfaces;
@@ -41,42 +41,41 @@ import se.sics.cooja.contikimote.ContikiMoteInterface;
 import se.sics.cooja.interfaces.MoteID;
 
 /**
- * Ths class represents a mote ID number.
- * 
- * It needs write access to the following core variables:
+ * Mote ID interface: 'node_id'.
+ *
+ * Contiki variables:
  * <ul>
  * <li>int simMoteID
  * <li>char simMoteIDChanged
  * </ul>
- * When the mote id is set or changed, the random generator will also be seeded
- * with this id (core function random_init()).
- * <p>
- * Dependency core interfaces are:
+ *
+ * This interface also seeds the Contiki random generator: 'random_init()'.
+ *
+ * Core interface:
  * <ul>
  * <li>moteid_interface
  * </ul>
- * This observable notifies observers when the mote ID is set or changed.
- * 
- * @author Fredrik Osterlind
+ *
+ * This observable notifies observers when the mote ID is set or altered.
+ *
+ * @author Fredrik Österlind
  */
 public class ContikiMoteID extends MoteID implements ContikiMoteInterface {
   private SectionMoteMemory moteMem = null;
   private static Logger logger = Logger.getLogger(ContikiMoteID.class);
-  private boolean setMoteID;
 
-  int moteID = 0;
+  private int moteID = 0;
 
   /**
    * Creates an interface to the mote ID at mote.
-   * 
-   * @param mote
-   *          Mote ID's mote.
+   *
+   * @param mote Mote
+
    * @see Mote
    * @see se.sics.cooja.MoteInterfaceHandler
    */
   public ContikiMoteID(Mote mote) {
     this.moteMem = (SectionMoteMemory) mote.getMemory();
-    setMoteID = false;
   }
 
   public static String[] getCoreInterfaceDependencies() {
@@ -88,25 +87,12 @@ public class ContikiMoteID extends MoteID implements ContikiMoteInterface {
   }
 
   public void setMoteID(int newID) {
-    setMoteID = true;
     moteID = newID;
+    moteMem.setIntValueOf("simMoteID", moteID);
+    moteMem.setByteValueOf("simMoteIDChanged", (byte) 1);
 
     setChanged();
     notifyObservers();
-  }
-
-  public void doActionsBeforeTick() {
-    if (setMoteID) {
-      setMoteID = false;
-      moteMem.setIntValueOf("simMoteID", moteID);
-      moteMem.setByteValueOf("simMoteIDChanged", (byte) 1);
-      setChanged();
-      notifyObservers();
-    }
-  }
-
-  public void doActionsAfterTick() {
-    // Nothing to do
   }
 
   public JPanel getInterfaceVisualizer() {
