@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006, Swedish Institute of Computer Science.
+ * Copyright (c) 2008, Swedish Institute of Computer Science.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ContikiRS232.java,v 1.3 2007/01/09 10:05:19 fros4943 Exp $
+ * $Id: ContikiRS232.java,v 1.4 2008/10/28 11:59:23 fros4943 Exp $
  */
 
 package se.sics.cooja.contikimote.interfaces;
@@ -41,12 +41,15 @@ import org.jdom.Element;
 
 import se.sics.cooja.*;
 import se.sics.cooja.contikimote.ContikiMoteInterface;
+import se.sics.cooja.interfaces.PolledAfterActiveTicks;
 
 /**
- * The class represents a simple RS232/Serial interface (only shows String
- * format).
- * 
- * It needs read/write access to the following core variables:
+ * Serial port mote interface.
+ * Only supports printable characters.
+ * Note that by default the serial interface is not equal to the log interface:
+ * printf(...) are not forwarded to this interface.
+ *
+ * Contiki variables:
  * <ul>
  * <li>char simSerialSendingFlag (1=mote is sending data)
  * <li>int simSerialSendingLength (length of data being sent from mote)
@@ -56,19 +59,21 @@ import se.sics.cooja.contikimote.ContikiMoteInterface;
  * <li>byte[] simSerialReceivingData (data being received at mote)
  * </ul>
  * <p>
- * Dependency core interfaces are:
+ *
+ * Core interface:
  * <ul>
  * <li>rs232_interface
  * </ul>
  * <p>
- * This observable is changed and notifies observers whenever a serial message
- * has been received from the core (checked after each tick). The public method
- * getSerialMessages gives access to the last data.
- * 
- * @author Fredrik Osterlind
+ *
+ * This observable notifies observers when a serial message is sent from the mote.
+ *
+ * @see #getSerialMessages()
+ *
+ * @author Fredrik Österlind
  */
 @ClassDescription("Serial port (RS232)")
-public class ContikiRS232 extends MoteInterface implements ContikiMoteInterface {
+public class ContikiRS232 extends MoteInterface implements ContikiMoteInterface, PolledAfterActiveTicks {
   private static Logger logger = Logger.getLogger(ContikiRS232.class);
 
   private Mote mote = null;
@@ -76,7 +81,6 @@ public class ContikiRS232 extends MoteInterface implements ContikiMoteInterface 
 
   private String lastSerialMessage = null;
 
-  private final boolean RAISES_EXTERNAL_INTERRUPT;
   private JTextArea logTextPane = null;
 
   /**
@@ -88,7 +92,7 @@ public class ContikiRS232 extends MoteInterface implements ContikiMoteInterface 
 
   /**
    * Creates an interface to the RS232 at mote.
-   * 
+   *
    * @param mote
    *          RS232's mote.
    * @see Mote
@@ -98,8 +102,6 @@ public class ContikiRS232 extends MoteInterface implements ContikiMoteInterface 
     // Read class configurations of this mote type
     ENERGY_CONSUMPTION_PER_CHAR_mQ = mote.getType().getConfig()
         .getDoubleValue(ContikiRS232.class, "CONSUMPTION_PER_CHAR_mQ");
-    RAISES_EXTERNAL_INTERRUPT = mote.getType().getConfig()
-        .getBooleanValue(ContikiRS232.class, "EXTERNAL_INTERRUPT_bool");
 
     this.mote = mote;
     this.moteMem = (SectionMoteMemory) mote.getMemory();
@@ -109,17 +111,14 @@ public class ContikiRS232 extends MoteInterface implements ContikiMoteInterface 
     return new String[]{"rs232_interface"};
   }
 
-  public void doActionsBeforeTick() {
-    // Nothing to do
-  }
-
   public void doActionsAfterTick() {
     if (moteMem.getByteValueOf("simSerialSendingFlag") == 1) {
       int totalLength = moteMem.getIntValueOf("simSerialSendingLength");
       byte[] bytes = moteMem.getByteArray("simSerialSendingData", totalLength);
       char[] chars = new char[bytes.length];
-      for (int i = 0; i < chars.length; i++)
+      for (int i = 0; i < chars.length; i++) {
         chars[i] = (char) bytes[i];
+      }
 
       myEnergyConsumption = ENERGY_CONSUMPTION_PER_CHAR_mQ * totalLength;
 
@@ -127,18 +126,19 @@ public class ContikiRS232 extends MoteInterface implements ContikiMoteInterface 
       lastSerialMessage = message;
 
       moteMem.setByteValueOf("simSerialSendingFlag", (byte) 0);
-      moteMem.setIntValueOf("simSerialSendingLength", (int) 0);
+      moteMem.setIntValueOf("simSerialSendingLength", 0);
 
       this.setChanged();
       this.notifyObservers(mote);
-    } else
+    } else {
       myEnergyConsumption = 0.0;
+    }
   }
 
   /**
    * Returns all serial messages sent by mote the last tick that anything was
    * sent.
-   * 
+   *
    * @return Last serial messages sent by mote.
    */
   public String getSerialMessages() {
@@ -147,7 +147,7 @@ public class ContikiRS232 extends MoteInterface implements ContikiMoteInterface 
 
   /**
    * Send a serial message to mote.
-   * 
+   *
    * @param message
    *          Message that mote should receive
    */
@@ -172,16 +172,17 @@ public class ContikiRS232 extends MoteInterface implements ContikiMoteInterface 
     byte[] oldData = moteMem.getByteArray("simSerialReceivingData", oldSize);
     byte[] newData = new byte[newSize];
 
-    for (int i = 0; i < oldData.length; i++)
+    for (int i = 0; i < oldData.length; i++) {
       newData[i] = oldData[i];
+    }
 
-    for (int i = 0; i < message.length(); i++)
+    for (int i = 0; i < message.length(); i++) {
       newData[i + oldSize] = dataToAppend[i];
+    }
 
     moteMem.setByteArray("simSerialReceivingData", newData);
 
-    if (RAISES_EXTERNAL_INTERRUPT)
-      mote.setState(Mote.State.ACTIVE);
+    mote.setState(Mote.State.ACTIVE);
 
   }
 
@@ -189,8 +190,9 @@ public class ContikiRS232 extends MoteInterface implements ContikiMoteInterface 
     JPanel panel = new JPanel();
     panel.setLayout(new BorderLayout());
 
-    if (logTextPane == null)
+    if (logTextPane == null) {
       logTextPane = new JTextArea();
+    }
 
     // Send RS232 data visualizer
     JPanel sendPane = new JPanel();
@@ -208,10 +210,11 @@ public class ContikiRS232 extends MoteInterface implements ContikiMoteInterface 
     logTextPane.setOpaque(false);
     logTextPane.setEditable(false);
 
-    if (lastSerialMessage == null)
+    if (lastSerialMessage == null) {
       logTextPane.setText("");
-    else
+    } else {
       logTextPane.append(lastSerialMessage);
+    }
 
     Observer observer;
     this.addObserver(observer = new Observer() {
