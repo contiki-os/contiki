@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: Position.java,v 1.2 2007/01/09 10:02:44 fros4943 Exp $
+ * $Id: Position.java,v 1.3 2008/10/28 12:30:48 fros4943 Exp $
  */
 
 package se.sics.cooja.interfaces;
@@ -40,14 +40,12 @@ import org.jdom.Element;
 import se.sics.cooja.*;
 
 /**
- * A Position represents the simulated 3D position of a mote. This
- * implementation has no connection with any underlying simulated software,
- * hence a mote does not know its current position.
+ * Mote 3D position.
+ *
  * <p>
- * This observable is changed and notifies observers whenever new coordinates
- * are set.
- * 
- * @author Fredrik Osterlind
+ * This observable notifies when the position is changed.
+ *
+ * @author Fredrik Österlind
  */
 @ClassDescription("Position")
 public class Position extends MoteInterface {
@@ -57,7 +55,7 @@ public class Position extends MoteInterface {
 
   /**
    * Creates a position for given mote with coordinates (x=0, y=0, z=0).
-   * 
+   *
    * @param mote
    *          Led's mote.
    * @see Mote
@@ -72,14 +70,11 @@ public class Position extends MoteInterface {
   }
 
   /**
-   * Updates coordiantes of associated mote to (x,y,z).
-   * 
-   * @param x
-   *          New X coordinate
-   * @param y
-   *          New Y coordinate
-   * @param z
-   *          New Z coordinate
+   * Set position to (x,y,z).
+   *
+   * @param x New X coordinate
+   * @param y New Y coordinate
+   * @param z New Z coordinate
    */
   public void setCoordinates(double x, double y, double z) {
     coords[0] = x;
@@ -113,9 +108,8 @@ public class Position extends MoteInterface {
 
   /**
    * Calculates distance from this position to given position.
-   * 
-   * @param pos
-   *          Compared position
+   *
+   * @param pos Compared position
    * @return Distance
    */
   public double getDistanceTo(Position pos) {
@@ -129,43 +123,32 @@ public class Position extends MoteInterface {
 
   /**
    * Calculates distance from associated mote to another mote.
-   * 
-   * @param m
-   *          Another mote
+   *
+   * @param m Another mote
    * @return Distance
    */
   public double getDistanceTo(Mote m) {
     return getDistanceTo(m.getInterfaces().getPosition());
   }
 
-  public void doActionsBeforeTick() {
-    // Nothing to do
-  }
-
-  public void doActionsAfterTick() {
-    // Nothing to do
-  }
-
   public JPanel getInterfaceVisualizer() {
-
-    // Location
     JPanel panel = new JPanel();
     panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
     final NumberFormat form = NumberFormat.getNumberInstance();
 
     final JLabel positionLabel = new JLabel();
-    positionLabel.setText("(" + form.format(getXCoordinate()) + ","
-        + form.format(getYCoordinate()) + "," + form.format(getZCoordinate())
-        + ")");
+    positionLabel.setText("x=" + form.format(getXCoordinate()) + " "
+        + "y=" + form.format(getYCoordinate()) + " "
+        + "z=" + form.format(getZCoordinate()));
 
     panel.add(positionLabel);
 
     Observer observer;
     this.addObserver(observer = new Observer() {
       public void update(Observable obs, Object obj) {
-        positionLabel.setText("(" + form.format(getXCoordinate()) + ","
-            + form.format(getYCoordinate()) + ","
-            + form.format(getZCoordinate()) + ")");
+        positionLabel.setText("x=" + form.format(getXCoordinate()) + " "
+            + "y=" + form.format(getYCoordinate()) + " "
+            + "z=" + form.format(getZCoordinate()));
       }
     });
 

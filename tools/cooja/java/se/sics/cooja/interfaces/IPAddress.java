@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: IPAddress.java,v 1.1 2006/08/21 12:12:59 fros4943 Exp $
+ * $Id: IPAddress.java,v 1.2 2008/10/28 12:30:48 fros4943 Exp $
  */
 
 package se.sics.cooja.interfaces;
@@ -34,9 +34,9 @@ package se.sics.cooja.interfaces;
 import se.sics.cooja.*;
 
 /**
- * A IPAdress represents a mote Internet address. An implementation should notify all
+ * IP Address represents a mote Internet address. An implementation should notify all
  * observers if the address is set or changed.
- * 
+ *
  * @author Fredrik Osterlind
  */
 @ClassDescription("IPv4 Address")
@@ -47,7 +47,7 @@ public abstract class IPAddress extends MoteInterface {
    * @return IP address string
    */
   public abstract String getIPString();
-  
+
   /**
    * Change/Set IP address.
    * @param ipAddress IP string on the form a.b.c.d
