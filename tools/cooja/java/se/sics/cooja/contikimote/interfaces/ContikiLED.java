@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ContikiLED.java,v 1.5 2008/10/28 10:21:37 fros4943 Exp $
+ * $Id: ContikiLED.java,v 1.6 2008/10/28 12:55:20 fros4943 Exp $
  */
 
 package se.sics.cooja.contikimote.interfaces;
@@ -255,7 +255,7 @@ public class ContikiLED extends LED implements ContikiMoteInterface, PolledAfter
     this.deleteObserver(observer);
   }
 
-  public double energyConsumptionPerTick() {
+  public double energyConsumption() {
     return myEnergyConsumption;
   }
 

@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ApplicationRadio.java,v 1.5 2008/10/28 12:30:48 fros4943 Exp $
+ * $Id: ApplicationRadio.java,v 1.6 2008/10/28 12:59:30 fros4943 Exp $
  */
 
 package se.sics.cooja.interfaces;
@@ -306,7 +306,7 @@ public class ApplicationRadio extends Radio implements PolledBeforeActiveTicks {
     this.deleteObserver(observer);
   }
 
-  public double energyConsumptionPerTick() {
+  public double energyConsumption() {
     return 0;
   }
 

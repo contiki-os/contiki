@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ContikiBeeper.java,v 1.5 2008/10/28 09:33:00 fros4943 Exp $
+ * $Id: ContikiBeeper.java,v 1.6 2008/10/28 12:55:20 fros4943 Exp $
  */
 
 package se.sics.cooja.contikimote.interfaces;
@@ -162,7 +162,7 @@ public class ContikiBeeper extends Beeper implements ContikiMoteInterface, Polle
     this.deleteObserver(observer);
   }
 
-  public double energyConsumptionPerTick() {
+  public double energyConsumption() {
     return myEnergyConsumption;
   }
 

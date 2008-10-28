@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: Position.java,v 1.3 2008/10/28 12:30:48 fros4943 Exp $
+ * $Id: Position.java,v 1.4 2008/10/28 12:59:30 fros4943 Exp $
  */
 
 package se.sics.cooja.interfaces;
@@ -168,7 +168,7 @@ public class Position extends MoteInterface {
     this.deleteObserver(observer);
   }
 
-  public double energyConsumptionPerTick() {
+  public double energyConsumption() {
     return 0.0;
   }
 

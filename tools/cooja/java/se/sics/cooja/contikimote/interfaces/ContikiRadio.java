@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ContikiRadio.java,v 1.21 2008/10/28 11:49:00 fros4943 Exp $
+ * $Id: ContikiRadio.java,v 1.22 2008/10/28 12:55:20 fros4943 Exp $
  */
 
 package se.sics.cooja.contikimote.interfaces;
@@ -483,7 +483,7 @@ public class ContikiRadio extends Radio implements ContikiMoteInterface, PolledA
     this.deleteObserver(observer);
   }
 
-  public double energyConsumptionPerTick() {
+  public double energyConsumption() {
     return myEnergyConsumption;
   }
 
