@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ContikiButton.java,v 1.8 2008/10/28 12:55:20 fros4943 Exp $
+ * $Id: ContikiButton.java,v 1.9 2008/10/28 13:37:11 fros4943 Exp $
  */
 
 package se.sics.cooja.contikimote.interfaces;
@@ -96,7 +96,7 @@ public class ContikiButton extends Button implements ContikiMoteInterface {
         releaseButton();
       } else {
         /* Reschedule button release */
-        mote.getSimulation().addEvent(releaseButtonEvent, t+1);
+        mote.getSimulation().scheduleEvent(releaseButtonEvent, t+1);
       }
     }
   };
@@ -108,7 +108,7 @@ public class ContikiButton extends Button implements ContikiMoteInterface {
     pressButton();
 
     /* Schedule release button */
-    mote.getSimulation().addEvent(releaseButtonEvent, mote.getSimulation().getSimulationTime());
+    mote.getSimulation().scheduleEvent(releaseButtonEvent, mote.getSimulation().getSimulationTime());
   }
 
   public void releaseButton() {
