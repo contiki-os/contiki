@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006, Swedish Institute of Computer Science.
+ * Copyright (c) 2008, Swedish Institute of Computer Science.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ContikiIPAddress.java,v 1.2 2007/01/09 10:05:19 fros4943 Exp $
+ * $Id: ContikiIPAddress.java,v 1.3 2008/10/28 10:12:43 fros4943 Exp $
  */
 
 package se.sics.cooja.contikimote.interfaces;
@@ -41,9 +41,9 @@ import se.sics.cooja.contikimote.ContikiMoteInterface;
 import se.sics.cooja.interfaces.IPAddress;
 
 /**
- * This class represents an uIP IP address.
- * 
- * It needs write access to the following core variables:
+ * uIP IP address.
+ *
+ * Contiki variables:
  * <ul>
  * <li>char simIPa
  * <li>char simIPb
@@ -52,26 +52,26 @@ import se.sics.cooja.interfaces.IPAddress;
  * <li>char simIPChanged (1 if new IP should be set)
  * </ul>
  * <p>
- * The new IP will be "simIPa.simIPb.simIPc.simIPd". Dependency core interfaces
- * are:
+ *
+ * The new IP will be "simIPa.simIPb.simIPc.simIPd".
+ * Note that this mote interface does not detect if Contiki changes IP address.
+ *
+ * Core interface:
  * <ul>
  * <li>ip_interface
  * </ul>
- * 
- * This observable notifies observers if the IP address is set or changed.
- * 
- * @author Fredrik Osterlind
+ *
+ * This observable notifies when the IP address is set or altered.
+ *
+ * @author Fredrik Österlind
  */
 public class ContikiIPAddress extends IPAddress implements ContikiMoteInterface {
   private SectionMoteMemory moteMem = null;
   private static Logger logger = Logger.getLogger(ContikiIPAddress.class);
-  private boolean setIP;
-
-  char a = 0, b = 0, c = 0, d = 0;
 
   /**
    * Creates an interface to the IP address at mote.
-   * 
+   *
    * @param mote
    *          IP address' mote.
    * @see Mote
@@ -79,7 +79,6 @@ public class ContikiIPAddress extends IPAddress implements ContikiMoteInterface 
    */
   public ContikiIPAddress(Mote mote) {
     this.moteMem = (SectionMoteMemory) mote.getMemory();
-    setIP = false;
   }
 
   public static String[] getCoreInterfaceDependencies() {
@@ -87,59 +86,50 @@ public class ContikiIPAddress extends IPAddress implements ContikiMoteInterface 
   }
 
   public String getIPString() {
-    return "" + (int) a + "." + (int) b + "." + (int) c + "." + (int) d;
+    return
+    (int) moteMem.getByteValueOf("simIPa")
+    + "." +
+    (int) moteMem.getByteValueOf("simIPb")
+    + "." +
+    (int) moteMem.getByteValueOf("simIPc")
+    + "." +
+    (int) moteMem.getByteValueOf("simIPd");
   }
 
   public void setIPString(String ipAddress) {
     String[] ipArray = ipAddress.split("\\.");
     if (ipArray.length < 4) {
       logger.warn("Could not set ip address (" + ipAddress + ")");
-    } else
+    } else {
       setIPNumber((char) Integer.parseInt(ipArray[0]), (char) Integer
           .parseInt(ipArray[1]), (char) Integer.parseInt(ipArray[2]),
           (char) Integer.parseInt(ipArray[3]));
-  }
-
-  public void setIPNumber(char a, char b, char c, char d) {
-    setIP = true;
-    this.a = a;
-    this.b = b;
-    this.c = c;
-    this.d = d;
-  }
-
-  public void doActionsBeforeTick() {
-    if (setIP) {
-      setIP = false;
-      moteMem.setByteValueOf("simIPa", (byte) a);
-      moteMem.setByteValueOf("simIPb", (byte) b);
-      moteMem.setByteValueOf("simIPc", (byte) c);
-      moteMem.setByteValueOf("simIPd", (byte) d);
-      moteMem.setByteValueOf("simIPChanged", (byte) 1);
-
-      setChanged();
-      notifyObservers();
     }
   }
 
-  public void doActionsAfterTick() {
-    // Nothing to do
+  public void setIPNumber(char a, char b, char c, char d) {
+    moteMem.setByteValueOf("simIPa", (byte) a);
+    moteMem.setByteValueOf("simIPb", (byte) b);
+    moteMem.setByteValueOf("simIPc", (byte) c);
+    moteMem.setByteValueOf("simIPd", (byte) d);
+    moteMem.setByteValueOf("simIPChanged", (byte) 1);
+
+    setChanged();
+    notifyObservers();
   }
 
   public JPanel getInterfaceVisualizer() {
     JPanel panel = new JPanel();
     final JLabel ipLabel = new JLabel();
 
-    ipLabel.setText("Current address: " + (int) a + "." + (int) b + "."
-        + (int) c + "." + (int) d);
+    ipLabel.setText("IPv4 address: " + getIPString());
 
     panel.add(ipLabel);
 
     Observer observer;
     this.addObserver(observer = new Observer() {
       public void update(Observable obs, Object obj) {
-        ipLabel.setText("Current address: " + (int) a + "." + (int) b + "."
-            + (int) c + "." + (int) d);
+        ipLabel.setText("IPv4 address: " + getIPString());
       }
     });
 
