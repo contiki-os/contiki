@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ContikiMoteID.java,v 1.4 2008/10/28 11:11:52 fros4943 Exp $
+ * $Id: ContikiMoteID.java,v 1.5 2008/10/28 12:55:20 fros4943 Exp $
  */
 
 package se.sics.cooja.contikimote.interfaces;
@@ -126,7 +126,7 @@ public class ContikiMoteID extends MoteID implements ContikiMoteInterface {
     this.deleteObserver(observer);
   }
 
-  public double energyConsumptionPerTick() {
+  public double energyConsumption() {
     return 0.0;
   }
 

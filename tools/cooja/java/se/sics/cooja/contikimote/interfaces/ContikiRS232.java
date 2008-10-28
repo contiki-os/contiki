@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ContikiRS232.java,v 1.4 2008/10/28 11:59:23 fros4943 Exp $
+ * $Id: ContikiRS232.java,v 1.5 2008/10/28 12:55:20 fros4943 Exp $
  */
 
 package se.sics.cooja.contikimote.interfaces;
@@ -245,7 +245,7 @@ public class ContikiRS232 extends MoteInterface implements ContikiMoteInterface,
     this.deleteObserver(observer);
   }
 
-  public double energyConsumptionPerTick() {
+  public double energyConsumption() {
     return myEnergyConsumption;
   }
 
