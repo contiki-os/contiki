@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006, Swedish Institute of Computer Science.
+ * Copyright (c) 2008, Swedish Institute of Computer Science.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: DummyInterface.java,v 1.1 2007/03/23 23:33:54 fros4943 Exp $
+ * $Id: DummyInterface.java,v 1.2 2008/10/28 16:09:52 fros4943 Exp $
  */
 
 import java.util.*;
@@ -35,29 +35,39 @@ import org.apache.log4j.Logger;
 import org.jdom.Element;
 
 import se.sics.cooja.*;
+import se.sics.cooja.contikimote.ContikiMoteInterface;
+import se.sics.cooja.interfaces.PolledAfterAllTicks;
+import se.sics.cooja.interfaces.PolledBeforeAllTicks;
 
 /**
- * This is an example of how to implement new simulation interfaces.
- * 
- * It needs read/write access to the following core variables:
+ * An example of how to implement new mote interfaces.
+ *
+ * Contiki variables:
  * <ul>
  * <li>char simDummyVar
  * </ul>
  * <p>
- * Dependency core interfaces are:
+ *
+ * Core interface:
  * <ul>
  * <li>dummy_interface
  * </ul>
  * <p>
+ *
  * This observable never changes.
  *
- * @author Fredrik Osterlind
+ * @author Fredrik Österlind
  */
 @ClassDescription("Dummy Interface")
-public class DummyInterface extends MoteInterface {
+public class DummyInterface extends MoteInterface implements ContikiMoteInterface, PolledBeforeAllTicks, PolledAfterAllTicks {
   private static Logger logger = Logger.getLogger(DummyInterface.class);
 
+  private Mote mote;
+  private SectionMoteMemory memory;
+
   public DummyInterface(Mote mote) {
+    this.mote = mote;
+    memory = (SectionMoteMemory) mote.getMemory();
   }
 
   public static String[] getCoreInterfaceDependencies() {
@@ -66,29 +76,36 @@ public class DummyInterface extends MoteInterface {
   }
 
   public void doActionsBeforeTick() {
-    logger.debug("Simulation (Java) dummy interface acts BEFORE mote tick");
+    /* Wake up potentially sleeping Contiki mote */
+    mote.setState(Mote.State.ACTIVE);
+
+    logger.debug("Java-part of dummy interface acts BEFORE mote tick: " + memory.getByteValueOf("simDummyVar"));
   }
 
   public void doActionsAfterTick() {
-    logger.debug("Simulation (Java) dummy interface acts AFTER mote tick");
+    byte dummyVal = memory.getByteValueOf("simDummyVar");
+    dummyVal++;
+    memory.setByteValueOf("simDummyVar", dummyVal);
+
+    logger.debug("Java-part of dummy interface acts AFTER mote tick: " + memory.getByteValueOf("simDummyVar"));
   }
 
   public JPanel getInterfaceVisualizer() {
     return null; // No visualizer exists
   }
-  
+
   public void releaseInterfaceVisualizer(JPanel panel) {
   }
-  
-  public double energyConsumptionPerTick() {
-    return 0.0; // I never require any energy
+
+  public double energyConsumption() {
+    return 0; /* My total energy consumption is always zero */
   }
 
   public Collection<Element> getConfigXML() {
     return null;
   }
-  
+
   public void setConfigXML(Collection<Element> configXML, boolean visAvailable) {
   }
-  
+
 }
