@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006, Swedish Institute of Computer Science.
+ * Copyright (c) 2008, Swedish Institute of Computer Science.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ContikiRadio.java,v 1.20 2008/03/18 16:20:16 fros4943 Exp $
+ * $Id: ContikiRadio.java,v 1.21 2008/10/28 11:49:00 fros4943 Exp $
  */
 
 package se.sics.cooja.contikimote.interfaces;
@@ -41,22 +41,22 @@ import org.jdom.Element;
 
 import se.sics.cooja.*;
 import se.sics.cooja.contikimote.ContikiMoteInterface;
+import se.sics.cooja.interfaces.PolledAfterActiveTicks;
 import se.sics.cooja.interfaces.Position;
 import se.sics.cooja.interfaces.Radio;
+import se.sics.cooja.radiomediums.UDGM;
 
 /**
- * This class represents a radio transceiver. In order to simulate different
- * transmission rates, the underlying Contiki system can be locked in either
- * transmission or reception states (using multi-threading). When a transmission
- * is initiated, it will automatically lock the Contiki system. When a packet is
- * received by this radio the Contiki system, the entitiy transferring the
- * packet may explicitly lock the radio in receiving mode. After some time it
- * should then deliver the packet.
+ * Packet radio transceiver mote interface.
  *
- * It needs read/write access to the following core variables:
+ * To simulate transmission rates, the underlying Contiki system is
+ * locked in TX or RX states using multi-threading library.
+ *
+ * Contiki variables:
  * <ul>
  * <li>char simTransmitting (1=mote radio is transmitting)
  * <li>char simReceiving (1=mote radio is receiving)
+ * <li>char simInPolled
  * <p>
  * <li>int simInSize (size of received data packet)
  * <li>byte[] simInDataBuffer (data of received data packet)
@@ -66,19 +66,26 @@ import se.sics.cooja.interfaces.Radio;
  * <p>
  * <li>char simRadioHWOn (radio hardware status (on/off))
  * <li>int simSignalStrength (heard radio signal strength)
+ * <li>int simLastSignalStrength
  * <li>char simPower (number indicating power output)
  * <li>int simRadioChannel (number indicating current channel)
  * </ul>
  * <p>
- * Dependency core interfaces are:
+ *
+ * Core interface:
  * <ul>
  * <li>radio_interface
  * </ul>
  * <p>
  *
- * @author Fredrik Osterlind
+ * This observable notifies at radio state changes during RX and TX.
+ *
+ * @see #getLastEvent()
+ * @see UDGM
+ *
+ * @author Fredrik Österlind
  */
-public class ContikiRadio extends Radio implements ContikiMoteInterface {
+public class ContikiRadio extends Radio implements ContikiMoteInterface, PolledAfterActiveTicks {
   private Mote myMote;
 
   private SectionMoteMemory myMoteMemory;
@@ -125,8 +132,8 @@ public class ContikiRadio extends Radio implements ContikiMoteInterface {
   /**
    * Creates an interface to the radio at mote.
    *
-   * @param mote
-   *          Radio's mote.
+   * @param mote Mote
+   *
    * @see Mote
    * @see se.sics.cooja.MoteInterfaceHandler
    */
@@ -144,8 +151,7 @@ public class ContikiRadio extends Radio implements ContikiMoteInterface {
 
     // Calculate energy consumption of a listening radio
     if (energyListeningRadioPerTick < 0) {
-      energyListeningRadioPerTick = ENERGY_CONSUMPTION_RADIO_mA
-          * mote.getSimulation().getTickTimeInSeconds();
+      energyListeningRadioPerTick = ENERGY_CONSUMPTION_RADIO_mA * 0.001;
     }
 
     radioOn = myMoteMemory.getByteValueOf("simRadioHWOn") == 1;
@@ -312,13 +318,9 @@ public class ContikiRadio extends Radio implements ContikiMoteInterface {
     myMoteMemory.setByteValueOf("simReceiving", (byte) 1);
   }
 
-  public void doActionsBeforeTick() {
-  }
-
   public void doActionsAfterTick() {
-    // Check if radio hardware status changed
+    /* Check if radio hardware status changed */
     if (radioOn != (myMoteMemory.getByteValueOf("simRadioHWOn") == 1)) {
-      // Radio changed
       radioOn = !radioOn;
 
       if (!radioOn) {
@@ -351,7 +353,8 @@ public class ContikiRadio extends Radio implements ContikiMoteInterface {
       this.notifyObservers();
     }
 
-    // Are we transmitting but should stop?
+    /* Are we transmitting but should stop? */
+    /* TODO Use time events */
     if (isTransmitting
         && myMote.getSimulation().getSimulationTime() >= transmissionEndTime) {
       myMoteMemory.setByteValueOf("simTransmitting", (byte) 0);
