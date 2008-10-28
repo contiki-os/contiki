@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006, Swedish Institute of Computer Science.
+ * Copyright (c) 2008, Swedish Institute of Computer Science.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ContikiVib.java,v 1.3 2007/01/09 10:05:19 fros4943 Exp $
+ * $Id: ContikiVib.java,v 1.4 2008/10/28 12:02:35 fros4943 Exp $
  */
 
 package se.sics.cooja.contikimote.interfaces;
@@ -41,34 +41,34 @@ import se.sics.cooja.*;
 import se.sics.cooja.contikimote.ContikiMoteInterface;
 
 /**
- * This class represents a vibration sensor.
- * 
- * It needs read/write access to the following core variables:
+ * Vibration sensor mote interface.
+ *
+ * Contiki variables:
  * <ul>
  * <li>char simVibChanged (1=changed, else not changed)
  * <li>char simVibIsActive (1=active, else inactive)
  * </ul>
  * <p>
- * Dependency core interfaces are:
+ *
+ * Core interface:
  * <ul>
  * <li>vib_interface
  * </ul>
  * <p>
- * This observable never notifies observers.
- * 
- * @author Fredrik Osterlind
+ *
+ * This observable never notifies.
+ *
+ * @author Fredrik Österlind
  */
 @ClassDescription("Vibration sensor")
 public class ContikiVib extends MoteInterface implements ContikiMoteInterface {
   private static Logger logger = Logger.getLogger(ContikiVib.class);
 
   /**
-   * Approximate energy consumption of an active vibrator sensor. ESB measured
+   * Approximate energy consumption of an active vibration sensor. ESB measured
    * energy consumption is 1.58 mA.
    */
   public final double ENERGY_CONSUMPTION_VIB_mA;
-
-  private final boolean RAISES_EXTERNAL_INTERRUPT;
 
   private double energyActiveVibPerTick = -1;
 
@@ -78,7 +78,7 @@ public class ContikiVib extends MoteInterface implements ContikiMoteInterface {
 
   /**
    * Creates an interface to the vibration sensor at mote.
-   * 
+   *
    * @param mote
    *          Vib's mote.
    * @see Mote
@@ -88,15 +88,13 @@ public class ContikiVib extends MoteInterface implements ContikiMoteInterface {
     // Read class configurations of this mote type
     ENERGY_CONSUMPTION_VIB_mA = mote.getType().getConfig().getDoubleValue(
         ContikiVib.class, "ACTIVE_CONSUMPTION_mA");
-    RAISES_EXTERNAL_INTERRUPT = mote.getType().getConfig()
-        .getBooleanValue(ContikiVib.class, "EXTERNAL_INTERRUPT_bool");
 
     this.mote = mote;
     this.moteMem = (SectionMoteMemory) mote.getMemory();
 
-    if (energyActiveVibPerTick < 0)
-      energyActiveVibPerTick = ENERGY_CONSUMPTION_VIB_mA
-          * mote.getSimulation().getTickTimeInSeconds();
+    if (energyActiveVibPerTick < 0) {
+      energyActiveVibPerTick = ENERGY_CONSUMPTION_VIB_mA * 0.001;
+    }
   }
 
   public static String[] getCoreInterfaceDependencies() {
@@ -110,22 +108,11 @@ public class ContikiVib extends MoteInterface implements ContikiMoteInterface {
     if (moteMem.getByteValueOf("simVibIsActive") == 1) {
       moteMem.setByteValueOf("simVibChanged", (byte) 1);
 
-      // If mote is inactive, wake it up
-      if (RAISES_EXTERNAL_INTERRUPT)
-        mote.setState(Mote.State.ACTIVE);
+      mote.setState(Mote.State.ACTIVE);
     }
   }
 
-  public void doActionsBeforeTick() {
-    if (moteMem.getByteValueOf("simVibIsActive") == 1) {
-      myEnergyConsumption = energyActiveVibPerTick; // ESB measured value
-    } else
-      myEnergyConsumption = 0.0;
-  }
-
-  public void doActionsAfterTick() {
-    // Nothing to do
-  }
+  /* TODO Energy consumption */
 
   public JPanel getInterfaceVisualizer() {
     JPanel panel = new JPanel();
