@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: SkyLED.java,v 1.1 2008/02/11 15:53:28 fros4943 Exp $
+ * $Id: SkyLED.java,v 1.2 2008/10/28 17:04:08 fros4943 Exp $
  */
 
 package se.sics.cooja.mspmote.interfaces;
@@ -97,14 +97,8 @@ public class SkyLED extends LED {
     return redOn;
   }
 
-  public void doActionsBeforeTick() {
-  }
-
-  public void doActionsAfterTick() {
-  }
-
-  public double energyConsumptionPerTick() {
-    return 0.0;
+  public double energyConsumption() {
+    return 0;
   }
 
   public JPanel getInterfaceVisualizer() {

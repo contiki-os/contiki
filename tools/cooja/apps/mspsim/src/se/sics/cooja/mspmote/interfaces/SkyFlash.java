@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: SkyFlash.java,v 1.3 2008/06/27 14:05:08 nifi Exp $
+ * $Id: SkyFlash.java,v 1.4 2008/10/28 17:04:08 fros4943 Exp $
  */
 
 package se.sics.cooja.mspmote.interfaces;
@@ -77,12 +77,6 @@ public class SkyFlash extends MoteInterface {
     } catch (IOException e) {
       logger.fatal("Exception when writing ID header: " + e);
     }
-  }
-
-  public void doActionsBeforeTick() {
-  }
-
-  public void doActionsAfterTick() {
   }
 
   public JPanel getInterfaceVisualizer() {
@@ -201,7 +195,7 @@ public class SkyFlash extends MoteInterface {
     return fileData;
   }
 
-  public double energyConsumptionPerTick() {
+  public double energyConsumption() {
     return 0;
   }
 

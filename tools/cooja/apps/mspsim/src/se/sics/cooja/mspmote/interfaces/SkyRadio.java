@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: SkyRadio.java,v 1.7 2008/09/17 14:37:23 nifi Exp $
+ * $Id: SkyRadio.java,v 1.8 2008/10/28 17:04:50 fros4943 Exp $
  */
 
 package se.sics.cooja.mspmote.interfaces;
@@ -130,9 +130,9 @@ public class SkyRadio extends Radio implements CustomDataRadio {
 //    cc2420.addOperatingModeListener(new OperatingModeListener() {
 //
 //      public void modeChanged(Chip source, int mode) {
-//        SkyRadio.this.mode = mode;        
+//        SkyRadio.this.mode = mode;
 //      }
-//      
+//
 //    });
   }
 
@@ -257,14 +257,8 @@ public class SkyRadio extends Radio implements CustomDataRadio {
     cc2420.setRSSI((int) signalStrength);
   }
 
-  public double energyConsumptionPerTick() {
+  public double energyConsumption() {
     return 0;
-  }
-
-  public void doActionsBeforeTick() {
-  }
-
-  public void doActionsAfterTick() {
   }
 
   public JPanel getInterfaceVisualizer() {

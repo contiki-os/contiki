@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: SkyByteRadio.java,v 1.1 2008/10/09 11:12:29 joxe Exp $
+ * $Id: SkyByteRadio.java,v 1.2 2008/10/28 17:03:37 fros4943 Exp $
  */
 
 package se.sics.cooja.mspmote.interfaces;
@@ -113,12 +113,12 @@ public class SkyByteRadio extends Radio implements CustomDataRadio {
         notifyObservers();
 
         buffer[len++] = data;
-        
+
         if (len == 6) {
 //          System.out.println("## CC2420 Packet of length: " + data + " expected...");
           expLen = data + 6;
         }
-        
+
         if (len == expLen) {
           /*logger.debug("----- SKY CUSTOM DATA TRANSMITTED -----");*/
           /* TODO: fix conversion later... */
@@ -131,7 +131,7 @@ public class SkyByteRadio extends Radio implements CustomDataRadio {
           setChanged();
           notifyObservers();
 
-          
+
 //          System.out.println("## CC2420 Transmission finished...");
 
           lastEventTime = myMote.getSimulation().getSimulationTime();
@@ -269,14 +269,8 @@ public class SkyByteRadio extends Radio implements CustomDataRadio {
     cc2420.setRSSI((int) signalStrength);
   }
 
-  public double energyConsumptionPerTick() {
+  public double energyConsumption() {
     return 0;
-  }
-
-  public void doActionsBeforeTick() {
-  }
-
-  public void doActionsAfterTick() {
   }
 
   public JPanel getInterfaceVisualizer() {
