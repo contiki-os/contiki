@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: Battery.java,v 1.5 2008/10/28 12:30:48 fros4943 Exp $
+ * $Id: Battery.java,v 1.6 2008/10/28 13:28:35 fros4943 Exp $
  */
 
 package se.sics.cooja.interfaces;
@@ -44,33 +44,33 @@ import se.sics.cooja.*;
  * <p>
  * This Battery updates energy after each mote tick:
  * the energy consumption of each interface is summed up.
- * In addtion, the energy used by the CPU (depends on mote state) is
- * detracted each tick.
+ * In addition, the Battery adds the CPU energy.
  * <p>
  *
- * This observable notifies every tick (!).
+ * This observable notifies every tick (relatively time-consuming).
  *
- * When energy left is below 0 the mote is dead.
+ * When the energy left is below 0 the mote is dead.
  *
  * @see MoteInterface
- * @see MoteInterface#energyConsumptionPerTick()
+ * @see MoteInterface#energyConsumption()
  *
  * @author Fredrik Österlind
  */
 @ClassDescription("Battery")
 public class Battery extends MoteInterface implements PolledAfterAllTicks {
+  private static Logger logger = Logger.getLogger(Battery.class);
 
   /**
    * Approximate energy consumption of a mote's CPU in active mode (mA). ESB
    * measured energy consumption is 1.49 mA.
    */
-  public final double ENERGY_CONSUMPTION_AWAKE_mA;
+  public final double CPU_ENERGY_CONSUMPTION_AWAKE_mA;
 
   /**
    * Approximate energy consumption of a mote's CPU in low power mode (mA). ESB
    * measured energy consumption is 1.34 mA.
    */
-  public final double ENERGY_CONSUMPTION_LPM_mA;
+  public final double CPU_ENERGY_CONSUMPTION_LPM_mA;
 
   /**
    * Initial energy of battery in milli coulomb (mQ). ESB mote: 3 regular AA
@@ -79,46 +79,39 @@ public class Battery extends MoteInterface implements PolledAfterAllTicks {
    */
   public final double INITIAL_ENERGY;
 
-  private double energyConsumptionLPMPerTick = -1.0;
-  private double energyConsumptionAwakePerTick = -1.0;
-
   private Mote mote = null;
-  private static Logger logger = Logger.getLogger(Battery.class);
 
-  private double myEnergy;
+  private double cpuEnergyConsumptionLPMPerMs;
+  private double cpuEnergyConsumptionAwakePerMs;
+
   private boolean hasInfiniteEnergy;
-  private double lastEnergyConsumption = 0;
+
+  private double cpuEnergyConsumption = 0;
+
+  private double totalEnergyConsumption = 0;
 
   /**
    * Creates a new battery connected to given mote.
    *
+   * @param mote Mote
+   *
+   * @see #energyConsumption
    * @see #INITIAL_ENERGY
-   * @param mote
-   *          Mote holding battery
    */
   public Battery(Mote mote) {
-    // Read class configurations of this mote type
-    ENERGY_CONSUMPTION_AWAKE_mA = mote.getType().getConfig()
-        .getDoubleValue(Battery.class, "CPU_AWAKE_mA");
-    ENERGY_CONSUMPTION_LPM_mA = mote.getType().getConfig().getDoubleValue(
-        Battery.class, "CPU_LPM_mA");
-    INITIAL_ENERGY = mote.getType().getConfig().getDoubleValue(
-        Battery.class, "INITIAL_ENERGY_mQ");
-    hasInfiniteEnergy = mote.getType().getConfig().getBooleanValue(
-        Battery.class, "INFINITE_ENERGY_bool");
+    /* Read configuration */
+    CPU_ENERGY_CONSUMPTION_AWAKE_mA = mote.getType().getConfig().getDoubleValue(Battery.class, "CPU_AWAKE_mA");
+    CPU_ENERGY_CONSUMPTION_LPM_mA = mote.getType().getConfig().getDoubleValue(Battery.class, "CPU_LPM_mA");
+    INITIAL_ENERGY = mote.getType().getConfig().getDoubleValue(Battery.class, "INITIAL_ENERGY_mQ");
+    hasInfiniteEnergy = mote.getType().getConfig().getBooleanValue(Battery.class, "INFINITE_ENERGY_bool");
 
-    if (energyConsumptionAwakePerTick < 0) {
-      energyConsumptionAwakePerTick = ENERGY_CONSUMPTION_AWAKE_mA * 0.001;
-      energyConsumptionLPMPerTick = ENERGY_CONSUMPTION_LPM_mA * 0.001;
-    }
+    cpuEnergyConsumptionAwakePerMs = CPU_ENERGY_CONSUMPTION_AWAKE_mA * 0.001; /* TODO Voltage */
+    cpuEnergyConsumptionLPMPerMs = CPU_ENERGY_CONSUMPTION_LPM_mA * 0.001; /* TODO Voltage */
 
     this.mote = mote;
-    myEnergy = INITIAL_ENERGY;
   }
 
   public void doActionsAfterTick() {
-    lastEnergyConsumption = 0;
-
     // If infinite energy, do nothing
     if (hasInfiniteEnergy) {
       return;
@@ -129,22 +122,24 @@ public class Battery extends MoteInterface implements PolledAfterAllTicks {
       return;
     }
 
-    double totalEnergyConsumption = 0.0;
-
-    totalEnergyConsumption += energyConsumptionLPMPerTick;
-    for (MoteInterface intf : mote.getInterfaces().getInterfaces()) {
-      totalEnergyConsumption += intf.energyConsumptionPerTick();
+    if (mote.getState() == Mote.State.ACTIVE) {
+      cpuEnergyConsumption += cpuEnergyConsumptionLPMPerMs;
+    } else {
+      cpuEnergyConsumption += cpuEnergyConsumptionAwakePerMs;
     }
 
-    decreaseEnergy(totalEnergyConsumption);
-    lastEnergyConsumption += totalEnergyConsumption;
+    totalEnergyConsumption = cpuEnergyConsumption;
+    for (MoteInterface intf : mote.getInterfaces().getInterfaces()) {
+      totalEnergyConsumption += intf.energyConsumption();
+    }
 
-    // Check if we are out of energy
-    if (getCurrentEnergy() <= 0.0) {
-      setChanged();
-      notifyObservers();
+    /* Check if we are out of energy */
+    if (getEnergyConsumption() > INITIAL_ENERGY) {
       mote.setState(Mote.State.DEAD);
     }
+
+    setChanged();
+    notifyObservers();
   }
 
   /**
@@ -172,49 +167,52 @@ public class Battery extends MoteInterface implements PolledAfterAllTicks {
   }
 
   /**
-   * @return Current energy left
+   * @return Current energy consumption
    */
-  public double getCurrentEnergy() {
-    return myEnergy;
+  public double getEnergyConsumption() {
+    return totalEnergyConsumption;
   }
 
-  private void decreaseEnergy(double consumption) {
-    if (!hasInfiniteEnergy) {
-      myEnergy -= consumption;
-      setChanged();
-      notifyObservers();
-    }
+  /**
+   * @return Energy left ratio
+   */
+  public double getEnergyLeftRatio() {
+    return ((getInitialEnergy() - getEnergyConsumption()) / getInitialEnergy());
   }
 
   public JPanel getInterfaceVisualizer() {
     // Battery energy left
     JPanel panel = new JPanel();
     panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
+    final JLabel initialLabel = new JLabel("");
     final JLabel energyLabel = new JLabel("");
-    final JLabel energyPercentLabel = new JLabel("");
+    final JLabel leftLabel = new JLabel("");
 
     if (hasInfiniteEnergy()) {
-      energyLabel.setText("INFINITE");
-      energyPercentLabel.setText("");
+      initialLabel.setText("[infinite energy]");
+      energyLabel.setText("");
+      leftLabel.setText("");
     } else {
-      energyLabel.setText("Energy left (mQ) = " + getCurrentEnergy());
-      energyPercentLabel.setText("Energy left (%) = "
-          + (getCurrentEnergy() / getInitialEnergy() * 100) + "%");
+      initialLabel.setText("Total energy (mQ): " + getInitialEnergy());
+      energyLabel.setText("Consumed energy (mQ): " + getEnergyConsumption());
+      leftLabel.setText("Energy left (%): " + (getEnergyLeftRatio() * 100));
     }
 
+    panel.add(initialLabel);
     panel.add(energyLabel);
-    panel.add(energyPercentLabel);
+    panel.add(leftLabel);
 
     Observer observer;
     this.addObserver(observer = new Observer() {
       public void update(Observable obs, Object obj) {
         if (hasInfiniteEnergy()) {
-          energyLabel.setText("INFINITE");
-          energyPercentLabel.setText("");
+          initialLabel.setText("[infinite energy]");
+          energyLabel.setText("");
+          leftLabel.setText("");
         } else {
-          energyLabel.setText("Energy left (mQ) = " + getCurrentEnergy());
-          energyPercentLabel.setText("Energy left (%) = "
-              + (getCurrentEnergy() / getInitialEnergy() * 100) + "%");
+          initialLabel.setText("Total energy (mQ): " + getInitialEnergy());
+          energyLabel.setText("Consumed energy (mQ): " + getEnergyConsumption());
+          leftLabel.setText("Energy left (%): " + (getEnergyLeftRatio() * 100));
         }
       }
     });
@@ -235,13 +233,8 @@ public class Battery extends MoteInterface implements PolledAfterAllTicks {
     this.deleteObserver(observer);
   }
 
-  public double energyConsumptionPerTick() {
-    // The battery itself does not require any power.
+  public double energyConsumption() {
     return 0.0;
-  }
-
-  public double getLastTotalEnergyConsumption() {
-    return lastEnergyConsumption;
   }
 
   public Collection<Element> getConfigXML() {
