@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006, Swedish Institute of Computer Science.
+ * Copyright (c) 2008, Swedish Institute of Computer Science.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ContikiPIR.java,v 1.3 2007/01/09 10:05:19 fros4943 Exp $
+ * $Id: ContikiPIR.java,v 1.4 2008/10/28 11:16:37 fros4943 Exp $
  */
 
 package se.sics.cooja.contikimote.interfaces;
@@ -42,22 +42,24 @@ import se.sics.cooja.contikimote.ContikiMoteInterface;
 import se.sics.cooja.interfaces.PIR;
 
 /**
- * This class represents a passive infrared sensor.
- * 
- * It needs read/write access to the following core variables:
+ * Passive IR sensor mote interface.
+ *
+ * Contiki variables:
  * <ul>
  * <li>char simPirChanged (1=changed, else not changed)
  * <li>char simPirIsActive (1=active, else inactive)
  * </ul>
  * <p>
- * Dependency core interfaces are:
+ *
+ * Core interface:
  * <ul>
  * <li>pir_interface
  * </ul>
  * <p>
- * This observable notifies observers if a change is discovered by the PIR.
- * 
- * @author Fredrik Osterlind
+ *
+ * This observable notifies if PIR triggers.
+ *
+ * @author Fredrik Österlind
  */
 public class ContikiPIR extends PIR implements ContikiMoteInterface {
   private static Logger logger = Logger.getLogger(ContikiPIR.class);
@@ -68,8 +70,6 @@ public class ContikiPIR extends PIR implements ContikiMoteInterface {
    */
   public final double ENERGY_CONSUMPTION_PIR_mA;
 
-  private final boolean RAISES_EXTERNAL_INTERRUPT;
-
   private double energyActivePerTick = -1;
 
   private Mote mote;
@@ -77,10 +77,10 @@ public class ContikiPIR extends PIR implements ContikiMoteInterface {
   private double myEnergyConsumption = 0.0;
 
   /**
-   * Creates an interface to the pir at mote.
-   * 
-   * @param mote
-   *          Button's mote.
+   * Creates an interface to the PIR at mote.
+   *
+   * @param mote Mote
+   *
    * @see Mote
    * @see se.sics.cooja.MoteInterfaceHandler
    */
@@ -88,15 +88,13 @@ public class ContikiPIR extends PIR implements ContikiMoteInterface {
     // Read class configurations of this mote type
     ENERGY_CONSUMPTION_PIR_mA = mote.getType().getConfig().getDoubleValue(
         ContikiPIR.class, "ACTIVE_CONSUMPTION_mA");
-    RAISES_EXTERNAL_INTERRUPT = mote.getType().getConfig()
-        .getBooleanValue(ContikiPIR.class, "EXTERNAL_INTERRUPT_bool");
 
     this.mote = mote;
     this.moteMem = (SectionMoteMemory) mote.getMemory();
 
-    if (energyActivePerTick < 0)
-      energyActivePerTick = ENERGY_CONSUMPTION_PIR_mA
-          * mote.getSimulation().getTickTimeInSeconds();
+    if (energyActivePerTick < 0) {
+      energyActivePerTick = ENERGY_CONSUMPTION_PIR_mA * 0.001;
+    }
   }
 
   public static String[] getCoreInterfaceDependencies() {
@@ -107,25 +105,14 @@ public class ContikiPIR extends PIR implements ContikiMoteInterface {
     if (moteMem.getByteValueOf("simPirIsActive") == 1) {
       moteMem.setByteValueOf("simPirChanged", (byte) 1);
 
-      // If mote is inactive, wake it up
-      if (RAISES_EXTERNAL_INTERRUPT)
-        mote.setState(Mote.State.ACTIVE);
+      mote.setState(Mote.State.ACTIVE);
 
       this.setChanged();
       this.notifyObservers();
     }
   }
 
-  public void doActionsBeforeTick() {
-    if (moteMem.getByteValueOf("simPirIsActive") == 1) {
-      myEnergyConsumption = energyActivePerTick;
-    } else
-      myEnergyConsumption = 0.0;
-  }
-
-  public void doActionsAfterTick() {
-    // Nothing to do
-  }
+  /* TODO Energy consumption of active PIR */
 
   public JPanel getInterfaceVisualizer() {
     JPanel panel = new JPanel();
