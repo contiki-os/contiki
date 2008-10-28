@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ESBMote.java,v 1.4 2008/10/13 14:50:50 nifi Exp $
+ * $Id: ESBMote.java,v 1.5 2008/10/28 17:02:13 fros4943 Exp $
  */
 
 package se.sics.cooja.mspmote;
@@ -75,31 +75,31 @@ public class ESBMote extends MspMote {
     Position motePosition = new Position(this);
     Random random = new Random();
     motePosition.setCoordinates(random.nextDouble()*100, random.nextDouble()*100, random.nextDouble()*100);
-    moteInterfaceHandler.addActiveInterface(motePosition);
+    moteInterfaceHandler.addInterface(motePosition);
 
     // Add log interface
     Log moteLog = new ESBLog(this);
-    moteInterfaceHandler.addActiveInterface(moteLog);
+    moteInterfaceHandler.addInterface(moteLog);
 
     // Add time interface
     Clock moteClock = new MspClock(this);
-    moteInterfaceHandler.addActiveInterface(moteClock);
+    moteInterfaceHandler.addInterface(moteClock);
 
     // Add led interface
     LED moteLed = new ESBLED(this);
-    moteInterfaceHandler.addActiveInterface(moteLed);
+    moteInterfaceHandler.addInterface(moteLed);
 
     // Add button interface
     Button moteButton = new ESBButton(this);
-    moteInterfaceHandler.addActiveInterface(moteButton);
+    moteInterfaceHandler.addInterface(moteButton);
 
     // Add ID interface
     MoteID moteID = new MspMoteID(this);
-    moteInterfaceHandler.addActiveInterface(moteID);
+    moteInterfaceHandler.addInterface(moteID);
 
     // Add radio interface
     myRadio = new TR1001Radio(this);
-    moteInterfaceHandler.addActiveInterface(myRadio);
+    moteInterfaceHandler.addInterface(myRadio);
 
     return moteInterfaceHandler;
   }
