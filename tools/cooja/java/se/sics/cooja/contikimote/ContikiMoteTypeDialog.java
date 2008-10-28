@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ContikiMoteTypeDialog.java,v 1.46 2008/10/03 15:43:44 fros4943 Exp $
+ * $Id: ContikiMoteTypeDialog.java,v 1.47 2008/10/28 17:01:15 fros4943 Exp $
  */
 
 package se.sics.cooja.contikimote;
@@ -2493,10 +2493,15 @@ public class ContikiMoteTypeDialog extends JDialog {
           try {
             Class<? extends MoteInterface> newMoteInterfaceClass =
               myGUI.tryLoadClass(this, MoteInterface.class, moteInterface);
-            moteIntfClasses.add(newMoteInterfaceClass);
+
+            if (newMoteInterfaceClass == null) {
+              logger.fatal("Failed to load mote interface: " + moteInterface);
+            } else {
+              moteIntfClasses.add(newMoteInterfaceClass);
+            }
             // logger.info("Loaded mote interface: " + newMoteInterfaceClass);
           } catch (Exception ce) {
-            logger.warn("Failed to load mote interface: " + moteInterface);
+            logger.fatal("Failed to load mote interface: " + moteInterface);
           }
         }
 
