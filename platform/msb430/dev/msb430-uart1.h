@@ -52,10 +52,8 @@ Berlin, 2007
  */
 
 /**
- * @file	ScatterWeb.Uart.h
- * @author	Michael Baar	<baar@inf.fu-berlin.de>
- * 
- * Header file for MSP430 UART driver.
+ * \file	Header file for for the MSB430 UART driver.
+ * \author	Michael Baar	<baar@inf.fu-berlin.de>
  */
 
 #ifndef MSB430_UART_H
@@ -65,9 +63,9 @@ Berlin, 2007
 #define	UART_TX				TXBUF1
 #define UART_RESET_RX()		do { U1IFG &= ~URXIFG1; } while(0)
 #define	UART_RESET_RXTX()	do { U1IFG &= ~(URXIFG1 | UTXIFG1); } while(0)
-#define	UART_WAIT_RX()		while( (U1IFG & URXIFG1) == 0 ) { _NOP(); }
-#define	UART_WAIT_TX()		while( (U1IFG & UTXIFG1) == 0 ) { _NOP(); } 
-#define UART_WAIT_TXDONE()	while( (UTCTL1 & TXEPT) == 0 ) { _NOP(); }
+#define	UART_WAIT_RX()		while((U1IFG & URXIFG1) == 0) { _NOP(); }
+#define	UART_WAIT_TX()		while((U1IFG & UTXIFG1) == 0) { _NOP(); } 
+#define UART_WAIT_TXDONE()	while((UTCTL1 & TXEPT) == 0) { _NOP(); }
 
 /**
  * @brief Operating state
