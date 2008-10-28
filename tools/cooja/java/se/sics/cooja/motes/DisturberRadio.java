@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: DisturberRadio.java,v 1.7 2008/03/18 13:55:46 fros4943 Exp $
+ * $Id: DisturberRadio.java,v 1.8 2008/10/28 13:39:24 fros4943 Exp $
  */
 
 package se.sics.cooja.motes;
@@ -236,7 +236,7 @@ public class DisturberRadio extends Radio {
     this.deleteObserver(observer);
   }
 
-  public double energyConsumptionPerTick() {
+  public double energyConsumption() {
     return 0;
   }
 

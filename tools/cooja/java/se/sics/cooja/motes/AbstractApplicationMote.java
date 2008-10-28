@@ -24,7 +24,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * $Id: AbstractApplicationMote.java,v 1.2 2008/03/18 13:05:23 fros4943 Exp $
+ * $Id: AbstractApplicationMote.java,v 1.3 2008/10/28 13:38:55 fros4943 Exp $
  */
 
 package se.sics.cooja.motes;
@@ -93,12 +93,12 @@ public abstract class AbstractApplicationMote implements Mote {
     // Create position
     myInterfaceHandler = new MoteInterfaceHandler();
     Position myPosition = new Position(this);
-    myInterfaceHandler.addPassiveInterface(myPosition);
+    myInterfaceHandler.addInterface(myPosition);
 
     // Create radio
     myApplicationRadio = new ApplicationRadio(this);
     myApplicationRadio.addObserver(radioDataObserver);
-    myInterfaceHandler.addActiveInterface(myApplicationRadio);
+    myInterfaceHandler.addInterface(myApplicationRadio);
   }
 
   public void setState(State newState) {
@@ -161,20 +161,8 @@ public abstract class AbstractApplicationMote implements Mote {
     element = new Element("interface_config");
     element.setText(myInterfaceHandler.getPosition().getClass().getName());
 
-    // Active interface configs (if any)
-    for (MoteInterface moteInterface: getInterfaces().getAllActiveInterfaces()) {
-      element = new Element("interface_config");
-      element.setText(moteInterface.getClass().getName());
-
-      Collection interfaceXML = moteInterface.getConfigXML();
-      if (interfaceXML != null) {
-        element.addContent(interfaceXML);
-        config.add(element);
-      }
-    }
-
-    // Passive interface configs (if any)
-    for (MoteInterface moteInterface: getInterfaces().getAllPassiveInterfaces()) {
+    // Interfaces
+    for (MoteInterface moteInterface: getInterfaces().getInterfaces()) {
       element = new Element("interface_config");
       element.setText(moteInterface.getClass().getName());
 
@@ -196,10 +184,10 @@ public abstract class AbstractApplicationMote implements Mote {
     myMemory = new SectionMoteMemory(new Properties());
     myInterfaceHandler = new MoteInterfaceHandler();
     Position myPosition = new Position(this);
-    myInterfaceHandler.addPassiveInterface(myPosition);
+    myInterfaceHandler.addInterface(myPosition);
     myApplicationRadio = new ApplicationRadio(this);
     myApplicationRadio.addObserver(radioDataObserver);
-    myInterfaceHandler.addActiveInterface(myApplicationRadio);
+    myInterfaceHandler.addInterface(myApplicationRadio);
 
     for (Element element : configXML) {
       String name = element.getName();
@@ -207,8 +195,8 @@ public abstract class AbstractApplicationMote implements Mote {
       if (name.equals("motetype_identifier")) {
         myType = simulation.getMoteType(element.getText());
       } else if (name.equals("interface_config")) {
-        Class<? extends MoteInterface> moteInterfaceClass = simulation.getGUI()
-            .tryLoadClass(this, MoteInterface.class, element.getText().trim());
+        Class<? extends MoteInterface> moteInterfaceClass = 
+          simulation.getGUI().tryLoadClass(this, MoteInterface.class, element.getText().trim());
 
         if (moteInterfaceClass == null) {
           logger.warn("Can't find mote interface class: " + element.getText());

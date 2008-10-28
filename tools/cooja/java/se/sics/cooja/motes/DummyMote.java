@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: DummyMote.java,v 1.4 2008/03/31 15:22:41 fros4943 Exp $
+ * $Id: DummyMote.java,v 1.5 2008/10/28 13:39:24 fros4943 Exp $
  */
 
 package se.sics.cooja.motes;
@@ -97,7 +97,7 @@ public class DummyMote implements Mote {
     Position myPosition = new Position(this);
     myPosition.setCoordinates(myRandom.nextDouble() * 100, myRandom
         .nextDouble() * 100, myRandom.nextDouble() * 100);
-    myInterfaceHandler.addPassiveInterface(myPosition);
+    myInterfaceHandler.addInterface(myPosition);
   }
 
   public void setState(State newState) {
@@ -188,7 +188,7 @@ public class DummyMote implements Mote {
     mySim = simulation;
     myMemory = new SectionMoteMemory(new Properties());
     myInterfaceHandler = new MoteInterfaceHandler();
-    myInterfaceHandler.addPassiveInterface(new Position(this));
+    myInterfaceHandler.addInterface(new Position(this));
 
     for (Element element : configXML) {
       String name = element.getName();
