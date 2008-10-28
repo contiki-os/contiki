@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: MoteInterfaceViewer.java,v 1.3 2007/01/09 09:49:24 fros4943 Exp $
+ * $Id: MoteInterfaceViewer.java,v 1.4 2008/10/28 14:09:25 fros4943 Exp $
  */
 
 package se.sics.cooja.plugins;
@@ -41,9 +41,9 @@ import org.jdom.Element;
 import se.sics.cooja.*;
 
 /**
- * MoteInterfaceViewer allows a user to select and view information about a node's interfaces.
+ * Mote Interface Viewer views information about a specific mote interface.
  *
- * @author Fredrik Osterlind
+ * @author Fredrik Österlind
  */
 @ClassDescription("Mote Interface Viewer")
 @PluginType(PluginType.MOTE_PLUGIN)
@@ -53,7 +53,7 @@ public class MoteInterfaceViewer extends VisPlugin {
   private Mote mote;
   private MoteInterface selectedMoteInterface = null;
   private JPanel currentInterfaceVisualizer = null;
-  private JComboBox selectInterfaceComboBox = null; 
+  private JComboBox selectInterfaceComboBox = null;
 
   /**
    * Create a new mote interface viewer.
@@ -78,31 +78,28 @@ public class MoteInterfaceViewer extends VisPlugin {
     selectInterfaceComboBox = new JComboBox();
     final JPanel interfacePanel = new JPanel();
 
-    for (int i=0; i < mote.getInterfaces().getAllActiveInterfaces().size(); i++) {
-      selectInterfaceComboBox.addItem(GUI.getDescriptionOf(mote.getInterfaces().getAllActiveInterfaces().get(i)));
+    Vector<MoteInterface> intfs = mote.getInterfaces().getInterfaces();
+    for (MoteInterface intf : intfs) {
+      selectInterfaceComboBox.addItem(GUI.getDescriptionOf(intf));
     }
-    for (int i=0; i < mote.getInterfaces().getAllPassiveInterfaces().size(); i++) {
-      selectInterfaceComboBox.addItem(GUI.getDescriptionOf(mote.getInterfaces().getAllPassiveInterfaces().get(i)));
-    }
-    
+
     selectInterfaceComboBox.addActionListener(new ActionListener() {
       public void actionPerformed(ActionEvent e) {
 
         // Release old interface visualizer if any
-        if (selectedMoteInterface != null && currentInterfaceVisualizer != null)
+        if (selectedMoteInterface != null && currentInterfaceVisualizer != null) {
           selectedMoteInterface.releaseInterfaceVisualizer(currentInterfaceVisualizer);
-        
+        }
+
         // View selected interface if any
         interfacePanel.removeAll();
         String interfaceDescription = (String) selectInterfaceComboBox.getSelectedItem();
         selectedMoteInterface = null;
-        for (int i=0; i < mote.getInterfaces().getAllActiveInterfaces().size(); i++) {
-          if (GUI.getDescriptionOf(mote.getInterfaces().getAllActiveInterfaces().get(i)).equals(interfaceDescription))
-            selectedMoteInterface = mote.getInterfaces().getAllActiveInterfaces().get(i);
-        }
-        for (int i=0; i < mote.getInterfaces().getAllPassiveInterfaces().size(); i++) {
-          if (GUI.getDescriptionOf(mote.getInterfaces().getAllPassiveInterfaces().get(i)).equals(interfaceDescription))
-            selectedMoteInterface = mote.getInterfaces().getAllPassiveInterfaces().get(i);
+        Vector<MoteInterface> intfs = mote.getInterfaces().getInterfaces();
+        for (MoteInterface intf : intfs) {
+          if (GUI.getDescriptionOf(intf).equals(interfaceDescription)) {
+            selectedMoteInterface = intf;
+          }
         }
         currentInterfaceVisualizer = selectedMoteInterface.getInterfaceVisualizer();
         if (currentInterfaceVisualizer != null) {
@@ -110,10 +107,10 @@ public class MoteInterfaceViewer extends VisPlugin {
           interfacePanel.add(BorderLayout.CENTER, currentInterfaceVisualizer);
           currentInterfaceVisualizer.setVisible(true);
         } else {
-          interfacePanel.add(new JLabel("No interface visualizer exists!"));
+          interfacePanel.add(new JLabel("No interface visualizer"));
           currentInterfaceVisualizer = null;
         }
-        setSize(getSize()); 
+        setSize(getSize());
       }
     });
     selectInterfaceComboBox.setSelectedIndex(0);
@@ -161,16 +158,17 @@ public class MoteInterfaceViewer extends VisPlugin {
     }
     return false;
   }
-  
+
   public void closePlugin() {
     // Release old interface visualizer if any
-    if (selectedMoteInterface != null && currentInterfaceVisualizer != null)
+    if (selectedMoteInterface != null && currentInterfaceVisualizer != null) {
       selectedMoteInterface.releaseInterfaceVisualizer(currentInterfaceVisualizer);
+    }
   }
 
   public Collection<Element> getConfigXML() {
     Vector<Element> config = new Vector<Element>();
-    
+
     Element element;
 
     // Selected variable name
@@ -180,14 +178,14 @@ public class MoteInterfaceViewer extends VisPlugin {
 
     return config;
   }
-  
+
   public boolean setConfigXML(Collection<Element> configXML, boolean visAvailable) {
     for (Element element : configXML) {
       if (element.getName().equals("interface")) {
         setSelectedInterface(element.getText());
-      } 
+      }
     }
     return true;
   }
-  
+
 }
