@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: MspMote.java,v 1.14 2008/10/13 14:50:50 nifi Exp $
+ * $Id: MspMote.java,v 1.15 2008/10/28 17:02:13 fros4943 Exp $
  */
 
 package se.sics.cooja.mspmote;
@@ -386,20 +386,8 @@ public abstract class MspMote implements Mote {
     element.setText(getType().getIdentifier());
     config.add(element);
 
-    // Active interface configs (if any)
-    for (MoteInterface moteInterface: getInterfaces().getAllActiveInterfaces()) {
-      element = new Element("interface_config");
-      element.setText(moteInterface.getClass().getName());
-
-      Collection<Element> interfaceXML = moteInterface.getConfigXML();
-      if (interfaceXML != null) {
-        element.addContent(interfaceXML);
-        config.add(element);
-      }
-    }
-
-    // Passive interface configs (if any)
-    for (MoteInterface moteInterface: getInterfaces().getAllPassiveInterfaces()) {
+    // Mote interfaces
+    for (MoteInterface moteInterface: getInterfaces().getInterfaces()) {
       element = new Element("interface_config");
       element.setText(moteInterface.getClass().getName());
 

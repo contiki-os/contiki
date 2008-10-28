@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: SkyMote.java,v 1.7 2008/10/13 14:50:50 nifi Exp $
+ * $Id: SkyMote.java,v 1.8 2008/10/28 17:02:13 fros4943 Exp $
  */
 
 package se.sics.cooja.mspmote;
@@ -75,37 +75,37 @@ public class SkyMote extends MspMote {
     Position motePosition = new Position(this);
     Random random = new Random();
     motePosition.setCoordinates(random.nextDouble()*100, random.nextDouble()*100, random.nextDouble()*100);
-    moteInterfaceHandler.addActiveInterface(motePosition);
+    moteInterfaceHandler.addInterface(motePosition);
 
     // Add time interface
     Clock moteClock = new MspClock(this);
-    moteInterfaceHandler.addActiveInterface(moteClock);
+    moteInterfaceHandler.addInterface(moteClock);
 
     // Add button interface
     Button moteButton = new SkyButton(this);
-    moteInterfaceHandler.addActiveInterface(moteButton);
+    moteInterfaceHandler.addInterface(moteButton);
 
     // Add Flash interface
     SkyFlash moteFlash = new SkyFlash(this);
-    moteInterfaceHandler.addActiveInterface(moteFlash);
-    
+    moteInterfaceHandler.addInterface(moteFlash);
+
     // Add ID interface
     MoteID moteID = new MspMoteID(this);
-    moteInterfaceHandler.addActiveInterface(moteID);
+    moteInterfaceHandler.addInterface(moteID);
 
     // Add radio interface
 //  SkyRadio moteRadio = new SkyRadio(this);
 //  moteInterfaceHandler.addActiveInterface(moteRadio);
     SkyByteRadio moteRadio = new SkyByteRadio(this);
-    moteInterfaceHandler.addActiveInterface(moteRadio);
+    moteInterfaceHandler.addInterface(moteRadio);
 
     // Add serial interface
     SkySerial moteSerial = new SkySerial(this);
-    moteInterfaceHandler.addActiveInterface(moteSerial);
+    moteInterfaceHandler.addInterface(moteSerial);
 
     // Add LED interface
     SkyLED moteLED = new SkyLED(this);
-    moteInterfaceHandler.addActiveInterface(moteLED);
+    moteInterfaceHandler.addInterface(moteLED);
 
     return moteInterfaceHandler;
   }
