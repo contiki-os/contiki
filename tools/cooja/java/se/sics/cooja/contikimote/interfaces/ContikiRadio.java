@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ContikiRadio.java,v 1.22 2008/10/28 12:55:20 fros4943 Exp $
+ * $Id: ContikiRadio.java,v 1.23 2008/10/28 15:31:51 fros4943 Exp $
  */
 
 package se.sics.cooja.contikimote.interfaces;
@@ -259,7 +259,7 @@ public class ContikiRadio extends Radio implements ContikiMoteInterface, PolledA
 
   public double getCurrentOutputPower() {
     // TODO Implement method
-    logger.warn("Not implemeted, always returning 0 dBm");
+    logger.warn("Not implemented, always returning 0 dBm");
     return 0;
   }
 
@@ -466,10 +466,10 @@ public class ContikiRadio extends Radio implements ContikiMoteInterface, PolledA
 
     observer.update(null, null);
 
-    // Saving observer reference for releaseInterfaceVisualizer
-    panel.putClientProperty("intf_obs", observer);
-
     wrapperPanel.add(BorderLayout.NORTH, panel);
+
+    // Saving observer reference for releaseInterfaceVisualizer
+    wrapperPanel.putClientProperty("intf_obs", observer);
     return wrapperPanel;
   }
 
