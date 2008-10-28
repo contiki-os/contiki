@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: VisBattery.java,v 1.4 2007/01/09 09:49:24 fros4943 Exp $
+ * $Id: VisBattery.java,v 1.5 2008/10/28 15:36:25 fros4943 Exp $
  */
 
 package se.sics.cooja.plugins;
@@ -43,9 +43,9 @@ import se.sics.cooja.interfaces.Battery;
  * different colors. The mote is painted in a grayscale where white is max
  * energy and black is no energy left. If a mote has no battery interface or
  * infinite energy, it is painted blue. If a mote is dead it is painted red.
- * 
+ *
  * A VisBattery observers both the simulation and all mote batteries.
- * 
+ *
  * @author Fredrik Osterlind
  */
 @ClassDescription("Battery Visualizer")
@@ -61,7 +61,7 @@ public class VisBattery extends Visualizer2D {
 
   /**
    * Creates a new battery visualizer.
-   * 
+   *
    * @param simulationToVisualize
    *          Simulation to visualize
    */
@@ -93,8 +93,9 @@ public class VisBattery extends Visualizer2D {
   }
 
   public Color[] getColorOf(Mote mote) {
-    if (mote.getState() == Mote.State.DEAD)
+    if (mote.getState() == Mote.State.DEAD) {
       return new Color[]{Color.RED};
+    }
 
     Battery battery = mote.getInterfaces().getBattery();
     if (battery == null) {
@@ -105,13 +106,13 @@ public class VisBattery extends Visualizer2D {
       return new Color[]{Color.BLUE};
     }
 
-    double currentEnergy = battery.getCurrentEnergy();
+    double currentEnergy = battery.getEnergyLeftRatio();
 
     if (currentEnergy < 0.0) {
       return new Color[]{Color.RED};
     }
 
-    int grayValue = (int) (255 * (currentEnergy / battery.getInitialEnergy()));
+    int grayValue = (int) (255 * currentEnergy);
     return new Color[]{new Color(grayValue, grayValue, grayValue)};
   }
 
