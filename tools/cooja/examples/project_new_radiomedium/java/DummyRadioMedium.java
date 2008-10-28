@@ -26,69 +26,58 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: DummyRadioMedium.java,v 1.2 2008/03/18 13:24:38 fros4943 Exp $
+ * $Id: DummyRadioMedium.java,v 1.3 2008/10/28 16:36:48 fros4943 Exp $
  */
 
 import java.util.Collection;
-import java.util.Observable;
-import java.util.Observer;
 import org.apache.log4j.Logger;
 import org.jdom.Element;
 
 import se.sics.cooja.*;
 import se.sics.cooja.interfaces.*;
+import se.sics.cooja.radiomediums.AbstractRadioMedium;
 
 /**
- * Dummy radio medium. No data is ever transferred through this medium.
- * It also outputs some dummy debug messages during usage.
- * 
- * @author Fredrik Osterlind
+ * Dummy radio medium.
+ *
+ * @author Fredrik Österlind
  */
 @ClassDescription("Dummy Radio Medium")
-public class DummyRadioMedium extends RadioMedium {
+public class DummyRadioMedium extends AbstractRadioMedium {
   private static Logger logger = Logger.getLogger(GUI.class);
-  
-  public void registerMote(Mote mote, Simulation sim) {
-    // Do nothing
-    logger.debug("I'm a dummy. Nothing will be registered by me.");
+
+  public DummyRadioMedium(Simulation simulation) {
+    super(simulation);
+
+    logger.debug("Radio medium created");
   }
 
-  public void unregisterMote(Mote mote, Simulation sim) {
-    // Do nothing
+  public RadioConnection createConnections(Radio sendingRadio) {
+    RadioConnection newConnection = new RadioConnection(sendingRadio);
+
+    logger.debug("TODO Determine receiver radios of: " + sendingRadio);
+
+    /* TODO Determine who should be interfered */
+    //interferedRadio.interfereAnyReception();
+    //newConnection.addInterfered(interferedRadio);
+
+    /* TODO Determine who should receive data */
+    //newConnection.addDestination(otherRadio2);
+    //otherRadio2.signalReceptionStart();
+
+    return newConnection;
   }
 
-  public void registerRadioInterface(Radio radio, Simulation sim) {
-    // Do nothing
-    logger.debug("I'm a dummy. Nothing will be registered by me.");
-  }
-
-  public void unregisterRadioInterface(Radio radio, Simulation sim) {
-    // Do nothing
-  }
-
-  public void addRadioMediumObserver(Observer observer) {
-    // Do nothing
-    logger.debug("I'm a dummy. I will never change.");
-  }
-
-  public Observable getRadioMediumObservable() {
-    return new Observable();
-  }
-
-  public void deleteRadioMediumObserver(Observer observer) {
-    // Do nothing
-    logger.debug("I'm a dummy. I will never change.");
-  }
-
-  public RadioConnection[] getLastTickConnections() {
-    return null;
+  public void updateSignalStrengths() {
+    logger.debug("TODO Update signal strengths");
   }
 
   public Collection<Element> getConfigXML() {
     return null;
   }
-  
-  public boolean setConfigXML(Collection<Element> configXML, boolean visAvailable) {
+
+  public boolean setConfigXML(Collection<Element> configXML,
+      boolean visAvailable) {
     return true;
   }
 
