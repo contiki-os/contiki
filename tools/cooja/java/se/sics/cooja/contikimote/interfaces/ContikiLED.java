@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006, Swedish Institute of Computer Science.
+ * Copyright (c) 2008, Swedish Institute of Computer Science.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ContikiLED.java,v 1.4 2008/02/11 15:53:28 fros4943 Exp $
+ * $Id: ContikiLED.java,v 1.5 2008/10/28 10:21:37 fros4943 Exp $
  */
 
 package se.sics.cooja.contikimote.interfaces;
@@ -40,30 +40,33 @@ import org.jdom.Element;
 import se.sics.cooja.*;
 import se.sics.cooja.contikimote.ContikiMoteInterface;
 import se.sics.cooja.interfaces.LED;
+import se.sics.cooja.interfaces.PolledAfterActiveTicks;
 
 /**
- * This class represents three mote LEDs.
+ * LEDs mote interface.
  *
- * It needs read access to the following core variables:
+ * Contiki variables:
  * <ul>
  * <li>char simLedsValue
  * </ul>
  * <p>
- * Dependency core interfaces are:
+ *
+ * Core interface:
  * <ul>
  * <li>leds_interface
  * </ul>
  * <p>
- * This observable is changed and notifies observers whenever any led has
- * changed.
  *
- * @author Fredrik Osterlind
+ * This observable notifies when any LED changes.
+ *
+ * @author Fredrik Österlind
  */
-public class ContikiLED extends LED implements ContikiMoteInterface {
+public class ContikiLED extends LED implements ContikiMoteInterface, PolledAfterActiveTicks {
   private static Logger logger = Logger.getLogger(ContikiLED.class);
+
   private Mote mote = null;
   private SectionMoteMemory moteMem = null;
-  private byte oldLedValue = 0;
+  private byte currentLedValue = 0;
 
   private static final byte LEDS_GREEN = 1;
   private static final byte LEDS_YELLOW = 2;
@@ -107,10 +110,10 @@ public class ContikiLED extends LED implements ContikiMoteInterface {
   }
 
   /**
-   * Creates an interface to the led at mote.
+   * Creates an interface to LEDs at mote.
    *
-   * @param mote
-   *          Led's mote.
+   * @param mote Mote
+   *
    * @see Mote
    * @see se.sics.cooja.MoteInterfaceHandler
    */
@@ -127,12 +130,9 @@ public class ContikiLED extends LED implements ContikiMoteInterface {
     this.moteMem = (SectionMoteMemory) mote.getMemory();
 
     if (energyOfGreenLedPerTick < 0) {
-      energyOfGreenLedPerTick = ENERGY_CONSUMPTION_GREEN_LED
-          * mote.getSimulation().getTickTimeInSeconds();
-      energyOfYellowLedPerTick = ENERGY_CONSUMPTION_YELLOW_LED
-          * mote.getSimulation().getTickTimeInSeconds();
-      energyOfRedLedPerTick = ENERGY_CONSUMPTION_RED_LED
-          * mote.getSimulation().getTickTimeInSeconds();
+      energyOfGreenLedPerTick = ENERGY_CONSUMPTION_GREEN_LED * 0.001;
+      energyOfYellowLedPerTick = ENERGY_CONSUMPTION_YELLOW_LED * 0.001;
+      energyOfRedLedPerTick = ENERGY_CONSUMPTION_RED_LED * 0.001;
     }
   }
 
@@ -141,37 +141,26 @@ public class ContikiLED extends LED implements ContikiMoteInterface {
   }
 
   public boolean isAnyOn() {
-    return oldLedValue > 0;
+    return currentLedValue > 0;
   }
 
   public boolean isGreenOn() {
-    return (oldLedValue & LEDS_GREEN) > 0;
+    return (currentLedValue & LEDS_GREEN) > 0;
   }
 
   public boolean isYellowOn() {
-    return (oldLedValue & LEDS_YELLOW) > 0;
+    return (currentLedValue & LEDS_YELLOW) > 0;
   }
 
   public boolean isRedOn() {
-    return (oldLedValue & LEDS_RED) > 0;
-  }
-
-  public void doActionsBeforeTick() {
-    // Nothing to do
+    return (currentLedValue & LEDS_RED) > 0;
   }
 
   public void doActionsAfterTick() {
-    if (checkLedStatus()) {
-      this.setChanged();
-      this.notifyObservers(mote);
-    }
-  }
-
-  private boolean checkLedStatus() {
     boolean ledChanged;
 
     byte newLedsValue = moteMem.getByteValueOf("simLedsValue");
-    if (newLedsValue != oldLedValue) {
+    if (newLedsValue != currentLedValue) {
       ledChanged = true;
     } else {
       ledChanged = false;
@@ -188,8 +177,11 @@ public class ContikiLED extends LED implements ContikiMoteInterface {
       myEnergyConsumption += energyOfRedLedPerTick;
     }
 
-    oldLedValue = newLedsValue;
-    return ledChanged;
+    currentLedValue = newLedsValue;
+    if (ledChanged) {
+      this.setChanged();
+      this.notifyObservers(mote);
+    }
   }
 
   public JPanel getInterfaceVisualizer() {
