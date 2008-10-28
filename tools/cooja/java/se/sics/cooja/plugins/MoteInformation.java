@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: MoteInformation.java,v 1.5 2008/02/07 13:15:22 fros4943 Exp $
+ * $Id: MoteInformation.java,v 1.6 2008/10/28 13:59:35 fros4943 Exp $
  */
 
 package se.sics.cooja.plugins;
@@ -35,14 +35,13 @@ import java.awt.*;
 import java.awt.event.*;
 import java.util.*;
 import javax.swing.*;
-
 import org.apache.log4j.Logger;
 
 import se.sics.cooja.*;
 import se.sics.cooja.Mote.State;
 
 /**
- * MoteInformation is a simple information window for motes.
+ * Mote information displays information about a given mote.
  *
  * @author Fredrik Osterlind
  */
@@ -82,7 +81,7 @@ public class MoteInformation extends VisPlugin {
     mainPane.setLayout(new BoxLayout(mainPane, BoxLayout.Y_AXIS));
     JPanel smallPane;
 
-    // Remove mote button
+    /* Remove button */
     smallPane = new JPanel(new BorderLayout());
     label = new JLabel("Remove mote");
     label.setPreferredSize(new Dimension(LABEL_WIDTH,LABEL_HEIGHT));
@@ -101,7 +100,7 @@ public class MoteInformation extends VisPlugin {
     mainPane.add(smallPane);
     mainPane.add(Box.createRigidArea(new Dimension(0,25)));
 
-    // Visualize state
+    /* State */
     smallPane = new JPanel(new BorderLayout());
     label = new JLabel("-- STATE --");
     label.setPreferredSize(new Dimension(LABEL_WIDTH,LABEL_HEIGHT));
@@ -122,8 +121,7 @@ public class MoteInformation extends VisPlugin {
     mainPane.add(smallPane);
     mainPane.add(Box.createRigidArea(new Dimension(0,25)));
 
-
-    // Visualize mote type
+    /* Mote type */
     smallPane = new JPanel(new BorderLayout());
     label = new JLabel("-- MOTE TYPE --");
     label.setPreferredSize(new Dimension(LABEL_WIDTH,LABEL_HEIGHT));
@@ -135,22 +133,21 @@ public class MoteInformation extends VisPlugin {
     mainPane.add(smallPane);
     mainPane.add(Box.createRigidArea(new Dimension(0,25)));
 
-    // All interfaces
+    /* Mote interfaces */
     smallPane = new JPanel(new BorderLayout());
-    label = new JLabel("-- INTERFACES --");
+    label = new JLabel("-- MOTE INTERFACES --");
     label.setPreferredSize(new Dimension(LABEL_WIDTH,LABEL_HEIGHT));
     smallPane.add(BorderLayout.NORTH, label);
 
     mainPane.add(smallPane);
     mainPane.add(Box.createRigidArea(new Dimension(0,10)));
 
-    for (int i=0; i < mote.getInterfaces().getAllActiveInterfaces().size(); i++) {
+    for (MoteInterface intf : mote.getInterfaces().getInterfaces()) {
       smallPane = new JPanel();
       smallPane.setLayout(new BorderLayout());
 
-      MoteInterface moteInterface = mote.getInterfaces().getAllActiveInterfaces().get(i);
-      String interfaceDescription = GUI.getDescriptionOf(moteInterface);
-      JPanel interfaceVisualizer = moteInterface.getInterfaceVisualizer();
+      String interfaceDescription = GUI.getDescriptionOf(intf);
+      JPanel interfaceVisualizer = intf.getInterfaceVisualizer();
       label = new JLabel(interfaceDescription);
       label.setAlignmentX(JLabel.CENTER_ALIGNMENT);
       smallPane.add(BorderLayout.NORTH, label);
@@ -159,32 +156,8 @@ public class MoteInformation extends VisPlugin {
         interfaceVisualizer.setBorder(BorderFactory.createEtchedBorder());
         smallPane.add(BorderLayout.CENTER, interfaceVisualizer);
 
-				// Tag each visualized interface to easier release them later
-				interfaceVisualizer.putClientProperty("my_interface", moteInterface);
-        visibleMoteInterfaces.add(interfaceVisualizer);
-      }
-
-      mainPane.add(smallPane);
-      mainPane.add(Box.createRigidArea(new Dimension(0,5)));
-    }
-    for (int i=0; i < mote.getInterfaces().getAllPassiveInterfaces().size(); i++) {
-      smallPane = new JPanel();
-      smallPane.setLayout(new BorderLayout());
-
-      MoteInterface moteInterface = mote.getInterfaces().getAllPassiveInterfaces().get(i);
-      String interfaceDescription = GUI.getDescriptionOf(moteInterface);
-
-      JPanel interfaceVisualizer = moteInterface.getInterfaceVisualizer();
-      label = new JLabel(interfaceDescription);
-      label.setAlignmentX(JLabel.CENTER_ALIGNMENT);
-      smallPane.add(BorderLayout.NORTH, label);
-
-      if (interfaceVisualizer != null) {
-        interfaceVisualizer.setBorder(BorderFactory.createEtchedBorder());
-        smallPane.add(BorderLayout.CENTER, interfaceVisualizer);
-
-        // Tag each visualized interface to easier release them later
-        interfaceVisualizer.putClientProperty("my_interface", moteInterface);
+				// Tag each visualized interface
+				interfaceVisualizer.putClientProperty("my_interface", intf);
         visibleMoteInterfaces.add(interfaceVisualizer);
       }
 
@@ -192,13 +165,14 @@ public class MoteInformation extends VisPlugin {
       mainPane.add(Box.createRigidArea(new Dimension(0,5)));
     }
 
+    this.getContentPane().add(BorderLayout.CENTER,
+        new JScrollPane(mainPane,
+            JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,
+            JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED));
 
-    this.getContentPane().add(BorderLayout.NORTH, new JScrollPane(mainPane,
-        JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,
-        JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED));
     pack();
-    setPreferredSize(new Dimension(350,500));
-    setSize(new Dimension(350,500));
+    setPreferredSize(new Dimension(getWidth()+15, 250));
+    setSize(new Dimension(getWidth()+15, 250));
 
     try {
       setSelected(true);
@@ -206,7 +180,7 @@ public class MoteInformation extends VisPlugin {
       // Could not select
     }
 
-    // Register as state observer to detect if mote changes state
+    /* Listen to mote state changes */
     mote.addStateObserver(stateObserver = new Observer() {
       public void update(Observable obs, Object obj) {
         if (mote.getState() == State.ACTIVE) {
@@ -227,7 +201,7 @@ public class MoteInformation extends VisPlugin {
     // Release all interface visualizations
     for (JPanel interfaceVisualization: visibleMoteInterfaces) {
       MoteInterface moteInterface = (MoteInterface) interfaceVisualization.getClientProperty("my_interface");
-      if (moteInterface != null && interfaceVisualization != null) {
+      if (moteInterface != null) {
         moteInterface.releaseInterfaceVisualizer(interfaceVisualization);
       } else {
         logger.warn("Could not release panel");
