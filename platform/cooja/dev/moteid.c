@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: moteid.c,v 1.1 2006/08/21 12:11:19 fros4943 Exp $
+ * $Id: moteid.c,v 1.2 2008/10/28 15:37:34 fros4943 Exp $
  */
 
 #include "dev/moteid.h"
@@ -45,7 +45,7 @@ doInterfaceActionsBeforeTick(void)
 {
   if (simMoteIDChanged) {
     simMoteIDChanged = 0;
-	random_init((simMoteID+1) * 100 % 99);
+	random_init((simMoteID+1));
   }
 }
 /*-----------------------------------------------------------------------------------*/
