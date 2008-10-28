@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006, Swedish Institute of Computer Science.
+ * Copyright (c) 2008, Swedish Institute of Computer Science.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ContikiClock.java,v 1.3 2007/06/19 09:59:19 fros4943 Exp $
+ * $Id: ContikiClock.java,v 1.4 2008/10/28 09:57:48 fros4943 Exp $
  */
 
 package se.sics.cooja.contikimote.interfaces;
@@ -38,24 +38,27 @@ import org.jdom.Element;
 import se.sics.cooja.*;
 import se.sics.cooja.contikimote.ContikiMoteInterface;
 import se.sics.cooja.interfaces.Clock;
+import se.sics.cooja.interfaces.PolledBeforeActiveTicks;
 
 /**
- * The class represents a clock and controls the core time.
- * 
- * It needs read/write access to the following core variables:
+ * Clock mote interface. Controls Contiki time.
+ *
+ * Contiki variables:
  * <ul>
  * <li>int simCurrentTime
  * </ul>
- * Dependency core interfaces are:
+ *
+ * Core interface:
  * <ul>
  * <li>clock_interface
  * </ul>
  * <p>
- * This observable never updates.
- * 
- * @author Fredrik Osterlind
+ *
+ * This observable never notifies.
+ *
+ * @author Fredrik Österlind
  */
-public class ContikiClock extends Clock implements ContikiMoteInterface {
+public class ContikiClock extends Clock implements ContikiMoteInterface, PolledBeforeActiveTicks {
 
   private Mote mote = null;
   private SectionMoteMemory moteMem = null;
@@ -63,10 +66,8 @@ public class ContikiClock extends Clock implements ContikiMoteInterface {
   private int timeDrift = 0;
 
   /**
-   * Creates a time connected to mote.
-   * 
-   * @param mote
-   *          Mote to connect this time to.
+   * @param mote Mote
+   *
    * @see Mote
    * @see se.sics.cooja.MoteInterfaceHandler
    */
@@ -92,15 +93,12 @@ public class ContikiClock extends Clock implements ContikiMoteInterface {
   }
 
   public void doActionsBeforeTick() {
-    // Update core time to correspond with the simulation time
+    /* Update time */
     int moteTime = mote.getSimulation().getSimulationTime() + timeDrift;
-    
-    if (moteTime > 0)
-      setTime(moteTime);
-  }
 
-  public void doActionsAfterTick() {
-    // Nothing to do
+    if (moteTime > 0) {
+      setTime(moteTime);
+    }
   }
 
   public JPanel getInterfaceVisualizer() {
