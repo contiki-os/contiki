@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006, Swedish Institute of Computer Science.
+ * Copyright (c) 2008, Swedish Institute of Computer Science.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ContikiButton.java,v 1.6 2007/04/02 14:14:28 fros4943 Exp $
+ * $Id: ContikiButton.java,v 1.7 2008/10/28 09:42:26 fros4943 Exp $
  */
 
 package se.sics.cooja.contikimote.interfaces;
@@ -42,46 +42,40 @@ import se.sics.cooja.contikimote.ContikiMoteInterface;
 import se.sics.cooja.interfaces.Button;
 
 /**
- * This class represents a button.
- * 
- * It needs read/write access to the following core variables:
+ * Button mote interface.
+ *
+ * Contiki variables:
  * <ul>
  * <li>char simButtonIsDown (1=down, else up)
  * <li>char simButtonChanged (1=changed, else not changed)
  * <li>char simButtonIsActive (1=active, else inactive)
  * </ul>
- * Dependency core interfaces are:
+ *
+ * Core interface:
  * <ul>
  * <li>button_interface
  * </ul>
  * <p>
- * This observable notifies observers when the button changes state (between
- * pressed and released).
- * 
- * @author Fredrik Osterlind
+ *
+ * This observable notifies when the button is pressed or released.
+ *
+ * @author Fredrik Österlind
  */
 public class ContikiButton extends Button implements ContikiMoteInterface {
   private SectionMoteMemory moteMem;
   private Mote mote;
 
-  private boolean shouldBeReleased = false;
   private static Logger logger = Logger.getLogger(ContikiButton.class);
-
-  private final boolean RAISES_EXTERNAL_INTERRUPT;
 
   /**
    * Creates an interface to the button at mote.
-   * 
+   *
    * @param mote
    *          Button's mote.
    * @see Mote
    * @see se.sics.cooja.MoteInterfaceHandler
    */
   public ContikiButton(Mote mote) {
-    // Read class configurations of this mote type
-    RAISES_EXTERNAL_INTERRUPT = mote.getType().getConfig()
-        .getBooleanValue(ContikiButton.class, "EXTERNAL_INTERRUPT_bool");
-
     this.mote = mote;
     this.moteMem = (SectionMoteMemory) mote.getMemory();
   }
@@ -90,12 +84,31 @@ public class ContikiButton extends Button implements ContikiMoteInterface {
     return new String[]{"button_interface"};
   }
 
+  private TimeEvent releaseButtonEvent = new TimeEvent(0) {
+    public void execute(int t) {
+
+      /* Force mote awake when button is down */
+      mote.setState(Mote.State.ACTIVE);
+
+      /* Wait until button change is handled by Contiki */
+      if (moteMem.getByteValueOf("simButtonChanged") == 0) {
+        logger.info("Releasing button at: " + t);
+        releaseButton();
+      } else {
+        /* Reschedule button release */
+        mote.getSimulation().addEvent(releaseButtonEvent, t+1);
+      }
+    }
+  };
+
   /**
-   * Clicks button. Button will be down for one tick, and then released.
+   * Clicks button: Presses and immediately releases button.
    */
   public void clickButton() {
     pressButton();
-    shouldBeReleased = true;
+
+    /* Schedule release button */
+    mote.getSimulation().addEvent(releaseButtonEvent, mote.getSimulation().getSimulationTime());
   }
 
   public void releaseButton() {
@@ -104,9 +117,8 @@ public class ContikiButton extends Button implements ContikiMoteInterface {
     if (moteMem.getByteValueOf("simButtonIsActive") == 1) {
       moteMem.setByteValueOf("simButtonChanged", (byte) 1);
 
-      // If mote is inactive, wake it up
-      if (RAISES_EXTERNAL_INTERRUPT)
-        mote.setState(Mote.State.ACTIVE);
+      /* If mote is inactive, wake it up */
+      mote.setState(Mote.State.ACTIVE);
 
       setChanged();
       notifyObservers();
@@ -119,9 +131,8 @@ public class ContikiButton extends Button implements ContikiMoteInterface {
     if (moteMem.getByteValueOf("simButtonIsActive") == 1) {
       moteMem.setByteValueOf("simButtonChanged", (byte) 1);
 
-      // If mote is inactive, wake it up
-      if (RAISES_EXTERNAL_INTERRUPT)
-        mote.setState(Mote.State.ACTIVE);
+      /* If mote is inactive, wake it up */
+      mote.setState(Mote.State.ACTIVE);
 
       setChanged();
       notifyObservers();
@@ -130,27 +141,6 @@ public class ContikiButton extends Button implements ContikiMoteInterface {
 
   public boolean isPressed() {
     return moteMem.getByteValueOf("simButtonIsDown") == 1;
-  }
-  
-  public void doActionsBeforeTick() {
-    // Nothing to do
-  }
-
-  public void doActionsAfterTick() {
-    // Make sure a mote never falls asleep with unhandled button events
-    if (moteMem.getByteValueOf("simButtonChanged") == 1 
-        && RAISES_EXTERNAL_INTERRUPT) {
-      mote.setState(Mote.State.ACTIVE);
-    }    
-    
-    // If a button is pressed and should be clicked, release it now
-    if (shouldBeReleased) {
-      // Make sure that the earlier press event has been handled by core
-      if (moteMem.getByteValueOf("simButtonChanged") == 0) {
-        releaseButton();
-        shouldBeReleased = false;
-      }
-    }
   }
 
   public JPanel getInterfaceVisualizer() {
