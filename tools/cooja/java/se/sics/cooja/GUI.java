@@ -24,7 +24,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * $Id: GUI.java,v 1.88 2008/10/29 10:39:04 fros4943 Exp $
+ * $Id: GUI.java,v 1.89 2008/10/29 13:31:02 fros4943 Exp $
  */
 
 package se.sics.cooja;
@@ -747,14 +747,9 @@ public class GUI extends Observable {
   }
 
   private static void configureFrame(final GUI gui, boolean createSimDialog) {
-    Rectangle maxSize =
-      GraphicsEnvironment.getLocalGraphicsEnvironment().getMaximumWindowBounds();
 
     // Create and set up the window.
     frame = new JFrame("COOJA Simulator");
-    if (maxSize != null) {
-      frame.setMaximizedBounds(maxSize);
-    }
     frame.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
 
     // Add menu bar
@@ -768,26 +763,33 @@ public class GUI extends Observable {
     frame.setLocationRelativeTo(null);
     frame.addWindowListener(gui.guiEventHandler);
 
-    // Restore last frame size and position
-    int framePosX = Integer.parseInt(getExternalToolsSetting("FRAME_POS_X", "-1"));
-    int framePosY = Integer.parseInt(getExternalToolsSetting("FRAME_POS_Y", "-1"));
-    int frameWidth = Integer.parseInt(getExternalToolsSetting("FRAME_WIDTH", "-1"));
-    int frameHeight = Integer.parseInt(getExternalToolsSetting("FRAME_HEIGHT", "-1"));
-    if (framePosX >= 0 && framePosY >= 0 && frameWidth > 0 && frameHeight > 0) {
-      frame.setLocation(framePosX, framePosY);
-      frame.setSize(frameWidth, frameHeight);
+    /* Restore frame size and position */
+    int framePosX = Integer.parseInt(getExternalToolsSetting("FRAME_POS_X", "0"));
+    int framePosY = Integer.parseInt(getExternalToolsSetting("FRAME_POS_Y", "0"));
+    int frameWidth = Integer.parseInt(getExternalToolsSetting("FRAME_WIDTH", "0"));
+    int frameHeight = Integer.parseInt(getExternalToolsSetting("FRAME_HEIGHT", "0"));
+    String frameScreen = getExternalToolsSetting("FRAME_SCREEN", "");
 
-      // Assume window was maximized if loaded size matches maximum bounds
-      if (maxSize != null
-          && framePosX == 0
-          && framePosY == 0
-          && frameWidth == maxSize.width
-          && frameHeight == maxSize.height) {
-        frame.setExtendedState(JFrame.MAXIMIZED_BOTH);
+    /* Restore position to the same graphics device */
+    GraphicsDevice device = null;
+    GraphicsDevice all[] = GraphicsEnvironment.getLocalGraphicsEnvironment().getScreenDevices();
+    for (GraphicsDevice gd : all) {
+      if (gd.getIDstring().equals(frameScreen)) {
+        device = gd;
       }
     }
 
-    // Display the window.
+    /* Check if frame should be maximized */
+    if (device != null) {
+      if (frameWidth == Integer.MAX_VALUE && frameHeight == Integer.MAX_VALUE) {
+        frame.setLocation(device.getDefaultConfiguration().getBounds().getLocation());
+        frame.setExtendedState(JFrame.MAXIMIZED_BOTH);
+      } else if (frameWidth > 0 && frameHeight > 0) {
+        frame.setLocation(framePosX, framePosY);
+        frame.setSize(frameWidth, frameHeight);
+      }
+    }
+
     frame.setVisible(true);
 
     if (createSimDialog) {
@@ -2476,12 +2478,19 @@ public class GUI extends Observable {
       removePlugin((Plugin) plugin, false);
     }
 
-    // Restore last frame size and position
+    /* Store frame size and position */
     if (isVisualizedInFrame()) {
+      setExternalToolsSetting("FRAME_SCREEN", frame.getGraphicsConfiguration().getDevice().getIDstring());
       setExternalToolsSetting("FRAME_POS_X", "" + frame.getLocationOnScreen().x);
       setExternalToolsSetting("FRAME_POS_Y", "" + frame.getLocationOnScreen().y);
-      setExternalToolsSetting("FRAME_WIDTH", "" + frame.getWidth());
-      setExternalToolsSetting("FRAME_HEIGHT", "" + frame.getHeight());
+
+      if (frame.getExtendedState() == JFrame.MAXIMIZED_BOTH) {
+        setExternalToolsSetting("FRAME_WIDTH", "" + Integer.MAX_VALUE);
+        setExternalToolsSetting("FRAME_HEIGHT", "" + Integer.MAX_VALUE);
+      } else {
+        setExternalToolsSetting("FRAME_WIDTH", "" + frame.getWidth());
+        setExternalToolsSetting("FRAME_HEIGHT", "" + frame.getHeight());
+      }
     }
     saveExternalToolsUserSettings();
 
@@ -3648,8 +3657,7 @@ public class GUI extends Observable {
           messageListDialog.pack();
           messageListDialog.setLocationRelativeTo(errorDialog);
 
-          Rectangle maxSize = GraphicsEnvironment.getLocalGraphicsEnvironment()
-              .getMaximumWindowBounds();
+          Rectangle maxSize = GraphicsEnvironment.getLocalGraphicsEnvironment().getMaximumWindowBounds();
           if (maxSize != null
               && (messageListDialog.getSize().getWidth() > maxSize.getWidth() || messageListDialog
                   .getSize().getHeight() > maxSize.getHeight())) {
@@ -3688,8 +3696,7 @@ public class GUI extends Observable {
           messageListDialog.pack();
           messageListDialog.setLocationRelativeTo(errorDialog);
 
-          Rectangle maxSize = GraphicsEnvironment.getLocalGraphicsEnvironment()
-              .getMaximumWindowBounds();
+          Rectangle maxSize = GraphicsEnvironment.getLocalGraphicsEnvironment().getMaximumWindowBounds();
           if (maxSize != null
               && (messageListDialog.getSize().getWidth() > maxSize.getWidth() || messageListDialog
                   .getSize().getHeight() > maxSize.getHeight())) {
