@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ContikiClock.java,v 1.5 2008/10/28 12:55:20 fros4943 Exp $
+ * $Id: ContikiClock.java,v 1.6 2008/10/29 08:36:40 fros4943 Exp $
  */
 
 package se.sics.cooja.contikimote.interfaces;
@@ -86,6 +86,10 @@ public class ContikiClock extends Clock implements ContikiMoteInterface, PolledB
 
   public void setDrift(int timeDrift) {
     this.timeDrift = timeDrift;
+  }
+
+  public int getDrift() {
+    return timeDrift;
   }
 
   public int getTime() {
