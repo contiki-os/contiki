@@ -60,6 +60,7 @@ void cc1020_set_tx(void);
 void cc1020_set_power(uint8_t pa_power);
 int cc1020_carrier_sense(void);
 uint8_t cc1020_get_rssi(void);
+uint8_t cc1020_get_packet_rssi(void);
 int cc1020_sending(void);
 
 int cc1020_send(const void *buf, unsigned short size);
