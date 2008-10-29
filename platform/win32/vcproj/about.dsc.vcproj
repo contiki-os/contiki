@@ -1,11 +1,12 @@
 <?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="8,00"
+	Version="9,00"
 	Name="about.dsc"
 	ProjectGUID="{D94905DB-27DB-4053-9760-9ADBC64F656A}"
 	RootNamespace="aboutdsc"
 	Keyword="Win32Proj"
+	TargetFrameworkVersion="131072"
 	>
 	<Platforms>
 		<Platform
@@ -21,6 +22,7 @@
 			IntermediateDirectory="$(SolutionDir)$(ConfigurationName)"
 			ConfigurationType="2"
 			CharacterSet="2"
+			BuildLogFile="$(IntDir)\$(TargetFileName).BuildLog.htm"
 			>
 			<Tool
 				Name="VCPreBuildEventTool"
@@ -44,8 +46,8 @@
 				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;_USRDLL;_CRT_NONSTDC_NO_DEPRECATE;_CRT_SECURE_NO_DEPRECATE;PLATFORM_BUILD;WITH_LOADER_ARCH;AUTOSTART_ENABLE"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="3"
+				ProgramDataBaseFileName="$(IntDir)\$(TargetFileName).vc90.pdb"
 				WarningLevel="3"
-				Detect64BitPortabilityProblems="true"
 				DebugInformationFormat="3"
 				CompileAs="0"
 			/>
@@ -61,8 +63,9 @@
 			<Tool
 				Name="VCLinkerTool"
 				OutputFile="$(OutDir)\$(ProjectName)"
-				LinkIncremental="2"
+				LinkIncremental="1"
 				SubSystem="1"
+				ImportLibrary="$(TargetDir)$(TargetFileName).lib"
 				TargetMachine="1"
 			/>
 			<Tool
@@ -84,9 +87,6 @@
 				Name="VCAppVerifierTool"
 			/>
 			<Tool
-				Name="VCWebDeploymentTool"
-			/>
-			<Tool
 				Name="VCPostBuildEventTool"
 			/>
 		</Configuration>
@@ -97,6 +97,7 @@
 			ConfigurationType="2"
 			CharacterSet="2"
 			WholeProgramOptimization="1"
+			BuildLogFile="$(IntDir)\$(TargetFileName).BuildLog.htm"
 			>
 			<Tool
 				Name="VCPreBuildEventTool"
@@ -118,8 +119,8 @@
 				AdditionalIncludeDirectories="..;../../../cpu/native;../../../core"
 				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_USRDLL;_CRT_NONSTDC_NO_DEPRECATE;_CRT_SECURE_NO_DEPRECATE;PLATFORM_BUILD;WITH_LOADER_ARCH;AUTOSTART_ENABLE"
 				RuntimeLibrary="2"
+				ProgramDataBaseFileName="$(IntDir)\$(TargetFileName).vc90.pdb"
 				WarningLevel="3"
-				Detect64BitPortabilityProblems="true"
 				DebugInformationFormat="3"
 				CompileAs="0"
 			/>
@@ -139,6 +140,7 @@
 				SubSystem="1"
 				OptimizeReferences="2"
 				EnableCOMDATFolding="2"
+				ImportLibrary="$(TargetDir)$(TargetFileName).lib"
 				TargetMachine="1"
 			/>
 			<Tool
@@ -158,9 +160,6 @@
 			/>
 			<Tool
 				Name="VCAppVerifierTool"
-			/>
-			<Tool
-				Name="VCWebDeploymentTool"
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"

@@ -1,11 +1,12 @@
 <?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="8,00"
+	Version="9,00"
 	Name="dhcp.prg"
 	ProjectGUID="{DAD91041-E4DE-42FE-9360-2237F03AB05C}"
 	RootNamespace="dhcpprg"
 	Keyword="Win32Proj"
+	TargetFrameworkVersion="131072"
 	>
 	<Platforms>
 		<Platform
@@ -21,6 +22,7 @@
 			IntermediateDirectory="$(SolutionDir)$(ConfigurationName)"
 			ConfigurationType="2"
 			CharacterSet="2"
+			BuildLogFile="$(IntDir)\$(TargetFileName).BuildLog.htm"
 			>
 			<Tool
 				Name="VCPreBuildEventTool"
@@ -44,8 +46,8 @@
 				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;_USRDLL;_CRT_NONSTDC_NO_DEPRECATE;_CRT_SECURE_NO_DEPRECATE;PLATFORM_BUILD;WITH_LOADER_ARCH;AUTOSTART_ENABLE"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="3"
+				ProgramDataBaseFileName="$(IntDir)\$(TargetFileName).vc90.pdb"
 				WarningLevel="3"
-				Detect64BitPortabilityProblems="true"
 				DebugInformationFormat="3"
 				CompileAs="0"
 			/>
@@ -62,9 +64,11 @@
 				Name="VCLinkerTool"
 				AdditionalDependencies="&quot;$(OutDir)\contiki.lib&quot;"
 				OutputFile="$(OutDir)\$(ProjectName)"
-				LinkIncremental="2"
+				LinkIncremental="1"
 				GenerateDebugInformation="true"
+				ProgramDatabaseFile="$(TargetDir)$(TargetFileName).pdb"
 				SubSystem="1"
+				ImportLibrary="$(TargetDir)$(TargetFileName).lib"
 				TargetMachine="1"
 			/>
 			<Tool
@@ -86,9 +90,6 @@
 				Name="VCAppVerifierTool"
 			/>
 			<Tool
-				Name="VCWebDeploymentTool"
-			/>
-			<Tool
 				Name="VCPostBuildEventTool"
 			/>
 		</Configuration>
@@ -99,6 +100,7 @@
 			ConfigurationType="2"
 			CharacterSet="2"
 			WholeProgramOptimization="1"
+			BuildLogFile="$(IntDir)\$(TargetFileName).BuildLog.htm"
 			>
 			<Tool
 				Name="VCPreBuildEventTool"
@@ -120,8 +122,8 @@
 				AdditionalIncludeDirectories="..;../../../cpu/native;../../../core;../../../apps/program-handler"
 				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_USRDLL;_CRT_NONSTDC_NO_DEPRECATE;_CRT_SECURE_NO_DEPRECATE;PLATFORM_BUILD;WITH_LOADER_ARCH;AUTOSTART_ENABLE"
 				RuntimeLibrary="2"
+				ProgramDataBaseFileName="$(IntDir)\$(TargetFileName).vc90.pdb"
 				WarningLevel="3"
-				Detect64BitPortabilityProblems="true"
 				DebugInformationFormat="3"
 				CompileAs="0"
 			/>
@@ -140,9 +142,11 @@
 				OutputFile="$(OutDir)\$(ProjectName)"
 				LinkIncremental="1"
 				GenerateDebugInformation="true"
+				ProgramDatabaseFile="$(TargetDir)$(TargetFileName).pdb"
 				SubSystem="1"
 				OptimizeReferences="2"
 				EnableCOMDATFolding="2"
+				ImportLibrary="$(TargetDir)$(TargetFileName).lib"
 				TargetMachine="1"
 			/>
 			<Tool
@@ -162,9 +166,6 @@
 			/>
 			<Tool
 				Name="VCAppVerifierTool"
-			/>
-			<Tool
-				Name="VCWebDeploymentTool"
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
