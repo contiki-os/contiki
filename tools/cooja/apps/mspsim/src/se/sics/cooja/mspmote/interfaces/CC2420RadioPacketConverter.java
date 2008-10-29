@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: CC2420RadioPacketConverter.java,v 1.3 2008/06/27 14:11:52 nifi Exp $
+ * $Id: CC2420RadioPacketConverter.java,v 1.4 2008/10/29 18:28:16 fros4943 Exp $
  */
 
 package se.sics.cooja.mspmote.interfaces;
@@ -34,44 +34,151 @@ package se.sics.cooja.mspmote.interfaces;
 import org.apache.log4j.Logger;
 
 import se.sics.cooja.COOJARadioPacket;
-import se.sics.cooja.RadioPacket;
 
 /**
- * Converts radio packets between CC24240/Sky and COOJA.
+ * Converts radio packets between X-MAC/CC24240/Sky and COOJA.
  * Handles radio driver specifics such as length header and CRC footer.
  *
- * @author Fredrik Osterlind
+ * @author Fredrik Österlind
  */
 public class CC2420RadioPacketConverter {
   private static Logger logger = Logger.getLogger(CC2420RadioPacketConverter.class);
 
-  /* CC2420/802.15.4 packet: PREAMBLE(4) _ SYNCH(2) _ LENGTH(1) _ PAYLOAD(<27) _ CRCFOOTER(2) */
+  public static final boolean WITH_PREAMBLE = true;
+  public static final boolean WITH_SYNCH = true;
+  public static final boolean WITH_XMAC = true;
+  public static final boolean WITH_CHECKSUM = true;
+  public static final boolean WITH_TIMESTAMP = true;
+  public static final boolean WITH_FOOTER = true;
 
-  /**
-   * Converts a COOJA radio packet to a CC2420 radio packet.
-   *
-   * @param coojaPacket COOJA radio packet
-   * @return CC2420 radio packet
-   */
-  public static CC2420RadioPacket fromCoojaToCC24240(RadioPacket coojaPacket) {
-    byte[] data = coojaPacket.getPacketData();
-    byte[] cc2420Data = new byte[data.length + 3];
-    cc2420Data[0] = (byte) ((data.length + 2) & 0xff);
-    System.arraycopy(data, 0, cc2420Data, 1, data.length);
-    return new CC2420RadioPacket(cc2420Data);
+  public static byte[] fromCoojaToCC24240(COOJARadioPacket packet) {
+    byte cc2420Data[] = new byte[6+127];
+    int pos = 0;
+    byte packetData[] = packet.getPacketData();
+    byte len; /* total packet minus preamble(4), synch(1) and length(1) */
+    short accumulatedCRC = 0;
+
+    /* 4 bytes preamble */
+    if (WITH_PREAMBLE) {
+      cc2420Data[pos++] = 0;
+      cc2420Data[pos++] = 0;
+      cc2420Data[pos++] = 0;
+      cc2420Data[pos++] = 0;
+    }
+
+    /* 1 byte synch */
+    if (WITH_SYNCH) {
+      cc2420Data[pos++] = 0x7A;
+    }
+
+    /* 1 byte length */
+    len = (byte) packetData.length;
+    if (WITH_XMAC) {
+      len += 4;
+    }
+    if (WITH_CHECKSUM) {
+      len += 2;
+    }
+    if (WITH_TIMESTAMP) {
+      len += 3;
+    }
+    if (WITH_FOOTER) {
+      len += 2;
+    }
+    cc2420Data[pos++] = len;
+
+    /* (TODO) 4 byte X-MAC */
+    if (WITH_XMAC) {
+      cc2420Data[pos++] = 0;
+      accumulatedCRC = CRCCoder.crc16Add((byte)0, accumulatedCRC);
+      cc2420Data[pos++] = 0;
+      accumulatedCRC = CRCCoder.crc16Add((byte)0, accumulatedCRC);
+      cc2420Data[pos++] = 0;
+      accumulatedCRC = CRCCoder.crc16Add((byte)0, accumulatedCRC);
+      cc2420Data[pos++] = 0;
+      accumulatedCRC = CRCCoder.crc16Add((byte)0, accumulatedCRC);
+    }
+
+    /* Payload */
+    for (byte b : packetData) {
+      accumulatedCRC = CRCCoder.crc16Add(b, accumulatedCRC);
+    }
+    System.arraycopy(packetData, 0, cc2420Data, pos, packetData.length);
+    pos += packetData.length;
+
+    /* 2 bytes checksum */
+    if (WITH_CHECKSUM) {
+      cc2420Data[pos++] = (byte) (accumulatedCRC & 0xff);
+      cc2420Data[pos++] = (byte) ((accumulatedCRC >> 8) & 0xff);
+    }
+
+    /* (TODO) 3 bytes timestamp */
+    if (WITH_TIMESTAMP) {
+      cc2420Data[pos++] = 0;
+      cc2420Data[pos++] = 0;
+      cc2420Data[pos++] = 0;
+    }
+
+    /* (TODO) 2 bytes footer */
+    if (WITH_FOOTER) {
+      cc2420Data[pos++] = 0; /* RSSI */
+      cc2420Data[pos++] = (byte) 0x80; /* CRC and CORRELATION */
+    }
+
+    byte cc2420DataStripped[] = new byte[pos];
+    System.arraycopy(cc2420Data, 0, cc2420DataStripped, 0, pos);
+
+    /*logger.info("Data length: " + cc2420DataStripped.length);*/
+    return cc2420DataStripped;
   }
 
-  /**
-   * Converts a CC2420 radio packet to a COOJA radio packet.
-   *
-   * @param cc2420RadioPacket CC24240 radio packet
-   * @return COOJA radio packet
-   */
-  public static COOJARadioPacket fromCC2420ToCooja(CC2420RadioPacket cc2420RadioPacket) {
-    byte[] cc2420Data = cc2420RadioPacket.getPacketData();
-    byte[] data = new byte[cc2420Data.length - 3];
-    System.arraycopy(cc2420Data, 1, data, 0, data.length);
-    return new COOJARadioPacket(data);
+  public static COOJARadioPacket fromCC2420ToCooja(byte[] data) {
+    int pos = 0;
+    int len; /* Payload */
+
+    /* Use some CC2420/MAC specific field such as X-MAC response */
+
+    /* (IGNORED) 4 bytes preamble */
+    if (WITH_PREAMBLE) {
+      pos += 4;
+    }
+
+    /* (IGNORED) 1 byte synch */
+    if (WITH_SYNCH) {
+      pos += 1;
+    }
+
+    /* 1 byte length */
+    len = data[pos];
+    pos += 1;
+
+    /* (IGNORED) 4 byte X-MAC */
+    if (WITH_XMAC) {
+      pos += 4;
+      len -= 4;
+    }
+
+    /* (IGNORED) 2 bytes checksum */
+    if (WITH_CHECKSUM) {
+      len -= 2;
+    }
+
+    /* (IGNORED) 3 bytes timestamp */
+    if (WITH_TIMESTAMP) {
+      len -= 3;
+    }
+
+    /* (IGNORED) 2 bytes footer */
+    if (WITH_FOOTER) {
+      len -= 2;
+    }
+
+    /*logger.info("Payload pos: " + pos);
+    logger.info("Payload length: " + len);*/
+
+    byte coojaData[] = new byte[len];
+    System.arraycopy(data, pos, coojaData, 0, len);
+    return new COOJARadioPacket(coojaData);
   }
 
 }
