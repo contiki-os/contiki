@@ -347,9 +347,16 @@ cc1020_off(void)
 uint8_t
 cc1020_get_rssi(void)
 {
-  rssi = cc1020_read_reg(CC1020_RSS);
+  return cc1020_read_reg(CC1020_RSS);
+}
+
+uint8_t
+cc1020_get_packet_rssi(void)
+{
   return rssi;
 }
+
+
 
 int
 cc1020_carrier_sense(void)
@@ -423,7 +430,10 @@ interrupt(UART0RX_VECTOR) cc1020_rxhandler(void)
     } else {
       return;
     }
-    // Update RSSI.
+    /*      Update RSSI.
+	    TODO: add sampling/averaging of several RSSI to get
+	    more reliable RSSI values
+     */
     rssi = cc1020_read_reg(CC1020_RSS);
     CC1020_SET_OPSTATE(CC1020_RX | CC1020_RX_RECEIVING);
   } else if (cc1020_state & CC1020_RX_RECEIVING) {
