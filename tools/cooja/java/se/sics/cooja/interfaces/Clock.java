@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: Clock.java,v 1.2 2007/10/03 14:20:57 fros4943 Exp $
+ * $Id: Clock.java,v 1.3 2008/10/29 08:37:42 fros4943 Exp $
  */
 
 package se.sics.cooja.interfaces;
@@ -34,12 +34,12 @@ package se.sics.cooja.interfaces;
 import se.sics.cooja.*;
 
 /**
- * A Clock represents a mote's internal clock. Notice that the overall
+ * Represents a mote's internal clock. Notice that the overall
  * simulation time and the mote's own time may differ.
  *
- * This observable never needs to update.
+ * This observable never notifies.
  *
- * @author Fredrik Osterlind
+ * @author Fredrik Österlind
  */
 @ClassDescription("Clock")
 public abstract class Clock extends MoteInterface {
@@ -47,8 +47,7 @@ public abstract class Clock extends MoteInterface {
   /**
    * Set mote's time to given time.
    *
-   * @param newTime
-   *          New time
+   * @param newTime Time
    */
   public abstract void setTime(int newTime);
 
@@ -63,5 +62,10 @@ public abstract class Clock extends MoteInterface {
    * @param timeDrift Time drift
    */
   public abstract void setDrift(int timeDrift);
+
+  /**
+   * @return Time drift
+   */
+  public abstract int getDrift();
 
 }
