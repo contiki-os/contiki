@@ -24,7 +24,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * $Id: GUI.java,v 1.87 2008/10/28 13:36:26 fros4943 Exp $
+ * $Id: GUI.java,v 1.88 2008/10/29 10:39:04 fros4943 Exp $
  */
 
 package se.sics.cooja;
@@ -747,12 +747,8 @@ public class GUI extends Observable {
   }
 
   private static void configureFrame(final GUI gui, boolean createSimDialog) {
-
-    // Make sure we have nice window decorations.
-    JFrame.setDefaultLookAndFeelDecorated(true);
-    JDialog.setDefaultLookAndFeelDecorated(true);
-    Rectangle maxSize = GraphicsEnvironment.getLocalGraphicsEnvironment()
-        .getMaximumWindowBounds();
+    Rectangle maxSize =
+      GraphicsEnvironment.getLocalGraphicsEnvironment().getMaximumWindowBounds();
 
     // Create and set up the window.
     frame = new JFrame("COOJA Simulator");
@@ -806,12 +802,6 @@ public class GUI extends Observable {
   private static void configureApplet(final GUI gui, boolean createSimDialog) {
     applet = CoojaApplet.applet;
 
-    // Make sure we have nice window decorations.
-    try {
-      UIManager.setLookAndFeel(UIManager.getCrossPlatformLookAndFeelClassName());
-    } catch (Exception e) {
-    }
-
     // Add menu bar
     JMenuBar menuBar = gui.createMenuBar();
     applet.setJMenuBar(menuBar);
@@ -835,6 +825,29 @@ public class GUI extends Observable {
    */
   public JDesktopPane getDesktopPane() {
     return myDesktopPane;
+  }
+
+  private static void setLookAndFeel() {
+
+    try {
+      try {
+        UIManager.setLookAndFeel("com.sun.java.swing.plaf.nimbus.NimbusLookAndFeel");
+        logger.info("Nimbus Look And Feel loaded");
+      } catch (Exception e) {
+        JFrame.setDefaultLookAndFeelDecorated(true);
+        JDialog.setDefaultLookAndFeelDecorated(true);
+        UIManager.setLookAndFeel(UIManager.getCrossPlatformLookAndFeelClassName());
+      }
+    } catch (UnsupportedLookAndFeelException e) {
+      logger.warn("LookAndFeel: " + e);
+    } catch (ClassNotFoundException e) {
+      logger.warn("LookAndFeel: " + e);
+    } catch (InstantiationException e) {
+      logger.warn("LookAndFeel: " + e);
+    } catch (IllegalAccessException e) {
+      logger.warn("LookAndFeel: " + e);
+    }
+
   }
 
   /**
@@ -874,9 +887,6 @@ public class GUI extends Observable {
       int delayTime, boolean simulationStarting, String filename,
       String contikiPath) {
 
-    // Create GUI and GUI frame (not visible yet)
-    JFrame.setDefaultLookAndFeelDecorated(true);
-    JDialog.setDefaultLookAndFeelDecorated(true);
     logger.info("> Creating GUI and main frame (invisible)");
     frame = new JFrame("COOJA Simulator");
     frame.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
@@ -2941,6 +2951,9 @@ public class GUI extends Observable {
       BasicConfigurator.configure();
       externalToolsUserSettingsFile = null;
     }
+
+    /* Look and Feel: Nimbus */
+    setLookAndFeel();
 
     // Parse general command arguments
     for (String element : args) {
