@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: CreateSimDialog.java,v 1.12 2008/10/28 12:58:32 fros4943 Exp $
+ * $Id: CreateSimDialog.java,v 1.13 2008/10/29 10:36:58 fros4943 Exp $
  */
 
 package se.sics.cooja.dialogs;
@@ -52,7 +52,7 @@ public class CreateSimDialog extends JDialog {
   private AddSimEventHandler myEventHandler = new AddSimEventHandler();
 
   private final static int LABEL_WIDTH = 170;
-  private final static int LABEL_HEIGHT = 15;
+  private final static int LABEL_HEIGHT = 25;
 
   private Simulation mySimulation = null;
   private GUI myGUI = null;
