@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: SkyByteRadio.java,v 1.2 2008/10/28 17:03:37 fros4943 Exp $
+ * $Id: SkyByteRadio.java,v 1.3 2008/10/29 18:38:26 fros4943 Exp $
  */
 
 package se.sics.cooja.mspmote.interfaces;
@@ -46,9 +46,9 @@ import se.sics.cooja.interfaces.Position;
 import se.sics.cooja.interfaces.Radio;
 import se.sics.cooja.mspmote.SkyMote;
 import se.sics.mspsim.chip.CC2420;
-import se.sics.mspsim.chip.PacketListener;
 import se.sics.mspsim.chip.RFListener;
-import se.sics.mspsim.platform.sky.RadioWrapper;
+import se.sics.mspsim.chip.CC2420.RadioState;
+import se.sics.mspsim.chip.CC2420.StateListener;
 
 /**
  * CC2420 to COOJA wrapper.
@@ -76,9 +76,9 @@ public class SkyByteRadio extends Radio implements CustomDataRadio {
 
   private boolean radioOn = true;
 
-  private CC2420RadioByte lastOutgoingCC2420Packet = null;
+  private CC2420RadioByte lastOutgoingByte = null;
 
-  private RadioPacket lastIncomingCC2420Packet = null;
+  private CC2420RadioByte lastIncomingByte = null;
 
   private RadioPacket lastOutgoingPacket = null;
 
@@ -106,7 +106,7 @@ public class SkyByteRadio extends Radio implements CustomDataRadio {
         }
 
         /* send this byte to all nodes */
-        lastOutgoingCC2420Packet = new CC2420RadioByte(data);
+        lastOutgoingByte = new CC2420RadioByte(data);
         lastEventTime = myMote.getSimulation().getSimulationTime();
         lastEvent = RadioEvent.CUSTOM_DATA_TRANSMITTED;
         setChanged();
@@ -121,10 +121,8 @@ public class SkyByteRadio extends Radio implements CustomDataRadio {
 
         if (len == expLen) {
           /*logger.debug("----- SKY CUSTOM DATA TRANSMITTED -----");*/
-          /* TODO: fix conversion later... */
-          byte[] packet = new byte[expLen - 5 - 1 - 2];
-          System.arraycopy(buffer, 6, packet, 0, packet.length);
-          lastOutgoingPacket = new COOJARadioPacket(packet);
+
+          lastOutgoingPacket = CC2420RadioPacketConverter.fromCC2420ToCooja(buffer);
           lastEventTime = myMote.getSimulation().getSimulationTime();
           lastEvent = RadioEvent.PACKET_TRANSMITTED;
           /*logger.debug("----- SKY PACKET TRANSMITTED -----");*/
@@ -143,13 +141,6 @@ public class SkyByteRadio extends Radio implements CustomDataRadio {
         }
       }
     });
-//    cc2420.addOperatingModeListener(new OperatingModeListener() {
-//
-//      public void modeChanged(Chip source, int mode) {
-//        SkyRadio.this.mode = mode;
-//      }
-//
-//    });
   }
 
   /* Packet radio support */
@@ -161,24 +152,60 @@ public class SkyByteRadio extends Radio implements CustomDataRadio {
     return lastIncomingPacket;
   }
 
+  private byte[] crossBufferedData = null;
+
+  private StateListener cc2420StateListener = new StateListener() {
+    public void newState(RadioState state) {
+      if (cc2420.getState() == CC2420.RadioState.RX_SFD_SEARCH) {
+        cc2420.setStateListener(null);
+        if (crossBufferedData == null) {
+          return;
+        }
+
+        /*logger.info("Radio is now ready to receive the incoming data");*/
+
+        for (byte b: crossBufferedData) {
+          cc2420.receivedByte(b);
+        }
+        crossBufferedData = null;
+      }
+    }
+  };
+
   public void setReceivedPacket(RadioPacket packet) {
     lastIncomingPacket = packet;
-    //lastIncomingCC2420Packet = CC2420RadioPacketConverter.fromCoojaToCC24240(packet);
+
+    /* TODO Receiving all bytes at the same time ok? */
+    byte[] packetData = CC2420RadioPacketConverter.fromCoojaToCC24240((COOJARadioPacket) packet);
+
+    if (cc2420.getState() != CC2420.RadioState.RX_SFD_SEARCH) {
+      /*logger.info("Radio is not currently active. Let's wait some...");*/
+
+      crossBufferedData = packetData;
+      cc2420.setStateListener(cc2420StateListener);
+
+      /* TODO Event to remove listener and give up */
+      return;
+    }
+
+    for (byte b: packetData) {
+      cc2420.receivedByte(b);
+    }
   }
 
   /* Custom data radio support */
   public Object getLastCustomDataTransmitted() {
-    return lastOutgoingCC2420Packet;
+    return lastOutgoingByte;
   }
 
   public Object getLastCustomDataReceived() {
-    return lastIncomingCC2420Packet;
+    return lastIncomingByte;
   }
 
   public void receiveCustomData(Object data) {
     if (data instanceof CC2420RadioByte) {
-      lastIncomingCC2420Packet = (CC2420RadioByte) data;
-      cc2420.receivedByte(lastIncomingCC2420Packet.getPacketData()[0]);
+      lastIncomingByte = (CC2420RadioByte) data;
+      cc2420.receivedByte(lastIncomingByte.getPacketData()[0]);
     }
   }
 
@@ -196,7 +223,9 @@ public class SkyByteRadio extends Radio implements CustomDataRadio {
   }
 
   public int getChannel() {
-    return cc2420.getActiveChannel();
+    /* TODO XXX Enable CC2420 channel selection (when implemented) */
+    //return cc2420.getActiveChannel();
+    return 26;
   }
 
   public int getFrequency() {
@@ -239,7 +268,6 @@ public class SkyByteRadio extends Radio implements CustomDataRadio {
     isReceiving = false;
 //    hasFailedReception = false;
     lastIncomingPacket = null;
-    lastIncomingCC2420Packet = null;
     cc2420.setCCA(true);
 
     lastEventTime = myMote.getSimulation().getSimulationTime();
