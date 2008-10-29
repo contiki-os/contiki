@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: MspMoteType.java,v 1.15 2008/10/05 15:49:10 fros4943 Exp $
+ * $Id: MspMoteType.java,v 1.16 2008/10/29 16:36:33 fros4943 Exp $
  */
 
 package se.sics.cooja.mspmote;
@@ -237,16 +237,15 @@ public abstract class MspMoteType implements MoteType {
           newException = (MoteTypeCreationException) newException.initCause(e);
           newException.setCompilationOutput(compilationOutput);
 
-          if (compilationOutput != null) {
-            try { Thread.sleep(500); } catch (InterruptedException ignore) { }
-            ListModel tmp = compilationOutput.getModel();
-            for (int i=tmp.getSize()-5; i < tmp.getSize(); i++) {
-              if (i < 0) {
-                continue;
-              }
-              logger.fatal(">> " + tmp.getElementAt(i));
+          try { Thread.sleep(500); } catch (InterruptedException ignore) { }
+          ListModel tmp = compilationOutput.getModel();
+          for (int i=tmp.getSize()-5; i < tmp.getSize(); i++) {
+            if (i < 0) {
+              continue;
             }
+            logger.fatal(">> " + tmp.getElementAt(i));
           }
+
           logger.fatal("Compilation error: " + e.getMessage());
           throw newException;
         }
@@ -457,15 +456,15 @@ public abstract class MspMoteType implements MoteType {
       final String command = getCompileCommand(filenameNoExtension);
       logger.info("-- Compiling MSP430 Firmware --");
 
-      compileFirmware(command, filenameNoExtension + firmwareFileExtension,
+      compileFirmware(command, sourceFile, filenameNoExtension + firmwareFileExtension,
           parentDirectory,
           successAction, failAction,
           compilationOutput, synchronous);
     }
 
     protected void compileFirmware(
-        final String command, final String firmware,
-        final File parentDirectory,
+        final String command, final File sourceFile,
+        final String firmware, final File parentDirectory,
         final Action successAction, final Action failAction,
         final MessageList compilationOutput, boolean synchronous) throws Exception {
 
@@ -659,7 +658,7 @@ public abstract class MspMoteType implements MoteType {
           try {
             File parentDir = new File(sourceTextField.getText()).getParentFile();
             compileFirmware(
-                "make clean TARGET=" + target, null,
+                "make clean TARGET=" + target, new File(sourceTextField.getText()), null,
                 parentDir, null, null, taskOutput, true);
           } catch (Exception e2) {
           }
