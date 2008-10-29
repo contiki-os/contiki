@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: MspMoteID.java,v 1.7 2008/10/09 09:41:27 joxe Exp $
+ * $Id: MspMoteID.java,v 1.8 2008/10/29 08:35:38 fros4943 Exp $
  */
 
 package se.sics.cooja.mspmote.interfaces;
@@ -39,13 +39,20 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import org.apache.log4j.Logger;
 import org.jdom.Element;
+
 import se.sics.cooja.Mote;
+import se.sics.cooja.TimeEvent;
 import se.sics.cooja.interfaces.MoteID;
 import se.sics.cooja.mspmote.MspMote;
 import se.sics.cooja.mspmote.MspMoteMemory;
 
 /**
- * @author Fredrik Osterlind
+ * Mote ID number.
+ *
+ * @see #GENERATE_ID_HEADER
+ * @see #PERSISTENT_SET_ID
+ *
+ * @author Fredrik Österlind
  */
 public class MspMoteID extends MoteID {
   private static Logger logger = Logger.getLogger(MspMoteID.class);
@@ -53,7 +60,16 @@ public class MspMoteID extends MoteID {
   private MspMote mote;
   private MspMoteMemory moteMem = null;
 
+  /**
+   * Write ID to flash at mote startup.
+   */
   public static final boolean GENERATE_ID_HEADER = true;
+
+
+  /**
+   * Persistently set ID in mote memory multiple times at node startup.
+   * May be used if emulator resets memory when firmware is loaded.
+   */
   public static final boolean PERSISTENT_SET_ID = true;
   private int persistentSetIDCounter = 1000;
 
@@ -100,7 +116,28 @@ public class MspMoteID extends MoteID {
     }
 
     /*logger.debug("ID location: " + location);*/
+
+    if (PERSISTENT_SET_ID) {
+      mote.getSimulation().scheduleEvent(persistentSetIDEvent, mote.getSimulation().getSimulationTime()+1);
+    }
   }
+
+  private TimeEvent persistentSetIDEvent = new TimeEvent(0) {
+    public void execute(int t) {
+
+      if (persistentSetIDCounter-- > 0)
+      {
+        setMoteID(moteID);
+        /*logger.debug("Persistent set ID: " + moteID);*/
+
+        if (t < -mote.getInterfaces().getClock().getDrift()) {
+          mote.getSimulation().scheduleEvent(this, -mote.getInterfaces().getClock().getDrift());
+        } else {
+          mote.getSimulation().scheduleEvent(this, t+1);
+        }
+      }
+    }
+  };
 
   public int getMoteID() {
     if (location == ID_LOCATION.VARIABLE_NODE_ID) {
@@ -135,6 +172,8 @@ public class MspMoteID extends MoteID {
         }
       }
       moteMem.setIntValueOf("node_id", newID);
+      setChanged();
+      notifyObservers();
       return;
     }
 
@@ -149,35 +188,26 @@ public class MspMoteID extends MoteID {
       moteMem.setIntValueOf("node_id", newID);
       moteMem.setIntValueOf("TOS_NODE_ID", newID);
       moteMem.setIntValueOf("ActiveMessageAddressC$addr", newID);
-
+      setChanged();
+      notifyObservers();
       return;
     }
 
     if (location == ID_LOCATION.VARIABLE_TOS_NODE_ID) {
       moteMem.setIntValueOf("TOS_NODE_ID", newID);
       moteMem.setIntValueOf("ActiveMessageAddressC$addr", newID);
+      setChanged();
+      notifyObservers();
       return;
     }
 
     if (location == ID_LOCATION.JAVA_ONLY) {
+      setChanged();
+      notifyObservers();
       return;
     }
 
     logger.fatal("Unknown node ID location");
-
-    setChanged();
-    notifyObservers();
-  }
-
-  public void doActionsBeforeTick() {
-    if (persistentSetIDCounter-- > 0)
-    {
-      setMoteID(moteID);
-      /*logger.debug("Persistent set ID: " + moteID);*/
-    }
-  }
-
-  public void doActionsAfterTick() {
   }
 
   public JPanel getInterfaceVisualizer() {
@@ -211,8 +241,8 @@ public class MspMoteID extends MoteID {
     this.deleteObserver(observer);
   }
 
-  public double energyConsumptionPerTick() {
-    return 0.0;
+  public double energyConsumption() {
+    return 0;
   }
 
   public Collection<Element> getConfigXML() {
