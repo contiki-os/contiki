@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: RadioConnection.java,v 1.4 2007/02/28 09:47:55 fros4943 Exp $
+ * $Id: RadioConnection.java,v 1.5 2008/10/29 18:23:04 fros4943 Exp $
  */
 
 package se.sics.cooja;
@@ -39,9 +39,9 @@ import se.sics.cooja.interfaces.Radio;
  * A radio connection represents a connection between a source radio and zero or
  * more destination and interfered radios. Typically the destinations are able
  * to receive data sent by the source radio, and the interfered radios are not.
- * 
+ *
  * @see RadioMedium
- * @author Fredrik Osterlind
+ * @author Fredrik Österlind
  */
 public class RadioConnection {
   private Radio source;
@@ -52,7 +52,7 @@ public class RadioConnection {
 
   /**
    * Creates a new radio connection with given source and no destinations.
-   * 
+   *
    * @param sourceRadio
    *          Source radio
    */
@@ -62,7 +62,7 @@ public class RadioConnection {
 
   /**
    * Set source of this connection.
-   * 
+   *
    * @param radio
    *          Source radio
    */
@@ -72,7 +72,7 @@ public class RadioConnection {
 
   /**
    * Adds destination radio.
-   * 
+   *
    * @param radio
    *          Radio
    */
@@ -82,7 +82,7 @@ public class RadioConnection {
 
   /**
    * Adds interfered radio.
-   * 
+   *
    * @param radio
    *          Radio
    */
@@ -92,7 +92,7 @@ public class RadioConnection {
 
   /**
    * Removes destination radio.
-   * 
+   *
    * @param radio
    *          Radio
    */
@@ -102,7 +102,7 @@ public class RadioConnection {
 
   /**
    * Removes interfered radio.
-   * 
+   *
    * @param radio
    *          Radio
    */
@@ -125,7 +125,7 @@ public class RadioConnection {
     Radio[] radioArray;
 
     radioArrayType = new Radio[destinations.size()];
-    radioArray = (Radio[]) destinations.toArray(radioArrayType);
+    radioArray = destinations.toArray(radioArrayType);
 
     return radioArray;
   }
@@ -138,9 +138,21 @@ public class RadioConnection {
     Radio[] radioArray;
 
     radioArrayType = new Radio[interfered.size()];
-    radioArray = (Radio[]) interfered.toArray(radioArrayType);
+    radioArray = interfered.toArray(radioArrayType);
 
     return radioArray;
+  }
+
+  public String toString() {
+    if (destinations.size() == 0) {
+      return "Radio connection: " + source.getMote() + " -> none";
+    }
+    if (destinations.size() == 1) {
+      return "Radio connection: " + source.getMote() + " -> " + destinations.get(0).getMote();
+    }
+
+    return "Radio connection: " + source.getMote() + " -> " + destinations.size() + " motes";
+
   }
 
 }
