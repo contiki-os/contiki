@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: SkySerial.java,v 1.3 2008/10/03 10:39:29 fros4943 Exp $
+ * $Id: SkySerial.java,v 1.4 2008/10/29 08:51:09 fros4943 Exp $
  */
 
 package se.sics.cooja.mspmote.interfaces;
@@ -40,19 +40,20 @@ import org.apache.log4j.Logger;
 import org.jdom.Element;
 
 import se.sics.cooja.*;
+import se.sics.cooja.TimeEvent;
 import se.sics.mspsim.core.*;
 import se.sics.cooja.interfaces.Log;
 import se.sics.cooja.interfaces.SerialPort;
 import se.sics.cooja.mspmote.SkyMote;
 
 /**
- * @author Fredrik Osterlind
+ * @author Fredrik Österlind
  */
 @ClassDescription("Serial port")
 public class SkySerial extends Log implements SerialPort, USARTListener {
   private static Logger logger = Logger.getLogger(SkySerial.class);
 
-  private Mote myMote;
+  private Mote mote;
   private String lastLogMessage = "";
   private String newMessage = "";
 
@@ -71,7 +72,7 @@ public class SkySerial extends Log implements SerialPort, USARTListener {
   private Vector<Byte> incomingData = new Vector<Byte>();
 
   public SkySerial(SkyMote mote) {
-    myMote = mote;
+    this.mote = mote;
 
     /* Listen to port writes */
     IOUnit ioUnit = mote.getCPU().getIOUnit("USART 1");
@@ -83,6 +84,7 @@ public class SkySerial extends Log implements SerialPort, USARTListener {
 
   public void writeByte(byte b) {
     incomingData.add(b);
+    mote.getSimulation().scheduleEvent(writeDataEvent, mote.getSimulation().getSimulationTime());
   }
 
   public void writeString(String s) {
@@ -113,18 +115,21 @@ public class SkySerial extends Log implements SerialPort, USARTListener {
     return lastSerialData;
   }
 
-  public void doActionsBeforeTick() {
-    /* Send bytes */
-    if (!incomingData.isEmpty()) {
-      if (usart.isReceiveFlagCleared()) {
-        byte b = incomingData.remove(0);
-        usart.byteReceived(b);
+  private TimeEvent writeDataEvent = new TimeEvent(0) {
+    public void execute(int t) {
+      /* TODO Implement MSPSim callback - better timing */
+
+      /* Write another byte to serial port */
+      if (!incomingData.isEmpty()) {
+        if (usart.isReceiveFlagCleared()) {
+          byte b = incomingData.remove(0);
+          usart.byteReceived(b);
+        }
+
+        mote.getSimulation().scheduleEvent(this, t+1);
       }
     }
-  }
-
-  public void doActionsAfterTick() {
-  }
+  };
 
   public JPanel getInterfaceVisualizer() {
     JPanel panel = new JPanel();
@@ -187,8 +192,8 @@ public class SkySerial extends Log implements SerialPort, USARTListener {
     this.deleteObserver(observer);
   }
 
-  public double energyConsumptionPerTick() {
-    return 0.0;
+  public double energyConsumption() {
+    return 0;
   }
 
   public Collection<Element> getConfigXML() {
@@ -204,7 +209,7 @@ public class SkySerial extends Log implements SerialPort, USARTListener {
       lastLogMessage = newMessage;
       newMessage = "";
       this.setChanged();
-      this.notifyObservers(myMote);
+      this.notifyObservers(mote);
     }
 
     lastSerialData = (byte) data;
