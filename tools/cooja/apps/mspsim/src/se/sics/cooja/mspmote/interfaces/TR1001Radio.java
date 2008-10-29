@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: TR1001Radio.java,v 1.6 2008/03/18 16:47:17 fros4943 Exp $
+ * $Id: TR1001Radio.java,v 1.7 2008/10/29 09:13:12 fros4943 Exp $
  */
 
 package se.sics.cooja.mspmote.interfaces;
@@ -41,6 +41,7 @@ import org.jdom.Element;
 
 import se.sics.mspsim.core.*;
 import se.sics.cooja.*;
+import se.sics.cooja.TimeEvent;
 import se.sics.cooja.interfaces.*;
 import se.sics.cooja.mspmote.ESBMote;
 
@@ -48,7 +49,7 @@ import se.sics.cooja.mspmote.ESBMote;
  * TR1001 radio interface on ESB platform. Assumes driver specifics such as
  * preambles, synchbytes, GCR coding, CRC16.
  *
- * @author Fredrik Osterlind
+ * @author Fredrik Österlind
  */
 @ClassDescription("TR1001 Radio")
 public class TR1001Radio extends Radio implements USARTListener, CustomDataRadio {
@@ -59,7 +60,7 @@ public class TR1001Radio extends Radio implements USARTListener, CustomDataRadio
    */
   public static final long CYCLES_BETWEEN_BYTES = 1200; /* ~19.200 bps */
 
-  private ESBMote mspMote;
+  private ESBMote mote;
 
   private boolean radioOn = true;
 
@@ -116,7 +117,7 @@ public class TR1001Radio extends Radio implements USARTListener, CustomDataRadio
    * @see se.sics.cooja.MoteInterfaceHandler
    */
   public TR1001Radio(ESBMote mote) {
-    mspMote = mote;
+    this.mote = mote;
 
     /* Start listening to CPU's USART */
     IOUnit usart = mote.getCPU().getIOUnit("USART 0");
@@ -238,17 +239,18 @@ public class TR1001Radio extends Radio implements USARTListener, CustomDataRadio
 
       transmitting = true;
 
-      transmissionStartCycles = mspMote.getCPU().cycles;
+      transmissionStartCycles = mote.getCPU().cycles;
       lastDeliveredByteTimestamp = transmissionStartCycles;
 
       lastEvent = RadioEvent.TRANSMISSION_STARTED;
-      lastEventTime = mspMote.getSimulation().getSimulationTime();
+      lastEventTime = mote.getSimulation().getSimulationTime();
       this.setChanged();
       this.notifyObservers();
     }
 
     // Remember recent radio activity
     ticksSinceLastSend = 0;
+    mote.getSimulation().scheduleEvent(followupTransmissionEvent, mote.getSimulation().getSimulationTime()+1);
 
     if (outgoingDataLength >= outgoingData.length) {
       logger.fatal("Ignoring byte due to buffer overflow");
@@ -258,11 +260,11 @@ public class TR1001Radio extends Radio implements USARTListener, CustomDataRadio
     // Deliver byte to radio medium as custom data
     /*logger.debug("----- TR1001 DELIVERED BYTE -----");*/
     lastEvent = RadioEvent.CUSTOM_DATA_TRANSMITTED;
-    tr1001ByteFromMote = new TR1001RadioByte((byte) data, mspMote.getCPU().cycles - lastDeliveredByteTimestamp);
+    tr1001ByteFromMote = new TR1001RadioByte((byte) data, mote.getCPU().cycles - lastDeliveredByteTimestamp);
     this.setChanged();
     this.notifyObservers();
 
-    lastDeliveredByteTimestamp = mspMote.getCPU().cycles;
+    lastDeliveredByteTimestamp = mote.getCPU().cycles;
     outgoingData[outgoingDataLength++] = tr1001ByteFromMote;
 
     // Feed to application level immediately
@@ -341,7 +343,7 @@ public class TR1001Radio extends Radio implements USARTListener, CustomDataRadio
       bufferedByteDelays.clear();
 
       lastEvent = RadioEvent.RECEPTION_INTERFERED;
-      lastEventTime = mspMote.getSimulation().getSimulationTime();
+      lastEventTime = mote.getSimulation().getSimulationTime();
       this.setChanged();
       this.notifyObservers();
     }
@@ -370,34 +372,38 @@ public class TR1001Radio extends Radio implements USARTListener, CustomDataRadio
   }
 
   public Position getPosition() {
-    return mspMote.getInterfaces().getPosition();
+    return mote.getInterfaces().getPosition();
   }
 
-  public void doActionsBeforeTick() {
-  }
+  private TimeEvent followupTransmissionEvent = new TimeEvent(0) {
+    public void execute(int t) {
 
-  public void doActionsAfterTick() {
-    // Detect transmission end due to inactivity
-    if (isTransmitting() && ticksSinceLastSend > 4) {
-      /* Dropping packet due to inactivity */
-      packetFromMote = null;
+      if (isTransmitting()) {
+        ticksSinceLastSend++;
 
-      // Reset counters and wait for next packet
-      outgoingDataLength = 0;
-      ticksSinceLastSend = -1;
+        // Detect transmission end due to inactivity
+        if (ticksSinceLastSend > 4) {
+          /* Dropping packet due to inactivity */
+          packetFromMote = null;
 
-      // Signal we are done transmitting
-      transmitting = false;
-      lastEvent = RadioEvent.TRANSMISSION_FINISHED;
-      this.setChanged();
-      this.notifyObservers();
+          /* Reset counters and wait for next packet */
+          outgoingDataLength = 0;
+          ticksSinceLastSend = -1;
 
-      //logger.debug("----- NULL TRANSMISSION ENDED -----");
-    } else if (isTransmitting() && ticksSinceLastSend >= 0) {
-      // Increase counter to detect when transmission ends
-      ticksSinceLastSend++;
+          /* Signal we are done transmitting */
+          transmitting = false;
+          lastEvent = RadioEvent.TRANSMISSION_FINISHED;
+          TR1001Radio.this.setChanged();
+          TR1001Radio.this.notifyObservers();
+
+          /*logger.debug("----- NULL TRANSMISSION ENDED -----");*/
+        }
+
+        /* Reschedule as long as node is transmitting */
+        mote.getSimulation().scheduleEvent(this, t+1);
+      }
     }
-  }
+  };
 
   public JPanel getInterfaceVisualizer() {
     // Location
@@ -475,7 +481,7 @@ public class TR1001Radio extends Radio implements USARTListener, CustomDataRadio
     this.deleteObserver(observer);
   }
 
-  public double energyConsumptionPerTick() {
+  public double energyConsumption() {
     return 0;
   }
 
@@ -487,6 +493,6 @@ public class TR1001Radio extends Radio implements USARTListener, CustomDataRadio
   }
 
   public Mote getMote() {
-    return mspMote;
+    return mote;
   }
 }
