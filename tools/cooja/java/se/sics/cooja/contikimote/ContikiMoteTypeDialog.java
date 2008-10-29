@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ContikiMoteTypeDialog.java,v 1.47 2008/10/28 17:01:15 fros4943 Exp $
+ * $Id: ContikiMoteTypeDialog.java,v 1.48 2008/10/29 11:47:50 fros4943 Exp $
  */
 
 package se.sics.cooja.contikimote;
@@ -851,9 +851,9 @@ public class ContikiMoteTypeDialog extends JDialog {
 
     sensorPanel.setLayout(new BoxLayout(sensorPanel, BoxLayout.Y_AXIS));
 
-    JScrollPane tempPane2 = new JScrollPane(sensorPanel);
-    tempPane2.setPreferredSize(new Dimension(300, 200));
-    sensorHolder.add(BorderLayout.WEST, tempPane2);
+    tempPane = new JScrollPane(sensorPanel);
+    tempPane.setPreferredSize(new Dimension(300, 200));
+    sensorHolder.add(BorderLayout.WEST, tempPane);
 
     label.setLabelFor(sensorPanel);
     smallPane.add(label);
@@ -890,9 +890,9 @@ public class ContikiMoteTypeDialog extends JDialog {
     coreInterfacePanel.setLayout(new BoxLayout(coreInterfacePanel,
         BoxLayout.Y_AXIS));
 
-    JScrollPane tempPane3 = new JScrollPane(coreInterfacePanel);
-    tempPane3.setPreferredSize(new Dimension(300, 200));
-    interfaceHolder.add(BorderLayout.WEST, tempPane3);
+    tempPane = new JScrollPane(coreInterfacePanel);
+    tempPane.setPreferredSize(new Dimension(300, 200));
+    interfaceHolder.add(BorderLayout.WEST, tempPane);
 
     label.setLabelFor(coreInterfacePanel);
     smallPane.add(label);
@@ -910,9 +910,7 @@ public class ContikiMoteTypeDialog extends JDialog {
     mainPane.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
     Container contentPane = getContentPane();
-    JScrollPane mainScrollPane = new JScrollPane(mainPane);
-    // mainScrollPane.setPreferredSize(new Dimension(
-    // mainPane.getPreferredSize().width + 50, 500));
+    JScrollPane mainScrollPane = new JScrollPane(mainPane, JScrollPane.VERTICAL_SCROLLBAR_ALWAYS, JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
     contentPane.add(mainScrollPane, BorderLayout.CENTER);
     contentPane.add(buttonPane, BorderLayout.SOUTH);
 
