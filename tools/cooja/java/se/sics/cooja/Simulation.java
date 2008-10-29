@@ -24,7 +24,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * $Id: Simulation.java,v 1.27 2008/10/28 13:35:59 fros4943 Exp $
+ * $Id: Simulation.java,v 1.28 2008/10/29 15:55:46 fros4943 Exp $
  */
 
 package se.sics.cooja;
@@ -191,7 +191,7 @@ public class Simulation extends Observable implements Runnable {
       }
     }
     mspMoteArray = mspMotes.toArray(new Mote[mspMotes.size()]);
-    moteArray = contikiMotes.toArray(new Mote[mspMotes.size()]);
+    moteArray = contikiMotes.toArray(new Mote[contikiMotes.size()]);
 
     try {
       while (isRunning) {
@@ -216,7 +216,7 @@ public class Simulation extends Observable implements Runnable {
     } catch (IllegalMonitorStateException e) {
       logger.warn("IllegalMonitorStateException:" + e);
     } catch (RuntimeException e) {
-      logger.warn("Simulation stop requested");
+      logger.warn("Simulation stop requested: " + e);
     }
     isRunning = false;
     thread = null;
