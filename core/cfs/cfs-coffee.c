@@ -460,6 +460,49 @@ remove_by_page(coffee_page_t page, int remove_log, int close_fds)
 }
 /*---------------------------------------------------------------------------*/
 static int
+reserve(const char *name, uint32_t size, int allow_duplicates)
+{
+  struct file_header hdr;
+  unsigned need_pages;
+  int page;
+
+  if(!allow_duplicates && find_file(name) >= 0) {
+    return -1;
+  }
+
+  need_pages = (size + sizeof(hdr) + COFFEE_PAGE_SIZE - 1) / COFFEE_PAGE_SIZE;
+
+  watchdog_stop();
+  page = find_contiguous_pages(need_pages);
+  watchdog_start();
+  if(page < 0) {
+    cfs_garbage_collect();
+    watchdog_stop();
+    page = find_contiguous_pages(need_pages);
+    watchdog_start();
+    if(page < 0) {
+      return -1;
+    }
+  }
+
+  memcpy(hdr.name, name, sizeof(hdr.name));
+  hdr.name[sizeof(hdr.name) - 1] = '\0';
+  hdr.max_pages = need_pages;
+  hdr.flags = COFFEE_FLAG_ALLOCATED | COFFEE_FLAG_VALID;
+  hdr.log_page = 0;
+  hdr.eof_hint = 0;
+  hdr.log_entries = 0;
+  hdr.log_entry_size = 0;
+  WRITE_HEADER(&hdr, page);
+
+  PRINTF("Coffee: Reserved %u pages starting from %u for file %s\n",
+      need_pages, page, name);
+  dir_cache_add(name[0], page);
+
+  return page;
+}
+/*---------------------------------------------------------------------------*/
+static int
 read_log_page(struct file_header *hdr, int16_t last_entry, struct log_param *lp)
 {
   coffee_page_t page;
@@ -1030,49 +1073,6 @@ void
 cfs_closedir(struct cfs_dir *dir)
 {
   return;
-}
-/*---------------------------------------------------------------------------*/
-static
-reserve(const char *name, uint32_t size, int allow_duplicates)
-{
-  struct file_header hdr;
-  unsigned need_pages;
-  int page;
-
-  if(!allow_duplicates && find_file(name) >= 0) {
-    return -1;
-  }
-
-  need_pages = (size + sizeof(hdr) + COFFEE_PAGE_SIZE - 1) / COFFEE_PAGE_SIZE;
-
-  watchdog_stop();
-  page = find_contiguous_pages(need_pages);
-  watchdog_start();
-  if(page < 0) {
-    cfs_garbage_collect();
-    watchdog_stop();
-    page = find_contiguous_pages(need_pages);
-    watchdog_start();
-    if(page < 0) {
-      return -1;
-    }
-  }
-
-  memcpy(hdr.name, name, sizeof(hdr.name));
-  hdr.name[sizeof(hdr.name) - 1] = '\0';
-  hdr.max_pages = need_pages;
-  hdr.flags = COFFEE_FLAG_ALLOCATED | COFFEE_FLAG_VALID;
-  hdr.log_page = 0;
-  hdr.eof_hint = 0;
-  hdr.log_entries = 0;
-  hdr.log_entry_size = 0;
-  WRITE_HEADER(&hdr, page);
-
-  PRINTF("Coffee: Reserved %u pages starting from %u for file %s\n",
-      need_pages, page, name);
-  dir_cache_add(name[0], page);
-
-  return page;
 }
 /*---------------------------------------------------------------------------*/
 int
