@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki desktop OS.
  *
- * $Id: telnetd.c,v 1.12 2008/02/28 23:59:27 oliverschmidt Exp $
+ * $Id: telnetd.c,v 1.13 2008/10/31 18:07:13 adamdunkels Exp $
  *
  */
 
@@ -158,10 +158,10 @@ shell_prompt(char *str)
 void
 shell_default_output(const char *str1, int len1, const char *str2, int len2)
 {
-  if(str1[len1 - 1] == '\n') {
+  if(len1 > 0 && str1[len1 - 1] == '\n') {
     --len1;
   }
-  if(str2[len2 - 1] == '\n') {
+  if(len2 > 0 && str2[len2 - 1] == '\n') {
     --len2;
   }
 
