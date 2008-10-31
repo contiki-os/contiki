@@ -29,7 +29,7 @@
  *
  * This file is part of the Contiki OS
  *
- * $Id: contiki-main.c,v 1.16 2008/10/14 10:06:26 julienabeille Exp $
+ * $Id: contiki-main.c,v 1.17 2008/10/31 18:11:44 adamdunkels Exp $
  *
  */
 
@@ -67,7 +67,7 @@ main(void)
     
 #if !UIP_CONF_IPV6   
   uip_ipaddr_t addr;
-  uip_ipaddr(&addr, 192,168,2,2);
+  uip_ipaddr(&addr, 192,168,1,2);
   printf("IP Address:  %d.%d.%d.%d\n", uip_ipaddr_to_quad(&addr));
   uip_sethostaddr(&addr);
 
@@ -75,7 +75,7 @@ main(void)
   printf("Subnet Mask: %d.%d.%d.%d\n", uip_ipaddr_to_quad(&addr));
   uip_setnetmask(&addr);
 
-  uip_ipaddr(&addr, 192,168,2,1);
+  uip_ipaddr(&addr, 192,168,1,1);
   printf("Def. Router: %d.%d.%d.%d\n", uip_ipaddr_to_quad(&addr));
   uip_setdraddr(&addr);
 #endif
