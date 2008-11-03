@@ -313,7 +313,7 @@ find_offset_in_file(int first_page)
   coffee_offset_t range_start, range_end, part_size;
 
   READ_HEADER(&hdr, first_page);
-  search_limit = 1;
+  search_limit = 0;
   for(i = 0; i < sizeof(hdr.eof_hint) * CHAR_BIT; i++) {
     if(hdr.eof_hint >> i) {
       search_limit = i + 1;
@@ -323,7 +323,7 @@ find_offset_in_file(int first_page)
   if(part_size == 0) {
     part_size = 1;
   }
-  range_start = part_size * (search_limit - 1);
+  range_start = part_size * search_limit;
   range_end = range_start + part_size;
 
   if(range_end > hdr.max_pages) {
@@ -338,7 +338,7 @@ find_offset_in_file(int first_page)
    * are zeroes, then these are skipped from the calculation.
    */
   
-  for(page = first_page + range_end - 1; page >= first_page + range_start; page--) {
+  for(page = first_page + range_end; page >= first_page; page--) {
     watchdog_periodic();
     COFFEE_READ(buf, sizeof(buf), page * COFFEE_PAGE_SIZE);
     for(i = COFFEE_PAGE_SIZE - 1; i >= 0; i--) {
@@ -351,7 +351,7 @@ find_offset_in_file(int first_page)
       }
     }
   }
-  
+
   /* All bytes are writable. */
   return 0;
 }
@@ -867,7 +867,7 @@ cfs_close(int fd)
 
   if(FD_VALID(fd)) {
     READ_HEADER(&hdr, coffee_fd_set[fd].file_page);
-    current_page = (coffee_fd_set[fd].end + COFFEE_PAGE_SIZE - 1) / COFFEE_PAGE_SIZE;
+    current_page = coffee_fd_set[fd].end / COFFEE_PAGE_SIZE;
     part_size = hdr.max_pages / (sizeof(hdr.eof_hint) * CHAR_BIT);
     if(part_size == 0) {
       part_size = 1;
@@ -926,7 +926,7 @@ cfs_read(int fd, void *buf, unsigned size)
 {
   struct file_header hdr;
   struct file_desc *fdp;
-  unsigned remains;
+  unsigned remains, read_chunk;
   int r;
   coffee_offset_t base, offset;
   struct log_param lp;
@@ -940,8 +940,12 @@ cfs_read(int fd, void *buf, unsigned size)
     size = fdp->end - fdp->offset;
   }
 
+  read_chunk = COFFEE_PAGE_SIZE;
   if(FD_MODIFIED(fd)) {
     READ_HEADER(&hdr, fdp->file_page);
+    if(hdr.log_entry_size > 0) {
+      read_chunk = hdr.log_entry_size;
+    }
   }
 
   remains = size;
@@ -963,7 +967,7 @@ cfs_read(int fd, void *buf, unsigned size)
     }
     /* Read from the original file if we cannot find the data in the log. */
     if(r < 0) {
-      r = remains > hdr.log_entry_size ? hdr.log_entry_size : remains;
+      r = remains > read_chunk ? read_chunk : remains;
       COFFEE_READ((char *) buf + offset, r,
 	ABS_OFFSET(fdp->file_page, base + offset));
     }
@@ -998,7 +1002,7 @@ cfs_write(int fd, const void *buf, unsigned size)
     remains = size;
     while(remains) {
       lp.offset = fdp->offset;
-      lp.buf = &buf[size - remains];
+      lp.buf = (char *)buf + size - remains;
       lp.size = remains;
 
       i = write_log_page(fdp, &lp);
