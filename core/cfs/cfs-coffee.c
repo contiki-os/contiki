@@ -567,7 +567,6 @@ read_log_page(struct file_header *hdr, int16_t last_entry, struct log_param *lp)
     base += sizeof(struct file_header) + log_entries * sizeof(page);
     base += (unsigned long)match_index * log_entry_size;
     base += lp->offset;
-
     COFFEE_READ(lp->buf, lp->size, base);
   }
 
@@ -964,7 +963,7 @@ cfs_read(int fd, void *buf, unsigned size)
     }
     /* Read from the original file if we cannot find the data in the log. */
     if(r < 0) {
-      r = remains > COFFEE_PAGE_SIZE ? COFFEE_PAGE_SIZE : remains;
+      r = remains > hdr.log_entry_size ? hdr.log_entry_size : remains;
       COFFEE_READ((char *) buf + offset, r,
 	ABS_OFFSET(fdp->file_page, base + offset));
     }
@@ -999,7 +998,7 @@ cfs_write(int fd, const void *buf, unsigned size)
     remains = size;
     while(remains) {
       lp.offset = fdp->offset;
-      lp.buf = buf;
+      lp.buf = &buf[size - remains];
       lp.size = remains;
 
       i = write_log_page(fdp, &lp);
