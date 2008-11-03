@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: CodeUI.java,v 1.4 2008/04/23 13:47:18 fros4943 Exp $
+ * $Id: CodeUI.java,v 1.5 2008/11/03 18:10:52 fros4943 Exp $
  */
 
 package se.sics.cooja.mspmote.plugins;
@@ -71,6 +71,7 @@ public class CodeUI extends JPanel {
     this.breakpoints = breakpoints;
 
     setLayout(new BorderLayout());
+
     panel = new JPanel(new BorderLayout());
     add(panel, BorderLayout.CENTER);
     displayNoCode();
@@ -188,6 +189,7 @@ public class CodeUI extends JPanel {
       public void run() {
         // Display code
         codeList = new JList(new CodeListModel(codeData));
+        codeList.setBackground(Color.WHITE);
         codeList.setFont(new Font("courier", 0, 12));
         codeList.setCellRenderer(new CodeCellRenderer(lineNr));
         codeList.addMouseListener(new MouseListener() {
