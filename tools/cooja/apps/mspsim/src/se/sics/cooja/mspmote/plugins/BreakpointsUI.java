@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: BreakpointsUI.java,v 1.1 2008/02/07 14:55:18 fros4943 Exp $
+ * $Id: BreakpointsUI.java,v 1.2 2008/11/03 18:10:34 fros4943 Exp $
  */
 
 package se.sics.cooja.mspmote.plugins;
@@ -35,6 +35,7 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
 import java.io.File;
 import java.util.Vector;
 import javax.swing.*;
@@ -102,7 +103,7 @@ public class BreakpointsUI extends JPanel {
 
   };
 
-  public BreakpointsUI(Breakpoints breakpoints) {
+  public BreakpointsUI(Breakpoints breakpoints, final MspCodeWatcher codeWatcher) {
     this.breakpoints = breakpoints;
     breakpoints.addBreakpointListener(new ActionListener() {
       public void actionPerformed(ActionEvent e) {
@@ -139,15 +140,56 @@ public class BreakpointsUI extends JPanel {
       }
     };
 
+    /* Open file on mouse click */
+    breakpointsTable.addMouseListener(new MouseListener() {
+
+      public void mouseClicked(MouseEvent e) {
+        java.awt.Point p = e.getPoint();
+        int rowIndex = breakpointsTable.rowAtPoint(p);
+        int colIndex = breakpointsTable.columnAtPoint(p);
+        int realColumnIndex = breakpointsTable.convertColumnIndexToModel(colIndex);
+
+        if (realColumnIndex == 1 || realColumnIndex == 2) {
+          Vector<Breakpoint> allBreakpoints = BreakpointsUI.this.breakpoints.getBreakpoints();
+          if (rowIndex < 0 || rowIndex >= allBreakpoints.size()) {
+            return;
+          }
+          File file = allBreakpoints.get(rowIndex).getCodeFile();
+          int line = allBreakpoints.get(rowIndex).getLineNumber();
+          if (file == null) {
+            return;
+          } else {
+            /* Display source code */
+            codeWatcher.displaySourceFile(file, line);
+          }
+        }
+      }
+
+      public void mouseEntered(MouseEvent e) {
+      }
+
+      public void mouseExited(MouseEvent e) {
+      }
+
+      public void mousePressed(MouseEvent e) {
+      }
+
+      public void mouseReleased(MouseEvent e) {
+      }
+
+    });
+
     setLayout(new BorderLayout());
     add(breakpointsTable.getTableHeader(), BorderLayout.PAGE_START);
     add(breakpointsTable, BorderLayout.CENTER);
   }
 
   private int flashCounter = 0;
+  private Color oldColor;
   private void flashBreakpoint(Breakpoint breakpoint) {
     int index = breakpoints.getBreakpoints().indexOf(breakpoint);
     breakpointsTable.setRowSelectionInterval(index, index);
+    oldColor = breakpointsTable.getSelectionBackground();
     breakpointsTable.setSelectionBackground(Color.RED);
 
     flashCounter = 8;
@@ -159,7 +201,7 @@ public class BreakpointsUI extends JPanel {
           timer.stop();
           SwingUtilities.invokeLater(new Runnable() {
             public void run() {
-              breakpointsTable.setSelectionBackground(Color.WHITE);
+              breakpointsTable.setSelectionBackground(oldColor);
             }
           });
           return;
@@ -174,7 +216,7 @@ public class BreakpointsUI extends JPanel {
         } else {
           SwingUtilities.invokeLater(new Runnable() {
             public void run() {
-              breakpointsTable.setSelectionBackground(Color.WHITE);
+              breakpointsTable.setSelectionBackground(oldColor);
             }
           });
         }
