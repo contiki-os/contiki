@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: MspCodeWatcher.java,v 1.13 2008/09/20 09:16:28 fros4943 Exp $
+ * $Id: MspCodeWatcher.java,v 1.14 2008/11/03 18:11:44 fros4943 Exp $
  */
 
 package se.sics.cooja.mspmote.plugins;
@@ -53,6 +53,7 @@ import se.sics.cooja.mspmote.MspMote;
 import se.sics.cooja.mspmote.MspMoteType;
 import se.sics.mspsim.core.CPUMonitor;
 import se.sics.mspsim.core.MSP430;
+import se.sics.mspsim.core.MSP430Core;
 import se.sics.mspsim.ui.DebugUI;
 import se.sics.mspsim.util.DebugInfo;
 
@@ -66,8 +67,8 @@ public class MspCodeWatcher extends VisPlugin {
   private MspMoteType moteType;
   private JButton stepButton;
 
-  private File codeFile = null;
-  private int lineNumber = -1;
+  private File currentCodeFile = null;
+  private int currentLineNumber = -1;
 
   private DebugUI instructionsUI;
   private CodeUI codeUI;
@@ -75,7 +76,7 @@ public class MspCodeWatcher extends VisPlugin {
 
   private Breakpoints breakpoints = null;
 
-  private JLabel filenameLabel;
+  private JButton currentFileButton;
 
   private Vector<File> sourceFilesAlpha;
   private JComboBox fileComboBox;
@@ -105,16 +106,16 @@ public class MspCodeWatcher extends VisPlugin {
     getContentPane().setLayout(new BorderLayout());
 
     instructionsUI = new DebugUI(this.mspMote.getCPU(), true);
-    breakpointsUI = new BreakpointsUI(breakpoints);
+    breakpointsUI = new BreakpointsUI(breakpoints, this);
     codeUI = new CodeUI(breakpoints);
 
-    JSplitPane leftPanel = new JSplitPane(
+    JSplitPane rightPanel = new JSplitPane(
         JSplitPane.VERTICAL_SPLIT,
         new JScrollPane(instructionsUI, JScrollPane.VERTICAL_SCROLLBAR_ALWAYS, JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED),
         new JScrollPane(breakpointsUI, JScrollPane.VERTICAL_SCROLLBAR_ALWAYS, JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED)
     );
-    leftPanel.setOneTouchExpandable(true);
-    leftPanel.setResizeWeight(0.5);
+    rightPanel.setOneTouchExpandable(true);
+    rightPanel.setResizeWeight(0.2);
 
     JPanel controlPanel = new JPanel();
 
@@ -163,15 +164,29 @@ public class MspCodeWatcher extends VisPlugin {
       }
     });
 
+    currentFileButton = new JButton("[unknown]");
+    currentFileButton.addActionListener(new ActionListener() {
+      public void actionPerformed(ActionEvent e) {
+        if (currentCodeFile == null) {
+          return;
+        }
+
+        displaySourceFile(currentCodeFile, currentLineNumber);
+      }
+    });
+
     JPanel topPanel = new JPanel();
     topPanel.setLayout(new BorderLayout());
     topPanel.add(BorderLayout.EAST, fileComboBox);
-    topPanel.add(BorderLayout.CENTER, filenameLabel = new JLabel(""));
+
+    JPanel currentFilePanel = new JPanel();
+    currentFilePanel.add(BorderLayout.WEST, new JLabel("current file:"));
+    currentFilePanel.add(BorderLayout.WEST, currentFileButton);
+    topPanel.add(BorderLayout.WEST, currentFilePanel);
 
 
-
-    // Add single step button
-    stepButton = new JButton("Single step");
+    /* Instruction button */
+    stepButton = new JButton("Single instruction");
     stepButton.addActionListener(new ActionListener() {
       public void actionPerformed(ActionEvent e) {
         // TODO Perform single step here
@@ -181,12 +196,61 @@ public class MspCodeWatcher extends VisPlugin {
     });
     controlPanel.add(stepButton);
 
+    /* Return button */
+    stepButton = new JButton("Until function returns");
+    stepButton.addActionListener(new ActionListener() {
+      public void actionPerformed(ActionEvent e) {
+        /* XXX Experimental */
+        final int max = 10000;
+        int count=0;
+        int pc, instruction;
+        MSP430 cpu = mspMote.getCPU();
+        int depth = 0;
+
+        /* Extract function name */
+        DebugInfo debugInfo = mspMote.getELF().getDebugInfo(mspMote.getCPU().reg[MSP430.PC]);
+        if (debugInfo == null || debugInfo.getFunction() == null) {
+          logger.fatal("Unknown function");
+          return;
+        }
+        String functionName = debugInfo.getFunction().split(":")[0];
+        logger.info("Function: '" + functionName + "'");
+
+        pc = cpu.readRegister(MSP430Core.PC);
+        instruction = cpu.memory[pc] + (cpu.memory[pc + 1] << 8);
+        if (instruction == MSP430.RETURN) {
+          logger.fatal("Already at return instruction");
+          return;
+        }
+
+        while (count++ < max) {
+          cpu.step(mspMote.getCPU().cycles+1);
+          pc = cpu.readRegister(MSP430Core.PC);
+          instruction = cpu.memory[pc] + (cpu.memory[pc + 1] << 8);
+          if ((instruction & 0xff80) == MSP430.CALL) {
+            depth++;
+          } else if (instruction == MSP430.RETURN) {
+            depth--;
+            if (depth < 0) {
+              updateInfo();
+              return;
+            }
+
+          }
+        }
+
+        logger.fatal("Function '" + functionName + "' did not return within " + max + " instructions");
+        updateInfo();
+      }
+    });
+    controlPanel.add(stepButton);
+
     JSplitPane splitPane = new JSplitPane(
         JSplitPane.HORIZONTAL_SPLIT,
-        leftPanel,
-        new JScrollPane(codeUI));
+        new JScrollPane(codeUI),
+        rightPanel);
     splitPane.setOneTouchExpandable(true);
-    splitPane.setResizeWeight(0.1);
+    splitPane.setResizeWeight(0.8);
 
     add(BorderLayout.CENTER, splitPane);
 
@@ -205,8 +269,8 @@ public class MspCodeWatcher extends VisPlugin {
       }
     });
 
-    setSize(350, 250);
-    pack();
+    setSize(750, 500);
+    updateInfo();
 
     // Tries to select this plugin
     try {
@@ -216,6 +280,20 @@ public class MspCodeWatcher extends VisPlugin {
     }
   }
 
+  private File lastReadTextFile = null;
+  public void displaySourceFile(File file, int line) {
+
+    if (lastReadTextFile != null && file.compareTo(lastReadTextFile) == 0) {
+      codeUI.displayLine(line);
+      return;
+    }
+
+    logger.info("Reading source file " + file);
+    Vector<String> codeData = readTextFile(file);
+    lastReadTextFile = file;
+    codeUI.displayNewCode(file, codeData, line);
+  }
+
   private void sourceFileSelectionChanged() {
     int index = fileComboBox.getSelectedIndex();
     if (index == 0) {
@@ -223,9 +301,7 @@ public class MspCodeWatcher extends VisPlugin {
     }
 
     File selectedFile = sourceFilesAlpha.get(index-1);
-    Vector<String> codeData = readTextFile(selectedFile);
-    codeUI.displayNewCode(selectedFile, codeData, -1);
-    codeFile = null;
+    displaySourceFile(selectedFile, -1);
   }
 
   /**
@@ -582,26 +658,18 @@ public class MspCodeWatcher extends VisPlugin {
     instructionsUI.repaint();
 
     // Try locate source file
-    File oldCodeFile = codeFile;
     updateCurrentSourceCodeFile();
-    if (codeFile == null) {
+    if (currentCodeFile == null) {
       return;
     }
-
-    // If found and not already loaded, load source file
-    if (oldCodeFile == null || !oldCodeFile.getPath().equals(codeFile.getPath())) {
-      Vector<String> codeData = readTextFile(codeFile);
-      codeUI.displayNewCode(codeFile, codeData, lineNumber);
-    } else {
-      codeUI.displayLine(lineNumber);
-    }
+    displaySourceFile(currentCodeFile, currentLineNumber);
 
     codeUI.repaint();
 
-    if (codeFile != null) {
-      filenameLabel.setText(codeFile.getName() + ":" + lineNumber);
+    if (currentCodeFile != null) {
+      currentFileButton.setText(currentCodeFile.getName() + ":" + currentLineNumber);
     } else {
-      filenameLabel.setText("");
+      currentFileButton.setText("[unknown]");
     }
 
     fileComboBox.setSelectedIndex(0);
@@ -616,7 +684,7 @@ public class MspCodeWatcher extends VisPlugin {
   }
 
   private void updateCurrentSourceCodeFile() {
-    codeFile = null;
+    currentCodeFile = null;
 
     try {
       DebugInfo debugInfo = mspMote.getELF().getDebugInfo(mspMote.getCPU().reg[MSP430.PC]);
@@ -639,13 +707,13 @@ public class MspCodeWatcher extends VisPlugin {
         path = path.replace("/cygdrive/" + driveCharacter + "/", driveCharacter + ":/");
       }
 
-      codeFile = new File(path, debugInfo.getFile());
-      lineNumber = debugInfo.getLine();
+      currentCodeFile = new File(path, debugInfo.getFile());
+      currentLineNumber = debugInfo.getLine();
 
     } catch (Exception e) {
       logger.fatal("Exception: " + e);
-      codeFile = null;
-      lineNumber = -1;
+      currentCodeFile = null;
+      currentLineNumber = -1;
     }
   }
 
