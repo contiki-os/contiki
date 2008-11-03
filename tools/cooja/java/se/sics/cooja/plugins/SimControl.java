@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: SimControl.java,v 1.8 2008/10/28 15:31:08 fros4943 Exp $
+ * $Id: SimControl.java,v 1.9 2008/11/03 18:10:13 fros4943 Exp $
  */
 
 package se.sics.cooja.plugins;
@@ -217,7 +217,7 @@ public class SimControl extends VisPlugin {
     if (simulation.getDelayTime() > 0) {
       label = new JLabel("Delay: " + simulation.getDelayTime() + " ms");
     } else {
-      label = new JLabel("Zero simulation delay");
+      label = new JLabel("No simulation delay");
     }
     smallPanel.add(label);
     delayLabel = label;
