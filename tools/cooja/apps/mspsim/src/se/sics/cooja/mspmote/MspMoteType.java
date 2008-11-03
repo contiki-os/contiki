@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: MspMoteType.java,v 1.17 2008/11/03 12:45:52 fros4943 Exp $
+ * $Id: MspMoteType.java,v 1.18 2008/11/03 13:18:28 fros4943 Exp $
  */
 
 package se.sics.cooja.mspmote;
@@ -50,7 +50,9 @@ import se.sics.cooja.dialogs.MessageList;
 public abstract class MspMoteType implements MoteType {
   private static Logger logger = Logger.getLogger(MspMoteType.class);
 
-  private static final String firmwareFileExtension = ".firmware";
+  protected static String getTargetFileExtension(String target) {
+    return "." + target;
+  }
 
   /* Convenience: Preselecting last used directory  */
   protected static File lastParentDirectory = null;
@@ -59,7 +61,7 @@ public abstract class MspMoteType implements MoteType {
   private String description = null;
 
   /* If source file is defined, (re)compilation is performed */
-  private File fileELF = null;
+  private File fileFirmware = null;
   private File fileSource = null;
   private String compileCommand = null;
 
@@ -86,7 +88,7 @@ public abstract class MspMoteType implements MoteType {
    *          ELF file
    */
   public void setELFFile(File file) {
-    this.fileELF = file;
+    this.fileFirmware = file;
   }
 
   /**
@@ -103,7 +105,7 @@ public abstract class MspMoteType implements MoteType {
    * @return ELF file
    */
   public File getELFFile() {
-    return fileELF;
+    return fileFirmware;
   }
 
   /**
@@ -149,7 +151,7 @@ public abstract class MspMoteType implements MoteType {
    * @throws MoteTypeCreationException Mote type creation failed
    */
   protected boolean configureAndInitMspType(Container parentContainer, Simulation simulation,
-      boolean visAvailable, String target, String targetNice)
+      boolean visAvailable, final String target, final String targetNice)
   throws MoteTypeCreationException {
     boolean compileFromSource = false;
 
@@ -185,7 +187,7 @@ public abstract class MspMoteType implements MoteType {
 
       String question = targetNice + " mote type loads a firmware (ELF).\n\n"
           + "To compile a Contiki application from source: 'Compile'\n"
-          + "To use a pre-compiled existing file: 'Existing'.\n";
+          + "To use a pre-compiled existing firmware: 'Existing'.\n";
       String title = "Compile or load existing " + targetNice + " firmware";
 
       if (GUI.isVisualizedInApplet()) {
@@ -274,19 +276,18 @@ public abstract class MspMoteType implements MoteType {
       if (lastParentDirectory != null) {
         fc.setCurrentDirectory(lastParentDirectory);
       } else {
-        fc.setCurrentDirectory(new java.io.File(GUI
-            .getExternalToolsSetting("PATH_CONTIKI")));
+        fc.setCurrentDirectory(new java.io.File(GUI.getExternalToolsSetting("PATH_CONTIKI")));
       }
       fc.setFileSelectionMode(JFileChooser.FILES_ONLY);
       fc.addChoosableFileFilter(new FileFilter() {
         public boolean accept(File f) {
+          String filename = f.getName();
           if (f.isDirectory()) {
             return true;
           }
 
-          String filename = f.getName();
           if (filename != null) {
-            if (filename.endsWith(firmwareFileExtension)) {
+            if (filename.endsWith(getTargetFileExtension(target)) || filename.endsWith(".firmware")) {
               return true;
             }
           }
@@ -294,10 +295,29 @@ public abstract class MspMoteType implements MoteType {
         }
 
         public String getDescription() {
-          return "ELF file";
+          return "Firmware files";
         }
       });
-      fc.setDialogTitle("Select ELF file");
+      fc.addChoosableFileFilter(new FileFilter() {
+        public boolean accept(File f) {
+          String filename = f.getName();
+          if (f.isDirectory()) {
+            return true;
+          }
+
+          if (filename != null) {
+            if (filename.endsWith(getTargetFileExtension(target))) {
+              return true;
+            }
+          }
+          return false;
+        }
+
+        public String getDescription() {
+          return targetNice + " firmware files";
+        }
+      });
+      fc.setDialogTitle("Select firmware file");
 
       if (fc.showOpenDialog(parentContainer) == JFileChooser.APPROVE_OPTION) {
         File selectedFile = fc.getSelectedFile();
@@ -307,10 +327,10 @@ public abstract class MspMoteType implements MoteType {
           return false;
         }
 
-        if (!selectedFile.getName().endsWith(firmwareFileExtension)) {
-          logger.fatal("Selected file \"" + selectedFile + "\" does not end with " + firmwareFileExtension);
-          return false;
-        }
+//        if (!selectedFile.getName().endsWith(firmwareFileExtension)) {
+//          logger.fatal("Selected file \"" + selectedFile + "\" does not end with " + firmwareFileExtension);
+//          return false;
+//        }
 
         setELFFile(fc.getSelectedFile());
       } else {
@@ -366,7 +386,7 @@ public abstract class MspMoteType implements MoteType {
       if (customizedCompileCommand != null) {
         return customizedCompileCommand;
       }
-      return GUI.getExternalToolsSetting("PATH_MAKE") + " " + filename + firmwareFileExtension + " TARGET=" + target;
+      return GUI.getExternalToolsSetting("PATH_MAKE") + " " + filename + getTargetFileExtension(target) + " TARGET=" + target;
     }
 
     private void setCompileCommand(String command) {
@@ -461,7 +481,7 @@ public abstract class MspMoteType implements MoteType {
       final String command = getCompileCommand(filenameNoExtension);
       logger.info("-- Compiling MSP430 Firmware --");
 
-      compileFirmware(command, sourceFile, filenameNoExtension + firmwareFileExtension,
+      compileFirmware(command, sourceFile, filenameNoExtension + getTargetFileExtension(target),
           parentDirectory,
           successAction, failAction,
           compilationOutput, synchronous);
@@ -628,11 +648,11 @@ public abstract class MspMoteType implements MoteType {
     public boolean showDialog(Container parentContainer, final MspMoteType moteType) {
 
       if (parentContainer instanceof Window) {
-        myDialog = new JDialog((Window)parentContainer, "Compile ELF file", ModalityType.APPLICATION_MODAL);
+        myDialog = new JDialog((Window)parentContainer, "Compile firmware file", ModalityType.APPLICATION_MODAL);
       } else if (parentContainer instanceof Dialog) {
-        myDialog = new JDialog((Dialog)parentContainer, "Compile ELF file", ModalityType.APPLICATION_MODAL);
+        myDialog = new JDialog((Dialog)parentContainer, "Compile firmware file", ModalityType.APPLICATION_MODAL);
       } else if (parentContainer instanceof Frame) {
-        myDialog = new JDialog((Frame)parentContainer, "Compile ELF file", ModalityType.APPLICATION_MODAL);
+        myDialog = new JDialog((Frame)parentContainer, "Compile firmware file", ModalityType.APPLICATION_MODAL);
       } else {
         logger.fatal("Unknown parent container type: " + parentContainer);
         return false;
@@ -689,7 +709,7 @@ public abstract class MspMoteType implements MoteType {
               File parentFile = selectedSourceFile.getParentFile();
 
               sourceFile = selectedSourceFile;
-              ELFFile = new File(parentFile, filenameNoExtension + firmwareFileExtension);
+              ELFFile = new File(parentFile, filenameNoExtension + getTargetFileExtension(target));
             }
           };
           Action failAction = new AbstractAction() {
@@ -1035,8 +1055,8 @@ public abstract class MspMoteType implements MoteType {
     } else {
       // ELF file
       element = new Element("elf");
-      fileELF = GUI.stripAbsoluteContikiPath(fileELF);
-      element.setText(fileELF.getPath().replaceAll("\\\\", "/"));
+      fileFirmware = GUI.stripAbsoluteContikiPath(fileFirmware);
+      element.setText(fileFirmware.getPath().replaceAll("\\\\", "/"));
       config.add(element);
     }
 
@@ -1058,7 +1078,7 @@ public abstract class MspMoteType implements MoteType {
       } else if (name.equals("command")) {
         compileCommand = element.getText();
       } else if (name.equals("elf")) {
-        fileELF = new File(element.getText());
+        fileFirmware = new File(element.getText());
       } else {
         logger.fatal("Unrecognized entry in loaded configuration: " + name);
         throw new MoteTypeCreationException(
