@@ -19,7 +19,7 @@
       <identifier>sky1</identifier>
       <description>Sky Mote Type #1</description>
       <source>../../../examples/rime/example-trickle.c</source>
-      <command>make example-trickle.firmware TARGET=sky</command>
+      <command>make example-trickle.sky TARGET=sky</command>
     </motetype>
     <mote>
       se.sics.cooja.mspmote.SkyMote

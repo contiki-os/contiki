@@ -19,7 +19,7 @@
       <identifier>sky1</identifier>
       <description>Sky Mote Type #1</description>
       <source>../../../examples/rime/example-abc.c</source>
-      <command>make example-abc.firmware TARGET=sky</command>
+      <command>make example-abc.sky TARGET=sky</command>
     </motetype>
     <mote>
       se.sics.cooja.mspmote.SkyMote
