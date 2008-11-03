@@ -19,7 +19,7 @@
       <identifier>sky1</identifier>
       <description>Sky Mote Type #1</description>
       <source>../../../examples/hello-world/hello-world.c</source>
-      <command>make hello-world.firmware TARGET=sky</command>
+      <command>make hello-world.sky TARGET=sky</command>
     </motetype>
     <mote>
       se.sics.cooja.mspmote.SkyMote
