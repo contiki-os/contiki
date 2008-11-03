@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: SkyByteRadio.java,v 1.3 2008/10/29 18:38:26 fros4943 Exp $
+ * $Id: SkyByteRadio.java,v 1.4 2008/11/03 12:31:33 fros4943 Exp $
  */
 
 package se.sics.cooja.mspmote.interfaces;
@@ -63,7 +63,7 @@ public class SkyByteRadio extends Radio implements CustomDataRadio {
 
   private RadioEvent lastEvent = RadioEvent.UNKNOWN;
 
-  private SkyMote myMote;
+  private SkyMote mote;
 
   private CC2420 cc2420;
 
@@ -89,7 +89,7 @@ public class SkyByteRadio extends Radio implements CustomDataRadio {
   //TODO: HW on/off
 
   public SkyByteRadio(SkyMote mote) {
-    this.myMote = mote;
+    this.mote = mote;
     this.cc2420 = mote.skyNode.radio;
 
     cc2420.setRFListener(new RFListener() {
@@ -98,7 +98,7 @@ public class SkyByteRadio extends Radio implements CustomDataRadio {
       byte[] buffer = new byte[127 + 5];
       public void receivedByte(byte data) {
         if (len == 0) {
-          lastEventTime = myMote.getSimulation().getSimulationTime();
+          lastEventTime = SkyByteRadio.this.mote.getSimulation().getSimulationTime();
           lastEvent = RadioEvent.TRANSMISSION_STARTED;
           /*logger.debug("----- SKY TRANSMISSION STARTED -----");*/
           setChanged();
@@ -107,7 +107,7 @@ public class SkyByteRadio extends Radio implements CustomDataRadio {
 
         /* send this byte to all nodes */
         lastOutgoingByte = new CC2420RadioByte(data);
-        lastEventTime = myMote.getSimulation().getSimulationTime();
+        lastEventTime = SkyByteRadio.this.mote.getSimulation().getSimulationTime();
         lastEvent = RadioEvent.CUSTOM_DATA_TRANSMITTED;
         setChanged();
         notifyObservers();
@@ -123,7 +123,7 @@ public class SkyByteRadio extends Radio implements CustomDataRadio {
           /*logger.debug("----- SKY CUSTOM DATA TRANSMITTED -----");*/
 
           lastOutgoingPacket = CC2420RadioPacketConverter.fromCC2420ToCooja(buffer);
-          lastEventTime = myMote.getSimulation().getSimulationTime();
+          lastEventTime = SkyByteRadio.this.mote.getSimulation().getSimulationTime();
           lastEvent = RadioEvent.PACKET_TRANSMITTED;
           /*logger.debug("----- SKY PACKET TRANSMITTED -----");*/
           setChanged();
@@ -132,7 +132,7 @@ public class SkyByteRadio extends Radio implements CustomDataRadio {
 
 //          System.out.println("## CC2420 Transmission finished...");
 
-          lastEventTime = myMote.getSimulation().getSimulationTime();
+          lastEventTime = SkyByteRadio.this.mote.getSimulation().getSimulationTime();
           /*logger.debug("----- SKY TRANSMISSION FINISHED -----");*/
           lastEvent = RadioEvent.TRANSMISSION_FINISHED;
           setChanged();
@@ -154,20 +154,37 @@ public class SkyByteRadio extends Radio implements CustomDataRadio {
 
   private byte[] crossBufferedData = null;
 
+  private TimeEvent receiveCrosslevelDataEvent = new TimeEvent(0) {
+    public void execute(int t) {
+
+      if (crossBufferedData == null) {
+        return;
+      }
+
+      /*logger.info("Radio is now ready to receive the incoming data");*/
+
+      for (byte b: crossBufferedData) {
+        cc2420.receivedByte(b);
+      }
+      crossBufferedData = null;
+    }
+  };
+
   private StateListener cc2420StateListener = new StateListener() {
     public void newState(RadioState state) {
       if (cc2420.getState() == CC2420.RadioState.RX_SFD_SEARCH) {
         cc2420.setStateListener(null);
+
         if (crossBufferedData == null) {
           return;
         }
 
-        /*logger.info("Radio is now ready to receive the incoming data");*/
+        /* Receive data very soon (just wait for a radio flush) */
+        mote.getSimulation().scheduleEvent(
+            receiveCrosslevelDataEvent,
+            mote.getSimulation().getSimulationTime()+1
+        );
 
-        for (byte b: crossBufferedData) {
-          cc2420.receivedByte(b);
-        }
-        crossBufferedData = null;
       }
     }
   };
@@ -176,7 +193,7 @@ public class SkyByteRadio extends Radio implements CustomDataRadio {
     lastIncomingPacket = packet;
 
     /* TODO Receiving all bytes at the same time ok? */
-    byte[] packetData = CC2420RadioPacketConverter.fromCoojaToCC24240((COOJARadioPacket) packet);
+    byte[] packetData = CC2420RadioPacketConverter.fromCoojaToCC2420((COOJARadioPacket) packet);
 
     if (cc2420.getState() != CC2420.RadioState.RX_SFD_SEARCH) {
       /*logger.info("Radio is not currently active. Let's wait some...");*/
@@ -238,7 +255,7 @@ public class SkyByteRadio extends Radio implements CustomDataRadio {
     isReceiving = true;
     /* TODO cc2420.setSFD(true); */
 
-    lastEventTime = myMote.getSimulation().getSimulationTime();
+    lastEventTime = mote.getSimulation().getSimulationTime();
     lastEvent = RadioEvent.RECEPTION_STARTED;
     /*logger.debug("----- SKY RECEPTION STARTED -----");*/
     setChanged();
@@ -252,7 +269,7 @@ public class SkyByteRadio extends Radio implements CustomDataRadio {
     isInterfered = false;
     cc2420.setCCA(false);
 
-    lastEventTime = myMote.getSimulation().getSimulationTime();
+    lastEventTime = mote.getSimulation().getSimulationTime();
     lastEvent = RadioEvent.RECEPTION_FINISHED;
     /*logger.debug("----- SKY RECEPTION FINISHED -----");*/
     setChanged();
@@ -270,7 +287,7 @@ public class SkyByteRadio extends Radio implements CustomDataRadio {
     lastIncomingPacket = null;
     cc2420.setCCA(true);
 
-    lastEventTime = myMote.getSimulation().getSimulationTime();
+    lastEventTime = mote.getSimulation().getSimulationTime();
     lastEvent = RadioEvent.RECEPTION_INTERFERED;
     /*logger.debug("----- SKY RECEPTION INTERFERED -----");*/
     setChanged();
@@ -380,11 +397,11 @@ public class SkyByteRadio extends Radio implements CustomDataRadio {
   }
 
   public Mote getMote() {
-    return myMote;
+    return mote;
   }
 
   public Position getPosition() {
-    return myMote.getInterfaces().getPosition();
+    return mote.getInterfaces().getPosition();
   }
 
   public Collection<Element> getConfigXML() {
