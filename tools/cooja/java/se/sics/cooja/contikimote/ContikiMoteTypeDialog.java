@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ContikiMoteTypeDialog.java,v 1.48 2008/10/29 11:47:50 fros4943 Exp $
+ * $Id: ContikiMoteTypeDialog.java,v 1.49 2008/11/03 18:32:22 fros4943 Exp $
  */
 
 package se.sics.cooja.contikimote;
@@ -722,6 +722,8 @@ public class ContikiMoteTypeDialog extends JDialog {
       }
     });
     commStackComboBox.setSelectedIndex(0);
+    commStackComboBox.setEnabled(false);
+    commStackComboBox.setToolTipText("Disabled since Nov 2008, awaiting new Contiki communication protocol build interface");
 
     smallPane.add(label);
     smallPane.add(Box.createHorizontalStrut(10));
