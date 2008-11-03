@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: CC2420RadioPacketConverter.java,v 1.4 2008/10/29 18:28:16 fros4943 Exp $
+ * $Id: CC2420RadioPacketConverter.java,v 1.5 2008/11/03 10:33:15 fros4943 Exp $
  */
 
 package se.sics.cooja.mspmote.interfaces;
@@ -51,7 +51,7 @@ public class CC2420RadioPacketConverter {
   public static final boolean WITH_TIMESTAMP = true;
   public static final boolean WITH_FOOTER = true;
 
-  public static byte[] fromCoojaToCC24240(COOJARadioPacket packet) {
+  public static byte[] fromCoojaToCC2420(COOJARadioPacket packet) {
     byte cc2420Data[] = new byte[6+127];
     int pos = 0;
     byte packetData[] = packet.getPacketData();
