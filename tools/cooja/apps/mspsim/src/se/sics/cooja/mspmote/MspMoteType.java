@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: MspMoteType.java,v 1.16 2008/10/29 16:36:33 fros4943 Exp $
+ * $Id: MspMoteType.java,v 1.17 2008/11/03 12:45:52 fros4943 Exp $
  */
 
 package se.sics.cooja.mspmote;
@@ -181,12 +181,12 @@ public abstract class MspMoteType implements MoteType {
       }
 
       /* Let user choose whether to compile or load existing binaries */
-      Object[] options = { "Select", "Compile" };
+      Object[] options = { "Compile", "Existing" };
 
-      String question = targetNice + " mote type depends on an ELF file.\n"
-          + "If you want to use an already existing file, click 'Select'.\n\n"
-          + "To compile this file from source, click 'Compile'";
-      String title = "Select or compile " + targetNice + " firmware";
+      String question = targetNice + " mote type loads a firmware (ELF).\n\n"
+          + "To compile a Contiki application from source: 'Compile'\n"
+          + "To use a pre-compiled existing file: 'Existing'.\n";
+      String title = "Compile or load existing " + targetNice + " firmware";
 
       if (GUI.isVisualizedInApplet()) {
         compileFromSource = false;
@@ -198,7 +198,7 @@ public abstract class MspMoteType implements MoteType {
         if (answer != JOptionPane.YES_OPTION && answer != JOptionPane.NO_OPTION) {
           return false;
         }
-        compileFromSource = answer != JOptionPane.YES_OPTION;
+        compileFromSource = answer == JOptionPane.YES_OPTION;
       }
     }
 
@@ -450,6 +450,11 @@ public abstract class MspMoteType implements MoteType {
         final MessageList compilationOutput, boolean synchronous) throws Exception {
       final File parentDirectory = sourceFile.getParentFile();
 
+      if (!sourceFile.getName().endsWith(".c")) {
+        logger.fatal("Source file does not end with '.c'");
+        return;
+      }
+
       final String filenameNoExtension = sourceFile.getName().substring(0,
           sourceFile.getName().length() - 2);
 
@@ -670,6 +675,11 @@ public abstract class MspMoteType implements MoteType {
           final File selectedSourceFile = new File(sourceTextField.getText());
 
           /* Strip .c file extension */
+          if (!selectedSourceFile.getName().endsWith(".c")) {
+            logger.fatal("Source file does not end with '.c'");
+            return;
+          }
+
           final String filenameNoExtension = selectedSourceFile.getName()
               .substring(0, selectedSourceFile.getName().length() - 2);
 
