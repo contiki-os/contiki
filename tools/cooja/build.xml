@@ -61,6 +61,7 @@ The COOJA Simulator
 
   <target name="run" depends="init, compile, jar, copy configs">
     <java fork="yes" dir="${build}" classname="se.sics.cooja.GUI">
+      <sysproperty key="user.language" value="en"/>
       <arg line="${args}"/>
     	<env key="LD_LIBRARY_PATH" value="."/>
       <classpath>
