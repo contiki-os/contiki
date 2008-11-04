@@ -132,7 +132,7 @@ struct log_param {
 	((file_page) * COFFEE_PAGE_SIZE + 	\
 	sizeof(struct file_header) + (file_offset))
 
-static struct dir_cache dir_cache[COFFEE_DIR_CACHE_RECORDS];
+static struct dir_cache dir_cache[COFFEE_DIR_CACHE_ENTRIES];
 static struct file_desc coffee_fd_set[COFFEE_FD_SET_SIZE];
 
 /*---------------------------------------------------------------------------*/
@@ -232,7 +232,7 @@ dir_cache_add(char c, coffee_offset_t page)
 {
   int i;
   
-  for(i = 0; i < COFFEE_DIR_CACHE_RECORDS; i++) {
+  for(i = 0; i < COFFEE_DIR_CACHE_ENTRIES; i++) {
     if(dir_cache[i].filename_start == '\0') {
       dir_cache[i].filename_start = c;
       dir_cache[i].page = page;
@@ -246,7 +246,7 @@ dir_cache_del(coffee_offset_t page)
 {
   int i;
   
-  for(i = 0; i < COFFEE_DIR_CACHE_RECORDS; i++) {
+  for(i = 0; i < COFFEE_DIR_CACHE_ENTRIES; i++) {
     if(dir_cache[i].page == page) {
       dir_cache[i].filename_start = '\0';
     } 
@@ -259,7 +259,7 @@ dir_cache_find(const char *name)
   int i;
   struct file_header hdr;
 
-  for(i = 0; i < COFFEE_DIR_CACHE_RECORDS; i++) {
+  for(i = 0; i < COFFEE_DIR_CACHE_ENTRIES; i++) {
     if(*name == dir_cache[i].filename_start) {
       read_header(&hdr, dir_cache[i].page);
       if(!COFFEE_PAGE_ACTIVE(hdr)) {
