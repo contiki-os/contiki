@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ExternalToolsDialog.java,v 1.11 2008/05/02 05:47:52 fros4943 Exp $
+ * $Id: ExternalToolsDialog.java,v 1.12 2008/11/04 15:01:08 adamdunkels Exp $
  */
 
 package se.sics.cooja.dialogs;
@@ -128,7 +128,7 @@ public class ExternalToolsDialog extends JDialog {
     buttonPane.add(Box.createRigidArea(new Dimension(10, 0)));
     buttonPane.add(button);
 
-    button = new JButton("OK (Saves)");
+    button = new JButton("Save");
     button.setActionCommand("ok");
     button.addActionListener(myEventHandler);
     buttonPane.add(Box.createRigidArea(new Dimension(10, 0)));
