@@ -338,7 +338,7 @@ find_offset_in_file(int first_page)
    * are zeroes, then these are skipped from the calculation.
    */
   
-  for(page = first_page + range_end; page >= first_page; page--) {
+  for(page = first_page + range_end - 1; page >= first_page; page--) {
     watchdog_periodic();
     COFFEE_READ(buf, sizeof(buf), page * COFFEE_PAGE_SIZE);
     for(i = COFFEE_PAGE_SIZE - 1; i >= 0; i--) {
@@ -633,7 +633,6 @@ merge_log(coffee_page_t file_page)
   coffee_page_t log_page, new_file_page;
   struct file_header hdr, hdr2;
   int fd, n;
-  char buf[64];
   coffee_offset_t offset;
 
   READ_HEADER(&hdr, file_page);
@@ -658,6 +657,7 @@ merge_log(coffee_page_t file_page)
 
   offset = 0;
   do {
+    char buf[hdr.log_entry_size == 0 ? COFFEE_PAGE_SIZE : hdr.log_entry_size];
     watchdog_periodic();
     n = cfs_read(fd, buf, sizeof(buf));
     if(n < 0) {
@@ -689,6 +689,7 @@ merge_log(coffee_page_t file_page)
     if(coffee_fd_set[n].file_page == file_page) {
 	coffee_fd_set[n].file_page = new_file_page;
 	coffee_fd_set[n].flags &= ~COFFEE_FD_MODIFIED;
+	coffee_fd_set[n].next_log_entry = 0;
     }
   }
 
@@ -759,7 +760,6 @@ write_log_page(struct file_desc *fdp, struct log_param *lp)
     if(log_entry >= log_entries) {
       /* The log is full; merge the log. */
       PRINTF("Coffee: Merging the file %s with its log\n", hdr.name);
-      fdp->next_log_entry = 0;
       return merge_log(fdp->file_page);
     }
   } else {
