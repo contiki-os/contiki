@@ -24,7 +24,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * $Id: GUI.java,v 1.89 2008/10/29 13:31:02 fros4943 Exp $
+ * $Id: GUI.java,v 1.90 2008/11/04 14:32:32 fros4943 Exp $
  */
 
 package se.sics.cooja;
@@ -34,6 +34,7 @@ import java.awt.Dialog.ModalityType;
 import java.awt.event.*;
 import java.beans.PropertyVetoException;
 import java.io.*;
+import java.lang.reflect.InvocationTargetException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
@@ -257,6 +258,16 @@ public class GUI extends Observable {
     if (specifiedContikiPath != null) {
       setExternalToolsSetting("PATH_CONTIKI", specifiedContikiPath);
     }
+
+    /* Debugging - Break on repaints outside EDT */
+    /*RepaintManager.setCurrentManager(new RepaintManager() {
+      public void addDirtyRegion(JComponent comp, int a, int b, int c, int d) {
+        if(!java.awt.EventQueue.isDispatchThread()) {
+          throw new RuntimeException("Repainting outside EDT");
+        }
+        super.addDirtyRegion(comp, a, b, c, d);
+      }
+    });*/
 
     // Register default project directories
     String defaultProjectDirs = getExternalToolsSetting(
@@ -849,7 +860,6 @@ public class GUI extends Observable {
     } catch (IllegalAccessException e) {
       logger.warn("LookAndFeel: " + e);
     }
-
   }
 
   /**
@@ -1613,36 +1623,42 @@ public class GUI extends Observable {
    * @param plugin
    *          Internal frame to add
    */
-  public void showPlugin(VisPlugin plugin) {
-    int nrFrames = myDesktopPane.getAllFrames().length;
-    myDesktopPane.add(plugin);
+  public void showPlugin(final VisPlugin plugin) {
+    new RunnableInEDT<Boolean>() {
+      public Boolean work() {
+        int nrFrames = myDesktopPane.getAllFrames().length;
+        myDesktopPane.add(plugin);
 
-    // Set standard size if not specified by plugin itself
-    if (plugin.getWidth() <= 0 || plugin.getHeight() <= 0) {
-      plugin.setSize(FRAME_STANDARD_WIDTH, FRAME_STANDARD_HEIGHT);
-    }
+        // Set standard size if not specified by plugin itself
+        if (plugin.getWidth() <= 0 || plugin.getHeight() <= 0) {
+          plugin.setSize(FRAME_STANDARD_WIDTH, FRAME_STANDARD_HEIGHT);
+        }
 
-    // Set location if not already visible
-    if (plugin.getLocation().x <= 0 && plugin.getLocation().y <= 0) {
-      plugin.setLocation(
-          nrFrames * FRAME_NEW_OFFSET,
-          nrFrames * FRAME_NEW_OFFSET);
-    }
+        // Set location if not already visible
+        if (plugin.getLocation().x <= 0 && plugin.getLocation().y <= 0) {
+          plugin.setLocation(
+              nrFrames * FRAME_NEW_OFFSET,
+              nrFrames * FRAME_NEW_OFFSET);
+        }
 
-    plugin.setVisible(true);
+        plugin.setVisible(true);
 
-    // Deselect all other plugins before selecting the new one
-    try {
-      for (JInternalFrame existingPlugin : myDesktopPane.getAllFrames()) {
-        existingPlugin.setSelected(false);
+        // Deselect all other plugins before selecting the new one
+        try {
+          for (JInternalFrame existingPlugin : myDesktopPane.getAllFrames()) {
+            existingPlugin.setSelected(false);
+          }
+          plugin.setSelected(true);
+        } catch (Exception e) {
+          // Ignore
+        }
+
+        // Mote plugin to front
+        myDesktopPane.moveToFront(plugin);
+
+        return true;
       }
-      plugin.setSelected(true);
-    } catch (Exception e) {
-      // Ignore
-    }
-
-    // Mote plugin to front
-    myDesktopPane.moveToFront(plugin);
+    }.invokeAndWait();
   }
 
   /**
@@ -1680,29 +1696,26 @@ public class GUI extends Observable {
    *          If plugin is the last one, ask user if we should remove current
    *          simulation also?
    */
-  public void removePlugin(Plugin plugin, boolean askUser) {
-    // Clear any allocated resources and remove plugin
-    plugin.closePlugin();
-    startedPlugins.remove(plugin);
+  public void removePlugin(final Plugin plugin, final boolean askUser) {
+    new RunnableInEDT<Boolean>() {
+      public Boolean work() {
+        /* Free resources */
+        plugin.closePlugin();
+        startedPlugins.remove(plugin);
 
-    // Dispose plugin if it has visualizer
-    if (plugin instanceof VisPlugin) {
-      ((VisPlugin) plugin).dispose();
-    }
+        /* Dispose visualized components */
+        if (plugin instanceof VisPlugin) {
+          ((VisPlugin) plugin).dispose();
+        }
 
-    if (getSimulation() != null && askUser && startedPlugins.isEmpty()) {
-      String s1 = "Remove";
-      String s2 = "Cancel";
-      Object[] options = { s1, s2 };
-      int n = JOptionPane.showOptionDialog(frame,
-          "You have an active simulation.\nDo you want to remove it?",
-          "Remove current simulation?", JOptionPane.YES_NO_OPTION,
-          JOptionPane.QUESTION_MESSAGE, null, options, s1);
-      if (n != JOptionPane.YES_OPTION) {
-        return;
+        /* (OPTIONAL) Remove simulation if all plugins are closed */
+        if (getSimulation() != null && askUser && startedPlugins.isEmpty()) {
+          doRemoveSimulation(true);
+        }
+
+        return true;
       }
-      doRemoveSimulation(false);
-    }
+    }.invokeAndWait();
   }
 
   /**
@@ -1718,8 +1731,8 @@ public class GUI extends Observable {
    *          Mote passed as argument to mote plugins
    * @return Start plugin if any
    */
-  public Plugin startPlugin(Class<? extends Plugin> pluginClass, GUI gui,
-      Simulation simulation, Mote mote) {
+  public Plugin startPlugin(final Class<? extends Plugin> pluginClass,
+      final GUI gui, final Simulation simulation, final Mote mote) {
 
     // Check that plugin class is registered
     if (!pluginClasses.contains(pluginClass)) {
@@ -1740,47 +1753,52 @@ public class GUI extends Observable {
     }
 
     // Construct plugin depending on plugin type
-    Plugin newPlugin = null;
-    int pluginType = pluginClass.getAnnotation(PluginType.class).value();
+    Plugin newPlugin = new RunnableInEDT<Plugin>() {
+      public Plugin work() {
+        int pluginType = pluginClass.getAnnotation(PluginType.class).value();
+        Plugin plugin = null;
 
-    try {
-      if (pluginType == PluginType.MOTE_PLUGIN) {
-        if (mote == null) {
-          logger.fatal("Can't start mote plugin (no mote selected)");
+        try {
+          if (pluginType == PluginType.MOTE_PLUGIN) {
+            if (mote == null) {
+              logger.fatal("Can't start mote plugin (no mote selected)");
+              return null;
+            }
+
+            plugin = pluginClass.getConstructor(
+                new Class[] { Mote.class, Simulation.class, GUI.class })
+                .newInstance(mote, simulation, gui);
+
+            // Tag plugin with mote
+            plugin.tagWithObject(mote);
+          } else if (pluginType == PluginType.SIM_PLUGIN
+              || pluginType == PluginType.SIM_STANDARD_PLUGIN) {
+            if (simulation == null) {
+              logger.fatal("Can't start simulation plugin (no simulation)");
+              return null;
+            }
+
+            plugin = pluginClass.getConstructor(
+                new Class[] { Simulation.class, GUI.class }).newInstance(
+                simulation, gui);
+          } else if (pluginType == PluginType.COOJA_PLUGIN
+              || pluginType == PluginType.COOJA_STANDARD_PLUGIN) {
+            if (gui == null) {
+              logger.fatal("Can't start COOJA plugin (no GUI)");
+              return null;
+            }
+
+            plugin = pluginClass.getConstructor(new Class[] { GUI.class }).newInstance(gui);
+          }
+        } catch (Exception e) {
+          logger.fatal("Exception thrown when starting plugin: " + e);
+          e.printStackTrace();
           return null;
         }
 
-        newPlugin = pluginClass.getConstructor(
-            new Class[] { Mote.class, Simulation.class, GUI.class })
-            .newInstance(mote, simulation, gui);
-
-        // Tag plugin with mote
-        newPlugin.tagWithObject(mote);
-      } else if (pluginType == PluginType.SIM_PLUGIN
-          || pluginType == PluginType.SIM_STANDARD_PLUGIN) {
-        if (simulation == null) {
-          logger.fatal("Can't start simulation plugin (no simulation)");
-          return null;
-        }
-
-        newPlugin = pluginClass.getConstructor(
-            new Class[] { Simulation.class, GUI.class }).newInstance(
-            simulation, gui);
-      } else if (pluginType == PluginType.COOJA_PLUGIN
-          || pluginType == PluginType.COOJA_STANDARD_PLUGIN) {
-        if (gui == null) {
-          logger.fatal("Can't start COOJA plugin (no GUI)");
-          return null;
-        }
-
-        newPlugin = pluginClass.getConstructor(new Class[] { GUI.class })
-            .newInstance(gui);
+        return plugin;
       }
-    } catch (Exception e) {
-      logger.fatal("Exception thrown when starting plugin: " + e);
-      e.printStackTrace();
-      return null;
-    }
+    }.invokeAndWait();
 
     if (newPlugin == null) {
       return null;
@@ -1871,14 +1889,14 @@ public class GUI extends Observable {
    *          Should this plugin be added to the dedicated plugins menubar?
    * @return True if this plugin was registered ok, false otherwise
    */
-  private boolean registerPlugin(Class<? extends Plugin> newPluginClass,
+  private boolean registerPlugin(final Class<? extends Plugin> newPluginClass,
       boolean addToMenu) {
 
     // Get description annotation (if any)
-    String description = getDescriptionOf(newPluginClass);
+    final String description = getDescriptionOf(newPluginClass);
 
     // Get plugin type annotation (required)
-    int pluginType;
+    final int pluginType;
     if (newPluginClass.isAnnotationPresent(PluginType.class)) {
       pluginType = newPluginClass.getAnnotation(PluginType.class).value();
     } else {
@@ -1892,37 +1910,39 @@ public class GUI extends Observable {
             Simulation.class, GUI.class });
       } else if (pluginType == PluginType.SIM_PLUGIN
           || pluginType == PluginType.SIM_STANDARD_PLUGIN) {
-        newPluginClass
-            .getConstructor(new Class[] { Simulation.class, GUI.class });
+        newPluginClass.getConstructor(new Class[] { Simulation.class, GUI.class });
       } else if (pluginType == PluginType.COOJA_PLUGIN
           || pluginType == PluginType.COOJA_STANDARD_PLUGIN) {
         newPluginClass.getConstructor(new Class[] { GUI.class });
       } else {
-        logger.fatal("Could not find valid plugin type annotation in class "
-            + newPluginClass);
+        logger.fatal("Could not find valid plugin type annotation in class " + newPluginClass);
         return false;
       }
     } catch (NoSuchMethodException e) {
-      logger.fatal("Could not find valid constructor in class "
-          + newPluginClass + ": " + e);
+      logger.fatal("Could not find valid constructor in class " + newPluginClass + ": " + e);
       return false;
     }
 
     if (addToMenu && menuPlugins != null) {
-      // Create 'start plugin'-menu item
-      JMenuItem menuItem = new JMenuItem(description);
-      menuItem.setActionCommand("start plugin");
-      menuItem.putClientProperty("class", newPluginClass);
-      menuItem.addActionListener(guiEventHandler);
+      new RunnableInEDT<Boolean>() {
+        public Boolean work() {
+          // Create 'start plugin'-menu item
+          JMenuItem menuItem = new JMenuItem(description);
+          menuItem.setActionCommand("start plugin");
+          menuItem.putClientProperty("class", newPluginClass);
+          menuItem.addActionListener(guiEventHandler);
 
-      menuPlugins.add(menuItem);
+          menuPlugins.add(menuItem);
 
-      if (pluginType == PluginType.MOTE_PLUGIN) {
-        // Disable previous menu item and add new item to mote plugins menu
-        menuItem.setEnabled(false);
-        menuItem.setToolTipText("Mote plugin");
-        menuMotePluginClasses.add(newPluginClass);
-      }
+          if (pluginType == PluginType.MOTE_PLUGIN) {
+            // Disable previous menu item and add new item to mote plugins menu
+            menuItem.setEnabled(false);
+            menuItem.setToolTipText("Mote plugin");
+            menuMotePluginClasses.add(newPluginClass);
+          }
+          return true;
+        }
+      }.invokeAndWait();
     }
 
     pluginClasses.add(newPluginClass);
@@ -2043,53 +2063,65 @@ public class GUI extends Observable {
    *
    * @param askForConfirmation
    *          Should we ask for confirmation if a simulation is already active?
+   * @return True if no simulation exists when method returns
    */
-  public void doRemoveSimulation(boolean askForConfirmation) {
+  public boolean doRemoveSimulation(boolean askForConfirmation) {
 
-    if (mySimulation != null) {
-      if (askForConfirmation) {
-        String s1 = "Remove";
-        String s2 = "Cancel";
-        Object[] options = { s1, s2 };
-        int n = JOptionPane.showOptionDialog(GUI.getTopParentContainer(),
-            "You have an active simulation.\nDo you want to remove it?",
-            "Remove current simulation?", JOptionPane.YES_NO_OPTION,
-            JOptionPane.QUESTION_MESSAGE, null, options, s1);
-        if (n != JOptionPane.YES_OPTION) {
-          return;
-        }
-      }
-
-      // Close all started non-GUI plugins
-      for (Object startedPlugin : startedPlugins.toArray()) {
-        int pluginType = startedPlugin.getClass().getAnnotation(
-            PluginType.class).value();
-        if (pluginType != PluginType.COOJA_PLUGIN
-            && pluginType != PluginType.COOJA_STANDARD_PLUGIN) {
-          removePlugin((Plugin) startedPlugin, false);
-        }
-      }
-
-      // Delete simulation
-      mySimulation.deleteObservers();
-      mySimulation.stopSimulation();
-      mySimulation = null;
-
-      // Unregister temporary plugin classes
-      Enumeration<Class<? extends Plugin>> pluginClasses = pluginClassesTemporary
-          .elements();
-      while (pluginClasses.hasMoreElements()) {
-        unregisterPlugin(pluginClasses.nextElement());
-      }
-
-      // Reset frame title
-      if (isVisualizedInFrame()) {
-        frame.setTitle("COOJA Simulator");
-      }
-
-      setChanged();
-      notifyObservers();
+    if (mySimulation == null) {
+      return true;
     }
+
+    if (askForConfirmation) {
+      boolean ok = new RunnableInEDT<Boolean>() {
+        public Boolean work() {
+          String s1 = "Remove";
+          String s2 = "Cancel";
+          Object[] options = { s1, s2 };
+          int n = JOptionPane.showOptionDialog(GUI.getTopParentContainer(),
+              "You have an active simulation.\nDo you want to remove it?",
+              "Remove current simulation?", JOptionPane.YES_NO_OPTION,
+              JOptionPane.QUESTION_MESSAGE, null, options, s1);
+          if (n != JOptionPane.YES_OPTION) {
+            return false;
+          }
+          return true;
+        }
+      }.invokeAndWait();
+
+      if (!ok) {
+        return false;
+      }
+    }
+
+    // Close all started non-GUI plugins
+    for (Object startedPlugin : startedPlugins.toArray()) {
+      int pluginType = startedPlugin.getClass().getAnnotation(PluginType.class).value();
+      if (pluginType != PluginType.COOJA_PLUGIN
+          && pluginType != PluginType.COOJA_STANDARD_PLUGIN) {
+        removePlugin((Plugin) startedPlugin, false);
+      }
+    }
+
+    // Delete simulation
+    mySimulation.deleteObservers();
+    mySimulation.stopSimulation();
+    mySimulation = null;
+
+    // Unregister temporary plugin classes
+    Enumeration<Class<? extends Plugin>> pluginClasses = pluginClassesTemporary.elements();
+    while (pluginClasses.hasMoreElements()) {
+      unregisterPlugin(pluginClasses.nextElement());
+    }
+
+    // Reset frame title
+    if (isVisualizedInFrame()) {
+      frame.setTitle("COOJA Simulator");
+    }
+
+    setChanged();
+    notifyObservers();
+
+    return true;
   }
 
   /**
@@ -2104,67 +2136,59 @@ public class GUI extends Observable {
       return;
     }
 
-    /*if (CoreComm.hasLibraryBeenLoaded()) {
-      JOptionPane.showMessageDialog(GUI.getTopParentContainer(),
-          "Shared libraries has already been loaded.\nYou need to restart the simulator!",
-          "Can't load simulation", JOptionPane.ERROR_MESSAGE);
+    /* Remove current simulation */
+    if (!doRemoveSimulation(true)) {
       return;
-    }*/
-
-    if (askForConfirmation && mySimulation != null) {
-      String s1 = "Remove";
-      String s2 = "Cancel";
-      Object[] options = { s1, s2 };
-      int n = JOptionPane.showOptionDialog(GUI.getTopParentContainer(),
-          "You have an active simulation.\nDo you want to remove it?",
-          "Remove current simulation?", JOptionPane.YES_NO_OPTION,
-          JOptionPane.QUESTION_MESSAGE, null, options, s1);
-      if (n != JOptionPane.YES_OPTION) {
-        return;
-      }
     }
 
-    doRemoveSimulation(false);
-
-    // Check already selected file, or select file using filechooser
+    /* Use provided configuration, or open File Chooser */
     if (configFile != null && !configFile.isDirectory()) {
       if (!configFile.exists() || !configFile.canRead()) {
         logger.fatal("No read access to file");
         return;
       }
     } else {
-      JFileChooser fc = new JFileChooser();
+      final File suggestedFile = configFile;
+      configFile = new RunnableInEDT<File>() {
+        public File work() {
+          JFileChooser fc = new JFileChooser();
 
-      fc.setFileFilter(GUI.SAVED_SIMULATIONS_FILES);
+          fc.setFileFilter(GUI.SAVED_SIMULATIONS_FILES);
 
-      if (configFile != null && configFile.isDirectory()) {
-        fc.setCurrentDirectory(configFile);
-      } else {
-        // Suggest file using history
-        Vector<File> history = getFileHistory();
-        if (history != null && history.size() > 0) {
-          File suggestedFile = getFileHistory().firstElement();
-          fc.setSelectedFile(suggestedFile);
+          if (suggestedFile != null && suggestedFile.isDirectory()) {
+            fc.setCurrentDirectory(suggestedFile);
+          } else {
+            /* Suggest file using file history */
+            Vector<File> history = getFileHistory();
+            if (history != null && history.size() > 0) {
+              File suggestedFile = getFileHistory().firstElement();
+              fc.setSelectedFile(suggestedFile);
+            }
+          }
+
+          int returnVal = fc.showOpenDialog(GUI.getTopParentContainer());
+          if (returnVal != JFileChooser.APPROVE_OPTION) {
+            logger.info("Load command cancelled by user...");
+            return null;
+          }
+
+          File file = fc.getSelectedFile();
+
+          if (!file.exists()) {
+            /* Try default file extension */
+            file = new File(file.getParent(), file.getName() + SAVED_SIMULATIONS_FILES);
+          }
+
+          if (!file.exists() || !file.canRead()) {
+            logger.fatal("No read access to file");
+            return null;
+          }
+
+          return file;
         }
-      }
+      }.invokeAndWait();
 
-      int returnVal = fc.showOpenDialog(GUI.getTopParentContainer());
-      if (returnVal == JFileChooser.APPROVE_OPTION) {
-        configFile = fc.getSelectedFile();
-
-        // Try adding extension if not founds
-        if (!configFile.exists()) {
-          configFile = new File(configFile.getParent(), configFile.getName()
-              + SAVED_SIMULATIONS_FILES);
-        }
-
-        if (!configFile.exists() || !configFile.canRead()) {
-          logger.fatal("No read access to file");
-          return;
-        }
-
-      } else {
-        logger.info("Load command cancelled by user...");
+      if (configFile == null) {
         return;
       }
     }
@@ -2172,20 +2196,23 @@ public class GUI extends Observable {
     final JDialog progressDialog;
 
     if (quick) {
-      if (GUI.getTopParentContainer() instanceof Window) {
-        progressDialog = new JDialog((Window) GUI.getTopParentContainer(), "Loading", ModalityType.APPLICATION_MODAL);
-      } else if (GUI.getTopParentContainer() instanceof Frame) {
-        progressDialog = new JDialog((Frame) GUI.getTopParentContainer(), "Loading", ModalityType.APPLICATION_MODAL);
-      } else if (GUI.getTopParentContainer() instanceof Dialog) {
-        progressDialog = new JDialog((Dialog) GUI.getTopParentContainer(), "Loading", ModalityType.APPLICATION_MODAL);
-      } else {
-        logger.warn("No parent container");
-        progressDialog = new JDialog((Frame) null, "Loading", ModalityType.APPLICATION_MODAL);
-      }
-
       final Thread loadThread = Thread.currentThread();
-      SwingUtilities.invokeLater(new Runnable() {
-        public void run() {
+
+      progressDialog = new RunnableInEDT<JDialog>() {
+        public JDialog work() {
+          final JDialog progressDialog;
+
+          if (GUI.getTopParentContainer() instanceof Window) {
+            progressDialog = new JDialog((Window) GUI.getTopParentContainer(), "Loading", ModalityType.APPLICATION_MODAL);
+          } else if (GUI.getTopParentContainer() instanceof Frame) {
+            progressDialog = new JDialog((Frame) GUI.getTopParentContainer(), "Loading", ModalityType.APPLICATION_MODAL);
+          } else if (GUI.getTopParentContainer() instanceof Dialog) {
+            progressDialog = new JDialog((Dialog) GUI.getTopParentContainer(), "Loading", ModalityType.APPLICATION_MODAL);
+          } else {
+            logger.warn("No parent container");
+            progressDialog = new JDialog((Frame) null, "Loading", ModalityType.APPLICATION_MODAL);
+          }
+
           JPanel progressPanel = new JPanel(new BorderLayout());
           JProgressBar progressBar;
           JButton button;
@@ -2197,11 +2224,11 @@ public class GUI extends Observable {
 
           button.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-              if (loadThread != null && loadThread.isAlive()) {
+              if (loadThread.isAlive()) {
                 loadThread.interrupt();
                 doRemoveSimulation(false);
               }
-              if (progressDialog != null && progressDialog.isDisplayable()) {
+              if (progressDialog.isDisplayable()) {
                 progressDialog.dispose();
               }
             }
@@ -2219,9 +2246,16 @@ public class GUI extends Observable {
           progressDialog.getRootPane().setDefaultButton(button);
           progressDialog.setLocationRelativeTo(GUI.getTopParentContainer());
           progressDialog.setDefaultCloseOperation(JDialog.DO_NOTHING_ON_CLOSE);
-          progressDialog.setVisible(true);
+
+          java.awt.EventQueue.invokeLater(new Runnable() {
+            public void run() {
+              progressDialog.setVisible(true);
+            }
+          });
+
+          return progressDialog;
         }
-      });
+      }.invokeAndWait();
     } else {
       progressDialog = null;
     }
@@ -2426,21 +2460,12 @@ public class GUI extends Observable {
    *          Should we ask for confirmation if a simulation is already active?
    */
   public void doCreateSimulation(boolean askForConfirmation) {
-    if (askForConfirmation && mySimulation != null) {
-      String s1 = "Remove";
-      String s2 = "Cancel";
-      Object[] options = { s1, s2 };
-      int n = JOptionPane.showOptionDialog(GUI.getTopParentContainer(),
-          "You have an active simulation.\nDo you want to remove it?",
-          "Remove current simulation?", JOptionPane.YES_NO_OPTION,
-          JOptionPane.QUESTION_MESSAGE, null, options, s1);
-      if (n != JOptionPane.YES_OPTION) {
-        return;
-      }
+    /* Remove current simulation */
+    if (!doRemoveSimulation(askForConfirmation)) {
+      return;
     }
 
     // Create new simulation
-    doRemoveSimulation(false);
     Simulation newSim = new Simulation(this);
     boolean createdOK = CreateSimDialog.showDialog(GUI.getTopParentContainer(), newSim);
     if (createdOK) {
@@ -3256,7 +3281,7 @@ public class GUI extends Observable {
       }
 
       /* Create old to new identifier mappings */
-      Enumeration existingIdentifiers = moteTypeIDMappings.keys();
+      Enumeration<Object> existingIdentifiers = moteTypeIDMappings.keys();
       while (existingIdentifiers.hasMoreElements()) {
         String existingIdentifier = (String) existingIdentifiers.nextElement();
         Collection<MoteType> existingMoteTypes = null;
@@ -3449,7 +3474,7 @@ public class GUI extends Observable {
   public boolean setPluginsConfigXML(Collection<Element> configXML,
       Simulation simulation, boolean visAvailable) {
 
-    for (Element pluginElement : configXML.toArray(new Element[0])) {
+    for (final Element pluginElement : configXML.toArray(new Element[0])) {
       if (pluginElement.getName().equals("plugin")) {
 
         // Read plugin class
@@ -3463,8 +3488,7 @@ public class GUI extends Observable {
 
         // Parse plugin mote argument (if any)
         Mote mote = null;
-        for (Element pluginSubElement : (List<Element>) pluginElement
-            .getChildren()) {
+        for (Element pluginSubElement : (List<Element>) pluginElement.getChildren()) {
           if (pluginSubElement.getName().equals("mote_arg")) {
             int moteNr = Integer.parseInt(pluginSubElement.getText());
             if (moteNr >= 0 && moteNr < simulation.getMotesCount()) {
@@ -3485,8 +3509,7 @@ public class GUI extends Observable {
 
 
         // Apply plugin specific configuration
-        for (Element pluginSubElement : (List<Element>) pluginElement
-            .getChildren()) {
+        for (Element pluginSubElement : (List<Element>) pluginElement.getChildren()) {
           if (pluginSubElement.getName().equals("plugin_config")) {
             startedPlugin.setConfigXML(pluginSubElement.getChildren(), visAvailable);
           }
@@ -3494,54 +3517,59 @@ public class GUI extends Observable {
 
         // If plugin is visualizer plugin, parse visualization arguments
         if (startedPlugin instanceof VisPlugin) {
-          Dimension size = new Dimension(100, 100);
-          Point location = new Point(100, 100);
-          VisPlugin startedVisPlugin = (VisPlugin) startedPlugin;
+          final VisPlugin startedVisPlugin = (VisPlugin) startedPlugin;
+          new RunnableInEDT<Boolean>() {
+            public Boolean work() {
+              Dimension size = new Dimension(100, 100);
+              Point location = new Point(100, 100);
 
-          for (Element pluginSubElement : (List<Element>) pluginElement
-              .getChildren()) {
+              for (Element pluginSubElement : (List<Element>) pluginElement.getChildren()) {
 
-            if (pluginSubElement.getName().equals("width") && size != null) {
-              size.width = Integer.parseInt(pluginSubElement.getText());
-              startedVisPlugin.setSize(size);
-            } else if (pluginSubElement.getName().equals("height")) {
-              size.height = Integer.parseInt(pluginSubElement.getText());
-              startedVisPlugin.setSize(size);
-            } else if (pluginSubElement.getName().equals("z")) {
-              int zOrder = Integer.parseInt(pluginSubElement.getText());
-              // Save z order as temporary client property
-              startedVisPlugin.putClientProperty("zorder", zOrder);
-            } else if (pluginSubElement.getName().equals("location_x")) {
-              location.x = Integer.parseInt(pluginSubElement.getText());
-              startedVisPlugin.setLocation(location);
-            } else if (pluginSubElement.getName().equals("location_y")) {
-              location.y = Integer.parseInt(pluginSubElement.getText());
-              startedVisPlugin.setLocation(location);
-            } else if (pluginSubElement.getName().equals("minimized")) {
-              try {
-                startedVisPlugin.setIcon(Boolean.parseBoolean(pluginSubElement
-                    .getText()));
-              } catch (PropertyVetoException e) {
-                // Ignoring
+                if (pluginSubElement.getName().equals("width") && size != null) {
+                  size.width = Integer.parseInt(pluginSubElement.getText());
+                  startedVisPlugin.setSize(size);
+                } else if (pluginSubElement.getName().equals("height")) {
+                  size.height = Integer.parseInt(pluginSubElement.getText());
+                  startedVisPlugin.setSize(size);
+                } else if (pluginSubElement.getName().equals("z")) {
+                  int zOrder = Integer.parseInt(pluginSubElement.getText());
+                  // Save z order as temporary client property
+                  startedVisPlugin.putClientProperty("zorder", zOrder);
+                } else if (pluginSubElement.getName().equals("location_x")) {
+                  location.x = Integer.parseInt(pluginSubElement.getText());
+                  startedVisPlugin.setLocation(location);
+                } else if (pluginSubElement.getName().equals("location_y")) {
+                  location.y = Integer.parseInt(pluginSubElement.getText());
+                  startedVisPlugin.setLocation(location);
+                } else if (pluginSubElement.getName().equals("minimized")) {
+                  try {
+                    startedVisPlugin.setIcon(Boolean.parseBoolean(pluginSubElement.getText()));
+                  } catch (PropertyVetoException e) {
+                    // Ignoring
+                  }
+                }
               }
+
+              // For all started visplugins, check if they have a zorder property
+              try {
+                for (JInternalFrame plugin : getDesktopPane().getAllFrames()) {
+                  if (plugin.getClientProperty("zorder") != null) {
+                    getDesktopPane().setComponentZOrder(plugin,
+                        ((Integer) plugin.getClientProperty("zorder")).intValue());
+                    plugin.putClientProperty("zorder", null);
+                  }
+                }
+              } catch (Exception e) {
+                // Ignore errors
+              }
+
+              return true;
             }
-          }
+          }.invokeAndWait();
+
         }
 
       }
-    }
-
-    // For all started visplugins, check if they have a zorder property
-    try {
-      for (JInternalFrame plugin : getDesktopPane().getAllFrames()) {
-        if (plugin.getClientProperty("zorder") != null) {
-          getDesktopPane().setComponentZOrder(plugin,
-              ((Integer) plugin.getClientProperty("zorder")).intValue());
-          plugin.putClientProperty("zorder", null);
-        }
-      }
-    } catch (Exception e) {
-      // Ignore errors
     }
 
     return true;
@@ -3577,10 +3605,14 @@ public class GUI extends Observable {
    * @param exception
    *          Exception causing window to be shown
    * @param retryAvailable
-   *          If true, a retry option is available
+   *          If true, a retry option is presented
+   * @return Retry failed operation
    */
-  public static boolean showErrorDialog(Component parentComponent,
-      final String title, Throwable exception, boolean retryAvailable) {
+  public static boolean showErrorDialog(final Component parentComponent,
+      final String title, final Throwable exception, final boolean retryAvailable) {
+
+    return new RunnableInEDT<Boolean>() {
+      public Boolean work() {
 
     MessageList compilationOutput = null;
     MessageList stackTrace = null;
@@ -3756,6 +3788,54 @@ public class GUI extends Observable {
       return true;
     }
     return false;
+
+      }
+    }.invokeAndWait();
+
+
+  }
+
+  /**
+   * Runs work method in event dispatcher thread.
+   * Worker method returns a value.
+   *
+   * @author Fredrik Österlind
+   */
+  public static abstract class RunnableInEDT<T> {
+    private T val;
+
+    /**
+     * Work method to be implemented.
+     *
+     * @return Return value
+     */
+    public abstract T work();
+
+    /**
+     * Runs worker method in event dispatcher thread.
+     *
+     * @see #work()
+     * @return Worker method return value
+     */
+    public T invokeAndWait() {
+      if(java.awt.EventQueue.isDispatchThread()) {
+        return RunnableInEDT.this.work();
+      }
+
+      try {
+        java.awt.EventQueue.invokeAndWait(new Runnable() {
+          public void run() {
+            val = RunnableInEDT.this.work();
+          }
+        });
+      } catch (InterruptedException e) {
+        e.printStackTrace();
+      } catch (InvocationTargetException e) {
+        e.printStackTrace();
+      }
+
+      return val;
+    }
   }
 
   /**
