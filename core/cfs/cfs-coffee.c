@@ -240,7 +240,6 @@ dir_cache_del(coffee_offset_t page)
   
   for(i = 0; i < COFFEE_DIR_CACHE_ENTRIES; i++) {
     if(dir_cache[i].page == page) {
-      dir_cache[i].page = -1;
       dir_cache[i].filename_start = '\0';
     } 
   }
@@ -390,36 +389,28 @@ cfs_garbage_collect(void)
 {
   uint16_t sector;
   coffee_page_t active_pages, free_pages, obsolete_pages;
-  uint8_t sectors_in_row, longest_row;
-  
+  int nerased;
+
   watchdog_stop();
   
   PRINTF("Coffee: Running the file system garbage collector...\n");
-  
-  sectors_in_row = longest_row = 0;
   /* 
    * The garbage collector erases as many sectors as possible. A sector is
    * erasable if there are only free or obsolete pages in it.
    */
-  for(sector = 0; sector < COFFEE_SIZE / COFFEE_SECTOR_SIZE; sector++) {
+  for(nerased = sector = 0; sector < COFFEE_SIZE / COFFEE_SECTOR_SIZE; sector++) {
     get_sector_status(sector, &active_pages, &free_pages, &obsolete_pages);
     PRINTF("Coffee: Sector %u has %u active, %u free, and %u obsolete pages.\n",
 	sector, active_pages, free_pages, obsolete_pages);
     if(active_pages == 0 && obsolete_pages > 0) {
       COFFEE_ERASE(sector);
+      nerased++;
       PRINTF("Coffee: Erased sector %d!\n", sector);
-      ++sectors_in_row;
-      if(sectors_in_row > longest_row) {
-	longest_row = sectors_in_row;
-      }
-    } else {
-      sectors_in_row = 0;
     }
   }
 
   watchdog_start();
-  
-  return longest_row * COFFEE_PAGES_PER_SECTOR;
+  return nerased;
 }
 /*---------------------------------------------------------------------------*/
 static int
@@ -476,13 +467,11 @@ reserve(const char *name, uint32_t size, int allow_duplicates)
 
   watchdog_stop();
   page = find_contiguous_pages(need_pages);
-  watchdog_start();
   if(page < 0) {
     cfs_garbage_collect();
-    watchdog_stop();
     page = find_contiguous_pages(need_pages);
-    watchdog_start();
     if(page < 0) {
+      watchdog_start();
       return -1;
     }
   }
@@ -500,6 +489,8 @@ reserve(const char *name, uint32_t size, int allow_duplicates)
   PRINTF("Coffee: Reserved %u pages starting from %u for file %s\n",
       need_pages, page, name);
   dir_cache_add(name[0], page);
+
+  watchdog_start();
 
   return page;
 }
