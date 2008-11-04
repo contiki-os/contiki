@@ -714,10 +714,10 @@ write_log_page(struct file_desc *fdp, struct log_param *lp)
 
   READ_HEADER(&hdr, fdp->file_page);
 
-  log_entry_size = hdr.log_entry_size == 0 ?
-	COFFEE_PAGE_SIZE : hdr.log_entry_size;
   log_entries = hdr.log_entries == 0 ?
 	COFFEE_LOG_SIZE / COFFEE_PAGE_SIZE : hdr.log_entries;
+  log_entry_size = hdr.log_entry_size == 0 ?
+	COFFEE_PAGE_SIZE : hdr.log_entry_size;
 
   page = lp->offset / log_entry_size;
   lp->offset %= log_entry_size;
@@ -823,12 +823,14 @@ cfs_open(const char *name, int flags)
   int fd;
   int page;
   struct file_header hdr;
+  struct file_desc *fdp;
 
   fd = get_available_fd();
   if(fd < 0) {
     PRINTF("Coffee: Failed to allocate a new file descriptor!\n");
     return -1;
   }
+  fdp = &coffee_fd_set[fd];
   
   page = find_file(name);
   if(page < 0) {
@@ -838,21 +840,21 @@ cfs_open(const char *name, int flags)
     if((page = reserve(name, COFFEE_DYN_SIZE, 1)) < 0) {
 	return -1;
     }
-    coffee_fd_set[fd].max_pages = (COFFEE_DYN_SIZE + sizeof(hdr) + 
-				   COFFEE_PAGE_SIZE - 1) / COFFEE_PAGE_SIZE;
+    fdp->max_pages = (COFFEE_DYN_SIZE + sizeof(hdr) + 
+                      COFFEE_PAGE_SIZE - 1) / COFFEE_PAGE_SIZE;
   } else {
     READ_HEADER(&hdr, page);
     if(COFFEE_PAGE_MODIFIED(hdr)) {
-      coffee_fd_set[fd].flags = COFFEE_FD_MODIFIED;
+      fdp->flags = COFFEE_FD_MODIFIED;
     } else
-    coffee_fd_set[fd].max_pages = hdr.max_pages;
+    fdp->max_pages = hdr.max_pages;
   }
 
-  coffee_fd_set[fd].file_page = page;
-  coffee_fd_set[fd].flags |= flags;
-  coffee_fd_set[fd].end = find_offset_in_file(page);
-  coffee_fd_set[fd].offset = flags & CFS_APPEND ? coffee_fd_set[fd].end : 0;
-  coffee_fd_set[fd].next_log_entry = 0;
+  fdp->file_page = page;
+  fdp->flags |= flags;
+  fdp->end = find_offset_in_file(page);
+  fdp->offset = flags & CFS_APPEND ? fdp->end : 0;
+  fdp->next_log_entry = 0;
 
   return fd;
 }
