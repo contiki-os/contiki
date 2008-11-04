@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: MspMoteType.java,v 1.18 2008/11/03 13:18:28 fros4943 Exp $
+ * $Id: MspMoteType.java,v 1.19 2008/11/04 17:37:09 fros4943 Exp $
  */
 
 package se.sics.cooja.mspmote;
@@ -239,6 +239,7 @@ public abstract class MspMoteType implements MoteType {
           newException = (MoteTypeCreationException) newException.initCause(e);
           newException.setCompilationOutput(compilationOutput);
 
+          /* Print last compilation errors */
           try { Thread.sleep(500); } catch (InterruptedException ignore) { }
           ListModel tmp = compilationOutput.getModel();
           for (int i=tmp.getSize()-5; i < tmp.getSize(); i++) {
@@ -634,9 +635,9 @@ public abstract class MspMoteType implements MoteType {
           }
         }
 
-       else {
-          }
-        } catch (IOException ex) {
+        else {
+        }
+      } catch (IOException ex) {
         if (failAction != null) {
           failAction.actionPerformed(null);
         }
@@ -680,13 +681,17 @@ public abstract class MspMoteType implements MoteType {
 
       cleanButton.addActionListener(new ActionListener() {
         public void actionPerformed(ActionEvent e) {
-          try {
-            File parentDir = new File(sourceTextField.getText()).getParentFile();
-            compileFirmware(
-                "make clean TARGET=" + target, new File(sourceTextField.getText()), null,
-                parentDir, null, null, taskOutput, true);
-          } catch (Exception e2) {
-          }
+            new Thread(new Runnable() {
+              public void run() {
+                try {
+                  File parentDir = new File(sourceTextField.getText()).getParentFile();
+                  compileFirmware(
+                      "make clean TARGET=" + target, new File(sourceTextField.getText()), null,
+                      parentDir, null, null, taskOutput, true);
+                } catch (Exception e2) {
+                }
+              }
+            }).start();
         }
       });
 
@@ -703,7 +708,7 @@ public abstract class MspMoteType implements MoteType {
           final String filenameNoExtension = selectedSourceFile.getName()
               .substring(0, selectedSourceFile.getName().length() - 2);
 
-          Action successAction = new AbstractAction() {
+          final Action successAction = new AbstractAction() {
             public void actionPerformed(ActionEvent e) {
               updateDialog(DialogState.COMPILED_SOURCE);
               File parentFile = selectedSourceFile.getParentFile();
@@ -712,7 +717,7 @@ public abstract class MspMoteType implements MoteType {
               ELFFile = new File(parentFile, filenameNoExtension + getTargetFileExtension(target));
             }
           };
-          Action failAction = new AbstractAction() {
+          final Action failAction = new AbstractAction() {
             public void actionPerformed(ActionEvent e) {
               updateDialog(DialogState.SELECTED_SOURCE);
             }
@@ -720,8 +725,17 @@ public abstract class MspMoteType implements MoteType {
 
           updateDialog(DialogState.IS_COMPILING);
           try {
-            compileFirmware(selectedSourceFile, successAction,
-                failAction, taskOutput, false);
+            new Thread(new Runnable() {
+              public void run() {
+                try {
+                  compileFirmware(selectedSourceFile,
+                      successAction, failAction,
+                      taskOutput, false);
+                } catch (Exception e) {
+                  e.printStackTrace();
+                }
+              }
+            }).start();
           } catch (Exception e2) {
           }
         }
