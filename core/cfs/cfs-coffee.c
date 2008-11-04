@@ -513,6 +513,20 @@ adjust_log_config(struct file_header *hdr,
     COFFEE_LOG_SIZE / *log_record_size : hdr->log_records;
 }
 /*---------------------------------------------------------------------------*/
+static uint16_t
+modify_log_buffer(uint16_t log_record_size,
+		  coffee_offset_t *offset, uint16_t *size)
+{
+  uint16_t region;
+
+  region = *offset / log_record_size;
+  *offset %= log_record_size;
+  if(*size > log_record_size - *offset) {
+    *size = log_record_size - *offset;
+  }
+  return region;
+}
+/*---------------------------------------------------------------------------*/
 static int
 get_record_index(coffee_page_t log_page, uint16_t record_count,
 		 uint16_t search_records, uint16_t region)
@@ -561,18 +575,14 @@ read_log_page(struct file_header *hdr, int16_t last_record, struct log_param *lp
   uint16_t search_records;
 
   adjust_log_config(hdr, &log_record_size, &log_records);
-
-  region = lp->offset / log_record_size;
-  lp->offset %= log_record_size;
-  if(lp->size > log_record_size - lp->offset) {
-    lp->size = log_record_size - lp->offset;
-  }
+  region = modify_log_buffer(log_record_size, &lp->offset, &lp->size);
 
   search_records = last_record < 0 ? log_records : last_record + 1;
   record_count = search_records > COFFEE_LOG_TABLE_LIMIT ?
       		COFFEE_LOG_TABLE_LIMIT : search_records;
   
-  match_index = get_record_index(hdr->log_page, record_count, search_records, region);
+  match_index = get_record_index(hdr->log_page, record_count,
+				 search_records, region);
   if(match_index < 0) {
     return -1;
   }
@@ -712,7 +722,7 @@ static int
 write_log_page(struct file_desc *fdp, struct log_param *lp)
 {
   struct file_header hdr;
-  coffee_page_t page;
+  uint16_t region;
   coffee_page_t log_page;
   int16_t log_record;
   uint16_t log_record_size;
@@ -723,16 +733,11 @@ write_log_page(struct file_desc *fdp, struct log_param *lp)
   uint16_t record_count;
 
   read_header(&hdr, fdp->file_page);
-  adjust_log_config(&hdr, &log_record_size, &log_records);
 
-  page = lp->offset / log_record_size;
-  lp->offset %= log_record_size;
-  if(lp->size > log_record_size - lp->offset) {
-    lp->size = log_record_size - lp->offset;
-  }
+  adjust_log_config(&hdr, &log_record_size, &log_records);
+  region = modify_log_buffer(log_record_size, &lp->offset, &lp->size);
 
   log_page = 0;
-
   if(COFFEE_PAGE_MODIFIED(hdr)) {
     /* A log structure has already been created. */
     record_count = log_records > COFFEE_LOG_TABLE_LIMIT ?
@@ -783,27 +788,27 @@ write_log_page(struct file_desc *fdp, struct log_param *lp)
   {
     unsigned char copy_buf[log_record_size];
 
-    lp_out.offset = page * log_record_size;
+    lp_out.offset = region * log_record_size;
     lp_out.buf = copy_buf;
     lp_out.size = log_record_size;
 
     if((lp->offset > 0 || lp->size != log_record_size) &&
-	read_log_page(&hdr, fdp->next_log_record > 0 ? fdp->next_log_record - 1 : -1, &lp_out) < 0) {
+	read_log_page(&hdr, fdp->next_log_record - 1, &lp_out) < 0) {
       COFFEE_READ(copy_buf, sizeof(copy_buf),
-	  ABS_OFFSET(fdp->file_page, page * log_record_size));
+	  ABS_OFFSET(fdp->file_page, region * log_record_size));
     }
  
     memcpy((char *) &copy_buf + lp->offset, lp->buf, lp->size);
     
     base = (unsigned long)log_page * COFFEE_PAGE_SIZE;
     base += sizeof(hdr);
-    base += log_records * sizeof(page);
+    base += log_records * sizeof(region);
     base += (unsigned long)log_record * log_record_size;
 
     COFFEE_WRITE(copy_buf, sizeof(copy_buf), base);
-    ++page;
-    COFFEE_WRITE(&page, sizeof(page),
-	ABS_OFFSET(log_page, log_record * sizeof(page)));
+    ++region;
+    COFFEE_WRITE(&region, sizeof(region),
+	ABS_OFFSET(log_page, log_record * sizeof(region)));
     fdp->next_log_record = log_record + 1;
   }
   
@@ -970,8 +975,7 @@ cfs_read(int fd, void *buf, unsigned size)
       lp.offset = base + offset;
       lp.buf = (char *)buf + offset;
       lp.size = remains;
-      r = read_log_page(&hdr,
-		fdp->next_log_record > 0 ? fdp->next_log_record - 1 : -1, &lp);
+      r = read_log_page(&hdr, fdp->next_log_record - 1, &lp);
     }
     /* Read from the original file if we cannot find the data in the log. */
     if(r < 0) {
@@ -1099,12 +1103,14 @@ cfs_coffee_reserve(const char *name, uint32_t size)
 }
 /*---------------------------------------------------------------------------*/
 int
-cfs_coffee_configure_log(const char *file, unsigned log_size, unsigned log_record_size)
+cfs_coffee_configure_log(const char *file, unsigned log_size,
+			 unsigned log_record_size)
 {
   coffee_page_t page;
   struct file_header hdr;
 
-  if(log_record_size == 0 || log_record_size > COFFEE_PAGE_SIZE || log_size < log_record_size) {
+  if(log_record_size == 0 || log_record_size > COFFEE_PAGE_SIZE ||
+     log_size < log_record_size) {
     return -1;
   }
 
