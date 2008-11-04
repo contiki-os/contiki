@@ -139,6 +139,7 @@ main(void)
 #endif /* PROFILE_CONF_ON */
     do {
       /* Reset watchdog. */
+      watchdog_periodic();
       r = process_run();
     } while(r > 0);
 
