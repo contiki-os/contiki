@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: LogScriptEngine.java,v 1.4 2008/10/03 15:18:48 fros4943 Exp $
+ * $Id: LogScriptEngine.java,v 1.5 2008/11/05 18:16:56 fros4943 Exp $
  */
 
 package se.sics.cooja.plugins;
@@ -69,6 +69,8 @@ public class LogScriptEngine {
 
   private interface ScriptLog {
     public void log(String log);
+    public void testOK();
+    public void testFailed();
   }
 
   public LogScriptEngine(GUI gui, String code) {
@@ -197,6 +199,24 @@ public class LogScriptEngine {
       public void log(String msg) {
         if (scriptLogObserver != null) {
           scriptLogObserver.update(null, msg);
+        }
+      }
+      public void testOK() {
+        log("TEST OK\n");
+
+        if (GUI.isVisualized()) {
+          log("[if test was run without visualization, COOJA would now have been terminated]\n");
+        } else {
+          gui.doQuit(false);
+        }
+      }
+      public void testFailed() {
+        log("TEST FAILED\n");
+
+        if (GUI.isVisualized()) {
+          log("[if test was run without visualization, COOJA would now have been terminated]\n");
+        } else {
+          gui.doQuit(false);
         }
       }
     });
