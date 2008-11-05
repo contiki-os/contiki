@@ -5,7 +5,6 @@
     <delaytime>0</delaytime>
     <ticktime>1</ticktime>
     <randomseed>123456</randomseed>
-    <nrticklists>1</nrticklists>
     <motedelay>0</motedelay>
     <radiomedium>
       se.sics.cooja.radiomediums.UDGM
@@ -16,7 +15,7 @@
     </radiomedium>
     <motetype>
       se.sics.cooja.contikimote.ContikiMoteType
-      <identifier>mtype1</identifier>
+      <identifier>mtype2</identifier>
       <description>Contiki Mote #1</description>
       <contikibasedir>../../..</contikibasedir>
       <contikicoredir>../../../platform/cooja</contikicoredir>
@@ -62,12 +61,16 @@
     </motetype>
     <mote>
       se.sics.cooja.contikimote.ContikiMote
-      <motetype_identifier>mtype1</motetype_identifier>
+      <motetype_identifier>mtype2</motetype_identifier>
       <interface_config>
         se.sics.cooja.interfaces.Position
         <x>91.48300003917207</x>
         <y>83.5491879028037</y>
         <z>0.0</z>
+      </interface_config>
+      <interface_config>
+        se.sics.cooja.interfaces.Battery
+        <infinite>false</infinite>
       </interface_config>
       <interface_config>
         se.sics.cooja.contikimote.interfaces.ContikiMoteID
@@ -76,10 +79,6 @@
       <interface_config>
         se.sics.cooja.contikimote.interfaces.ContikiIPAddress
         <ipv4address>10.10.15.14</ipv4address>
-      </interface_config>
-      <interface_config>
-        se.sics.cooja.interfaces.Battery
-        <infinite>false</infinite>
       </interface_config>
     </mote>
   </simulation>
