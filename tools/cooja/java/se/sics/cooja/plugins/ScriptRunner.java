@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ScriptRunner.java,v 1.6 2008/10/02 21:20:26 fros4943 Exp $
+ * $Id: ScriptRunner.java,v 1.7 2008/11/05 18:17:45 fros4943 Exp $
  */
 
 package se.sics.cooja.plugins;
@@ -63,7 +63,7 @@ import org.jdom.output.XMLOutputter;
 import se.sics.cooja.*;
 import se.sics.cooja.dialogs.MessageList;
 
-@ClassDescription("(GUI) Test Script Editor")
+@ClassDescription("Test Script Editor")
 @PluginType(PluginType.COOJA_PLUGIN)
 public class ScriptRunner extends VisPlugin {
   private static final long serialVersionUID = 1L;
@@ -78,8 +78,8 @@ public class ScriptRunner extends VisPlugin {
   private String oldInfo = null;
 
   private static String exampleScript =
-    "/* Script is called once for every node log output. */\n" +
-    "/* Input variables: Mote mote, int id, String msg. */\n" +
+    "/* Script is run for each mote log output, for example printf()'s */\n" +
+    "/* Input variables: Mote mote, int id, String msg, Hashtable global */\n" +
     "\n" +
     "log.log('MOTE=' + mote + '\\n');\n" +
     "log.log('ID=' + id + '\\n');\n" +
@@ -87,21 +87,20 @@ public class ScriptRunner extends VisPlugin {
     "log.log('MSG=' + msg + '\\n');\n" +
     "\n" +
     "/* Hashtable global may be used to store state across script invokes */\n" +
-    "log.log('STORED VAR=' + global.get('storedVar') + '\\n');\n" +
-    "global.put('storedVar', msg);\n" +
+    "log.log('LAST MSG=' + global.get('lastMsg') + '\\n');\n" +
+    "global.put('lastMsg', msg);\n" +
     "\n" +
     "/* Contiki test script example */\n" +
     "if (msg.startsWith('Hello, world')) {\n" +
-    "  log.log('TEST OK\\n'); /* Report test success */\n" +
-    "  \n" +
-    "  /* To increase test run speed, close the simulator when done */\n" +
-    "  //mote.getSimulation().getGUI().doQuit(false); /* Quit simulator (to end test run)*/\n" +
+    "  log.testOK(); /* Report test success and quit */\n" +
+    "} else {\n" +
+    "  log.testFailed(); /* Report test failed and quit */\n" +
     "}\n" +
     "\n" +
     "//mote.getSimulation().getGUI().reloadCurrentSimulation(true); /* Reload simulation */\n";
 
   public ScriptRunner(GUI gui) {
-    super("(GUI) Test Script Editor", gui);
+    super("Test Script Editor", gui);
     this.gui = gui;
 
     scriptTextArea = new JTextArea(8,50);
@@ -165,6 +164,8 @@ public class ScriptRunner extends VisPlugin {
         new JScrollPane(scriptTextArea),
         new JScrollPane(logTextArea)
     );
+    centerPanel.setOneTouchExpandable(true);
+    centerPanel.setResizeWeight(0.5);
 
     JPanel buttonPanel = new JPanel(new BorderLayout());
     buttonPanel.add(BorderLayout.WEST, importButton);
@@ -263,7 +264,7 @@ public class ScriptRunner extends VisPlugin {
     Simulation simulation = ScriptRunner.this.gui.getSimulation();
     if (simulation == null) {
       JOptionPane.showMessageDialog(GUI.getTopParentContainer(),
-          "No simulation loaded. Aborting.", "Error", JOptionPane.ERROR_MESSAGE);
+          "Create a simulation setup to test.", "No simulation to export", JOptionPane.ERROR_MESSAGE);
       return;
     }
 
@@ -273,8 +274,8 @@ public class ScriptRunner extends VisPlugin {
     String s2 = "Cancel";
     Object[] options = { s1, s2 };
     int n = JOptionPane.showOptionDialog(GUI.getTopParentContainer(),
-        "Export current simulation config (.csc) and test script (.js)\n" +
-        "to directory '" + testDir.getPath() + "'?",
+        "The current simulation config (.csc) and test script (.js)\n" +
+        "will be stored in directory '" + testDir.getPath() + "'",
         "Export Contiki test", JOptionPane.YES_NO_OPTION,
         JOptionPane.QUESTION_MESSAGE, null, options, s1);
     if (n != JOptionPane.YES_OPTION) {
@@ -290,8 +291,9 @@ public class ScriptRunner extends VisPlugin {
       oldTestName = "mytest";
     }
     String testName = (String) JOptionPane.showInputDialog(GUI.getTopParentContainer(),
-        "Enter test name. No spaces or strange chars allowed.",
-        "Test name", JOptionPane.PLAIN_MESSAGE, null, null,
+        "The test name correponds to the exported test files:\n" +
+        "[testname].csc, [testname].js, [testname].info\n",
+        "Enter test name", JOptionPane.PLAIN_MESSAGE, null, null,
         oldTestName);
     if (testName == null) {
       return;
@@ -400,8 +402,10 @@ public class ScriptRunner extends VisPlugin {
         oldInfo = "";
       }
       String info = (String) JOptionPane.showInputDialog(GUI.getTopParentContainer(),
-          "Optional test info",
-          "(OPTIONAL) Enter test description", JOptionPane.PLAIN_MESSAGE, null, null,
+          "This text describes the Contiki test and may contain\n" +
+          "information about the simulation setup, radio medium,\n" +
+          "node types, Contiki processes etc.\n\n",
+          "Enter test description", JOptionPane.PLAIN_MESSAGE, null, null,
           oldInfo);
       if (info != null && !info.equals("")) {
         oldInfo = info;
