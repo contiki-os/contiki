@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ScriptRunnerNoGUI.java,v 1.3 2008/09/18 14:55:21 fros4943 Exp $
+ * $Id: ScriptRunnerNoGUI.java,v 1.4 2008/11/05 18:18:16 fros4943 Exp $
  */
 
 package se.sics.cooja.plugins;
@@ -44,7 +44,7 @@ import org.jdom.Element;
 import se.sics.cooja.*;
 import se.sics.cooja.GUI.SimulationCreationException;
 
-@ClassDescription("Script Runner No GUI (Log)")
+@ClassDescription("Test Script Editor (no GUI)")
 @PluginType(PluginType.COOJA_PLUGIN)
 public class ScriptRunnerNoGUI implements Plugin {
   private static final long serialVersionUID = 1L;
