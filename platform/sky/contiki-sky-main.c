@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#)$Id: contiki-sky-main.c,v 1.37 2008/09/18 21:29:06 joxe Exp $
+ * @(#)$Id: contiki-sky-main.c,v 1.38 2008/11/05 15:34:04 nvt-se Exp $
  */
 
 #include <signal.h>
@@ -56,6 +56,8 @@
 #include "net/rime.h"
 
 #include "node-id.h"
+#include "cfs-coffee-arch.h"
+#include "cfs/cfs-coffee.h"
 #include "sys/autostart.h"
 #include "sys/profile.h"
 
@@ -64,6 +66,11 @@ SENSORS(&button_sensor);
 
 #ifndef WITH_UIP
 #define WITH_UIP 0
+#endif
+
+#if WITH_UIP6
+#include "net/sicslowpan.h"
+#include "net/uip-netif.h"
 #endif
 
 #if WITH_UIP
@@ -76,10 +83,10 @@ static struct uip_fw_netif slipif =
 static struct uip_fw_netif meshif =
   {UIP_FW_NETIF(172,16,0,0, 255,255,0,0, uip_over_mesh_send)};
 
+#endif /* WITH_UIP */
+
 #define SLIP_TRICKLE_CHANNEL 8
 #define UIP_OVER_MESH_CHANNEL 9
-
-#endif /* WITH_UIP */
 
 #ifdef EXPERIMENT_SETUP
 #include "experiment-setup.h"
@@ -248,7 +255,7 @@ main(int argc, char **argv)
 #else
   rime_init(xmac_init(&cc2420_driver));
 #endif
-  
+
   printf(CONTIKI_VERSION_STRING " started. ");
   if(node_id > 0) {
     printf("Node id is set to %u.\n", node_id);
@@ -260,6 +267,12 @@ main(int argc, char **argv)
 	 ds2411_id[0], ds2411_id[1], ds2411_id[2], ds2411_id[3],
 	 ds2411_id[4], ds2411_id[5], ds2411_id[6], ds2411_id[7]);
   
+#if WITH_UIP6
+  memcpy(&uip_lladdr.addr, ds2411_id, sizeof(uip_lladdr.addr));
+  sicslowpan_init(rime_mac);
+  process_start(&tcpip_process, NULL);
+#endif /* WITH_UIP6 */
+
 #if WITH_UIP
   {
     uip_ipaddr_t hostaddr, netmask;
@@ -283,7 +296,7 @@ main(int argc, char **argv)
   }
 #endif /* WITH_UIP */
 
-#if !WITH_UIP
+#if !WITH_UIP && !WITH_UIP6
   uart1_set_input(serial_input_byte);
   serial_init();
 #endif
@@ -293,11 +306,8 @@ main(int argc, char **argv)
 #endif /* PROFILE_CONF_ON */
 
   leds_off(LEDS_GREEN);
-  
 
   timesynch_init();
-
-
   timesynch_set_authority_level(rimeaddr_node_addr.u8[0]);
 
 #if WITH_UIP
@@ -308,14 +318,13 @@ main(int argc, char **argv)
   trickle_open(&trickle, CLOCK_SECOND * 4, SLIP_TRICKLE_CHANNEL,
 	       &trickle_call);
   slip_set_input_callback(set_gateway);
-
 #endif /* WITH_UIP */
 
   button_sensor.activate();
 
   energest_init();
   ENERGEST_ON(ENERGEST_TYPE_CPU);
-  
+
   print_processes(autostart_processes);
   autostart_start(autostart_processes);
   
@@ -324,7 +333,7 @@ main(int argc, char **argv)
    */
   watchdog_start();
   /*  watchdog_stop();*/
-  while (1) {
+  while(1) {
     int r;
 #if PROFILE_CONF_ON
     profile_episode_start();
