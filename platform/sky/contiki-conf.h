@@ -1,5 +1,5 @@
 /* -*- C -*- */
-/* @(#)$Id: contiki-conf.h,v 1.28 2008/07/02 09:38:06 adamdunkels Exp $ */
+/* @(#)$Id: contiki-conf.h,v 1.29 2008/11/05 14:31:06 nvt-se Exp $ */
 
 #ifndef CONTIKI_CONF_H
 #define CONTIKI_CONF_H
@@ -52,9 +52,31 @@
 
 #define BAUD2UBR(baud) ((F_CPU/baud))
 
+#ifdef WITH_UIP6
+#define UIP_CONF_LL_802154              1
+#define UIP_CONF_LLH_LEN                0
+
+#define UIP_CONF_IPV6                   1
+#define UIP_CONF_IPV6_QUEUE_PKT         1
+#define UIP_CONF_IPV6_CHECKS            1
+#define UIP_CONF_IPV6_REASSEMBLY        0
+#define UIP_CONF_NETIF_MAX_ADDRESSES    3
+#define UIP_CONF_ND6_MAX_PREFIXES       3
+#define UIP_CONF_ND6_MAX_NEIGHBORS      4
+#define UIP_CONF_ND6_MAX_DEFROUTERS     2
+#define UIP_CONF_IP_FORWARD             0
+
+#define SICSLOWPAN_CONF_COMPRESSION_IPV6        0
+#define SICSLOWPAN_CONF_COMPRESSION_HC1         1
+#define SICSLOWPAN_CONF_COMPRESSION_HC01        2
+#define SICSLOWPAN_CONF_COMPRESSION             SICS_LOWPAN_CONF_COMPRESSION_HC1
+#define SICSLOWPAN_CONF_FRAG                    0
+#else
+#define UIP_CONF_IP_FORWARD      1
+#endif /* WITH_UIP6 */
+
 #define UIP_CONF_ICMP_DEST_UNREACH 1
 
-#define UIP_CONF_IP_FORWARD      1
 #define UIP_CONF_DHCP_LIGHT
 #define UIP_CONF_LLH_LEN         0
 #define UIP_CONF_BUFFER_SIZE     110
