@@ -42,15 +42,15 @@
  *
  * Author: Adam Dunkels <adam@sics.se>, Nicolas Tsiftes <nvt@sics.se>
  *
- * $Id: stimer.c,v 1.1 2008/10/02 10:17:48 nvt-se Exp $
+ * $Id: stimer.c,v 1.2 2008/11/05 19:34:36 nvt-se Exp $
  */
 
 #include "contiki-conf.h"
 #include "sys/clock.h"
 #include "sys/stimer.h"
 
-#define SCLOCK_LT(a, b)	((unsigned long)((a) - (b)) < \
-			((unsigned long)(~((unsigned long)0)) >> 1))
+#define SCLOCK_GEQ(a, b)	((unsigned long)((a) - (b)) < \
+				((unsigned long)(~((unsigned long)0)) >> 1))
 
 /*---------------------------------------------------------------------------*/
 /**
@@ -124,7 +124,7 @@ stimer_restart(struct stimer *t)
 int
 stimer_expired(struct stimer *t)
 {
-  return SCLOCK_LT(clock_seconds(), t->start + t->interval);
+  return SCLOCK_GEQ(clock_seconds(), t->start + t->interval);
 }
 /*---------------------------------------------------------------------------*/
 /**
