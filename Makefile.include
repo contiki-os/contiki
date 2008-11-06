@@ -94,7 +94,14 @@ endif
 
 ### Include target makefile (TODO Unsafe?)
 
-include $(CONTIKI)/platform/$(TARGET)/Makefile.$(TARGET)
+target_makefile := $(wildcard $(CONTIKI)/platform/$(TARGET)/Makefile.$(TARGET))
+
+# Check if the target makefile exists
+ifeq ($(strip $(target_makefile)),)
+  ${error The target platform "$(TARGET)" does not exist (maybe it was misspelled?)}
+else
+  include $(CONTIKI)/platform/$(TARGET)/Makefile.$(TARGET)
+endif
 
 ### Forward comma-separated list of arbitrary defines to the compiler
 
