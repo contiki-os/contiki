@@ -28,7 +28,7 @@
  *
  * This file is part of the uIP TCP/IP stack.
  *
- * $Id: ajax-cgi.c,v 1.1 2008/07/07 23:42:32 adamdunkels Exp $
+ * $Id: ajax-cgi.c,v 1.2 2008/11/06 08:24:20 adamdunkels Exp $
  *
  */
 
@@ -170,12 +170,12 @@ PT_THREAD(neighborscall(struct httpd_state *s, char *ptr))
 {
   PSOCK_BEGIN(&s->sout);
 
-  printf("neighbor_num %d\n", neighbor_num());
+  /*  printf("neighbor_num %d\n", neighbor_num());*/
   
   for(s->u.count = 0; s->u.count < neighbor_num(); s->u.count++) {
-    printf("count %d\n", s->u.count);
+    /*    printf("count %d\n", s->u.count);*/
     if(neighbor_get(s->u.count) != NULL) {
-      printf("!= NULL\n");
+      /*      printf("!= NULL\n");*/
       PSOCK_GENERATOR_SEND(&s->sout, make_neighbor, s);
     }
   }
@@ -190,7 +190,7 @@ adv_received(struct neighbor_discovery_conn *c, rimeaddr_t *from,
 {
   struct neighbor *n;
 
-  printf("adv_received %d.%d\n", from->u8[0], from->u8[1]);
+  /*  printf("adv_received %d.%d\n", from->u8[0], from->u8[1]);*/
   
   n = neighbor_find(from);
   
@@ -221,8 +221,8 @@ httpd_cgi_init(void)
   httpd_cgi_add(&neighbors);
 
   neighbor_discovery_open(&conn, 31,
-			  CLOCK_SECOND * 2,
-			  CLOCK_SECOND * 10,
+			  CLOCK_SECOND * 4,
+			  CLOCK_SECOND * 20,
 			  CLOCK_SECOND * 60,
 			  &neighbor_discovery_callbacks);
   neighbor_discovery_start(&conn, 0);
