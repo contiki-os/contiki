@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#)$Id: contiki-sky-main.c,v 1.38 2008/11/05 15:34:04 nvt-se Exp $
+ * @(#)$Id: contiki-sky-main.c,v 1.39 2008/11/06 15:14:24 nvt-se Exp $
  */
 
 #include <signal.h>
@@ -126,7 +126,11 @@ set_rime_addr(void)
 {
   rimeaddr_t addr;
   int i;
+
   memset(&addr, 0, sizeof(rimeaddr_t));
+#if UIP_CONF_IPV6
+  memcpy(addr.u8, ds2411_id, sizeof(addr.u8));
+#else
   if(node_id == 0) {
     for(i = 0; i < sizeof(rimeaddr_t); ++i) {
       addr.u8[i] = ds2411_id[7 - i];
@@ -135,8 +139,13 @@ set_rime_addr(void)
     addr.u8[0] = node_id & 0xff;
     addr.u8[1] = node_id >> 8;
   }
+#endif
   rimeaddr_set_node_addr(&addr);
-  printf("Rime started with address %d.%d\n", addr.u8[0], addr.u8[1]);
+  printf("Rime started with address ");
+  for(i = 0; i < sizeof(addr.u8) - 1; i++) {
+    printf("%d.", addr.u8[i]);
+  }
+  printf("%d\n", addr.u8[i]);
 }
 /*---------------------------------------------------------------------------*/
 static void

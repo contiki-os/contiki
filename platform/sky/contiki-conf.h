@@ -1,5 +1,5 @@
 /* -*- C -*- */
-/* @(#)$Id: contiki-conf.h,v 1.29 2008/11/05 14:31:06 nvt-se Exp $ */
+/* @(#)$Id: contiki-conf.h,v 1.30 2008/11/06 15:14:24 nvt-se Exp $ */
 
 #ifndef CONTIKI_CONF_H
 #define CONTIKI_CONF_H
@@ -53,6 +53,9 @@
 #define BAUD2UBR(baud) ((F_CPU/baud))
 
 #ifdef WITH_UIP6
+
+#define RIMEADDR_CONF_SIZE              8
+
 #define UIP_CONF_LL_802154              1
 #define UIP_CONF_LLH_LEN                0
 
