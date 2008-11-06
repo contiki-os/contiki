@@ -29,7 +29,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: slip.c,v 1.7 2008/02/24 21:00:53 adamdunkels Exp $
+ * @(#)$Id: slip.c,v 1.8 2008/11/06 08:18:29 adamdunkels Exp $
  */
 
 
@@ -227,14 +227,14 @@ PROCESS_THREAD(slip_process, ev, data)
   rxbuf_init();
 
   while(1) {
-    PROCESS_YIELD();
+    PROCESS_YIELD_UNTIL(ev == PROCESS_EVENT_POLL);
     
     slip_active = 1;
 
     /* Move packet from rxbuf to buffer provided by uIP. */
     uip_len = slip_poll_handler(&uip_buf[UIP_LLH_LEN],
 				UIP_BUFSIZE - UIP_LLH_LEN);
-
+#if !UIP_CONF_IPV6
     if(uip_len == 4 && strncmp((char*)&uip_buf[UIP_LLH_LEN], "?IPA", 4) == 0) {
       char buf[8];
       memcpy(&buf[0], "=IPA", 4);
@@ -264,6 +264,7 @@ PROCESS_THREAD(slip_process, ev, data)
       uip_len = 0;
       SLIP_STATISTICS(slip_ip_drop++);
     }
+#endif /* UIP_CONF_IPV6 */
   }
 
   PROCESS_END();
