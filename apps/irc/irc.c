@@ -30,7 +30,7 @@
  * 
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: irc.c,v 1.7 2008/02/08 22:50:43 oliverschmidt Exp $
+ * $Id: irc.c,v 1.8 2008/11/06 08:31:01 adamdunkels Exp $
  */
 
 #include <string.h>
@@ -61,6 +61,9 @@
 PROCESS(irc_process, "IRC client");
 
 AUTOSTART_PROCESSES(&irc_process);
+
+static struct ctk_menu menu;
+unsigned char menuitem_setup;
 
 static struct ctk_window window;
 static char log[LOG_WIDTH * LOG_HEIGHT];
@@ -220,12 +223,16 @@ PROCESS_THREAD(irc_process, ev, data)
   CTK_WIDGET_ADD(&setupwindow, &nicklabel);
   CTK_WIDGET_ADD(&setupwindow, &nickentry);
   CTK_WIDGET_ADD(&setupwindow, &connectbutton);
-  CTK_WIDGET_ADD(&setupwindow, &quitbutton);
+  /*  CTK_WIDGET_ADD(&setupwindow, &quitbutton);*/
   
   CTK_WIDGET_FOCUS(&setupwindow, &serverentry);
   
   ctk_window_open(&setupwindow);
 
+  ctk_menu_new(&menu, "IRC");
+  menuitem_setup = ctk_menuitem_add(&menu, "Setup");
+  ctk_menu_add(&menu);
+  
   while(1) {
     PROCESS_WAIT_EVENT();
     
@@ -233,7 +240,10 @@ PROCESS_THREAD(irc_process, ev, data)
       quit();
 #if CTK_CONF_WINDOWCLOSE
     } else if(ev == ctk_signal_window_close) {
-      quit();
+      if(data == &window) {
+	/*      quit();*/
+	ctk_window_open(&setupwindow);
+      }
 #endif /* CTK_CONF_WINDOWCLOSE */
     } else if(ev == tcpip_event) {
       ircc_appcall(data);
@@ -281,6 +291,12 @@ PROCESS_THREAD(irc_process, ev, data)
       } else {
 	/*      ctk_textedit_eventhandler(&lineedit, ev, data);*/
 	CTK_WIDGET_FOCUS(&window, &lineedit);
+      }
+    } else if(ev == ctk_signal_menu_activate) {
+      if((struct ctk_menu *)data == &menu) {
+	if(menu.active == menuitem_setup) {
+	  ctk_window_open(&setupwindow);
+	}
       }
     }
   }
