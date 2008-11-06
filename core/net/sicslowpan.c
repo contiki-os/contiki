@@ -32,7 +32,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: sicslowpan.c,v 1.3 2008/10/14 13:39:12 julienabeille Exp $
+ * $Id: sicslowpan.c,v 1.4 2008/11/06 20:45:06 nvt-se Exp $
  */
 /**
  * \file
@@ -1208,6 +1208,12 @@ input(const struct mac_driver *r)
   /* tag of the fragment */
   u16_t frag_tag = 0;
 #endif /*SICSLOWPAN_CONF_FRAG*/
+
+#ifdef SICSLOWPAN_CONF_CONVENTIONAL_MAC
+  if(r->read() <= 0) {
+    return;
+  }
+#endif /* SICSLOWPAN_CONF_CONVENTIONAL_MAC */
 
   /* init */
   uncomp_hdr_len = 0;
