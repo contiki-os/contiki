@@ -30,7 +30,7 @@
  * 
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: irc.c,v 1.8 2008/11/06 08:31:01 adamdunkels Exp $
+ * $Id: irc.c,v 1.9 2008/11/06 20:48:08 oliverschmidt Exp $
  */
 
 #include <string.h>
@@ -63,7 +63,7 @@ PROCESS(irc_process, "IRC client");
 AUTOSTART_PROCESSES(&irc_process);
 
 static struct ctk_menu menu;
-unsigned char menuitem_setup;
+unsigned char menuitem_setup, menuitem_quit;
 
 static struct ctk_window window;
 static char log[LOG_WIDTH * LOG_HEIGHT];
@@ -94,8 +94,6 @@ static struct ctk_textentry nickentry =
 
 static struct ctk_button connectbutton =
   {CTK_BUTTON(0, 7, 7, "Connect")};
-static struct ctk_button quitbutton =
-  {CTK_BUTTON(12, 7, 4, "Quit")};
 
 /*static char nick[] = "asdf";
   static char server[] = "efnet.demon.co.uk";*/
@@ -108,6 +106,7 @@ quit(void)
 {
   ctk_window_close(&window);
   ctk_window_close(&setupwindow);
+  ctk_menu_remove(&menu);
   process_exit(&irc_process);
   LOADER_UNLOAD();
 }
@@ -188,7 +187,6 @@ parse_line(void)
     ircc_msg(&s, &line[0]);
     ircc_text_output(&s, nick, line);
   }
-	   
 }
 /*---------------------------------------------------------------------------*/
 void
@@ -223,7 +221,6 @@ PROCESS_THREAD(irc_process, ev, data)
   CTK_WIDGET_ADD(&setupwindow, &nicklabel);
   CTK_WIDGET_ADD(&setupwindow, &nickentry);
   CTK_WIDGET_ADD(&setupwindow, &connectbutton);
-  /*  CTK_WIDGET_ADD(&setupwindow, &quitbutton);*/
   
   CTK_WIDGET_FOCUS(&setupwindow, &serverentry);
   
@@ -231,6 +228,7 @@ PROCESS_THREAD(irc_process, ev, data)
 
   ctk_menu_new(&menu, "IRC");
   menuitem_setup = ctk_menuitem_add(&menu, "Setup");
+  menuitem_quit = ctk_menuitem_add(&menu, "Quit");
   ctk_menu_add(&menu);
   
   while(1) {
@@ -238,20 +236,11 @@ PROCESS_THREAD(irc_process, ev, data)
     
     if(ev == PROCESS_EVENT_EXIT) {
       quit();
-#if CTK_CONF_WINDOWCLOSE
-    } else if(ev == ctk_signal_window_close) {
-      if(data == &window) {
-	/*      quit();*/
-	ctk_window_open(&setupwindow);
-      }
-#endif /* CTK_CONF_WINDOWCLOSE */
     } else if(ev == tcpip_event) {
       ircc_appcall(data);
     } else if(ev == ctk_signal_widget_activate) {
       if(data == (process_data_t)&lineedit) {
 	parse_line();
-      } else if(data == (process_data_t)&quitbutton) {
-	quit();
       } else if(data == (process_data_t)&connectbutton) {
 	ctk_window_close(&setupwindow);
 	ctk_window_open(&window);
@@ -296,6 +285,8 @@ PROCESS_THREAD(irc_process, ev, data)
       if((struct ctk_menu *)data == &menu) {
 	if(menu.active == menuitem_setup) {
 	  ctk_window_open(&setupwindow);
+	} else if(menu.active == menuitem_quit) {
+	  quit();
 	}
       }
     }
