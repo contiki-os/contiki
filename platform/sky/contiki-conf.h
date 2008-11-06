@@ -1,5 +1,5 @@
 /* -*- C -*- */
-/* @(#)$Id: contiki-conf.h,v 1.30 2008/11/06 15:14:24 nvt-se Exp $ */
+/* @(#)$Id: contiki-conf.h,v 1.31 2008/11/06 20:45:06 nvt-se Exp $ */
 
 #ifndef CONTIKI_CONF_H
 #define CONTIKI_CONF_H
@@ -74,6 +74,7 @@
 #define SICSLOWPAN_CONF_COMPRESSION_HC01        2
 #define SICSLOWPAN_CONF_COMPRESSION             SICS_LOWPAN_CONF_COMPRESSION_HC1
 #define SICSLOWPAN_CONF_FRAG                    0
+#define SICSLOWPAN_CONF_CONVENTIONAL_MAC	1
 #else
 #define UIP_CONF_IP_FORWARD      1
 #endif /* WITH_UIP6 */
