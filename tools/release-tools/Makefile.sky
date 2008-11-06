@@ -1,0 +1,11 @@
+contiki-sky:
+	(cd contiki-2.x/examples/sky-shell; make sky-shell.ihex; ant dist; chmod 755 dist/tools/*-linux)
+	cp -r contiki-2.x/examples/sky-shell/dist contiki-sky-$(RELEASE)
+
+contiki-sky-$(RELEASE).zip: contiki-sky
+	tar czf contiki-sky-$(RELEASE).tar.gz contiki-sky-$(RELEASE)
+	chmod 644 contiki-sky-$(RELEASE).tar.gz
+	zip -r contiki-sky-$(RELEASE).zip contiki-sky-$(RELEASE)
+	chmod 644 contiki-sky-$(RELEASE).zip
+
+BINARIES += contiki-sky-$(RELEASE).zip
