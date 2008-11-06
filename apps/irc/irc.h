@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2002, Adam Dunkels.
+ * Copyright (c) 2004, Adam Dunkels.
  * All rights reserved. 
  *
  * Redistribution and use in source and binary forms, with or without 
@@ -29,12 +29,12 @@
  *
  * This file is part of the Contiki desktop environment for the C64.
  *
- * $Id: email.h,v 1.2 2008/11/06 08:30:23 adamdunkels Exp $
+ * $Id: irc.h,v 1.1 2008/11/06 08:30:23 adamdunkels Exp $
  *
  */
-#ifndef __EMAIL_H__
-#define __EMAIL_H__
+#ifndef __IRC_H__
+#define __IRC_H__
 
-PROCESS_NAME(email_process);
+PROCESS_NAME(irc_process);
 
-#endif /* __EMAIL_H__ */
+#endif /* __IRC_H__ */
