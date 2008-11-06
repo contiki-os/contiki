@@ -14,11 +14,11 @@ endif
 
 CVSROOT=$(CVSUSER)@contiki.cvs.sourceforge.net:/cvsroot/contiki
 
-package: export-package almost-clean
+package: all
 
 test: export-package compile almost-clean
 
-export-package: clean export copy tgz zip collectpack avr-raven-pack
+export-package: clean export copy tgz zip
 
 almost-clean:
 	rm -rf contiki-2.x contiki-$(RELEASE) contiki-collect-$(RELEASE)
@@ -53,27 +53,7 @@ checkout:
 export:
 	cvs -d $(CVSROOT) export -r $(TAG) contiki-2.x
 
-contiki-collect:
-	(cd contiki-2.x/examples/sky-shell; make sky-shell.ihex; ant dist; chmod 755 dist/tools/*-linux)
-	cp -r contiki-2.x/examples/sky-shell/dist contiki-collect-$(RELEASE)
+-include Makefile.sky
+-include Makefile.raven
 
-collectpack: contiki-collect
-	tar czf contiki-collect-$(RELEASE).tar.gz contiki-collect-$(RELEASE)
-	chmod 644 contiki-collect-$(RELEASE).tar.gz
-	zip -r contiki-collect-$(RELEASE).zip contiki-collect-$(RELEASE)
-	chmod 644 contiki-collect-$(RELEASE).zip
-
-avr-raven:
-	(cd contiki-2.x/examples/webserver-ipv6-raven; make)
-	(cd contiki-2.x/platform/avr-ravenlcd; make)
-	(cd contiki-2.x/examples/ravenusbstick; make)
-	mkdir contiki-raven-uipv6-$(RELEASE)
-	cp contiki-2.x/examples/webserver-ipv6-raven/webserver6.elf contiki-raven-uipv6-$(RELEASE)
-	cp contiki-2.x/platform/avr-ravenlcd/ravenlcd_3290.elf contiki-raven-uipv6-$(RELEASE)
-	cp contiki-2.x/examples/ravenusbstick/ravenusbstick.elf contiki-raven-uipv6-$(RELEASE)
-
-avr-raven-pack: avr-raven
-	tar czf contiki-raven-uipv6-$(RELEASE).tar.gz contiki-raven-uipv6-$(RELEASE)
-	chmod 644 contiki-raven-uipv6-$(RELEASE).tar.gz
-	zip -r contiki-raven-uipv6-$(RELEASE).zip contiki-raven-uipv6-$(RELEASE)
-	chmod 644 contiki-raven-uipv6-$(RELEASE).zip
+all: export-package $(BINARIES) almost-clean
