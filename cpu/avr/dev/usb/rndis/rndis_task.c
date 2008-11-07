@@ -319,13 +319,9 @@ PROCESS_THREAD(rndis_process, ev, data_proc)
 					//Ack final data packet
 					Usb_ack_receive_out();					
 
-					/*** SEND DATA TO UIP ***/
-		    		if(BUF->type == htons(UIP_ETHTYPE_IPV6)) {
-
-						//Send data over RF or to local stack
-						uip_len = PBUF->DataLength; //uip_len includes LLH_LEN
-						mac_ethernetToLowpan(uip_buf);
-					}
+					//Send data over RF or to local stack
+					uip_len = PBUF->DataLength; //uip_len includes LLH_LEN
+					mac_ethernetToLowpan(uip_buf);
 
 				} //if (PBUF->DataLength) 
 
