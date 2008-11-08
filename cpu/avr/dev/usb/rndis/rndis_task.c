@@ -115,6 +115,8 @@ PROCESS_THREAD(rndis_process, ev, data_proc)
 	PROCESS_BEGIN();
 	uint8_t bytecounter, headercounter;
 	uint16_t i, dataoffset;
+	clock_time_t timediff;
+	clock_time_t thetime;
 
 	while(1) {
 
@@ -210,13 +212,21 @@ PROCESS_THREAD(rndis_process, ev, data_proc)
 			    //TODO: Fix this some better way
 				//If you need a delay in RNDIS to slow down super-fast sending, insert it here
 				//Also mark the USB as "in use"
-				
+								
 				//This is done as "flood control" by only allowing one IP packet per time limit
-				clock_time_t timediff = clock_time() - flood_timer.start;
+				thetime = clock_time();
 				
+				timediff = thetime - flood_timer.start;
 				
+				//Oops, timer wrapped! Just ignore it for now
+				if (thetime < flood_timer.start) {
+					timediff = flood_timer.interval;
+				}
+				
+								
 				//If timer not yet expired
-				if (timediff < flood_timer.interval) {
+				//if (timediff < flood_timer.interval) {
+				if (!timer_expired(&flood_timer)) {
 					//Wait until timer expiers
 					usb_busy = 1;
 					etimer_set(&et, flood_timer.interval - timediff);
@@ -226,6 +236,7 @@ PROCESS_THREAD(rndis_process, ev, data_proc)
 					Usb_select_endpoint(RX_EP);          
 					usb_busy = 0;
 				}				
+				
 
 				//Restart flood timer
 				timer_restart(&flood_timer);
@@ -236,10 +247,12 @@ PROCESS_THREAD(rndis_process, ev, data_proc)
 				//Try and read the header in
 				headercounter = sizeof(rndis_data_packet_t);
 
+				uint8_t fail = 0;
+
 				//Hmm.. what's going on here
 				if (bytecounter < headercounter) {
 					Usb_ack_receive_out();
-					break;
+					fail = 1;
 				}
 
 				i = 0;
@@ -253,16 +266,16 @@ PROCESS_THREAD(rndis_process, ev, data_proc)
 				//This is no good. Probably lost syncronization... just drop it for now
 				if(PBUF->MessageType != REMOTE_NDIS_PACKET_MSG) {
 					Usb_ack_receive_out();
-					break;
+					fail = 1;
 				}
-
-				//Looks like we've got a live one
-				rx_start_led();			
-
 
 				//802.3 does not have OOB data, and we don't care about per-packet data
 				//so that just leave regular packet data...
-				if (PBUF->DataLength) {			
+				if (PBUF->DataLength && (fail == 0)) {			
+				
+					//Looks like we've got a live one
+					rx_start_led();			
+
 
 					//Get offset
 					dataoffset = PBUF->DataOffset;
@@ -322,6 +335,7 @@ PROCESS_THREAD(rndis_process, ev, data_proc)
 					//Send data over RF or to local stack
 					uip_len = PBUF->DataLength; //uip_len includes LLH_LEN
 					mac_ethernetToLowpan(uip_buf);
+					
 
 				} //if (PBUF->DataLength) 
 
@@ -345,7 +359,7 @@ PROCESS_THREAD(rndis_process, ev, data_proc)
 /**
  \brief Send data over RNDIS interface, data is in uipbuf and length is uiplen
  */
-uint8_t rndis_send(uint8_t * senddata, uint16_t sendlen)
+uint8_t rndis_send(uint8_t * senddata, uint16_t sendlen, uint8_t led)
 {
 
 
@@ -390,7 +404,9 @@ uint8_t rndis_send(uint8_t * senddata, uint16_t sendlen)
 			while(!Is_usb_write_enabled());
 		}
 
-		tx_end_led();
+		if (led) {
+			tx_end_led();
+		}
 	}
 
 	Usb_send_in();
