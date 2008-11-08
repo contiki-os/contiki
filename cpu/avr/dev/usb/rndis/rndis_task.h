@@ -60,7 +60,7 @@
 //_____ D E C L A R A T I O N S ____________________________________________
 
 
-uint8_t rndis_send(uint8_t * senddata, uint16_t sendlen);
+uint8_t rndis_send(uint8_t * senddata, uint16_t sendlen, uint8_t led);
 void sof_action(void);
 void rx_start_led(void);
 void tx_end_led(void);

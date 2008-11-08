@@ -342,7 +342,7 @@ void mac_LowpanToEthernet(void)
 
   uip_len += UIP_LLH_LEN;
 
-  rndis_send(uip_buf, uip_len);
+  rndis_send(uip_buf, uip_len, 1);
   rndis_stat.rxok++;
   uip_len = 0;
 }
@@ -779,7 +779,7 @@ void mac_logTXtoEthernet(frame_create_params_t *p,frame_result_t *frame_result)
 
   sendlen += UIP_LLH_LEN;
 
-  rndis_send(raw_buf, sendlen);
+  rndis_send(raw_buf, sendlen, 0);
   rndis_stat.rxok++;
  
   return;
@@ -832,7 +832,7 @@ void mac_802154raw(const struct mac_driver *r)
 
   sendlen += UIP_LLH_LEN;
 
-  rndis_send(raw_buf, sendlen);
+  rndis_send(raw_buf, sendlen, 1);
   rndis_stat.rxok++;
  
   return;
