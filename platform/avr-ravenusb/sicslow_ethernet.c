@@ -179,7 +179,10 @@ usbstick_mode_t usbstick_mode;
 uint8_t mac_createSicslowpanLongAddr(uint8_t * ethernet, uip_lladdr_t * lowpan);
 uint8_t mac_createEthernetAddr(uint8_t * ethernet, uip_lladdr_t * lowpan);
 uint8_t memcmp_reverse(uint8_t * a, uint8_t * b, uint8_t num);
+void mac_ethhijack_nondata(const struct mac_driver *r);
 void mac_ethhijack(const struct mac_driver *r);
+
+extern void (*sicslowmac_snifferhook)(const struct mac_driver *r);
 
 
 //! Location of TRANSLATE (TR) bit in Ethernet address
@@ -219,6 +222,7 @@ void mac_ethernetSetup(void)
   
   pmac = sicslowmac_get_driver();			
   pmac->set_receive_function(mac_ethhijack);			  
+  sicslowmac_snifferhook = mac_ethhijack_nondata;
 }
 
 
@@ -232,9 +236,11 @@ void mac_ethernetToLowpan(uint8_t * ethHeader)
   uip_lladdr_t destAddr;
   uip_lladdr_t *destAddrPtr = NULL;
 
+  PRINTF("Packet type: %x\n", ((struct uip_eth_hdr *) ethHeader)->type);
+
   //If not IPv6 we don't do anything
   if (((struct uip_eth_hdr *) ethHeader)->type != HTONS(UIP_ETHTYPE_IPV6)) {
-    PRINTF("eth2low: Packet is not IPv6, dropping\n");
+    printf("eth2low: Packet is not IPv6, dropping\n");
     rndis_stat.txbad++;
     uip_len = 0;
     return;
@@ -708,6 +714,13 @@ void mac_ethhijack(const struct mac_driver *r)
 		sicslowinput(r);	
 
 }
+
+void mac_ethhijack_nondata(const struct mac_driver *r)
+{
+	if (usbstick_mode.raw)
+		mac_802154raw(r);
+}
+
 
 /*--------------------------------------------------------------------*/
 /*--------------------------------------------------------------------*/

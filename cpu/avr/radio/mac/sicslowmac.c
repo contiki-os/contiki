@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: sicslowmac.c,v 1.4 2008/10/27 18:03:26 c_oflynn Exp $
+ * $Id: sicslowmac.c,v 1.5 2008/11/08 03:29:15 c_oflynn Exp $
  */
 
 
@@ -104,6 +104,11 @@ static struct {
 /* Prototypes */
 static void setinput(void (*r)(const struct mac_driver *d));
 void (*pinput)(const struct mac_driver *r);
+void sicslowmac_unknownIndication(void);
+
+
+void (*sicslowmac_snifferhook)(const struct mac_driver *r) = NULL;
+
 
 /*---------------------------------------------------------------------------*/
 /**
@@ -194,12 +199,18 @@ mac_task(process_event_t ev, process_data_t data)
 
       /* Handle events from radio */
       if (event){
+
           if (event->event == MAC_EVENT_RX){
               /* got a frame, find out with kind of frame */
               parsed_frame = (parsed_frame_t *)event->data;
               if (parsed_frame->fcf->frameType == DATAFRAME){
                   sicslowmac_dataIndication();
-              }
+              } else {
+			  
+		  		  /* Hook to cath unknown frames */
+				sicslowmac_unknownIndication();
+			  }
+	  
 
 			/* Frame no longer in use */
 			parsed_frame->in_use = false;
@@ -207,7 +218,7 @@ mac_task(process_event_t ev, process_data_t data)
 
           if (event->event == MAC_EVENT_DROPPED){
               /* Frame was dropped */
-              printf("sicslowmac: Frame Dropped!\n");
+              PRINTF("sicslowmac: Frame Dropped!\n");
           }
       }
   }
@@ -244,6 +255,35 @@ sicslowmac_dataIndication(void)
   PRINTF("sicslowmac: hand off frame to sicslowpan \n");
   pinput(pmac_driver);
 }
+
+void
+sicslowmac_unknownIndication(void)
+{
+  if (sicslowmac_snifferhook) {
+
+	  rimebuf_clear();
+
+	  /* Finally, get the stuff into the rime buffer.... */
+	  rimebuf_copyfrom(parsed_frame->payload, parsed_frame->payload_length);
+	  rimebuf_set_datalen(parsed_frame->payload_length);
+	  
+	  memcpy(dest_reversed, (uint8_t *)parsed_frame->dest_addr, 8);
+	  memcpy(src_reversed, (uint8_t *)parsed_frame->src_addr, 8);
+	  
+	  /* Change addresses to expected byte order */
+	  byte_reverse((uint8_t *)dest_reversed, 8);
+	  byte_reverse((uint8_t *)src_reversed, 8);
+	  
+	  rimebuf_set_addr(RIMEBUF_ADDR_RECEIVER, (const rimeaddr_t *)dest_reversed);
+	  rimebuf_set_addr(RIMEBUF_ADDR_SENDER, (const rimeaddr_t *)src_reversed);
+
+	  PRINTF("sicslowmac: hand off frame to sniffer \n");
+	  
+	  sicslowmac_snifferhook(pmac_driver);
+	 }
+  
+}
+
 /*---------------------------------------------------------------------------*/
 /**
  * \brief      This is the implementation of the 15.4 MAC Data Request
