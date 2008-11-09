@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: shell-sendtest.c,v 1.3 2008/08/15 18:58:42 adamdunkels Exp $
+ * $Id: shell-sendtest.c,v 1.4 2008/11/09 10:53:25 adamdunkels Exp $
  */
 
 /**
@@ -74,13 +74,13 @@ write_chunk(struct rucb_conn *c, int offset, int flag,
     ether_set_text(buf);
   }
 #endif /* NETSIM */
-  printf("+");
+  /*  printf("+");*/
 }
 static int
 read_chunk(struct rucb_conn *c, int offset, char *to, int maxsize)
 {
   int size;
-  printf("-");
+  /*  printf("-");*/
   size = maxsize;
   if(bytecount + maxsize >= filesize) {
     size = filesize - bytecount;

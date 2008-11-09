@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: shell-netfile.c,v 1.5 2008/08/15 18:58:42 adamdunkels Exp $
+ * $Id: shell-netfile.c,v 1.6 2008/11/09 10:53:25 adamdunkels Exp $
  */
 
 /**
@@ -82,13 +82,13 @@ write_chunk(struct rudolph0_conn *c, int offset, int flag,
   do {
     if(datalen > 0) {
       shell_output(&recvnetfile_command, data, datalen, "", 0);
-      printf("write_chunk wrote %d bytes at %d\n", datalen, offset);
+      /*      printf("write_chunk wrote %d bytes at %d\n", datalen, offset);*/
     }
     PT_YIELD(&recvnetfilept);
   } while(flag != RUDOLPH0_FLAG_LASTCHUNK);
 
   shell_output(&recvnetfile_command, data, datalen, "", 0);
-  printf("write_chunk wrote %d bytes at %d\n", datalen, offset);
+  /*  printf("write_chunk wrote %d bytes at %d\n", datalen, offset);*/
   shell_output(&recvnetfile_command, "", 0, "", 0);
   leds_off(LEDS_YELLOW);
   receiving_file = 0;
@@ -107,7 +107,7 @@ read_chunk(struct rudolph0_conn *c, int offset, uint8_t *to, int maxsize)
 
   cfs_seek(fd, offset);
   ret = cfs_read(fd, to, maxsize);
-  printf("read_chunk %d bytes at %d, %d\n", ret, offset, (unsigned char)to[0]);
+  /*  printf("read_chunk %d bytes at %d, %d\n", ret, offset, (unsigned char)to[0]);*/
   cfs_close(fd);
   return ret;
 }

@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: shell-rsh.c,v 1.1 2008/02/04 23:42:17 adamdunkels Exp $
+ * $Id: shell-rsh.c,v 1.2 2008/11/09 10:53:25 adamdunkels Exp $
  */
 
 /**
@@ -130,8 +130,8 @@ PROCESS_THREAD(shell_rsh_server_process, ev, data)
       memcpy((char *)rimebuf_dataptr() + input->len1,
 	     input->data2, input->len2);
       rimebuf_set_datalen(input->len1 + input->len2);
-      printf("Sending meshconn with %d + %d bytes\n",
-	     input->len1, input->len2);
+      /*      printf("Sending meshconn with %d + %d bytes\n",
+	      input->len1, input->len2);*/
       meshconn_send(&meshconn);
     }
     /*    PROCESS_WAIT_EVENT_UNTIL(ev == shell_event_input);*/
@@ -142,7 +142,7 @@ PROCESS_THREAD(shell_rsh_server_process, ev, data)
 static void
 connected_meshconn(struct meshconn_conn *c)
 {
-  printf("connected\n");
+  /*  printf("connected\n");*/
 }
 static void
 recv_meshconn(struct meshconn_conn *c)
@@ -185,17 +185,17 @@ recv_meshconn(struct meshconn_conn *c)
 static void
 closed_meshconn(struct meshconn_conn *c)
 {
-  printf("closed\n");
+  /*  printf("closed\n");*/
 }
 static void
 timedout_meshconn(struct meshconn_conn *c)
 {
-  printf("timedout\n");
+  /*  printf("timedout\n");*/
 }
 static void
 reset_meshconn(struct meshconn_conn *c)
 {
-  printf("reset\n");
+  /*  printf("reset\n");*/
 }
 /*---------------------------------------------------------------------------*/
 static struct meshconn_callbacks meshconn_callbacks = { connected_meshconn,
