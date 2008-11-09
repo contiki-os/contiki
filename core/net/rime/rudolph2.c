@@ -39,7 +39,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: rudolph2.c,v 1.5 2008/02/24 22:05:27 adamdunkels Exp $
+ * $Id: rudolph2.c,v 1.6 2008/11/09 12:16:33 adamdunkels Exp $
  */
 
 /**
@@ -393,7 +393,7 @@ rudolph2_send(struct rudolph2_conn *c, clock_time_t send_interval)
     len = read_data(c, rimebuf_dataptr(), c->rcv_nxt);
   }
   c->flags = FLAG_LAST_RECEIVED;
-  printf("Highest chunk %d\n", c->rcv_nxt);
+  /*  printf("Highest chunk %d\n", c->rcv_nxt);*/
   send_data(c, SEND_INTERVAL);
   ctimer_set(&c->t, SEND_INTERVAL, timed_send, c);
 }
