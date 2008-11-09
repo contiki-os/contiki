@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: serial-shell.c,v 1.1 2008/07/09 20:53:30 adamdunkels Exp $
+ * $Id: serial-shell.c,v 1.2 2008/11/09 10:50:14 adamdunkels Exp $
  */
 
 /**
@@ -54,6 +54,14 @@ PROCESS(serial_shell_process, "Contiki serial shell");
 void
 shell_default_output(const char *text1, int len1, const char *text2, int len2)
 {
+  if(text1 == NULL) {
+    text1 = "";
+    len1 = 0;
+  }
+  if(text2 == NULL) {
+    text2 = "";
+    len2 = 0;
+  }
   printf("%.*s%.*s\r\n", len1, text1, len2, text2);
 }
 /*---------------------------------------------------------------------------*/
@@ -72,7 +80,6 @@ PROCESS_THREAD(serial_shell_process, ev, data)
   
   while(1) {
     PROCESS_WAIT_EVENT_UNTIL(ev == serial_event_message && data != NULL);
-    /*    printf("input: '%s'\n", (char *)data);*/
     shell_input(data, strlen(data));
   }
   
