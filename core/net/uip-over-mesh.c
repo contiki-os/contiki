@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: uip-over-mesh.c,v 1.9 2008/06/26 11:19:40 adamdunkels Exp $
+ * $Id: uip-over-mesh.c,v 1.10 2008/11/09 12:20:56 adamdunkels Exp $
  */
 
 /**
@@ -42,15 +42,25 @@
 
 #include "net/hc.h"
 #include "net/uip-fw.h"
+#include "net/uip-over-mesh.h"
 #include "net/rime/route-discovery.h"
 #include "net/rime/route.h"
+#include "net/rime/trickle.h"
 
 #define ROUTE_TIMEOUT CLOCK_SECOND * 4
 
 static struct queuebuf *queued_packet;
 static rimeaddr_t queued_receiver;
+
+ /* Connection for route discovery: */
 static struct route_discovery_conn route_discovery;
+
+/* Connection for sending data packets to the next hop node: */
 static struct unicast_conn dataconn;
+
+/* Connection for sending gateway announcement message to the entire
+   network: */
+static struct trickle_conn gateway_announce_conn;
 
 #define DEBUG 0
 #if DEBUG
@@ -121,6 +131,45 @@ timedout(struct route_discovery_conn *c)
 static const struct unicast_callbacks data_callbacks = { recv_data };
 static const struct route_discovery_callbacks rdc = { new_route, timedout };
 /*---------------------------------------------------------------------------*/
+struct gateway_msg {
+  rimeaddr_t gateway;
+};
+
+static uint8_t is_gateway;
+
+static void
+gateway_announce_recv(struct trickle_conn *c)
+{
+  struct gateway_msg *msg;
+  msg = rimebuf_dataptr();
+  PRINTF("%d.%d: gateway message: %d.%d\n",
+	 rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1],
+	 msg->gateway.u8[0], msg->gateway.u8[1]);
+
+  if(!is_gateway) {
+    uip_over_mesh_set_gateway(&msg->gateway);
+  }
+  
+}
+/*---------------------------------------------------------------------------*/
+void
+uip_over_mesh_make_announced_gateway(void)
+{
+  struct gateway_msg msg;
+  /* Make this node the gateway node, unless it already is the
+     gateway. */
+  if(!is_gateway) {
+    PRINTF("%d.%d: making myself the gateway\n",
+	   rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1]);
+    uip_over_mesh_set_gateway(&rimeaddr_node_addr);
+    rimeaddr_copy(&(msg.gateway), &rimeaddr_node_addr);
+    rimebuf_copyfrom(&msg, sizeof(struct gateway_msg));
+    trickle_send(&gateway_announce_conn);
+    is_gateway = 1;
+  }
+}
+const static struct trickle_callbacks trickle_call = {gateway_announce_recv};
+/*---------------------------------------------------------------------------*/
 void
 uip_over_mesh_init(u16_t channels)
 {
@@ -133,6 +182,9 @@ uip_over_mesh_init(u16_t channels)
   unicast_open(&dataconn, channels, &data_callbacks);
   route_discovery_open(&route_discovery, CLOCK_SECOND / 4,
 		       channels + 1, &rdc);
+  trickle_open(&gateway_announce_conn, CLOCK_SECOND * 4, channels + 3,
+	       &trickle_call);
+
   /*  tcpip_set_forwarding(1);*/
 
 }
