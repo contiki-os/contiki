@@ -30,7 +30,7 @@
  *
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: main.c,v 1.12 2008/05/14 19:22:58 adamdunkels Exp $
+ * $Id: main.c,v 1.13 2008/11/09 12:30:32 adamdunkels Exp $
  */
 
 /**
@@ -61,7 +61,7 @@
 #include <sys/wait.h>
 #include <arpa/inet.h>
 
-in_addr_t gwaddr;
+in_addr_t gwaddr, winifaddr;
 
 void netsim_init(void);
 
@@ -179,6 +179,7 @@ main(int argc, char **argv)
     exit(1);
   } else if(argc >= 2) {
     gwaddr = inet_addr(argv[2]);
+    winifaddr = inet_addr(argv[1]);
   }
 #endif /* __CYGWIN__ */
 

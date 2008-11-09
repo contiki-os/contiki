@@ -30,7 +30,7 @@
  *
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: contiki-main.c,v 1.31 2008/08/15 19:34:07 adamdunkels Exp $
+ * $Id: contiki-main.c,v 1.32 2008/11/09 12:30:32 adamdunkels Exp $
  */
 
 #include "contiki.h"
@@ -92,9 +92,7 @@ static const struct uip_eth_addr ethaddr = {{0x00,0x06,0x98,0x01,0x02,0x12}};
 
 SENSORS(&button_sensor, &pir_sensor, &vib_sensor, &radio_sensor);
 
-PROCINIT(&sensors_process, &etimer_process, &tcpip_process,
-	 /*	 &ethernode_uip_process,*/
-	 &uip_fw_process);
+PROCINIT(&sensors_process, &etimer_process, &tcpip_process);
 
 /*---------------------------------------------------------------------------*/
 #ifdef __CYGWIN__
@@ -131,7 +129,8 @@ contiki_main(int flag)
   rime_init(nullmac_init(&ethernode_driver));
 
   uip_over_mesh_init(0);
-  
+  uip_over_mesh_set_net(&meshif.ipaddr, &meshif.netmask);
+      
   if(flag == 1) {
 #ifdef __CYGWIN__
     if(__argc > 2 && (*__argv)[1][0] != '-') {
@@ -139,8 +138,9 @@ contiki_main(int flag)
       {
 	char buf[1024];
 	uip_ipaddr_t ifaddr;
+	extern uip_ipaddr_t winifaddr;
 	
-	ifaddr.u32[0] = inet_addr(__argv[1]);
+	uip_ipaddr_copy(&ifaddr, &winifaddr);
 	
 	snprintf(buf, sizeof(buf), "route add %d.%d.%d.%d mask %d.%d.%d.%d %d.%d.%d.%d",
 		 uip_ipaddr_to_quad(&meshif.ipaddr),
@@ -154,10 +154,14 @@ contiki_main(int flag)
 #else /* __CYGWIN__ */
     process_start(&tapdev_process, NULL);
 #endif /* __CYGWIN__ */
+    process_start(&uip_fw_process, NULL);
+  
     uip_fw_register(&meshif);
     uip_fw_default(&extif);
     printf("uip_hostaddr %d.%d.%d.%d\n", uip_ipaddr_to_quad(&uip_hostaddr));
+    uip_over_mesh_make_announced_gateway();
   } else {
+    process_start(&uip_fw_process, NULL);
     uip_fw_default(&meshif);
   }
   
