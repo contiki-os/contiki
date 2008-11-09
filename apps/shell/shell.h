@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: shell.h,v 1.9 2008/07/10 16:56:27 adamdunkels Exp $
+ * $Id: shell.h,v 1.10 2008/11/09 12:38:02 adamdunkels Exp $
  */
 
 /**
@@ -103,6 +103,7 @@ struct shell_input {
 #include "shell-coffee.h"
 #include "shell-exec.h"
 #include "shell-file.h"
+#include "shell-httpd.h"
 #include "shell-netfile.h"
 #include "shell-ps.h"
 #include "shell-reboot.h"
@@ -118,5 +119,6 @@ struct shell_input {
 #include "shell-text.h"
 #include "shell-time.h"
 #include "shell-vars.h"
+#include "shell-wget.h"
 
 #endif /* __SHELL_H__ */
