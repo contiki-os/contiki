@@ -36,7 +36,7 @@
    */ \
   TIMSK = _BV (OCIE0);
 
-#elif defined (__AVR_ATmega1284P__) || (__AVR_AT90USB1287__)
+#elif defined (__AVR_ATmega1284P__) || (__AVR_AT90USB1287__) || (__AVR_ATmega1281__)
 
 #define OCRSetup() \
   /* Select internal clock */ \
