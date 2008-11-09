@@ -1,19 +1,19 @@
 /*
  * Copyright (c) 2002, Adam Dunkels.
- * All rights reserved. 
+ * All rights reserved.
  *
- * Redistribution and use in source and binary forms, with or without 
- * modification, are permitted provided that the following conditions 
- * are met: 
- * 1. Redistributions of source code must retain the above copyright 
- *    notice, this list of conditions and the following disclaimer. 
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions
+ * are met:
+ * 1. Redistributions of source code must retain the above copyright
+ *    notice, this list of conditions and the following disclaimer.
  * 2. Redistributions in binary form must reproduce the above
  *    copyright notice, this list of conditions and the following
  *    disclaimer in the documentation and/or other materials provided
- *    with the distribution. 
+ *    with the distribution.
  * 3. The name of the author may not be used to endorse or promote
  *    products derived from this software without specific prior
- *    written permission.  
+ *    written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS
  * OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
@@ -25,11 +25,11 @@
  * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
  * WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
- * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.  
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * This file is part of the "contiki" web browser.
  *
- * $Id: webclient.c,v 1.5 2007/11/30 21:53:50 oliverschmidt Exp $
+ * $Id: webclient.c,v 1.6 2008/11/09 12:39:31 adamdunkels Exp $
  *
  */
 
@@ -64,7 +64,7 @@ struct webclient_state {
 
   u16_t port;
   char host[40];
-  char file[WWW_CONF_MAX_URLLEN];  
+  char file[WWW_CONF_MAX_URLLEN];
   u16_t getrequestptr;
   u16_t getrequestleft;
   
@@ -134,12 +134,12 @@ unsigned char
 webclient_get(char *host, u16_t port, char *file)
 {
   struct uip_conn *conn;
-  u16_t *ipaddr; 
+  u16_t *ipaddr;
   static u16_t addr[2];
   
   /* First check if the host is an IP address. */
   ipaddr = &addr[0];
-  if(uiplib_ipaddrconv(host, (unsigned char *)addr) == 0) {    
+  if(uiplib_ipaddrconv(host, (unsigned char *)addr) == 0) {
     ipaddr = resolv_lookup(host);
     
     if(ipaddr == NULL) {
@@ -161,42 +161,87 @@ webclient_get(char *host, u16_t port, char *file)
   return 1;
 }
 /*-----------------------------------------------------------------------------------*/
-static char * CC_FASTCALL
-copy_string(char *dest, const char *src, unsigned char len)
+/* Copy data into a "window", specified by the windowstart and
+   windowend variables. Only data that fits within the window is
+   copied. This function is used to copy data into the uIP buffer, which
+   typically is smaller than the data that is to be copied.
+*/
+static unsigned char *windowptr;
+static int windowstart, windowend;
+static int
+window_copy(int curptr, const char *data, unsigned char datalen)
 {
-  return strcpy(dest, src) + len;
+  int len;
+
+  if(windowstart == windowend) {
+    return curptr + datalen;
+  }
+  
+  if(curptr + datalen < windowstart) {
+    /* If all the data is before the window, we do not copy the
+       data. */
+    return curptr + datalen;
+  }
+
+  if(curptr > windowend) {
+    /* If all the data is after the window, we do not copy the data. */
+    return curptr + datalen;
+  }
+
+  len = datalen;
+  
+  /* Trim off data before the window. */
+  data    += windowstart - curptr;
+  len     -= windowstart - curptr;
+
+  /* Trim off data after the window. */
+  if(len > windowend - windowstart) {
+    len = windowend - windowstart;
+  }
+
+  strncpy(windowptr + windowstart, data, len);
+  windowstart += len;
+
+  return curptr + datalen;
+
 }
 /*-----------------------------------------------------------------------------------*/
 static void
 senddata(void)
 {
   u16_t len;
-  char *getrequest;
+  /*  char *getrequest;*/
   char *cptr;
+  int curptr;
   
   if(s.getrequestleft > 0) {
-    cptr = getrequest = (char *)uip_appdata;
 
-    cptr = copy_string(cptr, http_get, sizeof(http_get) - 1);
-    cptr = copy_string(cptr, s.file, (unsigned char)strlen(s.file));
-    *cptr++ = ISO_space;
-    cptr = copy_string(cptr, http_10, sizeof(http_10) - 1);
+    windowstart = s.getrequestptr;
+    curptr = 0;
+    windowend = windowstart + uip_mss();
+    windowptr = (char *)uip_appdata - windowstart;
 
-    cptr = copy_string(cptr, http_crnl, sizeof(http_crnl) - 1);
+    curptr = window_copy(curptr, http_get, sizeof(http_get) - 1);
+    curptr = window_copy(curptr, s.file, (unsigned char)strlen(s.file));
+    curptr = window_copy(curptr, " ", 1);
+    curptr = window_copy(curptr, http_10, sizeof(http_10) - 1);
+
+    curptr = window_copy(curptr, http_crnl, sizeof(http_crnl) - 1);
     
-    cptr = copy_string(cptr, http_host, sizeof(http_host) - 1);
-    cptr = copy_string(cptr, s.host, (unsigned char)strlen(s.host));
-    cptr = copy_string(cptr, http_crnl, sizeof(http_crnl) - 1);
+    curptr = window_copy(curptr, http_host, sizeof(http_host) - 1);
+    curptr = window_copy(curptr, s.host, (unsigned char)strlen(s.host));
+    curptr = window_copy(curptr, http_crnl, sizeof(http_crnl) - 1);
 
-    cptr = copy_string(cptr, http_user_agent_fields,
+    curptr = window_copy(curptr, http_user_agent_fields,
 		       (unsigned char)strlen(http_user_agent_fields));
+
     
     len = s.getrequestleft > uip_mss()?
       uip_mss():
       s.getrequestleft;
-    uip_send(&(getrequest[s.getrequestptr]), len);
+    uip_send(uip_appdata, len);
   }
-}  
+}
 /*-----------------------------------------------------------------------------------*/
 static void
 acked(void)
@@ -301,7 +346,7 @@ parse_headers(u16_t len)
       }
 
       s.httpheaderline[s.httpheaderlineptr - 1] = 0;
-      /* Check for specific HTTP header fields. */      
+      /* Check for specific HTTP header fields. */
       if(casecmp(s.httpheaderline, http_content_type,
 		     sizeof(http_content_type) - 1) == 0) {
 	/* Found Content-type field. */
@@ -317,7 +362,7 @@ parse_headers(u16_t len)
 	  sizeof(http_location) - 1;
 	
 	if(strncmp(cptr, http_http, 7) == 0) {
-	  cptr += 7; 
+	  cptr += 7;
 	  for(i = 0; i < s.httpheaderlineptr - 7; ++i) {
 	    if(*cptr == 0 ||
 	       *cptr == '/' ||
@@ -337,7 +382,7 @@ parse_headers(u16_t len)
 
       /* We're done parsing, so we reset the pointer and start the
 	 next line. */
-      s.httpheaderlineptr = 0;      
+      s.httpheaderlineptr = 0;
     } else {
       ++s.httpheaderlineptr;
     }
@@ -369,6 +414,8 @@ newdata(void)
 void
 webclient_appcall(void *state)
 {
+  char *dataptr;
+  
   if(uip_connected()) {
     s.timer = 0;
     s.state = WEBCLIENT_STATE_STATUSLINE;
@@ -381,7 +428,11 @@ webclient_appcall(void *state)
   if(uip_timedout()) {
     webclient_timedout();
   }
-  
+
+  if(uip_aborted()) {
+    webclient_aborted();
+  }
+
   if(state == NULL) {
     uip_abort();
     return;
@@ -391,12 +442,13 @@ webclient_appcall(void *state)
     webclient_closed();
     uip_abort();
     return;
-  }        
-
-  if(uip_aborted()) {
-    webclient_aborted();
   }
-  
+
+
+  /* The acked() and newdata() functions may alter the uip_appdata
+     ptr, so we need to store it in the "dataptr" variable so that we
+     can restore it before the senddata() function is called. */  
+  dataptr = uip_appdata;
   
   if(uip_acked()) {
     s.timer = 0;
@@ -406,6 +458,9 @@ webclient_appcall(void *state)
     s.timer = 0;
     newdata();
   }
+
+  uip_appdata = dataptr;
+  
   if(uip_rexmit() ||
      uip_newdata() ||
      uip_acked()) {
