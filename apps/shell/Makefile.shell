@@ -3,9 +3,17 @@ shell_src = shell.c shell-reboot.c \
             shell-blink.c shell-text.c shell-time.c \
             shell-file.c shell-netfile.c shell-run.c \
             shell-rime-ping.c shell-rime-sniff.c shell-rime-netcmd.c \
-            shell-rime-debug.c shell-coffee.c
+            shell-rime-debug.c shell-coffee.c \
+            shell-wget.c shell-httpd.c
             #shell-rsh.c
 shell_dsc = shell-dsc.c
+
+APPS+=webbrowser webserver
+include $(CONTIKI)/apps/webbrowser/Makefile.webbrowser
+include $(CONTIKI)/apps/webserver/Makefile.webserver
+
+override webserver_src = webserver-nogui.c http-strings.c psock.c memb.c \
+                         httpd-cfs.c
 
 ifeq ($(TARGET),sky)
 	shell_src += shell-sky.c shell-exec.c
