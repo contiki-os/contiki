@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: uip-neighbor.c,v 1.2 2006/08/09 16:13:40 bg- Exp $
+ * $Id: uip-neighbor.c,v 1.3 2008/11/09 12:16:05 adamdunkels Exp $
  */
 
 /**
@@ -88,9 +88,9 @@ uip_neighbor_add(uip_ipaddr_t *ipaddr, struct uip_neighbor_addr *addr)
   int i, oldest;
   u8_t oldest_time;
 
-  printf("Adding neighbor with link address %02x:%02x:%02x:%02x:%02x:%02x\n",
+  /*  printf("Adding neighbor with link address %02x:%02x:%02x:%02x:%02x:%02x\n",
 	 addr->addr.addr[0], addr->addr.addr[1], addr->addr.addr[2], addr->addr.addr[3],
-	 addr->addr.addr[4], addr->addr.addr[5]);
+	 addr->addr.addr[4], addr->addr.addr[5]);*/
   
   /* Find the first unused entry or the oldest used entry. */
   oldest_time = 0;
