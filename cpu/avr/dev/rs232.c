@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: rs232.c,v 1.3 2008/10/14 19:06:51 c_oflynn Exp $
+ * @(#)$Id: rs232.c,v 1.4 2008/11/09 15:39:49 c_oflynn Exp $
  */
 
 #include <stdio.h>
@@ -49,7 +49,7 @@
 #define RS232_PRINTF_BUFFER_LENGTH 64
 #endif
 
-#if defined (__AVR_ATmega128__) || defined(__AVR_ATmega1284P__)
+#if defined (__AVR_ATmega128__) || defined(__AVR_ATmega1284P__) || defined(__AVR_ATmega1281__)
 typedef struct {
   volatile uint8_t * UDR;
   volatile uint8_t * UBRRH;
