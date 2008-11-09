@@ -29,7 +29,7 @@
  * This file is part of the Contiki operating system.
  *
  *
- * $Id: tcpip.c,v 1.15 2008/10/15 08:52:30 adamdunkels Exp $
+ * $Id: tcpip.c,v 1.16 2008/11/09 12:29:24 adamdunkels Exp $
  */
 /**
  * \file
@@ -109,7 +109,8 @@ enum {
 #if UIP_CONF_IPV6
 u8_t (* tcpip_output)(uip_lladdr_t *);
 #else
-u8_t (* tcpip_output)(void);
+static u8_t dummy_tcpip_output_function(void) {return 0;}
+u8_t (* tcpip_output)(void) = dummy_tcpip_output_function;
 #endif
 
 #if UIP_CONF_IP_FORWARD
@@ -135,6 +136,7 @@ packet_input(void)
 #if UIP_CONF_IPV6
         tcpip_ipv6_output();
 #else
+	PRINTF("tcpip packet_input forward output len %d\n", uip_len);
         tcpip_output();
 #endif
 #endif /* UIP_CONF_TCP_SPLIT */
@@ -152,6 +154,7 @@ packet_input(void)
 #if UIP_CONF_IPV6
       tcpip_ipv6_output();
 #else
+      PRINTF("tcpip packet_input output len %d\n", uip_len);
       tcpip_output();
 #endif
 #endif /* UIP_CONF_TCP_SPLIT */
@@ -376,7 +379,9 @@ eventhandler(process_event_t ev, process_data_t data)
               tcpip_ipv6_output();
 #else
               if(uip_len > 0) {
+		PRINTF("tcpip_output from periodic len %d\n", uip_len);
                 tcpip_output();
+		PRINTF("tcpip_output after periodic len %d\n", uip_len);
               }
 #endif /* UIP_CONF_IPV6 */
             }
@@ -436,6 +441,7 @@ eventhandler(process_event_t ev, process_data_t data)
         tcpip_ipv6_output();
 #else
         if(uip_len > 0) {
+	  PRINTF("tcpip_output from tcp poll len %d\n", uip_len);
           tcpip_output();
         }
 #endif /* UIP_CONF_IPV6 */
@@ -664,7 +670,7 @@ tcpip_uipcall(void)
 PROCESS_THREAD(tcpip_process, ev, data)
 {
   PROCESS_BEGIN();
-
+  
 #if UIP_TCP
  {
    static unsigned char i;
@@ -688,3 +694,4 @@ PROCESS_THREAD(tcpip_process, ev, data)
   
   PROCESS_END();
 }
+/*---------------------------------------------------------------------------*/
