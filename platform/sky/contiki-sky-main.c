@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#)$Id: contiki-sky-main.c,v 1.39 2008/11/06 15:14:24 nvt-se Exp $
+ * @(#)$Id: contiki-sky-main.c,v 1.40 2008/11/09 12:22:04 adamdunkels Exp $
  */
 
 #include <signal.h>
@@ -85,8 +85,8 @@ static struct uip_fw_netif meshif =
 
 #endif /* WITH_UIP */
 
-#define SLIP_TRICKLE_CHANNEL 8
-#define UIP_OVER_MESH_CHANNEL 9
+#define UIP_OVER_MESH_CHANNEL 8
+static uint8_t is_gateway;
 
 #ifdef EXPERIMENT_SETUP
 #include "experiment-setup.h"
@@ -161,48 +161,15 @@ print_processes(struct process * const processes[])
 }
 /*--------------------------------------------------------------------------*/
 #if WITH_UIP
-struct gateway_msg {
-  rimeaddr_t gateway;
-};
-
-static uint8_t is_gateway;
-
-static void
-trickle_recv(struct trickle_conn *c)
-{
-  struct gateway_msg *msg;
-  msg = rimebuf_dataptr();
-  printf("%d.%d: gateway message: %d.%d\n",
-	 rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1],
-	 msg->gateway.u8[0], msg->gateway.u8[1]);
-
-  if(!is_gateway) {
-    uip_over_mesh_set_gateway(&msg->gateway);
-  } else {
-    /* We've received an erroneous message so we send out our own. */
-    rimeaddr_copy(&msg->gateway, &rimeaddr_node_addr);
-    rimebuf_copyfrom(msg, sizeof(struct gateway_msg));
-    trickle_send(c);
-  }
-  
-}
-const static struct trickle_callbacks trickle_call = {trickle_recv};
-static struct trickle_conn trickle;
-/*---------------------------------------------------------------------------*/
 static void
 set_gateway(void)
 {
-  struct gateway_msg msg;
-  /* Make this node the gateway node, unless it already is the
-     gateway. */
   if(!is_gateway) {
     leds_on(LEDS_RED);
-    printf("%d.%d: making myself the gateway\n",
+    printf("%d.%d: making myself the IP network gateway.\n",
 	   rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1]);
     uip_over_mesh_set_gateway(&rimeaddr_node_addr);
-    rimeaddr_copy(&(msg.gateway), &rimeaddr_node_addr);
-    rimebuf_copyfrom(&msg, sizeof(struct gateway_msg));
-    trickle_send(&trickle);
+    uip_over_mesh_make_announced_gateway();
     is_gateway = 1;
   }
 }
@@ -282,7 +249,27 @@ main(int argc, char **argv)
   process_start(&tcpip_process, NULL);
 #endif /* WITH_UIP6 */
 
+#if !WITH_UIP && !WITH_UIP6
+  uart1_set_input(serial_input_byte);
+  serial_init();
+#endif
+  
+#if PROFILE_CONF_ON
+  profile_init();
+#endif /* PROFILE_CONF_ON */
+
+  leds_off(LEDS_GREEN);
+
+  timesynch_init();
+  timesynch_set_authority_level(rimeaddr_node_addr.u8[0]);
+
 #if WITH_UIP
+  process_start(&tcpip_process, NULL);
+  process_start(&uip_fw_process, NULL);	/* Start IP output */
+  process_start(&slip_process, NULL);
+  
+  slip_set_input_callback(set_gateway);
+
   {
     uip_ipaddr_t hostaddr, netmask;
     
@@ -303,30 +290,6 @@ main(int argc, char **argv)
     printf("uIP started with IP address %d.%d.%d.%d\n",
 	   uip_ipaddr_to_quad(&hostaddr));
   }
-#endif /* WITH_UIP */
-
-#if !WITH_UIP && !WITH_UIP6
-  uart1_set_input(serial_input_byte);
-  serial_init();
-#endif
-  
-#if PROFILE_CONF_ON
-  profile_init();
-#endif /* PROFILE_CONF_ON */
-
-  leds_off(LEDS_GREEN);
-
-  timesynch_init();
-  timesynch_set_authority_level(rimeaddr_node_addr.u8[0]);
-
-#if WITH_UIP
-  process_start(&tcpip_process, NULL);
-  process_start(&uip_fw_process, NULL);	/* Start IP output */
-  process_start(&slip_process, NULL);
-  
-  trickle_open(&trickle, CLOCK_SECOND * 4, SLIP_TRICKLE_CHANNEL,
-	       &trickle_call);
-  slip_set_input_callback(set_gateway);
 #endif /* WITH_UIP */
 
   button_sensor.activate();
