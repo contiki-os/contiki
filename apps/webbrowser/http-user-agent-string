@@ -1,0 +1,1 @@
+http_user_agent_fields "Connection: close\r\nUser-Agent: Contiki/2.2.2 (; http://www.sics.se/contiki/)\r\n\r\n"
