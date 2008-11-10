@@ -24,7 +24,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * $Id: GUI.java,v 1.90 2008/11/04 14:32:32 fros4943 Exp $
+ * $Id: GUI.java,v 1.91 2008/11/10 14:59:03 nifi Exp $
  */
 
 package se.sics.cooja;
@@ -411,33 +411,24 @@ public class GUI extends Observable {
   public void addToFileHistory(File file) {
     // Fetch current history
     String[] history = getExternalToolsSetting("SIMCFG_HISTORY", "").split(";");
-
-    // Create new history
-    String[] newHistory = null;
-    if (history == null || history.length <= 1 && history[0].equals("")) {
-      newHistory = new String[1];
-    } else {
-      newHistory = new String[Math.min(5, history.length+1)];
-      System.arraycopy(history, 0, newHistory, 1, newHistory.length-1);
-    }
-    newHistory[0] = file.getAbsolutePath();
-
-    // Abort if file added is equal to last file
-    if (history.length >= 1 &&
-        file.getAbsolutePath().equals(new File(history[0]).getAbsolutePath())) {
+    String newFile = file.getAbsolutePath();
+    if (history.length > 0 && history[0].equals(newFile)) {
+      // File already added
       return;
     }
-
-    String newHistoryConfig = null;
-    for (String path: newHistory) {
-      if (newHistoryConfig == null) {
-        newHistoryConfig = path;
+    // Create new history
+    StringBuilder newHistory = new StringBuilder();
+    newHistory.append(newFile);
+    for (int i = 0, count = 1; i < history.length && count < 10; i++) {
+      String historyFile = history[i];
+      if (newFile.equals(historyFile) || historyFile.length() == 0) {
+        // File already added or empty file name
       } else {
-        newHistoryConfig += ";" + path;
+        newHistory.append(';').append(historyFile);
+        count++;
       }
     }
-
-    setExternalToolsSetting("SIMCFG_HISTORY", newHistoryConfig);
+    setExternalToolsSetting("SIMCFG_HISTORY", newHistory.toString());
     saveExternalToolsUserSettings();
   }
 
@@ -3525,7 +3516,7 @@ public class GUI extends Observable {
 
               for (Element pluginSubElement : (List<Element>) pluginElement.getChildren()) {
 
-                if (pluginSubElement.getName().equals("width") && size != null) {
+                if (pluginSubElement.getName().equals("width")) {
                   size.width = Integer.parseInt(pluginSubElement.getText());
                   startedVisPlugin.setSize(size);
                 } else if (pluginSubElement.getName().equals("height")) {
