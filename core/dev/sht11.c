@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#)$Id: sht11.c,v 1.2 2008/07/08 08:23:47 adamdunkels Exp $
+ * @(#)$Id: sht11.c,v 1.3 2008/11/10 21:10:36 adamdunkels Exp $
  */
 
 /*
@@ -273,7 +273,7 @@ sht11_humidity(void)
   return scmd(MEASURE_HUMI);
 }
 /*---------------------------------------------------------------------------*/
-#if 0 /* But ok! */
+#if 1 /* But ok! */
 unsigned
 sht11_sreg(void)
 {
