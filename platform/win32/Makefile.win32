@@ -30,7 +30,7 @@
 #
 # Author: Oliver Schmidt <ol.sc@web.de>
 #
-# $Id: Makefile.win32,v 1.16 2008/07/06 08:29:37 oliverschmidt Exp $
+# $Id: Makefile.win32,v 1.17 2008/11/10 22:52:43 oliverschmidt Exp $
 #
 
 TARGET_LIBFILES = /lib/w32api/libws2_32.a /lib/w32api/libiphlpapi.a
@@ -49,10 +49,10 @@ CONTIKI_CPU = $(CONTIKI)/cpu/native
 include $(CONTIKI)/cpu/native/Makefile.native
 
 ifdef PLATFORM_BUILD
-CONTIKI_TARGET_SOURCEFILES += dll-loader.c
-CFLAGS += -DPLATFORM_BUILD -DWITH_LOADER_ARCH -DAUTOSTART_ENABLE
-LDFLAGS += -Wl,--out-implib=contiki-main.$(TARGET).a \
-           -u _cfs_open -u _cfs_opendir -u _uiplib_ipaddrconv
+  CONTIKI_TARGET_SOURCEFILES += dll-loader.c
+  CFLAGS += -DPLATFORM_BUILD -DWITH_LOADER_ARCH -DAUTOSTART_ENABLE
+  LDFLAGS += -Wl,--out-implib=contiki-main.$(TARGET).a \
+             -u _cfs_open -u _cfs_opendir -u _uiplib_ipaddrconv
 endif
 
 ### Generate the module-link prerequisites
