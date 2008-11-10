@@ -29,7 +29,7 @@
  * This file is part of the Contiki operating system.
  *
  *
- * $Id: tcpip.c,v 1.16 2008/11/09 12:29:24 adamdunkels Exp $
+ * $Id: tcpip.c,v 1.17 2008/11/10 21:00:53 oliverschmidt Exp $
  */
 /**
  * \file
@@ -109,7 +109,11 @@ enum {
 #if UIP_CONF_IPV6
 u8_t (* tcpip_output)(uip_lladdr_t *);
 #else
-static u8_t dummy_tcpip_output_function(void) {return 0;}
+static u8_t dummy_tcpip_output_function(void)
+{
+  UIP_LOG("dummy_tcpip_output_function: Use tcpip_set_outputfunc() to replace this dummy");
+  return 0;
+}
 u8_t (* tcpip_output)(void) = dummy_tcpip_output_function;
 #endif
 
