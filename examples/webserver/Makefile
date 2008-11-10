@@ -11,8 +11,8 @@ APPS = webserver
 # run make with the parameter HTTPD-CFS=1.
 
 ifeq ($(HTTPD-CFS),1)
-override webserver_src = webserver-nogui.c http-strings.c psock.c memb.c \
-                         httpd-cfs.c
+  override webserver_src = webserver-nogui.c http-strings.c psock.c memb.c \
+                           httpd-cfs.c
 endif
 
 CONTIKI = ../..
