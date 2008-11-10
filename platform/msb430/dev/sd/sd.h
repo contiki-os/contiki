@@ -46,9 +46,9 @@ Berlin, 2007
  * @brief	MMC-/SD-Card library, Public interface
  * 
  * @author	Michael Baar	<baar@inf.fu-berlin.de>
- * @version	$Revision: 1.4 $
+ * @version	$Revision: 1.5 $
  *
- * $Id: sd.h,v 1.4 2008/03/31 13:48:03 nvt-se Exp $
+ * $Id: sd.h,v 1.5 2008/11/10 14:32:49 nvt-se Exp $
  */
 
 /**
@@ -381,6 +381,10 @@ sd_cache_t *sd_cache_read_block(const uint32_t * blAdr);
   * @param[in]	address		The address of the first byte that shall be read to pBuffer
   * @param[in]	size		Number of bytes which shall be read starting at address	 */
      uint16_t sd_read(void *pBuffer, uint32_t address, uint16_t size);
+#endif
+
+#if SD_WRITE
+uint16_t sd_write(uint32_t address, void *pBuffer, uint16_t size);
 #endif
 
 #endif /*__SD_H__*/
