@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: SensorData.java,v 1.4 2008/08/29 10:00:23 nifi Exp $
+ * $Id: SensorData.java,v 1.5 2008/11/10 21:14:20 adamdunkels Exp $
  *
  * -----------------------------------------------------------------
  *
@@ -34,8 +34,8 @@
  *
  * Authors : Joakim Eriksson, Niclas Finne
  * Created : 3 jul 2008
- * Updated : $Date: 2008/08/29 10:00:23 $
- *           $Revision: 1.4 $
+ * Updated : $Date: 2008/11/10 21:14:20 $
+ *           $Revision: 1.5 $
  */
 
 package se.sics.contiki.collect;
@@ -167,6 +167,14 @@ public class SensorData implements SensorInfo {
 
   public double getTemperature() {
     return -39.6 + 0.01 * values[TEMPERATURE];
+  }
+
+  public double getBatteryVoltage() {
+    return values[BATTERY_VOLTAGE] * 2 * 2.5 / 4096.0;
+  }
+
+  public double getBatteryIndicator() {
+    return values[BATTERY_INDICATOR];
   }
 
   public double getRadioIntensity() {

@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: CollectServer.java,v 1.8 2008/09/03 13:35:21 nifi Exp $
+ * $Id: CollectServer.java,v 1.9 2008/11/10 21:14:20 adamdunkels Exp $
  *
  * -----------------------------------------------------------------
  *
@@ -34,8 +34,8 @@
  *
  * Authors : Joakim Eriksson, Niclas Finne
  * Created : 3 jul 2008
- * Updated : $Date: 2008/09/03 13:35:21 $
- *           $Revision: 1.8 $
+ * Updated : $Date: 2008/11/10 21:14:20 $
+ *           $Revision: 1.9 $
  */
 
 package se.sics.contiki.collect;
@@ -269,6 +269,31 @@ public class CollectServer {
           }
           protected double getSensorDataValue(SensorData data) {
             return data.getTemperature();
+          }
+        },
+        new TimeChartPanel(this, "Battery Voltage", "Battery Voltage",
+			   "Time", "Volt") {
+          {
+            setRangeTick(1);
+	    setRangeMinimumSize(4.0);
+	    setGlobalRange(true);
+            setMaxItemCount(defaultMaxItemCount);
+          }
+          protected double getSensorDataValue(SensorData data) {
+            return data.getBatteryVoltage();
+          }
+        },
+        new TimeChartPanel(this, "Battery Indicator", "Battery Indicator",
+			   "Time", "Indicator") {
+          {
+            chart.getXYPlot().getRangeAxis().setStandardTickUnits(NumberAxis.createIntegerTickUnits());
+            setRangeTick(5);
+            setRangeMinimumSize(10.0);
+            setGlobalRange(true);
+            setMaxItemCount(defaultMaxItemCount);
+          }
+          protected double getSensorDataValue(SensorData data) {
+            return data.getBatteryIndicator();
           }
         },
         new TimeChartPanel(this, "Relative Humidity", "Humidity", "Time", "%") {

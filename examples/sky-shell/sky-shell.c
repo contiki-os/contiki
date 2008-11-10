@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: sky-shell.c,v 1.5 2008/08/15 18:46:28 adamdunkels Exp $
+ * $Id: sky-shell.c,v 1.6 2008/11/10 21:14:20 adamdunkels Exp $
  */
 
 /**
@@ -50,6 +50,7 @@
 #include "dev/leds.h"
 #include "dev/light.h"
 #include "dev/sht11.h"
+#include "dev/battery-sensor.h"
 
 #include "net/rime/timesynch.h"
 
@@ -157,6 +158,8 @@ struct sky_alldata_msg {
   uint16_t best_neighbor;
   uint16_t best_neighbor_etx;
   uint16_t best_neighbor_rtmetric;
+  uint16_t battery_voltage;
+  uint16_t battery_indicator;
 };
 /*---------------------------------------------------------------------------*/
 PROCESS_THREAD(shell_sky_alldata_process, ev, data)
@@ -197,6 +200,8 @@ PROCESS_THREAD(shell_sky_alldata_process, ev, data)
     msg.best_neighbor_etx = neighbor_etx(n);
     msg.best_neighbor_rtmetric = n->rtmetric;
   }
+  msg.battery_voltage = battery_sensor.value(0);
+  msg.battery_indicator = sht11_sreg() & 0x40? 1: 0;
   shell_output(&sky_alldata_command, &msg, sizeof(msg), "", 0);
   PROCESS_END();
 }
