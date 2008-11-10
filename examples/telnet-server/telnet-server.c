@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: telnet-server.c,v 1.2 2008/02/28 23:12:47 oliverschmidt Exp $
+ * $Id: telnet-server.c,v 1.3 2008/11/10 22:10:33 oliverschmidt Exp $
  */
 
 /**
@@ -54,7 +54,8 @@ PROCESS_THREAD(shell_init_process, ev, data)
   shell_run_init();   
   shell_text_init();   
   shell_time_init();   
-  
+  shell_wget_init();
+
   PROCESS_END();
 }
 /*---------------------------------------------------------------------------*/
