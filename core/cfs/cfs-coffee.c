@@ -277,7 +277,7 @@ static coffee_offset_t
 find_file(const char *name)
 {
   struct file_header hdr;
-  coffee_offset_t page;
+  coffee_page_t page;
 
   page = dir_cache_find(name);
   if(page >= 0) {
@@ -288,8 +288,10 @@ find_file(const char *name)
   do {
     read_header(&hdr, page);
     if(COFFEE_PAGE_ACTIVE(hdr)) {
-      if(strcmp(name, hdr.name) == 0) {
+      if(dir_cache_find(name[0]) == -1) {
 	dir_cache_add(name[0], page);
+      }
+      if(strcmp(name, hdr.name) == 0) {
 	return page;
       }
       page += hdr.max_pages;
@@ -409,7 +411,7 @@ cfs_garbage_collect(void)
   for(nerased = sector = 0; sector < COFFEE_SIZE / COFFEE_SECTOR_SIZE; sector++) {
     get_sector_status(sector, &active_pages, &free_pages, &obsolete_pages);
     PRINTF("Coffee: Sector %u has %u active, %u free, and %u obsolete pages.\n",
-	sector, active_pages, free_pages, obsolete_pages);
+	sector, (unsigned)active_pages, (unsigned)free_pages, (unsigned)obsolete_pages);
     if(active_pages == 0 && obsolete_pages > 0) {
       COFFEE_ERASE(sector);
       nerased++;
@@ -534,7 +536,7 @@ get_record_index(coffee_page_t log_page, uint16_t record_count,
   unsigned long base;
   uint16_t indices[record_count];
   uint16_t processed;
-  uint16_t current_batch_size, i;
+  uint16_t batch_size, i;
   int16_t match_index;
 
   base = ABS_OFFSET(log_page, sizeof(indices[0]) * search_records);
@@ -542,22 +544,22 @@ get_record_index(coffee_page_t log_page, uint16_t record_count,
   match_index = -1;
   while(processed < search_records && match_index < 0) {
     if(record_count + processed > search_records) {
-      current_batch_size = search_records - processed;
+      batch_size = search_records - processed;
     } else {
-      current_batch_size = record_count;
+      batch_size = record_count;
     }
 
-    base -= current_batch_size * sizeof(indices[0]);
-    COFFEE_READ(&indices, sizeof(indices[0]) * current_batch_size, base);
+    base -= batch_size * sizeof(indices[0]);
+    COFFEE_READ(&indices, sizeof(indices[0]) * batch_size, base);
 
-    for(i = current_batch_size - 1; i >= 0; i--) {
+    for(i = batch_size - 1; i >= 0; i--) {
       if(indices[i] - 1 == region) {
-	match_index = search_records - processed - (current_batch_size - i);
+	match_index = search_records - processed - (batch_size - i);
 	break;
       }
     }
 
-    processed += current_batch_size;
+    processed += batch_size;
   }
 
   return match_index;
@@ -623,8 +625,8 @@ create_log(coffee_page_t file_page, struct file_header *hdr)
 
   adjust_log_config(hdr, &log_record_size, &log_records);  
 
-  size = log_records * sizeof(uint16_t);
-  size += log_records * log_record_size;
+  size = log_records * sizeof(uint16_t);	/* Log index size. */
+  size += log_records * log_record_size;	/* Log data size. */
 
   log_page = reserve(create_log_name(log_name, sizeof(log_name), hdr->name),
 	      size, 0);
@@ -748,21 +750,21 @@ write_log_page(struct file_desc *fdp, struct log_param *lp)
       /* The next log record is unknown. Search for it. */
       uint16_t indices[record_count];
       uint16_t processed;
-      uint16_t current_batch_size;
+      uint16_t batch_size;
 
       log_record = log_records;
       for(processed = 0; processed < log_records;) {
-	current_batch_size = log_records - processed >= record_count ?
+	batch_size = log_records - processed >= record_count ?
 	    record_count : log_records - processed;
-	COFFEE_READ(&indices, current_batch_size * sizeof(indices[0]),
+	COFFEE_READ(&indices, batch_size * sizeof(indices[0]),
 	    ABS_OFFSET(log_page, processed * sizeof(indices[0])));
-	for(i = 0; i < current_batch_size && indices[i] != 0; i++);
+	for(i = 0; i < batch_size && indices[i] != 0; i++);
 	log_record = i;
-	if(log_record < current_batch_size) {
+	if(log_record < batch_size) {
 	  log_record += processed;
 	  break;
 	}
-	processed += current_batch_size;
+	processed += batch_size;
       } 
     } else {
       log_record = fdp->next_log_record;
@@ -780,7 +782,7 @@ write_log_page(struct file_desc *fdp, struct log_param *lp)
       return -1;
     }
     PRINTF("Coffee: Created a log structure for file %s at page %u\n",
-    	hdr.name, log_page);
+    	hdr.name, (unsigned)log_page);
     hdr.log_page = log_page;
     log_record = 0;
   }
