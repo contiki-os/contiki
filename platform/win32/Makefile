@@ -30,7 +30,7 @@
 #
 # Author: Oliver Schmidt <ol.sc@web.de>
 #
-# $Id: Makefile,v 1.8 2008/02/09 18:56:26 oliverschmidt Exp $
+# $Id: Makefile,v 1.9 2008/11/10 22:10:33 oliverschmidt Exp $
 #
 
 PRGS = about calc dhcp directory email ftp irc netconf processes shell \
@@ -43,7 +43,9 @@ appname = ${subst processes,process-list,${subst www,webbrowser,$(1)}}
 
 # Omit all the target and network stack specific shell commands
 SHELL_SOURCEFILES = shell.c shell-file.c shell-ps.c shell-run.c \
-		    shell-text.c shell-time.c list.c random.c
+		    shell-text.c shell-time.c shell-wget.c \
+		    http-strings.c http-user-agent-string.c \
+		    webclient.c list.c random.c
 		    
 # Use gui-shell.c instead of serial-shell.c to get CTK support
 override shell_src = gui-shell.c ctk-textentry-cmdline.c \
