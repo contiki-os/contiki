@@ -12,9 +12,11 @@ APPS+=webbrowser webserver
 include $(CONTIKI)/apps/webbrowser/Makefile.webbrowser
 include $(CONTIKI)/apps/webserver/Makefile.webserver
 
-override webserver_src = webserver-nogui.c http-strings.c psock.c memb.c \
-                         httpd-cfs.c
+ifndef PLATFORM_BUILD
+  override webserver_src = webserver-nogui.c http-strings.c psock.c memb.c \
+                           httpd-cfs.c
+endif
 
 ifeq ($(TARGET),sky)
-	shell_src += shell-sky.c shell-exec.c
+  shell_src += shell-sky.c shell-exec.c
 endif
