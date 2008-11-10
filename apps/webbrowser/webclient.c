@@ -29,7 +29,7 @@
  *
  * This file is part of the "contiki" web browser.
  *
- * $Id: webclient.c,v 1.6 2008/11/09 12:39:31 adamdunkels Exp $
+ * $Id: webclient.c,v 1.7 2008/11/10 21:57:26 oliverschmidt Exp $
  *
  */
 
@@ -191,8 +191,8 @@ window_copy(int curptr, const char *data, unsigned char datalen)
   len = datalen;
   
   /* Trim off data before the window. */
-  data    += windowstart - curptr;
-  len     -= windowstart - curptr;
+  data += windowstart - curptr;
+  len  -= windowstart - curptr;
 
   /* Trim off data after the window. */
   if(len > windowend - windowstart) {
@@ -203,15 +203,12 @@ window_copy(int curptr, const char *data, unsigned char datalen)
   windowstart += len;
 
   return curptr + datalen;
-
 }
 /*-----------------------------------------------------------------------------------*/
 static void
 senddata(void)
 {
   u16_t len;
-  /*  char *getrequest;*/
-  char *cptr;
   int curptr;
   
   if(s.getrequestleft > 0) {
@@ -234,7 +231,6 @@ senddata(void)
 
     curptr = window_copy(curptr, http_user_agent_fields,
 		       (unsigned char)strlen(http_user_agent_fields));
-
     
     len = s.getrequestleft > uip_mss()?
       uip_mss():
