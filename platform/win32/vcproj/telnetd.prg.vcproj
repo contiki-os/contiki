@@ -42,7 +42,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..;../../../cpu/native;../../../core;../../../apps/program-handler;../../../apps/shell"
+				AdditionalIncludeDirectories="..;../../../cpu/native;../../../core;../../../apps/program-handler;../../../apps/shell;../../../apps/webbrowser"
 				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;_USRDLL;_CRT_NONSTDC_NO_DEPRECATE;_CRT_SECURE_NO_DEPRECATE;PLATFORM_BUILD;WITH_LOADER_ARCH;AUTOSTART_ENABLE"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="3"
@@ -119,7 +119,7 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
-				AdditionalIncludeDirectories="..;../../../cpu/native;../../../core;../../../apps/program-handler;../../../apps/shell"
+				AdditionalIncludeDirectories="..;../../../cpu/native;../../../core;../../../apps/program-handler;../../../apps/shell;../../../apps/webbrowser"
 				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_USRDLL;_CRT_NONSTDC_NO_DEPRECATE;_CRT_SECURE_NO_DEPRECATE;PLATFORM_BUILD;WITH_LOADER_ARCH;AUTOSTART_ENABLE"
 				RuntimeLibrary="2"
 				ProgramDataBaseFileName="$(IntDir)\$(TargetFileName).vc90.pdb"
@@ -299,11 +299,47 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\..\apps\shell\shell-wget.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\apps\shell\shell-wget.h"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\apps\shell\shell.c"
 				>
 			</File>
 			<File
 				RelativePath="..\..\..\apps\shell\shell.h"
+				>
+			</File>
+		</Filter>
+		<Filter
+			Name="webbrowser"
+			>
+			<File
+				RelativePath="..\..\..\apps\webbrowser\http-strings.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\apps\webbrowser\http-strings.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\apps\webbrowser\http-user-agent-string.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\apps\webbrowser\http-user-agent-string.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\apps\webbrowser\webclient.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\apps\webbrowser\webclient.h"
 				>
 			</File>
 		</Filter>
