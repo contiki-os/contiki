@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: example-rucb.c,v 1.3 2008/04/24 11:50:04 fros4943 Exp $
+ * $Id: example-rucb.c,v 1.4 2008/11/11 11:25:39 fros4943 Exp $
  */
 
 /**
@@ -119,28 +119,28 @@ PROCESS_THREAD(example_rucb_process, ev, data)
   button_sensor.activate();
 
   PROCESS_PAUSE();
-  
-#if NETSIM
+
   if(rimeaddr_node_addr.u8[0] == 51 &&
       rimeaddr_node_addr.u8[1] == 0) {
-#else
-    if(rimeaddr_node_addr.u16[0] == 2) {
-#endif
     rimeaddr_t recv;
-    
-#if NETSIM
+
     recv.u8[0] = 52;
     recv.u8[1] = 0;
-#else
-    recv.u16[0] = 1;
-#endif
     start_time = clock_time();
+
+    /*printf("%u.%u: sending rucb to address %u.%u at time %u\n",
+        rimeaddr_node_addr.u8[0],
+        rimeaddr_node_addr.u8[1],
+        recv.u8[0],
+        recv.u8[1],
+        start_time);*/
+
     rucb_send(&rucb, &recv);
 #if NETSIM
     ether_send_done();
 #endif /* NETSIM */
   }
-  
+
   while(1) {
 
     PROCESS_WAIT_EVENT_UNTIL(ev == sensors_event &&
