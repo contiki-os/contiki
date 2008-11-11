@@ -1,0 +1,1 @@
+Contiki shell on a single Tmote Sky. When the node has booted, a two commands are sent to the shell: help and ps
