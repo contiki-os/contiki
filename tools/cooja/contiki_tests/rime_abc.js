@@ -3,9 +3,14 @@ if (!msg.contains('received')) {
   return;
 }
 
-/* Remember receiver */
-global.put("recv_" + id, "ok");
-log.log(id + " received a message\n");
+/* Count received packets */
+result = global.get("recv_" + id);
+if (result == null) {
+  result = 0;
+}
+result++;
+global.put("recv_" + id, result);
+log.log(id + " received " + result + " messages\n");
 
 /* Did all nodes (1 and 2) receive a message? */
 for (i = 1; i <= 2; i++) {
@@ -13,7 +18,11 @@ for (i = 1; i <= 2; i++) {
   if (result == null) {
     return;
   }
+  if (result < 30) {
+    return;
+  }
 }
 
-log.log("TEST OK\n"); /* Report test success */
-mote.getSimulation().getGUI().doQuit(false); /* Quit simulator (to end test run)*/
+log.log("Node 1 received " + global.get("recv_1") + " messages\n");
+log.log("Node 2 received " + global.get("recv_2") + " messages\n");
+log.testOK(); /* Report test success */

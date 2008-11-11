@@ -1,1 +1,1 @@
-Rime anonymous broadcast (test-abc.c). Two Sky nodes. 
+Two Sky nodes running Rime anonymous broadcast (examples/rime/example-abc.c). Test finishes when both nodes have received more than 30 messages each.

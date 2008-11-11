@@ -5,13 +5,12 @@
     <delaytime>0</delaytime>
     <ticktime>1</ticktime>
     <randomseed>123456</randomseed>
-    <nrticklists>1</nrticklists>
     <motedelay>5000</motedelay>
     <radiomedium>
       se.sics.cooja.radiomediums.UDGM
       <transmitting_range>50.0</transmitting_range>
       <interference_range>100.0</interference_range>
-      <success_ratio_tx>1.0</success_ratio_tx>
+      <success_ratio_tx>0.95</success_ratio_tx>
       <success_ratio_rx>1.0</success_ratio_rx>
     </radiomedium>
     <motetype>
@@ -53,7 +52,7 @@
   <plugin>
     se.sics.cooja.plugins.SimControl
     <width>313</width>
-    <z>2</z>
+    <z>1</z>
     <height>199</height>
     <location_x>30</location_x>
     <location_y>30</location_y>
@@ -62,7 +61,7 @@
   <plugin>
     se.sics.cooja.radiomediums.UDGM$VisUDGM
     <width>300</width>
-    <z>3</z>
+    <z>2</z>
     <height>122</height>
     <location_x>367</location_x>
     <location_y>23</location_y>
@@ -75,7 +74,7 @@
       <history>256</history>
     </plugin_config>
     <width>573</width>
-    <z>1</z>
+    <z>3</z>
     <height>242</height>
     <location_x>23</location_x>
     <location_y>235</location_y>
