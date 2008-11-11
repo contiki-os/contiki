@@ -3,11 +3,7 @@
 
 /* Contiki test script example */
 if (msg.startsWith('Contiki')) {
-  log.log('TEST OK\n'); /* Report test success */
-  
-  /* To increase test run speed, close the simulator when done */
-  mote.getSimulation().getGUI().doQuit(false); /* Quit simulator (to end test run)*/
+  log.testOK(); /* Report test success */
 } else {
-  log.log('TEST FAIL\n'); /* Report test failure */
-  mote.getSimulation().getGUI().doQuit(false); /* Quit simulator (to end test run)*/
+  log.testFailed(); /* Report test failure */
 }
