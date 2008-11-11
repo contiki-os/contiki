@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: example-runicast.c,v 1.1 2008/07/03 21:52:25 adamdunkels Exp $
+ * $Id: example-runicast.c,v 1.2 2008/11/11 13:50:21 fros4943 Exp $
  */
 
 /**
@@ -53,6 +53,7 @@
 PROCESS(test_runicast_process, "runicast test");
 AUTOSTART_PROCESSES(&test_runicast_process);
 /*---------------------------------------------------------------------------*/
+static uint8_t in_tx;
 static void
 recv_runicast(struct runicast_conn *c, rimeaddr_t *from, uint8_t seqno)
 {
@@ -62,12 +63,14 @@ recv_runicast(struct runicast_conn *c, rimeaddr_t *from, uint8_t seqno)
 static void
 sent_runicast(struct runicast_conn *c, rimeaddr_t *to, uint8_t retransmissions)
 {
+  in_tx = 0;
   printf("runicast message sent to %d.%d, retransmissions %d\n",
 	 to->u8[0], to->u8[1], retransmissions);
 }
 static void
 timedout_runicast(struct runicast_conn *c, rimeaddr_t *to, uint8_t retransmissions)
 {
+  in_tx = 0;
   printf("runicast message timed out when sending to %d.%d, retransmissions %d\n",
 	 to->u8[0], to->u8[1], retransmissions);
 }
@@ -79,24 +82,37 @@ static struct runicast_conn runicast;
 PROCESS_THREAD(test_runicast_process, ev, data)
 {
   PROCESS_EXITHANDLER(runicast_close(&runicast);)
-    
+
   PROCESS_BEGIN();
 
   runicast_open(&runicast, 128, &runicast_callbacks);
+  in_tx = 0;
 
   while(1) {
     static struct etimer et;
-    rimeaddr_t addr;
-    
-    etimer_set(&et, CLOCK_SECOND);
-    
+
+    etimer_set(&et, 10*CLOCK_SECOND);
+
     PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&et));
 
-    rimebuf_copyfrom("Hello", 5);
-    addr.u8[0] = 41;
-    addr.u8[1] = 41;
-    runicast_send(&runicast, &addr, MAX_RETRANSMISSIONS);
+    if(!in_tx &&
+        !(rimeaddr_node_addr.u8[0] == 1 &&
+        rimeaddr_node_addr.u8[1] == 0)) {
+      rimeaddr_t recv;
 
+      rimebuf_copyfrom("Hello", 5);
+      recv.u8[0] = 1;
+      recv.u8[1] = 0;
+
+      /*printf("%u.%u: sending runicast to address %u.%u\n",
+          rimeaddr_node_addr.u8[0],
+          rimeaddr_node_addr.u8[1],
+          recv.u8[0],
+          recv.u8[1]);*/
+
+      in_tx = 1;
+      runicast_send(&runicast, &recv, MAX_RETRANSMISSIONS);
+    }
   }
 
   PROCESS_END();
