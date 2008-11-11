@@ -57,10 +57,13 @@ Berlin, 2006
 #include "cc1020-internal.h"
 #include "cc1020.h"
 #include "lib/random.h"
+#include "lib/crc16.h"
 #include "net/rime/rimestats.h"
 #include "dev/irq.h"
 #include "dev/dma.h"
 #include "energest.h"
+
+#define CRC_LEN 2 // CHECKSUM
 
 static int cc1020_calibrate(void);
 static int cc1020_setupTX(int);
@@ -111,6 +114,20 @@ static void
 dma_callback(void)
 {
   dma_done = 1;
+}
+
+static
+reset_receiver(void)
+{
+  // reset receiver
+  cc1020_rxlen = 0;
+
+  if ((cc1020_state & CC1020_TURN_OFF) && (cc1020_txlen == 0)) {
+    cc1020_off();
+  } else {
+    CC1020_SET_OPSTATE(CC1020_RX | CC1020_RX_SEARCHING);
+    ENABLE_RX_IRQ();
+  }
 }
 
 void
@@ -214,8 +231,10 @@ cc1020_set_power(uint8_t pa_power)
 int
 cc1020_send(const void *buf, unsigned short len)
 {
-  int try;
-
+  int try;  
+  int normal_header = HDRSIZE + len;
+  uint16_t rxcrc = 0xFFFF; // For checksum purposes
+  
   if (cc1020_state == CC1020_OFF)
     return -2;
 
@@ -226,16 +245,29 @@ cc1020_send(const void *buf, unsigned short len)
   cc1020_txlen = PREAMBLESIZE + SYNCWDSIZE;
 
   // header
-  cc1020_txbuf[cc1020_txlen++] = 0x00;
-  cc1020_txbuf[cc1020_txlen++] = HDRSIZE + len;
-
+  cc1020_txbuf[cc1020_txlen++] = 0x00;   
+  cc1020_txbuf[cc1020_txlen++] = normal_header + CRC_LEN;
+  
+  // Adding the checksum on header and data
+  rxcrc = crc16_add((uint8_t) (normal_header & 0xff), rxcrc); 
+  rxcrc = crc16_add((uint8_t) ((normal_header >> 8)& 0xff), rxcrc);
+  
+  int i=0;
+  for(i=0;i<len;i++){
+	rxcrc = crc16_add((uint8_t) ((char*)buf)[i], rxcrc);
+  }
+  
   // data to send
   memcpy((char *)cc1020_txbuf + cc1020_txlen, buf, len);
   cc1020_txlen += len;
 
+  // Send checksum
+  memcpy((char *)cc1020_txbuf + cc1020_txlen, &rxcrc, CRC_LEN);
+  cc1020_txlen += CRC_LEN;
+ 
   // suffix
   cc1020_txbuf[cc1020_txlen++] = TAIL;
-  cc1020_txbuf[cc1020_txlen++] = TAIL;
+  cc1020_txbuf[cc1020_txlen++] = TAIL; 
 
   // Wait for the medium to become idle.
   if (cc1020_carrier_sense()) {
@@ -292,15 +324,7 @@ cc1020_read(void *buf, unsigned short size)
   memcpy(buf, (char *)cc1020_rxbuf + HDRSIZE, len);
   RIMESTATS_ADD(llrx);
 
-  // reset receiver
-  cc1020_rxlen = 0;
-
-  if ((cc1020_state & CC1020_TURN_OFF) && (cc1020_txlen == 0)) {
-    cc1020_off();
-  } else {
-    CC1020_SET_OPSTATE(CC1020_RX | CC1020_RX_SEARCHING);
-    ENABLE_RX_IRQ();
-  }
+  reset_receiver();
 
   return len;
 }
@@ -370,10 +394,30 @@ PROCESS_THREAD(cc1020_receiver_process, ev, data)
 
   while(1) {
     ev = PROCESS_EVENT_NONE;
-    PROCESS_YIELD_UNTIL(ev == PROCESS_EVENT_POLL);
-
+    PROCESS_YIELD_UNTIL(ev == PROCESS_EVENT_POLL);	
+	
     if(receiver_callback != NULL) {
-      receiver_callback(&cc1020_driver);
+      // CHECKSUM CHECK	  
+      uint16_t expected_crc = 0xffff;
+      uint16_t actual_crc = -1;
+      memcpy(&actual_crc, &cc1020_rxbuf[cc1020_rxlen - CRC_LEN], CRC_LEN);
+      cc1020_rxlen -= CRC_LEN;
+	  	  
+      expected_crc = crc16_add((uint8_t) (cc1020_rxlen & 0xff), expected_crc);
+      expected_crc = crc16_add((uint8_t) ((cc1020_rxlen >> 8) & 0xff),
+			expected_crc);
+
+      int i = 0;
+      for(i = HDRSIZE; i < cc1020_rxlen; i++){
+        expected_crc = crc16_add(cc1020_rxbuf[i], expected_crc);
+      }
+
+      if(expected_crc == actual_crc){
+	receiver_callback(&cc1020_driver);
+      } else {
+	RIMESTATS_ADD(badcrc);
+	reset_receiver();
+      }
     }
   }
 
@@ -430,9 +474,10 @@ interrupt(UART0RX_VECTOR) cc1020_rxhandler(void)
     } else {
       return;
     }
-    /*      Update RSSI.
-	    TODO: add sampling/averaging of several RSSI to get
-	    more reliable RSSI values
+    /*
+     * Update RSSI.
+     * TODO: add sampling/averaging of several RSSI to get
+     *       more reliable RSSI values.
      */
     rssi = cc1020_read_reg(CC1020_RSS);
     CC1020_SET_OPSTATE(CC1020_RX | CC1020_RX_RECEIVING);
@@ -452,6 +497,7 @@ interrupt(UART0RX_VECTOR) cc1020_rxhandler(void)
     }
 
     cc1020_rxlen++;
+	 
     if (cc1020_rxlen == HDRSIZE) {
       pktlen = ((struct cc1020_header *)cc1020_rxbuf)->length;
       if (pktlen == 0 || pktlen > sizeof (cc1020_rxbuf)) {
