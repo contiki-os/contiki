@@ -33,7 +33,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: neighbor.c,v 1.15 2008/02/24 22:05:27 adamdunkels Exp $
+ * $Id: neighbor.c,v 1.16 2008/11/12 10:47:17 zhitao Exp $
  */
 
 /**
@@ -145,7 +145,7 @@ void
 neighbor_timedout_etx(struct neighbor *n, uint8_t etx)
 {
   if(n != NULL) {
-    n->etxs[n->etxptr] = etx;
+    n->etxs[n->etxptr] += etx;
     n->etxptr = (n->etxptr + 1) % NEIGHBOR_NUM_ETXS;
   }
 }
@@ -277,12 +277,11 @@ neighbor_best(void)
 {
   int found;
   /*  int lowest, best;*/
-  struct neighbor *n, *lowest, *best;
+  struct neighbor *n, *best;
   uint8_t rtmetric;
-  uint8_t etx;
 
   rtmetric = RTMETRIC_MAX;
-  lowest = best = NULL;
+  best = NULL;
   found = 0;
 
   /*  PRINTF("%d: ", node_id);*/
@@ -290,32 +289,13 @@ neighbor_best(void)
   /* Find the lowest rtmetric. */
   for(n = list_head(neighbors_list); n != NULL; n = n->next) {
     if(!rimeaddr_cmp(&n->addr, &rimeaddr_null) &&
-       rtmetric > n->rtmetric) {
-      rtmetric = n->rtmetric;
-      lowest = n;
-      found = 1;
+       rtmetric > n->rtmetric + neighbor_etx(n)) {
+      rtmetric = n->rtmetric + neighbor_etx(n);
+      best = n;
     }
   }
 
-  /*  PRINTF("\n");*/
-
-  /* Find the neighbor with lowest etx of the ones that
-     have the lowest rtmetric. */
-  if(found) {
-    etx = 0;
-    best = lowest;
-    for(n = list_head(neighbors_list); n != NULL; n = n->next) {
-      /*    for(i = 0; i < MAX_NEIGHBORS; ++i) {*/
-      if(!rimeaddr_cmp(&n->addr, &rimeaddr_null) &&
-	 rtmetric == n->rtmetric &&
-	 neighbor_etx(n) < etx) {
-	etx = neighbor_etx(n);
-	best = n;
-      }
-    }
-    return best;
-  }
-  return NULL;
+  return best;
 }
 /*---------------------------------------------------------------------------*/
 void
