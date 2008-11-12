@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: tdma_mac.c,v 1.4 2008/02/24 22:10:30 adamdunkels Exp $
+ * $Id: tdma_mac.c,v 1.5 2008/11/12 12:42:41 fros4943 Exp $
  */
 
 #include "contiki.h"
@@ -102,7 +102,7 @@ transmitter(struct rtimer *t, void *ptr)
     while(now > slot_start + SLOT_LENGTH - GUARD_PERIOD) {
       slot_start += PERIOD_LENGTH;
     }
-    
+
     PRINTF("TIMER Rescheduling until %u\n", slot_start);
     r = rtimer_set(&rtimer, slot_start, 1,
         (void (*)(struct rtimer *, void *))transmitter, NULL);
@@ -143,7 +143,7 @@ transmitter(struct rtimer *t, void *ptr)
   if(r) {
     PRINTF("TIMER Error #2: %d\n", r);
   }
-  
+
   return 0;
 }
 /*---------------------------------------------------------------------------*/
@@ -152,7 +152,7 @@ send(void)
 {
   int r;
   id_counter++;
-  
+
   /* Clean up already sent packets */
   while(lastqueued != nextsend) {
     PRINTF("BUFFER Cleaning up packet #%i\n", id[lastqueued]);
@@ -161,7 +161,7 @@ send(void)
 
     lastqueued = (lastqueued + 1) % NUM_PACKETS;
   }
-  
+
   if((freeslot + 1) % NUM_PACKETS == lastqueued) {
     PRINTF("BUFFER Buffer full, dropping packet #%i\n", (id_counter+1));
     return UIP_FW_DROPPED;
@@ -177,7 +177,7 @@ send(void)
   PRINTF("BUFFER Wrote packet #%i to buffer \n", id[freeslot]);
 
   freeslot = (freeslot + 1) % NUM_PACKETS;
-  
+
   if(!timer_on) {
     PRINTF("TIMER Starting timer\n");
     r = rtimer_set(&rtimer, RTIMER_NOW() + RTIMER_SECOND, 1,
@@ -226,7 +226,7 @@ off(void)
   return radio->off();
 }
 /*---------------------------------------------------------------------------*/
-void
+const struct mac_driver *
 tdma_mac_init(const struct radio_driver *d)
 {
   int i;
@@ -237,12 +237,15 @@ tdma_mac_init(const struct radio_driver *d)
   radio = d;
   radio->set_receive_function(input);
   radio->on();
+
+  return &tdma_mac_driver;
 }
 /*---------------------------------------------------------------------------*/
 const struct mac_driver tdma_mac_driver = {
-  send,
-  read,
-  set_receive_function,
-  on,
-  off,
+    "TDMA MAC",
+    send,
+    read,
+    set_receive_function,
+    on,
+    off,
 };
