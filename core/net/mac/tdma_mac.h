@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: tdma_mac.h,v 1.1 2007/08/31 13:42:22 fros4943 Exp $
+ * $Id: tdma_mac.h,v 1.2 2008/11/12 12:42:41 fros4943 Exp $
  */
 
 #ifndef __TDMA_MAC_H__
@@ -39,6 +39,6 @@
 
 extern const struct mac_driver tdma_mac_driver;
 
-void tdma_mac_init(const struct radio_driver *r);
+const struct mac_driver * tdma_mac_init(const struct radio_driver *r);
 
 #endif /* __TDMA_MAC_H__ */
