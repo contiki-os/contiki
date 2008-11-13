@@ -288,7 +288,7 @@ find_file(const char *name)
   do {
     read_header(&hdr, page);
     if(COFFEE_PAGE_ACTIVE(hdr)) {
-      if(dir_cache_find(name[0]) == -1) {
+      if(dir_cache_find(name) == -1) {
 	dir_cache_add(name[0], page);
       }
       if(strcmp(name, hdr.name) == 0) {
