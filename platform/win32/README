@@ -22,7 +22,7 @@ extend two makefiles are necessary:
 - Makefile.win32 is an ordinary (yet complex) Contiki 2.x Makefile.$(TARGET)
 
 As an alternative to building with Cygwin, gcc and the Contiki 2.x build system
-it is also possible to use Microsoft Visual Studio 2005 (including the Express
+it is also possible to use Microsoft Visual Studio 2008 (including the Express
 Edition) by loading platform/win32/contiki.sln.
 
 As platform/win32/Makefile.win32 includes cpu/native/Makefile.native the WinPcap
@@ -37,4 +37,4 @@ Windows system menu under 'Properties'.
 As the console is used for displaying the actual user interface the log output
 is routed to the debug output. DebugView is a very lean program for displaying
 the debug output in case no debugger is active and does so. It is available at
-http://www.microsoft.com/technet/sysinternals/utilities/debugview.mspx.
+http://technet.microsoft.com/en-us/sysinternals/bb896647.aspx.
