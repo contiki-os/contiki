@@ -882,13 +882,13 @@ cfs_close(int fd)
 
   if(FD_VALID(fd)) {
     read_header(&hdr, coffee_fd_set[fd].file_page);
-    current_page = coffee_fd_set[fd].end / COFFEE_PAGE_SIZE;
+    current_page = (coffee_fd_set[fd].end + sizeof(hdr)) / COFFEE_PAGE_SIZE;
     part_size = hdr.max_pages / (sizeof(hdr.eof_hint) * CHAR_BIT);
     if(part_size == 0) {
       part_size = 1;
     }
     for(i = eof_hint = 0; i < sizeof(eof_hint) * CHAR_BIT; i++) {
-      eof_hint |= (current_page > (i + 1) * part_size) << i;
+      eof_hint |= (current_page >= (i + 1) * part_size) << i;
     }
 
     if(eof_hint > hdr.eof_hint) {
@@ -999,7 +999,7 @@ cfs_write(int fd, const void *buf, unsigned size)
   int i;
   struct log_param lp;
   coffee_offset_t remains;
-
+printf("write %d bytes to fd %d\n", size, fd);
   if(!(FD_VALID(fd) && FD_WRITABLE(fd))) {
     return -1;
   }
