@@ -999,7 +999,7 @@ cfs_write(int fd, const void *buf, unsigned size)
   int i;
   struct log_param lp;
   coffee_offset_t remains;
-printf("write %d bytes to fd %d\n", size, fd);
+
   if(!(FD_VALID(fd) && FD_WRITABLE(fd))) {
     return -1;
   }
