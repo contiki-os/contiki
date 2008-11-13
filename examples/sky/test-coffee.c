@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: test-coffee.c,v 1.2 2008/10/16 10:14:41 nvt-se Exp $
+ * $Id: test-coffee.c,v 1.3 2008/11/13 14:46:50 nvt-se Exp $
  */
 
 /**
@@ -57,14 +57,16 @@ static int
 run_consistency_test(void)
 {
   int error;
-  int wfd, rfd;
-  unsigned char buf[256];
-  int r, i;
+  int wfd, rfd, afd;
+  unsigned char buf[256], buf2[11];
+  int r, i, j, total_read;
   unsigned offset;
 
   cfs_coffee_remove("T1");
+  cfs_coffee_remove("T2");
+  cfs_coffee_remove("T3");
 
-  wfd = rfd = -1;
+  wfd = rfd = afd = -1;
 
   for(r = 0; r < sizeof(buf); r++) {
     buf[r] = r;
@@ -226,9 +228,49 @@ run_consistency_test(void)
     }
   }
 
+  /* Test 17: Append data to the same file many times. */
+#define APPEND_BYTES 1000
+#define BULK_SIZE 10
+  for(i = 0; i < APPEND_BYTES; i += BULK_SIZE) {
+    afd = cfs_open("T3", CFS_WRITE | CFS_APPEND);
+    if(afd < 0) {
+      FAIL(-30);
+    }
+    for(j = 0; j < BULK_SIZE; j++) {
+      buf[j] = 1 + ((i + j) & 0x7f);
+    }
+    if(cfs_write(afd, buf, BULK_SIZE) != BULK_SIZE) {
+      FAIL(-31);
+    }
+    cfs_close(afd);
+  }
+
+  /* Test 18: Read back the data written in Test 17 and verify that it 
+     is correct. */
+  afd = cfs_open("T3", CFS_READ);
+  if(afd < 0) {
+    FAIL(-32);
+  }
+  total_read = 0;
+  while((r = cfs_read(afd, buf2, sizeof(buf2))) > 0) {
+    for(j = 0; j < r; j++) {
+      if(buf2[j] != 1 + ((total_read + j) & 0x7f)) {
+	FAIL(-33);
+      }
+    }
+    total_read += r;
+  }
+  if(r < 0) {
+    FAIL(-34);
+  }
+  if(total_read != APPEND_BYTES) {
+    FAIL(-35);
+  }
+  cfs_close(afd);
+
   error = 0;
 end:
-  cfs_close(wfd); cfs_close(rfd);
+  cfs_close(wfd); cfs_close(rfd); cfs_close(afd);
   return error;
 }
 /*---------------------------------------------------------------------------*/
