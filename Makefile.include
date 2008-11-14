@@ -2,9 +2,6 @@ ifndef CONTIKI
   ${error CONTIKI not defined! You must specify where CONTIKI resides}
 endif
 
-OBJECTDIR = obj_$(TARGET)
-CFLAGS += -DCONTIKI_TARGET=$(TARGET)
-
 ifeq ($(TARGET),)
   -include Makefile.target
   ifeq ($(TARGET),)
@@ -38,9 +35,15 @@ savedefines:
 	@echo "saving Makefile.$(TARGET).defines"
 	@echo >Makefile.$(TARGET).defines "DEFINES = $(DEFINES)"
 
+OBJECTDIR = obj_$(TARGET)
 ifeq (${wildcard $(OBJECTDIR)},)
 DUMMY := ${shell mkdir $(OBJECTDIR)}
 endif
+
+LOWERCASE = abcdefghijklmnopqrstuvwxyz
+UPPERCASE = ABCDEFGHIJKLMNOPQRSTUVWXYZ
+TARGET_UPPERCASE := ${shell echo $(TARGET) | sed 'y!$(LOWERCASE)!$(UPPERCASE)!'}
+CFLAGS += -DCONTIKI_TARGET_$(TARGET_UPPERCASE)
 
 include $(CONTIKI)/core/net/rime/Makefile.rime
 include $(CONTIKI)/core/net/mac/Makefile.mac
