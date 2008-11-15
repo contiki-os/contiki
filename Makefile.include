@@ -40,8 +40,8 @@ ifeq (${wildcard $(OBJECTDIR)},)
   DUMMY := ${shell mkdir $(OBJECTDIR)}
 endif
 
-LOWERCASE = abcdefghijklmnopqrstuvwxyz
-UPPERCASE = ABCDEFGHIJKLMNOPQRSTUVWXYZ
+LOWERCASE = -abcdefghijklmnopqrstuvwxyz
+UPPERCASE = _ABCDEFGHIJKLMNOPQRSTUVWXYZ
 TARGET_UPPERCASE := ${shell echo $(TARGET) | sed 'y!$(LOWERCASE)!$(UPPERCASE)!'}
 CFLAGS += -DCONTIKI_TARGET_$(TARGET_UPPERCASE)
 
