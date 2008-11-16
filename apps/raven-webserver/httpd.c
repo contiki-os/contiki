@@ -30,7 +30,7 @@
  *
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: httpd.c,v 1.1 2008/10/14 10:14:13 julienabeille Exp $
+ * $Id: httpd.c,v 1.2 2008/11/16 15:28:37 c_oflynn Exp $
  */
 
 #include <string.h>
@@ -137,18 +137,20 @@ next_scriptstate(struct httpd_state *s)
   } else {
     s->scriptlen = 0;
   }
+
   /*  char *p;
   p = strchr(s->scriptptr, ISO_nl) + 1;
   s->scriptlen -= (unsigned short)(p - s->scriptptr);
   s->scriptptr = p;*/
 }
+
 /*---------------------------------------------------------------------------*/
+static char filenamebuf[25],*pptr;//See below!
 static
 PT_THREAD(handle_script(struct httpd_state *s))
 {
-  char *ptr;
-
-  char filenamebuf[25];
+//  char *ptr; //one of these gets whomped unless in globals
+//  char filenamebuf[25];
   
   PT_BEGIN(&s->scriptpt);
 
@@ -186,13 +188,13 @@ PT_THREAD(handle_script(struct httpd_state *s))
       }
 
       if(httpd_fs_getchar(s->file.data) == ISO_percent) {
-        ptr = (char *) httpd_fs_strchr(s->file.data + 1, ISO_percent);
+        pptr = (char *) httpd_fs_strchr(s->file.data + 1, ISO_percent);
       } else {
-        ptr = (char *) httpd_fs_strchr(s->file.data, ISO_percent);
+        pptr = (char *) httpd_fs_strchr(s->file.data, ISO_percent);
       }
-      if(ptr != NULL &&
-         ptr != s->file.data) {
-	s->len = (int)(ptr - s->file.data);
+      if(pptr != NULL &&
+         pptr != s->file.data) {
+	s->len = (int)(pptr - s->file.data);
 	if(s->len >= uip_mss()) {
 	  s->len = uip_mss();
 	}
@@ -254,7 +256,8 @@ PT_THREAD(handle_output(struct httpd_state *s))
 		   send_headers(s,
 		   http_header_200));
     ptr = strchr(s->filename, ISO_period);
-    if(ptr != NULL && strncmp(ptr, http_shtml, 6) == 0) {
+    if(ptr != NULL && strncmp(ptr, http_shtml, 6) == 0 || strcmp_P(s->filename,PSTR("/index.html")) ==0) {
+//    if(ptr != NULL && strncmp(ptr, http_shtml, 6) == 0 ) {
       PT_INIT(&s->scriptpt);
       PT_WAIT_THREAD(&s->outputpt, handle_script(s));
     } else {

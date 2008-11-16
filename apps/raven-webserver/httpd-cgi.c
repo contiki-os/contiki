@@ -28,7 +28,7 @@
  *
  * This file is part of the uIP TCP/IP stack.
  *
- * $Id: httpd-cgi.c,v 1.1 2008/10/14 10:14:13 julienabeille Exp $
+ * $Id: httpd-cgi.c,v 1.2 2008/11/16 15:28:37 c_oflynn Exp $
  *
  */
 
@@ -124,7 +124,7 @@ static const char *states[] = {
 void
 web_set_temp(char *s)
 {
-    strcpy(sensor_temperature, s);
+  strcpy(sensor_temperature, s);
 }
 
 /*---------------------------------------------------------------------------*/
@@ -153,15 +153,29 @@ static unsigned short
 generate_file_stats(void *arg)
 {
   char *f = (char *)arg;
-  return snprintf((char *)uip_appdata, uip_mss(), "%5u", httpd_fs_count(f));
+  int i;
+  char tmp[20];
+// for (i=0;i<20;i++) if (pgm_read_byte(f++)==' ') break;	//skip file-stats string
+  for (i=0;i<19;i++) {
+	tmp[i]=pgm_read_byte(f++);			//transfer "/filename" to RAM
+	if (tmp[i]==' ') {
+	  tmp[i]=0;
+        break;
+      }
+  }
+//  return sprintf_P((char *)uip_appdata, PSTR( "%s"), tmp); //show file name for debugging
+  return snprintf_P((char *)uip_appdata, uip_mss(), PSTR("%5u"), httpd_fs_count(tmp));
+//  return snprintf_P((char *)uip_appdata, uip_mss(), PSTR("%5u"), httpd_fs_count(f));
 }
 /*---------------------------------------------------------------------------*/
 static
 PT_THREAD(file_stats(struct httpd_state *s, char *ptr))
 {
+
   PSOCK_BEGIN(&s->sout);
 
-  PSOCK_GENERATOR_SEND(&s->sout, generate_file_stats, (void *) (strchr(ptr, ' ') + 1));
+  //while (pgm_read_byte(ptr++)!=' ') {};	//skip to "/filename" after the script invokation
+  PSOCK_GENERATOR_SEND(&s->sout, generate_file_stats, (void *) (strchr_P(ptr, ' ') + 1));
   
   PSOCK_END(&s->sout);
 }
@@ -216,8 +230,8 @@ make_processes(void *p)
   strncpy(name, ((struct process *)p)->name, 40);
   petsciiconv_toascii(name, 40);
 
-  return snprintf((char *)uip_appdata, uip_mss(),
-		 "<tr align=\"center\"><td>%p</td><td>%s</td><td>%p</td><td>%s</td></tr>\r\n",
+  return snprintf_P((char *)uip_appdata, uip_mss(),
+		 PSTR("<tr align=\"center\"><td>%p</td><td>%s</td><td>%p</td><td>%s</td></tr>\r\n"),
 		 p, name,
 		 *((char **)&(((struct process *)p)->thread)),
 		 states[9 + ((struct process *)p)->state]);
@@ -236,7 +250,8 @@ PT_THREAD(processes(struct httpd_state *s, char *ptr))
 static unsigned short
 generate_sensor_readings(void *arg)
 {
-  return snprintf((char *)uip_appdata, uip_mss(), "<em>Temperature:</em> %s\n", sensor_temperature);
+  if (!sensor_temperature[0]) return snprintf_P((char *)uip_appdata,uip_mss(),PSTR("<em>Temperature:</em> Not enabled\n"));
+  return snprintf_P((char *)uip_appdata, uip_mss(), PSTR("<em>Temperature:</em> %s\n"), sensor_temperature);
 }
 /*---------------------------------------------------------------------------*/
 static
