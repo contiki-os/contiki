@@ -84,7 +84,7 @@ typedef int32_t s32_t;
 #define SICSLOWPAN_CONF_MAX_ADDR_CONTEXTS 2
 #define SICSLOWPAN_CONF_FRAG              1 
 
-#define SICSLOWPAN_CONF_MAXAGE 5
+#define SICSLOWPAN_CONF_MAXAGE 1
 
 #define UIP_CONF_LL_802154       1
 #define UIP_CONF_LLH_LEN         14
