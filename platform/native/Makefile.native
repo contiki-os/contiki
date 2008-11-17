@@ -18,6 +18,3 @@ CONTIKI_CPU=$(CONTIKI)/cpu/native
 include $(CONTIKI)/cpu/native/Makefile.native
 
 contiki-$(TARGET).a: ${addprefix $(OBJECTDIR)/,symbols.o}
-
-### Compiler definitions
-CFLAGS += -DNATIVE=1
