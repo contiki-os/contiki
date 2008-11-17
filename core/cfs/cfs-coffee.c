@@ -529,18 +529,24 @@ modify_log_buffer(uint16_t log_record_size,
 }
 /*---------------------------------------------------------------------------*/
 static int
-get_record_index(coffee_page_t log_page, uint16_t record_count,
-		 uint16_t search_records, uint16_t region)
+get_record_index(coffee_page_t log_page, uint16_t search_records, 
+		 uint16_t region)
 {
-  unsigned long base;
-  uint16_t indices[record_count];
+  coffee_offset_t base;
   uint16_t processed;
   uint16_t batch_size;
   int16_t match_index, i;
+  uint16_t record_count;
 
-  base = ABS_OFFSET(log_page, sizeof(indices[0]) * search_records);
+  base = ABS_OFFSET(log_page, sizeof(uint16_t) * search_records);
+  record_count = search_records > COFFEE_LOG_TABLE_LIMIT ?
+      		COFFEE_LOG_TABLE_LIMIT : search_records;  
   processed = 0;
   match_index = -1;
+
+  {
+  uint16_t indices[record_count];
+
   while(processed < search_records && match_index < 0) {
     if(record_count + processed > search_records) {
       batch_size = search_records - processed;
@@ -560,7 +566,7 @@ get_record_index(coffee_page_t log_page, uint16_t record_count,
 
     processed += batch_size;
   }
-
+  }
   return match_index;
 }
 /*---------------------------------------------------------------------------*/
@@ -571,26 +577,21 @@ read_log_page(struct file_header *hdr, int16_t last_record, struct log_param *lp
   int16_t match_index;
   uint16_t log_record_size;
   uint16_t log_records;
-  unsigned long base;
-  uint16_t record_count;
+  coffee_offset_t base;
   uint16_t search_records;
 
   adjust_log_config(hdr, &log_record_size, &log_records);
   region = modify_log_buffer(log_record_size, &lp->offset, &lp->size);
 
   search_records = last_record < 0 ? log_records : last_record + 1;
-  record_count = search_records > COFFEE_LOG_TABLE_LIMIT ?
-      		COFFEE_LOG_TABLE_LIMIT : search_records;
-  
-  match_index = get_record_index(hdr->log_page, record_count,
-				 search_records, region);
+  match_index = get_record_index(hdr->log_page, search_records, region);
   if(match_index < 0) {
     return -1;
   }
 
   base = hdr->log_page * COFFEE_PAGE_SIZE; 
   base += sizeof(struct file_header) + log_records * sizeof(region);
-  base += (unsigned long)match_index * log_record_size;
+  base += (coffee_offset_t)match_index * log_record_size;
   base += lp->offset;
   COFFEE_READ(lp->buf, lp->size, base);
 
@@ -723,6 +724,42 @@ merge_log(coffee_page_t file_page, int extend)
 }
 /*---------------------------------------------------------------------------*/
 static int
+find_next_record(struct file_desc *fdp, coffee_page_t log_page,
+		int log_records)
+{
+  int log_record, i, preferred_batch_size;
+
+  preferred_batch_size = log_records > COFFEE_LOG_TABLE_LIMIT ?
+			 COFFEE_LOG_TABLE_LIMIT : log_records;
+
+  if(fdp->next_log_record == 0) {
+    /* The next log record is unknown. Search for it. */
+    uint16_t indices[preferred_batch_size];
+    uint16_t processed;
+    uint16_t batch_size;
+
+    log_record = log_records;
+    for(processed = 0; processed < log_records;) {
+      batch_size = log_records - processed >= preferred_batch_size ?
+	preferred_batch_size : log_records - processed;
+      COFFEE_READ(&indices, batch_size * sizeof(indices[0]),
+	ABS_OFFSET(log_page, processed * sizeof(indices[0])));
+      for(i = 0; i < batch_size && indices[i] != 0; i++);
+      log_record = i;
+      if(log_record < batch_size) {
+	log_record += processed;
+	break;
+      }
+      processed += batch_size;
+    } 
+  } else {
+    log_record = fdp->next_log_record;
+  }
+
+  return log_record;
+}
+/*---------------------------------------------------------------------------*/
+static int
 write_log_page(struct file_desc *fdp, struct log_param *lp)
 {
   struct file_header hdr;
@@ -731,10 +768,8 @@ write_log_page(struct file_desc *fdp, struct log_param *lp)
   int16_t log_record;
   uint16_t log_record_size;
   uint16_t log_records;
-  int16_t i;
-  unsigned long base;
+  coffee_offset_t base;
   struct log_param lp_out;
-  uint16_t record_count;
 
   read_header(&hdr, fdp->file_page);
 
@@ -744,34 +779,8 @@ write_log_page(struct file_desc *fdp, struct log_param *lp)
   log_page = 0;
   if(COFFEE_PAGE_MODIFIED(hdr)) {
     /* A log structure has already been created. */
-    record_count = log_records > COFFEE_LOG_TABLE_LIMIT ?
-          		COFFEE_LOG_TABLE_LIMIT : log_records;
     log_page = hdr.log_page;
-
-    if(fdp->next_log_record == 0) {
-      /* The next log record is unknown. Search for it. */
-      uint16_t indices[record_count];
-      uint16_t processed;
-      uint16_t batch_size;
-
-      log_record = log_records;
-      for(processed = 0; processed < log_records;) {
-	batch_size = log_records - processed >= record_count ?
-	    record_count : log_records - processed;
-	COFFEE_READ(&indices, batch_size * sizeof(indices[0]),
-	    ABS_OFFSET(log_page, processed * sizeof(indices[0])));
-	for(i = 0; i < batch_size && indices[i] != 0; i++);
-	log_record = i;
-	if(log_record < batch_size) {
-	  log_record += processed;
-	  break;
-	}
-	processed += batch_size;
-      } 
-    } else {
-      log_record = fdp->next_log_record;
-    }
-
+    log_record = find_next_record(fdp, log_page, log_records);
     if(log_record >= log_records) {
       /* The log is full; merge the log. */
       PRINTF("Coffee: Merging the file %s with its log\n", hdr.name);
@@ -804,10 +813,10 @@ write_log_page(struct file_desc *fdp, struct log_param *lp)
  
     memcpy((char *) &copy_buf + lp->offset, lp->buf, lp->size);
     
-    base = (unsigned long)log_page * COFFEE_PAGE_SIZE;
+    base = (coffee_offset_t)log_page * COFFEE_PAGE_SIZE;
     base += sizeof(hdr);
     base += log_records * sizeof(region);
-    base += (unsigned long)log_record * log_record_size;
+    base += (coffee_offset_t)log_record * log_record_size;
 
     COFFEE_WRITE(copy_buf, sizeof(copy_buf), base);
     ++region;
