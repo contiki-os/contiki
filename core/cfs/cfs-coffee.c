@@ -535,8 +535,8 @@ get_record_index(coffee_page_t log_page, uint16_t record_count,
   unsigned long base;
   uint16_t indices[record_count];
   uint16_t processed;
-  uint16_t batch_size, i;
-  int16_t match_index;
+  uint16_t batch_size;
+  int16_t match_index, i;
 
   base = ABS_OFFSET(log_page, sizeof(indices[0]) * search_records);
   processed = 0;
