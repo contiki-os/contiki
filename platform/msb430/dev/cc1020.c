@@ -1,7 +1,7 @@
 /*
 Copyright 2006, Freie Universitaet Berlin. All rights reserved.
 
-These sources were developed at the Freie Universität Berlin, Computer
+These sources were developed at the Freie Universitï¿½t Berlin, Computer
 Systems and Telematics group.
 
 Redistribution and use in source and binary forms, with or without
@@ -45,7 +45,7 @@ Berlin, 2006
  * @file	cc1020.c
  * @author	FUB ScatterWeb Developers, Michael Baar, Nicolas Tsiftes
  *
- * Taken from ScatterWeb² 1.1 and modified/reformatted for Contiki 2.0
+ * Taken from ScatterWebï¿½ 1.1 and modified/reformatted for Contiki 2.0
  **/
 
 #include <stdio.h>
@@ -474,11 +474,6 @@ interrupt(UART0RX_VECTOR) cc1020_rxhandler(void)
     } else {
       return;
     }
-    /*
-     * Update RSSI.
-     * TODO: add sampling/averaging of several RSSI to get
-     *       more reliable RSSI values.
-     */
     rssi = cc1020_read_reg(CC1020_RSS);
     CC1020_SET_OPSTATE(CC1020_RX | CC1020_RX_RECEIVING);
   } else if (cc1020_state & CC1020_RX_RECEIVING) {
