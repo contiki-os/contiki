@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: shell-rime.c,v 1.9 2008/08/16 10:04:55 adamdunkels Exp $
+ * $Id: shell-rime.c,v 1.10 2008/11/17 22:52:10 oliverschmidt Exp $
  */
 
 /**
@@ -54,9 +54,9 @@
 
 #include "net/rime/timesynch.h"
 
-#if NETSIM
+#if CONTIKI_TARGET_NETSIM
 #include "ether.h"
-#endif /* NETSIM */
+#endif /* CONTIKI_TARGET_NETSIM */
 
 #include <stdio.h>
 #ifndef HAVE_SNPRINTF

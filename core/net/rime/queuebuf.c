@@ -33,7 +33,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: queuebuf.c,v 1.12 2008/02/25 02:14:34 adamdunkels Exp $
+ * $Id: queuebuf.c,v 1.13 2008/11/17 22:52:10 oliverschmidt Exp $
  */
 
 /**
@@ -111,11 +111,11 @@ queuebuf_new_from_rimebuf(void)
     if(rbuf != NULL) {
 #if QUEUEBUF_STATS
       ++queuebuf_ref_len;
-#if NETSIM
+#if CONTIKI_TARGET_NETSIM
       /*      node_log("%d %d\n",
 	       queuebuf_len,
 	       queuebuf_ref_len);*/
-#endif /* NETSIM */
+#endif /* CONTIKI_TARGET_NETSIM */
 #endif /* QUEUEBUF_STATS */
       rbuf->len = rimebuf_datalen();
       rbuf->ref = rimebuf_reference_ptr();
@@ -134,11 +134,11 @@ queuebuf_new_from_rimebuf(void)
 	queuebuf_len--;
 	return NULL;
       }
-#if NETSIM
+#if CONTIKI_TARGET_NETSIM
       /*      node_log("%d %d\n",
 	       queuebuf_len,
 	       queuebuf_ref_len);*/
-#endif /* NETSIM */
+#endif /* CONTIKI_TARGET_NETSIM */
 #endif /* QUEUEBUF_STATS */
       buf->len = rimebuf_copyto(buf->data);
       rimebuf_attr_copyto(buf->attrs, buf->addrs);
@@ -156,21 +156,21 @@ queuebuf_free(struct queuebuf *buf)
     memb_free(&bufmem, buf);
 #if QUEUEBUF_STATS
     --queuebuf_len;
-#if NETSIM
+#if CONTIKI_TARGET_NETSIM
     /*    node_log("%d %d\n",
 	     queuebuf_len,
 	     queuebuf_ref_len);*/
-#endif /* NETSIM */
+#endif /* CONTIKI_TARGET_NETSIM */
 #endif /* QUEUEBUF_STATS */
   } else if(memb_inmemb(&refbufmem, buf)) {
     memb_free(&refbufmem, buf);
 #if QUEUEBUF_STATS
     --queuebuf_ref_len;
-#if NETSIM
+#if CONTIKI_TARGET_NETSIM
     /*    node_log("%d %d\n",
 	     queuebuf_len,
 	     queuebuf_ref_len);*/
-#endif /* NETSIM */
+#endif /* CONTIKI_TARGET_NETSIM */
 #endif /* QUEUEBUF_STATS */
   }
 }

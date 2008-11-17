@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: example-rucb.c,v 1.4 2008/11/11 11:25:39 fros4943 Exp $
+ * $Id: example-rucb.c,v 1.5 2008/11/17 22:52:10 oliverschmidt Exp $
  */
 
 /**
@@ -51,10 +51,10 @@
 
 #include <stdio.h>
 
-#if NETSIM
+#if CONTIKI_TARGET_NETSIM
 #include "ether.h"
 #include "node.h"
-#endif /* NETSIM */
+#endif /* CONTIKI_TARGET_NETSIM */
 
 #define FILESIZE 40000
 
@@ -71,14 +71,14 @@ static void
 write_chunk(struct rucb_conn *c, int offset, int flag,
 	    char *data, int datalen)
 {
-#if NETSIM
+#if CONTIKI_TARGET_NETSIM
   {
     char buf[100];
     printf("received %d; %d\n", offset, datalen);
     sprintf(buf, "%d%%", (100 * (offset + datalen)) / FILESIZE);
     ether_set_text(buf);
   }
-#endif /* NETSIM */
+#endif /* CONTIKI_TARGET_NETSIM */
 
 }
 static int
@@ -136,9 +136,9 @@ PROCESS_THREAD(example_rucb_process, ev, data)
         start_time);*/
 
     rucb_send(&rucb, &recv);
-#if NETSIM
+#if CONTIKI_TARGET_NETSIM
     ether_send_done();
-#endif /* NETSIM */
+#endif /* CONTIKI_TARGET_NETSIM */
   }
 
   while(1) {
