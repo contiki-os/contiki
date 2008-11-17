@@ -1,7 +1,7 @@
 /*
 Copyright 2006, Freie Universitaet Berlin. All rights reserved.
 
-These sources were developed at the Freie Universit�t Berlin, Computer
+These sources were developed at the Freie Universitaet Berlin, Computer
 Systems and Telematics group.
 
 Redistribution and use in source and binary forms, with or without
@@ -42,10 +42,8 @@ Berlin, 2006
 
 
 /**
- * @file	cc1020.c
- * @author	FUB ScatterWeb Developers, Michael Baar, Nicolas Tsiftes
- *
- * Taken from ScatterWeb� 1.1 and modified/reformatted for Contiki 2.0
+ * \file	cc1020.c
+ * \author	FUB ScatterWeb Developers, Michael Baar, Nicolas Tsiftes
  **/
 
 #include <stdio.h>

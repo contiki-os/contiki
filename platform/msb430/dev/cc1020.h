@@ -1,7 +1,7 @@
 /*
 Copyright 2006, Freie Universitaet Berlin. All rights reserved.
 
-These sources were developed at the Freie Universität Berlin, Computer
+These sources were developed at the Freie Universitaet Berlin, Computer
 Systems and Telematics group.
 
 Redistribution and use in source and binary forms, with or without
@@ -41,9 +41,8 @@ Berlin, 2006
 */
 
 /**
- * @file	cc1020.h
- * @author	FUB ScatterWeb Developers, Michael Baar, Nicolas Tsiftes
- *
+ * \file	cc1020.h
+ * \author	FUB ScatterWeb Developers, Michael Baar, Nicolas Tsiftes
  **/
 
 #ifndef CC1020_H

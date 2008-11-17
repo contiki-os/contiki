@@ -1,3 +1,6 @@
+#ifndef CC1020_INTERNAL_H
+#define CC1020_INTERNAL_H
+
 #include <signal.h>
 
 #define CC1020_MAIN		0x00
@@ -252,3 +255,5 @@ struct cc1020_header {
 #define HDRSIZE		(sizeof (struct cc1020_header))
 
 ///@}
+
+#endif /* CC1020_INTERNAL_H */
