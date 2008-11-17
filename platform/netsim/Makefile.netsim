@@ -26,7 +26,7 @@ CONTIKI_CPU=$(CONTIKI)/cpu/native
 include $(CONTIKI)/cpu/native/Makefile.native
 
 ### Compiler definitions
-CFLAGS   += `gtk-config --cflags` -DNETSIM=1
+CFLAGS   += `gtk-config --cflags`
 TARGET_LIBFILES = `gtk-config --libs`
 
 ifeq ($(OS),Windows_NT)

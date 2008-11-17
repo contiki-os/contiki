@@ -33,7 +33,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: neighbor-discovery.c,v 1.10 2008/08/15 19:00:38 adamdunkels Exp $
+ * $Id: neighbor-discovery.c,v 1.11 2008/11/17 22:52:10 oliverschmidt Exp $
  */
 
 /**
@@ -53,7 +53,7 @@
 
 #include "lib/random.h"
 
-#if NETSIM
+#if CONTIKI_TARGET_NETSIM
 #include "ether.h"
 #endif
 

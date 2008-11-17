@@ -33,7 +33,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: route-discovery.c,v 1.11 2008/07/03 22:02:10 adamdunkels Exp $
+ * $Id: route-discovery.c,v 1.12 2008/11/17 22:52:10 oliverschmidt Exp $
  */
 
 /**
@@ -63,7 +63,7 @@ struct rrep_hdr {
   rimeaddr_t originator;
 };
 
-#if NETSIM
+#if CONTIKI_TARGET_NETSIM
 #include "ether.h"
 #endif
 
@@ -129,7 +129,7 @@ insert_route(rimeaddr_t *originator, rimeaddr_t *last_hop, uint8_t hops)
 	   last_hop->u8[0], last_hop->u8[1],
 	   hops);
     route_add(originator, last_hop, hops, 0);
-#if NETSIM
+#if CONTIKI_TARGET_NETSIM
     ether_set_line(last_hop->u8[0], last_hop->u8[1]);
 #endif
 

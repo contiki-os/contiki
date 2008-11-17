@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: example-rudolph2.c,v 1.1 2008/01/25 18:00:51 adamdunkels Exp $
+ * $Id: example-rudolph2.c,v 1.2 2008/11/17 22:52:10 oliverschmidt Exp $
  */
 
 /**
@@ -50,10 +50,10 @@
 
 #include <stdio.h>
 
-#if NETSIM
+#if CONTIKI_TARGET_NETSIM
 #include "ether.h"
 #include "node.h"
-#endif /* NETSIM */
+#endif /* CONTIKI_TARGET_NETSIM */
 
 #define FILESIZE 2000
 
@@ -66,13 +66,13 @@ write_chunk(struct rudolph2_conn *c, int offset, int flag,
 	    uint8_t *data, int datalen)
 {
   int fd;
-#if NETSIM
+#if CONTIKI_TARGET_NETSIM
   {
     char buf[100];
     sprintf(buf, "%d%%", (100 * (offset + datalen)) / FILESIZE);
     ether_set_text(buf);
   }
-#endif /* NETSIM */
+#endif /* CONTIKI_TARGET_NETSIM */
 
   if(flag == RUDOLPH2_FLAG_NEWFILE) {
     /*printf("+++ rudolph2 new file incoming at %lu\n", clock_time());*/
@@ -108,7 +108,7 @@ write_chunk(struct rudolph2_conn *c, int offset, int flag,
 	break;
       }
     }
-#if NETSIM
+#if CONTIKI_TARGET_NETSIM
     ether_send_done();
 #endif
     cfs_close(fd);
@@ -163,9 +163,9 @@ PROCESS_THREAD(example_rudolph2_process, ev, data)
       cfs_close(fd);
     }
     rudolph2_send(&rudolph2, CLOCK_SECOND * 2);
-#if NETSIM
+#if CONTIKI_TARGET_NETSIM
     ether_send_done();
-#endif /* NETSIM */
+#endif /* CONTIKI_TARGET_NETSIM */
 
   }
   

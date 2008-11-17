@@ -36,7 +36,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: collect.c,v 1.14 2008/08/15 19:00:38 adamdunkels Exp $
+ * $Id: collect.c,v 1.15 2008/11/17 22:52:10 oliverschmidt Exp $
  */
 
 /**
@@ -54,7 +54,7 @@
 
 #include "dev/radio-sensor.h"
 
-#if NETSIM
+#if CONTIKI_TARGET_NETSIM
 #include "ether.h"
 #endif
 
@@ -135,7 +135,7 @@ update_rtmetric(struct collect_conn *tc)
   }
 
   /*  DEBUG_PRINTF("%d: new rtmetric %d\n", node_id, rtmetric);*/
-#if NETSIM
+#if CONTIKI_TARGET_NETSIM
   {
     char buf[8];
     if(tc->rtmetric == RTMETRIC_MAX) {
@@ -214,9 +214,9 @@ node_packet_received(struct runicast_conn *c, rimeaddr_t *from, uint8_t seqno)
       tc->forwarding = 1;
       n = neighbor_best();
       if(n != NULL) {
-#if NETSIM
+#if CONTIKI_TARGET_NETSIM
 	ether_set_line(n->addr.u8[0], n->addr.u8[1]);
-#endif /* NETSIM */
+#endif /* CONTIKI_TARGET_NETSIM */
 	runicast_send(c, &n->addr, rimebuf_attr(RIMEBUF_ATTR_MAX_REXMIT));
       }
       return;
@@ -339,9 +339,9 @@ collect_send(struct collect_conn *tc, int rexmits)
   } else {
     n = neighbor_best();
     if(n != NULL) {
-#if NETSIM
+#if CONTIKI_TARGET_NETSIM
       ether_set_line(n->addr.u8[0], n->addr.u8[1]);
-#endif /* NETSIM */
+#endif /* CONTIKI_TARGET_NETSIM */
       PRINTF("%d.%d: sending to %d.%d\n",
 	     rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1],
 	     n->addr.u8[0], n->addr.u8[1]);
