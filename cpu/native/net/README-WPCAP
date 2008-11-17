@@ -24,3 +24,22 @@ approach often described as IP-Aliasing was primarily choosen because it avoids
 putting the network interface into promiscuous mode. The major benefit of this
 is the compatibility with WLAN interfaces - which mostly come with Windows
 device drivers incapable of promiscuous mode.
+
+The WinPcap library works fine with the 'Microsoft Loopback Adapter' so it's
+easy to have a Contiki network application running on Windows communicate with
+the local Windows instance for testing purposes - and monitor the communication
+with Wireshark.
+
+Windows Vista however tries to identify networks by the MAC address of the
+default router. If that fails the network is defined as an 'Unidentified
+Network' and thus classified as 'Public Network' resulting in very strict
+firewall settings. As there's no default router for a loopback interface the
+interface is always considered as a public network - which is kind of the
+opposite of the actual situation ;-)
+
+Instead of fiddling with the firewall settings for 'Public Networks' (or even
+turning the firewall completely off) there's a clean solution which defines the
+loopback interface as not a true network interface that connects to a network.
+This results in generally deactivating both the network identification process
+and the firewall for the loopback interface. The details are available at
+http://forums.microsoft.com/TechNet/ShowPost.aspx?PostID=1960546
