@@ -1,6 +1,6 @@
 %!: /header.html
- <h1>File statistics</h1><br><table width="100%">
- <tr><td><a href="/index.html">/index.html</a></td><td>
+<h1>File statistics</h1><br><table width="100%">
+<tr><td><a href="/index.html">/index.html</a></td><td>
 %! file-stats /index.html
 </td></tr><tr><td><a href="/files.shtml">/files.shtml</a></td><td>
 %! file-stats /files.shtml
@@ -17,5 +17,4 @@
 </td></tr><tr><td><a href="/img/screenshot.png">/img/screenshot.png</a></td><td>
 %! file-stats /img/screenshot.png
 </td></tr></table>
-
 %!: /footer.html

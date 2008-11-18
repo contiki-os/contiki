@@ -284,8 +284,7 @@ To do so, type:
 \code
 ipv6 ifc [interface index] advertises forwards
 ipv6 adu [interface index]/aaaa::1
-ipv6 rtu ::/0 [ethernet interface index]/[ethernet link-local address]
-publish
+ipv6 rtu ::/0 [ethernet interface index]/[ethernet link-local address] publish
 ipv6 rtu aaaa::/64 [interface index] publish
 \endcode
 
