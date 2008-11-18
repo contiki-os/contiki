@@ -80,7 +80,7 @@ typedef int32_t s32_t;
 
 #define SICSLOWPAN_CONF_COMPRESSION       SICSLOWPAN_CONF_COMPRESSION_HC01 
 #define SICSLOWPAN_CONF_MAX_ADDR_CONTEXTS 2
-#define SICSLOWPAN_CONF_FRAG              1 
+#define SICSLOWPAN_CONF_FRAG              1
 
 #define SICSLOWPAN_CONF_MAXAGE 5
 
@@ -107,8 +107,8 @@ typedef int32_t s32_t;
 #define UIP_CONF_UDP             1
 #define UIP_CONF_UDP_CHECKSUMS   1
 
-#define UIP_CONF_TCP             1
-#define UIP_CONF_TCP_SPLIT       1
+#define UIP_CONF_TCP             0
+#define UIP_CONF_TCP_SPLIT       0
 
 
 typedef unsigned short clock_time_t;
