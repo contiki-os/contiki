@@ -492,13 +492,15 @@ reserve(const char *name, uint32_t size, int allow_duplicates)
   unsigned need_pages;
   int page;
 
+  watchdog_stop();
+
   if(!allow_duplicates && find_file(name) >= 0) {
+    watchdog_start();
     return -1;
   }
 
   need_pages = (size + sizeof(hdr) + COFFEE_PAGE_SIZE - 1) / COFFEE_PAGE_SIZE;
 
-  watchdog_stop();
   page = find_contiguous_pages(need_pages);
   if(page < 0) {
     cfs_garbage_collect();
@@ -1023,7 +1025,6 @@ cfs_write(int fd, const void *buf, unsigned size)
   }
   
   fdp = &coffee_fd_set[fd];
-
   /* Attempt to extend the file if we try to write past the end. */
   while(size + fdp->offset + sizeof(struct file_header) >
      fdp->max_pages * COFFEE_PAGE_SIZE) {
@@ -1042,6 +1043,9 @@ cfs_write(int fd, const void *buf, unsigned size)
 
       i = write_log_page(fdp, &lp);
       if(i == 0) {
+        lp.offset = fdp->offset;
+        lp.buf = (char *)buf + size - remains;
+        lp.size = remains;
         /* The file was merged with the log. Try again. */
         i = write_log_page(fdp, &lp);
       }
