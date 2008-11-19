@@ -1043,11 +1043,8 @@ cfs_write(int fd, const void *buf, unsigned size)
 
       i = write_log_page(fdp, &lp);
       if(i == 0) {
-        lp.offset = fdp->offset;
-        lp.buf = (char *)buf + size - remains;
-        lp.size = remains;
         /* The file was merged with the log. Try again. */
-        i = write_log_page(fdp, &lp);
+	continue;
       }
       if(i < 0) {
         return size - remains > 0 ? size - remains : -1;
