@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ContikiMoteType.java,v 1.27 2008/05/02 05:47:22 fros4943 Exp $
+ * $Id: ContikiMoteType.java,v 1.28 2008/11/20 16:35:44 fros4943 Exp $
  */
 
 package se.sics.cooja.contikimote;
@@ -172,7 +172,7 @@ public class ContikiMoteType implements MoteType {
   // Core communication variables
   private String libraryClassName = null;
 
-  private int offsetRelToAbs = 0;
+  private int relAddressOfRefenceVariable = 0;
 
   private CoreComm myCoreComm = null;
 
@@ -385,7 +385,7 @@ public class ContikiMoteType implements MoteType {
 
     try {
       // Get offset between relative and absolute addresses
-      offsetRelToAbs = getReferenceAbsAddr() - (Integer) varAddresses.get("referenceVar");
+      relAddressOfRefenceVariable = (Integer) varAddresses.get("referenceVar");
     } catch (Exception e) {
       throw (MoteTypeCreationException) new MoteTypeCreationException(
           "JNI call error: " + e.getMessage()).initCause(e);
@@ -397,12 +397,14 @@ public class ContikiMoteType implements MoteType {
           "Could not parse section addresses correctly");
     }
 
+    myCoreComm.setReferenceAddress(relAddressOfRefenceVariable);
+
     // Create initial memory
     byte[] initialDataSection = new byte[dataSectionSize];
-    getCoreMemory(relDataSectionAddr + offsetRelToAbs, dataSectionSize,
+    getCoreMemory(relDataSectionAddr, dataSectionSize,
         initialDataSection);
     byte[] initialBssSection = new byte[bssSectionSize];
-    getCoreMemory(relBssSectionAddr + offsetRelToAbs, bssSectionSize,
+    getCoreMemory(relBssSectionAddr, bssSectionSize,
         initialBssSection);
     initialMemory = new SectionMoteMemory(varAddresses);
     initialMemory.setMemorySegment(relDataSectionAddr, initialDataSection);
@@ -437,8 +439,9 @@ public class ContikiMoteType implements MoteType {
    */
   public void setCoreMemory(SectionMoteMemory mem) {
     for (int i = 0; i < mem.getNumberOfSections(); i++) {
-      setCoreMemory(mem.getStartAddrOfSection(i) + offsetRelToAbs, mem
-          .getSizeOfSection(i), mem.getDataOfSection(i));
+      setCoreMemory(
+          mem.getStartAddrOfSection(i),
+          mem.getSizeOfSection(i), mem.getDataOfSection(i));
     }
   }
 
@@ -501,8 +504,8 @@ public class ContikiMoteType implements MoteType {
         } else {
           int oldAddress = (Integer) varAddresses.get(varName);
           if (oldAddress != varAddress) {
-            logger.warn("Warning, command response not matching previous entry of: "
-                + varName);
+            /*logger.warn("Warning, command response not matching previous entry of: "
+                + varName);*/
             nrMismatch++;
           }
 
@@ -514,7 +517,7 @@ public class ContikiMoteType implements MoteType {
     if (nrMismatch > 0) {
       logger.debug("Command response parsing summary: Added " + nrNew
           + " variables. Found " + nrOld
-          + " old variables. MISMATCHING ADDRESSES: " + nrMismatch);
+          + " old variables. Mismatching addresses: " + nrMismatch);
     } else {
       logger.debug("Command response parsing summary: Added " + nrNew
           + " variables. Found " + nrOld + " old variables");
@@ -536,7 +539,7 @@ public class ContikiMoteType implements MoteType {
       int size = mem.getSizeOfSection(i);
       byte[] data = mem.getDataOfSection(i);
 
-      getCoreMemory(startAddr + offsetRelToAbs, size, data);
+      getCoreMemory(startAddr, size, data);
     }
   }
 
@@ -613,16 +616,12 @@ public class ContikiMoteType implements MoteType {
     }
   }
 
-  private int getReferenceAbsAddr() {
-    return myCoreComm.getReferenceAbsAddr();
+  private void getCoreMemory(int relAddr, int length, byte[] data) {
+    myCoreComm.getMemory(relAddr, length, data);
   }
 
-  private void getCoreMemory(int start, int length, byte[] data) {
-    myCoreComm.getMemory(start, length, data);
-  }
-
-  private void setCoreMemory(int start, int length, byte[] mem) {
-    myCoreComm.setMemory(start, length, mem);
+  private void setCoreMemory(int relAddr, int length, byte[] mem) {
+    myCoreComm.setMemory(relAddr, length, mem);
   }
 
   private static String getFirstMatchGroup(Vector<String> lines, String regexp,

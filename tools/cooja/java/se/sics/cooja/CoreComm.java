@@ -24,7 +24,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * $Id: CoreComm.java,v 1.11 2008/02/12 15:03:02 fros4943 Exp $
+ * $Id: CoreComm.java,v 1.12 2008/11/20 16:34:45 fros4943 Exp $
  */
 
 package se.sics.cooja;
@@ -361,35 +361,29 @@ public abstract class CoreComm {
   protected abstract void init();
 
   /**
-   * Returns absolute memory location of the core variable referenceVar. Used to
-   * get offset between relative and absolute memory addresses.
+   * Sets the relative memory address of the reference variable.
+   * Is used by Contiki to map between absolute and relative memory addresses.
    *
-   * @return Absolute memory address
+   * @param addr Relative address
    */
-  public abstract int getReferenceAbsAddr();
+  public abstract void setReferenceAddress(int addr);
 
   /**
    * Fills an byte array with memory segment identified by start and length.
    *
-   * @param start
-   *          Start address of segment
-   * @param length
-   *          Length of segment
-   * @param mem
-   *          Array to fill with memory segment
+   * @param relAddr Relative memory start address
+   * @param length Length of segment
+   * @param mem Array to fill with memory segment
    */
-  public abstract void getMemory(int start, int length, byte[] mem);
+  public abstract void getMemory(int relAddr, int length, byte[] mem);
 
   /**
    * Overwrites a memory segment identified by start and length.
    *
-   * @param start
-   *          Start address of segment
-   * @param length
-   *          Length of segment
-   * @param mem
-   *          New memory segment data
+   * @param relAddr Relative memory start address
+   * @param length Length of segment
+   * @param mem New memory segment data
    */
-  public abstract void setMemory(int start, int length, byte[] mem);
+  public abstract void setMemory(int relAddr, int length, byte[] mem);
 
 }

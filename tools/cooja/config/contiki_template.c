@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: contiki_template.c,v 1.7 2008/02/10 22:36:36 oliverschmidt Exp $
+ * $Id: contiki_template.c,v 1.8 2008/11/20 16:36:27 fros4943 Exp $
  */
 
 /**
@@ -96,7 +96,7 @@
  * referenceVar is used for comparing absolute and process relative memory.
  * (this must not be static due to memory locations)
  */
-int referenceVar;
+long referenceVar;
 
 /*
  * process_run() infinite loop.
@@ -118,10 +118,10 @@ start_process_run_loop(void *data)
 
     /* Initialize communication stack */
     init_net();
-  
+
     /* Start user applications */
     autostart_start(autostart_processes);
-  
+
     while(1)
 	{
 		/* Always pretend we have processes left while inside process_run() */
@@ -144,8 +144,6 @@ start_process_run_loop(void *data)
 		cooja_mt_yield();
 	}
 }
-
-extern unsigned long _end;
 
 /*---------------------------------------------------------------------------*/
 /**
@@ -179,9 +177,15 @@ Java_se_sics_cooja_corecomm_[CLASS_NAME]_init(JNIEnv *env, jobject obj)
  *             responsible Java part (MoteType.java).
  */
 JNIEXPORT void JNICALL
-Java_se_sics_cooja_corecomm_[CLASS_NAME]_getMemory(JNIEnv *env, jobject obj, jint start, jint length, jbyteArray mem_arr)
+Java_se_sics_cooja_corecomm_[CLASS_NAME]_getMemory(JNIEnv *env, jobject obj, jint rel_addr, jint length, jbyteArray mem_arr)
 {
-  (*env)->SetByteArrayRegion(env, mem_arr, 0, (size_t) length, (jbyte *) start);
+  (*env)->SetByteArrayRegion(
+      env,
+      mem_arr,
+      0,
+      (size_t) length,
+      (jbyte *) (((long)rel_addr) + referenceVar)
+  );
 }
 /*---------------------------------------------------------------------------*/
 /**
@@ -198,10 +202,13 @@ Java_se_sics_cooja_corecomm_[CLASS_NAME]_getMemory(JNIEnv *env, jobject obj, jin
  *             responsible Java part (MoteType.java).
  */
 JNIEXPORT void JNICALL
-Java_se_sics_cooja_corecomm_[CLASS_NAME]_setMemory(JNIEnv *env, jobject obj, jint start, jint length, jbyteArray mem_arr)
+Java_se_sics_cooja_corecomm_[CLASS_NAME]_setMemory(JNIEnv *env, jobject obj, jint rel_addr, jint length, jbyteArray mem_arr)
 {
   jbyte *mem = (*env)->GetByteArrayElements(env, mem_arr, 0);
-  memcpy((void *) start, mem, length);
+  memcpy(
+      (char*) (((long)rel_addr) + referenceVar),
+      mem,
+      length);
   (*env)->ReleaseByteArrayElements(env, mem_arr, mem, 0);
 }
 /*---------------------------------------------------------------------------*/
@@ -272,9 +279,9 @@ Java_se_sics_cooja_corecomm_[CLASS_NAME]_tick(JNIEnv *env, jobject obj)
  *             responsible Java part (MoteType.java).
  */
 JNIEXPORT jint JNICALL
-Java_se_sics_cooja_corecomm_[CLASS_NAME]_getReferenceAbsAddr(JNIEnv *env, jobject obj)
+Java_se_sics_cooja_corecomm_[CLASS_NAME]_setReferenceAddress(JNIEnv *env, jobject obj, jint addr)
 {
-  return (jint) &referenceVar;
+  referenceVar = (((long)&referenceVar) - ((long)addr));
 }
 
 /** @} */
