@@ -24,7 +24,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * $Id: GUI.java,v 1.91 2008/11/10 14:59:03 nifi Exp $
+ * $Id: GUI.java,v 1.92 2008/11/21 13:09:53 fros4943 Exp $
  */
 
 package se.sics.cooja;
@@ -833,24 +833,23 @@ public class GUI extends Observable {
 
   private static void setLookAndFeel() {
 
+    JFrame.setDefaultLookAndFeelDecorated(true);
+    JDialog.setDefaultLookAndFeelDecorated(true);
+
+    /* Nimbus */
     try {
-      try {
-        UIManager.setLookAndFeel("com.sun.java.swing.plaf.nimbus.NimbusLookAndFeel");
-        logger.info("Nimbus Look And Feel loaded");
-      } catch (Exception e) {
-        JFrame.setDefaultLookAndFeelDecorated(true);
-        JDialog.setDefaultLookAndFeelDecorated(true);
-        UIManager.setLookAndFeel(UIManager.getCrossPlatformLookAndFeelClassName());
-      }
-    } catch (UnsupportedLookAndFeelException e) {
-      logger.warn("LookAndFeel: " + e);
-    } catch (ClassNotFoundException e) {
-      logger.warn("LookAndFeel: " + e);
-    } catch (InstantiationException e) {
-      logger.warn("LookAndFeel: " + e);
-    } catch (IllegalAccessException e) {
-      logger.warn("LookAndFeel: " + e);
+      UIManager.setLookAndFeel("com.sun.java.swing.plaf.nimbus.NimbusLookAndFeel");
+      return;
+    } catch (Exception e) {
     }
+
+    /* System */
+    try {
+      UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+      return;
+    } catch (Exception e) {
+    }
+
   }
 
   /**
