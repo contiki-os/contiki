@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: mtarch.h,v 1.2 2006/09/26 20:56:56 adamdunkels Exp $
+ * @(#)$Id: mtarch.h,v 1.3 2008/11/21 10:28:32 fros4943 Exp $
  */
 #ifndef __MTARCH_H__
 #define __MTARCH_H__
@@ -38,6 +38,8 @@
 struct mtarch_thread {
   unsigned short stack[MTARCH_STACKSIZE];
   unsigned short *sp;
+  void *data;
+  void *function;
 };
 
 struct mt_thread;
@@ -46,4 +48,4 @@ int mtarch_stack_usage(struct mt_thread *t);
 
 
 #endif /* __MTARCH_H__ */
-	
+
