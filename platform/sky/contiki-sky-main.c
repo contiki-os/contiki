@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#)$Id: contiki-sky-main.c,v 1.40 2008/11/09 12:22:04 adamdunkels Exp $
+ * @(#)$Id: contiki-sky-main.c,v 1.41 2008/11/21 10:35:46 fros4943 Exp $
  */
 
 #include <signal.h>
@@ -185,12 +185,12 @@ main(int argc, char **argv)
   clock_init();
   leds_init();
   leds_on(LEDS_RED);
-  
+
   uart1_init(BAUD2UBR(115200)); /* Must come before first printf */
 #if WITH_UIP
   slip_arch_init(BAUD2UBR(115200));
 #endif /* WITH_UIP */
-  
+
   leds_on(LEDS_GREEN);
   ds2411_init();
 
@@ -213,14 +213,14 @@ main(int argc, char **argv)
   process_init();
   process_start(&etimer_process, NULL);
   process_start(&sensors_process, NULL);
-  
+
   /*
    * Initialize light and humitity/temp sensors.
    */
   sensors_light_init();
   battery_sensor.activate();
   sht11_init();
-  
+
   ctimer_init();
 
   cc2420_init();
@@ -242,7 +242,7 @@ main(int argc, char **argv)
   printf("MAC %02x:%02x:%02x:%02x:%02x:%02x:%02x:%02x\n",
 	 ds2411_id[0], ds2411_id[1], ds2411_id[2], ds2411_id[3],
 	 ds2411_id[4], ds2411_id[5], ds2411_id[6], ds2411_id[7]);
-  
+
 #if WITH_UIP6
   memcpy(&uip_lladdr.addr, ds2411_id, sizeof(uip_lladdr.addr));
   sicslowpan_init(rime_mac);
@@ -253,7 +253,7 @@ main(int argc, char **argv)
   uart1_set_input(serial_input_byte);
   serial_init();
 #endif
-  
+
 #if PROFILE_CONF_ON
   profile_init();
 #endif /* PROFILE_CONF_ON */
@@ -267,19 +267,19 @@ main(int argc, char **argv)
   process_start(&tcpip_process, NULL);
   process_start(&uip_fw_process, NULL);	/* Start IP output */
   process_start(&slip_process, NULL);
-  
+
   slip_set_input_callback(set_gateway);
 
   {
     uip_ipaddr_t hostaddr, netmask;
-    
+
     uip_init();
 
     uip_ipaddr(&hostaddr, 172,16,
 	       rimeaddr_node_addr.u8[0],rimeaddr_node_addr.u8[1]);
     uip_ipaddr(&netmask, 255,255,0,0);
     uip_ipaddr_copy(&meshif.ipaddr, &hostaddr);
-    
+
     uip_sethostaddr(&hostaddr);
     uip_setnetmask(&netmask);
     uip_over_mesh_set_net(&hostaddr, &netmask);
@@ -299,7 +299,7 @@ main(int argc, char **argv)
 
   print_processes(autostart_processes);
   autostart_start(autostart_processes);
-  
+
   /*
    * This is the scheduler loop.
    */
@@ -318,7 +318,7 @@ main(int argc, char **argv)
 #if PROFILE_CONF_ON
     profile_episode_end();
 #endif /* PROFILE_CONF_ON */
-    
+
     /*
      * Idle processing.
      */
@@ -342,7 +342,7 @@ main(int argc, char **argv)
 					      interrupt that sets
 					      the wake up flag. */
 
-      
+
       /* We get the current processing time for interrupts that was
 	 done during the LPM and store it for next time around.  */
       dint();
@@ -357,3 +357,10 @@ main(int argc, char **argv)
   return 0;
 }
 /*---------------------------------------------------------------------------*/
+#if LOG_CONF_ENABLED
+void
+log_message(char *m1, char *m2)
+{
+  printf("%s%s\n", m1, m2);
+}
+#endif /* LOG_CONF_ENABLED */
