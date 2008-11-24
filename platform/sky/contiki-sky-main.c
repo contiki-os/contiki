@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#)$Id: contiki-sky-main.c,v 1.41 2008/11/21 10:35:46 fros4943 Exp $
+ * @(#)$Id: contiki-sky-main.c,v 1.42 2008/11/24 14:31:08 joxe Exp $
  */
 
 #include <signal.h>
@@ -239,9 +239,10 @@ main(int argc, char **argv)
     printf("Node id is not set.\n");
   }
   set_rime_addr();
-  printf("MAC %02x:%02x:%02x:%02x:%02x:%02x:%02x:%02x\n",
+  printf("MAC %02x:%02x:%02x:%02x:%02x:%02x:%02x:%02x",
 	 ds2411_id[0], ds2411_id[1], ds2411_id[2], ds2411_id[3],
 	 ds2411_id[4], ds2411_id[5], ds2411_id[6], ds2411_id[7]);
+  printf(" %s\n", rime_mac->name);
 
 #if WITH_UIP6
   memcpy(&uip_lladdr.addr, ds2411_id, sizeof(uip_lladdr.addr));
