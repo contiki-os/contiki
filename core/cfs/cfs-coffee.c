@@ -766,18 +766,19 @@ find_next_record(struct file_desc *fdp, coffee_page_t log_page,
     uint16_t batch_size;
 
     log_record = log_records;
-    for(processed = 0; processed < log_records;) {
+    for(processed = 0; processed < log_records; processed += batch_size) {
       batch_size = log_records - processed >= preferred_batch_size ?
 	preferred_batch_size : log_records - processed;
+
       COFFEE_READ(&indices, batch_size * sizeof(indices[0]),
 	ABS_OFFSET(log_page, processed * sizeof(indices[0])));
       for(i = 0; i < batch_size && indices[i] != 0; i++);
       log_record = i;
+
       if(log_record < batch_size) {
 	log_record += processed;
 	break;
       }
-      processed += batch_size;
     } 
   } else {
     log_record = fdp->next_log_record;
@@ -944,9 +945,16 @@ cfs_seek(int fd, unsigned offset)
 }
 /*---------------------------------------------------------------------------*/
 int
-cfs_coffee_remove(const char *name)
+cfs_remove(const char *name)
 {
   int page;
+
+  /*
+   * Coffee removes files by marking them as obsolete. The space
+   * is not guaranteed to be reclaimed immediately, but must be
+   * sweeped by the garbage collector. The garbage collector is
+   * called once a file reservation request cannot be granted.
+   */
 
   page = find_file(name);
   if(page < 0) {

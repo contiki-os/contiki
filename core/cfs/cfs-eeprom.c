@@ -30,7 +30,7 @@
  *
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: cfs-eeprom.c,v 1.7 2008/01/24 13:08:35 adamdunkels Exp $
+ * $Id: cfs-eeprom.c,v 1.8 2008/11/24 10:56:55 nvt-se Exp $
  */
 
 #include "cfs/cfs.h"
@@ -114,6 +114,12 @@ cfs_seek(int f, unsigned int o)
   } else {
     return -1;
   }
+}
+/*---------------------------------------------------------------------------*/
+int
+cfs_remove(const char *name)
+{
+  return -1;
 }
 /*---------------------------------------------------------------------------*/
 int
