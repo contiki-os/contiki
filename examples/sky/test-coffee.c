@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: test-coffee.c,v 1.3 2008/11/13 14:46:50 nvt-se Exp $
+ * $Id: test-coffee.c,v 1.4 2008/11/24 10:59:40 nvt-se Exp $
  */
 
 /**
@@ -62,9 +62,9 @@ run_consistency_test(void)
   int r, i, j, total_read;
   unsigned offset;
 
-  cfs_coffee_remove("T1");
-  cfs_coffee_remove("T2");
-  cfs_coffee_remove("T3");
+  cfs_remove("T1");
+  cfs_remove("T2");
+  cfs_remove("T3");
 
   wfd = rfd = afd = -1;
 
@@ -110,6 +110,7 @@ run_consistency_test(void)
   if(r < 0) {
     FAIL(-8);
   } else if(r < sizeof(buf)) {
+    printf("r=%d\n", r);
     FAIL(-9);
   }
 
@@ -239,7 +240,8 @@ run_consistency_test(void)
     for(j = 0; j < BULK_SIZE; j++) {
       buf[j] = 1 + ((i + j) & 0x7f);
     }
-    if(cfs_write(afd, buf, BULK_SIZE) != BULK_SIZE) {
+    if((r = cfs_write(afd, buf, BULK_SIZE)) != BULK_SIZE) {
+      printf("r=%d\n", r);
       FAIL(-31);
     }
     cfs_close(afd);
