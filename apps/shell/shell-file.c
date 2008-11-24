@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: shell-file.c,v 1.6 2008/07/06 10:34:44 oliverschmidt Exp $
+ * $Id: shell-file.c,v 1.7 2008/11/24 15:18:27 nvt-se Exp $
  */
 
 /**
@@ -68,6 +68,11 @@ SHELL_COMMAND(read_command,
 	      "read",
 	      "read <filename> [offset]: read from file, with an optional offset",
 	      &shell_read_process);
+PROCESS(shell_rm_process, "rm");
+SHELL_COMMAND(rm_command,
+              "rm",
+              "rm <filename>: remove the file named filename",
+              &shell_rm_process);
 /*---------------------------------------------------------------------------*/
 PROCESS_THREAD(shell_ls_process, ev, data)
 {
@@ -238,6 +243,16 @@ PROCESS_THREAD(shell_read_process, ev, data)
   PROCESS_END();
 }
 /*---------------------------------------------------------------------------*/
+PROCESS_THREAD(shell_rm_process, ev, data)
+{
+  PROCESS_BEGIN();
+
+  if(data != NULL) {
+    cfs_remove(data);
+  }
+  PROCESS_END();
+}
+/*---------------------------------------------------------------------------*/
 void
 shell_file_init(void)
 {
@@ -245,5 +260,6 @@ shell_file_init(void)
   shell_register_command(&write_command);
   shell_register_command(&append_command);
   shell_register_command(&read_command);
+  shell_register_command(&rm_command);
 }
 /*---------------------------------------------------------------------------*/

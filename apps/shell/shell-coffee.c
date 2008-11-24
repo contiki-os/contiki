@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: shell-coffee.c,v 1.2 2008/07/03 21:13:13 adamdunkels Exp $
+ * $Id: shell-coffee.c,v 1.3 2008/11/24 15:18:27 nvt-se Exp $
  */
 
 /**
@@ -52,11 +52,6 @@ SHELL_COMMAND(format_command,
 	      "format",
 	      "format: format the flash-based Coffee file system",
 	      &shell_format_process);
-PROCESS(shell_rm_process, "rm");
-SHELL_COMMAND(rm_command,
-	      "rm",
-	      "rm <filename>: remove the file named filename",
-	      &shell_rm_process);
 /*---------------------------------------------------------------------------*/
 PROCESS_THREAD(shell_format_process, ev, data)
 {
@@ -81,20 +76,9 @@ PROCESS_THREAD(shell_format_process, ev, data)
   PROCESS_END();
 }
 /*---------------------------------------------------------------------------*/
-PROCESS_THREAD(shell_rm_process, ev, data)
-{
-  PROCESS_BEGIN();
-
-  if(data != NULL) {
-    cfs_coffee_remove(data);
-  }
-  PROCESS_END();
-}
-/*---------------------------------------------------------------------------*/
 void
 shell_coffee_init(void)
 {
   shell_register_command(&format_command);
-  shell_register_command(&rm_command);
 }
 /*---------------------------------------------------------------------------*/
