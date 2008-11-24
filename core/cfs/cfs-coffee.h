@@ -49,18 +49,6 @@
  */
 
 /**
- * \brief Remove a file.
- * \param name The filename.
- * \return 0 on success, -1 on failure.
- *
- * Coffee removes files by marking them as obsolete. Therefore, the 
- * space is not guaranteed to be reclaimed immediately, but must be 
- * sweeped by the garbage collector. The garbage collector is called 
- * once a file reservation request cannot be granted.
- */
-int cfs_coffee_remove(const char *name);
-
-/**
  * \brief Reserve space for a file.
  * \param name The filename.
  * \param size The size of the file.

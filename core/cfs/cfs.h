@@ -54,7 +54,7 @@
  *
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: cfs.h,v 1.11 2008/01/24 13:08:35 adamdunkels Exp $
+ * $Id: cfs.h,v 1.12 2008/11/24 10:56:55 nvt-se Exp $
  */
 #ifndef __CFS_H__
 #define __CFS_H__
@@ -188,6 +188,16 @@ CCIF int cfs_write(int fd, const void *buf, unsigned int len);
  */
 #ifndef cfs_seek
 CCIF unsigned int cfs_seek(int fd, unsigned int offset);
+#endif
+
+/**
+ * \brief      Remove a file.
+ * \param name The name of the file.
+ * \retval 0   If the file was removed.
+ * \return -1  If the file could not be removed or if it doesn't exist.
+ */
+#ifndef cfs_remove
+CCIF int cfs_remove(const char *name);
 #endif
 
 /**

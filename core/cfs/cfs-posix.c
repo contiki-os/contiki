@@ -30,7 +30,7 @@
  *
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: cfs-posix.c,v 1.11 2008/07/06 11:08:07 oliverschmidt Exp $
+ * $Id: cfs-posix.c,v 1.12 2008/11/24 10:56:55 nvt-se Exp $
  */
 
 #include <stdio.h>
@@ -88,5 +88,11 @@ unsigned int
 cfs_seek(int f, unsigned int o)
 {
   return lseek(f, o, SEEK_SET);
+}
+/*---------------------------------------------------------------------------*/
+int
+cfs_remove(const char *name)
+{
+  return remove(name);
 }
 /*---------------------------------------------------------------------------*/
