@@ -1,4 +1,4 @@
-# $Id: Makefile.msp430,v 1.24 2008/07/02 14:11:34 adamdunkels Exp $
+# $Id: Makefile.msp430,v 1.25 2008/11/24 11:09:36 nifi Exp $
 
 ifdef nodeid
 CFLAGS += -DNODEID=$(nodeid)
@@ -69,6 +69,9 @@ PROJECT_OBJECTFILES += ${addprefix $(OBJECTDIR)/,$(CONTIKI_TARGET_MAIN:.c=.o)}
 
 %.ihex: %.$(TARGET)
 	$(OBJCOPY) $^ -O ihex $@
+
+%.mspsim:	%.firmware
+	java -jar ${CONTIKI}/tools/mspsim/mspsim.jar -platform=${TARGET} $<
 
 core-labels.o: core.firmware
 	${CONTIKI}/tools/msp430-make-labels core.firmware > core-labels.S
