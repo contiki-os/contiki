@@ -114,7 +114,7 @@ dma_callback(void)
   dma_done = 1;
 }
 
-static
+static void
 reset_receiver(void)
 {
   // reset receiver
@@ -260,9 +260,10 @@ cc1020_send(const void *buf, unsigned short len)
   cc1020_txlen += len;
 
   // Send checksum
-  memcpy((char *)cc1020_txbuf + cc1020_txlen, &rxcrc, CRC_LEN);
-  cc1020_txlen += CRC_LEN;
- 
+/*   printf("send checksum %04hx\n", rxcrc); */
+  cc1020_txbuf[cc1020_txlen++] = (uint8_t)(rxcrc >> 8);
+  cc1020_txbuf[cc1020_txlen++] = (uint8_t)(rxcrc & 0xFF);
+   
   // suffix
   cc1020_txbuf[cc1020_txlen++] = TAIL;
   cc1020_txbuf[cc1020_txlen++] = TAIL; 
@@ -398,14 +399,13 @@ PROCESS_THREAD(cc1020_receiver_process, ev, data)
       // CHECKSUM CHECK	  
       uint16_t expected_crc = 0xffff;
       uint16_t actual_crc = -1;
-      memcpy(&actual_crc, &cc1020_rxbuf[cc1020_rxlen - CRC_LEN], CRC_LEN);
+      actual_crc = (cc1020_rxbuf[cc1020_rxlen - CRC_LEN] << 8) | cc1020_rxbuf[cc1020_rxlen - CRC_LEN + 1];
       cc1020_rxlen -= CRC_LEN;
-	  	  
+      
       expected_crc = crc16_add((uint8_t) (cc1020_rxlen & 0xff), expected_crc);
       expected_crc = crc16_add((uint8_t) ((cc1020_rxlen >> 8) & 0xff),
 			expected_crc);
-
-      int i = 0;
+      int i;
       for(i = HDRSIZE; i < cc1020_rxlen; i++){
         expected_crc = crc16_add(cc1020_rxbuf[i], expected_crc);
       }
@@ -415,6 +415,8 @@ PROCESS_THREAD(cc1020_receiver_process, ev, data)
       } else {
 	RIMESTATS_ADD(badcrc);
 	reset_receiver();
+/* 	printf("bad crc. expected: %04hx received: %04hx\n",  */
+/* 	       expected_crc, actual_crc, cc1020_rxlen); */
       }
     }
   }
