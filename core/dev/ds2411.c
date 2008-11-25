@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: ds2411.c,v 1.1 2006/06/17 22:41:16 adamdunkels Exp $
+ * @(#)$Id: ds2411.c,v 1.2 2008/11/25 09:20:54 zhitao Exp $
  */
 /*
  * Device driver for the Dallas Semiconductor DS2411 chip. Heavily
@@ -59,7 +59,7 @@
 
 unsigned char ds2411_id[8];
 
-#ifdef TMOTE_SKY
+#ifdef CONTIKI_TARGET_SKY
 /* 1-wire is at p2.4 */
 #define PIN BV(4)
 
@@ -97,7 +97,7 @@ unsigned char ds2411_id[8];
  */
 #define udelay_6() { _NOP(); _NOP(); _NOP(); _NOP(); _NOP(); }
 
-#endif /* TMOTE_SKY */
+#endif /* CONTIKI_TARGET_SKY */
 
 /*
  * Recommended delay times in us.
@@ -213,12 +213,12 @@ ds2411_init()
     for (i = 7; i >= 2; i--)
       acc = crc8_add(acc, ds2411_id[i]);
     if (acc == crc) {
-#ifdef TMOTE_SKY
+#ifdef CONTIKI_TARGET_SKY
       /* 00:12:75    Moteiv    # Moteiv Corporation */
       ds2411_id[0] = 0x00;
       ds2411_id[1] = 0x12;
       ds2411_id[2] = 0x75;
-#endif /* TMOTE_SKY */
+#endif /* CONTIKI_TARGET_SKY */
       return 1;			/* Success! */
     }
   }
