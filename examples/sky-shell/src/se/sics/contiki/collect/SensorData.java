@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: SensorData.java,v 1.5 2008/11/10 21:14:20 adamdunkels Exp $
+ * $Id: SensorData.java,v 1.6 2008/11/26 14:22:54 nifi Exp $
  *
  * -----------------------------------------------------------------
  *
@@ -34,8 +34,8 @@
  *
  * Authors : Joakim Eriksson, Niclas Finne
  * Created : 3 jul 2008
- * Updated : $Date: 2008/11/10 21:14:20 $
- *           $Revision: 1.5 $
+ * Updated : $Date: 2008/11/26 14:22:54 $
+ *           $Revision: 1.6 $
  */
 
 package se.sics.contiki.collect;
@@ -99,7 +99,7 @@ public class SensorData implements SensorInfo {
   }
 
   public static SensorData parseSensorData(CollectServer server, String line, long systemTime) {
-    String[] components = line.split(" ");
+    String[] components = line.trim().split(" ");
     if (components.length == SensorData.VALUES_COUNT + 1) {
       // Sensor data with system time
       try {
