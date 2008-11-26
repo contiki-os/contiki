@@ -26,14 +26,17 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: SkySerial.java,v 1.4 2008/10/29 08:51:09 fros4943 Exp $
+ * $Id: SkySerial.java,v 1.5 2008/11/26 16:23:43 nifi Exp $
  */
 
 package se.sics.cooja.mspmote.interfaces;
 
 import java.awt.*;
+import java.awt.EventQueue;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
 import java.util.*;
 import javax.swing.*;
 import org.apache.log4j.Logger;
@@ -55,10 +58,14 @@ public class SkySerial extends Log implements SerialPort, USARTListener {
 
   private Mote mote;
   private String lastLogMessage = "";
-  private String newMessage = "";
+  private StringBuilder newMessage = new StringBuilder();
 
   private JTextArea logTextPane = null;
   private USART usart;
+  private JTextField commandField;
+  private String[] history = new String[50];
+  private int historyPos = 0;
+  private int historyCount = 0;
 
   private class SerialDataObservable extends Observable {
     private void notifyNewData() {
@@ -84,7 +91,9 @@ public class SkySerial extends Log implements SerialPort, USARTListener {
 
   public void writeByte(byte b) {
     incomingData.add(b);
-    mote.getSimulation().scheduleEvent(writeDataEvent, mote.getSimulation().getSimulationTime());
+    if (!writeDataEvent.isScheduled()) {
+      mote.getSimulation().scheduleEvent(writeDataEvent, mote.getSimulation().getSimulationTime());
+    }
   }
 
   public void writeString(String s) {
@@ -125,8 +134,9 @@ public class SkySerial extends Log implements SerialPort, USARTListener {
           byte b = incomingData.remove(0);
           usart.byteReceived(b);
         }
-
-        mote.getSimulation().scheduleEvent(this, t+1);
+        if (!incomingData.isEmpty()) {
+          mote.getSimulation().scheduleEvent(this, t+1);
+        }
       }
     }
   };
@@ -140,15 +150,83 @@ public class SkySerial extends Log implements SerialPort, USARTListener {
     }
 
     // Send RS232 data visualizer
-    JPanel sendPane = new JPanel();
-    final JTextField sendTextField = new JTextField(15);
+    JPanel sendPane = new JPanel(new BorderLayout());
+    commandField = new JTextField(15);
     JButton sendButton = new JButton("Send data");
-    sendButton.addActionListener(new ActionListener() {
+    ActionListener action = new ActionListener() {
+
       public void actionPerformed(ActionEvent e) {
-        writeString(sendTextField.getText());
+        String command = trim(commandField.getText());
+        if (command != null) {
+          try {
+            int previous = historyCount - 1;
+            if (previous < 0) previous += history.length;
+            if (!command.equals(history[previous])) {
+              history[historyCount] = command;
+              historyCount = (historyCount + 1) % history.length;
+            }
+            historyPos = historyCount;
+            addToLog("> " + command);
+            writeString(command);
+            commandField.setText("");
+          } catch (Exception ex) {
+            System.err.println("could not send '" + command + "':");
+            ex.printStackTrace();
+            JOptionPane.showMessageDialog(logTextPane,
+                                          "could not send '" + command + "':\n"
+                                          + ex, "ERROR",
+                                          JOptionPane.ERROR_MESSAGE);
+          }
+        } else {
+          commandField.getToolkit().beep();
+        }
       }
+
+    };
+    commandField.addKeyListener(new KeyAdapter() {
+
+      @Override
+      public void keyPressed(KeyEvent e) {
+        switch (e.getKeyCode()) {
+        case KeyEvent.VK_UP: {
+          int nextPos = (historyPos + history.length - 1) % history.length;
+          if (nextPos == historyCount || history[nextPos] == null) {
+            commandField.getToolkit().beep();
+          } else {
+            String cmd = trim(commandField.getText());
+            if (cmd != null) {
+              history[historyPos] = cmd;
+            }
+            historyPos = nextPos;
+            commandField.setText(history[historyPos]);
+          }
+          break;
+        }
+        case KeyEvent.VK_DOWN: {
+          int nextPos = (historyPos + 1) % history.length;
+          if (nextPos == historyCount) {
+            historyPos = nextPos;
+            commandField.setText("");
+          } else if (historyPos == historyCount || history[nextPos] == null) {
+            commandField.getToolkit().beep();
+          } else {
+            String cmd = trim(commandField.getText());
+            if (cmd != null) {
+              history[historyPos] = cmd;
+            }
+            historyPos = nextPos;
+            commandField.setText(history[historyPos]);
+          }
+          break;
+        }
+        }
+      }
+
     });
-    sendPane.add(BorderLayout.WEST, sendTextField);
+
+    commandField.addActionListener(action);
+    sendButton.addActionListener(action);
+    sendPane.add(BorderLayout.CENTER, commandField);
     sendPane.add(BorderLayout.EAST, sendButton);
 
     // Receive RS232 data visualizer
@@ -164,8 +242,12 @@ public class SkySerial extends Log implements SerialPort, USARTListener {
     Observer observer;
     this.addObserver(observer = new Observer() {
       public void update(Observable obs, Object obj) {
-        logTextPane.append("< " + getLastLogMessage() + "\n");
-        logTextPane.setCaretPosition(logTextPane.getDocument().getLength());
+        final String logMessage = getLastLogMessage();
+        EventQueue.invokeLater(new Runnable() {
+          public void run() {
+            addToLog(logMessage);
+          }
+        });
       }
     });
 
@@ -180,6 +262,17 @@ public class SkySerial extends Log implements SerialPort, USARTListener {
     return panel;
 
 
+  }
+
+  protected void addToLog(String text) {
+    String current = logTextPane.getText();
+    int len = current.length();
+    if (len > 8192) {
+      current = current.substring(len - 8192);
+    }
+    current = len > 0 ? (current + '\n' + text) : text;
+    logTextPane.setText(current);
+    logTextPane.setCaretPosition(current.length());
   }
 
   public void releaseInterfaceVisualizer(JPanel panel) {
@@ -204,14 +297,14 @@ public class SkySerial extends Log implements SerialPort, USARTListener {
   }
 
   public void dataReceived(USART source, int data) {
-    newMessage += (char) data;
     if (data == '\n') {
-      lastLogMessage = newMessage;
-      newMessage = "";
+      lastLogMessage = newMessage.toString();
+      newMessage.setLength(0);
       this.setChanged();
       this.notifyObservers(mote);
+    } else {
+      newMessage.append((char) data);
     }
-
     lastSerialData = (byte) data;
     serialDataObservable.notifyNewData();
   }
@@ -220,6 +313,10 @@ public class SkySerial extends Log implements SerialPort, USARTListener {
   }
 
   public void flushInput() {
+  }
+
+  private String trim(String text) {
+    return (text != null) && ((text = text.trim()).length() > 0) ? text : null;
   }
 
 }
