@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: SensorDataAggregator.java,v 1.1 2008/08/29 09:00:15 nifi Exp $
+ * $Id: SensorDataAggregator.java,v 1.2 2008/11/26 14:22:54 nifi Exp $
  *
  * -----------------------------------------------------------------
  *
@@ -34,8 +34,8 @@
  *
  * Authors : Joakim Eriksson, Niclas Finne
  * Created : 20 aug 2008
- * Updated : $Date: 2008/08/29 09:00:15 $
- *           $Revision: 1.1 $
+ * Updated : $Date: 2008/11/26 14:22:54 $
+ *           $Revision: 1.2 $
  */
 
 package se.sics.contiki.collect;
@@ -79,7 +79,7 @@ public class SensorDataAggregator implements SensorInfo {
   }
 
   public void addSensorData(SensorData data) {
-    for (int i = 0, n = Math.max(VALUES_COUNT, data.getValueCount()); i < n; i++) {
+    for (int i = 0, n = Math.min(VALUES_COUNT, data.getValueCount()); i < n; i++) {
       values[i] += data.getValue(i);
     }
     dataCount++;
