@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: LogScriptEngine.java,v 1.5 2008/11/05 18:16:56 fros4943 Exp $
+ * $Id: LogScriptEngine.java,v 1.6 2008/11/27 08:51:35 fros4943 Exp $
  */
 
 package se.sics.cooja.plugins;
@@ -108,6 +108,9 @@ public class LogScriptEngine {
               "See console for more information.",
               "Script error", JOptionPane.ERROR_MESSAGE);
           unregisterLogObserver();
+          if (LogScriptEngine.this.gui.getSimulation() != null) {
+            LogScriptEngine.this.gui.getSimulation().stopSimulation();
+          }
         }
       }
     };
@@ -120,6 +123,9 @@ public class LogScriptEngine {
       JOptionPane.showMessageDialog(GUI.getTopParentContainer(),
           "See console for more information.",
           "Script error", JOptionPane.ERROR_MESSAGE);
+      if (LogScriptEngine.this.gui.getSimulation() != null) {
+        LogScriptEngine.this.gui.getSimulation().stopSimulation();
+      }
       unregisterLogObserver();
     }
   }
@@ -206,6 +212,9 @@ public class LogScriptEngine {
 
         if (GUI.isVisualized()) {
           log("[if test was run without visualization, COOJA would now have been terminated]\n");
+          if (LogScriptEngine.this.gui.getSimulation() != null) {
+            LogScriptEngine.this.gui.getSimulation().stopSimulation();
+          }
         } else {
           gui.doQuit(false);
         }
@@ -215,6 +224,9 @@ public class LogScriptEngine {
 
         if (GUI.isVisualized()) {
           log("[if test was run without visualization, COOJA would now have been terminated]\n");
+          if (LogScriptEngine.this.gui.getSimulation() != null) {
+            LogScriptEngine.this.gui.getSimulation().stopSimulation();
+          }
         } else {
           gui.doQuit(false);
         }
