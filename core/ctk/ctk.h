@@ -43,7 +43,7 @@
  *
  * This file is part of the Contiki desktop OS.
  *
- * $Id: ctk.h,v 1.5 2007/12/20 20:45:06 oliverschmidt Exp $
+ * $Id: ctk.h,v 1.6 2008/11/27 23:40:24 adamdunkels Exp $
  *
  */
 
@@ -236,6 +236,10 @@ typedef CTK_ARCH_KEY_T ctk_arch_key_t;
 #else /* CTK_ARCH_KEY_T */
 typedef char ctk_arch_key_t;
 #endif /* CTK_ARCH_KEY_T */
+
+#ifndef CH_ENTER
+#define CH_ENTER '\n'
+#endif /* CH_ENTER */
 
 struct ctk_textentry;
 typedef unsigned char (* ctk_textentry_input)(ctk_arch_key_t c,
