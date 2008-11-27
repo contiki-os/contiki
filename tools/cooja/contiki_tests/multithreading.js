@@ -1,7 +1,7 @@
-lowAlpha = "BA\n";
-highAlpha = "JIHGFEDCBA\n";
-lowCount = "10\n";
-highCount = "9876543210\n";
+lowAlpha = "BA";
+highAlpha = "JIHGFEDCBA";
+lowCount = "10";
+highCount = "9876543210";
 
 /* Filter messages */
 if (msg.equals(lowCount)) {
