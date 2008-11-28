@@ -30,7 +30,7 @@
  * 
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: ircc.c,v 1.3 2007/11/18 01:09:00 oliverschmidt Exp $
+ * $Id: ircc.c,v 1.4 2008/11/28 00:15:43 adamdunkels Exp $
  */
 
 #include "contiki.h"
@@ -424,36 +424,27 @@ PT_THREAD(handle_connection(struct ircc_state *s))
       PT_WAIT_THREAD(&s->pt, handle_input(s));      
     } 
       
-    switch(s->command) {
-    case COMMAND_JOIN:
+    if(s->command == COMMAND_JOIN) {
       s->command = COMMAND_NONE;
       PT_WAIT_THREAD(&s->pt, join_channel(s));
-      break;
-    case COMMAND_PART:
+    } else if(s->command == COMMAND_PART) {
       s->command = COMMAND_NONE;
       PT_WAIT_THREAD(&s->pt, part_channel(s));
-      break;
-    case COMMAND_MSG:
+    } else if(s->command == COMMAND_MSG) {
       s->command = COMMAND_NONE;
       PT_WAIT_THREAD(&s->pt, send_message(s));
-      break;
-    case COMMAND_ACTIONMSG:
+    } else if(s->command == COMMAND_ACTIONMSG) {
       s->command = COMMAND_NONE;
       PT_WAIT_THREAD(&s->pt, send_actionmessage(s));
-      break;
-    case COMMAND_LIST:
+    } else if(s->command == COMMAND_LIST) {
       s->command = COMMAND_NONE;
       PT_WAIT_THREAD(&s->pt, list_channel(s));
-      break;
-    case COMMAND_QUIT:
+    } else if(s->command == COMMAND_QUIT) {
       s->command = COMMAND_NONE;
       tcp_markconn(uip_conn, NULL);
       PSOCK_CLOSE(&s->s);
       process_post(PROCESS_CURRENT(), PROCESS_EVENT_EXIT, NULL);
       PT_EXIT(&s->pt);
-      break;
-    default:
-      break;
     }
   }
   
@@ -478,7 +469,7 @@ ircc_appcall(void *s)
 }
 /*---------------------------------------------------------------------------*/
 struct ircc_state *
-ircc_connect(struct ircc_state *s, char *servername, u16_t *ipaddr,
+ircc_connect(struct ircc_state *s, char *servername, uip_ipaddr_t *ipaddr,
 	     char *nick)
 {
   s->conn = tcp_connect((uip_ipaddr_t *)ipaddr, HTONS(PORT), s);
