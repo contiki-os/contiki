@@ -30,7 +30,7 @@
  * 
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: ircc.h,v 1.1 2006/06/17 22:41:11 adamdunkels Exp $
+ * $Id: ircc.h,v 1.2 2008/11/28 00:14:57 adamdunkels Exp $
  */
 #ifndef __IRCC_H__
 #define __IRCC_H__
@@ -59,7 +59,7 @@ void ircc_init(void);
 void ircc_appcall(void *s);
 
 struct ircc_state *ircc_connect(struct ircc_state *s,
-				char *server, u16_t *ipaddr, char *nick);
+				char *server, uip_ipaddr_t *ipaddr, char *nick);
 
 void ircc_join(struct ircc_state *s, char *channel);
 void ircc_part(struct ircc_state *s);
