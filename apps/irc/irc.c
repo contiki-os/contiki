@@ -30,7 +30,7 @@
  * 
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: irc.c,v 1.9 2008/11/06 20:48:08 oliverschmidt Exp $
+ * $Id: irc.c,v 1.10 2008/11/28 00:14:57 adamdunkels Exp $
  */
 
 #include <string.h>
@@ -79,7 +79,7 @@ static struct ctk_window setupwindow;
 #define SETUPWINDOW_HEIGHT 9
 #define MAX_SERVERLEN 32
 #define MAX_NICKLEN 16
-static u16_t serveraddr[2];
+static uip_ipaddr_t serveraddr;
 static char server[MAX_SERVERLEN + 1];
 static char nick[MAX_NICKLEN + 1];
 static struct ctk_label serverlabel =
@@ -200,7 +200,7 @@ ircc_sent(struct ircc_state *s)
 PROCESS_THREAD(irc_process, ev, data)
 {
   ctk_arch_key_t c;
-  u16_t *ipaddr;
+  uip_ipaddr_t *ipaddr;
   
   PROCESS_BEGIN();
   
@@ -244,14 +244,14 @@ PROCESS_THREAD(irc_process, ev, data)
       } else if(data == (process_data_t)&connectbutton) {
 	ctk_window_close(&setupwindow);
 	ctk_window_open(&window);
-	ipaddr = serveraddr;
+	ipaddr = &serveraddr;
 #if UIP_UDP
-	if(uiplib_ipaddrconv(server, (u8_t *)serveraddr) == 0) {
-	  ipaddr = resolv_lookup(server);
+	if(uiplib_ipaddrconv(server, (u8_t *)&serveraddr) == 0) {
+	  ipaddr = (uip_ipaddr_t *)resolv_lookup(server);
 	  if(ipaddr == NULL) {
 	    resolv_query(server);
 	  } else {
-	    uip_ipaddr_copy(serveraddr, ipaddr);
+	    uip_ipaddr_copy(&serveraddr, ipaddr);
 	  }
 	}
 #else /* UIP_UDP */
@@ -259,18 +259,18 @@ PROCESS_THREAD(irc_process, ev, data)
 #endif /* UIP_UDP */
 	if(ipaddr != NULL) {
 	  
-	  ircc_connect(&s, server, serveraddr, nick);
+	  ircc_connect(&s, server, &serveraddr, nick);
 	}
       }
 #if UIP_UDP
     } else if(ev == resolv_event_found) {
       
-      ipaddr = resolv_lookup(server);
+      ipaddr = (uip_ipaddr_t *)resolv_lookup(server);
       if(ipaddr == NULL) {
 	ircc_text_output(&s, server, "hostname not found");
       } else {
-	uip_ipaddr_copy(serveraddr, ipaddr);
-	ircc_connect(&s, server, serveraddr, nick);
+	uip_ipaddr_copy(&serveraddr, ipaddr);
+	ircc_connect(&s, server, &serveraddr, nick);
       }
 #endif /* UIP_UDP */
     } else if(ev == ctk_signal_keypress) {
