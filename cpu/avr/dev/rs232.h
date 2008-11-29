@@ -31,7 +31,7 @@
  * Author:   Adam Dunkels <adam@sics.se>
  *           Simon Barner <barner@in.tum.de>
  *
- * @(#)$Id: rs232.h,v 1.5 2008/11/29 15:55:02 c_oflynn Exp $
+ * @(#)$Id: rs232.h,v 1.6 2008/11/29 18:36:12 c_oflynn Exp $
  */
 
 #ifndef __RS232_H__
@@ -48,8 +48,6 @@
 #include "dev/rs232_atmega1284.h"
 #elif defined (__AVR_AT90USB1287__)
 #include "dev/rs232_at90usb1287.h"
-#elif defined (__AVR_ATmega1281__)
-#include "dev/rs232_atmega1281.h"
 #else
 #error "Please implement a rs232 header for your MCU (or set the MCU type \
 in contiki-conf.h)."
