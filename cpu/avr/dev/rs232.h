@@ -31,7 +31,7 @@
  * Author:   Adam Dunkels <adam@sics.se>
  *           Simon Barner <barner@in.tum.de>
  *
- * @(#)$Id: rs232.h,v 1.4 2008/11/09 15:39:49 c_oflynn Exp $
+ * @(#)$Id: rs232.h,v 1.5 2008/11/29 15:55:02 c_oflynn Exp $
  */
 
 #ifndef __RS232_H__
@@ -42,6 +42,8 @@
 
 #if defined (__AVR_ATmega128__)
 #include "dev/rs232_atmega128.h"
+#elif defined (__AVR_ATmega1281__)
+#include "dev/rs232_atmega1281.h"
 #elif defined (__AVR_ATmega1284P__)
 #include "dev/rs232_atmega1284.h"
 #elif defined (__AVR_AT90USB1287__)

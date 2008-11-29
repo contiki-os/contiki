@@ -72,7 +72,7 @@ WARN_LOGFILE           = doxygen.log
 #---------------------------------------------------------------------------
 INPUT                  = $(docsrc)
 
-FILE_PATTERNS          = *.h *.c *.doc.html
+FILE_PATTERNS          = *.h *.c *.doc.html *.txt
 RECURSIVE              = NO
 EXCLUDE                = 
 EXCLUDE_SYMLINKS       = NO
