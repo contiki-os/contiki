@@ -129,6 +129,7 @@ PROCESS_THREAD(rndis_process, ev, data_proc)
 		/* Device is Enumerated but RNDIS not loading. We might
 		   have a system that does not support IAD (winXP). If so
 		   count the timeout then switch to just network interface. */
+#if 0
 		if (usb_mode == rndis_debug) {
 			//If we have timed out, detach
 			if (iad_fail_timeout == IAD_TIMEOUT_DETACH) {
@@ -189,6 +190,7 @@ PROCESS_THREAD(rndis_process, ev, data_proc)
 			rndis_fail_timeout = 0;
 			}
 		}//usb_mode == rnids_only
+#endif
 
 
 	    if(rndis_state == rndis_data_initialized) //Enumeration processs OK ?

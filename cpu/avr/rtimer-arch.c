@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: rtimer-arch.c,v 1.3 2008/10/14 09:44:12 adamdunkels Exp $
+ * $Id: rtimer-arch.c,v 1.4 2008/11/29 15:55:02 c_oflynn Exp $
  */
 
 /**
@@ -49,7 +49,8 @@
 #include "sys/rtimer.h"
 #include "rtimer-arch.h"
 
-#if defined(__AVR_ATmega1284P__)
+#if defined(__AVR_ATmega1281__) || defined(__AVR_ATmega1284P__)
+#error FTH081029 test timer 3
 	#define ETIMSK TIMSK3
     #define ETIFR TIFR3
 	#define TICIE3 ICIE3

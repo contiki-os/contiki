@@ -47,7 +47,7 @@
  *  \file
  *  \brief This file contains low-level radio driver code.
  *
- *   $Id: hal.h,v 1.3 2008/11/09 15:39:49 c_oflynn Exp $
+ *   $Id: hal.h,v 1.4 2008/11/29 15:55:02 c_oflynn Exp $
 */
 
 #ifndef HAL_AVR_H
@@ -70,9 +70,17 @@
  * \{
  */
 /* Define all possible revisions here */
+// RAVEN_D : Raven kit with LCD display
+// RAVENUSB_C : used for USB key or Raven card 
+// RCB_B : RZ200 kit from Atmel based on 1281V
+// ZIGBIT : Zigbit module from Meshnetics
 #define RAVEN_D	    0
 #define RAVENUSB_C  1
-#define RCB_B	    2
+#define RCB_B	    	2
+#define ZIGBIT			3
+
+
+
 
 #if RCB_REVISION == RCB_B
 /* 1281 rcb */
@@ -93,8 +101,29 @@
 #   define TICKTIMER  3
 #   define HAS_SPARE_TIMER
 
-#elif RAVEN_REVISION == RAVEN_D
+#elif HARWARE_REVISION == ZIGBIT
+/* 1281V Zigbit */
+#   define SSPORT     B
+#   define SSPIN      (0x00)
+#   define SPIPORT    B
+#   define MOSIPIN    (0x02)
+#   define MISOPIN    (0x03)
+#   define SCKPIN     (0x01)
+#   define RSTPORT    A
+#   define RSTPIN     (0x07)
+#   define IRQPORT    E
+#   define IRQPIN     (0x05)
+#   define SLPTRPORT  B
+#   define SLPTRPIN   (0x04)
+#   define TXCWPORT   B
+#   define TXCWPIN    (0x07)
+#   define USART      1
+#   define USARTVECT  USART1_RX_vect
+//#   define TICKTIMER  3
+//#   define HAS_SPARE_TIMER // Not used
 
+
+#elif RAVEN_REVISION == RAVEN_D
 /* 1284 raven */
 #   define SSPORT     B
 #   define SSPIN      (0x04)
@@ -117,7 +146,6 @@
 #   define HAS_SPARE_TIMER
 
 #elif RAVEN_REVISION == RAVENUSB_C
-
 /* 1287USB raven */
 #   define SSPORT     B
 #   define SSPIN      (0x00)
@@ -141,7 +169,7 @@
 
 #else
 
-#error "RAVEN platform undefined in hal.h"
+#error "Platform undefined in hal.h"
 
 #endif
 
@@ -245,10 +273,16 @@
     #error "Clock speed not supported."
 #endif
 
-
+#if HARWARE_REVISION == ZIGBIT
+// IRQ E5 for Zigbit example
+#define RADIO_VECT INT5_vect
+#define HAL_ENABLE_RADIO_INTERRUPT( ) { ( EIMSK |= ( 1 << INT5 ) ) ; EICRB |= 0x0C ; PORTE &= ~(1<<PE5);  DDRE &= ~(1<<DDE5); }
+#define HAL_DISABLE_RADIO_INTERRUPT( ) ( EIMSK &= ~( 1 << INT5 ) )
+#else
 #define RADIO_VECT TIMER1_CAPT_vect
 #define HAL_ENABLE_RADIO_INTERRUPT( ) ( TIMSK1 |= ( 1 << ICIE1 ) )
 #define HAL_DISABLE_RADIO_INTERRUPT( ) ( TIMSK1 &= ~( 1 << ICIE1 ) )
+#endif
 
 #define HAL_ENABLE_OVERFLOW_INTERRUPT( ) ( TIMSK1 |= ( 1 << TOIE1 ) )
 #define HAL_DISABLE_OVERFLOW_INTERRUPT( ) ( TIMSK1 &= ~( 1 << TOIE1 ) )
