@@ -30,7 +30,7 @@
  *
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: cfs-xmem.c,v 1.9 2008/11/24 10:56:55 nvt-se Exp $
+ * $Id: cfs-xmem.c,v 1.10 2008/11/30 22:42:40 nvt-se Exp $
  */
 
 #include "cfs/cfs.h"
@@ -150,7 +150,11 @@ cfs_seek(int f, unsigned int o)
 int
 cfs_remove(const char *name)
 {
-  return -1;
+  file.flag = FLAG_FILE_CLOSED;
+  file.fileptr = 0;
+  file.filesize = 0;
+  xmem_erase(CFS_XMEM_SIZE, CFS_XMEM_OFFSET);
+  return 0;
 }
 /*---------------------------------------------------------------------------*/
 int
