@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: sky-collect.c,v 1.6 2008/07/02 09:05:41 adamdunkels Exp $
+ * $Id: sky-collect.c,v 1.7 2008/11/30 18:36:55 adamdunkels Exp $
  */
 
 /**
@@ -60,7 +60,7 @@ struct sky_collect_msg {
   uint16_t temperature;
   uint16_t humidity;
   uint16_t rssi;
-  uint16_t best_neighbor;
+  rimeaddr_t best_neighbor;
   uint16_t best_neighbor_etx;
   uint16_t best_neighbor_rtmetric;
   uint32_t energy_lpm;
@@ -166,11 +166,13 @@ recv(const rimeaddr_t *originator, uint8_t seqno, uint8_t hops)
   
   msg = rimebuf_dataptr();
   printf("%u %u %u %u %u %u %u %u %u %u %u %lu %lu %lu %lu %lu ",
-	 originator->u16[0], seqno, hops,
+	 (originator->u8[0] << 8) + originator->u8[1],
+	 seqno, hops,
 	 msg->light1, msg->light2, msg->temperature, msg->humidity,
 	 msg->rssi,
 
-	 msg->best_neighbor, msg->best_neighbor_etx, msg->best_neighbor_rtmetric,
+	 (msg->best_neighbor.u8[0] << 8) + msg->best_neighbor.u8[1],
+	  msg->best_neighbor_etx, msg->best_neighbor_rtmetric,
 	 msg->energy_lpm, msg->energy_cpu, msg->energy_rx, msg->energy_tx, msg->energy_rled
 	 );
   printf("%u %u %u %u %u %u %u %u %u %u %u %u %u %u %u %u %u %u ",
@@ -224,11 +226,12 @@ PROCESS_THREAD(test_collect_process, ev, data)
       msg->energy_rx = energest_type_time(ENERGEST_TYPE_LISTEN);
       msg->energy_tx = energest_type_time(ENERGEST_TYPE_TRANSMIT);
       msg->energy_rled = energest_type_time(ENERGEST_TYPE_LED_RED);
-      msg->best_neighbor = msg->best_neighbor_etx =
+      rimeaddr_copy(&msg->best_neighbor, &rimeaddr_null);
+      msg->best_neighbor_etx =
 	msg->best_neighbor_rtmetric = 0;
       n = neighbor_best();
       if(n != NULL) {
-	msg->best_neighbor = n->addr.u16[0];
+	rimeaddr_copy(&msg->best_neighbor, &n->addr);
 	msg->best_neighbor_etx = neighbor_etx(n);
 	msg->best_neighbor_rtmetric = n->rtmetric;
       }
