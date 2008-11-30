@@ -33,7 +33,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: rimeaddr.c,v 1.8 2008/10/14 09:40:56 julienabeille Exp $
+ * $Id: rimeaddr.c,v 1.9 2008/11/30 18:26:57 adamdunkels Exp $
  */
 
 /**
@@ -60,8 +60,8 @@ void
 rimeaddr_copy(rimeaddr_t *dest, const rimeaddr_t *src)
 {
   u8_t i;
-  for(i = 0; i < RIMEADDR_SIZE / 2; i++) {
-    dest->u16[i] = src->u16[i];
+  for(i = 0; i < RIMEADDR_SIZE; i++) {
+    dest->u8[i] = src->u8[i];
   }
 }
 /*---------------------------------------------------------------------------*/
@@ -69,8 +69,8 @@ int
 rimeaddr_cmp(const rimeaddr_t *addr1, const rimeaddr_t *addr2)
 {
   u8_t i;
-  for(i = 0; i < RIMEADDR_SIZE / 2; i++) {
-    if(addr1->u16[i] != addr2->u16[i]) {
+  for(i = 0; i < RIMEADDR_SIZE; i++) {
+    if(addr1->u8[i] != addr2->u8[i]) {
       return 0;
     }
   }
