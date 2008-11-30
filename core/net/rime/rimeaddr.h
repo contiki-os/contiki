@@ -42,7 +42,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: rimeaddr.h,v 1.4 2007/11/26 23:30:35 adamdunkels Exp $
+ * $Id: rimeaddr.h,v 1.5 2008/11/30 18:26:06 adamdunkels Exp $
  */
 
 /**
@@ -65,7 +65,6 @@
 
 typedef union {
   unsigned char u8[RIMEADDR_SIZE];
-  unsigned short u16[RIMEADDR_SIZE / 2];
 } rimeaddr_t;
 
 
