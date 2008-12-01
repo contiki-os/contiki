@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: shell-file.c,v 1.7 2008/11/24 15:18:27 nvt-se Exp $
+ * $Id: shell-file.c,v 1.8 2008/12/01 15:58:14 nvt-se Exp $
  */
 
 /**
@@ -88,7 +88,7 @@ PROCESS_THREAD(shell_ls_process, ev, data)
     totsize = 0;
     while(cfs_readdir(&dir, &dirent) == 0) {
       totsize += dirent.size;
-      sprintf(buf, "%3d ", dirent.size);
+      sprintf(buf, "%3lu ", (unsigned long)dirent.size);
       /*      printf("'%s'\n", dirent.name);*/
       shell_output_str(&ls_command, buf, dirent.name);
     }
