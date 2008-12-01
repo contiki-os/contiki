@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: example-mesh.c,v 1.1 2008/01/25 18:00:50 adamdunkels Exp $
+ * $Id: example-mesh.c,v 1.2 2008/12/01 15:19:11 adamdunkels Exp $
  */
 
 /**
@@ -66,7 +66,8 @@ timedout(struct mesh_conn *c)
 static void
 recv(struct mesh_conn *c, rimeaddr_t *from)
 {
-  printf("Data received from %d: %.*s (%d)\n", from->u16[0],
+  printf("Data received from %d.%d: %.*s (%d)\n",
+	 from->u8[0], from->u8[1],
 	 rimebuf_datalen(), (char *)rimebuf_dataptr(), rimebuf_datalen());
 
   rimebuf_copyfrom("Hopp", 4);
