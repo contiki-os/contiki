@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: sky-shell.c,v 1.6 2008/11/10 21:14:20 adamdunkels Exp $
+ * $Id: sky-shell.c,v 1.7 2008/12/01 14:17:36 adamdunkels Exp $
  */
 
 /**
@@ -155,7 +155,7 @@ struct sky_alldata_msg {
   uint16_t lpm;
   uint16_t transmit;
   uint16_t listen;
-  uint16_t best_neighbor;
+  rimeaddr_t best_neighbor;
   uint16_t best_neighbor_etx;
   uint16_t best_neighbor_rtmetric;
   uint16_t battery_voltage;
@@ -192,11 +192,12 @@ PROCESS_THREAD(shell_sky_alldata_process, ev, data)
   last_transmit = energest_type_time(ENERGEST_TYPE_TRANSMIT);
   last_listen = energest_type_time(ENERGEST_TYPE_LISTEN);
 
-  msg.best_neighbor = msg.best_neighbor_etx =
+  rimeaddr_copy(&msg.best_neighbor, &rimeaddr_null);
+  msg.best_neighbor_etx =
     msg.best_neighbor_rtmetric = 0;
   n = neighbor_best();
   if(n != NULL) {
-    msg.best_neighbor = n->addr.u16[0];
+    rimeaddr_copy(&msg.best_neighbor, &n->addr);
     msg.best_neighbor_etx = neighbor_etx(n);
     msg.best_neighbor_rtmetric = n->rtmetric;
   }
