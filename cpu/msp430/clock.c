@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: clock.c,v 1.16 2008/10/10 12:36:58 nifi Exp $
+ * @(#)$Id: clock.c,v 1.17 2008/12/02 12:44:48 joxe Exp $
  */
 
 
@@ -40,10 +40,11 @@
 #include "sys/energest.h"
 #include "sys/clock.h"
 #include "sys/etimer.h"
+#include "rtimer-arch.h"
 
 /* 38400 cycles @ 2.4576MHz with divisor 8 ==> 1/8 s */
 /* #define INTERVAL (307200ULL / CLOCK_SECOND) */
-#define INTERVAL (4096ULL / CLOCK_SECOND)
+#define INTERVAL (RTIMER_ARCH_SECOND / CLOCK_SECOND)
 
 #define MAX_TICKS (~((clock_time_t)0) / 2)
 
