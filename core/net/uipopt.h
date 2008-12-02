@@ -58,7 +58,7 @@
  *
  * This file is part of the uIP TCP/IP stack.
  *
- * $Id: uipopt.h,v 1.8 2008/10/14 09:40:56 julienabeille Exp $
+ * $Id: uipopt.h,v 1.9 2008/12/02 22:04:16 c_oflynn Exp $
  *
  */
 
@@ -462,7 +462,11 @@
  * Timeout for packet reassembly at the 6lowpan layer
  * (should be < 60s)
  */
+#ifdef SICSLOWPAN_CONF_MAXAGE
+#define SICSLOWPAN_REASS_MAXAGE SICSLOWPAN_CONF_MAXAGE
+#else
 #define SICSLOWPAN_REASS_MAXAGE 20
+#endif
 
 /**
  * Do we compress the IP header or not (default: no)
