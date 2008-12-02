@@ -51,6 +51,7 @@ init_net(void)
   
   cc1020_init(cc1020_config_19200);
   rime_init(nullmac_init(&cc1020_driver));
-  rimeaddr.u16[0] = node_id;
+  rimeaddr.u8[0] = node_id & 0xff;
+  rimeaddr.u8[1] = node_id >> 8;
   rimeaddr_set_node_addr(&rimeaddr);
 }
