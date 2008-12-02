@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: sky-collect.c,v 1.7 2008/11/30 18:36:55 adamdunkels Exp $
+ * $Id: sky-collect.c,v 1.8 2008/12/02 08:09:46 adamdunkels Exp $
  */
 
 /**
@@ -166,7 +166,7 @@ recv(const rimeaddr_t *originator, uint8_t seqno, uint8_t hops)
   
   msg = rimebuf_dataptr();
   printf("%u %u %u %u %u %u %u %u %u %u %u %lu %lu %lu %lu %lu ",
-	 (originator->u8[0] << 8) + originator->u8[1],
+	 (originator->u8[1] << 8) + originator->u8[0],
 	 seqno, hops,
 	 msg->light1, msg->light2, msg->temperature, msg->humidity,
 	 msg->rssi,
