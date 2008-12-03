@@ -30,6 +30,24 @@ if (count == null) {
 count++;
 global.put("count_" + source, count);
 
+/* Fail if any node has transmitted more than 20 packets */
+for (i = 1; i <= 7; i++) {
+  result = global.get("count_" + i);
+  if (result > 20) {
+
+  log.log("FAILED: received/node: " + 
+    global.get("count_1") + " " +
+    global.get("count_2") + " " +
+    global.get("count_3") + " " +
+    global.get("count_4") + " " +
+    global.get("count_5") + " " +
+    global.get("count_6") + " " +
+    global.get("count_7") + "\n");
+    log.testFailed(); /* We are done! */
+    return;
+  }
+}
+
 /* Wait until we have received data from all nodes */
 for (i = 1; i <= 7; i++) {
   result = global.get("count_" + i);

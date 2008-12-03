@@ -8,10 +8,10 @@
     <motedelay>10000</motedelay>
     <radiomedium>
       se.sics.cooja.radiomediums.UDGM
-      <transmitting_range>50.0</transmitting_range>
-      <interference_range>100.0</interference_range>
-      <success_ratio_tx>1.0</success_ratio_tx>
-      <success_ratio_rx>1.0</success_ratio_rx>
+      <transmitting_range>30.0</transmitting_range>
+      <interference_range>40.0</interference_range>
+      <success_ratio_tx>0.9</success_ratio_tx>
+      <success_ratio_rx>0.9</success_ratio_rx>
     </radiomedium>
     <motetype>
       se.sics.cooja.mspmote.SkyMoteType
@@ -25,8 +25,8 @@
       <motetype_identifier>sky1</motetype_identifier>
       <interface_config>
         se.sics.cooja.interfaces.Position
-        <x>29.17421996892351</x>
-        <y>104.77909205535983</y>
+        <x>9.333811152651393</x>
+        <y>89.28114548870677</y>
         <z>0.0</z>
       </interface_config>
       <interface_config>
@@ -39,8 +39,8 @@
       <motetype_identifier>sky1</motetype_identifier>
       <interface_config>
         se.sics.cooja.interfaces.Position
-        <x>59.38068944364397</x>
-        <y>97.64274390719908</y>
+        <x>33.040227185226826</x>
+        <y>54.184283361563054</y>
         <z>0.0</z>
       </interface_config>
       <interface_config>
@@ -53,8 +53,8 @@
       <motetype_identifier>sky1</motetype_identifier>
       <interface_config>
         se.sics.cooja.interfaces.Position
-        <x>4.709236350803614</x>
-        <y>36.140965282433676</y>
+        <x>-2.2559922410521516</x>
+        <y>50.71648775308175</y>
         <z>0.0</z>
       </interface_config>
       <interface_config>
@@ -81,8 +81,8 @@
       <motetype_identifier>sky1</motetype_identifier>
       <interface_config>
         se.sics.cooja.interfaces.Position
-        <x>4.405437081821395</x>
-        <y>74.51872257012788</y>
+        <x>15.917348901177405</x>
+        <y>66.93526904376517</y>
         <z>0.0</z>
       </interface_config>
       <interface_config>
@@ -95,8 +95,8 @@
       <motetype_identifier>sky1</motetype_identifier>
       <interface_config>
         se.sics.cooja.interfaces.Position
-        <x>20.032542580805657</x>
-        <y>38.81348491507741</y>
+        <x>26.735174243053933</x>
+        <y>35.939375910459084</y>
         <z>0.0</z>
       </interface_config>
       <interface_config>
@@ -109,8 +109,8 @@
       <motetype_identifier>sky1</motetype_identifier>
       <interface_config>
         se.sics.cooja.interfaces.Position
-        <x>44.10978600980437</x>
-        <y>49.73908473744734</y>
+        <x>41.5254792748469</x>
+        <y>28.370611308140152</y>
         <z>0.0</z>
       </interface_config>
       <interface_config>
@@ -122,7 +122,7 @@
   <plugin>
     se.sics.cooja.plugins.SimControl
     <width>265</width>
-    <z>1</z>
+    <z>2</z>
     <height>200</height>
     <location_x>0</location_x>
     <location_y>0</location_y>
@@ -135,19 +135,28 @@
       <history>256</history>
     </plugin_config>
     <width>1168</width>
-    <z>3</z>
-    <height>209</height>
-    <location_x>0</location_x>
-    <location_y>621</location_y>
+    <z>4</z>
+    <height>240</height>
+    <location_x>-1</location_x>
+    <location_y>618</location_y>
     <minimized>false</minimized>
   </plugin>
   <plugin>
     se.sics.cooja.radiomediums.UDGM$VisUDGM
     <width>300</width>
-    <z>2</z>
+    <z>1</z>
     <height>300</height>
-    <location_x>864</location_x>
-    <location_y>0</location_y>
+    <location_x>31</location_x>
+    <location_y>287</location_y>
+    <minimized>false</minimized>
+  </plugin>
+  <plugin>
+    se.sics.cooja.plugins.RadioLogger
+    <width>424</width>
+    <z>3</z>
+    <height>595</height>
+    <location_x>988</location_x>
+    <location_y>13</location_y>
     <minimized>false</minimized>
   </plugin>
 </simconf>
