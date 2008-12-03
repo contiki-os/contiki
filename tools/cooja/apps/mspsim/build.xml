@@ -8,35 +8,41 @@
 	<property name="cooja" location="../.."/>
   
 	<property name="cooja_jar" value="${cooja}/dist/cooja.jar"/>
+  <property name="mspsim" location="../../../mspsim"/>
   <property name="mspsim_jar" value="${lib}/mspsim.jar"/>
   <property name="cooja_mspsim_jar" value="${lib}/cooja_mspsim.jar"/>
 
   <target name="init">
     <tstamp/>
-  </target>
-
-  <target name="clean" depends="init">
-    <delete dir="${build}"/>
-    <delete file="${cooja_mspsim_jar}"/>
-  </target>
-
-  <target name="compile" depends="init">
     <mkdir dir="${build}"/>
+    <mkdir dir="${lib}"/>
+  </target>
+
+  <target name="clean">
+    <delete dir="${build}"/>
+    <delete dir="${lib}"/>
+  </target>
+
+  <target name="mspsim" depends="init">
+    <copy todir="${lib}" file="${mspsim}/mspsim.jar" />
+  </target>
+
+  <target name="compile" depends="init,mspsim">
     <javac srcdir="${src}" destdir="${build}" debug="on">
       <classpath>
-        <pathelement location="lib/mspsim.jar"/>
+        <pathelement location="${mspsim_jar}"/>
         <pathelement location="${cooja_jar}"/>
       </classpath>
     </javac>
   </target>
 
-  <target name="javadoc" depends="init">
+  <target name="javadoc" depends="compile">
     <delete dir="${javadoc}" quiet="true"/>
     <mkdir dir="${javadoc}/"/>
     <javadoc destdir="${javadoc}">
       <fileset dir="${src}/" includes="**/*.java"/>
       <classpath>
-        <pathelement location="lib/mspsim.jar"/>
+        <pathelement location="${mspsim_jar}"/>
         <pathelement location="${cooja_jar}"/>
       </classpath>
     </javadoc>
