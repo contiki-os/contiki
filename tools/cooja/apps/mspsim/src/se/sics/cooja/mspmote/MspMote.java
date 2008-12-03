@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: MspMote.java,v 1.15 2008/10/28 17:02:13 fros4943 Exp $
+ * $Id: MspMote.java,v 1.16 2008/12/03 15:36:49 fros4943 Exp $
  */
 
 package se.sics.cooja.mspmote;
@@ -237,7 +237,8 @@ public abstract class MspMote implements Mote {
       myELFModule = node.loadFirmware(fileELF.getPath(), memory);
     }
 
-    /* TODO Need new memory type including size and type as well */
+    /* Throw exceptions at bad memory access */
+    /*myCpu.setThrowIfWarning(true);*/
 
     /* Create mote address memory */
     MapTable map = myELFModule.getMap();
