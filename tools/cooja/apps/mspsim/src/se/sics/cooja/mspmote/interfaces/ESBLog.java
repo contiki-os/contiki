@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ESBLog.java,v 1.3 2008/10/28 17:02:58 fros4943 Exp $
+ * $Id: ESBLog.java,v 1.4 2008/12/03 13:13:07 fros4943 Exp $
  */
 
 package se.sics.cooja.mspmote.interfaces;
@@ -129,4 +129,6 @@ public class ESBLog extends Log implements USARTListener {
     }
   }
 
+  public void stateChanged(int state) {
+  }
 }
