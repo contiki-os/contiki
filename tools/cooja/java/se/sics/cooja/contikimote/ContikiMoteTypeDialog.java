@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ContikiMoteTypeDialog.java,v 1.49 2008/11/03 18:32:22 fros4943 Exp $
+ * $Id: ContikiMoteTypeDialog.java,v 1.50 2008/12/03 15:18:47 fros4943 Exp $
  */
 
 package se.sics.cooja.contikimote;
@@ -49,6 +49,7 @@ import se.sics.cooja.MoteType.MoteTypeCreationException;
 import se.sics.cooja.contikimote.ContikiMoteType.CommunicationStack;
 import se.sics.cooja.dialogs.MessageList;
 import se.sics.cooja.dialogs.ProjectDirectoriesDialog;
+import se.sics.cooja.dialogs.MessageList.MessageContainer;
 
 /**
  * A dialog for configuring Contiki mote types and compiling Contiki mote type
@@ -1053,10 +1054,10 @@ public class ContikiMoteTypeDialog extends JDialog {
     consoleOutputMenuItem.setEnabled(true);
     consoleOutputMenuItem.addActionListener(new ActionListener() {
       public void actionPerformed(ActionEvent e) {
-        int nrRows = taskOutput.getModel().getSize();
+        MessageContainer[] messages = taskOutput.getMessages();
         System.out.println("\nCOMPILATION OUTPUT:\n");
-        for (int n=0; n < nrRows; n++) {
-          System.out.println(taskOutput.getModel().getElementAt(n));
+        for (MessageContainer msg: messages) {
+          System.out.println(msg);
         }
         System.out.println();
       }
@@ -1070,9 +1071,9 @@ public class ContikiMoteTypeDialog extends JDialog {
         Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
 
         String output = "";
-        int nrRows = taskOutput.getModel().getSize();
-        for (int n=0; n < nrRows; n++) {
-          output += taskOutput.getModel().getElementAt(n) + "\n";
+        MessageContainer[] messages = taskOutput.getMessages();
+        for (MessageContainer msg: messages) {
+          output += msg + "\n";
         }
 
         StringSelection stringSelection = new StringSelection(output);

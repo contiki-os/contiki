@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ScriptRunner.java,v 1.7 2008/11/05 18:17:45 fros4943 Exp $
+ * $Id: ScriptRunner.java,v 1.8 2008/12/03 15:21:02 fros4943 Exp $
  */
 
 package se.sics.cooja.plugins;
@@ -45,7 +45,6 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
-import java.io.PrintStream;
 import java.io.StringReader;
 import java.util.*;
 import java.util.regex.Matcher;
@@ -435,9 +434,7 @@ public class ScriptRunner extends VisPlugin {
 
     try {
       final Process externalCoojaProcess;
-      MessageList testOutput = new MessageList();
-      final PrintStream normal = testOutput.getInputStream(MessageList.NORMAL);
-      final PrintStream error = testOutput.getInputStream(MessageList.ERROR);
+      final MessageList testOutput = new MessageList();
 
       JPanel progressPanel = new JPanel(new BorderLayout());
       final JDialog progressDialog = new JDialog((Window)GUI.getTopParentContainer(), (String) null);
@@ -482,8 +479,8 @@ public class ScriptRunner extends VisPlugin {
           String readLine;
           try {
             while ((readLine = input.readLine()) != null) {
-              if (normal != null) {
-                normal.println(readLine);
+              if (testOutput != null) {
+                testOutput.addMessage(readLine, MessageList.NORMAL);
               }
             }
 
@@ -491,9 +488,9 @@ public class ScriptRunner extends VisPlugin {
             logger.warn("Error while reading from process");
           }
 
-          normal.println("");
-          normal.println("");
-          normal.println("");
+          testOutput.addMessage("", MessageList.NORMAL);
+          testOutput.addMessage("", MessageList.NORMAL);
+          testOutput.addMessage("", MessageList.NORMAL);
 
           /* Parse log file for success info */
           try {
@@ -506,7 +503,7 @@ public class ScriptRunner extends VisPlugin {
               if (line == null) {
                 line = "";
               }
-              normal.println(line);
+              testOutput.addMessage("", MessageList.NORMAL);
               if (line.contains("TEST OK")) {
                 testSucceeded = true;
                break;
@@ -537,8 +534,8 @@ public class ScriptRunner extends VisPlugin {
           String readLine;
           try {
             while ((readLine = err.readLine()) != null) {
-              if (error != null) {
-                error.println(readLine);
+              if (testOutput != null) {
+                testOutput.addMessage(readLine, MessageList.ERROR);
               }
             }
           } catch (IOException e) {

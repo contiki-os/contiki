@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: MspMoteType.java,v 1.19 2008/11/04 17:37:09 fros4943 Exp $
+ * $Id: MspMoteType.java,v 1.20 2008/12/03 15:19:03 fros4943 Exp $
  */
 
 package se.sics.cooja.mspmote;
@@ -45,6 +45,7 @@ import org.apache.log4j.Logger;
 import org.jdom.Element;
 import se.sics.cooja.*;
 import se.sics.cooja.dialogs.MessageList;
+import se.sics.cooja.dialogs.MessageList.MessageContainer;
 
 @ClassDescription("Msp Mote Type")
 public abstract class MspMoteType implements MoteType {
@@ -239,14 +240,13 @@ public abstract class MspMoteType implements MoteType {
           newException = (MoteTypeCreationException) newException.initCause(e);
           newException.setCompilationOutput(compilationOutput);
 
-          /* Print last compilation errors */
-          try { Thread.sleep(500); } catch (InterruptedException ignore) { }
-          ListModel tmp = compilationOutput.getModel();
-          for (int i=tmp.getSize()-5; i < tmp.getSize(); i++) {
+          /* Print last 5 compilation errors */
+          MessageContainer[] messages = compilationOutput.getMessages();
+          for (int i=messages.length-5; i < messages.length; i++) {
             if (i < 0) {
               continue;
             }
-            logger.fatal(">> " + tmp.getElementAt(i));
+            logger.fatal(">> " + messages[i]);
           }
 
           logger.fatal("Compilation error: " + e.getMessage());
