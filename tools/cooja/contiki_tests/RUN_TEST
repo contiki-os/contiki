@@ -27,16 +27,19 @@ if [ $LOGFILE -eq 1 ]; then
   if [ $OK == 0 ]; then
     echo "FAIL" >> $LOG
     if [ -f "$TEST.info" ]; then
-      echo "--LOG INFO START ($TEST.info) --" >> $LOG
+      echo "-- TEST INFO ($TEST.info) --" >> $LOG
       cat $TEST.info >> $LOG
-      echo "--LOG INFO END --" >> $LOG
     else
-      echo "-- NO LOG INFO AVAILABLE ($TEST.info) --" >> $LOG
+      echo "-- NO TEST INFO AVAILABLE ($TEST.info) --" >> $LOG
     fi
-    echo "-- OUTPUT TAIL START ($TEST.cooja_log) --" >> $LOG
+    if [ -f "$TEST.log" ]; then
+      echo "-- TEST OUTPUT (tail $TEST.log) --" >> $LOG
+      tail -5 $TEST.log >> $LOG
+    else
+      echo "-- NO TEST OUTPUT AVAILABLE ($TEST.log) --" >> $LOG
+    fi
+    echo "-- COOJA OUTPUT (tail $TEST.cooja_log) --" >> $LOG
     tail -5 $TEST.cooja_log >> $LOG
-    echo "-- OUTPUT TAIL END --" >> $LOG
-    echo >> $LOG
   else
     echo "OK" >> $LOG
   fi
