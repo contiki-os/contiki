@@ -24,7 +24,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * $Id: Simulation.java,v 1.30 2008/12/03 15:38:01 fros4943 Exp $
+ * $Id: Simulation.java,v 1.31 2008/12/03 16:37:06 fros4943 Exp $
  */
 
 package se.sics.cooja;
@@ -198,6 +198,7 @@ public class Simulation extends Observable implements Runnable {
     mspMoteArray = mspMotes.toArray(new Mote[mspMotes.size()]);
     moteArray = contikiMotes.toArray(new Mote[contikiMotes.size()]);
 
+    boolean increasedTime;
     try {
       while (isRunning) {
 
@@ -206,11 +207,14 @@ public class Simulation extends Observable implements Runnable {
           throw new RuntimeException("No more events");
         }
 
+        increasedTime = nextEvent.time > currentSimulationTime;
         currentSimulationTime = nextEvent.time;
         nextEvent.execute(currentSimulationTime);
 
         /* Notify tick observers */
-        tickObservable.allTicksPerformed();
+        if (increasedTime) {
+          tickObservable.allTicksPerformed();
+        }
 
         if (stopSimulation) {
           isRunning = false;
