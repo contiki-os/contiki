@@ -26,14 +26,14 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: MessageList.java,v 1.7 2008/11/04 17:33:42 fros4943 Exp $
+ * $Id: MessageList.java,v 1.8 2008/12/03 15:17:56 fros4943 Exp $
  *
  * -----------------------------------------------------------------
  *
  * Author  : Adam Dunkels, Joakim Eriksson, Niclas Finne, Fredrik Osterlind
  * Created : 2006-06-14
- * Updated : $Date: 2008/11/04 17:33:42 $
- *           $Revision: 1.7 $
+ * Updated : $Date: 2008/12/03 15:17:56 $
+ *           $Revision: 1.8 $
  */
 package se.sics.cooja.dialogs;
 import java.awt.Color;
@@ -44,6 +44,7 @@ import java.io.InputStreamReader;
 import java.io.PipedInputStream;
 import java.io.PipedOutputStream;
 import java.io.PrintStream;
+import java.util.ArrayList;
 import javax.swing.DefaultListCellRenderer;
 import javax.swing.DefaultListModel;
 import javax.swing.JList;
@@ -125,21 +126,39 @@ public class MessageList extends JList {
     addMessage(message, NORMAL);
   }
 
-  public void addMessage(final String message, final int type) {
+  private ArrayList<MessageContainer> messages = new ArrayList<MessageContainer>();
+
+  public MessageContainer[] getMessages() {
+    MessageContainer[] messagesArray = new MessageContainer[messages.size()];
+    messages.toArray(messagesArray);
+    return messagesArray;
+  }
+
+  private void updateModel() {
     boolean scroll = getLastVisibleIndex() >= getModel().getSize() - 2;
-    MessageContainer msg = new MessageContainer(message, type);
-    ((DefaultListModel) getModel()).addElement(msg);
+
+    while (messages.size() > getModel().getSize()) {
+      ((DefaultListModel) getModel()).addElement(messages.get(getModel().getSize()));
+    }
 
     if (scroll) {
-      java.awt.EventQueue.invokeLater(new Runnable() {
-        public void run() {
-          ensureIndexIsVisible(getModel().getSize() - 1);
-        }
-      });
+      ensureIndexIsVisible(getModel().getSize() - 1);
     }
   }
 
+  public void addMessage(final String message, final int type) {
+    MessageContainer msg = new MessageContainer(message, type);
+    messages.add(msg);
+
+    java.awt.EventQueue.invokeLater(new Runnable() {
+      public void run() {
+        updateModel();
+      }
+    });
+  }
+
   public void clearMessages() {
+    messages.clear();
     ((DefaultListModel) getModel()).clear();
   }
 
@@ -152,7 +171,7 @@ public class MessageList extends JList {
   // MessageContainer
   // -------------------------------------------------------------------
 
-  private static class MessageContainer {
+  public static class MessageContainer {
     public final int type;
     public final String message;
 
