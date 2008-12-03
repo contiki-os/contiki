@@ -24,7 +24,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * $Id: GUI.java,v 1.92 2008/11/21 13:09:53 fros4943 Exp $
+ * $Id: GUI.java,v 1.93 2008/12/03 16:06:33 fros4943 Exp $
  */
 
 package se.sics.cooja;
@@ -1736,7 +1736,7 @@ public class GUI extends Observable {
         pluginClass.asSubclass(VisPlugin.class);
 
         // Cast succeded, plugin is visualizer plugin!
-        logger.warn("Can't start visualizer plugin (no GUI): " + pluginClass);
+        /*logger.warn("Can't start visualizer plugin (no GUI): " + pluginClass);*/
         return null;
       } catch (ClassCastException e) {
       }
