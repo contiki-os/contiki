@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: SkySerial.java,v 1.5 2008/11/26 16:23:43 nifi Exp $
+ * $Id: SkySerial.java,v 1.6 2008/12/03 13:04:21 fros4943 Exp $
  */
 
 package se.sics.cooja.mspmote.interfaces;
@@ -69,6 +69,10 @@ public class SkySerial extends Log implements SerialPort, USARTListener {
 
   private class SerialDataObservable extends Observable {
     private void notifyNewData() {
+      if (this.countObservers() == 0) {
+        return;
+      }
+
       setChanged();
       notifyObservers(SkySerial.this);
     }
@@ -89,11 +93,16 @@ public class SkySerial extends Log implements SerialPort, USARTListener {
     }
   }
 
+  public void stateChanged(int state) {
+    if (state == USARTListener.RXFLAG_CLEARED) {
+      tryWriteNextByte();
+    }
+  }
+
   public void writeByte(byte b) {
     incomingData.add(b);
-    if (!writeDataEvent.isScheduled()) {
-      mote.getSimulation().scheduleEvent(writeDataEvent, mote.getSimulation().getSimulationTime());
-    }
+    tryWriteNextByte();
+    mote.getSimulation().scheduleEvent(writeDataEvent, mote.getSimulation().getSimulationTime());
   }
 
   public void writeString(String s) {
@@ -124,19 +133,24 @@ public class SkySerial extends Log implements SerialPort, USARTListener {
     return lastSerialData;
   }
 
+  private void tryWriteNextByte() {
+    if (incomingData.isEmpty()) {
+      return;
+    }
+    if (!usart.isReceiveFlagCleared()) {
+      return;
+    }
+
+    /* Write byte to serial port */
+    byte b = incomingData.remove(0);
+    usart.byteReceived(b);
+  }
+
   private TimeEvent writeDataEvent = new TimeEvent(0) {
     public void execute(int t) {
-      /* TODO Implement MSPSim callback - better timing */
-
-      /* Write another byte to serial port */
+      tryWriteNextByte();
       if (!incomingData.isEmpty()) {
-        if (usart.isReceiveFlagCleared()) {
-          byte b = incomingData.remove(0);
-          usart.byteReceived(b);
-        }
-        if (!incomingData.isEmpty()) {
-          mote.getSimulation().scheduleEvent(this, t+1);
-        }
+        mote.getSimulation().scheduleEvent(this, t+1);
       }
     }
   };
@@ -160,7 +174,9 @@ public class SkySerial extends Log implements SerialPort, USARTListener {
         if (command != null) {
           try {
             int previous = historyCount - 1;
-            if (previous < 0) previous += history.length;
+            if (previous < 0) {
+              previous += history.length;
+            }
             if (!command.equals(history[previous])) {
               history[historyCount] = command;
               historyCount = (historyCount + 1) % history.length;
@@ -260,8 +276,6 @@ public class SkySerial extends Log implements SerialPort, USARTListener {
     panel.add(BorderLayout.CENTER, scrollPane);
     panel.add(BorderLayout.SOUTH, sendPane);
     return panel;
-
-
   }
 
   protected void addToLog(String text) {
