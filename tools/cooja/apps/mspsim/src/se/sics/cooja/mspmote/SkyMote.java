@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: SkyMote.java,v 1.8 2008/10/28 17:02:13 fros4943 Exp $
+ * $Id: SkyMote.java,v 1.9 2008/12/03 13:11:20 fros4943 Exp $
  */
 
 package se.sics.cooja.mspmote;
@@ -36,6 +36,7 @@ import java.util.Random;
 import org.apache.log4j.Logger;
 import se.sics.cooja.MoteInterfaceHandler;
 import se.sics.cooja.Simulation;
+import se.sics.cooja.AddressMemory.UnknownVariableException;
 import se.sics.cooja.interfaces.*;
 import se.sics.cooja.mspmote.interfaces.*;
 import se.sics.mspsim.platform.sky.SkyNode;
@@ -106,6 +107,15 @@ public class SkyMote extends MspMote {
     // Add LED interface
     SkyLED moteLED = new SkyLED(this);
     moteInterfaceHandler.addInterface(moteLED);
+
+    /* IP Address (if uIP is used) */
+    try {
+      if (((MspMoteMemory)this.getMemory()).getVariableAddress("uip_hostaddr") != 0) {
+        IPAddress ip = new MspIPAddress(this);
+        moteInterfaceHandler.addInterface(ip);
+      }
+    } catch (UnknownVariableException e) {
+    }
 
     return moteInterfaceHandler;
   }
