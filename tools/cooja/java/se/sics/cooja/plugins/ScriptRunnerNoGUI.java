@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ScriptRunnerNoGUI.java,v 1.4 2008/11/05 18:18:16 fros4943 Exp $
+ * $Id: ScriptRunnerNoGUI.java,v 1.5 2008/12/03 16:23:26 fros4943 Exp $
  */
 
 package se.sics.cooja.plugins;
@@ -154,19 +154,17 @@ public class ScriptRunnerNoGUI implements Plugin {
         }
       });
 
-      /* Create timeout watch */
-      sim.addTickObserver(new Observer() {
-        public void update(Observable obs, Object obj) {
-          if (sim.getSimulationTime() > TIMEOUT) {
-            try {
-              logWriter.write("TEST TIMEOUT");
-              logWriter.flush();
-            } catch (IOException e) {
-            }
-            gui.doQuit(false);
+      /* Create timeout event */
+      sim.scheduleEvent(new TimeEvent(0) {
+        public void execute(int t) {
+          try {
+            logWriter.write("TEST TIMEOUT");
+            logWriter.flush();
+          } catch (IOException e) {
           }
+          gui.doQuit(false);
         }
-      });
+      }, TIMEOUT);
 
       /* Start simulation and leave control to script */
       sim.startSimulation();
