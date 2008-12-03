@@ -24,7 +24,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * $Id: Simulation.java,v 1.29 2008/11/03 18:09:43 fros4943 Exp $
+ * $Id: Simulation.java,v 1.30 2008/12/03 15:38:01 fros4943 Exp $
  */
 
 package se.sics.cooja;
@@ -221,7 +221,13 @@ public class Simulation extends Observable implements Runnable {
     } catch (IllegalMonitorStateException e) {
       logger.warn("IllegalMonitorStateException:" + e);
     } catch (RuntimeException e) {
-      logger.warn("Simulation stop requested: " + e);
+      if (e.getClass().getName().contains("IllegalStateException")) { /* XXX Change exception type */
+        /* MSPSim memory alignment exception */
+        logger.fatal("MSPSim detected memory alignment error: " + e);
+      } else {
+        logger.warn("Simulation stopped for unknown reason: " + e);
+        e.printStackTrace();
+      }
     }
     isRunning = false;
     thread = null;
