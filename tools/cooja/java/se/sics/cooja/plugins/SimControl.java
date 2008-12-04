@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: SimControl.java,v 1.9 2008/11/03 18:10:13 fros4943 Exp $
+ * $Id: SimControl.java,v 1.10 2008/12/04 12:46:42 fros4943 Exp $
  */
 
 package se.sics.cooja.plugins;
@@ -153,8 +153,8 @@ public class SimControl extends VisPlugin {
     stopButton = button;
     smallPanel.add(button);
 
-    button = new JButton("Handle single event");
-    button.setActionCommand("single_event");
+    button = new JButton("Step millisecond");
+    button.setActionCommand("single_ms");
     button.addActionListener(myEventHandler);
     smallPanel.add(button);
 
@@ -293,7 +293,7 @@ public class SimControl extends VisPlugin {
         if (simulation.isRunning()) {
           simulation.stopSimulation();
         }
-      } else if (e.getActionCommand().equals("single_event")) {
+      } else if (e.getActionCommand().equals("single_ms")) {
         simulation.tickSimulation();
       } else {
         logger.debug("Unhandled action: " + e.getActionCommand());
