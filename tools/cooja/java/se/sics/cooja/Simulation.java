@@ -24,7 +24,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * $Id: Simulation.java,v 1.32 2008/12/04 12:44:02 fros4943 Exp $
+ * $Id: Simulation.java,v 1.33 2008/12/04 13:04:26 fros4943 Exp $
  */
 
 package se.sics.cooja;
@@ -275,7 +275,9 @@ public class Simulation extends Observable implements Runnable {
       /* Wait until simulation stops */
       if (Thread.currentThread() != thread) {
         try {
-          thread.join();
+          if (thread != null) {
+            thread.join();
+          }
         } catch (InterruptedException e) {
         }
       }
