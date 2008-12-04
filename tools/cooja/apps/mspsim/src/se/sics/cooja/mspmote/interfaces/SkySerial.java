@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: SkySerial.java,v 1.6 2008/12/03 13:04:21 fros4943 Exp $
+ * $Id: SkySerial.java,v 1.7 2008/12/04 13:09:27 fros4943 Exp $
  */
 
 package se.sics.cooja.mspmote.interfaces;
@@ -134,15 +134,19 @@ public class SkySerial extends Log implements SerialPort, USARTListener {
   }
 
   private void tryWriteNextByte() {
-    if (incomingData.isEmpty()) {
-      return;
-    }
-    if (!usart.isReceiveFlagCleared()) {
-      return;
-    }
+    byte b;
 
-    /* Write byte to serial port */
-    byte b = incomingData.remove(0);
+    synchronized (incomingData) {
+      if (!usart.isReceiveFlagCleared()) {
+        return;
+      }
+      if (incomingData.isEmpty()) {
+        return;
+      }
+
+      /* Write byte to serial port */
+      b = incomingData.remove(0);
+    }
     usart.byteReceived(b);
   }
 
