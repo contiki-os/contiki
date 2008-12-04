@@ -24,7 +24,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * $Id: Simulation.java,v 1.31 2008/12/03 16:37:06 fros4943 Exp $
+ * $Id: Simulation.java,v 1.32 2008/12/04 12:44:02 fros4943 Exp $
  */
 
 package se.sics.cooja;
@@ -271,15 +271,12 @@ public class Simulation extends Observable implements Runnable {
   public void stopSimulation() {
     if (isRunning()) {
       stopSimulation = true;
-      thread.interrupt();
 
-      // Wait until simulation stops
+      /* Wait until simulation stops */
       if (Thread.currentThread() != thread) {
-        while (thread != null && thread.isAlive()) {
-          try {
-            Thread.sleep(10);
-          } catch (InterruptedException e) {
-          }
+        try {
+          thread.join();
+        } catch (InterruptedException e) {
         }
       }
     }
@@ -290,21 +287,13 @@ public class Simulation extends Observable implements Runnable {
    * simulation again.
    */
   public void tickSimulation() {
-    stopSimulation = true;
-
-    if (!isRunning()) {
-      thread = new Thread(this);
-      thread.start();
-    }
-
-    // Wait until simulation stops
-    while (thread != null && thread.isAlive()) {
-      try {
-        Thread.sleep(10);
-      } catch (InterruptedException e) {
+    addTickObserver(new Observer() {
+      public void update(Observable obs, Object obj) {
+        stopSimulation();
+        deleteTickObserver(this);
       }
-    }
-
+    });
+    startSimulation();
   }
 
   /**
