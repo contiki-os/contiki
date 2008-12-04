@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: MspClock.java,v 1.5 2008/12/04 13:08:55 fros4943 Exp $
+ * $Id: MspClock.java,v 1.6 2008/12/04 14:03:41 joxe Exp $
  */
 
 package se.sics.cooja.mspmote.interfaces;
@@ -56,11 +56,11 @@ public class MspClock extends Clock {
     cpu = myMote.getCPU();
   }
 
-  public void setTime(int newTime) {
+  public void setTime(long newTime) {
     logger.fatal("Can't change emulated CPU time");
   }
 
-  public int getTime() {
+  public long getTime() {
     int time = (int) ((cpu.cycles + myMote.cycleDrift) / MspMote.NR_CYCLES_PER_MSEC);
     return time > 0 ? time : 0;
   }

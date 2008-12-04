@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ContikiButton.java,v 1.9 2008/10/28 13:37:11 fros4943 Exp $
+ * $Id: ContikiButton.java,v 1.10 2008/12/04 14:03:42 joxe Exp $
  */
 
 package se.sics.cooja.contikimote.interfaces;
@@ -85,7 +85,7 @@ public class ContikiButton extends Button implements ContikiMoteInterface {
   }
 
   private TimeEvent releaseButtonEvent = new TimeEvent(0) {
-    public void execute(int t) {
+    public void execute(long t) {
 
       /* Force mote awake when button is down */
       mote.setState(Mote.State.ACTIVE);

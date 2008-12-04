@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: MspMoteID.java,v 1.8 2008/10/29 08:35:38 fros4943 Exp $
+ * $Id: MspMoteID.java,v 1.9 2008/12/04 14:03:41 joxe Exp $
  */
 
 package se.sics.cooja.mspmote.interfaces;
@@ -123,7 +123,7 @@ public class MspMoteID extends MoteID {
   }
 
   private TimeEvent persistentSetIDEvent = new TimeEvent(0) {
-    public void execute(int t) {
+    public void execute(long t) {
 
       if (persistentSetIDCounter-- > 0)
       {

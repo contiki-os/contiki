@@ -24,7 +24,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * $Id: DisturberMote.java,v 1.4 2008/10/28 13:39:24 fros4943 Exp $
+ * $Id: DisturberMote.java,v 1.5 2008/12/04 14:03:42 joxe Exp $
  */
 
 package se.sics.cooja.motes;
@@ -141,7 +141,7 @@ public class DisturberMote implements Mote {
     this.mySim = simulation;
   }
 
-  public boolean tick(int simTime) {
+  public boolean tick(long simTime) {
     myInterfaceHandler.doPassiveActionsBeforeTick();
     myInterfaceHandler.doActiveActionsBeforeTick();
     myInterfaceHandler.doActiveActionsAfterTick();

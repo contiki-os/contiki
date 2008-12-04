@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: TR1001Radio.java,v 1.8 2008/12/03 13:14:07 fros4943 Exp $
+ * $Id: TR1001Radio.java,v 1.9 2008/12/04 14:03:41 joxe Exp $
  */
 
 package se.sics.cooja.mspmote.interfaces;
@@ -70,7 +70,7 @@ public class TR1001Radio extends Radio implements USARTListener, CustomDataRadio
 
   private RadioEvent lastEvent = RadioEvent.UNKNOWN;
 
-  private int lastEventTime = 0;
+  private long lastEventTime = 0;
 
   private USART radioUSART = null;
 
@@ -379,7 +379,7 @@ public class TR1001Radio extends Radio implements USARTListener, CustomDataRadio
   }
 
   private TimeEvent followupTransmissionEvent = new TimeEvent(0) {
-    public void execute(int t) {
+    public void execute(long t) {
 
       if (isTransmitting()) {
         ticksSinceLastSend++;

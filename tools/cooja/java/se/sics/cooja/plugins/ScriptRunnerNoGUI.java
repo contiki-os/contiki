@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ScriptRunnerNoGUI.java,v 1.5 2008/12/03 16:23:26 fros4943 Exp $
+ * $Id: ScriptRunnerNoGUI.java,v 1.6 2008/12/04 14:03:42 joxe Exp $
  */
 
 package se.sics.cooja.plugins;
@@ -156,7 +156,7 @@ public class ScriptRunnerNoGUI implements Plugin {
 
       /* Create timeout event */
       sim.scheduleEvent(new TimeEvent(0) {
-        public void execute(int t) {
+        public void execute(long t) {
           try {
             logWriter.write("TEST TIMEOUT");
             logWriter.flush();

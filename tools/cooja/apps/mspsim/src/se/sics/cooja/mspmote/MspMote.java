@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: MspMote.java,v 1.17 2008/12/04 13:14:34 fros4943 Exp $
+ * $Id: MspMote.java,v 1.18 2008/12/04 14:03:41 joxe Exp $
  */
 
 package se.sics.cooja.mspmote;
@@ -296,7 +296,7 @@ public abstract class MspMote implements Mote {
   /* return false when done - e.g. true means more work to do before finished with this tick */
 
   private boolean firstTick = true;
-  public boolean tick(int simTime) {
+  public boolean tick(long simTime) {
     if (stopNextInstruction) {
       stopNextInstruction = false;
       throw new RuntimeException("MSPSim requested simulation stop");
@@ -309,7 +309,7 @@ public abstract class MspMote implements Mote {
       cycleDrift += (-NR_CYCLES_PER_MSEC*simTime);
     }
 
-    long maxSimTimeCycles = NR_CYCLES_PER_MSEC*(simTime+1) + cycleDrift;
+    long maxSimTimeCycles = NR_CYCLES_PER_MSEC * (simTime + 1) + cycleDrift;
 
     if (maxSimTimeCycles <= cycleCounter) {
       return false;

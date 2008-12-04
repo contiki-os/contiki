@@ -24,7 +24,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * $Id: Mote.java,v 1.5 2008/03/31 15:22:42 fros4943 Exp $
+ * $Id: Mote.java,v 1.6 2008/12/04 14:03:42 joxe Exp $
  */
 
 package se.sics.cooja;
@@ -179,7 +179,7 @@ public interface Mote {
    *          New simulation time
    * @return True is mote accepts another immediate tick
    */
-  public boolean tick(int simTime);
+  public boolean tick(long simTime);
 
   /**
    * Returns XML elements representing the current config of this mote. This is

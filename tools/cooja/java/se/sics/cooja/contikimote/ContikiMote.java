@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ContikiMote.java,v 1.8 2008/10/28 12:05:30 fros4943 Exp $
+ * $Id: ContikiMote.java,v 1.9 2008/12/04 14:03:42 joxe Exp $
  */
 
 package se.sics.cooja.contikimote;
@@ -176,7 +176,7 @@ public class ContikiMote implements Mote {
    *
    * @param simTime Current simulation time
    */
-  public boolean tick(int simTime) {
+  public boolean tick(long simTime) {
     State currentState = getState();
 
     // If mote is dead, do nothing at all

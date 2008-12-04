@@ -24,7 +24,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * $Id: Simulation.java,v 1.33 2008/12/04 13:04:26 fros4943 Exp $
+ * $Id: Simulation.java,v 1.34 2008/12/04 14:03:42 joxe Exp $
  */
 
 package se.sics.cooja;
@@ -54,7 +54,7 @@ public class Simulation extends Observable implements Runnable {
 
   private int delayTime = 5;
 
-  private int currentSimulationTime = 0;
+  private long currentSimulationTime = 0;
 
   private int tickTime = 1;
 
@@ -117,7 +117,7 @@ public class Simulation extends Observable implements Runnable {
    * @param e Event
    * @param time Simulated time
    */
-  public void scheduleEvent(TimeEvent e, int time) {
+  public void scheduleEvent(TimeEvent e, long time) {
     eventQueue.addEvent(e, time);
   }
 
@@ -125,7 +125,7 @@ public class Simulation extends Observable implements Runnable {
 
   private Mote[] mspMoteArray;
   private TimeEvent tickMspMotesEvent = new TimeEvent(0) {
-    public void execute(int t) {
+    public void execute(long t) {
       /*logger.info("MSP motes tick at: " + t);*/
 
       /* Tick MSP motes */
@@ -147,7 +147,7 @@ public class Simulation extends Observable implements Runnable {
 
   private Mote[] moteArray;
   private TimeEvent tickMotesEvent = new TimeEvent(0) {
-    public void execute(int t) {
+    public void execute(long t) {
       /*logger.info("Contiki motes tick at: " + t);*/
 
       /* Tick Contiki motes */
@@ -161,7 +161,7 @@ public class Simulation extends Observable implements Runnable {
   };
 
   private TimeEvent delayEvent = new TimeEvent(0) {
-    public void execute(int t) {
+    public void execute(long t) {
       /*logger.info("Delay at: " + t);*/
 
       if (delayTime > 0) {
@@ -685,7 +685,7 @@ public class Simulation extends Observable implements Runnable {
    *
    * @return Simulation time (ms)
    */
-  public int getSimulationTime() {
+  public long getSimulationTime() {
     return currentSimulationTime;
   }
 
