@@ -24,7 +24,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * $Id: Simulation.java,v 1.34 2008/12/04 14:03:42 joxe Exp $
+ * $Id: Simulation.java,v 1.35 2008/12/04 16:52:03 fros4943 Exp $
  */
 
 package se.sics.cooja;
@@ -127,6 +127,9 @@ public class Simulation extends Observable implements Runnable {
   private TimeEvent tickMspMotesEvent = new TimeEvent(0) {
     public void execute(long t) {
       /*logger.info("MSP motes tick at: " + t);*/
+      if (mspMoteArray.length == 0) {
+        return;
+      }
 
       /* Tick MSP motes */
       boolean wantMoreTicks = true;
@@ -149,6 +152,9 @@ public class Simulation extends Observable implements Runnable {
   private TimeEvent tickMotesEvent = new TimeEvent(0) {
     public void execute(long t) {
       /*logger.info("Contiki motes tick at: " + t);*/
+      if (moteArray.length == 0) {
+        return;
+      }
 
       /* Tick Contiki motes */
       for (Mote mote : moteArray) {
@@ -163,14 +169,15 @@ public class Simulation extends Observable implements Runnable {
   private TimeEvent delayEvent = new TimeEvent(0) {
     public void execute(long t) {
       /*logger.info("Delay at: " + t);*/
+      if (delayTime == 0)
+        return;
 
-      if (delayTime > 0) {
-        try { Thread.sleep(delayTime); } catch (InterruptedException e) { }
-        scheduleEvent(this, t+1);
-      }
+      try { Thread.sleep(delayTime); } catch (InterruptedException e) { }
+      scheduleEvent(this, t+1);
     }
   };
 
+  private boolean rescheduleEvents = false;
   public void run() {
     long lastStartTime = System.currentTimeMillis();
     logger.info("Simulation main loop started, system time: " + lastStartTime);
@@ -200,9 +207,17 @@ public class Simulation extends Observable implements Runnable {
 
     boolean increasedTime;
     try {
+      TimeEvent nextEvent;
       while (isRunning) {
 
-        TimeEvent nextEvent = eventQueue.popFirst();
+        if (rescheduleEvents) {
+          rescheduleEvents = false;
+          scheduleEvent(tickMotesEvent, currentSimulationTime);
+          scheduleEvent(tickMspMotesEvent, currentSimulationTime);
+          scheduleEvent(delayEvent, currentSimulationTime);
+        }
+
+        nextEvent = eventQueue.popFirst();
         if (nextEvent == null) {
           throw new RuntimeException("No more events");
         }
@@ -652,7 +667,7 @@ public class Simulation extends Observable implements Runnable {
   public void setDelayTime(int delayTime) {
     this.delayTime = delayTime;
 
-    scheduleEvent(delayEvent, currentSimulationTime);
+    rescheduleEvents = true;
 
     this.setChanged();
     this.notifyObservers(this);
