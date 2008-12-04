@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: MspMote.java,v 1.16 2008/12/03 15:36:49 fros4943 Exp $
+ * $Id: MspMote.java,v 1.17 2008/12/04 13:14:34 fros4943 Exp $
  */
 
 package se.sics.cooja.mspmote;
@@ -65,11 +65,11 @@ public abstract class MspMote implements Mote {
   private static Logger logger = Logger.getLogger(MspMote.class);
 
   /* 2.4576 MHz according to Contiki's speed sync loop*/
-  public static int NR_CYCLES_PER_MSEC = 2458;
+  public static long NR_CYCLES_PER_MSEC = 2458;
 
   /* Cycle counter */
   public long cycleCounter = 0;
-  public int cycleDrift = 0;
+  public long cycleDrift = 0;
 
   private Simulation mySimulation = null;
   private CommandHandler commandHandler;
@@ -294,11 +294,12 @@ public abstract class MspMote implements Mote {
   protected abstract boolean initEmulator(File ELFFile);
 
   /* return false when done - e.g. true means more work to do before finished with this tick */
+
   private boolean firstTick = true;
   public boolean tick(int simTime) {
     if (stopNextInstruction) {
       stopNextInstruction = false;
-      throw new RuntimeException("Request simulation stop");
+      throw new RuntimeException("MSPSim requested simulation stop");
     }
 
     /* Nodes may be added in an ongoing simulation:
@@ -309,6 +310,7 @@ public abstract class MspMote implements Mote {
     }
 
     long maxSimTimeCycles = NR_CYCLES_PER_MSEC*(simTime+1) + cycleDrift;
+
     if (maxSimTimeCycles <= cycleCounter) {
       return false;
     }
