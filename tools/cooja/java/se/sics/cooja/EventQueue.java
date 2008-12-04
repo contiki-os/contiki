@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: EventQueue.java,v 1.1 2008/10/28 12:52:24 fros4943 Exp $
+ * $Id: EventQueue.java,v 1.2 2008/12/04 14:03:42 joxe Exp $
  */
 
 package se.sics.cooja;
@@ -37,13 +37,13 @@ package se.sics.cooja;
 public class EventQueue {
 
   private TimeEvent first;
-  private int nextTime;
+  private long nextTime;
   private int eventCount = 0;
 
   public EventQueue() {
   }
 
-  public void addEvent(TimeEvent event, int time) {
+  public void addEvent(TimeEvent event, long time) {
     event.time = time;
     addEvent(event);
   }

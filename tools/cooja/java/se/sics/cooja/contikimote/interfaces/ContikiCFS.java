@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ContikiCFS.java,v 1.7 2008/10/28 13:37:11 fros4943 Exp $
+ * $Id: ContikiCFS.java,v 1.8 2008/12/04 14:03:42 joxe Exp $
  */
 
 package se.sics.cooja.contikimote.interfaces;
@@ -110,7 +110,7 @@ public class ContikiCFS extends MoteInterface implements ContikiMoteInterface, P
   }
 
   private TimeEvent doneEvent = new TimeEvent(0) {
-    public void execute(int t) {
+    public void execute(long t) {
       myEnergyConsumption = 0.0;
     }
   };
@@ -203,7 +203,7 @@ public class ContikiCFS extends MoteInterface implements ContikiMoteInterface, P
     Observer observer;
     this.addObserver(observer = new Observer() {
       public void update(Observable obs, Object obj) {
-        int currentTime = mote.getSimulation().getSimulationTime();
+        long currentTime = mote.getSimulation().getSimulationTime();
         lastTimeLabel.setText("Last change at time: " + currentTime);
         lastReadLabel.setText("Last change read bytes: " + getLastReadCount());
         lastWrittenLabel.setText("Last change wrote bytes: " + getLastWrittenCount());

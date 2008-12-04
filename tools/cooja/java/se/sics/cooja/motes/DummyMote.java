@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: DummyMote.java,v 1.5 2008/10/28 13:39:24 fros4943 Exp $
+ * $Id: DummyMote.java,v 1.6 2008/12/04 14:03:42 joxe Exp $
  */
 
 package se.sics.cooja.motes;
@@ -146,7 +146,7 @@ public class DummyMote implements Mote {
     this.mySim = simulation;
   }
 
-  public boolean tick(int simTime) {
+  public boolean tick(long simTime) {
 
     // Perform some dummy task
     if (myRandom.nextDouble() > 0.9) {

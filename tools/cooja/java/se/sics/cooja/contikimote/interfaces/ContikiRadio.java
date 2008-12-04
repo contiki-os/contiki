@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ContikiRadio.java,v 1.23 2008/10/28 15:31:51 fros4943 Exp $
+ * $Id: ContikiRadio.java,v 1.24 2008/12/04 14:03:42 joxe Exp $
  */
 
 package se.sics.cooja.contikimote.interfaces;
@@ -121,11 +121,11 @@ public class ContikiRadio extends Radio implements ContikiMoteInterface, PolledA
 
   private boolean isInterfered = false;
 
-  private int transmissionEndTime = -1;
+  private long transmissionEndTime = -1;
 
   private RadioEvent lastEvent = RadioEvent.UNKNOWN;
 
-  private int lastEventTime = 0;
+  private long lastEventTime = 0;
 
   private int oldOutputPowerIndicator = -1;
 

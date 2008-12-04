@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: MspStackWatcher.java,v 1.4 2008/10/03 15:18:48 fros4943 Exp $
+ * $Id: MspStackWatcher.java,v 1.5 2008/12/04 14:03:41 joxe Exp $
  */
 
 package se.sics.cooja.mspmote.plugins;
@@ -103,7 +103,7 @@ public class MspStackWatcher extends VisPlugin {
     });
 
     // Create nfi's stack viewer
-    final StackUI stackUI = new StackUI(cpu, MspMote.NR_CYCLES_PER_MSEC);
+    final StackUI stackUI = new StackUI(cpu, (int)MspMote.NR_CYCLES_PER_MSEC);
 
     // Register as log listener
     /*if (logObserver == null && mspMote.getInterfaces().getLog() != null) {

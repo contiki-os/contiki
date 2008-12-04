@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: Clock.java,v 1.3 2008/10/29 08:37:42 fros4943 Exp $
+ * $Id: Clock.java,v 1.4 2008/12/04 14:03:42 joxe Exp $
  */
 
 package se.sics.cooja.interfaces;
@@ -49,12 +49,12 @@ public abstract class Clock extends MoteInterface {
    *
    * @param newTime Time
    */
-  public abstract void setTime(int newTime);
+  public abstract void setTime(long newTime);
 
   /**
    * @return Current time
    */
-  public abstract int getTime();
+  public abstract long getTime();
 
   /**
    * Set time drift.

@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: MspIPAddress.java,v 1.1 2008/12/03 13:11:20 fros4943 Exp $
+ * $Id: MspIPAddress.java,v 1.2 2008/12/04 14:03:41 joxe Exp $
  */
 
 package se.sics.cooja.mspmote.interfaces;
@@ -57,7 +57,7 @@ public class MspIPAddress extends IPAddress {
     this.moteMem = (MspMoteMemory) mote.getMemory();
 
     TimeEvent updateWhenAddressReady = new TimeEvent(0) {
-      public void execute(int t) {
+      public void execute(long t) {
         if (getIPString().equals("0.0.0.0")) {
           MspIPAddress.this.mote.getSimulation().scheduleEvent(
               this,

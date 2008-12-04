@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: TimeEvent.java,v 1.1 2008/10/28 12:51:22 fros4943 Exp $
+ * $Id: TimeEvent.java,v 1.2 2008/12/04 14:03:42 joxe Exp $
  */
 
 package se.sics.cooja;
@@ -43,18 +43,18 @@ public abstract class TimeEvent {
   EventQueue scheduledIn = null;
   String name;
 
-  protected int time;
+  protected long time;
 
-  public TimeEvent(int time) {
+  public TimeEvent(long time) {
     this.time = time;
   }
 
-  public TimeEvent(int time, String name) {
+  public TimeEvent(long time, String name) {
     this.time = time;
     this.name = name;
   }
 
-  public final int getTime() {
+  public final long getTime() {
     return time;
   }
 
@@ -69,7 +69,7 @@ public abstract class TimeEvent {
     return false;
   }
 
-  public abstract void execute(int t);
+  public abstract void execute(long t);
 
   public String getShort() {
     return "" + time + (name != null ? ": " + name : "");

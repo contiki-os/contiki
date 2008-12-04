@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: CreateSimDialog.java,v 1.13 2008/10/29 10:36:58 fros4943 Exp $
+ * $Id: CreateSimDialog.java,v 1.14 2008/12/04 14:03:42 joxe Exp $
  */
 
 package se.sics.cooja.dialogs;
@@ -127,7 +127,7 @@ public class CreateSimDialog extends JDialog {
     myDialog.delayTime.setValue(new Integer(simulationToConfigure.getDelayTime()));
 
     // Set simulation time
-    myDialog.simulationTime.setValue(new Integer(simulationToConfigure.getSimulationTime()));
+    myDialog.simulationTime.setValue(new Long(simulationToConfigure.getSimulationTime()));
 
     // Select radio medium
     if (simulationToConfigure.getRadioMedium() != null) {
