@@ -26,10 +26,12 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: EventQueue.java,v 1.2 2008/12/04 14:03:42 joxe Exp $
+ * $Id: EventQueue.java,v 1.3 2008/12/08 13:07:32 fros4943 Exp $
  */
 
 package se.sics.cooja;
+
+import java.util.ArrayList;
 
 /**
  * @author Joakim Eriksson (ported to COOJA by Fredrik Österlind)
@@ -40,7 +42,28 @@ public class EventQueue {
   private long nextTime;
   private int eventCount = 0;
 
+  private ArrayList<TimeEvent> pendingEvents = new ArrayList<TimeEvent>();
+  private boolean hasPendingEvents = false;
+
   public EventQueue() {
+  }
+
+  public synchronized void addPendingEvent(TimeEvent event, long time) {
+    event.time = time;
+    pendingEvents.add(event);
+    hasPendingEvents  = true;
+  }
+
+  private synchronized void handlePendingEvents() {
+    if (!hasPendingEvents) {
+      return;
+    }
+
+    for (TimeEvent e: pendingEvents) {
+      addEvent(e);
+    }
+    pendingEvents.clear();
+    hasPendingEvents = false;
   }
 
   public void addEvent(TimeEvent event, long time) {
@@ -118,6 +141,10 @@ public class EventQueue {
   }
 
   public TimeEvent popFirst() {
+    if (hasPendingEvents) {
+      handlePendingEvents();
+    }
+
     TimeEvent tmp = first;
     if (tmp == null) {
       return null;

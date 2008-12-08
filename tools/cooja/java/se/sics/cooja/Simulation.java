@@ -24,7 +24,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * $Id: Simulation.java,v 1.35 2008/12/04 16:52:03 fros4943 Exp $
+ * $Id: Simulation.java,v 1.36 2008/12/08 13:07:06 fros4943 Exp $
  */
 
 package se.sics.cooja;
@@ -68,7 +68,7 @@ public class Simulation extends Observable implements Runnable {
 
   private boolean stopSimulation = false;
 
-  private Thread thread = null;
+  private Thread simulationThread = null;
 
   private GUI myGUI = null;
 
@@ -111,6 +111,11 @@ public class Simulation extends Observable implements Runnable {
     tickObservable.deleteObserver(observer);
   }
 
+
+  protected void scheduleEventUnsafe(TimeEvent e, long time) {
+    eventQueue.addEvent(e, time);
+  }
+
   /**
    * Schedule event to be handled by event loop.
    *
@@ -118,7 +123,11 @@ public class Simulation extends Observable implements Runnable {
    * @param time Simulated time
    */
   public void scheduleEvent(TimeEvent e, long time) {
-    eventQueue.addEvent(e, time);
+    if (Thread.currentThread() == simulationThread) {
+      eventQueue.addEvent(e, time);
+    } else {
+      eventQueue.addPendingEvent(e, time);
+    }
   }
 
   private EventQueue eventQueue = new EventQueue();
@@ -144,7 +153,7 @@ public class Simulation extends Observable implements Runnable {
       }
 
       /* Reschedule MSP motes */
-      scheduleEvent(this, t+1);
+      scheduleEventUnsafe(this, t+1);
     }
   };
 
@@ -162,18 +171,19 @@ public class Simulation extends Observable implements Runnable {
       }
 
       /* Reschedule Contiki motes */
-      scheduleEvent(this, t+1);
+      scheduleEventUnsafe(this, t+1);
     }
   };
 
   private TimeEvent delayEvent = new TimeEvent(0) {
     public void execute(long t) {
       /*logger.info("Delay at: " + t);*/
-      if (delayTime == 0)
+      if (delayTime == 0) {
         return;
+      }
 
       try { Thread.sleep(delayTime); } catch (InterruptedException e) { }
-      scheduleEvent(this, t+1);
+      scheduleEventUnsafe(this, t+1);
     }
   };
 
@@ -184,9 +194,9 @@ public class Simulation extends Observable implements Runnable {
     isRunning = true;
 
     /* Schedule tick events */
-    scheduleEvent(tickMotesEvent, currentSimulationTime);
-    scheduleEvent(tickMspMotesEvent, currentSimulationTime);
-    scheduleEvent(delayEvent, currentSimulationTime);
+    scheduleEventUnsafe(tickMotesEvent, currentSimulationTime);
+    scheduleEventUnsafe(tickMspMotesEvent, currentSimulationTime);
+    scheduleEventUnsafe(delayEvent, currentSimulationTime);
 
     /* Simulation starting */
     this.setChanged();
@@ -212,9 +222,9 @@ public class Simulation extends Observable implements Runnable {
 
         if (rescheduleEvents) {
           rescheduleEvents = false;
-          scheduleEvent(tickMotesEvent, currentSimulationTime);
-          scheduleEvent(tickMspMotesEvent, currentSimulationTime);
-          scheduleEvent(delayEvent, currentSimulationTime);
+          scheduleEventUnsafe(tickMotesEvent, currentSimulationTime);
+          scheduleEventUnsafe(tickMspMotesEvent, currentSimulationTime);
+          scheduleEventUnsafe(delayEvent, currentSimulationTime);
         }
 
         nextEvent = eventQueue.popFirst();
@@ -249,7 +259,7 @@ public class Simulation extends Observable implements Runnable {
       }
     }
     isRunning = false;
-    thread = null;
+    simulationThread = null;
     stopSimulation = false;
 
     // Notify observers simulation has stopped
@@ -275,8 +285,8 @@ public class Simulation extends Observable implements Runnable {
   public void startSimulation() {
     if (!isRunning()) {
       isRunning = true;
-      thread = new Thread(this);
-      thread.start();
+      simulationThread = new Thread(this);
+      simulationThread.start();
     }
   }
 
@@ -288,10 +298,10 @@ public class Simulation extends Observable implements Runnable {
       stopSimulation = true;
 
       /* Wait until simulation stops */
-      if (Thread.currentThread() != thread) {
+      if (Thread.currentThread() != simulationThread) {
         try {
-          if (thread != null) {
-            thread.join();
+          if (simulationThread != null) {
+            simulationThread.join();
           }
         } catch (InterruptedException e) {
         }
@@ -783,7 +793,7 @@ public class Simulation extends Observable implements Runnable {
    * @return True if simulation is running
    */
   public boolean isRunning() {
-    return isRunning && thread != null;
+    return isRunning && simulationThread != null;
   }
 
   /**
