@@ -24,7 +24,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * $Id: GUI.java,v 1.93 2008/12/03 16:06:33 fros4943 Exp $
+ * $Id: GUI.java,v 1.94 2008/12/08 09:38:42 fros4943 Exp $
  */
 
 package se.sics.cooja;
@@ -501,13 +501,30 @@ public class GUI extends Observable {
     menuItem.addActionListener(guiEventHandler);
     menu.add(menuItem);
 
-    menuItem = new JMenuItem("Reload simulation");
+    menuItem = new JMenu("Reload simulation");
     menuItem.addActionListener(new ActionListener() {
       public void actionPerformed(ActionEvent e) {
         reloadCurrentSimulation(false);
       }
     });
+    menuItem.setToolTipText("Reload simulation using the same random seed");
     menu.add(menuItem);
+
+    JMenuItem menuItem2 = new JMenuItem("same random seed");
+    menuItem2.addActionListener(new ActionListener() {
+      public void actionPerformed(ActionEvent e) {
+        reloadCurrentSimulation(false, false);
+      }
+    });
+    menuItem.add(menuItem2);
+
+    menuItem2 = new JMenuItem("new random seed");
+    menuItem2.addActionListener(new ActionListener() {
+      public void actionPerformed(ActionEvent e) {
+        reloadCurrentSimulation(false, true);
+      }
+    });
+    menuItem.add(menuItem2);
 
     menuItem = new JMenuItem("Close simulation");
     menuItem.setMnemonic(KeyEvent.VK_C);
@@ -2273,10 +2290,13 @@ public class GUI extends Observable {
   }
 
   /**
-   * Reloads current simulation.
-   * This may include recompiling libraries and renaming mote type identifiers.
+   * Reload currently configured simulation.
+   * Reloading a simulation may include recompiling Contiki.
+   *
+   * @param autoStart Start executing simulation when loaded
+   * @param newSeed Change simulation seed
    */
-  public void reloadCurrentSimulation(final boolean autoStart) {
+  public void reloadCurrentSimulation(final boolean autoStart, final boolean newSeed) {
     if (getSimulation() == null) {
       logger.fatal("No simulation to reload");
       return;
@@ -2289,6 +2309,10 @@ public class GUI extends Observable {
         /* Get current simulation configuration */
         Element root = new Element("simconf");
         Element simulationElement = new Element("simulation");
+        if (newSeed) {
+          getSimulation().setRandomSeed(getSimulation().getRandomSeed() + 1);
+        }
+
         simulationElement.addContent(getSimulation().getConfigXML());
         root.addContent(simulationElement);
         Collection<Element> pluginsConfig = getPluginsConfigXML();
@@ -2318,7 +2342,7 @@ public class GUI extends Observable {
           }
         } while (shouldRetry);
 
-        if (progressDialog != null && progressDialog.isDisplayable()) {
+        if (progressDialog.isDisplayable()) {
           progressDialog.dispose();
         }
       }
@@ -2332,11 +2356,11 @@ public class GUI extends Observable {
     JButton button = new JButton("Cancel");
     button.addActionListener(new ActionListener() {
       public void actionPerformed(ActionEvent e) {
-        if (loadThread != null && loadThread.isAlive()) {
+        if (loadThread.isAlive()) {
           loadThread.interrupt();
           doRemoveSimulation(false);
         }
-        if (progressDialog != null && progressDialog.isDisplayable()) {
+        if (progressDialog.isDisplayable()) {
           progressDialog.dispose();
         }
       }
@@ -2358,6 +2382,18 @@ public class GUI extends Observable {
 
     loadThread.start();
     progressDialog.setVisible(true);
+  }
+
+  /**
+   * Reload currently configured simulation.
+   * Reloading a simulation may include recompiling Contiki.
+   * The same random seed is used.
+   *
+   * @see #reloadCurrentSimulation(boolean, boolean)
+   * @param autoStart Start executing simulation when loaded
+   */
+  public void reloadCurrentSimulation(boolean autoStart) {
+    reloadCurrentSimulation(autoStart, false);
   }
 
   /**
