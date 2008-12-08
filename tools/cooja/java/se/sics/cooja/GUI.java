@@ -24,29 +24,83 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * $Id: GUI.java,v 1.94 2008/12/08 09:38:42 fros4943 Exp $
+ * $Id: GUI.java,v 1.95 2008/12/08 10:26:21 fros4943 Exp $
  */
 
 package se.sics.cooja;
 
-import java.awt.*;
+import java.awt.BorderLayout;
+import java.awt.Component;
+import java.awt.Container;
+import java.awt.Dialog;
+import java.awt.Dimension;
+import java.awt.Frame;
+import java.awt.GraphicsDevice;
+import java.awt.GraphicsEnvironment;
+import java.awt.Point;
+import java.awt.Rectangle;
+import java.awt.Window;
 import java.awt.Dialog.ModalityType;
-import java.awt.event.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.KeyEvent;
+import java.awt.event.WindowEvent;
+import java.awt.event.WindowListener;
 import java.beans.PropertyVetoException;
-import java.io.*;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.PrintStream;
+import java.io.StringReader;
 import java.lang.reflect.InvocationTargetException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.security.AccessControlException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Enumeration;
 import java.util.List;
+import java.util.Observable;
+import java.util.Observer;
+import java.util.Properties;
+import java.util.Random;
+import java.util.Vector;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import javax.swing.*;
+
+import javax.swing.AbstractAction;
+import javax.swing.BorderFactory;
+import javax.swing.Box;
+import javax.swing.BoxLayout;
+import javax.swing.InputMap;
+import javax.swing.JApplet;
+import javax.swing.JButton;
+import javax.swing.JComponent;
+import javax.swing.JDesktopPane;
+import javax.swing.JDialog;
+import javax.swing.JFileChooser;
+import javax.swing.JFrame;
+import javax.swing.JInternalFrame;
+import javax.swing.JLabel;
+import javax.swing.JMenu;
+import javax.swing.JMenuBar;
+import javax.swing.JMenuItem;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JProgressBar;
+import javax.swing.JScrollPane;
+import javax.swing.JSeparator;
+import javax.swing.KeyStroke;
+import javax.swing.SwingUtilities;
+import javax.swing.UIManager;
 import javax.swing.event.MenuEvent;
 import javax.swing.event.MenuListener;
 import javax.swing.filechooser.FileFilter;
+
 import org.apache.log4j.BasicConfigurator;
 import org.apache.log4j.Logger;
 import org.apache.log4j.xml.DOMConfigurator;
@@ -58,9 +112,22 @@ import org.jdom.output.Format;
 import org.jdom.output.XMLOutputter;
 
 import se.sics.cooja.MoteType.MoteTypeCreationException;
-import se.sics.cooja.contikimote.*;
-import se.sics.cooja.dialogs.*;
-import se.sics.cooja.plugins.*;
+import se.sics.cooja.contikimote.ContikiMote;
+import se.sics.cooja.contikimote.ContikiMoteType;
+import se.sics.cooja.contikimote.ContikiMoteTypeDialog;
+import se.sics.cooja.contikimote.ContikiProcess;
+import se.sics.cooja.dialogs.AddMoteDialog;
+import se.sics.cooja.dialogs.CreateSimDialog;
+import se.sics.cooja.dialogs.ExternalToolsDialog;
+import se.sics.cooja.dialogs.MessageList;
+import se.sics.cooja.dialogs.ProjectDirectoriesDialog;
+import se.sics.cooja.plugins.LogListener;
+import se.sics.cooja.plugins.MoteTypeInformation;
+import se.sics.cooja.plugins.ScriptRunnerNoGUI;
+import se.sics.cooja.plugins.SimControl;
+import se.sics.cooja.plugins.SimInformation;
+import se.sics.cooja.plugins.VisState;
+import se.sics.cooja.plugins.VisTraffic;
 
 /**
  * Main file of COOJA Simulator. Typically contains a visualizer for the
@@ -3294,6 +3361,9 @@ public class GUI extends Observable {
         return null;
       }
 
+      /* Verify project directories */
+      boolean projectsOk = verifyProjects(root.getChildren(), !quick);
+
       /* GENERATE UNIQUE MOTE TYPE IDENTIFIERS */
       root.detach();
       String configString = new XMLOutputter().outputString(new Document(root));
@@ -3378,8 +3448,16 @@ public class GUI extends Observable {
   public void saveSimulationConfig(File file) {
 
     try {
-      // Create simulation configL
+      // Create simulation config
       Element root = new Element("simconf");
+
+      /* Store project directories meta data */
+      for (File project: currentProjectDirs) {
+        Element projectElement = new Element("project");
+        projectElement.addContent(project.getPath().replaceAll("\\\\", "/"));
+        root.addContent(projectElement);
+      }
+
       Element simulationElement = new Element("simulation");
       simulationElement.addContent(mySimulation.getConfigXML());
       root.addContent(simulationElement);
@@ -3487,6 +3565,33 @@ public class GUI extends Observable {
 
     return config;
   }
+
+  public boolean verifyProjects(Collection<Element> configXML, boolean visAvailable) {
+    boolean allOk = true;
+
+    /* Match current projects against projects in simulation config */
+    for (final Element pluginElement : configXML.toArray(new Element[0])) {
+      if (pluginElement.getName().equals("project")) {
+        String project = pluginElement.getText();
+
+        boolean found = false;
+        for (File currentProject: currentProjectDirs) {
+          if (project.equals(currentProject.getPath().replaceAll("\\\\", "/"))) {
+            found = true;
+            break;
+          }
+        }
+
+        if (!found) {
+          logger.warn("Loaded simulation may depend on external project: '" + project + "'");
+          allOk = false;
+        }
+      }
+    }
+
+    return allOk;
+  }
+
 
   /**
    * Starts plugins with arguments in given config.
