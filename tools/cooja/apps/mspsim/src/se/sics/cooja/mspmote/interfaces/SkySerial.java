@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: SkySerial.java,v 1.8 2008/12/04 14:03:41 joxe Exp $
+ * $Id: SkySerial.java,v 1.9 2008/12/09 16:58:36 fros4943 Exp $
  */
 
 package se.sics.cooja.mspmote.interfaces;
@@ -152,7 +152,6 @@ public class SkySerial extends Log implements SerialPort, USARTListener {
 
   private TimeEvent writeDataEvent = new TimeEvent(0) {
     public void execute(long t) {
-      /* TODO Implement MSPSim callback - better timing */
       tryWriteNextByte();
       if (!incomingData.isEmpty()) {
         mote.getSimulation().scheduleEvent(this, t+1);
