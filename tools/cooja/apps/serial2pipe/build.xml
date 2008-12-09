@@ -25,6 +25,7 @@
   </target>
 
   <target name="jar" depends="clean, init, compile">
+    <mkdir dir="${lib}"/>
     <jar destfile="${lib}/serial2pipe.jar" basedir="${build}">
       <manifest>
         <attribute name="Class-Path" value="."/>
