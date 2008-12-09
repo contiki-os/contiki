@@ -68,6 +68,8 @@
 #define COFFEE_FD_APPEND	0x4
 #define COFFEE_FD_MODIFIED	0x8
 
+#define INVALID_PAGE		((coffee_page_t)-1)
+
 #define FD_VALID(fd)						\
 		((fd) >= 0 && (fd) < COFFEE_FD_SET_SIZE && 	\
 		coffee_fd_set[(fd)].flags != COFFEE_FD_FREE)
@@ -128,10 +130,6 @@ struct log_param {
   uint16_t size;
 };
 
-#define ABS_OFFSET(file_page, file_offset)	\
-	((file_page) * COFFEE_PAGE_SIZE + 	\
-	sizeof(struct file_header) + (file_offset))
-
 static struct dir_cache dir_cache[COFFEE_DIR_CACHE_ENTRIES];
 static struct file_desc coffee_fd_set[COFFEE_FD_SET_SIZE];
 
@@ -146,6 +144,12 @@ static void
 read_header(struct file_header *hdr, coffee_page_t page)
 {
   COFFEE_READ(hdr, sizeof(*hdr), page * COFFEE_PAGE_SIZE);
+}
+/*---------------------------------------------------------------------------*/
+static coffee_offset_t
+absolute_offset(coffee_page_t page, coffee_offset_t offset)
+{
+  return page * COFFEE_PAGE_SIZE + sizeof(struct file_header) + offset;
 }
 /*---------------------------------------------------------------------------*/
 static void
@@ -193,7 +197,7 @@ get_sector_status(uint16_t sector, coffee_page_t *active,
 	(unsigned)skip_pages, (int)sector);
   }
 
-  offset = sector_start + skip_pages * COFFEE_PAGE_SIZE;
+  offset = sector_start + (skip_pages * COFFEE_PAGE_SIZE);
   end = (sector + 1) * COFFEE_SECTOR_SIZE;
   jump = 0;
  
@@ -340,10 +344,10 @@ find_offset_in_file(int first_page)
 {
   struct file_header hdr;
   unsigned char buf[COFFEE_PAGE_SIZE];
-  int page;
+  coffee_page_t page;
   int i;
   int search_limit;
-  coffee_offset_t range_start, range_end, part_size;
+  coffee_page_t range_start, range_end, part_size;
 
   read_header(&hdr, first_page);
   search_limit = 0;
@@ -375,11 +379,10 @@ find_offset_in_file(int first_page)
     COFFEE_READ(buf, sizeof(buf), page * COFFEE_PAGE_SIZE);
     for(i = COFFEE_PAGE_SIZE - 1; i >= 0; i--) {
       if(buf[i] != 0) {
-	if(page == first_page) {
-	  return i < sizeof(hdr) ? 0 : 1 + i - sizeof(hdr);
-	} else {
-	  return 1 + i + (page - first_page) * COFFEE_PAGE_SIZE - sizeof(hdr);
+	if(page == first_page && i < sizeof(hdr)) {
+	  return 0;
 	}
+	return 1 + i + ((page - first_page) * COFFEE_PAGE_SIZE) - sizeof(hdr);
       }
     }
   }
@@ -388,10 +391,10 @@ find_offset_in_file(int first_page)
   return 0;
 }
 /*---------------------------------------------------------------------------*/
-static int
+static coffee_page_t
 find_contiguous_pages(unsigned wanted)
 {
-  int page, start;
+  coffee_page_t page, start;
   struct file_header hdr;
   
   start = -1;
@@ -485,12 +488,18 @@ remove_by_page(coffee_page_t page, int remove_log, int close_fds)
   return 0;
 }
 /*---------------------------------------------------------------------------*/
+static coffee_page_t
+page_count(coffee_offset_t size)
+{
+  return (size + sizeof(struct file_header) + COFFEE_PAGE_SIZE - 1) /
+		COFFEE_PAGE_SIZE;
+}
+/*---------------------------------------------------------------------------*/
 static int
-reserve(const char *name, uint32_t size, int allow_duplicates)
+reserve(const char *name, coffee_page_t pages, int allow_duplicates)
 {
   struct file_header hdr;
-  unsigned need_pages;
-  int page;
+  coffee_page_t page;
 
   watchdog_stop();
 
@@ -499,13 +508,11 @@ reserve(const char *name, uint32_t size, int allow_duplicates)
     return -1;
   }
 
-  need_pages = (size + sizeof(hdr) + COFFEE_PAGE_SIZE - 1) / COFFEE_PAGE_SIZE;
-
-  page = find_contiguous_pages(need_pages);
-  if(page < 0) {
+  page = find_contiguous_pages(pages);
+  if(page == INVALID_PAGE) {
     cfs_garbage_collect();
-    page = find_contiguous_pages(need_pages);
-    if(page < 0) {
+    page = find_contiguous_pages(pages);
+    if(page == INVALID_PAGE) {
       watchdog_start();
       return -1;
     }
@@ -513,7 +520,7 @@ reserve(const char *name, uint32_t size, int allow_duplicates)
 
   memcpy(hdr.name, name, sizeof(hdr.name));
   hdr.name[sizeof(hdr.name) - 1] = '\0';
-  hdr.max_pages = need_pages;
+  hdr.max_pages = pages;
   hdr.flags = COFFEE_FLAG_ALLOCATED | COFFEE_FLAG_VALID;
   hdr.log_page = 0;
   hdr.eof_hint = 0;
@@ -564,7 +571,7 @@ get_record_index(coffee_page_t log_page, uint16_t search_records,
   int16_t match_index, i;
   uint16_t record_count;
 
-  base = ABS_OFFSET(log_page, sizeof(uint16_t) * search_records);
+  base = absolute_offset(log_page, sizeof(uint16_t) * search_records);
   record_count = search_records > COFFEE_LOG_TABLE_LIMIT ?
       		COFFEE_LOG_TABLE_LIMIT : search_records;  
   processed = 0;
@@ -656,8 +663,8 @@ create_log(coffee_page_t file_page, struct file_header *hdr)
   size += log_records * log_record_size;	/* Log data size. */
 
   log_page = reserve(create_log_name(log_name, sizeof(log_name), hdr->name),
-	      size, 0);
-  if(log_page < 0) {
+	      page_count(size), 0);
+  if(log_page == INVALID_PAGE) {
     return -1;
   }
 
@@ -698,10 +705,8 @@ merge_log(coffee_page_t file_page, int extend)
    * already been calculated with in the previous reservation.
    */
   max_pages = hdr.max_pages * (1 << extend);
-  new_file_page = reserve(hdr.name,
-			  max_pages * COFFEE_PAGE_SIZE - sizeof(hdr), 
-			  1); 
-  if(new_file_page < 0) {
+  new_file_page = reserve(hdr.name, max_pages, 1); 
+  if(new_file_page == INVALID_PAGE) {
     cfs_close(fd);
     return -1;
   }
@@ -717,7 +722,7 @@ merge_log(coffee_page_t file_page, int extend)
       return -1;
     } else if(n > 0) {
       COFFEE_WRITE(buf, n,
-  	ABS_OFFSET(new_file_page, offset));
+  	absolute_offset(new_file_page, offset));
       offset += n;
     }
   } while(n != 0);
@@ -732,8 +737,11 @@ merge_log(coffee_page_t file_page, int extend)
   read_header(&hdr2, new_file_page);
   hdr2.log_record_size = hdr.log_record_size;
   hdr2.log_records = hdr.log_records;
-  hdr2.eof_hint = hdr.eof_hint;
+  hdr2.eof_hint = extend ? 0 : hdr.eof_hint;
   write_header(&hdr2, new_file_page);
+  if(extend) {
+    update_eof_hint(new_file_page, offset);
+  }
 
   /* Point the file descriptors to the new file page. */
   for(n = 0; n < COFFEE_FD_SET_SIZE; n++) {
@@ -771,7 +779,7 @@ find_next_record(struct file_desc *fdp, coffee_page_t log_page,
 	preferred_batch_size : log_records - processed;
 
       COFFEE_READ(&indices, batch_size * sizeof(indices[0]),
-	ABS_OFFSET(log_page, processed * sizeof(indices[0])));
+	absolute_offset(log_page, processed * sizeof(indices[0])));
       for(i = 0; i < batch_size && indices[i] != 0; i++);
       log_record = i;
 
@@ -818,7 +826,7 @@ write_log_page(struct file_desc *fdp, struct log_param *lp)
   } else {
     /* Create a log structure. */
     log_page = create_log(fdp->file_page, &hdr);
-    if(log_page < 0) {
+    if(log_page == INVALID_PAGE) {
       return -1;
     }
     PRINTF("Coffee: Created a log structure for file %s at page %u\n",
@@ -837,7 +845,7 @@ write_log_page(struct file_desc *fdp, struct log_param *lp)
     if((lp->offset > 0 || lp->size != log_record_size) &&
 	read_log_page(&hdr, fdp->next_log_record - 1, &lp_out) < 0) {
       COFFEE_READ(copy_buf, sizeof(copy_buf),
-	  ABS_OFFSET(fdp->file_page, region * log_record_size));
+	  absolute_offset(fdp->file_page, region * log_record_size));
     }
  
     memcpy((char *) &copy_buf + lp->offset, lp->buf, lp->size);
@@ -850,7 +858,7 @@ write_log_page(struct file_desc *fdp, struct log_param *lp)
     COFFEE_WRITE(copy_buf, sizeof(copy_buf), base);
     ++region;
     COFFEE_WRITE(&region, sizeof(region),
-	ABS_OFFSET(log_page, log_record * sizeof(region)));
+	absolute_offset(log_page, log_record * sizeof(region)));
     fdp->next_log_record = log_record + 1;
   }
   
@@ -886,15 +894,14 @@ cfs_open(const char *name, int flags)
   fdp = &coffee_fd_set[fd];
   
   page = find_file(name);
-  if(page < 0) {
+  if(page == INVALID_PAGE) {
     if((flags & (CFS_READ | CFS_WRITE)) == CFS_READ) {
       return -1;
     }
-    if((page = reserve(name, COFFEE_DYN_SIZE, 1)) < 0) {
+    if((page = reserve(name, page_count(COFFEE_DYN_SIZE), 1)) == INVALID_PAGE) {
 	return -1;
     }
-    fdp->max_pages = (COFFEE_DYN_SIZE + sizeof(hdr) + 
-                      COFFEE_PAGE_SIZE - 1) / COFFEE_PAGE_SIZE;
+    fdp->max_pages = page_count(COFFEE_DYN_SIZE);
   } else {
     read_header(&hdr, page);
     if(COFFEE_FILE_MODIFIED(hdr)) {
@@ -925,11 +932,13 @@ unsigned
 cfs_seek(int fd, unsigned offset)
 {
   struct file_header hdr;
+  struct file_desc *fdp;
 
   if(!FD_VALID(fd)) {
     return -1;
   }
-  read_header(&hdr, coffee_fd_set[fd].file_page);
+  fdp = &coffee_fd_set[fd];
+  read_header(&hdr, fdp->file_page);
 
   /* Check if the offset is within the file boundary. */
   if(sizeof(hdr) + offset >= hdr.max_pages * COFFEE_PAGE_SIZE ||
@@ -937,11 +946,11 @@ cfs_seek(int fd, unsigned offset)
     return -1;
   }
 
-  if(coffee_fd_set[fd].end < offset) {
-    coffee_fd_set[fd].end = offset;
+  if(fdp->end < offset) {
+    fdp->end = offset;
   }
   
-  return coffee_fd_set[fd].offset = offset;
+  return fdp->offset = offset;
 }
 /*---------------------------------------------------------------------------*/
 int
@@ -957,7 +966,7 @@ cfs_remove(const char *name)
    */
 
   page = find_file(name);
-  if(page < 0) {
+  if(page == INVALID_PAGE) {
     return -1;
   }
 
@@ -1011,7 +1020,7 @@ cfs_read(int fd, void *buf, unsigned size)
     if(r < 0) {
       r = remains > read_chunk ? read_chunk : remains;
       COFFEE_READ((char *) buf + offset, r,
-	ABS_OFFSET(fdp->file_page, base + offset));
+	absolute_offset(fdp->file_page, base + offset));
     }
     remains -= r;
     offset += r;
@@ -1035,7 +1044,7 @@ cfs_write(int fd, const void *buf, unsigned size)
   fdp = &coffee_fd_set[fd];
   /* Attempt to extend the file if we try to write past the end. */
   while(size + fdp->offset + sizeof(struct file_header) >
-     fdp->max_pages * COFFEE_PAGE_SIZE) {
+     (fdp->max_pages * COFFEE_PAGE_SIZE)) {
     update_eof_hint(fdp->file_page, fdp->end);
     if(merge_log(fdp->file_page, 1) < 0) {
       return -1;
@@ -1062,7 +1071,7 @@ cfs_write(int fd, const void *buf, unsigned size)
     }
   } else {
     COFFEE_WRITE(buf, size,
-	ABS_OFFSET(fdp->file_page, fdp->offset));
+	absolute_offset(fdp->file_page, fdp->offset));
     fdp->offset += size;
   }
 
@@ -1131,7 +1140,7 @@ cfs_closedir(struct cfs_dir *dir)
 int
 cfs_coffee_reserve(const char *name, uint32_t size)
 {
-  return reserve(name, size, 0);
+  return reserve(name, page_count(size), 0);
 }
 /*---------------------------------------------------------------------------*/
 int
@@ -1147,7 +1156,7 @@ cfs_coffee_configure_log(const char *file, unsigned log_size,
   }
 
   page = find_file(file);
-  if(page < 0) {
+  if(page == INVALID_PAGE) {
     return -1;
   }
 
