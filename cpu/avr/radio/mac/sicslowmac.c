@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: sicslowmac.c,v 1.5 2008/11/08 03:29:15 c_oflynn Exp $
+ * $Id: sicslowmac.c,v 1.6 2008/12/10 21:26:05 c_oflynn Exp $
  */
 
 
@@ -230,27 +230,75 @@ setinput(void (*r)(const struct mac_driver *d))
   pinput = r;
 }
 /*---------------------------------------------------------------------------*/
-static uint8_t dest_reversed[8];
-static uint8_t src_reversed[8];
+static uint8_t dest_reversed[UIP_LLADDR_LEN];
+static uint8_t src_reversed[UIP_LLADDR_LEN];
+
+#  define MSB(u16)        (((uint8_t* )&u16)[1])
+#  define LSB(u16)        (((uint8_t* )&u16)[0])
 
 void
 sicslowmac_dataIndication(void)
 {
   rimebuf_clear();
 
-  /* Finally, get the stuff into the rime buffer.... */
-  rimebuf_copyfrom(parsed_frame->payload, parsed_frame->payload_length);
-  rimebuf_set_datalen(parsed_frame->payload_length);
   
-  memcpy(dest_reversed, (uint8_t *)parsed_frame->dest_addr, 8);
-  memcpy(src_reversed, (uint8_t *)parsed_frame->src_addr, 8);
+  #if UIP_LLADDR_LEN == 8
+    /* Finally, get the stuff into the rime buffer.... */
+    rimebuf_copyfrom(parsed_frame->payload, parsed_frame->payload_length);
+    rimebuf_set_datalen(parsed_frame->payload_length);
   
-  /* Change addresses to expected byte order */
-  byte_reverse((uint8_t *)dest_reversed, 8);
-  byte_reverse((uint8_t *)src_reversed, 8);
+  	memcpy(dest_reversed, (uint8_t *)parsed_frame->dest_addr, UIP_LLADDR_LEN);
+	memcpy(src_reversed, (uint8_t *)parsed_frame->src_addr, UIP_LLADDR_LEN);
   
-  rimebuf_set_addr(RIMEBUF_ADDR_RECEIVER, (const rimeaddr_t *)dest_reversed);
-  rimebuf_set_addr(RIMEBUF_ADDR_SENDER, (const rimeaddr_t *)src_reversed);
+	/* Change addresses to expected byte order */
+	byte_reverse((uint8_t *)dest_reversed, UIP_LLADDR_LEN);
+	byte_reverse((uint8_t *)src_reversed, UIP_LLADDR_LEN);
+  
+	rimebuf_set_addr(RIMEBUF_ADDR_RECEIVER, (const rimeaddr_t *)dest_reversed);
+	rimebuf_set_addr(RIMEBUF_ADDR_SENDER, (const rimeaddr_t *)src_reversed);
+	
+  #elif UIP_CONF_USE_RUM	
+    /* Finally, get the stuff into the rime buffer.... */
+    rimebuf_copyfrom(parsed_frame->payload + UIP_DATA_RUM_OFFSET, parsed_frame->payload_length - UIP_DATA_RUM_OFFSET);
+    rimebuf_set_datalen(parsed_frame->payload_length + UIP_DATA_RUM_OFFSET);
+	
+	dest_reversed[0] = MSB(parsed_frame->dest_pid);
+	dest_reversed[1] = LSB(parsed_frame->dest_pid);
+	dest_reversed[2] = 0;
+	dest_reversed[3] = 0;  
+	dest_reversed[4] = MSB(parsed_frame->payload[0]); //FinalDestAddr
+	dest_reversed[5] = LSB(parsed_frame->payload[1]);
+	
+	src_reversed[0] = MSB(parsed_frame->src_pid);
+	src_reversed[1] = LSB(parsed_frame->src_pid);
+	src_reversed[2] = 0;
+	src_reversed[3] = 0;  
+	src_reversed[4] = MSB(parsed_frame->payload[2]); //originAddr
+	src_reversed[5] = LSB(parsed_frame->payload[3]);	
+
+  #else
+    /* Finally, get the stuff into the rime buffer.... */
+    rimebuf_copyfrom(parsed_frame->payload, parsed_frame->payload_length);
+    rimebuf_set_datalen(parsed_frame->payload_length);
+  
+	dest_reversed[0] = MSB(parsed_frame->dest_pid);
+	dest_reversed[1] = LSB(parsed_frame->dest_pid);
+	dest_reversed[2] = 0;
+	dest_reversed[3] = 0;  
+	dest_reversed[4] = MSB(parsed_frame->dest_addr->addr16);
+	dest_reversed[5] = LSB(parsed_frame->dest_addr->addr16);
+	
+	src_reversed[0] = MSB(parsed_frame->src_pid);
+	src_reversed[1] = LSB(parsed_frame->src_pid);
+	src_reversed[2] = 0;
+	src_reversed[3] = 0;  
+	src_reversed[4] = MSB(parsed_frame->src_addr->addr16);
+	src_reversed[5] = LSB(parsed_frame->src_addr->addr16);
+
+	rimebuf_set_addr(RIMEBUF_ADDR_RECEIVER, (const rimeaddr_t *)dest_reversed);
+	rimebuf_set_addr(RIMEBUF_ADDR_SENDER, (const rimeaddr_t *)src_reversed);	
+  
+  #endif
 
   PRINTF("sicslowmac: hand off frame to sicslowpan \n");
   pinput(pmac_driver);
@@ -267,15 +315,53 @@ sicslowmac_unknownIndication(void)
 	  rimebuf_copyfrom(parsed_frame->payload, parsed_frame->payload_length);
 	  rimebuf_set_datalen(parsed_frame->payload_length);
 	  
-	  memcpy(dest_reversed, (uint8_t *)parsed_frame->dest_addr, 8);
-	  memcpy(src_reversed, (uint8_t *)parsed_frame->src_addr, 8);
-	  
-	  /* Change addresses to expected byte order */
-	  byte_reverse((uint8_t *)dest_reversed, 8);
-	  byte_reverse((uint8_t *)src_reversed, 8);
-	  
-	  rimebuf_set_addr(RIMEBUF_ADDR_RECEIVER, (const rimeaddr_t *)dest_reversed);
-	  rimebuf_set_addr(RIMEBUF_ADDR_SENDER, (const rimeaddr_t *)src_reversed);
+  #if UIP_LLADDR_LEN == 8
+  	memcpy(dest_reversed, (uint8_t *)parsed_frame->dest_addr, UIP_LLADDR_LEN);
+	memcpy(src_reversed, (uint8_t *)parsed_frame->src_addr, UIP_LLADDR_LEN);
+  
+	/* Change addresses to expected byte order */
+	byte_reverse((uint8_t *)dest_reversed, UIP_LLADDR_LEN);
+	byte_reverse((uint8_t *)src_reversed, UIP_LLADDR_LEN);
+  
+	rimebuf_set_addr(RIMEBUF_ADDR_RECEIVER, (const rimeaddr_t *)dest_reversed);
+	rimebuf_set_addr(RIMEBUF_ADDR_SENDER, (const rimeaddr_t *)src_reversed);
+	
+  #elif UIP_CONF_USE_RUM	
+	
+	dest_reversed[0] = MSB(parsed_frame->dest_pid);
+	dest_reversed[1] = LSB(parsed_frame->dest_pid);
+	dest_reversed[2] = 0;
+	dest_reversed[3] = 0;  
+	dest_reversed[4] = MSB(parsed_frame->payload[0]); //FinalDestAddr
+	dest_reversed[5] = LSB(parsed_frame->payload[1]);
+	
+	src_reversed[0] = MSB(parsed_frame->src_pid);
+	src_reversed[1] = LSB(parsed_frame->src_pid);
+	src_reversed[2] = 0;
+	src_reversed[3] = 0;  
+	src_reversed[4] = MSB(parsed_frame->payload[2]); //originAddr
+	src_reversed[5] = LSB(parsed_frame->payload[3]);	
+
+  #else
+  
+	dest_reversed[0] = MSB(parsed_frame->dest_pid);
+	dest_reversed[1] = LSB(parsed_frame->dest_pid);
+	dest_reversed[2] = 0;
+	dest_reversed[3] = 0;  
+	dest_reversed[4] = MSB(parsed_frame->dest_addr->addr16);
+	dest_reversed[5] = LSB(parsed_frame->dest_addr->addr16);
+	
+	src_reversed[0] = MSB(parsed_frame->src_pid);
+	src_reversed[1] = LSB(parsed_frame->src_pid);
+	src_reversed[2] = 0;
+	src_reversed[3] = 0;  
+	src_reversed[4] = MSB(parsed_frame->src_addr->addr16);
+	src_reversed[5] = LSB(parsed_frame->src_addr->addr16);
+
+	rimebuf_set_addr(RIMEBUF_ADDR_RECEIVER, (const rimeaddr_t *)dest_reversed);
+	rimebuf_set_addr(RIMEBUF_ADDR_SENDER, (const rimeaddr_t *)src_reversed);	
+  
+  #endif
 
 	  PRINTF("sicslowmac: hand off frame to sniffer \n");
 	  
@@ -530,7 +616,11 @@ PROCESS_THREAD(mac_process, ev, data)
   eeprom_check = eeprom_read_byte(10);
   
   if ((eeprom_channel < 11) || (eeprom_channel > 26) || ((uint8_t)eeprom_channel != (uint8_t)~eeprom_check)) {
+#if UIP_CONF_USE_RUM
+	eeprom_channel = 19; //Default
+#else
 	eeprom_channel = 24; //Default
+#endif
   }
 
   radio_set_operating_channel(eeprom_channel);

@@ -70,6 +70,9 @@ typedef int32_t s32_t;
  */
 #define EEPROMFS_ADDR_CODEPROP 0x8000
 
+/* Use Atmel 'Route Under MAC', currently just in sniffer mode! */
+//#define UIP_CONF_USE_RUM  1
+
 #define CCIF
 #define CLIF
 
@@ -111,6 +114,12 @@ typedef int32_t s32_t;
 #define UIP_CONF_TCP_SPLIT       1
 
 #define UIP_CONF_STATISTICS      1
+
+/* Route-Under-MAC uses 16-bit short addresses */
+#if UIP_CONF_USE_RUM
+#undef  UIP_CONF_LL_802154
+#define UIP_DATA_RUM_OFFSET      5
+#endif
 
 typedef unsigned short clock_time_t;
 typedef unsigned char u8_t;

@@ -238,6 +238,11 @@ void mac_ethernetToLowpan(uint8_t * ethHeader)
 
   PRINTF("Packet type: %x\n", ((struct uip_eth_hdr *) ethHeader)->type);
 
+   //RUM doesn't support sending data
+   #if UIP_CONF_USE_RUM
+   return;
+   #endif
+
   //If not IPv6 we don't do anything
   if (((struct uip_eth_hdr *) ethHeader)->type != HTONS(UIP_ETHTYPE_IPV6)) {
     printf("eth2low: Packet is not IPv6, dropping\n");
@@ -360,11 +365,17 @@ void mac_LowpanToEthernet(void)
  */
 int8_t mac_translateIPLinkLayer(lltype_t target)
 {
+
+#if UIP_LLADDR_LEN == 8
   if (UIP_IP_BUF->proto == UIP_PROTO_ICMP6) {
     PRINTF("eth2low: ICMP Message detected\n");
     return mac_translateIcmpLinkLayer(target);
   }
   return 0;
+#else
+  return 1;
+#endif
+
 }
 
 #include "net/uip-icmp6.h"
@@ -538,7 +549,7 @@ uint8_t mac_createSicslowpanLongAddr(uint8_t * ethernet, uip_lladdr_t * lowpan)
   uint8_t index;
   uint8_t i;
   
-  
+#if UIP_LLADDR_LEN == 8
   //Special case - if the address is our address, we just copy over what we know to be
   //our 802.15.4 address
   
@@ -579,6 +590,13 @@ uint8_t mac_createSicslowpanLongAddr(uint8_t * ethernet, uip_lladdr_t * lowpan)
     lowpan->addr[5] = ethernet[3];
     lowpan->addr[6] = ethernet[4];
     lowpan->addr[7] = ethernet[5];
+	
+#else
+
+	for(i = 0; i < UIP_LLADDR_LEN; i++) {
+		lowpan->addr[i] = ethernet[i];
+	}
+#endif	
 
   return 1;
 }
@@ -593,6 +611,8 @@ uint8_t mac_createEthernetAddr(uint8_t * ethernet, uip_lladdr_t * lowpan)
 {
   uint8_t index = 0;
   uint8_t i,j, match;
+  
+#if UIP_LLADDR_LEN == 8
   
    //Special case - if the address is our address, we just copy over what we know to be
   //our 802.3 address
@@ -662,6 +682,15 @@ uint8_t mac_createEthernetAddr(uint8_t * ethernet, uip_lladdr_t * lowpan)
 	
     ethernet[0] = TRANSLATE_BIT_MASK | LOCAL_BIT_MASK | (index << 3);
   }
+  
+#else
+
+    //Create ethernet MAC address now
+	for(i = 0; i < UIP_LLADDR_LEN; i++) {
+		ethernet[i] = lowpan->addr[i];
+	}
+#endif
+
   return 1;
 }
 
@@ -707,11 +736,22 @@ void slide(uint8_t * data, uint8_t length, int16_t slide)
  */
 void mac_ethhijack(const struct mac_driver *r)
 {
-	if (usbstick_mode.raw)
+	if (usbstick_mode.raw) {
 		mac_802154raw(r);
+	}
 		
-	if (usbstick_mode.sicslowpan)
+	if (usbstick_mode.sicslowpan) {
+
+#if UIP_CONF_USE_RUM
+	if (parsed_frame->payload[4]) { /* RUM 6lowpan frame type */
+#endif
 		sicslowinput(r);	
+#if UIP_CONF_USE_RUM
+	}
+#endif		
+		
+		
+	}
 
 }
 
