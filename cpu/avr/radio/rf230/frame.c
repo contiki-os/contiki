@@ -39,7 +39,7 @@
  *  ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  *  POSSIBILITY OF SUCH DAMAGE.
  *
- *  $Id: frame.c,v 1.3 2008/11/08 03:29:15 c_oflynn Exp $
+ *  $Id: frame.c,v 1.4 2008/12/10 21:26:05 c_oflynn Exp $
 */
 /*
  *  \brief This file is where the main functions that relate to frame
@@ -309,6 +309,8 @@ void rx_frame_parse(hal_rx_frame_t *rx_frame, parsed_frame_t *pf)
 		if (!fcf->panIdCompression){
 			pf->src_pid = (uint16_t *)p;
 			p += 2;
+		} else {
+			pf->src_pid = pf->dest_pid;
 		}
 		/* Source address */
 		pf->src_addr = (addr_t *)p;
