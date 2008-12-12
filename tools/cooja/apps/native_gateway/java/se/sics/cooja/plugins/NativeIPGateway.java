@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: NativeIPGateway.java,v 1.1 2008/12/09 16:57:57 fros4943 Exp $
+ * $Id: NativeIPGateway.java,v 1.2 2008/12/12 16:27:40 fros4943 Exp $
  */
 
 package se.sics.cooja.plugins;
@@ -38,12 +38,11 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
-import java.io.IOException;
 import java.util.Collection;
 import java.util.Observable;
 import java.util.Observer;
 import java.util.Vector;
-
+import java.io.*;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
@@ -57,7 +56,6 @@ import jpcap.JpcapSender;
 import jpcap.NetworkInterface;
 import jpcap.packet.EthernetPacket;
 import jpcap.packet.IPPacket;
-
 import org.apache.log4j.Logger;
 import org.jdom.Element;
 
@@ -93,6 +91,7 @@ public class NativeIPGateway extends VisPlugin {
   private NetworkInterface[] networkInterfacesAll;
 
   private NetworkInterface networkInterface = null;
+  private NetworkInterface loopbackInterface = null;
   private Thread captureThread = null;
   private JpcapCaptor captor = null;
   private JpcapSender sender = null;
@@ -112,13 +111,35 @@ public class NativeIPGateway extends VisPlugin {
   private JComboBox selectNICComboBox;
   private JCheckBox autoRegisterRoutes;
 
+  private final boolean ON_WINDOWS;
+
+  private final String NETMASK = "255.255.0.0";
+  private String restoreRoutesCmd = null;
+
+  private Process tunProcess = null;
+  private final static String TUNNEL_APP_TARGET = "minimal-net";
+  private boolean shouldDisableLoopbackForwarding = false;
+  private boolean shouldEnableRPFilter = false;
+
+  private SlipState readSlipState = SlipState.STATE_OK;
+  private int readSlipLength = 0;
+  private final int READ_SLIP_BUFFER_SIZE = 256;
+  private byte[] readSlipBuffer = new byte[READ_SLIP_BUFFER_SIZE];
+
   public NativeIPGateway(Mote mote, Simulation simulation, GUI gui) {
     super("Native IP Gateway (" + mote + ")", gui);
-
     this.mote = mote;
-    serialPort = (SerialPort) mote.getInterfaces().getLog();
+
+    /* Native OS - plugin depends on platform specific commands */
+    String osName = System.getProperty("os.name").toLowerCase();
+    if (osName.startsWith("win")) {
+      ON_WINDOWS = true;
+    } else {
+      ON_WINDOWS = false;
+    }
 
     /* Mote serial port */
+    serialPort = (SerialPort) mote.getInterfaces().getLog();
     if (serialPort == null) {
       throw new RuntimeException("No mote serial port");
     }
@@ -156,7 +177,7 @@ public class NativeIPGateway extends VisPlugin {
       }
     });
 
-    autoRegisterRoutes = new JCheckBox();
+    autoRegisterRoutes = new JCheckBox("", true);
     autoRegisterRoutes.addActionListener(new ActionListener() {
       public void actionPerformed(ActionEvent e) {
         if (autoRegisterRoutes.isSelected()) {
@@ -165,14 +186,30 @@ public class NativeIPGateway extends VisPlugin {
       }
     });
 
+    /* Create tunnel interface to capture packet on (default) */
+    createTunInterface();
+
+    /* Configure loopback interface */
+    configureLoopbackInterface();
+
     /* Network interfaces list */
     networkInterfacesAll = JpcapCaptor.getDeviceList();
     if (networkInterfacesAll == null || networkInterfacesAll.length == 0) {
       throw new RuntimeException("No network interfaces found");
     }
     selectNICComboBox = new JComboBox();
-    for (NetworkInterface networkInterface2 : networkInterfacesAll) {
-      selectNICComboBox.addItem(networkInterface2.description + " (" + networkInterface2.name + ")");
+
+    NetworkInterface tunnelInterface = null;
+    for (NetworkInterface intf : networkInterfacesAll) {
+      if (!ON_WINDOWS && intf.name.equals("lo")) {
+        loopbackInterface = intf;
+      }
+      if ((intf.name != null && intf.name.equals("tap0")) ||
+          (intf.description != null && intf.description.contains("VMware Virtual Ethernet Adapter"))) {
+        tunnelInterface = intf;
+      }
+
+      selectNICComboBox.addItem(intf.description + " (" + intf.name + ")");
     }
     selectNICComboBox.addItemListener(new ItemListener() {
       public void itemStateChanged(ItemEvent e) {
@@ -211,7 +248,7 @@ public class NativeIPGateway extends VisPlugin {
     ipLabel = addInfo(mainPane, "Mote IP Address:", moteIP);
     ipLabel.setToolTipText(null);
 
-    addComponent(mainPane, "Capture on: ", selectNICComboBox);
+    addComponent(mainPane, "Route to/Capture on: ", selectNICComboBox);
     addComponent(mainPane, "Auto-register native route: ", autoRegisterRoutes);
 
     addInfo(mainPane, "", "");
@@ -231,7 +268,12 @@ public class NativeIPGateway extends VisPlugin {
     pack();
     setSize(getWidth()+10, getHeight()+10);
 
-    startCapturingPackets(networkInterfacesAll[0]);
+    /* Start capturing network traffic for simulated network */
+    if (tunnelInterface != null) {
+      startCapturingPackets(tunnelInterface);
+    } else {
+      startCapturingPackets(networkInterfacesAll[0]);
+    }
 
     try {
       setSelected(true);
@@ -259,12 +301,12 @@ public class NativeIPGateway extends VisPlugin {
     /* Capture thread for incoming IP packets */
     captureThread = new Thread() {
       public void run() {
-        shutdownCaptureThread = false;
 
         /*logger.info("Capture thread started");*/
         try {
           captor = JpcapCaptor.openDevice(networkInterface, 65535, true, 20);
           captor.setNonBlockingMode(false);
+          captor.setPacketReadTimeout(20);
           String[] ipSplit = moteIP.split("\\.");
           if (ipSplit.length != 4) {
             logger.fatal("Bad mote IP address: " + moteIP);
@@ -290,21 +332,31 @@ public class NativeIPGateway extends VisPlugin {
         /*logger.info("Capture thread terminated");*/
       }
     };
+    shutdownCaptureThread = false;
     captureThread.start();
 
     /* Prepare packet sender */
     try {
       if (sender != null) {
         sender.close();
+        sender = null;
       }
-      sender = null;
-      sender = JpcapSender.openDevice(networkInterface);
+
+      if (sender == null) {
+        if (loopbackInterface != null) {
+          sender = JpcapSender.openDevice(loopbackInterface);
+        } else {
+          sender = JpcapSender.openDevice(networkInterface);
+        }
+      }
     } catch (IOException e) {
-      logger.fatal("Can not send packets on this network interface");
-      if (sender != null) {
-        sender.close();
+      if (!e.getMessage().contains("The operation completed successfully")) {
+        logger.fatal("Can not send packets on this network interface: " + e.getMessage());
+        if (sender != null) {
+          sender.close();
+        }
+        sender = null;
       }
-      sender = null;
     }
 
     System.arraycopy(networkInterface.mac_address, 0, networkInterfaceMAC, 0, 6);
@@ -339,9 +391,191 @@ public class NativeIPGateway extends VisPlugin {
     selectNICComboBox.setSelectedItem(networkInterface.description + " (" + networkInterface.name + ")");
   }
 
-  private final String FAKE_GATEWAY_IP_D = "254";
-  private final String NETMASK = "255.255.0.0";
-  private String deleteRouteCmd = null;
+  private void configureLoopbackInterface() {
+    if (ON_WINDOWS) {
+      /* Nothing to configure */
+    } else {
+      configureLoopbackInterfaceLinux();
+    }
+  }
+
+  private void configureLoopbackInterfaceLinux() {
+    enableLoopbackForwardingLinux();
+    disableLoopbackRPFilterLinux();
+  }
+
+  private void enableLoopbackForwardingLinux() {
+    try {
+      File forwardingFile = new File("/proc/sys/net/ipv4/conf/lo/forwarding");
+      if (!forwardingFile.exists() || !forwardingFile.canWrite()) {
+        logger.warn("No access to " + forwardingFile.getPath());
+        return;
+      }
+
+      Process process = Runtime.getRuntime().exec("cat " + forwardingFile.getPath());
+      process.waitFor();
+      char forwardingValue = (char) process.getInputStream().read();
+      /*logger.debug(forwardingFile.getPath() + " has value: " + forwardingValue);*/
+      if (forwardingValue != '1' && forwardingValue != '0') {
+        logger.fatal("Unknown value in " + forwardingFile.getPath() + ": " + forwardingValue);
+        return;
+      }
+
+      if (forwardingValue == '1') {
+        logger.info("Forwarding already enabled on loopback interface. No action.");
+        return;
+      }
+
+      process = Runtime.getRuntime().exec(new String[] { "bash", "-c", "echo 1 > " + forwardingFile.getPath() });
+      process.waitFor();
+      logger.info("Enabled forwarding on loopback interface.");
+
+      shouldDisableLoopbackForwarding = true;
+    } catch (IOException e) {
+      e.printStackTrace();
+    } catch (InterruptedException e) {
+      e.printStackTrace();
+    }
+  }
+
+  private void disableLoopbackForwardingLinux() {
+    try {
+      File forwardingFile = new File("/proc/sys/net/ipv4/conf/lo/forwarding");
+      if (!forwardingFile.exists() || !forwardingFile.canWrite()) {
+        logger.warn("No access to " + forwardingFile.getPath());
+        return;
+      }
+
+      Process process = Runtime.getRuntime().exec(new String[] { "bash", "-c", "echo 0 > " + forwardingFile.getPath() });
+      process.waitFor();
+      logger.info("Disabled forwarding on loopback interface.");
+    } catch (IOException e) {
+      e.printStackTrace();
+    } catch (InterruptedException e) {
+      e.printStackTrace();
+    }
+  }
+
+  private void disableLoopbackRPFilterLinux() {
+    try {
+      File filterFile = new File("/proc/sys/net/ipv4/conf/lo/rp_filter");
+      if (!filterFile.exists() || !filterFile.canWrite()) {
+        logger.warn("No access to " + filterFile.getPath());
+        return;
+      }
+
+      Process process = Runtime.getRuntime().exec("cat " + filterFile.getPath());
+      process.waitFor();
+      char filterValue = (char) process.getInputStream().read();
+      /*logger.debug(filterFile.getPath() + " has value: " + filterValue);*/
+      if (filterValue != '1' && filterValue != '0') {
+        logger.fatal("Unknown value in " + filterFile.getPath() + ": " + filterValue);
+        return;
+      }
+
+      if (filterValue == '0') {
+        logger.info("RP filter already disabled on loopback interface. No action.");
+        return;
+      }
+
+      process = Runtime.getRuntime().exec(new String[] { "bash", "-c", "echo 0 > " + filterFile.getPath() });
+      process.waitFor();
+      logger.info("Disabled RP filter on loopback interface.");
+
+      shouldEnableRPFilter = true;
+    } catch (IOException e) {
+      e.printStackTrace();
+    } catch (InterruptedException e) {
+      e.printStackTrace();
+    }
+  }
+
+  private void enableLoopbackRPFilterLinux() {
+    try {
+      File filterFile = new File("/proc/sys/net/ipv4/conf/lo/rp_filter");
+      if (!filterFile.exists() || !filterFile.canWrite()) {
+        logger.warn("No access to " + filterFile.getPath());
+        return;
+      }
+
+      Process process = Runtime.getRuntime().exec(new String[] { "bash", "-c", "echo 1 > " + filterFile.getPath() });
+      process.waitFor();
+      logger.info("Enabled RP filter on loopback interface.");
+    } catch (IOException e) {
+      e.printStackTrace();
+    } catch (InterruptedException e) {
+      e.printStackTrace();
+    }
+  }
+
+  private void createTunInterface() {
+    if (ON_WINDOWS) {
+      logger.warn("Cannot create tunnel network interface on Windows. Try using VMware interfaces.");
+    } else {
+      createTunInterfaceLinux();
+    }
+  }
+
+  private void createTunInterfaceLinux() {
+    try {
+      /* Create tunnel interface by starting any Contiki minimal-net application.
+       * We use the hello-world application.
+       *
+       * The Contiki node should have the IP address 192.168.1.2. */
+      String tunContikiApp = "hello-world." + TUNNEL_APP_TARGET;
+      File tunContikiAppDir =
+        new File(GUI.getExternalToolsSetting("PATH_CONTIKI"), "examples/hello-world");
+
+      /*logger.info("Creating tap0 via " + tunContikiAppDir + "/" + tunContikiApp);*/
+
+      String[] compileCmd = new String[3];
+      compileCmd[0] = "make";
+      compileCmd[1] = tunContikiApp;
+      compileCmd[2] = "TARGET=" + TUNNEL_APP_TARGET;
+      logger.info("> " + compileCmd[0] + " " + compileCmd[1] + " " + compileCmd[2]);
+      Process compileProcess = Runtime.getRuntime().exec(compileCmd, null, tunContikiAppDir);
+      compileProcess.waitFor();
+      boolean compileOK = compileProcess.exitValue() == 0;
+
+      if (!compileOK) {
+        throw new Exception(tunContikiAppDir + "/" + tunContikiApp + " compilation failed");
+      }
+
+      String[] tunAppCmd = new String[1];
+      tunAppCmd[0] = "./" + tunContikiApp;
+      logger.info("> " + tunAppCmd[0]);
+      tunProcess = Runtime.getRuntime().exec(tunAppCmd, null, tunContikiAppDir);
+
+      /* Waiting some time - otherwise pcap may not discover the new interface */
+      Thread.sleep(250);
+
+      logger.info("Created tap0 via " + tunContikiAppDir + "/" + tunContikiApp);
+    } catch (Exception e) {
+      logger.fatal("Error when creating tap0: " + e.getMessage());
+      logger.fatal("Try using an already existing network interface");
+    }
+  }
+
+
+  private void deleteTunInterface() {
+    if (ON_WINDOWS) {
+      /*deleteTunInterfaceWindows();*/
+    } else {
+      deleteTunInterfaceLinux();
+    }
+  }
+
+  private void deleteTunInterfaceLinux() {
+    if (tunProcess == null) {
+      return;
+    }
+    try {
+      tunProcess.destroy();
+      logger.debug("Closed tap0 process");
+    } catch (Exception e) {
+      logger.fatal("Error when deleting tap0: " + e.getMessage());
+    }
+  }
 
   private void updateNativeRoute() {
     if (mote.getInterfaces().getIPAddress().getIPString().equals("0.0.0.0")) {
@@ -354,33 +588,26 @@ public class NativeIPGateway extends VisPlugin {
       return;
     }
 
-    String osName = System.getProperty("os.name").toLowerCase();
-    if (osName.startsWith("win")) {
+    if (ON_WINDOWS) {
       updateNativeRouteWindows();
     } else {
       updateNativeRouteLinux();
     }
   }
 
-  private void updateNativeRouteLinux() {
-    logger.fatal("updateNativeRouteLinux() not implemented");
-    /* ifconfig tap0 inet 192.168.250.1") */
-    /* route delete 172.16.0.0/16 */
-    /* route add 172.16.0.0/16 192.168.250.2 */
-  }
-
   private void updateNativeRouteWindows() {
-    if (deleteRouteCmd != null) {
-      logger.info("Deleting old route: '" + deleteRouteCmd + "'");
+    if (restoreRoutesCmd != null) {
+      /*logger.info("Deleting old route: '" + restoreRoutesCmd + "'");*/
       try {
-        Process routeProcess = Runtime.getRuntime().exec(deleteRouteCmd);
+        logger.info("> " + restoreRoutesCmd);
+        Process routeProcess = Runtime.getRuntime().exec(restoreRoutesCmd);
         routeProcess.waitFor();
       } catch (IOException e) {
         e.printStackTrace();
       } catch (InterruptedException e) {
         e.printStackTrace();
       }
-      deleteRouteCmd = null;
+      restoreRoutesCmd = null;
     }
 
     String moteNetIP =
@@ -393,18 +620,54 @@ public class NativeIPGateway extends VisPlugin {
       (0xFF&networkInterface.addresses[0].address.getAddress()[0]) + "." +
       (0xFF&networkInterface.addresses[0].address.getAddress()[1]) + "." +
       (0xFF&networkInterface.addresses[0].address.getAddress()[2]) + "." +
-      FAKE_GATEWAY_IP_D;
+      "254"; /* Non-existing gateway - just make the packets go away */
     /*logger.info("Gateway IP: " + gatewayIP);*/
 
     /*logger.info("Netmask: " + NETMASK);*/
 
-    String cmd = "route add " + moteNetIP + " mask " + NETMASK + " " + gatewayIP;
 
     try {
-      logger.info("Adding new route: '" + cmd + "'");
+      logger.info("Registering route to simulated network");
+      String cmd = "route add " + moteNetIP + " mask " + NETMASK + " " + gatewayIP;
+      logger.info("> " + cmd);
       Process routeProcess = Runtime.getRuntime().exec(cmd);
       routeProcess.waitFor();
-      deleteRouteCmd = "route delete " + moteNetIP;
+      restoreRoutesCmd = "route delete " + moteNetIP;
+    } catch (IOException e) {
+      e.printStackTrace();
+    } catch (InterruptedException e) {
+      e.printStackTrace();
+    }
+  }
+
+  private void updateNativeRouteLinux() {
+    String moteNetIP =
+      mote.getInterfaces().getIPAddress().getIPString().split("\\.")[0] + "." +
+      mote.getInterfaces().getIPAddress().getIPString().split("\\.")[1] + "." +
+      "0.0";
+    /*logger.info("Simulation IP net : " + moteNetIP);*/
+
+    String gatewayIP =
+      (0xFF&networkInterface.addresses[0].address.getAddress()[0]) + "." +
+      (0xFF&networkInterface.addresses[0].address.getAddress()[1]) + "." +
+      (0xFF&networkInterface.addresses[0].address.getAddress()[2]) + "." +
+      "2";
+    /*logger.info("Gateway IP: " + gatewayIP);*/
+
+    /*logger.info("Netmask: " + NETMASK);*/
+
+    try {
+      logger.info("Registering route to simulated network");
+
+      restoreRoutesCmd = "route del -net " + moteNetIP + " netmask 255.255.0.0";
+      logger.info("> " + restoreRoutesCmd);
+      Process process = Runtime.getRuntime().exec(restoreRoutesCmd);
+      process.waitFor();
+
+      String cmd = "route add -net " + moteNetIP + " netmask " + NETMASK + " gw " + gatewayIP;
+      logger.info("> " + cmd);
+      process = Runtime.getRuntime().exec(cmd);
+      process.waitFor();
     } catch (IOException e) {
       e.printStackTrace();
     } catch (InterruptedException e) {
@@ -438,10 +701,6 @@ public class NativeIPGateway extends VisPlugin {
   }
 
   private void handleOutgoingPacket(byte[] packetData) {
-    if (sender == null) {
-      logger.warn("No sender instance, dropping outgoing packet");
-      return;
-    }
 
     /* Sanity check outgoing data */
     if (packetData.length < IP_HEADER_LEN) {
@@ -451,6 +710,11 @@ public class NativeIPGateway extends VisPlugin {
     if (packetData[0] != 0x45) {
       /*logger.warn("Ignoring bad header:" +
       		" 0x" + Integer.toHexString(packetData[0]&0xFF));*/
+      return;
+    }
+
+    if (sender == null) {
+      logger.warn("No sender instance, dropping outgoing packet");
       return;
     }
 
@@ -465,9 +729,20 @@ public class NativeIPGateway extends VisPlugin {
     ether.frametype = EthernetPacket.ETHERTYPE_IP;
     ether.dst_mac = networkInterfaceMAC;
     ether.src_mac = networkInterfaceMAC;
+
+    if (loopbackInterface != null) {
+      /* Use zeroed destination MAC (loopback) */
+      ether.dst_mac = new byte[6];
+      ether.dst_mac[0] = 0x0;
+      ether.dst_mac[1] = 0x0;
+      ether.dst_mac[2] = 0x0;
+      ether.dst_mac[3] = 0x0;
+      ether.dst_mac[4] = 0x0;
+      ether.dst_mac[5] = 0x0;
+    }
     packet.datalink = ether;
 
-    /*logger.info("Sending packet to native network: " + packet.len);*/
+    /*logger.info("Sending packet (" + packet.len + " bytes) to native network: " + sender);*/
     sender.sendPacket(packet);
 
     /* Update GUI */
@@ -504,10 +779,6 @@ public class NativeIPGateway extends VisPlugin {
     STATE_RUBBISH
   }
 
-  private SlipState readSlipState = SlipState.STATE_OK;
-  private int readSlipLength = 0;
-  private final int READ_SLIP_BUFFER_SIZE = 256;
-  private byte[] readSlipBuffer = new byte[READ_SLIP_BUFFER_SIZE];
   private boolean readSlipAccumulated(byte b) {
     switch (readSlipState) {
 
@@ -626,23 +897,34 @@ public class NativeIPGateway extends VisPlugin {
   }
 
   public void closePlugin() {
-    if (deleteRouteCmd != null) {
-      logger.info("Deleting old route: '" + deleteRouteCmd + "'");
+    if (sender != null) {
+      sender.close();
+    }
+
+    shutdownCaptureThread = true;
+
+    if (shouldDisableLoopbackForwarding) {
+      disableLoopbackForwardingLinux();
+    }
+    if (shouldEnableRPFilter) {
+      enableLoopbackRPFilterLinux();
+    }
+
+    if (restoreRoutesCmd != null) {
+      /*logger.info("Deleting old route: '" + restoreRoutesCmd + "'");*/
       try {
-        Process routeProcess = Runtime.getRuntime().exec(deleteRouteCmd);
+        logger.info("> " + restoreRoutesCmd);
+        Process routeProcess = Runtime.getRuntime().exec(restoreRoutesCmd);
         routeProcess.waitFor();
       } catch (IOException e) {
         e.printStackTrace();
       } catch (InterruptedException e) {
         e.printStackTrace();
       }
-      deleteRouteCmd = null;
+      restoreRoutesCmd = null;
     }
 
-    shutdownCaptureThread = true;
-    if (sender != null) {
-      sender.close();
-    }
+    deleteTunInterface();
   }
 
 }
