@@ -529,7 +529,7 @@ reserve(const char *name, coffee_page_t pages, int allow_duplicates)
   write_header(&hdr, page);
 
   PRINTF("Coffee: Reserved %u pages starting from %u for file %s\n",
-      need_pages, page, name);
+      pages, page, name);
   dir_cache_add(name[0], page);
 
   watchdog_start();
