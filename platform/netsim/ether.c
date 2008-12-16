@@ -30,7 +30,7 @@
  *
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: ether.c,v 1.13 2008/05/14 19:22:58 adamdunkels Exp $
+ * $Id: ether.c,v 1.14 2008/12/16 09:59:42 joxe Exp $
  */
 /**
  * \file
@@ -499,8 +499,8 @@ ether_tick(void)
   }
 
   /* Remove all packets from the active packets list. */
-  for(p = list_head(active_packets); p != NULL; p = list_pop(active_packets)) {
-    memb_free(&packets, (void *)p);
+  while((p = list_pop(active_packets)) != NULL) {
+    memb_free(&packets, (void *) p);
   }
 
   ++timer;
