@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#)$Id: contiki-sky-main.c,v 1.7 2008/07/02 09:05:41 adamdunkels Exp $
+ * @(#)$Id: contiki-sky-main.c,v 1.8 2008/12/16 17:05:14 nifi Exp $
  */
 
 #include <signal.h>
@@ -104,7 +104,8 @@ static void
 set_rime_addr(void)
 {
   rimeaddr_t addr;
-  addr.u16[0] = node_id;
+  addr.u8[0] = node_id & 0xff;
+  addr.u8[1] = node_id >> 8;
   rimeaddr_set_node_addr(&addr);
 }
 /*---------------------------------------------------------------------------*/
@@ -126,7 +127,7 @@ main(int argc, char **argv)
 #endif /* WITH_UIP */
   
   printf("Starting %s "
-	 "($Id: contiki-sky-main.c,v 1.7 2008/07/02 09:05:41 adamdunkels Exp $)\n", __FILE__);
+	 "($Id: contiki-sky-main.c,v 1.8 2008/12/16 17:05:14 nifi Exp $)\n", __FILE__);
   ds2411_init();
   sensors_light_init();
   sht11_init();
