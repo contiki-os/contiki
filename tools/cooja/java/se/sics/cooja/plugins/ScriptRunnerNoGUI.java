@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ScriptRunnerNoGUI.java,v 1.6 2008/12/04 14:03:42 joxe Exp $
+ * $Id: ScriptRunnerNoGUI.java,v 1.7 2008/12/16 15:11:18 fros4943 Exp $
  */
 
 package se.sics.cooja.plugins;
@@ -38,6 +38,7 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.*;
+import javax.swing.JInternalFrame;
 import org.apache.log4j.Logger;
 import org.jdom.Element;
 
@@ -77,6 +78,10 @@ public class ScriptRunnerNoGUI implements Plugin {
       } catch (IOException e) {
       }
     }
+  }
+
+  public JInternalFrame getGUI() {
+    return null;
   }
 
   public boolean activateTest(File script, File log) {
