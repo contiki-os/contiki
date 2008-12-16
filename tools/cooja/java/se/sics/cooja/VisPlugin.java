@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: VisPlugin.java,v 1.6 2007/09/21 16:11:44 fros4943 Exp $
+ * $Id: VisPlugin.java,v 1.7 2008/12/16 15:05:27 fros4943 Exp $
  */
 
 package se.sics.cooja;
@@ -58,14 +58,13 @@ public abstract class VisPlugin extends JInternalFrame implements Plugin {
    */
   public VisPlugin(String title, final GUI gui) {
     super(title, true, true, true, true);
-    final VisPlugin thisPlugin = this;
 
     // Close via gui
     setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
     // Detect frame events
     addInternalFrameListener(new InternalFrameListener() {
       public void internalFrameClosing(InternalFrameEvent e) {
-        gui.removePlugin(thisPlugin, true);
+        gui.removePlugin(VisPlugin.this, true);
       }
       public void internalFrameClosed(InternalFrameEvent e) {
         // NOP
@@ -90,6 +89,10 @@ public abstract class VisPlugin extends JInternalFrame implements Plugin {
       }
     }
     );
+  }
+
+  public JInternalFrame getGUI() {
+    return this;
   }
 
   public Collection<Element> getConfigXML() {
