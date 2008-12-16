@@ -24,7 +24,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * $Id: GUI.java,v 1.96 2008/12/16 15:10:49 fros4943 Exp $
+ * $Id: GUI.java,v 1.97 2008/12/16 16:15:36 fros4943 Exp $
  */
 
 package se.sics.cooja;
@@ -156,6 +156,12 @@ public class GUI extends Observable {
    * External tools default Linux/Unix settings filename.
    */
   public static final String EXTERNAL_TOOLS_LINUX_SETTINGS_FILENAME = "/external_tools_linux.config";
+
+  /**
+   * External tools default Linux/Unix settings filename for 64 bit architectures.
+   * EXPERIMENTAL. Tested on Intel 64-bit Gentoo Linux.
+   */
+  public static final String EXTERNAL_TOOLS_LINUX_64_SETTINGS_FILENAME = "/external_tools_linux_64.config";
 
   /**
    * External tools user settings filename.
@@ -2676,12 +2682,22 @@ public class GUI extends Observable {
    */
   public static void loadExternalToolsDefaultSettings() {
     String osName = System.getProperty("os.name").toLowerCase();
+    String osArch = System.getProperty("os.arch").toLowerCase();
 
-    String filename = GUI.EXTERNAL_TOOLS_LINUX_SETTINGS_FILENAME;
+    String filename = null;
     if (osName.startsWith("win")) {
       filename = GUI.EXTERNAL_TOOLS_WIN32_SETTINGS_FILENAME;
     } else if (osName.startsWith("mac os x")) {
       filename = GUI.EXTERNAL_TOOLS_MACOSX_SETTINGS_FILENAME;
+    } else if (osName.startsWith("linux")) {
+      filename = GUI.EXTERNAL_TOOLS_LINUX_SETTINGS_FILENAME;
+      if (osArch.startsWith("amd64")) {
+        filename = GUI.EXTERNAL_TOOLS_LINUX_64_SETTINGS_FILENAME;
+      }
+    } else {
+      logger.warn("Unknown system: " + osName);
+      logger.warn("Using default linux external tools configuration");
+      filename = GUI.EXTERNAL_TOOLS_LINUX_SETTINGS_FILENAME;
     }
 
     logger.info("Loading external tools user settings from: " + filename);
