@@ -26,22 +26,33 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: Plugin.java,v 1.2 2007/01/10 14:57:42 fros4943 Exp $
+ * $Id: Plugin.java,v 1.3 2008/12/16 15:07:14 fros4943 Exp $
  */
 
 package se.sics.cooja;
 
 import java.util.Collection;
+
+import javax.swing.JInternalFrame;
+
 import org.jdom.Element;
 
 /**
- * Main interface for a COOJA interaction plugin. The typical interaction plugin
- * is a visualization plugin, see abstract VisPlugin for more information.
- * 
+ * COOJA plugin. For graphical plugins, extend abstract class VisPlugin.
+ * A plugin should also use ClassDecription and PluginType.
+ *
+ * @see se.sics.cooja.ClassDescription
+ * @see se.sics.cooja.PluginType
  * @see se.sics.cooja.VisPlugin
+ *
  * @author Fredrik Osterlind
  */
 public interface Plugin {
+
+  /**
+   * Graphical component of plugin (if any)
+   */
+  public JInternalFrame getGUI();
 
   /**
    * This method is called when an opened plugin is about to close.
@@ -53,7 +64,7 @@ public interface Plugin {
   /**
    * This method is used by the simulator for book-keeping purposes, and should
    * normally not be called by the plugin itself.
-   * 
+   *
    * @param tag
    *          Object
    */
@@ -62,7 +73,7 @@ public interface Plugin {
   /**
    * This method is used by the simulator for book-keeping purposes, and should
    * normally not be called by the plugin itself.
-   * 
+   *
    * @return Object
    */
   public Object getTag();
@@ -74,7 +85,7 @@ public interface Plugin {
    * position. This method should however not return state specific information
    * such as the value of a mote LED, or total number of motes. (All nodes are
    * restarted when loading a simulation.)
-   * 
+   *
    * @see #setConfigXML(Collection, boolean)
    * @return XML elements representing the current radio medium config
    */
@@ -82,7 +93,7 @@ public interface Plugin {
 
   /**
    * Sets the current plugin config depending on the given XML elements.
-   * 
+   *
    * @see #getConfigXML()
    * @param configXML
    *          Config XML elements
