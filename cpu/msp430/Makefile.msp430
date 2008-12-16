@@ -1,4 +1,4 @@
-# $Id: Makefile.msp430,v 1.25 2008/11/24 11:09:36 nifi Exp $
+# $Id: Makefile.msp430,v 1.26 2008/12/16 13:54:25 nifi Exp $
 
 ifdef nodeid
 CFLAGS += -DNODEID=$(nodeid)
@@ -64,22 +64,22 @@ PROJECT_OBJECTFILES += ${addprefix $(OBJECTDIR)/,$(CONTIKI_TARGET_MAIN:.c=.o)}
 %.o: ${CONTIKI_TARGET}/loader/%.S
 	$(AS) -o $(notdir $(<:.S=.o)) $<
 
-%.firmware:	%.co $(PROJECT_OBJECTFILES) contiki-$(TARGET).a
-	$(CC) $(LDFLAGS) $(CFLAGS) -o $@ $(filter-out %.a,$^) $(filter %.a,$^)
+%.firmware:	%.${TARGET}
+	mv $< $@
 
 %.ihex: %.$(TARGET)
 	$(OBJCOPY) $^ -O ihex $@
 
-%.mspsim:	%.firmware
+%.mspsim:	%.${TARGET}
 	java -jar ${CONTIKI}/tools/mspsim/mspsim.jar -platform=${TARGET} $<
 
-core-labels.o: core.firmware
-	${CONTIKI}/tools/msp430-make-labels core.firmware > core-labels.S
+core-labels.o: core.${TARGET}
+	${CONTIKI}/tools/msp430-make-labels core.${TARGET} > core-labels.S
 	$(AS) -o $@ core-labels.S
 #	cp core-labels.o app/
 
-core-globals.o: core.firmware
-	${CONTIKI}/tools/msp430-make-globals core.firmware > core-globals.S
+core-globals.o: core.${TARGET}
+	${CONTIKI}/tools/msp430-make-globals core.${TARGET} > core-globals.S
 	$(AS) -o $@ core-globals.S
 
 loader-init.o: ${CONTIKI_TARGET}/loader/loader-init.S
