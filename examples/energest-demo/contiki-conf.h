@@ -1,5 +1,5 @@
 /* -*- C -*- */
-/* @(#)$Id: contiki-conf.h,v 1.3 2008/07/01 21:02:51 adamdunkels Exp $ */
+/* @(#)$Id: contiki-conf.h,v 1.4 2008/12/16 16:53:04 nifi Exp $ */
 
 #ifndef CONTIKI_CONF_H
 #define CONTIKI_CONF_H
@@ -44,7 +44,7 @@
 #define F_CPU 2457600uL
 
 /* Our clock resolution, this is the same as Unix HZ. */
-#define CLOCK_CONF_SECOND 100
+#define CLOCK_CONF_SECOND 64
 
 #define BAUD2UBR(baud) ((F_CPU/baud))
 
