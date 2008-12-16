@@ -24,7 +24,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * $Id: GUI.java,v 1.95 2008/12/08 10:26:21 fros4943 Exp $
+ * $Id: GUI.java,v 1.96 2008/12/16 15:10:49 fros4943 Exp $
  */
 
 package se.sics.cooja;
@@ -367,10 +367,10 @@ public class GUI extends Observable {
     }
 
     // Start all standard GUI plugins
-    for (Class<? extends Plugin> visPluginClass : pluginClasses) {
-      int pluginType = visPluginClass.getAnnotation(PluginType.class).value();
+    for (Class<? extends Plugin> pluginClass : pluginClasses) {
+      int pluginType = pluginClass.getAnnotation(PluginType.class).value();
       if (pluginType == PluginType.COOJA_STANDARD_PLUGIN) {
-        startPlugin(visPluginClass, this, null, null);
+        startPlugin(pluginClass, this, null, null);
       }
     }
   }
@@ -871,8 +871,17 @@ public class GUI extends Observable {
         frame.setLocation(device.getDefaultConfiguration().getBounds().getLocation());
         frame.setExtendedState(JFrame.MAXIMIZED_BOTH);
       } else if (frameWidth > 0 && frameHeight > 0) {
-        frame.setLocation(framePosX, framePosY);
-        frame.setSize(frameWidth, frameHeight);
+
+        /* Sanity-check: will Cooja be visible on screen? */
+        boolean intersects =
+          device.getDefaultConfiguration().getBounds().intersects(
+              new Rectangle(framePosX, framePosY, frameWidth, frameHeight));
+
+        if (intersects) {
+          frame.setLocation(framePosX, framePosY);
+          frame.setSize(frameWidth, frameHeight);
+        }
+
       }
     }
 
@@ -1339,12 +1348,15 @@ public class GUI extends Observable {
 
     // Start plugins and try to place them wisely
     logger.info("> Starting plugin and showing GUI");
-    VisPlugin plugin = (VisPlugin) gui.startPlugin(VisState.class, gui, simulation, null);
-    plugin.setLocation(350, 20);
-    plugin = (VisPlugin) gui.startPlugin(VisTraffic.class, gui, simulation, null);
-    plugin.setLocation(350, 340);
-    plugin = (VisPlugin) gui.startPlugin(LogListener.class, gui, simulation, null);
-    plugin.setLocation(20, 420);
+    Plugin plugin = gui.startPlugin(VisState.class, gui, simulation, null);
+    JInternalFrame pluginGUI = plugin.getGUI();
+    pluginGUI.setLocation(350, 20);
+    plugin = gui.startPlugin(VisTraffic.class, gui, simulation, null);
+    pluginGUI = plugin.getGUI();
+    pluginGUI.setLocation(350, 340);
+    plugin = gui.startPlugin(LogListener.class, gui, simulation, null);
+    pluginGUI = plugin.getGUI();
+    pluginGUI.setLocation(20, 420);
 
     frame.setJMenuBar(gui.createMenuBar());
     // Finally show GUI
@@ -1694,41 +1706,42 @@ public class GUI extends Observable {
   /**
    * Show a started plugin in working area.
    *
-   * @param plugin
-   *          Internal frame to add
+   * @param plugin Plugin
    */
-  public void showPlugin(final VisPlugin plugin) {
+  public void showPlugin(final Plugin plugin) {
     new RunnableInEDT<Boolean>() {
       public Boolean work() {
-        int nrFrames = myDesktopPane.getAllFrames().length;
-        myDesktopPane.add(plugin);
-
-        // Set standard size if not specified by plugin itself
-        if (plugin.getWidth() <= 0 || plugin.getHeight() <= 0) {
-          plugin.setSize(FRAME_STANDARD_WIDTH, FRAME_STANDARD_HEIGHT);
+        JInternalFrame pluginFrame = plugin.getGUI();
+        if (pluginFrame == null) {
+          logger.fatal("Failed trying to show plugin without visualizer!");
+          return false;
         }
 
-        // Set location if not already visible
-        if (plugin.getLocation().x <= 0 && plugin.getLocation().y <= 0) {
-          plugin.setLocation(
+        int nrFrames = myDesktopPane.getAllFrames().length;
+        myDesktopPane.add(pluginFrame);
+
+        /* Set size if not already specified by plugin */
+        if (pluginFrame.getWidth() <= 0 || pluginFrame.getHeight() <= 0) {
+          pluginFrame.setSize(FRAME_STANDARD_WIDTH, FRAME_STANDARD_HEIGHT);
+        }
+
+        /* Set location if not already visible */
+        if (pluginFrame.getLocation().x <= 0 && pluginFrame.getLocation().y <= 0) {
+          pluginFrame.setLocation(
               nrFrames * FRAME_NEW_OFFSET,
               nrFrames * FRAME_NEW_OFFSET);
         }
 
-        plugin.setVisible(true);
+        pluginFrame.setVisible(true);
 
-        // Deselect all other plugins before selecting the new one
+        /* Select plugin */
         try {
           for (JInternalFrame existingPlugin : myDesktopPane.getAllFrames()) {
             existingPlugin.setSelected(false);
           }
-          plugin.setSelected(true);
-        } catch (Exception e) {
-          // Ignore
-        }
-
-        // Mote plugin to front
-        myDesktopPane.moveToFront(plugin);
+          pluginFrame.setSelected(true);
+        } catch (Exception e) { }
+        myDesktopPane.moveToFront(pluginFrame);
 
         return true;
       }
@@ -1778,8 +1791,8 @@ public class GUI extends Observable {
         startedPlugins.remove(plugin);
 
         /* Dispose visualized components */
-        if (plugin instanceof VisPlugin) {
-          ((VisPlugin) plugin).dispose();
+        if (plugin.getGUI() != null) {
+          plugin.getGUI().dispose();
         }
 
         /* (OPTIONAL) Remove simulation if all plugins are closed */
@@ -1814,79 +1827,61 @@ public class GUI extends Observable {
       return null;
     }
 
-    // Check that visualizer plugin is not started without GUI
-    if (!isVisualized()) {
-      try {
-        pluginClass.asSubclass(VisPlugin.class);
-
-        // Cast succeded, plugin is visualizer plugin!
-        /*logger.warn("Can't start visualizer plugin (no GUI): " + pluginClass);*/
-        return null;
-      } catch (ClassCastException e) {
-      }
-    }
-
     // Construct plugin depending on plugin type
-    Plugin newPlugin = new RunnableInEDT<Plugin>() {
-      public Plugin work() {
-        int pluginType = pluginClass.getAnnotation(PluginType.class).value();
-        Plugin plugin = null;
+    int pluginType = pluginClass.getAnnotation(PluginType.class).value();
+    Plugin plugin = null;
 
-        try {
-          if (pluginType == PluginType.MOTE_PLUGIN) {
-            if (mote == null) {
-              logger.fatal("Can't start mote plugin (no mote selected)");
-              return null;
-            }
-
-            plugin = pluginClass.getConstructor(
-                new Class[] { Mote.class, Simulation.class, GUI.class })
-                .newInstance(mote, simulation, gui);
-
-            // Tag plugin with mote
-            plugin.tagWithObject(mote);
-          } else if (pluginType == PluginType.SIM_PLUGIN
-              || pluginType == PluginType.SIM_STANDARD_PLUGIN) {
-            if (simulation == null) {
-              logger.fatal("Can't start simulation plugin (no simulation)");
-              return null;
-            }
-
-            plugin = pluginClass.getConstructor(
-                new Class[] { Simulation.class, GUI.class }).newInstance(
-                simulation, gui);
-          } else if (pluginType == PluginType.COOJA_PLUGIN
-              || pluginType == PluginType.COOJA_STANDARD_PLUGIN) {
-            if (gui == null) {
-              logger.fatal("Can't start COOJA plugin (no GUI)");
-              return null;
-            }
-
-            plugin = pluginClass.getConstructor(new Class[] { GUI.class }).newInstance(gui);
-          }
-        } catch (Exception e) {
-          logger.fatal("Exception thrown when starting plugin: " + e);
-          e.printStackTrace();
+    try {
+      if (pluginType == PluginType.MOTE_PLUGIN) {
+        if (mote == null) {
+          logger.fatal("Can't start mote plugin (no mote selected)");
           return null;
         }
 
-        return plugin;
-      }
-    }.invokeAndWait();
+        plugin = pluginClass.getConstructor(
+            new Class[] { Mote.class, Simulation.class, GUI.class })
+            .newInstance(mote, simulation, gui);
 
-    if (newPlugin == null) {
+        // Tag plugin with mote
+        plugin.tagWithObject(mote);
+      } else if (pluginType == PluginType.SIM_PLUGIN
+          || pluginType == PluginType.SIM_STANDARD_PLUGIN) {
+        if (simulation == null) {
+          logger.fatal("Can't start simulation plugin (no simulation)");
+          return null;
+        }
+
+        plugin = pluginClass.getConstructor(
+            new Class[] { Simulation.class, GUI.class }).newInstance(
+            simulation, gui);
+      } else if (pluginType == PluginType.COOJA_PLUGIN
+          || pluginType == PluginType.COOJA_STANDARD_PLUGIN) {
+        if (gui == null) {
+          logger.fatal("Can't start COOJA plugin (no GUI)");
+          return null;
+        }
+
+        plugin = pluginClass.getConstructor(new Class[] { GUI.class }).newInstance(gui);
+      }
+    } catch (Exception e) {
+      logger.fatal("Exception thrown when starting plugin: " + e);
+      e.printStackTrace();
+      return null;
+    }
+
+    if (plugin == null) {
       return null;
     }
 
     // Add to active plugins list
-    startedPlugins.add(newPlugin);
+    startedPlugins.add(plugin);
 
     // Show plugin if visualizer type
-    if (newPlugin instanceof VisPlugin) {
-      myGUI.showPlugin((VisPlugin) newPlugin);
+    if (plugin.getGUI() != null) {
+      myGUI.showPlugin(plugin);
     }
 
-    return newPlugin;
+    return plugin;
   }
 
   /**
@@ -2883,8 +2878,8 @@ public class GUI extends Observable {
           }
         }
       } else if (e.getActionCommand().equals("start plugin")) {
-        Class<? extends VisPlugin> pluginClass = (Class<? extends VisPlugin>) ((JMenuItem) e
-            .getSource()).getClientProperty("class");
+        Class<Plugin> pluginClass =
+          (Class<Plugin>) ((JMenuItem) e.getSource()).getClientProperty("class");
         Mote mote = (Mote) ((JMenuItem) e.getSource()).getClientProperty("mote");
         startPlugin(pluginClass, myGUI, mySimulation, mote);
       } else {
@@ -3522,7 +3517,7 @@ public class GUI extends Observable {
       }
 
       // Create plugin specific configuration
-      Collection pluginXML = startedPlugin.getConfigXML();
+      Collection<Element> pluginXML = startedPlugin.getConfigXML();
       if (pluginXML != null) {
         pluginSubElement = new Element("plugin_config");
         pluginSubElement.addContent(pluginXML);
@@ -3530,33 +3525,31 @@ public class GUI extends Observable {
       }
 
       // If plugin is visualizer plugin, create visualization arguments
-      if (startedPlugin instanceof VisPlugin) {
-        VisPlugin startedVisPlugin = (VisPlugin) startedPlugin;
+      if (startedPlugin.getGUI() != null) {
+        JInternalFrame pluginFrame = startedPlugin.getGUI();
 
         pluginSubElement = new Element("width");
-        pluginSubElement.setText("" + startedVisPlugin.getSize().width);
+        pluginSubElement.setText("" + pluginFrame.getSize().width);
         pluginElement.addContent(pluginSubElement);
 
         pluginSubElement = new Element("z");
-        pluginSubElement.setText(""
-            + getDesktopPane().getComponentZOrder(startedVisPlugin));
+        pluginSubElement.setText("" + getDesktopPane().getComponentZOrder(pluginFrame));
         pluginElement.addContent(pluginSubElement);
 
         pluginSubElement = new Element("height");
-        pluginSubElement.setText("" + startedVisPlugin.getSize().height);
+        pluginSubElement.setText("" + pluginFrame.getSize().height);
         pluginElement.addContent(pluginSubElement);
 
         pluginSubElement = new Element("location_x");
-        pluginSubElement.setText("" + startedVisPlugin.getLocation().x);
+        pluginSubElement.setText("" + pluginFrame.getLocation().x);
         pluginElement.addContent(pluginSubElement);
 
         pluginSubElement = new Element("location_y");
-        pluginSubElement.setText("" + startedVisPlugin.getLocation().y);
+        pluginSubElement.setText("" + pluginFrame.getLocation().y);
         pluginElement.addContent(pluginSubElement);
 
         pluginSubElement = new Element("minimized");
-        pluginSubElement.setText(new Boolean(startedVisPlugin.isIcon())
-            .toString());
+        pluginSubElement.setText(new Boolean(pluginFrame.isIcon()).toString());
         pluginElement.addContent(pluginSubElement);
       }
 
@@ -3610,8 +3603,8 @@ public class GUI extends Observable {
 
         // Read plugin class
         String pluginClassName = pluginElement.getText().trim();
-        Class<? extends Plugin> pluginClass = tryLoadClass(this,
-            Plugin.class, pluginClassName);
+        Class<? extends Plugin> pluginClass =
+          tryLoadClass(this, Plugin.class, pluginClassName);
         if (pluginClass == null) {
           logger.fatal("Could not load plugin class: " + pluginClassName);
           return false;
@@ -3628,77 +3621,69 @@ public class GUI extends Observable {
           }
         }
 
-        // Start plugin (before applying rest of config)
-        Plugin startedPlugin = startPlugin(pluginClass, this, simulation, mote);
+        /* Start plugin */
+        final Plugin startedPlugin = startPlugin(pluginClass, this, simulation, mote);
+        if (startedPlugin == null) {
+          logger.warn("Could not start plugin of class: " + pluginClass);
+          continue;
+        }
 
-        /* Ignore visualized plugins if Cooja not visualized */
-        try {
-          if (!visAvailable && startedPlugin == null && pluginClass.asSubclass(VisPlugin.class) != null) {
-            continue;
-          }
-        } catch (ClassCastException e) { }
-
-
-        // Apply plugin specific configuration
+        /* Apply plugin specific configuration */
         for (Element pluginSubElement : (List<Element>) pluginElement.getChildren()) {
           if (pluginSubElement.getName().equals("plugin_config")) {
             startedPlugin.setConfigXML(pluginSubElement.getChildren(), visAvailable);
           }
         }
 
-        // If plugin is visualizer plugin, parse visualization arguments
-        if (startedPlugin instanceof VisPlugin) {
-          final VisPlugin startedVisPlugin = (VisPlugin) startedPlugin;
-          new RunnableInEDT<Boolean>() {
-            public Boolean work() {
-              Dimension size = new Dimension(100, 100);
-              Point location = new Point(100, 100);
-
-              for (Element pluginSubElement : (List<Element>) pluginElement.getChildren()) {
-
-                if (pluginSubElement.getName().equals("width")) {
-                  size.width = Integer.parseInt(pluginSubElement.getText());
-                  startedVisPlugin.setSize(size);
-                } else if (pluginSubElement.getName().equals("height")) {
-                  size.height = Integer.parseInt(pluginSubElement.getText());
-                  startedVisPlugin.setSize(size);
-                } else if (pluginSubElement.getName().equals("z")) {
-                  int zOrder = Integer.parseInt(pluginSubElement.getText());
-                  // Save z order as temporary client property
-                  startedVisPlugin.putClientProperty("zorder", zOrder);
-                } else if (pluginSubElement.getName().equals("location_x")) {
-                  location.x = Integer.parseInt(pluginSubElement.getText());
-                  startedVisPlugin.setLocation(location);
-                } else if (pluginSubElement.getName().equals("location_y")) {
-                  location.y = Integer.parseInt(pluginSubElement.getText());
-                  startedVisPlugin.setLocation(location);
-                } else if (pluginSubElement.getName().equals("minimized")) {
-                  try {
-                    startedVisPlugin.setIcon(Boolean.parseBoolean(pluginSubElement.getText()));
-                  } catch (PropertyVetoException e) {
-                    // Ignoring
-                  }
-                }
-              }
-
-              // For all started visplugins, check if they have a zorder property
-              try {
-                for (JInternalFrame plugin : getDesktopPane().getAllFrames()) {
-                  if (plugin.getClientProperty("zorder") != null) {
-                    getDesktopPane().setComponentZOrder(plugin,
-                        ((Integer) plugin.getClientProperty("zorder")).intValue());
-                    plugin.putClientProperty("zorder", null);
-                  }
-                }
-              } catch (Exception e) {
-                // Ignore errors
-              }
-
-              return true;
-            }
-          }.invokeAndWait();
-
+        /* If Cooja not visualized, ignore window configuration */
+        if (startedPlugin.getGUI() == null) {
+          continue;
         }
+
+        // If plugin is visualizer plugin, parse visualization arguments
+        new RunnableInEDT<Boolean>() {
+          public Boolean work() {
+            Dimension size = new Dimension(100, 100);
+            Point location = new Point(100, 100);
+
+            for (Element pluginSubElement : (List<Element>) pluginElement.getChildren()) {
+              if (pluginSubElement.getName().equals("width")) {
+                size.width = Integer.parseInt(pluginSubElement.getText());
+                startedPlugin.getGUI().setSize(size);
+              } else if (pluginSubElement.getName().equals("height")) {
+                size.height = Integer.parseInt(pluginSubElement.getText());
+                startedPlugin.getGUI().setSize(size);
+              } else if (pluginSubElement.getName().equals("z")) {
+                int zOrder = Integer.parseInt(pluginSubElement.getText());
+                // Save z order as temporary client property
+                startedPlugin.getGUI().putClientProperty("zorder", zOrder);
+              } else if (pluginSubElement.getName().equals("location_x")) {
+                location.x = Integer.parseInt(pluginSubElement.getText());
+                startedPlugin.getGUI().setLocation(location);
+              } else if (pluginSubElement.getName().equals("location_y")) {
+                location.y = Integer.parseInt(pluginSubElement.getText());
+                startedPlugin.getGUI().setLocation(location);
+              } else if (pluginSubElement.getName().equals("minimized")) {
+                try {
+                  startedPlugin.getGUI().setIcon(Boolean.parseBoolean(pluginSubElement.getText()));
+                } catch (PropertyVetoException e) { }
+              }
+            }
+
+            // For all visualized plugins, check if they have a zorder property
+            try {
+              for (JInternalFrame plugin : getDesktopPane().getAllFrames()) {
+                if (plugin.getClientProperty("zorder") != null) {
+                  getDesktopPane().setComponentZOrder(plugin,
+                      ((Integer) plugin.getClientProperty("zorder")).intValue());
+                  plugin.putClientProperty("zorder", null);
+                }
+              }
+            } catch (Exception e) { }
+
+            return true;
+          }
+        }.invokeAndWait();
 
       }
     }
