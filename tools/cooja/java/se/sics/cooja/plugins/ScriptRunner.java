@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ScriptRunner.java,v 1.8 2008/12/03 15:21:02 fros4943 Exp $
+ * $Id: ScriptRunner.java,v 1.9 2008/12/17 13:12:07 fros4943 Exp $
  */
 
 package se.sics.cooja.plugins;
@@ -42,6 +42,8 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
@@ -50,6 +52,8 @@ import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import javax.swing.*;
+import javax.swing.event.InternalFrameEvent;
+import javax.swing.event.InternalFrameListener;
 
 import org.apache.log4j.Logger;
 import org.jdom.Document;
@@ -60,23 +64,18 @@ import org.jdom.output.Format;
 import org.jdom.output.XMLOutputter;
 
 import se.sics.cooja.*;
+import se.sics.cooja.GUI.SimulationCreationException;
 import se.sics.cooja.dialogs.MessageList;
 
-@ClassDescription("Test Script Editor")
+@ClassDescription("Contiki Test Editor")
 @PluginType(PluginType.COOJA_PLUGIN)
-public class ScriptRunner extends VisPlugin {
+public class ScriptRunner implements Plugin {
   private static final long serialVersionUID = 1L;
   private static Logger logger = Logger.getLogger(ScriptRunner.class);
 
-  private JTextArea scriptTextArea;
-  private JTextArea logTextArea;
-  private GUI gui;
-  private LogScriptEngine scriptTester = null;
-  private JButton toggleButton;
-  private String oldTestName = null;
-  private String oldInfo = null;
+  private static final int DEFAULT_TIMEOUT = 1200000; /* 1200s = 20 minutes */
 
-  private static String exampleScript =
+  private static final String EXAMPLE_SCRIPT =
     "/* Script is run for each mote log output, for example printf()'s */\n" +
     "/* Input variables: Mote mote, int id, String msg, Hashtable global */\n" +
     "\n" +
@@ -98,15 +97,51 @@ public class ScriptRunner extends VisPlugin {
     "\n" +
     "//mote.getSimulation().getGUI().reloadCurrentSimulation(true); /* Reload simulation */\n";
 
+  private GUI gui;
+  private Object coojaTag = null; /* Used by Cooja for book-keeping */
+
+  private LogScriptEngine engine = null;
+
+  private BufferedWriter logWriter = null;
+
+  /* GUI components */
+  private JInternalFrame pluginGUI = null;
+  private JTextArea scriptTextArea = null;
+  private JTextArea logTextArea = null;
+  private JButton toggleButton = null;
+  private String oldTestName = null;
+  private String oldInfo = null;
+
   public ScriptRunner(GUI gui) {
-    super("Test Script Editor", gui);
     this.gui = gui;
+
+    if (!GUI.isVisualized()) {
+      /* Wait for activateTest(...) */
+      return;
+    }
+
+    /* GUI components */
+    pluginGUI = new JInternalFrame(
+        "Contiki Test Editor",
+        true, true, true, true);
+    pluginGUI.addInternalFrameListener(new InternalFrameListener() {
+      public void internalFrameClosing(InternalFrameEvent e) {
+        ScriptRunner.this.gui.removePlugin(ScriptRunner.this, true);
+      }
+      public void internalFrameClosed(InternalFrameEvent e) { }
+      public void internalFrameOpened(InternalFrameEvent e) { }
+      public void internalFrameIconified(InternalFrameEvent e) { }
+      public void internalFrameDeiconified(InternalFrameEvent e) { }
+      public void internalFrameActivated(InternalFrameEvent e) { }
+      public void internalFrameDeactivated(InternalFrameEvent e) { }
+    }
+    );
 
     scriptTextArea = new JTextArea(8,50);
     scriptTextArea.setMargin(new Insets(5,5,5,5));
     scriptTextArea.setEditable(true);
     scriptTextArea.setCursor(null);
-    scriptTextArea.setText(exampleScript);
+    scriptTextArea.setText(EXAMPLE_SCRIPT);
 
     logTextArea = new JTextArea(8,50);
     logTextArea.setMargin(new Insets(5,5,5,5));
@@ -117,21 +152,21 @@ public class ScriptRunner extends VisPlugin {
     toggleButton.addActionListener(new ActionListener() {
       public void actionPerformed(ActionEvent ev) {
         if (toggleButton.getText().equals("Activate")) {
-          scriptTester = new LogScriptEngine(ScriptRunner.this.gui, scriptTextArea.getText());
-          scriptTester.setScriptLogObserver(new Observer() {
+          engine = new LogScriptEngine(ScriptRunner.this.gui, scriptTextArea.getText());
+          engine.setScriptLogObserver(new Observer() {
             public void update(Observable obs, Object obj) {
               logTextArea.append((String) obj);
               logTextArea.setCaretPosition(logTextArea.getText().length());
             }
           });
-          scriptTester.activateScript();
+          engine.activateScript();
           toggleButton.setText("Deactivate");
           scriptTextArea.setEnabled(false);
 
         } else {
-          if (scriptTester != null) {
-            scriptTester.deactiveScript();
-            scriptTester = null;
+          if (engine != null) {
+            engine.deactiveScript();
+            engine = null;
           }
           toggleButton.setText("Activate");
           scriptTextArea.setEnabled(true);
@@ -174,23 +209,19 @@ public class ScriptRunner extends VisPlugin {
     JPanel southPanel = new JPanel(new BorderLayout());
     southPanel.add(BorderLayout.EAST, buttonPanel);
 
-    getContentPane().add(BorderLayout.CENTER, centerPanel);
-    getContentPane().add(BorderLayout.SOUTH, southPanel);
+    pluginGUI.getContentPane().add(BorderLayout.CENTER, centerPanel);
+    pluginGUI.getContentPane().add(BorderLayout.SOUTH, southPanel);
 
-    pack();
+    pluginGUI.pack();
+  }
 
-    try {
-      setSelected(true);
-    } catch (java.beans.PropertyVetoException e) {
-      // Could not select
-    }
+  public JInternalFrame getGUI() {
+    return pluginGUI;
   }
 
   private void importContikiTest() {
     new Thread(new Runnable() {
       public void run() {
-        Simulation simulation = ScriptRunner.this.gui.getSimulation();
-
         /* Load config from test directory */
         final File proposedDir = new File(GUI.getExternalToolsSetting("PATH_CONTIKI") + "/tools/cooja/contiki_tests");
         if (!proposedDir.exists()) {
@@ -471,7 +502,7 @@ public class ScriptRunner extends VisPlugin {
 
       progressDialog.getRootPane().setDefaultButton(button);
       progressDialog.setSize(500, 300);
-      progressDialog.setLocationRelativeTo(ScriptRunner.this);
+      progressDialog.setLocationRelativeTo(ScriptRunner.this.pluginGUI);
       progressDialog.setVisible(true);
 
       Thread readInput = new Thread(new Runnable() {
@@ -552,10 +583,86 @@ public class ScriptRunner extends VisPlugin {
     }
   }
 
+  public boolean activateTest(File config, File script, File log) {
+    try {
+      /* Load simulation */
+      final Simulation sim = gui.loadSimulationConfig(config, true);
+      if (sim == null) {
+        gui.doQuit(false);
+        return false;
+      }
+      gui.setSimulation(sim);
+
+      /* Load test script */
+      BufferedReader in = new BufferedReader(new FileReader(script));
+      String line, code = "";
+      while ((line = in.readLine()) != null) {
+        code += line + "\n";
+      }
+      in.close();
+
+      /* Prepare test log */
+      logWriter = new BufferedWriter(new FileWriter(log));
+
+      /* Create script engine */
+      engine = new LogScriptEngine(gui, code);
+      engine.activateScript();
+      engine.setScriptLogObserver(new Observer() {
+        public void update(Observable obs, Object obj) {
+          try {
+            if (logWriter != null) {
+              logWriter.write((String) obj);
+              logWriter.flush();
+            }
+          } catch (IOException e) {
+            logger.fatal("Error when writing to test log file: " + obj);
+          }
+        }
+      });
+
+      /* Create timeout event */
+      sim.scheduleEvent(new TimeEvent(0) {
+        public void execute(long t) {
+          try {
+            logWriter.write("TEST TIMEOUT");
+            logWriter.flush();
+          } catch (IOException e) {
+          }
+          gui.doQuit(false);
+        }
+      }, DEFAULT_TIMEOUT);
+
+      /* Start simulation and leave control to script */
+      sim.startSimulation();
+    } catch (IOException e) {
+      logger.fatal("Error when running script: " + e);
+      System.exit(1);
+      return false;
+    } catch (UnsatisfiedLinkError e) {
+      logger.fatal("Error when running script: " + e);
+      System.exit(1);
+      return false;
+    } catch (SimulationCreationException e) {
+      System.exit(1);
+      logger.fatal("Error when running script: " + e);
+      return false;
+    }
+
+    return true;
+  }
+
   public void closePlugin() {
-    if (scriptTester != null) {
-      scriptTester.deactiveScript();
-      scriptTester.setScriptLogObserver(null);
+    if (engine != null) {
+      engine.deactiveScript();
+      engine.setScriptLogObserver(null);
+      engine = null;
+    }
+    if (logWriter != null) {
+      try {
+        logWriter.close();
+      } catch (IOException e) {
+      }
+      logWriter = null;
     }
   }
 
@@ -565,6 +672,14 @@ public class ScriptRunner extends VisPlugin {
 
   public boolean setConfigXML(Collection<Element> configXML, boolean visAvailable) {
     return true;
+  }
+
+  public void tagWithObject(Object tag) {
+    this.coojaTag = tag;
+  }
+
+  public Object getTag() {
+    return coojaTag;
   }
 
 }
