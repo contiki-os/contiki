@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: NativeIPGateway.java,v 1.2 2008/12/12 16:27:40 fros4943 Exp $
+ * $Id: NativeIPGateway.java,v 1.3 2008/12/17 12:15:43 fros4943 Exp $
  */
 
 package se.sics.cooja.plugins;
@@ -48,9 +48,13 @@ import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
+import javax.swing.JInternalFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
+import javax.swing.event.InternalFrameEvent;
+import javax.swing.event.InternalFrameListener;
+
 import jpcap.JpcapCaptor;
 import jpcap.JpcapSender;
 import jpcap.NetworkInterface;
@@ -62,14 +66,14 @@ import org.jdom.Element;
 import se.sics.cooja.ClassDescription;
 import se.sics.cooja.GUI;
 import se.sics.cooja.Mote;
+import se.sics.cooja.Plugin;
 import se.sics.cooja.PluginType;
 import se.sics.cooja.Simulation;
-import se.sics.cooja.VisPlugin;
 import se.sics.cooja.interfaces.SerialPort;
 
 @ClassDescription("Open Native IP Gateway")
 @PluginType(PluginType.MOTE_PLUGIN)
-public class NativeIPGateway extends VisPlugin {
+public class NativeIPGateway implements Plugin {
   private static Logger logger = Logger.getLogger(NativeIPGateway.class);
 
   private static final long serialVersionUID = 1L;
@@ -83,6 +87,8 @@ public class NativeIPGateway extends VisPlugin {
 
   private final static int LABEL_WIDTH = 170;
   private final static int LABEL_HEIGHT = 20;
+
+  private Object coojaTag = null; /* Used by Cooja for book-keeping */
 
   private Mote mote;
   private SerialPort serialPort = null;
@@ -102,6 +108,7 @@ public class NativeIPGateway extends VisPlugin {
 
   private int inPkts = 0, outPkts = 0;
 
+  private JInternalFrame pluginGUI = null;
   private JLabel gatewayLabel = null;
   private JLabel interfaceLabel = null;
   private JLabel macLabel = null;
@@ -126,8 +133,7 @@ public class NativeIPGateway extends VisPlugin {
   private final int READ_SLIP_BUFFER_SIZE = 256;
   private byte[] readSlipBuffer = new byte[READ_SLIP_BUFFER_SIZE];
 
-  public NativeIPGateway(Mote mote, Simulation simulation, GUI gui) {
-    super("Native IP Gateway (" + mote + ")", gui);
+  public NativeIPGateway(Mote mote, Simulation simulation, final GUI gui) {
     this.mote = mote;
 
     /* Native OS - plugin depends on platform specific commands */
@@ -241,32 +247,55 @@ public class NativeIPGateway extends VisPlugin {
     });
 
     /* GUI components */
-    JPanel mainPane = new JPanel();
-    mainPane.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
-    mainPane.setLayout(new BoxLayout(mainPane, BoxLayout.Y_AXIS));
+    if (GUI.isVisualized()) {
+      pluginGUI = new JInternalFrame(
+          "Native IP Gateway (" + mote + ")",
+          true, true, true, true);
+      pluginGUI.addInternalFrameListener(new InternalFrameListener() {
+        public void internalFrameClosing(InternalFrameEvent e) {
+          gui.removePlugin(NativeIPGateway.this, true);
+        }
+        public void internalFrameClosed(InternalFrameEvent e) { }
+        public void internalFrameOpened(InternalFrameEvent e) { }
+        public void internalFrameIconified(InternalFrameEvent e) { }
+        public void internalFrameDeiconified(InternalFrameEvent e) { }
+        public void internalFrameActivated(InternalFrameEvent e) {
+          /* Highlight mote in COOJA */
+          if (NativeIPGateway.this.coojaTag != null && coojaTag instanceof Mote) {
+            gui.signalMoteHighlight((Mote) coojaTag);
+          }
+        }
+        public void internalFrameDeactivated(InternalFrameEvent e) { }
+      }
+      );
 
-    ipLabel = addInfo(mainPane, "Mote IP Address:", moteIP);
-    ipLabel.setToolTipText(null);
+      JPanel mainPane = new JPanel();
+      mainPane.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+      mainPane.setLayout(new BoxLayout(mainPane, BoxLayout.Y_AXIS));
 
-    addComponent(mainPane, "Route to/Capture on: ", selectNICComboBox);
-    addComponent(mainPane, "Auto-register native route: ", autoRegisterRoutes);
+      ipLabel = addInfo(mainPane, "Mote IP Address:", moteIP);
+      ipLabel.setToolTipText(null);
 
-    addInfo(mainPane, "", "");
-    interfaceLabel = addInfo(mainPane, "Network Interface:", "?");
-    gatewayLabel = addInfo(mainPane, "Network Gateway:", "?");
-    macLabel = addInfo(mainPane, "Network MAC: ", "?");
-    inLabel = addInfo(mainPane, "Packets to simulation:", "0");
-    inLabel.setToolTipText(null);
-    outLabel = addInfo(mainPane, "Packets from simulation:", "0");
-    outLabel.setToolTipText(null);
+      addComponent(mainPane, "Route to/Capture on: ", selectNICComboBox);
+      addComponent(mainPane, "Auto-register native route: ", autoRegisterRoutes);
 
-    this.getContentPane().add(BorderLayout.CENTER,
-        new JScrollPane(mainPane,
-            JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,
-            JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED));
+      addInfo(mainPane, "", "");
+      interfaceLabel = addInfo(mainPane, "Network Interface:", "?");
+      gatewayLabel = addInfo(mainPane, "Network Gateway:", "?");
+      macLabel = addInfo(mainPane, "Network MAC: ", "?");
+      inLabel = addInfo(mainPane, "Packets to simulation:", "0");
+      inLabel.setToolTipText(null);
+      outLabel = addInfo(mainPane, "Packets from simulation:", "0");
+      outLabel.setToolTipText(null);
 
-    pack();
-    setSize(getWidth()+10, getHeight()+10);
+      pluginGUI.getContentPane().add(BorderLayout.CENTER,
+          new JScrollPane(mainPane,
+              JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,
+              JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED));
+
+      pluginGUI.pack();
+      pluginGUI.setSize(pluginGUI.getWidth()+10, pluginGUI.getHeight()+10);
+    }
 
     /* Start capturing network traffic for simulated network */
     if (tunnelInterface != null) {
@@ -274,12 +303,10 @@ public class NativeIPGateway extends VisPlugin {
     } else {
       startCapturingPackets(networkInterfacesAll[0]);
     }
+  }
 
-    try {
-      setSelected(true);
-    } catch (java.beans.PropertyVetoException e) {
-      // Could not select
-    }
+  public JInternalFrame getGUI() {
+    return pluginGUI;
   }
 
   private void startCapturingPackets(NetworkInterface intf) {
@@ -366,29 +393,31 @@ public class NativeIPGateway extends VisPlugin {
     }
 
     /* Update GUI */
-    interfaceLabel.setText(networkInterface.description);
-    interfaceLabel.setToolTipText(networkInterface.description);
-    if (networkInterface.addresses.length > 0) {
-      gatewayLabel.setText(networkInterface.addresses[0].address.getHostAddress());
-      gatewayLabel.setToolTipText(networkInterface.addresses[0].address.getHostAddress());
-    } else {
-      gatewayLabel.setText("[no gateway]");
-      gatewayLabel.setToolTipText("");
-    }
-    macLabel.setText(Integer.toHexString(networkInterfaceMAC[0]&0xFF) +
-        ":" + Integer.toHexString(networkInterfaceMAC[1]&0xFF) +
-        ":" + Integer.toHexString(networkInterfaceMAC[2]&0xFF) +
-        ":" + Integer.toHexString(networkInterfaceMAC[3]&0xFF) +
-        ":" + Integer.toHexString(networkInterfaceMAC[4]&0xFF) +
-        ":" + Integer.toHexString(networkInterfaceMAC[5]&0xFF));
-    macLabel.setToolTipText(Integer.toHexString(networkInterfaceMAC[0]&0xFF) +
-        ":" + Integer.toHexString(networkInterfaceMAC[1]&0xFF) +
-        ":" + Integer.toHexString(networkInterfaceMAC[2]&0xFF) +
-        ":" + Integer.toHexString(networkInterfaceMAC[3]&0xFF) +
-        ":" + Integer.toHexString(networkInterfaceMAC[4]&0xFF) +
-        ":" + Integer.toHexString(networkInterfaceMAC[5]&0xFF));
+    if (GUI.isVisualized()) {
+      interfaceLabel.setText(networkInterface.description);
+      interfaceLabel.setToolTipText(networkInterface.description);
+      if (networkInterface.addresses.length > 0) {
+        gatewayLabel.setText(networkInterface.addresses[0].address.getHostAddress());
+        gatewayLabel.setToolTipText(networkInterface.addresses[0].address.getHostAddress());
+      } else {
+        gatewayLabel.setText("[no gateway]");
+        gatewayLabel.setToolTipText("");
+      }
+      macLabel.setText(Integer.toHexString(networkInterfaceMAC[0]&0xFF) +
+          ":" + Integer.toHexString(networkInterfaceMAC[1]&0xFF) +
+          ":" + Integer.toHexString(networkInterfaceMAC[2]&0xFF) +
+          ":" + Integer.toHexString(networkInterfaceMAC[3]&0xFF) +
+          ":" + Integer.toHexString(networkInterfaceMAC[4]&0xFF) +
+          ":" + Integer.toHexString(networkInterfaceMAC[5]&0xFF));
+      macLabel.setToolTipText(Integer.toHexString(networkInterfaceMAC[0]&0xFF) +
+          ":" + Integer.toHexString(networkInterfaceMAC[1]&0xFF) +
+          ":" + Integer.toHexString(networkInterfaceMAC[2]&0xFF) +
+          ":" + Integer.toHexString(networkInterfaceMAC[3]&0xFF) +
+          ":" + Integer.toHexString(networkInterfaceMAC[4]&0xFF) +
+          ":" + Integer.toHexString(networkInterfaceMAC[5]&0xFF));
 
-    selectNICComboBox.setSelectedItem(networkInterface.description + " (" + networkInterface.name + ")");
+      selectNICComboBox.setSelectedItem(networkInterface.description + " (" + networkInterface.name + ")");
+    }
   }
 
   private void configureLoopbackInterface() {
@@ -510,7 +539,7 @@ public class NativeIPGateway extends VisPlugin {
 
   private void createTunInterface() {
     if (ON_WINDOWS) {
-      logger.warn("Cannot create tunnel network interface on Windows. Try using VMware interfaces.");
+      /*logger.warn("Cannot create tunnel network interface on Windows. Try using VMware interfaces.");*/
     } else {
       createTunInterfaceLinux();
     }
@@ -695,9 +724,12 @@ public class NativeIPGateway extends VisPlugin {
     System.arraycopy(packet.data, 0, packetData, packet.header.length-offset, packet.data.length);
     writeAsSlip(packetData, serialPort);
 
-    /* Update GUI */
     inPkts++;
-    inLabel.setText("" + inPkts);
+
+    /* Update GUI */
+    if (GUI.isVisualized()) {
+      inLabel.setText("" + inPkts);
+    }
   }
 
   private void handleOutgoingPacket(byte[] packetData) {
@@ -744,10 +776,12 @@ public class NativeIPGateway extends VisPlugin {
 
     /*logger.info("Sending packet (" + packet.len + " bytes) to native network: " + sender);*/
     sender.sendPacket(packet);
+    outPkts++;
 
     /* Update GUI */
-    outPkts++;
-    outLabel.setText("" + outPkts);
+    if (GUI.isVisualized()) {
+      outLabel.setText("" + outPkts);
+    }
   }
 
   /**
@@ -869,7 +903,7 @@ public class NativeIPGateway extends VisPlugin {
         }
         if (!ok) {
           logger.warn("Network interface not available: " + element.getText());
-          logger.warn("Instead capturing on default network interface: " + selectNICComboBox.getItemAt(0));
+          logger.warn("Instead capturing on default network interface: " + networkInterface.name);
         }
       } else if (element.getName().equals("register_routes")) {
         autoRegisterRoutes.setSelected(Boolean.parseBoolean(element.getText()));
@@ -925,6 +959,14 @@ public class NativeIPGateway extends VisPlugin {
     }
 
     deleteTunInterface();
+  }
+
+  public void tagWithObject(Object tag) {
+    this.coojaTag = tag;
+  }
+
+  public Object getTag() {
+    return coojaTag;
   }
 
 }
