@@ -24,7 +24,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * $Id: GUI.java,v 1.97 2008/12/16 16:15:36 fros4943 Exp $
+ * $Id: GUI.java,v 1.98 2008/12/17 11:02:05 fros4943 Exp $
  */
 
 package se.sics.cooja;
@@ -112,6 +112,7 @@ import org.jdom.output.Format;
 import org.jdom.output.XMLOutputter;
 
 import se.sics.cooja.MoteType.MoteTypeCreationException;
+import se.sics.cooja.VisPlugin.PluginRequiresVisualizationException;
 import se.sics.cooja.contikimote.ContikiMote;
 import se.sics.cooja.contikimote.ContikiMoteType;
 import se.sics.cooja.contikimote.ContikiMoteTypeDialog;
@@ -1869,6 +1870,18 @@ public class GUI extends Observable {
 
         plugin = pluginClass.getConstructor(new Class[] { GUI.class }).newInstance(gui);
       }
+    } catch (PluginRequiresVisualizationException e) {
+      logger.info("Plugin not started (requires visualization): " + pluginClass.getName());
+      return null;
+    } catch (InvocationTargetException e) {
+      if (e.getCause() != null &&
+          e.getCause().getClass().equals(PluginRequiresVisualizationException.class)) {
+        logger.info("Plugin not started (requires visualization): " + pluginClass.getName());
+      } else {
+        logger.fatal("Exception thrown when starting plugin: " + e);
+        e.printStackTrace();
+      }
+      return null;
     } catch (Exception e) {
       logger.fatal("Exception thrown when starting plugin: " + e);
       e.printStackTrace();
