@@ -23,10 +23,10 @@ done
 
 if [ -z "$CONTIKI" ]; then
   if [ -z "$CONTIKI_HOME" ]; then
-    echo Undefined variable: CONTIKI
-    exit 1
+  	CONTIKI_HOME=../../..
   fi
   CONTIKI=$CONTIKI_HOME
+  echo Undefined variable: CONTIKI. Using default: ${CONTIKI}
 fi
 
 if [ $MAIL -eq 1 ]; then
