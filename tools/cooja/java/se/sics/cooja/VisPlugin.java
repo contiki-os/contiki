@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: VisPlugin.java,v 1.7 2008/12/16 15:05:27 fros4943 Exp $
+ * $Id: VisPlugin.java,v 1.8 2008/12/17 11:02:05 fros4943 Exp $
  */
 
 package se.sics.cooja;
@@ -37,56 +37,47 @@ import javax.swing.event.InternalFrameEvent;
 import javax.swing.event.InternalFrameListener;
 import org.jdom.Element;
 
+import se.sics.cooja.plugins.SimControl;
+
 /**
- * Abstract class VisPlugin should be implemented by all plugins with
- * visualizers. By extending JInternalFrame, the visual apperence is decided by
- * the plugin itself.
+ * Visualized plugins can extend VisPlugin for basic visualization functionality.
+ * VisPlugin extends JInternalFrame, the graphical component used by plugins.
+ * VisPlugin implementations may hence directly add buttons to themselves.
  *
- * To add a new plugin to the simulator environment either add it via a project
- * directory or by altering the standard configuration files.
+ * Note that plugins of this type can only be started if COOJA is visualized.
+ * Hence, these plugins will not be started during nightly Contiki tests.
  *
- * For example how to implement a plugin see plugins SimControl or Visualizer2D.
- *
+ * @see SimControl
+ * @see PluginRequiresVisualizationException
  * @author Fredrik Osterlind
  */
 public abstract class VisPlugin extends JInternalFrame implements Plugin {
   private Object tag = null;
 
-  /**
-   * Sets frame title
-   * @param title Frame title
-   */
   public VisPlugin(String title, final GUI gui) {
     super(title, true, true, true, true);
 
-    // Close via gui
+    if (!GUI.isVisualized()) {
+      throw new PluginRequiresVisualizationException();
+    }
+
     setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
-    // Detect frame events
+
     addInternalFrameListener(new InternalFrameListener() {
       public void internalFrameClosing(InternalFrameEvent e) {
         gui.removePlugin(VisPlugin.this, true);
       }
-      public void internalFrameClosed(InternalFrameEvent e) {
-        // NOP
-      }
-      public void internalFrameOpened(InternalFrameEvent e) {
-        // NOP
-      }
-      public void internalFrameIconified(InternalFrameEvent e) {
-        // NOP
-      }
-      public void internalFrameDeiconified(InternalFrameEvent e) {
-        // NOP
-      }
+      public void internalFrameClosed(InternalFrameEvent e) { }
+      public void internalFrameOpened(InternalFrameEvent e) { }
+      public void internalFrameIconified(InternalFrameEvent e) { }
+      public void internalFrameDeiconified(InternalFrameEvent e) { }
       public void internalFrameActivated(InternalFrameEvent e) {
-        // Signal mote highlight
+        /* Highlight mote in COOJA */
         if (VisPlugin.this.tag != null && tag instanceof Mote) {
           gui.signalMoteHighlight((Mote) tag);
         }
       }
-      public void internalFrameDeactivated(InternalFrameEvent e) {
-        // NOP
-      }
+      public void internalFrameDeactivated(InternalFrameEvent e) { }
     }
     );
   }
@@ -111,4 +102,6 @@ public abstract class VisPlugin extends JInternalFrame implements Plugin {
     return tag;
   }
 
+  public class PluginRequiresVisualizationException extends RuntimeException {
+  }
 }
