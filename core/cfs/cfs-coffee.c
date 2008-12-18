@@ -392,7 +392,7 @@ find_offset_in_file(int first_page)
 }
 /*---------------------------------------------------------------------------*/
 static coffee_page_t
-find_contiguous_pages(unsigned wanted)
+find_contiguous_pages(coffee_page_t wanted)
 {
   coffee_page_t page, start;
   struct file_header hdr;
@@ -420,12 +420,11 @@ find_contiguous_pages(unsigned wanted)
   return -1;
 }
 /*---------------------------------------------------------------------------*/
-static int
+static void
 cfs_garbage_collect(void)
 {
   uint16_t sector;
   coffee_page_t active_pages, free_pages, obsolete_pages;
-  int nerased;
 
   watchdog_stop();
   
@@ -434,19 +433,17 @@ cfs_garbage_collect(void)
    * The garbage collector erases as many sectors as possible. A sector is
    * erasable if there are only free or obsolete pages in it.
    */
-  for(nerased = sector = 0; sector < COFFEE_SIZE / COFFEE_SECTOR_SIZE; sector++) {
+  for(sector = 0; sector < COFFEE_SIZE / COFFEE_SECTOR_SIZE; sector++) {
     get_sector_status(sector, &active_pages, &free_pages, &obsolete_pages);
     PRINTF("Coffee: Sector %u has %u active, %u free, and %u obsolete pages.\n",
 	sector, (unsigned)active_pages, (unsigned)free_pages, (unsigned)obsolete_pages);
     if(active_pages == 0 && obsolete_pages > 0) {
       COFFEE_ERASE(sector);
-      nerased++;
       PRINTF("Coffee: Erased sector %d!\n", sector);
     }
   }
 
   watchdog_start();
-  return nerased;
 }
 /*---------------------------------------------------------------------------*/
 static int
@@ -454,28 +451,22 @@ remove_by_page(coffee_page_t page, int remove_log, int close_fds)
 {
   struct file_header hdr;
   int i;
-  coffee_page_t log_page;
 
-  if(page >= COFFEE_PAGE_COUNT) {
-    return -1;
-  }
-  
   read_header(&hdr, page);
   if(!COFFEE_FILE_ACTIVE(hdr)) {
     return -1;
   }
   
+  if(remove_log && COFFEE_FILE_MODIFIED(hdr)) {
+    if (remove_by_page(hdr.log_page, 0, 0) < 0) {
+      return -1;
+    }
+  }
+  
   dir_cache_del(page);
   hdr.flags |= COFFEE_FLAG_OBSOLETE;
   write_header(&hdr, page);
-  if(remove_log && COFFEE_FILE_MODIFIED(hdr)) {
-    log_page = hdr.log_page;
-    dir_cache_del(log_page);
-    read_header(&hdr, log_page);
-    hdr.flags |= COFFEE_FLAG_OBSOLETE;
-    write_header(&hdr, log_page);
-  }
-  
+
   /* Close all file descriptors that reference the remove file. */
   if(close_fds) {
     for(i = 0; i < COFFEE_FD_SET_SIZE; i++) {
@@ -518,14 +509,10 @@ reserve(const char *name, coffee_page_t pages, int allow_duplicates)
     }
   }
 
-  memcpy(hdr.name, name, sizeof(hdr.name));
-  hdr.name[sizeof(hdr.name) - 1] = '\0';
+  memset(&hdr, 0, sizeof(hdr));
+  memcpy(hdr.name, name, sizeof(hdr.name) - 1);
   hdr.max_pages = pages;
   hdr.flags = COFFEE_FLAG_ALLOCATED | COFFEE_FLAG_VALID;
-  hdr.log_page = 0;
-  hdr.eof_hint = 0;
-  hdr.log_records = 0;
-  hdr.log_record_size = 0;
   write_header(&hdr, page);
 
   PRINTF("Coffee: Reserved %u pages starting from %u for file %s\n",
@@ -743,8 +730,8 @@ merge_log(coffee_page_t file_page, int extend)
     update_eof_hint(new_file_page, offset);
   }
 
-  /* Point the file descriptors to the new file page. */
   for(n = 0; n < COFFEE_FD_SET_SIZE; n++) {
+  /* Point the file descriptors to the new file page. */
     if(coffee_fd_set[n].file_page == file_page) {
 	coffee_fd_set[n].file_page = new_file_page;
 	coffee_fd_set[n].max_pages = max_pages;
@@ -898,10 +885,10 @@ cfs_open(const char *name, int flags)
     if((flags & (CFS_READ | CFS_WRITE)) == CFS_READ) {
       return -1;
     }
-    if((page = reserve(name, page_count(COFFEE_DYN_SIZE), 1)) == INVALID_PAGE) {
+    fdp->max_pages = page_count(COFFEE_DYN_SIZE);
+    if((page = reserve(name, fdp->max_pages, 1)) == INVALID_PAGE) {
 	return -1;
     }
-    fdp->max_pages = page_count(COFFEE_DYN_SIZE);
   } else {
     read_header(&hdr, page);
     if(COFFEE_FILE_MODIFIED(hdr)) {
