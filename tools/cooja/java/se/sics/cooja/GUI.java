@@ -24,7 +24,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * $Id: GUI.java,v 1.99 2008/12/17 13:12:07 fros4943 Exp $
+ * $Id: GUI.java,v 1.100 2008/12/19 12:48:09 fros4943 Exp $
  */
 
 package se.sics.cooja;
@@ -364,12 +364,15 @@ public class GUI extends Observable {
         reparseProjectConfig();
       } catch (ParseProjectsException e) {
         logger.fatal("Error when loading project directories: " + e.getMessage());
-        e.printStackTrace();
-        if (myDesktopPane != null) {
+        if (isVisualized()) {
           JOptionPane.showMessageDialog(GUI.getTopParentContainer(),
               "Loading project directories failed.\nStack trace printed to console.",
               "Error", JOptionPane.ERROR_MESSAGE);
+        } else {
+          logger.fatal("Loading project directories failed");
+          logger.fatal("Stack trace:");
         }
+        e.printStackTrace();
       }
     }
 
