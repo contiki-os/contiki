@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: TimeEvent.java,v 1.2 2008/12/04 14:03:42 joxe Exp $
+ * $Id: TimeEvent.java,v 1.3 2009/01/08 15:42:25 fros4943 Exp $
  */
 
 package se.sics.cooja;
@@ -35,18 +35,18 @@ package se.sics.cooja;
  * @author Joakim Eriksson (ported to COOJA by Fredrik Österlind)
  */
 public abstract class TimeEvent {
-  // For linking events...
   TimeEvent nextEvent;
   TimeEvent prevEvent;
 
-  // Keeps track of where this is scheduled
-  EventQueue scheduledIn = null;
+  EventQueue queue = null;
   String name;
 
   protected long time;
 
+  boolean removed = false;
+
   public TimeEvent(long time) {
-    this.time = time;
+    this(time, null);
   }
 
   public TimeEvent(long time, String name) {
@@ -59,13 +59,11 @@ public abstract class TimeEvent {
   }
 
   public boolean isScheduled() {
-    return scheduledIn != null;
+    return queue != null && !removed;
   }
 
   public boolean remove() {
-    if (scheduledIn != null) {
-      return scheduledIn.removeEvent(this);
-    }
+    removed = true;
     return false;
   }
 
@@ -75,4 +73,4 @@ public abstract class TimeEvent {
     return "" + time + (name != null ? ": " + name : "");
   }
 
-} // TimeEvent
+}
