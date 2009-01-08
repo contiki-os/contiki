@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: EventQueue.java,v 1.3 2008/12/08 13:07:32 fros4943 Exp $
+ * $Id: EventQueue.java,v 1.4 2009/01/08 15:42:25 fros4943 Exp $
  */
 
 package se.sics.cooja;
@@ -39,42 +39,61 @@ import java.util.ArrayList;
 public class EventQueue {
 
   private TimeEvent first;
-  private long nextTime;
   private int eventCount = 0;
 
-  private ArrayList<TimeEvent> pendingEvents = new ArrayList<TimeEvent>();
-  private boolean hasPendingEvents = false;
+  /* For scheduling events from outside simulation thread effectively */
+  private boolean hasUnsortedEvents = false;
+  private ArrayList<TimeEvent> unsortedEvents = new ArrayList<TimeEvent>();
 
   public EventQueue() {
   }
 
-  public synchronized void addPendingEvent(TimeEvent event, long time) {
-    event.time = time;
-    pendingEvents.add(event);
-    hasPendingEvents  = true;
-  }
+  private synchronized void sortEvents() {
+    hasUnsortedEvents = false;
 
-  private synchronized void handlePendingEvents() {
-    if (!hasPendingEvents) {
-      return;
-    }
-
-    for (TimeEvent e: pendingEvents) {
+    for (TimeEvent e: unsortedEvents) {
       addEvent(e);
     }
-    pendingEvents.clear();
-    hasPendingEvents = false;
+    unsortedEvents.clear();
   }
 
+  /**
+   * May be called from outside simulation thread.
+   *
+   * @param event Event
+   * @param time Time
+   */
+  public synchronized void addEventUnsorted(TimeEvent event, long time) {
+    /* Make sure this event is not executed before being resorted (readded) */
+    if (event.queue != null) {
+      event.remove();
+    }
+    event.time = time;
+    unsortedEvents.add(event);
+    hasUnsortedEvents = true;
+  }
+
+  /**
+   * Should only be called from simulation thread!
+   *
+   * @param event Event
+   * @param time Time
+   */
   public void addEvent(TimeEvent event, long time) {
     event.time = time;
     addEvent(event);
   }
 
+  /**
+   * Should only be called from simulation thread!
+   *
+   * @param event Event
+   */
   public void addEvent(TimeEvent event) {
-    if (event.scheduledIn != null) {
-      event.remove();
+    if (event.queue != null) {
+      removeFromQueue(event);
     }
+
     if (first == null) {
       first = event;
     } else {
@@ -95,21 +114,21 @@ public class EventQueue {
         lastPos.nextEvent = event;
       }
     }
-    if (first != null) {
-      nextTime = first.time;
-    } else {
-      nextTime = 0;
-    }
-    event.scheduledIn = this;
+    event.removed = false;
+    event.queue = this;
     eventCount++;
   }
 
-  // Not yet impl.
-  public boolean removeEvent(TimeEvent event) {
+  /**
+   * Should only be called from simulation thread!
+   *
+   * @param event Event
+   * @return True if event was removed
+   */
+  private boolean removeFromQueue(TimeEvent event) {
     TimeEvent pos = first;
     TimeEvent lastPos = first;
-//  System.out.println("Removing: " + event.getShort() + "  Before remove: ");
-//  print();
+
     while (pos != null && pos != event) {
       lastPos = pos;
       pos = pos.nextEvent;
@@ -128,21 +147,26 @@ public class EventQueue {
     // unlink
     pos.nextEvent = null;
 
-    if (first != null) {
-      nextTime = first.time;
-    } else {
-      nextTime = 0;
-    }
-//  System.out.println("Removed =>");
-//  print();
-    event.scheduledIn = null;
+    event.queue = null;
     eventCount--;
     return true;
   }
 
+  public void removeAll() {
+    TimeEvent event = popFirst();
+    while (event != null) {
+      event = popFirst();
+    }
+  }
+
+  /**
+   * Should only be called from simulation thread!
+   *
+   * @return Event
+   */
   public TimeEvent popFirst() {
-    if (hasPendingEvents) {
-      handlePendingEvents();
+    if (hasUnsortedEvents) {
+      sortEvents();
     }
 
     TimeEvent tmp = first;
@@ -154,31 +178,18 @@ public class EventQueue {
     // Unlink.
     tmp.nextEvent = null;
 
-    if (first != null) {
-      nextTime = first.time;
-    } else {
-      nextTime = 0;
-    }
     // No longer scheduled!
-    tmp.scheduledIn = null;
+    tmp.queue = null;
     eventCount--;
+
+    if (tmp.removed) {
+      /* pop and return another event instead */
+      return popFirst();
+    }
     return tmp;
   }
 
-  public void removeAll() {
-    TimeEvent t = first;
-    while(t != null) {
-      TimeEvent clr = t;
-      t = t.nextEvent;
-      clr.nextEvent = null;
-      clr.time = 0;
-      clr.scheduledIn = null;
-    }
-    first = null;
-    eventCount = 0;
-  }
-
   public String toString() {
-    return "EventQueue (" + eventCount + " events)";
+    return "EventQueue with " + (eventCount+unsortedEvents.size()) + " events";
   }
-} // LLEventQueue
+}
