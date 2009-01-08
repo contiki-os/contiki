@@ -1,4 +1,4 @@
-TIMEOUT(120000, log.log("received/node: " + count[1] + " " + count[2] + " " + count[3] + " " + count[4] + " " + count[5] + " " + count[6] + " " + count[7] + "\n"));
+TIMEOUT(300000, log.log("received/node: " + count[1] + " " + count[2] + " " + count[3] + " " + count[4] + " " + count[5] + " " + count[6] + " " + count[7] + "\n"));
 
 /* Conf. */
 booted = new Array();
@@ -12,7 +12,8 @@ for (i = 1; i <= nrNodes; i++) {
 
 /* Wait until all nodes have started */
 while (nodes_starting) {
-  WAIT_UNTIL(msg.startsWith('Starting'));
+  YIELD_THEN_WAIT_UNTIL(msg.startsWith('Starting'));
+  
   log.log("Node " + id + " booted\n");
   booted[id] = true;
 
@@ -31,8 +32,8 @@ while (true) {
 
   /* Count sensor data packets */
   source = msg.split(" ")[0];
-  log.log("Got data from node " + source + "\n");
   count[source]++;
+  log.log("Got data from node " + source + ": tot=" + count[source] + "\n");
 
   /* Fail if any node has transmitted more than 20 packets */
   for (i = 1; i <= nrNodes; i++) {
