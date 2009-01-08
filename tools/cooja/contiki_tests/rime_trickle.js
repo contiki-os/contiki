@@ -11,7 +11,7 @@ mote.getInterfaces().getButton().clickButton()
 
 while (true) {
   /* Only handle receive messages */
-  YIELD_AND_WAIT_UNTIL(msg.contains('received'));
+  YIELD_THEN_WAIT_UNTIL(msg.contains('received'));
 
   /* Remember receiving node */
   log.log(id + " received a message\n");
