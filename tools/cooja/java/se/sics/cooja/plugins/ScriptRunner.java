@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ScriptRunner.java,v 1.9 2008/12/17 13:12:07 fros4943 Exp $
+ * $Id: ScriptRunner.java,v 1.10 2009/01/08 16:31:43 fros4943 Exp $
  */
 
 package se.sics.cooja.plugins;
@@ -51,6 +51,8 @@ import java.io.StringReader;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import javax.script.ScriptException;
 import javax.swing.*;
 import javax.swing.event.InternalFrameEvent;
 import javax.swing.event.InternalFrameListener;
@@ -73,29 +75,30 @@ public class ScriptRunner implements Plugin {
   private static final long serialVersionUID = 1L;
   private static Logger logger = Logger.getLogger(ScriptRunner.class);
 
-  private static final int DEFAULT_TIMEOUT = 1200000; /* 1200s = 20 minutes */
-
   private static final String EXAMPLE_SCRIPT =
-    "/* Script is run for each mote log output, for example printf()'s */\n" +
-    "/* Input variables: Mote mote, int id, String msg, Hashtable global */\n" +
+    "/*\n" +
+    " * Example Contiki test script (JavaScript).\n" +
+    " * A Contiki test script acts on mote output, such as via printf()'s.\n" +
+    " * The script may operate on the following variables:\n" +
+    " *  Mote mote, int id, String msg\n" +
+    " */\n" +
     "\n" +
-    "log.log('MOTE=' + mote + '\\n');\n" +
-    "log.log('ID=' + id + '\\n');\n" +
-    "log.log('TIME=' + mote.getSimulation().getSimulationTime() + '\\n');\n" +
-    "log.log('MSG=' + msg + '\\n');\n" +
+    "/* Make test automatically fail (timeout) after 100 simulated seconds */\n" +
+    "//TIMEOUT(100000); /* no action at timeout */\n" +
+    "TIMEOUT(100000, log.log(\"last msg: \" + msg + \"\\n\")); /* print last msg at timeout */\n" +
     "\n" +
-    "/* Hashtable global may be used to store state across script invokes */\n" +
-    "log.log('LAST MSG=' + global.get('lastMsg') + '\\n');\n" +
-    "global.put('lastMsg', msg);\n" +
+    "log.log(\"first mote output: '\" + msg + \"'\\n\");\n" +
     "\n" +
-    "/* Contiki test script example */\n" +
-    "if (msg.startsWith('Hello, world')) {\n" +
-    "  log.testOK(); /* Report test success and quit */\n" +
-    "} else {\n" +
-    "  log.testFailed(); /* Report test failed and quit */\n" +
-    "}\n" +
+    "YIELD(); /* wait for another mote output */\n" +
     "\n" +
-    "//mote.getSimulation().getGUI().reloadCurrentSimulation(true); /* Reload simulation */\n";
+    "log.log(\"second mote output: '\" + msg + \"'\\n\");\n" +
+    "\n" +
+    "log.log(\"waiting for hello world output from mote 1\\n\");\n" +
+    "WAIT_UNTIL(id == 1 && msg.equals(\"Hello, world\"));\n" +
+    "\n" +
+    "log.log(\"ok, reporting success now\\n\");\n" +
+    "log.testOK(); /* Report test success and quit */\n" +
+    "//log.testFailed(); /* Report test failure and quit */\n";
 
   private GUI gui;
   private Object coojaTag = null; /* Used by Cooja for book-keeping */
@@ -152,20 +155,24 @@ public class ScriptRunner implements Plugin {
     toggleButton.addActionListener(new ActionListener() {
       public void actionPerformed(ActionEvent ev) {
         if (toggleButton.getText().equals("Activate")) {
-          engine = new LogScriptEngine(ScriptRunner.this.gui, scriptTextArea.getText());
+          engine = new LogScriptEngine(ScriptRunner.this.gui);
           engine.setScriptLogObserver(new Observer() {
             public void update(Observable obs, Object obj) {
               logTextArea.append((String) obj);
               logTextArea.setCaretPosition(logTextArea.getText().length());
             }
           });
-          engine.activateScript();
+          try {
+            engine.activateScript(scriptTextArea.getText());
+          } catch (ScriptException e) {
+            e.printStackTrace();
+          }
           toggleButton.setText("Deactivate");
           scriptTextArea.setEnabled(false);
 
         } else {
           if (engine != null) {
-            engine.deactiveScript();
+            engine.deactivateScript();
             engine = null;
           }
           toggleButton.setText("Activate");
@@ -605,8 +612,15 @@ public class ScriptRunner implements Plugin {
       logWriter = new BufferedWriter(new FileWriter(log));
 
       /* Create script engine */
-      engine = new LogScriptEngine(gui, code);
-      engine.activateScript();
+      engine = new LogScriptEngine(gui);
+      try {
+        engine.activateScript(code);
+      } catch (ScriptException e) {
+        logger.fatal("Test script error, terminating Cooja.");
+        e.printStackTrace();
+        System.exit(1);
+      }
+
       engine.setScriptLogObserver(new Observer() {
         public void update(Observable obs, Object obj) {
           try {
@@ -620,18 +634,6 @@ public class ScriptRunner implements Plugin {
         }
       });
 
-      /* Create timeout event */
-      sim.scheduleEvent(new TimeEvent(0) {
-        public void execute(long t) {
-          try {
-            logWriter.write("TEST TIMEOUT");
-            logWriter.flush();
-          } catch (IOException e) {
-          }
-          gui.doQuit(false);
-        }
-      }, DEFAULT_TIMEOUT);
-
       /* Start simulation and leave control to script */
       sim.startSimulation();
     } catch (IOException e) {
@@ -643,8 +645,8 @@ public class ScriptRunner implements Plugin {
       System.exit(1);
       return false;
     } catch (SimulationCreationException e) {
-      System.exit(1);
       logger.fatal("Error when running script: " + e);
+      System.exit(1);
       return false;
     }
 
@@ -653,7 +655,7 @@ public class ScriptRunner implements Plugin {
 
   public void closePlugin() {
     if (engine != null) {
-      engine.deactiveScript();
+      engine.deactivateScript();
       engine.setScriptLogObserver(null);
       engine = null;
     }
