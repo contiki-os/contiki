@@ -1,34 +1,25 @@
-/* Only handle receive messages */
-if (!msg.contains('received')) {
-  return;
+TIMEOUT(120000);
+
+var nr_packets = new Array();
+for (i=1; i <= 10; i++) {
+  nr_packets[i] = 0;
 }
 
-/* Log receiver */
-count = global.get("count_" + id);
-if (count == null) {
-  count = 0;
-}
-count++;
-global.put("count_" + id, count);
+while (true) {
 
-log.log("Node " + id + " received message: " + count + "\n");
+  /* Listen for receive notifications */
+  if (msg.contains('abc message received')) {
 
-/* Did all nodes (1-10) receive a message? */
-for (i = 1; i <= 10; i++) {
-  result = global.get("count_" + i);
-  if (result == null || result == 0) {
-    log.log("Node " + i + " did not yet receive a message\n");
-    return;
+    /* Log receiving node */
+    nr_packets[id] ++;
+    log.log("Node " + id + " received message: " + nr_packets[id] + "\n");
   }
-}
 
-/* Report test info */
-log.log("TEST INFO: ");
-for (i = 1; i <= 10; i++) {
-  result = global.get("count_" + i);
-  log.log(java.lang.Integer.toString(result) + " ");
-}
-log.log("\n");
+  /* Did all nodes (1-10) receive at least one message? */
+  for (i = 1; i <= 10; i++) {
+    if (nr_packets[id] < 1) break;
+    if (nr_packets[id] == 10) log.testOK();
+  }
 
-log.log("TEST OK\n"); /* Report test success */
-mote.getSimulation().getGUI().doQuit(false); /* Quit simulator (to end test run)*/
+  YIELD();
+}

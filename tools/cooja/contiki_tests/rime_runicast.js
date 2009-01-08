@@ -1,63 +1,46 @@
+TIMEOUT(120000);
+
+nr_recv = 0;
+nr_timedout = 0;
+nr_sent = 0;
+
+while (nr_sent < 10) {
 
 /* Count received packets */
 if (msg.contains('received')) {
-  result = global.get("recv");
-  if (result == null) {
-    result = 0;
-  }
-
-  result++;
-  global.put("recv", result);
-  log.log("Received packets count now: " + result + "\n");
+  nr_recv++;
+  log.log("Received packets count now: " + nr_recv + "\n");
 }
 
 /* Count timed out packets */
-if (msg.contains('timed out')) {
-  result = global.get("timeout");
-  if (result == null) {
-    result = 0;
-  }
-
-  result++;
-  global.put("timeout", result);
-  log.log("Timed out packets count now: " + result + "\n");
+else if (msg.contains('timed out')) {
+  nr_timedout++;
+  log.log("Timed out packets count now: " + nr_timedout + "\n");
 }
-
-
 
 /* Count sent packets */
-if (msg.contains('sent to')) {
-  result = global.get("sent");
-  if (result == null) {
-    result = 0;
-  }
-
-  result++;
-  global.put("sent", result);
-  log.log("Sent packets count now: " + result + "\n");
+else if (msg.contains('sent to')) {
+  nr_sent++;
+  log.log("Sent packets count now: " + nr_sent + "\n");
 }
 
-/* Look for test completion */
-countSent = global.get("sent");
-if (countSent >= 10) {
-
-  /* Make sure received counter matches sent counter */
-  countReceived = global.get("recv");
-  if (countReceived < countSent) {
-    log.log("Received < Sent: " + countReceived + " < " + countSent + "\n");
-    log.log("Received packets less than acked sent packets!\n");
-    log.testFailed();
-  }
-
-  /* Make sure some packets timed out (all from node 4) */
-  countTimedOut = global.get("timeout");
-  if (countTimedOut == null || countTimedOut < 2) {
-    log.log("Timed out: " + countTimedOut + "\n");
-    log.log("Too few packets timed out!\n");
-    log.testFailed();
-  }
-
-  log.log("Received / Sent: " + countReceived + " / " + countSent + "\n");
-  log.log("Timed out: " + countTimedOut + "\n");
-  log.testOK();
+YIELD();
 }
+
+/* Make sure received counter matches sent counter */
+if (nr_recv < nr_sent) {
+  log.log("Received < Sent: " + nr_recv + " < " + nr_sent + "\n");
+  log.log("Received packets less than acked sent packets!\n");
+  log.testFailed();
+}
+
+/* Make sure some packets timed out (all from node 4) */
+if (nr_timedout < 2) {
+  log.log("Timed out: " + nr_timedout + "\n");
+  log.log("Too few packets timed out!\n");
+  log.testFailed();
+}
+
+log.log("Received / Sent: " + nr_recv + " / " + nr_sent + "\n");
+log.log("Timed out: " + nr_timedout + "\n");
+log.testOK();

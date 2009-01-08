@@ -1,9 +1,4 @@
-/* Script is called once for every node log output. */
-/* Input variables: Mote mote, int id, String msg. */
+TIMEOUT(2000, log.log("last message: " + msg + "\n"));
 
-/* Contiki test script example */
-if (msg.startsWith('Contiki')) {
-  log.testOK(); /* Report test success */
-} else {
-  log.testFailed(); /* Report test failure */
-}
+WAIT_UNTIL(msg.startsWith('Contiki'));
+log.testOK();
