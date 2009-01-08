@@ -1,28 +1,22 @@
-/* Only handle receive messages */
-if (!msg.contains('received')) {
-  return;
-}
+TIMEOUT(100000, log.log("Node 1: " + nr_packets[1] + ".\nNode 2: " + nr_packets[2] + ".\n"));
 
-/* Count received packets */
-result = global.get("recv_" + id);
-if (result == null) {
-  result = 0;
-}
-result++;
-global.put("recv_" + id, result);
-log.log(id + " received " + result + " messages\n");
+nr_packets = new Array();
+nr_packets[1] = 0;
+nr_packets[2] = 0;
 
-/* Did all nodes (1 and 2) receive a message? */
-for (i = 1; i <= 2; i++) {
-  result = global.get("recv_" + i);
-  if (result == null) {
-    return;
+while (true) {
+  /* Only handle receive messages */
+  YIELD_THEN_WAIT_UNTIL(msg.contains('received'));
+
+  /* Count received packets */
+  nr_packets[id]++;
+  //log.log("Node " + id + " received " + nr_packets[id] + " messages\n");
+
+  if (nr_packets[1] >= 30 && nr_packets[2] >= 30) {
+    log.log("Node 1: " + nr_packets[1] + ".\nNode 2: " + nr_packets[2] + ".\n");
+    log.testOK(); /* Report test success */
   }
-  if (result < 30) {
-    return;
-  }
+
 }
 
-log.log("Node 1 received " + global.get("recv_1") + " messages\n");
-log.log("Node 2 received " + global.get("recv_2") + " messages\n");
-log.testOK(); /* Report test success */
+

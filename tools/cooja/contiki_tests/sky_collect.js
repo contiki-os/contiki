@@ -1,60 +1,51 @@
-/* Wait until all nodes have booted */
-if (msg.startsWith('Starting')) {
-  log.log("Node " + id + " booted\n");
-  global.put("boot_" + id, true);
+TIMEOUT(120000, log.log("received/node: " + count[1] + " " + count[2] + " " + count[3] + " " + count[4] + " " + count[5] + " " + count[6] + " " + count[7] + "\n"));
+
+/* Conf. */
+booted = new Array();
+count = new Array();
+nrNodes = 7;
+nodes_starting = true;
+for (i = 1; i <= nrNodes; i++) {
+  booted[i] = false;
+  count[i] = 0;
 }
-for (i = 1; i <= 7; i++) {
-  result = global.get("boot_" + i);
-  if (result == null || result == false) {
-    /*log.log("Node " + i + " did not yet boot\n");*/
-    return;
+
+/* Wait until all nodes have started */
+while (nodes_starting) {
+  WAIT_UNTIL(msg.startsWith('Starting'));
+  log.log("Node " + id + " booted\n");
+  booted[id] = true;
+
+  for (i = 1; i <= nrNodes; i++) {
+    if (!booted[i]) break;
+    if (i == nrNodes) nodes_starting = false;
   }
 }
 
 /* Create sink */
-result = global.get("created_sink");
-if (result == null || result == false) {
-  log.log("All nodes booted, creating sink at node " + id + "\n");
-  mote.getInterfaces().getButton().clickButton()
-  global.put("created_sink", true);
-  return;
-}
+log.log("All nodes booted, creating sink at node " + id + "\n");
+mote.getInterfaces().getButton().clickButton()
 
-/* Log incoming sensor data */
-source = msg.split(" ")[0];
-count = global.get("count_" + source);
-log.log("Got data from node " + source + "\n");
-if (count == null) {
-  count = 0;
-}
-count++;
-global.put("count_" + source, count);
+while (true) {
+  YIELD();
 
-/* Fail if any node has transmitted more than 20 packets */
-for (i = 1; i <= 7; i++) {
-  result = global.get("count_" + i);
-  if (result > 20) {
+  /* Count sensor data packets */
+  source = msg.split(" ")[0];
+  log.log("Got data from node " + source + "\n");
+  count[source]++;
 
-  log.log("FAILED: received/node: " + 
-    global.get("count_1") + " " +
-    global.get("count_2") + " " +
-    global.get("count_3") + " " +
-    global.get("count_4") + " " +
-    global.get("count_5") + " " +
-    global.get("count_6") + " " +
-    global.get("count_7") + "\n");
-    log.testFailed(); /* We are done! */
-    return;
+  /* Fail if any node has transmitted more than 20 packets */
+  for (i = 1; i <= nrNodes; i++) {
+    if (count[i] > 20) {
+      log.log("received/node: " + count[1] + " " + count[2] + " " + count[3] + " " + count[4] + " " + count[5] + " " + count[6] + " " + count[7] + "\n");
+      log.testFailed(); /* We are done! */
+    }
   }
-}
 
-/* Wait until we have received data from all nodes */
-for (i = 1; i <= 7; i++) {
-  result = global.get("count_" + i);
-  if (result < 5) {
-    /*log.log("Node " + i + " only sent " + result + " messages yet\n");*/
-    return;
+  /* Wait until we have received data from all nodes */
+  for (i = 1; i <= nrNodes; i++) {
+    if (count[i] < 5) break;
+    if (i == nrNodes) log.testOK();
   }
-}
 
-log.testOK(); /* We are done! */
+}
