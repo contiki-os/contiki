@@ -1,7 +1,7 @@
-if (!msg.contains('Sky telnet process')) {
-  return;
-}
+TIMEOUT(120000);
 
+/* conf */
+nrReplies = 0;
 ipAddress = "172.16.1.0";
 osName = java.lang.System.getProperty("os.name").toLowerCase();
 if (osName.startsWith("win")) {
@@ -11,14 +11,10 @@ if (osName.startsWith("win")) {
 }
 replyMsg = "from " + ipAddress;
 
-ok = global.get('started_ping');
-if (ok == true) {
-  //log.log("ping already started\n");
-  return;
-}
-global.put('started_ping', true);
-global.put('replies', "");
+/* mote startup */
+WAIT_UNTIL(msg.contains('Sky telnet process'));
 
+/* start ping process */
 var runnableObj = new Object();
 runnableObj.run = function() {
   pingProcess  = new java.lang.Runtime.getRuntime().exec(pingCmd);
@@ -28,16 +24,16 @@ runnableObj.run = function() {
   while ((line = stdIn.readLine()) != null) {
     log.log("> " + line + "\n");
     if (line.contains(replyMsg)) {
-      global.put('replies', global.get('replies') + "1");
-      //log.log("reply #" + global.get('replies').length() + "\n");
+      nrReplies++;
+      //log.log("reply #" + nrReplies + "\n");
     }
   }
   pingProcess.destroy();
 
-  if (global.get('replies').length() > 5) {
+  if (nrReplies > 5) {
     log.testOK(); /* Report test success and quit */
   } else {
-    log.log("Only " + global.get('replies').length() + "/10 ping replies was received\n");
+    log.log("Only " + nrReplies + "/10 ping replies was received\n");
     log.testFailed();
   }
 }
