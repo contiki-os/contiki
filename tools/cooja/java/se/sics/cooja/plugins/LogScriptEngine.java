@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: LogScriptEngine.java,v 1.7 2009/01/08 16:33:14 fros4943 Exp $
+ * $Id: LogScriptEngine.java,v 1.8 2009/01/12 10:45:40 fros4943 Exp $
  */
 
 package se.sics.cooja.plugins;
@@ -86,6 +86,7 @@ public class LogScriptEngine {
     public void log(String log);
     public void testOK();
     public void testFailed();
+    public void generateMessage(long delay, String msg);
   }
 
   private void stepScript() {
@@ -150,6 +151,7 @@ public class LogScriptEngine {
           engine.put("mote", mote);
           engine.put("id", mote.getInterfaces().getMoteID().getMoteID());
           engine.put("time", mote.getSimulation().getSimulationTime());
+          engine.put("msg", mote.getInterfaces().getLog().getLastLogMessage());
 
           stepScript();
 
@@ -374,6 +376,10 @@ public class LogScriptEngine {
             }
           }
         }, gui.getSimulation().getSimulationTime());
+
+        if (timeoutEvent != null) {
+          timeoutEvent.remove();
+        }
       }
       public void testFailed() {
         log("TEST FAILED\n");
@@ -399,6 +405,35 @@ public class LogScriptEngine {
           }
         }, gui.getSimulation().getSimulationTime());
 
+        if (timeoutEvent != null) {
+          timeoutEvent.remove();
+        }
+      }
+
+      public void generateMessage(long delay, final String msg) {
+        final Mote currentMote = (Mote) engine.get("mote");
+
+        TimeEvent generateEvent = new TimeEvent(0) {
+          public void execute(long t) {
+            if (scriptThread == null ||
+                !scriptThread.isAlive()) {
+              logger.info("script thread not alive. try deactivating script.");
+              /*scriptThread.isInterrupted()*/
+              return;
+            }
+
+            /* Update script variables */
+            engine.put("mote", currentMote);
+            engine.put("id", currentMote.getInterfaces().getMoteID().getMoteID());
+            engine.put("time", currentMote.getSimulation().getSimulationTime());
+            engine.put("msg", msg);
+
+            stepScript();
+          }
+        };
+        gui.getSimulation().scheduleEvent(
+            generateEvent,
+            gui.getSimulation().getSimulationTime() + delay);
       }
     });
 

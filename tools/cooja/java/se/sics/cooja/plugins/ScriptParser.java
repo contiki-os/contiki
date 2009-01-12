@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ScriptParser.java,v 1.2 2009/01/08 17:47:37 fros4943 Exp $
+ * $Id: ScriptParser.java,v 1.3 2009/01/12 10:45:40 fros4943 Exp $
  */
 
 package se.sics.cooja.plugins;
@@ -64,6 +64,8 @@ public class ScriptParser {
     code = replaceYields(code);
 
     code = replaceWaitUntils(code);
+
+    code = replaceGenerateMessages(code);
 
     this.code = code;
   }
@@ -215,6 +217,28 @@ public class ScriptParser {
     return code;
   }
 
+  private String replaceGenerateMessages(String code) throws ScriptSyntaxErrorException {
+    Pattern pattern = Pattern.compile(
+        "GENERATE_MSG\\(" +
+        "([0-9]+)" /* timeout */ +
+        "[\\s]*,[\\s]*" +
+        "(.*)" /* code */ +
+        "\\)"
+    );
+    Matcher matcher = pattern.matcher(code);
+
+    while (matcher.find()) {
+      long time = Long.parseLong(matcher.group(1));
+      String msg = matcher.group(2);
+
+      code = matcher.replaceFirst(
+          "log.generateMessage(" + time + "," + msg + ")");
+      matcher.reset(code);
+    }
+
+    return code;
+  }
+
   public String getJSCode() {
     return
     "function SCRIPT_KILL() { " +
@@ -236,7 +260,7 @@ public class ScriptParser {
     " SEMAPHORE_SCRIPT.acquire(); " /* SWITCH BLOCKS HERE! */ +
     " if (SHUTDOWN) { SCRIPT_KILL(); } " +
     " if (TIMEOUT) { SCRIPT_TIMEOUT(); } " +
-    " msg = mote.getInterfaces().getLog().getLastLogMessage(); " +
+    " msg = new java.lang.String(msg); " +
     " node.setMoteMsg(mote, msg); " +
     "};\n" +
     "function run() { " +
@@ -244,7 +268,7 @@ public class ScriptParser {
     "SEMAPHORE_SCRIPT.acquire(); " + /* STARTUP BLOCKS HERE! */
     "if (SHUTDOWN) { SCRIPT_KILL(); } " +
     "if (TIMEOUT) { SCRIPT_TIMEOUT(); } " +
-    "msg = mote.getInterfaces().getLog().getLastLogMessage(); " +
+    "msg = new java.lang.String(msg); " +
     "node.setMoteMsg(mote, msg); " +
     code + "\n" +
     "while (true) { SCRIPT_SWITCH(); } " /* SCRIPT ENDED */+
