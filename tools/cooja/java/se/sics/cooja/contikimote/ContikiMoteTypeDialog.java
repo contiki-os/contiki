@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ContikiMoteTypeDialog.java,v 1.50 2008/12/03 15:18:47 fros4943 Exp $
+ * $Id: ContikiMoteTypeDialog.java,v 1.51 2009/01/12 10:44:36 fros4943 Exp $
  */
 
 package se.sics.cooja.contikimote;
@@ -400,7 +400,7 @@ public class ContikiMoteTypeDialog extends JDialog {
       Dimension newSize = new Dimension();
       newSize.height = Math.min((int) maxSize.getHeight(), (int) myDialog.getSize().getHeight());
       newSize.width = Math.min((int) maxSize.getWidth(), (int) myDialog.getSize().getWidth());
-      logger.info("Resizing dialog: " + myDialog.getSize() + " -> " + newSize);
+      /*logger.info("Resizing dialog: " + myDialog.getSize() + " -> " + newSize);*/
       myDialog.setSize(newSize);
     }
 
@@ -1627,7 +1627,7 @@ public class ContikiMoteTypeDialog extends JDialog {
                 errorStream.println(readLine);
 
                 if (!GUI.isVisualized()) {
-                  logger.warn("COMPILATION OUTPUT: " + readLine);
+                  System.out.println("> " + readLine);
                 }
               }
             }
@@ -1657,6 +1657,11 @@ public class ContikiMoteTypeDialog extends JDialog {
       e.printStackTrace();
       return false;
     }
+
+    if (!GUI.isVisualized()) {
+      logger.info("Compilation done");
+    }
+
     return true;
   }
 
