@@ -1,4 +1,4 @@
-TIMEOUT(30000, log.log("last message: " + msg + "\n"));
+TIMEOUT(90000, log.log("last message: " + msg + "\n"));
 
 mote1 = null;
 mote4 = null;
