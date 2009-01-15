@@ -48,7 +48,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: rmh.h,v 1.5 2008/07/03 21:52:25 adamdunkels Exp $
+ * $Id: rmh.h,v 1.6 2009/01/15 22:15:51 adamdunkels Exp $
  */
 
 /**
@@ -65,6 +65,12 @@
 #include "net/rime/rimeaddr.h"
 
 struct rmh_conn;
+
+#define RMH_ATTRIBUTES  { PACKET_ADDR_ESENDER, PACKET_ADDRSIZE }, \
+                        { PACKET_ADDR_ERECEIVER, PACKET_ADDRSIZE }, \
+                        { PACKET_ATTR_TTL, PACKET_ATTR_BIT * 5 }, \
+                        { PACKET_ATTR_MAX_REXMIT, PACKET_ATTR_BIT * 5 }, \
+                        RUC_ATTRIBUTES
 
 struct rmh_callbacks {
   void (* recv)(struct rmh_conn *ptr, rimeaddr_t *sender, uint8_t hops);

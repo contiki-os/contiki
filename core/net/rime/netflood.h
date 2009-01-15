@@ -45,7 +45,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: netflood.h,v 1.1 2008/07/03 22:25:22 adamdunkels Exp $
+ * $Id: netflood.h,v 1.2 2009/01/15 22:15:51 adamdunkels Exp $
  */
 
 /**
@@ -64,6 +64,11 @@
 #include "net/rime/ipolite.h"
 
 struct netflood_conn;
+
+#define NETFLOOD_ATTRIBUTES   { RIMEBUF_ADDR_ESENDER, RIMEBUF_ADDRSIZE }, \
+                              { RIMEBUF_ATTR_HOPS, RIMEBUF_ATTR_BIT * 5 }, \
+                              { RIMEBUF_ATTR_EPACKET_ID, RIMEBUF_ATTR_BIT * 4 }, \
+                                IPOLITE_ATTRIBUTES
 
 struct netflood_callbacks {
   int (* recv)(struct netflood_conn *c, rimeaddr_t *from,

@@ -48,7 +48,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: multihop.h,v 1.1 2008/07/03 22:36:03 adamdunkels Exp $
+ * $Id: multihop.h,v 1.2 2009/01/15 22:15:51 adamdunkels Exp $
  */
 
 /**
@@ -65,6 +65,13 @@
 #include "net/rime/rimeaddr.h"
 
 struct multihop_conn;
+
+#define MULTIHOP_ATTRIBUTES   { RIMEBUF_ADDR_ESENDER, RIMEBUF_ADDRSIZE }, \
+                              { RIMEBUF_ADDR_ERECEIVER, RIMEBUF_ADDRSIZE }, \
+                              { RIMEBUF_ATTR_TTL, RIMEBUF_ATTR_BIT * 5 }, \
+                                UNICAST_ATTRIBUTES
+
+
 
 struct multihop_callbacks {
   void (* recv)(struct multihop_conn *ptr,

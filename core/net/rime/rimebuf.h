@@ -40,7 +40,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: rimebuf.h,v 1.15 2008/06/30 19:57:10 adamdunkels Exp $
+ * $Id: rimebuf.h,v 1.16 2009/01/15 22:15:51 adamdunkels Exp $
  */
 
 /**
@@ -411,28 +411,6 @@ struct rimebuf_attrlist {
   uint8_t type;
   uint8_t len;
 };
-
-/* XXX The definitions below will be placed the corresponding .h files: */
-
-#define RMH_ATTRIBUTES  { RIMEBUF_ADDR_ESENDER, RIMEBUF_ADDRSIZE }, \
-                        { RIMEBUF_ADDR_ERECEIVER, RIMEBUF_ADDRSIZE }, \
-                        { RIMEBUF_ATTR_TTL, RIMEBUF_ATTR_BIT * 5 }, \
-                        { RIMEBUF_ATTR_MAX_REXMIT, RIMEBUF_ATTR_BIT * 5 }, \
-                        RUC_ATTRIBUTES
-
-#define MH_ATTRIBUTES   { RIMEBUF_ADDR_ESENDER, RIMEBUF_ADDRSIZE }, \
-                        { RIMEBUF_ADDR_ERECEIVER, RIMEBUF_ADDRSIZE }, \
-                        { RIMEBUF_ATTR_TTL, RIMEBUF_ATTR_BIT * 5 }, \
-                        UC_ATTRIBUTES
-
-#define POLITE_ATTRIBUTES ABC_ATTRIBUTES
-
-#define IPOLITE_ATTRIBUTES IBC_ATTRIBUTES
-
-#define NF_ATTRIBUTES   { RIMEBUF_ADDR_ESENDER, RIMEBUF_ADDRSIZE }, \
-                        { RIMEBUF_ATTR_HOPS, RIMEBUF_ATTR_BIT * 5 }, \
-                        { RIMEBUF_ATTR_EPACKET_ID, RIMEBUF_ATTR_BIT * 4 }, \
-                        IPOLITE_ATTRIBUTES
 
 #endif /* __RIMEBUF_H__ */
 /** @} */
