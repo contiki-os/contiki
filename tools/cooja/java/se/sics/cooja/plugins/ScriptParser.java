@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ScriptParser.java,v 1.3 2009/01/12 10:45:40 fros4943 Exp $
+ * $Id: ScriptParser.java,v 1.4 2009/01/15 13:11:56 fros4943 Exp $
  */
 
 package se.sics.cooja.plugins;
@@ -262,6 +262,9 @@ public class ScriptParser {
     " if (TIMEOUT) { SCRIPT_TIMEOUT(); } " +
     " msg = new java.lang.String(msg); " +
     " node.setMoteMsg(mote, msg); " +
+    "};\n" +
+    "function write(mote,msg) { " +
+    " mote.getInterfaces().getLog().writeString(msg); " +
     "};\n" +
     "function run() { " +
     "SEMAPHORE_SIM.acquire(); " +
