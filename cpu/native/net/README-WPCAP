@@ -41,5 +41,7 @@ Instead of fiddling with the firewall settings for 'Public Networks' (or even
 turning the firewall completely off) there's a clean solution which defines the
 loopback interface as not a true network interface that connects to a network.
 This results in generally deactivating both the network identification process
-and the firewall for the loopback interface. The details are available at
-http://forums.microsoft.com/TechNet/ShowPost.aspx?PostID=1960546
+and the firewall for the loopback interface. The details are available in the
+Microsoft TechNet Forums thread 'Vista Network Identification for Loopback
+Adpater' that is currently available at http://social.technet.microsoft.com/
+forums/en-US/itprovistanetworking/thread/66b42761-1b8e-4302-9134-0bb685139f4e/
