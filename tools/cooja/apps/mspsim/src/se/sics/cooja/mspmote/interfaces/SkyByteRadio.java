@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: SkyByteRadio.java,v 1.5 2008/12/04 14:03:41 joxe Exp $
+ * $Id: SkyByteRadio.java,v 1.6 2009/01/15 13:55:20 fros4943 Exp $
  */
 
 package se.sics.cooja.mspmote.interfaces;
@@ -95,7 +95,7 @@ public class SkyByteRadio extends Radio implements CustomDataRadio {
     cc2420.setRFListener(new RFListener() {
       int len = 0;
       int expLen = 0;
-      byte[] buffer = new byte[127 + 5];
+      byte[] buffer = new byte[127 + 15];
       public void receivedByte(byte data) {
         if (len == 0) {
           lastEventTime = SkyByteRadio.this.mote.getSimulation().getSimulationTime();
