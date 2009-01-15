@@ -1,0 +1,1 @@
+Four Sky nodes running both the shell and a CFS webserver. Test uses shell commands write and wget to generate and transfer files.
