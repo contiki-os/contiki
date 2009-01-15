@@ -1,5 +1,5 @@
 /* -*- C -*- */
-/* @(#)$Id: contiki-conf.h,v 1.31 2008/11/06 20:45:06 nvt-se Exp $ */
+/* @(#)$Id: contiki-conf.h,v 1.32 2009/01/15 09:04:04 fros4943 Exp $ */
 
 #ifndef CONTIKI_CONF_H
 #define CONTIKI_CONF_H
@@ -22,6 +22,7 @@
 #define RF_CHANNEL              26
 #endif /* RF_CHANNEL */
 
+#define ELFLOADER_CONF_TEXT_IN_ROM 0
 #define ELFLOADER_CONF_DATAMEMORY_SIZE 0x800
 #define ELFLOADER_CONF_TEXTMEMORY_SIZE 0x1000
 
