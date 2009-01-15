@@ -46,7 +46,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: polite.h,v 1.3 2008/02/24 22:05:27 adamdunkels Exp $
+ * $Id: polite.h,v 1.4 2009/01/15 22:15:51 adamdunkels Exp $
  */
 
 /**
@@ -64,6 +64,8 @@
 #include "net/rime/ctimer.h"
 
 struct polite_conn;
+
+#define POLITE_ATTRIBUTES ABC_ATTRIBUTES
 
 struct polite_callbacks {
   void (* recv)(struct polite_conn *c);

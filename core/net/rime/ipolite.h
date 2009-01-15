@@ -46,7 +46,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: ipolite.h,v 1.4 2008/06/26 11:19:22 adamdunkels Exp $
+ * $Id: ipolite.h,v 1.5 2009/01/15 22:15:51 adamdunkels Exp $
  */
 
 /**
@@ -64,6 +64,8 @@
 #include "net/rime/queuebuf.h"
 
 struct ipolite_conn;
+
+#define IPOLITE_ATTRIBUTES IBC_ATTRIBUTES
 
 struct ipolite_callbacks {
   void (* recv)(struct ipolite_conn *c, rimeaddr_t *from);
