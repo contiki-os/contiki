@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: example-multihop.c,v 1.1 2008/07/03 22:36:02 adamdunkels Exp $
+ * $Id: example-multihop.c,v 1.2 2009/01/16 17:40:16 nifi Exp $
  */
 
 /**
@@ -51,7 +51,8 @@ PROCESS(example_multihop_process, "multihop example");
 AUTOSTART_PROCESSES(&example_multihop_process);
 /*---------------------------------------------------------------------------*/
 static void
-recv(struct multihop_conn *c, rimeaddr_t *sender)
+recv(struct multihop_conn *c, rimeaddr_t *sender, rimeaddr_t *prevhop,
+     uint8_t hops)
 {
   printf("multihop message received '%s'\n", (char *)rimebuf_dataptr());
 }
