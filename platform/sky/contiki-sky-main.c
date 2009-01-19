@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#)$Id: contiki-sky-main.c,v 1.42 2008/11/24 14:31:08 joxe Exp $
+ * @(#)$Id: contiki-sky-main.c,v 1.43 2009/01/19 13:44:04 fros4943 Exp $
  */
 
 #include <signal.h>
@@ -86,7 +86,9 @@ static struct uip_fw_netif meshif =
 #endif /* WITH_UIP */
 
 #define UIP_OVER_MESH_CHANNEL 8
+#if WITH_UIP
 static uint8_t is_gateway;
+#endif /* WITH_UIP */
 
 #ifdef EXPERIMENT_SETUP
 #include "experiment-setup.h"
