@@ -33,7 +33,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: route-discovery.c,v 1.12 2008/11/17 22:52:10 oliverschmidt Exp $
+ * $Id: route-discovery.c,v 1.13 2009/01/21 14:29:24 fros4943 Exp $
  */
 
 /**
@@ -155,6 +155,7 @@ rrep_packet_received(struct unicast_conn *uc, rimeaddr_t *from)
 
   if(rimeaddr_cmp(&msg->dest, &rimeaddr_node_addr)) {
     PRINTF("rrep for us!\n");
+    ctimer_stop(&c->t);
     if(c->cb->new_route) {
       c->cb->new_route(c, &msg->originator);
     }
@@ -164,11 +165,11 @@ rrep_packet_received(struct unicast_conn *uc, rimeaddr_t *from)
 
     rt = route_lookup(&msg->dest);
     if(rt != NULL) {
-      PRINTF("forwarding to %d\n", rt->nexthop.u16[0]);
+      PRINTF("forwarding to %d.%d\n", rt->nexthop.u8[0], rt->nexthop.u8[1]);
       msg->hops++;
       unicast_send(&c->rrepconn, &rt->nexthop);
     } else {
-      PRINTF("%d: no route to %d\n", rimeaddr_node_addr.u16[0], msg->dest.u16[0]);
+      PRINTF("%d.%d: no route to %d.%d\n", rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1], msg->dest.u8[0], msg->dest.u8[1]);
     }
   }
 }
@@ -181,11 +182,12 @@ rreq_packet_received(struct netflood_conn *nf, rimeaddr_t *from,
   struct route_discovery_conn *c = (struct route_discovery_conn *)
     ((char *)nf - offsetof(struct route_discovery_conn, rreqconn));
 
-  PRINTF("%d.%d: rreq_packet_received from %d.%d hops %d rreq_id %d last %d/%d\n",
+  PRINTF("%d.%d: rreq_packet_received from %d.%d hops %d rreq_id %d last %d.%d/%d\n",
 	 rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1],
 	 from->u8[0], from->u8[1],
 	 hops, msg->rreq_id,
-	 c->last_rreq_originator.u16[0],
+     c->last_rreq_originator.u8[0],
+     c->last_rreq_originator.u8[1],
 	 c->last_rreq_id);
 
   if(!(rimeaddr_cmp(&c->last_rreq_originator, originator) &&
