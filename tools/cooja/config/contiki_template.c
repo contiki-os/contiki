@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: contiki_template.c,v 1.9 2008/11/20 17:04:34 fros4943 Exp $
+ * $Id: contiki_template.c,v 1.10 2009/01/21 12:18:10 fros4943 Exp $
  */
 
 /**
@@ -73,6 +73,8 @@
 #include "sys/cooja_mt.h"
 #include "net/init-net.h"
 
+#include "node-id.h"
+
 /* Declare all initialization processes */
 [PROCESS_DEFINITIONS]
 
@@ -104,22 +106,50 @@ long referenceVar;
  */
 static struct cooja_mt_thread process_run_thread;
 
+/*---------------------------------------------------------------------------*/
+static void
+print_processes(struct process * const processes[])
+{
+  /*  const struct process * const * p = processes;*/
+  printf("Starting");
+  while(*processes != NULL) {
+    printf(" '%s'", (*processes)->name);
+    processes++;
+  }
+  putchar('\n');
+}
+/*---------------------------------------------------------------------------*/
 static void
 start_process_run_loop(void *data)
 {
+    int i;
+
     /* Initialize random generator */
     random_init(0);
 
     /* Start process handler */
     process_init();
 
+    /* Print startup information */
+    printf(CONTIKI_VERSION_STRING " started. ");
+    if(node_id > 0) {
+      printf("Node id is set to %u.\n", node_id);
+    } else {
+      printf("Node id is not set.\n");
+    }
     /* Start Contiki processes */
     procinit_init();
 
     /* Initialize communication stack */
     init_net();
+    printf("Rime started with address ");
+    for(i = 0; i < sizeof(rimeaddr_node_addr.u8) - 1; i++) {
+      printf("%d.", rimeaddr_node_addr.u8[i]);
+    }
+    printf("%d\n", rimeaddr_node_addr.u8[i]);
 
     /* Start user applications */
+    print_processes(autostart_processes);
     autostart_start(autostart_processes);
 
     while(1)
