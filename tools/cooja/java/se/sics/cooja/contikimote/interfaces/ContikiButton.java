@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ContikiButton.java,v 1.10 2008/12/04 14:03:42 joxe Exp $
+ * $Id: ContikiButton.java,v 1.11 2009/01/21 14:31:12 fros4943 Exp $
  */
 
 package se.sics.cooja.contikimote.interfaces;
@@ -92,7 +92,7 @@ public class ContikiButton extends Button implements ContikiMoteInterface {
 
       /* Wait until button change is handled by Contiki */
       if (moteMem.getByteValueOf("simButtonChanged") == 0) {
-        logger.info("Releasing button at: " + t);
+        /*logger.info("Releasing button at: " + t);*/
         releaseButton();
       } else {
         /* Reschedule button release */
