@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: MspMote.java,v 1.18 2008/12/04 14:03:41 joxe Exp $
+ * $Id: MspMote.java,v 1.19 2009/01/23 15:32:24 fros4943 Exp $
  */
 
 package se.sics.cooja.mspmote;
@@ -245,6 +245,7 @@ public abstract class MspMote implements Mote {
     MapEntry[] allEntries = map.getAllEntries();
     myMemory = new MspMoteMemory(allEntries, myCpu);
 
+    heapStartAddress = map.heapStartAddress;
     myCpu.reset();
   }
 
