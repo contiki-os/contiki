@@ -38,6 +38,8 @@
 #ifndef CFS_COFFEE_H
 #define CFS_COFFEE_H
 
+void *cfs_coffee_get_fd_set(unsigned *size);
+
 /**
  * \file
  *	Header for the Coffee file system.
@@ -54,9 +56,9 @@
  * \param size The size of the file.
  * \return 0 on success, -1 on failure.
  *
- * Coffee uses sequential page structures for append-only files. The 
- * sequential structure can be reserved with a certain. If no reservation 
- * has been done, files will be set to a default size once opened for 
+ * Coffee uses sequential page structures for append-only files. The
+ * sequential structure can be reserved with a certain. If no reservation
+ * has been done, files will be set to a default size once opened for
  * the first time.
  */
 int cfs_coffee_reserve(const char *name, uint32_t size);
@@ -68,8 +70,8 @@ int cfs_coffee_reserve(const char *name, uint32_t size);
  * \param log_entry_size
  * \return 0 on success, -1 on failure.
  *
- * When file data is first modified, Coffee creates a micro log for the 
- * file. The micro log stores a table of modifications where each record 
+ * When file data is first modified, Coffee creates a micro log for the
+ * file. The micro log stores a table of modifications where each record
  * is of log_entry_size.
  */
 int cfs_coffee_configure_log(const char *file, unsigned log_size,
