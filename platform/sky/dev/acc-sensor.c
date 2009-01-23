@@ -26,14 +26,14 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: acc-sensor.c,v 1.1 2009/01/15 21:06:02 adamdunkels Exp $
+ * $Id: acc-sensor.c,v 1.2 2009/01/23 17:08:17 fros4943 Exp $
  *
  * -----------------------------------------------------------------
  *
  * Author  : Adam Dunkels, Joakim Eriksson, Niclas Finne
  * Created : 2005-11-01
- * Updated : $Date: 2009/01/15 21:06:02 $
- *           $Revision: 1.1 $
+ * Updated : $Date: 2009/01/23 17:08:17 $
+ *           $Revision: 1.2 $
  */
 
 #include "dev/acc-sensor.h"
@@ -70,7 +70,7 @@ activate(void)
   P2DIR |= 0x48;
   P2OUT |= 0x48;
 
-  
+
   /* stop converting immediately */
   ADC12CTL0 &= ~ENC;
   ADC12CTL1 &= ~CONSEQ_3;
@@ -80,7 +80,7 @@ activate(void)
   ADC12MCTL2 = (INCH_4 + SREF_1);
   ADC12MCTL3 = (INCH_5 + SREF_1);
   ADC12MCTL4 = (INCH_6 + SREF_1);
-  
+
   ADC12CTL1 |= CONSEQ_3;
   ADC12CTL0 |= ENC | ADC12SC;
 
@@ -111,6 +111,7 @@ value(int type)
   case 2:
     return ADC12MEM4;
   }
+  return 0;
 }
 /*---------------------------------------------------------------------------*/
 static int
