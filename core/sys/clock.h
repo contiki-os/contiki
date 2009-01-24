@@ -53,7 +53,7 @@
  *
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: clock.h,v 1.9 2009/01/23 17:16:38 adamdunkels Exp $
+ * $Id: clock.h,v 1.10 2009/01/24 10:54:44 adamdunkels Exp $
  */
 #ifndef __CLOCK_H__
 #define __CLOCK_H__
@@ -68,7 +68,7 @@
  * clock time values.
  *
  */
-#define CLOCK_LT(a, b) ((clock_time_t)((a) - (b)))
+#define CLOCK_LT(a, b) ((clock_time_t)((a) - (b)) < 0)
 
 /**
  * Initialize the clock library.
