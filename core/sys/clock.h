@@ -53,13 +53,14 @@
  *
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: clock.h,v 1.10 2009/01/24 10:54:44 adamdunkels Exp $
+ * $Id: clock.h,v 1.11 2009/01/24 15:20:11 adamdunkels Exp $
  */
 #ifndef __CLOCK_H__
 #define __CLOCK_H__
 
 #include "contiki-conf.h"
 
+#if 0 /* XXX problems with signedness and use in timer_expired(). #if:ed it out for now. */
 /**
  * Check if a clock time value is less than another clock time value.
  *
@@ -68,7 +69,8 @@
  * clock time values.
  *
  */
-#define CLOCK_LT(a, b) ((clock_time_t)((a) - (b)) < 0)
+#define CLOCK_LT(a, b) ((clock_time_t)((a) - (b)) < ((clock_time_t)(~((clock_time_t)0)) >> 1))
+#endif /* 0 */
 
 /**
  * Initialize the clock library.

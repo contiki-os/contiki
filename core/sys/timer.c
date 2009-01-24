@@ -42,7 +42,7 @@
  *
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: timer.c,v 1.4 2008/09/21 08:58:05 adamdunkels Exp $
+ * $Id: timer.c,v 1.5 2009/01/24 15:20:11 adamdunkels Exp $
  */
 
 #include "contiki-conf.h"
@@ -121,7 +121,7 @@ timer_restart(struct timer *t)
 int
 timer_expired(struct timer *t)
 {
-  return CLOCK_LT(clock_time(), t->start + t->interval);
+  return (clock_time_t)(clock_time() - t->start) >= (clock_time_t)t->interval;
 }
 /*---------------------------------------------------------------------------*/
 /**
