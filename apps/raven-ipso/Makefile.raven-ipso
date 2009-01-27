@@ -1,0 +1,4 @@
+raven-ipso_src = raven-ipso.c
+
+
+CFLAGS+=-DRAVEN_LCD_INTERFACE=1
