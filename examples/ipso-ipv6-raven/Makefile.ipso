@@ -1,0 +1,10 @@
+
+all: ipso
+
+APPS=raven-ipso
+TARGET=avr-raven
+UIP_CONF_IPV6=1
+CONTIKI = ../..
+
+
+include $(CONTIKI)/Makefile.include
