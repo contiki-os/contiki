@@ -38,8 +38,6 @@
 #ifndef CFS_COFFEE_H
 #define CFS_COFFEE_H
 
-void *cfs_coffee_get_fd_set(unsigned *size);
-
 /**
  * \file
  *	Header for the Coffee file system.
@@ -86,6 +84,19 @@ int cfs_coffee_configure_log(const char *file, unsigned log_size,
  * in a system.
  */
 int cfs_coffee_format(void);
+
+/**
+ * \brief Gives information about the file descriptor area in Coffee.
+ * \param size
+ * \return A pointer to the file descriptor set.
+ *
+ * This function returns the file descriptor set and sets the size
+ * argument to the number of bytes that the set uses. Mainly used for
+ * sensornet checkpointing to protect the file descriptor while rolling
+ * back the state from a file.
+ */
+void *cfs_coffee_get_fd_set(unsigned *size);
+
 
 /** @} */
 /** @} */
