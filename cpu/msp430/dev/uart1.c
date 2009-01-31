@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#)$Id: uart1.c,v 1.7 2008/09/18 17:59:27 joxe Exp $
+ * @(#)$Id: uart1.c,v 1.8 2009/01/31 12:46:57 joxe Exp $
  */
 
 /*
@@ -43,7 +43,12 @@
 #include "dev/watchdog.h"
 
 static int (*uart1_input_handler)(unsigned char c);
-
+static uint8_t rx_in_progress;
+/*---------------------------------------------------------------------------*/
+uint8_t
+uart1_active(void) {
+  return ((~ UTCTL1) & TXEPT) | rx_in_progress;
+}
 /*---------------------------------------------------------------------------*/
 void
 uart1_set_input(int (*input)(unsigned char c))
@@ -92,23 +97,21 @@ uart1_init(unsigned long ubr)
   UTCTL1 = SSEL1;                       /* UCLK = MCLK */
 
   UBR01 = ubr;
-  UBR11 = ubr >> 8;		/* always zero */
+  UBR11 = ubr >> 8;
   /*
    * UMCTL1 values calculated using
-   * http://mspgcc.sourceforge.net/baudrate.html and are not
-   * complete. Also the table assumes that F_CPU = 2,457,600 Hz.
+   * http://mspgcc.sourceforge.net/baudrate.html
+   * Table assumes that F_CPU = 2,457,600 Hz.
    */
   switch(ubr) {
-  case UART1_BAUD2UBR(115200):
+  case UART1_BAUD2UBR(115200ul):
     UMCTL1 = 0x4a;
     break;
-  case UART1_BAUD2UBR(57600):
+  case UART1_BAUD2UBR(57600ul):
     UMCTL1 = 0x5b;
     break;
-  case UART1_BAUD2UBR(19600):
-    UMCTL1 = 0x4a;
-    break;
   default:
+    /* 9600, 19200, 38400 don't require any correction */
     UMCTL1 = 0x00;
   }
 
@@ -118,7 +121,10 @@ uart1_init(unsigned long ubr)
   UCTL1 &= ~SWRST;
 
   /* XXX Clear pending interrupts before enable!!! */
+  IFG2 &= ~URXIFG1;
   U1TCTL |= URXSE;
+
+  rx_in_progress = 0;
 
   IE2 |= URXIE1;                        /* Enable USART1 RX interrupt  */
 
@@ -133,8 +139,10 @@ uart1_interrupt(void)
     /* Edge detect if IFG not set? */
     U1TCTL &= ~URXSE; /* Clear the URXS signal */
     U1TCTL |= URXSE;  /* Re-enable URXS - needed here?*/
+    rx_in_progress = 1;
     LPM4_EXIT;
   } else {
+    rx_in_progress = 0;
     /* Check status register for receive errors. */
     if(URCTL1 & RXERR) {
       volatile unsigned dummy;
