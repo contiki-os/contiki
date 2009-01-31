@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#)$Id: contiki-sky-main.c,v 1.43 2009/01/19 13:44:04 fros4943 Exp $
+ * @(#)$Id: contiki-sky-main.c,v 1.44 2009/01/31 12:45:03 joxe Exp $
  */
 
 #include <signal.h>
@@ -63,7 +63,6 @@
 
 
 SENSORS(&button_sensor);
-
 #ifndef WITH_UIP
 #define WITH_UIP 0
 #endif
@@ -326,7 +325,8 @@ main(int argc, char **argv)
      * Idle processing.
      */
     int s = splhigh();		/* Disable interrupts. */
-    if(process_nevents() != 0) {
+    /* uart1_active is for avoiding LPM3 when still sending or receiving */
+    if(process_nevents() != 0 || uart1_active()) {
       splx(s);			/* Re-enable interrupts. */
     } else {
       static unsigned long irq_energest = 0;
