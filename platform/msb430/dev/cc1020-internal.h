@@ -141,7 +141,7 @@ const uint8_t cc1020_config_19200[41] = {
   0x51,   // 0x0D, MODEM   Manchester
   0x2B,   // 0x0E, DEVIATION // FSK
   0x4C,   // 0x0F, AFC_CONTROL Ruetten 0xCC
-  0x25,   // 0x10, FILTER Bandwith 100 kHz
+  0x25,   // 0x10, FILTER Bandwith 51.2 kHz i.e. channel spacing 100kHz
   0x61,   // 0x11, VGA1
   0x55,   // 0x12, VGA2
   0x2D,   // 0x13, VGA3
@@ -187,7 +187,7 @@ const uint8_t cc1020_config_115200[41] = {
   0x51,   // 0x0D, MODEM Manchester
   0x58,   // 0x0E, DEVIATION // FSK
   0x4C,   // 0x0F, AFC_CONTROL Ruetten 0xCC
-  0x80,   // 0x10, FILTER Bandwith 500 kHz
+  0x80,   // 0x10, FILTER Bandwith 307.2kHz, i.e. channel spacing 500 kHz
   0x61,   // 0x11, VGA1
   0x57,   // 0x12, VGA2
   0x30,   // 0x13, VGA3
