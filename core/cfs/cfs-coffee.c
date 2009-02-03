@@ -109,7 +109,7 @@ struct file_desc {
 };
 
 struct dir_cache {
-  coffee_offset_t page;
+  coffee_page_t page;
   char filename_start;
 };
 
