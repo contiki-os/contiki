@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: SkySerial.java,v 1.11 2009/02/03 14:08:24 joxe Exp $
+ * $Id: SkySerial.java,v 1.12 2009/02/03 14:18:12 joxe Exp $
  */
 
 package se.sics.cooja.mspmote.interfaces;
@@ -339,7 +339,7 @@ public class SkySerial extends Log implements SerialPort, USARTListener {
 //  System.out.println("Received: " + Integer.toString(data, 16) + " = " + (char) data + "  tosPos: " + tosPos);
       if (data == 0x7e) {
         if (tosPos > 6) {
-          lastLogMessage = newMessage.toString();
+          lastLogMessage = "TinyOS: " + newMessage.toString();
           newMessage.setLength(0);
           this.setChanged();
           this.notifyObservers(mote);
@@ -356,7 +356,7 @@ public class SkySerial extends Log implements SerialPort, USARTListener {
         tosLen = data;
         // System.out.println("TOS Payload len: " + tosLen);
       }
-      if (tosPos > 7 && tosPos < 7 + tosLen) {
+      if (tosPos > 9 && tosPos < 10 + tosLen) {
          if (data < 32) data = 32;
          newMessage.append((char) data);
       }
