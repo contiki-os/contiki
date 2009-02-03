@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: SkyByteRadio.java,v 1.6 2009/01/15 13:55:20 fros4943 Exp $
+ * $Id: SkyByteRadio.java,v 1.7 2009/02/03 14:34:47 fros4943 Exp $
  */
 
 package se.sics.cooja.mspmote.interfaces;
@@ -240,12 +240,12 @@ public class SkyByteRadio extends Radio implements CustomDataRadio {
   }
 
   public int getChannel() {
-    /* TODO XXX Enable CC2420 channel selection (when implemented) */
-    //return cc2420.getActiveChannel();
-    return 26;
+    cc2420.updateActiveFrequency();
+    return cc2420.getActiveChannel();
   }
 
   public int getFrequency() {
+    cc2420.updateActiveFrequency();
     return cc2420.getActiveFrequency();
   }
 
