@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: SkySerial.java,v 1.10 2009/01/15 13:13:47 fros4943 Exp $
+ * $Id: SkySerial.java,v 1.11 2009/02/03 14:08:24 joxe Exp $
  */
 
 package se.sics.cooja.mspmote.interfaces;
@@ -328,17 +328,61 @@ public class SkySerial extends Log implements SerialPort, USARTListener {
   public void setConfigXML(Collection<Element> configXML, boolean visAvailable) {
   }
 
+  private int tosChars = 0;
+  boolean tosMode = false;
+  private int[] tosData = new int[255];
+  private int tosPos = 0;
+  private int tosLen = 0;
   public void dataReceived(USART source, int data) {
-    if (data == '\n') {
-      lastLogMessage = newMessage.toString();
-      newMessage.setLength(0);
-      this.setChanged();
-      this.notifyObservers(mote);
+    if (tosMode) {
+    /* needs to add checks to CRC */
+//  System.out.println("Received: " + Integer.toString(data, 16) + " = " + (char) data + "  tosPos: " + tosPos);
+      if (data == 0x7e) {
+        if (tosPos > 6) {
+          lastLogMessage = newMessage.toString();
+          newMessage.setLength(0);
+          this.setChanged();
+          this.notifyObservers(mote);
+          // System.out.println("*** Printing TOS String: " + lastLogMessage);
+          tosPos = 0;
+          tosLen = 0;
+        } else {
+          /* start of new message! */
+          tosPos = 0;
+          tosLen = 0;
+        }
+      }
+      if (tosPos == 7) { 
+        tosLen = data;
+        // System.out.println("TOS Payload len: " + tosLen);
+      }
+      if (tosPos > 7 && tosPos < 7 + tosLen) {
+         if (data < 32) data = 32;
+         newMessage.append((char) data);
+      }
+      tosData[tosPos++] = data;
     } else {
-      newMessage.append((char) data);
+      if (data == 0x7e) {
+        tosChars++;
+        if (tosChars == 2) {
+          tosMode = true;
+          /* already read one char here */
+          tosPos = 1;
+        }
+      } else {
+        tosChars = 0;
+      }
+      if (data == '\n') {
+        lastLogMessage = newMessage.toString();
+        newMessage.setLength(0);
+        this.setChanged();
+        this.notifyObservers(mote);
+      } else {
+        newMessage.append((char) data);
+      }
+      lastSerialData = (byte) data;
+      serialDataObservable.notifyNewData();
     }
-    lastSerialData = (byte) data;
-    serialDataObservable.notifyNewData();
   }
 
   public void close() {
