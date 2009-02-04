@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: msp430.c,v 1.9 2008/02/11 10:44:49 adamdunkels Exp $
+ * @(#)$Id: msp430.c,v 1.10 2009/02/04 18:28:44 joxe Exp $
  */
 #include <io.h>
 #include <signal.h>
@@ -94,6 +94,7 @@ msp430_init_dco(void)
   BCSCTL1 &= ~(DIVA1 + DIVA0);          /* remove /8 divisor from ACLK again */
 }
 /*---------------------------------------------------------------------------*/
+
 static void
 init_ports(void)
 {
@@ -218,5 +219,52 @@ splx_(int sr)
 {
   /* If GIE was set, restore it. */
   asmv("bis %0, r2" : : "r" (sr));
+}
+/*---------------------------------------------------------------------------*/
+/* this code will always start the TimerB if not already started */
+void
+msp430_sync_dco(void) {
+  uint16_t last;
+  uint16_t diff;
+/*   uint32_t speed; */
+  /* DELTA_2 assumes an ACLK of 32768 Hz */
+#define DELTA_2    ((MSP430_CPU_SPEED) / 32768)
+
+  /* Select SMCLK clock, and capture on ACLK for TBCCR6 */
+  TBCTL = TBSSEL1 | TBCLR;
+  TBCCTL6 = CCIS0 + CM0 + CAP;
+  /* start the timer */
+  TBCTL |= MC1;
+
+  // wait for next Capture
+  TBCCTL6 &= ~CCIFG;
+  while(!(TBCCTL6 & CCIFG));
+  last = TBCCR6;
+
+  TBCCTL6 &= ~CCIFG;
+  // wait for next Capture - and calculate difference
+  while(!(TBCCTL6 & CCIFG));
+  diff = TBCCR6 - last;
+
+  /* Stop timer - conserves energy according to user guide */
+  TBCTL = 0;
+
+/*   speed = diff; */
+/*   speed = speed * 32768; */
+/*   printf("Last TAR diff:%d target: %ld ", diff, DELTA_2); */
+/*   printf("CPU Speed: %lu DCOCTL: %d\n", speed, DCOCTL); */
+
+  /* resynchronize the DCO speed if not at target */
+  if(DELTA_2 < diff) {        /* DCO is too fast, slow it down */
+    DCOCTL--;
+    if(DCOCTL == 0xFF) {              /* Did DCO role under? */
+      BCSCTL1--;
+    }
+  } else if (DELTA_2 > diff) {
+    DCOCTL++;
+    if(DCOCTL == 0x00) {              /* Did DCO role over? */
+      BCSCTL1++;
+    }
+  }
 }
 /*---------------------------------------------------------------------------*/
