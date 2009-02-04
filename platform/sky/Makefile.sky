@@ -1,4 +1,4 @@
-# $Id: Makefile.sky,v 1.20 2009/01/15 22:12:46 adamdunkels Exp $
+# $Id: Makefile.sky,v 1.21 2009/02/04 17:51:49 fros4943 Exp $
 
 
 ARCH=msp430.c leds.c watchdog.c light.c spi.c ds2411.c \
@@ -6,7 +6,7 @@ ARCH=msp430.c leds.c watchdog.c light.c spi.c ds2411.c \
      cc2420.c cc2420-aes.c cc2420-arch.c irq.c \
      node-id.c sensors.c button-sensor.c cfs-coffee.c \
      radio-sensor.c uart1.c uip-ipchksum.c \
-     #slip.c slip_uart1.c
+     checkpoint-arch.c #slip.c slip_uart1.c
 
 CONTIKI_TARGET_DIRS = . dev apps net
 ifndef CONTIKI_TARGET_MAIN
