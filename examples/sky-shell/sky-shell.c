@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: sky-shell.c,v 1.7 2008/12/01 14:17:36 adamdunkels Exp $
+ * $Id: sky-shell.c,v 1.8 2009/02/04 17:54:28 fros4943 Exp $
  */
 
 /**
@@ -51,6 +51,8 @@
 #include "dev/light.h"
 #include "dev/sht11.h"
 #include "dev/battery-sensor.h"
+
+#include "lib/checkpoint.h"
 
 #include "net/rime/timesynch.h"
 
@@ -218,13 +220,14 @@ PROCESS_THREAD(sky_shell_process, ev, data)
   shell_ps_init();
   shell_reboot_init();
   shell_rime_init();
-  shell_rime_debug_init();
   shell_rime_netcmd_init();
   shell_rime_ping_init();
-  shell_rime_sniff_init();
+  /*shell_rime_debug_init();*/
+  /*shell_rime_sniff_init();*/
   shell_sky_init();
   shell_text_init();
   shell_time_init();
+  shell_checkpoint_init();
 
   shell_register_command(&sky_alldata_command);
 
