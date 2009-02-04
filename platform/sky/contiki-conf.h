@@ -1,5 +1,5 @@
 /* -*- C -*- */
-/* @(#)$Id: contiki-conf.h,v 1.32 2009/01/15 09:04:04 fros4943 Exp $ */
+/* @(#)$Id: contiki-conf.h,v 1.33 2009/02/04 19:32:20 joxe Exp $ */
 
 #ifndef CONTIKI_CONF_H
 #define CONTIKI_CONF_H
@@ -8,6 +8,10 @@
 
 #define SHELL_VARS_CONF_RAM_BEGIN 0x1100
 #define SHELL_VARS_CONF_RAM_END 0x2000
+
+/* DCO speed resynchronization for more robust UART, etc. */
+#define DCOSYNCH_CONF_ENABLED 1
+#define DCOSYNCH_CONF_PERIOD 30
 
 #define TIMESYNCH_CONF_ENABLED 1
 #define CC2420_CONF_TIMESTAMPS 1

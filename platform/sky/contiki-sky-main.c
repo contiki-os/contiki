@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#)$Id: contiki-sky-main.c,v 1.44 2009/01/31 12:45:03 joxe Exp $
+ * @(#)$Id: contiki-sky-main.c,v 1.45 2009/02/04 19:32:20 joxe Exp $
  */
 
 #include <signal.h>
@@ -61,8 +61,12 @@
 #include "sys/autostart.h"
 #include "sys/profile.h"
 
-
 SENSORS(&button_sensor);
+
+#if DCOSYNCH_CONF_ENABLED
+static struct timer mgt_timer;
+#endif
+
 #ifndef WITH_UIP
 #define WITH_UIP 0
 #endif
@@ -305,6 +309,9 @@ main(int argc, char **argv)
   /*
    * This is the scheduler loop.
    */
+#if DCOSYNCH_CONF_ENABLED
+  timer_set(&mgt_timer, DCOSYNCH_PERIOD * CLOCK_SECOND);
+#endif
   watchdog_start();
   /*  watchdog_stop();*/
   while(1) {
@@ -330,6 +337,15 @@ main(int argc, char **argv)
       splx(s);			/* Re-enable interrupts. */
     } else {
       static unsigned long irq_energest = 0;
+
+#if DCOSYNCH_CONF_ENABLED
+      /* before going down to sleep possibly do some management */
+      if (timer_expired(&mgt_timer)) {
+	timer_reset(&mgt_timer);
+	msp430_sync_dco();
+      }
+#endif
+
       /* Re-enable interrupts and go to sleep atomically. */
       ENERGEST_OFF(ENERGEST_TYPE_CPU);
       ENERGEST_ON(ENERGEST_TYPE_LPM);
