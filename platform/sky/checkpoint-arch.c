@@ -102,7 +102,7 @@ write_byte(int fd, uint8_t c)
 }/*---------------------------------------------------------------------------*/
 #if 0
 static void
-write_array(int fd, unsigned char* mem, uint16_t len)
+write_array(int fd, unsigned char *mem, uint16_t len)
 {
 #if DATA_AS_HEX
   int i;
@@ -169,10 +169,10 @@ thread_checkpoint(int fd)
 #if INCLUDE_RAM
   unsigned char *addr;
   uint16_t size = 0;
-  unsigned char* thread_mem_start = (unsigned char *)&checkpoint_thread.thread.stack;
-  unsigned char* thread_mem_end = thread_mem_start + sizeof(checkpoint_thread.thread.stack) - 1;
-  unsigned char* coffee_mem_start = cfs_coffee_get_fd_set(&size);
-  unsigned char* coffee_mem_end = coffee_mem_start + size - 1;
+  unsigned char *thread_mem_start = (unsigned char *)&checkpoint_thread.thread.stack;
+  unsigned char *thread_mem_end = thread_mem_start + sizeof(checkpoint_thread.thread.stack) - 1;
+  unsigned char *coffee_mem_start = cfs_coffee_get_fd_set(&size);
+  unsigned char *coffee_mem_end = coffee_mem_start + size - 1;
 #endif /* INCLUDE_RAM */
 
   /*printf("protected thread memory: %u, size=%u\n", (uint16_t) thread_mem_start, sizeof(checkpoint_thread.thread.stack));*/
@@ -237,10 +237,10 @@ thread_rollback(int fd)
 #if INCLUDE_RAM
   unsigned char *addr;
   uint16_t size = 0;
-  unsigned char* thread_mem_start = (unsigned char *)&checkpoint_thread.thread.stack;
-  unsigned char* thread_mem_end = thread_mem_start + sizeof(checkpoint_thread.thread.stack) - 1;
-  unsigned char* coffee_mem_start = cfs_coffee_get_fd_set(&size);
-  unsigned char* coffee_mem_end = coffee_mem_start + size - 1;
+  unsigned char *thread_mem_start = (unsigned char *)&checkpoint_thread.thread.stack;
+  unsigned char *thread_mem_end = thread_mem_start + sizeof(checkpoint_thread.thread.stack) - 1;
+  unsigned char *coffee_mem_start = cfs_coffee_get_fd_set(&size);
+  unsigned char *coffee_mem_end = coffee_mem_start + size - 1;
 #endif /* INCLUDE_RAM */
 
   /*printf("protected thread memory: %u, size=%u\n", (uint16_t) thread_mem_start, sizeof(checkpoint_thread.thread.stack));*/
