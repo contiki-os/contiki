@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF 
  * SUCH DAMAGE. 
  *
- * @(#)$Id: msp430def.h,v 1.1 2007/08/16 13:09:06 bg- Exp $
+ * @(#)$Id: msp430def.h,v 1.2 2009/02/04 18:28:44 joxe Exp $
  */
 
 #ifndef MSP430DEF_H
@@ -49,7 +49,17 @@ typedef uint16_t   u16_t;
 typedef uint32_t   u32_t;
 typedef  int32_t   s32_t;
 
+/* default DCOSYNCH Period is 30 seconds */
+#ifdef DCOSYNCH_CONF_PERIOD
+#define DCOSYNCH_PERIOD DCOSYNCH_CONF_PERIOD
+#else
+#define DCOSYNCH_PERIOD 30
+#endif
+
 void msp430_cpu_init(void);	/* Rename to cpu_init() later! */
+void msp430_sync_dco(void);
+
+
 #define cpu_init() msp430_cpu_init()
 
 void   *sbrk(int);
