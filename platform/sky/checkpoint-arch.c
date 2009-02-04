@@ -91,11 +91,11 @@ write_byte(int fd, uint8_t c)
 #if DATA_AS_HEX
   uint8_t hex[2];
   sprintf(hex, "%02x", c);
-  if (cfs_write(fd, hex, 2) != 2) {
+  if(cfs_write(fd, hex, 2) != 2) {
     printf("err #1\n");
   }
 #else /* DATA_AS_HEX */
-  if (cfs_write(fd, &c, 1) != 1) {
+  if(cfs_write(fd, &c, 1) != 1) {
     printf("err #2\n");
   }
 #endif /* DATA_AS_HEX */
@@ -106,7 +106,7 @@ write_array(int fd, unsigned char* mem, uint16_t len)
 {
 #if DATA_AS_HEX
   int i;
-  for (i=0; i < len; i++) {
+  for(i = 0; i < len; i++) {
     write_byte(fd, mem[i]);
   }
 #else /* DATA_AS_HEX */
@@ -119,7 +119,9 @@ static void
 write_word(int fd, uint16_t w)
 {
   word_union_t tmp;
-  tmp.u16 = w; write_byte(fd, tmp.u8[0]); write_byte(fd, tmp.u8[1]);
+  tmp.u16 = w;
+  write_byte(fd, tmp.u8[0]);
+  write_byte(fd, tmp.u8[1]);
 }
 /*---------------------------------------------------------------------------*/
 static uint8_t
@@ -130,21 +132,21 @@ read_byte(int fd)
 
   cfs_read(fd, hex, 2);
 
-  if (hex[0] >= 'A' && hex[0] <= 'F') {
+  if(hex[0] >= 'A' && hex[0] <= 'F') {
     hex[0] = (hex[0] - 'A' + 0xa);
-  } else if (hex[0] >= 'a' && hex[0] <= 'f') {
+  } else if(hex[0] >= 'a' && hex[0] <= 'f') {
     hex[0] = (hex[0] - 'a' + 0xa);
   } else {
     hex[0] = (hex[0] - '0');
   }
-  if (hex[1] >= 'A' && hex[1] <= 'F') {
+  if(hex[1] >= 'A' && hex[1] <= 'F') {
     hex[1] = (hex[1] - 'A' + 0xa);
-  } else if (hex[1] >= 'a' && hex[1] <= 'f') {
+  } else if(hex[1] >= 'a' && hex[1] <= 'f') {
     hex[1] = (hex[1] - 'a' + 0xa);
   } else {
     hex[1] = (hex[1] - '0');
   }
-  return (uint8_t) ((hex[0]<<4)&0xf0) | (hex[1]&0x0f);
+  return (uint8_t)((hex[0]<<4)&0xf0) | (hex[1]&0x0f);
 #else /* DATA_AS_HEX */
   uint8_t c;
   cfs_read(fd, &c, 1);
@@ -156,7 +158,8 @@ static uint16_t
 read_word(int fd)
 {
   word_union_t tmp;
-  tmp.u8[0] = read_byte(fd); tmp.u8[1] = read_byte(fd);
+  tmp.u8[0] = read_byte(fd);
+  tmp.u8[1] = read_byte(fd);
   return tmp.u16;
 }
 /*---------------------------------------------------------------------------*/
@@ -166,7 +169,7 @@ thread_checkpoint(int fd)
 #if INCLUDE_RAM
   unsigned char *addr;
   uint16_t size = 0;
-  unsigned char* thread_mem_start = (unsigned char*) &checkpoint_thread.thread.stack;
+  unsigned char* thread_mem_start = (unsigned char *)&checkpoint_thread.thread.stack;
   unsigned char* thread_mem_end = thread_mem_start + sizeof(checkpoint_thread.thread.stack) - 1;
   unsigned char* coffee_mem_start = cfs_coffee_get_fd_set(&size);
   unsigned char* coffee_mem_end = coffee_mem_start + size - 1;
@@ -177,15 +180,17 @@ thread_checkpoint(int fd)
 
   /* RAM */
 #if INCLUDE_RAM
-  for (addr = (unsigned char*) RAM_START; addr < (unsigned char*) RAM_END; addr++) {
+  for(addr = (unsigned char *)RAM_START;
+      addr < (unsigned char *)RAM_END;
+      addr++) {
 
-    if ((addr >= thread_mem_start && addr <= thread_mem_end)) {
+    if((addr >= thread_mem_start && addr <= thread_mem_end)) {
       /* Writing dummy memory */
       /*write_byte(fd, 1);*/
       continue;
     }
 
-    if ((addr >= coffee_mem_start && addr <= coffee_mem_end)) {
+    if((addr >= coffee_mem_start && addr <= coffee_mem_end)) {
       /* Writing dummy memory */
       /*write_byte(fd, 2);*/
       continue;
@@ -194,7 +199,9 @@ thread_checkpoint(int fd)
     /* TODO Use write_array() */
     write_byte(fd, *addr);
 
-    if (((int)addr % 512) == 0) PRINTF(".");
+    if(((int)addr % 512) == 0) {
+      PRINTF(".");
+    }
   }
 
 #endif /* INCLUDE_RAM */
@@ -230,7 +237,7 @@ thread_rollback(int fd)
 #if INCLUDE_RAM
   unsigned char *addr;
   uint16_t size = 0;
-  unsigned char* thread_mem_start = (unsigned char*) &checkpoint_thread.thread.stack;
+  unsigned char* thread_mem_start = (unsigned char *)&checkpoint_thread.thread.stack;
   unsigned char* thread_mem_end = thread_mem_start + sizeof(checkpoint_thread.thread.stack) - 1;
   unsigned char* coffee_mem_start = cfs_coffee_get_fd_set(&size);
   unsigned char* coffee_mem_end = coffee_mem_start + size - 1;
@@ -241,14 +248,16 @@ thread_rollback(int fd)
 
   /* RAM */
 #if INCLUDE_RAM
-  for (addr = (unsigned char*) RAM_START; addr < (unsigned char*) RAM_END; addr++) {
-    if ((addr >= thread_mem_start && addr <= thread_mem_end)) {
+  for(addr = (unsigned char *)RAM_START;
+      addr < (unsigned char *)RAM_END;
+      addr++) {
+    if((addr >= thread_mem_start && addr <= thread_mem_end)) {
       /* Ignoring incoming memory */
       /*read_byte(fd);*/
       continue;
     }
 
-    if ((addr >= coffee_mem_start && addr <= coffee_mem_end)) {
+    if((addr >= coffee_mem_start && addr <= coffee_mem_end)) {
       /* Ignoring incoming memory */
       /*read_byte(fd);*/
       continue;
@@ -256,7 +265,9 @@ thread_rollback(int fd)
 
     *addr = read_byte(fd);
 
-    if (((int)addr % 512) == 0) PRINTF(".");
+    if(((int)addr % 512) == 0) {
+      PRINTF(".");
+    }
   }
 
 #endif /* INCLUDE_RAM */
@@ -287,26 +298,26 @@ thread_rollback(int fd)
 }
 /*---------------------------------------------------------------------------*/
 static void
-thread_loop(void* data)
+thread_loop(void *data)
 {
   uint8_t cmd;
   int fd;
 
-  while (1) {
+  while(1) {
     /* Store command and file descriptor on stack */
     cmd = preset_cmd;
     fd = preset_fd;
 
     /* Handle command */
-    if (cmd == COMMAND_ROLLBACK) {
+    if(cmd == COMMAND_ROLLBACK) {
       PRINTF("Rolling back");
       thread_rollback(fd);
       PRINTF(" done!\n");
-    } else if (cmd == COMMAND_CHECKPOINT) {
+    } else if(cmd == COMMAND_CHECKPOINT) {
       PRINTF("Checkpointing");
       thread_checkpoint(fd);
       PRINTF(" done!\n");
-    } else if (cmd == COMMAND_TBR) {
+    } else if(cmd == COMMAND_TBR) {
       PRINTF("Writing TBR");
       write_word(fd, TBR);
       PRINTF(" done!\n");
@@ -358,3 +369,4 @@ checkpoint_arch_init(void)
   /*mt_stop(&checkpoint_thread);*/
   /*mt_remove();*/
 }
+/*---------------------------------------------------------------------------*/
