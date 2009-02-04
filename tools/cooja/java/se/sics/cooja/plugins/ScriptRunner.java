@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ScriptRunner.java,v 1.10 2009/01/08 16:31:43 fros4943 Exp $
+ * $Id: ScriptRunner.java,v 1.11 2009/02/04 17:58:17 fros4943 Exp $
  */
 
 package se.sics.cooja.plugins;
@@ -610,6 +610,7 @@ public class ScriptRunner implements Plugin {
 
       /* Prepare test log */
       logWriter = new BufferedWriter(new FileWriter(log));
+      logWriter.write("[" + log.getName() + "]\n\n");
 
       /* Create script engine */
       engine = new LogScriptEngine(gui);
