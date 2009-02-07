@@ -7,8 +7,9 @@
  * \defgroup rimepolite Polite anonymous best effort local broadcast
  * @{
  *
- * The polite module sends one anonymous packet that is unique within a
- * time interval.
+ * The polite module sends one local area broadcast packet within one
+ * time interval. If a packet with the same header is received from a
+ * neighbor within the interval, the packet is not sent.
  *
  * \section channels Channels
  *
@@ -46,7 +47,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: polite.h,v 1.4 2009/01/15 22:15:51 adamdunkels Exp $
+ * $Id: polite.h,v 1.5 2009/02/07 16:15:37 adamdunkels Exp $
  */
 
 /**
@@ -67,12 +68,36 @@ struct polite_conn;
 
 #define POLITE_ATTRIBUTES ABC_ATTRIBUTES
 
+/**
+ * \brief      A structure with callback functions for a polite connection.
+ *
+ *             This structure holds a list of callback functions used
+ *             a a polite connection. The functions are called when
+ *             events occur on the connection.
+ *
+ */
 struct polite_callbacks {
+  /**
+   * Called when a packet is received on the connection.
+   */
   void (* recv)(struct polite_conn *c);
+
+  /**
+   * Called when a packet is sent on the connection.
+   */
   void (* sent)(struct polite_conn *c);
+
+  /**
+   * Called when a packet is dropped because a packet was heard from a
+   * neighbor.
+   */
   void (* dropped)(struct polite_conn *c);
 };
 
+/**
+ * An opaque structure with no user-visible elements that holds the
+ * state of a polite connection,
+ */
 struct polite_conn {
   struct abc_conn c;
   const struct polite_callbacks *cb;
@@ -81,10 +106,51 @@ struct polite_conn {
   uint8_t hdrsize;
 };
 
+/**
+ * \brief      Open a polite connection
+ * \param c    A pointer to a struct polite_conn.
+ * \param channel The channel number to be used for this connection
+ * \param cb   A pointer to the callbacks used for this connection
+ *
+ *             This function opens a polite connection on the
+ *             specified channel. The callbacks are called when a
+ *             packet is received, or when another event occurs on the
+ *             connection (see \ref "struct polite_callbacks").
+ */
 void polite_open(struct polite_conn *c, uint16_t channel,
-	       const struct polite_callbacks *cb);
+		 const struct polite_callbacks *cb);
+
+/**
+ * \brief      Close a polite connection
+ * \param c    A pointer to a struct polite_conn that has previously been opened with polite_open().
+ *
+ *             This function closes a polite connection that has
+ *             previously been opened with polite_open().
+ */
 void polite_close(struct polite_conn *c);
+
+
+/**
+ * \brief      Send a packet on a polite connection.
+ * \param c    A pointer to a struct polite_conn that has previously been opened with polite_open().
+ * \param interval The timer interval in which the packet should be sent.
+ * \param hdrsize The size of the header that should be unique within the time interval.
+ *
+ *             This function sends a packet from the rimebuf on the
+ *             polite connection. The packet is sent some time during
+ *             the time interval, but only if no other packet is
+ *             received with the same header.
+ *
+ */
 int  polite_send(struct polite_conn *c, clock_time_t interval, uint8_t hdrsize);
+
+/**
+ * \brief      Cancel a pending packet
+ * \param c    A pointer to a struct polite_conn that has previously been opened with polite_open().
+ *
+ *             This function cancels a pending transmission that has
+ *             previously been started with polite_send().
+ */
 void polite_cancel(struct polite_conn *c);
 
 #endif /* __POLITE_H__ */
