@@ -13,7 +13,7 @@ fi
 
 echo ">>>>>>> Starting test: $TEST <<<<<<<<"
 if [ $LOGFILE -eq 1 ]; then echo -n "[`date '+%F %T'`] $TEST: " >> $LOG; fi
-java -jar ../dist/cooja.jar -nogui -test=$TEST
+java -mx512m -jar ../dist/cooja.jar -nogui -test=$TEST
 if [ -f "COOJA.log" ]; then
   mv COOJA.log $TEST.cooja_log
 fi
