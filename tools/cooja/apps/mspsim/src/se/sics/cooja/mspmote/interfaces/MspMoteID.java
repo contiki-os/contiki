@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: MspMoteID.java,v 1.9 2008/12/04 14:03:41 joxe Exp $
+ * $Id: MspMoteID.java,v 1.10 2009/02/07 16:38:51 joxe Exp $
  */
 
 package se.sics.cooja.mspmote.interfaces;
@@ -161,6 +161,10 @@ public class MspMoteID extends MoteID {
   }
 
   public void setMoteID(int newID) {
+    /* tell mote instance */
+    if (moteID != newID) {
+      mote.idUpdated(newID);
+    }
     moteID = newID;
 
     if (location == ID_LOCATION.VARIABLE_NODE_ID) {
