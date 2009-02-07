@@ -33,7 +33,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: trickle.c,v 1.13 2008/11/17 22:52:10 oliverschmidt Exp $
+ * $Id: trickle.c,v 1.14 2009/02/07 16:16:31 adamdunkels Exp $
  */
 
 /**
@@ -44,7 +44,7 @@
  */
 
 #include "net/rime/trickle.h"
-#include "lib/random.h"
+#include "lib/rand.h"
 
 #if CONTIKI_TARGET_NETSIM
 #include "ether.h"
@@ -116,7 +116,7 @@ run_trickle(struct trickle_conn *c)
   while(1) {
     interval = c->interval << c->interval_scaling;
     set_timer(c, &c->interval_timer, interval);
-    set_timer(c, &c->t, interval / 2 + (random_rand() % (interval / 2)));
+    set_timer(c, &c->t, interval / 2 + (rand() % (interval / 2)));
 
     c->duplicates = 0;
     PT_YIELD(&c->pt); /* Wait until listen timeout */
