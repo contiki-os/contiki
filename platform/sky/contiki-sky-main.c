@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#)$Id: contiki-sky-main.c,v 1.45 2009/02/04 19:32:20 joxe Exp $
+ * @(#)$Id: contiki-sky-main.c,v 1.46 2009/02/07 16:49:36 adamdunkels Exp $
  */
 
 #include <signal.h>
@@ -54,6 +54,8 @@
 #include "net/mac/xmac.h"
 
 #include "net/rime.h"
+
+#include "lib/rand.h"
 
 #include "node-id.h"
 #include "cfs-coffee-arch.h"
@@ -236,6 +238,8 @@ main(int argc, char **argv)
 #else
   rime_init(xmac_init(&cc2420_driver));
 #endif
+
+  srand(ds2411_id[0] + node_id);
 
   printf(CONTIKI_VERSION_STRING " started. ");
   if(node_id > 0) {
