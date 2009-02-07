@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: MspMote.java,v 1.19 2009/01/23 15:32:24 fros4943 Exp $
+ * $Id: MspMote.java,v 1.20 2009/02/07 16:38:51 joxe Exp $
  */
 
 package se.sics.cooja.mspmote;
@@ -257,6 +257,10 @@ public abstract class MspMote implements Mote {
     return Mote.State.ACTIVE;
   }
 
+  /* called when moteID is updated */
+  public void idUpdated(int newID) {
+  }
+  
   public MoteType getType() {
     return myMoteType;
   }

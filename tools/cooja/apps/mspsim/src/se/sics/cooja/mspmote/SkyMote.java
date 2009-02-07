@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: SkyMote.java,v 1.9 2008/12/03 13:11:20 fros4943 Exp $
+ * $Id: SkyMote.java,v 1.10 2009/02/07 16:38:51 joxe Exp $
  */
 
 package se.sics.cooja.mspmote;
@@ -120,6 +120,10 @@ public class SkyMote extends MspMote {
     return moteInterfaceHandler;
   }
 
+  public void idUpdated(int newID) {
+    skyNode.setNodeID(newID);
+  }
+  
   public String toString() {
     MoteID moteID = getInterfaces() != null ? getInterfaces().getMoteID() : null;
     if (moteID != null) {
