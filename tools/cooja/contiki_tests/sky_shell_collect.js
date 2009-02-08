@@ -106,7 +106,7 @@ while(true) {
 
   /* Count sensor data packets */
   data = msg.split(" ");
-  log.log("Data 24 " + data[24]);
+
   if(data[24]) {
 
     len = parseInt(data[0]);
