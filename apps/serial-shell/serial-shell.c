@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: serial-shell.c,v 1.2 2008/11/09 10:50:14 adamdunkels Exp $
+ * $Id: serial-shell.c,v 1.3 2009/02/08 19:28:57 adamdunkels Exp $
  */
 
 /**
@@ -68,7 +68,7 @@ shell_default_output(const char *text1, int len1, const char *text2, int len2)
 void
 shell_prompt(char *str)
 {
-  printf("%d.%d: %s", rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1],
+  printf("%d.%d: %s\r\n", rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1],
 	 str);
 }
 /*---------------------------------------------------------------------------*/
