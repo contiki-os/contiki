@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: lpp.c,v 1.6 2009/02/08 19:30:18 adamdunkels Exp $
+ * $Id: lpp.c,v 1.7 2009/02/08 20:14:18 adamdunkels Exp $
  */
 
 /**
@@ -56,6 +56,7 @@
 #include "net/mac/mac.h"
 #include "net/mac/lpp.h"
 #include "net/rime/rimebuf.h"
+#include "net/rime/announcement.h"
 
 #include <stdlib.h>
 
