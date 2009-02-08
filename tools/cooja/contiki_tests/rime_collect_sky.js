@@ -10,16 +10,6 @@ print_stats()
 	  total_dups + " dups, " +
 	  (total_dups / nrNodes) + " dups/node, " +
 	  (total_hops / total_received) + " hops/message\n");
-  log.log("Received: ");
-  for(i = 1; i <= nrNodes; i++) {
-    log.log(count[i] + " ");
-  }
-  log.log("\n");
-  log.log("Hops: ");
-  for(i = 1; i <= nrNodes; i++) {
-    log.log(hops[i] + " ");
-  }
-  log.log("\n");
   log.log("Seqnos: ");
   for(i = 1; i <= nrNodes; i++) {
     log.log(seqnos[i] + " ");
@@ -33,6 +23,16 @@ print_stats()
   log.log("Dups: ");
   for(i = 1; i <= nrNodes; i++) {
     log.log(dups[i] + " ");
+  }
+  log.log("\n");
+  log.log("Hops: ");
+  for(i = 1; i <= nrNodes; i++) {
+    log.log(hops[i] + " ");
+  }
+  log.log("\n");
+  log.log("Received: ");
+  for(i = 1; i <= nrNodes; i++) {
+    log.log(count[i] + " ");
   }
   log.log("\n");
 }
@@ -84,45 +84,48 @@ while(true) {
   YIELD();
 
   /* Count sensor data packets */
-  node_text = msg.split(" ")[4];
-  seqno_text = msg.split(" ")[6];
-  hops_text = msg.split(" ")[8];
-  if(node_text) {
-    source = parseInt(node_text);
-    seqno = parseInt(seqno_text);
-    hop = parseInt(hops_text);
-    count[source]++;
-    hops[source] = hop;
-    seqno_gap = seqno - seqnos[source];
-    seqnos[source] = seqno;
+  if(msg.startsWith("Sink")) {
+    node_text = msg.split(" ")[4];
+    seqno_text = msg.split(" ")[6];
+    hops_text = msg.split(" ")[8];
+    if(node_text) {
+      source = parseInt(node_text);
+      seqno = parseInt(seqno_text);
+      hop = parseInt(hops_text);
+      count[source]++;
+      hops[source] = hop;
+      seqno_gap = seqno - seqnos[source];
+      seqnos[source] = seqno;
+      
+      total_received++;
+      total_hops += hop;
+      
+      if(seqno_gap == 2) {
+	total_lost += seqno_gap - 1;
+	lost[source] += seqno_gap - 1;
+      } else if(seqno_gap == 0) {
+	total_dups += 1;
+	dups[source] += 1;
+      }
+    }
+    /* Fail if the sink has received more than 10 messages from any node. */
+    for(i = 1; i <= nrNodes; i++) {
+      if(count[i] > 10) {
+	print_stats();
+	log.testFailed(); /* We are done! */
+      }
+    }
     
-    total_received++;
-    total_hops += hop;
-
-    if(seqno_gap == 2) {
-      total_lost += seqno_gap - 1;
-      lost[source] += seqno_gap - 1;
-    } else if(seqno_gap == 0) {
-      total_dups += 1;
-      dups[source] += 1;
+    /* Wait until the sink have received at least two messages from every node */
+    for(i = 1; i <= nrNodes; i++) {
+      if(count[i] < 2) {
+	break;
+      }
+      if(i == nrNodes) {
+	print_stats();
+	log.testOK();
+      }
     }
-  }
-  /* Fail if the sink has received more than 10 messages from any node. */
-  for(i = 1; i <= nrNodes; i++) {
-    if(count[i] > 10) {
-      print_stats();
-      log.testFailed(); /* We are done! */
-    }
-  }
-
-  /* Wait until the sink have received at least two messages from every node */
-  for(i = 1; i <= nrNodes; i++) {
-    if(count[i] < 2) {
-      break;
-    }
-    if(i == nrNodes) {
-      print_stats();
-      log.testOK();
-    }
+    print_stats();
   }
 }
