@@ -24,7 +24,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * $Id: GUI.java,v 1.101 2009/01/08 15:43:49 fros4943 Exp $
+ * $Id: GUI.java,v 1.102 2009/02/08 18:33:05 fros4943 Exp $
  */
 
 package se.sics.cooja;
@@ -945,7 +945,12 @@ public class GUI extends Observable {
 
     /* Nimbus */
     try {
-      UIManager.setLookAndFeel("com.sun.java.swing.plaf.nimbus.NimbusLookAndFeel");
+      String osName = System.getProperty("os.name").toLowerCase();
+      if (osName.startsWith("linux")) {
+        UIManager.setLookAndFeel(UIManager.getCrossPlatformLookAndFeelClassName());
+      } else {
+        UIManager.setLookAndFeel("com.sun.java.swing.plaf.nimbus.NimbusLookAndFeel");
+      }
       return;
     } catch (Exception e) {
     }
