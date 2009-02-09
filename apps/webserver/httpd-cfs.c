@@ -30,7 +30,7 @@
  *
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: httpd-cfs.c,v 1.10 2008/02/21 09:25:54 oliverschmidt Exp $
+ * $Id: httpd-cfs.c,v 1.11 2009/02/09 13:04:37 fros4943 Exp $
  */
 
 #include <string.h>
@@ -227,7 +227,7 @@ httpd_appcall(void *state)
         webserver_log_file(&uip_conn->ripaddr, "reset (timeout)");
       }
     } else {
-      timer_reset(&s->timer);
+      timer_restart(&s->timer);
     }
     handle_connection(s);
   } else {
