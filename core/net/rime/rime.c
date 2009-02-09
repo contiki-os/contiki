@@ -33,7 +33,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: rime.c,v 1.17 2009/02/09 21:08:12 adamdunkels Exp $
+ * $Id: rime.c,v 1.18 2009/02/09 22:05:33 adamdunkels Exp $
  */
 
 /**
@@ -54,6 +54,12 @@
 #include "lib/list.h"
 
 const struct mac_driver *rime_mac;
+
+#ifdef RIME_CONF_POLITE_ANNOUNCEMENT_CHANNEL
+#define POLITE_ANNOUNCEMENT_CHANNEL RIME_CONF_POLITE_ANNOUNCEMENT_CHANNEL
+#else /* RIME_CONF_POLITE_ANNOUNCEMENT_CHANNEL */
+#define POLITE_ANNOUNCEMENT_CHANNEL 1
+#endif /* RIME_CONF_POLITE_ANNOUNCEMENT_CHANNEL */
 
 LIST(sniffers);
 
@@ -99,6 +105,19 @@ rime_init(const struct mac_driver *m)
   rime_mac->set_receive_function(input);
 
   chameleon_init(&chameleon_bitopt);
+#if ! RIME_CONF_NO_POLITE_ANNOUCEMENTS
+  /* XXX This is initializes the transmission of announcements but it
+   * is not currently certain where this initialization is supposed to
+   * be. Also, the times are arbitrarily set for now. They should
+   * either be configurable, or derived from some MAC layer property
+   * (duty cycle, sleep time, or something similar). But this is OK
+   * for now, and should at least get us started with experimenting
+   * with announcements.
+   */
+  polite_announcement_init(POLITE_ANNOUNCEMENT_CHANNEL,
+			   CLOCK_SECOND * 8,
+			   CLOCK_SECOND * 64);
+#endif /* ! RIME_CONF_NO_POLITE_ANNOUCEMENTS */
 }
 /*---------------------------------------------------------------------------*/
 void
