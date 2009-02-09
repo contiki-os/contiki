@@ -131,8 +131,12 @@ struct log_param {
   uint16_t size;
 };
 
-static struct file coffee_files[COFFEE_MAX_OPEN_FILES];
-static struct file_desc coffee_fd_set[COFFEE_FD_SET_SIZE];
+static struct protected_mem_t {
+  struct file coffee_files[COFFEE_MAX_OPEN_FILES];
+  struct file_desc coffee_fd_set[COFFEE_FD_SET_SIZE];
+} protected_mem;
+static struct file *coffee_files = protected_mem.coffee_files;
+static struct file_desc *coffee_fd_set = protected_mem.coffee_fd_set;
 
 /*---------------------------------------------------------------------------*/
 static void
@@ -1181,8 +1185,8 @@ cfs_coffee_format(void)
 }
 /*---------------------------------------------------------------------------*/
 void *
-cfs_coffee_get_fd_set(unsigned *size)
+cfs_coffee_get_protected_mem(unsigned *size)
 {
-  *size = sizeof(coffee_fd_set);
-  return &coffee_fd_set;
+  *size = sizeof(protected_mem);
+  return &protected_mem;
 }
