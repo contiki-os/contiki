@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008, Swedish Institute of Computer Science
+ * Copyright (c) 2008, 2009, Swedish Institute of Computer Science
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -69,9 +69,9 @@
 #define INVALID_PAGE		((coffee_page_t)-1)
 #define UNKNOWN_OFFSET		((coffee_offset_t)-1)
 
-#define FD_VALID(fd)						\
-		((fd) >= 0 && (fd) < COFFEE_FD_SET_SIZE && 	\
-		coffee_fd_set[(fd)].flags != COFFEE_FD_FREE)
+#define FD_VALID(fd)					\
+	((fd) >= 0 && (fd) < COFFEE_FD_SET_SIZE && 	\
+	coffee_fd_set[(fd)].flags != COFFEE_FD_FREE)
 #define FD_READABLE(fd)		(coffee_fd_set[(fd)].flags & CFS_READ)
 #define FD_WRITABLE(fd)		(coffee_fd_set[(fd)].flags & CFS_WRITE)
 #define FD_APPENDABLE(fd)	(coffee_fd_set[(fd)].flags & CFS_APPEND)
@@ -79,7 +79,7 @@
 #define FILE_MODIFIED(file)	((file)->flags & COFFEE_FILE_MODIFIED)
 
 /* File header flags. */
-#define HDR_FLAG_VALID	0x1	/* Completely written header. */
+#define HDR_FLAG_VALID		0x1	/* Completely written header. */
 #define HDR_FLAG_ALLOCATED	0x2	/* Allocated file. */
 #define HDR_FLAG_OBSOLETE	0x4	/* File marked for GC. */
 #define HDR_FLAG_MODIFIED	0x8	/* Modified file, log exists. */
@@ -93,11 +93,13 @@
 #define HDR_ISOLATED(hdr)	((hdr).flags & HDR_FLAG_ISOLATED)
 #define HDR_OBSOLETE(hdr) 	((hdr).flags & HDR_FLAG_OBSOLETE)
 #define HDR_ACTIVE(hdr)		(HDR_ALLOCATED(hdr) && \
-					!HDR_OBSOLETE(hdr)  && \
-					!HDR_ISOLATED(hdr))
+				!HDR_OBSOLETE(hdr)  && \
+				!HDR_ISOLATED(hdr))
 
-#define COFFEE_PAGE_COUNT	((coffee_page_t)(COFFEE_SIZE / COFFEE_PAGE_SIZE))
-#define COFFEE_PAGES_PER_SECTOR	((coffee_page_t)(COFFEE_SECTOR_SIZE / COFFEE_PAGE_SIZE))
+#define COFFEE_PAGE_COUNT	\
+	((coffee_page_t)(COFFEE_SIZE / COFFEE_PAGE_SIZE))
+#define COFFEE_PAGES_PER_SECTOR	\
+	((coffee_page_t)(COFFEE_SECTOR_SIZE / COFFEE_PAGE_SIZE))
 
 struct file {
   coffee_offset_t end;
@@ -1177,7 +1179,9 @@ cfs_coffee_format(void)
   watchdog_start();
 
   /* All file descriptors have become invalid. */
-  memset(&coffee_fd_set, 0, sizeof(coffee_fd_set));
+  for(i = 0; i < COFFEE_FD_SET_SIZE; i++) {
+    coffee_fd_set[i].flags = COFFEE_FD_FREE;
+  }
 
   PRINTF("done!\n");
 
