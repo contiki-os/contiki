@@ -171,7 +171,7 @@ thread_checkpoint(int fd)
   uint16_t size = 0;
   unsigned char *thread_mem_start = (unsigned char *)&checkpoint_thread.thread.stack;
   unsigned char *thread_mem_end = thread_mem_start + sizeof(checkpoint_thread.thread.stack) - 1;
-  unsigned char *coffee_mem_start = cfs_coffee_get_fd_set(&size);
+  unsigned char *coffee_mem_start = cfs_coffee_get_protected_mem(&size);
   unsigned char *coffee_mem_end = coffee_mem_start + size - 1;
 #endif /* INCLUDE_RAM */
 
@@ -239,7 +239,7 @@ thread_rollback(int fd)
   uint16_t size = 0;
   unsigned char *thread_mem_start = (unsigned char *)&checkpoint_thread.thread.stack;
   unsigned char *thread_mem_end = thread_mem_start + sizeof(checkpoint_thread.thread.stack) - 1;
-  unsigned char *coffee_mem_start = cfs_coffee_get_fd_set(&size);
+  unsigned char *coffee_mem_start = cfs_coffee_get_protected_mem(&size);
   unsigned char *coffee_mem_end = coffee_mem_start + size - 1;
 #endif /* INCLUDE_RAM */
 
