@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: shell-rime.c,v 1.10 2008/11/17 22:52:10 oliverschmidt Exp $
+ * $Id: shell-rime.c,v 1.11 2009/02/09 20:54:49 adamdunkels Exp $
  */
 
 /**
@@ -45,7 +45,7 @@
 #include "dev/leds.h"
 
 #include "lib/crc16.h"
-#include "lib/random.h"
+#include "lib/rand.h"
 
 #include "net/rime.h"
 #include "net/rime/neighbor.h"
@@ -461,7 +461,7 @@ recv_netflood(struct netflood_conn *c, rimeaddr_t *from,
   
   msg = rimebuf_dataptr();
   if(msg->type == NETFLOOD_TYPE_NODES) {
-    ctimer_set(&ctimer, random_rand() % (CLOCK_SECOND * 8),
+    ctimer_set(&ctimer, rand() % (CLOCK_SECOND * 8),
 	       send_collect, NULL);
   }
   return 1;
