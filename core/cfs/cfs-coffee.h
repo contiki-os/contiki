@@ -86,16 +86,16 @@ int cfs_coffee_configure_log(const char *file, unsigned log_size,
 int cfs_coffee_format(void);
 
 /**
- * \brief Gives information about the file descriptor area in Coffee.
+ * \brief Gives information about memory that must not be altered during
+ * CFS-based checkpointing operations.
  * \param size
- * \return A pointer to the file descriptor set.
+ * \return A pointer to the protected memory.
  *
- * This function returns the file descriptor set and sets the size
- * argument to the number of bytes that the set uses. Mainly used for
- * sensornet checkpointing to protect the file descriptor while rolling
- * back the state from a file.
+ * This function returns the protected memory pointer and writes its size
+ * to the given parameter. Mainly used by sensornet checkpointing to protect
+ * the coffee state during CFS-based checkpointing operations.
  */
-void *cfs_coffee_get_fd_set(unsigned *size);
+void *cfs_coffee_get_protected_mem(unsigned *size);
 
 
 /** @} */
