@@ -33,7 +33,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: rime.c,v 1.16 2008/02/25 02:14:35 adamdunkels Exp $
+ * $Id: rime.c,v 1.17 2009/02/09 21:08:12 adamdunkels Exp $
  */
 
 /**
@@ -47,6 +47,8 @@
 #include "net/rime/chameleon.h"
 #include "net/rime/neighbor.h"
 #include "net/rime/route.h"
+#include "net/rime/announcement.h"
+#include "net/rime/polite-announcement.h"
 #include "net/mac/mac.h"
 
 #include "lib/list.h"
@@ -92,6 +94,7 @@ rime_init(const struct mac_driver *m)
   route_init();
   rimebuf_clear();
   neighbor_init();
+  announcement_init();
   rime_mac = m;
   rime_mac->set_receive_function(input);
 
