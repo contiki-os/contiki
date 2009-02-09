@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: shell-time.c,v 1.5 2008/11/13 07:51:23 adamdunkels Exp $
+ * $Id: shell-time.c,v 1.6 2009/02/09 20:54:49 adamdunkels Exp $
  */
 
 /**
@@ -44,7 +44,7 @@
 #include "sys/clock.h"
 #include "net/rime/timesynch.h"
 
-#include "lib/random.h"
+#include "lib/rand.h"
 
 #include <stdio.h>
 #include <string.h>
@@ -318,7 +318,7 @@ PROCESS_THREAD(shell_randwait_process, ev, data)
   /*  printf("randwait %d command '%s'\n",
       maxwait, command);*/
 
-  etimer_set(&etimer, random_rand() % (CLOCK_SECOND * maxwait));
+  etimer_set(&etimer, rand() % (CLOCK_SECOND * maxwait));
   PROCESS_WAIT_UNTIL(etimer_expired(&etimer));
 
 /*   printf("Starting '%s' child %p (%s)\n", command, randwait_command.child, */
