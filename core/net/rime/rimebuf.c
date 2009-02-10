@@ -33,7 +33,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: rimebuf.c,v 1.16 2008/06/30 19:57:10 adamdunkels Exp $
+ * $Id: rimebuf.c,v 1.17 2009/02/10 23:51:12 adamdunkels Exp $
  */
 
 /**
@@ -68,6 +68,10 @@ const char *rimebuf_attr_strings[] =
     "RIMEBUF_ATTR_LINK_QUALITY",
     "RIMEBUF_ATTR_RSSI",
     "RIMEBUF_ATTR_TIMESTAMP",
+
+    "RIMEBUF_ATTR_LISTEN_ENERGY",
+    "RIMEBUF_ATTR_TRANSMIT_ENERGY",
+    
     "RIMEBUF_ATTR_NETWORK_ID",
 
     "RIMEBUF_ATTR_RELIABLE",
