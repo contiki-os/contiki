@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: chameleon-bitopt.c,v 1.5 2008/07/03 07:38:52 adamdunkels Exp $
+ * $Id: chameleon-bitopt.c,v 1.6 2009/02/10 23:49:58 adamdunkels Exp $
  */
 
 /**
@@ -295,7 +295,6 @@ unpack_header(void)
     return NULL;
   }
 
-  rimebuf_attr_clear();
   hdrptr = rimebuf_dataptr();
   hdrbytesize = c->hdrsize / 8 + ((c->hdrsize & 7) == 0? 0: 1);
   rimebuf_hdrreduce(hdrbytesize);
