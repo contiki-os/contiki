@@ -36,7 +36,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: collect.c,v 1.16 2009/02/09 20:58:25 adamdunkels Exp $
+ * $Id: collect.c,v 1.17 2009/02/10 00:44:50 adamdunkels Exp $
  */
 
 /**
@@ -68,7 +68,7 @@ static const struct rimebuf_attrlist attributes[] =
     RIMEBUF_ATTR_LAST
   };
 
-#define NUM_RECENT_PACKETS 4
+#define NUM_RECENT_PACKETS 2
 
 struct recent_packet {
   rimeaddr_t originator;
@@ -156,9 +156,11 @@ node_packet_received(struct runicast_conn *c, rimeaddr_t *from, uint8_t seqno)
      packet exists in the list, we drop the packet. */
 
   for(i = 0; i < NUM_RECENT_PACKETS; i++) {
-    if(recent_packets[i].seqno == rimebuf_attr(RIMEBUF_ATTR_EPACKET_ID)&&
+    if(recent_packets[i].seqno == rimebuf_attr(RIMEBUF_ATTR_EPACKET_ID) &&
 	  rimeaddr_cmp(&recent_packets[i].originator,
 		       rimebuf_addr(RIMEBUF_ADDR_ESENDER))) {
+      PRINTF("%d.%d: dropping duplicate packet with seqno %d\n",
+	     rimebuf_attr(RIMEBUF_ATTR_EPACKET_ID));
       /* Drop the packet. */
       return;
     }
