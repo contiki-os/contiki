@@ -40,7 +40,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: rimebuf.h,v 1.16 2009/01/15 22:15:51 adamdunkels Exp $
+ * $Id: rimebuf.h,v 1.17 2009/02/10 23:51:12 adamdunkels Exp $
  */
 
 /**
@@ -331,8 +331,12 @@ enum {
   RIMEBUF_ATTR_LINK_QUALITY,
   RIMEBUF_ATTR_RSSI,
   RIMEBUF_ATTR_TIMESTAMP,
-  RIMEBUF_ATTR_NETWORK_ID,
 
+  RIMEBUF_ATTR_LISTEN_ENERGY,
+  RIMEBUF_ATTR_TRANSMIT_ENERGY,
+  
+  RIMEBUF_ATTR_NETWORK_ID,
+  
   RIMEBUF_ATTR_RELIABLE,
   RIMEBUF_ATTR_ERELIABLE,
 
@@ -340,7 +344,7 @@ enum {
   RIMEBUF_ADDR_RECEIVER,
   RIMEBUF_ADDR_ESENDER,
   RIMEBUF_ADDR_ERECEIVER,
-
+  
   RIMEBUF_ATTR_MAX
 };
 
