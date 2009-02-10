@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: chameleon-raw.c,v 1.3 2008/07/03 21:34:12 adamdunkels Exp $
+ * $Id: chameleon-raw.c,v 1.4 2009/02/10 23:49:58 adamdunkels Exp $
  */
 
 /**
@@ -74,8 +74,7 @@ input(void)
     PRINTF("chameleon-raw: input: channel %d not found\n", hdr->channel);
     return NULL;
   }
-  
-  rimebuf_attr_clear();
+
   hdrptr = rimebuf_dataptr();
   rimebuf_hdrreduce(c->hdrsize);
   byteptr = bitptr = 0;
