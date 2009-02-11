@@ -33,7 +33,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: netflood.c,v 1.1 2008/07/03 22:25:22 adamdunkels Exp $
+ * $Id: netflood.c,v 1.2 2009/02/11 11:08:56 adamdunkels Exp $
  */
 
 /**
@@ -44,7 +44,7 @@
  */
 
 #include "net/rime/netflood.h"
-#include "lib/rand.h"
+
 #include <string.h>
 
 #define HOPS_MAX 16
