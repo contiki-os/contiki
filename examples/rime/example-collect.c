@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: example-collect.c,v 1.4 2009/02/07 16:17:33 adamdunkels Exp $
+ * $Id: example-collect.c,v 1.5 2009/02/11 11:08:56 adamdunkels Exp $
  */
 
 /**
@@ -79,7 +79,7 @@ PROCESS_THREAD(example_collect_process, ev, data)
     /* Send a packet every 16 seconds; first wait 8 seconds, than a
        random time between 0 and 8 seconds. */
 
-    etimer_set(&et, CLOCK_SECOND * 16 + rand() % (CLOCK_SECOND * 16));
+    etimer_set(&et, CLOCK_SECOND * 16 + random_rand() % (CLOCK_SECOND * 16));
     PROCESS_WAIT_EVENT();
 
     if(etimer_expired(&et)) {

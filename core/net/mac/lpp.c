@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: lpp.c,v 1.7 2009/02/08 20:14:18 adamdunkels Exp $
+ * $Id: lpp.c,v 1.8 2009/02/11 11:08:56 adamdunkels Exp $
  */
 
 /**
@@ -196,7 +196,7 @@ dutycycle(void *ptr)
       /* There is a bit of randomness here right now to avoid collisions
 	 due to synchronization effects. Not sure how needed it is
 	 though. XXX */
-	ctimer_set(t, OFF_TIME / 2 + (rand() % (OFF_TIME / 2)),
+	ctimer_set(t, OFF_TIME / 2 + (random_rand() % (OFF_TIME / 2)),
 		   (void (*)(void *))dutycycle, t);
 	PT_YIELD(&pt);
       } else {

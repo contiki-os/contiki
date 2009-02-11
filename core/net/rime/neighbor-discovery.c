@@ -33,7 +33,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: neighbor-discovery.c,v 1.12 2009/02/07 18:43:45 adamdunkels Exp $
+ * $Id: neighbor-discovery.c,v 1.13 2009/02/11 11:08:56 adamdunkels Exp $
  */
 
 /**
@@ -51,7 +51,7 @@
 
 #include "dev/radio-sensor.h"
 
-#include "lib/rand.h"
+#include "lib/random.h"
 
 #if CONTIKI_TARGET_NETSIM
 #include "ether.h"
@@ -129,7 +129,7 @@ send_timer(void *ptr)
   struct neighbor_discovery_conn *tc = ptr;
 
   ctimer_set(&tc->send_timer,
-	     tc->max_interval / 2 + rand() % (tc->max_interval / 2),
+	     tc->max_interval / 2 + random_rand() % (tc->max_interval / 2),
 	     send_adv, tc);
   ctimer_set(&tc->interval_timer,
 	     tc->max_interval,
@@ -179,7 +179,7 @@ neighbor_discovery_start(struct neighbor_discovery_conn *c, uint16_t val)
   }
   c->val = val;
   ctimer_set(&c->interval_timer, interval, send_timer, c);
-  ctimer_set(&c->send_timer, interval / 2 + rand() % (interval / 2),
+  ctimer_set(&c->send_timer, interval / 2 + random_rand() % (interval / 2),
 	     send_adv, c);
 }
 /*---------------------------------------------------------------------------*/
