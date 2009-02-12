@@ -161,7 +161,7 @@ absolute_offset(coffee_page_t page, coffee_offset_t offset)
 /*---------------------------------------------------------------------------*/
 static void
 get_sector_status(uint16_t sector, coffee_page_t *active,
-		  coffee_page_t *free, coffee_page_t *obsolete) {
+                  coffee_page_t *free, coffee_page_t *obsolete) {
   static coffee_page_t skip_pages;
   static int last_pages_are_active;
   coffee_offset_t offset, sector_start;
@@ -201,7 +201,7 @@ get_sector_status(uint16_t sector, coffee_page_t *active,
       offset += COFFEE_PAGE_SIZE;
     }
     PRINTF("Coffee: Isolated %u pages starting in sector %d\n",
-	(unsigned)skip_pages, (int)sector);
+        (unsigned)skip_pages, (int)sector);
   }
 
   offset = sector_start + (skip_pages * COFFEE_PAGE_SIZE);
@@ -252,15 +252,12 @@ load_file(const char *name, struct file_header *hdr, coffee_page_t first_page)
       unreferenced = i;
     }
   }
-  i = -1;
 
   if(free != -1) {
      i = free;
   } else if(unreferenced != -1) {
     i = unreferenced;
-  }
-
-  if(i == -1) {
+  } else {
     return NULL;
   }
 
@@ -285,6 +282,7 @@ find_file(const char *name)
     if(coffee_files[i].max_pages == 0) {
       continue;
     }
+
     read_header(&hdr, coffee_files[i].first_page);
     if(HDR_ACTIVE(hdr) && strcmp(name, hdr.name) == 0) {
       return &coffee_files[i];
@@ -393,7 +391,7 @@ file_end(coffee_page_t first_page)
 }
 /*---------------------------------------------------------------------------*/
 static coffee_page_t
-find_contiguous_pages(coffee_page_t wanted)
+find_contiguous_pages(coffee_page_t amount)
 {
   coffee_page_t page, start;
   struct file_header hdr;
@@ -404,14 +402,13 @@ find_contiguous_pages(coffee_page_t wanted)
     if(HDR_FREE(hdr)) {
       if(start == -1) {
 	start = page;
-      } else {
-	if(start + wanted <= page) {
-	  return start;
-	}
+      } else if(start + amount <= page) {
+	return start;
       }
       /* Jump to the next sector. */
       page = (page + COFFEE_PAGES_PER_SECTOR) & ~(COFFEE_PAGES_PER_SECTOR - 1);
     } else if(HDR_ISOLATED(hdr)) {
+      start = -1;
       ++page;
     } else {
       start = -1;
@@ -479,6 +476,7 @@ remove_by_page(coffee_page_t page, int remove_log, int close_fds)
 
     if(last_valid >= 0) {
       coffee_fd_set[last_valid].file->first_page = INVALID_PAGE;
+      coffee_fd_set[last_valid].file->max_pages = 0;
       coffee_fd_set[last_valid].file->references = 0;
     }
   }
@@ -525,6 +523,7 @@ reserve(const char *name, coffee_page_t pages, int allow_duplicates)
 
   PRINTF("Coffee: Reserved %u pages starting from %u for file %s\n",
       pages, page, name);
+
   file = load_file(name, &hdr, page);
   file->end = 0;
 
@@ -741,9 +740,12 @@ merge_log(coffee_page_t file_page, int extend)
   cfs_close(fd);
 
   for(i = 0; i < COFFEE_FD_SET_SIZE; i++) {
-    coffee_fd_set[i].file = new_file;
+    if(coffee_fd_set[i].flags != COFFEE_FD_FREE && 
+       coffee_fd_set[i].file->first_page == file_page) {
+      coffee_fd_set[i].file = new_file;
+      new_file->references++;
+    }
   }
-  
 
   return 0;
 }
@@ -1041,6 +1043,7 @@ cfs_write(int fd, const void *buf, unsigned size)
     if(merge_log(file->first_page, 1) < 0) {
       return -1;
     }
+    file = fdp->file;
     PRINTF("Extended the file at page %u\n", (unsigned)file->first_page);
   }
 
@@ -1053,6 +1056,7 @@ cfs_write(int fd, const void *buf, unsigned size)
 
       i = write_log_page(file, &lp);
       if(i == 0) {
+	file = fdp->file;
         /* The file was merged with the log. Try again. */
 	continue;
       }
