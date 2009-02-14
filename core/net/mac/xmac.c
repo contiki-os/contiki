@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: xmac.c,v 1.22 2009/02/07 18:45:50 adamdunkels Exp $
+ * $Id: xmac.c,v 1.23 2009/02/14 20:35:03 adamdunkels Exp $
  */
 
 /**
@@ -47,7 +47,6 @@
 #include "dev/radio.h"
 #include "dev/watchdog.h"
 #include "lib/random.h"
-/*#include "lib/bb.h"*/
 
 #include "sys/timetable.h"
 
@@ -62,7 +61,31 @@
 #define WITH_TIMESYNCH 0
 #define WITH_QUEUE 0
 
+struct announcement_data {
+  uint16_t id;
+  uint16_t value;
+};
+
+/* The maximum number of announcements in a single announcement
+   message - may need to be increased in the future. */
+#define ANNOUNCEMENT_MAX 10
+
+/* The length of the header of the announcement message, i.e., the
+   "num" field in the struct. */
+#define ANNOUNCEMENT_MSG_HEADERLEN 2
+
+/* The structure of the announcement messages. */
+struct announcement_msg {
+  uint16_t num;
+  struct announcement_data data[ANNOUNCEMENT_MAX];
+};
+
+#define TYPE_STROBE       0
+#define TYPE_DATA         1
+#define TYPE_ANNOUNCEMENT 2
+
 struct xmac_hdr {
+  uint16_t type;
   rimeaddr_t sender;
   rimeaddr_t receiver;
 };
@@ -78,6 +101,13 @@ struct xmac_hdr {
 #else
 #define DEFAULT_OFF_TIME (RTIMER_ARCH_SECOND / 2 - DEFAULT_ON_TIME)
 #endif
+
+/* The cycle time for announcements. */
+#define ANNOUNCEMENT_PERIOD 4 * CLOCK_SECOND
+
+/* The time before sending an announcement within one announcement
+   cycle. */
+#define ANNOUNCEMENT_TIME (rand() % (ANNOUNCEMENT_PERIOD))
 
 #define DEFAULT_STROBE_WAIT_TIME (7 * DEFAULT_ON_TIME / 8)
 
@@ -129,6 +159,15 @@ static const struct radio_driver *radio;
 #define PRINTF(...)
 #endif
 
+#if XMAC_CONF_ANNOUNCEMENTS
+/* Timers for keeping track of when to send announcements. */
+static struct ctimer announcement_cycle_ctimer, announcement_ctimer;
+#endif /* XMAC_CONF_ANNOUNCEMENTS */
+
+/* Flag that is used to keep track of whether or not we are listening
+   for announcements from neighbors. */
+static uint8_t is_listening;
+
 static void (* receiver_callback)(const struct mac_driver *);
 
 #if WITH_TIMETABLE
@@ -159,7 +198,7 @@ on(void)
 static void
 off(void)
 {
-  if(xmac_is_on && radio_is_on != 0) {
+  if(xmac_is_on && radio_is_on != 0 && is_listening == 0) {
     radio_is_on = 0;
     radio->off();
 #if WITH_TIMETABLE
@@ -250,6 +289,54 @@ powercycle(struct rtimer *t, void *ptr)
   PT_END(&pt);
 }
 /*---------------------------------------------------------------------------*/
+#if XMAC_CONF_ANNOUNCEMENTS
+static int
+parse_announcements(rimeaddr_t *from)
+{
+  /* Parse incoming announcements */
+  struct announcement_msg *adata = rimebuf_dataptr();
+  int i;
+  
+  PRINTF("%d.%d: probe from %d.%d with %d announcements\n",
+	rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1],
+	hdr->sender.u8[0], hdr->sender.u8[1], adata->num);
+  
+  for(i = 0; i < adata->num; ++i) {
+    PRINTF("%d.%d: announcement %d: %d\n",
+	  rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1],
+	  adata->data[i].id,
+	  adata->data[i].value);
+    
+    announcement_heard(from,
+		       adata->data[i].id,
+		       adata->data[i].value);
+  }
+  return i;
+}
+/*---------------------------------------------------------------------------*/
+static int
+format_announcement(char *hdr)
+{
+  struct announcement_msg *adata;
+  struct announcement *a;
+  
+  /* Construct the announcements */
+  adata = (struct announcement_msg *)hdr;
+  
+  adata->num = 0;
+  for(a = announcement_list();
+      a != NULL && adata->num < ANNOUNCEMENT_MAX;
+      a = a->next) {
+    adata->data[adata->num].id = a->id;
+    adata->data[adata->num].value = a->value;
+    adata->num++;
+  }
+
+  return ANNOUNCEMENT_MSG_HEADERLEN +
+    sizeof(struct announcement_data) * adata->num;
+}
+#endif /* XMAC_CONF_ANNOUNCEMENTS */
+/*---------------------------------------------------------------------------*/
 static int
 send_packet(void)
 {
@@ -258,7 +345,10 @@ send_packet(void)
   int strobes;
   struct xmac_hdr *hdr;
   int got_ack = 0;
-  struct xmac_hdr msg;
+  struct {
+    struct xmac_hdr hdr;
+    struct announcement_msg announcement;
+  } strobe;
   int len;
   int is_broadcast = 0;
 
@@ -272,7 +362,7 @@ send_packet(void)
   on();
   t0 = RTIMER_NOW();
   while(RTIMER_CLOCK_LT(RTIMER_NOW(), t0 + xmac_config.strobe_wait_time * 2)) {
-    len = radio->read(&msg, sizeof(msg));
+    len = radio->read(&strobe.hdr, sizeof(strobe.hdr));
     if(len > 0) {
       someone_is_sending = 1;
     }
@@ -296,6 +386,7 @@ send_packet(void)
   
   rimebuf_hdralloc(sizeof(struct xmac_hdr));
   hdr = rimebuf_hdrptr();
+  hdr->type = TYPE_DATA;
   rimeaddr_copy(&hdr->sender, &rimeaddr_node_addr);
   rimeaddr_copy(&hdr->receiver, rimebuf_addr(RIMEBUF_ADDR_RECEIVER));
   if(rimeaddr_cmp(&hdr->receiver, &rimeaddr_null)) {
@@ -325,35 +416,30 @@ send_packet(void)
       strobes++) {
 
     t = RTIMER_NOW();
-
-    rimeaddr_copy(&msg.sender, &rimeaddr_node_addr);
-    rimeaddr_copy(&msg.receiver, rimebuf_addr(RIMEBUF_ADDR_RECEIVER));
+    strobe.hdr.type = TYPE_STROBE;
+    rimeaddr_copy(&strobe.hdr.sender, &rimeaddr_node_addr);
+    rimeaddr_copy(&strobe.hdr.receiver, rimebuf_addr(RIMEBUF_ADDR_RECEIVER));
 
 #if WITH_TIMETABLE
-    if(rimeaddr_cmp(&msg.receiver, &rimeaddr_null)) {
+    if(rimeaddr_cmp(&strobe.hdr.receiver, &rimeaddr_null)) {
       TIMETABLE_TIMESTAMP(xmac_timetable, "send broadcast strobe");
     } else {
       TIMETABLE_TIMESTAMP(xmac_timetable, "send strobe");
     }
 #endif
-    if(0/*is_broadcast*/) {
-      /* If we are sending a broadcast, we don't send strobes, we
-	 simply send the data packet repetedly */
-      radio->send(rimebuf_hdrptr(), rimebuf_totlen());
-    } else {
-      /* Send the strobe packet. */
-      radio->send((const uint8_t *)&msg, sizeof(struct xmac_hdr));
-    }
+    /* Send the strobe packet. */
+    radio->send((const uint8_t *)&strobe, sizeof(struct xmac_hdr));
+
     CPRINTF("+");
 
     while(got_ack == 0 &&
 	  RTIMER_CLOCK_LT(RTIMER_NOW(), t + xmac_config.strobe_wait_time)) {
       /* See if we got an ACK */
-      len = radio->read((uint8_t *)&msg, sizeof(struct xmac_hdr));
+      len = radio->read((uint8_t *)&strobe, sizeof(struct xmac_hdr));
       if(len > 0) {
 	CPRINTF("_");
-	if(rimeaddr_cmp(&msg.sender, &rimeaddr_node_addr) &&
-	   rimeaddr_cmp(&msg.receiver, &rimeaddr_node_addr)) {
+	if(rimeaddr_cmp(&strobe.hdr.sender, &rimeaddr_node_addr) &&
+	   rimeaddr_cmp(&strobe.hdr.receiver, &rimeaddr_node_addr)) {
 #if WITH_TIMETABLE
 	  TIMETABLE_TIMESTAMP(xmac_timetable, "send ack received");
 #endif
@@ -469,7 +555,7 @@ read_packet(void)
 
     rimebuf_hdrreduce(sizeof(struct xmac_hdr));
 
-    if(rimebuf_totlen() == 0) {
+    if(hdr->type == TYPE_STROBE) {
       CPRINTF(".");
       /* There is no data in the packet so it has to be a strobe. */
       someone_is_sending = 2;
@@ -510,10 +596,15 @@ read_packet(void)
 	waiting_for_packet = 1;
 	on();
       }
+
+      /* Check for annoucements in the strobe */
+      /*      if(rimebuf_datalen() > 0) {
+	parse_announcements(&hdr->sender);
+	}*/
       /* We are done processing the strobe and we therefore return
 	 to the caller. */
       return RIME_OK;
-    } else {
+    } else if(hdr->type == TYPE_DATA) {
       CPRINTF("-");
       someone_is_sending = 0;
       if(rimeaddr_cmp(&hdr->receiver, &rimeaddr_node_addr) ||
@@ -537,10 +628,59 @@ read_packet(void)
 	
 	return rimebuf_totlen();
       }
+#if XMAC_CONF_ANNOUNCEMENTS
+    } else if(hdr->type == TYPE_ANNOUNCEMENT) {
+      parse_announcements(&hdr->sender);
+#endif /* XMAC_CONF_ANNOUNCEMENTS */
     }
   }
   return 0;
 }
+/*---------------------------------------------------------------------------*/
+#if XMAC_CONF_ANNOUNCEMENTS
+static void
+send_announcement(void *ptr)
+{
+  struct xmac_hdr *hdr;
+  struct announcement_msg *adata;
+  struct announcement *a;
+  int announcement_len;
+  
+  /* Set up the probe header. */
+  rimebuf_clear();
+  rimebuf_set_datalen(sizeof(struct xmac_hdr));
+  hdr = rimebuf_dataptr();
+  hdr->type = TYPE_ANNOUNCEMENT;
+  rimeaddr_copy(&hdr->sender, &rimeaddr_node_addr);
+  rimeaddr_copy(&hdr->receiver, &rimeaddr_null);
+
+  announcement_len = format_announcement((char *)hdr +
+					 sizeof(struct xmac_hdr));
+
+  rimebuf_set_datalen(sizeof(struct xmac_hdr) + announcement_len);
+
+  /*  PRINTF("Sending probe\n");*/
+  radio->send(rimebuf_hdrptr(), rimebuf_totlen());
+}
+/*---------------------------------------------------------------------------*/
+static void
+cycle_announcement(void *ptr)
+{
+  ctimer_set(&announcement_ctimer, ANNOUNCEMENT_TIME,
+	     send_announcement, NULL);
+  ctimer_set(&announcement_cycle_ctimer, ANNOUNCEMENT_PERIOD,
+	     cycle_announcement, NULL);
+  if(is_listening > 0) {
+    is_listening--;
+  }
+}
+/*---------------------------------------------------------------------------*/
+static void
+listen_callback(int periods)
+{
+  is_listening = periods + 1;
+}
+#endif /* XMAC_CONF_ANNOUNCEMENTS */
 /*---------------------------------------------------------------------------*/
 const struct mac_driver *
 xmac_init(const struct radio_driver *d)
@@ -563,6 +703,12 @@ xmac_init(const struct radio_driver *d)
   BB_SET(XMAC_STROBES, 0);
   BB_SET(XMAC_SEND_WITH_ACK, 0);
   BB_SET(XMAC_SEND_WITH_NOACK, 0);
+
+#if XMAC_CONF_ANNOUNCEMENTS
+  announcement_register_listen_callback(listen_callback);
+  ctimer_set(&announcement_cycle_ctimer, ANNOUNCEMENT_TIME,
+	     cycle_announcement, NULL);
+#endif /* XMAC_CONF_ANNOUNCEMENTS */
   return &xmac_driver;
 }
 /*---------------------------------------------------------------------------*/
