@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: sky-shell.c,v 1.9 2009/02/14 22:53:00 adamdunkels Exp $
+ * $Id: sky-checkpoint.c,v 1.1 2009/02/14 22:53:00 adamdunkels Exp $
  */
 
 /**
@@ -98,6 +98,7 @@ output_sniffer(void)
 RIME_SNIFFER(s, input_sniffer, output_sniffer);
 #endif /* DEBUG_SNIFFERS */
 /*---------------------------------------------------------------------------*/
+#if 0
 PROCESS(shell_sky_alldata_process, "sky-alldata");
 SHELL_COMMAND(sky_alldata_command,
 	      "sky-alldata",
@@ -208,6 +209,7 @@ PROCESS_THREAD(shell_sky_alldata_process, ev, data)
   shell_output(&sky_alldata_command, &msg, sizeof(msg), "", 0);
   PROCESS_END();
 }
+#endif /* 0 */
 /*---------------------------------------------------------------------------*/
 PROCESS_THREAD(sky_shell_process, ev, data)
 {
@@ -223,13 +225,15 @@ PROCESS_THREAD(sky_shell_process, ev, data)
   shell_rime_netcmd_init();
   shell_rime_ping_init();
   /*shell_rime_debug_init();*/
-  shell_rime_sniff_init();
+  /*  shell_rime_sniff_init();*/
   shell_sky_init();
   shell_text_init();
   shell_time_init();
-  /*  shell_checkpoint_init();*/
+  shell_checkpoint_init();
 
+#if 0
   shell_register_command(&sky_alldata_command);
+#endif /* 0 */
 
 #if DEBUG_SNIFFERS
   rime_sniffer_add(&s);
