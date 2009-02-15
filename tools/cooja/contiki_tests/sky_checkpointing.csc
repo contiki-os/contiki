@@ -17,8 +17,8 @@
       se.sics.cooja.mspmote.SkyMoteType
       <identifier>sky1</identifier>
       <description>Sky Mote Type #1</description>
-      <source>../../../examples/sky-shell/sky-shell.c</source>
-      <command>make sky-shell.sky TARGET=sky</command>
+      <source>../../../examples/sky-shell/sky-checkpoint.c</source>
+      <command>make sky-checkpoint.sky TARGET=sky</command>
     </motetype>
     <mote>
       se.sics.cooja.mspmote.SkyMote
