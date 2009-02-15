@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: xmac.c,v 1.23 2009/02/14 20:35:03 adamdunkels Exp $
+ * $Id: xmac.c,v 1.24 2009/02/15 22:05:06 adamdunkels Exp $
  */
 
 /**
@@ -51,6 +51,8 @@
 #include "sys/timetable.h"
 
 #include "contiki-conf.h"
+
+#include <string.h>
 
 #if CHAMELEON
 #include "net/chameleon/packattr.h"
@@ -107,7 +109,7 @@ struct xmac_hdr {
 
 /* The time before sending an announcement within one announcement
    cycle. */
-#define ANNOUNCEMENT_TIME (rand() % (ANNOUNCEMENT_PERIOD))
+#define ANNOUNCEMENT_TIME (random_rand() % (ANNOUNCEMENT_PERIOD))
 
 #define DEFAULT_STROBE_WAIT_TIME (7 * DEFAULT_ON_TIME / 8)
 
@@ -343,7 +345,7 @@ send_packet(void)
   rtimer_clock_t t0;
   rtimer_clock_t t;
   int strobes;
-  struct xmac_hdr *hdr;
+  struct xmac_hdr hdr;
   int got_ack = 0;
   struct {
     struct xmac_hdr hdr;
@@ -383,15 +385,20 @@ send_packet(void)
 
   off();
 
-  
-  rimebuf_hdralloc(sizeof(struct xmac_hdr));
-  hdr = rimebuf_hdrptr();
-  hdr->type = TYPE_DATA;
-  rimeaddr_copy(&hdr->sender, &rimeaddr_node_addr);
-  rimeaddr_copy(&hdr->receiver, rimebuf_addr(RIMEBUF_ADDR_RECEIVER));
-  if(rimeaddr_cmp(&hdr->receiver, &rimeaddr_null)) {
+  /* Create the X-MAC header for the data packet. We cannot do this
+     in-place in the packet buffer, because we cannot be sure of the
+     alignment of the header in the packet buffer. */
+  hdr.type = TYPE_DATA;
+  rimeaddr_copy(&hdr.sender, &rimeaddr_node_addr);
+  rimeaddr_copy(&hdr.receiver, rimebuf_addr(RIMEBUF_ADDR_RECEIVER));
+  if(rimeaddr_cmp(&hdr.receiver, &rimeaddr_null)) {
     is_broadcast = 1;
   }
+
+  /* Copy the X-MAC header to the header portion of the packet
+     buffer. */
+  rimebuf_hdralloc(sizeof(struct xmac_hdr));
+  memcpy(rimebuf_hdrptr(), &hdr, sizeof(struct xmac_hdr));
   rimebuf_compact();
 
   t0 = RTIMER_NOW();
@@ -642,8 +649,6 @@ static void
 send_announcement(void *ptr)
 {
   struct xmac_hdr *hdr;
-  struct announcement_msg *adata;
-  struct announcement *a;
   int announcement_len;
   
   /* Set up the probe header. */
