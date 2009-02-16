@@ -36,7 +36,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: collect.c,v 1.17 2009/02/10 00:44:50 adamdunkels Exp $
+ * $Id: collect.c,v 1.18 2009/02/16 01:18:53 adamdunkels Exp $
  */
 
 /**
@@ -195,12 +195,11 @@ node_packet_received(struct runicast_conn *c, rimeaddr_t *from, uint8_t seqno)
     rimebuf_set_attr(RIMEBUF_ATTR_TTL, rimebuf_attr(RIMEBUF_ATTR_TTL) - 1);
 
         
-    PRINTF("%d.%d: packet received from %d.%d via %d.%d, best neighbor %p, forwarding %d\n",
+    PRINTF("%d.%d: packet received from %d.%d via %d.%d, forwarding %d\n",
 	   rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1],
 	   rimebuf_addr(RIMEBUF_ADDR_ESENDER)->u8[0],
 	   rimebuf_addr(RIMEBUF_ADDR_ESENDER)->u8[1],
-	   from->u8[0], from->u8[1],
-	   neighbor_best(), tc->forwarding);
+	   from->u8[0], from->u8[1], tc->forwarding);
 
     if(!tc->forwarding) {
       tc->forwarding = 1;
@@ -257,10 +256,9 @@ adv_received(struct neighbor_discovery_conn *c, rimeaddr_t *from, uint16_t rtmet
     neighbor_add(from, rtmetric, 1);
   } else {
     neighbor_update(n, rtmetric);
-    PRINTF("%d.%d: updating neighbor %d.%d, etx %d, hops %d\n",
+    PRINTF("%d.%d: updating neighbor %d.%d, etx %d\n",
 	   rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1],
-	   n->addr.u8[0], n->addr.u8[1],
-	   1, rtmetric);
+	   n->addr.u8[0], n->addr.u8[1], rtmetric);
   }
 
   update_rtmetric(tc);
@@ -279,10 +277,9 @@ received_announcement(struct announcement *a, rimeaddr_t *from,
     neighbor_add(from, value, 1);
   } else {
     neighbor_update(n, value);
-    PRINTF("%d.%d: updating neighbor %d.%d, etx %d, hops %d\n",
+    PRINTF("%d.%d: updating neighbor %d.%d, etx %d\n",
 	   rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1],
-	   n->addr.u8[0], n->addr.u8[1],
-	   1, value);
+	   n->addr.u8[0], n->addr.u8[1], value);
   }
 
   update_rtmetric(tc);  
@@ -368,6 +365,7 @@ collect_send(struct collect_conn *tc, int rexmits)
       /*      printf("Didn't find any neighbor\n");*/
       PRINTF("%d.%d: did not find any neighbor to send to\n",
 	     rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1]);
+      announcement_listen(1);
     }
   }
   return 0;
