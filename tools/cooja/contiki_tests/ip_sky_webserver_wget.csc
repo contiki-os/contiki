@@ -18,15 +18,15 @@
       <identifier>sky1</identifier>
       <description>Sky Mote Type #1</description>
       <source>../../../examples/sky-shell-webserver/sky-shell-webserver.c</source>
-      <command>make sky-shell-webserver.sky TARGET=sky</command>
+      <command>bash -c 'make clean TARGET=sky &amp;&amp; make sky-shell-webserver.sky TARGET=sky DEFINES=WITH_NULLMAC &amp;&amp; make clean TARGET=sky'</command>
     </motetype>
     <mote>
       se.sics.cooja.mspmote.SkyMote
       <motetype_identifier>sky1</motetype_identifier>
       <interface_config>
         se.sics.cooja.interfaces.Position
-        <x>67.00582793711605</x>
-        <y>61.11208446062922</y>
+        <x>16.08449565170202</x>
+        <y>26.59851562245121</y>
         <z>0.0</z>
       </interface_config>
       <interface_config>
@@ -53,8 +53,8 @@
       <motetype_identifier>sky1</motetype_identifier>
       <interface_config>
         se.sics.cooja.interfaces.Position
-        <x>17.479600645822952</x>
-        <y>16.52364251581611</y>
+        <x>70.00470747576063</x>
+        <y>60.92771287468932</y>
         <z>0.0</z>
       </interface_config>
       <interface_config>
@@ -87,38 +87,12 @@
     <minimized>false</minimized>
   </plugin>
   <plugin>
-    se.sics.cooja.plugins.LogListener
-    <plugin_config>
-      <filter />
-      <history>256</history>
-    </plugin_config>
-    <width>998</width>
-    <z>4</z>
-    <height>166</height>
-    <location_x>0</location_x>
-    <location_y>704</location_y>
-    <minimized>false</minimized>
-  </plugin>
-  <plugin>
     se.sics.cooja.radiomediums.UDGM$VisUDGM
-    <width>300</width>
-    <z>3</z>
-    <height>169</height>
-    <location_x>693</location_x>
+    <width>435</width>
+    <z>4</z>
+    <height>195</height>
+    <location_x>255</location_x>
     <location_y>6</location_y>
-    <minimized>false</minimized>
-  </plugin>
-  <plugin>
-    se.sics.cooja.plugins.MoteInterfaceViewer
-    <mote_arg>2</mote_arg>
-    <plugin_config>
-      <interface>Serial port</interface>
-    </plugin_config>
-    <width>758</width>
-    <z>5</z>
-    <height>245</height>
-    <location_x>2</location_x>
-    <location_y>202</location_y>
     <minimized>false</minimized>
   </plugin>
   <plugin>
@@ -127,11 +101,24 @@
     <plugin_config>
       <interface>Serial port</interface>
     </plugin_config>
-    <width>683</width>
+    <width>684</width>
+    <z>3</z>
+    <height>324</height>
+    <location_x>10</location_x>
+    <location_y>547</location_y>
+    <minimized>false</minimized>
+  </plugin>
+  <plugin>
+    se.sics.cooja.plugins.MoteInterfaceViewer
+    <mote_arg>0</mote_arg>
+    <plugin_config>
+      <interface>Serial port</interface>
+    </plugin_config>
+    <width>682</width>
     <z>2</z>
-    <height>244</height>
-    <location_x>312</location_x>
-    <location_y>452</location_y>
+    <height>334</height>
+    <location_x>10</location_x>
+    <location_y>207</location_y>
     <minimized>false</minimized>
   </plugin>
 </simconf>
