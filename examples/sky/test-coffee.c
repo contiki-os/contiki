@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: test-coffee.c,v 1.6 2008/12/12 13:24:42 nvt-se Exp $
+ * $Id: test-coffee.c,v 1.7 2009/02/17 15:08:01 nvt-se Exp $
  */
 
 /**
@@ -50,7 +50,9 @@
 PROCESS(testcoffee_process, "Test CFS/Coffee process");
 AUTOSTART_PROCESSES(&testcoffee_process);
 
-#define FAIL(x) error = (x); goto end;
+#define FAIL(x) 	error = (x); goto end;
+
+#define FILE_SIZE	4096
 
 /*---------------------------------------------------------------------------*/
 static int
@@ -216,41 +218,44 @@ coffee_file_test(void)
   cfs_close(rfd);
   cfs_close(wfd);
 
+  if(cfs_coffee_reserve("T2", FILE_SIZE) < 0) {
+    FAIL(-24);
+  }
+
   /* Test 16: Test multiple writes at random offset. */
   for(r = 0; r < 100; r++) {
     wfd = cfs_open("T2", CFS_WRITE | CFS_READ);
     if(wfd < 0) {
-      FAIL(-24);
+      FAIL(-25);
     }
 
-    offset = random_rand() % 8192;
+    offset = random_rand() % FILE_SIZE;
 
     for(r = 0; r < sizeof(buf); r++) {
       buf[r] = r;
     }
 
     if(cfs_seek(wfd, offset) != offset) {
-      FAIL(-25);
-    }
-
-    if(cfs_write(wfd, buf, sizeof(buf)) != sizeof(buf)) {
       FAIL(-26);
     }
 
-    if(cfs_seek(wfd, offset) != offset) {
-      printf("offset = %u\n", offset);
+    if(cfs_write(wfd, buf, sizeof(buf)) != sizeof(buf)) {
       FAIL(-27);
+    }
+
+    if(cfs_seek(wfd, offset) != offset) {
+      FAIL(-28);
     }
 
     memset(buf, 0, sizeof(buf));
     if(cfs_read(wfd, buf, sizeof(buf)) != sizeof(buf)) {
-      FAIL(-28);
+      FAIL(-29);
     }
 
     for(i = 0; i < sizeof(buf); i++) {
       if(buf[i] != i) {
         printf("buf[%d] != %d\n", i, buf[i]);
-        FAIL(-29);
+        FAIL(-30);
       }
     }
   }
@@ -261,14 +266,14 @@ coffee_file_test(void)
   for(i = 0; i < APPEND_BYTES; i += BULK_SIZE) {
     afd = cfs_open("T3", CFS_WRITE | CFS_APPEND);
     if(afd < 0) {
-      FAIL(-30);
+      FAIL(-31);
     }
     for(j = 0; j < BULK_SIZE; j++) {
       buf[j] = 1 + ((i + j) & 0x7f);
     }
     if((r = cfs_write(afd, buf, BULK_SIZE)) != BULK_SIZE) {
       printf("r=%d\n", r);
-      FAIL(-31);
+      FAIL(-32);
     }
     cfs_close(afd);
   }
@@ -277,19 +282,19 @@ coffee_file_test(void)
      is correct. */
   afd = cfs_open("T3", CFS_READ);
   if(afd < 0) {
-    FAIL(-32);
+    FAIL(-33);
   }
   total_read = 0;
   while((r = cfs_read(afd, buf2, sizeof(buf2))) > 0) {
     for(j = 0; j < r; j++) {
       if(buf2[j] != 1 + ((total_read + j) & 0x7f)) {
-	FAIL(-33);
+	FAIL(-34);
       }
     }
     total_read += r;
   }
   if(r < 0) {
-    FAIL(-34);
+    FAIL(-35);
   }
   if(total_read != APPEND_BYTES) {
     FAIL(-35);
