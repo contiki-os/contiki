@@ -47,7 +47,7 @@
  *
  * This file is part of the uIP TCP/IP stack.
  *
- * $Id: uip.h,v 1.21 2008/12/10 21:26:05 c_oflynn Exp $
+ * $Id: uip.h,v 1.22 2009/02/17 01:28:28 c_oflynn Exp $
  *
  */
 
@@ -81,11 +81,11 @@ typedef uip_ip4addr_t uip_ipaddr_t;
 
 /*---------------------------------------------------------------------------*/
 
-/** \brief 64 bit 802.15.4 address */
+/** \brief 16 bit 802.15.4 address */
 struct uip_802154_shortaddr {
   u8_t addr[2];
 };
-/** \brief 16 bit 802.15.4 address */
+/** \brief 64 bit 802.15.4 address */
 struct uip_802154_longaddr {
   u8_t addr[8];
 };
