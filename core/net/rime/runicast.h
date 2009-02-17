@@ -45,7 +45,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: runicast.h,v 1.1 2008/07/03 21:52:25 adamdunkels Exp $
+ * $Id: runicast.h,v 1.2 2009/02/17 12:40:18 fros4943 Exp $
  */
 
 /**
@@ -75,6 +75,7 @@ struct runicast_conn {
   struct stunicast_conn c;
   const struct runicast_callbacks *u;
   uint8_t sndnxt;
+  uint8_t lastrecv;
   uint8_t rxmit;
   uint8_t max_rxmit;
 };

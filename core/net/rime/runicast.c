@@ -34,7 +34,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: runicast.c,v 1.2 2008/07/07 23:27:57 adamdunkels Exp $
+ * $Id: runicast.c,v 1.3 2009/02/17 12:40:18 fros4943 Exp $
  */
 
 /**
@@ -163,9 +163,17 @@ recv_from_stunicast(struct stunicast_conn *stunicast, rimeaddr_t *from)
       
       queuebuf_to_rimebuf(q);
       queuebuf_free(q);
-    }      
+    }
     if(c->u->recv != NULL) {
-      c->u->recv(c, from, packet_seqno);
+      if (packet_seqno != c->lastrecv) {
+        c->u->recv(c, from, packet_seqno);
+        c->lastrecv = packet_seqno; /* remember last received packet */
+      } else {
+        PRINTF("%d.%d: runicast: Supressing duplicate receive callback from %d.%d for %d\n",
+           rimeaddr_node_addr.u8[0],rimeaddr_node_addr.u8[1],
+           from->u8[0], from->u8[1],
+           packet_seqno);
+      }
     }
   }
 }
@@ -181,6 +189,7 @@ runicast_open(struct runicast_conn *c, uint16_t channel,
   c->u = u;
   c->rxmit = 0;
   c->sndnxt = 0;
+  c->lastrecv = 0xFF;
 }
 /*---------------------------------------------------------------------------*/
 void
