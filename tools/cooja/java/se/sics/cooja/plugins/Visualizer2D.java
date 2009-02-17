@@ -26,14 +26,27 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: Visualizer2D.java,v 1.14 2008/03/18 16:20:56 fros4943 Exp $
+ * $Id: Visualizer2D.java,v 1.15 2009/02/17 14:09:51 fros4943 Exp $
  */
 
 package se.sics.cooja.plugins;
 
 import java.awt.*;
+import java.awt.datatransfer.DataFlavor;
+import java.awt.datatransfer.Transferable;
+import java.awt.datatransfer.UnsupportedFlavorException;
+import java.awt.dnd.DnDConstants;
+import java.awt.dnd.DropTarget;
+import java.awt.dnd.DropTargetDragEvent;
+import java.awt.dnd.DropTargetDropEvent;
+import java.awt.dnd.DropTargetEvent;
+import java.awt.dnd.DropTargetListener;
 import java.awt.event.*;
+import java.io.File;
+import java.io.IOException;
 import java.util.*;
+import java.util.List;
+
 import javax.swing.*;
 import javax.swing.Timer;
 
@@ -131,6 +144,78 @@ public abstract class Visualizer2D extends VisPlugin {
     }
     public void doAction(Mote mote) {
       simulation.removeMote(mote);
+    }
+  };
+
+  private class ShowLEDMoteMenuAction implements MoteMenuAction {
+    public boolean isEnabled(Mote mote) {
+      return mote.getInterfaces().getLED() != null;
+    }
+    public String getDescription(Mote mote) {
+      return "Show LEDs on " + mote;
+    }
+    public void doAction(Mote mote) {
+      LED led = mote.getInterfaces().getLED();
+      if (led == null) {
+        return;
+      }
+
+      /* Extract description (input to plugin) */
+      String desc = GUI.getDescriptionOf(mote.getInterfaces().getLED());
+
+      MoteInterfaceViewer viewer =
+        (MoteInterfaceViewer) simulation.getGUI().startPlugin(
+            MoteInterfaceViewer.class,
+            simulation.getGUI(),
+            simulation,
+            mote);
+      viewer.setSelectedInterface(desc);
+      viewer.pack();
+    }
+  };
+
+  private class ShowSerialMoteMenuAction implements MoteMenuAction {
+    public boolean isEnabled(Mote mote) {
+      SerialPort serialPort = null;
+      for (MoteInterface intf: mote.getInterfaces().getInterfaces()) {
+        try {
+          /* Try casting to serial port */
+          serialPort = (SerialPort) intf;
+          return true;
+        } catch (Exception e) {
+        }
+      }
+      return false;
+    }
+    public String getDescription(Mote mote) {
+      return "Show serial port on " + mote;
+    }
+    public void doAction(Mote mote) {
+      SerialPort serialPort = null;
+      for (MoteInterface intf: mote.getInterfaces().getInterfaces()) {
+        try {
+          /* Try casting to serial port */
+          serialPort = (SerialPort) intf;
+          break;
+        } catch (Exception e) {
+        }
+      }
+
+      if (serialPort == null) {
+        return;
+      }
+
+      /* Extract description (input to plugin) */
+      String desc = GUI.getDescriptionOf(serialPort);
+
+      MoteInterfaceViewer viewer =
+        (MoteInterfaceViewer) simulation.getGUI().startPlugin(
+            MoteInterfaceViewer.class,
+            simulation.getGUI(),
+            simulation,
+            mote);
+      viewer.setSelectedInterface(desc);
+      viewer.pack();
     }
   };
 
@@ -299,8 +384,10 @@ public abstract class Visualizer2D extends VisPlugin {
     // Add menu action for moving motes
     addMoteMenuAction(new MoveMoteMenuAction());
 
-    // Add menu action for clicking mote button
+    /* Add some commonly used mote interface actions */
     addMoteMenuAction(new ButtonClickMoteMenuAction());
+    addMoteMenuAction(new ShowLEDMoteMenuAction());
+    addMoteMenuAction(new ShowSerialMoteMenuAction());
 
     // Add menu action for deleting mote
     addMoteMenuAction(new DeleteMoteMenuAction());
@@ -310,6 +397,107 @@ public abstract class Visualizer2D extends VisPlugin {
     } catch (java.beans.PropertyVetoException e) {
       // Could not select
     }
+
+		/* Drag and drop files to motes */
+    DropTargetListener dTargetListener = new DropTargetListener() {
+      public void dragEnter(DropTargetDragEvent dtde) {
+        if (acceptOrRejectDrag(dtde)) {
+          dtde.acceptDrag(DnDConstants.ACTION_COPY_OR_MOVE);
+        } else {
+          dtde.rejectDrag();
+        }
+      }
+      public void dragExit(DropTargetEvent dte) {
+      }
+      public void dropActionChanged(DropTargetDragEvent dtde) {
+        if (acceptOrRejectDrag(dtde)) {
+          dtde.acceptDrag(DnDConstants.ACTION_COPY_OR_MOVE);
+        } else {
+          dtde.rejectDrag();
+        }
+      }
+      public void dragOver(DropTargetDragEvent dtde) {
+        if (acceptOrRejectDrag(dtde)) {
+          dtde.acceptDrag(DnDConstants.ACTION_COPY_OR_MOVE);
+        } else {
+          dtde.rejectDrag();
+        }
+      }
+      public void drop(DropTargetDropEvent dtde) {
+        Transferable transferable = dtde.getTransferable();
+
+        /* Only accept single files */
+        File file = null;
+        if (!transferable.isDataFlavorSupported(DataFlavor.javaFileListFlavor)) {
+          dtde.rejectDrop();
+          return;
+        }
+
+        dtde.acceptDrop(DnDConstants.ACTION_COPY_OR_MOVE);
+
+        try {
+          List<Object> transferList = Arrays.asList(
+              transferable.getTransferData(DataFlavor.javaFileListFlavor)
+          );
+          if (transferList.size() != 1) {
+            return;
+          }
+          List<File> list = (List<File>) transferList.get(0);
+          if (list.size() != 1) {
+            return;
+          }
+          file = list.get(0);
+        }
+        catch (Exception e) {
+          return;
+        }
+
+        if (file == null || !file.exists()) {
+          return;
+        }
+
+        handleDropFile(file, dtde.getLocation());
+      }
+      private boolean acceptOrRejectDrag(DropTargetDragEvent dtde) {
+        Transferable transferable = dtde.getTransferable();
+
+        /* Make sure one, and only one, mote exists under mouse pointer */
+        Point point = dtde.getLocation();
+        Vector<Mote> motes = findMotesAtPosition(point.x, point.y);
+        if (motes == null || motes.size() != 1) {
+          return false;
+        }
+
+        /* Only accept single files */
+        File file;
+        if (!transferable.isDataFlavorSupported(DataFlavor.javaFileListFlavor)) {
+          return false;
+        }
+        try {
+          List<Object> transferList = Arrays.asList(
+              transferable.getTransferData(DataFlavor.javaFileListFlavor)
+          );
+          if (transferList.size() != 1) {
+            return false;
+          }
+          List<File> list = (List<File>) transferList.get(0);
+          if (list.size() != 1) {
+            return false;
+          }
+          file = list.get(0);
+        } catch (UnsupportedFlavorException e) {
+          return false;
+        } catch (IOException e) {
+          return false;
+        }
+
+        /* Extract file extension */
+        return isDropFileAccepted(file);
+      }
+    };
+    canvas.setDropTarget(
+        new DropTarget(canvas, DnDConstants.ACTION_COPY_OR_MOVE, dTargetListener, true, null)
+    );
   }
 
   /**
@@ -643,5 +831,14 @@ public abstract class Visualizer2D extends VisPlugin {
       }
     }
   }
+
+  protected boolean isDropFileAccepted(File file) {
+    return true; /* TODO */
+  }
+
+  protected void handleDropFile(File file, Point point) {
+    logger.fatal("Drag and drop not implemented: " + file);
+  }
+
 
 }
