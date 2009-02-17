@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: MspMoteType.java,v 1.21 2009/02/16 12:37:18 fros4943 Exp $
+ * $Id: MspMoteType.java,v 1.22 2009/02/17 11:47:12 fros4943 Exp $
  */
 
 package se.sics.cooja.mspmote;
@@ -500,8 +500,11 @@ public abstract class MspMoteType implements MoteType {
 
       try {
         logger.info("Compilation command: " + command);
-        compileProcess = Runtime.getRuntime().exec(command, null,
-            parentDirectory);
+        compileProcess = Runtime.getRuntime().exec(
+            new String[] {"bash", "-c", command},
+            null,
+            parentDirectory
+        );
 
         final BufferedReader processNormal = new BufferedReader(
             new InputStreamReader(compileProcess.getInputStream()));
