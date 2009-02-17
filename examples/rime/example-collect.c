@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: example-collect.c,v 1.5 2009/02/11 11:08:56 adamdunkels Exp $
+ * $Id: example-collect.c,v 1.6 2009/02/17 08:44:44 fros4943 Exp $
  */
 
 /**
@@ -39,7 +39,7 @@
  */
 
 #include "contiki.h"
-#include "lib/rand.h"
+#include "lib/random.h"
 #include "net/rime.h"
 #include "net/rime/collect.h"
 #include "net/rime/neighbor.h"
@@ -72,9 +72,10 @@ PROCESS_THREAD(example_collect_process, ev, data)
   PROCESS_BEGIN();
 
   collect_open(&tc, 128, &callbacks);
-  
+
   while(1) {
     static struct etimer et;
+    uint16_t tmp;
 
     /* Send a packet every 16 seconds; first wait 8 seconds, than a
        random time between 0 and 8 seconds. */
@@ -83,6 +84,7 @@ PROCESS_THREAD(example_collect_process, ev, data)
     PROCESS_WAIT_EVENT();
 
     if(etimer_expired(&et)) {
+      printf("Sending\n");
       rimebuf_clear();
       rimebuf_set_datalen(sprintf(rimebuf_dataptr(),
 				  "%s", "Hello") + 1);
@@ -91,13 +93,13 @@ PROCESS_THREAD(example_collect_process, ev, data)
 
     if(ev == sensors_event) {
       if(data == &button_sensor) {
-	printf("Button\n");
+	printf("I am sink\n");
 	collect_set_sink(&tc, 1);
       }
     }
-    
+
   }
-  
+
   PROCESS_END();
 }
 /*---------------------------------------------------------------------------*/
