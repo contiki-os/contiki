@@ -34,18 +34,20 @@ if (nr_recv < nr_sent-3) {
   log.testFailed();
 }
 
-if (nr_recv > nr_sent+3) {
+else if (nr_recv > nr_sent+3) {
   log.log("Error: Received >> Sent!\n");
   log.log("recv=" + nr_recv + ", sent=" + nr_sent + ", timedout=" + nr_timedout + "\n");
   log.testFailed();
 }
 
 /* Make sure some packets timed out (all from node 4) */
-if (nr_timedout < 2) {
+else if (nr_timedout < 2) {
   log.log("Error: Too few packets timed out!\n");
   log.log("recv=" + nr_recv + ", sent=" + nr_sent + ", timedout=" + nr_timedout + "\n");
   log.testFailed();
 }
 
-log.log("recv=" + nr_recv + ", sent=" + nr_sent + ", timedout=" + nr_timedout + "\n");
-log.testOK();
+else {
+  log.log("recv=" + nr_recv + ", sent=" + nr_sent + ", timedout=" + nr_timedout + "\n");
+  log.testOK();
+}
