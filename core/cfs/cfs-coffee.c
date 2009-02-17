@@ -286,7 +286,7 @@ load_file(const char *name, struct file_header *hdr, coffee_page_t start)
   struct file *file;
 
   /*
-   * We prefer to overwrite a free slot since unreferences ones
+   * We prefer to overwrite a free slot since unreferenced ones
    * contain usable data. Free slots are designated by the page
    * value INVALID_PAGE.
    */
@@ -325,7 +325,7 @@ find_file(const char *name)
 
   /* First check if the file metadata is cached. */
   for(i = 0; i < COFFEE_MAX_OPEN_FILES; i++) {
-    if(coffee_files[i].page == INVALID_PAGE) {
+    if(coffee_files[i].max_pages == 0) {
       continue;
     }
 
@@ -506,6 +506,7 @@ remove_by_page(coffee_page_t page, int remove_log, int close_fds)
 
     if(last_valid >= 0) {
       coffee_fd_set[last_valid].file->page = INVALID_PAGE;
+      coffee_fd_set[last_valid].file->references = 0;
     }
   }
 
@@ -1014,7 +1015,6 @@ cfs_read(int fd, void *buf, unsigned size)
 
   fdp = &coffee_fd_set[fd];
   file = fdp->file;
-
   if(fdp->offset + size > file->end) {
     size = file->end - fdp->offset;
   }
