@@ -24,7 +24,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * $Id: Simulation.java,v 1.38 2009/02/18 10:09:59 fros4943 Exp $
+ * $Id: Simulation.java,v 1.39 2009/02/18 15:57:47 fros4943 Exp $
  */
 
 package se.sics.cooja;
@@ -189,6 +189,21 @@ public class Simulation extends Observable implements Runnable {
     }
   };
 
+  private void recreateTickLists() {
+    /* Tick MSP motes separately */
+    ArrayList<Mote> mspMotes = new ArrayList<Mote>();
+    ArrayList<Mote> contikiMotes = new ArrayList<Mote>();
+    for (Mote mote: motes) {
+      if (mote.getType().getClass().toString().contains(".mspmote.")) {
+        mspMotes.add(mote);
+      } else {
+        contikiMotes.add(mote);
+      }
+    }
+    mspMoteArray = mspMotes.toArray(new Mote[mspMotes.size()]);
+    moteArray = contikiMotes.toArray(new Mote[contikiMotes.size()]);
+  }
+
   private boolean rescheduleEvents = false;
   public void run() {
     long lastStartTime = System.currentTimeMillis();
@@ -204,18 +219,7 @@ public class Simulation extends Observable implements Runnable {
     this.setChanged();
     this.notifyObservers(this);
 
-    /* Tick MSP motes separately */
-    ArrayList<Mote> mspMotes = new ArrayList<Mote>();
-    ArrayList<Mote> contikiMotes = new ArrayList<Mote>();
-    for (Mote mote: motes) {
-      if (mote.getType().getClass().toString().contains(".mspmote.")) {
-        mspMotes.add(mote);
-      } else {
-        contikiMotes.add(mote);
-      }
-    }
-    mspMoteArray = mspMotes.toArray(new Mote[mspMotes.size()]);
-    moteArray = contikiMotes.toArray(new Mote[contikiMotes.size()]);
+    recreateTickLists();
 
     boolean increasedTime;
     try {
@@ -621,24 +625,34 @@ public class Simulation extends Observable implements Runnable {
    * @param mote
    *          Mote to add
    */
-  public void addMote(Mote mote) {
-    if (isRunning()) {
-      stopSimulation();
-      motes.add(mote);
-      startSimulation();
-    } else {
-      motes.add(mote);
-    }
-
+  public void addMote(final Mote mote) {
     if (maxMoteStartupDelay > 0 && mote.getInterfaces().getClock() != null) {
       mote.getInterfaces().getClock().setDrift(
           -randomGenerator.nextInt(maxMoteStartupDelay)
       );
     }
 
-    currentRadioMedium.registerMote(mote, this);
-    this.setChanged();
-    this.notifyObservers(this);
+    if (!isRunning()) {
+      /* Simulation is stopped, add mote immediately */
+      motes.add(mote);
+      currentRadioMedium.registerMote(mote, this);
+      this.setChanged();
+      this.notifyObservers(this);
+      return;
+    }
+
+    /* Simulation is running, add mote in simulation loop */
+    TimeEvent addNewMoteEvent = new TimeEvent(0) {
+      public void execute(long t) {
+        motes.add(mote);
+        currentRadioMedium.registerMote(mote, Simulation.this);
+        recreateTickLists();
+        Simulation.this.setChanged();
+        Simulation.this.notifyObservers(this);
+      }
+    };
+
+    scheduleEvent(addNewMoteEvent, Simulation.this.getSimulationTime());
   }
 
   /**
