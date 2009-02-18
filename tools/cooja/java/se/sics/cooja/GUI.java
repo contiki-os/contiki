@@ -24,7 +24,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * $Id: GUI.java,v 1.103 2009/02/18 10:09:32 fros4943 Exp $
+ * $Id: GUI.java,v 1.104 2009/02/18 10:35:31 fros4943 Exp $
  */
 
 package se.sics.cooja;
@@ -1305,6 +1305,8 @@ public class GUI extends Observable {
     Simulation simulation = new Simulation(gui);
     simulation.setTitle("Quickstarted: " + filename);
     simulation.setDelayTime(delayTime);
+    simulation.setRandomSeed(new Random().nextLong());
+    simulation.setRandomSeedGenerated(true);
     simulation.setSimulationTime(0);
     String radioMediumClassName = null;
     try {
@@ -1325,7 +1327,7 @@ public class GUI extends Observable {
     // Create nodes
     logger.info("> Creating motes");
     Vector<ContikiMote> motes = new Vector<ContikiMote>();
-    Random random = new Random();
+    Random random = simulation.getRandomGenerator();
     int nextMoteID = 1;
     int nextIP = 0;
     for (int i = 0; i < numberOfNodes; i++) {
