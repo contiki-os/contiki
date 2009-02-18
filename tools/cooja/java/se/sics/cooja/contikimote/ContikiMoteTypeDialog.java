@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ContikiMoteTypeDialog.java,v 1.51 2009/01/12 10:44:36 fros4943 Exp $
+ * $Id: ContikiMoteTypeDialog.java,v 1.52 2009/02/18 15:02:32 fros4943 Exp $
  */
 
 package se.sics.cooja.contikimote;
@@ -126,45 +126,46 @@ public class ContikiMoteTypeDialog extends JDialog {
    * @return True if compilation succeeded and library is ready to be loaded
    */
   public static boolean showDialog(Container parentContainer, Simulation simulation,
-      ContikiMoteType moteTypeToConfigure) {
+      final ContikiMoteType moteTypeToConfigure) {
 
-    ContikiMoteTypeDialog myDialog = null;
+    ContikiMoteTypeDialog tmpDialog = null;
     if (parentContainer instanceof Window) {
-      myDialog = new ContikiMoteTypeDialog((Window) parentContainer);
+      tmpDialog = new ContikiMoteTypeDialog((Window) parentContainer);
     } else if (parentContainer instanceof Dialog) {
-      myDialog = new ContikiMoteTypeDialog((Dialog) parentContainer);
+      tmpDialog = new ContikiMoteTypeDialog((Dialog) parentContainer);
     } else if (parentContainer instanceof Frame) {
-      myDialog = new ContikiMoteTypeDialog((Frame) parentContainer);
+      tmpDialog = new ContikiMoteTypeDialog((Frame) parentContainer);
     } else {
       logger.fatal("Unknown parent container type: " + parentContainer);
       return false;
     }
 
-    myDialog.setDefaultCloseOperation(JDialog.DO_NOTHING_ON_CLOSE);
+    final ContikiMoteTypeDialog dialog = tmpDialog;
+    dialog.setDefaultCloseOperation(JDialog.DO_NOTHING_ON_CLOSE);
 
-    myDialog.myMoteType = moteTypeToConfigure;
-    myDialog.myGUI = simulation.getGUI();
-    myDialog.allOtherTypes = simulation.getMoteTypes();
+    dialog.myMoteType = moteTypeToConfigure;
+    dialog.myGUI = simulation.getGUI();
+    dialog.allOtherTypes = simulation.getMoteTypes();
 
     // Set identifier of mote type
     if (moteTypeToConfigure.getIdentifier() != null) {
       // Identifier already preset, assuming recompilation of mote type library
       // Use preset identifier (read-only)
-      myDialog.textID.setText(moteTypeToConfigure.getIdentifier());
-      myDialog.textID.setEditable(false);
-      myDialog.textID.setEnabled(false);
+      dialog.textID.setText(moteTypeToConfigure.getIdentifier());
+      dialog.textID.setEditable(false);
+      dialog.textID.setEnabled(false);
 
       // Change title to indicate this is a recompilation
-      myDialog.setTitle("Recreate Mote Type");
+      dialog.setTitle("Recreate Mote Type");
     } else {
       // Suggest new identifier
-      String suggestedID = ContikiMoteType.generateUniqueMoteTypeID(myDialog.allOtherTypes, null);
-      myDialog.textID.setText(suggestedID);
+      String suggestedID = ContikiMoteType.generateUniqueMoteTypeID(dialog.allOtherTypes, null);
+      dialog.textID.setText(suggestedID);
     }
 
     // Set preset description of mote type
     if (moteTypeToConfigure.getDescription() != null) {
-      myDialog.textDescription.setText(moteTypeToConfigure.getDescription());
+      dialog.textDescription.setText(moteTypeToConfigure.getDescription());
     } else {
       // Suggest unique description
       int counter = 0;
@@ -176,237 +177,255 @@ public class ContikiMoteTypeDialog extends JDialog {
         descriptionOK = true;
 
         // Check if identifier is already used by some other type
-        for (MoteType existingMoteType : myDialog.allOtherTypes) {
-          if (existingMoteType != myDialog.myMoteType
+        for (MoteType existingMoteType : dialog.allOtherTypes) {
+          if (existingMoteType != dialog.myMoteType
               && existingMoteType.getDescription().equals(testDescription)) {
             descriptionOK = false;
             break;
           }
         }
       }
-      myDialog.textDescription.setText(testDescription);
+      dialog.textDescription.setText(testDescription);
     }
 
     // Set preset Contiki base directory of mote type
     if (moteTypeToConfigure.getContikiBaseDir() != null) {
-      myDialog.textContikiDir.setText(moteTypeToConfigure.getContikiBaseDir());
+      dialog.textContikiDir.setText(moteTypeToConfigure.getContikiBaseDir());
     }
 
     // Set preset Contiki core directory of mote type
     if (moteTypeToConfigure.getContikiCoreDir() != null) {
-      myDialog.textCoreDir.setText(moteTypeToConfigure.getContikiCoreDir());
+      dialog.textCoreDir.setText(moteTypeToConfigure.getContikiCoreDir());
     }
 
     // Set preset project directories of mote type
     if (moteTypeToConfigure.getProjectDirs() != null) {
-      myDialog.moteTypeProjectDirs = moteTypeToConfigure
+      dialog.moteTypeProjectDirs = moteTypeToConfigure
           .getProjectDirs();
       String projectText = null;
-      for (File projectDir : myDialog.moteTypeProjectDirs) {
+      for (File projectDir : dialog.moteTypeProjectDirs) {
         if (projectText == null) {
           projectText = "'" + projectDir.getPath() + "'";
         } else {
           projectText += ", '" + projectDir.getPath() + "'";
         }
       }
-      myDialog.textProjectDirs.setText(projectText);
+      dialog.textProjectDirs.setText(projectText);
     }
 
     // Set preset "use symbols"
     if (moteTypeToConfigure.hasSystemSymbols()) {
-      myDialog.symbolsCheckBox.setSelected(true);
+      dialog.symbolsCheckBox.setSelected(true);
     }
 
     // Set preset communication stack
-    myDialog.commStackComboBox.setSelectedItem(moteTypeToConfigure.getCommunicationStack());
+    dialog.commStackComboBox.setSelectedItem(moteTypeToConfigure.getCommunicationStack());
 
-    // Scan directories for processes, sensors and core interfaces
-    // TODO Really do this without starting a separate thread?
-    myDialog.updateVisualFields();
-    myDialog.rescanDirectories();
+    // Scan directories for processes, sensors and core interfaces, and then continue
+    dialog.updateVisualFields();
+    SwingUtilities.invokeLater(new Runnable() {
+      public void run() {
+        final JProgressBar pBar = new JProgressBar(0, 100);
+        pBar.setValue(0);
+        pBar.setStringPainted(false);
+        pBar.setIndeterminate(true);
+        final JDialog pDialog = new JDialog(dialog, "Scanning...");
+        pDialog.getContentPane().add(pBar, BorderLayout.CENTER);
+        pDialog.pack();
+        pDialog.setLocationRelativeTo(dialog);
+        pDialog.setVisible(true);
 
-    // Select preset processes of mote type
-    if (moteTypeToConfigure.getProcesses() != null) {
-      for (String presetProcess : moteTypeToConfigure.getProcesses()) {
-        // Try to find process in current list
-        boolean foundAndSelectedProcess = false;
-        for (Component processCheckBox : myDialog.processPanel.getComponents()) {
-          boolean inCompileFile = false;
-          ContikiProcess process = (ContikiProcess) ((JCheckBox) processCheckBox).getClientProperty("process");
+        new Thread(new Runnable() {
+          public void run() {
+            dialog.rescanDirectories();
+            pDialog.dispose();
 
-          for (File compileFile: moteTypeToConfigure.getCompilationFiles()) {
-            if (process != null && compileFile.getName().equals(process.getSourceFile().getName())) {
-              inCompileFile = true;
-              break;
+            // Select preset processes of mote type
+            if (moteTypeToConfigure.getProcesses() != null) {
+              for (String presetProcess : moteTypeToConfigure.getProcesses()) {
+                // Try to find process in current list
+                boolean foundAndSelectedProcess = false;
+                for (Component processCheckBox : dialog.processPanel.getComponents()) {
+                  boolean inCompileFile = false;
+                  ContikiProcess process = (ContikiProcess) ((JCheckBox) processCheckBox).getClientProperty("process");
+
+                  for (File compileFile: moteTypeToConfigure.getCompilationFiles()) {
+                    if (process != null && compileFile.getName().equals(process.getSourceFile().getName())) {
+                      inCompileFile = true;
+                      break;
+                    }
+                  }
+
+                  if (inCompileFile &&
+                      presetProcess.equals(process.getProcessName())) {
+                    ((JCheckBox) processCheckBox).setSelected(true);
+                    foundAndSelectedProcess = true;
+                    break;
+                  }
+                }
+
+                // Warn if not found
+                if (!foundAndSelectedProcess) {
+                  // Let user choose whether to add process
+                  Object[] options = { "Add", "Cancel" };
+
+                  String question = "The configuration file contains a process "
+                    + "(" + presetProcess + ") not found during scan."
+                    + "\nDo you want to include this anyway?";
+                  String title = "Add process?";
+                  int answer = JOptionPane.showOptionDialog(dialog, question, title,
+                      JOptionPane.DEFAULT_OPTION, JOptionPane.QUESTION_MESSAGE, null,
+                      options, options[0]);
+
+                  if (answer == JOptionPane.YES_OPTION) {
+                    // Create new check box
+                    JCheckBox newCheckBox = new JCheckBox(presetProcess, true);
+                    dialog.processPanel.add(newCheckBox);
+                  }
+                }
+              }
+            }
+
+            // Select preset sensors
+            if (moteTypeToConfigure.getSensors() != null) {
+              // Deselect all sensors already automatically selected
+              for (Component coreInterfaceCheckBox : dialog.sensorPanel
+                  .getComponents()) {
+                ((JCheckBox) coreInterfaceCheckBox).setSelected(false);
+              }
+
+              for (String presetSensor : moteTypeToConfigure.getSensors()) {
+                // Try to find sensor in current list
+                boolean foundAndSelectedSensor = false;
+                for (Component sensorCheckBox : dialog.sensorPanel.getComponents()) {
+                  if (presetSensor.equals(((JCheckBox) sensorCheckBox).getText())) {
+                    ((JCheckBox) sensorCheckBox).setSelected(true);
+                    foundAndSelectedSensor = true;
+                    break;
+                  }
+                }
+
+                // Warn if not found
+                if (!foundAndSelectedSensor) {
+                  // Let user choose whether to add sensor
+                  Object[] options = { "Add", "Cancel" };
+
+                  String question = "The configuration file contains a sensor "
+                    + "(" + presetSensor + ") not found during scan."
+                    + "\nDo you want to include this anyway?";
+                  String title = "Add sensor?";
+                  int answer = JOptionPane.showOptionDialog(dialog, question, title,
+                      JOptionPane.DEFAULT_OPTION, JOptionPane.QUESTION_MESSAGE, null,
+                      options, options[0]);
+
+                  if (answer == JOptionPane.YES_OPTION) {
+                    // Create new check box
+                    JCheckBox newCheckBox = new JCheckBox(presetSensor, true);
+                    dialog.sensorPanel.add(newCheckBox);
+                  }
+                }
+              }
+            }
+
+            // Select preset core interfaces
+            if (moteTypeToConfigure.getCoreInterfaces() != null) {
+              // Deselect all core interfaces already automatically selected
+              for (Component coreInterfaceCheckBox : dialog.coreInterfacePanel
+                  .getComponents()) {
+                ((JCheckBox) coreInterfaceCheckBox).setSelected(false);
+              }
+
+              for (String presetCoreInterface : moteTypeToConfigure.getCoreInterfaces()) {
+                // Try to find core interface in current list
+                boolean foundAndSelectedCoreInterface = false;
+                for (Component coreInterfaceCheckBox : dialog.coreInterfacePanel
+                    .getComponents()) {
+                  if (presetCoreInterface.equals(((JCheckBox) coreInterfaceCheckBox)
+                      .getText())) {
+                    ((JCheckBox) coreInterfaceCheckBox).setSelected(true);
+                    foundAndSelectedCoreInterface = true;
+                    break;
+                  }
+                }
+
+                // Warn if not found
+                if (!foundAndSelectedCoreInterface) {
+                  // Let user choose whether to add interface
+                  Object[] options = { "Add", "Cancel" };
+
+                  String question = "The configuration file contains a core interface "
+                    + "(" + presetCoreInterface + ") not found during scan."
+                    + "\nDo you want to include this anyway?";
+                  String title = "Add core interface?";
+                  int answer = JOptionPane.showOptionDialog(dialog, question, title,
+                      JOptionPane.DEFAULT_OPTION, JOptionPane.QUESTION_MESSAGE, null,
+                      options, options[0]);
+
+                  if (answer == JOptionPane.YES_OPTION) {
+                    // Create new check box
+                    JCheckBox newCheckBox = new JCheckBox(presetCoreInterface, true);
+                    dialog.coreInterfacePanel.add(newCheckBox);
+                  }
+                }
+              }
+            }
+
+            // Select preset mote interfaces
+            if (moteTypeToConfigure.getMoteInterfaces() != null) {
+              // Deselect all mote interfaces already automatically selected
+              for (Component moteInterfaceCheckBox : dialog.moteInterfacePanel
+                  .getComponents()) {
+                ((JCheckBox) moteInterfaceCheckBox).setSelected(false);
+              }
+
+              for (Class presetMoteInterface : moteTypeToConfigure.getMoteInterfaces()) {
+                // Try to find mote interface in current list
+                boolean foundAndSelectedMoteInterface = false;
+                for (Component moteInterfaceCheckBox : dialog.moteInterfacePanel
+                    .getComponents()) {
+                  Class moteInterfaceClass = (Class) ((JCheckBox) moteInterfaceCheckBox)
+                      .getClientProperty("class");
+
+                  if (presetMoteInterface == moteInterfaceClass) {
+                    ((JCheckBox) moteInterfaceCheckBox).setSelected(true);
+                    foundAndSelectedMoteInterface = true;
+                    break;
+                  }
+                }
+
+                // Warn if not found
+                if (!foundAndSelectedMoteInterface) {
+                  logger.warn("Mote interface was not found in current environment: "
+                      + presetMoteInterface);
+                }
+              }
             }
           }
-
-          if (inCompileFile &&
-              presetProcess.equals(process.getProcessName())) {
-            ((JCheckBox) processCheckBox).setSelected(true);
-            foundAndSelectedProcess = true;
-            break;
-          }
-        }
-
-        // Warn if not found
-        if (!foundAndSelectedProcess) {
-          // Let user choose whether to add process
-          Object[] options = { "Add", "Cancel" };
-
-          String question = "The configuration file contains a process "
-            + "(" + presetProcess + ") not found during scan."
-            + "\nDo you want to include this anyway?";
-          String title = "Add process?";
-          int answer = JOptionPane.showOptionDialog(myDialog, question, title,
-              JOptionPane.DEFAULT_OPTION, JOptionPane.QUESTION_MESSAGE, null,
-              options, options[0]);
-
-          if (answer == JOptionPane.YES_OPTION) {
-            // Create new check box
-            JCheckBox newCheckBox = new JCheckBox(presetProcess, true);
-            myDialog.processPanel.add(newCheckBox);
-          }
-        }
+        }).start();
       }
-    }
-
-    // Select preset sensors
-    if (moteTypeToConfigure.getSensors() != null) {
-      // Deselect all sensors already automatically selected
-      for (Component coreInterfaceCheckBox : myDialog.sensorPanel
-          .getComponents()) {
-        ((JCheckBox) coreInterfaceCheckBox).setSelected(false);
-      }
-
-      for (String presetSensor : moteTypeToConfigure.getSensors()) {
-        // Try to find sensor in current list
-        boolean foundAndSelectedSensor = false;
-        for (Component sensorCheckBox : myDialog.sensorPanel.getComponents()) {
-          if (presetSensor.equals(((JCheckBox) sensorCheckBox).getText())) {
-            ((JCheckBox) sensorCheckBox).setSelected(true);
-            foundAndSelectedSensor = true;
-            break;
-          }
-        }
-
-        // Warn if not found
-        if (!foundAndSelectedSensor) {
-          // Let user choose whether to add sensor
-          Object[] options = { "Add", "Cancel" };
-
-          String question = "The configuration file contains a sensor "
-            + "(" + presetSensor + ") not found during scan."
-            + "\nDo you want to include this anyway?";
-          String title = "Add sensor?";
-          int answer = JOptionPane.showOptionDialog(myDialog, question, title,
-              JOptionPane.DEFAULT_OPTION, JOptionPane.QUESTION_MESSAGE, null,
-              options, options[0]);
-
-          if (answer == JOptionPane.YES_OPTION) {
-            // Create new check box
-            JCheckBox newCheckBox = new JCheckBox(presetSensor, true);
-            myDialog.sensorPanel.add(newCheckBox);
-          }
-        }
-      }
-    }
-
-    // Select preset core interfaces
-    if (moteTypeToConfigure.getCoreInterfaces() != null) {
-      // Deselect all core interfaces already automatically selected
-      for (Component coreInterfaceCheckBox : myDialog.coreInterfacePanel
-          .getComponents()) {
-        ((JCheckBox) coreInterfaceCheckBox).setSelected(false);
-      }
-
-      for (String presetCoreInterface : moteTypeToConfigure.getCoreInterfaces()) {
-        // Try to find core interface in current list
-        boolean foundAndSelectedCoreInterface = false;
-        for (Component coreInterfaceCheckBox : myDialog.coreInterfacePanel
-            .getComponents()) {
-          if (presetCoreInterface.equals(((JCheckBox) coreInterfaceCheckBox)
-              .getText())) {
-            ((JCheckBox) coreInterfaceCheckBox).setSelected(true);
-            foundAndSelectedCoreInterface = true;
-            break;
-          }
-        }
-
-        // Warn if not found
-        if (!foundAndSelectedCoreInterface) {
-          // Let user choose whether to add interface
-          Object[] options = { "Add", "Cancel" };
-
-          String question = "The configuration file contains a core interface "
-            + "(" + presetCoreInterface + ") not found during scan."
-            + "\nDo you want to include this anyway?";
-          String title = "Add core interface?";
-          int answer = JOptionPane.showOptionDialog(myDialog, question, title,
-              JOptionPane.DEFAULT_OPTION, JOptionPane.QUESTION_MESSAGE, null,
-              options, options[0]);
-
-          if (answer == JOptionPane.YES_OPTION) {
-            // Create new check box
-            JCheckBox newCheckBox = new JCheckBox(presetCoreInterface, true);
-            myDialog.coreInterfacePanel.add(newCheckBox);
-          }
-        }
-      }
-    }
-
-    // Select preset mote interfaces
-    if (moteTypeToConfigure.getMoteInterfaces() != null) {
-      // Deselect all mote interfaces already automatically selected
-      for (Component moteInterfaceCheckBox : myDialog.moteInterfacePanel
-          .getComponents()) {
-        ((JCheckBox) moteInterfaceCheckBox).setSelected(false);
-      }
-
-      for (Class presetMoteInterface : moteTypeToConfigure.getMoteInterfaces()) {
-        // Try to find mote interface in current list
-        boolean foundAndSelectedMoteInterface = false;
-        for (Component moteInterfaceCheckBox : myDialog.moteInterfacePanel
-            .getComponents()) {
-          Class moteInterfaceClass = (Class) ((JCheckBox) moteInterfaceCheckBox)
-              .getClientProperty("class");
-
-          if (presetMoteInterface == moteInterfaceClass) {
-            ((JCheckBox) moteInterfaceCheckBox).setSelected(true);
-            foundAndSelectedMoteInterface = true;
-            break;
-          }
-        }
-
-        // Warn if not found
-        if (!foundAndSelectedMoteInterface) {
-          logger.warn("Mote interface was not found in current environment: "
-              + presetMoteInterface);
-        }
-      }
-    }
+    });
 
     // Set position and focus of dialog
-    myDialog.pack();
-    myDialog.setLocationRelativeTo(parentContainer);
-    myDialog.textDescription.requestFocus();
-    myDialog.textDescription.select(0, myDialog.textDescription.getText()
+    dialog.pack();
+    dialog.setLocationRelativeTo(parentContainer);
+    dialog.textDescription.requestFocus();
+    dialog.textDescription.select(0, dialog.textDescription.getText()
         .length());
 
     Rectangle maxSize = GraphicsEnvironment.getLocalGraphicsEnvironment().getMaximumWindowBounds();
     if (maxSize != null &&
-        (myDialog.getSize().getWidth() > maxSize.getWidth()
-            || myDialog.getSize().getHeight() > maxSize.getHeight())) {
+        (dialog.getSize().getWidth() > maxSize.getWidth()
+            || dialog.getSize().getHeight() > maxSize.getHeight())) {
       Dimension newSize = new Dimension();
-      newSize.height = Math.min((int) maxSize.getHeight(), (int) myDialog.getSize().getHeight());
-      newSize.width = Math.min((int) maxSize.getWidth(), (int) myDialog.getSize().getWidth());
+      newSize.height = Math.min((int) maxSize.getHeight(), (int) dialog.getSize().getHeight());
+      newSize.width = Math.min((int) maxSize.getWidth(), (int) dialog.getSize().getWidth());
       /*logger.info("Resizing dialog: " + myDialog.getSize() + " -> " + newSize);*/
-      myDialog.setSize(newSize);
+      dialog.setSize(newSize);
     }
 
-    myDialog.setVisible(true);
+    dialog.setVisible(true);
 
-    if (myDialog.myMoteType != null) {
+    if (dialog.myMoteType != null) {
       // Library was compiled and loaded
       return true;
     }
