@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: SkyMote.java,v 1.10 2009/02/07 16:38:51 joxe Exp $
+ * $Id: SkyMote.java,v 1.11 2009/02/18 12:08:37 fros4943 Exp $
  */
 
 package se.sics.cooja.mspmote;
@@ -74,7 +74,7 @@ public class SkyMote extends MspMote {
 
     // Add position interface
     Position motePosition = new Position(this);
-    Random random = new Random();
+    Random random = new Random(); /* Do not use main random generator for positioning */
     motePosition.setCoordinates(random.nextDouble()*100, random.nextDouble()*100, random.nextDouble()*100);
     moteInterfaceHandler.addInterface(motePosition);
 

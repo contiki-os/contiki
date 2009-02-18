@@ -26,10 +26,12 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: RandomPositioner.java,v 1.1 2006/08/21 12:13:11 fros4943 Exp $
+ * $Id: RandomPositioner.java,v 1.2 2009/02/18 12:07:19 fros4943 Exp $
  */
 
 package se.sics.cooja.positioners;
+import java.util.Random;
+
 import se.sics.cooja.*;
 
 /**
@@ -40,6 +42,8 @@ import se.sics.cooja.*;
 @ClassDescription("Random positioning")
 public class RandomPositioner extends Positioner {
   double startX, endX, startY, endY, startZ, endZ;
+
+  private Random random = new Random(); /* Do not use main random generator for setup */
 
   /**
    * Creates a random positioner.
@@ -65,9 +69,9 @@ public class RandomPositioner extends Positioner {
 
   public double[] getNextPosition() {
     return new double[] {
-        startX + Math.random()*(endX - startX),
-        startY + Math.random()*(endY - startY),
-        startZ + Math.random()*(endZ - startZ)
+        startX + random.nextDouble()*(endX - startX),
+        startY + random.nextDouble()*(endY - startY),
+        startZ + random.nextDouble()*(endZ - startZ)
     };
   }
 
