@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ContikiMoteTypeDialog.java,v 1.52 2009/02/18 15:02:32 fros4943 Exp $
+ * $Id: ContikiMoteTypeDialog.java,v 1.53 2009/02/18 16:11:14 fros4943 Exp $
  */
 
 package se.sics.cooja.contikimote;
@@ -604,7 +604,8 @@ public class ContikiMoteTypeDialog extends JDialog {
     textField = new JTextField();
     textField.setText(GUI.getExternalToolsSetting("PATH_CONTIKI"));
     textField.getDocument().addDocumentListener(myEventHandler);
-    textField.setEnabled(false); /* Disabled: Almost never used */
+    textField.setEnabled(true);
+    textField.setEditable(false);
     textContikiDir = textField;
     label.setLabelFor(textField);
 
@@ -632,8 +633,8 @@ public class ContikiMoteTypeDialog extends JDialog {
     textField = new JTextField();
     textField.setText(textContikiDir.getText()
         + GUI.getExternalToolsSetting("PATH_COOJA_CORE_RELATIVE"));
+    textField.setEnabled(true);
     textField.setEditable(false);
-    textField.setEnabled(false); /* Disabled: Almost never used */
     textCoreDir = textField;
     label.setLabelFor(textField);
 
@@ -2119,7 +2120,7 @@ public class ContikiMoteTypeDialog extends JDialog {
     if (!new File(myDialog.textContikiDir.getText()).isDirectory()) {
       // Contiki path specified does not exist
       textContikiDir.setBackground(Color.RED);
-      textContikiDir.setToolTipText("Incorrect path");
+      textContikiDir.setToolTipText("Incorrect path. Check PATH_CONTIKI in menu External tools paths.");
       pathErrorFound = true;
     }
 
@@ -2127,9 +2128,9 @@ public class ContikiMoteTypeDialog extends JDialog {
     if (!new File(myDialog.textCoreDir.getText()).isDirectory()) {
       // Cooja main platform specified does not exist
       textContikiDir.setBackground(Color.RED);
-      textContikiDir.setToolTipText("Incorrect path");
+      textContikiDir.setToolTipText("Incorrect path. Check PATH_CONTIKI in menu External tools paths.");
       textCoreDir.setBackground(Color.RED);
-      textCoreDir.setToolTipText("Incorrect path");
+      textCoreDir.setToolTipText("Incorrect path. Check PATH_CONTIKI in menu External tools paths.");
       pathErrorFound = true;
     }
 
@@ -2144,7 +2145,7 @@ public class ContikiMoteTypeDialog extends JDialog {
     }
 
     if (pathErrorFound) {
-      // Remove all prevously scanned entries
+      // Remove all previously scanned entries
       coreInterfacePanel.removeAll();
       processPanel.removeAll();
       sensorPanel.removeAll();
