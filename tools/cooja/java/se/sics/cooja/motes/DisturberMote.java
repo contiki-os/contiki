@@ -24,7 +24,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * $Id: DisturberMote.java,v 1.5 2008/12/04 14:03:42 joxe Exp $
+ * $Id: DisturberMote.java,v 1.6 2009/02/18 11:49:54 fros4943 Exp $
  */
 
 package se.sics.cooja.motes;
@@ -57,8 +57,6 @@ public class DisturberMote implements Mote {
 
   private Simulation mySim = null;
 
-  private Random myRandom = new Random();
-
   private DisturberRadio myDisturberRadio;
 
   /**
@@ -79,6 +77,7 @@ public class DisturberMote implements Mote {
   public DisturberMote(MoteType moteType, Simulation sim) {
     mySim = sim;
     myType = moteType;
+    Random random = new Random(); /* Do not use main random generator for positioning */
 
     // Create memory
     myMemory = new SectionMoteMemory(new Properties());
@@ -86,8 +85,11 @@ public class DisturberMote implements Mote {
     // Create interface handler
     myInterfaceHandler = new MoteInterfaceHandler();
     Position myPosition = new Position(this);
-    myPosition.setCoordinates(myRandom.nextDouble() * 100, myRandom
-        .nextDouble() * 100, myRandom.nextDouble() * 100);
+    myPosition.setCoordinates(
+        random.nextDouble() * 100,
+        random.nextDouble() * 100,
+        random.nextDouble() * 100
+    );
     myInterfaceHandler.addInterface(myPosition);
 
     // create interface handler for radio
