@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: AddMoteDialog.java,v 1.5 2008/02/12 15:05:14 fros4943 Exp $
+ * $Id: AddMoteDialog.java,v 1.6 2009/02/18 13:55:24 fros4943 Exp $
  */
 
 package se.sics.cooja.dialogs;
@@ -478,7 +478,6 @@ public class AddMoteDialog extends JDialog {
 
           if (positioner == null) {
             logger.fatal("Could not create positioner");
-            dispose();
             return;
           }
 
