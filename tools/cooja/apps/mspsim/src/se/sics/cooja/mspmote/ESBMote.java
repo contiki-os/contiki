@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ESBMote.java,v 1.5 2008/10/28 17:02:13 fros4943 Exp $
+ * $Id: ESBMote.java,v 1.6 2009/02/18 11:50:11 fros4943 Exp $
  */
 
 package se.sics.cooja.mspmote;
@@ -73,7 +73,7 @@ public class ESBMote extends MspMote {
 
     // Add position interface
     Position motePosition = new Position(this);
-    Random random = new Random();
+    Random random = new Random(); /* Do not use main random generator for positioning */
     motePosition.setCoordinates(random.nextDouble()*100, random.nextDouble()*100, random.nextDouble()*100);
     moteInterfaceHandler.addInterface(motePosition);
 
