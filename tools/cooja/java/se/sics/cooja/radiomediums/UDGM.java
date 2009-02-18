@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: UDGM.java,v 1.19 2009/02/18 10:11:32 fros4943 Exp $
+ * $Id: UDGM.java,v 1.20 2009/02/18 10:40:25 fros4943 Exp $
  */
 
 package se.sics.cooja.radiomediums;
@@ -92,7 +92,7 @@ public class UDGM extends AbstractRadioMedium {
 
   private Simulation mySimulation;
 
-  private Random random = new Random();
+  private Random random = null;
 
   /**
    * Visualizes radio traffic in the UDGM. Allows a user to
@@ -601,8 +601,7 @@ public class UDGM extends AbstractRadioMedium {
     return config;
   }
 
-  public boolean setConfigXML(Collection<Element> configXML,
-      boolean visAvailable) {
+  public boolean setConfigXML(Collection<Element> configXML, boolean visAvailable) {
     for (Element element : configXML) {
       if (element.getName().equals("transmitting_range")) {
         TRANSMITTING_RANGE = Double.parseDouble(element.getText());
@@ -626,7 +625,6 @@ public class UDGM extends AbstractRadioMedium {
         SUCCESS_RATIO_RX = Double.parseDouble(element.getText());
       }
     }
-    random = mySimulation.getRandomGenerator();
     return true;
   }
 
