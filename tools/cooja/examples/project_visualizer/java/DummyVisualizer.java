@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: DummyVisualizer.java,v 1.1 2008/10/28 16:56:59 fros4943 Exp $
+ * $Id: DummyVisualizer.java,v 1.2 2009/02/18 12:07:42 fros4943 Exp $
  */
 
 import java.awt.*;
@@ -50,8 +50,6 @@ public class DummyVisualizer extends Visualizer2D {
   private static final long serialVersionUID = 1L;
   private static Logger logger = Logger.getLogger(DummyVisualizer.class);
 
-  private Random random = new Random();
-
   public DummyVisualizer(Simulation simulationToVisualize, GUI gui) {
     super(simulationToVisualize, gui);
     setTitle("Dummy Visualizer");
@@ -60,6 +58,7 @@ public class DummyVisualizer extends Visualizer2D {
   }
 
   public Color[] getColorOf(Mote m) {
+    Random random = new Random(); /* Do not use main random generator */
     Color moteColors[] = new Color[2];
 
     /* Outer color */
@@ -76,6 +75,7 @@ public class DummyVisualizer extends Visualizer2D {
 
     /* TODO Analyze data - determine color */
 
+    Random random = new Random(); /* Do not use main random generator */
     return new Color(random.nextInt(256), random.nextInt(256), random.nextInt(256));
   }
 
