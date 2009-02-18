@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ScriptRunner.java,v 1.12 2009/02/18 10:11:11 fros4943 Exp $
+ * $Id: ScriptRunner.java,v 1.13 2009/02/18 16:43:42 fros4943 Exp $
  */
 
 package se.sics.cooja.plugins;
@@ -54,6 +54,8 @@ import java.util.regex.Pattern;
 
 import javax.script.ScriptException;
 import javax.swing.*;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
 import javax.swing.event.InternalFrameEvent;
 import javax.swing.event.InternalFrameListener;
 
@@ -110,6 +112,8 @@ public class ScriptRunner implements Plugin {
   /* GUI components */
   private JInternalFrame pluginGUI = null;
   private JTextArea scriptTextArea = null;
+  private JTextArea lineTextArea = null;
+
   private JTextArea logTextArea = null;
   private JButton toggleButton = null;
   private String oldTestName = null;
@@ -140,13 +144,60 @@ public class ScriptRunner implements Plugin {
     }
     );
 
-    scriptTextArea = new JTextArea(8,50);
-    scriptTextArea.setMargin(new Insets(5,5,5,5));
+    lineTextArea = new JTextArea();
+    lineTextArea.setEnabled(false);
+    lineTextArea.setMargin(new Insets(5,0,5,0));
+
+    scriptTextArea = new JTextArea(12,50);
+    scriptTextArea.getDocument().addDocumentListener(new DocumentListener() {
+      private int lastLines = -1;
+
+      private void update() {
+        int lines = scriptTextArea.getLineCount();
+        if (lines == lastLines) {
+          return;
+        }
+        lastLines = lines;
+
+        String txt = "";
+        for (int i=1; i < 10; i++) {
+          if (i > lines) {
+            break;
+          }
+          txt += "00" + i + "\n";
+        }
+        for (int i=10; i < 100; i++) {
+          if (i > lines) {
+            break;
+          }
+          txt += "0" + i + "\n";
+        }
+        for (int i=100; i < 1000; i++) {
+          if (i > lines) {
+            break;
+          }
+          txt += i + "\n";
+        }
+        lineTextArea.setText(txt);
+      }
+
+      public void changedUpdate(DocumentEvent e) {
+        update();
+      }
+      public void insertUpdate(DocumentEvent e) {
+        update();
+      }
+      public void removeUpdate(DocumentEvent e) {
+        update();
+      }
+    });
+    scriptTextArea.setMargin(new Insets(5,0,5,5));
     scriptTextArea.setEditable(true);
     scriptTextArea.setCursor(null);
+    scriptTextArea.setTabSize(1);
     scriptTextArea.setText(EXAMPLE_SCRIPT);
 
-    logTextArea = new JTextArea(8,50);
+    logTextArea = new JTextArea(12,50);
     logTextArea.setMargin(new Insets(5,5,5,5));
     logTextArea.setEditable(true);
     logTextArea.setCursor(null);
@@ -168,6 +219,7 @@ public class ScriptRunner implements Plugin {
             e.printStackTrace();
           }
           toggleButton.setText("Deactivate");
+          logTextArea.setText("");
           scriptTextArea.setEnabled(false);
 
         } else {
@@ -176,7 +228,6 @@ public class ScriptRunner implements Plugin {
             engine = null;
           }
           toggleButton.setText("Activate");
-          logTextArea.setText("");
           scriptTextArea.setEnabled(true);
         }
       }
@@ -187,6 +238,15 @@ public class ScriptRunner implements Plugin {
       public void actionPerformed(ActionEvent ev) {
         Runnable doImport = new Runnable() {
           public void run() {
+            if (!toggleButton.getText().equals("Activate")) {
+              if (engine != null) {
+                engine.deactivateScript();
+                engine = null;
+              }
+              toggleButton.setText("Activate");
+              scriptTextArea.setEnabled(true);
+            }
+
             importContikiTest();
           }
         };
@@ -201,9 +261,15 @@ public class ScriptRunner implements Plugin {
       }
     });
 
+
+    JPanel scriptArea = new JPanel(new BorderLayout());
+    scriptArea.setEnabled(false);
+    scriptArea.add(BorderLayout.WEST, lineTextArea);
+    scriptArea.add(BorderLayout.CENTER, scriptTextArea);
+
     JSplitPane centerPanel = new JSplitPane(
         JSplitPane.VERTICAL_SPLIT,
-        new JScrollPane(scriptTextArea),
+        new JScrollPane(scriptArea),
         new JScrollPane(logTextArea)
     );
     centerPanel.setOneTouchExpandable(true);
