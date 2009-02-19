@@ -46,7 +46,7 @@
 #define __UIP_ND6_H__
 
 #include "net/uip.h"
-
+#include "sys/stimer.h"
 /**
  *  \name General 
  * @{ 
@@ -176,12 +176,12 @@ struct uip_nd6_neighbor{
   uip_lladdr_t lladdr;
   u8_t isrouter;
   uip_neighbor_state state;
-  struct timer reachable;
-  struct timer last_send; /**< last time a ND message was sent */
+  struct stimer reachable;
+  struct stimer last_send; /**< last time a ND message was sent */
   u8_t count_send;        /**< how many ND message were already sent */
   u8_t used;              /**< brief is this neighbor currently used */
 #if UIP_CONF_IPV6_QUEUE_PKT
-   u8_t queue_buf[UIP_BUFSIZE - UIP_LLH_LEN];
+  u8_t queue_buf[UIP_BUFSIZE - UIP_LLH_LEN];
   /**< buffer to hold one packet during address resolution */
   u8_t queue_buf_len;
   /**< length of the pkt in buffer, used as "boolean" as well*/
@@ -192,7 +192,7 @@ struct uip_nd6_neighbor{
 /** \brief An entry in the default router list */
 struct uip_nd6_defrouter {
   struct uip_nd6_neighbor *nb;
-  struct timer lifetime;
+  struct stimer lifetime;
   /**< the lifetime contained in RA corresponds to the interval field
    * of the timer
    */
@@ -206,7 +206,7 @@ struct uip_nd6_prefix {
   /**< we do not use preferred lifetime, which is always smaller than
    * valid lifetime (for addr, preferred->deprecated)
    */
-  struct timer vlifetime;
+  struct stimer vlifetime;
   u8_t is_infinite; /**< Is the prefix lifetime INFINITE */
   u8_t used; /**< Is this prefix entry currently used */
 };
@@ -388,7 +388,7 @@ void uip_nd6_defrouter_rm(struct uip_nd6_defrouter *router);
  * \return the new or updated defrouter entry
  */
 struct uip_nd6_defrouter *
-uip_nd6_defrouter_add(struct uip_nd6_neighbor *neighbor, clock_time_t interval);
+uip_nd6_defrouter_add(struct uip_nd6_neighbor *neighbor, unsigned long interval);
 
 /**
  * \brief Check if an IP address in on-link by looking at prefix list
@@ -413,7 +413,7 @@ uip_nd6_prefix_lookup(uip_ipaddr_t *ipaddr);
  * \return the new or updated prefix entry
  */
 struct uip_nd6_prefix *
-uip_nd6_prefix_add(uip_ipaddr_t *ipaddr, u8_t length, clock_time_t interval);
+uip_nd6_prefix_add(uip_ipaddr_t *ipaddr, u8_t length, unsigned long interval);
 
 /**
  * \brief Remove a prefix from th eprefix list

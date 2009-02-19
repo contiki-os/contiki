@@ -77,7 +77,7 @@ typedef enum {
 struct uip_netif_addr {
   uip_ipaddr_t ipaddr;
   uip_netif_state state;
-  struct timer vlifetime;
+  struct stimer vlifetime;
   u8_t is_infinite;
   uip_netif_type type;
 };
@@ -140,7 +140,7 @@ u8_t  uip_netif_is_addr_my_solicited(uip_ipaddr_t *ipaddr);
  *        non 0 otherwise
  * \param type AUTOCONF or MANUAL or DHCP 
  */
-void uip_netif_addr_add(uip_ipaddr_t *ipaddr, u8_t length, clock_time_t vlifetime, uip_netif_type type);
+void uip_netif_addr_add(uip_ipaddr_t *ipaddr, u8_t length, unsigned long vlifetime, uip_netif_type type);
 
 /**
  * \brief Set the 8 last bytes of the IP address

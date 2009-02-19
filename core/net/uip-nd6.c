@@ -192,13 +192,13 @@ uip_nd6_nbrcache_add(uip_ipaddr_t *ipaddr, uip_lladdr_t *lladdr,
   PRINT6ADDR(ipaddr);
   PRINTF("link addr");
   PRINTLLADDR((&(neighbor->lladdr)));
-  PRINTF("state %d\n", state);
+  PRINTF("state %u\n", state);
   
   neighbor->isrouter = isrouter;
   neighbor->state = state;
   /* timers are set separately, for now we put them in expired state */
-  timer_set(&(neighbor->reachable),0);
-  timer_set(&(neighbor->last_send),0);
+  stimer_set(&(neighbor->reachable),0);
+  stimer_set(&(neighbor->last_send),0);
   neighbor->count_send = 0;
   neighbor->used = 1;
   return neighbor;
@@ -260,7 +260,7 @@ uip_nd6_defrouter_rm(struct uip_nd6_defrouter *router)
 }
 
 struct uip_nd6_defrouter *
-uip_nd6_defrouter_add(struct uip_nd6_neighbor *neighbor, clock_time_t interval)
+uip_nd6_defrouter_add(struct uip_nd6_neighbor *neighbor, unsigned long interval)
 {
   router = NULL;
   
@@ -281,7 +281,7 @@ uip_nd6_defrouter_add(struct uip_nd6_neighbor *neighbor, clock_time_t interval)
   PRINT6ADDR(&neighbor->ipaddr);
   PRINTF("\n");
   
-  timer_set(&(router->lifetime),interval);
+  stimer_set(&(router->lifetime),interval);
   uip_nd6_defrouter_list[i].used = 1;
 
   return router;
@@ -321,7 +321,7 @@ uip_nd6_prefix_lookup(uip_ipaddr_t *ipaddr)
 }
 
 struct uip_nd6_prefix *
-uip_nd6_prefix_add(uip_ipaddr_t *ipaddr, u8_t length, clock_time_t interval){
+uip_nd6_prefix_add(uip_ipaddr_t *ipaddr, u8_t length, unsigned long interval){
 
   prefix = NULL;
   
@@ -349,10 +349,10 @@ uip_nd6_prefix_add(uip_ipaddr_t *ipaddr, u8_t length, clock_time_t interval){
   
   PRINTF("Adding prefix ");
   PRINT6ADDR(&prefix->ipaddr);
-  PRINTF("length %d, vlifetime * CLOCK_SECOND %d\n", length, (u16_t)interval);
+  PRINTF("length %u, vlifetime * CLOCK_SECOND %lu\n", length, interval);
  
   if(interval != 0){
-    timer_set(&(prefix->vlifetime),interval);
+    stimer_set(&(prefix->vlifetime),interval);
     prefix->is_infinite = 0;
   } else {
     prefix->is_infinite = 1;
@@ -366,7 +366,7 @@ uip_nd6_prefix_add(uip_ipaddr_t *ipaddr, u8_t length, clock_time_t interval){
 void uip_nd6_prefix_rm(struct uip_nd6_prefix *prefix) {
     PRINTF("Removing prefix ");
     PRINT6ADDR(&prefix->ipaddr);
-    PRINTF("length %d\n", prefix->length);
+    PRINTF("length %u\n", prefix->length);
     prefix->used = 0;
 }
 
@@ -383,19 +383,11 @@ uip_nd6_periodic(void)
     if(uip_nd6_defrouter_list[i].used == 1) {
       router = &(uip_nd6_defrouter_list[i]);
       
-      /* XXX when run on a platform with a 16-bit clock_time_t, the
-      timer_expired() below causes the default route to be immediately
-      be removed causing communucation problems. We comment it out as
-      a quick-fix to this problem on the Atmel RAven platform, but
-      since this is needed for IPv6 compliance, we will solve the
-      problem by making clock_time_t 32 bits instead after the uIPv6
-      snapshot release.
-	 
-      if(timer_expired(&(router->lifetime))) {
-	uip_nd6_defrouter_rm(router);
+      if(stimer_expired(&(router->lifetime))) {
+        uip_nd6_defrouter_rm(router);
       }
 
-      */
+      
     }
   }
   /*PERIODIC PROCESSING FOR NEIGHBOR CACHE*/
@@ -408,16 +400,16 @@ uip_nd6_periodic(void)
           if(neighbor->count_send >= UIP_ND6_MAX_MULTICAST_SOLICIT) {
             uip_nd6_nbrcache_list[i].used = 0;
           }
-          else if(timer_expired(&(neighbor->last_send))) {
-            PRINTF("INCOMPLETE: NS %d\n",neighbor->count_send+1);
+          else if(stimer_expired(&(neighbor->last_send))) {
+            PRINTF("INCOMPLETE: NS %u\n",neighbor->count_send+1);
             uip_nd6_io_ns_output(NULL, NULL, &neighbor->ipaddr);
-            timer_set(&(neighbor->last_send),
+            stimer_set(&(neighbor->last_send),
                       uip_netif_physical_if.retrans_timer/1000*CLOCK_SECOND);
             neighbor->count_send++;
           }
           break;
         case REACHABLE:
-          if(timer_expired(&(neighbor->reachable))) {
+          if(stimer_expired(&(neighbor->reachable))) {
             PRINTF("REACHABLE: moving to STALE (");
             PRINT6ADDR(&neighbor->ipaddr);
             PRINTF(")\n");
@@ -427,12 +419,12 @@ uip_nd6_periodic(void)
           }
           break;
         case DELAY:
-          if(timer_expired(&(neighbor->reachable))) {
+          if(stimer_expired(&(neighbor->reachable))) {
             neighbor->state = PROBE;
             neighbor->count_send = 0;
-            PRINTF("DELAY: moving to PROBE + NS %d\n", neighbor->count_send+1);
+            PRINTF("DELAY: moving to PROBE + NS %u\n", neighbor->count_send+1);
             uip_nd6_io_ns_output(NULL, &neighbor->ipaddr, &neighbor->ipaddr);
-            timer_set(&(neighbor->last_send),
+            stimer_set(&(neighbor->last_send),
                       uip_netif_physical_if.retrans_timer/1000*CLOCK_SECOND);
             neighbor->count_send++;
           }
@@ -449,10 +441,10 @@ uip_nd6_periodic(void)
             uip_nd6_nbrcache_rm(neighbor);
             continue;
           }
-          if(timer_expired(&(neighbor->last_send))){
-            PRINTF("PROBE: NS %d\n",neighbor->count_send+1);
+          if(stimer_expired(&(neighbor->last_send))){
+            PRINTF("PROBE: NS %u\n",neighbor->count_send+1);
             uip_nd6_io_ns_output(NULL, &neighbor->ipaddr, &neighbor->ipaddr);
-            timer_set(&(neighbor->last_send),
+            stimer_set(&(neighbor->last_send),
                       uip_netif_physical_if.retrans_timer/1000*CLOCK_SECOND);
             neighbor->count_send++;
           }
@@ -472,7 +464,7 @@ uip_nd6_periodic(void)
     if(uip_nd6_prefix_list[i].used == 1) {
       prefix = &(uip_nd6_prefix_list[i]);
       if((prefix->is_infinite == 0) &&
-         (timer_expired(&(prefix->vlifetime)))) {
+         (stimer_expired(&(prefix->vlifetime)))) {
         /* remove prefix */
         uip_nd6_prefix_rm(prefix);
       }
