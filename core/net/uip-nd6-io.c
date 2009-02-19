@@ -525,8 +525,8 @@ uip_nd6_io_na_input(void)
       if(is_solicited) {
         neighbor->state = REACHABLE;
         /* reachable time is stored in ms*/
-        timer_set(&(neighbor->reachable),
-                  uip_netif_physical_if.reachable_time * CLOCK_SECOND / 1000);
+        stimer_set(&(neighbor->reachable),
+                  (uip_netif_physical_if.reachable_time / 1000) * CLOCK_SECOND);
      
       } else {
         neighbor->state = STALE;
@@ -556,8 +556,8 @@ uip_nd6_io_na_input(void)
           if(is_solicited) {
             neighbor->state = REACHABLE;
             /* reachable time is stored in ms*/
-            timer_set(&(neighbor->reachable),
-                      uip_netif_physical_if.reachable_time*CLOCK_SECOND/1000);
+            stimer_set(&(neighbor->reachable),
+                      (uip_netif_physical_if.reachable_time / 1000) * CLOCK_SECOND);
       
           } else {
             if(nd6_opt_llao != 0 && is_llchange) {
@@ -680,7 +680,7 @@ uip_nd6_io_ra_input(void) {
    */
   if(UIP_ND6_RA_BUF->cur_ttl != 0) {
     uip_netif_physical_if.cur_hop_limit = UIP_ND6_RA_BUF->cur_ttl;
-    PRINTF("uip_netif_physical_if.cur_hop_limit %d\n", uip_netif_physical_if.cur_hop_limit);
+    PRINTF("uip_netif_physical_if.cur_hop_limit %u\n", uip_netif_physical_if.cur_hop_limit);
   }
   /* 
    * As per RFC4861 section 6.3.4, if reachable time field is non zero
@@ -777,7 +777,10 @@ uip_nd6_io_ra_input(void) {
               prefix->is_infinite = 1;
               break;
             default:
-              timer_set(&prefix->vlifetime, ntohl((nd6_opt_prefix_info[i])->validlt)*CLOCK_SECOND);
+              PRINTF("Updating timer of prefix");
+              PRINT6ADDR(prefix);
+              PRINTF("new value %lu\n", ntohl((nd6_opt_prefix_info[i])->validlt) * CLOCK_SECOND);
+              stimer_set(&prefix->vlifetime, ntohl((nd6_opt_prefix_info[i])->validlt) * CLOCK_SECOND);
               /*in case the prefix lifetime was previously infinite */
               prefix->is_infinite = 0;
               break;              
@@ -795,18 +798,19 @@ uip_nd6_io_ra_input(void) {
           if((nd6_opt_prefix_info[i])->validlt != UIP_ND6_INFINITE_LIFETIME) {
             /* The processing below is defined in RFC4862 section 5.5.3 e */
             if((ntohl((nd6_opt_prefix_info[i])->validlt) > 2 * 60 * 60) ||
-               (ntohl((nd6_opt_prefix_info[i])->validlt) * CLOCK_SECOND > timer_remaining(&ifaddr->vlifetime))) {
+               (ntohl((nd6_opt_prefix_info[i])->validlt) * CLOCK_SECOND > stimer_remaining(&ifaddr->vlifetime))) {
               PRINTF("Updating timer of address");
               PRINT6ADDR(&ifaddr->ipaddr);
-              PRINTF("new value %d\n", ntohl((nd6_opt_prefix_info[i])->validlt));
-              timer_set(&ifaddr->vlifetime, ntohl((nd6_opt_prefix_info[i])->validlt) * CLOCK_SECOND);
+              PRINTF("new value %lu\n", ntohl((nd6_opt_prefix_info[i])->validlt) * CLOCK_SECOND);
+              stimer_set(&ifaddr->vlifetime, ntohl((nd6_opt_prefix_info[i])->validlt) * CLOCK_SECOND);
             } else {
               /** \TODO below overflows on raven, i.e. when times are on 
                   16 bits */
-              timer_set(&ifaddr->vlifetime, 2 * 60 * 60 * CLOCK_SECOND);
+              stimer_set(&ifaddr->vlifetime, 2 * 60 * 60 * CLOCK_SECOND);
+          
               PRINTF("Updating timer of address ");
               PRINT6ADDR(&ifaddr->ipaddr);
-              PRINTF("new value %d\n", 2 * 60 * 60);
+              PRINTF("new value %lu\n", (unsigned long)(2 * 60 * 60 * CLOCK_SECOND));
             }
             /*in case the address lifetime was previously infinite */
             ifaddr->is_infinite = 0;
@@ -819,7 +823,7 @@ uip_nd6_io_ra_input(void) {
             /* Add an address with FINITE lifetime */
             uip_netif_addr_add(&(nd6_opt_prefix_info[i])->prefix,
                                (nd6_opt_prefix_info[i])->preflen, 
-                               ntohl((nd6_opt_prefix_info[i])->validlt)*CLOCK_SECOND,
+                               ntohl((nd6_opt_prefix_info[i])->validlt) * CLOCK_SECOND,
                                AUTOCONF);
           } else {
             /* Add an address with INFINITE lifetime */
@@ -879,9 +883,9 @@ uip_nd6_io_ra_input(void) {
       neighbor->isrouter = 1;
     }
     if((router = uip_nd6_defrouter_lookup(neighbor)) == NULL) {
-      uip_nd6_defrouter_add(neighbor, ntohs(UIP_ND6_RA_BUF->router_lifetime)*CLOCK_SECOND);
+      uip_nd6_defrouter_add(neighbor, (unsigned long)(ntohs(UIP_ND6_RA_BUF->router_lifetime)) * (CLOCK_SECOND));
     } else {
-      timer_set(&(router->lifetime), ntohs(UIP_ND6_RA_BUF->router_lifetime)*CLOCK_SECOND);
+      stimer_set(&(router->lifetime), (unsigned long)(ntohs(UIP_ND6_RA_BUF->router_lifetime)) * CLOCK_SECOND);
     }
   } else {
     /* delete router entry*/

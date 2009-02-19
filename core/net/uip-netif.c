@@ -143,7 +143,7 @@ uip_netif_periodic(void) {
   for(i = 1; i < UIP_CONF_NETIF_MAX_ADDRESSES; i++) {
     if((uip_netif_physical_if.addresses[i].state != NOT_USED) &&
        (uip_netif_physical_if.addresses[i].is_infinite != 1) &&
-       (timer_expired(&uip_netif_physical_if.addresses[i].vlifetime))) {
+       (stimer_expired(&uip_netif_physical_if.addresses[i].vlifetime))) {
       uip_netif_addr_rm((&uip_netif_physical_if.addresses[i]));
     }
   }
@@ -183,7 +183,7 @@ uip_netif_addr_lookup(uip_ipaddr_t *ipaddr, u8_t length, uip_netif_type type) {
 
 /*---------------------------------------------------------------------------*/
 void
-uip_netif_addr_add(uip_ipaddr_t *ipaddr, u8_t length, clock_time_t vlifetime, uip_netif_type type) {
+uip_netif_addr_add(uip_ipaddr_t *ipaddr, u8_t length, unsigned long vlifetime, uip_netif_type type) {
   
   /* check prefix has the right length if we are doing autoconf */
   if((type == AUTOCONF) && (length != UIP_DEFAULT_PREFIX_LEN)) {
@@ -211,7 +211,7 @@ uip_netif_addr_add(uip_ipaddr_t *ipaddr, u8_t length, clock_time_t vlifetime, ui
       uip_netif_physical_if.addresses[i].type = type;
       /* setting lifetime timer if lieftime is not infinite */
       if(vlifetime != 0) {
-        timer_set(&(uip_netif_physical_if.addresses[i].vlifetime), vlifetime);
+        stimer_set(&(uip_netif_physical_if.addresses[i].vlifetime), vlifetime);
         uip_netif_physical_if.addresses[i].is_infinite = 0;
       } else {
         uip_netif_physical_if.addresses[i].is_infinite = 1;
@@ -380,7 +380,7 @@ uip_netif_dad(void)
   PRINTF("END of DAD\n");
   for(i = 0; i < UIP_CONF_NETIF_MAX_ADDRESSES; i ++){
     if(uip_netif_physical_if.addresses[i].state != NOT_USED){
-      PRINTF("address %d : ",i);
+      PRINTF("address %u : ",i);
       PRINT6ADDR(&(uip_netif_physical_if.addresses[i].ipaddr));
       PRINTF("\n");
     }
@@ -431,12 +431,12 @@ void
 uip_netif_send_rs(void)
 {
   if((uip_nd6_choose_defrouter() == NULL) && (rs_count < UIP_ND6_MAX_RTR_SOLICITATIONS)){
-    //PRINTF("Sending RS %d\n", rs_count);
+    PRINTF("Sending RS %u\n", rs_count);
     uip_nd6_io_rs_output();
     rs_count++;
     etimer_set(&uip_netif_timer_rs, UIP_ND6_RTR_SOLICITATION_INTERVAL * CLOCK_SECOND);     
   } else {
-    PRINTF("Router found ? (boolean): %d\n", (uip_nd6_choose_defrouter() != NULL));
+    PRINTF("Router found ? (boolean): %u\n", (uip_nd6_choose_defrouter() != NULL));
     etimer_stop(&uip_netif_timer_rs);
     rs_count = 0;
   }
