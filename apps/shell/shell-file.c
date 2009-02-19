@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: shell-file.c,v 1.8 2008/12/01 15:58:14 nvt-se Exp $
+ * $Id: shell-file.c,v 1.9 2009/02/19 22:56:56 adamdunkels Exp $
  */
 
 /**
@@ -46,6 +46,7 @@
 #include <string.h>
 
 #define MAX_FILENAME_LEN 40
+#define MAX_BLOCKSIZE 40
 
 /*---------------------------------------------------------------------------*/
 PROCESS(shell_ls_process, "ls");
@@ -159,9 +160,14 @@ PROCESS_THREAD(shell_write_process, ev, data)
 	PROCESS_EXIT();
       }
       
-      cfs_write(fd, input->data1, input->len1);
-      cfs_write(fd, input->data2, input->len2);
-      
+      if(input->len1 > 0) {
+	cfs_write(fd, input->data1, input->len1);
+      }
+
+      if(input->len2 > 0) {
+	cfs_write(fd, input->data2, input->len2);
+      }
+ 
       shell_output(&write_command,
 		   input->data1, input->len1,
 		   input->data2, input->len2);
@@ -178,6 +184,7 @@ PROCESS_THREAD(shell_read_process, ev, data)
   char filename[MAX_FILENAME_LEN];
   int len;
   int offset = 0;
+  static int block_size = MAX_BLOCKSIZE;
   PROCESS_EXITHANDLER(cfs_close(fd));
   PROCESS_BEGIN();
 
@@ -201,6 +208,15 @@ PROCESS_THREAD(shell_read_process, ev, data)
       filename[len] = 0;
 
       offset = shell_strtolong(next, NULL);
+
+      next++;
+      next = strchr(next, ' ');
+      block_size = shell_strtolong(next, NULL);
+      if(block_size > MAX_BLOCKSIZE) {
+	shell_output_str(&read_command,
+		       "read: block size too large: ", data);
+	PROCESS_EXIT();
+      }
     }
     
     fd = cfs_open(filename, CFS_READ);
@@ -212,11 +228,11 @@ PROCESS_THREAD(shell_read_process, ev, data)
     } else {
       
       while(1) {
-	char buf[40];
+	char buf[MAX_BLOCKSIZE];
 	int len;
 	struct shell_input *input;
 	
-	len = cfs_read(fd, buf, sizeof(buf));
+	len = cfs_read(fd, buf, block_size);
 	if(len <= 0) {
 	  cfs_close(fd);
 	  PROCESS_EXIT();
