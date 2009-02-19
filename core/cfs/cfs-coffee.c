@@ -279,6 +279,19 @@ cfs_garbage_collect(void)
   watchdog_start();
 }
 /*---------------------------------------------------------------------------*/
+static coffee_page_t
+next_file(coffee_page_t page, struct file_header *hdr)
+{
+  coffee_page_t next_page;
+
+  if(HDR_FREE(*hdr)) {
+    return (page + COFFEE_PAGES_PER_SECTOR) & ~(COFFEE_PAGES_PER_SECTOR - 1);
+  } else if(HDR_ISOLATED(*hdr)) {
+    return page + 1;
+  }
+  return page + hdr->max_pages;    
+}
+/*---------------------------------------------------------------------------*/
 static struct file *
 load_file(const char *name, struct file_header *hdr, coffee_page_t start)
 {
@@ -336,26 +349,12 @@ find_file(const char *name)
   }
 
   /* Scan the flash memory sequentially otherwise. */
-  page = 0;
-  do {
+  for(page = 0; page < COFFEE_PAGE_COUNT; page = next_file(page, &hdr)) {
     read_header(&hdr, page);
-    if(HDR_ACTIVE(hdr)) {
-      if(strcmp(name, hdr.name) == 0) {
+    if(HDR_ACTIVE(hdr) && strcmp(name, hdr.name) == 0) {
 	return load_file(name, &hdr, page);
-      }
-      page += hdr.max_pages;
-    } else if(HDR_ISOLATED(hdr)) {
-      ++page;
-    } else if(HDR_OBSOLETE(hdr)) {
-      page += hdr.max_pages;
-    } else {
-      /* It follows from the properties of the page allocation algorithm
-	 that if a free page is encountered, then the rest of the sector
-	 is also free. */
-      page = (page + COFFEE_PAGES_PER_SECTOR) & ~(COFFEE_PAGES_PER_SECTOR - 1);
     }
-    watchdog_periodic();
-  } while(page < COFFEE_PAGE_COUNT);
+  }
 
   return NULL;
 }
@@ -460,15 +459,15 @@ find_contiguous_pages(coffee_page_t amount)
 	start = page;
       }
 
-      /* Jump to the next sector. */
-      page = (page + COFFEE_PAGES_PER_SECTOR) & ~(COFFEE_PAGES_PER_SECTOR - 1);
+      /* All remaining pages in this sector are free -- jump to the next sector. */
+      page = next_file(page, &hdr);
 
       if(start + amount <= page) {
 	return start;
       }
     } else {
       start = -1;
-      page += HDR_ISOLATED(hdr) ? 1 : hdr.max_pages;
+      page = next_file(page, &hdr);
     }
   }
   return -1;
@@ -648,8 +647,7 @@ read_log_page(struct file_header *hdr, int16_t last_record, struct log_param *lp
     return -1;
   }
 
-  base = hdr->log_page * COFFEE_PAGE_SIZE;
-  base += sizeof(struct file_header) + log_records * sizeof(region);
+  base = absolute_offset(hdr->log_page, log_records * sizeof(region));
   base += (coffee_offset_t)match_index * log_record_size;
   base += lp->offset;
   COFFEE_READ(lp->buf, lp->size, base);
@@ -1139,20 +1137,14 @@ cfs_readdir(struct cfs_dir *dir, struct cfs_dirent *record)
   for(page = *(coffee_page_t *)dir->dummy_space; page < COFFEE_PAGE_COUNT;) {
     watchdog_periodic();
     read_header(&hdr, page);
-    if(HDR_FREE(hdr)) {
-      page = (page + COFFEE_PAGES_PER_SECTOR) & ~(COFFEE_PAGES_PER_SECTOR - 1);
-    } else if(HDR_ISOLATED(hdr)) {
-      ++page;
-    } else if(HDR_ACTIVE(hdr) && !HDR_LOG(hdr)) {
-	memcpy(record->name, hdr.name, sizeof(record->name));
-	record->name[sizeof(record->name) - 1] = '\0';
-	record->size = file_end(page);
-        page += hdr.max_pages;
-	*(coffee_page_t *)dir->dummy_space = page;
-	return 0;
-    } else {
-      page += hdr.max_pages;
+    if(HDR_ACTIVE(hdr) && !HDR_LOG(hdr)) {
+      memcpy(record->name, hdr.name, sizeof(record->name));
+      record->name[sizeof(record->name) - 1] = '\0';
+      record->size = file_end(page);
+      *(coffee_page_t *)dir->dummy_space = next_file(page, &hdr);
+      return 0;
     }
+    page = next_file(page, &hdr);
   }
 
   return -1;
