@@ -333,7 +333,7 @@ uip_netif_sched_dad(struct uip_netif_addr *ifaddr)
   PRINT6ADDR(&dad_ifaddr->ipaddr);
   PRINTF("\n");
 
-  etimer_set(&uip_netif_timer_dad, random_rand()%(UIP_ND6_MAX_RTR_SOLICITATION_DELAY*CLOCK_SECOND)); 
+  etimer_set(&uip_netif_timer_dad, random_rand()%(UIP_ND6_MAX_RTR_SOLICITATION_DELAY * CLOCK_SECOND)); 
 }
 
 
@@ -354,7 +354,7 @@ uip_netif_dad(void)
   if(dad_ns < uip_netif_physical_if.dup_addr_detect_transmit) {
     uip_nd6_io_ns_output(NULL, NULL, &dad_ifaddr->ipaddr);
     dad_ns++;
-    etimer_set(&uip_netif_timer_dad, uip_netif_physical_if.retrans_timer/1000*CLOCK_SECOND);
+    etimer_set(&uip_netif_timer_dad, uip_netif_physical_if.retrans_timer / 1000 * CLOCK_SECOND);
     return;
   }
   /*
@@ -420,7 +420,7 @@ uip_netif_sched_send_rs(void)
      transmission for a random amount of time between 0 and
      UIP_ND6_MAX_RTR_SOLICITATION_DELAY. */
   if(rs_count == 0){
-    etimer_set(&uip_netif_timer_rs, random_rand()%(UIP_ND6_MAX_RTR_SOLICITATION_DELAY*CLOCK_SECOND));
+    etimer_set(&uip_netif_timer_rs, random_rand()%(UIP_ND6_MAX_RTR_SOLICITATION_DELAY * CLOCK_SECOND));
     PRINTF("Scheduling RS\n");  
   }
 }

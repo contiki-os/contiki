@@ -29,7 +29,7 @@
  * This file is part of the Contiki operating system.
  *
  *
- * $Id: tcpip.c,v 1.17 2008/11/10 21:00:53 oliverschmidt Exp $
+ * $Id: tcpip.c,v 1.18 2009/02/20 07:59:36 julienabeille Exp $
  */
 /**
  * \file
@@ -550,8 +550,8 @@ tcpip_ipv6_output(void)
         uip_nd6_io_ns_output(NULL, NULL, &nbc->ipaddr);
       }
 
-      timer_set(&(nbc->last_send),
-                uip_netif_physical_if.retrans_timer/1000*CLOCK_SECOND);
+      stimer_set(&(nbc->last_send),
+                uip_netif_physical_if.retrans_timer / 1000);
       nbc->count_send = 1;
     } else {
       if (nbc->state == INCOMPLETE){
@@ -570,13 +570,13 @@ tcpip_ipv6_output(void)
 	 
       if (nbc->state == STALE){
         nbc->state = DELAY;
-        timer_set(&(nbc->reachable),
-                  UIP_ND6_DELAY_FIRST_PROBE_TIME*CLOCK_SECOND);
+        stimer_set(&(nbc->reachable),
+                  UIP_ND6_DELAY_FIRST_PROBE_TIME);
         PRINTF("tcpip_ipv6_output: neighbor cache entry stale moving to delay\n");
       }
       
-      timer_set(&(nbc->last_send),
-                uip_netif_physical_if.retrans_timer/1000*CLOCK_SECOND);
+      stimer_set(&(nbc->last_send),
+                uip_netif_physical_if.retrans_timer / 1000);
       
       tcpip_output(&(nbc->lladdr));
 
