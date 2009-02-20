@@ -34,7 +34,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: timesynch.c,v 1.5 2008/07/02 09:05:40 adamdunkels Exp $
+ * $Id: timesynch.c,v 1.6 2009/02/20 21:23:22 adamdunkels Exp $
  */
 
 /**
@@ -51,9 +51,11 @@
 
 #include <stdio.h>
 
+
 static int authority_level;
 static rtimer_clock_t offset;
 
+#if TIMESYNCH_CONF_ENABLED
 /*---------------------------------------------------------------------------*/
 int
 timesynch_authority_level(void)
@@ -132,4 +134,5 @@ timesynch_init(void)
   rime_sniffer_add(&sniffer);
 }
 /*---------------------------------------------------------------------------*/
+#endif /* TIMESYNCH_CONF_ENABLED */
 /** @} */
