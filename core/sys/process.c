@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: process.c,v 1.8 2008/01/24 21:00:51 adamdunkels Exp $
+ * @(#)$Id: process.c,v 1.9 2009/02/20 21:24:17 adamdunkels Exp $
  */
 
 /**
@@ -161,13 +161,14 @@ exit_process(struct process *p, struct process *fromprocess)
       }
     }
   }
-  
+
+#if 0
   {
     int n;
     int i = fevent;
     for(n = nevents; n > 0; n--) {
       if(events[i].p == p) {
-	events[i].p = PROCESS_ZOMBIE;
+	events[i].p = (struct process *)PROCESS_ZOMBIE;
 #if DEBUG
 	printf("soft panic: exiting process has remaining event 0x%x\n",
 	       events[i].ev);
@@ -176,6 +177,7 @@ exit_process(struct process *p, struct process *fromprocess)
       i = (i + 1) % PROCESS_CONF_NUMEVENTS;
     }
   }
+#endif /* 0 */
   process_current = old_current;
 }
 /*---------------------------------------------------------------------------*/
@@ -291,8 +293,10 @@ do_event(void)
 	}
 	call_process(p, ev, data);
       }
-    } else if(receiver == PROCESS_ZOMBIE) {
+#if 0
+    } else if(receiver == (struct process *)PROCESS_ZOMBIE) {
       /* This process has exited. */
+#endif /* 0 */
     } else {
       /* This is not a broadcast event, so we deliver it to the
 	 specified process. */
@@ -332,6 +336,15 @@ int
 process_post(struct process *p, process_event_t ev, process_data_t data)
 {
   static unsigned char snum;
+
+  if(PROCESS_CURRENT() == NULL) {
+    PRINTF("process_post: NULL process posts event %d to process '%s', nevents %d\n",
+	   ev, p->name, nevents);
+  } else {
+    PRINTF("process_post: Process '%s' posts event %d to process '%s', nevents %d\n",
+	   PROCESS_CURRENT()->name, ev,
+	   p == PROCESS_BROADCAST? "<broadcast>": p->name, nevents);
+  }
   
   if(nevents == PROCESS_CONF_NUMEVENTS) {
 #if DEBUG
