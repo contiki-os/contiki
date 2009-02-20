@@ -349,7 +349,7 @@ uip_nd6_prefix_add(uip_ipaddr_t *ipaddr, u8_t length, unsigned long interval){
   
   PRINTF("Adding prefix ");
   PRINT6ADDR(&prefix->ipaddr);
-  PRINTF("length %u, vlifetime * CLOCK_SECOND %lu\n", length, interval);
+  PRINTF("length %u, vlifetime%lu\n", length, interval);
  
   if(interval != 0){
     stimer_set(&(prefix->vlifetime),interval);
@@ -404,7 +404,7 @@ uip_nd6_periodic(void)
             PRINTF("INCOMPLETE: NS %u\n",neighbor->count_send+1);
             uip_nd6_io_ns_output(NULL, NULL, &neighbor->ipaddr);
             stimer_set(&(neighbor->last_send),
-                      uip_netif_physical_if.retrans_timer/1000*CLOCK_SECOND);
+                      uip_netif_physical_if.retrans_timer / 1000);
             neighbor->count_send++;
           }
           break;
@@ -425,7 +425,7 @@ uip_nd6_periodic(void)
             PRINTF("DELAY: moving to PROBE + NS %u\n", neighbor->count_send+1);
             uip_nd6_io_ns_output(NULL, &neighbor->ipaddr, &neighbor->ipaddr);
             stimer_set(&(neighbor->last_send),
-                      uip_netif_physical_if.retrans_timer/1000*CLOCK_SECOND);
+                      uip_netif_physical_if.retrans_timer / 1000);
             neighbor->count_send++;
           }
           break;
@@ -445,7 +445,7 @@ uip_nd6_periodic(void)
             PRINTF("PROBE: NS %u\n",neighbor->count_send+1);
             uip_nd6_io_ns_output(NULL, &neighbor->ipaddr, &neighbor->ipaddr);
             stimer_set(&(neighbor->last_send),
-                      uip_netif_physical_if.retrans_timer/1000*CLOCK_SECOND);
+                      uip_netif_physical_if.retrans_timer / 1000);
             neighbor->count_send++;
           }
           break;
