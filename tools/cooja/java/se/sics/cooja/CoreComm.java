@@ -24,7 +24,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * $Id: CoreComm.java,v 1.12 2008/11/20 16:34:45 fros4943 Exp $
+ * $Id: CoreComm.java,v 1.13 2009/02/20 16:49:43 fros4943 Exp $
  */
 
 package se.sics.cooja;
@@ -202,7 +202,7 @@ public abstract class CoreComm {
    * @throws MoteTypeCreationException
    *           If Java class compilation error occurs
    */
-  private static void compileSourceFile(String className)
+  public static void compileSourceFile(String className)
       throws MoteTypeCreationException {
     MessageList compilationOutput = new MessageList();
     OutputStream compilationStandardStream = compilationOutput
@@ -286,7 +286,7 @@ public abstract class CoreComm {
    * @throws MoteTypeCreationException
    *           If error occurs
    */
-  private static Class loadClassFile(String className)
+  public static Class loadClassFile(String className)
       throws MoteTypeCreationException {
     Class loadedClass = null;
     try {
