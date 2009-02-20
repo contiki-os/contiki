@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: lpp.c,v 1.8 2009/02/11 11:08:56 adamdunkels Exp $
+ * $Id: lpp.c,v 1.9 2009/02/20 21:22:39 adamdunkels Exp $
  */
 
 /**
@@ -51,7 +51,7 @@
  */
 
 #include "dev/leds.h"
-
+#include "lib/random.h"
 #include "net/rime.h"
 #include "net/mac/mac.h"
 #include "net/mac/lpp.h"
