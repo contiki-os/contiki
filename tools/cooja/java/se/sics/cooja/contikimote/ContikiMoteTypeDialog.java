@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ContikiMoteTypeDialog.java,v 1.53 2009/02/18 16:11:14 fros4943 Exp $
+ * $Id: ContikiMoteTypeDialog.java,v 1.54 2009/02/20 16:51:00 fros4943 Exp $
  */
 
 package se.sics.cooja.contikimote;
@@ -1484,6 +1484,7 @@ public class ContikiMoteTypeDialog extends JDialog {
       return false;
     }
 
+    libFile.delete();
     if (libFile.exists()) {
       if (errorStream != null) {
         errorStream.println("Bad output filenames");
@@ -1500,6 +1501,7 @@ public class ContikiMoteTypeDialog extends JDialog {
       return false;
     }
 
+    arFile.delete();
     if (arFile.exists()) {
       if (errorStream != null) {
         errorStream.println("Bad output filenames");
@@ -1508,6 +1510,7 @@ public class ContikiMoteTypeDialog extends JDialog {
       return false;
     }
 
+    mapFile.delete();
     if (mapFile.exists()) {
       if (errorStream != null) {
         errorStream.println("Bad output filenames");
