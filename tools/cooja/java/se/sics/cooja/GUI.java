@@ -24,7 +24,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * $Id: GUI.java,v 1.105 2009/02/18 17:25:14 fros4943 Exp $
+ * $Id: GUI.java,v 1.106 2009/02/20 16:50:16 fros4943 Exp $
  */
 
 package se.sics.cooja;
@@ -118,6 +118,7 @@ import se.sics.cooja.contikimote.ContikiMoteType;
 import se.sics.cooja.contikimote.ContikiMoteTypeDialog;
 import se.sics.cooja.contikimote.ContikiProcess;
 import se.sics.cooja.dialogs.AddMoteDialog;
+import se.sics.cooja.dialogs.ConfigurationWizard;
 import se.sics.cooja.dialogs.CreateSimDialog;
 import se.sics.cooja.dialogs.ExternalToolsDialog;
 import se.sics.cooja.dialogs.MessageList;
@@ -832,6 +833,15 @@ public class GUI extends Observable {
 
     menuItem = new JMenuItem("Manage project directories");
     menuItem.setActionCommand("manage projects");
+    menuItem.addActionListener(guiEventHandler);
+    menu.add(menuItem);
+    if (isVisualizedInApplet()) {
+      menuItem.setEnabled(false);
+      menuItem.setToolTipText("Not available in applet version");
+    }
+
+    menuItem = new JMenuItem("Compiler configuration wizard");
+    menuItem.setActionCommand("configuration wizard");
     menuItem.addActionListener(guiEventHandler);
     menu.add(menuItem);
     if (isVisualizedInApplet()) {
@@ -2956,6 +2966,8 @@ public class GUI extends Observable {
             return;
           }
         }
+      } else if (e.getActionCommand().equals("configuration wizard")) {
+        ConfigurationWizard.startWizard(GUI.getTopParentContainer(), GUI.this);
       } else if (e.getActionCommand().equals("start plugin")) {
         Class<Plugin> pluginClass =
           (Class<Plugin>) ((JMenuItem) e.getSource()).getClientProperty("class");
