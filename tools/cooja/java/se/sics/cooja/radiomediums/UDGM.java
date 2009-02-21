@@ -26,23 +26,18 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: UDGM.java,v 1.20 2009/02/18 10:40:25 fros4943 Exp $
+ * $Id: UDGM.java,v 1.21 2009/02/21 09:49:51 fros4943 Exp $
  */
 
 package se.sics.cooja.radiomediums;
 
-import java.awt.*;
-import java.awt.event.*;
 import java.util.*;
-import javax.swing.*;
-import javax.swing.event.*;
 import org.jdom.Element;
 import org.apache.log4j.Logger;
 
 import se.sics.cooja.*;
-import se.sics.cooja.contikimote.interfaces.ContikiRadio;
 import se.sics.cooja.interfaces.*;
-import se.sics.cooja.plugins.Visualizer2D;
+import se.sics.cooja.plugins.VisUDGM;
 
 /**
  * The Unit Disk Graph medium has two different range parameters; one for
@@ -71,362 +66,27 @@ import se.sics.cooja.plugins.Visualizer2D;
 public class UDGM extends AbstractRadioMedium {
   private static Logger logger = Logger.getLogger(UDGM.class);
 
-  private static RadioMedium myRadioMedium;
-
   /* Signal strengths in dBm.
    * Approx. values measured on TmoteSky */
   public static final double SS_NOTHING = -100;
-
   public static final double SS_STRONG = -10;
-
   public static final double SS_WEAK = -95;
 
-  private static double SUCCESS_RATIO_TX = 1.0;
-
-  private static double SUCCESS_RATIO_RX = 1.0;
-
-  // Maximum ranges (SS indicator 100)
-  private static double TRANSMITTING_RANGE = 50;
-
-  private static double INTERFERENCE_RANGE = 100;
+  public double SUCCESS_RATIO_TX = 1.0; /* Success ratio of TX. If this fails, no radios receive the packet */
+  public double SUCCESS_RATIO_RX = 1.0; /* Success ratio of RX. If this fails, a single radio does not receive the packet */
+  public double TRANSMITTING_RANGE = 50; /* Transmission range. */
+  public double INTERFERENCE_RANGE = 100; /* Interference range. Ignored if below transmission range. */
 
   private Simulation mySimulation;
 
   private Random random = null;
 
-  /**
-   * Visualizes radio traffic in the UDGM. Allows a user to
-   * change transmission ranges.
-   *
-   * Sending motes are blue, receiving motes are green and motes that hear noise
-   * are painted red. Motes without radios are painted gray, and the rest are
-   * white.
-   *
-   * @author Fredrik Osterlind
-   */
-  @ClassDescription("UDGM Visualizer")
-  @PluginType(PluginType.SIM_PLUGIN)
-  public static class VisUDGM extends Visualizer2D {
-    private Mote selectedMote = null;
-
-    private JSpinner transmissionSpinner = null;
-
-    private JSpinner interferenceSpinner = null;
-
-    private JSpinner successRatioTxSpinner = null;
-
-    private JSpinner successRatioRxSpinner = null;
-
-    private Observer radioMediumObserver;
-
-    private class ChangeRangesMenuAction implements MoteMenuAction {
-      public boolean isEnabled(Mote mote) {
-        return true;
-      }
-
-      public String getDescription(Mote mote) {
-        return "Change transmission ranges";
-      }
-
-      public void doAction(Mote mote) {
-        transmissionSpinner.setVisible(true);
-        interferenceSpinner.setVisible(true);
-        repaint();
-      }
-    };
-
-    private class ChangeSuccessRadioMenuAction implements MoteMenuAction {
-      public boolean isEnabled(Mote mote) {
-        return true;
-      }
-
-      public String getDescription(Mote mote) {
-        return "Change transmission success ratio";
-      }
-
-      public void doAction(Mote mote) {
-        successRatioTxSpinner.setVisible(true);
-        successRatioRxSpinner.setVisible(true);
-        repaint();
-      }
-    };
-
-    public VisUDGM(Simulation sim, GUI gui) {
-      super(sim, gui);
-      setTitle("UDGM Visualizer");
-
-      // Create spinners for changing ranges
-      SpinnerNumberModel transmissionModel = new SpinnerNumberModel();
-      transmissionModel.setValue(new Double(TRANSMITTING_RANGE));
-      transmissionModel.setStepSize(new Double(1.0)); // 1m
-      transmissionModel.setMinimum(new Double(0.0));
-
-      SpinnerNumberModel interferenceModel = new SpinnerNumberModel();
-      interferenceModel.setValue(new Double(INTERFERENCE_RANGE));
-      interferenceModel.setStepSize(new Double(1.0)); // 1m
-      interferenceModel.setMinimum(new Double(0.0));
-
-      SpinnerNumberModel successRatioTxModel = new SpinnerNumberModel();
-      successRatioTxModel.setValue(new Double(SUCCESS_RATIO_TX));
-      successRatioTxModel.setStepSize(new Double(0.001)); // 0.1%
-      successRatioTxModel.setMinimum(new Double(0.0));
-      successRatioTxModel.setMaximum(new Double(1.0));
-
-      SpinnerNumberModel successRatioRxModel = new SpinnerNumberModel();
-      successRatioRxModel.setValue(new Double(SUCCESS_RATIO_RX));
-      successRatioRxModel.setStepSize(new Double(0.001)); // 0.1%
-      successRatioRxModel.setMinimum(new Double(0.0));
-      successRatioRxModel.setMaximum(new Double(1.0));
-
-      JSpinner.NumberEditor editor;
-      transmissionSpinner = new JSpinner(transmissionModel);
-      editor = new JSpinner.NumberEditor(transmissionSpinner, "0m");
-      transmissionSpinner.setEditor(editor);
-      interferenceSpinner = new JSpinner(interferenceModel);
-      editor = new JSpinner.NumberEditor(interferenceSpinner, "0m");
-      interferenceSpinner.setEditor(editor);
-      successRatioTxSpinner = new JSpinner(successRatioTxModel);
-      editor = new JSpinner.NumberEditor(successRatioTxSpinner, "0.0%");
-      successRatioTxSpinner.setEditor(editor);
-      successRatioRxSpinner = new JSpinner(successRatioRxModel);
-      editor = new JSpinner.NumberEditor(successRatioRxSpinner, "0.0%");
-      successRatioRxSpinner.setEditor(editor);
-
-
-      ((JSpinner.DefaultEditor) transmissionSpinner.getEditor()).getTextField()
-      .setColumns(5);
-      ((JSpinner.DefaultEditor) interferenceSpinner.getEditor()).getTextField()
-      .setColumns(5);
-      ((JSpinner.DefaultEditor) successRatioTxSpinner.getEditor()).getTextField()
-      .setColumns(5);
-      ((JSpinner.DefaultEditor) successRatioRxSpinner.getEditor()).getTextField()
-      .setColumns(5);
-      transmissionSpinner.setToolTipText("Transmitting range (m)");
-      interferenceSpinner.setToolTipText("Interference range (m)");
-      successRatioTxSpinner.setToolTipText("Transmission success ratio (%)");
-      successRatioRxSpinner.setToolTipText("Reception success ratio (%)");
-
-      transmissionSpinner.addChangeListener(new ChangeListener() {
-        public void stateChanged(ChangeEvent e) {
-          TRANSMITTING_RANGE = ((SpinnerNumberModel) transmissionSpinner
-              .getModel()).getNumber().doubleValue();
-          repaint();
-        }
-      });
-
-      interferenceSpinner.addChangeListener(new ChangeListener() {
-        public void stateChanged(ChangeEvent e) {
-          INTERFERENCE_RANGE = ((SpinnerNumberModel) interferenceSpinner
-              .getModel()).getNumber().doubleValue();
-          repaint();
-        }
-      });
-
-      successRatioTxSpinner.addChangeListener(new ChangeListener() {
-        public void stateChanged(ChangeEvent e) {
-          SUCCESS_RATIO_TX = ((SpinnerNumberModel) successRatioTxSpinner
-              .getModel()).getNumber().doubleValue();
-          repaint();
-        }
-      });
-
-      successRatioRxSpinner.addChangeListener(new ChangeListener() {
-        public void stateChanged(ChangeEvent e) {
-          SUCCESS_RATIO_RX = ((SpinnerNumberModel) successRatioRxSpinner
-              .getModel()).getNumber().doubleValue();
-          repaint();
-        }
-      });
-
-      getCurrentCanvas().add(transmissionSpinner);
-      getCurrentCanvas().add(interferenceSpinner);
-      getCurrentCanvas().add(successRatioTxSpinner);
-      getCurrentCanvas().add(successRatioRxSpinner);
-      transmissionSpinner.setVisible(false);
-      interferenceSpinner.setVisible(false);
-      successRatioTxSpinner.setVisible(false);
-      successRatioRxSpinner.setVisible(false);
-
-      // Add mouse listener for selecting motes
-      getCurrentCanvas().addMouseListener(new MouseListener() {
-        public void mouseExited(MouseEvent e) {
-          // Do nothing
-        }
-
-        public void mouseEntered(MouseEvent e) {
-          // Do nothing
-        }
-
-        public void mouseReleased(MouseEvent e) {
-          // Do nothing
-        }
-
-        public void mousePressed(MouseEvent e) {
-          Vector<Mote> clickedMotes = findMotesAtPosition(e.getX(), e.getY());
-          if (clickedMotes == null || clickedMotes.size() == 0) {
-            selectedMote = null;
-            transmissionSpinner.setVisible(false);
-            interferenceSpinner.setVisible(false);
-            successRatioTxSpinner.setVisible(false);
-            successRatioRxSpinner.setVisible(false);
-            repaint();
-            return;
-          }
-
-          // Select one of the clicked motes
-          if (clickedMotes.contains(selectedMote)) {
-            int pos = clickedMotes.indexOf(selectedMote);
-            if (pos < clickedMotes.size() - 1) {
-              selectedMote = clickedMotes.get(pos + 1);
-            } else {
-              selectedMote = clickedMotes.firstElement();
-            }
-          } else {
-            selectedMote = clickedMotes.firstElement();
-          }
-          repaint();
-        }
-
-        public void mouseClicked(MouseEvent e) {
-        }
-      });
-
-      // Register change ranges and change success ratio action
-      addMoteMenuAction(new ChangeRangesMenuAction());
-      addMoteMenuAction(new ChangeSuccessRadioMenuAction());
-
-      // Observe our own radio medium
-      myRadioMedium
-          .addRadioMediumObserver(radioMediumObserver = new Observer() {
-            public void update(Observable obs, Object obj) {
-              getCurrentCanvas().repaint();
-            }
-          });
-
-    }
-
-    public void closePlugin() {
-      super.closePlugin();
-
-      myRadioMedium.deleteRadioMediumObserver(radioMediumObserver);
-    }
-
-    public Color[] getColorOf(Mote mote) {
-      Radio moteRadio = mote.getInterfaces().getRadio();
-      if (moteRadio == null) {
-        return new Color[] { Color.BLACK };
-      }
-
-      if (mote.getState() == Mote.State.DEAD) {
-        return new Color[] { Color.BLACK };
-      }
-
-      if (selectedMote != null && mote == selectedMote) {
-        return new Color[] { Color.CYAN };
-      }
-
-      if (moteRadio instanceof ContikiRadio && !((ContikiRadio) moteRadio).isOn()) {
-        return new Color[] { Color.GRAY };
-      }
-
-      if (moteRadio.isTransmitting()) {
-        return new Color[] { Color.BLUE };
-      }
-
-      if (moteRadio.isInterfered()) {
-        return new Color[] { Color.RED };
-      }
-
-      if (moteRadio.isReceiving()) {
-        return new Color[] { Color.GREEN };
-      }
-
-      return new Color[] { Color.WHITE };
-    }
-
-    public void visualizeSimulation(Graphics g) {
-
-      // Paint transmission+interference areas for selected mote (if any)
-      if (selectedMote != null) {
-        Position motePos = selectedMote.getInterfaces().getPosition();
-
-        Point pixelCoord = transformPositionToPixel(motePos);
-        int x = pixelCoord.x;
-        int y = pixelCoord.y;
-
-        // Fetch current output power indicator (scale with as percent)
-        if (selectedMote.getInterfaces().getRadio() != null) {
-          Radio selectedRadio = selectedMote.getInterfaces().getRadio();
-          double moteInterferenceRange = INTERFERENCE_RANGE
-              * ((double) selectedRadio.getCurrentOutputPowerIndicator() / (double) selectedRadio.getOutputPowerIndicatorMax());
-          double moteTransmissionRange = TRANSMITTING_RANGE
-              * ((double) selectedRadio.getCurrentOutputPowerIndicator() / (double) selectedRadio.getOutputPowerIndicatorMax());
-
-          Point translatedZero = transformPositionToPixel(0.0, 0.0, 0.0);
-          Point translatedInterference = transformPositionToPixel(
-              moteInterferenceRange, moteInterferenceRange, 0.0);
-          Point translatedTransmission = transformPositionToPixel(
-              moteTransmissionRange, moteTransmissionRange, 0.0);
-
-          translatedInterference.x = Math.abs(translatedInterference.x
-              - translatedZero.x);
-          translatedInterference.y = Math.abs(translatedInterference.y
-              - translatedZero.y);
-          translatedTransmission.x = Math.abs(translatedTransmission.x
-              - translatedZero.x);
-          translatedTransmission.y = Math.abs(translatedTransmission.y
-              - translatedZero.y);
-
-          // Interference
-          g.setColor(Color.DARK_GRAY);
-          g.fillOval(x - translatedInterference.x,
-              y - translatedInterference.y, 2 * translatedInterference.x,
-              2 * translatedInterference.y);
-
-          // Transmission
-          g.setColor(Color.GREEN);
-          g.fillOval(x - translatedTransmission.x,
-              y - translatedTransmission.y, 2 * translatedTransmission.x,
-              2 * translatedTransmission.y);
-        }
-      }
-
-      // Let parent paint motes
-      super.visualizeSimulation(g);
-
-      // Paint just finished connections
-      RadioConnection[] conns;
-      if (myRadioMedium != null
-          && (conns = myRadioMedium.getLastTickConnections()) != null) {
-        for (RadioConnection conn : conns) {
-          if (conn != null) {
-            Point sourcePoint = transformPositionToPixel(conn.getSource()
-                .getPosition());
-
-            // Paint destinations
-            for (Radio destRadio : conn.getDestinations()) {
-              Position destPos = destRadio.getPosition();
-              Point destPoint = transformPositionToPixel(destPos);
-
-              g.setColor(Color.BLACK);
-              g
-                  .drawLine(sourcePoint.x, sourcePoint.y, destPoint.x,
-                      destPoint.y);
-
-            }
-          }
-        }
-      }
-    }
-  }
-
   public UDGM(Simulation simulation) {
     super(simulation);
 
-    // Register this radio medium's plugins
+    /* Register visualizer plugin */
     simulation.getGUI().registerTemporaryPlugin(VisUDGM.class);
 
-    myRadioMedium = this;
     mySimulation = simulation;
     random = mySimulation.getRandomGenerator();
   }

@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: AbstractRadioMedium.java,v 1.5 2008/03/18 15:43:03 fros4943 Exp $
+ * $Id: AbstractRadioMedium.java,v 1.6 2009/02/21 09:49:51 fros4943 Exp $
  */
 
 package se.sics.cooja.radiomediums;
@@ -85,8 +85,10 @@ public abstract class AbstractRadioMedium extends RadioMedium {
   /**
    * @return All active connections
    */
-  public Vector<RadioConnection> getActiveConnections() {
-    return activeConnections;
+  public RadioConnection[] getActiveConnections() {
+    RadioConnection[] active = new RadioConnection[activeConnections.size()];
+    activeConnections.toArray(active);
+    return active;
   }
 
   /**
