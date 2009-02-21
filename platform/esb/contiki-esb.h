@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: contiki-esb.h,v 1.3 2007/03/16 11:34:05 adamdunkels Exp $
+ * @(#)$Id: contiki-esb.h,v 1.4 2009/02/21 11:23:54 nifi Exp $
  */
 #ifndef __CONTIKI_ESB_H__
 #define __CONTIKI_ESB_H__
@@ -41,8 +41,6 @@
 #include "dev/hwconf.h"
 
 #include "dev/lpm.h"
-
-#include "codeprop.h"
 
 #include "dev/rs232.h"
 
