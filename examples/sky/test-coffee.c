@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: test-coffee.c,v 1.7 2009/02/17 15:08:01 nvt-se Exp $
+ * $Id: test-coffee.c,v 1.8 2009/02/22 15:17:36 nvt-se Exp $
  */
 
 /**
@@ -311,6 +311,7 @@ PROCESS_THREAD(testcoffee_process, ev, data)
 {
   PROCESS_BEGIN();
 
+  printf("Coffee format: %d\n", cfs_coffee_format());
   printf("Coffee file test: %d\n", coffee_file_test());
   printf("Coffee garbage collection test: %d\n", coffee_gc_test());
 
