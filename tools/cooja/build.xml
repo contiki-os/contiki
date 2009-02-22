@@ -100,6 +100,7 @@ The COOJA Simulator
   <target name="jar" depends="jar_cooja">
   	<ant antfile="build.xml" dir="apps/mrm" target="jar" inheritAll="false"/>
   	<ant antfile="build.xml" dir="apps/mspsim" target="jar" inheritAll="false"/>
+        <ant antfile="build.xml" dir="apps/avrora" target="jar" inheritAll="false"/>
   </target>
 	
   <target name="run_nogui" depends="init, compile, jar, copy configs">
