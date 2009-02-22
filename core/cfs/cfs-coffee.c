@@ -145,9 +145,11 @@ struct log_param {
 static struct protected_mem_t {
   struct file coffee_files[COFFEE_MAX_OPEN_FILES];
   struct file_desc coffee_fd_set[COFFEE_FD_SET_SIZE];
+  coffee_page_t next_free;
 } protected_mem;
 static struct file *coffee_files = protected_mem.coffee_files;
 static struct file_desc *coffee_fd_set = protected_mem.coffee_fd_set;
+static coffee_page_t *next_free = &protected_mem.next_free;
 
 /*---------------------------------------------------------------------------*/
 static void
@@ -258,6 +260,7 @@ cfs_garbage_collect(void)
 {
   uint16_t sector;
   struct sector_stats stats;
+  coffee_page_t first_page;
 
   watchdog_stop();
 
@@ -273,6 +276,10 @@ cfs_garbage_collect(void)
     if(stats.active == 0 && stats.obsolete > 0) {
       COFFEE_ERASE(sector);
       PRINTF("Coffee: Erased sector %d!\n", sector);
+      first_page = sector * COFFEE_PAGES_PER_SECTOR;
+      if(first_page < *next_free) {
+        *next_free = first_page;
+      }
     }
   }
 
@@ -282,8 +289,6 @@ cfs_garbage_collect(void)
 static coffee_page_t
 next_file(coffee_page_t page, struct file_header *hdr)
 {
-  coffee_page_t next_page;
-
   if(HDR_FREE(*hdr)) {
     return (page + COFFEE_PAGES_PER_SECTOR) & ~(COFFEE_PAGES_PER_SECTOR - 1);
   } else if(HDR_ISOLATED(*hdr)) {
@@ -451,11 +456,11 @@ find_contiguous_pages(coffee_page_t amount)
   coffee_page_t page, start;
   struct file_header hdr;
 
-  start = -1;
-  for(page = 0; page < COFFEE_PAGE_COUNT;) {
+  start = INVALID_PAGE;
+  for(page = *next_free; page < COFFEE_PAGE_COUNT;) {
     read_header(&hdr, page);
     if(HDR_FREE(hdr)) {
-      if(start == -1) {
+      if(start == INVALID_PAGE) {
 	start = page;
       }
 
@@ -463,14 +468,15 @@ find_contiguous_pages(coffee_page_t amount)
       page = next_file(page, &hdr);
 
       if(start + amount <= page) {
+	*next_free = start + amount;
 	return start;
       }
     } else {
-      start = -1;
+      start = INVALID_PAGE;
       page = next_file(page, &hdr);
     }
   }
-  return -1;
+  return INVALID_PAGE;
 }
 /*---------------------------------------------------------------------------*/
 static int
