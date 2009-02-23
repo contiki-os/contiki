@@ -24,7 +24,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * $Id: Simulation.java,v 1.40 2009/02/18 16:01:31 fros4943 Exp $
+ * $Id: Simulation.java,v 1.41 2009/02/23 08:33:23 joxe Exp $
  */
 
 package se.sics.cooja;
@@ -134,11 +134,11 @@ public class Simulation extends Observable implements Runnable {
 
   private EventQueue eventQueue = new EventQueue();
 
-  private Mote[] mspMoteArray;
-  private TimeEvent tickMspMotesEvent = new TimeEvent(0) {
+  private Mote[] emulatedMoteArray;
+  private TimeEvent tickemulatedMotesEvent = new TimeEvent(0) {
     public void execute(long t) {
       /*logger.info("MSP motes tick at: " + t);*/
-      if (mspMoteArray.length == 0) {
+      if (emulatedMoteArray.length == 0) {
         return;
       }
 
@@ -147,7 +147,7 @@ public class Simulation extends Observable implements Runnable {
       while (wantMoreTicks) {
         /* Tick all MSP motes until none need more ticks */
         wantMoreTicks = false;
-        for (Mote element : mspMoteArray) {
+        for (Mote element : emulatedMoteArray) {
           if (element.tick(currentSimulationTime)) {
             wantMoreTicks = true;
           }
@@ -191,16 +191,19 @@ public class Simulation extends Observable implements Runnable {
 
   private void recreateTickLists() {
     /* Tick MSP motes separately */
-    ArrayList<Mote> mspMotes = new ArrayList<Mote>();
+    ArrayList<Mote> emulatedMotes = new ArrayList<Mote>();
     ArrayList<Mote> contikiMotes = new ArrayList<Mote>();
     for (Mote mote: motes) {
+      /* TODO: fixe an emulatedMote generic class */
       if (mote.getType().getClass().toString().contains(".mspmote.")) {
-        mspMotes.add(mote);
+        emulatedMotes.add(mote);
+      } else if (mote.getType().getClass().toString().contains(".avrmote.")) {
+        emulatedMotes.add(mote);
       } else {
         contikiMotes.add(mote);
       }
     }
-    mspMoteArray = mspMotes.toArray(new Mote[mspMotes.size()]);
+    emulatedMoteArray = emulatedMotes.toArray(new Mote[emulatedMotes.size()]);
     moteArray = contikiMotes.toArray(new Mote[contikiMotes.size()]);
   }
 
@@ -212,7 +215,7 @@ public class Simulation extends Observable implements Runnable {
 
     /* Schedule tick events */
     scheduleEventUnsafe(tickMotesEvent, currentSimulationTime);
-    scheduleEventUnsafe(tickMspMotesEvent, currentSimulationTime);
+    scheduleEventUnsafe(tickemulatedMotesEvent, currentSimulationTime);
     scheduleEventUnsafe(delayEvent, currentSimulationTime);
 
     /* Simulation starting */
@@ -229,7 +232,7 @@ public class Simulation extends Observable implements Runnable {
         if (rescheduleEvents) {
           rescheduleEvents = false;
           scheduleEventUnsafe(tickMotesEvent, currentSimulationTime);
-          scheduleEventUnsafe(tickMspMotesEvent, currentSimulationTime);
+          scheduleEventUnsafe(tickemulatedMotesEvent, currentSimulationTime);
           scheduleEventUnsafe(delayEvent, currentSimulationTime);
         }
 

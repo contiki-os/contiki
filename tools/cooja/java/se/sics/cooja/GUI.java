@@ -24,7 +24,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * $Id: GUI.java,v 1.106 2009/02/20 16:50:16 fros4943 Exp $
+ * $Id: GUI.java,v 1.107 2009/02/23 08:33:23 joxe Exp $
  */
 
 package se.sics.cooja;
@@ -2189,12 +2189,15 @@ public class GUI extends Observable {
       moteTypeOK = newMoteType.configureAndInit(GUI.getTopParentContainer(), mySimulation, isVisualized());
     } catch (InstantiationException e) {
       logger.fatal("Exception when creating mote type: " + e);
+      e.printStackTrace();
       return;
     } catch (IllegalAccessException e) {
       logger.fatal("Exception when creating mote type: " + e);
+      e.printStackTrace();
       return;
     } catch (MoteTypeCreationException e) {
       logger.fatal("Exception when creating mote type: " + e);
+      e.printStackTrace();
       return;
     }
 
