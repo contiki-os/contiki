@@ -42,8 +42,6 @@
 #include "dev/irq.h"
 #include "dev/lpm.h"
 
-#include "codeprop.h"
-
 #include "dev/infomem.h"
 #include "dev/msb430-uart1.h"
 #include "dev/rs232.h"
