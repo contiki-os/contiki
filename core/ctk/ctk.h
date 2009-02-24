@@ -43,7 +43,7 @@
  *
  * This file is part of the Contiki desktop OS.
  *
- * $Id: ctk.h,v 1.6 2008/11/27 23:40:24 adamdunkels Exp $
+ * $Id: ctk.h,v 1.7 2009/02/24 21:30:02 adamdunkels Exp $
  *
  */
 
@@ -268,10 +268,10 @@ typedef unsigned char (* ctk_textentry_input)(ctk_arch_key_t c,
  */
 #define CTK_TEXTENTRY(x, y, w, h, text, len) \
   NULL, NULL, x, y, CTK_WIDGET_TEXTENTRY, w, 1, CTK_WIDGET_FLAG_INITIALIZER(0) text, len, \
-  CTK_TEXTENTRY_NORMAL, 0, 0, NULL
+  CTK_TEXTENTRY_NORMAL, 0, 0, ctk_textentry_input_null
 #define CTK_TEXTENTRY_INPUT(x, y, w, h, text, len, input) \
   NULL, NULL, x, y, CTK_WIDGET_TEXTENTRY, w, h, CTK_WIDGET_FLAG_INITIALIZER(0) text, len, \
-  CTK_TEXTENTRY_NORMAL, 0, 0, (ctk_textentry_input)input
+  CTK_TEXTENTRY_NORMAL, 0, 0, input
 struct ctk_textentry {
   struct ctk_widget *next;
   struct ctk_window *window;
@@ -288,6 +288,9 @@ struct ctk_textentry {
   ctk_textentry_input input;
 };
 
+/* Dummy function that we define to keep sdcc happy - with sdcc,
+   function pointers cannot be NULL.*/
+ctk_textentry_input ctk_textentry_input_null;
 
 #if CTK_CONF_ICON_BITMAPS
 #define CTK_ICON_BITMAP(bitmap)	  bitmap
