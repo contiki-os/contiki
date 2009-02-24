@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#)$Id: uart1.c,v 1.8 2009/01/31 12:46:57 joxe Exp $
+ * @(#)$Id: uart1.c,v 1.9 2009/02/24 21:31:10 adamdunkels Exp $
  */
 
 /*
@@ -46,7 +46,8 @@ static int (*uart1_input_handler)(unsigned char c);
 static uint8_t rx_in_progress;
 /*---------------------------------------------------------------------------*/
 uint8_t
-uart1_active(void) {
+uart1_active(void)
+{
   return ((~ UTCTL1) & TXEPT) | rx_in_progress;
 }
 /*---------------------------------------------------------------------------*/
@@ -135,7 +136,7 @@ uart1_interrupt(void)
 {
   ENERGEST_ON(ENERGEST_TYPE_IRQ);
 
-  if (!(URXIFG1 & IFG2)) {
+  if(!(URXIFG1 & IFG2)) {
     /* Edge detect if IFG not set? */
     U1TCTL &= ~URXSE; /* Clear the URXS signal */
     U1TCTL |= URXSE;  /* Re-enable URXS - needed here?*/

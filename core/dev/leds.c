@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: leds.c,v 1.6 2008/09/29 11:35:28 joxe Exp $
+ * @(#)$Id: leds.c,v 1.7 2009/02/24 21:30:20 adamdunkels Exp $
  */
 
 #include "dev/leds.h"
@@ -40,23 +40,23 @@ static unsigned char leds, invert;
 static void
 show_leds(unsigned char changed)
 {
-  if (changed & LEDS_GREEN) {
+  if(changed & LEDS_GREEN) {
     /* Green did change */
-    if ((invert ^ leds) & LEDS_GREEN) {
+    if((invert ^ leds) & LEDS_GREEN) {
       ENERGEST_ON(ENERGEST_TYPE_LED_GREEN);
     } else {
       ENERGEST_OFF(ENERGEST_TYPE_LED_GREEN);
     }
   }
-  if (changed & LEDS_YELLOW) {
-    if ((invert ^ leds) & LEDS_YELLOW) {
+  if(changed & LEDS_YELLOW) {
+    if((invert ^ leds) & LEDS_YELLOW) {
       ENERGEST_ON(ENERGEST_TYPE_LED_YELLOW);
     } else {
       ENERGEST_OFF(ENERGEST_TYPE_LED_YELLOW);
     }
   }
-  if (changed & LEDS_RED) {
-    if ((invert ^ leds) & LEDS_RED) {
+  if(changed & LEDS_RED) {
+    if((invert ^ leds) & LEDS_RED) {
       ENERGEST_ON(ENERGEST_TYPE_LED_RED);
     } else {
       ENERGEST_OFF(ENERGEST_TYPE_LED_RED);
@@ -113,14 +113,15 @@ leds_toggle(unsigned char ledv)
 {
   leds_invert(ledv);
 }
-
+/*---------------------------------------------------------------------------*/
 /*   invert the invert register using the leds parameter */
-void leds_invert(unsigned char ledv) {
+void
+leds_invert(unsigned char ledv) {
   invert = invert ^ ledv;
   show_leds(ledv);
 }
-
 /*---------------------------------------------------------------------------*/
 void leds_green(int o) { o?leds_on(LEDS_GREEN):leds_off(LEDS_GREEN); }
 void leds_yellow(int o) { o?leds_on(LEDS_YELLOW):leds_off(LEDS_YELLOW); }
 void leds_red(int o) { o?leds_on(LEDS_RED):leds_off(LEDS_RED); }
+/*---------------------------------------------------------------------------*/
