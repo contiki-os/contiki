@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: UDGM.java,v 1.21 2009/02/21 09:49:51 fros4943 Exp $
+ * $Id: UDGM.java,v 1.22 2009/02/24 15:05:54 fros4943 Exp $
  */
 
 package se.sics.cooja.radiomediums;
@@ -156,7 +156,6 @@ public class UDGM extends AbstractRadioMedium {
         } else {
           // Radio OK to receive
           newConnection.addDestination(listeningRadio);
-          listeningRadio.signalReceptionStart();
         }
       } else if (distance <= moteInterferenceRange) {
         // Interfere radio
