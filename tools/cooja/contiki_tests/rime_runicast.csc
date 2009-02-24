@@ -100,7 +100,7 @@
     <minimized>false</minimized>
   </plugin>
   <plugin>
-    se.sics.cooja.radiomediums.UDGM$VisUDGM
+    se.sics.cooja.plugins.VisUDGM
     <width>263</width>
     <z>4</z>
     <height>125</height>
