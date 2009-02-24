@@ -163,7 +163,7 @@
     </mote>
   </simulation>
   <plugin>
-    se.sics.cooja.radiomediums.UDGM$VisUDGM
+    se.sics.cooja.plugins.VisUDGM
     <width>300</width>
     <z>2</z>
     <height>300</height>
