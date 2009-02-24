@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: MRM.java,v 1.8 2009/02/18 12:08:10 fros4943 Exp $
+ * $Id: MRM.java,v 1.9 2009/02/24 15:05:36 fros4943 Exp $
  */
 
 package se.sics.mrm;
@@ -147,7 +147,6 @@ public class MRM extends AbstractRadioMedium {
           // Radio OK to receive
           //logger.info("OK, creating connection and starting to transmit");
           newConnection.addDestination(listeningRadio, probData[1]);
-          listeningRadio.signalReceptionStart();
         }
       } else if (probData[1] > currentChannelModel.getParameterDoubleValue("bg_noise_mean")) {
         // Interfere radio
