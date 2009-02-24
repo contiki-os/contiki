@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: AbstractRadioMedium.java,v 1.6 2009/02/21 09:49:51 fros4943 Exp $
+ * $Id: AbstractRadioMedium.java,v 1.7 2009/02/24 15:12:22 fros4943 Exp $
  */
 
 package se.sics.cooja.radiomediums;
@@ -57,9 +57,15 @@ public abstract class AbstractRadioMedium extends RadioMedium {
 
   private boolean isTickObserver = false;
 
-  private class RadioMediumObservable extends Observable {
-    private void setRadioMediumChanged() {
+  private Simulation simulation = null;
+
+  public class RadioMediumObservable extends Observable {
+    public void setRadioMediumChanged() {
       setChanged();
+    }
+    public void setRadioMediumChangedAndNotify() {
+      setChanged();
+      notifyObservers();
     }
   }
 
@@ -73,6 +79,7 @@ public abstract class AbstractRadioMedium extends RadioMedium {
    * @param simulation Simulation
    */
   public AbstractRadioMedium(Simulation simulation) {
+    this.simulation = simulation;
   }
 
   /**
@@ -193,6 +200,24 @@ public abstract class AbstractRadioMedium extends RadioMedium {
         RadioConnection newConnection = createConnections(radio);
         if (newConnection != null) {
           activeConnections.add(newConnection);
+          for (Radio r: newConnection.getDestinations()) {
+            if (newConnection.getDestinationDelay(r) == 0) {
+              r.signalReceptionStart();
+            } else {
+
+              /* EXPERIMENTAL: Simulating propagation delay */
+              final Radio delayedRadio = r;
+              TimeEvent delayedEvent = new TimeEvent(0) {
+                public void execute(long t) {
+                  delayedRadio.signalReceptionStart();
+                }
+              };
+              simulation.scheduleEvent(
+                  delayedEvent,
+                  simulation.getSimulationTime() + newConnection.getDestinationDelay(r));
+
+            }
+          }
         }
 
         // Recalculate signal strengths on all radios
@@ -219,7 +244,22 @@ public abstract class AbstractRadioMedium extends RadioMedium {
           activeConnections.remove(connection);
           finishedConnections.add(connection);
           for (Radio dstRadio : connection.getDestinations()) {
-            dstRadio.signalReceptionEnd();
+            if (connection.getDestinationDelay(dstRadio) == 0) {
+              dstRadio.signalReceptionEnd();
+            } else {
+
+              /* EXPERIMENTAL: Simulating propagation delay */
+              final Radio delayedRadio = dstRadio;
+              TimeEvent delayedEvent = new TimeEvent(0) {
+                public void execute(long t) {
+                  delayedRadio.signalReceptionEnd();
+                }
+              };
+              simulation.scheduleEvent(
+                  delayedEvent,
+                  simulation.getSimulationTime() + connection.getDestinationDelay(dstRadio));
+
+            }
           }
           for (Radio dstRadio : connection.getInterfered()) {
             dstRadio.signalReceptionEnd();
@@ -256,7 +296,23 @@ public abstract class AbstractRadioMedium extends RadioMedium {
 
         for (Radio dstRadio : connection.getDestinations()) {
           if (dstRadio instanceof CustomDataRadio) {
-            ((CustomDataRadio) dstRadio).receiveCustomData(data);
+            if (connection.getDestinationDelay(dstRadio) == 0) {
+              ((CustomDataRadio) dstRadio).receiveCustomData(data);
+            } else {
+
+              /* EXPERIMENTAL: Simulating propagation delay */
+              final CustomDataRadio delayedRadio = (CustomDataRadio) dstRadio;
+              final Object delayedData = data;
+              TimeEvent delayedEvent = new TimeEvent(0) {
+                public void execute(long t) {
+                  delayedRadio.receiveCustomData(delayedData);
+                }
+              };
+              simulation.scheduleEvent(
+                  delayedEvent,
+                  simulation.getSimulationTime() + connection.getDestinationDelay(dstRadio));
+
+            }
           }
         }
 
@@ -284,8 +340,25 @@ public abstract class AbstractRadioMedium extends RadioMedium {
 
         Radio srcRadio = connection.getSource();
         for (Radio dstRadio : connection.getDestinations()) {
-          if (!(srcRadio instanceof CustomDataRadio) || !(dstRadio instanceof CustomDataRadio)) {
-            dstRadio.setReceivedPacket(packet);
+          if (!(srcRadio instanceof CustomDataRadio) ||
+              !(dstRadio instanceof CustomDataRadio)) {
+            if (connection.getDestinationDelay(dstRadio) == 0) {
+              dstRadio.setReceivedPacket(packet);
+            } else {
+
+              /* EXPERIMENTAL: Simulating propagation delay */
+              final Radio delayedRadio = dstRadio;
+              final RadioPacket delayedPacket = packet;
+              TimeEvent delayedEvent = new TimeEvent(0) {
+                public void execute(long t) {
+                  delayedRadio.setReceivedPacket(delayedPacket);
+                }
+              };
+              simulation.scheduleEvent(
+                  delayedEvent,
+                  simulation.getSimulationTime() + connection.getDestinationDelay(dstRadio));
+
+            }
           }
         }
 
