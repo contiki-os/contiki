@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: shell-rime-ping.c,v 1.4 2008/08/15 18:58:42 adamdunkels Exp $
+ * $Id: shell-rime-ping.c,v 1.5 2009/02/24 21:28:43 adamdunkels Exp $
  */
 
 /**
@@ -118,6 +118,10 @@ timedout_mesh(struct mesh_conn *c)
   /*  printf("packet timedout\n");*/
 }
 static void
+sent_mesh(struct mesh_conn *c)
+{
+}
+static void
 recv_mesh(struct mesh_conn *c, rimeaddr_t *from, u8_t hops)
 {
   struct ping_msg *ping;
@@ -152,7 +156,7 @@ recv_mesh(struct mesh_conn *c, rimeaddr_t *from, u8_t hops)
   }
 }
 CC_CONST_FUNCTION static struct mesh_callbacks mesh_callbacks = { recv_mesh,
-						      NULL,
+						      sent_mesh,
 						      timedout_mesh };
 /*---------------------------------------------------------------------------*/
 void
