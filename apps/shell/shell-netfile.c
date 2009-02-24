@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: shell-netfile.c,v 1.6 2008/11/09 10:53:25 adamdunkels Exp $
+ * $Id: shell-netfile.c,v 1.7 2009/02/24 21:27:43 adamdunkels Exp $
  */
 
 /**
@@ -68,7 +68,7 @@ SHELL_COMMAND(recvnetfile_command,
 	      &shell_recvnetfile_process);
 /*---------------------------------------------------------------------------*/
 static int
-write_chunk(struct rudolph0_conn *c, int offset, int flag,
+write_chunk_pt(struct rudolph0_conn *c, int offset, int flag,
 	    uint8_t *data, int datalen)
 {
   PT_BEGIN(&recvnetfilept);
@@ -96,6 +96,12 @@ write_chunk(struct rudolph0_conn *c, int offset, int flag,
 
   PT_END(&recvnetfilept);
 }
+static void
+write_chunk(struct rudolph0_conn *c, int offset, int flag,
+	    uint8_t *data, int datalen)
+{
+  write_chunk_pt(c, offset, flag, data, datalen);
+}
 
 static int
 read_chunk(struct rudolph0_conn *c, int offset, uint8_t *to, int maxsize)
@@ -112,8 +118,9 @@ read_chunk(struct rudolph0_conn *c, int offset, uint8_t *to, int maxsize)
   return ret;
 }
 CC_CONST_FUNCTION static struct rudolph0_callbacks rudolph0_callbacks =
-  {(void (*)(struct rudolph0_conn *, int, int, uint8_t *, int))write_chunk,
-   read_chunk};
+  {/*(void (*)(struct rudolph0_conn *, int, int, uint8_t *, int))*/
+    write_chunk,
+    read_chunk};
 /*---------------------------------------------------------------------------*/
 PROCESS_THREAD(shell_netfile_process, ev, data)
 {
