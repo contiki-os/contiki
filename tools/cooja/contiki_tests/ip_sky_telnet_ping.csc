@@ -36,34 +36,25 @@
     </mote>
   </simulation>
   <plugin>
-    se.sics.cooja.radiomediums.UDGM$VisUDGM
-    <width>127</width>
-    <z>3</z>
-    <height>184</height>
-    <location_x>265</location_x>
-    <location_y>13</location_y>
-    <minimized>false</minimized>
-  </plugin>
-  <plugin>
-    se.sics.cooja.plugins.SimControl
-    <width>248</width>
-    <z>1</z>
-    <height>200</height>
-    <location_x>1</location_x>
-    <location_y>1</location_y>
-    <minimized>false</minimized>
-  </plugin>
-  <plugin>
     se.sics.cooja.plugins.LogListener
     <plugin_config>
       <filter />
       <history>256</history>
     </plugin_config>
     <width>1024</width>
-    <z>2</z>
-    <height>172</height>
+    <z>3</z>
+    <height>209</height>
     <location_x>0</location_x>
-    <location_y>547</location_y>
+    <location_y>446</location_y>
+    <minimized>false</minimized>
+  </plugin>
+  <plugin>
+    se.sics.cooja.plugins.SimControl
+    <width>248</width>
+    <z>2</z>
+    <height>200</height>
+    <location_x>2</location_x>
+    <location_y>2</location_y>
     <minimized>false</minimized>
   </plugin>
   <plugin>
@@ -74,10 +65,10 @@
       <register_routes>true</register_routes>
     </plugin_config>
     <width>388</width>
-    <z>4</z>
+    <z>1</z>
     <height>331</height>
-    <location_x>3</location_x>
-    <location_y>205</location_y>
+    <location_x>265</location_x>
+    <location_y>16</location_y>
     <minimized>false</minimized>
   </plugin>
 </simconf>
