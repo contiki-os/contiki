@@ -24,7 +24,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * $Id: Simulation.java,v 1.41 2009/02/23 08:33:23 joxe Exp $
+ * $Id: Simulation.java,v 1.42 2009/02/24 15:08:20 fros4943 Exp $
  */
 
 package se.sics.cooja;
@@ -521,12 +521,10 @@ public class Simulation extends Observable implements Runnable {
         if (radioMediumClass != null) {
           // Create radio medium specified in config
           try {
-            currentRadioMedium = RadioMedium.generateRadioMedium(
-                radioMediumClass, this);
+            currentRadioMedium = RadioMedium.generateRadioMedium(radioMediumClass, this);
           } catch (Exception e) {
             currentRadioMedium = null;
-            logger.warn("Could not load radio medium class: "
-                + radioMediumClassName);
+            logger.warn("Could not load radio medium class: " + radioMediumClassName);
           }
         }
 
@@ -544,12 +542,10 @@ public class Simulation extends Observable implements Runnable {
         }
 
         // Check if radio medium specific config should be applied
-        if (radioMediumClassName
-            .equals(currentRadioMedium.getClass().getName())) {
+        if (radioMediumClassName.equals(currentRadioMedium.getClass().getName())) {
           currentRadioMedium.setConfigXML(element.getChildren(), visAvailable);
         } else {
-          logger
-              .info("Radio Medium changed - ignoring radio medium specific config");
+          logger.info("Radio Medium changed - ignoring radio medium specific config");
         }
       }
 
@@ -684,6 +680,17 @@ public class Simulation extends Observable implements Runnable {
    */
   public int getMotesCount() {
     return motes.size();
+  }
+
+  /**
+   * Returns all motes in this simulation.
+   *
+   * @return Motes
+   */
+  public Mote[] getMotes() {
+    Mote[] arr = new Mote[motes.size()];
+    motes.toArray(arr);
+    return arr;
   }
 
   /**
