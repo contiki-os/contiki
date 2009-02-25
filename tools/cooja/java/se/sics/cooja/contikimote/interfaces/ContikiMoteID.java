@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ContikiMoteID.java,v 1.5 2008/10/28 12:55:20 fros4943 Exp $
+ * $Id: ContikiMoteID.java,v 1.6 2009/02/25 14:46:24 fros4943 Exp $
  */
 
 package se.sics.cooja.contikimote.interfaces;
@@ -58,7 +58,7 @@ import se.sics.cooja.interfaces.MoteID;
  *
  * This observable notifies observers when the mote ID is set or altered.
  *
- * @author Fredrik Österlind
+ * @author Fredrik Osterlind
  */
 public class ContikiMoteID extends MoteID implements ContikiMoteInterface {
   private SectionMoteMemory moteMem = null;

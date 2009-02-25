@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ContikiButton.java,v 1.11 2009/01/21 14:31:12 fros4943 Exp $
+ * $Id: ContikiButton.java,v 1.12 2009/02/25 14:46:24 fros4943 Exp $
  */
 
 package se.sics.cooja.contikimote.interfaces;
@@ -59,7 +59,7 @@ import se.sics.cooja.interfaces.Button;
  *
  * This observable notifies when the button is pressed or released.
  *
- * @author Fredrik Österlind
+ * @author Fredrik Osterlind
  */
 public class ContikiButton extends Button implements ContikiMoteInterface {
   private SectionMoteMemory moteMem;

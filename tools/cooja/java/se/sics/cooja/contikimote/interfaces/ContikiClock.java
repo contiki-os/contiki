@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ContikiClock.java,v 1.7 2008/12/04 14:03:42 joxe Exp $
+ * $Id: ContikiClock.java,v 1.8 2009/02/25 14:46:24 fros4943 Exp $
  */
 
 package se.sics.cooja.contikimote.interfaces;
@@ -56,7 +56,7 @@ import se.sics.cooja.interfaces.PolledBeforeActiveTicks;
  *
  * This observable never notifies.
  *
- * @author Fredrik Österlind
+ * @author Fredrik Osterlind
  */
 public class ContikiClock extends Clock implements ContikiMoteInterface, PolledBeforeActiveTicks {
 

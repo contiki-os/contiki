@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ContikiMoteInterface.java,v 1.2 2008/10/28 12:05:30 fros4943 Exp $
+ * $Id: ContikiMoteInterface.java,v 1.3 2009/02/25 14:46:25 fros4943 Exp $
  */
 
 package se.sics.cooja.contikimote;
@@ -40,7 +40,7 @@ package se.sics.cooja.contikimote;
  *
  * The method should return the names of all needed core interfaces.
  *
- * @author Fredrik Österlind
+ * @author Fredrik Osterlind
  */
 public interface ContikiMoteInterface {
   /*public static String[] getCoreInterfaceDependencies();*/

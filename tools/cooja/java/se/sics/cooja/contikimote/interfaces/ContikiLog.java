@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ContikiLog.java,v 1.7 2008/10/28 12:55:20 fros4943 Exp $
+ * $Id: ContikiLog.java,v 1.8 2009/02/25 14:46:24 fros4943 Exp $
  */
 
 package se.sics.cooja.contikimote.interfaces;
@@ -63,7 +63,7 @@ import se.sics.cooja.interfaces.PolledAfterActiveTicks;
  *
  * This observable notifies at new mote log output.
  *
- * @author Fredrik Österlind
+ * @author Fredrik Osterlind
  */
 public class ContikiLog extends Log implements ContikiMoteInterface, PolledAfterActiveTicks {
   private static Logger logger = Logger.getLogger(ContikiLog.class);

@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ContikiIPAddress.java,v 1.4 2008/10/28 12:55:20 fros4943 Exp $
+ * $Id: ContikiIPAddress.java,v 1.5 2009/02/25 14:46:24 fros4943 Exp $
  */
 
 package se.sics.cooja.contikimote.interfaces;
@@ -63,7 +63,7 @@ import se.sics.cooja.interfaces.IPAddress;
  *
  * This observable notifies when the IP address is set or altered.
  *
- * @author Fredrik Österlind
+ * @author Fredrik Osterlind
  */
 public class ContikiIPAddress extends IPAddress implements ContikiMoteInterface {
   private SectionMoteMemory moteMem = null;

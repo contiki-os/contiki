@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ContikiBeeper.java,v 1.8 2008/12/04 14:03:42 joxe Exp $
+ * $Id: ContikiBeeper.java,v 1.9 2009/02/25 14:46:24 fros4943 Exp $
  */
 
 package se.sics.cooja.contikimote.interfaces;
@@ -60,7 +60,7 @@ import se.sics.cooja.interfaces.PolledAfterActiveTicks;
  *
  * This observable is changed and notifies observers when the mote beeps.
  *
- * @author Fredrik Österlind
+ * @author Fredrik Osterlind
  */
 public class ContikiBeeper extends Beeper implements ContikiMoteInterface, PolledAfterActiveTicks {
   private Mote mote = null;
