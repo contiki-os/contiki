@@ -25,10 +25,77 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: example-udp-receiver.c,v 1.1 2008/10/14 10:01:52 julienabeille Exp $
  */
 
-#include "udp.h"
+#include "contiki.h"
+#include "contiki-lib.h"
+#include "contiki-net.h"
 
+#include <string.h>
+
+#define DEBUG 1
+#if DEBUG
+#include <stdio.h>
+#define PRINTF(...) printf(__VA_ARGS__)
+#define PRINT6ADDR(addr) PRINTF(" %02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x ", ((u8_t *)addr)[0], ((u8_t *)addr)[1], ((u8_t *)addr)[2], ((u8_t *)addr)[3], ((u8_t *)addr)[4], ((u8_t *)addr)[5], ((u8_t *)addr)[6], ((u8_t *)addr)[7], ((u8_t *)addr)[8], ((u8_t *)addr)[9], ((u8_t *)addr)[10], ((u8_t *)addr)[11], ((u8_t *)addr)[12], ((u8_t *)addr)[13], ((u8_t *)addr)[14], ((u8_t *)addr)[15])
+#define PRINTLLADDR(lladdr) PRINTF(" %02x:%02x:%02x:%02x:%02x:%02x ",(lladdr)->addr[0], (lladdr)->addr[1], (lladdr)->addr[2], (lladdr)->addr[3],(lladdr)->addr[4], (lladdr)->addr[5])
+#else
+#define PRINTF(...)
+#define PRINT6ADDR(addr)
+#define PRINTLLADDR(addr)
+#endif
+
+#define UDP_DATA_LEN 120
+
+static struct uip_udp_conn *udpconn;
+
+PROCESS(udp_process_receiver, "UPD test receiver");
 AUTOSTART_PROCESSES(&udp_process_receiver);
 
+/*---------------------------------------------------------------------------*/
+static void
+udphandler(process_event_t ev, process_data_t data)
+{
+  if (ev == tcpip_event) {
+    if(uip_newdata()) {
+      ((char *)uip_appdata)[uip_datalen()] = 0;
+      printf("Receiver received: '%s'\n", uip_appdata);
+    }
+  }
+
+  printf("Receiver sending to: ");
+  PRINT6ADDR(&udpconn->ripaddr);
+  printf("\n");
+  uip_udp_packet_send(udpconn, "Receiver says Hi!", strlen("Receiver says Hi!"));
+}
+/*---------------------------------------------------------------------------*/
+PROCESS_THREAD(udp_process_receiver, ev, data)
+{
+  uip_ipaddr_t ipaddr;
+
+  PROCESS_BEGIN();
+  PRINTF("Process test UDP receiver started\n");
+
+#ifdef UDP_ADDR_A
+  uip_ip6addr(&ipaddr,
+      UDP_ADDR_A,UDP_ADDR_B,UDP_ADDR_C,UDP_ADDR_D,
+      UDP_ADDR_E,UDP_ADDR_F,UDP_ADDR_G,UDP_ADDR_H);
+#else /* UDP_ADDR_A */
+  uip_ip6addr(&ipaddr,0xFE80,0,0,0,0x2022,0x2222,0x2222,0x2222);
+#endif /* UDP_ADDR_A */
+
+  udpconn = udp_new(&ipaddr, HTONS(0xF0B0+1), NULL);
+  udp_bind(udpconn, HTONS(0xF0B0));
+
+  PRINTF("Created connection with remote peer ");
+  PRINT6ADDR(&udpconn->ripaddr);
+  PRINTF("local/remote port %u/%u\n", HTONS(udpconn->lport),HTONS(udpconn->rport));
+
+  while(1) {
+    PROCESS_YIELD();
+    udphandler(ev, data);
+  }
+
+  PROCESS_END();
+}
+/*---------------------------------------------------------------------------*/
