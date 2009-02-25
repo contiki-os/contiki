@@ -44,7 +44,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: ctk.c,v 1.19 2009/02/24 21:30:02 adamdunkels Exp $
+ * $Id: ctk.c,v 1.20 2009/02/25 09:01:38 adamdunkels Exp $
  *
  */
 
@@ -1168,8 +1168,8 @@ activate(CC_REGISTER_ARG struct ctk_widget *w)
 /* Dummy function that we define to keep sdcc happy - with sdcc,
    function pointers cannot be NULL. ctk_textentry_input is typedef'd
    in ctk/ctk.h, hence the strange-looking function signature. */
-ctk_textentry_input
-ctk_textentry_input_null
+unsigned char
+ctk_textentry_input_null(ctk_arch_key_t c, struct ctk_textentry *t);
 {
 
 }
