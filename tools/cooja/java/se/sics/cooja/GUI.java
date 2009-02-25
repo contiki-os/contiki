@@ -24,7 +24,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * $Id: GUI.java,v 1.107 2009/02/23 08:33:23 joxe Exp $
+ * $Id: GUI.java,v 1.108 2009/02/25 16:11:59 fros4943 Exp $
  */
 
 package se.sics.cooja;
@@ -596,6 +596,9 @@ public class GUI extends Observable {
     menu.add(menuItem);
 
     JMenuItem menuItem2 = new JMenuItem("same random seed");
+    menuItem2.setMnemonic(KeyEvent.VK_R);
+    menuItem2.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_R,
+        ActionEvent.CTRL_MASK));
     menuItem2.addActionListener(new ActionListener() {
       public void actionPerformed(ActionEvent e) {
         reloadCurrentSimulation(false, getSimulation().getRandomSeed());
@@ -604,6 +607,9 @@ public class GUI extends Observable {
     menuItem.add(menuItem2);
 
     menuItem2 = new JMenuItem("new random seed");
+    menuItem2.setMnemonic(KeyEvent.VK_R);
+    menuItem2.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_R,
+        ActionEvent.CTRL_MASK | ActionEvent.SHIFT_MASK));
     menuItem2.addActionListener(new ActionListener() {
       public void actionPerformed(ActionEvent e) {
         reloadCurrentSimulation(false, getSimulation().getRandomSeed()+1);
@@ -648,6 +654,25 @@ public class GUI extends Observable {
     menuItem = new JMenuItem("Close all plugins");
     menuItem.setActionCommand("close plugins");
     menuItem.addActionListener(guiEventHandler);
+    menu.add(menuItem);
+
+    menuItem = new JMenuItem("Start/Stop simulation");
+    menuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_S,
+        ActionEvent.CTRL_MASK));
+    menuItem.addActionListener(new ActionListener() {
+      public void actionPerformed(ActionEvent e) {
+        /* Start/Stop current simulation */
+        Simulation sim = getSimulation();
+        if (sim == null) {
+          return;
+        }
+        if (sim.isRunning()) {
+          sim.stopSimulation();
+        } else {
+          sim.startSimulation();
+        }
+      }
+    });
     menu.add(menuItem);
 
     menu.addSeparator();
@@ -3474,7 +3499,10 @@ public class GUI extends Observable {
         if (mySimulation != null) {
           existingMoteTypes = mySimulation.getMoteTypes();
         }
-        String newID = ContikiMoteType.generateUniqueMoteTypeID(existingMoteTypes, moteTypeIDMappings.values());
+        ArrayList<Object> reserved = new ArrayList<Object>();
+        reserved.addAll(moteTypeIDMappings.keySet());
+        reserved.addAll(moteTypeIDMappings.values());
+        String newID = ContikiMoteType.generateUniqueMoteTypeID(existingMoteTypes, reserved);
         moteTypeIDMappings.setProperty(existingIdentifier, newID);
       }
 
@@ -4010,7 +4038,7 @@ public class GUI extends Observable {
    * Runs work method in event dispatcher thread.
    * Worker method returns a value.
    *
-   * @author Fredrik Österlind
+   * @author Fredrik Osterlind
    */
   public static abstract class RunnableInEDT<T> {
     private T val;
