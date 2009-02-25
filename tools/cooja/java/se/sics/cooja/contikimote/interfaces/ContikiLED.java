@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ContikiLED.java,v 1.6 2008/10/28 12:55:20 fros4943 Exp $
+ * $Id: ContikiLED.java,v 1.7 2009/02/25 14:46:24 fros4943 Exp $
  */
 
 package se.sics.cooja.contikimote.interfaces;
@@ -59,7 +59,7 @@ import se.sics.cooja.interfaces.PolledAfterActiveTicks;
  *
  * This observable notifies when any LED changes.
  *
- * @author Fredrik Österlind
+ * @author Fredrik Osterlind
  */
 public class ContikiLED extends LED implements ContikiMoteInterface, PolledAfterActiveTicks {
   private static Logger logger = Logger.getLogger(ContikiLED.class);

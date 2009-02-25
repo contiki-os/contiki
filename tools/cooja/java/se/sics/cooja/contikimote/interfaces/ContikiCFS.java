@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ContikiCFS.java,v 1.8 2008/12/04 14:03:42 joxe Exp $
+ * $Id: ContikiCFS.java,v 1.9 2009/02/25 14:46:24 fros4943 Exp $
  */
 
 package se.sics.cooja.contikimote.interfaces;
@@ -64,7 +64,7 @@ import se.sics.cooja.interfaces.PolledAfterActiveTicks;
  * <p>
  * This observable notifies when the filesystem is used (read/write).
  *
- * @author Fredrik Österlind
+ * @author Fredrik Osterlind
  */
 @ClassDescription("Filesystem (CFS)")
 public class ContikiCFS extends MoteInterface implements ContikiMoteInterface, PolledAfterActiveTicks {

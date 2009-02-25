@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ContikiRadio.java,v 1.25 2009/02/24 15:09:07 fros4943 Exp $
+ * $Id: ContikiRadio.java,v 1.26 2009/02/25 14:46:22 fros4943 Exp $
  */
 
 package se.sics.cooja.contikimote.interfaces;
@@ -83,7 +83,7 @@ import se.sics.cooja.radiomediums.UDGM;
  * @see #getLastEvent()
  * @see UDGM
  *
- * @author Fredrik Österlind
+ * @author Fredrik Osterlind
  */
 public class ContikiRadio extends Radio implements ContikiMoteInterface, PolledAfterActiveTicks {
   private Mote myMote;
