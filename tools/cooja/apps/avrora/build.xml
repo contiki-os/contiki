@@ -8,7 +8,7 @@
 	<property name="cooja" location="../.."/>
 
 	<property name="cooja_jar" value="${cooja}/dist/cooja.jar"/>
-  <property name="avrora_jar" value="${lib}/avrora.jar"/>
+  <property name="avrora_jar" value="${lib}/avrora-small.jar"/>
   <property name="cooja_avrora_jar" value="${lib}/cooja_avrora.jar"/>
 
   <target name="init">
