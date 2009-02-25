@@ -746,7 +746,7 @@ uip_nd6_io_ra_input(void) {
 
   /* Prefix information options processing */
   i = 0;
-  while((i < UIP_CONF_ND6_MAX_PREFIXES) && (nd6_opt_prefix_info[i] != NULL)) {
+  while((i < UIP_CONF_ND6_MAX_PREFIXES - 1) && (nd6_opt_prefix_info[i] != NULL)) {
     PRINTF("Processing PREFIX option in RA\n");
         
     if((ntohl((nd6_opt_prefix_info[i])->validlt) >=
