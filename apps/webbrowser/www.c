@@ -1,19 +1,19 @@
 /*
  * Copyright (c) 2002, Adam Dunkels.
- * All rights reserved. 
+ * All rights reserved.
  *
- * Redistribution and use in source and binary forms, with or without 
- * modification, are permitted provided that the following conditions 
- * are met: 
- * 1. Redistributions of source code must retain the above copyright 
- *    notice, this list of conditions and the following disclaimer. 
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions
+ * are met:
+ * 1. Redistributions of source code must retain the above copyright
+ *    notice, this list of conditions and the following disclaimer.
  * 2. Redistributions in binary form must reproduce the above
  *    copyright notice, this list of conditions and the following
  *    disclaimer in the documentation and/or other materials provided
- *    with the distribution. 
+ *    with the distribution.
  * 3. The name of the author may not be used to endorse or promote
  *    products derived from this software without specific prior
- *    written permission.  
+ *    written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS
  * OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
@@ -25,17 +25,18 @@
  * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
  * WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
- * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.  
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * This file is part of the Contiki desktop environment
  *
- * $Id: www.c,v 1.9 2008/02/08 22:53:11 oliverschmidt Exp $
+ * $Id: www.c,v 1.10 2009/02/25 08:52:27 adamdunkels Exp $
  *
  */
 
 #include <string.h>
 
 #include "ctk/ctk.h"
+#include "lib/ctk-textentry-cmdline.h"
 #include "contiki-net.h"
 #include "lib/petsciiconv.h"
 #include "sys/arg.h"
@@ -175,7 +176,7 @@ static void formsubmit(struct formattribs *attribs);
  */
 static void
 make_window(void)
-{ 
+{
   CTK_WIDGET_ADD(&mainwindow, &backbutton);
   CTK_WIDGET_ADD(&mainwindow, &downbutton);
   CTK_WIDGET_ADD(&mainwindow, &stopbutton);
@@ -206,7 +207,7 @@ clear_page(void)
   ctk_window_clear(&mainwindow);
   make_window();
   redraw_window();
-  memset(webpage, 0, WWW_CONF_WEBPAGE_WIDTH * WWW_CONF_WEBPAGE_HEIGHT);  
+  memset(webpage, 0, WWW_CONF_WEBPAGE_WIDTH * WWW_CONF_WEBPAGE_HEIGHT);
 }
 /*-----------------------------------------------------------------------------------*/
 static void
@@ -270,10 +271,10 @@ open_url(void)
       --urlptr;
     }
     strncpy(url, http_http, 7);
-  } 
+  }
 
   /* Find host part of the URL. */
-  urlptr = &url[7];  
+  urlptr = &url[7];
   for(i = 0; i < sizeof(host); ++i) {
     if(*urlptr == 0 ||
        *urlptr == '/' ||
@@ -302,7 +303,7 @@ open_url(void)
   
   /* Try to lookup the hostname. If it fails, we initiate a hostname
      lookup and print out an informative message on the statusbar. */
-  if(uiplib_ipaddrconv(host, (unsigned char *)addr) == 0) {    
+  if(uiplib_ipaddrconv(host, (unsigned char *)addr) == 0) {
     if(resolv_lookup(host) == NULL) {
       resolv_query(host);
       show_statustext("Resolving host...");
@@ -340,7 +341,7 @@ open_link(char *link)
        variable, starting after the http (which already is present in
        the url variable since we were able to open the web page on
        which this link was found in the first place). */
-    strncpy(&url[5], link, WWW_CONF_MAX_URLLEN);   
+    strncpy(&url[5], link, WWW_CONF_MAX_URLLEN);
   } else if(*link == ISO_slash) {
     /* The link starts with a slash, so it is a non-relative link
        within the same web site. We find the start of the filename of
@@ -348,8 +349,8 @@ open_link(char *link)
        head off to the new URL. */
     for(urlptr = &url[7];
 	*urlptr != 0 && *urlptr != ISO_slash;
-	++urlptr);    
-    strncpy(urlptr, link, WWW_CONF_MAX_URLLEN - (urlptr - url));    
+	++urlptr);
+    strncpy(urlptr, link, WWW_CONF_MAX_URLLEN - (urlptr - url));
   } else {
     /* A fully relative link is found. We find the last slash in the
        current URL and paste the link there. */
@@ -359,7 +360,7 @@ open_link(char *link)
 	urlptr != url && *urlptr != ISO_slash;
 	--urlptr);
     ++urlptr;
-    strncpy(urlptr, link, WWW_CONF_MAX_URLLEN - (urlptr - url));    
+    strncpy(urlptr, link, WWW_CONF_MAX_URLLEN - (urlptr - url));
   }
 
   /* Open the URL. */
@@ -412,12 +413,12 @@ PROCESS_THREAD(www_process, ev, data)
   
   /* Create the main window. */
   memset(webpage, 0, sizeof(webpage));
-  ctk_window_new(&mainwindow, WWW_CONF_WEBPAGE_WIDTH, 
+  ctk_window_new(&mainwindow, WWW_CONF_WEBPAGE_WIDTH,
 		 WWW_CONF_WEBPAGE_HEIGHT+5, "Web browser");
   make_window();
 #ifdef WWW_CONF_HOMEPAGE
   strncpy(editurl, WWW_CONF_HOMEPAGE, sizeof(editurl));
-#endif /* WWW_CONF_HOMEPAGE */    
+#endif /* WWW_CONF_HOMEPAGE */
   CTK_WIDGET_FOCUS(&mainwindow, &urlentry);
   
 #if WWW_CONF_WITH_WGET
@@ -448,7 +449,7 @@ PROCESS_THREAD(www_process, ev, data)
 	}
 	memcpy(url, history[(int)history_last], WWW_CONF_MAX_URLLEN);
 	open_url();
-	CTK_WIDGET_FOCUS(&mainwindow, &backbutton);      
+	CTK_WIDGET_FOCUS(&mainwindow, &backbutton);
       } else if(w == (struct ctk_widget *)&downbutton) {
 	firsty = pagey + WWW_CONF_WEBPAGE_HEIGHT - 4;
 	start_loading();
@@ -471,14 +472,14 @@ PROCESS_THREAD(www_process, ev, data)
       } else if(w == (struct ctk_widget *)&wgetnobutton) {
 	ctk_dialog_close();
       } else if(w == (struct ctk_widget *)&wgetyesbutton) {
-	ctk_dialog_close();      
+	ctk_dialog_close();
 	quit();
 	argptr = arg_alloc((char)WWW_CONF_MAX_URLLEN);
 	if(argptr != NULL) {
 	  strncpy(argptr, url, WWW_CONF_MAX_URLLEN);
-	} 
+	}
 	program_handler_load("wget.prg", argptr);
-#endif /* WWW_CONF_WITH_WGET */	
+#endif /* WWW_CONF_WITH_WGET */
 #if WWW_CONF_FORMS
       } else {
 	/* Check form buttons */
@@ -581,7 +582,7 @@ webclient_timedout(void)
  */
 void
 webclient_closed(void)
-{  
+{
   show_statustext("Stopped.");
   petsciiconv_topetscii(&webpage[(WWW_CONF_WEBPAGE_HEIGHT - 1) *
 				 WWW_CONF_WEBPAGE_WIDTH], WWW_CONF_WEBPAGE_WIDTH);
@@ -604,13 +605,13 @@ webclient_connected(void)
   show_statustext("Request sent...");
   set_url(webclient_hostname(), webclient_port(), webclient_filename());
 
-#if WWW_CONF_RENDERSTATE 
+#if WWW_CONF_RENDERSTATE
   renderstate = HTMLPARSER_RENDERSTATE_NONE;
 #endif /* WWW_CONF_RENDERSTATE */
   htmlparser_init();
 }
 /*-----------------------------------------------------------------------------------*/
-/* webclient_datahandler():   
+/* webclient_datahandler():
  *
  * Callback function. Called from the webclient module when HTTP data
  * has arrived.
@@ -619,7 +620,7 @@ void
 webclient_datahandler(char *data, u16_t len)
 {
   if(len > 0) {
-    if(strcmp(webclient_mimetype(), http_texthtml) == 0) { 
+    if(strcmp(webclient_mimetype(), http_texthtml) == 0) {
       count = (count + 1) & 3;
       show_statustext(receivingmsgs[count]);
       htmlparser_parse(data, len);
@@ -648,7 +649,7 @@ webclient_datahandler(char *data, u16_t len)
 static void *
 add_pagewidget(char *text, unsigned char len, unsigned char type,
 		unsigned char border)
-{  
+{
   register struct ctk_widget *lptr;
   register char *wptr;
   static unsigned char maxwidth;
@@ -715,7 +716,7 @@ add_pagewidget(char *text, unsigned char len, unsigned char type,
 			  y + 3, len, 1,
 			  wptr, len);
 	((struct formattribs *)dataptr)->inputvalue = wptr;
-	break;	
+	break;
       }
       CTK_WIDGET_SET_FLAG(lptr, CTK_WIDGET_FLAG_MONOSPACE);
       CTK_WIDGET_ADD(&mainwindow, lptr);
@@ -801,7 +802,7 @@ htmlparser_newline(void)
   if(renderstate & HTMLPARSER_RENDERSTATE_CENTER) {
     centerline(wptr);
   }
-#endif /* WWW_CONF_RENDERSTATE */  
+#endif /* WWW_CONF_RENDERSTATE */
   
   if(y == WWW_CONF_WEBPAGE_HEIGHT) {
     loading = 0;
@@ -821,7 +822,7 @@ htmlparser_word(char *word, unsigned char wordlen)
     if(loading) {
       if(pagey == firsty) {
 	memcpy(webpageptr, word, wordlen);
-	webpageptr += wordlen;      
+	webpageptr += wordlen;
 	*webpageptr = ' ';
 	++webpageptr;
       }
