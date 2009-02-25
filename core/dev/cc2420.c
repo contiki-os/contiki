@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: cc2420.c,v 1.25 2008/08/26 21:44:03 adamdunkels Exp $
+ * @(#)$Id: cc2420.c,v 1.26 2009/02/25 21:21:06 nifi Exp $
  */
 /*
  * This code is almost device independent and should be easy to port.
@@ -50,8 +50,6 @@
 #include "dev/cc2420.h"
 #include "dev/cc2420_const.h"
 
-#include "lib/crc16.h"
-
 #include "net/rime/rimestats.h"
 
 #include "sys/timetable.h"
@@ -66,7 +64,17 @@
 #define TIMESTAMP_LEN 0
 #endif /* CC2420_CONF_TIMESTAMPS */
 #define FOOTER_LEN 2
+
+#ifndef CC2420_CONF_CHECKSUM
+#define CC2420_CONF_CHECKSUM 0
+#endif /* CC2420_CONF_CHECKSUM */
+
+#if CC2420_CONF_CHECKSUM
+#include "lib/crc16.h"
 #define CHECKSUM_LEN 2
+#else
+#define CHECKSUM_LEN 0
+#endif /* CC2420_CONF_CHECKSUM */
 
 #define AUX_LEN (CHECKSUM_LEN + TIMESTAMP_LEN + FOOTER_LEN)
 
@@ -93,9 +101,11 @@ rtimer_clock_t cc2420_time_of_arrival, cc2420_time_of_departure;
 
 int cc2420_authority_level_of_sender;
 
+#if CC2420_CONF_TIMESTAMPS
 static rtimer_clock_t setup_time_for_transmission;
 static unsigned long total_time_for_transmission, total_transmission_len;
 static int num_transmissions;
+#endif /* CC2420_CONF_TIMESTAMPS */
 
 /*---------------------------------------------------------------------------*/
 PROCESS(cc2420_process, "CC2420 driver");
@@ -298,8 +308,12 @@ cc2420_send(const void *payload, unsigned short payload_len)
 {
   int i;
   uint8_t total_len;
+#if CC2420_CONF_TIMESTAMPS
   struct timestamp timestamp;
+#endif /* CC2420_CONF_TIMESTAMPS */
+#if CC2420_CONF_CHECKSUM
   uint16_t checksum;
+#endif /* CC2420_CONF_CHECKSUM */
 
   GET_LOCK();
 
@@ -313,11 +327,15 @@ cc2420_send(const void *payload, unsigned short payload_len)
   /* Write packet to TX FIFO. */
   strobe(CC2420_SFLUSHTX);
 
+#if CC2420_CONF_CHECKSUM
   checksum = crc16_data(payload, payload_len, 0);
+#endif /* CC2420_CONF_CHECKSUM */
   total_len = payload_len + AUX_LEN;
   FASTSPI_WRITE_FIFO(&total_len, 1);
   FASTSPI_WRITE_FIFO(payload, payload_len);
+#if CC2420_CONF_CHECKSUM
   FASTSPI_WRITE_FIFO(&checksum, CHECKSUM_LEN);
+#endif /* CC2420_CONF_CHECKSUM */
 
 #if CC2420_CONF_TIMESTAMPS
   timestamp.authority_level = timesynch_authority_level();
@@ -494,8 +512,10 @@ cc2420_set_pan_addr(unsigned pan,
 /*
  * Interrupt leaves frame intact in FIFO.
  */
+#if CC2420_CONF_TIMESTAMPS
 static volatile rtimer_clock_t interrupt_time;
 static volatile int interrupt_time_set;
+#endif /* CC2420_CONF_TIMESTAMPS */
 #if CC2420_TIMETABLE_PROFILING
 #define cc2420_timetable_size 16
 TIMETABLE(cc2420_timetable);
@@ -504,8 +524,10 @@ TIMETABLE_AGGREGATE(aggregate_time, 10);
 int
 cc2420_interrupt(void)
 {
+#if CC2420_CONF_TIMESTAMPS
   interrupt_time = timesynch_time();
   interrupt_time_set = 1;
+#endif /* CC2420_CONF_TIMESTAMPS */
 
   CLEAR_FIFOP_INT();
   process_poll(&cc2420_process);
@@ -551,23 +573,27 @@ cc2420_read(void *buf, unsigned short bufsize)
 {
   uint8_t footer[2];
   uint8_t len;
+#if CC2420_CONF_CHECKSUM
   uint16_t checksum;
+#endif /* CC2420_CONF_CHECKSUM */
+#if CC2420_CONF_TIMESTAMPS
   struct timestamp t;
+#endif /* CC2420_CONF_TIMESTAMPS */
   
   if(!FIFOP_IS_1) {
     /* If FIFOP is 0, there is no packet in the RXFIFO. */
     return 0;
   }
   
-  if(interrupt_time_set) {
 #if CC2420_CONF_TIMESTAMPS
+  if(interrupt_time_set) {
     cc2420_time_of_arrival = interrupt_time;
-#endif /* CC2420_CONF_TIMESTAMPS */
     interrupt_time_set = 0;
   } else {
     cc2420_time_of_arrival = 0;
   }
   cc2420_time_of_departure = 0;
+#endif /* CC2420_CONF_TIMESTAMPS */
   GET_LOCK();
 
   getrxbyte(&len);
@@ -595,12 +621,20 @@ cc2420_read(void *buf, unsigned short bufsize)
   }
 
   getrxdata(buf, len - AUX_LEN);
+#if CC2420_CONF_CHECKSUM
   getrxdata(&checksum, CHECKSUM_LEN);
+#endif /* CC2420_CONF_CHECKSUM */
+#if CC2420_CONF_TIMESTAMPS
   getrxdata(&t, TIMESTAMP_LEN);
+#endif /* CC2420_CONF_TIMESTAMPS */
   getrxdata(footer, FOOTER_LEN);
   
+#if CC2420_CONF_CHECKSUM
   if(footer[1] & FOOTER1_CRC_OK &&
      checksum == crc16_data(buf, len - AUX_LEN, 0)) {
+#else
+  if(footer[1] & FOOTER1_CRC_OK) {
+#endif /* CC2420_CONF_CHECKSUM */
     cc2420_last_rssi = footer[0];
     cc2420_last_correlation = footer[1] & FOOTER1_CORRELATION;
     RIMESTATS_ADD(llrx);
