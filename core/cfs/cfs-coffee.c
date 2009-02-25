@@ -503,7 +503,7 @@ remove_by_page(coffee_page_t page, int remove_log, int close_fds)
   if(close_fds) {
     last_valid = -1;
     for(i = 0; i < COFFEE_FD_SET_SIZE; i++) {
-      if(coffee_fd_set[i].file->page == page) {
+      if(coffee_fd_set[i].file != NULL && coffee_fd_set[i].file->page == page) {
 	coffee_fd_set[i].flags = COFFEE_FD_FREE;
 	last_valid = i;
       }
@@ -1095,7 +1095,6 @@ cfs_write(int fd, const void *buf, unsigned size)
       lp.offset = fdp->offset;
       lp.buf = (char *)buf + size - remains;
       lp.size = remains;
-
       i = write_log_page(file, &lp);
       if(i == 0) {
 	file = fdp->file;
@@ -1109,8 +1108,7 @@ cfs_write(int fd, const void *buf, unsigned size)
       fdp->offset += i;
     }
   } else {
-    COFFEE_WRITE(buf, size,
-	absolute_offset(file->page, fdp->offset));
+    COFFEE_WRITE(buf, size, absolute_offset(file->page, fdp->offset));
     fdp->offset += size;
   }
 
