@@ -1,5 +1,5 @@
 /* -*- C -*- */
-/* @(#)$Id: contiki-conf.h,v 1.34 2009/02/14 22:52:24 adamdunkels Exp $ */
+/* @(#)$Id: contiki-conf.h,v 1.35 2009/02/25 10:23:03 adamdunkels Exp $ */
 
 #ifndef CONTIKI_CONF_H
 #define CONTIKI_CONF_H
@@ -91,7 +91,7 @@
 
 #define UIP_CONF_DHCP_LIGHT
 #define UIP_CONF_LLH_LEN         0
-#define UIP_CONF_BUFFER_SIZE     110
+#define UIP_CONF_BUFFER_SIZE     108
 #define UIP_CONF_RECEIVE_WINDOW  (UIP_CONF_BUFFER_SIZE - 40)
 #define UIP_CONF_MAX_CONNECTIONS 4
 #define UIP_CONF_MAX_LISTENPORTS 8
