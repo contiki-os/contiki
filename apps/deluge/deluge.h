@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: deluge.h,v 1.1 2009/02/25 17:00:41 nvt-se Exp $
+ * $Id: deluge.h,v 1.2 2009/02/25 17:09:55 nvt-se Exp $
  */
 
 /**
@@ -118,7 +118,7 @@ struct deluge_msg_request {
   uint8_t cmd;
   uint8_t version;
   uint8_t pagenum;
-  unsigned request_set:N_PKT;
+  uint8_t request_set;
 } __attribute__((packed));
 
 struct deluge_msg_packet {
@@ -150,21 +150,20 @@ struct deluge_object {
   int8_t current_tx_page;
   uint8_t nrequests;
   uint8_t current_page[S_PAGE];
-  unsigned tx_set:N_PKT;
+  uint8_t tx_set;
   int cfs_fd;
   rimeaddr_t summary_from;
 };
 
 struct deluge_page {
+  uint32_t packet_set;
   uint16_t crc;
   clock_time_t last_request;
   clock_time_t last_data;
   uint8_t flags;
   uint8_t version;
-  unsigned packet_set:N_PKT;
 };
 
 int deluge_disseminate(char *file, unsigned version);
-
 
 #endif
