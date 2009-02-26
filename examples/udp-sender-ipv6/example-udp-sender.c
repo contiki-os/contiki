@@ -92,6 +92,10 @@ PROCESS_THREAD(udp_process_sender, ev, data)
   PROCESS_BEGIN();
   PRINTF("Process test UDP sender started\n");
 
+  PRINTF("Local IPv6 address: ");
+  PRINT6ADDR(&uip_netif_physical_if.addresses[0].ipaddr);
+  PRINTF("\n");
+
 #ifdef UDP_ADDR_A
   uip_ip6addr(&ipaddr,
       UDP_ADDR_A,UDP_ADDR_B,UDP_ADDR_C,UDP_ADDR_D,
