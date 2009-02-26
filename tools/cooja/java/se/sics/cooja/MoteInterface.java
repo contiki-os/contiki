@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: MoteInterface.java,v 1.4 2008/10/28 12:50:38 fros4943 Exp $
+ * $Id: MoteInterface.java,v 1.5 2009/02/26 13:36:15 fros4943 Exp $
  */
 
 package se.sics.cooja;
@@ -60,7 +60,7 @@ import se.sics.cooja.interfaces.PolledBeforeAllTicks;
  * @see PolledBeforeAllTicks
  * @see PolledAfterAllTicks
  *
- * @author Fredrik Österlind
+ * @author Fredrik Osterlind
  */
 public abstract class MoteInterface extends Observable {
   private static Logger logger = Logger.getLogger(MoteInterface.class);
@@ -85,6 +85,7 @@ public abstract class MoteInterface extends Observable {
       return instance;
     } catch (Exception e) {
       logger.fatal("Exception when creating " + interfaceClass + ": " + e);
+      e.printStackTrace();
       return null;
     }
   }
