@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ContikiMote.java,v 1.9 2008/12/04 14:03:42 joxe Exp $
+ * $Id: ContikiMote.java,v 1.10 2009/02/26 13:45:58 fros4943 Exp $
  */
 
 package se.sics.cooja.contikimote;
@@ -310,11 +310,13 @@ public class ContikiMote implements Mote {
   }
 
   public String toString() {
-    if (getInterfaces().getMoteID() != null) {
-      return "Contiki Mote, ID=" + getInterfaces().getMoteID().getMoteID();
-    } else {
+    if (getInterfaces() == null) {
+      return "Contiki Mote";
+    }
+    if (getInterfaces().getMoteID() == null) {
       return "Contiki Mote, ID=null";
     }
+    return "Contiki Mote, ID=" + getInterfaces().getMoteID().getMoteID();
   }
 
 }
