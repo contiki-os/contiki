@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: deluge.c,v 1.1 2009/02/25 17:00:41 nvt-se Exp $
+ * $Id: deluge.c,v 1.2 2009/02/26 14:55:29 nvt-se Exp $
  */
 
 /**
@@ -135,7 +135,7 @@ static int
 write_page(struct deluge_object *obj, unsigned pagenum, unsigned char *data)
 {
   cfs_seek(obj->cfs_fd, pagenum * S_PAGE);
-  return cfs_write(obj->cfs_fd, (char *) data,
+  return cfs_write(obj->cfs_fd, (char *)data,
 	S_PAGE);
 }
 
@@ -143,7 +143,7 @@ static int
 read_page(struct deluge_object *obj, unsigned pagenum, unsigned char *buf)
 {
   cfs_seek(obj->cfs_fd, pagenum * S_PAGE);
-  return cfs_read(obj->cfs_fd, (char *) buf, S_PAGE);
+  return cfs_read(obj->cfs_fd, (char *)buf, S_PAGE);
 }
 
 static void
@@ -249,7 +249,7 @@ send_request(void *arg)
   struct deluge_object *obj;
   struct deluge_msg_request request;
 
-  obj = (struct deluge_object *) arg;
+  obj = (struct deluge_object *)arg;
 
   request.object_id = obj->object_id;
   request.cmd = DELUGE_CMD_REQUEST;
@@ -259,7 +259,7 @@ send_request(void *arg)
 
   PRINTF("Sending request for page %d, version %u, request_set %u\n", 
 	request.pagenum, request.version, request.request_set);
-  rimebuf_copyfrom((uint8_t *) &request, sizeof (request));
+  rimebuf_copyfrom((uint8_t *)&request, sizeof (request));
   unicast_send(&deluge_uc, &obj->summary_from);
 
   /* Deluge R.2 */
@@ -290,7 +290,7 @@ advertise_summary(struct deluge_object *obj)
   PRINTF("Advertising summary for object id %u: version=%u, available=%u\n",
 	(unsigned) obj->object_id, summary.version, summary.highest_available);
 
-  rimebuf_copyfrom((uint8_t *) &summary, sizeof (summary));
+  rimebuf_copyfrom((uint8_t *)&summary, sizeof (summary));
   broadcast_send(&deluge_broadcast);
 }
 
@@ -362,10 +362,10 @@ send_page(struct deluge_object *obj, unsigned pagenum)
   read_page(obj, pagenum, buf);
 
   /* Divide the page into packets and send them one at a time. */
-  for(cp = buf; cp + S_PKT <= (unsigned char *) &buf[S_PAGE]; cp += S_PKT) {
+  for(cp = buf; cp + S_PKT <= (unsigned char *)&buf[S_PAGE]; cp += S_PKT) {
     pkt.crc = checksum(cp, S_PKT);
     memcpy(pkt.payload, cp, S_PKT);
-    rimebuf_copyfrom((uint8_t *) &pkt, sizeof (pkt));
+    rimebuf_copyfrom((uint8_t *)&pkt, sizeof (pkt));
     broadcast_send(&deluge_broadcast);
 
     obj->tx_set &= ~(1 << pkt.packetnum++);
@@ -377,7 +377,7 @@ tx_callback(void *arg)
 {
   struct deluge_object *obj;
 
-  obj = (struct deluge_object *) arg;
+  obj = (struct deluge_object *)arg;
   if(obj->current_tx_page >= 0 && obj->tx_set) {
     send_page(obj, obj->current_tx_page);
     /* Deluge T.2. */
@@ -515,7 +515,7 @@ unicast_recv(struct unicast_conn *c, rimeaddr_t *sender)
   switch (msg[2]) {
   case DELUGE_CMD_REQUEST:
     if(len >= sizeof (struct deluge_msg_request))
-      handle_request((struct deluge_msg_request *) msg);
+      handle_request((struct deluge_msg_request *)msg);
     break;
   default:
     PRINTF("Incoming packet with unknown command!\n");
@@ -532,7 +532,7 @@ send_profile(struct deluge_object *obj)
   if(broadcast_profile && recv_adv < CONST_K) {
     broadcast_profile = 0;
 
-    msg = (struct deluge_msg_profile *) buf;
+    msg = (struct deluge_msg_profile *)buf;
     msg->cmd = DELUGE_CMD_PROFILE;
     msg->object_id = obj->object_id;
     msg->version = obj->version;
@@ -582,7 +582,7 @@ handle_profile(struct deluge_msg_profile *msg)
 
   memcpy(p, obj->pages, npages * sizeof (*obj->pages));
   free(obj->pages);
-  obj->pages = (struct deluge_page *) p;
+  obj->pages = (struct deluge_page *)p;
 
   if(msg->npages < npages) {
     npages = msg->npages;
@@ -625,21 +625,21 @@ broadcast_recv(struct broadcast_conn *c, rimeaddr_t *sender)
   switch (msg[2]) {
   case DELUGE_CMD_SUMMARY:
     if(len >= sizeof (struct deluge_msg_summary))
-      handle_summary((struct deluge_msg_summary *) msg, sender);
+      handle_summary((struct deluge_msg_summary *)msg, sender);
     break;
   case DELUGE_CMD_REQUEST:
     if(len >= sizeof (struct deluge_msg_request))
-      handle_request((struct deluge_msg_request *) msg);
+      handle_request((struct deluge_msg_request *)msg);
     break;
   case DELUGE_CMD_PACKET:
     if(len >= sizeof (struct deluge_msg_packet))
-      handle_packet((struct deluge_msg_packet *) msg);
+      handle_packet((struct deluge_msg_packet *)msg);
     break;
   case DELUGE_CMD_PROFILE:
-    profile = (struct deluge_msg_profile *) msg;
+    profile = (struct deluge_msg_profile *)msg;
     if(len >= sizeof (*profile) &&
 	len >= sizeof (*profile) + profile->npages * profile->version_vector[0])
-      handle_profile((struct deluge_msg_profile *) msg);
+      handle_profile((struct deluge_msg_profile *)msg);
     break;
   default:
     PRINTF("Incoming packet with unknown command!\n");
@@ -698,7 +698,7 @@ PROCESS_THREAD(deluge_process, ev, data)
 
     /* Deluge M.4 */
     ctimer_set(&profile_timer, r_rand * CLOCK_SECOND,
-	(void *)(void *) send_profile, &current_object);
+	(void *)(void *)send_profile, &current_object);
 
     LONG_TIMER(et, time_counter, r_interval);
   }
