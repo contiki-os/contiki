@@ -24,7 +24,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * $Id: GUI.java,v 1.108 2009/02/25 16:11:59 fros4943 Exp $
+ * $Id: GUI.java,v 1.109 2009/02/26 13:35:45 fros4943 Exp $
  */
 
 package se.sics.cooja;
@@ -302,14 +302,34 @@ public class GUI extends Observable {
 
   private Vector<Class<? extends Positioner>> positionerClasses = new Vector<Class<? extends Positioner>>();
 
-  // Mote highlight observable
   private class HighlightObservable extends Observable {
-    private void highlightMote(Mote mote) {
+    private void setChangedAndNotify(Mote mote) {
       setChanged();
       notifyObservers(mote);
     }
   }
   private HighlightObservable moteHighlightObservable = new HighlightObservable();
+
+  private class MoteRelationsObservable extends Observable {
+    private void setChangedAndNotify() {
+      setChanged();
+      notifyObservers();
+    }
+  }
+  private MoteRelationsObservable moteRelationObservable = new MoteRelationsObservable();
+
+  /**
+   * Mote relation (directed).
+   */
+  public static class MoteRelation {
+    public Mote source;
+    public Mote dest;
+    public MoteRelation(Mote source, Mote dest) {
+      this.source = source;
+      this.dest = dest;
+    }
+  }
+  private ArrayList<MoteRelation> moteRelations = new ArrayList<MoteRelation>();
 
   /**
    * Creates a new COOJA Simulator GUI.
@@ -4088,7 +4108,72 @@ public class GUI extends Observable {
    *          Mote to highlight
    */
   public void signalMoteHighlight(Mote m) {
-    moteHighlightObservable.highlightMote(m);
+    moteHighlightObservable.setChangedAndNotify(m);
+  }
+
+  /**
+   * Adds directed relation between given motes.
+   *
+   * @param source Source mote
+   * @param dest Destination mote
+   */
+  public void addMoteRelation(Mote source, Mote dest) {
+    if (source == null || dest == null) {
+      return;
+    }
+    removeMoteRelation(source, dest); /* Unique relations */
+    moteRelations.add(new MoteRelation(source, dest));
+    moteRelationObservable.setChangedAndNotify();
+  }
+
+  /**
+   * Removes the relations between given motes.
+   *
+   * @param source Source mote
+   * @param dest Destination mote
+   */
+  public void removeMoteRelation(Mote source, Mote dest) {
+    if (source == null || dest == null) {
+      return;
+    }
+    MoteRelation[] arr = getMoteRelations();
+    for (MoteRelation r: arr) {
+      if (r.source == source && r.dest == dest) {
+        moteRelations.remove(r);
+      }
+    }
+    moteRelationObservable.setChangedAndNotify();
+  }
+
+  /**
+   * @return All current mote relations.
+   *
+   * @see #addMoteRelationsObserver(Observer)
+   */
+  public MoteRelation[] getMoteRelations() {
+    MoteRelation[] arr = new MoteRelation[moteRelations.size()];
+    moteRelations.toArray(arr);
+    return arr;
+  }
+
+  /**
+   * Adds mote relation observer.
+   * Typically used by visualizer plugins.
+   *
+   * @param newObserver Observer
+   */
+  public void addMoteRelationsObserver(Observer newObserver) {
+    moteRelationObservable.addObserver(newObserver);
+  }
+
+  /**
+   * Removes mote relation observer.
+   * Typically used by visualizer plugins.
+   *
+   * @param observer Observer
+   */
+  public void deleteMoteRelationsObserver(Observer observer) {
+    moteRelationObservable.deleteObserver(observer);
   }
 
   public static File stripTrailingUpDirs(File file) {
@@ -4114,6 +4199,7 @@ public class GUI extends Observable {
 
     return file;
   }
+
 
   public static File resolveShortAbsolutePath(File file) {
     file = file.getAbsoluteFile();
