@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: Visualizer2D.java,v 1.15 2009/02/17 14:09:51 fros4943 Exp $
+ * $Id: Visualizer2D.java,v 1.16 2009/02/26 13:29:30 fros4943 Exp $
  */
 
 package se.sics.cooja.plugins;
@@ -53,6 +53,7 @@ import javax.swing.Timer;
 import org.apache.log4j.Logger;
 
 import se.sics.cooja.*;
+import se.sics.cooja.GUI.MoteRelation;
 import se.sics.cooja.interfaces.*;
 
 /**
@@ -99,6 +100,7 @@ public abstract class Visualizer2D extends VisPlugin {
   private Observer posObserver = null; // Watches position changes
 
   private Observer moteHighligtObserver = null;
+  private Observer moteRelationsObserver = null;
   private Mote highlightedMote = null;
   private Color highlightColor = Color.GRAY;
   private Timer highlightTimer = null;
@@ -316,6 +318,13 @@ public abstract class Visualizer2D extends VisPlugin {
           }
         });
         highlightTimer.start();
+      }
+    });
+
+    /* Paint mote relations */
+    myGUI.addMoteRelationsObserver(moteRelationsObserver = new Observer() {
+      public void update(Observable obs, Object obj) {
+        repaint();
       }
     });
 
@@ -659,8 +668,8 @@ public abstract class Visualizer2D extends VisPlugin {
   abstract public Color[] getColorOf(Mote mote);
 
   protected void visualizeSimulation(Graphics g) {
-    for (int i = 0; i < simulation.getMotesCount(); i++) {
-      Mote mote = simulation.getMote(i);
+    Mote[] allMotes = simulation.getMotes();
+    for (Mote mote: allMotes) {
       Color moteColors[] = getColorOf(mote);
       Position motePos = mote.getInterfaces().getPosition();
 
@@ -692,6 +701,29 @@ public abstract class Visualizer2D extends VisPlugin {
       g.setColor(Color.BLACK);
       g.drawOval(x - MOTE_RADIUS, y - MOTE_RADIUS, 2 * MOTE_RADIUS,
           2 * MOTE_RADIUS);
+    }
+
+    /* Paint mote relations */
+    MoteRelation[] relations = simulation.getGUI().getMoteRelations();
+    for (MoteRelation r: relations) {
+      Position sourcePos = r.source.getInterfaces().getPosition();
+      Position destPos = r.dest.getInterfaces().getPosition();
+
+      Point sourcePoint = transformPositionToPixel(sourcePos);
+      Point destPoint = transformPositionToPixel(destPos);
+
+      Point middlePoint = new Point(
+          (destPoint.x*9 + sourcePoint.x*1)/10,
+          (destPoint.y*9 + sourcePoint.y*1)/10
+      );
+
+      /* "Arrow body" is painted gray */
+      g.setColor(Color.LIGHT_GRAY);
+      g.drawLine(sourcePoint.x, sourcePoint.y, middlePoint.x, middlePoint.y);
+
+      /* "Arrow head" is painted black */
+      g.setColor(Color.BLACK);
+      g.drawLine(middlePoint.x, middlePoint.y, destPoint.x, destPoint.y);
     }
   }
 
@@ -818,6 +850,9 @@ public abstract class Visualizer2D extends VisPlugin {
   public void closePlugin() {
     if (moteHighligtObserver != null) {
       myGUI.deleteMoteHighlightObserver(moteHighligtObserver);
+    }
+    if (moteRelationsObserver != null) {
+      myGUI.deleteMoteRelationsObserver(moteRelationsObserver);
     }
 
     if (simObserver != null) {
