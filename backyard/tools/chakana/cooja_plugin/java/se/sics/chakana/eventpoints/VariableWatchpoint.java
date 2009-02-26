@@ -24,15 +24,46 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * 
- * $Id: Timepoint.java,v 1.1 2007/08/21 14:39:58 fros4943 Exp $
+ * $Id: VariableWatchpoint.java,v 1.1 2009/02/26 13:47:38 fros4943 Exp $
  */
 
 package se.sics.chakana.eventpoints;
 
+import se.sics.cooja.Mote;
+import se.sics.cooja.SectionMoteMemory;
+
 /**
- * A timepoint triggers at and after a given time.
+ * TODO Document
  *
  * @author Fredrik Osterlind
  */
-public interface Timepoint extends Eventpoint {
+public class VariableWatchpoint extends Watchpoint {
+  private Mote mote;
+  private String name;
+  
+  private String reason;
+
+  public VariableWatchpoint(Mote mote, String variableName, int size) {
+    super(mote, ((SectionMoteMemory) mote.getMemory())
+        .getVariableAddress(variableName), size);
+    this.mote = mote;
+    this.name = variableName;
+  }
+
+  public boolean evaluate() {
+    boolean shouldBreak = super.evaluate();
+
+    if (shouldBreak) {
+      reason = "Variable '" + name + "' changed";
+    }
+    return shouldBreak;
+  }
+  
+  public String getMessage() {
+    return reason;
+  }
+  
+  public String toString() {
+    return "Variable watchpoint: " + name + " @ " + mote;
+  }
 }

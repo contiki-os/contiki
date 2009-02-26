@@ -5,7 +5,7 @@
 # file for licensing information.
 #  
 
-# $Id: error.py,v 1.1 2007/08/21 14:41:01 fros4943 Exp $
+# $Id: error.py,v 1.1 2009/02/26 13:47:38 fros4943 Exp $
 
 import errno
 import os

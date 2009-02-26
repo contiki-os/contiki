@@ -24,67 +24,15 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * 
- * $Id: RadioMediumEventpoint.java,v 1.1 2007/08/21 14:39:58 fros4943 Exp $
+ * $Id: Timepoint.java,v 1.1 2009/02/26 13:47:38 fros4943 Exp $
  */
 
 package se.sics.chakana.eventpoints;
 
-import java.util.Observable;
-import java.util.Observer;
-
-import se.sics.cooja.RadioMedium;
-
 /**
- * Triggers if radio medium changes
+ * A timepoint triggers at and after a given time.
  *
  * @author Fredrik Osterlind
  */
-public class RadioMediumEventpoint implements Eventpoint {
-  protected boolean shouldBreak = false;
-  private int myID = 0;
-  protected RadioMedium radioMedium;
-  private int count = 1;
-  
-  public RadioMediumEventpoint(RadioMedium radioMedium) {
-    if (radioMedium == null) {
-      // TODO Throw exception
-      return;
-    }
-    
-    this.radioMedium = radioMedium;
-    
-    // Register as radio medium observer
-    radioMedium.addRadioMediumObserver(new Observer() {
-      public void update(Observable obs, Object obj) {
-        handleRadioMediumChange();
-      }
-    });
-  }
-  
-  public RadioMediumEventpoint(RadioMedium radioMedium, int count) {
-    this(radioMedium);
-    this.count = count;
-  }
-
-  protected void handleRadioMediumChange() {
-    count--;
-    if (count < 1)
-      shouldBreak = true;
-  }
-  
-  public String getMessage() {
-    return "Radio medium changed";
-  }
-
-  public boolean evaluate() {
-    return shouldBreak;
-  }
-  
-  public void setID(int id) {
-    myID = id;
-  }
-
-  public int getID() {
-    return myID;
-  }
+public interface Timepoint extends Eventpoint {
 }

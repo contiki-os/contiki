@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: XMLCommandHandler.java,v 1.1 2007/08/21 14:39:58 fros4943 Exp $
+ * $Id: XMLCommandHandler.java,v 1.1 2009/02/26 13:47:38 fros4943 Exp $
  */
 
 package se.sics.chakana;
