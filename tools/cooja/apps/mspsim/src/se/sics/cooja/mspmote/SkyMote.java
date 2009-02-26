@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: SkyMote.java,v 1.11 2009/02/18 12:08:37 fros4943 Exp $
+ * $Id: SkyMote.java,v 1.12 2009/02/26 13:48:08 fros4943 Exp $
  */
 
 package se.sics.cooja.mspmote;
@@ -117,13 +117,17 @@ public class SkyMote extends MspMote {
     } catch (UnknownVariableException e) {
     }
 
+    /* Mote relation listener */
+    Mote2MoteRelations mote2moteRelation = new Mote2MoteRelations(this);
+    moteInterfaceHandler.addInterface(mote2moteRelation);
+
     return moteInterfaceHandler;
   }
 
   public void idUpdated(int newID) {
     skyNode.setNodeID(newID);
   }
-  
+
   public String toString() {
     MoteID moteID = getInterfaces() != null ? getInterfaces().getMoteID() : null;
     if (moteID != null) {
