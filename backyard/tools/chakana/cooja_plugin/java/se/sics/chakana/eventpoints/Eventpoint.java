@@ -24,46 +24,33 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * 
- * $Id: VariableWatchpoint.java,v 1.1 2007/08/21 14:39:58 fros4943 Exp $
+ * $Id: Eventpoint.java,v 1.1 2009/02/26 13:47:38 fros4943 Exp $
  */
 
 package se.sics.chakana.eventpoints;
 
-import se.sics.cooja.Mote;
-import se.sics.cooja.SectionMoteMemory;
+public interface Eventpoint {
 
-/**
- * TODO Document
- *
- * @author Fredrik Osterlind
- */
-public class VariableWatchpoint extends Watchpoint {
-  private Mote mote;
-  private String name;
-  
-  private String reason;
+  /**
+   * Evaluates eventpoint.
+   * 
+   * @return True if eventpoint triggered, false otherwise
+   */
+  public boolean evaluate();
 
-  public VariableWatchpoint(Mote mote, String variableName, int size) {
-    super(mote, ((SectionMoteMemory) mote.getMemory())
-        .getVariableAddress(variableName), size);
-    this.mote = mote;
-    this.name = variableName;
-  }
+  /**
+   * @return Optional information of triggered eventpoint
+   */
+  public String getMessage();
 
-  public boolean evaluate() {
-    boolean shouldBreak = super.evaluate();
+  /**
+   * @param id Eventpoint ID
+   */
+  public void setID(int id);
 
-    if (shouldBreak) {
-      reason = "Variable '" + name + "' changed";
-    }
-    return shouldBreak;
-  }
-  
-  public String getMessage() {
-    return reason;
-  }
-  
-  public String toString() {
-    return "Variable watchpoint: " + name + " @ " + mote;
-  }
+  /**
+   * @return Unique eventpoint ID
+   */
+  public int getID();
+
 }

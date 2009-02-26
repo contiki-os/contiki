@@ -24,33 +24,43 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * 
- * $Id: Eventpoint.java,v 1.1 2007/08/21 14:39:58 fros4943 Exp $
+ * $Id: TransmissionRadioMediumEventpoint.java,v 1.1 2009/02/26 13:47:38 fros4943 Exp $
  */
 
 package se.sics.chakana.eventpoints;
 
-public interface Eventpoint {
+import se.sics.cooja.RadioMedium;
 
-  /**
-   * Evaluates eventpoint.
-   * 
-   * @return True if eventpoint triggered, false otherwise
-   */
-  public boolean evaluate();
-
-  /**
-   * @return Optional information of triggered eventpoint
-   */
-  public String getMessage();
-
-  /**
-   * @param id Eventpoint ID
-   */
-  public void setID(int id);
-
-  /**
-   * @return Unique eventpoint ID
-   */
-  public int getID();
+/**
+ * Triggers when a radio medium transmission has been completed
+ *
+ * @author Fredrik Osterlind
+ */
+public class TransmissionRadioMediumEventpoint extends RadioMediumEventpoint {
+  private String message = "";
+  private int count = 1;
+  
+  public TransmissionRadioMediumEventpoint(RadioMedium radioMedium) {
+    super(radioMedium);
+  }
+  
+  public TransmissionRadioMediumEventpoint(RadioMedium radioMedium, int count) {
+    this(radioMedium);
+    this.count = count;
+  }
+  
+  protected void handleRadioMediumChange() {
+    if (radioMedium.getLastTickConnections() != null) {
+      count -= radioMedium.getLastTickConnections().length;
+      if (count < 1) {
+        shouldBreak = true;
+        message = radioMedium.getLastTickConnections().length  + " transmissions were completed";
+      }
+    }
+  }
+  
+  public String getMessage() {
+    return message;
+  }
 
 }
