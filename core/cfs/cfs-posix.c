@@ -30,7 +30,7 @@
  *
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: cfs-posix.c,v 1.13 2009/02/27 14:25:38 nvt-se Exp $
+ * $Id: cfs-posix.c,v 1.14 2009/02/27 14:50:35 nvt-se Exp $
  */
 
 #include <stdio.h>
@@ -85,7 +85,7 @@ cfs_write(int f, const void *b, unsigned int l)
 }
 /*---------------------------------------------------------------------------*/
 cfs_offset_t
-cfs_seek(int f, unsigned int o, int w)
+cfs_seek(int f, cfs_offset_t o, int w)
 {
   if(w == CFS_SEEK_SET) {
     w = SEEK_SET;
