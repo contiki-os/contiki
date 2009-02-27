@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: elfloader-avr.c,v 1.5 2007/11/16 09:16:31 fros4943 Exp $
+ * @(#)$Id: elfloader-avr.c,v 1.6 2009/02/27 14:28:02 nvt-se Exp $
  */
 
 #include <stdio.h>
@@ -114,7 +114,7 @@ elfloader_arch_write_rom(int fd, unsigned short textoff, unsigned int size, char
   
     // Seek to patched module and burn it to flash (in chunks of
     // size SPM_PAGESIZE, i.e. 256 bytes on the ATmega128)
-    cfs_seek(fd, textoff);
+    cfs_seek(fd, textoff, CFS_SEEK_SET);
     for (flashptr=mem; flashptr < mem + size; flashptr += SPM_PAGESIZE) {
 	memset (buf, 0, SPM_PAGESIZE);
 	cfs_read(fd, buf, SPM_PAGESIZE);
@@ -169,9 +169,9 @@ elfloader_arch_relocate(int fd, unsigned int sectionoffset,
   unsigned int type;
   unsigned char instr[4];
 
-  cfs_seek(fd, sectionoffset + rela->r_offset);
+  cfs_seek(fd, sectionoffset + rela->r_offset, CFS_SEEK_SET);
   cfs_read(fd, instr, 4);
-  cfs_seek(fd, sectionoffset + rela->r_offset);
+  cfs_seek(fd, sectionoffset + rela->r_offset, CFS_SEEK_SET);
   
   type = ELF32_R_TYPE(rela->r_info);
 

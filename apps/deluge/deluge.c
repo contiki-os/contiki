@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: deluge.c,v 1.2 2009/02/26 14:55:29 nvt-se Exp $
+ * $Id: deluge.c,v 1.3 2009/02/27 14:28:02 nvt-se Exp $
  */
 
 /**
@@ -134,7 +134,7 @@ transition(int state)
 static int
 write_page(struct deluge_object *obj, unsigned pagenum, unsigned char *data)
 {
-  cfs_seek(obj->cfs_fd, pagenum * S_PAGE);
+  cfs_seek(obj->cfs_fd, pagenum * S_PAGE, CFS_SEEK_SET);
   return cfs_write(obj->cfs_fd, (char *)data,
 	S_PAGE);
 }
@@ -142,7 +142,7 @@ write_page(struct deluge_object *obj, unsigned pagenum, unsigned char *data)
 static int
 read_page(struct deluge_object *obj, unsigned pagenum, unsigned char *buf)
 {
-  cfs_seek(obj->cfs_fd, pagenum * S_PAGE);
+  cfs_seek(obj->cfs_fd, pagenum * S_PAGE, CFS_SEEK_SET);
   return cfs_read(obj->cfs_fd, (char *)buf, S_PAGE);
 }
 

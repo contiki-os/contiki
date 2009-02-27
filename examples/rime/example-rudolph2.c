@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: example-rudolph2.c,v 1.2 2008/11/17 22:52:10 oliverschmidt Exp $
+ * $Id: example-rudolph2.c,v 1.3 2009/02/27 14:28:02 nvt-se Exp $
  */
 
 /**
@@ -84,7 +84,7 @@ write_chunk(struct rudolph2_conn *c, int offset, int flag,
   
   if(datalen > 0) {
     int ret;
-    cfs_seek(fd, offset);
+    cfs_seek(fd, offset, CFS_SEEK_SET);
     ret = cfs_write(fd, data, datalen);
   }
 
@@ -122,7 +122,7 @@ read_chunk(struct rudolph2_conn *c, int offset, uint8_t *to, int maxsize)
   
   fd = cfs_open("hej", CFS_READ);
 
-  cfs_seek(fd, offset);
+  cfs_seek(fd, offset, CFS_SEEK_SET);
   ret = cfs_read(fd, to, maxsize);
   /*  printf("%d.%d: read_chunk %d bytes at %d, %d\n",
 	 rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1],

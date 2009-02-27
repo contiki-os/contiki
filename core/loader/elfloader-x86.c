@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: elfloader-x86.c,v 1.2 2006/12/18 14:54:04 fros4943 Exp $
+ * @(#)$Id: elfloader-x86.c,v 1.3 2009/02/27 14:28:02 nvt-se Exp $
  */
 #include "elfloader-arch.h"
 #include <sys/mman.h>
@@ -69,7 +69,7 @@ elfloader_arch_allocate_rom(int size)
 void
 elfloader_arch_write_rom(int fd, unsigned short textoff, unsigned int size, char *mem)
 {
-  cfs_seek(fd, textoff);
+  cfs_seek(fd, textoff, CFS_SEEK_SET);
   cfs_read(fd, (unsigned char *)mem, size);
 }
 /*---------------------------------------------------------------------------*/
@@ -97,7 +97,7 @@ elfloader_arch_relocate(int fd, unsigned int sectionoffset, char *sectionaddress
   case R_386_32:
     addr += rela->r_addend; /* +A */
     
-    cfs_seek(fd, sectionoffset + rela->r_offset);
+    cfs_seek(fd, sectionoffset + rela->r_offset, CFS_SEEK_SET);
     cfs_write(fd, (char *)&addr, 4);
     /*printf("elfloader-x86.c: performed relocation type S + A (%d)\n", type);*/
     break;
@@ -105,7 +105,7 @@ elfloader_arch_relocate(int fd, unsigned int sectionoffset, char *sectionaddress
     addr -= (sectionaddress + rela->r_offset); /* -P */
     addr += rela->r_addend; /* +A */
     
-    cfs_seek(fd, sectionoffset + rela->r_offset);
+    cfs_seek(fd, sectionoffset + rela->r_offset, CFS_SEEK_SET);
     cfs_write(fd, (char *)&addr, 4);
     /*printf("elfloader-x86.c: performed relocation type S + A - P (%d)\n", type);*/
     break;

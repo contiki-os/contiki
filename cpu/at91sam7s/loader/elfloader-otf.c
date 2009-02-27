@@ -29,7 +29,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: elfloader-otf.c,v 1.1 2007/03/07 16:07:26 ksb Exp $
+ * @(#)$Id: elfloader-otf.c,v 1.2 2009/02/27 14:28:02 nvt-se Exp $
  */
 
 #include "contiki.h"
@@ -152,7 +152,7 @@ copy_segment_data(int input_fd, unsigned int offset,
 {
   char buffer[16];
   int res;
-  if (cfs_seek(input_fd, offset) != offset) return ELFLOADER_INPUT_ERROR;
+  if (cfs_seek(input_fd, offset, CFS_SEEK_SET) != offset) return ELFLOADER_INPUT_ERROR;
   while(len > sizeof(buffer)) {
     res = cfs_read(input_fd, buffer, sizeof(buffer));
     if (res != sizeof(buffer)) return ELFLOADER_INPUT_ERROR;
@@ -170,7 +170,7 @@ copy_segment_data(int input_fd, unsigned int offset,
 static int
 seek_read(int fd, unsigned int offset, char *buf, int len)
 {
-  if (cfs_seek(fd, offset) != offset) return -1;
+  if (cfs_seek(fd, offset, CFS_SEEK_SET) != offset) return -1;
   return cfs_read(fd, buf, len);
 }
 

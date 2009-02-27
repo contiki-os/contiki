@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: elfloader.c,v 1.9 2008/07/09 20:56:25 adamdunkels Exp $
+ * @(#)$Id: elfloader.c,v 1.10 2009/02/27 14:28:02 nvt-se Exp $
  */
 
 #include "contiki.h"
@@ -149,7 +149,7 @@ static const unsigned char elf_magic_header[] =
 static void
 seek_read(int fd, unsigned int offset, char *buf, int len)
 {
-  cfs_seek(fd, offset);
+  cfs_seek(fd, offset, CFS_SEEK_SET);
   cfs_read(fd, buf, len);
 #if DEBUG
   {
@@ -168,7 +168,7 @@ seek_read(int fd, unsigned int offset, char *buf, int len)
 static void
 seek_write(int fd, unsigned int offset, char *buf, int len)
 {
-  cfs_seek(fd, offset);
+  cfs_seek(fd, offset, CFS_SEEK_SET);
   cfs_write(fd, buf, len);
 }
 */

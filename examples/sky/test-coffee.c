@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: test-coffee.c,v 1.8 2009/02/22 15:17:36 nvt-se Exp $
+ * $Id: test-coffee.c,v 1.9 2009/02/27 14:28:02 nvt-se Exp $
  */
 
 /**
@@ -151,7 +151,7 @@ coffee_file_test(void)
   }
 
   /* Test 9: Seek to beginning. */
-  if(cfs_seek(wfd, 0) != 0) {
+  if(cfs_seek(wfd, 0, CFS_SEEK_SET) != 0) {
     FAIL(-11);
   }
 
@@ -164,7 +164,7 @@ coffee_file_test(void)
   }
 
   /* Test 11: Read the data from the log. */
-  cfs_seek(rfd, 0);
+  cfs_seek(rfd, 0, CFS_SEEK_SET);
   memset(buf, 0, sizeof(buf));
   r = cfs_read(rfd, buf, sizeof(buf));
   if(r < 0) {
@@ -184,7 +184,7 @@ coffee_file_test(void)
   for(r = 0; r < sizeof(buf); r++) {
     buf[r] = sizeof(buf) - r - 1;
   }
-  if(cfs_seek(wfd, 0) != 0) {
+  if(cfs_seek(wfd, 0, CFS_SEEK_SET) != 0) {
     FAIL(-17);
   }
   r = cfs_write(wfd, buf, sizeof(buf));
@@ -193,12 +193,12 @@ coffee_file_test(void)
   } else if(r < sizeof(buf)) {
     FAIL(-19);
   }
-  if(cfs_seek(rfd, 0) != 0) {
+  if(cfs_seek(rfd, 0, CFS_SEEK_SET) != 0) {
     FAIL(-20);
   }
 
   /* Test 14: Read the reversed buffer. */
-  cfs_seek(rfd, 0);
+  cfs_seek(rfd, 0, CFS_SEEK_SET);
   memset(buf, 0, sizeof(buf));
   r = cfs_read(rfd, buf, sizeof(buf));
   if(r < 0) {
@@ -235,7 +235,7 @@ coffee_file_test(void)
       buf[r] = r;
     }
 
-    if(cfs_seek(wfd, offset) != offset) {
+    if(cfs_seek(wfd, offset, CFS_SEEK_SET) != offset) {
       FAIL(-26);
     }
 
@@ -243,7 +243,7 @@ coffee_file_test(void)
       FAIL(-27);
     }
 
-    if(cfs_seek(wfd, offset) != offset) {
+    if(cfs_seek(wfd, offset, CFS_SEEK_SET) != offset) {
       FAIL(-28);
     }
 
