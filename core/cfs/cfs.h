@@ -54,12 +54,18 @@
  *
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: cfs.h,v 1.13 2009/02/27 14:25:38 nvt-se Exp $
+ * $Id: cfs.h,v 1.14 2009/02/27 14:50:35 nvt-se Exp $
  */
 #ifndef __CFS_H__
 #define __CFS_H__
 
 #include "contiki.h"
+
+#ifndef CFS_OFFSET_TYPE
+typedef unsigned cfs_offset_t;
+#else
+typedef CFS_OFFSET_TYPE cfs_offset_t;
+#endif
 
 struct cfs_dir {
   char dummy_space[32];
@@ -67,14 +73,8 @@ struct cfs_dir {
 
 struct cfs_dirent {
   char name[32];
-  unsigned int size;
+  cfs_offset_t size;
 };
-
-#ifndef CFS_OFFSET_TYPE
-typedef unsigned cfs_offset_t;
-#else
-typedef CFS_OFFSET_TYPE cfs_offset_t;
-#endif
 
 /**
  * Specify that cfs_open() should open a file for reading.
