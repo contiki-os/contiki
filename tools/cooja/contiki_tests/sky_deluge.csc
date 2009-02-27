@@ -18,7 +18,7 @@
       <identifier>sky1</identifier>
       <description>Sky Mote Type #1</description>
       <source>../../../examples/sky/test-deluge.c</source>
-      <command>make test-deluge.sky TARGET=sky</command>
+      <command>make APPS=deluge test-deluge.sky TARGET=sky</command>
     </motetype>
     <mote>
       se.sics.cooja.mspmote.SkyMote
