@@ -54,8 +54,8 @@
  * \param size The size of the file.
  * \return 0 on success, -1 on failure.
  *
- * Coffee uses sequential page structures for append-only files. The
- * sequential structure can be reserved with a certain. If no reservation
+ * Coffee uses sequential page structures for files. The sequential 
+ * structure can be reserved with a certain size. If no reservation
  * has been done, files will be set to a default size once opened for
  * the first time.
  */
