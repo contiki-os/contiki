@@ -957,8 +957,8 @@ cfs_close(int fd)
   }
 }
 /*---------------------------------------------------------------------------*/
-unsigned
-cfs_seek(int fd, unsigned offset, int whence)
+cfs_offset_t
+cfs_seek(int fd, cfs_offset_t offset, int whence)
 {
   struct file_header hdr;
   struct file_desc *fdp;
