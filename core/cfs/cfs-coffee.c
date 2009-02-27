@@ -664,7 +664,7 @@ read_log_page(struct file_header *hdr, int16_t last_record, struct log_param *lp
 static unsigned char *
 create_log_name(unsigned char *new, int max_size, unsigned char *old)
 {
-  unsigned char suffix[] = ".log";
+  const unsigned char suffix[] = ".log";
   int len;
 
   len = strlen(old);
@@ -1123,13 +1123,12 @@ int
 cfs_opendir(struct cfs_dir *dir, const char *name)
 {
   /* We have only a root directory. */
-  if(name[0] != '/' || name[1] != '\0') {
-    return -1;
+  if((name[0] == '/' || name[0] == '.') && name[1] != '\0') {
+    *(coffee_page_t *)dir->dummy_space = 0;
+    return 0;
   }
 
-  *(coffee_page_t *)dir->dummy_space = 0;
-
-  return 0;
+  return -1;
 }
 /*---------------------------------------------------------------------------*/
 int
