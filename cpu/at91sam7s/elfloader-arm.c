@@ -29,7 +29,7 @@ elfloader_arch_relocate(int input_fd,
 
   type = ELF32_R_TYPE(rela->r_info);
 
-  cfs_seek(input_fd, sectionoffset + rela->r_offset);
+  cfs_seek(input_fd, sectionoffset + rela->r_offset, CFS_SEEK_SET);
 
 /*   PRINTF("elfloader_arch_relocate: type %d\n", type); */
 /*   PRINTF("Addr: %p, Addend: %ld\n",   addr, rela->r_addend); */

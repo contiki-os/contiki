@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: tcprudolph0.c,v 1.11 2008/11/17 22:52:10 oliverschmidt Exp $
+ * @(#)$Id: tcprudolph0.c,v 1.12 2009/02/27 14:28:02 nvt-se Exp $
  */
 
 #include <stdio.h>
@@ -132,7 +132,7 @@ PT_THREAD(recv_tcpthread(struct pt *pt))
     leds_toggle(LEDS_RED);
     if(uip_len > 0) {
       s.fd = cfs_open("codeprop.out", CFS_WRITE + CFS_APPEND);
-      cfs_seek(s.fd, s.addr);
+      cfs_seek(s.fd, s.addr, CFS_SEEK_SET);
       /*      xmem_pwrite(uip_appdata, uip_len, EEPROMFS_ADDR_CODEPROP + s.addr);*/
       cfs_write(s.fd, uip_appdata, uip_len);
       cfs_close(s.fd);
@@ -220,7 +220,7 @@ write_chunk(struct rudolph0_conn *c, int offset, int flag,
   
   if(datalen > 0) {
     int ret;
-    cfs_seek(fd, offset);
+    cfs_seek(fd, offset, CFS_SEEK_SET);
     ret = cfs_write(fd, data, datalen);
     /*    printf("write_chunk wrote %d bytes at %d, %d\n", ret, offset, (unsigned char)data[0]);*/
   }
@@ -243,7 +243,7 @@ read_chunk(struct rudolph0_conn *c, int offset, uint8_t *to, int maxsize)
   
   fd = cfs_open("codeprop.out", CFS_READ);
 
-  cfs_seek(fd, offset);
+  cfs_seek(fd, offset, CFS_SEEK_SET);
   ret = cfs_read(fd, to, maxsize);
   /*  printf("read_chunk %d bytes at %d, %d\n", ret, offset, (unsigned char)to[0]);*/
   if(ret < maxsize) {

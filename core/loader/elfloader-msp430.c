@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: elfloader-msp430.c,v 1.3 2009/01/15 09:04:55 fros4943 Exp $
+ * @(#)$Id: elfloader-msp430.c,v 1.4 2009/02/27 14:28:02 nvt-se Exp $
  */
 #include "elfloader-arch.h"
 
@@ -73,7 +73,7 @@ elfloader_arch_write_rom(int fd, unsigned short textoff, unsigned int size, char
 
   flashptr = (unsigned short *)mem;
 
-  cfs_seek(fd, textoff);
+  cfs_seek(fd, textoff, CFS_SEEK_SET);
   for(ptr = 0; ptr < size; ptr += READSIZE) {
 
     /* Read data from file into RAM. */
@@ -97,7 +97,7 @@ elfloader_arch_write_rom(int fd, unsigned short textoff, unsigned int size, char
 
   flash_done();
 #else /* ELFLOADER_CONF_TEXT_IN_ROM */
-  cfs_seek(fd, textoff);
+  cfs_seek(fd, textoff, CFS_SEEK_SET);
   cfs_read(fd, (unsigned char *)mem, size);
 #endif /* ELFLOADER_CONF_TEXT_IN_ROM */
 }
@@ -109,7 +109,7 @@ elfloader_arch_relocate(int fd, unsigned int sectionoffset,
 {
   addr += rela->r_addend;
 
-  cfs_seek(fd, sectionoffset + rela->r_offset);
+  cfs_seek(fd, sectionoffset + rela->r_offset, CFS_SEEK_SET);
   cfs_write(fd, (char *)&addr, 2);
 }
 /*---------------------------------------------------------------------------*/

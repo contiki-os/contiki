@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: codeprop-otf.c,v 1.2 2007/03/18 13:15:02 ksb Exp $
+ * @(#)$Id: codeprop-otf.c,v 1.3 2009/02/27 14:28:02 nvt-se Exp $
  */
 
 /** \addtogroup esb
@@ -215,7 +215,7 @@ send_udpdata(struct codeprop_udphdr *uh)
     len = s.len - s.addr;
   }
 
-  cfs_seek(fd, s.addr);
+  cfs_seek(fd, s.addr, CFS_SEEK_SET);
   cfs_read(fd, (char*)&uh->data[0], len);
   /*  eeprom_read(EEPROMFS_ADDR_CODEPROP + s.addr,
       &uh->data[0], len);*/
@@ -322,7 +322,7 @@ PT_THREAD(recv_udpthread(struct pt *pt))
 	if(len > 0) {
 	  /*	  eeprom_write(EEPROMFS_ADDR_CODEPROP + s.addr,
 		  &uh->data[0], len);*/
-	  cfs_seek(fd, s.addr);
+	  cfs_seek(fd, s.addr, CFS_SEEK_SET);
 	  cfs_write(fd, (char*)&uh->data[0], len);
 
 	  /*	  beep();*/
@@ -405,7 +405,7 @@ PT_THREAD(recv_tcpthread(struct pt *pt))
       if(datalen > 0) {
 	/* printf("Got %d bytes\n", datalen); */
 
-	if (cfs_seek(fd, s.addr) != s.addr) {
+	if (cfs_seek(fd, s.addr, CFS_SEEK_SET) != s.addr) {
 	   PRINTF(("codeprop: seek in buffer file failed\n"));
 	   uip_abort();
 	}

@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: shell-file.c,v 1.9 2009/02/19 22:56:56 adamdunkels Exp $
+ * $Id: shell-file.c,v 1.10 2009/02/27 14:28:02 nvt-se Exp $
  */
 
 /**
@@ -220,7 +220,7 @@ PROCESS_THREAD(shell_read_process, ev, data)
     }
     
     fd = cfs_open(filename, CFS_READ);
-    cfs_seek(fd, offset);
+    cfs_seek(fd, offset, CFS_SEEK_SET);
     
     if(fd < 0) {
       shell_output_str(&read_command,
