@@ -44,7 +44,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: ctk.c,v 1.22 2009/02/25 10:34:47 adamdunkels Exp $
+ * $Id: ctk.c,v 1.23 2009/02/27 14:42:49 oliverschmidt Exp $
  *
  */
 
@@ -1171,7 +1171,7 @@ activate(CC_REGISTER_ARG struct ctk_widget *w)
 unsigned char
 ctk_textentry_input_null(ctk_arch_key_t c, struct ctk_textentry *t)
 {
-
+  return 0;
 }
 /*---------------------------------------------------------------------------*/
 static void CC_FASTCALL
@@ -1180,9 +1180,7 @@ textentry_input(ctk_arch_key_t c, CC_REGISTER_ARG struct ctk_textentry *t)
   register char *cptr, *cptr2;
   static unsigned char len, txpos, typos, tlen;
 
-  if(t->input != NULL &&
-     t->input != (ctk_textentry_input)ctk_textentry_input_null &&
-     t->input(c, t)) {
+  if(t->input != NULL && t->input(c, t)) {
     return;
   }
 
