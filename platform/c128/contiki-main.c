@@ -30,7 +30,7 @@
  * 
  * Author: Oliver Schmidt <ol.sc@web.de>
  *
- * $Id: contiki-main.c,v 1.5 2008/07/06 07:34:34 oliverschmidt Exp $
+ * $Id: contiki-main.c,v 1.6 2009/02/27 07:57:13 oliverschmidt Exp $
  */
 
 #include <string.h>
@@ -91,7 +91,7 @@ main(void)
   close(STDOUT_FILENO);
 #if !UIP_LOGGING && !LOG_CONF_ENABLED
   close(STDERR_FILENO);
-#endif /* !WITH_PFS */
+#endif /* !UIP_LOGGING && !LOG_CONF_ENABLED */
 
   process_init();
 
