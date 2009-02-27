@@ -173,7 +173,7 @@ raven_gui_loop(process_event_t ev, process_data_t data)
             break;
           case CMD_TEMP:
             /* Set temperature string in web server */
-            sprintf(udp_data, "temp %s", (char *)cmd.frame);
+            sprintf(udp_data, "T%s\r\n", (char *)cmd.frame);
             uip_udp_packet_send(udp_conn, udp_data, data_len);
             break;
           default:
@@ -201,7 +201,7 @@ int raven_lcd_serial_input(unsigned char ch)
       /* first byte, must be 0x01 */
       cmd.done = false;
       if (ch != 0x01){
-        return;
+        return 0;
       }
       break;
     case 1: 
