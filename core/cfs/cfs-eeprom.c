@@ -30,7 +30,7 @@
  *
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: cfs-eeprom.c,v 1.8 2008/11/24 10:56:55 nvt-se Exp $
+ * $Id: cfs-eeprom.c,v 1.9 2009/02/27 14:25:38 nvt-se Exp $
  */
 
 #include "cfs/cfs.h"
@@ -106,9 +106,9 @@ cfs_write(int f, const void *buf, unsigned int len)
 }
 /*---------------------------------------------------------------------------*/
 unsigned int
-cfs_seek(int f, unsigned int o)
+cfs_seek(int f, unsigned int o, int w)
 {
-  if(f == 1) {
+  if(w == CFS_SEEK_SET && f == 1) {
     file.fileptr = o;
     return o;
   } else {

@@ -30,7 +30,7 @@
  *
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: cfs-posix.c,v 1.12 2008/11/24 10:56:55 nvt-se Exp $
+ * $Id: cfs-posix.c,v 1.13 2009/02/27 14:25:38 nvt-se Exp $
  */
 
 #include <stdio.h>
@@ -84,10 +84,19 @@ cfs_write(int f, const void *b, unsigned int l)
   return write(f, b, l);
 }
 /*---------------------------------------------------------------------------*/
-unsigned int
-cfs_seek(int f, unsigned int o)
+cfs_offset_t
+cfs_seek(int f, unsigned int o, int w)
 {
-  return lseek(f, o, SEEK_SET);
+  if(w == CFS_SEEK_SET) {
+    w = SEEK_SET;
+  } else if(w == CFS_SEEK_CUR) {
+    w = SEEK_CUR;
+  } else if(w == CFS_SEEK_END) {
+    w = SEEK_END;
+  } else {
+    return (cfs_offset_t)-1;
+  }
+  return lseek(f, o, w);
 }
 /*---------------------------------------------------------------------------*/
 int
