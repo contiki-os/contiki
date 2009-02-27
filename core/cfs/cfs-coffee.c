@@ -985,8 +985,8 @@ cfs_seek(int fd, unsigned offset, int whence)
     return (cfs_offset_t)-1;
   }
 
-  if(fdp->file->end < offset) {
-    fdp->file->end = offset;
+  if(fdp->file->end < fdp->offset) {
+    fdp->file->end = fdp->offset;
   }
 
   return fdp->offset;
