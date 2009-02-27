@@ -67,7 +67,7 @@
 #define COFFEE_FILE_MODIFIED	0x1
 
 #define INVALID_PAGE		((coffee_page_t)-1)
-#define UNKNOWN_OFFSET		((coffee_offset_t)-1)
+#define UNKNOWN_OFFSET		((cfs_offset_t)-1)
 
 #define FD_VALID(fd)					\
 	((fd) >= 0 && (fd) < COFFEE_FD_SET_SIZE && 	\
@@ -111,7 +111,7 @@ struct sector_stats {
 };
 
 struct file {
-  coffee_offset_t end;
+  cfs_offset_t end;
   coffee_page_t page;
   coffee_page_t max_pages;
   int16_t next_log_record;
@@ -120,7 +120,7 @@ struct file {
 };
 
 struct file_desc {
-  coffee_offset_t offset;
+  cfs_offset_t offset;
   struct file *file;
   uint8_t flags;
 };
@@ -137,7 +137,7 @@ struct file_header {
 
 /* This is needed because of a buggy compiler. */
 struct log_param {
-  coffee_offset_t offset;
+  cfs_offset_t offset;
   const char *buf;
   uint16_t size;
 };
@@ -170,8 +170,8 @@ read_header(struct file_header *hdr, coffee_page_t page)
 #endif
 }
 /*---------------------------------------------------------------------------*/
-static coffee_offset_t
-absolute_offset(coffee_page_t page, coffee_offset_t offset)
+static cfs_offset_t
+absolute_offset(coffee_page_t page, cfs_offset_t offset)
 {
   return page * COFFEE_PAGE_SIZE + sizeof(struct file_header) + offset;
 }
@@ -390,7 +390,7 @@ refresh_eof_hint(struct file *file)
 }
 #endif /* COFFEE_CONF_EOF_HINT */
 /*---------------------------------------------------------------------------*/
-static coffee_offset_t
+static cfs_offset_t
 file_end(coffee_page_t start)
 {
   struct file_header hdr;
@@ -519,7 +519,7 @@ remove_by_page(coffee_page_t page, int remove_log, int close_fds)
 }
 /*---------------------------------------------------------------------------*/
 static coffee_page_t
-page_count(coffee_offset_t size)
+page_count(cfs_offset_t size)
 {
   return (size + sizeof(struct file_header) + COFFEE_PAGE_SIZE - 1) /
 		COFFEE_PAGE_SIZE;
@@ -579,7 +579,7 @@ adjust_log_config(struct file_header *hdr,
 /*---------------------------------------------------------------------------*/
 static uint16_t
 modify_log_buffer(uint16_t log_record_size,
-		  coffee_offset_t *offset, uint16_t *size)
+		  cfs_offset_t *offset, uint16_t *size)
 {
   uint16_t region;
 
@@ -595,7 +595,7 @@ static int
 get_record_index(coffee_page_t log_page, uint16_t search_records,
 		 uint16_t region)
 {
-  coffee_offset_t base;
+  cfs_offset_t base;
   uint16_t processed;
   uint16_t batch_size;
   int16_t match_index, i;
@@ -641,7 +641,7 @@ read_log_page(struct file_header *hdr, int16_t last_record, struct log_param *lp
   int16_t match_index;
   uint16_t log_record_size;
   uint16_t log_records;
-  coffee_offset_t base;
+  cfs_offset_t base;
   uint16_t search_records;
 
   adjust_log_config(hdr, &log_record_size, &log_records);
@@ -654,7 +654,7 @@ read_log_page(struct file_header *hdr, int16_t last_record, struct log_param *lp
   }
 
   base = absolute_offset(hdr->log_page, log_records * sizeof(region));
-  base += (coffee_offset_t)match_index * log_record_size;
+  base += (cfs_offset_t)match_index * log_record_size;
   base += lp->offset;
   COFFEE_READ(lp->buf, lp->size, base);
 
@@ -683,7 +683,7 @@ create_log(struct file *file, struct file_header *hdr)
   coffee_page_t log_page;
   unsigned char log_name[sizeof(hdr->name)];
   uint16_t log_record_size, log_records;
-  coffee_offset_t size;
+  cfs_offset_t size;
   struct file *log_file;
 
   adjust_log_config(hdr, &log_record_size, &log_records);
@@ -715,7 +715,7 @@ merge_log(coffee_page_t file_page, int extend)
   coffee_page_t log_page;
   struct file_header hdr, hdr2;
   int fd, n;
-  coffee_offset_t offset;
+  cfs_offset_t offset;
   coffee_page_t max_pages;
   struct file *new_file;
   int i;
@@ -834,7 +834,7 @@ write_log_page(struct file *file, struct log_param *lp)
   int16_t log_record;
   uint16_t log_record_size;
   uint16_t log_records;
-  coffee_offset_t table_base, record_base;
+  cfs_offset_t table_base, record_base;
   struct log_param lp_out;
 
   read_header(&hdr, file->page);
@@ -958,7 +958,7 @@ cfs_close(int fd)
 }
 /*---------------------------------------------------------------------------*/
 unsigned
-cfs_seek(int fd, unsigned offset)
+cfs_seek(int fd, unsigned offset, int whence)
 {
   struct file_header hdr;
   struct file_desc *fdp;
@@ -975,11 +975,21 @@ cfs_seek(int fd, unsigned offset)
     return -1;
   }
 
+  if(whence == CFS_SEEK_SET) {
+    fdp->offset = offset;
+  } else if(whence == CFS_SEEK_END) {
+    fdp->offset = fdp->file->end + offset;
+  } else if(whence == CFS_SEEK_CUR) {
+    fdp->offset += offset;
+  } else {
+    return (cfs_offset_t)-1;
+  }
+
   if(fdp->file->end < offset) {
     fdp->file->end = offset;
   }
 
-  return fdp->offset = offset;
+  return fdp->offset;
 }
 /*---------------------------------------------------------------------------*/
 int
@@ -1010,7 +1020,7 @@ cfs_read(int fd, void *buf, unsigned size)
   struct file *file;
   unsigned remains, read_chunk;
   int r;
-  coffee_offset_t base, offset;
+  cfs_offset_t base, offset;
   struct log_param lp;
 
   if(!(FD_VALID(fd) && FD_READABLE(fd))) {
@@ -1067,7 +1077,7 @@ cfs_write(int fd, const void *buf, unsigned size)
   struct file *file;
   int i;
   struct log_param lp;
-  coffee_offset_t remains;
+  cfs_offset_t remains;
 
   if(!(FD_VALID(fd) && FD_WRITABLE(fd))) {
     return -1;
