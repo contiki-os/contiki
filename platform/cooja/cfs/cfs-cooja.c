@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: cfs-cooja.c,v 1.7 2008/02/11 18:40:16 fros4943 Exp $
+ * $Id: cfs-cooja.c,v 1.8 2009/02/27 16:06:25 fros4943 Exp $
  */
 #include <string.h>
 #include "lib/simEnvChange.h"
@@ -103,7 +103,7 @@ cfs_write(int f, const void *buf, unsigned int len)
 }
 /*---------------------------------------------------------------------------*/
 unsigned int
-cfs_seek(int f, unsigned int o)
+cfs_seek(int f, unsigned int o, int w)
 {
   if(f == FLAG_FILE_OPEN) {
     file.fileptr = o;
@@ -111,6 +111,12 @@ cfs_seek(int f, unsigned int o)
   } else {
     return -1;
   }
+}
+/*---------------------------------------------------------------------------*/
+int
+cfs_remove(const char *name)
+{
+  return -1;
 }
 /*---------------------------------------------------------------------------*/
 int
