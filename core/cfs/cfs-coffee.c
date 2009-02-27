@@ -1123,7 +1123,7 @@ int
 cfs_opendir(struct cfs_dir *dir, const char *name)
 {
   /* We have only a root directory. */
-  if((name[0] == '/' || name[0] == '.') && name[1] != '\0') {
+  if((name[0] == '/' || name[0] == '.') && name[1] == '\0') {
     *(coffee_page_t *)dir->dummy_space = 0;
     return 0;
   }
