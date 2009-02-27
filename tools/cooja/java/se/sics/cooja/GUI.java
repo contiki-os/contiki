@@ -24,7 +24,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * $Id: GUI.java,v 1.109 2009/02/26 13:35:45 fros4943 Exp $
+ * $Id: GUI.java,v 1.110 2009/02/27 14:48:15 fros4943 Exp $
  */
 
 package se.sics.cooja;
@@ -2302,6 +2302,13 @@ public class GUI extends Observable {
     // Delete simulation
     mySimulation.deleteObservers();
     mySimulation.stopSimulation();
+
+    /* Clear current mote relations */
+    MoteRelation relations[] = getMoteRelations();
+    for (MoteRelation r: relations) {
+      removeMoteRelation(r.source, r.dest);
+    }
+
     mySimulation = null;
 
     // Unregister temporary plugin classes
