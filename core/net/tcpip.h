@@ -62,7 +62,7 @@
  *
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: tcpip.h,v 1.13 2009/02/20 21:21:57 adamdunkels Exp $
+ * $Id: tcpip.h,v 1.14 2009/02/28 11:57:46 oliverschmidt Exp $
  */
 #ifndef __TCPIP_H__
 #define __TCPIP_H__
@@ -336,8 +336,8 @@ CCIF void tcpip_input(void);
 u8_t tcpip_output(uip_lladdr_t *);
 void tcpip_set_outputfunc(u8_t (* f)(uip_lladdr_t *));
 #else
-void tcpip_set_outputfunc(u8_t (* f)(void));
 u8_t tcpip_output(void);
+void tcpip_set_outputfunc(u8_t (* f)(void));
 #endif
 
 /**
