@@ -1132,13 +1132,12 @@ cfs_write(int fd, const void *buf, unsigned size)
 int
 cfs_opendir(struct cfs_dir *dir, const char *name)
 {
-  /* We have only a root directory. */
-  if((name[0] == '/' || name[0] == '.') && name[1] == '\0') {
+  /*
+   * Coffee is only guaranteed to support "/" and ".", but it does not 
+   * currently enforce this.
+   */
     *(coffee_page_t *)dir->dummy_space = 0;
-    return 0;
-  }
-
-  return -1;
+  return 0;
 }
 /*---------------------------------------------------------------------------*/
 int
