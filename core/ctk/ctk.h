@@ -43,7 +43,7 @@
  *
  * This file is part of the Contiki desktop OS.
  *
- * $Id: ctk.h,v 1.8 2009/02/25 09:01:38 adamdunkels Exp $
+ * $Id: ctk.h,v 1.9 2009/02/28 10:43:30 oliverschmidt Exp $
  *
  */
 
@@ -266,9 +266,15 @@ typedef unsigned char (* ctk_textentry_input)(ctk_arch_key_t c,
  * \param text A pointer to the buffer that should be edited.
  * \param len The length of the text buffer
  */
+#ifdef SDCC
 #define CTK_TEXTENTRY(x, y, w, h, text, len) \
   NULL, NULL, x, y, CTK_WIDGET_TEXTENTRY, w, 1, CTK_WIDGET_FLAG_INITIALIZER(0) text, len, \
   CTK_TEXTENTRY_NORMAL, 0, 0, ctk_textentry_input_null
+#else /* SDCC */
+#define CTK_TEXTENTRY(x, y, w, h, text, len) \
+  NULL, NULL, x, y, CTK_WIDGET_TEXTENTRY, w, 1, CTK_WIDGET_FLAG_INITIALIZER(0) text, len, \
+  CTK_TEXTENTRY_NORMAL, 0, 0, NULL
+#endif /* SDCC */
 #define CTK_TEXTENTRY_INPUT(x, y, w, h, text, len, input) \
   NULL, NULL, x, y, CTK_WIDGET_TEXTENTRY, w, h, CTK_WIDGET_FLAG_INITIALIZER(0) text, len, \
   CTK_TEXTENTRY_NORMAL, 0, 0, input
@@ -288,9 +294,11 @@ struct ctk_textentry {
   ctk_textentry_input input;
 };
 
+#ifdef SDCC
 /* Dummy function that we define to keep sdcc happy - with sdcc,
    function pointers cannot be NULL.*/
 unsigned char ctk_textentry_input_null(ctk_arch_key_t c, struct ctk_textentry *t);
+#endif /* SDCC */
 
 #if CTK_CONF_ICON_BITMAPS
 #define CTK_ICON_BITMAP(bitmap)	  bitmap
