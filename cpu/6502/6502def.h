@@ -30,7 +30,7 @@
  *
  * Author: Oliver Schmidt <ol.sc@web.de>
  *
- * @(#)$Id: 6502def.h,v 1.15 2008/07/06 07:28:05 oliverschmidt Exp $
+ * @(#)$Id: 6502def.h,v 1.16 2009/02/28 11:45:35 oliverschmidt Exp $
  */
 
 #ifndef __6502DEF_H__
@@ -39,8 +39,9 @@
 #include <ctype.h>
 #include <conio.h>
 #include <fcntl.h>
-#include <unistd.h>
+#include <stdio.h>
 #include <stdint.h>
+#include <unistd.h>
 
 /* These names are deprecated, use C99 names. */
 typedef uint8_t   u8_t;
@@ -121,20 +122,27 @@ typedef unsigned short uip_stats_t;
 #define ctk_arch_getkey   cgetc
 #define ctk_arch_isprint  isprint
 
+#define CFS_OFFSET_TYPE off_t
+
 #if WITH_PFS
-#define cfs_open          pfs_open
-#define cfs_close         pfs_close
-#define cfs_read          pfs_read
-#define cfs_write         pfs_write
-#define cfs_seek          pfs_seek
+#define cfs_open     pfs_open
+#define cfs_close    pfs_close
+#define cfs_read     pfs_read
+#define cfs_write    pfs_write
+#define cfs_seek     pfs_seek
+#define cfs_remove   pfs_remove
 #else /* WITH_PFS */
-#define CFS_READ          (O_RDONLY)
-#define CFS_WRITE         (O_CREAT | O_TRUNC | O_WRONLY)
-#define cfs_open          open
-#define cfs_close         close
-#define cfs_read          read
-#define cfs_write         write
-#define cfs_seek(fd, ofs) lseek((fd), (ofs), SEEK_SET)
+#define CFS_READ     (O_RDONLY)
+#define CFS_WRITE    (O_WRONLY | O_CREAT | O_TRUNC)
+#define CFS_SEEK_SET (SEEK_SET)
+#define CFS_SEEK_CUR (SEEK_CUR)
+#define CFS_SEEK_END (SEEK_END)
+#define cfs_open     open
+#define cfs_close    close
+#define cfs_read     read
+#define cfs_write    write
+#define cfs_seek     lseek
+#define cfs_remove   remove
 #endif /* WITH_PFS */
 
 #endif /* __6502DEF_H__ */
