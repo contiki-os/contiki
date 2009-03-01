@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: deluge.h,v 1.2 2009/02/25 17:09:55 nvt-se Exp $
+ * $Id: deluge.h,v 1.3 2009/03/01 12:49:43 nvt-se Exp $
  */
 
 /**
@@ -44,17 +44,6 @@
 #include "net/rime.h"
 
 PROCESS_NAME(deluge_process);
-
-#if DEBUG
-#include <stdio.h>
-#define PRINTF(...)				\
-  do {						\
-    printf("[Node %02u] ", (unsigned) node_id);	\
-    printf(__VA_ARGS__);			\
-  } while (0)
-#else
-#define PRINTF(...)
-#endif
 
 #define LONG_TIMER(et, counter, time)			\
   do {							\
