@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#)$Id: uart1.c,v 1.9 2009/02/24 21:31:10 adamdunkels Exp $
+ * @(#)$Id: uart1.c,v 1.10 2009/03/01 20:40:30 adamdunkels Exp $
  */
 
 /*
@@ -42,13 +42,27 @@
 #include "dev/leds.h"
 #include "dev/watchdog.h"
 
+#include "lib/ringbuf.h"
+
 static int (*uart1_input_handler)(unsigned char c);
 static uint8_t rx_in_progress;
+
+static volatile uint8_t transmitting;
+
+#define TX_WITH_INTERRUPT 1
+
+#if TX_WITH_INTERRUPT
+#define TXBUFSIZE 64
+
+static struct ringbuf txbuf;
+static uint8_t txbuf_data[TXBUFSIZE];
+#endif /* TX_WITH_INTERRUPT */
+
 /*---------------------------------------------------------------------------*/
 uint8_t
 uart1_active(void)
 {
-  return ((~ UTCTL1) & TXEPT) | rx_in_progress;
+  return ((~ UTCTL1) & TXEPT) | rx_in_progress | transmitting;
 }
 /*---------------------------------------------------------------------------*/
 void
@@ -60,12 +74,30 @@ uart1_set_input(int (*input)(unsigned char c))
 void
 uart1_writeb(unsigned char c)
 {
+#if TX_WITH_INTERRUPT
+
+  /* Put the outgoing byte on the transmission buffer. If the buffer
+     is full, we just keep on trying to put the byte into the buffer
+     until it is possible to put it there. */
+  while(ringbuf_put(&txbuf, c) == 0) {
+    watchdog_periodic();
+  }
+
+  /* If there is no transmission going, we need to start it by putting
+     the first byte into the UART. */
+  if(transmitting == 0) {
+    transmitting = 1;
+    TXBUF1 = ringbuf_get(&txbuf);
+  }
+
+#else /* TX_WITH_INTERRUPT */
   watchdog_periodic();
   /* Loop until the transmission buffer is available. */
   while((IFG2 & UTXIFG1) == 0);
 
   /* Transmit the data. */
   TXBUF1 = c;
+#endif /* TX_WITH_INTERRUPT */
 }
 /*---------------------------------------------------------------------------*/
 #if ! WITH_UIP /* If WITH_UIP is defined, putchar() is defined by the SLIP driver */
@@ -127,12 +159,17 @@ uart1_init(unsigned long ubr)
 
   rx_in_progress = 0;
 
+  transmitting = 0;
+  
   IE2 |= URXIE1;                        /* Enable USART1 RX interrupt  */
-
+#if TX_WITH_INTERRUPT
+  IE2 |= UTXIE1;                        /* Enable USART1 RX interrupt  */
+  ringbuf_init(&txbuf, txbuf_data, sizeof(txbuf_data));
+#endif /* TX_WITH_INTERRUPT */
 }
 /*---------------------------------------------------------------------------*/
 interrupt(UART1RX_VECTOR)
-uart1_interrupt(void)
+uart1_rx_interrupt(void)
 {
   ENERGEST_ON(ENERGEST_TYPE_IRQ);
 
@@ -158,4 +195,20 @@ uart1_interrupt(void)
   }
   ENERGEST_OFF(ENERGEST_TYPE_IRQ);
 }
+/*---------------------------------------------------------------------------*/
+#if TX_WITH_INTERRUPT
+interrupt(UART1TX_VECTOR)
+uart1_tx_interrupt(void)
+{
+  ENERGEST_ON(ENERGEST_TYPE_IRQ);
+
+  if(ringbuf_elements(&txbuf) == 0) {
+    transmitting = 0;
+  } else {
+    TXBUF1 = ringbuf_get(&txbuf);
+  }
+  
+  ENERGEST_OFF(ENERGEST_TYPE_IRQ);
+}
+#endif /* TX_WITH_INTERRUPT */
 /*---------------------------------------------------------------------------*/
