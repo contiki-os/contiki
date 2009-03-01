@@ -9,14 +9,22 @@ shell_src = shell.c shell-reboot.c \
             #shell-rsh.c
 shell_dsc = shell-dsc.c
 
-APPS+=webbrowser webserver irc
+APPS += webbrowser
 include $(CONTIKI)/apps/webbrowser/Makefile.webbrowser
-include $(CONTIKI)/apps/webserver/Makefile.webserver
-include $(CONTIKI)/apps/irc/Makefile.irc
-
 ifndef PLATFORM_BUILD
-  override webserver_src = webserver-nogui.c http-strings.c psock.c memb.c \
-                           httpd-cfs.c
+  override webbrowser_src = webclient.c http-strings.c http-user-agent-string.c
+endif
+
+APPS += webserver
+include $(CONTIKI)/apps/webserver/Makefile.webserver
+ifndef PLATFORM_BUILD
+  override webserver_src = http-strings.c psock.c memb.c httpd-cfs.c
+endif
+
+APPS += irc
+include $(CONTIKI)/apps/irc/Makefile.irc
+ifndef PLATFORM_BUILD
+  override irc_src = ircc.c psock.c ircc-strings.c
 endif
 
 ifeq ($(TARGET),sky)
