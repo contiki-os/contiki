@@ -1,3 +1,6 @@
+/** \addtogroup sys
+ * @{ */
+
 /**
  * \defgroup rt Real-time task scheduling
  *
@@ -45,7 +48,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: rtimer.h,v 1.8 2008/10/14 13:27:55 nvt-se Exp $
+ * @(#)$Id: rtimer.h,v 1.9 2009/03/01 09:31:43 adamdunkels Exp $
  */
 #ifndef __RTIMER_H__
 #define __RTIMER_H__
@@ -146,4 +149,5 @@ void rtimer_arch_schedule(rtimer_clock_t t);
 
 #endif /* __RTIMER_H__ */
 
+/** @} */
 /** @} */
