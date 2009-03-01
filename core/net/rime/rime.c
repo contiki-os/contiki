@@ -33,7 +33,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: rime.c,v 1.19 2009/03/01 10:29:50 adamdunkels Exp $
+ * $Id: rime.c,v 1.20 2009/03/01 10:43:57 adamdunkels Exp $
  */
 
 /**
@@ -60,6 +60,19 @@ const struct mac_driver *rime_mac;
 #else /* RIME_CONF_POLITE_ANNOUNCEMENT_CHANNEL */
 #define POLITE_ANNOUNCEMENT_CHANNEL 1
 #endif /* RIME_CONF_POLITE_ANNOUNCEMENT_CHANNEL */
+
+#ifdef RIME_CONF_POLITE_ANNOUNCEMENT_START_TIME
+#define POLITE_ANNOUNCEMENT_START_TIME RIME_CONF_POLITE_ANNOUNCEMENT_START_TIME
+#else /* RIME_CONF_POLITE_ANNOUNCEMENT_START_TIME */
+#define POLITE_ANNOUNCEMENT_START_TIME CLOCK_SECOND * 8
+#endif /* RIME_CONF_POLITE_ANNOUNCEMENT_START_TIME */
+
+#ifdef RIME_CONF_POLITE_ANNOUNCEMENT_MAX_TIME
+#define POLITE_ANNOUNCEMENT_MAX_TIME RIME_CONF_POLITE_ANNOUNCEMENT_MAX_TIME
+#else /* RIME_CONF_POLITE_ANNOUNCEMENT_MAX_TIME */
+#define POLITE_ANNOUNCEMENT_MAX_TIME CLOCK_SECOND * 64
+#endif /* RIME_CONF_POLITE_ANNOUNCEMENT_MAX_TIME */
+
 
 LIST(sniffers);
 
@@ -115,8 +128,8 @@ rime_init(const struct mac_driver *m)
    * with announcements.
    */
   polite_announcement_init(POLITE_ANNOUNCEMENT_CHANNEL,
-			   CLOCK_SECOND * 8,
-			   CLOCK_SECOND * 64);
+			   POLITE_ANNOUNCEMENT_START_TIME,
+			   POLITE_ANNOUNCEMENT_MAX_TIME);
 #endif /* ! RIME_CONF_NO_POLITE_ANNOUCEMENTS */
 }
 /*---------------------------------------------------------------------------*/
@@ -136,6 +149,7 @@ rime_output(void)
 	  s->output_callback();
 	}
       }
+    }
   }
 }
 /*---------------------------------------------------------------------------*/
