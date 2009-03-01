@@ -30,7 +30,7 @@
  *
  * Author: Oliver Schmidt <ol.sc@web.de>
  *
- * @(#)$Id: 6502def.h,v 1.16 2009/02/28 11:45:35 oliverschmidt Exp $
+ * @(#)$Id: 6502def.h,v 1.17 2009/03/01 12:26:53 oliverschmidt Exp $
  */
 
 #ifndef __6502DEF_H__
@@ -122,7 +122,7 @@ typedef unsigned short uip_stats_t;
 #define ctk_arch_getkey   cgetc
 #define ctk_arch_isprint  isprint
 
-#define CFS_OFFSET_TYPE off_t
+#define CFS_CONF_OFFSET_TYPE off_t
 
 #if WITH_PFS
 #define cfs_open     pfs_open
