@@ -54,7 +54,7 @@
  *
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: cfs.h,v 1.17 2009/03/01 12:00:00 nvt-se Exp $
+ * $Id: cfs.h,v 1.18 2009/03/01 12:28:39 oliverschmidt Exp $
  */
 #ifndef __CFS_H__
 #define __CFS_H__
@@ -62,7 +62,7 @@
 #include "contiki.h"
 
 #ifndef CFS_CONF_OFFSET_TYPE
-typedef unsigned cfs_offset_t;
+typedef int cfs_offset_t;
 #else
 typedef CFS_CONF_OFFSET_TYPE cfs_offset_t;
 #endif
