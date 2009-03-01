@@ -1,1 +1,1 @@
-deluge_src += deluge.c
+deluge_src = deluge.c
