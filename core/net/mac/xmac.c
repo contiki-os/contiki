@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: xmac.c,v 1.24 2009/02/15 22:05:06 adamdunkels Exp $
+ * $Id: xmac.c,v 1.25 2009/03/01 20:37:16 adamdunkels Exp $
  */
 
 /**
@@ -48,6 +48,7 @@
 #include "dev/watchdog.h"
 #include "lib/random.h"
 
+#include "sys/compower.h"
 #include "sys/timetable.h"
 
 #include "contiki-conf.h"
@@ -172,6 +173,10 @@ static uint8_t is_listening;
 
 static void (* receiver_callback)(const struct mac_driver *);
 
+#if XMAC_CONF_COMPOWER
+static struct compower_activity current_packet;
+#endif /* XMAC_CONF_COMPOWER */
+
 #if WITH_TIMETABLE
 #define xmac_timetable_size 1024
 TIMETABLE_NONSTATIC(xmac_timetable);
@@ -233,6 +238,9 @@ powercycle(struct rtimer *t, void *ptr)
       if(waiting_for_packet == 0) {
 	if(we_are_sending == 0) {
 	  off();
+#if XMAC_CONF_COMPOWER
+	  compower_accumulate(&compower_idle_activity);
+#endif /* XMAC_CONF_COMPOWER */
 	}
       } else {
 	waiting_for_packet++;
@@ -245,6 +253,9 @@ powercycle(struct rtimer *t, void *ptr)
 	  TIMETABLE_TIMESTAMP(xmac_timetable, "off waiting");
 #endif
 	  off();
+#if XMAC_CONF_COMPOWER
+	  compower_accumulate(&compower_idle_activity);
+#endif /* XMAC_CONF_COMPOWER */
 	}
       }
 
@@ -494,6 +505,21 @@ send_packet(void)
   PRINTF("xmac: send (strobes=%u,len=%u,%s), done\n", strobes,
 	 rimebuf_totlen(), got_ack ? "ack" : "no ack");
 
+#if XMAC_CONF_COMPOWER
+  /* Accumulate the power consumption for the packet transmission. */
+  compower_accumulate(&current_packet);
+
+  /* Convert the accumulated power consumption for the transmitted
+     packet to packet attributes so that the higher levels can keep
+     track of the amount of energy spent on transmitting the
+     packet. */
+  compower_attrconv(&current_packet);
+
+  /* Clear the accumulated power consumption so that it is ready for
+     the next packet. */
+  compower_clear(&current_packet);
+#endif /* XMAC_CONF_COMPOWER */
+  
   BB_SET(XMAC_STROBES, strobes);
   if(got_ack) {
     BB_INC(XMAC_SEND_WITH_ACK, 1);
@@ -625,6 +651,22 @@ read_packet(void)
 	/* We have received the final packet, so we can go back to being
 	   asleep. */
 	off();
+
+#if XMAC_CONF_COMPOWER
+	/* Accumulate the power consumption for the packet reception. */
+	compower_accumulate(&current_packet);
+  
+	/* Convert the accumulated power consumption for the received
+	   packet to packet attributes so that the higher levels can
+	   keep track of the amount of energy spent on receiving the
+	   packet. */
+	compower_attrconv(&current_packet);
+	
+	/* Clear the accumulated power consumption so that it is ready
+	   for the next packet. */
+	compower_clear(&current_packet);
+#endif /* XMAC_CONF_COMPOWER */
+	
 	waiting_for_packet = 0;
 	
 	/* XXX should set timer to send queued packet later. */
