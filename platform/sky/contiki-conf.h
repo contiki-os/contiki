@@ -1,5 +1,5 @@
 /* -*- C -*- */
-/* @(#)$Id: contiki-conf.h,v 1.37 2009/02/28 13:41:16 nvt-se Exp $ */
+/* @(#)$Id: contiki-conf.h,v 1.38 2009/03/01 12:00:00 nvt-se Exp $ */
 
 #ifndef CONTIKI_CONF_H
 #define CONTIKI_CONF_H
@@ -19,7 +19,7 @@
 #define TIMESYNCH_CONF_ENABLED 1
 #define CC2420_CONF_TIMESTAMPS 1
 
-#define CFS_OFFSET_TYPE		long
+#define CFS_CONF_OFFSET_TYPE	long
 
 #define PROFILE_CONF_ON 0
 #define ENERGEST_CONF_ON 1
