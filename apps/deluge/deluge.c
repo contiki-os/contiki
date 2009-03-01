@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: deluge.c,v 1.3 2009/02/27 14:28:02 nvt-se Exp $
+ * $Id: deluge.c,v 1.4 2009/03/01 12:49:43 nvt-se Exp $
  */
 
 /**
@@ -40,8 +40,6 @@
  * \author
  * 	Nicolas Tsiftes <nvt@sics.se>
  */
-
-#define DEBUG	0
 
 #include "contiki.h"
 #include "net/rime.h"
@@ -61,6 +59,18 @@
 #include "dev/leds.h"
 #include <stdlib.h>
 #include <string.h>
+
+#define DEBUG	1
+#if DEBUG
+#include <stdio.h>
+#define PRINTF(...)                             \
+  do {                                          \
+    printf("[Node %02u] ", (unsigned) node_id); \
+    printf(__VA_ARGS__);                        \
+  } while (0)
+#else
+#define PRINTF(...)
+#endif
 
 PROCESS(deluge_process, "Deluge process");
 
