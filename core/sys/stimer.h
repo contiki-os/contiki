@@ -2,7 +2,7 @@
  * @{ */
 
 /**
- * \defgroup timer Seconds timer library
+ * \defgroup stimer Seconds timer library
  *
  * The stimer library provides functions for setting, resetting and
  * restarting timers, and for checking if a timer has expired. An
@@ -64,7 +64,7 @@
  *
  * Author: Adam Dunkels <adam@sics.se>, Nicolas Tsiftes <nvt@sics.se>
  *
- * $Id: stimer.h,v 1.2 2008/10/02 15:04:37 nvt-se Exp $
+ * $Id: stimer.h,v 1.3 2009/03/01 09:31:43 adamdunkels Exp $
  */
 #ifndef __STIMER_H__
 #define __STIMER_H__
