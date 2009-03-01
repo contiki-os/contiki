@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#)$Id: contiki-sky-main.c,v 1.47 2009/02/11 11:08:56 adamdunkels Exp $
+ * @(#)$Id: contiki-sky-main.c,v 1.48 2009/03/01 20:42:10 adamdunkels Exp $
  */
 
 #include <signal.h>
@@ -50,10 +50,11 @@
 #include "dev/watchdog.h"
 #include "dev/xmem.h"
 
+#include "lib/random.h"
+
 #include "net/mac/nullmac.h"
 #include "net/mac/xmac.h"
 #include "net/mac/lpp.h"
-
 #include "net/rime.h"
 
 #include "node-id.h"
