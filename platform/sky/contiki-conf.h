@@ -1,9 +1,10 @@
 /* -*- C -*- */
-/* @(#)$Id: contiki-conf.h,v 1.38 2009/03/01 12:00:00 nvt-se Exp $ */
+/* @(#)$Id: contiki-conf.h,v 1.39 2009/03/01 20:43:37 adamdunkels Exp $ */
 
 #ifndef CONTIKI_CONF_H
 #define CONTIKI_CONF_H
 
+#define XMAC_CONF_COMPOWER 1
 #define XMAC_CONF_ANNOUNCEMENTS 1
 #define RIME_CONF_NO_POLITE_ANNOUCEMENTS 1
 
