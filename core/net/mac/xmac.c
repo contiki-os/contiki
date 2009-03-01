@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: xmac.c,v 1.25 2009/03/01 20:37:16 adamdunkels Exp $
+ * $Id: xmac.c,v 1.26 2009/03/01 20:38:57 adamdunkels Exp $
  */
 
 /**
@@ -141,10 +141,6 @@ static const struct radio_driver *radio;
 
 #define CPRINTF(...)
 
-#define BB_SET(x,y)
-#define BB_INC(x,y)
-/* #define BB_SET(x,y) bb_set(x,y) */
-/* #define BB_INC(x,y) bb_inc(x,y) */
 #define LEDS_ON(x) leds_on(x)
 #define LEDS_OFF(x) leds_off(x)
 #define LEDS_TOGGLE(x) leds_toggle(x)
@@ -415,8 +411,6 @@ send_packet(void)
   t0 = RTIMER_NOW();
   strobes = 0;
 
-  BB_SET(XMAC_RECEIVER, hdr->receiver.u16[0]);
-  
   LEDS_ON(LEDS_BLUE);
 
   /* Send a train of strobes until the receiver answers with an ACK. */
@@ -520,15 +514,6 @@ send_packet(void)
   compower_clear(&current_packet);
 #endif /* XMAC_CONF_COMPOWER */
   
-  BB_SET(XMAC_STROBES, strobes);
-  if(got_ack) {
-    BB_INC(XMAC_SEND_WITH_ACK, 1);
-  } else {
-    BB_INC(XMAC_SEND_WITH_NOACK, 1);
-  }
-
-  /*  printf("Strobe %d got_ack %d\n", strobes, got_ack);*/
-
   we_are_sending = 0;
 #if WITH_TIMETABLE
   TIMETABLE_TIMESTAMP(xmac_timetable, "send we_are_sending = 0");
@@ -744,12 +729,6 @@ xmac_init(const struct radio_driver *d)
   xmac_is_on = 1;
   radio = d;
   radio->set_receive_function(input_packet);
-
-  BB_SET("xmac.state_addr", (int) &waiting_for_packet);
-  BB_SET(XMAC_RECEIVER, 0);
-  BB_SET(XMAC_STROBES, 0);
-  BB_SET(XMAC_SEND_WITH_ACK, 0);
-  BB_SET(XMAC_SEND_WITH_NOACK, 0);
 
 #if XMAC_CONF_ANNOUNCEMENTS
   announcement_register_listen_callback(listen_callback);
