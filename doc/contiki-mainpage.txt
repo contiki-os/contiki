@@ -1,23 +1,36 @@
 /**
 
-\mainpage The Contiki Operating System 2.1
+\mainpage The Contiki Operating System
 
 Contiki is an open source, highly portable, multi-tasking operating
-system for memory-constrained networked embedded systems written by
-Adam Dunkels at the Networked Embedded Systems group at the Swedish
-Institute of Computer Science.
+system for memory-efficient networked embedded systems and wireless
+sensor networks.  Contiki is designed for microcontrollers with small
+amounts of memory. A typical Contiki configuration is 2 kilobytes of
+RAM and 40 kilobytes of ROM.
 
-Contiki is designed for embedded systems with small amounts of
-memory. A typical Contiki configuration is 2 kilobytes of RAM and 40
-kilobytes of ROM. Contiki consists of an event-driven kernel on top of
-which application programs are dynamically loaded and unloaded at
-runtime. Contiki processes use light-weight \ref pt "protothreads"
-that provide a linear, thread-like programming style on top of the
-event-driven kernel. Contiki also supports per-process optional
-preemptive multi-threading, interprocess communication using message
-passing through events, as well as an optional GUI subsystem with
-either direct graphic support for locally connected terminals or
-networked virtual display with VNC or over Telnet.
+Contiki provides IP communication, both for IPv4 and IPv6. Contiki and
+its uIPv6 stack are IPv6 Ready Phase 1 certified and therefor has the
+right to use the IPv6 Ready silver logo.
+
+Many key mechanisms and ideas from Contiki have been widely adopted in
+the industry. The uIP embedded IP stack, originally released in 2001,
+is today used by hundreds of companies in systems such as freighter
+ships, satellites and oil drilling equipment. Contiki and uIP are
+recognized by the popular nmap network scanning tool. Contiki's
+protothreads, first released in 2005, have been used in many different
+embedded systems, ranging from digital TV decoders to wireless
+vibration sensors.
+
+Contiki introduced the idea of using IP communication in low-power
+sensor networks networks. This subsequently lead to an IETF standard
+and the IPSO Aliance, an international industry alliance. TIME
+Magazine listed Internet of Things and the IPSO Alliance as the 30th
+most important innovation of 2008.
+
+Contiki is developed by a group of developers from industry and
+academia lead by Adam Dunkels from the Swedish Institute of Computer
+Science. The Contiki team currently consists of sixteen developers
+from SICS, SAP AG, Cisco, Atmel, NewAE and TU Munich.
 
 Contiki contains two communication stacks: \ref uip "uIP" and \ref
 rime "Rime". uIP is a small RFC-compliant TCP/IP stack that makes it
@@ -33,10 +46,7 @@ homecomputers. Code footprint is on the order of kilobytes and memory
 usage can be configured to be as low as tens of bytes.
 
 Contiki is written in the C programming language and is freely
-available as open source under a BSD-style license. More information
-about Contiki can be found at the Contiki home page:
-http://www.sics.se/contiki/
-
+available as open source under a BSD-style license.
 
 \section contiki-mainpage-tcpip TCP/IP
 
