@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: shell-rime-sniff.c,v 1.1 2008/02/04 23:42:17 adamdunkels Exp $
+ * $Id: shell-rime-sniff.c,v 1.2 2009/03/02 21:58:16 adamdunkels Exp $
  */
 
 /**
@@ -40,6 +40,9 @@
 
 #include "shell.h"
 #include "net/rime.h"
+
+static uint8_t sniff_for_attributes;
+
 /*---------------------------------------------------------------------------*/
 PROCESS(shell_sniff_process, "sniff");
 SHELL_COMMAND(sniff_command,
@@ -48,36 +51,76 @@ SHELL_COMMAND(sniff_command,
 	      &shell_sniff_process);
 /*---------------------------------------------------------------------------*/
 enum {
-  SNIFFER_INPUT,
-  SNIFFER_OUTPUT,
+  SNIFFER_PACKET_INPUT,
+  SNIFFER_PACKET_OUTPUT,
+  SNIFFER_ATTRIBUTES_INPUT,
+  SNIFFER_ATTRIBUTES_OUTPUT,
+};
+/*---------------------------------------------------------------------------*/
+struct sniff_attributes_blob {
+  uint16_t len;
+  uint16_t type;
+  uint16_t rssi;
+  uint16_t lqi;
+  uint16_t timestamp;
+  uint16_t listen_time;
+  uint16_t transmit_time;
+  uint16_t channel;
+  rimeaddr_t src, dest;
+};
+struct sniff_packet_blob {
+  uint16_t len;
+  uint16_t type;
 };
 /*---------------------------------------------------------------------------*/
 static void
-input_sniffer(void)
+sniff_attributes_output(int type)
 {
-  struct {
-    uint16_t len;
-    uint16_t flags;
-  } msg;
+  struct sniff_attributes_blob msg;
+  msg.len = 10;
+  msg.type = type;
+  msg.rssi = rimebuf_attr(RIMEBUF_ATTR_RSSI);
+  msg.lqi = rimebuf_attr(RIMEBUF_ATTR_LINK_QUALITY);
+  msg.timestamp = rimebuf_attr(RIMEBUF_ATTR_TIMESTAMP);
+  msg.listen_time = rimebuf_attr(RIMEBUF_ATTR_LISTEN_TIME);
+  msg.transmit_time = rimebuf_attr(RIMEBUF_ATTR_TRANSMIT_TIME);
+  msg.channel = rimebuf_attr(RIMEBUF_ATTR_CHANNEL);
+  rimeaddr_copy(&msg.src, rimebuf_addr(RIMEBUF_ADDR_SENDER));
+  rimeaddr_copy(&msg.dest, rimebuf_addr(RIMEBUF_ADDR_RECEIVER));
+  
+  shell_output(&sniff_command, &msg, sizeof(msg), NULL, 0);
+}
+/*---------------------------------------------------------------------------*/
+static void
+sniff_packet_output(int type)
+{
+  struct sniff_packet_blob msg;
+
   msg.len = rimebuf_totlen() / 2 + 1;
-  msg.flags = SNIFFER_INPUT;
+  msg.type = type;
   shell_output(&sniff_command, &msg, sizeof(msg),
 	       rimebuf_dataptr(), (rimebuf_datalen() & 0xfffe) +
 	       2 * (rimebuf_totlen() & 1));
 }
 /*---------------------------------------------------------------------------*/
 static void
+input_sniffer(void)
+{
+  if(sniff_for_attributes) {
+    sniff_attributes_output(SNIFFER_ATTRIBUTES_INPUT);
+  } else {
+    sniff_packet_output(SNIFFER_PACKET_INPUT);
+  }
+}
+/*---------------------------------------------------------------------------*/
+static void
 output_sniffer(void)
 {
-  struct {
-    uint16_t len;
-    uint16_t flags;
-  } msg;
-  msg.len = rimebuf_totlen() / 2 + 1;
-  msg.flags = SNIFFER_OUTPUT;
-  shell_output(&sniff_command, &msg, sizeof(msg),
-	       rimebuf_hdrptr(), (rimebuf_totlen() & 0xfffe) +
-	       2 * (rimebuf_totlen() & 1));
+  if(sniff_for_attributes) {
+    sniff_attributes_output(SNIFFER_ATTRIBUTES_OUTPUT);
+  } else {
+    sniff_packet_output(SNIFFER_PACKET_OUTPUT);
+  }
 }
 /*---------------------------------------------------------------------------*/
 PROCESS_THREAD(shell_sniff_process, ev, data)
@@ -85,6 +128,16 @@ PROCESS_THREAD(shell_sniff_process, ev, data)
   RIME_SNIFFER(s, input_sniffer, output_sniffer);
   PROCESS_EXITHANDLER(goto exit;);
   PROCESS_BEGIN();
+
+  sniff_for_attributes = 0;
+  
+  if(data != NULL) {
+    char *arg = data;
+    if(arg[0] == '-' &&
+       arg[1] == 'a') {
+      sniff_for_attributes = 1;
+    }
+  }
 
   rime_sniffer_add(&s);
   
