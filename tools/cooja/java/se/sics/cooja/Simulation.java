@@ -24,7 +24,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * $Id: Simulation.java,v 1.42 2009/02/24 15:08:20 fros4943 Exp $
+ * $Id: Simulation.java,v 1.43 2009/03/02 09:46:19 fros4943 Exp $
  */
 
 package se.sics.cooja;
@@ -44,7 +44,7 @@ import se.sics.cooja.dialogs.*;
  * changed simulation state, added or deleted motes etc are observed.
  * To track mote changes, observe the mote (interfaces) itself.
  *
- * @author Fredrik Österlind
+ * @author Fredrik Osterlind
  */
 public class Simulation extends Observable implements Runnable {
 
@@ -52,7 +52,7 @@ public class Simulation extends Observable implements Runnable {
 
   private Vector<MoteType> moteTypes = new Vector<MoteType>();
 
-  private int delayTime = 5;
+  private int delayTime = 0;
 
   private long currentSimulationTime = 0;
 
