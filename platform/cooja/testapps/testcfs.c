@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: testcfs.c,v 1.2 2008/10/03 09:39:38 fros4943 Exp $
+ * $Id: testcfs.c,v 1.3 2009/03/02 09:44:07 fros4943 Exp $
  */
 
 #include "contiki.h"
@@ -57,7 +57,7 @@ PROCESS_THREAD(test_cfs_process, ev, data)
     /* Write to filesystem */
     sprintf(buf, "filedata%04ifiledata%04i", counter, counter);
     fd = cfs_open("filename", CFS_READ | CFS_WRITE);
-    cfs_seek(fd, 0);
+    cfs_seek(fd, 0, CFS_SEEK_SET);
     cfs_write(fd, buf, 24);
     cfs_close(fd);
     printf("Wrote to filesystem: '%s'\n", buf);
@@ -68,7 +68,7 @@ PROCESS_THREAD(test_cfs_process, ev, data)
 
     /* Read from filesystem */
     fd = cfs_open("file1", CFS_READ | CFS_WRITE);
-    cfs_seek(fd, 4);
+    cfs_seek(fd, 4, CFS_SEEK_SET);
     cfs_read(fd, buf, 12);
     cfs_close(fd);
     buf[12] = '\0';
