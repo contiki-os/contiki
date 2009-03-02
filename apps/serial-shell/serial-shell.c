@@ -1,3 +1,8 @@
+/**
+ * \addtogroup shell
+ * @{
+ */
+
 /*
  * Copyright (c) 2008, Swedish Institute of Computer Science.
  * All rights reserved.
@@ -28,12 +33,12 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: serial-shell.c,v 1.3 2009/02/08 19:28:57 adamdunkels Exp $
+ * $Id: serial-shell.c,v 1.4 2009/03/02 21:56:16 adamdunkels Exp $
  */
 
 /**
  * \file
- *         A shell driver for the serial port
+ *         A shell back-end for the serial port
  * \author
  *         Adam Dunkels <adam@sics.se>
  */
@@ -92,3 +97,4 @@ serial_shell_init(void)
   process_start(&serial_shell_process, NULL);
 }
 /*---------------------------------------------------------------------------*/
+/** @} */
