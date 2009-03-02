@@ -1,3 +1,23 @@
+/** \addtogroup apps
+ * @{ */
+
+/**
+ * \defgroup shell The Contiki shell
+ * @{
+ *
+ * The Contiki shell provides both interactive and batch processing
+ * for Contiki.
+ *
+ * The shell consists of two parts: the shell application and a shell
+ * back-end. The shell application contains all the logic of the
+ * shell, whereas the shell back-end provides I/O for the
+ * shell. Examples of shell back-ends are a serial I/O shell back-end,
+ * that allows the shell to operate over a serial connection, and a
+ * telnet server back-end, that allows the shell to operate over a
+ * TCP/IP telnet connection.
+ *
+ */
+
 /*
  * Copyright (c) 2008, Swedish Institute of Computer Science.
  * All rights reserved.
@@ -28,12 +48,12 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: shell.h,v 1.12 2009/03/01 23:33:46 oliverschmidt Exp $
+ * $Id: shell.h,v 1.13 2009/03/02 20:44:15 adamdunkels Exp $
  */
 
 /**
  * \file
- *         A brief description of what this file is.
+ *         Main header file for the Contiki shell
  * \author
  *         Adam Dunkels <adam@sics.se>
  */
@@ -43,6 +63,14 @@
 
 #include "sys/process.h"
 
+/**
+ * \brief      Holds a information about a shell command
+ *
+ *             This structure contains information about a shell
+ *             command. It is an opaque structure with no user-visible
+ *             elements.
+ *
+ */
 struct shell_command {
   struct shell_command *next;
   char *command;
@@ -51,53 +79,280 @@ struct shell_command {
   struct shell_command *child;
 };
 
+/**
+ * \name       Shell back-end API
+ *
+ *             The shell back-end API contains functions that are used
+ *             by shell back-ends.
+ * @{
+ */
+
+/**
+ * \brief      Initialize the shell.
+ *
+ *             This function initializes the shell. It typically is
+ *             called from the shell back-end.
+ *
+ */
 void shell_init(void);
 
+/**
+ * \brief      Start the shell.
+ *
+ *             This function starts the shell and prints out the shell
+ *             prompt. It typically is called by the shell back-end to
+ *             start a new shell session.
+ *
+ */
 void shell_start(void);
 
+/**
+ * \brief      Send a line of input to the shell
+ * \param commandline A pointer to a string that contains the command line
+ * \param commandline_len Length of the command line, in bytes
+ *
+ *             This function is called by a shell back-end to send an
+ *             incoming command line to the shell. The shell parses
+ *             the command line and starts any commands found in the
+ *             command line.
+ *
+ */
 void shell_input(char *commandline, int commandline_len);
-int shell_start_command(char *commandline, int commandline_len,
-			struct shell_command *child,
-			struct process **started_process);
+
+/**
+ * \brief      Quit the shell
+ *
+ *             This function is called by a shell back-end to indicate
+ *             that the user has quit the shell.
+ *
+ */
+void shell_quit(void);
+
+/**
+ * @}
+ */
+
+/**
+ * \name       Shell back-end callback functions
+ *
+ *             These callback functions are called from the shell to
+ *             the shell back-end. The shell back-end must implement
+ *             all back-end callback functions.
+ * @{
+ */
+
+
+/**
+ * \brief      Print a prompt
+ * \param prompt A suggested prompt
+ *
+ *             This function is called by the shell to print a
+ *             prompt. The shell back-end may show the suggested
+ *             prompt, or another prompt.
+ *
+ */
+void shell_prompt(char *prompt);
+
+/**
+ * \brief      Print a line of output from the shell
+ * \param data1 A pointer to the first half of the data
+ * \param size1 The size of the first half of the data
+ * \param data2 A pointer to the second half of the data
+ * \param size2 The size of the second half of the data
+ *
+ *
+ *             This function is called by a shell command to output
+ *             data. The output is split into two halves to make it
+ *             easier for shell commands to output data that contains
+ *             a static part (such as a static string) and a dynamic
+ *             part (a dynamically generated string).
+ *
+ */
+void shell_default_output(const char *data1, int size1,
+			  const char *data2, int size2);
+
+/**
+ * @}
+ */
+
+/**
+ * \name       Shell command API
+ *
+ *             These functions are used by shell commands.
+ * @{
+ */
+
+
+/**
+ * \brief      Define a shell command
+ * \param name The variable name of the shell command definition
+ * \param command A string with the name of the shell command
+ * \param description A string that contains a one-line description of the command
+ * \param process A pointer to the process that implements the shell command
+ *
+ *             This macro defines and declares a shell command (struct
+ *             shell_command). This is used with the
+ *             shell_register_command() function to register the
+ *             command with the shell.
+ *
+  * \hideinitializer
+ */
+#define SHELL_COMMAND(name, command, description, process) \
+static struct shell_command name = { NULL, command, \
+                                     description, process }
+
+
+/**
+ * \brief      Output data from a shell command
+ * \param c    The command that outputs data
+ * \param data1 A pointer to the first half of the data
+ * \param size1 The size of the first half of the data
+ * \param data2 A pointer to the second half of the data
+ * \param size2 The size of the second half of the data
+ *
+ *             This function is called by a shell command to output
+ *             data. The output is split into two halves to make it
+ *             easier for shell commands to output data that contains
+ *             a static part (such as a static string) and a dynamic
+ *             part (a dynamically generated string).
+ *
+ */
 void shell_output(struct shell_command *c,
 		  void *data1, int size1,
 		  const void *data2, int size2);
+/**
+ * \brief      Output strings from a shell command
+ * \param c    The command that outputs data
+ * \param str1 A pointer to the first half of the string
+ * \param str2 A pointer to the second half of the string
+ *
+ *             This function is called by a shell command to output a
+ *             string. Internally, the function uses the
+ *             shell_output() function to output the data. The output
+ *             is split into two halves to make it easier for shell
+ *             commands to output data that contains a static part
+ *             (such as a static string) and a dynamic part (a
+ *             dynamically generated string).
+ *
+ */
 void shell_output_str(struct shell_command *c,
 		      char *str1, const char *str2);
 
-void shell_default_output(const char *text1, int len1,
-			  const char *text2, int len2);
-
-void shell_prompt(char *prompt);
-
+/**
+ * \brief      Register a command with the shell
+ * \param c    A pointer to a shell command structure, defined with SHELL_COMMAND()
+ *
+ *             This function registers a shell command with the
+ *             shell. After becoming registered, the shell command
+ *             will appear in the list of available shell commands and
+ *             is possible to invoke by a user. The shell command must
+ *             have been defined with the SHELL_COMMAND() macro.
+ *
+ */
 void shell_register_command(struct shell_command *c);
+
+/**
+ * \brief      Unregister a previously registered shell command
+ * \param c    A pointer to a shell command structure
+ *
+ *             This function unregisters a shell command that has
+ *             previously been registered with eht
+ *             shell_register_command() function.
+ *
+ */
 void shell_unregister_command(struct shell_command *c);
 
+/**
+ * \brief      Start a shell command from another shell command
+ * \param commandline A pointer to a string that contains the command line
+ * \param commandline_len Length of the command line, in bytes
+ * \param child A pointer to the shell command that starts the command
+ * \param started_process A pointer to a shell command pointer that will be filled in with a pointer to the started command structure
+ * \retval     A shell_retval indicating if the command was started as a foreground or a background process
+ *
+ *             This function starts a command, or a set of
+ *             commands. The function is called by a shell command to
+ *             start other shell commands.
+ *
+ */
+int shell_start_command(char *commandline, int commandline_len,
+			struct shell_command *child,
+			struct process **started_process);
+
+/**
+ * @}
+ */
+
+/**
+ * \name       Shell convenience functions
+ *
+ *             These functions assist shell commands in parsing
+ *             command lines
+ * @{
+ */
+
+/**
+ * \brief      Convert a string to a number
+ * \param str  The input string
+ * \param retstr A pointer to a pointer to a string, is filled in with a pointer to the data after the number in the input string
+ * \retval     The converted number
+ *
+ *             This function converts a string to a number. The
+ *             function returns the converted number and a pointer to
+ *             the data that follows the number in the input string.
+ *
+ */
 unsigned long shell_strtolong(const char *str, const char **retstr);
 
 unsigned long shell_time(void);
 void shell_set_time(unsigned long seconds);
 
-void shell_quit(void);
+/**
+ * @}
+ */
 
+/**
+ * \name       Shell variables, definitions, and return values
+ *
+ * @{
+ */
 
-#define SHELL_COMMAND(name, command, description, process) \
-static struct shell_command name = { NULL, command, \
-                                     description, process }
-
-enum {
+enum shell_retval {
   SHELL_FOREGROUND,
   SHELL_BACKGROUND,
   SHELL_NOTHING,
 };
 
+/**
+ * \brief      The event number for shell input data
+ *
+ *             The shell sends data as Contiki events to shell command
+ *             processes. This variable contains the number of the
+ *             Contiki event.
+ *
+ */
 extern int shell_event_input;
 
+/**
+ * \brief      Structure for shell input data
+ *
+ *             The shell sends data as Contiki events to shell command
+ *             processes. This structure contains the data in the
+ *             event. The data is split into two halves, data1 and
+ *             data2. The length of the data in the two halves is
+ *             given by len1 and len2.
+ *
+ */
 struct shell_input {
   char *data1;
   const char *data2;
   int len1, len2;
 };
+
+/**
+ * @}
+ */
+
 
 #include "shell-blink.h"
 #include "shell-coffee.h"
@@ -124,3 +379,7 @@ struct shell_input {
 #include "shell-wget.h"
 
 #endif /* __SHELL_H__ */
+
+
+/** @} */
+/** @} */
