@@ -54,7 +54,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: announcement.h,v 1.1 2009/02/05 19:32:01 adamdunkels Exp $
+ * $Id: announcement.h,v 1.2 2009/03/02 21:59:28 adamdunkels Exp $
  */
 
 /**
@@ -84,7 +84,7 @@ struct announcement {
 
 /**
  * \name Application API
- * *{
+ * @{
  */
 /**
  * \brief      Register an announcement
@@ -168,7 +168,7 @@ void announcement_listen(int periods);
 
 /**
  * \name System API
- * *{
+ * @{
  */
 
 /**
