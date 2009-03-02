@@ -33,7 +33,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: polite.c,v 1.7 2009/02/11 11:08:56 adamdunkels Exp $
+ * $Id: polite.c,v 1.8 2009/03/02 11:22:09 adamdunkels Exp $
  */
 
 /**
@@ -50,11 +50,11 @@
 #include <string.h>
 
 #ifndef MAX
-#define MAX(a,b) ((a)>(b)?(a):(b))
+#define MAX(a,b) ((a) > (b)? (a) : (b))
 #endif /* MAX */
 
 #ifndef MIN
-#define MIN(a, b) ((a) > (b)? (a) : (b))
+#define MIN(a, b) ((a) < (b)? (a) : (b))
 #endif /* MIN */
 
 
