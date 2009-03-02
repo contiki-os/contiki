@@ -33,7 +33,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: compower.c,v 1.1 2009/03/01 20:32:03 adamdunkels Exp $
+ * $Id: compower.c,v 1.2 2009/03/02 22:00:41 adamdunkels Exp $
  */
 
 /**
@@ -81,15 +81,15 @@ compower_clear(struct compower_activity *e)
 void
 compower_attrconv(struct compower_activity *e)
 {
-  rimebuf_set_attr(RIMEBUF_ATTR_LISTEN_ENERGY, e->listen);
-  rimebuf_set_attr(RIMEBUF_ATTR_TRANSMIT_ENERGY, e->transmit);
+  rimebuf_set_attr(RIMEBUF_ATTR_LISTEN_TIME, e->listen);
+  rimebuf_set_attr(RIMEBUF_ATTR_TRANSMIT_TIME, e->transmit);
 }
 /*---------------------------------------------------------------------------*/
 void
 compower_accumulate_attrs(struct compower_activity *e)
 {
-  e->listen += rimebuf_attr(RIMEBUF_ATTR_LISTEN_ENERGY);
-  e->transmit += rimebuf_attr(RIMEBUF_ATTR_TRANSMIT_ENERGY);
+  e->listen += rimebuf_attr(RIMEBUF_ATTR_LISTEN_TIME);
+  e->transmit += rimebuf_attr(RIMEBUF_ATTR_TRANSMIT_TIME);
 }
 /*---------------------------------------------------------------------------*/
 /** @} */
