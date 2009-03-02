@@ -1,3 +1,8 @@
+/**
+ * \addtogroup shell
+ * @{
+ */
+
 /*
  * Copyright (c) 2008, Swedish Institute of Computer Science.
  * All rights reserved.
@@ -28,12 +33,12 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: shell.c,v 1.12 2008/07/07 23:47:07 adamdunkels Exp $
+ * $Id: shell.c,v 1.13 2009/03/02 20:44:15 adamdunkels Exp $
  */
 
 /**
  * \file
- *         A brief description of what this file is.
+ *         The shell application
  * \author
  *         Adam Dunkels <adam@sics.se>
  */
@@ -544,3 +549,5 @@ shell_quit(void)
   process_exit(&shell_server_process);
 }
 /*---------------------------------------------------------------------------*/
+
+/** @} */
