@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#)$Id: uart1.c,v 1.10 2009/03/01 20:40:30 adamdunkels Exp $
+ * @(#)$Id: uart1.c,v 1.11 2009/03/02 22:01:26 adamdunkels Exp $
  */
 
 /*
@@ -74,14 +74,13 @@ uart1_set_input(int (*input)(unsigned char c))
 void
 uart1_writeb(unsigned char c)
 {
+  watchdog_periodic();
 #if TX_WITH_INTERRUPT
 
   /* Put the outgoing byte on the transmission buffer. If the buffer
      is full, we just keep on trying to put the byte into the buffer
      until it is possible to put it there. */
-  while(ringbuf_put(&txbuf, c) == 0) {
-    watchdog_periodic();
-  }
+  while(ringbuf_put(&txbuf, c) == 0);
 
   /* If there is no transmission going, we need to start it by putting
      the first byte into the UART. */
@@ -91,7 +90,7 @@ uart1_writeb(unsigned char c)
   }
 
 #else /* TX_WITH_INTERRUPT */
-  watchdog_periodic();
+
   /* Loop until the transmission buffer is available. */
   while((IFG2 & UTXIFG1) == 0);
 
