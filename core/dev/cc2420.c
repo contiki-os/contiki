@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: cc2420.c,v 1.26 2009/02/25 21:21:06 nifi Exp $
+ * @(#)$Id: cc2420.c,v 1.27 2009/03/02 21:59:01 adamdunkels Exp $
  */
 /*
  * This code is almost device independent and should be easy to port.
@@ -50,6 +50,7 @@
 #include "dev/cc2420.h"
 #include "dev/cc2420_const.h"
 
+#include "net/rime/rimebuf.h"
 #include "net/rime/rimestats.h"
 
 #include "sys/timetable.h"
@@ -637,6 +638,11 @@ cc2420_read(void *buf, unsigned short bufsize)
 #endif /* CC2420_CONF_CHECKSUM */
     cc2420_last_rssi = footer[0];
     cc2420_last_correlation = footer[1] & FOOTER1_CORRELATION;
+
+
+    rimebuf_set_attr(RIMEBUF_ATTR_RSSI, cc2420_last_rssi);
+    rimebuf_set_attr(RIMEBUF_ATTR_LINK_QUALITY, cc2420_last_correlation);
+    
     RIMESTATS_ADD(llrx);
     
 #if CC2420_CONF_TIMESTAMPS
@@ -646,7 +652,8 @@ cc2420_read(void *buf, unsigned short bufsize)
       (total_time_for_transmission * (len - 2)) / total_transmission_len;
   
     cc2420_authority_level_of_sender = t.authority_level;
-  
+
+    rimebuf_set_attr(RIMEBUF_ATTR_TIMESTAMP, t.time);
 #endif /* CC2420_CONF_TIMESTAMPS */
   
   } else {
