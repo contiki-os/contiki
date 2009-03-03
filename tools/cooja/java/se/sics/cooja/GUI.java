@@ -24,7 +24,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * $Id: GUI.java,v 1.110 2009/02/27 14:48:15 fros4943 Exp $
+ * $Id: GUI.java,v 1.111 2009/03/03 12:09:34 fros4943 Exp $
  */
 
 package se.sics.cooja;
@@ -621,6 +621,9 @@ public class GUI extends Observable {
         ActionEvent.CTRL_MASK));
     menuItem2.addActionListener(new ActionListener() {
       public void actionPerformed(ActionEvent e) {
+        if (getSimulation() == null) {
+          return;
+        }
         reloadCurrentSimulation(false, getSimulation().getRandomSeed());
       }
     });
@@ -632,6 +635,9 @@ public class GUI extends Observable {
         ActionEvent.CTRL_MASK | ActionEvent.SHIFT_MASK));
     menuItem2.addActionListener(new ActionListener() {
       public void actionPerformed(ActionEvent e) {
+        if (getSimulation() == null) {
+          return;
+        }
         reloadCurrentSimulation(false, getSimulation().getRandomSeed()+1);
       }
     });
