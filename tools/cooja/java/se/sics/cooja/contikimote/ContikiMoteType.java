@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ContikiMoteType.java,v 1.28 2008/11/20 16:35:44 fros4943 Exp $
+ * $Id: ContikiMoteType.java,v 1.29 2009/03/03 13:45:32 fros4943 Exp $
  */
 
 package se.sics.cooja.contikimote;
@@ -208,6 +208,11 @@ public class ContikiMoteType implements MoteType {
     if (visAvailable) {
       return ContikiMoteTypeDialog.showDialog(parentContainer, simulation, this);
     } else {
+
+      /* Automatically clean if not visualized */
+      if (!GUI.isVisualized()) {
+        ContikiMoteTypeDialog.cleanTempFiles();
+      }
 
       // Create temp output directory if not already exists
       if (!ContikiMoteType.tempOutputDirectory.exists()) {
