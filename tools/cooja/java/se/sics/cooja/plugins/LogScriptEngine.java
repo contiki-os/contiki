@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: LogScriptEngine.java,v 1.8 2009/01/12 10:45:40 fros4943 Exp $
+ * $Id: LogScriptEngine.java,v 1.9 2009/03/03 15:55:39 fros4943 Exp $
  */
 
 package se.sics.cooja.plugins;
@@ -380,6 +380,9 @@ public class LogScriptEngine {
         if (timeoutEvent != null) {
           timeoutEvent.remove();
         }
+
+        semaphoreSim.release(100);
+        throw new RuntimeException("test script killed");
       }
       public void testFailed() {
         log("TEST FAILED\n");
@@ -408,6 +411,9 @@ public class LogScriptEngine {
         if (timeoutEvent != null) {
           timeoutEvent.remove();
         }
+
+        semaphoreSim.release(100);
+        throw new RuntimeException("test script killed");
       }
 
       public void generateMessage(long delay, final String msg) {
