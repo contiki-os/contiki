@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: EventQueue.java,v 1.4 2009/01/08 15:42:25 fros4943 Exp $
+ * $Id: EventQueue.java,v 1.5 2009/03/03 13:42:45 fros4943 Exp $
  */
 
 package se.sics.cooja;
@@ -34,7 +34,7 @@ package se.sics.cooja;
 import java.util.ArrayList;
 
 /**
- * @author Joakim Eriksson (ported to COOJA by Fredrik Österlind)
+ * @author Joakim Eriksson (ported to COOJA by Fredrik Osterlind)
  */
 public class EventQueue {
 

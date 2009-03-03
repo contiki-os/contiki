@@ -26,13 +26,13 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: TimeEvent.java,v 1.3 2009/01/08 15:42:25 fros4943 Exp $
+ * $Id: TimeEvent.java,v 1.4 2009/03/03 13:42:45 fros4943 Exp $
  */
 
 package se.sics.cooja;
 
 /**
- * @author Joakim Eriksson (ported to COOJA by Fredrik Österlind)
+ * @author Joakim Eriksson (ported to COOJA by Fredrik Osterlind)
  */
 public abstract class TimeEvent {
   TimeEvent nextEvent;

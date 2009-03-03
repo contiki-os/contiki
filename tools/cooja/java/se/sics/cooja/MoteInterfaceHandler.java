@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: MoteInterfaceHandler.java,v 1.4 2008/10/28 12:40:35 fros4943 Exp $
+ * $Id: MoteInterfaceHandler.java,v 1.5 2009/03/03 13:42:45 fros4943 Exp $
  */
 
 package se.sics.cooja;
@@ -44,7 +44,7 @@ import se.sics.cooja.interfaces.*;
  * @see #doPassiveActionsAfterTick()
  * @see #doPassiveActionsBeforeTick()
  *
- * @author Fredrik Österlind
+ * @author Fredrik Osterlind
  */
 public class MoteInterfaceHandler {
   private static Logger logger = Logger.getLogger(MoteInterfaceHandler.class);

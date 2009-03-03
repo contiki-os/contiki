@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: RadioConnection.java,v 1.6 2009/02/24 15:07:01 fros4943 Exp $
+ * $Id: RadioConnection.java,v 1.7 2009/03/03 13:42:45 fros4943 Exp $
  */
 
 package se.sics.cooja;
@@ -41,7 +41,7 @@ import se.sics.cooja.interfaces.Radio;
  * to receive data sent by the source radio, and the interfered radios are not.
  *
  * @see RadioMedium
- * @author Fredrik Österlind
+ * @author Fredrik Osterlind
  */
 public class RadioConnection {
   private Radio source;
