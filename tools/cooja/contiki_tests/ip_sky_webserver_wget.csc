@@ -18,7 +18,7 @@
       <identifier>sky1</identifier>
       <description>Sky Mote Type #1</description>
       <source>../../../examples/sky-shell-webserver/sky-shell-webserver.c</source>
-      <command>make sky-shell-webserver.sky TARGET=sky DEFINES=WITH_NULLMAC</command>
+      <command>make sky-shell-webserver.sky TARGET=sky</command>
     </motetype>
     <mote>
       se.sics.cooja.mspmote.SkyMote
