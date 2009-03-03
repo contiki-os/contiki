@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ContikiMoteTypeDialog.java,v 1.55 2009/03/03 13:43:48 fros4943 Exp $
+ * $Id: ContikiMoteTypeDialog.java,v 1.56 2009/03/03 14:57:42 fros4943 Exp $
  */
 
 package se.sics.cooja.contikimote;
@@ -2193,10 +2193,12 @@ public class ContikiMoteTypeDialog extends JDialog {
   public static void cleanTempFiles() {
     File objectDir = ContikiMoteType.tempOutputDirectory;
     if (objectDir.exists() && objectDir.isDirectory()) {
-      logger.info("Cleaning temporary files in: " + objectDir);
+      logger.info("Cleaning temporary files in: " + objectDir.getPath());
       File[] objectFiles = objectDir.listFiles();
       for (File objectFile : objectFiles) {
-        objectFile.delete();
+        if (!objectFile.getName().endsWith(ContikiMoteType.librarySuffix)) {
+           objectFile.delete();
+        }
       }
       objectDir.delete();
     }
