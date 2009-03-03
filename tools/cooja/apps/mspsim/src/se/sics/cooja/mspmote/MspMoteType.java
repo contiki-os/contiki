@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: MspMoteType.java,v 1.22 2009/02/17 11:47:12 fros4943 Exp $
+ * $Id: MspMoteType.java,v 1.23 2009/03/03 13:52:35 fros4943 Exp $
  */
 
 package se.sics.cooja.mspmote;
@@ -231,8 +231,13 @@ public abstract class MspMoteType implements MoteType {
       } else {
         MessageList compilationOutput = new MessageList();
         try {
-          compiler.compileFirmware(getSourceFile(), null, null, compilationOutput,
-              true);
+
+          /* Automatically clean if not visualized */
+          if (!GUI.isVisualized()) {
+            compiler.cleanTempFiles(compilationOutput, getSourceFile().getParentFile(), true);
+          }
+
+          compiler.compileFirmware(getSourceFile(), null, null, compilationOutput, true);
 
         } catch (Exception e) {
           MoteTypeCreationException newException = new MoteTypeCreationException(
@@ -396,6 +401,33 @@ public abstract class MspMoteType implements MoteType {
         return;
       }
       customizedCompileCommand = command;
+    }
+
+    public void cleanTempFiles(final MessageList taskOutput, final File parentDir, boolean synch) {
+      Thread t = new Thread(new Runnable() {
+        public void run() {
+          try {
+            compileFirmware(
+                "make clean TARGET=" + target,
+                null,
+                null,
+                parentDir,
+                null,
+                null,
+                taskOutput,
+                true);
+          } catch (Exception e2) {
+          }
+        }
+      });
+      t.start();
+      if (synch) {
+        try {
+          t.join();
+        } catch (InterruptedException e) {
+          e.printStackTrace();
+        }
+      }
     }
 
     /**
@@ -682,17 +714,8 @@ public abstract class MspMoteType implements MoteType {
 
       cleanButton.addActionListener(new ActionListener() {
         public void actionPerformed(ActionEvent e) {
-            new Thread(new Runnable() {
-              public void run() {
-                try {
-                  File parentDir = new File(sourceTextField.getText()).getParentFile();
-                  compileFirmware(
-                      "make clean TARGET=" + target, new File(sourceTextField.getText()), null,
-                      parentDir, null, null, taskOutput, true);
-                } catch (Exception e2) {
-                }
-              }
-            }).start();
+          File parentDir = new File(sourceTextField.getText()).getParentFile();
+          cleanTempFiles(taskOutput, parentDir, false);
         }
       });
 
