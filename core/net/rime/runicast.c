@@ -34,7 +34,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: runicast.c,v 1.3 2009/02/17 12:40:18 fros4943 Exp $
+ * $Id: runicast.c,v 1.4 2009/03/03 12:19:46 fros4943 Exp $
  */
 
 /**
@@ -83,6 +83,7 @@ sent_by_stunicast(struct stunicast_conn *stunicast)
   c->rxmit++;
   if(c->rxmit >= c->max_rxmit) {
     RIMESTATS_ADD(timedout);
+    c->is_tx = 0;
     stunicast_cancel(&c->c);
     if(c->u->timedout) {
       c->u->timedout(c, stunicast_receiver(&c->c), c->rxmit);
@@ -118,6 +119,7 @@ recv_from_stunicast(struct stunicast_conn *stunicast, rimeaddr_t *from)
 	     rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1],
 	     rimebuf_attr(RIMEBUF_ATTR_PACKET_ID));
       c->sndnxt = (c->sndnxt + 1) % (1 << RUNICAST_PACKET_ID_BITS);
+      c->is_tx = 0;
       stunicast_cancel(&c->c);
       if(c->u->sent != NULL) {
 	c->u->sent(c, stunicast_receiver(&c->c), c->rxmit);
@@ -160,20 +162,12 @@ recv_from_stunicast(struct stunicast_conn *stunicast, rimeaddr_t *from)
       rimebuf_set_attr(RIMEBUF_ATTR_PACKET_ID, packet_seqno);
       stunicast_send(&c->c, from);
       RIMESTATS_ADD(acktx);
-      
+
       queuebuf_to_rimebuf(q);
       queuebuf_free(q);
     }
     if(c->u->recv != NULL) {
-      if (packet_seqno != c->lastrecv) {
-        c->u->recv(c, from, packet_seqno);
-        c->lastrecv = packet_seqno; /* remember last received packet */
-      } else {
-        PRINTF("%d.%d: runicast: Supressing duplicate receive callback from %d.%d for %d\n",
-           rimeaddr_node_addr.u8[0],rimeaddr_node_addr.u8[1],
-           from->u8[0], from->u8[1],
-           packet_seqno);
-      }
+      c->u->recv(c, from, packet_seqno);
     }
   }
 }
@@ -187,9 +181,9 @@ runicast_open(struct runicast_conn *c, uint16_t channel,
   stunicast_open(&c->c, channel, &runicast);
   channel_set_attributes(channel, attributes);
   c->u = u;
+  c->is_tx = 0;
   c->rxmit = 0;
   c->sndnxt = 0;
-  c->lastrecv = 0xFF;
 }
 /*---------------------------------------------------------------------------*/
 void
@@ -198,14 +192,26 @@ runicast_close(struct runicast_conn *c)
   stunicast_close(&c->c);
 }
 /*---------------------------------------------------------------------------*/
+uint8_t
+runicast_is_transmitting(struct runicast_conn *c)
+{
+  return c->is_tx;
+}
+/*---------------------------------------------------------------------------*/
 int
 runicast_send(struct runicast_conn *c, rimeaddr_t *receiver, uint8_t max_retransmissions)
 {
+  if (runicast_is_transmitting(c)) {
+    PRINTF("%d.%d: runicast: already transmitting\n",
+        rimeaddr_node_addr.u8[0],rimeaddr_node_addr.u8[1]);
+    return 0;
+  }
   rimebuf_set_attr(RIMEBUF_ATTR_RELIABLE, 1);
   rimebuf_set_attr(RIMEBUF_ATTR_PACKET_TYPE, RIMEBUF_ATTR_PACKET_TYPE_DATA);
   rimebuf_set_attr(RIMEBUF_ATTR_PACKET_ID, c->sndnxt);
   c->max_rxmit = max_retransmissions;
   c->rxmit = 0;
+  c->is_tx = 1;
   RIMESTATS_ADD(reliabletx);
   PRINTF("%d.%d: runicast: sending packet %d\n",
 	 rimeaddr_node_addr.u8[0],rimeaddr_node_addr.u8[1],
