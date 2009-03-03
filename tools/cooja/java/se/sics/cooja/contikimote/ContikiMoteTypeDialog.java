@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ContikiMoteTypeDialog.java,v 1.54 2009/02/20 16:51:00 fros4943 Exp $
+ * $Id: ContikiMoteTypeDialog.java,v 1.55 2009/03/03 13:43:48 fros4943 Exp $
  */
 
 package se.sics.cooja.contikimote;
@@ -2190,6 +2190,18 @@ public class ContikiMoteTypeDialog extends JDialog {
     testButton.setEnabled(settingsOK);
   }
 
+  public static void cleanTempFiles() {
+    File objectDir = ContikiMoteType.tempOutputDirectory;
+    if (objectDir.exists() && objectDir.isDirectory()) {
+      logger.info("Cleaning temporary files in: " + objectDir);
+      File[] objectFiles = objectDir.listFiles();
+      for (File objectFile : objectFiles) {
+        objectFile.delete();
+      }
+      objectDir.delete();
+    }
+  }
+
   private class MoteTypeEventHandler
       implements
         ActionListener,
@@ -2227,16 +2239,7 @@ public class ContikiMoteTypeDialog extends JDialog {
         myMoteType = null;
         dispose();
       } else if (e.getActionCommand().equals("clean")) {
-        // Delete any created intermediate files
-        File objectDir = ContikiMoteType.tempOutputDirectory;
-        if (objectDir.exists() && objectDir.isDirectory()) {
-          File[] objectFiles = objectDir.listFiles();
-          for (File objectFile : objectFiles) {
-            objectFile.delete();
-          }
-
-          objectDir.delete();
-        }
+        cleanTempFiles();
       } else if (e.getActionCommand().equals("create")) {
         // Create mote type and set various data
         try {
