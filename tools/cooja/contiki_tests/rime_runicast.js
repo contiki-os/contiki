@@ -7,7 +7,7 @@ nr_sent = 0;
 while (nr_sent < 10) {
 
 /* Count received packets */
-if (msg.contains('received')) {
+if (msg.contains('received') && !msg.contains('DUPLICATE')) {
   nr_recv++;
   log.log("RECV=" + nr_recv + ", sent=" + nr_sent + ", timedout=" + nr_timedout + "\n");
 }
