@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ScriptRunner.java,v 1.13 2009/02/18 16:43:42 fros4943 Exp $
+ * $Id: ScriptRunner.java,v 1.14 2009/03/03 13:50:02 fros4943 Exp $
  */
 
 package se.sics.cooja.plugins;
@@ -49,9 +49,6 @@ import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.io.StringReader;
 import java.util.*;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
 import javax.script.ScriptException;
 import javax.swing.*;
 import javax.swing.event.DocumentEvent;
@@ -126,6 +123,19 @@ public class ScriptRunner implements Plugin {
       /* Wait for activateTest(...) */
       return;
     }
+
+    /* Automatically activate test for new simulations */
+    gui.addObserver(new Observer() {
+      public void update(Observable obs, Object obj) {
+        Simulation sim = ScriptRunner.this.gui.getSimulation();
+        if (sim == null) {
+          setScriptActive(false);
+          return;
+        }
+
+        setScriptActive(true);
+      }
+    });
 
     /* GUI components */
     pluginGUI = new JInternalFrame(
@@ -206,29 +216,9 @@ public class ScriptRunner implements Plugin {
     toggleButton.addActionListener(new ActionListener() {
       public void actionPerformed(ActionEvent ev) {
         if (toggleButton.getText().equals("Activate")) {
-          engine = new LogScriptEngine(ScriptRunner.this.gui);
-          engine.setScriptLogObserver(new Observer() {
-            public void update(Observable obs, Object obj) {
-              logTextArea.append((String) obj);
-              logTextArea.setCaretPosition(logTextArea.getText().length());
-            }
-          });
-          try {
-            engine.activateScript(scriptTextArea.getText());
-          } catch (ScriptException e) {
-            e.printStackTrace();
-          }
-          toggleButton.setText("Deactivate");
-          logTextArea.setText("");
-          scriptTextArea.setEnabled(false);
-
+          setScriptActive(true);
         } else {
-          if (engine != null) {
-            engine.deactivateScript();
-            engine = null;
-          }
-          toggleButton.setText("Activate");
-          scriptTextArea.setEnabled(true);
+          setScriptActive(false);
         }
       }
     });
@@ -238,15 +228,7 @@ public class ScriptRunner implements Plugin {
       public void actionPerformed(ActionEvent ev) {
         Runnable doImport = new Runnable() {
           public void run() {
-            if (!toggleButton.getText().equals("Activate")) {
-              if (engine != null) {
-                engine.deactivateScript();
-                engine = null;
-              }
-              toggleButton.setText("Activate");
-              scriptTextArea.setEnabled(true);
-            }
-
+            setScriptActive(false);
             importContikiTest();
           }
         };
@@ -287,6 +269,40 @@ public class ScriptRunner implements Plugin {
     pluginGUI.getContentPane().add(BorderLayout.SOUTH, southPanel);
 
     pluginGUI.pack();
+  }
+
+  private void setScriptActive(boolean active) {
+    if (active) {
+      setScriptActive(false);
+
+      engine = new LogScriptEngine(ScriptRunner.this.gui);
+      engine.setScriptLogObserver(new Observer() {
+        public void update(Observable obs, Object obj) {
+          logTextArea.append((String) obj);
+          logTextArea.setCaretPosition(logTextArea.getText().length());
+        }
+      });
+      try {
+        engine.activateScript(scriptTextArea.getText());
+      } catch (ScriptException e) {
+        e.printStackTrace();
+        setScriptActive(false);
+      }
+      toggleButton.setText("Deactivate");
+      logTextArea.setText("");
+      scriptTextArea.setEnabled(false);
+
+      logger.info("Test script activated");
+    } else {
+      if (engine != null) {
+        engine.deactivateScript();
+        engine = null;
+
+        toggleButton.setText("Activate");
+        scriptTextArea.setEnabled(true);
+        logger.info("Test script deactivated");
+      }
+    }
   }
 
   public JInternalFrame getGUI() {
@@ -364,6 +380,7 @@ public class ScriptRunner implements Plugin {
   }
 
   private void exportAsContikiTest() {
+    String s1, s2; int n; Object[] options;
 
     Simulation simulation = ScriptRunner.this.gui.getSimulation();
     if (simulation == null) {
@@ -372,23 +389,24 @@ public class ScriptRunner implements Plugin {
       return;
     }
 
-    /* Confirm test directory */
     File testDir = new File(GUI.getExternalToolsSetting("PATH_CONTIKI") + "/tools/cooja/contiki_tests");
-    String s1 = "Ok";
-    String s2 = "Cancel";
-    Object[] options = { s1, s2 };
-    int n = JOptionPane.showOptionDialog(GUI.getTopParentContainer(),
+    if (!testDir.exists()) {
+      logger.fatal("Test directory does not exist: " + testDir.getPath());
+      return;
+    }
+
+    /* Confirm test directory */
+    /*s1 = "Ok";
+    s2 = "Cancel";
+    options = new Object[] { s1, s2 };
+    n = JOptionPane.showOptionDialog(GUI.getTopParentContainer(),
         "The current simulation config (.csc) and test script (.js)\n" +
         "will be stored in directory '" + testDir.getPath() + "'",
         "Export Contiki test", JOptionPane.YES_NO_OPTION,
         JOptionPane.QUESTION_MESSAGE, null, options, s1);
     if (n != JOptionPane.YES_OPTION) {
       return;
-    }
-    if (!testDir.exists()) {
-      logger.fatal("Test directory does not exist: " + testDir.getPath());
-      return;
-    }
+    }*/
 
     /* Name test to export */
     if (oldTestName == null) {
@@ -418,6 +436,7 @@ public class ScriptRunner implements Plugin {
     if (cscFile.exists() || jsFile.exists() || infoFile.exists()) {
       s1 = "Overwrite";
       s2 = "Cancel";
+      options = new Object[] { s1, s2 };
       n = JOptionPane.showOptionDialog(GUI.getTopParentContainer(),
           "Some output files already exist. Overwrite?",
           "Test already exist", JOptionPane.YES_NO_OPTION,
@@ -448,32 +467,10 @@ public class ScriptRunner implements Plugin {
     if (pluginsConfig != null) {
       root.addContent(pluginsConfig);
     }
-//    if (pluginsConfig != null) {
-//      JOptionPane.showMessageDialog(GUI.getTopParentContainer(),
-//          "Stripping plugin configuration.\n" +
-//          "(Exporting non-GUI plugins not implemented.)",
-//          "Plugins detected", JOptionPane.WARNING_MESSAGE);
-//    }
-
-    /* Fix simulation delay */
-    root.detach();
-    String configString = new XMLOutputter().outputString(new Document(root));
-    String identifierExtraction = "<delaytime>([^<]*)</delaytime>";
-    Matcher matcher = Pattern.compile(identifierExtraction).matcher(configString);
-    while (matcher.find()) {
-      int delay = Integer.parseInt(matcher.group(1));
-      if (delay != 0) {
-        JOptionPane.showMessageDialog(GUI.getTopParentContainer(),
-            "Simulation delay currently set to " + delay + ".\n" +
-            "Changing delay time to 0 in exported test.",
-            "Non-zero delay time detected", JOptionPane.WARNING_MESSAGE);
-      }
-      configString = configString.replace(
-          "<delaytime>" + matcher.group(1) + "</delaytime>",
-      "<delaytime>0</delaytime>");
-    }
 
     /* Export .csc */
+    root.detach();
+    String configString = new XMLOutputter().outputString(new Document(root));
     try {
       Element newRoot = new SAXBuilder().build(new StringReader(configString)).getRootElement();
       newRoot.detach();
@@ -529,7 +526,14 @@ public class ScriptRunner implements Plugin {
     /* Run exported test (optional) */
     s1 = "Run test";
     s2 = "No";
+    options = new Object[] { s1, s2 };
+
     n = JOptionPane.showOptionDialog(GUI.getTopParentContainer(),
+        "Test files created:\n" +
+        (cscFile.exists()?"Config: " + cscFile.getName() + "\n": "") +
+        (jsFile.exists()?"Script: " + jsFile.getName() + "\n": "") +
+        (infoFile.exists()?"Info: " + infoFile.getName() + "\n": "") +
+        "\n" +
         "Run exported test in forked Cooja now?",
         "Run test?", JOptionPane.YES_NO_OPTION,
         JOptionPane.QUESTION_MESSAGE, null, options, s1);
@@ -665,6 +669,7 @@ public class ScriptRunner implements Plugin {
         gui.doQuit(false);
         return false;
       }
+      sim.setDelayTime(0);
       gui.setSimulation(sim);
 
       /* Load test script */
