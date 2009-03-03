@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: MspMoteType.java,v 1.23 2009/03/03 13:52:35 fros4943 Exp $
+ * $Id: MspMoteType.java,v 1.24 2009/03/03 15:01:14 fros4943 Exp $
  */
 
 package se.sics.cooja.mspmote;
@@ -404,29 +404,30 @@ public abstract class MspMoteType implements MoteType {
     }
 
     public void cleanTempFiles(final MessageList taskOutput, final File parentDir, boolean synch) {
-      Thread t = new Thread(new Runnable() {
+      Runnable clean = new Runnable() {
         public void run() {
           try {
+            logger.info("Cleaning temporary files in: " + parentDir.getPath());
             compileFirmware(
                 "make clean TARGET=" + target,
-                null,
-                null,
+                null /* No source file */,
+                null /* No firmware output */,
                 parentDir,
                 null,
                 null,
                 taskOutput,
                 true);
           } catch (Exception e2) {
+            logger.info("Exception: " + e2.getMessage());
+            e2.printStackTrace();
           }
         }
-      });
-      t.start();
+      };
+
       if (synch) {
-        try {
-          t.join();
-        } catch (InterruptedException e) {
-          e.printStackTrace();
-        }
+        clean.run();
+      } else {
+        new Thread(clean).start();
       }
     }
 
@@ -514,7 +515,8 @@ public abstract class MspMoteType implements MoteType {
       final String command = getCompileCommand(filenameNoExtension);
       logger.info("-- Compiling MSP430 Firmware --");
 
-      compileFirmware(command, sourceFile, filenameNoExtension + getTargetFileExtension(target),
+      compileFirmware(command, sourceFile,
+          new File(parentDirectory, filenameNoExtension + getTargetFileExtension(target)),
           parentDirectory,
           successAction, failAction,
           compilationOutput, synchronous);
@@ -522,7 +524,7 @@ public abstract class MspMoteType implements MoteType {
 
     protected void compileFirmware(
         final String command, final File sourceFile,
-        final String firmware, final File parentDirectory,
+        final File firmwareFile, final File parentDirectory,
         final Action successAction, final Action failAction,
         final MessageList compilationOutput, boolean synchronous) throws Exception {
 
@@ -543,20 +545,18 @@ public abstract class MspMoteType implements MoteType {
         final BufferedReader processError = new BufferedReader(
             new InputStreamReader(compileProcess.getErrorStream()));
 
-        final File ELFFile = new File(parentDirectory, firmware);
-        if (firmware != null) {
-          if (ELFFile.exists()) {
-            ELFFile.delete();
-            if (ELFFile.exists()) {
-              if (compilationOutput != null) {
-                compilationOutput.addMessage("Error when deleting old " + ELFFile.getName(), MessageList.ERROR);
-              }
-              if (failAction != null) {
-                failAction.actionPerformed(null);
-              }
-              throw new MoteTypeCreationException("Error when deleting old "
-                  + ELFFile.getName());
+        if (firmwareFile != null) {
+          if (firmwareFile.exists()) {
+            firmwareFile.delete();
+          }
+          if (firmwareFile.exists()) {
+            if (compilationOutput != null) {
+              compilationOutput.addMessage("Error when deleting old " + firmwareFile.getName(), MessageList.ERROR);
             }
+            if (failAction != null) {
+              failAction.actionPerformed(null);
+            }
+            throw new MoteTypeCreationException("Error when deleting old " + firmwareFile.getName());
           }
         }
 
@@ -620,13 +620,14 @@ public abstract class MspMoteType implements MoteType {
               return;
             }
 
-            if (firmware == null) {
+            if (firmwareFile == null) {
+              /* No firmware to generate: OK */
               return;
             }
 
-            if (!ELFFile.exists()) {
+            if (!firmwareFile.exists()) {
               if (compilationOutput != null) {
-                compilationOutput.addMessage("Can't locate output file " + ELFFile, MessageList.ERROR);
+                compilationOutput.addMessage("No firmware file: " + firmwareFile, MessageList.ERROR);
               }
               if (failAction != null) {
                 failAction.actionPerformed(null);
@@ -642,7 +643,7 @@ public abstract class MspMoteType implements MoteType {
             }
             MspELFCompiler.this.lastCompileCommand = command;
             MspELFCompiler.this.sourceFile = sourceFile;
-            MspELFCompiler.this.ELFFile = ELFFile;
+            MspELFCompiler.this.ELFFile = firmwareFile;
             if (successAction != null) {
               successAction.actionPerformed(null);
             }
@@ -666,9 +667,6 @@ public abstract class MspMoteType implements MoteType {
             throw (MoteTypeCreationException) new MoteTypeCreationException(
                 "Bad return value").initCause(syncException);
           }
-        }
-
-        else {
         }
       } catch (IOException ex) {
         if (failAction != null) {
