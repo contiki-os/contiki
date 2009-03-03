@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ScriptRunner.java,v 1.14 2009/03/03 13:50:02 fros4943 Exp $
+ * $Id: ScriptRunner.java,v 1.15 2009/03/03 15:24:18 fros4943 Exp $
  */
 
 package se.sics.cooja.plugins;
@@ -374,6 +374,7 @@ public class ScriptRunner implements Plugin {
           }
         }
 
+        setScriptActive(true);
       }
     }).start();
 
