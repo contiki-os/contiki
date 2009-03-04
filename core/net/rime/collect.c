@@ -36,7 +36,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: collect.c,v 1.18 2009/02/16 01:18:53 adamdunkels Exp $
+ * $Id: collect.c,v 1.19 2009/03/04 08:59:32 zhitao Exp $
  */
 
 /**
@@ -202,13 +202,16 @@ node_packet_received(struct runicast_conn *c, rimeaddr_t *from, uint8_t seqno)
 	   from->u8[0], from->u8[1], tc->forwarding);
 
     if(!tc->forwarding) {
-      tc->forwarding = 1;
       n = neighbor_best();
       if(n != NULL) {
 #if CONTIKI_TARGET_NETSIM
 	ether_set_line(n->addr.u8[0], n->addr.u8[1]);
 #endif /* CONTIKI_TARGET_NETSIM */
+	tc->forwarding = 1;
 	runicast_send(c, &n->addr, rimebuf_attr(RIMEBUF_ATTR_MAX_REXMIT));
+      } else {
+	PRINTF("%d.%d: did not find any neighbor to forward to\n",
+	       rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1]);
       }
       return;
     } else {
