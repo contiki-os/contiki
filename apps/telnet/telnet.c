@@ -1,18 +1,18 @@
 /*
  * Copyright (c) 2002, Adam Dunkels.
- * All rights reserved. 
+ * All rights reserved.
  *
- * Redistribution and use in source and binary forms, with or without 
- * modification, are permitted provided that the following conditions 
- * are met: 
- * 1. Redistributions of source code must retain the above copyright 
- *    notice, this list of conditions and the following disclaimer. 
- * 2. Redistributions in binary form must reproduce the above copyright 
- *    notice, this list of conditions and the following disclaimer in the 
- *    documentation and/or other materials provided with the distribution. 
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions
+ * are met:
+ * 1. Redistributions of source code must retain the above copyright
+ *    notice, this list of conditions and the following disclaimer.
+ * 2. Redistributions in binary form must reproduce the above copyright
+ *    notice, this list of conditions and the following disclaimer in the
+ *    documentation and/or other materials provided with the distribution.
  * 3. The name of the author may not be used to endorse or promote
  *    products derived from this software without specific prior
- *    written permission.  
+ *    written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS
  * OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
@@ -24,11 +24,11 @@
  * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
  * WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
- * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.  
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * This file is part of the uIP TCP/IP stack.
  *
- * $Id: telnet.c,v 1.1 2006/06/17 22:41:13 adamdunkels Exp $
+ * $Id: telnet.c,v 1.2 2009/03/05 23:56:56 adamdunkels Exp $
  *
  */
 
@@ -50,7 +50,7 @@ telnet_send(struct telnet_state *s, char *text, u16_t len)
     return 1;
   }
   s->text = text;
-  s->textlen = len;  
+  s->textlen = len;
   s->sentlen = 0;
   return 0;
 }
@@ -76,7 +76,7 @@ telnet_abort(struct telnet_state *s)
 }
 /*-----------------------------------------------------------------------------------*/
 static void
-acked(struct telnet_state *s)    
+acked(struct telnet_state *s)
 {
   s->textlen -= s->sentlen;
   if(s->textlen == 0) {
@@ -89,7 +89,7 @@ acked(struct telnet_state *s)
 }
 /*-----------------------------------------------------------------------------------*/
 static void
-senddata(struct telnet_state *s)    
+senddata(struct telnet_state *s)
 {
   if(s->text == NULL) {
     uip_send(s->text, 0);
@@ -101,6 +101,18 @@ senddata(struct telnet_state *s)
     s->sentlen = s->textlen;
   }
   uip_send(s->text, s->sentlen);
+}
+/*-----------------------------------------------------------------------------------*/
+struct telnet_state *
+telnet_connect(struct telnet_state *s, uip_ipaddr_t *addr, u16_t port)
+{
+  struct uip_conn *conn;
+  
+  conn = tcp_connect(addr, htons(port), s);
+  if(conn == NULL) {
+    return NULL;
+  }
+  return s;
 }
 /*-----------------------------------------------------------------------------------*/
 void
@@ -126,7 +138,6 @@ telnet_app(void *ts)
     telnet_timedout(s);
   }
 
-
   if(s->flags & FLAG_CLOSE) {
     uip_close();
     return;
@@ -145,7 +156,7 @@ telnet_app(void *ts)
      uip_newdata() ||
      uip_acked()) {
     senddata(s);
-  } else if(uip_poll()) {    
+  } else if(uip_poll()) {
     senddata(s);
   }
 }
