@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: xmac.c,v 1.26 2009/03/01 20:38:57 adamdunkels Exp $
+ * $Id: xmac.c,v 1.27 2009/03/05 19:37:52 adamdunkels Exp $
  */
 
 /**
@@ -63,6 +63,7 @@
 #define WITH_CHANNEL_CHECK 0   /* Seems to work badly when enabled */
 #define WITH_TIMESYNCH 0
 #define WITH_QUEUE 0
+#define WITH_ACK_OPTIMIZATION 1
 
 struct announcement_data {
   uint16_t id;
@@ -353,7 +354,7 @@ send_packet(void)
   rtimer_clock_t t;
   int strobes;
   struct xmac_hdr hdr;
-  int got_ack = 0;
+  int got_strobe_ack = 0;
   struct {
     struct xmac_hdr hdr;
     struct announcement_msg announcement;
@@ -421,9 +422,9 @@ send_packet(void)
   }
 
   watchdog_stop();
-  got_ack = 0;
+  got_strobe_ack = 0;
   for(strobes = 0;
-      got_ack == 0 &&
+      got_strobe_ack == 0 &&
 	RTIMER_CLOCK_LT(RTIMER_NOW(), t0 + xmac_config.strobe_time);
       strobes++) {
 
@@ -444,7 +445,7 @@ send_packet(void)
 
     CPRINTF("+");
 
-    while(got_ack == 0 &&
+    while(got_strobe_ack == 0 &&
 	  RTIMER_CLOCK_LT(RTIMER_NOW(), t + xmac_config.strobe_wait_time)) {
       /* See if we got an ACK */
       len = radio->read((uint8_t *)&strobe, sizeof(struct xmac_hdr));
@@ -458,7 +459,7 @@ send_packet(void)
 	  CPRINTF("@");
 	  /* We got an ACK from the receiver, so we can immediately send
 	     the packet. */
-	  got_ack = 1;
+	  got_strobe_ack = 1;
 	}
       }
     }
@@ -466,28 +467,37 @@ send_packet(void)
     /* XXX: turn off radio if we haven't heard an ACK within a
        specified time interval. */
 
-    /*    if(got_ack == 0) {
+    /*    if(got_strobe_ack == 0) {
       off();
       while(RTIMER_CLOCK_LT(RTIMER_NOW(), t + xmac_config.strobe_wait_time));
       on();
       }*/
   }
 
-  if(got_ack /* XXX && needs_ack */) {
+  /* If we have received the strobe ACK, and we are sending a packet
+     that will need an upper layer ACK (as signified by the
+     RIMEBUF_ATTR_RELIABLE packet attribute), we keep the radio on. */
+  if(got_strobe_ack && rimebuf_attr(RIMEBUF_ATTR_RELIABLE)) {
 #if WITH_TIMETABLE
     TIMETABLE_TIMESTAMP(xmac_timetable, "send got ack");
 #endif
-    on(); /* Wait for possible ACK packet */
-  } else if(!is_broadcast) {
+#if WITH_ACK_OPTIMIZATION
+    on(); /* Wait for ACK packet */
+    waiting_for_packet = 1;
+#else /* WITH_ACK_OPTIMIZATION */
+    off();
+#endif /* WITH_ACK_OPTIMIZATION */
+
+  } else {
 #if WITH_TIMETABLE
     TIMETABLE_TIMESTAMP(xmac_timetable, "send no ack received");
 #endif
-    on(); /* shell ping don't seem to work with off() here, so we'll
+    off(); /* shell ping don't seem to work with off() here, so we'll
 	     keep it on() for a while. */
   }
 
   /* Send the data packet. */
-  if(is_broadcast || got_ack) {
+  if(is_broadcast || got_strobe_ack) {
 #if WITH_TIMETABLE
     TIMETABLE_TIMESTAMP(xmac_timetable, "send packet");
 #endif
@@ -497,7 +507,7 @@ send_packet(void)
   watchdog_start();
 
   PRINTF("xmac: send (strobes=%u,len=%u,%s), done\n", strobes,
-	 rimebuf_totlen(), got_ack ? "ack" : "no ack");
+	 rimebuf_totlen(), got_strobe_ack ? "ack" : "no ack");
 
 #if XMAC_CONF_COMPOWER
   /* Accumulate the power consumption for the packet transmission. */
@@ -566,7 +576,7 @@ read_packet(void)
   rimebuf_clear();
 
   len = radio->read(rimebuf_dataptr(), RIMEBUF_SIZE);
-
+  
   if(len > 0) {
     rimebuf_set_datalen(len);
     hdr = rimebuf_dataptr();
@@ -640,7 +650,6 @@ read_packet(void)
 #if XMAC_CONF_COMPOWER
 	/* Accumulate the power consumption for the packet reception. */
 	compower_accumulate(&current_packet);
-  
 	/* Convert the accumulated power consumption for the received
 	   packet to packet attributes so that the higher levels can
 	   keep track of the amount of energy spent on receiving the
