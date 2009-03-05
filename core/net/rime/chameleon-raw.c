@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: chameleon-raw.c,v 1.4 2009/02/10 23:49:58 adamdunkels Exp $
+ * $Id: chameleon-raw.c,v 1.5 2009/03/05 13:51:28 zhitao Exp $
  */
 
 /**
@@ -144,7 +144,7 @@ output(struct channel *c)
     } else {
       rimebuf_attr_t val;
       val = rimebuf_attr(a->type);
-      hdrptr[byteptr] = rimebuf_attr(a->type);
+      memcpy(&hdrptr[byteptr], &val, len / 8);
       PRINTF("%d.%d: value %d\n",
 	    rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1],
 	    val);
