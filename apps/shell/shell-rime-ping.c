@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: shell-rime-ping.c,v 1.5 2009/02/24 21:28:43 adamdunkels Exp $
+ * $Id: shell-rime-ping.c,v 1.6 2009/03/05 23:54:14 adamdunkels Exp $
  */
 
 /**
@@ -47,7 +47,7 @@
 int snprintf(char *str, size_t size, const char *format, ...);
 #endif /* HAVE_SNPRINTF */
 
-struct ping_msg {
+struct rime_ping_msg {
   rtimer_clock_t pingtime;
   rtimer_clock_t pongtime;
 };
@@ -56,18 +56,18 @@ static struct mesh_conn mesh;
 static int waiting_for_pong = 0;
 
 /*---------------------------------------------------------------------------*/
-PROCESS(shell_ping_process, "ping");
-SHELL_COMMAND(ping_command,
-	      "ping",
-	      "ping <node addr>: send a message to a specific node and get a reply",
-	      &shell_ping_process);
+PROCESS(shell_rime_ping_process, "rime-ping");
+SHELL_COMMAND(rime_ping_command,
+	      "rime-ping",
+	      "rime-ping <node addr>: send a message to a specific node and get a reply",
+	      &shell_rime_ping_process);
 /*---------------------------------------------------------------------------*/
-PROCESS_THREAD(shell_ping_process, ev, data)
+PROCESS_THREAD(shell_rime_ping_process, ev, data)
 {
   static int i;
   static struct etimer timeout, periodic;
   static rimeaddr_t receiver;
-  struct ping_msg *ping;
+  struct rime_ping_msg *ping;
   const char *nextptr;
   char buf[32];
 
@@ -75,7 +75,7 @@ PROCESS_THREAD(shell_ping_process, ev, data)
 
   receiver.u8[0] = shell_strtolong(data, &nextptr);
   if(nextptr == data || *nextptr != '.') {
-    shell_output_str(&ping_command,
+    shell_output_str(&rime_ping_command,
 		     "ping <receiver>: recevier must be specified", "");
     PROCESS_EXIT();
   }
@@ -83,12 +83,12 @@ PROCESS_THREAD(shell_ping_process, ev, data)
   receiver.u8[1] = shell_strtolong(nextptr, &nextptr);
 
   snprintf(buf, sizeof(buf), "%d.%d", receiver.u8[0], receiver.u8[1]);
-  shell_output_str(&ping_command, "Sending 4 pings to ", buf);
+  shell_output_str(&rime_ping_command, "Sending 4 pings to ", buf);
 
   for(i = 0; i < 4; ++i) {
     rimebuf_clear();
     ping = rimebuf_dataptr();
-    rimebuf_set_datalen(sizeof(struct ping_msg));
+    rimebuf_set_datalen(sizeof(struct rime_ping_msg));
 #if TIMESYNCH_CONF_ENABLED
     ping->pingtime = timesynch_time();
 #else
@@ -104,7 +104,7 @@ PROCESS_THREAD(shell_ping_process, ev, data)
     if(waiting_for_pong == 0) {
       PROCESS_WAIT_UNTIL(etimer_expired(&periodic));
     } else {
-      shell_output_str(&ping_command,
+      shell_output_str(&rime_ping_command,
 		       "Timed out", "");
     }
     waiting_for_pong = 0;
@@ -124,7 +124,7 @@ sent_mesh(struct mesh_conn *c)
 static void
 recv_mesh(struct mesh_conn *c, rimeaddr_t *from, u8_t hops)
 {
-  struct ping_msg *ping;
+  struct rime_ping_msg *ping;
   char buf[64];
   rtimer_clock_t pingrecvtime;
 
@@ -149,10 +149,10 @@ recv_mesh(struct mesh_conn *c, rimeaddr_t *from, u8_t hops)
 	    (1000L * (pingrecvtime - ping->pongtime)) / RTIMER_ARCH_SECOND,
 	    hops);
 
-    shell_output_str(&ping_command,
+    shell_output_str(&rime_ping_command,
 		     "Pong recived; rtt ", buf);
     waiting_for_pong = 0;
-    process_post(&shell_ping_process, PROCESS_EVENT_CONTINUE, NULL);
+    process_post(&shell_rime_ping_process, PROCESS_EVENT_CONTINUE, NULL);
   }
 }
 CC_CONST_FUNCTION static struct mesh_callbacks mesh_callbacks = { recv_mesh,
@@ -164,6 +164,6 @@ shell_rime_ping_init(void)
 {
   mesh_open(&mesh, SHELL_RIME_CHANNEL_PING, &mesh_callbacks);
 
-  shell_register_command(&ping_command);
+  shell_register_command(&rime_ping_command);
 }
 /*---------------------------------------------------------------------------*/
