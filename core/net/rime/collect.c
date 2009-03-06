@@ -36,7 +36,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: collect.c,v 1.19 2009/03/04 08:59:32 zhitao Exp $
+ * $Id: collect.c,v 1.20 2009/03/06 17:33:59 zhitao Exp $
  */
 
 /**
@@ -203,7 +203,7 @@ node_packet_received(struct runicast_conn *c, rimeaddr_t *from, uint8_t seqno)
 
     if(!tc->forwarding) {
       n = neighbor_best();
-      if(n != NULL) {
+      if(n != NULL && !rimeaddr_cmp(&n->addr, from)) {
 #if CONTIKI_TARGET_NETSIM
 	ether_set_line(n->addr.u8[0], n->addr.u8[1]);
 #endif /* CONTIKI_TARGET_NETSIM */
