@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: shell-text.c,v 1.2 2008/02/10 12:29:54 oliverschmidt Exp $
+ * $Id: shell-text.c,v 1.3 2009/03/06 00:29:33 adamdunkels Exp $
  */
 
 /**
@@ -246,6 +246,9 @@ PROCESS_THREAD(shell_binprint_process, ev, data)
       ptr++;
     }
 
+    /* XXX need to check if input->len1 == 1 here, and then shift this
+       byte into the sequence of 16-bitters below. */
+    
     ptr = (uint16_t *)input->data2;
     for(i = 0; i < input->len2 && i < input->len2 - 1; i += 2) {
       bufptr += sprintf(bufptr, "%u ", *ptr);
