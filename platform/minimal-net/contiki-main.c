@@ -29,7 +29,7 @@
  *
  * This file is part of the Contiki OS
  *
- * $Id: contiki-main.c,v 1.17 2008/10/31 18:11:44 adamdunkels Exp $
+ * $Id: contiki-main.c,v 1.18 2009/03/06 00:13:56 adamdunkels Exp $
  *
  */
 
@@ -39,7 +39,9 @@
 #include <unistd.h>
 
 #include "contiki.h"
-#include "contiki-net.h" //math
+#include "contiki-net.h"
+
+#include "dev/serial.h"
 
 #include "net/uip.h"
 #ifdef __CYGWIN__
@@ -49,9 +51,9 @@
 #endif /* __CYGWIN__ */
 
 #ifdef __CYGWIN__
-PROCINIT(&etimer_process, &tcpip_process, &wpcap_process);
+PROCINIT(&etimer_process, &tcpip_process, &wpcap_process, &serial_process);
 #else /* __CYGWIN__ */
-PROCINIT(&etimer_process, &tapdev_process, &tcpip_process);
+PROCINIT(&etimer_process, &tapdev_process, &tcpip_process, &serial_process);
 #endif /* __CYGWIN__ */
 
 /*---------------------------------------------------------------------------*/
@@ -65,7 +67,7 @@ main(void)
 
   autostart_start(autostart_processes);
     
-#if !UIP_CONF_IPV6   
+#if !UIP_CONF_IPV6
   uip_ipaddr_t addr;
   uip_ipaddr(&addr, 192,168,1,2);
   printf("IP Address:  %d.%d.%d.%d\n", uip_ipaddr_to_quad(&addr));
@@ -79,9 +81,12 @@ main(void)
   printf("Def. Router: %d.%d.%d.%d\n", uip_ipaddr_to_quad(&addr));
   uip_setdraddr(&addr);
 #endif
-  //
+
+  /* Make standard output unbuffered. */
+  setvbuf(stdout, (char *)NULL, _IONBF, 0);
 
   while(1) {
+    fd_set fds;
     int n;
     struct timeval tv;
     
@@ -92,7 +97,16 @@ main(void)
 
     tv.tv_sec = 0;
     tv.tv_usec = 1;
-    select(0, NULL, NULL, NULL, &tv);
+    FD_ZERO(&fds);
+    FD_SET(STDIN_FILENO, &fds);
+    select(1, &fds, NULL, NULL, &tv);
+
+    if(FD_ISSET(STDIN_FILENO, &fds)) {
+      char c;
+      if(read(STDIN_FILENO, &c, 1) > 0) {
+	serial_input_byte(c);
+      }
+    }
     etimer_request_poll();
   }
   
