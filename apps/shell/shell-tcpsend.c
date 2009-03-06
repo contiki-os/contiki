@@ -30,7 +30,7 @@
  *
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: shell-tcpsend.c,v 1.1 2009/03/06 00:29:33 adamdunkels Exp $
+ * $Id: shell-tcpsend.c,v 1.2 2009/03/06 07:23:08 adamdunkels Exp $
  */
 
 #include <string.h>
@@ -82,7 +82,7 @@ telnet_text_output(struct telnet_state *s, char *text1, char *text2)
 }
 /*---------------------------------------------------------------------------*/
 void
-telnet_newdata(struct telnet_state *s, char *data, uint16_t len)
+telnet_newdata(struct telnet_state *s, char *data, u16_t len)
 {
   shell_output(&tcpsend_command, data, len, "", 0);
 }
