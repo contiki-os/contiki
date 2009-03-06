@@ -30,7 +30,7 @@
  *
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: shell-udpsend.c,v 1.1 2009/03/06 00:29:33 adamdunkels Exp $
+ * $Id: shell-udpsend.c,v 1.2 2009/03/06 07:23:08 adamdunkels Exp $
  */
 
 #include <string.h>
@@ -57,9 +57,6 @@ static char server[MAX_SERVERLEN + 1];
 
 static unsigned char running;
 
-#define MAX_LINELEN 80
-
-static char line[MAX_LINELEN];
 /*---------------------------------------------------------------------------*/
 static void
 send_line(char *line, int len)
@@ -75,7 +72,7 @@ newdata(char *data, uint16_t len)
 /*---------------------------------------------------------------------------*/
 PROCESS_THREAD(shell_udpsend_process, ev, data)
 {
-  char *next, *nextptr;
+  const char *next, *nextptr;
   struct shell_input *input;
   uint16_t port, local_port;
   
@@ -87,7 +84,6 @@ PROCESS_THREAD(shell_udpsend_process, ev, data)
 		     "udpsend <server> <port> [localport]: server as address", "");
     PROCESS_EXIT();
   }
-  *next = 0;
   ++next;
   strncpy(server, data, sizeof(server));
   port = shell_strtolong(next, &nextptr);
