@@ -12,6 +12,16 @@
  * up routes is done with another Rime module such as the \ref
  * routediscovery "route-discovery module".
  *
+ * The multihop sends a packet to an identified node in the network by
+ * using multi-hop forwarding at each node in the network.  The
+ * application or protocol that uses the multihop primitive supplies a
+ * routing function for selecting the next-hop neighbor.  If the
+ * multihop primitive is requested to send a packet for which no
+ * suitable next hop neighbor is found, the caller is immediately
+ * notified of this and may choose to initiate a route discovery
+ * process.
+ *
+ *
  * \section channels Channels
  *
  * The multihop module uses 1 channel.
@@ -48,7 +58,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: multihop.h,v 1.2 2009/01/15 22:15:51 adamdunkels Exp $
+ * $Id: multihop.h,v 1.3 2009/03/07 11:15:46 adamdunkels Exp $
  */
 
 /**

@@ -7,8 +7,23 @@
  * \defgroup rimestunicast Stubborn unicast
  * @{
  *
- * The stunicast module takes one packet and sends it repetedly.
+ * The stubborn single-hop unicast primitive (stunicast) repeatedly
+ * sends a packet to a single-hop neighbor using the unicast
+ * primitive.  The stunicast primitive sends and resends the packet
+ * until an upper layer primitive or protocol cancels the
+ * transmission.  While it is possible for applications and protocols
+ * that use Rime to use the stubborn single-hop unicast primitive
+ * directly, the stuc primitive is primarily used by the reliable
+ * single-hop unicast (runicast) primitive.
  *
+ * Before the stunicast primitive sends a packet, it allocates a queue
+ * buffer, to which the application data and packet attributes is
+ * copied, and sets a timer.  When the timer expires, the stuc
+ * primitive copies the queue buffer to the Rime buffer and sends the
+ * packet using the uc primitive.  The stuc primitive sets the number
+ * of retransmissions for a packet as a packet attribute on outgoing
+ * packets.
+
  * \section channels Channels
  *
  * The stunicast module uses 1 channel.
@@ -45,7 +60,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: stunicast.h,v 1.1 2008/07/03 21:35:46 adamdunkels Exp $
+ * $Id: stunicast.h,v 1.2 2009/03/07 11:15:46 adamdunkels Exp $
  */
 
 /**
