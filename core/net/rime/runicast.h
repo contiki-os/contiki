@@ -7,7 +7,28 @@
  * \defgroup rimerunicast Single-hop reliable unicast
  * @{
  *
- * The runicast module implements a single-hop reliable unicast mechanism.
+ * The reliable single-hop unicast primitive (runicast) reliably sends
+ * a packet to a single-hop neighbor.  The runicast primitive uses
+ * acknowledgements and retransmissions to ensure that the neighbor
+ * successfully receives the packet.  When the receiver has
+ * acknowledged the packet, the ruc module notifies the sending
+ * application via a callback.  The ruc primitive uses the stubborn
+ * single-hop unicast primitive to do retransmissions.  Thus, the ruc
+ * primitive does not have to manage the details of setting up timers
+ * and doing retransmissions, but can concentrate on dealing with
+ * acknowledgements.
+ *
+ * The runicast primitive adds two packet attributes: the single-hop
+ * packet type and the single-hop packet ID.  The runicast primitive
+ * uses the packet ID attribute as a sequence number for matching
+ * acknowledgement packets to the corresponding data packets.
+ *
+ * The application or protocol that uses the runicast primitive can
+ * specify the maximum number of transmissions that the ruc module
+ * should attempt before the packet times out.  If a packet times out,
+ * the application or protocol that sent the packet is notified with a
+ * callback.
+ *
  *
  * \section channels Channels
  *
@@ -45,7 +66,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: runicast.h,v 1.3 2009/03/03 12:19:46 fros4943 Exp $
+ * $Id: runicast.h,v 1.4 2009/03/07 11:15:46 adamdunkels Exp $
  */
 
 /**

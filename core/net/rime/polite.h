@@ -11,6 +11,40 @@
  * time interval. If a packet with the same header is received from a
  * neighbor within the interval, the packet is not sent.
  *
+ * The polite primitive is a generalization of the polite gossip
+ * algorithm from Trickle (Levis et al, NSDI 2004).  The polite gossip
+ * algorithm is designed to reduce the total amount of packet
+ * transmissions by not repeating a message that other nodes have
+ * already sent.  The purpose of the polite broadcast primitive is to
+ * avoid that multiple copies of a specific set of packet attributes
+ * is sent on a specified logical channel in the local neighborhood
+ * during a time interval.
+ *
+ * The polite broadcast primitive is useful for implementing broadcast
+ * protocols that use, e.g., negative acknowledgements.  If many nodes
+ * need to send the negative acknowledgement to a sender, it is enough
+ * if only a single message is delivered to the sender.
+ *
+ * The upper layer protocol or application that uses the polite
+ * broadcast primitive provides an interval time, and message along
+ * with a list of packet attributes for which multiple copies should
+ * be avoided.  The polite broadcast primitive stores the outgoing
+ * message in a queue buffer, stores the list of packet attributes,
+ * and sets up a timer.  The timer is set to a random time during the
+ * second half of the interval time.
+ *
+ * During the first half of the time interval, the sender listens for
+ * other transmissions.  If it hears a packet that matches the
+ * attributes provided by the upper layer protocol or application, the
+ * sender drops the packet.  The send timer has been set to a random
+ * time some time during the second half of the interval.  When the
+ * timer fires, and the sender has not yet heard a transmission of the
+ * same packet attributes, the sender broadcasts its packet to all its
+ * neighbors.
+ *
+ * The polite broadcast module does not add any packet attributes to
+ * outgoing packets apart from those added by the upper layer.
+ *
  * \section channels Channels
  *
  * The polite module uses 1 channel.
@@ -47,7 +81,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: polite.h,v 1.5 2009/02/07 16:15:37 adamdunkels Exp $
+ * $Id: polite.h,v 1.6 2009/03/07 11:15:46 adamdunkels Exp $
  */
 
 /**
