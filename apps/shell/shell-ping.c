@@ -30,7 +30,7 @@
  *
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: shell-ping.c,v 1.1 2009/03/06 00:29:33 adamdunkels Exp $
+ * $Id: shell-ping.c,v 1.2 2009/03/07 09:32:41 adamdunkels Exp $
  */
 
 #include <string.h>
@@ -65,12 +65,13 @@ static void
 send_ping(uip_ipaddr_t *dest_addr)
 #if UIP_CONF_IPV6
 {
+  static uint16_t count;
   UIP_IP_BUF->vtc = 0x60;
   UIP_IP_BUF->tcflow = 1;
   UIP_IP_BUF->flow = 0;
   UIP_IP_BUF->proto = UIP_PROTO_ICMP6;
   UIP_IP_BUF->ttl = uip_netif_physical_if.cur_hop_limit;
-  uip_ipaddr_copy(&UIP_IP_BUF->destipaddr, &dest_addr);
+  uip_ipaddr_copy(&UIP_IP_BUF->destipaddr, dest_addr);
   uip_netif_select_src(&UIP_IP_BUF->srcipaddr, &UIP_IP_BUF->destipaddr);
   
   UIP_ICMP_BUF->type = ICMP6_ECHO_REQUEST;
@@ -80,7 +81,7 @@ send_ping(uip_ipaddr_t *dest_addr)
   /* put one byte of data */
   memset((void *)UIP_ICMP_BUF + UIP_ICMPH_LEN + UIP_ICMP6_ECHO_REQUEST_LEN,
 	 count, PING_DATALEN);
-  
+  count++;
   
   uip_len = UIP_ICMPH_LEN + UIP_ICMP6_ECHO_REQUEST_LEN +
     UIP_IPH_LEN + PING_DATALEN;
