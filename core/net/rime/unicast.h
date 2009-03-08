@@ -8,15 +8,15 @@
  * @{
  *
  * The unicast module sends a packet to an identified single-hop
- * neighbor.  The unicast primitive and adds the single-hop receiver
- * address attribute to the outgoing packets. For incoming packets,
- * the unicast module inspects the single-hop receiver address
- * attribute and discards the packet if the address does not match the
- * address of the node.
+ * neighbor.  The unicast primitive uses the broadcast primitive and
+ * adds the single-hop receiver address attribute to the outgoing
+ * packets. For incoming packets, the unicast module inspects the
+ * single-hop receiver address attribute and discards the packet if
+ * the address does not match the address of the node.
  *
  * \section channels Channels
  *
- * The uc module uses 1 channel.
+ * The unicast module uses 1 channel.
  *
  */
 
@@ -50,7 +50,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: unicast.h,v 1.2 2009/03/07 11:15:46 adamdunkels Exp $
+ * $Id: unicast.h,v 1.3 2009/03/08 21:43:24 adamdunkels Exp $
  */
 
 /**
