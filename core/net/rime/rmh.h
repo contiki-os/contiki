@@ -12,6 +12,11 @@
  * up routes is done with another Rime module such as the \ref
  * routediscovery "route-discovery module".
  *
+ * The hop-by-hop reliable multi-hop unciast primitive is similar to
+ * the best-effot multi-hop unicast primitive except that it uses the
+ * reliable single-hop primitive for the communication between two
+ * single-hop neighbors.
+ *
  * \section channels Channels
  *
  * The rmh module uses 1 channel.
@@ -48,7 +53,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: rmh.h,v 1.6 2009/01/15 22:15:51 adamdunkels Exp $
+ * $Id: rmh.h,v 1.7 2009/03/08 21:43:25 adamdunkels Exp $
  */
 
 /**
