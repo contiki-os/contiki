@@ -6,6 +6,8 @@
 
 /** \example multi-threading.c */
 
+/** \example example-announcement.c */
+
 /** \example example-broadcast.c */
 /** \example example-collect.c */
 /** \example example-mesh.c */
