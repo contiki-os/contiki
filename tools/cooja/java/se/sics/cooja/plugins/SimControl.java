@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: SimControl.java,v 1.10 2008/12/04 12:46:42 fros4943 Exp $
+ * $Id: SimControl.java,v 1.11 2009/03/09 15:39:33 fros4943 Exp $
  */
 
 package se.sics.cooja.plugins;
@@ -46,7 +46,7 @@ import se.sics.cooja.*;
 /**
  * The Control Panel is a simple control panel for simulations.
  *
- * @author Fredrik Österlind
+ * @author Fredrik Osterlind
  */
 @ClassDescription("Control Panel")
 @PluginType(PluginType.SIM_STANDARD_PLUGIN)

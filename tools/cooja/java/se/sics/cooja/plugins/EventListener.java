@@ -24,7 +24,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * $Id: EventListener.java,v 1.7 2008/02/07 10:47:56 fros4943 Exp $
+ * $Id: EventListener.java,v 1.8 2009/03/09 15:39:33 fros4943 Exp $
  */
 
 package se.sics.cooja.plugins;
@@ -161,8 +161,10 @@ public class EventListener extends VisPlugin {
 
     for (MoteType moteType : simulationToControl.getMoteTypes()) {
       if (moteType instanceof ContikiMoteType) {
-        allInterfacesDups.addAll(((ContikiMoteType) moteType)
-            .getMoteInterfaces());
+        Class<? extends MoteInterface>[] arr = ((ContikiMoteType) moteType).getMoteInterfaceClasses();
+        for (Class<? extends MoteInterface> intf : arr) {
+          allInterfacesDups.add(intf);
+        }
       }
     }
     for (Class<? extends MoteInterface> moteTypeClass : allInterfacesDups) {
