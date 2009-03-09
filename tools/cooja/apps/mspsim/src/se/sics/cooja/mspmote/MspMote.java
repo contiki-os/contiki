@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: MspMote.java,v 1.21 2009/03/09 16:01:29 fros4943 Exp $
+ * $Id: MspMote.java,v 1.22 2009/03/09 17:12:27 fros4943 Exp $
  */
 
 package se.sics.cooja.mspmote;
@@ -115,6 +115,10 @@ public abstract class MspMote implements Mote {
       initEmulator(myMoteType.getContikiFirmwareFile());
       myMoteInterfaceHandler = createMoteInterfaceHandler();
     }
+  }
+
+  protected MoteInterfaceHandler createMoteInterfaceHandler() {
+    return new MoteInterfaceHandler(this, getType().getMoteInterfaceClasses());
   }
 
   public void sendCLICommand(String line) {
@@ -282,13 +286,6 @@ public abstract class MspMote implements Mote {
   public void setInterfaces(MoteInterfaceHandler moteInterfaceHandler) {
     myMoteInterfaceHandler = moteInterfaceHandler;
   }
-
-  /**
-   * Creates an interface handler object and registers interfaces to it.
-   *
-   * @return Interface handler
-   */
-  protected abstract MoteInterfaceHandler createMoteInterfaceHandler();
 
   /**
    * Initializes emulator by creating CPU, memory and node object.
