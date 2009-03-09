@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: SkySerial.java,v 1.13 2009/03/09 16:05:11 fros4943 Exp $
+ * $Id: SkySerial.java,v 1.14 2009/03/09 17:14:35 fros4943 Exp $
  */
 
 package se.sics.cooja.mspmote.interfaces;
@@ -58,7 +58,7 @@ import se.sics.cooja.plugins.SLIP;
 public class SkySerial extends Log implements SerialPort, USARTListener {
   private static Logger logger = Logger.getLogger(SkySerial.class);
 
-  private Mote mote;
+  private SkyMote mote;
   private String lastLogMessage = "";
   private StringBuilder newMessage = new StringBuilder();
 
@@ -85,11 +85,11 @@ public class SkySerial extends Log implements SerialPort, USARTListener {
 
   private Vector<Byte> incomingData = new Vector<Byte>();
 
-  public SkySerial(SkyMote mote) {
-    this.mote = mote;
+  public SkySerial(Mote mote) {
+    this.mote = (SkyMote) mote;
 
     /* Listen to port writes */
-    IOUnit ioUnit = mote.getCPU().getIOUnit("USART 1");
+    IOUnit ioUnit = this.mote.getCPU().getIOUnit("USART 1");
     if (ioUnit instanceof USART) {
       usart = (USART) ioUnit;
       usart.setUSARTListener(this);
@@ -352,12 +352,14 @@ public class SkySerial extends Log implements SerialPort, USARTListener {
           tosLen = 0;
         }
       }
-      if (tosPos == 7) { 
+      if (tosPos == 7) {
         tosLen = data;
         // System.out.println("TOS Payload len: " + tosLen);
       }
       if (tosPos > 9 && tosPos < 10 + tosLen) {
-         if (data < 32) data = 32;
+         if (data < 32) {
+          data = 32;
+        }
          newMessage.append((char) data);
       }
       tosData[tosPos++] = data;

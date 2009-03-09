@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: TR1001Radio.java,v 1.10 2009/03/09 16:05:11 fros4943 Exp $
+ * $Id: TR1001Radio.java,v 1.11 2009/03/09 17:14:35 fros4943 Exp $
  */
 
 package se.sics.cooja.mspmote.interfaces;
@@ -116,11 +116,11 @@ public class TR1001Radio extends Radio implements USARTListener, CustomDataRadio
    * @see Mote
    * @see se.sics.cooja.MoteInterfaceHandler
    */
-  public TR1001Radio(ESBMote mote) {
-    this.mote = mote;
+  public TR1001Radio(Mote mote) {
+    this.mote = (ESBMote) mote;
 
     /* Start listening to CPU's USART */
-    IOUnit usart = mote.getCPU().getIOUnit("USART 0");
+    IOUnit usart = this.mote.getCPU().getIOUnit("USART 0");
     if (usart instanceof USART) {
       radioUSART = (USART) usart;
       radioUSART.setUSARTListener(this);
