@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: SkyMoteType.java,v 1.4 2008/06/27 14:09:26 nifi Exp $
+ * $Id: SkyMoteType.java,v 1.5 2009/03/09 16:03:58 fros4943 Exp $
  */
 
 package se.sics.cooja.mspmote;
@@ -35,23 +35,24 @@ import java.awt.*;
 import java.io.File;
 import java.net.URL;
 import javax.swing.*;
+
 import org.apache.log4j.Logger;
 import se.sics.cooja.*;
+import se.sics.cooja.dialogs.CompileContiki;
+import se.sics.cooja.dialogs.MessageList;
+import se.sics.cooja.dialogs.MessageList.MessageContainer;
 
 @ClassDescription("Sky Mote Type")
 @AbstractionLevelDescription("Emulated level")
 public class SkyMoteType extends MspMoteType {
   private static Logger logger = Logger.getLogger(SkyMoteType.class);
 
-  public static final String target = "sky";
-  public static final String targetNice = "Sky";
-
   public SkyMoteType() {
   }
 
   public SkyMoteType(String identifier) {
     setIdentifier(identifier);
-    setDescription(targetNice + " Mote Type #" + identifier);
+    setDescription("Sky Mote Type #" + identifier);
   }
 
   public Icon getMoteTypeIcon() {
@@ -76,12 +77,15 @@ public class SkyMoteType extends MspMoteType {
     return new SkyMote(this, simulation);
   }
 
-  public boolean configureAndInit(Container parentContainer, Simulation simulation,
-      boolean visAvailable) throws MoteTypeCreationException {
+  public boolean configureAndInit(Container parentContainer, Simulation simulation, boolean visAvailable)
+  throws MoteTypeCreationException {
+
+    /* SPECIAL CASE: Cooja started in applet.
+     * Use preconfigured Contiki firmware */
     if (GUI.isVisualizedInApplet()) {
       String firmware = GUI.getExternalToolsSetting("SKY_FIRMWARE", "");
       if (!firmware.equals("")) {
-        setELFFile(new File(firmware));
+        setContikiFirmwareFile(new File(firmware));
         JOptionPane.showMessageDialog(GUI.getTopParentContainer(),
             "Creating mote type from precompiled firmware: " + firmware,
             "Compiled firmware file available", JOptionPane.INFORMATION_MESSAGE);
@@ -93,7 +97,90 @@ public class SkyMoteType extends MspMoteType {
       }
     }
 
-    return configureAndInitMspType(parentContainer, simulation, visAvailable, target, targetNice);
+    /* If visualized, show compile dialog and let user configure */
+    if (visAvailable) {
+
+      /* Create unique identifier */
+      if (getIdentifier() == null) {
+        int counter = 0;
+        boolean identifierOK = false;
+        while (!identifierOK) {
+          identifierOK = true;
+
+          counter++;
+          setIdentifier("sky" + counter);
+
+          for (MoteType existingMoteType : simulation.getMoteTypes()) {
+            if (existingMoteType == this) {
+              continue;
+            }
+            if (existingMoteType.getIdentifier().equals(getIdentifier())) {
+              identifierOK = false;
+              break;
+            }
+          }
+        }
+      }
+
+      /* Create initial description */
+      if (getDescription() == null) {
+        setDescription("Sky Mote Type #" + getIdentifier());
+      }
+
+      return SkyCompileDialog.showDialog(parentContainer, simulation, this);
+    }
+
+    /* Not visualized: Compile Contiki immediately */
+    if (getIdentifier() == null) {
+      throw new MoteTypeCreationException("No identifier");
+    }
+
+    final MessageList compilationOutput = new MessageList();
+
+    if (getCompileCommands() != null) {
+      /* Handle multiple compilation commands one by one */
+      String[] arr = getCompileCommands().split("\n");
+      for (String cmd: arr) {
+        if (cmd.trim().isEmpty()) {
+          continue;
+        }
+
+        try {
+          CompileContiki.compile(
+              cmd,
+              null /* No output file */,
+              getContikiSourceFile().getParentFile(),
+              null,
+              null,
+              compilationOutput,
+              true
+          );
+        } catch (Exception e) {
+          MoteTypeCreationException newException =
+            new MoteTypeCreationException("Mote type creation failed: " + e.getMessage());
+          newException = (MoteTypeCreationException) newException.initCause(e);
+          newException.setCompilationOutput(compilationOutput);
+
+          /* Print last 10 compilation errors to console */
+          MessageContainer[] messages = compilationOutput.getMessages();
+          for (int i=messages.length-10; i < messages.length; i++) {
+            if (i < 0) {
+              continue;
+            }
+            logger.fatal(">> " + messages[i]);
+          }
+
+          logger.fatal("Compilation error: " + e.getMessage());
+          throw newException;
+        }
+      }
+    }
+
+    if (getContikiFirmwareFile() == null ||
+        !getContikiFirmwareFile().exists()) {
+      throw new MoteTypeCreationException("Contiki firmware file does not exist: " + getContikiFirmwareFile());
+    }
+    return true;
   }
 
 }
