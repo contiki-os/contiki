@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: PolledAfterAllTicks.java,v 1.2 2008/10/28 12:30:48 fros4943 Exp $
+ * $Id: PolledAfterAllTicks.java,v 1.3 2009/03/09 14:08:54 fros4943 Exp $
  */
 
 package se.sics.cooja.interfaces;
@@ -36,7 +36,7 @@ package se.sics.cooja.interfaces;
  *
  * @see Battery
  *
- * @author Fredrik Österlind
+ * @author Fredrik Osterlind
  */
 public interface PolledAfterAllTicks {
   public void doActionsAfterTick();
