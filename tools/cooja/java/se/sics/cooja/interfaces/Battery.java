@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: Battery.java,v 1.6 2008/10/28 13:28:35 fros4943 Exp $
+ * $Id: Battery.java,v 1.7 2009/03/09 14:08:54 fros4943 Exp $
  */
 
 package se.sics.cooja.interfaces;
@@ -54,7 +54,7 @@ import se.sics.cooja.*;
  * @see MoteInterface
  * @see MoteInterface#energyConsumption()
  *
- * @author Fredrik Österlind
+ * @author Fredrik Osterlind
  */
 @ClassDescription("Battery")
 public class Battery extends MoteInterface implements PolledAfterAllTicks {

@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: PolledBeforeAllTicks.java,v 1.1 2008/10/28 12:09:14 fros4943 Exp $
+ * $Id: PolledBeforeAllTicks.java,v 1.2 2009/03/09 14:08:54 fros4943 Exp $
  */
 
 package se.sics.cooja.interfaces;
@@ -34,7 +34,7 @@ package se.sics.cooja.interfaces;
 /**
  * A mote interface polled before ALL mote ticks.
  *
- * @author Fredrik Österlind
+ * @author Fredrik Osterlind
  */
 public interface PolledBeforeAllTicks {
   public void doActionsBeforeTick();

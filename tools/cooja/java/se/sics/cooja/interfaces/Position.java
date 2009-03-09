@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: Position.java,v 1.4 2008/10/28 12:59:30 fros4943 Exp $
+ * $Id: Position.java,v 1.5 2009/03/09 14:08:54 fros4943 Exp $
  */
 
 package se.sics.cooja.interfaces;
@@ -45,7 +45,7 @@ import se.sics.cooja.*;
  * <p>
  * This observable notifies when the position is changed.
  *
- * @author Fredrik Österlind
+ * @author Fredrik Osterlind
  */
 @ClassDescription("Position")
 public class Position extends MoteInterface {

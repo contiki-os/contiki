@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: PolledBeforeActiveTicks.java,v 1.1 2008/10/28 12:09:14 fros4943 Exp $
+ * $Id: PolledBeforeActiveTicks.java,v 1.2 2009/03/09 14:08:54 fros4943 Exp $
  */
 
 package se.sics.cooja.interfaces;
@@ -38,7 +38,7 @@ import se.sics.cooja.contikimote.interfaces.ContikiClock;
  *
  * @see ContikiClock
  *
- * @author Fredrik Österlind
+ * @author Fredrik Osterlind
  */
 public interface PolledBeforeActiveTicks {
   public void doActionsBeforeTick();

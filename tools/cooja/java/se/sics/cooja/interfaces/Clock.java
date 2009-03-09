@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: Clock.java,v 1.4 2008/12/04 14:03:42 joxe Exp $
+ * $Id: Clock.java,v 1.5 2009/03/09 14:08:54 fros4943 Exp $
  */
 
 package se.sics.cooja.interfaces;
@@ -39,7 +39,7 @@ import se.sics.cooja.*;
  *
  * This observable never notifies.
  *
- * @author Fredrik Österlind
+ * @author Fredrik Osterlind
  */
 @ClassDescription("Clock")
 public abstract class Clock extends MoteInterface {
