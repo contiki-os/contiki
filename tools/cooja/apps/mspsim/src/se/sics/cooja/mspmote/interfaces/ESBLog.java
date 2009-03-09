@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ESBLog.java,v 1.4 2008/12/03 13:13:07 fros4943 Exp $
+ * $Id: ESBLog.java,v 1.5 2009/03/09 17:14:35 fros4943 Exp $
  */
 
 package se.sics.cooja.mspmote.interfaces;
@@ -49,15 +49,15 @@ import se.sics.cooja.mspmote.ESBMote;
 public class ESBLog extends Log implements USARTListener {
   private static Logger logger = Logger.getLogger(ESBLog.class);
 
-  private Mote myMote;
+  private ESBMote mote;
   private String lastLogMessage = "";
   private String newMessage = "";
 
-  public ESBLog(ESBMote mote) {
-    myMote = mote;
+  public ESBLog(Mote mote) {
+    this.mote = (ESBMote) mote;
 
     /* Listen to port writes */
-    IOUnit usart = mote.getCPU().getIOUnit("USART 1");
+    IOUnit usart = this.mote.getCPU().getIOUnit("USART 1");
     if (usart instanceof USART) {
       ((USART) usart).setUSARTListener(this);
     }
@@ -125,7 +125,7 @@ public class ESBLog extends Log implements USARTListener {
       lastLogMessage = newMessage;
       newMessage = "";
       this.setChanged();
-      this.notifyObservers(myMote);
+      this.notifyObservers(mote);
     }
   }
 
