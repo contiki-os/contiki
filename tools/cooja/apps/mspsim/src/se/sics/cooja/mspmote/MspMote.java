@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: MspMote.java,v 1.20 2009/02/07 16:38:51 joxe Exp $
+ * $Id: MspMote.java,v 1.21 2009/03/09 16:01:29 fros4943 Exp $
  */
 
 package se.sics.cooja.mspmote;
@@ -112,7 +112,7 @@ public abstract class MspMote implements Mote {
 
   protected void initMote() {
     if (myMoteType != null) {
-      initEmulator(myMoteType.getELFFile());
+      initEmulator(myMoteType.getContikiFirmwareFile());
       myMoteInterfaceHandler = createMoteInterfaceHandler();
     }
   }
@@ -260,7 +260,7 @@ public abstract class MspMote implements Mote {
   /* called when moteID is updated */
   public void idUpdated(int newID) {
   }
-  
+
   public MoteType getType() {
     return myMoteType;
   }
@@ -364,7 +364,7 @@ public abstract class MspMote implements Mote {
         myMoteType = (MspMoteType) simulation.getMoteType(element.getText());
         getType().setIdentifier(element.getText());
 
-        initEmulator(myMoteType.getELFFile());
+        initEmulator(myMoteType.getContikiFirmwareFile());
         myMoteInterfaceHandler = createMoteInterfaceHandler();
 
       } else if (name.equals("interface_config")) {
