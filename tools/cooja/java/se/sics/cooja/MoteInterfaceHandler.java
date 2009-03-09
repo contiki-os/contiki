@@ -26,12 +26,13 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: MoteInterfaceHandler.java,v 1.5 2009/03/03 13:42:45 fros4943 Exp $
+ * $Id: MoteInterfaceHandler.java,v 1.6 2009/03/09 14:08:03 fros4943 Exp $
  */
 
 package se.sics.cooja;
 
 import java.util.*;
+
 import org.apache.log4j.Logger;
 import se.sics.cooja.interfaces.*;
 
@@ -80,7 +81,7 @@ public class MoteInterfaceHandler {
    * @param mote Mote
    * @param interfaceClasses Mote interface classes
    */
-  public MoteInterfaceHandler(Mote mote, Vector<Class<? extends MoteInterface>> interfaceClasses) {
+  public MoteInterfaceHandler(Mote mote, Class<? extends MoteInterface>[] interfaceClasses) {
     for (Class<? extends MoteInterface> interfaceClass : interfaceClasses) {
       MoteInterface intf = MoteInterface.generateInterface(interfaceClass, mote);
 
