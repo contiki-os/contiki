@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: CC2420RadioPacketConverter.java,v 1.5 2008/11/03 10:33:15 fros4943 Exp $
+ * $Id: CC2420RadioPacketConverter.java,v 1.6 2009/03/09 16:05:11 fros4943 Exp $
  */
 
 package se.sics.cooja.mspmote.interfaces;
@@ -39,7 +39,7 @@ import se.sics.cooja.COOJARadioPacket;
  * Converts radio packets between X-MAC/CC24240/Sky and COOJA.
  * Handles radio driver specifics such as length header and CRC footer.
  *
- * @author Fredrik Österlind
+ * @author Fredrik Osterlind
  */
 public class CC2420RadioPacketConverter {
   private static Logger logger = Logger.getLogger(CC2420RadioPacketConverter.class);

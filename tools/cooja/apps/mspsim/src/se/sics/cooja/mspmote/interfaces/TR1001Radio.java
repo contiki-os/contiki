@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: TR1001Radio.java,v 1.9 2008/12/04 14:03:41 joxe Exp $
+ * $Id: TR1001Radio.java,v 1.10 2009/03/09 16:05:11 fros4943 Exp $
  */
 
 package se.sics.cooja.mspmote.interfaces;
@@ -49,7 +49,7 @@ import se.sics.cooja.mspmote.ESBMote;
  * TR1001 radio interface on ESB platform. Assumes driver specifics such as
  * preambles, synchbytes, GCR coding, CRC16.
  *
- * @author Fredrik Österlind
+ * @author Fredrik Osterlind
  */
 @ClassDescription("TR1001 Radio")
 public class TR1001Radio extends Radio implements USARTListener, CustomDataRadio {
