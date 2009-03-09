@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ContikiMote.java,v 1.10 2009/02/26 13:45:58 fros4943 Exp $
+ * $Id: ContikiMote.java,v 1.11 2009/03/09 16:08:17 fros4943 Exp $
  */
 
 package se.sics.cooja.contikimote;
@@ -97,7 +97,7 @@ public class ContikiMote implements Mote {
     this.mySim = sim;
     this.myType = moteType;
     this.myMemory = moteType.createInitialMemory();
-    this.myInterfaceHandler = new MoteInterfaceHandler(this, moteType.getMoteInterfaces());
+    this.myInterfaceHandler = new MoteInterfaceHandler(this, moteType.getMoteInterfaceClasses());
 
     myState = State.ACTIVE;
   }
@@ -286,7 +286,7 @@ public class ContikiMote implements Mote {
       if (name.equals("motetype_identifier")) {
         myType = (ContikiMoteType) simulation.getMoteType(element.getText());
         myMemory = myType.createInitialMemory();
-        myInterfaceHandler = new MoteInterfaceHandler(this, myType.getMoteInterfaces());
+        myInterfaceHandler = new MoteInterfaceHandler(this, myType.getMoteInterfaceClasses());
 
       } else if (name.equals("interface_config")) {
         Class<? extends MoteInterface> moteInterfaceClass =
