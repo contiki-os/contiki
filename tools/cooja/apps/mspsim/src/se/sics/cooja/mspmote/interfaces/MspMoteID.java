@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: MspMoteID.java,v 1.10 2009/02/07 16:38:51 joxe Exp $
+ * $Id: MspMoteID.java,v 1.11 2009/03/09 16:05:11 fros4943 Exp $
  */
 
 package se.sics.cooja.mspmote.interfaces;
@@ -52,7 +52,7 @@ import se.sics.cooja.mspmote.MspMoteMemory;
  * @see #GENERATE_ID_HEADER
  * @see #PERSISTENT_SET_ID
  *
- * @author Fredrik Österlind
+ * @author Fredrik Osterlind
  */
 public class MspMoteID extends MoteID {
   private static Logger logger = Logger.getLogger(MspMoteID.class);

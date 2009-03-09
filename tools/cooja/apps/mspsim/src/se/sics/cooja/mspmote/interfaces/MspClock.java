@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: MspClock.java,v 1.6 2008/12/04 14:03:41 joxe Exp $
+ * $Id: MspClock.java,v 1.7 2009/03/09 16:05:11 fros4943 Exp $
  */
 
 package se.sics.cooja.mspmote.interfaces;
@@ -42,7 +42,7 @@ import se.sics.cooja.mspmote.MspMote;
 import se.sics.mspsim.core.MSP430;
 
 /**
- * @author Fredrik Österlind
+ * @author Fredrik Osterlind
  */
 @ClassDescription("Cycle clock")
 public class MspClock extends Clock {

@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: SkySerial.java,v 1.12 2009/02/03 14:18:12 joxe Exp $
+ * $Id: SkySerial.java,v 1.13 2009/03/09 16:05:11 fros4943 Exp $
  */
 
 package se.sics.cooja.mspmote.interfaces;
@@ -52,7 +52,7 @@ import se.sics.cooja.mspmote.SkyMote;
 import se.sics.cooja.plugins.SLIP;
 
 /**
- * @author Fredrik Österlind
+ * @author Fredrik Osterlind
  */
 @ClassDescription("Serial port")
 public class SkySerial extends Log implements SerialPort, USARTListener {
