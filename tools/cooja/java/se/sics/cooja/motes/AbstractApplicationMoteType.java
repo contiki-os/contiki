@@ -24,7 +24,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * $Id: AbstractApplicationMoteType.java,v 1.2 2008/02/12 15:10:49 fros4943 Exp $
+ * $Id: AbstractApplicationMoteType.java,v 1.3 2009/03/09 15:38:10 fros4943 Exp $
  */
 
 package se.sics.cooja.motes;
@@ -32,7 +32,9 @@ package se.sics.cooja.motes;
 import java.awt.BorderLayout;
 import java.awt.Container;
 import java.awt.Dimension;
+import java.io.File;
 import java.util.*;
+
 import javax.swing.*;
 import org.apache.log4j.Logger;
 import org.jdom.Element;
@@ -50,7 +52,7 @@ public abstract class AbstractApplicationMoteType implements MoteType {
 
   private String description = null;
 
-  private Vector<Class<? extends MoteInterface>> moteInterfaces = null;
+  private Class<? extends MoteInterface>[] moteInterfaces = null;
 
   // Type specific class configuration
   private ProjectConfig myConfig = null;
@@ -83,12 +85,6 @@ public abstract class AbstractApplicationMoteType implements MoteType {
           }
         }
       }
-
-      if (description == null) {
-        // Create description
-        description = "Application Mote Type #" + counter;
-      }
-
     }
 
     if (description == null) {
@@ -96,31 +92,11 @@ public abstract class AbstractApplicationMoteType implements MoteType {
       description = "Application Mote Type #" + identifier;
     }
 
-    moteInterfaces = new Vector<Class<? extends MoteInterface>>();
-    moteInterfaces.add(Position.class);
-    moteInterfaces.add(ApplicationRadio.class);
+    moteInterfaces = new Class[2];
+    moteInterfaces[0] = Position.class;
+    moteInterfaces[1] = ApplicationRadio.class;
 
     return true;
-  }
-
-  /**
-   * Returns all mote interfaces of this mote type
-   *
-   * @return All mote interfaces
-   */
-  public Vector<Class<? extends MoteInterface>> getMoteInterfaces() {
-    return moteInterfaces;
-  }
-
-  /**
-   * Set mote interfaces of this mote type
-   *
-   * @param moteInterfaces
-   *          New mote interfaces
-   */
-  public void setMoteInterfaces(
-      Vector<Class<? extends MoteInterface>> moteInterfaces) {
-    this.moteInterfaces = moteInterfaces;
   }
 
   public String getIdentifier() {
@@ -139,8 +115,15 @@ public abstract class AbstractApplicationMoteType implements MoteType {
     this.description = description;
   }
 
-  public JPanel getTypeVisualizer() {
+  public Class<? extends MoteInterface>[] getMoteInterfaceClasses() {
+    return moteInterfaces;
+  }
 
+  public void setMoteInterfaceClasses(Class<? extends MoteInterface>[] moteInterfaces) {
+    this.moteInterfaces = moteInterfaces;
+  }
+
+  public JPanel getTypeVisualizer() {
     JPanel panel = new JPanel();
     JLabel label = new JLabel();
     JPanel smallPane;
@@ -180,6 +163,31 @@ public abstract class AbstractApplicationMoteType implements MoteType {
     return panel;
   }
 
+  public File getContikiSourceFile() {
+    return null; /* Contiki-independent */
+  }
+
+  public File getContikiFirmwareFile() {
+    return null; /* Contiki-independent */
+  }
+
+  public void setContikiSourceFile(File file) {
+    /* Contiki-independent */
+  }
+
+  public void setContikiFirmwareFile(File file) {
+    /* Contiki-independent */
+  }
+
+  public String getCompileCommands() {
+    /* Contiki-independent */
+    return null;
+  }
+
+  public void setCompileCommands(String commands) {
+    /* Contiki-independent */
+  }
+
   public ProjectConfig getConfig() {
     return myConfig;
   }
@@ -200,7 +208,7 @@ public abstract class AbstractApplicationMoteType implements MoteType {
     config.add(element);
 
     // Mote interfaces
-    for (Class moteInterface : getMoteInterfaces()) {
+    for (Class moteInterface : getMoteInterfaceClasses()) {
       element = new Element("moteinterface");
       element.setText(moteInterface.getName());
       config.add(element);
@@ -211,8 +219,8 @@ public abstract class AbstractApplicationMoteType implements MoteType {
 
   public boolean setConfigXML(Simulation simulation,
       Collection<Element> configXML, boolean visAvailable) {
+    ArrayList<Class<? extends MoteInterface>> moteInterfacesList = new ArrayList<Class<? extends MoteInterface>>();
     for (Element element : configXML) {
-      moteInterfaces = new Vector<Class<? extends MoteInterface>>();
 
       String name = element.getName();
 
@@ -221,18 +229,22 @@ public abstract class AbstractApplicationMoteType implements MoteType {
       } else if (name.equals("description")) {
         description = element.getText();
       } else if (name.equals("moteinterface")) {
-        Class<? extends MoteInterface> moteInterfaceClass = simulation.getGUI()
-            .tryLoadClass(this, MoteInterface.class, element.getText().trim());
+        Class<? extends MoteInterface> moteInterfaceClass =
+          simulation.getGUI().tryLoadClass(
+              this, MoteInterface.class, element.getText().trim());
 
         if (moteInterfaceClass == null) {
           logger.warn("Can't find mote interface class: " + element.getText());
         } else {
-          moteInterfaces.add(moteInterfaceClass);
+          moteInterfacesList.add(moteInterfaceClass);
         }
       } else {
         logger.fatal("Unrecognized entry in loaded configuration: " + name);
       }
     }
+
+    moteInterfaces = new Class[moteInterfacesList.size()];
+    moteInterfacesList.toArray(moteInterfaces);
 
     boolean createdOK = configureAndInit(GUI.getTopParentContainer(), simulation, visAvailable);
     return createdOK;

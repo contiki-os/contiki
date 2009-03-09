@@ -31,46 +31,30 @@
 
 package se.sics.cooja.motes;
 
-import java.awt.BorderLayout;
 import java.awt.Container;
-import java.awt.Dimension;
-import java.util.*;
-import javax.swing.*;
 import org.apache.log4j.Logger;
-import org.jdom.Element;
-
 import se.sics.cooja.*;
 import se.sics.cooja.interfaces.Position;
 
 /**
+ * Simple application-level mote that periodically transmits dummy radio packets
+ * on a configurable radio channel, interfering all surrounding radio communication.
  *
- *
+ * @see DisturberMote
  * @author Fredrik Osterlind, Thiemo Voigt
  */
 @ClassDescription("Disturber Mote Type")
 @AbstractionLevelDescription("Application level")
-public class DisturberMoteType implements MoteType {
+public class DisturberMoteType extends AbstractApplicationMoteType {
   private static Logger logger = Logger.getLogger(DisturberMoteType.class);
 
-  // Mote type specific data
-  private String identifier = null;
-
-  private String description = null;
-
-  private Vector<Class<? extends MoteInterface>> moteInterfaces = null;
-
-  // Type specific class configuration
-  private ProjectConfig myConfig = null;
-
-  // Simulation holding this mote type
-  private Simulation mySimulation = null;
-
   public DisturberMoteType() {
+    super();
   }
 
   public DisturberMoteType(String identifier) {
-    this.identifier = identifier;
-    description = "Disturber Mote Type #" + identifier;
+    super(identifier);
+    setDescription("Disturber Mote Type #" + getIdentifier());
   }
 
   public Mote generateMote(Simulation simulation) {
@@ -78,182 +62,14 @@ public class DisturberMoteType implements MoteType {
   }
 
   public boolean configureAndInit(Container parentContainer, Simulation simulation, boolean visAvailable) {
+    super.configureAndInit(parentContainer, simulation, visAvailable);
+    setDescription("Disturber Mote Type #" + getIdentifier());
 
-    if (identifier == null) {
-      // Create unique identifier
-      int counter = 0;
-      boolean identifierOK = false;
-      while (!identifierOK) {
-        counter++;
-        identifier = "dist" + counter;
-        identifierOK = true;
-
-        // Check if identifier is already used by some other type
-        for (MoteType existingMoteType : simulation.getMoteTypes()) {
-          if (existingMoteType != this
-              && existingMoteType.getIdentifier().equals(identifier)) {
-            identifierOK = false;
-            break;
-          }
-        }
-      }
-
-      if (description == null) {
-        // Create description
-        description = "Disturber Mote Type #" + counter;
-      }
-
-    }
-
-    if (description == null) {
-      // Create description
-      description = "Disturber Mote Type #" + identifier;
-    }
-
-    moteInterfaces = new Vector<Class<? extends MoteInterface>>();
-    moteInterfaces.add(Position.class);
-    moteInterfaces.add(DisturberRadio.class);
+    Class<? extends MoteInterface>[] moteInterfaces = new Class[2];
+    moteInterfaces[0] = Position.class;
+    moteInterfaces[1] = DisturberRadio.class;
+    setMoteInterfaceClasses(moteInterfaces);
 
     return true;
   }
-
-  /* TV: add next two for interfaces */
-  /**
-   * Returns all mote interfaces of this mote type
-   *
-   * @return All mote interfaces
-   */
-  public Vector<Class<? extends MoteInterface>> getMoteInterfaces() {
-    return moteInterfaces;
-  }
-
-  /**
-   * Set mote interfaces of this mote type
-   *
-   * @param moteInterfaces
-   *          New mote interfaces
-   */
-  public void setMoteInterfaces(
-      Vector<Class<? extends MoteInterface>> moteInterfaces) {
-    this.moteInterfaces = moteInterfaces;
-  }
-
-  public String getIdentifier() {
-    return identifier;
-  }
-
-  public void setIdentifier(String identifier) {
-    this.identifier = identifier;
-  }
-
-  public String getDescription() {
-    return description;
-  }
-
-  public void setDescription(String description) {
-    this.description = description;
-  }
-
-  /* TV replaced return null with this */
-  public JPanel getTypeVisualizer() {
-
-    JPanel panel = new JPanel();
-    JLabel label = new JLabel();
-    JPanel smallPane;
-
-    panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
-
-    // Identifier
-    smallPane = new JPanel(new BorderLayout());
-    label = new JLabel("Identifier");
-    smallPane.add(BorderLayout.WEST, label);
-    label = new JLabel(identifier);
-    smallPane.add(BorderLayout.EAST, label);
-    panel.add(smallPane);
-
-    // Description
-    smallPane = new JPanel(new BorderLayout());
-    label = new JLabel("Description");
-    smallPane.add(BorderLayout.WEST, label);
-    label = new JLabel(description);
-    smallPane.add(BorderLayout.EAST, label);
-    panel.add(smallPane);
-
-    // Mote Interfaces
-    smallPane = new JPanel(new BorderLayout());
-    label = new JLabel("Mote interfaces");
-    smallPane.add(BorderLayout.WEST, label);
-    panel.add(smallPane);
-
-    for (Class moteInterface : moteInterfaces) {
-      smallPane = new JPanel(new BorderLayout());
-      label = new JLabel(moteInterface.getSimpleName());
-      smallPane.add(BorderLayout.EAST, label);
-      panel.add(smallPane);
-    }
-
-    panel.add(Box.createRigidArea(new Dimension(0, 5)));
-    return panel;
-  }
-
-  public ProjectConfig getConfig() {
-    return myConfig;
-    //return null; /* TV */
-  }
-
-  public Collection<Element> getConfigXML() {
-    Vector<Element> config = new Vector<Element>();
-
-    Element element;
-
-    // Identifier
-    element = new Element("identifier");
-    element.setText(getIdentifier());
-    config.add(element);
-
-    // Description
-    element = new Element("description");
-    element.setText(getDescription());
-    config.add(element);
-
-    // Mote interfaces
-    for (Class moteInterface : getMoteInterfaces()) {
-      element = new Element("moteinterface");
-      element.setText(moteInterface.getName());
-      config.add(element);
-    }
-
-    return config;
-  }
-
-  public boolean setConfigXML(Simulation simulation,
-      Collection<Element> configXML, boolean visAvailable) {
-    for (Element element : configXML) {
-      moteInterfaces = new Vector<Class<? extends MoteInterface>>(); /* TV */
-      mySimulation = simulation; /* TV */
-
-      String name = element.getName();
-
-      if (name.equals("identifier")) {
-        identifier = element.getText();
-      } else if (name.equals("description")) {
-        description = element.getText();
-      } else if (name.equals("moteinterface")) { /* TV */
-        Class<? extends MoteInterface> moteInterfaceClass = simulation.getGUI()
-            .tryLoadClass(this, MoteInterface.class, element.getText().trim());
-
-        if (moteInterfaceClass == null) {
-          logger.warn("Can't find mote interface class: " + element.getText());
-        } else {
-          moteInterfaces.add(moteInterfaceClass);
-        }
-      } else {
-        logger.fatal("Unrecognized entry in loaded configuration: " + name);
-      }
-    }
-
-    boolean createdOK = configureAndInit(GUI.getTopParentContainer(), simulation, visAvailable);
-    return createdOK;
-  }
-
 }

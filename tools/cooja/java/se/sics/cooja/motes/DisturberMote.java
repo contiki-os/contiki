@@ -24,196 +24,31 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * $Id: DisturberMote.java,v 1.6 2009/02/18 11:49:54 fros4943 Exp $
+ * $Id: DisturberMote.java,v 1.7 2009/03/09 15:38:10 fros4943 Exp $
  */
 
 package se.sics.cooja.motes;
 
-import java.util.*;
-
 import org.apache.log4j.Logger;
-import org.jdom.Element;
-
 import se.sics.cooja.*;
-import se.sics.cooja.interfaces.Position;
-import se.sics.cooja.motes.DisturberRadio;
 
 /**
- * A disturber mote is a purely Java-based mote. It is used to disturb
- * transmission of other nodes on a certain channel (currently this is
- * hard-coded in the DisturberRadio.
+ * Simple application-level mote that periodically transmits dummy radio packets
+ * on a configurable radio channel, interfering all surrounding radio communication.
  *
+ * @see DisturberMoteType
  * @author Fredrik Osterlind, Thiemo Voigt
  */
-public class DisturberMote implements Mote {
+public class DisturberMote extends AbstractApplicationMote {
 
   private static Logger logger = Logger.getLogger(DisturberMote.class);
 
-  private MoteType myType = null;
-
-  private SectionMoteMemory myMemory = null;
-
-  private MoteInterfaceHandler myInterfaceHandler = null;
-
-  private Simulation mySim = null;
-
-  private DisturberRadio myDisturberRadio;
-
-  /**
-   * Creates a new uninitialized dummy mote.
-   */
   public DisturberMote() {
+    super();
   }
 
-  /**
-   * Creates a new dummy mote of the given type in the given simulation. An
-   * empty mote memory and a position interface is added to this mote.
-   *
-   * @param moteType
-   *          Mote type
-   * @param sim
-   *          Simulation
-   */
-  public DisturberMote(MoteType moteType, Simulation sim) {
-    mySim = sim;
-    myType = moteType;
-    Random random = new Random(); /* Do not use main random generator for positioning */
-
-    // Create memory
-    myMemory = new SectionMoteMemory(new Properties());
-
-    // Create interface handler
-    myInterfaceHandler = new MoteInterfaceHandler();
-    Position myPosition = new Position(this);
-    myPosition.setCoordinates(
-        random.nextDouble() * 100,
-        random.nextDouble() * 100,
-        random.nextDouble() * 100
-    );
-    myInterfaceHandler.addInterface(myPosition);
-
-    // create interface handler for radio
-    myDisturberRadio = new DisturberRadio(this);
-    myInterfaceHandler.addInterface(myDisturberRadio);
-  }
-
-  public void setState(State newState) {
-    logger.fatal("Disturber mote can not change state");
-  }
-
-  public State getState() {
-    return Mote.State.ACTIVE;
-  }
-
-  public void addStateObserver(Observer newObserver) {
-  }
-
-  public void deleteStateObserver(Observer newObserver) {
-  }
-
-  public MoteInterfaceHandler getInterfaces() {
-    return myInterfaceHandler;
-  }
-
-  public void setInterfaces(MoteInterfaceHandler moteInterfaceHandler) {
-    myInterfaceHandler = moteInterfaceHandler;
-  }
-
-  public MoteMemory getMemory() {
-    return myMemory;
-  }
-
-  public void setMemory(MoteMemory memory) {
-    myMemory = (SectionMoteMemory) memory;
-  }
-
-  public MoteType getType() {
-    return myType;
-  }
-
-  public void setType(MoteType type) {
-    myType = type;
-  }
-
-  public Simulation getSimulation() {
-    return mySim;
-  }
-
-  public void setSimulation(Simulation simulation) {
-    this.mySim = simulation;
-  }
-
-  public boolean tick(long simTime) {
-    myInterfaceHandler.doPassiveActionsBeforeTick();
-    myInterfaceHandler.doActiveActionsBeforeTick();
-    myInterfaceHandler.doActiveActionsAfterTick();
-    myInterfaceHandler.doPassiveActionsAfterTick();
-    return false;
-  }
-
-  public Collection<Element> getConfigXML() {
-    Vector<Element> config = new Vector<Element>();
-
-    Element element;
-
-    // We need to save the mote type identifier
-    element = new Element("motetype_identifier");
-    element.setText(getType().getIdentifier());
-    config.add(element);
-
-    // The position interface should also save its config
-    element = new Element("interface_config");
-    element.setText(myInterfaceHandler.getPosition().getClass().getName());
-
-    // Interfaces
-    for (MoteInterface moteInterface: getInterfaces().getInterfaces()) {
-      element = new Element("interface_config");
-      element.setText(moteInterface.getClass().getName());
-
-      Collection interfaceXML = moteInterface.getConfigXML();
-      if (interfaceXML != null) {
-        element.addContent(interfaceXML);
-        config.add(element);
-      }
-    }
-
-    return config;
-  }
-
-  public boolean setConfigXML(Simulation simulation,
-      Collection<Element> configXML, boolean visAvailable) {
-
-    // Set initial configuration
-    mySim = simulation;
-    myMemory = new SectionMoteMemory(new Properties());
-    myInterfaceHandler = new MoteInterfaceHandler();
-    Position myPosition = new Position(this);
-    myInterfaceHandler.addInterface(myPosition);
-    myDisturberRadio = new DisturberRadio(this);
-    myInterfaceHandler.addInterface(myDisturberRadio);
-
-
-    for (Element element : configXML) {
-      String name = element.getName();
-
-      if (name.equals("motetype_identifier")) {
-        myType = simulation.getMoteType(element.getText());
-      } else if (name.equals("interface_config")) {
-        Class<? extends MoteInterface> moteInterfaceClass = simulation.getGUI()
-            .tryLoadClass(this, MoteInterface.class, element.getText().trim());
-
-        if (moteInterfaceClass == null) {
-          logger.warn("Can't find mote interface class: " + element.getText());
-          return false;
-        }
-
-        MoteInterface moteInterface = myInterfaceHandler
-            .getInterfaceOfType(moteInterfaceClass);
-        moteInterface.setConfigXML(element.getChildren(), visAvailable);
-      }
-
-    }
-    return true;
+  public DisturberMote(MoteType moteType, Simulation simulation) {
+    super(moteType, simulation);
   }
 
   public String toString() {
@@ -223,5 +58,4 @@ public class DisturberMote implements Mote {
       return "Disturber Mote, ID=null";
     }
   }
-
 }

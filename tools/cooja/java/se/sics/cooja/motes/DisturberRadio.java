@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: DisturberRadio.java,v 1.9 2008/12/04 14:03:42 joxe Exp $
+ * $Id: DisturberRadio.java,v 1.10 2009/03/09 15:38:10 fros4943 Exp $
  */
 
 package se.sics.cooja.motes;
@@ -47,7 +47,7 @@ import se.sics.cooja.interfaces.*;
  *
  * @author Fredrik Osterlind, Thiemo Voigt
  */
-public class DisturberRadio extends Radio {
+public class DisturberRadio extends Radio implements PolledBeforeAllTicks {
   private Mote myMote;
 
   private static Logger logger = Logger.getLogger(DisturberRadio.class);
@@ -155,6 +155,10 @@ public class DisturberRadio extends Radio {
     long currentTime = myMote.getSimulation().getSimulationTime();
 
     if (!transmitting && currentTime % TRANSMISSION_INTERVAL == 0) {
+      if (distChannel < 0) {
+        return;
+      }
+
       transmitting = true;
       lastEvent = RadioEvent.TRANSMISSION_STARTED;
       lastEventTime = currentTime;
@@ -163,14 +167,15 @@ public class DisturberRadio extends Radio {
       this.notifyObservers();
     } else if (transmitting && currentTime >= transEndTime) {
       transmitting = false;
+      lastEvent = RadioEvent.PACKET_TRANSMITTED;
+      lastEventTime = currentTime;
+      this.setChanged();
+      this.notifyObservers();
       lastEvent = RadioEvent.TRANSMISSION_FINISHED;
       lastEventTime = currentTime;
       this.setChanged();
       this.notifyObservers();
     }
-  }
-
-  public void doActionsAfterTick() {
   }
 
   public JPanel getInterfaceVisualizer() {
@@ -212,9 +217,7 @@ public class DisturberRadio extends Radio {
     channelPicker.addPropertyChangeListener("value", new PropertyChangeListener() {
       public void propertyChange(PropertyChangeEvent e) {
         distChannel = ((Number) channelPicker.getValue()).intValue();
-        if (observer != null) {
-          observer.update(null, null);
-        }
+        observer.update(null, null);
       }
     });
 
@@ -244,7 +247,6 @@ public class DisturberRadio extends Radio {
     Vector<Element> config = new Vector<Element>();
     Element element;
 
-    // We need to save the mote type identifier
     element = new Element("channel");
     element.setText(Integer.toString(distChannel));
     config.add(element);

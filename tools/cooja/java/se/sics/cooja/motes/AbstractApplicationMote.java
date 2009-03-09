@@ -24,7 +24,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * $Id: AbstractApplicationMote.java,v 1.3 2008/10/28 13:38:55 fros4943 Exp $
+ * $Id: AbstractApplicationMote.java,v 1.4 2009/03/09 15:38:10 fros4943 Exp $
  */
 
 package se.sics.cooja.motes;
@@ -35,8 +35,6 @@ import org.apache.log4j.Logger;
 import org.jdom.Element;
 
 import se.sics.cooja.*;
-import se.sics.cooja.interfaces.ApplicationRadio;
-import se.sics.cooja.interfaces.Position;
 import se.sics.cooja.interfaces.Radio;
 
 /**
@@ -50,55 +48,47 @@ public abstract class AbstractApplicationMote implements Mote {
 
   private static Logger logger = Logger.getLogger(AbstractApplicationMote.class);
 
-  private MoteType myType = null;
+  private MoteType moteType = null;
 
-  private SectionMoteMemory myMemory = null;
+  private SectionMoteMemory memory = null;
 
-  protected MoteInterfaceHandler myInterfaceHandler = null;
+  protected MoteInterfaceHandler moteInterfaces = null;
 
-  private Simulation mySim = null;
-
-  protected ApplicationRadio myApplicationRadio;
+  private Simulation simulation = null;
 
   private Observer radioDataObserver = new Observer() {
     public void update(Observable obs, Object obj) {
-      handleNewRadioData(obs, obj);
+      if (getInterfaces().getRadio().getLastEvent() != Radio.RadioEvent.RECEPTION_FINISHED) {
+        return;
+      }
+
+      /* Called at incoming data packets */
+      logger.info("Application mote received radio data:");
+      byte[] packet = getInterfaces().getRadio().getLastPacketReceived().getPacketData();
+      String data = "";
+      for (byte b: packet) {
+        data += (char)b;
+      }
+      logger.info(data);
     }
   };
-
-  public void handleNewRadioData(Observable obs, Object obj) {
-    if (myApplicationRadio.getLastEvent() != Radio.RadioEvent.RECEPTION_FINISHED) {
-      return;
-    }
-
-    logger.info("Application mote received radio data:");
-    byte[] packet = myApplicationRadio.getLastPacketReceived().getPacketData();
-    String data = "";
-    for (byte b: packet) {
-      data += (char)b;
-    }
-    logger.info(data);
-  }
 
   public AbstractApplicationMote() {
   }
 
   public AbstractApplicationMote(MoteType moteType, Simulation sim) {
-    mySim = sim;
-    myType = moteType;
+    this.simulation = sim;
+    this.moteType = moteType;
 
     // Create memory
-    myMemory = new SectionMoteMemory(new Properties());
+    this.memory = new SectionMoteMemory(new Properties());
 
-    // Create position
-    myInterfaceHandler = new MoteInterfaceHandler();
-    Position myPosition = new Position(this);
-    myInterfaceHandler.addInterface(myPosition);
+    // Create mote interfaces
+    this.moteInterfaces = new MoteInterfaceHandler(this, moteType.getMoteInterfaceClasses());
 
-    // Create radio
-    myApplicationRadio = new ApplicationRadio(this);
-    myApplicationRadio.addObserver(radioDataObserver);
-    myInterfaceHandler.addInterface(myApplicationRadio);
+    if (moteInterfaces.getRadio() != null) {
+      moteInterfaces.getRadio().addObserver(radioDataObserver);
+    }
   }
 
   public void setState(State newState) {
@@ -116,35 +106,46 @@ public abstract class AbstractApplicationMote implements Mote {
   }
 
   public MoteInterfaceHandler getInterfaces() {
-    return myInterfaceHandler;
+    return moteInterfaces;
   }
 
   public void setInterfaces(MoteInterfaceHandler moteInterfaceHandler) {
-    myInterfaceHandler = moteInterfaceHandler;
+    moteInterfaces = moteInterfaceHandler;
   }
 
   public MoteMemory getMemory() {
-    return myMemory;
+    return memory;
   }
 
   public void setMemory(MoteMemory memory) {
-    myMemory = (SectionMoteMemory) memory;
+    this.memory = (SectionMoteMemory) memory;
   }
 
   public MoteType getType() {
-    return myType;
+    return moteType;
   }
 
   public void setType(MoteType type) {
-    myType = type;
+    moteType = type;
   }
 
   public Simulation getSimulation() {
-    return mySim;
+    return simulation;
   }
 
   public void setSimulation(Simulation simulation) {
-    this.mySim = simulation;
+    this.simulation = simulation;
+  }
+
+  public boolean tick(long simTime) {
+    moteInterfaces.doPassiveActionsBeforeTick();
+    moteInterfaces.doActiveActionsBeforeTick();
+
+    /* TODO Implement application functionality here */
+
+    moteInterfaces.doActiveActionsAfterTick();
+    moteInterfaces.doPassiveActionsAfterTick();
+    return false;
   }
 
   public Collection<Element> getConfigXML() {
@@ -157,12 +158,8 @@ public abstract class AbstractApplicationMote implements Mote {
     element.setText(getType().getIdentifier());
     config.add(element);
 
-    // The position interface should also save its config
-    element = new Element("interface_config");
-    element.setText(myInterfaceHandler.getPosition().getClass().getName());
-
     // Interfaces
-    for (MoteInterface moteInterface: getInterfaces().getInterfaces()) {
+    for (MoteInterface moteInterface: moteInterfaces.getInterfaces()) {
       element = new Element("interface_config");
       element.setText(moteInterface.getClass().getName());
 
@@ -180,22 +177,17 @@ public abstract class AbstractApplicationMote implements Mote {
       Collection<Element> configXML, boolean visAvailable) {
 
     // Set initial configuration
-    mySim = simulation;
-    myMemory = new SectionMoteMemory(new Properties());
-    myInterfaceHandler = new MoteInterfaceHandler();
-    Position myPosition = new Position(this);
-    myInterfaceHandler.addInterface(myPosition);
-    myApplicationRadio = new ApplicationRadio(this);
-    myApplicationRadio.addObserver(radioDataObserver);
-    myInterfaceHandler.addInterface(myApplicationRadio);
+    this.simulation = simulation;
+    this.memory = new SectionMoteMemory(new Properties());
 
     for (Element element : configXML) {
       String name = element.getName();
 
       if (name.equals("motetype_identifier")) {
-        myType = simulation.getMoteType(element.getText());
+        moteType = simulation.getMoteType(element.getText());
+        this.moteInterfaces = new MoteInterfaceHandler(this, moteType.getMoteInterfaceClasses());
       } else if (name.equals("interface_config")) {
-        Class<? extends MoteInterface> moteInterfaceClass = 
+        Class<? extends MoteInterface> moteInterfaceClass =
           simulation.getGUI().tryLoadClass(this, MoteInterface.class, element.getText().trim());
 
         if (moteInterfaceClass == null) {
@@ -203,8 +195,7 @@ public abstract class AbstractApplicationMote implements Mote {
           return false;
         }
 
-        MoteInterface moteInterface = myInterfaceHandler
-            .getInterfaceOfType(moteInterfaceClass);
+        MoteInterface moteInterface = moteInterfaces.getInterfaceOfType(moteInterfaceClass);
         moteInterface.setConfigXML(element.getChildren(), visAvailable);
       }
 

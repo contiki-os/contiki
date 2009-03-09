@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006, Swedish Institute of Computer Science.
+ * Copyright (c) 2009, Swedish Institute of Computer Science.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -26,36 +26,28 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: DummyMoteType.java,v 1.5 2008/02/12 15:10:49 fros4943 Exp $
+ *
  */
 
 package se.sics.cooja.motes;
 
 import java.awt.Container;
-import java.util.*;
-
-import javax.swing.*;
-
 import org.apache.log4j.Logger;
-import org.jdom.Element;
-
 import se.sics.cooja.*;
+import se.sics.cooja.interfaces.Position;
 
 @ClassDescription("Dummy Mote Type")
 @AbstractionLevelDescription("Application level")
-public class DummyMoteType implements MoteType {
+public class DummyMoteType extends AbstractApplicationMoteType {
   private static Logger logger = Logger.getLogger(DummyMoteType.class);
 
-  // Mote type specific data
-  private String identifier = null;
-  private String description = null;
-
   public DummyMoteType() {
+    super();
   }
 
   public DummyMoteType(String identifier) {
-    this.identifier = identifier;
-    description = "Dummy Mote Type #" + identifier;
+    super(identifier);
+    setDescription("Dummy Mote Type #" + getIdentifier());
   }
 
   public Mote generateMote(Simulation simulation) {
@@ -63,98 +55,8 @@ public class DummyMoteType implements MoteType {
   }
 
   public boolean configureAndInit(Container parentContainer, Simulation simulation, boolean visAvailable) {
-
-    if (identifier == null) {
-      // Create unique identifier
-      int counter = 0;
-      boolean identifierOK = false;
-      while (!identifierOK) {
-        counter++;
-        identifier = "dummy" + counter;
-        identifierOK = true;
-
-        // Check if identifier is already used by some other type
-        for (MoteType existingMoteType : simulation.getMoteTypes()) {
-          if (existingMoteType != this
-              && existingMoteType.getIdentifier().equals(identifier)) {
-            identifierOK = false;
-            break;
-          }
-        }
-      }
-
-      if (description == null) {
-        // Create description
-        description = "Dummy Mote Type #" + counter;
-      }
-
-    }
-
-    if (description == null) {
-      // Create description
-      description = "Dummy Mote Type #" + identifier;
-    }
-
+    super.configureAndInit(parentContainer, simulation, visAvailable);
+    setDescription("Dummy Mote Type #" + getIdentifier());
     return true;
   }
-
-  public String getIdentifier() {
-    return identifier;
-  }
-
-  public void setIdentifier(String identifier) {
-    this.identifier = identifier;
-  }
-
-  public String getDescription() {
-    return description;
-  }
-
-  public void setDescription(String description) {
-    this.description = description;
-  }
-
-  public JPanel getTypeVisualizer() {
-    return null;
-  }
-
-  public ProjectConfig getConfig() {
-    return null;
-  }
-
-  public Collection<Element> getConfigXML() {
-    Vector<Element> config = new Vector<Element>();
-
-    Element element;
-
-    // Identifier
-    element = new Element("identifier");
-    element.setText(getIdentifier());
-    config.add(element);
-
-    // Description
-    element = new Element("description");
-    element.setText(getDescription());
-    config.add(element);
-
-    return config;
-  }
-
-  public boolean setConfigXML(Simulation simulation, Collection<Element> configXML, boolean visAvailable) {
-    for (Element element : configXML) {
-      String name = element.getName();
-
-      if (name.equals("identifier")) {
-        identifier = element.getText();
-      } else if (name.equals("description")) {
-        description = element.getText();
-      } else {
-        logger.fatal("Unrecognized entry in loaded configuration: " + name);
-      }
-    }
-
-    boolean createdOK = configureAndInit(GUI.getTopParentContainer(), simulation, visAvailable);
-    return createdOK;
-  }
-
 }
