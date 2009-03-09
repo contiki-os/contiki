@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006, Swedish Institute of Computer Science. All rights
+ * Copyright (c) 2009, Swedish Institute of Computer Science. All rights
  * reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -24,12 +24,13 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * $Id: MoteType.java,v 1.8 2008/02/12 15:03:22 fros4943 Exp $
+ * $Id: MoteType.java,v 1.9 2009/03/09 15:40:26 fros4943 Exp $
  */
 
 package se.sics.cooja;
 
 import java.awt.Container;
+import java.io.File;
 import java.util.Collection;
 import javax.swing.JPanel;
 import org.jdom.Element;
@@ -81,7 +82,68 @@ public interface MoteType {
   public void setIdentifier(String identifier);
 
   /**
-   * Returns a panel with interesting data for this mote type.
+   * Main Contiki source file of mote type.
+   * May be null.
+   *
+   * @return Contiki main process source file.
+   * @see #setContikiSourceFile(File)
+   */
+  public File getContikiSourceFile();
+
+  /**
+   * @param file Contiki main process source file.
+   * @see #getContikiSourceFile()
+   */
+  public void setContikiSourceFile(File file);
+
+  /**
+   * Compiled Contiki firmware file or library.
+   * May be null.
+   *
+   * @return Contiki firmware file or library.
+   * @see #setContikiFirmwareFile(File)
+   */
+  public File getContikiFirmwareFile();
+
+  /**
+   * @param file Contiki firmware file or library.
+   * @see #getContikiFirmwareFile()
+   */
+  public void setContikiFirmwareFile(File file);
+
+  /**
+   * Commands used to build the Contiki firmware from the Contiki source.
+   * May be null.
+   *
+   * @return Compile commands used to build firmware
+   * @see #setCompileCommands(String)
+   * @see #getContikiFirmwareFile()
+   * @see #getContikiSourceFile()
+   */
+  public String getCompileCommands();
+
+  /**
+   * @param commands Compile commands
+   * @see #getCompileCommands()
+   */
+  public void setCompileCommands(String commands);
+
+  /**
+   * @return Mote interface classes of mote type.
+   * @see #setMoteInterfaceClasses(Class[])
+   */
+  public Class<? extends MoteInterface>[] getMoteInterfaceClasses();
+
+  /**
+   * Sets mote interface Java classes of mote type.
+   *
+   * @param classes Mote interface classes
+   */
+  public void setMoteInterfaceClasses(Class<? extends MoteInterface>[] classes);
+
+  /**
+   * Returns a panel with mote type specific data.
+   * May be null.
    *
    * @return Mote type visualizer
    */
@@ -147,8 +209,9 @@ public interface MoteType {
    *          True if this method is allowed to show a visualizer
    * @return True if config was set successfully, false otherwise
    */
-  public boolean setConfigXML(Simulation simulation,
-      Collection<Element> configXML, boolean visAvailable) throws MoteTypeCreationException;
+  public boolean setConfigXML(
+      Simulation simulation, Collection<Element> configXML, boolean visAvailable)
+  throws MoteTypeCreationException;
 
   public class MoteTypeCreationException extends Exception {
     private MessageList compilationOutput = null;
