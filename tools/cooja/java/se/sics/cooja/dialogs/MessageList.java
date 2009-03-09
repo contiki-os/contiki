@@ -26,18 +26,25 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: MessageList.java,v 1.8 2008/12/03 15:17:56 fros4943 Exp $
+ * $Id: MessageList.java,v 1.9 2009/03/09 13:19:07 fros4943 Exp $
  *
  * -----------------------------------------------------------------
  *
  * Author  : Adam Dunkels, Joakim Eriksson, Niclas Finne, Fredrik Osterlind
  * Created : 2006-06-14
- * Updated : $Date: 2008/12/03 15:17:56 $
- *           $Revision: 1.8 $
+ * Updated : $Date: 2009/03/09 13:19:07 $
+ *           $Revision: 1.9 $
  */
 package se.sics.cooja.dialogs;
 import java.awt.Color;
 import java.awt.Component;
+import java.awt.Toolkit;
+import java.awt.datatransfer.Clipboard;
+import java.awt.datatransfer.StringSelection;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -48,8 +55,12 @@ import java.util.ArrayList;
 import javax.swing.DefaultListCellRenderer;
 import javax.swing.DefaultListModel;
 import javax.swing.JList;
+import javax.swing.JMenuItem;
+import javax.swing.JPopupMenu;
+import javax.swing.JSeparator;
 import javax.swing.ListModel;
 import javax.swing.ListSelectionModel;
+import javax.swing.SwingUtilities;
 
 public class MessageList extends JList {
 
@@ -59,6 +70,8 @@ public class MessageList extends JList {
 
   private Color[] foregrounds = new Color[] { null, Color.red };
   private Color[] backgrounds = new Color[] { null, null };
+
+  private JPopupMenu popup = null;
 
   public MessageList() {
     super.setModel(new DefaultListModel());
@@ -166,6 +179,66 @@ public class MessageList extends JList {
     throw new IllegalArgumentException("changing model not permitted");
   }
 
+  public void addPopupMenuItem(JMenuItem item, boolean withDefaults) {
+    if (popup == null) {
+      popup = new JPopupMenu();
+      addMouseListener(new MouseAdapter() {
+        public void mouseClicked(MouseEvent e) {
+          if (e.isPopupTrigger() || SwingUtilities.isRightMouseButton(e)) {
+            popup.show(MessageList.this, e.getX(), e.getY());
+          }
+        }
+      });
+
+      JMenuItem headerMenuItem = new JMenuItem("Output:");
+      headerMenuItem.setEnabled(false);
+      popup.add(headerMenuItem);
+      popup.add(new JSeparator());
+
+      if (withDefaults) {
+        /* Create default menu items */
+        JMenuItem consoleOutputMenuItem = new JMenuItem("Output to console");
+        consoleOutputMenuItem.setEnabled(true);
+        consoleOutputMenuItem.addActionListener(new ActionListener() {
+          public void actionPerformed(ActionEvent e) {
+            MessageContainer[] messages = getMessages();
+            System.out.println("\nCOMPILATION OUTPUT:\n");
+            for (MessageContainer msg: messages) {
+              System.out.println(msg);
+            }
+            System.out.println();
+          }
+        });
+        popup.add(consoleOutputMenuItem);
+
+        JMenuItem clipboardMenuItem = new JMenuItem("Copy to clipboard");
+        clipboardMenuItem.setEnabled(true);
+        clipboardMenuItem.addActionListener(new ActionListener() {
+          public void actionPerformed(ActionEvent e) {
+            Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
+
+            String output = "";
+            MessageContainer[] messages = getMessages();
+            for (MessageContainer msg: messages) {
+              output += msg + "\n";
+            }
+
+            StringSelection stringSelection = new StringSelection(output);
+            clipboard.setContents(stringSelection, null);
+          }
+        });
+        popup.add(clipboardMenuItem);
+
+        popup.add(new JSeparator());
+      }
+    }
+
+    if (item == null) {
+      return;
+    }
+
+    popup.add(item);
+  }
 
   // -------------------------------------------------------------------
   // MessageContainer
