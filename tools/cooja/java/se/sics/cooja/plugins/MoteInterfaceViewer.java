@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: MoteInterfaceViewer.java,v 1.4 2008/10/28 14:09:25 fros4943 Exp $
+ * $Id: MoteInterfaceViewer.java,v 1.5 2009/03/09 15:39:33 fros4943 Exp $
  */
 
 package se.sics.cooja.plugins;
@@ -43,7 +43,7 @@ import se.sics.cooja.*;
 /**
  * Mote Interface Viewer views information about a specific mote interface.
  *
- * @author Fredrik Österlind
+ * @author Fredrik Osterlind
  */
 @ClassDescription("Mote Interface Viewer")
 @PluginType(PluginType.MOTE_PLUGIN)
