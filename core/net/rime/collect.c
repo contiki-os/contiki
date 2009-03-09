@@ -36,7 +36,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: collect.c,v 1.20 2009/03/06 17:33:59 zhitao Exp $
+ * $Id: collect.c,v 1.21 2009/03/09 12:54:27 zhitao Exp $
  */
 
 /**
@@ -114,6 +114,7 @@ update_rtmetric(struct collect_conn *tc)
 	       rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1]);
       }
       tc->rtmetric = RTMETRIC_MAX;
+			announcement_set_value(&tc->announcement, tc->rtmetric);
     } else {
 
       /* We set our rtmetric to the rtmetric of our best neighbor plus
