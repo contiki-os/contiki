@@ -26,19 +26,16 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: SkyMote.java,v 1.12 2009/02/26 13:48:08 fros4943 Exp $
+ * $Id: SkyMote.java,v 1.13 2009/03/09 17:12:27 fros4943 Exp $
  */
 
 package se.sics.cooja.mspmote;
 
 import java.io.File;
-import java.util.Random;
 import org.apache.log4j.Logger;
 import se.sics.cooja.MoteInterfaceHandler;
 import se.sics.cooja.Simulation;
-import se.sics.cooja.AddressMemory.UnknownVariableException;
 import se.sics.cooja.interfaces.*;
-import se.sics.cooja.mspmote.interfaces.*;
 import se.sics.mspsim.platform.sky.SkyNode;
 
 /**
@@ -70,56 +67,19 @@ public class SkyMote extends MspMote {
   }
 
   protected MoteInterfaceHandler createMoteInterfaceHandler() {
-    MoteInterfaceHandler moteInterfaceHandler = new MoteInterfaceHandler();
+    /* Uses current mote type configuration */
+    MoteInterfaceHandler moteInterfaceHandler =
+      super.createMoteInterfaceHandler();
 
-    // Add position interface
-    Position motePosition = new Position(this);
-    Random random = new Random(); /* Do not use main random generator for positioning */
-    motePosition.setCoordinates(random.nextDouble()*100, random.nextDouble()*100, random.nextDouble()*100);
-    moteInterfaceHandler.addInterface(motePosition);
-
-    // Add time interface
-    Clock moteClock = new MspClock(this);
-    moteInterfaceHandler.addInterface(moteClock);
-
-    // Add button interface
-    Button moteButton = new SkyButton(this);
-    moteInterfaceHandler.addInterface(moteButton);
-
-    // Add Flash interface
-    SkyFlash moteFlash = new SkyFlash(this);
-    moteInterfaceHandler.addInterface(moteFlash);
-
-    // Add ID interface
-    MoteID moteID = new MspMoteID(this);
-    moteInterfaceHandler.addInterface(moteID);
-
-    // Add radio interface
-//  SkyRadio moteRadio = new SkyRadio(this);
-//  moteInterfaceHandler.addActiveInterface(moteRadio);
-    SkyByteRadio moteRadio = new SkyByteRadio(this);
-    moteInterfaceHandler.addInterface(moteRadio);
-
-    // Add serial interface
-    SkySerial moteSerial = new SkySerial(this);
-    moteInterfaceHandler.addInterface(moteSerial);
-
-    // Add LED interface
-    SkyLED moteLED = new SkyLED(this);
-    moteInterfaceHandler.addInterface(moteLED);
-
-    /* IP Address (if uIP is used) */
-    try {
-      if (((MspMoteMemory)this.getMemory()).getVariableAddress("uip_hostaddr") != 0) {
-        IPAddress ip = new MspIPAddress(this);
-        moteInterfaceHandler.addInterface(ip);
-      }
-    } catch (UnknownVariableException e) {
-    }
-
-    /* Mote relation listener */
-    Mote2MoteRelations mote2moteRelation = new Mote2MoteRelations(this);
-    moteInterfaceHandler.addInterface(mote2moteRelation);
+    /* TODO check if uIP is used, remove IPv4 interface otherwise */
+//    moteInterfaceHandler.getIPAddress()
+//    try {
+//      if (((MspMoteMemory)this.getMemory()).getVariableAddress("uip_hostaddr") != 0) {
+//        IPAddress ip = new MspIPAddress(this);
+//        moteInterfaceHandler.addInterface(ip);
+//      }
+//    } catch (UnknownVariableException e) {
+//    }
 
     return moteInterfaceHandler;
   }

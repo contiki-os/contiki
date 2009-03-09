@@ -26,18 +26,16 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ESBMote.java,v 1.6 2009/02/18 11:50:11 fros4943 Exp $
+ * $Id: ESBMote.java,v 1.7 2009/03/09 17:12:27 fros4943 Exp $
  */
 
 package se.sics.cooja.mspmote;
 
 import java.io.File;
-import java.util.Random;
 import org.apache.log4j.Logger;
 import se.sics.cooja.MoteInterfaceHandler;
 import se.sics.cooja.Simulation;
 import se.sics.cooja.interfaces.*;
-import se.sics.cooja.mspmote.interfaces.*;
 import se.sics.mspsim.platform.esb.ESBNode;
 
 /**
@@ -69,37 +67,19 @@ public class ESBMote extends MspMote {
   }
 
   protected MoteInterfaceHandler createMoteInterfaceHandler() {
-    MoteInterfaceHandler moteInterfaceHandler = new MoteInterfaceHandler();
+    /* Uses current mote type configuration */
+    MoteInterfaceHandler moteInterfaceHandler =
+      super.createMoteInterfaceHandler();
 
-    // Add position interface
-    Position motePosition = new Position(this);
-    Random random = new Random(); /* Do not use main random generator for positioning */
-    motePosition.setCoordinates(random.nextDouble()*100, random.nextDouble()*100, random.nextDouble()*100);
-    moteInterfaceHandler.addInterface(motePosition);
-
-    // Add log interface
-    Log moteLog = new ESBLog(this);
-    moteInterfaceHandler.addInterface(moteLog);
-
-    // Add time interface
-    Clock moteClock = new MspClock(this);
-    moteInterfaceHandler.addInterface(moteClock);
-
-    // Add led interface
-    LED moteLed = new ESBLED(this);
-    moteInterfaceHandler.addInterface(moteLed);
-
-    // Add button interface
-    Button moteButton = new ESBButton(this);
-    moteInterfaceHandler.addInterface(moteButton);
-
-    // Add ID interface
-    MoteID moteID = new MspMoteID(this);
-    moteInterfaceHandler.addInterface(moteID);
-
-    // Add radio interface
-    myRadio = new TR1001Radio(this);
-    moteInterfaceHandler.addInterface(myRadio);
+    /* TODO check if uIP is used, remove IPv4 interface otherwise */
+//    moteInterfaceHandler.getIPAddress()
+//    try {
+//      if (((MspMoteMemory)this.getMemory()).getVariableAddress("uip_hostaddr") != 0) {
+//        IPAddress ip = new MspIPAddress(this);
+//        moteInterfaceHandler.addInterface(ip);
+//      }
+//    } catch (UnknownVariableException e) {
+//    }
 
     return moteInterfaceHandler;
   }
