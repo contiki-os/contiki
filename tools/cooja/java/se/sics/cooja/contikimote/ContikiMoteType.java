@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006, Swedish Institute of Computer Science.
+ * Copyright (c) 2009, Swedish Institute of Computer Science.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ContikiMoteType.java,v 1.29 2009/03/03 13:45:32 fros4943 Exp $
+ * $Id: ContikiMoteType.java,v 1.30 2009/03/10 21:10:06 fros4943 Exp $
  */
 
 package se.sics.cooja.contikimote;
@@ -35,6 +35,7 @@ import java.awt.BorderLayout;
 import java.awt.Container;
 import java.awt.Dimension;
 import java.io.*;
+import java.lang.reflect.Method;
 import java.security.*;
 import java.util.*;
 import java.util.regex.*;
@@ -43,16 +44,18 @@ import org.apache.log4j.Logger;
 import org.jdom.Element;
 
 import se.sics.cooja.*;
+import se.sics.cooja.dialogs.CompileContiki;
+import se.sics.cooja.dialogs.ContikiMoteCompileDialog;
 import se.sics.cooja.dialogs.MessageList;
+import se.sics.cooja.dialogs.MessageList.MessageContainer;
 
 /**
  * The Contiki mote type holds the native library used to communicate with an
  * underlying Contiki system. All communication with that system should always
  * pass through this mote type.
  * <p>
- * This type also contains information about which processes, sensors and core
- * interfaces a mote of this type has, as well as where the Contiki OS, COOJA
- * core files and optional mote type specific project directories are located.
+ * This type also contains information about sensors and mote interfaces a mote
+ * of this type has.
  * <p>
  * All core communication with the Contiki mote should be via this class. When a
  * mote type is created it allocates a CoreComm to be used with this type, and
@@ -70,18 +73,20 @@ import se.sics.cooja.dialogs.MessageList;
 public class ContikiMoteType implements MoteType {
   private static Logger logger = Logger.getLogger(ContikiMoteType.class);
 
+  public static final String ID_PREFIX = "mtype";
+
+  /**
+   * Library file suffix
+   */
+  final static public String librarySuffix = ".cooja";
+
   /**
    * Map file suffix
    */
   final static public String mapSuffix = ".map";
 
   /**
-   * Library file suffix
-   */
-  final static public String librarySuffix = ".library";
-
-  /**
-   * Make dependency file suffix
+   * Make archive file suffix
    */
   final static public String dependSuffix = ".a";
 
@@ -138,39 +143,34 @@ public class ContikiMoteType implements MoteType {
     }
   }
 
-  // Mote type specific data
+  private final String[] sensors = { "button_sensor", "pir_sensor", "radio_sensor", "vib_sensor" };
+
   private String identifier = null;
-
   private String description = null;
+  private File fileSource = null;
+  private File fileFirmware = null;
+  private String compileCommands = null;
 
-  private String contikiBaseDir = null;
+  /* For internal use only: using during Contiki compilation. */
+  private File contikiApp = null; /* Contiki application: hello-world.c */
+  public File libSource = null; /* JNI library: obj_cooja/mtype1.c */
+  public File libFile = null; /* JNI library: obj_cooja/mtype1.lib */
+  public File archiveFile = null; /* Contiki archive: obj_cooja/mtype1.a */
+  public File mapFile = null; /* Contiki map: obj_cooja/mtype1.map */
+  public String javaClassName = null; /* Loading Java class name: Lib1 */
 
-  private String contikiCoreDir = null;
+  private String[] coreInterfaces = null;
 
-  private Vector<File> projectDirs = null;
-
-  private Vector<File> compilationFiles = null;
-
-  private Vector<String> processes = null;
-
-  private Vector<String> sensors = null;
-
-  private Vector<String> coreInterfaces = null;
-
-  private Vector<Class<? extends MoteInterface>> moteInterfaces = null;
+  private ArrayList<Class<? extends MoteInterface>> moteInterfacesClasses = null;
 
   private boolean hasSystemSymbols = false;
 
   private CommunicationStack commStack = CommunicationStack.RIME;
 
-  // Simulation holding this mote type
-  private Simulation mySimulation = null;
+  private Simulation simulation = null;
 
   // Type specific class configuration
   private ProjectConfig myConfig = null;
-
-  // Core communication variables
-  private String libraryClassName = null;
 
   private int relAddressOfRefenceVariable = 0;
 
@@ -189,147 +189,180 @@ public class ContikiMoteType implements MoteType {
   public ContikiMoteType() {
   }
 
-  /**
-   * Creates a new Contiki mote type.
-   *
-   * @param identifier
-   *          Unique identifier for this mote type
-   */
-  public ContikiMoteType(String identifier) throws MoteTypeCreationException {
-    doInit(identifier);
-  }
-
   public Mote generateMote(Simulation simulation) {
     return new ContikiMote(this, simulation);
   }
 
   public boolean configureAndInit(Container parentContainer, Simulation simulation,
       boolean visAvailable) throws MoteTypeCreationException {
+    myConfig = simulation.getGUI().getProjectConfig().clone();
+
     if (visAvailable) {
-      return ContikiMoteTypeDialog.showDialog(parentContainer, simulation, this);
+
+      if (getDescription() == null) {
+        setDescription("Contiki Mote Type #" + (simulation.getMoteTypes().length+1));
+      }
+
+      /* Compile Contiki from dialog */
+      boolean compileOK =
+        ContikiMoteCompileDialog.showDialog(parentContainer, simulation, this);
+      if (!compileOK) {
+        return false;
+      }
+
+      /* Load compiled library */
+      doInit();
+      return true;
+
     } else {
-
-      /* Automatically clean if not visualized */
-      if (!GUI.isVisualized()) {
-        ContikiMoteTypeDialog.cleanTempFiles();
+      if (getIdentifier() == null) {
+        throw new MoteTypeCreationException("No identifier specified");
+      }
+      if (getContikiSourceFile() == null) {
+        throw new MoteTypeCreationException("No Contiki application specified");
       }
 
-      // Create temp output directory if not already exists
-      if (!ContikiMoteType.tempOutputDirectory.exists()) {
-        ContikiMoteType.tempOutputDirectory.mkdir();
-      }
-      if (!ContikiMoteType.tempOutputDirectory.exists()) {
-        throw new MoteTypeCreationException(
-            "Could not create output directory: "
-                + ContikiMoteType.tempOutputDirectory);
+      /* Create variables used for compiling Contiki */
+      contikiApp = getContikiSourceFile();
+      libSource = new File(
+          contikiApp.getParentFile(),
+          "obj_cooja/" + getIdentifier() + ".c");
+      libFile = new File(
+          contikiApp.getParentFile(),
+          "obj_cooja/" + getIdentifier() + librarySuffix);
+      archiveFile = new File(
+          contikiApp.getParentFile(),
+          "obj_cooja/" + getIdentifier() + dependSuffix);
+      mapFile = new File(
+          contikiApp.getParentFile(),
+          "obj_cooja/" + getIdentifier() + mapSuffix);
+      javaClassName = CoreComm.getAvailableClassName();
+
+      if (javaClassName == null) {
+        throw new MoteTypeCreationException("Could not allocate a core communicator!");
       }
 
-      // Delete output files
-      File libFile = new File(ContikiMoteType.tempOutputDirectory, identifier
-          + ContikiMoteType.librarySuffix);
-      File mapFile = new File(ContikiMoteType.tempOutputDirectory, identifier
-          + ContikiMoteType.mapSuffix);
-      File depFile = new File(ContikiMoteType.tempOutputDirectory, identifier
-          + ContikiMoteType.dependSuffix);
-      if (libFile.exists()) {
-        libFile.delete();
-      }
-      if (depFile.exists()) {
-        depFile.delete();
-      }
-      if (mapFile.exists()) {
-        mapFile.delete();
-      }
-      if (libFile.exists()) {
-        throw new MoteTypeCreationException("Could not delete output file: "
-            + libFile);
-      }
-      if (depFile.exists()) {
-        throw new MoteTypeCreationException("Could not delete output file: "
-            + depFile);
-      }
+      /* Delete output files */
+      libSource.delete();
+      libFile.delete();
+      archiveFile.delete();
+      mapFile.delete();
 
-      // Generate Contiki main source file
+      /* Generate Contiki main source */
       try {
-        ContikiMoteTypeDialog.generateSourceFile(identifier, sensors,
-            coreInterfaces, processes);
+        CompileContiki.generateSourceFile(
+            libSource,
+            javaClassName,
+            getSensors(),
+            getCoreInterfaces()
+        );
       } catch (Exception e) {
         throw (MoteTypeCreationException) new MoteTypeCreationException(
-            "Error during main source file generation: " + e.getMessage())
-            .initCause(e);
+        "Error when generating Contiki main source").initCause(e);
       }
 
-      // Compile library
-      MessageList taskOutput = new MessageList();
-      boolean compilationSucceded = ContikiMoteTypeDialog.compileLibrary(
-          identifier, new File(contikiBaseDir), compilationFiles,
-          hasSystemSymbols, commStack, taskOutput
-              .getInputStream(MessageList.NORMAL), taskOutput
-              .getInputStream(MessageList.ERROR));
-      if (!libFile.exists()) {
-        MoteTypeCreationException ex = new MoteTypeCreationException(
-        "Compilation error: " + libFile.getPath() + " does not exist");
-        ex.setCompilationOutput(taskOutput);
-        throw ex;
+      /* Prepare compiler environment */
+      String[][] env;
+      try {
+        env = CompileContiki.createCompilationEnvironment(
+            getIdentifier(), contikiApp, mapFile, libFile, archiveFile);
+      } catch (Exception e) {
+        throw (MoteTypeCreationException) new MoteTypeCreationException(
+            "Error when creating environment: " + e.getMessage()).initCause(e);
       }
-      if (!depFile.exists()) {
-        MoteTypeCreationException ex = new MoteTypeCreationException(
-        "Compilation error: " + depFile.getPath() + " does not exist");
-        ex.setCompilationOutput(taskOutput);
-        throw ex;
+      String[] envOneDimension = new String[env.length];
+      for (int i=0; i < env.length; i++) {
+        envOneDimension[i] = env[i][0] + "=" + env[i][1];
       }
 
-      if (!compilationSucceded) {
-        MoteTypeCreationException ex = new MoteTypeCreationException(
-            "Compilation error: Unknown error");
-        ex.setCompilationOutput(taskOutput);
-        throw ex;
+      /* Compile Contiki (may consist of several commands) */
+      if (getCompileCommands() == null) {
+        throw new MoteTypeCreationException("No compile commands specified");
+      }
+      final MessageList compilationOutput = new MessageList();
+      String[] arr = getCompileCommands().split("\n");
+      for (String cmd: arr) {
+        if (cmd.trim().isEmpty()) {
+          continue;
+        }
+
+        try {
+          CompileContiki.compile(
+              cmd,
+              envOneDimension,
+              null /* Do not observe output firmware file */,
+              getContikiSourceFile().getParentFile(),
+              null,
+              null,
+              compilationOutput,
+              true
+          );
+        } catch (Exception e) {
+          MoteTypeCreationException newException =
+            new MoteTypeCreationException("Mote type creation failed: " + e.getMessage());
+          newException = (MoteTypeCreationException) newException.initCause(e);
+          newException.setCompilationOutput(compilationOutput);
+
+          /* Print last 10 compilation errors to console */
+          MessageContainer[] messages = compilationOutput.getMessages();
+          for (int i=messages.length-10; i < messages.length; i++) {
+            if (i < 0) {
+              continue;
+            }
+            logger.fatal(">> " + messages[i]);
+          }
+
+          logger.fatal("Compilation error: " + e.getMessage());
+          throw newException;
+        }
       }
 
-      // Load compiled library
-      doInit(identifier);
+      /* Make sure compiled firmware exists */
+      if (getContikiFirmwareFile() == null ||
+          !getContikiFirmwareFile().exists()) {
+        throw new MoteTypeCreationException("Contiki firmware file does not exist: " + getContikiFirmwareFile());
+      }
 
+      /* Load compiled library */
+      doInit();
       return true;
     }
   }
 
+  public static File getExpectedFirmwareFile(File source) {
+    File parentDir = source.getParentFile();
+    String sourceNoExtension = source.getName().substring(0, source.getName().length()-2);
+
+    return new File(parentDir, sourceNoExtension + librarySuffix);
+  }
+
   /**
-   * This is an mote type initialization method and should normally never be
-   * called by any other part than the mote type constructor. It is called from
-   * the constructor with an identifier argument. but not from the standard
-   * constructor. This method may be called from the simulator when loading
-   * configuration files, and the libraries must be recompiled.
+   * For internal use.
    *
-   * This method allocates a core communicator, loads the Contiki library file,
-   * loads and parses library addresses, creates a variable name to address
-   * mapping of the Contiki system and finally creates the Contiki mote initial
-   * memory.
+   * This method creates a core communicator linking a Contiki library and a Java class.
+   * It furthermore parses library Contiki memory addresses and creates the initial memory.
    *
-   * @param identifier
-   *          Mote type identifier
+   * @throws MoteTypeCreationException
    */
-  protected void doInit(String identifier) throws MoteTypeCreationException {
-    this.identifier = identifier;
+  public void doInit() throws MoteTypeCreationException {
 
     if (myCoreComm != null) {
-      throw new MoteTypeCreationException("Core communicator already used: "
-          + myCoreComm.getClass().getName());
+      throw new MoteTypeCreationException(
+          "Core communicator already used: " + myCoreComm.getClass().getName());
     }
 
-    File libFile = new File(ContikiMoteType.tempOutputDirectory, identifier
-        + librarySuffix);
-    File mapFile = new File(ContikiMoteType.tempOutputDirectory, identifier
-        + mapSuffix);
+    if (getContikiFirmwareFile() == null ||
+        !getContikiFirmwareFile().exists()) {
+      throw new MoteTypeCreationException("Library file could not be found: " + getContikiFirmwareFile());
+    }
 
-    // Check that library file exists
-    if (!libFile.exists()) {
-      throw new MoteTypeCreationException("Library file could not be found: "
-          + libFile);
+    if (this.javaClassName == null) {
+      throw new MoteTypeCreationException("Unknown Java class library: " + this.javaClassName);
     }
 
     // Allocate core communicator class
-    libraryClassName = CoreComm.getAvailableClassName();
-    myCoreComm = CoreComm.createCoreComm(libraryClassName, libFile);
+    logger.info("Creating core communicator between Java class '" + javaClassName + "' and Contiki library '" + getContikiFirmwareFile().getName() + "'");
+    myCoreComm = CoreComm.createCoreComm(this.javaClassName, getContikiFirmwareFile());
 
     // Should we parse addresses using map file or command?
     boolean useCommand = Boolean.parseBoolean(GUI.getExternalToolsSetting("PARSE_WITH_COMMAND", "false"));
@@ -341,10 +374,10 @@ public class ContikiMoteType implements MoteType {
 
     if (useCommand) {
       // Parse command output
-      Vector<String> commandData = loadCommandData(libFile);
+      Vector<String> commandData = loadCommandData(getContikiFirmwareFile());
       if (commandData == null) {
         logger.fatal("No parse command output could be loaded");
-        throw new MoteTypeCreationException("No parse command output be loaded");
+        throw new MoteTypeCreationException("No parse command output loaded");
       }
 
       boolean parseOK = parseCommandData(commandData, varAddresses);
@@ -359,7 +392,8 @@ public class ContikiMoteType implements MoteType {
       bssSectionSize = loadCommandBssSectionSize(commandData);
     } else {
       // Parse map file
-      if (!mapFile.exists()) {
+      if (mapFile == null ||
+          !mapFile.exists()) {
         logger.fatal("Map file " + mapFile.getAbsolutePath() + " could not be found!");
         throw new MoteTypeCreationException("Map file " + mapFile.getAbsolutePath() + " could not be found!");
       }
@@ -385,7 +419,7 @@ public class ContikiMoteType implements MoteType {
     // Create variable names to addresses mappings
     if (varAddresses.size() == 0) {
       throw new MoteTypeCreationException(
-          "Variable name to addresses mappings could not be created");
+      "Variable name to addresses mappings could not be created");
     }
 
     try {
@@ -399,7 +433,7 @@ public class ContikiMoteType implements MoteType {
     if (relDataSectionAddr <= 0 || dataSectionSize <= 0
         || relBssSectionAddr <= 0 || bssSectionSize <= 0) {
       throw new MoteTypeCreationException(
-          "Could not parse section addresses correctly");
+      "Could not parse section addresses correctly");
     }
 
     myCoreComm.setReferenceAddress(relAddressOfRefenceVariable);
@@ -519,14 +553,14 @@ public class ContikiMoteType implements MoteType {
       }
     }
 
-    if (nrMismatch > 0) {
+    /*if (nrMismatch > 0) {
       logger.debug("Command response parsing summary: Added " + nrNew
           + " variables. Found " + nrOld
           + " old variables. Mismatching addresses: " + nrMismatch);
     } else {
       logger.debug("Command response parsing summary: Added " + nrNew
           + " variables. Found " + nrOld + " old variables");
-    }
+    }*/
 
     return (nrNew + nrOld) > 0;
   }
@@ -553,15 +587,38 @@ public class ContikiMoteType implements MoteType {
   }
 
   public void setIdentifier(String identifier) {
-    logger.warn("Contiki mote type is read-only");
+    this.identifier = identifier;
+  }
+
+  public File getContikiSourceFile() {
+    return fileSource;
+  }
+
+  public void setContikiSourceFile(File file) {
+    fileSource = file;
+  }
+
+  public File getContikiFirmwareFile() {
+    return fileFirmware;
+  }
+
+  public void setContikiFirmwareFile(File file) {
+    fileFirmware = file;
+  }
+
+  public String getCompileCommands() {
+    return compileCommands;
+  }
+
+  public void setCompileCommands(String commands) {
+    this.compileCommands = commands;
   }
 
   /**
-   * @param using
-   *          Core library has system symbols information
+   * @param symbols Core library has system symbols information
    */
-  public void setHasSystemSymbols(boolean using) {
-    hasSystemSymbols = using;
+  public void setHasSystemSymbols(boolean symbols) {
+    hasSystemSymbols = symbols;
   }
 
   /**
@@ -572,8 +629,7 @@ public class ContikiMoteType implements MoteType {
   }
 
   /**
-   * @param commStack
-   *          Communication stack
+   * @param commStack Communication stack
    */
   public void setCommunicationStack(CommunicationStack commStack) {
     this.commStack = commStack;
@@ -584,13 +640,6 @@ public class ContikiMoteType implements MoteType {
    */
   public CommunicationStack getCommunicationStack() {
     return commStack;
-  }
-
-  /**
-   * @return Contiki mote type's library class name
-   */
-  public String getLibraryClassName() {
-    return libraryClassName;
   }
 
   /**
@@ -609,7 +658,7 @@ public class ContikiMoteType implements MoteType {
     }
 
     String regExp = GUI.getExternalToolsSetting("MAPFILE_VAR_ADDRESS_1")
-        + varName + GUI.getExternalToolsSetting("MAPFILE_VAR_ADDRESS_2");
+    + varName + GUI.getExternalToolsSetting("MAPFILE_VAR_ADDRESS_2");
     String retString = getFirstMatchGroup(mapFileData, regExp, 1);
 
     if (retString != null) {
@@ -633,7 +682,7 @@ public class ContikiMoteType implements MoteType {
       int groupNr) {
     Pattern pattern = Pattern.compile(regexp);
     for (int i = 0; i < lines.size(); i++) {
-      Matcher matcher = pattern.matcher(lines.elementAt(i));
+      Matcher matcher = pattern.matcher(lines.get(i));
       if (matcher.find()) {
         return matcher.group(groupNr);
       }
@@ -656,7 +705,7 @@ public class ContikiMoteType implements MoteType {
 
     varNames.addAll(getAllVariableNames(mapFileData,
         loadRelBssSectionAddr(mapFileData), loadRelBssSectionAddr(mapFileData)
-            + loadBssSectionSize(mapFileData)));
+        + loadBssSectionSize(mapFileData)));
 
     return varNames;
   }
@@ -668,7 +717,7 @@ public class ContikiMoteType implements MoteType {
     Pattern pattern = Pattern.compile(GUI
         .getExternalToolsSetting("MAPFILE_VAR_NAME"));
     for (int i = 0; i < lines.size(); i++) {
-      Matcher matcher = pattern.matcher(lines.elementAt(i));
+      Matcher matcher = pattern.matcher(lines.get(i));
       if (matcher.find()) {
         if (Integer.decode(matcher.group(1)).intValue() >= startAddress
             && Integer.decode(matcher.group(1)).intValue() <= endAddress) {
@@ -684,7 +733,7 @@ public class ContikiMoteType implements MoteType {
         .getExternalToolsSetting("MAPFILE_VAR_SIZE_1")
         + varName + GUI.getExternalToolsSetting("MAPFILE_VAR_SIZE_2"));
     for (int i = 0; i < lines.size(); i++) {
-      Matcher matcher = pattern.matcher(lines.elementAt(i));
+      Matcher matcher = pattern.matcher(lines.get(i));
       if (matcher.find()) {
         return Integer.decode(matcher.group(1));
       }
@@ -806,7 +855,7 @@ public class ContikiMoteType implements MoteType {
 
   private static int getRelVarAddr(Vector<String> mapFileData, String varName) {
     String regExp = GUI.getExternalToolsSetting("MAPFILE_VAR_ADDRESS_1")
-        + varName + GUI.getExternalToolsSetting("MAPFILE_VAR_ADDRESS_2");
+    + varName + GUI.getExternalToolsSetting("MAPFILE_VAR_ADDRESS_2");
     String retString = getFirstMatchGroup(mapFileData, regExp, 1);
 
     if (retString != null) {
@@ -855,12 +904,11 @@ public class ContikiMoteType implements MoteType {
       }
 
       // Prepare command
-      command = command.replace("$(LIBFILE)", libraryFile.getPath().replace(File.separatorChar, '/'));
+      command = command.replace("$(LIBFILE)", libraryFile.getName().replace(File.separatorChar, '/'));
 
       String line;
-      Process p = Runtime.getRuntime().exec(command.split(" "));
-      BufferedReader input = new BufferedReader(new InputStreamReader(p
-          .getInputStream()));
+      Process p = Runtime.getRuntime().exec(command.split(" "), null, libraryFile.getParentFile());
+      BufferedReader input = new BufferedReader(new InputStreamReader(p.getInputStream()));
       p.getErrorStream().close(); // Ignore error stream
       while ((line = input.readLine()) != null) {
         commandData.add(line);
@@ -905,7 +953,7 @@ public class ContikiMoteType implements MoteType {
         objdumpExecArray[0] = objdumpPath.trim();
 
         objdumpExecArray[objdumpExecArray.length - 1] = libraryFile
-            .getAbsolutePath();
+        .getAbsolutePath();
         System.arraycopy(splittedObjdumpArgs, 0, objdumpExecArray, 1,
             splittedObjdumpArgs.length);
       } else {
@@ -935,107 +983,12 @@ public class ContikiMoteType implements MoteType {
     return objdumpData;
   }
 
-  /**
-   * Returns simulation holding this mote type
-   *
-   * @return Simulation
-   */
-  public Simulation getSimulation() {
-    return mySimulation;
-  }
-
-  /**
-   * Sets simulation holding this mote type
-   *
-   * @param simulation
-   *          Simulation holding this mote type
-   */
-  public void setSimulation(Simulation simulation) {
-    mySimulation = simulation;
-  }
-
   public String getDescription() {
     return description;
   }
 
   public void setDescription(String newDescription) {
     description = newDescription;
-  }
-
-  /**
-   * Returns path to contiki base dir
-   *
-   * @return String containing path
-   */
-  public String getContikiBaseDir() {
-    return contikiBaseDir;
-  }
-
-  /**
-   * Sets contiki base dir to path.
-   *
-   * @param path
-   *          Contiki base dir
-   */
-  public void setContikiBaseDir(String path) {
-    contikiBaseDir = path;
-  }
-
-  /**
-   * Returns path to contiki core dir
-   *
-   * @return String containing path
-   */
-  public String getContikiCoreDir() {
-    return contikiCoreDir;
-  }
-
-  /**
-   * Sets contiki core dir to path.
-   *
-   * @param path
-   *          Contiki core dir
-   */
-  public void setContikiCoreDir(String path) {
-    contikiCoreDir = path;
-  }
-
-  /**
-   * Returns compilation files
-   *
-   * @return Compilation files
-   */
-  public Vector<File> getCompilationFiles() {
-    return compilationFiles;
-  }
-
-  /**
-   * Sets compilation files.
-   *
-   * @param files
-   *          New compilation files
-   */
-  public void setCompilationFiles(Vector<File> files) {
-    compilationFiles = files;
-  }
-
-  /**
-   * Returns mote type specific project directories
-   *
-   * @return Project directories
-   */
-  public Vector<File> getProjectDirs() {
-    return projectDirs;
-  }
-
-  /**
-   * Sets mote type specific project directories.
-   *
-   * @param dirs
-   *          New project directories
-   */
-  public void setProjectDirs(Vector<File> dirs) {
-    projectDirs = dirs;
   }
 
   public ProjectConfig getConfig() {
@@ -1054,41 +1007,12 @@ public class ContikiMoteType implements MoteType {
   }
 
   /**
-   * Returns all processes of this mote type
-   *
-   * @return All processes
-   */
-  public Vector<String> getProcesses() {
-    return processes;
-  }
-
-  /**
-   * Set startup processes
-   *
-   * @param processes
-   *          New startup processes
-   */
-  public void setProcesses(Vector<String> processes) {
-    this.processes = processes;
-  }
-
-  /**
    * Returns all sensors of this mote type
    *
    * @return All sensors
    */
-  public Vector<String> getSensors() {
+  public String[] getSensors() {
     return sensors;
-  }
-
-  /**
-   * Set sensors
-   *
-   * @param sensors
-   *          New sensors
-   */
-  public void setSensors(Vector<String> sensors) {
-    this.sensors = sensors;
   }
 
   /**
@@ -1096,7 +1020,7 @@ public class ContikiMoteType implements MoteType {
    *
    * @return All core interfaces
    */
-  public Vector<String> getCoreInterfaces() {
+  public String[] getCoreInterfaces() {
     return coreInterfaces;
   }
 
@@ -1106,28 +1030,24 @@ public class ContikiMoteType implements MoteType {
    * @param coreInterfaces
    *          New core interfaces
    */
-  public void setCoreInterfaces(Vector<String> coreInterfaces) {
+  public void setCoreInterfaces(String[] coreInterfaces) {
     this.coreInterfaces = coreInterfaces;
   }
 
-  /**
-   * Returns all mote interfaces of this mote type
-   *
-   * @return All mote interfaces
-   */
-  public Vector<Class<? extends MoteInterface>> getMoteInterfaces() {
-    return moteInterfaces;
+  public Class<? extends MoteInterface>[] getMoteInterfaceClasses() {
+    if (moteInterfacesClasses == null) {
+      return null;
+    }
+    Class<? extends MoteInterface>[] arr = new Class[moteInterfacesClasses.size()];
+    moteInterfacesClasses.toArray(arr);
+    return arr;
   }
 
-  /**
-   * Set mote interfaces of this mote type
-   *
-   * @param moteInterfaces
-   *          New mote interfaces
-   */
-  public void setMoteInterfaces(
-      Vector<Class<? extends MoteInterface>> moteInterfaces) {
-    this.moteInterfaces = moteInterfaces;
+  public void setMoteInterfaceClasses(Class<? extends MoteInterface>[] moteInterfaces) {
+    this.moteInterfacesClasses = new ArrayList<Class<? extends MoteInterface>>();
+    for (Class<? extends MoteInterface> intf: moteInterfaces) {
+      this.moteInterfacesClasses.add(intf);
+    }
   }
 
   /**
@@ -1169,14 +1089,14 @@ public class ContikiMoteType implements MoteType {
    * @param reservedIdentifiers Already reserved identifiers, may be null
    * @return Unique mote type ID.
    */
-  public static String generateUniqueMoteTypeID(Collection<MoteType> existingTypes, Collection reservedIdentifiers) {
+  public static String generateUniqueMoteTypeID(MoteType[] existingTypes, Collection reservedIdentifiers) {
     int counter = 0;
     String testID = "";
     boolean okID = false;
 
     while (!okID) {
       counter++;
-      testID = ContikiMoteTypeDialog.ID_PREFIX + counter;
+      testID = ID_PREFIX + counter;
       okID = true;
 
       // Check if identifier is reserved
@@ -1203,7 +1123,9 @@ public class ContikiMoteType implements MoteType {
       }
 
       // Check if identifier library has been loaded
-      File libraryFile = new File(ContikiMoteType.tempOutputDirectory, testID + ContikiMoteType.librarySuffix);
+      File libraryFile = new File(
+          ContikiMoteType.tempOutputDirectory,
+          testID + ContikiMoteType.librarySuffix);
       if (CoreComm.hasLibraryFileBeenLoaded(libraryFile)) {
         okID = false;
       }
@@ -1224,7 +1146,7 @@ public class ContikiMoteType implements MoteType {
 
     panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
 
-    // Identifier
+    /* Identifier */
     smallPane = new JPanel(new BorderLayout());
     label = new JLabel("Identifier");
     smallPane.add(BorderLayout.WEST, label);
@@ -1232,7 +1154,7 @@ public class ContikiMoteType implements MoteType {
     smallPane.add(BorderLayout.EAST, label);
     panel.add(smallPane);
 
-    // Description
+    /* Description */
     smallPane = new JPanel(new BorderLayout());
     label = new JLabel("Description");
     smallPane.add(BorderLayout.WEST, label);
@@ -1240,36 +1162,35 @@ public class ContikiMoteType implements MoteType {
     smallPane.add(BorderLayout.EAST, label);
     panel.add(smallPane);
 
-    // Contiki dir
+    /* Contiki application */
     smallPane = new JPanel(new BorderLayout());
-    label = new JLabel("Contiki path");
+    label = new JLabel("Contiki application");
     smallPane.add(BorderLayout.WEST, label);
-    label = new JLabel(contikiBaseDir);
+    label = new JLabel(getContikiSourceFile().getName());
+    label.setToolTipText(getContikiSourceFile().getAbsolutePath());
     smallPane.add(BorderLayout.EAST, label);
     panel.add(smallPane);
 
-    // Library class name
+    panel.add(Box.createVerticalStrut(15));
+
+    /* Contiki firmware */
     smallPane = new JPanel(new BorderLayout());
-    label = new JLabel("JNI Class");
+    label = new JLabel("Contiki firmware");
     smallPane.add(BorderLayout.WEST, label);
-    label = new JLabel(libraryClassName);
+    label = new JLabel(getContikiFirmwareFile().getName());
+    label.setToolTipText(getContikiFirmwareFile().getAbsolutePath());
     smallPane.add(BorderLayout.EAST, label);
     panel.add(smallPane);
 
-    // Processes
+    /* JNI Class */
     smallPane = new JPanel(new BorderLayout());
-    label = new JLabel("Processes");
+    label = new JLabel("Java class (JNI)");
     smallPane.add(BorderLayout.WEST, label);
+    label = new JLabel(this.javaClassName);
+    smallPane.add(BorderLayout.EAST, label);
     panel.add(smallPane);
 
-    for (String process : processes) {
-      smallPane = new JPanel(new BorderLayout());
-      label = new JLabel(process);
-      smallPane.add(BorderLayout.EAST, label);
-      panel.add(smallPane);
-    }
-
-    // Sensors
+    /* Sensors */
     smallPane = new JPanel(new BorderLayout());
     label = new JLabel("Sensors");
     smallPane.add(BorderLayout.WEST, label);
@@ -1282,28 +1203,28 @@ public class ContikiMoteType implements MoteType {
       panel.add(smallPane);
     }
 
-    // Core Interfaces
-    smallPane = new JPanel(new BorderLayout());
-    label = new JLabel("Core interfaces");
-    smallPane.add(BorderLayout.WEST, label);
-    panel.add(smallPane);
-
-    for (String mInterface : coreInterfaces) {
-      smallPane = new JPanel(new BorderLayout());
-      label = new JLabel(mInterface);
-      smallPane.add(BorderLayout.EAST, label);
-      panel.add(smallPane);
-    }
-
-    // Mote Interfaces
+    /* Mote Interfaces */
     smallPane = new JPanel(new BorderLayout());
     label = new JLabel("Mote interfaces");
     smallPane.add(BorderLayout.WEST, label);
     panel.add(smallPane);
 
-    for (Class moteInterface : moteInterfaces) {
+    for (Class intf : moteInterfacesClasses) {
       smallPane = new JPanel(new BorderLayout());
-      label = new JLabel(moteInterface.getSimpleName());
+      label = new JLabel(intf.getSimpleName());
+      smallPane.add(BorderLayout.EAST, label);
+      panel.add(smallPane);
+    }
+
+    /* Core Interfaces */
+    smallPane = new JPanel(new BorderLayout());
+    label = new JLabel("Core interfaces");
+    smallPane.add(BorderLayout.WEST, label);
+    panel.add(smallPane);
+
+    for (String intf : getCoreInterfaces()) {
+      smallPane = new JPanel(new BorderLayout());
+      label = new JLabel(intf);
       smallPane.add(BorderLayout.EAST, label);
       panel.add(smallPane);
     }
@@ -1314,79 +1235,36 @@ public class ContikiMoteType implements MoteType {
 
   public Collection<Element> getConfigXML() {
     Vector<Element> config = new Vector<Element>();
-
     Element element;
 
-    // Identifier
     element = new Element("identifier");
     element.setText(getIdentifier());
     config.add(element);
 
-    // Description
     element = new Element("description");
     element.setText(getDescription());
     config.add(element);
 
-    // Contiki base directory
-    element = new Element("contikibasedir");
-    element.setText(getContikiBaseDir());
+    element = new Element("contikiapp");
+    element.setText(getContikiSourceFile().getAbsolutePath()); /* TODO Fix Contiki-relative path */
     config.add(element);
 
-    // Contiki core directory
-    element = new Element("contikicoredir");
-    element.setText(getContikiCoreDir());
+    element = new Element("commands");
+    element.setText(compileCommands);
     config.add(element);
 
-    // User project directory
-    for (File projectDir : projectDirs) {
-      element = new Element("projectdir");
-      element.setText(projectDir.getPath().replace('\\', '/'));
-      config.add(element);
-    }
-
-    // Compilation files
-    for (File compileFile : compilationFiles) {
-      element = new Element("compilefile");
-      element.setText(compileFile.getPath().replace('\\', '/'));
-      config.add(element);
-    }
-
-    // Contiki processes
-    for (String process : getProcesses()) {
-      element = new Element("process");
-      element.setText(process);
-      config.add(element);
-    }
-
-    // Contiki sensors
-    for (String sensor : getSensors()) {
-      element = new Element("sensor");
-      element.setText(sensor);
-      config.add(element);
-    }
-
-    // Mote interfaces
-    for (Class moteInterface : getMoteInterfaces()) {
+    for (Class<? extends MoteInterface> moteInterface : getMoteInterfaceClasses()) {
       element = new Element("moteinterface");
       element.setText(moteInterface.getName());
       config.add(element);
     }
 
-    // Core interfaces
-    for (String coreInterface : getCoreInterfaces()) {
-      element = new Element("coreinterface");
-      element.setText(coreInterface);
-      config.add(element);
-    }
-
-    // Has system symbols
     element = new Element("symbols");
-    element.setText(new Boolean(hasSystemSymbols).toString());
+    element.setText(new Boolean(hasSystemSymbols()).toString());
     config.add(element);
 
-    // Communication stack
     element = new Element("commstack");
-    element.setText(commStack.toString());
+    element.setText(getCommunicationStack().toString());
     config.add(element);
 
     return config;
@@ -1394,14 +1272,9 @@ public class ContikiMoteType implements MoteType {
 
   public boolean setConfigXML(Simulation simulation,
       Collection<Element> configXML, boolean visAvailable)
-      throws MoteTypeCreationException {
-    projectDirs = new Vector<File>();
-    compilationFiles = new Vector<File>();
-    processes = new Vector<String>();
-    sensors = new Vector<String>();
-    coreInterfaces = new Vector<String>();
-    moteInterfaces = new Vector<Class<? extends MoteInterface>>();
-    mySimulation = simulation;
+  throws MoteTypeCreationException {
+    moteInterfacesClasses = new ArrayList<Class<? extends MoteInterface>>();
+    this.simulation = simulation;
 
     for (Element element : configXML) {
       String name = element.getName();
@@ -1410,54 +1283,78 @@ public class ContikiMoteType implements MoteType {
         identifier = element.getText();
       } else if (name.equals("description")) {
         description = element.getText();
-      } else if (name.equals("contikibasedir")) {
-        contikiBaseDir = element.getText();
-      } else if (name.equals("contikicoredir")) {
-        contikiCoreDir = element.getText();
-      } else if (name.equals("projectdir")) {
-        projectDirs.add(new File(element.getText()));
-      } else if (name.equals("compilefile")) {
-        compilationFiles.add(new File(element.getText()));
-      } else if (name.equals("process")) {
-        processes.add(element.getText());
-      } else if (name.equals("sensor")) {
-        sensors.add(element.getText());
+      } else if (name.equals("contikiapp")) {
+        setContikiSourceFile(new File(element.getText())); /* TODO Fix Contiki-relative paths */
+
+        /* XXX Do not load the generated firmware. Instead, load the unique library file directly */
+        File contikiFirmware = new File(
+            getContikiSourceFile().getParentFile(),
+            "obj_cooja/" + getIdentifier() + librarySuffix);
+        setContikiFirmwareFile(contikiFirmware);
+
+      } else if (name.equals("commands")) {
+        compileCommands = element.getText();
       } else if (name.equals("symbols")) {
         hasSystemSymbols = Boolean.parseBoolean(element.getText());
       } else if (name.equals("commstack")) {
         commStack = CommunicationStack.parse(element.getText());
-      } else if (name.equals("coreinterface")) {
-        coreInterfaces.add(element.getText());
       } else if (name.equals("moteinterface")) {
-        Class<? extends MoteInterface> moteInterfaceClass = simulation.getGUI()
-            .tryLoadClass(this, MoteInterface.class, element.getText().trim());
+        Class<? extends MoteInterface> moteInterfaceClass =
+          simulation.getGUI().tryLoadClass(
+              this, MoteInterface.class, element.getText().trim());
 
         if (moteInterfaceClass == null) {
           logger.warn("Can't find mote interface class: " + element.getText());
         } else {
-          moteInterfaces.add(moteInterfaceClass);
+          moteInterfacesClasses.add(moteInterfaceClass);
         }
       } else {
         logger.fatal("Unrecognized entry in loaded configuration: " + name);
       }
     }
 
-    // Create class specific configuration
-    myConfig = simulation.getGUI().getProjectConfig().clone();
+    /* Create initial core interface dependencies */
+    Class<? extends MoteInterface>[] arr =
+      new Class[moteInterfacesClasses.size()];
+    moteInterfacesClasses.toArray(arr);
+    setCoreInterfaces(ContikiMoteType.getRequiredCoreInterfaces(arr));
 
-    // Merge with all project directory configs (if any)
-    for (File projectDir : projectDirs) {
+    boolean createdOK = configureAndInit(GUI.getTopParentContainer(), simulation, visAvailable);
+    return createdOK;
+  }
+
+  public static String[] getRequiredCoreInterfaces(
+      Class<? extends MoteInterface>[] moteInterfaces) {
+    /* Extract Contiki dependencies from currently selected mote interfaces */
+    ArrayList<String> coreInterfacesList = new ArrayList<String>();
+    for (Class<? extends MoteInterface> intf: moteInterfaces) {
+      if (!ContikiMoteInterface.class.isAssignableFrom(intf)) {
+        continue;
+      }
+
+      String[] deps;
       try {
-        myConfig.appendProjectDir(projectDir);
-      } catch (Exception ex) {
-        logger.fatal("Error when parsing project directory config: " + ex);
-        return false;
+        /* Call static method */
+        Method m = intf.getDeclaredMethod("getCoreInterfaceDependencies", (Class[]) null);
+        deps = (String[]) m.invoke(null, (Object[]) null);
+      } catch (Exception e) {
+        logger.warn("Could not extract Contiki dependencies of mote interface: " + intf.getName());
+        e.printStackTrace();
+        continue;
+      }
+
+      if (deps == null || deps.length == 0) {
+        continue;
+      }
+
+      for (String dep: deps) {
+        coreInterfacesList.add(dep);
       }
     }
 
-    mySimulation = simulation;
-    boolean createdOK = configureAndInit(GUI.getTopParentContainer(), simulation, visAvailable);
-    return createdOK;
+    String[] coreInterfaces = new String[coreInterfacesList.size()];
+    coreInterfacesList.toArray(coreInterfaces);
+    return coreInterfaces;
   }
 
 }
