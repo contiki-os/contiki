@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: contiki_template.c,v 1.10 2009/01/21 12:18:10 fros4943 Exp $
+ * $Id: contiki_template.c,v 1.11 2009/03/10 21:24:46 fros4943 Exp $
  */
 
 /**
@@ -75,8 +75,7 @@
 
 #include "node-id.h"
 
-/* Declare all initialization processes */
-[PROCESS_DEFINITIONS]
+PROCINIT(&etimer_process);
 
 /* Declare all sensors */
 [SENSOR_DEFINITIONS]
@@ -84,9 +83,6 @@
 /* Declare all simulation interfaces */
 [INTERFACE_DEFINITIONS]
 
-
-/* Create initialization process array */
-[PROCESS_ARRAY]
 
 /* Create sensor array */
 [SENSOR_ARRAY]
@@ -130,6 +126,9 @@ start_process_run_loop(void *data)
     /* Start process handler */
     process_init();
 
+    /* Start Contiki processes */
+    procinit_init();
+
     /* Print startup information */
     printf(CONTIKI_VERSION_STRING " started. ");
     if(node_id > 0) {
@@ -137,8 +136,6 @@ start_process_run_loop(void *data)
     } else {
       printf("Node id is not set.\n");
     }
-    /* Start Contiki processes */
-    procinit_init();
 
     /* Initialize communication stack */
     init_net();
@@ -148,7 +145,7 @@ start_process_run_loop(void *data)
     }
     printf("%d\n", rimeaddr_node_addr.u8[i]);
 
-    /* Start user applications */
+    /* Start autostart processes (defined in Contiki application) */
     print_processes(autostart_processes);
     autostart_start(autostart_processes);
 
