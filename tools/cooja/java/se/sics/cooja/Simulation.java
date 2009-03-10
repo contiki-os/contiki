@@ -24,7 +24,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * $Id: Simulation.java,v 1.43 2009/03/02 09:46:19 fros4943 Exp $
+ * $Id: Simulation.java,v 1.44 2009/03/10 21:05:29 fros4943 Exp $
  */
 
 package se.sics.cooja;
@@ -561,8 +561,7 @@ public class Simulation extends Observable implements Runnable {
           return false;
         }
 
-        MoteType moteType = moteTypeClass.getConstructor((Class[]) null)
-            .newInstance();
+        MoteType moteType = moteTypeClass.getConstructor((Class[]) null).newInstance();
 
         boolean createdOK = moteType.setConfigXML(this, element.getChildren(),
             visAvailable);
@@ -698,8 +697,10 @@ public class Simulation extends Observable implements Runnable {
    *
    * @return All mote types
    */
-  public Vector<MoteType> getMoteTypes() {
-    return moteTypes;
+  public MoteType[] getMoteTypes() {
+    MoteType[] types = new MoteType[moteTypes.size()];
+    moteTypes.toArray(types);
+    return types;
   }
 
   /**
