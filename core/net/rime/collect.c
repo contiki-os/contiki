@@ -36,7 +36,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: collect.c,v 1.21 2009/03/09 12:54:27 zhitao Exp $
+ * $Id: collect.c,v 1.22 2009/03/10 14:07:41 zhitao Exp $
  */
 
 /**
@@ -364,6 +364,7 @@ collect_send(struct collect_conn *tc, int rexmits)
       PRINTF("%d.%d: sending to %d.%d\n",
 	     rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1],
 	     n->addr.u8[0], n->addr.u8[1]);
+      tc->forwarding = 1;
       return runicast_send(&tc->runicast_conn, &n->addr, rexmits);
     } else {
       /*      printf("Didn't find any neighbor\n");*/
