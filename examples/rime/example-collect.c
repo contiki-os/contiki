@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: example-collect.c,v 1.6 2009/02/17 08:44:44 fros4943 Exp $
+ * $Id: example-collect.c,v 1.7 2009/03/10 14:36:48 zhitao Exp $
  */
 
 /**
@@ -84,6 +84,9 @@ PROCESS_THREAD(example_collect_process, ev, data)
     PROCESS_WAIT_EVENT();
 
     if(etimer_expired(&et)) {
+      while(tc.forwarding) {
+	PROCESS_PAUSE();
+      }
       printf("Sending\n");
       rimebuf_clear();
       rimebuf_set_datalen(sprintf(rimebuf_dataptr(),
