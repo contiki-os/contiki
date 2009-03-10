@@ -24,7 +24,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * $Id: MoteType.java,v 1.9 2009/03/09 15:40:26 fros4943 Exp $
+ * $Id: MoteType.java,v 1.10 2009/03/10 21:05:00 fros4943 Exp $
  */
 
 package se.sics.cooja;
@@ -35,18 +35,19 @@ import java.util.Collection;
 import javax.swing.JPanel;
 import org.jdom.Element;
 
+import se.sics.cooja.contikimote.ContikiMoteType;
 import se.sics.cooja.dialogs.MessageList;
 
 /**
  * The mote type defines properties common for several motes. These properties
  * may differ between different implementations, but typically includes how a
- * mote of that type is initialized, which hardware peripherals each mote has
- * etc.
- * Every simulated motes must belong to a mote type.
+ * mote is initialized, which hardware peripherals each mote has
+ * etc. All simulated motes belongs to one mote type.
  *
  * A mote type may also hold the connection to an underlying simulation
  * framework, such as a compiled Contiki system.
  *
+ * @see ContikiMoteType
  * @author Fredrik Osterlind
  */
 public interface MoteType {

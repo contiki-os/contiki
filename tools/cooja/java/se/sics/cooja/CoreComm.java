@@ -24,7 +24,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * $Id: CoreComm.java,v 1.13 2009/02/20 16:49:43 fros4943 Exp $
+ * $Id: CoreComm.java,v 1.14 2009/03/10 21:05:00 fros4943 Exp $
  */
 
 package se.sics.cooja;
@@ -100,8 +100,7 @@ public abstract class CoreComm {
    */
   public static boolean hasLibraryFileBeenLoaded(File libraryFile) {
     for (File loadedFile : coreCommFiles) {
-      if (loadedFile != null
-          && loadedFile.getName().equals(libraryFile.getName())) {
+      if (loadedFile.getName().equals(libraryFile.getName())) {
         return true;
       }
     }
