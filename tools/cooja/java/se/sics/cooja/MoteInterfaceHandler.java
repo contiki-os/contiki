@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: MoteInterfaceHandler.java,v 1.6 2009/03/09 14:08:03 fros4943 Exp $
+ * $Id: MoteInterfaceHandler.java,v 1.7 2009/03/10 21:05:00 fros4943 Exp $
  */
 
 package se.sics.cooja;
@@ -345,4 +345,7 @@ public class MoteInterfaceHandler {
     polledAfterAll = null;
   }
 
+  public String toString() {
+    return "Mote interfaces handler (" + allInterfaces.size() + " mote interfaces)";
+  }
 }
