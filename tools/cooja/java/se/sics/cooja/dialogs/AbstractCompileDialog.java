@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: AbstractCompileDialog.java,v 1.1 2009/03/09 13:58:12 fros4943 Exp $
+ * $Id: AbstractCompileDialog.java,v 1.2 2009/03/10 21:13:07 fros4943 Exp $
  */
 
 package se.sics.cooja.dialogs;
@@ -76,11 +76,12 @@ public abstract class AbstractCompileDialog extends JDialog {
 
   protected Simulation simulation;
   protected GUI gui;
+  protected MoteType moteType;
 
   protected JTabbedPane tabbedPane;
   protected Box moteIntfBox;
 
-  private JTextField contikiField;
+  protected JTextField contikiField;
   private JTextField descriptionField;
   private JTextArea commandsArea;
   private JButton nextButton;
@@ -100,6 +101,7 @@ public abstract class AbstractCompileDialog extends JDialog {
 
     this.simulation = simulation;
     this.gui = simulation.getGUI();
+    this.moteType = moteType;
 
     JPanel mainPanel = new JPanel(new BorderLayout());
     JLabel label;
@@ -211,7 +213,11 @@ public abstract class AbstractCompileDialog extends JDialog {
     nextButton.addActionListener(new ActionListener() {
       public void actionPerformed(ActionEvent e) {
         if (nextButton.getText().equals("Compile")) {
-          compileContiki();
+          try {
+            compileContiki();
+          } catch (Exception e1) {
+            logger.fatal("Error while compiling Contiki: " + e1.getMessage());
+          }
         } else if (nextButton.getText().equals("Create")) {
           /* Write mote type settings (generic) */
           moteType.setDescription(descriptionField.getText());
@@ -279,8 +285,6 @@ public abstract class AbstractCompileDialog extends JDialog {
     });
 
     setDialogState(DialogState.NO_SELECTION);
-    descriptionField.requestFocus();
-    descriptionField.select(0, descriptionField.getText().length());
 
     /* Restore old configuration if mote type is already configured */
     if (moteType != null) {
@@ -311,6 +315,9 @@ public abstract class AbstractCompileDialog extends JDialog {
         setDialogState(DialogState.AWAITING_COMPILATION);
       }
     }
+
+    descriptionField.requestFocus();
+    descriptionField.select(0, descriptionField.getText().length());
 
     /* Add listener only after restoring old config */
     contikiField.getDocument().addDocumentListener(contikiFieldListener);
@@ -355,14 +362,27 @@ public abstract class AbstractCompileDialog extends JDialog {
 
   public abstract boolean canLoadFirmware(File file);
 
-  private void compileContiki() {
+  protected String[] compilationEnvironment = null; /* Default environment: inherit from current process */
+  public void compileContiki()
+  throws Exception {
     final MessageList taskOutput = new MessageList();
+
+    if (contikiFirmware.exists()) {
+      contikiFirmware.delete();
+    }
 
     /* Handle multiple compilation commands one by one */
     final ArrayList<String> commands = new ArrayList<String>();
     String[] arr = getCompileCommands().split("\n");
     for (String cmd: arr) {
+      if (cmd.trim().isEmpty()) {
+        continue;
+      }
+
       commands.add(cmd);
+    }
+    if (commands.isEmpty()) {
+      throw new Exception("No compile commands specified");
     }
 
     setDialogState(DialogState.IS_COMPILING);
@@ -382,6 +402,13 @@ public abstract class AbstractCompileDialog extends JDialog {
     final Action compilationSuccessAction = new AbstractAction() {
       public void actionPerformed(ActionEvent e) {
         abortMenuItem.setEnabled(false);
+
+        /* Make sure firmware exists */
+        if (!contikiFirmware.exists()) {
+          logger.fatal("Contiki firmware does not exist: " + contikiFirmware.getAbsolutePath());
+          setDialogState(DialogState.AWAITING_COMPILATION);
+          return;
+        }
         setDialogState(DialogState.COMPILED_FIRMWARE);
       }
     };
@@ -411,7 +438,8 @@ public abstract class AbstractCompileDialog extends JDialog {
           try {
             currentCompilationProcess = CompileContiki.compile(
                 command,
-                null,
+                compilationEnvironment,
+                null /* Do not observe output firmware file */,
                 new File(contikiField.getText()).getParentFile(),
                 nextSuccessAction,
                 compilationFailureAction,
@@ -454,6 +482,8 @@ public abstract class AbstractCompileDialog extends JDialog {
    * @param dialogState New dialog state
    */
   public void setDialogState(DialogState dialogState) {
+    File sourceFile = new File(contikiField.getText());
+
     switch (dialogState) {
     case NO_SELECTION:
       nextButton.setText("Compile");
@@ -463,7 +493,6 @@ public abstract class AbstractCompileDialog extends JDialog {
       break;
 
     case SELECTED_SOURCE:
-      File sourceFile = new File(contikiField.getText());
       if (!sourceFile.exists()) {
         setDialogState(DialogState.NO_SELECTION);
         return;
@@ -483,6 +512,15 @@ public abstract class AbstractCompileDialog extends JDialog {
       break;
 
     case AWAITING_COMPILATION:
+      if (!sourceFile.exists()) {
+        setDialogState(DialogState.NO_SELECTION);
+        return;
+      }
+      if (!sourceFile.getName().endsWith(".c")) {
+        setDialogState(DialogState.NO_SELECTION);
+        return;
+      }
+
       nextButton.setText("Compile");
       nextButton.setEnabled(true);
       commandsArea.setEnabled(true);
@@ -536,7 +574,7 @@ public abstract class AbstractCompileDialog extends JDialog {
         setDialogState(DialogState.AWAITING_COMPILATION);
       }
     });
-    parent.addTab("Compile commands", null, commandsArea, "Manually alter Contiki compilation commands");
+    parent.addTab("Compile commands", null, new JScrollPane(commandsArea), "Manually alter Contiki compilation commands");
   }
 
   private void addMoteInterfacesTab(JTabbedPane parent) {
