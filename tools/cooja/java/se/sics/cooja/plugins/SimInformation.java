@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: SimInformation.java,v 1.4 2007/11/23 06:21:24 fros4943 Exp $
+ * $Id: SimInformation.java,v 1.5 2009/03/10 21:20:30 fros4943 Exp $
  */
 
 package se.sics.cooja.plugins;
@@ -155,7 +155,7 @@ public class SimInformation extends VisPlugin {
     smallPane.add(Box.createHorizontalGlue());
 
     label = new JLabel();
-    label.setText(""  + simulation.getMoteTypes().size());
+    label.setText(""  + simulation.getMoteTypes().length);
 
     labelNrMoteTypes = label;
     smallPane.add(label);
@@ -203,7 +203,7 @@ public class SimInformation extends VisPlugin {
           labelStatus.setText("STOPPED");
         }
         labelNrMotes.setText(""  + simulation.getMotesCount());
-        labelNrMoteTypes.setText(""  + simulation.getMoteTypes().size());
+        labelNrMoteTypes.setText(""  + simulation.getMoteTypes().length);
 
       }
     });

@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: VisState.java,v 1.5 2008/10/03 14:30:51 fros4943 Exp $
+ * $Id: VisState.java,v 1.6 2009/03/10 21:20:39 fros4943 Exp $
  */
 
 package se.sics.cooja.plugins;
@@ -119,11 +119,11 @@ public class VisState extends Visualizer2D {
 
 
     // Associate different colors with different mote types
-    Vector<MoteType> allTypes = simulation.getMoteTypes();
-    int numberOfTypes = allTypes.size();
+    MoteType[] allTypes = simulation.getMoteTypes();
+    int numberOfTypes = allTypes.length;
 
     for (int colCounter=0; colCounter < numberOfTypes && colCounter < moteTypeColors.length; colCounter++) {
-      if (mote.getType() == allTypes.get(colCounter)) {
+      if (mote.getType() == allTypes[colCounter]) {
         returnColors[0] = moteTypeColors[colCounter];
         return returnColors;
       }
