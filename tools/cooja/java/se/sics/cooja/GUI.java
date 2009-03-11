@@ -24,7 +24,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * $Id: GUI.java,v 1.113 2009/03/11 19:19:39 fros4943 Exp $
+ * $Id: GUI.java,v 1.114 2009/03/11 20:14:52 fros4943 Exp $
  */
 
 package se.sics.cooja;
@@ -1972,7 +1972,9 @@ public class GUI extends Observable {
     /* Use provided configuration, or open File Chooser */
     if (configFile != null && !configFile.isDirectory()) {
       if (!configFile.exists() || !configFile.canRead()) {
-        logger.fatal("No read access to file");
+        logger.fatal("No read access to file: " + configFile.getAbsolutePath());
+        /* File does not exist, open dialog */
+        doLoadConfig(askForConfirmation, quick, null);
         return;
       }
     } else {
@@ -2048,8 +2050,10 @@ public class GUI extends Observable {
           progressBar = new JProgressBar(0, 100);
           progressBar.setValue(0);
           progressBar.setIndeterminate(true);
-          button = new JButton("Cancel");
 
+          PROGRESS_BAR = progressBar; /* Allow various parts of COOJA to show messages */
+
+          button = new JButton("Cancel");
           button.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
               if (loadThread.isAlive()) {
@@ -2069,7 +2073,7 @@ public class GUI extends Observable {
           progressPanel.setVisible(true);
 
           progressDialog.getContentPane().add(progressPanel);
-          progressDialog.pack();
+          progressDialog.setSize(400, 200);
 
           progressDialog.getRootPane().setDefaultButton(button);
           progressDialog.setLocationRelativeTo(GUI.getTopParentContainer());
@@ -2106,7 +2110,6 @@ public class GUI extends Observable {
     if (newSim != null) {
       myGUI.setSimulation(newSim);
     }
-
     return;
   }
 
@@ -2173,6 +2176,8 @@ public class GUI extends Observable {
     progressBar.setValue(0);
     progressBar.setIndeterminate(true);
 
+    PROGRESS_BAR = progressBar; /* Allow various parts of COOJA to show messages */
+
     JButton button = new JButton("Cancel");
     button.addActionListener(new ActionListener() {
       public void actionPerformed(ActionEvent e) {
@@ -2194,7 +2199,7 @@ public class GUI extends Observable {
     progressPanel.setVisible(true);
 
     progressDialog.getContentPane().add(progressPanel);
-    progressDialog.pack();
+    progressDialog.setSize(400, 200);
 
     progressDialog.getRootPane().setDefaultButton(button);
     progressDialog.setLocationRelativeTo(frame);
@@ -3789,4 +3794,13 @@ public class GUI extends Observable {
 
     return file;
   }
+
+  private static JProgressBar PROGRESS_BAR = null;
+  public static void setProgressMessage(String msg) {
+    if (PROGRESS_BAR != null && PROGRESS_BAR.isShowing()) {
+      PROGRESS_BAR.setString(msg);
+      PROGRESS_BAR.setStringPainted(true);
+    }
+  }
+
 }
