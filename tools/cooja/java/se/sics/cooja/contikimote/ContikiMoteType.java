@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ContikiMoteType.java,v 1.30 2009/03/10 21:10:06 fros4943 Exp $
+ * $Id: ContikiMoteType.java,v 1.31 2009/03/11 11:54:19 fros4943 Exp $
  */
 
 package se.sics.cooja.contikimote;
@@ -1246,7 +1246,8 @@ public class ContikiMoteType implements MoteType {
     config.add(element);
 
     element = new Element("contikiapp");
-    element.setText(getContikiSourceFile().getAbsolutePath()); /* TODO Fix Contiki-relative path */
+    File tmp = GUI.stripAbsoluteContikiPath(getContikiSourceFile());
+    element.setText(tmp.getPath().replaceAll("\\\\", "/")); /* TODO Fix Contiki-relative path */
     config.add(element);
 
     element = new Element("commands");
