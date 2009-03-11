@@ -26,22 +26,16 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: MicaZMote.java,v 1.2 2009/02/24 07:49:42 joxe Exp $
+ * $Id: MicaZMote.java,v 1.3 2009/03/11 14:12:19 fros4943 Exp $
  */
 
 package se.sics.cooja.avrmote;
-import java.io.File;
-import java.io.IOException;
-import java.io.PrintStream;
-import java.net.URL;
 import java.util.Collection;
-import java.util.Observable;
 import java.util.Observer;
 import java.util.Random;
 import java.util.Vector;
 import org.apache.log4j.Logger;
 import org.jdom.Element;
-import se.sics.cooja.GUI;
 import se.sics.cooja.Mote;
 import se.sics.cooja.MoteInterface;
 import se.sics.cooja.MoteInterfaceHandler;
@@ -56,8 +50,6 @@ import avrora.sim.*;
 import avrora.sim.platform.*;
 import avrora.sim.mcu.*;
 import avrora.core.*;
-import avrora.sim.radio.*;
-import avrora.sim.util.SimUtil;
 
 
 /**
@@ -97,7 +89,7 @@ public class MicaZMote implements Mote {
   public MicaZ getMicaZ() {
     return micaZ;
   }
-  
+
   public MicaZMote() {
     mySimulation = null;
     myCpu = null;
@@ -111,7 +103,7 @@ public class MicaZMote implements Mote {
 
   protected void initMote() {
     if (myMoteType != null) {
-      initEmulator(myMoteType.getELFFile());
+      initEmulator(myMoteType.getContikiFirmwareFile().getName());
       myMoteInterfaceHandler = createMoteInterfaceHandler();
     }
   }
@@ -126,7 +118,7 @@ public class MicaZMote implements Mote {
     return true;
   }
 
-  
+
   public Simulation getSimulation() {
     return mySimulation;
   }
@@ -140,7 +132,7 @@ public class MicaZMote implements Mote {
    *
    * @param fileELF ELF file
    * @param cpu MSP430 cpu
-   * @throws Exception 
+   * @throws Exception
    */
   protected void prepareMote(String file) throws Exception {
     program = new LoadableProgram(file);
@@ -242,7 +234,7 @@ public class MicaZMote implements Mote {
         getType().setIdentifier(element.getText());
 
         try {
-          prepareMote(myMoteType.getELFFile());
+          prepareMote(myMoteType.getContikiFirmwareFile().getName());
         } catch (Exception e) {
           // TODO Auto-generated catch block
           e.printStackTrace();
@@ -275,7 +267,7 @@ public class MicaZMote implements Mote {
       Random random = new Random(); /* Do not use main random generator for positioning */
       motePosition.setCoordinates(random.nextDouble()*100, random.nextDouble()*100, random.nextDouble()*100);
       moteInterfaceHandler.addInterface(motePosition);
-      
+
       // Add LED interface
       moteInterfaceHandler.addInterface(new MicaZLED(micaZ));
       // Add Radio interface
@@ -283,7 +275,7 @@ public class MicaZMote implements Mote {
       // Add Radio interface
       moteInterfaceHandler.addInterface(new MicaClock(this));
 
-      
+
       return moteInterfaceHandler;
   }
 
