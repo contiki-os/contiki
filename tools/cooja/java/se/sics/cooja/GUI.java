@@ -24,7 +24,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * $Id: GUI.java,v 1.112 2009/03/11 07:45:54 fros4943 Exp $
+ * $Id: GUI.java,v 1.113 2009/03/11 19:19:39 fros4943 Exp $
  */
 
 package se.sics.cooja;
@@ -56,7 +56,6 @@ import java.io.InputStream;
 import java.io.PrintStream;
 import java.io.StringReader;
 import java.lang.reflect.InvocationTargetException;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.security.AccessControlException;
@@ -3759,64 +3758,35 @@ public class GUI extends Observable {
     return file;
   }
 
-
-  public static File resolveShortAbsolutePath(File file) {
-    file = file.getAbsoluteFile();
-
-    File todo = file, doneFile = null;
-    String done = null;
-
-    while (todo != null) {
-      todo = stripTrailingUpDirs(todo);
-
-      if (done != null) {
-        done = todo.getName() + File.separatorChar + done;
-      } else {
-        done = todo.getName();
-      }
-
-      if (todo.getParentFile() == null) {
-        doneFile = new File(todo, done);
-        break;
-      }
-      todo = todo.getParentFile();
-    }
-
-    return doneFile;
-  }
-
   public static File stripAbsoluteContikiPath(File file) {
-    if (file == null || !file.exists()) {
-      logger.fatal("Can't strip file path. File does not exist: " + file);
-      return file;
-    }
-
     try {
+      File contikiPath = new File(GUI.getExternalToolsSetting("PATH_CONTIKI", null));
+      String contikiRelative = contikiPath.getPath();
+      String contikiCanonical = contikiPath.getCanonicalPath();
 
-      String abstractContikiFile = getExternalToolsSetting("PATH_CONTIKI");
-      File contikiFile = new File(abstractContikiFile);
-
-      contikiFile = resolveShortAbsolutePath(contikiFile);
-      File shortFile = resolveShortAbsolutePath(file);
-
-      String contikiFileString = contikiFile.toURI().toURL().toExternalForm();
-      String fileString = shortFile.toURI().toURL().toExternalForm();
-
-      if (fileString.contains(contikiFileString)) {
-        fileString = fileString.replace(contikiFileString, "");
-      }
-      File strippedFile = new File(abstractContikiFile, fileString);
-
-      if (!strippedFile.exists()) {
-        logger.warn("Error when stripping file path. New file does not exist: " + strippedFile);
+      /* Replace absolute path with relative path */
+      String fileCanonical = file.getCanonicalPath();
+      if (!fileCanonical.startsWith(contikiCanonical)) {
+        logger.warn("Error when converting to Contiki relative paths: file is not in Contiki: " + file.getAbsolutePath());
         return file;
       }
 
-      return strippedFile;
+      /* Replace Contiki's canonical path with Contiki's relative path */
+      String newFilePath = fileCanonical.replace(contikiCanonical, contikiRelative);
 
-    } catch (MalformedURLException e) {
-      logger.warn("Could not convert file path for " + file + ": " + e.getMessage());
-      return file;
+      File newFile = new File(newFilePath);
+      if (!newFile.exists()) {
+        logger.warn("Error when converting to Contiki relative paths: new file does not exist: " + newFile.getAbsolutePath());
+        return file;
+      }
+
+      /*logger.info("Converted Contiki relative path '" + file.getPath() + "' to '" + newFile.getPath() + "'");*/
+      return newFile;
+
+    } catch (IOException e1) {
+      logger.warn("Error when converting to Contiki relative paths: " + e1.getMessage());
     }
+
+    return file;
   }
 }
