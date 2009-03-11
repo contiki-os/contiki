@@ -24,7 +24,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * $Id: Simulation.java,v 1.44 2009/03/10 21:05:29 fros4943 Exp $
+ * $Id: Simulation.java,v 1.45 2009/03/11 22:17:04 fros4943 Exp $
  */
 
 package se.sics.cooja;
@@ -263,8 +263,18 @@ public class Simulation extends Observable implements Runnable {
         /* MSPSim memory alignment exception */
         logger.fatal("MSPSim detected memory alignment error: " + e);
       } else {
-        logger.warn("Simulation stopped for unknown reason: " + e);
-        e.printStackTrace();
+        logger.fatal("Simulation stopped for unknown reason: " + e);
+
+        /* Print exception stack trace with logger */
+        StackTraceElement[] stackTrace = e.getStackTrace();
+        for (StackTraceElement element : stackTrace) {
+          logger.fatal(element.toString());
+        }
+
+        if (!GUI.isVisualized()) {
+          /* Quit simulator if in test mode */
+          System.exit(1);
+        }
       }
     }
     isRunning = false;
