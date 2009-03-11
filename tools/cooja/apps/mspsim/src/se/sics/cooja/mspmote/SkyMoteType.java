@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: SkyMoteType.java,v 1.6 2009/03/11 08:42:07 fros4943 Exp $
+ * $Id: SkyMoteType.java,v 1.7 2009/03/11 17:46:59 fros4943 Exp $
  */
 
 package se.sics.cooja.mspmote;
@@ -41,6 +41,16 @@ import se.sics.cooja.*;
 import se.sics.cooja.dialogs.CompileContiki;
 import se.sics.cooja.dialogs.MessageList;
 import se.sics.cooja.dialogs.MessageList.MessageContainer;
+import se.sics.cooja.interfaces.Mote2MoteRelations;
+import se.sics.cooja.interfaces.Position;
+import se.sics.cooja.mspmote.interfaces.MspClock;
+import se.sics.cooja.mspmote.interfaces.MspIPAddress;
+import se.sics.cooja.mspmote.interfaces.MspMoteID;
+import se.sics.cooja.mspmote.interfaces.SkyButton;
+import se.sics.cooja.mspmote.interfaces.SkyByteRadio;
+import se.sics.cooja.mspmote.interfaces.SkyFlash;
+import se.sics.cooja.mspmote.interfaces.SkyLED;
+import se.sics.cooja.mspmote.interfaces.SkySerial;
 
 @ClassDescription("Sky Mote Type")
 @AbstractionLevelDescription("Emulated level")
@@ -184,4 +194,25 @@ public class SkyMoteType extends MspMoteType {
     return true;
   }
 
+  public Class<? extends MoteInterface>[] getAllMoteInterfaceClasses() {
+    return new Class[] {
+        Position.class,
+        MspIPAddress.class,
+        Mote2MoteRelations.class,
+        MspClock.class,
+        MspMoteID.class,
+        SkyButton.class,
+        SkyFlash.class,
+        SkyByteRadio.class,
+        SkySerial.class,
+        SkyLED.class
+    };
+  }
+
+  public File getExpectedFirmwareFile(File source) {
+    File parentDir = source.getParentFile();
+    String sourceNoExtension = source.getName().substring(0, source.getName().length()-2);
+
+    return new File(parentDir, sourceNoExtension + ".sky");
+  }
 }

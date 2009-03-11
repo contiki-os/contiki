@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: MspMoteType.java,v 1.27 2009/03/11 08:42:07 fros4943 Exp $
+ * $Id: MspMoteType.java,v 1.28 2009/03/11 17:46:59 fros4943 Exp $
  */
 
 package se.sics.cooja.mspmote;
@@ -214,8 +214,8 @@ public abstract class MspMoteType implements MoteType {
     // Source file
     if (fileSource != null) {
       element = new Element("source");
-      fileSource = GUI.stripAbsoluteContikiPath(fileSource);
-      element.setText(fileSource.getPath().replaceAll("\\\\", "/"));
+      File file = GUI.stripAbsoluteContikiPath(fileSource);
+      element.setText(file.getPath().replaceAll("\\\\", "/"));
       config.add(element);
       element = new Element("commands");
       element.setText(compileCommands);
@@ -224,8 +224,8 @@ public abstract class MspMoteType implements MoteType {
 
     // Firmware file
     element = new Element("firmware");
-    fileFirmware = GUI.stripAbsoluteContikiPath(fileFirmware);
-    element.setText(fileFirmware.getPath().replaceAll("\\\\", "/"));
+    File file = GUI.stripAbsoluteContikiPath(fileFirmware);
+    element.setText(file.getPath().replaceAll("\\\\", "/"));
     config.add(element);
 
     // Mote interfaces
@@ -251,12 +251,17 @@ public abstract class MspMoteType implements MoteType {
         description = element.getText();
       } else if (name.equals("source")) {
         fileSource = new File(element.getText());
+      } else if (name.equals("command")) {
+        /* Backwards compatibility: command is now commands */
+        logger.warn("Old simulation config detected: old version only supports a single compile command");
+        compileCommands = element.getText();
       } else if (name.equals("commands")) {
         compileCommands = element.getText();
       } else if (name.equals("firmware")) {
         fileFirmware = new File(element.getText());
       } else if (name.equals("elf")) {
         /* Backwards compatibility: elf is now firmware */
+        logger.warn("Old simulation config detected: firmware specified as elf");
         fileFirmware = new File(element.getText());
       } else if (name.equals("moteinterface")) {
         Class<? extends MoteInterface> moteInterfaceClass =
@@ -275,9 +280,29 @@ public abstract class MspMoteType implements MoteType {
     }
 
     Class<? extends MoteInterface>[] intfClasses = new Class[intfClassList.size()];
-    intfClassList.toArray(intfClasses);
+    intfClasses = intfClassList.toArray(intfClasses);
+
+    if (intfClasses.length == 0) {
+      /* Backwards compatibility: No interfaces specifed */
+      logger.warn("Old simulation config detected: no mote interfaces specified, assuming all.");
+      intfClasses = getAllMoteInterfaceClasses();
+    }
     setMoteInterfaceClasses(intfClasses);
+
+    if (fileFirmware == null) {
+      if (fileSource == null) {
+        throw new MoteTypeCreationException("Neither source or firmware specified");
+      }
+
+      /* Backwards compatibility: Generate expected firmware file name from source */
+      logger.warn("Old simulation config detected: no firmware file specified, generating expected");
+      fileFirmware = getExpectedFirmwareFile(fileSource);
+    }
 
     return configureAndInit(GUI.getTopParentContainer(), simulation, visAvailable);
   }
+
+  public abstract Class<? extends MoteInterface>[] getAllMoteInterfaceClasses();
+  public abstract File getExpectedFirmwareFile(File source);
+
 }

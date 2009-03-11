@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ESBCompileDialog.java,v 1.2 2009/03/09 17:10:14 fros4943 Exp $
+ * $Id: ESBCompileDialog.java,v 1.3 2009/03/11 17:46:59 fros4943 Exp $
  */
 
 package se.sics.cooja.mspmote;
@@ -34,18 +34,10 @@ import java.awt.Container;
 import java.io.File;
 import org.apache.log4j.Logger;
 
+import se.sics.cooja.MoteInterface;
 import se.sics.cooja.MoteType;
 import se.sics.cooja.Simulation;
 import se.sics.cooja.dialogs.AbstractCompileDialog;
-import se.sics.cooja.interfaces.Mote2MoteRelations;
-import se.sics.cooja.interfaces.Position;
-import se.sics.cooja.mspmote.interfaces.ESBButton;
-import se.sics.cooja.mspmote.interfaces.ESBLED;
-import se.sics.cooja.mspmote.interfaces.ESBLog;
-import se.sics.cooja.mspmote.interfaces.MspClock;
-import se.sics.cooja.mspmote.interfaces.MspIPAddress;
-import se.sics.cooja.mspmote.interfaces.MspMoteID;
-import se.sics.cooja.mspmote.interfaces.TR1001Radio;
 
 public class ESBCompileDialog extends AbstractCompileDialog {
   private static Logger logger = Logger.getLogger(ESBCompileDialog.class);
@@ -77,15 +69,9 @@ public class ESBCompileDialog extends AbstractCompileDialog {
       selected = false;
     }
 
-    addMoteInterface(Position.class, selected);
-    addMoteInterface(MspIPAddress.class, selected);
-    addMoteInterface(ESBLog.class, selected);
-    addMoteInterface(MspClock.class, selected);
-    addMoteInterface(ESBLED.class, selected);
-    addMoteInterface(ESBButton.class, selected);
-    addMoteInterface(MspMoteID.class, selected);
-    addMoteInterface(TR1001Radio.class, selected);
-    addMoteInterface(Mote2MoteRelations.class, selected);
+    for (Class<? extends MoteInterface> intfClass: ((ESBMoteType)moteType).getAllMoteInterfaceClasses()) {
+      addMoteInterface(intfClass, selected);
+    }
   }
 
   public boolean canLoadFirmware(File file) {
@@ -103,10 +89,7 @@ public class ESBCompileDialog extends AbstractCompileDialog {
   }
 
   public File getExpectedFirmwareFile(File source) {
-    File parentDir = source.getParentFile();
-    String sourceNoExtension = source.getName().substring(0, source.getName().length()-2);
-
-    return new File(parentDir, sourceNoExtension + ".esb");
+    return ((ESBMoteType)moteType).getExpectedFirmwareFile(source);
   }
 
   public void writeSettingsToMoteType() {

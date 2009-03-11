@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ESBMoteType.java,v 1.7 2009/03/11 08:42:07 fros4943 Exp $
+ * $Id: ESBMoteType.java,v 1.8 2009/03/11 17:46:59 fros4943 Exp $
  */
 
 package se.sics.cooja.mspmote;
@@ -41,6 +41,15 @@ import se.sics.cooja.*;
 import se.sics.cooja.dialogs.CompileContiki;
 import se.sics.cooja.dialogs.MessageList;
 import se.sics.cooja.dialogs.MessageList.MessageContainer;
+import se.sics.cooja.interfaces.Mote2MoteRelations;
+import se.sics.cooja.interfaces.Position;
+import se.sics.cooja.mspmote.interfaces.ESBButton;
+import se.sics.cooja.mspmote.interfaces.ESBLED;
+import se.sics.cooja.mspmote.interfaces.ESBLog;
+import se.sics.cooja.mspmote.interfaces.MspClock;
+import se.sics.cooja.mspmote.interfaces.MspIPAddress;
+import se.sics.cooja.mspmote.interfaces.MspMoteID;
+import se.sics.cooja.mspmote.interfaces.TR1001Radio;
 
 @ClassDescription("ESB Mote Type")
 @AbstractionLevelDescription("Emulated level")
@@ -184,4 +193,24 @@ public class ESBMoteType extends MspMoteType {
     return true;
   }
 
+  public Class<? extends MoteInterface>[] getAllMoteInterfaceClasses() {
+    return new Class[] {
+        Position.class,
+        MspIPAddress.class,
+        ESBLog.class,
+        MspClock.class,
+        ESBLED.class,
+        ESBButton.class,
+        MspMoteID.class,
+        TR1001Radio.class,
+        Mote2MoteRelations.class
+    };
+  }
+
+  public File getExpectedFirmwareFile(File source) {
+    File parentDir = source.getParentFile();
+    String sourceNoExtension = source.getName().substring(0, source.getName().length()-2);
+
+    return new File(parentDir, sourceNoExtension + ".esb");
+  }
 }
