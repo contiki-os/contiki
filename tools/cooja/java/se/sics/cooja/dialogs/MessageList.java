@@ -26,14 +26,14 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: MessageList.java,v 1.9 2009/03/09 13:19:07 fros4943 Exp $
+ * $Id: MessageList.java,v 1.10 2009/03/11 20:14:58 fros4943 Exp $
  *
  * -----------------------------------------------------------------
  *
  * Author  : Adam Dunkels, Joakim Eriksson, Niclas Finne, Fredrik Osterlind
  * Created : 2006-06-14
- * Updated : $Date: 2009/03/09 13:19:07 $
- *           $Revision: 1.9 $
+ * Updated : $Date: 2009/03/11 20:14:58 $
+ *           $Revision: 1.10 $
  */
 package se.sics.cooja.dialogs;
 import java.awt.Color;
@@ -61,6 +61,8 @@ import javax.swing.JSeparator;
 import javax.swing.ListModel;
 import javax.swing.ListSelectionModel;
 import javax.swing.SwingUtilities;
+
+import se.sics.cooja.GUI;
 
 public class MessageList extends JList {
 
@@ -160,6 +162,8 @@ public class MessageList extends JList {
   }
 
   public void addMessage(final String message, final int type) {
+    GUI.setProgressMessage(message);
+
     MessageContainer msg = new MessageContainer(message, type);
     messages.add(msg);
 
