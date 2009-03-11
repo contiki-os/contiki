@@ -26,25 +26,32 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ContikiMoteCompileDialog.java,v 1.1 2009/03/10 21:21:44 fros4943 Exp $
+ * $Id: ContikiMoteCompileDialog.java,v 1.2 2009/03/11 18:18:57 fros4943 Exp $
  */
 
 package se.sics.cooja.dialogs;
 
+import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.Container;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.io.File;
 import javax.swing.Box;
+import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
+import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTabbedPane;
 import javax.swing.JTable;
+import javax.swing.SwingUtilities;
 
 import org.apache.log4j.Logger;
 
 import se.sics.cooja.CoreComm;
+import se.sics.cooja.GUI;
 import se.sics.cooja.MoteInterface;
 import se.sics.cooja.MoteType;
 import se.sics.cooja.ProjectConfig;
@@ -87,7 +94,7 @@ public class ContikiMoteCompileDialog extends AbstractCompileDialog {
 
     /* Add Contiki mote type specifics */
     addMoteInterfaceClasses();
-    addAdvancedTab(tabbedPane);
+    /* TODO addAdvancedTab(tabbedPane);*/
   }
 
   public boolean canLoadFirmware(File file) {
@@ -244,7 +251,33 @@ public class ContikiMoteCompileDialog extends AbstractCompileDialog {
       }
     };
 
-    parent.addTab("Environment", null, new JScrollPane(table), "Environment variables");
+    JPanel panel = new JPanel(new BorderLayout());
+    JButton button = new JButton("Change environment variables: Open external tools dialog");
+    button.addActionListener(new ActionListener() {
+      public void actionPerformed(ActionEvent e) {
+        /* Show external tools dialog */
+        ExternalToolsDialog.showDialog(GUI.getTopParentContainer());
+
+        /* Update and select environment tab */
+        SwingUtilities.invokeLater(new Runnable() {
+          public void run() {
+            getDefaultCompileCommands(((ContikiMoteType)moteType).getContikiSourceFile());
+            for (int i=0; i < tabbedPane.getTabCount(); i++) {
+              if (tabbedPane.getTitleAt(i).equals("Environment")) {
+                tabbedPane.setSelectedIndex(i);
+                break;
+              }
+            }
+            setDialogState(DialogState.AWAITING_COMPILATION);
+          }
+        });
+
+      }
+    });
+    panel.add(BorderLayout.NORTH, button);
+    panel.add(BorderLayout.CENTER, new JScrollPane(table));
+
+    parent.addTab("Environment", null, panel, "Environment variables");
   }
 
   public void writeSettingsToMoteType() {

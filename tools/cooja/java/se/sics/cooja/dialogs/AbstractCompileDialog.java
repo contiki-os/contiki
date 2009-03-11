@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: AbstractCompileDialog.java,v 1.3 2009/03/11 13:27:51 fros4943 Exp $
+ * $Id: AbstractCompileDialog.java,v 1.4 2009/03/11 18:18:57 fros4943 Exp $
  */
 
 package se.sics.cooja.dialogs;
@@ -46,6 +46,8 @@ import org.apache.log4j.Logger;
 
 import se.sics.cooja.*;
 import se.sics.cooja.dialogs.MessageList;
+import se.sics.cooja.interfaces.MoteID;
+import se.sics.cooja.interfaces.Position;
 
 /**
  * Abstract configure mote type dialog used by Contiki-based mote type implementations.
@@ -543,6 +545,7 @@ public abstract class AbstractCompileDialog extends JDialog {
       break;
 
     case SELECTED_FIRMWARE:
+      contikiSource = null;
       contikiFirmware = new File(contikiField.getText());
       if (!contikiFirmware.exists()) {
         setDialogState(DialogState.NO_SELECTION);
@@ -583,7 +586,10 @@ public abstract class AbstractCompileDialog extends JDialog {
 
   private void addMoteInterfacesTab(JTabbedPane parent) {
     moteIntfBox = Box.createVerticalBox();
-    parent.addTab("Mote interfaces", null, new JScrollPane(moteIntfBox), "Mote interfaces");
+    JPanel panel = new JPanel(new BorderLayout());
+    panel.add(BorderLayout.NORTH, new JLabel("COOJA interacts with simulated motes via mote interfaces. You normally do not need to change these settings!"));
+    panel.add(BorderLayout.CENTER, new JScrollPane(moteIntfBox));
+    parent.addTab("Mote interfaces", null, panel, "Mote interfaces");
   }
 
   /**
@@ -649,11 +655,28 @@ public abstract class AbstractCompileDialog extends JDialog {
     intfCheckBox.setSelected(selected);
     intfCheckBox.putClientProperty("class", intfClass);
     intfCheckBox.setAlignmentX(Component.LEFT_ALIGNMENT);
+    intfCheckBox.setToolTipText(intfClass.getName());
     intfCheckBox.addActionListener(new ActionListener() {
       public void actionPerformed(ActionEvent e) {
-        setDialogState(DialogState.AWAITING_COMPILATION);
+
+        if (contikiSource == null &&
+            contikiFirmware != null) {
+          setDialogState(DialogState.SELECTED_FIRMWARE);
+        } else if (contikiSource != null){
+          setDialogState(DialogState.AWAITING_COMPILATION);
+        } else {
+          setDialogState(DialogState.SELECTED_SOURCE);
+        }
       }
     });
+
+    /* Always select position and ID interface */
+    if (intfClass == Position.class ||
+        intfClass == MoteID.class) {
+      intfCheckBox.setEnabled(false);
+      intfCheckBox.setSelected(true);
+    }
+
     moteIntfBox.add(intfCheckBox);
   }
 
