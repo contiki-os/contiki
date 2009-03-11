@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: MicaZMoteType.java,v 1.1 2009/02/22 16:45:01 joxe Exp $
+ * $Id: MicaZMoteType.java,v 1.2 2009/03/11 14:12:18 fros4943 Exp $
  */
 
 package se.sics.cooja.avrmote;
@@ -53,7 +53,7 @@ public class MicaZMoteType implements MoteType {
 
   public static final String target = "micaz";
   public static final String targetNice = "MicaZ";
-  
+
   protected static String getTargetFileExtension(String target) {
     return "." + target;
   }
@@ -65,7 +65,7 @@ public class MicaZMoteType implements MoteType {
   private String description = null;
 
   /* If source file is defined, (re)compilation is performed */
-  private String fileFirmware = null;
+  private File fileFirmware = null;
   private File fileSource = null;
   private String compileCommand = null;
 
@@ -85,37 +85,31 @@ public class MicaZMoteType implements MoteType {
     this.description = description;
   }
 
-  /**
-   * Set ELF file.
-   *
-   * @param file
-   *          ELF file
-   */
-  public void setELFFile(File file) {
-    this.fileFirmware = file.getAbsolutePath();
+  public Class<? extends MoteInterface>[] getMoteInterfaceClasses() {
+    logger.fatal("Not implemented");
+    return null;
   }
 
-  /**
-   * Set compile command.
-   *
-   * @param command
-   *          Compile command
-   */
-  public void setCompileCommand(String command) {
+  public void setMoteInterfaceClasses(Class<? extends MoteInterface>[] classes) {
+    logger.fatal("Not implemented");
+  }
+
+  public void setContikiFirmwareFile(File file) {
+    this.fileFirmware = file;
+  }
+
+  public void setCompileCommands(String command) {
     this.compileCommand = command;
   }
 
-  /**
-   * @return ELF file
-   */
-  public String getELFFile() {
+  public File getContikiFirmwareFile() {
     return fileFirmware;
   }
 
   /**
    * @return Compile command
    */
-  public String getCompileCommand() {
+  public String getCompileCommands() {
     return compileCommand;
   }
 
@@ -124,14 +118,14 @@ public class MicaZMoteType implements MoteType {
    *
    * @param file Source file
    */
-  public void setSourceFile(File file) {
+  public void setContikiSourceFile(File file) {
     fileSource = file;
   }
 
   /**
    * @return Source file
    */
-  public File getSourceFile() {
+  public File getContikiSourceFile() {
     return fileSource;
   }
 
@@ -212,7 +206,7 @@ public class MicaZMoteType implements MoteType {
       setDescription(targetNice + " Mote Type #" + getIdentifier());
     }
 
-    if (getSourceFile() != null) {
+    if (getContikiSourceFile() != null) {
       compileFromSource = true;
     }
 
@@ -223,9 +217,9 @@ public class MicaZMoteType implements MoteType {
       if (visAvailable) {
         boolean success = compiler.showDialog(GUI.getTopParentContainer(), this);
         if (success) {
-          setSourceFile(compiler.getSourceFile());
-          setELFFile(compiler.getOutputFile());
-          setCompileCommand(compiler.getLastCompileCommand());
+          setContikiSourceFile(compiler.getSourceFile());
+          setContikiFirmwareFile(compiler.getOutputFile());
+          setCompileCommands(compiler.getLastCompileCommand());
           return true;
         } else {
           return false;
@@ -233,7 +227,7 @@ public class MicaZMoteType implements MoteType {
       } else {
         MessageList compilationOutput = new MessageList();
         try {
-          compiler.compileFirmware(getSourceFile(), null, null, compilationOutput,
+          compiler.compileFirmware(getContikiSourceFile(), null, null, compilationOutput,
               true);
 
         } catch (Exception e) {
@@ -255,9 +249,9 @@ public class MicaZMoteType implements MoteType {
           throw newException;
         }
 
-        setSourceFile(compiler.getSourceFile());
-        setELFFile(compiler.getOutputFile());
-        setCompileCommand(compiler.getLastCompileCommand());
+        setContikiSourceFile(compiler.getSourceFile());
+        setContikiFirmwareFile(compiler.getOutputFile());
+        setCompileCommands(compiler.getLastCompileCommand());
 
         return true;
       }
@@ -269,12 +263,12 @@ public class MicaZMoteType implements MoteType {
 
     // Check dependency files
     File elfFile = null;
-    if (getELFFile() != null) {
-      elfFile = new File(getELFFile());
+    if (getContikiFirmwareFile() != null) {
+      elfFile = new File(getContikiFirmwareFile().getName());
     }
     if (elfFile == null || !elfFile.exists()) {
       if (!visAvailable) {
-        throw new MoteTypeCreationException("ELF file does not exist: " + getELFFile());
+        throw new MoteTypeCreationException("ELF file does not exist: " + getContikiFirmwareFile());
       }
 
       JFileChooser fc = new JFileChooser();
@@ -334,8 +328,8 @@ public class MicaZMoteType implements MoteType {
           logger.fatal("Selected file \"" + selectedFile + "\" does not exist");
           return false;
         }
-        
-        setELFFile(fc.getSelectedFile());
+
+        setContikiFirmwareFile(fc.getSelectedFile());
       } else {
         return false;
       }
@@ -385,7 +379,7 @@ public class MicaZMoteType implements MoteType {
       this.target = target;
     }
 
-    private String getCompileCommand(String filename) {
+    private String getCompileCommands(String filename) {
       if (customizedCompileCommand != null) {
         return customizedCompileCommand;
       }
@@ -451,7 +445,7 @@ public class MicaZMoteType implements MoteType {
 
         compileButton.setEnabled(true);
         createButton.setEnabled(false);
-        compileCommandTextField.setText(getCompileCommand(name));
+        compileCommandTextField.setText(getCompileCommands(name));
         compileButton.requestFocusInWindow();
         break;
 
@@ -481,7 +475,7 @@ public class MicaZMoteType implements MoteType {
       final String filenameNoExtension = sourceFile.getName().substring(0,
           sourceFile.getName().length() - 2);
 
-      final String command = getCompileCommand(filenameNoExtension);
+      final String command = getCompileCommands(filenameNoExtension);
       logger.info("-- Compiling AVR/MicaZ Firmware --");
 
       compileFirmware(command, sourceFile, filenameNoExtension + getTargetFileExtension(target),
@@ -771,8 +765,8 @@ public class MicaZMoteType implements MoteType {
       label.setPreferredSize(new Dimension(LABEL_WIDTH, LABEL_HEIGHT));
 
       sourceTextField.setText("");
-      if (moteType.getSourceFile() != null) {
-        sourceTextField.setText(moteType.getSourceFile().getAbsolutePath());
+      if (moteType.getContikiSourceFile() != null) {
+        sourceTextField.setText(moteType.getContikiSourceFile().getAbsolutePath());
       }
       sourceTextField.setColumns(25);
 
@@ -958,7 +952,7 @@ public class MicaZMoteType implements MoteType {
       });
 
       updateDialog(DialogState.NO_SOURCE);
-      if (moteType.getSourceFile() != null) {
+      if (moteType.getContikiSourceFile() != null) {
         updateDialog(DialogState.SELECTED_SOURCE);
         if (customizedCompileCommand != null && !customizedCompileCommand.equals("")) {
           compileCommandTextField.setText(customizedCompileCommand);
@@ -1000,7 +994,7 @@ public class MicaZMoteType implements MoteType {
     smallPane = new JPanel(new BorderLayout());
     label = new JLabel("ELF file");
     smallPane.add(BorderLayout.WEST, label);
-    File elfFile = new File(getELFFile());
+    File elfFile = getContikiFirmwareFile();
     label = new JLabel(elfFile.getName());
     label.setToolTipText(elfFile.getPath());
     smallPane.add(BorderLayout.EAST, label);
@@ -1010,9 +1004,9 @@ public class MicaZMoteType implements MoteType {
     smallPane = new JPanel(new BorderLayout());
     label = new JLabel("Source file");
     smallPane.add(BorderLayout.WEST, label);
-    if (getSourceFile() != null) {
-      label = new JLabel(getSourceFile().getName());
-      label.setToolTipText(getSourceFile().getPath());
+    if (getContikiSourceFile() != null) {
+      label = new JLabel(getContikiSourceFile().getName());
+      label.setToolTipText(getContikiSourceFile().getPath());
     } else {
       label = new JLabel("[not specified]");
     }
@@ -1075,9 +1069,9 @@ public class MicaZMoteType implements MoteType {
     } else {
       // ELF file
       element = new Element("elf");
-      File file = new File(fileFirmware);
+      File file = fileFirmware;
       file = GUI.stripAbsoluteContikiPath(file);
-      fileFirmware = file.getAbsolutePath();
+      fileFirmware = file;
       element.setText(file.getPath().replaceAll("\\\\", "/"));
       config.add(element);
     }
@@ -1100,7 +1094,7 @@ public class MicaZMoteType implements MoteType {
       } else if (name.equals("command")) {
         compileCommand = element.getText();
       } else if (name.equals("elf")) {
-        fileFirmware = new File(element.getText()).getAbsolutePath();
+        fileFirmware = new File(element.getText());
       } else {
         logger.fatal("Unrecognized entry in loaded configuration: " + name);
         throw new MoteTypeCreationException(
@@ -1118,7 +1112,7 @@ public class MicaZMoteType implements MoteType {
     if (GUI.isVisualizedInApplet()) {
       String firmware = GUI.getExternalToolsSetting("MICAZ_FIRMWARE", "");
       if (!firmware.equals("")) {
-        setELFFile(new File(firmware));
+        setContikiFirmwareFile(new File(firmware));
         JOptionPane.showMessageDialog(GUI.getTopParentContainer(),
             "Creating mote type from precompiled firmware: " + firmware,
             "Compiled firmware file available", JOptionPane.INFORMATION_MESSAGE);

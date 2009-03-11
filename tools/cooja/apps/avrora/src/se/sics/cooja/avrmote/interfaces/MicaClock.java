@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: MicaClock.java,v 1.1 2009/02/24 07:49:42 joxe Exp $
+ * $Id: MicaClock.java,v 1.2 2009/03/11 14:12:19 fros4943 Exp $
  */
 
 package se.sics.cooja.avrmote.interfaces;
@@ -42,7 +42,7 @@ import se.sics.cooja.interfaces.Clock;
 
 
 /**
- * @author Fredrik Österlind, Joakim Eriksson
+ * @author Fredrik Osterlind, Joakim Eriksson
  */
 @ClassDescription("Cycle clock")
 public class MicaClock extends Clock {
