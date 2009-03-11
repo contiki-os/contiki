@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: cc2420.c,v 1.27 2009/03/02 21:59:01 adamdunkels Exp $
+ * @(#)$Id: cc2420.c,v 1.28 2009/03/11 20:38:53 adamdunkels Exp $
  */
 /*
  * This code is almost device independent and should be easy to port.
@@ -318,6 +318,12 @@ cc2420_send(const void *payload, unsigned short payload_len)
 
   GET_LOCK();
 
+  if(rimebuf_attr(RIMEBUF_ATTR_RADIO_TXPOWER) > 0) {
+    cc2420_set_txpower(rimebuf_attr(RIMEBUF_ATTR_RADIO_TXPOWER) - 1);
+  } else {
+    cc2420_set_txpower(CC2420_TXPOWER_MAX);
+  }
+  
   PRINTF("cc2420: sending %d bytes\n", payload_len);
   
   RIMESTATS_ADD(lltx);
