@@ -1,4 +1,4 @@
-# $Id: Makefile.cooja,v 1.24 2009/03/10 21:23:38 fros4943 Exp $
+# $Id: Makefile.cooja,v 1.25 2009/03/11 07:46:15 fros4943 Exp $
 
 ## The COOJA Simulator Contiki platform Makefile
 ##
@@ -27,12 +27,6 @@ endif
 ### Quickstart simulator
 ifdef QUICKSTART
 
-# Check that target file exists
-have_file := $(wildcard $(MAKECMDGOALS).c)
-ifeq ($(strip $(have_file)),)
-$(error Quick-start error. Can't find file "$(MAKECMDGOALS).c")
-endif
-
 # Create COOJA JAR rule
 $(CONTIKI)/tools/cooja/dist/cooja.jar:
 	@echo "Creating COOJA Java archive..."
@@ -40,7 +34,7 @@ $(CONTIKI)/tools/cooja/dist/cooja.jar:
 
 # Quickstart rule
 $(MAKECMDGOALS): $(CONTIKI)/tools/cooja/dist/cooja.jar
-	java -jar $(CONTIKI)/tools/cooja/dist/cooja.jar -quickstart=$(MAKECMDGOALS).c -contiki=$(CONTIKI)
+	java -jar $(CONTIKI)/tools/cooja/dist/cooja.jar -quickstart=$(MAKECMDGOALS) -contiki=$(CONTIKI)
 
 endif ## QUICKSTART
 
@@ -73,6 +67,7 @@ CONTIKI_SOURCEFILES += $(CONTIKI_TARGET_SOURCEFILES)
 CONTIKI_CPU=$(CONTIKI)/cpu/x86
 
 ### Compiler arguments
+CC = gcc
 CFLAGSNO = $(EXTRA_CC_ARGS) -Wall -g -I/usr/local/include
 CFLAGS   = $(CFLAGSNO)
 

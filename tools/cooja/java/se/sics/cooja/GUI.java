@@ -24,7 +24,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * $Id: GUI.java,v 1.111 2009/03/03 12:09:34 fros4943 Exp $
+ * $Id: GUI.java,v 1.112 2009/03/11 07:45:54 fros4943 Exp $
  */
 
 package se.sics.cooja;
@@ -67,7 +67,6 @@ import java.util.List;
 import java.util.Observable;
 import java.util.Observer;
 import java.util.Properties;
-import java.util.Random;
 import java.util.Vector;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -113,23 +112,18 @@ import org.jdom.output.XMLOutputter;
 
 import se.sics.cooja.MoteType.MoteTypeCreationException;
 import se.sics.cooja.VisPlugin.PluginRequiresVisualizationException;
-import se.sics.cooja.contikimote.ContikiMote;
 import se.sics.cooja.contikimote.ContikiMoteType;
-import se.sics.cooja.contikimote.ContikiMoteTypeDialog;
-import se.sics.cooja.contikimote.ContikiProcess;
 import se.sics.cooja.dialogs.AddMoteDialog;
 import se.sics.cooja.dialogs.ConfigurationWizard;
+import se.sics.cooja.dialogs.ContikiMoteCompileDialog;
 import se.sics.cooja.dialogs.CreateSimDialog;
 import se.sics.cooja.dialogs.ExternalToolsDialog;
 import se.sics.cooja.dialogs.MessageList;
 import se.sics.cooja.dialogs.ProjectDirectoriesDialog;
-import se.sics.cooja.plugins.LogListener;
 import se.sics.cooja.plugins.MoteTypeInformation;
 import se.sics.cooja.plugins.ScriptRunner;
 import se.sics.cooja.plugins.SimControl;
 import se.sics.cooja.plugins.SimInformation;
-import se.sics.cooja.plugins.VisState;
-import se.sics.cooja.plugins.VisTraffic;
 
 /**
  * Main file of COOJA Simulator. Typically contains a visualizer for the
@@ -1036,427 +1030,50 @@ public class GUI extends Observable {
   }
 
   /**
-   * Quick-starts a simulation using given parameters. TODO Experimental code
+   * Allows user to create a simulation with a single mote type.
    *
-   * @param moteTypeID
-   *          Mote type ID (if null "mtype1" will be used)
-   * @param projectDirs
-   *          GUI project directories
-   * @param sensors
-   *          Contiki sensors (if null sensors will be scanned for)
-   * @param coreInterfaces
-   *          COOJA core interfaces (if null interfaces will be scanned for)
-   * @param userProcesses
-   *          Contiki user processes (if null processes all in given main file
-   *          will be added)
-   * @param addAutostartProcesses
-   *          Should autostart processes automatically be added?
-   * @param numberOfNodes
-   *          Number of nodes to add
-   * @param areaSideLength
-   *          Side of node positioning square
-   * @param delayTime
-   *          Initial delay time
-   * @param simulationStartinge
-   *          Simulation automatically started?
-   * @param filename
-   *          Main Contiki process file
-   * @param contikiPath
-   *          Contiki path
-   * @return True if simulation was quickstarted correctly
+   * @param source Contiki application file name
+   * @return True if simulation was created
    */
-  private static boolean quickStartSimulation(String moteTypeID,
-      Vector<String> projectDirs, Vector<String> sensors,
-      Vector<String> coreInterfaces, Vector<String> userProcesses,
-      boolean addAutostartProcesses, int numberOfNodes, double areaSideLength,
-      int delayTime, boolean simulationStarting, String filename,
-      String contikiPath) {
-
-    logger.info("> Creating GUI and main frame (invisible)");
-    frame = new JFrame("COOJA Simulator");
-    frame.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
-
-    // Create and set up the content pane.
+  private static boolean quickStartSimulation(String source) {
+    logger.info("> Starting COOJA");
     JDesktopPane desktop = new JDesktopPane();
     desktop.setDragMode(JDesktopPane.OUTLINE_DRAG_MODE);
-    GUI gui = new GUI(desktop); // loads external settings and creates initial project config
+    frame = new JFrame("COOJA Simulator");
+    GUI gui = new GUI(desktop);
+    configureFrame(gui, false);
 
-    // Add menu bar
-    frame.setSize(700, 700);
-    frame.addWindowListener(gui.guiEventHandler);
-
-    JComponent newContentPane = gui.getDesktopPane();
-    newContentPane.setOpaque(true);
-    frame.setContentPane(newContentPane);
-    frame.setLocationRelativeTo(null);
-
-    // Set manual Contiki path if specified
-    if (contikiPath != null) {
-      setExternalToolsSetting("PATH_CONTIKI", contikiPath);
-    }
-
-    // Parse project directories and create config
-    if (projectDirs == null) {
-      projectDirs = new Vector<String>();
-      projectDirs.add(".");
-    }
-
-    // TODO Should add user prop projects as well here...
-    logger.info("> Reparsing project directories and creating config");
-    for (String projectDir : projectDirs) {
-      logger.info(">> Adding: " + projectDir);
-      gui.currentProjectDirs.add(new File(projectDir));
-    }
-    try {
-      gui.reparseProjectConfig();
-    } catch (ParseProjectsException e) {
-      logger.fatal(">> Error when parsing project directories: " + e.getMessage());
-      return false;
-    }
-
-    // Check file permissions and paths
-    logger.info("> Checking paths and file permissions");
-    if (moteTypeID == null) {
-      moteTypeID = "mtype1";
-    }
-    File contikiBaseDir = new File(getExternalToolsSetting("PATH_CONTIKI"));
-    File contikiCoreDir = new File(contikiBaseDir,
-        getExternalToolsSetting("PATH_COOJA_CORE_RELATIVE"));
-    File libFile = new File(ContikiMoteType.tempOutputDirectory, moteTypeID
-        + ContikiMoteType.librarySuffix);
-    File mapFile = new File(ContikiMoteType.tempOutputDirectory, moteTypeID
-        + ContikiMoteType.mapSuffix);
-    File depFile = new File(ContikiMoteType.tempOutputDirectory, moteTypeID
-        + ContikiMoteType.dependSuffix);
-    if (libFile.exists()) {
-      libFile.delete();
-    }
-    if (depFile.exists()) {
-      depFile.delete();
-    }
-    if (mapFile.exists()) {
-      mapFile.delete();
-    }
-    if (libFile.exists()) {
-      logger.fatal(">> Can't delete output file, aborting: " + libFile);
-      return false;
-    }
-    if (depFile.exists()) {
-      logger.fatal(">> Can't delete output file, aborting: " + depFile);
-      return false;
-    }
-    if (mapFile.exists()) {
-      logger.fatal(">> Can't delete output file, aborting: " + mapFile);
-      return false;
-    }
-
-    // Search for main file in current directory (or arg)
-    File mainProcessFile = new File(filename);
-    logger.info(">> Searching main process file: "
-        + mainProcessFile.getAbsolutePath());
-    if (!mainProcessFile.exists()) {
-      logger.info(">> Searching main process file: "
-          + mainProcessFile.getAbsolutePath());
-      boolean foundFile = false;
-      for (String projectDir : projectDirs) {
-        mainProcessFile = new File(projectDir, filename);
-        logger.info(">> Searching main process file: "
-            + mainProcessFile.getAbsolutePath());
-        if (mainProcessFile.exists()) {
-          foundFile = true;
-          break;
-        }
-      }
-      if (!foundFile) {
-        logger.fatal(">> Could not locate main process file, aborting");
-        return false;
-      }
-    }
-
-    // Setup compilation arguments
-    logger.info("> Setting up compilation arguments");
-    Vector<File> filesToCompile = new Vector<File>();
-    filesToCompile.add(mainProcessFile); // main process file
-    for (String projectDir : projectDirs) {
-      // project directories
-      filesToCompile.add(new File(projectDir));
-    }
-    String[] projectSources = // project config sources
-    gui.getProjectConfig().getStringArrayValue(ContikiMoteType.class,
-        "C_SOURCES");
-    for (String projectSource : projectSources) {
-      if (!projectSource.equals("")) {
-        File file = new File(projectSource);
-        if (file.getParent() != null) {
-          // Find which project directory added this file
-          File projectDir = gui.getProjectConfig().getUserProjectDefining(
-              ContikiMoteType.class, "C_SOURCES", projectSource);
-          if (projectDir != null) {
-            // We found a project directory - Add it
-            filesToCompile.add(new File(projectDir.getPath(), file
-                .getParent()));
-          }
-        }
-        filesToCompile.add(new File(file.getName()));
-      }
-    }
-
-    // Scan for sensors
-    if (sensors == null) {
-      logger.info("> Scanning for sensors");
-      sensors = new Vector<String>();
-      Vector<String[]> scannedSensorInfo = ContikiMoteTypeDialog
-          .scanForSensors(contikiCoreDir);
-      for (String projectDir : projectDirs) {
-        // project directories
-        scannedSensorInfo.addAll(ContikiMoteTypeDialog.scanForSensors(new File(
-            projectDir)));
-      }
-
-      for (String[] sensorInfo : scannedSensorInfo) {
-        // logger.info(">> Found and added: " + sensorInfo[1] + " (" +
-        // sensorInfo[0] + ")");
-        sensors.add(sensorInfo[1]);
-      }
-    }
-
-    // Scan for core interfaces
-    if (coreInterfaces == null) {
-      logger.info("> Scanning for core interfaces");
-      coreInterfaces = new Vector<String>();
-      Vector<String[]> scannedCoreInterfaceInfo = ContikiMoteTypeDialog
-          .scanForInterfaces(contikiCoreDir);
-      for (String projectDir : projectDirs) {
-        // project directories
-        scannedCoreInterfaceInfo.addAll(ContikiMoteTypeDialog
-            .scanForInterfaces(new File(projectDir)));
-      }
-
-      for (String[] coreInterfaceInfo : scannedCoreInterfaceInfo) {
-        // logger.info(">> Found and added: " + coreInterfaceInfo[1] + " (" +
-        // coreInterfaceInfo[0] + ")");
-        coreInterfaces.add(coreInterfaceInfo[1]);
-      }
-    }
-
-    // Scan for mote interfaces
-    logger.info("> Loading mote interfaces");
-    String[] moteInterfaces = gui.getProjectConfig().getStringArrayValue(
-        ContikiMoteType.class, "MOTE_INTERFACES");
-    Vector<Class<? extends MoteInterface>> moteIntfClasses = new Vector<Class<? extends MoteInterface>>();
-    for (String moteInterface : moteInterfaces) {
-      try {
-        Class<? extends MoteInterface> newMoteInterfaceClass = gui
-            .tryLoadClass(gui, MoteInterface.class, moteInterface);
-        moteIntfClasses.add(newMoteInterfaceClass);
-        // logger.info(">> Loaded mote interface: " + newMoteInterfaceClass);
-      } catch (Exception e) {
-        logger.fatal(">> Failed to load mote interface, aborting: "
-            + moteInterface + ", " + e.getMessage());
-        return false;
-      }
-    }
-
-    // Scan for processes
-    if (userProcesses == null) {
-      logger.info("> Scanning for user processes");
-      userProcesses = new Vector<String>();
-      Vector<String> autostartProcesses = new Vector<String>();
-      Vector<ContikiProcess> scannedProcesses = new Vector<ContikiProcess>();
-      for (String projectDir : projectDirs) {
-        scannedProcesses.addAll(ContikiMoteTypeDialog.scanForProcesses(new File(projectDir)));
-      }
-
-      for (ContikiProcess processInfo : scannedProcesses) {
-        if (processInfo.getSourceFile().equals(mainProcessFile)) {
-          logger.info(">> Found and added: " + processInfo);
-          userProcesses.add(processInfo.getProcessName());
-
-          if (addAutostartProcesses) {
-            // Parse any autostart processes
-            try {
-              // logger.info(">>> Parsing " + processInfo.getProcessName() + " for autostart processes");
-              Vector<String> autostarters = ContikiMoteTypeDialog.parseAutostartProcesses(mainProcessFile);
-              if (autostarters != null) {
-                autostartProcesses.addAll(autostarters);
-              }
-            } catch (Exception e) {
-              logger.fatal(">>> Error when parsing autostart processes, aborting: " + e);
-              return false;
-            }
-          }
-
-        } else {
-          // logger.info(">> Found and ignored: " + processInfo[1] + " (" +
-          // processInfo[0] + ")");
-        }
-      }
-
-      if (addAutostartProcesses) {
-        // Add autostart process sources if found
-        logger.info("> Adding autostart processes");
-        for (String autostartProcess : autostartProcesses) {
-          boolean alreadyExists = false;
-          for (String existingProcess : userProcesses) {
-            if (existingProcess.equals(autostartProcess)) {
-              alreadyExists = true;
-              break;
-            }
-          }
-          if (!alreadyExists) {
-            userProcesses.add(autostartProcess);
-            logger.info(">> Added autostart process: " + autostartProcess);
-          }
-        }
-      }
-
-    }
-
-    // Generate Contiki main source file
-    logger.info("> Generating Contiki main source file");
-    if (!ContikiMoteType.tempOutputDirectory.exists()) {
-      ContikiMoteType.tempOutputDirectory.mkdir();
-    }
-    if (!ContikiMoteType.tempOutputDirectory.exists()) {
-      logger.fatal(">> Could not create output directory: "
-          + ContikiMoteType.tempOutputDirectory);
-      return false;
-    }
-
-    try {
-      String generatedFilename = ContikiMoteTypeDialog.generateSourceFile(
-          moteTypeID, sensors, coreInterfaces, userProcesses);
-      // logger.info(">> Generated source file: " + generatedFilename);
-    } catch (Exception e) {
-      logger.fatal(">> Error during file generation, aborting: "
-          + e.getMessage());
-      return false;
-    }
-
-    // Compile library
-    logger.info("> Compiling library (Rime comm stack)");
-    // TODO Warning, assuming Rime communication stack
-    boolean compilationSucceded = ContikiMoteTypeDialog.compileLibrary(
-        moteTypeID, contikiBaseDir, filesToCompile, false,
-        ContikiMoteType.CommunicationStack.RIME,
-        null, System.err);
-    if (!libFile.exists() || !depFile.exists() || !mapFile.exists()) {
-      compilationSucceded = false;
-    }
-
-    if (compilationSucceded) {
-      // logger.info(">> Compilation complete");
-    } else {
-      logger.fatal(">> Error during compilation, aborting");
-      return false;
-    }
-
-    // Create mote type
-    logger.info("> Creating mote type");
-    ContikiMoteType moteType;
-    try {
-      moteType = new ContikiMoteType(moteTypeID);
-    } catch (MoteTypeCreationException e) {
-      logger.fatal("Exception when creating mote type: " + e);
-      return false;
-    }
-    moteType.setDescription("Mote type: " + filename);
-    moteType.setContikiBaseDir(contikiBaseDir.getPath());
-    moteType.setContikiCoreDir(contikiCoreDir.getPath());
-    moteType.setProjectDirs(new Vector<File>());
-    moteType.setCompilationFiles(filesToCompile);
-    moteType.setConfig(gui.getProjectConfig());
-    moteType.setProcesses(userProcesses);
-    moteType.setSensors(sensors);
-    moteType.setCoreInterfaces(coreInterfaces);
-    moteType.setMoteInterfaces(moteIntfClasses);
-
-    // Create simulation
     logger.info("> Creating simulation");
     Simulation simulation = new Simulation(gui);
-    simulation.setTitle("Quickstarted: " + filename);
-    simulation.setDelayTime(delayTime);
-    simulation.setRandomSeed(new Random().nextLong());
-    simulation.setRandomSeedGenerated(true);
-    simulation.setSimulationTime(0);
-    String radioMediumClassName = null;
-    try {
-      radioMediumClassName = gui.getProjectConfig().getStringArrayValue(
-          GUI.class, "RADIOMEDIUMS")[0];
-      Class<? extends RadioMedium> radioMediumClass = gui.tryLoadClass(gui,
-          RadioMedium.class, radioMediumClassName);
-
-      RadioMedium radioMedium = RadioMedium.generateRadioMedium(
-          radioMediumClass, simulation);
-      simulation.setRadioMedium(radioMedium);
-    } catch (Exception e) {
-      logger.fatal(">> Failed to load radio medium, aborting: "
-          + radioMediumClassName + ", " + e);
-      return false;
+    simulation.setTitle("Quickstarted simulation: " + source);
+    boolean simOK = CreateSimDialog.showDialog(GUI.getTopParentContainer(), simulation);
+    if (!simOK) {
+      logger.fatal("No simulation, aborting quickstart");
+      System.exit(1);
     }
-
-    // Create nodes
-    logger.info("> Creating motes");
-    Vector<ContikiMote> motes = new Vector<ContikiMote>();
-    Random random = simulation.getRandomGenerator();
-    int nextMoteID = 1;
-    int nextIP = 0;
-    for (int i = 0; i < numberOfNodes; i++) {
-      ContikiMote mote = (ContikiMote) moteType.generateMote(simulation);
-
-      // Set random position
-      if (mote.getInterfaces().getPosition() != null) {
-        mote.getInterfaces().getPosition().setCoordinates(
-            random.nextDouble() * areaSideLength,
-            random.nextDouble() * areaSideLength, 0);
-      }
-
-      // Set unique mote ID's
-      if (mote.getInterfaces().getMoteID() != null) {
-        mote.getInterfaces().getMoteID().setMoteID(nextMoteID++);
-      }
-
-      // Set unique IP address
-      if (mote.getInterfaces().getIPAddress() != null) {
-        mote.getInterfaces().getIPAddress().setIPNumber((char) 10,
-            (char) ((nextIP / (254 * 255)) % 255),
-            (char) ((nextIP / 254) % 255), (char) (nextIP % 254 + 1));
-        nextIP++;
-      }
-
-      motes.add(mote);
-    }
-
-    // Add mote type and motes to simulation
-    logger.info("> Adding motes and mote type to simulation");
-    simulation.addMoteType(moteType);
-    for (Mote mote : motes) {
-      simulation.addMote(mote);
-    }
-
-    // Add simulation to GUI
-    logger.info("> Adding simulation to GUI");
     gui.setSimulation(simulation);
 
-    // Start plugins and try to place them wisely
-    logger.info("> Starting plugin and showing GUI");
-    Plugin plugin = gui.startPlugin(VisState.class, gui, simulation, null);
-    JInternalFrame pluginGUI = plugin.getGUI();
-    pluginGUI.setLocation(350, 20);
-    plugin = gui.startPlugin(VisTraffic.class, gui, simulation, null);
-    pluginGUI = plugin.getGUI();
-    pluginGUI.setLocation(350, 340);
-    plugin = gui.startPlugin(LogListener.class, gui, simulation, null);
-    pluginGUI = plugin.getGUI();
-    pluginGUI.setLocation(20, 420);
+    logger.info("> Creating mote type");
+    ContikiMoteType moteType = new ContikiMoteType();
+    moteType.setConfig(simulation.getGUI().getProjectConfig().clone());
+    moteType.setContikiSourceFile(new File(source));
+    moteType.setDescription("Contiki Mote Type (" + source + ")");
 
-    frame.setJMenuBar(gui.createMenuBar());
-    // Finally show GUI
-    frame.setVisible(true);
-
-    if (simulationStarting) {
-      simulation.startSimulation();
+    boolean compileOK = ContikiMoteCompileDialog.showDialog(frame, simulation, moteType);
+    if (!compileOK) {
+      logger.fatal("Contiki compilation failed, aborting quickstart");
+      return false;
     }
+    try {
+      moteType.doInit();
+    } catch (MoteTypeCreationException e) {
+      logger.fatal("Mote type initialization failed, aborting quickstart");
+      return false;
+    }
+    simulation.addMoteType(moteType);
+
+    logger.info("> Adding motes");
+    gui.doAddMotes(moteType);
     return true;
   }
 
@@ -2318,9 +1935,11 @@ public class GUI extends Observable {
     mySimulation = null;
 
     // Unregister temporary plugin classes
-    Enumeration<Class<? extends Plugin>> pluginClasses = pluginClassesTemporary.elements();
-    while (pluginClasses.hasMoreElements()) {
-      unregisterPlugin(pluginClasses.nextElement());
+    Class<? extends Plugin>[] pluginClasses =
+      new Class[pluginClassesTemporary.size()];
+    pluginClassesTemporary.toArray(pluginClasses);
+    for (Class<? extends Plugin> pClass: pluginClasses) {
+      unregisterPlugin(pClass);
     }
 
     // Reset frame title
@@ -3252,89 +2871,16 @@ public class GUI extends Observable {
 
     // Check if simulator should be quick-started
     if (args.length > 0 && args[0].startsWith("-quickstart=")) {
-      String filename = args[0].substring("-quickstart=".length());
+      String contikiApp = args[0].substring("-quickstart=".length());
 
-      String moteTypeID = "mtype1";
-      Vector<String> projectDirs = null;
-      Vector<String> sensors = null;
-      Vector<String> coreInterfaces = null;
-      Vector<String> userProcesses = null;
-      boolean addAutostartProcesses = true;
-      int numberOfNodes = 100;
-      double areaSideLength = 100;
-      int delayTime = 5;
-      boolean startSimulation = true;
-      String contikiPath = null;
-
-      // Parse arguments
-      for (int i = 1; i < args.length; i++) {
-
-        if (args[i].startsWith("-id=")) {
-          moteTypeID = args[i].substring("-id=".length());
-
-        } else if (args[i].startsWith("-projects=")) {
-          String arg = args[i].substring("-projects=".length());
-          String[] argArray = arg.split(",");
-          projectDirs = new Vector<String>();
-          for (String argValue : argArray) {
-            projectDirs.add(argValue);
-          }
-
-        } else if (args[i].startsWith("-sensors=")) {
-          String arg = args[i].substring("-sensors=".length());
-          String[] argArray = arg.split(",");
-          sensors = new Vector<String>();
-          for (String argValue : argArray) {
-            sensors.add(argValue);
-          }
-
-        } else if (args[i].startsWith("-interfaces=")) {
-          String arg = args[i].substring("-interfaces=".length());
-          String[] argArray = arg.split(",");
-          coreInterfaces = new Vector<String>();
-          for (String argValue : argArray) {
-            coreInterfaces.add(argValue);
-          }
-
-        } else if (args[i].startsWith("-processes=")) {
-          String arg = args[i].substring("-processes=".length());
-          String[] argArray = arg.split(",");
-          userProcesses = new Vector<String>();
-          for (String argValue : argArray) {
-            userProcesses.add(argValue);
-          }
-
-        } else if (args[i].equals("-noautostartscan")) {
-          addAutostartProcesses = false;
-
-        } else if (args[i].equals("-paused")) {
-          startSimulation = false;
-
-        } else if (args[i].startsWith("-nodes=")) {
-          String arg = args[i].substring("-nodes=".length());
-          numberOfNodes = Integer.parseInt(arg);
-
-        } else if (args[i].startsWith("-contiki=")) {
-          String arg = args[i].substring("-contiki=".length());
-          contikiPath = arg;
-
-        } else if (args[i].startsWith("-delay=")) {
-          String arg = args[i].substring("-delay=".length());
-          delayTime = Integer.parseInt(arg);
-
-        } else if (args[i].startsWith("-side=")) {
-          String arg = args[i].substring("-side=".length());
-          areaSideLength = Double.parseDouble(arg);
-
-        } else {
-          logger.fatal("Unknown argument, aborting: " + args[i]);
-          System.exit(1);
-        }
+      if (contikiApp.endsWith(".cooja")) {
+        contikiApp = contikiApp.substring(0, contikiApp.length() - 6);
+      }
+      if (!contikiApp.endsWith(".c")) {
+        contikiApp += ".c";
       }
 
-      boolean ok = quickStartSimulation(moteTypeID, projectDirs, sensors,
-          coreInterfaces, userProcesses, addAutostartProcesses, numberOfNodes,
-          areaSideLength, delayTime, startSimulation, filename, contikiPath);
+      boolean ok = quickStartSimulation(contikiApp);
       if (!ok) {
         System.exit(1);
       }
@@ -3528,7 +3074,7 @@ public class GUI extends Observable {
       Enumeration<Object> existingIdentifiers = moteTypeIDMappings.keys();
       while (existingIdentifiers.hasMoreElements()) {
         String existingIdentifier = (String) existingIdentifiers.nextElement();
-        Collection<MoteType> existingMoteTypes = null;
+        MoteType[] existingMoteTypes = null;
         if (mySimulation != null) {
           existingMoteTypes = mySimulation.getMoteTypes();
         }
