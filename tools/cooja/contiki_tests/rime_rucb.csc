@@ -1,5 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <simconf>
+  <project>../apps/mrm</project>
+  <project>../apps/mspsim</project>
+  <project>../apps/native_gateway</project>
   <simulation>
     <title>My simulation</title>
     <delaytime>0</delaytime>
@@ -15,21 +18,10 @@
     </radiomedium>
     <motetype>
       se.sics.cooja.contikimote.ContikiMoteType
-      <identifier>mtype16</identifier>
+      <identifier>mtype1</identifier>
       <description>Contiki Mote #1</description>
-      <contikibasedir>../../..</contikibasedir>
-      <contikicoredir>../../../platform/cooja</contikicoredir>
-      <projectdir>../../../examples/rime</projectdir>
-      <compilefile>../apps/mrm</compilefile>
-      <compilefile>../apps/mspsim</compilefile>
-      <compilefile>../../../examples/rime</compilefile>
-      <compilefile>../../../examples/rime</compilefile>
-      <compilefile>../../../examples/rime/example-rucb.c</compilefile>
-      <process>example_rucb_process</process>
-      <sensor>button_sensor</sensor>
-      <sensor>pir_sensor</sensor>
-      <sensor>radio_sensor</sensor>
-      <sensor>vib_sensor</sensor>
+      <contikiapp>../../../examples/rime/example-rucb.c</contikiapp>
+      <commands>make example-rucb.cooja TARGET=cooja</commands>
       <moteinterface>se.sics.cooja.interfaces.Position</moteinterface>
       <moteinterface>se.sics.cooja.interfaces.Battery</moteinterface>
       <moteinterface>se.sics.cooja.contikimote.interfaces.ContikiVib</moteinterface>
@@ -44,24 +36,13 @@
       <moteinterface>se.sics.cooja.contikimote.interfaces.ContikiLED</moteinterface>
       <moteinterface>se.sics.cooja.contikimote.interfaces.ContikiLog</moteinterface>
       <moteinterface>se.sics.cooja.contikimote.interfaces.ContikiCFS</moteinterface>
-      <coreinterface>cfs_interface</coreinterface>
-      <coreinterface>beep_interface</coreinterface>
-      <coreinterface>button_interface</coreinterface>
-      <coreinterface>radio_interface</coreinterface>
-      <coreinterface>ip_interface</coreinterface>
-      <coreinterface>leds_interface</coreinterface>
-      <coreinterface>moteid_interface</coreinterface>
-      <coreinterface>pir_interface</coreinterface>
-      <coreinterface>rs232_interface</coreinterface>
-      <coreinterface>vib_interface</coreinterface>
-      <coreinterface>clock_interface</coreinterface>
-      <coreinterface>simlog_interface</coreinterface>
+      <moteinterface>se.sics.cooja.interfaces.Mote2MoteRelations</moteinterface>
       <symbols>false</symbols>
       <commstack>Rime</commstack>
     </motetype>
     <mote>
       se.sics.cooja.contikimote.ContikiMote
-      <motetype_identifier>mtype16</motetype_identifier>
+      <motetype_identifier>mtype1</motetype_identifier>
       <interface_config>
         se.sics.cooja.interfaces.Position
         <x>0.0</x>
@@ -83,7 +64,7 @@
     </mote>
     <mote>
       se.sics.cooja.contikimote.ContikiMote
-      <motetype_identifier>mtype16</motetype_identifier>
+      <motetype_identifier>mtype1</motetype_identifier>
       <interface_config>
         se.sics.cooja.interfaces.Position
         <x>14.102564102564104</x>
@@ -105,7 +86,7 @@
     </mote>
     <mote>
       se.sics.cooja.contikimote.ContikiMote
-      <motetype_identifier>mtype16</motetype_identifier>
+      <motetype_identifier>mtype1</motetype_identifier>
       <interface_config>
         se.sics.cooja.interfaces.Position
         <x>-32.16814655285737</x>
@@ -127,7 +108,7 @@
     </mote>
     <mote>
       se.sics.cooja.contikimote.ContikiMote
-      <motetype_identifier>mtype16</motetype_identifier>
+      <motetype_identifier>mtype1</motetype_identifier>
       <interface_config>
         se.sics.cooja.interfaces.Position
         <x>-1.5917258339289355</x>
@@ -149,7 +130,7 @@
     </mote>
     <mote>
       se.sics.cooja.contikimote.ContikiMote
-      <motetype_identifier>mtype16</motetype_identifier>
+      <motetype_identifier>mtype1</motetype_identifier>
       <interface_config>
         se.sics.cooja.interfaces.Position
         <x>26.334899854939632</x>
@@ -186,7 +167,7 @@
       <history>256</history>
     </plugin_config>
     <width>692</width>
-    <z>4</z>
+    <z>2</z>
     <height>209</height>
     <location_x>0</location_x>
     <location_y>434</location_y>
@@ -195,7 +176,7 @@
   <plugin>
     se.sics.cooja.plugins.VisUDGM
     <width>216</width>
-    <z>2</z>
+    <z>4</z>
     <height>197</height>
     <location_x>477</location_x>
     <location_y>0</location_y>
@@ -204,7 +185,7 @@
   <plugin>
     se.sics.cooja.plugins.VisTraffic
     <width>208</width>
-    <z>5</z>
+    <z>0</z>
     <height>203</height>
     <location_x>266</location_x>
     <location_y>-2</location_y>

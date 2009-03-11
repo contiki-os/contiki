@@ -1,5 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <simconf>
+  <project>../apps/mrm</project>
+  <project>../apps/mspsim</project>
+  <project>../apps/native_gateway</project>
   <simulation>
     <title>My simulation</title>
     <delaytime>0</delaytime>
@@ -18,32 +21,42 @@
       <identifier>sky1</identifier>
       <description>Sky Mote Type #1</description>
       <source>../../../examples/rime/example-abc.c</source>
-      <command>make example-abc.sky TARGET=sky</command>
+      <commands>make example-abc.sky TARGET=sky</commands>
+      <firmware>../../../examples/rime/example-abc.sky</firmware>
+      <moteinterface>se.sics.cooja.interfaces.Position</moteinterface>
+      <moteinterface>se.sics.cooja.mspmote.interfaces.MspIPAddress</moteinterface>
+      <moteinterface>se.sics.cooja.interfaces.Mote2MoteRelations</moteinterface>
+      <moteinterface>se.sics.cooja.mspmote.interfaces.MspClock</moteinterface>
+      <moteinterface>se.sics.cooja.mspmote.interfaces.MspMoteID</moteinterface>
+      <moteinterface>se.sics.cooja.mspmote.interfaces.SkyButton</moteinterface>
+      <moteinterface>se.sics.cooja.mspmote.interfaces.SkyFlash</moteinterface>
+      <moteinterface>se.sics.cooja.mspmote.interfaces.SkyByteRadio</moteinterface>
+      <moteinterface>se.sics.cooja.mspmote.interfaces.SkySerial</moteinterface>
+      <moteinterface>se.sics.cooja.mspmote.interfaces.SkyLED</moteinterface>
     </motetype>
     <motetype>
       se.sics.cooja.mspmote.ESBMoteType
       <identifier>esb1</identifier>
       <description>ESB Mote Type #1</description>
       <source>../../../examples/rime/example-abc.c</source>
-      <command>make example-abc.esb TARGET=esb</command>
+      <commands>make example-abc.esb TARGET=esb</commands>
+      <firmware>../../../examples/rime/example-abc.esb</firmware>
+      <moteinterface>se.sics.cooja.interfaces.Position</moteinterface>
+      <moteinterface>se.sics.cooja.mspmote.interfaces.MspIPAddress</moteinterface>
+      <moteinterface>se.sics.cooja.mspmote.interfaces.ESBLog</moteinterface>
+      <moteinterface>se.sics.cooja.mspmote.interfaces.MspClock</moteinterface>
+      <moteinterface>se.sics.cooja.mspmote.interfaces.ESBLED</moteinterface>
+      <moteinterface>se.sics.cooja.mspmote.interfaces.ESBButton</moteinterface>
+      <moteinterface>se.sics.cooja.mspmote.interfaces.MspMoteID</moteinterface>
+      <moteinterface>se.sics.cooja.mspmote.interfaces.TR1001Radio</moteinterface>
+      <moteinterface>se.sics.cooja.interfaces.Mote2MoteRelations</moteinterface>
     </motetype>
     <motetype>
       se.sics.cooja.contikimote.ContikiMoteType
-      <identifier>mtype9</identifier>
-      <description>Contiki Mote #1</description>
-      <contikibasedir>../../..</contikibasedir>
-      <contikicoredir>../../../platform/cooja</contikicoredir>
-      <projectdir>../../../examples/rime</projectdir>
-      <compilefile>../apps/mrm</compilefile>
-      <compilefile>../apps/mspsim</compilefile>
-      <compilefile>../../../examples/rime</compilefile>
-      <compilefile>../../../examples/rime</compilefile>
-      <compilefile>../../../examples/rime/example-abc.c</compilefile>
-      <process>example_abc_process</process>
-      <sensor>button_sensor</sensor>
-      <sensor>pir_sensor</sensor>
-      <sensor>radio_sensor</sensor>
-      <sensor>vib_sensor</sensor>
+      <identifier>mtype5</identifier>
+      <description>Contiki Mote Type #1</description>
+      <contikiapp>../../../examples/rime/example-abc.c</contikiapp>
+      <commands>make example-abc.cooja TARGET=cooja</commands>
       <moteinterface>se.sics.cooja.interfaces.Position</moteinterface>
       <moteinterface>se.sics.cooja.interfaces.Battery</moteinterface>
       <moteinterface>se.sics.cooja.contikimote.interfaces.ContikiVib</moteinterface>
@@ -58,24 +71,13 @@
       <moteinterface>se.sics.cooja.contikimote.interfaces.ContikiLED</moteinterface>
       <moteinterface>se.sics.cooja.contikimote.interfaces.ContikiLog</moteinterface>
       <moteinterface>se.sics.cooja.contikimote.interfaces.ContikiCFS</moteinterface>
-      <coreinterface>cfs_interface</coreinterface>
-      <coreinterface>beep_interface</coreinterface>
-      <coreinterface>button_interface</coreinterface>
-      <coreinterface>radio_interface</coreinterface>
-      <coreinterface>ip_interface</coreinterface>
-      <coreinterface>leds_interface</coreinterface>
-      <coreinterface>moteid_interface</coreinterface>
-      <coreinterface>pir_interface</coreinterface>
-      <coreinterface>rs232_interface</coreinterface>
-      <coreinterface>vib_interface</coreinterface>
-      <coreinterface>clock_interface</coreinterface>
-      <coreinterface>simlog_interface</coreinterface>
+      <moteinterface>se.sics.cooja.interfaces.Mote2MoteRelations</moteinterface>
       <symbols>false</symbols>
       <commstack>Rime</commstack>
     </motetype>
     <mote>
       se.sics.cooja.contikimote.ContikiMote
-      <motetype_identifier>mtype9</motetype_identifier>
+      <motetype_identifier>mtype5</motetype_identifier>
       <interface_config>
         se.sics.cooja.interfaces.Position
         <x>-562.9265350779835</x>
@@ -97,7 +99,7 @@
     </mote>
     <mote>
       se.sics.cooja.contikimote.ContikiMote
-      <motetype_identifier>mtype9</motetype_identifier>
+      <motetype_identifier>mtype5</motetype_identifier>
       <interface_config>
         se.sics.cooja.interfaces.Position
         <x>-569.1395123422226</x>
@@ -175,7 +177,7 @@
     </mote>
     <mote>
       se.sics.cooja.contikimote.ContikiMote
-      <motetype_identifier>mtype9</motetype_identifier>
+      <motetype_identifier>mtype5</motetype_identifier>
       <interface_config>
         se.sics.cooja.interfaces.Position
         <x>981.0053840033577</x>
@@ -197,7 +199,7 @@
     </mote>
     <mote>
       se.sics.cooja.contikimote.ContikiMote
-      <motetype_identifier>mtype9</motetype_identifier>
+      <motetype_identifier>mtype5</motetype_identifier>
       <interface_config>
         se.sics.cooja.interfaces.Position
         <x>1346.8489601454312</x>
@@ -249,7 +251,7 @@
   <plugin>
     se.sics.cooja.plugins.SimControl
     <width>265</width>
-    <z>1</z>
+    <z>2</z>
     <height>200</height>
     <location_x>0</location_x>
     <location_y>0</location_y>
@@ -258,7 +260,7 @@
   <plugin>
     se.sics.cooja.plugins.VisState
     <width>884</width>
-    <z>2</z>
+    <z>1</z>
     <height>211</height>
     <location_x>277</location_x>
     <location_y>0</location_y>
@@ -271,7 +273,7 @@
       <history>256</history>
     </plugin_config>
     <width>1161</width>
-    <z>4</z>
+    <z>0</z>
     <height>370</height>
     <location_x>0</location_x>
     <location_y>458</location_y>
