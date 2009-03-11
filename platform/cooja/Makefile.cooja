@@ -1,4 +1,4 @@
-# $Id: Makefile.cooja,v 1.25 2009/03/11 07:46:15 fros4943 Exp $
+# $Id: Makefile.cooja,v 1.26 2009/03/11 08:40:37 fros4943 Exp $
 
 ## The COOJA Simulator Contiki platform Makefile
 ##
@@ -42,6 +42,7 @@ endif ## QUICKSTART
 MAIN_OBJ = obj_cooja/$(LIBNAME).o
 ARCHIVE = obj_cooja/$(LIBNAME).a
 JNILIB = obj_cooja/$(LIBNAME).cooja
+CONTIKI_APP_OBJ = $(CONTIKI_APP).co
 
 ### COOJA platform sources
 COOJA = $(CONTIKI)/platform/$(TARGET)
@@ -77,7 +78,7 @@ REDEF_PRINTF=1 # Redefine functions to enable printf()s inside Cooja
 $(ARCHIVE): ${addprefix obj_cooja/, $(CONTIKI_SOURCEFILES:.c=.o)}
 	$(AR_COMMAND_1) $^ $(AR_COMMAND_2)
 
-$(JNILIB): $(CONTIKI_APP).co $(MAIN_OBJ) $(PROJECT_OBJECTFILES) $(ARCHIVE)
+$(JNILIB): $(CONTIKI_APP_OBJ) $(MAIN_OBJ) $(PROJECT_OBJECTFILES) $(ARCHIVE)
 ifdef SYMBOLS
 	@echo Generating symbols
 	# Recreate symbols file and relink with final memory layout (twice)
@@ -97,7 +98,7 @@ endif ## REDEF_PRINTF
 
 $(CONTIKI_APP).cooja: $(JNILIB)
 	cp $(JNILIB) $@
-	rm $(CONTIKI_APP).co
+	rm $(CONTIKI_APP_OBJ)
 
 symbols.c:
 	# Create initial symbol files if not existing
