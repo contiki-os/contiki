@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: AbstractCompileDialog.java,v 1.2 2009/03/10 21:13:07 fros4943 Exp $
+ * $Id: AbstractCompileDialog.java,v 1.3 2009/03/11 13:27:51 fros4943 Exp $
  */
 
 package se.sics.cooja.dialogs;
@@ -489,7 +489,11 @@ public abstract class AbstractCompileDialog extends JDialog {
       nextButton.setText("Compile");
       nextButton.setEnabled(false);
       commandsArea.setEnabled(false);
-      commandsArea.setText("");
+      SwingUtilities.invokeLater(new Runnable() {
+        public void run() {
+          commandsArea.setText("");
+        }
+      });
       break;
 
     case SELECTED_SOURCE:
