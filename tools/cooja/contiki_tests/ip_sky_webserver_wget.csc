@@ -1,5 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <simconf>
+  <project>../apps/mrm</project>
+  <project>../apps/mspsim</project>
+  <project>../apps/native_gateway</project>
   <simulation>
     <title>My simulation</title>
     <delaytime>0</delaytime>
@@ -18,7 +21,18 @@
       <identifier>sky1</identifier>
       <description>Sky Mote Type #1</description>
       <source>../../../examples/sky-shell-webserver/sky-shell-webserver.c</source>
-      <command>make sky-shell-webserver.sky TARGET=sky</command>
+      <commands>make sky-shell-webserver.sky TARGET=sky</commands>
+      <firmware>../../../examples/sky-shell-webserver/sky-shell-webserver.sky</firmware>
+      <moteinterface>se.sics.cooja.interfaces.Position</moteinterface>
+      <moteinterface>se.sics.cooja.mspmote.interfaces.MspIPAddress</moteinterface>
+      <moteinterface>se.sics.cooja.interfaces.Mote2MoteRelations</moteinterface>
+      <moteinterface>se.sics.cooja.mspmote.interfaces.MspClock</moteinterface>
+      <moteinterface>se.sics.cooja.mspmote.interfaces.MspMoteID</moteinterface>
+      <moteinterface>se.sics.cooja.mspmote.interfaces.SkyButton</moteinterface>
+      <moteinterface>se.sics.cooja.mspmote.interfaces.SkyFlash</moteinterface>
+      <moteinterface>se.sics.cooja.mspmote.interfaces.SkyByteRadio</moteinterface>
+      <moteinterface>se.sics.cooja.mspmote.interfaces.SkySerial</moteinterface>
+      <moteinterface>se.sics.cooja.mspmote.interfaces.SkyLED</moteinterface>
     </motetype>
     <mote>
       se.sics.cooja.mspmote.SkyMote
@@ -80,7 +94,7 @@
   <plugin>
     se.sics.cooja.plugins.SimControl
     <width>248</width>
-    <z>1</z>
+    <z>2</z>
     <height>200</height>
     <location_x>0</location_x>
     <location_y>0</location_y>
@@ -89,7 +103,7 @@
   <plugin>
     se.sics.cooja.plugins.VisUDGM
     <width>435</width>
-    <z>4</z>
+    <z>0</z>
     <height>195</height>
     <location_x>255</location_x>
     <location_y>6</location_y>
@@ -115,7 +129,7 @@
       <interface>Serial port</interface>
     </plugin_config>
     <width>682</width>
-    <z>2</z>
+    <z>1</z>
     <height>334</height>
     <location_x>10</location_x>
     <location_y>207</location_y>

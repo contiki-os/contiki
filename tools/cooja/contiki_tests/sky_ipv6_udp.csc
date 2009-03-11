@@ -1,5 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <simconf>
+  <project>../apps/mrm</project>
+  <project>../apps/mspsim</project>
+  <project>../apps/native_gateway</project>
   <simulation>
     <title>My simulation</title>
     <delaytime>0</delaytime>
@@ -18,14 +21,36 @@
       <identifier>sky1</identifier>
       <description>Sky Mote Type #1</description>
       <source>../../../examples/udp-sender-ipv6/example-udp-sender.c</source>
-      <command>make example-udp-sender.sky TARGET=sky DEFINES=WITH_UIP6,WITH_NULLMAC,UDP_ADDR_A=0xfe80,UDP_ADDR_B=0,UDP_ADDR_C=0,UDP_ADDR_D=0,UDP_ADDR_E=0x0212,UDP_ADDR_F=0x7502,UDP_ADDR_G=0x02,UDP_ADDR_H=0x202</command>
+      <commands>make example-udp-sender.sky TARGET=sky DEFINES=WITH_UIP6,WITH_NULLMAC,UDP_ADDR_A=0xfe80,UDP_ADDR_B=0,UDP_ADDR_C=0,UDP_ADDR_D=0,UDP_ADDR_E=0x0212,UDP_ADDR_F=0x7502,UDP_ADDR_G=0x02,UDP_ADDR_H=0x202</commands>
+      <firmware>../../../examples/udp-sender-ipv6/example-udp-sender.sky</firmware>
+      <moteinterface>se.sics.cooja.interfaces.Position</moteinterface>
+      <moteinterface>se.sics.cooja.mspmote.interfaces.MspIPAddress</moteinterface>
+      <moteinterface>se.sics.cooja.interfaces.Mote2MoteRelations</moteinterface>
+      <moteinterface>se.sics.cooja.mspmote.interfaces.MspClock</moteinterface>
+      <moteinterface>se.sics.cooja.mspmote.interfaces.MspMoteID</moteinterface>
+      <moteinterface>se.sics.cooja.mspmote.interfaces.SkyButton</moteinterface>
+      <moteinterface>se.sics.cooja.mspmote.interfaces.SkyFlash</moteinterface>
+      <moteinterface>se.sics.cooja.mspmote.interfaces.SkyByteRadio</moteinterface>
+      <moteinterface>se.sics.cooja.mspmote.interfaces.SkySerial</moteinterface>
+      <moteinterface>se.sics.cooja.mspmote.interfaces.SkyLED</moteinterface>
     </motetype>
     <motetype>
       se.sics.cooja.mspmote.SkyMoteType
       <identifier>sky2</identifier>
       <description>Sky Mote Type #2</description>
       <source>../../../examples/udp-receiver-ipv6/example-udp-receiver.c</source>
-      <command>make example-udp-receiver.sky TARGET=sky DEFINES=WITH_UIP6,WITH_NULLMAC,UDP_ADDR_A=0xfe80,UDP_ADDR_B=0,UDP_ADDR_C=0,UDP_ADDR_D=0,UDP_ADDR_E=0x0212,UDP_ADDR_F=0x7501,UDP_ADDR_G=0x01,UDP_ADDR_H=0x101</command>
+      <commands>make example-udp-receiver.sky TARGET=sky DEFINES=WITH_UIP6,WITH_NULLMAC,UDP_ADDR_A=0xfe80,UDP_ADDR_B=0,UDP_ADDR_C=0,UDP_ADDR_D=0,UDP_ADDR_E=0x0212,UDP_ADDR_F=0x7501,UDP_ADDR_G=0x01,UDP_ADDR_H=0x101</commands>
+      <firmware>../../../examples/udp-receiver-ipv6/example-udp-receiver.sky</firmware>
+      <moteinterface>se.sics.cooja.interfaces.Position</moteinterface>
+      <moteinterface>se.sics.cooja.mspmote.interfaces.MspIPAddress</moteinterface>
+      <moteinterface>se.sics.cooja.interfaces.Mote2MoteRelations</moteinterface>
+      <moteinterface>se.sics.cooja.mspmote.interfaces.MspClock</moteinterface>
+      <moteinterface>se.sics.cooja.mspmote.interfaces.MspMoteID</moteinterface>
+      <moteinterface>se.sics.cooja.mspmote.interfaces.SkyButton</moteinterface>
+      <moteinterface>se.sics.cooja.mspmote.interfaces.SkyFlash</moteinterface>
+      <moteinterface>se.sics.cooja.mspmote.interfaces.SkyByteRadio</moteinterface>
+      <moteinterface>se.sics.cooja.mspmote.interfaces.SkySerial</moteinterface>
+      <moteinterface>se.sics.cooja.mspmote.interfaces.SkyLED</moteinterface>
     </motetype>
     <mote>
       se.sics.cooja.mspmote.SkyMote
@@ -59,7 +84,7 @@
   <plugin>
     se.sics.cooja.plugins.SimControl
     <width>248</width>
-    <z>1</z>
+    <z>2</z>
     <height>200</height>
     <location_x>0</location_x>
     <location_y>0</location_y>
@@ -72,7 +97,7 @@
       <history>256</history>
     </plugin_config>
     <width>1067</width>
-    <z>2</z>
+    <z>1</z>
     <height>300</height>
     <location_x>0</location_x>
     <location_y>523</location_y>
@@ -81,7 +106,7 @@
   <plugin>
     se.sics.cooja.plugins.RadioLogger
     <width>1062</width>
-    <z>4</z>
+    <z>0</z>
     <height>309</height>
     <location_x>6</location_x>
     <location_y>207</location_y>

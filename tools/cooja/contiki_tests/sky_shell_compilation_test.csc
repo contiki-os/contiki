@@ -1,5 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <simconf>
+  <project>../apps/mrm</project>
+  <project>../apps/mspsim</project>
+  <project>../apps/native_gateway</project>
   <simulation>
     <title>My simulation</title>
     <delaytime>0</delaytime>
@@ -18,7 +21,18 @@
       <identifier>sky1</identifier>
       <description>Sky Mote Type #1</description>
       <source>../../../examples/sky-shell/sky-shell.c</source>
-      <command>make sky-shell.sky TARGET=sky</command>
+      <commands>make sky-shell.sky TARGET=sky</commands>
+      <firmware>../../../examples/sky-shell/sky-shell.sky</firmware>
+      <moteinterface>se.sics.cooja.interfaces.Position</moteinterface>
+      <moteinterface>se.sics.cooja.mspmote.interfaces.MspIPAddress</moteinterface>
+      <moteinterface>se.sics.cooja.interfaces.Mote2MoteRelations</moteinterface>
+      <moteinterface>se.sics.cooja.mspmote.interfaces.MspClock</moteinterface>
+      <moteinterface>se.sics.cooja.mspmote.interfaces.MspMoteID</moteinterface>
+      <moteinterface>se.sics.cooja.mspmote.interfaces.SkyButton</moteinterface>
+      <moteinterface>se.sics.cooja.mspmote.interfaces.SkyFlash</moteinterface>
+      <moteinterface>se.sics.cooja.mspmote.interfaces.SkyByteRadio</moteinterface>
+      <moteinterface>se.sics.cooja.mspmote.interfaces.SkySerial</moteinterface>
+      <moteinterface>se.sics.cooja.mspmote.interfaces.SkyLED</moteinterface>
     </motetype>
     <mote>
       se.sics.cooja.mspmote.SkyMote
@@ -47,7 +61,7 @@
   <plugin>
     se.sics.cooja.plugins.VisState
     <width>300</width>
-    <z>3</z>
+    <z>0</z>
     <height>300</height>
     <location_x>390</location_x>
     <location_y>0</location_y>
