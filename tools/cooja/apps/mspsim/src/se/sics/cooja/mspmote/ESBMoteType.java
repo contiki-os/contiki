@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ESBMoteType.java,v 1.6 2009/03/09 16:03:58 fros4943 Exp $
+ * $Id: ESBMoteType.java,v 1.7 2009/03/11 08:42:07 fros4943 Exp $
  */
 
 package se.sics.cooja.mspmote;
@@ -148,7 +148,8 @@ public class ESBMoteType extends MspMoteType {
         try {
           CompileContiki.compile(
               cmd,
-              null /* No output file */,
+              null,
+              null /* Do not observe output firmware file */,
               getContikiSourceFile().getParentFile(),
               null,
               null,
