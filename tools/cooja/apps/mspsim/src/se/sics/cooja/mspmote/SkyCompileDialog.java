@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: SkyCompileDialog.java,v 1.1 2009/03/09 16:04:42 fros4943 Exp $
+ * $Id: SkyCompileDialog.java,v 1.2 2009/03/11 17:46:59 fros4943 Exp $
  */
 
 package se.sics.cooja.mspmote;
@@ -34,19 +34,10 @@ import java.awt.Container;
 import java.io.File;
 import org.apache.log4j.Logger;
 
+import se.sics.cooja.MoteInterface;
 import se.sics.cooja.MoteType;
 import se.sics.cooja.Simulation;
 import se.sics.cooja.dialogs.AbstractCompileDialog;
-import se.sics.cooja.interfaces.Mote2MoteRelations;
-import se.sics.cooja.interfaces.Position;
-import se.sics.cooja.mspmote.interfaces.MspClock;
-import se.sics.cooja.mspmote.interfaces.MspIPAddress;
-import se.sics.cooja.mspmote.interfaces.MspMoteID;
-import se.sics.cooja.mspmote.interfaces.SkyButton;
-import se.sics.cooja.mspmote.interfaces.SkyByteRadio;
-import se.sics.cooja.mspmote.interfaces.SkyFlash;
-import se.sics.cooja.mspmote.interfaces.SkyLED;
-import se.sics.cooja.mspmote.interfaces.SkySerial;
 
 public class SkyCompileDialog extends AbstractCompileDialog {
   private static Logger logger = Logger.getLogger(SkyCompileDialog.class);
@@ -77,16 +68,10 @@ public class SkyCompileDialog extends AbstractCompileDialog {
     if (moteIntfBox.getComponentCount() > 0) {
       selected = false;
     }
-    addMoteInterface(Position.class, selected);
-    addMoteInterface(MspIPAddress.class, selected);
-    addMoteInterface(Mote2MoteRelations.class, selected);
-    addMoteInterface(MspClock.class, selected);
-    addMoteInterface(MspMoteID.class, selected);
-    addMoteInterface(SkyButton.class, selected);
-    addMoteInterface(SkyFlash.class, selected);
-    addMoteInterface(SkyByteRadio.class, selected);
-    addMoteInterface(SkySerial.class, selected);
-    addMoteInterface(SkyLED.class, selected);
+
+    for (Class<? extends MoteInterface> intfClass: ((SkyMoteType)moteType).getAllMoteInterfaceClasses()) {
+      addMoteInterface(intfClass, selected);
+    }
   }
 
   public boolean canLoadFirmware(File file) {
@@ -104,10 +89,7 @@ public class SkyCompileDialog extends AbstractCompileDialog {
   }
 
   public File getExpectedFirmwareFile(File source) {
-    File parentDir = source.getParentFile();
-    String sourceNoExtension = source.getName().substring(0, source.getName().length()-2);
-
-    return new File(parentDir, sourceNoExtension + ".sky");
+    return ((SkyMoteType)moteType).getExpectedFirmwareFile(source);
   }
 
   public void writeSettingsToMoteType() {
