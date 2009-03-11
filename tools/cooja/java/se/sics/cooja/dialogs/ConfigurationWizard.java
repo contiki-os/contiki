@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ConfigurationWizard.java,v 1.1 2009/02/20 16:51:25 fros4943 Exp $
+ * $Id: ConfigurationWizard.java,v 1.2 2009/03/11 08:44:32 fros4943 Exp $
  */
 
 package se.sics.cooja.dialogs;
@@ -56,7 +56,6 @@ import se.sics.cooja.GUI;
 import se.sics.cooja.SectionMoteMemory;
 import se.sics.cooja.MoteType.MoteTypeCreationException;
 import se.sics.cooja.contikimote.ContikiMoteType;
-import se.sics.cooja.contikimote.ContikiMoteTypeDialog;
 
 public class ConfigurationWizard extends JDialog {
   private static final long serialVersionUID = 1L;
@@ -401,6 +400,7 @@ public class ConfigurationWizard extends JDialog {
 
   private static void prepareShowTestProgress(JFrame parent, String desc) {
     output = new MessageList();
+    output.addPopupMenuItem(null, true);
     progressDialog = new JDialog(parent, desc);
     button = new JButton("Close");
     progressBar = new JProgressBar(0, 100);
@@ -514,7 +514,7 @@ public class ConfigurationWizard extends JDialog {
     javaLibraryName = "LibTest" + testCounter;
     cLibraryName = "libtest" + testCounter;
     cLibrarySourceFile = new File(ContikiMoteType.tempOutputDirectory, cLibraryName + ".c");
-    cLibraryFile = new File(ContikiMoteType.tempOutputDirectory, cLibraryName + ".library");
+    cLibraryFile = new File(ContikiMoteType.tempOutputDirectory, cLibraryName + ContikiMoteType.librarySuffix);
 
     testOutput.addMessage("### Reading C library template source: " + testTemplate, MessageList.NORMAL);
     BufferedReader templateReader = null;
@@ -522,7 +522,7 @@ public class ConfigurationWizard extends JDialog {
       if ((new File(testTemplate)).exists()) {
         templateReader = new BufferedReader(new FileReader(testTemplate));
       } else {
-        InputStream input = ContikiMoteTypeDialog.class.getResourceAsStream('/' + testTemplate);
+        InputStream input = ConfigurationWizard.class.getResourceAsStream('/' + testTemplate);
         if (input == null) {
           throw new FileNotFoundException("File not found: " + testTemplate);
         }
@@ -564,17 +564,45 @@ public class ConfigurationWizard extends JDialog {
       return false;
     }
 
+    /* Prepare compiler environment */
+    testOutput.addMessage("### Preparing compiler environment");
+    String[][] env;
+    try {
+      env = CompileContiki.createCompilationEnvironment(
+          cLibraryName,
+          new File(cLibraryName + ".c"),
+          new File(cLibraryName + ContikiMoteType.mapSuffix),
+          new File(cLibraryName + ContikiMoteType.librarySuffix),
+          new File(cLibraryName + ContikiMoteType.dependSuffix)
+      );
+    } catch (Exception e) {
+      testOutput.addMessage("### Error: Compiler environment failed", MessageList.ERROR);
+      return false;
+    }
+    String[] envOneDimension = new String[env.length];
+    for (int i=0; i < env.length; i++) {
+      envOneDimension[i] = env[i][0] + "=" + env[i][1];
+    }
+
     testOutput.addMessage("### Compiling C library source: " + cLibrarySourceFile.getName());
-    boolean compileOK = ContikiMoteTypeDialog.compileLibrary(
-        cLibraryName,
-        new File(GUI.getExternalToolsSetting("PATH_CONTIKI")),
-        new Vector<File>(),
-        false,
-        ContikiMoteType.CommunicationStack.RIME,
-        normalStream,
-        errorStream
-    );
-    if (!compileOK) {
+    try {
+      String contikiPath = GUI.getExternalToolsSetting("PATH_CONTIKI").replaceAll("\\\\", "/");
+      System.out.println(" CURR DIR: " + new File(".").getAbsolutePath());
+      CompileContiki.compile(
+          "make " +
+          "-f " + contikiPath + "/Makefile.include " +
+          "CONTIKI=" + contikiPath + " " +
+          "obj_cooja/" + cLibraryName + ".cooja " +
+          "TARGET=cooja CONTIKI_APP_OBJ=",
+          envOneDimension,
+          null,
+          new File("."),
+          null,
+          null,
+          testOutput,
+          true
+      );
+    } catch (Exception e) {
       testOutput.addMessage("### Error: Compilation failed", MessageList.ERROR);
       return false;
     }
