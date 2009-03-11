@@ -19,7 +19,7 @@
 
   <target name="clean">
     <delete dir="${build}"/>
-    <delete dir="${lib}"/>
+    <delete file="${cooja_avrora_jar}"/>
   </target>
 
   <target name="compile" depends="init">
