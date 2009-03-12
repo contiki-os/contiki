@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2002, Adam Dunkels.
+ * Copyright (c) 2003, Adam Dunkels.
  * All rights reserved. 
  *
  * Redistribution and use in source and binary forms, with or without 
@@ -27,20 +27,16 @@
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.  
  *
- * This file is part of the Contiki OS
+ * This file is part of the Contiki desktop environment
  *
- * $Id: webserver-nogui.h,v 1.1 2008/10/14 10:14:13 julienabeille Exp $
+ * $Id: webserver-dsc.h,v 1.1 2009/03/12 19:15:25 adamdunkels Exp $
  *
  */
-#ifndef __WEBSERVER_NOGUI_H__
-#define __WEBSERVER_NOGUI_H__
+#ifndef __WEBSERVER_DSC_H__
+#define __WEBSERVER_DSC_H__
 
-#include "contiki-net.h"
+#include "sys/dsc.h"
 
-PROCESS_NAME(webserver_nogui_process);
-PROCESS_NAME(raven_lcd_process);
+DSC_HEADER(webserver_dsc);
 
-void webserver_log(char *msg);
-void webserver_log_file(uip_ipaddr_t *requester, char *file);
-
-#endif /* __WEBSERVER_H__ */
+#endif /* __WEBSERVER_DSC_H__ */

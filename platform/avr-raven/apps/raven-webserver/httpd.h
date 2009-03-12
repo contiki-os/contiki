@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003, Adam Dunkels.
+ * Copyright (c) 2001-2005, Adam Dunkels.
  * All rights reserved. 
  *
  * Redistribution and use in source and binary forms, with or without 
@@ -7,10 +7,9 @@
  * are met: 
  * 1. Redistributions of source code must retain the above copyright 
  *    notice, this list of conditions and the following disclaimer. 
- * 2. Redistributions in binary form must reproduce the above
- *    copyright notice, this list of conditions and the following
- *    disclaimer in the documentation and/or other materials provided
- *    with the distribution. 
+ * 2. Redistributions in binary form must reproduce the above copyright 
+ *    notice, this list of conditions and the following disclaimer in the 
+ *    documentation and/or other materials provided with the distribution. 
  * 3. The name of the author may not be used to endorse or promote
  *    products derived from this software without specific prior
  *    written permission.  
@@ -27,16 +26,38 @@
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.  
  *
- * This file is part of the Contiki desktop environment
+ * This file is part of the uIP TCP/IP stack.
  *
- * $Id: webserver-dsc.h,v 1.1 2008/10/14 10:14:13 julienabeille Exp $
+ * $Id: httpd.h,v 1.1 2009/03/12 19:15:25 adamdunkels Exp $
  *
  */
-#ifndef __WEBSERVER_DSC_H__
-#define __WEBSERVER_DSC_H__
 
-#include "sys/dsc.h"
+#ifndef __HTTPD_H__
+#define __HTTPD_H__
 
-DSC_HEADER(webserver_dsc);
 
-#endif /* __WEBSERVER_DSC_H__ */
+#include "contiki-net.h"
+#include "httpd-fs.h"
+
+struct httpd_state {
+  unsigned char timer;
+  struct psock sin, sout;
+  struct pt outputpt, scriptpt;
+  char inputbuf[50];
+  char filename[20];
+  char state;
+  struct httpd_fs_file file;  
+  int len;
+  char *scriptptr;
+  int scriptlen;
+  union {
+    unsigned short count;
+    void *ptr;
+  } u;
+};
+
+
+void httpd_init(void);
+void httpd_appcall(void *state);
+
+#endif /* __HTTPD_H__ */

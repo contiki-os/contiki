@@ -30,7 +30,7 @@
  * 
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: httpd-fsdata.h,v 1.1 2008/10/14 10:14:13 julienabeille Exp $
+ * $Id: httpd-fsdata.h,v 1.1 2009/03/12 19:15:25 adamdunkels Exp $
  */
 #ifndef __HTTPD_FSDATA_H__
 #define __HTTPD_FSDATA_H__

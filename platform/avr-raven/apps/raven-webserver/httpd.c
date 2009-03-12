@@ -30,56 +30,182 @@
  *
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: httpd-cfs.c,v 1.1 2008/10/14 10:14:13 julienabeille Exp $
+ * $Id: httpd.c,v 1.1 2009/03/12 19:15:25 adamdunkels Exp $
  */
 
 #include <string.h>
-
+ 
 #include "contiki-net.h"
 
 #include "webserver.h"
-#include "cfs/cfs.h"
+#include "httpd-fs.h"
+#include "httpd-cgi.h"
 #include "lib/petsciiconv.h"
 #include "http-strings.h"
 
-#include "httpd-cfs.h"
+#include "httpd.h"
 
-#ifndef WEBSERVER_CONF_CFS_CONNS
+#ifndef WEBSERVER_CONF_CGI_CONNS
 #define CONNS 4
-#else /* WEBSERVER_CONF_CFS_CONNS */
-#define CONNS WEBSERVER_CONF_CFS_CONNS
-#endif /* WEBSERVER_CONF_CFS_CONNS */
+#else /* WEBSERVER_CONF_CGI_CONNS */
+#define CONNS WEBSERVER_CONF_CGI_CONNS
+#endif /* WEBSERVER_CONF_CGI_CONNS */
 
 #define STATE_WAITING 0
 #define STATE_OUTPUT  1
 
-#define SEND_STRING(s, str) PSOCK_SEND(s, (uint8_t *)str, strlen(str))
+#define SEND_STRING(s, str) PSOCK_SEND(s, (uint8_t *)str, (unsigned int)strlen(str))
 MEMB(conns, struct httpd_state, CONNS);
 
 #define ISO_nl      0x0a
 #define ISO_space   0x20
+#define ISO_bang    0x21
+#define ISO_percent 0x25
 #define ISO_period  0x2e
 #define ISO_slash   0x2f
+#define ISO_colon   0x3a
 
+/*---------------------------------------------------------------------------*/
+static unsigned short
+generate(void *state)
+{
+  struct httpd_state *s = (struct httpd_state *)state;
+
+  if(s->file.len > uip_mss()) {
+    s->len = uip_mss();
+  } else {
+    s->len = s->file.len;
+  }
+    
+  httpd_fs_cpy(uip_appdata, s->file.data, s->len);
+  
+  return s->len;
+}
 /*---------------------------------------------------------------------------*/
 static
 PT_THREAD(send_file(struct httpd_state *s))
 {
   PSOCK_BEGIN(&s->sout);
   
-  do {
-    /* Read data from file system into buffer */
-    s->len = cfs_read(s->fd, s->outputbuf, sizeof(s->outputbuf));
-
-    /* If there is data in the buffer, send it */
-    if(s->len > 0) {
-      PSOCK_SEND(&s->sout, (uint8_t *)s->outputbuf, s->len);
-    } else {
-      break;
-    }
-  } while(s->len > 0);
+  do { 
+    PSOCK_GENERATOR_SEND(&s->sout, generate, s);
+    s->file.len -= s->len;
+    s->file.data += s->len;
+  } while(s->file.len > 0);
       
   PSOCK_END(&s->sout);
+}
+/*---------------------------------------------------------------------------*/
+static
+PT_THREAD(send_part_of_file(struct httpd_state *s))
+{
+  PSOCK_BEGIN(&s->sout);
+  
+  static int oldfilelen, oldlen;
+  static char * olddata;
+  
+  //Store stuff that gets clobbered...
+  oldfilelen = s->file.len;
+  oldlen = s->len;
+  olddata = s->file.data;
+  
+  //How much to send  
+  s->file.len = s->len;
+  
+  do { 
+    PSOCK_GENERATOR_SEND(&s->sout, generate, s);
+    s->file.len -= s->len;
+    s->file.data += s->len;
+  } while(s->file.len > 0);
+  
+  s->len = oldlen;
+  s->file.len = oldfilelen;
+  s->file.data = olddata;
+  
+  PSOCK_END(&s->sout);
+}
+/*---------------------------------------------------------------------------*/
+static void
+next_scriptstate(struct httpd_state *s)
+{
+  char *p;
+
+  if((p = (char *)httpd_fs_strchr(s->scriptptr, ISO_nl)) != NULL) {
+    p += 1;
+    s->scriptlen -= (unsigned short)(p - s->scriptptr);
+    s->scriptptr = p;
+  } else {
+    s->scriptlen = 0;
+  }
+
+  /*  char *p;
+  p = strchr(s->scriptptr, ISO_nl) + 1;
+  s->scriptlen -= (unsigned short)(p - s->scriptptr);
+  s->scriptptr = p;*/
+}
+
+/*---------------------------------------------------------------------------*/
+static char filenamebuf[25],*pptr;//See below!
+static
+PT_THREAD(handle_script(struct httpd_state *s))
+{
+//  char *ptr; //one of these gets whomped unless in globals
+//  char filenamebuf[25];
+  
+  PT_BEGIN(&s->scriptpt);
+
+  while(s->file.len > 0) {
+
+    /* Check if we should start executing a script. */
+    if(httpd_fs_getchar(s->file.data) == ISO_percent &&
+       httpd_fs_getchar(s->file.data + 1) == ISO_bang) {
+      s->scriptptr = s->file.data + 3;
+      s->scriptlen = s->file.len - 3; 
+
+      memcpy_P(filenamebuf, s->scriptptr, 25);
+
+      if(httpd_fs_getchar(s->scriptptr - 1) == ISO_colon) {
+        httpd_fs_open(filenamebuf + 1, &s->file);
+        PT_WAIT_THREAD(&s->scriptpt, send_file(s));
+      } else {
+        PT_WAIT_THREAD(&s->scriptpt,
+                       httpd_cgi(filenamebuf)(s, s->scriptptr));
+      }
+      next_scriptstate(s);
+      
+      /* The script is over, so we reset the pointers and continue
+	 sending the rest of the file. */
+      s->file.data = s->scriptptr;
+      s->file.len = s->scriptlen;
+    } else {
+      /* See if we find the start of script marker in the block of HTML
+	 to be sent. */
+
+      if(s->file.len > uip_mss()) {
+	s->len = uip_mss();
+      } else {
+        s->len = s->file.len;
+      }
+
+      if(httpd_fs_getchar(s->file.data) == ISO_percent) {
+        pptr = (char *) httpd_fs_strchr(s->file.data + 1, ISO_percent);
+      } else {
+        pptr = (char *) httpd_fs_strchr(s->file.data, ISO_percent);
+      }
+      if(pptr != NULL &&
+         pptr != s->file.data) {
+	s->len = (int)(pptr - s->file.data);
+	if(s->len >= uip_mss()) {
+	  s->len = uip_mss();
+	}
+      }
+      PT_WAIT_THREAD(&s->scriptpt, send_part_of_file(s));
+      s->file.data += s->len;
+      s->file.len -= s->len;
+    }
+  }
+   
+  PT_END(&s->scriptpt);
 }
 /*---------------------------------------------------------------------------*/
 static
@@ -93,17 +219,20 @@ PT_THREAD(send_headers(struct httpd_state *s, const char *statushdr))
 
   ptr = strrchr(s->filename, ISO_period);
   if(ptr == NULL) {
-    SEND_STRING(&s->sout, http_content_type_plain);
-  } else if(strncmp(http_html, ptr, 5) == 0) {
+    SEND_STRING(&s->sout, http_content_type_binary);
+  } else if(strncmp(http_html, ptr, 5) == 0 ||
+	    strncmp(http_shtml, ptr, 6) == 0) {
     SEND_STRING(&s->sout, http_content_type_html);
   } else if(strncmp(http_css, ptr, 4) == 0) {
     SEND_STRING(&s->sout, http_content_type_css);
   } else if(strncmp(http_png, ptr, 4) == 0) {
     SEND_STRING(&s->sout, http_content_type_png);
+  } else if(strncmp(http_gif, ptr, 4) == 0) {
+    SEND_STRING(&s->sout, http_content_type_gif);
   } else if(strncmp(http_jpg, ptr, 4) == 0) {
     SEND_STRING(&s->sout, http_content_type_jpg);
   } else {
-    SEND_STRING(&s->sout, http_content_type_binary);
+    SEND_STRING(&s->sout, http_content_type_plain);
   }
   PSOCK_END(&s->sout);
 }
@@ -111,36 +240,39 @@ PT_THREAD(send_headers(struct httpd_state *s, const char *statushdr))
 static
 PT_THREAD(handle_output(struct httpd_state *s))
 {
+  char *ptr;
+  
   PT_BEGIN(&s->outputpt);
-
-  petsciiconv_topetscii(s->filename, sizeof(s->filename));
-  s->fd = cfs_open(s->filename, CFS_READ);
-  petsciiconv_toascii(s->filename, sizeof(s->filename));
-  if(s->fd < 0) {
-    s->fd = cfs_open("notfound.html", CFS_READ);
-    if(s->fd < 0) {
-      uip_abort();
-      memb_free(&conns, s);
-      webserver_log_file(&uip_conn->ripaddr, "reset (no notfound.html)");
-      PT_EXIT(&s->outputpt);
-    }
+ 
+  if(!httpd_fs_open(s->filename, &s->file)) {
+    httpd_fs_open(http_404_html, &s->file);
     PT_WAIT_THREAD(&s->outputpt,
-		   send_headers(s, http_header_404));
+		   send_headers(s,
+		   http_header_404));
+    PT_WAIT_THREAD(&s->outputpt,
+		   send_file(s));
   } else {
     PT_WAIT_THREAD(&s->outputpt,
-		   send_headers(s, http_header_200));
+		   send_headers(s,
+		   http_header_200));
+    ptr = strchr(s->filename, ISO_period);
+    if(ptr != NULL && strncmp(ptr, http_shtml, 6) == 0 || strcmp_P(s->filename,PSTR("/index.html")) ==0) {
+//    if(ptr != NULL && strncmp(ptr, http_shtml, 6) == 0 ) {
+      PT_INIT(&s->scriptpt);
+      PT_WAIT_THREAD(&s->outputpt, handle_script(s));
+    } else {
+      PT_WAIT_THREAD(&s->outputpt,
+		     send_file(s));
+    }
   }
-  PT_WAIT_THREAD(&s->outputpt, send_file(s));
-  cfs_close(s->fd);
-  s->fd = -1;
   PSOCK_CLOSE(&s->sout);
   PT_END(&s->outputpt);
 }
 /*---------------------------------------------------------------------------*/
 static
 PT_THREAD(handle_input(struct httpd_state *s))
-{
-  PSOCK_BEGIN(&s->sin);
+{ 
+  PSOCK_BEGIN(&s->sin); 
 
   PSOCK_READTO(&s->sin, ISO_space);
   
@@ -154,15 +286,14 @@ PT_THREAD(handle_input(struct httpd_state *s))
   }
 
   if(s->inputbuf[1] == ISO_space) {
-    strncpy(s->filename, &http_index_html[1], sizeof(s->filename));
+    strncpy(s->filename, http_index_html, sizeof(s->filename));
   } else {
     s->inputbuf[PSOCK_DATALEN(&s->sin) - 1] = 0;
-    strncpy(s->filename, &s->inputbuf[1], sizeof(s->filename));
+    strncpy(s->filename, &s->inputbuf[0], sizeof(s->filename));
   }
 
-  petsciiconv_topetscii(s->filename, sizeof(s->filename));
   webserver_log_file(&uip_conn->ripaddr, s->filename);
-  petsciiconv_toascii(s->filename, sizeof(s->filename));
+  
   s->state = STATE_OUTPUT;
 
   while(1) {
@@ -194,40 +325,31 @@ httpd_appcall(void *state)
 
   if(uip_closed() || uip_aborted() || uip_timedout()) {
     if(s != NULL) {
-      if(s->fd >= 0) {
-        cfs_close(s->fd);
-	s->fd = -1;
-      }
       memb_free(&conns, s);
     }
   } else if(uip_connected()) {
     s = (struct httpd_state *)memb_alloc(&conns);
     if(s == NULL) {
       uip_abort();
-      webserver_log_file(&uip_conn->ripaddr, "reset (no memory block)");
       return;
     }
     tcp_markconn(uip_conn, s);
     PSOCK_INIT(&s->sin, (uint8_t *)s->inputbuf, sizeof(s->inputbuf) - 1);
     PSOCK_INIT(&s->sout, (uint8_t *)s->inputbuf, sizeof(s->inputbuf) - 1);
     PT_INIT(&s->outputpt);
-    s->fd = -1;
     s->state = STATE_WAITING;
-    timer_set(&s->timer, CLOCK_SECOND * 10);
+    /*    timer_set(&s->timer, CLOCK_SECOND * 100);*/
+    s->timer = 0;
     handle_connection(s);
   } else if(s != NULL) {
     if(uip_poll()) {
-      if(timer_expired(&s->timer)) {
+      ++s->timer;
+      if(s->timer >= 20) {
 	uip_abort();
-	if(s->fd >= 0) {
-	  cfs_close(s->fd);
-	  s->fd = -1;
-	}
-        memb_free(&conns, s);
-        webserver_log_file(&uip_conn->ripaddr, "reset (timeout)");
+	memb_free(&conns, s);
       }
     } else {
-      timer_reset(&s->timer);
+      s->timer = 0;
     }
     handle_connection(s);
   } else {
@@ -240,5 +362,6 @@ httpd_init(void)
 {
   tcp_listen(HTONS(80));
   memb_init(&conns);
+  httpd_cgi_init();
 }
 /*---------------------------------------------------------------------------*/

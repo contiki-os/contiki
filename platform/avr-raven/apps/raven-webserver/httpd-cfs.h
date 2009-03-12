@@ -28,32 +28,29 @@
  *
  * This file is part of the uIP TCP/IP stack.
  *
- * $Id: httpd-cgi.h,v 1.1 2008/10/14 10:14:13 julienabeille Exp $
+ * $Id: httpd-cfs.h,v 1.1 2009/03/12 19:15:25 adamdunkels Exp $
  *
  */
 
-#ifndef __HTTPD_CGI_H__
-#define __HTTPD_CGI_H__
+#ifndef __HTTPD_CFS_H__
+#define __HTTPD_CFS_H__
 
-#include "contiki.h"
-#include "httpd.h"
+#include "contiki-net.h"
 
-typedef PT_THREAD((* httpd_cgifunction)(struct httpd_state *, char *));
-
-httpd_cgifunction httpd_cgi(char *name);
-
-struct httpd_cgi_call {
-  struct httpd_cgi_call *next;
-  const char *name;
-  httpd_cgifunction function;
+struct httpd_state {
+  struct timer timer;
+  struct psock sin, sout;
+  struct pt outputpt;
+  char inputbuf[50];
+  char outputbuf[UIP_TCP_MSS];
+  char filename[20];
+  char state;
+  int fd;
+  int len;
 };
 
-void httpd_cgi_add(struct httpd_cgi_call *c);
 
-#define HTTPD_CGI_CALL(name, str, function) \
-static struct httpd_cgi_call name = {NULL, str, function}
+void httpd_init(void);
+void httpd_appcall(void *state);
 
-void httpd_cgi_init(void);
-void web_set_temp(char *s);
-
-#endif /* __HTTPD_CGI_H__ */
+#endif /* __HTTPD_CFS_H__ */

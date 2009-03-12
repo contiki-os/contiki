@@ -28,7 +28,7 @@
  *  ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  *  POSSIBILITY OF SUCH DAMAGE.
  *
- * $Id: raven-lcd.c,v 1.1 2008/10/14 09:45:17 julienabeille Exp $
+ * $Id: raven-lcd.c,v 1.1 2009/03/12 19:15:25 adamdunkels Exp $
 */
 
 /**

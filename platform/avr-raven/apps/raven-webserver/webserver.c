@@ -29,7 +29,7 @@
  *
  * This file is part of the Contiki desktop environment for the C64.
  *
- * $Id: webserver.c,v 1.1 2008/10/14 10:14:13 julienabeille Exp $
+ * $Id: webserver.c,v 1.1 2009/03/12 19:15:25 adamdunkels Exp $
  *
  */
 
