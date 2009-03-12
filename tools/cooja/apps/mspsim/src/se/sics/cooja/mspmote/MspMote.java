@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: MspMote.java,v 1.22 2009/03/09 17:12:27 fros4943 Exp $
+ * $Id: MspMote.java,v 1.23 2009/03/12 17:47:58 fros4943 Exp $
  */
 
 package se.sics.cooja.mspmote;
@@ -51,6 +51,7 @@ import se.sics.cooja.mspmote.interfaces.TR1001Radio;
 import se.sics.mspsim.cli.CommandHandler;
 import se.sics.mspsim.cli.LineListener;
 import se.sics.mspsim.cli.LineOutputStream;
+import se.sics.mspsim.core.EmulationException;
 import se.sics.mspsim.core.MSP430;
 import se.sics.mspsim.platform.GenericNode;
 import se.sics.mspsim.util.ConfigManager;
@@ -327,7 +328,12 @@ public abstract class MspMote implements Mote {
     }
     myMoteInterfaceHandler.doActiveActionsBeforeTick();
 
-    cpu.step(cycleCounter);
+    try {
+      cpu.step(cycleCounter);
+    } catch (EmulationException e) {
+      throw (RuntimeException)
+      new RuntimeException("Emulated exception: " + e.getMessage()).initCause(e);
+    }
 
     /* Check if radio has pending incoming bytes */
     if (myRadio != null && myRadio.hasPendingBytes()) {

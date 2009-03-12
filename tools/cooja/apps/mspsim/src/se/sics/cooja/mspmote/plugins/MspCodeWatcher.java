@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: MspCodeWatcher.java,v 1.15 2009/03/12 15:12:23 fros4943 Exp $
+ * $Id: MspCodeWatcher.java,v 1.16 2009/03/12 17:47:57 fros4943 Exp $
  */
 
 package se.sics.cooja.mspmote.plugins;
@@ -52,6 +52,7 @@ import se.sics.cooja.*;
 import se.sics.cooja.mspmote.MspMote;
 import se.sics.cooja.mspmote.MspMoteType;
 import se.sics.mspsim.core.CPUMonitor;
+import se.sics.mspsim.core.EmulationException;
 import se.sics.mspsim.core.MSP430;
 import se.sics.mspsim.core.MSP430Core;
 import se.sics.mspsim.ui.DebugUI;
@@ -190,7 +191,11 @@ public class MspCodeWatcher extends VisPlugin {
     stepButton.addActionListener(new ActionListener() {
       public void actionPerformed(ActionEvent e) {
         // TODO Perform single step here
-        mspMote.getCPU().step(mspMote.getCPU().cycles+1);
+        try {
+          mspMote.getCPU().step(mspMote.getCPU().cycles+1);
+        } catch (EmulationException e1) {
+          logger.fatal("Error: ", e1);
+        }
         updateInfo();
       }
     });
@@ -223,20 +228,24 @@ public class MspCodeWatcher extends VisPlugin {
           return;
         }
 
-        while (count++ < max) {
-          cpu.step(mspMote.getCPU().cycles+1);
-          pc = cpu.readRegister(MSP430Core.PC);
-          instruction = cpu.memory[pc] + (cpu.memory[pc + 1] << 8);
-          if ((instruction & 0xff80) == MSP430.CALL) {
-            depth++;
-          } else if (instruction == MSP430.RETURN) {
-            depth--;
-            if (depth < 0) {
-              updateInfo();
-              return;
-            }
+        try {
+          while (count++ < max) {
+            cpu.step(mspMote.getCPU().cycles+1);
+            pc = cpu.readRegister(MSP430Core.PC);
+            instruction = cpu.memory[pc] + (cpu.memory[pc + 1] << 8);
+            if ((instruction & 0xff80) == MSP430.CALL) {
+              depth++;
+            } else if (instruction == MSP430.RETURN) {
+              depth--;
+              if (depth < 0) {
+                updateInfo();
+                return;
+              }
 
+            }
           }
+        } catch (EmulationException e1) {
+          logger.fatal("Error: ", e1);
         }
 
         logger.fatal("Function '" + functionName + "' did not return within " + max + " instructions");
