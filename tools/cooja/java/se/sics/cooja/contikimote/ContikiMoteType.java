@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ContikiMoteType.java,v 1.32 2009/03/11 18:42:53 fros4943 Exp $
+ * $Id: ContikiMoteType.java,v 1.33 2009/03/12 15:08:29 fros4943 Exp $
  */
 
 package se.sics.cooja.contikimote;
@@ -1246,8 +1246,8 @@ public class ContikiMoteType implements MoteType {
     config.add(element);
 
     element = new Element("contikiapp");
-    File tmp = GUI.stripAbsoluteContikiPath(getContikiSourceFile());
-    element.setText(tmp.getPath().replaceAll("\\\\", "/")); /* TODO Fix Contiki-relative path */
+    File file = simulation.getGUI().createPortablePath(getContikiSourceFile());
+    element.setText(file.getPath().replaceAll("\\\\", "/"));
     config.add(element);
 
     element = new Element("commands");
@@ -1288,7 +1288,12 @@ public class ContikiMoteType implements MoteType {
       } else if (name.equals("description")) {
         description = element.getText();
       } else if (name.equals("contikiapp")) {
-        setContikiSourceFile(new File(element.getText())); /* TODO Fix Contiki-relative paths */
+        File file = new File(element.getText());
+        if (!file.exists()) {
+          file = simulation.getGUI().restorePortablePath(file);
+        }
+
+        setContikiSourceFile(file);
 
         /* XXX Do not load the generated firmware. Instead, load the unique library file directly */
         File contikiFirmware = new File(

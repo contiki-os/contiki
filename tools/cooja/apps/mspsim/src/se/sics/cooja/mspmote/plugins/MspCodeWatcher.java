@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: MspCodeWatcher.java,v 1.14 2008/11/03 18:11:44 fros4943 Exp $
+ * $Id: MspCodeWatcher.java,v 1.15 2009/03/12 15:12:23 fros4943 Exp $
  */
 
 package se.sics.cooja.mspmote.plugins;
@@ -309,7 +309,7 @@ public class MspCodeWatcher extends VisPlugin {
    *
    * @author Fredrik Osterlind
    */
-  static class Breakpoints {
+  class Breakpoints {
     private Hashtable<File, Hashtable<Integer, Integer>> debuggingInfo = null;
     private Vector<Breakpoint> breakpoints = new Vector<Breakpoint>();
     private Vector<ActionListener> listeners = new Vector<ActionListener>();
@@ -541,8 +541,8 @@ public class MspCodeWatcher extends VisPlugin {
 
         if (codeFile != null) {
           element = new Element("codefile");
-          codeFile = GUI.stripAbsoluteContikiPath(codeFile);
-          element.setText(codeFile.getPath().replaceAll("\\\\", "/"));
+          File file = mySimulation.getGUI().createPortablePath(codeFile);
+          element.setText(file.getPath().replaceAll("\\\\", "/"));
           config.add(element);
         }
 
@@ -558,7 +558,11 @@ public class MspCodeWatcher extends VisPlugin {
       public boolean setConfigXML(Collection<Element> configXML, boolean visAvailable) {
         for (Element element : configXML) {
           if (element.getName().equals("codefile")) {
-            codeFile = new File(element.getText());
+            File file = new File(element.getText());
+            if (!file.exists()) {
+              file = mySimulation.getGUI().restorePortablePath(file);
+            }
+            codeFile = file;
             if (!codeFile.exists()) {
               return false;
             }
