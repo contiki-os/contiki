@@ -1,4 +1,4 @@
-# $Id: Makefile.cooja,v 1.28 2009/03/12 15:12:50 fros4943 Exp $
+# $Id: Makefile.cooja,v 1.29 2009/03/12 17:48:23 fros4943 Exp $
 
 ## The COOJA Simulator Contiki platform Makefile
 ##
@@ -33,6 +33,7 @@ $(CONTIKI)/tools/cooja/dist/cooja.jar:
 	(cd $(CONTIKI)/tools/cooja && ant jar)
 
 # Quickstart rule
+.PHONY: $(MAKECMDGOALS)
 .PRECIOUS: $(MAKECMDGOALS)
 $(MAKECMDGOALS): $(CONTIKI)/tools/cooja/dist/cooja.jar
 	(cd $(CONTIKI)/tools/cooja/build && \
