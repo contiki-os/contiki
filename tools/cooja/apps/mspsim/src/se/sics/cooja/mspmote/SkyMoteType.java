@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: SkyMoteType.java,v 1.7 2009/03/11 17:46:59 fros4943 Exp $
+ * $Id: SkyMoteType.java,v 1.8 2009/03/12 15:12:10 fros4943 Exp $
  */
 
 package se.sics.cooja.mspmote;
@@ -57,14 +57,6 @@ import se.sics.cooja.mspmote.interfaces.SkySerial;
 public class SkyMoteType extends MspMoteType {
   private static Logger logger = Logger.getLogger(SkyMoteType.class);
 
-  public SkyMoteType() {
-  }
-
-  public SkyMoteType(String identifier) {
-    setIdentifier(identifier);
-    setDescription("Sky Mote Type #" + identifier);
-  }
-
   public Icon getMoteTypeIcon() {
     Toolkit toolkit = Toolkit.getDefaultToolkit();
     URL imageURL = this.getClass().getClassLoader().getResource("images/sky.jpg");
@@ -89,6 +81,7 @@ public class SkyMoteType extends MspMoteType {
 
   public boolean configureAndInit(Container parentContainer, Simulation simulation, boolean visAvailable)
   throws MoteTypeCreationException {
+    this.simulation = simulation;
 
     /* SPECIAL CASE: Cooja started in applet.
      * Use preconfigured Contiki firmware */

@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: MspMoteType.java,v 1.28 2009/03/11 17:46:59 fros4943 Exp $
+ * $Id: MspMoteType.java,v 1.29 2009/03/12 15:12:10 fros4943 Exp $
  */
 
 package se.sics.cooja.mspmote;
@@ -55,6 +55,8 @@ public abstract class MspMoteType implements MoteType {
 
   private String identifier = null;
   private String description = null;
+
+  protected Simulation simulation;
 
   /* If source file is defined, the firmware is recompiled when loading simulations */
   private File fileSource = null;
@@ -214,7 +216,7 @@ public abstract class MspMoteType implements MoteType {
     // Source file
     if (fileSource != null) {
       element = new Element("source");
-      File file = GUI.stripAbsoluteContikiPath(fileSource);
+      File file = simulation.getGUI().createPortablePath(fileSource);
       element.setText(file.getPath().replaceAll("\\\\", "/"));
       config.add(element);
       element = new Element("commands");
@@ -224,7 +226,7 @@ public abstract class MspMoteType implements MoteType {
 
     // Firmware file
     element = new Element("firmware");
-    File file = GUI.stripAbsoluteContikiPath(fileFirmware);
+    File file = simulation.getGUI().createPortablePath(fileFirmware);
     element.setText(file.getPath().replaceAll("\\\\", "/"));
     config.add(element);
 
@@ -241,6 +243,8 @@ public abstract class MspMoteType implements MoteType {
   public boolean setConfigXML(Simulation simulation,
       Collection<Element> configXML, boolean visAvailable)
       throws MoteTypeCreationException {
+    this.simulation = simulation;
+
     ArrayList<Class<? extends MoteInterface>> intfClassList = new ArrayList<Class<? extends MoteInterface>>();
     for (Element element : configXML) {
       String name = element.getName();
@@ -250,7 +254,11 @@ public abstract class MspMoteType implements MoteType {
       } else if (name.equals("description")) {
         description = element.getText();
       } else if (name.equals("source")) {
-        fileSource = new File(element.getText());
+        File file = new File(element.getText());
+        if (!file.exists()) {
+          file = simulation.getGUI().restorePortablePath(file);
+        }
+        fileSource = file;
       } else if (name.equals("command")) {
         /* Backwards compatibility: command is now commands */
         logger.warn("Old simulation config detected: old version only supports a single compile command");
@@ -258,7 +266,11 @@ public abstract class MspMoteType implements MoteType {
       } else if (name.equals("commands")) {
         compileCommands = element.getText();
       } else if (name.equals("firmware")) {
-        fileFirmware = new File(element.getText());
+        File file = new File(element.getText());
+        if (!file.exists()) {
+          file = simulation.getGUI().restorePortablePath(file);
+        }
+        fileFirmware = file;
       } else if (name.equals("elf")) {
         /* Backwards compatibility: elf is now firmware */
         logger.warn("Old simulation config detected: firmware specified as elf");
