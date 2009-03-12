@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ContikiMoteType.java,v 1.33 2009/03/12 15:08:29 fros4943 Exp $
+ * $Id: ContikiMoteType.java,v 1.34 2009/03/12 18:25:45 nifi Exp $
  */
 
 package se.sics.cooja.contikimote;
@@ -195,6 +195,7 @@ public class ContikiMoteType implements MoteType {
 
   public boolean configureAndInit(Container parentContainer, Simulation simulation,
       boolean visAvailable) throws MoteTypeCreationException {
+    this.simulation = simulation;
     myConfig = simulation.getGUI().getProjectConfig().clone();
 
     if (visAvailable) {
