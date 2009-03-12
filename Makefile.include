@@ -84,17 +84,6 @@ CONTIKI_OBJECTFILES = ${addprefix $(OBJECTDIR)/,${call oname, $(CONTIKI_SOURCEFI
 
 PROJECT_OBJECTFILES = ${addprefix $(OBJECTDIR)/,${call oname, $(PROJECT_SOURCEFILES)}}
 
-### Include application makefiles
-
-ifdef APPS
-  APPDIRS += ${addprefix $(CONTIKI)/apps/, $(APPS)}
-  APPINCLUDES = ${foreach APP, $(APPS), $(CONTIKI)/apps/$(APP)/Makefile.$(APP)}
-  -include $(APPINCLUDES)
-  APP_SOURCES = ${foreach APP, $(APPS), $($(APP)_src)}
-  DSC_SOURCES = ${foreach APP, $(APPS), $($(APP)_dsc)}
-  CONTIKI_SOURCEFILES += $(APP_SOURCES) $(DSC_SOURCES)
-endif
-
 ### Include target makefile (TODO Unsafe?)
 
 target_makefile := $(wildcard $(CONTIKI)/platform/$(TARGET)/Makefile.$(TARGET))
@@ -104,6 +93,20 @@ ifeq ($(strip $(target_makefile)),)
   ${error The target platform "$(TARGET)" does not exist (maybe it was misspelled?)}
 else
   include $(CONTIKI)/platform/$(TARGET)/Makefile.$(TARGET)
+endif
+
+### Include application makefiles
+
+ifdef APPS
+  APPDIRS += ${wildcard ${addprefix $(CONTIKI)/apps/, $(APPS)} \
+                ${addprefix $(CONTIKI)/platform/$(TARGET)/apps/, $(APPS)}}
+  APPINCLUDES = ${foreach APP, $(APPS), ${wildcard \
+                 $(CONTIKI)/apps/$(APP)/Makefile.$(APP) \
+                 $(CONTIKI)/platform/$(TARGET)/apps/$(APP)/Makefile.$(APP)}}
+  -include $(APPINCLUDES)
+  APP_SOURCES = ${foreach APP, $(APPS), $($(APP)_src)}
+  DSC_SOURCES = ${foreach APP, $(APPS), $($(APP)_dsc)}
+  CONTIKI_SOURCEFILES += $(APP_SOURCES) $(DSC_SOURCES)
 endif
 
 ### Forward comma-separated list of arbitrary defines to the compiler
