@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: chameleon.h,v 1.1 2008/02/25 02:14:34 adamdunkels Exp $
+ * $Id: chameleon.h,v 1.2 2009/03/12 21:58:20 adamdunkels Exp $
  */
 
 /**
@@ -49,13 +49,13 @@
 struct chameleon_module {
   struct channel *(* input)(void);
   int (* output)(struct channel *);
-  int (* hdrsize)(const struct rimebuf_attrlist *);
+  int (* hdrsize)(const struct packetbuf_attrlist *);
   void (* init)(void);
 };
 
 void chameleon_init(const struct chameleon_module *header_processing_module);
 
-int chameleon_hdrsize(const struct rimebuf_attrlist attrlist[]);
+int chameleon_hdrsize(const struct packetbuf_attrlist attrlist[]);
 void chameleon_input(void);
 int chameleon_output(struct channel *c);
 

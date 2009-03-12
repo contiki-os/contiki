@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: cc2420.c,v 1.28 2009/03/11 20:38:53 adamdunkels Exp $
+ * @(#)$Id: cc2420.c,v 1.29 2009/03/12 21:58:20 adamdunkels Exp $
  */
 /*
  * This code is almost device independent and should be easy to port.
@@ -50,7 +50,7 @@
 #include "dev/cc2420.h"
 #include "dev/cc2420_const.h"
 
-#include "net/rime/rimebuf.h"
+#include "net/rime/packetbuf.h"
 #include "net/rime/rimestats.h"
 
 #include "sys/timetable.h"
@@ -318,8 +318,8 @@ cc2420_send(const void *payload, unsigned short payload_len)
 
   GET_LOCK();
 
-  if(rimebuf_attr(RIMEBUF_ATTR_RADIO_TXPOWER) > 0) {
-    cc2420_set_txpower(rimebuf_attr(RIMEBUF_ATTR_RADIO_TXPOWER) - 1);
+  if(packetbuf_attr(PACKETBUF_ATTR_RADIO_TXPOWER) > 0) {
+    cc2420_set_txpower(packetbuf_attr(PACKETBUF_ATTR_RADIO_TXPOWER) - 1);
   } else {
     cc2420_set_txpower(CC2420_TXPOWER_MAX);
   }
@@ -646,8 +646,8 @@ cc2420_read(void *buf, unsigned short bufsize)
     cc2420_last_correlation = footer[1] & FOOTER1_CORRELATION;
 
 
-    rimebuf_set_attr(RIMEBUF_ATTR_RSSI, cc2420_last_rssi);
-    rimebuf_set_attr(RIMEBUF_ATTR_LINK_QUALITY, cc2420_last_correlation);
+    packetbuf_set_attr(PACKETBUF_ATTR_RSSI, cc2420_last_rssi);
+    packetbuf_set_attr(PACKETBUF_ATTR_LINK_QUALITY, cc2420_last_correlation);
     
     RIMESTATS_ADD(llrx);
     
@@ -659,7 +659,7 @@ cc2420_read(void *buf, unsigned short bufsize)
   
     cc2420_authority_level_of_sender = t.authority_level;
 
-    rimebuf_set_attr(RIMEBUF_ATTR_TIMESTAMP, t.time);
+    packetbuf_set_attr(PACKETBUF_ATTR_TIMESTAMP, t.time);
 #endif /* CC2420_CONF_TIMESTAMPS */
   
   } else {

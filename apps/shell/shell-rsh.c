@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: shell-rsh.c,v 1.2 2008/11/09 10:53:25 adamdunkels Exp $
+ * $Id: shell-rsh.c,v 1.3 2009/03/12 21:58:20 adamdunkels Exp $
  */
 
 /**
@@ -96,14 +96,14 @@ PROCESS_THREAD(shell_rsh_process, ev, data)
 	meshconn_close_connection(&meshconn);
 	PROCESS_EXIT();
       }
-      if(input->len1 + input->len2 >= RIMEBUF_SIZE) {
+      if(input->len1 + input->len2 >= PACKETBUF_SIZE) {
 	shell_output_str(&rsh_command, "rsh: input too long", "");
       } else {
-	rimebuf_clear();
-	memcpy(rimebuf_dataptr(), input->data1, input->len1);
-	memcpy((char *)rimebuf_dataptr() + input->len1,
+	packetbuf_clear();
+	memcpy(packetbuf_dataptr(), input->data1, input->len1);
+	memcpy((char *)packetbuf_dataptr() + input->len1,
 	       input->data2, input->len2);
-	rimebuf_set_datalen(input->len1 + input->len2);
+	packetbuf_set_datalen(input->len1 + input->len2);
 	meshconn_send(&meshconn);
       }
     }
@@ -125,11 +125,11 @@ PROCESS_THREAD(shell_rsh_server_process, ev, data)
     } else if(ev == shell_event_input) {
       struct shell_input *input;
       input = data;
-      rimebuf_clear();
-      memcpy(rimebuf_dataptr(), input->data1, input->len1);
-      memcpy((char *)rimebuf_dataptr() + input->len1,
+      packetbuf_clear();
+      memcpy(packetbuf_dataptr(), input->data1, input->len1);
+      memcpy((char *)packetbuf_dataptr() + input->len1,
 	     input->data2, input->len2);
-      rimebuf_set_datalen(input->len1 + input->len2);
+      packetbuf_set_datalen(input->len1 + input->len2);
       /*      printf("Sending meshconn with %d + %d bytes\n",
 	      input->len1, input->len2);*/
       meshconn_send(&meshconn);
@@ -150,10 +150,10 @@ recv_meshconn(struct meshconn_conn *c)
   /*  int ret;
       struct process *started_process;*/
 
-  /*  printf("got '%.*s'\n", rimebuf_datalen(), (char *)rimebuf_dataptr());*/
+  /*  printf("got '%.*s'\n", packetbuf_datalen(), (char *)packetbuf_dataptr());*/
   /* Echo reply */
   if(!initiator) {
-    rimebuf_copyfrom("abcdefghijklmnopq", 18);
+    packetbuf_copyfrom("abcdefghijklmnopq", 18);
     meshconn_send(c);
   }
   
@@ -162,14 +162,14 @@ recv_meshconn(struct meshconn_conn *c)
   if(front_process != NULL &&
      process_is_running(front_process)) {
     struct shell_input input;
-    input.data1 = rimebuf_dataptr();
-    input.len1 = rimebuf_datalen();
+    input.data1 = packetbuf_dataptr();
+    input.len1 = packetbuf_datalen();
     input.data2 = "";
     input.len2 = 0;
     process_post_synch(front_process, shell_event_input, &input);
   } else {
     
-    ret = shell_start_command(rimebuf_dataptr(), rimebuf_datalen(),
+    ret = shell_start_command(packetbuf_dataptr(), packetbuf_datalen(),
 			      &rsh_server_command, &started_process);
     
     if(started_process != NULL &&
@@ -178,8 +178,8 @@ recv_meshconn(struct meshconn_conn *c)
       front_process = started_process;
     }
   }
-  /*  shell_input(rimebuf_dataptr(), rimebuf_datalen());*/
-  /*  shell_output(&rsh_command, rimebuf_dataptr(), rimebuf_datalen(), "", 0);*/
+  /*  shell_input(packetbuf_dataptr(), packetbuf_datalen());*/
+  /*  shell_output(&rsh_command, packetbuf_dataptr(), packetbuf_datalen(), "", 0);*/
 #endif
 }
 static void

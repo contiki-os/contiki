@@ -36,7 +36,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: collect.c,v 1.22 2009/03/10 14:07:41 zhitao Exp $
+ * $Id: collect.c,v 1.23 2009/03/12 21:58:21 adamdunkels Exp $
  */
 
 /**
@@ -62,10 +62,10 @@
 #include <stdio.h>
 #include <stddef.h>
 
-static const struct rimebuf_attrlist attributes[] =
+static const struct packetbuf_attrlist attributes[] =
   {
     COLLECT_ATTRIBUTES
-    RIMEBUF_ATTR_LAST
+    PACKETBUF_ATTR_LAST
   };
 
 #define NUM_RECENT_PACKETS 2
@@ -157,18 +157,18 @@ node_packet_received(struct runicast_conn *c, rimeaddr_t *from, uint8_t seqno)
      packet exists in the list, we drop the packet. */
 
   for(i = 0; i < NUM_RECENT_PACKETS; i++) {
-    if(recent_packets[i].seqno == rimebuf_attr(RIMEBUF_ATTR_EPACKET_ID) &&
+    if(recent_packets[i].seqno == packetbuf_attr(PACKETBUF_ATTR_EPACKET_ID) &&
 	  rimeaddr_cmp(&recent_packets[i].originator,
-		       rimebuf_addr(RIMEBUF_ADDR_ESENDER))) {
+		       packetbuf_addr(PACKETBUF_ADDR_ESENDER))) {
       PRINTF("%d.%d: dropping duplicate packet with seqno %d\n",
-	     rimebuf_attr(RIMEBUF_ATTR_EPACKET_ID));
+	     packetbuf_attr(PACKETBUF_ATTR_EPACKET_ID));
       /* Drop the packet. */
       return;
     }
   }
-  recent_packets[recent_packet_ptr].seqno = rimebuf_attr(RIMEBUF_ATTR_EPACKET_ID);
+  recent_packets[recent_packet_ptr].seqno = packetbuf_attr(PACKETBUF_ATTR_EPACKET_ID);
   rimeaddr_copy(&recent_packets[recent_packet_ptr].originator,
-		rimebuf_addr(RIMEBUF_ADDR_ESENDER));
+		packetbuf_addr(PACKETBUF_ADDR_ESENDER));
   recent_packet_ptr = (recent_packet_ptr + 1) % NUM_RECENT_PACKETS;
   
   if(tc->rtmetric == SINK) {
@@ -177,29 +177,29 @@ node_packet_received(struct runicast_conn *c, rimeaddr_t *from, uint8_t seqno)
     
     PRINTF("%d.%d: sink received packet from %d.%d via %d.%d\n",
 	   rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1],
-	   rimebuf_addr(RIMEBUF_ADDR_ESENDER)->u8[0],
-	   rimebuf_addr(RIMEBUF_ADDR_ESENDER)->u8[1],
+	   packetbuf_addr(PACKETBUF_ADDR_ESENDER)->u8[0],
+	   packetbuf_addr(PACKETBUF_ADDR_ESENDER)->u8[1],
 	   from->u8[0], from->u8[1]);
 
     if(tc->cb->recv != NULL) {
-      tc->cb->recv(rimebuf_addr(RIMEBUF_ADDR_ESENDER),
-		   rimebuf_attr(RIMEBUF_ATTR_EPACKET_ID),
-		   rimebuf_attr(RIMEBUF_ATTR_HOPS));
+      tc->cb->recv(packetbuf_addr(PACKETBUF_ADDR_ESENDER),
+		   packetbuf_attr(PACKETBUF_ATTR_EPACKET_ID),
+		   packetbuf_attr(PACKETBUF_ATTR_HOPS));
     }
     return;
-  } else if(rimebuf_attr(RIMEBUF_ATTR_TTL) > 1 &&
+  } else if(packetbuf_attr(PACKETBUF_ATTR_TTL) > 1 &&
 	    tc->rtmetric != RTMETRIC_MAX) {
 
     /* If we are not the sink, we forward the packet to the best
        neighbor. */
-    rimebuf_set_attr(RIMEBUF_ATTR_HOPS, rimebuf_attr(RIMEBUF_ATTR_HOPS) + 1);
-    rimebuf_set_attr(RIMEBUF_ATTR_TTL, rimebuf_attr(RIMEBUF_ATTR_TTL) - 1);
+    packetbuf_set_attr(PACKETBUF_ATTR_HOPS, packetbuf_attr(PACKETBUF_ATTR_HOPS) + 1);
+    packetbuf_set_attr(PACKETBUF_ATTR_TTL, packetbuf_attr(PACKETBUF_ATTR_TTL) - 1);
 
         
     PRINTF("%d.%d: packet received from %d.%d via %d.%d, forwarding %d\n",
 	   rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1],
-	   rimebuf_addr(RIMEBUF_ADDR_ESENDER)->u8[0],
-	   rimebuf_addr(RIMEBUF_ADDR_ESENDER)->u8[1],
+	   packetbuf_addr(PACKETBUF_ADDR_ESENDER)->u8[0],
+	   packetbuf_addr(PACKETBUF_ADDR_ESENDER)->u8[1],
 	   from->u8[0], from->u8[1], tc->forwarding);
 
     if(!tc->forwarding) {
@@ -209,7 +209,7 @@ node_packet_received(struct runicast_conn *c, rimeaddr_t *from, uint8_t seqno)
 	ether_set_line(n->addr.u8[0], n->addr.u8[1]);
 #endif /* CONTIKI_TARGET_NETSIM */
 	tc->forwarding = 1;
-	runicast_send(c, &n->addr, rimebuf_attr(RIMEBUF_ATTR_MAX_REXMIT));
+	runicast_send(c, &n->addr, packetbuf_attr(PACKETBUF_ATTR_MAX_REXMIT));
       } else {
 	PRINTF("%d.%d: did not find any neighbor to forward to\n",
 	       rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1]);
@@ -341,18 +341,18 @@ collect_send(struct collect_conn *tc, int rexmits)
 {
   struct neighbor *n;
   
-  rimebuf_set_attr(RIMEBUF_ATTR_EPACKET_ID, tc->seqno++);
-  rimebuf_set_addr(RIMEBUF_ADDR_ESENDER, &rimeaddr_node_addr);
-  rimebuf_set_attr(RIMEBUF_ATTR_HOPS, 1);
-  rimebuf_set_attr(RIMEBUF_ATTR_TTL, MAX_HOPLIM);
-  rimebuf_set_attr(RIMEBUF_ATTR_MAX_REXMIT, rexmits);
+  packetbuf_set_attr(PACKETBUF_ATTR_EPACKET_ID, tc->seqno++);
+  packetbuf_set_addr(PACKETBUF_ADDR_ESENDER, &rimeaddr_node_addr);
+  packetbuf_set_attr(PACKETBUF_ATTR_HOPS, 1);
+  packetbuf_set_attr(PACKETBUF_ATTR_TTL, MAX_HOPLIM);
+  packetbuf_set_attr(PACKETBUF_ATTR_MAX_REXMIT, rexmits);
 
   if(tc->rtmetric == 0) {
-    rimebuf_set_attr(RIMEBUF_ATTR_HOPS, 0);
+    packetbuf_set_attr(PACKETBUF_ATTR_HOPS, 0);
     if(tc->cb->recv != NULL) {
-      tc->cb->recv(rimebuf_addr(RIMEBUF_ADDR_ESENDER),
-		   rimebuf_attr(RIMEBUF_ATTR_EPACKET_ID),
-		   rimebuf_attr(RIMEBUF_ATTR_HOPS));
+      tc->cb->recv(packetbuf_addr(PACKETBUF_ADDR_ESENDER),
+		   packetbuf_attr(PACKETBUF_ATTR_EPACKET_ID),
+		   packetbuf_attr(PACKETBUF_ATTR_HOPS));
     }
     return 1;
   } else {

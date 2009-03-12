@@ -33,7 +33,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: stunicast.c,v 1.1 2008/07/03 21:35:46 adamdunkels Exp $
+ * $Id: stunicast.c,v 1.2 2009/03/12 21:58:21 adamdunkels Exp $
  */
 
 /**
@@ -102,7 +102,7 @@ send(void *ptr)
   PRINTF("%d.%d: stunicast: resend to %d.%d\n",
 	 rimeaddr_node_addr.u8[0],rimeaddr_node_addr.u8[1],
 	 c->receiver.u8[0], c->receiver.u8[1]);
-  queuebuf_to_rimebuf(c->buf);
+  queuebuf_to_packetbuf(c->buf);
   unicast_send(&c->c, &c->receiver);
   stunicast_set_timer(c, CLOCK_SECOND);
   if(c->u->sent != NULL) {
@@ -123,7 +123,7 @@ stunicast_send_stubborn(struct stunicast_conn *c, rimeaddr_t *receiver,
   if(c->buf != NULL) {
     queuebuf_free(c->buf);
   }
-  c->buf = queuebuf_new_from_rimebuf();
+  c->buf = queuebuf_new_from_packetbuf();
   if(c->buf == NULL) {
     return 0;
   }

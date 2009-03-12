@@ -33,7 +33,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: route-discovery.c,v 1.13 2009/01/21 14:29:24 fros4943 Exp $
+ * $Id: route-discovery.c,v 1.14 2009/03/12 21:58:21 adamdunkels Exp $
  */
 
 /**
@@ -82,9 +82,9 @@ send_rreq(struct route_discovery_conn *c, rimeaddr_t *dest)
 {
   struct route_msg *msg;
 
-  rimebuf_clear();
-  msg = rimebuf_dataptr();
-  rimebuf_set_datalen(sizeof(struct route_msg));
+  packetbuf_clear();
+  msg = packetbuf_dataptr();
+  packetbuf_set_datalen(sizeof(struct route_msg));
 
   msg->pad = 0;
   msg->rreq_id = c->rreq_id;
@@ -100,9 +100,9 @@ send_rrep(struct route_discovery_conn *c, rimeaddr_t *dest)
   struct rrep_hdr *rrepmsg;
   struct route_entry *rt;
   
-  rimebuf_clear();
-  rrepmsg = rimebuf_dataptr();
-  rimebuf_set_datalen(sizeof(struct rrep_hdr));
+  packetbuf_clear();
+  rrepmsg = packetbuf_dataptr();
+  packetbuf_set_datalen(sizeof(struct rrep_hdr));
   rrepmsg->hops = 0;
   rimeaddr_copy(&rrepmsg->dest, dest);
   rimeaddr_copy(&rrepmsg->originator, &rimeaddr_node_addr);
@@ -139,7 +139,7 @@ insert_route(rimeaddr_t *originator, rimeaddr_t *last_hop, uint8_t hops)
 static void
 rrep_packet_received(struct unicast_conn *uc, rimeaddr_t *from)
 {
-  struct rrep_hdr *msg = rimebuf_dataptr();
+  struct rrep_hdr *msg = packetbuf_dataptr();
   struct route_entry *rt;
   rimeaddr_t dest;
   struct route_discovery_conn *c = (struct route_discovery_conn *)
@@ -149,7 +149,7 @@ rrep_packet_received(struct unicast_conn *uc, rimeaddr_t *from)
 	 rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1],
 	 from->u8[0],from->u8[1],
 	 msg->dest.u8[0],msg->dest.u8[1],
-	 rimebuf_datalen());
+	 packetbuf_datalen());
 
   insert_route(&msg->originator, from, msg->hops);
 
@@ -178,7 +178,7 @@ static int
 rreq_packet_received(struct netflood_conn *nf, rimeaddr_t *from,
 		      rimeaddr_t *originator, uint8_t seqno, uint8_t hops)
 {
-  struct route_msg *msg = rimebuf_dataptr();
+  struct route_msg *msg = packetbuf_dataptr();
   struct route_discovery_conn *c = (struct route_discovery_conn *)
     ((char *)nf - offsetof(struct route_discovery_conn, rreqconn));
 

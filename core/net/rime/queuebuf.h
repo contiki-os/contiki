@@ -41,7 +41,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: queuebuf.h,v 1.5 2007/03/31 18:31:28 adamdunkels Exp $
+ * $Id: queuebuf.h,v 1.6 2009/03/12 21:58:21 adamdunkels Exp $
  */
 
 /**
@@ -54,15 +54,15 @@
 #ifndef __QUEUEBUF_H__
 #define __QUEUEBUF_H__
 
-#include "net/rime/rimebuf.h"
+#include "net/rime/packetbuf.h"
 
 struct queuebuf;
 
 void queuebuf_init(void);
 
-struct queuebuf *queuebuf_new_from_rimebuf(void);
+struct queuebuf *queuebuf_new_from_packetbuf(void);
 void queuebuf_free(struct queuebuf *b);
-void queuebuf_to_rimebuf(struct queuebuf *b);
+void queuebuf_to_packetbuf(struct queuebuf *b);
 
 void *queuebuf_dataptr(struct queuebuf *b);
 int queuebuf_datalen(struct queuebuf *b);

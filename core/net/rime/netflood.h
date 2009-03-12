@@ -62,7 +62,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: netflood.h,v 1.3 2009/03/07 11:15:46 adamdunkels Exp $
+ * $Id: netflood.h,v 1.4 2009/03/12 21:58:21 adamdunkels Exp $
  */
 
 /**
@@ -82,9 +82,9 @@
 
 struct netflood_conn;
 
-#define NETFLOOD_ATTRIBUTES   { RIMEBUF_ADDR_ESENDER, RIMEBUF_ADDRSIZE }, \
-                              { RIMEBUF_ATTR_HOPS, RIMEBUF_ATTR_BIT * 5 }, \
-                              { RIMEBUF_ATTR_EPACKET_ID, RIMEBUF_ATTR_BIT * 4 }, \
+#define NETFLOOD_ATTRIBUTES   { PACKETBUF_ADDR_ESENDER, PACKETBUF_ADDRSIZE }, \
+                              { PACKETBUF_ATTR_HOPS, PACKETBUF_ATTR_BIT * 5 }, \
+                              { PACKETBUF_ATTR_EPACKET_ID, PACKETBUF_ATTR_BIT * 4 }, \
                                 IPOLITE_ATTRIBUTES
 
 struct netflood_callbacks {

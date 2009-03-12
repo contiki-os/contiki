@@ -53,7 +53,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: broadcast.h,v 1.2 2009/03/07 11:15:46 adamdunkels Exp $
+ * $Id: broadcast.h,v 1.3 2009/03/12 21:58:20 adamdunkels Exp $
  */
 
 /**
@@ -71,7 +71,7 @@
 
 struct broadcast_conn;
 
-#define BROADCAST_ATTRIBUTES  { RIMEBUF_ADDR_SENDER, RIMEBUF_ADDRSIZE }, \
+#define BROADCAST_ATTRIBUTES  { PACKETBUF_ADDR_SENDER, PACKETBUF_ADDRSIZE }, \
                         ABC_ATTRIBUTES
 
 /**
@@ -125,7 +125,7 @@ void broadcast_close(struct broadcast_conn *c);
  * \retval     Non-zero if the packet could be sent, zero otherwise
  *
  *             This function sends an identified best-effort broadcast
- *             packet. The packet must be present in the rimebuf
+ *             packet. The packet must be present in the packetbuf
  *             before this function is called.
  *
  *             The parameter c must point to a broadcast connection that

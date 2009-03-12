@@ -33,7 +33,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: netflood.c,v 1.2 2009/02/11 11:08:56 adamdunkels Exp $
+ * $Id: netflood.c,v 1.3 2009/03/12 21:58:21 adamdunkels Exp $
  */
 
 /**
@@ -76,16 +76,16 @@ static void
 recv_from_ipolite(struct ipolite_conn *ipolite, rimeaddr_t *from)
 {
   struct netflood_conn *c = (struct netflood_conn *)ipolite;
-  struct netflood_hdr *hdr = rimebuf_dataptr();
+  struct netflood_hdr *hdr = packetbuf_dataptr();
   uint8_t hops;
   struct queuebuf *queuebuf;
 
   hops = hdr->hops;
 
   /* Remember packet if we need to forward it. */
-  queuebuf = queuebuf_new_from_rimebuf();
+  queuebuf = queuebuf_new_from_packetbuf();
 
-  rimebuf_hdrreduce(sizeof(struct netflood_hdr));
+  packetbuf_hdrreduce(sizeof(struct netflood_hdr));
   if(c->u->recv != NULL) {
     if(!(rimeaddr_cmp(&hdr->originator, &c->last_originator) &&
 	 hdr->originator_seqno <= c->last_originator_seqno)) {
@@ -94,10 +94,10 @@ recv_from_ipolite(struct ipolite_conn *ipolite, rimeaddr_t *from)
 		    hops)) {
 	
 	if(queuebuf != NULL) {
-	  queuebuf_to_rimebuf(queuebuf);
+	  queuebuf_to_packetbuf(queuebuf);
 	  queuebuf_free(queuebuf);
 	  queuebuf = NULL;
-	  hdr = rimebuf_dataptr();
+	  hdr = packetbuf_dataptr();
 	  
 	  /* Rebroadcast received packet. */
 	  if(hops < HOPS_MAX) {
@@ -160,15 +160,15 @@ netflood_close(struct netflood_conn *c)
 int
 netflood_send(struct netflood_conn *c, uint8_t seqno)
 {
-  if(rimebuf_hdralloc(sizeof(struct netflood_hdr))) {
-    struct netflood_hdr *hdr = rimebuf_hdrptr();
+  if(packetbuf_hdralloc(sizeof(struct netflood_hdr))) {
+    struct netflood_hdr *hdr = packetbuf_hdrptr();
     rimeaddr_copy(&hdr->originator, &rimeaddr_node_addr);
     rimeaddr_copy(&c->last_originator, &hdr->originator);
     c->last_originator_seqno = hdr->originator_seqno = seqno;
     hdr->hops = 0;
     PRINTF("%d.%d: netflood sending '%s'\n",
 	   rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1],
-	   (char *)rimebuf_dataptr());
+	   (char *)packetbuf_dataptr());
     return ipolite_send(&c->c, 0, 4);
   }
   return 0;

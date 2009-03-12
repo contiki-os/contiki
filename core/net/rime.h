@@ -33,7 +33,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: rime.h,v 1.21 2009/02/09 21:09:42 adamdunkels Exp $
+ * $Id: rime.h,v 1.22 2009/03/12 21:58:20 adamdunkels Exp $
  */
 
 /**
@@ -59,7 +59,7 @@
 #include "net/rime/polite.h"
 #include "net/rime/queuebuf.h"
 #include "net/rime/rimeaddr.h"
-#include "net/rime/rimebuf.h"
+#include "net/rime/packetbuf.h"
 #include "net/rime/rimestats.h"
 #include "net/rime/rmh.h"
 #include "net/rime/route-discovery.h"
@@ -83,8 +83,8 @@ void rime_init(const struct mac_driver *);
  *
  *             This function should be called by the network driver to
  *             hand over a packet to Rime for furhter processing. The
- *             packet should be placed in the rimebuf (with
- *             rimebuf_copyfrom()) before calling this function.
+ *             packet should be placed in the packetbuf (with
+ *             packetbuf_copyfrom()) before calling this function.
  *
  */
 void rime_input(void);
@@ -94,10 +94,10 @@ void rime_input(void);
  *
  *             This function must be implemented by the driver running
  *             below Rime. It is called by abRime to send out a
- *             packet. The packet is consecutive in the rimebuf. A
+ *             packet. The packet is consecutive in the packetbuf. A
  *             pointer to the first byte of the packet is obtained
- *             with the rimebuf_hdrptr() function. The length of the
- *             packet to send is obtained with the rimebuf_totlen()
+ *             with the packetbuf_hdrptr() function. The length of the
+ *             packet to send is obtained with the packetbuf_totlen()
  *             function.
  *
  *             The driver, which typically is a MAC protocol, may

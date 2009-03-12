@@ -49,7 +49,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: mesh.h,v 1.12 2008/07/03 22:36:02 adamdunkels Exp $
+ * $Id: mesh.h,v 1.13 2009/03/12 21:58:21 adamdunkels Exp $
  */
 
 /**
@@ -126,7 +126,7 @@ void mesh_close(struct mesh_conn *c);
  * \retval     Non-zero if the packet could be queued for sending, zero otherwise
  *
  *             This function sends a mesh packet. The packet must be
- *             present in the rimebuf before this function is called.
+ *             present in the packetbuf before this function is called.
  *
  *             The parameter c must point to an abc connection that
  *             must have previously been set up with mesh_open().

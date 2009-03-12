@@ -42,7 +42,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: compower.h,v 1.1 2009/03/01 20:32:03 adamdunkels Exp $
+ * $Id: compower.h,v 1.2 2009/03/12 21:58:21 adamdunkels Exp $
  */
 
 /**
@@ -116,7 +116,7 @@ void compower_clear(struct compower_activity *a);
  *
  *             This function converts accumulated power consumption
  *             information for a communication activity to packet
- *             attributes (see \ref rimebufattr "packet attributes").
+ *             attributes (see \ref packetbufattr "packet attributes").
  */
 void compower_attrconv(struct compower_activity *a);
 
@@ -126,7 +126,7 @@ void compower_attrconv(struct compower_activity *a);
  *
  *             This function accumulates power consumption information
  *             for a communication activity from packet attributes
- *             (see \ref rimebufattr "packet attributes").
+ *             (see \ref packetbufattr "packet attributes").
  */
 void compower_accumulate_attrs(struct compower_activity *a);
 

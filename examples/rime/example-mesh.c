@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: example-mesh.c,v 1.3 2009/01/19 13:24:42 nifi Exp $
+ * $Id: example-mesh.c,v 1.4 2009/03/12 21:58:21 adamdunkels Exp $
  */
 
 /**
@@ -68,9 +68,9 @@ recv(struct mesh_conn *c, rimeaddr_t *from, uint8_t hops)
 {
   printf("Data received from %d.%d: %.*s (%d)\n",
 	 from->u8[0], from->u8[1],
-	 rimebuf_datalen(), (char *)rimebuf_dataptr(), rimebuf_datalen());
+	 packetbuf_datalen(), (char *)packetbuf_dataptr(), packetbuf_datalen());
 
-  rimebuf_copyfrom("Hopp", 4);
+  packetbuf_copyfrom("Hopp", 4);
   mesh_send(&mesh, from);
 }
 
@@ -100,7 +100,7 @@ PROCESS_THREAD(example_mesh_process, ev, data)
      * 6.
      */
     
-    rimebuf_copyfrom("Hej", 3);
+    packetbuf_copyfrom("Hej", 3);
     addr.u8[0] = 161;
     addr.u8[1] = 161;
     mesh_send(&mesh, &addr);

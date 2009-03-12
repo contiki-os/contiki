@@ -36,7 +36,7 @@
  *
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: abc.c,v 1.18 2008/02/25 02:14:34 adamdunkels Exp $
+ * $Id: abc.c,v 1.19 2009/03/12 21:58:20 adamdunkels Exp $
  */
 
 /**
@@ -58,8 +58,8 @@
 #define PRINTF(...)
 #endif
 
-static const struct rimebuf_attrlist attributes[] =
-  { ABC_ATTRIBUTES RIMEBUF_ATTR_LAST };
+static const struct packetbuf_attrlist attributes[] =
+  { ABC_ATTRIBUTES PACKETBUF_ATTR_LAST };
 
 /*---------------------------------------------------------------------------*/
 void

@@ -33,7 +33,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: neighbor-discovery.c,v 1.13 2009/02/11 11:08:56 adamdunkels Exp $
+ * $Id: neighbor-discovery.c,v 1.14 2009/03/12 21:58:21 adamdunkels Exp $
  */
 
 /**
@@ -89,9 +89,9 @@ send_adv(void *ptr)
   struct neighbor_discovery_conn *c = ptr;
   struct adv_msg *hdr;
 
-  rimebuf_clear();
-  rimebuf_set_datalen(sizeof(struct adv_msg));
-  hdr = rimebuf_dataptr();
+  packetbuf_clear();
+  packetbuf_set_datalen(sizeof(struct adv_msg));
+  hdr = packetbuf_dataptr();
   hdr->val = c->val;
   broadcast_send(&c->c);
   if(c->u->sent) {
@@ -106,7 +106,7 @@ static void
 adv_packet_received(struct broadcast_conn *ibc, rimeaddr_t *from)
 {
   struct neighbor_discovery_conn *c = (struct neighbor_discovery_conn *)ibc;
-  struct adv_msg *msg = rimebuf_dataptr();
+  struct adv_msg *msg = packetbuf_dataptr();
 
   PRINTF("%d.%d: adv_packet_received from %d.%d with val %d\n",
 	 rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1],

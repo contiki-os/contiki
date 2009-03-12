@@ -33,7 +33,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: rudolph0.c,v 1.10 2008/06/30 08:28:53 adamdunkels Exp $
+ * $Id: rudolph0.c,v 1.11 2009/03/12 21:58:21 adamdunkels Exp $
  */
 
 /**
@@ -90,9 +90,9 @@ static void
 send_nack(struct rudolph0_conn *c)
 {
   struct rudolph0_hdr *hdr;
-  rimebuf_clear();
-  rimebuf_hdralloc(sizeof(struct rudolph0_hdr));
-  hdr = rimebuf_hdrptr();
+  packetbuf_clear();
+  packetbuf_hdralloc(sizeof(struct rudolph0_hdr));
+  hdr = packetbuf_hdrptr();
 
   hdr->type = TYPE_NACK;
   hdr->version = c->current.h.version;
@@ -122,7 +122,7 @@ static void
 recv(struct stbroadcast_conn *stbroadcast)
 {
   struct rudolph0_conn *c = (struct rudolph0_conn *)stbroadcast;
-  struct rudolph0_datapacket *p = rimebuf_dataptr();
+  struct rudolph0_datapacket *p = packetbuf_dataptr();
 
   if(p->h.type == TYPE_DATA) {
     if(c->current.h.version != p->h.version) {
@@ -164,7 +164,7 @@ recv_nack(struct polite_conn *polite)
   struct rudolph0_conn *c = (struct rudolph0_conn *)
     ((char *)polite - offsetof(struct rudolph0_conn,
 			     nackc));
-  struct rudolph0_datapacket *p = rimebuf_dataptr();
+  struct rudolph0_datapacket *p = packetbuf_dataptr();
 
   if(p->h.type == TYPE_NACK && c->state == STATE_SENDER) {
     if(p->h.version == c->current.h.version) {
@@ -210,7 +210,7 @@ rudolph0_send(struct rudolph0_conn *c, clock_time_t send_interval)
   c->current.h.chunk = 0;
   c->current.h.type = TYPE_DATA;
   read_new_datapacket(c);
-  rimebuf_reference(&c->current, sizeof(struct rudolph0_datapacket));
+  packetbuf_reference(&c->current, sizeof(struct rudolph0_datapacket));
   c->send_interval = send_interval;
   stbroadcast_send_stubborn(&c->c, c->send_interval);
 }

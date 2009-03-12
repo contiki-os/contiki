@@ -33,7 +33,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: rmh.c,v 1.7 2008/07/03 21:52:25 adamdunkels Exp $
+ * $Id: rmh.c,v 1.8 2009/03/12 21:58:21 adamdunkels Exp $
  */
 
 /**
@@ -67,16 +67,16 @@ static void
 received(struct runicast_conn *uc, rimeaddr_t *from, uint8_t seqno)
 {
   struct rmh_conn *c = (struct rmh_conn *)uc;
-  struct data_hdr *msg = rimebuf_dataptr();
+  struct data_hdr *msg = packetbuf_dataptr();
   rimeaddr_t *nexthop;
 
   PRINTF("data_packet_received from %d towards %d len %d\n", from->u16[0],
 	 msg->dest.u16[0],
-	 rimebuf_datalen());
+	 packetbuf_datalen());
 
   if(rimeaddr_cmp(&msg->dest, &rimeaddr_node_addr)) {
     PRINTF("for us!\n");
-    rimebuf_hdrreduce(sizeof(struct data_hdr));
+    packetbuf_hdrreduce(sizeof(struct data_hdr));
     if(c->cb->recv) {
       c->cb->recv(c, &msg->originator, msg->hops);
     }
@@ -144,8 +144,8 @@ rmh_send(struct rmh_conn *c, rimeaddr_t *to, uint8_t num_rexmit, uint8_t max_hop
     PRINTF("rmh_send: sending data\n");
 
     
-    if(rimebuf_hdralloc(sizeof(struct data_hdr))) {
-      hdr = rimebuf_hdrptr();
+    if(packetbuf_hdralloc(sizeof(struct data_hdr))) {
+      hdr = packetbuf_hdrptr();
       rimeaddr_copy(&hdr->dest, to);
       rimeaddr_copy(&hdr->originator, &rimeaddr_node_addr);
       hdr->hops = 1;

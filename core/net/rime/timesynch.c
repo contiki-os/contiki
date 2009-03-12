@@ -34,7 +34,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: timesynch.c,v 1.6 2009/02/20 21:23:22 adamdunkels Exp $
+ * $Id: timesynch.c,v 1.7 2009/03/12 21:58:21 adamdunkels Exp $
  */
 
 /**
@@ -45,7 +45,7 @@
  */
 
 #include "net/rime/timesynch.h"
-#include "net/rime/rimebuf.h"
+#include "net/rime/packetbuf.h"
 #include "net/rime.h"
 #include "dev/cc2420.h"
 
@@ -102,7 +102,7 @@ adjust_offset(rtimer_clock_t authoritative_time, rtimer_clock_t local_time)
 static void
 incoming_packet(void)
 {
-  if(rimebuf_totlen() != 0) {
+  if(packetbuf_totlen() != 0) {
     /* We check the authority level of the sender of the incoming
        packet. If the sending node has a lower authority level than we
        have, we synchronize to the time of the sending node and set our

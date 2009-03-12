@@ -33,7 +33,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: rudolph1.c,v 1.11 2008/02/24 22:05:27 adamdunkels Exp $
+ * $Id: rudolph1.c,v 1.12 2009/03/12 21:58:21 adamdunkels Exp $
  */
 
 /**
@@ -102,13 +102,13 @@ format_data(struct rudolph1_conn *c, int chunk)
 {
   struct rudolph1_datapacket *p;
   
-  rimebuf_clear();
-  p = rimebuf_dataptr();
+  packetbuf_clear();
+  p = packetbuf_dataptr();
   p->h.type = TYPE_DATA;
   p->h.version = c->version;
   p->h.chunk = chunk;
   p->datalen = read_data(c, p->data, chunk);
-  rimebuf_set_datalen(sizeof(struct rudolph1_datapacket) -
+  packetbuf_set_datalen(sizeof(struct rudolph1_datapacket) -
 		      (RUDOLPH1_DATASIZE - p->datalen));
 
   return p->datalen;
@@ -137,9 +137,9 @@ static void
 send_nack(struct rudolph1_conn *c)
 {
   struct rudolph1_hdr *hdr;
-  rimebuf_clear();
-  rimebuf_hdralloc(sizeof(struct rudolph1_hdr));
-  hdr = rimebuf_hdrptr();
+  packetbuf_clear();
+  packetbuf_hdralloc(sizeof(struct rudolph1_hdr));
+  hdr = packetbuf_hdrptr();
 
   hdr->type = TYPE_NACK;
   hdr->version = c->version;
@@ -207,7 +207,7 @@ static void
 recv_trickle(struct trickle_conn *trickle)
 {
   struct rudolph1_conn *c = (struct rudolph1_conn *)trickle;
-  struct rudolph1_datapacket *p = rimebuf_dataptr();
+  struct rudolph1_datapacket *p = packetbuf_dataptr();
 
   if(p->h.type == TYPE_DATA) {
     PRINTF("%d.%d: received trickle with chunk %d\n",
@@ -236,7 +236,7 @@ recv_ipolite(struct ipolite_conn *ipolite, rimeaddr_t *from)
 {
   struct rudolph1_conn *c = (struct rudolph1_conn *)
     ((char *)ipolite - offsetof(struct rudolph1_conn, ipolite));
-  struct rudolph1_datapacket *p = rimebuf_dataptr();
+  struct rudolph1_datapacket *p = packetbuf_dataptr();
 
   PRINTF("%d.%d: Got ipolite type %d\n",
 	 rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1],

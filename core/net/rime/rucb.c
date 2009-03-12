@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: rucb.c,v 1.8 2008/07/03 21:52:25 adamdunkels Exp $
+ * $Id: rucb.c,v 1.9 2009/03/12 21:58:21 adamdunkels Exp $
  */
 
 /**
@@ -59,12 +59,12 @@ read_data(struct rucb_conn *c)
 {
   int len = 0;
 
-  rimebuf_clear();
+  packetbuf_clear();
   if(c->u->read_chunk) {
     len = c->u->read_chunk(c, c->chunk * RUCB_DATASIZE,
-			    rimebuf_dataptr(), RUCB_DATASIZE);
+			    packetbuf_dataptr(), RUCB_DATASIZE);
   }
-  rimebuf_set_datalen(len);
+  packetbuf_set_datalen(len);
   return len;
 }
 /*---------------------------------------------------------------------------*/
@@ -102,7 +102,7 @@ recv(struct runicast_conn *ruc, rimeaddr_t *from, uint8_t seqno)
 
   PRINTF("%d.%d: rucb: recv from %d.%d len %d\n",
 	 rimeaddr_node_addr.u8[0],rimeaddr_node_addr.u8[1],
-	 from->u8[0], from->u8[1], rimebuf_totlen());
+	 from->u8[0], from->u8[1], packetbuf_totlen());
 
   if(seqno == c->last_seqno) {
     return;
@@ -111,28 +111,28 @@ recv(struct runicast_conn *ruc, rimeaddr_t *from, uint8_t seqno)
 
   if(rimeaddr_cmp(&c->sender, &rimeaddr_null)) {
     rimeaddr_copy(&c->sender, from);
-    c->u->write_chunk(c, 0, RUCB_FLAG_NEWFILE, rimebuf_dataptr(), 0);
+    c->u->write_chunk(c, 0, RUCB_FLAG_NEWFILE, packetbuf_dataptr(), 0);
     c->chunk = 0;
   }
 
   
   if(rimeaddr_cmp(&c->sender, from)) {
-    int datalen = rimebuf_datalen();
+    int datalen = packetbuf_datalen();
     
     if(datalen < RUCB_DATASIZE) {
       PRINTF("%d.%d: get %d bytes, file complete\n",
 	     rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1],
 	     datalen);
       c->u->write_chunk(c, c->chunk * RUCB_DATASIZE,
-			 RUCB_FLAG_LASTCHUNK, rimebuf_dataptr(), datalen);
+			 RUCB_FLAG_LASTCHUNK, packetbuf_dataptr(), datalen);
     } else {
       c->u->write_chunk(c, c->chunk * RUCB_DATASIZE,
-			RUCB_FLAG_NONE, rimebuf_dataptr(), datalen);
+			RUCB_FLAG_NONE, packetbuf_dataptr(), datalen);
     }
     c->chunk++;
   }
 
-  if(rimebuf_datalen() < RUCB_DATASIZE) {
+  if(packetbuf_datalen() < RUCB_DATASIZE) {
     rimeaddr_copy(&c->sender, &rimeaddr_null);
   }
 }

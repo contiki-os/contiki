@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: chameleon-bitopt.c,v 1.6 2009/02/10 23:49:58 adamdunkels Exp $
+ * $Id: chameleon-bitopt.c,v 1.7 2009/03/12 21:58:20 adamdunkels Exp $
  */
 
 /**
@@ -110,7 +110,7 @@ get_bits(uint8_t *to, uint8_t *from, int bitpos, int vallen)
 }
 /*---------------------------------------------------------------------------*/
 static int
-header_size(const struct rimebuf_attrlist *a)
+header_size(const struct packetbuf_attrlist *a)
 {
   int size, len;
   
@@ -118,9 +118,9 @@ header_size(const struct rimebuf_attrlist *a)
      all attributes that are used on this channel. */
   
   size = 0;
-  for(; a->type != RIMEBUF_ATTR_NONE; ++a) {
+  for(; a->type != PACKETBUF_ATTR_NONE; ++a) {
     /*    PRINTF("chameleon header_size: header type %s (%d) len %d\n",
-	   rimebuf_attr_strings[a->type],
+	   packetbuf_attr_strings[a->type],
 	   a->type,
 	   a->len);*/
     len = a->len;
@@ -219,7 +219,7 @@ printhdr(uint8_t *hdr, int len)
 static int
 pack_header(struct channel *c)
 {
-  const struct rimebuf_attrlist *a;
+  const struct packetbuf_attrlist *a;
   int hdrbytesize;
   int byteptr, bitptr, len;
   uint8_t *hdrptr;
@@ -229,32 +229,32 @@ pack_header(struct channel *c)
      all attributes that are used on this channel. */
 
   hdrbytesize = c->hdrsize / 8 + ((c->hdrsize & 7) == 0? 0: 1);
-  rimebuf_hdralloc(hdrbytesize);
-  hdrptr = rimebuf_hdrptr();
+  packetbuf_hdralloc(hdrbytesize);
+  hdrptr = packetbuf_hdrptr();
   memset(hdrptr, 0, hdrbytesize);
   
   byteptr = bitptr = 0;
   
-  for(a = c->attrlist; a->type != RIMEBUF_ATTR_NONE; ++a) {
+  for(a = c->attrlist; a->type != PACKETBUF_ATTR_NONE; ++a) {
     PRINTF("%d.%d: pack_header type %s, len %d, bitptr %d, ",
 	   rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1],
-	   rimebuf_attr_strings[a->type], a->len, bitptr);
+	   packetbuf_attr_strings[a->type], a->len, bitptr);
     /*    len = (a->len & 0xf8) + ((a->len & 7) ? 8: 0);*/
     len = a->len;
     byteptr = bitptr / 8;
-    if(a->type == RIMEBUF_ADDR_SENDER ||
-       a->type == RIMEBUF_ADDR_RECEIVER ||
-       a->type == RIMEBUF_ADDR_ESENDER ||
-       a->type == RIMEBUF_ADDR_ERECEIVER) {
+    if(a->type == PACKETBUF_ADDR_SENDER ||
+       a->type == PACKETBUF_ADDR_RECEIVER ||
+       a->type == PACKETBUF_ADDR_ESENDER ||
+       a->type == PACKETBUF_ADDR_ERECEIVER) {
       set_bits(&hdrptr[byteptr], bitptr & 7,
-	       (uint8_t *)rimebuf_addr(a->type), len);
+	       (uint8_t *)packetbuf_addr(a->type), len);
       PRINTF("address %d.%d\n",
 	    /*	    rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1],*/
-	    ((uint8_t *)rimebuf_addr(a->type))[0],
-	    ((uint8_t *)rimebuf_addr(a->type))[1]);
+	    ((uint8_t *)packetbuf_addr(a->type))[0],
+	    ((uint8_t *)packetbuf_addr(a->type))[1]);
     } else {
-      rimebuf_attr_t val;
-      val = rimebuf_attr(a->type);
+      packetbuf_attr_t val;
+      val = packetbuf_attr(a->type);
       set_bits(&hdrptr[byteptr], bitptr & 7,
 	       (uint8_t *)&val, len);
       PRINTF("value %d\n",
@@ -266,8 +266,8 @@ pack_header(struct channel *c)
   }
   /*  printhdr(hdrptr, hdrbytesize);*/
 
-  rimebuf_hdralloc(sizeof(struct bitopt_hdr));
-  hdr = (struct bitopt_hdr *)rimebuf_hdrptr();
+  packetbuf_hdralloc(sizeof(struct bitopt_hdr));
+  hdr = (struct bitopt_hdr *)packetbuf_hdrptr();
   hdr->channel[0] = c->channelno & 0xff;
   hdr->channel[1] = (c->channelno >> 8) & 0xff;
   
@@ -277,7 +277,7 @@ pack_header(struct channel *c)
 static struct channel *
 unpack_header(void)
 {
-  const struct rimebuf_attrlist *a;
+  const struct packetbuf_attrlist *a;
   int byteptr, bitptr, len;
   int hdrbytesize;
   uint8_t *hdrptr;
@@ -287,44 +287,44 @@ unpack_header(void)
 
   /* The packet has a header that tells us what channel the packet is
      for. */
-  hdr = (struct bitopt_hdr *)rimebuf_dataptr();
-  rimebuf_hdrreduce(sizeof(struct bitopt_hdr));
+  hdr = (struct bitopt_hdr *)packetbuf_dataptr();
+  packetbuf_hdrreduce(sizeof(struct bitopt_hdr));
   c = channel_lookup((hdr->channel[1] << 8) + hdr->channel[0]);
   if(c == NULL) {
     PRINTF("chameleon-bitopt: input: channel %d not found\n", hdr->channel);
     return NULL;
   }
 
-  hdrptr = rimebuf_dataptr();
+  hdrptr = packetbuf_dataptr();
   hdrbytesize = c->hdrsize / 8 + ((c->hdrsize & 7) == 0? 0: 1);
-  rimebuf_hdrreduce(hdrbytesize);
+  packetbuf_hdrreduce(hdrbytesize);
   byteptr = bitptr = 0;
-  for(a = c->attrlist; a->type != RIMEBUF_ATTR_NONE; ++a) {
+  for(a = c->attrlist; a->type != PACKETBUF_ATTR_NONE; ++a) {
     PRINTF("%d.%d: unpack_header type %s, len %d, bitptr %d\n",
 	   rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1],
-	   rimebuf_attr_strings[a->type], a->len, bitptr);
+	   packetbuf_attr_strings[a->type], a->len, bitptr);
     /*    len = (a->len & 0xf8) + ((a->len & 7) ? 8: 0);*/
     len = a->len;
     byteptr = bitptr / 8;
-    if(a->type == RIMEBUF_ADDR_SENDER ||
-       a->type == RIMEBUF_ADDR_RECEIVER ||
-       a->type == RIMEBUF_ADDR_ESENDER ||
-       a->type == RIMEBUF_ADDR_ERECEIVER) {
+    if(a->type == PACKETBUF_ADDR_SENDER ||
+       a->type == PACKETBUF_ADDR_RECEIVER ||
+       a->type == PACKETBUF_ADDR_ESENDER ||
+       a->type == PACKETBUF_ADDR_ERECEIVER) {
       rimeaddr_t addr;
       get_bits((uint8_t *)&addr, &hdrptr[byteptr], bitptr & 7, len);
       PRINTF("%d.%d: unpack_header type %s, addr %d.%d\n",
 	     rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1],
-	     rimebuf_attr_strings[a->type],
+	     packetbuf_attr_strings[a->type],
 	     addr.u8[0], addr.u8[1]);
-      rimebuf_set_addr(a->type, &addr);
+      packetbuf_set_addr(a->type, &addr);
     } else {
-      rimebuf_attr_t val = 0;
+      packetbuf_attr_t val = 0;
       get_bits((uint8_t *)&val, &hdrptr[byteptr], bitptr & 7, len);
 
-      rimebuf_set_attr(a->type, val);
+      packetbuf_set_attr(a->type, val);
       PRINTF("%d.%d: unpack_header type %s, val %d\n",
 	     rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1],
-	     rimebuf_attr_strings[a->type],
+	     packetbuf_attr_strings[a->type],
 	     val);
     }
     /*    byteptr += len / 8;*/

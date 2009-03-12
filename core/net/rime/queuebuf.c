@@ -33,7 +33,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: queuebuf.c,v 1.13 2008/11/17 22:52:10 oliverschmidt Exp $
+ * $Id: queuebuf.c,v 1.14 2009/03/12 21:58:21 adamdunkels Exp $
  */
 
 /**
@@ -61,15 +61,15 @@
 
 struct queuebuf {
   uint16_t len;
-  uint8_t data[RIMEBUF_SIZE + RIMEBUF_HDR_SIZE];
-  struct rimebuf_attr attrs[RIMEBUF_NUM_ATTRS];
-  struct rimebuf_addr addrs[RIMEBUF_NUM_ADDRS];
+  uint8_t data[PACKETBUF_SIZE + PACKETBUF_HDR_SIZE];
+  struct packetbuf_attr attrs[PACKETBUF_NUM_ATTRS];
+  struct packetbuf_addr addrs[PACKETBUF_NUM_ADDRS];
 };
 
 struct queuebuf_ref {
   uint16_t len;
   uint8_t *ref;
-  uint8_t hdr[RIMEBUF_HDR_SIZE];
+  uint8_t hdr[PACKETBUF_HDR_SIZE];
   uint8_t hdrlen;
 };
 
@@ -101,12 +101,12 @@ queuebuf_init(void)
 }
 /*---------------------------------------------------------------------------*/
 struct queuebuf *
-queuebuf_new_from_rimebuf(void)
+queuebuf_new_from_packetbuf(void)
 {
   struct queuebuf *buf;
   struct queuebuf_ref *rbuf;
 
-  if(rimebuf_is_reference()) {
+  if(packetbuf_is_reference()) {
     rbuf = memb_alloc(&refbufmem);
     if(rbuf != NULL) {
 #if QUEUEBUF_STATS
@@ -117,11 +117,11 @@ queuebuf_new_from_rimebuf(void)
 	       queuebuf_ref_len);*/
 #endif /* CONTIKI_TARGET_NETSIM */
 #endif /* QUEUEBUF_STATS */
-      rbuf->len = rimebuf_datalen();
-      rbuf->ref = rimebuf_reference_ptr();
-      rbuf->hdrlen = rimebuf_copyto_hdr(rbuf->hdr);
+      rbuf->len = packetbuf_datalen();
+      rbuf->ref = packetbuf_reference_ptr();
+      rbuf->hdrlen = packetbuf_copyto_hdr(rbuf->hdr);
     } else {
-      PRINTF("queuebuf_new_from_rimebuf: could not allocate a reference queuebuf\n");
+      PRINTF("queuebuf_new_from_packetbuf: could not allocate a reference queuebuf\n");
     }
     return (struct queuebuf *)rbuf;
   } else {
@@ -140,10 +140,10 @@ queuebuf_new_from_rimebuf(void)
 	       queuebuf_ref_len);*/
 #endif /* CONTIKI_TARGET_NETSIM */
 #endif /* QUEUEBUF_STATS */
-      buf->len = rimebuf_copyto(buf->data);
-      rimebuf_attr_copyto(buf->attrs, buf->addrs);
+      buf->len = packetbuf_copyto(buf->data);
+      packetbuf_attr_copyto(buf->attrs, buf->addrs);
     } else {
-      PRINTF("queuebuf_new_from_rimebuf: could not allocate a queuebuf\n");
+      PRINTF("queuebuf_new_from_packetbuf: could not allocate a queuebuf\n");
     }
     return buf;
   }
@@ -176,19 +176,19 @@ queuebuf_free(struct queuebuf *buf)
 }
 /*---------------------------------------------------------------------------*/
 void
-queuebuf_to_rimebuf(struct queuebuf *b)
+queuebuf_to_packetbuf(struct queuebuf *b)
 {
   struct queuebuf_ref *r;
   
   if(memb_inmemb(&bufmem, b)) {
-    rimebuf_copyfrom(b->data, b->len);
-    rimebuf_attr_copyfrom(b->attrs, b->addrs);
+    packetbuf_copyfrom(b->data, b->len);
+    packetbuf_attr_copyfrom(b->attrs, b->addrs);
   } else if(memb_inmemb(&refbufmem, b)) {
     r = (struct queuebuf_ref *)b;
-    rimebuf_clear();
-    rimebuf_copyfrom(r->ref, r->len);
-    rimebuf_hdralloc(r->hdrlen);
-    memcpy(rimebuf_hdrptr(), r->hdr, r->hdrlen);
+    packetbuf_clear();
+    packetbuf_copyfrom(r->ref, r->len);
+    packetbuf_hdralloc(r->hdrlen);
+    memcpy(packetbuf_hdrptr(), r->hdr, r->hdrlen);
   }
 }
 /*---------------------------------------------------------------------------*/

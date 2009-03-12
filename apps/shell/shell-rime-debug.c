@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: shell-rime-debug.c,v 1.2 2008/08/15 18:58:42 adamdunkels Exp $
+ * $Id: shell-rime-debug.c,v 1.3 2009/03/12 21:58:20 adamdunkels Exp $
  */
 
 /**
@@ -98,10 +98,10 @@ PROCESS_THREAD(shell_broadcast_process, ev, data)
       PROCESS_EXIT();
     }
 
-    if(len < RIMEBUF_SIZE) {
-      rimebuf_clear();
-      rimebuf_set_datalen(len + COLLECT_MSG_HDRSIZE);
-      msg = rimebuf_dataptr();
+    if(len < PACKETBUF_SIZE) {
+      packetbuf_clear();
+      packetbuf_set_datalen(len + COLLECT_MSG_HDRSIZE);
+      msg = packetbuf_dataptr();
       memcpy(msg->data, input->data1, input->len1);
       memcpy(msg->data + input->len1, input->data2, input->len2);
 #if TIMESYNCH_CONF_ENABLED
@@ -121,7 +121,7 @@ recv_broadcast(struct broadcast_conn *c, rimeaddr_t *from)
   struct collect_msg *msg;
   rtimer_clock_t latency;
   
-  msg = rimebuf_dataptr();
+  msg = packetbuf_dataptr();
 
 #if TIMESYNCH_CONF_ENABLED
   latency = timesynch_time() - msg->timestamp;
@@ -132,7 +132,7 @@ recv_broadcast(struct broadcast_conn *c, rimeaddr_t *from)
   printf("broadcast message received from %d.%d, latency %lu ms, data '%.*s'\n",
 	 from->u8[0], from->u8[1],
 	 (1000L * latency) / RTIMER_ARCH_SECOND,
-	 rimebuf_datalen() - COLLECT_MSG_HDRSIZE,
+	 packetbuf_datalen() - COLLECT_MSG_HDRSIZE,
 	 msg->data);
 }
 static const struct broadcast_callbacks broadcast_callbacks = {recv_broadcast};
@@ -170,10 +170,10 @@ PROCESS_THREAD(shell_unicast_process, ev, data)
       PROCESS_EXIT();
     }
     
-    if(len < RIMEBUF_SIZE) {
-      rimebuf_clear();
-      rimebuf_set_datalen(len + COLLECT_MSG_HDRSIZE);
-      msg = rimebuf_dataptr();
+    if(len < PACKETBUF_SIZE) {
+      packetbuf_clear();
+      packetbuf_set_datalen(len + COLLECT_MSG_HDRSIZE);
+      msg = packetbuf_dataptr();
       memcpy(msg->data, input->data1, input->len1);
       memcpy(msg->data + input->len1, input->data2, input->len2);
 #if TIMESYNCH_CONF_ENABLED
@@ -193,7 +193,7 @@ recv_uc(struct unicast_conn *c, rimeaddr_t *from)
   struct collect_msg *msg;
   rtimer_clock_t latency;
   
-  msg = rimebuf_dataptr();
+  msg = packetbuf_dataptr();
 
 #if TIMESYNCH_CONF_ENABLED
   latency = timesynch_time() - msg->timestamp;
@@ -204,7 +204,7 @@ recv_uc(struct unicast_conn *c, rimeaddr_t *from)
   printf("unicast message received from %d.%d, latency %lu ms, data '%.*s'\n",
 	 from->u8[0], from->u8[1],
 	 (1000L * latency) / RTIMER_ARCH_SECOND,
-	 rimebuf_datalen() - COLLECT_MSG_HDRSIZE,
+	 packetbuf_datalen() - COLLECT_MSG_HDRSIZE,
 	 msg->data);
 }
 static const struct unicast_callbacks unicast_callbacks = {recv_uc};

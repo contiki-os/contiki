@@ -11,7 +11,7 @@ AUTOSTART_PROCESSES(&example_polite_process);
 static void
 recv(struct polite_conn *c)
 {
-  printf("recv '%s'\n", (char *)rimebuf_dataptr());
+  printf("recv '%s'\n", (char *)packetbuf_dataptr());
 }
 static void
 sent(struct polite_conn *c)
@@ -39,7 +39,7 @@ PROCESS_THREAD(example_polite_process, ev, data)
     static struct etimer et;
     etimer_set(&et, CLOCK_SECOND * 4);
     PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&et));
-    rimebuf_copyfrom("Hej", 4);
+    packetbuf_copyfrom("Hej", 4);
     polite_send(&c, CLOCK_SECOND * 4, 4);
   
   

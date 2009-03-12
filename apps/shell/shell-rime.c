@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: shell-rime.c,v 1.12 2009/02/11 11:08:53 adamdunkels Exp $
+ * $Id: shell-rime.c,v 1.13 2009/03/12 21:58:20 adamdunkels Exp $
  */
 
 /**
@@ -183,8 +183,8 @@ PROCESS_THREAD(shell_packetize_process, ev, data)
     PROCESS_WAIT_EVENT_UNTIL(ev == shell_event_input);
 
     if(q == NULL) {
-      rimebuf_clear();
-      q = queuebuf_new_from_rimebuf();
+      packetbuf_clear();
+      q = queuebuf_new_from_packetbuf();
       if(q == NULL) {
 	shell_output_str(&packetize_command, "packetize: could not allocate packet buffer", "");
 	PROCESS_EXIT();
@@ -197,7 +197,7 @@ PROCESS_THREAD(shell_packetize_process, ev, data)
 
     len = input->len1 + input->len2;
 
-    if(len + size >= RIMEBUF_SIZE ||
+    if(len + size >= PACKETBUF_SIZE ||
        len  == 0) {
       shell_output(&packetize_command,
 		   ptr, size,
@@ -296,9 +296,9 @@ PROCESS_THREAD(shell_nodes_process, ev, data)
     is_sink = 1;
   }
   
-  rimebuf_clear();
-  msg = rimebuf_dataptr();
-  rimebuf_set_datalen(sizeof(struct netflood_msg));
+  packetbuf_clear();
+  msg = packetbuf_dataptr();
+  packetbuf_set_datalen(sizeof(struct netflood_msg));
   msg->type = NETFLOOD_TYPE_NODES;
   netflood_send(&netflood, nodes_seqno++);
 
@@ -369,10 +369,10 @@ PROCESS_THREAD(shell_send_process, ev, data)
       PROCESS_EXIT();
     }
 
-    if(len < RIMEBUF_SIZE) {
-      rimebuf_clear();
-      rimebuf_set_datalen(len + COLLECT_MSG_HDRSIZE);
-      msg = rimebuf_dataptr();
+    if(len < PACKETBUF_SIZE) {
+      packetbuf_clear();
+      packetbuf_set_datalen(len + COLLECT_MSG_HDRSIZE);
+      msg = packetbuf_dataptr();
       memcpy(msg->data, input->data1, input->len1);
       memcpy(msg->data + input->len1, input->data2, input->len2);
 #if TIMESYNCH_CONF_ENABLED
@@ -395,7 +395,7 @@ recv_collect(const rimeaddr_t *originator, u8_t seqno, u8_t hops)
   rtimer_clock_t latency;
   int len;
   
-  collect_msg = rimebuf_dataptr();
+  collect_msg = packetbuf_dataptr();
   
 #if TIMESYNCH_CONF_ENABLED
   latency = timesynch_time() - collect_msg->timestamp;
@@ -412,20 +412,20 @@ recv_collect(const rimeaddr_t *originator, u8_t seqno, u8_t hops)
       uint16_t latency;
     } msg;
 
-    if(rimebuf_datalen() >= COLLECT_MSG_HDRSIZE) {
-      len = rimebuf_datalen() - COLLECT_MSG_HDRSIZE;
+    if(packetbuf_datalen() >= COLLECT_MSG_HDRSIZE) {
+      len = packetbuf_datalen() - COLLECT_MSG_HDRSIZE;
 
       if(collect_msg->crc == crc16_data(collect_msg->data, len, 0)) {
-	msg.len = 5 + (rimebuf_datalen() - COLLECT_MSG_HDRSIZE) / 2;
+	msg.len = 5 + (packetbuf_datalen() - COLLECT_MSG_HDRSIZE) / 2;
 	rimeaddr_copy((rimeaddr_t *)&msg.originator, originator);
 	msg.seqno = seqno;
 	msg.hops = hops;
 	msg.latency = latency;
-	/*    printf("recv_collect datalen %d\n", rimebuf_datalen());*/
+	/*    printf("recv_collect datalen %d\n", packetbuf_datalen());*/
 	
 	shell_output(&collect_command,
 		     &msg, sizeof(msg),
-		     collect_msg->data, rimebuf_datalen() - COLLECT_MSG_HDRSIZE);
+		     collect_msg->data, packetbuf_datalen() - COLLECT_MSG_HDRSIZE);
       }
     }
   } else if(waiting_for_nodes) {
@@ -449,7 +449,7 @@ send_collect(void *dummy)
 #else
   msg.timestamp = 0;
 #endif
-  rimebuf_copyfrom(&msg, COLLECT_MSG_HDRSIZE);
+  packetbuf_copyfrom(&msg, COLLECT_MSG_HDRSIZE);
   collect_send(&collect, COLLECT_REXMITS);
 }
 /*---------------------------------------------------------------------------*/
@@ -459,7 +459,7 @@ recv_netflood(struct netflood_conn *c, rimeaddr_t *from,
 {
   struct netflood_msg *msg;
   
-  msg = rimebuf_dataptr();
+  msg = packetbuf_dataptr();
   if(msg->type == NETFLOOD_TYPE_NODES) {
     ctimer_set(&ctimer, random_rand() % (CLOCK_SECOND * 8),
 	       send_collect, NULL);

@@ -34,7 +34,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: unicast.c,v 1.1 2008/06/26 11:19:22 adamdunkels Exp $
+ * $Id: unicast.c,v 1.2 2009/03/12 21:58:21 adamdunkels Exp $
  */
 
 /**
@@ -48,10 +48,10 @@
 #include "net/rime/unicast.h"
 #include <string.h>
 
-static const struct rimebuf_attrlist attributes[] =
+static const struct packetbuf_attrlist attributes[] =
   {
     UNICAST_ATTRIBUTES
-    RIMEBUF_ATTR_LAST
+    PACKETBUF_ATTR_LAST
   };
 
 #define DEBUG 0
@@ -70,9 +70,9 @@ recv_from_broadcast(struct broadcast_conn *broadcast, rimeaddr_t *from)
 
   PRINTF("%d.%d: uc: recv_from_broadcast, receiver %d.%d\n",
 	 rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1],
-	 rimebuf_addr(RIMEBUF_ADDR_RECEIVER)->u8[0],
-	 rimebuf_addr(RIMEBUF_ADDR_RECEIVER)->u8[1]);
-  if(rimeaddr_cmp(rimebuf_addr(RIMEBUF_ADDR_RECEIVER), &rimeaddr_node_addr)) {
+	 packetbuf_addr(PACKETBUF_ADDR_RECEIVER)->u8[0],
+	 packetbuf_addr(PACKETBUF_ADDR_RECEIVER)->u8[1]);
+  if(rimeaddr_cmp(packetbuf_addr(PACKETBUF_ADDR_RECEIVER), &rimeaddr_node_addr)) {
     c->u->recv(c, from);
   }
 }
@@ -100,7 +100,7 @@ unicast_send(struct unicast_conn *c, const rimeaddr_t *receiver)
   PRINTF("%d.%d: unicast_send to %d.%d\n",
 	 rimeaddr_node_addr.u8[0],rimeaddr_node_addr.u8[1],
 	 receiver->u8[0], receiver->u8[1]);
-  rimebuf_set_addr(RIMEBUF_ADDR_RECEIVER, receiver);
+  packetbuf_set_addr(PACKETBUF_ADDR_RECEIVER, receiver);
   return broadcast_send(&c->c);
 }
 /*---------------------------------------------------------------------------*/

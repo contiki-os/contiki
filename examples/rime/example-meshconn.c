@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: example-meshconn.c,v 1.1 2008/01/25 18:00:50 adamdunkels Exp $
+ * $Id: example-meshconn.c,v 1.2 2009/03/12 21:58:21 adamdunkels Exp $
  */
 
 /**
@@ -77,7 +77,7 @@ static void
 recv(struct meshconn_conn *c)
 {
   printf("Data received from %.*s (%d)\n",
-	 rimebuf_datalen(), (char *)rimebuf_dataptr(), rimebuf_datalen());
+	 packetbuf_datalen(), (char *)packetbuf_dataptr(), packetbuf_datalen());
 
   /*  meshconn_send(&meshconn, from);*/
 }
@@ -116,7 +116,7 @@ PROCESS_THREAD(test_meshconn_process, ev, data)
     addr.u8[1] = 0;
     meshconn_connect(&meshconn, addr);
     
-    rimebuf_copyfrom("Hej", 3);
+    packetbuf_copyfrom("Hej", 3);
     meshconn_send(&meshconn, &addr);
   }
   PROCESS_END();
