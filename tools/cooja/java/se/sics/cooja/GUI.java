@@ -24,7 +24,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * $Id: GUI.java,v 1.115 2009/03/12 13:04:10 fros4943 Exp $
+ * $Id: GUI.java,v 1.116 2009/03/12 15:10:00 fros4943 Exp $
  */
 
 package se.sics.cooja;
@@ -1026,6 +1026,18 @@ public class GUI extends Observable {
     } catch (Exception e) {
     }
 
+  }
+
+  private static boolean quickStartSimulationConfig(String source) {
+    logger.info("> Starting COOJA");
+    JDesktopPane desktop = new JDesktopPane();
+    desktop.setDragMode(JDesktopPane.OUTLINE_DRAG_MODE);
+    frame = new JFrame("COOJA Simulator");
+    GUI gui = new GUI(desktop);
+    configureFrame(gui, false);
+
+    gui.doLoadConfig(false, true, new File(source));
+    return true;
   }
 
   /**
@@ -2877,20 +2889,28 @@ public class GUI extends Observable {
     if (args.length > 0 && args[0].startsWith("-quickstart=")) {
       String contikiApp = args[0].substring("-quickstart=".length());
 
-      if (contikiApp.endsWith(".cooja")) {
-        contikiApp = contikiApp.substring(0, contikiApp.length() - ".cooja".length());
-      }
-      if (!contikiApp.endsWith(".c")) {
-        contikiApp += ".c";
-      }
-
       /* Cygwin fix */
       if (contikiApp.startsWith("/cygdrive/")) {
         char driveCharacter = contikiApp.charAt("/cygdrive/".length());
         contikiApp = contikiApp.replace("/cygdrive/" + driveCharacter + "/", driveCharacter + ":/");
       }
 
-      boolean ok = quickStartSimulation(contikiApp);
+      boolean ok = false;
+      if (contikiApp.endsWith(".csc")) {
+
+        ok = quickStartSimulationConfig(contikiApp);
+
+      } else {
+        if (contikiApp.endsWith(".cooja")) {
+          contikiApp = contikiApp.substring(0, contikiApp.length() - ".cooja".length());
+        }
+        if (!contikiApp.endsWith(".c")) {
+          contikiApp += ".c";
+        }
+
+        ok = quickStartSimulation(contikiApp);
+      }
+
       if (!ok) {
         System.exit(1);
       }
@@ -3022,6 +3042,8 @@ public class GUI extends Observable {
    */
   public Simulation loadSimulationConfig(File file, boolean quick)
   throws UnsatisfiedLinkError, SimulationCreationException {
+    this.currentConfigFile = file; /* Used to generate config relative paths */
+
     try {
       SAXBuilder builder = new SAXBuilder();
       Document doc = builder.build(file);
@@ -3153,6 +3175,7 @@ public class GUI extends Observable {
    *          File to write
    */
   public void saveSimulationConfig(File file) {
+    this.currentConfigFile = file; /* Used to generate config relative paths */
 
     try {
       // Create simulation config
@@ -3745,41 +3768,16 @@ public class GUI extends Observable {
     moteRelationObservable.deleteObserver(observer);
   }
 
-  public static File stripTrailingUpDirs(File file) {
-    file = file.getAbsoluteFile();
-
-    /* Strip trailing "..":s */
-    boolean deletedDirs = false;
-    do {
-      int nrDirs = 0;
-      deletedDirs = false;
-
-      while (file.getName().equals("..")) {
-        nrDirs++;
-        file = file.getParentFile();
-        deletedDirs = true;
-      }
-
-      while (nrDirs > 0 && !file.getName().equals("..")) {
-        nrDirs--;
-        file = file.getParentFile();
-      }
-    } while (deletedDirs);
-
-    return file;
-  }
-
-  public static File stripAbsoluteContikiPath(File file) {
+  public File createPortablePath(File file) {
     try {
       File contikiPath = new File(GUI.getExternalToolsSetting("PATH_CONTIKI", null));
       String contikiRelative = contikiPath.getPath();
       String contikiCanonical = contikiPath.getCanonicalPath();
 
-      /* Replace absolute path with relative path */
       String fileCanonical = file.getCanonicalPath();
       if (!fileCanonical.startsWith(contikiCanonical)) {
-        logger.warn("Error when converting to Contiki relative paths: file is not in Contiki: " + file.getAbsolutePath());
-        return file;
+        /*logger.warn("Error when converting to Contiki relative path: file is not in Contiki: " + file.getAbsolutePath());*/
+        return createConfigPath(file);
       }
 
       /* Replace Contiki's canonical path with Contiki's relative path */
@@ -3787,18 +3785,71 @@ public class GUI extends Observable {
 
       File newFile = new File(newFilePath);
       if (!newFile.exists()) {
-        logger.warn("Error when converting to Contiki relative paths: new file does not exist: " + newFile.getAbsolutePath());
-        return file;
+        /*logger.warn("Error when converting to Contiki relative path: new file does not exist: " + newFile.getAbsolutePath());*/
+        return createConfigPath(file);
       }
 
-      /*logger.info("Converted Contiki relative path '" + file.getPath() + "' to '" + newFile.getPath() + "'");*/
+      logger.info("Generated Contiki relative path '" + file.getPath() + "' to '" + newFile.getPath() + "'");
       return newFile;
 
     } catch (IOException e1) {
-      logger.warn("Error when converting to Contiki relative paths: " + e1.getMessage());
+      /*logger.warn("Error when converting to Contiki relative path: " + e1.getMessage());*/
+    }
+
+    return createConfigPath(file);
+  }
+
+  public File restorePortablePath(File file) {
+    return restoreConfigPath(file);
+  }
+
+  private File currentConfigFile = null; /* Used to generate config relative paths */
+  public File createConfigPath(File file) {
+    if (currentConfigFile == null) {
+      return file;
+    }
+
+    try {
+      File configPath = currentConfigFile.getParentFile();
+      String configIdentifier = "[CONFIG_DIR]";
+      String configCanonical = configPath.getCanonicalPath();
+
+      String fileCanonical = file.getCanonicalPath();
+      if (!fileCanonical.startsWith(configCanonical)) {
+        /*logger.warn("Error when converting to config relative path: file not in config directory: " + file.getAbsolutePath());*/
+        return file;
+      }
+
+      /* Replace config's canonical path with config identifier */
+      String newFilePath = fileCanonical.replace(configCanonical, configIdentifier);
+
+      File newFile = new File(newFilePath);
+      logger.info("Generated config relative path: '" + file.getPath() + "' to '" + newFile.getPath() + "'");
+      return newFile;
+
+    } catch (IOException e1) {
+      /*logger.warn("Error when converting to config relative path: " + e1.getMessage());*/
     }
 
     return file;
+  }
+
+  public File restoreConfigPath(File file) {
+    if (currentConfigFile == null) {
+      return file;
+    }
+
+    File configPath = currentConfigFile.getParentFile();
+
+    String path = file.getPath();
+    if (!path.startsWith("[CONFIG_DIR]")) {
+      /*logger.info("Not config relative path: " + file.getAbsolutePath());*/
+      return file;
+    }
+
+    File newFile = new File(path.replace("[CONFIG_DIR]", configPath.getAbsolutePath()));
+    logger.info("Reverted config relative path: '" + path + "' to '" + newFile.getPath() + "'");
+    return newFile;
   }
 
   private static JProgressBar PROGRESS_BAR = null;
