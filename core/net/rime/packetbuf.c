@@ -1,5 +1,5 @@
 /**
- * \addtogroup rimebuf
+ * \addtogroup packetbuf
  * @{
  */
 
@@ -33,12 +33,12 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: rimebuf.c,v 1.18 2009/03/11 20:33:17 adamdunkels Exp $
+ * $Id: packetbuf.c,v 1.1 2009/03/12 23:04:52 adamdunkels Exp $
  */
 
 /**
  * \file
- *         Rime buffer (rimebuf) management
+ *         Rime buffer (packetbuf) management
  * \author
  *         Adam Dunkels <adam@sics.se>
  */
@@ -46,51 +46,51 @@
 #include <string.h>
 
 #include "contiki-net.h"
-#include "net/rime/rimebuf.h"
+#include "net/rime/packetbuf.h"
 #include "net/rime.h"
 
-struct rimebuf_attr rimebuf_attrs[RIMEBUF_NUM_ATTRS];
-struct rimebuf_addr rimebuf_addrs[RIMEBUF_NUM_ADDRS];
+struct packetbuf_attr packetbuf_attrs[PACKETBUF_NUM_ATTRS];
+struct packetbuf_addr packetbuf_addrs[PACKETBUF_NUM_ADDRS];
 
-const char *rimebuf_attr_strings[] =
+const char *packetbuf_attr_strings[] =
   {
-    "RIMEBUF_ATTR_NONE",
-    "RIMEBUF_ATTR_CHANNEL",
-    "RIMEBUF_ATTR_PACKET_ID",
-    "RIMEBUF_ATTR_PACKET_TYPE",
-    "RIMEBUF_ATTR_EPACKET_ID",
-    "RIMEBUF_ATTR_EPACKET_TYPE",
-    "RIMEBUF_ATTR_HOPS",
-    "RIMEBUF_ATTR_TTL",
-    "RIMEBUF_ATTR_REXMIT",
-    "RIMEBUF_ATTR_MAX_REXMIT",
-    "RIMEBUF_ATTR_NUM_REXMIT",
-    "RIMEBUF_ATTR_LINK_QUALITY",
-    "RIMEBUF_ATTR_RSSI",
-    "RIMEBUF_ATTR_TIMESTAMP",
-    "RIMEBUF_ATTR_RADIO_TXPOWER",
+    "PACKETBUF_ATTR_NONE",
+    "PACKETBUF_ATTR_CHANNEL",
+    "PACKETBUF_ATTR_PACKET_ID",
+    "PACKETBUF_ATTR_PACKET_TYPE",
+    "PACKETBUF_ATTR_EPACKET_ID",
+    "PACKETBUF_ATTR_EPACKET_TYPE",
+    "PACKETBUF_ATTR_HOPS",
+    "PACKETBUF_ATTR_TTL",
+    "PACKETBUF_ATTR_REXMIT",
+    "PACKETBUF_ATTR_MAX_REXMIT",
+    "PACKETBUF_ATTR_NUM_REXMIT",
+    "PACKETBUF_ATTR_LINK_QUALITY",
+    "PACKETBUF_ATTR_RSSI",
+    "PACKETBUF_ATTR_TIMESTAMP",
+    "PACKETBUF_ATTR_RADIO_TXPOWER",
 
-    "RIMEBUF_ATTR_LISTEN_ENERGY",
-    "RIMEBUF_ATTR_TRANSMIT_ENERGY",
+    "PACKETBUF_ATTR_LISTEN_ENERGY",
+    "PACKETBUF_ATTR_TRANSMIT_ENERGY",
     
-    "RIMEBUF_ATTR_NETWORK_ID",
+    "PACKETBUF_ATTR_NETWORK_ID",
 
-    "RIMEBUF_ATTR_RELIABLE",
-    "RIMEBUF_ATTR_ERELIABLE",
+    "PACKETBUF_ATTR_RELIABLE",
+    "PACKETBUF_ATTR_ERELIABLE",
 
-    "RIMEBUF_ADDR_SENDER",
-    "RIMEBUF_ADDR_RECEIVER",
-    "RIMEBUF_ADDR_ESENDER",
-    "RIMEBUF_ADDR_ERECEIVER",
+    "PACKETBUF_ADDR_SENDER",
+    "PACKETBUF_ADDR_RECEIVER",
+    "PACKETBUF_ADDR_ESENDER",
+    "PACKETBUF_ADDR_ERECEIVER",
 
-    "RIMEBUF_ATTR_MAX",
+    "PACKETBUF_ATTR_MAX",
   };
 
 static uint16_t buflen, bufptr;
 static uint8_t hdrptr;
-static uint8_t rimebuf[RIMEBUF_SIZE + RIMEBUF_HDR_SIZE];
+static uint8_t packetbuf[PACKETBUF_SIZE + PACKETBUF_HDR_SIZE];
 
-static uint8_t *rimebufptr;
+static uint8_t *packetbufptr;
 
 #define DEBUG 0
 #if DEBUG
@@ -102,39 +102,39 @@ static uint8_t *rimebufptr;
 
 /*---------------------------------------------------------------------------*/
 void
-rimebuf_clear(void)
+packetbuf_clear(void)
 {
   buflen = bufptr = 0;
-  hdrptr = RIMEBUF_HDR_SIZE;
+  hdrptr = PACKETBUF_HDR_SIZE;
 
-  rimebufptr = &rimebuf[RIMEBUF_HDR_SIZE];
-  rimebuf_attr_clear();
+  packetbufptr = &packetbuf[PACKETBUF_HDR_SIZE];
+  packetbuf_attr_clear();
 }
 /*---------------------------------------------------------------------------*/
 int
-rimebuf_copyfrom(const void *from, uint16_t len)
+packetbuf_copyfrom(const void *from, uint16_t len)
 {
   uint16_t l;
 
-  rimebuf_clear();
-  l = len > RIMEBUF_SIZE? RIMEBUF_SIZE: len;
-  memcpy(rimebufptr, from, l);
+  packetbuf_clear();
+  l = len > PACKETBUF_SIZE? PACKETBUF_SIZE: len;
+  memcpy(packetbufptr, from, l);
   buflen = l;
   return l;
 }
 /*---------------------------------------------------------------------------*/
 void
-rimebuf_compact(void)
+packetbuf_compact(void)
 {
   int i, len;
 
-  if(rimebuf_is_reference()) {
-    memcpy(&rimebuf[RIMEBUF_HDR_SIZE], rimebuf_reference_ptr(),
-	   rimebuf_datalen());
+  if(packetbuf_is_reference()) {
+    memcpy(&packetbuf[PACKETBUF_HDR_SIZE], packetbuf_reference_ptr(),
+	   packetbuf_datalen());
   } else if (bufptr > 0) {
-    len = rimebuf_datalen() + RIMEBUF_HDR_SIZE;
-    for (i = RIMEBUF_HDR_SIZE; i < len; i++) {
-      rimebuf[i] = rimebuf[bufptr + i];
+    len = packetbuf_datalen() + PACKETBUF_HDR_SIZE;
+    for (i = PACKETBUF_HDR_SIZE; i < len; i++) {
+      packetbuf[i] = packetbuf[bufptr + i];
     }
 
     bufptr = 0;
@@ -142,24 +142,24 @@ rimebuf_compact(void)
 }
 /*---------------------------------------------------------------------------*/
 int
-rimebuf_copyto_hdr(uint8_t *to)
+packetbuf_copyto_hdr(uint8_t *to)
 {
 #if DEBUG_LEVEL > 0
   {
     int i;
-    PRINTF("rimebuf_write_hdr: header:\n");
-    for(i = hdrptr; i < RIMEBUF_HDR_SIZE; ++i) {
-      PRINTF("0x%02x, ", rimebuf[i]);
+    PRINTF("packetbuf_write_hdr: header:\n");
+    for(i = hdrptr; i < PACKETBUF_HDR_SIZE; ++i) {
+      PRINTF("0x%02x, ", packetbuf[i]);
     }
     PRINTF("\n");
   }
 #endif /* DEBUG_LEVEL */
-  memcpy(to, rimebuf + hdrptr, RIMEBUF_HDR_SIZE - hdrptr);
-  return RIMEBUF_HDR_SIZE - hdrptr;
+  memcpy(to, packetbuf + hdrptr, PACKETBUF_HDR_SIZE - hdrptr);
+  return PACKETBUF_HDR_SIZE - hdrptr;
 }
 /*---------------------------------------------------------------------------*/
 int
-rimebuf_copyto(void *to)
+packetbuf_copyto(void *to)
 {
 #if DEBUG_LEVEL > 0
   {
@@ -168,26 +168,26 @@ rimebuf_copyto(void *to)
     char *bufferptr = buffer;
     
     bufferptr[0] = 0;
-    for(i = hdrptr; i < RIMEBUF_HDR_SIZE; ++i) {
-      bufferptr += sprintf(bufferptr, "0x%02x, ", rimebuf[i]);
+    for(i = hdrptr; i < PACKETBUF_HDR_SIZE; ++i) {
+      bufferptr += sprintf(bufferptr, "0x%02x, ", packetbuf[i]);
     }
-    PRINTF("rimebuf_write: header: %s\n", buffer);
+    PRINTF("packetbuf_write: header: %s\n", buffer);
     bufferptr = buffer;
     bufferptr[0] = 0;
     for(i = bufptr; i < buflen + bufptr; ++i) {
-      bufferptr += sprintf(bufferptr, "0x%02x, ", rimebufptr[i]);
+      bufferptr += sprintf(bufferptr, "0x%02x, ", packetbufptr[i]);
     }
-    PRINTF("rimebuf_write: data: %s\n", buffer);
+    PRINTF("packetbuf_write: data: %s\n", buffer);
   }
 #endif /* DEBUG_LEVEL */
-  memcpy(to, rimebuf + hdrptr, RIMEBUF_HDR_SIZE - hdrptr);
-  memcpy((uint8_t *)to + RIMEBUF_HDR_SIZE - hdrptr, rimebufptr + bufptr,
+  memcpy(to, packetbuf + hdrptr, PACKETBUF_HDR_SIZE - hdrptr);
+  memcpy((uint8_t *)to + PACKETBUF_HDR_SIZE - hdrptr, packetbufptr + bufptr,
 	 buflen);
-  return RIMEBUF_HDR_SIZE - hdrptr + buflen;
+  return PACKETBUF_HDR_SIZE - hdrptr + buflen;
 }
 /*---------------------------------------------------------------------------*/
 int
-rimebuf_hdralloc(int size)
+packetbuf_hdralloc(int size)
 {
   if(hdrptr > size) {
     hdrptr -= size;
@@ -198,7 +198,7 @@ rimebuf_hdralloc(int size)
 }
 /*---------------------------------------------------------------------------*/
 int
-rimebuf_hdrreduce(int size)
+packetbuf_hdrreduce(int size)
 {
   if(buflen < size) {
     return 0;
@@ -210,123 +210,123 @@ rimebuf_hdrreduce(int size)
 }
 /*---------------------------------------------------------------------------*/
 void
-rimebuf_set_datalen(uint16_t len)
+packetbuf_set_datalen(uint16_t len)
 {
-  PRINTF("rimebuf_set_len: len %d\n", len);
+  PRINTF("packetbuf_set_len: len %d\n", len);
   buflen = len;
 }
 /*---------------------------------------------------------------------------*/
 void *
-rimebuf_dataptr(void)
+packetbuf_dataptr(void)
 {
-  return (void *)(&rimebuf[bufptr + RIMEBUF_HDR_SIZE]);
+  return (void *)(&packetbuf[bufptr + PACKETBUF_HDR_SIZE]);
 }
 /*---------------------------------------------------------------------------*/
 void *
-rimebuf_hdrptr(void)
+packetbuf_hdrptr(void)
 {
-  return (void *)(&rimebuf[hdrptr]);
+  return (void *)(&packetbuf[hdrptr]);
 }
 /*---------------------------------------------------------------------------*/
 void
-rimebuf_reference(void *ptr, uint16_t len)
+packetbuf_reference(void *ptr, uint16_t len)
 {
-  rimebuf_clear();
-  rimebufptr = ptr;
+  packetbuf_clear();
+  packetbufptr = ptr;
   buflen = len;
 }
 /*---------------------------------------------------------------------------*/
 int
-rimebuf_is_reference(void)
+packetbuf_is_reference(void)
 {
-  return rimebufptr != &rimebuf[RIMEBUF_HDR_SIZE];
+  return packetbufptr != &packetbuf[PACKETBUF_HDR_SIZE];
 }
 /*---------------------------------------------------------------------------*/
 void *
-rimebuf_reference_ptr(void)
+packetbuf_reference_ptr(void)
 {
-  return rimebufptr;
+  return packetbufptr;
 }
 /*---------------------------------------------------------------------------*/
 uint16_t
-rimebuf_datalen(void)
+packetbuf_datalen(void)
 {
   return buflen;
 }
 /*---------------------------------------------------------------------------*/
 uint8_t
-rimebuf_hdrlen(void)
+packetbuf_hdrlen(void)
 {
-  return RIMEBUF_HDR_SIZE - hdrptr;
+  return PACKETBUF_HDR_SIZE - hdrptr;
 }
 /*---------------------------------------------------------------------------*/
 uint16_t
-rimebuf_totlen(void)
+packetbuf_totlen(void)
 {
-  return rimebuf_hdrlen() + rimebuf_datalen();
+  return packetbuf_hdrlen() + packetbuf_datalen();
 }
 /*---------------------------------------------------------------------------*/
 
 
 
 void
-rimebuf_attr_clear(void)
+packetbuf_attr_clear(void)
 {
   int i;
-  for(i = 0; i < RIMEBUF_NUM_ATTRS; ++i) {
-/*     rimebuf_attrs[i].type = RIMEBUF_ATTR_NONE; */
-    rimebuf_attrs[i].val = 0;
+  for(i = 0; i < PACKETBUF_NUM_ATTRS; ++i) {
+/*     packetbuf_attrs[i].type = PACKETBUF_ATTR_NONE; */
+    packetbuf_attrs[i].val = 0;
   }
-  for(i = 0; i < RIMEBUF_NUM_ADDRS; ++i) {
-/*     rimebuf_addrs[i].type = RIMEBUF_ATTR_NONE; */
-    rimeaddr_copy(&rimebuf_addrs[i].addr, &rimeaddr_null);
+  for(i = 0; i < PACKETBUF_NUM_ADDRS; ++i) {
+/*     packetbuf_addrs[i].type = PACKETBUF_ATTR_NONE; */
+    rimeaddr_copy(&packetbuf_addrs[i].addr, &rimeaddr_null);
   }
 }
 /*---------------------------------------------------------------------------*/
 void
-rimebuf_attr_copyto(struct rimebuf_attr *attrs,
-		    struct rimebuf_addr *addrs)
+packetbuf_attr_copyto(struct packetbuf_attr *attrs,
+		    struct packetbuf_addr *addrs)
 {
-  memcpy(attrs, rimebuf_attrs, sizeof(rimebuf_attrs));
-  memcpy(addrs, rimebuf_addrs, sizeof(rimebuf_addrs));
+  memcpy(attrs, packetbuf_attrs, sizeof(packetbuf_attrs));
+  memcpy(addrs, packetbuf_addrs, sizeof(packetbuf_addrs));
 }
 /*---------------------------------------------------------------------------*/
 void
-rimebuf_attr_copyfrom(struct rimebuf_attr *attrs,
-		      struct rimebuf_addr *addrs)
+packetbuf_attr_copyfrom(struct packetbuf_attr *attrs,
+		      struct packetbuf_addr *addrs)
 {
-  memcpy(rimebuf_attrs, attrs, sizeof(rimebuf_attrs));
-  memcpy(rimebuf_addrs, addrs, sizeof(rimebuf_addrs));
+  memcpy(packetbuf_attrs, attrs, sizeof(packetbuf_attrs));
+  memcpy(packetbuf_addrs, addrs, sizeof(packetbuf_addrs));
 }
 /*---------------------------------------------------------------------------*/
-#if !RIMEBUF_CONF_ATTRS_INLINE
+#if !PACKETBUF_CONF_ATTRS_INLINE
 int
-rimebuf_set_attr(uint8_t type, const rimebuf_attr_t val)
+packetbuf_set_attr(uint8_t type, const packetbuf_attr_t val)
 {
-/*   rimebuf_attrs[type].type = type; */
-  rimebuf_attrs[type].val = val;
+/*   packetbuf_attrs[type].type = type; */
+  packetbuf_attrs[type].val = val;
   return 1;
 }
 /*---------------------------------------------------------------------------*/
-rimebuf_attr_t
-rimebuf_attr(uint8_t type)
+packetbuf_attr_t
+packetbuf_attr(uint8_t type)
 {
-  return rimebuf_attrs[type].val;
+  return packetbuf_attrs[type].val;
 }
 /*---------------------------------------------------------------------------*/
 int
-rimebuf_set_addr(uint8_t type, const rimeaddr_t *addr)
+packetbuf_set_addr(uint8_t type, const rimeaddr_t *addr)
 {
-/*   rimebuf_addrs[type - RIMEBUF_ADDR_FIRST].type = type; */
-  rimeaddr_copy(&rimebuf_addrs[type - RIMEBUF_ADDR_FIRST].addr, addr);
+/*   packetbuf_addrs[type - PACKETBUF_ADDR_FIRST].type = type; */
+  rimeaddr_copy(&packetbuf_addrs[type - PACKETBUF_ADDR_FIRST].addr, addr);
   return 1;
 }
 /*---------------------------------------------------------------------------*/
 const rimeaddr_t *
-rimebuf_addr(uint8_t type)
+packetbuf_addr(uint8_t type)
 {
-  return &rimebuf_addrs[type - RIMEBUF_ADDR_FIRST].addr;
+  return &packetbuf_addrs[type - PACKETBUF_ADDR_FIRST].addr;
 }
 /*---------------------------------------------------------------------------*/
-#endif /* RIMEBUF_CONF_ATTRS_INLINE */
+#endif /* PACKETBUF_CONF_ATTRS_INLINE */
 /** @} */
