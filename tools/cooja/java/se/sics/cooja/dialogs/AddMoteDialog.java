@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: AddMoteDialog.java,v 1.6 2009/02/18 13:55:24 fros4943 Exp $
+ * $Id: AddMoteDialog.java,v 1.7 2009/03/12 17:52:20 nifi Exp $
  */
 
 package se.sics.cooja.dialogs;
@@ -449,9 +449,22 @@ public class AddMoteDialog extends JDialog {
         dispose();
       } else if (e.getActionCommand().equals("add")) {
         try {
-          newMotes = new Vector<Mote>();
+	  // Validate input
+	  try {
+	    numberOfMotesField.commitEdit();
+	    startX.commitEdit();
+	    endX.commitEdit();
+	    startY.commitEdit();
+	    endY.commitEdit();
+	    startZ.commitEdit();
+	    endZ.commitEdit();
+	  } catch (ParseException error) {
+	    numberOfMotesField.requestFocusInWindow();
+	    return;
+	  }
 
-          // Create new motes
+	  // Create new motes
+          newMotes = new Vector<Mote>();
           int motesToAdd = ((Number) numberOfMotesField.getValue()).intValue();
           while (newMotes.size() < motesToAdd) {
             Mote newMote = moteType.generateMote(simulation);
@@ -469,7 +482,7 @@ public class AddMoteDialog extends JDialog {
           }
 
           Positioner positioner = Positioner.generateInterface(positionerClass,
-              ((Number) numberOfMotesField.getValue()).intValue(),
+              motesToAdd,
               ((Number) startX.getValue()).doubleValue(), ((Number) endX
                   .getValue()).doubleValue(), ((Number) startY.getValue())
                   .doubleValue(), ((Number) endY.getValue()).doubleValue(),
@@ -545,13 +558,13 @@ public class AddMoteDialog extends JDialog {
 
           dispose();
         } catch (OutOfMemoryError e2) {
+          newMotes = null;
           JOptionPane.showMessageDialog(
               AddMoteDialog.this,
               "Out of memory!\nException message: \"" + e2.getMessage() + "\"\n\n" +
               "Reduce number of nodes or start COOJA with more memory (\">ant run_bigmem\").",
               "Not enough heap memory!", JOptionPane.ERROR_MESSAGE
           );
-          newMotes = null;
         }
       }
     }
