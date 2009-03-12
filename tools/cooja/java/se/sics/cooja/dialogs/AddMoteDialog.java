@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: AddMoteDialog.java,v 1.7 2009/03/12 17:52:20 nifi Exp $
+ * $Id: AddMoteDialog.java,v 1.8 2009/03/12 18:40:06 nifi Exp $
  */
 
 package se.sics.cooja.dialogs;
@@ -59,7 +59,6 @@ public class AddMoteDialog extends JDialog {
 
   private Vector<Mote> newMotes = null;
 
-  private boolean settingsOK = true;
   private JButton addButton;
 
   private MoteType moteType = null;
@@ -146,7 +145,6 @@ public class AddMoteDialog extends JDialog {
     buttonPane.add(button);
 
     button = new JButton("Create and Add");
-    button.setEnabled(settingsOK);
     button.setActionCommand("add");
     button.addActionListener(myEventHandler);
     this.getRootPane().setDefaultButton(button);
@@ -164,6 +162,7 @@ public class AddMoteDialog extends JDialog {
     label.setPreferredSize(new Dimension(LABEL_WIDTH, LABEL_HEIGHT));
 
     numberField = new JFormattedTextField(integerFormat);
+    numberField.setFocusLostBehavior(JFormattedTextField.PERSIST);
     numberField.setValue(new Integer(1));
     numberField.setColumns(10);
     numberField.addFocusListener(myEventHandler);
@@ -250,6 +249,7 @@ public class AddMoteDialog extends JDialog {
     smallPane.add(Box.createHorizontalStrut(10));
 
     numberField = new JFormattedTextField(doubleFormat);
+    numberField.setFocusLostBehavior(JFormattedTextField.PERSIST);
     numberField.setValue(new Double(0.0));
     numberField.setColumns(4);
     numberField.addFocusListener(myEventHandler);
@@ -263,6 +263,7 @@ public class AddMoteDialog extends JDialog {
     smallPane.add(label);
 
     numberField = new JFormattedTextField(doubleFormat);
+    numberField.setFocusLostBehavior(JFormattedTextField.PERSIST);
     numberField.setValue(new Double(100.0));
     numberField.setColumns(4);
     numberField.addFocusListener(myEventHandler);
@@ -289,6 +290,7 @@ public class AddMoteDialog extends JDialog {
     smallPane.add(Box.createHorizontalStrut(10));
 
     numberField = new JFormattedTextField(doubleFormat);
+    numberField.setFocusLostBehavior(JFormattedTextField.PERSIST);
     numberField.setValue(new Double(0.0));
     numberField.setColumns(4);
     numberField.addFocusListener(myEventHandler);
@@ -302,6 +304,7 @@ public class AddMoteDialog extends JDialog {
     smallPane.add(label);
 
     numberField = new JFormattedTextField(doubleFormat);
+    numberField.setFocusLostBehavior(JFormattedTextField.PERSIST);
     numberField.setValue(new Double(100.0));
     numberField.setColumns(4);
     numberField.addFocusListener(myEventHandler);
@@ -328,6 +331,7 @@ public class AddMoteDialog extends JDialog {
     smallPane.add(Box.createHorizontalStrut(10));
 
     numberField = new JFormattedTextField(doubleFormat);
+    numberField.setFocusLostBehavior(JFormattedTextField.PERSIST);
     numberField.setValue(new Double(0.0));
     numberField.setColumns(4);
     numberField.addFocusListener(myEventHandler);
@@ -341,6 +345,7 @@ public class AddMoteDialog extends JDialog {
     smallPane.add(label);
 
     numberField = new JFormattedTextField(doubleFormat);
+    numberField.setFocusLostBehavior(JFormattedTextField.PERSIST);
     numberField.setValue(new Double(0.0));
     numberField.setColumns(4);
     numberField.addFocusListener(myEventHandler);
@@ -361,66 +366,61 @@ public class AddMoteDialog extends JDialog {
     pack();
   }
 
-  private void checkSettings() {
+  private boolean checkSettings() {
     // Check settings
-    settingsOK = true;
+    boolean settingsOK = true;
 
-    // Check X interval
-    if (((Number) startX.getValue()).doubleValue() > ((Number) endX.getValue())
-        .doubleValue()) {
-      startX.setBackground(Color.RED);
-      startX.setToolTipText("Malformed interval");
-      endX.setBackground(Color.RED);
-      endX.setToolTipText("Malformed interval");
+    if (!checkSettings(startX, endX)) {
       settingsOK = false;
-    } else {
-      startX.setBackground(Color.WHITE);
-      startX.setToolTipText(null);
-      endX.setBackground(Color.WHITE);
-      endX.setToolTipText(null);
     }
-
-    // Check Y interval
-    if (((Number) startY.getValue()).doubleValue() > ((Number) endY.getValue())
-        .doubleValue()) {
-      startY.setBackground(Color.RED);
-      startY.setToolTipText("Malformed interval");
-      endY.setBackground(Color.RED);
-      endY.setToolTipText("Malformed interval");
+    if (!checkSettings(startY, endY)) {
       settingsOK = false;
-    } else {
-      startY.setBackground(Color.WHITE);
-      startY.setToolTipText(null);
-      endY.setBackground(Color.WHITE);
-      endY.setToolTipText(null);
     }
-
-    // Check Z interval
-    if (((Number) startZ.getValue()).doubleValue() > ((Number) endZ.getValue())
-        .doubleValue()) {
-      startZ.setBackground(Color.RED);
-      startZ.setToolTipText("Malformed interval");
-      endZ.setBackground(Color.RED);
-      endZ.setToolTipText("Malformed interval");
+    if (!checkSettings(startZ, endZ)) {
       settingsOK = false;
-    } else {
-      startZ.setBackground(Color.WHITE);
-      startZ.setToolTipText(null);
-      endZ.setBackground(Color.WHITE);
-      endZ.setToolTipText(null);
     }
 
     // Check number of new motes
-    if (((Number) numberOfMotesField.getValue()).intValue() < 1) {
+    try {
+      numberOfMotesField.commitEdit();
+      if (((Number) numberOfMotesField.getValue()).intValue() < 0) {
+	throw new ParseException("Malformed", 0);
+      }
+      numberOfMotesField.setBackground(Color.WHITE);
+      numberOfMotesField.setToolTipText(null);
+    } catch (ParseException e) {
       numberOfMotesField.setBackground(Color.RED);
       numberOfMotesField.setToolTipText("Must be >= 1");
       settingsOK = false;
-    } else {
-      numberOfMotesField.setBackground(Color.WHITE);
-      numberOfMotesField.setToolTipText(null);
     }
 
     addButton.setEnabled(settingsOK);
+
+    return settingsOK;
+  }
+
+  private boolean checkSettings(JFormattedTextField start,
+				JFormattedTextField end) {
+    try {
+      start.commitEdit();
+      end.commitEdit();
+
+      if (((Number) start.getValue()).doubleValue() <=
+	  ((Number) end.getValue()).doubleValue()) {
+	start.setBackground(Color.WHITE);
+	start.setToolTipText(null);
+	end.setBackground(Color.WHITE);
+	end.setToolTipText(null);
+	return true;
+      }
+    } catch (ParseException e) {
+      // Malformed interval
+    }
+    start.setBackground(Color.RED);
+    start.setToolTipText("Malformed interval");
+    end.setBackground(Color.RED);
+    end.setToolTipText("Malformed interval");
+    return false;
   }
 
   private class AddMotesEventHandler
@@ -450,16 +450,7 @@ public class AddMoteDialog extends JDialog {
       } else if (e.getActionCommand().equals("add")) {
         try {
 	  // Validate input
-	  try {
-	    numberOfMotesField.commitEdit();
-	    startX.commitEdit();
-	    endX.commitEdit();
-	    startY.commitEdit();
-	    endY.commitEdit();
-	    startZ.commitEdit();
-	    endZ.commitEdit();
-	  } catch (ParseException error) {
-	    numberOfMotesField.requestFocusInWindow();
+	  if (!checkSettings()) {
 	    return;
 	  }
 
