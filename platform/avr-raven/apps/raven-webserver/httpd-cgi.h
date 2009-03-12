@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2005, Adam Dunkels.
+ * Copyright (c) 2001, Adam Dunkels.
  * All rights reserved. 
  *
  * Redistribution and use in source and binary forms, with or without 
@@ -28,36 +28,32 @@
  *
  * This file is part of the uIP TCP/IP stack.
  *
- * $Id: httpd.h,v 1.1 2008/10/14 10:14:13 julienabeille Exp $
+ * $Id: httpd-cgi.h,v 1.1 2009/03/12 19:15:25 adamdunkels Exp $
  *
  */
 
-#ifndef __HTTPD_H__
-#define __HTTPD_H__
+#ifndef __HTTPD_CGI_H__
+#define __HTTPD_CGI_H__
 
+#include "contiki.h"
+#include "httpd.h"
 
-#include "contiki-net.h"
-#include "httpd-fs.h"
+typedef PT_THREAD((* httpd_cgifunction)(struct httpd_state *, char *));
 
-struct httpd_state {
-  unsigned char timer;
-  struct psock sin, sout;
-  struct pt outputpt, scriptpt;
-  char inputbuf[50];
-  char filename[20];
-  char state;
-  struct httpd_fs_file file;  
-  int len;
-  char *scriptptr;
-  int scriptlen;
-  union {
-    unsigned short count;
-    void *ptr;
-  } u;
+httpd_cgifunction httpd_cgi(char *name);
+
+struct httpd_cgi_call {
+  struct httpd_cgi_call *next;
+  const char *name;
+  httpd_cgifunction function;
 };
 
+void httpd_cgi_add(struct httpd_cgi_call *c);
 
-void httpd_init(void);
-void httpd_appcall(void *state);
+#define HTTPD_CGI_CALL(name, str, function) \
+static struct httpd_cgi_call name = {NULL, str, function}
 
-#endif /* __HTTPD_H__ */
+void httpd_cgi_init(void);
+void web_set_temp(char *s);
+
+#endif /* __HTTPD_CGI_H__ */

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001, Adam Dunkels.
+ * Copyright (c) 2002, Adam Dunkels.
  * All rights reserved. 
  *
  * Redistribution and use in source and binary forms, with or without 
@@ -7,9 +7,10 @@
  * are met: 
  * 1. Redistributions of source code must retain the above copyright 
  *    notice, this list of conditions and the following disclaimer. 
- * 2. Redistributions in binary form must reproduce the above copyright 
- *    notice, this list of conditions and the following disclaimer in the 
- *    documentation and/or other materials provided with the distribution. 
+ * 2. Redistributions in binary form must reproduce the above
+ *    copyright notice, this list of conditions and the following
+ *    disclaimer in the documentation and/or other materials provided
+ *    with the distribution. 
  * 3. The name of the author may not be used to endorse or promote
  *    products derived from this software without specific prior
  *    written permission.  
@@ -26,31 +27,19 @@
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.  
  *
- * This file is part of the uIP TCP/IP stack.
+ * This file is part of the Contiki operating system
  *
- * $Id: httpd-cfs.h,v 1.1 2008/10/14 10:14:13 julienabeille Exp $
+ * $Id: webserver.h,v 1.1 2009/03/12 19:15:25 adamdunkels Exp $
  *
  */
-
-#ifndef __HTTPD_CFS_H__
-#define __HTTPD_CFS_H__
+#ifndef __WEBSERVER_H__
+#define __WEBSERVER_H__
 
 #include "contiki-net.h"
 
-struct httpd_state {
-  struct timer timer;
-  struct psock sin, sout;
-  struct pt outputpt;
-  char inputbuf[50];
-  char outputbuf[UIP_TCP_MSS];
-  char filename[20];
-  char state;
-  int fd;
-  int len;
-};
+PROCESS_NAME(webserver_process);
 
+void webserver_log(char *msg);
+void webserver_log_file(uip_ipaddr_t *requester, char *file);
 
-void httpd_init(void);
-void httpd_appcall(void *state);
-
-#endif /* __HTTPD_CFS_H__ */
+#endif /* __WEBSERVER_H__ */

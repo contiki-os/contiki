@@ -27,19 +27,57 @@
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.  
  *
- * This file is part of the Contiki operating system
+ * This file is part of the Contiki OS.
  *
- * $Id: webserver.h,v 1.1 2008/10/14 10:14:13 julienabeille Exp $
+ * $Id: webserver-nogui.c,v 1.1 2009/03/12 19:15:25 adamdunkels Exp $
  *
  */
-#ifndef __WEBSERVER_H__
-#define __WEBSERVER_H__
 
-#include "contiki-net.h"
+#include <string.h>
+#include <stdio.h>
 
-PROCESS_NAME(webserver_process);
+#include "contiki.h"
+#include "sys/log.h"
 
-void webserver_log(char *msg);
-void webserver_log_file(uip_ipaddr_t *requester, char *file);
+#include "http-strings.h"
+#include "webserver-nogui.h"
+#include "httpd.h"
 
-#endif /* __WEBSERVER_H__ */
+PROCESS(webserver_nogui_process, "Web server");
+
+AUTOSTART_PROCESSES(&webserver_nogui_process);
+
+/*---------------------------------------------------------------------------*/
+PROCESS_THREAD(webserver_nogui_process, ev, data)
+{
+  PROCESS_BEGIN();
+
+  httpd_init();
+
+  while(1) {
+    PROCESS_WAIT_EVENT_UNTIL(ev == tcpip_event);
+    httpd_appcall(data);
+  }
+  
+  PROCESS_END();
+}
+/*---------------------------------------------------------------------------*/
+void
+webserver_log_file(uip_ipaddr_t *requester, char *file)
+{
+#if LOG_CONF_ENABLED
+  char buf[18];
+
+  /* Print out IP address of requesting host. */
+  sprintf(buf, "%d.%d.%d.%d: ", requester->u8[0], requester->u8[1],
+				requester->u8[2], requester->u8[3]);
+  log_message(buf, file);
+#endif /* LOG_CONF_ENABLED */
+}
+/*---------------------------------------------------------------------------*/
+void
+webserver_log(char *msg)
+{
+  log_message(msg, "");
+}
+/*---------------------------------------------------------------------------*/
