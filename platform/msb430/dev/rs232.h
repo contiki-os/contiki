@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: rs232.h,v 1.4 2008/10/28 12:42:53 nvt-se Exp $
+ * @(#)$Id: rs232.h,v 1.5 2009/03/12 12:23:22 nvt-se Exp $
  */
 
 /** \addtogroup esb
@@ -48,6 +48,8 @@
  */
 #ifndef __RS232_H__
 #define __RS232_H__
+
+#include "dev/msb430-uart1.h"
 
 enum rs232_speed {
 	RS232_9600  =	0,
