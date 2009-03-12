@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: AbstractCompileDialog.java,v 1.4 2009/03/11 18:18:57 fros4943 Exp $
+ * $Id: AbstractCompileDialog.java,v 1.5 2009/03/12 13:20:58 fros4943 Exp $
  */
 
 package se.sics.cooja.dialogs;
@@ -286,9 +286,8 @@ public abstract class AbstractCompileDialog extends JDialog {
       }
     });
 
-    setDialogState(DialogState.NO_SELECTION);
-
     /* Restore old configuration if mote type is already configured */
+    boolean restoredDialogState = false;
     if (moteType != null) {
       /* Restore description */
       if (moteType.getDescription() != null) {
@@ -299,9 +298,11 @@ public abstract class AbstractCompileDialog extends JDialog {
       if (moteType.getContikiSourceFile() != null) {
         contikiField.setText(moteType.getContikiSourceFile().getAbsolutePath());
         setDialogState(DialogState.SELECTED_SOURCE);
+        restoredDialogState = true;
       } else if (moteType.getContikiFirmwareFile() != null) {
         contikiField.setText(moteType.getContikiFirmwareFile().getAbsolutePath());
         setDialogState(DialogState.SELECTED_FIRMWARE);
+        restoredDialogState = true;
       }
 
       /* Restore mote interface classes */
@@ -315,7 +316,11 @@ public abstract class AbstractCompileDialog extends JDialog {
       if (moteType.getCompileCommands() != null) {
         setCompileCommands(moteType.getCompileCommands());
         setDialogState(DialogState.AWAITING_COMPILATION);
+        restoredDialogState = true;
       }
+    }
+    if (!restoredDialogState) {
+      setDialogState(DialogState.NO_SELECTION);
     }
 
     descriptionField.requestFocus();
