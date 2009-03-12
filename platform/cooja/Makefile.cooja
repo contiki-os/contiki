@@ -1,4 +1,4 @@
-# $Id: Makefile.cooja,v 1.26 2009/03/11 08:40:37 fros4943 Exp $
+# $Id: Makefile.cooja,v 1.27 2009/03/12 13:04:11 fros4943 Exp $
 
 ## The COOJA Simulator Contiki platform Makefile
 ##
@@ -34,7 +34,8 @@ $(CONTIKI)/tools/cooja/dist/cooja.jar:
 
 # Quickstart rule
 $(MAKECMDGOALS): $(CONTIKI)/tools/cooja/dist/cooja.jar
-	java -jar $(CONTIKI)/tools/cooja/dist/cooja.jar -quickstart=$(MAKECMDGOALS) -contiki=$(CONTIKI)
+	(cd $(CONTIKI)/tools/cooja/build && \
+	 java -jar ../dist/cooja.jar -quickstart='$(abspath $(firstword $(MAKECMDGOALS)))')
 
 endif ## QUICKSTART
 
@@ -96,6 +97,7 @@ ifdef REDEF_PRINTF
 endif ## REDEF_PRINTF
 	$(LINK_COMMAND_1) $^ $(LINK_COMMAND_2)
 
+.PHONY: $(CONTIKI_APP).cooja
 $(CONTIKI_APP).cooja: $(JNILIB)
 	cp $(JNILIB) $@
 	rm $(CONTIKI_APP_OBJ)

@@ -24,7 +24,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * $Id: GUI.java,v 1.114 2009/03/11 20:14:52 fros4943 Exp $
+ * $Id: GUI.java,v 1.115 2009/03/12 13:04:10 fros4943 Exp $
  */
 
 package se.sics.cooja;
@@ -2878,10 +2878,16 @@ public class GUI extends Observable {
       String contikiApp = args[0].substring("-quickstart=".length());
 
       if (contikiApp.endsWith(".cooja")) {
-        contikiApp = contikiApp.substring(0, contikiApp.length() - 6);
+        contikiApp = contikiApp.substring(0, contikiApp.length() - ".cooja".length());
       }
       if (!contikiApp.endsWith(".c")) {
         contikiApp += ".c";
+      }
+
+      /* Cygwin fix */
+      if (contikiApp.startsWith("/cygdrive/")) {
+        char driveCharacter = contikiApp.charAt("/cygdrive/".length());
+        contikiApp = contikiApp.replace("/cygdrive/" + driveCharacter + "/", driveCharacter + ":/");
       }
 
       boolean ok = quickStartSimulation(contikiApp);
