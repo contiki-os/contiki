@@ -33,7 +33,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: polite.c,v 1.8 2009/03/02 11:22:09 adamdunkels Exp $
+ * $Id: polite.c,v 1.9 2009/03/12 21:58:21 adamdunkels Exp $
  */
 
 /**
@@ -64,9 +64,9 @@ recv(struct abc_conn *abc)
 {
   struct polite_conn *c = (struct polite_conn *)abc;
   if(c->q != NULL &&
-     rimebuf_datalen() == queuebuf_datalen(c->q) &&
-     memcmp(rimebuf_dataptr(), queuebuf_dataptr(c->q),
-	    MIN(c->hdrsize, rimebuf_datalen())) == 0) {
+     packetbuf_datalen() == queuebuf_datalen(c->q) &&
+     memcmp(packetbuf_dataptr(), queuebuf_dataptr(c->q),
+	    MIN(c->hdrsize, packetbuf_datalen())) == 0) {
     /* We received a copy of our own packet, so we do not send out
        packet. */
     queuebuf_free(c->q);
@@ -87,7 +87,7 @@ send(void *ptr)
   struct polite_conn *c = ptr;
 
   if(c->q != NULL) {
-    queuebuf_to_rimebuf(c->q);
+    queuebuf_to_packetbuf(c->q);
     queuebuf_free(c->q);
     c->q = NULL;
     abc_send(&c->c);
@@ -126,7 +126,7 @@ polite_send(struct polite_conn *c, clock_time_t interval, uint8_t hdrsize)
     queuebuf_free(c->q);
   }
   c->hdrsize = hdrsize;
-  c->q = queuebuf_new_from_rimebuf();
+  c->q = queuebuf_new_from_packetbuf();
   if(c->q != NULL) {
     ctimer_set(&c->t, interval / 2 + (random_rand() % (interval / 2)), send, c);
     return 1;

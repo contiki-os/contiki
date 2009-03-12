@@ -58,7 +58,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: multihop.h,v 1.3 2009/03/07 11:15:46 adamdunkels Exp $
+ * $Id: multihop.h,v 1.4 2009/03/12 21:58:21 adamdunkels Exp $
  */
 
 /**
@@ -76,9 +76,9 @@
 
 struct multihop_conn;
 
-#define MULTIHOP_ATTRIBUTES   { RIMEBUF_ADDR_ESENDER, RIMEBUF_ADDRSIZE }, \
-                              { RIMEBUF_ADDR_ERECEIVER, RIMEBUF_ADDRSIZE }, \
-                              { RIMEBUF_ATTR_TTL, RIMEBUF_ATTR_BIT * 5 }, \
+#define MULTIHOP_ATTRIBUTES   { PACKETBUF_ADDR_ESENDER, PACKETBUF_ADDRSIZE }, \
+                              { PACKETBUF_ADDR_ERECEIVER, PACKETBUF_ADDRSIZE }, \
+                              { PACKETBUF_ATTR_TTL, PACKETBUF_ATTR_BIT * 5 }, \
                                 UNICAST_ATTRIBUTES
 
 

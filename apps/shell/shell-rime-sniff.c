@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: shell-rime-sniff.c,v 1.2 2009/03/02 21:58:16 adamdunkels Exp $
+ * $Id: shell-rime-sniff.c,v 1.3 2009/03/12 21:58:20 adamdunkels Exp $
  */
 
 /**
@@ -79,14 +79,14 @@ sniff_attributes_output(int type)
   struct sniff_attributes_blob msg;
   msg.len = 10;
   msg.type = type;
-  msg.rssi = rimebuf_attr(RIMEBUF_ATTR_RSSI);
-  msg.lqi = rimebuf_attr(RIMEBUF_ATTR_LINK_QUALITY);
-  msg.timestamp = rimebuf_attr(RIMEBUF_ATTR_TIMESTAMP);
-  msg.listen_time = rimebuf_attr(RIMEBUF_ATTR_LISTEN_TIME);
-  msg.transmit_time = rimebuf_attr(RIMEBUF_ATTR_TRANSMIT_TIME);
-  msg.channel = rimebuf_attr(RIMEBUF_ATTR_CHANNEL);
-  rimeaddr_copy(&msg.src, rimebuf_addr(RIMEBUF_ADDR_SENDER));
-  rimeaddr_copy(&msg.dest, rimebuf_addr(RIMEBUF_ADDR_RECEIVER));
+  msg.rssi = packetbuf_attr(PACKETBUF_ATTR_RSSI);
+  msg.lqi = packetbuf_attr(PACKETBUF_ATTR_LINK_QUALITY);
+  msg.timestamp = packetbuf_attr(PACKETBUF_ATTR_TIMESTAMP);
+  msg.listen_time = packetbuf_attr(PACKETBUF_ATTR_LISTEN_TIME);
+  msg.transmit_time = packetbuf_attr(PACKETBUF_ATTR_TRANSMIT_TIME);
+  msg.channel = packetbuf_attr(PACKETBUF_ATTR_CHANNEL);
+  rimeaddr_copy(&msg.src, packetbuf_addr(PACKETBUF_ADDR_SENDER));
+  rimeaddr_copy(&msg.dest, packetbuf_addr(PACKETBUF_ADDR_RECEIVER));
   
   shell_output(&sniff_command, &msg, sizeof(msg), NULL, 0);
 }
@@ -96,11 +96,11 @@ sniff_packet_output(int type)
 {
   struct sniff_packet_blob msg;
 
-  msg.len = rimebuf_totlen() / 2 + 1;
+  msg.len = packetbuf_totlen() / 2 + 1;
   msg.type = type;
   shell_output(&sniff_command, &msg, sizeof(msg),
-	       rimebuf_dataptr(), (rimebuf_datalen() & 0xfffe) +
-	       2 * (rimebuf_totlen() & 1));
+	       packetbuf_dataptr(), (packetbuf_datalen() & 0xfffe) +
+	       2 * (packetbuf_totlen() & 1));
 }
 /*---------------------------------------------------------------------------*/
 static void

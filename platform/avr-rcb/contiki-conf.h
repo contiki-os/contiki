@@ -71,7 +71,7 @@ typedef int32_t s32_t;
 #define CLIF
 
 #define RIMEADDR_CONF_SIZE       8
-#define RIMEBUF_CONF_HDR_SIZE    0
+#define PACKETBUF_CONF_HDR_SIZE    0
 
 /* 0 for IPv6, or 1 for HC1, 2 for HC01 */
 #define SICSLOWPAN_CONF_COMPRESSION_IPV6 0 

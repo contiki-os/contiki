@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: shell-rime-netcmd.c,v 1.5 2008/11/17 22:52:10 oliverschmidt Exp $
+ * $Id: shell-rime-netcmd.c,v 1.6 2009/03/12 21:58:20 adamdunkels Exp $
  */
 
 /**
@@ -112,15 +112,15 @@ PROCESS_THREAD(shell_netcmd_process, ev, data)
   PROCESS_BEGIN();
 
   len = strlen((char *)data);
-  if(len > RIMEBUF_SIZE) {
+  if(len > PACKETBUF_SIZE) {
     char buf[32];
     snprintf(buf, sizeof(buf), "%d", len);
     shell_output_str(&netcmd_command, "command line too large: ", buf);
   } else {
     
-    rimebuf_clear();
-    msg = rimebuf_dataptr();
-    rimebuf_set_datalen(len + 2 + TRICKLEMSG_HDR_SIZE);
+    packetbuf_clear();
+    msg = packetbuf_dataptr();
+    packetbuf_set_datalen(len + 2 + TRICKLEMSG_HDR_SIZE);
     strcpy(msg->netcmd, data);
     msg->crc = crc16_data(msg->netcmd, len, 0);
     /*    printf("netcmd sending '%s'\n", msg->netcmd);*/
@@ -136,14 +136,14 @@ recv_trickle(struct trickle_conn *c)
   struct trickle_msg *msg;
   int len;
   
-  msg = rimebuf_dataptr();
+  msg = packetbuf_dataptr();
 
-  if(rimebuf_datalen() > 2 + TRICKLEMSG_HDR_SIZE) {
+  if(packetbuf_datalen() > 2 + TRICKLEMSG_HDR_SIZE) {
     
     /* First ensure that the old process is killed. */
     process_exit(&shell_netcmd_server_process);
     
-    len = rimebuf_datalen() - 2 - TRICKLEMSG_HDR_SIZE;
+    len = packetbuf_datalen() - 2 - TRICKLEMSG_HDR_SIZE;
     
     /* Make sure that the incoming command is null-terminated (which
        is should be already). */

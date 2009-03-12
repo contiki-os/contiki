@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: lpp.c,v 1.9 2009/02/20 21:22:39 adamdunkels Exp $
+ * $Id: lpp.c,v 1.10 2009/03/12 21:58:20 adamdunkels Exp $
  */
 
 /**
@@ -55,7 +55,7 @@
 #include "net/rime.h"
 #include "net/mac/mac.h"
 #include "net/mac/lpp.h"
-#include "net/rime/rimebuf.h"
+#include "net/rime/packetbuf.h"
 #include "net/rime/announcement.h"
 
 #include <stdlib.h>
@@ -147,12 +147,12 @@ send_probe(void)
   struct announcement *a;
 
   /* Set up the probe header. */
-  rimebuf_clear();
-  rimebuf_set_datalen(sizeof(struct lpp_hdr));
-  hdr = rimebuf_dataptr();
+  packetbuf_clear();
+  packetbuf_set_datalen(sizeof(struct lpp_hdr));
+  hdr = packetbuf_dataptr();
   hdr->type = TYPE_PROBE;
   rimeaddr_copy(&hdr->sender, &rimeaddr_node_addr);
-  rimeaddr_copy(&hdr->receiver, rimebuf_addr(RIMEBUF_ADDR_RECEIVER));
+  rimeaddr_copy(&hdr->receiver, packetbuf_addr(PACKETBUF_ADDR_RECEIVER));
 
 
   /* Construct the announcements */
@@ -165,12 +165,12 @@ send_probe(void)
     adata->num++;
   }
 
-  rimebuf_set_datalen(sizeof(struct lpp_hdr) +
+  packetbuf_set_datalen(sizeof(struct lpp_hdr) +
 		      ANNOUNCEMENT_MSG_HEADERLEN +
 		      sizeof(struct announcement_data) * adata->num);
 
   /*  PRINTF("Sending probe\n");*/
-  radio->send(rimebuf_hdrptr(), rimebuf_totlen());
+  radio->send(packetbuf_hdrptr(), packetbuf_totlen());
 }
 /*---------------------------------------------------------------------------*/
 /**
@@ -237,24 +237,24 @@ send_packet(void)
 {
   struct lpp_hdr *hdr;
 
-  rimebuf_hdralloc(sizeof(struct lpp_hdr));
-  hdr = rimebuf_hdrptr();
+  packetbuf_hdralloc(sizeof(struct lpp_hdr));
+  hdr = packetbuf_hdrptr();
 
   rimeaddr_copy(&hdr->sender, &rimeaddr_node_addr);
-  rimeaddr_copy(&hdr->receiver, rimebuf_addr(RIMEBUF_ADDR_RECEIVER));
+  rimeaddr_copy(&hdr->receiver, packetbuf_addr(PACKETBUF_ADDR_RECEIVER));
   hdr->type = TYPE_DATA;
 
-  rimebuf_compact();
+  packetbuf_compact();
   PRINTF("%d.%d: queueing packet to %d.%d, channel %d\n",
 	 rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1],
 	 hdr->receiver.u8[0], hdr->receiver.u8[1],
-	 rimebuf_attr(RIMEBUF_ATTR_CHANNEL));
+	 packetbuf_attr(PACKETBUF_ATTR_CHANNEL));
 
-  if(rimebuf_attr(RIMEBUF_ATTR_PACKET_TYPE) == RIMEBUF_ATTR_PACKET_TYPE_ACK) {
+  if(packetbuf_attr(PACKETBUF_ATTR_PACKET_TYPE) == PACKETBUF_ATTR_PACKET_TYPE_ACK) {
     /* Immediately send ACKs - we're assuming that the other node is
        listening. */
     /*    printf("Immediately sending ACK\n");*/
-    return radio->send(rimebuf_hdrptr(), rimebuf_totlen());
+    return radio->send(packetbuf_hdrptr(), packetbuf_totlen());
   } else {
 
     /* If a packet is already queued, the DUMP_QUEUED_PACKET option
@@ -265,10 +265,10 @@ send_packet(void)
     if(queued_packet != NULL) {
       remove_queued_packet();
     }
-    queued_packet = queuebuf_new_from_rimebuf();
+    queued_packet = queuebuf_new_from_packetbuf();
 #else /* DUMP_QUEUED_PACKET */
     if(queued_packet == NULL) {
-      queued_packet = queuebuf_new_from_rimebuf();
+      queued_packet = queuebuf_new_from_packetbuf();
     }
 #endif /* DUMP_QUEUED_PACKET */
 
@@ -291,16 +291,16 @@ read_packet(void)
   int len;
   struct lpp_hdr *hdr, *qhdr;
   
-  rimebuf_clear();
-  len = radio->read(rimebuf_dataptr(), RIMEBUF_SIZE);
+  packetbuf_clear();
+  len = radio->read(packetbuf_dataptr(), PACKETBUF_SIZE);
   if(len > 0) {
-    rimebuf_set_datalen(len);
-    hdr = rimebuf_dataptr();
-    rimebuf_hdrreduce(sizeof(struct lpp_hdr));
+    packetbuf_set_datalen(len);
+    hdr = packetbuf_dataptr();
+    packetbuf_hdrreduce(sizeof(struct lpp_hdr));
     /*    PRINTF("got packet type %d\n", hdr->type);*/
     if(hdr->type == TYPE_PROBE) {
       /* Parse incoming announcements */
-      struct announcement_msg *adata = rimebuf_dataptr();
+      struct announcement_msg *adata = packetbuf_dataptr();
       int i;
 	
       /*	PRINTF("%d.%d: probe from %d.%d with %d announcements\n",
@@ -355,7 +355,7 @@ read_packet(void)
 	     rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1],
 	     hdr->sender.u8[0], hdr->sender.u8[1]);
     }
-    len = rimebuf_datalen();
+    len = packetbuf_datalen();
   }
   return len;
 }

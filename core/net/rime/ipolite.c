@@ -33,7 +33,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: ipolite.c,v 1.13 2009/03/02 11:22:09 adamdunkels Exp $
+ * $Id: ipolite.c,v 1.14 2009/03/12 21:58:21 adamdunkels Exp $
  */
 
 /**
@@ -71,9 +71,9 @@ recv(struct broadcast_conn *broadcast, rimeaddr_t *from)
 {
   struct ipolite_conn *c = (struct ipolite_conn *)broadcast;
   if(c->q != NULL &&
-     rimebuf_datalen() == queuebuf_datalen(c->q) &&
-     memcmp(rimebuf_dataptr(), queuebuf_dataptr(c->q),
-	    MIN(c->hdrsize, rimebuf_datalen())) == 0) {
+     packetbuf_datalen() == queuebuf_datalen(c->q) &&
+     memcmp(packetbuf_dataptr(), queuebuf_dataptr(c->q),
+	    MIN(c->hdrsize, packetbuf_datalen())) == 0) {
     /* We received a copy of our own packet, so we do not send out
        packet. */
     queuebuf_free(c->q);
@@ -98,7 +98,7 @@ send(void *ptr)
 	 c->q);
   
   if(c->q != NULL) {
-    queuebuf_to_rimebuf(c->q);
+    queuebuf_to_packetbuf(c->q);
     queuebuf_free(c->q);
     c->q = NULL;
     broadcast_send(&c->c);
@@ -150,7 +150,7 @@ ipolite_send(struct ipolite_conn *c, clock_time_t interval, uint8_t hdrsize)
     }
 
   } else {
-    c->q = queuebuf_new_from_rimebuf();
+    c->q = queuebuf_new_from_packetbuf();
     if(c->q != NULL) {
       ctimer_set(&c->t,
 		 interval / 2 + (random_rand() % (interval / 2)),

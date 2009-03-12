@@ -33,7 +33,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: polite-announcement.c,v 1.1 2009/02/05 19:32:01 adamdunkels Exp $
+ * $Id: polite-announcement.c,v 1.2 2009/03/12 21:58:21 adamdunkels Exp $
  */
 
 /**
@@ -93,8 +93,8 @@ send_adv(clock_time_t interval)
   struct announcement_msg *adata;
   struct announcement *a;
 
-  rimebuf_clear();
-  adata = rimebuf_dataptr();
+  packetbuf_clear();
+  adata = packetbuf_dataptr();
   adata->num = 0;
   for(a = announcement_list(); a != NULL; a = a->next) {
     adata->data[adata->num].id = a->id;
@@ -102,19 +102,19 @@ send_adv(clock_time_t interval)
     adata->num++;
   }
 
-  rimebuf_set_datalen(ANNOUNCEMENT_MSG_HEADERLEN +
+  packetbuf_set_datalen(ANNOUNCEMENT_MSG_HEADERLEN +
 		      sizeof(struct announcement_data) * adata->num);
 
   PRINTF("%d.%d: sending neighbor advertisement with %d announcements\n",
 	 rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1], adata->num);
 
-  ipolite_send(&c.c, interval, rimebuf_datalen());
+  ipolite_send(&c.c, interval, packetbuf_datalen());
 }
 /*---------------------------------------------------------------------------*/
 static void
 adv_packet_received(struct ipolite_conn *ipolite, rimeaddr_t *from)
 {
-  struct announcement_msg *adata = rimebuf_dataptr();
+  struct announcement_msg *adata = packetbuf_dataptr();
   int i;
 
   PRINTF("%d.%d: adv_packet_received from %d.%d with %d announcements\n",

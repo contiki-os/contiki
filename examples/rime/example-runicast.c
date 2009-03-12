@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: example-runicast.c,v 1.3 2009/03/03 12:28:39 fros4943 Exp $
+ * $Id: example-runicast.c,v 1.4 2009/03/12 21:58:21 adamdunkels Exp $
  */
 
 /**
@@ -144,7 +144,7 @@ PROCESS_THREAD(test_runicast_process, ev, data)
     if(!runicast_is_transmitting(&runicast)) {
       rimeaddr_t recv;
 
-      rimebuf_copyfrom("Hello", 5);
+      packetbuf_copyfrom("Hello", 5);
       recv.u8[0] = 1;
       recv.u8[1] = 0;
 

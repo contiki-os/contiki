@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: deluge.c,v 1.4 2009/03/01 12:49:43 nvt-se Exp $
+ * $Id: deluge.c,v 1.5 2009/03/12 21:58:20 adamdunkels Exp $
  */
 
 /**
@@ -269,7 +269,7 @@ send_request(void *arg)
 
   PRINTF("Sending request for page %d, version %u, request_set %u\n", 
 	request.pagenum, request.version, request.request_set);
-  rimebuf_copyfrom((uint8_t *)&request, sizeof (request));
+  packetbuf_copyfrom((uint8_t *)&request, sizeof (request));
   unicast_send(&deluge_uc, &obj->summary_from);
 
   /* Deluge R.2 */
@@ -300,7 +300,7 @@ advertise_summary(struct deluge_object *obj)
   PRINTF("Advertising summary for object id %u: version=%u, available=%u\n",
 	(unsigned) obj->object_id, summary.version, summary.highest_available);
 
-  rimebuf_copyfrom((uint8_t *)&summary, sizeof (summary));
+  packetbuf_copyfrom((uint8_t *)&summary, sizeof (summary));
   broadcast_send(&deluge_broadcast);
 }
 
@@ -375,7 +375,7 @@ send_page(struct deluge_object *obj, unsigned pagenum)
   for(cp = buf; cp + S_PKT <= (unsigned char *)&buf[S_PAGE]; cp += S_PKT) {
     pkt.crc = checksum(cp, S_PKT);
     memcpy(pkt.payload, cp, S_PKT);
-    rimebuf_copyfrom((uint8_t *)&pkt, sizeof (pkt));
+    packetbuf_copyfrom((uint8_t *)&pkt, sizeof (pkt));
     broadcast_send(&deluge_broadcast);
 
     obj->tx_set &= ~(1 << pkt.packetnum++);
@@ -517,8 +517,8 @@ unicast_recv(struct unicast_conn *c, rimeaddr_t *sender)
   char *msg;
   int len;
 
-  msg = rimebuf_dataptr();  
-  len = rimebuf_datalen();
+  msg = packetbuf_dataptr();  
+  len = packetbuf_datalen();
   if(len < 5)
     return;
 
@@ -551,7 +551,7 @@ send_profile(struct deluge_object *obj)
       msg->version_vector[i] = obj->pages[i].version;
     }
 
-    rimebuf_copyfrom(buf, sizeof (buf));
+    packetbuf_copyfrom(buf, sizeof (buf));
     broadcast_send(&deluge_broadcast);
   }
 }
@@ -627,8 +627,8 @@ broadcast_recv(struct broadcast_conn *c, rimeaddr_t *sender)
   int len;
   struct deluge_msg_profile *profile;
 
-  msg = rimebuf_dataptr();  
-  len = rimebuf_datalen();
+  msg = packetbuf_dataptr();  
+  len = packetbuf_datalen();
   if(len < 5)
     return;
 

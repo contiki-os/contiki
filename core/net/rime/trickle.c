@@ -33,7 +33,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: trickle.c,v 1.15 2009/02/11 11:08:56 adamdunkels Exp $
+ * $Id: trickle.c,v 1.16 2009/03/12 21:58:21 adamdunkels Exp $
  */
 
 /**
@@ -57,9 +57,9 @@
 
 #define SEQNO_LT(a, b) ((signed char)((a) - (b)) < 0)
 
-static const struct rimebuf_attrlist attributes[] =
+static const struct packetbuf_attrlist attributes[] =
   {
-    TRICKLE_ATTRIBUTES RIMEBUF_ATTR_LAST
+    TRICKLE_ATTRIBUTES PACKETBUF_ATTR_LAST
   };
 
 
@@ -79,7 +79,7 @@ send(void *ptr)
   struct trickle_conn *c = ptr;
 
   if(c->q != NULL) {
-    queuebuf_to_rimebuf(c->q);
+    queuebuf_to_packetbuf(c->q);
     broadcast_send(&c->c);
   } else {
     PRINTF("%d.%d: trickle send but c->q == NULL\n",
@@ -136,15 +136,15 @@ static void
 recv(struct broadcast_conn *bc, rimeaddr_t *from)
 {
   struct trickle_conn *c = (struct trickle_conn *)bc;
-  uint16_t seqno = rimebuf_attr(RIMEBUF_ATTR_EPACKET_ID);
+  uint16_t seqno = packetbuf_attr(PACKETBUF_ATTR_EPACKET_ID);
 
   PRINTF("%d.%d: trickle recv seqno %d from %d.%d our %d data len %d channel %d\n",
 	 rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1],
 	 seqno,
 	 from->u8[0], from->u8[1],
 	 c->seqno,
-	 rimebuf_datalen(),
-	 rimebuf_attr(RIMEBUF_ATTR_CHANNEL));
+	 packetbuf_datalen(),
+	 packetbuf_attr(PACKETBUF_ATTR_CHANNEL));
 
   if(seqno == c->seqno) {
     /*    c->cb->recv(c);*/
@@ -161,7 +161,7 @@ recv(struct broadcast_conn *bc, rimeaddr_t *from)
     if(c->q != NULL) {
       queuebuf_free(c->q);
     }
-    c->q = queuebuf_new_from_rimebuf();
+    c->q = queuebuf_new_from_packetbuf();
     c->interval_scaling = 0;
     reset_interval(c);
     send(c);
@@ -198,8 +198,8 @@ trickle_send(struct trickle_conn *c)
     queuebuf_free(c->q);
   }
   c->seqno++;
-  rimebuf_set_attr(RIMEBUF_ATTR_EPACKET_ID, c->seqno);
-  c->q = queuebuf_new_from_rimebuf();
+  packetbuf_set_attr(PACKETBUF_ATTR_EPACKET_ID, c->seqno);
+  c->q = queuebuf_new_from_packetbuf();
   PRINTF("%d.%d: trickle send seqno %d\n",
 	 rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1],
 	 c->seqno);

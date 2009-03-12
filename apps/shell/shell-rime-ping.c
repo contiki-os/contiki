@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: shell-rime-ping.c,v 1.6 2009/03/05 23:54:14 adamdunkels Exp $
+ * $Id: shell-rime-ping.c,v 1.7 2009/03/12 21:58:20 adamdunkels Exp $
  */
 
 /**
@@ -86,9 +86,9 @@ PROCESS_THREAD(shell_rime_ping_process, ev, data)
   shell_output_str(&rime_ping_command, "Sending 4 pings to ", buf);
 
   for(i = 0; i < 4; ++i) {
-    rimebuf_clear();
-    ping = rimebuf_dataptr();
-    rimebuf_set_datalen(sizeof(struct rime_ping_msg));
+    packetbuf_clear();
+    ping = packetbuf_dataptr();
+    packetbuf_set_datalen(sizeof(struct rime_ping_msg));
 #if TIMESYNCH_CONF_ENABLED
     ping->pingtime = timesynch_time();
 #else
@@ -128,7 +128,7 @@ recv_mesh(struct mesh_conn *c, rimeaddr_t *from, u8_t hops)
   char buf[64];
   rtimer_clock_t pingrecvtime;
 
-  ping = rimebuf_dataptr();
+  ping = packetbuf_dataptr();
 
   if(waiting_for_pong == 0) {
 #if TIMESYNCH_CONF_ENABLED

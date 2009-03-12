@@ -46,7 +46,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: abc.h,v 1.14 2008/02/25 02:14:34 adamdunkels Exp $
+ * $Id: abc.h,v 1.15 2009/03/12 21:58:20 adamdunkels Exp $
  */
 /**
  * \file
@@ -58,7 +58,7 @@
 #ifndef __ABC_H__
 #define __ABC_H__
 
-#include "net/rime/rimebuf.h"
+#include "net/rime/packetbuf.h"
 #include "net/rime/channel.h"
 
 struct abc_conn;
@@ -116,7 +116,7 @@ void abc_close(struct abc_conn *c);
  * \retval     Non-zero if the packet could be sent, zero otherwise
  *
  *             This function sends an anonymous best-effort broadcast
- *             packet. The packet must be present in the rimebuf
+ *             packet. The packet must be present in the packetbuf
  *             before this function is called.
  *
  *             The parameter c must point to an abc connection that

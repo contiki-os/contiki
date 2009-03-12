@@ -30,7 +30,7 @@
  *
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: ethernode-rime.c,v 1.6 2007/05/22 21:09:19 adamdunkels Exp $
+ * $Id: ethernode-rime.c,v 1.7 2009/03/12 21:58:21 adamdunkels Exp $
  */
 
 #include "contiki.h"
@@ -53,12 +53,12 @@ receiver(void)
 {
   u8_t len;
 
-  rimebuf_clear();
+  packetbuf_clear();
 
-  len = ethernode_read(rimebuf_dataptr(), RIMEBUF_SIZE);
+  len = ethernode_read(packetbuf_dataptr(), PACKETBUF_SIZE);
 
   if(len > 0) {
-    rimebuf_set_datalen(len);
+    packetbuf_set_datalen(len);
     rime_input();
   }
 }
@@ -66,7 +66,7 @@ receiver(void)
 void
 ethernode_rime_send(void)
 {
-  ethernode_send_buf(rimebuf_hdrptr(), rimebuf_totlen());
+  ethernode_send_buf(packetbuf_hdrptr(), packetbuf_totlen());
 }
 /*---------------------------------------------------------------------------*/
 void

@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: cxmac.c,v 1.2 2008/02/24 22:10:30 adamdunkels Exp $
+ * $Id: cxmac.c,v 1.3 2009/03/12 21:58:20 adamdunkels Exp $
  */
 
 /**
@@ -251,19 +251,19 @@ send(void)
   
   /*  printf("xmac_send\n");*/
 #if !CHAMELEON
-  PRINTF("xmac: send() len %d to %d.%d\n", rimebuf_totlen(),
+  PRINTF("xmac: send() len %d to %d.%d\n", packetbuf_totlen(),
 	 uc_receiver.u8[0], uc_receiver.u8[1]);
 #endif
     
-  rimebuf_hdralloc(sizeof(struct xmac_hdr));
-  hdr = rimebuf_hdrptr();
+  packetbuf_hdralloc(sizeof(struct xmac_hdr));
+  hdr = packetbuf_hdrptr();
   rimeaddr_copy(&hdr->sender, &rimeaddr_node_addr);
 #if CHAMELEON
   rimeaddr_copy(&hdr->receiver, packattr_aget(PACKATTR_RECEIVER));
 #else
   rimeaddr_copy(&hdr->receiver, &uc_receiver);
 #endif
-  rimebuf_compact();
+  packetbuf_compact();
 
   /*  should_be_awake = 1;
       while(!radio_is_on) {}*/
@@ -325,7 +325,7 @@ send(void)
   } while(clock_time() < t0 + OFF_TIME + ON_TIME);
     /*  } while(RTIMER_CLOCK_LT(RTIMER_NOW(), t0 + OFF_TIME + ON_TIME * 2));*/
   
-  radio->send(rimebuf_hdrptr(), rimebuf_totlen());
+  radio->send(packetbuf_hdrptr(), packetbuf_totlen());
 
   /*  printf("xmac send time %d\n", (rtimer_clock_t)(RTIMER_NOW() - t0));
   if((rtimer_clock_t)(RTIMER_NOW() - t0) > 10000) {
@@ -360,7 +360,7 @@ qsend(void)
       return 0;
     } else {
 #if WITH_QUEUE
-      queued_packet = queuebuf_new_from_rimebuf();
+      queued_packet = queuebuf_new_from_packetbuf();
       return 1;
 #else
       RIMESTATS_ADD(contentiondrop);
@@ -377,7 +377,7 @@ qsend(void)
 static void
 send_queued(void *ptr)
 {
-  queuebuf_to_rimebuf(queued_packet);
+  queuebuf_to_packetbuf(queued_packet);
   queuebuf_free(queued_packet);
   queued_packet = NULL;
   qsend();
@@ -405,10 +405,10 @@ read(void)
   struct xmac_hdr *hdr;
   uint8_t len;
   
-  rimebuf_clear();
+  packetbuf_clear();
 
   PRINTF("xmac: input ");
-  len = radio->read(rimebuf_dataptr(), RIMEBUF_SIZE);
+  len = radio->read(packetbuf_dataptr(), PACKETBUF_SIZE);
   PRINTF("%d bytes at %d.%d\n", len,
 	 rimeaddr_node_addr.u8[0],rimeaddr_node_addr.u8[1]);
   
@@ -417,16 +417,16 @@ read(void)
     ctimer_set(&ctimer,
 	       (OFF_TIME * 2),
 	       reset_state, NULL);
-    rimebuf_set_datalen(len);
-    hdr = rimebuf_dataptr();
+    packetbuf_set_datalen(len);
+    hdr = packetbuf_dataptr();
     
-    rimebuf_hdrreduce(sizeof(struct xmac_hdr));
+    packetbuf_hdrreduce(sizeof(struct xmac_hdr));
     if(rimeaddr_cmp(&hdr->receiver, &rimeaddr_node_addr)) {
       should_be_awake = 1;
       PRINTF("xmac: for us\n");
       
       if(!rimeaddr_cmp(&hdr->sender, &rimeaddr_node_addr) &&
-	 rimebuf_totlen() == 0) {
+	 packetbuf_totlen() == 0) {
 	/* XXX Send an ACK and wait for packet . */
 	PRINTF("xmac: got sender %d.%d receiver %d.%d\n",
 	       hdr->sender.u8[0],hdr->sender.u8[1],
@@ -460,7 +460,7 @@ read(void)
       /*      PRINTF("xmac: not for us\n");*/
     }
     
-    if(rimebuf_totlen() > 0) {
+    if(packetbuf_totlen() > 0) {
       
       /* We have received the final packet, so we can go back to being
 	 asleep. */
@@ -475,7 +475,7 @@ read(void)
       }
 #endif
 
-      return rimebuf_totlen();
+      return packetbuf_totlen();
     }
   }
   return 0;

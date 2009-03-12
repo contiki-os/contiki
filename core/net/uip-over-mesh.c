@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: uip-over-mesh.c,v 1.10 2008/11/09 12:20:56 adamdunkels Exp $
+ * $Id: uip-over-mesh.c,v 1.11 2009/03/12 21:58:20 adamdunkels Exp $
  */
 
 /**
@@ -80,7 +80,7 @@ static uip_ipaddr_t netaddr, netmask;
 static void
 recv_data(struct unicast_conn *c, rimeaddr_t *from)
 {
-  uip_len = rimebuf_copyto(&uip_buf[UIP_LLH_LEN]);
+  uip_len = packetbuf_copyto(&uip_buf[UIP_LLH_LEN]);
 
   /*  uip_len = hc_inflate(&uip_buf[UIP_LLH_LEN], uip_len);*/
 
@@ -94,7 +94,7 @@ send_data(rimeaddr_t *next)
 {
   PRINTF("uip-over-mesh: %d.%d: send_data with len %d\n",
 	 rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1],
-	 rimebuf_totlen());
+	 packetbuf_totlen());
   unicast_send(&dataconn, next);
 }
 /*---------------------------------------------------------------------------*/
@@ -106,7 +106,7 @@ new_route(struct route_discovery_conn *c, rimeaddr_t *to)
   if(queued_packet) {
     PRINTF("uip-over-mesh: new route, sending queued packet\n");
     
-    queuebuf_to_rimebuf(queued_packet);
+    queuebuf_to_packetbuf(queued_packet);
     queuebuf_free(queued_packet);
     queued_packet = NULL;
 
@@ -141,7 +141,7 @@ static void
 gateway_announce_recv(struct trickle_conn *c)
 {
   struct gateway_msg *msg;
-  msg = rimebuf_dataptr();
+  msg = packetbuf_dataptr();
   PRINTF("%d.%d: gateway message: %d.%d\n",
 	 rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1],
 	 msg->gateway.u8[0], msg->gateway.u8[1]);
@@ -163,7 +163,7 @@ uip_over_mesh_make_announced_gateway(void)
 	   rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1]);
     uip_over_mesh_set_gateway(&rimeaddr_node_addr);
     rimeaddr_copy(&(msg.gateway), &rimeaddr_node_addr);
-    rimebuf_copyfrom(&msg, sizeof(struct gateway_msg));
+    packetbuf_copyfrom(&msg, sizeof(struct gateway_msg));
     trickle_send(&gateway_announce_conn);
     is_gateway = 1;
   }
@@ -232,13 +232,13 @@ uip_over_mesh_send(void)
   
   /*  uip_len = hc_compress(&uip_buf[UIP_LLH_LEN], uip_len);*/
   
-  rimebuf_copyfrom(&uip_buf[UIP_LLH_LEN], uip_len);
+  packetbuf_copyfrom(&uip_buf[UIP_LLH_LEN], uip_len);
   
   rt = route_lookup(&receiver);
   if(rt == NULL) {
     PRINTF("uIP over mesh no route to %d.%d\n", receiver.u8[0], receiver.u8[1]);
     if(queued_packet == NULL) {
-      queued_packet = queuebuf_new_from_rimebuf();
+      queued_packet = queuebuf_new_from_packetbuf();
       rimeaddr_copy(&queued_receiver, &receiver);
       route_discovery_discover(&route_discovery, &receiver, ROUTE_TIMEOUT);
     } else if(!rimeaddr_cmp(&queued_receiver, &receiver)) {

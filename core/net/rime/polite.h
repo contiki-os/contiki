@@ -81,7 +81,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: polite.h,v 1.6 2009/03/07 11:15:46 adamdunkels Exp $
+ * $Id: polite.h,v 1.7 2009/03/12 21:58:21 adamdunkels Exp $
  */
 
 /**
@@ -170,7 +170,7 @@ void polite_close(struct polite_conn *c);
  * \param interval The timer interval in which the packet should be sent.
  * \param hdrsize The size of the header that should be unique within the time interval.
  *
- *             This function sends a packet from the rimebuf on the
+ *             This function sends a packet from the packetbuf on the
  *             polite connection. The packet is sent some time during
  *             the time interval, but only if no other packet is
  *             received with the same header.

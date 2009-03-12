@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: xmac.c,v 1.27 2009/03/05 19:37:52 adamdunkels Exp $
+ * $Id: xmac.c,v 1.28 2009/03/12 21:58:20 adamdunkels Exp $
  */
 
 /**
@@ -304,7 +304,7 @@ static int
 parse_announcements(rimeaddr_t *from)
 {
   /* Parse incoming announcements */
-  struct announcement_msg *adata = rimebuf_dataptr();
+  struct announcement_msg *adata = packetbuf_dataptr();
   int i;
   
   PRINTF("%d.%d: probe from %d.%d with %d announcements\n",
@@ -398,16 +398,16 @@ send_packet(void)
      alignment of the header in the packet buffer. */
   hdr.type = TYPE_DATA;
   rimeaddr_copy(&hdr.sender, &rimeaddr_node_addr);
-  rimeaddr_copy(&hdr.receiver, rimebuf_addr(RIMEBUF_ADDR_RECEIVER));
+  rimeaddr_copy(&hdr.receiver, packetbuf_addr(PACKETBUF_ADDR_RECEIVER));
   if(rimeaddr_cmp(&hdr.receiver, &rimeaddr_null)) {
     is_broadcast = 1;
   }
 
   /* Copy the X-MAC header to the header portion of the packet
      buffer. */
-  rimebuf_hdralloc(sizeof(struct xmac_hdr));
-  memcpy(rimebuf_hdrptr(), &hdr, sizeof(struct xmac_hdr));
-  rimebuf_compact();
+  packetbuf_hdralloc(sizeof(struct xmac_hdr));
+  memcpy(packetbuf_hdrptr(), &hdr, sizeof(struct xmac_hdr));
+  packetbuf_compact();
 
   t0 = RTIMER_NOW();
   strobes = 0;
@@ -431,7 +431,7 @@ send_packet(void)
     t = RTIMER_NOW();
     strobe.hdr.type = TYPE_STROBE;
     rimeaddr_copy(&strobe.hdr.sender, &rimeaddr_node_addr);
-    rimeaddr_copy(&strobe.hdr.receiver, rimebuf_addr(RIMEBUF_ADDR_RECEIVER));
+    rimeaddr_copy(&strobe.hdr.receiver, packetbuf_addr(PACKETBUF_ADDR_RECEIVER));
 
 #if WITH_TIMETABLE
     if(rimeaddr_cmp(&strobe.hdr.receiver, &rimeaddr_null)) {
@@ -476,8 +476,8 @@ send_packet(void)
 
   /* If we have received the strobe ACK, and we are sending a packet
      that will need an upper layer ACK (as signified by the
-     RIMEBUF_ATTR_RELIABLE packet attribute), we keep the radio on. */
-  if(got_strobe_ack && rimebuf_attr(RIMEBUF_ATTR_RELIABLE)) {
+     PACKETBUF_ATTR_RELIABLE packet attribute), we keep the radio on. */
+  if(got_strobe_ack && packetbuf_attr(PACKETBUF_ATTR_RELIABLE)) {
 #if WITH_TIMETABLE
     TIMETABLE_TIMESTAMP(xmac_timetable, "send got ack");
 #endif
@@ -501,13 +501,13 @@ send_packet(void)
 #if WITH_TIMETABLE
     TIMETABLE_TIMESTAMP(xmac_timetable, "send packet");
 #endif
-    radio->send(rimebuf_hdrptr(), rimebuf_totlen());
+    radio->send(packetbuf_hdrptr(), packetbuf_totlen());
     CPRINTF("#");
   }
   watchdog_start();
 
   PRINTF("xmac: send (strobes=%u,len=%u,%s), done\n", strobes,
-	 rimebuf_totlen(), got_strobe_ack ? "ack" : "no ack");
+	 packetbuf_totlen(), got_strobe_ack ? "ack" : "no ack");
 
 #if XMAC_CONF_COMPOWER
   /* Accumulate the power consumption for the packet transmission. */
@@ -545,7 +545,7 @@ qsend_packet(void)
       return 0;
     } else {
 #if WITH_QUEUE
-      queued_packet = queuebuf_new_from_rimebuf();
+      queued_packet = queuebuf_new_from_packetbuf();
       return 1;
 #else
       RIMESTATS_ADD(sendingdrop);
@@ -573,15 +573,15 @@ read_packet(void)
   struct xmac_hdr *hdr;
   uint8_t len;
 
-  rimebuf_clear();
+  packetbuf_clear();
 
-  len = radio->read(rimebuf_dataptr(), RIMEBUF_SIZE);
+  len = radio->read(packetbuf_dataptr(), PACKETBUF_SIZE);
   
   if(len > 0) {
-    rimebuf_set_datalen(len);
-    hdr = rimebuf_dataptr();
+    packetbuf_set_datalen(len);
+    hdr = packetbuf_dataptr();
 
-    rimebuf_hdrreduce(sizeof(struct xmac_hdr));
+    packetbuf_hdrreduce(sizeof(struct xmac_hdr));
 
     if(hdr->type == TYPE_STROBE) {
       CPRINTF(".");
@@ -626,7 +626,7 @@ read_packet(void)
       }
 
       /* Check for annoucements in the strobe */
-      /*      if(rimebuf_datalen() > 0) {
+      /*      if(packetbuf_datalen() > 0) {
 	parse_announcements(&hdr->sender);
 	}*/
       /* We are done processing the strobe and we therefore return
@@ -669,7 +669,7 @@ read_packet(void)
 	  queued_packet = NULL;
 	}
 	
-	return rimebuf_totlen();
+	return packetbuf_totlen();
       }
 #if XMAC_CONF_ANNOUNCEMENTS
     } else if(hdr->type == TYPE_ANNOUNCEMENT) {
@@ -688,9 +688,9 @@ send_announcement(void *ptr)
   int announcement_len;
   
   /* Set up the probe header. */
-  rimebuf_clear();
-  rimebuf_set_datalen(sizeof(struct xmac_hdr));
-  hdr = rimebuf_dataptr();
+  packetbuf_clear();
+  packetbuf_set_datalen(sizeof(struct xmac_hdr));
+  hdr = packetbuf_dataptr();
   hdr->type = TYPE_ANNOUNCEMENT;
   rimeaddr_copy(&hdr->sender, &rimeaddr_node_addr);
   rimeaddr_copy(&hdr->receiver, &rimeaddr_null);
@@ -698,10 +698,10 @@ send_announcement(void *ptr)
   announcement_len = format_announcement((char *)hdr +
 					 sizeof(struct xmac_hdr));
 
-  rimebuf_set_datalen(sizeof(struct xmac_hdr) + announcement_len);
+  packetbuf_set_datalen(sizeof(struct xmac_hdr) + announcement_len);
 
   /*  PRINTF("Sending probe\n");*/
-  radio->send(rimebuf_hdrptr(), rimebuf_totlen());
+  radio->send(packetbuf_hdrptr(), packetbuf_totlen());
 }
 /*---------------------------------------------------------------------------*/
 static void

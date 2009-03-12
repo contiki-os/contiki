@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: sicslowmac.c,v 1.6 2008/12/10 21:26:05 c_oflynn Exp $
+ * $Id: sicslowmac.c,v 1.7 2009/03/12 21:58:21 adamdunkels Exp $
  */
 
 
@@ -51,7 +51,7 @@
 #include <stdio.h>
 #include <avr/eeprom.h>
 #include <util/delay.h>
-#include "net/rime/rimebuf.h"
+#include "net/rime/packetbuf.h"
 #include "zmac.h"
 #include "mac.h"
 #include "frame.h"
@@ -239,13 +239,13 @@ static uint8_t src_reversed[UIP_LLADDR_LEN];
 void
 sicslowmac_dataIndication(void)
 {
-  rimebuf_clear();
+  packetbuf_clear();
 
   
   #if UIP_LLADDR_LEN == 8
     /* Finally, get the stuff into the rime buffer.... */
-    rimebuf_copyfrom(parsed_frame->payload, parsed_frame->payload_length);
-    rimebuf_set_datalen(parsed_frame->payload_length);
+    packetbuf_copyfrom(parsed_frame->payload, parsed_frame->payload_length);
+    packetbuf_set_datalen(parsed_frame->payload_length);
   
   	memcpy(dest_reversed, (uint8_t *)parsed_frame->dest_addr, UIP_LLADDR_LEN);
 	memcpy(src_reversed, (uint8_t *)parsed_frame->src_addr, UIP_LLADDR_LEN);
@@ -254,13 +254,13 @@ sicslowmac_dataIndication(void)
 	byte_reverse((uint8_t *)dest_reversed, UIP_LLADDR_LEN);
 	byte_reverse((uint8_t *)src_reversed, UIP_LLADDR_LEN);
   
-	rimebuf_set_addr(RIMEBUF_ADDR_RECEIVER, (const rimeaddr_t *)dest_reversed);
-	rimebuf_set_addr(RIMEBUF_ADDR_SENDER, (const rimeaddr_t *)src_reversed);
+	packetbuf_set_addr(PACKETBUF_ADDR_RECEIVER, (const rimeaddr_t *)dest_reversed);
+	packetbuf_set_addr(PACKETBUF_ADDR_SENDER, (const rimeaddr_t *)src_reversed);
 	
   #elif UIP_CONF_USE_RUM	
     /* Finally, get the stuff into the rime buffer.... */
-    rimebuf_copyfrom(parsed_frame->payload + UIP_DATA_RUM_OFFSET, parsed_frame->payload_length - UIP_DATA_RUM_OFFSET);
-    rimebuf_set_datalen(parsed_frame->payload_length + UIP_DATA_RUM_OFFSET);
+    packetbuf_copyfrom(parsed_frame->payload + UIP_DATA_RUM_OFFSET, parsed_frame->payload_length - UIP_DATA_RUM_OFFSET);
+    packetbuf_set_datalen(parsed_frame->payload_length + UIP_DATA_RUM_OFFSET);
 	
 	dest_reversed[0] = MSB(parsed_frame->dest_pid);
 	dest_reversed[1] = LSB(parsed_frame->dest_pid);
@@ -278,8 +278,8 @@ sicslowmac_dataIndication(void)
 
   #else
     /* Finally, get the stuff into the rime buffer.... */
-    rimebuf_copyfrom(parsed_frame->payload, parsed_frame->payload_length);
-    rimebuf_set_datalen(parsed_frame->payload_length);
+    packetbuf_copyfrom(parsed_frame->payload, parsed_frame->payload_length);
+    packetbuf_set_datalen(parsed_frame->payload_length);
   
 	dest_reversed[0] = MSB(parsed_frame->dest_pid);
 	dest_reversed[1] = LSB(parsed_frame->dest_pid);
@@ -295,8 +295,8 @@ sicslowmac_dataIndication(void)
 	src_reversed[4] = MSB(parsed_frame->src_addr->addr16);
 	src_reversed[5] = LSB(parsed_frame->src_addr->addr16);
 
-	rimebuf_set_addr(RIMEBUF_ADDR_RECEIVER, (const rimeaddr_t *)dest_reversed);
-	rimebuf_set_addr(RIMEBUF_ADDR_SENDER, (const rimeaddr_t *)src_reversed);	
+	packetbuf_set_addr(PACKETBUF_ADDR_RECEIVER, (const rimeaddr_t *)dest_reversed);
+	packetbuf_set_addr(PACKETBUF_ADDR_SENDER, (const rimeaddr_t *)src_reversed);	
   
   #endif
 
@@ -309,11 +309,11 @@ sicslowmac_unknownIndication(void)
 {
   if (sicslowmac_snifferhook) {
 
-	  rimebuf_clear();
+	  packetbuf_clear();
 
 	  /* Finally, get the stuff into the rime buffer.... */
-	  rimebuf_copyfrom(parsed_frame->payload, parsed_frame->payload_length);
-	  rimebuf_set_datalen(parsed_frame->payload_length);
+	  packetbuf_copyfrom(parsed_frame->payload, parsed_frame->payload_length);
+	  packetbuf_set_datalen(parsed_frame->payload_length);
 	  
   #if UIP_LLADDR_LEN == 8
   	memcpy(dest_reversed, (uint8_t *)parsed_frame->dest_addr, UIP_LLADDR_LEN);
@@ -323,8 +323,8 @@ sicslowmac_unknownIndication(void)
 	byte_reverse((uint8_t *)dest_reversed, UIP_LLADDR_LEN);
 	byte_reverse((uint8_t *)src_reversed, UIP_LLADDR_LEN);
   
-	rimebuf_set_addr(RIMEBUF_ADDR_RECEIVER, (const rimeaddr_t *)dest_reversed);
-	rimebuf_set_addr(RIMEBUF_ADDR_SENDER, (const rimeaddr_t *)src_reversed);
+	packetbuf_set_addr(PACKETBUF_ADDR_RECEIVER, (const rimeaddr_t *)dest_reversed);
+	packetbuf_set_addr(PACKETBUF_ADDR_SENDER, (const rimeaddr_t *)src_reversed);
 	
   #elif UIP_CONF_USE_RUM	
 	
@@ -358,8 +358,8 @@ sicslowmac_unknownIndication(void)
 	src_reversed[4] = MSB(parsed_frame->src_addr->addr16);
 	src_reversed[5] = LSB(parsed_frame->src_addr->addr16);
 
-	rimebuf_set_addr(RIMEBUF_ADDR_RECEIVER, (const rimeaddr_t *)dest_reversed);
-	rimebuf_set_addr(RIMEBUF_ADDR_SENDER, (const rimeaddr_t *)src_reversed);	
+	packetbuf_set_addr(PACKETBUF_ADDR_RECEIVER, (const rimeaddr_t *)dest_reversed);
+	packetbuf_set_addr(PACKETBUF_ADDR_SENDER, (const rimeaddr_t *)src_reversed);	
   
   #endif
 
@@ -401,13 +401,13 @@ sicslowmac_dataRequest(void)
   frame_result_t result;
 
   /* Save the msduHandle in a global variable. */
-  msduHandle = rimebuf_attr(RIMEBUF_ATTR_PACKET_ID);
+  msduHandle = packetbuf_attr(PACKETBUF_ATTR_PACKET_ID);
 
   /* Build the FCF. */
   params.fcf.frameType = DATAFRAME;
   params.fcf.securityEnabled = false;
   params.fcf.framePending = false;
-  params.fcf.ackRequired = rimebuf_attr(RIMEBUF_ATTR_RELIABLE);
+  params.fcf.ackRequired = packetbuf_attr(PACKETBUF_ATTR_RELIABLE);
   params.fcf.panIdCompression = false;
 
   /* Insert IEEE 802.15.4 (2003) version bit. */
@@ -428,7 +428,7 @@ sicslowmac_dataRequest(void)
    *  If the output address is NULL in the Rime buf, then it is broadcast
    *  on the 802.15.4 network.
    */
-  if(rimeaddr_cmp(rimebuf_addr(RIMEBUF_ADDR_RECEIVER), &rimeaddr_null) ) {
+  if(rimeaddr_cmp(packetbuf_addr(PACKETBUF_ADDR_RECEIVER), &rimeaddr_null) ) {
     /* Broadcast requires short address mode. */
     params.fcf.destAddrMode = SHORTADDRMODE;
     params.dest_pid = BROADCASTPANDID;
@@ -437,7 +437,7 @@ sicslowmac_dataRequest(void)
   } else {
 
     /* Phase 1.5 - end nodes send to anyone? */
-    memcpy(&params.dest_addr, (uint8_t *)rimebuf_addr(RIMEBUF_ADDR_RECEIVER), LONG_ADDR_LEN);
+    memcpy(&params.dest_addr, (uint8_t *)packetbuf_addr(PACKETBUF_ADDR_RECEIVER), LONG_ADDR_LEN);
 	
     /* Change from sicslowpan byte arrangement to sicslowmac */
     byte_reverse((uint8_t*)&params.dest_addr.addr64, LONG_ADDR_LEN);
@@ -457,8 +457,8 @@ sicslowmac_dataRequest(void)
   params.src_addr.addr64 = ieee15_4ManagerAddress.get_long_addr();
 
   /* Copy the payload data. */
-  params.payload_len = rimebuf_datalen();
-  params.payload =  rimebuf_dataptr();
+  params.payload_len = packetbuf_datalen();
+  params.payload =  packetbuf_dataptr();
 
   /* Create transmission frame. */
   frame_tx_create(&params, &result);

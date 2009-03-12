@@ -330,12 +330,12 @@ void mac_LowpanToEthernet(void)
   } else {
 	//Otherwise we have a real address
 	mac_createEthernetAddr((uint8_t *) &(ETHBUF(uip_buf)->dest.addr[0]),
-                        (uip_lladdr_t *)rimebuf_addr(RIMEBUF_ADDR_RECEIVER));
+                        (uip_lladdr_t *)packetbuf_addr(PACKETBUF_ADDR_RECEIVER));
   }
 	
 
   mac_createEthernetAddr((uint8_t *) &(ETHBUF(uip_buf)->src.addr[0]),
-                         (uip_lladdr_t *)rimebuf_addr(RIMEBUF_ADDR_SENDER));
+                         (uip_lladdr_t *)packetbuf_addr(PACKETBUF_ADDR_SENDER));
 
   //We only do address translation in network mode!
   if (usbstick_mode.translate) {
@@ -731,7 +731,7 @@ void slide(uint8_t * data, uint8_t length, int16_t slide)
 /** \brief Process a received 6lowpan packet. Hijack function.
  *  \param r The MAC layer
  *
- *  The 6lowpan packet is put in rimebuf by the MAC. This routine calls
+ *  The 6lowpan packet is put in packetbuf by the MAC. This routine calls
  *  any other needed layers (either 6lowpan, or just raw ethernet dump)
  */
 void mac_ethhijack(const struct mac_driver *r)
@@ -830,7 +830,7 @@ void mac_logTXtoEthernet(frame_create_params_t *p,frame_result_t *frame_result)
 /** \brief Process a received 6lowpan packet. 
  *  \param r The MAC layer
  *
- *  The 6lowpan packet is put in rimebuf by the MAC. This routine passes
+ *  The 6lowpan packet is put in packetbuf by the MAC. This routine passes
  *  it directly to the ethernet layer without decompressing.
  */
 void mac_802154raw(const struct mac_driver *r)
@@ -861,12 +861,12 @@ void mac_802154raw(const struct mac_driver *r)
     
 	//Otherwise we have a real address
 	mac_createEthernetAddr((uint8_t *) &(ETHBUF(raw_buf)->dest.addr[0]),
-            (uip_lladdr_t *)rimebuf_addr(RIMEBUF_ADDR_RECEIVER));
+            (uip_lladdr_t *)packetbuf_addr(PACKETBUF_ADDR_RECEIVER));
 
   }
 
   mac_createEthernetAddr((uint8_t *) &(ETHBUF(raw_buf)->src.addr[0]),
-                         (uip_lladdr_t *)rimebuf_addr(RIMEBUF_ADDR_SENDER));
+                         (uip_lladdr_t *)packetbuf_addr(PACKETBUF_ADDR_SENDER));
 
    PRINTF("Low2Eth: Sending 802.15.4 packet to ethernet\n");
 

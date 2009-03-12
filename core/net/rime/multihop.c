@@ -33,7 +33,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: multihop.c,v 1.1 2008/07/03 22:36:03 adamdunkels Exp $
+ * $Id: multihop.c,v 1.2 2009/03/12 21:58:21 adamdunkels Exp $
  */
 
 /**
@@ -73,28 +73,28 @@ data_packet_received(struct unicast_conn *uc, rimeaddr_t *from)
   struct data_hdr msg;
   rimeaddr_t *nexthop;
 
-  memcpy(&msg, rimebuf_dataptr(), sizeof(struct data_hdr));
+  memcpy(&msg, packetbuf_dataptr(), sizeof(struct data_hdr));
   
   PRINTF("data_packet_received from %d.%d towards %d.%d len %d\n",
 	 from->u8[0], from->u8[1],
 	 msg.dest.u8[0], msg.dest.u8[1],
-	 rimebuf_datalen());
+	 packetbuf_datalen());
 
   if(rimeaddr_cmp(&msg.dest, &rimeaddr_node_addr)) {
     PRINTF("for us!\n");
-    rimebuf_hdrreduce(sizeof(struct data_hdr));
+    packetbuf_hdrreduce(sizeof(struct data_hdr));
     if(c->cb->recv) {
       c->cb->recv(c, &msg.originator, from, msg.hops);
     }
   } else {
     nexthop = NULL;
     if(c->cb->forward) {
-      rimebuf_hdrreduce(sizeof(struct data_hdr));
+      packetbuf_hdrreduce(sizeof(struct data_hdr));
       nexthop = c->cb->forward(c, &msg.originator,
 			       &msg.dest, from, msg.hops);
-      rimebuf_hdralloc(sizeof(struct data_hdr));
+      packetbuf_hdralloc(sizeof(struct data_hdr));
       msg.hops++;
-      memcpy(rimebuf_hdrptr(), &msg, sizeof(struct data_hdr));
+      memcpy(packetbuf_hdrptr(), &msg, sizeof(struct data_hdr));
     }
     if(nexthop) {
       PRINTF("forwarding to %d.%d\n", nexthop->u8[0], nexthop->u8[1]);
@@ -128,7 +128,7 @@ multihop_send(struct multihop_conn *c, rimeaddr_t *to)
   if(c->cb->forward == NULL) {
     return 0;
   }
-  rimebuf_compact();
+  packetbuf_compact();
   nexthop = c->cb->forward(c, &rimeaddr_node_addr, to, NULL, 0);
   
   if(nexthop == NULL) {
@@ -137,8 +137,8 @@ multihop_send(struct multihop_conn *c, rimeaddr_t *to)
   } else {
     PRINTF("multihop_send: sending data towards %d.%d\n",
 	   nexthop->u8[0], nexthop->u8[1]);
-    if(rimebuf_hdralloc(sizeof(struct data_hdr))) {
-      hdr = rimebuf_hdrptr();
+    if(packetbuf_hdralloc(sizeof(struct data_hdr))) {
+      hdr = packetbuf_hdrptr();
       rimeaddr_copy(&hdr->dest, to);
       rimeaddr_copy(&hdr->originator, &rimeaddr_node_addr);
       hdr->hops = 1;

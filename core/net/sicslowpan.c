@@ -32,7 +32,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: sicslowpan.c,v 1.4 2008/11/06 20:45:06 nvt-se Exp $
+ * $Id: sicslowpan.c,v 1.5 2009/03/12 21:58:20 adamdunkels Exp $
  */
 /**
  * \file
@@ -60,14 +60,14 @@ u8_t p;
 #define PRINTF(...) printf(__VA_ARGS__)
 #define PRINT6ADDR(addr) PRINTF(" %02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x ", ((u8_t *)addr)[0], ((u8_t *)addr)[1], ((u8_t *)addr)[2], ((u8_t *)addr)[3], ((u8_t *)addr)[4], ((u8_t *)addr)[5], ((u8_t *)addr)[6], ((u8_t *)addr)[7], ((u8_t *)addr)[8], ((u8_t *)addr)[9], ((u8_t *)addr)[10], ((u8_t *)addr)[11], ((u8_t *)addr)[12], ((u8_t *)addr)[13], ((u8_t *)addr)[14], ((u8_t *)addr)[15])
 #define PRINTLLADDR(lladdr) PRINTF(" %02x:%02x:%02x:%02x:%02x:%02x:%02x:%02x ",lladdr->addr[0], lladdr->addr[1], lladdr->addr[2], lladdr->addr[3],lladdr->addr[4], lladdr->addr[5],lladdr->addr[6], lladdr->addr[7])
-#define PRINTRIMEBUF() PRINTF("RIME buffer: "); for(p = 0; p < rimebuf_datalen(); p++){PRINTF("%.2X", *(rime_ptr + p));} PRINTF("\n")
+#define PRINTPACKETBUF() PRINTF("RIME buffer: "); for(p = 0; p < packetbuf_datalen(); p++){PRINTF("%.2X", *(rime_ptr + p));} PRINTF("\n")
 #define PRINTUIPBUF() PRINTF("UIP buffer: "); for(p = 0; p < uip_len; p++){PRINTF("%.2X", uip_buf[p]);}PRINTF("\n")
 #define PRINTSICSLOWPANBUF() PRINTF("SICSLOWPAN buffer: "); for(p = 0; p < sicslowpan_len; p++){PRINTF("%.2X", sicslowpan_buf[p]);}PRINTF("\n")
 #else
 #define PRINTF(...)
 #define PRINT6ADDR(addr)
 #define PRINTLLADDR(lladdr)
-#define PRINTRIMEBUF()
+#define PRINTPACKETBUF()
 #define PRINTUIPBUF()
 #define PRINTSICSLOWPANBUF()
 #endif /* DEBUG == 1*/
@@ -232,7 +232,7 @@ addr_context_lookup_by_number(u8_t number) {
  * \brief Compress IP/UDP header
  *
  * This function is called by the 6lowpan code to create a compressed
- * 6lowpan packet in the rimebuf buffer from a full IPv6 packet in the
+ * 6lowpan packet in the packetbuf buffer from a full IPv6 packet in the
  * uip_buf buffer.
  *
  *
@@ -598,7 +598,7 @@ uncompress_hdr_hc01(u16_t ip_len) {
       memcpy(&SICSLOWPAN_IP_BUF->srcipaddr, context->prefix, 8);
       /* infer IID from L2 address */
       uip_netif_addr_autoconf_set(&SICSLOWPAN_IP_BUF->srcipaddr,
-                                  (uip_lladdr_t *)rimebuf_addr(RIMEBUF_ADDR_SENDER));
+                                  (uip_lladdr_t *)packetbuf_addr(PACKETBUF_ADDR_SENDER));
       break;
     case SICSLOWPAN_IPHC_SAM_16:
       if((*hc01_ptr & 0x80) == 0) {
@@ -657,7 +657,7 @@ uncompress_hdr_hc01(u16_t ip_len) {
       memcpy(&SICSLOWPAN_IP_BUF->destipaddr, context->prefix, 8);
       /* infer IID from L2 address */
       uip_netif_addr_autoconf_set(&SICSLOWPAN_IP_BUF->destipaddr,
-                                  (uip_lladdr_t *)rimebuf_addr(RIMEBUF_ADDR_RECEIVER));
+                                  (uip_lladdr_t *)packetbuf_addr(PACKETBUF_ADDR_RECEIVER));
       break;
     case SICSLOWPAN_IPHC_DAM_16:
       if((*hc01_ptr & 0x80) == 0) {
@@ -738,7 +738,7 @@ uncompress_hdr_hc01(u16_t ip_len) {
   if(ip_len == 0) {
     /* This is not a fragmented packet */
     SICSLOWPAN_IP_BUF->len[0] = 0;
-    SICSLOWPAN_IP_BUF->len[1] = rimebuf_datalen() - rime_hdr_len + uncomp_hdr_len - UIP_IPH_LEN;
+    SICSLOWPAN_IP_BUF->len[1] = packetbuf_datalen() - rime_hdr_len + uncomp_hdr_len - UIP_IPH_LEN;
   } else {
     /* This is a 1st fragment */
     SICSLOWPAN_IP_BUF->len[0] = (ip_len - UIP_IPH_LEN) >> 8;
@@ -764,7 +764,7 @@ uncompress_hdr_hc01(u16_t ip_len) {
  * \brief Compress IP/UDP header using HC1 and HC_UDP
  *
  * This function is called by the 6lowpan code to create a compressed
- * 6lowpan packet in the rimebuf buffer from a full IPv6 packet in the
+ * 6lowpan packet in the packetbuf buffer from a full IPv6 packet in the
  * uip_buf buffer.
  *
  *
@@ -924,10 +924,10 @@ uncompress_hdr_hc1(u16_t ip_len) {
   /* src and dest ip addresses */
   uip_ip6addr(&SICSLOWPAN_IP_BUF->srcipaddr, 0xfe80, 0, 0, 0, 0, 0, 0, 0);
   uip_netif_addr_autoconf_set(&SICSLOWPAN_IP_BUF->srcipaddr,
-                              (uip_lladdr_t *)rimebuf_addr(RIMEBUF_ADDR_SENDER));
+                              (uip_lladdr_t *)packetbuf_addr(PACKETBUF_ADDR_SENDER));
   uip_ip6addr(&SICSLOWPAN_IP_BUF->destipaddr, 0xfe80, 0, 0, 0, 0, 0, 0, 0);
   uip_netif_addr_autoconf_set(&SICSLOWPAN_IP_BUF->destipaddr,
-                              (uip_lladdr_t *)rimebuf_addr(RIMEBUF_ADDR_RECEIVER));
+                              (uip_lladdr_t *)packetbuf_addr(PACKETBUF_ADDR_RECEIVER));
   
   uncomp_hdr_len += UIP_IPH_LEN;
   
@@ -979,7 +979,7 @@ uncompress_hdr_hc1(u16_t ip_len) {
   if(ip_len == 0) {
     /* This is not a fragmented packet */
     SICSLOWPAN_IP_BUF->len[0] = 0;
-    SICSLOWPAN_IP_BUF->len[1] = rimebuf_datalen() - rime_hdr_len + uncomp_hdr_len - UIP_IPH_LEN;
+    SICSLOWPAN_IP_BUF->len[1] = packetbuf_datalen() - rime_hdr_len + uncomp_hdr_len - UIP_IPH_LEN;
   } else {
     /* This is a 1st fragment */
     SICSLOWPAN_IP_BUF->len[0] = (ip_len - UIP_IPH_LEN) >> 8;
@@ -1040,10 +1040,10 @@ send_packet(rimeaddr_t *dest)
 {
 
   /* Set the link layer destination address for the packet as a
-   * rimebuf attribute. The MAC layer can access the destination
-   * address with the function "rimebuf_addr(RIMEBUF_ADDR_RECEIVER);
+   * packetbuf attribute. The MAC layer can access the destination
+   * address with the function "packetbuf_addr(PACKETBUF_ADDR_RECEIVER);
    */
-  rimebuf_set_addr(RIMEBUF_ADDR_RECEIVER, dest);
+  packetbuf_set_addr(PACKETBUF_ADDR_RECEIVER, dest);
 
   if(mac != NULL) {
   /** \todo: Fix sending delays so they aren't blocking, or even better would
@@ -1058,7 +1058,7 @@ send_packet(rimeaddr_t *dest)
  *
  *  The IP packet is initially in uip_buf. Its header is compressed
  *  and if necessary it is fragmented. The resulting
- *  packet/fragments are put in rimebuf and delivered to the 802.15.4
+ *  packet/fragments are put in packetbuf and delivered to the 802.15.4
  *  MAC.
  */
 static u8_t
@@ -1073,8 +1073,8 @@ output(uip_lladdr_t *localdest)
   rime_hdr_len = 0;
 
   /* reset rime buffer */
-  rimebuf_clear();
-  rime_ptr = rimebuf_dataptr();
+  packetbuf_clear();
+  rime_ptr = packetbuf_dataptr();
   
   /*
    * The destination address will be tagged to each outbound
@@ -1131,7 +1131,7 @@ output(uip_lladdr_t *localdest)
     PRINTF("(len %d, tag %d)\n", rime_payload_len, my_tag);
     memcpy(rime_ptr + rime_hdr_len,
            (void *)UIP_IP_BUF + uncomp_hdr_len, rime_payload_len);
-    rimebuf_set_datalen(rime_payload_len + rime_hdr_len);
+    packetbuf_set_datalen(rime_payload_len + rime_hdr_len);
     send_packet(&dest);
 
     /* set processed_ip_len to what we already sent from the IP payload*/
@@ -1159,7 +1159,7 @@ output(uip_lladdr_t *localdest)
              processed_ip_len >> 3, rime_payload_len, my_tag);
       memcpy(rime_ptr + rime_hdr_len,
              (void *)UIP_IP_BUF + processed_ip_len, rime_payload_len);
-      rimebuf_set_datalen(rime_payload_len + rime_hdr_len);
+      packetbuf_set_datalen(rime_payload_len + rime_hdr_len);
       send_packet(&dest);
       processed_ip_len += rime_payload_len;
     }
@@ -1178,7 +1178,7 @@ output(uip_lladdr_t *localdest)
      */
     memcpy(rime_ptr + rime_hdr_len, (void *)UIP_IP_BUF + uncomp_hdr_len,
            uip_len - uncomp_hdr_len);
-    rimebuf_set_datalen(uip_len - uncomp_hdr_len + rime_hdr_len);
+    packetbuf_set_datalen(uip_len - uncomp_hdr_len + rime_hdr_len);
     send_packet(&dest);
   }
   return 1;
@@ -1188,7 +1188,7 @@ output(uip_lladdr_t *localdest)
 /** \brief Process a received 6lowpan packet.
  *  \param r The MAC layer
  *
- *  The 6lowpan packet is put in rimebuf by the MAC. If its a frag1 or
+ *  The 6lowpan packet is put in packetbuf by the MAC. If its a frag1 or
  *  a non-fragmented packet we first uncompress the IP header. The
  *  6lowpan payload and possibly the uncompressed IP header are then
  *  copied in siclowpan_buf. If the IP packet is complete it is copied
@@ -1220,7 +1220,7 @@ input(const struct mac_driver *r)
   rime_hdr_len = 0;
 
   /* The MAC puts the 15.4 payload inside the RIME data buffer */
-  rime_ptr = rimebuf_dataptr();
+  rime_ptr = packetbuf_dataptr();
 
 #if SICSLOWPAN_CONF_FRAG
   /* if reassembly timed out, cancel it */
@@ -1265,7 +1265,7 @@ input(const struct mac_driver *r)
     if((frag_size > 0 &&
         (frag_size != sicslowpan_len ||
          reass_tag  != frag_tag ||
-         !rimeaddr_cmp(&frag_sender, rimebuf_addr(RIMEBUF_ADDR_SENDER))))  ||
+         !rimeaddr_cmp(&frag_sender, packetbuf_addr(PACKETBUF_ADDR_SENDER))))  ||
        frag_size == 0) {
       /*
        * the packet is a fragment that does not belong to the packet
@@ -1285,7 +1285,7 @@ input(const struct mac_driver *r)
       timer_set(&reass_timer, SICSLOWPAN_REASS_MAXAGE*CLOCK_SECOND);
       PRINTF("sicslowpan input: INIT FRAGMENTATION (len %d, tag %d)\n",
              sicslowpan_len, reass_tag);
-      rimeaddr_copy(&frag_sender, rimebuf_addr(RIMEBUF_ADDR_SENDER));
+      rimeaddr_copy(&frag_sender, packetbuf_addr(PACKETBUF_ADDR_SENDER));
     }
   }
 
@@ -1337,7 +1337,7 @@ input(const struct mac_driver *r)
    * and rime_hdr_len are non 0, frag_offset is.
    * If this is a subsequent fragment, this is the contrary.
    */
-  rime_payload_len = rimebuf_datalen() - rime_hdr_len;
+  rime_payload_len = packetbuf_datalen() - rime_hdr_len;
   memcpy((void *)SICSLOWPAN_IP_BUF + uncomp_hdr_len + (u16_t)(frag_offset << 3), rime_ptr + rime_hdr_len, rime_payload_len);
   
   /* update processed_ip_len if fragment, sicslowpan_len otherwise */

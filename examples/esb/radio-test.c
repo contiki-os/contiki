@@ -26,14 +26,14 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: radio-test.c,v 1.1 2007/11/28 23:10:38 nifi Exp $
+ * $Id: radio-test.c,v 1.2 2009/03/12 21:58:21 adamdunkels Exp $
  *
  * -----------------------------------------------------------------
  *
  * Author  : Adam Dunkels, Joakim Eriksson, Niclas Finne
  * Created : 2006-03-07
- * Updated : $Date: 2007/11/28 23:10:38 $
- *           $Revision: 1.1 $
+ * Updated : $Date: 2009/03/12 21:58:21 $
+ *           $Revision: 1.2 $
  *
  * Simple application to indicate connectivity between two nodes:
  *
@@ -88,15 +88,15 @@ static void
 abc_recv(struct abc_conn *c)
 {
   /* packet received */
-  if(rimebuf_datalen() < PACKET_SIZE
-     || strncmp((char *)rimebuf_dataptr(), HEADER, sizeof(HEADER))) {
+  if(packetbuf_datalen() < PACKET_SIZE
+     || strncmp((char *)packetbuf_dataptr(), HEADER, sizeof(HEADER))) {
     /* invalid message */
     leds_blink();
 
   } else {
     PROCESS_CONTEXT_BEGIN(&radio_test_process);
     set(&recv, ON);
-    set(&other, ((char *)rimebuf_dataptr())[sizeof(HEADER)] ? ON : OFF);
+    set(&other, ((char *)packetbuf_dataptr())[sizeof(HEADER)] ? ON : OFF);
 
     /* synchronize the sending to keep the nodes from sending
        simultaneously */
@@ -131,10 +131,10 @@ PROCESS_THREAD(radio_test_process, ev, data)
       etimer_reset(&send_timer);
 
       /* send packet */
-      rimebuf_copyfrom(HEADER, sizeof(HEADER));
-      ((char *)rimebuf_dataptr())[sizeof(HEADER)] = recv.onoff;
+      packetbuf_copyfrom(HEADER, sizeof(HEADER));
+      ((char *)packetbuf_dataptr())[sizeof(HEADER)] = recv.onoff;
       /* send arbitrary data to fill the packet size */
-      rimebuf_set_datalen(PACKET_SIZE);
+      packetbuf_set_datalen(PACKET_SIZE);
       set(&flash, ON);
       abc_send(&abc);
 

@@ -33,7 +33,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: mesh.c,v 1.14 2008/07/03 22:36:02 adamdunkels Exp $
+ * $Id: mesh.c,v 1.15 2009/03/12 21:58:21 adamdunkels Exp $
  */
 
 /**
@@ -96,7 +96,7 @@ found_route(struct route_discovery_conn *rdc, rimeaddr_t *dest)
 
   if(c->queued_data != NULL &&
      rimeaddr_cmp(dest, &c->queued_data_dest)) {
-    queuebuf_to_rimebuf(c->queued_data);
+    queuebuf_to_packetbuf(c->queued_data);
     queuebuf_free(c->queued_data);
     c->queued_data = NULL;
     multihop_send(&c->multihop, dest);
@@ -156,7 +156,7 @@ mesh_send(struct mesh_conn *c, rimeaddr_t *to)
     }
 
     PRINTF("mesh_send: queueing data, sending rreq\n");
-    c->queued_data = queuebuf_new_from_rimebuf();
+    c->queued_data = queuebuf_new_from_packetbuf();
     rimeaddr_copy(&c->queued_data_dest, to);
     route_discovery_discover(&c->route_discovery_conn, to,
 			     PACKET_TIMEOUT);

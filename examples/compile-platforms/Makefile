@@ -11,6 +11,9 @@ msp430: sky.platform esb.platform # msb430.platform
 native: native.platform netsim.platform minimal-net.platform
 avr:    avr-raven.platform
 
+clean:
+	@rm -rf [a-z]*
+
 %.platform:
 	@mkdir -p $*
 	@cp *.c $*

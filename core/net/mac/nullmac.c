@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: nullmac.c,v 1.8 2008/06/30 08:09:17 adamdunkels Exp $
+ * $Id: nullmac.c,v 1.9 2009/03/12 21:58:20 adamdunkels Exp $
  */
 
 /**
@@ -39,7 +39,7 @@
  */
 
 #include "net/mac/nullmac.h"
-#include "net/rime/rimebuf.h"
+#include "net/rime/packetbuf.h"
 
 static const struct radio_driver *radio;
 static void (* receiver_callback)(const struct mac_driver *);
@@ -47,7 +47,7 @@ static void (* receiver_callback)(const struct mac_driver *);
 static int
 send_packet(void)
 {
-  return radio->send(rimebuf_hdrptr(), rimebuf_totlen());
+  return radio->send(packetbuf_hdrptr(), packetbuf_totlen());
 }
 /*---------------------------------------------------------------------------*/
 static void
@@ -62,9 +62,9 @@ static int
 read_packet(void)
 {
   int len;
-  rimebuf_clear();
-  len = radio->read(rimebuf_dataptr(), RIMEBUF_SIZE);
-  rimebuf_set_datalen(len);
+  packetbuf_clear();
+  len = radio->read(packetbuf_dataptr(), PACKETBUF_SIZE);
+  packetbuf_set_datalen(len);
   return len;
 }
 /*---------------------------------------------------------------------------*/

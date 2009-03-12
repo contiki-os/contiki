@@ -117,10 +117,10 @@ At packet reception, the link-layer copies the 802.15.4 payload in the
 rime buffer, and sets its length. It also stores the source and
 destination link-layer addresses as two rime addresses.
 \code
-rimebuf_copyfrom(&rx_frame.payload, rx_frame.payload_length);
-rimebuf_set_datalen(rx_frame.payload_length);
-rimebuf_set_addr(RIMEBUF_ADDR_RECEIVER, (const rimeaddr_t *)&rx_frame.dest_addr); 
-rimebuf_set_addr(RIMEBUF_ADDR_SENDER, (const rimeaddr_t *)&rx_frame.src_addr);
+packetbuf_copyfrom(&rx_frame.payload, rx_frame.payload_length);
+packetbuf_set_datalen(rx_frame.payload_length);
+packetbuf_set_addr(PACKETBUF_ADDR_RECEIVER, (const rimeaddr_t *)&rx_frame.dest_addr); 
+packetbuf_set_addr(PACKETBUF_ADDR_SENDER, (const rimeaddr_t *)&rx_frame.src_addr);
 \endcode
 It then calls the sicslowpan #input function. Similarly, when the IPv6 layer 
 has a packet to send over the radio, it puts the packet in uip_buf,

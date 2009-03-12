@@ -28,12 +28,12 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: tdma_mac.c,v 1.5 2008/11/12 12:42:41 fros4943 Exp $
+ * $Id: tdma_mac.c,v 1.6 2009/03/12 21:58:20 adamdunkels Exp $
  */
 
 #include "contiki.h"
 #include "net/mac/tdma_mac.h"
-#include "net/rime/rimebuf.h"
+#include "net/rime/packetbuf.h"
 #include "net/uip-fw.h"
 #include "sys/rtimer.h"
 #include "net/rime.h"
@@ -168,7 +168,7 @@ send(void)
   }
 
   /* Allocate queue buf for packet */
-  data[freeslot] = queuebuf_new_from_rimebuf();
+  data[freeslot] = queuebuf_new_from_packetbuf();
   id[freeslot] = id_counter;
   if(data[freeslot] == NULL) {
     PRINTF("BUFFER Queuebuffer full, dropping packet #%i\n", id[freeslot]);
@@ -202,9 +202,9 @@ static int
 read(void)
 {
   int len;
-  rimebuf_clear();
-  len = radio->read(rimebuf_dataptr(), RIMEBUF_SIZE);
-  rimebuf_set_datalen(len);
+  packetbuf_clear();
+  len = radio->read(packetbuf_dataptr(), PACKETBUF_SIZE);
+  packetbuf_set_datalen(len);
   return len;
 }
 /*---------------------------------------------------------------------------*/

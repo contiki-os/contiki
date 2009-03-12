@@ -1,7 +1,7 @@
 #!/usr/bin/perl
 @rime = ( "abc", "collect", "ctimer", "ibc", "ipolite", "mesh", "meshconn",
 	  "mh", "neighbor-discovery", "neighbor", "nf", "polite", "queuebuf",
-	  "rime", "rimeaddr", "rimebuf", "rimestats", "rmesh", "rmh",
+	  "rime", "rimeaddr", "packetbuf", "rimestats", "rmesh", "rmh",
 	  "route-discovery", "route", "ruc", "rucb",
 	  "rudolph0", "rudolph1", "rudolph2", "sabc", "sibc", "suc",
 	  "trickle", "uc", "timesynch", "nullmac", "xmac"  );

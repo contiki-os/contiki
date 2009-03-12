@@ -28,12 +28,12 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: ctdma_mac.c,v 1.2 2008/02/24 22:10:30 adamdunkels Exp $
+ * $Id: ctdma_mac.c,v 1.3 2009/03/12 21:58:20 adamdunkels Exp $
  */
 
 #include "contiki.h"
 #include "net/mac/ctdma_mac.h"
-#include "net/rime/rimebuf.h"
+#include "net/rime/packetbuf.h"
 #include "net/uip-fw.h"
 #include "net/rime/ctimer.h"
 #include "net/rime.h"
@@ -165,7 +165,7 @@ send(void)
   }
 
   /* Allocate queue buf for packet */
-  data[freeslot] = queuebuf_new_from_rimebuf();
+  data[freeslot] = queuebuf_new_from_packetbuf();
   id[freeslot] = id_counter;
   if (data[freeslot] == NULL)
   {
@@ -196,9 +196,9 @@ static int
 read(void)
 {
   int len;
-  rimebuf_clear();
-  len = radio->read(rimebuf_dataptr(), RIMEBUF_SIZE);
-  rimebuf_set_datalen(len);
+  packetbuf_clear();
+  len = radio->read(packetbuf_dataptr(), PACKETBUF_SIZE);
+  packetbuf_set_datalen(len);
   return len;
 }
 /*---------------------------------------------------------------------------*/

@@ -1,5 +1,5 @@
 /* -*- C -*- */
-/* @(#)$Id: contiki-conf.h,v 1.40 2009/03/09 08:19:07 julienabeille Exp $ */
+/* @(#)$Id: contiki-conf.h,v 1.41 2009/03/12 21:58:21 adamdunkels Exp $ */
 
 #ifndef CONTIKI_CONF_H
 #define CONTIKI_CONF_H
@@ -8,7 +8,7 @@
 #define XMAC_CONF_ANNOUNCEMENTS 1
 #define RIME_CONF_NO_POLITE_ANNOUCEMENTS 1
 
-#define RIMEBUF_CONF_ATTRS_INLINE 1
+#define PACKETBUF_CONF_ATTRS_INLINE 1
 
 #define SHELL_VARS_CONF_RAM_BEGIN 0x1100
 #define SHELL_VARS_CONF_RAM_END 0x2000

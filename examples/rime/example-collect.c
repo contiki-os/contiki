@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: example-collect.c,v 1.7 2009/03/10 14:36:48 zhitao Exp $
+ * $Id: example-collect.c,v 1.8 2009/03/12 21:58:21 adamdunkels Exp $
  */
 
 /**
@@ -60,8 +60,8 @@ recv(const rimeaddr_t *originator, uint8_t seqno, uint8_t hops)
   printf("Sink got message from %d.%d, seqno %d, hops %d: len %d '%s'\n",
 	 originator->u8[0], originator->u8[1],
 	 seqno, hops,
-	 rimebuf_datalen(),
-	 (char *)rimebuf_dataptr());
+	 packetbuf_datalen(),
+	 (char *)packetbuf_dataptr());
 
 }
 /*---------------------------------------------------------------------------*/
@@ -88,8 +88,8 @@ PROCESS_THREAD(example_collect_process, ev, data)
 	PROCESS_PAUSE();
       }
       printf("Sending\n");
-      rimebuf_clear();
-      rimebuf_set_datalen(sprintf(rimebuf_dataptr(),
+      packetbuf_clear();
+      packetbuf_set_datalen(sprintf(packetbuf_dataptr(),
 				  "%s", "Hello") + 1);
       collect_send(&tc, 4);
     }

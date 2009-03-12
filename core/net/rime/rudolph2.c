@@ -39,7 +39,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: rudolph2.c,v 1.6 2008/11/09 12:16:33 adamdunkels Exp $
+ * $Id: rudolph2.c,v 1.7 2009/03/12 21:58:21 adamdunkels Exp $
  */
 
 /**
@@ -111,14 +111,14 @@ format_data(struct rudolph2_conn *c, int chunk)
   struct rudolph2_hdr *hdr;
   int len;
   
-  rimebuf_clear();
-  hdr = rimebuf_dataptr();
+  packetbuf_clear();
+  hdr = packetbuf_dataptr();
   hdr->type = TYPE_DATA;
   hdr->hops_from_base = c->hops_from_base;
   hdr->version = c->version;
   hdr->chunk = chunk;
   len = read_data(c, (uint8_t *)hdr + sizeof(struct rudolph2_hdr), chunk);
-  rimebuf_set_datalen(sizeof(struct rudolph2_hdr) + len);
+  packetbuf_set_datalen(sizeof(struct rudolph2_hdr) + len);
 
   return len;
 }
@@ -170,9 +170,9 @@ static void
 send_nack(struct rudolph2_conn *c)
 {
   struct rudolph2_hdr *hdr;
-  rimebuf_clear();
-  rimebuf_hdralloc(sizeof(struct rudolph2_hdr));
-  hdr = rimebuf_hdrptr();
+  packetbuf_clear();
+  packetbuf_hdralloc(sizeof(struct rudolph2_hdr));
+  hdr = packetbuf_hdrptr();
 
   hdr->hops_from_base = c->hops_from_base;
   hdr->type = TYPE_NACK;
@@ -290,7 +290,7 @@ static void
 recv(struct polite_conn *polite)
 {
   struct rudolph2_conn *c = (struct rudolph2_conn *)polite;
-  struct rudolph2_hdr *hdr = rimebuf_dataptr();
+  struct rudolph2_hdr *hdr = packetbuf_dataptr();
 
   /* Only accept NACKs from nodes that are farther away from the base
      than us. */
@@ -326,8 +326,8 @@ recv(struct polite_conn *polite)
 	if(hdr->chunk != 0) {
 	  send_nack(c);
 	} else {
-	  rimebuf_hdrreduce(sizeof(struct rudolph2_hdr));
-	  write_data(c, 0, rimebuf_dataptr(), rimebuf_totlen());
+	  packetbuf_hdrreduce(sizeof(struct rudolph2_hdr));
+	  write_data(c, 0, packetbuf_dataptr(), packetbuf_totlen());
 	}
       } else if(hdr->version == c->version) {
 	PRINTF("%d.%d: got chunk %d snd_nxt %d rcv_nxt %d\n",
@@ -336,12 +336,12 @@ recv(struct polite_conn *polite)
 	
 	if(hdr->chunk == c->rcv_nxt) {
 	  int len;
-	  rimebuf_hdrreduce(sizeof(struct rudolph2_hdr));
+	  packetbuf_hdrreduce(sizeof(struct rudolph2_hdr));
 	  PRINTF("%d.%d: received chunk %d len %d\n",
 		 rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1],
-		 hdr->chunk, rimebuf_totlen());
-	  len = rimebuf_totlen();
-	  write_data(c, hdr->chunk, rimebuf_dataptr(), rimebuf_totlen());
+		 hdr->chunk, packetbuf_totlen());
+	  len = packetbuf_totlen();
+	  write_data(c, hdr->chunk, packetbuf_dataptr(), packetbuf_totlen());
 	  c->rcv_nxt++;
 	  if(len < RUDOLPH2_DATASIZE) {
 	    c->flags |= FLAG_LAST_RECEIVED;
@@ -388,9 +388,9 @@ rudolph2_send(struct rudolph2_conn *c, clock_time_t send_interval)
   c->version++;
   c->snd_nxt = 0;
   len = RUDOLPH2_DATASIZE;
-  rimebuf_clear();
+  packetbuf_clear();
   for(c->rcv_nxt = 0; len == RUDOLPH2_DATASIZE; c->rcv_nxt++) {
-    len = read_data(c, rimebuf_dataptr(), c->rcv_nxt);
+    len = read_data(c, packetbuf_dataptr(), c->rcv_nxt);
   }
   c->flags = FLAG_LAST_RECEIVED;
   /*  printf("Highest chunk %d\n", c->rcv_nxt);*/

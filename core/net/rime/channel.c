@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: channel.c,v 1.1 2008/02/25 02:14:34 adamdunkels Exp $
+ * $Id: channel.c,v 1.2 2009/03/12 21:58:20 adamdunkels Exp $
  */
 
 /**
@@ -53,7 +53,7 @@ channel_init(void)
 /*---------------------------------------------------------------------------*/
 void
 channel_set_attributes(uint16_t channelno,
-		       const struct rimebuf_attrlist attrlist[])
+		       const struct packetbuf_attrlist attrlist[])
 {
   struct channel *c;
   c = channel_lookup(channelno);

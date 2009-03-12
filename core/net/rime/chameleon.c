@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: chameleon.c,v 1.5 2008/08/15 18:59:22 adamdunkels Exp $
+ * $Id: chameleon.c,v 1.6 2009/03/12 21:58:20 adamdunkels Exp $
  */
 
 /**
@@ -108,7 +108,7 @@ chameleon_input(void)
   PRINTF("%d.%d: chameleon_input\n",
 	 rimeaddr_node_addr.u8[0],rimeaddr_node_addr.u8[1]);
 #if DEBUG
-  printhdr(rimebuf_dataptr(), rimebuf_datalen());
+  printhdr(packetbuf_dataptr(), packetbuf_datalen());
 #endif /* DEBUG */
   if(header_module) {
     c = header_module->input();
@@ -116,7 +116,7 @@ chameleon_input(void)
       PRINTF("%d.%d: chameleon_input channel %d\n",
 	     rimeaddr_node_addr.u8[0],rimeaddr_node_addr.u8[1],
 	     c->channelno);
-      rimebuf_set_attr(RIMEBUF_ATTR_CHANNEL, c->channelno);
+      packetbuf_set_attr(PACKETBUF_ATTR_CHANNEL, c->channelno);
       abc_input(c);
     } else {
       PRINTF("%d.%d: chameleon_input channel not found for incoming packet\n",
@@ -136,9 +136,9 @@ chameleon_output(struct channel *c)
 
   if(header_module) {
     ret = header_module->output(c);
-    rimebuf_set_attr(RIMEBUF_ATTR_CHANNEL, c->channelno);
+    packetbuf_set_attr(PACKETBUF_ATTR_CHANNEL, c->channelno);
 #if DEBUG
-    printhdr(rimebuf_hdrptr(), rimebuf_hdrlen());
+    printhdr(packetbuf_hdrptr(), packetbuf_hdrlen());
 #endif /* DEBUG */
     if(ret) {
       rime_output();
@@ -149,7 +149,7 @@ chameleon_output(struct channel *c)
 }
 /*---------------------------------------------------------------------------*/
 int
-chameleon_hdrsize(const struct rimebuf_attrlist attrlist[])
+chameleon_hdrsize(const struct packetbuf_attrlist attrlist[])
 {
   if(header_module != NULL &&
      header_module->hdrsize != NULL) {
