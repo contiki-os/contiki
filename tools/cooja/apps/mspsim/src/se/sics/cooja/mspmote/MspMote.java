@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: MspMote.java,v 1.23 2009/03/12 17:47:58 fros4943 Exp $
+ * $Id: MspMote.java,v 1.24 2009/03/13 16:24:29 fros4943 Exp $
  */
 
 package se.sics.cooja.mspmote;
@@ -296,8 +296,9 @@ public abstract class MspMote implements Mote {
    */
   protected abstract boolean initEmulator(File ELFFile);
 
-  /* return false when done - e.g. true means more work to do before finished with this tick */
+  private int[] pcHistory = new int[5];
 
+  /* return false when done - e.g. true means more work to do before finished with this tick */
   private boolean firstTick = true;
   public boolean tick(long simTime) {
     if (stopNextInstruction) {
@@ -328,9 +329,31 @@ public abstract class MspMote implements Mote {
     }
     myMoteInterfaceHandler.doActiveActionsBeforeTick();
 
+    /* Experimental program counter history */
+    for (int i=pcHistory.length-1; i > 0; i--) {
+      pcHistory[i] = pcHistory[i-1];
+    }
+    pcHistory[0] = cpu.reg[MSP430.PC];
+
     try {
       cpu.step(cycleCounter);
     } catch (EmulationException e) {
+      if (e.getMessage().startsWith("Bad operation")) {
+        /* Experimental: print program counter history */
+        LineListener oldListener = commandListener;
+        LineListener tmpListener = new LineListener() {
+          public void lineRead(String line) {
+            logger.fatal(line);
+          }
+        };
+        setCLIListener(tmpListener);
+        logger.fatal("Bad operation detected. Program counter history:");
+        for (int element : pcHistory) {
+          sendCLICommand("line " + element);
+        }
+        setCLIListener(oldListener);
+      }
+
       throw (RuntimeException)
       new RuntimeException("Emulated exception: " + e.getMessage()).initCause(e);
     }
