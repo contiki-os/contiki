@@ -41,7 +41,7 @@
  * 
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: uip-fw.h,v 1.3 2006/08/14 13:58:28 bg- Exp $
+ * $Id: uip-fw.h,v 1.4 2009/03/15 20:29:04 nvt-se Exp $
  */
 #ifndef __UIP_FW_H__
 #define __UIP_FW_H__
@@ -62,7 +62,7 @@ struct uip_fw_netif {
 };
 
 /**
- * Intantiating macro for a uIP network interface.
+ * Instantiating macro for a uIP network interface.
  *
  * Example:
  \code

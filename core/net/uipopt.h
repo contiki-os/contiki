@@ -58,7 +58,7 @@
  *
  * This file is part of the uIP TCP/IP stack.
  *
- * $Id: uipopt.h,v 1.9 2008/12/02 22:04:16 c_oflynn Exp $
+ * $Id: uipopt.h,v 1.10 2009/03/15 20:29:04 nvt-se Exp $
  *
  */
 
@@ -84,7 +84,7 @@
  * settings statically, but only if UIP_FIXEDADDR is set to 1. The
  * configuration options for a specific node includes IP address,
  * netmask and default router as well as the Ethernet address. The
- * netmask, default router and Ethernet address are appliciable only
+ * netmask, default router and Ethernet address are applicable only
  * if uIP should be run over Ethernet.
  *
  * This options are meaningful only for the IPv4 code.
@@ -104,7 +104,7 @@
 #define UIP_FIXEDADDR    0
 
 /**
- * Ping IP address asignment.
+ * Ping IP address assignment.
  *
  * uIP uses a "ping" packets for setting its own IP address if this
  * option is set. If so, uIP will start with an empty IP address and
@@ -158,7 +158,7 @@
  * Turn on support for IP packet reassembly.
  *
  * uIP supports reassembly of fragmented IP packets. This features
- * requires an additonal amount of RAM to hold the reassembly buffer
+ * requires an additional amount of RAM to hold the reassembly buffer
  * and the reassembly code size is approximately 700 bytes.  The
  * reassembly buffer is of the same size as the uip_buf buffer
  * (configured by UIP_BUFSIZE).
@@ -237,7 +237,7 @@
  */
 
 /**
- * Toggles wether UDP support should be compiled in or not.
+ * Toggles whether UDP support should be compiled in or not.
  *
  * \hideinitializer
  */
@@ -287,7 +287,7 @@
  */
 
 /**
- * Toggles wether UDP support should be compiled in or not.
+ * Toggles whether UDP support should be compiled in or not.
  *
  * \hideinitializer
  */
@@ -302,7 +302,7 @@
  * compiled in.
  *
  * If the applications that are running on top of uIP for this project
- * do not need to open outgoing TCP connections, this configration
+ * do not need to open outgoing TCP connections, this configuration
  * option can be turned off to reduce the code size of uIP.
  *
  * \hideinitializer
@@ -318,7 +318,7 @@
  *
  * Since the TCP connections are statically allocated, turning this
  * configuration knob down results in less RAM used. Each TCP
- * connection requires approximatly 30 bytes of memory.
+ * connection requires approximately 30 bytes of memory.
  *
  * \hideinitializer
  */
@@ -403,7 +403,7 @@
 /**
  * How long a connection should stay in the TIME_WAIT state.
  *
- * This configiration option has no real implication, and it should be
+ * This configuration option has no real implication, and it should be
  * left untouched.
  */
 #define UIP_TIME_WAIT_TIMEOUT 120
@@ -431,7 +431,7 @@
 #endif
 
 /**
- * The maxium age of ARP table entries measured in 10ths of seconds.
+ * The maximum age of ARP table entries measured in 10ths of seconds.
  *
  * An UIP_ARP_MAXAGE of 120 corresponds to 20 minutes (BSD
  * default).
@@ -616,7 +616,7 @@ void uip_log(char *msg);
 /*------------------------------------------------------------------------------*/
 
 /**
- * \defgroup uipoptapp Appication specific configurations
+ * \defgroup uipoptapp Application specific configurations
  * @{
  *
  * An uIP application is implemented using a single application
