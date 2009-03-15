@@ -47,7 +47,7 @@
  *
  * This file is part of the uIP TCP/IP stack.
  *
- * $Id: uip.h,v 1.22 2009/02/17 01:28:28 c_oflynn Exp $
+ * $Id: uip.h,v 1.23 2009/03/15 20:21:16 nvt-se Exp $
  *
  */
 
@@ -112,7 +112,7 @@ typedef struct uip_802154_longaddr uip_lladdr_t;
 typedef struct uip_80211_addr uip_lladdr_t;
 #define UIP_LLADDR_LEN 6
 #else /*UIP_CONF_LL_80211*/
-/** \brief Etherent address */
+/** \brief Ethernet address */
 typedef struct uip_eth_addr uip_lladdr_t;
 #define UIP_LLADDR_LEN 6
 #endif /*UIP_CONF_LL_80211*/
@@ -122,7 +122,7 @@ typedef struct uip_eth_addr uip_lladdr_t;
 
 /*---------------------------------------------------------------------------*/
 /* First, the functions that should be called from the
- * system. Initialization, the periodic timer and incoming packets are
+ * system. Initialization, the periodic timer, and incoming packets are
  * handled by the following three functions.
  */
 /**
@@ -322,7 +322,7 @@ void uip_setipid(u16_t id);
  * variable is set to a value larger than zero. The device driver
  * should be called to send out the packet.
  *
- * The ususal way of calling the function is through a for() loop like
+ * The usual way of calling the function is through a for() loop like
  * this:
  \code
  for(i = 0; i < UIP_CONNS; ++i) {
@@ -378,7 +378,7 @@ void uip_setipid(u16_t id);
     uip_process(UIP_TIMER); } while (0)
 
 /**
- * Reuqest that a particular connection should be polled.
+ * Request that a particular connection should be polled.
  *
  * Similar to uip_periodic_conn() but does not perform any timer
  * processing. The application is polled for new data.
@@ -525,14 +525,14 @@ void uip_unlisten(u16_t port);
  * Connect to a remote host using TCP.
  *
  * This function is used to start a new connection to the specified
- * port on the specied host. It allocates a new connection identifier,
+ * port on the specified host. It allocates a new connection identifier,
  * sets the connection to the SYN_SENT state and sets the
  * retransmission timer to 0. This will cause a TCP SYN segment to be
  * sent out the next time this connection is periodically processed,
  * which usually is done within 0.5 seconds after the call to
  * uip_connect().
  *
- * \note This function is avaliable only if support for active open
+ * \note This function is available only if support for active open
  * has been configured by defining UIP_ACTIVE_OPEN to 1 in uipopt.h.
  *
  * \note Since this function requires the port number to be in network
@@ -545,7 +545,7 @@ void uip_unlisten(u16_t port);
  uip_connect(&ipaddr, HTONS(80));
  \endcode
  *
- * \param ripaddr The IP address of the remote hot.
+ * \param ripaddr The IP address of the remote host.
  *
  * \param port A 16-bit port number in network byte order.
  *
@@ -576,7 +576,7 @@ struct uip_conn *uip_connect(uip_ipaddr_t *ripaddr, u16_t port);
  * processing can send data.
  *
  * The amount of data that actually is sent out after a call to this
- * funcion is determined by the maximum amount of data TCP allows. uIP
+ * function is determined by the maximum amount of data TCP allows. uIP
  * will automatically crop the data so that only the appropriate
  * amount of data is sent. The function uip_mss() can be used to query
  * uIP for the amount of data that actually will be sent.
@@ -596,7 +596,7 @@ struct uip_conn *uip_connect(uip_ipaddr_t *ripaddr, u16_t port);
 CCIF void uip_send(const void *data, int len);
 
 /**
- * The length of any incoming data that is currently avaliable (if avaliable)
+ * The length of any incoming data that is currently available (if available)
  * in the uip_appdata buffer.
  *
  * The test function uip_data() must first be used to check if there
@@ -631,7 +631,7 @@ CCIF void uip_send(const void *data, int len);
  * Abort the current connection.
  *
  * This function will abort (reset) the current connection, and is
- * usually used when an error has occured that prevents using the
+ * usually used when an error has occurred that prevents using the
  * uip_close() function.
  *
  * \hideinitializer
@@ -688,7 +688,7 @@ CCIF void uip_send(const void *data, int len);
  *
  * Will reduce to non-zero if there is new data for the application
  * present at the uip_appdata pointer. The size of the data is
- * avaliable through the uip_len variable.
+ * available through the uip_len variable.
  *
  * \hideinitializer
  */
@@ -774,7 +774,7 @@ CCIF void uip_send(const void *data, int len);
 #define uip_poll()       (uip_flags & UIP_POLL)
 
 /**
- * Get the initial maxium segment size (MSS) of the current
+ * Get the initial maximum segment size (MSS) of the current
  * connection.
  *
  * \hideinitializer
@@ -782,10 +782,10 @@ CCIF void uip_send(const void *data, int len);
 #define uip_initialmss()             (uip_conn->initialmss)
 
 /**
- * Get the current maxium segment size that can be sent on the current
+ * Get the current maximum segment size that can be sent on the current
  * connection.
  *
- * The current maxiumum segment size that can be sent on the
+ * The current maximum segment size that can be sent on the
  * connection is computed from the receiver's window and the MSS of
  * the connection (which also is available by calling
  * uip_initialmss()).
@@ -1276,7 +1276,7 @@ extern u16_t uip_urglen, uip_surglen;
  *
  * The uip_conn structure is used for identifying a connection. All
  * but one field in the structure are to be considered read-only by an
- * application. The only exception is the appstate field whos purpose
+ * application. The only exception is the appstate field whose purpose
  * is to let the application store application-specific state (e.g.,
  * file pointers) for the connection. The type of this field is
  * configured in the "uipopt.h" header file.
@@ -1457,14 +1457,14 @@ struct uip_stats {
  *
  * When the application is called, uip_flags will contain the flags
  * that are defined in this file. Please read below for more
- * infomation.
+ * information.
  */
 CCIF extern u8_t uip_flags;
 
 /* The following flags may be set in the global variable uip_flags
    before calling the application callback. The UIP_ACKDATA,
    UIP_NEWDATA, and UIP_CLOSE flags may both be set at the same time,
-   whereas the others are mutualy exclusive. Note that these flags
+   whereas the others are mutually exclusive. Note that these flags
    should *NOT* be accessed directly, but only through the uIP
    functions/macros. */
 
@@ -1499,7 +1499,7 @@ CCIF extern u8_t uip_flags;
 
 
 /**
- * \brief process the options within a hob by hop or detsination option header
+ * \brief process the options within a hop by hop or destination option header
  * \retval 0: nothing to send,
  * \retval 1: drop pkt
  * \retval 2: ICMP error message to send
@@ -1518,7 +1518,7 @@ void uip_process(u8_t flag);
    uip_process() is called. It can be called either because we have
    incoming data that should be processed, or because the periodic
    timer has fired. These values are never used directly, but only in
-   the macrose defined in this file. */
+   the macros defined in this file. */
  
 #define UIP_DATA          1     /* Tells uIP that there is incoming
 				   data in the uip_buf buffer. The
@@ -1907,7 +1907,7 @@ CCIF extern uip_lladdr_t uip_lladdr;
 
 #ifdef UIP_CONF_IPV6
 /**
- * \brief Is IPv6 addresss a the unspecified address
+ * \brief Is IPv6 address a the unspecified address
  * a is of type uip_ipaddr_t
  */
 #define uip_is_addr_unspecified(a)               \
@@ -1920,7 +1920,7 @@ CCIF extern uip_lladdr_t uip_lladdr;
    (((a)->u16[6]) == 0) &&                       \
    (((a)->u16[7]) == 0))
 
-/** \brief Is IPv6 addresss a the link local all-nodes multicast address */
+/** \brief Is IPv6 address a the link local all-nodes multicast address */
 #define uip_is_addr_linklocal_allnodes_mcast(a)     \
   ((((a)->u8[0]) == 0xff) &&                        \
    (((a)->u8[1]) == 0x02) &&                        \
