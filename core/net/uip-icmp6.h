@@ -105,7 +105,7 @@ struct uip_icmp6_error{
 /** \
  * brief Process an echo request 
  *
- * Perform a few checks, then send an Echop reply. The reply is 
+ * Perform a few checks, then send an Echo reply. The reply is 
  * built here.
   */
 void
