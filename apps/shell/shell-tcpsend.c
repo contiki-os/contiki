@@ -30,7 +30,7 @@
  *
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: shell-tcpsend.c,v 1.2 2009/03/06 07:23:08 adamdunkels Exp $
+ * $Id: shell-tcpsend.c,v 1.3 2009/03/17 20:12:55 adamdunkels Exp $
  */
 
 #include <string.h>
@@ -149,7 +149,7 @@ PROCESS_THREAD(shell_tcpsend_process, ev, data)
   *next = 0;
   ++next;
   strncpy(server, data, sizeof(server));
-  port = shell_strtolong(next, NULL);
+  port = shell_strtolong(next, &next);
   
   running = 1;
 
