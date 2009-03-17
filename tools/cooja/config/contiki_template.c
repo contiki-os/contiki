@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: contiki_template.c,v 1.11 2009/03/10 21:24:46 fros4943 Exp $
+ * $Id: contiki_template.c,v 1.12 2009/03/17 10:34:02 fros4943 Exp $
  */
 
 /**
@@ -75,7 +75,7 @@
 
 #include "node-id.h"
 
-PROCINIT(&etimer_process);
+PROCINIT(&etimer_process,&sensors_process);
 
 /* Declare all sensors */
 [SENSOR_DEFINITIONS]
