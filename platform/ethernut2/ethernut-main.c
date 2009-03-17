@@ -29,13 +29,13 @@
  *
  * This file is part of the Contiki OS
  *
- * $Id: ethernut-main.c,v 1.2 2006/06/20 21:23:10 adamdunkels Exp $
+ * $Id: ethernut-main.c,v 1.3 2009/03/17 20:32:22 adamdunkels Exp $
  *
  */
 
 #include "contiki.h"
 #include "contiki-net.h"
-#include "dev/serial.h"
+#include "dev/serial-line.h"
 #include "dev/slip.h"
 #include "dev/rs232.h"
 
@@ -59,13 +59,13 @@ PROCESS_THREAD(serial_test, ev, data)
   PROCESS_BEGIN();
 
   while(1) {
-    PROCESS_WAIT_EVENT_UNTIL(ev == serial_event_message);
+    PROCESS_WAIT_EVENT_UNTIL(ev == serial_line_event_message);
     rs232_print(data);
   }
   PROCESS_END();
 }
 
-PROCINIT(&etimer_process, &serial_process, &slip_process,
+PROCINIT(&etimer_process, &serial_line_process, &slip_process,
 	 &uip_fw_process);
 
 int

@@ -50,13 +50,13 @@
 #include "contiki-lib.h"
 
 #include "dev/rs232.h"
-#include "dev/serial.h"
+#include "dev/serial-line.h"
 #include "dev/slip.h"
 
 
 #include "sicslowmac.h"
 
-FUSES = 
+FUSES =
 	{
 		.low = 0xe2,
 		.high = 0x99,
@@ -88,7 +88,7 @@ init_lowlevel(void)
   /* Redirect stdout to second port */
   rs232_redirect_stdout(RS232_PORT_1);
   
-  DDRE |= LED1 | LED2 | LED3;  
+  DDRE |= LED1 | LED2 | LED3;
 }
 
 
@@ -105,12 +105,12 @@ PROCESS_THREAD(rcb_leds, ev, data)
       
 	  
 	  if (ev == ICMP6_ECHO_REQUEST) {
-		LEDOn(LED2);	
+		LEDOn(LED2);
 		etimer_set(&et, CLOCK_SECOND/10);
 	  } else {
 		LEDOff(LED2);
 	  }
-    } 
+    }
   }
   PROCESS_END();
 }

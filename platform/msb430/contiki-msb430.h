@@ -45,7 +45,7 @@
 #include "dev/lpm.h"
 #include "dev/msb430-uart1.h"
 #include "dev/rs232.h"
-#include "dev/serial.h"
+#include "dev/serial-line.h"
 #include "dev/slip.h"
 
 #ifdef WITH_SDC

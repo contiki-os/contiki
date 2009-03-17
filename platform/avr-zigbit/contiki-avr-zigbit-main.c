@@ -50,15 +50,15 @@
 #include "contiki-lib.h"
 
 #include "dev/rs232.h"
-#include "dev/serial.h"
+#include "dev/serial-line.h"
 #include "dev/slip.h"
 
 #include "sicslowmac.h"
 
-FUSES = 
+FUSES =
 	{
 		.low = (FUSE_CKSEL0 & FUSE_CKSEL2 & FUSE_CKSEL3 & FUSE_SUT0), // 0xe2,
-		.high = (FUSE_BOOTSZ0 /*& FUSE_BOOTSZ1*/ & FUSE_SPIEN & FUSE_JTAGEN), //0x9D, 
+		.high = (FUSE_BOOTSZ0 /*& FUSE_BOOTSZ1*/ & FUSE_SPIEN & FUSE_JTAGEN), //0x9D,
 		.extended = 0xff,
 	};
 	

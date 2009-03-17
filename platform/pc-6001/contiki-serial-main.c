@@ -27,7 +27,7 @@
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * $Id: contiki-serial-main.c,v 1.3 2007/11/28 09:44:27 matsutsuka Exp $
+ * $Id: contiki-serial-main.c,v 1.4 2009/03/17 20:32:22 adamdunkels Exp $
  *
  */
 
@@ -41,7 +41,7 @@
 #include "contiki.h"
 
 /* devices */
-#include "dev/serial.h"
+#include "dev/serial-line.h"
 #include "ctk/libconio_arch-small.h"
 
 #undef RS232_INTR
@@ -75,7 +75,7 @@ PROCESS_THREAD(stest_process, ev, data)
 
   clrscr_arch();
 #ifdef RS232_INTR
-  rs232_arch_init(serial_input_byte, 0);
+  rs232_arch_init(serial_line_input_byte, 0);
 #endif
 
   etimer_set(&timer, CLOCK_SECOND);
@@ -90,7 +90,7 @@ PROCESS_THREAD(stest_process, ev, data)
       etimer_reset(&timer);
     }
 
-    if(ev == serial_event_message) {
+    if(ev == serial_line_event_message) {
       log_message(data);
     }
   }
@@ -106,7 +106,7 @@ main(void)
 
   /* start services */
   process_start(&etimer_process, NULL);
-  process_start(&serial_process, NULL);
+  process_start(&serial_line_process, NULL);
 #ifndef RS232_INTR
   process_start(&rs232_process, NULL);
 #endif

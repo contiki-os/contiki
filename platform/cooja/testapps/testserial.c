@@ -26,11 +26,11 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: testserial.c,v 1.3 2009/03/17 15:56:32 adamdunkels Exp $
+ * $Id: testserial.c,v 1.4 2009/03/17 20:32:22 adamdunkels Exp $
  */
 
 #include "contiki.h"
-#include "dev/serial-port.h"
+#include "dev/serial-line.h"
 #include "dev/rs232.h"
 
 #include <stdio.h>
@@ -47,7 +47,7 @@ PROCESS_THREAD(test_serial_process, ev, data)
   etimer_set(&et, CLOCK_SECOND);
 
   /* Start serial process */
-  serial_port_init();
+  serial_line_init();
 
   printf("Starting serial test process\n");
 
@@ -60,7 +60,7 @@ PROCESS_THREAD(test_serial_process, ev, data)
       etimer_restart(&et);
     }
 
-    if(ev == serial_port_event_message) {
+    if(ev == serial_line_event_message) {
       printf("Message received: '%s'\n", data);
     }
   }
