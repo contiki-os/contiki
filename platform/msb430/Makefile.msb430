@@ -12,8 +12,6 @@ endif
 
 CONTIKI_TARGET_SOURCEFILES += $(SENSORS) $(SD) $(MSB) $(CONTIKI_TARGET_MAIN)
 
-include $(CONTIKI)/platform/$(TARGET)/apps/Makefile.apps
-
 MCU=msp430x1612
 include $(CONTIKI)/cpu/msp430/Makefile.msp430
 
