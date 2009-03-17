@@ -4,7 +4,7 @@
 #define HAVE_STDINT_H
 #include "msp430def.h"
 
-#define WITH_SDC			1
+#define WITH_SDC			0
 
 #define ENERGEST_CONF_ON		1
 
@@ -85,7 +85,6 @@ typedef int bool;
 #define SD_LED_WRITE_ON			SD_LED_READ_ON
 #define SD_LED_WRITE_OFF		SD_LED_READ_OFF
 
-// MSB430 SD Card driver
 #define SD_READ_BYTE			0
 #define	SD_READ_ANY			1
 #define SD_INFO				0
