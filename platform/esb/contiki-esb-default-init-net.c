@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: contiki-esb-default-init-net.c,v 1.11 2008/03/13 15:59:43 nifi Exp $
+ * @(#)$Id: contiki-esb-default-init-net.c,v 1.12 2009/03/17 20:19:11 adamdunkels Exp $
  */
 
 #include "contiki-esb.h"
@@ -47,6 +47,6 @@ init_net(void)
   rimeaddr.u8[1] = node_id >> 8;
   rimeaddr_set_node_addr(&rimeaddr);
 
-  rs232_set_input(serial_input_byte);
+  rs232_set_input(serial_line_input_byte);
 
 }

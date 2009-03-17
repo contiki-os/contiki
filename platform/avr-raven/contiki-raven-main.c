@@ -50,7 +50,7 @@
 #include "contiki-lib.h"
 
 #include "dev/rs232.h"
-#include "dev/serial.h"
+#include "dev/serial-line.h"
 #include "dev/slip.h"
 
 #ifdef RAVEN_LCD_INTERFACE
@@ -59,7 +59,7 @@
 
 #include "sicslowmac.h"
 
-FUSES = 
+FUSES =
 	{
 		.low = 0xe2,
 		.high = 0x99,
