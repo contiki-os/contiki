@@ -30,7 +30,7 @@
  *
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: shell-tcpsend.c,v 1.3 2009/03/17 20:12:55 adamdunkels Exp $
+ * $Id: shell-tcpsend.c,v 1.4 2009/03/17 21:49:44 adamdunkels Exp $
  */
 
 #include <string.h>
@@ -135,6 +135,7 @@ telnet_connected(struct telnet_state *s)
 PROCESS_THREAD(shell_tcpsend_process, ev, data)
 {
   char *next;
+  const char *dummy; 
   struct shell_input *input;
   uint16_t port;
   
@@ -149,7 +150,7 @@ PROCESS_THREAD(shell_tcpsend_process, ev, data)
   *next = 0;
   ++next;
   strncpy(server, data, sizeof(server));
-  port = shell_strtolong(next, &next);
+  port = shell_strtolong(next, &dummy);
   
   running = 1;
 
