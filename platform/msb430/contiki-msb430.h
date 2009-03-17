@@ -37,30 +37,26 @@
 #include "contiki-net.h"
 #include "contiki-lib.h"
 
-#include "lib/sensors.h"
+#include "dev/cc1020.h"
 #include "dev/hwconf.h"
-#include "dev/irq.h"
-#include "dev/lpm.h"
-
 #include "dev/infomem.h"
+#include "dev/irq.h"
+#include "dev/leds.h"
+#include "dev/lpm.h"
 #include "dev/msb430-uart1.h"
 #include "dev/rs232.h"
-
 #include "dev/serial.h"
 #include "dev/slip.h"
-#include "dev/cc1020.h"
 
 #ifdef WITH_SDC
 #include "dev/sd/sd.h"
 #include "dev/sd/sdspi.h"
 #endif
 
-#include "node-id.h"
-
-#include "dev/leds.h"
-
-#include "node-id.h"
+#include "lib/sensors.h"
 
 #include "net/rime.h"
+
+#include "node-id.h"
 
 #endif /* !CONTIKI_MSB430_H */
