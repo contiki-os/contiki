@@ -28,16 +28,16 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: serial.c,v 1.3 2008/01/08 07:49:51 adamdunkels Exp $
+ * @(#)$Id: serial-line.c,v 1.1 2009/03/17 15:56:33 adamdunkels Exp $
  */
-#include "serial.h"
+#include "dev/serial-line.h"
 #include <string.h> /* for memcpy() */
 
-#ifdef SERIAL_CONF_BUFSIZE
-#define BUFSIZE SERIAL_CONF_BUFSIZE
-#else /* SERIAL_CONF_BUFSIZE */
+#ifdef SERIAL_LINE_CONF_BUFSIZE
+#define BUFSIZE SERIAL_LINE_CONF_BUFSIZE
+#else /* SERIAL_LINE_CONF_BUFSIZE */
 #define BUFSIZE 80
-#endif /* SERIAL_CONF_BUFSIZE */
+#endif /* SERIAL_LINE_CONF_BUFSIZE */
 
 #define IGNORE_CHAR(c) (c == 0x0d)
 #define END 0x0a
@@ -46,21 +46,21 @@ static char buffer[BUFSIZE], appbuffer[BUFSIZE];
 static volatile unsigned char bufwptr;
 static volatile char buffer_full = 0;
 
-PROCESS(serial_process, "Serial driver");
+PROCESS(serial_line_process, "Serial driver");
 
-process_event_t serial_event_message;
+process_event_t serial_line_event_message;
 
 
 /*---------------------------------------------------------------------------*/
 int
-serial_input_byte(unsigned char c)
+serial_line_input_byte(unsigned char c)
 {
   if(!buffer_full && !IGNORE_CHAR(c)) {
     if(c == END) {
       /* terminate the string */
       buffer[bufwptr++] = '\0';
       buffer_full++;
-      process_poll(&serial_process);
+      process_poll(&serial_line_process);
       return 1;
     }
 
@@ -72,21 +72,21 @@ serial_input_byte(unsigned char c)
   return 0;
 }
 /*---------------------------------------------------------------------------*/
-PROCESS_THREAD(serial_process, ev, data)
+PROCESS_THREAD(serial_line_process, ev, data)
 {
   PROCESS_BEGIN();
 
   bufwptr = 0;
   buffer_full = 0;
 
-  serial_event_message = process_alloc_event();
+  serial_line_event_message = process_alloc_event();
 
   while(1) {
     PROCESS_YIELD();
     
     if(buffer_full) {
       memcpy(appbuffer, buffer, bufwptr);
-      process_post(PROCESS_BROADCAST, serial_event_message, appbuffer);
+      process_post(PROCESS_BROADCAST, serial_line_event_message, appbuffer);
       bufwptr = 0;
       buffer_full = 0;
     }
@@ -96,8 +96,8 @@ PROCESS_THREAD(serial_process, ev, data)
 }
 /*---------------------------------------------------------------------------*/
 void
-serial_init(void)
+serial_line_init(void)
 {
-  process_start(&serial_process, NULL);
+  process_start(&serial_line_process, NULL);
 }
 /*---------------------------------------------------------------------------*/

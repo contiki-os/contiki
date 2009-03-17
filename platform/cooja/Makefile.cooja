@@ -1,4 +1,4 @@
-# $Id: Makefile.cooja,v 1.29 2009/03/12 17:48:23 fros4943 Exp $
+# $Id: Makefile.cooja,v 1.30 2009/03/17 15:56:32 adamdunkels Exp $
 
 ## The COOJA Simulator Contiki platform Makefile
 ##
@@ -57,7 +57,7 @@ COOJA_INTFS	= beep.c button-sensor.c ip.c leds-arch.c moteid.c \
 		    pir-sensor.c rs232.c vib-sensor.c \
 		    clock.c log.c radio-sensor.c cfs-cooja.c
 
-COOJA_CORE = random.c sensors.c leds.c serial.c symbols.c
+COOJA_CORE = random.c sensors.c leds.c symbols.c
 
 # (COOJA_SOURCEFILES contains additional sources set from simulator)
 CONTIKI_TARGET_SOURCEFILES = \

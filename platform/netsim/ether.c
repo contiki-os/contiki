@@ -30,7 +30,7 @@
  *
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: ether.c,v 1.14 2008/12/16 09:59:42 joxe Exp $
+ * $Id: ether.c,v 1.15 2009/03/17 15:56:32 adamdunkels Exp $
  */
 /**
  * \file
@@ -61,7 +61,7 @@
 
 #include "dev/radio-sensor.h"
 
-#include "dev/serial.h"
+#include "dev/serial-line.h"
 
 #include "sensor.h"
 
@@ -304,9 +304,9 @@ ether_client_read(u8_t *buf, int bufsize)
       }
     } else if(hdr->type == PTYPE_SERIAL) {
       char *ptr = hdr->text;
-      /*      printf("serial input %s\n", ptr);*/
+      printf("serial input %s\n", ptr);
       for(ptr = hdr->text; *ptr != 0; ++ptr) {
-	serial_input_byte(*ptr);
+	serial_line_input_byte(*ptr);
       }
     }
   }

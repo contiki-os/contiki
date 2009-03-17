@@ -26,12 +26,12 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: rs232.c,v 1.1 2006/08/21 12:11:19 fros4943 Exp $
+ * $Id: rs232.c,v 1.2 2009/03/17 15:56:32 adamdunkels Exp $
  */
 
 #include "lib/sensors.h"
 #include "dev/rs232.h"
-#include "dev/serial.h"
+#include "dev/serial-line.h"
 #include "lib/simEnvChange.h"
 #include <string.h>
 #include <stdio.h>
@@ -89,9 +89,9 @@ doInterfaceActionsBeforeTick(void)
 
     // Tell serial process
     for (i=0; i < simSerialReceivingLength; i++)
-      serial_input_byte(simSerialReceivingData[i]);
+      serial_line_input_byte(simSerialReceivingData[i]);
 
-    serial_input_byte(0x0a);
+    serial_line_input_byte(0x0a);
 
     simSerialReceivingLength = 0;
     simSerialReceivingFlag = 0;
