@@ -33,7 +33,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: serial-shell.c,v 1.4 2009/03/02 21:56:16 adamdunkels Exp $
+ * $Id: serial-shell.c,v 1.5 2009/03/17 15:56:32 adamdunkels Exp $
  */
 
 /**
@@ -46,7 +46,7 @@
 #include "contiki.h"
 #include "shell.h"
 
-#include "dev/serial.h"
+#include "dev/serial-line.h"
 #include "net/rime.h"
 
 #include <stdio.h>
@@ -84,7 +84,7 @@ PROCESS_THREAD(serial_shell_process, ev, data)
   shell_init();
   
   while(1) {
-    PROCESS_WAIT_EVENT_UNTIL(ev == serial_event_message && data != NULL);
+    PROCESS_WAIT_EVENT_UNTIL(ev == serial_line_event_message && data != NULL);
     shell_input(data, strlen(data));
   }
   

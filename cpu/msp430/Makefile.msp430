@@ -1,4 +1,4 @@
-# $Id: Makefile.msp430,v 1.27 2009/02/20 23:16:08 nvt-se Exp $
+# $Id: Makefile.msp430,v 1.28 2009/03/17 15:56:32 adamdunkels Exp $
 
 ifdef nodeid
 CFLAGS += -DNODEID=$(nodeid)
@@ -17,7 +17,7 @@ MSP430     = msp430.c flash.c clock.c leds.c leds-arch.c \
              watchdog.c lpm.c mtarch.c uart1.c slip_uart1.c rtimer-arch.c
 UIPDRIVERS = me.c me_tabs.c slip.c crc16.c
 ELFLOADER  = elfloader.c elfloader-msp430.c symtab.c
-TARGETLIBS = random.c serial.c
+TARGETLIBS = random.c
 
 CONTIKI_TARGET_SOURCEFILES += $(MSP430) \
                               $(SYSAPPS) $(ELFLOADER) \

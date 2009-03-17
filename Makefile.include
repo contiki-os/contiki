@@ -47,7 +47,8 @@ CFLAGS += -DCONTIKI_TARGET_$(TARGET_UPPERCASE)
 
 include $(CONTIKI)/core/net/rime/Makefile.rime
 include $(CONTIKI)/core/net/mac/Makefile.mac
-SYSTEM  = process.c procinit.c autostart.c elfloader.c profile.c timetable.c timetable-aggregate.c compower.c
+SYSTEM  = process.c procinit.c autostart.c elfloader.c profile.c \
+          timetable.c timetable-aggregate.c compower.c serial-line.c
 THREADS = mt.c
 LIBS    = memb.c timer.c list.c etimer.c energest.c rtimer.c stimer.c \
           print-stats.c ifft.c crc16.c random.c checkpoint.c ringbuf.c

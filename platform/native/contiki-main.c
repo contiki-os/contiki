@@ -29,7 +29,7 @@
  *
  * This file is part of the Contiki OS
  *
- * $Id: contiki-main.c,v 1.9 2008/07/09 20:58:25 adamdunkels Exp $
+ * $Id: contiki-main.c,v 1.10 2009/03/17 15:56:32 adamdunkels Exp $
  *
  */
 
@@ -39,7 +39,7 @@
 
 #include "contiki.h"
 
-#include "dev/serial.h"
+#include "dev/serial-line.h"
 
 #include "net/uip.h"
 
@@ -47,7 +47,7 @@
 #include "dev/pir-sensor.h"
 #include "dev/vib-sensor.h"
 
-PROCINIT(&etimer_process, &tcpip_process, &serial_process);
+PROCINIT(&etimer_process, &tcpip_process, &serial_line_process);
 
 SENSORS(&pir_sensor, &vib_sensor, &button_sensor);
 
@@ -83,7 +83,7 @@ main(void)
     if(FD_ISSET(STDIN_FILENO, &fds)) {
       char c;
       if(read(STDIN_FILENO, &c, 1) > 0) {
-	serial_input_byte(c);
+	serial_line_input_byte(c);
       }
     }
     

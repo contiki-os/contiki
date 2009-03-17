@@ -29,7 +29,7 @@
  *
  * This file is part of the Contiki OS
  *
- * $Id: contiki-main.c,v 1.18 2009/03/06 00:13:56 adamdunkels Exp $
+ * $Id: contiki-main.c,v 1.19 2009/03/17 15:56:32 adamdunkels Exp $
  *
  */
 
@@ -41,7 +41,7 @@
 #include "contiki.h"
 #include "contiki-net.h"
 
-#include "dev/serial.h"
+#include "dev/serial-line.h"
 
 #include "net/uip.h"
 #ifdef __CYGWIN__
@@ -51,9 +51,9 @@
 #endif /* __CYGWIN__ */
 
 #ifdef __CYGWIN__
-PROCINIT(&etimer_process, &tcpip_process, &wpcap_process, &serial_process);
+PROCINIT(&etimer_process, &tcpip_process, &wpcap_process, &serial_line_process);
 #else /* __CYGWIN__ */
-PROCINIT(&etimer_process, &tapdev_process, &tcpip_process, &serial_process);
+PROCINIT(&etimer_process, &tapdev_process, &tcpip_process, &serial_line_process);
 #endif /* __CYGWIN__ */
 
 /*---------------------------------------------------------------------------*/
@@ -104,7 +104,7 @@ main(void)
     if(FD_ISSET(STDIN_FILENO, &fds)) {
       char c;
       if(read(STDIN_FILENO, &c, 1) > 0) {
-	serial_input_byte(c);
+	serial_line_input_byte(c);
       }
     }
     etimer_request_poll();

@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#)$Id: contiki-sky-main.c,v 1.48 2009/03/01 20:42:10 adamdunkels Exp $
+ * @(#)$Id: contiki-sky-main.c,v 1.49 2009/03/17 15:56:33 adamdunkels Exp $
  */
 
 #include <signal.h>
@@ -42,7 +42,7 @@
 #include "dev/leds.h"
 #include "dev/light.h"
 #include "dev/battery-sensor.h"
-#include "dev/serial.h"
+#include "dev/serial-line.h"
 #include "dev/sht11.h"
 #include "dev/cc2420.h"
 #include "dev/slip.h"
@@ -260,8 +260,8 @@ main(int argc, char **argv)
 #endif /* WITH_UIP6 */
 
 #if !WITH_UIP && !WITH_UIP6
-  uart1_set_input(serial_input_byte);
-  serial_init();
+  uart1_set_input(serial_line_input_byte);
+  serial_line_init();
 #endif
 
 #if PROFILE_CONF_ON
