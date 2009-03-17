@@ -62,7 +62,7 @@
  *
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: tcpip.h,v 1.14 2009/02/28 11:57:46 oliverschmidt Exp $
+ * $Id: tcpip.h,v 1.15 2009/03/17 20:28:44 nvt-se Exp $
  */
 #ifndef __TCPIP_H__
 #define __TCPIP_H__
@@ -246,9 +246,9 @@ struct uip_udp_conn *udp_broadcast_new(u16_t port, void *appstate);
 /**
  * Bind a UDP connection to a local port.
  *
- * This function binds a UDP conncetion to a specified local port.
+ * This function binds a UDP connection to a specified local port.
  *
- * When a connction is created with udp_new(), it gets a local port
+ * When a connection is created with udp_new(), it gets a local port
  * number assigned automatically. If the application needs to bind the
  * connection to a specified local port, this function should be used.
  *
@@ -291,8 +291,8 @@ CCIF void tcpip_poll_udp(struct uip_udp_conn *conn);
  * If no application registers, some ICMPv6 packets will be
  * processed by the "kernel" as usual (NS, NA, RS, RA, Echo request),
  * others will be dropped.
- * If an appplication registers here, it will be polled with a
- * process_post_synch everytime an ICMPv6 packet is received.
+ * If an application registers here, it will be polled with a
+ * process_post_synch every time an ICMPv6 packet is received.
  */
 u8_t icmp6_new(void *appstate);
 
@@ -308,7 +308,7 @@ void tcpip_icmp6_call(u8_t type);
 /**
  * The uIP event.
  *
- * This event is posted to a process whenever a uIP event has occured.
+ * This event is posted to a process whenever a uIP event has occurred.
  */
 CCIF extern process_event_t tcpip_event;
 

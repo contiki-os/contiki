@@ -30,7 +30,7 @@
  *
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: psock.h,v 1.4 2007/11/17 18:05:21 adamdunkels Exp $
+ * $Id: psock.h,v 1.5 2009/03/17 20:28:44 nvt-se Exp $
  */
 
 /**
@@ -263,7 +263,7 @@ PT_THREAD(psock_readto(struct psock *psock, unsigned char c));
  *
  * This macro will block waiting for data and read the data into the
  * input buffer specified with the call to PSOCK_INIT(). Data is only
- * read until the specifieed character appears in the data stream.
+ * read until the specified character appears in the data stream.
  *
  * \param psock (struct psock *) A pointer to the protosocket from which
  * data should be read.
