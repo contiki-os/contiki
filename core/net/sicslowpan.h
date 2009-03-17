@@ -33,7 +33,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: sicslowpan.h,v 1.2 2008/10/14 12:26:18 adamdunkels Exp $
+ * $Id: sicslowpan.h,v 1.3 2009/03/17 20:28:44 nvt-se Exp $
  */
 /**
  * \file
@@ -54,14 +54,14 @@
  * \name General sicslowpan defines
  * @{
  */
-/* Min and Max compressable UDP ports */
+/* Min and Max compressible UDP ports */
 #define SICSLOWPAN_UDP_PORT_MIN                     0xF0B0
 #define SICSLOWPAN_UDP_PORT_MAX                     0xF0BF   /* F0B0 + 15 */
 /** @} */
 
 
 /**
- * \name 6lowpan dispatchs
+ * \name 6lowpan dispatches
  * @{
  */
 #define SICSLOWPAN_DISPATCH_IPV6                    0x41 /* 01000001 = 65 */
@@ -142,7 +142,7 @@
 
 /**
  * \brief The header for fragments
- * \note We do not define different structuresfor FRAG1
+ * \note We do not define different structures for FRAG1
  * and FRAGN headers, which are different. For FRAG1, the
  * offset field is just not used
  */
@@ -232,7 +232,7 @@ struct sicslowpan_addr_context {
 
 /**
  * \brief check whether the 112-bit group-id of the
- * multicast address is mapable to a 9-bit group-id
+ * multicast address is mappable to a 9-bit group-id
  * It is true if the group is the all nodes or all
  * routers group.
 */

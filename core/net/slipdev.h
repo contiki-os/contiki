@@ -39,7 +39,7 @@
  *
  * This file is part of the uIP TCP/IP stack.
  *
- * $Id: slipdev.h,v 1.1 2006/06/17 22:41:18 adamdunkels Exp $
+ * $Id: slipdev.h,v 1.2 2009/03/17 20:28:44 nvt-se Exp $
  *
  */
 
@@ -69,7 +69,7 @@ void slipdev_char_put(u8_t c);
  * The function should return immediately regardless if a character is
  * available or not. If a character is available it should be placed
  * at the memory location pointed to by the pointer supplied by the
- * arguement c.
+ * argument c.
  *
  * \param c A pointer to a byte that is filled in by the function with
  * the received character, if available.

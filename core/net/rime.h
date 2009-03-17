@@ -33,7 +33,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: rime.h,v 1.22 2009/03/12 21:58:20 adamdunkels Exp $
+ * $Id: rime.h,v 1.23 2009/03/17 20:28:44 nvt-se Exp $
  */
 
 /**
@@ -82,7 +82,7 @@ void rime_init(const struct mac_driver *);
  * \brief      Send an incoming packet to Rime
  *
  *             This function should be called by the network driver to
- *             hand over a packet to Rime for furhter processing. The
+ *             hand over a packet to Rime for further processing. The
  *             packet should be placed in the packetbuf (with
  *             packetbuf_copyfrom()) before calling this function.
  *
@@ -93,11 +93,11 @@ void rime_input(void);
  * \brief      Rime calls this function to send out a packet
  *
  *             This function must be implemented by the driver running
- *             below Rime. It is called by abRime to send out a
- *             packet. The packet is consecutive in the packetbuf. A
- *             pointer to the first byte of the packet is obtained
- *             with the packetbuf_hdrptr() function. The length of the
- *             packet to send is obtained with the packetbuf_totlen()
+ *             below Rime. It is called by anonymous broadcast (abc) to
+ *             send out a packet. The packet is consecutive in the
+ *             packetbuf. A pointer to the first byte of the packet is 
+ *             obtained from the packetbuf_hdrptr() function. The length 
+ *             of the packet to send is obtained with the packetbuf_totlen()
  *             function.
  *
  *             The driver, which typically is a MAC protocol, may

@@ -28,11 +28,11 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: hc.h,v 1.2 2006/10/09 11:53:43 adamdunkels Exp $
+ * @(#)$Id: hc.h,v 1.3 2009/03/17 20:28:44 nvt-se Exp $
  */
 /**
  * \file
- * TCP/IP header compresison header file.
+ * TCP/IP header compression header file.
  * \author Adam Dunkels <adam@sics.se>
  *
  */
