@@ -44,3 +44,39 @@ else
   -include $(CONTIKI)/platform/$(TARGET)/buildscripts/Makefile.win
 endif
 endif
+
+# If we are not running under Windows, we assume Linux
+ifndef MOTELIST
+  USBDEVPREFIX=
+  SERIALDUMP = $(CONTIKI)/tools/sky/serialdump-linux
+  MOTELIST = $(CONTIKI)/tools/sky/motelist-linux
+  MOTES = $(shell $(MOTELIST) 2>&- | grep USB | \
+     cut -f 4 -d \  | \
+     perl -ne 'print $$1 . " " if(m-(/dev/\w+)-);')
+  CMOTES=$(MOTES)
+endif
+
+msb-motelist:
+	$(MOTELIST)
+msb-motes:
+	@echo $(MOTES)
+
+ifdef MOTE
+serialdump:
+	$(SERIALDUMP) -b115200 $(USBDEVPREFIX)$(word $(MOTE), $(CMOTES)) | $(CONTIKI)/tools/timestamp | tee serialdump-`date +%Y%m%d-%H%M`
+
+serialview:
+	$(SERIALDUMP) -b115200 $(USBDEVPREFIX)$(word $(MOTE), $(CMOTES)) | $(CONTIKI)/tools/timestamp
+
+login:
+	$(SERIALDUMP) -b115200 $(USBDEVPREFIX)$(word $(MOTE), $(CMOTES))
+else
+serialdump:
+	$(SERIALDUMP) -b115200 $(USBDEVPREFIX)$(firstword $(CMOTES)) | $(CONTIKI)/tools/timestamp | tee serialdump-`date +%Y%m%d-%H%M`
+
+serialview:
+	$(SERIALDUMP) -b115200 $(USBDEVPREFIX)$(firstword $(CMOTES)) | $(CONTIKI)/tools/timestamp
+
+login:
+	$(SERIALDUMP) -b115200 $(USBDEVPREFIX)$(firstword $(CMOTES))
+endif
