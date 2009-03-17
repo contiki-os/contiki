@@ -24,7 +24,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * $Id: GUI.java,v 1.118 2009/03/13 15:15:37 fros4943 Exp $
+ * $Id: GUI.java,v 1.119 2009/03/17 09:16:36 fros4943 Exp $
  */
 
 package se.sics.cooja;
@@ -3536,7 +3536,7 @@ public class GUI extends Observable {
           messageListDialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
           messageListDialog.setSize(1000, 500);
           messageListDialog.setLocationRelativeTo(errorDialog);
-          
+
           Rectangle maxSize = GraphicsEnvironment.getLocalGraphicsEnvironment().getMaximumWindowBounds();
           if (maxSize != null
               && (messageListDialog.getSize().getWidth() > maxSize.getWidth() || messageListDialog
@@ -3813,8 +3813,14 @@ public class GUI extends Observable {
 
       String fileCanonical = file.getCanonicalPath();
       if (!fileCanonical.startsWith(configCanonical)) {
-        /*logger.warn("Error when converting to config relative path: file not in config directory: " + file.getAbsolutePath());*/
-        return file;
+
+        /* SPECIAL CASE: Allow one parent directory */
+        configCanonical = configPath.getParentFile().getCanonicalPath();
+        configIdentifier += "/..";
+        if (!fileCanonical.startsWith(configCanonical)) {
+          /*logger.warn("Error when converting to config relative path: file not in config directory: " + file.getAbsolutePath());*/
+          return file;
+        }
       }
 
       /* Replace config's canonical path with config identifier */
