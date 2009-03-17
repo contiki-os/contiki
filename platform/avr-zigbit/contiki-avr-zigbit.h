@@ -48,7 +48,7 @@
 
 #include "dev/rs232.h"
 
-#include "dev/serial.h"
+#include "dev/serial-line.h"
 #include "dev/slip.h"
 
 void init_lowlevel(void);

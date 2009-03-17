@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: rs232.c,v 1.4 2008/11/09 15:39:49 c_oflynn Exp $
+ * @(#)$Id: rs232.c,v 1.5 2009/03/17 20:32:22 adamdunkels Exp $
  */
 
 #include <stdio.h>
@@ -40,7 +40,6 @@
 #include "contiki.h"
 
 #include "dev/slip.h"
-#include "dev/serial.h"
 #include "dev/rs232.h"
 
 #ifdef RS232_CONF_PRINTF_BUFFER_LENGTH
@@ -126,11 +125,11 @@ void
 rs232_init (uint8_t port, uint8_t bd, uint8_t ffmt)
 {
   *(rs232_ports[port].UBRRH) = (uint8_t)(bd>>8);
-  *(rs232_ports[port].UBRRL) = (uint8_t)bd; 
+  *(rs232_ports[port].UBRRL) = (uint8_t)bd;
 
   /*
    * - Enable receiver and transmitter,
-   * - Enable interrupts for receiver and transmitter 
+   * - Enable interrupts for receiver and transmitter
    */
   *(rs232_ports[port].UCSRB) = USART_INTERRUPT_RX_COMPLETE | USART_INTERRUPT_TX_COMPLETE | \
     USART_RECEIVER_ENABLE | USART_TRANSMITTER_ENABLE;
