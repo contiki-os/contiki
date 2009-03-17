@@ -5,7 +5,7 @@ endif
 CONTIKI_TARGET_DIRS = .
 CONTIKI_TARGET_MAIN = ${addprefix $(OBJECTDIR)/,contiki-main.o}
 
-CONTIKI_TARGET_SOURCEFILES = contiki-main.c clock.c leds.c leds-arch.c cfs-posix.c cfs-posix-dir.c dlloader.c serial.c
+CONTIKI_TARGET_SOURCEFILES = contiki-main.c clock.c leds.c leds-arch.c cfs-posix.c cfs-posix-dir.c dlloader.c
 
 ifeq ($(OS),Windows_NT)
 CONTIKI_TARGET_SOURCEFILES += wpcap-drv.c wpcap.c
