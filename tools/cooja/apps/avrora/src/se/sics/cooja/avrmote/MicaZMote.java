@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: MicaZMote.java,v 1.5 2009/03/19 14:47:36 joxe Exp $
+ * $Id: MicaZMote.java,v 1.6 2009/03/19 18:58:19 joxe Exp $
  */
 
 package se.sics.cooja.avrmote;
@@ -43,6 +43,7 @@ import se.sics.cooja.MoteMemory;
 import se.sics.cooja.MoteType;
 import se.sics.cooja.Simulation;
 import se.sics.cooja.avrmote.interfaces.MicaClock;
+import se.sics.cooja.avrmote.interfaces.MicaSerial;
 import se.sics.cooja.avrmote.interfaces.MicaZLED;
 import se.sics.cooja.avrmote.interfaces.MicaZRadio;
 import se.sics.cooja.interfaces.Position;
@@ -273,8 +274,10 @@ public class MicaZMote implements Mote {
       moteInterfaceHandler.addInterface(new MicaZLED(micaZ));
       // Add Radio interface
       moteInterfaceHandler.addInterface(new MicaZRadio(this));
-      // Add Radio interface
+      // Add Clock interface
       moteInterfaceHandler.addInterface(new MicaClock(this));
+      // Add Serial interface
+      moteInterfaceHandler.addInterface(new MicaSerial(this));
 
 
       return moteInterfaceHandler;
