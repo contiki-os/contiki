@@ -483,7 +483,7 @@ static int
 remove_by_page(coffee_page_t page, int remove_log, int close_fds)
 {
   struct file_header hdr;
-  int i, last_valid;
+  int i;
 
   read_header(&hdr, page);
   if(!HDR_ACTIVE(hdr)) {
@@ -501,17 +501,17 @@ remove_by_page(coffee_page_t page, int remove_log, int close_fds)
 
   /* Close all file descriptors that reference the removed file. */
   if(close_fds) {
-    last_valid = -1;
     for(i = 0; i < COFFEE_FD_SET_SIZE; i++) {
       if(coffee_fd_set[i].file != NULL && coffee_fd_set[i].file->page == page) {
 	coffee_fd_set[i].flags = COFFEE_FD_FREE;
-	last_valid = i;
       }
     }
+  }
 
-    if(last_valid >= 0) {
-      coffee_fd_set[last_valid].file->page = INVALID_PAGE;
-      coffee_fd_set[last_valid].file->references = 0;
+  for(i = 0; i < COFFEE_MAX_OPEN_FILES; i++) {
+    if(coffee_files[i].page == page) {
+      coffee_files[i].page = INVALID_PAGE;
+      coffee_files[i].references = 0;
     }
   }
 
@@ -755,6 +755,14 @@ merge_log(coffee_page_t file_page, int extend)
     }
   } while(n != 0);
 
+  for(i = 0; i < COFFEE_FD_SET_SIZE; i++) {
+    if(coffee_fd_set[i].flags != COFFEE_FD_FREE && 
+       coffee_fd_set[i].file->page == file_page) {
+      coffee_fd_set[i].file = new_file;
+      new_file->references++;
+    }
+  }
+
   if(remove_by_page(file_page, 1, 0) < 0) {
     remove_by_page(new_file->page, 0, 0);
     cfs_close(fd);
@@ -776,14 +784,6 @@ merge_log(coffee_page_t file_page, int extend)
   }
 
   cfs_close(fd);
-
-  for(i = 0; i < COFFEE_FD_SET_SIZE; i++) {
-    if(coffee_fd_set[i].flags != COFFEE_FD_FREE && 
-       coffee_fd_set[i].file->page == file_page) {
-      coffee_fd_set[i].file = new_file;
-      new_file->references++;
-    }
-  }
 
   return 0;
 }
@@ -1003,7 +1003,6 @@ cfs_remove(const char *name)
    * sweeped by the garbage collector. The garbage collector is
    * called once a file reservation request cannot be granted.
    */
-
   file = find_file(name);
   if(file == NULL) {
     return -1;
