@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: MicaZMote.java,v 1.3 2009/03/11 14:12:19 fros4943 Exp $
+ * $Id: MicaZMote.java,v 1.4 2009/03/19 09:08:44 joxe Exp $
  */
 
 package se.sics.cooja.avrmote;
@@ -103,12 +103,13 @@ public class MicaZMote implements Mote {
 
   protected void initMote() {
     if (myMoteType != null) {
-      initEmulator(myMoteType.getContikiFirmwareFile().getName());
+      initEmulator(myMoteType.getContikiFirmwareFile().getAbsolutePath());
       myMoteInterfaceHandler = createMoteInterfaceHandler();
     }
   }
 
   protected boolean initEmulator(String fileELF) {
+    //System.out.println("Loading elf file: " + fileELF);
     try {
       prepareMote(fileELF);
     } catch (Exception e) {
