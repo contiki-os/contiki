@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: MicaZMoteType.java,v 1.3 2009/03/12 15:11:03 fros4943 Exp $
+ * $Id: MicaZMoteType.java,v 1.4 2009/03/19 14:47:37 joxe Exp $
  */
 
 package se.sics.cooja.avrmote;
@@ -266,10 +266,10 @@ public class MicaZMoteType implements MoteType {
     }
 
     // Check dependency files
-    File elfFile = null;
-    if (getContikiFirmwareFile() != null) {
-      elfFile = new File(getContikiFirmwareFile().getName());
-    }
+    File elfFile = getContikiFirmwareFile();
+//    if (getContikiFirmwareFile() != null) {
+//      elfFile = new File(getContikiFirmwareFile().getName());
+//    }
     if (elfFile == null || !elfFile.exists()) {
       if (!visAvailable) {
         throw new MoteTypeCreationException("ELF file does not exist: " + getContikiFirmwareFile());

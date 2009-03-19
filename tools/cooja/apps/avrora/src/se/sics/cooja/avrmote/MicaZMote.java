@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: MicaZMote.java,v 1.4 2009/03/19 09:08:44 joxe Exp $
+ * $Id: MicaZMote.java,v 1.5 2009/03/19 14:47:36 joxe Exp $
  */
 
 package se.sics.cooja.avrmote;
@@ -235,7 +235,7 @@ public class MicaZMote implements Mote {
         getType().setIdentifier(element.getText());
 
         try {
-          prepareMote(myMoteType.getContikiFirmwareFile().getName());
+          prepareMote(myMoteType.getContikiFirmwareFile().getAbsolutePath());
         } catch (Exception e) {
           // TODO Auto-generated catch block
           e.printStackTrace();

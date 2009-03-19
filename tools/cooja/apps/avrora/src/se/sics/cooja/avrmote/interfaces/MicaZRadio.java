@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: MicaZRadio.java,v 1.1 2009/02/24 07:49:42 joxe Exp $
+ * $Id: MicaZRadio.java,v 1.2 2009/03/19 14:47:37 joxe Exp $
  */
 
 package se.sics.cooja.avrmote.interfaces;
@@ -49,6 +49,7 @@ import se.sics.cooja.avrmote.MicaZMote;
 import se.sics.cooja.interfaces.CustomDataRadio;
 import se.sics.cooja.interfaces.Position;
 import se.sics.cooja.interfaces.Radio;
+import se.sics.cooja.mspmote.interfaces.CC2420RadioPacketConverter;
 
 /**
  * CC2420 to COOJA wrapper.
@@ -103,13 +104,10 @@ public class MicaZRadio extends Radio implements CustomDataRadio {
         if (len == 0) {
           lastEventTime = MicaZRadio.this.mote.getSimulation().getSimulationTime();
           lastEvent = RadioEvent.TRANSMISSION_STARTED;
-          /*logger.debug("----- SKY TRANSMISSION STARTED -----");*/
+          /*logger.debug("----- MICAZ TRANSMISSION STARTED -----");*/
           setChanged();
           notifyObservers();
         }
-        System.out.println("Node transmitting byte: " +
-            Integer.toString(val & 0xff, 16));
-
         /* send this byte to all nodes */
         lastOutgoingByte = new RadioByte(val);
         lastEventTime = MicaZRadio.this.mote.getSimulation().getSimulationTime();
@@ -125,15 +123,14 @@ public class MicaZRadio extends Radio implements CustomDataRadio {
         }
 
         if (len == expLen) {
-          /*logger.debug("----- SKY CUSTOM DATA TRANSMITTED -----");*/
+          /*logger.debug("----- MICAZ CUSTOM DATA TRANSMITTED -----");*/
 
-// NO CROSSLAYER FOR NOW...          
-//          lastOutgoingPacket = CC2420RadioPacketConverter.fromCC2420ToCooja(buffer);
-//          lastEventTime = MicaZRadio.this.mote.getSimulation().getSimulationTime();
-//          lastEvent = RadioEvent.PACKET_TRANSMITTED;
-//          /*logger.debug("----- SKY PACKET TRANSMITTED -----");*/
-//          setChanged();
-//          notifyObservers();
+          lastOutgoingPacket = CC2420RadioPacketConverter.fromCC2420ToCooja(buffer);
+          lastEventTime = MicaZRadio.this.mote.getSimulation().getSimulationTime();
+          lastEvent = RadioEvent.PACKET_TRANSMITTED;
+          /*logger.debug("----- MICAZ PACKET TRANSMITTED -----");*/
+          setChanged();
+          notifyObservers();
 
           //          System.out.println("## CC2420 Transmission finished...");
 
@@ -172,7 +169,6 @@ public class MicaZRadio extends Radio implements CustomDataRadio {
   public void receiveCustomData(Object data) {
     if (data instanceof RadioByte) {
       lastIncomingByte = (RadioByte) data;
-      System.out.println("Node receiving byte: " + lastIncomingByte.getPacketData()[0]);
       recv.nextByte(true, (byte)lastIncomingByte.getPacketData()[0]);      
     }
   }
@@ -256,11 +252,11 @@ public class MicaZRadio extends Radio implements CustomDataRadio {
   }
 
   public double getCurrentOutputPower() {
-    return 0.0;//cc2420.getOutputPower();
+    return 1.1;//cc2420.getOutputPower();
   }
 
   public int getCurrentOutputPowerIndicator() {
-    return 0; //cc2420.getOutputPowerIndicator();
+    return 7; //cc2420.getOutputPowerIndicator();
   }
 
   public int getOutputPowerIndicatorMax() {
@@ -276,7 +272,7 @@ public class MicaZRadio extends Radio implements CustomDataRadio {
   }
 
   public double energyConsumption() {
-    return 0;
+    return 1.0;
   }
 
   public JPanel getInterfaceVisualizer() {
