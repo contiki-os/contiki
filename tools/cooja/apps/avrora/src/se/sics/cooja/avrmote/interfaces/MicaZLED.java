@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: MicaZLED.java,v 1.1 2009/02/22 16:45:01 joxe Exp $
+ * $Id: MicaZLED.java,v 1.2 2009/03/19 14:47:37 joxe Exp $
  */
 
 package se.sics.cooja.avrmote.interfaces;
@@ -38,6 +38,7 @@ import org.apache.log4j.Logger;
 import org.jdom.Element;
 
 import avrora.sim.FiniteStateMachine;
+import avrora.sim.mcu.AtmelMicrocontroller;
 import avrora.sim.platform.MicaZ;
 import se.sics.cooja.*;
 import se.sics.cooja.interfaces.LED;
@@ -63,6 +64,27 @@ public class MicaZLED extends LED {
   public MicaZLED(MicaZ micaZ) {
     avrora.sim.platform.LED.LEDGroup leds =
       (avrora.sim.platform.LED.LEDGroup) micaZ.getDevice("leds");
+
+    /* this should go into some other piece of code for serial data */
+    AtmelMicrocontroller mcu = (AtmelMicrocontroller) micaZ.getMicrocontroller();
+    avrora.sim.mcu.USART usart = (avrora.sim.mcu.USART) mcu.getDevice("usart0");
+    if (usart != null) {
+      System.out.println("MicaZ: connecting to USART1");
+      usart.connect(  new avrora.sim.mcu.USART.USARTDevice() {
+        char[] stream = {'h', 'e', 'l', 'l', 'o', 'w', 'o', 'r', 'l', 'd'};
+        int count;
+        public avrora.sim.mcu.USART.Frame transmitFrame() {
+          System.out.println("MicaZ: transmitting to micaz...");
+          return new avrora.sim.mcu.USART.Frame((byte)stream[count++ % stream.length], false, 8);
+        }
+        public void receiveFrame(avrora.sim.mcu.USART.Frame frame) {
+          System.out.println("MicaZ: usart output: " + frame.toString());
+        }
+      });
+    } else {
+     System.out.println("MicaZ: could not find usart1 interface..."); 
+    }
+    
     leds.leds[0].getFSM().insertProbe(new FiniteStateMachine.Probe() {
       public void fireAfterTransition(int old, int newstate) {
         redOn = newstate > 0;

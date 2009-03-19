@@ -27,6 +27,7 @@
       <classpath>
         <pathelement location="${avrora_jar}"/>
         <pathelement location="${cooja_jar}"/>
+        <pathelement location="${cooja}/apps/mspsim/build"/>
       </classpath>
     </javac>
   </target>
