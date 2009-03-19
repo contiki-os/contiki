@@ -120,7 +120,7 @@ reset_receiver(void)
   // reset receiver
   cc1020_rxlen = 0;
 
-  if ((cc1020_state & CC1020_TURN_OFF) && (cc1020_txlen == 0)) {
+  if((cc1020_state & CC1020_TURN_OFF) && (cc1020_txlen == 0)) {
     cc1020_off();
   } else {
     CC1020_SET_OPSTATE(CC1020_RX | CC1020_RX_SEARCHING);
@@ -141,13 +141,15 @@ cc1020_init(const uint8_t *config)
 
   // calibrate receiver
   cc1020_wakeupRX(RX_CURRENT);
-  if (!cc1020_calibrate())
+  if(!cc1020_calibrate()) {
     printf("rx calibration failed\n");
+  }
 
   // calibrate transmitter
   cc1020_wakeupTX(TX_CURRENT);
-  if (!cc1020_calibrate())
+  if(!cc1020_calibrate()) {
     printf("tx calibration failed\n");
+  }
 
   // power down
   cc1020_setupPD();
@@ -233,11 +235,13 @@ cc1020_send(const void *buf, unsigned short len)
   int normal_header = HDRSIZE + len;
   uint16_t rxcrc = 0xFFFF; // For checksum purposes
   
-  if (cc1020_state == CC1020_OFF)
+  if(cc1020_state == CC1020_OFF) {
     return -2;
+  }
 
-  if (len > CC1020_BUFFERSIZE)
+  if(len > CC1020_BUFFERSIZE) {
     return -1;
+  }
 
   /* The preamble and the sync word are already in buffer. */
   cc1020_txlen = PREAMBLESIZE + SYNCWDSIZE;
@@ -260,7 +264,6 @@ cc1020_send(const void *buf, unsigned short len)
   cc1020_txlen += len;
 
   // Send checksum
-/*   printf("send checksum %04hx\n", rxcrc); */
   cc1020_txbuf[cc1020_txlen++] = (uint8_t)(rxcrc >> 8);
   cc1020_txbuf[cc1020_txlen++] = (uint8_t)(rxcrc & 0xFF);
    
@@ -269,14 +272,14 @@ cc1020_send(const void *buf, unsigned short len)
   cc1020_txbuf[cc1020_txlen++] = TAIL; 
 
   // Wait for the medium to become idle.
-  if (cc1020_carrier_sense()) {
-    for (try = 0; try < CC1020_CONF_CCA_TIMEOUT; try++) {
+  if(cc1020_carrier_sense()) {
+    for(try = 0; try < CC1020_CONF_CCA_TIMEOUT; try++) {
       MS_DELAY(1);
-      if (!cc1020_carrier_sense()) {
+      if(!cc1020_carrier_sense()) {
 	break;
       }
     }
-    if (try == CC1020_CONF_CCA_TIMEOUT) {
+    if(try == CC1020_CONF_CCA_TIMEOUT) {
       return -3;
     }
 
@@ -289,15 +292,15 @@ cc1020_send(const void *buf, unsigned short len)
 
   // Initiate radio transfer.
   dma_done = 0;
-  dma_transfer(&TXBUF0, cc1020_txbuf, cc1020_txlen);
-  while (!dma_done);
+  dma_transfer((unsigned char *)&TXBUF0, cc1020_txbuf, cc1020_txlen);
+  while(!dma_done);
 
   ENERGEST_OFF(ENERGEST_TYPE_TRANSMIT);
   RIMESTATS_ADD(lltx);
 
   // clean up
   cc1020_txlen = 0;
-  if (cc1020_state & CC1020_TURN_OFF) {
+  if(cc1020_state & CC1020_TURN_OFF) {
     cc1020_off();
   } else {
     cc1020_set_rx();
@@ -311,11 +314,12 @@ cc1020_read(void *buf, unsigned short size)
 {
   unsigned len;
 
-  if (cc1020_rxlen <= HDRSIZE)
+  if(cc1020_rxlen <= HDRSIZE) {
     return 0;
+  }
 
   len = cc1020_rxlen - HDRSIZE;
-  if (len > size) {
+  if(len > size) {
     RIMESTATS_ADD(toolong);
     return -1;
   }
@@ -337,9 +341,10 @@ cc1020_set_receiver(void (*recv)(const struct radio_driver *))
 int
 cc1020_on(void)
 {
-  cc1020_state &= ~CC1020_TURN_OFF;
-  // Switch to receive mode
-  cc1020_set_rx();
+  if(cc1020_state == CC1020_OFF) {
+    cc1020_state &= ~CC1020_TURN_OFF;
+    cc1020_set_rx();
+  }
 
   return 1;
 }
@@ -349,7 +354,7 @@ cc1020_off(void)
 {
   int s;
 
-  if (cc1020_state & CC1020_RX_SEARCHING) {
+  if(cc1020_state & CC1020_RX_SEARCHING) {
     // Discard the current read buffer when the radio is shutting down.
     cc1020_rxlen = 0;
 
@@ -410,13 +415,11 @@ PROCESS_THREAD(cc1020_receiver_process, ev, data)
         expected_crc = crc16_add(cc1020_rxbuf[i], expected_crc);
       }
 
-      if(expected_crc == actual_crc){
+      if(expected_crc == actual_crc) {
 	receiver_callback(&cc1020_driver);
       } else {
 	RIMESTATS_ADD(badcrc);
 	reset_receiver();
-/* 	printf("bad crc. expected: %04hx received: %04hx\n",  */
-/* 	       expected_crc, actual_crc, cc1020_rxlen); */
       }
     }
   }
@@ -441,34 +444,34 @@ interrupt(UART0RX_VECTOR) cc1020_rxhandler(void)
   } shiftbuf;
   static unsigned char pktlen;
 
-  if (cc1020_state & CC1020_RX_SEARCHING) {
+  if(cc1020_state & CC1020_RX_SEARCHING) {
     shiftbuf.b1 = shiftbuf.b2;
     shiftbuf.b2 = shiftbuf.b3;
     shiftbuf.b3 = shiftbuf.b4;
     shiftbuf.b4 = RXBUF0;
-    if (shiftbuf.i1 == 0xAAD3 && shiftbuf.b3 == 0x91) {
+    if(shiftbuf.i1 == 0xAAD3 && shiftbuf.b3 == 0x91) {
       // 0  AA D3 91 00 | FF 00 |
       syncbs = 0;
       cc1020_rxbuf[cc1020_rxlen++] = shiftbuf.b4;
-    } else if (shiftbuf.i1 == 0x5569 && shiftbuf.i2 == 0xC880) {
+    } else if(shiftbuf.i1 == 0x5569 && shiftbuf.i2 == 0xC880) {
       // 1  55 69 C8 80 | 7F 80 |
       syncbs = -1;
-    } else if (shiftbuf.i1 == 0xAAB4 && shiftbuf.i2 == 0xE440) {
+    } else if(shiftbuf.i1 == 0xAAB4 && shiftbuf.i2 == 0xE440) {
       // 2  AA B4 E4 40 | 3F C0 |
       syncbs = -2;
-    } else if (shiftbuf.i1 == 0x555A && shiftbuf.i2 == 0x7220) {
+    } else if(shiftbuf.i1 == 0x555A && shiftbuf.i2 == 0x7220) {
       // 3  55 5A 72 20 | 1F E0 |
       syncbs = -3;
-    } else if (shiftbuf.i1 == 0xAAAD && shiftbuf.i2 == 0x3910) {
+    } else if(shiftbuf.i1 == 0xAAAD && shiftbuf.i2 == 0x3910) {
       // 4  AA AD 39 10 | 0F F0 |
       syncbs = -4;
-    } else if (shiftbuf.i1 == 0x5556 && shiftbuf.i2 == 0x9C88) {
+    } else if(shiftbuf.i1 == 0x5556 && shiftbuf.i2 == 0x9C88) {
       // 5  55 56 9C 88 | 07 F8 |
       syncbs = +3;
-    } else if (shiftbuf.i1 == 0xAAAB && shiftbuf.i2 == 0x4E44) {
+    } else if(shiftbuf.i1 == 0xAAAB && shiftbuf.i2 == 0x4E44) {
       // 6  AA AB 4E 44 | 03 FC |
       syncbs = +2;
-    } else if (shiftbuf.i1 == 0x5555 && shiftbuf.i2 == 0xA722) {
+    } else if(shiftbuf.i1 == 0x5555 && shiftbuf.i2 == 0xA722) {
       // 7  55 55 A7 22 | 01 FE |
       syncbs = +1;
     } else {
@@ -476,13 +479,13 @@ interrupt(UART0RX_VECTOR) cc1020_rxhandler(void)
     }
     rssi = cc1020_read_reg(CC1020_RSS);
     CC1020_SET_OPSTATE(CC1020_RX | CC1020_RX_RECEIVING);
-  } else if (cc1020_state & CC1020_RX_RECEIVING) {
-    if (syncbs == 0) {
+  } else if(cc1020_state & CC1020_RX_RECEIVING) {
+    if(syncbs == 0) {
       cc1020_rxbuf[cc1020_rxlen] = RXBUF0;
     } else {
       shiftbuf.b3 = shiftbuf.b4;
       shiftbuf.b4 = RXBUF0;
-      if (syncbs < 0) {
+      if(syncbs < 0) {
         shiftbuf.i1 = shiftbuf.i2 << -syncbs;
         cc1020_rxbuf[cc1020_rxlen] = shiftbuf.b1;
       } else {
@@ -493,14 +496,14 @@ interrupt(UART0RX_VECTOR) cc1020_rxhandler(void)
 
     cc1020_rxlen++;
 	 
-    if (cc1020_rxlen == HDRSIZE) {
+    if(cc1020_rxlen == HDRSIZE) {
       pktlen = ((struct cc1020_header *)cc1020_rxbuf)->length;
-      if (pktlen == 0 || pktlen > sizeof (cc1020_rxbuf)) {
+      if(pktlen == 0 || pktlen > sizeof (cc1020_rxbuf)) {
 	cc1020_rxlen = 0;
 	CC1020_SET_OPSTATE(CC1020_RX | CC1020_RX_SEARCHING);
       }
-    } else if (cc1020_rxlen > HDRSIZE) {
-      if (cc1020_rxlen == pktlen) {
+    } else if(cc1020_rxlen > HDRSIZE) {
+      if(cc1020_rxlen == pktlen) {
         /* Disable interrupts while processing the packet. */
         DISABLE_RX_IRQ();
 	CC1020_SET_OPSTATE(CC1020_RX | CC1020_RX_PROCESSING);
@@ -522,14 +525,15 @@ cc1020_write_reg(uint8_t addr, uint8_t adata)
   PSEL_ON;
 
   // Send address bits 
-  for (i = 0; i < 7; i++) {
+  for(i = 0; i < 7; i++) {
     nop();
     PCLK_LOW;
     nop();
-    if (data & 0x80)
+    if(data & 0x80) {
       PDI_HIGH;
-    else
+    } else {
       PDI_LOW;
+    }
     data = data << 1;
     PCLK_HIGH;
   }
@@ -546,14 +550,15 @@ cc1020_write_reg(uint8_t addr, uint8_t adata)
   data = adata;
 
   // Send data bits 
-  for (i = 0; i < 8; i++) {
+  for(i = 0; i < 8; i++) {
     nop();
     PCLK_LOW;
     nop();
-    if (data & 0x80)
+    if(data & 0x80) {
       PDI_HIGH;
-    else
+    } else {
       PDI_LOW;
+    }
     data = data << 1;
     PCLK_HIGH;
   }
@@ -576,14 +581,15 @@ cc1020_read_reg(uint8_t addr)
   nop();
 
   // Send address bits 
-  for (i = 0; i < 7; i++) {
+  for(i = 0; i < 7; i++) {
     nop();
     PCLK_LOW;
     nop();
-    if (data & 0x80)
+    if(data & 0x80) {
       PDI_HIGH;
-    else
+    } else {
       PDI_LOW;
+    }
     data = data << 1;
     PCLK_HIGH;
   }
@@ -599,13 +605,14 @@ cc1020_read_reg(uint8_t addr)
   PCLK_LOW;
 
   // Receive data bits       
-  for (i = 0; i < 8; i++) {
+  for(i = 0; i < 8; i++) {
     nop();
     PCLK_HIGH;
     nop();
     data = data << 1;
-    if (PDO)
+    if(PDO) {
       data++;
+    }
     nop();
     PCLK_LOW;
   }
@@ -621,7 +628,7 @@ cc1020_load_config(const uint8_t * config)
 {
   int i;
 
-  for (i = 0; i < 0x28; i++)
+  for(i = 0; i < 0x28; i++)
     cc1020_write_reg(i, config[i]);
 }
 
@@ -646,13 +653,14 @@ cc1020_calibrate(void)
   // Start calibration
   cc1020_write_reg(CC1020_CALIBRATE, 0xB5);
   MS_DELAY(3);
-  while ((cc1020_read_reg(CC1020_STATUS) & CAL_COMPLETE) == 0);
+  while((cc1020_read_reg(CC1020_STATUS) & CAL_COMPLETE) == 0);
   MS_DELAY(2);
 
   // Monitor lock
-  for (timeout_cnt = LOCK_TIMEOUT; timeout_cnt > 0; timeout_cnt--) {
-    if (cc1020_read_reg(CC1020_STATUS) & LOCK_CONTINUOUS)
+  for(timeout_cnt = LOCK_TIMEOUT; timeout_cnt > 0; timeout_cnt--) {
+    if(cc1020_read_reg(CC1020_STATUS) & LOCK_CONTINUOUS) {
     	break;
+    }
   }
 
   // Restore PA_POWER
@@ -669,13 +677,14 @@ cc1020_lock(void)
   int i;
 
   // Monitor LOCK, lasts 420 - 510 cycles @ 4505600 = 93 us - 113 us
-  for (i = LOCK_TIMEOUT; i > 0; i--) {
+  for(i = LOCK_TIMEOUT; i > 0; i--) {
     lock_status = cc1020_read_reg(CC1020_STATUS) & LOCK_CONTINUOUS;
-    if (lock_status)
+    if(lock_status) {
       break;
+    }
   }
 
-  if (lock_status == LOCK_CONTINUOUS) {
+  if(lock_status == LOCK_CONTINUOUS) {
     return LOCK_OK;
   }
 
