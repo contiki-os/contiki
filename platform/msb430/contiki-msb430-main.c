@@ -126,7 +126,8 @@ main(void)
   }
 #endif
 
-  printf(CONTIKI_VERSION_STRING " started. Node id %u.\n", node_id);
+  printf(CONTIKI_VERSION_STRING " started. Node id %u, using %s.\n", 
+         node_id, rime_mac->name);
 
   autostart_start(autostart_processes);
 
