@@ -1,4 +1,4 @@
-# $Id: Makefile.cooja,v 1.30 2009/03/17 15:56:32 adamdunkels Exp $
+# $Id: Makefile.cooja,v 1.31 2009/03/20 13:23:44 fros4943 Exp $
 
 ## The COOJA Simulator Contiki platform Makefile
 ##
@@ -37,7 +37,7 @@ $(CONTIKI)/tools/cooja/dist/cooja.jar:
 .PRECIOUS: $(MAKECMDGOALS)
 $(MAKECMDGOALS): $(CONTIKI)/tools/cooja/dist/cooja.jar
 	(cd $(CONTIKI)/tools/cooja/build && \
-	 java -jar ../dist/cooja.jar -quickstart='$(abspath $(firstword $(MAKECMDGOALS)))')
+	 java -mx512m -jar ../dist/cooja.jar -quickstart='$(abspath $(firstword $(MAKECMDGOALS)))')
 
 endif ## QUICKSTART
 
