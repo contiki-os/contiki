@@ -215,8 +215,8 @@ get_sector_status(uint16_t sector, struct sector_stats *stats) {
        the following pages as isolated. */
     memset(&hdr, 0, sizeof(hdr));
     hdr.flags = HDR_FLAG_ALLOCATED | HDR_FLAG_ISOLATED;
-    for(page = sector_start; page < skip_pages; page++) {
-      write_header(&hdr, page);
+    for(page = 0; page < skip_pages; page++) {
+      write_header(&hdr, sector_start + page);
     }
     PRINTF("Coffee: Isolated %u pages starting in sector %d\n",
         (unsigned)skip_pages, (int)sector);
@@ -1168,7 +1168,7 @@ cfs_closedir(struct cfs_dir *dir)
 }
 /*---------------------------------------------------------------------------*/
 int
-cfs_coffee_reserve(const char *name, uint32_t size)
+cfs_coffee_reserve(const char *name, cfs_offset_t size)
 {
   return reserve(name, page_count(size), 0) == NULL ? -1 : 0;
 }
@@ -1215,6 +1215,8 @@ cfs_coffee_format(void)
   }
 
   PRINTF("Coffee: Formatting %d sectors", nsectors);
+
+  *next_free = 0;
 
   watchdog_stop();
   for(i = 0; i < nsectors; i++) {

@@ -38,6 +38,8 @@
 #ifndef CFS_COFFEE_H
 #define CFS_COFFEE_H
 
+#include "cfs.h"
+
 /**
  * \file
  *	Header for the Coffee file system.
@@ -59,7 +61,7 @@
  * has been done, files will be set to a default size once opened for
  * the first time.
  */
-int cfs_coffee_reserve(const char *name, uint32_t size);
+int cfs_coffee_reserve(const char *name, cfs_offset_t size);
 
 /**
  * \brief Configure the on-demand log file.
@@ -73,7 +75,7 @@ int cfs_coffee_reserve(const char *name, uint32_t size);
  * is of log_entry_size.
  */
 int cfs_coffee_configure_log(const char *file, unsigned log_size,
-	unsigned log_entry_size);
+                             unsigned log_entry_size);
 
 /**
  * \brief Format the storage area assigned to Coffee.
