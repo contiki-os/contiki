@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: MspIPAddress.java,v 1.2 2008/12/04 14:03:41 joxe Exp $
+ * $Id: MspIPAddress.java,v 1.3 2009/03/21 15:49:29 fros4943 Exp $
  */
 
 package se.sics.cooja.mspmote.interfaces;
@@ -83,7 +83,7 @@ public class MspIPAddress extends IPAddress {
       (addr[2]&0xFF) + "." +
       (addr[3]&0xFF);
     } catch (UnknownVariableException e) {
-      logger.fatal("IP Address not available on mote: " + e.getMessage());
+      /*logger.warn("IP Address not available on mote: " + e.getMessage());*/
     }
     return "?.?.?.?";
   }
