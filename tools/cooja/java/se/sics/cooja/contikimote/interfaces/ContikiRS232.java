@@ -26,28 +26,20 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ContikiRS232.java,v 1.5 2008/10/28 12:55:20 fros4943 Exp $
+ * $Id: ContikiRS232.java,v 1.6 2009/03/21 15:41:42 fros4943 Exp $
  */
 
 package se.sics.cooja.contikimote.interfaces;
 
-import java.awt.BorderLayout;
-import java.awt.Dimension;
-import java.awt.event.*;
-import java.util.*;
-import javax.swing.*;
 import org.apache.log4j.Logger;
-import org.jdom.Element;
-
 import se.sics.cooja.*;
 import se.sics.cooja.contikimote.ContikiMoteInterface;
+import se.sics.cooja.dialogs.SerialUI;
 import se.sics.cooja.interfaces.PolledAfterActiveTicks;
 
 /**
- * Serial port mote interface.
- * Only supports printable characters.
- * Note that by default the serial interface is not equal to the log interface:
- * printf(...) are not forwarded to this interface.
+ * Contiki mote serial port and log interfaces.
+ * Not fully implemented yet: does not support writeArray and writeByte
  *
  * Contiki variables:
  * <ul>
@@ -70,18 +62,14 @@ import se.sics.cooja.interfaces.PolledAfterActiveTicks;
  *
  * @see #getSerialMessages()
  *
- * @author Fredrik Österlind
+ * @author Fredrik Osterlind
  */
-@ClassDescription("Serial port (RS232)")
-public class ContikiRS232 extends MoteInterface implements ContikiMoteInterface, PolledAfterActiveTicks {
+@ClassDescription("Serial port")
+public class ContikiRS232 extends SerialUI implements ContikiMoteInterface, PolledAfterActiveTicks {
   private static Logger logger = Logger.getLogger(ContikiRS232.class);
 
   private Mote mote = null;
   private SectionMoteMemory moteMem = null;
-
-  private String lastSerialMessage = null;
-
-  private JTextArea logTextPane = null;
 
   /**
    * Approximate energy consumption of every sent character over RS232 (mQ).
@@ -99,161 +87,70 @@ public class ContikiRS232 extends MoteInterface implements ContikiMoteInterface,
    * @see se.sics.cooja.MoteInterfaceHandler
    */
   public ContikiRS232(Mote mote) {
-    // Read class configurations of this mote type
-    ENERGY_CONSUMPTION_PER_CHAR_mQ = mote.getType().getConfig()
-        .getDoubleValue(ContikiRS232.class, "CONSUMPTION_PER_CHAR_mQ");
+    ENERGY_CONSUMPTION_PER_CHAR_mQ =
+      mote.getType().getConfig().getDoubleValue(ContikiRS232.class, "CONSUMPTION_PER_CHAR_mQ");
 
     this.mote = mote;
     this.moteMem = (SectionMoteMemory) mote.getMemory();
   }
 
   public static String[] getCoreInterfaceDependencies() {
-    return new String[]{"rs232_interface"};
+    return new String[]{"rs232_interface", "simlog_interface" };
   }
 
   public void doActionsAfterTick() {
-    if (moteMem.getByteValueOf("simSerialSendingFlag") == 1) {
-      int totalLength = moteMem.getIntValueOf("simSerialSendingLength");
-      byte[] bytes = moteMem.getByteArray("simSerialSendingData", totalLength);
-      char[] chars = new char[bytes.length];
-      for (int i = 0; i < chars.length; i++) {
-        chars[i] = (char) bytes[i];
+    if (moteMem.getByteValueOf("simLoggedFlag") == 1) {
+      int len = moteMem.getIntValueOf("simLoggedLength");
+      byte[] bytes = moteMem.getByteArray("simLoggedData", len);
+
+      myEnergyConsumption = ENERGY_CONSUMPTION_PER_CHAR_mQ * len;
+
+      moteMem.setByteValueOf("simLoggedFlag", (byte) 0);
+      moteMem.setIntValueOf("simLoggedLength", 0);
+
+      for (byte b: bytes) {
+        dataReceived(b);
       }
-
-      myEnergyConsumption = ENERGY_CONSUMPTION_PER_CHAR_mQ * totalLength;
-
-      String message = String.valueOf(chars);
-      lastSerialMessage = message;
-
-      moteMem.setByteValueOf("simSerialSendingFlag", (byte) 0);
-      moteMem.setIntValueOf("simSerialSendingLength", 0);
-
-      this.setChanged();
-      this.notifyObservers(mote);
     } else {
       myEnergyConsumption = 0.0;
     }
   }
 
-  /**
-   * Returns all serial messages sent by mote the last tick that anything was
-   * sent.
-   *
-   * @return Last serial messages sent by mote.
-   */
-  public String getSerialMessages() {
-    return lastSerialMessage;
-  }
-
-  /**
-   * Send a serial message to mote.
-   *
-   * @param message
-   *          Message that mote should receive
-   */
-  public void sendSerialMessage(String message) {
-
-    if (logTextPane != null) {
-      logTextPane.append("> " + message + "\n");
-    }
-
-    // Flag for incoming data
+  public void writeString(String message) {
     moteMem.setByteValueOf("simSerialReceivingFlag", (byte) 1);
 
     byte[] dataToAppend = message.getBytes();
 
-    // Increase receiving size
+    /* Append to existing buffer */
     int oldSize = moteMem.getIntValueOf("simSerialReceivingLength");
-    moteMem.setIntValueOf("simSerialReceivingLength", oldSize
-        + dataToAppend.length);
-    int newSize = moteMem.getIntValueOf("simSerialReceivingLength");
+    int newSize = oldSize + dataToAppend.length;
+    moteMem.setIntValueOf("simSerialReceivingLength", newSize);
 
-    // Write buffer characters
     byte[] oldData = moteMem.getByteArray("simSerialReceivingData", oldSize);
     byte[] newData = new byte[newSize];
 
-    for (int i = 0; i < oldData.length; i++) {
-      newData[i] = oldData[i];
-    }
-
-    for (int i = 0; i < message.length(); i++) {
-      newData[i + oldSize] = dataToAppend[i];
-    }
+    System.arraycopy(oldData, 0, newData, 0, oldData.length);
+    System.arraycopy(dataToAppend, 0, newData, oldSize, dataToAppend.length);
 
     moteMem.setByteArray("simSerialReceivingData", newData);
 
     mote.setState(Mote.State.ACTIVE);
-
-  }
-
-  public JPanel getInterfaceVisualizer() {
-    JPanel panel = new JPanel();
-    panel.setLayout(new BorderLayout());
-
-    if (logTextPane == null) {
-      logTextPane = new JTextArea();
-    }
-
-    // Send RS232 data visualizer
-    JPanel sendPane = new JPanel();
-    final JTextField sendTextField = new JTextField(15);
-    JButton sendButton = new JButton("Send data");
-    sendButton.addActionListener(new ActionListener() {
-      public void actionPerformed(ActionEvent e) {
-        sendSerialMessage(sendTextField.getText());
-      }
-    });
-    sendPane.add(BorderLayout.WEST, sendTextField);
-    sendPane.add(BorderLayout.EAST, sendButton);
-
-    // Receive RS232 data visualizer
-    logTextPane.setOpaque(false);
-    logTextPane.setEditable(false);
-
-    if (lastSerialMessage == null) {
-      logTextPane.setText("");
-    } else {
-      logTextPane.append(lastSerialMessage);
-    }
-
-    Observer observer;
-    this.addObserver(observer = new Observer() {
-      public void update(Observable obs, Object obj) {
-        logTextPane.append("< " + lastSerialMessage + "\n");
-        logTextPane.setCaretPosition(logTextPane.getDocument().getLength());
-      }
-    });
-
-    // Saving observer reference for releaseInterfaceVisualizer
-    panel.putClientProperty("intf_obs", observer);
-
-    JScrollPane scrollPane = new JScrollPane(logTextPane);
-    scrollPane.setPreferredSize(new Dimension(100, 100));
-    panel.add(BorderLayout.NORTH, new JLabel("Last serial data:"));
-    panel.add(BorderLayout.CENTER, scrollPane);
-    panel.add(BorderLayout.SOUTH, sendPane);
-    return panel;
-  }
-
-  public void releaseInterfaceVisualizer(JPanel panel) {
-    Observer observer = (Observer) panel.getClientProperty("intf_obs");
-    if (observer == null) {
-      logger.fatal("Error when releasing panel, observer is null");
-      return;
-    }
-
-    this.deleteObserver(observer);
   }
 
   public double energyConsumption() {
     return myEnergyConsumption;
   }
 
-  public Collection<Element> getConfigXML() {
-    return null;
+  public Mote getMote() {
+    return mote;
   }
 
-  public void setConfigXML(Collection<Element> configXML, boolean visAvailable) {
+  public void writeArray(byte[] s) {
+    logger.fatal("NOT IMPLEMENTED");
+  }
+
+  public void writeByte(byte b) {
+    logger.fatal("NOT IMPLEMENTED");
   }
 
 }

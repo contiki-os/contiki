@@ -26,17 +26,17 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: PolledAfterActiveTicks.java,v 1.2 2009/03/09 14:08:54 fros4943 Exp $
+ * $Id: PolledAfterActiveTicks.java,v 1.3 2009/03/21 15:41:42 fros4943 Exp $
  */
 
 package se.sics.cooja.interfaces;
 
-import se.sics.cooja.contikimote.interfaces.ContikiLog;
+import se.sics.cooja.contikimote.interfaces.ContikiRS232;
 
 /**
  * A mote interface polled after a mote tick ONLY IF the mote is awake.
  *
- * @see ContikiLog
+ * @see ContikiRS232
  *
  * @author Fredrik Osterlind
  */
