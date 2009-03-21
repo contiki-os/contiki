@@ -24,7 +24,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * $Id: GUI.java,v 1.120 2009/03/21 14:24:55 fros4943 Exp $
+ * $Id: GUI.java,v 1.121 2009/03/21 16:45:42 fros4943 Exp $
  */
 
 package se.sics.cooja;
@@ -600,12 +600,6 @@ public class GUI extends Observable {
     menu.add(menuItem);
 
     menuItem = new JMenu("Reload simulation");
-    menuItem.addActionListener(new ActionListener() {
-      public void actionPerformed(ActionEvent e) {
-        reloadCurrentSimulation(false);
-      }
-    });
-    menuItem.setToolTipText("Reload simulation using the same random seed");
     menu.add(menuItem);
 
     JMenuItem menuItem2 = new JMenuItem("same random seed");
@@ -617,7 +611,9 @@ public class GUI extends Observable {
         if (getSimulation() == null) {
           return;
         }
-        reloadCurrentSimulation(false, getSimulation().getRandomSeed());
+        reloadCurrentSimulation(
+            getSimulation().isRunning(),
+            getSimulation().getRandomSeed());
       }
     });
     menuItem.add(menuItem2);
@@ -631,7 +627,9 @@ public class GUI extends Observable {
         if (getSimulation() == null) {
           return;
         }
-        reloadCurrentSimulation(false, getSimulation().getRandomSeed()+1);
+        reloadCurrentSimulation(
+            getSimulation().isRunning(),
+            getSimulation().getRandomSeed()+1);
       }
     });
     menuItem.add(menuItem2);
@@ -675,25 +673,6 @@ public class GUI extends Observable {
     menuItem.addActionListener(guiEventHandler);
     menu.add(menuItem);
 
-    menuItem = new JMenuItem("Start/Stop simulation");
-    menuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_S,
-        ActionEvent.CTRL_MASK));
-    menuItem.addActionListener(new ActionListener() {
-      public void actionPerformed(ActionEvent e) {
-        /* Start/Stop current simulation */
-        Simulation sim = getSimulation();
-        if (sim == null) {
-          return;
-        }
-        if (sim.isRunning()) {
-          sim.stopSimulation();
-        } else {
-          sim.startSimulation();
-        }
-      }
-    });
-    menu.add(menuItem);
-
     menu.addSeparator();
 
     menuItem = new JMenuItem("Exit");
@@ -712,6 +691,25 @@ public class GUI extends Observable {
     menu = new JMenu("Simulation");
     menu.setMnemonic(KeyEvent.VK_S);
     menuBar.add(menu);
+
+    menuItem = new JMenuItem("Start/Stop simulation");
+    menuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_S,
+        ActionEvent.CTRL_MASK));
+    menuItem.addActionListener(new ActionListener() {
+      public void actionPerformed(ActionEvent e) {
+        /* Start/Stop current simulation */
+        Simulation sim = getSimulation();
+        if (sim == null) {
+          return;
+        }
+        if (sim.isRunning()) {
+          sim.stopSimulation();
+        } else {
+          sim.startSimulation();
+        }
+      }
+    });
+    menu.add(menuItem);
 
     menuItem = new JMenuItem("Open Control");
     menuItem.setMnemonic(KeyEvent.VK_C);
