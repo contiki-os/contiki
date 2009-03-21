@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: MspCLI.java,v 1.1 2008/10/13 14:50:50 nifi Exp $
+ * $Id: MspCLI.java,v 1.2 2009/03/21 14:40:22 fros4943 Exp $
  */
 
 package se.sics.cooja.mspmote.plugins;
@@ -97,7 +97,9 @@ public class MspCLI extends VisPlugin {
         if (command != null) {
           try {
             int previous = historyCount - 1;
-            if (previous < 0) previous += history.length;
+            if (previous < 0) {
+              previous += history.length;
+            }
             if (!command.equals(history[previous])) {
               history[historyCount] = command;
               historyCount = (historyCount + 1) % history.length;
@@ -177,6 +179,7 @@ public class MspCLI extends VisPlugin {
     }
     // Tries to select this plugin
     try {
+      setSize(400, 200);
       setSelected(true);
     } catch (java.beans.PropertyVetoException e) {
       // Could not select
