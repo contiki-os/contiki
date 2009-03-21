@@ -33,7 +33,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: rmh.c,v 1.8 2009/03/12 21:58:21 adamdunkels Exp $
+ * $Id: rmh.c,v 1.9 2009/03/21 20:53:06 nvt-se Exp $
  */
 
 /**
@@ -70,8 +70,9 @@ received(struct runicast_conn *uc, rimeaddr_t *from, uint8_t seqno)
   struct data_hdr *msg = packetbuf_dataptr();
   rimeaddr_t *nexthop;
 
-  PRINTF("data_packet_received from %d towards %d len %d\n", from->u16[0],
-	 msg->dest.u16[0],
+  PRINTF("data_packet_received from %d.%d towards %d.%d len %d\n", 
+         from->u8[0], from->u8[1],
+	 msg->dest.u8[0], msg->dest.u8[1],
 	 packetbuf_datalen());
 
   if(rimeaddr_cmp(&msg->dest, &rimeaddr_node_addr)) {
@@ -87,7 +88,7 @@ received(struct runicast_conn *uc, rimeaddr_t *from, uint8_t seqno)
 			       &msg->dest, from, msg->hops);
     }
     if(nexthop) {
-      PRINTF("forwarding to %d\n", rt->nexthop.u16[0]);
+      PRINTF("forwarding to %d.%d\n", nexthop->u8[0], nexthop->u8[1]);
       msg->hops++;
       runicast_send(&c->c, nexthop, c->num_rexmit);
     }
