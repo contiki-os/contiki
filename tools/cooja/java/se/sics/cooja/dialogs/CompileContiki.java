@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: CompileContiki.java,v 1.2 2009/03/10 21:20:08 fros4943 Exp $
+ * $Id: CompileContiki.java,v 1.3 2009/03/21 16:44:29 fros4943 Exp $
  */
 
 package se.sics.cooja.dialogs;
@@ -201,8 +201,15 @@ public class CompileContiki {
         try {
           handleCompilationResultThread.join();
         } catch (Exception e) {
+          /* Make sure process has exited */
+          compileProcess.destroy();
+
+          String msg = e.getMessage();
+          if (e instanceof InterruptedException) {
+            msg = "Aborted by user";
+          }
           throw (MoteTypeCreationException) new MoteTypeCreationException(
-              "Compilation error: " + e.getMessage()).initCause(e);
+              "Compilation error: " + msg).initCause(e);
         }
 
         /* Detect error manually */
