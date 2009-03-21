@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: MicaZMoteType.java,v 1.4 2009/03/19 14:47:37 joxe Exp $
+ * $Id: MicaZMoteType.java,v 1.5 2009/03/21 14:51:03 fros4943 Exp $
  */
 
 package se.sics.cooja.avrmote;
@@ -47,6 +47,7 @@ import se.sics.cooja.*;
 import se.sics.cooja.dialogs.MessageList;
 import se.sics.cooja.dialogs.MessageList.MessageContainer;
 
+@AbstractionLevelDescription("Emulated level")
 @ClassDescription("MicaZ Mote Type")
 public class MicaZMoteType implements MoteType {
   private static Logger logger = Logger.getLogger(MicaZMoteType.class);
