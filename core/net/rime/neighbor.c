@@ -33,7 +33,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: neighbor.c,v 1.16 2008/11/12 10:47:17 zhitao Exp $
+ * $Id: neighbor.c,v 1.17 2009/03/21 20:53:07 nvt-se Exp $
  */
 
 /**
@@ -252,7 +252,9 @@ neighbor_remove(rimeaddr_t *addr)
 
   for(n = list_head(neighbors_list); n != NULL; n = n->next) {
     if(rimeaddr_cmp(&n->addr, addr)) {
-      PRINTF("%d: removing %d\n", rimeaddr_node_addr.u16[0], addr->u16[0]);
+      PRINTF("%d.%d: removing %d.%d\n",
+	     rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1],
+	     addr->u8[0], addr->u8[1]);
       rimeaddr_copy(&n->addr, &rimeaddr_null);
       n->rtmetric = RTMETRIC_MAX;
       list_remove(neighbors_list, n);
