@@ -24,7 +24,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * $Id: GUI.java,v 1.121 2009/03/21 16:45:42 fros4943 Exp $
+ * $Id: GUI.java,v 1.122 2009/03/22 13:47:38 fros4943 Exp $
  */
 
 package se.sics.cooja;
@@ -3710,7 +3710,7 @@ public class GUI extends Observable {
     return restoreConfigPath(file);
   }
 
-  private File currentConfigFile = null; /* Used to generate config relative paths */
+  public File currentConfigFile = null; /* Used to generate config relative paths */
   public File createConfigPath(File file) {
     if (currentConfigFile == null) {
       return file;
@@ -3719,6 +3719,9 @@ public class GUI extends Observable {
     try {
       File configPath = currentConfigFile.getParentFile();
       String configIdentifier = "[CONFIG_DIR]";
+      if (configPath == null) {
+        return file;
+      }
       String configCanonical = configPath.getCanonicalPath();
 
       String fileCanonical = file.getCanonicalPath();
@@ -3753,6 +3756,9 @@ public class GUI extends Observable {
     }
 
     File configPath = currentConfigFile.getParentFile();
+    if (configPath == null) {
+      return file;
+    }
 
     String path = file.getPath();
     if (!path.startsWith("[CONFIG_DIR]")) {
