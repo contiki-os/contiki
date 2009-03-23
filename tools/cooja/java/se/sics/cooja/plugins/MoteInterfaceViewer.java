@@ -26,19 +26,32 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: MoteInterfaceViewer.java,v 1.5 2009/03/09 15:39:33 fros4943 Exp $
+ * $Id: MoteInterfaceViewer.java,v 1.6 2009/03/23 13:26:43 nifi Exp $
  */
 
 package se.sics.cooja.plugins;
-
-import java.awt.*;
-import java.awt.event.*;
+import java.awt.BorderLayout;
+import java.awt.Dimension;
+import java.awt.EventQueue;
+import java.awt.Point;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.util.Collection;
 import java.util.Vector;
-import javax.swing.*;
+import javax.swing.BorderFactory;
+import javax.swing.Box;
+import javax.swing.JComboBox;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
 import org.jdom.Element;
-
-import se.sics.cooja.*;
+import se.sics.cooja.ClassDescription;
+import se.sics.cooja.GUI;
+import se.sics.cooja.Mote;
+import se.sics.cooja.MoteInterface;
+import se.sics.cooja.PluginType;
+import se.sics.cooja.Simulation;
+import se.sics.cooja.VisPlugin;
 
 /**
  * Mote Interface Viewer views information about a specific mote interface.
@@ -54,6 +67,8 @@ public class MoteInterfaceViewer extends VisPlugin {
   private MoteInterface selectedMoteInterface = null;
   private JPanel currentInterfaceVisualizer = null;
   private JComboBox selectInterfaceComboBox = null;
+  private JScrollPane mainScrollPane;
+
 
   /**
    * Create a new mote interface viewer.
@@ -128,10 +143,10 @@ public class MoteInterfaceViewer extends VisPlugin {
     }
 
     mainPane.add(BorderLayout.CENTER, interfacePanel);
-
-    this.setContentPane(new JScrollPane(mainPane,
-					JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,
-					JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED));
+    mainScrollPane = new JScrollPane(mainPane,
+        JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,
+        JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+    this.setContentPane(mainScrollPane);
     pack();
     setPreferredSize(new Dimension(350,300));
     setSize(new Dimension(350,300));
@@ -175,7 +190,11 @@ public class MoteInterfaceViewer extends VisPlugin {
     element = new Element("interface");
     element.setText((String) selectInterfaceComboBox.getSelectedItem());
     config.add(element);
+    Point pos = mainScrollPane.getViewport().getViewPosition();
 
+    element = new Element("scrollpos");
+    element.setText(pos.x + "," + pos.y);
+    config.add(element);
     return config;
   }
 
@@ -183,6 +202,14 @@ public class MoteInterfaceViewer extends VisPlugin {
     for (Element element : configXML) {
       if (element.getName().equals("interface")) {
         setSelectedInterface(element.getText());
+      } else if (element.getName().equals("scrollpos")) {
+        String[] scrollPos = element.getText().split(",");
+        final Point pos = new Point(Integer.parseInt(scrollPos[0]), Integer.parseInt(scrollPos[1])); 
+        EventQueue.invokeLater(new Runnable() {
+          public void run()  {
+            mainScrollPane.getViewport().setViewPosition(pos);
+          }
+        });
       }
     }
     return true;
