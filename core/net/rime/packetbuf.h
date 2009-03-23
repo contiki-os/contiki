@@ -40,7 +40,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: packetbuf.h,v 1.1 2009/03/12 23:04:52 adamdunkels Exp $
+ * $Id: packetbuf.h,v 1.2 2009/03/23 10:58:00 nifi Exp $
  */
 
 /**
@@ -398,7 +398,6 @@ const rimeaddr_t *packetbuf_addr(uint8_t type);
 #endif /* PACKETBUF_CONF_ATTRS_INLINE */
 
 void              packetbuf_attr_clear(void);
-int               packetbuf_attr_isset(uint8_t type);
 
 void              packetbuf_attr_copyto(struct packetbuf_attr *attrs,
 				      struct packetbuf_addr *addrs);
