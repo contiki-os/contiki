@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: xmac.c,v 1.29 2009/03/23 21:00:25 adamdunkels Exp $
+ * $Id: xmac.c,v 1.30 2009/03/23 21:06:26 adamdunkels Exp $
  */
 
 /**
@@ -162,6 +162,8 @@ static const struct radio_driver *radio;
 #if XMAC_CONF_ANNOUNCEMENTS
 /* Timers for keeping track of when to send announcements. */
 static struct ctimer announcement_cycle_ctimer, announcement_ctimer;
+
+static int announcement_radio_txpower;
 #endif /* XMAC_CONF_ANNOUNCEMENTS */
 
 /* Flag that is used to keep track of whether or not we are listening
@@ -704,6 +706,8 @@ send_announcement(void *ptr)
 
   if(announcement_len > 0) {
     packetbuf_set_datalen(sizeof(struct xmac_hdr) + announcement_len);
+
+    packetbuf_set_attr(PACKETBUF_ATTR_RADIO_TXPOWER, announcement_radio_txpower);
     radio->send(packetbuf_hdrptr(), packetbuf_totlen());
   }
 }
@@ -726,6 +730,14 @@ listen_callback(int periods)
   is_listening = periods + 1;
 }
 #endif /* XMAC_CONF_ANNOUNCEMENTS */
+/*---------------------------------------------------------------------------*/
+void
+xmac_set_announcement_radio_txpower(int txpower)
+{
+#if XMAC_CONF_ANNOUNCEMENTS
+  announcement_radio_txpower = txpower;
+#endif /* XMAC_CONF_ANNOUNCEMENTS */
+}
 /*---------------------------------------------------------------------------*/
 const struct mac_driver *
 xmac_init(const struct radio_driver *d)
