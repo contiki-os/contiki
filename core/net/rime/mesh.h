@@ -49,7 +49,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: mesh.h,v 1.13 2009/03/12 21:58:21 adamdunkels Exp $
+ * $Id: mesh.h,v 1.14 2009/03/23 16:22:02 adamdunkels Exp $
  */
 
 /**
@@ -73,7 +73,7 @@ struct mesh_conn;
  */
 struct mesh_callbacks {
   /** Called when a packet is received. */
-  void (* recv)(struct mesh_conn *c, rimeaddr_t *from, uint8_t hops);
+  void (* recv)(struct mesh_conn *c, const rimeaddr_t *from, uint8_t hops);
   /** Called when a packet, sent with mesh_send(), is actually transmitted. */
   void (* sent)(struct mesh_conn *c);
   /** Called when a packet, sent with mesh_send(), times out and is dropped. */
