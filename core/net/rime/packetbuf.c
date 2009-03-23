@@ -33,7 +33,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: packetbuf.c,v 1.1 2009/03/12 23:04:52 adamdunkels Exp $
+ * $Id: packetbuf.c,v 1.2 2009/03/23 19:37:45 adamdunkels Exp $
  */
 
 /**
@@ -88,7 +88,13 @@ const char *packetbuf_attr_strings[] =
 
 static uint16_t buflen, bufptr;
 static uint8_t hdrptr;
-static uint8_t packetbuf[PACKETBUF_SIZE + PACKETBUF_HDR_SIZE];
+
+/* The declarations below ensure that the packet buffer is aligned on
+   an even 16-bit boundary. On some platforms (most notably the
+   msp430), having apotentially misaligned packet buffer may lead to
+   problems when accessing 16-bit values. */
+static uint16_t packetbuf_aligned[(PACKETBUF_SIZE + PACKETBUF_HDR_SIZE) / 2 + 1];
+static uint8_t* packetbuf = packetbuf_aligned;
 
 static uint8_t *packetbufptr;
 
