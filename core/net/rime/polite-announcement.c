@@ -33,7 +33,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: polite-announcement.c,v 1.3 2009/03/23 16:19:03 adamdunkels Exp $
+ * $Id: polite-announcement.c,v 1.4 2009/03/23 16:39:09 adamdunkels Exp $
  */
 
 /**
@@ -109,7 +109,7 @@ send_adv(clock_time_t interval)
 	 rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1], adata->num);
 
   if(adata->num > 0) {
-    /* Send the packet if it contains more than one announcement. */
+    /* Send the packet only if it contains more than zero announcements. */
     ipolite_send(&c.c, interval, packetbuf_datalen());
   }
 }
