@@ -33,7 +33,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: mesh.c,v 1.15 2009/03/12 21:58:21 adamdunkels Exp $
+ * $Id: mesh.c,v 1.16 2009/03/23 16:22:02 adamdunkels Exp $
  */
 
 /**
@@ -62,8 +62,9 @@
 
 /*---------------------------------------------------------------------------*/
 static void
-data_packet_received(struct multihop_conn *multihop, rimeaddr_t *from,
-		     rimeaddr_t *prevhop, uint8_t hops)
+data_packet_received(struct multihop_conn *multihop,
+		     const rimeaddr_t *from,
+		     const rimeaddr_t *prevhop, uint8_t hops)
 {
   struct mesh_conn *c = (struct mesh_conn *)
     ((char *)multihop - offsetof(struct mesh_conn, multihop));
@@ -74,8 +75,10 @@ data_packet_received(struct multihop_conn *multihop, rimeaddr_t *from,
 }
 /*---------------------------------------------------------------------------*/
 static rimeaddr_t *
-data_packet_forward(struct multihop_conn *multihop, rimeaddr_t *originator,
-		    rimeaddr_t *dest, rimeaddr_t *prevhop, uint8_t hops)
+data_packet_forward(struct multihop_conn *multihop,
+		    const rimeaddr_t *originator,
+		    const rimeaddr_t *dest,
+		    const rimeaddr_t *prevhop, uint8_t hops)
 {
   struct route_entry *rt;
 
