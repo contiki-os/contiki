@@ -33,7 +33,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: multihop.c,v 1.2 2009/03/12 21:58:21 adamdunkels Exp $
+ * $Id: multihop.c,v 1.3 2009/03/23 16:20:37 adamdunkels Exp $
  */
 
 /**
@@ -50,12 +50,11 @@
 
 #include <string.h>
 
-struct data_hdr {
-  rimeaddr_t dest;
-  rimeaddr_t originator;
-  uint8_t hops;
-  uint8_t pad;
-};
+static const struct packetbuf_attrlist attributes[] =
+  {
+    MULTIHOP_ATTRIBUTES
+    PACKETBUF_ATTR_LAST
+  };
 
 #define DEBUG 0
 #if DEBUG
@@ -70,31 +69,30 @@ void
 data_packet_received(struct unicast_conn *uc, rimeaddr_t *from)
 {
   struct multihop_conn *c = (struct multihop_conn *)uc;
-  struct data_hdr msg;
   rimeaddr_t *nexthop;
 
-  memcpy(&msg, packetbuf_dataptr(), sizeof(struct data_hdr));
-  
   PRINTF("data_packet_received from %d.%d towards %d.%d len %d\n",
 	 from->u8[0], from->u8[1],
 	 msg.dest.u8[0], msg.dest.u8[1],
 	 packetbuf_datalen());
 
-  if(rimeaddr_cmp(&msg.dest, &rimeaddr_node_addr)) {
+  if(rimeaddr_cmp(packetbuf_addr(PACKETBUF_ADDR_ERECEIVER),
+				 &rimeaddr_node_addr)) {
     PRINTF("for us!\n");
-    packetbuf_hdrreduce(sizeof(struct data_hdr));
     if(c->cb->recv) {
-      c->cb->recv(c, &msg.originator, from, msg.hops);
+      c->cb->recv(c, packetbuf_addr(PACKETBUF_ADDR_ESENDER), from,
+		  packetbuf_attr(PACKETBUF_ATTR_HOPS));
     }
   } else {
     nexthop = NULL;
     if(c->cb->forward) {
-      packetbuf_hdrreduce(sizeof(struct data_hdr));
-      nexthop = c->cb->forward(c, &msg.originator,
-			       &msg.dest, from, msg.hops);
-      packetbuf_hdralloc(sizeof(struct data_hdr));
-      msg.hops++;
-      memcpy(packetbuf_hdrptr(), &msg, sizeof(struct data_hdr));
+      nexthop = c->cb->forward(c,
+			       packetbuf_addr(PACKETBUF_ADDR_ESENDER),
+			       packetbuf_addr(PACKETBUF_ADDR_ERECEIVER),
+			       from, packetbuf_attr(PACKETBUF_ATTR_HOPS));
+
+      packetbuf_set_attr(PACKETBUF_ATTR_HOPS,
+			 packetbuf_attr(PACKETBUF_ATTR_HOPS) + 1);
     }
     if(nexthop) {
       PRINTF("forwarding to %d.%d\n", nexthop->u8[0], nexthop->u8[1]);
@@ -110,6 +108,7 @@ multihop_open(struct multihop_conn *c, uint16_t channel,
 	const struct multihop_callbacks *callbacks)
 {
   unicast_open(&c->c, channel, &data_callbacks);
+  channel_set_attributes(channel, attributes);
   c->cb = callbacks;
 }
 /*---------------------------------------------------------------------------*/
@@ -123,7 +122,6 @@ int
 multihop_send(struct multihop_conn *c, rimeaddr_t *to)
 {
   rimeaddr_t *nexthop;
-  struct data_hdr *hdr;
 
   if(c->cb->forward == NULL) {
     return 0;
@@ -137,13 +135,10 @@ multihop_send(struct multihop_conn *c, rimeaddr_t *to)
   } else {
     PRINTF("multihop_send: sending data towards %d.%d\n",
 	   nexthop->u8[0], nexthop->u8[1]);
-    if(packetbuf_hdralloc(sizeof(struct data_hdr))) {
-      hdr = packetbuf_hdrptr();
-      rimeaddr_copy(&hdr->dest, to);
-      rimeaddr_copy(&hdr->originator, &rimeaddr_node_addr);
-      hdr->hops = 1;
-      unicast_send(&c->c, nexthop);
-    }
+    packetbuf_set_addr(PACKETBUF_ADDR_ERECEIVER, to);
+    packetbuf_set_addr(PACKETBUF_ADDR_ESENDER, &rimeaddr_node_addr);
+    packetbuf_set_attr(PACKETBUF_ATTR_HOPS, 1);
+    unicast_send(&c->c, nexthop);
     return 1;
   }
 }
