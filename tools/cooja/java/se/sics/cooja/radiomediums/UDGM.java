@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: UDGM.java,v 1.22 2009/02/24 15:05:54 fros4943 Exp $
+ * $Id: UDGM.java,v 1.23 2009/03/24 15:46:46 fros4943 Exp $
  */
 
 package se.sics.cooja.radiomediums;
@@ -37,16 +37,14 @@ import org.apache.log4j.Logger;
 
 import se.sics.cooja.*;
 import se.sics.cooja.interfaces.*;
-import se.sics.cooja.plugins.VisUDGM;
+import se.sics.cooja.plugins.Visualizer;
+import se.sics.cooja.plugins.skins.UDGMVisualizerSkin;
 
 /**
  * The Unit Disk Graph medium has two different range parameters; one for
  * transmitting and one for interfering other transmissions.
  *
  * The radio medium supports both byte and packet radios.
- *
- * The radio medium registers a visualizer plugin. Via this plugin the current
- * radio states and range parameters can be viewed and changed.
  *
  * The registered radios' signal strengths are updated whenever the radio medium
  * changes. There are three fixed levels: no surrounding traffic heard, noise
@@ -59,7 +57,7 @@ import se.sics.cooja.plugins.VisUDGM;
  * @see #SS_WEAK
  * @see #SS_NOTHING
  *
- * @see VisUDGM
+ * @see UDGMVisualizerSkin
  * @author Fredrik Osterlind
  */
 @ClassDescription("Unit Disk Graph Medium (UDGM)")
@@ -84,8 +82,9 @@ public class UDGM extends AbstractRadioMedium {
   public UDGM(Simulation simulation) {
     super(simulation);
 
-    /* Register visualizer plugin */
-    simulation.getGUI().registerTemporaryPlugin(VisUDGM.class);
+    /* Register visualizer skin */
+    /* TODO Should be unregistered when radio medium is removed */
+    Visualizer.registerVisualizerSkin(UDGMVisualizerSkin.class);
 
     mySimulation = simulation;
     random = mySimulation.getRandomGenerator();
