@@ -1,45 +1,38 @@
 /*
-Copyright 2006, Freie Universitaet Berlin. All rights reserved.
-
-These sources were developed at the Freie Universitaet Berlin, Computer
-Systems and Telematics group.
-
-Redistribution and use in source and binary forms, with or without
-modification, are permitted provided that the following conditions are
-met:
-
-- Redistributions of source code must retain the above copyright
-notice, this list of conditions and the following disclaimer.
-
-- Redistributions in binary form must reproduce the above copyright
-notice, this list of conditions and the following disclaimer in the
-documentation and/or other materials provided with the distribution.
- 
-- Neither the name of Freie Universitaet Berlin (FUB) nor the names of its
-contributors may be used to endorse or promote products derived from
-this software without specific prior written permission.
-
-This software is provided by FUB and the contributors on an "as is"
-basis, without any representations or warranties of any kind, express
-or implied including, but not limited to, representations or
-warranties of non-infringement, merchantability or fitness for a
-particular purpose. In no event shall FUB or contributors be liable
-for any direct, indirect, incidental, special, exemplary, or
-consequential damages (including, but not limited to, procurement of
-substitute goods or services; loss of use, data, or profits; or
-business interruption) however caused and on any theory of liability,
-whether in contract, strict liability, or tort (including negligence
-or otherwise) arising in any way out of the use of this software, even
-if advised of the possibility of such damage.
-
-This implementation was developed by the CST group at the FUB.
-
-For documentation and questions please use the web site
-http://scatterweb.mi.fu-berlin.de and the mailinglist
-scatterweb@lists.spline.inf.fu-berlin.de (subscription via the Website).
-Berlin, 2006
-*/
-
+ * Copyright 2006, Freie Universitaet Berlin. All rights reserved.
+ * 
+ * These sources were developed at the Freie Universitaet Berlin, Computer
+ * Systems and Telematics group.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions 
+ * are met:
+ * - Redistributions of source code must retain the above copyright
+ * notice, this list of conditions and the following disclaimer.
+ *
+ * - Redistributions in binary form must reproduce the above copyright
+ * notice, this list of conditions and the following disclaimer in the
+ * documentation and/or other materials provided with the distribution.
+ *
+ * - Neither the name of Freie Universitaet Berlin (FUB) nor the names of its
+ * contributors may be used to endorse or promote products derived from
+ * this software without specific prior written permission.
+ *
+ * This software is provided by FUB and the contributors on an "as is"
+ * basis, without any representations or warranties of any kind, express
+ * or implied including, but not limited to, representations or
+ * warranties of non-infringement, merchantability or fitness for a
+ * particular purpose. In no event shall FUB or contributors be liable
+ * for any direct, indirect, incidental, special, exemplary, or
+ * consequential damages (including, but not limited to, procurement of
+ * substitute goods or services; loss of use, data, or profits; or
+ * business interruption) however caused and on any theory of liability,
+ * whether in contract, strict liability, or tort (including negligence
+ * or otherwise) arising in any way out of the use of this software, 
+ * even if advised of the possibility of such damage.
+ *
+ * This implementation was originally developed by the CST group at the FUB.
+ */
 
 /**
  * \file	cc1020.c
@@ -61,7 +54,13 @@ Berlin, 2006
 #include "dev/dma.h"
 #include "energest.h"
 
-#define CRC_LEN 2 // CHECKSUM
+#define DEBUG 0
+#if DEBUG
+#include <stdio.h>
+#define PRINTF(...) printf(__VA_ARGS__)
+#else
+#define PRINTF(...)
+#endif
 
 static int cc1020_calibrate(void);
 static int cc1020_setupTX(int);
@@ -74,21 +73,21 @@ static void cc1020_write_reg(uint8_t addr, uint8_t adata);
 static void cc1020_load_config(const uint8_t *);
 static void cc1020_reset(void);
 
-// current mode of cc1020 chip
+/* current mode of cc1020 chip */
 static volatile enum cc1020_state cc1020_state = CC1020_OFF;
 static volatile uint8_t cc1020_rxbuf[HDRSIZE + CC1020_BUFFERSIZE];
 static uint8_t cc1020_txbuf[PREAMBLESIZE + SYNCWDSIZE + HDRSIZE +
 			   CC1020_BUFFERSIZE + TAILSIZE];
-//static volatile enum cc1020_rxstate cc1020_rxstate = CC1020_RX_SEARCHING;
+/*static volatile enum cc1020_rxstate cc1020_rxstate = CC1020_RX_SEARCHING; */
 
-// number of bytes in receive and transmit buffers respectively.
+/* number of bytes in receive and transmit buffers respectively. */
 static uint16_t cc1020_rxlen;
 static uint16_t cc1020_txlen;
 
-// received signal strength indicator reading for last received packet
+/* received signal strength indicator reading for last received packet */
 static volatile uint8_t rssi;
 
-// callback when a packet has been received
+/* callback when a packet has been received */
 static uint8_t cc1020_pa_power = PA_POWER;
 
 static volatile int dma_done;
@@ -117,7 +116,7 @@ dma_callback(void)
 static void
 reset_receiver(void)
 {
-  // reset receiver
+  /* reset receiver */
   cc1020_rxlen = 0;
 
   if((cc1020_state & CC1020_TURN_OFF) && (cc1020_txlen == 0)) {
@@ -135,23 +134,23 @@ cc1020_init(const uint8_t *config)
   cc1020_reset();
   cc1020_load_config(config);
 
-  // init tx buffer with preamble + syncword
+  /* init tx buffer with preamble + syncword */
   memset(cc1020_txbuf, PREAMBLE, PREAMBLESIZE);
   memcpy((char *)cc1020_txbuf + PREAMBLESIZE, &syncword, SYNCWDSIZE);
 
-  // calibrate receiver
+  /* calibrate receiver */
   cc1020_wakeupRX(RX_CURRENT);
   if(!cc1020_calibrate()) {
-    printf("rx calibration failed\n");
+    PRINTF("cc1020: rx calibration failed\n");
   }
 
-  // calibrate transmitter
+  /* calibrate transmitter */
   cc1020_wakeupTX(TX_CURRENT);
   if(!cc1020_calibrate()) {
-    printf("tx calibration failed\n");
+    PRINTF("cc1020: tx calibration failed\n");
   }
 
-  // power down
+  /* power down */
   cc1020_setupPD();
 
   process_start(&cc1020_receiver_process, NULL);
@@ -165,36 +164,36 @@ cc1020_set_rx(void)
 
   s = splhigh();
 
-  // Reset SEL for P3[1-3] (CC DIO, DIO, DCLK) and P3[4-5] (Camera Rx+Tx)
+  /* Reset SEL for P3[1-3] (CC DIO, DIO, DCLK) and P3[4-5] (Camera Rx+Tx) */
   P3SEL &= ~0x3E;
-  IFG1 &= ~(UTXIE0 | URXIE0);	// Clear interrupt flags
-  ME1 &= ~(UTXE0 | URXE0);	// Disable Uart0 Tx + Rx
-  UCTL0 = SWRST;		// U0 into reset state.
-  UCTL0 |= CHAR | SYNC;		// 8-bit character, SPI, Slave mode
+  IFG1 &= ~(UTXIE0 | URXIE0);	/* Clear interrupt flags */
+  ME1 &= ~(UTXE0 | URXE0);	/* Disable Uart0 Tx + Rx */
+  UCTL0 = SWRST;		/* U0 into reset state. */
+  UCTL0 |= CHAR | SYNC;		/* 8-bit character, SPI, Slave mode */
 
-  // CKPH works also, but not CKPH+CKPL or none of them!!
+  /* CKPH works also, but not CKPH+CKPL or none of them!! */
   UTCTL0 = CKPL | STC;
   URCTL0 = 0x00;
-  UBR00 = 0x00;			// No baudrate divider 
-  UBR10 = 0x00;			// settings for a spi
-  UMCTL0 = 0x00;		// slave.
-  ME1 |= URXE0;		// Enable USART0 RXD, disabling does not yield any powersavings
-  P3SEL |= 0x0A;		// Select rx line and clk
-  UCTL0 &= ~SWRST;		// Clear reset bit
+  UBR00 = 0x00;			/* No baudrate divider  */
+  UBR10 = 0x00;			/* settings for a spi */
+  UMCTL0 = 0x00;		/* slave. */
+  ME1 |= URXE0;		/* Enable USART0 RXD, disabling does not yield any powersavings */
+  P3SEL |= 0x0A;		/* Select rx line and clk */
+  UCTL0 &= ~SWRST;		/* Clear reset bit */
   splx(s);
 
-  // configure driver
-  cc1020_rxlen = 0;		// receive buffer position to start
-  CC1020_SET_OPSTATE(CC1020_RX | CC1020_RX_SEARCHING); // driver state to receive mode
+  /* configure driver */
+  cc1020_rxlen = 0;		/* receive buffer position to start */
+  CC1020_SET_OPSTATE(CC1020_RX | CC1020_RX_SEARCHING); /* driver state to receive mode */
 
-  // configure radio
+  /* configure radio */
   ENERGEST_ON(ENERGEST_TYPE_LISTEN);
   cc1020_wakeupRX(RX_CURRENT);
   cc1020_setupRX(RX_CURRENT);
-  LNA_POWER_ON();		// enable amplifier
+  LNA_POWER_ON();		/* enable amplifier */
 
-  // activate
-  IE1 |= URXIE0;		// enable interrupt
+  /* activate */
+  IE1 |= URXIE0;		/* enable interrupt */
 }
 
 void
@@ -202,23 +201,23 @@ cc1020_set_tx(void)
 {
   int s;
 
-  // configure radio rx
+  /* configure radio rx */
   ENERGEST_OFF(ENERGEST_TYPE_LISTEN);
-  LNA_POWER_OFF();		// power down LNA
+  LNA_POWER_OFF();		/* power down LNA */
   s = splhigh();
   DISABLE_RX_IRQ();
-  P3SEL &= ~0x02;		// Ensure Rx line is off
+  P3SEL &= ~0x02;		/* Ensure Rx line is off */
   splx(s);
 
-  // configure radio tx
+  /* configure radio tx */
   ENERGEST_ON(ENERGEST_TYPE_TRANSMIT);
   cc1020_wakeupTX(TX_CURRENT);
   cc1020_setupTX(TX_CURRENT);
-  P3SEL |= 0x0C;		// select Tx line and clk
-  U0CTL |= SWRST;		// UART to reset mode
-  IFG1 &= ~UTXIFG0;		// Reset IFG.
+  P3SEL |= 0x0C;		/* select Tx line and clk */
+  U0CTL |= SWRST;		/* UART to reset mode */
+  IFG1 &= ~UTXIFG0;		/* Reset IFG. */
 
-  // configure driver
+  /* configure driver */
   CC1020_SET_OPSTATE(CC1020_TX);
 }
 
@@ -234,7 +233,7 @@ cc1020_send(const void *buf, unsigned short len)
   int try;  
   int normal_header = HDRSIZE + len;
   int i;
-  uint16_t rxcrc = 0xFFFF; // For checksum purposes
+  uint16_t rxcrc = 0xFFFF; /* For checksum purposes */
   
   if(cc1020_state == CC1020_OFF) {
     return -2;
@@ -247,11 +246,11 @@ cc1020_send(const void *buf, unsigned short len)
   /* The preamble and the sync word are already in buffer. */
   cc1020_txlen = PREAMBLESIZE + SYNCWDSIZE;
 
-  // header
+  /* header */
   cc1020_txbuf[cc1020_txlen++] = 0x00;   
   cc1020_txbuf[cc1020_txlen++] = normal_header + CRC_LEN;
   
-  // Adding the checksum on header and data
+  /* Adding the checksum on header and data */
   rxcrc = crc16_add((uint8_t) (normal_header & 0xff), rxcrc); 
   rxcrc = crc16_add((uint8_t) ((normal_header >> 8)& 0xff), rxcrc);
   
@@ -259,19 +258,19 @@ cc1020_send(const void *buf, unsigned short len)
     rxcrc = crc16_add((uint8_t) ((char*)buf)[i], rxcrc);
   }
   
-  // data to send
+  /* data to send */
   memcpy((char *)cc1020_txbuf + cc1020_txlen, buf, len);
   cc1020_txlen += len;
 
-  // Send checksum
+  /* Send checksum */
   cc1020_txbuf[cc1020_txlen++] = (uint8_t)(rxcrc >> 8);
   cc1020_txbuf[cc1020_txlen++] = (uint8_t)(rxcrc & 0xFF);
    
-  // suffix
+  /* suffix */
   cc1020_txbuf[cc1020_txlen++] = TAIL;
   cc1020_txbuf[cc1020_txlen++] = TAIL; 
 
-  // Wait for the medium to become idle.
+  /* Wait for the medium to become idle. */
   if(cc1020_carrier_sense()) {
     for(try = 0; try < CC1020_CONF_CCA_TIMEOUT; try++) {
       MS_DELAY(1);
@@ -280,18 +279,18 @@ cc1020_send(const void *buf, unsigned short len)
       }
     }
     if(try == CC1020_CONF_CCA_TIMEOUT) {
-      printf("CCA failed rssi: %d\n", cc1020_get_rssi());
+      PRINTF("cc1020: CCA failed (RSSI %d)\n", cc1020_get_rssi());
       return -3;
     }
 
-    // Then wait for a short pseudo-random time before sending.
+    /* Then wait for a short pseudo-random time before sending. */
     clock_delay(100 * ((random_rand() + 1) & 0xf));
   }
 
-  // Switch to transceive mode.
+  /* Switch to transceive mode. */
   cc1020_set_tx();
 
-  // Initiate radio transfer.
+  /* Initiate radio transfer. */
   dma_done = 0;
   dma_transfer((unsigned char *)&TXBUF0, cc1020_txbuf, cc1020_txlen);
   while(!dma_done);
@@ -299,7 +298,7 @@ cc1020_send(const void *buf, unsigned short len)
   ENERGEST_OFF(ENERGEST_TYPE_TRANSMIT);
   RIMESTATS_ADD(lltx);
 
-  // clean up
+  /* clean up */
   cc1020_txlen = 0;
   if(cc1020_state & CC1020_TURN_OFF) {
     cc1020_off();
@@ -356,15 +355,15 @@ cc1020_off(void)
   int s;
 
   if(cc1020_state & CC1020_RX_SEARCHING) {
-    // Discard the current read buffer when the radio is shutting down.
+    /* Discard the current read buffer when the radio is shutting down. */
     cc1020_rxlen = 0;
 
-    LNA_POWER_OFF();		// power down lna
+    LNA_POWER_OFF();		/* power down lna */
     s = splhigh();
     DISABLE_RX_IRQ();
     cc1020_state = CC1020_OFF;
     splx(s);
-    cc1020_setupPD();		// power down radio
+    cc1020_setupPD();		/* power down radio */
     ENERGEST_OFF(ENERGEST_TYPE_LISTEN);
     cc1020_state = CC1020_OFF;
   } else {
@@ -400,7 +399,7 @@ PROCESS_THREAD(cc1020_receiver_process, ev, data)
     PROCESS_YIELD_UNTIL(ev == PROCESS_EVENT_POLL);	
 	
     if(receiver_callback != NULL) {
-      // CHECKSUM CHECK	  
+      /* CHECKSUM CHECK	   */
       uint16_t expected_crc = 0xffff;
       uint16_t actual_crc = -1;
       actual_crc = (cc1020_rxbuf[cc1020_rxlen - CRC_LEN] << 8) | cc1020_rxbuf[cc1020_rxlen - CRC_LEN + 1];
@@ -449,29 +448,29 @@ interrupt(UART0RX_VECTOR) cc1020_rxhandler(void)
     shiftbuf.b3 = shiftbuf.b4;
     shiftbuf.b4 = RXBUF0;
     if(shiftbuf.i1 == 0xAAD3 && shiftbuf.b3 == 0x91) {
-      // 0  AA D3 91 00 | FF 00 |
+      /* 0  AA D3 91 00 | FF 00 | */
       syncbs = 0;
       cc1020_rxbuf[cc1020_rxlen++] = shiftbuf.b4;
     } else if(shiftbuf.i1 == 0x5569 && shiftbuf.i2 == 0xC880) {
-      // 1  55 69 C8 80 | 7F 80 |
+      /* 1  55 69 C8 80 | 7F 80 | */
       syncbs = -1;
     } else if(shiftbuf.i1 == 0xAAB4 && shiftbuf.i2 == 0xE440) {
-      // 2  AA B4 E4 40 | 3F C0 |
+      /* 2  AA B4 E4 40 | 3F C0 | */
       syncbs = -2;
     } else if(shiftbuf.i1 == 0x555A && shiftbuf.i2 == 0x7220) {
-      // 3  55 5A 72 20 | 1F E0 |
+      /* 3  55 5A 72 20 | 1F E0 | */
       syncbs = -3;
     } else if(shiftbuf.i1 == 0xAAAD && shiftbuf.i2 == 0x3910) {
-      // 4  AA AD 39 10 | 0F F0 |
+      /* 4  AA AD 39 10 | 0F F0 | */
       syncbs = -4;
     } else if(shiftbuf.i1 == 0x5556 && shiftbuf.i2 == 0x9C88) {
-      // 5  55 56 9C 88 | 07 F8 |
+      /* 5  55 56 9C 88 | 07 F8 | */
       syncbs = +3;
     } else if(shiftbuf.i1 == 0xAAAB && shiftbuf.i2 == 0x4E44) {
-      // 6  AA AB 4E 44 | 03 FC |
+      /* 6  AA AB 4E 44 | 03 FC | */
       syncbs = +2;
     } else if(shiftbuf.i1 == 0x5555 && shiftbuf.i2 == 0xA722) {
-      // 7  55 55 A7 22 | 01 FE |
+      /* 7  55 55 A7 22 | 01 FE | */
       syncbs = +1;
     } else {
       return;
@@ -522,7 +521,7 @@ cc1020_write_reg(uint8_t addr, uint8_t adata)
   data = addr << 1;
   PSEL_ON;
 
-  // Send address bits 
+  /* Send address bits  */
   for(i = 0; i < 7; i++) {
     PCLK_LOW;
     if(data & 0x80) {
@@ -535,15 +534,15 @@ cc1020_write_reg(uint8_t addr, uint8_t adata)
     nop();
   }
 
-  // Send read/write bit 
-  // Ignore bit in data, always use 1 
+  /* Send read/write bit  */
+  /* Ignore bit in data, always use 1  */
   PCLK_LOW;
   PDI_HIGH;
   PCLK_HIGH;
   nop();
   data = adata;
 
-  // Send data bits 
+  /* Send data bits  */
   for(i = 0; i < 8; i++) {
     PCLK_LOW;
     if(data & 0x80) {
@@ -569,7 +568,7 @@ cc1020_read_reg(uint8_t addr)
   data = addr << 1;
   PSEL_ON;
 
-  // Send address bits 
+  /* Send address bits  */
   for(i = 0; i < 7; i++) {
     PCLK_LOW;
     if(data & 0x80) {
@@ -582,15 +581,15 @@ cc1020_read_reg(uint8_t addr)
     nop();
   }
 
-  // Send read/write bit 
-  // Ignore bit in data, always use 0 
+  /* Send read/write bit  */
+  /* Ignore bit in data, always use 0  */
   PCLK_LOW;
   PDI_LOW;
   PCLK_HIGH;
   nop();
   PCLK_LOW;
 
-  // Receive data bits       
+  /* Receive data bits        */
   for(i = 0; i < 8; i++) {
     nop();
     PCLK_HIGH;
@@ -619,10 +618,10 @@ cc1020_load_config(const uint8_t * config)
 static void
 cc1020_reset(void)
 {
-  // Reset CC1020
+  /* Reset CC1020 */
   cc1020_write_reg(CC1020_MAIN, 0x0FU & ~0x01U);
 
-  // Bring CC1020 out of reset
+  /* Bring CC1020 out of reset */
   cc1020_write_reg(CC1020_MAIN, 0x1F);
 }
 
@@ -631,26 +630,26 @@ cc1020_calibrate(void)
 {
   unsigned int timeout_cnt;
 
-  // Turn off PA to avoid spurs during calibration in TX mode
+  /* Turn off PA to avoid spurs during calibration in TX mode */
   cc1020_write_reg(CC1020_PA_POWER, 0x00);
 
-  // Start calibration
+  /* Start calibration */
   cc1020_write_reg(CC1020_CALIBRATE, 0xB5);
   MS_DELAY(3);
   while((cc1020_read_reg(CC1020_STATUS) & CAL_COMPLETE) == 0);
   MS_DELAY(2);
 
-  // Monitor lock
+  /* Monitor lock */
   for(timeout_cnt = LOCK_TIMEOUT; timeout_cnt > 0; timeout_cnt--) {
     if(cc1020_read_reg(CC1020_STATUS) & LOCK_CONTINUOUS) {
     	break;
     }
   }
 
-  // Restore PA_POWER
+  /* Restore PA_POWER */
   cc1020_write_reg(CC1020_PA_POWER, cc1020_pa_power);
 
-  // Return state of LOCK_CONTINUOUS bit
+  /* Return state of LOCK_CONTINUOUS bit */
   return (cc1020_read_reg(CC1020_STATUS) & LOCK_CONTINUOUS) == LOCK_CONTINUOUS;
 }
 
@@ -660,7 +659,7 @@ cc1020_lock(void)
   char lock_status;
   int i;
 
-  // Monitor LOCK, lasts 420 - 510 cycles @ 4505600 = 93 us - 113 us
+  /* Monitor LOCK, lasts 420 - 510 cycles @ 4505600 = 93 us - 113 us */
   for(i = LOCK_TIMEOUT; i > 0; i--) {
     lock_status = cc1020_read_reg(CC1020_STATUS) & LOCK_CONTINUOUS;
     if(lock_status) {
@@ -680,15 +679,14 @@ cc1020_setupRX(int analog)
 {
   char lock_status;
 
-  // Switch into RX, switch to freq. reg A
+  /* Switch into RX, switch to freq. reg A */
   cc1020_write_reg(CC1020_MAIN, 0x01);
-  MS_DELAY(1);
   lock_status = cc1020_lock();
 
-  // Switch RX part of CC1020 on
+  /* Switch RX part of CC1020 on */
   cc1020_write_reg(CC1020_INTERFACE, 0x02);
 
-  // Return LOCK status to application
+  /* Return LOCK status to application */
   return lock_status;
 }
 
@@ -697,18 +695,17 @@ cc1020_setupTX(int analog)
 {
   char lock_status;
 
-  // Switch into TX, switch to freq. reg B
+  /* Switch into TX, switch to freq. reg B */
   cc1020_write_reg(CC1020_MAIN, 0xC1);
-  MS_DELAY(1);
   lock_status = cc1020_lock();
 
-  // Restore PA_POWER
+  /* Restore PA_POWER */
   cc1020_write_reg(CC1020_PA_POWER, cc1020_pa_power);
 
-  // Turn OFF DCLK squelch in TX
+  /* Turn OFF DCLK squelch in TX */
   cc1020_write_reg(CC1020_INTERFACE, 0x01);
 
-  // Return LOCK status to application
+  /* Return LOCK status to application */
   return lock_status;
 }
 
@@ -731,10 +728,10 @@ cc1020_setupPD(void)
 static void
 cc1020_wakeupRX(int analog)
 {
-  // Turn on crystal oscillator core.
+  /* Turn on crystal oscillator core. */
   cc1020_write_reg(CC1020_MAIN, 0x1B);
 
-  // Setup bias current adjustment.
+  /* Setup bias current adjustment. */
   cc1020_write_reg(CC1020_ANALOG, analog);
 
   /*
@@ -743,20 +740,20 @@ cc1020_wakeupRX(int analog)
    */
   MS_DELAY(5);
 
-  // Turn on bias generator.
+  /* Turn on bias generator. */
   cc1020_write_reg(CC1020_MAIN, 0x19);
 
-  // Turn on frequency synthesizer.
+  /* Turn on frequency synthesizer. */
   cc1020_write_reg(CC1020_MAIN, 0x11);
 }
 
 static void
 cc1020_wakeupTX(int analog)
 {
-  // Turn on crystal oscillator core.
+  /* Turn on crystal oscillator core. */
   cc1020_write_reg(CC1020_MAIN, 0xDB);
 
-  // Setup bias current adjustment.
+  /* Setup bias current adjustment. */
   cc1020_write_reg(CC1020_ANALOG, analog);
 
   /*
@@ -765,10 +762,10 @@ cc1020_wakeupTX(int analog)
    */
   MS_DELAY(5);
 
-  // Turn on bias generator.
+  /* Turn on bias generator. */
   cc1020_write_reg(CC1020_MAIN, 0xD9);
 
-  // Turn on frequency synthesizer.
+  /* Turn on frequency synthesizer. */
   MS_DELAY(1);
   cc1020_write_reg(CC1020_MAIN, 0xD1);
 }
