@@ -24,7 +24,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * $Id: GUI.java,v 1.122 2009/03/22 13:47:38 fros4943 Exp $
+ * $Id: GUI.java,v 1.123 2009/03/24 15:47:10 fros4943 Exp $
  */
 
 package se.sics.cooja;
@@ -3337,6 +3337,16 @@ public class GUI extends Observable {
 
         // Read plugin class
         String pluginClassName = pluginElement.getText().trim();
+
+        /* Backwards compatibility: old visualizers were replaced */
+        if (pluginClassName.equals("se.sics.cooja.plugins.VisUDGM") ||
+            pluginClassName.equals("se.sics.cooja.plugins.VisBattery") ||
+            pluginClassName.equals("se.sics.cooja.plugins.VisTraffic") ||
+            pluginClassName.equals("se.sics.cooja.plugins.VisUDGM")) {
+          logger.warn("Old simulation config detected: visualizers have been remade");
+          pluginClassName = "se.sics.cooja.plugins.Visualizer";
+        }
+
         Class<? extends Plugin> pluginClass =
           tryLoadClass(this, Plugin.class, pluginClassName);
         if (pluginClass == null) {
