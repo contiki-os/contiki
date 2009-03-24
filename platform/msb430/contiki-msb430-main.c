@@ -45,7 +45,7 @@
 
 #include "contiki.h"
 #include "contiki-msb430.h"
-#include "dev/serial.h"
+#include "dev/serial-line.h"
 
 extern volatile bool uart_edge;
 
@@ -89,9 +89,9 @@ main(void)
   process_init();
 
   // serial interface
-  rs232_set_input(serial_input_byte);
+  rs232_set_input(serial_line_input_byte);
   rs232_init();
-  serial_init();
+  serial_line_init();
 
   uart_lock(UART_MODE_RS232);
   uart_unlock(UART_MODE_RS232);
