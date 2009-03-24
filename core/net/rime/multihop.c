@@ -33,7 +33,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: multihop.c,v 1.3 2009/03/23 16:20:37 adamdunkels Exp $
+ * $Id: multihop.c,v 1.4 2009/03/24 07:15:04 adamdunkels Exp $
  */
 
 /**
@@ -119,7 +119,7 @@ multihop_close(struct multihop_conn *c)
 }
 /*---------------------------------------------------------------------------*/
 int
-multihop_send(struct multihop_conn *c, rimeaddr_t *to)
+multihop_send(struct multihop_conn *c, const rimeaddr_t *to)
 {
   rimeaddr_t *nexthop;
 
