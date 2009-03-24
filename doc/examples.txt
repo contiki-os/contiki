@@ -7,14 +7,14 @@
 /** \example multi-threading.c */
 
 /** \example example-announcement.c */
-
 /** \example example-broadcast.c */
 /** \example example-collect.c */
 /** \example example-mesh.c */
-/** \example example-runicast.c */
+/** \example example-multihop.c */
 /** \example example-rucb.c */
 /** \example example-rudolph0.c */
 /** \example example-rudolph1.c */
 /** \example example-rudolph2.c */
+/** \example example-runicast.c */
 /** \example example-trickle.c */
 /** \example example-unicast.c */
