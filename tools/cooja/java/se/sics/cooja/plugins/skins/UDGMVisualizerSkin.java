@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: UDGMVisualizerSkin.java,v 1.1 2009/03/24 15:46:29 fros4943 Exp $
+ * $Id: UDGMVisualizerSkin.java,v 1.2 2009/03/24 16:07:44 fros4943 Exp $
  */
 
 package se.sics.cooja.plugins.skins;
@@ -353,7 +353,7 @@ public class UDGMVisualizerSkin implements VisualizerSkin {
     }
   }
 
-  protected static class RangeMenuAction implements SimulationMenuAction {
+  public static class RangeMenuAction implements SimulationMenuAction {
     public boolean isEnabled(Simulation simulation) {
       return true;
     }
@@ -370,7 +370,7 @@ public class UDGMVisualizerSkin implements VisualizerSkin {
     }
   };
 
-  protected static class SuccessRatioMenuAction implements SimulationMenuAction {
+  public static class SuccessRatioMenuAction implements SimulationMenuAction {
     public boolean isEnabled(Simulation simulation) {
       return true;
     }
