@@ -33,7 +33,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: mesh.c,v 1.16 2009/03/23 16:22:02 adamdunkels Exp $
+ * $Id: mesh.c,v 1.17 2009/03/24 07:15:04 adamdunkels Exp $
  */
 
 /**
@@ -147,7 +147,7 @@ mesh_close(struct mesh_conn *c)
 }
 /*---------------------------------------------------------------------------*/
 int
-mesh_send(struct mesh_conn *c, rimeaddr_t *to)
+mesh_send(struct mesh_conn *c, const rimeaddr_t *to)
 {
   int could_send;
 

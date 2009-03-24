@@ -58,7 +58,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: multihop.h,v 1.5 2009/03/23 16:20:37 adamdunkels Exp $
+ * $Id: multihop.h,v 1.6 2009/03/24 07:15:04 adamdunkels Exp $
  */
 
 /**
@@ -103,7 +103,7 @@ struct multihop_conn {
 void multihop_open(struct multihop_conn *c, uint16_t channel,
 	     const struct multihop_callbacks *u);
 void multihop_close(struct multihop_conn *c);
-int multihop_send(struct multihop_conn *c, rimeaddr_t *to);
+int multihop_send(struct multihop_conn *c, const rimeaddr_t *to);
 
 #endif /* __MULTIHOP_H__ */
 /** @} */

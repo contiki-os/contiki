@@ -49,7 +49,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: mesh.h,v 1.14 2009/03/23 16:22:02 adamdunkels Exp $
+ * $Id: mesh.h,v 1.15 2009/03/24 07:15:04 adamdunkels Exp $
  */
 
 /**
@@ -132,7 +132,7 @@ void mesh_close(struct mesh_conn *c);
  *             must have previously been set up with mesh_open().
  *
  */
-int mesh_send(struct mesh_conn *c, rimeaddr_t *dest);
+int mesh_send(struct mesh_conn *c, const rimeaddr_t *dest);
 
 #endif /* __MESH_H__ */
 /** @} */
