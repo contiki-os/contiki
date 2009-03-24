@@ -178,7 +178,7 @@ cc1020_set_rx(void)
   UBR00 = 0x00;			// No baudrate divider 
   UBR10 = 0x00;			// settings for a spi
   UMCTL0 = 0x00;		// slave.
-  ME1 |= USPIE0;		// Enable USART0 TXD/RXD, disabling does not yield any powersavings
+  ME1 |= URXE0;		// Enable USART0 RXD, disabling does not yield any powersavings
   P3SEL |= 0x0A;		// Select rx line and clk
   UCTL0 &= ~SWRST;		// Clear reset bit
   splx(s);
@@ -233,6 +233,7 @@ cc1020_send(const void *buf, unsigned short len)
 {
   int try;  
   int normal_header = HDRSIZE + len;
+  int i;
   uint16_t rxcrc = 0xFFFF; // For checksum purposes
   
   if(cc1020_state == CC1020_OFF) {
@@ -254,9 +255,8 @@ cc1020_send(const void *buf, unsigned short len)
   rxcrc = crc16_add((uint8_t) (normal_header & 0xff), rxcrc); 
   rxcrc = crc16_add((uint8_t) ((normal_header >> 8)& 0xff), rxcrc);
   
-  int i=0;
-  for(i=0;i<len;i++){
-	rxcrc = crc16_add((uint8_t) ((char*)buf)[i], rxcrc);
+  for(i = 0; i < len; i++) {
+    rxcrc = crc16_add((uint8_t) ((char*)buf)[i], rxcrc);
   }
   
   // data to send
@@ -276,10 +276,11 @@ cc1020_send(const void *buf, unsigned short len)
     for(try = 0; try < CC1020_CONF_CCA_TIMEOUT; try++) {
       MS_DELAY(1);
       if(!cc1020_carrier_sense()) {
-	break;
+        break;
       }
     }
     if(try == CC1020_CONF_CCA_TIMEOUT) {
+      printf("CCA failed rssi: %d\n", cc1020_get_rssi());
       return -3;
     }
 
@@ -375,7 +376,7 @@ cc1020_off(void)
 uint8_t
 cc1020_get_rssi(void)
 {
-  return cc1020_read_reg(CC1020_RSS);
+  return (cc1020_read_reg(CC1020_RSS) & 0x7F);
 }
 
 uint8_t
@@ -384,12 +385,10 @@ cc1020_get_packet_rssi(void)
   return rssi;
 }
 
-
-
 int
 cc1020_carrier_sense(void)
 {
-  return !!(cc1020_read_reg(CC1020_STATUS) & CARRIER_SENSE);
+  return (cc1020_read_reg(CC1020_STATUS) & CARRIER_SENSE);
 }
 
 PROCESS_THREAD(cc1020_receiver_process, ev, data)
@@ -416,10 +415,10 @@ PROCESS_THREAD(cc1020_receiver_process, ev, data)
       }
 
       if(expected_crc == actual_crc) {
-	receiver_callback(&cc1020_driver);
+        receiver_callback(&cc1020_driver);
       } else {
-	RIMESTATS_ADD(badcrc);
-	reset_receiver();
+        RIMESTATS_ADD(badcrc);
+        reset_receiver();
       }
     }
   }
@@ -477,7 +476,7 @@ interrupt(UART0RX_VECTOR) cc1020_rxhandler(void)
     } else {
       return;
     }
-    rssi = cc1020_read_reg(CC1020_RSS);
+    rssi = cc1020_get_rssi();
     CC1020_SET_OPSTATE(CC1020_RX | CC1020_RX_RECEIVING);
   } else if(cc1020_state & CC1020_RX_RECEIVING) {
     if(syncbs == 0) {
@@ -499,15 +498,15 @@ interrupt(UART0RX_VECTOR) cc1020_rxhandler(void)
     if(cc1020_rxlen == HDRSIZE) {
       pktlen = ((struct cc1020_header *)cc1020_rxbuf)->length;
       if(pktlen == 0 || pktlen > sizeof (cc1020_rxbuf)) {
-	cc1020_rxlen = 0;
-	CC1020_SET_OPSTATE(CC1020_RX | CC1020_RX_SEARCHING);
+        cc1020_rxlen = 0;
+        CC1020_SET_OPSTATE(CC1020_RX | CC1020_RX_SEARCHING);
       }
     } else if(cc1020_rxlen > HDRSIZE) {
       if(cc1020_rxlen == pktlen) {
         /* Disable interrupts while processing the packet. */
         DISABLE_RX_IRQ();
-	CC1020_SET_OPSTATE(CC1020_RX | CC1020_RX_PROCESSING);
-	_BIC_SR_IRQ(LPM3_bits);
+        CC1020_SET_OPSTATE(CC1020_RX | CC1020_RX_PROCESSING);
+        _BIC_SR_IRQ(LPM3_bits);
         process_poll(&cc1020_receiver_process);
       }
     }
@@ -517,18 +516,15 @@ interrupt(UART0RX_VECTOR) cc1020_rxhandler(void)
 static void
 cc1020_write_reg(uint8_t addr, uint8_t adata)
 {
-  unsigned i;
-  unsigned char data;
+  unsigned int i;
+  uint8_t data;
 
-  PSEL_OFF;
   data = addr << 1;
   PSEL_ON;
 
   // Send address bits 
   for(i = 0; i < 7; i++) {
-    nop();
     PCLK_LOW;
-    nop();
     if(data & 0x80) {
       PDI_HIGH;
     } else {
@@ -536,24 +532,20 @@ cc1020_write_reg(uint8_t addr, uint8_t adata)
     }
     data = data << 1;
     PCLK_HIGH;
+    nop();
   }
 
   // Send read/write bit 
   // Ignore bit in data, always use 1 
-  nop();
   PCLK_LOW;
   PDI_HIGH;
-  nop();
   PCLK_HIGH;
   nop();
-  PCLK_LOW;
   data = adata;
 
   // Send data bits 
   for(i = 0; i < 8; i++) {
-    nop();
     PCLK_LOW;
-    nop();
     if(data & 0x80) {
       PDI_HIGH;
     } else {
@@ -561,30 +553,25 @@ cc1020_write_reg(uint8_t addr, uint8_t adata)
     }
     data = data << 1;
     PCLK_HIGH;
+    nop();
   }
 
-  nop();
   PCLK_LOW;
-  nop();
   PSEL_OFF;
 }
 
 static uint8_t
 cc1020_read_reg(uint8_t addr)
 {
-  unsigned i;
-  unsigned char data = 0;
+  unsigned int i;
+  uint8_t data;
 
-  PSEL_OFF;
   data = addr << 1;
   PSEL_ON;
-  nop();
 
   // Send address bits 
   for(i = 0; i < 7; i++) {
-    nop();
     PCLK_LOW;
-    nop();
     if(data & 0x80) {
       PDI_HIGH;
     } else {
@@ -592,14 +579,13 @@ cc1020_read_reg(uint8_t addr)
     }
     data = data << 1;
     PCLK_HIGH;
+    nop();
   }
 
   // Send read/write bit 
   // Ignore bit in data, always use 0 
-  nop();
   PCLK_LOW;
   PDI_LOW;
-  nop();
   PCLK_HIGH;
   nop();
   PCLK_LOW;
@@ -613,11 +599,9 @@ cc1020_read_reg(uint8_t addr)
     if(PDO) {
       data++;
     }
-    nop();
     PCLK_LOW;
   }
 
-  nop();
   PSEL_OFF;
 
   return data;
@@ -697,15 +681,11 @@ cc1020_setupRX(int analog)
   char lock_status;
 
   // Switch into RX, switch to freq. reg A
-  cc1020_write_reg(CC1020_MAIN, 0x11);
-
-  // Setup bias current adjustment
-  cc1020_write_reg(CC1020_ANALOG, analog);
+  cc1020_write_reg(CC1020_MAIN, 0x01);
   MS_DELAY(1);
   lock_status = cc1020_lock();
 
   // Switch RX part of CC1020 on
-  cc1020_write_reg(CC1020_MAIN, 0x01);
   cc1020_write_reg(CC1020_INTERFACE, 0x02);
 
   // Return LOCK status to application
@@ -716,9 +696,6 @@ static int
 cc1020_setupTX(int analog)
 {
   char lock_status;
-
-  // Setup bias current adjustment
-  cc1020_write_reg(CC1020_ANALOG, analog);
 
   // Switch into TX, switch to freq. reg B
   cc1020_write_reg(CC1020_MAIN, 0xC1);
