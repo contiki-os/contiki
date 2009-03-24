@@ -33,7 +33,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: packetbuf.c,v 1.2 2009/03/23 19:37:45 adamdunkels Exp $
+ * $Id: packetbuf.c,v 1.3 2009/03/24 07:14:12 adamdunkels Exp $
  */
 
 /**
@@ -94,7 +94,7 @@ static uint8_t hdrptr;
    msp430), having apotentially misaligned packet buffer may lead to
    problems when accessing 16-bit values. */
 static uint16_t packetbuf_aligned[(PACKETBUF_SIZE + PACKETBUF_HDR_SIZE) / 2 + 1];
-static uint8_t* packetbuf = packetbuf_aligned;
+static uint8_t *packetbuf = (uint8_t *)packetbuf_aligned;
 
 static uint8_t *packetbufptr;
 
