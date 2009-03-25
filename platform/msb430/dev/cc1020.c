@@ -78,11 +78,10 @@ static volatile enum cc1020_state cc1020_state = CC1020_OFF;
 static volatile uint8_t cc1020_rxbuf[HDRSIZE + CC1020_BUFFERSIZE];
 static uint8_t cc1020_txbuf[PREAMBLESIZE + SYNCWDSIZE + HDRSIZE +
 			   CC1020_BUFFERSIZE + TAILSIZE];
-/*static volatile enum cc1020_rxstate cc1020_rxstate = CC1020_RX_SEARCHING; */
 
 /* number of bytes in receive and transmit buffers respectively. */
-static uint16_t cc1020_rxlen;
-static uint16_t cc1020_txlen;
+static uint8_t cc1020_rxlen;
+static uint8_t cc1020_txlen;
 
 /* received signal strength indicator reading for last received packet */
 static volatile uint8_t rssi;
@@ -90,7 +89,7 @@ static volatile uint8_t rssi;
 /* callback when a packet has been received */
 static uint8_t cc1020_pa_power = PA_POWER;
 
-static volatile int dma_done;
+static volatile char dma_done;
 
 static void (*receiver_callback)(const struct radio_driver *);
 
@@ -342,6 +341,8 @@ int
 cc1020_on(void)
 {
   if(cc1020_state == CC1020_OFF) {
+    cc1020_set_rx();
+  } else if(cc1020_state & CC1020_TURN_OFF) {
     cc1020_state &= ~CC1020_TURN_OFF;
     cc1020_set_rx();
   }
@@ -399,7 +400,7 @@ PROCESS_THREAD(cc1020_receiver_process, ev, data)
     PROCESS_YIELD_UNTIL(ev == PROCESS_EVENT_POLL);	
 	
     if(receiver_callback != NULL) {
-      /* CHECKSUM CHECK	   */
+      /* Verify the checksum. */
       uint16_t expected_crc = 0xffff;
       uint16_t actual_crc = -1;
       actual_crc = (cc1020_rxbuf[cc1020_rxlen - CRC_LEN] << 8) | cc1020_rxbuf[cc1020_rxlen - CRC_LEN + 1];
