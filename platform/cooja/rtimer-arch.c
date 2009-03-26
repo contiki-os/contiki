@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: rtimer-arch.c,v 1.2 2007/11/25 22:48:35 fros4943 Exp $
+ * $Id: rtimer-arch.c,v 1.3 2009/03/26 16:22:36 fros4943 Exp $
  */
 
 #include <signal.h>
@@ -60,11 +60,5 @@ rtimer_arch_init(void)
 void
 rtimer_arch_schedule(rtimer_clock_t t)
 {
-}
-/*---------------------------------------------------------------------------*/
-rtimer_clock_t
-rtimer_arch_now(void)
-{
-  return clock_time();
 }
 /*---------------------------------------------------------------------------*/
