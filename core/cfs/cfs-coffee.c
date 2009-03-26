@@ -552,7 +552,7 @@ reserve(const char *name, coffee_page_t pages, int allow_duplicates)
     page = find_contiguous_pages(pages);
     if(page == INVALID_PAGE) {
       watchdog_start();
-      gc_wait = 1;
+      *gc_wait = 1;
       return NULL;
     }
   }
