@@ -146,10 +146,12 @@ static struct protected_mem_t {
   struct file coffee_files[COFFEE_MAX_OPEN_FILES];
   struct file_desc coffee_fd_set[COFFEE_FD_SET_SIZE];
   coffee_page_t next_free;
+  char gc_wait;
 } protected_mem;
 static struct file *coffee_files = protected_mem.coffee_files;
 static struct file_desc *coffee_fd_set = protected_mem.coffee_fd_set;
 static coffee_page_t *next_free = &protected_mem.next_free;
+static char *gc_wait = &protected_mem.gc_wait;
 
 /*---------------------------------------------------------------------------*/
 static void
@@ -499,6 +501,8 @@ remove_by_page(coffee_page_t page, int remove_log, int close_fds)
   hdr.flags |= HDR_FLAG_OBSOLETE;
   write_header(&hdr, page);
 
+  *gc_wait = 0;
+
   /* Close all file descriptors that reference the removed file. */
   if(close_fds) {
     for(i = 0; i < COFFEE_FD_SET_SIZE; i++) {
@@ -541,10 +545,14 @@ reserve(const char *name, coffee_page_t pages, int allow_duplicates)
 
   page = find_contiguous_pages(pages);
   if(page == INVALID_PAGE) {
+    if(*gc_wait) {
+      return NULL;
+    }
     cfs_garbage_collect();
     page = find_contiguous_pages(pages);
     if(page == INVALID_PAGE) {
       watchdog_start();
+      gc_wait = 1;
       return NULL;
     }
   }
@@ -561,7 +569,6 @@ reserve(const char *name, coffee_page_t pages, int allow_duplicates)
 
   file = load_file(name, &hdr, page);
   file->end = 0;
-
   watchdog_start();
 
   return file;
