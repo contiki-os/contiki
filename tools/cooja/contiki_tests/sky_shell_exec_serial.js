@@ -16,7 +16,9 @@ GENERATE_MSG(1000, "continue");
 YIELD_THEN_WAIT_UNTIL(msg.equals("continue"));
 
 log.log("Uploading hello-world.ce:\n");
-process = new java.lang.Runtime.getRuntime().exec("sh -c \"../../tools/base64-encode < hello-world.ce\"", null, helloworld.getParentFile());
+cmdarr = "sh -c xxx".split(" ");
+cmdarr[2] = "../../tools/base64-encode < hello-world.ce";
+process = new java.lang.Runtime.getRuntime().exec(cmdarr, null, helloworld.getParentFile());
 stdIn = new java.io.BufferedReader(new java.io.InputStreamReader(process.getInputStream()));
 while ((line = stdIn.readLine()) != null) {
   node.write(line + "\n");
