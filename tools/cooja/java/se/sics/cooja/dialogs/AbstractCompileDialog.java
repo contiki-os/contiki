@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: AbstractCompileDialog.java,v 1.5 2009/03/12 13:20:58 fros4943 Exp $
+ * $Id: AbstractCompileDialog.java,v 1.6 2009/03/26 15:40:37 fros4943 Exp $
  */
 
 package se.sics.cooja.dialogs;
@@ -339,6 +339,23 @@ public abstract class AbstractCompileDialog extends JDialog {
       /*logger.info("Resizing dialog: " + myDialog.getSize() + " -> " + newSize);*/
       setSize(newSize);
     }
+
+    /* Recompile at Ctrl+R */
+    Action recompileAction = new AbstractAction() {
+      public void actionPerformed(ActionEvent e) {
+        try {
+          setDialogState(DialogState.AWAITING_COMPILATION);
+          if (nextButton.getText().equals("Compile")) {
+            compileContiki();
+          }
+        } catch (Exception e1) {
+          e1.printStackTrace();
+        }
+      }
+    };
+    InputMap inputMap = getRootPane().getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
+    inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_R, KeyEvent.CTRL_DOWN_MASK, false), "recompile");
+    getRootPane().getActionMap().put("recompile", recompileAction);
 
     pack();
     setLocationRelativeTo(parent);
