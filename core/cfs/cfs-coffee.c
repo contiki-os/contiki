@@ -783,8 +783,8 @@ merge_log(coffee_page_t file_page, int extend)
   hdr2.eof_hint = extend ? 0 : hdr.eof_hint;
   write_header(&hdr2, new_file->page);
 
+  new_file->end = offset;
   if(extend) {
-    new_file->end = offset;
 #if COFFEE_CONF_EOF_HINT
     refresh_eof_hint(new_file);
 #endif
