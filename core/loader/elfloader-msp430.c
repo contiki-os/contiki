@@ -28,13 +28,14 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: elfloader-msp430.c,v 1.4 2009/02/27 14:28:02 nvt-se Exp $
+ * @(#)$Id: elfloader-msp430.c,v 1.5 2009/03/26 12:25:05 fros4943 Exp $
  */
 #include "elfloader-arch.h"
 
 #include "dev/flash.h"
 
-static char datamemory[ELFLOADER_DATAMEMORY_SIZE];
+static uint16_t datamemory_aligned[ELFLOADER_DATAMEMORY_SIZE/2+1];
+static uint8_t* datamemory = (uint8_t *)datamemory_aligned;
 #if ELFLOADER_CONF_TEXT_IN_ROM
 static const char textmemory[ELFLOADER_TEXTMEMORY_SIZE] = {0};
 #else /* ELFLOADER_CONF_TEXT_IN_ROM */
