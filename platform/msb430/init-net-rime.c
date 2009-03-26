@@ -41,6 +41,7 @@
 #include "node-id.h"
 #include "dev/cc1020.h"
 #include "net/mac/nullmac.h"
+#include "net/mac/lpp.h"
 #include "net/rime.h"
 #include "contiki-msb430.h"
 
@@ -50,7 +51,7 @@ init_net(void)
   rimeaddr_t rimeaddr;
   
   cc1020_init(cc1020_config_19200);
-  rime_init(nullmac_init(&cc1020_driver));
+  rime_init(lpp_init(&cc1020_driver));
   rimeaddr.u8[0] = node_id & 0xff;
   rimeaddr.u8[1] = node_id >> 8;
   rimeaddr_set_node_addr(&rimeaddr);
