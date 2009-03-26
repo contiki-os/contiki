@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: rs232.c,v 1.2 2009/03/17 15:56:32 adamdunkels Exp $
+ * $Id: rs232.c,v 1.3 2009/03/26 16:23:48 fros4943 Exp $
  */
 
 #include "lib/sensors.h"
@@ -44,9 +44,6 @@ const struct simInterface rs232_interface;
 char simSerialReceivingData[SERIAL_BUF_SIZE];
 int simSerialReceivingLength;
 char simSerialReceivingFlag;
-char simSerialSendingData[SERIAL_BUF_SIZE];
-int simSerialSendingLength;
-char simSerialSendingFlag;
 
 static int (* input_handler)(unsigned char) = NULL;
 
@@ -62,40 +59,45 @@ rs232_set_input(int (*f)(unsigned char))
 }
 /*-----------------------------------------------------------------------------------*/
 void rs232_send(char c) {
-  simSerialSendingData[simSerialSendingLength] = c;
-  simSerialSendingLength += 1;
-  simSerialSendingFlag = 1;
+  printf("%c", c);
 }
 /*-----------------------------------------------------------------------------------*/
 void
 rs232_print(char *message)
 {
-  memcpy(&simSerialSendingData[0] + simSerialSendingLength, &message[0], strlen(message));
-  simSerialSendingLength += strlen(message);
-  simSerialSendingFlag = 1;
+  printf("%s", message);
 }
 /*-----------------------------------------------------------------------------------*/
 static void
 doInterfaceActionsBeforeTick(void)
 {
   int i;
-	
-  // Check if this mote has received data on RS232
-  if (simSerialReceivingFlag && simSerialReceivingLength > 0) {
-    // Tell user specified poll function
-      if(input_handler != NULL)
-        for (i=0; i < simSerialReceivingLength; i++)
-          input_handler(simSerialReceivingData[i]);
 
-    // Tell serial process
-    for (i=0; i < simSerialReceivingLength; i++)
-      serial_line_input_byte(simSerialReceivingData[i]);
-
-    serial_line_input_byte(0x0a);
-
-    simSerialReceivingLength = 0;
-    simSerialReceivingFlag = 0;
+  if (!simSerialReceivingFlag) {
+    return;
   }
+
+  if (simSerialReceivingLength == 0) {
+    /* Error, should not be zero */
+    simSerialReceivingFlag = 0;
+    return;
+  }
+
+  /* Notify rs232 handler */
+  if(input_handler != NULL) {
+    for (i=0; i < simSerialReceivingLength; i++) {
+      input_handler(simSerialReceivingData[i]);
+    }
+  }
+
+  /* Notify serial process */
+  for (i=0; i < simSerialReceivingLength; i++) {
+    serial_line_input_byte(simSerialReceivingData[i]);
+  }
+  serial_line_input_byte(0x0a);
+
+  simSerialReceivingLength = 0;
+  simSerialReceivingFlag = 0;
 }
 /*-----------------------------------------------------------------------------------*/
 static void
