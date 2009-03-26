@@ -12,7 +12,7 @@
 #define IRQ_PORT2			0x02
 #define IRQ_ADC				0x03
 
-// MSP430 Infomemory
+/* MSP430 information memory */
 #define INFOMEM_START			0x1000
 #define INFOMEM_BLOCK_SIZE		128
 #define INFOMEM_NODE_ID			0x0000 /* - 0x0004 */
@@ -24,16 +24,19 @@
 #define CC_CONF_INLINE			inline
 #define CC_CONF_VA_ARGS			1
 
+#define LPP_CONF_LISTEN_TIME CLOCK_SECOND / 32
+#define LPP_CONF_OFF_TIME CLOCK_SECOND
+
 #define CCIF
 #define CLIF
 
 /* Clear channel assessment timeout for sending with the CC1020 radio. (ms) */
-#define CC1020_CONF_CCA_TIMEOUT		50
+#define CC1020_CONF_CCA_TIMEOUT		10
 
-// Clock
-typedef unsigned short clock_time_t;
+/* Clock */
+typedef unsigned clock_time_t;
 #define CLOCK_CONF_SECOND		64
-#define F_CPU				2457600uL // CPU target speed in Hz
+#define F_CPU				2457600uL /* CPU target speed in Hz. */
 
 #define BAUD2UBR(baud)			(F_CPU/(baud))
 
