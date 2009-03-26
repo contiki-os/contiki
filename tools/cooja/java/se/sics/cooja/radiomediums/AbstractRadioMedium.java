@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: AbstractRadioMedium.java,v 1.7 2009/02/24 15:12:22 fros4943 Exp $
+ * $Id: AbstractRadioMedium.java,v 1.8 2009/03/26 16:24:31 fros4943 Exp $
  */
 
 package se.sics.cooja.radiomediums;
@@ -58,6 +58,11 @@ public abstract class AbstractRadioMedium extends RadioMedium {
   private boolean isTickObserver = false;
 
   private Simulation simulation = null;
+
+  /* Book-keeping */
+  public int COUNTER_TX = 0;
+  public int COUNTER_RX = 0;
+  public int COUNTER_INTERFERED = 0;
 
   public class RadioMediumObservable extends Observable {
     public void setRadioMediumChanged() {
@@ -243,7 +248,9 @@ public abstract class AbstractRadioMedium extends RadioMedium {
         } else {
           activeConnections.remove(connection);
           finishedConnections.add(connection);
+          COUNTER_TX++;
           for (Radio dstRadio : connection.getDestinations()) {
+            COUNTER_RX++;
             if (connection.getDestinationDelay(dstRadio) == 0) {
               dstRadio.signalReceptionEnd();
             } else {
@@ -262,6 +269,7 @@ public abstract class AbstractRadioMedium extends RadioMedium {
             }
           }
           for (Radio dstRadio : connection.getInterfered()) {
+            COUNTER_INTERFERED++;
             dstRadio.signalReceptionEnd();
           }
         }
