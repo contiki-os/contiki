@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: clock.c,v 1.1 2006/08/21 12:11:20 fros4943 Exp $
+ * $Id: clock.c,v 1.2 2009/03/26 16:22:37 fros4943 Exp $
  */
 
 #include "sys/clock.h"
@@ -47,6 +47,12 @@ clock_time_t
 clock_time(void)
 {
   return simCurrentTime;
+}
+/*-----------------------------------------------------------------------------------*/
+unsigned long
+clock_seconds(void)
+{
+  return 0;
 }
 /*-----------------------------------------------------------------------------------*/
 void
