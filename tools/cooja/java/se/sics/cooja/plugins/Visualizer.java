@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: Visualizer.java,v 1.1 2009/03/24 15:46:18 fros4943 Exp $
+ * $Id: Visualizer.java,v 1.2 2009/03/26 15:41:04 fros4943 Exp $
  */
 
 package se.sics.cooja.plugins;
@@ -119,10 +119,9 @@ public class Visualizer extends VisPlugin {
   private Observer simObserver = null;
   private Observer posObserver = null;
   private Observer moteHighligtObserver = null;
+  private Vector<Mote> highlightedMotes = new Vector<Mote>();
+  private final static Color HIGHLIGHT_COLOR = Color.CYAN;
   private Observer moteRelationsObserver = null;
-  private Mote highlightedMote = null;
-  private Color highlightColor = Color.GRAY;
-  private Timer highlightTimer = null;
 
   /* Popup menu */
   public static interface SimulationMenuAction {
@@ -203,33 +202,29 @@ public class Visualizer extends VisPlugin {
           return;
         }
 
-        if (highlightTimer != null && highlightTimer.isRunning()) {
-          highlightTimer.stop();
-        }
-
-        highlightTimer = new Timer(100, null);
-        highlightedMote = (Mote) obj;
-        highlightTimer.addActionListener(new ActionListener() {
+        final Timer timer = new Timer(100, null);
+        final Mote mote = (Mote) obj;
+        timer.addActionListener(new ActionListener() {
           public void actionPerformed(ActionEvent e) {
             /* Count down */
-            if (highlightTimer.getDelay() < 90) {
-              highlightTimer.stop();
-              highlightedMote = null;
+            if (timer.getDelay() < 90) {
+              timer.stop();
+              highlightedMotes.remove(mote);
               repaint();
               return;
             }
 
-            /* Toggle colors */
-            if (highlightColor == Color.GRAY) {
-              highlightColor = Color.CYAN;
+            /* Toggle highlight state */
+            if (highlightedMotes.contains(mote)) {
+              highlightedMotes.remove(mote);
             } else {
-              highlightColor = Color.GRAY;
+              highlightedMotes.add(mote);
             }
-            highlightTimer.setDelay(highlightTimer.getDelay()-1);
+            timer.setDelay(timer.getDelay()-1);
             repaint();
           }
         });
-        highlightTimer.start();
+        timer.start();
       }
     });
 
@@ -689,8 +684,8 @@ public class Visualizer extends VisPlugin {
       int x = pixelCoord.x;
       int y = pixelCoord.y;
 
-      if (mote == highlightedMote) {
-        g.setColor(highlightColor);
+      if (!highlightedMotes.isEmpty() && highlightedMotes.contains(mote)) {
+        g.setColor(HIGHLIGHT_COLOR);
         g.fillOval(x - MOTE_RADIUS, y - MOTE_RADIUS, 2 * MOTE_RADIUS,
             2 * MOTE_RADIUS);
       } else if (mote == moteToMove) {
