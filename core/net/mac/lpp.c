@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: lpp.c,v 1.10 2009/03/12 21:58:20 adamdunkels Exp $
+ * $Id: lpp.c,v 1.11 2009/03/26 12:50:57 nvt-se Exp $
  */
 
 /**
@@ -100,9 +100,19 @@ static struct queuebuf *queued_packet;
 
 static uint8_t is_listening = 0;
 
-#define LISTEN_TIME CLOCK_SECOND / 64
-#define OFF_TIME CLOCK_SECOND * 1
-#define PACKET_LIFETIME LISTEN_TIME + OFF_TIME
+#ifdef LPP_CONF_LISTEN_TIME
+#define LPP_LISTEN_TIME LPP_CONF_LISTEN_TIME
+#else
+#define LPP_LISTEN_TIME CLOCK_SECOND / 64
+#endif /* LPP_CONF_LISTEN_TIME */
+
+#ifdef LPP_CONF_OFF_TIME
+#define LPP_OFF_TIME LPP_CONF_OFF_TIME
+#else
+#define LPP_OFF_TIME CLOCK_SECOND * 1
+#endif /* LPP_CONF_OFF_TIME */
+
+#define PACKET_LIFETIME LPP_LISTEN_TIME + LPP_OFF_TIME
 
 #define DUMP_QUEUED_PACKET 0
 
@@ -187,7 +197,7 @@ dutycycle(void *ptr)
   while(1) {
     turn_radio_on();
     send_probe();
-    ctimer_set(t, LISTEN_TIME, (void (*)(void *))dutycycle, t);
+    ctimer_set(t, LPP_LISTEN_TIME, (void (*)(void *))dutycycle, t);
     PT_YIELD(&pt);
     
     if(queued_packet == NULL) {
@@ -196,12 +206,12 @@ dutycycle(void *ptr)
       /* There is a bit of randomness here right now to avoid collisions
 	 due to synchronization effects. Not sure how needed it is
 	 though. XXX */
-	ctimer_set(t, OFF_TIME / 2 + (random_rand() % (OFF_TIME / 2)),
+	ctimer_set(t, LPP_OFF_TIME / 2 + (random_rand() % (LPP_OFF_TIME / 2)),
 		   (void (*)(void *))dutycycle, t);
 	PT_YIELD(&pt);
       } else {
 	is_listening--;
-	ctimer_set(t, OFF_TIME,
+	ctimer_set(t, LPP_OFF_TIME,
 		   (void (*)(void *))dutycycle, t);
 	PT_YIELD(&pt);
       }
@@ -406,7 +416,7 @@ lpp_init(const struct radio_driver *d)
 {
   radio = d;
   radio->set_receive_function(input_packet);
-  ctimer_set(&timer, LISTEN_TIME, (void (*)(void *))dutycycle, &timer);
+  ctimer_set(&timer, LPP_LISTEN_TIME, (void (*)(void *))dutycycle, &timer);
 
   announcement_register_listen_callback(listen_callback);
   
