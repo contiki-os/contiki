@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: UDGMVisualizerSkin.java,v 1.2 2009/03/24 16:07:44 fros4943 Exp $
+ * $Id: UDGMVisualizerSkin.java,v 1.3 2009/03/26 16:24:31 fros4943 Exp $
  */
 
 package se.sics.cooja.plugins.skins;
@@ -38,6 +38,8 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.util.Observable;
 import java.util.Observer;
+
+import javax.swing.JLabel;
 import javax.swing.JSpinner;
 import javax.swing.SpinnerNumberModel;
 import javax.swing.event.ChangeEvent;
@@ -80,6 +82,10 @@ public class UDGMVisualizerSkin implements VisualizerSkin {
   private Visualizer visualizer = null;
   private UDGM radioMedium = null;
   private Observer radioMediumObserver;
+
+  private JLabel txCounter = null;
+  private JLabel rxCounter = null;
+  private JLabel interferedCounter = null;
 
   private JSpinner txRangeSpinner = null;
   private JSpinner interferenceRangeSpinner = null;
@@ -207,6 +213,13 @@ public class UDGMVisualizerSkin implements VisualizerSkin {
     visualizer.registerSimulationMenuAction(SuccessRatioMenuAction.class);
 
     /* Add (currently invisible) spinners */
+    txCounter = new JLabel("TX: " + radioMedium.COUNTER_TX);
+    rxCounter = new JLabel("RX: " + radioMedium.COUNTER_RX);
+    interferedCounter = new JLabel("INT: " +  + radioMedium.COUNTER_INTERFERED);
+    visualizer.getCurrentCanvas().add(txCounter);
+    visualizer.getCurrentCanvas().add(rxCounter);
+    visualizer.getCurrentCanvas().add(interferedCounter);
+
     visualizer.getCurrentCanvas().add(txRangeSpinner);
     visualizer.getCurrentCanvas().add(interferenceRangeSpinner);
     visualizer.getCurrentCanvas().add(successRatioTxSpinner);
@@ -215,6 +228,16 @@ public class UDGMVisualizerSkin implements VisualizerSkin {
     /* Start observing radio medium */
     radioMedium.addRadioMediumObserver(radioMediumObserver = new Observer() {
       public void update(Observable obs, Object obj) {
+        if (txCounter != null) {
+          txCounter.setText("TX: " + radioMedium.COUNTER_TX);
+        }
+        if (rxCounter != null) {
+          rxCounter.setText("RX: " + radioMedium.COUNTER_RX);
+        }
+        if (interferedCounter != null) {
+          interferedCounter.setText("INT: " +  + radioMedium.COUNTER_INTERFERED);
+        }
+
         visualizer.repaint();
       }
     });
@@ -228,6 +251,10 @@ public class UDGMVisualizerSkin implements VisualizerSkin {
     radioMedium.deleteRadioMediumObserver(radioMediumObserver);
     radioMediumObserver = null;
     radioMedium = null;
+
+    visualizer.getCurrentCanvas().remove(txCounter);
+    visualizer.getCurrentCanvas().remove(rxCounter);
+    visualizer.getCurrentCanvas().remove(interferedCounter);
 
     /* Remove spinners */
     visualizer.getCurrentCanvas().remove(txRangeSpinner);
@@ -329,7 +356,8 @@ public class UDGMVisualizerSkin implements VisualizerSkin {
     if (conns != null) {
       g.setColor(Color.BLACK);
       for (RadioConnection conn : conns) {
-        Point sourcePoint = visualizer.transformPositionToPixel(conn.getSource().getPosition());
+        Radio source = conn.getSource();
+        Point sourcePoint = visualizer.transformPositionToPixel(source.getPosition());
         for (Radio destRadio : conn.getDestinations()) {
           Position destPos = destRadio.getPosition();
           Point destPoint = visualizer.transformPositionToPixel(destPos);
