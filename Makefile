@@ -44,7 +44,7 @@ include $(TOPDIR)/config.mk
 
 AOBJS = 
 COBJS = $(patsubst %.c,%.o,$(wildcard src/*.c))
-TARGETS = test-blink.o 
+TARGETS = $(patsubst %.c,%.o,$(wildcard tests/*.c))
 
 # Add GCC lib
 PLATFORM_LIBS += --no-warn-mismatch -L $(shell dirname `$(CC) $(CFLAGS) -print-libgcc-file-name`) -lgcc
@@ -52,9 +52,9 @@ PLATFORM_LIBS += --no-warn-mismatch -L $(shell dirname `$(CC) $(CFLAGS) -print-l
 #########################################################################
 
 #ALL = blink.srec blink.bin blink.dis blink.System.map
-ALL = $(TARGETS:.o=.srec) $(TARGETS:.o=.bin) $(TARGETS:.o=.dis) 
+ALL = $(TARGETS:.c=.srec) $(TARGETS:.c=.bin) $(TARGETS:.c=.dis) 
 
-.PRECIOUS: 	$(COBJS)
+.PRECIOUS: 	$(COBJS) $(TARGETS)
 
 all:		$(ALL)
 
