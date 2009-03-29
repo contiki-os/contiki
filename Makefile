@@ -43,38 +43,43 @@ include $(TOPDIR)/config.mk
 # blink objects....order is important (i.e. start must be first)
 
 AOBJS = 
-COBJS = src/blink.o 
+COBJS = $(patsubst %.c,%.o,$(wildcard src/*.c))
+TARGETS = blink.o 
 
 # Add GCC lib
 PLATFORM_LIBS += --no-warn-mismatch -L $(shell dirname `$(CC) $(CFLAGS) -print-libgcc-file-name`) -lgcc
 
 #########################################################################
 
-ALL = blink.dis blink.srec blink.bin System.map
+#ALL = blink.srec blink.bin blink.dis blink.System.map
+ALL = $(TARGETS:.o=.srec) $(TARGETS:.o=.bin) $(TARGETS:.o=.dis) 
+
+.PRECIOUS: 	$(COBJS)
 
 all:		$(ALL)
 
-blink.srec:	blink
+%.srec:		%.obj
 		$(OBJCOPY) ${OBJCFLAGS} -O srec $< $@
 
-blink.ihex:	blink
+%.ihex: 	%.obj
 		$(OBJCOPY) ${OBJCFLAGS} -O ihex $< $@
 
-blink.bin:	blink
+%.bin:		%.obj
 		$(OBJCOPY) ${OBJCFLAGS} -O binary $< $@
 
-blink.dis:	blink
+%.dis:		%.obj
 		$(OBJDUMP) -DS $< > $@
 
-blink:		$(AOBJS) $(COBJS) $(LDSCRIPT)
+%.obj:		$(AOBJS) $(COBJS) $(LDSCRIPT)
 		$(LD) $(LDFLAGS) $(AOBJS) $(COBJS) \
 			--start-group $(PLATFORM_LIBS) --end-group \
-			-Map blink.map -o blink
+			-Map $*.map -o $@
 
-System.map:	blink
+
+%.System.map:	%.obj
 		@$(NM) $< | \
 		grep -v '\(compiled\)\|\(\.o$$\)\|\( [aUw] \)\|\(\.\.ng$$\)\|\(LASH[RL]DI\)' | \
-		sort > System.map
+		sort > $*.System.map
 
 
 #########################################################################
@@ -89,17 +94,17 @@ sinclude .depend
 clean:
 	find . -type f \
 		\( -name 'core' -o -name '*.bak' -o -name '*~' \
-		-o -name '*.o'  -o -name '*.a'  \) -print \
+		-o -name '*.o'  -o -name '*.a' \) -print \
 		| xargs rm -f
 
 clobber:	clean
 	find . -type f \
-		\( -name .depend -o -name '*.srec' -o -name '*.bin' \) \
+		\( -name .depend -o -name '*.srec' -o -name '*.bin' -o -name '*.dis' -o -name '*.map' \) \
 		-print \
 		| xargs rm -f
 	rm -f $(OBJS) *.bak tags TAGS
 	rm -fr *.*~
-	rm -f blink blink.map $(ALL)
+	rm -f $(ALL)
 
 mrproper \
 distclean:	clobber
