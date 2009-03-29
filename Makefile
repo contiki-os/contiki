@@ -44,7 +44,7 @@ include $(TOPDIR)/config.mk
 
 AOBJS = 
 COBJS = $(patsubst %.c,%.o,$(wildcard src/*.c))
-TARGETS = blink.o 
+TARGETS = test-blink.o 
 
 # Add GCC lib
 PLATFORM_LIBS += --no-warn-mismatch -L $(shell dirname `$(CC) $(CFLAGS) -print-libgcc-file-name`) -lgcc

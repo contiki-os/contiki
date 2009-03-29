@@ -32,7 +32,6 @@ SECTIONS
 	. = ALIGN(4);
 	.text      :
 	{
-	  src/blink.o	(.text)
 	  *(.text)
 	}
 
