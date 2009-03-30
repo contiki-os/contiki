@@ -62,6 +62,8 @@
 #define PRINTF(...)
 #endif
 
+#define SEND_TIMEOUT 10
+
 static int cc1020_calibrate(void);
 static int cc1020_setupTX(int);
 static int cc1020_setupRX(int);
@@ -122,6 +124,7 @@ reset_receiver(void)
     cc1020_off();
   } else {
     CC1020_SET_OPSTATE(CC1020_RX | CC1020_RX_SEARCHING);
+    cc1020_set_rx();
     ENABLE_RX_IRQ();
   }
 }
@@ -233,6 +236,15 @@ cc1020_send(const void *buf, unsigned short len)
   int normal_header = HDRSIZE + len;
   int i;
   uint16_t rxcrc = 0xFFFF; /* For checksum purposes */
+  rtimer_clock_t timeout_time;
+
+  timeout_time = RTIMER_NOW() + RTIMER_SECOND / 1000 * SEND_TIMEOUT;
+  while(cc1020_state & CC1020_RX_RECEIVING) {
+    if(RTIMER_CLOCK_LT(timeout_time, RTIMER_NOW())) {
+      PRINTF("cc1020: transmission blocked by reception in progress\n");
+      return -3;
+    }
+  }
   
   if(cc1020_state == CC1020_OFF) {
     return -2;
