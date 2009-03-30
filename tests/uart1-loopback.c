@@ -1,5 +1,4 @@
 #define GPIO_FUNC_SEL0  0x80000018 /* GPIO 15 - 0;  2 bit blocks */
-#define GPIO_FUNC_SEL1  0x8000001c /* GPIO 16 - 31; 2 bit blocks*/
 
 #define BASE_UART1      0x80005000
 #define UART1_CON       0x80005000
@@ -12,10 +11,7 @@
 
 #include "embedded_types.h"
 
-#define DELAY 100000
-
 void main(void) {
-	
 	/* Restore UART regs. to default */
 	/* in case there is still bootloader state leftover */
 
@@ -31,29 +27,13 @@ void main(void) {
 	*(volatile uint32_t *)UART1_CON = 0x00000003; /* enable receive and transmit */
 	*(volatile uint32_t *)GPIO_FUNC_SEL0 = ( (0x01 << (14*2)) | (0x01 << (15*2)) ); /* set GPIO15-14 to UART (UART1 TX and RX)*/
 
-	uint32_t i;
-
+	uint8_t c;
 	while(1) {
-		for(i=0; i<DELAY; i++) { continue; }
-		*(volatile uint32_t *)UART1_DATA = 'H';
-		for(i=0; i<DELAY; i++) { continue; }
-		*(volatile uint32_t *)UART1_DATA = 'e';
-		for(i=0; i<DELAY; i++) { continue; }
-		*(volatile uint32_t *)UART1_DATA = 'l';
-		for(i=0; i<DELAY; i++) { continue; }
-		*(volatile uint32_t *)UART1_DATA = 'l';
-		for(i=0; i<DELAY; i++) { continue; }
-		*(volatile uint32_t *)UART1_DATA = 'o';
-		for(i=0; i<DELAY; i++) { continue; }
-		*(volatile uint32_t *)UART1_DATA = '\n';
-		for(i=0; i<DELAY; i++) { continue; }
-		*(volatile uint32_t *)UART1_DATA = '\r';
-	}
-
-/* 	while(1) { */
-/* 		if(*(volatile uint32_t*)UR1CON > 0) { */
-/* 			/\* Receive buffer isn't empty *\/ */
-/* 			/\* read a byte and write it to the transmit buffer *\/ */
-/* 		} */
-/* 	}; */
+		if(*(volatile uint32_t*)UR1CON > 0) {
+			/* Receive buffer isn't empty */
+			/* read a byte and write it to the transmit buffer */
+			c = *(volatile uint32_t *)UART1_DATA;
+			*(volatile uint32_t *)UART1_DATA = c;
+		}
+	};
 }
