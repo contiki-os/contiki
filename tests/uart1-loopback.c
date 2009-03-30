@@ -21,7 +21,9 @@ void main(void) {
 	*(volatile uint32_t *)GPIO_FUNC_SEL0 = (0x01 << (14*2)); /* set GPIO14 to UART (UART1 TX)*/
 //	*(volatile uint32_t *)GPIO_FUNC_SEL0 = ( (0x01 << (14*2)) || (0x01 << (15*2)) ); /* set GPIO15-14 to UART (UART1 TX and RX)*/
 
+	/* INC = 76; MOD = 1000 */
 	*(volatile uint32_t *)UART1_BR = 0x004C03E8; /* Baud rate: (INC<<16 || MOD) */ /* is 115200 @ 24 MHz --- unexplained */
+
 
 	*(volatile uint32_t *)UART1_CON = 0x00000003; /* enable receive and transmit */
 
