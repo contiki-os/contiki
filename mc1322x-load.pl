@@ -64,6 +64,7 @@ if (defined $filename) {
 	print unpack('H',$c) . unpack('h',$c) if $verbose; 
 	print "\n" if ($verbose && ($i%4==0));
 	$i++;
+	select undef, undef, undef, 0.001;
 	$ob->write($c);
     }
 }
