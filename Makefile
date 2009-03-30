@@ -44,7 +44,9 @@ include $(TOPDIR)/config.mk
 
 AOBJS = 
 COBJS = $(patsubst %.c,%.o,$(wildcard src/*.c))
-TARGETS = $(patsubst %.c,%.o,$(wildcard tests/*.c))
+TESTS = $(wildcard tests/*.c)
+TARGETS = $(patsubst %.c,%.o,$(TESTS))
+
 
 # Add GCC lib
 PLATFORM_LIBS += --no-warn-mismatch -L $(shell dirname `$(CC) $(CFLAGS) -print-libgcc-file-name`) -lgcc
@@ -52,9 +54,9 @@ PLATFORM_LIBS += --no-warn-mismatch -L $(shell dirname `$(CC) $(CFLAGS) -print-l
 #########################################################################
 
 #ALL = blink.srec blink.bin blink.dis blink.System.map
-ALL = $(TARGETS:.c=.srec) $(TARGETS:.c=.bin) $(TARGETS:.c=.dis) 
+ALL = $(TARGETS) $(TESTS:.c=.srec) $(TESTS:.c=.bin) $(TESTS:.c=.dis) 
 
-.PRECIOUS: 	$(COBJS) $(TARGETS)
+.PRECIOUS: 	$(COBJS) $(TARGETS) $(TESTS:.c=.obj)
 
 all:		$(ALL)
 
@@ -70,10 +72,10 @@ all:		$(ALL)
 %.dis:		%.obj
 		$(OBJDUMP) -DS $< > $@
 
-%.obj:		$(AOBJS) $(COBJS) $(LDSCRIPT)
+%.obj:		$(AOBJS) $(COBJS) $(TARGETS) $(LDSCRIPT)
 		$(LD) $(LDFLAGS) $(AOBJS) $(COBJS) \
 			--start-group $(PLATFORM_LIBS) --end-group \
-			-Map $*.map -o $@
+			-Map $*.map $*.o -o $@
 
 
 %.System.map:	%.obj
@@ -99,7 +101,7 @@ clean:
 
 clobber:	clean
 	find . -type f \
-		\( -name .depend -o -name '*.srec' -o -name '*.bin' -o -name '*.dis' -o -name '*.map' \) \
+		\( -name .depend -o -name '*.srec' -o -name '*.bin' -o -name '*.dis' -o -name '*.map' -o -name '*.obj' \) \
 		-print \
 		| xargs rm -f
 	rm -f $(OBJS) *.bak tags TAGS

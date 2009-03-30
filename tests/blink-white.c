@@ -8,13 +8,13 @@
 
 void main(void) {
 	
-	*(volatile uint32_t *)GPIO_PAD_DIR0 = 0x00000100;
+	*(volatile uint32_t *)GPIO_PAD_DIR0 = 0x00000700;
 
 	volatile uint32_t i;
 
 	while(1) {
 
-		*(volatile uint32_t *)GPIO_DATA0 = 0x00000100;
+		*(volatile uint32_t *)GPIO_DATA0 = 0x00000700;
 		
 		for(i=0; i<DELAY; i++) { continue; }
 
