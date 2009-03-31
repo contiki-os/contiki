@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: lpp.c,v 1.13 2009/03/31 14:11:25 nvt-se Exp $
+ * $Id: lpp.c,v 1.14 2009/03/31 14:44:13 nvt-se Exp $
  */
 
 /**
@@ -363,8 +363,6 @@ read_packet(void)
 				packet type of the queued packet to see
 				if it is a data packet. If not, we
 				should not turn the radio on. */
-
-	    break;
 	  }
 	}
       }
