@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: lpp.c,v 1.12 2009/03/31 12:47:00 nvt-se Exp $
+ * $Id: lpp.c,v 1.13 2009/03/31 14:11:25 nvt-se Exp $
  */
 
 /**
@@ -101,7 +101,8 @@ static uint8_t is_listening = 0;
 
 #define LISTEN_TIME CLOCK_SECOND / 32
 #define OFF_TIME CLOCK_SECOND * 1
-#define PACKET_LIFETIME 2 * (LISTEN_TIME + OFF_TIME)
+#define PACKET_LIFETIME (LISTEN_TIME + OFF_TIME)
+#define UNICAST_TIMEOUT	2 * PACKET_LIFETIME
 
 struct queue_list_item {
   struct queue_list_item *next;
@@ -137,7 +138,8 @@ static void
 remove_queued_packet(void *item)
 {
   struct queue_list_item *i = item;
-  
+
+  ctimer_stop(&i->timer);  
   queuebuf_free(i->packet);
   list_remove(queued_packets_list, i);
   memb_free(&queued_packets_memb, i);
@@ -208,8 +210,7 @@ dutycycle(void *ptr)
     send_probe();
     ctimer_set(t, LISTEN_TIME, (void (*)(void *))dutycycle, t);
     PT_YIELD(&pt);
-    
-    /*    if(queued_packet == NULL) {*/
+
     if(list_length(queued_packets_list) == 0) {
       if(is_listening == 0) {
 	turn_radio_off();
@@ -221,10 +222,12 @@ dutycycle(void *ptr)
 	PT_YIELD(&pt);
       } else {
 	is_listening--;
-	ctimer_set(t, OFF_TIME,
-		   (void (*)(void *))dutycycle, t);
+	ctimer_set(t, OFF_TIME, (void (*)(void *))dutycycle, t);
 	PT_YIELD(&pt);
       }
+    } else {
+     ctimer_set(t, OFF_TIME, (void (*)(void *))dutycycle, t);
+     PT_YIELD(&pt);
     }
   }
 
@@ -249,6 +252,7 @@ static int
 send_packet(void)
 {
   struct lpp_hdr *hdr;
+  clock_time_t timeout;
 
   packetbuf_hdralloc(sizeof(struct lpp_hdr));
   hdr = packetbuf_hdrptr();
@@ -278,8 +282,11 @@ send_packet(void)
 	return 0;
       } else {
 	list_add(queued_packets_list, i);
-	ctimer_set(&i->timer, PACKET_LIFETIME, remove_queued_packet, i);
-
+        timeout = UNICAST_TIMEOUT;
+        if(rimeaddr_cmp(&hdr->receiver, &rimeaddr_null)) {
+          timeout = PACKET_LIFETIME;
+        }
+	ctimer_set(&i->timer, timeout, remove_queued_packet, i);
         /* Wait for a probe packet from a neighbor */
         turn_radio_on();
       }
@@ -357,6 +364,7 @@ read_packet(void)
 				if it is a data packet. If not, we
 				should not turn the radio on. */
 
+	    break;
 	  }
 	}
       }
@@ -369,13 +377,14 @@ read_packet(void)
       /* XXX send probe after receiving a packet to facilitate data
         streaming. We must first copy the contents of the packetbuf into
         a queuebuf to avoid overwriting the data with the probe packet. */
-      
-      struct queuebuf *q;
-      q = queuebuf_new_from_packetbuf();
-      if(q != NULL) {
-	send_probe();
-	queuebuf_to_packetbuf(q);
-        queuebuf_free(q);
+      if(rimeaddr_cmp(&hdr->receiver, &rimeaddr_node_addr)) {
+        struct queuebuf *q;
+        q = queuebuf_new_from_packetbuf();
+        if(q != NULL) {
+	  send_probe();
+	  queuebuf_to_packetbuf(q);
+          queuebuf_free(q);
+        }
       }
     }
     len = packetbuf_datalen();
