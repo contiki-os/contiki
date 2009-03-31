@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: lpp.c,v 1.11 2009/03/26 12:50:57 nvt-se Exp $
+ * $Id: lpp.c,v 1.12 2009/03/31 12:47:00 nvt-se Exp $
  */
 
 /**
@@ -51,6 +51,8 @@
  */
 
 #include "dev/leds.h"
+#include "lib/list.h"
+#include "lib/memb.h"
 #include "lib/random.h"
 #include "net/rime.h"
 #include "net/mac/mac.h"
@@ -94,28 +96,27 @@ static const struct radio_driver *radio;
 static void (* receiver_callback)(const struct mac_driver *);
 static struct pt pt;
 static struct ctimer timer;
-static struct timer packet_lifetime_timer;
-
-static struct queuebuf *queued_packet;
 
 static uint8_t is_listening = 0;
 
-#ifdef LPP_CONF_LISTEN_TIME
-#define LPP_LISTEN_TIME LPP_CONF_LISTEN_TIME
-#else
-#define LPP_LISTEN_TIME CLOCK_SECOND / 64
-#endif /* LPP_CONF_LISTEN_TIME */
+#define LISTEN_TIME CLOCK_SECOND / 32
+#define OFF_TIME CLOCK_SECOND * 1
+#define PACKET_LIFETIME 2 * (LISTEN_TIME + OFF_TIME)
 
-#ifdef LPP_CONF_OFF_TIME
-#define LPP_OFF_TIME LPP_CONF_OFF_TIME
-#else
-#define LPP_OFF_TIME CLOCK_SECOND * 1
-#endif /* LPP_CONF_OFF_TIME */
+struct queue_list_item {
+  struct queue_list_item *next;
+  struct queuebuf *packet;
+  struct ctimer timer;
+};
 
-#define PACKET_LIFETIME LPP_LISTEN_TIME + LPP_OFF_TIME
+#ifdef QUEUEBUF_CONF_NUM
+#define MAX_QUEUED_PACKETS QUEUEBUF_CONF_NUM / 2
+#else /* QUEUEBUF_CONF_NUM */
+#define MAX_QUEUED_PACKETS 4
+#endif /* QUEUEBUF_CONF_NUM */
 
-#define DUMP_QUEUED_PACKET 0
-
+LIST(queued_packets_list);
+MEMB(queued_packets_memb, struct queue_list_item, MAX_QUEUED_PACKETS);
 
 /*---------------------------------------------------------------------------*/
 static void
@@ -133,10 +134,18 @@ turn_radio_off(void)
 }
 /*---------------------------------------------------------------------------*/
 static void
-remove_queued_packet(void)
+remove_queued_packet(void *item)
 {
-  queuebuf_free(queued_packet);
-  queued_packet = NULL;
+  struct queue_list_item *i = item;
+  
+  queuebuf_free(i->packet);
+  list_remove(queued_packets_list, i);
+  memb_free(&queued_packets_memb, i);
+
+  /* XXX potential optimization */
+  if(list_length(queued_packets_list) == 0 && is_listening == 0) {
+    turn_radio_off();
+  }
 }
 /*---------------------------------------------------------------------------*/
 static void
@@ -197,31 +206,25 @@ dutycycle(void *ptr)
   while(1) {
     turn_radio_on();
     send_probe();
-    ctimer_set(t, LPP_LISTEN_TIME, (void (*)(void *))dutycycle, t);
+    ctimer_set(t, LISTEN_TIME, (void (*)(void *))dutycycle, t);
     PT_YIELD(&pt);
     
-    if(queued_packet == NULL) {
+    /*    if(queued_packet == NULL) {*/
+    if(list_length(queued_packets_list) == 0) {
       if(is_listening == 0) {
 	turn_radio_off();
       /* There is a bit of randomness here right now to avoid collisions
 	 due to synchronization effects. Not sure how needed it is
 	 though. XXX */
-	ctimer_set(t, LPP_OFF_TIME / 2 + (random_rand() % (LPP_OFF_TIME / 2)),
+	ctimer_set(t, OFF_TIME / 2 + (random_rand() % (OFF_TIME / 2)),
 		   (void (*)(void *))dutycycle, t);
 	PT_YIELD(&pt);
       } else {
 	is_listening--;
-	ctimer_set(t, LPP_OFF_TIME,
+	ctimer_set(t, OFF_TIME,
 		   (void (*)(void *))dutycycle, t);
 	PT_YIELD(&pt);
       }
-    } else {
-      /* We are currently sending a packet so we should keep the radio
-	 turned on and not send any probes at this point. */
-      ctimer_set(t, PACKET_LIFETIME, (void (*)(void *))dutycycle, t);
-      PT_YIELD(&pt);
-      remove_queued_packet();
-      PRINTF("Removing old packet\n");
     }
   }
 
@@ -266,25 +269,21 @@ send_packet(void)
     /*    printf("Immediately sending ACK\n");*/
     return radio->send(packetbuf_hdrptr(), packetbuf_totlen());
   } else {
+    struct queue_list_item *i;
+    i = memb_alloc(&queued_packets_memb);
+    if(i != NULL) {
+      i->packet = queuebuf_new_from_packetbuf();
+      if(i->packet == NULL) {
+	memb_free(&queued_packets_memb, i);
+	return 0;
+      } else {
+	list_add(queued_packets_list, i);
+	ctimer_set(&i->timer, PACKET_LIFETIME, remove_queued_packet, i);
 
-    /* If a packet is already queued, the DUMP_QUEUED_PACKET option
-       determines if the queued packet should be replaced with the new
-       packet, or if the new packet should be dropped. XXX haven't
-       measured the effect of this option */
-#if DUMP_QUEUED_PACKET
-    if(queued_packet != NULL) {
-      remove_queued_packet();
+        /* Wait for a probe packet from a neighbor */
+        turn_radio_on();
+      }
     }
-    queued_packet = queuebuf_new_from_packetbuf();
-#else /* DUMP_QUEUED_PACKET */
-    if(queued_packet == NULL) {
-      queued_packet = queuebuf_new_from_packetbuf();
-    }
-#endif /* DUMP_QUEUED_PACKET */
-
-    timer_set(&packet_lifetime_timer, PACKET_LIFETIME);
-    /* Wait for a probe packet from a neighbor */
-    turn_radio_on();
   }
   return 1;
 }
@@ -299,7 +298,7 @@ static int
 read_packet(void)
 {
   int len;
-  struct lpp_hdr *hdr, *qhdr;
+  struct lpp_hdr *hdr;
   
   packetbuf_clear();
   len = radio->read(packetbuf_dataptr(), PACKETBUF_SIZE);
@@ -327,43 +326,57 @@ read_packet(void)
 			   adata->data[i].id,
 			   adata->data[i].value);
       }
-
-      /* Check if the outbound packet has been waiting too long in the
-	 queue. If so, we remove the packet from the queue. */
-      if(queued_packet != NULL && timer_expired(&packet_lifetime_timer)) {
-	remove_queued_packet();
-      }
-      if(queued_packet != NULL) {
-	qhdr = queuebuf_dataptr(queued_packet);
-	if(rimeaddr_cmp(&qhdr->receiver, &hdr->sender) ||
-	   rimeaddr_cmp(&qhdr->receiver, &rimeaddr_null)) {
-	  PRINTF("%d.%d: got a probe from %d.%d, sending packet to %d.%d\n",
-		 rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1],
-		 hdr->sender.u8[0], hdr->sender.u8[1],
-		 qhdr->receiver.u8[0], qhdr->receiver.u8[1]);
+      
+      if(list_length(queued_packets_list) > 0) {
+	struct queue_list_item *i;
+	for(i = list_head(queued_packets_list); i != NULL; i = i->next) {
+	  struct lpp_hdr *qhdr;
+	  
+	  qhdr = queuebuf_dataptr(i->packet);
+	  if(rimeaddr_cmp(&qhdr->receiver, &hdr->sender) ||
+	     rimeaddr_cmp(&qhdr->receiver, &rimeaddr_null)) {
+	    PRINTF("%d.%d: got a probe from %d.%d, sending packet to %d.%d\n",
+		   rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1],
+		   hdr->sender.u8[0], hdr->sender.u8[1],
+		   qhdr->receiver.u8[0], qhdr->receiver.u8[1]);
 	    
-	  radio->send(queuebuf_dataptr(queued_packet),
-		      queuebuf_datalen(queued_packet));
+	    radio->send(queuebuf_dataptr(i->packet),
+			queuebuf_datalen(i->packet));
+	    
+	    /* If the packet was not a broadcast packet, we dequeue it
+	       now. Broadcast packets should be transmitted to all
+	       neighbors, and are dequeued by the dutycycling function
+	       instead, after the appropriate time. */
+	    if(!rimeaddr_cmp(&qhdr->receiver, &rimeaddr_null)) {
+	      remove_queued_packet(i);
+	    }
+	    
+	    
+	    turn_radio_on(); /* XXX Awaiting an ACK: we should check the
+				packet type of the queued packet to see
+				if it is a data packet. If not, we
+				should not turn the radio on. */
 
-	  /* If the packet was not a broadcast packet, we dequeue it
-	     now. Broadcast packets should be transmitted to all
-	     neighbors, and are dequeued by the dutycycling function
-	     instead, after the appropriate time. */
-	  if(!rimeaddr_cmp(&qhdr->receiver, &rimeaddr_null)) {
-	    remove_queued_packet();
 	  }
-
-
-	  turn_radio_on(); /* XXX Awaiting an ACK: we should check the
-			      packet type of the queued packet to see
-			      if it is a data packet. If not, we
-			      should not turn the radio on. */
 	}
       }
+
     } else if(hdr->type == TYPE_DATA) {
       PRINTF("%d.%d: got data from %d.%d\n",
 	     rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1],
 	     hdr->sender.u8[0], hdr->sender.u8[1]);
+
+      /* XXX send probe after receiving a packet to facilitate data
+        streaming. We must first copy the contents of the packetbuf into
+        a queuebuf to avoid overwriting the data with the probe packet. */
+      
+      struct queuebuf *q;
+      q = queuebuf_new_from_packetbuf();
+      if(q != NULL) {
+	send_probe();
+	queuebuf_to_packetbuf(q);
+        queuebuf_free(q);
+      }
     }
     len = packetbuf_datalen();
   }
@@ -416,10 +429,12 @@ lpp_init(const struct radio_driver *d)
 {
   radio = d;
   radio->set_receive_function(input_packet);
-  ctimer_set(&timer, LPP_LISTEN_TIME, (void (*)(void *))dutycycle, &timer);
+  ctimer_set(&timer, LISTEN_TIME, (void (*)(void *))dutycycle, &timer);
 
   announcement_register_listen_callback(listen_callback);
-  
+
+  memb_init(&queued_packets_memb);
+  list_init(queued_packets_list);
   return &lpp_driver;
 }
 /*---------------------------------------------------------------------------*/
