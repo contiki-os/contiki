@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#)$Id: contiki-sky-main.c,v 1.49 2009/03/17 15:56:33 adamdunkels Exp $
+ * @(#)$Id: contiki-sky-main.c,v 1.50 2009/03/31 13:25:50 nifi Exp $
  */
 
 #include <signal.h>
@@ -251,7 +251,7 @@ main(int argc, char **argv)
   printf("MAC %02x:%02x:%02x:%02x:%02x:%02x:%02x:%02x",
 	 ds2411_id[0], ds2411_id[1], ds2411_id[2], ds2411_id[3],
 	 ds2411_id[4], ds2411_id[5], ds2411_id[6], ds2411_id[7]);
-  printf(" %s\n", rime_mac->name);
+  printf(" %s channel %u\n", rime_mac->name, RF_CHANNEL);
 
 #if WITH_UIP6
   memcpy(&uip_lladdr.addr, ds2411_id, sizeof(uip_lladdr.addr));
@@ -270,8 +270,10 @@ main(int argc, char **argv)
 
   leds_off(LEDS_GREEN);
 
+#if TIMESYNCH_CONF_ENABLED
   timesynch_init();
   timesynch_set_authority_level(rimeaddr_node_addr.u8[0]);
+#endif /* TIMESYNCH_CONF_ENABLED */
 
 #if WITH_UIP
   process_start(&tcpip_process, NULL);
