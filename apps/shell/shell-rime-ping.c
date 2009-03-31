@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: shell-rime-ping.c,v 1.8 2009/03/24 14:44:42 adamdunkels Exp $
+ * $Id: shell-rime-ping.c,v 1.9 2009/03/31 17:39:36 adamdunkels Exp $
  */
 
 /**
@@ -42,6 +42,7 @@
 #include "shell.h"
 #include "net/rime.h"
 
+#include <string.h>
 #include <stdio.h>
 #ifndef HAVE_SNPRINTF
 int snprintf(char *str, size_t size, const char *format, ...);
@@ -124,18 +125,19 @@ sent_mesh(struct mesh_conn *c)
 static void
 recv_mesh(struct mesh_conn *c, const rimeaddr_t *from, u8_t hops)
 {
-  struct rime_ping_msg *ping;
+  struct rime_ping_msg ping;
   char buf[64];
   rtimer_clock_t pingrecvtime;
-
-  ping = packetbuf_dataptr();
+  
+  memcpy(&ping, packetbuf_dataptr(), sizeof(struct rime_ping_msg));
 
   if(waiting_for_pong == 0) {
 #if TIMESYNCH_CONF_ENABLED
-    ping->pongtime = timesynch_time();
+    ping.pongtime = timesynch_time();
 #else
-    ping->pongtime = ping->pingtime;
+    ping.pongtime = ping.pingtime;
 #endif
+    memcpy(packetbuf_dataptr(), &ping, sizeof(struct rime_ping_msg));
     mesh_send(&mesh, from);
   } else {
 #if TIMESYNCH_CONF_ENABLED
@@ -144,9 +146,9 @@ recv_mesh(struct mesh_conn *c, const rimeaddr_t *from, u8_t hops)
     pingrecvtime = rtimer_arch_now();
 #endif
     snprintf(buf, sizeof(buf), "%lu ms (%lu + %lu), %d hops.",
-	    (1000L * (pingrecvtime - ping->pingtime)) / RTIMER_ARCH_SECOND,
-	    (1000L * (ping->pongtime - ping->pingtime)) / RTIMER_ARCH_SECOND,
-	    (1000L * (pingrecvtime - ping->pongtime)) / RTIMER_ARCH_SECOND,
+	    (1000L * (pingrecvtime - ping.pingtime)) / RTIMER_ARCH_SECOND,
+	    (1000L * (ping.pongtime - ping.pingtime)) / RTIMER_ARCH_SECOND,
+	    (1000L * (pingrecvtime - ping.pongtime)) / RTIMER_ARCH_SECOND,
 	    hops);
 
     shell_output_str(&rime_ping_command,
