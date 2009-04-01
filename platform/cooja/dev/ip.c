@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ip.c,v 1.1 2006/08/21 12:11:18 fros4943 Exp $
+ * $Id: ip.c,v 1.2 2009/04/01 18:11:48 fros4943 Exp $
  */
 
 #include "dev/ip.h"
@@ -37,23 +37,44 @@
 const struct simInterface ip_interface;
 
 // COOJA variables
-char simIPa;
-char simIPb;
-char simIPc;
-char simIPd;
+
+#if UIP_CONF_IPV6
+
 char simIPChanged;
+char simIP[16];
+
+#endif /* UIP_CONF_IPV6 */
+
+#if WITH_UIP
+
+char simIPChanged;
+char simIP[4];
+
+#endif /* WITH_UIP */
 
 /*-----------------------------------------------------------------------------------*/
 static void
 doInterfaceActionsBeforeTick(void)
 {
-  uip_ipaddr_t hostaddr;
-  if (simIPChanged) {
-    uip_ipaddr(&hostaddr, simIPa, simIPb, simIPc, simIPd);
+#if UIP_CONF_IPV6
 
+  /* check if IPv6 address should change */
+
+#endif /* UIP_CONF_IPV6 */
+
+#if WITH_UIP
+
+  /* check if IPv4 address should change */
+/*
+  if (simIPChanged) {
+    uip_ipaddr_t hostaddr;
+    uip_ipaddr(&hostaddr, simIP[0], simIP[1], simIP[2], simIP[3]);
     uip_sethostaddr(&hostaddr);
     simIPChanged = 0;
   }
+*/
+
+#endif /* WITH_UIP */
 }
 /*-----------------------------------------------------------------------------------*/
 static void
