@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007, Swedish Institute of Computer Science
+ * Copyright (c) 2009, Swedish Institute of Computer Science
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,27 +28,37 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: init-net-rime.c,v 1.6 2008/12/01 13:20:51 fros4943 Exp $
+ * @(#)$Id: init-net-rime.c,v 1.7 2009/04/01 13:50:12 fros4943 Exp $
  */
 
 #include "contiki.h"
+#include <stdio.h>
+#include <string.h>
+
 #include "net/rime.h"
-#include "dev/radio.h"
-#include "dev/cooja-radio.h"
 #include "net/mac/nullmac.h"
+
 #include "node-id.h"
+#include "dev/cooja-radio.h"
 
 void
 init_net(void)
 {
+  int i;
   rimeaddr_t rimeaddr;
 
+  /* Init Rime */
   ctimer_init();
-
-  nullmac_init(&cooja_driver);
-  rime_init(&nullmac_driver);
-
   rimeaddr.u8[0] = node_id & 0xff;
   rimeaddr.u8[1] = node_id >> 8;
   rimeaddr_set_node_addr(&rimeaddr);
+  printf("Rime started with address: ");
+  for(i = 0; i < sizeof(rimeaddr_node_addr.u8) - 1; i++) {
+    printf("%d.", rimeaddr_node_addr.u8[i]);
+  }
+  printf("%d\n", rimeaddr_node_addr.u8[i]);
+
+  /* Rime <-> nullMAC <-> COOJA's packet radio */
+  nullmac_init(&cooja_radio);
+  rime_init(&nullmac_driver);
 }

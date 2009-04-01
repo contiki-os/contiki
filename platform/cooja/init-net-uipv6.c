@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: init-net-uip.c,v 1.3 2009/04/01 13:50:12 fros4943 Exp $
+ * $Id: init-net-uipv6.c,v 1.1 2009/04/01 13:50:12 fros4943 Exp $
  */
 
 #include "contiki.h"
@@ -36,18 +36,17 @@
 #include <string.h>
 
 #include "net/rime.h"
-#include "net/uip.h"
-#include "net/uip-fw.h"
-#include "net/uip-fw-drv.h"
+#include "net/uip-netif.h"
 
 #include "node-id.h"
 #include "dev/cooja-radio.h"
 
+#define PRINT6ADDR(addr) printf("%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x", ((u8_t *)addr)[0], ((u8_t *)addr)[1], ((u8_t *)addr)[2], ((u8_t *)addr)[3], ((u8_t *)addr)[4], ((u8_t *)addr)[5], ((u8_t *)addr)[6], ((u8_t *)addr)[7], ((u8_t *)addr)[8], ((u8_t *)addr)[9], ((u8_t *)addr)[10], ((u8_t *)addr)[11], ((u8_t *)addr)[12], ((u8_t *)addr)[13], ((u8_t *)addr)[14], ((u8_t *)addr)[15])
 #define UIP_IP_BUF ((struct uip_ip_hdr *)&uip_buf[UIP_LLH_LEN])
 
 /*---------------------------------------------------------------------------*/
 static u8_t
-sender(void)
+sender(uip_lladdr_t * dst_mac)
 {
   return cooja_radio.send((char*)UIP_IP_BUF, uip_len);
 }
@@ -59,14 +58,11 @@ receiver(const struct radio_driver *d)
   tcpip_input();
 }
 /*---------------------------------------------------------------------------*/
-/* Only using a single network interface */
-static struct uip_fw_netif default_if = {UIP_FW_NETIF(0,0,0,0, 0,0,0,0, sender)};
-/*---------------------------------------------------------------------------*/
 void
 init_net(void)
 {
   int i;
-  uip_ipaddr_t hostaddr, netmask;
+  uint8_t addr[sizeof(uip_lladdr.addr)];
   rimeaddr_t rimeaddr;
 
   /* Init Rime */
@@ -80,18 +76,17 @@ init_net(void)
   }
   printf("%d\n", rimeaddr_node_addr.u8[i]);
 
-  /* Init uIPv4 */
+  /* Init uIPv6 */
+  for (i=0; i < sizeof(uip_lladdr.addr); i++) {
+    addr[i] = node_id & 0xff;
+  }
+  memcpy(&uip_lladdr.addr, addr, sizeof(uip_lladdr.addr));
   process_start(&tcpip_process, NULL);
-  process_start(&uip_fw_process, NULL);
-  uip_init();
-  uip_ipaddr(&hostaddr, 172, 16, rimeaddr_node_addr.u8[1], rimeaddr_node_addr.u8[0]);
-  uip_ipaddr(&netmask, 255,255,0,0);
-  uip_sethostaddr(&hostaddr);
-  uip_setnetmask(&netmask);
-  uip_fw_default(&default_if);
-  printf("uIP started with IP address: %d.%d.%d.%d\n", uip_ipaddr_to_quad(&hostaddr));
+  printf("IPv6 started with address: ");
+  PRINT6ADDR(&uip_netif_physical_if.addresses[0].ipaddr);
+  printf("\n");
 
-  /* uIPv4 <-> COOJA's packet radio */
+  /* uIPv6 <-> COOJA's packet radio */
   tcpip_set_outputfunc(sender);
   cooja_radio.set_receive_function(receiver);
 }
