@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: cooja-radio.h,v 1.4 2007/11/25 22:44:40 fros4943 Exp $
+ * $Id: cooja-radio.h,v 1.5 2009/04/01 13:44:34 fros4943 Exp $
  */
 
 #ifndef __COOJA_RADIO_H__
@@ -48,7 +48,7 @@
 #define COOJA_RADIO_ZEROLEN UIP_FW_ZEROLEN
 #define COOJA_RADIO_OK UIP_FW_OK
 
-extern const struct radio_driver cooja_driver;
+extern const struct radio_driver cooja_radio;
 
 /**
  * Turn radio hardware on.

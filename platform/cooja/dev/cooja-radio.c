@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: cooja-radio.c,v 1.8 2008/03/18 16:22:00 fros4943 Exp $
+ * $Id: cooja-radio.c,v 1.9 2009/04/01 13:44:34 fros4943 Exp $
  */
 
 #include <string.h>
@@ -65,7 +65,7 @@ int inSendFunction = 0;
 
 static void (* receiver_callback)(const struct radio_driver *);
 
-const struct radio_driver cooja_driver =
+const struct radio_driver cooja_radio =
   {
     radio_send,
     radio_read,
@@ -129,28 +129,28 @@ doInterfaceActionsBeforeTick(void)
     simInPolled = 0;
     return;
   }
-  
+
   // Don't fall asleep while receiving (in main file)
   if (simReceiving) {
     simLastSignalStrength = simSignalStrength;
     simDontFallAsleep = 1;
     return;
   }
-  
+
   // If no incoming radio data, do nothing
   if (simInSize == 0) {
     simInPolled = 0;
     return;
   }
-  
+
   // Check size of received packet
   if (simInSize > COOJA_RADIO_BUFSIZE) {
     // Drop packet by not delivering
     return;
   }
-  
+
   // ** Good place to add explicit manchester/gcr-encoding
-  
+
   if(receiver_callback != NULL && !simInPolled) {
     simDoReceiverCallback = 1;
     simInPolled = 1;
@@ -165,7 +165,7 @@ radio_read(void *buf, unsigned short bufsize)
 {
   int tmpInSize = simInSize;
   if(simInSize > 0) {
-    
+
     memcpy(buf, simInDataBuffer, simInSize);
     simInSize = 0;
     return tmpInSize;
@@ -190,31 +190,31 @@ radio_send(const void *payload, unsigned short payload_len)
   if(inSendFunction) {
     return COOJA_RADIO_DROPPED;
   }
-  
+
   inSendFunction = 1;
-  
+
   /* If radio is turned off, do nothing */
   if(!simRadioHWOn) {
     inSendFunction = 0;
     return COOJA_RADIO_DROPPED;
   }
-  
+
   /* Drop packet if data size too large */
   if(payload_len > COOJA_RADIO_BUFSIZE) {
     inSendFunction = 0;
     return COOJA_RADIO_TOOLARGE;
   }
-  
+
   /* Drop packet if no data length */
   if(payload_len <= 0) {
     inSendFunction = 0;
     return COOJA_RADIO_ZEROLEN;
   }
-  
+
   /* Copy packet data to temporary storage */
   memcpy(simOutDataBuffer, payload, payload_len);
   simOutSize = payload_len;
-  
+
 #if USING_CCA_BUSYWAIT
   /* Busy-wait until both radio HW and ether is ready */
   {
@@ -237,15 +237,15 @@ radio_send(const void *payload, unsigned short payload_len)
     return COOJA_RADIO_DROPPED;
   }
 #endif /* USING_CCA */
-  
+
   if(simOutSize <= 0) {
     inSendFunction = 0;
     return COOJA_RADIO_DROPPED;
   }
-  
+
   // - Initiate transmission -
   simTransmitting = 1;
-  
+
   // Busy-wait while transmitting
   while(simTransmitting && !simNoYield) {
     cooja_mt_yield();
@@ -253,14 +253,14 @@ radio_send(const void *payload, unsigned short payload_len)
   if (simTransmitting) {
     simDontFallAsleep = 1;
   }
-    
+
   inSendFunction = 0;
   return COOJA_RADIO_OK;
 }
 /*-----------------------------------------------------------------------------------*/
 void radio_call_receiver()
 {
-  receiver_callback(&cooja_driver);
+  receiver_callback(&cooja_radio);
 }
 /*-----------------------------------------------------------------------------------*/
 SIM_INTERFACE(radio_interface,
