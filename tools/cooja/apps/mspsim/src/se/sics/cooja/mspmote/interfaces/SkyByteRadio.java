@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: SkyByteRadio.java,v 1.8 2009/03/09 17:14:35 fros4943 Exp $
+ * $Id: SkyByteRadio.java,v 1.9 2009/04/01 23:37:27 fros4943 Exp $
  */
 
 package se.sics.cooja.mspmote.interfaces;
@@ -193,7 +193,7 @@ public class SkyByteRadio extends Radio implements CustomDataRadio {
     lastIncomingPacket = packet;
 
     /* TODO Receiving all bytes at the same time ok? */
-    byte[] packetData = CC2420RadioPacketConverter.fromCoojaToCC2420((COOJARadioPacket) packet);
+    byte[] packetData = CC2420RadioPacketConverter.fromCoojaToCC2420(packet);
 
     if (cc2420.getState() != CC2420.RadioState.RX_SFD_SEARCH) {
       /*logger.info("Radio is not currently active. Let's wait some...");*/
