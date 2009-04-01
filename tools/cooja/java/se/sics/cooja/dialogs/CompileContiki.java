@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: CompileContiki.java,v 1.3 2009/03/21 16:44:29 fros4943 Exp $
+ * $Id: CompileContiki.java,v 1.4 2009/04/01 14:00:00 fros4943 Exp $
  */
 
 package se.sics.cooja.dialogs;
@@ -49,6 +49,7 @@ import org.apache.log4j.Logger;
 import se.sics.cooja.GUI;
 import se.sics.cooja.MoteType.MoteTypeCreationException;
 import se.sics.cooja.contikimote.ContikiMoteType;
+import se.sics.cooja.contikimote.ContikiMoteType.CommunicationStack;
 import se.sics.cooja.dialogs.MessageList;
 
 /**
@@ -376,7 +377,8 @@ public class CompileContiki {
       File contikiApp,
       File mapFile,
       File libFile,
-      File archiveFile)
+      File archiveFile,
+      CommunicationStack commStack)
   throws Exception {
 
     if (identifier == null) {
@@ -438,10 +440,14 @@ public class CompileContiki {
     ccFlags = ccFlags.replace("$(JAVA_HOME)", javaHome);
 
     /* Strip away contiki application .c extension */
+    String commStackFiles = "";
+    if (commStack != null) {
+      commStackFiles = commStack.getSourceFilenamesString();
+    }
     String contikiAppNoExtension = contikiApp.getName().substring(0, contikiApp.getName().length()-2);
     env[0] = new String[] { "LIBNAME", identifier };
     env[1] = new String[] { "CONTIKI_APP", contikiAppNoExtension };
-    env[2] = new String[] { "COOJA_SOURCEFILES", "cooja-radio.c init-net-rime.c" };
+    env[2] = new String[] { "COOJA_SOURCEFILES", commStackFiles };
     env[3] = new String[] { "CC", GUI.getExternalToolsSetting("PATH_C_COMPILER") };
     env[4] = new String[] { "EXTRA_CC_ARGS", ccFlags };
     env[5] = new String[] { "LD", GUI.getExternalToolsSetting("PATH_LINKER") };
