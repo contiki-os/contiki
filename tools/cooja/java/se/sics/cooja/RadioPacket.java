@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: RadioPacket.java,v 1.1 2008/03/18 12:46:36 fros4943 Exp $
+ * $Id: RadioPacket.java,v 1.2 2009/04/01 23:35:23 fros4943 Exp $
  */
 
 package se.sics.cooja;
@@ -39,6 +39,8 @@ import se.sics.cooja.interfaces.CustomDataRadio;
  * implementations can additionally support custom data objects.
  *
  * @see CustomDataRadio
+ * @see COOJARadioPacket
+ * @see ConvertedRadioPacket
  * @author Fredrik Osterlind
  */
 public interface RadioPacket {
