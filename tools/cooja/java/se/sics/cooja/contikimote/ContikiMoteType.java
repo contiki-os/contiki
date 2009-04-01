@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ContikiMoteType.java,v 1.35 2009/03/21 15:41:42 fros4943 Exp $
+ * $Id: ContikiMoteType.java,v 1.36 2009/04/01 14:02:44 fros4943 Exp $
  */
 
 package se.sics.cooja.contikimote;
@@ -99,14 +99,14 @@ public class ContikiMoteType implements MoteType {
    * Communication stacks in Contiki.
    */
   public enum CommunicationStack {
-    RIME, UIP, UIP_UAODV;
+    RIME, UIP, UIPV6;
 
     public String toString() {
-      if (this == UIP) {
-        return "uIP";
+      if (this == UIPV6) {
+        return "uIPv6";
       }
-      if (this == UIP_UAODV) {
-        return "uIP over uAODV";
+      if (this == UIP) {
+        return "uIPv4";
       }
       if (this == RIME) {
         return "Rime";
@@ -115,31 +115,31 @@ public class ContikiMoteType implements MoteType {
     }
 
     public String getSourceFilenamesString() {
-      if (this == UIP) {
-        return " cooja-radio.c radio-uip.c init-net-uip.c";
+      if (this == UIPV6) {
+        return " init-net-uipv6.c";
       }
-      if (this == UIP_UAODV) {
-        return " uaodv.c cooja-radio.c radio-uip-uaodv.c init-net-uip-uaodv.c crc16.c";
+      if (this == UIP) {
+        return " init-net-uip.c";
       }
       if (this == RIME) {
-        return " cooja-radio.c init-net-rime.c";
+        return " init-net-rime.c";
       }
       return " ";
     }
 
     public static CommunicationStack parse(String name) {
-      if (name.equals("uIP") || name.equals("UIP")) {
+      if (name.equals("uIPv4") || name.equals("UIP")) {
         return UIP;
       }
-      if (name.equals("uIP over uAODV") || name.equals("UIP_UAODV")) {
-        return UIP_UAODV;
+      if (name.equals("uIPv6") || name.equals("UIPV6")) {
+        return UIPV6;
       }
       if (name.equals("Rime") || name.equals("RIME")) {
         return RIME;
       }
 
       logger.warn("Can't parse communication stack name: " + name);
-      return UIP;
+      return RIME;
     }
   }
 
@@ -266,7 +266,12 @@ public class ContikiMoteType implements MoteType {
       String[][] env;
       try {
         env = CompileContiki.createCompilationEnvironment(
-            getIdentifier(), contikiApp, mapFile, libFile, archiveFile);
+            getIdentifier(),
+            contikiApp,
+            mapFile,
+            libFile,
+            archiveFile,
+            commStack);
       } catch (Exception e) {
         throw (MoteTypeCreationException) new MoteTypeCreationException(
             "Error when creating environment: " + e.getMessage()).initCause(e);
