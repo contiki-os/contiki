@@ -27,7 +27,7 @@
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * $Id: contiki-conf.h,v 1.9 2007/12/13 08:00:51 fros4943 Exp $
+ * $Id: contiki-conf.h,v 1.10 2009/04/01 13:46:56 fros4943 Exp $
  *
  */
 
@@ -44,7 +44,6 @@
 #define CC_CONF_REGISTER_ARGS          1
 #define CC_CONF_FUNCTION_POINTER_ARGS  1
 #define CC_CONF_FASTCALL
-
 #define CC_CONF_VA_ARGS                1
 
 #define CCIF
@@ -65,14 +64,26 @@ typedef unsigned long clock_time_t;
 
 #define AODV_COMPLIANCE
 
-#define UIP_CONF_MAX_CONNECTIONS 4
-#define UIP_CONF_MAX_LISTENPORTS 4
-#define UIP_CONF_BUFFER_SIZE     200
-#define UIP_CONF_BYTE_ORDER      UIP_LITTLE_ENDIAN
-#define UIP_CONF_BROADCAST	 1
-#define UIP_CONF_TCP_SPLIT       1
-#define UIP_CONF_LOGGING         0
-#define UIP_CONF_UDP_CHECKSUMS   0
-#define UIP_CONF_FWCACHE_SIZE    100
+#define UIP_CONF_MAX_LISTENPORTS      40
+#define UIP_CONF_MAX_CONNECTIONS      40
+#define UIP_CONF_BYTE_ORDER           UIP_LITTLE_ENDIAN
+#define UIP_CONF_TCP_SPLIT            0
+#define UIP_CONF_IP_FORWARD           0
+#define UIP_CONF_LOGGING              0
+#define UIP_CONF_UDP_CHECKSUMS        0
+#define UIP_CONF_BROADCAST            1
+
+#define UIP_CONF_UDP                  1
+#define UIP_CONF_TCP                  1
+
+#if UIP_CONF_IPV6
+#define UIP_CONF_IPV6_QUEUE_PKT       1
+#define UIP_CONF_IPV6_CHECKS          1
+#define UIP_CONF_IPV6_REASSEMBLY      1
+#define UIP_CONF_NETIF_MAX_ADDRESSES  3
+#define UIP_CONF_ND6_MAX_PREFIXES     3
+#define UIP_CONF_ND6_MAX_NEIGHBORS    4
+#define UIP_CONF_ND6_MAX_DEFROUTERS   2
+#endif /* UIP_CONF_IPV6 */
 
 #endif /* __CONTIKI_CONF_H__ */
