@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ContikiMoteCompileDialog.java,v 1.2 2009/03/11 18:18:57 fros4943 Exp $
+ * $Id: ContikiMoteCompileDialog.java,v 1.3 2009/04/01 14:00:30 fros4943 Exp $
  */
 
 package se.sics.cooja.dialogs;
@@ -39,7 +39,6 @@ import java.awt.event.ActionListener;
 import java.io.File;
 import javax.swing.Box;
 import javax.swing.JButton;
-import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -66,6 +65,8 @@ import se.sics.cooja.contikimote.ContikiMoteType.CommunicationStack;
  */
 public class ContikiMoteCompileDialog extends AbstractCompileDialog {
   private static Logger logger = Logger.getLogger(ContikiMoteCompileDialog.class);
+
+  private JComboBox commStackComboBox = new JComboBox(CommunicationStack.values());
 
   public static boolean showDialog(
       Container parent,
@@ -94,7 +95,7 @@ public class ContikiMoteCompileDialog extends AbstractCompileDialog {
 
     /* Add Contiki mote type specifics */
     addMoteInterfaceClasses();
-    /* TODO addAdvancedTab(tabbedPane);*/
+    addAdvancedTab(tabbedPane);
   }
 
   public boolean canLoadFirmware(File file) {
@@ -157,24 +158,33 @@ public class ContikiMoteCompileDialog extends AbstractCompileDialog {
           source,
           ((ContikiMoteType)moteType).mapFile,
           ((ContikiMoteType)moteType).libFile,
-          ((ContikiMoteType)moteType).archiveFile
+          ((ContikiMoteType)moteType).archiveFile,
+          ((ContikiMoteType) moteType).getCommunicationStack()
       );
+      String[] envOneDimension = new String[env.length];
+      for (int i=0; i < env.length; i++) {
+        envOneDimension[i] = env[i][0] + "=" + env[i][1];
+      }
+      createEnvironmentTab(tabbedPane, env);
+
+      /* Prepare compiler with environment variables */
+      this.compilationEnvironment = envOneDimension;
     } catch (Exception e) {
       logger.warn("Error when creating environment: " + e.getMessage());
       e.printStackTrace();
+      env = null;
     }
-    String[] envOneDimension = new String[env.length];
-    for (int i=0; i < env.length; i++) {
-      envOneDimension[i] = env[i][0] + "=" + env[i][1];
+
+    String defines = "";
+    if (((ContikiMoteType) moteType).getCommunicationStack() == CommunicationStack.UIP) {
+      defines = " DEFINES=WITH_UIP=1";
     }
-    createEnvironmentTab(tabbedPane, env);
-
-    /* Prepare compiler with environment variables */
-    this.compilationEnvironment = envOneDimension;
-
+    if (((ContikiMoteType) moteType).getCommunicationStack() == CommunicationStack.UIPV6) {
+      defines = " DEFINES=UIP_CONF_IPV6=1";
+    }
     return
     /*"make clean TARGET=cooja\n" + */
-    "make " + getExpectedFirmwareFile(source).getName() + " TARGET=cooja";
+    "make " + getExpectedFirmwareFile(source).getName() + " TARGET=cooja" + defines;
   }
 
   public File getExpectedFirmwareFile(File source) {
@@ -207,20 +217,25 @@ public class ContikiMoteCompileDialog extends AbstractCompileDialog {
   private void addAdvancedTab(JTabbedPane parent) {
 
     /* TODO System symbols */
-    JCheckBox symbolsCheckBox = new JCheckBox("With system symbols", false);
+    /*JCheckBox symbolsCheckBox = new JCheckBox("With system symbols", false);
     symbolsCheckBox.setAlignmentX(Component.LEFT_ALIGNMENT);
     symbolsCheckBox.setEnabled(false);
-    symbolsCheckBox.setToolTipText("Not implemented");
+    symbolsCheckBox.setToolTipText("Not implemented");*/
 
-    /* TODO Communication stack */
+    /* Communication stack */
     JLabel label = new JLabel("Communication stack");
     label.setPreferredSize(LABEL_DIMENSION);
-    JComboBox commStackComboBox = new JComboBox(CommunicationStack.values());
-    commStackComboBox.setSelectedIndex(0);
+    commStackComboBox.setSelectedItem(((ContikiMoteType)moteType).getCommunicationStack());
     commStackComboBox.setEnabled(true);
     commStackComboBox.setPreferredSize(LABEL_DIMENSION);
     commStackComboBox.setMaximumSize(LABEL_DIMENSION);
-    commStackComboBox.setToolTipText("Not implemented");
+    commStackComboBox.addActionListener(new ActionListener() {
+      public void actionPerformed(ActionEvent e) {
+        ((ContikiMoteType)moteType).setCommunicationStack(
+            (CommunicationStack)commStackComboBox.getSelectedItem());
+        setDialogState(DialogState.SELECTED_SOURCE);
+      }
+    });
     Box commStackBox = Box.createHorizontalBox();
     commStackBox.setAlignmentX(Component.LEFT_ALIGNMENT);
     commStackBox.add(label);
@@ -229,7 +244,7 @@ public class ContikiMoteCompileDialog extends AbstractCompileDialog {
 
     /* Advanced tab */
     Box box = Box.createVerticalBox();
-    box.add(symbolsCheckBox);
+    /*box.add(symbolsCheckBox);*/
     box.add(commStackBox);
     box.add(Box.createVerticalGlue());
     parent.addTab("Advanced", null, new JScrollPane(box), "Advanced Contiki Mote Type settings");
@@ -291,9 +306,6 @@ public class ContikiMoteCompileDialog extends AbstractCompileDialog {
 
     /* TODO System symbols */
     ((ContikiMoteType)moteType).setHasSystemSymbols(false);
-
-    /* TODO Communication stack */
-    ((ContikiMoteType)moteType).setCommunicationStack(ContikiMoteType.CommunicationStack.RIME);
   }
 
   public void compileContiki()
