@@ -26,18 +26,14 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: RadioLogger.java,v 1.14 2008/12/04 14:03:42 joxe Exp $
+ * $Id: RadioLogger.java,v 1.15 2009/04/01 13:53:37 fros4943 Exp $
  */
 
 package se.sics.cooja.plugins;
 
-import java.awt.event.ItemEvent;
-import java.awt.event.ItemListener;
 import java.awt.event.MouseEvent;
 import java.util.*;
 import javax.swing.*;
-import javax.swing.event.ListSelectionEvent;
-import javax.swing.event.ListSelectionListener;
 import javax.swing.table.AbstractTableModel;
 import javax.swing.table.TableCellEditor;
 import javax.swing.table.TableColumn;
@@ -135,6 +131,10 @@ public class RadioLogger extends VisPlugin {
         }
 
         if (col == COLUMN_TO) {
+          Radio dests[] = ((RadioConnection)rowData.get(row)[DATAPOS_CONNECTION]).getDestinations();
+          for (Radio dest: dests) {
+            gui.signalMoteHighlight(dest.getMote());
+          }
           return true;
         }
         return false;
@@ -146,16 +146,6 @@ public class RadioLogger extends VisPlugin {
     };
 
     final JComboBox comboBox = new JComboBox();
-
-    comboBox.addItemListener(new ItemListener() {
-      public void itemStateChanged(ItemEvent e) {
-        if (e.getStateChange() == ItemEvent.SELECTED) {
-          if (e.getItem() instanceof Mote) {
-            gui.signalMoteHighlight((Mote) e.getItem());
-          }
-        }
-      }
-    });
 
     dataTable = new JTable(model) {
       public TableCellEditor getCellEditor(int row, int column) {
@@ -214,32 +204,6 @@ public class RadioLogger extends VisPlugin {
     dataTable.getColumnModel().getColumn(COLUMN_TO).setPreferredWidth(100);
 
     dataTable.getSelectionModel().setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-    dataTable.getSelectionModel().addListSelectionListener(
-        new ListSelectionListener() {
-          public void valueChanged(ListSelectionEvent e) {
-            int selectedRowIndex = dataTable.getSelectedRow();
-            if (selectedRowIndex < 0) {
-              return;
-            }
-
-            Object[] row = rowData.get(selectedRowIndex);
-            if (row == null) {
-              return;
-            }
-
-            RadioConnection conn = (RadioConnection) row[DATAPOS_CONNECTION];
-            if (conn == null) {
-              return;
-            }
-
-            Mote mote = conn.getSource().getMote();
-            if (mote == null) {
-              return;
-            }
-
-            gui.signalMoteHighlight(mote);
-          }
-        });
 
     TableColumn destColumn = dataTable.getColumnModel().getColumn(COLUMN_TO);
     destColumn.setCellEditor(new DefaultCellEditor(comboBox));
