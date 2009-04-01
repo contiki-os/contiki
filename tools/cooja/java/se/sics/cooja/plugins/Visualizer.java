@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: Visualizer.java,v 1.2 2009/03/26 15:41:04 fros4943 Exp $
+ * $Id: Visualizer.java,v 1.3 2009/04/01 13:51:50 fros4943 Exp $
  */
 
 package se.sics.cooja.plugins;
@@ -163,6 +163,10 @@ public class Visualizer extends VisPlugin {
     skinBox = new JComboBox();
     skinBox.addActionListener(new ActionListener() {
       public void actionPerformed(ActionEvent e) {
+        if (skinBox.getSelectedIndex() < 0 ||
+            skinBox.getSelectedIndex() > visualizerSkins.size()) {
+          return;
+        }
         Class<? extends VisualizerSkin> skinClass = visualizerSkins.get(skinBox.getSelectedIndex());
         selectSkin(skinClass);
       }
@@ -857,6 +861,8 @@ public class Visualizer extends VisPlugin {
   }
 
   public void closePlugin() {
+    skinBox.removeAllItems();
+
     if (currentSkin != null) {
       currentSkin.setInactive();
     }
