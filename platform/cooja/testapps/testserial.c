@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: testserial.c,v 1.5 2009/03/21 15:47:40 fros4943 Exp $
+ * $Id: testserial.c,v 1.6 2009/04/01 13:46:16 fros4943 Exp $
  */
 
 #include "contiki.h"
@@ -44,9 +44,6 @@ PROCESS_THREAD(test_serial_process, ev, data)
   PROCESS_BEGIN();
 
   etimer_set(&et, CLOCK_SECOND);
-
-  /* Start serial process */
-  serial_line_init();
 
   while(1) {
     PROCESS_WAIT_EVENT();
