@@ -1,4 +1,4 @@
-# $Id: Makefile.cooja,v 1.32 2009/03/26 16:22:36 fros4943 Exp $
+# $Id: Makefile.cooja,v 1.33 2009/04/01 13:39:54 fros4943 Exp $
 
 ## The COOJA Simulator Contiki platform Makefile
 ##
@@ -55,7 +55,7 @@ COOJA_BASE	= simEnvChange.c irq.c cooja_mt.c cooja_mtarch.c rtimer-arch.c
 
 COOJA_INTFS	= beep.c button-sensor.c ip.c leds-arch.c moteid.c \
 		    pir-sensor.c rs232.c vib-sensor.c \
-		    clock.c log.c radio-sensor.c cfs-cooja.c
+		    clock.c log.c radio-sensor.c cfs-cooja.c cooja-radio.c
 
 COOJA_CORE = random.c sensors.c leds.c symbols.c
 
