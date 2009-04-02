@@ -4,18 +4,19 @@ running the udp-receiver-ipv6 example.
 
 We use this example to test UDP, and most particularly UDP header compression
 with IPv6 and 6lowpan support. When IPv6 is used over an 802.15.4 link, 
-6lowpan acts as teh adaptation layer between IPv6 and MAC. In particular, it
-can compress packet headers. IP header is compressed, as well as UDP header.
+6lowpan acts as an adaptation layer between IPv6 and MAC. In particular, 
+it can compress IP headers and UDP headers.
 
 With both HC1 and HC01 header compression schemes, UDP 16-bit ports are 
 compressed to 4 bits if they are between F0B0 and F0BF.
 
 sender behavior:
-The sender is implemented in apps/udp/udp-sender.c and acts the following way:
+The sender is implemented in examples/udp-sender-ipv6/example-udp-sender.c 
+and acts in the following way:
 it waits 15 seconds (to be sure the node configures a global address, in case
 a router on the link sends router advertisements usable for address 
 autoconfiguration) , then sends 5 UDP packets to the receiver address 
-entered staticvally in apps/udp/udp-sender.c.
+entered hard-wired in the source code.
 
 receiver behavior:
 When receiving a packet, the receiver answers with a simmilar packet.
@@ -25,5 +26,6 @@ values:
 #define UIP_CONF_UDP             1
 #define UIP_CONF_IPV6            1
 
-You must configure addresses in apps/udp/udp-sender.c and apps/udp/udp-receiver.c
-which match your platforms addresses.
+You must configure addresses example-udp-sender.c and 
+examples/udp-receiver-ipv6/example-udp-receiver.c which match your 
+platforms addresses.
