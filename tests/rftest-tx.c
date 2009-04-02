@@ -9,17 +9,10 @@
 #define UART1_CTS       0x80005014
 #define UART1_BR        0x80005018
 
-#define MACA_RESET      0x80004004
-#define MACA_CONTROL    0x8000400c
-#define MACA_STATUS     0x80004010
-#define MACA_DMARX      0x80004080
-#define MACA_DMATX      0x80004084
-#define MACA_GETRXLVL   0x80004098
-#define MACA_PREAMBLE   0x8000411c
-
+#include "maca.h"
 #include "embedded_types.h"
 
-#define reg(x) (*(volatile uint32_t *)x)
+#define reg(x) (*(volatile uint32_t *)(x))
 
 #define DELAY 400000
 #define DATA  0x00401000;
@@ -38,6 +31,7 @@ void main(void) {
 	uint8_t c;
 	volatile uint32_t i;
 	volatile uint32_t *data;
+	uint32_t tmp;
 
 	/* Restore UART regs. to default */
 	/* in case there is still bootloader state leftover */
@@ -57,14 +51,51 @@ void main(void) {
 	reg(GPIO_FUNC_SEL0) = ( (0x01 << (14*2)) | (0x01 << (15*2)) ); /* set GPIO15-14 to UART (UART1 TX and RX)*/
 
 	reg(MACA_RESET) = 0x3; /* reset, turn on the clock */
+	for(i=0; i<DELAY; i++) { continue; }
 	reg(MACA_RESET) = 0x2; /* unreset, turn on the clock */
-	reg(MACA_CONTROL) = 0x00000223; /* continuous transmit test mode */
+	for(i=0; i<DELAY; i++) { continue; }
+
+	init_phy();
+
+        reg(MACA_CONTROL) = SMAC_MACA_CNTL_INIT_STATE;
+	for(i=0; i<DELAY; i++) { continue; }
+
+	data = (void *)DATA;
+	data[0] = 0xabc0ffee;
+	maca_txlen = 1;
+	reg(MACA_DMATX) = DATA; /* get data from somewhere */
 	reg(MACA_PREAMBLE) = 0xface0fff;
 	
+
+#define NL "\033[K\r\n"
+
+	puts("\033[H\033[2J");
 	while(1) {		
-		puts("rftest-tx --- ");
+		puts("\033[H");
+		puts("rftest-tx --- " NL);
+/*
+		puts("base +0       +4       +8       +c       +10      +14      +18      +1c      " NL);
+		for (i = 0; i < 96; i ++) { 
+			if ((i & 7) == 0) {
+				put_hex16(4 * i);
+			}
+			putc(' ');
+			put_hex32(reg(MACA_BASE+(4*i)));
+			if ((i & 7) == 7)
+				puts(NL);
+		}
+		puts(NL);
+*/
+
+		/* start a sequence */
+		reg(MACA_CONTROL) = 0x00031A03;
+		/* wait for it to finish */
+		while (((tmp = reg(MACA_STATUS)) & 15) == 14)
+			continue;
+		puts("completed status is ");
+		put_hex32(tmp);
+		puts(NL);		
 		for(i=0; i<DELAY; i++) { continue; }
-		
 	};
 }
 

@@ -58,7 +58,7 @@ ALL = $(TARGETS) $(TESTS:.c=.srec) $(TESTS:.c=.bin) $(TESTS:.c=.dis)
 
 .PRECIOUS: 	$(COBJS) $(TARGETS) $(TESTS:.c=.obj)
 
-all:		$(ALL)
+all:		$(COBJS) $(ALL)
 
 %.srec:		%.obj
 		$(OBJCOPY) ${OBJCFLAGS} -O srec $< $@

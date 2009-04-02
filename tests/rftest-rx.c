@@ -9,16 +9,7 @@
 #define UART1_CTS       0x80005014
 #define UART1_BR        0x80005018
 
-#define MACA_BASE       0x80004000
-#define MACA_RESET      0x80004004
-#define MACA_RANDOM     0x80004008
-#define MACA_CONTROL    0x8000400c
-#define MACA_STATUS     0x80004010
-#define MACA_DMARX      0x80004080
-#define MACA_DMATX      0x80004084
-#define MACA_GETRXLVL   0x80004098
-#define MACA_PREAMBLE   0x8000411c
-
+#include "maca.h"
 #include "embedded_types.h"
 
 #define reg(x) (*(volatile uint32_t *)(x))
@@ -39,6 +30,7 @@ __attribute__ ((section ("startup")))
 void main(void) {
 	uint8_t c;
 	volatile uint32_t i;
+	uint32_t tmp;
 	volatile uint32_t *data;
 
 	/* Restore UART regs. to default */
@@ -58,18 +50,27 @@ void main(void) {
 	reg(UART1_CON) = 0x00000003; /* enable receive and transmit */
 	reg(GPIO_FUNC_SEL0) = ( (0x01 << (14*2)) | (0x01 << (15*2)) ); /* set GPIO15-14 to UART (UART1 TX and RX)*/
 
+
 	reg(MACA_RESET) = 0x3; /* reset, turn on the clock */
+	for(i=0; i<DELAY; i++) { continue; }
 	reg(MACA_RESET) = 0x2; /* unreset, turn on the clock */
-	reg(MACA_CONTROL) = 0x00000224; /* continuous receive test mode */
-	reg(MACA_DMARX) = DATA; /* put data somewhere */
-	data = DATA;
-	
+	for(i=0; i<DELAY; i++) { continue; }
 
+	init_phy();
+
+        reg(MACA_CONTROL) = SMAC_MACA_CNTL_INIT_STATE;
+	for(i=0; i<DELAY; i++) { continue; }
+
+
+	data = (void *)DATA;
 	data[0] = 0xdeadbeef;
+	reg(MACA_DMARX) = DATA; /* put data somewhere */
+	reg(MACA_PREAMBLE) = 0xface0fff;
 
+#define NL "\033[K\r\n"
 	puts("\033[H\033[2J");
 	while(1) {		
-		puts("\033[Hrftest-rx --- ");
+		puts("\033[Hrftest-rx --- " );
 		puts(" maca_getrxlvl: 0x");
 		put_hex(reg(MACA_GETRXLVL));
 		puts(" data[0]: 0x");
@@ -78,14 +79,42 @@ void main(void) {
 		put_hex32(reg(MACA_STATUS));
 		puts(" random: 0x");
 		put_hex32(reg(MACA_RANDOM));
-		puts("\n\r");
+		puts(NL);
+/*
+		puts("base +0       +4       +8       +c       +10      +14      +18      +1c      " NL);
 		for (i = 0; i < 96; i ++) { 
+			if ((i & 7) == 0) {
+				put_hex16(4 * i);
+			}
+			putc(' ');
 			put_hex32(reg(MACA_BASE+(4*i)));
 			if ((i & 7) == 7)
-				puts("\n\r");
-			else
-				putc(' ');
+				puts(NL);
 		}
+		puts(NL);
+*/
+
+		/* start rx sequence */
+		reg(MACA_CONTROL) = 0x00031a01; /* abort */
+		while (((tmp = reg(MACA_STATUS)) & 15) == 14)
+			puts(".");
+		puts("abort status is "); put_hex32(tmp); puts(NL);
+		puts("1 status is "); put_hex32(reg(MACA_STATUS)); puts(NL);
+		puts("2 status is "); put_hex32(reg(MACA_STATUS)); puts(NL);
+		puts("3 status is "); put_hex32(reg(MACA_STATUS)); puts(NL);
+		reg(MACA_CONTROL) = 0x00031a04; /* receive */
+		while (((tmp = reg(MACA_STATUS)) & 15) == 14)
+			puts(".");
+		puts("complete status is "); put_hex32(tmp); puts(NL);
+		puts("1 status is "); put_hex32(reg(MACA_STATUS)); puts(NL);
+		puts("2 status is "); put_hex32(reg(MACA_STATUS)); puts(NL);
+		puts("3 status is "); put_hex32(reg(MACA_STATUS)); puts(NL);
+
+		puts(NL);		
+		for(i=0; i<DELAY; i++) { continue; }
+		for(i=0; i<DELAY; i++) { continue; }
+		for(i=0; i<DELAY; i++) { continue; }
+		for(i=0; i<DELAY; i++) { continue; }
 		for(i=0; i<DELAY; i++) { continue; }
 		
 	};
