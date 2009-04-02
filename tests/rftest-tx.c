@@ -9,9 +9,7 @@
 #define UART1_CTS       0x80005014
 #define UART1_BR        0x80005018
 
-#define MACA_BASE       0x80004000
 #define MACA_RESET      0x80004004
-#define MACA_RANDOM     0x80004008
 #define MACA_CONTROL    0x8000400c
 #define MACA_STATUS     0x80004010
 #define MACA_DMARX      0x80004080
@@ -21,7 +19,7 @@
 
 #include "embedded_types.h"
 
-#define reg(x) (*(volatile uint32_t *)(x))
+#define reg(x) (*(volatile uint32_t *)x)
 
 #define DELAY 400000
 #define DATA  0x00401000;
@@ -60,32 +58,11 @@ void main(void) {
 
 	reg(MACA_RESET) = 0x3; /* reset, turn on the clock */
 	reg(MACA_RESET) = 0x2; /* unreset, turn on the clock */
-	reg(MACA_CONTROL) = 0x00000224; /* continuous receive test mode */
-	reg(MACA_DMARX) = DATA; /* put data somewhere */
-	data = DATA;
+	reg(MACA_CONTROL) = 0x00000223; /* continuous transmit test mode */
+	reg(MACA_PREAMBLE) = 0xface0fff;
 	
-
-	data[0] = 0xdeadbeef;
-
-	puts("\033[H\033[2J");
 	while(1) {		
-		puts("\033[Hrftest-rx --- ");
-		puts(" maca_getrxlvl: 0x");
-		put_hex(reg(MACA_GETRXLVL));
-		puts(" data[0]: 0x");
-		put_hex32(data[0]);
-		puts(" status: 0x");
-		put_hex32(reg(MACA_STATUS));
-		puts(" random: 0x");
-		put_hex32(reg(MACA_RANDOM));
-		puts("\n\r");
-		for (i = 0; i < 96; i ++) { 
-			put_hex32(reg(MACA_BASE+(4*i)));
-			if ((i & 7) == 7)
-				puts("\n\r");
-			else
-				putc(' ');
-		}
+		puts("rftest-tx --- ");
 		for(i=0; i<DELAY; i++) { continue; }
 		
 	};

@@ -6,8 +6,7 @@
 
 #include "embedded_types.h"
 
-void main(void) {
-	
+__attribute__ ((section ("startup"))) void main(void) {
 	*(volatile uint32_t *)GPIO_PAD_DIR0 = 0x00000100;
 
 	volatile uint32_t i;

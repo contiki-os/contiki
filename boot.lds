@@ -32,6 +32,7 @@ SECTIONS
 	. = ALIGN(4);
 	.text      :
 	{
+	  *(startup)
 	  *(.text)
 	}
 
