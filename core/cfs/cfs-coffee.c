@@ -271,7 +271,8 @@ collect_garbage(int mode)
 
   watchdog_stop();
 
-  PRINTF("Coffee: Running the file system garbage collector...\n");
+  PRINTF("Coffee: Running the file system garbage collector in %s mode\n",
+	 mode == GC_RELUCTANT ? "reluctant" : "greedy");
   /*
    * The garbage collector erases as many sectors as possible. A sector is
    * erasable if there are only free or obsolete pages in it.
@@ -474,7 +475,8 @@ find_contiguous_pages(coffee_page_t amount)
 	start = page;
       }
 
-      /* All remaining pages in this sector are free -- jump to the next sector. */
+      /* All remaining pages in this sector are free --
+         jump to the next sector. */
       page = next_file(page, &hdr);
 
       if(start + amount <= page) {
@@ -527,9 +529,11 @@ remove_by_page(coffee_page_t page, int remove_log, int close_fds)
     }
   }
 
+#if !COFFEE_CONF_EXTENDED_WEAR_LEVELLING
   if(!HDR_LOG(hdr)) {
     collect_garbage(GC_RELUCTANT);
   }
+#endif
 
   return 0;
 }
@@ -973,6 +977,7 @@ cfs_close(int fd)
 #endif
     coffee_fd_set[fd].flags = COFFEE_FD_FREE;
     coffee_fd_set[fd].file->references--;
+    coffee_fd_set[fd].file = NULL;
   }
 }
 /*---------------------------------------------------------------------------*/
