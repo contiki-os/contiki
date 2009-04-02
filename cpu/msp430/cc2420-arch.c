@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#)$Id: cc2420-arch.c,v 1.2 2008/07/02 09:05:40 adamdunkels Exp $
+ * @(#)$Id: cc2420-arch.c,v 1.3 2009/04/02 22:23:06 joxe Exp $
  */
 
 #include <io.h>
@@ -38,6 +38,11 @@
 #include "dev/spi.h"
 #include "dev/cc2420.h"
 
+#ifdef CONF_SFD_TIMESTAMPS
+uint16_t sfd_start_time;
+uint16_t sfd_end_time;
+#endif
+
 /*---------------------------------------------------------------------------*/
 interrupt(PORT1_VECTOR)
 cc24240_port1_interrupt(void)
@@ -48,13 +53,48 @@ cc24240_port1_interrupt(void)
   }
   ENERGEST_OFF(ENERGEST_TYPE_IRQ);
 }
+
+#ifdef CONF_SFD_TIMESTAMPS
+/*---------------------------------------------------------------------------*/
+/* SFD interrupt for timestamping radio packets */
+interrupt(TIMERB1_VECTOR)
+cc24240_timerb1_interrupt(void)
+{
+  int tbiv;
+  ENERGEST_ON(ENERGEST_TYPE_IRQ);
+  /* always read TBIV to clear IFG */
+  tbiv = TBIV;
+  if(SFD_IS_1) {
+    start_time = TBCCR1;
+  } else {
+    end_time = TBCCR1;
+  }
+  ENERGEST_OFF(ENERGEST_TYPE_IRQ);
+}
+#endif
 /*---------------------------------------------------------------------------*/
 void
 cc2420_arch_init(void)
 {
   spi_init();
 
+  /* all input by default, set these as output */
   P4DIR |= BV(CSN) | BV(VREG_EN) | BV(RESET_N);
+
+#ifdef CONF_SFD_TIMESTAMPS
+  /* Need to select the special function! */
+  P4SEL = BV(SFD);
+
+  /* start timer B - 32768 ticks per second */
+  TBCTL = TBSSEL_1 | TBCLR;
+
+  /* CM_3 = capture mode - capture on both edges */
+  TBCCTL1 = CM_3 | CAP | SCS;
+  TBCCTL1 |= CCIE;
+
+  /* Start Timer_B in continuous mode. */
+  TBCTL |= MC1;
+#endif
 
   SPI_DISABLE();                /* Unselect radio. */
 }
