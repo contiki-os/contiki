@@ -1,4 +1,4 @@
-# $Id: Makefile.sky,v 1.22 2009/03/26 13:29:44 fros4943 Exp $
+# $Id: Makefile.sky,v 1.23 2009/04/02 11:15:30 fros4943 Exp $
 
 
 ARCH=msp430.c leds.c watchdog.c light.c spi.c ds2411.c \
@@ -74,25 +74,25 @@ sky-motes:
 sky-upload: sky-reset
 	$(MAKE) -j $(NUMPAR) sky-upload-sequence
 
-sky-upload-sequence:	$(foreach PORT, $(MOTES), sky-u.$(PORT))
+sky-upload-sequence:	$(foreach PORT, $(MOTES), sky-u.$(subst /,-,$(PORT)))
 	@echo Done
 
 sky-reset:
 	$(MAKE) -k -j $(NUMPAR) sky-reset-sequence
 
-sky-reset-sequence:	$(foreach PORT, $(MOTES), sky-r.$(PORT))
+sky-reset-sequence:	$(foreach PORT, $(MOTES), sky-r.$(subst /,-,$(PORT)))
 	@echo Done
 
 sky-u.%:
-	@echo +++++ Erasing $* ; \
-	$(BSL) -c $* -e && sleep 2 ; \
-	echo +++++ Programming $* ; \
-	$(BSL) -c $* $(BSL_FILETYPE) -p $(IHEXFILE) && sleep 2 ; \
-	echo +++++ Resetting $* ; \
-	$(BSL) -c $* -r
+	@echo +++++ Erasing $(subst -,/,$*); \
+	$(BSL) -c $(subst -,/,$*) -e && sleep 2 ; \
+	echo +++++ Programming $(subst -,/,$*) ; \
+	$(BSL) -c $(subst -,/,$*) $(BSL_FILETYPE) -p $(IHEXFILE) && sleep 2 ; \
+	echo +++++ Resetting $(subst -,/,$*) ; \
+	$(BSL) -c $(subst -,/,$*) -r
 
 sky-r.%:
-	$(BSL) -c $* -r
+	$(BSL) -c $(subst -,/,$*) -r
 
 sizeplot:
 	msp430-size $(OBJECTDIR)/*.o | $(CONTIKI)/tools/sky/check-size > size-data
