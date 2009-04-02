@@ -69,6 +69,11 @@
 #define INVALID_PAGE		((coffee_page_t)-1)
 #define UNKNOWN_OFFSET		((cfs_offset_t)-1)
 
+/* "Greedy" garbage collection erases as many sectors as possible. */
+#define GC_GREEDY		0
+/* "Reluctant" garbage collection stops after erasing one sector. */
+#define GC_RELUCTANT		1
+
 #define FD_VALID(fd)					\
 	((fd) >= 0 && (fd) < COFFEE_FD_SET_SIZE && 	\
 	coffee_fd_set[(fd)].flags != COFFEE_FD_FREE)
@@ -258,7 +263,7 @@ get_sector_status(uint16_t sector, struct sector_stats *stats) {
 }
 /*---------------------------------------------------------------------------*/
 static void
-cfs_garbage_collect(void)
+collect_garbage(int mode)
 {
   uint16_t sector;
   struct sector_stats stats;
@@ -281,6 +286,9 @@ cfs_garbage_collect(void)
       first_page = sector * COFFEE_PAGES_PER_SECTOR;
       if(first_page < *next_free) {
         *next_free = first_page;
+      }
+      if(mode == GC_RELUCTANT) {
+	break;
       }
     }
   }
@@ -519,6 +527,10 @@ remove_by_page(coffee_page_t page, int remove_log, int close_fds)
     }
   }
 
+  if(!HDR_LOG(hdr)) {
+    collect_garbage(GC_RELUCTANT);
+  }
+
   return 0;
 }
 /*---------------------------------------------------------------------------*/
@@ -548,7 +560,7 @@ reserve(const char *name, coffee_page_t pages, int allow_duplicates)
     if(*gc_wait) {
       return NULL;
     }
-    cfs_garbage_collect();
+    collect_garbage(GC_GREEDY);
     page = find_contiguous_pages(pages);
     if(page == INVALID_PAGE) {
       watchdog_start();
