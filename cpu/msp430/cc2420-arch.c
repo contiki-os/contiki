@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#)$Id: cc2420-arch.c,v 1.3 2009/04/02 22:23:06 joxe Exp $
+ * @(#)$Id: cc2420-arch.c,v 1.4 2009/04/02 22:39:29 joxe Exp $
  */
 
 #include <io.h>
@@ -65,9 +65,9 @@ cc24240_timerb1_interrupt(void)
   /* always read TBIV to clear IFG */
   tbiv = TBIV;
   if(SFD_IS_1) {
-    start_time = TBCCR1;
+    sfd_start_time = TBCCR1;
   } else {
-    end_time = TBCCR1;
+    sfd_end_time = TBCCR1;
   }
   ENERGEST_OFF(ENERGEST_TYPE_IRQ);
 }
