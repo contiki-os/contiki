@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: lpp.c,v 1.15 2009/03/31 17:39:54 adamdunkels Exp $
+ * $Id: lpp.c,v 1.16 2009/04/03 11:45:06 adamdunkels Exp $
  */
 
 /**
@@ -59,8 +59,10 @@
 #include "net/mac/lpp.h"
 #include "net/rime/packetbuf.h"
 #include "net/rime/announcement.h"
+#include "sys/compower.h"
 
 #include <stdlib.h>
+#include <string.h>
 
 #define DEBUG 0
 #if DEBUG
@@ -70,6 +72,9 @@
 #define PRINTF(...)
 #endif
 
+#define WITH_ACK_OPTIMIZATION         0
+#define WITH_PROBE_AFTER_RECEPTION    0
+#define WITH_PROBE_AFTER_TRANSMISSION 0
 
 struct announcement_data {
   uint16_t id;
@@ -92,22 +97,26 @@ struct lpp_hdr {
   rimeaddr_t receiver;
 };
 
+static struct compower_activity current_packet;
+
 static const struct radio_driver *radio;
 static void (* receiver_callback)(const struct mac_driver *);
-static struct pt pt;
+static struct pt dutycycle_pt;
 static struct ctimer timer;
 
 static uint8_t is_listening = 0;
 
-#define LISTEN_TIME CLOCK_SECOND / 32
-#define OFF_TIME CLOCK_SECOND * 1
+#define LISTEN_TIME CLOCK_SECOND / 128
+#define OFF_TIME CLOCK_SECOND / 2
 #define PACKET_LIFETIME (LISTEN_TIME + OFF_TIME)
 #define UNICAST_TIMEOUT	2 * PACKET_LIFETIME
+#define PROBE_AFTER_TRANSMISSION_TIME LISTEN_TIME * 2
 
 struct queue_list_item {
   struct queue_list_item *next;
   struct queuebuf *packet;
   struct ctimer timer;
+  struct compower_activity compower;
 };
 
 #ifdef QUEUEBUF_CONF_NUM
@@ -142,12 +151,14 @@ remove_queued_packet(void *item)
   ctimer_stop(&i->timer);  
   queuebuf_free(i->packet);
   list_remove(queued_packets_list, i);
-  memb_free(&queued_packets_memb, i);
 
   /* XXX potential optimization */
   if(list_length(queued_packets_list) == 0 && is_listening == 0) {
     turn_radio_off();
+    compower_accumulate(&i->compower);
   }
+
+  memb_free(&queued_packets_memb, i);
 }
 /*---------------------------------------------------------------------------*/
 static void
@@ -192,46 +203,71 @@ send_probe(void)
 
   /*  PRINTF("Sending probe\n");*/
   radio->send(packetbuf_hdrptr(), packetbuf_totlen());
+
+  compower_accumulate(&compower_idle_activity);
 }
 /*---------------------------------------------------------------------------*/
 /**
- * Duty cycle the radio. The protothread is driven by a ctimer that is
- * initiated in the lpp_init() function.
+ * Duty cycle the radio and send probes. This function is called
+ * repeatedly by a ctimer. The function restart_dutycycle() is used to
+ * (re)start the duty cycling.
  */
 static int
 dutycycle(void *ptr)
 {
   struct ctimer *t = ptr;
   
-  PT_BEGIN(&pt);
+  PT_BEGIN(&dutycycle_pt);
 
   while(1) {
-    turn_radio_on();
-    send_probe();
-    ctimer_set(t, LISTEN_TIME, (void (*)(void *))dutycycle, t);
-    PT_YIELD(&pt);
 
+    /* Send a probe packet. */
+    send_probe();
+    
+    /* Turn on the radio for a while in anticipation of a data packet
+       from a neighbor. */
+    turn_radio_on();
+
+    /* Set a timer so that we keep the radio on for LISTEN_TIME. */
+    ctimer_set(t, LISTEN_TIME, (void (*)(void *))dutycycle, t);
+    PT_YIELD(&dutycycle_pt);
+
+    /* If we have no packets to send (indicated by the list length of
+       queued_packets_list being zero), we should turn the radio
+       off. Othersize, we keep the radio on. */
+    
     if(list_length(queued_packets_list) == 0) {
+
+      /* If we are not listening for announcements, we turn the radio
+	 off and wait until we send the next probe. */
       if(is_listening == 0) {
 	turn_radio_off();
+	compower_accumulate(&compower_idle_activity);
       /* There is a bit of randomness here right now to avoid collisions
 	 due to synchronization effects. Not sure how needed it is
 	 though. XXX */
 	ctimer_set(t, OFF_TIME / 2 + (random_rand() % (OFF_TIME / 2)),
 		   (void (*)(void *))dutycycle, t);
-	PT_YIELD(&pt);
+	PT_YIELD(&dutycycle_pt);
       } else {
 	is_listening--;
 	ctimer_set(t, OFF_TIME, (void (*)(void *))dutycycle, t);
-	PT_YIELD(&pt);
+	PT_YIELD(&dutycycle_pt);
       }
     } else {
      ctimer_set(t, OFF_TIME, (void (*)(void *))dutycycle, t);
-     PT_YIELD(&pt);
+     PT_YIELD(&dutycycle_pt);
     }
   }
 
-  PT_END(&pt);
+  PT_END(&dutycycle_pt);
+}
+/*---------------------------------------------------------------------------*/
+static void
+restart_dutycycle(clock_time_t initial_wait)
+{
+  PT_INIT(&dutycycle_pt);
+  ctimer_set(&timer, initial_wait, (void (*)(void *))dutycycle, &timer);  
 }
 /*---------------------------------------------------------------------------*/
 /**
@@ -266,12 +302,7 @@ send_packet(void)
 	 rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1],
 	 hdr.receiver.u8[0], hdr.receiver.u8[1],
 	 packetbuf_attr(PACKETBUF_ATTR_CHANNEL));
-  if(packetbuf_attr(PACKETBUF_ATTR_PACKET_TYPE) == PACKETBUF_ATTR_PACKET_TYPE_ACK) {
-    /* Immediately send ACKs - we're assuming that the other node is
-       listening. */
-    /*    printf("Immediately sending ACK\n");*/
-    return radio->send(packetbuf_hdrptr(), packetbuf_totlen());
-  } else {
+  {
     struct queue_list_item *i;
     i = memb_alloc(&queued_packets_memb);
     if(i != NULL) {
@@ -286,7 +317,10 @@ send_packet(void)
           timeout = PACKET_LIFETIME;
         }
 	ctimer_set(&i->timer, timeout, remove_queued_packet, i);
-        /* Wait for a probe packet from a neighbor */
+
+	/* Wait for a probe packet from a neighbor. The actual packet
+	   transmission is handled by the read_packet() function,
+	   which receives the probe from the neighbor. */
         turn_radio_on();
       }
     }
@@ -308,7 +342,7 @@ read_packet(void)
   
   packetbuf_clear();
   len = radio->read(packetbuf_dataptr(), PACKETBUF_SIZE);
-  if(len > 0) {
+  if(len > sizeof(struct lpp_hdr)) {
     packetbuf_set_datalen(len);
     hdr = packetbuf_dataptr();
     packetbuf_hdrreduce(sizeof(struct lpp_hdr));
@@ -345,9 +379,14 @@ read_packet(void)
 		   rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1],
 		   hdr->sender.u8[0], hdr->sender.u8[1],
 		   qhdr->receiver.u8[0], qhdr->receiver.u8[1]);
+	    queuebuf_to_packetbuf(i->packet);
 	    
 	    radio->send(queuebuf_dataptr(i->packet),
 			queuebuf_datalen(i->packet));
+
+	    /* Attribute the energy spent on listening for the probe
+	       to this packet transmission. */
+	    compower_accumulate(&i->compower);
 	    
 	    /* If the packet was not a broadcast packet, we dequeue it
 	       now. Broadcast packets should be transmitted to all
@@ -355,13 +394,21 @@ read_packet(void)
 	       instead, after the appropriate time. */
 	    if(!rimeaddr_cmp(&qhdr->receiver, &rimeaddr_null)) {
 	      remove_queued_packet(i);
+
+#if WITH_PROBE_AFTER_TRANSMISSION
+	      /* Send a probe packet to catch any reply from the other node. */
+	      restart_dutycycle(PROBE_AFTER_TRANSMISSION_TIME);
+#endif /* WITH_PROBE_AFTER_TRANSMISSION */
 	    }
-	    
-	    
-	    turn_radio_on(); /* XXX Awaiting an ACK: we should check the
-				packet type of the queued packet to see
-				if it is a data packet. If not, we
-				should not turn the radio on. */
+
+#if WITH_ACK_OPTIMIZATION
+	    if(packetbuf_attr(PACKETBUF_ATTR_RELIABLE)) {
+	      /* We're sending a packet that needs an ACK, so we keep
+		 the radio on in anticipation of the ACK. */
+	      turn_radio_on();
+	    }
+#endif /* WITH_ACK_OPTIMIZATION */
+
 	  }
 	}
       }
@@ -370,7 +417,20 @@ read_packet(void)
       PRINTF("%d.%d: got data from %d.%d\n",
 	     rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1],
 	     hdr->sender.u8[0], hdr->sender.u8[1]);
+      
+      /* Accumulate the power consumption for the packet reception. */
+      compower_accumulate(&current_packet);
+      /* Convert the accumulated power consumption for the received
+	 packet to packet attributes so that the higher levels can
+	 keep track of the amount of energy spent on receiving the
+	 packet. */
+      compower_attrconv(&current_packet);
+      
+      /* Clear the accumulated power consumption so that it is ready
+	 for the next packet. */
+      compower_clear(&current_packet);
 
+#if WITH_PROBE_AFTER_RECEPTION
       /* XXX send probe after receiving a packet to facilitate data
         streaming. We must first copy the contents of the packetbuf into
         a queuebuf to avoid overwriting the data with the probe packet. */
@@ -383,7 +443,9 @@ read_packet(void)
           queuebuf_free(q);
         }
       }
+#endif /* WITH_PROBE_AFTER_RECEPTION */
     }
+
     len = packetbuf_datalen();
   }
   return len;
@@ -435,7 +497,7 @@ lpp_init(const struct radio_driver *d)
 {
   radio = d;
   radio->set_receive_function(input_packet);
-  ctimer_set(&timer, LISTEN_TIME, (void (*)(void *))dutycycle, &timer);
+  restart_dutycycle(LISTEN_TIME);
 
   announcement_register_listen_callback(listen_callback);
 
