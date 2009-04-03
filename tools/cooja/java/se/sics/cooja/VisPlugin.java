@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: VisPlugin.java,v 1.8 2008/12/17 11:02:05 fros4943 Exp $
+ * $Id: VisPlugin.java,v 1.9 2009/04/03 17:03:42 fros4943 Exp $
  */
 
 package se.sics.cooja;
@@ -55,9 +55,13 @@ public abstract class VisPlugin extends JInternalFrame implements Plugin {
   private Object tag = null;
 
   public VisPlugin(String title, final GUI gui) {
+    this(title, gui, true);
+  }
+
+  public VisPlugin(String title, final GUI gui, boolean requiresVis) {
     super(title, true, true, true, true);
 
-    if (!GUI.isVisualized()) {
+    if (requiresVis && !GUI.isVisualized()) {
       throw new PluginRequiresVisualizationException();
     }
 
