@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: lpp.c,v 1.16 2009/04/03 11:45:06 adamdunkels Exp $
+ * $Id: lpp.c,v 1.17 2009/04/03 19:59:22 adamdunkels Exp $
  */
 
 /**
@@ -62,6 +62,7 @@
 #include "sys/compower.h"
 
 #include <stdlib.h>
+#include <stdio.h>
 #include <string.h>
 
 #define DEBUG 0
@@ -105,12 +106,15 @@ static struct pt dutycycle_pt;
 static struct ctimer timer;
 
 static uint8_t is_listening = 0;
+static clock_time_t off_time_adjustment = 0;
 
-#define LISTEN_TIME CLOCK_SECOND / 128
-#define OFF_TIME CLOCK_SECOND / 2
+#define LISTEN_TIME (CLOCK_SECOND / 128)
+#define OFF_TIME (CLOCK_SECOND / 4)
 #define PACKET_LIFETIME (LISTEN_TIME + OFF_TIME)
-#define UNICAST_TIMEOUT	2 * PACKET_LIFETIME
-#define PROBE_AFTER_TRANSMISSION_TIME LISTEN_TIME * 2
+#define UNICAST_TIMEOUT	(2 * PACKET_LIFETIME)
+#define PROBE_AFTER_TRANSMISSION_TIME (LISTEN_TIME * 2)
+
+#define ENCOUNTER_LIFETIME (16 * OFF_TIME)
 
 struct queue_list_item {
   struct queue_list_item *next;
@@ -125,9 +129,21 @@ struct queue_list_item {
 #define MAX_QUEUED_PACKETS 4
 #endif /* QUEUEBUF_CONF_NUM */
 
+LIST(pending_packets_list);
 LIST(queued_packets_list);
 MEMB(queued_packets_memb, struct queue_list_item, MAX_QUEUED_PACKETS);
 
+struct encounter {
+  struct encounter *next;
+  rimeaddr_t neighbor;
+  clock_time_t time;
+  struct ctimer remove_timer;
+  struct ctimer turn_on_radio_timer;
+};
+
+#define MAX_ENCOUNTERS 4
+LIST(encounter_list);
+MEMB(encounter_memb, struct encounter, MAX_ENCOUNTERS);
 /*---------------------------------------------------------------------------*/
 static void
 turn_radio_on(void)
@@ -144,12 +160,129 @@ turn_radio_off(void)
 }
 /*---------------------------------------------------------------------------*/
 static void
+remove_encounter(void *encounter)
+{
+  struct encounter *e = encounter;
+
+  ctimer_stop(&e->remove_timer);
+  ctimer_stop(&e->turn_on_radio_timer);
+  list_remove(encounter_list, e);
+  memb_free(&encounter_memb, e);
+}
+/*---------------------------------------------------------------------------*/
+static void
+register_encounter(rimeaddr_t *neighbor, clock_time_t time)
+{
+  struct encounter *e;
+
+  /* If we have an entry for this neighbor already, we renew it. */
+  for(e = list_head(encounter_list); e != NULL; e = e->next) {
+    if(rimeaddr_cmp(neighbor, &e->neighbor)) {
+      e->time = time;
+      ctimer_set(&e->remove_timer, ENCOUNTER_LIFETIME, remove_encounter, e);
+      break;
+    }
+  }
+  /* No matchin encounter was found, so we allocate a new one. */
+  if(e == NULL) {
+    e = memb_alloc(&encounter_memb);
+    if(e == NULL) {
+      /* We could not allocate memory for this encounter, so we just drop it. */
+      return;
+    }
+    rimeaddr_copy(&e->neighbor, neighbor);
+    e->time = time;
+    ctimer_set(&e->remove_timer, ENCOUNTER_LIFETIME, remove_encounter, e);
+    list_add(encounter_list, e);
+  }
+}
+/*---------------------------------------------------------------------------*/
+static void
+turn_radio_on_callback(void *packet)
+{
+  struct queue_list_item *p = packet;
+
+  list_remove(pending_packets_list, p);
+  list_add(queued_packets_list, p);
+  turn_radio_on();
+
+  /*  printf("enc\n");*/
+}
+/*---------------------------------------------------------------------------*/
+/* This function goes through all encounters to see if it finds a
+   matching neighbor. If so, we set a ctimer that will turn on the
+   radio just before we expect the neighbor to send a probe packet. If
+   we cannot find a matching encounter, we just turn on the radio.
+
+   The outbound packet is put on either the pending_packets_list or
+   the queued_packets_list, depending on if the packet should be sent
+   immediately.
+*/
+static void
+turn_radio_on_for_neighbor(rimeaddr_t *neighbor, struct queue_list_item *i)
+{
+  struct encounter *e;
+
+  if(rimeaddr_cmp(neighbor, &rimeaddr_null)) {
+    /* We have been asked to turn on the radio for a broadcast, so we
+       just turn on the radio. */
+    turn_radio_on();
+    list_add(queued_packets_list, i);
+    return;
+  }
+  
+  /* We go through the list of encounters to find if we have recorded
+     an encounter with this particular neighbor. If so, we can compute
+     the time for the next expected encounter and setup a ctimer to
+     switch on the radio just before the encounter. */
+  for(e = list_head(encounter_list); e != NULL; e = e->next) {
+    if(rimeaddr_cmp(neighbor, &e->neighbor)) {
+      clock_time_t wait, now;
+
+      /* We expect encounters to happen roughly every OFF_TIME time
+	 units. The next expected encounter is at time e->time +
+	 OFF_TIME. To compute a relative offset, we subtract with
+	 clock_time(). Because we are only interested in turning on
+	 the radio within the OFF_TIME period, we compute the waiting
+	 time with modulo OFF_TIME. */
+
+      now = clock_time();
+      wait = ((clock_time_t)(e->time - now)) % (OFF_TIME);
+
+      /*      printf("now %d e %d e-n %d w %d %d\n", now, e->time, e->time - now, (e->time - now) % (OFF_TIME), wait);
+      
+      printf("Time now %lu last encounter %lu next expected encouter %lu wait %lu/%d (%lu)\n",
+	     (1000ul * (unsigned long)now) / CLOCK_SECOND,
+	     (1000ul * (unsigned long)e->time) / CLOCK_SECOND,
+	     (1000ul * (unsigned long)(e->time + OFF_TIME)) / CLOCK_SECOND,
+	     (1000ul * (unsigned long)wait) / CLOCK_SECOND, wait,
+	     (1000ul * (unsigned long)(wait + now)) / CLOCK_SECOND);*/
+      
+      /*      printf("Neighbor %d.%d found encounter, waiting %d ticks\n",
+	      neighbor->u8[0], neighbor->u8[1], wait);*/
+      
+      ctimer_set(&e->turn_on_radio_timer, wait, turn_radio_on_callback, i);
+      list_add(pending_packets_list, i);
+      return;
+    }
+  }
+  /* We did not find the neighbor in the list of recent encounters, so
+     we just turn on the radio. */
+  /*  printf("Neighbor %d.%d not found in recent encounters\n",
+      neighbor->u8[0], neighbor->u8[1]);*/
+  turn_radio_on();
+  list_add(queued_packets_list, i);
+  return;
+}
+/*---------------------------------------------------------------------------*/
+static void
 remove_queued_packet(void *item)
 {
   struct queue_list_item *i = item;
 
   ctimer_stop(&i->timer);  
   queuebuf_free(i->packet);
+  list_remove(pending_packets_list, i);
   list_remove(queued_packets_list, i);
 
   /* XXX potential optimization */
@@ -202,6 +335,12 @@ send_probe(void)
 		      sizeof(struct announcement_data) * adata->num);
 
   /*  PRINTF("Sending probe\n");*/
+
+  /*  printf("probe\n");*/
+  
+  /* XXX should first check access to the medium (CCA - Clear Channel
+     Assessment) and add LISTEN_TIME to off_time_adjustment if there
+     is a packet in the air. */
   radio->send(packetbuf_hdrptr(), packetbuf_totlen());
 
   compower_accumulate(&compower_idle_activity);
@@ -237,26 +376,24 @@ dutycycle(void *ptr)
        off. Othersize, we keep the radio on. */
     
     if(list_length(queued_packets_list) == 0) {
-
+      
       /* If we are not listening for announcements, we turn the radio
 	 off and wait until we send the next probe. */
       if(is_listening == 0) {
 	turn_radio_off();
 	compower_accumulate(&compower_idle_activity);
-      /* There is a bit of randomness here right now to avoid collisions
-	 due to synchronization effects. Not sure how needed it is
-	 though. XXX */
-	ctimer_set(t, OFF_TIME / 2 + (random_rand() % (OFF_TIME / 2)),
-		   (void (*)(void *))dutycycle, t);
+	ctimer_set(t, OFF_TIME + off_time_adjustment, (void (*)(void *))dutycycle, t);
+	off_time_adjustment = 0;
 	PT_YIELD(&dutycycle_pt);
+
       } else {
 	is_listening--;
 	ctimer_set(t, OFF_TIME, (void (*)(void *))dutycycle, t);
 	PT_YIELD(&dutycycle_pt);
       }
     } else {
-     ctimer_set(t, OFF_TIME, (void (*)(void *))dutycycle, t);
-     PT_YIELD(&dutycycle_pt);
+      ctimer_set(t, OFF_TIME, (void (*)(void *))dutycycle, t);
+      PT_YIELD(&dutycycle_pt);
     }
   }
 
@@ -311,7 +448,7 @@ send_packet(void)
 	memb_free(&queued_packets_memb, i);
 	return 0;
       } else {
-	list_add(queued_packets_list, i);
+
         timeout = UNICAST_TIMEOUT;
         if(rimeaddr_cmp(&hdr.receiver, &rimeaddr_null)) {
           timeout = PACKET_LIFETIME;
@@ -321,7 +458,7 @@ send_packet(void)
 	/* Wait for a probe packet from a neighbor. The actual packet
 	   transmission is handled by the read_packet() function,
 	   which receives the probe from the neighbor. */
-        turn_radio_on();
+        turn_radio_on_for_neighbor(&hdr.receiver, i);
       }
     }
   }
@@ -339,6 +476,9 @@ read_packet(void)
 {
   int len;
   struct lpp_hdr *hdr;
+  clock_time_t reception_time;
+
+  reception_time = clock_time();
   
   packetbuf_clear();
   len = radio->read(packetbuf_dataptr(), PACKETBUF_SIZE);
@@ -366,6 +506,8 @@ read_packet(void)
 			   adata->data[i].id,
 			   adata->data[i].value);
       }
+
+      register_encounter(&hdr->sender, reception_time);
       
       if(list_length(queued_packets_list) > 0) {
 	struct queue_list_item *i;
@@ -497,12 +639,13 @@ lpp_init(const struct radio_driver *d)
 {
   radio = d;
   radio->set_receive_function(input_packet);
-  restart_dutycycle(LISTEN_TIME);
+  restart_dutycycle(random_rand() % OFF_TIME);
 
   announcement_register_listen_callback(listen_callback);
 
   memb_init(&queued_packets_memb);
   list_init(queued_packets_list);
+  list_init(pending_packets_list);
   return &lpp_driver;
 }
 /*---------------------------------------------------------------------------*/
