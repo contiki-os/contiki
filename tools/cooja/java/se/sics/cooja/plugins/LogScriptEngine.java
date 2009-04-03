@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: LogScriptEngine.java,v 1.9 2009/03/03 15:55:39 fros4943 Exp $
+ * $Id: LogScriptEngine.java,v 1.10 2009/04/03 17:05:14 fros4943 Exp $
  */
 
 package se.sics.cooja.plugins;
@@ -138,36 +138,64 @@ public class LogScriptEngine {
     /* Create log observer: watches all log interfaces */
     logObserver = new Observer() {
       public void update(Observable obs, Object obj) {
-        try {
-          if (scriptThread == null ||
-              !scriptThread.isAlive()) {
-            logger.info("script thread not alive. try deactivating script.");
-            /*scriptThread.isInterrupted()*/
-            return;
-          }
-
-          /* Update script variables */
-          Mote mote = (Mote) obj;
-          engine.put("mote", mote);
-          engine.put("id", mote.getInterfaces().getMoteID().getMoteID());
-          engine.put("time", mote.getSimulation().getSimulationTime());
-          engine.put("msg", mote.getInterfaces().getLog().getLastLogMessage());
-
-          stepScript();
-
-        } catch (UndeclaredThrowableException e) {
-          e.printStackTrace();
-          JOptionPane.showMessageDialog(GUI.getTopParentContainer(),
-              "See console for more information.",
-              "Script error", JOptionPane.ERROR_MESSAGE);
-          unregisterLogObserver();
-          if (LogScriptEngine.this.gui.getSimulation() != null) {
-            LogScriptEngine.this.gui.getSimulation().stopSimulation();
-          }
-        }
+        Mote mote = (Mote) obj;
+        handleNewMoteOutput(
+            mote,
+            mote.getInterfaces().getMoteID().getMoteID(),
+            mote.getSimulation().getSimulationTime(),
+            mote.getInterfaces().getLog().getLastLogMessage()
+        );
       }
     };
+  }
 
+  private void handleNewMoteOutput(Mote mote, int id, long time, String msg) {
+    try {
+      if (scriptThread == null ||
+          !scriptThread.isAlive()) {
+        logger.info("script thread not alive. try deactivating script.");
+        /*scriptThread.isInterrupted()*/
+        return;
+      }
+
+      /* Update script variables */
+      engine.put("mote", mote);
+      engine.put("id", id);
+      engine.put("time", time);
+      engine.put("msg", msg);
+
+      stepScript();
+
+    } catch (UndeclaredThrowableException e) {
+      e.printStackTrace();
+      JOptionPane.showMessageDialog(GUI.getTopParentContainer(),
+          "See console for more information.",
+          "Script error", JOptionPane.ERROR_MESSAGE);
+      unregisterLogObserver();
+      if (LogScriptEngine.this.gui.getSimulation() != null) {
+        LogScriptEngine.this.gui.getSimulation().stopSimulation();
+      }
+    }
+  }
+
+  /**
+   * Inject faked mote log output.
+   * Should only be used for debugging!
+   *
+   * @param msg Log message
+   * @param mote Mote
+   */
+  public void fakeMoteLogOutput(final String msg, final Mote mote) {
+    gui.getSimulation().scheduleEvent(new TimeEvent(0) {
+      public void execute(long time) {
+        handleNewMoteOutput(
+            mote,
+            mote.getInterfaces().getMoteID().getMoteID(),
+            mote.getSimulation().getSimulationTime(),
+            msg
+        );
+      }
+    }, gui.getSimulation().getSimulationTime());
   }
 
   public void setScriptLogObserver(Observer observer) {
@@ -245,15 +273,15 @@ public class LogScriptEngine {
       semaphoreSim = null;
     }
 
-    if (scriptThread != null) {
+    if (scriptThread != null && scriptThread != Thread.currentThread()) {
       try {
         scriptThread.join();
       } catch (InterruptedException e) {
         e.printStackTrace();
       } finally {
-        scriptThread = null;
       }
     }
+    scriptThread = null;
 
   }
 
@@ -323,12 +351,13 @@ public class LogScriptEngine {
           } else {
             if (!GUI.isVisualized()) {
               logger.fatal("Test script error, terminating Cooja.");
-              e.printStackTrace();
+              logger.fatal("Script error:", e);
               System.exit(1);
             }
 
-            /* Forward exception */
-            throw e;
+            logger.fatal("Script error:", e);
+            gui.getSimulation().stopSimulation();
+            deactivateScript();
           }
         }
         /*logger.info("test script thread exits");*/
