@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: lpp.c,v 1.17 2009/04/03 19:59:22 adamdunkels Exp $
+ * $Id: lpp.c,v 1.18 2009/04/03 20:08:05 adamdunkels Exp $
  */
 
 /**
@@ -110,6 +110,16 @@ static clock_time_t off_time_adjustment = 0;
 
 #define LISTEN_TIME (CLOCK_SECOND / 128)
 #define OFF_TIME (CLOCK_SECOND / 4)
+
+/* If CLOCK_SECOND is less than 4, we may end up with an OFF_TIME that
+   is 0 which will make compilation fail due to a modulo operation in
+   the code. To ensure that OFF_TIME is greater than zero, we use the
+   construct below. */
+#if OFF_TIME == 0
+#undef OFF_TIME
+#define OFF_TIME 1
+#endif
+
 #define PACKET_LIFETIME (LISTEN_TIME + OFF_TIME)
 #define UNICAST_TIMEOUT	(2 * PACKET_LIFETIME)
 #define PROBE_AFTER_TRANSMISSION_TIME (LISTEN_TIME * 2)
