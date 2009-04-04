@@ -31,12 +31,12 @@ void main(void) {
 
 	uint8_t c;
 	while(1) {
-		*(volatile uint32_t *)UART1_DATA = (uint8_t)'U';
-//		if(*(volatile uint32_t*)UR1CON > 0) {
+//		*(volatile uint32_t *)UART1_DATA = (uint8_t)'U';
+		if(*(volatile uint32_t*)UR1CON > 0) {
 			/* Receive buffer isn't empty */
 			/* read a byte and write it to the transmit buffer */
-//			c = *(volatile uint32_t *)UART1_DATA;
-//			*(volatile uint32_t *)UART1_DATA = c;
-//		}
+			c = *(volatile uint32_t *)UART1_DATA;
+			*(volatile uint32_t *)UART1_DATA = c;
+		}
 	};
 }

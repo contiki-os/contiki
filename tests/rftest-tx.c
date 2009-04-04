@@ -50,6 +50,8 @@ void main(void) {
 	reg(UART1_CON) = 0x00000003; /* enable receive and transmit */
 	reg(GPIO_FUNC_SEL0) = ( (0x01 << (14*2)) | (0x01 << (15*2)) ); /* set GPIO15-14 to UART (UART1 TX and RX)*/
 
+	reg(80009000) = 0x00050100;
+
 	reg(MACA_RESET) = 0x3; /* reset, turn on the clock */
 	for(i=0; i<DELAY; i++) { continue; }
 	reg(MACA_RESET) = 0x2; /* unreset, turn on the clock */
@@ -73,7 +75,7 @@ void main(void) {
 	while(1) {		
 		puts("\033[H");
 		puts("rftest-tx --- " NL);
-/*
+
 		puts("base +0       +4       +8       +c       +10      +14      +18      +1c      " NL);
 		for (i = 0; i < 96; i ++) { 
 			if ((i & 7) == 0) {
@@ -85,7 +87,7 @@ void main(void) {
 				puts(NL);
 		}
 		puts(NL);
-*/
+
 
 		/* start a sequence */
 		reg(MACA_CONTROL) = 0x00031A03;
