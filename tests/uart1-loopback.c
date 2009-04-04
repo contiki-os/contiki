@@ -11,6 +11,7 @@
 
 #include "embedded_types.h"
 
+__attribute__ ((section ("startup")))
 void main(void) {
 	/* Restore UART regs. to default */
 	/* in case there is still bootloader state leftover */
