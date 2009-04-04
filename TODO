@@ -1,0 +1,3 @@
+all of the objects in src (src/*.o) get linked into the final objects
+   even if they are not used. This should be fixed.
+
