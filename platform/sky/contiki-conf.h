@@ -1,5 +1,5 @@
 /* -*- C -*- */
-/* @(#)$Id: contiki-conf.h,v 1.47 2009/04/06 16:01:11 nifi Exp $ */
+/* @(#)$Id: contiki-conf.h,v 1.48 2009/04/06 17:18:20 nifi Exp $ */
 
 #ifndef CONTIKI_CONF_H
 #define CONTIKI_CONF_H
@@ -19,8 +19,10 @@
 #define DCOSYNCH_CONF_ENABLED 1
 #define DCOSYNCH_CONF_PERIOD 30
 
+#ifndef WITH_UIP6
 #define TIMESYNCH_CONF_ENABLED 1
 #define CC2420_CONF_TIMESTAMPS 1
+#endif /* !WITH_UIP6 */
 
 #define CFS_CONF_OFFSET_TYPE	long
 
