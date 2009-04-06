@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#)$Id: contiki-sky-main.c,v 1.50 2009/03/31 13:25:50 nifi Exp $
+ * @(#)$Id: contiki-sky-main.c,v 1.51 2009/04/06 13:31:00 nifi Exp $
  */
 
 #include <signal.h>
@@ -52,6 +52,7 @@
 
 #include "lib/random.h"
 
+#include "net/mac/frame802154.h"
 #include "net/mac/nullmac.h"
 #include "net/mac/xmac.h"
 #include "net/mac/lpp.h"
@@ -115,9 +116,6 @@ force_float_inclusion()
 /*---------------------------------------------------------------------------*/
 void uip_log(char *msg) { puts(msg); }
 /*---------------------------------------------------------------------------*/
-/* Radio stuff in network byte order. */
-static u16_t panId = 0x2024;
-
 #ifndef RF_CHANNEL
 #define RF_CHANNEL              26
 #endif
@@ -231,7 +229,7 @@ main(int argc, char **argv)
   ctimer_init();
 
   cc2420_init();
-  cc2420_set_pan_addr(panId, 0 /*XXX*/, ds2411_id);
+  cc2420_set_pan_addr(IEEE802154_PANID, 0 /*XXX*/, ds2411_id);
   cc2420_set_channel(RF_CHANNEL);
 #if WITH_NULLMAC
   rime_init(nullmac_init(&cc2420_driver));

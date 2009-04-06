@@ -1,5 +1,5 @@
 /* -*- C -*- */
-/* @(#)$Id: contiki-conf.h,v 1.44 2009/04/06 13:23:14 nvt-se Exp $ */
+/* @(#)$Id: contiki-conf.h,v 1.45 2009/04/06 13:31:00 nifi Exp $ */
 
 #ifndef CONTIKI_CONF_H
 #define CONTIKI_CONF_H
@@ -9,6 +9,8 @@
 #define RIME_CONF_NO_POLITE_ANNOUCEMENTS 1
 
 #define PACKETBUF_CONF_ATTRS_INLINE 1
+
+#define IEEE802154_CONF_PANID       0xABCD
 
 #define SHELL_VARS_CONF_RAM_BEGIN 0x1100
 #define SHELL_VARS_CONF_RAM_END 0x2000
