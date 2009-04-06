@@ -30,7 +30,7 @@
  *
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: memb.c,v 1.3 2007/03/16 16:53:33 adamdunkels Exp $
+ * $Id: memb.c,v 1.4 2009/04/06 21:18:03 adamdunkels Exp $
  */
 
 /**
@@ -50,14 +50,14 @@
 
 /*---------------------------------------------------------------------------*/
 void
-memb_init(struct memb_blocks *m)
+memb_init(struct memb *m)
 {
   memset(m->count, 0, m->num);
   memset(m->mem, 0, m->size * m->num);
 }
 /*---------------------------------------------------------------------------*/
 void *
-memb_alloc(struct memb_blocks *m)
+memb_alloc(struct memb *m)
 {
   int i;
 
@@ -77,7 +77,7 @@ memb_alloc(struct memb_blocks *m)
 }
 /*---------------------------------------------------------------------------*/
 char
-memb_free(struct memb_blocks *m, void *ptr)
+memb_free(struct memb *m, void *ptr)
 {
   int i;
   char *ptr2;
@@ -102,7 +102,7 @@ memb_free(struct memb_blocks *m, void *ptr)
 }
 /*---------------------------------------------------------------------------*/
 int
-memb_inmemb(struct memb_blocks *m, void *ptr)
+memb_inmemb(struct memb *m, void *ptr)
 {
   return (char *)ptr >= (char *)m->mem &&
     (char *)ptr < (char *)m->mem + (m->num * m->size);
