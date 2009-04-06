@@ -1,4 +1,4 @@
-# $Id: Makefile.avr,v 1.12 2008/10/14 19:06:51 c_oflynn Exp $
+# $Id: Makefile.avr,v 1.13 2009/04/06 13:10:14 nifi Exp $
 
 ### Check if we are running under Windows
 
@@ -56,8 +56,8 @@ CONTIKI_TARGET_DIRS_CONCAT = ${addprefix $(CONTIKI)/platform/$(TARGET)/, \
 vpath %.c $(PROJECTDIRS) $(CONTIKI)/cpu/avr/dev $(CONTIKI)/cpu/avr/dev/usb \
       $(CONTIKI)/cpu/avr/dev/usb/rndis $(CONTIKI)/cpu/avr/dev/usb/serial \
       $(CONTIKI)/cpu/avr/dev/usb/storage \
-	  $(CONTIKIDIRS) $(APPDIRS) $(CONTIKI_TARGET_DIRS_CONCAT) \
-	  $(CONTIKI_CPU) $(CONTIKI)/cpu/avr/radio/rf230 $(CONTIKI)/cpu/avr/radio/mac
+	  $(CONTIKI_CPU) $(CONTIKI)/cpu/avr/radio/rf230 $(CONTIKI)/cpu/avr/radio/mac \
+	  $(CONTIKIDIRS) $(APPDIRS) $(CONTIKI_TARGET_DIRS_CONCAT)
 
 ### Compilation rules
 
