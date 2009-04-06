@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#)$Id: contiki-sky-main.c,v 1.51 2009/04/06 13:31:00 nifi Exp $
+ * @(#)$Id: contiki-sky-main.c,v 1.52 2009/04/06 14:12:58 nifi Exp $
  */
 
 #include <signal.h>
@@ -56,6 +56,17 @@
 #include "net/mac/nullmac.h"
 #include "net/mac/xmac.h"
 #include "net/mac/lpp.h"
+
+#if WITH_UIP6
+#include "net/sicslowpan.h"
+#include "net/uip-netif.h"
+#include "net/mac/sicslowmac.h"
+#if UIP_CONF_ROUTER
+#include "net/routing/rimeroute.h"
+#include "net/rime/rime-udp.h"
+#endif /* UIP_CONF_ROUTER*/
+#endif /* WITH_UIP6 */
+
 #include "net/rime.h"
 
 #include "node-id.h"
@@ -72,11 +83,6 @@ static struct timer mgt_timer;
 
 #ifndef WITH_UIP
 #define WITH_UIP 0
-#endif
-
-#if WITH_UIP6
-#include "net/sicslowpan.h"
-#include "net/uip-netif.h"
 #endif
 
 #if WITH_UIP
@@ -220,7 +226,7 @@ main(int argc, char **argv)
   process_start(&sensors_process, NULL);
 
   /*
-   * Initialize light and humitity/temp sensors.
+   * Initialize light and humidity/temp sensors.
    */
   sensors_light_init();
   battery_sensor.activate();
@@ -231,11 +237,6 @@ main(int argc, char **argv)
   cc2420_init();
   cc2420_set_pan_addr(IEEE802154_PANID, 0 /*XXX*/, ds2411_id);
   cc2420_set_channel(RF_CHANNEL);
-#if WITH_NULLMAC
-  rime_init(nullmac_init(&cc2420_driver));
-#else
-  rime_init(xmac_init(&cc2420_driver));
-#endif
 
   random_init(ds2411_id[0] + node_id);
 
@@ -249,12 +250,23 @@ main(int argc, char **argv)
   printf("MAC %02x:%02x:%02x:%02x:%02x:%02x:%02x:%02x",
 	 ds2411_id[0], ds2411_id[1], ds2411_id[2], ds2411_id[3],
 	 ds2411_id[4], ds2411_id[5], ds2411_id[6], ds2411_id[7]);
-  printf(" %s channel %u\n", rime_mac->name, RF_CHANNEL);
 
 #if WITH_UIP6
   memcpy(&uip_lladdr.addr, ds2411_id, sizeof(uip_lladdr.addr));
-  sicslowpan_init(rime_mac);
+  sicslowpan_init(sicslowmac_init(&cc2420_driver));
   process_start(&tcpip_process, NULL);
+  printf(" %s channel %u\n", sicslowmac_driver.name, RF_CHANNEL);
+#if UIP_CONF_ROUTER
+  rime_init(rime_udp_init(NULL));
+  uip_router_register(&rimeroute);
+#endif /* UIP_CONF_ROUTER */
+#else /* WITH_UIP6 */
+#if WITH_NULLMAC
+  rime_init(nullmac_init(&cc2420_driver));
+#else /* WITH_NULLMAC */
+  rime_init(xmac_init(&cc2420_driver));
+#endif /* WITH_NULLMAC */
+  printf(" %s channel %u\n", rime_mac->name, RF_CHANNEL);
 #endif /* WITH_UIP6 */
 
 #if !WITH_UIP && !WITH_UIP6
