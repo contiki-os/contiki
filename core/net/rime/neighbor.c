@@ -33,7 +33,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: neighbor.c,v 1.17 2009/03/21 20:53:07 nvt-se Exp $
+ * $Id: neighbor.c,v 1.18 2009/04/06 21:19:00 adamdunkels Exp $
  */
 
 /**
@@ -280,7 +280,7 @@ neighbor_best(void)
   int found;
   /*  int lowest, best;*/
   struct neighbor *n, *best;
-  uint8_t rtmetric;
+  uint16_t rtmetric;
 
   rtmetric = RTMETRIC_MAX;
   best = NULL;
