@@ -41,7 +41,7 @@
  *
  * This file is part of the uIP TCP/IP stack.
  *
- * $Id: uip6.c,v 1.4 2009/03/10 08:00:59 julienabeille Exp $
+ * $Id: uip6.c,v 1.5 2009/04/06 13:18:51 nvt-se Exp $
  *
  */
 
@@ -256,6 +256,13 @@ struct uip_udp_conn uip_udp_conns[UIP_UDP_CONNS];
 #endif /* UIP_UDP */
 /** @} */
 
+/*---------------------------------------------------------------------------*/
+/** @{ \name Routing module                                                  */
+/*---------------------------------------------------------------------------*/
+#if UIP_CONF_ROUTER
+const struct uip_router *uip_router;
+#endif /* UIP_CONF_ROUTER */
+/** @} */
 
 /*---------------------------------------------------------------------------*/
 /** @{ \name ICMPv6 variables                                                */
@@ -421,7 +428,19 @@ uip_init(void)
 #endif /* UIP_UDP */
 }
 
-
+/*---------------------------------------------------------------------------*/
+#if UIP_CONF_ROUTER
+void
+uip_router_register(const struct uip_router *router) {
+  if(uip_router != NULL) {
+    uip_router->deactivate();
+  }
+  uip_router = router;
+  if(uip_router != NULL) {
+    router->activate();
+  }
+}
+#endif /*UIP_CONF_ROUTER*/
 /*---------------------------------------------------------------------------*/
 #if UIP_TCP && UIP_ACTIVE_OPEN
 struct uip_conn *
@@ -1064,7 +1083,24 @@ uip_process(u8_t flag)
     PRINTF("Dropping packet, src is mcast\n");
     goto drop;
   }
-      
+
+#if UIP_CONF_ROUTER
+  if(!uip_netif_is_addr_my_unicast(&UIP_IP_BUF->destipaddr) &&
+     !uip_netif_is_addr_my_solicited(&UIP_IP_BUF->destipaddr)) {
+    if(!uip_is_addr_mcast(&UIP_IP_BUF->destipaddr) &&
+       !uip_is_addr_link_local(&UIP_IP_BUF->destipaddr)) {
+      PRINTF("Forwarding packet to ");
+      PRINT6ADDR(&UIP_IP_BUF->destipaddr);
+      PRINTF("\n");
+      UIP_STAT(++uip_stat.ip.forwarded);
+      goto send;
+    } else if(!uip_is_addr_linklocal_allnodes_mcast(&UIP_IP_BUF->destipaddr)) {
+      PRINTF("Dropping packet, not for me\n");
+      UIP_STAT(++uip_stat.ip.drop);
+      goto drop;
+    }
+  }
+#else
   if(!uip_netif_is_addr_my_unicast(&UIP_IP_BUF->destipaddr) &&
      !uip_netif_is_addr_my_solicited(&UIP_IP_BUF->destipaddr) &&
      !uip_is_addr_linklocal_allnodes_mcast(&UIP_IP_BUF->destipaddr)){
@@ -1072,8 +1108,8 @@ uip_process(u8_t flag)
     UIP_STAT(++uip_stat.ip.drop);
     goto drop;
   }
-  
- 
+#endif /* UIP_CONF_ROUTER */
+
   /*
    * Next header field processing. In IPv6, we can have extension headers,
    * they are processed here
@@ -1255,6 +1291,10 @@ uip_process(u8_t flag)
       break;
     case ICMP6_NA:
       uip_nd6_io_na_input();
+      break;
+    case ICMP6_RS:
+      UIP_STAT(++uip_stat.icmp.drop);
+      uip_len = 0;
       break;
     case ICMP6_RA:
       uip_nd6_io_ra_input();
