@@ -34,7 +34,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: runicast.c,v 1.5 2009/03/12 21:58:21 adamdunkels Exp $
+ * $Id: runicast.c,v 1.6 2009/04/06 21:19:34 adamdunkels Exp $
  */
 
 /**
@@ -113,6 +113,11 @@ recv_from_stunicast(struct stunicast_conn *stunicast, rimeaddr_t *from)
 
   if(packetbuf_attr(PACKETBUF_ATTR_PACKET_TYPE) ==
      PACKETBUF_ATTR_PACKET_TYPE_ACK) {
+      PRINTF("%d.%d: runicast: got ACK from %d.%d, seqno %d (%d)\n",
+	     rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1],
+	     from->u8[0], from->u8[1],
+	     packetbuf_attr(PACKETBUF_ATTR_PACKET_ID),
+	     c->sndnxt);
     if(packetbuf_attr(PACKETBUF_ATTR_PACKET_ID) == c->sndnxt) {
       RIMESTATS_ADD(ackrx);
       PRINTF("%d.%d: runicast: ACKed %d\n",
@@ -165,6 +170,11 @@ recv_from_stunicast(struct stunicast_conn *stunicast, rimeaddr_t *from)
 
       queuebuf_to_packetbuf(q);
       queuebuf_free(q);
+    } else {
+      PRINTF("%d.%d: runicast: could not send ACK to %d.%d for %d: no queued buffers\n",
+	     rimeaddr_node_addr.u8[0],rimeaddr_node_addr.u8[1],
+	     from->u8[0], from->u8[1],
+	     packet_seqno);
     }
     if(c->u->recv != NULL) {
       c->u->recv(c, from, packet_seqno);
