@@ -1,5 +1,5 @@
 /* -*- C -*- */
-/* @(#)$Id: contiki-conf.h,v 1.42 2009/04/03 11:46:48 adamdunkels Exp $ */
+/* @(#)$Id: contiki-conf.h,v 1.43 2009/04/06 13:07:41 nifi Exp $ */
 
 #ifndef CONTIKI_CONF_H
 #define CONTIKI_CONF_H
@@ -26,6 +26,7 @@
 #define ENERGEST_CONF_ON 1
 
 #define HAVE_STDINT_H
+#define MSP430_MEMCPY_WORKAROUND 1
 #include "msp430def.h"
 
 #ifndef RF_CHANNEL
