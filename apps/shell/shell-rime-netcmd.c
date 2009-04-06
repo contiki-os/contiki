@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: shell-rime-netcmd.c,v 1.6 2009/03/12 21:58:20 adamdunkels Exp $
+ * $Id: shell-rime-netcmd.c,v 1.7 2009/04/06 21:17:34 adamdunkels Exp $
  */
 
 /**
@@ -111,8 +111,14 @@ PROCESS_THREAD(shell_netcmd_process, ev, data)
   
   PROCESS_BEGIN();
 
+  /* Get the length of the command line, excluding a terminating NUL character. */
   len = strlen((char *)data);
-  if(len > PACKETBUF_SIZE) {
+
+  /* Check the length of the command line to see that it is small
+     enough to fit in a packet. We count with 32 bytes of header,
+     which may be a little too much, but at least we are on the safe
+     side. */
+  if(len > PACKETBUF_SIZE - 32) {
     char buf[32];
     snprintf(buf, sizeof(buf), "%d", len);
     shell_output_str(&netcmd_command, "command line too large: ", buf);
@@ -120,8 +126,11 @@ PROCESS_THREAD(shell_netcmd_process, ev, data)
     
     packetbuf_clear();
     msg = packetbuf_dataptr();
-    packetbuf_set_datalen(len + 2 + TRICKLEMSG_HDR_SIZE);
+    packetbuf_set_datalen(len + 1 + TRICKLEMSG_HDR_SIZE);
     strcpy(msg->netcmd, data);
+
+    /* Terminate the string with a NUL character. */
+    msg->netcmd[len] = 0;
     msg->crc = crc16_data(msg->netcmd, len, 0);
     /*    printf("netcmd sending '%s'\n", msg->netcmd);*/
     trickle_send(&trickle);
@@ -138,15 +147,14 @@ recv_trickle(struct trickle_conn *c)
   
   msg = packetbuf_dataptr();
 
-  if(packetbuf_datalen() > 2 + TRICKLEMSG_HDR_SIZE) {
+  if(packetbuf_datalen() > 1 + TRICKLEMSG_HDR_SIZE) {
     
     /* First ensure that the old process is killed. */
     process_exit(&shell_netcmd_server_process);
     
-    len = packetbuf_datalen() - 2 - TRICKLEMSG_HDR_SIZE;
+    len = packetbuf_datalen() - 1 - TRICKLEMSG_HDR_SIZE;
     
-    /* Make sure that the incoming command is null-terminated (which
-       is should be already). */
+    /* Make sure that the incoming command is null-terminated. */
     msg->netcmd[len] = 0;
 
     if(msg->crc == crc16_data(msg->netcmd, len, 0)) {
