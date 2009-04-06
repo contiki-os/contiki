@@ -29,7 +29,7 @@
  * This file is part of the Contiki operating system.
  *
  *
- * $Id: tcpip.c,v 1.19 2009/02/20 21:21:56 adamdunkels Exp $
+ * $Id: tcpip.c,v 1.20 2009/04/06 13:18:12 nvt-se Exp $
  */
 /**
  * \file
@@ -538,19 +538,40 @@ tcpip_ipv6_output(void)
   }
   if(!uip_is_addr_mcast(&UIP_IP_BUF->destipaddr)) {
     /*If destination is on link */
+    nbc = NULL;
     if(uip_nd6_is_addr_onlink(&UIP_IP_BUF->destipaddr)){
       nbc = uip_nd6_nbrcache_lookup(&UIP_IP_BUF->destipaddr);
     } else {
+#if UIP_CONF_ROUTER
       /*destination is not on link*/
-      dr = uip_nd6_choose_defrouter();
-      if(dr != NULL){
-        nbc = dr->nb;
+      uip_ipaddr_t ipaddr;
+      uip_ipaddr_t *next_hop;
+
+      /* Try to find the next hop address in the local routing table. */
+      next_hop = uip_router != NULL ?
+        uip_router->lookup(&UIP_IP_BUF->destipaddr, &ipaddr) : NULL;
+      if(next_hop != NULL) {
+        /* Look for the next hop of the route in the neighbor cache.
+           Add a cache entry if we can't find it. */
+        nbc = uip_nd6_nbrcache_lookup(next_hop);
+        if(nbc == NULL) {
+          nbc = uip_nd6_nbrcache_add(next_hop, NULL, 1, NO_STATE);
+        }
       } else {
-        /* shall we send a icmp error message destination unreachable ?*/
-        UIP_LOG("tcpip_ipv6_output: Destination off-link but no router");
-        uip_len = 0;
-        return;
+#endif /* UIP_CONF_ROUTER */
+        /* No route found, check if a default router exists and use it then. */
+        dr = uip_nd6_choose_defrouter();
+        if(dr != NULL){
+          nbc = dr->nb;
+        } else {
+          /* shall we send a icmp error message destination unreachable ?*/
+          UIP_LOG("tcpip_ipv6_output: Destination off-link but no router");
+          uip_len = 0;
+          return;
+        }
+#if UIP_CONF_ROUTER
       }
+#endif /* UIP_CONF_ROUTER */
     }
     /* there are two cases where the entry logically does not exist:
      * 1 it really does not exist. 2 it is in the NO_STATE state */
@@ -628,7 +649,7 @@ tcpip_ipv6_output(void)
     }
   }
    
-  /*multicast IP detination address */
+  /*multicast IP destination address */
   tcpip_output(NULL);
   uip_len = 0;
   uip_ext_len = 0;
