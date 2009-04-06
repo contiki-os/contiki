@@ -33,7 +33,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: route-discovery.c,v 1.15 2009/03/24 07:15:04 adamdunkels Exp $
+ * $Id: route-discovery.c,v 1.16 2009/04/06 13:16:39 nvt-se Exp $
  */
 
 /**
@@ -80,7 +80,11 @@ struct rrep_hdr {
 static void
 send_rreq(struct route_discovery_conn *c, const rimeaddr_t *dest)
 {
+  rimeaddr_t dest_copy;
   struct route_msg *msg;
+
+  rimeaddr_copy(&dest_copy, dest);
+  dest = &dest_copy;
 
   packetbuf_clear();
   msg = packetbuf_dataptr();
@@ -99,8 +103,12 @@ send_rrep(struct route_discovery_conn *c, rimeaddr_t *dest)
 {
   struct rrep_hdr *rrepmsg;
   struct route_entry *rt;
+  rimeaddr_t saved_dest;
   
+  rimeaddr_copy(&saved_dest, dest);
+
   packetbuf_clear();
+  dest = &saved_dest;
   rrepmsg = packetbuf_dataptr();
   packetbuf_set_datalen(sizeof(struct rrep_hdr));
   rrepmsg->hops = 0;
@@ -113,6 +121,10 @@ send_rrep(struct route_discovery_conn *c, rimeaddr_t *dest)
 	   dest->u8[0],dest->u8[1],
 	   rt->nexthop.u8[0],rt->nexthop.u8[1]);
     unicast_send(&c->rrepconn, &rt->nexthop);
+  } else {
+    PRINTF("%d.%d: no route for rrep to %d.%d\n",
+	   rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1],
+	   dest->u8[0],dest->u8[1]);
   }
 }
 /*---------------------------------------------------------------------------*/
