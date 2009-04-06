@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: shell-rime-netcmd.c,v 1.7 2009/04/06 21:17:34 adamdunkels Exp $
+ * $Id: shell-rime-netcmd.c,v 1.8 2009/04/06 23:29:31 adamdunkels Exp $
  */
 
 /**
@@ -143,6 +143,7 @@ static void
 recv_trickle(struct trickle_conn *c)
 {
   struct trickle_msg *msg;
+  uint16_t crc;
   int len;
   
   msg = packetbuf_dataptr();
@@ -156,8 +157,9 @@ recv_trickle(struct trickle_conn *c)
     
     /* Make sure that the incoming command is null-terminated. */
     msg->netcmd[len] = 0;
-
-    if(msg->crc == crc16_data(msg->netcmd, len, 0)) {
+    memcpy(&crc, &msg->crc, sizeof(crc));
+    
+    if(crc == crc16_data(msg->netcmd, len, 0)) {
       /* Start the server process with the incoming command. */
       process_start(&shell_netcmd_server_process, msg->netcmd);
     }
