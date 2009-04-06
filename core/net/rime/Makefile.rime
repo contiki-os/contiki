@@ -8,7 +8,9 @@ RIME_MULTIHOP  = netflood.c multihop.c rmh.c trickle.c
 RIME_MESH      = mesh.c route.c route-discovery.c
 RIME_COLLECT   = collect.c neighbor.c neighbor-discovery.c
 RIME_RUDOLPH   = rudolph0.c rudolph1.c rudolph2.c
+ifdef UIP_CONF_IPV6
 RIME_UIP6      = rime-udp.c
+endif # UIP_CONF_IPV6
 
 CONTIKI_SOURCEFILES += $(RIME_BASE) \
                $(RIME_SINGLEHOP) \
@@ -16,4 +18,5 @@ CONTIKI_SOURCEFILES += $(RIME_BASE) \
                $(RIME_MESH) \
                $(RIME_COLLECT) \
                $(RIME_RUDOLPH) \
-               $(RIME_CHAMELEON)
+               $(RIME_CHAMELEON) \
+               $(RIME_UIP6)
