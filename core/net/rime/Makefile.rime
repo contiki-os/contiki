@@ -8,6 +8,7 @@ RIME_MULTIHOP  = netflood.c multihop.c rmh.c trickle.c
 RIME_MESH      = mesh.c route.c route-discovery.c
 RIME_COLLECT   = collect.c neighbor.c neighbor-discovery.c
 RIME_RUDOLPH   = rudolph0.c rudolph1.c rudolph2.c
+RIME_UIP6      = rime-udp.c
 
 CONTIKI_SOURCEFILES += $(RIME_BASE) \
                $(RIME_SINGLEHOP) \
