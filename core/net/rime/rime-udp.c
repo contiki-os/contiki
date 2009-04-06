@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: rime-udp.c,v 1.1 2009/04/06 13:13:26 nvt-se Exp $
+ * $Id: rime-udp.c,v 1.2 2009/04/06 13:27:37 nvt-se Exp $
  */
 
 /**
@@ -46,7 +46,7 @@
 #include "net/rime/rime-udp.h"
 #include "net/rime/packetbuf.h"
 
-#define DEBUG 1
+#define DEBUG 0
 #if DEBUG
 #include <stdio.h>
 #define PRINTF(...) printf(__VA_ARGS__)
