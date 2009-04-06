@@ -1,5 +1,5 @@
 /* -*- C -*- */
-/* @(#)$Id: contiki-conf.h,v 1.43 2009/04/06 13:07:41 nifi Exp $ */
+/* @(#)$Id: contiki-conf.h,v 1.44 2009/04/06 13:23:14 nvt-se Exp $ */
 
 #ifndef CONTIKI_CONF_H
 #define CONTIKI_CONF_H
@@ -60,16 +60,18 @@
 #define F_CPU 2457600uL
 
 /* Our clock resolution, this is the same as Unix HZ. */
-#define CLOCK_CONF_SECOND 128
+#define CLOCK_CONF_SECOND 64
 
 #define BAUD2UBR(baud) ((F_CPU/baud))
 
 #ifdef WITH_UIP6
 
-#define RIMEADDR_CONF_SIZE              8
+#define RIMEADDR_CONF_SIZE              2
 
 #define UIP_CONF_LL_802154              1
 #define UIP_CONF_LLH_LEN                0
+
+#define UIP_CONF_ROUTER			1
 
 #define UIP_CONF_IPV6                   1
 #define UIP_CONF_IPV6_QUEUE_PKT         1
@@ -80,6 +82,7 @@
 #define UIP_CONF_ND6_MAX_NEIGHBORS      4
 #define UIP_CONF_ND6_MAX_DEFROUTERS     2
 #define UIP_CONF_IP_FORWARD             0
+#define UIP_CONF_BUFFER_SIZE		256
 
 #define SICSLOWPAN_CONF_COMPRESSION_IPV6        0
 #define SICSLOWPAN_CONF_COMPRESSION_HC1         1
@@ -89,13 +92,13 @@
 #define SICSLOWPAN_CONF_CONVENTIONAL_MAC	1
 #else
 #define UIP_CONF_IP_FORWARD      1
+#define UIP_CONF_BUFFER_SIZE     108
 #endif /* WITH_UIP6 */
 
 #define UIP_CONF_ICMP_DEST_UNREACH 1
 
 #define UIP_CONF_DHCP_LIGHT
 #define UIP_CONF_LLH_LEN         0
-#define UIP_CONF_BUFFER_SIZE     108
 #define UIP_CONF_RECEIVE_WINDOW  (UIP_CONF_BUFFER_SIZE - 40)
 #define UIP_CONF_MAX_CONNECTIONS 4
 #define UIP_CONF_MAX_LISTENPORTS 8
