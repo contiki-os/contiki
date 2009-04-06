@@ -1,5 +1,5 @@
 /* -*- C -*- */
-/* @(#)$Id: contiki-conf.h,v 1.46 2009/04/06 14:59:49 nifi Exp $ */
+/* @(#)$Id: contiki-conf.h,v 1.47 2009/04/06 16:01:11 nifi Exp $ */
 
 #ifndef CONTIKI_CONF_H
 #define CONTIKI_CONF_H
@@ -89,9 +89,10 @@
 #define SICSLOWPAN_CONF_COMPRESSION_IPV6        0
 #define SICSLOWPAN_CONF_COMPRESSION_HC1         1
 #define SICSLOWPAN_CONF_COMPRESSION_HC01        2
-#define SICSLOWPAN_CONF_COMPRESSION             SICSLOWPAN_CONF_COMPRESSION_HC1
+#define SICSLOWPAN_CONF_COMPRESSION             SICSLOWPAN_CONF_COMPRESSION_HC01
 #define SICSLOWPAN_CONF_FRAG                    0
 #define SICSLOWPAN_CONF_CONVENTIONAL_MAC	1
+#define SICSLOWPAN_CONF_MAX_ADDR_CONTEXTS       2
 #else
 #define UIP_CONF_IP_FORWARD      1
 #define UIP_CONF_BUFFER_SIZE     108
@@ -108,6 +109,7 @@
 #define UIP_CONF_FWCACHE_SIZE    30
 #define UIP_CONF_BROADCAST       1
 #define UIP_ARCH_IPCHKSUM        1
+#define UIP_CONF_UDP             1
 #define UIP_CONF_UDP_CHECKSUMS   1
 #define UIP_CONF_PINGADDRCONF    0
 #define UIP_CONF_LOGGING         0
