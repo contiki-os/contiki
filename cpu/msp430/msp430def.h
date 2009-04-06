@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF 
  * SUCH DAMAGE. 
  *
- * @(#)$Id: msp430def.h,v 1.2 2009/02/04 18:28:44 joxe Exp $
+ * @(#)$Id: msp430def.h,v 1.3 2009/04/06 13:07:37 nifi Exp $
  */
 
 #ifndef MSP430DEF_H
@@ -70,5 +70,30 @@ spl_t   splhigh_(void);
 
 #define splhigh() splhigh_()
 #define splx(sr) __asm__ __volatile__("bis %0, r2" : : "r" (sr))
+
+/* Workaround for bug in msp430-gcc compiler */
+#if defined(__MSP430__) && defined(__GNUC__) && MSP430_MEMCPY_WORKAROUND
+#ifndef memcpy
+#include <string.h>
+
+#define memcpy(dest, src, count) do {                    \
+  if(count == 2) {                                       \
+    *((uint8_t *)dest) = *((uint8_t *)src);              \
+    *((uint8_t *)dest + 1) = *((uint8_t *)src + 1);      \
+  } else {                                               \
+    memcpy(dest, src, count);                            \
+  }                                                      \
+} while(0)
+
+#define memset(dest, value, count) do {                  \
+  if(count == 2) {                                       \
+    *((uint8_t *)dest) = (uint8_t)value;                 \
+    *((uint8_t *)dest + 1) = (uint8_t)value;             \
+  } else {                                               \
+    memset(dest, value, count);                          \
+  }                                                      \
+} while(0)
+#endif /* memcpy */
+#endif /* __GNUC__ &&  __MSP430__ && MSP430_MEMCPY_WORKAROUND */
 
 #endif /* MSP430DEF_H */
