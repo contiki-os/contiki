@@ -6,13 +6,18 @@
 #include <avr/io.h>
 #include <avr/interrupt.h>
 
-static volatile clock_time_t count;
+static volatile clock_time_t count, scount;
+static volatile unsigned long seconds;
 
 /*---------------------------------------------------------------------------*/
 //SIGNAL(SIG_OUTPUT_COMPARE0)
 ISR(AVR_OUTPUT_COMPARE_INT)
 {
-  ++count;
+  count++;
+  if(++scount == CLOCK_SECOND) {
+    scount = 0;
+    seconds++;
+  }
   if(etimer_pending()) {
     etimer_request_poll();
   }
@@ -59,7 +64,7 @@ clock_init(void)
    * 16 bit data type, time intervals of up to 524 seconds can be
    * measured.
    */
-  count = 0;
+  scount = count = 0;
 
   sei ();
 }
@@ -68,7 +73,11 @@ clock_init(void)
 clock_time_t
 clock_time(void)
 {
-  return count;
+  clock_time_t tmp;
+  do {
+    tmp = count;
+  } while(tmp != count);
+  return tmp;
 }
 /*---------------------------------------------------------------------------*/
 /**
@@ -107,5 +116,9 @@ clock_set_seconds(unsigned long sec)
 unsigned long
 clock_seconds(void)
 {
-  return count / CLOCK_SECOND;
+  unsigned long tmp;
+  do {
+    tmp = seconds;
+  } while(tmp != seconds);
+  return tmp;
 }
