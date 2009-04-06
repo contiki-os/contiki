@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: lpp.c,v 1.18 2009/04/03 20:08:05 adamdunkels Exp $
+ * $Id: lpp.c,v 1.19 2009/04/06 22:50:35 adamdunkels Exp $
  */
 
 /**
@@ -73,9 +73,9 @@
 #define PRINTF(...)
 #endif
 
-#define WITH_ACK_OPTIMIZATION         0
-#define WITH_PROBE_AFTER_RECEPTION    0
-#define WITH_PROBE_AFTER_TRANSMISSION 0
+#define WITH_ACK_OPTIMIZATION         1
+#define WITH_PROBE_AFTER_RECEPTION    1
+#define WITH_PROBE_AFTER_TRANSMISSION 1
 
 struct announcement_data {
   uint16_t id;
@@ -108,7 +108,7 @@ static struct ctimer timer;
 static uint8_t is_listening = 0;
 static clock_time_t off_time_adjustment = 0;
 
-#define LISTEN_TIME (CLOCK_SECOND / 128)
+#define LISTEN_TIME (CLOCK_SECOND / 64)
 #define OFF_TIME (CLOCK_SECOND / 4)
 
 /* If CLOCK_SECOND is less than 4, we may end up with an OFF_TIME that
@@ -449,6 +449,13 @@ send_packet(void)
 	 rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1],
 	 hdr.receiver.u8[0], hdr.receiver.u8[1],
 	 packetbuf_attr(PACKETBUF_ATTR_CHANNEL));
+#if WITH_ACK_OPTIMIZATION
+  if(packetbuf_attr(PACKETBUF_ATTR_PACKET_TYPE) == PACKETBUF_ATTR_PACKET_TYPE_ACK) {
+    /* Send ACKs immediately. */
+    radio->send(packetbuf_hdrptr(), packetbuf_totlen());
+    return 1;
+  }
+#endif /* WITH_ACK_OPTIMIZATION */
   {
     struct queue_list_item *i;
     i = memb_alloc(&queued_packets_memb);
