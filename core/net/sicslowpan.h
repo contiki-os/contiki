@@ -33,7 +33,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: sicslowpan.h,v 1.3 2009/03/17 20:28:44 nvt-se Exp $
+ * $Id: sicslowpan.h,v 1.4 2009/04/06 13:11:20 nifi Exp $
  */
 /**
  * \file
@@ -49,6 +49,7 @@
 #ifndef __SICSLOWPAN_H__
 #define __SICSLOWPAN_H__
 #include "net/uip.h"
+#include "net/mac/mac.h"
 
 /**
  * \name General sicslowpan defines
@@ -146,11 +147,11 @@
  * and FRAGN headers, which are different. For FRAG1, the
  * offset field is just not used
  */
-struct sicslowpan_frag_hdr {
-  u16_t dispatch_size;
-  u16_t tag;
-  u8_t offset;
-};
+/* struct sicslowpan_frag_hdr { */
+/*   u16_t dispatch_size; */
+/*   u16_t tag; */
+/*   u8_t offset; */
+/* }; */
 
 /**
  * \brief The HC1 header when HC_UDP is not used
@@ -160,23 +161,23 @@ struct sicslowpan_frag_hdr {
  * in another spot, and we use the sicslowpan_hc1_hc_udp
  * structure
  */
-struct sicslowpan_hc1_hdr {
-  u8_t dispatch;
-  u8_t encoding;
-  u8_t ttl;
-};
+/* struct sicslowpan_hc1_hdr { */
+/*   u8_t dispatch; */
+/*   u8_t encoding; */
+/*   u8_t ttl; */
+/* }; */
 
 /**
  * \brief HC1 followed by HC_UDP
  */
-struct sicslowpan_hc1_hc_udp_hdr {
-  u8_t dispatch;
-  u8_t hc1_encoding;
-  u8_t hc_udp_encoding;
-  u8_t ttl;
-  u8_t ports;
-  u16_t udpchksum;
-};
+/* struct sicslowpan_hc1_hc_udp_hdr { */
+/*   u8_t dispatch; */
+/*   u8_t hc1_encoding; */
+/*   u8_t hc_udp_encoding; */
+/*   u8_t ttl; */
+/*   u8_t ports; */
+/*   u16_t udpchksum; */
+/* }; */
 
 /**
  * \brief IPHC dispatch and encoding
@@ -187,11 +188,11 @@ struct sicslowpan_iphc_hdr {
   u8_t encoding[2];
 };
 
-struct sicslowpan_nhc_udp_comp_hdr {
-  u8_t nhcid;
-  u8_t ports;
-  u16_t udpchksum;
-};
+/* struct sicslowpan_nhc_udp_comp_hdr { */
+/*   u8_t nhcid; */
+/*   u8_t ports; */
+/*   u16_t udpchksum; */
+/* }; */
 
 /**
  * \brief An address context for IPHC address compression
