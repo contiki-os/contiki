@@ -405,6 +405,8 @@ typedef union maca_maskirq_reg_tag
 void reset_maca(void);
 void init_phy(void);
 void ResumeMACASync(void);
+void radio_init(void);
+
 
 /* Magic data 
 
@@ -528,4 +530,3 @@ e.g. 0x80004118 gets 00180012 (MACA_WARMUP)
 */
 
 #endif // _MACA_H_
-

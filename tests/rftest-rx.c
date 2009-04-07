@@ -111,6 +111,7 @@ void main(void) {
 	for(i=0; i<DELAY; i++) { continue; }
 
 	reset_maca();
+	radio_init();
 	init_phy();
 
 	/* some kind of sequence in init phy from MACPHY.a dissassmbly */
@@ -136,8 +137,7 @@ void main(void) {
 	puts("reserved modem_base\n\r");
 	dump_regs(0x80009200, 192);
 
-	while(1);
-
+//	while(1);
 	command_xcvr_rx();
 
 	puts("\033[H\033[2J");
@@ -209,6 +209,9 @@ void main(void) {
 		{
 			puts("aborted\n\r");
 			ResumeMACASync();
+
+			command_xcvr_rx();
+
 			break;
 			
 		}
@@ -229,6 +232,9 @@ void main(void) {
 		{
 			puts("status: ");
 			put_hex16(status);
+			ResumeMACASync();
+			command_xcvr_rx();
+
 		}
 		}
 		
