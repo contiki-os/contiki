@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: lpp.c,v 1.19 2009/04/06 22:50:35 adamdunkels Exp $
+ * $Id: lpp.c,v 1.20 2009/04/07 11:29:08 nvt-se Exp $
  */
 
 /**
@@ -108,8 +108,17 @@ static struct ctimer timer;
 static uint8_t is_listening = 0;
 static clock_time_t off_time_adjustment = 0;
 
+#ifdef LPP_CONF_LISTEN_TIME
+#define LISTEN_TIME LPP_CONF_LISTEN_TIME
+#else
 #define LISTEN_TIME (CLOCK_SECOND / 64)
+#endif /** LP_CONF_LISTEN_TIME */
+
+#ifdef LPP_CONF_OFF_TIME
+#define OFF_TIME LPP_CONF_OFF_TIME
+#else
 #define OFF_TIME (CLOCK_SECOND / 4)
+#endif /* LPP_CONF_OFF_TIME */
 
 /* If CLOCK_SECOND is less than 4, we may end up with an OFF_TIME that
    is 0 which will make compilation fail due to a modulo operation in
