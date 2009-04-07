@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: deluge.c,v 1.5 2009/03/12 21:58:20 adamdunkels Exp $
+ * $Id: deluge.c,v 1.6 2009/04/07 14:07:39 nvt-se Exp $
  */
 
 /**
@@ -60,7 +60,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define DEBUG	1
+#define DEBUG	0
 #if DEBUG
 #include <stdio.h>
 #define PRINTF(...)                             \
@@ -373,13 +373,15 @@ send_page(struct deluge_object *obj, unsigned pagenum)
 
   /* Divide the page into packets and send them one at a time. */
   for(cp = buf; cp + S_PKT <= (unsigned char *)&buf[S_PAGE]; cp += S_PKT) {
-    pkt.crc = checksum(cp, S_PKT);
-    memcpy(pkt.payload, cp, S_PKT);
-    packetbuf_copyfrom((uint8_t *)&pkt, sizeof (pkt));
-    broadcast_send(&deluge_broadcast);
-
-    obj->tx_set &= ~(1 << pkt.packetnum++);
+    if(obj->tx_set & (1 << pkt.packetnum)) {
+      pkt.crc = checksum(cp, S_PKT);
+      memcpy(pkt.payload, cp, S_PKT);
+      packetbuf_copyfrom((uint8_t *)&pkt, sizeof (pkt));
+      broadcast_send(&deluge_broadcast);
+    }
+    pkt.packetnum++;
   }
+  obj->tx_set = 0;
 }
 
 static void
