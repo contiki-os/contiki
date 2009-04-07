@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: test-deluge.c,v 1.2 2009/02/27 19:32:28 nvt-se Exp $
+ * $Id: test-deluge.c,v 1.3 2009/04/07 15:14:17 nvt-se Exp $
  */
 
 /**
@@ -81,7 +81,7 @@ PROCESS_THREAD(deluge_test_process, ev, data)
 
   deluge_disseminate("test", node_id == SINK_ID);
 
-  etimer_set(&et, CLOCK_SECOND);
+  etimer_set(&et, CLOCK_SECOND * 5);
   for(;;) {
     PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&et));
     if(node_id != SINK_ID) {
