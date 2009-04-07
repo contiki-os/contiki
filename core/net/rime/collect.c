@@ -36,7 +36,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: collect.c,v 1.23 2009/03/12 21:58:21 adamdunkels Exp $
+ * $Id: collect.c,v 1.24 2009/04/07 13:06:03 adamdunkels Exp $
  */
 
 /**
@@ -328,7 +328,6 @@ collect_set_sink(struct collect_conn *tc, int should_be_sink)
   if(should_be_sink) {
     tc->rtmetric = SINK;
     /*    neighbor_discovery_start(&tc->neighbor_discovery_conn, tc->rtmetric);*/
-    announcement_set_value(&tc->announcement, tc->rtmetric);
   } else {
     tc->rtmetric = RTMETRIC_MAX;
   }
@@ -347,7 +346,7 @@ collect_send(struct collect_conn *tc, int rexmits)
   packetbuf_set_attr(PACKETBUF_ATTR_TTL, MAX_HOPLIM);
   packetbuf_set_attr(PACKETBUF_ATTR_MAX_REXMIT, rexmits);
 
-  if(tc->rtmetric == 0) {
+  if(tc->rtmetric == SINK) {
     packetbuf_set_attr(PACKETBUF_ATTR_HOPS, 0);
     if(tc->cb->recv != NULL) {
       tc->cb->recv(packetbuf_addr(PACKETBUF_ADDR_ESENDER),
