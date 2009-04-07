@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: cc2420-aes.c,v 1.2 2008/07/02 09:02:39 nifi Exp $
+ * $Id: cc2420-aes.c,v 1.3 2009/04/07 09:22:58 nifi Exp $
  */
 
 /**
@@ -43,6 +43,11 @@
 #include "dev/cc2420_const.h"
 #include "dev/spi.h"
 
+#if defined(__AVR__)
+#include <avr/io.h>
+#elif defined(__MSP430__)
+#include <io.h>
+#endif
 
 #define KEYLEN 16
 #define MAX_DATALEN 16
@@ -60,7 +65,7 @@ cc2420_aes_set_key(uint8_t *key, int index)
     FASTSPI_WRITE_RAM_LE(key, CC2420RAM_KEY0, KEYLEN, f);
     break;
   case 1:
-    FASTSPI_WRITE_RAM_LE(key, CC2420RAM_KEY0, KEYLEN, f);
+    FASTSPI_WRITE_RAM_LE(key, CC2420RAM_KEY1, KEYLEN, f);
     break;
   }
 }
