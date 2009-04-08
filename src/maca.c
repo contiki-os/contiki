@@ -46,6 +46,40 @@ void reset_maca(void)
   MACA_WRITE(maca_clrirq,   0xFFFF);
 }
 
+/*
+	004030c4 <SMAC_InitFlybackSettings>:
+	4030c4:       4806            ldr     r0, [pc, #24]   (4030e0 <SMAC_InitFlybackSettings+0x1c>) // r0 gets base 0x80009a00
+		4030c6:       6881            ldr     r1, [r0, #8]                                             // r1 gets *(0x80009a08)
+		4030c8:       4806            ldr     r0, [pc, #24]   (4030e4 <SMAC_InitFlybackSettings+0x20>) // r0 gets 0x0000f7df
+		4030ca:       4308            orrs    r0, r1                                                   // or them, r0 has it
+		4030cc:       4904            ldr     r1, [pc, #16]   (4030e0 <SMAC_InitFlybackSettings+0x1c>) // r1 gets base 0x80009a00
+		4030ce:       6088            str     r0, [r1, #8]     // put r0 into 0x80009a08
+		4030d0:       0008            lsls    r0, r1, #0       // r0 gets r1, r0 is the base now
+		4030d2:       4905            ldr     r1, [pc, #20]   (4030e8 <SMAC_InitFlybackSettings+0x24>) // r1 gets 0x00ffffff
+		4030d4:       60c1            str     r1, [r0, #12]   // put 0x00ffffff into base+12
+		4030d6:       0b09            lsrs    r1, r1, #12     // r1 = 0x00ffffff >> 12
+		4030d8:       6101            str     r1, [r0, #16]   // put r1 base+16
+		4030da:       2110            movs    r1, #16         // r1 gets 16
+		4030dc:       6001            str     r1, [r0, #0]    // put r1 in the base
+		4030de:       4770            bx      lr              // return
+		4030e0:       80009a00        .word   0x80009a00
+		4030e4:       0000f7df        .word   0x0000f7df
+		4030e8:       00ffffff        .word   0x00ffffff
+*/
+
+#define FLYBACK_BASE 0x80009a000
+void flyback_init(void) {
+	uint32_t val8, or;
+	
+	val8 = *(volatile uint32_t *)(FLYBACK_BASE+8);
+	or = val8 | 0x0000f7df;
+	*(volatile uint32_t *)(FLYBACK_BASE+8) = or;
+	*(volatile uint32_t *)(FLYBACK_BASE+12) = 0x00ffffff;
+	*(volatile uint32_t *)(FLYBACK_BASE+16) = (((uint32_t)0x00ffffff)>>12);
+	*(volatile uint32_t *)(FLYBACK_BASE) = 16;
+	/* good luck and godspeed */
+}
+
 
 void radio_init(void) {
 	uint32_t i;
