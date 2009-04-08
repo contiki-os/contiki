@@ -1,3 +1,9 @@
-all of the objects in src (src/*.o) get linked into the final objects
-   even if they are not used. This should be fixed.
+- write routine that compares registers before and after radioinit and
+   prints differences
 
+- get the simulator in IAR working (or qemu) and check out what is
+   going on there.
+
+- all of the objects in src (src/*.o) get linked into the final objects
+   even if they are not used. This should be fixed.
+   
