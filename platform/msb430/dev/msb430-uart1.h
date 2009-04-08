@@ -87,7 +87,7 @@ extern volatile unsigned char uart_lockcnt;
 #define UART_WAIT_LOCK(x)	( (uart_mode != x ) && (uart_lockcnt) )
 #define UART_MODE_IS(x)		( uart_mode == x )
 
-typedef unsigned int(*fp_uart_handler)(unsigned char);
+typedef int(*fp_uart_handler)(unsigned char);
 
 /**
  * \brief      Initialize the UART module

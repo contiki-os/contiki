@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: rs232.c,v 1.7 2008/10/28 12:42:53 nvt-se Exp $
+ * @(#)$Id: rs232.c,v 1.8 2009/04/08 14:56:03 nvt-se Exp $
  */
 
 /** \addtogroup esbrs232
@@ -64,17 +64,6 @@ rs232_init(void)
   rs232_set_speed(RS232_115200);
 }
 /*---------------------------------------------------------------------------*/
-void
-rs232_send(char c)
-{
-  /* Check if the UART is in RS232 mode before sending.
-     This check can be ommitted if every access to rs232 locks the uart
-     before using it.
-  */
-
-  putchar(c);
-}
-/*---------------------------------------------------------------------------*/
 int
 putchar(int c)
 {
@@ -87,6 +76,17 @@ putchar(int c)
   } else {
     return -1;
   }
+}
+/*---------------------------------------------------------------------------*/
+void
+rs232_send(char c)
+{
+  /* Check if the UART is in RS232 mode before sending.
+     This check can be ommitted if every access to rs232 locks the uart
+     before using it.
+  */
+
+  putchar(c);
 }
 /*---------------------------------------------------------------------------*/
 void

@@ -45,7 +45,10 @@
 
 #include "contiki.h"
 #include "contiki-msb430.h"
+#include "dev/adc.h"
 #include "dev/serial-line.h"
+#include "dev/sht11.h"
+#include "dev/watchdog.h"
 
 extern volatile bool uart_edge;
 

@@ -28,10 +28,12 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: irq.h,v 1.1 2007/03/15 21:37:01 adamdunkels Exp $
+ * @(#)$Id: irq.h,v 1.2 2009/04/08 14:56:00 nvt-se Exp $
  */
 #ifndef __IRQ_H__
 #define __IRQ_H__
+
+#include "lib/sensors.h"
 
 void irq_adc12_activate(const struct sensors_sensor *sensor,
 			unsigned char adcno, unsigned char config);
