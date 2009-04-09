@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: CC2420RadioPacketConverter.java,v 1.7 2009/04/01 23:37:27 fros4943 Exp $
+ * $Id: CC2420RadioPacketConverter.java,v 1.8 2009/04/09 17:41:29 fros4943 Exp $
  */
 
 package se.sics.cooja.mspmote.interfaces;
@@ -179,6 +179,10 @@ public class CC2420RadioPacketConverter {
     /*logger.info("Payload pos: " + pos);
     logger.info("Payload length: " + len);*/
 
+    if (len < 0) {
+      logger.fatal("Negative length radio packet. Conversion failed.");
+      return new ConvertedRadioPacket(new byte[0], new byte[0]);
+    }
     byte convertedData[] = new byte[len];
     System.arraycopy(data, pos, convertedData, 0, len);
     byte originalData[] = new byte[originalLen];
