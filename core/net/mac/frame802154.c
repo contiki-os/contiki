@@ -44,7 +44,7 @@
  *  ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  *  POSSIBILITY OF SUCH DAMAGE.
  *
- *  $Id: frame802154.c,v 1.1 2009/04/06 13:19:03 nifi Exp $
+ *  $Id: frame802154.c,v 1.2 2009/04/09 21:54:09 nifi Exp $
 */
 /*
  *  \brief This file is where the main functions that relate to frame
@@ -99,15 +99,16 @@ field_len(frame802154_t *p, field_length_t *flen)
   memset(flen, 0, sizeof(field_length_t));
 
   /* Determine lengths of each field based on fcf and other args */
-  if(p->fcf.dest_addr_mode) {
+  if(p->fcf.dest_addr_mode & 3) {
     flen->dest_pid_len = 2;
   }
-  if(p->fcf.src_addr_mode) {
+  if(p->fcf.src_addr_mode & 3) {
     flen->src_pid_len = 2;
   }
 
   /* Set PAN ID compression bit if src pan id matches dest pan id. */
-  if(p->fcf.dest_addr_mode && p->fcf.src_addr_mode && p->src_pid == p->dest_pid) {
+  if(p->fcf.dest_addr_mode & 3 && p->fcf.src_addr_mode & 3 &&
+     p->src_pid == p->dest_pid) {
     p->fcf.panid_compression = 1;
 
     /* compressed header, only do dest pid */
@@ -117,11 +118,11 @@ field_len(frame802154_t *p, field_length_t *flen)
   }
 
   /* determine address lengths */
-  flen->dest_addr_len = addr_len(p->fcf.dest_addr_mode);
-  flen->src_addr_len = addr_len(p->fcf.src_addr_mode);
+  flen->dest_addr_len = addr_len(p->fcf.dest_addr_mode & 3);
+  flen->src_addr_len = addr_len(p->fcf.src_addr_mode & 3);
 
   /* Aux security header */
-  if(p->fcf.security_enabled) {
+  if(p->fcf.security_enabled & 1) {
     /* TODO Aux security header not yet implemented */
 #if 0
     switch(p->aux_hdr.security_control.key_id_mode) {
@@ -195,11 +196,14 @@ frame802154_create(frame802154_t *p, uint8_t *buf, uint8_t buf_len)
   /* OK, now we have field lengths.  Time to actually construct */
   /* the outgoing frame, and store it in tx_frame_buffer */
   tx_frame_buffer = buf;
-  tx_frame_buffer[0] = (p->fcf.frame_type) |
-    (p->fcf.security_enabled << 3) | (p->fcf.frame_pending << 4) |
-    (p->fcf.ack_required << 5) | (p->fcf.panid_compression << 6);
-  tx_frame_buffer[1] = (p->fcf.dest_addr_mode << 2) |
-    (p->fcf.frame_version << 4) | (p->fcf.src_addr_mode << 6);
+  tx_frame_buffer[0] = (p->fcf.frame_type & 7) |
+    ((p->fcf.security_enabled & 1) << 3) |
+    ((p->fcf.frame_pending & 1) << 4) |
+    ((p->fcf.ack_required & 1) << 5) |
+    ((p->fcf.panid_compression & 1) << 6);
+  tx_frame_buffer[1] = ((p->fcf.dest_addr_mode & 3) << 2) |
+    ((p->fcf.frame_version & 3) << 4) |
+    ((p->fcf.src_addr_mode & 3) << 6);
 
   /* sequence number */
   tx_frame_buffer[2] = p->seq;

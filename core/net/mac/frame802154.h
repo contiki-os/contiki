@@ -54,7 +54,7 @@
  *  This file converts to and from a structure to a packed 802.15.4
  *  frame.
  *
- *    $Id: frame802154.h,v 1.1 2009/04/06 13:19:03 nifi Exp $
+ *    $Id: frame802154.h,v 1.2 2009/04/09 21:54:09 nifi Exp $
 */
 
 
@@ -114,27 +114,26 @@
  *            5. CRC                  - 2 bytes       - Fixed
 */
 
-
 /**
  * \brief Defines the bitfields of the frame control field (FCF).
  */
 typedef struct {
-  uint8_t frame_type : 3;         /**< Frame type field, see 802.15.4 */
-  uint8_t security_enabled : 1;   /**< True if security is used in this frame */
-  uint8_t frame_pending : 1;      /**< True if sender has more data to send */
-  uint8_t ack_required : 1;       /**< Is an ack frame required? */
-  uint8_t panid_compression : 1;  /**< Is this a compressed header? */
-  uint8_t reserved : 3;           /**< Unused bits */
-  uint8_t dest_addr_mode : 2;     /**< Destination address mode, see 802.15.4 */
-  uint8_t frame_version : 2;      /**< 802.15.4 frame version */
-  uint8_t src_addr_mode : 2;      /**< Source address mode, see 802.15.4 */
+  uint8_t frame_type;        /**< 3 bit. Frame type field, see 802.15.4 */
+  uint8_t security_enabled;  /**< 1 bit. True if security is used in this frame */
+  uint8_t frame_pending;     /**< 1 bit. True if sender has more data to send */
+  uint8_t ack_required;      /**< 1 bit. Is an ack frame required? */
+  uint8_t panid_compression; /**< 1 bit. Is this a compressed header? */
+  /*   uint8_t reserved; */  /**< 3 bit. Unused bits */
+  uint8_t dest_addr_mode;    /**< 2 bit. Destination address mode, see 802.15.4 */
+  uint8_t frame_version;     /**< 2 bit. 802.15.4 frame version */
+  uint8_t src_addr_mode;     /**< 2 bit. Source address mode, see 802.15.4 */
 } frame802154_fcf_t;
 
 /** \brief 802.15.4 security control bitfield.  See section 7.6.2.2.1 in 802.15.4 specification */
 typedef struct {
-  uint8_t  security_level : 3; /**< security level      */
-  uint8_t  key_id_mode    : 2; /**< Key identifier mode */
-  uint8_t  reserved       : 3; /**< Reserved bits       */
+  uint8_t  security_level; /**< 3 bit. security level      */
+  uint8_t  key_id_mode;    /**< 2 bit. Key identifier mode */
+  uint8_t  reserved;       /**< 3 bit. Reserved bits       */
 } frame802154_scf_t;
 
 /** \brief 802.15.4 Aux security header */
