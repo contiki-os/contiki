@@ -60,7 +60,7 @@
       </interface_config>
       <interface_config>
         se.sics.cooja.mspmote.interfaces.MspIPAddress
-        <ip>fe80.0000.0000.0000.0212.7501.0001.0101</ip>
+        <ip>0000.0000.0000.0000.0000.0000.0000.0000</ip>
       </interface_config>
       <interface_config>
         se.sics.cooja.mspmote.interfaces.MspMoteID
@@ -78,7 +78,7 @@
       </interface_config>
       <interface_config>
         se.sics.cooja.mspmote.interfaces.MspIPAddress
-        <ip>fe80.0000.0000.0000.0212.7502.0002.0202</ip>
+        <ip>0000.0000.0000.0000.0000.0000.0000.0000</ip>
       </interface_config>
       <interface_config>
         se.sics.cooja.mspmote.interfaces.MspMoteID
@@ -96,7 +96,7 @@
       </interface_config>
       <interface_config>
         se.sics.cooja.mspmote.interfaces.MspIPAddress
-        <ip>fe80.0000.0000.0000.0212.7503.0003.0303</ip>
+        <ip>0000.0000.0000.0000.0000.0000.0000.0000</ip>
       </interface_config>
       <interface_config>
         se.sics.cooja.mspmote.interfaces.MspMoteID
@@ -114,7 +114,7 @@
       </interface_config>
       <interface_config>
         se.sics.cooja.mspmote.interfaces.MspIPAddress
-        <ip>fe80.0000.0000.0000.0212.7504.0004.0404</ip>
+        <ip>0000.0000.0000.0000.0000.0000.0000.0000</ip>
       </interface_config>
       <interface_config>
         se.sics.cooja.mspmote.interfaces.MspMoteID
@@ -132,7 +132,7 @@
       </interface_config>
       <interface_config>
         se.sics.cooja.mspmote.interfaces.MspIPAddress
-        <ip>fe80.0000.0000.0000.0212.7505.0005.0505</ip>
+        <ip>0000.0000.0000.0000.0000.0000.0000.0000</ip>
       </interface_config>
       <interface_config>
         se.sics.cooja.mspmote.interfaces.MspMoteID
@@ -143,7 +143,7 @@
   <plugin>
     se.sics.cooja.plugins.SimControl
     <width>282</width>
-    <z>1</z>
+    <z>2</z>
     <height>187</height>
     <location_x>0</location_x>
     <location_y>0</location_y>
@@ -155,7 +155,7 @@
       <skin>Radio environment (UDGM)</skin>
     </plugin_config>
     <width>300</width>
-    <z>3</z>
+    <z>1</z>
     <height>300</height>
     <location_x>503</location_x>
     <location_y>0</location_y>
@@ -168,10 +168,10 @@
       <history>256</history>
     </plugin_config>
     <width>1021</width>
-    <z>2</z>
+    <z>3</z>
     <height>190</height>
-    <location_x>-7</location_x>
-    <location_y>276</location_y>
+    <location_x>-5</location_x>
+    <location_y>455</location_y>
     <minimized>false</minimized>
   </plugin>
 </simconf>
