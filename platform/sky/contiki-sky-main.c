@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#)$Id: contiki-sky-main.c,v 1.52 2009/04/06 14:12:58 nifi Exp $
+ * @(#)$Id: contiki-sky-main.c,v 1.53 2009/04/10 00:40:08 adamdunkels Exp $
  */
 
 #include <signal.h>
@@ -205,6 +205,11 @@ main(int argc, char **argv)
   leds_on(LEDS_GREEN);
   ds2411_init();
 
+  /* XXX hack: Fix it so that the 802.15.4 MAC address is compatible
+     with an Ethernet MAC address - byte 0 (byte 2 in the DS ID)
+     cannot be odd. */
+  ds2411_id[2] &= 0xfe;
+  
   leds_on(LEDS_BLUE);
   xmem_init();
 
@@ -214,9 +219,12 @@ main(int argc, char **argv)
    * Hardware initialization done!
    */
 
+  
   /* Restore node id if such has been stored in external mem */
   node_id_restore();
 
+  random_init(ds2411_id[0] + node_id);
+  
   leds_off(LEDS_BLUE);
   /*
    * Initialize Contiki and our processes.
@@ -237,8 +245,6 @@ main(int argc, char **argv)
   cc2420_init();
   cc2420_set_pan_addr(IEEE802154_PANID, 0 /*XXX*/, ds2411_id);
   cc2420_set_channel(RF_CHANNEL);
-
-  random_init(ds2411_id[0] + node_id);
 
   printf(CONTIKI_VERSION_STRING " started. ");
   if(node_id > 0) {
