@@ -1,0 +1,15 @@
+apt-get source qemu
+use these files in place of those in the qemu tree
+
+Build qemu
+  ./configure --target-list=arm-softmmu
+  make
+
+Run with
+  arm-softmmu/qemu-system-arm -S -M mc1322x -nographic -pflash /home/malvira/mc1322x-tests/tests/blink-red.bin
+
+which will load the bin at 0x00400000 and execution will start there (type c).
+
+I plan to add a way to load a rom image as well...
+
+
