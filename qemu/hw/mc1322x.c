@@ -38,6 +38,11 @@ struct mc1322x_state_s *mc1322x_init(void)
     cpu_register_physical_memory(MC1322X_RAMBASE, MC1322X_RAMSIZE,
                     qemu_ram_alloc(MC1322X_RAMSIZE) | IO_MEM_RAM);
 
+    /* shouldn't load the images in this way */
+    /* should make a commandline arg for this and just load the file to ram */
+    /* directly. */
+    /* this may be possible with snapshots or something...*/
+
     index = drive_get_index(IF_MTD, 0, 0);
     if(0<bdrv_read(drives_table[index].bdrv,0,phys_ram_base+MC1322X_ROMBASE,MC1322X_ROMSIZE/512)) {
 	    fprintf(stderr, "qemu: Error registering rom memory.\n");
