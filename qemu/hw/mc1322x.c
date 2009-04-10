@@ -11,6 +11,7 @@
 #include "sysemu.h"
 #include "boards.h"
 #include "flash.h"
+#include "block.h"
 
 static const int sector_len = 128 * 1024;
 
@@ -36,9 +37,17 @@ struct mc1322x_state_s *mc1322x_init(void)
     cpu_register_physical_memory(MC1322X_RAMBASE, MC1322X_RAMSIZE,
                     qemu_ram_alloc(MC1322X_RAMSIZE) | IO_MEM_RAM);
 
+    index = drive_get_index(IF_MTD, 0, 0);
+    fprintf(stderr, "rom device index %d\n",index);
+    cpu_register_physical_memory(MC1322X_ROMBASE, MC1322X_ROMSIZE,0);
+    if(0<bdrv_read(drives_table[index].bdrv,0,phys_ram_base+MC1322X_ROMBASE,MC1322X_ROMSIZE/512)) {
+	    fprintf(stderr, "qemu: Error registering rom memory.\n");
+    }
+
     index = drive_get_index(IF_PFLASH, 0, 0);
-    if (!pflash_cfi01_register(0x00400000, qemu_ram_alloc(MC1322X_RAMBASE),
-            drives_table[index].bdrv, sector_len, MC1322X_RAMBASE / sector_len,
+    fprintf(stderr, "ram device index %d\n",index);
+    if (!pflash_cfi01_register(0x00400000, qemu_ram_alloc(MC1322X_RAMSIZE),
+            drives_table[index].bdrv, sector_len, MC1322X_RAMSIZE / sector_len,
             2, 0, 0, 0, 0)) {
         fprintf(stderr, "qemu: Error registering flash memory.\n");
         exit(1);
