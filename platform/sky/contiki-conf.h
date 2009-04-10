@@ -1,5 +1,5 @@
 /* -*- C -*- */
-/* @(#)$Id: contiki-conf.h,v 1.48 2009/04/06 17:18:20 nifi Exp $ */
+/* @(#)$Id: contiki-conf.h,v 1.49 2009/04/10 00:39:19 adamdunkels Exp $ */
 
 #ifndef CONTIKI_CONF_H
 #define CONTIKI_CONF_H
@@ -22,6 +22,7 @@
 #ifndef WITH_UIP6
 #define TIMESYNCH_CONF_ENABLED 1
 #define CC2420_CONF_TIMESTAMPS 1
+#define CC2420_CONF_CHECKSUM   1
 #endif /* !WITH_UIP6 */
 
 #define CFS_CONF_OFFSET_TYPE	long
@@ -104,7 +105,8 @@
 
 #define UIP_CONF_DHCP_LIGHT
 #define UIP_CONF_LLH_LEN         0
-#define UIP_CONF_RECEIVE_WINDOW  (UIP_CONF_BUFFER_SIZE - 40)
+#define UIP_CONF_RECEIVE_WINDOW  60
+#define UIP_CONF_TCP_MSS         60
 #define UIP_CONF_MAX_CONNECTIONS 4
 #define UIP_CONF_MAX_LISTENPORTS 8
 #define UIP_CONF_UDP_CONNS       12
