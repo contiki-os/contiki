@@ -60,7 +60,7 @@
       </interface_config>
       <interface_config>
         se.sics.cooja.mspmote.interfaces.MspIPAddress
-        <ip>fe80.0000.0000.0000.0212.7501.0001.0101</ip>
+        <ip>fe80.0000.0000.0000.0212.7401.0001.0101</ip>
       </interface_config>
       <interface_config>
         se.sics.cooja.mspmote.interfaces.MspMoteID
@@ -78,7 +78,7 @@
       </interface_config>
       <interface_config>
         se.sics.cooja.mspmote.interfaces.MspIPAddress
-        <ip>fe80.0000.0000.0000.0212.7502.0002.0202</ip>
+        <ip>fe80.0000.0000.0000.0212.7402.0002.0202</ip>
       </interface_config>
       <interface_config>
         se.sics.cooja.mspmote.interfaces.MspMoteID
@@ -96,7 +96,7 @@
       </interface_config>
       <interface_config>
         se.sics.cooja.mspmote.interfaces.MspIPAddress
-        <ip>fe80.0000.0000.0000.0212.7503.0003.0303</ip>
+        <ip>fe80.0000.0000.0000.0212.7403.0003.0303</ip>
       </interface_config>
       <interface_config>
         se.sics.cooja.mspmote.interfaces.MspMoteID
@@ -114,7 +114,7 @@
       </interface_config>
       <interface_config>
         se.sics.cooja.mspmote.interfaces.MspIPAddress
-        <ip>fe80.0000.0000.0000.0212.7504.0004.0404</ip>
+        <ip>fe80.0000.0000.0000.0212.7404.0004.0404</ip>
       </interface_config>
       <interface_config>
         se.sics.cooja.mspmote.interfaces.MspMoteID
@@ -132,7 +132,7 @@
       </interface_config>
       <interface_config>
         se.sics.cooja.mspmote.interfaces.MspIPAddress
-        <ip>fe80.0000.0000.0000.0212.7505.0005.0505</ip>
+        <ip>fe80.0000.0000.0000.0212.7405.0005.0505</ip>
       </interface_config>
       <interface_config>
         se.sics.cooja.mspmote.interfaces.MspMoteID
