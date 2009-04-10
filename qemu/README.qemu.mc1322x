@@ -7,11 +7,12 @@ Build qemu
   make
 
 Run with
-  arm-softmmu/qemu-system-arm -S -M mc1322x -nographic -pflash /home/malvira/mc1322x-tests/tests/blink-red.bin
+  arm-softmmu/qemu-system-arm -S -M mc1322x -nographic \ 
+  -pflash ~/mc1322x-tests/tests/blink-red.bin \
+  -mtdblock ~/mcmc1322x-tests/doc/mc13224v.img
 
-which will load the bin at 0x00400000 and execution will start there (type c).
-
-I plan to add a way to load a rom image as well...
+which will load mc13224v.img at 0x00000000 and blink-red.bin at
+0x00400000 --- execution will start at 0x00400000 (type c).
 
 Debug with gdb:
 
