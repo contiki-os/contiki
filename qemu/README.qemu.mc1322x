@@ -1,4 +1,5 @@
-apt-get source qemu
+  apt-get source qemu
+
 use these files in place of those in the qemu tree
 
 Build qemu
@@ -12,4 +13,13 @@ which will load the bin at 0x00400000 and execution will start there (type c).
 
 I plan to add a way to load a rom image as well...
 
+Debug with gdb:
+
+Build gdb for an arm target:
+
+  apt-get source gdb
+  ./configure --target=arm-linux
+  make
+  ./gdb
+  (gdb) target remote localhost:1234
 
