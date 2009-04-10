@@ -58,7 +58,7 @@
  *
  * This file is part of the uIP TCP/IP stack.
  *
- * $Id: uipopt.h,v 1.10 2009/03/15 20:29:04 nvt-se Exp $
+ * $Id: uipopt.h,v 1.11 2009/04/10 00:37:48 adamdunkels Exp $
  *
  */
 
@@ -383,7 +383,11 @@
  * This is should not be to set to more than
  * UIP_BUFSIZE - UIP_LLH_LEN - UIP_TCPIP_HLEN.
  */
+#ifdef UIP_CONF_TCP_MSS
+#define UIP_TCP_MSS UIP_CONF_TCP_MSS
+#else
 #define UIP_TCP_MSS     (UIP_BUFSIZE - UIP_LLH_LEN - UIP_TCPIP_HLEN)
+#endif
 
 /**
  * The size of the advertised receiver's window.
