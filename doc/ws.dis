@@ -5250,33 +5250,33 @@ Disassembly of section P2:
   40305c:	0240      	lsls	r0, r0, #9                                        // r0 is now 0x1F000
   40305e:	f000 f8db 	bl	403218 <SMAC_InitFromFlash>                       // from flash --- this might be the regreplacment since that's in codespace... luckly we can call it directly and IAR links it in. looks like it sets a lot of the ram values that aren't getting set without it 
   403062:	f000 f82f 	bl	4030c4 <SMAC_InitFlybackSettings>                 // looks like this happens... 
-  403066:	7928      	ldrb	r0, [r5, #4]                                      // need a dump of r5 ram_init_val now 
+  403066:	7928      	ldrb	r0, [r5, #4]                                      // need a dump of r5 ram_init_val now appears to be 0 
   403068:	2801      	cmp	r0, #1
-  40306a:	d101      	bne.n	403070 <RadioInit+0xb4>                           // say it doesn't branch, 
-  40306c:	2110      	movs	r1, #16                                           // r1 gets 16
-  40306e:	e004      	b.n	40307a <RadioInit+0xbe>                           // branch to 5
-  403070:	7968      	ldrb	r0, [r5, #5]
-  403072:	2801      	cmp	r0, #1
-  403074:	d104      	bne.n	403080 <RadioInit+0xc4>                           // skips an init from memory
+  40306a:	d101      	bne.n	403070 <RadioInit+0xb4>                           // branches
+  40306c:	2110      	movs	r1, #16                                           
+  40306e:	e004      	b.n	40307a <RadioInit+0xbe>                           
+  403070:	7968      	ldrb	r0, [r5, #5]                                      // appears to be 0
+  403072:	2801      	cmp	r0, #1                                            
+  403074:	d104      	bne.n	403080 <RadioInit+0xc4>                           // branches to 6:
   403076:	2120      	movs	r1, #32
   403078:	3410      	adds	r4, #16
   40307a:	0020      	lsls	r0, r4, #0                                        // 5: 
   40307c:	f000 f932 	bl	4032e4 <SMAC_InitFromMemory>                      // do 4 entries but from r4 of buck bypass 
-  403080:	480f      	ldr	r0, [pc, #60]	(4030c0 <RadioInit+0x104>)
+  403080:	480f      	ldr	r0, [pc, #60]	(4030c0 <RadioInit+0x104>)        // 6:
   403082:	f000 f881 	bl	403188 <fill_ram_struct>                          // and a call to fill ram struct --- maybe important to the program?
   403086:	2400      	movs	r4, #0
-  403088:	78e9      	ldrb	r1, [r5, #3]
+  403088:	78e9      	ldrb	r1, [r5, #3]                                      // appears to be 0x9b
   40308a:	0620      	lsls	r0, r4, #24
-  40308c:	0e00      	lsrs	r0, r0, #24
-  40308e:	f000 f86d 	bl	40316c <get_ctov>
-  403092:	1929      	adds	r1, r5, r4
-  403094:	7208      	strb	r0, [r1, #8]
-  403096:	1c64      	adds	r4, r4, #1
+  40308c:	0e00      	lsrs	r0, r0, #24               
+  40308e:	f000 f86d 	bl	40316c <get_ctov>                                 //v=get_ctov(0,0x9b)
+  403092:	1929      	adds	r1, r5, r4                                       // r4 = 0, r5 is &ram_init_val
+  403094:	7208      	strb	r0, [r1, #8]                                     
+  403096:	1c64      	adds	r4, r4, #1                                       // r4 = 1
   403098:	0620      	lsls	r0, r4, #24
   40309a:	0e00      	lsrs	r0, r0, #24
-  40309c:	2810      	cmp	r0, #16
-  40309e:	d3f3      	bcc.n	403088 <RadioInit+0xcc>
-  4030a0:	b001      	add	sp, #4
+  40309c:	2810      	cmp	r0, #16                  
+  40309e:	d3f3      	bcc.n	403088 <RadioInit+0xcc>                          // branch if (v>>24)>16 
+  4030a0:	b001      	add	sp, #4                                           // return?
   4030a2:	9804      	ldr	r0, [sp, #16]
   4030a4:	bcf0      	pop	{r4, r5, r6, r7}
   4030a6:	b001      	add	sp, #4

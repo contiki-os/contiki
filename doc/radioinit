@@ -95,11 +95,48 @@ then maybe buckbypass sequence... 4 entries from r4+16
 RadioInit is (roughly):
 
     SMAC_InitFromMemory(gRadioTOCCal1,40);
-    SMAC_InitFromMemeory(gRadioTOCCal2_24MHz_c,8);
-    SMAC_InitFromMemeory(gRadioTOCCal3,88);
-    SMAC_InitFromMemeory(gRadioTOCCal5,32);
-    SMAC_InitFromMemeory(gRadioInit_RegReplacement_c,344);
+    SMAC_InitFromMemory(gRadioTOCCal2_24MHz_c,8);
+    SMAC_InitFromMemory(gRadioTOCCal3_c,88);
+    SMAC_InitFromMemory(gRadioTOCCal5,32);
+    SMAC_InitFromMemory(gRadioInit_RegReplacement_c,344);
     SMAC_InitFromFlash(0x1F000);
     SMAC_InitFlybackSettings();
-    /* then they check stuff in ram_init_val */
-    /* getting a dump of that now */
+
+    v = get_ctov(0,ram_init_val[3]);
+do  {
+    ram_init_val[8] = v;
+    } while((v>>24)>16);
+
+
+/*
+After init from flash and flyback settings
+ram_init_val - 004055d0
+004055d0
+base +0       +4       +8       +c       +10      +14      +18      +1c      
+0000 00000000 00000000 00000000 00000000 00000000 00000000 80009400 00000017
+
+u8RamValues
+00405424
+base +0       +4       +8       +c       +10      +14      +18      +1c      
+0000 0400009b 00000000 00000000 00010000 ff000000 00000000 00000000 00000000
+*/
+
+/*
+  40308e:       f000 f86d       bl      40316c <get_ctov>                                 //get_ctov(0,0x9b)
+  403092:       1929            adds    r1, r5, r4       // r4 = 0, r5 is &ram_init_val
+  403094:       7208            strb    r0, [r1, #8]
+  403096:       1c64            adds    r4, r4, #1       // r4=1
+  403098:       0620            lsls    r0, r4, #24     
+  40309a:       0e00            lsrs    r0, r0, #24
+  40309c:       2810            cmp     r0, #16          //
+  40309e:       d3f3            bcc.n   403088 <RadioInit+0xcc> // branch if higher
+  4030a0:       b001            add     sp, #4
+  4030a2:       9804            ldr     r0, [sp, #16]
+  4030a4:       bcf0            pop     {r4, r5, r6, r7}
+  4030a6:       b001            add     sp, #4
+  4030a8:       4700            bx      r0
+  4030aa:       46c0            nop                     (mov r8, r8)
+
+
+*/
+
