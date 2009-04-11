@@ -134,57 +134,43 @@ void vreg_init(void) {
 	*(volatile uint32_t *)(0x80003048) = 0x00000f04; /* bypass the buck */
 	for(i=0; i<0x161a8; i++) { continue; } /* wait for the bypass to take */
 //	while((((*(volatile uint32_t *)(0x80003018))>>17) & 1) !=1) { continue; } /* wait for the bypass to take */
-	*(volatile uint32_t *)(0x80003048) = 0x00000ffc; /* start the regulators */
+	*(volatile uint32_t *)(0x80003048) = 0x00000ff8; /* start the regulators */
 }
 
 void radio_init(void) {
 	uint32_t i;
-
 	/* sequence 1 */
 	for(i=0; i<MAX_SEQ1; i++) {
 		*(volatile uint32_t *)(addr_seq1[i]) = data_seq1[i];
 	}
-
 	/* seq 1 delay */
 	for(i=0; i<0x161a8; i++) { continue; }
-
-
 	/* sequence 2 */
 	for(i=0; i<MAX_SEQ2; i++) {
 		*(volatile uint32_t *)(addr_seq2[i]) = data_seq2[i];
 	}
-
 	/* modem val */
 	*(volatile uint32_t *)0x80009000 = 0x80050100;
-
-
 	/* cal 3 seq 1*/
 	for(i=0; i<MAX_CAL3_SEQ1; i++) {
 		*(volatile uint32_t *)(addr_cal3_seq1[i]) = data_cal3_seq1[i];
 	}
-
 	/* cal 3 delay */
 	for(i=0; i<0x11194; i++) { continue; }
-
 	/* cal 3 seq 2*/
 	for(i=0; i<MAX_CAL3_SEQ2; i++) {
 		*(volatile uint32_t *)(addr_cal3_seq2[i]) = data_cal3_seq2[i];
 	}
-
 	/* cal 3 delay */
 	for(i=0; i<0x11194; i++) { continue; }
-
-
 	/* cal 3 seq 3*/
 	for(i=0; i<MAX_CAL3_SEQ3; i++) {
 		*(volatile uint32_t *)(addr_cal3_seq3[i]) = data_cal3_seq3[i];
 	}
-
 	/* cal 5 */
 	for(i=0; i<MAX_CAL5; i++) {
 		*(volatile uint32_t *)(addr_cal5[i]) = data_cal5[i];
 	}
-
 	/*reg replacment */
 	for(i=0; i<MAX_DATA; i++) {
 		*(volatile uint32_t *)(addr_reg_rep[i]) = data_reg_rep[i];
