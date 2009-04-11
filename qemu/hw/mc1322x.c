@@ -13,6 +13,8 @@
 #include "flash.h"
 #include "block.h"
 
+#include <stdio.h>
+
 static const int sector_len = 128 * 1024;
 
 /* Initialize a MC1322x (ARM7)  */
@@ -20,6 +22,8 @@ struct mc1322x_state_s *mc1322x_init(void)
 {
     struct mc1322x_state_s *s;
     int index;
+    FILE *ram, *rom;
+    ram_addr_t ramoff, romoff;
 
     s = (struct mc1322x_state_s *) qemu_mallocz(sizeof(struct mc1322x_state_s));
 
@@ -31,29 +35,24 @@ struct mc1322x_state_s *mc1322x_init(void)
     register_savevm("cpu", 0, ARM_CPU_SAVE_VERSION, cpu_save, cpu_load,
                     s->env);
 
-    /* SDRAM & Internal Memory Storage */
-    /* should probably allocate memory for all the cpu registers... I think that is where the emulation might be bombing */
+    /* should probably allocate memory for all the cpu registers also */
+
+    romoff = qemu_ram_alloc(MC1322X_ROMSIZE);
     cpu_register_physical_memory(MC1322X_ROMBASE, MC1322X_ROMSIZE,
-                    qemu_ram_alloc(MC1322X_ROMSIZE) | IO_MEM_RAM);
+                    romoff | IO_MEM_RAM);
+    ramoff = qemu_ram_alloc(MC1322X_RAMSIZE);
     cpu_register_physical_memory(MC1322X_RAMBASE, MC1322X_RAMSIZE,
-                    qemu_ram_alloc(MC1322X_RAMSIZE) | IO_MEM_RAM);
+                    ramoff | IO_MEM_RAM);
 
-    /* shouldn't load the images in this way */
-    /* should make a commandline arg for this and just load the file to ram */
-    /* directly. */
-    /* this may be possible with snapshots or something...*/
+    /* need to add a way to specify these images from the command line */
 
-    index = drive_get_index(IF_MTD, 0, 0);
-    if(0<bdrv_read(drives_table[index].bdrv,0,phys_ram_base+MC1322X_ROMBASE,MC1322X_ROMSIZE/512)) {
-	    fprintf(stderr, "qemu: Error registering rom memory.\n");
+    if(rom = fopen("rom.img", "r")) {
+	    fread(phys_ram_base,1,MC1322X_ROMSIZE,rom);
     }
 
-    index = drive_get_index(IF_PFLASH, 0, 0);
-    if (!pflash_cfi01_register(0x00400000, qemu_ram_alloc(MC1322X_RAMSIZE),
-            drives_table[index].bdrv, sector_len, MC1322X_RAMSIZE / sector_len,
-            2, 0, 0, 0, 0)) {
-        fprintf(stderr, "qemu: Error registering flash memory.\n");
-        exit(1);
+    if(ram = fopen("ram.img", "r")) {
+	    fprintf(stderr, "loading ram image\n");
+	    fread(phys_ram_base+ramoff,1,MC1322X_RAMSIZE,ram);
     }
 
     s->env->regs[15] = 0x00400000;
