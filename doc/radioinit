@@ -47,25 +47,7 @@ then they do 11 entries in cal3  and reg replacment  (first two have delays)
 0x402bac <gRadioTOCCal3_c+32>:  0x80009a00      0x8c900021      0x80009a00      0x8c900027
 0x402bbc <gRadioTOCCal3_c+48>:  0x00000000      0x00011194      0x80009a00      0x8c90002b
 0x402bcc <gRadioTOCCal3_c+64>:  0x80009a00      0x8c90002f      0x00000000      0x00011194
-0x402bdc <gRadioTOCCal3_c+80>:  0x80009a00      0x8c900000      0x80009000      0x80050300
-0x402bec <gRadioInit_RegReplacement_c>: 0x80004118      0x00180012      0x80009204      0x00000605
-0x402bfc <gRadioInit_RegReplacement_c+16>:      0x80009208      0x00000504      0x8000920c      0x00001111
-0x402c0c <gRadioInit_RegReplacement_c+32>:      0x80009210      0x0fc40000      0x80009300      0x20046000
-0x402c1c <gRadioInit_RegReplacement_c+48>:      0x80009304      0x4005580c      0x80009308      0x40075801
-0x402c2c <gRadioInit_RegReplacement_c+64>:      0x8000930c      0x4005d801      0x80009310      0x5a45d800
-0x402c3c <gRadioInit_RegReplacement_c+80>:      0x80009314      0x4a45d800      0x80009318      0x40044000
----Type <return> to continue, or q <return> to quit---
-0x402c4c <gRadioInit_RegReplacement_c+96>:      0x80009380      0x00106000      0x80009384      0x00083806
-0x402c5c <gRadioInit_RegReplacement_c+112>:     0x80009388      0x00093807      0x8000938c      0x0009b804
-0x402c6c <gRadioInit_RegReplacement_c+128>:     0x80009390      0x000db800      0x80009394      0x00093802
-0x402c7c <gRadioInit_RegReplacement_c+144>:     0x8000a008      0x00000015      0x8000a018      0x00000002
-0x402c8c <gRadioInit_RegReplacement_c+160>:     0x8000a01c      0x0000000f      0x80009424      0x0000aaa0
-0x402c9c <gRadioInit_RegReplacement_c+176>:     0x80009434      0x01002020      0x80009438      0x016800fe
-0x402cac <gRadioInit_RegReplacement_c+192>:     0x8000943c      0x8e578248      0x80009440      0x000000dd
-0x402cbc <gRadioInit_RegReplacement_c+208>:     0x80009444      0x00000946      0x80009448      0x0000035a
-0x402ccc <gRadioInit_RegReplacement_c+224>:     0x8000944c      0x00100010      0x80009450      0x00000515
-0x402cdc <gRadioInit_RegReplacement_c+240>:     0x80009460      0x00397feb      0x80009464      0x00180358
-
+0x402bdc <gRadioTOCCal3_c+80>:  0x80009a00      0x8c900000      
 
 then 4 entries from r5+24 (buffer_radio_init and cal5)
 
@@ -75,7 +57,7 @@ then 4 entries from r5+24 (buffer_radio_init and cal5)
 
 then 43 entries from r4+152 (reg replacement)
 
-0x402bec <gRadioInit_RegReplacement_c>: 0x80004118      0x00180012      0x80009204      0x00000605
+0x402bec <gRadioInit_RegReplacement_c>:         0x80004118      0x00180012      0x80009204      0x00000605
 0x402bfc <gRadioInit_RegReplacement_c+16>:      0x80009208      0x00000504      0x8000920c      0x00001111
 0x402c0c <gRadioInit_RegReplacement_c+32>:      0x80009210      0x0fc40000      0x80009300      0x20046000
 0x402c1c <gRadioInit_RegReplacement_c+48>:      0x80009304      0x4005580c      0x80009308      0x40075801

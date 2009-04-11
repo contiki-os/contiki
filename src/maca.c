@@ -1,16 +1,5 @@
 #include "maca.h"
 
-/* best format */
-#define MAX_DATA 43
-const uint32_t addr_reg_rep[MAX_DATA] = { 0x80004118,0x80009204,0x80009208,0x8000920c,0x80009210,0x80009300,0x80009304,0x80009308,0x8000930c,0x80009310,0x80009314,0x80009318,0x80009380,0x80009384,0x80009388,0x8000938c,0x80009390,0x80009394,0x8000a008,0x8000a018,0x8000a01c,0x80009424,0x80009434,0x80009438,0x8000943c,0x80009440,0x80009444,0x80009448,0x8000944c,0x80009450,0x80009460,0x80009464,0x8000947c,0x800094e0,0x800094e4,0x800094e8,0x800094ec,0x800094f0,0x800094f4,0x800094f8,0x80009470,0x8000981c,0x80009828 };
-
-const uint32_t data_reg_rep[MAX_DATA] = { 0x00180012,0x00000605,0x00000504,0x00001111,0x0fc40000,0x20046000,0x4005580c,0x40075801,0x4005d801,0x5a45d800,0x4a45d800,0x40044000,0x00106000,0x00083806,0x00093807,0x0009b804,0x000db800,0x00093802,0x00000015,0x00000002,0x0000000f,0x0000aaa0,0x01002020,0x016800fe,0x8e578248,0x000000dd,0x00000946,0x0000035a,0x00100010,0x00000515,0x00397feb,0x00180358,0x00000455,0x00000001,0x00020003,0x00040014,0x00240034,0x00440144,0x02440344,0x04440544,0x0ee7fc00,0x00000082,0x0000002a };
-
-#define MAX_CAL3 22
-const uint32_t addr_cal3[MAX_CAL3] = { 0x80009400,0x80009a04,0x80009a00,0x00000000,0x80009a00,0x80009a00,0x00000000,0x80009a00,0x80009a00,0x00000000,0x80009a00 };
-
-const uint32_t data_cal3[MAX_CAL3] = {0x00020017,0x8185a0a4,0x8c900025,0x00011194,0x8c900021,0x8c900027,0x00011194,0x8c90002b,0x8c90002f,0x00011194,0x8c900000};
-
 void init_phy(void)
 {
   volatile uint32_t cnt;
@@ -85,13 +74,115 @@ void flyback_init(void) {
 	/* good luck and godspeed */
 }
 
+#define MAX_SEQ1 2
+const uint32_t addr_seq1[MAX_SEQ1] = {
+	0x80003048,      
+	0x8000304c,
+};
+
+const uint32_t data_seq1[MAX_SEQ1] = {
+	0x00000f78,     
+	0x00607707,
+};
+
+
+#define MAX_SEQ2 2
+const uint32_t addr_seq2[MAX_SEQ2] = {
+	0x8000a050,      
+	0x8000a054,      
+};
+
+const uint32_t data_seq2[MAX_SEQ2] = {
+	0x0000047b,
+	0x0000007b, 
+};
+
+#define MAX_CAL3_SEQ1 3
+const uint32_t addr_cal3_seq1[MAX_CAL3_SEQ1] = { 0x80009400,0x80009a04,0x80009a00, };
+const uint32_t data_cal3_seq1[MAX_CAL3_SEQ1] = {0x00020017,0x8185a0a4,0x8c900025, };
+
+#define MAX_CAL3_SEQ2 2
+const uint32_t addr_cal3_seq2[MAX_CAL3_SEQ2] = { 0x80009a00,0x80009a00,};
+const uint32_t data_cal3_seq2[MAX_CAL3_SEQ2] = { 0x8c900021,0x8c900027,};
+
+#define MAX_CAL3_SEQ3 1
+const uint32_t addr_cal3_seq3[MAX_CAL3_SEQ3] = { 0x80009a00 };
+const uint32_t data_cal3_seq3[MAX_CAL3_SEQ3] = { 0x8c900000 };
+
+#define MAX_CAL5 4
+const uint32_t addr_cal5[MAX_CAL5] = { 
+	0x80009400,  
+	0x8000a050,       
+	0x8000a054,  
+	0x80003048,
+};
+const uint32_t data_cal5[MAX_CAL5] = {
+	0x00000017,
+	0x00000000,            
+	0x00000000,
+	0x00000f00,
+};
+
+#define MAX_DATA 43
+const uint32_t addr_reg_rep[MAX_DATA] = { 0x80004118,0x80009204,0x80009208,0x8000920c,0x80009210,0x80009300,0x80009304,0x80009308,0x8000930c,0x80009310,0x80009314,0x80009318,0x80009380,0x80009384,0x80009388,0x8000938c,0x80009390,0x80009394,0x8000a008,0x8000a018,0x8000a01c,0x80009424,0x80009434,0x80009438,0x8000943c,0x80009440,0x80009444,0x80009448,0x8000944c,0x80009450,0x80009460,0x80009464,0x8000947c,0x800094e0,0x800094e4,0x800094e8,0x800094ec,0x800094f0,0x800094f4,0x800094f8,0x80009470,0x8000981c,0x80009828 };
+
+const uint32_t data_reg_rep[MAX_DATA] = { 0x00180012,0x00000605,0x00000504,0x00001111,0x0fc40000,0x20046000,0x4005580c,0x40075801,0x4005d801,0x5a45d800,0x4a45d800,0x40044000,0x00106000,0x00083806,0x00093807,0x0009b804,0x000db800,0x00093802,0x00000015,0x00000002,0x0000000f,0x0000aaa0,0x01002020,0x016800fe,0x8e578248,0x000000dd,0x00000946,0x0000035a,0x00100010,0x00000515,0x00397feb,0x00180358,0x00000455,0x00000001,0x00020003,0x00040014,0x00240034,0x00440144,0x02440344,0x04440544,0x0ee7fc00,0x00000082,0x0000002a };
+
+void vreg_init(void) {
+	volatile uint32_t i;
+	*(volatile uint32_t *)(0x80003000) = 0x00000018; /* set default state */
+	*(volatile uint32_t *)(0x80003048) = 0x00000f04; /* bypass the buck */
+	for(i=0; i<0x161a8; i++) { continue; } /* wait for the bypass to take */
+//	while((((*(volatile uint32_t *)(0x80003018))>>17) & 1) !=1) { continue; } /* wait for the bypass to take */
+	*(volatile uint32_t *)(0x80003048) = 0x00000ffc; /* start the regulators */
+}
 
 void radio_init(void) {
 	uint32_t i;
 
-	/* cal 3 */
-	for(i=0; i<MAX_CAL3; i++) {
-		*(volatile uint32_t *)(addr_cal3[i]) = data_cal3[i];
+	/* sequence 1 */
+	for(i=0; i<MAX_SEQ1; i++) {
+		*(volatile uint32_t *)(addr_seq1[i]) = data_seq1[i];
+	}
+
+	/* seq 1 delay */
+	for(i=0; i<0x161a8; i++) { continue; }
+
+
+	/* sequence 2 */
+	for(i=0; i<MAX_SEQ2; i++) {
+		*(volatile uint32_t *)(addr_seq2[i]) = data_seq2[i];
+	}
+
+	/* modem val */
+	*(volatile uint32_t *)0x80009000 = 0x80050100;
+
+
+	/* cal 3 seq 1*/
+	for(i=0; i<MAX_CAL3_SEQ1; i++) {
+		*(volatile uint32_t *)(addr_cal3_seq1[i]) = data_cal3_seq1[i];
+	}
+
+	/* cal 3 delay */
+	for(i=0; i<0x11194; i++) { continue; }
+
+	/* cal 3 seq 2*/
+	for(i=0; i<MAX_CAL3_SEQ2; i++) {
+		*(volatile uint32_t *)(addr_cal3_seq2[i]) = data_cal3_seq2[i];
+	}
+
+	/* cal 3 delay */
+	for(i=0; i<0x11194; i++) { continue; }
+
+
+	/* cal 3 seq 3*/
+	for(i=0; i<MAX_CAL3_SEQ3; i++) {
+		*(volatile uint32_t *)(addr_cal3_seq3[i]) = data_cal3_seq3[i];
+	}
+
+	/* cal 5 */
+	for(i=0; i<MAX_CAL5; i++) {
+		*(volatile uint32_t *)(addr_cal5[i]) = data_cal5[i];
 	}
 
 	/*reg replacment */
