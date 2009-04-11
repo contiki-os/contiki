@@ -1,0 +1,56 @@
+Entries in ram are processed by SMACinitfrommemory and executeentry
+(which does the work). I suspect that these entries are loaded in from
+the rom from the rom_data_init call in the beginning stub. For now
+we'll do the simple thing of performing the actions they do, but for
+real it would be better to load out from ROM and execute the entries
+in a similar way. That way, if the cal data changes in the ROM, our
+code should still work.
+
+When radioinit first starts it seems to do checks for a 24MHZ clock
+and if the buck should be enabled. Assuming 24MHZ and no buck the next
+things it does is 5 entries in cal1 (40 bytes, 4 bytes per word, = 10
+words, 2 words per entry = 5 entrys)
+
+0x80003048      
+0x00000f78      
+
+0x8000304c      
+0x00607707
+
+the next entry is zero addr with val 0x000161a8... this is a delay
+entry. Loop here 0x000161a8 times. then return.
+
+0x00000000      
+0x000161a8
+
+Then two more memory stuffs:
+
+0x8000a050      
+0x0000047b
+
+0x8000a054      
+0x0000007b 
+
+then it seems like the emulator dies on the stack munging they do at
+the end of InitFromMemory... but I think I've decoded the entry
+enough to figure out the rest.
+
+but it looks like they then redo the first entry in cal1
+
+0x80003048      
+0x00000f78      
+
+then they do 11 entries in cal3 (need dump)
+
+then 4 entries from r5+24 (need to check what r5 has... 0x4051e4
+should dump this)
+
+then 44 regreplacment entries
+
+then flash init. (hrmm.. this might be important)
+
+then flyback init.
+
+then some other stuff. (need to check this out closley)
+
+
