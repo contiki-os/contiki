@@ -102,9 +102,9 @@ RadioInit is (roughly):
     SMAC_InitFromFlash(0x1F000);
     SMAC_InitFlybackSettings();
 
-    v = get_ctov(0,ram_init_val[3]);
+    v = get_ctov(0,u8RamValues[3]);
 do  {
-    ram_init_val[8] = v;
+    u8RamValues[8] = v;
     } while((v>>24)>16);
 
 
