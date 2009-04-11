@@ -92,4 +92,14 @@ then maybe buckbypass sequence... 4 entries from r4+16
 
 
 
+RadioInit is (roughly):
 
+    SMAC_InitFromMemory(gRadioTOCCal1,40);
+    SMAC_InitFromMemeory(gRadioTOCCal2_24MHz_c,8);
+    SMAC_InitFromMemeory(gRadioTOCCal3,88);
+    SMAC_InitFromMemeory(gRadioTOCCal5,32);
+    SMAC_InitFromMemeory(gRadioInit_RegReplacement_c,344);
+    SMAC_InitFromFlash(0x1F000);
+    SMAC_InitFlybackSettings();
+    /* then they check stuff in ram_init_val */
+    /* getting a dump of that now */

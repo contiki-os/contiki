@@ -97,21 +97,10 @@ void main(void) {
 	reg(UART1_CON) = 0x00000003; /* enable receive and transmit */
 	reg(GPIO_FUNC_SEL0) = ( (0x01 << (14*2)) | (0x01 << (15*2)) ); /* set GPIO15-14 to UART (UART1 TX and RX)*/
 
-	/* turn on the voltage regulators for the radio */
-	/* you clod! */
-	for(i=0; i<DELAY; i++) { continue; }
-	reg(0x80003048) = 0x00000ff8;
-	/* use the 24MHz clock for the modem */
-	reg(0x80009000) = 0x80050100;
-
-	reg(MACA_RESET) = 0x3; /* reset, turn on the clock */
-	for(i=0; i<DELAY; i++) { continue; }
-
-	reg(MACA_RESET) = 0x2; /* unreset, turn on the clock */
-	for(i=0; i<DELAY; i++) { continue; }
-
 	reset_maca();
 	radio_init();
+	flyback_init();
+	vreg_init();
 	init_phy();
 
 	/* some kind of sequence in init phy from MACPHY.a dissassmbly */
