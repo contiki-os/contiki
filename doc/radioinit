@@ -35,22 +35,79 @@ then it seems like the emulator dies on the stack munging they do at
 the end of InitFromMemory... but I think I've decoded the entry
 enough to figure out the rest.
 
-but it looks like they then redo the first entry in cal1
+then they do one entry of r4 base + 48 (gRadioTOCCal2_24MHz_c[0])
 
-0x80003048      
-0x00000f78      
+0x80009000      
+0x80050100
 
-then they do 11 entries in cal3 (need dump)
+then they do 11 entries in cal3  and reg replacment  (first two have delays)
 
-then 4 entries from r5+24 (need to check what r5 has... 0x4051e4
-should dump this)
+0x402b8c <gRadioTOCCal3_c>:     0x80009400      0x00020017      0x80009a04      0x8185a0a4
+0x402b9c <gRadioTOCCal3_c+16>:  0x80009a00      0x8c900025      0x00000000      0x00011194
+0x402bac <gRadioTOCCal3_c+32>:  0x80009a00      0x8c900021      0x80009a00      0x8c900027
+0x402bbc <gRadioTOCCal3_c+48>:  0x00000000      0x00011194      0x80009a00      0x8c90002b
+0x402bcc <gRadioTOCCal3_c+64>:  0x80009a00      0x8c90002f      0x00000000      0x00011194
+0x402bdc <gRadioTOCCal3_c+80>:  0x80009a00      0x8c900000      0x80009000      0x80050300
+0x402bec <gRadioInit_RegReplacement_c>: 0x80004118      0x00180012      0x80009204      0x00000605
+0x402bfc <gRadioInit_RegReplacement_c+16>:      0x80009208      0x00000504      0x8000920c      0x00001111
+0x402c0c <gRadioInit_RegReplacement_c+32>:      0x80009210      0x0fc40000      0x80009300      0x20046000
+0x402c1c <gRadioInit_RegReplacement_c+48>:      0x80009304      0x4005580c      0x80009308      0x40075801
+0x402c2c <gRadioInit_RegReplacement_c+64>:      0x8000930c      0x4005d801      0x80009310      0x5a45d800
+0x402c3c <gRadioInit_RegReplacement_c+80>:      0x80009314      0x4a45d800      0x80009318      0x40044000
+---Type <return> to continue, or q <return> to quit---
+0x402c4c <gRadioInit_RegReplacement_c+96>:      0x80009380      0x00106000      0x80009384      0x00083806
+0x402c5c <gRadioInit_RegReplacement_c+112>:     0x80009388      0x00093807      0x8000938c      0x0009b804
+0x402c6c <gRadioInit_RegReplacement_c+128>:     0x80009390      0x000db800      0x80009394      0x00093802
+0x402c7c <gRadioInit_RegReplacement_c+144>:     0x8000a008      0x00000015      0x8000a018      0x00000002
+0x402c8c <gRadioInit_RegReplacement_c+160>:     0x8000a01c      0x0000000f      0x80009424      0x0000aaa0
+0x402c9c <gRadioInit_RegReplacement_c+176>:     0x80009434      0x01002020      0x80009438      0x016800fe
+0x402cac <gRadioInit_RegReplacement_c+192>:     0x8000943c      0x8e578248      0x80009440      0x000000dd
+0x402cbc <gRadioInit_RegReplacement_c+208>:     0x80009444      0x00000946      0x80009448      0x0000035a
+0x402ccc <gRadioInit_RegReplacement_c+224>:     0x8000944c      0x00100010      0x80009450      0x00000515
+0x402cdc <gRadioInit_RegReplacement_c+240>:     0x80009460      0x00397feb      0x80009464      0x00180358
 
-then 44 regreplacment entries
+
+then 4 entries from r5+24 (buffer_radio_init and cal5)
+
+0x80009400      0x00000017
+0x405230 <gRadioTOCCal5+8>:     0x8000a050      0x00000000      0x8000a054      0x00000000
+0x405240 <gRadioTOCCal5+24>:    0x80003048      0x00000f00
+
+then 43 entries from r4+152 (reg replacement)
+
+0x402bec <gRadioInit_RegReplacement_c>: 0x80004118      0x00180012      0x80009204      0x00000605
+0x402bfc <gRadioInit_RegReplacement_c+16>:      0x80009208      0x00000504      0x8000920c      0x00001111
+0x402c0c <gRadioInit_RegReplacement_c+32>:      0x80009210      0x0fc40000      0x80009300      0x20046000
+0x402c1c <gRadioInit_RegReplacement_c+48>:      0x80009304      0x4005580c      0x80009308      0x40075801
+0x402c2c <gRadioInit_RegReplacement_c+64>:      0x8000930c      0x4005d801      0x80009310      0x5a45d800
+0x402c3c <gRadioInit_RegReplacement_c+80>:      0x80009314      0x4a45d800      0x80009318      0x40044000
+0x402c4c <gRadioInit_RegReplacement_c+96>:      0x80009380      0x00106000      0x80009384      0x00083806
+0x402c5c <gRadioInit_RegReplacement_c+112>:     0x80009388      0x00093807      0x8000938c      0x0009b804
+0x402c6c <gRadioInit_RegReplacement_c+128>:     0x80009390      0x000db800      0x80009394      0x00093802
+0x402c7c <gRadioInit_RegReplacement_c+144>:     0x8000a008      0x00000015      0x8000a018      0x00000002
+0x402c8c <gRadioInit_RegReplacement_c+160>:     0x8000a01c      0x0000000f      0x80009424      0x0000aaa0
+0x402c9c <gRadioInit_RegReplacement_c+176>:     0x80009434      0x01002020      0x80009438      0x016800fe
+0x402cac <gRadioInit_RegReplacement_c+192>:     0x8000943c      0x8e578248      0x80009440      0x000000dd
+0x402cbc <gRadioInit_RegReplacement_c+208>:     0x80009444      0x00000946      0x80009448      0x0000035a
+0x402ccc <gRadioInit_RegReplacement_c+224>:     0x8000944c      0x00100010      0x80009450      0x00000515
+0x402cdc <gRadioInit_RegReplacement_c+240>:     0x80009460      0x00397feb      0x80009464      0x00180358
+0x402cec <gRadioInit_RegReplacement_c+256>:     0x8000947c      0x00000455      0x800094e0      0x00000001
+0x402cfc <gRadioInit_RegReplacement_c+272>:     0x800094e4      0x00020003      0x800094e8      0x00040014
+0x402d0c <gRadioInit_RegReplacement_c+288>:     0x800094ec      0x00240034      0x800094f0      0x00440144
+0x402d1c <gRadioInit_RegReplacement_c+304>:     0x800094f4      0x02440344      0x800094f8      0x04440544
+0x402d2c <gRadioInit_RegReplacement_c+320>:     0x80009470      0x0ee7fc00      0x8000981c      0x00000082
+0x402d3c <gRadioInit_RegReplacement_c+336>:     0x80009828      0x0000002a
 
 then flash init. (hrmm.. this might be important)
 
 then flyback init.
 
-then some other stuff. (need to check this out closley)
+then maybe buckbypass sequence... 4 entries from r4+16
+
+0x402b64 <gBuckByPass_c>:       0x80003000      0x00000018      0x80003048      0x00000f04
+0x402b74 <gBuckByPass_c+16>:    0x00000000      0x000161a8      0x80003048      0x00000ffc
+
+
+
 
 

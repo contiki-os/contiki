@@ -5186,13 +5186,13 @@ Disassembly of section P2:
   402fce:	65b8      	str	r0, [r7, #88]                                     // gRadioTOCCal2_N[88] 0x58
   402fd0:	4837      	ldr	r0, [pc, #220]	(4030b0 <RadioInit+0xf4>)         // r0 gets   4030b0:	016e3600 .word	0x016e3600 = 240000000
   402fd2:	4286      	cmp	r6, r0
-  402fd4:	d001      	beq.n	402fda <RadioInit+0x1e>                           // if 24 MHz test for 24MHZ
+  402fd4:	d001      	beq.n	402fda <RadioInit+0x1e>                           // if 24 MHz test for 24MHZ skips to endif
   402fd6:	617c      	str	r4, [r7, #20]                                     // gRadioTOCCal2_N[20] 0x14
   402fd8:	61fd      	str	r5, [r7, #28]                                     // gRadioTOCCal2_N[28] 0x1c
   402fda:	4c36      	ldr	r4, [pc, #216]	(4030b4 <RadioInit+0xf8>)         // else endif 4030b4:    .word	0x00402dcc buck_enable
   402fdc:	4d70      	ldr	r5, [pc, #448]	(4031a0 <fill_ram_struct+0x18>)   // 0x0040544c ram_init_val
   402fde:	7928      	ldrb	r0, [r5, #4]                                      // load low byte
-  402fe0:	2801      	cmp	r0, #1                                            // check if its 1 (it's not)
+  402fe0:	2801      	cmp	r0, #1                                            // check if its 1 (it's not, it's 0) 
   402fe2:	d106      	bne.n	402ff2 <RadioInit+0x36>                           // and skip stuff (to 2ff2,HERE) assume skip we have 24MHz
   402fe4:	4834      	ldr	r0, [pc, #208]	(4030b8 <RadioInit+0xfc>)         // 4030b8:	.word	0x00000f7b
   402fe6:	6378      	str	r0, [r7, #52]                                     // what's r7? put f7b into gRadioTOCCal2_None24Mhz_c[52] 0x34
@@ -5201,9 +5201,9 @@ Disassembly of section P2:
   402fec:	2110      	movs	r1, #16
   402fee:	0020      	lsls	r0, r4, #0
   402ff0:	e009      	b.n	403006 <RadioInit+0x4a>
-  402ff2:	7968      	ldrb	r0, [r5, #5]                                      // HERE: what's r5? looks like ram_init_val[5] 0x05
-  402ff4:	2801      	cmp	r0, #1                                            // another test. not one. (it's 0x1e)
-  402ff6:	d108      	bne.n	40300a <RadioInit+0x4e>                           // maybe skip to THERE
+  402ff2:	7968      	ldrb	r0, [r5, #5]                                      // HERE: what's r5? looks like ram_init_val[5] i
+  402ff4:	2801      	cmp	r0, #1                                            // another test. not one. (it's 0) skip to THERE
+  402ff6:	d108      	bne.n	40300a <RadioInit+0x4e>                           // skip to THERE
   402ff8:	4830      	ldr	r0, [pc, #192]	(4030bc <RadioInit+0x100>)        //  4030bc:	00000f7c 	.word	0x00000f7c
   402ffa:	6378      	str	r0, [r7, #52]                                     // put f7c into gRadioTOCCal2_None24Mhz_c[52] 0x34
   402ffc:	3878      	subs	r0, #120
@@ -5213,33 +5213,33 @@ Disassembly of section P2:
   403004:	3010      	adds	r0, #16
   403006:	f000 f96d 	bl	4032e4 <SMAC_InitFromMemory>                      // call InitFromMemory with setup vals? 32 bytes of buck_enable+16?
   40300a:	2128      	movs	r1, #40                                           // THERE: chould have come from a skip r1 gets 40
-  40300c:	0038      	lsls	r0, r7, #0                                        // r0 is r7 (cal2)
+  40300c:	0038      	lsls	r0, r7, #0                                        // r0 is r7 (cal2) r7 base
   40300e:	3030      	adds	r0, #48                                           // now its cal2+48 which is  0x405420 (increment by sizeof?)
   403010:	f000 f968 	bl	4032e4 <SMAC_InitFromMemory>                      // 40 entries of gRadioTOCCal2_None24Mhz+48?//i think this bombs b/c zero...
   403014:	4826      	ldr	r0, [pc, #152]	(4030b0 <RadioInit+0xf4>)         //  4030b0:	016e3600 	.word	0x016e3600
   403016:	4286      	cmp	r6, r0                                            
-  403018:	d103      	bne.n	403022 <RadioInit+0x66>                           // another test for 24MHz 
-  40301a:	2108      	movs	r1, #8
-  40301c:	0020      	lsls	r0, r4, #0
-  40301e:	3030      	adds	r0, #48
+  403018:	d103      	bne.n	403022 <RadioInit+0x66>                           // another test for 24MHz branch to NEXT: if !=, but they are 
+  40301a:	2108      	movs	r1, #8                                            // 8 bytes = 1 entry
+  40301c:	0020      	lsls	r0, r4, #0                                        // r4 base
+  40301e:	3030      	adds	r0, #48                                           // r4 base+48
   403020:	e001      	b.n	403026 <RadioInit+0x6a>                           // goto endif
-  403022:	2130      	movs	r1, #48                                           // else, guissing else is for not 24MHz since r7 is involved
-  403024:	0038      	lsls	r0, r7, #0
-  403026:	f000 f95d 	bl	4032e4 <SMAC_InitFromMemory>                      // endif, do InitFromMemory,  8 entries from 00402dfc <gRadioTOCCal2_24MHz_c>:
-  40302a:	2158      	movs	r1, #88
-  40302c:	0020      	lsls	r0, r4, #0
+  403022:	2130      	movs	r1, #48                                           // NEXT: 
+  403024:	0038      	lsls	r0, r7, #0                                        // 48 bytes = 6 entries of r7+0
+  403026:	f000 f95d 	bl	4032e4 <SMAC_InitFromMemory>                      // endif do the init
+  40302a:	2158      	movs	r1, #88                                           // do 11 entries
+  40302c:	0020      	lsls	r0, r4, #0                                        // of r4 base + 56
   40302e:	3038      	adds	r0, #56
-  403030:	f000 f958 	bl	4032e4 <SMAC_InitFromMemory>                      // do another then do 88 entries from r4+56 0x2e14 (in cal 3)
+  403030:	f000 f958 	bl	4032e4 <SMAC_InitFromMemory>                      // do another then do 11 entries from r4+56 0x2e14 (in cal 3)
   403034:	481e      	ldr	r0, [pc, #120]	(4030b0 <RadioInit+0xf4>)
   403036:	4286      	cmp	r6, r0                                            // check for 24MHZ
   403038:	d004      	beq.n	403044 <RadioInit+0x88>                           // goto endif
-  40303a:	2108      	movs	r1, #8
-  40303c:	0020      	lsls	r0, r4, #0
-  40303e:	3090      	adds	r0, #144
-  403040:	f000 f950 	bl	4032e4 <SMAC_InitFromMemory>                      
-  403044:	2120      	movs	r1, #32                                           // endif
+  40303a:	2108      	movs	r1, #8                                            // skip
+  40303c:	0020      	lsls	r0, r4, #0                                        // skip
+  40303e:	3090      	adds	r0, #144                                          // skip
+  403040:	f000 f950 	bl	4032e4 <SMAC_InitFromMemory>                      // skip
+  403044:	2120      	movs	r1, #32                                           // endif: four entries of
   403046:	0028      	lsls	r0, r5, #0
-  403048:	3018      	adds	r0, #24
+  403048:	3018      	adds	r0, #24                                           // r5+24
   40304a:	f000 f94b 	bl	4032e4 <SMAC_InitFromMemory>                      // do 32 entries in r5+24 this might be zero...
   40304e:	21ac      	movs	r1, #172
   403050:	0049      	lsls	r1, r1, #1                                        // r1 gets 344
@@ -5250,20 +5250,20 @@ Disassembly of section P2:
   40305c:	0240      	lsls	r0, r0, #9                                        // r0 is now 0x1F000
   40305e:	f000 f8db 	bl	403218 <SMAC_InitFromFlash>                       // from flash --- this might be the regreplacment since that's in codespace...
   403062:	f000 f82f 	bl	4030c4 <SMAC_InitFlybackSettings>                 // looks like this happens... 
-  403066:	7928      	ldrb	r0, [r5, #4]
+  403066:	7928      	ldrb	r0, [r5, #4]                                      // 0 unless initfromflash does something to it
   403068:	2801      	cmp	r0, #1
-  40306a:	d101      	bne.n	403070 <RadioInit+0xb4>
-  40306c:	2110      	movs	r1, #16
-  40306e:	e004      	b.n	40307a <RadioInit+0xbe>
+  40306a:	d101      	bne.n	403070 <RadioInit+0xb4>                           // say it doesn't branch, 
+  40306c:	2110      	movs	r1, #16                                           // r1 gets 16
+  40306e:	e004      	b.n	40307a <RadioInit+0xbe>                           // branch to 5
   403070:	7968      	ldrb	r0, [r5, #5]
   403072:	2801      	cmp	r0, #1
-  403074:	d104      	bne.n	403080 <RadioInit+0xc4>
+  403074:	d104      	bne.n	403080 <RadioInit+0xc4>                           // skips an init from memory
   403076:	2120      	movs	r1, #32
   403078:	3410      	adds	r4, #16
-  40307a:	0020      	lsls	r0, r4, #0
-  40307c:	f000 f932 	bl	4032e4 <SMAC_InitFromMemory>                      // do 32 entries but now from 0x2e74 + 16 0x2e84
+  40307a:	0020      	lsls	r0, r4, #0                                        // 5: 
+  40307c:	f000 f932 	bl	4032e4 <SMAC_InitFromMemory>                      // do 4 entries but now from r4 + 16 of buck bypass 
   403080:	480f      	ldr	r0, [pc, #60]	(4030c0 <RadioInit+0x104>)
-  403082:	f000 f881 	bl	403188 <fill_ram_struct>
+  403082:	f000 f881 	bl	403188 <fill_ram_struct>                          // and a call to fill ram struct --- maybe important to the program?
   403086:	2400      	movs	r4, #0
   403088:	78e9      	ldrb	r1, [r5, #3]
   40308a:	0620      	lsls	r0, r4, #24
