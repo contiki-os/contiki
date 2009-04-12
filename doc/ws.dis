@@ -5266,16 +5266,16 @@ Disassembly of section P2:
   403082:	f000 f881 	bl	403188 <fill_ram_struct>                          // and a call to fill ram struct --- maybe important to the program?
   403086:	2400      	movs	r4, #0
   403088:	78e9      	ldrb	r1, [r5, #3]                                      // appears to be 0x9b
-  40308a:	0620      	lsls	r0, r4, #24
+  40308a:	0620      	lsls	r0, r4, #24                                       // clobber high 24 bits
   40308c:	0e00      	lsrs	r0, r0, #24               
   40308e:	f000 f86d 	bl	40316c <get_ctov>                                 //v=get_ctov(0,0x9b)
   403092:	1929      	adds	r1, r5, r4                                       // r4 = 0, r5 is &ram_init_val
   403094:	7208      	strb	r0, [r1, #8]                                     
-  403096:	1c64      	adds	r4, r4, #1                                       // r4 = 1
-  403098:	0620      	lsls	r0, r4, #24
+  403096:	1c64      	adds	r4, r4, #1                                       // r4 = r4+1
+  403098:	0620      	lsls	r0, r4, #24                                      // clobber high 24 bits
   40309a:	0e00      	lsrs	r0, r0, #24
   40309c:	2810      	cmp	r0, #16                  
-  40309e:	d3f3      	bcc.n	403088 <RadioInit+0xcc>                          // branch if (v>>24)>16 
+  40309e:	d3f3      	bcc.n	403088 <RadioInit+0xcc>                          // branch if 16 > r0 
   4030a0:	b001      	add	sp, #4                                           // return?
   4030a2:	9804      	ldr	r0, [sp, #16]
   4030a4:	bcf0      	pop	{r4, r5, r6, r7}
