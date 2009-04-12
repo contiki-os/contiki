@@ -89,9 +89,6 @@ then maybe buckbypass sequence... 4 entries from r4+16
 0x402b64 <gBuckByPass_c>:       0x80003000      0x00000018      0x80003048      0x00000f04
 0x402b74 <gBuckByPass_c+16>:    0x00000000      0x000161a8      0x80003048      0x00000ffc
 
-
-
-
 RadioInit is (roughly):
 
     SMAC_InitFromMemory(gRadioTOCCal1,40);
@@ -101,12 +98,52 @@ RadioInit is (roughly):
     SMAC_InitFromMemory(gRadioInit_RegReplacement_c,344);
     SMAC_InitFromFlash(0x1F000);
     SMAC_InitFlybackSettings();
+    SMAC_InitFromMemory(gBuckByPass_c,16);
+
+    fill_ram_struct(&u8RamValues);
 
     uint8_t i;
     uint8_t buffer_radio_init[16];
     for(i=0; i<16; i++) {
     	     buffer_radio_init[i] = get_ctov(i,u8RamValues[3]);
     }
+
+
+Some kind of success!
+
+This replacment works:
+
+
+ //   RadioInit(PLATFORM_CLOCK, gDigitalClock_PN_c, u32LoopDiv);   // need this to work
+ 
+    /* my replacment for RadioInit, flyback and vreg have been separated out */
+      radio_init();  
+      //    SMAC_InitFromMemory(gRadioTOCCal1,40);
+      //     *(volatile uint32_t *)0x80009000 = 0x80050100;
+      //    SMAC_InitFromMemory(gRadioTOCCal2_24MHz_c,8);
+      //    SMAC_InitFromMemory(gRadioTOCCal3_c,88);
+      //    SMAC_InitFromMemory(gRadioTOCCal5,32);
+      //    SMAC_InitFromMemory(gRadioInit_RegReplacement_c,344);
+      SMAC_InitFromFlash(0x1F000);
+      // SMAC_InitFlybackSettings();
+      flyback_init();
+      //  SMAC_InitFromMemory(gBuckByPass_c,16);
+      vreg_init();
+      
+      *((uint32_t *)&u8RamValues) = 0x4c20030a;   
+      fill_ram_struct(&u8RamValues);
+    
+      for(j=0; j<16; j++) {
+         //        buffer_radio_init[j] = get_ctov(j,u8RamValues[3]);
+                   buffer_radio_init[j] = get_ctov(j,0x4c); //0x4c loads the right values into buffer_radio_init... but why isn't RamValues correct?
+      }
+
+
+Which means my radio_init, and vreg_init are good. It also means that
+my intreprtation of buffer_radio_init is correct. It may also mean
+that u8RamValues isn't important since I just set it's value.
+
+That means I only have InitFromFlash to replace now!
 
 
 /*

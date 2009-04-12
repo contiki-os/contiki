@@ -61,6 +61,7 @@ void reset_maca(void)
 		4030e8:       00ffffff        .word   0x00ffffff
 */
 
+/* tested and is good */
 #define FLYBACK_BASE 0x80009a000
 void flyback_init(void) {
 	uint32_t val8, or;
@@ -128,6 +129,8 @@ const uint32_t addr_reg_rep[MAX_DATA] = { 0x80004118,0x80009204,0x80009208,0x800
 
 const uint32_t data_reg_rep[MAX_DATA] = { 0x00180012,0x00000605,0x00000504,0x00001111,0x0fc40000,0x20046000,0x4005580c,0x40075801,0x4005d801,0x5a45d800,0x4a45d800,0x40044000,0x00106000,0x00083806,0x00093807,0x0009b804,0x000db800,0x00093802,0x00000015,0x00000002,0x0000000f,0x0000aaa0,0x01002020,0x016800fe,0x8e578248,0x000000dd,0x00000946,0x0000035a,0x00100010,0x00000515,0x00397feb,0x00180358,0x00000455,0x00000001,0x00020003,0x00040014,0x00240034,0x00440144,0x02440344,0x04440544,0x0ee7fc00,0x00000082,0x0000002a };
 
+
+/* has been tested and it good */
 void vreg_init(void) {
 	volatile uint32_t i;
 	*(volatile uint32_t *)(0x80003000) = 0x00000018; /* set default state */
@@ -137,6 +140,8 @@ void vreg_init(void) {
 	*(volatile uint32_t *)(0x80003048) = 0x00000ff8; /* start the regulators */
 }
 
+
+/* radio_init has been tested to be good */
 void radio_init(void) {
 	uint32_t i;
 	/* sequence 1 */

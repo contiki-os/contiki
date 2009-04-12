@@ -5265,10 +5265,10 @@ Disassembly of section P2:
   403080:	480f      	ldr	r0, [pc, #60]	(4030c0 <RadioInit+0x104>)        // 6:
   403082:	f000 f881 	bl	403188 <fill_ram_struct>                          // and a call to fill ram struct --- maybe important to the program?
   403086:	2400      	movs	r4, #0
-  403088:	78e9      	ldrb	r1, [r5, #3]                                      // appears to be 0x9b
+  403088:	78e9      	ldrb	r1, [r5, #3]                                      // appears to be 0x4c
   40308a:	0620      	lsls	r0, r4, #24                                       // clobber high 24 bits
   40308c:	0e00      	lsrs	r0, r0, #24               
-  40308e:	f000 f86d 	bl	40316c <get_ctov>                                 //v=get_ctov(0,0x9b)
+  40308e:	f000 f86d 	bl	40316c <get_ctov>                                 //v=get_ctov(0,0x4c)
   403092:	1929      	adds	r1, r5, r4                                       // r4 = 0, r5 is &ram_init_val
   403094:	7208      	strb	r0, [r1, #8]                                     
   403096:	1c64      	adds	r4, r4, #1                                       // r4 = r4+1
@@ -5373,8 +5373,8 @@ Disassembly of section P2:
   403168:	bfffffff 	.word	0xbfffffff
 
 0040316c <get_ctov>:
-  40316c:	4a04      	ldr	r2, [pc, #16]	(403180 <get_ctov+0x14>)
-  40316e:	4350      	muls	r0, r2
+  40316c:	4a04      	ldr	r2, [pc, #16]	(403180 <get_ctov+0x14>) r2=0x00dfbe77
+  40316e:	4350      	muls	r0, r2             
   403170:	0589      	lsls	r1, r1, #22
   403172:	1840      	adds	r0, r0, r1
   403174:	4903      	ldr	r1, [pc, #12]	(403184 <get_ctov+0x18>)
