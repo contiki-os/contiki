@@ -124,7 +124,7 @@ This replacment works:
       //    SMAC_InitFromMemory(gRadioTOCCal3_c,88);
       //    SMAC_InitFromMemory(gRadioTOCCal5,32);
       //    SMAC_InitFromMemory(gRadioInit_RegReplacement_c,344);
-      SMAC_InitFromFlash(0x1F000);
+//      SMAC_InitFromFlash(0x1F000);
       // SMAC_InitFlybackSettings();
       flyback_init();
       //  SMAC_InitFromMemory(gBuckByPass_c,16);
@@ -170,4 +170,13 @@ uint32_t InitFromFlash(uint32_t nvmAddress, uint32_t nLength);
 
 Which looks like InitFromFlash(0x1F00,?);
 
+Good news! It doesn't look like InitFromFlash is necessary. It might
+just be a hook for them to patch the init that is grabbed from rom or
+something.
+
+Checking if buffer_radio_init is important. If so, then I need to
+figure out how it's used and, preferably, what it means.
+
+So buffer_radio_init is necessary for their code to work. I'm not sure
+if it is necessary for the radio of if it's necessary for there app. 
 

@@ -104,6 +104,7 @@ void main(void) {
 	init_phy();
 
 	/* some kind of sequence in init phy from MACPHY.a dissassmbly */
+	/* looks like it's flyback init */
 //	magic();
 
         reg(MACA_CONTROL) = SMAC_MACA_CNTL_INIT_STATE;
