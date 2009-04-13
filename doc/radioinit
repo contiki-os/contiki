@@ -272,3 +272,10 @@ some kind of look-up table for setpower
   4038bc:       0004e3a0        .word   0x0004e3a0
   4038c0:       0004e3a0        .word   0x0004e3a0
   4038c4:       0004e3a0        .word   0x0004e3a0
+
+
+Ok, rftest-rx and tx are working but the range isn't very good. I
+suspect that InitFromFlash is a factory trim for each part. Since I'm
+not doing that then the range and reliability are suffering. Getting
+the NVM to work should probably be my next step.
+
