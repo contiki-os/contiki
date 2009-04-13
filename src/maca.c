@@ -62,16 +62,16 @@ void reset_maca(void)
 */
 
 /* tested and is good */
-#define FLYBACK_BASE 0x80009a000
+#define RF_BASE 0x80009a000
 void flyback_init(void) {
 	uint32_t val8, or;
 	
-	val8 = *(volatile uint32_t *)(FLYBACK_BASE+8);
+	val8 = *(volatile uint32_t *)(RF_BASE+8);
 	or = val8 | 0x0000f7df;
-	*(volatile uint32_t *)(FLYBACK_BASE+8) = or;
-	*(volatile uint32_t *)(FLYBACK_BASE+12) = 0x00ffffff;
-	*(volatile uint32_t *)(FLYBACK_BASE+16) = (((uint32_t)0x00ffffff)>>12);
-	*(volatile uint32_t *)(FLYBACK_BASE) = 16;
+	*(volatile uint32_t *)(RF_BASE+8) = or;
+	*(volatile uint32_t *)(RF_BASE+12) = 0x00ffffff;
+	*(volatile uint32_t *)(RF_BASE+16) = (((uint32_t)0x00ffffff)>>12);
+	*(volatile uint32_t *)(RF_BASE) = 16;
 	/* good luck and godspeed */
 }
 
