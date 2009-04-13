@@ -326,8 +326,8 @@ void set_channel(uint8_t chan) {
 	tmp = tmp & 0xbfffffff;
 	reg(ADDR_CHAN1) = tmp;
 
-	reg(ADDR_CHAN2) = VCODivF[chan];
 	reg(ADDR_CHAN2) = VCODivI[chan];
+	reg(ADDR_CHAN3) = VCODivF[chan];
 
 	tmp = reg(ADDR_CHAN4);
 	tmp = tmp | 2;
