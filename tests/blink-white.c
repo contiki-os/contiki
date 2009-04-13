@@ -6,6 +6,7 @@
 
 #include "embedded_types.h"
 
+__attribute__ ((section ("startup")))
 void main(void) {
 	
 	*(volatile uint32_t *)GPIO_PAD_DIR0 = 0x00000700;

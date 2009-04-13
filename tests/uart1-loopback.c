@@ -11,6 +11,7 @@
 
 #include "embedded_types.h"
 
+__attribute__ ((section ("startup")))
 void main(void) {
 	/* Restore UART regs. to default */
 	/* in case there is still bootloader state leftover */
@@ -31,6 +32,7 @@ void main(void) {
 
 	uint8_t c;
 	while(1) {
+//		*(volatile uint32_t *)UART1_DATA = (uint8_t)'U';
 		if(*(volatile uint32_t*)UR1CON > 0) {
 			/* Receive buffer isn't empty */
 			/* read a byte and write it to the transmit buffer */
