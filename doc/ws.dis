@@ -5309,7 +5309,7 @@ Disassembly of section P2:
   4030e8:	00ffffff 	.word	0x00ffffff
 
 004030ec <SetChannel>:
-  4030ec:	b430      	push	{r4, r5}        //r0 = chan_num r1=vcodivF r2=vcodivI
+  4030ec:	b430      	push	{r4, r5}        //r0 = chan_num r1=vcodivI r2=vcodivF
   4030ee:	4b1d      	ldr	r3, [pc, #116]	(403164 <GetCurrentChannel+0x38>)
   4030f0:	681c      	ldr	r4, [r3, #0]    //r4 = *0x80009800
   4030f2:	4d1d      	ldr	r5, [pc, #116]	(403168 <GetCurrentChannel+0x3c>) //0xbfffffff
@@ -6370,7 +6370,7 @@ Disassembly of section P2:
   403a3c:	4a03      	ldr	r2, [pc, #12]	(403a4c <??DataTable2>) r2=0x00403c14 (gaRFSynVCODivF_c)
   403a3e:	5852      	ldr	r2, [r2, r1]    r2 gets gaRFSynVCODivF_c[r1]
   403a40:	4903      	ldr	r1, [pc, #12]	(403a50 <??DataTable3>) r1=0x00403c04 (gaRFSynVCODivI_c)
-  403a42:	5c09      	ldrb	r1, [r1, r0]    r1 gets gaRFSynVCODivI_c[r1]
+  403a42:	5c09      	ldrb	r1, [r1, r0]    r1 gets gaRFSynVCODivI_c[r0]
   403a44:	f7ff fb52 	bl	4030ec <SetChannel> // SetChannel(chan,gaRFSynVCODivI_c[chan],gaRFSynVCODivF_c[chan])
   403a48:	2000      	movs	r0, #0
   403a4a:	e01d      	b.n	403a88 <??Subroutine2_0>

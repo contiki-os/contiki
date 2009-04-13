@@ -338,7 +338,7 @@ void set_channel(uint8_t chan) {
 	reg(ADDR_CHAN4) = tmp;
 
 	tmp = tmp & 0xffffe0ff;
-	tmp | ((ctov_4c[chan]<<8)&0x1F00);
+	tmp = tmp | (((ctov_4c[chan])<<8)&0x1F00);
 	reg(ADDR_CHAN4) = tmp;
 	/* duh! */
 }
