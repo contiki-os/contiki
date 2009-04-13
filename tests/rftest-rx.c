@@ -9,6 +9,9 @@
 #define UART1_CTS       0x80005014
 #define UART1_BR        0x80005018
 
+#define GPIO_PAD_DIR0   0x80000000
+#define GPIO_DATA0      0x80000008
+
 #include "maca.h"
 #include "embedded_types.h"
 
@@ -72,14 +75,32 @@ void dump_regs(uint32_t base, uint32_t len) {
 	puts(NL); 
 }
 
+volatile uint8_t led;
+
+#define led_on() do  { led = 1; reg(GPIO_DATA0) = 0x00000200; } while(0);
+#define led_off() do { led = 0; reg(GPIO_DATA0) = 0x00000000; } while(0);
+
+void toggle_led(void) {
+	if(0 == led) {
+		led_on();
+		led = 1;
+
+	} else {
+		led_off();
+	}
+}
+
 __attribute__ ((section ("startup")))
 void main(void) {
 	uint8_t c;
 	volatile uint32_t i;
 	uint32_t tmp;
-	volatile uint32_t *data;
+	volatile uint8_t *data;
 	uint16_t status;
 
+	*(volatile uint32_t *)GPIO_PAD_DIR0 = 0x00000200;
+	led_on();
+	
 	/* Restore UART regs. to default */
 	/* in case there is still bootloader state leftover */
 
@@ -110,45 +131,122 @@ void main(void) {
 	for(i=0; i<DELAY; i++) { continue; }
 
 	data = (void *)DATA;
-	data[0] = 0xdeadbeef;
 	reg(MACA_DMARX) = DATA; /* put data somewhere */
 	reg(MACA_PREAMBLE) = 0;
 
-	puts("maca_base\n\r");
-	dump_regs(MACA_BASE, 96);
-	puts("modem write base\n\r");
-	dump_regs(0x80009000, 96);
-	puts("modem read base\n\r");
-	dump_regs(0x800091c0, 96);
-	puts("CRM\n\r");
-	dump_regs(0x80003000, 96);
-	puts("reserved modem_base\n\r");
-	dump_regs(0x80009200, 192);
+/* 	puts("maca_base\n\r"); */
+/* 	dump_regs(MACA_BASE, 96); */
+/* 	puts("modem write base\n\r"); */
+/* 	dump_regs(0x80009000, 96); */
+/* 	puts("modem read base\n\r"); */
+/* 	dump_regs(0x800091c0, 96); */
+/* 	puts("CRM\n\r"); */
+/* 	dump_regs(0x80003000, 96); */
+/* 	puts("reserved modem_base\n\r"); */
+/* 	dump_regs(0x80009200, 192); */
 
 	command_xcvr_rx();
 
-	puts("\033[H\033[2J");
+//	puts("\033[H\033[2J");
 	while(1) {		
 		uint32_t TsmRxSteps, LastWarmupStep, LastWarmupData, LastWarmdownStep, LastWarmdownData;
-		
-		puts("\033[Hrftest-rx --- " );
-		puts(" maca_getrxlvl: 0x");
-		put_hex(reg(MACA_GETRXLVL));
-		puts(" data[0]: 0x");
-		put_hex32(data[0]);
-		puts(" status: 0x");
-		put_hex32(reg(MACA_STATUS));
-		puts(" random: 0x");
-		put_hex32(reg(MACA_RANDOM));
-		puts(NL);
 
-		puts("Maca_base");
-		puts(NL);
-		dump_regs(MACA_BASE,96);
+		if(_is_action_complete_interrupt(maca_irq)) {
+			maca_clrirq = maca_irq;
+			
+			status = reg(MACA_STATUS) & 0x0000ffff;
+			switch(status)
+			{
+			case(cc_aborted):
+			{
+				puts("aborted\n\r");
+				ResumeMACASync();				
+				break;
+				
+			}
+			case(cc_not_completed):
+			{
+				puts("not completed\n\r");
+				ResumeMACASync();
+				break;
+				
+			}
+			case(cc_timeout):
+			{
+				puts("timeout\n\r");
+				ResumeMACASync();
+				break;
+				
+			}
+			case(cc_no_ack):
+			{
+				puts("no ack\n\r");
+				ResumeMACASync();
+				break;
+				
+			}
+			case(cc_ext_timeout):
+			{
+				puts("ext timeout\n\r");
+				ResumeMACASync();
+				break;
+				
+			}
+			case(cc_ext_pnd_timeout):
+			{
+				puts("ext pnd timeout\n\r");
+				ResumeMACASync();
+				break;
+				
+			}
+			case(cc_success):
+			{
+//				puts("success\n\r");
+				
+				puts("rftest-rx --- " );
+				puts(" maca_getrxlvl: 0x");
+				put_hex(reg(MACA_GETRXLVL));
+				puts(" timestamp: 0x");
+				put_hex32(maca_timestamp);
+				puts("\n\r");
+				puts(" data: ");
+				for(i=0; i<reg(MACA_GETRXLVL); i++) {
+					put_hex(data[i]);
+					putc(' ');
+				}
+				puts("\n\r");
 
-		puts("0x80009000");
-		puts(NL);
-		dump_regs(0x80009000,192);
+				toggle_led();
+
+				command_xcvr_rx();
+				
+				break;
+				
+			}
+			default:
+			{
+				puts("status: ");
+				put_hex16(status);
+				ResumeMACASync();
+				command_xcvr_rx();
+				
+			}
+			}
+		} else if (_is_filter_failed_interrupt(maca_irq)) {
+			puts("filter failed\n\r");
+			ResumeMACASync();
+			command_xcvr_rx();
+		}
+
+/* 		puts(NL); */
+
+/* 		puts("Maca_base"); */
+/* 		puts(NL); */
+/* 		dump_regs(MACA_BASE,96); */
+
+/* 		puts("0x80009000"); */
+/* 		puts(NL); */
+/* 		dump_regs(0x80009000,192); */
 		
 /* 		/\* start rx sequence *\/ */
 /* 		reg(MACA_CONTROL) = 0x00031a01; /\* abort *\/ */
@@ -188,44 +286,7 @@ void main(void) {
 /* 		puts("LastWarmdownData: "); */
 /* 		put_hex32(LastWarmdownData); */
 /* 		puts(NL); */
-		
-		
-/* 		status = reg(MACA_STATUS) & 0x0000ffff; */
-/* 		switch(status)  */
-/* 		{ */
-/* 		case(cc_aborted): */
-/* 		{ */
-/* 			puts("aborted\n\r"); */
-/* 			ResumeMACASync(); */
-
-/* 			command_xcvr_rx(); */
-
-/* 			break; */
-			
-/* 		} */
-/* 		case(cc_not_completed): */
-/* 		{ */
-/* 			puts("not completed\n\r"); */
-/* 			ResumeMACASync(); */
-/* 			break; */
-			
-/* 		} */
-/* 		case(cc_success): */
-/* 		{ */
-/* 			puts("success\n\r"); */
-/* 			break; */
-			
-/* 		} */
-/* 		default: */
-/* 		{ */
-/* 			puts("status: "); */
-/* 			put_hex16(status); */
-/* 			ResumeMACASync(); */
-/* 			command_xcvr_rx(); */
-
-/* 		} */
-/* 		} */
-		
+				
 /* 		reg(MACA_CONTROL) = 0x00031a04; /\* receive *\/ */
 /* 		while (((tmp = reg(MACA_STATUS)) & 15) == 14) */
 /* 			puts("."); */

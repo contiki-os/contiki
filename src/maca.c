@@ -24,7 +24,7 @@ void init_phy(void)
   maca_framesync = 0x000000A7; 
   maca_clk = 0x00000008;       
 //  maca_maskirq = 0; //(maca_irq_cm   | maca_irq_acpl | maca_irq_rst  | maca_irq_di | maca_irq_crc | maca_irq_flt );
-  maca_maskirq = maca_irq_rst;
+  maca_maskirq = (maca_irq_rst | maca_irq_acpl | maca_irq_cm | maca_irq_flt);
   maca_slotoffset = 0x00350000; 
 }
 
