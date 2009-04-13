@@ -5492,10 +5492,11 @@ Disassembly of section P2:
   40325e:	2008      	movs	r0, #8             // r0 gets 8;
   403260:	b501      	push	{r0, lr}           // looks like stack setup for call to NVM_Read
   403262:	0033      	lsls	r3, r6, #0
-  403264:	aa04      	add	r2, sp, #16
+  403264:	aa04      	add	r2, sp, #16        //pDest dump this!
   403266:	a802      	add	r0, sp, #8
-  403268:	7801      	ldrb	r1, [r0, #0]
-  40326a:	2000      	movs	r0, #0
+  403268:	7801      	ldrb	r1, [r0, #0]       //nvmType
+  40326a:	2000      	movs	r0, #0             //nvmInterface
+//extern nvmErr_t NVM_Read(nvmInterface_t nvmInterface , nvmType_t nvmType , void *pDest, uint32_t address, uint32_t numBytes);
   40326c:	f403 fd7c 	bl	6d68 <NVM_Read>
   403270:	b002      	add	sp, #8           
   403272:	2800      	cmp	r0, #0             // did it return 0?
