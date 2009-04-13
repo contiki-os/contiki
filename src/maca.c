@@ -313,7 +313,7 @@ const uint8_t ctov_4c[16] = {
 	0x10,
 	0x10,
 	0x0f,
-}
+};
 
 #define ADDR_CHAN1 0x80009800
 #define ADDR_CHAN2 ADDR_CHAN1+12
