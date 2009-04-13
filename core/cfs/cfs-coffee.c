@@ -281,7 +281,11 @@ collect_garbage(int mode)
     get_sector_status(sector, &stats);
     PRINTF("Coffee: Sector %u has %u active, %u free, and %u obsolete pages.\n",
         sector, (unsigned)stats.active, (unsigned)stats.free, (unsigned)stats.obsolete);
-    if(stats.active == 0 && stats.obsolete > 0) {
+    if(stats.active > 0) {
+      continue;
+    }
+    if((mode == GC_RELUCTANT && stats.free == 0) ||
+       (mode == GC_GREEDY    && stats.obsolete > 0)) {
       COFFEE_ERASE(sector);
       PRINTF("Coffee: Erased sector %d!\n", sector);
       first_page = sector * COFFEE_PAGES_PER_SECTOR;
@@ -289,7 +293,7 @@ collect_garbage(int mode)
         *next_free = first_page;
       }
       if(mode == GC_RELUCTANT) {
-	break;
+        break;
       }
     }
   }
