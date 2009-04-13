@@ -1,5 +1,7 @@
 #include "maca.h"
 
+#define reg(x) (*(volatile uint32_t *)(x))
+
 void init_phy(void)
 {
   volatile uint32_t cnt;

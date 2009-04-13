@@ -103,9 +103,8 @@ void main(void) {
 	vreg_init();
 	init_phy();
 
-	/* some kind of sequence in init phy from MACPHY.a dissassmbly */
-	/* looks like it's flyback init */
-//	magic();
+	set_power(0x0f); /* 0dbm */
+	set_channel(0); /* channel 11 */
 
         reg(MACA_CONTROL) = SMAC_MACA_CNTL_INIT_STATE;
 	for(i=0; i<DELAY; i++) { continue; }
@@ -113,7 +112,6 @@ void main(void) {
 	data = (void *)DATA;
 	data[0] = 0xdeadbeef;
 	reg(MACA_DMARX) = DATA; /* put data somewhere */
-//	reg(MACA_PREAMBLE) = 0xface0fff;
 	reg(MACA_PREAMBLE) = 0;
 
 	puts("maca_base\n\r");
@@ -127,7 +125,6 @@ void main(void) {
 	puts("reserved modem_base\n\r");
 	dump_regs(0x80009200, 192);
 
-//	while(1);
 	command_xcvr_rx();
 
 	puts("\033[H\033[2J");
@@ -164,69 +161,70 @@ void main(void) {
 
 
   /* read TSM_RX_STEPS */
-		TsmRxSteps = (*((volatile uint32_t *)(0x80009204)));
 		
-		puts("TsmRxSteps: ");
-		put_hex32(TsmRxSteps);
-		puts(NL); 
+/* 		TsmRxSteps = (*((volatile uint32_t *)(0x80009204))); */
 		
-		/* isolate the RX_WU_STEPS */
-		/* shift left to align with 32-bit addressing */
-		LastWarmupStep = (TsmRxSteps & 0x1f) << 2;
-		/* Read "current" TSM step and save this value for later */
-		LastWarmupData = (*((volatile uint32_t *)(0x80009300 + LastWarmupStep)));
+/* 		puts("TsmRxSteps: "); */
+/* 		put_hex32(TsmRxSteps); */
+/* 		puts(NL);  */
 		
-		puts("LastWarmupData: ");
-		put_hex32(LastWarmupData);
-		puts(NL);
+/* 		/\* isolate the RX_WU_STEPS *\/ */
+/* 		/\* shift left to align with 32-bit addressing *\/ */
+/* 		LastWarmupStep = (TsmRxSteps & 0x1f) << 2; */
+/* 		/\* Read "current" TSM step and save this value for later *\/ */
+/* 		LastWarmupData = (*((volatile uint32_t *)(0x80009300 + LastWarmupStep))); */
 		
-		/* isolate the RX_WD_STEPS */
-		/* right-shift bits down to bit 0 position */
-		/* left-shift to align with 32-bit addressing */
-		LastWarmdownStep = ((TsmRxSteps & 0x1f00) >> 8) << 2;
-		/* write "last warmdown data" to current TSM step to shutdown rx */
-		LastWarmdownData = (*((volatile uint32_t *)(0x80009300 + LastWarmdownStep)));
+/* 		puts("LastWarmupData: "); */
+/* 		put_hex32(LastWarmupData); */
+/* 		puts(NL); */
 		
-		puts("LastWarmdownData: ");
-		put_hex32(LastWarmdownData);
-		puts(NL);
+/* 		/\* isolate the RX_WD_STEPS *\/ */
+/* 		/\* right-shift bits down to bit 0 position *\/ */
+/* 		/\* left-shift to align with 32-bit addressing *\/ */
+/* 		LastWarmdownStep = ((TsmRxSteps & 0x1f00) >> 8) << 2; */
+/* 		/\* write "last warmdown data" to current TSM step to shutdown rx *\/ */
+/* 		LastWarmdownData = (*((volatile uint32_t *)(0x80009300 + LastWarmdownStep))); */
+		
+/* 		puts("LastWarmdownData: "); */
+/* 		put_hex32(LastWarmdownData); */
+/* 		puts(NL); */
 		
 		
-		status = reg(MACA_STATUS) & 0x0000ffff;
-		switch(status) 
-		{
-		case(cc_aborted):
-		{
-			puts("aborted\n\r");
-			ResumeMACASync();
+/* 		status = reg(MACA_STATUS) & 0x0000ffff; */
+/* 		switch(status)  */
+/* 		{ */
+/* 		case(cc_aborted): */
+/* 		{ */
+/* 			puts("aborted\n\r"); */
+/* 			ResumeMACASync(); */
 
-			command_xcvr_rx();
+/* 			command_xcvr_rx(); */
 
-			break;
+/* 			break; */
 			
-		}
-		case(cc_not_completed):
-		{
-			puts("not completed\n\r");
-			ResumeMACASync();
-			break;
+/* 		} */
+/* 		case(cc_not_completed): */
+/* 		{ */
+/* 			puts("not completed\n\r"); */
+/* 			ResumeMACASync(); */
+/* 			break; */
 			
-		}
-		case(cc_success):
-		{
-			puts("success\n\r");
-			break;
+/* 		} */
+/* 		case(cc_success): */
+/* 		{ */
+/* 			puts("success\n\r"); */
+/* 			break; */
 			
-		}
-		default:
-		{
-			puts("status: ");
-			put_hex16(status);
-			ResumeMACASync();
-			command_xcvr_rx();
+/* 		} */
+/* 		default: */
+/* 		{ */
+/* 			puts("status: "); */
+/* 			put_hex16(status); */
+/* 			ResumeMACASync(); */
+/* 			command_xcvr_rx(); */
 
-		}
-		}
+/* 		} */
+/* 		} */
 		
 /* 		reg(MACA_CONTROL) = 0x00031a04; /\* receive *\/ */
 /* 		while (((tmp = reg(MACA_STATUS)) & 15) == 14) */
