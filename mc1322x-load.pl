@@ -12,7 +12,7 @@ my $baud = '115200';
 my $verbose;
 
 GetOptions ('file=s' => \$filename, 
-	    'terminal' => \$term, 
+	    'terminal=s' => \$term, 
 	    'verbose' => \$verbose, 
 	    'baud=s' => \$baud);
 
