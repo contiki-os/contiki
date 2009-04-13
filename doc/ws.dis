@@ -5460,57 +5460,57 @@ Disassembly of section P2:
 00403218 <SMAC_InitFromFlash>:
   403218:	b570      	push	{r4, r5, r6, lr}
   40321a:	b08a      	sub	sp, #40
-  40321c:	0006      	lsls	r6, r0, #0
+  40321c:	0006      	lsls	r6, r0, #0    // r0 has 0x1F000 from call in radioinit
   40321e:	a804      	add	r0, sp, #16
   403220:	2102      	movs	r1, #2
-  403222:	7001      	strb	r1, [r0, #0]
+  403222:	7001      	strb	r1, [r0, #0]  // *0x1F000 = 2;
   403224:	2101      	movs	r1, #1
-  403226:	7101      	strb	r1, [r0, #4]
-  403228:	f400 fce4 	bl	3bf4 <CRM_VRegCntl>
-  40322c:	482b      	ldr	r0, [pc, #172]	(4032dc <SMAC_InitFromFlash+0xc4>)
-  40322e:	6800      	ldr	r0, [r0, #0]
-  403230:	2107      	movs	r1, #7
-  403232:	f7fd fb8d 	bl	400950 <?Veneer (3) for __aeabi_uidivmod>
+  403226:	7101      	strb	r1, [r0, #4]  // *0x1F000 = 1;
+  403228:	f400 fce4 	bl	3bf4 <CRM_VRegCntl> // call to ROM: I assume this turns on the NVM reg
+  40322c:	482b      	ldr	r0, [pc, #172]	(4032dc <SMAC_InitFromFlash+0xc4>) r0 = &u32SystemClock
+  40322e:	6800      	ldr	r0, [r0, #0]  // r0 = u32SystemClock
+  403230:	2107      	movs	r1, #7        // r1 = 7
+  403232:	f7fd fb8d 	bl	400950 <?Veneer (3) for __aeabi_uidivmod> //divide clock by 7?
   403236:	9001      	str	r0, [sp, #4]
-  403238:	9801      	ldr	r0, [sp, #4]
-  40323a:	1e41      	subs	r1, r0, #1
-  40323c:	9101      	str	r1, [sp, #4]
-  40323e:	2800      	cmp	r0, #0
-  403240:	d1fa      	bne.n	403238 <SMAC_InitFromFlash+0x20>
+  403238:	9801      	ldr	r0, [sp, #4]       // loop: r0 has result
+  40323a:	1e41      	subs	r1, r0, #1         // r1 = result - 1
+  40323c:	9101      	str	r1, [sp, #4]       // r1 goes on the stack
+  40323e:	2800      	cmp	r0, #0             // check if it's 0
+  403240:	d1fa      	bne.n	403238 <SMAC_InitFromFlash+0x20> //go to loop if not zero, delay for vreg
   403242:	4669      	mov	r1, sp
-  403244:	f403 fd38 	bl	6cb8 <NVM_Detect>
-  403248:	2800      	cmp	r0, #0
-  40324a:	d103      	bne.n	403254 <SMAC_InitFromFlash+0x3c>
+  403244:	f403 fd38 	bl	6cb8 <NVM_Detect>  //call to ROM, looks like it returns 0 on fail and a pointer otherwise
+  403248:	2800      	cmp	r0, #0             //0?
+  40324a:	d103      	bne.n	403254 <SMAC_InitFromFlash+0x3c> // branch to return0:
   40324c:	4668      	mov	r0, sp
-  40324e:	7800      	ldrb	r0, [r0, #0]
-  403250:	2800      	cmp	r0, #0
-  403252:	d101      	bne.n	403258 <SMAC_InitFromFlash+0x40>
-  403254:	2000      	movs	r0, #0
-  403256:	e03e      	b.n	4032d6 <SMAC_InitFromFlash+0xbe>
-  403258:	2000      	movs	r0, #0
-  40325a:	f403 ff13 	bl	7084 <NVM_SetSVar>
-  40325e:	2008      	movs	r0, #8
-  403260:	b501      	push	{r0, lr}
+  40324e:	7800      	ldrb	r0, [r0, #0]       // r0 gets where the return value points
+  403250:	2800      	cmp	r0, #0             // return 0 if 0
+  403252:	d101      	bne.n	403258 <SMAC_InitFromFlash+0x40> //otherwise branch to 1:
+  403254:	2000      	movs	r0, #0             //return0:
+  403256:	e03e      	b.n	4032d6 <SMAC_InitFromFlash+0xbe> // branch to exit:
+  403258:	2000      	movs	r0, #0             //1: r0 = 0
+  40325a:	f403 ff13 	bl	7084 <NVM_SetSVar> //call to ROM: might need to dump this one...
+  40325e:	2008      	movs	r0, #8             // r0 gets 8;
+  403260:	b501      	push	{r0, lr}           // looks like stack setup for call to NVM_Read
   403262:	0033      	lsls	r3, r6, #0
   403264:	aa04      	add	r2, sp, #16
   403266:	a802      	add	r0, sp, #8
   403268:	7801      	ldrb	r1, [r0, #0]
   40326a:	2000      	movs	r0, #0
   40326c:	f403 fd7c 	bl	6d68 <NVM_Read>
-  403270:	b002      	add	sp, #8
-  403272:	2800      	cmp	r0, #0
-  403274:	d109      	bne.n	40328a <SMAC_InitFromFlash+0x72>
-  403276:	9802      	ldr	r0, [sp, #8]
-  403278:	4919      	ldr	r1, [pc, #100]	(4032e0 <SMAC_InitFromFlash+0xc8>)
+  403270:	b002      	add	sp, #8           
+  403272:	2800      	cmp	r0, #0             // did it return 0?
+  403274:	d109      	bne.n	40328a <SMAC_InitFromFlash+0x72> //if != branch to 2: 
+  403276:	9802      	ldr	r0, [sp, #8]      //r0 gets something on the stack
+  403278:	4919      	ldr	r1, [pc, #100]	(4032e0 <SMAC_InitFromFlash+0xc8>) //r1 = 0x00000abc
   40327a:	4288      	cmp	r0, r1
-  40327c:	d105      	bne.n	40328a <SMAC_InitFromFlash+0x72>
+  40327c:	d105      	bne.n	40328a <SMAC_InitFromFlash+0x72> //branch to 2: if !=
   40327e:	a802      	add	r0, sp, #8
   403280:	88c1      	ldrh	r1, [r0, #6]
   403282:	22ff      	movs	r2, #255
   403284:	1c92      	adds	r2, r2, #2
   403286:	4291      	cmp	r1, r2
   403288:	d303      	bcc.n	403292 <SMAC_InitFromFlash+0x7a>
-  40328a:	2001      	movs	r0, #1
+  40328a:	2001      	movs	r0, #1           // 2:
   40328c:	f403 fefa 	bl	7084 <NVM_SetSVar>
   403290:	e7e0      	b.n	403254 <SMAC_InitFromFlash+0x3c>
   403292:	2408      	movs	r4, #8
@@ -5518,7 +5518,7 @@ Disassembly of section P2:
   403296:	1f2d      	subs	r5, r5, #4
   403298:	e006      	b.n	4032a8 <SMAC_InitFromFlash+0x90>
   40329a:	a806      	add	r0, sp, #24
-  40329c:	f7ff ff82 	bl	4031a4 <SMAC_InitExecuteEntry>
+  40329c:	f7ff ff82 	bl	4031a4 <SMAC_InitExecuteEntry>  // so it looks like flash has entries it exectues... 
   4032a0:	2800      	cmp	r0, #0
   4032a2:	d00f      	beq.n	4032c4 <SMAC_InitFromFlash+0xac>
   4032a4:	0080      	lsls	r0, r0, #2
@@ -5543,7 +5543,7 @@ Disassembly of section P2:
   4032ce:	2001      	movs	r0, #1
   4032d0:	f403 fed8 	bl	7084 <NVM_SetSVar>
   4032d4:	1d20      	adds	r0, r4, #4
-  4032d6:	b00a      	add	sp, #40
+  4032d6:	b00a      	add	sp, #40    //exit:
   4032d8:	e01c      	b.n	403314 <SMAC_InitFromMemory+0x30>
   4032da:	46c0      	nop			(mov r8, r8)
   4032dc:	00405448 	.word	0x00405448

@@ -145,36 +145,29 @@ that u8RamValues isn't important since I just set it's value.
 
 That means I only have InitFromFlash to replace now!
 
+Actually, I should test if that is necessary --- I still find it a
+little hard to believe that they put essential data on NVM --- except
+they could set codeprotect so that clods won't erase it on accident.
 
-/*
-After init from flash and flyback settings
-ram_init_val - 004055d0
-004055d0
-base +0       +4       +8       +c       +10      +14      +18      +1c      
-0000 00000000 00000000 00000000 00000000 00000000 00000000 80009400 00000017
+See PLM/LibInterface/NVM.h for some docs. Looks like they put a
+standard SST, ST, or Atmel spi flash in there (note the comment about
+continuous read mode).
 
-u8RamValues
-00405424
-base +0       +4       +8       +c       +10      +14      +18      +1c      
-0000 0400009b 00000000 00000000 00010000 ff000000 00000000 00000000 00000000
-*/
+MACPHY.a might use a ROM service for the flash init:
 
-/*
-  40308e:       f000 f86d       bl      40316c <get_ctov>                                 //get_ctov(0,0x9b)
-  403092:       1929            adds    r1, r5, r4       // r4 = 0, r5 is &ram_init_val
-  403094:       7208            strb    r0, [r1, #8]
-  403096:       1c64            adds    r4, r4, #1       // r4=1
-  403098:       0620            lsls    r0, r4, #24     
-  40309a:       0e00            lsrs    r0, r0, #24
-  40309c:       2810            cmp     r0, #16          //
-  40309e:       d3f3            bcc.n   403088 <RadioInit+0xcc> // branch if higher
-  4030a0:       b001            add     sp, #4
-  4030a2:       9804            ldr     r0, [sp, #16]
-  4030a4:       bcf0            pop     {r4, r5, r6, r7}
-  4030a6:       b001            add     sp, #4
-  4030a8:       4700            bx      r0
-  4030aa:       46c0            nop                     (mov r8, r8)
+0000f97c g     F *ABS*  00000000 InitFromFlash
 
+  ac:   4668            mov     r0, sp
+  ae:   f7ff fffe       bl      0 <GetInitTranslationTablePtr>
+  b2:   4669            mov     r1, sp
+  b4:   780a            ldrb    r2, [r1, #0]
+  b6:   0001            lsls    r1, r0, #0
+  b8:   20f8            movs    r0, #248
+  ba:   0240            lsls    r0, r0, #9
+  bc:   f7ff fffe       bl      0 <InitFromFlash>
 
-*/
+uint32_t InitFromFlash(uint32_t nvmAddress, uint32_t nLength);
+
+Which looks like InitFromFlash(0x1F00,?);
+
 
