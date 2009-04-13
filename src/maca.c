@@ -258,13 +258,6 @@ void set_power(uint8_t power) {
 	reg(ADDR_POW3) = AIMVAL[power];
 }
 
-const uint8_t VCODivI[4] = {
-	0x2f2f2f2f,
-	0x2f2f2f2f,
-	0x3030302f,
-	0x30303030,
-};
-
 const uint8_t VCODivI[16] = {
 	0x2f,
 	0x2f,
