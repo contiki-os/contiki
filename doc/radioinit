@@ -180,3 +180,95 @@ figure out how it's used and, preferably, what it means.
 So buffer_radio_init is necessary for their code to work. I'm not sure
 if it is necessary for the radio of if it's necessary for there app. 
 
+Now I need to figure these out:
+
+ (void)MLMEPAOutputAdjust(gu8CurrentPowerLevel);
+  MLMESetChannelRequest((channel_num_t)gu8CurrentChannel);
+
+
+#define gPowerLevel_m30dBm_c 0x00
+#define gPowerLevel_m28dBm_c 0x01
+#define gPowerLevel_m26dBm_c 0x02
+#define gPowerLevel_m24dBm_c 0x03
+#define gPowerLevel_m22dBm_c 0x04
+#define gPowerLevel_m20dBm_c 0x05
+#define gPowerLevel_m18dBm_c 0x06
+#define gPowerLevel_m16dBm_c 0x07 
+#define gPowerLevel_m14dBm_c 0x08
+#define gPowerLevel_m12dBm_c 0x09 
+#define gPowerLevel_m10dBm_c 0x0a
+#define gPowerLevel_m8dBm_c  0x0b
+#define gPowerLevel_m6dBm_c  0x0c
+#define gPowerLevel_m4dBm_c  0x0d
+#define gPowerLevel_m2dBm_c  0x0e
+#define gPowerLevel_0dBm_c   0x0f
+#define gPowerLevel_2dBm_c   0x10
+#define gPowerLevel_4dBm_c   0x11
+#define gPowerLevel_6dBm_c   0x12
+
+gu8CurrentPowerLevel is set to gPowerLevel_0dBm_c = 0x0f
+
+some kind of look-up table for setpower
+
+004037e4 <gPSMVAL_c>:
+  4037e4:       0000080f        .word   0x0000080f
+  4037e8:       0000080f        .word   0x0000080f
+  4037ec:       0000080f        .word   0x0000080f
+  4037f0:       0000080f        .word   0x0000080f
+  4037f4:       0000081f        .word   0x0000081f
+  4037f8:       0000081f        .word   0x0000081f
+  4037fc:       0000081f        .word   0x0000081f
+  403800:       0000080f        .word   0x0000080f
+  403804:       0000080f        .word   0x0000080f
+  403808:       0000080f        .word   0x0000080f
+  40380c:       0000001f        .word   0x0000001f
+  403810:       0000000f        .word   0x0000000f
+  403814:       0000000f        .word   0x0000000f
+  403818:       00000816        .word   0x00000816
+  40381c:       0000001b        .word   0x0000001b
+  403820:       0000000b        .word   0x0000000b
+  403824:       00000802        .word   0x00000802
+  403828:       00000817        .word   0x00000817
+  40382c:       00000003        .word   0x00000003
+
+00403830 <gPAVAL_c>:
+  403830:       000022c0        .word   0x000022c0
+  403834:       000022c0        .word   0x000022c0
+  403838:       000022c0        .word   0x000022c0
+  40383c:       00002280        .word   0x00002280
+  403840:       00002303        .word   0x00002303
+  403844:       000023c0        .word   0x000023c0
+  403848:       00002880        .word   0x00002880
+  40384c:       000029f0        .word   0x000029f0
+  403850:       000029f0        .word   0x000029f0
+  403854:       000029f0        .word   0x000029f0
+  403858:       000029c0        .word   0x000029c0
+  40385c:       00002bf0        .word   0x00002bf0
+  403860:       000029f0        .word   0x000029f0
+  403864:       000028a0        .word   0x000028a0
+  403868:       00002800        .word   0x00002800
+  40386c:       00002ac0        .word   0x00002ac0
+  403870:       00002880        .word   0x00002880
+  403874:       00002a00        .word   0x00002a00
+  403878:       00002b00        .word   0x00002b00
+
+0040387c <gAIMVAL_c>:
+  40387c:       000123a0        .word   0x000123a0
+  403880:       000163a0        .word   0x000163a0
+  403884:       0001a3a0        .word   0x0001a3a0
+  403888:       0001e3a0        .word   0x0001e3a0
+  40388c:       000223a0        .word   0x000223a0
+  403890:       000263a0        .word   0x000263a0
+  403894:       0002a3a0        .word   0x0002a3a0
+  403898:       0002e3a0        .word   0x0002e3a0
+  40389c:       000323a0        .word   0x000323a0
+  4038a0:       000363a0        .word   0x000363a0
+  4038a4:       0003a3a0        .word   0x0003a3a0
+  4038a8:       0003a3a0        .word   0x0003a3a0
+  4038ac:       0003e3a0        .word   0x0003e3a0
+  4038b0:       000423a0        .word   0x000423a0
+  4038b4:       000523a0        .word   0x000523a0
+  4038b8:       000423a0        .word   0x000423a0
+  4038bc:       0004e3a0        .word   0x0004e3a0
+  4038c0:       0004e3a0        .word   0x0004e3a0
+  4038c4:       0004e3a0        .word   0x0004e3a0

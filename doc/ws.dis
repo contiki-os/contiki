@@ -5311,32 +5311,32 @@ Disassembly of section P2:
 004030ec <SetChannel>:
   4030ec:	b430      	push	{r4, r5}
   4030ee:	4b1d      	ldr	r3, [pc, #116]	(403164 <GetCurrentChannel+0x38>)
-  4030f0:	681c      	ldr	r4, [r3, #0]
-  4030f2:	4d1d      	ldr	r5, [pc, #116]	(403168 <GetCurrentChannel+0x3c>)
-  4030f4:	4025      	ands	r5, r4
-  4030f6:	601d      	str	r5, [r3, #0]
-  4030f8:	60d9      	str	r1, [r3, #12]
-  4030fa:	611a      	str	r2, [r3, #16]
-  4030fc:	6b19      	ldr	r1, [r3, #48]
-  4030fe:	2202      	movs	r2, #2
-  403100:	430a      	orrs	r2, r1
-  403102:	631a      	str	r2, [r3, #48]
-  403104:	6b19      	ldr	r1, [r3, #48]
-  403106:	2204      	movs	r2, #4
-  403108:	430a      	orrs	r2, r1
-  40310a:	631a      	str	r2, [r3, #48]
-  40310c:	0011      	lsls	r1, r2, #0
-  40310e:	4a06      	ldr	r2, [pc, #24]	(403128 <SetChannel+0x3c>)
-  403110:	400a      	ands	r2, r1
-  403112:	4923      	ldr	r1, [pc, #140]	(4031a0 <fill_ram_struct+0x18>)
-  403114:	1808      	adds	r0, r1, r0
-  403116:	7a00      	ldrb	r0, [r0, #8]
-  403118:	0200      	lsls	r0, r0, #8
-  40311a:	21f8      	movs	r1, #248
-  40311c:	0149      	lsls	r1, r1, #5
-  40311e:	4001      	ands	r1, r0
-  403120:	4311      	orrs	r1, r2
-  403122:	6319      	str	r1, [r3, #48]
+  4030f0:	681c      	ldr	r4, [r3, #0]    //r4 = *0x80009800
+  4030f2:	4d1d      	ldr	r5, [pc, #116]	(403168 <GetCurrentChannel+0x3c>) //0xbfffffff
+  4030f4:	4025      	ands	r5, r4          // r5 = *0x80009800 & 0xbfffffff
+  4030f6:	601d      	str	r5, [r3, #0]    // *0x80009800 = r5
+  4030f8:	60d9      	str	r1, [r3, #12]   // *0x80009800+12 = r3
+  4030fa:	611a      	str	r2, [r3, #16]   // *0x80009800+12 = r2
+  4030fc:	6b19      	ldr	r1, [r3, #48]   // r1 = *0x80009800+48
+  4030fe:	2202      	movs	r2, #2          // r2 = 2
+  403100:	430a      	orrs	r2, r1          // r2 = r1 | 2
+  403102:	631a      	str	r2, [r3, #48]   // *0x80009800+48 = r2 
+  403104:	6b19      	ldr	r1, [r3, #48]   // r1 = *0x80009800+48
+  403106:	2204      	movs	r2, #4          // r2 = 4;
+  403108:	430a      	orrs	r2, r1          // r2 = r1 | 4
+  40310a:	631a      	str	r2, [r3, #48]   // // *0x80009800+48 = r2 
+  40310c:	0011      	lsls	r1, r2, #0      // r1 = r2
+  40310e:	4a06      	ldr	r2, [pc, #24]	(403128 <SetChannel+0x3c>) r2 = 0xffffe0ff;
+  403110:	400a      	ands	r2, r1          // r2 = r1 & 0xffffe0ff;
+  403112:	4923      	ldr	r1, [pc, #140]	(4031a0 <fill_ram_struct+0x18>) // r1 gets &ram_init_val
+  403114:	1808      	adds	r0, r1, r0      // offset
+  403116:	7a00      	ldrb	r0, [r0, #8]    // r0 gets ram_init_val+8+offset = buffer_radio_init[offset]
+  403118:	0200      	lsls	r0, r0, #8      // shift that left 8
+  40311a:	21f8      	movs	r1, #248        // r1 = 248
+  40311c:	0149      	lsls	r1, r1, #5      // r1 = 0x1F00
+  40311e:	4001      	ands	r1, r0          // r1 gets r0 & 0x1F00
+  403120:	4311      	orrs	r1, r2          // ored with r2 
+  403122:	6319      	str	r1, [r3, #48]   // r3+48 gets r1... 0x80009800+48
   403124:	bc30      	pop	{r4, r5}
   403126:	4770      	bx	lr
   403128:	ffffe0ff 	.word	0xffffe0ff
@@ -5370,7 +5370,7 @@ Disassembly of section P2:
   40315e:	4770      	bx	lr
   403160:	8000980c 	.word	0x8000980c
   403164:	80009800 	.word	0x80009800
-  403168:	bfffffff 	.word	0xbfffffff
+  403168:	bfffffff 	.wor	0xbfffffff
 
 0040316c <get_ctov>:
   40316c:	4a04      	ldr	r2, [pc, #16]	(403180 <get_ctov+0x14>) r2=0x00dfbe77
@@ -6770,26 +6770,26 @@ Disassembly of section P2:
 
 00403dc8 <SetPower>:
   403dc8:	b418      	push	{r3, r4}
-  403dca:	0080      	lsls	r0, r0, #2
-  403dcc:	4a0a      	ldr	r2, [pc, #40]	(403df8 <SetPower+0x30>)
-  403dce:	5813      	ldr	r3, [r2, r0]
-  403dd0:	4c0a      	ldr	r4, [pc, #40]	(403dfc <SetPower+0x34>)
-  403dd2:	6023      	str	r3, [r4, #0]
-  403dd4:	1810      	adds	r0, r2, r0
-  403dd6:	304c      	adds	r0, #76
-  403dd8:	6802      	ldr	r2, [r0, #0]
-  403dda:	2901      	cmp	r1, #1
-  403ddc:	d103      	bne.n	403de6 <SetPower+0x1e>
+  403dca:	0080      	lsls	r0, r0, #2      // r0 = r0 * 4
+  403dcc:	4a0a      	ldr	r2, [pc, #40]	(403df8 <SetPower+0x30>) // r2 = 0x004037e4 <gPSMVAL_c>:
+  403dce:	5813      	ldr	r3, [r2, r0]    // r3 gets gPSMVAL_c[r0] 
+  403dd0:	4c0a      	ldr	r4, [pc, #40]	(403dfc <SetPower+0x34>) //r4 = 0x8000a014
+  403dd2:	6023      	str	r3, [r4, #0]    // *0x8000a014 = r3
+  403dd4:	1810      	adds	r0, r2, r0      // add the offset to gPSMVAL_c pointer
+  403dd6:	304c      	adds	r0, #76         // point to gPSMVAL_c+76+offset (gPAVAL_c[offset])
+  403dd8:	6802      	ldr	r2, [r0, #0]    // r2 = gPAVAL_c[offset]
+  403dda:	2901      	cmp	r1, #1          // 1 mode? (what's 1 mode?) don't know MLMEPAOutputPower sets r1 to 0
+  403ddc:	d103      	bne.n	403de6 <SetPower+0x1e> // branch to 1: 
   403dde:	0021      	lsls	r1, r4, #0
   403de0:	4b07      	ldr	r3, [pc, #28]	(403e00 <SetPower+0x38>)
   403de2:	4013      	ands	r3, r2
   403de4:	e002      	b.n	403dec <SetPower+0x24>
-  403de6:	0021      	lsls	r1, r4, #0
-  403de8:	0c8b      	lsrs	r3, r1, #18
-  403dea:	4313      	orrs	r3, r2
-  403dec:	60cb      	str	r3, [r1, #12]
-  403dee:	6cc0      	ldr	r0, [r0, #76]
-  403df0:	6408      	str	r0, [r1, #64]
+  403de6:	0021      	lsls	r1, r4, #0      // 1: r1 = r4 = 0x8000a014
+  403de8:	0c8b      	lsrs	r3, r1, #18     // r3 = 0x8000a014 >> 18
+  403dea:	4313      	orrs	r3, r2          // r3 = (0x8000a014 >> 18) | gPAVAL_c[offset]
+  403dec:	60cb      	str	r3, [r1, #12]   // *(0x8000a014 + 12) = r3 
+  403dee:	6cc0      	ldr	r0, [r0, #76]   // r0 = gPAVAL_c[offset]+76 (gAIMVAL_c)
+  403df0:	6408      	str	r0, [r1, #64]   // *(0x8000a014 + 64) = gAIMVAL_c[offset]
   403df2:	bc11      	pop	{r0, r4}
   403df4:	4770      	bx	lr
   403df6:	46c0      	nop			(mov r8, r8)

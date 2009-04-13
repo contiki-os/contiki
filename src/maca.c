@@ -182,6 +182,81 @@ void radio_init(void) {
 	}
 }
 
+const uint32_t PSMVAL[19] = {
+	0x0000080f,
+	0x0000080f,
+	0x0000080f,
+	0x0000080f,
+	0x0000081f,
+	0x0000081f,
+	0x0000081f,
+	0x0000080f,
+	0x0000080f,
+	0x0000080f,
+	0x0000001f,
+	0x0000000f,
+	0x0000000f,
+	0x00000816,
+	0x0000001b,
+	0x0000000b,
+	0x00000802,
+	0x00000817,
+	0x00000003,
+};
+
+const uint32_t PAVAL[19] = {
+	0x000022c0,
+	0x000022c0,
+	0x000022c0,
+	0x00002280,
+	0x00002303,
+	0x000023c0,
+	0x00002880,
+	0x000029f0,
+	0x000029f0,
+	0x000029f0,
+	0x000029c0,
+	0x00002bf0,
+	0x000029f0,
+	0x000028a0,
+	0x00002800,
+	0x00002ac0,
+	0x00002880,
+	0x00002a00,
+	0x00002b00,
+};
+
+const uint32_t AIMVAL[19] = {
+	0x000123a0,
+	0x000163a0,
+	0x0001a3a0,
+	0x0001e3a0,
+	0x000223a0,
+	0x000263a0,
+	0x0002a3a0,
+	0x0002e3a0,
+	0x000323a0,
+	0x000363a0,
+	0x0003a3a0,
+	0x0003a3a0,
+	0x0003e3a0,
+	0x000423a0,
+	0x000523a0,
+	0x000423a0,
+	0x0004e3a0,
+	0x0004e3a0,
+	0x0004e3a0,
+};
+
+#define ADDR_POW1 0x8000a014
+#define ADDR_POW2 ADDR_POW1 + 12
+#define ADDR_POW3 ADDR_POW1 + 64
+void set_power(uint8_t power) {
+	reg(ADDR_POW1) = PSMVAL[power];
+	reg(ADDR_POW2) = (ADDR_POW1>>18) | PAVAL[power];
+	reg(ADDR_POW3) = AIMVAL[power];
+}
+
 /* 
  * Do the ABORT-Wait-NOP-Wait sequence in order to prevent MACA malfunctioning.
  * This seqeunce is synchronous and no interrupts should be triggered when it is done.
