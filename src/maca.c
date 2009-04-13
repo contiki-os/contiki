@@ -248,6 +248,7 @@ const uint32_t AIMVAL[19] = {
 	0x0004e3a0,
 };
 
+/* tested and seems to be good */
 #define ADDR_POW1 0x8000a014
 #define ADDR_POW2 ADDR_POW1 + 12
 #define ADDR_POW3 ADDR_POW1 + 64
@@ -255,6 +256,98 @@ void set_power(uint8_t power) {
 	reg(ADDR_POW1) = PSMVAL[power];
 	reg(ADDR_POW2) = (ADDR_POW1>>18) | PAVAL[power];
 	reg(ADDR_POW3) = AIMVAL[power];
+}
+
+const uint8_t VCODivI[4] = {
+	0x2f2f2f2f,
+	0x2f2f2f2f,
+	0x3030302f,
+	0x30303030,
+};
+
+const uint8_t VCODivI[16] = {
+	0x2f,
+	0x2f,
+	0x2f,
+	0x2f,
+	0x2f,
+	0x2f,
+	0x2f,
+	0x2f,
+	0x30,
+	0x30,
+	0x30,
+	0x2f,
+	0x30,
+	0x30,
+	0x30,
+	0x30,
+};
+
+const uint32_t VCODivF[16] = {
+	0x00355555,
+	0x006aaaaa,
+	0x00a00000,
+	0x00d55555,
+	0x010aaaaa,
+	0x01400000,
+	0x01755555,
+	0x01aaaaaa,
+	0x01e00000,
+	0x00155555,
+	0x004aaaaa,
+	0x00800000,
+	0x00b55555,
+	0x00eaaaaa,
+	0x01200000,
+	0x01555555,		
+};
+
+const uint8_t ctov_4c[16] = {
+	0x0b,
+	0x0b,
+	0x0b,
+	0x0a,
+	0x0d,
+	0x0d,
+	0x0c,
+	0x0c,
+	0x0f,
+	0x0e,
+	0x0e,
+	0x0e,
+	0x11,
+	0x10,
+	0x10,
+	0x0f,
+}
+
+#define ADDR_CHAN1 0x80009800
+#define ADDR_CHAN2 ADDR_CHAN1+12
+#define ADDR_CHAN3 ADDR_CHAN1+16
+#define ADDR_CHAN4 ADDR_CHAN1+48
+void set_channel(uint8_t chan) {
+	volatile uint32_t tmp;
+
+	tmp = reg(ADDR_CHAN1);
+	tmp = tmp & 0xbfffffff;
+	reg(ADDR_CHAN1) = tmp;
+
+	reg(ADDR_CHAN2) = VCODivF[chan];
+	reg(ADDR_CHAN2) = VCODivI[chan];
+
+	tmp = reg(ADDR_CHAN4);
+	tmp = tmp | 2;
+	reg(ADDR_CHAN4) = tmp;
+
+	tmp = reg(ADDR_CHAN4);
+	tmp = tmp | 4;
+	reg(ADDR_CHAN4) = tmp;
+
+	tmp = tmp & 0xffffe0ff;
+	tmp | ((ctov_4c[chan]<<8)&0x1F00);
+	reg(ADDR_CHAN4) = tmp;
+	/* duh! */
 }
 
 /* 
