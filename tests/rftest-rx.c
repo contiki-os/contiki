@@ -49,11 +49,14 @@ void magic(void) {
 
 uint32_t ackBox[10];
 
+#define MAX_PAYLOAD 128
+volatile uint8_t data[MAX_PAYLOAD];
+/* maca_rxlen is very important */
 #define command_xcvr_rx() \
 	do { \
-		maca_txlen = (uint32_t)1<<16;	\
+	maca_txlen = ((0xff)<<16); \
 		maca_dmatx = (uint32_t)&ackBox; \
-		maca_dmarx = DATA;		     \
+		maca_dmarx = data; \
 		maca_tmren = (maca_cpl_clk | maca_soft_clk);	      \
 		maca_control = (control_prm | control_asap | control_seq_rx); \
 	}while(FALSE)
@@ -95,7 +98,6 @@ void main(void) {
 	uint8_t c;
 	volatile uint32_t i;
 	uint32_t tmp;
-	volatile uint8_t *data;
 	uint16_t status;
 
 	*(volatile uint32_t *)GPIO_PAD_DIR0 = 0x00000200;
@@ -130,8 +132,7 @@ void main(void) {
         reg(MACA_CONTROL) = SMAC_MACA_CNTL_INIT_STATE;
 	for(i=0; i<DELAY; i++) { continue; }
 
-	data = (void *)DATA;
-	reg(MACA_DMARX) = DATA; /* put data somewhere */
+	reg(MACA_DMARX) = data; /* put data somewhere */
 	reg(MACA_PREAMBLE) = 0;
 
 /* 	puts("maca_base\n\r"); */
@@ -149,7 +150,6 @@ void main(void) {
 
 //	puts("\033[H\033[2J");
 	while(1) {		
-		uint32_t TsmRxSteps, LastWarmupStep, LastWarmupData, LastWarmdownStep, LastWarmdownData;
 
 		if(_is_action_complete_interrupt(maca_irq)) {
 			maca_clrirq = maca_irq;
@@ -209,11 +209,14 @@ void main(void) {
 				puts(" timestamp: 0x");
 				put_hex32(maca_timestamp);
 				puts("\n\r");
-				puts(" data: ");
-				for(i=0; i<reg(MACA_GETRXLVL); i++) {
+				puts(" data: 0x");
+				put_hex32(data);
+				putc(' ');
+				for(i=0; i<=(reg(MACA_GETRXLVL)-4); i++) { /* fcs+somethingelse is not transferred by DMA */
 					put_hex(data[i]);
 					putc(' ');
-				}
+				}				
+
 				puts("\n\r");
 
 				toggle_led();
