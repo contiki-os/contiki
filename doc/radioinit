@@ -279,3 +279,6 @@ suspect that InitFromFlash is a factory trim for each part. Since I'm
 not doing that then the range and reliability are suffering. Getting
 the NVM to work should probably be my next step.
 
+Debugging with JLink has shown there absolutely is init entries in the
+flash set in the factory that are important. e.g. this is where the
+0x00607707 number get turned into something more like 0x00685...

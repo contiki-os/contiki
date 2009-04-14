@@ -5460,12 +5460,12 @@ Disassembly of section P2:
 00403218 <SMAC_InitFromFlash>:
   403218:	b570      	push	{r4, r5, r6, lr}
   40321a:	b08a      	sub	sp, #40
-  40321c:	0006      	lsls	r6, r0, #0    // r0 has 0x1F000 from call in radioinit
-  40321e:	a804      	add	r0, sp, #16
-  403220:	2102      	movs	r1, #2
-  403222:	7001      	strb	r1, [r0, #0]  // *0x1F000 = 2;
-  403224:	2101      	movs	r1, #1
-  403226:	7101      	strb	r1, [r0, #4]  // *0x1F000 = 1;
+  40321c:	0006      	lsls	r6, r0, #0    // r6 gets r0 has 0x1F000 from call in radioinit
+  40321e:	a804      	add	r0, sp, #16   // r0 now points sp+16
+  403220:	2102      	movs	r1, #2        // r1 = 2
+  403222:	7001      	strb	r1, [r0, #0]  // put 2 on the stack
+  403224:	2101      	movs	r1, #1        // 
+  403226:	7101      	strb	r1, [r0, #4]  // put 1 on the stack
   403228:	f400 fce4 	bl	3bf4 <CRM_VRegCntl> // call to ROM: I assume this turns on the NVM reg
   40322c:	482b      	ldr	r0, [pc, #172]	(4032dc <SMAC_InitFromFlash+0xc4>) r0 = &u32SystemClock
   40322e:	6800      	ldr	r0, [r0, #0]  // r0 = u32SystemClock
