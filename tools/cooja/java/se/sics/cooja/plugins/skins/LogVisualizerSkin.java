@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: LogVisualizerSkin.java,v 1.1 2009/03/24 15:46:29 fros4943 Exp $
+ * $Id: LogVisualizerSkin.java,v 1.2 2009/04/14 15:40:26 fros4943 Exp $
  */
 
 package se.sics.cooja.plugins.skins;
@@ -100,12 +100,10 @@ public class LogVisualizerSkin implements VisualizerSkin {
   }
 
   public Color[] getColorOf(Mote mote) {
-    return new Color[] { Color.BLACK };
+    return null;
   }
 
   public void paintSkin(Graphics g) {
-    visualizer.paintSkinGeneric(g);
-
     FontMetrics fm = g.getFontMetrics();
 
     /* Paint last output below motes */
@@ -126,5 +124,9 @@ public class LogVisualizerSkin implements VisualizerSkin {
       int msgWidth = fm.stringWidth(msg);
       g.drawString(msg, pixel.x - msgWidth/2, pixel.y - Visualizer.MOTE_RADIUS);
     }
+  }
+
+  public Visualizer getVisualizer() {
+    return visualizer;
   }
 }

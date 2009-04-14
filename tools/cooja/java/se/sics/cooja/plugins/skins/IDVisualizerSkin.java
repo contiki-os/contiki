@@ -26,50 +26,71 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: LogLEDVisualizerSkin.java,v 1.1 2009/03/24 15:46:29 fros4943 Exp $
+ * $Id: IDVisualizerSkin.java,v 1.1 2009/04/14 15:40:26 fros4943 Exp $
  */
 
 package se.sics.cooja.plugins.skins;
 
 import java.awt.Color;
+import java.awt.FontMetrics;
 import java.awt.Graphics;
+import java.awt.Point;
+
 import org.apache.log4j.Logger;
 
 import se.sics.cooja.ClassDescription;
 import se.sics.cooja.Mote;
 import se.sics.cooja.Simulation;
+import se.sics.cooja.interfaces.MoteID;
+import se.sics.cooja.interfaces.Position;
 import se.sics.cooja.plugins.Visualizer;
 import se.sics.cooja.plugins.VisualizerSkin;
 
 /**
- * Visualizer skin for both Log output and LEDs.
+ * Visualizer skin for mote IDs.
  *
- * @see LEDVisualizerSkin
- * @see LogVisualizerSkin
  * @author Fredrik Osterlind
  */
-@ClassDescription("printf()'s + LEDs")
-public class LogLEDVisualizerSkin implements VisualizerSkin {
-  private static Logger logger = Logger.getLogger(LogLEDVisualizerSkin.class);
+@ClassDescription("Mote IDs")
+public class IDVisualizerSkin implements VisualizerSkin {
+  private static Logger logger = Logger.getLogger(IDVisualizerSkin.class);
 
-  private LEDVisualizerSkin ledSkin = new LEDVisualizerSkin();
-  private LogVisualizerSkin logSkin = new LogVisualizerSkin();
+  private Simulation simulation = null;
+  private Visualizer visualizer = null;
 
   public void setActive(Simulation simulation, Visualizer vis) {
-    ledSkin.setActive(simulation, vis);
-    logSkin.setActive(simulation, vis);
+    this.simulation = simulation;
+    this.visualizer = vis;
   }
 
   public void setInactive() {
-    ledSkin.setInactive();
-    logSkin.setInactive();
   }
 
   public Color[] getColorOf(Mote mote) {
-    return ledSkin.getColorOf(mote);
+    return null;
   }
 
   public void paintSkin(Graphics g) {
-    logSkin.paintSkin(g);
+    FontMetrics fm = g.getFontMetrics();
+
+    /* Paint ID inside each mote */
+    Mote[] allMotes = simulation.getMotes();
+    for (Mote mote: allMotes) {
+      MoteID id = mote.getInterfaces().getMoteID();
+      if (id == null) {
+        continue;
+      }
+
+      Position pos = mote.getInterfaces().getPosition();
+      Point pixel = visualizer.transformPositionToPixel(pos);
+
+      String msg = "" + id.getMoteID();
+      int msgWidth = fm.stringWidth(msg);
+      g.drawString(msg, pixel.x - msgWidth/2, pixel.y + 5);
+    }
+  }
+
+  public Visualizer getVisualizer() {
+    return visualizer;
   }
 }

@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: VisualizerSkin.java,v 1.1 2009/03/24 15:46:18 fros4943 Exp $
+ * $Id: VisualizerSkin.java,v 1.2 2009/04/14 15:40:26 fros4943 Exp $
  */
 
 package se.sics.cooja.plugins;
@@ -83,5 +83,10 @@ public interface VisualizerSkin {
    * @param g Graphics
    */
   public void paintSkin(Graphics g);
+
+  /**
+   * @return Visualizer plugin where this skin is showing
+   */
+  public Visualizer getVisualizer();
 
 }
