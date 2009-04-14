@@ -27,23 +27,6 @@ void put_hex32(uint32_t x);
 const uint8_t hex[16]={'0','1','2','3','4','5','6','7',
 		 '8','9','a','b','c','d','e','f'};
 
-
-void dump_regs(uint32_t base, uint32_t len) {
-	volatile uint32_t i;
-    
-	puts("base +0       +4       +8       +c       +10      +14      +18      +1c      \n\r");                                                     
-	for (i = 0; i < len; i ++) {                                                                                                                   
-		if ((i & 7) == 0) {                                                                                                                   
-			put_hex16(4 * i);                                                                                                             
-		}                                                                                                                                     
-		puts(" ");                                                                                                                            
-		put_hex32(reg(base+(4*i)));                                                                                                      
-		if ((i & 7) == 7)                                                                                                                     
-			puts(NL);                                                                                                                     
-	}                                                                                                                                             
-	puts(NL); 
-}
-
 __attribute__ ((section ("startup")))
 void main(void) {
 	uint8_t c;
