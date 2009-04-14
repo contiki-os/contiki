@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: LEDVisualizerSkin.java,v 1.1 2009/03/24 15:46:29 fros4943 Exp $
+ * $Id: LEDVisualizerSkin.java,v 1.2 2009/04/14 15:40:26 fros4943 Exp $
  */
 
 package se.sics.cooja.plugins.skins;
@@ -134,6 +134,9 @@ public class LEDVisualizerSkin implements VisualizerSkin {
   }
 
   public void paintSkin(Graphics g) {
-    visualizer.paintSkinGeneric(g);
+  }
+
+  public Visualizer getVisualizer() {
+    return visualizer;
   }
 }
