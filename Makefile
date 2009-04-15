@@ -60,6 +60,10 @@ ALL = $(TESTS:.c=.srec) $(TESTS:.c=.bin) $(TESTS:.c=.dis)
 
 all:		$(ALL)
 
+tests/nvm-read.obj: src/maca.o
+tests/rftest-rx.obj: src/maca.o
+tests/rftest-tx.obj: src/maca.o
+
 %.srec:		%.obj
 		$(OBJCOPY) ${OBJCFLAGS} -O srec $< $@
 
@@ -72,10 +76,11 @@ all:		$(ALL)
 %.dis:		%.obj
 		$(OBJDUMP) -DS $< > $@
 
-%.obj:		$(AOBJS) $(COBJS) $(TARGETS) $(LDSCRIPT)
+%.obj:		$(LDSCRIPT) %.o
+	echo $*.o
 		$(LD) $(LDFLAGS) $(AOBJS) \
 			--start-group $(PLATFORM_LIBS) --end-group \
-			-Map $*.map $*.o $< -o $@
+			-Map $*.map $^ -o $@
 
 
 %.System.map:	%.obj
