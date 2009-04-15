@@ -31,7 +31,7 @@ const uint8_t hex[16]={'0','1','2','3','4','5','6','7',
 __attribute__ ((section ("startup")))
 void main(void) {
 	uint8_t c;
-	nvmType_t type;
+	uint32_t type;
 	nvmErr_t err;
 
 	*(volatile uint32_t *)GPIO_PAD_DIR0 = 0x00000100;
@@ -53,14 +53,20 @@ void main(void) {
 	reg(UART1_CON) = 0x00000003; /* enable receive and transmit */
 	reg(GPIO_FUNC_SEL0) = ( (0x01 << (14*2)) | (0x01 << (15*2)) ); /* set GPIO15-14 to UART (UART1 TX and RX)*/
 
+	vreg_init();
+
+	puts("CRM status: 0x");
+	put_hex32(reg(0x80003018));
+	puts("\n\r");
+
 	puts("Detecting internal nvm\n\r");
 
 	err = nvm_detect(gNvmInternalInterface_c, &type);
 
-	puts("nvm_detect returned: ");
-	putc(err);
-	puts(" type is: ");
-	putc(type);
+	puts("nvm_detect returned: 0x");
+	put_hex(err);
+	puts(" type is: 0x");
+	put_hex(type);
 	puts("\n\r");
 
 	while(1) {		

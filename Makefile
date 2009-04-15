@@ -46,7 +46,7 @@ AOBJS =
 COBJS = $(patsubst %.c,%.o,$(wildcard src/*.c))
 TESTS = $(wildcard tests/*.c)
 TARGETS = $(patsubst %.c,%.o,$(TESTS))
-
+#TARGETS = tests/blink-white.o 
 
 # Add GCC lib
 PLATFORM_LIBS += --no-warn-mismatch -L $(shell dirname `$(CC) $(CFLAGS) -print-libgcc-file-name`) -lgcc
@@ -54,11 +54,11 @@ PLATFORM_LIBS += --no-warn-mismatch -L $(shell dirname `$(CC) $(CFLAGS) -print-l
 #########################################################################
 
 #ALL = blink.srec blink.bin blink.dis blink.System.map
-ALL = $(TARGETS) $(TESTS:.c=.srec) $(TESTS:.c=.bin) $(TESTS:.c=.dis) 
+ALL = $(TESTS:.c=.srec) $(TESTS:.c=.bin) $(TESTS:.c=.dis) 
 
 .PRECIOUS: 	$(COBJS) $(TARGETS) $(TESTS:.c=.obj)
 
-all:		$(COBJS) $(ALL)
+all:		$(ALL)
 
 %.srec:		%.obj
 		$(OBJCOPY) ${OBJCFLAGS} -O srec $< $@
@@ -73,9 +73,9 @@ all:		$(COBJS) $(ALL)
 		$(OBJDUMP) -DS $< > $@
 
 %.obj:		$(AOBJS) $(COBJS) $(TARGETS) $(LDSCRIPT)
-		$(LD) $(LDFLAGS) $(AOBJS) $(COBJS) \
+		$(LD) $(LDFLAGS) $(AOBJS) \
 			--start-group $(PLATFORM_LIBS) --end-group \
-			-Map $*.map $*.o -o $@
+			-Map $*.map $*.o $< -o $@
 
 
 %.System.map:	%.obj
