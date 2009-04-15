@@ -320,9 +320,9 @@ const uint8_t ctov_4c[16] = {
 
 /* tested good */
 #define ADDR_CHAN1 0x80009800
-#define ADDR_CHAN2 ADDR_CHAN1+12
-#define ADDR_CHAN3 ADDR_CHAN1+16
-#define ADDR_CHAN4 ADDR_CHAN1+48
+#define ADDR_CHAN2 (ADDR_CHAN1+12)
+#define ADDR_CHAN3 (ADDR_CHAN1+16)
+#define ADDR_CHAN4 (ADDR_CHAN1+48)
 void set_channel(uint8_t chan) {
 	volatile uint32_t tmp;
 
