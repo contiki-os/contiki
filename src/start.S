@@ -49,6 +49,7 @@ _start:	b       _begin
 	
 /* these vectors are used for rom patching */	
 .org 0x20
+.code 16
 _RPTV_0_START:
 	bx lr /* do nothing */
 
@@ -68,7 +69,7 @@ _RPTV_3_START:
 ROM_var_start: .word 0
 .org 0x7ff
 ROM_var_end:   .word 0
-
+.code 32
 .align
 _begin:
 	bl _rom_data_init+.-base
