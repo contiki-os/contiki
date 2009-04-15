@@ -58,11 +58,11 @@ ALL = $(TESTS:.c=.srec) $(TESTS:.c=.bin) $(TESTS:.c=.dis)
 
 .PRECIOUS: 	$(COBJS) $(TARGETS) $(TESTS:.c=.obj)
 
-all:		$(ALL)
+all:		src/start.o $(ALL)
 
-tests/nvm-read.obj: src/maca.o
-tests/rftest-rx.obj: src/maca.o
-tests/rftest-tx.obj: src/maca.o
+tests/nvm-read.obj: src/maca.o 
+tests/rftest-rx.obj: src/maca.o 
+tests/rftest-tx.obj: src/maca.o 
 
 %.srec:		%.obj
 		$(OBJCOPY) ${OBJCFLAGS} -O srec $< $@
@@ -74,10 +74,9 @@ tests/rftest-tx.obj: src/maca.o
 		$(OBJCOPY) ${OBJCFLAGS} -O binary $< $@
 
 %.dis:		%.obj
-		$(OBJDUMP) -d $< > $@
+		$(OBJDUMP) -D $< > $@
 
 %.obj:		$(LDSCRIPT) %.o
-	echo $*.o
 		$(LD) $(LDFLAGS) $(AOBJS) \
 			--start-group $(PLATFORM_LIBS) --end-group \
 			-Map $*.map $^ -o $@

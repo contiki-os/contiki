@@ -14,6 +14,7 @@
 
 #include "embedded_types.h"
 #include "nvm.h"
+#include "maca.h"
 
 #define reg(x) (*(volatile uint32_t *)(x))
 
@@ -30,8 +31,7 @@ const uint8_t hex[16]={'0','1','2','3','4','5','6','7',
 
 __attribute__ ((section ("startup")))
 void main(void) {
-	uint8_t c;
-	uint32_t type;
+	uint32_t type=0xdeadbeef;
 	nvmErr_t err;
 
 	*(volatile uint32_t *)GPIO_PAD_DIR0 = 0x00000100;
@@ -55,9 +55,9 @@ void main(void) {
 
 	vreg_init();
 
-	puts("CRM status: 0x");
-	put_hex32(reg(0x80003018));
-	puts("\n\r");
+//	puts("CRM status: 0x");
+//	put_hex32(reg(0x80003018));
+//	puts("\n\r");
 
 	puts("Detecting internal nvm\n\r");
 
@@ -66,11 +66,10 @@ void main(void) {
 	puts("nvm_detect returned: 0x");
 	put_hex(err);
 	puts(" type is: 0x");
-	put_hex(type);
+	put_hex32(type);
 	puts("\n\r");
 
-	while(1) {		
-	};
+	while(1) {continue;};
 }
 
 void putc(uint8_t c) {

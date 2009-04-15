@@ -1,3 +1,4 @@
+#include "embedded_types.h"          
 #include "maca.h"
 
 #define reg(x) (*(volatile uint32_t *)(x))
