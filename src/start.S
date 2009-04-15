@@ -43,6 +43,29 @@ _start:	b       main
 	ldr	pc, _irq
 	ldr	pc, _fiq
 
+/* these vectors are used for rom patching */	
+.org 0x20
+_RPTV_0_START:
+	bx lr /* do nothing */
+
+.org 0x60
+_RPTV_1_START:
+	bx lr /* do nothing */
+
+.org 0xa0
+_RPTV_2_START:
+	bx lr /* do nothing */
+
+.org 0xe0
+_RPTV_3_START:
+	bx lr /* do nothing */
+
+.org 0x120
+ROM_var_start: .word 0
+.org 0x7ff
+ROM_var_end:   .word 0
+	
+	
 _undefined_instruction:	.word undefined_instruction
 _software_interrupt:	.word software_interrupt
 _prefetch_abort:	.word prefetch_abort
