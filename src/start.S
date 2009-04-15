@@ -33,8 +33,12 @@
  */
 
 
-.globl _start
-_start:	b       main
+.set base, .
+.set _rom_data_init, 0x108d0
+	
+
+	.globl _start
+_start:	b       _begin
 	ldr	pc, _undefined_instruction
 	ldr	pc, _software_interrupt
 	ldr	pc, _prefetch_abort
@@ -42,7 +46,7 @@ _start:	b       main
 	ldr	pc, _not_used
 	ldr	pc, _irq
 	ldr	pc, _fiq
-
+	
 /* these vectors are used for rom patching */	
 .org 0x20
 _RPTV_0_START:
@@ -64,7 +68,11 @@ _RPTV_3_START:
 ROM_var_start: .word 0
 .org 0x7ff
 ROM_var_end:   .word 0
-	
+
+.align
+_begin:
+	bl _rom_data_init+.-base
+	b main
 	
 _undefined_instruction:	.word undefined_instruction
 _software_interrupt:	.word software_interrupt
@@ -73,7 +81,6 @@ _data_abort:		.word data_abort
 _not_used:		.word not_used
 _irq:			.word irq
 _fiq:			.word fiq
-
 	.balignl 16,0xdeadbeef
 
 
