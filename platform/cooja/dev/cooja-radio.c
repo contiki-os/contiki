@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: cooja-radio.c,v 1.9 2009/04/01 13:44:34 fros4943 Exp $
+ * $Id: cooja-radio.c,v 1.10 2009/04/16 14:38:41 fros4943 Exp $
  */
 
 #include <string.h>
@@ -164,8 +164,12 @@ int
 radio_read(void *buf, unsigned short bufsize)
 {
   int tmpInSize = simInSize;
-  if(simInSize > 0) {
 
+  if( bufsize < simInSize ) {
+    return 0;
+  }
+
+  if(simInSize > 0) {
     memcpy(buf, simInDataBuffer, simInSize);
     simInSize = 0;
     return tmpInSize;
