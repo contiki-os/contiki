@@ -397,6 +397,7 @@ typedef union maca_maskirq_reg_tag
   uint32_t Reg;
 } maca_maskirq_reg_t;
 
+
 #define _is_action_complete_interrupt(x)     (0 != (maca_irq_acpl & x))
 #define _is_filter_failed_interrupt(x)       (0 != (maca_irq_flt & x))
 

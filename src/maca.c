@@ -1,7 +1,10 @@
 #include "embedded_types.h"          
 #include "maca.h"
+#include "nvm.h"
 
 #define reg(x) (*(volatile uint32_t *)(x))
+
+static uint8_t ram_values[4];
 
 void init_phy(void)
 {
@@ -345,6 +348,66 @@ void set_channel(uint8_t chan) {
 	tmp = tmp | (((ctov_4c[chan])<<8)&0x1F00);
 	reg(ADDR_CHAN4) = tmp;
 	/* duh! */
+}
+
+#define ROM_END 0x0013ffff
+#define ENTRY_EOF 0x00000e0f
+/* processes up to 4 words of initialization entries */
+/* returns the number of words processed */
+uint8_t exec_init_entry(uint32_t *entries, uint8_t *valbuf) 
+{
+	volatile uint32_t i;
+	if(entries[0] <= ROM_END) {
+		if (entries[0] == 0) {
+			/* do delay command*/
+			for(i=0; i<entries[1]; i++) { continue; }
+			return 2;
+		} else if (entries[0] == 1) {
+			/* do bit set/clear command*/
+			reg(entries[2]) = (reg(entries[2]) & ~entries[1]) | (entries[3] & entries[1]);
+			return 4;
+		} else if ((entries[0] >= 16) &&
+			   (entries[0] < 0xfff1)) {
+			/* store bytes in valbuf */
+			valbuf[(entries[0]>>4)-1] = entries[1];
+			return 2;
+		} else if (entries[0] == ENTRY_EOF) {
+			return 0;
+		} else {
+			/* invalid command code */
+			return 0;
+		}
+		
+	} else { /* address isn't in ROM space */   
+		 /* do store value in address command  */
+		reg(entries[0]) = entries[1];
+		return 2;
+	}
+}
+
+
+#define FLASH_INIT_MAGIC 0x00000abc
+uint32_t init_from_flash(uint32_t addr) {
+	nvmType_t type=0;
+	nvmErr_t err;	
+	uint32_t buf[4];
+	uint16_t len;
+	uint32_t i=0;
+	err = nvm_detect(gNvmInternalInterface_c, &type);
+	nvm_setsvar(0);
+	err = nvm_read(gNvmInternalInterface_c, type, (uint8_t *)buf, addr, 8);
+	i+=8;
+	if(buf[0] == FLASH_INIT_MAGIC) {
+		len = buf[1] & 0x0000ffff;
+		while(i<len) {
+			err = nvm_read(gNvmInternalInterface_c, type, (uint8_t *)buf, addr+i, 32);
+			i += exec_init_entry(buf, ram_values);
+		}
+		return i;
+	} else {
+		return 0;
+	}
+ 	
 }
 
 /* 

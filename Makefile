@@ -60,9 +60,9 @@ ALL = $(TESTS:.c=.srec) $(TESTS:.c=.bin) $(TESTS:.c=.dis)
 
 all:		src/start.o $(ALL)
 
-tests/nvm-read.obj: src/maca.o 
-tests/rftest-rx.obj: src/maca.o 
-tests/rftest-tx.obj: src/maca.o 
+tests/nvm-read.obj: src/maca.o src/nvm.o
+tests/rftest-rx.obj: src/maca.o src/nvm.o
+tests/rftest-tx.obj: src/maca.o src/nvm.o
 
 %.srec:		%.obj
 		$(OBJCOPY) ${OBJCFLAGS} -O srec $< $@

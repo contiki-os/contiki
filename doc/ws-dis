@@ -5422,8 +5422,10 @@ Disassembly of section P2:
   4031c6:	2900      	cmp	r1, #0
   4031c8:	d1fb      	bne.n	4031c2 <SMAC_InitExecuteEntry+0x1e>
   4031ca:	e7f2      	b.n	4031b2 <SMAC_InitExecuteEntry+0xe>  
-  4031cc:	2901      	cmp	r1, #1                             // at this point r1 is between 1 and 15 inclusive
+  4031cc:	2901      	cmp	r1, #1                              // 3: at this point r1 is between 1 and 15 inclusive
   4031ce:	d118      	bne.n	403202 <SMAC_InitExecuteEntry+0x5e> // if !=1 return
+  4031e2:	2004      	movs	r0, #4   // return 4 bytes processed
+  4031e4:	4770      	bx	lr
 
 0x00000001  command
 0xaaaaaaaa
@@ -5445,8 +5447,6 @@ if (buf[0] == 0x00000001) {
    *buf[2] = (*buf[2] & ~buf[1]) | (buf[3] & buf[1]);
 }
 
-  4031e2:	2004      	movs	r0, #4   // return 4 bytes processed
-  4031e4:	4770      	bx	lr
   4031e6:	4a09      	ldr	r2, [pc, #36]	(40320c <SMAC_InitExecuteEntry+0x68>) //2: r2=0x0000fff1
   4031e8:	4291      	cmp	r1, r2           // r1 >=16
   4031ea:	d20a      	bcs.n	403202 <SMAC_InitExecuteEntry+0x5e> // if r1 >= 0xfff1 then return 0
@@ -5460,7 +5460,7 @@ if (buf[0] == 0x00000001) {
   4031fa:	4a06      	ldr	r2, [pc, #24]	(403214 <SMAC_InitExecuteEntry+0x70>) r2 = &u8RamValues
   4031fc:	6800      	ldr	r0, [r0, #0]    // r0 = next value in buffer  2nd half of pair
   4031fe:	5450      	strb	r0, [r2, r1]    // store this in u8RamValues
-  403200:	e7d7      	b.n	4031b2 <SMAC_InitExecuteEntry+0xe>
+  403200:	e7d7      	b.n	4031b2 <SMAC_InitExecuteEntry+0xe> // return 2
   403202:	2000      	movs	r0, #0           // return 0
   403204:	4770      	bx	lr
   403206:	46c0      	nop			(mov r8, r8)

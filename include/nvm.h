@@ -1,6 +1,8 @@
 #ifndef NVM_H
 #define NVM_H
 
+#include "embedded_types.h"
+
 typedef enum
 {
 	gNvmType_NoNvm_c,
@@ -34,7 +36,7 @@ typedef enum
 
 /* ROM code seems to be THUMB */
 /* need to be in a THUMB block before calling them */
-volatile nvmErr_t (*nvm_detect)(nvmInterface_t nvmInterface,nvmType_t* pNvmType) = 0x00006cb9;
-volatile nvmErr_t (*nvm_read)(nvmInterface_t nvmInterface , nvmType_t nvmType , void *pDest, uint32_t address, uint32_t numBytes) = 0x00006d69;
-volatile void(*nvm_setsvar)(uint32_t zero_for_awesome) = 0x00007085;
+extern volatile nvmErr_t (*nvm_detect)(nvmInterface_t nvmInterface,nvmType_t* pNvmType);
+extern volatile nvmErr_t (*nvm_read)(nvmInterface_t nvmInterface , nvmType_t nvmType , void *pDest, uint32_t address, uint32_t numBytes);
+extern volatile void(*nvm_setsvar)(uint32_t zero_for_awesome);
 #endif //NVM_H
