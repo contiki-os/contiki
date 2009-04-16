@@ -24,7 +24,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * $Id: Radio.java,v 1.9 2008/03/18 13:01:13 fros4943 Exp $
+ * $Id: Radio.java,v 1.10 2009/04/16 14:26:36 fros4943 Exp $
  */
 
 package se.sics.cooja.interfaces;
@@ -118,6 +118,8 @@ public abstract class Radio extends MoteInterface {
    * @return True if this radio is interfered
    */
   public abstract boolean isInterfered();
+
+  public abstract boolean isReceiverOn();
 
   /**
    * Interferes with any current reception. If this method is called, the packet
