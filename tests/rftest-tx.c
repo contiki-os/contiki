@@ -17,7 +17,7 @@
 
 #define reg(x) (*(volatile uint32_t *)(x))
 
-#define DELAY 400000
+#define DELAY 100000
 #define DATA  0x00401000;
 
 #define NL "\033[K\r\n"
@@ -58,7 +58,7 @@ uint32_t ackBox[10];
 		maca_control = (control_prm | control_asap | control_seq_rx); \
 	}while(FALSE)
 
-#define PAYLOAD_LEN 16 /* not including the extra 4 bytes for len+fcs+somethingelse */
+#define PAYLOAD_LEN 8 /* not including the extra 4 bytes for len+fcs+somethingelse */
 /* maca dmatx needs extra 4 bytes for checksum */
 /* needs + 4 bytes for len(1 byte) + fcs(2 bytes) + somethingelse */
 #define command_xcvr_tx() \
@@ -139,10 +139,11 @@ void main(void) {
 	reg(UART1_CON) = 0x00000003; /* enable receive and transmit */
 	reg(GPIO_FUNC_SEL0) = ( (0x01 << (14*2)) | (0x01 << (15*2)) ); /* set GPIO15-14 to UART (UART1 TX and RX)*/
 
+
 	reset_maca();
 	radio_init();
-	flyback_init();
 	vreg_init();
+	flyback_init();
 	init_phy();
 
 	set_power(0x0f); /* 0dbm */

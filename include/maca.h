@@ -400,6 +400,7 @@ typedef union maca_maskirq_reg_tag
 
 #define _is_action_complete_interrupt(x)     (0 != (maca_irq_acpl & x))
 #define _is_filter_failed_interrupt(x)       (0 != (maca_irq_flt & x))
+#define _is_checksum_failed_interrupt(x)     (0 != (maca_irq_crc & x))
 
 #define SMAC_MACA_CNTL_INIT_STATE  ( control_prm | control_nofc | control_mode_non_slotted )
 
@@ -411,6 +412,7 @@ void init_phy(void);
 void vreg_init(void);
 void ResumeMACASync(void);
 void radio_init(void);
+uint32_t init_from_flash(uint32_t addr);
 void set_power(uint8_t power);
 void set_channel(uint8_t chan);
 

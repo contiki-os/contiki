@@ -28,7 +28,7 @@ void init_phy(void)
   maca_framesync = 0x000000A7; 
   maca_clk = 0x00000008;       
 //  maca_maskirq = 0; //(maca_irq_cm   | maca_irq_acpl | maca_irq_rst  | maca_irq_di | maca_irq_crc | maca_irq_flt );
-  maca_maskirq = (maca_irq_rst | maca_irq_acpl | maca_irq_cm | maca_irq_flt);
+  maca_maskirq = (maca_irq_rst | maca_irq_acpl | maca_irq_cm | maca_irq_flt | maca_irq_crc);
   maca_slotoffset = 0x00350000; 
 }
 
@@ -149,7 +149,7 @@ void vreg_init(void) {
 
 /* radio_init has been tested to be good */
 void radio_init(void) {
-	uint32_t i;
+	volatile uint32_t i;
 	/* sequence 1 */
 	for(i=0; i<MAX_SEQ1; i++) {
 		*(volatile uint32_t *)(addr_seq1[i]) = data_seq1[i];
@@ -186,6 +186,24 @@ void radio_init(void) {
 	for(i=0; i<MAX_DATA; i++) {
 		*(volatile uint32_t *)(addr_reg_rep[i]) = data_reg_rep[i];
 	}
+	
+	puts("initfromflash\n\r");
+
+	*(volatile uint32_t *)(0x80003048) = 0x00000f04; /* bypass the buck */
+	for(i=0; i<0x161a8; i++) { continue; } /* wait for the bypass to take */
+//	while((((*(volatile uint32_t *)(0x80003018))>>17) & 1) !=1) { continue; } /* wait for the bypass to take */
+	*(volatile uint32_t *)(0x80003048) = 0x00000fa4; /* start the regulators */
+	for(i=0; i<0x161a8; i++) { continue; } /* wait for the bypass to take */
+
+	init_from_flash(0x1F000);
+
+	puts("ram_values:\n\r");
+	for(i=0; i<4; i++) {
+		puts("  0x");
+		put_hex(ram_values[i]);
+		puts("\n\r");
+	}
+
 }
 
 const uint32_t PSMVAL[19] = {
@@ -354,32 +372,55 @@ void set_channel(uint8_t chan) {
 #define ENTRY_EOF 0x00000e0f
 /* processes up to 4 words of initialization entries */
 /* returns the number of words processed */
-uint8_t exec_init_entry(uint32_t *entries, uint8_t *valbuf) 
+uint32_t exec_init_entry(uint32_t *entries, uint8_t *valbuf) 
 {
 	volatile uint32_t i;
 	if(entries[0] <= ROM_END) {
 		if (entries[0] == 0) {
 			/* do delay command*/
+			puts("init_entry: delay ");
+			put_hex32(entries[1]);
+			puts("\n\r");
 			for(i=0; i<entries[1]; i++) { continue; }
 			return 2;
 		} else if (entries[0] == 1) {
 			/* do bit set/clear command*/
+			puts("init_entry: bit set clear ");
+			put_hex32(entries[1]);
+			putc(' ');
+			put_hex32(entries[2]);
+			putc(' ');
+			put_hex32(entries[3]);
+			puts("\n\r");
 			reg(entries[2]) = (reg(entries[2]) & ~entries[1]) | (entries[3] & entries[1]);
 			return 4;
 		} else if ((entries[0] >= 16) &&
 			   (entries[0] < 0xfff1)) {
 			/* store bytes in valbuf */
+			puts("init_entry: store in valbuf ");
+			put_hex(entries[1]);
+			puts(" position ");
+			put_hex((entries[0]>>4)-1);
+			puts("\n\r");
 			valbuf[(entries[0]>>4)-1] = entries[1];
 			return 2;
 		} else if (entries[0] == ENTRY_EOF) {
+			puts("init_entry: eof ");
 			return 0;
 		} else {
 			/* invalid command code */
+			puts("init_entry: invaild code ");
+			put_hex32(entries[0]);
+			puts("\n\r");
 			return 0;
 		}
-		
 	} else { /* address isn't in ROM space */   
 		 /* do store value in address command  */
+		puts("init_entry: address value pair - *0x");
+		put_hex32(entries[0]);
+		puts(" = ");
+		put_hex32(entries[1]);
+		puts("\n\r");
 		reg(entries[0]) = entries[1];
 		return 2;
 	}
@@ -390,18 +431,34 @@ uint8_t exec_init_entry(uint32_t *entries, uint8_t *valbuf)
 uint32_t init_from_flash(uint32_t addr) {
 	nvmType_t type=0;
 	nvmErr_t err;	
-	uint32_t buf[4];
-	uint16_t len;
-	uint32_t i=0;
+	volatile uint32_t buf[8];
+	volatile uint16_t len;
+	volatile uint32_t i=0,j;
 	err = nvm_detect(gNvmInternalInterface_c, &type);
+	puts("nvm_detect returned type ");
+	put_hex32(type);
+	puts(" err ");
+	put_hex(err);
+	puts("\n\r");
+		
 	nvm_setsvar(0);
 	err = nvm_read(gNvmInternalInterface_c, type, (uint8_t *)buf, addr, 8);
 	i+=8;
+	puts("nvm_read returned: 0x");
+	put_hex(err);
+	puts("\n\r");
+	
+	for(j=0; j<4; j++) {
+		put_hex32(buf[j]);
+		puts("\n\r");
+	}
+
 	if(buf[0] == FLASH_INIT_MAGIC) {
 		len = buf[1] & 0x0000ffff;
-		while(i<len) {
+		while(i<len-4) {
+			volatile uint32_t ret;
 			err = nvm_read(gNvmInternalInterface_c, type, (uint8_t *)buf, addr+i, 32);
-			i += exec_init_entry(buf, ram_values);
+			i += 4*exec_init_entry(buf, ram_values);
 		}
 		return i;
 	} else {

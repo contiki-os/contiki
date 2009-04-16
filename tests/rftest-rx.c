@@ -31,22 +31,6 @@ void put_hex32(uint32_t x);
 const uint8_t hex[16]={'0','1','2','3','4','5','6','7',
 		 '8','9','a','b','c','d','e','f'};
 
-void magic(void) {
-#define X     0x80009a000
-#define Y     0x80009a008
-#define VAL   0x0000f7df
-	volatile uint32_t x,y;
-	x = reg(X);      /* get X */
-	x &= 0xfffeffff; /* clear bit 16 */
-	reg(X) = x;      /* put it back  */
-	y = reg(Y);      /* get Y */
-	y |= VAL;        /* or with the VAL */
-	x = reg(X);      /* get X again */
-	x |= 16;         /* or with 16 */
-	reg(X) = x;      /* put X back */
-	reg(Y) = y;      /* put Y back */
-}
-
 uint32_t ackBox[10];
 
 #define MAX_PAYLOAD 128
@@ -221,6 +205,8 @@ void main(void) {
 
 				toggle_led();
 
+				ResumeMACASync();
+
 				command_xcvr_rx();
 				
 				break;
@@ -239,71 +225,11 @@ void main(void) {
 			puts("filter failed\n\r");
 			ResumeMACASync();
 			command_xcvr_rx();
+		} else if (_is_checksum_failed_interrupt(maca_irq)) {
+			puts("crc failed\n\r");
+			ResumeMACASync();
+			command_xcvr_rx();
 		}
-
-/* 		puts(NL); */
-
-/* 		puts("Maca_base"); */
-/* 		puts(NL); */
-/* 		dump_regs(MACA_BASE,96); */
-
-/* 		puts("0x80009000"); */
-/* 		puts(NL); */
-/* 		dump_regs(0x80009000,192); */
-		
-/* 		/\* start rx sequence *\/ */
-/* 		reg(MACA_CONTROL) = 0x00031a01; /\* abort *\/ */
-/* 		while (((tmp = reg(MACA_STATUS)) & 15) == 14) */
-/* 			puts("."); */
-/* 		puts("abort status is "); put_hex32(tmp); puts(NL); */
-/* 		puts("1 status is "); put_hex32(reg(MACA_STATUS)); puts(NL); */
-/* 		puts("2 status is "); put_hex32(reg(MACA_STATUS)); puts(NL); */
-/* 		puts("3 status is "); put_hex32(reg(MACA_STATUS)); puts(NL); */
-
-
-  /* read TSM_RX_STEPS */
-		
-/* 		TsmRxSteps = (*((volatile uint32_t *)(0x80009204))); */
-		
-/* 		puts("TsmRxSteps: "); */
-/* 		put_hex32(TsmRxSteps); */
-/* 		puts(NL);  */
-		
-/* 		/\* isolate the RX_WU_STEPS *\/ */
-/* 		/\* shift left to align with 32-bit addressing *\/ */
-/* 		LastWarmupStep = (TsmRxSteps & 0x1f) << 2; */
-/* 		/\* Read "current" TSM step and save this value for later *\/ */
-/* 		LastWarmupData = (*((volatile uint32_t *)(0x80009300 + LastWarmupStep))); */
-		
-/* 		puts("LastWarmupData: "); */
-/* 		put_hex32(LastWarmupData); */
-/* 		puts(NL); */
-		
-/* 		/\* isolate the RX_WD_STEPS *\/ */
-/* 		/\* right-shift bits down to bit 0 position *\/ */
-/* 		/\* left-shift to align with 32-bit addressing *\/ */
-/* 		LastWarmdownStep = ((TsmRxSteps & 0x1f00) >> 8) << 2; */
-/* 		/\* write "last warmdown data" to current TSM step to shutdown rx *\/ */
-/* 		LastWarmdownData = (*((volatile uint32_t *)(0x80009300 + LastWarmdownStep))); */
-		
-/* 		puts("LastWarmdownData: "); */
-/* 		put_hex32(LastWarmdownData); */
-/* 		puts(NL); */
-				
-/* 		reg(MACA_CONTROL) = 0x00031a04; /\* receive *\/ */
-/* 		while (((tmp = reg(MACA_STATUS)) & 15) == 14) */
-/* 			puts("."); */
-/* 		puts("complete status is "); put_hex32(tmp); puts(NL); */
-/* 		puts("1 status is "); put_hex32(reg(MACA_STATUS)); puts(NL); */
-/* 		puts("2 status is "); put_hex32(reg(MACA_STATUS)); puts(NL); */
-/* 		puts("3 status is "); put_hex32(reg(MACA_STATUS)); puts(NL); */
-
-/* 		puts(NL);		 */
-/* 		for(i=0; i<DELAY; i++) { continue; } */
-/* 		for(i=0; i<DELAY; i++) { continue; } */
-/* 		for(i=0; i<DELAY; i++) { continue; } */
-/* 		for(i=0; i<DELAY; i++) { continue; } */
-/* 		for(i=0; i<DELAY; i++) { continue; } */
 
 		
 	};
