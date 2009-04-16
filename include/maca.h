@@ -407,6 +407,7 @@ typedef union maca_maskirq_reg_tag
 
 void reset_maca(void);
 void init_phy(void);
+void vreg_init(void);
 void ResumeMACASync(void);
 void radio_init(void);
 void set_power(uint8_t power);

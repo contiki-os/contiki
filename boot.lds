@@ -32,7 +32,7 @@ SECTIONS
 	. = ALIGN(4);
 	.text      :
 	{
-	  *(startup)
+	  src/start.o	(.text)
 	  *(.text)
 	}
 

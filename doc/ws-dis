@@ -5402,8 +5402,8 @@ Disassembly of section P2:
   4031a0:	0040544c 	.word	0x0040544c
 
 004031a4 <SMAC_InitExecuteEntry>:
-  4031a4:	6801      	ldr	r1, [r0, #0]    // r1 gets where r0 points
-  4031a6:	1d00      	adds	r0, r0, #4      // increment pointer by 4 bytes
+  4031a4:	6801      	ldr	r1, [r0, #0]    // r1 gets where r0 points    r1 = *r0
+  4031a6:	1d00      	adds	r0, r0, #4      // increment pointer by 4 bytes   r0 += 4
   4031a8:	4a17      	ldr	r2, [pc, #92]	(403208 <SMAC_InitExecuteEntry+0x64>) //r2 gets 403208:	00140001 	.word	0x00140001
   4031aa:	4291      	cmp	r1, r2          // compare r1 with r2
   4031ac:	d303      	bcc.n	4031b6 <SMAC_InitExecuteEntry+0x12> //branch to 1: if lower
@@ -5415,41 +5415,53 @@ Disassembly of section P2:
   4031b8:	d215      	bcs.n	4031e6 <SMAC_InitExecuteEntry+0x42> // branch to 2: if high or equal 
   4031ba:	2900      	cmp	r1, #0                              // check if zero (r1 is address?)
   4031bc:	d106      	bne.n	4031cc <SMAC_InitExecuteEntry+0x28> // branch to 3: to if != 0 
-  4031be:	6800      	ldr	r0, [r0, #0]                        
+  4031be:	6800      	ldr	r0, [r0, #0]                        // if == 0 do delay
   4031c0:	0880      	lsrs	r0, r0, #2
   4031c2:	0001      	lsls	r1, r0, #0
   4031c4:	1e48      	subs	r0, r1, #1
   4031c6:	2900      	cmp	r1, #0
   4031c8:	d1fb      	bne.n	4031c2 <SMAC_InitExecuteEntry+0x1e>
-  4031ca:	e7f2      	b.n	4031b2 <SMAC_InitExecuteEntry+0xe>
-  4031cc:	2901      	cmp	r1, #1                             // 3:
-  4031ce:	d118      	bne.n	403202 <SMAC_InitExecuteEntry+0x5e>
-  4031d0:	6802      	ldr	r2, [r0, #0]
-  4031d2:	6841      	ldr	r1, [r0, #4]
-  4031d4:	3008      	adds	r0, #8
-  4031d6:	680b      	ldr	r3, [r1, #0]
-  4031d8:	4393      	bics	r3, r2
-  4031da:	6800      	ldr	r0, [r0, #0]
-  4031dc:	4002      	ands	r2, r0
-  4031de:	431a      	orrs	r2, r3
-  4031e0:	600a      	str	r2, [r1, #0]
-  4031e2:	2004      	movs	r0, #4
+  4031ca:	e7f2      	b.n	4031b2 <SMAC_InitExecuteEntry+0xe>  
+  4031cc:	2901      	cmp	r1, #1                             // at this point r1 is between 1 and 15 inclusive
+  4031ce:	d118      	bne.n	403202 <SMAC_InitExecuteEntry+0x5e> // if !=1 return
+
+0x00000001  command
+0xaaaaaaaa
+0xbbbbbbbb
+0xcccccccc
+
+  4031d0:	6802      	ldr	r2, [r0, #0]                        // r2 = 0xaaaaaaaa
+  4031d2:	6841      	ldr	r1, [r0, #4]                        // r1 = 0xbbbbbbbb
+  4031d4:	3008      	adds	r0, #8                              // r0 points to c
+  4031d6:	680b      	ldr	r3, [r1, #0]                        // r3 = *0xbbbbbbbb
+  4031d8:	4393      	bics	r3, r2                              // r3 = *0xbbbbbbbb & ~(0xaaaaaaaa)
+  4031da:	6800      	ldr	r0, [r0, #0]                        // r0 = 0xcccccccc
+  4031dc:	4002      	ands	r2, r0                              // r2 &= r0
+  4031de:	431a      	orrs	r2, r3                              // r2 = (0xaaaaaaaa & 0xcccccccc) | (*0xbbbbbbbb & ~(0xaaaaaaaa))
+  4031e0:	600a      	str	r2, [r1, #0]                        // store back in B
+
+uint32_t buf[]
+if (buf[0] == 0x00000001) {
+   *buf[2] = (*buf[2] & ~buf[1]) | (buf[3] & buf[1]);
+}
+
+  4031e2:	2004      	movs	r0, #4   // return 4 bytes processed
   4031e4:	4770      	bx	lr
-  4031e6:	4a09      	ldr	r2, [pc, #36]	(40320c <SMAC_InitExecuteEntry+0x68>) //2:
-  4031e8:	4291      	cmp	r1, r2
-  4031ea:	d20a      	bcs.n	403202 <SMAC_InitExecuteEntry+0x5e>
+  4031e6:	4a09      	ldr	r2, [pc, #36]	(40320c <SMAC_InitExecuteEntry+0x68>) //2: r2=0x0000fff1
+  4031e8:	4291      	cmp	r1, r2           // r1 >=16
+  4031ea:	d20a      	bcs.n	403202 <SMAC_InitExecuteEntry+0x5e> // if r1 >= 0xfff1 then return 0
   4031ec:	4a08      	ldr	r2, [pc, #32]	(403210 <SMAC_InitExecuteEntry+0x6c>)
-  4031ee:	4291      	cmp	r1, r2
-  4031f0:	d007      	beq.n	403202 <SMAC_InitExecuteEntry+0x5e>
-  4031f2:	0909      	lsrs	r1, r1, #4
-  4031f4:	1e49      	subs	r1, r1, #1
-  4031f6:	0609      	lsls	r1, r1, #24
+  4031ee:	4291      	cmp	r1, r2           // 
+  4031f0:	d007      	beq.n	403202 <SMAC_InitExecuteEntry+0x5e> if 0xe0f (end of file) return 0
+  4031f2:	0909      	lsrs	r1, r1, #4      // r1 = r1>>4
+  4031f4:	1e49      	subs	r1, r1, #1      // r1 = r1 - 1
+  4031f6:	0609      	lsls	r1, r1, #24     // mask 
   4031f8:	0e09      	lsrs	r1, r1, #24
-  4031fa:	4a06      	ldr	r2, [pc, #24]	(403214 <SMAC_InitExecuteEntry+0x70>)
-  4031fc:	6800      	ldr	r0, [r0, #0]
-  4031fe:	5450      	strb	r0, [r2, r1]
+  4031fa:	4a06      	ldr	r2, [pc, #24]	(403214 <SMAC_InitExecuteEntry+0x70>) r2 = &u8RamValues
+  4031fc:	6800      	ldr	r0, [r0, #0]    // r0 = next value in buffer  2nd half of pair
+  4031fe:	5450      	strb	r0, [r2, r1]    // store this in u8RamValues
   403200:	e7d7      	b.n	4031b2 <SMAC_InitExecuteEntry+0xe>
-  403202:	2000      	movs	r0, #0
+  403202:	2000      	movs	r0, #0           // return 0
   403204:	4770      	bx	lr
   403206:	46c0      	nop			(mov r8, r8)
   403208:	00140001 	.word	0x00140001
@@ -5506,42 +5518,52 @@ Disassembly of section P2:
   40327a:	4288      	cmp	r0, r1
   40327c:	d105      	bne.n	40328a <SMAC_InitFromFlash+0x72> //branch to 2: if !=
   40327e:	a802      	add	r0, sp, #8
-  403280:	88c1      	ldrh	r1, [r0, #6]
+  403280:	88c1      	ldrh	r1, [r0, #6]    // sp+8 0x00000abc   sp+12 0x0100 03fc   r1 = 0x0100 = 256
   403282:	22ff      	movs	r2, #255
   403284:	1c92      	adds	r2, r2, #2
-  403286:	4291      	cmp	r1, r2
-  403288:	d303      	bcc.n	403292 <SMAC_InitFromFlash+0x7a>
-  40328a:	2001      	movs	r0, #1           // 2:
+  403286:	4291      	cmp	r1, r2   // compare r1 to 257
+  403288:	d303      	bcc.n	403292 <SMAC_InitFromFlash+0x7a>  // if r1 < 257 (it is) goto 3:
+  40328a:	2001      	movs	r0, #1           // 2: if r1 > 256 lock flash and return 0
   40328c:	f403 fefa 	bl	7084 <NVM_SetSVar>
   403290:	e7e0      	b.n	403254 <SMAC_InitFromFlash+0x3c>
-  403292:	2408      	movs	r4, #8
-  403294:	8885      	ldrh	r5, [r0, #4]
-  403296:	1f2d      	subs	r5, r5, #4
-  403298:	e006      	b.n	4032a8 <SMAC_InitFromFlash+0x90>
+
+  403292:	2408      	movs	r4, #8            // 3:    r4 = 8
+  403294:	8885      	ldrh	r5, [r0, #4] 	  // r5 = 0x03fc
+  403296:	1f2d      	subs	r5, r5, #4	  // r5 = r5 - 4 = 0x03f8
+  403298:	e006      	b.n	4032a8 <SMAC_InitFromFlash+0x90>  // goto 4:
+
+// top of loop
   40329a:	a806      	add	r0, sp, #24
   40329c:	f7ff ff82 	bl	4031a4 <SMAC_InitExecuteEntry>  // so it looks like flash has entries it exectues... 
   4032a0:	2800      	cmp	r0, #0
-  4032a2:	d00f      	beq.n	4032c4 <SMAC_InitFromFlash+0xac>
-  4032a4:	0080      	lsls	r0, r0, #2
-  4032a6:	1824      	adds	r4, r4, r0
-  4032a8:	42ac      	cmp	r4, r5
+  4032a2:	d00f      	beq.n	4032c4 <SMAC_InitFromFlash+0xac>  // if executeentry returned 0, goto 6:
+  4032a4:	0080      	lsls	r0, r0, #2  // r0 = return value from executeentry * 4
+  4032a6:	1824      	adds	r4, r4, r0  // add number of bytes executed to r4
+
+  4032a8:	42ac      	cmp	r4, r5      // 4:    if r4 >= r5  goto unlock_exit
   4032aa:	d210      	bcs.n	4032ce <SMAC_InitFromFlash+0xb6>
-  4032ac:	2010      	movs	r0, #16
+
+  4032ac:	2010      	movs	r0, #16    // 16 bytes  = 4 commands
   4032ae:	b501      	push	{r0, lr}
-  4032b0:	1933      	adds	r3, r6, r4
-  4032b2:	aa08      	add	r2, sp, #32
+  4032b0:	1933      	adds	r3, r6, r4   // r6=0x1f000 + r4 offset
+  4032b2:	aa08      	add	r2, sp, #32  // buffer is on the stack
   4032b4:	a802      	add	r0, sp, #8
-  4032b6:	7801      	ldrb	r1, [r0, #0]
-  4032b8:	2000      	movs	r0, #0
+  4032b6:	7801      	ldrb	r1, [r0, #0]  // type from nv_detect
+  4032b8:	2000      	movs	r0, #0  // arg0
   4032ba:	f403 fd55 	bl	6d68 <NVM_Read>
+// err = nvm_read(gNvmInternalInterface_c, type, (uint8_t *)buf, 0x1F000, NBYTES);
+
+
   4032be:	b002      	add	sp, #8
   4032c0:	2800      	cmp	r0, #0
-  4032c2:	d0ea      	beq.n	40329a <SMAC_InitFromFlash+0x82>
-  4032c4:	2001      	movs	r0, #1
+  4032c2:	d0ea      	beq.n	40329a <SMAC_InitFromFlash+0x82>  // if it worked, goto top of loop
+  4032c4:	2001      	movs	r0, #1  // 6:  lock and return
   4032c6:	f403 fedd 	bl	7084 <NVM_SetSVar>
   4032ca:	0020      	lsls	r0, r4, #0
   4032cc:	e003      	b.n	4032d6 <SMAC_InitFromFlash+0xbe>
-  4032ce:	2001      	movs	r0, #1
+
+
+  4032ce:	2001      	movs	r0, #1  // 5:
   4032d0:	f403 fed8 	bl	7084 <NVM_SetSVar>
   4032d4:	1d20      	adds	r0, r4, #4
   4032d6:	b00a      	add	sp, #40    //exit:
