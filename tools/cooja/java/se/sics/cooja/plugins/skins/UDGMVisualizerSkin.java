@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: UDGMVisualizerSkin.java,v 1.4 2009/04/14 15:40:26 fros4943 Exp $
+ * $Id: UDGMVisualizerSkin.java,v 1.5 2009/04/16 14:26:35 fros4943 Exp $
  */
 
 package se.sics.cooja.plugins.skins;
@@ -52,7 +52,6 @@ import se.sics.cooja.ClassDescription;
 import se.sics.cooja.Mote;
 import se.sics.cooja.RadioConnection;
 import se.sics.cooja.Simulation;
-import se.sics.cooja.contikimote.interfaces.ContikiRadio;
 import se.sics.cooja.interfaces.Position;
 import se.sics.cooja.interfaces.Radio;
 import se.sics.cooja.plugins.Visualizer;
@@ -296,7 +295,7 @@ public class UDGMVisualizerSkin implements VisualizerSkin {
       return new Color[] { Color.CYAN };
     }
 
-    if (moteRadio instanceof ContikiRadio && !((ContikiRadio) moteRadio).isOn()) {
+    if (!moteRadio.isReceiverOn()) {
       return new Color[] { Color.GRAY };
     }
 

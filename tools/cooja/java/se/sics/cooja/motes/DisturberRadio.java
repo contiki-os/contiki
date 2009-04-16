@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: DisturberRadio.java,v 1.10 2009/03/09 15:38:10 fros4943 Exp $
+ * $Id: DisturberRadio.java,v 1.11 2009/04/16 14:26:35 fros4943 Exp $
  */
 
 package se.sics.cooja.motes;
@@ -268,5 +268,9 @@ public class DisturberRadio extends Radio implements PolledBeforeAllTicks {
 
   public Mote getMote() {
     return myMote;
+  }
+
+  public boolean isReceiverOn() {
+    return true;
   }
 }

@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ApplicationRadio.java,v 1.8 2009/03/09 14:08:54 fros4943 Exp $
+ * $Id: ApplicationRadio.java,v 1.9 2009/04/16 14:26:36 fros4943 Exp $
  */
 
 package se.sics.cooja.interfaces;
@@ -319,5 +319,9 @@ public class ApplicationRadio extends Radio implements PolledBeforeActiveTicks {
 
   public Mote getMote() {
     return myMote;
+  }
+
+  public boolean isReceiverOn() {
+    return true;
   }
 }

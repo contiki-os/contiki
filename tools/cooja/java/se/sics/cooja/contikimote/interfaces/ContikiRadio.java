@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ContikiRadio.java,v 1.26 2009/02/25 14:46:22 fros4943 Exp $
+ * $Id: ContikiRadio.java,v 1.27 2009/04/16 14:26:35 fros4943 Exp $
  */
 
 package se.sics.cooja.contikimote.interfaces;
@@ -176,7 +176,7 @@ public class ContikiRadio extends Radio implements ContikiMoteInterface, PolledA
   }
 
   /* General radio support */
-  public boolean isOn() {
+  public boolean isReceiverOn() {
     return radioOn;
   }
 
