@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: rucb.c,v 1.9 2009/03/12 21:58:21 adamdunkels Exp $
+ * $Id: rucb.c,v 1.10 2009/04/16 14:32:01 fros4943 Exp $
  */
 
 /**
@@ -58,7 +58,6 @@ static int
 read_data(struct rucb_conn *c)
 {
   int len = 0;
-
   packetbuf_clear();
   if(c->u->read_chunk) {
     len = c->u->read_chunk(c, c->chunk * RUCB_DATASIZE,
@@ -115,10 +114,10 @@ recv(struct runicast_conn *ruc, rimeaddr_t *from, uint8_t seqno)
     c->chunk = 0;
   }
 
-  
+
   if(rimeaddr_cmp(&c->sender, from)) {
     int datalen = packetbuf_datalen();
-    
+
     if(datalen < RUCB_DATASIZE) {
       PRINTF("%d.%d: get %d bytes, file complete\n",
 	     rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1],
@@ -143,6 +142,7 @@ void
 rucb_open(struct rucb_conn *c, uint16_t channel,
 	  const struct rucb_callbacks *u)
 {
+  rimeaddr_copy(&c->sender, &rimeaddr_null);
   runicast_open(&c->c, channel, &ruc);
   c->u = u;
   c->last_seqno = -1;
@@ -157,6 +157,7 @@ rucb_close(struct rucb_conn *c)
 int
 rucb_send(struct rucb_conn *c, rimeaddr_t *receiver)
 {
+  c->chunk = 0;
   read_data(c);
   rimeaddr_copy(&c->receiver, receiver);
   rimeaddr_copy(&c->sender, &rimeaddr_node_addr);
