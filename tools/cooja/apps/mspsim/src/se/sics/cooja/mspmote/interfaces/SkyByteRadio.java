@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: SkyByteRadio.java,v 1.9 2009/04/01 23:37:27 fros4943 Exp $
+ * $Id: SkyByteRadio.java,v 1.10 2009/04/16 14:28:12 fros4943 Exp $
  */
 
 package se.sics.cooja.mspmote.interfaces;
@@ -73,8 +73,6 @@ public class SkyByteRadio extends Radio implements CustomDataRadio {
 
   private boolean isReceiving = false;
 //  private boolean hasFailedReception = false;
-
-  private boolean radioOn = true;
 
   private CC2420RadioByte lastOutgoingByte = null;
 
@@ -363,7 +361,7 @@ public class SkyByteRadio extends Radio implements CustomDataRadio {
           statusLabel.setText("transmitting");
         } else if (isReceiving()) {
           statusLabel.setText("receiving");
-        } else if (radioOn /* mode != CC2420.MODE_TXRX_OFF */) {
+        } else if (isReceiverOn()) {
           statusLabel.setText("listening for traffic");
         } else {
           statusLabel.setText("HW off");
@@ -409,5 +407,9 @@ public class SkyByteRadio extends Radio implements CustomDataRadio {
   }
 
   public void setConfigXML(Collection<Element> configXML, boolean visAvailable) {
+  }
+
+  public boolean isReceiverOn() {
+    return mote.skyNode.radio.getMode() != CC2420.MODE_TXRX_OFF;
   }
 }

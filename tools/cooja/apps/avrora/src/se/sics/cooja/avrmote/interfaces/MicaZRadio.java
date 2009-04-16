@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: MicaZRadio.java,v 1.2 2009/03/19 14:47:37 joxe Exp $
+ * $Id: MicaZRadio.java,v 1.3 2009/04/16 14:28:12 fros4943 Exp $
  */
 
 package se.sics.cooja.avrmote.interfaces;
@@ -65,7 +65,7 @@ public class MicaZRadio extends Radio implements CustomDataRadio {
   private RadioEvent lastEvent = RadioEvent.UNKNOWN;
 
   private MicaZMote mote;
-  private MicaZ micaz;  
+  private MicaZ micaz;
   private CC2420Radio cc2420;
 
   private boolean isInterfered = false;
@@ -88,7 +88,7 @@ public class MicaZRadio extends Radio implements CustomDataRadio {
 //  private int mode;
   Medium.Transmitter trans;
   CC2420Radio.Receiver recv;
-  
+
   public MicaZRadio(MicaZMote mote) {
     this.mote = mote;
     micaz = mote.getMicaZ();
@@ -139,7 +139,7 @@ public class MicaZRadio extends Radio implements CustomDataRadio {
           lastEvent = RadioEvent.TRANSMISSION_FINISHED;
           setChanged();
           notifyObservers();
-          len = 0;        
+          len = 0;
         }
       }
     });
@@ -169,7 +169,7 @@ public class MicaZRadio extends Radio implements CustomDataRadio {
   public void receiveCustomData(Object data) {
     if (data instanceof RadioByte) {
       lastIncomingByte = (RadioByte) data;
-      recv.nextByte(true, (byte)lastIncomingByte.getPacketData()[0]);      
+      recv.nextByte(true, lastIncomingByte.getPacketData()[0]);
     }
   }
 
@@ -198,6 +198,11 @@ public class MicaZRadio extends Radio implements CustomDataRadio {
     return 0;
   }
 
+  public boolean isReceiverOn() {
+    /* TODO Implement me */
+    return true;
+  }
+
   public void signalReceptionStart() {
 //    cc2420.setCCA(true);
 //    hasFailedReception = mode == CC2420.MODE_TXRX_OFF;
@@ -217,7 +222,7 @@ public class MicaZRadio extends Radio implements CustomDataRadio {
 //    hasFailedReception = false;
     isInterfered = false;
 //    cc2420.setCCA(false);
-    
+
     /* tell the receiver that the packet is ended */
     recv.nextByte(false, (byte)0);
 
@@ -237,13 +242,13 @@ public class MicaZRadio extends Radio implements CustomDataRadio {
     isReceiving = false;
 //    hasFailedReception = false;
     lastIncomingPacket = null;
-    
+
     //cc2420.setCCA(true);
 
     /* is this ok ?? */
     recv.nextByte(false, (byte)0);
 
-    
+
     lastEventTime = mote.getSimulation().getSimulationTime();
     lastEvent = RadioEvent.RECEPTION_INTERFERED;
     /*logger.debug("----- SKY RECEPTION INTERFERED -----");*/
