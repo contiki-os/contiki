@@ -4,6 +4,9 @@
  *  Copyright (c) 2001	Marius Gröger <mag@sysgo.de>
  *  Copyright (c) 2002	Alex Züpke <azu@sysgo.de>
  *
+ *  Modified for the mc13224v
+ *  Copyright (c) 2009 Mariano Alvira <mar@devl.org>
+ *
  * See file CREDITS for list of people who contributed to this
  * project.
  *
