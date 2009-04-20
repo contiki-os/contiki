@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: AddMoteDialog.java,v 1.8 2009/03/12 18:40:06 nifi Exp $
+ * $Id: AddMoteDialog.java,v 1.9 2009/04/20 16:09:29 fros4943 Exp $
  */
 
 package se.sics.cooja.dialogs;
@@ -66,7 +66,7 @@ public class AddMoteDialog extends JDialog {
 
   private JFormattedTextField numberOfMotesField, startX, endX, startY, endY,
       startZ, endZ;
-  private JComboBox positionDistributionBox, ipDistributionBox;
+  private JComboBox positionDistributionBox /*, ipDistributionBox*/;
 
 
   /**
@@ -177,7 +177,7 @@ public class AddMoteDialog extends JDialog {
     mainPane.add(Box.createRigidArea(new Dimension(0, 5)));
 
     // IP address distribution
-    smallPane = new JPanel();
+    /*smallPane = new JPanel();
     smallPane.setAlignmentX(Component.LEFT_ALIGNMENT);
     smallPane.setLayout(new BoxLayout(smallPane, BoxLayout.X_AXIS));
     label = new JLabel("IP Addressing");
@@ -204,6 +204,7 @@ public class AddMoteDialog extends JDialog {
 
     mainPane.add(smallPane);
     mainPane.add(Box.createRigidArea(new Dimension(0, 5)));
+     */
 
     // Position distribution
     smallPane = new JPanel();
@@ -521,7 +522,7 @@ public class AddMoteDialog extends JDialog {
           }
 
           // IP address new motes
-          Class<? extends IPDistributor> ipDistClass = null;
+          /*Class<? extends IPDistributor> ipDistClass = null;
           for (Class<? extends IPDistributor> ipDistributor : simulation.getGUI()
               .getRegisteredIPDistributors()) {
             if (GUI.getDescriptionOf(ipDistributor).equals(
@@ -545,7 +546,7 @@ public class AddMoteDialog extends JDialog {
               newMotes.get(i).getInterfaces().getIPAddress().setIPString(
                   newIPString);
             }
-          }
+          }*/
 
           dispose();
         } catch (OutOfMemoryError e2) {
