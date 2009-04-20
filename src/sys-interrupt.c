@@ -1,6 +1,7 @@
-#include <sys-interrupt.h>
-#include <interrupt-utils.h>
-#include <AT91SAM7S64.h>
+#include "sys-interrupt.h"
+#include "interrupt-utils.h"
+
+#include "embedded_types.h"
 
 #define ATTR
 
@@ -30,24 +31,20 @@ system_int (void) /* System Interrupt Handler */
 {
   ISR_ENTRY();
   system_int_safe();
-  *AT91C_AIC_EOICR = 0;                   /* End of Interrupt */
   ISR_EXIT();
 }
 
 static unsigned int enabled = 0; /* Number of times the system
 				    interrupt has been enabled */
 
-#define DIS_INT *AT91C_AIC_IDCR = (1 << AT91C_ID_SYS)
-#define EN_INT if (enabled > 0) *AT91C_AIC_IECR = (1 << AT91C_ID_SYS)
+#define INTCNTL 0x80020000
+#define DIS_INT *((volatile uint32_t *)INTCNTL) = 3 << 19;
+#define EN_INT if (enabled > 0) *((volatile uint32_t *)INTCNTL) = 0;
 
 void
 sys_interrupt_enable()
 {
   if (enabled++ == 0) {
-    /* Level trigged at priority 5 */
-    AT91C_AIC_SMR[AT91C_ID_SYS] = AT91C_AIC_SRCTYPE_INT_HIGH_LEVEL | 5;
-    /* Interrupt vector */
-    AT91C_AIC_SVR[AT91C_ID_SYS] = (unsigned long) system_int;
     /* Enable */
     EN_INT;
   }
