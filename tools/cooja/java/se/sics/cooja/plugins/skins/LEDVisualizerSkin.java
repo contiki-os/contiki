@@ -26,13 +26,14 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: LEDVisualizerSkin.java,v 1.2 2009/04/14 15:40:26 fros4943 Exp $
+ * $Id: LEDVisualizerSkin.java,v 1.3 2009/04/20 16:16:25 fros4943 Exp $
  */
 
 package se.sics.cooja.plugins.skins;
 
 import java.awt.Color;
 import java.awt.Graphics;
+import java.awt.Point;
 import java.util.Observable;
 import java.util.Observer;
 
@@ -42,13 +43,15 @@ import se.sics.cooja.ClassDescription;
 import se.sics.cooja.Mote;
 import se.sics.cooja.Simulation;
 import se.sics.cooja.interfaces.LED;
+import se.sics.cooja.interfaces.MoteID;
+import se.sics.cooja.interfaces.Position;
 import se.sics.cooja.plugins.Visualizer;
 import se.sics.cooja.plugins.VisualizerSkin;
 
 /**
  * Visualizer skin for LEDs.
  *
- * Colors motes according to current LED state.
+ * Paints three LEDs left to each mote.
  *
  * @author Fredrik Osterlind
  */
@@ -97,43 +100,50 @@ public class LEDVisualizerSkin implements VisualizerSkin {
   }
 
   public Color[] getColorOf(Mote mote) {
-    LED led = mote.getInterfaces().getLED();
-    if (led == null) {
-      return new Color[] { Color.GRAY };
-    }
-    if (!led.isAnyOn()) {
-      return new Color[] { Color.BLACK };
-    }
-
-    if (led.isGreenOn() && led.isRedOn() && led.isYellowOn()) {
-      return new Color[] { Color.WHITE };
-    }
-
-    if (led.isRedOn()) {
-      if (led.isGreenOn()) {
-        return new Color[] { Color.RED, Color.GREEN };
-      }
-      if (led.isYellowOn()) {
-        return new Color[] { Color.RED, Color.YELLOW };
-      }
-      return new Color[] { Color.RED };
-    }
-
-    if (led.isGreenOn()) {
-      if (led.isYellowOn()) {
-        return new Color[] { Color.YELLOW, Color.GREEN };
-      }
-      return new Color[] { Color.GREEN };
-    }
-
-    if (led.isYellowOn()) {
-      return new Color[] { Color.YELLOW };
-    }
-
-    return new Color[] { Color.BLACK };
+    return null;
   }
 
   public void paintSkin(Graphics g) {
+    /* Paint LEDs left of each mote */
+    Mote[] allMotes = simulation.getMotes();
+    for (Mote mote: allMotes) {
+      LED leds = mote.getInterfaces().getLED();
+      if (leds == null) {
+        continue;
+      }
+
+      Position pos = mote.getInterfaces().getPosition();
+      Point pixel = visualizer.transformPositionToPixel(pos);
+
+      int x = pixel.x - 2*Visualizer.MOTE_RADIUS;
+      
+      int y = pixel.y - Visualizer.MOTE_RADIUS;
+      g.setColor(Color.RED);
+      if (leds.isRedOn()) {
+        g.fillRect(x, y, 7, 4);
+      } else {
+        g.drawRect(x, y, 7, 4);
+      }
+
+      y += 6;
+      g.setColor(Color.GREEN);
+      if (leds.isGreenOn()) {
+        g.fillRect(x, y, 7, 4);
+      } else {
+        g.drawRect(x, y, 7, 4);
+      }
+
+      y += 6;
+      g.setColor(Color.BLUE);
+      if (leds.isYellowOn()) {
+        g.fillRect(x, y, 7, 4);
+      } else {
+        g.drawRect(x, y, 7, 4);
+      }
+
+    }
+
+    g.setColor(Color.BLACK);
   }
 
   public Visualizer getVisualizer() {
