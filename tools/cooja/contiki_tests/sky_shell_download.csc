@@ -1,0 +1,131 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<simconf>
+  <simulation>
+    <title>My simulation</title>
+    <delaytime>0</delaytime>
+    <ticktime>1</ticktime>
+    <randomseed>generated</randomseed>
+    <motedelay>1000</motedelay>
+    <radiomedium>
+      se.sics.cooja.radiomediums.UDGM
+      <transmitting_range>100.0</transmitting_range>
+      <interference_range>100.0</interference_range>
+      <success_ratio_tx>0.95</success_ratio_tx>
+      <success_ratio_rx>1.0</success_ratio_rx>
+    </radiomedium>
+    <motetype>
+      se.sics.cooja.mspmote.SkyMoteType
+      <identifier>sky1</identifier>
+      <description>Sky Mote Type #sky1</description>
+      <source>../../../examples/sky-shell/sky-checkpoint.c</source>
+      <commands>make sky-checkpoint.sky TARGET=sky</commands>
+      <firmware>../../../examples/sky-shell/sky-checkpoint.sky</firmware>
+      <moteinterface>se.sics.cooja.interfaces.Position</moteinterface>
+      <moteinterface>se.sics.cooja.mspmote.interfaces.MspIPAddress</moteinterface>
+      <moteinterface>se.sics.cooja.interfaces.Mote2MoteRelations</moteinterface>
+      <moteinterface>se.sics.cooja.mspmote.interfaces.MspClock</moteinterface>
+      <moteinterface>se.sics.cooja.mspmote.interfaces.MspMoteID</moteinterface>
+      <moteinterface>se.sics.cooja.mspmote.interfaces.SkyButton</moteinterface>
+      <moteinterface>se.sics.cooja.mspmote.interfaces.SkyFlash</moteinterface>
+      <moteinterface>se.sics.cooja.mspmote.interfaces.SkyByteRadio</moteinterface>
+      <moteinterface>se.sics.cooja.mspmote.interfaces.SkySerial</moteinterface>
+      <moteinterface>se.sics.cooja.mspmote.interfaces.SkyLED</moteinterface>
+    </motetype>
+    <mote>
+      se.sics.cooja.mspmote.SkyMote
+      <motetype_identifier>sky1</motetype_identifier>
+      <interface_config>
+        se.sics.cooja.interfaces.Position
+        <x>-16.136777727943556</x>
+        <y>85.85963282955879</y>
+        <z>0.0</z>
+      </interface_config>
+      <interface_config>
+        se.sics.cooja.mspmote.interfaces.MspIPAddress
+        <ip />
+      </interface_config>
+      <interface_config>
+        se.sics.cooja.mspmote.interfaces.MspMoteID
+        <id>1</id>
+      </interface_config>
+    </mote>
+    <mote>
+      se.sics.cooja.mspmote.SkyMote
+      <motetype_identifier>sky1</motetype_identifier>
+      <interface_config>
+        se.sics.cooja.interfaces.Position
+        <x>11.712359274594053</x>
+        <y>84.42239042889724</y>
+        <z>0.0</z>
+      </interface_config>
+      <interface_config>
+        se.sics.cooja.mspmote.interfaces.MspIPAddress
+        <ip />
+      </interface_config>
+      <interface_config>
+        se.sics.cooja.mspmote.interfaces.MspMoteID
+        <id>2</id>
+      </interface_config>
+    </mote>
+  </simulation>
+  <plugin>
+    se.sics.cooja.plugins.SimControl
+    <width>248</width>
+    <z>4</z>
+    <height>200</height>
+    <location_x>375</location_x>
+    <location_y>0</location_y>
+    <minimized>false</minimized>
+  </plugin>
+  <plugin>
+    se.sics.cooja.plugins.MoteInterfaceViewer
+    <mote_arg>0</mote_arg>
+    <plugin_config>
+      <interface>Serial port</interface>
+      <scrollpos>0,0</scrollpos>
+    </plugin_config>
+    <width>372</width>
+    <z>5</z>
+    <height>482</height>
+    <location_x>0</location_x>
+    <location_y>173</location_y>
+    <minimized>false</minimized>
+  </plugin>
+  <plugin>
+    se.sics.cooja.plugins.MoteInterfaceViewer
+    <mote_arg>1</mote_arg>
+    <plugin_config>
+      <interface>Serial port</interface>
+      <scrollpos>0,0</scrollpos>
+    </plugin_config>
+    <width>399</width>
+    <z>3</z>
+    <height>483</height>
+    <location_x>625</location_x>
+    <location_y>172</location_y>
+    <minimized>false</minimized>
+  </plugin>
+  <plugin>
+    se.sics.cooja.plugins.Visualizer
+    <plugin_config>
+      <skin>Radio environment (UDGM)</skin>
+      <skin>Mote IDs</skin>
+    </plugin_config>
+    <width>400</width>
+    <z>1</z>
+    <height>171</height>
+    <location_x>624</location_x>
+    <location_y>0</location_y>
+    <minimized>false</minimized>
+  </plugin>
+  <plugin>
+    se.sics.cooja.plugins.RadioLogger
+    <width>376</width>
+    <z>2</z>
+    <height>172</height>
+    <location_x>-1</location_x>
+    <location_y>0</location_y>
+    <minimized>false</minimized>
+  </plugin>
+</simconf>
+
