@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: MspMoteType.java,v 1.29 2009/03/12 15:12:10 fros4943 Exp $
+ * $Id: MspMoteType.java,v 1.30 2009/04/20 16:48:53 fros4943 Exp $
  */
 
 package se.sics.cooja.mspmote;
@@ -40,6 +40,7 @@ import javax.swing.*;
 import org.apache.log4j.Logger;
 import org.jdom.Element;
 import se.sics.cooja.*;
+import se.sics.cooja.interfaces.IPAddress;
 
 /**
  * MSP430-based mote types emulated in MSPSim.
@@ -276,11 +277,19 @@ public abstract class MspMoteType implements MoteType {
         logger.warn("Old simulation config detected: firmware specified as elf");
         fileFirmware = new File(element.getText());
       } else if (name.equals("moteinterface")) {
+        String intfClass = element.getText().trim();
+
+        /* Backwards compatibility: MspIPAddress -> IPAddress */
+        if (intfClass.equals("se.sics.cooja.mspmote.interfaces.MspIPAddress")) {
+          logger.warn("Old simulation config detected: IP address interface was moved");
+          intfClass = IPAddress.class.getName();
+        }
+        
         Class<? extends MoteInterface> moteInterfaceClass =
-          simulation.getGUI().tryLoadClass(this, MoteInterface.class, element.getText().trim());
+          simulation.getGUI().tryLoadClass(this, MoteInterface.class, intfClass);
 
         if (moteInterfaceClass == null) {
-          logger.warn("Can't find mote interface class: " + element.getText());
+          logger.warn("Can't find mote interface class: " + intfClass);
         } else {
           intfClassList.add(moteInterfaceClass);
         }
