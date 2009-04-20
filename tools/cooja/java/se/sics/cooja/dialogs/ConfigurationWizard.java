@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ConfigurationWizard.java,v 1.3 2009/04/01 14:00:40 fros4943 Exp $
+ * $Id: ConfigurationWizard.java,v 1.4 2009/04/20 16:09:10 fros4943 Exp $
  */
 
 package se.sics.cooja.dialogs;
@@ -589,7 +589,6 @@ public class ConfigurationWizard extends JDialog {
     testOutput.addMessage("### Compiling C library source: " + cLibrarySourceFile.getName());
     try {
       String contikiPath = GUI.getExternalToolsSetting("PATH_CONTIKI").replaceAll("\\\\", "/");
-      System.out.println(" CURR DIR: " + new File(".").getAbsolutePath());
       CompileContiki.compile(
           "make " +
           "-f " + contikiPath + "/Makefile.include " +
