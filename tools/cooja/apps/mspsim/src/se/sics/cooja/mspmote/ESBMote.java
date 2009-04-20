@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ESBMote.java,v 1.7 2009/03/09 17:12:27 fros4943 Exp $
+ * $Id: ESBMote.java,v 1.8 2009/04/20 16:12:01 fros4943 Exp $
  */
 
 package se.sics.cooja.mspmote;
@@ -70,16 +70,6 @@ public class ESBMote extends MspMote {
     /* Uses current mote type configuration */
     MoteInterfaceHandler moteInterfaceHandler =
       super.createMoteInterfaceHandler();
-
-    /* TODO check if uIP is used, remove IPv4 interface otherwise */
-//    moteInterfaceHandler.getIPAddress()
-//    try {
-//      if (((MspMoteMemory)this.getMemory()).getVariableAddress("uip_hostaddr") != 0) {
-//        IPAddress ip = new MspIPAddress(this);
-//        moteInterfaceHandler.addInterface(ip);
-//      }
-//    } catch (UnknownVariableException e) {
-//    }
 
     return moteInterfaceHandler;
   }
