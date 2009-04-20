@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: MoteInterfaceHandler.java,v 1.7 2009/03/10 21:05:00 fros4943 Exp $
+ * $Id: MoteInterfaceHandler.java,v 1.8 2009/04/20 16:13:11 fros4943 Exp $
  */
 
 package se.sics.cooja;
@@ -58,6 +58,7 @@ public class MoteInterfaceHandler {
   private Button myButton;
   private Clock myClock;
   private IPAddress myIPAddress;
+  private RimeAddress myRimeAddress;
   private LED myLED;
   private Log myLog;
   private MoteID myMoteID;
@@ -170,6 +171,16 @@ public class MoteInterfaceHandler {
       myIPAddress = getInterfaceOfType(IPAddress.class);
     }
     return myIPAddress;
+  }
+
+  /**
+   * @return Rime address interface
+   */
+  public RimeAddress getRimeAddress() {
+    if (myRimeAddress == null) {
+      myRimeAddress = getInterfaceOfType(RimeAddress.class);
+    }
+    return myRimeAddress;
   }
 
   /**
