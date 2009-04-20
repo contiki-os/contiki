@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: shell-download.c,v 1.1 2009/04/16 14:33:47 fros4943 Exp $
+ * $Id: shell-download.c,v 1.2 2009/04/20 13:18:07 fros4943 Exp $
  */
 
 /**
@@ -80,19 +80,18 @@ static int fd;
 static void
 write_chunk(struct rucb_conn *c, int offset, int flag, char *data, int datalen)
 {
-  if (datalen > 0) {
+  if(datalen > 0) {
     shell_output(&download_command,
         data, datalen, NULL, 0);
     PRINTF("write_chunk %d at %d bytes\n", datalen, offset);
   }
 
-  if (flag == RUCB_FLAG_NEWFILE) {
+  if(flag == RUCB_FLAG_NEWFILE) {
     PRINTF("RUCB_FLAG_NEWFILE\n");
-  }
-  if (flag == RUCB_FLAG_NONE) {
+  } else if(flag == RUCB_FLAG_NONE) {
     PRINTF("RUCB_FLAG_NONE\n");
   }
-  if (flag == RUCB_FLAG_LASTCHUNK) {
+  if(flag == RUCB_FLAG_LASTCHUNK) {
     PRINTF("RUCB_FLAG_LASTCHUNK\n");
     downloading = 0;
     process_poll(&shell_download_process);
@@ -103,7 +102,7 @@ static int
 read_chunk(struct rucb_conn *c, int offset, char *to, int maxsize)
 {
   int ret;
-  if (fd < 0) {
+  if(fd < 0) {
     /* No file, send EOF */
     leds_off(LEDS_GREEN);
     return 0;
@@ -113,7 +112,7 @@ read_chunk(struct rucb_conn *c, int offset, char *to, int maxsize)
   ret = cfs_read(fd, to, maxsize);
   PRINTF("read_chunk %d bytes at %d\n", ret, offset);
 
-  if (ret < maxsize) {
+  if(ret < maxsize) {
     PRINTF("read_chunk DONE\n");
     cfs_close(fd);
     fd = -1;
@@ -122,12 +121,12 @@ read_chunk(struct rucb_conn *c, int offset, char *to, int maxsize)
   return ret;
 }
 /*---------------------------------------------------------------------------*/
-static int
+static void
 timedout(struct rucb_conn *c)
 {
 }
 /*---------------------------------------------------------------------------*/
-const static struct rucb_callbacks rucb_call = {write_chunk, read_chunk, timedout};
+static const struct rucb_callbacks rucb_call = { write_chunk, read_chunk, timedout };
 /*---------------------------------------------------------------------------*/
 PROCESS_THREAD(shell_download_process, ev, data)
 {
@@ -149,12 +148,12 @@ PROCESS_THREAD(shell_download_process, ev, data)
   addr.u8[1] = shell_strtolong(nextptr, &nextptr);
 
   /* Get the length of the file, excluding a terminating NUL character. */
-  while ((uint8_t)nextptr[0] == ' ') {
+  while(nextptr[0] == ' ') {
     nextptr++;
   }
-  len = strlen((char *)nextptr);
+  len = strlen(nextptr);
 
-  snprintf(buf, sizeof(buf), "%d.%d", addr.u8[0], addr.u8[1]);
+  /*snprintf(buf, sizeof(buf), "%d.%d", addr.u8[0], addr.u8[1]);*/
   /*shell_output_str(&download_command, "Downloading from: ", buf);*/
 
   if(len > PACKETBUF_SIZE - 32) {
@@ -168,10 +167,10 @@ PROCESS_THREAD(shell_download_process, ev, data)
   /* Send file request */
   downloading = 1;
   rucb_open(&rucb, RUCB_CHANNEL, &rucb_call);
-  nextptr--;
-  req_seq_counter++;
-  nextptr[0] = req_seq_counter;
-  packetbuf_copyfrom(nextptr, len+2);
+  packetbuf_clear();
+  *((uint8_t *)packetbuf_dataptr()) = ++req_seq_counter;
+  memcpy(((char *)packetbuf_dataptr()) + 1, nextptr, len + 1);
+  packetbuf_set_datalen(len + 2);
   PRINTF("requesting '%s'\n", nextptr);
   runicast_send(&runicast, &addr, MAX_RETRANSMISSIONS);
 
@@ -192,29 +191,29 @@ request_recv(struct runicast_conn *c, rimeaddr_t *from, uint8_t seqno)
   const char *filename;
   uint8_t seq;
 
-  if (packetbuf_datalen() < 2) {
+  if(packetbuf_datalen() < 2) {
     /* Bad filename, ignore request */
     printf("download: bad filename request (null)\n");
     return;
   }
 
-  seq = ((char*)packetbuf_dataptr())[0];
-  if (seq == req_last_seq) {
+  seq = ((uint8_t *)packetbuf_dataptr())[0];
+  if(seq == req_last_seq) {
     PRINTF("download: ignoring duplicate request\n");
     return;
   }
   req_last_seq = seq;
-  filename = ((char*)packetbuf_dataptr())+1;
+  filename = ((char *)packetbuf_dataptr()) + 1;
 
   PRINTF("file requested: '%s'\n", filename);
 
   /* Initiate file transfer */
   leds_on(LEDS_GREEN);
-  if (fd >= 0) {
+  if(fd >= 0) {
     cfs_close(fd);
   }
   fd = cfs_open(filename, CFS_READ);
-  if (fd < 0) {
+  if(fd < 0) {
     printf("download: bad filename request (no read access): %s\n", filename);
   } else {
     PRINTF("download: sending file: %s\n", filename);
@@ -234,8 +233,7 @@ request_sent(struct runicast_conn *c, rimeaddr_t *to, uint8_t retransmissions)
 static void
 request_timedout(struct runicast_conn *c, rimeaddr_t *to, uint8_t retransmissions)
 {
-  shell_output_str(&download_command,
-      "download: request timed out", "");
+  shell_output_str(&download_command, "download: request timed out", "");
   downloading = 0;
   process_poll(&shell_download_process);
 }
