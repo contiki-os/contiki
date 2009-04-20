@@ -63,6 +63,7 @@ all:		src/start.o $(ALL)
 tests/nvm-read.obj: src/maca.o src/nvm.o
 tests/rftest-rx.obj: src/maca.o src/nvm.o
 tests/rftest-tx.obj: src/maca.o src/nvm.o
+tests/tmr-ints.c: src/interrupt-utils.o src/sys-interrupt.o
 
 %.srec:		%.obj
 		$(OBJCOPY) ${OBJCFLAGS} -O srec $< $@
