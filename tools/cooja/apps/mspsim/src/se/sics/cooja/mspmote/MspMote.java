@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: MspMote.java,v 1.24 2009/03/13 16:24:29 fros4943 Exp $
+ * $Id: MspMote.java,v 1.25 2009/04/20 17:16:20 nifi Exp $
  */
 
 package se.sics.cooja.mspmote;
@@ -47,6 +47,7 @@ import se.sics.cooja.MoteInterfaceHandler;
 import se.sics.cooja.MoteMemory;
 import se.sics.cooja.MoteType;
 import se.sics.cooja.Simulation;
+import se.sics.cooja.interfaces.IPAddress;
 import se.sics.cooja.mspmote.interfaces.TR1001Radio;
 import se.sics.mspsim.cli.CommandHandler;
 import se.sics.mspsim.cli.LineListener;
@@ -394,11 +395,15 @@ public abstract class MspMote implements Mote {
         myMoteInterfaceHandler = createMoteInterfaceHandler();
 
       } else if (name.equals("interface_config")) {
+        String intfClass = element.getText().trim();
+        if (intfClass.equals("se.sics.cooja.mspmote.interfaces.MspIPAddress")) {
+          intfClass = IPAddress.class.getName();
+        }
         Class<? extends MoteInterface> moteInterfaceClass = simulation.getGUI().tryLoadClass(
-              this, MoteInterface.class, element.getText().trim());
+              this, MoteInterface.class, intfClass);
 
         if (moteInterfaceClass == null) {
-          logger.fatal("Could not load mote interface class: " + element.getText().trim());
+          logger.fatal("Could not load mote interface class: " + intfClass);
           return false;
         }
 
