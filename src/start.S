@@ -197,7 +197,7 @@ not_used:
 
 	.align	5
 irq:
-
+	b isr
 	.align	5
 fiq:
 

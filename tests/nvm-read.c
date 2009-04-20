@@ -29,6 +29,10 @@ void put_hex32(uint32_t x);
 const uint8_t hex[16]={'0','1','2','3','4','5','6','7',
 		 '8','9','a','b','c','d','e','f'};
 
+#include "isr.h"
+
+no_isrs();
+
 #define NBYTES 1024
 __attribute__ ((section ("startup")))
 void main(void) {

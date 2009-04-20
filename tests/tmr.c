@@ -48,6 +48,9 @@
 
 #include "embedded_types.h"
 
+#include "isr.h"
+no_isrs();
+
 __attribute__ ((section ("startup")))
 void main(void) {
 

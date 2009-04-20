@@ -42,7 +42,7 @@ include $(TOPDIR)/config.mk
 #########################################################################
 # blink objects....order is important (i.e. start must be first)
 
-AOBJS = 
+AOBJS =
 COBJS = $(patsubst %.c,%.o,$(wildcard src/*.c))
 TESTS = $(wildcard tests/*.c)
 TARGETS = $(patsubst %.c,%.o,$(TESTS))
@@ -58,12 +58,23 @@ ALL = $(TESTS:.c=.srec) $(TESTS:.c=.bin) $(TESTS:.c=.dis)
 
 .PRECIOUS: 	$(COBJS) $(TARGETS) $(TESTS:.c=.obj)
 
-all:		src/start.o $(ALL)
+all:		src/start.o src/isr.o $(ALL)
 
 tests/nvm-read.obj: src/maca.o src/nvm.o
 tests/rftest-rx.obj: src/maca.o src/nvm.o
 tests/rftest-tx.obj: src/maca.o src/nvm.o
-tests/tmr-ints.c: src/interrupt-utils.o src/sys-interrupt.o
+tests/tmr-ints.obj: src/interrupt-utils.o src/sys-interrupt.o src/isr.o
+
+NOTHUMB_CPPFLAGS := $(DBGFLAGS) $(OPTFLAGS) $(RELFLAGS)         \
+        -D__KERNEL__ -DTEXT_BASE=$(TEXT_BASE)           \
+        -I$(TOPDIR)/include                             \
+        -fno-builtin -ffreestanding -nostdinc -isystem  \
+        $(gccincdir) -pipe 
+NOTHUMB_CPPFLAGS_EXTRA = -march=armv4t -mlong-calls -mthumb-interwork -mtune=arm7tdmi-s -DCONFIG_ARM -D__ARM__
+
+
+src/isr.o: src/isr.c
+		$(CC) $(NOTHUMB_CPPFLAGS) $(NOTHUMB_CPPFLAGS_EXTRA) -c -o $@ $<
 
 %.srec:		%.obj
 		$(OBJCOPY) ${OBJCFLAGS} -O srec $< $@
@@ -77,7 +88,7 @@ tests/tmr-ints.c: src/interrupt-utils.o src/sys-interrupt.o
 %.dis:		%.obj
 		$(OBJDUMP) -SD $< > $@
 
-%.obj:		$(LDSCRIPT) %.o
+%.obj:		$(LDSCRIPT) %.o src/interrupt-utils.o
 		$(LD) $(LDFLAGS) $(AOBJS) \
 			--start-group $(PLATFORM_LIBS) --end-group \
 			-Map $*.map $^ -o $@

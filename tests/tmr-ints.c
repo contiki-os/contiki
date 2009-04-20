@@ -47,12 +47,40 @@
 #define reg16(x) (*(volatile uint16_t *)(x))
 
 #include "embedded_types.h"
+#include "sys-interrupt.h"
+
+#include "isr.h"
+
+volatile uint8_t led;
+
+#define LED_VAL 0x00000300
+#define led_init() do { reg32(GPIO_PAD_DIR0) = LED_VAL; } while(0);
+#define led_on() do  { led = 1; reg32(GPIO_DATA0) = LED_VAL; } while(0);
+#define led_off() do { led = 0; reg32(GPIO_DATA0) = 0x00000000; } while(0);
+
+void toggle_led(void) {
+	if(0 == led) {
+		led_on();
+		led = 1;
+
+	} else {
+		led_off();
+	}
+}
+
+void tmr_isr(void) {
+
+	toggle_led();
+	reg16(TMR0_SCTRL) = 0;
+	reg16(TMR0_CSCTRL) = 0x0040; /* clear compare flag */
+	
+}
 
 __attribute__ ((section ("startup")))
 void main(void) {
 
 	/* pin direction */
-	reg32(GPIO_PAD_DIR0) = 0x00000400;
+	led_init();
 
 	/* timer setup */
 	/* CTRL */
@@ -66,7 +94,8 @@ void main(void) {
 #define OUT_MODE   0      /* OFLAG is asserted while counter is active */
 
 	reg16(TMR_ENBL) = 0;                     /* tmrs reset to enabled */
-	reg16(TMR0_SCTRL) = 0;
+	reg16(TMR0_SCTRL) = 0;  
+	reg16(TMR0_CSCTRL) =0x0040;  
 	reg16(TMR0_LOAD) = 0;                    /* reload to zero */
 	reg16(TMR0_COMP_UP) = 18750;             /* trigger a reload at the end */
 	reg16(TMR0_CMPLD1) = 18750;              /* compare 1 triggered reload level, 10HZ maybe? */
@@ -74,19 +103,12 @@ void main(void) {
 	reg16(TMR0_CTRL) = (COUNT_MODE<<13) | (PRIME_SRC<<9) | (SEC_SRC<<7) | (ONCE<<6) | (LEN<<5) | (DIR<<4) | (CO_INIT<<3) | (OUT_MODE);
 	reg16(TMR_ENBL) = 0xf;                   /* enable all the timers --- why not? */
 
+	led_on();
+
+	enable_tmr_irq();
+	enableIRQ();
+
 	while(1) {
-
-		/* blink on */
-		reg32(GPIO_DATA0) = 0x00000400;
-		
-		while((reg16(TMR0_SCTRL)>>15) == 0) { continue; }
-		reg16(TMR0_SCTRL) = 0; /*clear bit 15, and all the others --- should be ok, but clearly not "the right thing to do" */
-
-		/* blink off */
-		reg32(GPIO_DATA0) = 0x00000000;
-
-		while((reg16(TMR0_SCTRL)>>15) == 0) { continue; }
-		reg16(TMR0_SCTRL) = 0; /*clear bit 15, and all the others --- should be ok, but clearly not "the right thing to do" */
-
+		/* sit here and let the interrupts do the work */
 	};
 }
