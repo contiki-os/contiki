@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: UDGMVisualizerSkin.java,v 1.5 2009/04/16 14:26:35 fros4943 Exp $
+ * $Id: UDGMVisualizerSkin.java,v 1.6 2009/04/20 18:09:54 fros4943 Exp $
  */
 
 package se.sics.cooja.plugins.skins;
@@ -78,6 +78,8 @@ import se.sics.cooja.radiomediums.UDGM;
 public class UDGMVisualizerSkin implements VisualizerSkin {
   private static Logger logger = Logger.getLogger(UDGMVisualizerSkin.class);
 
+  private static final boolean DRAW_ARROWS = true;
+  
   private Simulation simulation = null;
   private Visualizer visualizer = null;
   private UDGM radioMedium = null;
@@ -391,12 +393,22 @@ public class UDGMVisualizerSkin implements VisualizerSkin {
           Position destPos = destRadio.getPosition();
           Point destPoint = visualizer.transformPositionToPixel(destPos);
           g.drawLine(sourcePoint.x, sourcePoint.y, destPoint.x, destPoint.y);
+
+          /* Draw arrows */
+          if (DRAW_ARROWS) {
+            Point centerPoint = new Point(
+                destPoint.x/2 + sourcePoint.x/2,
+                destPoint.y/2 + sourcePoint.y/2
+            );
+            int startAngle = (int) (-180 * Math.atan2(destPoint.y - sourcePoint.y, destPoint.x - sourcePoint.x)/Math.PI - 90);
+            g.drawArc(centerPoint.x-5, centerPoint.y-5, 10, 10, startAngle, 180);
+          }
         }
       }
     }
 
     /* Paint past connections in gray */
-    conns = radioMedium.getLastTickConnections();
+    /*conns = radioMedium.getLastTickConnections();
     if (conns != null) {
       g.setColor(Color.GRAY);
       for (RadioConnection conn : conns) {
@@ -407,7 +419,7 @@ public class UDGMVisualizerSkin implements VisualizerSkin {
           g.drawLine(sourcePoint.x, sourcePoint.y, destPoint.x, destPoint.y);
         }
       }
-    }
+    }*/
   }
 
   public static class RangeMenuAction implements SimulationMenuAction {
