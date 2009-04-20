@@ -74,7 +74,7 @@ tests/rftest-tx.obj: src/maca.o src/nvm.o
 		$(OBJCOPY) ${OBJCFLAGS} -O binary $< $@
 
 %.dis:		%.obj
-		$(OBJDUMP) -D $< > $@
+		$(OBJDUMP) -SD $< > $@
 
 %.obj:		$(LDSCRIPT) %.o
 		$(LD) $(LDFLAGS) $(AOBJS) \
