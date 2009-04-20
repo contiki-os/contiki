@@ -26,11 +26,11 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: RadioLogger.java,v 1.16 2009/04/01 23:40:00 fros4943 Exp $
+ * $Id: RadioLogger.java,v 1.17 2009/04/20 17:24:03 nifi Exp $
  */
 
 package se.sics.cooja.plugins;
-
+import java.awt.Font;
 import java.awt.event.MouseEvent;
 import java.util.*;
 import javax.swing.*;
@@ -41,7 +41,9 @@ import org.apache.log4j.Logger;
 import org.jdom.Element;
 
 import se.sics.cooja.*;
+import se.sics.cooja.interfaces.MoteID;
 import se.sics.cooja.interfaces.Radio;
+import se.sics.cooja.util.StringUtils;
 
 /**
  * Radio logger listens to the simulation radio medium and lists all transmitted
@@ -67,7 +69,6 @@ public class RadioLogger extends VisPlugin {
   };
 
   private Simulation simulation;
-  //private ArrayList<Object[]> rowData = new ArrayList<Object[]>();
   private ArrayList<RadioConnectionLog> connections = new ArrayList<RadioConnectionLog>();
   private JTable dataTable = null;
   private RadioMedium radioMedium;
@@ -96,11 +97,11 @@ public class RadioLogger extends VisPlugin {
         if (col == COLUMN_TIME) {
           return conn.startTime;
         } else if (col == COLUMN_FROM) {
-          return conn.connection.getSource().getMote();
+          return getMoteID(conn.connection.getSource().getMote());
         } else if (col == COLUMN_TO) {
           Radio[] dests = conn.connection.getDestinations();
           if (dests.length == 1) {
-            return dests[0].getMote();
+            return getMoteID(dests[0].getMote());
           }
           return "[" + dests.length + " motes]";
         } else if (col == COLUMN_DATA) {
@@ -125,7 +126,7 @@ public class RadioLogger extends VisPlugin {
           for (Radio dest: dests) {
             gui.signalMoteHighlight(dest.getMote());
           }
-          return true;
+          return false;
         }
         return false;
       }
@@ -135,31 +136,7 @@ public class RadioLogger extends VisPlugin {
       }
     };
 
-    final JComboBox destinationComboBox = new JComboBox();
-
     dataTable = new JTable(model) {
-      public TableCellEditor getCellEditor(int row, int column) {
-        /* Reset destination box */
-        destinationComboBox.removeAllItems();
-        if (row < 0 || row >= connections.size()) {
-          return super.getCellEditor(row, column);
-        }
-
-        RadioConnection conn = connections.get(row).connection;
-        if (conn == null) {
-          return super.getCellEditor(row, column);
-        }
-
-        for (Radio destRadio: conn.getDestinations()) {
-          if (destRadio.getMote() != null) {
-            destinationComboBox.addItem(destRadio.getMote());
-          } else {
-            destinationComboBox.addItem("[standalone radio]");
-          }
-        }
-
-        return super.getCellEditor(row, column);
-      }
 
       public String getToolTipText(MouseEvent e) {
         java.awt.Point p = e.getPoint();
@@ -175,18 +152,19 @@ public class RadioLogger extends VisPlugin {
             "<br>" +
             "End time: " + conn.endTime +
             "<br><br>" +
-            "Duration: " + (conn.endTime - conn.startTime)+
+            "Duration: " + (conn.endTime - conn.startTime) +
             "</html>";
         } else if (realColumnIndex == COLUMN_FROM) {
           return conn.connection.getSource().getMote().toString();
         } else if (realColumnIndex == COLUMN_TO) {
-          String tip = "<html>";
+          StringBuilder tip = new StringBuilder();
+          tip.append("<html>");
           Radio[] dests = conn.connection.getDestinations();
           for (Radio radio: dests) {
-            tip += radio.getMote() + "<br>";
+            tip.append(radio.getMote()).append("<br>");
           }
-          tip += "</html>";
-          return tip;
+          tip.append("</html>");
+          return tip.toString();
         } else if (realColumnIndex == COLUMN_DATA) {
           if (conn.tooltip == null) {
             prepareTooltipString(conn);
@@ -199,16 +177,15 @@ public class RadioLogger extends VisPlugin {
 
     // Set data column width greedy
     dataTable.setAutoResizeMode(JTable.AUTO_RESIZE_LAST_COLUMN);
-    dataTable.getColumnModel().getColumn(COLUMN_TIME).setPreferredWidth(150);
-    dataTable.getColumnModel().getColumn(COLUMN_TIME).setResizable(false);
-    dataTable.getColumnModel().getColumn(COLUMN_FROM).setPreferredWidth(250);
-    dataTable.getColumnModel().getColumn(COLUMN_TO).setPreferredWidth(250);
+    dataTable.getColumnModel().getColumn(COLUMN_TIME).setPreferredWidth(130);
+//    dataTable.getColumnModel().getColumn(COLUMN_TIME).setResizable(false);
+    dataTable.getColumnModel().getColumn(COLUMN_FROM).setPreferredWidth(90);
+    dataTable.getColumnModel().getColumn(COLUMN_TO).setPreferredWidth(150);
     dataTable.getColumnModel().getColumn(COLUMN_DATA).setPreferredWidth(1500);
 
     dataTable.getSelectionModel().setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 
-    TableColumn destColumn = dataTable.getColumnModel().getColumn(COLUMN_TO);
-    destColumn.setCellEditor(new DefaultCellEditor(destinationComboBox));
+    dataTable.setFont(new Font("Monospaced", Font.PLAIN, 12));
 
     simulation.getRadioMedium().addRadioMediumObserver(radioMediumObserver = new Observer() {
       public void update(Observable obs, Object obj) {
@@ -240,6 +217,14 @@ public class RadioLogger extends VisPlugin {
     }
   }
 
+  private String getMoteID(Mote mote) {
+    MoteID moteID = mote.getInterfaces().getMoteID();
+    if (moteID != null) {
+      return Integer.toString(moteID.getMoteID());
+    }
+    return mote.toString();
+  }
+
   private void prepareDataString(RadioConnectionLog conn) {
     byte[] data;
     if (conn.packet instanceof ConvertedRadioPacket) {
@@ -251,13 +236,7 @@ public class RadioLogger extends VisPlugin {
       conn.data = "[unknown data]";
       return;
     }
-
-    conn.data = "";
-    for (byte b: data) {
-      String hexB = "0" + Integer.toHexString(b);
-      hexB = hexB.substring(hexB.length() - 2);
-      conn.data += "0x" + hexB + " ";
-    }
+    conn.data = data.length + ": 0x" + StringUtils.toHex(data, 4);
   }
 
   private void prepareTooltipString(RadioConnectionLog conn) {
@@ -274,22 +253,11 @@ public class RadioLogger extends VisPlugin {
       data = packet.getPacketData();
     }
 
-    conn.tooltip = "<html><b>Packet data</b><br>";
-    int byteCounter = 0;
-    for (byte b: data) {
-      String hexB = "0" + Integer.toHexString(b);
-      hexB = hexB.substring(hexB.length() - 2);
-      conn.tooltip += "0x" + hexB + " ";
-      if (byteCounter++ > 2) {
-        conn.tooltip += "<br>";
-        byteCounter = 0;
-      }
-    }
-    conn.tooltip += "<br><br>";
-    for (byte b: data) {
-      conn.tooltip += (char) b;
-    }
-    conn.tooltip += "</html>";
+    conn.tooltip = "<html><font face=\"Monospaced\"><b>Packet data (" +
+      data.length +
+      " bytes)</b><br><pre>" +
+      StringUtils.hexDump(data) +
+      "</pre></font></html>";
   }
 
   public void closePlugin() {
@@ -307,7 +275,7 @@ public class RadioLogger extends VisPlugin {
     return true;
   }
 
-  private class RadioConnectionLog {
+  private static class RadioConnectionLog {
     long startTime;
     long endTime;
     RadioConnection connection;
