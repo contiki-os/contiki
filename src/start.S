@@ -113,13 +113,13 @@ _begin:
  	mov     sp,r1
 
 // 	msr     cpsr_c,#(USR_MODE | I_BIT | F_BIT)
-// 	add     r1,r1,#usr_stack_size
-// 	mov     sp,r1
-
 
 	bl _rom_data_init+.-base
-	msr     cpsr_c,#(SVC_MODE) // turn on interrupts --- for debug only	
-//	swi
+	msr     cpsr_c,#(SVC_MODE) // turn on interrupts --- for debug only
+//	msr     cpsr_c,#(USR_MODE) // turn on interrupts --- for debug only		
+// 	add     r1,r1,#usr_stack_size
+// 	mov     sp,r1
+	
 	b main
 	
 _undefined_instruction:	.word undefined_instruction

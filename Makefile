@@ -70,7 +70,7 @@ NOTHUMB_CPPFLAGS := $(DBGFLAGS) $(OPTFLAGS) $(RELFLAGS)         \
         -I$(TOPDIR)/include                             \
         -fno-builtin -ffreestanding -nostdinc -isystem  \
         $(gccincdir) -pipe 
-NOTHUMB_CPPFLAGS_EXTRA = -march=armv4t -mlong-calls -mtune=arm7tdmi-s -DCONFIG_ARM -D__ARM__ #-mthumb-interwork 
+NOTHUMB_CPPFLAGS_EXTRA = -march=armv4t -mlong-calls -mtune=arm7tdmi-s -DCONFIG_ARM -D__ARM__ -mthumb-interwork 
 
 
 src/isr.o: src/isr.c
