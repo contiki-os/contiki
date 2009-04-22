@@ -47,7 +47,7 @@
 #define reg16(x) (*(volatile uint16_t *)(x))
 
 #include "embedded_types.h"
-#include "sys-interrupt.h"
+//#include "sys-interrupt.h"
 
 #include "isr.h"
 
@@ -76,9 +76,22 @@ void tmr_isr(void) {
 	
 }
 
+
+/* void enIRQ(void) { */
+/* 	asm volatile ( */
+/* 		".code 32;" */
+/* 		"msr     cpsr_c,#0x10;"  */
+/* 		".code 16;" */
+/* 		); */
+/* } */
+
+
 __attribute__ ((section ("startup")))
 void main(void) {
 
+//	*(volatile uint32_t *)0x80020010 = 0x20;
+//	*(volatile uint32_t *)0x80020034 = 0xffff; //force an int.
+ 
 	/* pin direction */
 	led_init();
 
@@ -94,8 +107,8 @@ void main(void) {
 #define OUT_MODE   0      /* OFLAG is asserted while counter is active */
 
 	reg16(TMR_ENBL) = 0;                     /* tmrs reset to enabled */
-	reg16(TMR0_SCTRL) = 0;  
-	reg16(TMR0_CSCTRL) =0x0040;  
+	reg16(TMR0_SCTRL) = 0;
+	reg16(TMR0_CSCTRL) =0x0040;
 	reg16(TMR0_LOAD) = 0;                    /* reload to zero */
 	reg16(TMR0_COMP_UP) = 18750;             /* trigger a reload at the end */
 	reg16(TMR0_CMPLD1) = 18750;              /* compare 1 triggered reload level, 10HZ maybe? */
@@ -106,7 +119,8 @@ void main(void) {
 	led_on();
 
 	enable_tmr_irq();
-	enableIRQ();
+
+//	enIRQ();
 
 	while(1) {
 		/* sit here and let the interrupts do the work */
