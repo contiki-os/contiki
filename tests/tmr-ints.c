@@ -122,6 +122,10 @@ void main(void) {
 
 //	enIRQ();
 
+	/* go into user mode to handle IRQs */
+	/* disabling interrupts is now difficult */
+ 	asm("msr     cpsr_c,#(0x10)");
+
 	while(1) {
 		/* sit here and let the interrupts do the work */
 	};

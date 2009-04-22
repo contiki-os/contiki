@@ -119,7 +119,6 @@ _begin:
 
 	bl _rom_data_init+.-base
 	msr     cpsr_c,#(SVC_MODE) // turn on interrupts --- for debug only	
- 	msr     cpsr_c,#(USR_MODE) // turn on interrupts --- for debug only
 //	swi
 	b main
 	
