@@ -55,7 +55,7 @@ __attribute__ ((section ("startup")))
 void main(void) {
 
 	/* pin direction */
-	reg32(GPIO_PAD_DIR0) = 0x00000400;
+	reg32(GPIO_PAD_DIR0) = 0x00000500;
 
 	/* timer setup */
 	/* CTRL */
@@ -80,7 +80,7 @@ void main(void) {
 	while(1) {
 
 		/* blink on */
-		reg32(GPIO_DATA0) = 0x00000400;
+		reg32(GPIO_DATA0) = 0x00000500;
 		
 		while((reg16(TMR0_SCTRL)>>15) == 0) { continue; }
 		reg16(TMR0_SCTRL) = 0; /*clear bit 15, and all the others --- should be ok, but clearly not "the right thing to do" */
