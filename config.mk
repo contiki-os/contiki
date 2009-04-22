@@ -25,8 +25,8 @@
 
 # clean the slate ...
 PLATFORM_LDFLAGS =
-PLATFORM_RELFLAGS = -fno-strict-aliasing  -fno-common -ffixed-r8 -msoft-float
-PLATFORM_CPPFLAGS = -march=armv4t -mcallee-super-interworking -mthumb -mtune=arm7tdmi-s -mthumb-interwork -DCONFIG_ARM -D__ARM__
+PLATFORM_RELFLAGS = -fno-strict-aliasing  -fno-common -ffixed-r8 -ffunction-sections -msoft-float
+PLATFORM_CPPFLAGS = -march=armv4t -mlong-calls -mtune=arm7tdmi-s -DCONFIG_ARM -D__ARM__ -mcallee-super-interworking -mthumb -mthumb-interwork
 TEXT_BASE = 0x00400000
 
 #########################################################################

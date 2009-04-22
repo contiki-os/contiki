@@ -33,6 +33,7 @@ SECTIONS
 	.text      :
 	{
 	  src/start.o	(.text)
+	  src/isr.o	(.text)
 	  *(.text)
 	}
 

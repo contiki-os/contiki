@@ -112,6 +112,9 @@ void fill_data(void) {
 	}		
 }
 
+#include "isr.h"
+no_isrs();
+
 __attribute__ ((section ("startup")))
 void main(void) {
 	uint8_t c;

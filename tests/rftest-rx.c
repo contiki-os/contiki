@@ -77,6 +77,9 @@ void toggle_led(void) {
 	}
 }
 
+#include "isr.h"
+no_isrs();
+
 __attribute__ ((section ("startup")))
 void main(void) {
 	uint8_t c;
