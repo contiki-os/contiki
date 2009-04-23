@@ -1,4 +1,4 @@
-# $Id: Makefile.cooja,v 1.33 2009/04/01 13:39:54 fros4943 Exp $
+# $Id: Makefile.cooja,v 1.34 2009/04/23 09:15:51 fros4943 Exp $
 
 ## The COOJA Simulator Contiki platform Makefile
 ##
@@ -51,7 +51,7 @@ CONTIKI_APP_OBJ = $(CONTIKI_APP).co
 COOJA = $(CONTIKI)/platform/$(TARGET)
 CONTIKI_TARGET_DIRS = . dev lib sys cfs net
 
-COOJA_BASE	= simEnvChange.c irq.c cooja_mt.c cooja_mtarch.c rtimer-arch.c
+COOJA_BASE	= simEnvChange.c irq.c cooja_mt.c cooja_mtarch.c rtimer-arch.c slip.c
 
 COOJA_INTFS	= beep.c button-sensor.c ip.c leds-arch.c moteid.c \
 		    pir-sensor.c rs232.c vib-sensor.c \
