@@ -1,8 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <simconf>
-  <project>../apps/mrm</project>
-  <project>../apps/mspsim</project>
-  <project>../apps/native_gateway</project>
   <simulation>
     <title>My simulation</title>
     <delaytime>0</delaytime>
@@ -24,7 +21,7 @@
       <commands>make sky-telnet-server.sky TARGET=sky</commands>
       <firmware>../../../examples/sky-ip/sky-telnet-server.sky</firmware>
       <moteinterface>se.sics.cooja.interfaces.Position</moteinterface>
-      <moteinterface>se.sics.cooja.mspmote.interfaces.MspIPAddress</moteinterface>
+      <moteinterface>se.sics.cooja.interfaces.IPAddress</moteinterface>
       <moteinterface>se.sics.cooja.interfaces.Mote2MoteRelations</moteinterface>
       <moteinterface>se.sics.cooja.mspmote.interfaces.MspClock</moteinterface>
       <moteinterface>se.sics.cooja.mspmote.interfaces.MspMoteID</moteinterface>
@@ -50,22 +47,9 @@
     </mote>
   </simulation>
   <plugin>
-    se.sics.cooja.plugins.LogListener
-    <plugin_config>
-      <filter />
-      <history>256</history>
-    </plugin_config>
-    <width>1024</width>
-    <z>1</z>
-    <height>209</height>
-    <location_x>0</location_x>
-    <location_y>446</location_y>
-    <minimized>false</minimized>
-  </plugin>
-  <plugin>
     se.sics.cooja.plugins.SimControl
     <width>248</width>
-    <z>2</z>
+    <z>4</z>
     <height>200</height>
     <location_x>2</location_x>
     <location_y>2</location_y>
@@ -75,14 +59,42 @@
     se.sics.cooja.plugins.NativeIPGateway
     <mote_arg>0</mote_arg>
     <plugin_config>
-      <network_interface>\Device\NPF_{53CBA059-40AA-4822-BB53-7A5B9AFE77D6}</network_interface>
+      <network_interface>\Device\NPF_{6AE59250-8082-40D4-B2F4-89EC57DD3321}</network_interface>
       <register_routes>true</register_routes>
     </plugin_config>
     <width>388</width>
-    <z>0</z>
+    <z>2</z>
     <height>331</height>
-    <location_x>265</location_x>
-    <location_y>16</location_y>
+    <location_x>627</location_x>
+    <location_y>107</location_y>
+    <minimized>false</minimized>
+  </plugin>
+  <plugin>
+    se.sics.cooja.plugins.MoteInterfaceViewer
+    <mote_arg>0</mote_arg>
+    <plugin_config>
+      <interface>Serial port</interface>
+      <scrollpos>0,0</scrollpos>
+    </plugin_config>
+    <width>385</width>
+    <z>1</z>
+    <height>234</height>
+    <location_x>629</location_x>
+    <location_y>420</location_y>
+    <minimized>false</minimized>
+  </plugin>
+  <plugin>
+    se.sics.cooja.plugins.Visualizer
+    <plugin_config>
+      <skin>LEDs</skin>
+      <skin>Addresses: IP or Rime</skin>
+      <skin>Radio environment (UDGM)</skin>
+    </plugin_config>
+    <width>300</width>
+    <z>3</z>
+    <height>107</height>
+    <location_x>714</location_x>
+    <location_y>1</location_y>
     <minimized>false</minimized>
   </plugin>
 </simconf>

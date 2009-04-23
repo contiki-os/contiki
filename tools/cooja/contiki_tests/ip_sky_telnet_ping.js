@@ -1,4 +1,4 @@
-TIMEOUT(120000);
+TIMEOUT(30000);
 
 /* conf */
 nrReplies = 0;
@@ -13,6 +13,9 @@ replyMsg = "from " + ipAddress;
 
 /* mote startup */
 WAIT_UNTIL(msg.contains('Sky telnet process'));
+
+/* override simulation delay, test times out is too fast otherwise */
+mote.getSimulation().setDelayTime(1);
 
 /* start ping process */
 var runnableObj = new Object();
