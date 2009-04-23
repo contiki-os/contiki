@@ -26,16 +26,18 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ScriptRunner.java,v 1.16 2009/03/22 14:05:19 fros4943 Exp $
+ * $Id: ScriptRunner.java,v 1.17 2009/04/23 08:54:10 fros4943 Exp $
  */
 
 package se.sics.cooja.plugins;
 
 import java.awt.BorderLayout;
+import java.awt.Dimension;
 import java.awt.Insets;
 import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.KeyEvent;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
@@ -49,6 +51,7 @@ import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.io.StringReader;
 import java.util.*;
+
 import javax.script.ScriptException;
 import javax.swing.*;
 import javax.swing.event.DocumentEvent;
@@ -94,6 +97,9 @@ public class ScriptRunner implements Plugin {
     "\n" +
     "log.log(\"waiting for hello world output from mote 1\\n\");\n" +
     "WAIT_UNTIL(id == 1 && msg.equals(\"Hello, world\"));\n" +
+    "\n" +
+    "GENERATE_MSG(15000, \"continue\");\n" +
+    "WAIT_UNTIL(msg.equals(\"continue\"));\n" +
     "\n" +
     "log.log(\"ok, reporting success now\\n\");\n" +
     "log.testOK(); /* Report test success and quit */\n" +
@@ -223,9 +229,8 @@ public class ScriptRunner implements Plugin {
       }
     });
 
-    JButton importButton = new JButton("Import Contiki test");
-    importButton.addActionListener(new ActionListener() {
-      public void actionPerformed(ActionEvent ev) {
+    Action importAction = new AbstractAction() {
+      public void actionPerformed(ActionEvent e) {
         Runnable doImport = new Runnable() {
           public void run() {
             setScriptActive(false);
@@ -234,14 +239,23 @@ public class ScriptRunner implements Plugin {
         };
         new Thread(doImport).start();
       }
-    });
+    };
+    JButton importButton = new JButton(importAction);
+    importButton.setText("Import Contiki test Ctrl+I");
+    InputMap inputMap = importButton.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW);
+    inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_I, KeyEvent.CTRL_DOWN_MASK, false), "import");
+    importButton.getActionMap().put("import", importAction);
 
-    JButton exportButton = new JButton("Export as Contiki test");
-    exportButton.addActionListener(new ActionListener() {
-      public void actionPerformed(ActionEvent ev) {
+    Action exportAction = new AbstractAction() {
+      public void actionPerformed(ActionEvent e) {
         exportAsContikiTest();
       }
-    });
+    };
+    JButton exportButton = new JButton(exportAction);
+    exportButton.setText("Export as Contiki test Ctrl+O");
+    inputMap = exportButton.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW);
+    inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_O, KeyEvent.CTRL_DOWN_MASK, false), "export");
+    exportButton.getActionMap().put("export", exportAction);
 
 
     JPanel scriptArea = new JPanel(new BorderLayout());
@@ -269,6 +283,13 @@ public class ScriptRunner implements Plugin {
     pluginGUI.getContentPane().add(BorderLayout.SOUTH, southPanel);
 
     pluginGUI.pack();
+    Dimension maxSize = gui.getDesktopPane().getSize();
+    if (pluginGUI.getWidth() > maxSize.getWidth()) {
+      pluginGUI.setSize((int)maxSize.getWidth(), pluginGUI.getHeight());
+    }
+    if (pluginGUI.getHeight() > maxSize.getHeight()) {
+      pluginGUI.setSize(pluginGUI.getWidth(), (int)maxSize.getHeight());
+    }
   }
 
   private void setScriptActive(boolean active) {
@@ -284,15 +305,20 @@ public class ScriptRunner implements Plugin {
       });
       try {
         engine.activateScript(scriptTextArea.getText());
+
+        toggleButton.setText("Deactivate");
+        logTextArea.setText("");
+        scriptTextArea.setEnabled(false);
+
+        logger.info("Test script activated");
+
       } catch (ScriptException e) {
         e.printStackTrace();
         setScriptActive(false);
+      } catch (RuntimeException e) {
+        e.printStackTrace();
+        setScriptActive(false);
       }
-      toggleButton.setText("Deactivate");
-      logTextArea.setText("");
-      scriptTextArea.setEnabled(false);
-
-      logger.info("Test script activated");
     } else {
       if (engine != null) {
         engine.deactivateScript();
@@ -313,20 +339,47 @@ public class ScriptRunner implements Plugin {
     new Thread(new Runnable() {
       public void run() {
         /* Load config from test directory */
-        final File proposedDir = new File(GUI.getExternalToolsSetting("PATH_CONTIKI") + "/tools/cooja/contiki_tests");
+        File proposedDir = new File(GUI.getExternalToolsSetting("PATH_CONTIKI") + "/tools/cooja/contiki_tests");
         if (!proposedDir.exists()) {
           logger.fatal("Test directory does not exist: " + proposedDir.getPath());
+          return;
+        }
+
+        JFileChooser fc = new JFileChooser();
+        fc.setFileFilter(GUI.SAVED_SIMULATIONS_FILES);
+        fc.setCurrentDirectory(proposedDir);
+
+        /* Pre-select last used test */
+        String name = GUI.getExternalToolsSetting("LAST_TEST_CONFIG", null);
+        if (name != null) {
+          if (new File(proposedDir, name).exists()) {
+            fc.setSelectedFile(new File(proposedDir, name));
+          }
+        }
+
+        int returnVal = fc.showOpenDialog(GUI.getTopParentContainer());
+        if (returnVal != JFileChooser.APPROVE_OPTION) {
+          return;
+        }
+
+        File file = fc.getSelectedFile();
+        if (!file.exists() || !file.canRead()) {
+          logger.fatal("No read access to file");
           return;
         }
 
         scriptTextArea.setText("");
         logTextArea.setText("");
 
-        gui.doLoadConfig(false, true, proposedDir);
+        gui.doLoadConfig(false, true, file);
+
         if (gui.getSimulation() == null) {
           return;
         }
         File cscFile = gui.currentConfigFile;
+        if (cscFile == null) {
+          return;
+        }
         String testName = cscFile.getName().substring(0, cscFile.getName().length()-4);
         File testDir = cscFile.getParentFile();
         File jsFile = new File(testDir, testName + ".js");
@@ -434,6 +487,8 @@ public class ScriptRunner implements Plugin {
     File infoFile = new File(testDir, testName + ".info");
     final File logFile = new File(testDir, testName + ".log");
 
+    GUI.setExternalToolsSetting("LAST_TEST_CONFIG", cscFile.getName());
+
     /* Overwrite existing test */
     if (cscFile.exists() || jsFile.exists() || infoFile.exists()) {
       s1 = "Overwrite";
@@ -539,7 +594,7 @@ public class ScriptRunner implements Plugin {
         "\n" +
         "Run exported test in forked Cooja now?",
         "Run test?", JOptionPane.YES_NO_OPTION,
-        JOptionPane.QUESTION_MESSAGE, null, options, s1);
+        JOptionPane.QUESTION_MESSAGE, null, options, s2);
     if (n != JOptionPane.YES_OPTION) {
       return;
     }
