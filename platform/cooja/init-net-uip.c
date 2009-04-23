@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: init-net-uip.c,v 1.3 2009/04/01 13:50:12 fros4943 Exp $
+ * $Id: init-net-uip.c,v 1.4 2009/04/23 09:15:51 fros4943 Exp $
  */
 
 #include "contiki.h"
@@ -42,6 +42,8 @@
 
 #include "node-id.h"
 #include "dev/cooja-radio.h"
+
+#include "dev/slip.h"
 
 #define UIP_IP_BUF ((struct uip_ip_hdr *)&uip_buf[UIP_LLH_LEN])
 
@@ -60,7 +62,10 @@ receiver(const struct radio_driver *d)
 }
 /*---------------------------------------------------------------------------*/
 /* Only using a single network interface */
-static struct uip_fw_netif default_if = {UIP_FW_NETIF(0,0,0,0, 0,0,0,0, sender)};
+static struct uip_fw_netif wsn_if =
+  {UIP_FW_NETIF(172,16,0,0, 255,255,0,0, sender)};
+static struct uip_fw_netif slip_if =
+  {UIP_FW_NETIF(0,0,0,0, 0,0,0,0, slip_send)};
 /*---------------------------------------------------------------------------*/
 void
 init_net(void)
@@ -83,15 +88,19 @@ init_net(void)
   /* Init uIPv4 */
   process_start(&tcpip_process, NULL);
   process_start(&uip_fw_process, NULL);
+  process_start(&slip_process, NULL);
   uip_init();
+  uip_fw_init();
   uip_ipaddr(&hostaddr, 172, 16, rimeaddr_node_addr.u8[1], rimeaddr_node_addr.u8[0]);
   uip_ipaddr(&netmask, 255,255,0,0);
   uip_sethostaddr(&hostaddr);
   uip_setnetmask(&netmask);
-  uip_fw_default(&default_if);
+  uip_fw_register(&wsn_if);
+  uip_fw_default(&slip_if);
+  rs232_set_input(slip_input_byte);
   printf("uIP started with IP address: %d.%d.%d.%d\n", uip_ipaddr_to_quad(&hostaddr));
 
   /* uIPv4 <-> COOJA's packet radio */
-  tcpip_set_outputfunc(sender);
+  /*tcpip_set_outputfunc(sender);*/
   cooja_radio.set_receive_function(receiver);
 }
