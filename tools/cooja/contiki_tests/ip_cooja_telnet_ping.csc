@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<simconf>
+  <simulation>
+    <title>My simulation</title>
+    <delaytime>1</delaytime>
+    <ticktime>1</ticktime>
+    <randomseed>123456</randomseed>
+    <motedelay>1000</motedelay>
+    <radiomedium>
+      se.sics.cooja.radiomediums.UDGM
+      <transmitting_range>50.0</transmitting_range>
+      <interference_range>100.0</interference_range>
+      <success_ratio_tx>1.0</success_ratio_tx>
+      <success_ratio_rx>1.0</success_ratio_rx>
+    </radiomedium>
+    <motetype>
+      se.sics.cooja.contikimote.ContikiMoteType
+      <identifier>mtype1</identifier>
+      <description>Contiki Mote Type #1</description>
+      <contikiapp>../../../examples/telnet-server/telnet-server.c</contikiapp>
+      <commands>make telnet-server.cooja TARGET=cooja DEFINES=WITH_UIP=1</commands>
+      <moteinterface>se.sics.cooja.interfaces.Position</moteinterface>
+      <moteinterface>se.sics.cooja.interfaces.Battery</moteinterface>
+      <moteinterface>se.sics.cooja.contikimote.interfaces.ContikiVib</moteinterface>
+      <moteinterface>se.sics.cooja.contikimote.interfaces.ContikiMoteID</moteinterface>
+      <moteinterface>se.sics.cooja.contikimote.interfaces.ContikiRS232</moteinterface>
+      <moteinterface>se.sics.cooja.contikimote.interfaces.ContikiBeeper</moteinterface>
+      <moteinterface>se.sics.cooja.interfaces.RimeAddress</moteinterface>
+      <moteinterface>se.sics.cooja.contikimote.interfaces.ContikiIPAddress</moteinterface>
+      <moteinterface>se.sics.cooja.contikimote.interfaces.ContikiRadio</moteinterface>
+      <moteinterface>se.sics.cooja.contikimote.interfaces.ContikiButton</moteinterface>
+      <moteinterface>se.sics.cooja.contikimote.interfaces.ContikiPIR</moteinterface>
+      <moteinterface>se.sics.cooja.contikimote.interfaces.ContikiClock</moteinterface>
+      <moteinterface>se.sics.cooja.contikimote.interfaces.ContikiLED</moteinterface>
+      <moteinterface>se.sics.cooja.contikimote.interfaces.ContikiCFS</moteinterface>
+      <moteinterface>se.sics.cooja.interfaces.Mote2MoteRelations</moteinterface>
+      <symbols>false</symbols>
+      <commstack>uIPv4</commstack>
+    </motetype>
+    <mote>
+      se.sics.cooja.contikimote.ContikiMote
+      <motetype_identifier>mtype1</motetype_identifier>
+      <interface_config>
+        se.sics.cooja.interfaces.Position
+        <x>44.40540999693696</x>
+        <y>81.18952332401878</y>
+        <z>0.0</z>
+      </interface_config>
+      <interface_config>
+        se.sics.cooja.interfaces.Battery
+        <infinite>false</infinite>
+      </interface_config>
+      <interface_config>
+        se.sics.cooja.contikimote.interfaces.ContikiMoteID
+        <id>1</id>
+      </interface_config>
+    </mote>
+  </simulation>
+  <plugin>
+    se.sics.cooja.plugins.SimControl
+    <width>248</width>
+    <z>4</z>
+    <height>200</height>
+    <location_x>2</location_x>
+    <location_y>2</location_y>
+    <minimized>false</minimized>
+  </plugin>
+  <plugin>
+    se.sics.cooja.plugins.Visualizer
+    <plugin_config>
+      <skin>Addresses: IP or Rime</skin>
+      <skin>Mote IDs</skin>
+      <skin>Radio environment (UDGM)</skin>
+      <skin>LEDs</skin>
+    </plugin_config>
+    <width>300</width>
+    <z>3</z>
+    <height>110</height>
+    <location_x>723</location_x>
+    <location_y>0</location_y>
+    <minimized>false</minimized>
+  </plugin>
+  <plugin>
+    se.sics.cooja.plugins.NativeIPGateway
+    <mote_arg>0</mote_arg>
+    <plugin_config>
+      <network_interface>\Device\NPF_{53CBA059-40AA-4822-BB53-7A5B9AFE77D6}</network_interface>
+      <register_routes>true</register_routes>
+    </plugin_config>
+    <width>388</width>
+    <z>2</z>
+    <height>331</height>
+    <location_x>635</location_x>
+    <location_y>109</location_y>
+    <minimized>false</minimized>
+  </plugin>
+  <plugin>
+    se.sics.cooja.plugins.MoteInterfaceViewer
+    <mote_arg>0</mote_arg>
+    <plugin_config>
+      <interface>Serial port</interface>
+      <scrollpos>0,0</scrollpos>
+    </plugin_config>
+    <width>388</width>
+    <z>1</z>
+    <height>234</height>
+    <location_x>635</location_x>
+    <location_y>420</location_y>
+    <minimized>false</minimized>
+  </plugin>
+</simconf>
+

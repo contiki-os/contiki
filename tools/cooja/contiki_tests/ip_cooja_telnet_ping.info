@@ -1,0 +1,1 @@
+1xContiki node: examples/native-ip/telnet-server.c. Sends 10 pings to 172.16.0.1 via the native IP stack. Test succeeds if more than 5 ping replies are received.        
