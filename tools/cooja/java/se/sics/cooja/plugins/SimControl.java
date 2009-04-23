@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: SimControl.java,v 1.12 2009/03/26 15:41:59 fros4943 Exp $
+ * $Id: SimControl.java,v 1.13 2009/04/23 08:48:01 fros4943 Exp $
  */
 
 package se.sics.cooja.plugins;
@@ -149,7 +149,7 @@ public class SimControl extends VisPlugin {
     startButton = button;
     smallPanel.add(button);
 
-    button = new JButton("Stop");
+    button = new JButton("Pause");
     button.setActionCommand("stop");
     button.addActionListener(myEventHandler);
     stopButton = button;
