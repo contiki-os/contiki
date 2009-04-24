@@ -10,7 +10,9 @@ void irq(void)
 {
 //	ISR_ENTRY();
 	/* check for TMR0 interrupt */
-	tmr_isr(); // led turns off if I have this, indicating that the isr does jump to tmr_isr
+	if(tmr_isr != NULL) {
+		tmr_isr(); // led turns off if I have this, indicating that the isr does jump to tmr_isr
+	}
 //	if(reg32(INTSRC) & (1<<5)) { tmr_isr(); }
 //	asm("SUBS PC,R14_IRQ,#4")
 //	enableIRQ(); // I think this is necessary, but the LED never turns off when I have this

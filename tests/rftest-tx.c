@@ -14,6 +14,7 @@
 
 #include "maca.h"
 #include "embedded_types.h"
+#include "isr.h"
 
 #define reg(x) (*(volatile uint32_t *)(x))
 
@@ -111,9 +112,6 @@ void fill_data(void) {
 		data[i] = count++;
 	}		
 }
-
-#include "isr.h"
-no_isrs();
 
 __attribute__ ((section ("startup")))
 void main(void) {

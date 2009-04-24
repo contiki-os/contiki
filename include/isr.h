@@ -10,13 +10,9 @@
 #define INTENNUM INTBASE + INTENNUM_OFF
 #define INTSRC   INTBASE + INTSRC_OFF 
 
-
-#define no_isrs() no_tmr_isr();
-
 #define enable_tmr_irq() *(volatile uint32_t *)(INTENNUM) = 5;
-#define no_tmr_isr() void tmr_isr(void) { return; }
 
-extern void tmr_isr(void);
+extern void tmr_isr(void) __attribute__((weak));
 
 #endif
 

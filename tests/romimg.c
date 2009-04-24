@@ -29,7 +29,6 @@ const uint8_t hex[16]={'0','1','2','3','4','5','6','7',
 //#define DUMP_LEN  16
 
 #include "isr.h"
-no_isrs();
 
 __attribute__ ((section ("startup")))
 void main(void) {
