@@ -4,8 +4,9 @@
 
 #define reg32(x) (*(volatile uint32_t *)(x))
 
-//__attribute__ ((interrupt("IRQ"))) 
-void isr(void)
+__attribute__ ((section (".irq")))
+__attribute__ ((interrupt("IRQ"))) 
+void irq(void)
 {
 //	ISR_ENTRY();
 	/* check for TMR0 interrupt */

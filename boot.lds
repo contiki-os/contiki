@@ -28,13 +28,13 @@ ENTRY(_start)
 SECTIONS
 {
 	. = 0x00400000;
-
+	
 	. = ALIGN(4);
 	.text      :
 	{
-	  src/start.o	(.text)
-	  src/isr.o	(.text)
-	  *(.text)
+	 src/start.o	(.text)	
+	 *(.irq)	
+	 *(.text)
 	}
 
 	. = ALIGN(4);
