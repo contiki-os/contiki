@@ -10,9 +10,7 @@
 #define UART1_BR        0x80005018
 
 #include "embedded_types.h"
-
 #include "isr.h"
-no_isrs();
 
 __attribute__ ((section ("startup")))
 void main(void) {

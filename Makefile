@@ -88,7 +88,7 @@ src/isr.o: src/isr.c
 %.dis:		%.obj
 		$(OBJDUMP) -SD $< > $@
 
-%.obj:		$(LDSCRIPT) %.o #src/interrupt-utils.o
+%.obj:		$(LDSCRIPT) %.o src/isr.o
 		$(LD) $(LDFLAGS) $(AOBJS) \
 			--start-group $(PLATFORM_LIBS) --end-group \
 			-Map $*.map $^ -o $@

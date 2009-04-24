@@ -14,6 +14,7 @@
 
 #include "maca.h"
 #include "embedded_types.h"
+#include "isr.h"
 
 #define reg(x) (*(volatile uint32_t *)(x))
 
@@ -76,9 +77,6 @@ void toggle_led(void) {
 		led_off();
 	}
 }
-
-#include "isr.h"
-no_isrs();
 
 __attribute__ ((section ("startup")))
 void main(void) {

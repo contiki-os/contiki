@@ -215,19 +215,12 @@ not_used:
 
 
 	.align	5
-irq:
-	push	{lr}
-	movs    lr,pc
-	b isr
-	pop     {lr}
-	subs 	pc,r14,#4 // suggested irq return cmd
-//	STMFD    sp!, {r0-r12,lr}
-//	MOVNE 	 lr,pc
-//	ldr 	r0, =isr
-//	BX      r0
-//	LDMFD    r13!, {r0-r12,r14}
-//	MOVS     PC, R14
-//	subs 	pc, r14, #4
+//irq:
+//	push	{lr}
+//	movs    lr,pc
+//	b isr
+//	pop     {lr}
+//	subs 	pc,r14,#4 // suggested irq return cmd
 fiq:
 
 	.align	5
