@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: rssi-scanner.c,v 1.1 2009/04/25 09:41:37 joxe Exp $
+ * $Id: rssi-scanner.c,v 1.2 2009/04/25 22:38:00 joxe Exp $
  */
 
 /**
@@ -68,7 +68,7 @@ do_rssi(void)
   printf("RSSI:");
   for(channel = 0; channel <= 79; ++channel) {
     set_frq(channel + 55);
-    printf("%d ", cc2420_rssi() + 53);
+    printf("%d ", cc2420_rssi() + 55);
   }
   printf("\n");
 }
@@ -86,6 +86,7 @@ PROCESS_THREAD(scanner_process, ev, data)
 
   while(1) {
     do_rssi();
+    PROCESS_PAUSE();
   }
 
   PROCESS_END();
