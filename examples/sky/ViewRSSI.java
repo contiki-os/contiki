@@ -27,11 +27,13 @@ public class ViewRSSI extends JPanel {
   public void paint(Graphics g) {
     int h = getHeight();
     int w = getWidth();
-    g.clearRect(0, 0, w, h);
     double factor = (h - 20.0) / RSSI_MAX_VALUE;
     double sSpacing = (w - 15 ) / 80.0;
     int sWidth = (int) (sSpacing - 1);
     if (sWidth == 0) sWidth = 1;
+
+    g.setColor(Color.white);
+    g.fillRect(0, 0, w, h);
 
     g.setColor(Color.gray);
     double xpos = 10;
@@ -59,8 +61,8 @@ public class ViewRSSI extends JPanel {
       String line = reader.readLine();
       if (line.startsWith("RSSI:")) {
 	try {
-	  String[] parts = line.split(" ");
-	  for (int i = 1, n = parts.length; i < n; i++) {
+	  String[] parts = line.substring(5).split(" ");
+	  for (int i = 0, n = parts.length; i < n; i++) {
 	    rssi[i] = 3 * Integer.parseInt(parts[i]);
 	    if (rssi[i] > rssiMax[i]) rssiMax[i] = rssi[i];
 	    else if (rssiMax[i] > 0) rssiMax[i]--;
@@ -80,6 +82,7 @@ public class ViewRSSI extends JPanel {
     win.setBounds(10, 10, 300, 300);
     win.getContentPane().add(panel = new ViewRSSI());
     win.setVisible(true);
+    win.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
     panel.handleInput();
   }
