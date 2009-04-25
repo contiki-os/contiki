@@ -27,7 +27,7 @@ public class ViewRSSI extends JPanel {
   public void paint(Graphics g) {
     int h = getHeight();
     int w = getWidth();
-    g.clearRect(0, 0, 300, h);
+    g.clearRect(0, 0, w, h);
     double factor = (h - 20.0) / RSSI_MAX_VALUE;
     double sSpacing = (w - 15 ) / 80.0;
     int sWidth = (int) (sSpacing - 1);
