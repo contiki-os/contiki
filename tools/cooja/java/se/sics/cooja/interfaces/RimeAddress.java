@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: RimeAddress.java,v 1.1 2009/04/20 16:13:11 fros4943 Exp $
+ * $Id: RimeAddress.java,v 1.2 2009/04/28 07:29:26 fros4943 Exp $
  */
 
 package se.sics.cooja.interfaces;
@@ -88,7 +88,7 @@ public class RimeAddress extends MoteInterface {
     for (int i=0; i < RIME_ADDR_LENGTH-1; i++) {
       addrString += (0xFF & addr[i]) + ".";
     }
-    addrString += addr[RIME_ADDR_LENGTH-1];
+    addrString += (0xFF & addr[RIME_ADDR_LENGTH-1]);
     return addrString;
   }
 

@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: IPAddress.java,v 1.4 2009/04/20 16:12:37 fros4943 Exp $
+ * $Id: IPAddress.java,v 1.5 2009/04/28 07:29:26 fros4943 Exp $
  */
 
 package se.sics.cooja.interfaces;
@@ -98,7 +98,7 @@ public class IPAddress extends MoteInterface {
       for (int i=0; i < 3; i++) {
         ipString += (0xFF & ip[i]) + ".";
       }
-      ipString += ip[3];
+      ipString += (0xFF & ip[3]);
       return ipString;
     } else if (isVersion6()) {
       String ipString = "";
