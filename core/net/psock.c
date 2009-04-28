@@ -30,7 +30,7 @@
  *
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: psock.c,v 1.7 2008/11/06 23:15:58 oliverschmidt Exp $
+ * $Id: psock.c,v 1.8 2009/04/28 13:52:04 adamdunkels Exp $
  */
 
 #include <stdio.h>
@@ -192,8 +192,7 @@ PT_THREAD(psock_send(CC_REGISTER_ARG struct psock *s, const uint8_t *buf,
      * The protothread will wait here until all data has been
      * acknowledged and sent (data_is_acked_and_send() returns 1).
      */
-    PT_YIELD_UNTIL(&s->psockpt, data_is_sent_and_acked(s));
-    /* printf("sendlen %d\n", s->sendlen); */
+    PT_WAIT_UNTIL(&s->psockpt, data_is_sent_and_acked(s));
   }
 
   s->state = STATE_NONE;
