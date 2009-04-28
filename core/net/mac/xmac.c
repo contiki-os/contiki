@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: xmac.c,v 1.30 2009/03/23 21:06:26 adamdunkels Exp $
+ * $Id: xmac.c,v 1.31 2009/04/28 14:00:53 adamdunkels Exp $
  */
 
 /**
@@ -55,15 +55,12 @@
 
 #include <string.h>
 
-#if CHAMELEON
-#include "net/chameleon/packattr.h"
-#endif
-
-#define WITH_TIMETABLE 0
-#define WITH_CHANNEL_CHECK 0   /* Seems to work badly when enabled */
-#define WITH_TIMESYNCH 0
-#define WITH_QUEUE 0
-#define WITH_ACK_OPTIMIZATION 1
+#define WITH_TIMETABLE               0
+#define WITH_CHANNEL_CHECK           0    /* Seems to work badly when enabled */
+#define WITH_TIMESYNCH               0
+#define WITH_QUEUE                   0
+#define WITH_ACK_OPTIMIZATION        1
+#define WITH_RANDOM_WAIT_BEFORE_SEND 0
 
 struct announcement_data {
   uint16_t id;
@@ -74,19 +71,20 @@ struct announcement_data {
    message - may need to be increased in the future. */
 #define ANNOUNCEMENT_MAX 10
 
-/* The length of the header of the announcement message, i.e., the
-   "num" field in the struct. */
-#define ANNOUNCEMENT_MSG_HEADERLEN 2
-
 /* The structure of the announcement messages. */
 struct announcement_msg {
   uint16_t num;
   struct announcement_data data[ANNOUNCEMENT_MAX];
 };
 
+/* The length of the header of the announcement message, i.e., the
+   "num" field in the struct. */
+#define ANNOUNCEMENT_MSG_HEADERLEN (sizeof (uint16_t))
+
 #define TYPE_STROBE       0
 #define TYPE_DATA         1
 #define TYPE_ANNOUNCEMENT 2
+#define TYPE_STROBE_ACK   3
 
 struct xmac_hdr {
   uint16_t type;
@@ -251,7 +249,9 @@ powercycle(struct rtimer *t, void *ptr)
 #if WITH_TIMETABLE
 	  TIMETABLE_TIMESTAMP(xmac_timetable, "off waiting");
 #endif
-	  off();
+	  if(we_are_sending == 0) {
+	    off();
+	  }
 #if XMAC_CONF_COMPOWER
 	  compower_accumulate(&compower_idle_activity);
 #endif /* XMAC_CONF_COMPOWER */
@@ -309,15 +309,19 @@ parse_announcements(rimeaddr_t *from)
   struct announcement_msg *adata = packetbuf_dataptr();
   int i;
   
-  PRINTF("%d.%d: probe from %d.%d with %d announcements\n",
-	rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1],
-	hdr->sender.u8[0], hdr->sender.u8[1], adata->num);
+  /*  printf("%d.%d: probe from %d.%d with %d announcements\n",
+	 rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1],
+	 from->u8[0], from->u8[1], adata->num);*/
+  /*  for(i = 0; i < packetbuf_datalen(); ++i) {
+    printf("%02x ", ((uint8_t *)packetbuf_dataptr())[i]);
+  }
+  printf("\n");*/
   
   for(i = 0; i < adata->num; ++i) {
-    PRINTF("%d.%d: announcement %d: %d\n",
+    /*   printf("%d.%d: announcement %d: %d\n",
 	  rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1],
 	  adata->data[i].id,
-	  adata->data[i].value);
+	  adata->data[i].value);*/
     
     announcement_heard(from,
 		       adata->data[i].id,
@@ -368,6 +372,13 @@ send_packet(void)
   int len;
   int is_broadcast = 0;
 
+#if WITH_RANDOM_WAIT_BEFORE_SEND
+  {
+    rtimer_clock_t t = RTIMER_NOW() + (random_rand() % (xmac_config.on_time * 4));
+    while(RTIMER_CLOCK_LT(RTIMER_NOW(), t));
+  }
+#endif /* WITH_RANDOM_WAIT_BEFORE_SEND */
+  
 #if WITH_TIMETABLE
   TIMETABLE_TIMESTAMP(xmac_timetable, "send");
 #endif
@@ -483,7 +494,8 @@ send_packet(void)
   /* If we have received the strobe ACK, and we are sending a packet
      that will need an upper layer ACK (as signified by the
      PACKETBUF_ATTR_RELIABLE packet attribute), we keep the radio on. */
-  if(got_strobe_ack && packetbuf_attr(PACKETBUF_ATTR_RELIABLE)) {
+  if(got_strobe_ack && (packetbuf_attr(PACKETBUF_ATTR_RELIABLE) ||
+			packetbuf_attr(PACKETBUF_ATTR_ERELIABLE))) {
 #if WITH_TIMETABLE
     TIMETABLE_TIMESTAMP(xmac_timetable, "send got ack");
 #endif
@@ -612,6 +624,7 @@ read_packet(void)
 #if WITH_TIMETABLE
 	  TIMETABLE_TIMESTAMP(xmac_timetable, "read send ack");
 #endif
+	  msg.type = TYPE_STROBE_ACK;
 	  rimeaddr_copy(&msg.receiver, &hdr->sender);
 	  rimeaddr_copy(&msg.sender, &hdr->sender);
 	  CPRINTF("!");
@@ -721,6 +734,7 @@ cycle_announcement(void *ptr)
 	     cycle_announcement, NULL);
   if(is_listening > 0) {
     is_listening--;
+    /*    printf("is_listening %d\n", is_listening);*/
   }
 }
 /*---------------------------------------------------------------------------*/
