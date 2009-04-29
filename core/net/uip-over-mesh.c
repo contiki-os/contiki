@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: uip-over-mesh.c,v 1.11 2009/03/12 21:58:20 adamdunkels Exp $
+ * $Id: uip-over-mesh.c,v 1.12 2009/04/29 11:40:33 adamdunkels Exp $
  */
 
 /**
@@ -233,7 +233,14 @@ uip_over_mesh_send(void)
   /*  uip_len = hc_compress(&uip_buf[UIP_LLH_LEN], uip_len);*/
   
   packetbuf_copyfrom(&uip_buf[UIP_LLH_LEN], uip_len);
-  
+
+  /* Send TCP data with the PACKETBUF_ATTR_ERELIABLE set so that
+     an underlying power-saving MAC layer knows that it should be
+     waiting for an ACK. */
+  if(BUF->proto == UIP_PROTO_TCP) {
+    packetbuf_set_attr(PACKETBUF_ATTR_ERELIABLE, 1);
+  }
+
   rt = route_lookup(&receiver);
   if(rt == NULL) {
     PRINTF("uIP over mesh no route to %d.%d\n", receiver.u8[0], receiver.u8[1]);
