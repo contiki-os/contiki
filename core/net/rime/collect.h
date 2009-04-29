@@ -47,7 +47,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: collect.h,v 1.10 2009/03/12 21:58:21 adamdunkels Exp $
+ * $Id: collect.h,v 1.11 2009/04/29 20:48:57 adamdunkels Exp $
  */
 
 /**
@@ -64,7 +64,7 @@
 #include "net/rime/runicast.h"
 
 #define COLLECT_ATTRIBUTES  { PACKETBUF_ADDR_ESENDER,    PACKETBUF_ADDRSIZE }, \
-                            { PACKETBUF_ATTR_EPACKET_ID, PACKETBUF_ATTR_BIT * 2 }, \
+                            { PACKETBUF_ATTR_EPACKET_ID, PACKETBUF_ATTR_BIT * 4 }, \
                             { PACKETBUF_ATTR_TTL,        PACKETBUF_ATTR_BIT * 4 }, \
                             { PACKETBUF_ATTR_HOPS,       PACKETBUF_ATTR_BIT * 4 }, \
                             { PACKETBUF_ATTR_MAX_REXMIT, PACKETBUF_ATTR_BIT * 3 }, \
