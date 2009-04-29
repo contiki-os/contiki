@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#)$Id: contiki-sky-main.c,v 1.53 2009/04/10 00:40:08 adamdunkels Exp $
+ * @(#)$Id: contiki-sky-main.c,v 1.54 2009/04/29 11:46:20 adamdunkels Exp $
  */
 
 #include <signal.h>
@@ -182,6 +182,8 @@ set_gateway(void)
     uip_over_mesh_set_gateway(&rimeaddr_node_addr);
     uip_over_mesh_make_announced_gateway();
     is_gateway = 1;
+
+    rime_mac->off(1);
   }
 }
 #endif /* WITH_UIP */
@@ -382,7 +384,6 @@ main(int argc, char **argv)
 					      woken up by an
 					      interrupt that sets
 					      the wake up flag. */
-
 
       /* We get the current processing time for interrupts that was
 	 done during the LPM and store it for next time around.  */
