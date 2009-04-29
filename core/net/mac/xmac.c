@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: xmac.c,v 1.31 2009/04/28 14:00:53 adamdunkels Exp $
+ * $Id: xmac.c,v 1.32 2009/04/29 11:42:13 adamdunkels Exp $
  */
 
 /**
@@ -116,7 +116,7 @@ struct xmac_hdr {
 struct xmac_config xmac_config = {
   DEFAULT_ON_TIME,
   DEFAULT_OFF_TIME,
-  20 * DEFAULT_ON_TIME + DEFAULT_OFF_TIME,
+  4 * DEFAULT_ON_TIME + DEFAULT_OFF_TIME,
   DEFAULT_STROBE_WAIT_TIME
 };
 
@@ -273,11 +273,15 @@ powercycle(struct rtimer *t, void *ptr)
       } else {
 	adjust = should_be - RTIMER_TIME(t);
       }
-      r = rtimer_set(t, RTIMER_TIME(t) + adjust, 1,
-		     (void (*)(struct rtimer *, void *))powercycle, ptr);
+      if(xmac_is_on) {
+	r = rtimer_set(t, RTIMER_TIME(t) + adjust, 1,
+		       (void (*)(struct rtimer *, void *))powercycle, ptr);
+      }
 #else /* WITH_TIMESYNCH */
-      r = rtimer_set(t, RTIMER_TIME(t) + xmac_config.off_time, 1,
-		     (void (*)(struct rtimer *, void *))powercycle, ptr);
+      if(xmac_is_on) {
+	r = rtimer_set(t, RTIMER_TIME(t) + xmac_config.off_time, 1,
+		       (void (*)(struct rtimer *, void *))powercycle, ptr);
+      }
 #endif /* WITH_TIMESYNCH */
       if(r) {
 	PRINTF("xmac: 1 could not set rtimer %d\n", r);
@@ -289,8 +293,10 @@ powercycle(struct rtimer *t, void *ptr)
        waiting_for_packet == 0) {
       on();
     }
-    r = rtimer_set(t, RTIMER_TIME(t) + xmac_config.on_time, 1,
-		   (void (*)(struct rtimer *, void *))powercycle, ptr);
+    if(xmac_is_on) {
+      r = rtimer_set(t, RTIMER_TIME(t) + xmac_config.on_time, 1,
+		     (void (*)(struct rtimer *, void *))powercycle, ptr);
+    }
     if(r) {
       PRINTF("xmac: 3 could not set rtimer %d\n", r);
     }
@@ -781,6 +787,8 @@ static int
 turn_on(void)
 {
   xmac_is_on = 1;
+  rtimer_set(&rt, RTIMER_NOW() + xmac_config.off_time, 1,
+	     (void (*)(struct rtimer *, void *))powercycle, NULL);
   return 1;
 }
 /*---------------------------------------------------------------------------*/
