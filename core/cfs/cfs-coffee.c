@@ -183,8 +183,9 @@ absolute_offset(coffee_page_t page, cfs_offset_t offset)
   return page * COFFEE_PAGE_SIZE + sizeof(struct file_header) + offset;
 }
 /*---------------------------------------------------------------------------*/
-static void
-get_sector_status(uint16_t sector, struct sector_stats *stats) {
+static coffee_page_t
+get_sector_status(uint16_t sector, struct sector_stats *stats)
+{
   static coffee_page_t skip_pages;
   static char last_pages_are_active;
   struct file_header hdr;
@@ -197,36 +198,15 @@ get_sector_status(uint16_t sector, struct sector_stats *stats) {
   if(sector == 0) {
     skip_pages = 0;
     last_pages_are_active = 0;
-  } else if(skip_pages > COFFEE_PAGES_PER_SECTOR) {
-    skip_pages -= COFFEE_PAGES_PER_SECTOR;
-    if(last_pages_are_active) {
-      stats->active = COFFEE_PAGES_PER_SECTOR;
-      stats->obsolete = 0;
-    } else {
-      stats->active = 0;
-      stats->obsolete = COFFEE_PAGES_PER_SECTOR;
-    }
-    stats->free = 0;
-    return;
   }
 
-  sector_start = sector * COFFEE_SECTOR_SIZE / COFFEE_PAGE_SIZE;
-  sector_end = sector_start + COFFEE_SECTOR_SIZE / COFFEE_PAGE_SIZE;
+  sector_start = sector * COFFEE_PAGES_PER_SECTOR;
+  sector_end = sector_start + COFFEE_PAGES_PER_SECTOR;
 
   if(last_pages_are_active) {
-    active = skip_pages;
+    active = skip_pages & (COFFEE_PAGES_PER_SECTOR - 1);
   } else {
-    obsolete = skip_pages;
-
-    /* Split an obsolete file starting in the previous sector and mark
-       the following pages as isolated. */
-    memset(&hdr, 0, sizeof(hdr));
-    hdr.flags = HDR_FLAG_ALLOCATED | HDR_FLAG_ISOLATED;
-    for(page = 0; page < skip_pages; page++) {
-      write_header(&hdr, sector_start + page);
-    }
-    PRINTF("Coffee: Isolated %u pages starting in sector %d\n",
-        (unsigned)skip_pages, (int)sector);
+    obsolete = skip_pages & (COFFEE_PAGES_PER_SECTOR - 1);
   }
 
   for(page = sector_start + skip_pages; page < sector_end;) {
@@ -243,7 +223,7 @@ get_sector_status(uint16_t sector, struct sector_stats *stats) {
       page += hdr.max_pages;
       obsolete += hdr.max_pages;
     } else {
-      free = COFFEE_PAGES_PER_SECTOR - active - obsolete;
+      free = sector_end - page;
       break;
     }
   }
@@ -260,6 +240,28 @@ get_sector_status(uint16_t sector, struct sector_stats *stats) {
   stats->active = active;
   stats->obsolete = obsolete;
   stats->free = free;
+
+  return last_pages_are_active ? 0 : skip_pages;
+}
+/*---------------------------------------------------------------------------*/
+static void
+isolate_pages(coffee_page_t start, coffee_page_t skip_pages)
+{
+  struct file_header hdr;
+  coffee_page_t page;
+
+  /* Split an obsolete file starting in the previous sector and mark
+     the following pages as isolated. */
+  memset(&hdr, 0, sizeof(hdr));
+  hdr.flags = HDR_FLAG_ALLOCATED | HDR_FLAG_ISOLATED;
+
+  /* Isolation starts from the next sector. */
+  for(page = 0; page < skip_pages; page++) {
+    write_header(&hdr, start + page);
+  }
+  PRINTF("Coffee: Isolated %u pages starting in sector %d\n",
+         (unsigned)skip_pages, (int)start / COFFEE_PAGES_PER_SECTOR);
+
 }
 /*---------------------------------------------------------------------------*/
 static void
@@ -267,7 +269,7 @@ collect_garbage(int mode)
 {
   uint16_t sector;
   struct sector_stats stats;
-  coffee_page_t first_page;
+  coffee_page_t first_page, skip_pages;
 
   watchdog_stop();
 
@@ -278,20 +280,28 @@ collect_garbage(int mode)
    * erasable if there are only free or obsolete pages in it.
    */
   for(sector = 0; sector < COFFEE_SECTOR_COUNT; sector++) {
-    get_sector_status(sector, &stats);
+    skip_pages = get_sector_status(sector, &stats);
     PRINTF("Coffee: Sector %u has %u active, %u free, and %u obsolete pages.\n",
         sector, (unsigned)stats.active, (unsigned)stats.free, (unsigned)stats.obsolete);
+
     if(stats.active > 0) {
       continue;
     }
+
     if((mode == GC_RELUCTANT && stats.free == 0) ||
-       (mode == GC_GREEDY    && stats.obsolete > 0)) {
-      COFFEE_ERASE(sector);
-      PRINTF("Coffee: Erased sector %d!\n", sector);
+       (mode == GC_GREEDY && stats.obsolete > 0)) {
       first_page = sector * COFFEE_PAGES_PER_SECTOR;
       if(first_page < *next_free) {
         *next_free = first_page;
       }
+
+      if(skip_pages > 0) {
+        isolate_pages(first_page + COFFEE_PAGES_PER_SECTOR, skip_pages);
+      }
+
+      COFFEE_ERASE(sector);
+      PRINTF("Coffee: Erased sector %d!\n", sector);
+
       if(mode == GC_RELUCTANT) {
         break;
       }
