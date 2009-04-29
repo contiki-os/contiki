@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: cc2420.c,v 1.29 2009/03/12 21:58:20 adamdunkels Exp $
+ * @(#)$Id: cc2420.c,v 1.30 2009/04/29 11:38:50 adamdunkels Exp $
  */
 /*
  * This code is almost device independent and should be easy to port.
@@ -358,7 +358,7 @@ cc2420_send(const void *payload, unsigned short payload_len)
    * transmission starts.
    */
 #ifdef TMOTE_SKY
-#define LOOP_20_SYMBOLS 100	/* 326us (msp430 @ 2.4576MHz) */
+#define LOOP_20_SYMBOLS 400	/* 326us (msp430 @ 2.4576MHz) */
 #elif __AVR__
 #define LOOP_20_SYMBOLS 500	/* XXX */
 #endif
@@ -637,6 +637,11 @@ cc2420_read(void *buf, unsigned short bufsize)
   getrxdata(footer, FOOTER_LEN);
   
 #if CC2420_CONF_CHECKSUM
+  if(checksum != crc16_data(buf, len - AUX_LEN, 0)) {
+    PRINTF("checksum failed 0x%04x != 0x%04x\n",
+	   checksum, crc16_data(buf, len - AUX_LEN, 0));
+  }
+  
   if(footer[1] & FOOTER1_CRC_OK &&
      checksum == crc16_data(buf, len - AUX_LEN, 0)) {
 #else
