@@ -1,5 +1,5 @@
 /* -*- C -*- */
-/* @(#)$Id: contiki-conf.h,v 1.50 2009/04/16 14:34:51 fros4943 Exp $ */
+/* @(#)$Id: contiki-conf.h,v 1.51 2009/04/29 11:43:48 adamdunkels Exp $ */
 
 #ifndef CONTIKI_CONF_H
 #define CONTIKI_CONF_H
@@ -62,7 +62,7 @@
 /*#define PROCESS_CONF_FASTPOLL    4*/
 
 /* CPU target speed in Hz */
-#define F_CPU 2457600uL
+#define F_CPU 3900000uL /*2457600uL*/
 
 /* Our clock resolution, this is the same as Unix HZ. */
 #define CLOCK_CONF_SECOND 128
