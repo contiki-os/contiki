@@ -1,4 +1,4 @@
-# $Id: Makefile.sky,v 1.24 2009/04/10 07:43:29 adamdunkels Exp $
+# $Id: Makefile.sky,v 1.25 2009/04/29 11:42:56 adamdunkels Exp $
 
 
 ARCH=msp430.c leds.c watchdog.c light.c spi.c ds2411.c \
@@ -33,6 +33,7 @@ ifdef OS
     MOTELIST = $(CONTIKI)/tools/sky/motelist-windows
     TMOTE_BSL=$(if $(wildcard $(CONTIKI)/tools/sky/tmote-bsl.exe),1,0)
     ifeq ($(TMOTE_BSL), 1)
+      NUMPAR = 1
       BSL =  $(CONTIKI)/tools/sky/tmote-bsl
       MOTES = $(shell $(MOTELIST) | grep COM | \
          cut -f 4 -d \  )
@@ -58,6 +59,7 @@ ifndef MOTELIST
   ifeq ($(TMOTE_BSL), 1)
     PATH := $(PATH):$(CONTIKI)/tools/sky
     BSL =  $(CONTIKI)/tools/sky/tmote-bsl-linux
+    NUMPAR = 1
   else
     BSL = $(CONTIKI)/tools/sky/msp430-bsl-linux --telosb
     BSL_FILETYPE = -I
