@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: MspMote.java,v 1.27 2009/04/21 20:46:02 fros4943 Exp $
+ * $Id: MspMote.java,v 1.28 2009/04/29 20:04:56 fros4943 Exp $
  */
 
 package se.sics.cooja.mspmote;
@@ -66,8 +66,8 @@ import se.sics.mspsim.util.MapTable;
 public abstract class MspMote implements Mote {
   private static Logger logger = Logger.getLogger(MspMote.class);
 
-  /* 2.4576 MHz according to Contiki's speed sync loop*/
-  public static long NR_CYCLES_PER_MSEC = 2458;
+  /* 3.900 MHz according to Contiki's speed sync loop*/
+  public static long NR_CYCLES_PER_MSEC = 3900;
 
   /* Cycle counter */
   public long cycleCounter = 0;
