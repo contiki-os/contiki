@@ -30,7 +30,7 @@
  *
  * Author: Oliver Schmidt <ol.sc@web.de>
  *
- * $Id: wpcap.c,v 1.3 2008/06/19 07:52:28 adamdunkels Exp $
+ * $Id: wpcap.c,v 1.4 2009/04/29 11:56:14 adamdunkels Exp $
  */
 
 
@@ -544,13 +544,17 @@ wpcap_start(char *ethcardaddr, char *slipnetaddr, char *slipnetmask, int log)
 {
   struct in_addr addr;
   char buf[4000];
+  uint32_t tmpaddr;
   
   logging = log;
   
   addr.s_addr = inet_addr(ethcardaddr);
-  ifaddr.u32[0] = inet_addr(ethcardaddr);
-  netaddr.u32[0] = inet_addr(slipnetaddr);
-  netmask.u32[0] = inet_addr(slipnetmask);
+  tmpaddr = inet_addr(ethcardaddr);
+  memcpy(&ifaddr.u16[0], &tmpaddr, sizeof(tmpaddr));
+  tmpaddr = inet_addr(slipnetaddr);
+  memcpy(&netaddr.u16[0], &tmpaddr, sizeof(tmpaddr));
+  tmpaddr = inet_addr(slipnetmask);
+  memcpy(&netmask.u16[0], &tmpaddr, sizeof(tmpaddr));
 
   printf("Network address %d.%d.%d.%d/%d.%d.%d.%d\n",
 	 uip_ipaddr_to_quad(&netaddr),
