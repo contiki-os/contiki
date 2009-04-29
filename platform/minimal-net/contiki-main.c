@@ -29,7 +29,7 @@
  *
  * This file is part of the Contiki OS
  *
- * $Id: contiki-main.c,v 1.19 2009/03/17 15:56:32 adamdunkels Exp $
+ * $Id: contiki-main.c,v 1.20 2009/04/29 11:49:27 adamdunkels Exp $
  *
  */
 
@@ -65,6 +65,8 @@ main(void)
 
   procinit_init();
 
+  ctimer_init();
+
   autostart_start(autostart_processes);
     
 #if !UIP_CONF_IPV6
@@ -80,6 +82,14 @@ main(void)
   uip_ipaddr(&addr, 192,168,1,1);
   printf("Def. Router: %d.%d.%d.%d\n", uip_ipaddr_to_quad(&addr));
   uip_setdraddr(&addr);
+#else
+  {
+    uip_ipaddr_t ipaddr;
+    
+    uip_ip6addr(&ipaddr, 0xaaaa, 0, 0, 0, 0, 0, 0, 0);
+    uip_netif_addr_autoconf_set(&ipaddr, &uip_lladdr);
+    uip_netif_addr_add(&ipaddr, 16, 0, TENTATIVE);
+  }
 #endif
 
   /* Make standard output unbuffered. */
