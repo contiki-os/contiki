@@ -61,7 +61,7 @@ The COOJA Simulator
   </target>
 
   <target name="run" depends="init, compile, jar, copy configs">
-    <java fork="yes" dir="${build}" classname="se.sics.cooja.GUI">
+    <java fork="yes" dir="${build}" classname="se.sics.cooja.GUI" maxmemory="512m">
       <sysproperty key="user.language" value="en"/>
       <arg line="${args}"/>
     	<env key="LD_LIBRARY_PATH" value="."/>
@@ -87,7 +87,7 @@ The COOJA Simulator
   </target>
 
   <target name="run_bigmem" depends="init, compile, jar, copy configs">
-    <java fork="yes" dir="${build}" classname="se.sics.cooja.GUI" maxmemory="512m">
+    <java fork="yes" dir="${build}" classname="se.sics.cooja.GUI" maxmemory="2048m">
       <arg line="${args}"/>
     	<env key="LD_LIBRARY_PATH" value="."/>
       <classpath>
