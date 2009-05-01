@@ -68,7 +68,7 @@ void reset_maca(void)
 */
 
 /* tested and is good */
-#define RF_BASE 0x80009a000
+#define RF_BASE 0x80009a00
 void flyback_init(void) {
 	uint32_t val8, or;
 	
