@@ -18,7 +18,7 @@
 
 #define reg(x) (*(volatile uint32_t *)(x))
 
-#define DELAY 100000
+#define DELAY 200000
 #define DATA  0x00401000;
 
 #define NL "\033[K\r\n"
@@ -59,7 +59,7 @@ uint32_t ackBox[10];
 		maca_control = (control_prm | control_asap | control_seq_rx); \
 	}while(FALSE)
 
-#define PAYLOAD_LEN 8 /* not including the extra 4 bytes for len+fcs+somethingelse */
+#define PAYLOAD_LEN 96 /* not including the extra 4 bytes for len+fcs+somethingelse */
 /* maca dmatx needs extra 4 bytes for checksum */
 /* needs + 4 bytes for len(1 byte) + fcs(2 bytes) + somethingelse */
 #define command_xcvr_tx() \
