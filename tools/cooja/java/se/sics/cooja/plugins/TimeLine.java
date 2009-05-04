@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: TimeLine.java,v 1.1 2009/05/04 15:38:35 fros4943 Exp $
+ * $Id: TimeLine.java,v 1.2 2009/05/04 16:03:35 fros4943 Exp $
  */
 
 package se.sics.cooja.plugins;
@@ -92,6 +92,7 @@ public class TimeLine extends VisPlugin {
       if (!viewportTracking) {
         return;    
       }
+      viewportInfinite.x = timeline.getWidth();
       timelineScrollPane.getViewport().setViewPosition(viewportInfinite);
     }
   };
