@@ -135,7 +135,7 @@ struct file_header {
   uint16_t log_records;
   uint16_t log_record_size;
   coffee_page_t max_pages;
-  uint8_t eof_hint;
+  uint8_t deprecated_eof_hint;
   uint8_t flags;
   char name[COFFEE_NAME_LENGTH];
 } __attribute__((packed));
@@ -389,32 +389,6 @@ find_file(const char *name)
   return NULL;
 }
 /*---------------------------------------------------------------------------*/
-#if COFFEE_CONF_EOF_HINT
-static void
-refresh_eof_hint(struct file *file)
-{
-  struct file_header hdr;
-  coffee_page_t current_page;
-  int part_size, i;
-  uint8_t eof_hint;
-
-  read_header(&hdr, file->page);
-  current_page = (file->end + sizeof(hdr)) / COFFEE_PAGE_SIZE;
-  part_size = hdr.max_pages / (sizeof(hdr.eof_hint) * CHAR_BIT);
-  if(part_size == 0) {
-    part_size = 1;
-  }
-  for(i = eof_hint = 0; i < sizeof(eof_hint) * CHAR_BIT; i++) {
-    eof_hint |= (current_page >= (i + 1) * part_size) << i;
-  }
-
-  if(eof_hint > hdr.eof_hint) {
-    hdr.eof_hint |= eof_hint;
-    write_header(&hdr, file->page);
-  }
-}
-#endif /* COFFEE_CONF_EOF_HINT */
-/*---------------------------------------------------------------------------*/
 static cfs_offset_t
 file_end(coffee_page_t start)
 {
@@ -422,33 +396,8 @@ file_end(coffee_page_t start)
   unsigned char buf[COFFEE_PAGE_SIZE];
   coffee_page_t page;
   int i;
-  coffee_page_t range_start, range_end;
-#if COFFEE_CONF_EOF_HINT
-  coffee_page_t part_size;
-  int search_limit;
-#endif
 
   read_header(&hdr, start);
-#if COFFEE_CONF_EOF_HINT
-  search_limit = 0;
-  for(i = 0; i < sizeof(hdr.eof_hint) * CHAR_BIT; i++) {
-    if(hdr.eof_hint >> i) {
-      search_limit = i + 1;
-    }
-  }
-  part_size = hdr.max_pages / sizeof(hdr.eof_hint) / CHAR_BIT;
-  if(part_size == 0) {
-    part_size = 1;
-  }
-  range_start = part_size * search_limit;
-  range_end = range_start + part_size;
-  if(range_end + 1 > hdr.max_pages) {
-    range_end = hdr.max_pages - 1;
-  }
-#else
-  range_start = 0;
-  range_end = hdr.max_pages - 1;
-#endif /* COFFEE_CONF_EOF_HINT */
 
   /*
    * Move from the end of the range towards the beginning and look for
@@ -458,7 +407,7 @@ file_end(coffee_page_t start)
    * are zeroes, then these are skipped from the calculation.
    */
 
-  for(page = start + range_end; page >= start; page--) {
+  for(page = start + hdr.max_pages - 1; page >= start; page--) {
     watchdog_periodic();
     COFFEE_READ(buf, sizeof(buf), page * COFFEE_PAGE_SIZE);
     for(i = COFFEE_PAGE_SIZE - 1; i >= 0; i--) {
@@ -810,15 +759,9 @@ merge_log(coffee_page_t file_page, int extend)
   read_header(&hdr2, new_file->page);
   hdr2.log_record_size = hdr.log_record_size;
   hdr2.log_records = hdr.log_records;
-  hdr2.eof_hint = extend ? 0 : hdr.eof_hint;
   write_header(&hdr2, new_file->page);
 
   new_file->end = offset;
-  if(extend) {
-#if COFFEE_CONF_EOF_HINT
-    refresh_eof_hint(new_file);
-#endif
-  }
 
   cfs_close(fd);
 
@@ -887,9 +830,6 @@ write_log_page(struct file *file, struct log_param *lp)
     if(log_record >= log_records) {
       /* The log is full; merge the log. */
       PRINTF("Coffee: Merging the file %s with its log\n", hdr.name);
-#if COFFEE_CONF_EOF_HINT
-      refresh_eof_hint(file);
-#endif
       return merge_log(file->page, 0);
     }
   } else {
@@ -986,9 +926,6 @@ void
 cfs_close(int fd)
 {
   if(FD_VALID(fd)) {
-#if COFFEE_CONF_EOF_HINT
-    refresh_eof_hint(coffee_fd_set[fd].file);
-#endif
     coffee_fd_set[fd].flags = COFFEE_FD_FREE;
     coffee_fd_set[fd].file->references--;
     coffee_fd_set[fd].file = NULL;
@@ -1126,9 +1063,6 @@ cfs_write(int fd, const void *buf, unsigned size)
   /* Attempt to extend the file if we try to write past the end. */
   while(size + fdp->offset + sizeof(struct file_header) >
      (file->max_pages * COFFEE_PAGE_SIZE)) {
-#if COFFEE_CONF_EOF_HINT
-    refresh_eof_hint(file);
-#endif
     if(merge_log(file->page, 1) < 0) {
       return -1;
     }
