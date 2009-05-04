@@ -57,9 +57,9 @@
  * \return 0 on success, -1 on failure.
  *
  * Coffee uses sequential page structures for files. The sequential 
- * structure can be reserved with a certain size. If no reservation
- * has been done, files will be set to a default size once opened for
- * the first time.
+ * structure can be reserved with a certain size. If a file has not 
+ * been reserved when it is opened for the first time, it will be 
+ * allocated with a default size.
  */
 int cfs_coffee_reserve(const char *name, cfs_offset_t size);
 
@@ -71,8 +71,9 @@ int cfs_coffee_reserve(const char *name, cfs_offset_t size);
  * \return 0 on success, -1 on failure.
  *
  * When file data is first modified, Coffee creates a micro log for the
- * file. The micro log stores a table of modifications where each record
- * is of log_entry_size.
+ * file. The micro log stores a table of modifications whose 
+ * parameters--the log size and the log entry size--can be modified 
+ * through the cfs_coffee_configure_log function.
  */
 int cfs_coffee_configure_log(const char *file, unsigned log_size,
                              unsigned log_entry_size);
@@ -82,14 +83,14 @@ int cfs_coffee_configure_log(const char *file, unsigned log_size,
  * \return 0 on success, -1 on failure.
  *
  * Coffee formats the underlying storage by setting all bits to zero.
- * This operation is required prior to using Coffee for the first time
- * in a system.
+ * Formatting must be done before using Coffee for the first time in
+ * a mote.
  */
 int cfs_coffee_format(void);
 
 /**
- * \brief Gives information about memory that must not be altered during
- * CFS-based checkpointing operations.
+ * \brief Points out a memory region that may not be altered during
+ * checkpointing operations that use the file system.
  * \param size
  * \return A pointer to the protected memory.
  *
@@ -98,7 +99,6 @@ int cfs_coffee_format(void);
  * the coffee state during CFS-based checkpointing operations.
  */
 void *cfs_coffee_get_protected_mem(unsigned *size);
-
 
 /** @} */
 /** @} */
