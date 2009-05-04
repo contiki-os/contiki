@@ -33,7 +33,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: route.c,v 1.13 2009/03/23 16:22:02 adamdunkels Exp $
+ * $Id: route.c,v 1.14 2009/05/04 11:23:30 adamdunkels Exp $
  */
 
 /**
@@ -135,13 +135,20 @@ route_lookup(const rimeaddr_t *dest)
 	   uip_ipaddr_to_quad(dest), uip_ipaddr_to_quad(&e->dest));*/
 
     if(rimeaddr_cmp(dest, &e->dest)) {
-      /* Refresh age of route so that used routes do not get thrown
-	 out. */
-      e->time = 0;
       return e;
     }
   }
   return NULL;
+}
+/*---------------------------------------------------------------------------*/
+void
+route_refresh(struct route_entry *e)
+{
+  if(e != NULL) {
+    /* Refresh age of route so that used routes do not get thrown
+       out. */
+    e->time = 0;
+  }
 }
 /*---------------------------------------------------------------------------*/
 void
