@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: SkyByteRadio.java,v 1.10 2009/04/16 14:28:12 fros4943 Exp $
+ * $Id: SkyByteRadio.java,v 1.11 2009/05/04 15:34:00 fros4943 Exp $
  */
 
 package se.sics.cooja.mspmote.interfaces;
@@ -49,6 +49,8 @@ import se.sics.mspsim.chip.CC2420;
 import se.sics.mspsim.chip.RFListener;
 import se.sics.mspsim.chip.CC2420.RadioState;
 import se.sics.mspsim.chip.CC2420.StateListener;
+import se.sics.mspsim.core.Chip;
+import se.sics.mspsim.core.OperatingModeListener;
 
 /**
  * CC2420 to COOJA wrapper.
@@ -137,6 +139,19 @@ public class SkyByteRadio extends Radio implements CustomDataRadio {
           notifyObservers();
           len = 0;
         }
+      }
+    });
+
+    cc2420.addOperatingModeListener(new OperatingModeListener() {
+      public void modeChanged(Chip source, int mode) {
+        if (isReceiverOn()) {
+          lastEvent = RadioEvent.HW_ON;
+        } else {
+          lastEvent = RadioEvent.HW_OFF;
+        }
+        lastEventTime = SkyByteRadio.this.mote.getSimulation().getSimulationTime();
+        setChanged();
+        notifyObservers();
       }
     });
   }
