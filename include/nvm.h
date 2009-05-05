@@ -38,5 +38,6 @@ typedef enum
 /* need to be in a THUMB block before calling them */
 extern volatile nvmErr_t (*nvm_detect)(nvmInterface_t nvmInterface,nvmType_t* pNvmType);
 extern volatile nvmErr_t (*nvm_read)(nvmInterface_t nvmInterface , nvmType_t nvmType , void *pDest, uint32_t address, uint32_t numBytes);
+extern volatile nvmErr_t (*nvm_write)(nvmInterface_t nvmInterface, nvmType_t nvmType ,void *pSrc, uint32_t address, uint32_t numBytes);
 extern volatile void(*nvm_setsvar)(uint32_t zero_for_awesome);
 #endif //NVM_H
