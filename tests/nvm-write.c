@@ -34,7 +34,7 @@ const uint8_t hex[16]={'0','1','2','3','4','5','6','7',
 #define NBYTES 8
 #define WRITE_ADDR 0x1e000
 //#define WRITE_ADDR 0x0
-#define WRITEVAL0 0x00000004 
+#define WRITEVAL0 0x00000001 
 #define WRITEVAL1 0x00000000
 
 __attribute__ ((section ("startup")))
