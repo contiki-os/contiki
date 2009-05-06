@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: example-runicast.c,v 1.4 2009/03/12 21:58:21 adamdunkels Exp $
+ * $Id: example-runicast.c,v 1.5 2009/05/06 15:03:49 adamdunkels Exp $
  */
 
 /**
@@ -73,11 +73,11 @@ recv_runicast(struct runicast_conn *c, rimeaddr_t *from, uint8_t seqno)
   /* OPTIONAL: Sender history */
   struct history_entry *e = NULL;
   for(e = list_head(history_table); e != NULL; e = e->next) {
-    if (rimeaddr_cmp(&e->addr, from)) {
+    if(rimeaddr_cmp(&e->addr, from)) {
       break;
     }
   }
-  if (e == NULL) {
+  if(e == NULL) {
     /* Create new history entry */
     e = memb_alloc(&history_mem);
     if(e == NULL) {
@@ -88,9 +88,9 @@ recv_runicast(struct runicast_conn *c, rimeaddr_t *from, uint8_t seqno)
     list_push(history_table, e);
   } else {
     /* Detect duplicate callback */
-    if (e->seq == seqno) {
+    if(e->seq == seqno) {
       printf("runicast message received from %d.%d, seqno %d (DUPLICATE)\n",
-         from->u8[0], from->u8[1], seqno);
+	     from->u8[0], from->u8[1], seqno);
       return;
     }
     /* Update existing history entry */
@@ -113,8 +113,8 @@ timedout_runicast(struct runicast_conn *c, rimeaddr_t *to, uint8_t retransmissio
 	 to->u8[0], to->u8[1], retransmissions);
 }
 static const struct runicast_callbacks runicast_callbacks = {recv_runicast,
-						   sent_runicast,
-						   timedout_runicast};
+							     sent_runicast,
+							     timedout_runicast};
 static struct runicast_conn runicast;
 /*---------------------------------------------------------------------------*/
 PROCESS_THREAD(test_runicast_process, ev, data)
@@ -131,7 +131,7 @@ PROCESS_THREAD(test_runicast_process, ev, data)
 
   /* Receiver node: do nothing */
   if(rimeaddr_node_addr.u8[0] == 1 &&
-      rimeaddr_node_addr.u8[1] == 0) {
+     rimeaddr_node_addr.u8[1] == 0) {
     PROCESS_WAIT_EVENT_UNTIL(0);
   }
 
@@ -149,10 +149,10 @@ PROCESS_THREAD(test_runicast_process, ev, data)
       recv.u8[1] = 0;
 
       printf("%u.%u: sending runicast to address %u.%u\n",
-          rimeaddr_node_addr.u8[0],
-          rimeaddr_node_addr.u8[1],
-          recv.u8[0],
-          recv.u8[1]);
+	     rimeaddr_node_addr.u8[0],
+	     rimeaddr_node_addr.u8[1],
+	     recv.u8[0],
+	     recv.u8[1]);
 
       runicast_send(&runicast, &recv, MAX_RETRANSMISSIONS);
     }
