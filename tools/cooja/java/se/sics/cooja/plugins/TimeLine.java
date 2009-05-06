@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: TimeLine.java,v 1.2 2009/05/04 16:03:35 fros4943 Exp $
+ * $Id: TimeLine.java,v 1.3 2009/05/06 15:00:06 adamdunkels Exp $
  */
 
 package se.sics.cooja.plugins;
@@ -942,8 +942,9 @@ public class TimeLine extends VisPlugin {
 
         /* Ignore painting events with zero width */
         if (w == 0) {
-          ev = ev.next;
-          continue;
+	    /*          ev = ev.next;
+			continue;*/
+	    w = 1;
         }
         
         if (ev.state == RadioEvent.TRANSMISSION_STARTED) {
@@ -1000,10 +1001,10 @@ public class TimeLine extends VisPlugin {
         }
 
         /* Ignore painting events with zero width */
-        if (w == 0) {
-          ev = ev.next;
-          continue;
-        }
+	if (w == 0) {
+	    ev = ev.next;
+	    continue;
+	}
 
         g.setColor(Color.GRAY);
         g.fillRect(
