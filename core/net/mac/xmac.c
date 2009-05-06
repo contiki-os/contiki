@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: xmac.c,v 1.32 2009/04/29 11:42:13 adamdunkels Exp $
+ * $Id: xmac.c,v 1.33 2009/05/06 15:05:28 adamdunkels Exp $
  */
 
 /**
@@ -49,13 +49,11 @@
 #include "lib/random.h"
 
 #include "sys/compower.h"
-#include "sys/timetable.h"
 
 #include "contiki-conf.h"
 
 #include <string.h>
 
-#define WITH_TIMETABLE               0
 #define WITH_CHANNEL_CHECK           0    /* Seems to work badly when enabled */
 #define WITH_TIMESYNCH               0
 #define WITH_QUEUE                   0
@@ -116,7 +114,7 @@ struct xmac_hdr {
 struct xmac_config xmac_config = {
   DEFAULT_ON_TIME,
   DEFAULT_OFF_TIME,
-  4 * DEFAULT_ON_TIME + DEFAULT_OFF_TIME,
+  20 * DEFAULT_ON_TIME + DEFAULT_OFF_TIME,
   DEFAULT_STROBE_WAIT_TIME
 };
 
@@ -136,9 +134,6 @@ static const struct radio_driver *radio;
 #undef LEDS_ON
 #undef LEDS_OFF
 #undef LEDS_TOGGLE
-
-
-#define CPRINTF(...)
 
 #define LEDS_ON(x) leds_on(x)
 #define LEDS_OFF(x) leds_off(x)
@@ -174,10 +169,6 @@ static void (* receiver_callback)(const struct mac_driver *);
 static struct compower_activity current_packet;
 #endif /* XMAC_CONF_COMPOWER */
 
-#if WITH_TIMETABLE
-#define xmac_timetable_size 1024
-TIMETABLE_NONSTATIC(xmac_timetable);
-#endif /* WITH_TIMETABLE */
 /*---------------------------------------------------------------------------*/
 static void
 set_receive_function(void (* recv)(const struct mac_driver *))
@@ -192,10 +183,6 @@ on(void)
     radio_is_on = 1;
     radio->on();
     LEDS_ON(LEDS_RED);
-    CPRINTF("/");
-#if WITH_TIMETABLE
-    TIMETABLE_TIMESTAMP(xmac_timetable, "on");
-#endif
   }
 }
 /*---------------------------------------------------------------------------*/
@@ -205,11 +192,7 @@ off(void)
   if(xmac_is_on && radio_is_on != 0 && is_listening == 0) {
     radio_is_on = 0;
     radio->off();
-#if WITH_TIMETABLE
-    TIMETABLE_TIMESTAMP(xmac_timetable, "off");
-#endif
     LEDS_OFF(LEDS_RED);
-    CPRINTF("\\");
   }
 }
 /*---------------------------------------------------------------------------*/
@@ -221,8 +204,7 @@ powercycle(struct rtimer *t, void *ptr)
   rtimer_clock_t should_be, adjust;
 #endif /* WITH_TIMESYNCH */
 
-  CPRINTF("*");
-  
+
   PT_BEGIN(&pt);
 
   while(1) {
@@ -246,9 +228,6 @@ powercycle(struct rtimer *t, void *ptr)
 	     power cycles without having heard a packet, so we turn off
 	     the radio. */
 	  waiting_for_packet = 0;
-#if WITH_TIMETABLE
-	  TIMETABLE_TIMESTAMP(xmac_timetable, "off waiting");
-#endif
 	  if(we_are_sending == 0) {
 	    off();
 	  }
@@ -259,7 +238,7 @@ powercycle(struct rtimer *t, void *ptr)
       }
 
 #if WITH_TIMESYNCH
-#define NUM_SLOTS 8
+#define NUM_SLOTS 16
       should_be = ((timesynch_rtimer_to_time(RTIMER_TIME(t)) +
 		    xmac_config.off_time) &
 		   ~(xmac_config.off_time + xmac_config.on_time - 1)) +
@@ -385,10 +364,7 @@ send_packet(void)
   }
 #endif /* WITH_RANDOM_WAIT_BEFORE_SEND */
   
-#if WITH_TIMETABLE
-  TIMETABLE_TIMESTAMP(xmac_timetable, "send");
-#endif
-  
+
 #if WITH_CHANNEL_CHECK
   /* Check if there are other strobes in the air. */
   waiting_for_packet = 1;
@@ -402,12 +378,8 @@ send_packet(void)
   }
   waiting_for_packet = 0;
   
-  while(someone_is_sending); /* {printf("z");}*/
+  while(someone_is_sending);
 
-#if WITH_TIMETABLE
-  TIMETABLE_TIMESTAMP(xmac_timetable, "send 2");
-#endif /* WITH_TIMETABLE */
-  
 #endif /* WITH_CHANNEL_CHECK */
   
   /* By setting we_are_sending to one, we ensure that the rtimer
@@ -452,37 +424,26 @@ send_packet(void)
       strobes++) {
 
     t = RTIMER_NOW();
+
     strobe.hdr.type = TYPE_STROBE;
     rimeaddr_copy(&strobe.hdr.sender, &rimeaddr_node_addr);
     rimeaddr_copy(&strobe.hdr.receiver, packetbuf_addr(PACKETBUF_ADDR_RECEIVER));
 
-#if WITH_TIMETABLE
-    if(rimeaddr_cmp(&strobe.hdr.receiver, &rimeaddr_null)) {
-      TIMETABLE_TIMESTAMP(xmac_timetable, "send broadcast strobe");
-    } else {
-      TIMETABLE_TIMESTAMP(xmac_timetable, "send strobe");
-    }
-#endif
     /* Send the strobe packet. */
     radio->send((const uint8_t *)&strobe, sizeof(struct xmac_hdr));
-
-    CPRINTF("+");
 
     while(got_strobe_ack == 0 &&
 	  RTIMER_CLOCK_LT(RTIMER_NOW(), t + xmac_config.strobe_wait_time)) {
       /* See if we got an ACK */
-      len = radio->read((uint8_t *)&strobe, sizeof(struct xmac_hdr));
-      if(len > 0) {
-	CPRINTF("_");
-	if(rimeaddr_cmp(&strobe.hdr.sender, &rimeaddr_node_addr) &&
-	   rimeaddr_cmp(&strobe.hdr.receiver, &rimeaddr_node_addr)) {
-#if WITH_TIMETABLE
-	  TIMETABLE_TIMESTAMP(xmac_timetable, "send ack received");
-#endif
-	  CPRINTF("@");
-	  /* We got an ACK from the receiver, so we can immediately send
-	     the packet. */
-	  got_strobe_ack = 1;
+      if(!is_broadcast) {
+	len = radio->read((uint8_t *)&strobe, sizeof(struct xmac_hdr));
+	if(len > 0) {
+	  if(rimeaddr_cmp(&strobe.hdr.sender, &rimeaddr_node_addr) &&
+	     rimeaddr_cmp(&strobe.hdr.receiver, &rimeaddr_node_addr)) {
+	    /* We got an ACK from the receiver, so we can immediately send
+	       the packet. */
+	    got_strobe_ack = 1;
+	  }
 	}
       }
     }
@@ -502,9 +463,7 @@ send_packet(void)
      PACKETBUF_ATTR_RELIABLE packet attribute), we keep the radio on. */
   if(got_strobe_ack && (packetbuf_attr(PACKETBUF_ATTR_RELIABLE) ||
 			packetbuf_attr(PACKETBUF_ATTR_ERELIABLE))) {
-#if WITH_TIMETABLE
-    TIMETABLE_TIMESTAMP(xmac_timetable, "send got ack");
-#endif
+
 #if WITH_ACK_OPTIMIZATION
     on(); /* Wait for ACK packet */
     waiting_for_packet = 1;
@@ -513,20 +472,15 @@ send_packet(void)
 #endif /* WITH_ACK_OPTIMIZATION */
 
   } else {
-#if WITH_TIMETABLE
-    TIMETABLE_TIMESTAMP(xmac_timetable, "send no ack received");
-#endif
+
     off(); /* shell ping don't seem to work with off() here, so we'll
 	     keep it on() for a while. */
   }
 
   /* Send the data packet. */
   if(is_broadcast || got_strobe_ack) {
-#if WITH_TIMETABLE
-    TIMETABLE_TIMESTAMP(xmac_timetable, "send packet");
-#endif
+
     radio->send(packetbuf_hdrptr(), packetbuf_totlen());
-    CPRINTF("#");
   }
   watchdog_start();
 
@@ -549,9 +503,7 @@ send_packet(void)
 #endif /* XMAC_CONF_COMPOWER */
   
   we_are_sending = 0;
-#if WITH_TIMETABLE
-  TIMETABLE_TIMESTAMP(xmac_timetable, "send we_are_sending = 0");
-#endif
+
   LEDS_OFF(LEDS_BLUE);
   return 1;
 
@@ -608,7 +560,6 @@ read_packet(void)
     packetbuf_hdrreduce(sizeof(struct xmac_hdr));
 
     if(hdr->type == TYPE_STROBE) {
-      CPRINTF(".");
       /* There is no data in the packet so it has to be a strobe. */
       someone_is_sending = 2;
       
@@ -619,7 +570,6 @@ read_packet(void)
 	  /* If the sender address is our node address, the strobe is
 	     a stray strobe ACK to us, which we ignore unless we are
 	     currently sending a packet.  */
-	  CPRINTF("&");
 	  someone_is_sending = 0;
 	} else {
 	  struct xmac_hdr msg;
@@ -627,13 +577,9 @@ read_packet(void)
 	     acknowledge the strobe and wait for the packet. By using
 	     the same address as both sender and receiver, we flag the
 	     message is a strobe ack. */
-#if WITH_TIMETABLE
-	  TIMETABLE_TIMESTAMP(xmac_timetable, "read send ack");
-#endif
 	  msg.type = TYPE_STROBE_ACK;
 	  rimeaddr_copy(&msg.receiver, &hdr->sender);
 	  rimeaddr_copy(&msg.sender, &hdr->sender);
-	  CPRINTF("!");
 	  /* We turn on the radio in anticipation of the incoming
 	     packet. */
 	  someone_is_sending = 1;
@@ -658,13 +604,9 @@ read_packet(void)
 	 to the caller. */
       return RIME_OK;
     } else if(hdr->type == TYPE_DATA) {
-      CPRINTF("-");
       someone_is_sending = 0;
       if(rimeaddr_cmp(&hdr->receiver, &rimeaddr_node_addr) ||
 	 rimeaddr_cmp(&hdr->receiver, &rimeaddr_null)) {
-#if WITH_TIMETABLE
-	TIMETABLE_TIMESTAMP(xmac_timetable, "read got packet");
-#endif
 	/* This is a regular packet that is destined to us or to the
 	   broadcast address. */
 	
@@ -762,9 +704,6 @@ xmac_set_announcement_radio_txpower(int txpower)
 const struct mac_driver *
 xmac_init(const struct radio_driver *d)
 {
-#if WITH_TIMETABLE
-  timetable_clear(&xmac_timetable);
-#endif
   radio_is_on = 0;
   waiting_for_packet = 0;
   PT_INIT(&pt);
