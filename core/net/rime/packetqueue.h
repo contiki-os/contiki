@@ -41,7 +41,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: packetqueue.h,v 1.1 2009/04/29 20:47:30 adamdunkels Exp $
+ * $Id: packetqueue.h,v 1.2 2009/05/06 08:37:48 zhitao Exp $
  */
 
 /**
@@ -94,7 +94,7 @@ struct packetqueue_item {
 /**
  * \brief      Define a packet queue.
  * \param name The variable name of the packet queue
- * \param size The maximum size od the packet queue
+ * \param size The maximum size of the packet queue
  *
  *             This statement defines a packet queue. A packet queue
  *             is defined on a per-module basis.
@@ -121,7 +121,7 @@ void packetqueue_init(struct packetqueue *q);
 
 
 /**
- * \brief      Enqueue a the packetbuf on a packet queue.
+ * \brief      Enqueue a packetbuf on a packet queue.
  * \param q    A pointer to a struct packetqueue.
  * \param lifetime The maximum time that the packet should stay in the packet queue, or zero if the packet should stay on the packet queue indefinitely.
  * \param ptr  An opaque, user-defined pointer that can be used to identify the packet when it later is dequeued.
@@ -143,7 +143,7 @@ void packetqueue_init(struct packetqueue *q);
  *             Each packet queue item is tagged with a user-defined
  *             pointer. This pointer can be used to identify packets
  *             as they later are dequeued from the queue. This is
- *             useful is two modules is using the same packet queue:
+ *             useful if two modules is using the same packet queue:
  *             the modules can use the pointer to distinguish to which
  *             module a dequeued packet belongs.
  *
