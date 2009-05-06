@@ -30,7 +30,7 @@
  *
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: psock.h,v 1.5 2009/03/17 20:28:44 nvt-se Exp $
+ * $Id: psock.h,v 1.6 2009/05/06 15:07:09 adamdunkels Exp $
  */
 
 /**
@@ -196,7 +196,7 @@ PT_THREAD(psock_send(struct psock *psock, const uint8_t *buf, unsigned int len))
  * \hideinitializer
  */
 #define PSOCK_SEND_STR(psock, str)      		\
-    PT_WAIT_THREAD(&((psock)->pt), psock_send(psock, str, strlen(str)))
+  PT_WAIT_THREAD(&((psock)->pt), psock_send(psock, (uint8_t *)str, strlen(str)))
 
 PT_THREAD(psock_generator_send(struct psock *psock,
 				unsigned short (*f)(void *), void *arg));
