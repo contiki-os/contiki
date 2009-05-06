@@ -36,7 +36,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: collect.c,v 1.26 2009/04/30 20:21:06 adamdunkels Exp $
+ * $Id: collect.c,v 1.27 2009/05/06 15:34:28 zhitao Exp $
  */
 
 /**
@@ -92,7 +92,7 @@ PACKETQUEUE(forwarding_queue, MAX_FORWARDING_QUEUE);
 #define DEBUG 0
 #if DEBUG
 #include <stdio.h>
-#define PRINTF(...) printf(__VA_ARGS__); fflush(NULL)
+#define PRINTF(...) printf(__VA_ARGS__)
 #else
 #define PRINTF(...)
 #endif
