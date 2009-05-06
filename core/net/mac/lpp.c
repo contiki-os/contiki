@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: lpp.c,v 1.20 2009/04/07 11:29:08 nvt-se Exp $
+ * $Id: lpp.c,v 1.21 2009/05/06 15:06:38 adamdunkels Exp $
  */
 
 /**
@@ -73,9 +73,47 @@
 #define PRINTF(...)
 #endif
 
-#define WITH_ACK_OPTIMIZATION         1
-#define WITH_PROBE_AFTER_RECEPTION    1
-#define WITH_PROBE_AFTER_TRANSMISSION 1
+#define WITH_ACK_OPTIMIZATION         0
+#define WITH_PROBE_AFTER_RECEPTION    0
+#define WITH_PROBE_AFTER_TRANSMISSION 0
+#define WITH_ENCOUNTER_OPTIMIZATION   1
+#define WITH_ADAPTIVE_OFF_TIME        0
+
+#ifdef LPP_CONF_LISTEN_TIME
+#define LISTEN_TIME LPP_CONF_LISTEN_TIME
+#else
+#define LISTEN_TIME (CLOCK_SECOND / 128)
+#endif /** LP_CONF_LISTEN_TIME */
+
+#ifdef LPP_CONF_OFF_TIME
+#define OFF_TIME LPP_CONF_OFF_TIME
+#else
+#define OFF_TIME (CLOCK_SECOND / 2)
+#endif /* LPP_CONF_OFF_TIME */
+
+#define PACKET_LIFETIME (LISTEN_TIME + OFF_TIME)
+#define UNICAST_TIMEOUT	(4 * PACKET_LIFETIME)
+#define PROBE_AFTER_TRANSMISSION_TIME (LISTEN_TIME * 2)
+
+#define LOWEST_OFF_TIME (CLOCK_SECOND / 8)
+
+#define ENCOUNTER_LIFETIME (16 * OFF_TIME)
+
+#ifdef QUEUEBUF_CONF_NUM
+#define MAX_QUEUED_PACKETS QUEUEBUF_CONF_NUM / 2
+#else /* QUEUEBUF_CONF_NUM */
+#define MAX_QUEUED_PACKETS 4
+#endif /* QUEUEBUF_CONF_NUM */
+
+
+/* If CLOCK_SECOND is less than 4, we may end up with an OFF_TIME that
+   is 0 which will make compilation fail due to a modulo operation in
+   the code. To ensure that OFF_TIME is greater than zero, we use the
+   construct below. */
+#if OFF_TIME == 0
+#undef OFF_TIME
+#define OFF_TIME 1
+#endif
 
 struct announcement_data {
   uint16_t id;
@@ -107,33 +145,7 @@ static struct ctimer timer;
 
 static uint8_t is_listening = 0;
 static clock_time_t off_time_adjustment = 0;
-
-#ifdef LPP_CONF_LISTEN_TIME
-#define LISTEN_TIME LPP_CONF_LISTEN_TIME
-#else
-#define LISTEN_TIME (CLOCK_SECOND / 64)
-#endif /** LP_CONF_LISTEN_TIME */
-
-#ifdef LPP_CONF_OFF_TIME
-#define OFF_TIME LPP_CONF_OFF_TIME
-#else
-#define OFF_TIME (CLOCK_SECOND / 4)
-#endif /* LPP_CONF_OFF_TIME */
-
-/* If CLOCK_SECOND is less than 4, we may end up with an OFF_TIME that
-   is 0 which will make compilation fail due to a modulo operation in
-   the code. To ensure that OFF_TIME is greater than zero, we use the
-   construct below. */
-#if OFF_TIME == 0
-#undef OFF_TIME
-#define OFF_TIME 1
-#endif
-
-#define PACKET_LIFETIME (LISTEN_TIME + OFF_TIME)
-#define UNICAST_TIMEOUT	(2 * PACKET_LIFETIME)
-#define PROBE_AFTER_TRANSMISSION_TIME (LISTEN_TIME * 2)
-
-#define ENCOUNTER_LIFETIME (16 * OFF_TIME)
+static clock_time_t off_time = OFF_TIME;
 
 struct queue_list_item {
   struct queue_list_item *next;
@@ -142,11 +154,6 @@ struct queue_list_item {
   struct compower_activity compower;
 };
 
-#ifdef QUEUEBUF_CONF_NUM
-#define MAX_QUEUED_PACKETS QUEUEBUF_CONF_NUM / 2
-#else /* QUEUEBUF_CONF_NUM */
-#define MAX_QUEUED_PACKETS 4
-#endif /* QUEUEBUF_CONF_NUM */
 
 LIST(pending_packets_list);
 LIST(queued_packets_list);
@@ -168,14 +175,14 @@ static void
 turn_radio_on(void)
 {
   radio->on();
-  leds_on(LEDS_YELLOW);
+  /*  leds_on(LEDS_YELLOW);*/
 }
 /*---------------------------------------------------------------------------*/
 static void
 turn_radio_off(void)
 {
   radio->off();
-  leds_off(LEDS_YELLOW);
+  /*  leds_off(LEDS_YELLOW);*/
 }
 /*---------------------------------------------------------------------------*/
 static void
@@ -249,7 +256,8 @@ turn_radio_on_for_neighbor(rimeaddr_t *neighbor, struct queue_list_item *i)
     list_add(queued_packets_list, i);
     return;
   }
-  
+
+#if WITH_ENCOUNTER_OPTIMIZATION
   /* We go through the list of encounters to find if we have recorded
      an encounter with this particular neighbor. If so, we can compute
      the time for the next expected encounter and setup a ctimer to
@@ -285,6 +293,8 @@ turn_radio_on_for_neighbor(rimeaddr_t *neighbor, struct queue_list_item *i)
       return;
     }
   }
+#endif /* WITH_ENCOUNTER_OPTIMIZATION */
+  
   /* We did not find the neighbor in the list of recent encounters, so
      we just turn on the radio. */
   /*  printf("Neighbor %d.%d not found in recent encounters\n",
@@ -298,7 +308,11 @@ static void
 remove_queued_packet(void *item)
 {
   struct queue_list_item *i = item;
+  
+  PRINTF("%d.%d: removing queued packet\n",
+	 rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1]);
 
+  
   ctimer_stop(&i->timer);  
   queuebuf_free(i->packet);
   list_remove(pending_packets_list, i);
@@ -401,9 +415,16 @@ dutycycle(void *ptr)
       if(is_listening == 0) {
 	turn_radio_off();
 	compower_accumulate(&compower_idle_activity);
-	ctimer_set(t, OFF_TIME + off_time_adjustment, (void (*)(void *))dutycycle, t);
+	ctimer_set(t, off_time + off_time_adjustment, (void (*)(void *))dutycycle, t);
 	off_time_adjustment = 0;
 	PT_YIELD(&dutycycle_pt);
+
+#if WITH_ADAPTIVE_OFF_TIME
+	off_time += LOWEST_OFF_TIME;
+	if(off_time > OFF_TIME) {
+	  off_time = OFF_TIME;
+	}
+#endif /* WITH_ADAPTIVE_OFF_TIME */
 
       } else {
 	is_listening--;
@@ -411,7 +432,7 @@ dutycycle(void *ptr)
 	PT_YIELD(&dutycycle_pt);
       }
     } else {
-      ctimer_set(t, OFF_TIME, (void (*)(void *))dutycycle, t);
+      ctimer_set(t, off_time, (void (*)(void *))dutycycle, t);
       PT_YIELD(&dutycycle_pt);
     }
   }
@@ -465,6 +486,12 @@ send_packet(void)
     return 1;
   }
 #endif /* WITH_ACK_OPTIMIZATION */
+
+#if WITH_ADAPTIVE_OFF_TIME
+  off_time = LOWEST_OFF_TIME;
+  restart_dutycycle(off_time);
+#endif /* WITH_ADAPTIVE_OFF_TIME */
+  
   {
     struct queue_list_item *i;
     i = memb_alloc(&queued_packets_memb);
@@ -548,7 +575,7 @@ read_packet(void)
 		   hdr->sender.u8[0], hdr->sender.u8[1],
 		   qhdr->receiver.u8[0], qhdr->receiver.u8[1]);
 	    queuebuf_to_packetbuf(i->packet);
-	    
+
 	    radio->send(queuebuf_dataptr(i->packet),
 			queuebuf_datalen(i->packet));
 
@@ -570,7 +597,8 @@ read_packet(void)
 	    }
 
 #if WITH_ACK_OPTIMIZATION
-	    if(packetbuf_attr(PACKETBUF_ATTR_RELIABLE)) {
+	    if(packetbuf_attr(PACKETBUF_ATTR_RELIABLE) ||
+	       packetbuf_attr(PACKETBUF_ATTR_ERELIABLE)) {
 	      /* We're sending a packet that needs an ACK, so we keep
 		 the radio on in anticipation of the ACK. */
 	      turn_radio_on();
@@ -585,7 +613,7 @@ read_packet(void)
       PRINTF("%d.%d: got data from %d.%d\n",
 	     rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1],
 	     hdr->sender.u8[0], hdr->sender.u8[1]);
-      
+
       /* Accumulate the power consumption for the packet reception. */
       compower_accumulate(&current_packet);
       /* Convert the accumulated power consumption for the received
@@ -612,6 +640,12 @@ read_packet(void)
         }
       }
 #endif /* WITH_PROBE_AFTER_RECEPTION */
+
+#if WITH_ADAPTIVE_OFF_TIME
+      off_time = LOWEST_OFF_TIME;
+      restart_dutycycle(off_time);
+#endif /* WITH_ADAPTIVE_OFF_TIME */
+      
     }
 
     len = packetbuf_datalen();
