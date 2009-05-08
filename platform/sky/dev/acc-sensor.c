@@ -26,14 +26,14 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: acc-sensor.c,v 1.2 2009/01/23 17:08:17 fros4943 Exp $
+ * $Id: acc-sensor.c,v 1.3 2009/05/08 16:03:50 joxe Exp $
  *
  * -----------------------------------------------------------------
  *
  * Author  : Adam Dunkels, Joakim Eriksson, Niclas Finne
  * Created : 2005-11-01
- * Updated : $Date: 2009/01/23 17:08:17 $
- *           $Revision: 1.2 $
+ * Updated : $Date: 2009/05/08 16:03:50 $
+ *           $Revision: 1.3 $
  */
 
 #include "dev/acc-sensor.h"
@@ -80,6 +80,8 @@ activate(void)
   ADC12MCTL2 = (INCH_4 + SREF_1);
   ADC12MCTL3 = (INCH_5 + SREF_1);
   ADC12MCTL4 = (INCH_6 + SREF_1);
+  /* internal temperature can be read as value(3) */
+  ADC12MCTL5 = (INCH_10 + SREF_1);
 
   ADC12CTL1 |= CONSEQ_3;
   ADC12CTL0 |= ENC | ADC12SC;
@@ -110,6 +112,8 @@ value(int type)
     return ADC12MEM3;
   case 2:
     return ADC12MEM4;
+  case 3:
+    return ADC12MEM5;
   }
   return 0;
 }
