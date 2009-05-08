@@ -1,8 +1,9 @@
 #!/usr/bin/perl -w
 
-use Device::SerialPort 0.05;
+use Device::SerialPort;
 use Term::ReadKey;
 use Getopt::Long;
+use Time::HiRes qw(usleep);
 
 use strict;
 
@@ -33,28 +34,32 @@ if($filename eq '') {
 my $ob = Device::SerialPort->new ($term) or die "Can't start $term\n";
     # next test will die at runtime unless $ob
 
-if(($filename eq '')) die "you must specify a file with -f\n";
+if ($filename eq '') { die "you must specify a file with -f\n"; }
 
 $ob->baudrate($baud);
 $ob->parity('none');
 $ob->databits(8);
 $ob->stopbits(1);
 $ob->handshake("rts");
+$ob->read_const_time(1000); # 1 second per unfulfilled "read" call
 
+<<<<<<< HEAD:mc1322x-load.pl
 my $s = 0;
 
  SEND:
     do {
 	
 	my $c;
-
+	my $count;
+	my $ret = '';
+	
 	if($s == 1) { print "performing secondary send\n"; }
 	
 	$ob->write(pack('C','0'));
 	
 	my $ret = '';
 	my $test;
-
+	
 	if($s == 1) { 
 	    $test = 'ready'; 
 	} else {
@@ -62,13 +67,17 @@ my $s = 0;
 	}
 
 	until($ret eq $test) {
-	    $c = $ob->input;
+	    ($count,$c) = $ob->read(1);
+	    if ($count == 0) { 
+		print '.';
+		$ob->write(pack('C','0')); 
+		next;
+	    }
 	    $ret .= $c;
 	}
-	print $ret . "\n"; 
+	print $ret . "\n";
 	
-	
-	if (defined $filename) {
+	if (-e $filename) {
 	    
 	    my $size = -s $filename;
 	    
@@ -81,18 +90,21 @@ my $s = 0;
 	    my $i = 1;
 	    while(read(FILE, $c, 1)) {
 		print unpack('H',$c) . unpack('h',$c) if $verbose; 
-		print "\n" if ($verbose && ($i%4==0));
 		$i++;
-		select undef, undef, undef, 0.001;
+		usleep(50); # this is as fast is it can go... 
 		$ob->write($c);
 	    }
 	}
 
-	if(-e $second) {$s=1; $filename = $second; continue SEND; }
+	if(-e $second) {$s=1; $filename = $second; next SEND; }
 	
-}
+};
 
 print "done.\n";
+
+while(1) {
+    print $ob->input;
+}
 
 $ob -> close or die "Close failed: $!\n";
 ReadMode 0;
