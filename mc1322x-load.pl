@@ -45,59 +45,63 @@ $ob->read_const_time(1000); # 1 second per unfulfilled "read" call
 
 my $s = 0;
 
- SEND:
-    do {
-	
-	my $c;
-	my $count;
-	my $ret = '';
-	
-	if($s == 1) { print "performing secondary send\n"; }
-	
-	$ob->write(pack('C','0'));
-	
-	my $ret = '';
-	my $test;
-	
-	if($s == 1) { 
-	    $test = 'ready'; 
-	} else {
-	    $test = 'CONNECT';
+while(1) { 
+    
+    my $c; my $count; my $ret = ''; my $test='';
+    
+    if($s == 1) { print "performing secondary send\n"; }
+    
+    $ob->write(pack('C','0'));
+    
+    if($s == 1) { 
+	$test = 'ready'; 
+    } else {
+	$test = 'CONNECT';
+    }
+    
+    until($ret eq $test) {
+	($count,$c) = $ob->read(1);
+	if ($count == 0) { 
+	    print '.';
+	    $ob->write(pack('C','0')); 
+	    next;
 	}
-
-	until($ret eq $test) {
-	    ($count,$c) = $ob->read(1);
-	    if ($count == 0) { 
-		print '.';
-		$ob->write(pack('C','0')); 
-		next;
-	    }
-	    $ret .= $c;
-	}
+	$ret .= $c;
 	print $ret . "\n";
+    }
+    print $ret . "\n";
+    
+    if (-e $filename) {
 	
-	if (-e $filename) {
-	    
-	    my $size = -s $filename;
-	    
-	    print ("Size: $size bytes\n");
-	    $ob->write(pack('V',$size));
-	    
-	    open(FILE, $filename) or die($!);
-	    print "Sending $filename\n";
-	    
-	    my $i = 1;
-	    while(read(FILE, $c, 1)) {
-		print unpack('H',$c) . unpack('h',$c) if $verbose; 
-		$i++;
-		usleep(50); # this is as fast is it can go... 
-		$ob->write($c);
-	    }
-	}
+	my $size = -s $filename;
 
-	if(-e $second) {$s=1; $filename = $second; next SEND; }
+	print ("Size: $size bytes\n");
+	$ob->write(pack('V',$size));
+
+	open(FILE, $filename) or die($!);
+	print "Sending $filename\n";
 	
-};
+	my $i = 1;
+	while(read(FILE, $c, 1)) {
+	    $i++;
+	    usleep(50); # this is as fast is it can go... 
+	    usleep(500) if ($s==1);
+	    $ob->write($c);
+#	    if($s==1) {
+#		($count, $c) = $ob->read(1);
+#		print $c;
+#	    }
+	}
+    }
+    
+    last if ($s==1);
+    if((-e $second)) {
+	$s=1; $filename = $second;
+    } else {
+	last;
+    }
+
+} 
 
 print "done.\n";
 
