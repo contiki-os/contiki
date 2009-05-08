@@ -33,7 +33,7 @@ if($filename eq '') {
 my $ob = Device::SerialPort->new ($term) or die "Can't start $term\n";
     # next test will die at runtime unless $ob
 
-if(($filename eq '')) die "you must specify a file with -f\n";
+if ($filename eq '') { die "you must specify a file with -f\n"; }
 
 $ob->baudrate($baud);
 $ob->parity('none');
@@ -68,7 +68,7 @@ my $s = 0;
 	print $ret . "\n"; 
 	
 	
-	if (defined $filename) {
+	if (-e $filename) {
 	    
 	    my $size = -s $filename;
 	    
@@ -88,9 +88,9 @@ my $s = 0;
 	    }
 	}
 
-	if(-e $second) {$s=1; $filename = $second; continue SEND; }
+	if(-e $second) {$s=1; $filename = $second; next SEND; }
 	
-}
+};
 
 print "done.\n";
 
