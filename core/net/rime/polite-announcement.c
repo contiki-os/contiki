@@ -33,7 +33,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: polite-announcement.c,v 1.4 2009/03/23 16:39:09 adamdunkels Exp $
+ * $Id: polite-announcement.c,v 1.5 2009/05/08 08:52:55 adamdunkels Exp $
  */
 
 /**
@@ -150,7 +150,7 @@ new_announcement(uint16_t id, uint16_t val)
 }
 /*---------------------------------------------------------------------------*/
 static const struct ipolite_callbacks ipolite_callbacks =
-  {adv_packet_received};
+  {adv_packet_received, NULL, NULL};
 /*---------------------------------------------------------------------------*/
 void
 polite_announcement_init(uint16_t channel,
