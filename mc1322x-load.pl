@@ -1,8 +1,9 @@
 #!/usr/bin/perl -w
 
-use Device::SerialPort 0.05;
+use Device::SerialPort;
 use Term::ReadKey;
 use Getopt::Long;
+use Time::HiRes qw(usleep);
 
 use strict;
 
@@ -36,17 +37,30 @@ $ob->parity('none');
 $ob->databits(8);
 $ob->stopbits(1);
 $ob->handshake("rts");
+$ob->read_const_time(1000); # 1 second per unfulfilled "read" call
 
 my $c;
+my $count;
+my $ret = '';
 
 $ob->write(pack('C','0'));
-
-my $ret = '';
 until($ret eq 'CONNECT') {
-    $c = $ob->input;
+    ($count,$c) = $ob->read(1);
+    if ($count == 0) { 
+	print '.';
+	$ob->write(pack('C','0')); 
+	next;
+    }
     $ret .= $c;
 }
-print $ret . "\n"; 
+print $ret . "\n";
+
+
+#until($ret eq 'CONNECT') {
+#    $c = $ob->input;
+#    $ret .= $c;
+#}
+#print $ret . "\n"; 
 
 
 if (defined $filename) {
@@ -62,14 +76,20 @@ if (defined $filename) {
     my $i = 1;
     while(read(FILE, $c, 1)) {
 	print unpack('H',$c) . unpack('h',$c) if $verbose; 
-	print "\n" if ($verbose && ($i%4==0));
+#	print "\n" if ($verbose && ($i%4==0));
 	$i++;
-	select undef, undef, undef, 0.001;
+#	usleep(44); # this is as fast is it can go... 
+	usleep(50); # this is as fast is it can go... 
+#	select undef, undef, undef, 0.0001;
 	$ob->write($c);
     }
 }
 
 print "done.\n";
+
+while(1) {
+    print $ob->input;
+}
 
 $ob -> close or die "Close failed: $!\n";
 ReadMode 0;
