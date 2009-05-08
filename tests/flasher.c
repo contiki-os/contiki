@@ -140,6 +140,8 @@ void main(void) {
 
 	puts("flasher done\n\r");
 
+	while(c=getc()) {putc(c);}
+
 	while(1) {continue;};
 }
 
