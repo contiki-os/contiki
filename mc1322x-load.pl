@@ -43,7 +43,6 @@ $ob->stopbits(1);
 $ob->handshake("rts");
 $ob->read_const_time(1000); # 1 second per unfulfilled "read" call
 
-<<<<<<< HEAD:mc1322x-load.pl
 my $s = 0;
 
  SEND:
