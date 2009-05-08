@@ -26,6 +26,7 @@ void put_hex(uint8_t x);
 void put_hex16(uint16_t x);
 void put_hex32(uint32_t x);
 uint8_t getc();
+void flushrx();
 
 const uint8_t hex[16]={'0','1','2','3','4','5','6','7',
 		 '8','9','a','b','c','d','e','f'};
@@ -42,10 +43,10 @@ __attribute__ ((section ("startup")))
 void main(void) {
 	nvmType_t type=0;
 	nvmErr_t err;
-	uint8_t c;
-	uint32_t buf[NBYTES/4];
-	uint32_t i;
-	uint32_t len=0;
+	volatile uint8_t c;
+	volatile uint32_t buf[NBYTES/4];
+	volatile uint32_t i;
+	volatile uint32_t len=0;
 
 	*(volatile uint32_t *)GPIO_PAD_DIR0 = 0x00000100;
 	
@@ -72,49 +73,69 @@ void main(void) {
 //	put_hex32(reg(0x80003018));
 //	puts("\n\r");
 
-	puts("Detecting internal nvm\n\r");
+//	puts("Detecting internal nvm\n\r");
 
 	err = nvm_detect(gNvmInternalInterface_c, &type);
 		
+/*
 	puts("nvm_detect returned: 0x");
 	put_hex(err);
 	puts(" type is: 0x");
 	put_hex32(type);
 	puts("\n\r");
-	
+*/
 	
 	/* erase the flash */
-	err = nvm_erase(gNvmInternalInterface_c, type, 0x4fffffff); 
+//	err = nvm_erase(gNvmInternalInterface_c, type, 0x4fffffff); 
+	err = nvm_erase(gNvmInternalInterface_c, 1, 0x4fffffff); 
+
+/*
 	puts("nvm_erase returned: 0x");
 	put_hex(err);
 	puts("\n\r");
+*/
 
 	/* say we are ready */
-ready:
 	len = 0;
 	puts("ready");
+	flushrx();
 
 	/* read the length */
 	for(i=0; i<4; i++) {
 		c = getc();
 		/* bail if the first byte of the length is zero */
-		if((i==0) && (c==0)) goto ready;
-		len += (len<<(i*8));
-		puts("len: ");
-		put_hex32(len);
-		puts("\n\r");
+		len += (c<<(i*8));
 	}
 
+//	puts("len: ");
+//	put_hex32(len);
+//	puts("\n\r");
+	
 	/* write the OKOK magic */
-	buf[0] = 'O'; buf[1] = 'K'; buf[2] = 'O'; buf[3] = 'K';
-	err = nvm_write(gNvmInternalInterface_c, type, (uint8_t *)buf, 0, 4);
+	((uint8_t *)buf)[0] = 'O'; ((uint8_t *)buf)[1] = 'K'; ((uint8_t *)buf)[2] = 'O'; ((uint8_t *)buf)[3] = 'K';
+//	((uint8_t *)buf)[3] = 'x';
+//	err = nvm_write(gNvmInternalInterface_c, type, (uint8_t *)buf, 0, 4);
+	err = nvm_write(gNvmInternalInterface_c, 1, (uint8_t *)buf, 0, 4);
+//	puts("nvm_write returned: 0x");
+//	put_hex(err);
+//	puts("\n\r");
+
+	/* write the length */
+	err = nvm_write(gNvmInternalInterface_c, 1, (uint8_t *)&len, 4, 4);
 
 	/* read a byte, write a byte */
 	/* byte at a time will make this work as a contiki process better */
 	/* for OTAP */
 	for(i=0; i<len; i++) {
 		c = getc();	       
-		err = nvm_write(gNvmInternalInterface_c, type, &c, 4+i, 1);
+//		put_hex(c);
+//		puts(": ");
+//		err = nvm_write(gNvmInternalInterface_c, type, &c, 4+i, 1);
+		err = nvm_write(gNvmInternalInterface_c, 1, &c, 8+i, 1);
+//		if(err==0) { putc('.'); } else { putc('x'); }
+//		puts("nvm_write returned: 0x");
+//		put_hex(err);
+//		puts("\n\r");
 	}
 
 	puts("flasher done\n\r");
@@ -122,15 +143,21 @@ ready:
 	while(1) {continue;};
 }
 
+void flushrx()
+{
+	volatile uint8_t c;
+	while(reg(UR1CON) !=0) {
+		c = reg(UART1_DATA);
+	}
+}
+
 uint8_t getc() 
 {
-	uint8_t c;
-	while(reg(UR1CON) == 0) {
-		/* Receive buffer isn't empty */
-		/* read a byte and write it to the transmit buffer */
-		c = reg(UART1_DATA);
-		return c;
-	}
+	volatile uint8_t c;
+	while(reg(UR1CON) == 0);
+	
+	c = reg(UART1_DATA);
+	return c;
 }
 
 void putc(uint8_t c) {
