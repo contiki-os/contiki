@@ -107,10 +107,10 @@ if(scalar(@ARGV)!=0) {
     print "sending " ;
     print @ARGV;
     print ",\n";
-}
 
-$ob->write(@ARGV);
-$ob->write(',');
+    $ob->write(@ARGV);
+    $ob->write(',');
+}
 
 my $c; my $count;
 while(1) {
