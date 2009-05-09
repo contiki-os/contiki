@@ -20,24 +20,38 @@
 
 #define DELAY 400000
 
-void putc(uint8_t c);
-void puts(uint8_t *s);
-void put_hex(uint8_t x);
-void put_hex16(uint16_t x);
-void put_hex32(uint32_t x);
-uint8_t getc();
-void flushrx();
+#define DEBUG 1
+#if DEBUG
+#define dbg_putc(...) putc(__VA_ARGS__)
+#define dbg_puts(...) puts(__VA_ARGS__)
+#define dbg_put_hex(...) put_hex(__VA_ARGS__)
+#define dbg_put_hex16(...) put_hex16(__VA_ARGS__)
+#define dbg_put_hex32(...) put_hex32(__VA_ARGS__)
+#else
+#define dbg_putc(...)
+#define dbg_puts(...)
+#define dbg_put_hex(...)
+#define dbg_put_hex16(...)
+#define dbg_put_hex32(...)
+#endif
 
 const uint8_t hex[16]={'0','1','2','3','4','5','6','7',
 		 '8','9','a','b','c','d','e','f'};
 
+uint8_t getc(void);
+void flushrx(void);
+uint32_t to_u32(char *c);
+
 #include "isr.h"
 
-#define NBYTES 8
-#define WRITE_ADDR 0x1e000
-//#define WRITE_ADDR 0x0
-#define WRITEVAL0 0x00000001 
-#define WRITEVAL1 0x00000000
+#define NBYTES 16
+
+enum parse_states {
+	SCAN_X,
+	READ_CHARS,
+	PROCESS,
+	MAX_STATE,
+};
 
 __attribute__ ((section ("startup")))
 void main(void) {
@@ -47,6 +61,8 @@ void main(void) {
 	volatile uint32_t buf[NBYTES/4];
 	volatile uint32_t i;
 	volatile uint32_t len=0;
+	volatile uint32_t state = SCAN_X;
+	volatile uint32_t addr,data;
 
 	*(volatile uint32_t *)GPIO_PAD_DIR0 = 0x00000100;
 	
@@ -140,12 +156,47 @@ void main(void) {
 
 	puts("flasher done\n\r");
 
-	while(c=getc()) {putc(c);}
+	state = SCAN_X; addr=0;
+	while((c=getc())) {
+		if(state == SCAN_X) {
+			/* read until we see an 'x' */
+			if(c==0) { break; }
+			if(c!='x'){ continue; } 	
+			/* go to read_chars once we have an 'x' */
+			state = READ_CHARS;
+			i = 0; 
+		}
+		if(state == READ_CHARS) {
+			/* read all the chars up to a ',' */
+			((uint8_t *)buf)[i++] = c;
+			/* after reading a ',' */
+			/* goto PROCESS state */
+			if((c == ',') || (c == 0)) { state = PROCESS; }				
+		}
+		if(state == PROCESS) {
+			if(addr==0) {
+				/*interpret the string as the starting address */
+				addr = to_u32((uint8_t *)buf);				
+			} else {
+				/* string is data to write */
+				data = to_u32((uint8_t *)buf);
+				puts("writing addr ");
+				put_hex32(addr);
+				puts(" data ");
+				put_hex32(data);
+				puts("\n\r");
+				err = nvm_write(gNvmInternalInterface_c, 1, (uint8_t *)&data, addr, 4);
+				addr += 4;
+			}
+			/* look for the next 'x' */
+			state=SCAN_X;
+		}
+	}
 
 	while(1) {continue;};
 }
 
-void flushrx()
+void flushrx(void)
 {
 	volatile uint8_t c;
 	while(reg(UR1CON) !=0) {
@@ -153,7 +204,43 @@ void flushrx()
 	}
 }
 
-uint8_t getc() 
+/* Convert from ASCII hex.  Returns                                                                                                      
+   the value, or 16 if it was space/newline, or                                                                                          
+   32 if some other character. */
+uint8_t from_hex(uint8_t ch)
+{
+        if(ch==' ' || ch=='\r' || ch=='\n')
+                return 16;
+
+        if(ch < '0')
+                goto bad;
+        if(ch <= '9')
+                return ch - '0';
+        ch |= 0x20;
+        if(ch < 'a')
+                goto bad;
+        if(ch <= 'f')
+                return ch - 'a' + 10;
+bad:
+        return 32;
+}
+
+uint32_t to_u32(char *c) 
+{
+	volatile uint32_t ret=0;
+	volatile uint32_t i,val;
+	
+	/* c should be /x\d+,/ */
+	i=1; /* skip x */
+	while(c[i] != ',') {
+		ret = ret<<4;
+		val = from_hex(c[i++]);
+		ret += val;
+	}
+	return ret;
+}
+
+uint8_t getc(void) 
 {
 	volatile uint8_t c;
 	while(reg(UR1CON) == 0);
@@ -161,6 +248,7 @@ uint8_t getc()
 	c = reg(UART1_DATA);
 	return c;
 }
+
 
 void putc(uint8_t c) {
 	while(reg(UT1CON)==31); /* wait for there to be room in the buffer */
@@ -192,3 +280,4 @@ void put_hex32(uint32_t x)
         put_hex((x >> 8) & 0xFF);
         put_hex((x) & 0xFF);
 }
+
