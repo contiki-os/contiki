@@ -110,8 +110,10 @@ print ",\n";
 $ob->write(@ARGV);
 $ob->write(',');
 
+my $c; my $count;
 while(1) {
-    print $ob->input;
+    ($count, $c) = $ob->read(1);
+    print $c if ($count != 0);
 }
 
 $ob -> close or die "Close failed: $!\n";
