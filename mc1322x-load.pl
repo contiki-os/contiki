@@ -34,8 +34,6 @@ if($filename eq '') {
     exit;
 }
 
-print @ARGV;
-	
 my $ob = Device::SerialPort->new ($term) or die "Can't start $term\n";
     # next test will die at runtime unless $ob
 
@@ -64,7 +62,7 @@ while(1) {
 	$test = 'CONNECT';
     }
     
-    until($ret eq $test) {
+    until($ret =~ /$test$/) {
 	($count,$c) = $ob->read(1);
 	if ($count == 0) { 
 	    print '.';
@@ -107,9 +105,10 @@ print "done sending files.\n";
 
 print "sending " ;
 print @ARGV;
-print "\n";
+print ",\n";
 
 $ob->write(@ARGV);
+$ob->write(',');
 
 while(1) {
     print $ob->input;
