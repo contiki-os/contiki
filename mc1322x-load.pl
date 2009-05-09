@@ -105,7 +105,7 @@ print "done sending files.\n";
 
 print "sending " ;
 print @ARGV;
-print "\n";
+print ",\n";
 
 $ob->write(@ARGV);
 $ob->write(',');
