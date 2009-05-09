@@ -20,6 +20,11 @@
 
 #define DELAY 400000
 
+/* if both BOOT_OK and BOOT_SECURE are 0 then flash image will not be bootable */
+/* if both are 1 then flash image will be secure */
+#define BOOT_OK 1
+#define BOOT_SECURE 0
+
 #define DEBUG 1
 #if DEBUG
 #define dbg_putc(...) putc(__VA_ARGS__)
@@ -85,31 +90,26 @@ void main(void) {
 
 	vreg_init();
 
-//	puts("CRM status: 0x");
-//	put_hex32(reg(0x80003018));
-//	puts("\n\r");
-
-//	puts("Detecting internal nvm\n\r");
+	dbg_puts("Detecting internal nvm\n\r");
 
 	err = nvm_detect(gNvmInternalInterface_c, &type);
 		
-/*
-	puts("nvm_detect returned: 0x");
-	put_hex(err);
-	puts(" type is: 0x");
-	put_hex32(type);
-	puts("\n\r");
-*/
+	dbg_puts("nvm_detect returned: 0x");
+	dbg_put_hex(err);
+	dbg_puts(" type is: 0x");
+	dbg_put_hex32(type);
+	dbg_puts("\n\r");
 	
 	/* erase the flash */
-//	err = nvm_erase(gNvmInternalInterface_c, type, 0x4fffffff); 
-	err = nvm_erase(gNvmInternalInterface_c, 1, 0x4fffffff); 
+	err = nvm_erase(gNvmInternalInterface_c, type, 0x4fffffff); 
 
-/*
-	puts("nvm_erase returned: 0x");
-	put_hex(err);
-	puts("\n\r");
-*/
+	dbg_puts("nvm_erase returned: 0x");
+	dbg_put_hex(err);
+	dbg_puts("\n\r");
+
+	dbg_puts(" type is: 0x");
+	dbg_put_hex32(type);
+	dbg_puts("\n\r");
 
 	/* say we are ready */
 	len = 0;
@@ -123,21 +123,32 @@ void main(void) {
 		len += (c<<(i*8));
 	}
 
-//	puts("len: ");
-//	put_hex32(len);
-//	puts("\n\r");
+	dbg_puts("len: ");
+	dbg_put_hex32(len);
+	dbg_puts("\n\r");
 	
 	/* write the OKOK magic */
-	((uint8_t *)buf)[0] = 'O'; ((uint8_t *)buf)[1] = 'K'; ((uint8_t *)buf)[2] = 'O'; ((uint8_t *)buf)[3] = 'K';
-//	((uint8_t *)buf)[3] = 'x';
-//	err = nvm_write(gNvmInternalInterface_c, type, (uint8_t *)buf, 0, 4);
-	err = nvm_write(gNvmInternalInterface_c, 1, (uint8_t *)buf, 0, 4);
-//	puts("nvm_write returned: 0x");
-//	put_hex(err);
-//	puts("\n\r");
+
+#if BOOT_OK
+	((uint8_t *)buf)[0] = 'O'; ((uint8_t *)buf)[1] = 'K'; ((uint8_t *)buf)[2] = 'O'; ((uint8_t *)buf)[3] = 'K';	
+#elif BOOT_SECURE
+	((uint8_t *)buf)[0] = 'S'; ((uint8_t *)buf)[1] = 'E'; ((uint8_t *)buf)[2] = 'C'; ((uint8_t *)buf)[3] = 'U';	
+#else
+	((uint8_t *)buf)[0] = 'N'; ((uint8_t *)buf)[1] = 'O'; ((uint8_t *)buf)[2] = 'N'; ((uint8_t *)buf)[3] = 'O';
+#endif
+
+	dbg_puts(" type is: 0x");
+	dbg_put_hex32(type);
+	dbg_puts("\n\r");
+
+	err = nvm_write(gNvmInternalInterface_c, type, (uint8_t *)buf, 0, 4);
+
+	dbg_puts("nvm_write returned: 0x");
+	dbg_put_hex(err);
+	dbg_puts("\n\r");
 
 	/* write the length */
-	err = nvm_write(gNvmInternalInterface_c, 1, (uint8_t *)&len, 4, 4);
+	err = nvm_write(gNvmInternalInterface_c, type, (uint8_t *)&len, 4, 4);
 
 	/* read a byte, write a byte */
 	/* byte at a time will make this work as a contiki process better */
@@ -146,9 +157,22 @@ void main(void) {
 		c = getc();	       
 //		put_hex(c);
 //		puts(": ");
-//		err = nvm_write(gNvmInternalInterface_c, type, &c, 4+i, 1);
-		err = nvm_write(gNvmInternalInterface_c, 1, &c, 8+i, 1);
-//		if(err==0) { putc('.'); } else { putc('x'); }
+
+		/*for some reason I have to hard code the type here for it to work reliably */
+//		err = nvm_write(gNvmInternalInterface_c, type, &c, 4+i, 1); 
+		switch(type) 
+		{
+		case 1:
+			err = nvm_write(gNvmInternalInterface_c, 1, &c, 8+i, 1); 
+			break;
+		case 2:
+			err = nvm_write(gNvmInternalInterface_c, 2, &c, 8+i, 1); 
+			break;
+		case 3:
+			err = nvm_write(gNvmInternalInterface_c, 3, &c, 8+i, 1); 
+			break;
+		}
+
 //		puts("nvm_write returned: 0x");
 //		put_hex(err);
 //		puts("\n\r");
