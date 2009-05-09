@@ -22,20 +22,21 @@
 
 #define DEBUG 1
 #if DEBUG
-void putc(uint8_t c);
-void puts(uint8_t *s);
-void put_hex(uint8_t x);
-void put_hex16(uint16_t x);
-void put_hex32(uint32_t x);
+#define dbg_putc(...) putc(__VA_ARGS__)
+#define dbg_puts(...) puts(__VA_ARGS__)
+#define dbg_put_hex(...) put_hex(__VA_ARGS__)
+#define dbg_put_hex16(...) put_hex16(__VA_ARGS__)
+#define dbg_put_hex32(...) put_hex32(__VA_ARGS__)
+#else
+#define dbg_putc(...)
+#define dbg_puts(...)
+#define dbg_put_hex(...)
+#define dbg_put_hex16(...)
+#define dbg_put_hex32(...)
+#endif
+
 const uint8_t hex[16]={'0','1','2','3','4','5','6','7',
 		 '8','9','a','b','c','d','e','f'};
-#else
-#define putc(...)
-#define puts(...)
-#define put_hex(...)
-#define put_hex16(...)
-#define put_hex32(...)
-#endif
 
 uint8_t getc(void);
 void flushrx(void);
@@ -157,9 +158,7 @@ void main(void) {
 
 	state = SCAN_X; addr=0;
 	while((c=getc())) {
-		putc(c);
 		if(state == SCAN_X) {
-			puts("scanx\n\r");
 			/* read until we see an 'x' */
 			if(c==0) { break; }
 			if(c!='x'){ continue; } 	
@@ -168,11 +167,6 @@ void main(void) {
 			i = 0; 
 		}
 		if(state == READ_CHARS) {
-			puts("readchars i ");
-			put_hex(i);
-			puts(" c ");
-			putc(c);
-			puts("\n\r");
 			/* read all the chars up to a ',' */
 			((uint8_t *)buf)[i++] = c;
 			/* after reading a ',' */
@@ -180,7 +174,6 @@ void main(void) {
 			if((c == ',') || (c == 0)) { state = PROCESS; }				
 		}
 		if(state == PROCESS) {
-			puts("process\n\r");
 			if(addr==0) {
 				/*interpret the string as the starting address */
 				addr = to_u32((uint8_t *)buf);				
@@ -240,11 +233,6 @@ uint32_t to_u32(char *c)
 	/* c should be /x\d+,/ */
 	i=1; /* skip x */
 	while(c[i] != ',') {
-		puts("to_u32 on ");
-		putc(c[i]);
-		puts(" with i ");
-		put_hex(i);
-		puts("\n\r");
 		ret = ret<<4;
 		val = from_hex(c[i++]);
 		ret += val;
@@ -260,6 +248,7 @@ uint8_t getc(void)
 	c = reg(UART1_DATA);
 	return c;
 }
+
 
 void putc(uint8_t c) {
 	while(reg(UT1CON)==31); /* wait for there to be room in the buffer */
@@ -291,3 +280,4 @@ void put_hex32(uint32_t x)
         put_hex((x >> 8) & 0xFF);
         put_hex((x) & 0xFF);
 }
+
