@@ -31,7 +31,7 @@ const uint8_t hex[16]={'0','1','2','3','4','5','6','7',
 
 #include "isr.h"
 
-#define NBYTES 1024
+#define NBYTES 16
 __attribute__ ((section ("startup")))
 void main(void) {
 	nvmType_t type=0;
@@ -76,7 +76,7 @@ void main(void) {
 
 	nvm_setsvar(0);
 
-	err = nvm_read(gNvmInternalInterface_c, type, (uint8_t *)buf, 0x1F000, NBYTES);
+	err = nvm_read(gNvmInternalInterface_c, type, (uint8_t *)buf, 0x1e000, NBYTES);
 	puts("nvm_read returned: 0x");
 	put_hex(err);
 	puts("\n\r");
