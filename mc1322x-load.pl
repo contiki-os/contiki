@@ -108,6 +108,7 @@ print @ARGV;
 print "\n";
 
 $ob->write(@ARGV);
+$ob->write(',');
 
 while(1) {
     print $ob->input;
