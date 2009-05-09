@@ -103,9 +103,11 @@ while(1) {
 
 print "done sending files.\n";
 
-print "sending " ;
-print @ARGV;
-print ",\n";
+if(scalar(@ARGV)!=0) {
+    print "sending " ;
+    print @ARGV;
+    print ",\n";
+}
 
 $ob->write(@ARGV);
 $ob->write(',');
