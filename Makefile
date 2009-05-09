@@ -60,6 +60,7 @@ ALL = $(TESTS:.c=.srec) $(TESTS:.c=.bin) $(TESTS:.c=.dis)
 
 all:		src/start.o src/isr.o $(ALL)
 
+tests/flasher.obj: src/maca.o src/nvm.o
 tests/nvm-read.obj: src/maca.o src/nvm.o
 tests/nvm-write.obj: src/maca.o src/nvm.o
 tests/rftest-rx.obj: src/maca.o src/nvm.o

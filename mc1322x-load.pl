@@ -8,29 +8,36 @@ use Time::HiRes qw(usleep);
 use strict;
 
 my $filename = '';
+my $second = '';
 my $term = '/dev/ttyUSB0';
 my $baud = '115200';
 my $verbose;
 
-GetOptions ('file=s' => \$filename, 
+GetOptions ('file=s' => \$filename,
+	    'secondfile=s' => \$second,
 	    'terminal=s' => \$term, 
 	    'verbose' => \$verbose, 
-	    'baud=s' => \$baud);
+	    'baud=s' => \$baud,
+    );
 
 $| = 1;
 
 if($filename eq '') {
     print "Example usage: mc1322x-load.pl -f foo.bin -t /dev/ttyS0 -b 9600\n";
+    print "          or : mc1322x-load.pl -f flasher.bin -s flashme.bin  0x1e000,0x11223344,0x55667788\n";
     print "       -f required: binary file to load\n";
+    print "       -s optional: secondary binary file to send\n";
     print "       -t default: /dev/ttyUSB0\n";
     print "       -b default: 115200\n";
+    print "  anything on the command line is sent serial device\n";
+    print "  after all of the files have been sent\n";
     exit;
 }
-	
+
 my $ob = Device::SerialPort->new ($term) or die "Can't start $term\n";
     # next test will die at runtime unless $ob
 
-$baud = 115200 if (!defined($baud));
+if ($filename eq '') { die "you must specify a file with -f\n"; }
 
 $ob->baudrate($baud);
 $ob->parity('none');
@@ -39,56 +46,74 @@ $ob->stopbits(1);
 $ob->handshake("rts");
 $ob->read_const_time(1000); # 1 second per unfulfilled "read" call
 
-my $c;
-my $count;
-my $ret = '';
+my $s = 0;
 
-$ob->write(pack('C','0'));
-until($ret eq 'CONNECT') {
-    ($count,$c) = $ob->read(1);
-    if ($count == 0) { 
-	print '.';
-	$ob->write(pack('C','0')); 
-	next;
+while(1) { 
+    
+    my $c; my $count; my $ret = ''; my $test='';
+    
+    if($s == 1) { print "secondary send...\n"; }
+    
+    $ob->write(pack('C','0'));
+    
+    if($s == 1) { 
+	$test = 'ready'; 
+    } else {
+	$test = 'CONNECT';
     }
-    $ret .= $c;
-}
-print $ret . "\n";
-
-
-#until($ret eq 'CONNECT') {
-#    $c = $ob->input;
-#    $ret .= $c;
-#}
-#print $ret . "\n"; 
-
-
-if (defined $filename) {
-
-    my $size = -s $filename;
-
-    print ("Size: $size bytes\n");
-    $ob->write(pack('V',$size));
-
-    open(FILE, $filename) or die($!);
-    print "Sending $filename\n";
-
-    my $i = 1;
-    while(read(FILE, $c, 1)) {
-	print unpack('H',$c) . unpack('h',$c) if $verbose; 
-#	print "\n" if ($verbose && ($i%4==0));
-	$i++;
-#	usleep(44); # this is as fast is it can go... 
-	usleep(50); # this is as fast is it can go... 
-#	select undef, undef, undef, 0.0001;
-	$ob->write($c);
+    
+    until($ret =~ /$test$/) {
+	($count,$c) = $ob->read(1);
+	if ($count == 0) { 
+	    print '.';
+	    $ob->write(pack('C','0')); 
+	    next;
+	}
+	$ret .= $c;
     }
-}
+    print $ret . "\n";
+    
+    if (-e $filename) {
+	
+	my $size = -s $filename;
 
-print "done.\n";
+	print ("Size: $size bytes\n");
+	$ob->write(pack('V',$size));
 
+	open(FILE, $filename) or die($!);
+	print "Sending $filename\n";
+	
+	my $i = 1;
+	while(read(FILE, $c, 1)) {
+	    $i++;
+	    usleep(50); # this is as fast is it can go... 
+	    usleep(25) if ($s==1);
+	    $ob->write($c);
+	}
+    }
+    
+    last if ($s==1);
+    if((-e $second)) {
+	$s=1; $filename = $second;
+    } else {
+	last;
+    }
+
+} 
+
+print "done sending files.\n";
+
+print "sending " ;
+print @ARGV;
+print ",\n";
+
+$ob->write(@ARGV);
+$ob->write(',');
+
+my $c; my $count;
 while(1) {
-    print $ob->input;
+    ($count, $c) = $ob->read(1);
+    print $c if ($count != 0);
 }
 
 $ob -> close or die "Close failed: $!\n";
