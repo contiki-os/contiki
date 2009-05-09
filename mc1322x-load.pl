@@ -17,19 +17,24 @@ GetOptions ('file=s' => \$filename,
 	    'secondfile=s' => \$second,
 	    'terminal=s' => \$term, 
 	    'verbose' => \$verbose, 
-	    'baud=s' => \$baud);
+	    'baud=s' => \$baud,
+    );
 
 $| = 1;
 
 if($filename eq '') {
     print "Example usage: mc1322x-load.pl -f foo.bin -t /dev/ttyS0 -b 9600\n";
-    print "          or : mc1322x-load.pl -f flasher.bin -s flashme.bin\n";
+    print "          or : mc1322x-load.pl -f flasher.bin -s flashme.bin  0x1e000,0x11223344,0x55667788\n";
     print "       -f required: binary file to load\n";
     print "       -s optional: secondary binary file to send\n";
     print "       -t default: /dev/ttyUSB0\n";
     print "       -b default: 115200\n";
+    print "  anything on the command line is sent serial device\n";
+    print "  after all of the files have been sent\n";
     exit;
 }
+
+print @ARGV;
 	
 my $ob = Device::SerialPort->new ($term) or die "Can't start $term\n";
     # next test will die at runtime unless $ob
@@ -49,7 +54,7 @@ while(1) {
     
     my $c; my $count; my $ret = ''; my $test='';
     
-    if($s == 1) { print "performing secondary send\n"; }
+    if($s == 1) { print "secondary send...\n"; }
     
     $ob->write(pack('C','0'));
     
@@ -67,7 +72,6 @@ while(1) {
 	    next;
 	}
 	$ret .= $c;
-	print $ret . "\n";
     }
     print $ret . "\n";
     
@@ -87,10 +91,6 @@ while(1) {
 	    usleep(50); # this is as fast is it can go... 
 	    usleep(25) if ($s==1);
 	    $ob->write($c);
-#	    if($s==1) {
-#		($count, $c) = $ob->read(1);
-#		print $c;
-#	    }
 	}
     }
     
@@ -103,7 +103,13 @@ while(1) {
 
 } 
 
-print "done.\n";
+print "done sending files.\n";
+
+print "sending " ;
+print @ARGV;
+print "\n";
+
+$ob->write(@ARGV);
 
 while(1) {
     print $ob->input;
