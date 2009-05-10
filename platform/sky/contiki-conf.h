@@ -1,5 +1,5 @@
 /* -*- C -*- */
-/* @(#)$Id: contiki-conf.h,v 1.51 2009/04/29 11:43:48 adamdunkels Exp $ */
+/* @(#)$Id: contiki-conf.h,v 1.52 2009/05/10 21:15:16 adamdunkels Exp $ */
 
 #ifndef CONTIKI_CONF_H
 #define CONTIKI_CONF_H
@@ -9,6 +9,8 @@
 #define RIME_CONF_NO_POLITE_ANNOUCEMENTS 1
 
 #define PACKETBUF_CONF_ATTRS_INLINE 1
+
+#define QUEUEBUF_CONF_NUM          16
 
 #define IEEE802154_CONF_PANID       0xABCD
 
