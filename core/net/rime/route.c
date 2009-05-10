@@ -33,7 +33,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: route.c,v 1.14 2009/05/04 11:23:30 adamdunkels Exp $
+ * $Id: route.c,v 1.15 2009/05/10 21:08:01 adamdunkels Exp $
  */
 
 /**
@@ -57,15 +57,36 @@
 #define NUM_RT_ENTRIES 8
 #endif /* ROUTE_CONF_ENTRIES */
 
+#ifdef ROUTE_CONF_DECAY_THRESHOLD
+#define DECAY_THRESHOLD ROUTE_CONF_DECAY_THRESHOLD
+#else /* ROUTE_CONF_DECAY_THRESHOLD */
+#define DECAY_THRESHOLD 8
+#endif /* ROUTE_CONF_DECAY_THRESHOLD */
+
+#ifdef ROUTE_CONF_DEFAULT_LIFETIME
+#define DEFAULT_LIFETIME ROUTE_CONF_DEFAULT_LIFETIME
+#else /* ROUTE_CONF_DEFAULT_LIFETIME */
+#define DEFAULT_LIFETIME 60
+#endif /* ROUTE_CONF_DEFAULT_LIFETIME */
+
 /*
- * LRU (with respect to insertion time) list of route entries.
+ * List of route entries.
  */
 LIST(route_table);
 MEMB(route_mem, struct route_entry, NUM_RT_ENTRIES);
 
 static struct ctimer t;
 
-static int max_time = 60;
+static int max_time = DEFAULT_LIFETIME;
+
+#define DEBUG 0
+#if DEBUG
+#include <stdio.h>
+#define PRINTF(...) printf(__VA_ARGS__)
+#else
+#define PRINTF(...)
+#endif
+
 
 /*---------------------------------------------------------------------------*/
 static void
@@ -76,8 +97,10 @@ periodic(void *ptr)
   for(e = list_head(route_table); e != NULL; e = e->next) {
     e->time++;
     if(e->time >= max_time) {
-      /*      printf("Route to %d.%d dropped\n",
-	      e->dest.u8[0], e->dest.u8[1]);*/
+      PRINTF("route periodic: removing entry to %d.%d with nexthop %d.%d and cost %d\n",
+	     e->dest.u8[0], e->dest.u8[1],
+	     e->nexthop.u8[0], e->nexthop.u8[1],
+	     e->cost);
       list_remove(route_table, e);
       memb_free(&route_mem, e);
     }
@@ -97,31 +120,42 @@ route_init(void)
 /*---------------------------------------------------------------------------*/
 int
 route_add(const rimeaddr_t *dest, const rimeaddr_t *nexthop,
-	  uint8_t hop_count, uint8_t seqno)
+	  uint8_t cost, uint8_t seqno)
 {
   struct route_entry *e;
 
   /* Avoid inserting duplicate entries. */
   e = route_lookup(dest);
-  if(e != NULL) {
-    list_remove(route_table, e);    
+  if(e != NULL && rimeaddr_cmp(&e->nexthop, nexthop)) {
+    list_remove(route_table, e);
   } else {
-    /* Allocate a new entry or reuse the oldest. */
+    /* Allocate a new entry or reuse the oldest entry with highest cost. */
     e = memb_alloc(&route_mem);
     if(e == NULL) {
-      e = list_chop(route_table); /* Remove oldest entry. */
+      /* Remove oldest entry.  XXX */
+      e = list_chop(route_table);
+      PRINTF("route_add: removing entry to %d.%d with nexthop %d.%d and cost %d\n",
+	     e->dest.u8[0], e->dest.u8[1],
+	     e->nexthop.u8[0], e->nexthop.u8[1],
+	     e->cost);
     }
   }
 
   rimeaddr_copy(&e->dest, dest);
   rimeaddr_copy(&e->nexthop, nexthop);
-  e->hop_count = hop_count;
+  e->cost = cost;
   e->seqno = seqno;
   e->time = 0;
+  e->decay = 0;
 
   /* New entry goes first. */
   list_push(route_table, e);
 
+  PRINTF("route_add: new entry to %d.%d with nexthop %d.%d and cost %d\n",
+	 e->dest.u8[0], e->dest.u8[1],
+	 e->nexthop.u8[0], e->nexthop.u8[1],
+	 e->cost);
+  
   return 0;
 }
 /*---------------------------------------------------------------------------*/
@@ -129,16 +163,25 @@ struct route_entry *
 route_lookup(const rimeaddr_t *dest)
 {
   struct route_entry *e;
+  uint8_t lowest_cost;
+  struct route_entry *best_entry;
 
+  lowest_cost = -1;
+  best_entry = NULL;
+  
+  /* Find the route with the lowest cost. */
   for(e = list_head(route_table); e != NULL; e = e->next) {
     /*    printf("route_lookup: comparing %d.%d.%d.%d with %d.%d.%d.%d\n",
 	   uip_ipaddr_to_quad(dest), uip_ipaddr_to_quad(&e->dest));*/
 
     if(rimeaddr_cmp(dest, &e->dest)) {
-      return e;
+      if(e->cost < lowest_cost) {
+	best_entry = e;
+	lowest_cost = e->cost;
+      }
     }
   }
-  return NULL;
+  return best_entry;
 }
 /*---------------------------------------------------------------------------*/
 void
@@ -148,6 +191,34 @@ route_refresh(struct route_entry *e)
     /* Refresh age of route so that used routes do not get thrown
        out. */
     e->time = 0;
+    e->decay = 0;
+  }
+}
+/*---------------------------------------------------------------------------*/
+void
+route_decay(struct route_entry *e)
+{
+  /* If routes are not refreshed, they decay over time. This function
+     is called to decay a route. The route can only be decayed once
+     per second. */
+  PRINTF("route_decay: time %d last %d decay %d for entry to %d.%d with nexthop %d.%d and cost %d\n",
+	 e->time, e->time_last_decay, e->decay,
+	 e->dest.u8[0], e->dest.u8[1],
+	 e->nexthop.u8[0], e->nexthop.u8[1],
+	 e->cost);
+  
+  if(e->time != e->time_last_decay) {
+    /* Do not decay a route too often - not more than once per second. */
+    e->time_last_decay = e->time;
+    e->decay++;
+
+    if(e->decay >= DECAY_THRESHOLD) {
+      PRINTF("route_decay: removing entry to %d.%d with nexthop %d.%d and cost %d\n",
+	     e->dest.u8[0], e->dest.u8[1],
+	     e->nexthop.u8[0], e->nexthop.u8[1],
+	     e->cost);
+      route_remove(e);
+    }
   }
 }
 /*---------------------------------------------------------------------------*/

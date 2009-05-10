@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: uip-over-mesh.c,v 1.13 2009/05/04 11:24:04 adamdunkels Exp $
+ * $Id: uip-over-mesh.c,v 1.14 2009/05/10 21:08:01 adamdunkels Exp $
  */
 
 /**
@@ -81,11 +81,19 @@ static void
 recv_data(struct unicast_conn *c, rimeaddr_t *from)
 {
   struct route_entry *e;
+  rimeaddr_t source;
+    
+  uip_len = packetbuf_copyto(&uip_buf[UIP_LLH_LEN]);
+
+  source.u8[0] = BUF->srcipaddr.u8[2];
+  source.u8[1] = BUF->srcipaddr.u8[3];
 
   e = route_lookup(from);
-  route_refresh(e);
-  
-  uip_len = packetbuf_copyto(&uip_buf[UIP_LLH_LEN]);
+  if(e == NULL) {
+    route_add(&source, from, 10, 0);
+  } else {
+    route_refresh(e);
+  }
 
   /*  uip_len = hc_inflate(&uip_buf[UIP_LLH_LEN], uip_len);*/
 
@@ -117,6 +125,7 @@ new_route(struct route_discovery_conn *c, rimeaddr_t *to)
 
     rt = route_lookup(&queued_receiver);
     if(rt) {
+      route_decay(rt);
       send_data(&queued_receiver);
     }
   }
@@ -179,7 +188,7 @@ void
 uip_over_mesh_init(u16_t channels)
 {
 
-  printf("Our address is %d.%d (%d.%d.%d.%d)\n",
+  PRINTF("Our address is %d.%d (%d.%d.%d.%d)\n",
 	 rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1],
 	 uip_hostaddr.u8[0], uip_hostaddr.u8[1],
 	 uip_hostaddr.u8[2], uip_hostaddr.u8[3]);
@@ -191,7 +200,7 @@ uip_over_mesh_init(u16_t channels)
 	       &trickle_call);
 
   /* Set lifetime to 10 seconds for non-refreshed routes. */
-  route_set_lifetime(10);
+  route_set_lifetime(30);
 }
 /*---------------------------------------------------------------------------*/
 u8_t
@@ -257,6 +266,7 @@ uip_over_mesh_send(void)
       route_discovery_discover(&route_discovery, &receiver, ROUTE_TIMEOUT);
     }
   } else {
+    route_decay(rt);
     send_data(&rt->nexthop);
   }
   return UIP_FW_OK;
