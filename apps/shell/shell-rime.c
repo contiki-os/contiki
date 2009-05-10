@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: shell-rime.c,v 1.13 2009/03/12 21:58:20 adamdunkels Exp $
+ * $Id: shell-rime.c,v 1.14 2009/05/10 21:04:06 adamdunkels Exp $
  */
 
 /**
@@ -131,11 +131,6 @@ SHELL_COMMAND(treedepth_command,
 	      "treedepth: print the collection tree depth",
 	      &shell_treedepth_process);
 #endif /* WITH_TREEDEPTH */
-PROCESS(shell_neighbors_process, "neighbors");
-SHELL_COMMAND(neighbors_command,
-	      "neighbors",
-	      "neighbors: dump neighbor list in binary format",
-	      &shell_neighbors_process);
 PROCESS(shell_routes_process, "routes");
 SHELL_COMMAND(routes_command,
 	      "routes",
@@ -237,39 +232,9 @@ PROCESS_THREAD(shell_routes_process, ev, data)
     r = route_get(i);
     rimeaddr_copy((rimeaddr_t *)&msg.dest, &r->dest);
     rimeaddr_copy((rimeaddr_t *)&msg.nexthop, &r->nexthop);
-    msg.hop_count = r->hop_count;
+    msg.hop_count = r->cost;
     msg.seqno = r->seqno;
     shell_output(&routes_command, &msg, sizeof(msg), "", 0);
-  }
-  
-  PROCESS_END();
-}
-/*---------------------------------------------------------------------------*/
-PROCESS_THREAD(shell_neighbors_process, ev, data)
-{
-  struct {
-    uint16_t len;
-    uint16_t addr;
-    uint16_t rtmetric;
-    uint16_t etx;
-  } msg;
-  int i;
-  struct neighbor *n;
-  
-  PROCESS_BEGIN();
-
-  for(i = 0; i < neighbor_num(); ++i) {
-
-    n = neighbor_get(i);
-
-    if(!rimeaddr_cmp(&n->addr, &rimeaddr_null)) {
-      memset(&msg, 0, sizeof(msg));
-      msg.len = 3;
-      rimeaddr_copy((rimeaddr_t *)&msg.addr, &n->addr);
-      msg.rtmetric = n->rtmetric;
-      msg.etx = neighbor_etx(n);
-      shell_output(&neighbors_command, &msg, sizeof(msg), "", 0);
-    }
   }
   
   PROCESS_END();
@@ -478,7 +443,6 @@ shell_rime_init(void)
   
   shell_register_command(&collect_command);
   shell_register_command(&mac_command);
-  shell_register_command(&neighbors_command);
   shell_register_command(&nodes_command);
   shell_register_command(&packetize_command);
   shell_register_command(&routes_command);
