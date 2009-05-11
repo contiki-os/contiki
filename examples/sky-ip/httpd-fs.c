@@ -30,7 +30,7 @@
  * 
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: httpd-fs.c,v 1.1 2008/07/07 23:42:32 adamdunkels Exp $
+ * $Id: httpd-fs.c,v 1.2 2009/05/11 17:38:29 adamdunkels Exp $
  */
 
 #include "contiki-net.h"
@@ -80,7 +80,7 @@ httpd_fs_open(const char *name, struct httpd_fs_file *file)
 
     if(httpd_fs_strcmp(name, f->name) == 0) {
       file->data = f->data;
-      file->len = f->len;
+      file->len = f->len - 1;
 #if HTTPD_FS_STATISTICS
       ++count[i];
 #endif /* HTTPD_FS_STATISTICS */
