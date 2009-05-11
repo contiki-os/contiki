@@ -66,6 +66,7 @@ tests/nvm-write.obj: src/maca.o src/nvm.o
 tests/rftest-rx.obj: src/maca.o src/nvm.o
 tests/rftest-tx.obj: src/maca.o src/nvm.o
 tests/tmr-ints.obj: src/isr.o
+tests/sleep.obj: src/isr.o
 
 NOTHUMB_CPPFLAGS := $(DBGFLAGS) $(OPTFLAGS) $(RELFLAGS)         \
         -D__KERNEL__ -DTEXT_BASE=$(TEXT_BASE)           \
