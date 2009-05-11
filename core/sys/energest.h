@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: energest.h,v 1.3 2008/10/14 12:46:39 nvt-se Exp $
+ * $Id: energest.h,v 1.4 2009/05/11 15:26:24 nvt-se Exp $
  */
 
 /**
@@ -57,6 +57,9 @@ enum energest_type {
   ENERGEST_TYPE_LED_RED,
   ENERGEST_TYPE_TRANSMIT,
   ENERGEST_TYPE_LISTEN,
+
+  ENERGEST_TYPE_FLASH_READ,
+  ENERGEST_TYPE_FLASH_WRITE,
 
   ENERGEST_TYPE_SENSORS,
 
