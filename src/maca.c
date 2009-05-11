@@ -146,6 +146,19 @@ void vreg_init(void) {
 	*(volatile uint32_t *)(0x80003048) = 0x00000ff8; /* start the regulators */
 }
 
+void radio_off(void) {
+	/* turn off the radio regulators */
+	reg(0x80003048) =  0x00000f00;
+	/* hold the maca in reset */
+	maca_reset = maca_reset_rst;  
+}
+
+void radio_on(void) {
+	/* turn the radio regulators back on */
+	reg(0x80003048) =  0x00000f78; 
+	/* reinitialize the phy */
+	init_phy();
+}
 
 /* radio_init has been tested to be good */
 void radio_init(void) {
