@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#)$Id: xmem.c,v 1.7 2008/07/03 23:12:10 adamdunkels Exp $
+ * @(#)$Id: xmem.c,v 1.8 2009/05/11 15:26:24 nvt-se Exp $
  */
 
 /**
@@ -169,6 +169,8 @@ xmem_pread(void *_p, int size, unsigned long offset)
   int s;
   wait_ready();
 
+  ENERGEST_ON(ENERGEST_TYPE_FLASH_READ);
+
   s = splhigh();
   SPI_FLASH_ENABLE();
 
@@ -186,6 +188,9 @@ xmem_pread(void *_p, int size, unsigned long offset)
 
   SPI_FLASH_DISABLE();
   splx(s);
+
+  ENERGEST_OFF(ENERGEST_TYPE_FLASH_READ);
+
   return size;
 }
 /*---------------------------------------------------------------------------*/
@@ -223,6 +228,8 @@ xmem_pwrite(const void *_buf, int size, unsigned long addr)
   const unsigned char *p = _buf;
   const unsigned long end = addr + size;
   unsigned long i, next_page;
+
+  ENERGEST_ON(ENERGEST_TYPE_FLASH_WRITE);
   
   for(i = addr; i < end;) {
     next_page = (i | 0xff) + 1;
@@ -232,6 +239,9 @@ xmem_pwrite(const void *_buf, int size, unsigned long addr)
     p = program_page(i, p, next_page - i);
     i = next_page;
   }
+
+  ENERGEST_OFF(ENERGEST_TYPE_FLASH_WRITE);
+
   return size;
 }
 /*---------------------------------------------------------------------------*/
