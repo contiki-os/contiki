@@ -1,7 +1,7 @@
 CONTIKI_PROJECT = sky-webserver
 all: $(CONTIKI_PROJECT)
 
-APPS = telnetd webserver
+APPS = webserver twitter telnetd
 CFLAGS = -DWITH_UIP=1 -I. #-DWITH_NULLMAC=1
 
 # The webserver application normally contains a built-in file system and support
@@ -11,10 +11,10 @@ CFLAGS = -DWITH_UIP=1 -I. #-DWITH_NULLMAC=1
 # which serves files from an cfs file system. To build the alternative webserver
 # run make with the parameter HTTPD-CFS=1.
 
-ifeq ($(HTTPD-CFS),1)
-override webserver_src = webserver-nogui.c http-strings.c psock.c memb.c \
-                         httpd-cfs.c
-endif
+# ifeq ($(HTTPD-CFS),1)
+# override webserver_src = webserver-nogui.c http-strings.c psock.c memb.c \
+#                          httpd-cfs.c
+# endif
 
 CONTIKI = ../..
 include $(CONTIKI)/Makefile.include
@@ -31,15 +31,15 @@ sky-webserver.$(TARGET): $(OBJECTDIR)/ajax-cgi.o
 # so the existence of the "wrong" object file is used to detect a switch and
 # trigger deletion of the Contiki library - and the trigger file of course.
 
-ifeq ($(HTTPD-CFS),1)
-  ifneq (${wildcard $(OBJECTDIR)/httpd.o},)
-  DUMMY := ${shell rm -f contiki-$(TARGET).a $(OBJECTDIR)/httpd.o}
-  endif
-else
-  ifneq (${wildcard $(OBJECTDIR)/httpd-cfs.o},)
-  DUMMY := ${shell rm -f contiki-$(TARGET).a $(OBJECTDIR)/httpd-cfs.o}
-  endif
-endif
+# ifeq ($(HTTPD-CFS),1)
+#   ifneq (${wildcard $(OBJECTDIR)/httpd.o},)
+#   DUMMY := ${shell rm -f contiki-$(TARGET).a $(OBJECTDIR)/httpd.o}
+#   endif
+# else
+#   ifneq (${wildcard $(OBJECTDIR)/httpd-cfs.o},)
+#   DUMMY := ${shell rm -f contiki-$(TARGET).a $(OBJECTDIR)/httpd-cfs.o}
+#   endif
+# endif
 
 slip:
 ifdef INTERFACE
