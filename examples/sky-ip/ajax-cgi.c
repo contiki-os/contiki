@@ -28,7 +28,7 @@
  *
  * This file is part of the uIP TCP/IP stack.
  *
- * $Id: ajax-cgi.c,v 1.2 2008/11/06 08:24:20 adamdunkels Exp $
+ * $Id: ajax-cgi.c,v 1.3 2009/05/11 17:38:29 adamdunkels Exp $
  *
  */
 
@@ -101,8 +101,10 @@ httpd_cgi_add(struct httpd_cgi_call *c)
   }
 }
 /*---------------------------------------------------------------------------*/
+#if CONTIKI_TARGET_SKY
 #include "dev/sht11.h"
 #include "dev/light.h"
+#endif /* CONTIKI_TARGET_SKY */
 
 static
 PT_THREAD(sensorscall(struct httpd_state *s, char *ptr))
@@ -116,23 +118,32 @@ PT_THREAD(sensorscall(struct httpd_state *s, char *ptr))
 
   timer_set(&t, CLOCK_SECOND);
   i = 0;
-  while(1) {
-    timer_restart(&t);
-    PSOCK_WAIT_UNTIL(&s->sout, timer_expired(&t));
+  /*  while(1)*/ {
+    /*    timer_restart(&t);
+	  PSOCK_WAIT_UNTIL(&s->sout, timer_expired(&t));*/
 
+#if CONTIKI_TARGET_SKY
     snprintf(buf, sizeof(buf),
-	     "<script type='text/javascript'>t(%d);h(%d);l1(%d);l2(%d);</script>",
+	     "t(%d);h(%d);l1(%d);l2(%d);",
 	     sht11_temp(),
 	     sht11_humidity(),
 	     sensors_light1(),
 	     sensors_light2());
+#else /* CONTIKI_TARGET_SKY */
+    snprintf(buf, sizeof(buf),
+	     "t(%d);h(%d);l1(%d);l2(%d);",
+	     0,
+	     0,
+	     0,
+	     0);
+#endif /* CONTIKI_TARGET_SKY */
     PSOCK_SEND_STR(&s->sout, buf);
 
 
-    timer_restart(&t);
-    PSOCK_WAIT_UNTIL(&s->sout, timer_expired(&t));
+    /*    timer_restart(&t);
+	  PSOCK_WAIT_UNTIL(&s->sout, timer_expired(&t));*/
     snprintf(buf, sizeof(buf),
-	     "<script type='text/javascript'>p(%lu,%lu,%lu,%lu);i(%d);</script>",
+	     "p(%lu,%lu,%lu,%lu);i(%d);",
 	     energest_type_time(ENERGEST_TYPE_CPU) - last_cpu,
 	     energest_type_time(ENERGEST_TYPE_LPM) - last_lpm,
 	     energest_type_time(ENERGEST_TYPE_TRANSMIT) - last_transmit,
@@ -170,6 +181,8 @@ PT_THREAD(neighborscall(struct httpd_state *s, char *ptr))
 {
   PSOCK_BEGIN(&s->sout);
 
+  announcement_listen(1);
+  
   /*  printf("neighbor_num %d\n", neighbor_num());*/
   
   for(s->u.count = 0; s->u.count < neighbor_num(); s->u.count++) {
@@ -185,8 +198,8 @@ PT_THREAD(neighborscall(struct httpd_state *s, char *ptr))
 /*---------------------------------------------------------------------------*/
 
 static void
-adv_received(struct neighbor_discovery_conn *c, rimeaddr_t *from,
-	     uint16_t rtmetric)
+received_announcement(struct announcement *a, rimeaddr_t *from,
+	     uint16_t id, uint16_t value)
 {
   struct neighbor *n;
 
@@ -195,22 +208,23 @@ adv_received(struct neighbor_discovery_conn *c, rimeaddr_t *from,
   n = neighbor_find(from);
   
   if(n == NULL) {
-    neighbor_add(from, rtmetric, 1);
+    neighbor_add(from, value, 1);
   } else {
-    neighbor_update(n, rtmetric);
+    neighbor_update(n, value);
   }
 }
 
 
-static const struct neighbor_discovery_callbacks neighbor_discovery_callbacks =
-  { adv_received, NULL};
+/*static const struct neighbor_discovery_callbacks neighbor_discovery_callbacks =
+  { adv_received, NULL};*/
 
 
 HTTPD_CGI_CALL(sensors, "sensors", sensorscall);
 HTTPD_CGI_CALL(nodeid, "nodeid", nodeidcall);
 HTTPD_CGI_CALL(neighbors, "neighbors", neighborscall);
 
-static struct neighbor_discovery_conn conn;
+/*static struct neighbor_discovery_conn conn;*/
+static struct announcement announcement;
 
 void
 httpd_cgi_init(void)
@@ -220,11 +234,15 @@ httpd_cgi_init(void)
   httpd_cgi_add(&nodeid);
   httpd_cgi_add(&neighbors);
 
-  neighbor_discovery_open(&conn, 31,
+  announcement_register(&announcement, 31, 0,
+			received_announcement);
+  announcement_listen(2);
+
+  /*  neighbor_discovery_open(&conn, 31,
 			  CLOCK_SECOND * 4,
 			  CLOCK_SECOND * 20,
 			  CLOCK_SECOND * 60,
 			  &neighbor_discovery_callbacks);
-  neighbor_discovery_start(&conn, 0);
+			  neighbor_discovery_start(&conn, 0);*/
 }
 /*---------------------------------------------------------------------------*/
