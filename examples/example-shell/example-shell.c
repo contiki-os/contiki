@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: example-shell.c,v 1.1 2009/04/23 08:42:07 fros4943 Exp $
+ * $Id: example-shell.c,v 1.2 2009/05/11 17:37:15 adamdunkels Exp $
  */
 
 /**
@@ -89,6 +89,7 @@ PROCESS_THREAD(example_shell_process, ev, data)
   shell_udpsend_init();
   shell_vars_init();
   shell_wget_init();
+  shell_tweet_init();
 
   PROCESS_END();
 }
