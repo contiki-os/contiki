@@ -54,9 +54,8 @@
 #include "cfs/cfs-coffee.h"
 #include "dev/watchdog.h"
 
-#if COFFEE_PAGES_PER_SECTOR & (COFFEE_PAGES_PER_SECTOR - 1)
-#error COFFEE_PAGES_PER_SECTOR must be a power of two.
-#error Change COFFEE_PAGES_PER_SECTOR in cfs-coffee-arch.h.
+#if COFFEE_START & (COFFEE_SECTOR_SIZE - 1)
+#error COFFEE_START must point to the first byte in a sector.
 #endif
 
 #define COFFEE_FD_FREE		0x0
@@ -323,7 +322,7 @@ next_file(coffee_page_t page, struct file_header *hdr)
 }
 /*---------------------------------------------------------------------------*/
 static struct file *
-load_file(const char *name, struct file_header *hdr, coffee_page_t start)
+load_file(coffee_page_t start, struct file_header *hdr)
 {
   int i, unreferenced, free;
   struct file *file;
@@ -342,18 +341,22 @@ load_file(const char *name, struct file_header *hdr, coffee_page_t start)
     }
   }
 
-  if(free != -1) {
-     i = free;
-  } else if(unreferenced != -1) {
-    i = unreferenced;
-  } else {
-    return NULL;
+  if(free == -1) {
+    if(unreferenced != -1) {
+      i = unreferenced;
+    } else {
+      return NULL;
+    }
   }
 
   file = &coffee_files[i];
   file->page = start;
   file->end = UNKNOWN_OFFSET;
   file->max_pages = hdr->max_pages;
+  file->flags = 0;
+  if(HDR_MODIFIED(*hdr)) {
+    file->flags |= COFFEE_FILE_MODIFIED;
+  }
   file->next_log_record = -1;
 
   return file;
@@ -365,7 +368,7 @@ find_file(const char *name)
   int i;
   struct file_header hdr;
   coffee_page_t page;
-
+  
   /* First check if the file metadata is cached. */
   for(i = 0; i < COFFEE_MAX_OPEN_FILES; i++) {
     if(coffee_files[i].max_pages == 0) {
@@ -373,16 +376,16 @@ find_file(const char *name)
     }
 
     read_header(&hdr, coffee_files[i].page);
-    if(HDR_ACTIVE(hdr) && strcmp(name, hdr.name) == 0) {
+    if(HDR_ACTIVE(hdr) && !HDR_LOG(hdr) && strcmp(name, hdr.name) == 0) {
       return &coffee_files[i];
     }
   }
-
+  
   /* Scan the flash memory sequentially otherwise. */
   for(page = 0; page < COFFEE_PAGE_COUNT; page = next_file(page, &hdr)) {
     read_header(&hdr, page);
-    if(HDR_ACTIVE(hdr) && strcmp(name, hdr.name) == 0) {
-	return load_file(name, &hdr, page);
+    if(HDR_ACTIVE(hdr) && !HDR_LOG(hdr) && strcmp(name, hdr.name) == 0) {
+      return load_file(page, &hdr);
     }
   }
 
@@ -546,7 +549,7 @@ reserve(const char *name, coffee_page_t pages, int allow_duplicates)
   PRINTF("Coffee: Reserved %u pages starting from %u for file %s\n",
       pages, page, name);
 
-  file = load_file(name, &hdr, page);
+  file = load_file(page, &hdr);
   file->end = 0;
   watchdog_start();
 
@@ -585,22 +588,19 @@ get_record_index(coffee_page_t log_page, uint16_t search_records,
   uint16_t processed;
   uint16_t batch_size;
   int16_t match_index, i;
-  uint16_t record_count;
 
   base = absolute_offset(log_page, sizeof(uint16_t) * search_records);
-  record_count = search_records > COFFEE_LOG_TABLE_LIMIT ?
+  batch_size = search_records > COFFEE_LOG_TABLE_LIMIT ?
       		COFFEE_LOG_TABLE_LIMIT : search_records;
   processed = 0;
   match_index = -1;
 
   {
-  uint16_t indices[record_count];
+  uint16_t indices[batch_size];
 
   while(processed < search_records && match_index < 0) {
-    if(record_count + processed > search_records) {
+    if(batch_size + processed > search_records) {
       batch_size = search_records - processed;
-    } else {
-      batch_size = record_count;
     }
 
     base -= batch_size * sizeof(indices[0]);
@@ -647,27 +647,10 @@ read_log_page(struct file_header *hdr, int16_t last_record, struct log_param *lp
   return lp->size;
 }
 /*---------------------------------------------------------------------------*/
-static unsigned char *
-create_log_name(unsigned char *new, int max_size, unsigned char *old)
-{
-  const unsigned char suffix[] = ".log";
-  int len;
-
-  len = strlen(old);
-  if(len > max_size - sizeof(suffix)) {
-    len = max_size - sizeof(suffix);
-  }
-  memcpy(new, old, len);
-  memcpy(&new[len], suffix, sizeof(suffix));
-
-  return new;
-}
-/*---------------------------------------------------------------------------*/
 static coffee_page_t
 create_log(struct file *file, struct file_header *hdr)
 {
   coffee_page_t log_page;
-  unsigned char log_name[sizeof(hdr->name)];
   uint16_t log_record_size, log_records;
   cfs_offset_t size;
   struct file *log_file;
@@ -677,9 +660,8 @@ create_log(struct file *file, struct file_header *hdr)
   size = log_records * sizeof(uint16_t);	/* Log index size. */
   size += log_records * log_record_size;	/* Log data size. */
 
-  log_file = reserve(create_log_name(log_name, sizeof(log_name), hdr->name),
-	      page_count(size), 0);
-  if(file == NULL) {
+  log_file = reserve(hdr->name, page_count(size), 1);
+  if(log_file == NULL) {
     return INVALID_PAGE;
   }
   log_page = log_file->page;
@@ -761,6 +743,7 @@ merge_log(coffee_page_t file_page, int extend)
   hdr2.log_records = hdr.log_records;
   write_header(&hdr2, new_file->page);
 
+  new_file->flags &= ~COFFEE_FILE_MODIFIED;
   new_file->end = offset;
 
   cfs_close(fd);
@@ -772,12 +755,12 @@ static int
 find_next_record(struct file *file, coffee_page_t log_page,
 		int log_records)
 {
-  int log_record, i, preferred_batch_size;
+  int log_record, preferred_batch_size;
 
   preferred_batch_size = log_records > COFFEE_LOG_TABLE_LIMIT ?
 			 COFFEE_LOG_TABLE_LIMIT : log_records;
 
-  if(file->next_log_record == 0) {
+  if(file->next_log_record == -1) {
     /* The next log record is unknown. Search for it. */
     uint16_t indices[preferred_batch_size];
     uint16_t processed;
@@ -790,12 +773,11 @@ find_next_record(struct file *file, coffee_page_t log_page,
 
       COFFEE_READ(&indices, batch_size * sizeof(indices[0]),
 		  absolute_offset(log_page, processed * sizeof(indices[0])));
-      for(i = 0; i < batch_size && indices[i] != 0; i++);
-      log_record = i;
-
-      if(log_record < batch_size) {
-	log_record += processed;
-	break;
+      for(log_record = 0; log_record < batch_size; log_record++) {
+	if(indices[log_record] == 0) {
+	  log_record += processed;
+	  break;
+	}
       }
     }
   } else {
@@ -852,7 +834,7 @@ write_log_page(struct file *file, struct log_param *lp)
     lp_out.size = log_record_size;
 
     if((lp->offset > 0 || lp->size != log_record_size) &&
-	read_log_page(&hdr, file->next_log_record - 1, &lp_out) < 0) {
+	read_log_page(&hdr, log_record, &lp_out) < 0) {
       COFFEE_READ(copy_buf, sizeof(copy_buf),
 	  absolute_offset(file->page, region * log_record_size));
     }
@@ -1029,7 +1011,7 @@ cfs_read(int fd, void *buf, unsigned size)
       lp.offset = base + offset;
       lp.buf = (char *)buf + offset;
       lp.size = remains;
-      r = read_log_page(&hdr, file->next_log_record - 1, &lp);
+      r = read_log_page(&hdr, file->next_log_record, &lp);
     }
     /* Read from the original file if we cannot find the data in the log. */
     if(r < 0) {
@@ -1070,7 +1052,7 @@ cfs_write(int fd, const void *buf, unsigned size)
     PRINTF("Extended the file at page %u\n", (unsigned)file->page);
   }
 
-  if(fdp->offset < file->end) {
+  if(FILE_MODIFIED(file) || fdp->offset < file->end) {
     remains = size;
     while(remains) {
       lp.offset = fdp->offset;
@@ -1087,6 +1069,11 @@ cfs_write(int fd, const void *buf, unsigned size)
       }
       remains -= i;
       fdp->offset += i;
+    }
+
+    if(fdp->offset > file->end) {
+      /* Update the original file's end with a dummy write. */
+      COFFEE_WRITE(buf, 1, absolute_offset(file->page, fdp->offset));
     }
   } else {
     COFFEE_WRITE(buf, size, absolute_offset(file->page, fdp->offset));
@@ -1178,20 +1165,14 @@ cfs_coffee_configure_log(const char *filename, unsigned log_size,
 int
 cfs_coffee_format(void)
 {
-  int nsectors, i;
+  int i;
 
-  nsectors = COFFEE_SECTOR_COUNT;
-  /* Reject format requests when the configuration is incorrect. */
-  if(nsectors < 1 || (COFFEE_START & (COFFEE_SECTOR_SIZE - 1))) {
-    return -1;
-  }
-
-  PRINTF("Coffee: Formatting %d sectors", nsectors);
+  PRINTF("Coffee: Formatting %d sectors", COFFEE_SECTOR_COUNT);
 
   *next_free = 0;
 
   watchdog_stop();
-  for(i = 0; i < nsectors; i++) {
+  for(i = 0; i < COFFEE_SECTOR_COUNT; i++) {
     COFFEE_ERASE(i);
     PRINTF(".");
   }
