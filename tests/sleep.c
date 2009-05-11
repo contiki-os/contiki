@@ -39,16 +39,16 @@ __attribute__ ((section ("startup"))) void main(void) {
 //	reg32(CRM_SLEEP_CNTL) = 1; /* hibernate, RAM page 0 only, don't retain state, don't power GPIO */ /* approx. 2.0uA */
 //	reg32(CRM_SLEEP_CNTL) = 0x41; /* hibernate, RAM page 0 only, retain state, don't power GPIO */ /* approx. 10.0uA */
 //	reg32(CRM_SLEEP_CNTL) = 0x51; /* hibernate, RAM page 0&1 only, retain state, don't power GPIO */ /* approx. 11.7uA */
-//	reg32(CRM_SLEEP_CNTL) = 0x61; /* hibernate, RAM page 0&1 only, retain state, don't power GPIO */ /* approx. 13.9uA */
-//	reg32(CRM_SLEEP_CNTL) = 0x71; /* hibernate, RAM page 0&1 only, retain state, don't power GPIO */ /* approx. 16.1uA - possibly with periodic refresh*/
-//	reg32(CRM_SLEEP_CNTL) = 0xf1; /* hibernate, RAM page 0&1 only, retain state,       power GPIO */ /* approx. 16.1uA - possibly with periodic refresh*/
+//	reg32(CRM_SLEEP_CNTL) = 0x61; /* hibernate, RAM page 0,1,2 only, retain state, don't power GPIO */ /* approx. 13.9uA */
+//	reg32(CRM_SLEEP_CNTL) = 0x71; /* hibernate, all RAM pages, retain state, don't power GPIO */ /* approx. 16.1uA - possibly with periodic refresh*/
+//	reg32(CRM_SLEEP_CNTL) = 0xf1; /* hibernate, all RAM pages, retain state,       power GPIO */ /* approx. 16.1uA - possibly with periodic refresh*/
 
 //	reg32(CRM_SLEEP_CNTL) = 2; /* doze     , RAM page 0 only, don't retain state, don't power GPIO */ /* approx. 69.2 uA */
 	reg32(CRM_SLEEP_CNTL) = 0x42; /* doze     , RAM page 0 only, retain state, don't power GPIO */ /* approx. 77.3uA */
 //	reg32(CRM_SLEEP_CNTL) = 0x52; /* doze     , RAM page 0&1 only, retain state, don't power GPIO */ /* approx. 78.9uA */
-//	reg32(CRM_SLEEP_CNTL) = 0x62; /* doze     , RAM page 0&1 only, retain state, don't power GPIO */ /* approx. 81.2uA */
-//	reg32(CRM_SLEEP_CNTL) = 0x72; /* doze     , RAM page 0&1 only, retain state, don't power GPIO */ /* approx. 83.4uA - possibly with periodic refresh*/
-//	reg32(CRM_SLEEP_CNTL) = 0xf2; /* doze     , RAM page 0&1 only, retain state,       power GPIO */ /* approx. 82.8uA - possibly with periodic refresh*/
+//	reg32(CRM_SLEEP_CNTL) = 0x62; /* doze     , RAM page 0,1,2 only, retain state, don't power GPIO */ /* approx. 81.2uA */
+//	reg32(CRM_SLEEP_CNTL) = 0x72; /* doze     , all RAM pages, retain state, don't power GPIO */ /* approx. 83.4uA - possibly with periodic refresh*/
+//	reg32(CRM_SLEEP_CNTL) = 0xf2; /* doze     , all RAM pages, retain state,       power GPIO */ /* approx. 82.8uA - possibly with periodic refresh*/
 
 	/* wait for the sleep cycle to complete */
 	while((reg32(CRM_STATUS) & 0x1) == 0) { continue; }
