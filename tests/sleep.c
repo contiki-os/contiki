@@ -50,16 +50,17 @@ __attribute__ ((section ("startup"))) void main(void) {
 //	reg32(CRM_SLEEP_CNTL) = 0x72; /* doze     , RAM page 0&1 only, retain state, don't power GPIO */ /* approx. 83.4uA - possibly with periodic refresh*/
 //	reg32(CRM_SLEEP_CNTL) = 0xf2; /* doze     , RAM page 0&1 only, retain state,       power GPIO */ /* approx. 82.8uA - possibly with periodic refresh*/
 
+	/* wait for the sleep cycle to complete */
 	while((reg32(CRM_STATUS) & 0x1) == 0) { continue; }
-
-	reg32(CRM_STATUS) = 1; /* write 1 to sleep_sync --- this clears the bit (it's a r1wc bit) and powers down */
+	/* write 1 to sleep_sync --- this clears the bit (it's a r1wc bit) and powers down */
+	reg32(CRM_STATUS) = 1; 
 	
 	/* asleep */
 
+	/* wait for the awake cycle to complete */
 	while((reg32(CRM_STATUS) & 0x1) == 0) { continue; }
-
-	reg32(CRM_STATUS) = 1; /* write 1 to sleep_sync --- this clears the bit (it's a r1wc bit) and finishes wakeup */
-
+	/* write 1 to sleep_sync --- this clears the bit (it's a r1wc bit) and finishes wakeup */
+	reg32(CRM_STATUS) = 1; 
 
 	volatile uint32_t i;
 	while(1) {
