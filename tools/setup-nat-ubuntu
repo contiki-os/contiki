@@ -2,8 +2,9 @@
 
 # Run this script as root ("sudo ./setup-nat-ubuntu"). It has been tested on Ubunru 8.04.
 
-/sbin/iptables --table nat --append POSTROUTING --out-interface eth0 -j MASQUERADE
+/sbin/iptables --table nat --append POSTROUTING --out-interface eth10 -j MASQUERADE
 /sbin/iptables --append FORWARD --in-interface tun0 -j ACCEPT
+/sbin/iptables --append FORWARD --in-interface tap0 -j ACCEPT
 
 /sbin/sysctl -w net.ipv4.conf.default.forwarding=1
 /sbin/sysctl -w net.ipv4.conf.all.forwarding=1
