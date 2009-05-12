@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: shell-file.c,v 1.11 2009/03/19 20:42:39 nvt-se Exp $
+ * $Id: shell-file.c,v 1.12 2009/05/12 14:22:58 nvt-se Exp $
  */
 
 /**
@@ -67,7 +67,7 @@ SHELL_COMMAND(write_command,
 PROCESS(shell_read_process, "read");
 SHELL_COMMAND(read_command,
 	      "read",
-	      "read <filename> [offset]: read from file, with an optional offset",
+	      "read <filename> [offset] [block size]: read from a file, with the offset and the block size as options",
 	      &shell_read_process);
 PROCESS(shell_rm_process, "rm");
 SHELL_COMMAND(rm_command,
@@ -208,14 +208,15 @@ PROCESS_THREAD(shell_read_process, ev, data)
       filename[len] = 0;
 
       offset = shell_strtolong(next, NULL);
-
       next++;
       next = strchr(next, ' ');
-      block_size = shell_strtolong(next, NULL);
-      if(block_size > MAX_BLOCKSIZE) {
-	shell_output_str(&read_command,
-		       "read: block size too large: ", data);
-	PROCESS_EXIT();
+      if(next != NULL) {
+	block_size = shell_strtolong(next, NULL);
+	if(block_size > MAX_BLOCKSIZE) {
+	  shell_output_str(&read_command,
+			   "read: block size too large: ", data);
+	  PROCESS_EXIT();
+        }
       }
     }
     
