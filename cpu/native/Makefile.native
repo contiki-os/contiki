@@ -30,3 +30,5 @@ else
 symbols.c symbols.h:
 	@${CONTIKI}/tools/make-empty-symbols
 endif
+
+contiki-$(TARGET).a: ${addprefix $(OBJECTDIR)/,symbols.o}
