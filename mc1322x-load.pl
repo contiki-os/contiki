@@ -87,7 +87,7 @@ while(1) {
 	while(read(FILE, $c, 1)) {
 	    $i++;
 	    usleep(50); # this is as fast is it can go... 
-	    usleep(25) if ($s==1);
+	    usleep(50) if ($s==1);
 	    $ob->write($c);
 	}
     }
