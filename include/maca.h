@@ -412,6 +412,8 @@ void init_phy(void);
 void vreg_init(void);
 void ResumeMACASync(void);
 void radio_init(void);
+void radio_off(void);
+void radio_on(void);
 uint32_t init_from_flash(uint32_t addr);
 void set_power(uint8_t power);
 void set_channel(uint8_t chan);
