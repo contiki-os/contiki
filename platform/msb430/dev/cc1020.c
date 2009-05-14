@@ -77,9 +77,9 @@ static void cc1020_reset(void);
 
 /* current mode of cc1020 chip */
 static volatile enum cc1020_state cc1020_state = CC1020_OFF;
-static volatile uint8_t cc1020_rxbuf[HDRSIZE + CC1020_BUFFERSIZE];
-static uint8_t cc1020_txbuf[PREAMBLESIZE + SYNCWDSIZE + HDRSIZE +
-			   CC1020_BUFFERSIZE + TAILSIZE];
+static volatile uint8_t cc1020_rxbuf[HDR_SIZE + CC1020_BUFFERSIZE];
+static uint8_t cc1020_txbuf[PREAMBLE_SIZE + SYNCWORD_SIZE + HDR_SIZE +
+			   CC1020_BUFFERSIZE + TAIL_SIZE];
 
 /* number of bytes in receive and transmit buffers respectively. */
 static uint8_t cc1020_rxlen;
@@ -137,8 +137,8 @@ cc1020_init(const uint8_t *config)
   cc1020_load_config(config);
 
   /* init tx buffer with preamble + syncword */
-  memset(cc1020_txbuf, PREAMBLE, PREAMBLESIZE);
-  memcpy((char *)cc1020_txbuf + PREAMBLESIZE, &syncword, SYNCWDSIZE);
+  memset(cc1020_txbuf, PREAMBLE, PREAMBLE_SIZE);
+  memcpy((char *)cc1020_txbuf + PREAMBLE_SIZE, &syncword, SYNCWORD_SIZE);
 
   /* calibrate receiver */
   cc1020_wakeupRX(RX_CURRENT);
@@ -233,9 +233,8 @@ int
 cc1020_send(const void *buf, unsigned short len)
 {
   int try;  
-  int normal_header = HDRSIZE + len;
-  int i;
-  uint16_t rxcrc = 0xFFFF; /* For checksum purposes */
+  int normal_header = HDR_SIZE + len;
+  uint16_t rxcrc = 0xffff; /* For checksum purposes */
   rtimer_clock_t timeout_time;
 
   timeout_time = RTIMER_NOW() + RTIMER_SECOND / 1000 * SEND_TIMEOUT;
@@ -255,27 +254,25 @@ cc1020_send(const void *buf, unsigned short len)
   }
 
   /* The preamble and the sync word are already in buffer. */
-  cc1020_txlen = PREAMBLESIZE + SYNCWDSIZE;
+  cc1020_txlen = PREAMBLE_SIZE + SYNCWORD_SIZE;
 
   /* header */
   cc1020_txbuf[cc1020_txlen++] = 0x00;   
-  cc1020_txbuf[cc1020_txlen++] = normal_header + CRC_LEN;
+  cc1020_txbuf[cc1020_txlen++] = normal_header + CRC_SIZE;
   
   /* Adding the checksum on header and data */
-  rxcrc = crc16_add((uint8_t) (normal_header & 0xff), rxcrc); 
-  rxcrc = crc16_add((uint8_t) ((normal_header >> 8)& 0xff), rxcrc);
-  
-  for(i = 0; i < len; i++) {
-    rxcrc = crc16_add((uint8_t) ((char*)buf)[i], rxcrc);
-  }
+  rxcrc = crc16_add(normal_header & 0xff, rxcrc); 
+  rxcrc = crc16_add((normal_header >> 8) & 0xff, rxcrc);
+
+  rxcrc = crc16_data(buf, len, rxcrc);  
   
   /* data to send */
   memcpy((char *)cc1020_txbuf + cc1020_txlen, buf, len);
   cc1020_txlen += len;
 
   /* Send checksum */
-  cc1020_txbuf[cc1020_txlen++] = (uint8_t)(rxcrc >> 8);
-  cc1020_txbuf[cc1020_txlen++] = (uint8_t)(rxcrc & 0xFF);
+  cc1020_txbuf[cc1020_txlen++] = rxcrc >> 8;
+  cc1020_txbuf[cc1020_txlen++] = rxcrc & 0xff;
    
   /* suffix */
   cc1020_txbuf[cc1020_txlen++] = TAIL;
@@ -325,17 +322,17 @@ cc1020_read(void *buf, unsigned short size)
 {
   unsigned len;
 
-  if(cc1020_rxlen <= HDRSIZE) {
+  if(cc1020_rxlen <= HDR_SIZE) {
     return 0;
   }
 
-  len = cc1020_rxlen - HDRSIZE;
+  len = cc1020_rxlen - HDR_SIZE;
   if(len > size) {
     RIMESTATS_ADD(toolong);
     return -1;
   }
 
-  memcpy(buf, (char *)cc1020_rxbuf + HDRSIZE, len);
+  memcpy(buf, (char *)cc1020_rxbuf + HDR_SIZE, len);
   RIMESTATS_ADD(llrx);
 
   reset_receiver();
@@ -414,17 +411,16 @@ PROCESS_THREAD(cc1020_receiver_process, ev, data)
     if(receiver_callback != NULL) {
       /* Verify the checksum. */
       uint16_t expected_crc = 0xffff;
-      uint16_t actual_crc = -1;
-      actual_crc = (cc1020_rxbuf[cc1020_rxlen - CRC_LEN] << 8) | cc1020_rxbuf[cc1020_rxlen - CRC_LEN + 1];
-      cc1020_rxlen -= CRC_LEN;
+      uint16_t actual_crc;
+
+      actual_crc = (cc1020_rxbuf[cc1020_rxlen - CRC_SIZE] << 8) |
+                   cc1020_rxbuf[cc1020_rxlen - CRC_SIZE + 1];
+      cc1020_rxlen -= CRC_SIZE;
       
-      expected_crc = crc16_add((uint8_t) (cc1020_rxlen & 0xff), expected_crc);
-      expected_crc = crc16_add((uint8_t) ((cc1020_rxlen >> 8) & 0xff),
-			expected_crc);
-      int i;
-      for(i = HDRSIZE; i < cc1020_rxlen; i++){
-        expected_crc = crc16_add(cc1020_rxbuf[i], expected_crc);
-      }
+      expected_crc = crc16_add(cc1020_rxlen & 0xff, expected_crc);
+      expected_crc = crc16_add((cc1020_rxlen >> 8) & 0xff, expected_crc);
+      expected_crc = crc16_data((char *)&cc1020_rxbuf[HDR_SIZE],
+			cc1020_rxlen - HDR_SIZE, expected_crc);
 
       if(expected_crc == actual_crc) {
         receiver_callback(&cc1020_driver);
@@ -507,13 +503,13 @@ interrupt(UART0RX_VECTOR) cc1020_rxhandler(void)
 
     cc1020_rxlen++;
 	 
-    if(cc1020_rxlen == HDRSIZE) {
+    if(cc1020_rxlen == HDR_SIZE) {
       pktlen = ((struct cc1020_header *)cc1020_rxbuf)->length;
       if(pktlen == 0 || pktlen > sizeof (cc1020_rxbuf)) {
         cc1020_rxlen = 0;
         CC1020_SET_OPSTATE(CC1020_RX | CC1020_RX_SEARCHING);
       }
-    } else if(cc1020_rxlen > HDRSIZE) {
+    } else if(cc1020_rxlen > HDR_SIZE) {
       if(cc1020_rxlen == pktlen) {
         /* Disable interrupts while processing the packet. */
         DISABLE_RX_IRQ();

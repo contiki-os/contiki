@@ -89,9 +89,6 @@
 #define RX_CURRENT 		0x86
 
 // CC1020 driver configuration
-#define CC1020_BUFFERSIZE	128
-
-#define CRC_LEN			2
 
 // PDI (Data in) is on P21
 #define PDO		(P2IN & 0x01)
@@ -248,13 +245,20 @@ struct cc1020_header {
 } __attribute__((packed));
 
 
-#define PREAMBLESIZE	6
-#define PREAMBLE	0xAA
-#define TAILSIZE	2
-#define	TAIL		0xFA
+#define CC1020_BUFFERSIZE	128
 
-#define SYNCWDSIZE	(sizeof (syncword))
-#define HDRSIZE		(sizeof (struct cc1020_header))
+
+#define PREAMBLE_SIZE		6
+#define PREAMBLE		0xAA
+
+#define SYNCWORD_SIZE		(sizeof (syncword))
+#define HDR_SIZE		(sizeof (struct cc1020_header))
+
+#define CRC_SIZE		2
+
+#define TAIL_SIZE		2
+#define	TAIL			0xFA
+
 
 ///@}
 
