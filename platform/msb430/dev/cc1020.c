@@ -644,9 +644,7 @@ cc1020_calibrate(void)
 
   /* Start calibration */
   cc1020_write_reg(CC1020_CALIBRATE, 0xB5);
-  MS_DELAY(3);
   while((cc1020_read_reg(CC1020_STATUS) & CAL_COMPLETE) == 0);
-  MS_DELAY(2);
 
   /* Monitor lock */
   for(timeout_cnt = LOCK_TIMEOUT; timeout_cnt > 0; timeout_cnt--) {
