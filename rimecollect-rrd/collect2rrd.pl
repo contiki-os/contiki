@@ -32,6 +32,7 @@ sub rrdcreate {
     my ($newrrd_filename, $tmpl_filename) = @_;
     open FILE, "$tmpl_filename" or die $!;
     my $tmpl = <FILE>;
+    chomp $tmpl;
     print "using template $tmpl found in $tmpl_filename\n" if $verbose;
     `rrdtool create $newrrd_filename $tmpl`;
 }
@@ -55,8 +56,10 @@ while(<>) {
 	print "creating new rrd $1.rrd...   " if $verbose;
 	if(-e "$1.rrdtmpl") {
 	    rrdcreate("$1.rrd","$1.rrdtmpl");
+	    `rrdtool update $1.rrd -t $ds N:$data`
 	} elsif(-e "default.rrdtmpl") {
 	    rrdcreate("$1.rrd","default.rrdtmpl");
+	    `rrdtool update $1.rrd -t $ds N:$data`
 	} else {
 	    print "can't create rrd for $1: no template found\n";
 	}
