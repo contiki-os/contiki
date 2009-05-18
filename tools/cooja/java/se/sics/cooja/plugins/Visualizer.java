@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: Visualizer.java,v 1.5 2009/04/20 16:16:44 fros4943 Exp $
+ * $Id: Visualizer.java,v 1.6 2009/05/18 13:57:51 nifi Exp $
  */
 
 package se.sics.cooja.plugins;
@@ -947,7 +947,12 @@ public class Visualizer extends VisPlugin {
         String wanted = element.getText();
         for (Class<? extends VisualizerSkin> skinClass: visualizerSkins) {
           if (wanted.equals(GUI.getDescriptionOf(skinClass))) {
-            generateAndActivateSkin(skinClass);
+            final Class<? extends VisualizerSkin> skin = skinClass;
+            SwingUtilities.invokeLater(new Runnable() {
+              public void run() {
+                generateAndActivateSkin(skin);
+              }
+            });
             wanted = null;
             break;
           }
