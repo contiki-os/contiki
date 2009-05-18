@@ -115,7 +115,7 @@ if(scalar(@ARGV)!=0) {
 my $c; my $count;
 while(1) {
     ($count, $c) = $ob->read(1);
-    print $c if ($count != 0);
+    print $c if (defined($count) && ($count != 0));
 }
 
 $ob -> close or die "Close failed: $!\n";
