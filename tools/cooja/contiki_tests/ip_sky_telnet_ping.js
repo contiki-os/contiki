@@ -5,16 +5,24 @@ nrReplies = 0;
 ipAddress = "172.16.1.0";
 osName = java.lang.System.getProperty("os.name").toLowerCase();
 if (osName.startsWith("win")) {
+  pingOnceCmd = "ping -n 1 " + ipAddress;
   pingCmd = "ping -n 10 " + ipAddress;
 } else {
+  pingOnceCmd = "ping -c 1 " + ipAddress;
   pingCmd = "ping -c 10 " + ipAddress;
 }
 replyMsg = "from " + ipAddress;
 
-/* mote startup */
+/* wait for mote startup */
 WAIT_UNTIL(msg.contains('Sky telnet process'));
 
-/* override simulation delay, test times out is too fast otherwise */
+/* make gateway */
+pingOnceProcess  = new java.lang.Runtime.getRuntime().exec(pingOnceCmd);
+GENERATE_MSG(5000, "continue");
+WAIT_UNTIL(msg.equals("continue"));
+log.log("cont\n");
+
+/* override simulation delay, test will time out is too fast otherwise */
 mote.getSimulation().setDelayTime(1);
 
 /* start ping process */
