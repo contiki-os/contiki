@@ -11,26 +11,38 @@ log.log("Waiting for node startup\n");
 WAIT_UNTIL(msg.contains('1.0: Contiki>'));
 
 log.log("Preparing node for incoming data\n");
-node.write("dec64 | write hello-world.ce | null");
+node.write("write hello-world.b64");
 GENERATE_MSG(1000, "continue");
 YIELD_THEN_WAIT_UNTIL(msg.equals("continue"));
 
-log.log("Uploading hello-world.ce:\n");
+log.log("Uploading hello-world.b64:\n");
 cmdarr = "sh -c xxx".split(" ");
 cmdarr[2] = "../../tools/base64-encode < hello-world.ce";
 process = new java.lang.Runtime.getRuntime().exec(cmdarr, null, helloworld.getParentFile());
 stdIn = new java.io.BufferedReader(new java.io.InputStreamReader(process.getInputStream()));
 while ((line = stdIn.readLine()) != null) {
   node.write(line + "\n");
-  log.log(line + "\n");
 
-  GENERATE_MSG(1000, "continue");
-  YIELD_THEN_WAIT_UNTIL(msg.equals("continue"));
+  YIELD();
+
+  if (msg.startsWith(line)) {
+    log.log("UPLOADED: " + line + "\n");
+  } else {
+    log.log("Serial port upload failed:\n" + line + "\n" + msg + "\n");
+    log.testFailed();
+  }
 }
 process.destroy();
 GENERATE_MSG(500, "continue");
 YIELD_THEN_WAIT_UNTIL(msg.equals("continue"));
 node.write("~K\n");
+GENERATE_MSG(500, "continue");
+YIELD_THEN_WAIT_UNTIL(msg.equals("continue"));
+
+log.log("Converting base64 to binary hello-world.ce\n");
+node.write("read hello-world.b64 | dec64 | write hello-world.ce | null");
+GENERATE_MSG(3000, "continue");
+YIELD_THEN_WAIT_UNTIL(msg.equals("continue"));
 
 log.log("Listing filesystem to make sure hello-world.ce exists\n");
 GENERATE_MSG(500, "continue");
