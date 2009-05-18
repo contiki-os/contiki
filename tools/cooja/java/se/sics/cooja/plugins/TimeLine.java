@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: TimeLine.java,v 1.3 2009/05/06 15:00:06 adamdunkels Exp $
+ * $Id: TimeLine.java,v 1.4 2009/05/18 14:24:25 fros4943 Exp $
  */
 
 package se.sics.cooja.plugins;
@@ -42,6 +42,10 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.OutputStreamWriter;
 import java.util.*;
 
 import javax.swing.*;
@@ -221,16 +225,28 @@ public class TimeLine extends VisPlugin {
         timeline.repaint();
       }
     });
+    timelineScrollPane.getVerticalScrollBar().setPreferredSize(
+        new Dimension(
+            35,
+            timelineScrollPane.getVerticalScrollBar().getPreferredSize().height));
 
+    
     JButton timelineAddMoteButton = new JButton(addMoteAction);
     timelineAddMoteButton.setText("+");
     timelineAddMoteButton.setToolTipText("Add mote");
     timelineAddMoteButton.setBorderPainted(false);
     timelineAddMoteButton.setFont(new Font("SansSerif", Font.PLAIN, 11));
 
+    JButton saveDataButton = new JButton(saveDataAction);
+    saveDataButton.setText("S");
+    saveDataButton.setToolTipText("Save all data to file");
+    saveDataButton.setBorderPainted(false);
+    saveDataButton.setFont(new Font("SansSerif", Font.PLAIN, 11));
+    
     timelineMoteRuler = new MoteRuler();
     timelineScrollPane.setRowHeaderView(timelineMoteRuler);
     timelineScrollPane.setCorner(JScrollPane.LOWER_LEFT_CORNER, timelineAddMoteButton);
+    timelineScrollPane.setCorner(JScrollPane.LOWER_RIGHT_CORNER, saveDataButton);
     timelineScrollPane.setBackground(Color.WHITE);
 
     JSplitPane splitPane = new JSplitPane(
@@ -297,6 +313,74 @@ public class TimeLine extends VisPlugin {
     }
   };
 
+  /**
+   * Save logged raw data to file for post-processing. 
+   */
+  private Action saveDataAction = new AbstractAction() {
+    public void actionPerformed(ActionEvent e) {
+      JFileChooser fc = new JFileChooser();
+      int returnVal = fc.showSaveDialog(GUI.getTopParentContainer());
+      if (returnVal != JFileChooser.APPROVE_OPTION) {
+        return;
+      }
+      File saveFile = fc.getSelectedFile();
+
+      if (saveFile.exists()) {
+        String s1 = "Overwrite";
+        String s2 = "Cancel";
+        Object[] options = { s1, s2 };
+        int n = JOptionPane.showOptionDialog(
+            GUI.getTopParentContainer(),
+            "A file with the same name already exists.\nDo you want to remove it?",
+            "Overwrite existing file?", JOptionPane.YES_NO_OPTION,
+            JOptionPane.QUESTION_MESSAGE, null, options, s1);
+        if (n != JOptionPane.YES_OPTION) {
+          return;
+        }
+      }
+
+      if (saveFile.exists() && !saveFile.canWrite()) {
+        logger.fatal("No write access to file");
+        return;
+      }
+
+      try {
+        BufferedWriter outStream = new BufferedWriter(
+            new OutputStreamWriter(
+                new FileOutputStream(
+                    saveFile)));
+        
+        /* Output all events (per mote) */
+        for (MoteEvents moteEvents: allMoteEvents) {
+          for (LEDEvent ev: moteEvents.ledEvents) {
+            outStream.write(moteEvents.mote + "\t" + ev.time + "\t" + ev.toString() + "\n");
+          }
+          for (LogEvent ev: moteEvents.logEvents) {
+            outStream.write(moteEvents.mote + "\t" + ev.time + "\t" + ev.toString() + "\n");
+          }
+          for (RadioChannelEvent ev: moteEvents.radioChannelEvents) {
+            outStream.write(moteEvents.mote + "\t" + ev.time + "\t" + ev.toString() + "\n");
+          }
+          for (RadioHWEvent ev: moteEvents.radioHWEvents) {
+            outStream.write(moteEvents.mote + "\t" + ev.time + "\t" + ev.toString() + "\n");
+          }
+          for (RadioRXTXEvent ev: moteEvents.radioRXTXEvents) {
+            outStream.write(moteEvents.mote + "\t" + ev.time + "\t" + ev.toString() + "\n");
+          }
+          for (WatchpointEvent ev: moteEvents.watchpointEvents) {
+            outStream.write(moteEvents.mote + "\t" + ev.time + "\t" + ev.toString() + "\n");
+          }
+        }
+        
+        outStream.close();
+      } catch (Exception ex) {
+        logger.fatal("Could not write to file: " + saveFile);
+        return;
+      }
+
+    }
+  };
+  
   private void numberMotesWasUpdated() {
     /* Timeline */
     timeline.setPreferredSize(new Dimension(
