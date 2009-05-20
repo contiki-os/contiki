@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: RadioLogger.java,v 1.17 2009/04/20 17:24:03 nifi Exp $
+ * $Id: RadioLogger.java,v 1.18 2009/05/20 12:02:06 fros4943 Exp $
  */
 
 package se.sics.cooja.plugins;
@@ -227,7 +227,9 @@ public class RadioLogger extends VisPlugin {
 
   private void prepareDataString(RadioConnectionLog conn) {
     byte[] data;
-    if (conn.packet instanceof ConvertedRadioPacket) {
+    if (conn.packet == null) {
+      data = null;
+    } else if (conn.packet instanceof ConvertedRadioPacket) {
       data = ((ConvertedRadioPacket)conn.packet).getOriginalPacketData();
     } else {
       data = conn.packet.getPacketData();
@@ -246,18 +248,32 @@ public class RadioLogger extends VisPlugin {
       return;
     }
 
-    byte[] data;
-    if (packet instanceof ConvertedRadioPacket) {
-      data = ((ConvertedRadioPacket)packet).getOriginalPacketData();
+    if (packet instanceof ConvertedRadioPacket && packet.getPacketData().length > 0) {
+      byte[] original = ((ConvertedRadioPacket)packet).getOriginalPacketData();
+      byte[] converted = ((ConvertedRadioPacket)packet).getPacketData();
+      conn.tooltip = "<html><font face=\"Monospaced\">" +
+      "<b>Packet data (" + original.length + " bytes)</b><br>" +
+      "<pre>" + StringUtils.hexDump(original) + "</pre>" +
+      "</font><font face=\"Monospaced\">" +
+      "<b>Cross-level packet data (" + converted.length + " bytes)</b><br>" +
+      "<pre>" + StringUtils.hexDump(converted) + "</pre>" +
+      "</font></html>";
+    } else if (packet instanceof ConvertedRadioPacket) {
+      byte[] original = ((ConvertedRadioPacket)packet).getOriginalPacketData();
+      conn.tooltip = "<html><font face=\"Monospaced\">" +
+      "<b>Packet data (" + original.length + " bytes)</b><br>" +
+      "<pre>" + StringUtils.hexDump(original) + "</pre>" +
+      "</font><font face=\"Monospaced\">" +
+      "<b>Cross-level packet data conversion failed</b><br>" +
+      "</font></html>";
     } else {
-      data = packet.getPacketData();
+      byte[] data = packet.getPacketData();
+      conn.tooltip = "<html><font face=\"Monospaced\">" +
+      "<b>Packet data (" + data.length + " bytes)</b><br>" +
+      "<pre>" + StringUtils.hexDump(data) + "</pre>" +
+      "</font></html>";
     }
 
-    conn.tooltip = "<html><font face=\"Monospaced\"><b>Packet data (" +
-      data.length +
-      " bytes)</b><br><pre>" +
-      StringUtils.hexDump(data) +
-      "</pre></font></html>";
   }
 
   public void closePlugin() {
