@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: LogScriptEngine.java,v 1.11 2009/04/23 10:41:35 fros4943 Exp $
+ * $Id: LogScriptEngine.java,v 1.12 2009/05/20 14:11:21 fros4943 Exp $
  */
 
 package se.sics.cooja.plugins;
@@ -48,9 +48,8 @@ import se.sics.cooja.*;
  * @author Fredrik Osterlind
  */
 public class LogScriptEngine {
-  private static final int DEFAULT_TIMEOUT = 1200000; /* 1200s = 20 minutes */
+  private static final long DEFAULT_TIMEOUT = 20*60*1000*1000; /* 1200s = 20 minutes */
 
-  private static final long serialVersionUID = 1L;
   private static Logger logger = Logger.getLogger(LogScriptEngine.class);
 
   private ScriptEngineManager factory = new ScriptEngineManager();
@@ -333,7 +332,20 @@ public class LogScriptEngine {
     } catch (InterruptedException e) {
       e.printStackTrace();
     }
-    scriptThread = new Thread(new Runnable() {
+    ThreadGroup group = new ThreadGroup("script") {
+      public void uncaughtException(Thread t, Throwable e) {
+        while (e.getCause() != null) {
+          e = e.getCause();
+        }
+        if (e.getMessage() != null &&
+            e.getMessage().contains("test script killed") ) {
+          /* Ignore normal shutdown exceptions */
+        } else {
+          logger.fatal("Script error:", e);
+        }
+      }
+    };
+    scriptThread = new Thread(group, new Runnable() {
       public void run() {
         /*logger.info("test script thread starts");*/
         try {
