@@ -24,10 +24,13 @@
 
 #define DELAY 400000
 
+#define USE_32KHZ 1
+
 #include "embedded_types.h"
 #include "isr.h"
 #include "utils.h"
 #include "maca.h"
+#include "crm.h"
 
 void putc(uint8_t c);
 void puts(uint8_t *s);
@@ -113,18 +116,56 @@ __attribute__ ((section ("startup"))) void main(void) {
 
 //	reg16(CRM_XTAL_CNTL) = 0x052; /* default is 0xf52 */ /* doesn't anything w.r.t. power */
 
+#if USE_32KHZ
+	/* turn on the 32kHz crystal */
+	puts("enabling 32kHz crystal\n\r");
+	/* you have to hold it's hand with this on */
+	/* once you start the 32xHz crystal it can only be stopped with a reset (hard or soft) */
+	/* first, disable the ring osc */
+	clear_bit(reg32(CRM_RINGOSC_CNTL),0);
+	/* enable the 32kHZ crystal */
+	set_bit(reg32(CRM_XTAL32_CNTL),0);
+//	reg32(CRM_XTAL_CNTL) = 0;
+
+	/* set the XTAL32_EXISTS bit */
+	/* the datasheet says to do this after you've check that RTC_COUNT is changing */
+	/* the datasheet is not correct */
+	set_bit(reg32(CRM_SYS_CNTL),5);
+	{
+		static volatile uint32_t old;
+		old = reg32(CRM_RTC_COUNT);
+		puts("waiting for xtal\n\r");
+		while(reg32(CRM_RTC_COUNT) == old) { 
+//			put_hex32(reg32(CRM_RTC_COUNT));
+//			puts("\n\r");
+			continue; 
+		}
+		/* RTC has started up */
+
+		set_bit(reg32(CRM_SYS_CNTL),5);
+		puts("32kHZ xtal started\n\r");
+
+/* 		while(1) { */
+/* 			put_hex32(reg32(CRM_RTC_COUNT)); */
+/* 			puts("\n\r"); */
+/* 		} */
+
+	}
+#endif	
+		
+
 	/* go to sleep */
 //	reg32(CRM_WU_CNTL) = 0; /* don't wake up */
-	reg32(CRM_WU_CNTL) = 0x1; /* enable wakeup from wakeup timer */
+//	reg32(CRM_WU_CNTL) = 0x1; /* enable wakeup from wakeup timer */
 //	reg32(CRM_WU_TIMEOUT) = 1875000; /* wake 10 sec later if doze */
-	reg32(CRM_WU_TIMEOUT) = 20000; /* wake 10 sec later  if hibernate w/2kHz*/
+//	reg32(CRM_WU_TIMEOUT) = 20000; /* wake 10 sec later  if hibernate w/2kHz*/
 
 //	reg32(CRM_SLEEP_CNTL) = 1; /* hibernate, RAM page 0 only, don't retain state, don't power GPIO */ /* approx. 2.0uA */
 //	reg32(CRM_SLEEP_CNTL) = 0x41; /* hibernate, RAM page 0 only, retain state, don't power GPIO */ /* approx. 10.0uA */
 //	reg32(CRM_SLEEP_CNTL) = 0x51; /* hibernate, RAM page 0&1 only, retain state, don't power GPIO */ /* approx. 11.7uA */
 //	reg32(CRM_SLEEP_CNTL) = 0x61; /* hibernate, RAM page 0,1,2 only, retain state, don't power GPIO */ /* approx. 13.9uA */
 //	reg32(CRM_SLEEP_CNTL) = 0x71; /* hibernate, all RAM pages, retain state, don't power GPIO */ /* approx. 16.1uA - possibly with periodic refresh*/
-	reg32(CRM_SLEEP_CNTL) = 0xf1; /* hibernate, all RAM pages, retain state,       power GPIO */ /* approx. 16.1uA - possibly with periodic refresh*/
+//	reg32(CRM_SLEEP_CNTL) = 0xf1; /* hibernate, all RAM pages, retain state,       power GPIO */ /* approx. 16.1uA - possibly with periodic refresh*/
 
 //	reg32(CRM_SLEEP_CNTL) = 2; /* doze     , RAM page 0 only, don't retain state, don't power GPIO */ /* approx. 69.2 uA */
 //	reg32(CRM_SLEEP_CNTL) = 0x42; /* doze     , RAM page 0 only, retain state, don't power GPIO */ /* approx. 77.3uA */
