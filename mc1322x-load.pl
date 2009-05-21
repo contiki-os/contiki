@@ -87,7 +87,7 @@ while(1) {
 	while(read(FILE, $c, 1)) {
 	    $i++;
 	    usleep(50); # this is as fast is it can go... 
-	    usleep(25) if ($s==1);
+	    usleep(50) if ($s==1);
 	    $ob->write($c);
 	}
     }
@@ -115,7 +115,7 @@ if(scalar(@ARGV)!=0) {
 my $c; my $count;
 while(1) {
     ($count, $c) = $ob->read(1);
-    print $c if ($count != 0);
+    print $c if (defined($count) && ($count != 0));
 }
 
 $ob -> close or die "Close failed: $!\n";
