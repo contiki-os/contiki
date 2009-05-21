@@ -62,27 +62,27 @@ void (*crm_gotosleep)(crmSleepCtrl_t *foo) = 0x0000364d;
 __attribute__ ((section ("startup"))) void main(void) {
 	crmSleepCtrl_t  crmSleepCtrl;
 
-	reg32(GPIO_PAD_DIR0) = 0x00000100;
+//	reg32(GPIO_PAD_DIR0) = 0x00000100;
 
-	reg32(GPIO_DATA0) = 0x00000100;
+//	reg32(GPIO_DATA0) = 0x00000100;
 
 
 	/* Restore UART regs. to default */
 	/* in case there is still bootloader state leftover */
 
-	*(volatile uint32_t *)UART1_CON = 0x0000c800; /* mask interrupts, 16 bit sample --- helps explain the baud rate */
+//	*(volatile uint32_t *)UART1_CON = 0x0000c800; /* mask interrupts, 16 bit sample --- helps explain the baud rate */
 
 	/* INC = 767; MOD = 9999 works: 115200 @ 24 MHz 16 bit sample */
 	#define INC 767
 	#define MOD 9999
-	*(volatile uint32_t *)UART1_BR = INC<<16 | MOD; 
+//	*(volatile uint32_t *)UART1_BR = INC<<16 | MOD; 
 
 	/* see Section 11.5.1.2 Alternate Modes */
 	/* you must enable the peripheral first BEFORE setting the function in GPIO_FUNC_SEL */
 	/* From the datasheet: "The peripheral function will control operation of the pad IF */
 	/* THE PERIPHERAL IS ENABLED. */
-	*(volatile uint32_t *)UART1_CON = 0x00000003; /* enable receive and transmit */
-	*(volatile uint32_t *)GPIO_FUNC_SEL0 = ( (0x01 << (14*2)) | (0x01 << (15*2)) ); /* set GPIO15-14 to UART (UART1 TX and RX)*/
+//	*(volatile uint32_t *)UART1_CON = 0x00000003; /* enable receive and transmit */
+//	*(volatile uint32_t *)GPIO_FUNC_SEL0 = ( (0x01 << (14*2)) | (0x01 << (15*2)) ); /* set GPIO15-14 to UART (UART1 TX and RX)*/
 
 	reg32(0x00401ffc) = 0x01234567;
 	reg32(0x00407ffc) = 0xdeadbeef;
@@ -110,11 +110,11 @@ __attribute__ ((section ("startup"))) void main(void) {
 
 	/* disable all pullups */
 	/* seems to make a slight difference (2.0uA vs 1.95uA)*/
-//	reg32(GPIO_PAD_PU_EN0) = 0;
-//	reg32(GPIO_PAD_PU_EN1) = 0;
-//	reg16(ADC_CONTROL) = 0; /* internal Vref2 */
+	reg32(GPIO_PAD_PU_EN0) = 0;
+	reg32(GPIO_PAD_PU_EN1) = 0;
+	reg16(ADC_CONTROL) = 0; /* internal Vref2 */
 
-//	reg16(CRM_XTAL_CNTL) = 0x052; /* default is 0xf52 */ /* doesn't anything w.r.t. power */
+	reg16(CRM_XTAL_CNTL) = 0x052; /* default is 0xf52 */ /* doesn't anything w.r.t. power */
 
 #if USE_32KHZ
 	/* turn on the 32kHz crystal */
@@ -125,7 +125,6 @@ __attribute__ ((section ("startup"))) void main(void) {
 	clear_bit(reg32(CRM_RINGOSC_CNTL),0);
 	/* enable the 32kHZ crystal */
 	set_bit(reg32(CRM_XTAL32_CNTL),0);
-//	reg32(CRM_XTAL_CNTL) = 0;
 
 	/* set the XTAL32_EXISTS bit */
 	/* the datasheet says to do this after you've check that RTC_COUNT is changing */
@@ -136,8 +135,6 @@ __attribute__ ((section ("startup"))) void main(void) {
 		old = reg32(CRM_RTC_COUNT);
 		puts("waiting for xtal\n\r");
 		while(reg32(CRM_RTC_COUNT) == old) { 
-//			put_hex32(reg32(CRM_RTC_COUNT));
-//			puts("\n\r");
 			continue; 
 		}
 		/* RTC has started up */
@@ -145,34 +142,39 @@ __attribute__ ((section ("startup"))) void main(void) {
 		set_bit(reg32(CRM_SYS_CNTL),5);
 		puts("32kHZ xtal started\n\r");
 
-/* 		while(1) { */
-/* 			put_hex32(reg32(CRM_RTC_COUNT)); */
-/* 			puts("\n\r"); */
-/* 		} */
-
 	}
 #endif	
 		
 
 	/* go to sleep */
-//	reg32(CRM_WU_CNTL) = 0; /* don't wake up */
-//	reg32(CRM_WU_CNTL) = 0x1; /* enable wakeup from wakeup timer */
-//	reg32(CRM_WU_TIMEOUT) = 1875000; /* wake 10 sec later if doze */
-//	reg32(CRM_WU_TIMEOUT) = 20000; /* wake 10 sec later  if hibernate w/2kHz*/
 
-//	reg32(CRM_SLEEP_CNTL) = 1; /* hibernate, RAM page 0 only, don't retain state, don't power GPIO */ /* approx. 2.0uA */
-//	reg32(CRM_SLEEP_CNTL) = 0x41; /* hibernate, RAM page 0 only, retain state, don't power GPIO */ /* approx. 10.0uA */
-//	reg32(CRM_SLEEP_CNTL) = 0x51; /* hibernate, RAM page 0&1 only, retain state, don't power GPIO */ /* approx. 11.7uA */
-//	reg32(CRM_SLEEP_CNTL) = 0x61; /* hibernate, RAM page 0,1,2 only, retain state, don't power GPIO */ /* approx. 13.9uA */
-//	reg32(CRM_SLEEP_CNTL) = 0x71; /* hibernate, all RAM pages, retain state, don't power GPIO */ /* approx. 16.1uA - possibly with periodic refresh*/
-//	reg32(CRM_SLEEP_CNTL) = 0xf1; /* hibernate, all RAM pages, retain state,       power GPIO */ /* approx. 16.1uA - possibly with periodic refresh*/
+//	reg32(CRM_WU_CNTL) = 0; /* don't wake up */
+	reg32(CRM_WU_CNTL) = 0x1; /* enable wakeup from wakeup timer */
+//	reg32(CRM_WU_TIMEOUT) = 1875000; /* wake 10 sec later if doze */
+#if USE_32KHZ
+	reg32(CRM_WU_TIMEOUT) = 327680*2;
+#else
+	reg32(CRM_WU_TIMEOUT) =  20000; /* wake 10 sec later  if hibernate w/2kHz*/
+#endif
+
+	/* hobby board: 2kHz = 11uA; 32kHz = 11uA */
+//	reg32(CRM_SLEEP_CNTL) = 1; /* hibernate, RAM page 0 only, don't retain state, don't power GPIO */ /* approx. 2kHz = 2.0uA */
+	/* hobby board: 2kHz = 18uA; 32kHz = 19uA */
+//	reg32(CRM_SLEEP_CNTL) = 0x41; /* hibernate, RAM page 0 only, retain state, don't power GPIO */ /* approx. 2kHz = 10.0uA */
+	/* hobby board: 2kHz = 20uA; 32kHz = 21uA */
+//	reg32(CRM_SLEEP_CNTL) = 0x51; /* hibernate, RAM page 0&1 only, retain state, don't power GPIO */ /* approx. 2kHz = 11.7uA */
+	/* hobby board: 2kHz = 22uA; 32kHz = 22.5uA */
+//	reg32(CRM_SLEEP_CNTL) = 0x61; /* hibernate, RAM page 0,1,2 only, retain state, don't power GPIO */ /* approx. 2kHz = 13.9uA */
+	/* hobby board: 2kHz = 24uA; 32kHz = 25uA */
+//	reg32(CRM_SLEEP_CNTL) = 0x71; /* hibernate, all RAM pages, retain state, don't power GPIO */ /* approx. 2kHz = 16.1uA */
+//	reg32(CRM_SLEEP_CNTL) = 0xf1; /* hibernate, all RAM pages, retain state,       power GPIO */ /* consumption depends on GPIO hookup */
 
 //	reg32(CRM_SLEEP_CNTL) = 2; /* doze     , RAM page 0 only, don't retain state, don't power GPIO */ /* approx. 69.2 uA */
 //	reg32(CRM_SLEEP_CNTL) = 0x42; /* doze     , RAM page 0 only, retain state, don't power GPIO */ /* approx. 77.3uA */
 //	reg32(CRM_SLEEP_CNTL) = 0x52; /* doze     , RAM page 0&1 only, retain state, don't power GPIO */ /* approx. 78.9uA */
 //	reg32(CRM_SLEEP_CNTL) = 0x62; /* doze     , RAM page 0,1,2 only, retain state, don't power GPIO */ /* approx. 81.2uA */
 //	reg32(CRM_SLEEP_CNTL) = 0x72; /* doze     , all RAM pages, retain state, don't power GPIO */ /* approx. 83.4uA - possibly with periodic refresh*/
-//	reg32(CRM_SLEEP_CNTL) = 0xf2; /* doze     , all RAM pages, retain state,       power GPIO */ /* approx. 82.8uA - possibly with periodic refresh*/
+//	reg32(CRM_SLEEP_CNTL) = 0xf2; /* doze     , all RAM pages, retain state,       power GPIO */ /* consumption depends on GPIO hookup */
 
 
 /* 	crmSleepCtrl.sleepType = 0; */
