@@ -104,7 +104,7 @@
 				!HDR_OBSOLETE(hdr)  && \
 				!HDR_ISOLATED(hdr))
 
-#define COFFEE_SECTOR_COUNT	(COFFEE_SIZE / COFFEE_SECTOR_SIZE)
+#define COFFEE_SECTOR_COUNT	(unsigned)(COFFEE_SIZE / COFFEE_SECTOR_SIZE)
 #define COFFEE_PAGE_COUNT	\
 	((coffee_page_t)(COFFEE_SIZE / COFFEE_PAGE_SIZE))
 #define COFFEE_PAGES_PER_SECTOR	\
@@ -1160,9 +1160,9 @@ cfs_coffee_configure_log(const char *filename, unsigned log_size,
 int
 cfs_coffee_format(void)
 {
-  int i;
+  unsigned i;
 
-  PRINTF("Coffee: Formatting %d sectors", COFFEE_SECTOR_COUNT);
+  PRINTF("Coffee: Formatting %u sectors", COFFEE_SECTOR_COUNT);
 
   *next_free = 0;
 
@@ -1176,7 +1176,7 @@ cfs_coffee_format(void)
   /* Formatting invalidates the file information. */
   memset(&protected_mem, 0, sizeof(protected_mem));
 
-  PRINTF("done!\n");
+  PRINTF(" done!\n");
 
   return 0;
 }
