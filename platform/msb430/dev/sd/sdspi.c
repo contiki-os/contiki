@@ -47,9 +47,9 @@ Berlin, 2007
  * @brief	Serial Peripheral Interface for SD library
  * 
  * @author	Michael Baar	<baar@inf.fu-berlin.de>
- * @version	$Revision: 1.2 $
+ * @version	$Revision: 1.3 $
  *
- * $Id: sdspi.c,v 1.2 2008/03/28 23:03:05 nvt-se Exp $
+ * $Id: sdspi.c,v 1.3 2009/05/25 13:19:04 nvt-se Exp $
  */
 
 #include <msp430x16x.h>
@@ -111,6 +111,10 @@ sdspi_dma_wait(void)
 void
 sdspi_read(void *pDestination, const uint16_t size, const bool incDest)
 {
+  int s;
+
+  s = splhigh();
+
 #if SPI_DMA_READ
   sdspi_dma_wait();
 
@@ -153,12 +157,17 @@ sdspi_read(void *pDestination, const uint16_t size, const bool incDest)
     i--;
   } while (i);
 #endif
+
+  splx(s);
 }
 
 #if SPI_WRITE
 void
 sdspi_write(const void *pSource, const uint16_t size, const int increment)
 {
+  int s;
+
+  s = splhigh();
 #if SPI_DMA_WRITE
   sdspi_dma_wait();
 
@@ -191,6 +200,8 @@ sdspi_write(const void *pSource, const uint16_t size, const int increment)
     i--;
   } while (i);
 #endif
+
+  splx(s);
 }
 #endif
 
