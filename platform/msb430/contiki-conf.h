@@ -92,9 +92,10 @@ typedef int bool;
 #define	SD_READ_ANY			1
 #define SD_INFO				0
 #define SD_WRITE			1
+#define SD_WRITE_ANY			1
 #define SD_FIND_FILE			0
 #define SD_ERASE			0			
-#define	SD_CACHE			0
+#define	SD_CACHE			1
 #define SPI_WRITE			SD_WRITE
 #define SPI_DMA_READ			0
 #define SPI_DMA_WRITE			0
