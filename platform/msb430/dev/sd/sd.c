@@ -47,9 +47,9 @@ Berlin, 2007
  * @brief	MMC-/SD-Card library
  * 
  * @author	Michael Baar	<baar@inf.fu-berlin.de>
- * @version	$Revision: 1.6 $
+ * @version	$Revision: 1.7 $
  *
- * $Id: sd.c,v 1.6 2008/05/27 14:22:55 nvt-se Exp $
+ * $Id: sd.c,v 1.7 2009/05/25 13:19:04 nvt-se Exp $
  * 
  * Initialisation and basic functions for read and write access
  */
@@ -57,6 +57,8 @@ Berlin, 2007
 #include "sd_internals.h"
 #include "sd.h"
 #include "sdspi.h"
+
+#include "dev/leds.h"
 
 volatile sd_state_t sd_state;
 
@@ -400,6 +402,7 @@ _sd_write_finish(void)
   uint8_t ret;
   enum sd_write_ret result = SD_WRITE_STORE_ERR;
   uint16_t i;
+  int s;
 
 #if SPI_DMA_WRITE
   sdspi_dma_wait();
@@ -408,6 +411,8 @@ _sd_write_finish(void)
 
   // dummy crc
   sdspi_idle(2);
+
+  s = splhigh();
 
   // receive data response (ZZS___ 3 bits crc response)
   for (i = 0; i < SD_TIMEOUT_NCR; i++) {
@@ -420,6 +425,8 @@ _sd_write_finish(void)
       break;
     }
   }
+
+  splx(s);
 
   // wait for data to be written
   _sd_wait_standby(NULL);
@@ -462,6 +469,7 @@ enum sd_write_ret
 _sd_write_block(const uint32_t * pAddress, const void *pBuffer, int increment)
 {
   uint8_t r1, ret;
+  int s;
 
   // block write-access on write protection
   if (sd_protected()) {
@@ -478,16 +486,20 @@ _sd_write_block(const uint32_t * pAddress, const void *pBuffer, int increment)
   r1 = 0;
   ret = _sd_send_cmd(SD_CMD_WRITE_SINGLE_BLOCK, SD_RESPONSE_SIZE_R1, 
 		pAddress, &r1);
-  if (!ret | r1) {
+  if (!ret || r1) {
+    leds_on(LEDS_ALL);
+    _sd_reset(NULL);
     uart_unlock(UART_MODE_SPI);
     SD_LED_WRITE_OFF;
     return SD_WRITE_COMMAND_ERR;
   }
   // write data
   sdspi_select();
+  s = splhigh();
   sdspi_tx(0xFF);
   sdspi_tx(SD_TOKEN_WRITE);
   sdspi_write(pBuffer, sd_state.BlockLen, increment);
+  splx(s);
 
   SD_LED_WRITE_OFF;
 
@@ -620,8 +632,9 @@ _sd_send_cmd(const uint8_t command,
   uint8_t cmd[6] = {
     0x40, 0, 0, 0, 0, 0x95
   };
-  uint8_t data;			// rx buffer
-  int i;			// loop counter
+  uint8_t data;			/* reception buffer */
+  int i;			/* loop counter */
+  int s;			/* interrupt state */
 
 #if SD_WRITE && SPI_DMA_WRITE
   sd_write_flush();
@@ -636,6 +649,7 @@ _sd_send_cmd(const uint8_t command,
     cmd[4] = ((uint8_t *) pArg)[0];
   }
 
+  s = splhigh();
   sdspi_write(cmd, 6, 1);
 
   // wait for start bit
@@ -647,9 +661,12 @@ _sd_send_cmd(const uint8_t command,
     }
   } while (i--);
 
+  splx(s);
+
   goto sd_send_cmd_fail;
 
 _sd_send_cmd_response:
+  s = splhigh();
   // start bit received, read response with size i
   i = response_size - 1;
   if (pResponse != NULL) {
@@ -671,11 +688,13 @@ _sd_send_cmd_response:
   // done successfully
   sdspi_unselect();
 
+  splx(s);
+
   return TRUE;
 
 sd_send_cmd_fail:
   // failed
-  //sdspi_unselect();
+  sdspi_unselect();
   return FALSE;
 
 }
