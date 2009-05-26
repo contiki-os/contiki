@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: DummyInterface.java,v 1.2 2008/10/28 16:09:52 fros4943 Exp $
+ * $Id: DummyInterface.java,v 1.3 2009/05/26 14:34:43 fros4943 Exp $
  */
 
 import java.util.*;
@@ -76,9 +76,6 @@ public class DummyInterface extends MoteInterface implements ContikiMoteInterfac
   }
 
   public void doActionsBeforeTick() {
-    /* Wake up potentially sleeping Contiki mote */
-    mote.setState(Mote.State.ACTIVE);
-
     logger.debug("Java-part of dummy interface acts BEFORE mote tick: " + memory.getByteValueOf("simDummyVar"));
   }
 
