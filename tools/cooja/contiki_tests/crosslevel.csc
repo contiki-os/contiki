@@ -2,17 +2,18 @@
 <simconf>
   <project>../apps/mrm</project>
   <project>../apps/mspsim</project>
+  <project>../apps/avrora</project>
   <project>../apps/native_gateway</project>
+  <project>C:/home/nes/contiki/checkpointing-demo</project>
   <simulation>
     <title>My simulation</title>
     <delaytime>0</delaytime>
-    <ticktime>1</ticktime>
     <randomseed>123456</randomseed>
-    <motedelay>5000</motedelay>
+    <motedelay_us>5000000</motedelay_us>
     <radiomedium>
       se.sics.cooja.radiomediums.UDGM
-      <transmitting_range>100.0</transmitting_range>
-      <interference_range>100.0</interference_range>
+      <transmitting_range>50.0</transmitting_range>
+      <interference_range>50.0</interference_range>
       <success_ratio_tx>0.5</success_ratio_tx>
       <success_ratio_rx>1.0</success_ratio_rx>
     </radiomedium>
@@ -24,7 +25,7 @@
       <commands>make example-abc.sky TARGET=sky</commands>
       <firmware>../../../examples/rime/example-abc.sky</firmware>
       <moteinterface>se.sics.cooja.interfaces.Position</moteinterface>
-      <moteinterface>se.sics.cooja.mspmote.interfaces.MspIPAddress</moteinterface>
+      <moteinterface>se.sics.cooja.interfaces.IPAddress</moteinterface>
       <moteinterface>se.sics.cooja.interfaces.Mote2MoteRelations</moteinterface>
       <moteinterface>se.sics.cooja.mspmote.interfaces.MspClock</moteinterface>
       <moteinterface>se.sics.cooja.mspmote.interfaces.MspMoteID</moteinterface>
@@ -42,7 +43,7 @@
       <commands>make example-abc.esb TARGET=esb</commands>
       <firmware>../../../examples/rime/example-abc.esb</firmware>
       <moteinterface>se.sics.cooja.interfaces.Position</moteinterface>
-      <moteinterface>se.sics.cooja.mspmote.interfaces.MspIPAddress</moteinterface>
+      <moteinterface>se.sics.cooja.interfaces.IPAddress</moteinterface>
       <moteinterface>se.sics.cooja.mspmote.interfaces.ESBLog</moteinterface>
       <moteinterface>se.sics.cooja.mspmote.interfaces.MspClock</moteinterface>
       <moteinterface>se.sics.cooja.mspmote.interfaces.ESBLED</moteinterface>
@@ -53,7 +54,7 @@
     </motetype>
     <motetype>
       se.sics.cooja.contikimote.ContikiMoteType
-      <identifier>mtype5</identifier>
+      <identifier>mtype2</identifier>
       <description>Contiki Mote Type #1</description>
       <contikiapp>../../../examples/rime/example-abc.c</contikiapp>
       <commands>make example-abc.cooja TARGET=cooja</commands>
@@ -69,7 +70,6 @@
       <moteinterface>se.sics.cooja.contikimote.interfaces.ContikiPIR</moteinterface>
       <moteinterface>se.sics.cooja.contikimote.interfaces.ContikiClock</moteinterface>
       <moteinterface>se.sics.cooja.contikimote.interfaces.ContikiLED</moteinterface>
-      <moteinterface>se.sics.cooja.contikimote.interfaces.ContikiLog</moteinterface>
       <moteinterface>se.sics.cooja.contikimote.interfaces.ContikiCFS</moteinterface>
       <moteinterface>se.sics.cooja.interfaces.Mote2MoteRelations</moteinterface>
       <symbols>false</symbols>
@@ -77,11 +77,11 @@
     </motetype>
     <mote>
       se.sics.cooja.contikimote.ContikiMote
-      <motetype_identifier>mtype5</motetype_identifier>
+      <motetype_identifier>mtype2</motetype_identifier>
       <interface_config>
         se.sics.cooja.interfaces.Position
-        <x>-562.9265350779835</x>
-        <y>-7.4313537667545635</y>
+        <x>0.0</x>
+        <y>0.0</y>
         <z>0.0</z>
       </interface_config>
       <interface_config>
@@ -92,18 +92,14 @@
         se.sics.cooja.contikimote.interfaces.ContikiMoteID
         <id>1</id>
       </interface_config>
-      <interface_config>
-        se.sics.cooja.contikimote.interfaces.ContikiIPAddress
-        <ipv4address>10.10.4.7</ipv4address>
-      </interface_config>
     </mote>
     <mote>
       se.sics.cooja.contikimote.ContikiMote
-      <motetype_identifier>mtype5</motetype_identifier>
+      <motetype_identifier>mtype2</motetype_identifier>
       <interface_config>
         se.sics.cooja.interfaces.Position
-        <x>-569.1395123422226</x>
-        <y>60.488781312375885</y>
+        <x>0.0</x>
+        <y>1.0</y>
         <z>0.0</z>
       </interface_config>
       <interface_config>
@@ -114,18 +110,14 @@
         se.sics.cooja.contikimote.interfaces.ContikiMoteID
         <id>2</id>
       </interface_config>
-      <interface_config>
-        se.sics.cooja.contikimote.interfaces.ContikiIPAddress
-        <ipv4address>10.10.19.16</ipv4address>
-      </interface_config>
     </mote>
     <mote>
       se.sics.cooja.mspmote.SkyMote
       <motetype_identifier>sky1</motetype_identifier>
       <interface_config>
         se.sics.cooja.interfaces.Position
-        <x>49.28753151734429</x>
-        <y>-6.801705242882613</y>
+        <x>100.0</x>
+        <y>0.0</y>
         <z>0.0</z>
       </interface_config>
       <interface_config>
@@ -138,8 +130,8 @@
       <motetype_identifier>sky1</motetype_identifier>
       <interface_config>
         se.sics.cooja.interfaces.Position
-        <x>45.29008348613149</x>
-        <y>58.80514675336113</y>
+        <x>100.0</x>
+        <y>1.0</y>
         <z>0.0</z>
       </interface_config>
       <interface_config>
@@ -152,8 +144,8 @@
       <motetype_identifier>esb1</motetype_identifier>
       <interface_config>
         se.sics.cooja.interfaces.Position
-        <x>574.2943627832708</x>
-        <y>-6.801705242882613</y>
+        <x>200.0</x>
+        <y>0.0</y>
         <z>0.0</z>
       </interface_config>
       <interface_config>
@@ -166,8 +158,8 @@
       <motetype_identifier>esb1</motetype_identifier>
       <interface_config>
         se.sics.cooja.interfaces.Position
-        <x>574.2943627832708</x>
-        <y>59.941038287544195</y>
+        <x>200.0</x>
+        <y>1.0</y>
         <z>0.0</z>
       </interface_config>
       <interface_config>
@@ -177,11 +169,11 @@
     </mote>
     <mote>
       se.sics.cooja.contikimote.ContikiMote
-      <motetype_identifier>mtype5</motetype_identifier>
+      <motetype_identifier>mtype2</motetype_identifier>
       <interface_config>
         se.sics.cooja.interfaces.Position
-        <x>981.0053840033577</x>
-        <y>-7.979024087557906</y>
+        <x>300.0</x>
+        <y>0.0</y>
         <z>0.0</z>
       </interface_config>
       <interface_config>
@@ -192,18 +184,28 @@
         se.sics.cooja.contikimote.interfaces.ContikiMoteID
         <id>7</id>
       </interface_config>
+    </mote>
+    <mote>
+      se.sics.cooja.mspmote.SkyMote
+      <motetype_identifier>sky1</motetype_identifier>
       <interface_config>
-        se.sics.cooja.contikimote.interfaces.ContikiIPAddress
-        <ipv4address>10.10.3.18</ipv4address>
+        se.sics.cooja.interfaces.Position
+        <x>300.0</x>
+        <y>1.0</y>
+        <z>0.0</z>
+      </interface_config>
+      <interface_config>
+        se.sics.cooja.mspmote.interfaces.MspMoteID
+        <id>8</id>
       </interface_config>
     </mote>
     <mote>
       se.sics.cooja.contikimote.ContikiMote
-      <motetype_identifier>mtype5</motetype_identifier>
+      <motetype_identifier>mtype2</motetype_identifier>
       <interface_config>
         se.sics.cooja.interfaces.Position
-        <x>1346.8489601454312</x>
-        <y>-8.540235607229494</y>
+        <x>400.0</x>
+        <y>0.0</y>
         <z>0.0</z>
       </interface_config>
       <interface_config>
@@ -212,24 +214,6 @@
       </interface_config>
       <interface_config>
         se.sics.cooja.contikimote.interfaces.ContikiMoteID
-        <id>8</id>
-      </interface_config>
-      <interface_config>
-        se.sics.cooja.contikimote.interfaces.ContikiIPAddress
-        <ipv4address>10.10.18.15</ipv4address>
-      </interface_config>
-    </mote>
-    <mote>
-      se.sics.cooja.mspmote.SkyMote
-      <motetype_identifier>sky1</motetype_identifier>
-      <interface_config>
-        se.sics.cooja.interfaces.Position
-        <x>989.572289405294</x>
-        <y>59.94103828754419</y>
-        <z>0.0</z>
-      </interface_config>
-      <interface_config>
-        se.sics.cooja.mspmote.interfaces.MspMoteID
         <id>9</id>
       </interface_config>
     </mote>
@@ -238,8 +222,8 @@
       <motetype_identifier>esb1</motetype_identifier>
       <interface_config>
         se.sics.cooja.interfaces.Position
-        <x>1349.1941112745471</x>
-        <y>58.873154391057355</y>
+        <x>400.0</x>
+        <y>1.0</y>
         <z>0.0</z>
       </interface_config>
       <interface_config>
@@ -251,41 +235,46 @@
   <plugin>
     se.sics.cooja.plugins.SimControl
     <width>265</width>
-    <z>2</z>
+    <z>1</z>
     <height>200</height>
     <location_x>0</location_x>
     <location_y>0</location_y>
     <minimized>false</minimized>
   </plugin>
   <plugin>
-    se.sics.cooja.plugins.VisState
-    <width>884</width>
-    <z>1</z>
-    <height>211</height>
-    <location_x>277</location_x>
+    se.sics.cooja.plugins.LogListener
+    <plugin_config>
+      <filter />
+      <history>256</history>
+    </plugin_config>
+    <width>632</width>
+    <z>3</z>
+    <height>143</height>
+    <location_x>-2</location_x>
+    <location_y>650</location_y>
+    <minimized>false</minimized>
+  </plugin>
+  <plugin>
+    se.sics.cooja.plugins.Visualizer
+    <plugin_config>
+      <skin>Mote IDs</skin>
+      <skin>Radio environment (UDGM)</skin>
+      <skin>Addresses: IP or Rime</skin>
+    </plugin_config>
+    <width>364</width>
+    <z>0</z>
+    <height>200</height>
+    <location_x>265</location_x>
     <location_y>0</location_y>
     <minimized>false</minimized>
   </plugin>
   <plugin>
-    se.sics.cooja.plugins.LogListener
-    <plugin_config>
-      <filter>received</filter>
-      <history>256</history>
-    </plugin_config>
-    <width>1161</width>
-    <z>0</z>
-    <height>370</height>
+    se.sics.cooja.plugins.RadioLogger
+    <width>631</width>
+    <z>4</z>
+    <height>452</height>
     <location_x>0</location_x>
-    <location_y>458</location_y>
-    <minimized>false</minimized>
-  </plugin>
-  <plugin>
-    se.sics.cooja.plugins.VisUDGM
-    <width>997</width>
-    <z>3</z>
-    <height>266</height>
-    <location_x>189</location_x>
-    <location_y>185</location_y>
+    <location_y>199</location_y>
     <minimized>false</minimized>
   </plugin>
 </simconf>

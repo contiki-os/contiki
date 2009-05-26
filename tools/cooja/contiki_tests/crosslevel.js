@@ -13,12 +13,18 @@ while (true) {
     /* Log receiving node */
     nr_packets[id] ++;
     log.log("Node " + id + " received message: " + nr_packets[id] + "\n");
+
+    log.log("TEST STATUS: ");
+    for (i = 1; i <= 10; i++) {
+      log.log(nr_packets[i] + " ");
+    }
+    log.log("\n");
   }
 
   /* Did all nodes (1-10) receive at least one message? */
   for (i = 1; i <= 10; i++) {
-    if (nr_packets[id] < 1) break;
-    if (nr_packets[id] == 10) log.testOK();
+    if (nr_packets[i] < 1) break;
+    if (i == 10) log.testOK();
   }
 
   YIELD();
