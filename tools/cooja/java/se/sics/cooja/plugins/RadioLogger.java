@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: RadioLogger.java,v 1.18 2009/05/20 12:02:06 fros4943 Exp $
+ * $Id: RadioLogger.java,v 1.19 2009/05/26 14:25:29 fros4943 Exp $
  */
 
 package se.sics.cooja.plugins;
@@ -264,7 +264,7 @@ public class RadioLogger extends VisPlugin {
       "<b>Packet data (" + original.length + " bytes)</b><br>" +
       "<pre>" + StringUtils.hexDump(original) + "</pre>" +
       "</font><font face=\"Monospaced\">" +
-      "<b>Cross-level packet data conversion failed</b><br>" +
+      "<b>No cross-level conversion available</b><br>" +
       "</font></html>";
     } else {
       byte[] data = packet.getPacketData();
