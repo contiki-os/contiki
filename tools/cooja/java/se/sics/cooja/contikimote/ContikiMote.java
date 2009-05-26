@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ContikiMote.java,v 1.11 2009/03/09 16:08:17 fros4943 Exp $
+ * $Id: ContikiMote.java,v 1.12 2009/05/26 14:21:20 fros4943 Exp $
  */
 
 package se.sics.cooja.contikimote;
@@ -61,21 +61,6 @@ public class ContikiMote implements Mote {
   private MoteInterfaceHandler myInterfaceHandler = null;
   private Simulation mySim = null;
 
-  // Time to wake up if sleeping
-  private int wakeUpTime = 0;
-
-  private State myState = State.ACTIVE;
-
-  // State observable
-  private class StateObservable extends Observable {
-    private void stateChanged() {
-      setChanged();
-      notifyObservers();
-    }
-  }
-  private StateObservable stateObservable = new StateObservable();
-
-
   /**
    * Creates a new uninitialized Contiki mote.
    *
@@ -98,40 +83,22 @@ public class ContikiMote implements Mote {
     this.myType = moteType;
     this.myMemory = moteType.createInitialMemory();
     this.myInterfaceHandler = new MoteInterfaceHandler(this, moteType.getMoteInterfaceClasses());
-
-    myState = State.ACTIVE;
+    
+    scheduleNextWakeup(mySim.getSimulationTime());
   }
 
   public void setState(State newState) {
-    if (myState == State.DEAD) {
-      return;
-    }
-
-    if (myState == State.ACTIVE && newState != State.ACTIVE) {
-      myState = newState;
-      stateObservable.stateChanged();
-    }
-
-    if (myState == State.LPM && newState != State.LPM) {
-      myState = newState;
-      stateObservable.stateChanged();
-    }
-
-    if (myState == State.DEAD) {
-      mySim.getRadioMedium().unregisterMote(this, mySim);
-    }
-  }
+    logger.warn("setState() not implemented");
+ }
 
   public State getState() {
-    return myState;
+    return State.ACTIVE;
   }
 
   public void addStateObserver(Observer newObserver) {
-    stateObservable.addObserver(newObserver);
   }
 
   public void deleteStateObserver(Observer newObserver) {
-    stateObservable.deleteObserver(newObserver);
   }
 
   public MoteInterfaceHandler getInterfaces() {
@@ -167,80 +134,39 @@ public class ContikiMote implements Mote {
   }
 
   /**
-   * Ticks this mote once. This is done by first polling all interfaces
+   * Ticks mote once. This is done by first polling all interfaces
    * and letting them act on the stored memory before the memory is set. Then
    * the mote is ticked, and the new memory is received.
    * Finally all interfaces are allowing to act on the new memory in order to
-   * discover relevant changes. This method also checks if mote should go to sleep
+   * discover relevant changes. This method also schedules the next mote tick time
    * depending on Contiki specifics; pending timers and polled processes.
    *
    * @param simTime Current simulation time
    */
   public boolean tick(long simTime) {
-    State currentState = getState();
 
-    // If mote is dead, do nothing at all
-    if (currentState == State.DEAD) {
+    /* Poll mote interfaces */
+    myInterfaceHandler.doActiveActionsBeforeTick();
+    myInterfaceHandler.doPassiveActionsBeforeTick();
+
+    /* Check if pre-boot time */
+    if (myInterfaceHandler.getClock().getTime() < 0) {
+      scheduleNextWakeup(simTime + -myInterfaceHandler.getClock().getTime());
       return false;
     }
 
-    // If mote is sleeping and has a wake up time, should it wake up now?
-    if (currentState == State.LPM && wakeUpTime > 0 && wakeUpTime <= simTime) {
-      setState(State.ACTIVE);
-      currentState = getState();
-      wakeUpTime = 0;
-    }
+    /* Copy mote memory to Contiki */
+    myType.setCoreMemory(myMemory);
 
-    // If mote is active..
-    if (currentState == State.ACTIVE) {
-      // Let all active interfaces act before tick
-      // Observe that each interface may put the mote to sleep at this point
-      myInterfaceHandler.doActiveActionsBeforeTick();
-    }
+    /* Handle a single Contiki events */
+    myType.tick();
 
-    // And let passive interfaces act even if mote is sleeping
-    myInterfaceHandler.doPassiveActionsBeforeTick();
+    /* Copy mote memory from Contiki */
+    myType.getCoreMemory(myMemory);
 
-
-    // If mote is still active, complete this tick
-    currentState = getState();
-    if (currentState == State.ACTIVE) {
-
-      // Copy mote memory to core
-      myType.setCoreMemory(myMemory);
-
-      // Tick node
-      myType.tick();
-
-      // Fetch new updated memory from core
-      myType.getCoreMemory(myMemory);
-
-      // Let all active interfaces act again after tick
-      myInterfaceHandler.doActiveActionsAfterTick();
-
-    }
-
-    // Finally let all passive interfaces act
+    /* Poll mote interfaces */
+    myInterfaceHandler.doActiveActionsAfterTick();
     myInterfaceHandler.doPassiveActionsAfterTick();
-
-    // If mote is awake, should it go to sleep?
-    if (currentState == State.ACTIVE) {
-      // Check if this mote should sleep (no more pending timers or processes to poll)
-      int processRunValue = myMemory.getIntValueOf("simProcessRunValue");
-      int etimersPending = myMemory.getIntValueOf("simEtimerPending");
-      int nextExpirationTime = myMemory.getIntValueOf("simNextExpirationTime");
-
-      if (processRunValue == 0 && etimersPending == 0) {
-        setState(State.LPM);
-        wakeUpTime = 0;
-      }
-
-      if (processRunValue == 0 && etimersPending == 1 && nextExpirationTime > 0) {
-        setState(State.LPM);
-        wakeUpTime = nextExpirationTime;
-      }
-
-    }
 
     return false;
   }
@@ -278,7 +204,6 @@ public class ContikiMote implements Mote {
 
   public boolean setConfigXML(Simulation simulation, Collection<Element> configXML, boolean visAvailable) {
     mySim = simulation;
-    myState = State.ACTIVE;
 
     for (Element element: configXML) {
       String name = element.getName();
@@ -306,6 +231,7 @@ public class ContikiMote implements Mote {
       }
     }
 
+    scheduleNextWakeup(mySim.getSimulationTime());
     return true;
   }
 
@@ -319,4 +245,29 @@ public class ContikiMote implements Mote {
     return "Contiki Mote, ID=" + getInterfaces().getMoteID().getMoteID();
   }
 
+  private TimeEvent tickMoteEvent = new MoteTimeEvent(this, 0) {
+    public void execute(long t) {
+      /* Tick Contiki mote */
+      tick(mySim.getSimulationTime());
+    }
+    public String toString() {
+      return "CONTIKI TICK " + ContikiMote.this;
+    }
+  };
+
+  public void scheduleImmediateWakeup() {
+    scheduleNextWakeup(mySim.getSimulationTime());
+  }
+  
+  public void scheduleNextWakeup(long time) {
+    if (tickMoteEvent.isScheduled() &&
+        tickMoteEvent.getTime() <= time) {
+      /* Native tick events already scheduled */
+      return;
+    }
+
+    /* Reschedule native mote event */
+    /*logger.info("Rescheduled tick from " + tickMoteEvent.time + " to " + time);*/
+    mySim.scheduleEventUnsafe(tickMoteEvent, time);
+  }
 }
