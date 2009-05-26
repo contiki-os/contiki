@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: Battery.java,v 1.7 2009/03/09 14:08:54 fros4943 Exp $
+ * $Id: Battery.java,v 1.8 2009/05/26 14:24:20 fros4943 Exp $
  */
 
 package se.sics.cooja.interfaces;
@@ -37,6 +37,7 @@ import org.apache.log4j.Logger;
 import org.jdom.Element;
 
 import se.sics.cooja.*;
+import se.sics.cooja.contikimote.ContikiMote;
 
 /**
  * A Battery represents the energy source for a mote. This implementation has no
@@ -79,7 +80,7 @@ public class Battery extends MoteInterface implements PolledAfterAllTicks {
    */
   public final double INITIAL_ENERGY;
 
-  private Mote mote = null;
+  private ContikiMote mote = null;
 
   private double cpuEnergyConsumptionLPMPerMs;
   private double cpuEnergyConsumptionAwakePerMs;
@@ -108,7 +109,7 @@ public class Battery extends MoteInterface implements PolledAfterAllTicks {
     cpuEnergyConsumptionAwakePerMs = CPU_ENERGY_CONSUMPTION_AWAKE_mA * 0.001; /* TODO Voltage */
     cpuEnergyConsumptionLPMPerMs = CPU_ENERGY_CONSUMPTION_LPM_mA * 0.001; /* TODO Voltage */
 
-    this.mote = mote;
+    this.mote = (ContikiMote) mote;
   }
 
   public void doActionsAfterTick() {
@@ -135,7 +136,7 @@ public class Battery extends MoteInterface implements PolledAfterAllTicks {
 
     /* Check if we are out of energy */
     if (getEnergyConsumption() > INITIAL_ENERGY) {
-      mote.setState(Mote.State.DEAD);
+      mote.scheduleImmediateWakeup();
     }
 
     setChanged();

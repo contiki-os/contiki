@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ContikiVib.java,v 1.6 2009/02/25 14:46:24 fros4943 Exp $
+ * $Id: ContikiVib.java,v 1.7 2009/05/26 14:24:20 fros4943 Exp $
  */
 
 package se.sics.cooja.contikimote.interfaces;
@@ -38,6 +38,7 @@ import org.apache.log4j.Logger;
 import org.jdom.Element;
 
 import se.sics.cooja.*;
+import se.sics.cooja.contikimote.ContikiMote;
 import se.sics.cooja.contikimote.ContikiMoteInterface;
 
 /**
@@ -72,7 +73,7 @@ public class ContikiVib extends MoteInterface implements ContikiMoteInterface {
 
   private double energyActiveVibPerTick = -1;
 
-  private Mote mote;
+  private ContikiMote mote;
   private SectionMoteMemory moteMem;
   private double myEnergyConsumption = 0.0;
 
@@ -89,7 +90,7 @@ public class ContikiVib extends MoteInterface implements ContikiMoteInterface {
     ENERGY_CONSUMPTION_VIB_mA = mote.getType().getConfig().getDoubleValue(
         ContikiVib.class, "ACTIVE_CONSUMPTION_mA");
 
-    this.mote = mote;
+    this.mote = (ContikiMote) mote;
     this.moteMem = (SectionMoteMemory) mote.getMemory();
 
     if (energyActiveVibPerTick < 0) {
@@ -105,10 +106,20 @@ public class ContikiVib extends MoteInterface implements ContikiMoteInterface {
    * Simulates a change in the vibration sensor.
    */
   public void triggerChange() {
+    mote.getSimulation().scheduleEvent(vibrateEvent, mote.getSimulation().getSimulationTime());
+  }
+  
+  private TimeEvent vibrateEvent = new MoteTimeEvent(mote, 0) {
+    public void execute(long t) {
+      doTriggerChange();
+    }
+  };
+  
+  public void doTriggerChange() { 
     if (moteMem.getByteValueOf("simVibIsActive") == 1) {
       moteMem.setByteValueOf("simVibChanged", (byte) 1);
 
-      mote.setState(Mote.State.ACTIVE);
+      mote.scheduleImmediateWakeup();
     }
   }
 

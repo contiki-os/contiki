@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: RimeAddress.java,v 1.2 2009/04/28 07:29:26 fros4943 Exp $
+ * $Id: RimeAddress.java,v 1.3 2009/05/26 14:24:21 fros4943 Exp $
  */
 
 package se.sics.cooja.interfaces;
@@ -75,7 +75,7 @@ public class RimeAddress extends MoteInterface {
         /* Postpone until address has been set */
         mote.getSimulation().scheduleEvent(
             this,
-            mote.getSimulation().getSimulationTime() + 1);
+            mote.getSimulation().getSimulationTime() + Simulation.MILLISECOND);
         return;
       }
     };

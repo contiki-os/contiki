@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ContikiCFS.java,v 1.9 2009/02/25 14:46:24 fros4943 Exp $
+ * $Id: ContikiCFS.java,v 1.10 2009/05/26 14:24:20 fros4943 Exp $
  */
 
 package se.sics.cooja.contikimote.interfaces;
@@ -84,8 +84,6 @@ public class ContikiCFS extends MoteInterface implements ContikiMoteInterface, P
   public final double ENERGY_CONSUMPTION_PER_READ_CHAR_mQ;
   public final double ENERGY_CONSUMPTION_PER_WRITTEN_CHAR_mQ;
 
-  private double myEnergyConsumption = 0.0;
-
   /**
    * Creates an interface to the filesystem at mote.
    *
@@ -109,12 +107,6 @@ public class ContikiCFS extends MoteInterface implements ContikiMoteInterface, P
     return new String[]{"cfs_interface"};
   }
 
-  private TimeEvent doneEvent = new TimeEvent(0) {
-    public void execute(long t) {
-      myEnergyConsumption = 0.0;
-    }
-  };
-
   public void doActionsAfterTick() {
     if (moteMem.getByteValueOf("simCFSChanged") == 1) {
       lastRead = moteMem.getIntValueOf("simCFSRead");
@@ -124,15 +116,8 @@ public class ContikiCFS extends MoteInterface implements ContikiMoteInterface, P
       moteMem.setIntValueOf("simCFSWritten", 0);
       moteMem.setByteValueOf("simCFSChanged", (byte) 0);
 
-      myEnergyConsumption =
-        ENERGY_CONSUMPTION_PER_READ_CHAR_mQ*lastRead +
-        ENERGY_CONSUMPTION_PER_WRITTEN_CHAR_mQ*lastWritten;
-
       this.setChanged();
       this.notifyObservers(mote);
-
-      /* Reset energy consumption */
-      mote.getSimulation().scheduleEvent(doneEvent, mote.getSimulation().getSimulationTime());
     }
   }
 
@@ -230,7 +215,7 @@ public class ContikiCFS extends MoteInterface implements ContikiMoteInterface, P
   }
 
   public double energyConsumption() {
-    return myEnergyConsumption;
+    return 0.0;
   }
 
   public Collection<Element> getConfigXML() {

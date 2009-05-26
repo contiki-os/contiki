@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ContikiButton.java,v 1.12 2009/02/25 14:46:24 fros4943 Exp $
+ * $Id: ContikiButton.java,v 1.13 2009/05/26 14:24:20 fros4943 Exp $
  */
 
 package se.sics.cooja.contikimote.interfaces;
@@ -38,6 +38,7 @@ import org.apache.log4j.Logger;
 import org.jdom.Element;
 
 import se.sics.cooja.*;
+import se.sics.cooja.contikimote.ContikiMote;
 import se.sics.cooja.contikimote.ContikiMoteInterface;
 import se.sics.cooja.interfaces.Button;
 
@@ -63,20 +64,19 @@ import se.sics.cooja.interfaces.Button;
  */
 public class ContikiButton extends Button implements ContikiMoteInterface {
   private SectionMoteMemory moteMem;
-  private Mote mote;
+  private ContikiMote mote;
 
   private static Logger logger = Logger.getLogger(ContikiButton.class);
 
   /**
    * Creates an interface to the button at mote.
    *
-   * @param mote
-   *          Button's mote.
+   * @param mote Mote
    * @see Mote
    * @see se.sics.cooja.MoteInterfaceHandler
    */
   public ContikiButton(Mote mote) {
-    this.mote = mote;
+    this.mote = (ContikiMote) mote;
     this.moteMem = (SectionMoteMemory) mote.getMemory();
   }
 
@@ -84,20 +84,23 @@ public class ContikiButton extends Button implements ContikiMoteInterface {
     return new String[]{"button_interface"};
   }
 
-  private TimeEvent releaseButtonEvent = new TimeEvent(0) {
+  private TimeEvent pressButtonEvent = new MoteTimeEvent(mote, 0) {
     public void execute(long t) {
+      doPressButton();
+    }
+  };
 
-      /* Force mote awake when button is down */
-      mote.setState(Mote.State.ACTIVE);
-
+  private TimeEvent releaseButtonEvent = new MoteTimeEvent(mote, 0) {
+    public void execute(long t) {
       /* Wait until button change is handled by Contiki */
-      if (moteMem.getByteValueOf("simButtonChanged") == 0) {
-        /*logger.info("Releasing button at: " + t);*/
-        releaseButton();
-      } else {
-        /* Reschedule button release */
-        mote.getSimulation().scheduleEvent(releaseButtonEvent, t+1);
+      if (moteMem.getByteValueOf("simButtonChanged") != 0) {
+        /* Postpone button release */
+        mote.getSimulation().scheduleEvent(releaseButtonEvent, t + Simulation.MILLISECOND);
+        return;
       }
+
+      /*logger.info("Releasing button at: " + t);*/
+      doReleaseButton();
     }
   };
 
@@ -105,34 +108,40 @@ public class ContikiButton extends Button implements ContikiMoteInterface {
    * Clicks button: Presses and immediately releases button.
    */
   public void clickButton() {
-    pressButton();
+    mote.getSimulation().scheduleEvent(pressButtonEvent, mote.getSimulation().getSimulationTime());
+    mote.getSimulation().scheduleEvent(releaseButtonEvent, mote.getSimulation().getSimulationTime() + Simulation.MILLISECOND);
+  }
 
-    /* Schedule release button */
-    mote.getSimulation().scheduleEvent(releaseButtonEvent, mote.getSimulation().getSimulationTime());
+  public void pressButton() {
+    mote.getSimulation().scheduleEvent(pressButtonEvent, mote.getSimulation().getSimulationTime());
   }
 
   public void releaseButton() {
+    mote.getSimulation().scheduleEvent(releaseButtonEvent, mote.getSimulation().getSimulationTime());
+  }
+
+  private void doReleaseButton() {
     moteMem.setByteValueOf("simButtonIsDown", (byte) 0);
 
     if (moteMem.getByteValueOf("simButtonIsActive") == 1) {
       moteMem.setByteValueOf("simButtonChanged", (byte) 1);
 
       /* If mote is inactive, wake it up */
-      mote.setState(Mote.State.ACTIVE);
+      mote.scheduleImmediateWakeup();
 
       setChanged();
       notifyObservers();
     }
   }
 
-  public void pressButton() {
+  private void doPressButton() {
     moteMem.setByteValueOf("simButtonIsDown", (byte) 1);
 
     if (moteMem.getByteValueOf("simButtonIsActive") == 1) {
       moteMem.setByteValueOf("simButtonChanged", (byte) 1);
 
       /* If mote is inactive, wake it up */
-      mote.setState(Mote.State.ACTIVE);
+      mote.scheduleImmediateWakeup();
 
       setChanged();
       notifyObservers();
