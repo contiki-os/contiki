@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: CC2420RadioPacketConverter.java,v 1.9 2009/05/06 12:59:12 fros4943 Exp $
+ * $Id: CC2420RadioPacketConverter.java,v 1.10 2009/05/26 13:33:35 fros4943 Exp $
  */
 
 package se.sics.cooja.mspmote.interfaces;
@@ -35,6 +35,7 @@ import org.apache.log4j.Logger;
 
 import se.sics.cooja.ConvertedRadioPacket;
 import se.sics.cooja.RadioPacket;
+import se.sics.cooja.util.StringUtils;
 
 /**
  * Converts radio packets between X-MAC/CC24240/Sky and COOJA.
@@ -48,7 +49,7 @@ public class CC2420RadioPacketConverter {
   public static final boolean WITH_PREAMBLE = true;
   public static final boolean WITH_SYNCH = true;
   public static final boolean WITH_XMAC = true;
-  public static final boolean WITH_CHECKSUM = true;
+  public static final boolean WITH_CHECKSUM = false;
   public static final boolean WITH_TIMESTAMP = true;
   public static final boolean WITH_FOOTER = true;
 
@@ -75,7 +76,7 @@ public class CC2420RadioPacketConverter {
     /* 1 byte length */
     len = (byte) packetData.length;
     if (WITH_XMAC) {
-      len += 4;
+      len += 6;
     }
     if (WITH_CHECKSUM) {
       len += 2;
@@ -90,11 +91,15 @@ public class CC2420RadioPacketConverter {
 
     /* (TODO) 4 byte X-MAC */
     if (WITH_XMAC) {
-      cc2420Data[pos++] = 0;
+      cc2420Data[pos++] = 1; /* TYPE_DATA */
       accumulatedCRC = CRCCoder.crc16Add((byte)0, accumulatedCRC);
       cc2420Data[pos++] = 0;
       accumulatedCRC = CRCCoder.crc16Add((byte)0, accumulatedCRC);
+      cc2420Data[pos++] = 0; /* XXX sender: 0.0 */
+      accumulatedCRC = CRCCoder.crc16Add((byte)0, accumulatedCRC);
       cc2420Data[pos++] = 0;
+      accumulatedCRC = CRCCoder.crc16Add((byte)0, accumulatedCRC);
+      cc2420Data[pos++] = 0; /* XXX receiver: 0.0 */
       accumulatedCRC = CRCCoder.crc16Add((byte)0, accumulatedCRC);
       cc2420Data[pos++] = 0;
       accumulatedCRC = CRCCoder.crc16Add((byte)0, accumulatedCRC);
@@ -157,8 +162,8 @@ public class CC2420RadioPacketConverter {
 
     /* (IGNORED) 4 byte X-MAC */
     if (WITH_XMAC) {
-      pos += 4;
-      len -= 4;
+      pos += 6;
+      len -= 6;
     }
 
     /* (IGNORED) 2 bytes checksum */
@@ -182,7 +187,7 @@ public class CC2420RadioPacketConverter {
     byte originalData[] = new byte[originalLen];
     System.arraycopy(data, 6, originalData, 0, originalLen);
     if (len < 0) {
-      logger.fatal("Negative length radio packet. Conversion failed.");
+      logger.warn("No cross-level conversion available: negative packet length");
       return new ConvertedRadioPacket(new byte[0], originalData);
     }
     byte convertedData[] = new byte[len];
