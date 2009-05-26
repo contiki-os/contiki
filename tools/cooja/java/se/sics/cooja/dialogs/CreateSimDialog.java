@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: CreateSimDialog.java,v 1.15 2009/02/18 10:10:47 fros4943 Exp $
+ * $Id: CreateSimDialog.java,v 1.16 2009/05/26 14:25:07 fros4943 Exp $
  */
 
 package se.sics.cooja.dialogs;
@@ -130,7 +130,7 @@ public class CreateSimDialog extends JDialog {
     myDialog.delayTime.setValue(new Integer(simulationToConfigure.getDelayTime()));
 
     // Set simulation time
-    myDialog.simulationTime.setValue(new Long(simulationToConfigure.getSimulationTime()));
+    myDialog.simulationTime.setValue(new Long(simulationToConfigure.getSimulationTime()/Simulation.MILLISECOND));
 
     // Select radio medium
     if (simulationToConfigure.getRadioMedium() != null) {
@@ -158,8 +158,8 @@ public class CreateSimDialog extends JDialog {
       myDialog.randomSeed.setValue(new Long(simulationToConfigure.getRandomSeed()));
     }
 
-    // Set delayed mote startup time
-    myDialog.delayedStartup.setValue(new Integer(simulationToConfigure.getDelayedMoteStartupTime()));
+    // Set delayed mote startup time (ms)
+    myDialog.delayedStartup.setValue(new Long(simulationToConfigure.getDelayedMoteStartupTime()/Simulation.MILLISECOND));
 
 
     // Set position and focus of dialog
@@ -455,7 +455,7 @@ public class CreateSimDialog extends JDialog {
           mySimulation.setRandomSeed(((Number) randomSeed.getValue()).longValue());
         }
 
-        mySimulation.setDelayedMoteStartupTime(((Number) delayedStartup.getValue()).intValue());
+        mySimulation.setDelayedMoteStartupTime((int) ((Number) delayedStartup.getValue()).intValue()*Simulation.MILLISECOND);
 
         dispose();
       }
