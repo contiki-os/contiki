@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: RadioMedium.java,v 1.6 2008/03/18 12:57:04 fros4943 Exp $
+ * $Id: RadioMedium.java,v 1.7 2009/05/26 14:17:29 fros4943 Exp $
  */
 
 package se.sics.cooja;
@@ -43,10 +43,6 @@ import se.sics.cooja.interfaces.Radio;
  * mediums. Radios registered in this medium can both send and receive radio
  * data. Depending on the implementation of this interface, more or less
  * accurate radio behaviour imitation is aquired.
- *
- * Often a radio medium, at initialization, registers one or several dynamic
- * plugins. These plugins shows the user some radio medium specific details,
- * such as radio transmission radius etc.
  *
  * @author Fredrik Osterlind
  */
@@ -102,12 +98,7 @@ public abstract class RadioMedium {
   public abstract void unregisterRadioInterface(Radio radio, Simulation sim);
 
   /**
-   * Adds an observer which is notified after the radio connections has been
-   * calculated. Often a radio medium is a tick observer and makes these
-   * calculations after each tick loop. A radio medium observer may then gather
-   * network data by being notified every time the radio medium has delivered
-   * data. The radio medium observable MUST notify observers every time the
-   * getLastTickConnections returns a new value, even if the new value is null.
+   * Adds an observer which is notified each time a radio connection has finished.
    *
    * @see #getLastTickConnections()
    * @see #deleteRadioMediumObserver(Observer)
