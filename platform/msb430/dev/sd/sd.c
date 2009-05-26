@@ -47,9 +47,9 @@ Berlin, 2007
  * @brief	MMC-/SD-Card library
  * 
  * @author	Michael Baar	<baar@inf.fu-berlin.de>
- * @version	$Revision: 1.7 $
+ * @version	$Revision: 1.8 $
  *
- * $Id: sd.c,v 1.7 2009/05/25 13:19:04 nvt-se Exp $
+ * $Id: sd.c,v 1.8 2009/05/26 12:15:46 nvt-se Exp $
  * 
  * Initialisation and basic functions for read and write access
  */
@@ -88,40 +88,40 @@ sd_init_card(sd_cache_t * pCache)
   int resetcnt;
   struct sd_response_r3 r3;
 
-  if (!sd_detected()) {
+  if(!sd_detected()) {
     return SD_INIT_NOCARD;
   }
 
-  if (sd_state.Flags & SD_INITIALIZED) {
+  if(sd_state.Flags & SD_INITIALIZED) {
     return SD_INIT_SUCCESS;
   }
 
   // Wait for UART and switch to SPI mode
-  if (!uart_lock_wait(UART_MODE_SPI)) {
+  if(!uart_lock_wait(UART_MODE_SPI)) {
     return SD_INIT_FAILED;
   }
 
   // reset card
   resetcnt = _sd_reset(&r3);
 
-  if (resetcnt >= SD_RESET_RETRY_COUNT) {
+  if(resetcnt >= SD_RESET_RETRY_COUNT) {
     ret = SD_INIT_FAILED;
     goto sd_init_card_fail;
   }
   // Test for hardware compatibility
-  if ((r3.ocr & SD_V_MASK) != SD_V_MASK) {
+  if((r3.ocr & SD_V_MASK) != SD_V_MASK) {
     ret = SD_INIT_NOTSUPP;
     goto sd_init_card_fail;
   }
   // Test for software compatibility
-  if (!_sd_read_register(&csd, SD_CMD_SEND_CSD, sizeof (struct sd_csd))) {
+  if(!_sd_read_register(&csd, SD_CMD_SEND_CSD, sizeof (struct sd_csd))) {
     ret = SD_INIT_FAILED;
     goto sd_init_card_fail;
   }
 
   ccc = SD_CSD_CCC(csd);
 
-  if ((ccc & SD_DEFAULT_MINCCC) != SD_DEFAULT_MINCCC) {
+  if((ccc & SD_DEFAULT_MINCCC) != SD_DEFAULT_MINCCC) {
     ret = SD_INIT_NOTSUPP;
     goto sd_init_card_fail;
   }
@@ -135,19 +135,19 @@ sd_init_card_fail:
   LOG_VERBOSE("(sd_init) result:%u, resetcnt:%i OCR:%.8lx, CCC:%.4x",
 	      ret, resetcnt, r3.ocr, ccc);
 #endif
-  if (ret != SD_INIT_SUCCESS) {
+  if(ret != SD_INIT_SUCCESS) {
     return ret;
   }
   // state
   sd_state.MinBlockLen_bit = 9;
   sd_state.MaxBlockLen_bit = SD_CSD_READ_BL_LEN(csd);
   sd_state.Flags = SD_INITIALIZED;
-  if (SD_CSD_READ_PARTIAL(csd)) {
+  if(SD_CSD_READ_PARTIAL(csd)) {
     sd_state.MinBlockLen_bit = 0;
     sd_state.Flags |= SD_READ_PARTIAL;
   }
 
-  if (SD_CSD_WRITE_PARTIAL(csd)) {
+  if(SD_CSD_WRITE_PARTIAL(csd)) {
     sd_state.Flags |= SD_WRITE_PARTIAL;
   }
 
@@ -155,7 +155,7 @@ sd_init_card_fail:
   sd_state.BlockLen = 1 << 9;
 
 #if SD_CACHE
-  if (pCache == NULL) {
+  if(pCache == NULL) {
     return SD_INIT_NOTSUPP;
   }
   sd_state.Cache = pCache;
@@ -169,7 +169,7 @@ sd_init_card_fail:
 void
 sd_flush(void)
 {
-  if (uart_lock(UART_MODE_SPI)) {
+  if(uart_lock(UART_MODE_SPI)) {
 #if SD_WRITE && SD_CACHE
     _sd_cache_flush();
 #endif
@@ -198,22 +198,22 @@ sd_set_blocklength(const uint8_t blocklength_bit)
   uint8_t arg[4];
 
   // test if already set
-  if (blocklength_bit == sd_state.BlockLen_bit) {
+  if(blocklength_bit == sd_state.BlockLen_bit) {
     return sd_state.BlockLen_bit;
   }
 
   // Wait for UART and switch to SPI mode
-  if (!uart_lock_wait(UART_MODE_SPI)) {
+  if(!uart_lock_wait(UART_MODE_SPI)) {
     return sd_state.BlockLen_bit;
   }
 
-  ((uint16_t *) arg)[1] = 0;
-  ((uint16_t *) arg)[0] = 1 << blocklength_bit;
+  ((uint16_t *)arg)[1] = 0;
+  ((uint16_t *)arg)[0] = 1 << blocklength_bit;
 
   // set blocklength command
-  if (_sd_send_cmd(SD_CMD_SET_BLOCKLENGTH, SD_RESPONSE_SIZE_R1, arg, NULL)) {
+  if(_sd_send_cmd(SD_CMD_SET_BLOCKLENGTH, SD_RESPONSE_SIZE_R1, arg, NULL)) {
     sd_state.BlockLen_bit = blocklength_bit;
-    sd_state.BlockLen = ((uint16_t *) arg)[0];
+    sd_state.BlockLen = ((uint16_t *)arg)[0];
     ret = blocklength_bit;
   } else {
     ret = SD_BLOCKLENGTH_INVALID;
@@ -231,10 +231,10 @@ sd_set_blocklength(const uint8_t blocklength_bit)
 // Public functions, Reading
 ///////////////////////////////////////////////////////////////////////////////
 uint16_t
-sd_AlignAddress(uint32_t * pAddress)
+sd_align_address(uint32_t * pAddress)
 {
   uint16_t blMask = sd_state.BlockLen - 1;
-  uint16_t *lw = (uint16_t *) pAddress;
+  uint16_t *lw = (uint16_t *)pAddress;
   uint16_t offset = *lw & blMask;
 
   *lw &= ~blMask;
@@ -246,7 +246,12 @@ sd_AlignAddress(uint32_t * pAddress)
 uint16_t
 sd_read_block(void (*const pBuffer), const uint32_t address)
 {
-  if (!_sd_read_start(SD_CMD_READ_SINGLE_BLOCK, address)) {
+  int s;
+
+  s = splhigh();
+
+  if(!_sd_read_start(SD_CMD_READ_SINGLE_BLOCK, address)) {
+    splx(s);
     return FALSE;
   }
 
@@ -254,6 +259,8 @@ sd_read_block(void (*const pBuffer), const uint32_t address)
 
   // receive CRC16 and finish
   _sd_read_stop(2);
+
+   splx(s);
 
   return sd_state.BlockLen;
 }
@@ -263,21 +270,21 @@ sd_read_block(void (*const pBuffer), const uint32_t address)
 bool
 sd_read_byte(void *pBuffer, const uint32_t address)
 {
-  if (sd_set_blocklength(0) == 0) {
+  if(sd_set_blocklength(0) == 0) {
     return sd_read_block(pBuffer, address);
   } else {
     uint32_t blAdr = address;
     uint16_t offset;		// bytes from aligned address to start of first byte to keep
     // align
-    offset = sd_AlignAddress(&blAdr);
+    offset = sd_align_address(&blAdr);
 
     // start
-    if (!_sd_read_start(SD_CMD_READ_SINGLE_BLOCK, address)) {
+    if(!_sd_read_start(SD_CMD_READ_SINGLE_BLOCK, address)) {
       return FALSE;
     }
 
     // read
-    Spi_read(pBuffer, offset + 1, FALSE);
+    sdspi_read(pBuffer, offset + 1, FALSE);
 
     // done
     _sd_read_stop(sd_state.BlockLen - offset - 1);
@@ -301,20 +308,20 @@ sd_read(void *pBuffer, unsigned long address, unsigned int size)
   //
   // parameter processing
   //
-  if (size == 0) {
-    return FALSE;
+  if(size == 0) {
+    return 0;
   }
 
   // align to block
-  offset = sd_AlignAddress(&address);
+  offset = sd_align_address(&address);
 
-  if ((offset == 0) && (sd_state.BlockLen == size)) {
+  if((offset == 0) && (sd_state.BlockLen == size)) {
     // best case: perfectly block aligned, no chunking
     // -> do shortcut
     return sd_read_block(pBuffer, address);
   }
   // calculate first block
-  if (size > sd_state.BlockLen) {
+  if(size > sd_state.BlockLen) {
     read_count = sd_state.BlockLen;
   } else {
     read_count = size;
@@ -323,16 +330,20 @@ sd_read(void *pBuffer, unsigned long address, unsigned int size)
   // Data transfer
   //
 
+  s = splhigh(s);
+
   // request data transfer
   ret = _sd_read_start(SD_CMD_READ_SINGLE_BLOCK, address);
-
-  RETF(ret);
+  if(!ret) {
+    splx(s);
+    return 0;
+  }
 
   // run to offset
-  if (offset) {
+  if(offset) {
     sdspi_read(pBuffer, offset, FALSE);	// dump till offset
     dump_flag = ((read_count + offset) < sd_state.BlockLen);
-    if (!dump_flag) {
+    if(!dump_flag) {
       read_count = sd_state.BlockLen - offset;	// max bytes to read from first block
     }
   } else {
@@ -356,18 +367,18 @@ sd_read(void *pBuffer, unsigned long address, unsigned int size)
     num_bytes_read += read_count;
 
     // finish block         
-    if (dump_flag) {
+    if(dump_flag) {
       // cancel remaining bytes (last iteration)
       _sd_read_stop(sd_state.BlockLen - read_count - offset);
       break;
       // unselect is included in send_cmd
     } else {
       sdspi_idle(2);		// receive CRC16
-      if (size != 0) {
+      if(size != 0) {
 	// address calculation for next block
 	offset = 0;
 	address += sd_state.BlockLen;
-	if (size > sd_state.BlockLen) {
+	if(size > sd_state.BlockLen) {
 	  read_count = sd_state.BlockLen;
 	  dump_flag = FALSE;
 	} else {
@@ -377,14 +388,19 @@ sd_read(void *pBuffer, unsigned long address, unsigned int size)
 
 	sdspi_unselect();
 	ret = _sd_read_start(SD_CMD_READ_SINGLE_BLOCK, address);
-	RETF(ret);
+	if(!ret) {
+	  splx(s);
+	  return 0;
+	}
       } else {
 	// finished
 	_sd_read_stop(0);
 	break;
       }
     }
-  } while (1);
+  } while(1);
+
+  splx(s);
 
   return num_bytes_read;
 }
@@ -409,16 +425,16 @@ _sd_write_finish(void)
   sdspi_dma_lock = FALSE;
 #endif
 
+  s = splhigh();
+
   // dummy crc
   sdspi_idle(2);
 
-  s = splhigh();
-
   // receive data response (ZZS___ 3 bits crc response)
-  for (i = 0; i < SD_TIMEOUT_NCR; i++) {
+  for(i = 0; i < SD_TIMEOUT_NCR; i++) {
     ret = sdspi_rx();
-    if ((ret > 0) && (ret < 0xFF)) {
-      while (ret & 0x80) {
+    if((ret > 0) && (ret < 0xFF)) {
+      while(ret & 0x80) {
 	ret <<= 1;
       }
       ret = ((ret & 0x70) == 0x20);
@@ -426,17 +442,16 @@ _sd_write_finish(void)
     }
   }
 
-  splx(s);
-
   // wait for data to be written
   _sd_wait_standby(NULL);
+  splx(s);
   sdspi_unselect();
 
-  if (ret) {
+  if(ret) {
     // data transfer to sd card buffer was successful
     // query for result of actual write operation
     ret = _sd_send_cmd(SD_CMD_SEND_STATUS, SD_RESPONSE_SIZE_R2, NULL, &r2);
-    if (ret && (r2 == 0)) {
+    if(ret && (r2 == 0)) {
       result = SD_WRITE_SUCCESS;
     }
   } else {
@@ -454,7 +469,7 @@ enum sd_write_ret
 sd_write_flush(void)
 {
 #if SPI_DMA_WRITE
-  if (!sdspi_dma_lock) {
+  if(!sdspi_dma_lock) {
     return SD_WRITE_DMA_ERR;
   } else {
     return _sd_write_finish();
@@ -472,12 +487,12 @@ _sd_write_block(const uint32_t * pAddress, const void *pBuffer, int increment)
   int s;
 
   // block write-access on write protection
-  if (sd_protected()) {
+  if(sd_protected()) {
     return SD_WRITE_PROTECTED_ERR;
   }
 
   // acquire uart
-  if (!uart_lock_wait(UART_MODE_SPI)) {
+  if(!uart_lock_wait(UART_MODE_SPI)) {
     return SD_WRITE_INTERFACE_ERR;
   }
 
@@ -486,7 +501,7 @@ _sd_write_block(const uint32_t * pAddress, const void *pBuffer, int increment)
   r1 = 0;
   ret = _sd_send_cmd(SD_CMD_WRITE_SINGLE_BLOCK, SD_RESPONSE_SIZE_R1, 
 		pAddress, &r1);
-  if (!ret || r1) {
+  if(!ret || r1) {
     leds_on(LEDS_ALL);
     _sd_reset(NULL);
     uart_unlock(UART_MODE_SPI);
@@ -494,21 +509,23 @@ _sd_write_block(const uint32_t * pAddress, const void *pBuffer, int increment)
     return SD_WRITE_COMMAND_ERR;
   }
   // write data
-  sdspi_select();
   s = splhigh();
+  sdspi_select();
   sdspi_tx(0xFF);
   sdspi_tx(SD_TOKEN_WRITE);
   sdspi_write(pBuffer, sd_state.BlockLen, increment);
-  splx(s);
 
   SD_LED_WRITE_OFF;
 
   // finish write
 #if SPI_DMA_WRITE
   sdspi_dma_lock = TRUE;
+  splx(s);
   return SD_WRITE_SUCCESS;
 #else
-  return _sd_write_finish();
+  ret = _sd_write_finish();
+  splx(s);
+  return ret;
 #endif
 }
 
@@ -546,7 +563,7 @@ inline bool _sd_get_op_cond(struct sd_response_r1 * pResponse)
   ret = _sd_send_cmd(SD_CMD_APP_SECIFIC_CMD, SD_RESPONSE_SIZE_R1, NULL,
 		pResponse);
 
-  if (ret) {
+  if(ret) {
     uint32_t arg = SD_V_MASK;
     ret = _sd_send_cmd(SD_ACMD_SEND_OP_COND, SD_RESPONSE_SIZE_R1, &arg,
 		   pResponse);
@@ -554,7 +571,7 @@ inline bool _sd_get_op_cond(struct sd_response_r1 * pResponse)
     // MMC style init
     ret = _sd_send_cmd(SD_CMD_SEND_OP_COND, SD_RESPONSE_SIZE_R1, NULL, 
 		pResponse);
-    if (*((uint8_t *) pResponse) & SD_R1_ERROR_MASK) {
+    if(*((uint8_t *)pResponse) & SD_R1_ERROR_MASK) {
       ret = FALSE;
     }
   }
@@ -574,7 +591,7 @@ _sd_wait_standby(struct sd_response_r3 * pOpCond)
   struct sd_response_r3 opCond;
   struct sd_response_r3 *pR3 = pOpCond;
 
-  if (pR3 == NULL) {
+  if(pR3 == NULL) {
     pR3 = &opCond;
   }
 
@@ -582,14 +599,14 @@ _sd_wait_standby(struct sd_response_r3 * pOpCond)
 
   do {
     ret = _sd_get_op_cond((struct sd_response_r1 *)pR3);
-    if (ret && (pR3->r1.in_idle_state == 0)) {
+    if(ret && (pR3->r1.in_idle_state == 0)) {
       ret = _sd_send_cmd(SD_CMD_READ_OCR, SD_RESPONSE_SIZE_R3, NULL, pR3);
-      if (ret && !SD_OCR_BUSY(pR3->ocr)) {
+      if(ret && !SD_OCR_BUSY(pR3->ocr)) {
 	return TRUE;
       }
     }
     i--;
-  } while (i);
+  } while(i);
 
   return FALSE;
 }
@@ -605,13 +622,13 @@ _sd_reset(struct sd_response_r3 *pOpCond)
   bool ret;
   struct sd_response_r1 r1;
 
-  for (i = 0; i < SD_RESET_RETRY_COUNT; i++) {
+  for(i = 0; i < SD_RESET_RETRY_COUNT; i++) {
     ret = _sd_send_cmd(SD_CMD_GO_IDLE_STATE, SD_RESPONSE_SIZE_R1, NULL, &r1);
-    if (ret == 0 || r1.illegal_cmd) {
+    if(ret == 0 || r1.illegal_cmd) {
       _sd_send_cmd(SD_CMD_STOP_TRANSMISSION, SD_RESPONSE_SIZE_R1, NULL, &r1);
     } else {
       ret = _sd_wait_standby(pOpCond);
-      if (ret) {
+      if(ret) {
 	break;
       }
     }
@@ -642,11 +659,11 @@ _sd_send_cmd(const uint8_t command,
 
   sdspi_select();
   cmd[0] |= command;
-  if (pArg != NULL) {
-    cmd[1] = ((uint8_t *) pArg)[3];
-    cmd[2] = ((uint8_t *) pArg)[2];
-    cmd[3] = ((uint8_t *) pArg)[1];
-    cmd[4] = ((uint8_t *) pArg)[0];
+  if(pArg != NULL) {
+    cmd[1] = ((uint8_t *)pArg)[3];
+    cmd[2] = ((uint8_t *)pArg)[2];
+    cmd[3] = ((uint8_t *)pArg)[1];
+    cmd[4] = ((uint8_t *)pArg)[0];
   }
 
   s = splhigh();
@@ -656,10 +673,10 @@ _sd_send_cmd(const uint8_t command,
   i = SD_TIMEOUT_NCR;
   do {
     data = sdspi_rx();
-    if ((data & 0x80) == 0) {
+    if((data & 0x80) == 0) {
       goto _sd_send_cmd_response;
     }
-  } while (i--);
+  } while(i--);
 
   splx(s);
 
@@ -669,17 +686,17 @@ _sd_send_cmd_response:
   s = splhigh();
   // start bit received, read response with size i
   i = response_size - 1;
-  if (pResponse != NULL) {
+  if(pResponse != NULL) {
     // copy response to response buffer
     do {
-      ((uint8_t *) pResponse)[i] = data;
-      if (i == 0) {
+      ((uint8_t *)pResponse)[i] = data;
+      if(i == 0) {
 	break;
       }
 
       data = sdspi_rx();
       i--;
-    } while (1);
+    } while(1);
   } else {
     // receive and ignore response
     sdspi_read(&data, i, 0);
@@ -706,7 +723,7 @@ sd_send_cmd_fail:
 uint16_t
 _sd_read_register(void *pBuffer, uint8_t cmd, uint16_t size)
 {
-  if (!_sd_read_start(cmd, 0)) {
+  if(!_sd_read_start(cmd, 0)) {
     return FALSE;
   }
 
@@ -728,12 +745,12 @@ _sd_read_start(uint8_t cmd, uint32_t address)
   uint16_t i;
 
   // aquire uart
-  if (!uart_lock_wait(UART_MODE_SPI)) {
+  if(!uart_lock_wait(UART_MODE_SPI)) {
     return FALSE;
   }
 
   ret = _sd_send_cmd(cmd, SD_RESPONSE_SIZE_R1, &address, &r1);
-  if (!ret || r1) {
+  if(!ret || r1) {
     goto _sd_read_start_fail;
   }
 
@@ -742,7 +759,7 @@ _sd_read_start(uint8_t cmd, uint32_t address)
 
   i = sdspi_wait_token(0xFF, 0xFF, SD_TOKEN_READ, SD_TIMEOUT_READ);
 
-  if (i < SD_TIMEOUT_READ) {
+  if(i < SD_TIMEOUT_READ) {
     // token received, data bytes follow
     SD_LED_READ_ON;
 
@@ -773,7 +790,7 @@ void
 _sd_read_stop(uint16_t count)
 {
   // finish block + crc
-  if (count) {
+  if(count) {
     uint8_t dump;
 
     sdspi_read(&dump, count + 2, FALSE);
@@ -783,7 +800,7 @@ _sd_read_stop(uint16_t count)
   SD_LED_READ_OFF;
 
   // wait for switch to standby mode
-  if (!_sd_wait_standby(NULL)) {
+  if(!_sd_wait_standby(NULL)) {
     _sd_reset(NULL);
   }
 

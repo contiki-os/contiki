@@ -47,9 +47,9 @@ Berlin, 2007
  * @brief	MMC-/SD-Card library, Additional Information
  * 
  * @author	Michael Baar	<baar@inf.fu-berlin.de>
- * @version	$Revision: 1.3 $
+ * @version	$Revision: 1.4 $
  *
- * $Id: sd_info.c,v 1.3 2008/03/28 23:03:05 nvt-se Exp $
+ * $Id: sd_info.c,v 1.4 2009/05/26 12:15:46 nvt-se Exp $
  */
 
 /**
@@ -70,10 +70,10 @@ sd_get_size(void)
 {
   uint32_t size = 0;
 
-  if (uart_lock(UART_MODE_SPI)) {
+  if(uart_lock(UART_MODE_SPI)) {
     struct sd_csd csd;
 
-    if (_sd_read_register(&csd, SD_CMD_SEND_CSD, sizeof (struct sd_csd))) {
+    if(_sd_read_register(&csd, SD_CMD_SEND_CSD, sizeof (struct sd_csd))) {
       size = SD_CSD_C_SIZE(csd) + 1;
       size <<= SD_CSD_C_MULT(csd);
       size <<= 2;
