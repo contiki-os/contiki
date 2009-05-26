@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: MspClock.java,v 1.8 2009/03/09 17:14:35 fros4943 Exp $
+ * $Id: MspClock.java,v 1.9 2009/05/26 14:31:07 fros4943 Exp $
  */
 
 package se.sics.cooja.mspmote.interfaces;
@@ -61,16 +61,16 @@ public class MspClock extends Clock {
   }
 
   public long getTime() {
-    int time = (int) ((cpu.cycles + myMote.cycleDrift) / MspMote.NR_CYCLES_PER_MSEC);
+    long time = (long) ((double)cpu.cycles * Simulation.MILLISECOND / MspMote.NR_CYCLES_PER_MSEC);
     return time > 0 ? time : 0;
   }
 
-  public void setDrift(int drift) {
-    myMote.cycleDrift = MspMote.NR_CYCLES_PER_MSEC * drift;
+  public void setDrift(long drift) {
+    myMote.usDrift = drift;
   }
 
-  public int getDrift() {
-    return (int) (myMote.cycleDrift / MspMote.NR_CYCLES_PER_MSEC);
+  public long getDrift() {
+    return myMote.usDrift;
   }
 
   public JPanel getInterfaceVisualizer() {
