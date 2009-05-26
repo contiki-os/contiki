@@ -26,13 +26,13 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: simEnvChange.c,v 1.7 2007/08/21 13:09:55 fros4943 Exp $
+ * $Id: simEnvChange.c,v 1.8 2009/05/26 14:08:51 fros4943 Exp $
  */
+
+#include "lib/simEnvChange.h"
 
 #include <stdio.h>
 #include <string.h>
-
-#include "lib/simEnvChange.h"
 
 // All registered interfaces
 extern const struct simInterface *simInterfaces[];
@@ -43,7 +43,7 @@ char simDoReceiverCallback = 0;
 
 int simProcessRunValue;
 int simEtimerPending;
-int simNextExpirationTime;
+clock_time_t simNextExpirationTime;
 
 void doActionsBeforeTick() {
   // Poll all interfaces to do their thing before the tick
