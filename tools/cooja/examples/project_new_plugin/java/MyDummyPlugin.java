@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: MyDummyPlugin.java,v 1.2 2008/10/28 16:22:35 fros4943 Exp $
+ * $Id: MyDummyPlugin.java,v 1.3 2009/05/26 14:34:43 fros4943 Exp $
  */
 
 import java.awt.event.*;
@@ -45,10 +45,10 @@ import se.sics.cooja.*;
 @ClassDescription("Dummy Plugin") /* Description shown in menu */
 @PluginType(PluginType.SIM_PLUGIN)
 public class MyDummyPlugin extends VisPlugin {
-  private static final long serialVersionUID = 1L;
   private static Logger logger = Logger.getLogger(MyDummyPlugin.class);
+
   private Simulation mySimulation;
-  private Observer tickObserver;
+  private Observer millisecondObserver;
 
   /**
    * Creates a new dummy plugin.
@@ -56,37 +56,43 @@ public class MyDummyPlugin extends VisPlugin {
    * @param simulationToVisualize Simulation to visualize
    */
   public MyDummyPlugin(Simulation simulationToVisualize, GUI gui) {
-    super("This is my title!", gui);
+    super("Example plugin title", gui);
     mySimulation = simulationToVisualize;
 
     // Create and add a button
     JButton button = new JButton("dummy button");
     button.addActionListener(new ActionListener() {
       public void actionPerformed(ActionEvent e) {
-        logger.info("You just pressed my button");
+        logger.info("Button clicked");
       }
     });
     add(button);
 
-    // Register as tickobserver
-    mySimulation.addTickObserver(tickObserver = new Observer() {
+    /* Register as millisecond observer */
+    mySimulation.addMillisecondObserver(millisecondObserver = new Observer() {
       public void update(Observable obs, Object obj) {
-        logger.info("Another tick loop completed - simulation time is now:\t" + mySimulation.getSimulationTime());
+        logger.info("Another millisecond passed - simulation time is now " + mySimulation.getSimulationTimeMillis() + " ms");
       }
     });
+    
+    /* Register self-repeating event */
+    repeatEvent.execute(mySimulation.getSimulationTime());    
 
     setSize(300,100); // Set an initial size of this plugin
-
-    // Tries to select this plugin
-    try {
-      setSelected(true);
-    } catch (java.beans.PropertyVetoException e) {
-      // Could not select
-    }
   }
 
+  private TimeEvent repeatEvent = new TimeEvent(0) {
+    public void execute(long t) {
+      logger.info("Event executed - simulation time is now " + mySimulation.getSimulationTimeMillis() + " ms");
+
+      mySimulation.scheduleEvent(this, t+10*Simulation.MILLISECOND);
+    }
+  };
+
   public void closePlugin() {
-    mySimulation.deleteTickObserver(tickObserver);
+    /* Clean up plugin resources */
+    mySimulation.deleteMillisecondObserver(millisecondObserver);
+    repeatEvent.remove();
   }
 
 }
