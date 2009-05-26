@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: MspMote.java,v 1.28 2009/04/29 20:04:56 fros4943 Exp $
+ * $Id: MspMote.java,v 1.29 2009/05/26 14:34:30 fros4943 Exp $
  */
 
 package se.sics.cooja.mspmote;
@@ -71,7 +71,7 @@ public abstract class MspMote implements Mote {
 
   /* Cycle counter */
   public long cycleCounter = 0;
-  public long cycleDrift = 0;
+  public long usDrift = 0; /* us */
 
   private Simulation mySimulation = null;
   private CommandHandler commandHandler;
@@ -300,22 +300,17 @@ public abstract class MspMote implements Mote {
   private int[] pcHistory = new int[5];
 
   /* return false when done - e.g. true means more work to do before finished with this tick */
-  private boolean firstTick = true;
   public boolean tick(long simTime) {
     if (stopNextInstruction) {
       stopNextInstruction = false;
       throw new RuntimeException("MSPSim requested simulation stop");
+    } 
+    
+    if (simTime + usDrift < 0) {
+      return false;
     }
-
-    /* Nodes may be added in an ongoing simulation:
-     * Update cycle drift to current simulation time */
-    if (firstTick) {
-      firstTick = false;
-      cycleDrift += (-NR_CYCLES_PER_MSEC*simTime);
-    }
-
-    long maxSimTimeCycles = NR_CYCLES_PER_MSEC * (simTime + 1) + cycleDrift;
-
+    
+    long maxSimTimeCycles = (long)(NR_CYCLES_PER_MSEC * ((simTime+usDrift+Simulation.MILLISECOND)/(double)Simulation.MILLISECOND));
     if (maxSimTimeCycles <= cycleCounter) {
       return false;
     }
@@ -330,7 +325,7 @@ public abstract class MspMote implements Mote {
     }
     myMoteInterfaceHandler.doActiveActionsBeforeTick();
 
-    /* Experimental program counter history */
+    /* Log recent program counter (PC) history */
     for (int i=pcHistory.length-1; i > 0; i--) {
       pcHistory[i] = pcHistory[i-1];
     }
@@ -357,11 +352,6 @@ public abstract class MspMote implements Mote {
 
       throw (RuntimeException)
       new RuntimeException("Emulated exception: " + e.getMessage()).initCause(e);
-    }
-
-    /* Check if radio has pending incoming bytes */
-    if (myRadio != null && myRadio.hasPendingBytes()) {
-      myRadio.tryDeliverNextByte(cpu.cycles);
     }
 
     if (monitorStackUsage) {
