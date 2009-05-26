@@ -412,15 +412,15 @@ file_end(coffee_page_t start)
    * are zeroes, then these are skipped from the calculation.
    */
 
-  for(page = start + hdr.max_pages - 1; page >= start; page--) {
+  for(page = hdr.max_pages - 1; page >= 0; page--) {
     watchdog_periodic();
-    COFFEE_READ(buf, sizeof(buf), page * COFFEE_PAGE_SIZE);
+    COFFEE_READ(buf, sizeof(buf), (start + page) * COFFEE_PAGE_SIZE);
     for(i = COFFEE_PAGE_SIZE - 1; i >= 0; i--) {
       if(buf[i] != 0) {
-	if(page == start && i < sizeof(hdr)) {
+	if(page == 0 && i < sizeof(hdr)) {
 	  return 0;
 	}
-	return 1 + i + ((page - start) * COFFEE_PAGE_SIZE) - sizeof(hdr);
+	return 1 + i + (page * COFFEE_PAGE_SIZE) - sizeof(hdr);
       }
     }
   }
@@ -544,7 +544,6 @@ reserve(const char *name, coffee_page_t pages,
 
   memset(&hdr, 0, sizeof(hdr));
   memcpy(hdr.name, name, sizeof(hdr.name) - 1);
-  hdr.name[sizeof(hdr.name) - 1] = '\0';
   hdr.max_pages = pages;
   hdr.flags = HDR_FLAG_ALLOCATED | flags;
   write_header(&hdr, page);
@@ -708,13 +707,14 @@ merge_log(coffee_page_t file_page, int extend)
   }
 
   offset = 0;
+  watchdog_stop();
   do {
     char buf[hdr.log_record_size == 0 ? COFFEE_PAGE_SIZE : hdr.log_record_size];
-    watchdog_periodic();
     n = cfs_read(fd, buf, sizeof(buf));
     if(n < 0) {
       remove_by_page(new_file->page, 0, 0);
       cfs_close(fd);
+      watchdog_start();
       return -1;
     } else if(n > 0) {
       COFFEE_WRITE(buf, n,
@@ -722,6 +722,7 @@ merge_log(coffee_page_t file_page, int extend)
       offset += n;
     }
   } while(n != 0);
+  watchdog_start();
 
   for(i = 0; i < COFFEE_FD_SET_SIZE; i++) {
     if(coffee_fd_set[i].flags != COFFEE_FD_FREE && 
