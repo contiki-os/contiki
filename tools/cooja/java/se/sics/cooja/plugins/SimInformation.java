@@ -26,14 +26,17 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: SimInformation.java,v 1.5 2009/03/10 21:20:30 fros4943 Exp $
+ * $Id: SimInformation.java,v 1.6 2009/05/26 14:27:00 fros4943 Exp $
  */
 
 package se.sics.cooja.plugins;
 
 import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.util.*;
 import javax.swing.*;
+import javax.swing.Timer;
 
 import se.sics.cooja.*;
 
@@ -45,8 +48,9 @@ import se.sics.cooja.*;
 @ClassDescription("Simulation Information")
 @PluginType(PluginType.SIM_PLUGIN)
 public class SimInformation extends VisPlugin {
-  private static final long serialVersionUID = 1L;
   private Simulation simulation;
+
+  private static final int LABEL_UPDATE_INTERVAL = 100;
 
   private final static int LABEL_WIDTH = 170;
   private final static int LABEL_HEIGHT = 15;
@@ -57,7 +61,6 @@ public class SimInformation extends VisPlugin {
   private JLabel labelNrMoteTypes;
 
   private Observer simObserver;
-  private Observer tickObserver;
 
   /**
    * Create a new simulation information window.
@@ -112,7 +115,7 @@ public class SimInformation extends VisPlugin {
     smallPane.add(Box.createHorizontalGlue());
 
     label = new JLabel();
-    label.setText(""  + simulation.getSimulationTime());
+    label.setText(""  + simulation.getSimulationTimeMillis());
 
     labelSimTime = label;
     smallPane.add(label);
@@ -199,24 +202,20 @@ public class SimInformation extends VisPlugin {
         }
         if (simulation.isRunning()) {
           labelStatus.setText("RUNNING");
+          updateLabelTimer.start();
         } else {
           labelStatus.setText("STOPPED");
         }
         labelNrMotes.setText(""  + simulation.getMotesCount());
         labelNrMoteTypes.setText(""  + simulation.getMoteTypes().length);
-
       }
     });
 
-    // Register as tick observer
-    simulation.addTickObserver(tickObserver = new Observer() {
-      public void update(Observable obs, Object obj) {
-        if (labelSimTime != null) {
-          labelSimTime.setText("" + simulation.getSimulationTime());
-        }
-      }
-    });
-
+    /* Update current time label when simulation is running */
+    if (simulation.isRunning()) {
+      updateLabelTimer.start(); 
+    }
+    
     try {
       setSelected(true);
     } catch (java.beans.PropertyVetoException e) {
@@ -231,9 +230,19 @@ public class SimInformation extends VisPlugin {
       simulation.deleteObserver(simObserver);
     }
 
-    if (tickObserver != null) {
-      simulation.deleteTickObserver(tickObserver);
-    }
+    /* Remove label update timer */
+    updateLabelTimer.stop();
   }
+
+  private Timer updateLabelTimer = new Timer(LABEL_UPDATE_INTERVAL, new ActionListener() {
+    public void actionPerformed(ActionEvent e) {
+      labelSimTime.setText("" + simulation.getSimulationTimeMillis());
+
+      /* Automatically stop if simulation is no longer running */
+      if (!simulation.isRunning()) {
+        updateLabelTimer.stop();
+      }
+    }
+  });
 
 }

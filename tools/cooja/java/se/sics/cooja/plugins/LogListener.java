@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: LogListener.java,v 1.12 2008/10/03 14:30:51 fros4943 Exp $
+ * $Id: LogListener.java,v 1.13 2009/05/26 14:27:00 fros4943 Exp $
  */
 
 package se.sics.cooja.plugins;
@@ -88,7 +88,7 @@ public class LogListener extends VisPlugin {
         if (lastMessage.length() > 0 && lastMessage.charAt(lastMessage.length() - 1) == '\n') {
           lastMessage = lastMessage.substring(0, lastMessage.length() - 1);
         }
-        String outputString = "TIME:" + simulation.getSimulationTime() + "\t";
+        String outputString = "TIME:" + simulation.getSimulationTimeMillis() + "\t";
         if (mote != null && mote.getInterfaces().getMoteID() != null) {
           outputString += "ID:" + mote.getInterfaces().getMoteID().getMoteID() + "\t";
         }
@@ -247,8 +247,8 @@ public class LogListener extends VisPlugin {
 
     setTitle("Log Listener - Listening on " + nrLogs + " mote logs");
     pack();
-    setSize(gui.getDesktopPane().getWidth(), getHeight());
-    setLocation(0, gui.getDesktopPane().getHeight() - getHeight());
+    setSize(gui.getDesktopPane().getWidth(), 150);
+    setLocation(0, gui.getDesktopPane().getHeight() - 300);
 
     try {
       setSelected(true);

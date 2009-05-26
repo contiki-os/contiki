@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: SimControl.java,v 1.13 2009/04/23 08:48:01 fros4943 Exp $
+ * $Id: SimControl.java,v 1.14 2009/05/26 14:27:00 fros4943 Exp $
  */
 
 package se.sics.cooja.plugins;
@@ -38,6 +38,7 @@ import java.beans.PropertyChangeListener;
 import java.text.NumberFormat;
 import java.util.*;
 import javax.swing.*;
+import javax.swing.Timer;
 import javax.swing.event.*;
 import org.apache.log4j.Logger;
 
@@ -59,16 +60,14 @@ public class SimControl extends VisPlugin {
   private static final int SLIDE_MAX = 921; // e^9.21 => ~10000
   private static final int TIME_MAX = 10000;
 
+  private static final int LABEL_UPDATE_INTERVAL = 100;
+
   private JSlider sliderDelay;
   private JLabel simulationTime, delayLabel;
   private JButton startButton, stopButton;
   private JFormattedTextField stopTimeTextField;
-  private int simulationStopTime = -1;
 
   private Observer simObserver;
-  private Observer tickObserver;
-
-  private long lastTextUpdateTime = -1;
 
   /**
    * Create a new simulation control panel.
@@ -83,55 +82,42 @@ public class SimControl extends VisPlugin {
     JButton button;
     JPanel smallPanel;
 
-    SwingUtilities.invokeLater(new Runnable() {
-      public void run() {
-        // Register as tickobserver
-        simulation.addTickObserver(tickObserver = new Observer() {
-          public void update(Observable obs, Object obj) {
-            if (simulation == null || simulationTime == null) {
-              return;
-            }
+    /* Update current time label when simulation is running */
+    if (simulation.isRunning()) {
+      updateLabelTimer.start(); 
+    }
 
-            // During simulation running, only update text 10 times each second
-            if (lastTextUpdateTime < System.currentTimeMillis() - 100) {
-              lastTextUpdateTime = System.currentTimeMillis();
-              simulationTime.setText("Current simulation time: " + simulation.getSimulationTime());
-            }
-
-            if (simulationStopTime > 0 && simulationStopTime <= simulation.getSimulationTime() && simulation.isRunning()) {
-              // Time to stop simulation now
-              simulation.stopSimulation();
-              simulationStopTime = -1;
-              stopTimeTextField.setValue(simulation.getSimulationTime());
-            }
+    /* Observe current simulation */
+    simulation.addObserver(simObserver = new Observer() {
+      public void update(Observable obs, Object obj) {
+        if (simulation.isRunning()) {
+          startButton.setEnabled(false);
+          stopButton.setEnabled(true);
+          
+          /* Start label update timer */
+          if (!updateLabelTimer.isRunning()) {
+            updateLabelTimer.start();
           }
-        });
+        } else {
+          startButton.setEnabled(true);
+          stopButton.setEnabled(false);
 
-        // Register as simulation observer
-        simulation.addObserver(simObserver = new Observer() {
-          public void update(Observable obs, Object obj) {
-            if (simulation.isRunning()) {
-              startButton.setEnabled(false);
-              stopButton.setEnabled(true);
-            } else {
-              startButton.setEnabled(true);
-              stopButton.setEnabled(false);
+          /* Update simulation stop text field */
+          if (!stopEvent.isScheduled()) {
+            stopTimeTextField.setValue(simulation.getSimulationTimeMillis());
+          }
+        }
 
-              if (simulationStopTime < 0) {
-                stopTimeTextField.setValue(simulation.getSimulationTime());
-              }
-            }
-
-            if (sliderDelay != null) {
-              sliderDelay.setValue(convertTimeToSlide(simulation.getDelayTime()));
-              simulationTime.setText("Current simulation time: " + simulation.getSimulationTime());
-            }
+        SwingUtilities.invokeLater(new Runnable() {
+          public void run() {
+            sliderDelay.setValue(convertTimeToSlide(simulation.getDelayTime()));
+            simulationTime.setText("Current simulation time: " + simulation.getSimulationTimeMillis());
+            simulationTime.setToolTipText("Simulation time in microseconds: " + simulation.getSimulationTime());
           }
         });
       }
     });
-
-
+        
     // Main panel
     JPanel controlPanel = new JPanel();
     controlPanel.setLayout(new BoxLayout(controlPanel, BoxLayout.Y_AXIS));
@@ -177,20 +163,26 @@ public class SimControl extends VisPlugin {
     stopTimeTextField = new JFormattedTextField(integerFormat);
     stopTimeTextField.addPropertyChangeListener("value", new PropertyChangeListener() {
       public void propertyChange(PropertyChangeEvent e) {
+        /* Remove already scheduled stop event */
+        if (stopEvent.isScheduled()) {
+          stopEvent.remove();
+        }
+
         JFormattedTextField numberTextField = (JFormattedTextField) e.getSource();
-        int untilTime = ((Number) numberTextField.getValue()).intValue();
-        if (untilTime <= simulation.getSimulationTime()) {
+        long stopTime = ((Number) numberTextField.getValue()).intValue()*Simulation.MILLISECOND;
+        if (stopTime <= simulation.getSimulationTime()) {
+          /* No simulation stop scheduled */
           numberTextField.setBackground(Color.LIGHT_GRAY);
           numberTextField.setToolTipText("Enter future simulation time");
-          simulationStopTime = -1;
         } else {
+          /* Schedule simulation stop */
           numberTextField.setBackground(Color.WHITE);
-          numberTextField.setToolTipText("Simulation will stop at time: " + untilTime);
-          simulationStopTime = untilTime;
+          numberTextField.setToolTipText("Simulation will stop at time (us): " + stopTime);
+          simulation.scheduleEvent(stopEvent, stopTime);
         }
       }
     });
-    stopTimeTextField.setValue(simulation.getSimulationTime());
+    stopTimeTextField.setValue(simulation.getSimulationTimeMillis());
     stopTimeTextField.setSize(100, stopTimeTextField.getHeight());
 
     smallPanel.add(stopTimeTextField);
@@ -204,7 +196,7 @@ public class SimControl extends VisPlugin {
     smallPanel.setLayout(new BoxLayout(smallPanel, BoxLayout.X_AXIS));
     smallPanel.setBorder(BorderFactory.createEmptyBorder(5, 5, 0, 5));
 
-    label = new JLabel("Current simulation time: " + simulation.getSimulationTime());
+    label = new JLabel("Current simulation time: " + simulation.getSimulationTimeMillis());
     smallPanel.add(label);
     simulationTime = label;
 
@@ -296,7 +288,7 @@ public class SimControl extends VisPlugin {
           simulation.stopSimulation();
         }
       } else if (e.getActionCommand().equals("single_ms")) {
-        simulation.tickSimulation();
+        simulation.stepMillisecondSimulation();
       } else {
         logger.debug("Unhandled action: " + e.getActionCommand());
       }
@@ -304,14 +296,35 @@ public class SimControl extends VisPlugin {
   } MyEventHandler myEventHandler = new MyEventHandler();
 
   public void closePlugin() {
-    // Remove log observer from all log interfaces
+    /* Remove simulation observer */
     if (simObserver != null) {
       simulation.deleteObserver(simObserver);
     }
 
-    if (tickObserver != null) {
-      simulation.deleteTickObserver(tickObserver);
+    /* Remove stop event */
+    if (stopEvent.isScheduled()) {
+      stopEvent.remove();
     }
+
+    /* Remove label update timer */
+    updateLabelTimer.stop();
   }
 
+  private TimeEvent stopEvent = new TimeEvent(0) {
+    public void execute(long t) {
+      /* Stop simulation */
+      simulation.stopSimulation();
+    }
+  };
+
+  private Timer updateLabelTimer = new Timer(LABEL_UPDATE_INTERVAL, new ActionListener() {
+    public void actionPerformed(ActionEvent e) {
+      simulationTime.setText("Current simulation time: " + simulation.getSimulationTimeMillis());
+
+      /* Automatically stop if simulation is no longer running */
+      if (!simulation.isRunning()) {
+        updateLabelTimer.stop();
+      }
+    }
+  });
 }

@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ScriptRunner.java,v 1.17 2009/04/23 08:54:10 fros4943 Exp $
+ * $Id: ScriptRunner.java,v 1.18 2009/05/26 14:27:00 fros4943 Exp $
  */
 
 package se.sics.cooja.plugins;
@@ -86,8 +86,8 @@ public class ScriptRunner implements Plugin {
     " */\n" +
     "\n" +
     "/* Make test automatically fail (timeout) after 100 simulated seconds */\n" +
-    "//TIMEOUT(100000); /* no action at timeout */\n" +
-    "TIMEOUT(100000, log.log(\"last msg: \" + msg + \"\\n\")); /* print last msg at timeout */\n" +
+    "//TIMEOUT(100000); /* milliseconds. no action at timeout */\n" +
+    "TIMEOUT(100000, log.log(\"last msg: \" + msg + \"\\n\")); /* milliseconds. print last msg at timeout */\n" +
     "\n" +
     "log.log(\"first mote output: '\" + msg + \"'\\n\");\n" +
     "\n" +

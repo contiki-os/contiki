@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ScriptParser.java,v 1.4 2009/01/15 13:11:56 fros4943 Exp $
+ * $Id: ScriptParser.java,v 1.5 2009/05/26 14:27:00 fros4943 Exp $
  */
 
 package se.sics.cooja.plugins;
@@ -37,6 +37,8 @@ import java.util.regex.Pattern;
 import javax.script.ScriptException;
 
 import org.apache.log4j.Logger;
+
+import se.sics.cooja.Simulation;
 
 public class ScriptParser {
   private static final long serialVersionUID = 1L;
@@ -130,7 +132,7 @@ public class ScriptParser {
       throw new ScriptSyntaxErrorException("Only one timeout handler allowed");
     }
 
-    timeoutTime = Long.parseLong(matcher.group(1));
+    timeoutTime = Long.parseLong(matcher.group(1))*Simulation.MILLISECOND;
     timeoutCode = ";";
 
     matcher.reset(code);
@@ -161,7 +163,7 @@ public class ScriptParser {
       throw new ScriptSyntaxErrorException("Only one timeout handler allowed");
     }
 
-    timeoutTime = Long.parseLong(matcher.group(1));
+    timeoutTime = Long.parseLong(matcher.group(1))*Simulation.MILLISECOND;
     timeoutCode = matcher.group(2);
 
     matcher.reset(code);
@@ -228,7 +230,7 @@ public class ScriptParser {
     Matcher matcher = pattern.matcher(code);
 
     while (matcher.find()) {
-      long time = Long.parseLong(matcher.group(1));
+      long time = Long.parseLong(matcher.group(1))*Simulation.MILLISECOND;
       String msg = matcher.group(2);
 
       code = matcher.replaceFirst(
