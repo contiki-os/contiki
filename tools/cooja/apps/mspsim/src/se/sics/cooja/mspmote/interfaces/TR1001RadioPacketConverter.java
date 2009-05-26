@@ -26,14 +26,16 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: TR1001RadioPacketConverter.java,v 1.3 2008/03/18 16:55:44 fros4943 Exp $
+ * $Id: TR1001RadioPacketConverter.java,v 1.4 2009/05/26 14:33:30 fros4943 Exp $
  */
 
 package se.sics.cooja.mspmote.interfaces;
 
+import java.util.ArrayList;
 import org.apache.log4j.Logger;
 
 import se.sics.cooja.COOJARadioPacket;
+import se.sics.cooja.ConvertedRadioPacket;
 import se.sics.cooja.RadioPacket;
 
 /**
@@ -66,6 +68,7 @@ public class TR1001RadioPacketConverter {
 
   final static int ESB_FOOTER_LENGTH = 2;
 
+  private ArrayList<TR1001RadioByte> originalData = new ArrayList<TR1001RadioByte>(); 
 
   private enum AccumulatedConversionState {
     TR1001_PREAMBLE, TR1001_SYNCH, ESB_LEN1, ESB_LEN2, ESB_DATA, ESB_CRC1, ESB_CRC2, ESB_POST,
@@ -141,7 +144,7 @@ public class TR1001RadioPacketConverter {
 
     TR1001RadioByte[] tr1001Bytes = new TR1001RadioByte[tr1001Frame.length];
     for (int i=0; i < tr1001Frame.length; i++) {
-      tr1001Bytes[i] = new TR1001RadioByte(tr1001Frame[i], TR1001Radio.CYCLES_BETWEEN_BYTES);
+      tr1001Bytes[i] = new TR1001RadioByte(tr1001Frame[i]);
     }
     return tr1001Bytes;
   }
@@ -160,7 +163,7 @@ public class TR1001RadioPacketConverter {
    * @param tr1001DataLength TR1001 specified packet length
    * @return COOJA radio packet
    */
-  public static RadioPacket fromTR1001ToCooja(TR1001RadioByte[] tr1001Bytes, int tr1001DataLength) {
+  public static ConvertedRadioPacket fromTR1001ToCooja(TR1001RadioByte[] tr1001Bytes, int tr1001DataLength) {
 
     byte[] tr1001Data = new byte[tr1001Bytes.length];
     for (int i=0; i < tr1001Bytes.length; i++) {
@@ -192,11 +195,11 @@ public class TR1001RadioPacketConverter {
       System.arraycopy(decodedData, ESB_HEADER_LENGTH, packetData, 0,
           dataLength);
 
-      return new COOJARadioPacket(packetData);
+      return new ConvertedRadioPacket(packetData, tr1001Data);
     }
 
-    logger.fatal("Error when converting emulated to application level, returning null packet");
-    return null;
+    logger.warn("No cross-level conversion available: TR1001 GCR decoding failed");
+    return new ConvertedRadioPacket(new byte[0], tr1001Data);
   }
 
   /**
@@ -241,7 +244,8 @@ public class TR1001RadioPacketConverter {
    */
   public boolean fromTR1001ToCoojaAccumulated(TR1001RadioByte tr1001Byte) {
     byte b = tr1001Byte.getByte();
-
+    originalData.add(tr1001Byte);
+    
     if (accumulatedConversionState == AccumulatedConversionState.TR1001_PREAMBLE) {
       if (b == (byte) 0xaa || b == (byte) 0xff) {
         return false;
@@ -311,12 +315,18 @@ public class TR1001RadioPacketConverter {
   /**
    * @return Converted data (application level)
    */
-  public RadioPacket getAccumulatedConvertedCoojaPacket() {
+  public ConvertedRadioPacket getAccumulatedConvertedCoojaPacket() {
     byte[] dataArrayByte = new byte[accumulatedConversionDataArray.length];
-    for (int i = 0; i < accumulatedConversionDataArray.length; i++) {
+    for (int i=0; i < accumulatedConversionDataArray.length; i++) {
       dataArrayByte[i] = (byte) accumulatedConversionDataArray[i];
     }
-    return new COOJARadioPacket(dataArrayByte);
+
+    byte[] originalArr = new byte[originalData.size()];
+    for (int i=0; i < originalArr.length; i++) {
+      originalArr[i] = (byte) originalData.get(i).getByte();
+    }
+    
+    return new ConvertedRadioPacket(dataArrayByte, originalArr);
   }
 
   /**
