@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: sd-test.c,v 1.3 2009/05/26 13:03:44 nvt-se Exp $
+ * $Id: sd-test.c,v 1.4 2009/05/26 13:23:59 nvt-se Exp $
  *
  * \file
  *	A simple example of using the SD card on the MSB430 platform.
@@ -47,7 +47,7 @@
 
 #define BLOCK_SIZE	512UL
 
-#define CALM_MODE	0
+#define CALM_MODE	1
 #define ALTER_OFFSET	0
 
 /*---------------------------------------------------------------------------*/
@@ -69,7 +69,7 @@ PROCESS_THREAD(test_sd_process, ev, data)
   printf("starting the SD test\n");
 
   while(1) {
-    printf("\n\nIteration %u\n", ++iter);
+    printf("\n\nIteration %lu\n", ++iter);
     sprintf(buf, "Testing the SD memory #%lu.", iter);
 
 #if CALM_MODE
@@ -80,7 +80,7 @@ PROCESS_THREAD(test_sd_process, ev, data)
 #endif
     offset = BLOCK_SIZE;
 #if ALTER_OFFSET
-    offset *= (random_rand() & 0xff));
+    offset *= (random_rand() & 0xff);
 #endif
 
     r = sd_write_block(offset, &buf);
