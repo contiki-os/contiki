@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: contiki_template.c,v 1.13 2009/04/01 13:38:14 fros4943 Exp $
+ * $Id: contiki_template.c,v 1.14 2009/05/26 14:08:51 fros4943 Exp $
  */
 
 /**
@@ -117,6 +117,10 @@ print_processes(struct process * const processes[])
 static void
 start_process_run_loop(void *data)
 {
+    /* Yield once during bootup */
+    simProcessRunValue = 1;
+    cooja_mt_yield();
+
     /* Initialize random generator */
     random_init(0);
 
@@ -155,6 +159,10 @@ start_process_run_loop(void *data)
 		}
 
 		simProcessRunValue = process_run();
+		while (simProcessRunValue-- > 0) {
+		  process_run();
+		}
+		simProcessRunValue = process_nevents();
 
 		// Check if we must stay awake
 		if (simDontFallAsleep) {
@@ -285,7 +293,7 @@ Java_se_sics_cooja_corecomm_[CLASS_NAME]_tick(JNIEnv *env, jobject obj)
   }
 
   /* Save nearest event timer expiration time (0 if no timers) */
-  simNextExpirationTime = etimer_next_expiration_time();
+  simNextExpirationTime = etimer_next_expiration_time() - simCurrentTime;
 }
 /*---------------------------------------------------------------------------*/
 /**

@@ -26,11 +26,13 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: simEnvChange.h,v 1.7 2007/08/21 13:09:55 fros4943 Exp $
+ * $Id: simEnvChange.h,v 1.8 2009/05/26 14:08:51 fros4943 Exp $
  */
 
 #ifndef __SIMENVCHANGE_H__
 #define __SIMENVCHANGE_H__
+
+#include "contiki.h"
 
 // Simulation interface structure
 struct simInterface {
@@ -41,7 +43,8 @@ struct simInterface {
 // Variable for keeping the last process_run() return value
 extern int simProcessRunValue;
 extern int simEtimerPending;
-extern int simNextExpirationTime;
+extern clock_time_t simNextExpirationTime;
+extern clock_time_t simCurrentTime;
 
 // Variable that when set to != 0, stops the mote from falling asleep next tick
 extern char simDontFallAsleep;
