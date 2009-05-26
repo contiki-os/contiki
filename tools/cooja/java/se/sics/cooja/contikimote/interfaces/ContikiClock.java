@@ -26,18 +26,23 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ContikiClock.java,v 1.8 2009/02/25 14:46:24 fros4943 Exp $
+ * $Id: ContikiClock.java,v 1.9 2009/05/26 14:24:20 fros4943 Exp $
  */
 
 package se.sics.cooja.contikimote.interfaces;
 
 import java.util.Collection;
 import javax.swing.JPanel;
+
+import org.apache.log4j.Logger;
 import org.jdom.Element;
 
 import se.sics.cooja.*;
+import se.sics.cooja.Mote.State;
+import se.sics.cooja.contikimote.ContikiMote;
 import se.sics.cooja.contikimote.ContikiMoteInterface;
 import se.sics.cooja.interfaces.Clock;
+import se.sics.cooja.interfaces.PolledAfterAllTicks;
 import se.sics.cooja.interfaces.PolledBeforeActiveTicks;
 
 /**
@@ -45,7 +50,10 @@ import se.sics.cooja.interfaces.PolledBeforeActiveTicks;
  *
  * Contiki variables:
  * <ul>
- * <li>int simCurrentTime
+ * <li>clock_time_t simCurrentTime
+ * <li>clock_time_t simNextExpirationTime
+ * <li>int simProcessRunValue
+ * <li>int simEtimerPending
  * </ul>
  *
  * Core interface:
@@ -58,13 +66,16 @@ import se.sics.cooja.interfaces.PolledBeforeActiveTicks;
  *
  * @author Fredrik Osterlind
  */
-public class ContikiClock extends Clock implements ContikiMoteInterface, PolledBeforeActiveTicks {
+public class ContikiClock extends Clock implements ContikiMoteInterface, PolledBeforeActiveTicks, PolledAfterAllTicks {
+  private static Logger logger = Logger.getLogger(ContikiClock.class);
 
-  private Mote mote = null;
-  private SectionMoteMemory moteMem = null;
+  private Simulation simulation;
+  private ContikiMote mote;
+  private SectionMoteMemory moteMem;
 
-  private int timeDrift = 0;
-
+  private long moteTime; /* Microseconds */
+  private long timeDrift; /* Microseconds */
+  
   /**
    * @param mote Mote
    *
@@ -72,8 +83,11 @@ public class ContikiClock extends Clock implements ContikiMoteInterface, PolledB
    * @see se.sics.cooja.MoteInterfaceHandler
    */
   public ContikiClock(Mote mote) {
-    this.mote = mote;
+    this.simulation = mote.getSimulation();
+    this.mote = (ContikiMote) mote;
     this.moteMem = (SectionMoteMemory) mote.getMemory();
+    timeDrift = 0;
+    moteTime = 0;
   }
 
   public static String[] getCoreInterfaceDependencies() {
@@ -81,30 +95,51 @@ public class ContikiClock extends Clock implements ContikiMoteInterface, PolledB
   }
 
   public void setTime(long newTime) {
-    /* TODO: check if this is correct even if newTime > MAX_INT */
-    moteMem.setIntValueOf("simCurrentTime", (int)newTime);
+    moteTime = newTime;
+    if (moteTime > 0) {
+      moteMem.setIntValueOf("simCurrentTime", (int)(newTime/1000));
+    }
   }
 
-  public void setDrift(int timeDrift) {
-    this.timeDrift = timeDrift;
+  public void setDrift(long drift) {
+    this.timeDrift = drift - (drift % 1000); /* Round to ms */
+    setTime(timeDrift);
   }
 
-  public int getDrift() {
+  public long getDrift() {
     return timeDrift;
   }
 
   public long getTime() {
-    return moteMem.getIntValueOf("simCurrentTime");
+    return moteTime;
   }
 
   public void doActionsBeforeTick() {
     /* Update time */
-    long moteTime = mote.getSimulation().getSimulationTime() + timeDrift;
-
-    if (moteTime > 0) {
-      setTime(moteTime);
-    }
+    setTime(mote.getSimulation().getSimulationTime() + timeDrift);
   }
+  
+  public void doActionsAfterTick() {
+    
+    /* Request next tick for remaining events / timers */
+    int processRunValue = moteMem.getIntValueOf("simProcessRunValue");
+    if (processRunValue != 0) {
+      /* Handle next Contiki event in one millisecond */
+      mote.scheduleNextWakeup(simulation.getSimulationTime() + 1000L);
+      return;
+    }
+
+    int etimersPending = moteMem.getIntValueOf("simEtimerPending");
+    if (etimersPending == 0) {
+      /* No timers */
+      return;
+    }
+
+    /* Request tick next wakeup time */
+    int nextExpirationTime = moteMem.getIntValueOf("simNextExpirationTime");
+    mote.scheduleNextWakeup(simulation.getSimulationTime() + 1000L*nextExpirationTime);
+  }
+
 
   public JPanel getInterfaceVisualizer() {
     return null;

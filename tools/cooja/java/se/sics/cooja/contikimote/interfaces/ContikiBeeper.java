@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ContikiBeeper.java,v 1.9 2009/02/25 14:46:24 fros4943 Exp $
+ * $Id: ContikiBeeper.java,v 1.10 2009/05/26 14:24:20 fros4943 Exp $
  */
 
 package se.sics.cooja.contikimote.interfaces;
@@ -101,7 +101,7 @@ public class ContikiBeeper extends Beeper implements ContikiMoteInterface, Polle
     return new String[]{"beep_interface"};
   }
 
-  private TimeEvent stopBeepEvent = new TimeEvent(0) {
+  private TimeEvent stopBeepEvent = new MoteTimeEvent(mote, 0) {
     public void execute(long t) {
       myEnergyConsumption = 0.0;
     }
@@ -117,7 +117,7 @@ public class ContikiBeeper extends Beeper implements ContikiMoteInterface, Polle
       moteMem.setByteValueOf("simBeeped", (byte) 0);
 
       /* Schedule stop beeping (reset energy consumption) */
-      mote.getSimulation().scheduleEvent(stopBeepEvent, mote.getSimulation().getSimulationTime());
+      mote.getSimulation().scheduleEvent(stopBeepEvent, mote.getSimulation().getSimulationTime()+Simulation.MILLISECOND);
     }
   }
 

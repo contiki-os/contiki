@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: Clock.java,v 1.5 2009/03/09 14:08:54 fros4943 Exp $
+ * $Id: Clock.java,v 1.6 2009/05/26 14:24:21 fros4943 Exp $
  */
 
 package se.sics.cooja.interfaces;
@@ -61,11 +61,20 @@ public abstract class Clock extends MoteInterface {
    *
    * @param timeDrift Time drift
    */
-  public abstract void setDrift(int timeDrift);
+  public abstract void setDrift(long timeDrift);
 
   /**
+   * The clock drift provides information about the mote's internal time,
+   * and can the used to calculate for instance its startup time.
+   * 
+   * The startup time is the negative drift time.
+   * 
+   * The mote internal time can be calculated by:
+   * [current simulation time] + [mote drift].
+   * 
+   * @see Simulation#getSimulationTime()
    * @return Time drift
    */
-  public abstract int getDrift();
+  public abstract long getDrift();
 
 }
