@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: AbstractRadioMedium.java,v 1.9 2009/04/20 16:26:02 fros4943 Exp $
+ * $Id: AbstractRadioMedium.java,v 1.10 2009/05/26 14:17:29 fros4943 Exp $
  */
 
 package se.sics.cooja.radiomediums;
@@ -53,10 +53,8 @@ public abstract class AbstractRadioMedium extends RadioMedium {
 
   private Vector<RadioConnection> activeConnections = new Vector<RadioConnection>();
 
-  private Vector<RadioConnection> finishedConnections = new Vector<RadioConnection>();
-
-  private boolean isTickObserver = false;
-
+  private RadioConnection lastConnection = null;
+  
   private Simulation simulation = null;
 
   /* Book-keeping */
@@ -184,10 +182,6 @@ public abstract class AbstractRadioMedium extends RadioMedium {
 
         // Recalculate signal strengths on all radios
         updateSignalStrengths();
-
-        // Wake up tick observer
-        radioMediumObservable.setRadioMediumChanged();
-
       } else if (event == Radio.RadioEvent.HW_ON) {
         // No action
         // TODO Maybe set signal strength levels now?
@@ -195,39 +189,34 @@ public abstract class AbstractRadioMedium extends RadioMedium {
         // Recalculate signal strengths on all radios
         updateSignalStrengths();
 
-        // Wake up tick observer
-        radioMediumObservable.setRadioMediumChanged();
-
       } else if (event == Radio.RadioEvent.TRANSMISSION_STARTED) {
         /* Create radio connections */
 
         RadioConnection newConnection = createConnections(radio);
-        if (newConnection != null) {
-          activeConnections.add(newConnection);
-          for (Radio r: newConnection.getDestinations()) {
-            if (newConnection.getDestinationDelay(r) == 0) {
-              r.signalReceptionStart();
-            } else {
+        activeConnections.add(newConnection);
+        for (Radio r: newConnection.getDestinations()) {
+          if (newConnection.getDestinationDelay(r) == 0) {
+            r.signalReceptionStart();
+          } else {
 
-              /* EXPERIMENTAL: Simulating propagation delay */
-              final Radio delayedRadio = r;
-              TimeEvent delayedEvent = new TimeEvent(0) {
-                public void execute(long t) {
-                  delayedRadio.signalReceptionStart();
-                }
-              };
-              simulation.scheduleEvent(
-                  delayedEvent,
-                  simulation.getSimulationTime() + newConnection.getDestinationDelay(r));
+            /* EXPERIMENTAL: Simulating propagation delay */
+            final Radio delayedRadio = r;
+            TimeEvent delayedEvent = new TimeEvent(0) {
+              public void execute(long t) {
+                delayedRadio.signalReceptionStart();
+              }
+            };
+            simulation.scheduleEvent(
+                delayedEvent,
+                simulation.getSimulationTime() + newConnection.getDestinationDelay(r));
 
-            }
           }
         }
 
         // Recalculate signal strengths on all radios
         updateSignalStrengths();
 
-        // Wake up tick observer
+        /* Notify observers */
         radioMediumObservable.setRadioMediumChanged();
 
       } else if (event == Radio.RadioEvent.TRANSMISSION_FINISHED) {
@@ -243,10 +232,10 @@ public abstract class AbstractRadioMedium extends RadioMedium {
         }
 
         if (connection == null) {
-          logger.fatal("Can't find active connection to remove");
+          logger.fatal("Can't find active connection to remove, source=" + radio);
         } else {
           activeConnections.remove(connection);
-          finishedConnections.add(connection);
+          lastConnection = connection;
           COUNTER_TX++;
           for (Radio dstRadio : connection.getDestinations()) {
             COUNTER_RX++;
@@ -264,7 +253,6 @@ public abstract class AbstractRadioMedium extends RadioMedium {
               simulation.scheduleEvent(
                   delayedEvent,
                   simulation.getSimulationTime() + connection.getDestinationDelay(dstRadio));
-
             }
           }
           for (Radio dstRadio : connection.getInterfered()) {
@@ -272,12 +260,13 @@ public abstract class AbstractRadioMedium extends RadioMedium {
             dstRadio.signalReceptionEnd();
           }
         }
-
+        
         // Recalculate signal strengths on all radios
         updateSignalStrengths();
 
-        // Wake up tick observer
+        /* Notify observers */
         radioMediumObservable.setRadioMediumChanged();
+        radioMediumObservable.notifyObservers();
 
       } else if (event == Radio.RadioEvent.CUSTOM_DATA_TRANSMITTED) {
         /* Forward custom data, if any */
@@ -377,41 +366,6 @@ public abstract class AbstractRadioMedium extends RadioMedium {
     }
   };
 
-
-  /**
-   * This observer is responsible for making last tick connections available to
-   * external observers.
-   *
-   * @see #getLastTickConnections()
-   */
-  private Observer tickObserver = new Observer() {
-    public void update(Observable obs, Object obj) {
-
-      // Reset any last tick connections
-      if (lastTickConnections != null) {
-        radioMediumObservable.setRadioMediumChanged();
-        lastTickConnections = null;
-      }
-
-      // Do nothing if radio medium unchanged
-      if (!radioMediumObservable.hasChanged()) {
-        return;
-      }
-
-      // Log any newly finished connections
-      if (finishedConnections.size() > 0) {
-        lastTickConnections = new RadioConnection[finishedConnections.size()];
-        for (int i = 0; i < finishedConnections.size(); i++) {
-          lastTickConnections[i] = finishedConnections.get(i);
-        }
-        finishedConnections.clear();
-      }
-
-      // Notify all other radio medium observers
-      radioMediumObservable.notifyObservers();
-    }
-  };
-
   public void registerMote(Mote mote, Simulation sim) {
     registerRadioInterface(mote.getInterfaces().getRadio(), sim);
   }
@@ -422,11 +376,6 @@ public abstract class AbstractRadioMedium extends RadioMedium {
 
   public void registerRadioInterface(Radio radio, Simulation sim) {
     if (radio != null) {
-      if (!isTickObserver) {
-        sim.addTickObserver(tickObserver);
-        isTickObserver = true;
-      }
-
       // Register and start observing radio
       registeredRadios.add(radio);
       radio.addObserver(radioEventsObserver);
@@ -461,7 +410,12 @@ public abstract class AbstractRadioMedium extends RadioMedium {
   }
 
   public RadioConnection[] getLastTickConnections() {
-    return lastTickConnections;
+    if (lastConnection == null) {
+      return null;
+    }
+
+    /* XXX Method only returns a single connection */
+    return new RadioConnection[] { lastConnection };
   }
 
 }
