@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: sd-test.c,v 1.2 2009/05/26 13:00:37 nvt-se Exp $
+ * $Id: sd-test.c,v 1.3 2009/05/26 13:03:44 nvt-se Exp $
  *
  * \file
  *	A simple example of using the SD card on the MSB430 platform.
@@ -61,7 +61,7 @@ PROCESS_THREAD(test_sd_process, ev, data)
   static struct etimer et;
 #endif
   static int r;
-  static unsigned iter;
+  static unsigned long iter;
   static uint32_t offset;
 
   PROCESS_BEGIN();
@@ -70,7 +70,7 @@ PROCESS_THREAD(test_sd_process, ev, data)
 
   while(1) {
     printf("\n\nIteration %u\n", ++iter);
-    sprintf(buf, "Testing the SD memory #%u.", iter);
+    sprintf(buf, "Testing the SD memory #%lu.", iter);
 
 #if CALM_MODE
     etimer_set(&et, CLOCK_SECOND);
