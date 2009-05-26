@@ -47,9 +47,9 @@ Berlin, 2007
  * @brief	Serial Peripheral Interface for SD library
  * 
  * @author	Michael Baar	<baar@inf.fu-berlin.de>
- * @version	$Revision: 1.3 $
+ * @version	$Revision: 1.4 $
  *
- * $Id: sdspi.c,v 1.3 2009/05/25 13:19:04 nvt-se Exp $
+ * $Id: sdspi.c,v 1.4 2009/05/26 12:15:46 nvt-se Exp $
  */
 
 #include <msp430x16x.h>
@@ -72,7 +72,8 @@ sdspi_init(void)
   sdspi_dma_lock = FALSE;
 #endif
 
-  /* The 16-bit value of UxBR0+UxBR1 is the division factor of the USART clock
+  /*
+   * The 16-bit value of UxBR0+UxBR1 is the division factor of the USART clock
    * source, BRCLK. The maximum baud rate that can be generated in master
    * mode is BRCLK/2. The maximum baud rate that can be generated in slave
    * mode is BRCLK. The modulator in the USART baud rate generator is not used
@@ -102,9 +103,10 @@ sdspi_tx(register const uint8_t c)
 void
 sdspi_dma_wait(void)
 {
-  while (DMA0CTL & DMAEN) {
+  /* Wait until a previous transfer is complete */
+  while(DMA0CTL & DMAEN) {
     _NOP();
-  }				// Wait until a previous transfer is complete
+  }
 }
 #endif
 
@@ -118,44 +120,44 @@ sdspi_read(void *pDestination, const uint16_t size, const bool incDest)
 #if SPI_DMA_READ
   sdspi_dma_wait();
 
-  UART_RESET_RXTX();		// clear interrupts
+  UART_RESET_RXTX();		/* clear interrupts */
 
-  // Configure the DMA transfer   
-  DMA0SA = (uint16_t) & UART_RX;	// source DMA address
-  DMA0DA = (uint16_t) pDestination;	// destination DMA address
-  DMA0SZ = size;		// number of bytes to be transferred
-  DMA1SA = (uint16_t) & UART_TX;	// source DMA address (constant 0xff)
-  DMA1DA = DMA1SA;		// destination DMA address
-  DMA1SZ = size - 1;		// number of bytes to be transferred
-  DMACTL0 = DMA0TSEL_9 | DMA1TSEL_9;	// trigger is UART1 receive for both DMA0 and DMA1
-  DMA0CTL = DMADT_0 |		// Single transfer mode
-    DMASBDB |			// Byte mode
-    DMADSTINCR0 | DMADSTINCR1 |	// Increment destination
-    DMAEN;			// Enable DMA
-  if (!incDest) {
+  /* Configure the DMA transfer    */
+  DMA0SA = (uint16_t) & UART_RX;	/* source DMA address */
+  DMA0DA = (uint16_t) pDestination;	/* destination DMA address */
+  DMA0SZ = size;		/* number of bytes to be transferred */
+  DMA1SA = (uint16_t) & UART_TX;	/* source DMA address (constant 0xff) */
+  DMA1DA = DMA1SA;		/* destination DMA address */
+  DMA1SZ = size - 1;		/* number of bytes to be transferred */
+  DMACTL0 = DMA0TSEL_9 | DMA1TSEL_9;	/* trigger is UART1 receive for both DMA0 and DMA1 */
+  DMA0CTL = DMADT_0 |		/* Single transfer mode */
+    DMASBDB |			/* Byte mode */
+    DMADSTINCR0 | DMADSTINCR1 |	/* Increment destination */
+    DMAEN;			/* Enable DMA */
+  if(!incDest) {
     DMA0CTL &= ~(DMADSTINCR0 | DMADSTINCR1);
   }
 
-  DMA1CTL = DMADT_0 |		// Single transfer mode 
-    DMASBDB |			// Byte mode
-    DMAEN;			// Enable DMA 
+  DMA1CTL = DMADT_0 |		/* Single transfer mode  */
+    DMASBDB |			/* Byte mode */
+    DMAEN;			/* Enable DMA  */
 
-  UART_TX = SPI_IDLE_SYMBOL;	// Initiate transfer by sending the first byte
+  UART_TX = SPI_IDLE_SYMBOL;	/* Initiate transfer by sending the first byte */
   sdspi_dma_wait();
 
 #else
-  register uint8_t *p = (uint8_t *) pDestination;
+  register uint8_t *p = (uint8_t *)pDestination;
   register uint16_t i = size;
 
   do {
     UART_TX = SPI_IDLE_SYMBOL;
     UART_WAIT_RX();
     *p = UART_RX;
-    if (incDest) {
+    if(incDest) {
       p++;
     }
     i--;
-  } while (i);
+  } while(i);
 #endif
 
   splx(s);
@@ -171,25 +173,25 @@ sdspi_write(const void *pSource, const uint16_t size, const int increment)
 #if SPI_DMA_WRITE
   sdspi_dma_wait();
 
-  UART_RESET_RXTX();		// clear interrupts
+  UART_RESET_RXTX();		/* clear interrupts */
 
-  // Configure the DMA transfer
-  DMA0SA = ((uint16_t) pSource) + 1;	// source DMA address
-  DMA0DA = (uint16_t) & UART_TX;	// destination DMA address
-  DMA0SZ = size - 1;		// number of bytes to be transferred
-  DMACTL0 = DMA0TSEL_9;		// trigger is UART1 receive
-  DMA0CTL = DMADT_0 |		// Single transfer mode
-    DMASBDB |			// Byte mode
-    DMASRCINCR_3 |		// Increment source
-    DMAEN;			// Enable DMA
-  if (increment == 0) {
+  /* Configure the DMA transfer */
+  DMA0SA = ((uint16_t) pSource) + 1;	/* source DMA address */
+  DMA0DA = (uint16_t) & UART_TX;	/* destination DMA address */
+  DMA0SZ = size - 1;		/* number of bytes to be transferred */
+  DMACTL0 = DMA0TSEL_9;		/* trigger is UART1 receive */
+  DMA0CTL = DMADT_0 |		/* Single transfer mode */
+    DMASBDB |			/* Byte mode */
+    DMASRCINCR_3 |		/* Increment source */
+    DMAEN;			/* Enable DMA */
+  if(increment == 0) {
     DMA0CTL &= ~DMASRCINCR_3;
   }
 
   sdspi_dma_lock = TRUE;
-  SPI_TX = ((uint8_t *) pSource)[0];
+  SPI_TX = ((uint8_t *)pSource)[0];
 #else
-  register uint8_t *p = (uint8_t *) pSource;
+  register uint8_t *p = (uint8_t *)pSource;
   register uint16_t i = size;
 
   do {
@@ -198,7 +200,7 @@ sdspi_write(const void *pSource, const uint16_t size, const int increment)
     UART_RX;
     p += increment;
     i--;
-  } while (i);
+  } while(i);
 #endif
 
   splx(s);
@@ -215,7 +217,7 @@ sdspi_idle(register const uint16_t clocks)
     UART_WAIT_RX();
     UART_RX;
     i--;
-  } while (i);
+  } while(i);
 }
 
 
@@ -231,6 +233,6 @@ sdspi_wait_token(const uint8_t feed, const uint8_t mask,
     UART_WAIT_RX();
     rx = UART_RX;
     i++;
-  } while (((rx & mask) != token) && (i < timeout));
+  } while(((rx & mask) != token) && (i < timeout));
   return i;
 }

@@ -46,9 +46,9 @@ Berlin, 2007
  * @brief	MMC-/SD-Card library, Public interface
  * 
  * @author	Michael Baar	<baar@inf.fu-berlin.de>
- * @version	$Revision: 1.5 $
+ * @version	$Revision: 1.6 $
  *
- * $Id: sd.h,v 1.5 2008/11/10 14:32:49 nvt-se Exp $
+ * $Id: sd.h,v 1.6 2009/05/26 12:15:46 nvt-se Exp $
  */
 
 /**
@@ -224,7 +224,7 @@ void sd_close(void);
  * 2^n value, where n shall be between 0 and 11.
  * Be aware that a card may or may not support different blocksizes.
  * 
- * Since all read and write operations have to use blockaligned addresses
+ * Since all read and write operations have to use block-aligned addresses
  * and need to process complete blocks always try to use the optimal blocksize
  * and let ::sd_read do the rest. If the blocklength is already set to the new
  * value nothing is done.
@@ -251,7 +251,7 @@ void sd_close(void);
  * @param[in,out]	pAddress	address to align, will be modified to be block aligned
  * @return			Offset from aligned address to original address
  */
-uint16_t sd_AlignAddress(uint32_t * pAddress);
+uint16_t sd_align_address(uint32_t * pAddress);
 
 /**
  * @brief	Read one complete block from a block aligned address into buffer
