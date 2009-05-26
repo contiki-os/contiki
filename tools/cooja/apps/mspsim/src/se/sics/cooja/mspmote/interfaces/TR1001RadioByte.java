@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: TR1001RadioByte.java,v 1.1 2008/03/18 13:08:26 fros4943 Exp $
+ * $Id: TR1001RadioByte.java,v 1.2 2009/05/26 14:33:30 fros4943 Exp $
  */
 
 package se.sics.cooja.mspmote.interfaces;
@@ -40,14 +40,11 @@ public class TR1001RadioByte {
 
   private byte b;
 
-  private long delay;
-
   /**
    * Creates new TR1001 radio byte
    */
-  public TR1001RadioByte(byte b, long delay) {
+  public TR1001RadioByte(byte b) {
     this.b = b;
-    this.delay = delay;
   }
 
   /**
@@ -55,13 +52,6 @@ public class TR1001RadioByte {
    */
   public byte getByte() {
     return b;
-  }
-
-  /**
-   * @return Cycle delay since previous byte
-   */
-  public long getDelay() {
-    return delay;
   }
 
 }
