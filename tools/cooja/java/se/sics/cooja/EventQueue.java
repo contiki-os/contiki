@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: EventQueue.java,v 1.5 2009/03/03 13:42:45 fros4943 Exp $
+ * $Id: EventQueue.java,v 1.6 2009/05/26 13:36:36 fros4943 Exp $
  */
 
 package se.sics.cooja;
@@ -187,6 +187,14 @@ public class EventQueue {
       return popFirst();
     }
     return tmp;
+  }
+
+  public TimeEvent peekFirst() {
+    if (hasUnsortedEvents) {
+      sortEvents();
+    }
+
+    return first;
   }
 
   public String toString() {
