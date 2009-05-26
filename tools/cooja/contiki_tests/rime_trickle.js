@@ -20,6 +20,6 @@ while (true) {
   /* Did all nodes (2-10) receive a message? */
   for (i = 2; i <= 10; i++) {
     if (nr_packets[i] < 1) break;
-    if (i == 10) log.log("TEST OK\n"); /* Report test success */
+    if (i == 10) log.testOK(); /* Report test success */
   }
 }
