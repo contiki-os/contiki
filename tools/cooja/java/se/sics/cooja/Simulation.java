@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006, Swedish Institute of Computer Science. All rights
+ * Copyright (c) 2009, Swedish Institute of Computer Science. All rights
  * reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -24,7 +24,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * $Id: Simulation.java,v 1.46 2009/03/12 11:01:26 nifi Exp $
+ * $Id: Simulation.java,v 1.47 2009/05/26 14:15:41 fros4943 Exp $
  */
 
 package se.sics.cooja;
@@ -33,12 +33,11 @@ import java.util.*;
 import org.apache.log4j.Logger;
 import org.jdom.*;
 
+import se.sics.cooja.contikimote.ContikiMote;
 import se.sics.cooja.dialogs.*;
 
 /**
  * A simulation consists of a number of motes and mote types.
- *
- * The motes in the simulation are ticked every millisecond.
  *
  * A simulation is observable:
  * changed simulation state, added or deleted motes etc are observed.
@@ -47,7 +46,10 @@ import se.sics.cooja.dialogs.*;
  * @author Fredrik Osterlind
  */
 public class Simulation extends Observable implements Runnable {
+  public static final long MILLISECOND = 1000L;
 
+  /*private static long EVENT_COUNTER = 0;*/
+  
   private Vector<Mote> motes = new Vector<Mote>();
 
   private Vector<MoteType> moteTypes = new Vector<MoteType>();
@@ -55,8 +57,6 @@ public class Simulation extends Observable implements Runnable {
   private int delayTime = 0;
 
   private long currentSimulationTime = 0;
-
-  private int tickTime = 1;
 
   private String title = null;
 
@@ -76,45 +76,57 @@ public class Simulation extends Observable implements Runnable {
 
   private boolean randomSeedGenerated = false;
 
-  private int maxMoteStartupDelay = 1000;
+  private long maxMoteStartupDelay = 1000*MILLISECOND;
 
   private Random randomGenerator = new Random();
 
-  // Tick observable
-  private class TickObservable extends Observable {
-    private void allTicksPerformed() {
+  private boolean hasMillisecondObservers = false;
+  private MillisecondObservable millisecondObservable = new MillisecondObservable();
+  private class MillisecondObservable extends Observable {
+    private void newMillisecond(long time) {
       setChanged();
-      notifyObservers();
+      notifyObservers(time);
     }
   }
 
-  private TickObservable tickObservable = new TickObservable();
+  private EventQueue eventQueue = new EventQueue();
 
   /**
-   * Add tick observer. This observer is notified once every tick loop, that is,
-   * when all motes have been ticked.
+   * Add millisecond observer.
+   * This observer is notified once every simulated millisecond.
    *
-   * @see #deleteTickObserver(Observer)
-   * @param newObserver
-   *          New observer
+   * @see #deleteMillisecondObserver(Observer)
+   * @param newObserver Observer
    */
-  public void addTickObserver(Observer newObserver) {
-    tickObservable.addObserver(newObserver);
+  public void addMillisecondObserver(Observer newObserver) {
+    millisecondObservable.addObserver(newObserver);
+    hasMillisecondObservers = true;
+    rescheduleEvents = true;
   }
 
   /**
-   * Delete an existing tick observer.
+   * Delete millisecond observer.
    *
-   * @see #addTickObserver(Observer)
-   * @param observer
-   *          Observer to delete
+   * @see #addMillisecondObserver(Observer)
+   * @param observer Observer to delete
    */
-  public void deleteTickObserver(Observer observer) {
-    tickObservable.deleteObserver(observer);
+  public void deleteMillisecondObserver(Observer observer) {
+    millisecondObservable.deleteObserver(observer);
+    hasMillisecondObservers = millisecondObservable.countObservers() > 0;
+    rescheduleEvents = true;
   }
 
 
-  protected void scheduleEventUnsafe(TimeEvent e, long time) {
+  /**
+   * Schedule events.
+   * This method is not thread-safe, and should only be invoked when the 
+   * simulation is paused, or from inside the simulation loop.
+   * 
+   * @see #scheduleEvent(TimeEvent, long)
+   * @param e Event
+   * @param time Execution time
+   */
+  public void scheduleEventUnsafe(TimeEvent e, long time) {
     eventQueue.addEvent(e, time);
   }
 
@@ -122,7 +134,7 @@ public class Simulation extends Observable implements Runnable {
    * Schedule event to be handled by event loop.
    *
    * @param e Event
-   * @param time Simulated time
+   * @param time Execution time
    */
   public void scheduleEvent(TimeEvent e, long time) {
     if (Thread.currentThread() == simulationThread) {
@@ -132,10 +144,8 @@ public class Simulation extends Observable implements Runnable {
     }
   }
 
-  private EventQueue eventQueue = new EventQueue();
-
   private Mote[] emulatedMoteArray;
-  private TimeEvent tickemulatedMotesEvent = new TimeEvent(0) {
+  private TimeEvent tickEmulatedMotesEvent = new TimeEvent(0) {
     public void execute(long t) {
       /*logger.info("MSP motes tick at: " + t);*/
       if (emulatedMoteArray.length == 0) {
@@ -154,26 +164,11 @@ public class Simulation extends Observable implements Runnable {
         }
       }
 
-      /* Reschedule MSP motes */
-      scheduleEventUnsafe(this, t+1);
+      /* XXX Reschedule MSP motes (millisecond resolution) */
+      scheduleEventUnsafe(this, t+1000);
     }
-  };
-
-  private Mote[] moteArray;
-  private TimeEvent tickMotesEvent = new TimeEvent(0) {
-    public void execute(long t) {
-      /*logger.info("Contiki motes tick at: " + t);*/
-      if (moteArray.length == 0) {
-        return;
-      }
-
-      /* Tick Contiki motes */
-      for (Mote mote : moteArray) {
-        mote.tick(t);
-      }
-
-      /* Reschedule Contiki motes */
-      scheduleEventUnsafe(this, t+1);
+    public String toString() {
+      return "MSPSIM ALL";
     }
   };
 
@@ -185,26 +180,39 @@ public class Simulation extends Observable implements Runnable {
       }
 
       try { Thread.sleep(delayTime); } catch (InterruptedException e) { }
-      scheduleEventUnsafe(this, t+1);
+      scheduleEventUnsafe(this, t+MILLISECOND);
+    }
+    public String toString() {
+      return "DELAY";
     }
   };
 
-  private void recreateTickLists() {
+  private TimeEvent millisecondEvent = new TimeEvent(0) {
+    public void execute(long t) {
+      if (!hasMillisecondObservers) {
+        return;
+      }
+
+      millisecondObservable.newMillisecond(getSimulationTime());
+      scheduleEventUnsafe(this, t+MILLISECOND);
+    }
+    public String toString() {
+      return "MILLISECOND: " + millisecondObservable.countObservers();
+    }
+  };
+  
+  private void recreateMoteLists() {
     /* Tick MSP motes separately */
     ArrayList<Mote> emulatedMotes = new ArrayList<Mote>();
-    ArrayList<Mote> contikiMotes = new ArrayList<Mote>();
     for (Mote mote: motes) {
       /* TODO: fixe an emulatedMote generic class */
       if (mote.getType().getClass().toString().contains(".mspmote.")) {
         emulatedMotes.add(mote);
       } else if (mote.getType().getClass().toString().contains(".avrmote.")) {
         emulatedMotes.add(mote);
-      } else {
-        contikiMotes.add(mote);
       }
     }
     emulatedMoteArray = emulatedMotes.toArray(new Mote[emulatedMotes.size()]);
-    moteArray = contikiMotes.toArray(new Mote[contikiMotes.size()]);
   }
 
   private boolean rescheduleEvents = false;
@@ -212,28 +220,27 @@ public class Simulation extends Observable implements Runnable {
     long lastStartTime = System.currentTimeMillis();
     logger.info("Simulation main loop started, system time: " + lastStartTime);
     isRunning = true;
-
+    
     /* Schedule tick events */
-    scheduleEventUnsafe(tickMotesEvent, currentSimulationTime);
-    scheduleEventUnsafe(tickemulatedMotesEvent, currentSimulationTime);
-    scheduleEventUnsafe(delayEvent, currentSimulationTime);
+    scheduleEventUnsafe(tickEmulatedMotesEvent, currentSimulationTime);
+    scheduleEventUnsafe(delayEvent, currentSimulationTime - (currentSimulationTime % 1000) + 1000);
+    scheduleEventUnsafe(millisecondEvent, currentSimulationTime - (currentSimulationTime % 1000) + 1000);
 
     /* Simulation starting */
     this.setChanged();
     this.notifyObservers(this);
 
-    recreateTickLists();
+    recreateMoteLists();
 
-    boolean increasedTime;
     try {
       TimeEvent nextEvent;
       while (isRunning) {
 
         if (rescheduleEvents) {
           rescheduleEvents = false;
-          scheduleEventUnsafe(tickMotesEvent, currentSimulationTime);
-          scheduleEventUnsafe(tickemulatedMotesEvent, currentSimulationTime);
-          scheduleEventUnsafe(delayEvent, currentSimulationTime);
+          scheduleEventUnsafe(tickEmulatedMotesEvent, currentSimulationTime);
+          scheduleEventUnsafe(delayEvent, currentSimulationTime - (currentSimulationTime % 1000) + 1000);
+          scheduleEventUnsafe(millisecondEvent, currentSimulationTime - (currentSimulationTime % 1000) + 1000);
         }
 
         nextEvent = eventQueue.popFirst();
@@ -241,14 +248,9 @@ public class Simulation extends Observable implements Runnable {
           throw new RuntimeException("No more events");
         }
 
-        increasedTime = nextEvent.time > currentSimulationTime;
         currentSimulationTime = nextEvent.time;
+        /*logger.info("Executing event #" + EVENT_COUNTER++ + " @ " + currentSimulationTime + ": " + nextEvent);*/
         nextEvent.execute(currentSimulationTime);
-
-        /* Notify tick observers */
-        if (increasedTime) {
-          tickObservable.allTicksPerformed();
-        }
 
         if (stopSimulation) {
           isRunning = false;
@@ -303,8 +305,9 @@ public class Simulation extends Observable implements Runnable {
       /* Wait until simulation stops */
       if (Thread.currentThread() != simulationThread) {
         try {
-          if (simulationThread != null) {
-            simulationThread.join();
+          Thread simThread = simulationThread;
+          if (simThread != null) {
+            simThread.join();
           }
         } catch (InterruptedException e) {
         }
@@ -316,14 +319,19 @@ public class Simulation extends Observable implements Runnable {
    * Starts simulation if stopped, ticks all motes once, and finally stops
    * simulation again.
    */
-  public void tickSimulation() {
-    addTickObserver(new Observer() {
-      public void update(Observable obs, Object obj) {
+  public void stepMillisecondSimulation() {
+    TimeEvent stopEvent = new TimeEvent(0) {
+      public void execute(long t) {
+        /* Stop simulation */
         stopSimulation();
-        deleteTickObserver(this);
       }
-    });
-    startSimulation();
+    };
+    scheduleEvent(stopEvent, getSimulationTime()+Simulation.MILLISECOND);
+
+    /* Start simulation if not running */
+    if (!isRunning()) {
+      startSimulation();
+    }
   }
 
   /**
@@ -370,14 +378,14 @@ public class Simulation extends Observable implements Runnable {
   /**
    * @return Maximum mote startup delay
    */
-  public int getDelayedMoteStartupTime() {
+  public long getDelayedMoteStartupTime() {
     return maxMoteStartupDelay;
   }
 
   /**
    * @param maxMoteStartupDelay Maximum mote startup delay
    */
-  public void setDelayedMoteStartupTime(int maxMoteStartupDelay) {
+  public void setDelayedMoteStartupTime(long maxMoteStartupDelay) {
     this.maxMoteStartupDelay = Math.max(0, maxMoteStartupDelay);
   }
 
@@ -402,11 +410,6 @@ public class Simulation extends Observable implements Runnable {
     element.setText(Integer.toString(delayTime));
     config.add(element);
 
-    // Tick time
-    element = new Element("ticktime");
-    element.setText(Integer.toString(tickTime));
-    config.add(element);
-
     // Random seed
     element = new Element("randomseed");
     if (randomSeedGenerated) {
@@ -417,8 +420,8 @@ public class Simulation extends Observable implements Runnable {
     config.add(element);
 
     // Max mote startup delay
-    element = new Element("motedelay");
-    element.setText(Integer.toString(maxMoteStartupDelay));
+    element = new Element("motedelay_us");
+    element.setText(Long.toString(maxMoteStartupDelay));
     config.add(element);
 
     // Radio Medium
@@ -487,11 +490,6 @@ public class Simulation extends Observable implements Runnable {
         delayTime = Integer.parseInt(element.getText());
       }
 
-      // Tick time
-      if (element.getName().equals("ticktime")) {
-        tickTime = Integer.parseInt(element.getText());
-      }
-
       // Random seed
       if (element.getName().equals("randomseed")) {
         if (element.getText().equals("generated")) {
@@ -504,6 +502,9 @@ public class Simulation extends Observable implements Runnable {
 
       // Max mote startup delay
       if (element.getName().equals("motedelay")) {
+        maxMoteStartupDelay = Integer.parseInt(element.getText())*MILLISECOND;
+      }
+      if (element.getName().equals("motedelay_us")) {
         maxMoteStartupDelay = Integer.parseInt(element.getText());
       }
 
@@ -596,28 +597,39 @@ public class Simulation extends Observable implements Runnable {
    *          Mote to remove
    */
   public void removeMote(final Mote mote) {
-    if (!isRunning()) {
-      /* Simulation is stopped, remove mote immediately */
-      motes.remove(mote);
-      currentRadioMedium.unregisterMote(mote, this);
-      myGUI.closeMotePlugins(mote);
-      this.setChanged();
-      this.notifyObservers(this);
-      return;
-    }
 
     /* Simulation is running, remove mote in simulation loop */
-    TimeEvent removeNewMoteEvent = new TimeEvent(0) {
+    TimeEvent removeMoteEvent = new TimeEvent(0) {
       public void execute(long t) {
         motes.remove(mote);
         currentRadioMedium.unregisterMote(mote, Simulation.this);
-        recreateTickLists();
+
+        /* Loop through all scheduled events.
+         * Delete all events associated with deleted mote. */
+        TimeEvent ev = eventQueue.peekFirst();
+        while (ev != null) {
+          if (ev instanceof MoteTimeEvent) {
+            if (((MoteTimeEvent)ev).getMote() == mote) {
+              ev.remove();
+            }
+          }
+          
+          ev = ev.nextEvent;
+        }
+        
+        recreateMoteLists();
         Simulation.this.setChanged();
         Simulation.this.notifyObservers(this);
       }
     };
 
-    scheduleEvent(removeNewMoteEvent, Simulation.this.getSimulationTime());
+    if (!isRunning()) {
+      /* Simulation is stopped, remove mote immediately */
+      removeMoteEvent.execute(0);
+    } else {
+      /* Schedule event */
+      scheduleEvent(removeMoteEvent, Simulation.this.getSimulationTime());
+    }
   }
 
   /**
@@ -629,7 +641,8 @@ public class Simulation extends Observable implements Runnable {
   public void addMote(final Mote mote) {
     if (maxMoteStartupDelay > 0 && mote.getInterfaces().getClock() != null) {
       mote.getInterfaces().getClock().setDrift(
-          -randomGenerator.nextInt(maxMoteStartupDelay)
+          - getSimulationTime()
+          - randomGenerator.nextInt((int)maxMoteStartupDelay)
       );
     }
 
@@ -647,9 +660,12 @@ public class Simulation extends Observable implements Runnable {
       public void execute(long t) {
         motes.add(mote);
         currentRadioMedium.registerMote(mote, Simulation.this);
-        recreateTickLists();
+        recreateMoteLists();
         Simulation.this.setChanged();
         Simulation.this.notifyObservers(this);
+      }
+      public String toString() {
+        return "ADD MOTE";
       }
     };
 
@@ -727,11 +743,10 @@ public class Simulation extends Observable implements Runnable {
   }
 
   /**
-   * Set delay time to delayTime. When all motes have been ticked, the
-   * simulation waits for this time before ticking again.
-   *
-   * @param delayTime
-   *          New delay time (ms)
+   * Set delay time in milliseconds.
+   * The simulation loop sleeps this value every simulated millisecond.
+   * 
+   * @param delayTime New delay time (ms)
    */
   public void setDelayTime(int delayTime) {
     this.delayTime = delayTime;
@@ -767,27 +782,20 @@ public class Simulation extends Observable implements Runnable {
   /**
    * Returns current simulation time.
    *
-   * @return Simulation time (ms)
+   * @return Simulation time (microseconds)
    */
   public long getSimulationTime() {
     return currentSimulationTime;
   }
 
   /**
-   * Set tick time to tickTime. The tick time is the simulated time every tick
-   * takes. When all motes have been ticked, current simulation time is
-   * increased with tickTime. Default tick time is 1 ms.
-   *
-   * @see #getTickTime()
-   * @see #getTickTimeInSeconds()
-   * @param tickTime
-   *          New tick time (ms)
+   * Returns current simulation time rounded to milliseconds.
+   * 
+   * @see #getSimulationTime()
+   * @return
    */
-  public void setTickTime(int tickTime) {
-    this.tickTime = tickTime;
-
-    this.setChanged();
-    this.notifyObservers(this);
+  public long getSimulationTimeMillis() {
+    return currentSimulationTime / MILLISECOND;
   }
 
   /**
@@ -824,26 +832,6 @@ public class Simulation extends Observable implements Runnable {
    */
   public RadioMedium getRadioMedium() {
     return currentRadioMedium;
-  }
-
-  /**
-   * Get current tick time (ms).
-   *
-   * @see #setTickTime(int)
-   * @return Current tick time (ms)
-   */
-  public int getTickTime() {
-    return tickTime;
-  }
-
-  /**
-   * Get current tick time (seconds).
-   *
-   * @see #setTickTime(int)
-   * @return Current tick time (seconds)
-   */
-  public double getTickTimeInSeconds() {
-    return (tickTime) / 1000.0;
   }
 
   /**
