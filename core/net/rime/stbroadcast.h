@@ -9,7 +9,7 @@
  *
  * The stbroadcast module provides stubborn anonymous best-effort local area
  * broadcast. A message sent with the stbroadcast module is repeated until
- * either the mssage is canceled or a new message is sent. Messages
+ * either the message is canceled or a new message is sent. Messages
  * sent with the stbroadcast module are not identified with a sender ID.
  *
  * \section channels Channels
@@ -48,7 +48,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: stbroadcast.h,v 1.1 2008/06/30 08:28:53 adamdunkels Exp $
+ * $Id: stbroadcast.h,v 1.2 2009/05/26 13:58:53 nvt-se Exp $
  */
 
 /**

@@ -7,7 +7,7 @@
  * \defgroup rimeaddr Rime addresses
  * @{
  *
- * The rimeaddr module is an abstract repressentation of addresses in
+ * The rimeaddr module is an abstract representation of addresses in
  * Rime.
  *
  */
@@ -42,12 +42,12 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: rimeaddr.h,v 1.5 2008/11/30 18:26:06 adamdunkels Exp $
+ * $Id: rimeaddr.h,v 1.6 2009/05/26 13:58:53 nvt-se Exp $
  */
 
 /**
  * \file
- *         Header file for the Rime address repressentation
+ *         Header file for the Rime address representation
  * \author
  *         Adam Dunkels <adam@sics.se>
  */

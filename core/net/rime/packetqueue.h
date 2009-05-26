@@ -41,7 +41,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: packetqueue.h,v 1.2 2009/05/06 08:37:48 zhitao Exp $
+ * $Id: packetqueue.h,v 1.3 2009/05/26 13:58:53 nvt-se Exp $
  */
 
 /**
@@ -61,7 +61,7 @@
 #include "net/rime/queuebuf.h"
 
 /**
- * \brief      Repressentation of a packet queue.
+ * \brief      Representation of a packet queue.
  *
  *             This structure holds the state of a packet queue. It is
  *             an opaque structure with no user-visible elements.
@@ -72,7 +72,7 @@ struct packetqueue {
 };
 
 /**
- * \brief      Repressentation of an item in a packet queue.
+ * \brief      Representation of an item in a packet queue.
  *
  *             This structure holds the state of a packet queue. It is
  *             an opaque structure with no user-visible elements. The
@@ -132,7 +132,7 @@ void packetqueue_init(struct packetqueue *q);
  *             This function enqueues the \ref packetbuf "packetbuf"
  *             to the packet queue pointed to by the q parameter. The
  *             packet queue must previously have been defined with
- *             PACKETQUEUE() and initalized with packetqueue_init().
+ *             PACKETQUEUE() and initialized with packetqueue_init().
  *
  *             Each packet queue item has a maximum lifetime. When the
  *             lifetime expires, the packet queue item is
