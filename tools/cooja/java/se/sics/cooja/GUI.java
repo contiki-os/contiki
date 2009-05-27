@@ -24,7 +24,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * $Id: GUI.java,v 1.125 2009/04/20 16:07:32 fros4943 Exp $
+ * $Id: GUI.java,v 1.126 2009/05/27 23:23:41 nifi Exp $
  */
 
 package se.sics.cooja;
@@ -269,6 +269,7 @@ public class GUI extends Observable {
   private JMenu menuPlugins, menuMoteTypeClasses, menuMoteTypes;
 
   private JMenu menuOpenSimulation, menuConfOpenSimulation;
+  private boolean hasFileHistoryChanged;
 
   private Vector<Class<? extends Plugin>> menuMotePluginClasses;
 
@@ -494,16 +495,19 @@ public class GUI extends Observable {
     }
   }
 
-  public Vector<File> getFileHistory() {
-    Vector<File> history = new Vector<File>();
-
+  public File getLastOpenedFile() {
     // Fetch current history
     String[] historyArray = getExternalToolsSetting("SIMCFG_HISTORY", "").split(";");
+    return historyArray.length > 0 ? new File(historyArray[0]) : null;
+  }
 
-    for (String file: historyArray) {
-      history.add(new File(file));
+  public File[] getFileHistory() {
+    // Fetch current history
+    String[] historyArray = getExternalToolsSetting("SIMCFG_HISTORY", "").split(";");
+    File[] history = new File[historyArray.length];
+    for (int i = 0; i < historyArray.length; i++) {
+      history[i] = new File(historyArray[i]);
     }
-
     return history;
   }
 
@@ -529,46 +533,48 @@ public class GUI extends Observable {
     }
     setExternalToolsSetting("SIMCFG_HISTORY", newHistory.toString());
     saveExternalToolsUserSettings();
+    hasFileHistoryChanged = true;
   }
 
   private void updateOpenHistoryMenuItems() {
-    menuConfOpenSimulation.removeAll();
-
     if (isVisualizedInApplet()) {
       return;
     }
-
-    JMenuItem browseItem = new JMenuItem("Browse...");
-    browseItem.setActionCommand("confopen sim");
-    browseItem.addActionListener(guiEventHandler);
-    menuConfOpenSimulation.add(browseItem);
-    menuConfOpenSimulation.add(new JSeparator());
-    Vector<File> openFilesHistory = getFileHistory();
-
-    for (File file: openFilesHistory) {
-      JMenuItem lastItem = new JMenuItem(file.getName());
-      lastItem.setActionCommand("confopen last sim");
-      lastItem.putClientProperty("file", file);
-      lastItem.setToolTipText(file.getAbsolutePath());
-      lastItem.addActionListener(guiEventHandler);
-      menuConfOpenSimulation.add(lastItem);
+    if (!hasFileHistoryChanged) {
+      // No need to update menu because file history has not changed
+      return;
     }
+    hasFileHistoryChanged = false;
 
-    menuOpenSimulation.removeAll();
+    File[] openFilesHistory = getFileHistory();
+    updateOpenHistoryMenuItems("confopen", menuConfOpenSimulation, openFilesHistory);
+    updateOpenHistoryMenuItems("open", menuOpenSimulation, openFilesHistory);
+  }
 
-    browseItem = new JMenuItem("Browse...");
-    browseItem.setActionCommand("open sim");
+  private void updateOpenHistoryMenuItems(String type, JMenu menu, File[] openFilesHistory) {
+    menu.removeAll();
+    JMenuItem browseItem = new JMenuItem("Browse...");
+    browseItem.setActionCommand(type + " sim");
     browseItem.addActionListener(guiEventHandler);
-    menuOpenSimulation.add(browseItem);
-    menuOpenSimulation.add(new JSeparator());
+    menu.add(browseItem);
+    menu.add(new JSeparator());
 
+    String command = type + " last sim";
+    int index = 0;
+    JMenuItem lastItem;
     for (File file: openFilesHistory) {
-      JMenuItem lastItem = new JMenuItem(file.getName());
-      lastItem.setActionCommand("open last sim");
+      if (index < 10) {
+        char mnemonic = (char) ('0' + (++index % 10));
+        lastItem = new JMenuItem(mnemonic + " " + file.getName());
+        lastItem.setMnemonic(mnemonic);
+      } else {
+        lastItem = new JMenuItem(file.getName());
+      }
+      lastItem.setActionCommand(command);
       lastItem.putClientProperty("file", file);
       lastItem.setToolTipText(file.getAbsolutePath());
       lastItem.addActionListener(guiEventHandler);
-      menuOpenSimulation.add(lastItem);
+      menu.add(lastItem);
     }
   }
 
@@ -603,36 +609,45 @@ public class GUI extends Observable {
     menuItem = new JMenu("Reload simulation");
     menu.add(menuItem);
 
+    ActionListener reloadListener = new ActionListener() {
+      public void actionPerformed(ActionEvent e) {
+        if (getSimulation() == null) {
+          // Load last opened simulation configuration file when
+          // reloading without simulation (ask for a file if no file
+          // has been previously opened)
+          final File file = getLastOpenedFile();
+          new Thread(new Runnable() {
+            public void run() {
+              myGUI.doLoadConfig(true, true, file);
+            }
+          }).start();
+          return;
+        }
+
+        long seed = getSimulation().getRandomSeed();
+        if ("new random seed".equals(e.getActionCommand())) {
+          seed++;
+        }
+        reloadCurrentSimulation(
+            getSimulation().isRunning(),
+            seed);
+      }
+    };
+
     JMenuItem menuItem2 = new JMenuItem("same random seed");
+    menuItem2.setActionCommand("same random seed");
     menuItem2.setMnemonic(KeyEvent.VK_R);
     menuItem2.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_R,
         ActionEvent.CTRL_MASK));
-    menuItem2.addActionListener(new ActionListener() {
-      public void actionPerformed(ActionEvent e) {
-        if (getSimulation() == null) {
-          return;
-        }
-        reloadCurrentSimulation(
-            getSimulation().isRunning(),
-            getSimulation().getRandomSeed());
-      }
-    });
+    menuItem2.addActionListener(reloadListener);
     menuItem.add(menuItem2);
 
     menuItem2 = new JMenuItem("new random seed");
+    menuItem2.setActionCommand("new random seed");
     menuItem2.setMnemonic(KeyEvent.VK_R);
     menuItem2.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_R,
         ActionEvent.CTRL_MASK | ActionEvent.SHIFT_MASK));
-    menuItem2.addActionListener(new ActionListener() {
-      public void actionPerformed(ActionEvent e) {
-        if (getSimulation() == null) {
-          return;
-        }
-        reloadCurrentSimulation(
-            getSimulation().isRunning(),
-            getSimulation().getRandomSeed()+1);
-      }
-    });
+    menuItem2.addActionListener(reloadListener);
     menuItem.add(menuItem2);
 
     menuItem = new JMenuItem("Close simulation");
@@ -656,6 +671,7 @@ public class GUI extends Observable {
       menuConfOpenSimulation.setEnabled(false);
       menuConfOpenSimulation.setToolTipText("Not available in applet version");
     }
+    hasFileHistoryChanged = true;
 
     menuItem = new JMenuItem("Save simulation");
     menuItem.setMnemonic(KeyEvent.VK_S);
@@ -1994,9 +2010,8 @@ public class GUI extends Observable {
             fc.setCurrentDirectory(suggestedFile);
           } else {
             /* Suggest file using file history */
-            Vector<File> history = getFileHistory();
-            if (history != null && history.size() > 0) {
-              File suggestedFile = getFileHistory().firstElement();
+            File suggestedFile = getLastOpenedFile();
+            if (suggestedFile != null) {
               fc.setSelectedFile(suggestedFile);
             }
           }
@@ -2248,9 +2263,8 @@ public class GUI extends Observable {
       fc.setFileFilter(GUI.SAVED_SIMULATIONS_FILES);
 
       // Suggest file using history
-      Vector<File> history = getFileHistory();
-      if (history != null && history.size() > 0) {
-        File suggestedFile = getFileHistory().firstElement();
+      File suggestedFile = getLastOpenedFile();
+      if (suggestedFile != null) {
         fc.setSelectedFile(suggestedFile);
       }
 
