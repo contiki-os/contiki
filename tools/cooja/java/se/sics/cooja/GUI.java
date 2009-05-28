@@ -24,7 +24,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * $Id: GUI.java,v 1.128 2009/05/28 12:59:02 fros4943 Exp $
+ * $Id: GUI.java,v 1.129 2009/05/28 13:45:18 fros4943 Exp $
  */
 
 package se.sics.cooja;
@@ -1777,6 +1777,11 @@ public class GUI extends Observable {
               }
             }
             tooltip += "COOJA plugin: " + newPluginClass.getName();
+            menuItem.addActionListener(new ActionListener() {
+              public void actionPerformed(ActionEvent e) {
+                startPlugin(newPluginClass, myGUI, mySimulation, null);
+              }
+            });
           } else if (pluginType == PluginType.SIM_PLUGIN || pluginType == PluginType.SIM_STANDARD_PLUGIN) {
             for (; itemIndex < menuPlugins.getItemCount(); itemIndex++) {
               if (menuPlugins.getItem(itemIndex) == null /* separator */) {
