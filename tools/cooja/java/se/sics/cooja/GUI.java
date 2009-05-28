@@ -24,7 +24,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * $Id: GUI.java,v 1.129 2009/05/28 13:45:18 fros4943 Exp $
+ * $Id: GUI.java,v 1.130 2009/05/28 14:53:26 fros4943 Exp $
  */
 
 package se.sics.cooja;
@@ -277,7 +277,7 @@ public class GUI extends Observable {
 
   private Vector<Plugin> startedPlugins = new Vector<Plugin>();
 
-  private ArrayList<Action> guiActions = new ArrayList<Action>();
+  private ArrayList<GUIAction> guiActions = new ArrayList<GUIAction>();
   
   // Platform configuration variables
   // Maintained via method reparseProjectConfig()
@@ -589,19 +589,10 @@ public class GUI extends Observable {
     }
 
     /* Update action state */
-    Action[] arr = guiActions.toArray(new Action[0]);
-    for (Action a: arr) {
-      a.setEnabled(a.isEnabled());
+    for (GUIAction a: guiActions) {
+      a.setEnabled(a.shouldBeEnabled());
     }
     
-    /* XXX The plugins menu items are not always correctly enabled */
-    for (Component menuComponent : menuPlugins.getMenuComponents()) {
-      if (menuComponent instanceof JMenuItem && 
-          ((JMenuItem)menuComponent).getAction() == startSimPluginAction) {
-        ((JMenuItem)menuComponent).setEnabled(startSimPluginAction.isEnabled());
-      }
-    }
-
     /* Mote and mote type menues */
     menuMoteTypeClasses.setEnabled(getSimulation() != null);
     menuMoteTypes.setEnabled(getSimulation() != null);
@@ -613,50 +604,15 @@ public class GUI extends Observable {
     JMenuItem menuItem;
 
     /* Prepare GUI actions */
-    newSimulationAction.putValue(Action.NAME, "New simulation");
-    newSimulationAction.putValue(Action.MNEMONIC_KEY, KeyEvent.VK_N);
-    newSimulationAction.putValue(Action.ACCELERATOR_KEY, 
-        KeyStroke.getKeyStroke(KeyEvent.VK_N, ActionEvent.CTRL_MASK));
     guiActions.add(newSimulationAction);
-    
-    closeSimulationAction.putValue(Action.NAME, "Close simulation");
-    closeSimulationAction.putValue(Action.MNEMONIC_KEY, KeyEvent.VK_C);
     guiActions.add(closeSimulationAction);
-
-    reloadSimulationAction.putValue(Action.NAME, "keep random seed");
-    reloadSimulationAction.putValue(Action.MNEMONIC_KEY, KeyEvent.VK_K);
-    reloadSimulationAction.putValue(Action.ACCELERATOR_KEY, 
-        KeyStroke.getKeyStroke(KeyEvent.VK_R, ActionEvent.CTRL_MASK));
     guiActions.add(reloadSimulationAction);
-
-    reloadRandomSimulationAction.putValue(Action.NAME, "new random seed");
-    reloadRandomSimulationAction.putValue(Action.MNEMONIC_KEY, KeyEvent.VK_N);
-    reloadRandomSimulationAction.putValue(Action.ACCELERATOR_KEY, 
-        KeyStroke.getKeyStroke(KeyEvent.VK_R, ActionEvent.CTRL_MASK | ActionEvent.SHIFT_MASK));
     guiActions.add(reloadRandomSimulationAction);
-
-    saveSimulationAction.putValue(Action.NAME, "Save simulation");
-    saveSimulationAction.putValue(Action.MNEMONIC_KEY, KeyEvent.VK_S);
     guiActions.add(saveSimulationAction);
-
-    closePluginsAction.putValue(Action.NAME, "Close all plugins");
     guiActions.add(closePluginsAction);
-
-    exitCoojaAction.putValue(Action.NAME, "Exit");
-    exitCoojaAction.putValue(Action.MNEMONIC_KEY, KeyEvent.VK_X);
-    exitCoojaAction.putValue(Action.ACCELERATOR_KEY, 
-        KeyStroke.getKeyStroke(KeyEvent.VK_X, ActionEvent.CTRL_MASK));
     guiActions.add(exitCoojaAction);
-
-    startStopSimulationAction.putValue(Action.NAME, "Start/Stop simulation");
-    startStopSimulationAction.putValue(Action.ACCELERATOR_KEY, 
-        KeyStroke.getKeyStroke(KeyEvent.VK_S, ActionEvent.CTRL_MASK));
     guiActions.add(startStopSimulationAction);
-
-    removeAllMotesAction.putValue(Action.NAME, "Remove all motes");
     guiActions.add(removeAllMotesAction);
-
-    guiActions.add(startSimPluginAction);
 
     /* File menu */
     menu = new JMenu("File");
@@ -726,14 +682,16 @@ public class GUI extends Observable {
     
     menu.add(new JMenuItem(startStopSimulationAction));
 
-    menuItem = new JMenuItem(startSimPluginAction);
-    menuItem.setText("Control panel");
+    GUIAction guiAction = new StartPluginGUIAction("Control panel");
+    menuItem = new JMenuItem(guiAction);
+    guiActions.add(guiAction);
     menuItem.setMnemonic(KeyEvent.VK_C);
     menuItem.putClientProperty("class", SimControl.class);
     menu.add(menuItem);
 
-    menuItem = new JMenuItem(startSimPluginAction);
-    menuItem.setText("Information");
+    guiAction = new StartPluginGUIAction("Information");
+    menuItem = new JMenuItem(guiAction);
+    guiActions.add(guiAction);
     menuItem.setMnemonic(KeyEvent.VK_I);
     menuItem.putClientProperty("class", SimInformation.class);
     menu.add(menuItem);
@@ -817,8 +775,9 @@ public class GUI extends Observable {
     });
     menu.add(menuMoteTypeClasses);
 
-    menuItem = new JMenuItem(startSimPluginAction);
-    menuItem.setText("Information");
+    guiAction = new StartPluginGUIAction("Information");
+    menuItem = new JMenuItem(guiAction);
+    guiActions.add(guiAction);
     menuItem.putClientProperty("class", MoteTypeInformation.class);
 
     menu.add(menuItem);
@@ -1763,9 +1722,7 @@ public class GUI extends Observable {
       new RunnableInEDT<Boolean>() {
         public Boolean work() {
           // Create 'start plugin'-menu item
-          JMenuItem menuItem = new JMenuItem(description);
-          menuItem.putClientProperty("class", newPluginClass);
-
+          JMenuItem menuItem;
           String tooltip = "<html>";
           
           /* Sort menu according to plugin type */
@@ -1777,6 +1734,7 @@ public class GUI extends Observable {
               }
             }
             tooltip += "COOJA plugin: " + newPluginClass.getName();
+            menuItem = new JMenuItem(description);
             menuItem.addActionListener(new ActionListener() {
               public void actionPerformed(ActionEvent e) {
                 startPlugin(newPluginClass, myGUI, mySimulation, null);
@@ -1795,15 +1753,20 @@ public class GUI extends Observable {
               }
             }
             tooltip += "Simulation plugin: " + newPluginClass.getName();
-            menuItem.setAction(startSimPluginAction);
-            menuItem.setText(description);
+            GUIAction guiAction = new StartPluginGUIAction(description);
+            menuItem = new JMenuItem(guiAction);
+            guiActions.add(guiAction);
           } else if (pluginType == PluginType.MOTE_PLUGIN) {
             // Disable previous menu item and add new item to mote plugins menu
+            menuItem = new JMenuItem(description);
             menuItem.setEnabled(false);
             tooltip += "Mote plugin: " + newPluginClass.getName();
             tooltip += "<br>Start mote plugins by right-clicking a mote in the simulation visualizer";
             menuMotePluginClasses.add(newPluginClass);
             itemIndex = menuPlugins.getItemCount();
+          } else {
+            logger.warn("Unknown plugin type: " + pluginType);
+            return false;
           }
 
           /* Check if plugin was imported by a project directory */
@@ -1815,6 +1778,7 @@ public class GUI extends Observable {
 
           tooltip += "</html>";
           menuItem.setToolTipText(tooltip);
+          menuItem.putClientProperty("class", newPluginClass);
 
           menuPlugins.add(menuItem, itemIndex);
           return true;
@@ -3809,30 +3773,42 @@ public class GUI extends Observable {
   }
 
   /* GUI actions */
-  Action newSimulationAction = new AbstractAction() {
+  abstract class GUIAction extends AbstractAction {
+    public GUIAction(String name) {
+      super(name);
+    }
+    public GUIAction(String name, int nmenomic) {
+      this(name);
+      putValue(Action.MNEMONIC_KEY, nmenomic);
+    }
+    public GUIAction(String name, KeyStroke accelerator) {
+      this(name);
+      putValue(Action.ACCELERATOR_KEY, accelerator);
+    }
+    public GUIAction(String name, int nmenomic, KeyStroke accelerator) {
+      this(name, nmenomic);
+      putValue(Action.ACCELERATOR_KEY, accelerator);
+    }
+    public abstract boolean shouldBeEnabled();
+  }
+  GUIAction newSimulationAction = new GUIAction("New simulation", KeyEvent.VK_N, KeyStroke.getKeyStroke(KeyEvent.VK_N, ActionEvent.CTRL_MASK)) {
     public void actionPerformed(ActionEvent e) {
-      if (!isEnabled()) {
-        return;
-      }
       myGUI.doCreateSimulation(true);
     }
+    public boolean shouldBeEnabled() {
+      return true;
+    }
   };
-  Action closeSimulationAction = new AbstractAction() {
+  GUIAction closeSimulationAction = new GUIAction("Close simulation", KeyEvent.VK_C) {
     public void actionPerformed(ActionEvent e) {
-      if (!isEnabled()) {
-        return;
-      }
       myGUI.doRemoveSimulation(true);
     }
-    public boolean isEnabled() {
+    public boolean shouldBeEnabled() {
       return getSimulation() != null;
     }
   };
-  Action reloadSimulationAction = new AbstractAction() {
+  GUIAction reloadSimulationAction = new GUIAction("keep random seed", KeyEvent.VK_K, KeyStroke.getKeyStroke(KeyEvent.VK_R, ActionEvent.CTRL_MASK)) {
     public void actionPerformed(ActionEvent e) {
-      if (!isEnabled()) {
-        return;
-      }
       if (getSimulation() == null) {
         /* Reload last opened simulation */
         final File file = getLastOpenedFile();
@@ -3848,78 +3824,64 @@ public class GUI extends Observable {
       long seed = getSimulation().getRandomSeed();
       reloadCurrentSimulation(getSimulation().isRunning(), seed);
     }
+    public boolean shouldBeEnabled() {
+      return true;
+    }
   };
-  Action reloadRandomSimulationAction = new AbstractAction() {
+  GUIAction reloadRandomSimulationAction = new GUIAction("new random seed", KeyEvent.VK_N, KeyStroke.getKeyStroke(KeyEvent.VK_R, ActionEvent.CTRL_MASK | ActionEvent.SHIFT_MASK)) {
     public void actionPerformed(ActionEvent e) {
-      if (!isEnabled()) {
-        return;
-      }
-
       /* Replace seed before reloading */
       getSimulation().setRandomSeed(getSimulation().getRandomSeed()+1);
       reloadSimulationAction.actionPerformed(null);
     }
-    public boolean isEnabled() {
-      return reloadSimulationAction.isEnabled();
+    public boolean shouldBeEnabled() {
+      return getSimulation() != null;
     }
   };
-  Action saveSimulationAction = new AbstractAction() {
+  GUIAction saveSimulationAction = new GUIAction("Save simulation", KeyEvent.VK_S) {
     public void actionPerformed(ActionEvent e) {
-      if (!isEnabled()) {
-        return;
-      }
       myGUI.doSaveConfig(true);
     }
-    public boolean isEnabled() {
+    public boolean shouldBeEnabled() {
       if (isVisualizedInApplet()) {
         return false;
       }
       return getSimulation() != null;
     }
   };
-  Action closePluginsAction = new AbstractAction() {
+  GUIAction closePluginsAction = new GUIAction("Close all plugins") {
     public void actionPerformed(ActionEvent e) {
-      if (!isEnabled()) {
-        return;
-      }
       Object[] plugins = startedPlugins.toArray();
       for (Object plugin : plugins) {
         removePlugin((Plugin) plugin, false);
       }
     }
-    public boolean isEnabled() {
+    public boolean shouldBeEnabled() {
       return !startedPlugins.isEmpty();
     }
   };
-  Action exitCoojaAction = new AbstractAction() {
+  GUIAction exitCoojaAction = new GUIAction("Exit", KeyEvent.VK_X, KeyStroke.getKeyStroke(KeyEvent.VK_X, ActionEvent.CTRL_MASK)) {
     public void actionPerformed(ActionEvent e) {
-      if (!isEnabled()) {
-        return;
-      }
       myGUI.doQuit(true);
     }
-    public boolean isEnabled() {
+    public boolean shouldBeEnabled() {
       if (isVisualizedInApplet()) {
         return false;
       }
       return true;
     }
   };
-  Action startStopSimulationAction = new AbstractAction() {
+  GUIAction startStopSimulationAction = new GUIAction("Start/Stop simulation", KeyStroke.getKeyStroke(KeyEvent.VK_S, ActionEvent.CTRL_MASK)) {
     public void actionPerformed(ActionEvent e) {
-      if (!isEnabled()) {
-        return;
-      }
-      
       /* Start/Stop current simulation */
-      Simulation sim = getSimulation();
-      if (sim == null) {
+      Simulation s = getSimulation();
+      if (s == null) {
         return;
       }
-      if (sim.isRunning()) {
-        sim.stopSimulation();
+      if (s.isRunning()) {
+        s.stopSimulation();
       } else {
-        sim.startSimulation();
+        s.startSimulation();
       }
     }
     public void setEnabled(boolean newValue) {
@@ -3932,40 +3894,38 @@ public class GUI extends Observable {
       }
       super.setEnabled(newValue);
     }
-    public boolean isEnabled() {
+    public boolean shouldBeEnabled() {
       return getSimulation() != null;
     }
   };
-  Action startSimPluginAction = new AbstractAction() {
+  class StartPluginGUIAction extends GUIAction {
+    public StartPluginGUIAction(String name) {
+      super(name);
+    }
     public void actionPerformed(ActionEvent e) {
-      if (!isEnabled()) {
-        return;
-      }
       Class<Plugin> pluginClass = 
         (Class<Plugin>) ((JMenuItem) e.getSource()).getClientProperty("class");
       Mote mote = (Mote) ((JMenuItem) e.getSource()).getClientProperty("mote");
       startPlugin(pluginClass, myGUI, mySimulation, mote);
     }
-    public boolean isEnabled() {
+    public boolean shouldBeEnabled() {
       return getSimulation() != null;
     }
-  };
-  Action removeAllMotesAction = new AbstractAction() {
+  }
+  GUIAction removeAllMotesAction = new GUIAction("Remove all motes") {
     public void actionPerformed(ActionEvent e) {
-      if (!isEnabled()) {
-        return;
+      Simulation s = getSimulation();
+      if (s.isRunning()) {
+        s.stopSimulation();
       }
 
-      if (getSimulation().isRunning()) {
-        getSimulation().stopSimulation();
-      }
-
-      while (getSimulation().getMotesCount() > 0) {
-        getSimulation().removeMote(getSimulation().getMote(0));
+      while (s.getMotesCount() > 0) {
+        s.removeMote(getSimulation().getMote(0));
       }
     }
-    public boolean isEnabled() {
-      return getSimulation() != null && getSimulation().getMotesCount() > 0;
+    public boolean shouldBeEnabled() {
+      Simulation s = getSimulation();
+      return s != null && s.getMotesCount() > 0;
     }
   };
 
