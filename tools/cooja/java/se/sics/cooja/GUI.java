@@ -24,7 +24,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * $Id: GUI.java,v 1.127 2009/05/28 12:55:14 fros4943 Exp $
+ * $Id: GUI.java,v 1.128 2009/05/28 12:59:02 fros4943 Exp $
  */
 
 package se.sics.cooja;
@@ -580,7 +580,15 @@ public class GUI extends Observable {
     }
   }
 
+  /**
+   * Enables/disables menues and menu items depending on whether a simulation is loaded etc.
+   */
   private void updateGUIComponentState() {
+    if (!isVisualized()) {
+      return;
+    }
+
+    /* Update action state */
     Action[] arr = guiActions.toArray(new Action[0]);
     for (Action a: arr) {
       a.setEnabled(a.isEnabled());
@@ -594,6 +602,7 @@ public class GUI extends Observable {
       }
     }
 
+    /* Mote and mote type menues */
     menuMoteTypeClasses.setEnabled(getSimulation() != null);
     menuMoteTypes.setEnabled(getSimulation() != null);
   }
