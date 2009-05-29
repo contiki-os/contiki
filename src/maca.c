@@ -160,6 +160,43 @@ void radio_on(void) {
 	init_phy();
 }
 
+/* initialized with 0x4c */
+uint8_t ctov[16] = {
+        0x0b,
+        0x0b,
+        0x0b,
+        0x0a,
+        0x0d,
+        0x0d,
+        0x0c,
+        0x0c,
+        0x0f,
+        0x0e,
+        0x0e,
+        0x0e,
+        0x11,
+        0x10,
+        0x10,
+        0x0f,
+};
+
+/* get_ctov thanks to Umberto */
+
+#define _INIT_CTOV_WORD_1       0x00dfbe77
+#define _INIT_CTOV_WORD_2       0x023126e9
+uint8_t get_ctov( uint32_t r0, uint32_t r1 )
+{
+
+        r0 = r0 * _INIT_CTOV_WORD_1;
+        r0 += ( r1 << 22 );
+        r0 += _INIT_CTOV_WORD_2;
+
+        r0 = (uint32_t)(((int32_t)r0) >> 25);
+
+        return (uint8_t)r0;
+}
+
+
 /* radio_init has been tested to be good */
 void radio_init(void) {
 	volatile uint32_t i;
@@ -216,6 +253,19 @@ void radio_init(void) {
 		put_hex(ram_values[i]);
 		puts("\n\r");
 	}
+
+        puts("radio_init: ctov parameter 0x");
+	put_hex(ram_values[3]);
+	puts("\n\r");
+        for(i=0; i<16; i++) {
+                ctov[i] = get_ctov(i,ram_values[3]);
+                puts("radio_init: ctov[");
+		put_hex(i);
+		puts("] = 0x");
+		put_hex(ctov[i]);
+		puts("\n\r");
+        }
+
 
 }
 
@@ -333,25 +383,6 @@ const uint32_t VCODivF[16] = {
 	0x01555555,		
 };
 
-const uint8_t ctov_4c[16] = {
-	0x0b,
-	0x0b,
-	0x0b,
-	0x0a,
-	0x0d,
-	0x0d,
-	0x0c,
-	0x0c,
-	0x0f,
-	0x0e,
-	0x0e,
-	0x0e,
-	0x11,
-	0x10,
-	0x10,
-	0x0f,
-};
-
 /* tested good */
 #define ADDR_CHAN1 0x80009800
 #define ADDR_CHAN2 (ADDR_CHAN1+12)
@@ -376,7 +407,7 @@ void set_channel(uint8_t chan) {
 	reg(ADDR_CHAN4) = tmp;
 
 	tmp = tmp & 0xffffe0ff;
-	tmp = tmp | (((ctov_4c[chan])<<8)&0x1F00);
+	tmp = tmp | (((ctov[chan])<<8)&0x1F00);
 	reg(ADDR_CHAN4) = tmp;
 	/* duh! */
 }
