@@ -36,7 +36,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: collect.c,v 1.27 2009/05/06 15:34:28 zhitao Exp $
+ * $Id: collect.c,v 1.28 2009/05/30 19:54:05 nvt-se Exp $
  */
 
 /**
@@ -88,6 +88,12 @@ PACKETQUEUE(forwarding_queue, MAX_FORWARDING_QUEUE);
 #define RTMETRIC_MAX COLLECT_MAX_DEPTH
 
 #define MAX_HOPLIM 10
+
+#ifndef COLLECT_CONF_ANNOUNCEMENTS
+#define COLLECT_ANNOUNCEMENTS 1
+#else
+#define COLLECT_ANNOUNCEMENTS COLLECT_CONF_ANNOUNCEMENTS
+#endif /* COLLECT_CONF_ANNOUNCEMENTS */
 
 #define DEBUG 0
 #if DEBUG
@@ -187,8 +193,13 @@ update_rtmetric(struct collect_conn *tc)
 	uint16_t old_rtmetric = tc->rtmetric;
 	
 	tc->rtmetric = n->rtmetric + neighbor_etx(n);
-	/*	neighbor_discovery_start(&tc->neighbor_discovery_conn, tc->rtmetric);*/
+
+#if !COLLECT_ANNOUNCEMENTS
+	neighbor_discovery_start(&tc->neighbor_discovery_conn, tc->rtmetric);
+#else
 	announcement_set_value(&tc->announcement, tc->rtmetric);
+#endif /* !COLLECT_ANNOUNCEMENTS */
+
 	PRINTF("%d.%d: new rtmetric %d\n",
 	       rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1],
 	       tc->rtmetric);
@@ -326,7 +337,8 @@ node_packet_timedout(struct runicast_conn *c, rimeaddr_t *to, uint8_t transmissi
   send_queued_packet();
 }
 /*---------------------------------------------------------------------------*/
-/*static void
+#if !COLLECT_ANNOUNCEMENTS
+static void
 adv_received(struct neighbor_discovery_conn *c, rimeaddr_t *from, uint16_t rtmetric)
 {
   struct collect_conn *tc = (struct collect_conn *)
@@ -345,7 +357,8 @@ adv_received(struct neighbor_discovery_conn *c, rimeaddr_t *from, uint16_t rtmet
   }
 
   update_rtmetric(tc);
-}*/
+}
+#else
 static void
 received_announcement(struct announcement *a, rimeaddr_t *from,
 		      uint16_t id, uint16_t value)
@@ -370,37 +383,48 @@ received_announcement(struct announcement *a, rimeaddr_t *from,
 
   update_rtmetric(tc);  
 }
+#endif /* !COLLECT_ANNOUNCEMENTS */
 /*---------------------------------------------------------------------------*/
 static const struct runicast_callbacks runicast_callbacks = {node_packet_received,
 							     node_packet_sent,
 							     node_packet_timedout};
-/*static const struct neighbor_discovery_callbacks neighbor_discovery_callbacks =
-  { adv_received, NULL};*/
+#if !COLLECT_ANNOUNCEMENTS
+static const struct neighbor_discovery_callbacks neighbor_discovery_callbacks =
+  { adv_received, NULL};
+#endif /* !COLLECT_ANNOUNCEMENTS */
 /*---------------------------------------------------------------------------*/
 void
 collect_open(struct collect_conn *tc, uint16_t channels,
 	     const struct collect_callbacks *cb)
 {
-  /*  neighbor_discovery_open(&tc->neighbor_discovery_conn, channels,
+#if !COLLECT_ANNOUNCEMENTS
+  neighbor_discovery_open(&tc->neighbor_discovery_conn, channels,
 			  CLOCK_SECOND * 2,
 			  CLOCK_SECOND * 10,
 			  CLOCK_SECOND * 60,
-			  &neighbor_discovery_callbacks);*/
+			  &neighbor_discovery_callbacks);
+#endif /* !COLLECT_ANNOUNCEMENTS */
   runicast_open(&tc->runicast_conn, channels + 1, &runicast_callbacks);
   channel_set_attributes(channels + 1, attributes);
   tc->rtmetric = RTMETRIC_MAX;
   tc->cb = cb;
-  /*  neighbor_discovery_start(&tc->neighbor_discovery_conn, tc->rtmetric);*/
+#if COLLECT_ANNOUNCEMENTS
   announcement_register(&tc->announcement, channels, tc->rtmetric,
 			received_announcement);
   announcement_listen(2);
+#else
+  neighbor_discovery_start(&tc->neighbor_discovery_conn, tc->rtmetric);
+#endif /* COLLECT_ANNOUNCEMENTS */
 }
 /*---------------------------------------------------------------------------*/
 void
 collect_close(struct collect_conn *tc)
 {
-  /*  neighbor_discovery_close(&tc->neighbor_discovery_conn);*/
+#if COLLECT_ANNOUNCEMENTS
   announcement_remove(&tc->announcement);
+#else
+  neighbor_discovery_close(&tc->neighbor_discovery_conn);
+#endif /* COLLECT_ANNOUNCEMENTS */
   runicast_close(&tc->runicast_conn);
 }
 /*---------------------------------------------------------------------------*/
@@ -409,11 +433,15 @@ collect_set_sink(struct collect_conn *tc, int should_be_sink)
 {
   if(should_be_sink) {
     tc->rtmetric = SINK;
-    /*    neighbor_discovery_start(&tc->neighbor_discovery_conn, tc->rtmetric);*/
+#if !COLLECT_ANNOUNCEMENTS
+    neighbor_discovery_start(&tc->neighbor_discovery_conn, tc->rtmetric);
+#endif /* !COLLECT_ANNOUNCEMENTS */
   } else {
     tc->rtmetric = RTMETRIC_MAX;
   }
+#if COLLECT_ANNOUNCEMENTS
   announcement_set_value(&tc->announcement, tc->rtmetric);
+#endif /* COLLECT_ANNOUNCEMENTS */
   update_rtmetric(tc);
 }
 /*---------------------------------------------------------------------------*/
