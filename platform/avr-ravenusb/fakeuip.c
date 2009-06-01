@@ -17,8 +17,17 @@ struct uip_stats uip_stat;
 
 uip_lladdr_t uip_lladdr;
 
-u8_t tcpip_output(uip_lladdr_t * lladdr){ return 0; }
-void tcpip_set_outputfunc(u8_t (* f)(uip_lladdr_t *)) { return; }
+static u8_t (* output)(uip_lladdr_t *);
+
+u8_t tcpip_output(uip_lladdr_t * lladdr){
+  if(output != NULL) {
+    return output(lladdr);
+  }
+ return 0;
+}
+void tcpip_set_outputfunc(u8_t (* f)(uip_lladdr_t *)) {
+  output = f;
+}
 
 u16_t htons(u16_t val) { return HTONS(val);}
 
