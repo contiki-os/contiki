@@ -26,65 +26,34 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: SkySerial.java,v 1.15 2009/05/26 14:31:07 fros4943 Exp $
+ * $Id: SkySerial.java,v 1.16 2009/06/02 09:34:59 fros4943 Exp $
  */
 
 package se.sics.cooja.mspmote.interfaces;
 
-import java.awt.*;
-import java.awt.EventQueue;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.KeyAdapter;
-import java.awt.event.KeyEvent;
 import java.util.*;
-import javax.swing.*;
 
 import org.apache.log4j.Logger;
-import org.jdom.Element;
 
 import se.sics.cooja.*;
 import se.sics.cooja.TimeEvent;
 import se.sics.mspsim.core.*;
-import se.sics.cooja.interfaces.Log;
+import se.sics.cooja.dialogs.SerialUI;
 import se.sics.cooja.interfaces.SerialPort;
 import se.sics.cooja.mspmote.SkyMote;
-import se.sics.cooja.plugins.SLIP;
 
 /**
  * @author Fredrik Osterlind
  */
 @ClassDescription("Serial port")
-public class SkySerial extends Log implements SerialPort, USARTListener {
+public class SkySerial extends SerialUI implements SerialPort {
   private static final long DELAY_INCOMING_DATA = 69; /* Corresponds to 115200 bit/s */
   
   private static Logger logger = Logger.getLogger(SkySerial.class);
 
   private SkyMote mote;
-  private String lastLogMessage = "";
-  private StringBuilder newMessage = new StringBuilder();
-
-  private JTextArea logTextPane = null;
   private USART usart;
-  private JTextField commandField;
-  private JCheckBox slipCheckbox;
-  private String[] history = new String[50];
-  private int historyPos = 0;
-  private int historyCount = 0;
-
-  private class SerialDataObservable extends Observable {
-    private void notifyNewData() {
-      if (this.countObservers() == 0) {
-        return;
-      }
-
-      setChanged();
-      notifyObservers(SkySerial.this);
-    }
-  }
-  private SerialDataObservable serialDataObservable = new SerialDataObservable();
-  private byte lastSerialData = 0;
-
+  
   private Vector<Byte> incomingData = new Vector<Byte>();
 
   public SkySerial(Mote mote) {
@@ -94,13 +63,16 @@ public class SkySerial extends Log implements SerialPort, USARTListener {
     IOUnit ioUnit = this.mote.getCPU().getIOUnit("USART 1");
     if (ioUnit instanceof USART) {
       usart = (USART) ioUnit;
-      usart.setUSARTListener(this);
-    }
-  }
-
-  public void stateChanged(int state) {
-    if (state == USARTListener.RXFLAG_CLEARED) {
-      tryWriteNextByte();
+      usart.setUSARTListener(new USARTListener() {
+        public void dataReceived(USART arg0, int arg1) {
+          SkySerial.this.dataReceived(arg1);
+        }
+        public void stateChanged(int state) {
+          if (state == USARTListener.RXFLAG_CLEARED) {
+            tryWriteNextByte();
+          }
+        }
+      });
     }
   }
 
@@ -120,21 +92,6 @@ public class SkySerial extends Log implements SerialPort, USARTListener {
     for (byte element : s) {
       writeByte(element);
     }
-  }
-
-  public String getLastLogMessage() {
-    return lastLogMessage;
-  }
-
-  public void addSerialDataObserver(Observer o) {
-    serialDataObservable.addObserver(o);
-  }
-  public void deleteSerialDataObserver(Observer o) {
-    serialDataObservable.deleteObserver(o);
-  }
-
-  public byte getLastSerialData() {
-    return lastSerialData;
   }
 
   private void tryWriteNextByte() {
@@ -163,239 +120,8 @@ public class SkySerial extends Log implements SerialPort, USARTListener {
     }
   };
 
-  public JPanel getInterfaceVisualizer() {
-    JPanel panel = new JPanel();
-    panel.setLayout(new BorderLayout());
-
-    if (logTextPane == null) {
-      logTextPane = new JTextArea();
-    }
-
-    // Send RS232 data visualizer
-    JPanel sendPane = new JPanel(new BorderLayout());
-    commandField = new JTextField(15);
-    JButton sendButton = new JButton("Send data");
-    ActionListener action = new ActionListener() {
-
-      public void actionPerformed(ActionEvent e) {
-        String command = trim(commandField.getText());
-        if (command != null) {
-          try {
-            int previous = historyCount - 1;
-            if (previous < 0) {
-              previous += history.length;
-            }
-            if (!command.equals(history[previous])) {
-              history[historyCount] = command;
-              historyCount = (historyCount + 1) % history.length;
-            }
-            historyPos = historyCount;
-
-            if (slipCheckbox.isSelected()) {
-              addToLog("SLIP> " + command);
-              command += "\n";
-              writeArray(SLIP.asSlip(command.getBytes()));
-            } else {
-              addToLog("> " + command);
-              writeString(command);
-            }
-            commandField.setText("");
-          } catch (Exception ex) {
-            System.err.println("could not send '" + command + "':");
-            ex.printStackTrace();
-            JOptionPane.showMessageDialog(logTextPane,
-                "could not send '" + command + "':\n"
-                + ex, "ERROR",
-                JOptionPane.ERROR_MESSAGE);
-          }
-        } else {
-          commandField.getToolkit().beep();
-        }
-      }
-
-    };
-    commandField.addKeyListener(new KeyAdapter() {
-
-      @Override
-      public void keyPressed(KeyEvent e) {
-        switch (e.getKeyCode()) {
-        case KeyEvent.VK_UP: {
-          int nextPos = (historyPos + history.length - 1) % history.length;
-          if (nextPos == historyCount || history[nextPos] == null) {
-            commandField.getToolkit().beep();
-          } else {
-            String cmd = trim(commandField.getText());
-            if (cmd != null) {
-              history[historyPos] = cmd;
-            }
-            historyPos = nextPos;
-            commandField.setText(history[historyPos]);
-          }
-          break;
-        }
-        case KeyEvent.VK_DOWN: {
-          int nextPos = (historyPos + 1) % history.length;
-          if (nextPos == historyCount) {
-            historyPos = nextPos;
-            commandField.setText("");
-          } else if (historyPos == historyCount || history[nextPos] == null) {
-            commandField.getToolkit().beep();
-          } else {
-            String cmd = trim(commandField.getText());
-            if (cmd != null) {
-              history[historyPos] = cmd;
-            }
-            historyPos = nextPos;
-            commandField.setText(history[historyPos]);
-          }
-          break;
-        }
-        }
-      }
-
-    });
-
-    slipCheckbox = new JCheckBox("", false);
-    slipCheckbox.setToolTipText("Wrap data as SLIP");
-
-    commandField.addActionListener(action);
-    sendButton.addActionListener(action);
-    sendPane.add(BorderLayout.WEST, slipCheckbox);
-    sendPane.add(BorderLayout.CENTER, commandField);
-    sendPane.add(BorderLayout.EAST, sendButton);
-
-    // Receive RS232 data visualizer
-    logTextPane.setOpaque(false);
-    logTextPane.setEditable(false);
-
-    if (getLastLogMessage() == null) {
-      logTextPane.setText("");
-    } else {
-      logTextPane.append(getLastLogMessage());
-    }
-
-    Observer observer;
-    this.addObserver(observer = new Observer() {
-      public void update(Observable obs, Object obj) {
-        final String logMessage = getLastLogMessage();
-        EventQueue.invokeLater(new Runnable() {
-          public void run() {
-            addToLog(logMessage);
-          }
-        });
-      }
-    });
-
-    // Saving observer reference for releaseInterfaceVisualizer
-    panel.putClientProperty("intf_obs", observer);
-
-    JScrollPane scrollPane = new JScrollPane(logTextPane);
-    scrollPane.setPreferredSize(new Dimension(100, 100));
-    panel.add(BorderLayout.NORTH, new JLabel("Last serial data:"));
-    panel.add(BorderLayout.CENTER, scrollPane);
-    panel.add(BorderLayout.SOUTH, sendPane);
-    return panel;
-  }
-
-  protected void addToLog(String text) {
-    String current = logTextPane.getText();
-    int len = current.length();
-    if (len > 8192) {
-      current = current.substring(len - 8192);
-    }
-    current = len > 0 ? (current + '\n' + text) : text;
-    logTextPane.setText(current);
-    logTextPane.setCaretPosition(current.length());
-  }
-
-  public void releaseInterfaceVisualizer(JPanel panel) {
-    Observer observer = (Observer) panel.getClientProperty("intf_obs");
-    if (observer == null) {
-      logger.fatal("Error when releasing panel, observer is null");
-      return;
-    }
-
-    this.deleteObserver(observer);
-  }
-
-  public double energyConsumption() {
-    return 0;
-  }
-
-  public Collection<Element> getConfigXML() {
-    return null;
-  }
-
-  public void setConfigXML(Collection<Element> configXML, boolean visAvailable) {
-  }
-
-  private int tosChars = 0;
-  boolean tosMode = false;
-  private int[] tosData = new int[255];
-  private int tosPos = 0;
-  private int tosLen = 0;
-  public void dataReceived(USART source, int data) {
-    if (tosMode) {
-    /* needs to add checks to CRC */
-//  System.out.println("Received: " + Integer.toString(data, 16) + " = " + (char) data + "  tosPos: " + tosPos);
-      if (data == 0x7e) {
-        if (tosPos > 6) {
-          lastLogMessage = "TinyOS: " + newMessage.toString();
-          newMessage.setLength(0);
-          this.setChanged();
-          this.notifyObservers(mote);
-          // System.out.println("*** Printing TOS String: " + lastLogMessage);
-          tosPos = 0;
-          tosLen = 0;
-        } else {
-          /* start of new message! */
-          tosPos = 0;
-          tosLen = 0;
-        }
-      }
-      if (tosPos == 7) {
-        tosLen = data;
-        // System.out.println("TOS Payload len: " + tosLen);
-      }
-      if (tosPos > 9 && tosPos < 10 + tosLen) {
-         if (data < 32) {
-          data = 32;
-        }
-         newMessage.append((char) data);
-      }
-      tosData[tosPos++] = data;
-    } else {
-      if (data == 0x7e) {
-        tosChars++;
-        if (tosChars == 2) {
-          tosMode = true;
-          /* already read one char here */
-          tosPos = 1;
-        }
-      } else {
-        tosChars = 0;
-      }
-      if (data == '\n') {
-        lastLogMessage = newMessage.toString();
-        newMessage.setLength(0);
-        this.setChanged();
-        this.notifyObservers(mote);
-      } else {
-        newMessage.append((char) data);
-      }
-      lastSerialData = (byte) data;
-      serialDataObservable.notifyNewData();
-    }
-  }
-
-  public void close() {
-  }
-
-  public void flushInput() {
-  }
-
-  private String trim(String text) {
-    return (text != null) && ((text = text.trim()).length() > 0) ? text : null;
+  public Mote getMote() {
+    return mote;
   }
 
 }
