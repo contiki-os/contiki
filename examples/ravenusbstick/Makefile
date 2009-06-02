@@ -1,7 +1,7 @@
 all:
 	make TARGET=avr-ravenusb -f Makefile.ravenusbstick ravenusbstick.elf
-	avr-objcopy -O ihex -R .eeprom ravenusbstick.elf ravenusbstick.hex
-	avr-size -C ravenusbstick.elf
+	avr-objcopy -O ihex -R .eeprom -R .fuse ravenusbstick.elf ravenusbstick.hex
+	avr-size -C --mcu=at90usb1287 ravenusbstick.elf
 
 clean:
 	make -f Makefile.ravenusbstick clean
