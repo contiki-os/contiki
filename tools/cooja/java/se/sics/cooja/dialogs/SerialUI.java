@@ -26,7 +26,7 @@
    * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
    * SUCH DAMAGE.
    *
-   * $Id: SerialUI.java,v 1.1 2009/03/19 18:55:44 joxe Exp $
+   * $Id: SerialUI.java,v 1.2 2009/06/02 09:34:12 fros4943 Exp $
    */
 
 package se.sics.cooja.dialogs;
@@ -34,6 +34,7 @@ package se.sics.cooja.dialogs;
 import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.EventQueue;
+import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyAdapter;
@@ -244,6 +245,12 @@ public abstract class SerialUI extends Log implements SerialPort {
     current = len > 0 ? (current + '\n' + text) : text;
     logTextPane.setText(current);
     logTextPane.setCaretPosition(current.length());
+    
+    Rectangle visRect = logTextPane.getVisibleRect();
+    if (visRect.x > 0) {
+      visRect.x = 0;
+      logTextPane.scrollRectToVisible(visRect);
+    }
   }
 
   public void releaseInterfaceVisualizer(JPanel panel) {
