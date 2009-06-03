@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: LogScriptEngine.java,v 1.12 2009/05/20 14:11:21 fros4943 Exp $
+ * $Id: LogScriptEngine.java,v 1.13 2009/06/03 17:26:31 fros4943 Exp $
  */
 
 package se.sics.cooja.plugins;
@@ -235,13 +235,13 @@ public class LogScriptEngine {
     scriptActive = false;
 
     if (semaphoreScript == null) {
-      logger.warn("semaphoreScript is not initialized");
+      /*logger.warn("semaphoreScript is not initialized");*/
     }
     if (semaphoreSim == null) {
-      logger.warn("semaphoreSim is not initialized");
+      /*logger.warn("semaphoreSim is not initialized");*/
     }
     if (scriptThread == null) {
-      logger.warn("scriptThread is not initialized");
+      /*logger.warn("scriptThread is not initialized");*/
     }
 
     if (timeoutEvent != null) {
@@ -369,6 +369,10 @@ public class LogScriptEngine {
             logger.fatal("Script error:", e);
             deactivateScript();
             gui.getSimulation().stopSimulation();
+            if (GUI.isVisualized()) {
+              GUI.showErrorDialog(GUI.getTopParentContainer(),
+                  "Script error", e, false);
+            }
           }
         }
         /*logger.info("test script thread exits");*/
