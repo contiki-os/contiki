@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ContikiMoteType.java,v 1.36 2009/04/01 14:02:44 fros4943 Exp $
+ * $Id: ContikiMoteType.java,v 1.37 2009/06/03 17:27:37 fros4943 Exp $
  */
 
 package se.sics.cooja.contikimote;
@@ -1096,13 +1096,11 @@ public class ContikiMoteType implements MoteType {
    * @return Unique mote type ID.
    */
   public static String generateUniqueMoteTypeID(MoteType[] existingTypes, Collection reservedIdentifiers) {
-    int counter = 0;
     String testID = "";
     boolean okID = false;
 
     while (!okID) {
-      counter++;
-      testID = ID_PREFIX + counter;
+      testID = ID_PREFIX + (new Random().nextInt(1000));
       okID = true;
 
       // Check if identifier is reserved
@@ -1129,10 +1127,11 @@ public class ContikiMoteType implements MoteType {
       }
 
       // Check if identifier library has been loaded
+      /* XXX Currently only checks the build directory! */
       File libraryFile = new File(
           ContikiMoteType.tempOutputDirectory,
           testID + ContikiMoteType.librarySuffix);
-      if (CoreComm.hasLibraryFileBeenLoaded(libraryFile)) {
+      if (libraryFile.exists() || CoreComm.hasLibraryFileBeenLoaded(libraryFile)) {
         okID = false;
       }
     }
