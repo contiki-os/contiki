@@ -144,6 +144,7 @@ public class DGRMConfigurator extends VisPlugin {
     add(BorderLayout.SOUTH, button);
 
     model.fireTableDataChanged();
+    setSize(400, 300);
   }
 
   private void doAddLink() {
@@ -254,7 +255,7 @@ public class DGRMConfigurator extends VisPlugin {
         return edge.successRatio;
       }
       if (column == IDX_DELAY) {
-        return edge.delay;
+        return edge.delay / Simulation.MILLISECOND;
       }
       if (column == IDX_DEL) {
         return new Boolean(false);
@@ -282,8 +283,8 @@ public class DGRMConfigurator extends VisPlugin {
         return;
       }
       if (column == IDX_DELAY) {
-        /* Propagation delay */
-        edge.delay = ((Number)value).longValue();
+        /* Propagation delay (ms) */
+        edge.delay = ((Number)value).longValue() * Simulation.MILLISECOND;
         radioMedium.setEdgesDirty();
         return;
       }
