@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: TimeLine.java,v 1.5 2009/05/26 14:30:20 fros4943 Exp $
+ * $Id: TimeLine.java,v 1.6 2009/06/08 11:55:58 fros4943 Exp $
  */
 
 package se.sics.cooja.plugins;
@@ -55,7 +55,6 @@ import org.apache.log4j.Logger;
 import org.jdom.Element;
 import se.sics.cooja.*;
 import se.sics.cooja.interfaces.LED;
-import se.sics.cooja.interfaces.Log;
 import se.sics.cooja.interfaces.Radio;
 import se.sics.cooja.interfaces.Radio.RadioEvent;
 
@@ -87,6 +86,9 @@ public class TimeLine extends VisPlugin {
   private int paintedMoteHeight = EVENT_PIXEL_HEIGHT;
 
   private Simulation simulation;
+  private Observer simulationObserver;
+  private int simulationObserverLast = -1;
+
   private JScrollPane timelineScrollPane;
   private MoteRuler timelineMoteRuler;
   private JComponent timeline;
@@ -110,7 +112,7 @@ public class TimeLine extends VisPlugin {
   public TimeLine(final Simulation simulation, final GUI gui) {
     super("Timeline (Add motes to observe by clicking +)", gui);
     this.simulation = simulation;
-
+    
     currentPixelDivisor = ZOOM_LEVELS[zoomLevel];
     
     /* Box: events to observe */
@@ -177,9 +179,6 @@ public class TimeLine extends VisPlugin {
         timeline,
         JScrollPane.VERTICAL_SCROLLBAR_ALWAYS,
         JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
-    timelineScrollPane.getVerticalScrollBar().setPreferredSize(
-        new Dimension(35, timelineScrollPane.getVerticalScrollBar().getPreferredSize().height));
-
 
     JButton timelineAddMoteButton = new JButton(addMoteAction);
     timelineAddMoteButton.setText("+");
@@ -208,6 +207,41 @@ public class TimeLine extends VisPlugin {
 
     numberMotesWasUpdated();
 
+    /* Automatically add/delete motes */
+    simulation.addObserver(simulationObserver = new Observer() {
+      public void update(Observable obs, Object obj) {
+        if (simulation.getMotesCount() == simulationObserverLast) {
+          /* TODO Detect added/removed motes by event types, not mote counts */
+          return;
+        }
+        simulationObserverLast = simulation.getMotesCount();
+
+        /* Unregister removed motes */
+        Mote[] simMotes = simulation.getMotes();
+        MoteEvents[] allMoteEventsArr = allMoteEvents.toArray(new MoteEvents[0]);
+        for (MoteEvents moteEvents: allMoteEventsArr) {
+          /* Check that mote still exists in simulation */
+          boolean exists = false;
+          for (Mote existing: simMotes) {
+            if (existing == moteEvents.mote) {
+              exists = true;
+              break;
+            }
+          }
+
+          if (!exists) {
+            removeMote(moteEvents.mote);
+          }
+        }
+
+        /* Add all simulation motes */
+        for (Mote m: simulation.getMotes()) {
+          addMote(m);
+        }
+      }
+    });
+    simulationObserver.update(null, null);
+    
     /* Update timeline for the duration of the plugin */
     repaintTimelineTimer.start();
 
@@ -556,6 +590,8 @@ public class TimeLine extends VisPlugin {
     /* Remove repaint timer */
     repaintTimelineTimer.stop();
 
+    simulation.deleteObserver(simulationObserver);
+    
     /* Remove active mote interface observers */
     for (MoteObservation o: activeMoteObservers) {
       o.dispose();
@@ -616,6 +652,13 @@ public class TimeLine extends VisPlugin {
     showLogOutputs = false;
     showWatchpoints = false;
 
+    /* Remove already registered motes */
+    MoteEvents[] allMoteEventsArr = allMoteEvents.toArray(new MoteEvents[0]);
+    for (MoteEvents moteEvents: allMoteEventsArr) {
+      removeMote(moteEvents.mote);
+    }
+    simulationObserverLast = simulation.getMotesCount();
+    
     for (Element element : configXML) {
       String name = element.getName();
       if ("mote".equals(name)) {
