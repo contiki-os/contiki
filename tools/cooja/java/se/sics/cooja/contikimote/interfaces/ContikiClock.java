@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ContikiClock.java,v 1.9 2009/05/26 14:24:20 fros4943 Exp $
+ * $Id: ContikiClock.java,v 1.10 2009/06/08 13:07:54 fros4943 Exp $
  */
 
 package se.sics.cooja.contikimote.interfaces;
@@ -125,7 +125,7 @@ public class ContikiClock extends Clock implements ContikiMoteInterface, PolledB
     int processRunValue = moteMem.getIntValueOf("simProcessRunValue");
     if (processRunValue != 0) {
       /* Handle next Contiki event in one millisecond */
-      mote.scheduleNextWakeup(simulation.getSimulationTime() + 1000L);
+      mote.scheduleNextWakeup(simulation.getSimulationTime() + Simulation.MILLISECOND);
       return;
     }
 
@@ -137,7 +137,13 @@ public class ContikiClock extends Clock implements ContikiMoteInterface, PolledB
 
     /* Request tick next wakeup time */
     int nextExpirationTime = moteMem.getIntValueOf("simNextExpirationTime");
-    mote.scheduleNextWakeup(simulation.getSimulationTime() + 1000L*nextExpirationTime);
+    if (nextExpirationTime == 0) {
+      logger.warn("Next expiration time is now, delaying one millisecond");
+      mote.scheduleNextWakeup(simulation.getSimulationTime() + Simulation.MILLISECOND);
+      return;
+    }
+    
+    mote.scheduleNextWakeup(simulation.getSimulationTime() + Simulation.MILLISECOND*(long)nextExpirationTime);
   }
 
 
