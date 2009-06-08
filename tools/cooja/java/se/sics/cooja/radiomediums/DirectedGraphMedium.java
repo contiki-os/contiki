@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: DirectedGraphMedium.java,v 1.1 2009/02/24 15:29:52 fros4943 Exp $
+ * $Id: DirectedGraphMedium.java,v 1.2 2009/06/08 12:42:10 fros4943 Exp $
  */
 
 package se.sics.cooja.radiomediums;
@@ -114,12 +114,13 @@ public class DirectedGraphMedium extends AbstractRadioMedium {
     super.registerMote(mote, sim);
 
     for (Edge edge: edges) {
-      if (edge.delayedLoadConfig != null) {
-        boolean ok = edge.setConfigXML(edge.delayedLoadConfig, sim);
-        if (ok) {
-          edge.delayedLoadConfig = null;
-        }
-        return;
+      if (edge.delayedLoadConfig == null) {
+        continue;
+      }
+
+      /* Try to configure edge now */
+      if (edge.setConfigXML(edge.delayedLoadConfig, sim)) {
+        edge.delayedLoadConfig = null;
       }
     }
 
@@ -141,7 +142,7 @@ public class DirectedGraphMedium extends AbstractRadioMedium {
   private class DestinationRadio {
     Radio radio;
     double ratio;
-    long delay;
+    long delay; /* us */
 
     public DestinationRadio(Radio dest, double ratio, long delay) {
       this.radio = dest;
@@ -221,23 +222,23 @@ public class DirectedGraphMedium extends AbstractRadioMedium {
       return new RadioConnection(source);
     }
 
-    logger.info(source + ": " + destinations.length + " potential destinations");
+    /*logger.info(source + ": " + destinations.length + " potential destinations");*/
     RadioConnection newConn = new RadioConnection(source);
     for (DestinationRadio dest: destinations) {
       if (dest.radio == source) {
         /* Fail: cannot receive our own transmission */
-        logger.info(source + ": Fail, receiver is sender");
+        /*logger.info(source + ": Fail, receiver is sender");*/
         continue;
       }
 
       if (dest.ratio < 1.0 && random.nextDouble() > dest.ratio) {
-        logger.info(source + ": Fail, randomly");
+        /*logger.info(source + ": Fail, randomly");*/
         continue;
       }
 
       if (dest.radio.isReceiving()) {
         /* Fail: radio is already actively receiving */
-        logger.info(source + ": Fail, receiving");
+        /*logger.info(source + ": Fail, receiving");*/
         newConn.addInterfered(dest.radio);
 
         /* We will also interfere with the other connection */
@@ -260,13 +261,13 @@ public class DirectedGraphMedium extends AbstractRadioMedium {
 
       if (dest.radio.isInterfered()) {
         /* Fail: radio is interfered in another connection */
-        logger.info(source + ": Fail, interfered");
+        /*logger.info(source + ": Fail, interfered");*/
         newConn.addInterfered(dest.radio);
         continue;
       }
 
       /* Success: radio starts receiving */
-      logger.info(source + ": OK: " + dest.radio);
+      /*logger.info(source + ": OK: " + dest.radio);*/
       newConn.addDestination(dest.radio, dest.delay);
     }
 
@@ -332,7 +333,7 @@ public class DirectedGraphMedium extends AbstractRadioMedium {
     public Mote source = null;
     public Mote dest = null; /* null: all motes*/
     public double successRatio = 1.0; /* Link success ratio (per packet). */
-    public long delay = 0; /* Propagation delay (milliseconds). */
+    public long delay = 0; /* Propagation delay (us). */
 
     public Edge(Mote source, double ratio, long delay) {
       this.source = source;
@@ -383,10 +384,10 @@ public class DirectedGraphMedium extends AbstractRadioMedium {
           String moteDescription = element.getText();
 
           boolean foundMote = false;
-          for (int i=0; i < simulation.getMotesCount(); i++) {
-            if (moteDescription.equals(simulation.getMote(i).toString())) {
+          for (Mote m: simulation.getMotes()) {
+            if (moteDescription.equals(m.toString())) {
               foundMote = true;
-              source = simulation.getMote(i);
+              source = m;
               break;
             }
           }
@@ -403,10 +404,10 @@ public class DirectedGraphMedium extends AbstractRadioMedium {
             dest = null; /* ALL */
           } else {
             boolean foundMote = false;
-            for (int i=0; i < simulation.getMotesCount(); i++) {
-              if (moteDescription.equals(simulation.getMote(i).toString())) {
+            for (Mote m: simulation.getMotes()) {
+              if (moteDescription.equals(m.toString())) {
                 foundMote = true;
-                dest = simulation.getMote(i);
+                dest = m;
                 break;
               }
             }
