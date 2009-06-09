@@ -13,9 +13,18 @@ fi
 
 echo ">>>>>>> Starting test: $TEST <<<<<<<<"
 if [ $LOGFILE -eq 1 ]; then echo -n "[`date '+%F %T'`] $TEST: " >> $LOG; fi
-java -mx512m -jar ../dist/cooja.jar -nogui -test=$TEST
+if [ -f "COOJA.log" ]; then
+  rm COOJA.log
+fi
+if [ -f "COOJA.testlog" ]; then
+  rm COOJA.testlog
+fi
+java -mx512m -jar ../dist/cooja.jar -nogui=$TEST.csc
 if [ -f "COOJA.log" ]; then
   mv COOJA.log $TEST.cooja_log
+fi
+if [ -f "COOJA.testlog" ]; then
+  mv COOJA.testlog $TEST.log
 fi
 
 OK=0
@@ -39,7 +48,7 @@ if [ $LOGFILE -eq 1 ]; then
       echo "-- NO TEST OUTPUT AVAILABLE ($TEST.log) --" >> $LOG
     fi
     echo "-- COOJA OUTPUT (tail $TEST.cooja_log) --" >> $LOG
-    tail -5 $TEST.cooja_log >> $LOG
+    tail -10 $TEST.cooja_log >> $LOG
   else
     echo "OK" >> $LOG
   fi
