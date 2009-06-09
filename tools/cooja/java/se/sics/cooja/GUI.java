@@ -24,7 +24,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * $Id: GUI.java,v 1.131 2009/06/02 15:04:49 fros4943 Exp $
+ * $Id: GUI.java,v 1.132 2009/06/09 09:47:04 fros4943 Exp $
  */
 
 package se.sics.cooja;
@@ -1026,16 +1026,34 @@ public class GUI extends Observable {
 
   }
 
-  private static boolean quickStartSimulationConfig(String source) {
+  private static Simulation quickStartSimulationConfig(File config, boolean vis) {
     logger.info("> Starting COOJA");
     JDesktopPane desktop = new JDesktopPane();
     desktop.setDragMode(JDesktopPane.OUTLINE_DRAG_MODE);
-    frame = new JFrame("COOJA Simulator");
+    if (vis) {
+      frame = new JFrame("COOJA Simulator");
+    }
     GUI gui = new GUI(desktop);
-    configureFrame(gui, false);
+    if (vis) {
+      configureFrame(gui, false);
+    }
 
-    gui.doLoadConfig(false, true, new File(source));
-    return true;
+    if (vis) {
+      gui.doLoadConfig(false, true, config);
+      return gui.getSimulation();
+    } else {
+      try {
+        Simulation newSim = gui.loadSimulationConfig(config, true);
+        if (newSim == null) {
+          return null;
+        }
+        gui.setSimulation(newSim, false);
+        return newSim;
+      } catch (Exception e) {
+        logger.fatal("Exception when loading simulation: ", e);
+        return null;
+      }
+    }
   }
 
   /**
@@ -1060,7 +1078,7 @@ public class GUI extends Observable {
       logger.fatal("No simulation, aborting quickstart");
       System.exit(1);
     }
-    gui.setSimulation(simulation);
+    gui.setSimulation(simulation, true);
 
     logger.info("> Creating mote type");
     ContikiMoteType moteType = new ContikiMoteType();
@@ -1840,7 +1858,7 @@ public class GUI extends Observable {
     return mySimulation;
   }
 
-  public void setSimulation(Simulation sim) {
+  public void setSimulation(Simulation sim, boolean startPlugins) {
     if (sim != null) {
       doRemoveSimulation(false);
     }
@@ -1853,7 +1871,7 @@ public class GUI extends Observable {
     }
 
     // Open standard plugins (if none opened already)
-    if (startedPlugins.size() == 0) {
+    if (startPlugins) {
       for (Class<? extends Plugin> pluginClass : pluginClasses) {
         int pluginType = pluginClass.getAnnotation(PluginType.class).value();
         if (pluginType == PluginType.SIM_STANDARD_PLUGIN) {
@@ -2128,7 +2146,7 @@ public class GUI extends Observable {
         shouldRetry = false;
         myGUI.doRemoveSimulation(false);
         newSim = loadSimulationConfig(fileToLoad, quick);
-        myGUI.setSimulation(newSim);
+        myGUI.setSimulation(newSim, false);
         addToFileHistory(fileToLoad);
       } catch (UnsatisfiedLinkError e) {
         shouldRetry = showErrorDialog(GUI.getTopParentContainer(), "Simulation load error", e, true);
@@ -2178,7 +2196,7 @@ public class GUI extends Observable {
             shouldRetry = false;
             myGUI.doRemoveSimulation(false);
             Simulation newSim = loadSimulationConfig(root, true);
-            myGUI.setSimulation(newSim);
+            myGUI.setSimulation(newSim, false);
             myGUI.getSimulation().setRandomSeed(randomSeed);
 
             if (autoStart) {
@@ -2257,59 +2275,62 @@ public class GUI extends Observable {
    * @param askForConfirmation
    *          Ask for confirmation before overwriting file
    */
-  public void doSaveConfig(boolean askForConfirmation) {
+  public File doSaveConfig(boolean askForConfirmation) {
     if (isVisualizedInApplet()) {
-      return;
+      return null;
     }
 
-    if (mySimulation != null) {
-      mySimulation.stopSimulation();
+    if (mySimulation == null) {
+      return null;
+    }
 
-      JFileChooser fc = new JFileChooser();
+    mySimulation.stopSimulation();
 
-      fc.setFileFilter(GUI.SAVED_SIMULATIONS_FILES);
+    JFileChooser fc = new JFileChooser();
 
-      // Suggest file using history
-      File suggestedFile = getLastOpenedFile();
-      if (suggestedFile != null) {
-        fc.setSelectedFile(suggestedFile);
+    fc.setFileFilter(GUI.SAVED_SIMULATIONS_FILES);
+
+    // Suggest file using history
+    File suggestedFile = getLastOpenedFile();
+    if (suggestedFile != null) {
+      fc.setSelectedFile(suggestedFile);
+    }
+
+    int returnVal = fc.showSaveDialog(myDesktopPane);
+    if (returnVal == JFileChooser.APPROVE_OPTION) {
+      File saveFile = fc.getSelectedFile();
+      if (!fc.accept(saveFile)) {
+        saveFile = new File(saveFile.getParent(), saveFile.getName()
+            + SAVED_SIMULATIONS_FILES);
       }
 
-      int returnVal = fc.showSaveDialog(myDesktopPane);
-      if (returnVal == JFileChooser.APPROVE_OPTION) {
-        File saveFile = fc.getSelectedFile();
-        if (!fc.accept(saveFile)) {
-          saveFile = new File(saveFile.getParent(), saveFile.getName()
-              + SAVED_SIMULATIONS_FILES);
-        }
-
-        if (saveFile.exists()) {
-          if (askForConfirmation) {
-            String s1 = "Overwrite";
-            String s2 = "Cancel";
-            Object[] options = { s1, s2 };
-            int n = JOptionPane.showOptionDialog(
-                GUI.getTopParentContainer(),
-                "A file with the same name already exists.\nDo you want to remove it?",
-                "Overwrite existing file?", JOptionPane.YES_NO_OPTION,
-                JOptionPane.QUESTION_MESSAGE, null, options, s1);
-            if (n != JOptionPane.YES_OPTION) {
-              return;
-            }
+      if (saveFile.exists()) {
+        if (askForConfirmation) {
+          String s1 = "Overwrite";
+          String s2 = "Cancel";
+          Object[] options = { s1, s2 };
+          int n = JOptionPane.showOptionDialog(
+              GUI.getTopParentContainer(),
+              "A file with the same name already exists.\nDo you want to remove it?",
+              "Overwrite existing file?", JOptionPane.YES_NO_OPTION,
+              JOptionPane.QUESTION_MESSAGE, null, options, s1);
+          if (n != JOptionPane.YES_OPTION) {
+            return null;
           }
         }
-
-        if (!saveFile.exists() || saveFile.canWrite()) {
-          saveSimulationConfig(saveFile);
-          addToFileHistory(saveFile);
-        } else {
-          logger.fatal("No write access to file");
-        }
-
-      } else {
-        logger.info("Save command cancelled by user...");
       }
+
+      if (!saveFile.exists() || saveFile.canWrite()) {
+        saveSimulationConfig(saveFile);
+        addToFileHistory(saveFile);
+        return saveFile;
+      } else {
+        logger.fatal("No write access to file");
+      }
+    } else {
+      logger.info("Save command cancelled by user...");
     }
+    return null;
   }
 
   /**
@@ -2348,7 +2369,7 @@ public class GUI extends Observable {
     Simulation newSim = new Simulation(this);
     boolean createdOK = CreateSimDialog.showDialog(GUI.getTopParentContainer(), newSim);
     if (createdOK) {
-      myGUI.setSimulation(newSim);
+      myGUI.setSimulation(newSim, true);
     }
   }
 
@@ -2885,7 +2906,7 @@ public class GUI extends Observable {
       boolean ok = false;
       if (contikiApp.endsWith(".csc")) {
 
-        ok = quickStartSimulationConfig(contikiApp);
+        ok = quickStartSimulationConfig(new File(contikiApp), true) != null;
 
       } else {
         if (contikiApp.endsWith(".cooja")) {
@@ -2902,67 +2923,44 @@ public class GUI extends Observable {
         System.exit(1);
       }
 
-    } else if (args.length > 0 && args[0].startsWith("-nogui")) {
+    } else if (args.length > 0 && args[0].startsWith("-nogui=")) {
 
-      /* Parse optional script argument */
-      String tmpTest=null;
-      for (int i=1; i < args.length; i++) {
-        if (args[i].startsWith("-test=")) {
-          tmpTest = args[i].substring("-test=".length());
+      /* Load simulation */
+      String config = args[0].substring("-nogui=".length());
+      final File configFile = new File(config);
+      Simulation sim = quickStartSimulationConfig(configFile, false);
+      if (sim == null) {
+        System.exit(1);
+      }
+      GUI gui = sim.getGUI();
+      
+      /* Make sure at least one test editor is controlling the simulation */
+      boolean hasEditor = false;
+      for (Plugin startedPlugin : gui.startedPlugins) {
+        if (startedPlugin instanceof ScriptRunner) {
+          hasEditor = true;
+          break;
+        }
+      }
+
+      /* Backwards compatibility:
+       * simulation has no test editor, but has external (old style) test script.
+       * We will manually start a test editor from here. */
+      if (!hasEditor) {
+        File scriptFile = new File(config.substring(0, config.length()-4) + ".js");
+        if (scriptFile.exists()) {
+          logger.info("Detected old simulation test, starting test editor manually from: " + scriptFile);
+          ScriptRunner plugin = (ScriptRunner) gui.startPlugin(ScriptRunner.class, gui, sim, null);
+          plugin.updateScript(scriptFile);
+          plugin.setScriptActive(true);
+          sim.setDelayTime(0);
+          sim.startSimulation();
         } else {
-          logger.fatal("Unknown argument: " + args[i]);
+          logger.fatal("No test editor controlling simulation, aborting");
           System.exit(1);
         }
-
       }
-
-      final File scriptFile;
-      final File configFile;
-      final File logFile;
-      if (tmpTest != null) {
-        /* Locate script and simulation config files */
-        scriptFile = new File(tmpTest + ".js");
-        configFile = new File(tmpTest + ".csc");
-        logFile = new File(tmpTest + ".log");
-        if (!scriptFile.exists()) {
-          logger.fatal("Can't locate script: " + scriptFile);
-          System.exit(1);
-        }
-        if (!configFile.exists()) {
-          logger.fatal("Can't locate simulation config: " + configFile);
-          System.exit(1);
-        }
-        if (logFile.exists()) {
-          logFile.delete();
-        }
-        if (logFile.exists() && !logFile.canWrite()) {
-          logger.fatal("Can't write to log file: " + logFile);
-          System.exit(1);
-        }
-      } else {
-        scriptFile = null;
-        configFile = null;
-        logFile = null;
-      }
-
-      /* No GUI start-up */
-      javax.swing.SwingUtilities.invokeLater(new Runnable() {
-        public void run() {
-          JDesktopPane desktop = new JDesktopPane();
-          desktop.setDragMode(JDesktopPane.OUTLINE_DRAG_MODE);
-          GUI gui = new GUI(desktop);
-
-          if (scriptFile != null && configFile != null) {
-            /* Load and start script plugin (no-GUI version) */
-            ScriptRunner scriptPlugin =
-              (ScriptRunner) gui.startPlugin(ScriptRunner.class, gui, null, null);
-
-            /* Activate test */
-            scriptPlugin.activateTest(configFile, scriptFile, logFile);
-          }
-        }
-      });
-
+      
     } else if (args.length > 0 && args[0].startsWith("-applet")) {
 
       String tmpWebPath=null, tmpBuildPath=null, tmpEsbFirmware=null, tmpSkyFirmware=null;
@@ -3041,7 +3039,7 @@ public class GUI extends Observable {
       logger.fatal("Config not wellformed: " + e.getMessage());
       return null;
     } catch (IOException e) {
-      logger.fatal("IOException: " + e.getMessage());
+      logger.fatal("Load simulation error: " + e.getMessage());
       return null;
     }
   }
@@ -3329,6 +3327,7 @@ public class GUI extends Observable {
         if (pluginClassName.equals("se.sics.cooja.plugins.VisUDGM") ||
             pluginClassName.equals("se.sics.cooja.plugins.VisBattery") ||
             pluginClassName.equals("se.sics.cooja.plugins.VisTraffic") ||
+            pluginClassName.equals("se.sics.cooja.plugins.VisState") ||
             pluginClassName.equals("se.sics.cooja.plugins.VisUDGM")) {
           logger.warn("Old simulation config detected: visualizers have been remade");
           pluginClassName = "se.sics.cooja.plugins.Visualizer";

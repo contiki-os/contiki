@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008, Swedish Institute of Computer Science.
+ * Copyright (c) 2009, Swedish Institute of Computer Science.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: LogScriptEngine.java,v 1.13 2009/06/03 17:26:31 fros4943 Exp $
+ * $Id: LogScriptEngine.java,v 1.14 2009/06/09 09:47:04 fros4943 Exp $
  */
 
 package se.sics.cooja.plugins;
@@ -34,52 +34,40 @@ package se.sics.cooja.plugins;
 import java.lang.reflect.UndeclaredThrowableException;
 import java.util.*;
 import java.util.concurrent.Semaphore;
-import javax.swing.*;
 import javax.script.*;
 
 import org.apache.log4j.Logger;
 import se.sics.cooja.*;
 
 /**
- * Executes Contiki test scripts.
+ * Loads and executes a Contiki test script.
+ * A Contiki test script is a Javascript that depends on a single simulation,
+ * and reacts to mote log output (such as printf()s).
  *
  * @see ScriptRunner
- *
  * @author Fredrik Osterlind
  */
 public class LogScriptEngine {
-  private static final long DEFAULT_TIMEOUT = 20*60*1000*1000; /* 1200s = 20 minutes */
-
   private static Logger logger = Logger.getLogger(LogScriptEngine.class);
+  private static final long DEFAULT_TIMEOUT = 20*60*1000*Simulation.MILLISECOND; /* 1200s = 20 minutes */
 
-  private ScriptEngineManager factory = new ScriptEngineManager();
-  private ScriptEngine engine = factory.getEngineByName("JavaScript");
+  private ScriptEngine engine = 
+    new ScriptEngineManager().getEngineByName("JavaScript");
 
-  private Observer logObserver = null;
-  private Observer simObserver = null;
-  private Observer guiObserver = null;
+  private Observer logObserver = null; /* Detect mote log output */
+  private Observer simObserver = null; /* Detect added/removed motes */
 
-  private GUI gui;
-
-  private Thread scriptThread = null;
-
+  private Semaphore semaphoreScript = null; /* Semaphores blocking script/simulation */
+  private Semaphore semaphoreSim = null;
+  private Thread scriptThread = null; /* Script thread */
   private Observer scriptLogObserver = null;
-
   private ScriptMote scriptMote;
 
   private boolean stopSimulation = false, quitCooja = false;
 
-  private Semaphore semaphoreScript = null;
-  private Semaphore semaphoreSim = null;
+  private Simulation simulation;
 
   private boolean scriptActive = false;
-
-  private TimeEvent timeoutEvent = new TimeEvent(0) {
-    public void execute(long t) {
-      engine.put("TIMEOUT", true);
-      stepScript();
-    }
-  };
 
   private interface ScriptLog {
     public void log(String log);
@@ -88,6 +76,7 @@ public class LogScriptEngine {
     public void generateMessage(long delay, String msg);
   }
 
+  /* Only called from the simulation loop */
   private void stepScript() {
     /* Release script - halt simulation */
     semaphoreScript.release();
@@ -104,28 +93,17 @@ public class LogScriptEngine {
 
     /* Check if test script requested us to stop */
     if (stopSimulation) {
-      LogScriptEngine.this.gui.getSimulation().stopSimulation();
+      stopSimulationEvent.execute(0);
       stopSimulation = false;
     }
     if (quitCooja) {
-      LogScriptEngine.this.gui.doQuit(false);
+      quitEvent.execute(0);
       quitCooja = false;
     }
   }
 
-  public LogScriptEngine(GUI gui) {
-    this.gui = gui;
-
-    /* Create GUI observer: keeps track of new simulations */
-    guiObserver = new Observer() {
-      public void update(Observable obs, Object obj) {
-        if (LogScriptEngine.this.gui.getSimulation() != null) {
-          LogScriptEngine.this.gui.getSimulation().addObserver(simObserver);
-        }
-
-        registerLogObserver();
-      }
-    };
+  public LogScriptEngine(Simulation simulation) {
+    this.simulation = simulation;
 
     /* Create simulation observer: keeps track of newly added nodes */
     simObserver = new Observer() {
@@ -148,11 +126,12 @@ public class LogScriptEngine {
     };
   }
 
+  /* Only called from the simulation loop */
   private void handleNewMoteOutput(Mote mote, int id, long time, String msg) {
     try {
       if (scriptThread == null ||
           !scriptThread.isAlive()) {
-        logger.info("script thread not alive. try deactivating script.");
+        logger.warn("No script thread, deactivate script.");
         /*scriptThread.isInterrupted()*/
         return;
       }
@@ -164,16 +143,15 @@ public class LogScriptEngine {
       engine.put("msg", msg);
 
       stepScript();
-
     } catch (UndeclaredThrowableException e) {
-      e.printStackTrace();
-      JOptionPane.showMessageDialog(GUI.getTopParentContainer(),
-          "See console for more information.",
-          "Script error", JOptionPane.ERROR_MESSAGE);
-      unregisterLogObserver();
-      if (LogScriptEngine.this.gui.getSimulation() != null) {
-        LogScriptEngine.this.gui.getSimulation().stopSimulation();
+      logger.fatal("Exception: " + e.getMessage(), e);
+      if (GUI.isVisualized()) {
+        GUI.showErrorDialog(GUI.getTopParentContainer(),
+            e.getMessage(),
+            e, false);
       }
+      unregisterLogObserver();
+      simulation.stopSimulation();
     }
   }
 
@@ -185,7 +163,7 @@ public class LogScriptEngine {
    * @param mote Mote
    */
   public void fakeMoteLogOutput(final String msg, final Mote mote) {
-    gui.getSimulation().scheduleEvent(new TimeEvent(0) {
+    simulation.scheduleEvent(new TimeEvent(0) {
       public void execute(long time) {
         handleNewMoteOutput(
             mote,
@@ -194,7 +172,7 @@ public class LogScriptEngine {
             msg
         );
       }
-    }, gui.getSimulation().getSimulationTime());
+    }, simulation.getSimulationTime());
   }
 
   public void setScriptLogObserver(Observer observer) {
@@ -203,24 +181,18 @@ public class LogScriptEngine {
 
   private void unregisterLogObserver() {
     /* Unregister mote log observer */
-    if (logObserver != null && gui.getSimulation() != null) {
-      for (int i=0; i < gui.getSimulation().getMotesCount(); i++) {
-        Mote mote = gui.getSimulation().getMote(i);
-        if (mote.getInterfaces().getLog() != null) {
-          mote.getInterfaces().getLog().deleteObserver(logObserver);
-        }
+    for (Mote mote: simulation.getMotes()) {
+      if (mote.getInterfaces().getLog() != null) {
+        mote.getInterfaces().getLog().deleteObserver(logObserver);
       }
     }
   }
 
   private void registerLogObserver() {
     /* Register mote log observer */
-    if (logObserver != null && gui.getSimulation() != null) {
-      for (int i=0; i < gui.getSimulation().getMotesCount(); i++) {
-        Mote mote = gui.getSimulation().getMote(i);
-        if (mote.getInterfaces().getLog() != null) {
-          mote.getInterfaces().getLog().addObserver(logObserver);
-        }
+    for (Mote mote: simulation.getMotes()) {
+      if (mote.getInterfaces().getLog() != null) {
+        mote.getInterfaces().getLog().addObserver(logObserver);
       }
     }
   }
@@ -244,16 +216,9 @@ public class LogScriptEngine {
       /*logger.warn("scriptThread is not initialized");*/
     }
 
-    if (timeoutEvent != null) {
-      timeoutEvent.remove();
-      timeoutEvent = null;
-    }
+    timeoutEvent.remove();
 
-    gui.deleteObserver(guiObserver);
-
-    if (gui.getSimulation() != null) {
-      gui.getSimulation().deleteObserver(simObserver);
-    }
+    simulation.deleteObserver(simObserver);
 
     unregisterLogObserver();
 
@@ -272,7 +237,8 @@ public class LogScriptEngine {
       semaphoreSim = null;
     }
 
-    if (scriptThread != null && scriptThread != Thread.currentThread()) {
+    if (scriptThread != null && 
+        scriptThread != Thread.currentThread() /* XXX May deadlock */ ) {
       try {
         scriptThread.join();
       } catch (InterruptedException e) {
@@ -305,16 +271,16 @@ public class LogScriptEngine {
     String jsCode = parser.getJSCode();
 
     long timeoutTime = parser.getTimeoutTime();
-    if (gui.getSimulation() != null) {
-      if (timeoutTime > 0) {
-        gui.getSimulation().scheduleEvent(
-            timeoutEvent,
-            gui.getSimulation().getSimulationTime() + timeoutTime);
-      } else {
-        gui.getSimulation().scheduleEvent(
-            timeoutEvent,
-            gui.getSimulation().getSimulationTime() + DEFAULT_TIMEOUT);
-      }
+    if (timeoutTime > 0) {
+      simulation.scheduleEvent(
+          timeoutEvent,
+          simulation.getSimulationTime() + timeoutTime);
+    } else {
+      logger.info("No timeout defined, using default: " + 
+          simulation.getSimulationTime() + DEFAULT_TIMEOUT);
+      simulation.scheduleEvent(
+          timeoutEvent,
+          simulation.getSimulationTime() + DEFAULT_TIMEOUT);
     }
 
     engine.eval(jsCode);
@@ -368,7 +334,7 @@ public class LogScriptEngine {
 
             logger.fatal("Script error:", e);
             deactivateScript();
-            gui.getSimulation().stopSimulation();
+            simulation.stopSimulation();
             if (GUI.isVisualized()) {
               GUI.showErrorDialog(GUI.getTopParentContainer(),
                   "Script error", e, false);
@@ -384,11 +350,7 @@ public class LogScriptEngine {
     }
 
     /* Setup simulation observers */
-    gui.addObserver(guiObserver);
-
-    if (gui.getSimulation() != null) {
-      gui.getSimulation().addObserver(simObserver);
-    }
+    simulation.addObserver(simObserver);
 
     /* Create script output logger */
     engine.put("log", new ScriptLog() {
@@ -403,23 +365,11 @@ public class LogScriptEngine {
         if (GUI.isVisualized()) {
           log("[if test was run without visualization, COOJA would now have been terminated]\n");
           stopSimulation = true;
+          simulation.scheduleEvent(stopSimulationEvent, simulation.getSimulationTime());
         } else {
           quitCooja = true;
+          simulation.scheduleEvent(quitEvent, simulation.getSimulationTime());
         }
-
-        /* Make sure simulation is actually stopped */
-        gui.getSimulation().scheduleEvent(new TimeEvent(0) {
-          public void execute(long time) {
-            if (stopSimulation) {
-              LogScriptEngine.this.gui.getSimulation().stopSimulation();
-              stopSimulation = false;
-            }
-            if (quitCooja) {
-              LogScriptEngine.this.gui.doQuit(false);
-              quitCooja = false;
-            }
-          }
-        }, gui.getSimulation().getSimulationTime());
 
         if (timeoutEvent != null) {
           timeoutEvent.remove();
@@ -434,26 +384,10 @@ public class LogScriptEngine {
         if (GUI.isVisualized()) {
           log("[if test was run without visualization, COOJA would now have been terminated]\n");
           stopSimulation = true;
+          simulation.scheduleEvent(stopSimulationEvent, simulation.getSimulationTime());
         } else {
           quitCooja = true;
-        }
-
-        /* Make sure simulation is actually stopped */
-        gui.getSimulation().scheduleEvent(new TimeEvent(0) {
-          public void execute(long time) {
-            if (stopSimulation) {
-              LogScriptEngine.this.gui.getSimulation().stopSimulation();
-              stopSimulation = false;
-            }
-            if (quitCooja) {
-              LogScriptEngine.this.gui.doQuit(false);
-              quitCooja = false;
-            }
-          }
-        }, gui.getSimulation().getSimulationTime());
-
-        if (timeoutEvent != null) {
-          timeoutEvent.remove();
+          simulation.scheduleEvent(quitEvent, simulation.getSimulationTime());
         }
 
         semaphoreSim.release(100);
@@ -481,9 +415,9 @@ public class LogScriptEngine {
             stepScript();
           }
         };
-        gui.getSimulation().scheduleEvent(
+        simulation.scheduleEvent(
             generateEvent,
-            gui.getSimulation().getSimulationTime() + delay);
+            simulation.getSimulationTime() + delay);
       }
     });
 
@@ -495,5 +429,24 @@ public class LogScriptEngine {
 
     registerLogObserver();
   }
+
+  private TimeEvent timeoutEvent = new TimeEvent(0) {
+    public void execute(long t) {
+      logger.info("Timeout event @ " + t);
+      engine.put("TIMEOUT", true);
+      stepScript();
+    }
+  };
+  private TimeEvent stopSimulationEvent = new TimeEvent(0) {
+    public void execute(long time) {
+      simulation.stopSimulation();
+      timeoutEvent.remove();
+    }
+  };
+  private TimeEvent quitEvent = new TimeEvent(0) {
+    public void execute(long time) {
+      simulation.getGUI().doQuit(false);
+    }
+  };
 
 }
