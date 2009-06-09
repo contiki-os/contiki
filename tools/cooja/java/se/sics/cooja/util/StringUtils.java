@@ -24,10 +24,16 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * $Id: StringUtils.java,v 1.1 2009/04/20 17:14:19 nifi Exp $
+ * $Id: StringUtils.java,v 1.2 2009/06/09 09:42:01 fros4943 Exp $
  */
 
 package se.sics.cooja.util;
+
+import java.io.File;
+import java.io.FileReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.net.URL;
 
 /**
  * Some utility methods for generating hex dumps.
@@ -107,4 +113,43 @@ public class StringUtils {
     return sb.toString();
   }
 
+  public static String loadFromURL(URL url) {
+    if (url == null) {
+      return null;
+    }
+    try {
+      InputStreamReader reader = new InputStreamReader(url.openStream());
+      StringBuilder sb = new StringBuilder();
+      char[] buf = new char[4096];
+      int read;
+      while ((read = reader.read(buf)) > 0) {
+        sb.append(buf, 0, read);
+      };
+
+      reader.close();
+      return sb.toString();
+    } catch (IOException e) {
+      return null;
+    }
+  }
+
+  public static String loadFromFile(File scriptFile) {
+    if (scriptFile == null) {
+      return null;
+    }
+    try {
+      FileReader reader = new FileReader(scriptFile);
+      StringBuilder sb = new StringBuilder();
+      char[] buf = new char[4096];
+      int read;
+      while ((read = reader.read(buf)) > 0) {
+        sb.append(buf, 0, read);
+      };
+
+      reader.close();
+      return sb.toString();
+    } catch (IOException e) {
+      return null;
+    }
+  }
 }
