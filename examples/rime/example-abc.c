@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: example-abc.c,v 1.6 2009/06/09 09:27:03 fros4943 Exp $
+ * $Id: example-abc.c,v 1.7 2009/06/09 19:31:55 fros4943 Exp $
  */
 
 /**
@@ -79,8 +79,6 @@ PROCESS_THREAD(example_abc_process, ev, data)
     packetbuf_copyfrom("Hello", 6);
     abc_send(&abc);
     printf("abc message sent\n");
-
-    etimer_reset(&et);
   }
 
   PROCESS_END();
