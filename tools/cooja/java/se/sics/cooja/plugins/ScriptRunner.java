@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008, Swedish Institute of Computer Science.
+ * Copyright (c) 2009, Swedish Institute of Computer Science.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ScriptRunner.java,v 1.18 2009/05/26 14:27:00 fros4943 Exp $
+ * $Id: ScriptRunner.java,v 1.19 2009/06/09 09:47:04 fros4943 Exp $
  */
 
 package se.sics.cooja.plugins;
@@ -37,146 +37,114 @@ import java.awt.Insets;
 import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.KeyEvent;
+import java.awt.event.WindowEvent;
+import java.awt.event.WindowListener;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.io.OutputStreamWriter;
-import java.io.StringReader;
 import java.util.*;
 
 import javax.script.ScriptException;
 import javax.swing.*;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
-import javax.swing.event.InternalFrameEvent;
-import javax.swing.event.InternalFrameListener;
-
 import org.apache.log4j.Logger;
-import org.jdom.Document;
 import org.jdom.Element;
-import org.jdom.JDOMException;
-import org.jdom.input.SAXBuilder;
-import org.jdom.output.Format;
-import org.jdom.output.XMLOutputter;
 
 import se.sics.cooja.*;
-import se.sics.cooja.GUI.SimulationCreationException;
 import se.sics.cooja.dialogs.MessageList;
+import se.sics.cooja.plugins.ScriptParser.ScriptSyntaxErrorException;
+import se.sics.cooja.util.StringUtils;
 
 @ClassDescription("Contiki Test Editor")
-@PluginType(PluginType.COOJA_PLUGIN)
-public class ScriptRunner implements Plugin {
-  private static final long serialVersionUID = 1L;
+@PluginType(PluginType.SIM_PLUGIN)
+public class ScriptRunner extends VisPlugin {
   private static Logger logger = Logger.getLogger(ScriptRunner.class);
 
-  private static final String EXAMPLE_SCRIPT =
-    "/*\n" +
-    " * Example Contiki test script (JavaScript).\n" +
-    " * A Contiki test script acts on mote output, such as via printf()'s.\n" +
-    " * The script may operate on the following variables:\n" +
-    " *  Mote mote, int id, String msg\n" +
-    " */\n" +
-    "\n" +
-    "/* Make test automatically fail (timeout) after 100 simulated seconds */\n" +
-    "//TIMEOUT(100000); /* milliseconds. no action at timeout */\n" +
-    "TIMEOUT(100000, log.log(\"last msg: \" + msg + \"\\n\")); /* milliseconds. print last msg at timeout */\n" +
-    "\n" +
-    "log.log(\"first mote output: '\" + msg + \"'\\n\");\n" +
-    "\n" +
-    "YIELD(); /* wait for another mote output */\n" +
-    "\n" +
-    "log.log(\"second mote output: '\" + msg + \"'\\n\");\n" +
-    "\n" +
-    "log.log(\"waiting for hello world output from mote 1\\n\");\n" +
-    "WAIT_UNTIL(id == 1 && msg.equals(\"Hello, world\"));\n" +
-    "\n" +
-    "GENERATE_MSG(15000, \"continue\");\n" +
-    "WAIT_UNTIL(msg.equals(\"continue\"));\n" +
-    "\n" +
-    "log.log(\"ok, reporting success now\\n\");\n" +
-    "log.testOK(); /* Report test success and quit */\n" +
-    "//log.testFailed(); /* Report test failure and quit */\n";
+  final String[] EXAMPLE_SCRIPTS = new String[] {
+      "basic.js", "Basic example script",
+      "helloworld.js", "Wait for 'Hello, world'",
+  };
 
-  private GUI gui;
-  private Object coojaTag = null; /* Used by Cooja for book-keeping */
+  private Simulation simulation;
 
   private LogScriptEngine engine = null;
 
-  private BufferedWriter logWriter = null;
+  private static BufferedWriter logWriter = null; /* For non-GUI tests */
 
-  /* GUI components */
-  private JInternalFrame pluginGUI = null;
   private JTextArea scriptTextArea = null;
-  private JTextArea lineTextArea = null;
 
   private JTextArea logTextArea = null;
   private JButton toggleButton = null;
-  private String oldTestName = null;
-  private String oldInfo = null;
+  private JButton examplesButton = null;
 
-  public ScriptRunner(GUI gui) {
-    this.gui = gui;
+  private int scriptFirstLinesNumber;
 
-    if (!GUI.isVisualized()) {
-      /* Wait for activateTest(...) */
-      return;
-    }
+  public ScriptRunner(Simulation simulation, GUI gui) {
+    super("Contiki Test Editor", gui, false);
+    this.simulation = simulation;
 
-    /* Automatically activate test for new simulations */
-    gui.addObserver(new Observer() {
-      public void update(Observable obs, Object obj) {
-        Simulation sim = ScriptRunner.this.gui.getSimulation();
-        if (sim == null) {
-          setScriptActive(false);
-          return;
-        }
-
-        setScriptActive(true);
-      }
-    });
-
-    /* GUI components */
-    pluginGUI = new JInternalFrame(
-        "Contiki Test Editor",
-        true, true, true, true);
-    pluginGUI.addInternalFrameListener(new InternalFrameListener() {
-      public void internalFrameClosing(InternalFrameEvent e) {
-        ScriptRunner.this.gui.removePlugin(ScriptRunner.this, true);
-      }
-      public void internalFrameClosed(InternalFrameEvent e) { }
-      public void internalFrameOpened(InternalFrameEvent e) { }
-      public void internalFrameIconified(InternalFrameEvent e) { }
-      public void internalFrameDeiconified(InternalFrameEvent e) { }
-      public void internalFrameActivated(InternalFrameEvent e) { }
-      public void internalFrameDeactivated(InternalFrameEvent e) { }
-    }
-    );
-
-    lineTextArea = new JTextArea();
+    final JTextArea lineTextArea = new JTextArea();
     lineTextArea.setEnabled(false);
     lineTextArea.setMargin(new Insets(5,0,5,0));
 
+    try {
+      scriptFirstLinesNumber = new ScriptParser("").getJSCode().split("\n").length + 2;
+    } catch (ScriptSyntaxErrorException e1) {
+      scriptFirstLinesNumber = 1;
+    }
+
+    /* Examples popup menu */
+    final JPopupMenu popupMenu = new JPopupMenu();
+    JMenuItem moteItem;
+    moteItem = new JMenuItem("Example script to import:");
+    moteItem.setEnabled(false);
+    popupMenu.add(moteItem);
+    popupMenu.addSeparator();
+
+    for (int i=0; i < EXAMPLE_SCRIPTS.length; i += 2) {
+      final String file = EXAMPLE_SCRIPTS[i];
+      moteItem = new JMenuItem(EXAMPLE_SCRIPTS[i+1]);
+      moteItem.addActionListener(new ActionListener() {
+        public void actionPerformed(ActionEvent e) {
+          String script = loadScript(file);
+          if (script == null) {
+            JOptionPane.showMessageDialog(GUI.getTopParentContainer(),
+                "Could not load example script: scripts/" + file,
+                "Could not load script", JOptionPane.ERROR_MESSAGE);
+            return;
+          }
+          updateScript(script);
+        }
+      });
+      popupMenu.add(moteItem);
+    }
+
+    examplesButton = new JButton("Example scripts");
+    examplesButton.addActionListener(new ActionListener() {
+      public void actionPerformed(ActionEvent e) {
+        popupMenu.show(examplesButton, 0, examplesButton.getHeight());
+      }
+    });
+
+    /* Script area */
     scriptTextArea = new JTextArea(12,50);
     scriptTextArea.getDocument().addDocumentListener(new DocumentListener() {
       private int lastLines = -1;
 
       private void update() {
-        int lines = scriptTextArea.getLineCount();
+        int lines = scriptTextArea.getLineCount() + scriptFirstLinesNumber;
         if (lines == lastLines) {
           return;
         }
         lastLines = lines;
 
         String txt = "";
-        for (int i=1; i < 10; i++) {
+        for (int i=scriptFirstLinesNumber; i < 10; i++) {
           if (i > lines) {
             break;
           }
@@ -211,7 +179,6 @@ public class ScriptRunner implements Plugin {
     scriptTextArea.setEditable(true);
     scriptTextArea.setCursor(null);
     scriptTextArea.setTabSize(1);
-    scriptTextArea.setText(EXAMPLE_SCRIPT);
 
     logTextArea = new JTextArea(12,50);
     logTextArea.setMargin(new Insets(5,5,5,5));
@@ -229,34 +196,12 @@ public class ScriptRunner implements Plugin {
       }
     });
 
-    Action importAction = new AbstractAction() {
+    JButton runTestButton = new JButton("Run without GUI");
+    runTestButton.addActionListener(new ActionListener() {
       public void actionPerformed(ActionEvent e) {
-        Runnable doImport = new Runnable() {
-          public void run() {
-            setScriptActive(false);
-            importContikiTest();
-          }
-        };
-        new Thread(doImport).start();
+        exportAndRun();
       }
-    };
-    JButton importButton = new JButton(importAction);
-    importButton.setText("Import Contiki test Ctrl+I");
-    InputMap inputMap = importButton.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW);
-    inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_I, KeyEvent.CTRL_DOWN_MASK, false), "import");
-    importButton.getActionMap().put("import", importAction);
-
-    Action exportAction = new AbstractAction() {
-      public void actionPerformed(ActionEvent e) {
-        exportAsContikiTest();
-      }
-    };
-    JButton exportButton = new JButton(exportAction);
-    exportButton.setText("Export as Contiki test Ctrl+O");
-    inputMap = exportButton.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW);
-    inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_O, KeyEvent.CTRL_DOWN_MASK, false), "export");
-    exportButton.getActionMap().put("export", exportAction);
-
+    });
 
     JPanel scriptArea = new JPanel(new BorderLayout());
     scriptArea.setEnabled(false);
@@ -272,361 +217,197 @@ public class ScriptRunner implements Plugin {
     centerPanel.setResizeWeight(0.5);
 
     JPanel buttonPanel = new JPanel(new BorderLayout());
-    buttonPanel.add(BorderLayout.WEST, importButton);
     buttonPanel.add(BorderLayout.CENTER, toggleButton);
-    buttonPanel.add(BorderLayout.EAST, exportButton);
+    buttonPanel.add(BorderLayout.WEST, examplesButton);  
+    buttonPanel.add(BorderLayout.EAST, runTestButton);
 
     JPanel southPanel = new JPanel(new BorderLayout());
     southPanel.add(BorderLayout.EAST, buttonPanel);
 
-    pluginGUI.getContentPane().add(BorderLayout.CENTER, centerPanel);
-    pluginGUI.getContentPane().add(BorderLayout.SOUTH, southPanel);
+    getContentPane().add(BorderLayout.CENTER, centerPanel);
+    getContentPane().add(BorderLayout.SOUTH, southPanel);
 
-    pluginGUI.pack();
+    setSize(600, 700);
     Dimension maxSize = gui.getDesktopPane().getSize();
-    if (pluginGUI.getWidth() > maxSize.getWidth()) {
-      pluginGUI.setSize((int)maxSize.getWidth(), pluginGUI.getHeight());
+    if (getWidth() > maxSize.getWidth()) {
+      setSize((int)maxSize.getWidth(), getHeight());
     }
-    if (pluginGUI.getHeight() > maxSize.getHeight()) {
-      pluginGUI.setSize(pluginGUI.getWidth(), (int)maxSize.getHeight());
+    if (getHeight() > maxSize.getHeight()) {
+      setSize(getWidth(), (int)maxSize.getHeight());
+    }
+
+    /* Set default script */
+    String script = loadScript(EXAMPLE_SCRIPTS[0]);
+    if (script != null) {
+      updateScript(script);
     }
   }
 
-  private void setScriptActive(boolean active) {
+  public void setScriptActive(boolean active) {
     if (active) {
+      /* Free any resources */
       setScriptActive(false);
 
-      engine = new LogScriptEngine(ScriptRunner.this.gui);
-      engine.setScriptLogObserver(new Observer() {
-        public void update(Observable obs, Object obj) {
-          logTextArea.append((String) obj);
-          logTextArea.setCaretPosition(logTextArea.getText().length());
+      /* Create new engine */
+      engine = new LogScriptEngine(simulation);
+      if (GUI.isVisualized()) {
+        /* Attach visualized log observer */
+        engine.setScriptLogObserver(new Observer() {
+          public void update(Observable obs, Object obj) {
+            logTextArea.append((String) obj);
+            logTextArea.setCaretPosition(logTextArea.getText().length());
+          }
+        });
+      } else {
+        try {
+          /* Continously write test output to file */
+          File logFile = new File("COOJA.testlog");
+          if (logWriter == null) {
+            /* Warning: static variable, used by all active plugins */
+            logWriter = new BufferedWriter(new FileWriter(logFile));
+          }
+          engine.setScriptLogObserver(new Observer() {
+            public void update(Observable obs, Object obj) {
+              try {
+                if (logWriter != null) {
+                  logWriter.write((String) obj);
+                  logWriter.flush();
+                } else {
+                  logger.fatal("No log writer: " + obj);
+                }
+              } catch (IOException e) {
+                logger.fatal("Error when writing to test log file: " + obj);
+              }
+            }
+          });
+        } catch (Exception e) {
+          setScriptActive(false);
         }
-      });
+      }
+
+      /* Activate engine */
       try {
         engine.activateScript(scriptTextArea.getText());
 
         toggleButton.setText("Deactivate");
+        examplesButton.setEnabled(false);
         logTextArea.setText("");
         scriptTextArea.setEnabled(false);
+        setTitle("Contiki Test Editor (ACTIVE)");
 
         logger.info("Test script activated");
 
       } catch (ScriptException e) {
-        e.printStackTrace();
+        logger.fatal("Test script error: ", e);
         setScriptActive(false);
+        if (GUI.isVisualized()) {
+          GUI.showErrorDialog(GUI.getTopParentContainer(),
+              "Script error", e, false);
+        }
       } catch (RuntimeException e) {
-        e.printStackTrace();
+        logger.fatal("Test script error: ", e);
         setScriptActive(false);
       }
+
     } else {
-      if (engine != null) {
-        engine.deactivateScript();
-        engine = null;
-
-        toggleButton.setText("Activate");
-        scriptTextArea.setEnabled(true);
-        logger.info("Test script deactivated");
-      }
-    }
-  }
-
-  public JInternalFrame getGUI() {
-    return pluginGUI;
-  }
-
-  private void importContikiTest() {
-    new Thread(new Runnable() {
-      public void run() {
-        /* Load config from test directory */
-        File proposedDir = new File(GUI.getExternalToolsSetting("PATH_CONTIKI") + "/tools/cooja/contiki_tests");
-        if (!proposedDir.exists()) {
-          logger.fatal("Test directory does not exist: " + proposedDir.getPath());
-          return;
-        }
-
-        JFileChooser fc = new JFileChooser();
-        fc.setFileFilter(GUI.SAVED_SIMULATIONS_FILES);
-        fc.setCurrentDirectory(proposedDir);
-
-        /* Pre-select last used test */
-        String name = GUI.getExternalToolsSetting("LAST_TEST_CONFIG", null);
-        if (name != null) {
-          if (new File(proposedDir, name).exists()) {
-            fc.setSelectedFile(new File(proposedDir, name));
-          }
-        }
-
-        int returnVal = fc.showOpenDialog(GUI.getTopParentContainer());
-        if (returnVal != JFileChooser.APPROVE_OPTION) {
-          return;
-        }
-
-        File file = fc.getSelectedFile();
-        if (!file.exists() || !file.canRead()) {
-          logger.fatal("No read access to file");
-          return;
-        }
-
-        scriptTextArea.setText("");
-        logTextArea.setText("");
-
-        gui.doLoadConfig(false, true, file);
-
-        if (gui.getSimulation() == null) {
-          return;
-        }
-        File cscFile = gui.currentConfigFile;
-        if (cscFile == null) {
-          return;
-        }
-        String testName = cscFile.getName().substring(0, cscFile.getName().length()-4);
-        File testDir = cscFile.getParentFile();
-        File jsFile = new File(testDir, testName + ".js");
-        File infoFile = new File(testDir, testName + ".info");
-
-        oldTestName = testName;
-
-        if (!cscFile.exists()) {
-          logger.fatal("Can't locate config file: " + cscFile.getAbsolutePath());
-          return;
-        }
-
-        if (!jsFile.exists()) {
-          logger.fatal("Can't locate .js file: " + jsFile.getAbsolutePath());
-          return;
-        }
-
-        /* Import .js */
-        try {
-          BufferedReader reader =
-            new BufferedReader(new InputStreamReader(new FileInputStream(jsFile)));
-          String line;
-          while ((line = reader.readLine()) != null) {
-            scriptTextArea.append(line + "\n");
-          }
-          reader.close();
-        } catch (Exception ex) {
-          ex.printStackTrace();
-          return;
-        }
-
-        /* Import .info */
-        if (infoFile.exists()) {
-          try {
-            oldInfo = "";
-            BufferedReader reader =
-              new BufferedReader(new InputStreamReader(new FileInputStream(infoFile)));
-            String line;
-            while ((line = reader.readLine()) != null) {
-              oldInfo +=  line + "\n";
-            }
-            reader.close();
-          } catch (Exception ex) {
-            ex.printStackTrace();
-            return;
-          }
-        }
-
-        setScriptActive(true);
-      }
-    }).start();
-
-  }
-
-  private void exportAsContikiTest() {
-    String s1, s2; int n; Object[] options;
-
-    Simulation simulation = ScriptRunner.this.gui.getSimulation();
-    if (simulation == null) {
-      JOptionPane.showMessageDialog(GUI.getTopParentContainer(),
-          "Create a simulation setup to test.", "No simulation to export", JOptionPane.ERROR_MESSAGE);
-      return;
-    }
-
-    File testDir = new File(GUI.getExternalToolsSetting("PATH_CONTIKI") + "/tools/cooja/contiki_tests");
-    if (!testDir.exists()) {
-      logger.fatal("Test directory does not exist: " + testDir.getPath());
-      return;
-    }
-
-    /* Confirm test directory */
-    /*s1 = "Ok";
-    s2 = "Cancel";
-    options = new Object[] { s1, s2 };
-    n = JOptionPane.showOptionDialog(GUI.getTopParentContainer(),
-        "The current simulation config (.csc) and test script (.js)\n" +
-        "will be stored in directory '" + testDir.getPath() + "'",
-        "Export Contiki test", JOptionPane.YES_NO_OPTION,
-        JOptionPane.QUESTION_MESSAGE, null, options, s1);
-    if (n != JOptionPane.YES_OPTION) {
-      return;
-    }*/
-
-    /* Name test to export */
-    if (oldTestName == null) {
-      oldTestName = "mytest";
-    }
-    String testName = (String) JOptionPane.showInputDialog(GUI.getTopParentContainer(),
-        "The test name correponds to the exported test files:\n" +
-        "[testname].csc, [testname].js, [testname].info\n",
-        "Enter test name", JOptionPane.PLAIN_MESSAGE, null, null,
-        oldTestName);
-    if (testName == null) {
-      return;
-    }
-    oldTestName = testName;
-    if (testName.equals("") || testName.contains(" ")) {
-      JOptionPane.showMessageDialog(GUI.getTopParentContainer(),
-          "Bad test name: '" + testName + "'", "Bad test name", JOptionPane.ERROR_MESSAGE);
-      return;
-    }
-
-    File cscFile = new File(testDir, testName + ".csc");
-    File jsFile = new File(testDir, testName + ".js");
-    File infoFile = new File(testDir, testName + ".info");
-    final File logFile = new File(testDir, testName + ".log");
-
-    GUI.setExternalToolsSetting("LAST_TEST_CONFIG", cscFile.getName());
-
-    /* Overwrite existing test */
-    if (cscFile.exists() || jsFile.exists() || infoFile.exists()) {
-      s1 = "Overwrite";
-      s2 = "Cancel";
-      options = new Object[] { s1, s2 };
-      n = JOptionPane.showOptionDialog(GUI.getTopParentContainer(),
-          "Some output files already exist. Overwrite?",
-          "Test already exist", JOptionPane.YES_NO_OPTION,
-          JOptionPane.QUESTION_MESSAGE, null, options, s1);
-      if (n != JOptionPane.YES_OPTION) {
+      if (engine == null) {
         return;
       }
-    }
 
-    if (cscFile.exists()) {
-      cscFile.delete();
-    }
-    if (jsFile.exists()) {
-      jsFile.delete();
-    }
-    if (infoFile.exists()) {
-      infoFile.delete();
-    }
+      /* Deactivate script */
+      engine.deactivateScript();
+      engine.setScriptLogObserver(null);
+      engine = null;
 
-    /* Get current simulation configuration */
-    simulation.getGUI().currentConfigFile = cscFile;
-    Element root = new Element("simconf");
-    Element simulationElement = new Element("simulation");
-    simulationElement.addContent(simulation.getConfigXML());
-    root.addContent(simulationElement);
-
-    /* Strip plugins */
-    Collection<Element> pluginsConfig = ScriptRunner.this.gui.getPluginsConfigXML();
-    if (pluginsConfig != null) {
-      root.addContent(pluginsConfig);
-    }
-
-    /* Export .csc */
-    root.detach();
-    String configString = new XMLOutputter().outputString(new Document(root));
-    try {
-      Element newRoot = new SAXBuilder().build(new StringReader(configString)).getRootElement();
-      newRoot.detach();
-      Document doc = new Document(newRoot);
-      FileOutputStream out = new FileOutputStream(cscFile);
-      XMLOutputter outputter = new XMLOutputter();
-      outputter.setFormat(Format.getPrettyFormat());
-      outputter.output(doc, out);
-      out.close();
-    } catch (JDOMException e) {
-      e.printStackTrace();
-    } catch (IOException e) {
-      e.printStackTrace();
-    }
-
-    /* Export .js */
-    try {
-      BufferedWriter writer =
-        new BufferedWriter(new OutputStreamWriter(new FileOutputStream(jsFile)));
-      writer.write(scriptTextArea.getText());
-      writer.close();
-    } catch (Exception ex) {
-      ex.printStackTrace();
-      return;
-    }
-
-    /* Export .info (optional) */
-    try {
-      if (oldInfo == null) {
-        oldInfo = "";
+      if (logWriter != null) {
+        try {
+          logWriter.close();
+        } catch (IOException e) {
+        }
+        logWriter = null;
       }
-      String info = (String) JOptionPane.showInputDialog(GUI.getTopParentContainer(),
-          "This text describes the Contiki test and may contain\n" +
-          "information about the simulation setup, radio medium,\n" +
-          "node types, Contiki processes etc.\n\n",
-          "Enter test description", JOptionPane.PLAIN_MESSAGE, null, null,
-          oldInfo);
-      if (info != null && !info.equals("")) {
-        oldInfo = info;
-        BufferedWriter writer =
-          new BufferedWriter(new OutputStreamWriter(new FileOutputStream(infoFile)));
-        writer.write(info);
-        writer.write("\n");
-        writer.close();
-      } else {
-        oldInfo = null;
+
+      toggleButton.setText("Activate");
+      examplesButton.setEnabled(true);
+      scriptTextArea.setEnabled(true);
+      logger.info("Test script deactivated");
+      setTitle("Contiki Test Editor");
+
+      /* Automatically exit COOJA */
+      if (!GUI.isVisualized()) {
+        System.exit(1);
       }
-    } catch (Exception ex) {
-      ex.printStackTrace();
+    }
+  }
+
+  private void exportAndRun() {
+    /* Save simulation config */
+    File configFile = simulation.getGUI().doSaveConfig(true);
+    if (configFile == null) {
       return;
     }
 
-    /* Run exported test (optional) */
-    s1 = "Run test";
-    s2 = "No";
-    options = new Object[] { s1, s2 };
-
-    n = JOptionPane.showOptionDialog(GUI.getTopParentContainer(),
-        "Test files created:\n" +
-        (cscFile.exists()?"Config: " + cscFile.getName() + "\n": "") +
-        (jsFile.exists()?"Script: " + jsFile.getName() + "\n": "") +
-        (infoFile.exists()?"Info: " + infoFile.getName() + "\n": "") +
-        "\n" +
-        "Run exported test in forked Cooja now?",
-        "Run test?", JOptionPane.YES_NO_OPTION,
-        JOptionPane.QUESTION_MESSAGE, null, options, s2);
-    if (n != JOptionPane.YES_OPTION) {
-      return;
-    }
-
+    /* Start test in external process */
     try {
-      final Process externalCoojaProcess;
-      final MessageList testOutput = new MessageList();
-
       JPanel progressPanel = new JPanel(new BorderLayout());
       final JDialog progressDialog = new JDialog((Window)GUI.getTopParentContainer(), (String) null);
       progressDialog.setTitle("Running test...");
+
+      File coojaBuild = new File(GUI.getExternalToolsSetting("PATH_CONTIKI"), "tools/cooja/build");
+      File coojaJAR = new File(GUI.getExternalToolsSetting("PATH_CONTIKI"), "tools/cooja/dist/cooja.jar");
+      coojaBuild = coojaBuild.getCanonicalFile();
+      coojaJAR = coojaJAR.getCanonicalFile();
+
+      final File logFile = new File(coojaBuild, "COOJA.testlog");
+      if (logFile.exists()) {
+        logFile.delete();
+      }
+
+      if (!coojaJAR.exists()) {
+        JOptionPane.showMessageDialog(GUI.getTopParentContainer(),
+            "Can't start COOJA, cooja.jar not found:" +
+            "\n" + coojaJAR.getAbsolutePath()
+            + "\n\nVerify that PATH_CONTIKI is correct in external tools settings.",
+            "cooja.jar not found", JOptionPane.ERROR_MESSAGE);
+        return;
+      }
 
       String command[] = {
           "java",
           "-jar",
           "../dist/cooja.jar",
-          "-nogui",
-          "-test=" + testName
+          "-nogui=" + configFile.getAbsolutePath()
       };
-      externalCoojaProcess = Runtime.getRuntime().exec(command, null, testDir);
-      final BufferedReader input = new BufferedReader(new InputStreamReader(externalCoojaProcess.getInputStream()));
-      final BufferedReader err = new BufferedReader(new InputStreamReader(externalCoojaProcess.getErrorStream()));
 
-      final JButton button = new JButton("Abort test");
-      button.addActionListener(new ActionListener() {
+      /* User confirmation */
+      String s1 = "Start";
+      String s2 = "Cancel";
+      int n = JOptionPane.showOptionDialog(GUI.getTopParentContainer(),
+          "Starting COOJA in " + coojaBuild.getPath() + ":\n" + 
+          " " + command[0] + " " + command[1] + " " + command[2] + " " + command[3] + "\n",
+          "Starting COOJA without GUI", JOptionPane.YES_NO_OPTION,
+          JOptionPane.QUESTION_MESSAGE, null, new Object[] { s1, s2 }, s1);
+      if (n != JOptionPane.YES_OPTION) {
+        return;
+      }
+
+      /* Start process */
+      final Process process = Runtime.getRuntime().exec(command, null, coojaBuild);
+      final BufferedReader input = new BufferedReader(new InputStreamReader(process.getInputStream()));
+      final BufferedReader err = new BufferedReader(new InputStreamReader(process.getErrorStream()));
+
+      /* GUI components */
+      final MessageList testOutput = new MessageList();
+      final AbstractAction abort = new AbstractAction() {
         public void actionPerformed(ActionEvent e) {
-          externalCoojaProcess.destroy();
+          process.destroy();
           if (progressDialog.isDisplayable()) {
             progressDialog.dispose();
           }
         }
-      });
+      };
+      abort.putValue(AbstractAction.NAME, "Abort test");
+      final JButton button = new JButton(abort);
 
       progressPanel.add(BorderLayout.CENTER, new JScrollPane(testOutput));
       progressPanel.add(BorderLayout.SOUTH, button);
@@ -638,42 +419,56 @@ public class ScriptRunner implements Plugin {
 
       progressDialog.getRootPane().setDefaultButton(button);
       progressDialog.setSize(500, 300);
-      progressDialog.setLocationRelativeTo(ScriptRunner.this.pluginGUI);
+      progressDialog.setLocationRelativeTo(ScriptRunner.this);
+      progressDialog.addWindowListener(new WindowListener() {
+        public void windowActivated(WindowEvent e) {
+        }
+        public void windowClosed(WindowEvent e) {
+          abort.actionPerformed(null);
+        }
+        public void windowClosing(WindowEvent e) {
+        }
+        public void windowDeactivated(WindowEvent e) {
+        }
+        public void windowDeiconified(WindowEvent e) {
+        }
+        public void windowIconified(WindowEvent e) {
+        }
+        public void windowOpened(WindowEvent e) {
+        }
+      });
       progressDialog.setVisible(true);
 
       Thread readInput = new Thread(new Runnable() {
         public void run() {
-          String readLine;
+          String line;
           try {
-            while ((readLine = input.readLine()) != null) {
-              if (testOutput != null) {
-                testOutput.addMessage(readLine, MessageList.NORMAL);
-              }
+            while ((line = input.readLine()) != null) {
+              testOutput.addMessage(line, MessageList.NORMAL);
             }
-
           } catch (IOException e) {
-            logger.warn("Error while reading from process");
           }
 
           testOutput.addMessage("", MessageList.NORMAL);
           testOutput.addMessage("", MessageList.NORMAL);
           testOutput.addMessage("", MessageList.NORMAL);
 
-          /* Parse log file for success info */
+          /* Parse log file, check if test succeeded  */
           try {
-            BufferedReader in = new BufferedReader(new InputStreamReader(
-                new FileInputStream(logFile)));
+            String log = StringUtils.loadFromFile(logFile);
+            if (log == null) {
+              throw new FileNotFoundException(logFile.getPath());
+            }
+            String[] lines = log.split("\n");
             boolean testSucceeded = false;
-
-            while (in.ready()) {
-              String line = in.readLine();
-              if (line == null) {
+            for (String l: lines) {
+              if (l == null) {
                 line = "";
               }
-              testOutput.addMessage(line, MessageList.NORMAL);
-              if (line.contains("TEST OK")) {
+              testOutput.addMessage(l, MessageList.NORMAL);
+              if (l.contains("TEST OK")) {
                 testSucceeded = true;
-               break;
+                break;
               }
             }
             if (testSucceeded) {
@@ -684,32 +479,25 @@ public class ScriptRunner implements Plugin {
               button.setText("Test failed");
             }
           } catch (FileNotFoundException e) {
-            logger.fatal("File not found: " + e);
+            logger.fatal("No test output : " + logFile);
             progressDialog.setTitle("Test run completed. Test failed! (no logfile)");
-            button.setText("Test failed");
-          } catch (IOException e) {
-            logger.fatal("IO error: " + e);
-            progressDialog.setTitle("Test run completed. Test failed! (IO exception)");
             button.setText("Test failed");
           }
 
         }
-      }, "read input stream thread");
+      });
 
       Thread readError = new Thread(new Runnable() {
         public void run() {
-          String readLine;
+          String line;
           try {
-            while ((readLine = err.readLine()) != null) {
-              if (testOutput != null) {
-                testOutput.addMessage(readLine, MessageList.ERROR);
-              }
+            while ((line = err.readLine()) != null) {
+              testOutput.addMessage(line, MessageList.ERROR);
             }
           } catch (IOException e) {
-            logger.warn("Error while reading from process");
           }
         }
-      }, "read input stream thread");
+      });
 
       readInput.start();
       readError.start();
@@ -719,100 +507,67 @@ public class ScriptRunner implements Plugin {
     }
   }
 
-  public boolean activateTest(File config, File script, File log) {
-    try {
-      /* Load simulation */
-      final Simulation sim = gui.loadSimulationConfig(config, true);
-      if (sim == null) {
-        gui.doQuit(false);
-        return false;
-      }
-      sim.setDelayTime(0);
-      gui.setSimulation(sim);
-
-      /* Load test script */
-      BufferedReader in = new BufferedReader(new FileReader(script));
-      String line, code = "";
-      while ((line = in.readLine()) != null) {
-        code += line + "\n";
-      }
-      in.close();
-
-      /* Prepare test log */
-      logWriter = new BufferedWriter(new FileWriter(log));
-      logWriter.write("[" + log.getName() + "]\n\n");
-
-      /* Create script engine */
-      engine = new LogScriptEngine(gui);
-      try {
-        engine.activateScript(code);
-      } catch (ScriptException e) {
-        logger.fatal("Test script error, terminating Cooja.");
-        e.printStackTrace();
-        System.exit(1);
-      }
-
-      engine.setScriptLogObserver(new Observer() {
-        public void update(Observable obs, Object obj) {
-          try {
-            if (logWriter != null) {
-              logWriter.write((String) obj);
-              logWriter.flush();
-            }
-          } catch (IOException e) {
-            logger.fatal("Error when writing to test log file: " + obj);
-          }
-        }
-      });
-
-      /* Start simulation and leave control to script */
-      sim.startSimulation();
-    } catch (IOException e) {
-      logger.fatal("Error when running script: " + e);
-      System.exit(1);
-      return false;
-    } catch (UnsatisfiedLinkError e) {
-      logger.fatal("Error when running script: " + e);
-      System.exit(1);
-      return false;
-    } catch (SimulationCreationException e) {
-      logger.fatal("Error when running script: " + e);
-      System.exit(1);
+  public boolean updateScript(File scriptFile) {
+    String script = StringUtils.loadFromFile(scriptFile);
+    if (script == null) {
       return false;
     }
-
+    updateScript(script);
     return true;
   }
 
-  public void closePlugin() {
-    if (engine != null) {
-      engine.deactivateScript();
-      engine.setScriptLogObserver(null);
-      engine = null;
+  private void updateScript(String script) {
+    if (script == null) {
+      return;
     }
-    if (logWriter != null) {
-      try {
-        logWriter.close();
-      } catch (IOException e) {
-      }
-      logWriter = null;
-    }
+
+    scriptTextArea.setText(script);
+    logTextArea.setText("");
   }
 
   public Collection<Element> getConfigXML() {
-    return null;
+    Vector<Element> config = new Vector<Element>();
+    Element element;
+
+    element = new Element("script");
+    element.setText(scriptTextArea.getText());
+    config.add(element);
+
+    element = new Element("active");
+    element.setText("" + (engine != null));
+    config.add(element);
+
+    return config;
+  }
+
+  public void closePlugin() {
+    setScriptActive(false);
   }
 
   public boolean setConfigXML(Collection<Element> configXML, boolean visAvailable) {
+    for (Element element : configXML) {
+      String name = element.getName();
+      if ("script".equals(name)) {
+        if (!element.getText().isEmpty()) {
+          updateScript(element.getText());
+        }
+      } else if ("active".equals(name)) {
+        boolean active = Boolean.parseBoolean(element.getText());
+        setScriptActive(active);
+      }
+    }
+
+    if (!GUI.isVisualized()) {
+      /* Automatically activate script */
+      setScriptActive(true);
+      simulation.setDelayTime(0);
+      simulation.startSimulation();
+    }
     return true;
   }
 
-  public void tagWithObject(Object tag) {
-    this.coojaTag = tag;
-  }
-
-  public Object getTag() {
-    return coojaTag;
+  private static String loadScript(String file) {
+    return StringUtils.loadFromURL(ScriptRunner.class.getResource("/scripts/" + file));
   }
 
 }
