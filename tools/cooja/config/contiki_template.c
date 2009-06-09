@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: contiki_template.c,v 1.14 2009/05/26 14:08:51 fros4943 Exp $
+ * $Id: contiki_template.c,v 1.15 2009/06/09 19:38:38 fros4943 Exp $
  */
 
 /**
@@ -267,16 +267,12 @@ Java_se_sics_cooja_corecomm_[CLASS_NAME]_tick(JNIEnv *env, jobject obj)
   doActionsBeforeTick();
   simNoYield = 0;
 
-  /* Check if any e-timers are pending (save result for state decisions) */
-  if (etimer_pending()) {
-    /* Poll etimers */
+  /* Poll etimer process */
+  if (etimer_pending()) {	
     etimer_request_poll();
-    simEtimerPending = 1;
-  } else {
-    simEtimerPending = 0;
   }
 
-  /* Let Contiki execute one or a part of the process_run()-function via the thread.
+  /* Let Contiki handle a few events.
   	This call stores the process_run() return value */
   cooja_mt_exec(&process_run_thread);
 
@@ -286,14 +282,12 @@ Java_se_sics_cooja_corecomm_[CLASS_NAME]_tick(JNIEnv *env, jobject obj)
   simNoYield = 0;
 
   /* Look for new e-timers */
-  if (!simEtimerPending && etimer_pending()) {
-    /* Poll etimers */
-    etimer_request_poll();
-    simEtimerPending = 1;
-  }
+  simEtimerPending = etimer_pending();
 
-  /* Save nearest event timer expiration time (0 if no timers) */
-  simNextExpirationTime = etimer_next_expiration_time() - simCurrentTime;
+  /* Save nearest event timer expiration time */
+  if (simEtimerPending) {
+    simNextExpirationTime = etimer_next_expiration_time() - simCurrentTime;
+  }
 }
 /*---------------------------------------------------------------------------*/
 /**
