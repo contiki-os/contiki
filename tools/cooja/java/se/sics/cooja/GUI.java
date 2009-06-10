@@ -24,7 +24,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * $Id: GUI.java,v 1.132 2009/06/09 09:47:04 fros4943 Exp $
+ * $Id: GUI.java,v 1.133 2009/06/10 15:57:08 fros4943 Exp $
  */
 
 package se.sics.cooja;
@@ -120,6 +120,7 @@ import se.sics.cooja.dialogs.CreateSimDialog;
 import se.sics.cooja.dialogs.ExternalToolsDialog;
 import se.sics.cooja.dialogs.MessageList;
 import se.sics.cooja.dialogs.ProjectDirectoriesDialog;
+import se.sics.cooja.plugins.MoteInterfaceViewer;
 import se.sics.cooja.plugins.MoteTypeInformation;
 import se.sics.cooja.plugins.ScriptRunner;
 import se.sics.cooja.plugins.SimControl;
@@ -367,37 +368,26 @@ public class GUI extends Observable {
     });*/
 
     // Register default project directories
-    String defaultProjectDirs = getExternalToolsSetting(
-        "DEFAULT_PROJECTDIRS", null);
-    if (defaultProjectDirs != null) {
-      if (!isVisualizedInApplet()) {
-        String[] defaultProjectDirsArr = defaultProjectDirs.split(";");
-        if (defaultProjectDirsArr.length > 0) {
-          for (String defaultProjectDir : defaultProjectDirsArr) {
-            File projectDir = new File(defaultProjectDir);
-            if (projectDir.exists() && projectDir.isDirectory()) {
-              currentProjectDirs.add(projectDir);
-            }
-          }
-        }
+    String defaultProjectDirs = getExternalToolsSetting("DEFAULT_PROJECTDIRS", null);
+    if (defaultProjectDirs != null && defaultProjectDirs.length() > 0) {
+      String[] arr = defaultProjectDirs.split(";");
+      for (String p : arr) {
+        File projectDir = new File(p);
+        currentProjectDirs.add(projectDir);
       }
 
       // Load extendable parts (using current project config)
       try {
         reparseProjectConfig();
       } catch (ParseProjectsException e) {
-        logger.fatal("Error when loading projects: " + e.getMessage());
         if (isVisualized()) {
           JOptionPane.showMessageDialog(GUI.getTopParentContainer(),
-              "Default projects could not load, try to reconfigure project directories:" +
+              "Default projects could not load, reconfigure project directories:" +
               "\n\tMenu->Settings->Manage project directories" +
               "\n\nSee console for stack trace with more information.",
               "Project loading error", JOptionPane.ERROR_MESSAGE);
-        } else {
-          logger.fatal("Loading project directories failed");
-          logger.fatal("Stack trace:");
         }
-        e.printStackTrace();
+        logger.fatal("Error when loading projects", e);
       }
     }
 
@@ -405,7 +395,7 @@ public class GUI extends Observable {
     for (Class<? extends Plugin> pluginClass : pluginClasses) {
       int pluginType = pluginClass.getAnnotation(PluginType.class).value();
       if (pluginType == PluginType.COOJA_STANDARD_PLUGIN) {
-        startPlugin(pluginClass, this, null, null);
+        tryStartPlugin(pluginClass, this, null, null);
       }
     }
   }
@@ -1256,8 +1246,8 @@ public class GUI extends Observable {
     }
 
     // Backup temporary plugins
-    Vector<Class<? extends Plugin>> oldTempPlugins = (Vector<Class<? extends Plugin>>) pluginClassesTemporary
-    .clone();
+    Vector<Class<? extends Plugin>> oldTempPlugins = 
+      (Vector<Class<? extends Plugin>>) pluginClassesTemporary.clone();
 
     // Reset current configuration
     unregisterMoteTypes();
@@ -1541,83 +1531,109 @@ public class GUI extends Observable {
   }
 
   /**
-   * Starts a plugin of given plugin class with given arguments.
-   *
-   * @param pluginClass
-   *          Plugin class
-   * @param gui
-   *          GUI passed as argument to all plugins
-   * @param simulation
-   *          Simulation passed as argument to mote and simulation plugins
-   * @param mote
-   *          Mote passed as argument to mote plugins
-   * @return Start plugin if any
+   * Same as the {@link #startPlugin(Class, GUI, Simulation, Mote)} method,
+   * but does not throw exceptions. If COOJA is visualised, an error dialog
+   * is shown if plugin could not be started.
+   * 
+   * @see #startPlugin(Class, GUI, Simulation, Mote)
+   * @param pluginClass Plugin class
+   * @param argGUI Plugin GUI argument
+   * @param argSimulation Plugin simulation argument
+   * @param argMote Plugin mote argument
+   * @return Started plugin
+   */
+  public Plugin tryStartPlugin(final Class<? extends Plugin> pluginClass,
+      final GUI argGUI, final Simulation argSimulation, final Mote argMote) {
+    try {
+      return startPlugin(pluginClass, argGUI, argSimulation, argMote);
+    } catch (PluginConstructionException ex) {
+      if (GUI.isVisualized()) {
+        GUI.showErrorDialog(GUI.getTopParentContainer(), "Error when starting plugin", ex, false);
+      } else {
+        logger.fatal("Error when starting plugin", ex);
+      }
+    }
+    return null;
+  }
+
+  /**
+   * Starts given plugin. If visualized, the plugin is also shown.
+   * 
+   * @see PluginType
+   * @param pluginClass Plugin class
+   * @param argGUI Plugin GUI argument
+   * @param argSimulation Plugin simulation argument
+   * @param argMote Plugin mote argument
+   * @return Started plugin
+   * @throws PluginConstructionException At errors
    */
   public Plugin startPlugin(final Class<? extends Plugin> pluginClass,
-      final GUI gui, final Simulation simulation, final Mote mote) {
+      final GUI argGUI, final Simulation argSimulation, final Mote argMote)
+  throws PluginConstructionException
+  {
 
     // Check that plugin class is registered
     if (!pluginClasses.contains(pluginClass)) {
-      logger.fatal("Plugin class not registered: " + pluginClass);
-      return null;
+      throw new PluginConstructionException("Plugin class not registered: " + pluginClass);
     }
 
     // Construct plugin depending on plugin type
     int pluginType = pluginClass.getAnnotation(PluginType.class).value();
-    Plugin plugin = null;
+    Plugin plugin;
 
     try {
       if (pluginType == PluginType.MOTE_PLUGIN) {
-        if (mote == null) {
-          logger.fatal("Can't start mote plugin (no mote selected)");
-          return null;
+        if (argGUI == null) {
+          throw new PluginConstructionException("No GUI argument for mote plugin");
+        }
+        if (argSimulation == null) {
+          throw new PluginConstructionException("No simulation argument for mote plugin");
+        }
+        if (argMote == null) {
+          throw new PluginConstructionException("No mote argument for mote plugin");
         }
 
-        plugin = pluginClass.getConstructor(
-            new Class[] { Mote.class, Simulation.class, GUI.class })
-            .newInstance(mote, simulation, gui);
+        plugin = 
+          pluginClass.getConstructor(new Class[] { Mote.class, Simulation.class, GUI.class })
+          .newInstance(argMote, argSimulation, argGUI);
 
-        // Tag plugin with mote
-        plugin.tagWithObject(mote);
+        /* Tag plugin with mote */
+        plugin.tagWithObject(argMote);
+
       } else if (pluginType == PluginType.SIM_PLUGIN
           || pluginType == PluginType.SIM_STANDARD_PLUGIN) {
-        if (simulation == null) {
-          logger.fatal("Can't start simulation plugin (no simulation)");
-          return null;
+        if (argGUI == null) {
+          throw new PluginConstructionException("No GUI argument for simulation plugin");
+        }
+        if (argSimulation == null) {
+          throw new PluginConstructionException("No simulation argument for simulation plugin");
         }
 
-        plugin = pluginClass.getConstructor(
-            new Class[] { Simulation.class, GUI.class }).newInstance(
-                simulation, gui);
+        plugin = 
+          pluginClass.getConstructor(new Class[] { Simulation.class, GUI.class })
+          .newInstance(argSimulation, argGUI);
+
       } else if (pluginType == PluginType.COOJA_PLUGIN
           || pluginType == PluginType.COOJA_STANDARD_PLUGIN) {
-        if (gui == null) {
-          logger.fatal("Can't start COOJA plugin (no GUI)");
-          return null;
+        if (argGUI == null) {
+          throw new PluginConstructionException("No GUI argument for GUI plugin");
         }
 
-        plugin = pluginClass.getConstructor(new Class[] { GUI.class }).newInstance(gui);
+        plugin =
+          pluginClass.getConstructor(new Class[] { GUI.class })
+          .newInstance(argGUI);
+
+      } else {
+        throw new PluginConstructionException("Bad plugin type: " + pluginType);
       }
     } catch (PluginRequiresVisualizationException e) {
-      logger.info("Plugin not started (requires visualization): " + pluginClass.getName());
-      return null;
-    } catch (InvocationTargetException e) {
-      if (e.getCause() != null &&
-          e.getCause().getClass().equals(PluginRequiresVisualizationException.class)) {
-        logger.info("Plugin not started (requires visualization): " + pluginClass.getName());
-      } else {
-        logger.fatal("Exception thrown when starting plugin: " + e);
-        e.printStackTrace();
-      }
-      return null;
+      PluginConstructionException ex = new PluginConstructionException("Plugin class requires visualization: " + pluginClass.getName());
+      ex.initCause(e);
+      throw ex;
     } catch (Exception e) {
-      logger.fatal("Exception thrown when starting plugin: " + e);
-      e.printStackTrace();
-      return null;
-    }
-
-    if (plugin == null) {
-      return null;
+      PluginConstructionException ex = new PluginConstructionException("Construction error for plugin of class: " + pluginClass.getName());
+      ex.initCause(e);
+      throw ex;
     }
 
     // Add to active plugins list
@@ -1759,7 +1775,7 @@ public class GUI extends Observable {
             menuItem = new JMenuItem(description);
             menuItem.addActionListener(new ActionListener() {
               public void actionPerformed(ActionEvent e) {
-                startPlugin(newPluginClass, myGUI, mySimulation, null);
+                tryStartPlugin(newPluginClass, myGUI, null, null);
               }
             });
           } else if (pluginType == PluginType.SIM_PLUGIN || pluginType == PluginType.SIM_STANDARD_PLUGIN) {
@@ -1875,7 +1891,7 @@ public class GUI extends Observable {
       for (Class<? extends Plugin> pluginClass : pluginClasses) {
         int pluginType = pluginClass.getAnnotation(PluginType.class).value();
         if (pluginType == PluginType.SIM_STANDARD_PLUGIN) {
-          startPlugin(pluginClass, this, sim, null);
+          tryStartPlugin(pluginClass, this, sim, null);
         }
       }
     }
@@ -2950,7 +2966,10 @@ public class GUI extends Observable {
         File scriptFile = new File(config.substring(0, config.length()-4) + ".js");
         if (scriptFile.exists()) {
           logger.info("Detected old simulation test, starting test editor manually from: " + scriptFile);
-          ScriptRunner plugin = (ScriptRunner) gui.startPlugin(ScriptRunner.class, gui, sim, null);
+          ScriptRunner plugin = (ScriptRunner) gui.tryStartPlugin(ScriptRunner.class, gui, sim, null);
+          if (plugin == null) {
+            System.exit(1);
+          }
           plugin.updateScript(scriptFile);
           plugin.setScriptActive(true);
           sim.setDelayTime(0);
@@ -3352,9 +3371,8 @@ public class GUI extends Observable {
         }
 
         /* Start plugin */
-        final Plugin startedPlugin = startPlugin(pluginClass, this, simulation, mote);
+        final Plugin startedPlugin = tryStartPlugin(pluginClass, this, simulation, mote);
         if (startedPlugin == null) {
-          logger.warn("Could not start plugin of class: " + pluginClass);
           continue;
         }
 
@@ -3435,6 +3453,12 @@ public class GUI extends Observable {
 
   public class SimulationCreationException extends Exception {
     public SimulationCreationException(String message) {
+      super(message);
+    }
+  }
+
+  public class PluginConstructionException extends Exception {
+    public PluginConstructionException(String message) {
       super(message);
     }
   }
@@ -3909,7 +3933,7 @@ public class GUI extends Observable {
       Class<Plugin> pluginClass = 
         (Class<Plugin>) ((JMenuItem) e.getSource()).getClientProperty("class");
       Mote mote = (Mote) ((JMenuItem) e.getSource()).getClientProperty("mote");
-      startPlugin(pluginClass, myGUI, mySimulation, mote);
+      tryStartPlugin(pluginClass, myGUI, mySimulation, mote);
     }
     public boolean shouldBeEnabled() {
       return getSimulation() != null;
