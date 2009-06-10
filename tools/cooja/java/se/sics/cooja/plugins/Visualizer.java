@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: Visualizer.java,v 1.6 2009/05/18 13:57:51 nifi Exp $
+ * $Id: Visualizer.java,v 1.7 2009/06/10 15:57:08 fros4943 Exp $
  */
 
 package se.sics.cooja.plugins;
@@ -1008,11 +1008,14 @@ public class Visualizer extends VisPlugin {
       String desc = GUI.getDescriptionOf(mote.getInterfaces().getLED());
 
       MoteInterfaceViewer viewer =
-        (MoteInterfaceViewer) simulation.getGUI().startPlugin(
+        (MoteInterfaceViewer) simulation.getGUI().tryStartPlugin(
             MoteInterfaceViewer.class,
             simulation.getGUI(),
             simulation,
             mote);
+      if (viewer == null) {
+        return;
+      }
       viewer.setSelectedInterface(desc);
       viewer.pack();
     }
@@ -1056,11 +1059,14 @@ public class Visualizer extends VisPlugin {
       String desc = GUI.getDescriptionOf(serialPort);
 
       MoteInterfaceViewer viewer =
-        (MoteInterfaceViewer) simulation.getGUI().startPlugin(
+        (MoteInterfaceViewer) simulation.getGUI().tryStartPlugin(
             MoteInterfaceViewer.class,
             simulation.getGUI(),
             simulation,
             mote);
+      if (viewer == null) {
+        return;
+      }
       viewer.setSelectedInterface(desc);
       viewer.pack();
     }

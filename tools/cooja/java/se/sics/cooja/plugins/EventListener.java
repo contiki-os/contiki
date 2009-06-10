@@ -24,7 +24,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * $Id: EventListener.java,v 1.8 2009/03/09 15:39:33 fros4943 Exp $
+ * $Id: EventListener.java,v 1.9 2009/06/10 15:57:08 fros4943 Exp $
  */
 
 package se.sics.cooja.plugins;
@@ -37,6 +37,7 @@ import org.apache.log4j.Logger;
 import org.jdom.Element;
 
 import se.sics.cooja.*;
+import se.sics.cooja.GUI.PluginConstructionException;
 import se.sics.cooja.contikimote.ContikiMoteType;
 import se.sics.cooja.interfaces.*;
 
@@ -115,11 +116,10 @@ public class EventListener extends VisPlugin {
           + myParent.mySimulation.getSimulationTime(), new AbstractAction(
           "View interface visualizer") {
         public void actionPerformed(ActionEvent e) {
-          MoteInterfaceViewer plugin = (MoteInterfaceViewer) mySimulation
-              .getGUI().startPlugin(MoteInterfaceViewer.class,
-                  mySimulation.getGUI(), mySimulation, myMote);
-          plugin.setSelectedInterface(GUI.getDescriptionOf(moteInterface
-              .getClass()));
+          MoteInterfaceViewer plugin = 
+            (MoteInterfaceViewer) mySimulation.getGUI().tryStartPlugin(
+                MoteInterfaceViewer.class, mySimulation.getGUI(), mySimulation, myMote);
+          plugin.setSelectedInterface(GUI.getDescriptionOf(moteInterface.getClass()));
         }
       });
     }
