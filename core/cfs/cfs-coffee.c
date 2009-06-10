@@ -40,7 +40,7 @@
 #include <limits.h>
 #include <string.h>
 
-#define DEBUG 0
+#define DEBUG 1
 #if DEBUG
 #include <stdio.h>
 #define PRINTF(...) printf(__VA_ARGS__)
@@ -110,7 +110,7 @@
 #define COFFEE_PAGES_PER_SECTOR	\
 	((coffee_page_t)(COFFEE_SECTOR_SIZE / COFFEE_PAGE_SIZE))
 
-struct sector_stats {
+struct sector_status {
   coffee_page_t active;
   coffee_page_t obsolete;
   coffee_page_t free;
@@ -185,7 +185,7 @@ absolute_offset(coffee_page_t page, cfs_offset_t offset)
 }
 /*---------------------------------------------------------------------------*/
 static coffee_page_t
-get_sector_status(uint16_t sector, struct sector_stats *stats)
+get_sector_status(uint16_t sector, struct sector_status *stats)
 {
   static coffee_page_t skip_pages;
   static char last_pages_are_active;
@@ -194,6 +194,7 @@ get_sector_status(uint16_t sector, struct sector_stats *stats)
   coffee_page_t sector_start, sector_end;
   coffee_page_t page;
 
+  memset(stats, 0, sizeof(*stats));
   active = obsolete = free = 0;
 
   if(sector == 0) {
@@ -205,9 +206,19 @@ get_sector_status(uint16_t sector, struct sector_stats *stats)
   sector_end = sector_start + COFFEE_PAGES_PER_SECTOR;
 
   if(last_pages_are_active) {
-    active = skip_pages & (COFFEE_PAGES_PER_SECTOR - 1);
+    if(skip_pages >= COFFEE_PAGES_PER_SECTOR) {
+      stats->active = COFFEE_PAGES_PER_SECTOR;
+      skip_pages -= COFFEE_PAGES_PER_SECTOR;
+      return 0;
+    }
+    active = skip_pages;
   } else {
-    obsolete = skip_pages & (COFFEE_PAGES_PER_SECTOR - 1);
+    if(skip_pages >= COFFEE_PAGES_PER_SECTOR) {
+      stats->obsolete = COFFEE_PAGES_PER_SECTOR;
+      skip_pages -= COFFEE_PAGES_PER_SECTOR;
+      return skip_pages + COFFEE_PAGES_PER_SECTOR;
+    }
+    obsolete = skip_pages;
   }
 
   for(page = sector_start + skip_pages; page < sector_end;) {
@@ -269,8 +280,8 @@ static void
 collect_garbage(int mode)
 {
   uint16_t sector;
-  struct sector_stats stats;
-  coffee_page_t first_page, skip_pages;
+  struct sector_status stats;
+  coffee_page_t first_page, isolation_count;
 
   watchdog_stop();
 
@@ -281,9 +292,10 @@ collect_garbage(int mode)
    * erasable if there are only free or obsolete pages in it.
    */
   for(sector = 0; sector < COFFEE_SECTOR_COUNT; sector++) {
-    skip_pages = get_sector_status(sector, &stats);
-    PRINTF("Coffee: Sector %u has %u active, %u free, and %u obsolete pages.\n",
-        sector, (unsigned)stats.active, (unsigned)stats.free, (unsigned)stats.obsolete);
+    isolation_count = get_sector_status(sector, &stats);
+    PRINTF("Coffee: Sector %u has %u active, %u obsolete, and %u free pages.\n",
+        sector, (unsigned)stats.active,
+	(unsigned)stats.obsolete, (unsigned)stats.free);
 
     if(stats.active > 0) {
       continue;
@@ -296,8 +308,8 @@ collect_garbage(int mode)
         *next_free = first_page;
       }
 
-      if(skip_pages > 0) {
-        isolate_pages(first_page + COFFEE_PAGES_PER_SECTOR, skip_pages);
+      if(isolation_count > 0) {
+        isolate_pages(first_page + COFFEE_PAGES_PER_SECTOR, isolation_count);
       }
 
       COFFEE_ERASE(sector);
@@ -659,8 +671,8 @@ create_log(struct file *file, struct file_header *hdr)
 
   adjust_log_config(hdr, &log_record_size, &log_records);
 
-  size = log_records * sizeof(uint16_t);	/* Log index size. */
-  size += log_records * log_record_size;	/* Log data size. */
+  /* Log index size + log data size. */
+  size = log_records * (sizeof(uint16_t) + log_record_size);
 
   log_file = reserve(hdr->name, page_count(size), 1, HDR_FLAG_LOG);
   if(log_file == NULL) {
@@ -758,10 +770,13 @@ find_next_record(struct file *file, coffee_page_t log_page,
 {
   int log_record, preferred_batch_size;
 
+  if(file->next_log_record >= 0) {
+    return file->next_log_record;
+  }
+
   preferred_batch_size = log_records > COFFEE_LOG_TABLE_LIMIT ?
 			 COFFEE_LOG_TABLE_LIMIT : log_records;
-
-  if(file->next_log_record == -1) {
+  {
     /* The next log record is unknown. Search for it. */
     uint16_t indices[preferred_batch_size];
     uint16_t processed;
@@ -781,8 +796,6 @@ find_next_record(struct file *file, coffee_page_t log_page,
 	}
       }
     }
-  } else {
-    log_record = file->next_log_record;
   }
 
   return log_record;
@@ -840,7 +853,7 @@ write_log_page(struct file *file, struct log_param *lp)
 	  absolute_offset(file->page, offset));
     }
 
-    memcpy((char *) &copy_buf + lp->offset, lp->buf, lp->size);
+    memcpy((char *)&copy_buf + lp->offset, lp->buf, lp->size);
 
     offset = absolute_offset(log_page, 0);
     ++region;
@@ -1024,6 +1037,7 @@ cfs_write(int fd, const void *buf, unsigned size)
   int i;
   struct log_param lp;
   cfs_offset_t bytes_left;
+  const char dummy[1] = { 0xff };
 
   if(!(FD_VALID(fd) && FD_WRITABLE(fd))) {
     return -1;
@@ -1068,8 +1082,7 @@ cfs_write(int fd, const void *buf, unsigned size)
 
     if(fdp->offset > file->end) {
       /* Update the original file's end with a dummy write. */
-      *(char *)buf = 0xff;
-      COFFEE_WRITE(buf, 1, absolute_offset(file->page, fdp->offset));
+      COFFEE_WRITE(dummy, 1, absolute_offset(file->page, fdp->offset));
     }
   } else {
     COFFEE_WRITE(buf, size, absolute_offset(file->page, fdp->offset));
