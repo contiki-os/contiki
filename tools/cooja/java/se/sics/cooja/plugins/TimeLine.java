@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: TimeLine.java,v 1.6 2009/06/08 11:55:58 fros4943 Exp $
+ * $Id: TimeLine.java,v 1.7 2009/06/11 10:02:53 fros4943 Exp $
  */
 
 package se.sics.cooja.plugins;
@@ -93,7 +93,8 @@ public class TimeLine extends VisPlugin {
   private MoteRuler timelineMoteRuler;
   private JComponent timeline;
   private Box eventCheckboxes;
-
+  private JSplitPane splitPane;
+  
   private ArrayList<MoteObservation> activeMoteObservers = new ArrayList<MoteObservation>();
 
   private ArrayList<MoteEvents> allMoteEvents = new ArrayList<MoteEvents>();
@@ -119,6 +120,7 @@ public class TimeLine extends VisPlugin {
     eventCheckboxes = Box.createVerticalBox();
     JCheckBox eventCheckBox;
     eventCheckBox = createEventCheckbox("Radio RX/TX", "Show radio transmissions, receptions, and collisions");
+    eventCheckBox.setSelected(showRadioRXTX);
     eventCheckBox.setName("showRadioRXTX");
     eventCheckBox.addActionListener(new ActionListener() {
       public void actionPerformed(ActionEvent e) {
@@ -128,6 +130,7 @@ public class TimeLine extends VisPlugin {
     });
     eventCheckboxes.add(eventCheckBox);
     eventCheckBox = createEventCheckbox("Radio channels", "Show different radio channels");
+    eventCheckBox.setSelected(showRadioChannels);
     eventCheckBox.setName("showRadioChannels");
     eventCheckBox.addActionListener(new ActionListener() {
       public void actionPerformed(ActionEvent e) {
@@ -137,6 +140,7 @@ public class TimeLine extends VisPlugin {
     });
     /*eventCheckboxes.add(eventCheckBox);*/
     eventCheckBox = createEventCheckbox("Radio ON/OFF", "Show radio hardware state");
+    eventCheckBox.setSelected(showRadioHW);
     eventCheckBox.setName("showRadioHW");
     eventCheckBox.addActionListener(new ActionListener() {
       public void actionPerformed(ActionEvent e) {
@@ -146,6 +150,7 @@ public class TimeLine extends VisPlugin {
     });
     eventCheckboxes.add(eventCheckBox);
     eventCheckBox = createEventCheckbox("LEDs", "Show LED state");
+    eventCheckBox.setSelected(showLEDs);
     eventCheckBox.setName("showLEDs");
     eventCheckBox.addActionListener(new ActionListener() {
       public void actionPerformed(ActionEvent e) {
@@ -155,6 +160,7 @@ public class TimeLine extends VisPlugin {
     });
     eventCheckboxes.add(eventCheckBox);
     eventCheckBox = createEventCheckbox("Log output", "Show mote log output, such as by printf()'s");
+    eventCheckBox.setSelected(showLogOutputs);
     eventCheckBox.setName("showLogOutput");
     eventCheckBox.addActionListener(new ActionListener() {
       public void actionPerformed(ActionEvent e) {
@@ -163,7 +169,8 @@ public class TimeLine extends VisPlugin {
       }
     });
     /*eventCheckboxes.add(eventCheckBox);*/
-    eventCheckBox = createEventCheckbox("Watchpoints", "Show code watchpoints configurable on MSPSim based motes");
+    eventCheckBox = createEventCheckbox("Watchpoints", "Show code watchpoints (for MSPSim-based motes)");
+    eventCheckBox.setSelected(showWatchpoints);
     eventCheckBox.setName("showWatchpoints");
     eventCheckBox.addActionListener(new ActionListener() {
       public void actionPerformed(ActionEvent e) {
@@ -171,7 +178,7 @@ public class TimeLine extends VisPlugin {
         recalculateMoteHeight();
       }
     });
-    /*eventCheckboxes.add(eventCheckBox);*/
+    eventCheckboxes.add(eventCheckBox);
 
     /* Panel: timeline canvas w. scroll pane and add mote button */
     timeline = new Timeline();
@@ -191,13 +198,12 @@ public class TimeLine extends VisPlugin {
     timelineScrollPane.setCorner(JScrollPane.LOWER_LEFT_CORNER, timelineAddMoteButton);
     timelineScrollPane.setBackground(Color.WHITE);
 
-    JSplitPane splitPane = new JSplitPane(
+    splitPane = new JSplitPane(
         JSplitPane.HORIZONTAL_SPLIT,
-        eventCheckboxes,
+        new JScrollPane(eventCheckboxes),
         timelineScrollPane
     );
     splitPane.setOneTouchExpandable(true);
-    splitPane.setResizeWeight(0.0);
 
     getContentPane().add(splitPane);
 
@@ -424,12 +430,22 @@ public class TimeLine extends VisPlugin {
     private Observable observable;
     private Mote mote;
 
+    private WatchpointMote watchpointMote; /* XXX */
+    private ActionListener watchpointListener; /* XXX */
+    
     public MoteObservation(Mote mote, Observable observable, Observer observer) {
       this.mote = mote;
       this.observable = observable;
       this.observer = observer;
     }
 
+    /* XXX Special case, should be generalized */
+    public MoteObservation(Mote mote, WatchpointMote watchpointMote, ActionListener listener) {
+      this.mote = mote;
+      this.watchpointMote = watchpointMote;
+      this.watchpointListener = listener;
+    }
+    
     public Mote getMote() {
       return mote;
     }
@@ -438,18 +454,26 @@ public class TimeLine extends VisPlugin {
      * Disconnect observer from observable (stop observing) and clean up resources (remove pointers).
      */
     public void dispose() {
-      observable.deleteObserver(observer);
-      mote = null;
-      observable = null;
-      observer = null;
+      if (observable != null) {
+        observable.deleteObserver(observer);
+        mote = null;
+        observable = null;
+        observer = null;
+      }
+      
+      /* XXX */
+      if (watchpointMote != null) {
+        watchpointMote.removeWatchpointListener(watchpointListener);
+        watchpointMote = null;
+        watchpointListener = null;
+      }
     }
   }
 
   private void addMoteObservers(Mote mote, final MoteEvents moteEvents) {
-    /* TODO Watchpoints */
     /* TODO Log: final Log moteLog = mote.getInterfaces().getLog(); */
     /* TODO Unknown state event */
-
+    
     /* LEDs */
     final LED moteLEDs = mote.getInterfaces().getLED();
     if (moteLEDs != null) {
@@ -517,20 +541,43 @@ public class TimeLine extends VisPlugin {
       moteRadio.addObserver(observer);
       activeMoteObservers.add(new MoteObservation(mote, moteRadio, observer));
     }
+    
+    /* XXX Experimental: Watchpoints */
+    if (mote instanceof WatchpointMote) {
+      final WatchpointMote watchpointMote = ((WatchpointMote)mote);
+      ActionListener listener = new ActionListener() {
+        public void actionPerformed(ActionEvent e) {
+          if (watchpointMote.getLastWatchpoint() == null) {
+            return;
+          }
+          WatchpointEvent ev = new WatchpointEvent(
+              simulation.getSimulationTime(),
+              watchpointMote.getLastWatchpoint()
+          );
+
+          moteEvents.addWatchpoint(ev);
+        }
+      };
+
+      watchpointMote.addWatchpointListener(listener);
+      activeMoteObservers.add(new MoteObservation(mote, watchpointMote, listener));
+    }
+
   }
 
   private void addMote(Mote newMote) {
-    if (newMote != null) {
-      for (MoteEvents moteEvents: allMoteEvents) {
-        if (moteEvents.mote == newMote) {
-          return;
-        }
-      }
-
-      MoteEvents newMoteLog = new MoteEvents(newMote);
-      allMoteEvents.add(newMoteLog);
-      addMoteObservers(newMote, newMoteLog);
+    if (newMote == null) {
+      return;
     }
+    for (MoteEvents moteEvents: allMoteEvents) {
+      if (moteEvents.mote == newMote) {
+        return;
+      }
+    }
+
+    MoteEvents newMoteLog = new MoteEvents(newMote);
+    allMoteEvents.add(newMoteLog);
+    addMoteObservers(newMote, newMoteLog);
 
     numberMotesWasUpdated();
   }
@@ -641,6 +688,14 @@ public class TimeLine extends VisPlugin {
       config.add(element);
     }
 
+    element = new Element("split");
+    element.addContent("" + splitPane.getDividerLocation());
+    config.add(element);
+
+    element = new Element("zoom");
+    element.addContent("" + zoomLevel);
+    config.add(element);
+
     return config;
   }
 
@@ -676,6 +731,11 @@ public class TimeLine extends VisPlugin {
         showLogOutputs = true;
       } else if ("showWatchpoints".equals(name)) {
         showWatchpoints = true;
+      } else if ("split".equals(name)) {
+        splitPane.setDividerLocation(Integer.parseInt(element.getText()));
+      } else if ("zoom".equals(name)) {
+        zoomLevel = Integer.parseInt(element.getText())-1;
+        zoomOutAction.actionPerformed(null);
       }
     }
 
@@ -1185,8 +1245,6 @@ public class TimeLine extends VisPlugin {
       this.green = green;
       this.blue = blue;
       this.color = new Color(red?255:0, green?255:0, blue?255:0);
-      prev = null;
-      next = null;
     }
     public Color getEventColor() {
       if (!red && !green && !blue) {
@@ -1214,11 +1272,19 @@ public class TimeLine extends VisPlugin {
     }
   }
   class WatchpointEvent extends MoteEvent {
-    public WatchpointEvent(long time) {
+    Watchpoint watchpoint;
+    Color color = Color.RED;
+    public WatchpointEvent(long time, Watchpoint watchpoint) {
       super(time);
+      this.watchpoint = watchpoint;
     }
     public Color getEventColor() {
-      return Color.GRAY; /* TODO Implement me */
+      return color;
+    }
+    public String toString() {
+      return 
+      "Watchpoint triggered at time (ms): " +  time/Simulation.MILLISECOND + ".<br>"
+      + watchpoint.getDescription() + "<br>";
     }
   }
   class MoteEvents {
@@ -1315,6 +1381,18 @@ public class TimeLine extends VisPlugin {
       logEvents.add(ev);
     }
     public void addWatchpoint(WatchpointEvent ev) {
+      /* Automatically toggle colors */
+      /* TODO Move color decision to watchpoint interface? */
+      if (lastWatchpointEvent != null) {
+        if (((WatchpointEvent)lastWatchpointEvent).color == Color.RED) {
+          ((WatchpointEvent)ev).color = Color.GREEN;
+        } else if (((WatchpointEvent)lastWatchpointEvent).color == Color.GREEN) {
+          ((WatchpointEvent)ev).color = Color.BLUE;
+        } else {
+          ((WatchpointEvent)ev).color = Color.RED;
+        }
+      }
+
       /* Link with previous events */
       if (lastWatchpointEvent != null) {
         ev.prev = lastWatchpointEvent;
