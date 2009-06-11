@@ -26,15 +26,18 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: MspMote.java,v 1.29 2009/05/26 14:34:30 fros4943 Exp $
+ * $Id: MspMote.java,v 1.30 2009/06/11 10:08:12 fros4943 Exp $
  */
 
 package se.sics.cooja.mspmote;
+import java.awt.event.ActionListener;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Hashtable;
 import java.util.Observable;
 import java.util.Observer;
 import java.util.Vector;
@@ -46,9 +49,12 @@ import se.sics.cooja.MoteInterface;
 import se.sics.cooja.MoteInterfaceHandler;
 import se.sics.cooja.MoteMemory;
 import se.sics.cooja.MoteType;
+import se.sics.cooja.Watchpoint;
 import se.sics.cooja.Simulation;
+import se.sics.cooja.WatchpointMote;
 import se.sics.cooja.interfaces.IPAddress;
 import se.sics.cooja.mspmote.interfaces.TR1001Radio;
+import se.sics.cooja.mspmote.plugins.MspBreakpointContainer;
 import se.sics.mspsim.cli.CommandHandler;
 import se.sics.mspsim.cli.LineListener;
 import se.sics.mspsim.cli.LineOutputStream;
@@ -56,6 +62,7 @@ import se.sics.mspsim.core.EmulationException;
 import se.sics.mspsim.core.MSP430;
 import se.sics.mspsim.platform.GenericNode;
 import se.sics.mspsim.util.ConfigManager;
+import se.sics.mspsim.util.DebugInfo;
 import se.sics.mspsim.util.ELF;
 import se.sics.mspsim.util.MapEntry;
 import se.sics.mspsim.util.MapTable;
@@ -63,7 +70,7 @@ import se.sics.mspsim.util.MapTable;
 /**
  * @author Fredrik Osterlind
  */
-public abstract class MspMote implements Mote {
+public abstract class MspMote implements Mote, WatchpointMote {
   private static Logger logger = Logger.getLogger(MspMote.class);
 
   /* 3.900 MHz according to Contiki's speed sync loop*/
@@ -91,6 +98,8 @@ public abstract class MspMote implements Mote {
   private int heapStartAddress;
   private StackOverflowObservable stackOverflowObservable = new StackOverflowObservable();
 
+  private MspBreakpointContainer breakpointsContainer;
+  
   /**
    * Abort current tick immediately.
    * May for example be called by a breakpoint handler.
@@ -116,6 +125,9 @@ public abstract class MspMote implements Mote {
     if (myMoteType != null) {
       initEmulator(myMoteType.getContikiFirmwareFile());
       myMoteInterfaceHandler = createMoteInterfaceHandler();
+      
+      /* Create watchpoint container */
+      breakpointsContainer = new MspBreakpointContainer(this, getFirmwareDebugInfo(this));
     }
   }
 
@@ -384,6 +396,9 @@ public abstract class MspMote implements Mote {
         initEmulator(myMoteType.getContikiFirmwareFile());
         myMoteInterfaceHandler = createMoteInterfaceHandler();
 
+        /* Create watchpoint container */
+        breakpointsContainer = new MspBreakpointContainer(this, getFirmwareDebugInfo(this));
+        
       } else if (name.equals("interface_config")) {
         String intfClass = element.getText().trim();
         if (intfClass.equals("se.sics.cooja.mspmote.interfaces.MspIPAddress")) {
@@ -428,6 +443,72 @@ public abstract class MspMote implements Mote {
     }
 
     return config;
+  }
+
+
+  /* Watchpoints: Forward to breakpoint container */
+  public void addWatchpointListener(ActionListener listener) {
+    breakpointsContainer.addWatchpointListener(listener);
+  }
+
+  public Watchpoint getLastWatchpoint() {
+    return breakpointsContainer.getLastWatchpoint();
+  }
+
+  public Mote getMote() {
+    return breakpointsContainer.getMote();
+  }
+
+  public ActionListener[] getWatchpointListeners() {
+    return breakpointsContainer.getWatchpointListeners();
+  }
+
+  public void removeWatchpointListener(ActionListener listener) {
+    breakpointsContainer.removeWatchpointListener(listener);
+  }
+
+  public MspBreakpointContainer getBreakpointsContainer() {
+    return breakpointsContainer;
+  }
+
+  private static Hashtable<File, Hashtable<Integer, Integer>> getFirmwareDebugInfo(MspMote mote) {
+    /* Fetch all executable addresses */
+    ArrayList<Integer> addresses = mote.getELF().getDebug().getExecutableAddresses();
+
+    Hashtable<File, Hashtable<Integer, Integer>> fileToLineHash =
+      new Hashtable<File, Hashtable<Integer, Integer>>();
+
+    for (int address: addresses) {
+      DebugInfo info = mote.getELF().getDebugInfo(address);
+
+      if (info != null && info.getPath() != null && info.getFile() != null && info.getLine() >= 0) {
+
+        /* Nasty Cygwin-Windows fix */
+        String path = info.getPath();
+        if (path.contains("/cygdrive/")) {
+          int index = path.indexOf("/cygdrive/");
+          char driveCharacter = path.charAt(index+10);
+
+          path = path.replace("/cygdrive/" + driveCharacter + "/", driveCharacter + ":/");
+        }
+
+        File file = new File(path, info.getFile());
+        try {
+          file = file.getCanonicalFile();
+        } catch (IOException e) {
+        }
+
+        Hashtable<Integer, Integer> lineToAddrHash = fileToLineHash.get(file);
+        if (lineToAddrHash == null) {
+          lineToAddrHash = new Hashtable<Integer, Integer>();
+          fileToLineHash.put(file, lineToAddrHash);
+        }
+
+        lineToAddrHash.put(info.getLine(), address);
+      }
+    }
+
+    return fileToLineHash;
   }
 
 }
