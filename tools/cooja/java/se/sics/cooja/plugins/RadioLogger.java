@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: RadioLogger.java,v 1.20 2009/06/12 14:12:59 nifi Exp $
+ * $Id: RadioLogger.java,v 1.21 2009/06/12 14:34:29 nifi Exp $
  */
 
 package se.sics.cooja.plugins;
@@ -170,6 +170,9 @@ public class RadioLogger extends VisPlugin {
         int rowIndex = rowAtPoint(p);
         int colIndex = columnAtPoint(p);
         int realColumnIndex = convertColumnIndexToModel(colIndex);
+        if (rowIndex < 0 || realColumnIndex < 0) {
+          return super.getToolTipText(e);
+        }
 
         RadioConnectionLog conn = connections.get(rowIndex);
         if (realColumnIndex == COLUMN_TIME) {
