@@ -26,22 +26,55 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: LogListener.java,v 1.13 2009/05/26 14:27:00 fros4943 Exp $
+ * $Id: LogListener.java,v 1.14 2009/06/12 14:34:29 nifi Exp $
  */
 
 package se.sics.cooja.plugins;
 
 import java.awt.BorderLayout;
-import java.awt.Insets;
+import java.awt.Color;
+import java.awt.EventQueue;
+import java.awt.Font;
+import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.io.*;
-import java.util.*;
-import javax.swing.*;
+import java.awt.event.MouseEvent;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.PrintWriter;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Observable;
+import java.util.Observer;
+import java.util.Vector;
+import java.util.regex.PatternSyntaxException;
+import javax.swing.Box;
+import javax.swing.BoxLayout;
+import javax.swing.JButton;
+import javax.swing.JFileChooser;
+import javax.swing.JLabel;
+import javax.swing.JMenuItem;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JPopupMenu;
+import javax.swing.JScrollPane;
+import javax.swing.JTable;
+import javax.swing.JTextField;
+import javax.swing.RowFilter;
+import javax.swing.table.AbstractTableModel;
+import javax.swing.table.TableModel;
+import javax.swing.table.TableRowSorter;
 import org.apache.log4j.Logger;
 import org.jdom.Element;
-import se.sics.cooja.*;
+import se.sics.cooja.ClassDescription;
+import se.sics.cooja.GUI;
+import se.sics.cooja.Mote;
+import se.sics.cooja.PluginType;
+import se.sics.cooja.Simulation;
+import se.sics.cooja.VisPlugin;
+import se.sics.cooja.dialogs.TableColumnAdjuster;
 import se.sics.cooja.interfaces.Log;
+import se.sics.cooja.interfaces.MoteID;
 
 /**
  * A simple mote log listener.
@@ -55,15 +88,25 @@ public class LogListener extends VisPlugin {
   private static final long serialVersionUID = 1L;
   private static Logger logger = Logger.getLogger(LogListener.class);
 
-  private JTextArea logTextArea;
+  private final static int COLUMN_TIME = 0;
+  private final static int COLUMN_FROM = 1;
+  private final static int COLUMN_DATA = 2;
+
+  private final static String[] COLUMN_NAMES = {
+    "Time",
+    "Mote",
+    "Data"
+  };
+  private final JTable logTable;
+  private TableRowSorter<TableModel> logFilter;
+  private ArrayList<LogData> logs = new ArrayList<LogData>();
+
   private Observer logObserver;
   private Simulation simulation;
 
   private String filterText = "";
   private JTextField filterTextField = null;
-
-  private String[] logCache = new String[256];
-  private int logPos;
+  private Color filterTextFieldBackground;
 
   /**
    * Create a new simulation control panel.
@@ -75,47 +118,120 @@ public class LogListener extends VisPlugin {
     simulation = simulationToControl;
     int nrLogs = 0;
 
+    final AbstractTableModel model = new AbstractTableModel() {
+
+      private static final long serialVersionUID = 3065150390849332924L;
+
+      public String getColumnName(int col) {
+        return COLUMN_NAMES[col];
+      }
+
+      public int getRowCount() {
+        return logs.size();
+      }
+
+      public int getColumnCount() {
+        return COLUMN_NAMES.length;
+      }
+
+      public Object getValueAt(int row, int col) {
+        LogData log = logs.get(row);
+        if (col == COLUMN_TIME) {
+          return log.time;
+        } else if (col == COLUMN_FROM) {
+          return log.moteID;
+        } else if (col == COLUMN_DATA) {
+          return log.data;
+        }
+        return null;
+      }
+    };
+
+    logTable = new JTable(model) {
+
+      private static final long serialVersionUID = -930616018336483196L;
+
+      public String getToolTipText(MouseEvent e) {
+        java.awt.Point p = e.getPoint();
+        int rowIndex = rowAtPoint(p);
+        int colIndex = columnAtPoint(p);
+        int columnIndex = convertColumnIndexToModel(colIndex);
+        if (rowIndex < 0 || columnIndex < 0) {
+          return super.getToolTipText(e);
+        }
+        Object v = getValueAt(rowIndex, columnIndex);
+        if (v != null) {
+          String t = v.toString();
+          if (t.length() > 60) {
+            StringBuilder sb = new StringBuilder();
+            sb.append("<html>");
+            do {
+              sb.append(t.substring(0, 60)).append("<br>");
+              t = t.substring(60);
+            } while (t.length() > 60);
+            return sb.append(t).append("</html>").toString();
+          }
+        }
+        return super.getToolTipText(e);
+      }
+
+    };
+    logTable.setFillsViewportHeight(true);
+    logTable.setAutoResizeMode(JTable.AUTO_RESIZE_LAST_COLUMN);
+    logTable.setFont(new Font("Monospaced", Font.PLAIN, 12));
+    logFilter = new TableRowSorter<TableModel>(model);
+    for (int i = 0, n = model.getColumnCount(); i < n; i++) {
+      logFilter.setSortable(i, false);
+    }
+    logTable.setRowSorter(logFilter);
+
+    JPopupMenu popupMenu = new JPopupMenu();
+    JMenuItem clearItem = new JMenuItem("Clear");
+    clearItem.addActionListener(new ActionListener() {
+
+      public void actionPerformed(ActionEvent e) {
+        int size = logs.size();
+        if (size > 0) {
+          logs.clear();
+          model.fireTableRowsDeleted(0, size - 1);
+        }
+      }
+
+    });
+    popupMenu.add(clearItem);
+    logTable.setComponentPopupMenu(popupMenu);
+
+    TableColumnAdjuster adjuster = new TableColumnAdjuster(logTable);
+    adjuster.setDynamicAdjustment(true);
+    adjuster.packColumns();
+
     // Log observer
     logObserver = new Observer() {
       public void update(Observable obs, Object obj) {
-        if (logTextArea == null) {
-          return;
-        }
-
         Mote mote = (Mote) obj;
         Log moteLogInterface = (Log) obs;
         String lastMessage = moteLogInterface.getLastLogMessage();
         if (lastMessage.length() > 0 && lastMessage.charAt(lastMessage.length() - 1) == '\n') {
           lastMessage = lastMessage.substring(0, lastMessage.length() - 1);
         }
-        String outputString = "TIME:" + simulation.getSimulationTimeMillis() + "\t";
-        if (mote != null && mote.getInterfaces().getMoteID() != null) {
-          outputString += "ID:" + mote.getInterfaces().getMoteID().getMoteID() + "\t";
-        }
-        outputString += lastMessage;
-        if (logCache.length > 1) {
-          synchronized (logCache) {
-            logCache[logPos] = outputString;
-            logPos = (logPos + 1) % logCache.length;
-          }
-        }
-        // Match against filter (if any)
-        if (filterText.length() > 0 && !outputString.contains(filterText)) {
-          return;
-        }
-
-
-        final String str = outputString;
-        SwingUtilities.invokeLater(new Runnable() {
+        final LogData data =
+            new LogData("ID:" + getMoteID(mote),
+                simulation.getSimulationTimeMillis(), lastMessage);
+        java.awt.EventQueue.invokeLater(new Runnable() {
           public void run() {
-            int len = logTextArea.getDocument().getLength();
-            if (len == 0) {
-              logTextArea.append(str);
-            } else {
-              logTextArea.append('\n' + str);
-              len++;
+            // Check if the last row is visible
+            boolean isVisible = false;
+            int rowCount = logTable.getRowCount();
+            if (rowCount > 0) {
+              Rectangle visible = logTable.getVisibleRect();
+              isVisible = visible.y + visible.height >= logTable.getHeight();
             }
-            logTextArea.setCaretPosition(len + str.length());
+            int index = logs.size();
+            logs.add(data);
+            model.fireTableRowsInserted(index, index);
+            if (isVisible) {
+              logTable.scrollRectToVisible(new Rectangle(0, logTable.getHeight() - 2, 1, logTable.getHeight()));
+            }
           }
         });
       }
@@ -145,104 +261,68 @@ public class LogListener extends VisPlugin {
     });
 
     // Main panel
-    logTextArea = new JTextArea(8,50);
-    logTextArea.setMargin(new Insets(5,5,5,5));
-    logTextArea.setEditable(false);
-    logTextArea.setCursor(null);
-
     JPanel filterPanel = new JPanel();
     filterPanel.setLayout(new BoxLayout(filterPanel, BoxLayout.X_AXIS));
     filterTextField = new JTextField("");
+    filterTextFieldBackground = filterTextField.getBackground();
     filterPanel.add(Box.createHorizontalStrut(2));
     filterPanel.add(new JLabel("Filter on string: "));
     filterPanel.add(filterTextField);
     filterTextField.addActionListener(new ActionListener() {
       public void actionPerformed(ActionEvent e) {
-        String oldFilterText = filterText;
         filterText = filterTextField.getText();
-        if (filterText == null) {
-          filterText = "";
-        }
-        if (!filterText.equals(oldFilterText) && logCache.length > 1) {
-          // Update from log cache
-          StringBuilder sb = new StringBuilder();
-          synchronized(logCache) {
-            int pos = logPos;
-            int count;
-            if(logCache[pos] != null) {
-              // Log cache has wrapped
-              count = logCache.length;
-            } else {
-              // Log cache has not wrapped yet
-              count = pos;
-              pos = 0;
-            }
-            for(int i = 0; i < count; i++) {
-              if (filterText.length() == 0 || logCache[pos].contains(filterText)) {
-                if (sb.length() > 0) {
-                  sb.append('\n');
-                }
-                sb.append(logCache[pos]);
-              }
-              pos = (pos + 1) % logCache.length;
-            }
-          }
-          logTextArea.setText(sb.toString());
-          logTextArea.setCaretPosition(logTextArea.getDocument().getLength());
-        }
+        setFilter(filterText);
+        // Ensure last row is visible
+        logTable.scrollRectToVisible(new Rectangle(0, logTable.getHeight() - 2, 1, logTable.getHeight()));
       }
     });
     filterPanel.add(Box.createHorizontalStrut(2));
-    JButton saveButton;
-    filterPanel.add(saveButton = new JButton("Save log"));
-    saveButton.addActionListener(new ActionListener() {
-      public void actionPerformed(ActionEvent ev) {
-        JFileChooser fc = new JFileChooser();
+    if (!GUI.isVisualizedInApplet()) {
+      JButton saveButton = new JButton("Save log");
+      filterPanel.add(saveButton);
+      saveButton.addActionListener(new ActionListener() {
+        public void actionPerformed(ActionEvent ev) {
+          JFileChooser fc = new JFileChooser();
 
-        int returnVal = fc.showSaveDialog(GUI.getTopParentContainer());
-        if (returnVal == JFileChooser.APPROVE_OPTION) {
-          File saveFile = fc.getSelectedFile();
+          int returnVal = fc.showSaveDialog(GUI.getTopParentContainer());
+          if (returnVal == JFileChooser.APPROVE_OPTION) {
+            File saveFile = fc.getSelectedFile();
 
-          if (saveFile.exists()) {
-            String s1 = "Overwrite";
-            String s2 = "Cancel";
-            Object[] options = { s1, s2 };
-            int n = JOptionPane.showOptionDialog(
-                GUI.getTopParentContainer(),
-                "A file with the same name already exists.\nDo you want to remove it?",
-                "Overwrite existing file?", JOptionPane.YES_NO_OPTION,
-                JOptionPane.QUESTION_MESSAGE, null, options, s1);
-            if (n != JOptionPane.YES_OPTION) {
-              return;
-            }
-          }
-
-          if (!saveFile.exists() || saveFile.canWrite()) {
-            try {
-              BufferedWriter outStream = new BufferedWriter(
-                  new OutputStreamWriter(
-                      new FileOutputStream(
-                          saveFile)));
-              outStream.write(logTextArea.getText());
-              outStream.close();
-            } catch (Exception ex) {
-              logger.fatal("Could not write to file: " + saveFile);
-              return;
+            if (saveFile.exists()) {
+              String s1 = "Overwrite";
+              String s2 = "Cancel";
+              Object[] options = { s1, s2 };
+              int n = JOptionPane.showOptionDialog(
+                  GUI.getTopParentContainer(),
+                  "A file with the same name already exists.\nDo you want to remove it?",
+                  "Overwrite existing file?", JOptionPane.YES_NO_OPTION,
+                  JOptionPane.QUESTION_MESSAGE, null, options, s1);
+              if (n != JOptionPane.YES_OPTION) {
+                return;
+              }
             }
 
-          } else {
-            logger.fatal("No write access to file");
+            if (!saveFile.exists() || saveFile.canWrite()) {
+              try {
+                PrintWriter outStream = new PrintWriter(new FileWriter(saveFile));
+                for(LogData data : logs) {
+                  outStream.println("Time: " + data.time + "  " + data.moteID + "  " + data.data);
+                }
+                outStream.close();
+              } catch (Exception ex) {
+                logger.fatal("Could not write to file: " + saveFile);
+                return;
+              }
+
+            } else {
+              logger.fatal("No write access to file");
+            }
           }
         }
-      }
-    });
-
-    if (GUI.isVisualizedInApplet()) {
-      saveButton.setToolTipText("Not available in applet");
-      saveButton.setEnabled(false);
+      });
     }
 
-    getContentPane().add(BorderLayout.CENTER, new JScrollPane(logTextArea));
+    getContentPane().add(BorderLayout.CENTER, new JScrollPane(logTable));
     getContentPane().add(BorderLayout.SOUTH, filterPanel);
 
     setTitle("Log Listener - Listening on " + nrLogs + " mote logs");
@@ -256,6 +336,14 @@ public class LogListener extends VisPlugin {
       // Could not select
     }
 
+  }
+
+  private String getMoteID(Mote mote) {
+    MoteID moteID = mote.getInterfaces().getMoteID();
+    if (moteID != null) {
+      return Integer.toString(moteID.getMoteID());
+    }
+    return mote.toString();
   }
 
   public void closePlugin() {
@@ -276,9 +364,9 @@ public class LogListener extends VisPlugin {
     element = new Element("filter");
     element.setText(filterText);
     config.add(element);
-    element = new Element("history");
-    element.setText("" + logCache.length);
-    config.add(element);
+//    element = new Element("history");
+//    element.setText("" + logCache.length);
+//    config.add(element);
 
     return config;
   }
@@ -289,19 +377,50 @@ public class LogListener extends VisPlugin {
       String name = element.getName();
       if ("filter".equals(name)) {
         filterText = element.getText();
-        filterTextField.setText(filterText);
+        EventQueue.invokeLater(new Runnable() {
+          public void run() {
+            filterTextField.setText(filterText);
+            setFilter(filterText);
+          }
+        });
       } else if ("history".equals(name)) {
-        try {
-          int size = Integer.parseInt(element.getText().trim());
-          logCache = new String[size];
-          logPos = 0;
-        } catch (Exception e) {
-          // Ignore malformed history size
-        }
+//        try {
+//          int size = Integer.parseInt(element.getText().trim());
+//        } catch (Exception e) {
+//          // Ignore malformed history size
+//        }
       }
     }
 
     return true;
   }
 
+  private void setFilter(String text) {
+    try {
+      if (text != null && text.length() > 0) {
+        logFilter.setRowFilter(RowFilter.regexFilter(text));
+      } else {
+        logFilter.setRowFilter(null);
+      }
+      filterTextField.setBackground(filterTextFieldBackground);
+      filterTextField.setToolTipText(null);
+    } catch (PatternSyntaxException e) {
+      filterTextField.setBackground(Color.red);
+      filterTextField.setToolTipText("Syntax error: " + e.getMessage());
+    }
+  }
+
+  private static class LogData {
+
+    public final String moteID;
+    public final long time;
+    public final String data;
+
+    public LogData(String moteID, long time, String data) {
+      this.moteID = moteID;
+      this.time = time;
+      this.data = data;
+    }
+    
+  }
 }
