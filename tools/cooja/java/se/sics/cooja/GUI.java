@@ -24,7 +24,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * $Id: GUI.java,v 1.134 2009/06/11 10:23:29 fros4943 Exp $
+ * $Id: GUI.java,v 1.135 2009/06/12 13:00:57 nifi Exp $
  */
 
 package se.sics.cooja;
@@ -2094,6 +2094,8 @@ public class GUI extends Observable {
     }
 
     final JDialog progressDialog;
+    final String progressTitle = configFile == null
+    ? "Loading" : ("Loading " + configFile.getAbsolutePath());
 
     if (quick) {
       final Thread loadThread = Thread.currentThread();
@@ -2103,14 +2105,14 @@ public class GUI extends Observable {
           final JDialog progressDialog;
 
           if (GUI.getTopParentContainer() instanceof Window) {
-            progressDialog = new JDialog((Window) GUI.getTopParentContainer(), "Loading", ModalityType.APPLICATION_MODAL);
+            progressDialog = new JDialog((Window) GUI.getTopParentContainer(), progressTitle, ModalityType.APPLICATION_MODAL);
           } else if (GUI.getTopParentContainer() instanceof Frame) {
-            progressDialog = new JDialog((Frame) GUI.getTopParentContainer(), "Loading", ModalityType.APPLICATION_MODAL);
+            progressDialog = new JDialog((Frame) GUI.getTopParentContainer(), progressTitle, ModalityType.APPLICATION_MODAL);
           } else if (GUI.getTopParentContainer() instanceof Dialog) {
-            progressDialog = new JDialog((Dialog) GUI.getTopParentContainer(), "Loading", ModalityType.APPLICATION_MODAL);
+            progressDialog = new JDialog((Dialog) GUI.getTopParentContainer(), progressTitle, ModalityType.APPLICATION_MODAL);
           } else {
             logger.warn("No parent container");
-            progressDialog = new JDialog((Frame) null, "Loading", ModalityType.APPLICATION_MODAL);
+            progressDialog = new JDialog((Frame) null, progressTitle, ModalityType.APPLICATION_MODAL);
           }
 
           JPanel progressPanel = new JPanel(new BorderLayout());
