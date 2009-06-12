@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: CodeUI.java,v 1.6 2009/06/11 10:06:47 fros4943 Exp $
+ * $Id: CodeUI.java,v 1.7 2009/06/12 15:11:22 fros4943 Exp $
  */
 
 package se.sics.cooja.mspmote.plugins;
@@ -78,6 +78,12 @@ public class CodeUI extends JPanel {
 
     breakpoints.addWatchpointListener(new ActionListener() {
       public void actionPerformed(ActionEvent e) {
+        /* Only update code list if simulation is not running */
+        if (CodeUI.this.breakpoints.getMote().getSimulation().isRunning() ||
+            CodeUI.this.breakpoints.getLastWatchpoint() != null) {
+          return;
+        }
+        
         SwingUtilities.invokeLater(new Runnable() {
           public void run() {
             if (codeList != null) {
