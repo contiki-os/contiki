@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: TimeLine.java,v 1.7 2009/06/11 10:02:53 fros4943 Exp $
+ * $Id: TimeLine.java,v 1.8 2009/06/15 09:47:05 fros4943 Exp $
  */
 
 package se.sics.cooja.plugins;
@@ -992,7 +992,7 @@ public class TimeLine extends VisPlugin {
       String tooltip = "<html>Mote: " + allMoteEvents.get(mote).mote + "<br>";
 
       /* Time */
-      long time = event.getPoint().x*currentPixelDivisor;
+      long time = event.getPoint().x*(long)currentPixelDivisor;
       tooltip += "Time (ms): " + (double)(time/Simulation.MILLISECOND) + "<br>";
 
       /* Event */
@@ -1383,7 +1383,7 @@ public class TimeLine extends VisPlugin {
     public void addWatchpoint(WatchpointEvent ev) {
       /* Automatically toggle colors */
       /* TODO Move color decision to watchpoint interface? */
-      if (lastWatchpointEvent != null) {
+      if (lastWatchpointEvent != null && lastWatchpointEvent instanceof WatchpointEvent) {
         if (((WatchpointEvent)lastWatchpointEvent).color == Color.RED) {
           ((WatchpointEvent)ev).color = Color.GREEN;
         } else if (((WatchpointEvent)lastWatchpointEvent).color == Color.GREEN) {
