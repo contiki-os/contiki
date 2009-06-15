@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ScriptRunner.java,v 1.19 2009/06/09 09:47:04 fros4943 Exp $
+ * $Id: ScriptRunner.java,v 1.20 2009/06/15 15:41:32 fros4943 Exp $
  */
 
 package se.sics.cooja.plugins;
@@ -37,6 +37,7 @@ import java.awt.Insets;
 import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
 import java.io.BufferedReader;
@@ -74,6 +75,9 @@ public class ScriptRunner extends VisPlugin {
 
   private LogScriptEngine engine = null;
 
+  private File coojaBuild;
+  private File coojaJAR;
+  private final File logFile;
   private static BufferedWriter logWriter = null; /* For non-GUI tests */
 
   private JTextArea scriptTextArea = null;
@@ -88,6 +92,17 @@ public class ScriptRunner extends VisPlugin {
     super("Contiki Test Editor", gui, false);
     this.simulation = simulation;
 
+    try {
+      coojaBuild = new File(GUI.getExternalToolsSetting("PATH_CONTIKI"), "tools/cooja/build");
+      coojaJAR = new File(GUI.getExternalToolsSetting("PATH_CONTIKI"), "tools/cooja/dist/cooja.jar");
+      coojaBuild = coojaBuild.getCanonicalFile();
+      coojaJAR = coojaJAR.getCanonicalFile();
+    } catch (IOException e) {
+      coojaBuild = new File(GUI.getExternalToolsSetting("PATH_CONTIKI"), "tools/cooja/build");
+      coojaJAR = new File(GUI.getExternalToolsSetting("PATH_CONTIKI"), "tools/cooja/dist/cooja.jar");
+    }
+    logFile = new File(coojaBuild, "COOJA.testlog");
+    
     final JTextArea lineTextArea = new JTextArea();
     lineTextArea.setEnabled(false);
     lineTextArea.setMargin(new Insets(5,0,5,0));
@@ -261,9 +276,11 @@ public class ScriptRunner extends VisPlugin {
       } else {
         try {
           /* Continously write test output to file */
-          File logFile = new File("COOJA.testlog");
           if (logWriter == null) {
-            /* Warning: static variable, used by all active plugins */
+            /* Warning: static variable, used by all active test editor plugins */
+            if (logFile.exists()) {
+              logFile.delete();
+            }
             logWriter = new BufferedWriter(new FileWriter(logFile));
           }
           engine.setScriptLogObserver(new Observer() {
@@ -276,11 +293,12 @@ public class ScriptRunner extends VisPlugin {
                   logger.fatal("No log writer: " + obj);
                 }
               } catch (IOException e) {
-                logger.fatal("Error when writing to test log file: " + obj);
+                logger.fatal("Error when writing to test log file: " + obj, e);
               }
             }
           });
         } catch (Exception e) {
+          logger.fatal("Create log writer error: ", e);
           setScriptActive(false);
         }
       }
@@ -353,16 +371,6 @@ public class ScriptRunner extends VisPlugin {
       final JDialog progressDialog = new JDialog((Window)GUI.getTopParentContainer(), (String) null);
       progressDialog.setTitle("Running test...");
 
-      File coojaBuild = new File(GUI.getExternalToolsSetting("PATH_CONTIKI"), "tools/cooja/build");
-      File coojaJAR = new File(GUI.getExternalToolsSetting("PATH_CONTIKI"), "tools/cooja/dist/cooja.jar");
-      coojaBuild = coojaBuild.getCanonicalFile();
-      coojaJAR = coojaJAR.getCanonicalFile();
-
-      final File logFile = new File(coojaBuild, "COOJA.testlog");
-      if (logFile.exists()) {
-        logFile.delete();
-      }
-
       if (!coojaJAR.exists()) {
         JOptionPane.showMessageDialog(GUI.getTopParentContainer(),
             "Can't start COOJA, cooja.jar not found:" +
@@ -418,23 +426,11 @@ public class ScriptRunner extends VisPlugin {
       progressDialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
 
       progressDialog.getRootPane().setDefaultButton(button);
-      progressDialog.setSize(500, 300);
+      progressDialog.setSize(800, 300);
       progressDialog.setLocationRelativeTo(ScriptRunner.this);
-      progressDialog.addWindowListener(new WindowListener() {
-        public void windowActivated(WindowEvent e) {
-        }
+      progressDialog.addWindowListener(new WindowAdapter() {
         public void windowClosed(WindowEvent e) {
           abort.actionPerformed(null);
-        }
-        public void windowClosing(WindowEvent e) {
-        }
-        public void windowDeactivated(WindowEvent e) {
-        }
-        public void windowDeiconified(WindowEvent e) {
-        }
-        public void windowIconified(WindowEvent e) {
-        }
-        public void windowOpened(WindowEvent e) {
         }
       });
       progressDialog.setVisible(true);
@@ -553,7 +549,9 @@ public class ScriptRunner extends VisPlugin {
         }
       } else if ("active".equals(name)) {
         boolean active = Boolean.parseBoolean(element.getText());
-        setScriptActive(active);
+        if (GUI.isVisualized()) {
+          setScriptActive(active);
+        }
       }
     }
 

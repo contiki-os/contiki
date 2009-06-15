@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: LogScriptEngine.java,v 1.14 2009/06/09 09:47:04 fros4943 Exp $
+ * $Id: LogScriptEngine.java,v 1.15 2009/06/15 15:41:32 fros4943 Exp $
  */
 
 package se.sics.cooja.plugins;
@@ -276,11 +276,11 @@ public class LogScriptEngine {
           timeoutEvent,
           simulation.getSimulationTime() + timeoutTime);
     } else {
-      logger.info("No timeout defined, using default: " + 
-          simulation.getSimulationTime() + DEFAULT_TIMEOUT);
+      logger.info("No timeout defined, using default (us): " + 
+          (simulation.getSimulationTime() + DEFAULT_TIMEOUT));
       simulation.scheduleEvent(
           timeoutEvent,
-          simulation.getSimulationTime() + DEFAULT_TIMEOUT);
+          (simulation.getSimulationTime() + DEFAULT_TIMEOUT));
     }
 
     engine.eval(jsCode);
@@ -296,7 +296,7 @@ public class LogScriptEngine {
     try {
       semaphoreScript.acquire();
     } catch (InterruptedException e) {
-      e.printStackTrace();
+      logger.fatal("Error when creating engine: " + e.getMessage(), e);
     }
     ThreadGroup group = new ThreadGroup("script") {
       public void uncaughtException(Thread t, Throwable e) {
