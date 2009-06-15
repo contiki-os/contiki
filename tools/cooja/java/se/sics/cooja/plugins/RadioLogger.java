@@ -26,24 +26,37 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: RadioLogger.java,v 1.21 2009/06/12 14:34:29 nifi Exp $
+ * $Id: RadioLogger.java,v 1.22 2009/06/15 10:53:24 fros4943 Exp $
  */
 
 package se.sics.cooja.plugins;
 import java.awt.Font;
 import java.awt.Rectangle;
+import java.awt.Toolkit;
+import java.awt.datatransfer.Clipboard;
+import java.awt.datatransfer.StringSelection;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Observable;
 import java.util.Observer;
+
+import javax.swing.AbstractAction;
+import javax.swing.Action;
+import javax.swing.JFileChooser;
 import javax.swing.JMenuItem;
+import javax.swing.JOptionPane;
 import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.table.AbstractTableModel;
+
+import org.apache.log4j.Logger;
 import org.jdom.Element;
 import se.sics.cooja.ClassDescription;
 import se.sics.cooja.ConvertedRadioPacket;
@@ -69,7 +82,7 @@ import se.sics.cooja.util.StringUtils;
 @ClassDescription("Radio Logger")
 @PluginType(PluginType.SIM_PLUGIN)
 public class RadioLogger extends VisPlugin {
-
+  private static Logger logger = Logger.getLogger(RadioLogger.class);
   private static final long serialVersionUID = -6927091711697081353L;
 
   private final static int COLUMN_TIME = 0;
@@ -89,13 +102,14 @@ public class RadioLogger extends VisPlugin {
   private ArrayList<RadioConnectionLog> connections = new ArrayList<RadioConnectionLog>();
   private RadioMedium radioMedium;
   private Observer radioMediumObserver;
-
+  private AbstractTableModel model;
+  
   public RadioLogger(final Simulation simulationToControl, final GUI gui) {
     super("Radio Logger", gui);
     simulation = simulationToControl;
     radioMedium = simulation.getRadioMedium();
 
-    final AbstractTableModel model = new AbstractTableModel() {
+    model = new AbstractTableModel() {
 
       private static final long serialVersionUID = 1692207305977527004L;
 
@@ -219,20 +233,11 @@ public class RadioLogger extends VisPlugin {
     dataTable.setFont(new Font("Monospaced", Font.PLAIN, 12));
 
     JPopupMenu popupMenu = new JPopupMenu();
-    JMenuItem clearItem = new JMenuItem("Clear");
-    clearItem.addActionListener(new ActionListener() {
-
-      public void actionPerformed(ActionEvent e) {
-        int size = connections.size();
-        if (size > 0) {
-          connections.clear();
-          model.fireTableRowsDeleted(0, size - 1);
-          setTitle("Radio Logger: " + dataTable.getRowCount() + " packets");
-        }
-      }
-
-    });
-    popupMenu.add(clearItem);
+    popupMenu.add(new JMenuItem(copyAction));
+    popupMenu.add(new JMenuItem(copyAllAction));
+    popupMenu.add(new JMenuItem(clearAction));
+    popupMenu.addSeparator();
+    popupMenu.add(new JMenuItem(saveAction));
     dataTable.setComponentPopupMenu(popupMenu);
 
     add(new JScrollPane(dataTable));
@@ -373,4 +378,113 @@ public class RadioLogger extends VisPlugin {
     String data = null;
     String tooltip = null;
   }
+
+  private String getDestString(RadioConnectionLog c) {
+    Radio[] dests = c.connection.getDestinations();
+    if (dests.length == 0) {
+      return "-";
+    }
+    if (dests.length == 1) {
+      return getMoteID(dests[0].getMote());
+    }
+    StringBuilder sb = new StringBuilder();
+    for (Radio dest: dests) {
+      sb.append(getMoteID(dest.getMote()) + ',');
+    }
+    sb.setLength(sb.length()-1);
+    return sb.toString();
+  }
+
+  private Action clearAction = new AbstractAction("Clear") {
+    public void actionPerformed(ActionEvent e) {
+      int size = connections.size();
+      if (size > 0) {
+        connections.clear();
+        model.fireTableRowsDeleted(0, size - 1);
+        setTitle("Radio Logger: " + dataTable.getRowCount() + " packets");
+      }
+    }
+  };
+  
+  private Action copyAction = new AbstractAction("Copy selected") {
+    public void actionPerformed(ActionEvent e) {
+      Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
+
+      int[] selectedRows = dataTable.getSelectedRows();
+
+      StringBuilder sb = new StringBuilder();
+      for (int i: selectedRows) {
+        sb.append("" + dataTable.getValueAt(i, COLUMN_TIME) + '\t');
+        sb.append("" + dataTable.getValueAt(i, COLUMN_FROM) + '\t');
+        sb.append("" + getDestString(connections.get(i)) + '\t');
+        sb.append("" + dataTable.getValueAt(i, COLUMN_DATA) + '\n');
+      }
+
+      StringSelection stringSelection = new StringSelection(sb.toString());
+      clipboard.setContents(stringSelection, null);
+    }
+  };
+  
+  private Action copyAllAction = new AbstractAction("Copy all") {
+    public void actionPerformed(ActionEvent e) {
+      Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
+
+      StringBuilder sb = new StringBuilder();
+      for(int i=0; i < connections.size(); i++) {
+        sb.append("" + dataTable.getValueAt(i, COLUMN_TIME) + '\t');
+        sb.append("" + dataTable.getValueAt(i, COLUMN_FROM) + '\t');
+        sb.append("" + getDestString(connections.get(i)) + '\t');
+        sb.append("" + dataTable.getValueAt(i, COLUMN_DATA) + '\n');
+      }
+
+      StringSelection stringSelection = new StringSelection(sb.toString());
+      clipboard.setContents(stringSelection, null);
+    }
+  };
+  
+  private Action saveAction = new AbstractAction("Save to file") {
+    public void actionPerformed(ActionEvent e) {
+      JFileChooser fc = new JFileChooser();
+      int returnVal = fc.showSaveDialog(GUI.getTopParentContainer());
+      if (returnVal != JFileChooser.APPROVE_OPTION) {
+        return;
+      }
+
+      File saveFile = fc.getSelectedFile();
+      if (saveFile.exists()) {
+        String s1 = "Overwrite";
+        String s2 = "Cancel";
+        Object[] options = { s1, s2 };
+        int n = JOptionPane.showOptionDialog(
+            GUI.getTopParentContainer(),
+            "A file with the same name already exists.\nDo you want to remove it?",
+            "Overwrite existing file?", JOptionPane.YES_NO_OPTION,
+            JOptionPane.QUESTION_MESSAGE, null, options, s1);
+        if (n != JOptionPane.YES_OPTION) {
+          return;
+        }
+      }
+
+      if (saveFile.exists() && !saveFile.canWrite()) {
+        logger.fatal("No write access to file: " + saveFile);
+        return;
+      }
+
+      try {
+        PrintWriter outStream = new PrintWriter(new FileWriter(saveFile));
+        for(int i=0; i < connections.size(); i++) {
+          outStream.print("" + dataTable.getValueAt(i, COLUMN_TIME) + '\t');
+          outStream.print("" + dataTable.getValueAt(i, COLUMN_FROM) + '\t');
+          outStream.print("" + getDestString(connections.get(i)) + '\t');
+          outStream.print("" + dataTable.getValueAt(i, COLUMN_DATA) + '\n');
+        }
+        outStream.close();
+      } catch (Exception ex) {
+        logger.fatal("Could not write to file: " + saveFile);
+        return;
+      }
+
+    }
+  };
+  
 }
