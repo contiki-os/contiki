@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: LogScriptEngine.java,v 1.16 2009/06/15 16:53:32 fros4943 Exp $
+ * $Id: LogScriptEngine.java,v 1.17 2009/06/15 17:39:02 fros4943 Exp $
  */
 
 package se.sics.cooja.plugins;
@@ -394,7 +394,6 @@ public class LogScriptEngine {
 
       public void generateMessage(long delay, final String msg) {
         final Mote currentMote = (Mote) engine.get("mote");
-
         TimeEvent generateEvent = new TimeEvent(0) {
           public void execute(long t) {
             if (scriptThread == null ||
@@ -415,7 +414,7 @@ public class LogScriptEngine {
         };
         simulation.scheduleEvent(
             generateEvent,
-            simulation.getSimulationTime() + delay);
+            simulation.getSimulationTime() + delay*Simulation.MILLISECOND);
       }
     });
 
