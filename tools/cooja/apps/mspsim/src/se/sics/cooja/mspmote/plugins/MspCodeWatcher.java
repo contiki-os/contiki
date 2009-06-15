@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: MspCodeWatcher.java,v 1.17 2009/06/11 10:12:44 fros4943 Exp $
+ * $Id: MspCodeWatcher.java,v 1.18 2009/06/15 09:44:42 fros4943 Exp $
  */
 
 package se.sics.cooja.mspmote.plugins;
@@ -47,6 +47,7 @@ import org.jdom.Element;
 
 import se.sics.cooja.*;
 import se.sics.cooja.mspmote.MspMote;
+import se.sics.cooja.mspmote.MspMoteType;
 import se.sics.cooja.util.StringUtils;
 import se.sics.mspsim.core.EmulationException;
 import se.sics.mspsim.core.MSP430;
@@ -240,11 +241,29 @@ public class MspCodeWatcher extends VisPlugin {
 
   public void closePlugin() {
     simulation.deleteObserver(simObserver);
-    
-    /* Delete breakpoints */
-    while (breakpoints.getBreakpoints().length > 0) {
-      breakpoints.removeBreakpoint(breakpoints.getBreakpoints()[0].getExecutableAddress());
-    }
+
+//    if (breakpoints.getBreakpoints().length == 0) {
+//      return;
+//    }
+//    
+//    if (GUI.isVisualized()) {
+//      String s1 = "Remove";
+//      String s2 = "Keep";
+//      Object[] options = { s1, s2 };
+//      int n = JOptionPane.showOptionDialog(GUI.getTopParentContainer(),
+//          "Mote has " + breakpoints.getBreakpoints().length + " breakpoints." +
+//          "\nShould they be removed?",
+//          "Remove mote breakpoints?", JOptionPane.YES_NO_OPTION,
+//          JOptionPane.QUESTION_MESSAGE, null, options, s1);
+//      if (n != JOptionPane.YES_OPTION) {
+//        return;
+//      }
+//    }
+//    
+//    /* Remove all mote breakpoints */
+//    while (breakpoints.getBreakpoints().length > 0) {
+//      breakpoints.removeBreakpoint(breakpoints.getBreakpoints()[0].getExecutableAddress());
+//    }
   }
 
   private void updateCurrentSourceCodeFile() {
@@ -381,10 +400,6 @@ public class MspCodeWatcher extends VisPlugin {
     Vector<Element> config = new Vector<Element>();
     Element element;
     
-    element = new Element("breakpoints");
-    element.addContent(breakpoints.getConfigXML());
-    config.add(element);
-    
     element = new Element("split_1");
     element.addContent("" + leftSplitPane.getDividerLocation());
     config.add(element);
@@ -398,9 +413,7 @@ public class MspCodeWatcher extends VisPlugin {
 
   public boolean setConfigXML(Collection<Element> configXML, boolean visAvailable) {
     for (Element element : configXML) {
-      if (element.getName().equals("breakpoints")) {
-        breakpoints.setConfigXML(element.getChildren(), visAvailable);
-      } else if (element.getName().equals("split_1")) {
+      if (element.getName().equals("split_1")) {
         leftSplitPane.setDividerLocation(Integer.parseInt(element.getText()));
       } else if (element.getName().equals("split_2")) {
         rightSplitPane.setDividerLocation(Integer.parseInt(element.getText()));
