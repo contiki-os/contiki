@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ScriptRunner.java,v 1.20 2009/06/15 15:41:32 fros4943 Exp $
+ * $Id: ScriptRunner.java,v 1.21 2009/06/15 16:53:32 fros4943 Exp $
  */
 
 package se.sics.cooja.plugins;
@@ -75,9 +75,6 @@ public class ScriptRunner extends VisPlugin {
 
   private LogScriptEngine engine = null;
 
-  private File coojaBuild;
-  private File coojaJAR;
-  private final File logFile;
   private static BufferedWriter logWriter = null; /* For non-GUI tests */
 
   private JTextArea scriptTextArea = null;
@@ -92,26 +89,11 @@ public class ScriptRunner extends VisPlugin {
     super("Contiki Test Editor", gui, false);
     this.simulation = simulation;
 
-    try {
-      coojaBuild = new File(GUI.getExternalToolsSetting("PATH_CONTIKI"), "tools/cooja/build");
-      coojaJAR = new File(GUI.getExternalToolsSetting("PATH_CONTIKI"), "tools/cooja/dist/cooja.jar");
-      coojaBuild = coojaBuild.getCanonicalFile();
-      coojaJAR = coojaJAR.getCanonicalFile();
-    } catch (IOException e) {
-      coojaBuild = new File(GUI.getExternalToolsSetting("PATH_CONTIKI"), "tools/cooja/build");
-      coojaJAR = new File(GUI.getExternalToolsSetting("PATH_CONTIKI"), "tools/cooja/dist/cooja.jar");
-    }
-    logFile = new File(coojaBuild, "COOJA.testlog");
-    
     final JTextArea lineTextArea = new JTextArea();
     lineTextArea.setEnabled(false);
     lineTextArea.setMargin(new Insets(5,0,5,0));
 
-    try {
-      scriptFirstLinesNumber = new ScriptParser("").getJSCode().split("\n").length + 2;
-    } catch (ScriptSyntaxErrorException e1) {
-      scriptFirstLinesNumber = 1;
-    }
+    scriptFirstLinesNumber = 1;
 
     /* Examples popup menu */
     final JPopupMenu popupMenu = new JPopupMenu();
@@ -178,6 +160,17 @@ public class ScriptRunner extends VisPlugin {
           txt += i + "\n";
         }
         lineTextArea.setText(txt);
+        
+        ScriptParser parser;
+        try {
+          parser = new ScriptParser(scriptTextArea.getText());
+          String tooltip = parser.getJSCode();
+          tooltip = tooltip.replaceAll("\n", "<br>");
+          tooltip = "<html><b>Generated code:</b><p>" + tooltip + "</html>";
+          lineTextArea.setToolTipText(tooltip);
+        } catch (ScriptSyntaxErrorException e) {
+          lineTextArea.setToolTipText("Unable to generate code: " + e.getMessage());
+        }
       }
 
       public void changedUpdate(DocumentEvent e) {
@@ -278,6 +271,7 @@ public class ScriptRunner extends VisPlugin {
           /* Continously write test output to file */
           if (logWriter == null) {
             /* Warning: static variable, used by all active test editor plugins */
+            File logFile = new File("COOJA.testlog");
             if (logFile.exists()) {
               logFile.delete();
             }
@@ -371,6 +365,18 @@ public class ScriptRunner extends VisPlugin {
       final JDialog progressDialog = new JDialog((Window)GUI.getTopParentContainer(), (String) null);
       progressDialog.setTitle("Running test...");
 
+      File coojaBuild;
+      File coojaJAR;
+      try {
+        coojaBuild = new File(GUI.getExternalToolsSetting("PATH_CONTIKI"), "tools/cooja/build");
+        coojaJAR = new File(GUI.getExternalToolsSetting("PATH_CONTIKI"), "tools/cooja/dist/cooja.jar");
+        coojaBuild = coojaBuild.getCanonicalFile();
+        coojaJAR = coojaJAR.getCanonicalFile();
+      } catch (IOException e) {
+        coojaBuild = new File(GUI.getExternalToolsSetting("PATH_CONTIKI"), "tools/cooja/build");
+        coojaJAR = new File(GUI.getExternalToolsSetting("PATH_CONTIKI"), "tools/cooja/dist/cooja.jar");
+      }
+
       if (!coojaJAR.exists()) {
         JOptionPane.showMessageDialog(GUI.getTopParentContainer(),
             "Can't start COOJA, cooja.jar not found:" +
@@ -379,6 +385,8 @@ public class ScriptRunner extends VisPlugin {
             "cooja.jar not found", JOptionPane.ERROR_MESSAGE);
         return;
       }
+
+      final File logFile = new File(coojaBuild, "COOJA.testlog");
 
       String command[] = {
           "java",

@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ScriptParser.java,v 1.6 2009/06/12 15:12:46 fros4943 Exp $
+ * $Id: ScriptParser.java,v 1.7 2009/06/15 16:53:32 fros4943 Exp $
  */
 
 package se.sics.cooja.plugins;
@@ -218,14 +218,33 @@ public class ScriptParser {
   }
 
   public String getJSCode() {
+    return getJSCode(code, timeoutCode);
+  }
+    
+  public static String getJSCode(String code, String timeoutCode) {
     return
+    "function run() { " +
+    "SEMAPHORE_SIM.acquire(); " +
+    "SEMAPHORE_SCRIPT.acquire(); " + /* STARTUP BLOCKS HERE! */
+    "if (SHUTDOWN) { SCRIPT_KILL(); } " +
+    "if (TIMEOUT) { SCRIPT_TIMEOUT(); } " +
+    "msg = new java.lang.String(msg); " +
+    "node.setMoteMsg(mote, msg); " +
+    code + 
+    "\n" +
+    "\n" +
+    "while (true) { SCRIPT_SWITCH(); } " /* SCRIPT ENDED */+
+    "};" +
+    "\n" +
     "function GENERATE_MSG(time, msg) { " +
     " log.generateMessage(time, msg); " +
     "};\n" +
+    "\n" +
     "function SCRIPT_KILL() { " +
     " SEMAPHORE_SIM.release(100); " +
     " throw('test script killed'); " +
     "};\n" +
+    "\n" +
     "function SCRIPT_TIMEOUT() { " +
     timeoutCode + "; " +
     " log.log('TEST TIMEOUT\\n'); " +
@@ -236,6 +255,7 @@ public class ScriptParser {
     " } " +
     " SCRIPT_KILL(); " +
     "};\n" +
+    "\n" +
     "function SCRIPT_SWITCH() { " +
     " SEMAPHORE_SIM.release(); " +
     " SEMAPHORE_SCRIPT.acquire(); " /* SWITCH BLOCKS HERE! */ +
@@ -244,19 +264,10 @@ public class ScriptParser {
     " msg = new java.lang.String(msg); " +
     " node.setMoteMsg(mote, msg); " +
     "};\n" +
+    "\n" +
     "function write(mote,msg) { " +
     " mote.getInterfaces().getLog().writeString(msg); " +
-    "};\n" +
-    "function run() { " +
-    "SEMAPHORE_SIM.acquire(); " +
-    "SEMAPHORE_SCRIPT.acquire(); " + /* STARTUP BLOCKS HERE! */
-    "if (SHUTDOWN) { SCRIPT_KILL(); } " +
-    "if (TIMEOUT) { SCRIPT_TIMEOUT(); } " +
-    "msg = new java.lang.String(msg); " +
-    "node.setMoteMsg(mote, msg); " +
-    code + "\n" +
-    "while (true) { SCRIPT_SWITCH(); } " /* SCRIPT ENDED */+
-    "};";
+    "};\n";
   }
 
   public long getTimeoutTime() {
