@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: MspMote.java,v 1.30 2009/06/11 10:08:12 fros4943 Exp $
+ * $Id: MspMote.java,v 1.31 2009/06/15 09:44:42 fros4943 Exp $
  */
 
 package se.sics.cooja.mspmote;
@@ -399,6 +399,8 @@ public abstract class MspMote implements Mote, WatchpointMote {
         /* Create watchpoint container */
         breakpointsContainer = new MspBreakpointContainer(this, getFirmwareDebugInfo(this));
         
+      } else if ("breakpoints".equals(element.getName())) {
+        breakpointsContainer.setConfigXML(element.getChildren(), visAvailable);
       } else if (name.equals("interface_config")) {
         String intfClass = element.getText().trim();
         if (intfClass.equals("se.sics.cooja.mspmote.interfaces.MspIPAddress")) {
@@ -428,6 +430,11 @@ public abstract class MspMote implements Mote, WatchpointMote {
     // Mote type identifier
     element = new Element("motetype_identifier");
     element.setText(getType().getIdentifier());
+    config.add(element);
+
+    /* Breakpoints */
+    element = new Element("breakpoints");
+    element.addContent(breakpointsContainer.getConfigXML());
     config.add(element);
 
     // Mote interfaces
