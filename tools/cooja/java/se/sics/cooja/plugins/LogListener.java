@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: LogListener.java,v 1.14 2009/06/12 14:34:29 nifi Exp $
+ * $Id: LogListener.java,v 1.15 2009/06/15 08:34:51 fros4943 Exp $
  */
 
 package se.sics.cooja.plugins;
@@ -36,6 +36,9 @@ import java.awt.Color;
 import java.awt.EventQueue;
 import java.awt.Font;
 import java.awt.Rectangle;
+import java.awt.Toolkit;
+import java.awt.datatransfer.Clipboard;
+import java.awt.datatransfer.StringSelection;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
@@ -48,6 +51,9 @@ import java.util.Observable;
 import java.util.Observer;
 import java.util.Vector;
 import java.util.regex.PatternSyntaxException;
+
+import javax.swing.AbstractAction;
+import javax.swing.Action;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
@@ -73,6 +79,7 @@ import se.sics.cooja.PluginType;
 import se.sics.cooja.Simulation;
 import se.sics.cooja.VisPlugin;
 import se.sics.cooja.dialogs.TableColumnAdjuster;
+import se.sics.cooja.dialogs.MessageList.MessageContainer;
 import se.sics.cooja.interfaces.Log;
 import se.sics.cooja.interfaces.MoteID;
 
@@ -108,6 +115,8 @@ public class LogListener extends VisPlugin {
   private JTextField filterTextField = null;
   private Color filterTextFieldBackground;
 
+  private AbstractTableModel model;
+  
   /**
    * Create a new simulation control panel.
    *
@@ -118,7 +127,7 @@ public class LogListener extends VisPlugin {
     simulation = simulationToControl;
     int nrLogs = 0;
 
-    final AbstractTableModel model = new AbstractTableModel() {
+    model = new AbstractTableModel() {
 
       private static final long serialVersionUID = 3065150390849332924L;
 
@@ -185,27 +194,20 @@ public class LogListener extends VisPlugin {
     }
     logTable.setRowSorter(logFilter);
 
+    /* Popup menu */
     JPopupMenu popupMenu = new JPopupMenu();
-    JMenuItem clearItem = new JMenuItem("Clear");
-    clearItem.addActionListener(new ActionListener() {
-
-      public void actionPerformed(ActionEvent e) {
-        int size = logs.size();
-        if (size > 0) {
-          logs.clear();
-          model.fireTableRowsDeleted(0, size - 1);
-        }
-      }
-
-    });
-    popupMenu.add(clearItem);
+    popupMenu.add(new JMenuItem(copyAction));
+    popupMenu.add(new JMenuItem(copyAllAction));
+    popupMenu.add(new JMenuItem(clearAction));
+    popupMenu.addSeparator();
+    popupMenu.add(new JMenuItem(saveAction));
     logTable.setComponentPopupMenu(popupMenu);
 
     TableColumnAdjuster adjuster = new TableColumnAdjuster(logTable);
     adjuster.setDynamicAdjustment(true);
     adjuster.packColumns();
 
-    // Log observer
+    /* Observe simulation motes for log data */
     logObserver = new Observer() {
       public void update(Observable obs, Object obj) {
         Mote mote = (Mote) obj;
@@ -236,11 +238,9 @@ public class LogListener extends VisPlugin {
         });
       }
     };
-
-    // Register as loglistener on all currently active motes
-    for (int i=0; i < simulation.getMotesCount(); i++) {
-      if (simulation.getMote(i).getInterfaces().getLog() != null) {
-        simulation.getMote(i).getInterfaces().getLog().addObserver(logObserver);
+    for (Mote mote: simulation.getMotes()) {
+      if (mote.getInterfaces().getLog() != null) {
+        mote.getInterfaces().getLog().addObserver(logObserver);
         nrLogs++;
       }
     }
@@ -249,10 +249,10 @@ public class LogListener extends VisPlugin {
       public void update(Observable obs, Object obj) {
         /* Reregister as log listener */
         int nrLogs = 0;
-        for (int i=0; i < simulation.getMotesCount(); i++) {
-          if (simulation.getMote(i).getInterfaces().getLog() != null) {
-            simulation.getMote(i).getInterfaces().getLog().deleteObserver(logObserver);
-            simulation.getMote(i).getInterfaces().getLog().addObserver(logObserver);
+        for (Mote mote: simulation.getMotes()) {
+          if (mote.getInterfaces().getLog() != null) {
+            mote.getInterfaces().getLog().deleteObserver(logObserver);
+            mote.getInterfaces().getLog().addObserver(logObserver);
             nrLogs++;
           }
         }
@@ -277,50 +277,6 @@ public class LogListener extends VisPlugin {
       }
     });
     filterPanel.add(Box.createHorizontalStrut(2));
-    if (!GUI.isVisualizedInApplet()) {
-      JButton saveButton = new JButton("Save log");
-      filterPanel.add(saveButton);
-      saveButton.addActionListener(new ActionListener() {
-        public void actionPerformed(ActionEvent ev) {
-          JFileChooser fc = new JFileChooser();
-
-          int returnVal = fc.showSaveDialog(GUI.getTopParentContainer());
-          if (returnVal == JFileChooser.APPROVE_OPTION) {
-            File saveFile = fc.getSelectedFile();
-
-            if (saveFile.exists()) {
-              String s1 = "Overwrite";
-              String s2 = "Cancel";
-              Object[] options = { s1, s2 };
-              int n = JOptionPane.showOptionDialog(
-                  GUI.getTopParentContainer(),
-                  "A file with the same name already exists.\nDo you want to remove it?",
-                  "Overwrite existing file?", JOptionPane.YES_NO_OPTION,
-                  JOptionPane.QUESTION_MESSAGE, null, options, s1);
-              if (n != JOptionPane.YES_OPTION) {
-                return;
-              }
-            }
-
-            if (!saveFile.exists() || saveFile.canWrite()) {
-              try {
-                PrintWriter outStream = new PrintWriter(new FileWriter(saveFile));
-                for(LogData data : logs) {
-                  outStream.println("Time: " + data.time + "  " + data.moteID + "  " + data.data);
-                }
-                outStream.close();
-              } catch (Exception ex) {
-                logger.fatal("Could not write to file: " + saveFile);
-                return;
-              }
-
-            } else {
-              logger.fatal("No write access to file");
-            }
-          }
-        }
-      });
-    }
 
     getContentPane().add(BorderLayout.CENTER, new JScrollPane(logTable));
     getContentPane().add(BorderLayout.SOUTH, filterPanel);
@@ -329,13 +285,6 @@ public class LogListener extends VisPlugin {
     pack();
     setSize(gui.getDesktopPane().getWidth(), 150);
     setLocation(0, gui.getDesktopPane().getHeight() - 300);
-
-    try {
-      setSelected(true);
-    } catch (java.beans.PropertyVetoException e) {
-      // Could not select
-    }
-
   }
 
   private String getMoteID(Mote mote) {
@@ -347,32 +296,26 @@ public class LogListener extends VisPlugin {
   }
 
   public void closePlugin() {
-    // Remove log observer from all log interfaces
-    for (int i=0; i < simulation.getMotesCount(); i++) {
-      if (simulation.getMote(i).getInterfaces().getLog() != null) {
-        simulation.getMote(i).getInterfaces().getLog().deleteObserver(logObserver);
+    /* Stop observing mote logs */
+    for (Mote mote: simulation.getMotes()) {
+      if (mote.getInterfaces().getLog() != null) {
+        mote.getInterfaces().getLog().deleteObserver(logObserver);
       }
     }
   }
 
   public Collection<Element> getConfigXML() {
     Vector<Element> config = new Vector<Element>();
-
     Element element;
 
-    // Selected variable name
     element = new Element("filter");
     element.setText(filterText);
     config.add(element);
-//    element = new Element("history");
-//    element.setText("" + logCache.length);
-//    config.add(element);
 
     return config;
   }
 
   public boolean setConfigXML(Collection<Element> configXML, boolean visAvailable) {
-
     for (Element element : configXML) {
       String name = element.getName();
       if ("filter".equals(name)) {
@@ -383,12 +326,6 @@ public class LogListener extends VisPlugin {
             setFilter(filterText);
           }
         });
-      } else if ("history".equals(name)) {
-//        try {
-//          int size = Integer.parseInt(element.getText().trim());
-//        } catch (Exception e) {
-//          // Ignore malformed history size
-//        }
       }
     }
 
@@ -411,7 +348,6 @@ public class LogListener extends VisPlugin {
   }
 
   private static class LogData {
-
     public final String moteID;
     public final long time;
     public final String data;
@@ -421,6 +357,93 @@ public class LogListener extends VisPlugin {
       this.time = time;
       this.data = data;
     }
-    
   }
+
+  private Action saveAction = new AbstractAction("Save to file") {
+    public void actionPerformed(ActionEvent e) {
+      JFileChooser fc = new JFileChooser();
+      int returnVal = fc.showSaveDialog(GUI.getTopParentContainer());
+      if (returnVal != JFileChooser.APPROVE_OPTION) {
+        return;
+      }
+
+      File saveFile = fc.getSelectedFile();
+      if (saveFile.exists()) {
+        String s1 = "Overwrite";
+        String s2 = "Cancel";
+        Object[] options = { s1, s2 };
+        int n = JOptionPane.showOptionDialog(
+            GUI.getTopParentContainer(),
+            "A file with the same name already exists.\nDo you want to remove it?",
+            "Overwrite existing file?", JOptionPane.YES_NO_OPTION,
+            JOptionPane.QUESTION_MESSAGE, null, options, s1);
+        if (n != JOptionPane.YES_OPTION) {
+          return;
+        }
+      }
+
+      if (saveFile.exists() && !saveFile.canWrite()) {
+        logger.fatal("No write access to file: " + saveFile);
+        return;
+      }
+
+      try {
+        PrintWriter outStream = new PrintWriter(new FileWriter(saveFile));
+        for(LogData data : logs) {
+          outStream.println(data.time + "  " + data.moteID + "  " + data.data);
+        }
+        outStream.close();
+      } catch (Exception ex) {
+        logger.fatal("Could not write to file: " + saveFile);
+        return;
+      }
+
+    }
+  };
+  
+  private Action clearAction = new AbstractAction("Clear") {
+    public void actionPerformed(ActionEvent e) {
+      int size = logs.size();
+      if (size > 0) {
+        logs.clear();
+        model.fireTableRowsDeleted(0, size - 1);
+      }
+    }
+  };
+  
+  private Action copyAction = new AbstractAction("Copy selected") {
+    public void actionPerformed(ActionEvent e) {
+      Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
+
+      int[] selectedRows = logTable.getSelectedRows();
+
+      StringBuilder sb = new StringBuilder();
+      for (int i: selectedRows) {
+        sb.append(logTable.getValueAt(i, 0));
+        sb.append("\t");
+        sb.append(logTable.getValueAt(i, 1));
+        sb.append("\t");
+        sb.append(logTable.getValueAt(i, 2));
+        sb.append("\n");
+      }
+
+      StringSelection stringSelection = new StringSelection(sb.toString());
+      clipboard.setContents(stringSelection, null);
+    }
+  };
+  
+  private Action copyAllAction = new AbstractAction("Copy all") {
+    public void actionPerformed(ActionEvent e) {
+      Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
+
+      StringBuilder sb = new StringBuilder();
+      for(LogData data : logs) {
+        sb.append(data.time + "  " + data.moteID + "  " + data.data + "\n");
+      }
+
+      StringSelection stringSelection = new StringSelection(sb.toString());
+      clipboard.setContents(stringSelection, null);
+    }
+  };
+  
 }
