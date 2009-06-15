@@ -24,7 +24,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * $Id: GUI.java,v 1.136 2009/06/15 17:43:48 fros4943 Exp $
+ * $Id: GUI.java,v 1.137 2009/06/15 18:13:45 fros4943 Exp $
  */
 
 package se.sics.cooja;
@@ -3719,7 +3719,9 @@ public class GUI extends Observable {
       }
 
       /* Replace Contiki's canonical path with Contiki's relative path */
-      String newFilePath = fileCanonical.replace(contikiCanonical, contikiRelative);
+      String newFilePath = fileCanonical.replaceFirst(
+          java.util.regex.Matcher.quoteReplacement(contikiCanonical), 
+          java.util.regex.Matcher.quoteReplacement(contikiRelative));
 
       File newFile = new File(newFilePath);
       if (!newFile.exists()) {
@@ -3768,10 +3770,20 @@ public class GUI extends Observable {
       }
 
       /* Replace config's canonical path with config identifier */
-      String newFilePath = fileCanonical.replaceFirst(configCanonical, configIdentifier);
+      String newFilePath = fileCanonical.replaceFirst(
+          java.util.regex.Matcher.quoteReplacement(configCanonical), 
+          java.util.regex.Matcher.quoteReplacement(configIdentifier));
 
       File newFile = new File(newFilePath);
-      logger.info("Generated config relative path: '" + file.getPath() + "' to '" + newFile.getPath() + "'");
+      /*logger.info("Generated config relative path: '" + file.getPath() + "' to '" + newFile.getPath() + "'");*/
+      
+      /* Verify that new file exists */
+      File tmpFile = restorePortablePath(newFile);
+      if (!tmpFile.exists()) {
+        /*logger.warn("Failed generating config relative path, using absolute path: " + file);*/
+        return file;
+      }
+
       return newFile;
 
     } catch (IOException e1) {
@@ -3798,7 +3810,7 @@ public class GUI extends Observable {
     }
 
     File newFile = new File(path.replace("[CONFIG_DIR]", configPath.getAbsolutePath()));
-    logger.info("Reverted config relative path: '" + path + "' to '" + newFile.getPath() + "'");
+    /*logger.info("Reverted config relative path: '" + path + "' to '" + newFile.getPath() + "'");*/
     return newFile;
   }
 
