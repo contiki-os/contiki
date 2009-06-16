@@ -1,4 +1,5 @@
 #define GPIO_FUNC_SEL0  0x80000018 /* GPIO 15 - 0;  2 bit blocks */
+#define GPIO_FUNC_SEL2  0x80000020 /* GPIO 47 - 32;  2 bit blocks */
 
 #define BASE_UART1      0x80005000
 #define UART1_CON       0x80005000
@@ -18,7 +19,7 @@
 
 #define reg(x) (*(volatile uint32_t *)(x))
 
-#define DELAY 200000
+#define DELAY 100000
 #define DATA  0x00401000;
 
 #define NL "\033[K\r\n"
@@ -59,7 +60,7 @@ uint32_t ackBox[10];
 		maca_control = (control_prm | control_asap | control_seq_rx); \
 	}while(FALSE)
 
-#define PAYLOAD_LEN 96 /* not including the extra 4 bytes for len+fcs+somethingelse */
+#define PAYLOAD_LEN 16 /* not including the extra 4 bytes for len+fcs+somethingelse */
 /* maca dmatx needs extra 4 bytes for checksum */
 /* needs + 4 bytes for len(1 byte) + fcs(2 bytes) + somethingelse */
 #define command_xcvr_tx() \
@@ -167,6 +168,9 @@ void main(void) {
 /* 	dump_regs(0x80003000, 96); */
 /* 	puts("reserved modem_base\n\r"); */
 /* 	dump_regs(0x80009200, 192); */
+
+	reg(GPIO_FUNC_SEL2) = (0x01 << ((44-16*2)*2));
+	reg(GPIO_PAD_DIR0) = reg(GPIO_PAD_DIR0) | (1<<(44-32));
 
 	fill_data();
 	command_xcvr_tx();
