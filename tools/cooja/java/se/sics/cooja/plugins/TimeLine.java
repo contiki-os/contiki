@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: TimeLine.java,v 1.8 2009/06/15 09:47:05 fros4943 Exp $
+ * $Id: TimeLine.java,v 1.9 2009/06/16 12:16:02 fros4943 Exp $
  */
 
 package se.sics.cooja.plugins;
@@ -1273,18 +1273,46 @@ public class TimeLine extends VisPlugin {
   }
   class WatchpointEvent extends MoteEvent {
     Watchpoint watchpoint;
-    Color color = Color.RED;
     public WatchpointEvent(long time, Watchpoint watchpoint) {
       super(time);
       this.watchpoint = watchpoint;
     }
     public Color getEventColor() {
-      return color;
+      Color c = watchpoint.getColor();
+      if (c == null) {
+        return Color.BLACK;
+      }
+      return c;
     }
     public String toString() {
+      String desc = watchpoint.getDescription();
+      desc = desc.replace("\n", "<br>");
       return 
       "Watchpoint triggered at time (ms): " +  time/Simulation.MILLISECOND + ".<br>"
-      + watchpoint.getDescription() + "<br>";
+      + desc + "<br>";
+    }
+
+    /* Default paint method */
+    public void paintInterval(Graphics g, int lineHeightOffset, long end) {
+      MoteEvent ev = this;
+      while (ev != null && ev.time < end) {
+        int w = 2; /* Watchpoints are always two pixels wide */
+
+        Color color = ev.getEventColor();
+        if (color == null) {
+          /* Skip painting event */
+          ev = ev.next;
+          continue;
+        }
+        g.setColor(color);
+
+        g.fillRect(
+            (int)(ev.time/currentPixelDivisor), lineHeightOffset, 
+            w, EVENT_PIXEL_HEIGHT
+        );
+
+        ev = ev.next;
+      }
     }
   }
   class MoteEvents {
@@ -1381,18 +1409,6 @@ public class TimeLine extends VisPlugin {
       logEvents.add(ev);
     }
     public void addWatchpoint(WatchpointEvent ev) {
-      /* Automatically toggle colors */
-      /* TODO Move color decision to watchpoint interface? */
-      if (lastWatchpointEvent != null && lastWatchpointEvent instanceof WatchpointEvent) {
-        if (((WatchpointEvent)lastWatchpointEvent).color == Color.RED) {
-          ((WatchpointEvent)ev).color = Color.GREEN;
-        } else if (((WatchpointEvent)lastWatchpointEvent).color == Color.GREEN) {
-          ((WatchpointEvent)ev).color = Color.BLUE;
-        } else {
-          ((WatchpointEvent)ev).color = Color.RED;
-        }
-      }
-
       /* Link with previous events */
       if (lastWatchpointEvent != null) {
         ev.prev = lastWatchpointEvent;
