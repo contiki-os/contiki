@@ -26,10 +26,12 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: Watchpoint.java,v 1.1 2009/06/11 10:02:11 fros4943 Exp $
+ * $Id: Watchpoint.java,v 1.2 2009/06/16 12:15:27 fros4943 Exp $
  */
 
 package se.sics.cooja;
+
+import java.awt.Color;
 
 /**
  * @author Fredrik Osterlind
@@ -45,4 +47,9 @@ public interface Watchpoint {
    * @return Mote
    */
   public Mote getMote();
+  
+  /**
+   * @return Color
+   */
+  public Color getColor();
 }

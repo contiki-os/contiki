@@ -26,11 +26,12 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: MspBreakpoint.java,v 1.1 2009/06/11 10:05:28 fros4943 Exp $
+ * $Id: MspBreakpoint.java,v 1.2 2009/06/16 12:15:15 fros4943 Exp $
  */
 
 package se.sics.cooja.mspmote.plugins;
 
+import java.awt.Color;
 import java.io.File;
 import java.io.IOException;
 import java.util.Collection;
@@ -61,10 +62,12 @@ public class MspBreakpoint implements Watchpoint {
   private File codeFile = null; /* Source code, may be null*/
   private Integer lineNr = null; /* Source code line number, may be null */
 
+  private String msg = null;
+  private Color color = Color.BLACK;
+
   public MspBreakpoint(MspBreakpointContainer breakpoints, MspMote mote) {
     this.breakpoints = breakpoints;
     this.mspMote = mote;
-
   }
 
   public MspBreakpoint(MspBreakpointContainer breakpoints, MspMote mote, Integer address) {
@@ -154,6 +157,18 @@ public class MspBreakpoint implements Watchpoint {
       config.add(element);
     }
 
+    if (msg != null) {
+      element = new Element("msg");
+      element.setText(msg);
+      config.add(element);
+    }
+
+    if (color != null) {
+      element = new Element("color");
+      element.setText("" + color.getRGB());
+      config.add(element);
+    }
+
     return config;
   }
 
@@ -177,6 +192,10 @@ public class MspBreakpoint implements Watchpoint {
         lineNr = Integer.parseInt(element.getText());
       } else if (element.getName().equals("address")) {
         address = Integer.parseInt(element.getText());
+      } else if (element.getName().equals("msg")) {
+        msg = element.getText();
+      } else if (element.getName().equals("color")) {
+        color = new Color(Integer.parseInt(element.getText()));
       } else if (element.getName().equals("stops")) {
         stopsSimulation = Boolean.parseBoolean(element.getText());
       }
@@ -190,11 +209,32 @@ public class MspBreakpoint implements Watchpoint {
     return true;
   }
 
+  public void setUserMessage(String msg) {
+    this.msg = msg;
+  }
+  public String getUserMessage() {
+    return msg;
+  }
+
+  public void setColor(Color color) {
+    this.color = color;
+  }
 
   public String getDescription() {
+    String desc = "";
     if (codeFile != null) {
-      return codeFile.getPath() + ":" + lineNr + " (0x" + Integer.toHexString(address.intValue()) + ")";
+      desc += codeFile.getPath() + ":" + lineNr + " (0x" + Integer.toHexString(address.intValue()) + ")";
+    } else {
+      desc += "0x" + Integer.toHexString(address.intValue());
     }
-    return "0x" + Integer.toHexString(address.intValue());
+    if (msg != null) {
+      desc += "\n\n" + msg;
+    }
+    return desc;
   }
+
+  public Color getColor() {
+    return color;
+  }
+
 }

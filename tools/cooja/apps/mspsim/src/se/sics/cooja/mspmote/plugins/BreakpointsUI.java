@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: BreakpointsUI.java,v 1.4 2009/06/15 09:45:46 fros4943 Exp $
+ * $Id: BreakpointsUI.java,v 1.5 2009/06/16 12:15:15 fros4943 Exp $
  */
 
 package se.sics.cooja.mspmote.plugins;
@@ -41,17 +41,16 @@ import java.util.ArrayList;
 
 import javax.swing.*;
 import javax.swing.table.AbstractTableModel;
+import javax.swing.table.DefaultTableCellRenderer;
+import javax.swing.table.TableCellEditor;
+
 import org.apache.log4j.Logger;
 
 import se.sics.cooja.GUI;
 import se.sics.cooja.Mote;
 import se.sics.cooja.MoteType;
 import se.sics.cooja.Simulation;
-import se.sics.cooja.Watchpoint;
-import se.sics.cooja.WatchpointMote;
-import se.sics.cooja.dialogs.MessageList;
 import se.sics.cooja.mspmote.MspMote;
-import se.sics.cooja.mspmote.MspMoteType;
 
 /**
  * Displays a set of breakpoints.
@@ -61,11 +60,25 @@ import se.sics.cooja.mspmote.MspMoteType;
 public class BreakpointsUI extends JPanel {
   private static Logger logger = Logger.getLogger(BreakpointsUI.class);
 
+  private static final int COLUMN_INFO = 0;
+  private static final int COLUMN_ADDRESS = 1;
+  private static final int COLUMN_FILELINE = 2;
+  private static final int COLUMN_STOP = 3;
+  private static final int COLUMN_REMOVE = 4;
+
+  private static final String[] COLUMN_NAMES = {
+    "Info",
+    "Address",
+    "File",
+    "Stop",
+    "Remove"
+  };
+
   private MspBreakpointContainer breakpoints = null;
   private JTable table = null;
 
   private MspBreakpoint popupBreakpoint = null;
-  
+
   public BreakpointsUI(MspBreakpointContainer breakpoints, final MspCodeWatcher codeWatcher) {
     this.breakpoints = breakpoints;
 
@@ -79,28 +92,65 @@ public class BreakpointsUI extends JPanel {
         int colIndex = table.columnAtPoint(p);
         int realColumnIndex = table.convertColumnIndexToModel(colIndex);
 
-        if (realColumnIndex != 1) {
-          return null;
+        if (realColumnIndex == COLUMN_FILELINE) {
+          MspBreakpoint[] allBreakpoints = BreakpointsUI.this.breakpoints.getBreakpoints();
+          if (rowIndex < 0 || rowIndex >= allBreakpoints.length) {
+            return null;
+          }
+          File file = allBreakpoints[rowIndex].getCodeFile();
+          if (file == null) {
+            return null;
+          }
+          return file.getPath() + ":" + allBreakpoints[rowIndex].getLineNumber();
         }
 
-        MspBreakpoint[] allBreakpoints = BreakpointsUI.this.breakpoints.getBreakpoints();
-        if (rowIndex < 0 || rowIndex >= allBreakpoints.length) {
-          return null;
+        if (realColumnIndex == COLUMN_INFO) {
+          return "Optional watchpoint info: description and color"; 
         }
-        File file = allBreakpoints[rowIndex].getCodeFile();
-        if (file == null) {
-          return null;
+
+        if (realColumnIndex == COLUMN_STOP) {
+          return "Indicates whether the watchpoint will stop the simulation when triggered"; 
         }
-        return file.getPath();
+
+        if (realColumnIndex == COLUMN_REMOVE) {
+          return "Remove breakpoint from this mote only. (Right-click for more options)"; 
+        }
+        return null;
       }
     };
     table.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
-    table.getColumnModel().getColumn(0).setPreferredWidth(60); /* XXX */
-    table.getColumnModel().getColumn(0).setMaxWidth(60);
-    table.getColumnModel().getColumn(2).setPreferredWidth(60);
-    table.getColumnModel().getColumn(2).setMaxWidth(60);
-    table.getColumnModel().getColumn(3).setPreferredWidth(60);
-    table.getColumnModel().getColumn(3).setMaxWidth(60);
+    table.getColumnModel().getColumn(COLUMN_ADDRESS).setPreferredWidth(60); /* XXX */
+    table.getColumnModel().getColumn(COLUMN_ADDRESS).setMaxWidth(60);
+    table.getColumnModel().getColumn(COLUMN_INFO).setPreferredWidth(60);
+    table.getColumnModel().getColumn(COLUMN_INFO).setMaxWidth(60);
+    table.getColumnModel().getColumn(COLUMN_INFO).setCellRenderer(
+        new DefaultTableCellRenderer() {
+          public Component getTableCellRendererComponent(JTable table, Object value, 
+              boolean isSelected, boolean hasFocus, int row, int column) {
+            Component c = super.getTableCellRendererComponent(
+                table, value, isSelected, hasFocus, row, column);
+            if (column != COLUMN_INFO) {
+              return c;
+            }
+            
+            MspBreakpoint[] allBreakpoints = BreakpointsUI.this.breakpoints.getBreakpoints();
+            if (row < 0 || row >= allBreakpoints.length) {
+              return c;
+            }
+            MspBreakpoint breakpoint = allBreakpoints[row];
+            if (breakpoint.getColor() == null) {
+              return c;
+            }
+            
+            /* Use watchpoint color */
+            c.setForeground(breakpoint.getColor());
+            return c;
+          }
+        });
+    table.getColumnModel().getColumn(COLUMN_STOP).setPreferredWidth(60);
+    table.getColumnModel().getColumn(COLUMN_STOP).setMaxWidth(60);
+    table.getColumnModel().getColumn(COLUMN_REMOVE).setPreferredWidth(60);
+    table.getColumnModel().getColumn(COLUMN_REMOVE).setMaxWidth(60);
 
     /* Popup menu: register on all motes */
     final JPopupMenu popupMenu = new JPopupMenu();
@@ -115,7 +165,10 @@ public class BreakpointsUI extends JPanel {
         int colIndex = table.columnAtPoint(p);
         int realColumnIndex = table.convertColumnIndexToModel(colIndex);
 
-        if (realColumnIndex != 0 && realColumnIndex != 1) {
+        if (realColumnIndex != COLUMN_ADDRESS 
+            && realColumnIndex != COLUMN_FILELINE
+            && realColumnIndex != COLUMN_REMOVE
+            && realColumnIndex != COLUMN_INFO) {
           return;
         }
 
@@ -123,10 +176,30 @@ public class BreakpointsUI extends JPanel {
         if (rowIndex < 0 || rowIndex >= allBreakpoints.length) {
           return;
         }
+        MspBreakpoint breakpoint = allBreakpoints[rowIndex];
 
         if (e.isPopupTrigger() || SwingUtilities.isRightMouseButton(e)) {
-          popupBreakpoint = allBreakpoints[rowIndex];
+          popupBreakpoint = breakpoint;
           popupMenu.show(table, e.getX(), e.getY());
+          return;
+        }
+
+        if (realColumnIndex == COLUMN_INFO) {
+          String msg = JOptionPane.showInputDialog(
+              GUI.getTopParentContainer(),
+              "Enter description",
+              "Watchpoint Description",
+              JOptionPane.QUESTION_MESSAGE);
+          if (msg != null) {
+            breakpoint.setUserMessage(msg);
+          }
+          Color newColor = JColorChooser.showDialog(
+              GUI.getTopParentContainer(),
+              "Watchpoint Color", 
+              breakpoint.getColor());
+          if (newColor != null) {
+            breakpoint.setColor(newColor);
+          }
           return;
         }
 
@@ -149,7 +222,7 @@ public class BreakpointsUI extends JPanel {
           table.repaint();
           return;
         }
-          
+
         flashBreakpoint(triggered);
       }
     });
@@ -182,32 +255,26 @@ public class BreakpointsUI extends JPanel {
   }
 
   private AbstractTableModel tableModel = new AbstractTableModel() {
-    private final String[] tableColumnNames = {
-        "Address",
-        "File:Line",
-        "Breaks",
-        "Remove"
-    };
     public String getColumnName(int col) {
-      return tableColumnNames[col].toString();
+      return COLUMN_NAMES[col].toString();
     }
     public int getRowCount() {
       return breakpoints.getBreakpointsCount();
     }
     public int getColumnCount() {
-      return tableColumnNames.length;
+      return COLUMN_NAMES.length;
     }
     public Object getValueAt(int row, int col) {
       MspBreakpoint breakpoint = breakpoints.getBreakpoints()[row];
 
       /* Executable address in hexadecimal */
-      if (col == 0) {
+      if (col == COLUMN_ADDRESS) {
         Integer address = breakpoint.getExecutableAddress();
         return "0x" + Integer.toHexString(address.intValue());
       }
 
       /* Source file + line number */
-      if (col == 1) {
+      if (col == COLUMN_FILELINE) {
         File file = breakpoint.getCodeFile();
         if (file == null) {
           return "";
@@ -215,8 +282,15 @@ public class BreakpointsUI extends JPanel {
         return file.getName() + ":" + breakpoint.getLineNumber();
       }
 
+      if (col == COLUMN_INFO) {
+        if (breakpoint.getUserMessage() != null) {
+          return breakpoint.getUserMessage();
+        }
+        return "";
+      }
+
       /* Stops simulation */
-      if (col == 2) {
+      if (col == COLUMN_STOP) {
         return breakpoint.stopsSimulation();
       }
 
@@ -228,18 +302,20 @@ public class BreakpointsUI extends JPanel {
     public void setValueAt(Object value, int row, int col) {
       MspBreakpoint breakpoint = breakpoints.getBreakpoints()[row];
 
-      if (col == 2) {
+      if (col == COLUMN_STOP) {
         /* Toggle stop state */
         breakpoint.setStopsSimulation(!breakpoint.stopsSimulation());
         fireTableCellUpdated(row, col);
         return;
       }
-      
-      /* Remove breakpoint */
-      Integer address = breakpoint.getExecutableAddress();
-      breakpoints.removeBreakpoint(address);
 
-      fireTableCellUpdated(row, col);
+      if (col == COLUMN_REMOVE) {
+        /* Remove breakpoint */
+        Integer address = breakpoint.getExecutableAddress();
+        breakpoints.removeBreakpoint(address);
+        fireTableCellUpdated(row, col);
+        return;
+      }
     }
     public Class<?> getColumnClass(int c) {
       return getValueAt(0, c).getClass();
@@ -262,7 +338,7 @@ public class BreakpointsUI extends JPanel {
             logger.fatal("At least one mote was not a MSP mote: " + m);
             return;
           }
-          
+
           motes.add((MspMote)m);
         }
       }
@@ -286,9 +362,11 @@ public class BreakpointsUI extends JPanel {
             popupBreakpoint.getCodeFile(),
             popupBreakpoint.getLineNumber(),
             popupBreakpoint.getExecutableAddress());
+        newBreakpoint.setUserMessage(popupBreakpoint.getUserMessage());
+        newBreakpoint.setColor(popupBreakpoint.getColor());
         newBreakpoint.setStopsSimulation(popupBreakpoint.stopsSimulation());
       }
-      
+
       JOptionPane.showMessageDialog(GUI.getTopParentContainer(),
           "Registered " + motes.size() + " breakpoints (" + reregistered + " re-registered)",
           "Breakpoints added", JOptionPane.INFORMATION_MESSAGE);
@@ -310,7 +388,7 @@ public class BreakpointsUI extends JPanel {
             logger.fatal("At least one mote was not a MSP mote: " + m);
             return;
           }
-          
+
           motes.add((MspMote)m);
         }
       }
@@ -329,7 +407,7 @@ public class BreakpointsUI extends JPanel {
           }
         }
       }
-      
+
       JOptionPane.showMessageDialog(GUI.getTopParentContainer(),
           "Deleted " + deleted + " breakpoints",
           "Breakpoints deleted", JOptionPane.INFORMATION_MESSAGE);  
