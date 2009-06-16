@@ -70,7 +70,7 @@ while(1) {
 		print pack('LLLL',($sec,$usec,scalar(@data),scalar(@data)+2));
 		@frame = @data[0,1];
 		print pack ('CC',($frame[1],$frame[0]));
-		foreach my $data (@data[2..scalar(@data)]) {
+		foreach my $data (@data[2..scalar(@data)-1]) {
 		    print pack ('C',hex($data));
 		}		
 	    }
