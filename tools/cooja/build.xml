@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 
-<project name="COOJA Simulator" default="help" basedir=".">
+<project name="COOJA Simulator" default="run" basedir=".">
   <property name="java" location="java"/>
   <property name="build" location="build"/>
   <property name="javadoc" location="javadoc"/>
@@ -9,16 +9,16 @@
   <property name="lib" location="lib"/>
   <property name="args" value="" />
 
-	<target name="help">
-		<echo>
+  <target name="help">
+    <echo>
 The COOJA Simulator
 
 > ant run
-	Starts COOJA simulator
-		</echo>
-	</target>
+  Starts COOJA simulator
+    </echo>
+  </target>
 
-	<target name="init">
+  <target name="init">
     <tstamp/>
   </target>
 
@@ -34,7 +34,7 @@ The COOJA Simulator
     </javadoc>
   </target>
 
-	<target name="compile" depends="init">
+  <target name="compile" depends="init">
     <mkdir dir="${build}"/>
     <javac srcdir="${java}" destdir="${build}" debug="on">
       <classpath>
@@ -55,16 +55,29 @@ The COOJA Simulator
   <target name="clean" depends="init">
     <delete dir="${build}"/>
     <delete dir="${dist}"/>
-  	<ant antfile="build.xml" dir="apps/mrm" target="clean" inheritAll="false"/>
-  	<ant antfile="build.xml" dir="apps/mspsim" target="clean" inheritAll="false"/>
-  	<ant antfile="build.xml" dir="apps/avrora" target="clean" inheritAll="false"/>
+    <ant antfile="build.xml" dir="apps/mrm" target="clean" inheritAll="false"/>
+    <ant antfile="build.xml" dir="apps/mspsim" target="clean" inheritAll="false"/>
+    <ant antfile="build.xml" dir="apps/avrora" target="clean" inheritAll="false"/>
   </target>
 
   <target name="run" depends="init, compile, jar, copy configs">
     <java fork="yes" dir="${build}" classname="se.sics.cooja.GUI" maxmemory="512m">
       <sysproperty key="user.language" value="en"/>
       <arg line="${args}"/>
-    	<env key="LD_LIBRARY_PATH" value="."/>
+      <env key="LD_LIBRARY_PATH" value="."/>
+      <classpath>
+        <pathelement path="${build}"/>
+        <pathelement location="lib/jdom.jar"/>
+        <pathelement location="lib/log4j.jar"/>
+      </classpath>
+    </java>
+  </target>
+
+  <target name="run_errorbox" depends="init, compile, jar, copy configs">
+    <java fork="yes" dir="${build}" classname="se.sics.cooja.GUI" maxmemory="512m">
+      <sysproperty key="user.language" value="en"/>
+      <jvmarg value="-XX:+ShowMessageBoxOnError"/>
+      <env key="LD_LIBRARY_PATH" value="."/>
       <classpath>
         <pathelement path="${build}"/>
         <pathelement location="lib/jdom.jar"/>
@@ -76,7 +89,7 @@ The COOJA Simulator
   <target name="runprof" depends="init, compile, jar, copy configs">
     <java fork="yes" dir="${build}" classname="se.sics.cooja.GUI">
       <arg line="${args}"/>
-    	<env key="LD_LIBRARY_PATH" value="."/>
+      <env key="LD_LIBRARY_PATH" value="."/>
       <jvmarg line="-agentlib:yjpagent"/>
       <classpath>
         <pathelement path="${build}"/>
@@ -89,7 +102,7 @@ The COOJA Simulator
   <target name="run_bigmem" depends="init, compile, jar, copy configs">
     <java fork="yes" dir="${build}" classname="se.sics.cooja.GUI" maxmemory="1536m">
       <arg line="${args}"/>
-    	<env key="LD_LIBRARY_PATH" value="."/>
+      <env key="LD_LIBRARY_PATH" value="."/>
       <classpath>
         <pathelement path="${build}"/>
         <pathelement location="lib/jdom.jar"/>
@@ -99,15 +112,15 @@ The COOJA Simulator
   </target>
 
   <target name="jar" depends="jar_cooja">
-  	<ant antfile="build.xml" dir="apps/mrm" target="jar" inheritAll="false"/>
-  	<ant antfile="build.xml" dir="apps/mspsim" target="jar" inheritAll="false"/>
-  	<ant antfile="build.xml" dir="apps/avrora" target="jar" inheritAll="false"/>
+    <ant antfile="build.xml" dir="apps/mrm" target="jar" inheritAll="false"/>
+    <ant antfile="build.xml" dir="apps/mspsim" target="jar" inheritAll="false"/>
+    <ant antfile="build.xml" dir="apps/avrora" target="jar" inheritAll="false"/>
   </target>
-	
+
   <target name="run_nogui" depends="init, compile, jar, copy configs">
     <java fork="yes" dir="${build}" classname="se.sics.cooja.GUI" maxmemory="512m">
       <arg line="-nogui ${args}"/>
-    	<env key="LD_LIBRARY_PATH" value="."/>
+      <env key="LD_LIBRARY_PATH" value="."/>
       <classpath>
         <pathelement path="${build}"/>
         <pathelement location="lib/jdom.jar"/>
@@ -115,7 +128,7 @@ The COOJA Simulator
       </classpath>
     </java>
   </target>
-	
+
   <target name="run_applet" depends="init, compile, jar, copy configs">
     <exec executable="appletviewer" dir="${build}">
       <arg value="-J-Djava.security.policy=cooja.policy"/>
@@ -124,13 +137,13 @@ The COOJA Simulator
       <env key="CLASSPATH" path="${build}"/>
     </exec>
   </target>
-	
+
   <target name="java_version" depends="init">
     <exec executable="javac" dir="${build}">
       <arg value="-version"/>
     </exec>
   </target>
-	
+
   <target name="jar_cooja" depends="init, compile, copy configs">
     <mkdir dir="${dist}"/>
     <jar destfile="${dist}/cooja.jar" basedir="${build}">
