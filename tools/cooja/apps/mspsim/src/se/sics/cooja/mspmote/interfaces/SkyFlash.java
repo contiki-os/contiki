@@ -26,12 +26,13 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: SkyFlash.java,v 1.4 2008/10/28 17:04:08 fros4943 Exp $
+ * $Id: SkyFlash.java,v 1.5 2009/06/17 13:05:27 fros4943 Exp $
  */
 
 package se.sics.cooja.mspmote.interfaces;
 
 import java.awt.Component;
+import java.awt.Container;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.*;
@@ -81,7 +82,6 @@ public class SkyFlash extends MoteInterface {
 
   public JPanel getInterfaceVisualizer() {
     JPanel panel = new JPanel();
-//    panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
 
     final JButton uploadButton = new JButton("Upload file");
     panel.add(uploadButton);
@@ -97,7 +97,7 @@ public class SkyFlash extends MoteInterface {
 
     uploadButton.addActionListener(new ActionListener() {
       public void actionPerformed(ActionEvent e) {
-        byte[] fileData = readDialogFileBytes(null);
+        byte[] fileData = readDialogFileBytes(GUI.getTopParentContainer());
 
         if (fileData != null) {
           if (fileData.length > CoojaM25P80.SIZE) {
@@ -115,7 +115,19 @@ public class SkyFlash extends MoteInterface {
       }
     });
 
-    downloadButton.setEnabled(false);
+    downloadButton.addActionListener(new ActionListener() {
+      public void actionPerformed(ActionEvent e) {
+        try {
+          byte[] data = new byte[CoojaM25P80.SIZE];
+          m24p80.seek(0);
+          m24p80.readFully(data);
+          
+          writeDialogFileBytes(GUI.getTopParentContainer(), data);
+        } catch (IOException ex) {
+          logger.fatal("Data download failed: " + ex.getMessage(), ex);
+        }
+      }
+    });
 
     Observer observer;
     this.addObserver(observer = new Observer() {
@@ -125,9 +137,6 @@ public class SkyFlash extends MoteInterface {
 
     // Saving observer reference for releaseInterfaceVisualizer
     panel.putClientProperty("intf_obs", observer);
-
-//    panel.setMinimumSize(new Dimension(140, 60));
-//    panel.setPreferredSize(new Dimension(140, 60));
 
     return panel;
   }
@@ -149,13 +158,51 @@ public class SkyFlash extends MoteInterface {
   public void setConfigXML(Collection<Element> configXML, boolean visAvailable) {
   }
 
+  public static void writeDialogFileBytes(Component parent, byte[] data) {
+    JFileChooser fc = new JFileChooser();
+    int returnVal = fc.showSaveDialog(GUI.getTopParentContainer());
+    if (returnVal != JFileChooser.APPROVE_OPTION) {
+      return;
+    }
+
+    File saveFile = fc.getSelectedFile();
+    if (saveFile.exists()) {
+      String s1 = "Overwrite";
+      String s2 = "Cancel";
+      Object[] options = { s1, s2 };
+      int n = JOptionPane.showOptionDialog(
+          GUI.getTopParentContainer(),
+          "A file with the same name already exists.\nDo you want to remove it?",
+          "Overwrite existing file?", JOptionPane.YES_NO_OPTION,
+          JOptionPane.QUESTION_MESSAGE, null, options, s1);
+      if (n != JOptionPane.YES_OPTION) {
+        return;
+      }
+    }
+
+    if (saveFile.exists() && !saveFile.canWrite()) {
+      logger.fatal("No write access to file: " + saveFile);
+      return;
+    }
+
+    try {
+      FileOutputStream outStream = new FileOutputStream(saveFile);
+      outStream.write(data);
+      outStream.close();
+    } catch (Exception ex) {
+      logger.fatal("Could not write to file: " + saveFile);
+      return;
+    }
+
+  }
+  
   /**
    * Opens a file dialog and returns the contents of the selected file or null if dialog aborted.
    *
    * @param parent Dialog parent, may be null
    * @return Binary contents of user selected file
    */
-  public static byte[] readDialogFileBytes(Component parent) {
+  public static byte[] readDialogFileBytes(Container parent) {
     // Choose file
     File file = null;
     JFileChooser fileChooser = new JFileChooser();
