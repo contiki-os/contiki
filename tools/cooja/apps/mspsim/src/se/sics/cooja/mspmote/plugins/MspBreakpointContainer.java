@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: MspBreakpointContainer.java,v 1.1 2009/06/11 10:05:28 fros4943 Exp $
+ * $Id: MspBreakpointContainer.java,v 1.2 2009/06/17 13:06:55 fros4943 Exp $
  */
 
 package se.sics.cooja.mspmote.plugins;
@@ -193,7 +193,8 @@ public class MspBreakpointContainer implements WatchpointMote {
 
     /* Notify listeners */
     lastTriggeredBreakpoint = b;
-    for (ActionListener listener: listeners) {
+    ActionListener[] arr = getWatchpointListeners();
+    for (ActionListener listener: arr) {
       listener.actionPerformed(null);
     }
   }
