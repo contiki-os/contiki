@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: MspBreakpoint.java,v 1.2 2009/06/16 12:15:15 fros4943 Exp $
+ * $Id: MspBreakpoint.java,v 1.3 2009/06/17 13:06:55 fros4943 Exp $
  */
 
 package se.sics.cooja.mspmote.plugins;
@@ -37,6 +37,7 @@ import java.io.IOException;
 import java.util.Collection;
 import java.util.Vector;
 
+import org.apache.log4j.Logger;
 import org.jdom.Element;
 
 import se.sics.cooja.Watchpoint;
@@ -50,6 +51,8 @@ import se.sics.mspsim.core.CPUMonitor;
  * @author Fredrik Osterlind
  */
 public class MspBreakpoint implements Watchpoint {
+  private static Logger logger = Logger.getLogger(MspBreakpoint.class);
+
   private MspBreakpointContainer breakpoints;
   private MspMote mspMote;
 
@@ -205,6 +208,17 @@ public class MspBreakpoint implements Watchpoint {
       return false;
     }
 
+    /* TODO Save source code line */
+
+    if (codeFile != null && lineNr != null) {
+      /* Update executable address */
+      address = mspMote.getBreakpointsContainer().getExecutableAddressOf(codeFile, lineNr);
+      if (address == null) {
+        logger.fatal("Could not restore breakpoint, did source code change?");
+        address = 0;
+      }
+    }
+    
     createMonitor();
     return true;
   }
