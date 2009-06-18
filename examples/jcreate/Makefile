@@ -6,7 +6,7 @@ CONTIKI = ../..
 
 jcreate-blink:
 	(echo; sleep 4; echo "~K"; sleep 4; \
-         echo "repeat 0 0 { acc 1 | leds } &"; sleep 4) | make login
+         echo "repeat 0 0 { acc | leds 1 } &"; sleep 4) | make login
 
 %.shell-upload: %.ce
 	(echo; sleep 4; echo "~K"; sleep 4; \
