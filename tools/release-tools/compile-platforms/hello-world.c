@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: hello-world.c,v 1.2 2007/11/27 21:58:07 adamdunkels Exp $
+ * $Id: hello-world.c,v 1.1 2009/06/18 08:40:57 adamdunkels Exp $
  */
 
 /**
