@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: jcreate-shell.c,v 1.1 2009/01/15 22:11:58 adamdunkels Exp $
+ * $Id: jcreate-shell.c,v 1.2 2009/06/18 09:01:16 adamdunkels Exp $
  */
 
 /**
@@ -148,16 +148,35 @@ PROCESS_THREAD(shell_peek_process, ev, data)
 /*---------------------------------------------------------------------------*/
 struct acc_msg {
   uint16_t len;
-  uint16_t acc;
+  uint16_t acc[4];
 };
 /*---------------------------------------------------------------------------*/
 PROCESS_THREAD(shell_acc_process, ev, data)
 {
   struct acc_msg msg;
-  const char *args, *next;
-  int num;
+  int i;
+  
   PROCESS_BEGIN();
 
+  msg.len = 1;
+  for(i = 0; i < 4; ++i) {
+    msg.acc[i] = acc_sensor.value(i);
+  }
+
+  shell_output(&acc_command, &msg, sizeof(msg), "", 0);
+  PROCESS_END();
+}
+/*---------------------------------------------------------------------------*/
+PROCESS_THREAD(shell_leds_process, ev, data)
+{
+  struct acc_msg *msg;
+  struct shell_input *input;
+  int val, i;
+  static int num;
+  const char *args, *next;
+  
+  PROCESS_BEGIN();
+  
   args = data;
   if(args == NULL) {
     shell_output_str(&acc_command, "usage 0", "");
@@ -170,25 +189,11 @@ PROCESS_THREAD(shell_acc_process, ev, data)
     PROCESS_EXIT();
   }
 
-  msg.len = 1;
-  msg.acc = acc_sensor.value(num);
-
-  shell_output(&acc_command, &msg, sizeof(msg), "", 0);
-  PROCESS_END();
-}
-/*---------------------------------------------------------------------------*/
-PROCESS_THREAD(shell_leds_process, ev, data)
-{
-  struct acc_msg *msg;
-  struct shell_input *input;
-  int val, i;
-  PROCESS_BEGIN();
-
   PROCESS_WAIT_EVENT_UNTIL(ev == shell_event_input);
   input = data;
   msg = (struct acc_msg *)input->data1;
   val = 0;
-  for(i = 0; i < msg->acc >> 9; ++i) {
+  for(i = 0; i < msg->acc[num] >> 9; ++i) {
     val = (val << 1) | 1;
   }
   LEDS_PxOUT = ~val;
@@ -215,11 +220,14 @@ PROCESS_THREAD(sky_shell_process, ev, data)
   shell_ps_init();
   shell_reboot_init();
   shell_rime_init();
-  shell_rime_debug_init();
+  /*  shell_rime_debug_init();*/
   shell_rime_netcmd_init();
   shell_rime_ping_init();
-  shell_rime_sniff_init();
-  shell_sky_init();
+  shell_rime_neighbors_init();
+  shell_rime_sendcmd_init();
+  /*  shell_rime_sniff_init();*/
+  shell_rime_unicast_init();
+  /*shell_sky_init();*/
   shell_text_init();
   shell_time_init();
 
