@@ -1,5 +1,5 @@
 all: print-version hello-world
-CONTIKI = ../../..
+CONTIKI = ../../../..
 APPS=serial-shell webserver telnetd
 
 ifeq ($(TARGET), avr-raven)
