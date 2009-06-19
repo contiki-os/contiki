@@ -27,7 +27,10 @@ foreach $file (@files) {
 	print "Adding file $file\n";
 	
 	open(FILE, $file) || die "Could not open file $file\n";
-      binmode FILE; 
+	if (grep /.png/,$file) {binmode FILE;} 
+	if (grep /.jpg/,$file) {binmode FILE;}
+	if (grep /.gif/,$file) {binmode FILE;}
+	
 	$file =~ s-^-/-;
 	$fvar = $file;
 	$fvar =~ s-/-_-g;
@@ -69,7 +72,8 @@ for($i = 0; $i < @fvars; $i++) {
     } else {
         $prevfile = "file" . $fvars[$i - 1];
     }
-    print(OUTPUT "const struct httpd_fsdata_file file".$fvar."[] = {{$prevfile, data$fvar, ");
+# for AVR, add PROGMEM here
+    print(OUTPUT "const struct httpd_fsdata_file file".$fvar."[] PROGMEM = {{$prevfile, data$fvar, ");
     print(OUTPUT "data$fvar + ". (length($file) + 1) .", ");
     print(OUTPUT "sizeof(data$fvar) - ". (length($file) + 1) ."}};\n\n");
 }
