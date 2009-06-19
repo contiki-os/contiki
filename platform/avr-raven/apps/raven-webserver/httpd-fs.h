@@ -30,14 +30,19 @@
  * 
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: httpd-fs.h,v 1.1 2009/03/12 19:15:25 adamdunkels Exp $
+ * $Id: httpd-fs.h,v 1.2 2009/06/19 17:11:28 dak664 Exp $
  */
 #ifndef __HTTPD_FS_H__
 #define __HTTPD_FS_H__
 
 #include "contiki-net.h"
 
-#define HTTPD_FS_STATISTICS 1
+//#define HTTPD_FS_STATISTICS 1   //Puts count in file system
+#define HTTPD_FS_STATISTICS 2     //Puts count in RAM array
+
+#if HTTPD_FS_STATISTICS==2
+extern u16_t httpd_filecount[];
+#endif /* HTTPD_FS_STATISTICS */
 
 #include <avr/pgmspace.h>
 
@@ -47,14 +52,11 @@ struct httpd_fs_file {
 };
 
 /* file must be allocated by caller and will be filled in
-   by the function. */
-int httpd_fs_open(const char *name, struct httpd_fs_file *file);
+   by the function. If NULL, just file stats are returned.*/
+u16_t httpd_fs_open(const char *name, struct httpd_fs_file *file);
 
-#ifdef HTTPD_FS_STATISTICS
-#if HTTPD_FS_STATISTICS == 1  
-u16_t httpd_fs_count(char *name);
-#endif /* HTTPD_FS_STATISTICS */
-#endif /* HTTPD_FS_STATISTICS */
+/* Returns root of http pages in flash */
+void * httpd_get_root();
 
 void httpd_fs_init(void);
 

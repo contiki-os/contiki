@@ -28,7 +28,7 @@
  *
  * This file is part of the uIP TCP/IP stack.
  *
- * $Id: httpd-cgi.c,v 1.1 2009/03/12 19:15:25 adamdunkels Exp $
+ * $Id: httpd-cgi.c,v 1.2 2009/06/19 17:11:28 dak664 Exp $
  *
  */
 
@@ -49,61 +49,35 @@
 #include "httpd.h"
 #include "httpd-cgi.h"
 #include "httpd-fs.h"
+#include "httpd-fsdata.h"
 
-#include "lib/petsciiconv.h"
+//#include "lib/petsciiconv.h"
 
 #include "sensors.h"
 
 static struct httpd_cgi_call *calls = NULL;
 
-static const char closed[] =   /*  "CLOSED",*/
-{0x43, 0x4c, 0x4f, 0x53, 0x45, 0x44, 0};
-static const char syn_rcvd[] = /*  "SYN-RCVD",*/
-{0x53, 0x59, 0x4e, 0x2d, 0x52, 0x43, 0x56,
- 0x44,  0};
-static const char syn_sent[] = /*  "SYN-SENT",*/
-{0x53, 0x59, 0x4e, 0x2d, 0x53, 0x45, 0x4e,
- 0x54,  0};
-static const char established[] = /*  "ESTABLISHED",*/
-{0x45, 0x53, 0x54, 0x41, 0x42, 0x4c, 0x49,
- 0x53, 0x48, 0x45, 0x44, 0};
-static const char fin_wait_1[] = /*  "FIN-WAIT-1",*/
-{0x46, 0x49, 0x4e, 0x2d, 0x57, 0x41, 0x49,
- 0x54, 0x2d, 0x31, 0};
-static const char fin_wait_2[] = /*  "FIN-WAIT-2",*/
-{0x46, 0x49, 0x4e, 0x2d, 0x57, 0x41, 0x49,
- 0x54, 0x2d, 0x32, 0};
-static const char closing[] = /*  "CLOSING",*/
-{0x43, 0x4c, 0x4f, 0x53, 0x49,
- 0x4e, 0x47, 0};
-static const char time_wait[] = /*  "TIME-WAIT,"*/
-{0x54, 0x49, 0x4d, 0x45, 0x2d, 0x57, 0x41,
- 0x49, 0x54, 0};
-static const char last_ack[] = /*  "LAST-ACK"*/
-{0x4c, 0x41, 0x53, 0x54, 0x2d, 0x41, 0x43,
- 0x4b, 0};
-static const char none[] = /*  "NONE"*/
-{0x4e, 0x4f, 0x4e, 0x45, 0};
-static const char running[] = /*  "RUNNING"*/
-{0x52, 0x55, 0x4e, 0x4e, 0x49, 0x4e, 0x47,
- 0};
-static const char called[] = /*  "CALLED"*/
-{0x43, 0x41, 0x4c, 0x4c, 0x45, 0x44, 0};
-static const char file_name[] = /*  "file-stats"*/
-{0x66, 0x69, 0x6c, 0x65, 0x2d, 0x73, 0x74,
- 0x61, 0x74, 0x73, 0};
-static const char tcp_name[] = /*  "tcp-connections"*/
-{0x74, 0x63, 0x70, 0x2d, 0x63, 0x6f, 0x6e,
- 0x6e, 0x65, 0x63, 0x74, 0x69, 0x6f, 0x6e,
- 0x73, 0};
-static const char proc_name[] = /*  "processes"*/
-{0x70, 0x72, 0x6f, 0x63, 0x65, 0x73, 0x73,
- 0x65, 0x73, 0};
+/*cgi function names*/
+#if HTTPD_FS_STATISTICS
+static const char   file_name[] PROGMEM = "file-stats";
+#endif
+static const char    tcp_name[] PROGMEM = "tcp-connections";
+static const char   proc_name[] PROGMEM = "processes";
+static const char sensor_name[] PROGMEM = "sensors";
 
-static const char sensor_name[] = "sensors";
-
-char sensor_temperature[12];
-
+/*Process states for processes cgi*/
+static const char      closed[] PROGMEM = "CLOSED";
+static const char    syn_rcvd[] PROGMEM = "SYN-RCVD";
+static const char    syn_sent[] PROGMEM = "SYN-SENT";
+static const char established[] PROGMEM = "ESTABLISHED";
+static const char  fin_wait_1[] PROGMEM = "FIN-WAIT-1";
+static const char  fin_wait_2[] PROGMEM = "FIN-WAIT-2";
+static const char     closing[] PROGMEM = "CLOSING";
+static const char   time_wait[] PROGMEM = "TIME-WAIT";
+static const char    last_ack[] PROGMEM = "LAST-ACK";
+static const char        none[] PROGMEM = "NONE";
+static const char     running[] PROGMEM = "RUNNING";
+static const char      called[] PROGMEM = "CALLED";
 static const char *states[] = {
   closed,
   syn_rcvd,
@@ -117,6 +91,8 @@ static const char *states[] = {
   none,
   running,
   called};
+
+  char sensor_temperature[12];
 
   uint8_t sprint_ip6(uip_ip6addr_t addr, char * result);
 
@@ -142,30 +118,53 @@ httpd_cgi(char *name)
 
   /* Find the matching name in the table, return the function. */
   for(f = calls; f != NULL; f = f->next) {
-    if(strncmp(f->name, name, strlen(f->name)) == 0) {
+    if(strncmp_P(name, f->name, strlen_P(f->name)) == 0) {
       return f->function;
     }
   }
   return nullfunction;
 }
+
+#if HTTPD_FS_STATISTICS
+static char *thisfilename;
 /*---------------------------------------------------------------------------*/
 static unsigned short
 generate_file_stats(void *arg)
 {
-  char *f = (char *)arg;
-  int i;
   char tmp[20];
-// for (i=0;i<20;i++) if (pgm_read_byte(f++)==' ') break;	//skip file-stats string
-  for (i=0;i<19;i++) {
-	tmp[i]=pgm_read_byte(f++);			//transfer "/filename" to RAM
-	if (tmp[i]==' ') {
-	  tmp[i]=0;
-        break;
-      }
+  struct httpd_fsdata_file_noconst *f,fram;
+  u16_t i,numprinted;
+
+    /* Transfer arg from flash file to RAM */
+  memcpy_P_trim(tmp, (char *)arg);
+
+  /* Count for this page, with common page footer */
+  if (tmp[0]=='.') {
+    return snprintf_P((char *)uip_appdata, uip_mss(),
+      PSTR("<p class=right><br><br><i>This page has been sent %u times</i></div></body></html>"), httpd_fs_open(thisfilename, 0));
+
+  /* Count for all files */
+  /* Note buffer will overflow if there are too many files! */
+  } else if (tmp[0]=='*') {
+    i=0;numprinted=0;
+    for(f = (struct httpd_fsdata_file_noconst *)httpd_get_root();
+        f != NULL;
+        f = (struct httpd_fsdata_file_noconst *)fram.next) {
+      memcpy_P(&fram,f,sizeof(fram));
+      memcpy_P(&tmp,fram.name,sizeof(tmp));
+      numprinted+=snprintf_P((char *)uip_appdata + numprinted, uip_mss() - numprinted,
+#if HTTPD_FS_STATISTICS==1
+          PSTR("<tr><td><a href=\"%s\">%s</a></td><td>%d</td>"),tmp,tmp,f->count);
+#elif HTTPD_FS_STATISTICS==2
+          PSTR("<tr><td><a href=\"%s\">%s</a></td><td>%d</td>"),tmp,tmp,httpd_filecount[i++]);
+#endif
+    }
+    return numprinted;
+
+  /* Count for specified file */
+  } else {
+    return snprintf_P((char *)uip_appdata, uip_mss(), PSTR("%5u"), httpd_fs_open(tmp, 0));
   }
-//  return sprintf_P((char *)uip_appdata, PSTR( "%s"), tmp); //show file name for debugging
-  return snprintf_P((char *)uip_appdata, uip_mss(), PSTR("%5u"), httpd_fs_count(tmp));
-//  return snprintf_P((char *)uip_appdata, uip_mss(), PSTR("%5u"), httpd_fs_count(f));
 }
 /*---------------------------------------------------------------------------*/
 static
@@ -174,31 +173,33 @@ PT_THREAD(file_stats(struct httpd_state *s, char *ptr))
 
   PSOCK_BEGIN(&s->sout);
 
-  //while (pgm_read_byte(ptr++)!=' ') {};	//skip to "/filename" after the script invokation
+  thisfilename=&s->filename[0]; //temporary way to pass filename to generate_file_stats
   PSOCK_GENERATOR_SEND(&s->sout, generate_file_stats, (void *) (strchr_P(ptr, ' ') + 1));
   
   PSOCK_END(&s->sout);
 }
+#endif /*HTTPD_FS_STATISTICS*/
 /*---------------------------------------------------------------------------*/
 static unsigned short
 make_tcp_stats(void *arg)
 {
   struct uip_conn *conn;
   struct httpd_state *s = (struct httpd_state *)arg;
-    
+  char tstate[20];
   uint16_t numprinted;
 
   conn = &uip_conns[s->u.count];
 
-  numprinted = snprintf((char *)uip_appdata, uip_mss(),
-                 "<tr align=\"center\"><td>%d</td><td>", 
+  numprinted = snprintf_P((char *)uip_appdata, uip_mss(),
+                 PSTR("<tr align=\"center\"><td>%d</td><td>"), 
                  htons(conn->lport));
                  
-  numprinted += sprint_ip6(conn->ripaddr, uip_appdata + numprinted);             
-  numprinted +=  snprintf((char *)uip_appdata + numprinted, uip_mss() - numprinted,              
-                 "-%u</td><td>%s</td><td>%u</td><td>%u</td><td>%c %c</td></tr>\r\n",
+  numprinted += sprint_ip6(conn->ripaddr, uip_appdata + numprinted);
+  strcpy_P(tstate,states[conn->tcpstateflags & UIP_TS_MASK]);
+  numprinted +=  snprintf_P((char *)uip_appdata + numprinted, uip_mss() - numprinted,
+                 PSTR("-%u</td><td>%s</td><td>%u</td><td>%u</td><td>%c %c</td></tr>\r\n"),
                  htons(conn->rport),
-                 states[conn->tcpstateflags & UIP_TS_MASK],
+                 tstate,
                  conn->nrtx,
                  conn->timer,
                  (uip_outstanding(conn))? '*':' ',
@@ -225,16 +226,18 @@ PT_THREAD(tcp_stats(struct httpd_state *s, char *ptr))
 static unsigned short
 make_processes(void *p)
 {
-  char name[40];
+  char name[40],tstate[20];
 
   strncpy(name, ((struct process *)p)->name, 40);
-  petsciiconv_toascii(name, 40);
-
+//petsciiconv_toascii(name, 40);
+  strcpy_P(tstate,states[9 + ((struct process *)p)->state]);
   return snprintf_P((char *)uip_appdata, uip_mss(),
-		 PSTR("<tr align=\"center\"><td>%p</td><td>%s</td><td>%p</td><td>%s</td></tr>\r\n"),
-		 p, name,
-		 *((char **)&(((struct process *)p)->thread)),
-		 states[9 + ((struct process *)p)->state]);
+    PSTR("<tr align=\"center\"><td>%p</td><td>%s</td><td>%p</td><td>%s</td></tr>\r\n"),
+    p, name,
+//  *((char **)&(((struct process *)p)->thread)),
+    *(char *)(&(((struct process *)p)->thread)),
+
+    tstate);
 }
 /*---------------------------------------------------------------------------*/
 static
@@ -279,7 +282,9 @@ httpd_cgi_add(struct httpd_cgi_call *c)
 }
 /*---------------------------------------------------------------------------*/
 
+#if HTTPD_FS_STATISTICS
 HTTPD_CGI_CALL(file, file_name, file_stats);
+#endif
 HTTPD_CGI_CALL(tcp, tcp_name, tcp_stats);
 HTTPD_CGI_CALL(proc, proc_name, processes);
 HTTPD_CGI_CALL(sensors, sensor_name, sensor_readings);
@@ -287,7 +292,9 @@ HTTPD_CGI_CALL(sensors, sensor_name, sensor_readings);
 void
 httpd_cgi_init(void)
 {
+#if HTTPD_FS_STATISTICS
   httpd_cgi_add(&file);
+#endif
   httpd_cgi_add(&tcp);
   httpd_cgi_add(&proc);
   httpd_cgi_add(&sensors);

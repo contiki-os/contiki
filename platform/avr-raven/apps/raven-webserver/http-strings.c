@@ -1,3 +1,4 @@
+#if 0  /*This file not used when strings reside in flash memory only*/
 const char http_http[8] = 
 /* "http://" */
 {0x68, 0x74, 0x74, 0x70, 0x3a, 0x2f, 0x2f, };
@@ -100,3 +101,4 @@ const char http_text[6] =
 const char http_txt[5] = 
 /* ".txt" */
 {0x2e, 0x74, 0x78, 0x74, };
+#endif

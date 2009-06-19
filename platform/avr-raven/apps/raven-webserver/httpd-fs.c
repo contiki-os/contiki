@@ -30,7 +30,7 @@
  * 
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: httpd-fs.c,v 1.1 2009/03/12 19:15:25 adamdunkels Exp $
+ * $Id: httpd-fs.c,v 1.2 2009/06/19 17:11:28 dak664 Exp $
  */
 
 #include "contiki-net.h"
@@ -40,64 +40,59 @@
 
 #include "httpd-fsdata.c" 
 
-#if HTTPD_FS_STATISTICS
-static u16_t count[HTTPD_FS_NUMFILES];
+#if HTTPD_FS_STATISTICS==2
+u16_t httpd_filecount[HTTPD_FS_NUMFILES];
 #endif /* HTTPD_FS_STATISTICS */
 
 /*-----------------------------------------------------------------------------------*/
-static u8_t
-httpd_fs_strcmp(const char *str1, const char *str2)
+void *
+httpd_get_root()
 {
-  u8_t i;
-  i = 0;
-
-loop:
-  if( pgm_read_byte(str2 + i) == 0 ||
-     str1[i] == '\r' || 
-     str1[i] == '\n') {
-    return 0;
-  }
-
-  if(str1[i] !=  pgm_read_byte(str2 + i)) {
-    return 1; 
-  }
-
-  ++i;
-  goto loop;
+  return (void *)HTTPD_FS_ROOT;
 }
 /*-----------------------------------------------------------------------------------*/
-int
+u16_t
 httpd_fs_open(const char *name, struct httpd_fs_file *file)
 {
 #if HTTPD_FS_STATISTICS
   u16_t i = 0;
 #endif /* HTTPD_FS_STATISTICS */
-  struct httpd_fsdata_file_noconst *f;
+  struct httpd_fsdata_file_noconst *f,fram;
 
   for(f = (struct httpd_fsdata_file_noconst *)HTTPD_FS_ROOT;
       f != NULL;
-      f = (struct httpd_fsdata_file_noconst *)f->next) {
-
-    if(httpd_fs_strcmp(name, f->name) == 0) {
-      file->data = f->data;
-      file->len = f->len;
-#if HTTPD_FS_STATISTICS
-      ++count[i];
-#endif /* HTTPD_FS_STATISTICS */
+      f = (struct httpd_fsdata_file_noconst *)fram.next) {
+    memcpy_P(&fram,f,sizeof(fram));
+    if(strcmp_P(name, fram.name) == 0) {
+      if (file) {
+        file->data = fram.data;
+        file->len  = fram.len;
+#if HTTPD_FS_STATISTICS==1
+        f->count++;
+      }
+      return f->count;
+    }
+    ++i
+#elif HTTPD_FS_STATISTICS==2
+        ++httpd_filecount[i];
+      }
+      return httpd_filecount[i];
+    }
+    ++i;
+#else
+      }
       return 1;
     }
-#if HTTPD_FS_STATISTICS
-    ++i;
-#endif /* HTTPD_FS_STATISTICS */
-
+#endif /*HTTPD_FS_STATISTICS*/
   }
   return 0;
+
 }
 /*-----------------------------------------------------------------------------------*/
 void
 httpd_fs_init(void)
 {
-#if HTTPD_FS_STATISTICS
+#if HTTPD_FS_STATISTICS && 0 //count will already be zero at boot
   u16_t i;
   for(i = 0; i < HTTPD_FS_NUMFILES; i++) {
     count[i] = 0;
@@ -105,20 +100,24 @@ httpd_fs_init(void)
 #endif /* HTTPD_FS_STATISTICS */
 }
 /*-----------------------------------------------------------------------------------*/
-#if HTTPD_FS_STATISTICS
+#if HTTPD_FS_STATISTICS && 0 //Not needed, httpd_fs_open returns count
 u16_t
 httpd_fs_count(char *name)
 {
-  struct httpd_fsdata_file_noconst *f;
+  struct httpd_fsdata_file_noconst *f,fram;
   u16_t i;
 
   i = 0;
   for(f = (struct httpd_fsdata_file_noconst *)HTTPD_FS_ROOT;
       f != NULL;
-      f = (struct httpd_fsdata_file_noconst *)f->next) {
-
-    if(httpd_fs_strcmp(name, f->name) == 0) {
+      f = (struct httpd_fsdata_file_noconst *)fram.next) {
+    memcpy_P(&fram,f,sizeof(fram));
+    if(strcmp_P(name, fram.name) == 0) {
+#if HTTPD_FS_STATISTICS==1
+      return f->count;
+#elif HTTPD_FS_STATISTICS==2
       return count[i];
+#endif
     }
     ++i;
   }

@@ -29,7 +29,7 @@
  *
  * This file is part of the Contiki OS.
  *
- * $Id: webserver-nogui.c,v 1.1 2009/03/12 19:15:25 adamdunkels Exp $
+ * $Id: webserver-nogui.c,v 1.2 2009/06/19 17:11:28 dak664 Exp $
  *
  */
 
@@ -69,7 +69,7 @@ webserver_log_file(uip_ipaddr_t *requester, char *file)
   char buf[18];
 
   /* Print out IP address of requesting host. */
-  sprintf(buf, "%d.%d.%d.%d: ", requester->u8[0], requester->u8[1],
+  sprintf_P(buf, PSTR("%d.%d.%d.%d: "), requester->u8[0], requester->u8[1],
 				requester->u8[2], requester->u8[3]);
   log_message(buf, file);
 #endif /* LOG_CONF_ENABLED */
