@@ -50,7 +50,7 @@ foreach my $file (@files) {
 
     my $lastupdate = qx(rrdtool lastupdate $meshpath/$addr.rrd);
     $lastupdate =~ /([\w\d]+)\s+(\d+):\s+([\w\d]+)/;
-    print gmtime($2) . " $1 $3<br>";
+    print localtime($2) . " $1 $3<br>";
     
     foreach my $ds (keys(%dses)) {
 	print h2("$ds: $aliases{$addr}{'ds'}{$ds}");
