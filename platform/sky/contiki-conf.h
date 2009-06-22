@@ -1,8 +1,11 @@
 /* -*- C -*- */
-/* @(#)$Id: contiki-conf.h,v 1.53 2009/05/18 10:32:56 fros4943 Exp $ */
+/* @(#)$Id: contiki-conf.h,v 1.54 2009/06/22 11:14:11 nifi Exp $ */
 
 #ifndef CONTIKI_CONF_H
 #define CONTIKI_CONF_H
+
+/* Specifies the default MAC driver */
+#define MAC_CONF_DRIVER xmac_driver
 
 #define XMAC_CONF_COMPOWER 1
 #define XMAC_CONF_ANNOUNCEMENTS 1
