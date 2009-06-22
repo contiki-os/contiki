@@ -92,7 +92,9 @@ void dump_regs(uint32_t base, uint32_t len) {
 
 volatile uint8_t led;
 
-#define led_on() do  { led = 1; reg(GPIO_DATA0) = 0x00000100; } while(0);
+#include "led.h"
+#define LED LED_RED
+#define led_on() do  { led = 1; reg(GPIO_DATA0) = LED; } while(0);
 #define led_off() do { led = 0; reg(GPIO_DATA0) = 0x00000000; } while(0);
 
 void toggle_led(void) {
@@ -121,7 +123,7 @@ void main(void) {
 	uint32_t tmp;
 	uint16_t status;
 
-	*(volatile uint32_t *)GPIO_PAD_DIR0 = 0x00000100;
+	*(volatile uint32_t *)GPIO_PAD_DIR0 = LED;
 	led_on();
 	
 	/* Restore UART regs. to default */
@@ -149,7 +151,7 @@ void main(void) {
 	init_phy();
 
 	set_power(0x0f); /* 0dbm */
-	set_channel(0); /* channel 11 */
+	set_channel(1); /* channel 11 */
 
         reg(MACA_CONTROL) = SMAC_MACA_CNTL_INIT_STATE;
 	for(i=0; i<DELAY; i++) { continue; }

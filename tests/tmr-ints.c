@@ -50,10 +50,11 @@
 //#include "sys-interrupt.h"
 
 #include "isr.h"
+#include "led.h"
 
 volatile uint8_t led;
 
-#define LED_VAL 0x00000300
+#define LED_VAL LED_PURPLE
 #define led_init() do { reg32(GPIO_PAD_DIR0) = LED_VAL; } while(0);
 #define led_on() do  { led = 1; reg32(GPIO_DATA0) = LED_VAL; } while(0);
 #define led_off() do { led = 0; reg32(GPIO_DATA0) = 0x00000000; } while(0);

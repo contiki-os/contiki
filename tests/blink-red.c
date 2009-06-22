@@ -6,15 +6,18 @@
 
 #include "embedded_types.h"
 #include "isr.h"
+#include "led.h"
+
+#define LED_BITS LED_RED
 
 __attribute__ ((section ("startup"))) void main(void) {
-	*(volatile uint32_t *)GPIO_PAD_DIR0 = 0x00000100;
+	*(volatile uint32_t *)GPIO_PAD_DIR0 = LED_BITS;
 
 	volatile uint32_t i;
 
 	while(1) {
 
-		*(volatile uint32_t *)GPIO_DATA0 = 0x00000100;
+		*(volatile uint32_t *)GPIO_DATA0 = LED_BITS;
 		
 		for(i=0; i<DELAY; i++) { continue; }
 
