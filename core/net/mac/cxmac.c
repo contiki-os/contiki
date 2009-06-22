@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: cxmac.c,v 1.3 2009/03/12 21:58:20 adamdunkels Exp $
+ * $Id: cxmac.c,v 1.4 2009/06/22 11:14:11 nifi Exp $
  */
 
 /**
@@ -481,7 +481,7 @@ read(void)
   return 0;
 }
 /*---------------------------------------------------------------------------*/
-void
+const struct mac_driver *
 cxmac_init(const struct radio_driver *d)
 {
   radio_is_on = 0;
@@ -494,6 +494,7 @@ cxmac_init(const struct radio_driver *d)
 
   radio = d;
   radio->set_receive_function(input);
+  return &cxmac_driver;
 }
 /*---------------------------------------------------------------------------*/
 static int
@@ -511,22 +512,20 @@ on(void)
 }
 /*---------------------------------------------------------------------------*/
 static int
-off(int radio_status)
+off(int keep_radio_on)
 {
   should_stop = 1;
-  return radio->off();
-  
-/*  switch(radio_status) {
-  case MAC_RADIO_ON:
+  if(keep_radio_on) {
     return radio->on();
-  case MAC_RADIO_OFF:
+  } else {
     return radio->off();
   }
-  return 0; */
 }
 /*---------------------------------------------------------------------------*/
 const struct mac_driver cxmac_driver =
   {
+    "CXMAC",
+    cxmac_init,
     qsend,
     read,
     set_receive_function,

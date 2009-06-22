@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: lpp.c,v 1.22 2009/05/10 21:09:05 adamdunkels Exp $
+ * $Id: lpp.c,v 1.23 2009/06/22 11:14:11 nifi Exp $
  */
 
 /**
@@ -818,8 +818,9 @@ off(int keep_radio_on)
   return 1;
 }
 /*---------------------------------------------------------------------------*/
-static const struct mac_driver lpp_driver = {
+const struct mac_driver lpp_driver = {
   "LPP",
+  lpp_init,
   send_packet,
   read_packet,
   set_receive_function,

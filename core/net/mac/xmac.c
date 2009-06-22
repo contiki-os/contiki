@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: xmac.c,v 1.33 2009/05/06 15:05:28 adamdunkels Exp $
+ * $Id: xmac.c,v 1.34 2009/06/22 11:14:11 nifi Exp $
  */
 
 /**
@@ -745,6 +745,7 @@ turn_off(int keep_radio_on)
 const struct mac_driver xmac_driver =
   {
     "X-MAC",
+    xmac_init,
     qsend_packet,
     read_packet,
     set_receive_function,

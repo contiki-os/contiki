@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: tdma_mac.c,v 1.6 2009/03/12 21:58:20 adamdunkels Exp $
+ * $Id: tdma_mac.c,v 1.7 2009/06/22 11:14:11 nifi Exp $
  */
 
 #include "contiki.h"
@@ -221,9 +221,13 @@ on(void)
 }
 /*---------------------------------------------------------------------------*/
 static int
-off(void)
+off(int keep_radio_on)
 {
-  return radio->off();
+  if(keep_radio_on) {
+    return radio->on();
+  } else {
+    return radio->off();
+  }
 }
 /*---------------------------------------------------------------------------*/
 const struct mac_driver *
@@ -243,6 +247,7 @@ tdma_mac_init(const struct radio_driver *d)
 /*---------------------------------------------------------------------------*/
 const struct mac_driver tdma_mac_driver = {
     "TDMA MAC",
+    tdma_mac_init,
     send,
     read,
     set_receive_function,

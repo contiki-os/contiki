@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: sicslowmac.c,v 1.2 2009/05/26 12:08:29 nifi Exp $
+ * $Id: sicslowmac.c,v 1.3 2009/06/22 11:14:11 nifi Exp $
  */
 
 
@@ -234,6 +234,7 @@ off(int keep_radio_on)
 /*---------------------------------------------------------------------------*/
 const struct mac_driver sicslowmac_driver = {
   "sicslowmac",
+  sicslowmac_init,
   send_packet,
   read_packet,
   set_receive_function,

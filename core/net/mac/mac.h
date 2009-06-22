@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: mac.h,v 1.4 2008/07/02 14:10:28 adamdunkels Exp $
+ * $Id: mac.h,v 1.5 2009/06/22 11:14:11 nifi Exp $
  */
 
 /**
@@ -41,12 +41,17 @@
 #ifndef __MAC_H__
 #define __MAC_H__
 
+#include "dev/radio.h"
+
 /**
  * The structure of a MAC protocol driver in Contiki.
  */
 struct mac_driver {
   char *name;
-  
+
+  /** Initialize the MAC driver */
+  const struct mac_driver *(* init)(const struct radio_driver *r);
+
   /** Send a packet from the Rime buffer  */
   int (* send)(void);
 

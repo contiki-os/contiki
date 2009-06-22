@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#)$Id: contiki-sky-main.c,v 1.55 2009/05/12 17:32:49 adamdunkels Exp $
+ * @(#)$Id: contiki-sky-main.c,v 1.56 2009/06/22 11:14:11 nifi Exp $
  */
 
 #include <signal.h>
@@ -53,9 +53,6 @@
 #include "lib/random.h"
 
 #include "net/mac/frame802154.h"
-#include "net/mac/nullmac.h"
-#include "net/mac/xmac.h"
-#include "net/mac/lpp.h"
 
 #if WITH_UIP6
 #include "net/sicslowpan.h"
@@ -105,6 +102,20 @@ static uint8_t is_gateway;
 #ifdef EXPERIMENT_SETUP
 #include "experiment-setup.h"
 #endif
+
+#if WITH_NULLMAC
+#define MAC_DRIVER nullmac_driver
+#endif /* WITH_NULLMAC */
+
+#ifndef MAC_DRIVER
+#ifdef MAC_CONF_DRIVER
+#define MAC_DRIVER MAC_CONF_DRIVER
+#else
+#define MAC_DRIVER xmac_driver
+#endif /* MAC_CONF_DRIVER */
+#endif /* MAC_DRIVER */
+
+extern const struct mac_driver MAC_DRIVER;
 
 /*---------------------------------------------------------------------------*/
 #if 0
@@ -271,11 +282,7 @@ main(int argc, char **argv)
   uip_router_register(&rimeroute);
 #endif /* UIP_CONF_ROUTER */
 #else /* WITH_UIP6 */
-#if WITH_NULLMAC
-  rime_init(nullmac_init(&cc2420_driver));
-#else /* WITH_NULLMAC */
-  rime_init(xmac_init(&cc2420_driver));
-#endif /* WITH_NULLMAC */
+  rime_init(MAC_DRIVER.init(&cc2420_driver));
   printf(" %s channel %u\n", rime_mac->name, RF_CHANNEL);
 #endif /* WITH_UIP6 */
 
