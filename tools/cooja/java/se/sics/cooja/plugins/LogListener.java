@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: LogListener.java,v 1.15 2009/06/15 08:34:51 fros4943 Exp $
+ * $Id: LogListener.java,v 1.16 2009/06/23 12:57:19 fros4943 Exp $
  */
 
 package se.sics.cooja.plugins;
@@ -146,7 +146,7 @@ public class LogListener extends VisPlugin {
       public Object getValueAt(int row, int col) {
         LogData log = logs.get(row);
         if (col == COLUMN_TIME) {
-          return log.time;
+          return Long.toString(log.time);
         } else if (col == COLUMN_FROM) {
           return log.moteID;
         } else if (col == COLUMN_DATA) {
@@ -335,7 +335,7 @@ public class LogListener extends VisPlugin {
   private void setFilter(String text) {
     try {
       if (text != null && text.length() > 0) {
-        logFilter.setRowFilter(RowFilter.regexFilter(text));
+        logFilter.setRowFilter(RowFilter.regexFilter(text, 1, 2));
       } else {
         logFilter.setRowFilter(null);
       }
@@ -343,7 +343,7 @@ public class LogListener extends VisPlugin {
       filterTextField.setToolTipText(null);
     } catch (PatternSyntaxException e) {
       filterTextField.setBackground(Color.red);
-      filterTextField.setToolTipText("Syntax error: " + e.getMessage());
+      filterTextField.setToolTipText("Syntax error in regular expression: " + e.getMessage());
     }
   }
 
