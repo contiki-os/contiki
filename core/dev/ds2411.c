@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: ds2411.c,v 1.2 2008/11/25 09:20:54 zhitao Exp $
+ * @(#)$Id: ds2411.c,v 1.3 2009/06/23 13:12:37 joxe Exp $
  */
 /*
  * Device driver for the Dallas Semiconductor DS2411 chip. Heavily
@@ -89,13 +89,15 @@ unsigned char ds2411_id[8];
  *
  * This macro will loose badly if not passed a constant argument, it
  * relies on the compiler doing the arithmetic during compile time!!
+ * TODO: Fix above comment to be correct - below code is modified for 4Mhz
  */
-#define udelay(u) clock_delay((u*5 - 14)/6)
+#define udelay(u) clock_delay((u*8 - 14)/6)
 
 /*
  * Where call overhead dominates, use a macro!
+ * Note: modified for 4 Mhz
  */
-#define udelay_6() { _NOP(); _NOP(); _NOP(); _NOP(); _NOP(); }
+#define udelay_6() { _NOP(); _NOP(); _NOP(); _NOP(); _NOP(); _NOP(); _NOP(); }
 
 #endif /* CONTIKI_TARGET_SKY */
 
