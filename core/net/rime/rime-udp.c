@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: rime-udp.c,v 1.3 2009/04/13 19:55:15 nvt-se Exp $
+ * $Id: rime-udp.c,v 1.4 2009/06/24 16:31:49 nvt-se Exp $
  */
 
 /**
@@ -152,6 +152,7 @@ off(int keep_radio_on)
 /*---------------------------------------------------------------------------*/
 const struct mac_driver rime_udp_driver = {
   "rime-udp",
+  rime_udp_init,
   send_packet,
   read_packet,
   set_receive_function,
