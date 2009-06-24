@@ -1,5 +1,5 @@
 /* -*- C -*- */
-/* @(#)$Id: contiki-conf.h,v 1.54 2009/06/22 11:14:11 nifi Exp $ */
+/* @(#)$Id: contiki-conf.h,v 1.55 2009/06/24 16:44:26 nvt-se Exp $ */
 
 #ifndef CONTIKI_CONF_H
 #define CONTIKI_CONF_H
@@ -9,7 +9,6 @@
 
 #define XMAC_CONF_COMPOWER 1
 #define XMAC_CONF_ANNOUNCEMENTS 1
-#define RIME_CONF_NO_POLITE_ANNOUCEMENTS 1
 
 #define PACKETBUF_CONF_ATTRS_INLINE 1
 
@@ -28,6 +27,9 @@
 #define TIMESYNCH_CONF_ENABLED 1
 #define CC2420_CONF_TIMESTAMPS 1
 #define CC2420_CONF_CHECKSUM   0
+#define RIME_CONF_NO_POLITE_ANNOUCEMENTS 0
+#else
+#define RIME_CONF_NO_POLITE_ANNOUCEMENTS 1
 #endif /* !WITH_UIP6 */
 
 #define CFS_CONF_OFFSET_TYPE	long
