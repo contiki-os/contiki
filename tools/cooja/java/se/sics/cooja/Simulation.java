@@ -24,7 +24,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * $Id: Simulation.java,v 1.47 2009/05/26 14:15:41 fros4943 Exp $
+ * $Id: Simulation.java,v 1.48 2009/06/24 07:56:15 fros4943 Exp $
  */
 
 package se.sics.cooja;
@@ -278,7 +278,7 @@ public class Simulation extends Observable implements Runnable {
   }
 
   /**
-   * Creates a new simulation with a delay time of 100 ms.
+   * Creates a new simulation
    */
   public Simulation(GUI gui) {
     myGUI = gui;
@@ -346,6 +346,13 @@ public class Simulation extends Observable implements Runnable {
    */
   public long getRandomSeed() {
     return randomSeed;
+  }
+
+  /**
+   * @return Random seed (converted to a string)
+   */
+  public String getRandomSeedString() {
+    return Long.toString(randomSeed);
   }
 
   /**
@@ -462,20 +469,16 @@ public class Simulation extends Observable implements Runnable {
   }
 
   /**
-   * Sets the current simulation config depending on the given XML elements.
-   *
-   * @see #getConfigXML()
-   * @param configXML
-   *          Config XML elements
-   * @param visAvailable
-   *          True if simulation is allowed to show visualizers while loading
-   *          the given config
-   * @return True if simulation config set successfully
-   * @throws Exception
-   *           If configuration could not be loaded
+   * Sets the current simulation config depending on the given configuration.
+   * 
+   * @param configXML Simulation configuration
+   * @param visAvailable True if simulation is allowed to show visualizers
+   * @param manualRandomSeed Simulation random seed. May be null, in which case the configuration is used
+   * @return True if simulation was configured successfully
+   * @throws Exception If configuration could not be loaded
    */
   public boolean setConfigXML(Collection<Element> configXML,
-      boolean visAvailable) throws Exception {
+      boolean visAvailable, Long manualRandomSeed) throws Exception {
 
     // Parse elements
     for (Element element : configXML) {
@@ -492,7 +495,9 @@ public class Simulation extends Observable implements Runnable {
 
       // Random seed
       if (element.getName().equals("randomseed")) {
-        if (element.getText().equals("generated")) {
+        if (manualRandomSeed != null) {
+          setRandomSeed(manualRandomSeed);
+        } else if (element.getText().equals("generated")) {
           randomSeedGenerated = true;
           setRandomSeed(new Random().nextLong());
         } else {
