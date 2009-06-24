@@ -4,11 +4,10 @@
   <project>../apps/mspsim</project>
   <project>../apps/avrora</project>
   <project>../apps/native_gateway</project>
-  <project>C:/home/nes/contiki/checkpointing-demo</project>
   <simulation>
     <title>My simulation</title>
     <delaytime>0</delaytime>
-    <randomseed>123456</randomseed>
+    <randomseed>generated</randomseed>
     <motedelay_us>5000000</motedelay_us>
     <radiomedium>
       se.sics.cooja.radiomediums.UDGM
@@ -54,7 +53,7 @@
     </motetype>
     <motetype>
       se.sics.cooja.contikimote.ContikiMoteType
-      <identifier>mtype2</identifier>
+      <identifier>mtype914</identifier>
       <description>Contiki Mote Type #1</description>
       <contikiapp>../../../examples/rime/example-abc.c</contikiapp>
       <commands>make example-abc.cooja TARGET=cooja</commands>
@@ -77,7 +76,7 @@
     </motetype>
     <mote>
       se.sics.cooja.contikimote.ContikiMote
-      <motetype_identifier>mtype2</motetype_identifier>
+      <motetype_identifier>mtype914</motetype_identifier>
       <interface_config>
         se.sics.cooja.interfaces.Position
         <x>0.0</x>
@@ -95,7 +94,7 @@
     </mote>
     <mote>
       se.sics.cooja.contikimote.ContikiMote
-      <motetype_identifier>mtype2</motetype_identifier>
+      <motetype_identifier>mtype914</motetype_identifier>
       <interface_config>
         se.sics.cooja.interfaces.Position
         <x>0.0</x>
@@ -114,6 +113,7 @@
     <mote>
       se.sics.cooja.mspmote.SkyMote
       <motetype_identifier>sky1</motetype_identifier>
+      <breakpoints />
       <interface_config>
         se.sics.cooja.interfaces.Position
         <x>100.0</x>
@@ -128,6 +128,7 @@
     <mote>
       se.sics.cooja.mspmote.SkyMote
       <motetype_identifier>sky1</motetype_identifier>
+      <breakpoints />
       <interface_config>
         se.sics.cooja.interfaces.Position
         <x>100.0</x>
@@ -142,6 +143,7 @@
     <mote>
       se.sics.cooja.mspmote.ESBMote
       <motetype_identifier>esb1</motetype_identifier>
+      <breakpoints />
       <interface_config>
         se.sics.cooja.interfaces.Position
         <x>200.0</x>
@@ -156,6 +158,7 @@
     <mote>
       se.sics.cooja.mspmote.ESBMote
       <motetype_identifier>esb1</motetype_identifier>
+      <breakpoints />
       <interface_config>
         se.sics.cooja.interfaces.Position
         <x>200.0</x>
@@ -169,7 +172,7 @@
     </mote>
     <mote>
       se.sics.cooja.contikimote.ContikiMote
-      <motetype_identifier>mtype2</motetype_identifier>
+      <motetype_identifier>mtype914</motetype_identifier>
       <interface_config>
         se.sics.cooja.interfaces.Position
         <x>300.0</x>
@@ -188,6 +191,7 @@
     <mote>
       se.sics.cooja.mspmote.SkyMote
       <motetype_identifier>sky1</motetype_identifier>
+      <breakpoints />
       <interface_config>
         se.sics.cooja.interfaces.Position
         <x>300.0</x>
@@ -201,7 +205,7 @@
     </mote>
     <mote>
       se.sics.cooja.contikimote.ContikiMote
-      <motetype_identifier>mtype2</motetype_identifier>
+      <motetype_identifier>mtype914</motetype_identifier>
       <interface_config>
         se.sics.cooja.interfaces.Position
         <x>400.0</x>
@@ -220,6 +224,7 @@
     <mote>
       se.sics.cooja.mspmote.ESBMote
       <motetype_identifier>esb1</motetype_identifier>
+      <breakpoints />
       <interface_config>
         se.sics.cooja.interfaces.Position
         <x>400.0</x>
@@ -235,7 +240,7 @@
   <plugin>
     se.sics.cooja.plugins.SimControl
     <width>265</width>
-    <z>1</z>
+    <z>4</z>
     <height>200</height>
     <location_x>0</location_x>
     <location_y>0</location_y>
@@ -244,14 +249,13 @@
   <plugin>
     se.sics.cooja.plugins.LogListener
     <plugin_config>
-      <filter />
-      <history>256</history>
+      <filter>rec</filter>
     </plugin_config>
-    <width>632</width>
+    <width>265</width>
     <z>3</z>
-    <height>143</height>
-    <location_x>-2</location_x>
-    <location_y>650</location_y>
+    <height>169</height>
+    <location_x>0</location_x>
+    <location_y>402</location_y>
     <minimized>false</minimized>
   </plugin>
   <plugin>
@@ -261,20 +265,63 @@
       <skin>Radio environment (UDGM)</skin>
       <skin>Addresses: IP or Rime</skin>
     </plugin_config>
-    <width>364</width>
-    <z>0</z>
-    <height>200</height>
-    <location_x>265</location_x>
-    <location_y>0</location_y>
+    <width>267</width>
+    <z>2</z>
+    <height>177</height>
+    <location_x>-1</location_x>
+    <location_y>570</location_y>
     <minimized>false</minimized>
   </plugin>
   <plugin>
     se.sics.cooja.plugins.RadioLogger
-    <width>631</width>
-    <z>4</z>
-    <height>452</height>
+    <width>265</width>
+    <z>0</z>
+    <height>203</height>
     <location_x>0</location_x>
     <location_y>199</location_y>
+    <minimized>false</minimized>
+  </plugin>
+  <plugin>
+    se.sics.cooja.plugins.ScriptRunner
+    <plugin_config>
+      <script>TIMEOUT(120000);
+
+var nr_packets = new Array();
+for (i=1; i &lt;= 10; i++) {
+  nr_packets[i] = 0;
+}
+
+while (true) {
+
+  /* Listen for receive notifications */
+  if (msg.contains('abc message received')) {
+
+    /* Log receiving node */
+    nr_packets[id] ++;
+    log.log("Node " + id + " received message: " + nr_packets[id] + "\n");
+
+    log.log("TEST STATUS: ");
+    for (i = 1; i &lt;= 10; i++) {
+      log.log(nr_packets[i] + " ");
+    }
+    log.log("\n");
+  }
+
+  /* Did all nodes (1-10) receive at least one message? */
+  for (i = 1; i &lt;= 10; i++) {
+    if (nr_packets[i] &lt; 1) break;
+    if (i == 10) log.testOK();
+  }
+
+  YIELD();
+}</script>
+      <active>true</active>
+    </plugin_config>
+    <width>596</width>
+    <z>1</z>
+    <height>744</height>
+    <location_x>267</location_x>
+    <location_y>3</location_y>
     <minimized>false</minimized>
   </plugin>
 </simconf>

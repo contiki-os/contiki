@@ -1,11 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <simconf>
+  <project>../apps/mrm</project>
+  <project>../apps/mspsim</project>
+  <project>../apps/avrora</project>
+  <project>../apps/native_gateway</project>
   <simulation>
     <title>IPv6 UDP multi-hop</title>
     <delaytime>0</delaytime>
-    <ticktime>1</ticktime>
-    <randomseed>123456</randomseed>
-    <motedelay>1000</motedelay>
+    <randomseed>generated</randomseed>
+    <motedelay_us>1000000</motedelay_us>
     <radiomedium>
       se.sics.cooja.radiomediums.UDGM
       <transmitting_range>50.0</transmitting_range>
@@ -21,7 +24,7 @@
       <commands>make udp-server.sky TARGET=sky DEFINES=WITH_NULLMAC,WITH_UIP6</commands>
       <firmware>../../../examples/udp-ipv6/udp-server.sky</firmware>
       <moteinterface>se.sics.cooja.interfaces.Position</moteinterface>
-      <moteinterface>se.sics.cooja.mspmote.interfaces.MspIPAddress</moteinterface>
+      <moteinterface>se.sics.cooja.interfaces.IPAddress</moteinterface>
       <moteinterface>se.sics.cooja.interfaces.Mote2MoteRelations</moteinterface>
       <moteinterface>se.sics.cooja.mspmote.interfaces.MspClock</moteinterface>
       <moteinterface>se.sics.cooja.mspmote.interfaces.MspMoteID</moteinterface>
@@ -39,7 +42,7 @@
       <commands>make udp-client.sky TARGET=sky DEFINES=WITH_NULLMAC,WITH_UIP6</commands>
       <firmware>../../../examples/udp-ipv6/udp-client.sky</firmware>
       <moteinterface>se.sics.cooja.interfaces.Position</moteinterface>
-      <moteinterface>se.sics.cooja.mspmote.interfaces.MspIPAddress</moteinterface>
+      <moteinterface>se.sics.cooja.interfaces.IPAddress</moteinterface>
       <moteinterface>se.sics.cooja.interfaces.Mote2MoteRelations</moteinterface>
       <moteinterface>se.sics.cooja.mspmote.interfaces.MspClock</moteinterface>
       <moteinterface>se.sics.cooja.mspmote.interfaces.MspMoteID</moteinterface>
@@ -52,15 +55,12 @@
     <mote>
       se.sics.cooja.mspmote.SkyMote
       <motetype_identifier>sky1</motetype_identifier>
+      <breakpoints />
       <interface_config>
         se.sics.cooja.interfaces.Position
         <x>4.429858922161034</x>
         <y>67.09174884241352</y>
         <z>0.0</z>
-      </interface_config>
-      <interface_config>
-        se.sics.cooja.mspmote.interfaces.MspIPAddress
-        <ip>fe80.0000.0000.0000.0212.7401.0001.0101</ip>
       </interface_config>
       <interface_config>
         se.sics.cooja.mspmote.interfaces.MspMoteID
@@ -70,15 +70,12 @@
     <mote>
       se.sics.cooja.mspmote.SkyMote
       <motetype_identifier>sky2</motetype_identifier>
+      <breakpoints />
       <interface_config>
         se.sics.cooja.interfaces.Position
         <x>11.713143611799719</x>
         <y>95.89136566345172</y>
         <z>0.0</z>
-      </interface_config>
-      <interface_config>
-        se.sics.cooja.mspmote.interfaces.MspIPAddress
-        <ip>fe80.0000.0000.0000.0212.7402.0002.0202</ip>
       </interface_config>
       <interface_config>
         se.sics.cooja.mspmote.interfaces.MspMoteID
@@ -88,15 +85,12 @@
     <mote>
       se.sics.cooja.mspmote.SkyMote
       <motetype_identifier>sky1</motetype_identifier>
+      <breakpoints />
       <interface_config>
         se.sics.cooja.interfaces.Position
         <x>24.363059125382698</x>
         <y>41.714385769558</y>
         <z>0.0</z>
-      </interface_config>
-      <interface_config>
-        se.sics.cooja.mspmote.interfaces.MspIPAddress
-        <ip>fe80.0000.0000.0000.0212.7403.0003.0303</ip>
       </interface_config>
       <interface_config>
         se.sics.cooja.mspmote.interfaces.MspMoteID
@@ -106,15 +100,12 @@
     <mote>
       se.sics.cooja.mspmote.SkyMote
       <motetype_identifier>sky1</motetype_identifier>
+      <breakpoints />
       <interface_config>
         se.sics.cooja.interfaces.Position
         <x>96.42924447549179</x>
         <y>57.78187718095034</y>
         <z>0.0</z>
-      </interface_config>
-      <interface_config>
-        se.sics.cooja.mspmote.interfaces.MspIPAddress
-        <ip>fe80.0000.0000.0000.0212.7404.0004.0404</ip>
       </interface_config>
       <interface_config>
         se.sics.cooja.mspmote.interfaces.MspMoteID
@@ -124,15 +115,12 @@
     <mote>
       se.sics.cooja.mspmote.SkyMote
       <motetype_identifier>sky1</motetype_identifier>
+      <breakpoints />
       <interface_config>
         se.sics.cooja.interfaces.Position
         <x>58.387304457658814</x>
         <y>39.38419308594967</y>
         <z>0.0</z>
-      </interface_config>
-      <interface_config>
-        se.sics.cooja.mspmote.interfaces.MspIPAddress
-        <ip>fe80.0000.0000.0000.0212.7405.0005.0505</ip>
       </interface_config>
       <interface_config>
         se.sics.cooja.mspmote.interfaces.MspMoteID
@@ -143,8 +131,8 @@
   <plugin>
     se.sics.cooja.plugins.SimControl
     <width>282</width>
-    <z>1</z>
-    <height>187</height>
+    <z>4</z>
+    <height>204</height>
     <location_x>0</location_x>
     <location_y>0</location_y>
     <minimized>false</minimized>
@@ -153,25 +141,55 @@
     se.sics.cooja.plugins.Visualizer
     <plugin_config>
       <skin>Radio environment (UDGM)</skin>
+      <skin>Mote IDs</skin>
+      <skin>Addresses: IP or Rime</skin>
     </plugin_config>
-    <width>300</width>
-    <z>3</z>
-    <height>300</height>
-    <location_x>503</location_x>
-    <location_y>0</location_y>
+    <width>800</width>
+    <z>2</z>
+    <height>183</height>
+    <location_x>221</location_x>
+    <location_y>426</location_y>
     <minimized>false</minimized>
   </plugin>
   <plugin>
     se.sics.cooja.plugins.LogListener
     <plugin_config>
       <filter />
-      <history>256</history>
     </plugin_config>
-    <width>1021</width>
-    <z>2</z>
+    <width>1019</width>
+    <z>3</z>
     <height>190</height>
-    <location_x>-7</location_x>
-    <location_y>276</location_y>
+    <location_x>3</location_x>
+    <location_y>610</location_y>
+    <minimized>false</minimized>
+  </plugin>
+  <plugin>
+    se.sics.cooja.plugins.ScriptRunner
+    <plugin_config>
+      <script>/* Make test automatically fail (timeout) after 100 simulated seconds */
+TIMEOUT(100000, log.log("last msg: " + msg + "\n")); /* print last msg at timeout */
+
+log.log("waiting for server response at mote 2\n");
+WAIT_UNTIL(id == 2 &amp;&amp; msg.startsWith("Response from the server"));
+
+log.log("ok, reporting success now\n");
+log.testOK(); /* Report test success and quit */</script>
+      <active>true</active>
+    </plugin_config>
+    <width>738</width>
+    <z>0</z>
+    <height>425</height>
+    <location_x>282</location_x>
+    <location_y>1</location_y>
+    <minimized>false</minimized>
+  </plugin>
+  <plugin>
+    se.sics.cooja.plugins.RadioLogger
+    <width>500</width>
+    <z>1</z>
+    <height>406</height>
+    <location_x>2</location_x>
+    <location_y>204</location_y>
     <minimized>false</minimized>
   </plugin>
 </simconf>

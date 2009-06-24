@@ -1,11 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <simconf>
+  <project>../apps/mrm</project>
+  <project>../apps/mspsim</project>
+  <project>../apps/avrora</project>
+  <project>../apps/native_gateway</project>
   <simulation>
     <title>My simulation</title>
-    <delaytime>0</delaytime>
-    <ticktime>1</ticktime>
-    <randomseed>123456</randomseed>
-    <motedelay>1000</motedelay>
+    <delaytime>1</delaytime>
+    <randomseed>generated</randomseed>
+    <motedelay_us>1000000</motedelay_us>
     <radiomedium>
       se.sics.cooja.radiomediums.UDGM
       <transmitting_range>50.0</transmitting_range>
@@ -34,6 +37,7 @@
     <mote>
       se.sics.cooja.mspmote.SkyMote
       <motetype_identifier>sky1</motetype_identifier>
+      <breakpoints />
       <interface_config>
         se.sics.cooja.interfaces.Position
         <x>86.60672552430381</x>
@@ -64,9 +68,9 @@
     </plugin_config>
     <width>388</width>
     <z>2</z>
-    <height>331</height>
-    <location_x>627</location_x>
-    <location_y>107</location_y>
+    <height>332</height>
+    <location_x>2</location_x>
+    <location_y>401</location_y>
     <minimized>false</minimized>
   </plugin>
   <plugin>
@@ -78,9 +82,9 @@
     </plugin_config>
     <width>385</width>
     <z>1</z>
-    <height>234</height>
-    <location_x>629</location_x>
-    <location_y>420</location_y>
+    <height>239</height>
+    <location_x>2</location_x>
+    <location_y>201</location_y>
     <minimized>false</minimized>
   </plugin>
   <plugin>
@@ -90,11 +94,75 @@
       <skin>Addresses: IP or Rime</skin>
       <skin>Radio environment (UDGM)</skin>
     </plugin_config>
-    <width>300</width>
+    <width>140</width>
     <z>3</z>
-    <height>107</height>
-    <location_x>714</location_x>
-    <location_y>1</location_y>
+    <height>201</height>
+    <location_x>249</location_x>
+    <location_y>0</location_y>
+    <minimized>false</minimized>
+  </plugin>
+  <plugin>
+    se.sics.cooja.plugins.ScriptRunner
+    <plugin_config>
+      <script>TIMEOUT(30000);
+
+/* conf */
+nrReplies = 0;
+ipAddress = "172.16.1.0";
+osName = java.lang.System.getProperty("os.name").toLowerCase();
+if (osName.startsWith("win")) {
+  pingOnceCmd = "ping -n 1 " + ipAddress;
+  pingCmd = "ping -n 10 " + ipAddress;
+} else {
+  pingOnceCmd = "ping -c 1 " + ipAddress;
+  pingCmd = "ping -c 10 " + ipAddress;
+}
+replyMsg = "from " + ipAddress;
+
+/* wait for mote startup */
+WAIT_UNTIL(msg.contains('Sky telnet process'));
+
+/* make gateway */
+pingOnceProcess  = new java.lang.Runtime.getRuntime().exec(pingOnceCmd);
+GENERATE_MSG(5000, "continue");
+WAIT_UNTIL(msg.equals("continue"));
+log.log("cont\n");
+
+/* override simulation delay, test will time out is too fast otherwise */
+mote.getSimulation().setDelayTime(1);
+
+/* start ping process */
+var runnableObj = new Object();
+runnableObj.run = function() {
+  pingProcess  = new java.lang.Runtime.getRuntime().exec(pingCmd);
+  log.log("cmd&gt; " + pingCmd + "\n");
+
+  stdIn = new java.io.BufferedReader(new java.io.InputStreamReader(pingProcess.getInputStream()));
+  while ((line = stdIn.readLine()) != null) {
+    log.log("&gt; " + line + "\n");
+    if (line.contains(replyMsg)) {
+      nrReplies++;
+      //log.log("reply #" + nrReplies + "\n");
+    }
+  }
+  pingProcess.destroy();
+
+  if (nrReplies &gt; 5) {
+    log.testOK(); /* Report test success and quit */
+  } else {
+    log.log("Only " + nrReplies + "/10 ping replies was received\n");
+    log.testFailed();
+  }
+}
+var thread = new java.lang.Thread(new java.lang.Runnable(runnableObj));
+thread.start();</script>
+      <active>true</active>
+    </plugin_config>
+    <width>603</width>
+    <z>0</z>
+    <height>732</height>
+    <location_x>389</location_x>
+    <location_y>0</location_y>
     <minimized>false</minimized>
   </plugin>
 </simconf>

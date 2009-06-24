@@ -2,13 +2,13 @@
 <simconf>
   <project>../apps/mrm</project>
   <project>../apps/mspsim</project>
+  <project>../apps/avrora</project>
   <project>../apps/native_gateway</project>
   <simulation>
     <title>My simulation</title>
     <delaytime>0</delaytime>
-    <ticktime>1</ticktime>
-    <randomseed>123456</randomseed>
-    <motedelay>1000</motedelay>
+    <randomseed>generated</randomseed>
+    <motedelay_us>1000000</motedelay_us>
     <radiomedium>
       se.sics.cooja.radiomediums.UDGM
       <transmitting_range>25.0</transmitting_range>
@@ -18,7 +18,7 @@
     </radiomedium>
     <motetype>
       se.sics.cooja.contikimote.ContikiMoteType
-      <identifier>mtype1</identifier>
+      <identifier>mtype296</identifier>
       <description>Contiki Mote #1</description>
       <contikiapp>../../../examples/rime/example-rucb.c</contikiapp>
       <commands>make example-rucb.cooja TARGET=cooja</commands>
@@ -34,7 +34,6 @@
       <moteinterface>se.sics.cooja.contikimote.interfaces.ContikiPIR</moteinterface>
       <moteinterface>se.sics.cooja.contikimote.interfaces.ContikiClock</moteinterface>
       <moteinterface>se.sics.cooja.contikimote.interfaces.ContikiLED</moteinterface>
-      <moteinterface>se.sics.cooja.contikimote.interfaces.ContikiLog</moteinterface>
       <moteinterface>se.sics.cooja.contikimote.interfaces.ContikiCFS</moteinterface>
       <moteinterface>se.sics.cooja.interfaces.Mote2MoteRelations</moteinterface>
       <symbols>false</symbols>
@@ -42,7 +41,7 @@
     </motetype>
     <mote>
       se.sics.cooja.contikimote.ContikiMote
-      <motetype_identifier>mtype1</motetype_identifier>
+      <motetype_identifier>mtype296</motetype_identifier>
       <interface_config>
         se.sics.cooja.interfaces.Position
         <x>0.0</x>
@@ -57,14 +56,10 @@
         se.sics.cooja.contikimote.interfaces.ContikiMoteID
         <id>51</id>
       </interface_config>
-      <interface_config>
-        se.sics.cooja.contikimote.interfaces.ContikiIPAddress
-        <ipv4address>10.10.17.20</ipv4address>
-      </interface_config>
     </mote>
     <mote>
       se.sics.cooja.contikimote.ContikiMote
-      <motetype_identifier>mtype1</motetype_identifier>
+      <motetype_identifier>mtype296</motetype_identifier>
       <interface_config>
         se.sics.cooja.interfaces.Position
         <x>14.102564102564104</x>
@@ -79,14 +74,10 @@
         se.sics.cooja.contikimote.interfaces.ContikiMoteID
         <id>52</id>
       </interface_config>
-      <interface_config>
-        se.sics.cooja.contikimote.interfaces.ContikiIPAddress
-        <ipv4address>10.10.1.11</ipv4address>
-      </interface_config>
     </mote>
     <mote>
       se.sics.cooja.contikimote.ContikiMote
-      <motetype_identifier>mtype1</motetype_identifier>
+      <motetype_identifier>mtype296</motetype_identifier>
       <interface_config>
         se.sics.cooja.interfaces.Position
         <x>-32.16814655285737</x>
@@ -101,14 +92,10 @@
         se.sics.cooja.contikimote.interfaces.ContikiMoteID
         <id>53</id>
       </interface_config>
-      <interface_config>
-        se.sics.cooja.contikimote.interfaces.ContikiIPAddress
-        <ipv4address>10.10.18.13</ipv4address>
-      </interface_config>
     </mote>
     <mote>
       se.sics.cooja.contikimote.ContikiMote
-      <motetype_identifier>mtype1</motetype_identifier>
+      <motetype_identifier>mtype296</motetype_identifier>
       <interface_config>
         se.sics.cooja.interfaces.Position
         <x>-1.5917258339289355</x>
@@ -123,14 +110,10 @@
         se.sics.cooja.contikimote.interfaces.ContikiMoteID
         <id>54</id>
       </interface_config>
-      <interface_config>
-        se.sics.cooja.contikimote.interfaces.ContikiIPAddress
-        <ipv4address>10.10.5.21</ipv4address>
-      </interface_config>
     </mote>
     <mote>
       se.sics.cooja.contikimote.ContikiMote
-      <motetype_identifier>mtype1</motetype_identifier>
+      <motetype_identifier>mtype296</motetype_identifier>
       <interface_config>
         se.sics.cooja.interfaces.Position
         <x>26.334899854939632</x>
@@ -144,10 +127,6 @@
       <interface_config>
         se.sics.cooja.contikimote.interfaces.ContikiMoteID
         <id>55</id>
-      </interface_config>
-      <interface_config>
-        se.sics.cooja.contikimote.interfaces.ContikiIPAddress
-        <ipv4address>10.10.11.6</ipv4address>
       </interface_config>
     </mote>
   </simulation>
@@ -164,40 +143,41 @@
     se.sics.cooja.plugins.LogListener
     <plugin_config>
       <filter />
-      <history>256</history>
     </plugin_config>
-    <width>692</width>
+    <width>798</width>
     <z>2</z>
-    <height>209</height>
+    <height>289</height>
     <location_x>0</location_x>
-    <location_y>434</location_y>
+    <location_y>354</location_y>
     <minimized>false</minimized>
   </plugin>
   <plugin>
-    se.sics.cooja.plugins.VisUDGM
-    <width>216</width>
-    <z>4</z>
-    <height>197</height>
-    <location_x>477</location_x>
-    <location_y>0</location_y>
-    <minimized>false</minimized>
-  </plugin>
-  <plugin>
-    se.sics.cooja.plugins.VisTraffic
-    <width>208</width>
+    se.sics.cooja.plugins.Visualizer
+    <plugin_config>
+      <skin>Mote IDs</skin>
+      <skin>Radio environment (UDGM)</skin>
+    </plugin_config>
+    <width>265</width>
     <z>0</z>
-    <height>203</height>
-    <location_x>266</location_x>
-    <location_y>-2</location_y>
+    <height>155</height>
+    <location_x>0</location_x>
+    <location_y>200</location_y>
     <minimized>false</minimized>
   </plugin>
   <plugin>
-    se.sics.cooja.plugins.RadioLogger
-    <width>687</width>
+    se.sics.cooja.plugins.ScriptRunner
+    <plugin_config>
+      <script>TIMEOUT(120000);
+
+WAIT_UNTIL(msg.startsWith('Completion time'));
+log.testOK();</script>
+      <active>true</active>
+    </plugin_config>
+    <width>534</width>
     <z>1</z>
-    <height>233</height>
-    <location_x>3</location_x>
-    <location_y>201</location_y>
+    <height>354</height>
+    <location_x>264</location_x>
+    <location_y>0</location_y>
     <minimized>false</minimized>
   </plugin>
 </simconf>
