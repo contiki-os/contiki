@@ -26,14 +26,14 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: MessageList.java,v 1.11 2009/06/24 12:41:05 fros4943 Exp $
+ * $Id: MessageList.java,v 1.12 2009/06/24 14:07:19 fros4943 Exp $
  *
  * -----------------------------------------------------------------
  *
  * Author  : Adam Dunkels, Joakim Eriksson, Niclas Finne, Fredrik Osterlind
  * Created : 2006-06-14
- * Updated : $Date: 2009/06/24 12:41:05 $
- *           $Revision: 1.11 $
+ * Updated : $Date: 2009/06/24 14:07:19 $
+ *           $Revision: 1.12 $
  */
 
 package se.sics.cooja.dialogs;
@@ -59,7 +59,6 @@ import javax.swing.Box;
 import javax.swing.DefaultListCellRenderer;
 import javax.swing.DefaultListModel;
 import javax.swing.JCheckBoxMenuItem;
-import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JMenuItem;
 import javax.swing.JPopupMenu;
@@ -223,6 +222,9 @@ public class MessageList extends JList {
             MessageContainer[] messages = getMessages();
             System.out.println("\nCOMPILATION OUTPUT:\n");
             for (MessageContainer msg: messages) {
+              if (hideNormal && msg.type == NORMAL) {
+                continue;
+              }
               System.out.println(msg);
             }
             System.out.println();
@@ -236,13 +238,16 @@ public class MessageList extends JList {
           public void actionPerformed(ActionEvent e) {
             Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
 
-            String output = "";
+            StringBuilder sb = new StringBuilder();
             MessageContainer[] messages = getMessages();
             for (MessageContainer msg: messages) {
-              output += msg + "\n";
+              if (hideNormal && msg.type == NORMAL) {
+                continue;
+              }
+              sb.append(msg + "\n");
             }
 
-            StringSelection stringSelection = new StringSelection(output);
+            StringSelection stringSelection = new StringSelection(sb.toString());
             clipboard.setContents(stringSelection, null);
           }
         });
@@ -289,7 +294,7 @@ public class MessageList extends JList {
     }
     public Object getElementAt(int index) {
       MessageContainer c = (MessageContainer) super.getElementAt(index);
-      if (hideNormal && c.type == NORMAL) {
+      if (hideNormal && c.type == NORMAL && index != getSize()-1) {
         return Box.createVerticalStrut(0);
       }
       return c;
