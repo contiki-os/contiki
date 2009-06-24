@@ -1,14 +1,29 @@
 #!/bin/bash
 
-if [ $# -lt 1 -o $# -gt 2 ]; then
-  echo "Usage: $0 <test> [logfile]"
+if [ $# -lt 1 -o $# -gt 3 ]; then
+  echo "Usage: $0 <test> [logfile] [-keeplog]"
   exit
 fi
+
 TEST=$1
+
 LOGFILE=0
-if [ $# -eq 2 ]; then
+if [ $# -gt 1 ]; then
   LOGFILE=1
   LOG=$2
+  if [ -f "$LOG" ]; then
+    rm $LOG
+  fi
+fi
+
+NO_LOG_PROCESSING=0
+if [ $# -gt 2 ]; then
+  if [ $3 == "-keeplog" ]; then
+    NO_LOG_PROCESSING=1
+  else
+    echo "Usage: $0 <test> [logfile] [-keeplog]"
+    exit
+  fi
 fi
 
 echo ">>>>>>> Starting test: $TEST <<<<<<<<"
@@ -30,6 +45,12 @@ fi
 OK=0
 if [ -f "$TEST.log" ]; then
   OK=`grep "TEST OK" $TEST.log | wc -l`
+fi
+
+if [ $NO_LOG_PROCESSING -eq 1 ]; then
+  rm $LOG
+  mv $TEST.log $LOG
+  exit
 fi
 
 if [ $LOGFILE -eq 1 ]; then
@@ -57,6 +78,7 @@ fi
 
 if [ $OK == 0 ]; then
   echo ">>>>>>> Finished test: $TEST FAILED <<<<<<<<"
+  echo ""
 else
   echo ">>>>>>> Finished test: $TEST OK <<<<<<<<"
 fi

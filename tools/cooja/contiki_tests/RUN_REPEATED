@@ -35,7 +35,7 @@ fi
 for COUNTER in `seq 1 $REPEATS`;
 do
   echo ">>>>>>> Repeating $COUNTER/$REPEATS <<<<<<<<"
-  bash RUN_TEST $TEST $TEST$COUNTER.log
+  bash RUN_TEST $TEST $TEST$COUNTER.log -keeplog
 done
 
 echo
