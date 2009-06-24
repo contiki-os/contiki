@@ -26,16 +26,18 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: MessageList.java,v 1.10 2009/03/11 20:14:58 fros4943 Exp $
+ * $Id: MessageList.java,v 1.11 2009/06/24 12:41:05 fros4943 Exp $
  *
  * -----------------------------------------------------------------
  *
  * Author  : Adam Dunkels, Joakim Eriksson, Niclas Finne, Fredrik Osterlind
  * Created : 2006-06-14
- * Updated : $Date: 2009/03/11 20:14:58 $
- *           $Revision: 1.10 $
+ * Updated : $Date: 2009/06/24 12:41:05 $
+ *           $Revision: 1.11 $
  */
+
 package se.sics.cooja.dialogs;
+
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Toolkit;
@@ -52,8 +54,12 @@ import java.io.PipedInputStream;
 import java.io.PipedOutputStream;
 import java.io.PrintStream;
 import java.util.ArrayList;
+
+import javax.swing.Box;
 import javax.swing.DefaultListCellRenderer;
 import javax.swing.DefaultListModel;
+import javax.swing.JCheckBoxMenuItem;
+import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JMenuItem;
 import javax.swing.JPopupMenu;
@@ -74,9 +80,10 @@ public class MessageList extends JList {
   private Color[] backgrounds = new Color[] { null, null };
 
   private JPopupMenu popup = null;
-
+  private boolean hideNormal = false;
+  
   public MessageList() {
-    super.setModel(new DefaultListModel());
+    super.setModel(new MessageModel());
     setCellRenderer(new MessageRenderer());
     setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
   }
@@ -144,9 +151,7 @@ public class MessageList extends JList {
   private ArrayList<MessageContainer> messages = new ArrayList<MessageContainer>();
 
   public MessageContainer[] getMessages() {
-    MessageContainer[] messagesArray = new MessageContainer[messages.size()];
-    messages.toArray(messagesArray);
-    return messagesArray;
+    return messages.toArray(new MessageContainer[0]);
   }
 
   private void updateModel() {
@@ -201,6 +206,16 @@ public class MessageList extends JList {
 
       if (withDefaults) {
         /* Create default menu items */
+        final JMenuItem hideNormalMenuItem = new JCheckBoxMenuItem("Hide normal output");
+        hideNormalMenuItem.setEnabled(true);
+        hideNormalMenuItem.addActionListener(new ActionListener() {
+          public void actionPerformed(ActionEvent e) {
+            MessageList.this.hideNormal = hideNormalMenuItem.isSelected();
+            ((MessageModel)getModel()).updateList();
+          }
+        });
+        popup.add(hideNormalMenuItem);
+
         JMenuItem consoleOutputMenuItem = new JMenuItem("Output to console");
         consoleOutputMenuItem.setEnabled(true);
         consoleOutputMenuItem.addActionListener(new ActionListener() {
@@ -268,6 +283,19 @@ public class MessageList extends JList {
   // Renderer for messages
   // -------------------------------------------------------------------
 
+  private class MessageModel extends DefaultListModel {
+    public void updateList() {
+      fireContentsChanged(this, 0, getSize());
+    }
+    public Object getElementAt(int index) {
+      MessageContainer c = (MessageContainer) super.getElementAt(index);
+      if (hideNormal && c.type == NORMAL) {
+        return Box.createVerticalStrut(0);
+      }
+      return c;
+    }
+  }
+
   private static class MessageRenderer extends DefaultListCellRenderer {
 
     public Component getListCellRendererComponent(
@@ -279,6 +307,9 @@ public class MessageList extends JList {
     {
       super.getListCellRendererComponent(list, value, index, isSelected,
 					 cellHasFocus);
+      if (value instanceof Component) {
+        return (Component)value;
+      }
       MessageContainer msg = (MessageContainer) value;
       setForeground(((MessageList) list).getForeground(msg.type));
       setBackground(((MessageList) list).getBackground(msg.type));
