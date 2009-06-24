@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ScriptRunner.java,v 1.21 2009/06/15 16:53:32 fros4943 Exp $
+ * $Id: ScriptRunner.java,v 1.22 2009/06/24 14:08:14 fros4943 Exp $
  */
 
 package se.sics.cooja.plugins;
@@ -39,7 +39,6 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
-import java.awt.event.WindowListener;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
@@ -276,6 +275,8 @@ public class ScriptRunner extends VisPlugin {
               logFile.delete();
             }
             logWriter = new BufferedWriter(new FileWriter(logFile));
+            logWriter.write("Random seed: " + simulation.getRandomSeed() + "\n");
+            logWriter.flush();
           }
           engine.setScriptLogObserver(new Observer() {
             public void update(Observable obs, Object obj) {
@@ -333,6 +334,10 @@ public class ScriptRunner extends VisPlugin {
 
       if (logWriter != null) {
         try {
+          logWriter.write(
+              "Test ended at simulation time: " + 
+              (simulation!=null?simulation.getSimulationTime():"?") + "\n");
+          logWriter.flush();
           logWriter.close();
         } catch (IOException e) {
         }
