@@ -2,13 +2,13 @@
 <simconf>
   <project>../apps/mrm</project>
   <project>../apps/mspsim</project>
+  <project>../apps/avrora</project>
   <project>../apps/native_gateway</project>
   <simulation>
     <title>My simulation</title>
     <delaytime>0</delaytime>
-    <ticktime>1</ticktime>
-    <randomseed>123456</randomseed>
-    <motedelay>1000</motedelay>
+    <randomseed>generated</randomseed>
+    <motedelay_us>1000000</motedelay_us>
     <radiomedium>
       se.sics.cooja.radiomediums.UDGM
       <transmitting_range>50.0</transmitting_range>
@@ -24,7 +24,7 @@
       <commands>make sky-shell.sky TARGET=sky</commands>
       <firmware>../../../examples/sky-shell/sky-shell.sky</firmware>
       <moteinterface>se.sics.cooja.interfaces.Position</moteinterface>
-      <moteinterface>se.sics.cooja.mspmote.interfaces.MspIPAddress</moteinterface>
+      <moteinterface>se.sics.cooja.interfaces.IPAddress</moteinterface>
       <moteinterface>se.sics.cooja.interfaces.Mote2MoteRelations</moteinterface>
       <moteinterface>se.sics.cooja.mspmote.interfaces.MspClock</moteinterface>
       <moteinterface>se.sics.cooja.mspmote.interfaces.MspMoteID</moteinterface>
@@ -37,6 +37,7 @@
     <mote>
       se.sics.cooja.mspmote.SkyMote
       <motetype_identifier>sky1</motetype_identifier>
+      <breakpoints />
       <interface_config>
         se.sics.cooja.interfaces.Position
         <x>62.86427076032819</x>
@@ -52,18 +53,9 @@
   <plugin>
     se.sics.cooja.plugins.SimControl
     <width>302</width>
-    <z>1</z>
-    <height>187</height>
+    <z>2</z>
+    <height>205</height>
     <location_x>0</location_x>
-    <location_y>0</location_y>
-    <minimized>false</minimized>
-  </plugin>
-  <plugin>
-    se.sics.cooja.plugins.VisState
-    <width>300</width>
-    <z>0</z>
-    <height>300</height>
-    <location_x>390</location_x>
     <location_y>0</location_y>
     <minimized>false</minimized>
   </plugin>
@@ -71,13 +63,43 @@
     se.sics.cooja.plugins.LogListener
     <plugin_config>
       <filter />
-      <history>256</history>
     </plugin_config>
     <width>690</width>
-    <z>2</z>
+    <z>1</z>
     <height>190</height>
     <location_x>0</location_x>
     <location_y>457</location_y>
+    <minimized>false</minimized>
+  </plugin>
+  <plugin>
+    se.sics.cooja.plugins.ScriptRunner
+    <plugin_config>
+      <script>TIMEOUT(3000, log.log("last message: " + msg + "\n"));
+
+/* Wait until node has booted */
+WAIT_UNTIL(msg.startsWith('Starting'));
+log.log("Shell started\n");
+
+/* Test command: ps */
+log.log("&gt; ps\n");
+write(mote, "ps");
+WAIT_UNTIL(msg.startsWith('Event timer'));
+WAIT_UNTIL(msg.contains('Contiki&gt;'));
+
+/* Test command: help */
+log.log("&gt; help\n");
+write(mote, "help");
+WAIT_UNTIL(msg.startsWith('write &lt;filename&gt;'));
+WAIT_UNTIL(msg.contains('Contiki&gt;'));
+
+log.testOK(); /* We are done! */</script>
+      <active>true</active>
+    </plugin_config>
+    <width>600</width>
+    <z>0</z>
+    <height>648</height>
+    <location_x>303</location_x>
+    <location_y>0</location_y>
     <minimized>false</minimized>
   </plugin>
 </simconf>

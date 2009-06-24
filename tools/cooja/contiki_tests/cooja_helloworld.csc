@@ -2,13 +2,13 @@
 <simconf>
   <project>../apps/mrm</project>
   <project>../apps/mspsim</project>
+  <project>../apps/avrora</project>
   <project>../apps/native_gateway</project>
   <simulation>
     <title>My simulation</title>
     <delaytime>0</delaytime>
-    <ticktime>1</ticktime>
-    <randomseed>123456</randomseed>
-    <motedelay>1000</motedelay>
+    <randomseed>generated</randomseed>
+    <motedelay_us>1000000</motedelay_us>
     <radiomedium>
       se.sics.cooja.radiomediums.UDGM
       <transmitting_range>50.0</transmitting_range>
@@ -18,7 +18,7 @@
     </radiomedium>
     <motetype>
       se.sics.cooja.contikimote.ContikiMoteType
-      <identifier>mtype4</identifier>
+      <identifier>mtype82</identifier>
       <description>Contiki Mote Type #1</description>
       <contikiapp>../../../examples/hello-world/hello-world.c</contikiapp>
       <commands>make hello-world.cooja TARGET=cooja</commands>
@@ -34,15 +34,15 @@
       <moteinterface>se.sics.cooja.contikimote.interfaces.ContikiPIR</moteinterface>
       <moteinterface>se.sics.cooja.contikimote.interfaces.ContikiClock</moteinterface>
       <moteinterface>se.sics.cooja.contikimote.interfaces.ContikiLED</moteinterface>
-      <moteinterface>se.sics.cooja.contikimote.interfaces.ContikiLog</moteinterface>
       <moteinterface>se.sics.cooja.contikimote.interfaces.ContikiCFS</moteinterface>
       <moteinterface>se.sics.cooja.interfaces.Mote2MoteRelations</moteinterface>
+      <moteinterface>se.sics.cooja.interfaces.RimeAddress</moteinterface>
       <symbols>false</symbols>
       <commstack>Rime</commstack>
     </motetype>
     <mote>
       se.sics.cooja.contikimote.ContikiMote
-      <motetype_identifier>mtype4</motetype_identifier>
+      <motetype_identifier>mtype82</motetype_identifier>
       <interface_config>
         se.sics.cooja.interfaces.Position
         <x>69.64867743029201</x>
@@ -57,41 +57,56 @@
         se.sics.cooja.contikimote.interfaces.ContikiMoteID
         <id>1</id>
       </interface_config>
-      <interface_config>
-        se.sics.cooja.contikimote.interfaces.ContikiIPAddress
-        <ipv4address>10.10.4.7</ipv4address>
-      </interface_config>
     </mote>
   </simulation>
   <plugin>
-    se.sics.cooja.plugins.SimControl
-    <width>248</width>
+    se.sics.cooja.plugins.Visualizer
+    <plugin_config>
+      <skin>Mote IDs</skin>
+      <skin>Log output: printf()'s</skin>
+    </plugin_config>
+    <width>259</width>
     <z>1</z>
-    <height>200</height>
-    <location_x>0</location_x>
-    <location_y>0</location_y>
-    <minimized>false</minimized>
-  </plugin>
-  <plugin>
-    se.sics.cooja.plugins.VisState
-    <width>300</width>
-    <z>2</z>
-    <height>300</height>
-    <location_x>600</location_x>
-    <location_y>0</location_y>
+    <height>198</height>
+    <location_x>2</location_x>
+    <location_y>203</location_y>
     <minimized>false</minimized>
   </plugin>
   <plugin>
     se.sics.cooja.plugins.LogListener
     <plugin_config>
       <filter />
-      <history>256</history>
     </plugin_config>
-    <width>900</width>
+    <width>259</width>
+    <z>2</z>
+    <height>217</height>
+    <location_x>2</location_x>
+    <location_y>403</location_y>
+    <minimized>false</minimized>
+  </plugin>
+  <plugin>
+    se.sics.cooja.plugins.SimControl
+    <width>259</width>
+    <z>3</z>
+    <height>200</height>
+    <location_x>2</location_x>
+    <location_y>3</location_y>
+    <minimized>false</minimized>
+  </plugin>
+  <plugin>
+    se.sics.cooja.plugins.ScriptRunner
+    <plugin_config>
+      <script>TIMEOUT(2000, log.log("last message: " + msg + "\n"));
+
+WAIT_UNTIL(msg.equals('Hello, world'));
+log.testOK();</script>
+      <active>true</active>
+    </plugin_config>
+    <width>592</width>
     <z>0</z>
-    <height>209</height>
-    <location_x>0</location_x>
-    <location_y>591</location_y>
+    <height>618</height>
+    <location_x>264</location_x>
+    <location_y>3</location_y>
     <minimized>false</minimized>
   </plugin>
 </simconf>

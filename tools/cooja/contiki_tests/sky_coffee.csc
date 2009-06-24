@@ -2,13 +2,13 @@
 <simconf>
   <project>../apps/mrm</project>
   <project>../apps/mspsim</project>
+  <project>../apps/avrora</project>
   <project>../apps/native_gateway</project>
   <simulation>
     <title>test</title>
     <delaytime>0</delaytime>
-    <ticktime>1</ticktime>
-    <randomseed>123456</randomseed>
-    <motedelay>0</motedelay>
+    <randomseed>generated</randomseed>
+    <motedelay_us>0</motedelay_us>
     <radiomedium>
       se.sics.cooja.radiomediums.UDGM
       <transmitting_range>50.0</transmitting_range>
@@ -24,7 +24,7 @@
       <commands>make test-coffee.sky TARGET=sky</commands>
       <firmware>../../../examples/sky/test-coffee.sky</firmware>
       <moteinterface>se.sics.cooja.interfaces.Position</moteinterface>
-      <moteinterface>se.sics.cooja.mspmote.interfaces.MspIPAddress</moteinterface>
+      <moteinterface>se.sics.cooja.interfaces.IPAddress</moteinterface>
       <moteinterface>se.sics.cooja.interfaces.Mote2MoteRelations</moteinterface>
       <moteinterface>se.sics.cooja.mspmote.interfaces.MspClock</moteinterface>
       <moteinterface>se.sics.cooja.mspmote.interfaces.MspMoteID</moteinterface>
@@ -37,6 +37,7 @@
     <mote>
       se.sics.cooja.mspmote.SkyMote
       <motetype_identifier>sky1</motetype_identifier>
+      <breakpoints />
       <interface_config>
         se.sics.cooja.interfaces.Position
         <x>97.11078411573273</x>
@@ -52,32 +53,78 @@
   <plugin>
     se.sics.cooja.plugins.SimControl
     <width>248</width>
-    <z>2</z>
+    <z>3</z>
     <height>200</height>
     <location_x>0</location_x>
     <location_y>0</location_y>
     <minimized>false</minimized>
   </plugin>
   <plugin>
-    se.sics.cooja.plugins.VisState
-    <width>300</width>
-    <z>1</z>
-    <height>300</height>
-    <location_x>1239</location_x>
-    <location_y>0</location_y>
+    se.sics.cooja.plugins.Visualizer
+    <plugin_config>
+      <skin>Mote IDs</skin>
+      <skin>Log output: printf()'s</skin>
+    </plugin_config>
+    <width>246</width>
+    <z>2</z>
+    <height>170</height>
+    <location_x>1</location_x>
+    <location_y>200</location_y>
     <minimized>false</minimized>
   </plugin>
   <plugin>
     se.sics.cooja.plugins.LogListener
     <plugin_config>
       <filter />
-      <history>256</history>
     </plugin_config>
-    <width>1539</width>
-    <z>0</z>
+    <width>846</width>
+    <z>1</z>
     <height>209</height>
-    <location_x>0</location_x>
-    <location_y>945</location_y>
+    <location_x>2</location_x>
+    <location_y>370</location_y>
+    <minimized>false</minimized>
+  </plugin>
+  <plugin>
+    se.sics.cooja.plugins.ScriptRunner
+    <plugin_config>
+      <script>TIMEOUT(60000);
+
+fileOK = null;
+gcOK = null;
+
+while (fileOK == null || gcOK == null) {
+  YIELD();
+
+  if (msg.startsWith('Coffee file test: 0')) {
+    fileOK = true;
+  } else if (msg.startsWith('Coffee file test')) {
+    fileOK = false;
+  } else if (msg.startsWith('Coffee garbage collection test: 0')) {
+    gcOK = true;
+  } else if (msg.startsWith('Coffee garbage collection test')) {
+    gcOK = false;
+  }
+
+}
+
+if (gcOK == false) {
+  log.log("coffee garbage collection failed\n");
+}
+if (fileOK == false) {
+  log.log("coffee file test failed\n");
+}
+if (!fileOK || !gcOK) {
+  log.testFailed();
+} else {
+  log.testOK();
+}</script>
+      <active>true</active>
+    </plugin_config>
+    <width>601</width>
+    <z>0</z>
+    <height>370</height>
+    <location_x>247</location_x>
+    <location_y>0</location_y>
     <minimized>false</minimized>
   </plugin>
 </simconf>

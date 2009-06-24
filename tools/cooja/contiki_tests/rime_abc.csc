@@ -2,13 +2,13 @@
 <simconf>
   <project>../apps/mrm</project>
   <project>../apps/mspsim</project>
+  <project>../apps/avrora</project>
   <project>../apps/native_gateway</project>
   <simulation>
     <title>My simulation</title>
     <delaytime>0</delaytime>
-    <ticktime>1</ticktime>
-    <randomseed>123456</randomseed>
-    <motedelay>5000</motedelay>
+    <randomseed>generated</randomseed>
+    <motedelay_us>5000000</motedelay_us>
     <radiomedium>
       se.sics.cooja.radiomediums.UDGM
       <transmitting_range>50.0</transmitting_range>
@@ -24,7 +24,7 @@
       <commands>make example-abc.sky TARGET=sky</commands>
       <firmware>../../../examples/rime/example-abc.sky</firmware>
       <moteinterface>se.sics.cooja.interfaces.Position</moteinterface>
-      <moteinterface>se.sics.cooja.mspmote.interfaces.MspIPAddress</moteinterface>
+      <moteinterface>se.sics.cooja.interfaces.IPAddress</moteinterface>
       <moteinterface>se.sics.cooja.interfaces.Mote2MoteRelations</moteinterface>
       <moteinterface>se.sics.cooja.mspmote.interfaces.MspClock</moteinterface>
       <moteinterface>se.sics.cooja.mspmote.interfaces.MspMoteID</moteinterface>
@@ -37,6 +37,7 @@
     <mote>
       se.sics.cooja.mspmote.SkyMote
       <motetype_identifier>sky1</motetype_identifier>
+      <breakpoints />
       <interface_config>
         se.sics.cooja.interfaces.Position
         <x>33.53152221759984</x>
@@ -51,6 +52,7 @@
     <mote>
       se.sics.cooja.mspmote.SkyMote
       <motetype_identifier>sky1</motetype_identifier>
+      <breakpoints />
       <interface_config>
         se.sics.cooja.interfaces.Position
         <x>54.67966631314053</x>
@@ -66,32 +68,67 @@
   <plugin>
     se.sics.cooja.plugins.SimControl
     <width>313</width>
-    <z>2</z>
+    <z>3</z>
     <height>199</height>
-    <location_x>30</location_x>
-    <location_y>30</location_y>
+    <location_x>-1</location_x>
+    <location_y>0</location_y>
     <minimized>false</minimized>
   </plugin>
   <plugin>
-    se.sics.cooja.plugins.VisUDGM
-    <width>300</width>
-    <z>1</z>
-    <height>122</height>
-    <location_x>367</location_x>
-    <location_y>23</location_y>
+    se.sics.cooja.plugins.Visualizer
+    <plugin_config>
+      <skin>Mote IDs</skin>
+      <skin>Radio environment (UDGM)</skin>
+    </plugin_config>
+    <width>312</width>
+    <z>2</z>
+    <height>123</height>
+    <location_x>0</location_x>
+    <location_y>198</location_y>
     <minimized>false</minimized>
   </plugin>
   <plugin>
     se.sics.cooja.plugins.LogListener
     <plugin_config>
       <filter />
-      <history>256</history>
     </plugin_config>
-    <width>573</width>
+    <width>311</width>
     <z>0</z>
-    <height>242</height>
-    <location_x>23</location_x>
-    <location_y>235</location_y>
+    <height>377</height>
+    <location_x>1</location_x>
+    <location_y>320</location_y>
+    <minimized>false</minimized>
+  </plugin>
+  <plugin>
+    se.sics.cooja.plugins.ScriptRunner
+    <plugin_config>
+      <script>TIMEOUT(100000, log.log("Node 1: " + nr_packets[1] + ".\nNode 2: " + nr_packets[2] + ".\n"));
+
+nr_packets = new Array();
+nr_packets[1] = 0;
+nr_packets[2] = 0;
+
+while (true) {
+  /* Only handle receive messages */
+  YIELD_THEN_WAIT_UNTIL(msg.contains('received'));
+
+  /* Count received packets */
+  nr_packets[id]++;
+  //log.log("Node " + id + " received " + nr_packets[id] + " messages\n");
+
+  if (nr_packets[1] &gt;= 10 &amp;&amp; nr_packets[2] &gt;= 10) {
+    log.log("Node 1: " + nr_packets[1] + ".\nNode 2: " + nr_packets[2] + ".\n");
+    log.testOK(); /* Report test success */
+  }
+
+}</script>
+      <active>true</active>
+    </plugin_config>
+    <width>601</width>
+    <z>1</z>
+    <height>697</height>
+    <location_x>312</location_x>
+    <location_y>0</location_y>
     <minimized>false</minimized>
   </plugin>
 </simconf>
