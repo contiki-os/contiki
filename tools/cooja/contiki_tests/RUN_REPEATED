@@ -34,9 +34,12 @@ fi
 # Run tests
 for COUNTER in `seq 1 $REPEATS`;
 do
-  echo ">>>>>>> Repeating $COUNTER/$REPEATS <<<<<<<<"
-  bash RUN_TEST $TEST $TEST$COUNTER.log -keeplog
+  echo ">>>>>>> Test $COUNTER/$REPEATS: $TEST-$COUNTER.log <<<<<<<<"
+  bash RUN_TEST $TEST RUN_REPEATED_LAST.log
+  mv $TEST.log $TEST-$COUNTER.log
 done
 
 echo
-echo ">>>>>>> DONE! Test logs stored in $TEST[1-$REPEATS].log <<<<<<<<"
+cat RUN_REPEATED_LAST.log
+echo
+echo ">>>>>>> DONE! Test logs stored in $TEST-[1-$REPEATS].log <<<<<<<<"
