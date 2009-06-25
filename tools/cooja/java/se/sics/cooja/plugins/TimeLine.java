@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: TimeLine.java,v 1.9 2009/06/16 12:16:02 fros4943 Exp $
+ * $Id: TimeLine.java,v 1.10 2009/06/25 16:44:08 fros4943 Exp $
  */
 
 package se.sics.cooja.plugins;
@@ -46,14 +46,41 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.OutputStreamWriter;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Observable;
+import java.util.Observer;
+import java.util.Vector;
 
-import javax.swing.*;
+import javax.swing.AbstractAction;
+import javax.swing.Action;
+import javax.swing.Box;
+import javax.swing.JButton;
+import javax.swing.JCheckBox;
+import javax.swing.JComboBox;
+import javax.swing.JComponent;
+import javax.swing.JDialog;
+import javax.swing.JFileChooser;
+import javax.swing.JMenuItem;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JPopupMenu;
+import javax.swing.JScrollPane;
+import javax.swing.JSplitPane;
+import javax.swing.SwingUtilities;
 import javax.swing.Timer;
 
 import org.apache.log4j.Logger;
 import org.jdom.Element;
-import se.sics.cooja.*;
+
+import se.sics.cooja.ClassDescription;
+import se.sics.cooja.GUI;
+import se.sics.cooja.Mote;
+import se.sics.cooja.PluginType;
+import se.sics.cooja.Simulation;
+import se.sics.cooja.VisPlugin;
+import se.sics.cooja.Watchpoint;
+import se.sics.cooja.WatchpointMote;
 import se.sics.cooja.interfaces.LED;
 import se.sics.cooja.interfaces.Radio;
 import se.sics.cooja.interfaces.Radio.RadioEvent;
@@ -67,6 +94,7 @@ import se.sics.cooja.interfaces.Radio.RadioEvent;
 @PluginType(PluginType.SIM_STANDARD_PLUGIN)
 public class TimeLine extends VisPlugin {
 
+  public static final int LED_PIXEL_HEIGHT = 2;
   public static final int EVENT_PIXEL_HEIGHT = 4;
   public static final int TIME_MARKER_PIXEL_HEIGHT = 6;
   public static final int FIRST_MOTE_PIXEL_OFFSET = TIME_MARKER_PIXEL_HEIGHT + EVENT_PIXEL_HEIGHT;
@@ -620,7 +648,7 @@ public class TimeLine extends VisPlugin {
       h += EVENT_PIXEL_HEIGHT;
     }
     if (showLEDs) {
-      h += EVENT_PIXEL_HEIGHT;
+      h += 3*LED_PIXEL_HEIGHT;
     }
     if (showLogOutputs) {
       h += EVENT_PIXEL_HEIGHT;
@@ -796,7 +824,17 @@ public class TimeLine extends VisPlugin {
 
       addMouseListener(new MouseAdapter() {
         public void mouseClicked(MouseEvent e) {
-          if (e.isPopupTrigger() || SwingUtilities.isRightMouseButton(e)) {
+          if (e.isPopupTrigger()) {
+            popupMenu.show(Timeline.this, e.getX(), e.getY());
+          }
+        }
+        public void mousePressed(MouseEvent e) {
+          if (e.isPopupTrigger()) {
+            popupMenu.show(Timeline.this, e.getX(), e.getY());
+          }
+        }
+        public void mouseReleased(MouseEvent e) {
+          if (e.isPopupTrigger()) {
             popupMenu.show(Timeline.this, e.getX(), e.getY());
           }
         }
@@ -826,6 +864,7 @@ public class TimeLine extends VisPlugin {
       }
     };
 
+    private final Color SEPARATOR_COLOR = new Color(220, 220, 220);
     public void paintComponent(Graphics g) {
       Rectangle bounds = g.getClipBounds();
       /*logger.info("Clip bounds: " + bounds);*/
@@ -849,7 +888,19 @@ public class TimeLine extends VisPlugin {
 
       /* Paint mote events */
       int lineHeightOffset = FIRST_MOTE_PIXEL_OFFSET;
+      boolean dark = true;
       for (int mIndex = 0; mIndex < allMoteEvents.size(); mIndex++) {
+        
+        /* Mote separators */
+        if (dark) {
+          g.setColor(SEPARATOR_COLOR);
+          g.fillRect(
+              0, lineHeightOffset-2, 
+              getWidth(), paintedMoteHeight
+          );
+        }
+        dark = !dark;
+
         if (showRadioRXTX) {
           MoteEvent firstEvent = getFirstIntervalEvent(allMoteEvents.get(mIndex).radioRXTXEvents, intervalStart);
           if (firstEvent != null) {
@@ -876,7 +927,7 @@ public class TimeLine extends VisPlugin {
           if (firstEvent != null) {
             firstEvent.paintInterval(g, lineHeightOffset, intervalEnd);
           }
-          lineHeightOffset += EVENT_PIXEL_HEIGHT;
+          lineHeightOffset += 3*LED_PIXEL_HEIGHT;
         }
         if (showLogOutputs) {
           MoteEvent firstEvent = getFirstIntervalEvent(allMoteEvents.get(mIndex).logEvents, intervalStart);
@@ -1253,6 +1304,59 @@ public class TimeLine extends VisPlugin {
         return Color.LIGHT_GRAY;
       } else {
         return color;
+      }
+    }
+    /* LEDs are painted in three lines */
+    public void paintInterval(Graphics g, int lineHeightOffset, long end) {
+      MoteEvent ev = this;
+      while (ev != null && ev.time < end) {
+        int w; /* Pixel width */
+
+        /* Calculate event width */
+        if (ev.next != null) {
+          w = (int) (ev.next.time - ev.time)/currentPixelDivisor;
+        } else {
+          w = (int) (end - ev.time)/currentPixelDivisor; /* No more events */
+        }
+
+        /* Handle zero pixel width events */
+        if (w == 0) {
+          if (PAINT_ZERO_WIDTH_EVENTS) {
+            w = 1;
+          } else {
+            ev = ev.next;
+            continue;
+          }
+        }
+
+        Color color = ev.getEventColor();
+        if (color == null) {
+          /* Skip painting event */
+          ev = ev.next;
+          continue;
+        }
+        if (color.getRed() > 0) {
+          g.setColor(new Color(color.getRed(), 0, 0));
+          g.fillRect(
+              (int)(ev.time/currentPixelDivisor), lineHeightOffset, 
+              w, LED_PIXEL_HEIGHT
+          );
+        }
+        if (color.getGreen() > 0) {
+          g.setColor(new Color(0, color.getGreen(), 0));
+          g.fillRect(
+              (int)(ev.time/currentPixelDivisor), lineHeightOffset+LED_PIXEL_HEIGHT, 
+              w, LED_PIXEL_HEIGHT
+          );
+        }
+        if (color.getBlue() > 0) {
+          g.setColor(new Color(0, 0, color.getBlue()));
+          g.fillRect(
+              (int)(ev.time/currentPixelDivisor), lineHeightOffset+2*LED_PIXEL_HEIGHT, 
+              w, LED_PIXEL_HEIGHT
+          );
+        }
+        ev = ev.next;
       }
     }
     public String toString() {
