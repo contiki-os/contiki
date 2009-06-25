@@ -26,20 +26,21 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: MessageList.java,v 1.12 2009/06/24 14:07:19 fros4943 Exp $
+ * $Id: MessageList.java,v 1.13 2009/06/25 15:46:57 fros4943 Exp $
  *
  * -----------------------------------------------------------------
  *
  * Author  : Adam Dunkels, Joakim Eriksson, Niclas Finne, Fredrik Osterlind
  * Created : 2006-06-14
- * Updated : $Date: 2009/06/24 14:07:19 $
- *           $Revision: 1.12 $
+ * Updated : $Date: 2009/06/25 15:46:57 $
+ *           $Revision: 1.13 $
  */
 
 package se.sics.cooja.dialogs;
 
 import java.awt.Color;
 import java.awt.Component;
+import java.awt.Dimension;
 import java.awt.Toolkit;
 import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.StringSelection;
@@ -55,7 +56,6 @@ import java.io.PipedOutputStream;
 import java.io.PrintStream;
 import java.util.ArrayList;
 
-import javax.swing.Box;
 import javax.swing.DefaultListCellRenderer;
 import javax.swing.DefaultListModel;
 import javax.swing.JCheckBoxMenuItem;
@@ -65,7 +65,6 @@ import javax.swing.JPopupMenu;
 import javax.swing.JSeparator;
 import javax.swing.ListModel;
 import javax.swing.ListSelectionModel;
-import javax.swing.SwingUtilities;
 
 import se.sics.cooja.GUI;
 
@@ -192,7 +191,17 @@ public class MessageList extends JList {
       popup = new JPopupMenu();
       addMouseListener(new MouseAdapter() {
         public void mouseClicked(MouseEvent e) {
-          if (e.isPopupTrigger() || SwingUtilities.isRightMouseButton(e)) {
+          if (e.isPopupTrigger()) {
+            popup.show(MessageList.this, e.getX(), e.getY());
+          }
+        }
+        public void mousePressed(MouseEvent e) {
+          if (e.isPopupTrigger()) {
+            popup.show(MessageList.this, e.getX(), e.getY());
+          }
+        }
+        public void mouseReleased(MouseEvent e) {
+          if (e.isPopupTrigger()) {
             popup.show(MessageList.this, e.getX(), e.getY());
           }
         }
@@ -292,17 +301,10 @@ public class MessageList extends JList {
     public void updateList() {
       fireContentsChanged(this, 0, getSize());
     }
-    public Object getElementAt(int index) {
-      MessageContainer c = (MessageContainer) super.getElementAt(index);
-      if (hideNormal && c.type == NORMAL && index != getSize()-1) {
-        return Box.createVerticalStrut(0);
-      }
-      return c;
-    }
   }
 
-  private static class MessageRenderer extends DefaultListCellRenderer {
-
+  private class MessageRenderer extends DefaultListCellRenderer {
+    private Dimension nullDimension = new Dimension(0,0);
     public Component getListCellRendererComponent(
         JList list,
 	Object value,
@@ -312,10 +314,14 @@ public class MessageList extends JList {
     {
       super.getListCellRendererComponent(list, value, index, isSelected,
 					 cellHasFocus);
-      if (value instanceof Component) {
-        return (Component)value;
-      }
       MessageContainer msg = (MessageContainer) value;
+
+      if (hideNormal && msg.type == NORMAL && index != MessageList.this.getModel().getSize()-1) {
+        setPreferredSize(nullDimension);
+        return this;
+      }
+
+      setPreferredSize(null);
       setForeground(((MessageList) list).getForeground(msg.type));
       setBackground(((MessageList) list).getBackground(msg.type));
       return this;
