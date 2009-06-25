@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: NativeIPGateway.java,v 1.4 2009/04/23 08:59:22 fros4943 Exp $
+ * $Id: NativeIPGateway.java,v 1.5 2009/06/25 17:43:13 fros4943 Exp $
  */
 
 package se.sics.cooja.plugins;
@@ -38,11 +38,13 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
+import java.io.File;
+import java.io.IOException;
 import java.util.Collection;
 import java.util.Observable;
 import java.util.Observer;
 import java.util.Vector;
-import java.io.*;
+
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
@@ -60,6 +62,7 @@ import jpcap.JpcapSender;
 import jpcap.NetworkInterface;
 import jpcap.packet.EthernetPacket;
 import jpcap.packet.IPPacket;
+
 import org.apache.log4j.Logger;
 import org.jdom.Element;
 
@@ -70,7 +73,6 @@ import se.sics.cooja.Plugin;
 import se.sics.cooja.PluginType;
 import se.sics.cooja.Simulation;
 import se.sics.cooja.interfaces.SerialPort;
-import se.sics.cooja.util.StringUtils;
 
 @ClassDescription("Open Native IP Gateway")
 @PluginType(PluginType.MOTE_PLUGIN)
@@ -125,6 +127,7 @@ public class NativeIPGateway implements Plugin {
   private String restoreRoutesCmd = null;
 
   private Process tunProcess = null;
+  private Thread shutdownHook = null;
   private final static String TUNNEL_APP_TARGET = "minimal-net";
   private boolean shouldDisableLoopbackForwarding = false;
   private boolean shouldEnableRPFilter = false;
@@ -576,6 +579,18 @@ public class NativeIPGateway implements Plugin {
       logger.info("> " + tunAppCmd[0]);
       tunProcess = Runtime.getRuntime().exec(tunAppCmd, null, tunContikiAppDir);
 
+      /* Shutdown hook: kill minimal-net process */
+      shutdownHook = new Thread(new Runnable() {
+        public void run() {
+          if (tunProcess == null) {
+            return;
+          }
+          tunProcess.destroy();
+          tunProcess = null;
+        }
+      });
+      Runtime.getRuntime().addShutdownHook(shutdownHook);
+      
       /* Waiting some time - otherwise pcap may not discover the new interface */
       Thread.sleep(250);
 
@@ -959,6 +974,11 @@ public class NativeIPGateway implements Plugin {
     }
 
     deleteTunInterface();
+    
+    if (shutdownHook != null) {
+      Runtime.getRuntime().removeShutdownHook(shutdownHook);
+      shutdownHook = null;
+    }
   }
 
   public void tagWithObject(Object tag) {
