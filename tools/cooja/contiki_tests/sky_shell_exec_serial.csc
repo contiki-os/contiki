@@ -148,13 +148,21 @@ log.log("Starting hello world\n");
 GENERATE_MSG(500, "continue");
 YIELD_THEN_WAIT_UNTIL(msg.equals("continue"));
 write(mote, "exec hello-world.ce\n");
-WAIT_UNTIL(msg.contains("OK"));
-log.log("&gt; ELF loader returned OK\n");
-WAIT_UNTIL(msg.contains("Hello, world"));
-log.log("&gt; Hello world process started\n");
-
-log.log("Finished!\n");
-log.testOK();</script>
+while (true) {
+  YIELD();
+  if (msg.contains("OK")) {
+    log.log("&gt; ELF loader returned OK\n");
+  }
+  if (msg.contains("Hello, world")) {
+    log.log("&gt; Hello world process started\n");
+    log.testOK();
+  }
+  if (msg.contains("Symbol not found")) {
+    log.log("&gt; ELF loader error: " + msg +"\n");
+    log.testFailed();
+  }
+}
+</script>
       <active>true</active>
     </plugin_config>
     <width>600</width>
