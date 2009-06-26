@@ -1,4 +1,4 @@
-# $Id: Makefile.sky,v 1.25 2009/04/29 11:42:56 adamdunkels Exp $
+# $Id: Makefile.sky,v 1.26 2009/06/26 12:00:49 joxe Exp $
 
 
 ARCH=msp430.c leds.c watchdog.c light.c spi.c ds2411.c \
@@ -11,6 +11,10 @@ ARCH=msp430.c leds.c watchdog.c light.c spi.c ds2411.c \
 CONTIKI_TARGET_DIRS = . dev apps net
 ifndef CONTIKI_TARGET_MAIN
 CONTIKI_TARGET_MAIN = contiki-sky-main.c
+endif
+
+ifdef UIP_CONF_IPV6
+CFLAGS += -DWITH_UIP6=1
 endif
 
 CONTIKI_TARGET_SOURCEFILES += $(ARCH) $(UIPDRIVERS) $(CONTIKI_TARGET_MAIN)
