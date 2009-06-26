@@ -1,0 +1,13 @@
+The tools/release-tools directory contains files for building and
+testing Contiki releases. To compile a release of Contiki, run
+
+  make RELEASE=2.3
+
+for Contiki 2.3. It is also possible to compile a release of a
+specific CVS tag or other non-numbered version, such as the current
+CVS HEAD, like this:
+
+  make TAG=HEAD
+
+The compile-examples and compile-platform directories are used for
+running nightly builds of the CVS version of Contiki. 
