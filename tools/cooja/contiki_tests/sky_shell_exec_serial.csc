@@ -21,11 +21,16 @@
       <identifier>sky1</identifier>
       <description>Sky Mote Type #sky1</description>
       <source>../../../examples/sky-shell-exec/sky-shell-exec.c</source>
-      <commands>echo COMPILING CONTIKI EXECUTABLE
+      <commands>echo CLEANING
+make clean TARGET=sky
+
+echo COMPILING CONTIKI EXECUTABLE
 make hello-world.ce TARGET=sky
 
 echo COMPILING FIRMWARE WITH CORE
 make sky-shell-exec.sky TARGET=sky
+make sky-shell-exec.sky CORE=sky-shell-exec.sky TARGET=sky
+make sky-shell-exec.sky CORE=sky-shell-exec.sky TARGET=sky
 make sky-shell-exec.sky CORE=sky-shell-exec.sky TARGET=sky
 make sky-shell-exec.sky CORE=sky-shell-exec.sky TARGET=sky</commands>
       <firmware>../../../examples/sky-shell-exec/sky-shell-exec.sky</firmware>
