@@ -112,15 +112,17 @@ YIELD_THEN_WAIT_UNTIL(msg.equals("continue"));
 log.log("Uploading hello-world.b64:\n");
 cmdarr = "sh -c xxx".split(" ");
 cmdarr[2] = "../../tools/base64-encode &lt; hello-world.ce";
+sb = new java.lang.StringBuilder();
 process = new java.lang.Runtime.getRuntime().exec(cmdarr, null, helloworld.getParentFile());
 stdIn = new java.io.BufferedReader(new java.io.InputStreamReader(process.getInputStream()));
 while ((line = stdIn.readLine()) != null) {
   write(mote, line + "\n");
+  sb.append(line);
 
   YIELD();
 
   if (msg.startsWith(line)) {
-    log.log("UPLOADED: " + line + "\n");
+    log.log("UPLOADED: " + msg + "\n");
   } else {
     log.log("Serial port upload failed:\n" + line + "\n" + msg + "\n");
     log.testFailed();
@@ -132,6 +134,28 @@ YIELD_THEN_WAIT_UNTIL(msg.equals("continue"));
 write(mote, "~K\n");
 GENERATE_MSG(500, "continue");
 YIELD_THEN_WAIT_UNTIL(msg.equals("continue"));
+
+log.log("Reading and verifying hello-world.b64 from flash\n");
+write(mote, "read hello-world.b64");
+YIELD();
+while (!msg.contains("Contiki&gt;")) {
+  if (!sb.toString().startsWith(msg.trim())) {
+    log.log("Verify failed: '" + msg + "' does not start '" + sb.toString() + "'\n");
+    log.testFailed();
+  } else {
+    log.log("VERIFIED: " + msg + "\n");
+    sb.replace(0, msg.length()-1, new String(""));
+  }
+
+  YIELD();
+}
+if (sb.length()&gt;0) {
+  log.log("Verify failed: remaining buffer: " + sb);
+  log.testFailed();
+}
+GENERATE_MSG(500, "continue");
+YIELD_THEN_WAIT_UNTIL(msg.equals("continue"));
+
 
 log.log("Converting base64 to binary hello-world.ce\n");
 write(mote, "read hello-world.b64 | dec64 | write hello-world.ce | null");
