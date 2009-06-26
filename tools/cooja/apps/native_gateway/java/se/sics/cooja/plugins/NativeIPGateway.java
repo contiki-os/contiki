@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: NativeIPGateway.java,v 1.5 2009/06/25 17:43:13 fros4943 Exp $
+ * $Id: NativeIPGateway.java,v 1.6 2009/06/26 09:28:45 fros4943 Exp $
  */
 
 package se.sics.cooja.plugins;
@@ -175,7 +175,7 @@ public class NativeIPGateway implements Plugin {
             }
           }
         } catch (IOException e) {
-          e.printStackTrace();
+          logger.fatal("Error when updating native route: " + e.getMessage(), e);
         }
       }
     });
@@ -321,7 +321,7 @@ public class NativeIPGateway implements Plugin {
       try {
         captureThread.join();
       } catch (InterruptedException e) {
-        e.printStackTrace();
+        logger.fatal("Error while capturing packets: " + e.getMessage(), e);
       }
     }
     captureThread = null;
@@ -345,7 +345,7 @@ public class NativeIPGateway implements Plugin {
           String filter = "ip and dst net " + ipSplit[0] + "." + ipSplit[1];
           captor.setFilter(filter, true);
         } catch (IOException e) {
-          e.printStackTrace();
+          logger.fatal("Error when creating captor instance: " + e.getMessage(), e);
           return;
         }
 
@@ -464,10 +464,8 @@ public class NativeIPGateway implements Plugin {
       logger.info("Enabled forwarding on loopback interface.");
 
       shouldDisableLoopbackForwarding = true;
-    } catch (IOException e) {
-      e.printStackTrace();
-    } catch (InterruptedException e) {
-      e.printStackTrace();
+    } catch (Exception e) {
+      logger.fatal("Error when enabling forwarding: " + e.getMessage(), e);
     }
   }
 
@@ -482,10 +480,8 @@ public class NativeIPGateway implements Plugin {
       Process process = Runtime.getRuntime().exec(new String[] { "bash", "-c", "echo 0 > " + forwardingFile.getPath() });
       process.waitFor();
       logger.info("Disabled forwarding on loopback interface.");
-    } catch (IOException e) {
-      e.printStackTrace();
-    } catch (InterruptedException e) {
-      e.printStackTrace();
+    } catch (Exception e) {
+      logger.fatal("Error when disabling forwarding: " + e.getMessage(), e);
     }
   }
 
@@ -516,10 +512,8 @@ public class NativeIPGateway implements Plugin {
       logger.info("Disabled RP filter on loopback interface.");
 
       shouldEnableRPFilter = true;
-    } catch (IOException e) {
-      e.printStackTrace();
-    } catch (InterruptedException e) {
-      e.printStackTrace();
+    } catch (Exception e) {
+      logger.fatal("Error when disabling loopback RP filter: " + e.getMessage(), e);
     }
   }
 
@@ -534,10 +528,8 @@ public class NativeIPGateway implements Plugin {
       Process process = Runtime.getRuntime().exec(new String[] { "bash", "-c", "echo 1 > " + filterFile.getPath() });
       process.waitFor();
       logger.info("Enabled RP filter on loopback interface.");
-    } catch (IOException e) {
-      e.printStackTrace();
-    } catch (InterruptedException e) {
-      e.printStackTrace();
+    } catch (Exception e) {
+      logger.fatal("Error when enabling loopback RP filter: " + e.getMessage(), e);
     }
   }
 
@@ -647,10 +639,8 @@ public class NativeIPGateway implements Plugin {
         logger.info("> " + restoreRoutesCmd);
         Process routeProcess = Runtime.getRuntime().exec(restoreRoutesCmd);
         routeProcess.waitFor();
-      } catch (IOException e) {
-        e.printStackTrace();
-      } catch (InterruptedException e) {
-        e.printStackTrace();
+      } catch (Exception e) {
+        logger.fatal("Error when updating native route: " + e.getMessage(), e);
       }
       restoreRoutesCmd = null;
     }
@@ -678,10 +668,8 @@ public class NativeIPGateway implements Plugin {
       Process routeProcess = Runtime.getRuntime().exec(cmd);
       routeProcess.waitFor();
       restoreRoutesCmd = "route delete " + moteNetIP;
-    } catch (IOException e) {
-      e.printStackTrace();
-    } catch (InterruptedException e) {
-      e.printStackTrace();
+    } catch (Exception e) {
+      logger.fatal("Error when adding route: " + e.getMessage(), e);
     }
   }
 
@@ -713,10 +701,8 @@ public class NativeIPGateway implements Plugin {
       logger.info("> " + cmd);
       process = Runtime.getRuntime().exec(cmd);
       process.waitFor();
-    } catch (IOException e) {
-      e.printStackTrace();
-    } catch (InterruptedException e) {
-      e.printStackTrace();
+    } catch (Exception e) {
+      logger.fatal("Error when adding route: " + e.getMessage(), e);
     }
   }
 
@@ -965,10 +951,8 @@ public class NativeIPGateway implements Plugin {
         logger.info("> " + restoreRoutesCmd);
         Process routeProcess = Runtime.getRuntime().exec(restoreRoutesCmd);
         routeProcess.waitFor();
-      } catch (IOException e) {
-        e.printStackTrace();
-      } catch (InterruptedException e) {
-        e.printStackTrace();
+      } catch (Exception e) {
+        logger.fatal("Error when deleting route: " + e.getMessage(), e);
       }
       restoreRoutesCmd = null;
     }
