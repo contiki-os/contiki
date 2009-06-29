@@ -23,7 +23,7 @@ putchar(int c)
 #define SLIP_END 0300
   static char debug_frame = 0;
 
-  if (!debug_frame) {		/* Start of debug output */
+  if(!debug_frame) {		/* Start of debug output */
     slip_arch_writeb(SLIP_END);
     slip_arch_writeb('\r');	/* Type debug line == '\r' */
     debug_frame = 1;
@@ -35,7 +35,7 @@ putchar(int c)
    * Line buffered output, a newline marks the end of debug output and
    * implicitly flushes debug output.
    */
-  if (c == '\n') {
+  if(c == '\n') {
     slip_arch_writeb(SLIP_END);
     debug_frame = 0;
   }

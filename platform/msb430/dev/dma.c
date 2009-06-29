@@ -48,35 +48,35 @@ static void (*callbacks[DMA_LINES])(void);
 
 interrupt(DACDMA_VECTOR) irq_dacdma(void)
 {
-  if (DMA0CTL & DMAIFG) {
+  if(DMA0CTL & DMAIFG) {
     DMA0CTL &= ~(DMAIFG | DMAIE);
-    if (callbacks[0] != NULL) {
+    if(callbacks[0] != NULL) {
       callbacks[0]();
     }
     LPM_AWAKE();
   }
 
-  if (DMA1CTL & DMAIFG) {
+  if(DMA1CTL & DMAIFG) {
     DMA1CTL &= ~(DMAIFG | DMAIE);
-    if (callbacks[1] != NULL) {
+    if(callbacks[1] != NULL) {
       callbacks[1]();
     }
     LPM_AWAKE();
   }
 
-  if (DMA2CTL & DMAIFG) {
+  if(DMA2CTL & DMAIFG) {
     DMA2CTL &= ~(DMAIFG | DMAIE);
-    if (callbacks[2] != NULL) {
+    if(callbacks[2] != NULL) {
       callbacks[2]();
     }
     LPM_AWAKE();
   }
 
-  if (DAC12_0CTL & DAC12IFG) {
+  if(DAC12_0CTL & DAC12IFG) {
     DAC12_0CTL &= ~(DAC12IFG | DAC12IE);
   }
 
-  if (DAC12_1CTL & DAC12IFG) {
+  if(DAC12_1CTL & DAC12IFG) {
     DAC12_1CTL &= ~(DAC12IFG | DAC12IE);
   }
 }
@@ -84,8 +84,9 @@ interrupt(DACDMA_VECTOR) irq_dacdma(void)
 int
 dma_subscribe(int line, void (*callback)(void))
 {
-  if (line >= DMA_LINES)
+  if(line >= DMA_LINES) {
     return -1;
+  }
 
   callbacks[line] = callback;
   return 0;
@@ -94,10 +95,10 @@ dma_subscribe(int line, void (*callback)(void))
 void
 dma_transfer(unsigned char *dst, unsigned char *src, unsigned len)
 {
-  // Configure DMA Channel 0 for UART0 TXIFG.
+  /* Configure DMA Channel 0 for UART0 TXIFG. */
   DMACTL0 = DMA0TSEL_4;
 
-  // No DMAONFETCH, ROUNDROBIN, ENNMI.
+  /* No DMAONFETCH, ROUNDROBIN, ENNMI. */
   DMACTL1 = 0x0000;
 
   /*
@@ -116,6 +117,6 @@ dma_transfer(unsigned char *dst, unsigned char *src, unsigned len)
   DMA0DA = (unsigned) dst;
   DMA0SZ = len;
 
-  DMA0CTL |= DMAEN | DMAIE;	// enable DMA and interrupts
-  U0CTL &= ~SWRST;		// enable UART state machine, starts transfer
+  DMA0CTL |= DMAEN | DMAIE;	/* enable DMA and interrupts */
+  U0CTL &= ~SWRST;		/* enable the UART state machine */
 }
