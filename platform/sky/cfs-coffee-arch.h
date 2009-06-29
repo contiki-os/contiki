@@ -56,6 +56,8 @@
 #define COFFEE_DYN_SIZE			4*1024
 #define COFFEE_LOG_SIZE			1024
 
+#define COFFEE_MICRO_LOGS		1
+
 /* Flash operations. */
 #define COFFEE_WRITE(buf, size, offset)				\
 		xmem_pwrite((char *)(buf), (size), COFFEE_START + (offset))

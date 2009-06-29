@@ -56,6 +56,8 @@
 #define COFFEE_LOG_TABLE_LIMIT		256
 #define COFFEE_DIR_CACHE_ENTRIES	16
 
+#define COFFEE_MICRO_LOGS		0
+
 #define COFFEE_WRITE(buf, size, offset)				\
 		xmem_pwrite((char *)(buf), (size), COFFEE_START + (offset))
 
