@@ -56,8 +56,8 @@ Berlin, 2007
  * \author	Michael Baar	<baar@inf.fu-berlin.de>
  */
 
-#ifndef MSB430_UART_H
-#define MSB430_UART_H
+#ifndef MSB430_UART1_H
+#define MSB430_UART1_H
 
 #define	UART_RX				RXBUF1
 #define	UART_TX				TXBUF1
@@ -84,10 +84,10 @@ extern volatile unsigned char uart_lockcnt;
 #define UART_MODE_RESET		(0xFFu)			///< reset with current settings
 /** @} */
 
-#define UART_WAIT_LOCK(x)	( (uart_mode != x ) && (uart_lockcnt) )
-#define UART_MODE_IS(x)		( uart_mode == x )
+#define UART_WAIT_LOCK(x)	((uart_mode != x) && (uart_lockcnt))
+#define UART_MODE_IS(x)		(uart_mode == x)
 
-typedef int(*fp_uart_handler)(unsigned char);
+typedef int(*uart_handler_t)(unsigned char);
 
 /**
  * \brief      Initialize the UART module
@@ -98,14 +98,14 @@ typedef int(*fp_uart_handler)(unsigned char);
 void uart_init(void);
 
 void uart_set_speed(unsigned, unsigned, unsigned, unsigned);
-void uart_set_handler(unsigned, fp_uart_handler);
+void uart_set_handler(unsigned, uart_handler_t);
 int uart_lock(unsigned);
 int uart_lock_wait(unsigned);
 int uart_unlock(unsigned);
 void uart_set_mode(unsigned);
 int uart_get_mode(void);
 
-#endif /* !UART_H */
+#endif /* !MSB430_UART1_H */
 
 /** @} */
 /** @} */
