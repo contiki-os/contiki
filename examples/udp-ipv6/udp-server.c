@@ -63,7 +63,7 @@ tcpip_handler(void)
   if(uip_newdata()) {
     ((char *)uip_appdata)[uip_datalen()] = 0;
     PRINTF("Server received: '%s' from ", (char *)uip_appdata);
-    PRINT6ADDR(&server_conn->ripaddr);
+    PRINT6ADDR(&UIP_IP_BUF->srcipaddr);
     PRINTF("\n");
 
     uip_ipaddr_copy(&server_conn->ripaddr, &UIP_IP_BUF->srcipaddr);
