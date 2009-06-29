@@ -21,7 +21,7 @@
       <identifier>sky1</identifier>
       <description>Sky Mote Type #server</description>
       <source>../../../examples/udp-ipv6/udp-server.c</source>
-      <commands>make udp-server.sky TARGET=sky DEFINES=WITH_UIP6</commands>
+      <commands>make udp-server.sky TARGET=sky DEFINES=UIP_CONF_ROUTER=1</commands>
       <firmware>../../../examples/udp-ipv6/udp-server.sky</firmware>
       <moteinterface>se.sics.cooja.interfaces.Position</moteinterface>
       <moteinterface>se.sics.cooja.interfaces.IPAddress</moteinterface>
@@ -39,7 +39,7 @@
       <identifier>sky2</identifier>
       <description>Sky Mote Type #client</description>
       <source>../../../examples/udp-ipv6/udp-client.c</source>
-      <commands>make udp-client.sky TARGET=sky DEFINES=WITH_NULLMAC,WITH_UIP6</commands>
+      <commands>make udp-client.sky TARGET=sky DEFINES=UIP_CONF_ROUTER=1</commands>
       <firmware>../../../examples/udp-ipv6/udp-client.sky</firmware>
       <moteinterface>se.sics.cooja.interfaces.Position</moteinterface>
       <moteinterface>se.sics.cooja.interfaces.IPAddress</moteinterface>
@@ -193,4 +193,3 @@ log.testOK(); /* Report test success and quit */</script>
     <minimized>false</minimized>
   </plugin>
 </simconf>
-
