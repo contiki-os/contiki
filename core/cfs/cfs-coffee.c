@@ -40,7 +40,7 @@
 #include <limits.h>
 #include <string.h>
 
-#define DEBUG 0
+#define DEBUG 1
 #if DEBUG
 #include <stdio.h>
 #define PRINTF(...) printf(__VA_ARGS__)
@@ -570,6 +570,7 @@ reserve(const char *name, coffee_page_t pages,
   return file;
 }
 /*---------------------------------------------------------------------------*/
+#if COFFEE_MICRO_LOGS
 static void
 adjust_log_config(struct file_header *hdr,
 		  uint16_t *log_record_size, uint16_t *log_records)
@@ -579,7 +580,9 @@ adjust_log_config(struct file_header *hdr,
   *log_records = hdr->log_records == 0 ?
 		     COFFEE_LOG_SIZE / *log_record_size : hdr->log_records;
 }
+#endif /* COFFEE_MICRO_LOGS */
 /*---------------------------------------------------------------------------*/
+#if COFFEE_MICRO_LOGS
 static uint16_t
 modify_log_buffer(uint16_t log_record_size,
 		  cfs_offset_t *offset, uint16_t *size)
@@ -593,7 +596,9 @@ modify_log_buffer(uint16_t log_record_size,
   }
   return region;
 }
+#endif /* COFFEE_MICRO_LOGS */
 /*---------------------------------------------------------------------------*/
+#if COFFEE_MICRO_LOGS
 static int
 get_record_index(coffee_page_t log_page, uint16_t search_records,
 		 uint16_t region)
@@ -633,7 +638,9 @@ get_record_index(coffee_page_t log_page, uint16_t search_records,
 
   return match_index;
 }
+#endif /* COFFEE_MICRO_LOGS */
 /*---------------------------------------------------------------------------*/
+#if COFFEE_MICRO_LOGS
 static int
 read_log_page(struct file_header *hdr, int16_t last_record, struct log_param *lp)
 {
@@ -660,7 +667,9 @@ read_log_page(struct file_header *hdr, int16_t last_record, struct log_param *lp
 
   return lp->size;
 }
+#endif /* COFFEE_MICRO_LOGS */
 /*---------------------------------------------------------------------------*/
+#if COFFEE_MICRO_LOGS
 static coffee_page_t
 create_log(struct file *file, struct file_header *hdr)
 {
@@ -687,6 +696,7 @@ create_log(struct file *file, struct file_header *hdr)
   file->flags |= COFFEE_FILE_MODIFIED;
   return log_page;
 }
+#endif /* COFFEE_MICRO_LOGS */
 /*---------------------------------------------------------------------------*/
 static int
 merge_log(coffee_page_t file_page, int extend)
@@ -764,6 +774,7 @@ merge_log(coffee_page_t file_page, int extend)
   return 0;
 }
 /*---------------------------------------------------------------------------*/
+#if COFFEE_MICRO_LOGS
 static int
 find_next_record(struct file *file, coffee_page_t log_page,
 		int log_records)
@@ -800,7 +811,9 @@ find_next_record(struct file *file, coffee_page_t log_page,
 
   return log_record;
 }
+#endif /* COFFEE_MICRO_LOGS */
 /*---------------------------------------------------------------------------*/
+#if COFFEE_MICRO_LOGS
 static int
 write_log_page(struct file *file, struct log_param *lp)
 {
@@ -868,6 +881,7 @@ write_log_page(struct file *file, struct log_param *lp)
 
   return lp->size;
 }
+#endif /* COFFEE_MICRO_LOGS */
 /*---------------------------------------------------------------------------*/
 static int
 get_available_fd(void)
@@ -987,7 +1001,9 @@ cfs_read(int fd, void *buf, unsigned size)
   struct file *file;
   unsigned bytes_left;
   int r;
+#if COFFEE_MICRO_LOGS
   struct log_param lp;
+#endif
 
   if(!(FD_VALID(fd) && FD_READABLE(fd))) {
     return -1;
@@ -1011,12 +1027,14 @@ cfs_read(int fd, void *buf, unsigned size)
   while(bytes_left) {
     watchdog_periodic();
     r = -1;
+#if COFFEE_MICRO_LOGS
     if(FILE_MODIFIED(file)) {
       lp.offset = fdp->offset;
       lp.buf = buf;
       lp.size = bytes_left;
       r = read_log_page(&hdr, file->next_log_record, &lp);
     }
+#endif /* COFFEE_MICRO_LOGS */
     /* Read from the original file if we cannot find the data in the log. */
     if(r < 0) {
       r = bytes_left;
@@ -1034,10 +1052,12 @@ cfs_write(int fd, const void *buf, unsigned size)
 {
   struct file_desc *fdp;
   struct file *file;
+#if COFFEE_MICRO_LOGS
   int i;
   struct log_param lp;
   cfs_offset_t bytes_left;
   const char dummy[1] = { 0xff };
+#endif
 
   if(!(FD_VALID(fd) && FD_WRITABLE(fd))) {
     return -1;
@@ -1056,6 +1076,7 @@ cfs_write(int fd, const void *buf, unsigned size)
     PRINTF("Extended the file at page %u\n", (unsigned)file->page);
   }
 
+#if COFFEE_MICRO_LOGS
   if(FILE_MODIFIED(file) || fdp->offset < file->end) {
     bytes_left = size;
     while(bytes_left) {
@@ -1085,9 +1106,12 @@ cfs_write(int fd, const void *buf, unsigned size)
       COFFEE_WRITE(dummy, 1, absolute_offset(file->page, fdp->offset));
     }
   } else {
+#endif /* COFFEE_MICRO_LOGS */
     COFFEE_WRITE(buf, size, absolute_offset(file->page, fdp->offset));
     fdp->offset += size;
+#if COFFEE_MICRO_LOGS
   }
+#endif /* COFFEE_MICRO_LOGS */
 
   if(fdp->offset > file->end) {
     file->end = fdp->offset;
