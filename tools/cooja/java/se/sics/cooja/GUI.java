@@ -24,12 +24,13 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * $Id: GUI.java,v 1.138 2009/06/24 07:56:15 fros4943 Exp $
+ * $Id: GUI.java,v 1.139 2009/06/30 12:45:51 fros4943 Exp $
  */
 
 package se.sics.cooja;
 
 import java.awt.BorderLayout;
+import java.awt.Color;
 import java.awt.Component;
 import java.awt.Container;
 import java.awt.Dialog;
@@ -43,14 +44,17 @@ import java.awt.Window;
 import java.awt.Dialog.ModalityType;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.ComponentAdapter;
+import java.awt.event.ComponentEvent;
 import java.awt.event.KeyEvent;
+import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
-import java.awt.event.WindowListener;
 import java.beans.PropertyVetoException;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintStream;
@@ -74,9 +78,11 @@ import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
+import javax.swing.DefaultDesktopManager;
 import javax.swing.InputMap;
 import javax.swing.JApplet;
 import javax.swing.JButton;
+import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JComponent;
 import javax.swing.JDesktopPane;
 import javax.swing.JDialog;
@@ -93,6 +99,7 @@ import javax.swing.JProgressBar;
 import javax.swing.JScrollPane;
 import javax.swing.JSeparator;
 import javax.swing.JTabbedPane;
+import javax.swing.JTextPane;
 import javax.swing.KeyStroke;
 import javax.swing.SwingUtilities;
 import javax.swing.ToolTipManager;
@@ -104,6 +111,7 @@ import javax.swing.filechooser.FileFilter;
 import org.apache.log4j.BasicConfigurator;
 import org.apache.log4j.Logger;
 import org.apache.log4j.xml.DOMConfigurator;
+import org.jcp.xml.dsig.internal.dom.Utils;
 import org.jdom.Document;
 import org.jdom.Element;
 import org.jdom.JDOMException;
@@ -120,7 +128,6 @@ import se.sics.cooja.dialogs.CreateSimDialog;
 import se.sics.cooja.dialogs.ExternalToolsDialog;
 import se.sics.cooja.dialogs.MessageList;
 import se.sics.cooja.dialogs.ProjectDirectoriesDialog;
-import se.sics.cooja.plugins.MoteInterfaceViewer;
 import se.sics.cooja.plugins.MoteTypeInformation;
 import se.sics.cooja.plugins.ScriptRunner;
 import se.sics.cooja.plugins.SimControl;
@@ -156,7 +163,7 @@ public class GUI extends Observable {
 
   /**
    * External tools default Linux/Unix settings filename for 64 bit architectures.
-   * EXPERIMENTAL. Tested on Intel 64-bit Gentoo Linux.
+   * Tested on Intel 64-bit Gentoo Linux.
    */
   public static final String EXTERNAL_TOOLS_LINUX_64_SETTINGS_FILENAME = "/external_tools_linux_64.config";
 
@@ -316,6 +323,10 @@ public class GUI extends Observable {
   }
   private MoteRelationsObservable moteRelationObservable = new MoteRelationsObservable();
 
+  private JTextPane quickHelpTextPane;
+  private JScrollPane quickHelpScroll;
+  private Properties quickHelpProperties = null; /* quickhelp.txt */
+
   /**
    * Mote relation (directed).
    */
@@ -350,6 +361,20 @@ public class GUI extends Observable {
       menuMotePluginClasses = new Vector<Class<? extends Plugin>>();
     }
 
+    /* Help panel */
+    quickHelpTextPane = new JTextPane();
+    quickHelpTextPane.setContentType("text/html");
+    quickHelpTextPane.setEditable(false);
+    quickHelpTextPane.setVisible(false);
+    quickHelpScroll = new JScrollPane(quickHelpTextPane, JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED, JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+    quickHelpScroll.setPreferredSize(new Dimension(200, 0));
+    quickHelpScroll.setBorder(BorderFactory.createCompoundBorder(
+        BorderFactory.createLineBorder(Color.GRAY), 
+        BorderFactory.createEmptyBorder(0, 3, 0, 0)
+    ));
+    quickHelpScroll.setVisible(false);
+    loadQuickHelp("KEYBOARD_SHORTCUTS");
+    
     // Load default and overwrite with user settings (if any)
     loadExternalToolsDefaultSettings();
     loadExternalToolsUserSettings();
@@ -413,7 +438,7 @@ public class GUI extends Observable {
   }
 
   /**
-   * Delete an mote highlight observer.
+   * Delete mote highlight observer.
    *
    * @see #addMoteHighlightObserver(Observer)
    * @param observer
@@ -887,6 +912,15 @@ public class GUI extends Observable {
     menuItem.setEnabled(false);
     menu.add(menuItem);
 
+    /* Help */
+    menu = new JMenu("Help");
+    menu.setMnemonic(KeyEvent.VK_H);
+    menu.add(new JMenuItem(showKeyboardShortcutsAction));
+    JCheckBoxMenuItem checkBox = new JCheckBoxMenuItem(showQuickHelpAction);
+    showQuickHelpAction.putValue("checkbox", checkBox);
+    menu.add(checkBox);
+    menuBar.add(menu);
+
     // Mote plugins popup menu (not available via menu bar)
     if (menuMotePluginClasses == null) {
       menuMotePluginClasses = new Vector<Class<? extends Plugin>>();
@@ -896,22 +930,38 @@ public class GUI extends Observable {
 
   private static void configureFrame(final GUI gui, boolean createSimDialog) {
 
-    // Create and set up the window.
     if (frame == null) {
       frame = new JFrame("COOJA Simulator");
     }
     frame.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
 
-    // Add menu bar
+    /* Menu bar */
     frame.setJMenuBar(gui.createMenuBar());
 
-    JComponent newContentPane = gui.getDesktopPane();
-    newContentPane.setOpaque(true);
-    frame.setContentPane(newContentPane);
+    /* Scrollable desktop */
+    JComponent desktop = gui.getDesktopPane();
+    desktop.setOpaque(true);
+
+    JScrollPane scroll = new JScrollPane(desktop);
+    scroll.setBorder(null);
+
+    JPanel container = new JPanel(new BorderLayout());
+    container.add(BorderLayout.CENTER, scroll);
+    container.add(BorderLayout.EAST, gui.quickHelpScroll);
+    frame.setContentPane(container);
 
     frame.setSize(700, 700);
     frame.setLocationRelativeTo(null);
-    frame.addWindowListener(gui.guiEventHandler);
+    frame.addWindowListener(new WindowAdapter() {
+      public void windowClosing(WindowEvent e) {
+        gui.doQuit(true);
+      }
+    });
+    frame.addComponentListener(new ComponentAdapter() {
+      public void componentResized(ComponentEvent e) {
+        updateDesktopSize(gui.getDesktopPane());
+      }
+    });
 
     /* Restore frame size and position */
     int framePosX = Integer.parseInt(getExternalToolsSetting("FRAME_POS_X", "0"));
@@ -1013,13 +1063,60 @@ public class GUI extends Observable {
       return;
     } catch (Exception e) {
     }
+  }
 
+  private static void updateDesktopSize(final JDesktopPane desktop) {
+    if (desktop == null || !desktop.isVisible() || desktop.getParent() == null) {
+      return;
+    }
+
+    Rectangle rect = desktop.getVisibleRect();
+    Dimension pref = new Dimension(rect.width - 1, rect.height - 1);
+    for (JInternalFrame frame : desktop.getAllFrames()) {
+      if (pref.width < frame.getX() + frame.getWidth() - 20) {
+        pref.width = frame.getX() + frame.getWidth();
+      }
+      if (pref.height < frame.getY() + frame.getHeight() - 20) {
+        pref.height = frame.getY() + frame.getHeight();
+      }
+    }
+    desktop.setPreferredSize(pref);
+    desktop.revalidate();
+  }
+
+  private static JDesktopPane createDesktopPane() {
+    final JDesktopPane desktop = new JDesktopPane() {
+      public void setBounds(int x, int y, int w, int h) {
+        super.setBounds(x, y, w, h);
+        updateDesktopSize(this);
+      }
+      public void remove(Component c) {
+        super.remove(c);
+        updateDesktopSize(this);
+      }
+      public Component add(Component comp) {
+        Component c = super.add(comp);
+        updateDesktopSize(this);
+        return c;
+      }
+    };
+    desktop.setDesktopManager(new DefaultDesktopManager() {
+      public void endResizingFrame(JComponent f) {
+        super.endResizingFrame(f);
+        updateDesktopSize(desktop);
+      }
+      public void endDraggingFrame(JComponent f) {
+        super.endDraggingFrame(f);
+        updateDesktopSize(desktop);
+      }
+    });
+    desktop.setDragMode(JDesktopPane.OUTLINE_DRAG_MODE);
+    return desktop;
   }
 
   private static Simulation quickStartSimulationConfig(File config, boolean vis) {
     logger.info("> Starting COOJA");
-    JDesktopPane desktop = new JDesktopPane();
-    desktop.setDragMode(JDesktopPane.OUTLINE_DRAG_MODE);
+    JDesktopPane desktop = createDesktopPane();
     if (vis) {
       frame = new JFrame("COOJA Simulator");
     }
@@ -1054,8 +1151,7 @@ public class GUI extends Observable {
    */
   private static boolean quickStartSimulation(String source) {
     logger.info("> Starting COOJA");
-    JDesktopPane desktop = new JDesktopPane();
-    desktop.setDragMode(JDesktopPane.OUTLINE_DRAG_MODE);
+    JDesktopPane desktop = createDesktopPane();
     frame = new JFrame("COOJA Simulator");
     GUI gui = new GUI(desktop);
     configureFrame(gui, false);
@@ -2626,29 +2722,7 @@ public class GUI extends Observable {
 
   // // GUI EVENT HANDLER ////
 
-  private class GUIEventHandler implements ActionListener, WindowListener {
-    public void windowDeactivated(WindowEvent e) {
-    }
-
-    public void windowIconified(WindowEvent e) {
-    }
-
-    public void windowDeiconified(WindowEvent e) {
-    }
-
-    public void windowOpened(WindowEvent e) {
-    }
-
-    public void windowClosed(WindowEvent e) {
-    }
-
-    public void windowActivated(WindowEvent e) {
-    }
-
-    public void windowClosing(WindowEvent e) {
-      myGUI.doQuit(true);
-    }
-
+  private class GUIEventHandler implements ActionListener {
     public void actionPerformed(ActionEvent e) {
       if (e.getActionCommand().equals("confopen sim")) {
         new Thread(new Runnable() {
@@ -3010,8 +3084,8 @@ public class GUI extends Observable {
       final String skyFirmware = tmpSkyFirmware, esbFirmware = tmpEsbFirmware;
       javax.swing.SwingUtilities.invokeLater(new Runnable() {
         public void run() {
-          JDesktopPane desktop = new JDesktopPane();
-          desktop.setDragMode(JDesktopPane.OUTLINE_DRAG_MODE);
+          JDesktopPane desktop = createDesktopPane();
+
           applet = CoojaApplet.applet;
           GUI gui = new GUI(desktop);
 
@@ -3030,8 +3104,7 @@ public class GUI extends Observable {
       // Frame start-up
       javax.swing.SwingUtilities.invokeLater(new Runnable() {
         public void run() {
-          JDesktopPane desktop = new JDesktopPane();
-          desktop.setDragMode(JDesktopPane.OUTLINE_DRAG_MODE);
+          JDesktopPane desktop = createDesktopPane();
           frame = new JFrame("COOJA Simulator");
           GUI gui = new GUI(desktop);
           configureFrame(gui, false);
@@ -3821,6 +3894,63 @@ public class GUI extends Observable {
     }
   }
 
+  public interface HasQuickHelp {
+    /**
+     * @return Quick help. May be HTML formatted, but must not include the
+     *         document html-tags.
+     */
+    public String getQuickHelp();
+  }
+  
+  /**
+   * Load quick help for given object or identifier. Note that this method does not
+   * show the quick help pane.
+   *  
+   * @param obj If string: help identifier. Else, the class name of the argument
+   * is used as help identifier.
+   */
+  public void loadQuickHelp(final Object obj) {
+    if (obj == null) {
+      return;
+    }
+
+    String key;
+    if (obj instanceof String) {
+      key = (String) obj;
+    } else {
+      key = obj.getClass().getName();
+    }
+    
+    String help = null;
+    if (obj instanceof HasQuickHelp) {
+      help = ((HasQuickHelp) obj).getQuickHelp();
+    } else {
+      if (quickHelpProperties == null) {
+        /* Load quickhelp.txt */
+        try {
+          quickHelpProperties = new Properties();
+          quickHelpProperties.load(new FileReader("quickhelp.txt"));
+        } catch (Exception e) {
+          quickHelpProperties = null;
+          help = "<html><b>Failed to read quickhelp.txt:</b><p>" + e.getMessage() + "</html>";
+        }
+      }
+
+      if (quickHelpProperties != null) {
+        help = quickHelpProperties.getProperty(key);
+      }
+    }
+
+    if (help != null) {
+      quickHelpTextPane.setText("<html>" + help + "</html>");
+    } else {
+      quickHelpTextPane.setText(
+          "<html><b>" + getDescriptionOf(obj) +"</b>" +
+          "<p>No help available</html>");
+    }
+    quickHelpTextPane.setCaretPosition(0);
+  }
+
   /* GUI actions */
   abstract class GUIAction extends AbstractAction {
     public GUIAction(String name) {
@@ -3975,6 +4105,39 @@ public class GUI extends Observable {
     public boolean shouldBeEnabled() {
       Simulation s = getSimulation();
       return s != null && s.getMotesCount() > 0;
+    }
+  };
+  GUIAction showQuickHelpAction = new GUIAction("Quick help", KeyStroke.getKeyStroke(KeyEvent.VK_F1, 0)) {
+    public void actionPerformed(ActionEvent e) {
+      if (!(e.getSource() instanceof JCheckBoxMenuItem)) {
+        return;
+      }
+      boolean show = ((JCheckBoxMenuItem) e.getSource()).isSelected();
+      quickHelpTextPane.setVisible(show);
+      quickHelpScroll.setVisible(show);
+      ((JPanel)frame.getContentPane()).revalidate();
+      updateDesktopSize(getDesktopPane());
+    }
+
+    public boolean shouldBeEnabled() {
+      return true;
+    }
+  };
+  GUIAction showKeyboardShortcutsAction = new GUIAction("Keyboard shortcuts") {
+    public void actionPerformed(ActionEvent e) {
+      loadQuickHelp("KEYBOARD_SHORTCUTS");
+      JCheckBoxMenuItem checkBox = ((JCheckBoxMenuItem)showQuickHelpAction.getValue("checkbox"));
+      if (checkBox == null) {
+        return;
+      }
+      if (checkBox.isSelected()) {
+        return;
+      }
+      checkBox.doClick();
+    }
+
+    public boolean shouldBeEnabled() {
+      return true;
     }
   };
 
