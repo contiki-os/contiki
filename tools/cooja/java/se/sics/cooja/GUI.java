@@ -24,7 +24,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * $Id: GUI.java,v 1.139 2009/06/30 12:45:51 fros4943 Exp $
+ * $Id: GUI.java,v 1.140 2009/06/30 13:10:14 nifi Exp $
  */
 
 package se.sics.cooja;
@@ -111,7 +111,6 @@ import javax.swing.filechooser.FileFilter;
 import org.apache.log4j.BasicConfigurator;
 import org.apache.log4j.Logger;
 import org.apache.log4j.xml.DOMConfigurator;
-import org.jcp.xml.dsig.internal.dom.Utils;
 import org.jdom.Document;
 import org.jdom.Element;
 import org.jdom.JDOMException;
