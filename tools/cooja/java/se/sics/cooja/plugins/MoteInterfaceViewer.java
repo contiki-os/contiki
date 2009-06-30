@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: MoteInterfaceViewer.java,v 1.6 2009/03/23 13:26:43 nifi Exp $
+ * $Id: MoteInterfaceViewer.java,v 1.7 2009/06/30 12:46:26 fros4943 Exp $
  */
 
 package se.sics.cooja.plugins;
@@ -52,6 +52,7 @@ import se.sics.cooja.MoteInterface;
 import se.sics.cooja.PluginType;
 import se.sics.cooja.Simulation;
 import se.sics.cooja.VisPlugin;
+import se.sics.cooja.GUI.HasQuickHelp;
 
 /**
  * Mote Interface Viewer views information about a specific mote interface.
@@ -60,7 +61,7 @@ import se.sics.cooja.VisPlugin;
  */
 @ClassDescription("Mote Interface Viewer")
 @PluginType(PluginType.MOTE_PLUGIN)
-public class MoteInterfaceViewer extends VisPlugin {
+public class MoteInterfaceViewer extends VisPlugin implements HasQuickHelp {
   private static final long serialVersionUID = 1L;
 
   private Mote mote;
@@ -114,6 +115,8 @@ public class MoteInterfaceViewer extends VisPlugin {
         for (MoteInterface intf : intfs) {
           if (GUI.getDescriptionOf(intf).equals(interfaceDescription)) {
             selectedMoteInterface = intf;
+            mote.getSimulation().getGUI().loadQuickHelp(MoteInterfaceViewer.this);
+            break;
           }
         }
         currentInterfaceVisualizer = selectedMoteInterface.getInterfaceVisualizer();
@@ -213,6 +216,23 @@ public class MoteInterfaceViewer extends VisPlugin {
       }
     }
     return true;
+  }
+
+  public String getQuickHelp() {
+    String help = "<b>" + GUI.getDescriptionOf(this) + "</b>";
+    help += "<p>Lists mote interfaces, and allows mote inspection and interaction via mote interface visualizers.";
+    
+    MoteInterface intf = selectedMoteInterface;
+    if (intf != null) {
+      if (intf instanceof HasQuickHelp) {
+        help += "<p>" + ((HasQuickHelp)intf).getQuickHelp();
+      } else {
+        help += "<p><b>" + GUI.getDescriptionOf(intf) + "</b>";
+        help += "<p>No help available";
+      }
+    }
+
+    return help;
   }
 
 }
