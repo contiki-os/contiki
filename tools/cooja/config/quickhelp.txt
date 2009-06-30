@@ -1,0 +1,42 @@
+se.sics.cooja.plugins.LogListener = \
+<b>Log Listener</b>\
+<p>Listens to log output from all simulated motes. \
+Right-click the main area for a popup menu with more options. \
+<p>You may filter shown logs by entering regular expressions in the bottom text field. \
+Filtering is performed on both the Mote and the Data columns.\
+<p><b>Filter examples:</b> \
+<br><br>Hello<br><i>logs containing the string Hello</i>\
+<br><br>^Contiki<br><i>logs starting with Contiki</i>\
+<br><br>^[CR]<br><i>logs starting either a C or an R</i>\
+<br><br>'Hello'$<br><i>logs ending with 'Hello'</i>\
+<br><br>^ID:[2-3]$<br><i>logs from motes 2 and 3</i>
+
+se.sics.cooja.plugins.TimeLine = \
+<b>Timeline</b>\
+<p>The timeline arranges historical simulation events into a graphical timeline. \
+The timeline can for example be used to overview the behavior of complex power-saving MAC protocols.\
+<p>Events appear as colored rectangles in the timeline. For more information about a particular event, hover the mouse above it.\
+<p>The checkboxes in the left pane control what event types are shown in the timeline. \
+Currently, four event types are supported (see below). Note that the control pane can be hidden to save space. \
+<p>All simulated motes are by default added to the timeline, however, any unwanted motes can be removed by mouse clicking the node ID (left).\
+<p>To display a vertical time marker on the timeline, press and hold the mouse on the time ruler (top).\
+<p>For more options, such as zooming and saving raw data to file, right-click the mouse for a popup menu.\
+<p><b>Radio RX/TX</b>\
+<br>Shows radio connection events. Transmissions are painted blue, receptions are green, and interfered radios are red.\
+<p><b>Radio ON/OFF</b>\
+<br>Shows whether the mote radio is on or off. Turned on radios are indicated with gray color.\
+<p><b>LEDs</b>\
+<br>Shows LED state: red, green, and blue. (Assumes all mote types have exactly three LEDs.)\
+<p><b>Watchpoints</b>\
+<br>Shows triggered watchpoints, currently only supported by MSPSim-based motes. To add watchpoints, use the Msp Code Watcher plugin.
+
+KEYBOARD_SHORTCUTS = \
+<b>Keyboard shortcuts</b><br>\
+<br><i>Ctrl+N:</i> New simulation\
+<br><i>Ctrl+S:</i> Start/pause simulation\
+<br><i>Ctrl+R:</i> Reload current simulation. If no simulation exists, the last used simulation config is loaded\
+<br><i>Ctrl+Shift+R:</i> Reload current simulation with another random seed\
+<br><i>Ctrl+X:</i> Quit COOJA\
+<br>\
+<br><i>F1:</i> Toggle quick help
+
