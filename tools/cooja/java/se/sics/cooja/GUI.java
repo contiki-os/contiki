@@ -24,7 +24,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * $Id: GUI.java,v 1.140 2009/06/30 13:10:14 nifi Exp $
+ * $Id: GUI.java,v 1.141 2009/06/30 13:31:42 nifi Exp $
  */
 
 package se.sics.cooja;
@@ -4009,8 +4009,10 @@ public class GUI extends Observable {
   GUIAction reloadRandomSimulationAction = new GUIAction("new random seed", KeyEvent.VK_N, KeyStroke.getKeyStroke(KeyEvent.VK_R, ActionEvent.CTRL_MASK | ActionEvent.SHIFT_MASK)) {
     public void actionPerformed(ActionEvent e) {
       /* Replace seed before reloading */
-      getSimulation().setRandomSeed(getSimulation().getRandomSeed()+1);
-      reloadSimulationAction.actionPerformed(null);
+      if (getSimulation() != null) {
+        getSimulation().setRandomSeed(getSimulation().getRandomSeed()+1);
+        reloadSimulationAction.actionPerformed(null);
+      }
     }
     public boolean shouldBeEnabled() {
       return getSimulation() != null;
