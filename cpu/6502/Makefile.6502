@@ -30,7 +30,7 @@
 #
 # Author: Oliver Schmidt <ol.sc@web.de>
 #
-# $Id: Makefile.6502,v 1.27 2008/05/22 19:43:37 oliverschmidt Exp $
+# $Id: Makefile.6502,v 1.28 2009/07/02 22:36:35 oliverschmidt Exp $
 #
 
 ifndef CC65_INC
@@ -77,16 +77,13 @@ AROPTS  = a
 
 .SUFFIXES:
 
-CUSTOM_RULE_C_TO_OBJECTDIR_D = 1
-# No explicit dependency file generation necessary since it is done 
-# as compilation side effect using the --create-dep compiler option
-
 CUSTOM_RULE_C_TO_OBJECTDIR_O = 1
 $(OBJECTDIR)/%.o: %.c
 	$(CC) $(CFLAGS) --create-dep $< -o $(@:.o=.s)
 	@$(AS) $(ASFLAGS) $(@:.o=.s) -o $@
 	@sed 's!.s:!.o:!' < $(@:.o=.u) > $(@:.o=.d)
 	@rm -f $(@:.o=.s) $(@:.o=.u)
+	@$(FINALIZE_DEPENDENCY)
 
 CUSTOM_RULE_C_TO_CO = 1
 %.co: %.c

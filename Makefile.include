@@ -87,6 +87,7 @@ CONTIKI_OBJECTFILES = ${addprefix $(OBJECTDIR)/,${call oname, $(CONTIKI_SOURCEFI
 PROJECT_OBJECTFILES = ${addprefix $(OBJECTDIR)/,${call oname, $(PROJECT_SOURCEFILES)}}
 
 ### Include application makefiles
+
 ifdef APPS
   APPDIRS += ${wildcard ${addprefix $(CONTIKI)/apps/, $(APPS)} \
                 ${addprefix $(CONTIKI)/platform/$(TARGET)/apps/, $(APPS)}}
@@ -100,6 +101,7 @@ ifdef APPS
 endif
 
 ### Include target makefile (TODO Unsafe?)
+
 target_makefile := $(wildcard $(CONTIKI)/platform/$(TARGET)/Makefile.$(TARGET))
 
 # Check if the target makefile exists
@@ -136,6 +138,15 @@ ifneq ($(MAKECMDGOALS),clean)
 				   $(PROJECT_SOURCEFILES:.c=.d)}
 endif
 
+### See http://make.paulandlesley.org/autodep.html#advanced
+
+define FINALIZE_DEPENDENCY
+cp $(@:.o=.d) $(@:.o=.$$$$); \
+sed -e 's/#.*//' -e 's/^[^:]*: *//' -e 's/ *\\$$//' \
+    -e '/^$$/ d' -e 's/$$/ :/' < $(@:.o=.$$$$) >> $(@:.o=.d); \
+rm -f $(@:.o=.$$$$)
+endef
+
 clean:
 	rm -f *~ *core core *.srec \
 	*.lst *.map \
@@ -151,7 +162,8 @@ endif
 
 ifndef CUSTOM_RULE_C_TO_OBJECTDIR_O
 $(OBJECTDIR)/%.o: %.c
-	$(CC) $(CFLAGS) -c $< -o $@
+	$(CC) $(CFLAGS) -MMD -c $< -o $@
+	@$(FINALIZE_DEPENDENCY)
 endif
 
 ifndef CUSTOM_RULE_S_TO_OBJECTDIR_O
@@ -176,21 +188,6 @@ endif
 ifndef CUSTOM_RULE_ALLOBJS_TO_TARGETLIB
 contiki-$(TARGET).a: $(CONTIKI_OBJECTFILES)
 	$(AR) $(AROPTS) $@ $^
-endif
-
-ifndef CCDEP
-  CCDEP = $(CC)
-endif
-ifndef CDEPFLAGS
-  CDEPFLAGS = $(CFLAGS)
-endif
-
-ifndef CUSTOM_RULE_C_TO_OBJECTDIR_D
-$(OBJECTDIR)/%.d: %.c
-	@echo Making dependencies for $<; set -e; rm -f $@; \
-	$(CCDEP) -MM $(CDEPFLAGS) $< > $@.$$$$; \
-	sed 's,\($*\)\.o[ :]*,$(OBJECTDIR)/\1.o $@ : ,g' < $@.$$$$ > $@; \
-	rm -f $@.$$$$
 endif
 
 ifndef LD
