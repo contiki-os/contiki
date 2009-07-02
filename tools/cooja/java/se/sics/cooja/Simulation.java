@@ -24,17 +24,22 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * $Id: Simulation.java,v 1.48 2009/06/24 07:56:15 fros4943 Exp $
+ * $Id: Simulation.java,v 1.49 2009/07/02 12:04:28 fros4943 Exp $
  */
 
 package se.sics.cooja;
 
-import java.util.*;
-import org.apache.log4j.Logger;
-import org.jdom.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Observable;
+import java.util.Observer;
+import java.util.Random;
+import java.util.Vector;
 
-import se.sics.cooja.contikimote.ContikiMote;
-import se.sics.cooja.dialogs.*;
+import org.apache.log4j.Logger;
+import org.jdom.Element;
+
+import se.sics.cooja.dialogs.CreateSimDialog;
 
 /**
  * A simulation consists of a number of motes and mote types.
@@ -396,6 +401,11 @@ public class Simulation extends Observable implements Runnable {
     this.maxMoteStartupDelay = Math.max(0, maxMoteStartupDelay);
   }
 
+  private SimEventCentral eventCentral = new SimEventCentral(this);
+  public SimEventCentral getEventCentral() {
+    return eventCentral;
+  }
+  
   /**
    * Returns the current simulation config represented by XML elements. This
    * config also includes the current radio medium, all mote types and motes.
@@ -608,6 +618,8 @@ public class Simulation extends Observable implements Runnable {
       public void execute(long t) {
         motes.remove(mote);
         currentRadioMedium.unregisterMote(mote, Simulation.this);
+        setChanged();
+        notifyObservers(mote);
 
         /* Loop through all scheduled events.
          * Delete all events associated with deleted mote. */
@@ -623,8 +635,6 @@ public class Simulation extends Observable implements Runnable {
         }
         
         recreateMoteLists();
-        Simulation.this.setChanged();
-        Simulation.this.notifyObservers(this);
       }
     };
 
@@ -656,7 +666,7 @@ public class Simulation extends Observable implements Runnable {
       motes.add(mote);
       currentRadioMedium.registerMote(mote, this);
       this.setChanged();
-      this.notifyObservers(this);
+      this.notifyObservers(mote);
       return;
     }
 
@@ -667,7 +677,7 @@ public class Simulation extends Observable implements Runnable {
         currentRadioMedium.registerMote(mote, Simulation.this);
         recreateMoteLists();
         Simulation.this.setChanged();
-        Simulation.this.notifyObservers(this);
+        Simulation.this.notifyObservers(mote);
       }
       public String toString() {
         return "ADD MOTE";
