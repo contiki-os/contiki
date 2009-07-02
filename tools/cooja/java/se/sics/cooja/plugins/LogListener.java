@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006, Swedish Institute of Computer Science.
+ * Copyright (c) 2009, Swedish Institute of Computer Science.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: LogListener.java,v 1.16 2009/06/23 12:57:19 fros4943 Exp $
+ * $Id: LogListener.java,v 1.17 2009/07/02 12:07:18 fros4943 Exp $
  */
 
 package se.sics.cooja.plugins;
@@ -47,8 +47,6 @@ import java.io.FileWriter;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Observable;
-import java.util.Observer;
 import java.util.Vector;
 import java.util.regex.PatternSyntaxException;
 
@@ -56,7 +54,6 @@ import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
-import javax.swing.JButton;
 import javax.swing.JFileChooser;
 import javax.swing.JLabel;
 import javax.swing.JMenuItem;
@@ -70,17 +67,19 @@ import javax.swing.RowFilter;
 import javax.swing.table.AbstractTableModel;
 import javax.swing.table.TableModel;
 import javax.swing.table.TableRowSorter;
+
 import org.apache.log4j.Logger;
 import org.jdom.Element;
+
 import se.sics.cooja.ClassDescription;
 import se.sics.cooja.GUI;
 import se.sics.cooja.Mote;
 import se.sics.cooja.PluginType;
 import se.sics.cooja.Simulation;
 import se.sics.cooja.VisPlugin;
+import se.sics.cooja.SimEventCentral.LogOutputEvent;
+import se.sics.cooja.SimEventCentral.LogOutputListener;
 import se.sics.cooja.dialogs.TableColumnAdjuster;
-import se.sics.cooja.dialogs.MessageList.MessageContainer;
-import se.sics.cooja.interfaces.Log;
 import se.sics.cooja.interfaces.MoteID;
 
 /**
@@ -92,23 +91,22 @@ import se.sics.cooja.interfaces.MoteID;
 @ClassDescription("Log Listener")
 @PluginType(PluginType.SIM_STANDARD_PLUGIN)
 public class LogListener extends VisPlugin {
-  private static final long serialVersionUID = 1L;
+  private static final long serialVersionUID = 3294595371354857261L;
   private static Logger logger = Logger.getLogger(LogListener.class);
 
   private final static int COLUMN_TIME = 0;
   private final static int COLUMN_FROM = 1;
   private final static int COLUMN_DATA = 2;
-
   private final static String[] COLUMN_NAMES = {
     "Time",
     "Mote",
-    "Data"
+    "Message"
   };
+
   private final JTable logTable;
   private TableRowSorter<TableModel> logFilter;
   private ArrayList<LogData> logs = new ArrayList<LogData>();
 
-  private Observer logObserver;
   private Simulation simulation;
 
   private String filterText = "";
@@ -116,50 +114,43 @@ public class LogListener extends VisPlugin {
   private Color filterTextFieldBackground;
 
   private AbstractTableModel model;
-  
+
+  private LogOutputListener logOutputListener;
+
   /**
-   * Create a new simulation control panel.
-   *
-   * @param simulationToControl Simulation to control
+   * @param simulation Simulation
+   * @param gui GUI
    */
-  public LogListener(final Simulation simulationToControl, final GUI gui) {
+  public LogListener(final Simulation simulation, final GUI gui) {
     super("Log Listener - Listening on ?? mote logs", gui);
-    simulation = simulationToControl;
-    int nrLogs = 0;
+    this.simulation = simulation;
 
     model = new AbstractTableModel() {
-
       private static final long serialVersionUID = 3065150390849332924L;
-
       public String getColumnName(int col) {
         return COLUMN_NAMES[col];
       }
-
       public int getRowCount() {
         return logs.size();
       }
-
       public int getColumnCount() {
         return COLUMN_NAMES.length;
       }
-
       public Object getValueAt(int row, int col) {
         LogData log = logs.get(row);
         if (col == COLUMN_TIME) {
-          return Long.toString(log.time);
+          return log.strTime;
         } else if (col == COLUMN_FROM) {
-          return log.moteID;
+          return log.strID;
         } else if (col == COLUMN_DATA) {
-          return log.data;
+          return log.ev.getMessage();
         }
         return null;
       }
     };
 
     logTable = new JTable(model) {
-
       private static final long serialVersionUID = -930616018336483196L;
-
       public String getToolTipText(MouseEvent e) {
         java.awt.Point p = e.getPoint();
         int rowIndex = rowAtPoint(p);
@@ -183,7 +174,6 @@ public class LogListener extends VisPlugin {
         }
         return super.getToolTipText(e);
       }
-
     };
     logTable.setFillsViewportHeight(true);
     logTable.setAutoResizeMode(JTable.AUTO_RESIZE_LAST_COLUMN);
@@ -194,6 +184,11 @@ public class LogListener extends VisPlugin {
     }
     logTable.setRowSorter(logFilter);
 
+    /* Automatically update column widths */
+    TableColumnAdjuster adjuster = new TableColumnAdjuster(logTable);
+    adjuster.setDynamicAdjustment(true);
+    adjuster.packColumns();
+
     /* Popup menu */
     JPopupMenu popupMenu = new JPopupMenu();
     popupMenu.add(new JMenuItem(copyAction));
@@ -203,25 +198,39 @@ public class LogListener extends VisPlugin {
     popupMenu.add(new JMenuItem(saveAction));
     logTable.setComponentPopupMenu(popupMenu);
 
-    TableColumnAdjuster adjuster = new TableColumnAdjuster(logTable);
-    adjuster.setDynamicAdjustment(true);
-    adjuster.packColumns();
-
-    /* Observe simulation motes for log data */
-    logObserver = new Observer() {
-      public void update(Observable obs, Object obj) {
-        Mote mote = (Mote) obj;
-        Log moteLogInterface = (Log) obs;
-        String lastMessage = moteLogInterface.getLastLogMessage();
-        if (lastMessage.length() > 0 && lastMessage.charAt(lastMessage.length() - 1) == '\n') {
-          lastMessage = lastMessage.substring(0, lastMessage.length() - 1);
+    /* Fetch log output history */
+    LogOutputEvent[] history = simulation.getEventCentral().getLogOutputHistory();
+    if (history.length > 0) {
+      for (LogOutputEvent historyEv: history) {
+        LogData data = new LogData(historyEv);
+        logs.add(data);
+      }
+      final int index = logs.size()-1;
+      java.awt.EventQueue.invokeLater(new Runnable() {
+        public void run() {
+          model.fireTableRowsInserted(0, index);
+          logTable.scrollRectToVisible(
+              new Rectangle(0, logTable.getHeight() - 2, 1, logTable.getHeight()));
         }
-        final LogData data =
-            new LogData("ID:" + getMoteID(mote),
-                simulation.getSimulationTimeMillis(), lastMessage);
+      });
+    }
+
+    /* Start observing motes for new log output */
+    simulation.getEventCentral().addLogOutputListener(logOutputListener = new LogOutputListener() {
+      public void moteWasAdded(Mote mote) {
+        /* Update title */
+        updateTitle();
+      }
+      public void moteWasRemoved(Mote mote) {
+        /* Update title */
+        updateTitle();
+      }
+      public void newLogOutput(LogOutputEvent ev) {
+        /* Display new log output */
+        final LogData data = new LogData(ev);
         java.awt.EventQueue.invokeLater(new Runnable() {
           public void run() {
-            // Check if the last row is visible
+            /* Autoscroll */
             boolean isVisible = false;
             int rowCount = logTable.getRowCount();
             if (rowCount > 0) {
@@ -232,35 +241,15 @@ public class LogListener extends VisPlugin {
             logs.add(data);
             model.fireTableRowsInserted(index, index);
             if (isVisible) {
-              logTable.scrollRectToVisible(new Rectangle(0, logTable.getHeight() - 2, 1, logTable.getHeight()));
+              logTable.scrollRectToVisible(
+                  new Rectangle(0, logTable.getHeight() - 2, 1, logTable.getHeight()));
             }
           }
         });
       }
-    };
-    for (Mote mote: simulation.getMotes()) {
-      if (mote.getInterfaces().getLog() != null) {
-        mote.getInterfaces().getLog().addObserver(logObserver);
-        nrLogs++;
-      }
-    }
-
-    simulation.addObserver(new Observer() {
-      public void update(Observable obs, Object obj) {
-        /* Reregister as log listener */
-        int nrLogs = 0;
-        for (Mote mote: simulation.getMotes()) {
-          if (mote.getInterfaces().getLog() != null) {
-            mote.getInterfaces().getLog().deleteObserver(logObserver);
-            mote.getInterfaces().getLog().addObserver(logObserver);
-            nrLogs++;
-          }
-        }
-        setTitle("Log Listener - Listening on " + nrLogs + " mote logs");
-      }
     });
 
-    // Main panel
+    /* UI components */
     JPanel filterPanel = new JPanel();
     filterPanel.setLayout(new BoxLayout(filterPanel, BoxLayout.X_AXIS));
     filterTextField = new JTextField("");
@@ -272,7 +261,7 @@ public class LogListener extends VisPlugin {
       public void actionPerformed(ActionEvent e) {
         filterText = filterTextField.getText();
         setFilter(filterText);
-        // Ensure last row is visible
+        /* Autoscroll */
         logTable.scrollRectToVisible(new Rectangle(0, logTable.getHeight() - 2, 1, logTable.getHeight()));
       }
     });
@@ -281,27 +270,27 @@ public class LogListener extends VisPlugin {
     getContentPane().add(BorderLayout.CENTER, new JScrollPane(logTable));
     getContentPane().add(BorderLayout.SOUTH, filterPanel);
 
-    setTitle("Log Listener - Listening on " + nrLogs + " mote logs");
+    updateTitle();
     pack();
     setSize(gui.getDesktopPane().getWidth(), 150);
     setLocation(0, gui.getDesktopPane().getHeight() - 300);
   }
 
-  private String getMoteID(Mote mote) {
-    MoteID moteID = mote.getInterfaces().getMoteID();
-    if (moteID != null) {
-      return Integer.toString(moteID.getMoteID());
+  private void updateTitle() {
+    int observing = simulation.getEventCentral().getLogOutputObservationsCount();
+    int tot = simulation.getMotesCount();
+    if (observing == tot) {
+      setTitle("Log Listener (listening on all " + simulation.getMotesCount() + " motes)");
+    } else {
+      setTitle("Log Listener (listening on " 
+          + simulation.getEventCentral().getLogOutputObservationsCount() + "/"
+          + simulation.getMotesCount() + " motes)");
     }
-    return mote.toString();
   }
 
   public void closePlugin() {
-    /* Stop observing mote logs */
-    for (Mote mote: simulation.getMotes()) {
-      if (mote.getInterfaces().getLog() != null) {
-        mote.getInterfaces().getLog().deleteObserver(logObserver);
-      }
-    }
+    /* Stop observing motes */
+    simulation.getEventCentral().removeLogOutputListener(logOutputListener);
   }
 
   public Collection<Element> getConfigXML() {
@@ -348,14 +337,22 @@ public class LogListener extends VisPlugin {
   }
 
   private static class LogData {
-    public final String moteID;
-    public final long time;
-    public final String data;
+    public final LogOutputEvent ev;
+    public final String strID; /* cached value */
+    public final String strTime; /* cached value */
 
-    public LogData(String moteID, long time, String data) {
-      this.moteID = moteID;
-      this.time = time;
-      this.data = data;
+    public LogData(LogOutputEvent ev) {
+      this.ev = ev;
+      this.strID = "ID:" + getMoteID(ev.getMote());
+      this.strTime = "" + ev.getTime()/Simulation.MILLISECOND;
+    }
+
+    private static String getMoteID(Mote mote) {
+      MoteID moteID = mote.getInterfaces().getMoteID();
+      if (moteID != null) {
+        return Integer.toString(moteID.getMoteID());
+      }
+      return mote.toString();
     }
   }
 
@@ -390,17 +387,19 @@ public class LogListener extends VisPlugin {
       try {
         PrintWriter outStream = new PrintWriter(new FileWriter(saveFile));
         for(LogData data : logs) {
-          outStream.println(data.time + "  " + data.moteID + "  " + data.data);
+          outStream.println(
+              data.strTime + "\t" + 
+              data.strID + "\t" + 
+              data.ev.getMessage());
         }
         outStream.close();
       } catch (Exception ex) {
         logger.fatal("Could not write to file: " + saveFile);
         return;
       }
-
     }
   };
-  
+
   private Action clearAction = new AbstractAction("Clear") {
     public void actionPerformed(ActionEvent e) {
       int size = logs.size();
@@ -410,7 +409,7 @@ public class LogListener extends VisPlugin {
       }
     }
   };
-  
+
   private Action copyAction = new AbstractAction("Copy selected") {
     public void actionPerformed(ActionEvent e) {
       Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
@@ -431,19 +430,24 @@ public class LogListener extends VisPlugin {
       clipboard.setContents(stringSelection, null);
     }
   };
-  
+
   private Action copyAllAction = new AbstractAction("Copy all") {
     public void actionPerformed(ActionEvent e) {
       Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
 
       StringBuilder sb = new StringBuilder();
       for(LogData data : logs) {
-        sb.append(data.time + "  " + data.moteID + "  " + data.data + "\n");
+        sb.append(data.strTime);
+        sb.append("\t");
+        sb.append(data.strID);
+        sb.append("\t");
+        sb.append(data.ev.getMessage());
+        sb.append("\n");
       }
 
       StringSelection stringSelection = new StringSelection(sb.toString());
       clipboard.setContents(stringSelection, null);
     }
   };
-  
+
 }
