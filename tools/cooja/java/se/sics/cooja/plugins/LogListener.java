@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: LogListener.java,v 1.17 2009/07/02 12:07:18 fros4943 Exp $
+ * $Id: LogListener.java,v 1.18 2009/07/03 13:37:41 fros4943 Exp $
  */
 
 package se.sics.cooja.plugins;
@@ -243,6 +243,22 @@ public class LogListener extends VisPlugin {
             if (isVisible) {
               logTable.scrollRectToVisible(
                   new Rectangle(0, logTable.getHeight() - 2, 1, logTable.getHeight()));
+            }
+          }
+        });
+      }
+      public void removedLogOutput(final LogOutputEvent ev) {
+        java.awt.EventQueue.invokeLater(new Runnable() {
+          public void run() {
+            LogData toRemove = null;
+            for (LogData data: logs) {
+              if (data.ev == ev) {
+                toRemove = data;
+                break;
+              }
+            }
+            if (toRemove != null) {
+              logs.remove(toRemove);      
             }
           }
         });
