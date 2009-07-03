@@ -24,17 +24,23 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * $Id: SimEventCentral.java,v 1.1 2009/07/02 12:03:09 fros4943 Exp $
+ * $Id: SimEventCentral.java,v 1.2 2009/07/03 13:37:41 fros4943 Exp $
  */
 
 package se.sics.cooja;
 
+import java.io.File;
+import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Observable;
 import java.util.Observer;
+import java.util.Vector;
 
 import org.apache.log4j.Logger;
+import org.jdom.Element;
 
+import se.sics.cooja.MoteType.MoteTypeCreationException;
 import se.sics.cooja.interfaces.Log;
 import se.sics.cooja.util.ArrayUtils;
 
@@ -55,6 +61,10 @@ public class SimEventCentral {
   public SimEventCentral(Simulation simulation) {
     this.simulation = simulation;
 
+    /* Default buffer sizes */
+    logOutputBufferSize = Integer.parseInt(GUI.getExternalToolsSetting("BUFFERSIZE_LOGOUTPUT", "" + 40000));
+
+    
     moteObservations = new ArrayList<MoteObservation>();
 
     /* Mote count: notifications */
@@ -62,7 +72,7 @@ public class SimEventCentral {
 
     /* Log output: notifications and history */
     logOutputListeners = new LogOutputListener[0];
-    logOutputEvents = new ArrayList<LogOutputEvent>();
+    logOutputEvents = new ArrayDeque<LogOutputEvent>();
   }
   
 
@@ -85,6 +95,10 @@ public class SimEventCentral {
     }
     public long getTime() {
       return time;
+    }
+
+    public String toString() {
+      return "" + ID;
     }
   }
   /** Help class for maintaining mote-specific observations */
@@ -183,8 +197,10 @@ public class SimEventCentral {
       return msg;
     }
   }
-  private ArrayList<LogOutputEvent> logOutputEvents;
+  private int logOutputBufferSize;
+  private ArrayDeque<LogOutputEvent> logOutputEvents;
   public interface LogOutputListener extends MoteCountListener {
+    public void removedLogOutput(LogOutputEvent ev);
     public void newLogOutput(LogOutputEvent ev);
   }
   private LogOutputListener[] logOutputListeners;
@@ -199,6 +215,17 @@ public class SimEventCentral {
         msg = msg.substring(0, msg.length() - 1);
       }
 
+      /* We may have to remove some events now */
+      while (logOutputEvents.size() > logOutputBufferSize-1) {
+        LogOutputEvent removed = logOutputEvents.pollFirst();
+        if (removed == null) {
+          break;
+        }
+        for (LogOutputListener l: logOutputListeners) {
+          l.removedLogOutput(removed);
+        }
+      }
+      
       /* Store log output, and notify listeners */
       LogOutputEvent ev = 
         new LogOutputEvent(mote, simulation.getSimulationTime(), msg);
@@ -243,6 +270,23 @@ public class SimEventCentral {
   }
   public LogOutputEvent[] getLogOutputHistory() {
     return logOutputEvents.toArray(new LogOutputEvent[0]);
+  }
+  public int getLogOutputBufferSize() {
+    return logOutputBufferSize;
+  }
+  public void setLogOutputBufferSize(int size) {
+    logOutputBufferSize = size;
+    
+    /* We may have to remove some events now */
+    while (logOutputEvents.size() > logOutputBufferSize) {
+      LogOutputEvent removed = logOutputEvents.pollFirst();
+      if (removed == null) {
+        break;
+      }
+      for (LogOutputListener l: logOutputListeners) {
+        l.removedLogOutput(removed);
+      }
+    }
   }
   public int getLogOutputObservationsCount() {
     int count=0;
@@ -289,4 +333,30 @@ public class SimEventCentral {
     "\nLog output history: " + logOutputEvents.size()
     ;
   }
+  
+
+  public Collection<Element> getConfigXML() {
+    ArrayList<Element> config = new ArrayList<Element>();
+    Element element;
+
+    /* Log output buffer size */
+    element = new Element("logoutput");
+    element.setText("" + logOutputBufferSize);
+    config.add(element);
+
+    return config;
+  }
+
+  public boolean setConfigXML(Simulation simulation,
+      Collection<Element> configXML, boolean visAvailable)
+      throws MoteTypeCreationException {
+    for (Element element : configXML) {
+      String name = element.getName();
+      if (name.equals("logoutput")) {
+        logOutputBufferSize = Integer.parseInt(element.getText());
+      }
+    }
+    return true;
+  }
+  
 }

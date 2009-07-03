@@ -24,7 +24,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * $Id: GUI.java,v 1.141 2009/06/30 13:31:42 nifi Exp $
+ * $Id: GUI.java,v 1.142 2009/07/03 13:37:40 fros4943 Exp $
  */
 
 package se.sics.cooja;
@@ -122,6 +122,7 @@ import se.sics.cooja.MoteType.MoteTypeCreationException;
 import se.sics.cooja.VisPlugin.PluginRequiresVisualizationException;
 import se.sics.cooja.contikimote.ContikiMoteType;
 import se.sics.cooja.dialogs.AddMoteDialog;
+import se.sics.cooja.dialogs.BufferSettings;
 import se.sics.cooja.dialogs.ConfigurationWizard;
 import se.sics.cooja.dialogs.CreateSimDialog;
 import se.sics.cooja.dialogs.ExternalToolsDialog;
@@ -631,7 +632,8 @@ public class GUI extends Observable {
     guiActions.add(exitCoojaAction);
     guiActions.add(startStopSimulationAction);
     guiActions.add(removeAllMotesAction);
-
+    guiActions.add(showBufferSettingsAction);
+    
     /* File menu */
     menu = new JMenu("File");
     menu.addMenuListener(new MenuListener() {
@@ -903,6 +905,8 @@ public class GUI extends Observable {
       menuItem.setToolTipText("Not available in applet version");
     }
 
+    menu.add(new JMenuItem(showBufferSettingsAction));
+    
     menu.addSeparator();
 
     menuItem = new JMenuItem("Java version: "
@@ -4141,5 +4145,16 @@ public class GUI extends Observable {
       return true;
     }
   };
-
+  GUIAction showBufferSettingsAction = new GUIAction("Buffer sizes") {
+    public void actionPerformed(ActionEvent e) {
+      if (mySimulation == null) {
+        return;
+      }
+      BufferSettings.showDialog(myDesktopPane, mySimulation);
+    }
+    public boolean shouldBeEnabled() {
+      return mySimulation != null;
+    }
+  };
+  
 }
