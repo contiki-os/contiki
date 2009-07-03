@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: Visualizer.java,v 1.8 2009/07/02 12:05:54 fros4943 Exp $
+ * $Id: Visualizer.java,v 1.9 2009/07/03 14:06:20 fros4943 Exp $
  */
 
 package se.sics.cooja.plugins;
@@ -349,13 +349,7 @@ public class Visualizer extends VisPlugin {
       }
     });
 
-    addComponentListener(new ComponentListener() {
-      public void componentMoved(ComponentEvent ce) {
-      }
-      public void componentShown(ComponentEvent ce) {
-      }
-      public void componentHidden(ComponentEvent ce) {
-      }
+    addComponentListener(new ComponentAdapter() {
       public void componentResized(ComponentEvent ce) {
         calculateTransformations();
         repaint();
@@ -581,9 +575,9 @@ public class Visualizer extends VisPlugin {
               menu.add(menuItem);
             }
           } catch (InstantiationException e1) {
-            e1.printStackTrace();
+            logger.fatal("Error: " + e1.getMessage(), e1);
           } catch (IllegalAccessException e1) {
-            e1.printStackTrace();
+            logger.fatal("Error: " + e1.getMessage(), e1);
           }
         }
       }
@@ -605,9 +599,9 @@ public class Visualizer extends VisPlugin {
           menu.add(menuItem);
         }
       } catch (InstantiationException e1) {
-        e1.printStackTrace();
+        logger.fatal("Error: " + e1.getMessage(), e1);
       } catch (IllegalAccessException e1) {
-        e1.printStackTrace();
+        logger.fatal("Error: " + e1.getMessage(), e1);
       }
     }
 
@@ -802,30 +796,19 @@ public class Visualizer extends VisPlugin {
 
     double biggestXCoord, biggestYCoord;
 
-    Position motePos = simulation.getMote(0).getInterfaces().getPosition();
-    smallestXCoord = biggestXCoord = motePos.getXCoordinate();
-    smallestYCoord = biggestYCoord = motePos.getYCoordinate();
+    Position pos = simulation.getMote(0).getInterfaces().getPosition();
+    smallestXCoord = biggestXCoord = pos.getXCoordinate();
+    smallestYCoord = biggestYCoord = pos.getYCoordinate();
 
     // Get extreme coordinates
-    for (int i = 0; i < simulation.getMotesCount(); i++) {
-      motePos = simulation.getMote(i).getInterfaces().getPosition();
+    Mote[] motes = simulation.getMotes();
+    for (Mote mote: motes) {
+      pos = mote.getInterfaces().getPosition();
 
-      if (motePos.getXCoordinate() < smallestXCoord) {
-        smallestXCoord = motePos.getXCoordinate();
-      }
-
-      if (motePos.getXCoordinate() > biggestXCoord) {
-        biggestXCoord = motePos.getXCoordinate();
-      }
-
-      if (motePos.getYCoordinate() < smallestYCoord) {
-        smallestYCoord = motePos.getYCoordinate();
-      }
-
-      if (motePos.getYCoordinate() > biggestYCoord) {
-        biggestYCoord = motePos.getYCoordinate();
-      }
-
+      smallestXCoord = Math.min(smallestXCoord, pos.getXCoordinate());
+      smallestYCoord = Math.min(smallestYCoord, pos.getYCoordinate());
+      biggestXCoord = Math.max(biggestXCoord, pos.getXCoordinate());
+      biggestYCoord = Math.max(biggestYCoord, pos.getYCoordinate());
     }
 
     if ((biggestXCoord - smallestXCoord) == 0) {
@@ -1032,14 +1015,8 @@ public class Visualizer extends VisPlugin {
   protected static class ShowSerialMoteMenuAction implements MoteMenuAction {
     public boolean isEnabled(Mote mote) {
       for (MoteInterface intf: mote.getInterfaces().getInterfaces()) {
-        try {
-          /* Try casting to serial port */
-          SerialPort serialPort = (SerialPort) intf;
-          if (serialPort == null) {
-            return false;
-          }
+        if (intf instanceof SerialPort) {
           return true;
-        } catch (Exception e) {
         }
       }
       return false;
@@ -1051,11 +1028,9 @@ public class Visualizer extends VisPlugin {
       Simulation simulation = mote.getSimulation();
       SerialPort serialPort = null;
       for (MoteInterface intf: mote.getInterfaces().getInterfaces()) {
-        try {
-          /* Try casting to serial port */
+        if (intf instanceof SerialPort) {
           serialPort = (SerialPort) intf;
           break;
-        } catch (Exception e) {
         }
       }
 
