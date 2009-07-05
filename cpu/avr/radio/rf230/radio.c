@@ -36,7 +36,7 @@
  *  ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  *  POSSIBILITY OF SUCH DAMAGE.
  *
- * $Id: radio.c,v 1.2 2008/10/14 18:37:28 c_oflynn Exp $
+ * $Id: radio.c,v 1.3 2009/07/05 18:50:44 dak664 Exp $
 */
 
 /**
@@ -1035,11 +1035,7 @@ radio_get_device_role(void)
 void
 radio_set_device_role(bool i_am_coordinator)
 {
-    if (i_am_coordinator == true){
-        hal_subregister_write(SR_I_AM_COORD, 0);
-    } else {
-        hal_subregister_write(SR_I_AM_COORD, 0);
-    }
+    hal_subregister_write(SR_I_AM_COORD, i_am_coordinator);
 }
 
 /*----------------------------------------------------------------------------*/
