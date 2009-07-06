@@ -30,6 +30,17 @@ Currently, four event types are supported (see below). Note that the control pan
 <p><b>Watchpoints</b>\
 <br>Shows triggered watchpoints, currently only supported by MSPSim-based motes. To add watchpoints, use the Msp Code Watcher plugin.
 
+se.sics.cooja.plugins.SimControl = \
+<b>Control Panel</b>\
+<p>Use the control panel to start and stop the current simulation. \
+<p>Note that toggling simulation execution is also possible by the keyboard shortcut <i>Ctrl+S</i>. \
+<p><i>Step millisecond</i> executes all events within the next simulated millisecond. \
+<p>The execution speed can be controlled via the bottom slider. \
+If the slider value is non-zero, sleep events are scheduled in the simulation loop. \
+<p>By setting the slider to <i>Real time</i>, the execution speed is limited to at maximum real time. \
+The <i>Real time</i> slider value is to the right of <i>No simulation delay</i>: select the slider button and use to keyboard to navigate here. \
+<p><i>Run until</i> can be used to configure a time (in milliseconds) where the simulation will automatically pause.
+
 KEYBOARD_SHORTCUTS = \
 <b>Keyboard shortcuts</b><br>\
 <br><i>Ctrl+N:</i> New simulation\
