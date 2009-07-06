@@ -24,7 +24,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * $Id: Simulation.java,v 1.50 2009/07/03 13:37:41 fros4943 Exp $
+ * $Id: Simulation.java,v 1.51 2009/07/06 12:29:57 fros4943 Exp $
  */
 
 package se.sics.cooja;
@@ -59,7 +59,8 @@ public class Simulation extends Observable implements Runnable {
 
   private Vector<MoteType> moteTypes = new Vector<MoteType>();
 
-  private int delayTime = 0;
+  private int delayTime=0, delayPeriod=1;
+  private long delayLastSim;
 
   private long currentSimulationTime = 0;
 
@@ -179,13 +180,35 @@ public class Simulation extends Observable implements Runnable {
 
   private TimeEvent delayEvent = new TimeEvent(0) {
     public void execute(long t) {
-      /*logger.info("Delay at: " + t);*/
+      /* As fast as possible: no need to reschedule delay event */
       if (delayTime == 0) {
         return;
       }
 
-      try { Thread.sleep(delayTime); } catch (InterruptedException e) { }
-      scheduleEventUnsafe(this, t+MILLISECOND);
+      /* Special case: real time */
+      if (delayPeriod == Integer.MIN_VALUE) {
+        delayLastSim++;
+        long tmp = System.currentTimeMillis();
+        if (delayLastSim > tmp) {
+          try {
+            Thread.sleep(delayLastSim-tmp);
+          } catch (InterruptedException e) {
+          }
+        }
+
+        /* Reschedule us next millisecond */
+        scheduleEventUnsafe(this, t+MILLISECOND);
+        return;
+      }
+
+      /* Normal operation */
+      try {
+        Thread.sleep(delayTime);
+      } catch (InterruptedException e) {
+      }
+
+      /* Reschedule us next period */
+      scheduleEventUnsafe(this, t+delayPeriod*MILLISECOND);
     }
     public String toString() {
       return "DELAY";
@@ -227,6 +250,7 @@ public class Simulation extends Observable implements Runnable {
     isRunning = true;
     
     /* Schedule tick events */
+    delayLastSim = System.currentTimeMillis();
     scheduleEventUnsafe(tickEmulatedMotesEvent, currentSimulationTime);
     scheduleEventUnsafe(delayEvent, currentSimulationTime - (currentSimulationTime % 1000) + 1000);
     scheduleEventUnsafe(millisecondEvent, currentSimulationTime - (currentSimulationTime % 1000) + 1000);
@@ -424,7 +448,7 @@ public class Simulation extends Observable implements Runnable {
 
     // Delay time
     element = new Element("delaytime");
-    element.setText(Integer.toString(delayTime));
+    element.setText("" + getDelayTime());
     config.add(element);
 
     // Random seed
@@ -505,7 +529,7 @@ public class Simulation extends Observable implements Runnable {
 
       // Delay time
       if (element.getName().equals("delaytime")) {
-        delayTime = Integer.parseInt(element.getText());
+        setDelayTime(Integer.parseInt(element.getText()));
       }
 
       // Random seed
@@ -768,26 +792,57 @@ public class Simulation extends Observable implements Runnable {
   }
 
   /**
-   * Set delay time in milliseconds.
-   * The simulation loop sleeps this value every simulated millisecond.
+   * Set delay time (ms).
+   * The simulation loop delays given value every simulated millisecond.
+   * If the value is zero there is no delay.
+   * If the value is negative, the simulation loop delays 1ms every (-time) simulated milliseconds.
    * 
-   * @param delayTime New delay time (ms)
+   * Examples:
+   * time=0: no sleeping (simulation runs as fast as possible).
+   * time=10: simulation delays 10ms every simulated millisecond.
+   * time=-5: simulation delays 1ms every 5 simulated milliseconds.
+   * 
+   * Special case:
+   * time=Integer.MIN_VALUE: simulation tries to execute at real time.
+   * 
+   * @param time New delay time value
    */
-  public void setDelayTime(int delayTime) {
-    this.delayTime = delayTime;
-
+  public void setDelayTime(int time) {
+    if (time == Integer.MIN_VALUE) {
+      /* Special case: real time */
+      delayTime = Integer.MIN_VALUE;
+      delayPeriod = Integer.MIN_VALUE;
+      delayLastSim = System.currentTimeMillis();
+    } else if (time < 0) {
+      delayTime = 1;
+      delayPeriod = -time;
+    } else {
+      delayTime = time;
+      delayPeriod = 1; /* minimum */
+    }
+    
     rescheduleEvents = true;
-
     this.setChanged();
     this.notifyObservers(this);
   }
 
   /**
-   * Returns current delay time.
+   * Returns current delay time value.
+   * Note that this value can be negative.
    *
-   * @return Delay time (ms)
+   * @see #setDelayTime(int)
+   * @return Delay time value. May be negative, see {@link #setDelayTime(int)}
    */
   public int getDelayTime() {
+    /* Special case: real time */
+    if (delayPeriod == Integer.MIN_VALUE) {
+      return Integer.MIN_VALUE;
+    }
+    
+    if (delayPeriod > 1) {
+      return -delayPeriod;
+    }
+
     return delayTime;
   }
 
