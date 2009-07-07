@@ -28,25 +28,45 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: contiki-esb-default-init-net.c,v 1.12 2009/03/17 20:19:11 adamdunkels Exp $
+ * @(#)$Id: contiki-esb-default-init-net.c,v 1.13 2009/07/07 13:06:56 nifi Exp $
  */
 
-#include "contiki-esb.h"
-
+#include "contiki-conf.h"
+#include "dev/tr1001.h"
+#include "dev/rs232.h"
+#include "dev/serial-line.h"
 #include "net/rime.h"
-#include "net/mac/nullmac.h"
+#include "node-id.h"
+#include <stdio.h>
+
+#ifndef MAC_DRIVER
+#ifdef MAC_CONF_DRIVER
+#define MAC_DRIVER MAC_CONF_DRIVER
+#else
+#define MAC_DRIVER nullmac_driver
+#endif /* MAC_CONF_DRIVER */
+#endif /* MAC_DRIVER */
+
+extern const struct mac_driver MAC_DRIVER;
 
 void
 init_net(void)
 {
   rimeaddr_t rimeaddr;
+  int i;
 
   tr1001_init();
-  rime_init(nullmac_init(&tr1001_driver));
+  rime_init(MAC_DRIVER.init(&tr1001_driver));
   rimeaddr.u8[0] = node_id & 0xff;
   rimeaddr.u8[1] = node_id >> 8;
   rimeaddr_set_node_addr(&rimeaddr);
 
-  rs232_set_input(serial_line_input_byte);
+  printf("Rime started with address ");
+  for(i = 0; i < sizeof(rimeaddr.u8) - 1; i++) {
+    printf("%u.", rimeaddr.u8[i]);
+  }
+  printf("%u (%s)\n", rimeaddr.u8[i], MAC_DRIVER.name);
 
+  rs232_set_input(serial_line_input_byte);
+  serial_line_init();
 }
