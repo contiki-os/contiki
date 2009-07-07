@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: contiki-esb-main.c,v 1.15 2008/03/13 15:58:44 nifi Exp $
+ * @(#)$Id: contiki-esb-main.c,v 1.16 2009/07/07 13:06:56 nifi Exp $
  */
 
 #include <io.h>
@@ -41,6 +41,23 @@
 #include "dev/watchdog.h"
 #include "sys/autostart.h"
 #include "contiki-esb.h"
+
+#ifdef DCOSYNCH_CONF_PERIOD
+#define DCOSYNCH_PERIOD DCOSYNCH_CONF_PERIOD
+#else
+#define DCOSYNCH_PERIOD 30
+#endif /* DCOSYNCH_CONF_PERIOD */
+
+#ifdef DCOSYNCH_CONF_ENABLED
+#define DCOSYNCH_ENABLED DCOSYNCH_CONF_ENABLED
+#else
+#define DCOSYNCH_ENABLED 0
+#endif /* DCOSYNCH_CONF_ENABLED */
+
+#if DCOSYNCH_ENABLED
+static struct timer dco_timer;
+static char dco_enabled = 0;
+#endif /* DCOSYNCH_ENABLED */
 
 SENSORS(&button_sensor, &sound_sensor, &vib_sensor,
 	&pir_sensor, &radio_sensor, &battery_sensor, &ctsrts_sensor,
@@ -55,7 +72,8 @@ print_processes(struct process * const processes[])
     printf(" '%s'", (*processes)->name);
     processes++;
   }
-  printf("\n");
+  /* Needed to force link with putchar */
+  putchar('\n');
 }
 /*---------------------------------------------------------------------------*/
 static void init_ports_toberemoved() {
@@ -127,14 +145,14 @@ main(void)
   ENERGEST_ON(ENERGEST_TYPE_CPU);
 #endif /* ENERGEST_CONF_ON */
 
-  init_net();
-
   printf(CONTIKI_VERSION_STRING " started. ");
   if(node_id > 0) {
     printf("Node id is set to %u.\n", node_id);
   } else {
     printf("Node id is not set.\n");
   }
+
+  init_net();
 
   beep_spinup();
   leds_on(LEDS_RED);
@@ -145,11 +163,15 @@ main(void)
   print_processes(autostart_processes);
   autostart_start(autostart_processes);
 
+#if DCOSYNCH_ENABLED
+  timer_set(&dco_timer, DCOSYNCH_PERIOD * CLOCK_SECOND);
+#endif /* DCOSYNCH_ENABLED */
+
   /*
    * This is the scheduler loop.
    */
   watchdog_start();
-  while (1) {
+  while(1) {
     int r;
 #if PROFILE_CONF_ON
     profile_episode_start();
@@ -172,6 +194,17 @@ main(void)
     } else {
 #if ENERGEST_CONF_ON
       static unsigned long irq_energest = 0;
+#endif /* ENERGEST_CONF_ON */
+
+#if DCOSYNCH_CONF_ENABLED
+      /* before going down to sleep possibly do some management */
+      if(timer_expired(&dco_timer)) {
+        timer_reset(&dco_timer);
+        msp430_sync_dco();
+      }
+#endif /* DCOSYNCH_CONF_ENABLED */
+
+#if ENERGEST_CONF_ON
       /* Re-enable interrupts and go to sleep atomically. */
       ENERGEST_OFF(ENERGEST_TYPE_CPU);
       ENERGEST_ON(ENERGEST_TYPE_LPM);
@@ -206,11 +239,10 @@ main(void)
 /* void  arg_init(void) {} */
 /* void  arg_free(char *arg) {} */
 /*---------------------------------------------------------------------------*/
-
+#if UIP_LOGGING
 void
 uip_log(char *m)
 {
-  printf("uIP log: '%s'", m);
-  /* Needed to force link with putchar */
-  putchar('\n');
+  printf("uIP log: '%s'\n", m);
 }
+#endif /* UIP_LOGGING */

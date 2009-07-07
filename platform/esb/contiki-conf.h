@@ -1,6 +1,13 @@
 #ifndef __CONTIKI_CONF_H__
 #define __CONTIKI_CONF_H__
 
+/* DCO speed resynchronization for more robust UART, etc. */
+#define DCOSYNCH_CONF_ENABLED 1
+#define DCOSYNCH_CONF_PERIOD 30
+
+/* Specifies the default MAC driver */
+#define MAC_CONF_DRIVER nullmac_driver
+
 #define PACKETBUF_CONF_ATTRS_INLINE 1
 #define QUEUEBUF_CONF_NUM 1
 #define QUEUEBUF_CONF_REF_NUM 1
@@ -48,9 +55,6 @@ typedef unsigned short clock_time_t;
 
 void clock_wait(int ms10);
 
-void clock_set_seconds(unsigned long s);
-unsigned long clock_seconds(void);
-
 #define LOG_CONF_ENABLED 0
 
 /**
@@ -92,5 +96,9 @@ typedef unsigned short uip_stats_t;
 #define LEDS_CONF_RED    0x01
 #define LEDS_CONF_GREEN  0x02
 #define LEDS_CONF_YELLOW 0x04
+
+#ifdef PROJECT_CONF_H
+#include PROJECT_CONF_H
+#endif /* PROJECT_CONF_H */
 
 #endif /* __CONTIKI_CONF_H__ */
