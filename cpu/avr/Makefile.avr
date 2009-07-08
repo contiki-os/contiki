@@ -1,4 +1,4 @@
-# $Id: Makefile.avr,v 1.13 2009/04/06 13:10:14 nifi Exp $
+# $Id: Makefile.avr,v 1.14 2009/07/08 15:26:17 dak664 Exp $
 
 ### Check if we are running under Windows
 
@@ -12,7 +12,7 @@ endif
 
 .SUFFIXES:
 
-### Optimization setting
+### Optimization setting, OPTI=0 for easier debugging!
 OPTI=s
 
 ### Define the CPU directory
@@ -53,11 +53,24 @@ LDFLAGS  = -mmcu=$(MCU) -Wl,-Map=contiki-$(TARGET).map \
 CONTIKI_TARGET_DIRS_CONCAT = ${addprefix $(CONTIKI)/platform/$(TARGET)/, \
                                $(CONTIKI_TARGET_DIRS)}
 
+ifdef RF230BB
+### The RF230 "bare bones" driver uses the core MAC layer.
+### It does NOT work with the Jackdaw USB stick.
+### Define RF230BB in the base makefile, or use $make RF230BB=1 ...
+### Note $make clean and $make clean RF230BB=1 use different directory paths!
+
+CFLAGS   +=-DRF230BB
+
+vpath %.c $(PROJECTDIRS) $(CONTIKI)/cpu/avr/dev \
+      $(CONTIKI_CPU) $(CONTIKI)/cpu/avr/radio/rf230bb \
+      $(CONTIKIDIRS) $(APPDIRS) $(CONTIKI_TARGET_DIRS_CONCAT)
+else
 vpath %.c $(PROJECTDIRS) $(CONTIKI)/cpu/avr/dev $(CONTIKI)/cpu/avr/dev/usb \
       $(CONTIKI)/cpu/avr/dev/usb/rndis $(CONTIKI)/cpu/avr/dev/usb/serial \
       $(CONTIKI)/cpu/avr/dev/usb/storage \
-	  $(CONTIKI_CPU) $(CONTIKI)/cpu/avr/radio/rf230 $(CONTIKI)/cpu/avr/radio/mac \
-	  $(CONTIKIDIRS) $(APPDIRS) $(CONTIKI_TARGET_DIRS_CONCAT)
+      $(CONTIKI_CPU) $(CONTIKI)/cpu/avr/radio/rf230 $(CONTIKI)/cpu/avr/radio/mac \
+      $(CONTIKIDIRS) $(APPDIRS) $(CONTIKI_TARGET_DIRS_CONCAT)
+endif
 
 ### Compilation rules
 

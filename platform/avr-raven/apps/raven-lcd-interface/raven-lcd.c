@@ -28,7 +28,7 @@
  *  ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  *  POSSIBILITY OF SUCH DAMAGE.
  *
- * $Id: raven-lcd.c,v 1.1 2009/03/12 19:15:25 adamdunkels Exp $
+ * $Id: raven-lcd.c,v 1.2 2009/07/08 15:26:17 dak664 Exp $
 */
 
 /**
@@ -62,7 +62,7 @@
 #include "webserver-nogui.h"
 #include "httpd-cgi.h"
 
-#include "frame.h"
+//#include "frame.h"
 #include "mac.h"
 
 #include "raven-lcd.h"
@@ -195,7 +195,7 @@ raven_gui_loop(process_event_t ev, process_data_t data)
                 break;
             }
             /* Reset command done flag. */
-            cmd.done = false;
+            cmd.done = 0;
         }
         break;
     default:
@@ -214,9 +214,9 @@ int raven_lcd_serial_input(unsigned char ch)
     switch (cmd.ndx){
     case 0:
         /* first byte, must be 0x01 */
-        cmd.done = false;
+        cmd.done = 0;
         if (ch != 0x01){
-            return;
+            return 0;
         }
         break;
     case 1: 
@@ -232,7 +232,7 @@ int raven_lcd_serial_input(unsigned char ch)
         if (cmd.ndx >= cmd.len+3){
             /* all done, check ETX */
             if (ch == 0x04){
-                cmd.done = true;
+                cmd.done = 1;
                 process_post(&raven_lcd_process, SERIAL_CMD, 0);
             } else {
                 /* Failed ETX */
