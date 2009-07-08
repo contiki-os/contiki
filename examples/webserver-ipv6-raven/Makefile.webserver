@@ -4,6 +4,7 @@ all: webserver6
 APPS=raven-webserver raven-lcd-interface
 TARGET=avr-raven
 UIP_CONF_IPV6=1
+#RF230BB=1   //Use radio driver that communicates with the core MAC layer. Still Experimental!
 CONTIKI = ../..
 
 
