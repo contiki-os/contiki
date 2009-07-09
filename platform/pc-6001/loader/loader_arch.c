@@ -27,7 +27,7 @@
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * $Id: loader_arch.c,v 1.1 2007/11/28 09:41:41 matsutsuka Exp $
+ * $Id: loader_arch.c,v 1.2 2009/07/09 18:24:56 matsutsuka Exp $
  *
  */
  
@@ -60,7 +60,7 @@ loader_arch_load(char *name, char *arg)
   return LOADER_ERR_NOLOADER;
 }
 void
-loader_arch_unload(void *process_load)
+loader_arch_unload()
 {
   log_message("loader_arch_unload", name);
 }
