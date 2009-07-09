@@ -27,7 +27,7 @@
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * $Id: z80def.h,v 1.6 2008/07/02 15:02:33 matsutsuka Exp $
+ * $Id: z80def.h,v 1.7 2009/07/09 18:26:55 matsutsuka Exp $
  *
  */
 
@@ -86,5 +86,7 @@ typedef unsigned int size_t;
 
 #define uip_ipaddr_copy(dest, src)		\
     memcpy(dest, src, sizeof(*dest))
+
+#define snprintf(a...)
 
 #endif /* __Z80_DEF_H__ */
