@@ -2,7 +2,7 @@
 # Makefile for PC-6001 using z80/SDCC
 # @author Takahide Matsutsuka <markn@markn.org>
 #
-# $Id: Makefile.pc-6001,v 1.10 2008/07/20 07:44:39 matsutsuka Exp $
+# $Id: Makefile.pc-6001,v 1.11 2009/07/09 18:28:20 matsutsuka Exp $
 #
 
 ifndef CONTIKI
@@ -88,7 +88,7 @@ ifdef PLATFORM_APPS
 endif
 
 CONTIKI_TARGET_SOURCEFILES = \
-	$(CTK) cfs-ram.c serial.c slip.c \
+	$(CTK) cfs-ram.c serial-line.c slip.c \
 	resolv.c loader_arch.c \
 	ctk-conio_arch.c $(CONTIKI_TARGET_MAIN)
 
