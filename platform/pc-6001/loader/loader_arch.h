@@ -27,7 +27,7 @@
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * $Id: loader_arch.h,v 1.1 2007/11/28 09:41:41 matsutsuka Exp $
+ * $Id: loader_arch.h,v 1.2 2009/07/09 18:24:56 matsutsuka Exp $
  *
  */
  
@@ -44,7 +44,7 @@
 
 #ifdef WITH_LOADER_ARCH
 #define LOADER_LOAD(name, arg) loader_arch_load(name, arg)
-#define LOADER_UNLOAD()        loader_arch_unload((void *) process_load)
+#define LOADER_UNLOAD()        loader_arch_unload()
 #define LOADER_LOAD_DSC(name)  loader_arch_load_dsc(name)
 #define LOADER_UNLOAD_DSC(dsc) loader_arch_unload_dsc(dsc)
 
@@ -52,7 +52,7 @@
 
 struct dsc *loader_arch_load_dsc(char *name);
 unsigned char loader_arch_load(char *name, char *arg);
-void loader_arch_unload(void *process_load);
+void loader_arch_unload();
 void loader_arch_unload_dsc(struct dsc *dsc);
 #endif /* WITH_LOADER_ARCH */
 
