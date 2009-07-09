@@ -216,7 +216,7 @@ get_sector_status(uint16_t sector, struct sector_status *stats)
     if(skip_pages >= COFFEE_PAGES_PER_SECTOR) {
       stats->obsolete = COFFEE_PAGES_PER_SECTOR;
       skip_pages -= COFFEE_PAGES_PER_SECTOR;
-      return skip_pages + COFFEE_PAGES_PER_SECTOR;
+      return skip_pages >= COFFEE_PAGES_PER_SECTOR ? 0 : skip_pages;
     }
     obsolete = skip_pages;
   }
@@ -253,7 +253,8 @@ get_sector_status(uint16_t sector, struct sector_status *stats)
   stats->obsolete = obsolete;
   stats->free = free;
 
-  return last_pages_are_active ? 0 : skip_pages;
+  return (last_pages_are_active || (skip_pages >= COFFEE_PAGES_PER_SECTOR)) ?
+	0 : skip_pages;
 }
 /*---------------------------------------------------------------------------*/
 static void
@@ -315,7 +316,7 @@ collect_garbage(int mode)
       COFFEE_ERASE(sector);
       PRINTF("Coffee: Erased sector %d!\n", sector);
 
-      if(mode == GC_RELUCTANT) {
+      if(mode == GC_RELUCTANT && isolation_count > 0) {
         break;
       }
     }
@@ -460,7 +461,9 @@ find_contiguous_pages(coffee_page_t amount)
       page = next_file(page, &hdr);
 
       if(start + amount <= page) {
-	*next_free = start + amount;
+        if(start == *next_free) {
+	  *next_free = start + amount;
+	}
 	return start;
       }
     } else {
@@ -506,6 +509,7 @@ remove_by_page(coffee_page_t page, int remove_log, int close_fds)
     if(coffee_files[i].page == page) {
       coffee_files[i].page = INVALID_PAGE;
       coffee_files[i].references = 0;
+      coffee_files[i].max_pages = 0;
     }
   }
 
