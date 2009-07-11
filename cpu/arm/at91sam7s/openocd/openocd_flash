@@ -1,0 +1,10 @@
+poll
+mww 0xffffff64 0x5a000004
+sleep 250
+mww 0xffffff64 0x5a002004
+sleep 250
+flash probe 0
+flash write 0 /tmp/openocd_write.bin 0x0
+reset run
+sleep 500
+shutdown
