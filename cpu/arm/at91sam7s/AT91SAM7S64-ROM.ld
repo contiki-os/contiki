@@ -1,0 +1,9 @@
+/* Memory Definitions */
+
+MEMORY
+{
+  CODE (rx) : ORIGIN = 0x00100000, LENGTH = 64K
+  DATA (rw) : ORIGIN = 0x00200000, LENGTH = 16K
+}
+INCLUDE AT91SAM7S-ROM.ld
+
