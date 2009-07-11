@@ -13,7 +13,7 @@
 #endif
 
 void
-__cc2420_arch_init(void)
+cc2420_arch_init(void)
 {
   spi_init();
 

@@ -9,6 +9,8 @@ CONTIKI=../..
 
 CORE=core-nosyms.$(TARGET)
 
+CONTIKI_TARGET_MAIN=contiki-main.c
+
 codeprop: $(CONTIKI)/tools/codeprop.c
 	cc -g -Wall $< -o $@
 

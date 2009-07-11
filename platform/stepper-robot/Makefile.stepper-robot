@@ -1,7 +1,7 @@
 STEPPER_ROBOT =  leds.c leds-arch.c sam7s-spi.c stepper-process.c stepper.c stepper-interrupt.c stepper-move.c
 
-CODEPROP_SOURCES = codeprop-otf.c ram-segments.c
-UIPDRIVERS= cc2420.c cc2420_send_ip.c cc2420_send_uaodv.c cc2420-interrupt.c \
+#CODEPROP_SOURCES = codeprop-otf.c ram-segments.c
+UIPDRIVERS= cc2420.c cc2420-interrupt.c \
 cc2420-spi.c slip.c
 
 CONTIKI_TARGET_DIRS = . stepper
@@ -19,7 +19,7 @@ CONTIKI_TARGET_SOURCEFILES += $(SENSORS) $(STEPPER_ROBOT) \
 
 # include $(CONTIKI)/platform/$(TARGET)/apps/Makefile.apps
 
-include $(CONTIKI)/cpu/at91sam7s/Makefile.at91sam7s
+include $(CONTIKI)/cpu/arm/at91sam7s/Makefile.at91sam7s
 
 #contiki-$(TARGET).a: ${addprefix $(OBJECTDIR)/,symbols.o}
 
