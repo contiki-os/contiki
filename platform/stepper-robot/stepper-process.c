@@ -276,7 +276,8 @@ handle_line(const char *input_line, const char *inend, ReplyBuffer *reply)
     reply_str(reply, "OK\n");
   } else if (input_line[0] == 'p') {
     reply_char(reply, 'p');
-    format_int_hex(&reply->write, REPLY_BUFFER_END(reply), cc2420_last_rssi); 
+    format_int_hex(&reply->write, REPLY_BUFFER_END(reply),
+		   cc2420_last_rssi); 
     reply_char(reply, ',');
     format_uint_hex(&reply->write, REPLY_BUFFER_END(reply),
 		    cc2420_last_correlation);
@@ -443,12 +444,52 @@ PROCESS_THREAD(udp_stepper_process, ev, data)
   PROCESS_END();
 }
 
+static const uint32_t stepper0_steps_acc[] = MICRO_STEP(0,3);
+static const uint32_t stepper0_steps_run[] = MICRO_STEP(0,2);
+static const uint32_t stepper0_steps_hold[] = MICRO_STEP(0,1);
+
+static const uint32_t stepper1_steps_acc[] = MICRO_STEP(1,3);
+static const uint32_t stepper1_steps_run[] = MICRO_STEP(1,2);
+static const uint32_t stepper1_steps_hold[] = MICRO_STEP(1,1);
+
+static StepperAccSeq seq_heap[40];
+
+static void
+init_seq_heap()
+{
+  unsigned int i;
+  for(i = 0; i < sizeof(seq_heap)/sizeof(seq_heap[0]); i++) {
+    seq_heap[i].next = NULL;
+    stepper_free_seq(&seq_heap[i]);
+  }
+}
+
+static void
+robot_stepper_init()
+{
+  disableIRQ();
+  init_seq_heap();
+  stepper_init(AT91C_BASE_TC0, AT91C_ID_TC0);
+  *AT91C_PIOA_OER = STEPPER_INHIBIT;
+  *AT91C_PIOA_MDER = STEPPER_INHIBIT; /*  | STEPPER0_IOMASK; */
+  *AT91C_PIOA_CODR = STEPPER_INHIBIT;
+  stepper_init_io(1, STEPPER_IOMASK(0), stepper0_steps_acc,
+		  stepper0_steps_run, stepper0_steps_hold,
+		  (sizeof(stepper0_steps_run) / sizeof(stepper0_steps_run[0])));
+  stepper_init_io(0, STEPPER_IOMASK(1), stepper1_steps_acc,
+		  stepper1_steps_run, stepper1_steps_hold,
+		  (sizeof(stepper1_steps_run) / sizeof(stepper1_steps_run[0])));
+  enableIRQ();
+}
+
+
 PROCESS(stepper_process, "Stepper control process");
 
 PROCESS_THREAD(stepper_process, ev, data)
 {
   PROCESS_EXITHANDLER(goto exit);
   PROCESS_BEGIN();
+  robot_stepper_init();
   tcp_listen(HTONS(1010));
   
   process_start(&udp_stepper_process, NULL);

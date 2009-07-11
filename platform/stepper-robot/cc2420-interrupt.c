@@ -10,8 +10,8 @@ cc2420_fifop_interrupt (void) /* System Interrupt Handler */
 {
   ISR_STORE();
   ISR_ENABLE_NEST();
-  __cc2420_intr();
-   ISR_DISABLE_NEST(); 
+  cc2420_interrupt();
+  ISR_DISABLE_NEST(); 
   *AT91C_AIC_EOICR = 0;                   /* End of Interrupt */
   ISR_RESTORE();
 }

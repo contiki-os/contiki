@@ -4,9 +4,6 @@
 #include <debug-uart.h>
 #include <ctype.h>
 #include <stdio.h>
-#include <net/uip.h>
-#include "net/uip-fw-drv.h"
-#include "net/uaodv.h"
 #include <dev/cc2420.h>
 #include <dev/cc2420_const.h>
 #include <dev/spi.h>
@@ -22,10 +19,32 @@
 #include <stepper.h>
 #include <stepper-move.h>
 
+#include "net/mac/nullmac.h"
+#include "net/rime.h"
+
 
 #ifndef RF_CHANNEL
 #define RF_CHANNEL 15
 #endif
+
+#ifndef WITH_UIP
+#define WITH_UIP 1
+#endif
+
+#if WITH_UIP
+#include "net/uip.h"
+#include "net/uip-fw.h"
+#include "net/uip-fw-drv.h"
+#include "net/uip-over-mesh.h"
+
+static struct uip_fw_netif meshif =
+  {UIP_FW_NETIF(172,16,0,0, 255,255,0,0, uip_over_mesh_send)};
+
+#define UIP_OVER_MESH_CHANNEL 9
+
+#endif /* WITH_UIP */
+
+static rimeaddr_t node_addr = {{0,2}};
 
 extern char __heap_end__;
 extern char __heap_start__;
@@ -66,69 +85,6 @@ robot_stepper_init()
 		  stepper1_steps_run, stepper1_steps_hold,
 		  (sizeof(stepper1_steps_run) / sizeof(stepper1_steps_run[0])));}
 
-struct uip_fw_netif cc2420if =
-  {UIP_FW_NETIF(172,16,0,2, 255,255,0,0, cc2420_send_ip)};
-
-
-#if 0
-PROCESS(udprecv_process, "UDP recv process");
-
-PROCESS_THREAD(udprecv_process, ev, data)
-{
-  static struct uip_udp_conn *c;
-
-  PROCESS_EXITHANDLER(goto exit);
-  PROCESS_BEGIN();
-
-  printf("udprecv_process starting\n");
-
-  {
-    uip_ipaddr_t any;
-    uip_ipaddr(&any, 0,0,0,0);
-    c = udp_new(&any, HTONS(0), NULL);
-    uip_udp_bind(c, HTONS(4321));
-  }
-  
-  while(1) {
-    PROCESS_YIELD();
-
-    if(ev == tcpip_event && uip_newdata()) {
-      u8_t *src = ((struct uip_udpip_hdr *)uip_buf)->srcipaddr.u8;
-      printf("%d.%d.%d.%d: %s\n",
-	     src[0], src[1], src[2], src[3], (char *)uip_appdata);
-    }
-  }
-
- exit:
-  /* Contiki does automatic garbage collection of uIP state and we
-   * need not worry about that. */
-  printf("udprecv_process exiting\n");
-  PROCESS_END();
-}
-
-PROCESS(wd_test_process, "Watchdog test process");
-
-
-PROCESS_THREAD(wd_test_process, ev, data)
-{
-  static struct etimer timer;
-  PROCESS_BEGIN();
-  
-  printf("tcp_test_process starting\n");
-
-  etimer_set(&timer, 25*CLOCK_SECOND);
-  while(1) {
-    PROCESS_WAIT_EVENT_UNTIL(ev == PROCESS_EVENT_EXIT ||
-			     ev== PROCESS_EVENT_TIMER);
-    if (ev == PROCESS_EVENT_EXIT) break;
-    printf("Blocking execution\n");
-    while(1);
-  }
-  
-  PROCESS_END();
-}
-#endif
-
 
 #if 0
 /* Wathcdog is  already disabled in startup code */
@@ -149,10 +105,6 @@ wdt_reset()
 static uip_ipaddr_t gw_addr = {{172,16,0,1}};
 #endif
 
-PROCINIT(&etimer_process, &tcpip_process, &cc2420_process,
-	 &uip_fw_process /*,  &uaodv_process */
-	 );
-
 
 int
 main()
@@ -167,23 +119,55 @@ main()
   printf("Initialising\n");
   leds_arch_init();
   clock_init();
-  uip_sethostaddr(&cc2420if.ipaddr);
-  uip_setnetmask(&cc2420if.netmask);
-  
-  /*uip_setdraddr(&gw_addr);*/
-  cc2420_init();
-  cc2420_set_chan_pan_addr(RF_CHANNEL,  HTONS(0x2024), uip_hostaddr.u16[1], NULL);
   process_init();
-  uip_init();
-  uip_fw_default(&cc2420if); 
-  tcpip_set_forwarding(1);
+  process_start(&etimer_process, NULL);
+  ctimer_init();
+
+  robot_stepper_init();
+
+  enableIRQ();
+
+  cc2420_init();
+  cc2420_set_pan_addr(0x2024, 0, &uip_hostaddr.u16[1]);
+  cc2420_set_channel(RF_CHANNEL);
+  rime_init(nullmac_init(&cc2420_driver));
+  printf("CC2420 setup done\n");
+
+  rimeaddr_set_node_addr(&node_addr);
+  
+    #if WITH_UIP
+  {
+    uip_ipaddr_t hostaddr, netmask;
+    
+    uip_init();
+
+    uip_ipaddr(&hostaddr, 172,16,
+               rimeaddr_node_addr.u8[0],rimeaddr_node_addr.u8[1]);
+    uip_ipaddr(&netmask, 255,255,0,0);
+    uip_ipaddr_copy(&meshif.ipaddr, &hostaddr);
+    printf("Host addr\n");
+    uip_sethostaddr(&hostaddr);
+    uip_setnetmask(&netmask);
+    uip_over_mesh_set_net(&hostaddr, &netmask);
+    /*    uip_fw_register(&slipif);*/
+    /*uip_over_mesh_set_gateway_netif(&slipif);*/
+    uip_fw_default(&meshif);
+    printf("Mesh init\n");
+    uip_over_mesh_init(UIP_OVER_MESH_CHANNEL);
+    printf("uIP started with IP address %d.%d.%d.%d\n",
+           uip_ipaddr_to_quad(&hostaddr));
+  }
+#endif /* WITH_UIP */
+
+
+#if WITH_UIP
+  process_start(&tcpip_process, NULL);
+  process_start(&uip_fw_process, NULL); /* Start IP output */
+#endif /* WITH_UIP */
+  
   printf("Heap size: %ld bytes\n", &__heap_end__ - (char*)sbrk(0));
   printf("Started\n");
 
-  robot_stepper_init();
-  procinit_init();
-  enableIRQ(); 
-  cc2420_on();
   autostart_start(autostart_processes);
   printf("Processes running\n");
   while(1) {

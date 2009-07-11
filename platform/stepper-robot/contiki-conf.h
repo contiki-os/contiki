@@ -44,8 +44,8 @@ typedef unsigned int uip_stats_t;
 #define SFD_IS_1        (*AT91C_PIOA_PDSR & AT91C_PIO_PA15)
 #define CCA_IS_1        1
 
-#define SET_RESET_INACTIVE()	cc2420_setreg(CC2420_MAIN, 0xf800);
-#define SET_RESET_ACTIVE()	cc2420_setreg(CC2420_MAIN, 0x0000);
+#define SET_RESET_INACTIVE()	setreg(CC2420_MAIN, 0xf800);
+#define SET_RESET_ACTIVE()	setreg(CC2420_MAIN, 0x0000);
 
 #define SET_VREG_ACTIVE()
 #define SET_VREG_INACTIVE()
@@ -66,7 +66,7 @@ do { \
 
 #define SPI_DISABLE()	(*AT91C_SPI_CR = AT91C_SPI_LASTXFER)
 
-#define CLEAR_FIFOP_INT()	/* Cleared by the wrapper */
+#define CLEAR_FIFOP_INT() (*AT91C_AIC_ICCR = (1 << AT91C_ID_IRQ1))
 
 #define LOOP_20_SYMBOLS (MCK/28125) /* Assume the loop takes 9 cycles */
 
@@ -76,7 +76,18 @@ do { \
 #define UIP_CONF_LOGGING 1
 #define UIP_CONF_BUFFER_SIZE 116
 
+#define UIP_CONF_TCP_FORWARD 1
+
+/* USB definitions */
+#define USB_EP1_SIZE 64
+#define USB_EP2_SIZE 64
+#define USB_EP3_SIZE 64
+
+#define USB_RBC_NUM_BLOCKS 16
 /* Prefix for relocation sections in ELF files */
 #define REL_SECT_PREFIX ".rel"
+
+#define CC_BYTE_ALIGNED __attribute__ ((packed, aligned(1)))
+
 
 #endif /* __CONTIKI_CONF_H__CDBB4VIH3I__ */
