@@ -1,5 +1,5 @@
 #include "descriptors.h"
-#include "usbmassbulk.h"
+#include "usb-msc-bulk.h"
 #include <usb-arch.h>
 
 const struct usb_st_device_descriptor device_descriptor =

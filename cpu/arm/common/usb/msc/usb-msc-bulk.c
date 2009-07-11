@@ -304,7 +304,27 @@ PROCESS_THREAD(usb_mass_bulk_request_process, ev , data)
 	    state.status = MASS_BULK_CSW_STATUS_FAILED;
 	  }
 	  if (ret != USB_MSC_HANDLER_DELAYED
-	      && buf_submitted == buf_free) goto send_csw_state;
+	      && buf_submitted == buf_free) {
+	    if (cbw_buffer.dCBWDataTransferLength > 0) {
+	      /* HALT the apropriate endpoint */
+	      if (cbw_buffer.bmCBWFlags & MASS_BULK_CBW_FLAG_IN) {
+		submit_halt(BULK_IN);
+	      } else {
+		submit_halt(BULK_OUT);
+	      }
+	      /* Wait for HALT */
+	      while(1) {
+		PROCESS_WAIT_EVENT();
+		if (ev == reset_event) goto reset_state;
+		if (ev == PROCESS_EVENT_POLL) {
+		  USBBuffer *buffer =
+		    get_next_buffer(BULK_IN, USB_BUFFER_ID_HALT);
+		  if (buffer && (buffer->flags & USB_BUFFER_HALT)) break;
+		}
+	      }
+	    }
+	    goto send_csw_state;
+	  }
 	  if (cbw_buffer.bmCBWFlags & MASS_BULK_CBW_FLAG_IN) {
 	    goto send_data_state;
 	  } else {
