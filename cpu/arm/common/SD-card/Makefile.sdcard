@@ -1,0 +1,10 @@
+
+ifdef SDCARD
+EFSL_DIR=/home/ksb/packages/efsl/efsl-0.2.8
+EFSL_SRC= efs.c fat.c sd.c fat.c partition.c ioman.c disc.c fs.c file.c plibc.c extract.c dir.c time.c ls.c ui.c
+CONTIKI_CPU_DIRS += ../common/SD-card
+CONTIKIDIRS += $(EFSL_DIR)/src $(EFSL_DIR)/src/interfaces
+CONTIKI_TARGET_SOURCEFILES += $(EFSL_SRC) cfs-sdcard.c efs-sdcard-arch.c
+CFLAGS+= -I $(EFSL_DIR)/inc -I $(CONTIKI_CPU_ARM_COMMON)/SD-card
+
+endif
