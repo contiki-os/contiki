@@ -70,7 +70,6 @@ ARCH_FLAGS= -march=armv7-m -mthumb
 
 CFLAGSNO = -I. -I$(CONTIKI)/core -I$(CONTIKI_CPU) -I$(CONTIKI_CPU)/loader \
 	   -I$(CONTIKI_CPU)/dbg-io \
-	   -I$(CONTIKI_CPU)/FWLib/FWLib/library/inc/ \
            -I$(CONTIKI)/platform/$(TARGET) \
            ${addprefix -I,$(APPDIRS)} \
            -DWITH_UIP -DWITH_ASCII -DMCK=$(MCK) \
