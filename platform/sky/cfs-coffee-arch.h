@@ -70,6 +70,5 @@
 
 /* Coffee types. */
 typedef int16_t coffee_page_t;
-typedef int32_t coffee_offset_t;
 
 #endif /* !COFFEE_ARCH_H */
