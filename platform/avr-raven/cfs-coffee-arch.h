@@ -86,11 +86,12 @@ void avr_eeprom_erase(uint16_t sector);
 #define COFFEE_PAGE_START         65536UL/COFFEE_PAGE_SIZE        //Starting page at 64KB for webserver
 #define COFFEE_PAGES              512UL-COFFEE_PAGE_START-32UL    //Number of pages to use (reserve NWWR pages)
 #define COFFEE_START              (COFFEE_PAGE_START)*COFFEE_PAGE_SIZE   //Starting address of the file system, on a page boundary
-#define FLASH_WORD_READS          1                               //Faster but takes 130 bytes more PROGMEM
+#define FLASH_WORD_READS          1                               //1=Faster, but 130 bytes more PROGMEM
+#define FLASH_COMPLEMENT_DATA     0                               //1=Slower reads, but no page writes after erase and 18 bytes less PROGMEM
 
 #define COFFEE_SIZE               (COFFEE_PAGES)*COFFEE_PAGE_SIZE //Bytes in filesystem
-#define COFFEE_SECTOR_SIZE        (COFFEE_PAGE_SIZE*1)            //Each page a sector?
-#define COFFEE_NAME_LENGTH        16
+#define COFFEE_SECTOR_SIZE        (COFFEE_PAGE_SIZE*1)            //Each page a sector
+#define COFFEE_NAME_LENGTH        16                              //processes.shtml is longest file name
 #define COFFEE_MAX_OPEN_FILES     4
 #define COFFEE_FD_SET_SIZE        8                                //Size of file descriptor
 #define COFFEE_LOG_TABLE_LIMIT    16

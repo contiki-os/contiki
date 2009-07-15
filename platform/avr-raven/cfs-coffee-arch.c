@@ -333,21 +333,38 @@ avr_flash_read(CFS_CONF_OFFSET_TYPE addr, uint8_t *buf, CFS_CONF_OFFSET_TYPE siz
 #endif
 #ifndef FLASH_WORD_READS
   for (;size>0;size--) {
+#if FLASH_COMPLEMENT_DATA
+    *buf++=~(uint8_t)pgm_read_byte_far(addr32++);
+#else
     *buf++=(uint8_t)pgm_read_byte_far(addr32++);
+#endif /*FLASH_COMPLEMENT_DATA*/
   }
 #else
 /* 130 bytes more PROGMEM, but faster */
   if (size&0x01) {       //handle first odd byte
-     *buf++=(uint8_t)pgm_read_byte_far(addr32++);
+#if FLASH_COMPLEMENT_DATA
+    *buf++=~(uint8_t)pgm_read_byte_far(addr32++);
+#else
+    *buf++=(uint8_t)pgm_read_byte_far(addr32++);
+#endif /*FLASH_COMPLEMENT_DATA*/
      size--;
   }
   for (;size>1;size-=2) {//read words from flash
-    *(uint16_t *)buf=(uint16_t)pgm_read_word_far(addr32);
+#if FLASH_COMPLEMENT_DATA
+   *(uint16_t *)buf=~(uint16_t)pgm_read_word_far(addr32);
+#else
+   *(uint16_t *)buf=(uint16_t)pgm_read_word_far(addr32);
+#endif /*FLASH_COMPLEMENT_DATA*/
+
     buf+=2;
     addr32+=2;
   }
   if (size) {            //handle last odd byte
-     *buf++=(uint8_t)pgm_read_byte_far(addr32);
+#if FLASH_COMPLEMENT_DATA
+    *buf++=~(uint8_t)pgm_read_byte_far(addr32);
+#else
+    *buf++=(uint8_t)pgm_read_byte_far(addr32);
+#endif /*FLASH_COMPLEMENT_DATA*/
   }
 #endif /* FLASH_WORD_READS */
 
@@ -398,7 +415,7 @@ void
 avr_flash_write(CFS_CONF_OFFSET_TYPE addr, uint8_t *buf, CFS_CONF_OFFSET_TYPE size)
 {
   uint32_t addr32;
-  uint16_t i,w,startpage;
+  uint16_t w,startpage;
   uint8_t  bb,ba,sreg;
  
   /* Disable interrupts, make sure no eeprom write in progress */
@@ -438,6 +455,9 @@ avr_flash_write(CFS_CONF_OFFSET_TYPE addr, uint8_t *buf, CFS_CONF_OFFSET_TYPE si
     while (size>1) {
       if (bb) {                     //handle odd byte boundary
         w=pgm_read_word_far(addr32);
+#if FLASH_COMPLEMENT_DATA
+        w  = ~w;
+#endif /*FLASH_COMPLEMENT_DATA*/
         w &= 0xff;
         bb=0;
         size++;
@@ -445,6 +465,9 @@ avr_flash_write(CFS_CONF_OFFSET_TYPE addr, uint8_t *buf, CFS_CONF_OFFSET_TYPE si
         w  = *buf++;
       }
       w += (*buf++) << 8;
+#if FLASH_COMPLEMENT_DATA
+      w  = ~w;
+#endif /*FLASH_COMPLEMENT_DATA*/
       boot_page_fill(addr32, w);
       size-=2;
 /* Below ought to work but writing to 0xnnnnnnfe modifies the NEXT flash page
@@ -478,7 +501,11 @@ avr_flash_write(CFS_CONF_OFFSET_TYPE addr, uint8_t *buf, CFS_CONF_OFFSET_TYPE si
       w=pgm_read_word_far(addr32);
       if (size) {                     //handle odd byte boundary
         w &= 0xff00;
+#if FLASH_COMPLEMENT_DATA
+        w +=~(*buf);
+#else
         w +=*buf;
+#endif /*FLASH_COMPLEMENT_DATA*/
         size=0;
       }
       boot_page_fill(addr32,w);
@@ -487,18 +514,28 @@ avr_flash_write(CFS_CONF_OFFSET_TYPE addr, uint8_t *buf, CFS_CONF_OFFSET_TYPE si
     }
   /* If buf is null, erase the page to zero */
   } else {
-    for (i=0;i<SPM_PAGESIZE;i++) {
+#if FLASH_COMPLEMENT_DATA
+    addr32+=2*SPM_PAGESIZE;
+#else
+    for (w=0;w<SPM_PAGESIZE;w++) {
       boot_page_fill(addr32, 0);
       addr32+=2;
     }
+#endif /*FLASH_COMPLEMENT_DATA*/
   }
 /* Write the last (or only) page */
   addr32-=0x42; //get an address within the page
   boot_page_erase(addr32);
   boot_spm_busy_wait();
+#if FLASH_COMPLEMENT_DATA
+  if (buf) {                      //don't write zeroes to erased page
+    boot_page_write(addr32);
+    boot_spm_busy_wait();
+  }
+#else
   boot_page_write(addr32);
   boot_spm_busy_wait();
-
+#endif /*FLASH_COMPLEMENT_DATA*/
   /* Reenable RWW-section again. We need this if we want to jump back
    * to the application after bootloading. */
   boot_rww_enable();
