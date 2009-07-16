@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: elfloader-avr.c,v 1.9 2009/07/16 17:43:39 dak664 Exp $
+ * @(#)$Id: elfloader-avr.c,v 1.10 2009/07/16 18:02:34 dak664 Exp $
  */
 
 #include <stdio.h>
@@ -99,7 +99,7 @@ elfloader_arch_allocate_rom(int size)
 }
 
 /*---------------------------------------------------------------------------*/
-/* Eliminate compiler warnings for (non-functional) code when flash requires 32 bit addresses and pointers are 16 bit U*/
+/* Eliminate compiler warnings for (non-functional) code when flash requires 32 bit addresses and pointers are 16 bit */
 #define INCLUDE_APPLICATE_SOURCE 1
 #ifdef __GNUC__
 #if (FLASHEND > USHRT_MAX) && (__SIZEOF_POINTER__ <= 2)
@@ -245,7 +245,7 @@ elfloader_arch_relocate(int fd, unsigned int sectionoffset,
     write_ldi(fd, instr, (int)addr >> 8);
     break;
 
-#if INCLUDE_APPLICATIBLE_CODE       /* 32 bit AVRs */
+#if INCLUDE_32BIT_CODE       /* 32 bit AVRs */
   case R_AVR_HH8_LDI: /* 8 */
     write_ldi(fd, instr, (int)addr >> 16);
     break;
