@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: elfloader-avr.c,v 1.6 2009/02/27 14:28:02 nvt-se Exp $
+ * @(#)$Id: elfloader-avr.c,v 1.7 2009/07/16 17:17:22 dak664 Exp $
  */
 
 #include <stdio.h>
@@ -95,10 +95,19 @@ elfloader_arch_allocate_ram(int size)
 void*
 elfloader_arch_allocate_rom(int size)
 {
-  return 0x8000;
+  return (void *)0x8000;
 }
 
 /*---------------------------------------------------------------------------*/
+/* Eliminate compiler warnings for (non-functional) code when flash requires 32 bit addresses and pointers are 16 bit U*/
+#define INCLUDE_APPLICATE_SOURCE 1
+#ifdef __GNUC__
+#if (FLASHEND > USHRT_MAX) && (SIZEOF_POINTER__ <= 2)
+#undef INCLUDE_APPLICATE_SOURCE
+#define INCLUDE_APPLICATE_SOURCE 0
+#endif
+#endif
+#if INCLUDE_APPLICATE_SOURCE
 
 BOOTLOADER_SECTION void
 elfloader_arch_write_rom(int fd, unsigned short textoff, unsigned int size, char *mem)
@@ -150,6 +159,7 @@ elfloader_arch_write_rom(int fd, unsigned short textoff, unsigned int size, char
 	SREG = sreg;
     }
 }
+#endif /* INCLUDE_APPLICATE_SOURCE */
 
 /*---------------------------------------------------------------------------*/
 static void
@@ -190,7 +200,7 @@ elfloader_arch_relocate(int fd, unsigned int sectionoffset,
      * Do not use >> 1 for division because branch instructions use
      * signed offsets.
      */
-    int16_t a = (((int16_t)addr - rela->r_offset -2) / 2);
+    int16_t a = (((unsigned int)addr - rela->r_offset -2) / 2);
     instr[0] |= (a << 3) & 0xf8;
     instr[1] |= (a >> 5) & 0x03;
     cfs_write(fd, instr, 2);
@@ -201,7 +211,7 @@ elfloader_arch_relocate(int fd, unsigned int sectionoffset,
      * Relocation is relative to PC. -2: RJMP adds 2 to PC.
      * Do not use >> 1 for division because RJMP uses signed offsets.
      */
-    int16_t a = (int16_t)addr / 2;
+    int16_t a = (unsigned int)addr / 2;
     a -= rela->r_offset / 2;
     a--;
     instr[0] |= a & 0xff;
@@ -211,64 +221,77 @@ elfloader_arch_relocate(int fd, unsigned int sectionoffset,
     break;
 
   case R_AVR_16:    /* 4 */
-    instr[0] = (int16_t)addr  & 0xff;
-    instr[1] = ((int16_t)addr >> 8) & 0xff;
+    instr[0] = (unsigned int)addr  & 0xff;
+    instr[1] = ((unsigned int)addr >> 8) & 0xff;
 
     cfs_write(fd, instr, 2);
     break;
+
   case R_AVR_16_PM: /* 5 */
-    addr = ((int16_t)addr >> 1);
-    instr[0] = (int16_t)addr  & 0xff;
-    instr[1] = ((int16_t)addr >> 8) & 0xff;
+    addr = (char *)((unsigned int)addr >> 1);
+    instr[0] = (unsigned int)addr  & 0xff;
+    instr[1] = ((unsigned int)addr >> 8) & 0xff;
 
     cfs_write(fd, instr, 2);
     break;
 
   case R_AVR_LO8_LDI: /* 6 */
-    write_ldi(fd, instr, (int16_t)addr);
+    write_ldi(fd, instr, (unsigned int)addr);
     break;
   case R_AVR_HI8_LDI: /* 7 */
-    write_ldi(fd, instr, (int16_t)addr >> 8);
+    write_ldi(fd, instr, (unsigned int)addr >> 8);
     break;
+
+#if INCLUDE_APPLICATIBLE_CODE       /* 32 bit AVRs */
   case R_AVR_HH8_LDI: /* 8 */
-    write_ldi(fd, instr, (int16_t)addr >> 16);
+    write_ldi(fd, instr, (unsigned int)addr >> 16);
     break;
+#endif
 
   case R_AVR_LO8_LDI_NEG: /* 9 */
-    addr = (0 - (int16_t)addr);
-    write_ldi(fd, instr, (int16_t)addr);
+    addr = (char *) (0 - (unsigned int)addr);
+    write_ldi(fd, instr, (unsigned int)addr);
     break;
   case R_AVR_HI8_LDI_NEG: /* 10 */
-    addr = (0 - (int16_t)addr);
-    write_ldi(fd, instr, (int16_t)addr >> 8);
+    addr = (char *) (0 - (unsigned int)addr);
+    write_ldi(fd, instr, (unsigned int)addr >> 8);
     break;
+    
+#if INCLUDE_APPLICATE_SOURCE         /* 32 bit AVRs */
   case R_AVR_HH8_LDI_NEG: /* 11 */
-    addr = (0 - (int16_t)addr);
-    write_ldi(fd, instr, (int16_t)addr >> 16);
+    addr = (char *)(0 - (unsigned int)addr);
+    write_ldi(fd, instr, (unsigned int)addr >> 16);
     break;
+#endif
 
   case R_AVR_LO8_LDI_PM: /* 12 */
-    write_ldi(fd, instr, (int16_t)addr >> 1);
+    write_ldi(fd, instr, (unsigned int)addr >> 1);
     break;
   case R_AVR_HI8_LDI_PM: /* 13 */
-    write_ldi(fd, instr, (int16_t)addr >> 9);
-    break;
-  case R_AVR_HH8_LDI_PM: /* 14 */
-    write_ldi(fd, instr, (int16_t)addr >> 17);
+    write_ldi(fd, instr, (unsigned int)addr >> 9);
     break;
 
+#if INCLUDE_APPLICATE_SOURCE         /* 32 bit AVRs */
+  case R_AVR_HH8_LDI_PM: /* 14 */
+    write_ldi(fd, instr, (unsigned int)addr >> 17);
+    break;
+#endif
+
   case R_AVR_LO8_LDI_PM_NEG: /* 15 */
-    addr = (0 - (int16_t)addr);
-    write_ldi(fd, instr, (int16_t)addr >> 1);
+    addr = (char *) (0 - (unsigned int)addr);
+    write_ldi(fd, instr, (unsigned int)addr >> 1);
     break;
   case R_AVR_HI8_LDI_PM_NEG: /* 16 */
-    addr = (0 - (int16_t)addr);
-    write_ldi(fd, instr, (int16_t)addr >> 9);
+    addr = (char *) (0 - (unsigned int)addr);
+    write_ldi(fd, instr, (unsigned int)addr >> 9);
     break;
+    
+#if INCLUDE_APPLICATE_SOURCE         /* 32 bit AVRs */
   case R_AVR_HH8_LDI_PM_NEG: /* 17 */
-    addr = (0 - (int16_t)addr);
-    write_ldi(fd, instr, (int16_t)addr >> 17);
+    addr = (char *) (0 - (unsigned int)addr);
+    write_ldi(fd, instr, (unsigned int)addr >> 17);
     break;
+#endif
 
   case R_AVR_CALL: /* 18 */
   	/* old solution: 
@@ -278,8 +301,8 @@ elfloader_arch_relocate(int fd, unsigned int sectionoffset,
 	*/
 
 	/* new solution */
-    instr[2] = (u8_t) ((int16_t)addr) & 0xff;
-    instr[3] = ((int16_t)addr) >> 8;
+    instr[2] = (u8_t) ((unsigned int)addr) & 0xff;
+    instr[3] = ((unsigned int)addr) >> 8;
     cfs_write(fd, instr, 4);
     break;
 
