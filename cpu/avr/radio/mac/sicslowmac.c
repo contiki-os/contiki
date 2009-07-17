@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: sicslowmac.c,v 1.7 2009/03/12 21:58:21 adamdunkels Exp $
+ * $Id: sicslowmac.c,v 1.8 2009/07/17 13:47:10 dak664 Exp $
  */
 
 
@@ -86,9 +86,12 @@ static struct mac_driver *pmac_driver = &mac_driver_struct;
 extern ieee_15_4_manager_t ieee15_4ManagerAddress;
 static parsed_frame_t *parsed_frame;
 
-
+/* The core mac layer has a pointer to the driver name in the first field.
+ * It calls the radio driver with radio->send, which is the first field of the radio driver.
+ * This glue directs radio->send to the custom mac layer.
+ */
 const struct mac_driver sicslowmac_driver = {
-  sicslowmac_dataRequest,
+  (char *)sicslowmac_dataRequest,   //Remove compiler warning.
   /*   read_packet, */
   /*   set_receive_function, */
   /*   on, */
@@ -612,8 +615,8 @@ PROCESS_THREAD(mac_process, ev, data)
   uint8_t eeprom_channel;
   uint8_t eeprom_check;
   
-  eeprom_channel = eeprom_read_byte(9);
-  eeprom_check = eeprom_read_byte(10);
+  eeprom_channel = eeprom_read_byte((uint8_t *)9);
+  eeprom_check = eeprom_read_byte((uint8_t *)10);
   
   if ((eeprom_channel < 11) || (eeprom_channel > 26) || ((uint8_t)eeprom_channel != (uint8_t)~eeprom_check)) {
 #if UIP_CONF_USE_RUM
