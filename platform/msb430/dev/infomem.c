@@ -80,7 +80,7 @@ infomem_write(unsigned int offset, unsigned char count, ...)
     return FALSE;
   }
 
-  flash = (uint8_t *)INFOMEM_START + offset;
+  flash = (uint8_t *)INFOMEM_START;
 
   s = splhigh();
 
@@ -90,9 +90,9 @@ infomem_write(unsigned int offset, unsigned char count, ...)
   /* merge backup with new data */
   va_start(argp, count);
 
-  buffer = (uint8_t *)backup;
+  buffer = (uint8_t *)backup + offset;
   for(i = 0; i < count; i++) {
-    data = va_arg(argp, uint8_t*);
+    data = va_arg(argp, uint8_t *);
     size = va_arg(argp, uint16_t);
     memcpy(buffer, data, size);
     buffer += size;
