@@ -158,8 +158,12 @@
 #include <stdio.h>
 #include <string.h>
 
-//#define PRINTF printf
+#define DEBUG 0
+#if DEBUG
+#define PRINTF(FORMAT,args...) printf_P(PSTR(FORMAT),##args)
+#else
 #define PRINTF(...)
+#endif
 
 #define UIP_IP_BUF   ((struct uip_ip_hdr *)&uip_buf[UIP_LLH_LEN])
 #define ETHBUF(x) ((struct uip_eth_hdr *)x)
@@ -292,8 +296,12 @@ void mac_ethernetToLowpan(uint8_t * ethHeader)
 
   //Some IP packets have link layer in them, need to change them around!
   if (usbstick_mode.translate) {
+#if DEBUG
     uint8_t transReturn = mac_translateIPLinkLayer(ll_802154_type);
     PRINTF("IPTranslation: returns %d\n", transReturn);
+#else
+    mac_translateIPLinkLayer(ll_802154_type);
+#endif
   }
 	
   if (usbstick_mode.sendToRf){
@@ -547,7 +555,6 @@ int8_t mac_translateIcmpLinkLayer(lltype_t target)
 uint8_t mac_createSicslowpanLongAddr(uint8_t * ethernet, uip_lladdr_t * lowpan)
 {
   uint8_t index;
-  uint8_t i;
   
 #if UIP_LLADDR_LEN == 8
   //Special case - if the address is our address, we just copy over what we know to be
@@ -592,7 +599,7 @@ uint8_t mac_createSicslowpanLongAddr(uint8_t * ethernet, uip_lladdr_t * lowpan)
     lowpan->addr[7] = ethernet[5];
 	
 #else
-
+	uint8_t i;
 	for(i = 0; i < UIP_LLADDR_LEN; i++) {
 		lowpan->addr[i] = ethernet[i];
 	}
@@ -610,7 +617,8 @@ uint8_t mac_createSicslowpanLongAddr(uint8_t * ethernet, uip_lladdr_t * lowpan)
 uint8_t mac_createEthernetAddr(uint8_t * ethernet, uip_lladdr_t * lowpan)
 {
   uint8_t index = 0;
-  uint8_t i,j, match;
+  uint8_t i;
+//uint8_t i,j, match;
   
 #if UIP_LLADDR_LEN == 8
   

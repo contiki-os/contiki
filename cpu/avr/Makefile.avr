@@ -1,4 +1,4 @@
-# $Id: Makefile.avr,v 1.14 2009/07/08 15:26:17 dak664 Exp $
+# $Id: Makefile.avr,v 1.15 2009/07/23 16:13:48 dak664 Exp $
 
 ### Check if we are running under Windows
 
@@ -12,19 +12,102 @@ endif
 
 .SUFFIXES:
 
-### Optimization setting, OPTI=0 for easier debugging!
-OPTI=s
+### Optimization setting. $make OPTI=0 for easier debugging of changed source file(s)
+ifndef OPTI
+  OPTI=s
+endif
 
-### Define the CPU directory
+### Define the CPU directory of the AVR port
 CONTIKI_CPU=$(CONTIKI)/cpu/avr
 
-### Define the source files we have in the AVR port
-
-AVR        = leds-arch.c leds.c clock.c random.c
+### These directories will be searched for the specified source files
+### TARGETLIBS are platform-specific routines in the contiki library path
+CONTIKI_CPU_DIRS            = . dev
+AVR        = clock.c mtarch.c eeprom.c flash.c rs232.c leds-arch.c 
 ELFLOADER  = elfloader.c elfloader-avr.c symtab-avr.c
-TARGETLIBS = clock.c flash.c mtarch.c
+TARGETLIBS = random.c leds.c
 
-CONTIKI_TARGET_SOURCEFILES += ${AVR} $(SENSORS) \
+ifdef USB
+### Add the directories for the USB stick and remove the default rs232 driver
+override RF230BB = 0
+CONTIKI_CPU_DIRS            += dev/usb dev/usb/serial dev/usb/rndis dev/usb/storage
+CONTIKI_TARGET_SOURCEFILES  += $(USB)
+AVR        = clock.c mtarch.c eeprom.c flash.c leds-arch.c 
+endif
+
+### The RF230 "bare bones" driver uses the core MAC layer.
+### It does NOT work with the Jackdaw USB stick.
+### Define RF230BB in the base makefile, or use $make RF230BB=1 ...
+ifeq ($(RF230BB),1)
+#ifdef RF230BB
+  CFLAGS                     += -DRF230BB
+  #Source for AT86RF230 barebones driver using the contiki core MAC
+  include $(CONTIKI)/cpu/avr/radio/rf230/Makefile.rf230
+else
+ # Source for AT86RF230
+   include $(CONTIKI)/cpu/avr/radio/rf230/Makefile.rf230
+  #Source for Atmel/Cisco 802.15.4'ish MAC
+  include $(CONTIKI)/cpu/avr/radio/mac/Makefile.mac
+  #Source for IEEE 802.15.4 manager interface
+  include $(CONTIKI)/cpu/avr/radio/ieee-manager/Makefile.ieee-manager
+endif
+
+#For a coffee file system, the application makefile can define COFFEE_FILES=n
+#to select the type and COFFEE_ADDRESS=0xaaaaaaaa as the starting byte address.
+#If only one is define the other will use the (Raven webserver 1284p) defaults
+#of a static file system in program flash starting at 0x10000 (word address=0x8000)
+#For program flash the starting address is rounded down to a page boundary in cfs-coffee-arch.h
+#It should be rounded down here too if someone can figure out how :)
+
+ifdef COFFEE_ADDRESS              #if address is passed force definition of COFFEE_FILES
+ ifndef COFFEE_FILES              #use program flash for static file system if not specified
+  COFFEE_FILES=3
+ endif
+endif
+
+ifdef COFFEE_FILES                #if files are defined force definition of COFFEE_ADDRESS
+ ifndef COFFEE_ADDRESS
+  ifeq ($(COFFEE_FILES), 1)       #1=eeprom static
+   COFFEE_ADDRESS=DEFAULT
+  else ifeq ($(COFFEE_FILES), 2)  #2=eeprom dynamic
+   COFFEE_ADDRESS=DEFAULT
+  else ifeq ($(COFFEE_FILES), 3)  #3=program flash static
+   COFFEE_ADDRESS=0x14000
+  else ifeq ($(COFFEE_FILES), 4)  #4=program flash dynamic
+   COFFEE_ADDRESS=0x10000
+  else
+   print "Unsupported coffee file type!"
+  endif
+ endif
+ COFFEE_ADDRESS1 = $(shell echo $$(( $(COFFEE_ADDRESS) + 1 )))
+ CONTIKI_TARGET_SOURCEFILES += cfs-coffee.c cfs-coffee-arch.c watchdog.c
+ CFLAGS += -DCOFFEE_FILES=$(COFFEE_FILES) -DCOFFEE_ADDRESS=$(COFFEE_ADDRESS)
+ ifneq ($(COFFEE_ADDRESS), DEFAULT)
+  LDFLAGS+= -Wl,--section-start=.coffeefiles=$(COFFEE_ADDRESS)
+ endif
+
+ #If $make invokation passed starting address use phony target to force synchronization of source to .coffeefiles section
+ #Warning: recompilation will not be forced if the starting address is then dropped, with dire consequences:
+ # -->Source that uses COFFEE_FILES and read macros for conditional compilation will be left hanging!
+ # -->Object modules that used .coffeesection will overlap the .data section.
+ # -->$make clean is safest.
+#ifeq ($(origin COFFEE_ADDRESS), command line)
+# ifeq ($(COFFEE_FILES), 2)      #safest to force recompilation even if eeprom address is changed, might have been switched from flash
+   .PHONY : coffee
+   coffee:
+   $(OBJECTDIR)/cfs-coffee-arch.o    : coffee      #cfs-coffee-arch uses COFFEE_FILES, COFFEE_ADDRESS
+   $(OBJECTDIR)/contiki-raven-main.o : coffee      #Raven Webserver uses COFFEE_FILES
+   $(OBJECTDIR)/httpd-fs.o           : coffee      #this file contains httpd-fsdata.c which has the .coffeesection data
+   $(OBJECTDIR)/httpd.c.o            : coffee      #uses defines to read from file system
+   $(OBJECTDIR)/httpd-cgi.o          : coffee      #uses defines to read from file system
+   $(OBJECTDIR)/cfs-coffee.o         : coffee      #core routine requires recompilation
+
+#endif
+#endif
+
+endif
+
+CONTIKI_TARGET_SOURCEFILES += $(AVR) $(SENSORS) \
                               $(SYSAPPS) $(ELFLOADER) \
                               $(TARGETLIBS)
 
@@ -38,39 +121,22 @@ AS       = avr-as
 AR       = avr-ar
 OBJCOPY  = avr-objcopy
 STRIP    = avr-strip
-CFLAGSNO = -I. -I$(CONTIKI)/core -I$(CONTIKI_CPU) $(USB_INCLUDES) \
+CFLAGSNO = -Wall -mmcu=$(MCU) -gdwarf-2 \
+           -I. -I$(CONTIKI)/core -I$(CONTIKI_CPU) $(USB_INCLUDES) \
            -I$(CONTIKI)/platform/$(TARGET) \
-           ${addprefix -I,$(APPDIRS)} \
-           -Wall -mmcu=$(MCU) -gdwarf-2 $(CONTIKI_PLAT_DEFS)
+           $(CONTIKI_PLAT_DEFS)
 CFLAGS   += $(CFLAGSNO) -O$(OPTI)
-BOOTLOADER_START = 0x1FC00
-LDFLAGS  = -mmcu=$(MCU) -Wl,-Map=contiki-$(TARGET).map \
-		-Wl,--section-start=.bootloader=$(BOOTLOADER_START)
+ifndef BOOTLOADER_START
+  BOOTLOADER_START = 0x1FC00
+endif
 
+LDFLAGS  += -mmcu=$(MCU) -Wl,-Map=contiki-$(TARGET).map \
+           -Wl,--section-start=.bootloader=$(BOOTLOADER_START)
 
 ### Setup directory search path for source files
 
 CONTIKI_TARGET_DIRS_CONCAT = ${addprefix $(CONTIKI)/platform/$(TARGET)/, \
                                $(CONTIKI_TARGET_DIRS)}
-
-ifdef RF230BB
-### The RF230 "bare bones" driver uses the core MAC layer.
-### It does NOT work with the Jackdaw USB stick.
-### Define RF230BB in the base makefile, or use $make RF230BB=1 ...
-### Note $make clean and $make clean RF230BB=1 use different directory paths!
-
-CFLAGS   +=-DRF230BB
-
-vpath %.c $(PROJECTDIRS) $(CONTIKI)/cpu/avr/dev \
-      $(CONTIKI_CPU) $(CONTIKI)/cpu/avr/radio/rf230bb \
-      $(CONTIKIDIRS) $(APPDIRS) $(CONTIKI_TARGET_DIRS_CONCAT)
-else
-vpath %.c $(PROJECTDIRS) $(CONTIKI)/cpu/avr/dev $(CONTIKI)/cpu/avr/dev/usb \
-      $(CONTIKI)/cpu/avr/dev/usb/rndis $(CONTIKI)/cpu/avr/dev/usb/serial \
-      $(CONTIKI)/cpu/avr/dev/usb/storage \
-      $(CONTIKI_CPU) $(CONTIKI)/cpu/avr/radio/rf230 $(CONTIKI)/cpu/avr/radio/mac \
-      $(CONTIKIDIRS) $(APPDIRS) $(CONTIKI_TARGET_DIRS_CONCAT)
-endif
 
 ### Compilation rules
 
