@@ -57,6 +57,7 @@
 #include "sicslow_ethernet.h"
 #include "radio.h"
 #include <stdio.h>
+#include <stdlib.h>
 
 #include <avr/pgmspace.h>
 #include <avr/eeprom.h>
@@ -222,8 +223,8 @@ void menu_process(char c)
 				//If valid input, change it
 				if (tempchannel) {
 					radio_set_operating_channel(tempchannel);
-					eeprom_write_byte(9, tempchannel);   //Write channel
-					eeprom_write_byte(10, ~tempchannel); //Bit inverse as check
+					eeprom_write_byte((uint8_t *) 9, tempchannel);   //Write channel
+					eeprom_write_byte((uint8_t *)10, ~tempchannel); //Bit inverse as check
 				}
 
 				menustate = normal;

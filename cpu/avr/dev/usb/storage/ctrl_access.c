@@ -57,6 +57,7 @@
 
 #include "config.h"
 #include "storage/ctrl_access.h"
+#include "avr_flash.h"
 
 
 //_____ D E F I N I T I O N S ______________________________________________
@@ -465,6 +466,7 @@ Bool  mem_removal( U8 lun )
 //!
 //! @return pointer to code string
 //!
+#if 0         //not used anywhere and the FLASH attribute causes a compilation warning - dak
 U8 FLASH*  mem_name( U8 lun )
 {
    switch( lun )
@@ -517,6 +519,7 @@ U8 FLASH*  mem_name( U8 lun )
    }
    return 0;   // Remove compiler warning
 }
+#endif /* 0 */
 
 //************************************************************************************
 //!----------- Listing of READ/WRITE interface with MODE ACCESS REGISTER -------------
@@ -536,7 +539,7 @@ U8 FLASH*  mem_name( U8 lun )
 //!
 Ctrl_status    memory_2_usb( U8 lun , U32 addr , U16 nb_sector )
 {
-   Ctrl_status status;
+   Ctrl_status status=0;
 
    switch( lun )
    {
@@ -629,7 +632,7 @@ Ctrl_status    memory_2_usb( U8 lun , U32 addr , U16 nb_sector )
 //!
 Ctrl_status    usb_2_memory( U8 lun , U32 addr , U16 nb_sector )
 {
-   Ctrl_status status;
+   Ctrl_status status=0;
 
    switch( lun )
    {

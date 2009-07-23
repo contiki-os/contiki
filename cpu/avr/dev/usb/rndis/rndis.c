@@ -166,7 +166,7 @@ rndis_stat_t rndis_stat;
 
 uint8_t schedule_interrupt = 0;
 
-uint64_t rndis_ethernet_addr = 0x203478928323UL;
+uint64_t rndis_ethernet_addr = 0x203478928323ULL;
 
 //_____ D E C L A R A T I O N ______________________________________________
 

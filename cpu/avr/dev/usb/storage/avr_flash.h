@@ -125,8 +125,10 @@ Ctrl_status    avrf_write_10( U32 addr , U16 nb_sector );
 #else
 #include "usb_drv.h"    // In this case the driver must be known for the USB access
 #endif
-Ctrl_status avr_usb_read( void );
-Ctrl_status avr_usb_write( void );
+//Ctrl_status avr_usb_read( void );
+//Ctrl_status avr_usb_write( void );
+Ctrl_status avrf_usb_read( void );
+Ctrl_status avrf_usb_write( void );
 
 
 
