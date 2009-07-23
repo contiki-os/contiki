@@ -30,7 +30,7 @@
  *
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: psock.c,v 1.8 2009/04/28 13:52:04 adamdunkels Exp $
+ * $Id: psock.c,v 1.9 2009/07/23 16:13:48 dak664 Exp $
  */
 
 #include <stdio.h>
@@ -225,6 +225,7 @@ PT_THREAD(psock_generator_send(CC_REGISTER_ARG struct psock *s,
     s->state = STATE_DATA_SENT;
 
     /* Wait until all data is sent and acknowledged. */
+ // if (!s->sendlen) break;   //useful debugging aid
     PT_YIELD_UNTIL(&s->psockpt, uip_acked() || uip_rexmit());
   } while(!uip_acked());
   
