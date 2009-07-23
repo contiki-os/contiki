@@ -77,6 +77,7 @@ int  uart_usb_putchar(int);
 void  uart_usb_flush(void);
 bit   uart_usb_test_hit(void);
 char uart_usb_getchar(void);
+void uart_usb_set_stdout(void);
 
 /** @} **/
 

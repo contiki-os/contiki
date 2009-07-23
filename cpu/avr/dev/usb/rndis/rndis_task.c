@@ -95,7 +95,6 @@ char usb_busy = 0;
 
 static struct etimer et;
 static struct timer flood_timer;
-static uint16_t iad_fail_timeout, rndis_fail_timeout;	
 
 static uint8_t doInit = 1;
 
@@ -130,6 +129,7 @@ PROCESS_THREAD(rndis_process, ev, data_proc)
 		   have a system that does not support IAD (winXP). If so
 		   count the timeout then switch to just network interface. */
 #if 0
+static uint16_t iad_fail_timeout, rndis_fail_timeout;	
 		if (usb_mode == rndis_debug) {
 			//If we have timed out, detach
 			if (iad_fail_timeout == IAD_TIMEOUT_DETACH) {
@@ -232,6 +232,7 @@ PROCESS_THREAD(rndis_process, ev, data_proc)
 					//Wait until timer expiers
 					usb_busy = 1;
 					etimer_set(&et, flood_timer.interval - timediff);
+//Try commenting out the next line if Jackdaw stops RF transmission in Windows after a 5 minute idle period - dak
 					PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&et));     
 
 					//Reselect endpoint in case we lost it
