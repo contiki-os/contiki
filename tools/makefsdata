@@ -47,8 +47,8 @@ for($n=0;$n<=$#ARGV;$n++) {
     $complement=1;
   } elsif ($arg eq "-i") {
     $n++;$includefile=$ARGV[$n];
-  } elsif ($arg eq "-p") {
-    $n++;$coffee_page_length=$ARGV[$n];
+# } elsif ($arg eq "-p") {
+#   $n++;$coffee_page_length=$ARGV[$n];
   } elsif ($arg eq "-s") {
     $n++;$coffee_sector_size=$ARGV[$n];
   } elsif ($arg eq "-t") {
@@ -68,7 +68,7 @@ for($n=0;$n<=$#ARGV;$n++) {
 DEFAULTS:
 #Set up defaults
 $coffee=0;
-$coffee_page_length=256;
+#$coffee_page_length=256;
 $coffee_sector_size=256;
 $coffee_page_t=1;
 $coffee_name_length=16;
@@ -102,7 +102,7 @@ if (!$version) {goto START;}
     print "                  Useful for giving a server a name and ip address associated with the web content.\n";
     print "                  The default is $includefile.\n\n";
     print "   The following apply only to coffee file system\n";
-    print " -p pagesize      Page size in bytes (default $coffee_page_length)\n";
+#   print " -p pagesize      Page size in bytes (default $coffee_page_length)\n";
     print " -s sectorsize    Sector size in bytes (default $coffee_sector_size)\n";
     print " -t page_t        Number of bytes in coffee_page_t (1,2,or 4, default $coffee_page_t)\n";
     print " -f namesize      File name field size in bytes (default $coffee_name_length)\n";
@@ -126,7 +126,7 @@ if ($coffee) {
    die "Unsupported coffee_page_t $coffee_page_t\n";
   }
 } else {
-  $coffee_page_length=1;
+# $coffee_page_length=1;
   $coffee_sector_size=1;
   $linkedlist=1;
   $coffee_name_length=256;
@@ -363,7 +363,7 @@ for($i = 0; $i < @fvars; $i++) {
 }
 print(OUTPUT "\n#define HTTPD_FS_ROOT  file$fvars[$n-1]\n");
 print(OUTPUT "#define HTTPD_FS_NUMFILES  $n\n");
-print(OUTPUT "#define HTTPD_FS_SIZE $coffeesize UL\n");
+print(OUTPUT "#define HTTPD_FS_SIZE $coffeesize\n");
 }
 print "All done, files occupy $coffeesize bytes\n";
 
