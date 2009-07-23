@@ -19,3 +19,16 @@ code as follows:
   3ffe:0501:ffff:0100:0206:98ff:fe00:0232
 - Finally you can use 'wget http://[3ffe:0501:ffff:0100:0206:98ff:fe00:0232]' 
   to get the web page (index.html file)
+  
+Two alternate servers Huginn and Muninn are included in this directory.
+Use e.g. $make WEBDIR=Huginn to generate a webserver6-huginn.elf file.
+The ipv6 address suffix and server names are specified in the makefsdata.h file.
+
+$make COFFEE_FILES=1 or 3 uses a static coffee file system in eeprom or program
+flash memory.  Files can not be created, but existing files can be rewritten
+using http POST via upload.html. When switching coffee types a $make clean
+should be done to ensure all c source is on the same page (ahem).
+-->This is under development and rewrites are not working yet.
+
+Future plans are for $make COFFEE_FILES=2 or 4 for a full coffee file system.
+
