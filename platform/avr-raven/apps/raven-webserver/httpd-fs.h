@@ -30,7 +30,7 @@
  * 
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: httpd-fs.h,v 1.2 2009/06/19 17:11:28 dak664 Exp $
+ * $Id: httpd-fs.h,v 1.3 2009/07/23 16:16:07 dak664 Exp $
  */
 #ifndef __HTTPD_FS_H__
 #define __HTTPD_FS_H__
@@ -45,23 +45,43 @@ extern u16_t httpd_filecount[];
 #endif /* HTTPD_FS_STATISTICS */
 
 #include <avr/pgmspace.h>
+#if COFFEE_FILES
+#include "cfs-coffee-arch.h"
+#include <string.h>
+#endif
 
 struct httpd_fs_file {
   char *data;
   int len;
 };
-
-/* file must be allocated by caller and will be filled in
-   by the function. If NULL, just file stats are returned.*/
+/* Initialize the file system and set statistics to zero */
+void  httpd_fs_init(void);
+/* Returns root of http files in program flash */
+void* httpd_fs_get_root();
+/* Returns size of http files in any flash */
+u16_t httpd_fs_get_size();
+/* Open a file in any flash and return statistics if enabled.
+   If file is allocated by caller it will be filled in.
+   If NULL, just file stats are returned.
+ */
 u16_t httpd_fs_open(const char *name, struct httpd_fs_file *file);
 
-/* Returns root of http pages in flash */
-void * httpd_get_root();
+#if COFFEE_FILES
+/* Coffee file system can be static or dynamic. If static, new files
+   can not be created and rewrites of an existing file can not be
+   made beyond the initial allocation.
+ */
+#define httpd_fs_cpy         avr_httpd_fs_cpy
+#define httpd_fs_getchar avr_httpd_fs_getchar
+#define httpd_fs_strcmp   avr_httpd_fs_strcmp
+#define httpd_fs_strchr   avr_httpd_fs_strchr
 
-void httpd_fs_init(void);
-
-#define httpd_fs_cpy                    memcpy_P
-#define httpd_fs_strchr                 strchr_P
-#define httpd_fs_getchar(x)     pgm_read_byte(x)
+#else
+/* These will fail if the web content is above 64K in program flash */
+#define httpd_fs_cpy                 memcpy_P
+#define httpd_fs_strcmp              strcmp_P
+#define httpd_fs_strchr              strchr_P
+#define httpd_fs_getchar(x)  pgm_read_byte(x)
+#endif
 
 #endif /* __HTTPD_FS_H__ */

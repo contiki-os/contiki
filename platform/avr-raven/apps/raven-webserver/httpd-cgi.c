@@ -28,7 +28,7 @@
  *
  * This file is part of the uIP TCP/IP stack.
  *
- * $Id: httpd-cgi.c,v 1.2 2009/06/19 17:11:28 dak664 Exp $
+ * $Id: httpd-cgi.c,v 1.3 2009/07/23 16:16:07 dak664 Exp $
  *
  */
 
@@ -50,10 +50,17 @@
 #include "httpd-cgi.h"
 #include "httpd-fs.h"
 #include "httpd-fsdata.h"
-
 //#include "lib/petsciiconv.h"
+#define petsciiconv_toascii(...)
 
 #include "sensors.h"
+
+#define DEBUGLOGIC 0        //see httpd.c
+#if DEBUGLOGIC
+#define uip_mss(...) 512
+#define uip_appdata TCPBUF
+extern char TCPBUF[512];
+#endif
 
 static struct httpd_cgi_call *calls = NULL;
 
@@ -133,25 +140,30 @@ generate_file_stats(void *arg)
 {
   char tmp[20];
   struct httpd_fsdata_file_noconst *f,fram;
-  u16_t i,numprinted;
+  u16_t i;
+  unsigned short numprinted;
 
-    /* Transfer arg from flash file to RAM */
-  memcpy_P_trim(tmp, (char *)arg);
+  /* Transfer arg from whichever flash that contains the html file to RAM */
+  httpd_fs_cpy(&tmp, (char *)arg, 20);
 
   /* Count for this page, with common page footer */
   if (tmp[0]=='.') {
-    return snprintf_P((char *)uip_appdata, uip_mss(),
+    numprinted=snprintf_P((char *)uip_appdata, uip_mss(),
       PSTR("<p class=right><br><br><i>This page has been sent %u times</i></div></body></html>"), httpd_fs_open(thisfilename, 0));
 
   /* Count for all files */
   /* Note buffer will overflow if there are too many files! */
   } else if (tmp[0]=='*') {
     i=0;numprinted=0;
-    for(f = (struct httpd_fsdata_file_noconst *)httpd_get_root();
+    for(f = (struct httpd_fsdata_file_noconst *)httpd_fs_get_root();
         f != NULL;
         f = (struct httpd_fsdata_file_noconst *)fram.next) {
+
+      /* Get the linked list file entry into RAM from program flash memory*/
       memcpy_P(&fram,f,sizeof(fram));
-      memcpy_P(&tmp,fram.name,sizeof(tmp));
+ 
+      /* Get the file name from whatever flash memory it is in */
+      httpd_fs_cpy(&tmp, fram.name, sizeof(tmp));
       numprinted+=snprintf_P((char *)uip_appdata + numprinted, uip_mss() - numprinted,
 #if HTTPD_FS_STATISTICS==1
           PSTR("<tr><td><a href=\"%s\">%s</a></td><td>%d</td>"),tmp,tmp,f->count);
@@ -159,12 +171,15 @@ generate_file_stats(void *arg)
           PSTR("<tr><td><a href=\"%s\">%s</a></td><td>%d</td>"),tmp,tmp,httpd_filecount[i++]);
 #endif
     }
-    return numprinted;
 
   /* Count for specified file */
   } else {
-    return snprintf_P((char *)uip_appdata, uip_mss(), PSTR("%5u"), httpd_fs_open(tmp, 0));
+    numprinted=snprintf_P((char *)uip_appdata, uip_mss(), PSTR("%5u"), httpd_fs_open(tmp, 0));
   }
+#if DEBUGLOGIC
+  return 0;
+#endif
+  return numprinted;
 }
 /*---------------------------------------------------------------------------*/
 static
@@ -174,7 +189,8 @@ PT_THREAD(file_stats(struct httpd_state *s, char *ptr))
   PSOCK_BEGIN(&s->sout);
 
   thisfilename=&s->filename[0]; //temporary way to pass filename to generate_file_stats
-  PSOCK_GENERATOR_SEND(&s->sout, generate_file_stats, (void *) (strchr_P(ptr, ' ') + 1));
+  
+  PSOCK_GENERATOR_SEND(&s->sout, generate_file_stats, (void *) ptr);
   
   PSOCK_END(&s->sout);
 }
@@ -229,7 +245,7 @@ make_processes(void *p)
   char name[40],tstate[20];
 
   strncpy(name, ((struct process *)p)->name, 40);
-//petsciiconv_toascii(name, 40);
+  petsciiconv_toascii(name, 40);
   strcpy_P(tstate,states[9 + ((struct process *)p)->state]);
   return snprintf_P((char *)uip_appdata, uip_mss(),
     PSTR("<tr align=\"center\"><td>%p</td><td>%s</td><td>%p</td><td>%s</td></tr>\r\n"),

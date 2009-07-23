@@ -30,7 +30,7 @@
  *
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: httpd.c,v 1.2 2009/06/19 17:11:28 dak664 Exp $
+ * $Id: httpd.c,v 1.3 2009/07/23 16:16:07 dak664 Exp $
  */
 
 #include <string.h>
@@ -40,14 +40,43 @@
 #include "webserver.h"
 #include "httpd-fs.h"
 #include "httpd-cgi.h"
-//#include "lib/petsciiconv.h"
-//#include "http-strings.h"
-
 #include "httpd.h"
+//#include "lib/petsciiconv.h"
+#define petsciiconv_topetscii(...)
+//#include "http-strings.h"
+#if COFFEE_FILES
+#include "cfs-coffee-arch.h"
+#endif /* COFFEE_FILES */
+
+/* DEBUGLOGIC is a convenient way to debug in a simulator without a tcp/ip connection.
+ * Break the program in the process loop and step from the entry in httpd_appcall.
+ * The input file is forced to /index.html and the output directed to TCPBUF.
+ * If cgi's are invoked define it in httpd-cgi.c as well.
+ * psock_generator_send in /core/net/psock.c must also be modified as follows:
+ * ...
+ * // Wait until all data is sent and acknowledged.
+ * if (!s->sendlen) break;                            //<---add this line
+ * PT_YIELD_UNTIL(&s->psockpt, uip_acked() || uip_rexmit());
+ * ...
+ */
+#define DEBUGLOGIC 0
+#define DEBUG 0
+#if DEBUGLOGIC
+struct httpd_state *sg;
+#define uip_mss(...) 512
+#define uip_appdata TCPBUF
+char TCPBUF[512];
+#endif
+#if DEBUG
+#include <stdio.h>
+#define PRINTF(FORMAT,args...) printf_P(PSTR(FORMAT),##args)
+#else
+#define PRINTF(...)
+#endif
 
 #ifndef WEBSERVER_CONF_CGI_CONNS
 #define CONNS 4
-#else /* WEBSERVER_CONF_CGI_CONNS */
+#else
 #define CONNS WEBSERVER_CONF_CGI_CONNS
 #endif /* WEBSERVER_CONF_CGI_CONNS */
 
@@ -57,6 +86,8 @@
 //#define SEND_STRING(s, str) PSOCK_SEND(s, (uint8_t *)str, (unsigned int)strlen(str))
 MEMB(conns, struct httpd_state, CONNS);
 
+/* MAX_SCRIPT_NAME_LENGTH should be at least be the maximum file name length+2 for %!: includes */
+#define MAX_SCRIPT_NAME_LENGTH 20
 #define ISO_tab     0x09
 #define ISO_nl      0x0a
 #define ISO_cr      0x0d
@@ -78,10 +109,12 @@ generate(void *state)
   } else {
     s->len = s->file.len;
   }
-    
   httpd_fs_cpy(uip_appdata, s->file.data, s->len);
-  
+#if DEBUGLOGIC
+  return 0;
+#else
   return s->len;
+#endif
 }
 /*---------------------------------------------------------------------------*/
 static
@@ -89,12 +122,12 @@ PT_THREAD(send_file(struct httpd_state *s))
 {
   PSOCK_BEGIN(&s->sout);
   
-  do { 
+  do {
     PSOCK_GENERATOR_SEND(&s->sout, generate, s);
-    s->file.len -= s->len;
+    s->file.len  -= s->len;
     s->file.data += s->len;
   } while(s->file.len > 0);
-      
+
   PSOCK_END(&s->sout);
 }
 /*---------------------------------------------------------------------------*/
@@ -102,15 +135,15 @@ static
 PT_THREAD(send_part_of_file(struct httpd_state *s))
 {
   PSOCK_BEGIN(&s->sout);
-  
+
   static int oldfilelen, oldlen;
   static char * olddata;
-  
+
   //Store stuff that gets clobbered...
   oldfilelen = s->file.len;
   oldlen = s->len;
   olddata = s->file.data;
-  
+
   //How much to send  
   s->file.len = s->len;
   
@@ -119,7 +152,7 @@ PT_THREAD(send_part_of_file(struct httpd_state *s))
     s->file.len -= s->len;
     s->file.data += s->len;
   } while(s->file.len > 0);
-  
+
   s->len = oldlen;
   s->file.len = oldfilelen;
   s->file.data = olddata;
@@ -131,11 +164,11 @@ static void
 next_scriptstate(struct httpd_state *s)
 {
   char *p;
-
+/* Skip over any script parameters to the beginning of the next line */
   if((p = (char *)httpd_fs_strchr(s->scriptptr, ISO_nl)) != NULL) {
     p += 1;
     s->scriptlen -= (unsigned short)(p - s->scriptptr);
-    s->scriptptr = p;
+    s->scriptptr  = p;
   } else {
     s->scriptlen = 0;
   }
@@ -147,58 +180,67 @@ next_scriptstate(struct httpd_state *s)
 }
 
 /*---------------------------------------------------------------------------*/
-void
-memcpy_P_trim(char *toram, char *fromflash)
+char *
+get_scriptname(char *dest, char *fromfile)
 {
-  uint8_t i;
-  for (i=0;i<19;) {
-    toram[i]=pgm_read_byte_near(fromflash++);
-    if (toram[i]==ISO_tab) {if (i) break; else continue;}    //skip leading tabs
-    if (toram[i]==ISO_space) {if (i) break; else continue;}  //skip leading spaces
-    if (toram[i]==ISO_nl) break;            //nl is preferred delimiter
-    if (toram[i]==ISO_cr) break;            //some editors insert cr
-    if (toram[i]==0) break;                 //files are terminated with null
+  uint8_t i=0,skip=1;
+  /* Extract a file or cgi name, trim leading spaces and replace termination with zero */
+  /* Returns number of characters processed up to the next non-tab or space */
+  do {
+    dest[i]=httpd_fs_getchar(fromfile++);
+    if (dest[i]==ISO_colon) {if (!skip) break;}                 //allow leading colons
+    else if (dest[i]==ISO_tab  ) {if (skip) continue;else break;}//skip leading tabs
+    else if (dest[i]==ISO_space) {if (skip) continue;else break;}//skip leading spaces
+    else if (dest[i]==ISO_nl   ) break;                         //nl is preferred delimiter
+    else if (dest[i]==ISO_cr   ) break;                         //some editors insert cr
+    else if (dest[i]==0        ) break;                         //files are terminated with null
+    else skip=0;
     i++;
-  }
-  toram[i]=0;
-
-  }
+  } while (i<(MAX_SCRIPT_NAME_LENGTH+1));
+  fromfile--;
+  while ((dest[i]==ISO_space) || (dest[i]==ISO_tab)) dest[i]=httpd_fs_getchar(++fromfile);
+  dest[i]=0;
+  return (fromfile);
+}
 /*---------------------------------------------------------------------------*/
-static char filenamebuf[25],*pptr;//See below!
+
 static
 PT_THREAD(handle_script(struct httpd_state *s))
 {
-//  char *ptr; //one of these gets whomped unless in globals
-//  char filenamebuf[25];
-  
+  /* Note script includes will attach a leading : to the filename and a trailing zero */
+  static char scriptname[MAX_SCRIPT_NAME_LENGTH+1],*pptr;
+  static uint16_t filelength;
+
   PT_BEGIN(&s->scriptpt);
 
+  filelength=s->file.len;
   while(s->file.len > 0) {
+    /* Sanity check */
+    if (s->file.len > filelength) break;
 
-    /* Check if we should start executing a script. */
+    /* Check if we should start executing a script, flagged by %! */
     if(httpd_fs_getchar(s->file.data) == ISO_percent &&
        httpd_fs_getchar(s->file.data + 1) == ISO_bang) {
-      s->scriptptr = s->file.data + 3;
-      s->scriptlen = s->file.len - 3; 
-      memcpy_P_trim(filenamebuf,s->scriptptr);
 
-      if(httpd_fs_getchar(s->scriptptr - 1) == ISO_colon) {
-        httpd_fs_open(filenamebuf, &s->file);
-        PT_WAIT_THREAD(&s->scriptpt, send_file(s));
-      } else {
-        PT_WAIT_THREAD(&s->scriptpt,
-                       httpd_cgi(filenamebuf)(s, s->scriptptr));
-      }
-      next_scriptstate(s);
+       /* Extract name, if starts with colon include file else call cgi */
+       s->scriptptr=get_scriptname(scriptname,s->file.data+2);
+       s->scriptlen=s->file.len-(s->scriptptr-s->file.data);
+       PRINTF("httpd: Handle script named %s\n",scriptname);
+       if(scriptname[0] == ISO_colon) {
+         if (httpd_fs_open(&scriptname[1], &s->file)) {
+           PT_WAIT_THREAD(&s->scriptpt, send_file(s));
+         }
+       } else {
+         PT_WAIT_THREAD(&s->scriptpt,httpd_cgi(scriptname)(s, s->scriptptr));
+       }
+       next_scriptstate(s);
       
-      /* The script is over, so we reset the pointers and continue
-	 sending the rest of the file. */
+      /* Reset the pointers and continue sending the current file. */
       s->file.data = s->scriptptr;
-      s->file.len = s->scriptlen;
+      s->file.len  = s->scriptlen;
     } else {
-      /* See if we find the start of script marker in the block of HTML
-	 to be sent. */
 
+     /* Send file up to the next potential script */
       if(s->file.len > uip_mss()) {
         s->len = uip_mss();
       } else {
@@ -210,15 +252,17 @@ PT_THREAD(handle_script(struct httpd_state *s))
       } else {
         pptr = (char *) httpd_fs_strchr(s->file.data, ISO_percent);
       }
+
       if(pptr != NULL && pptr != s->file.data) {
         s->len = (int)(pptr - s->file.data);
         if(s->len >= uip_mss()) {
           s->len = uip_mss();
         }
       }
+      PRINTF("httpd: Sending %u bytes from 0x%04x\n",s->file.len,s->file.data);
       PT_WAIT_THREAD(&s->scriptpt, send_part_of_file(s));
       s->file.data += s->len;
-      s->file.len -= s->len;
+      s->file.len  -= s->len;
     }
   }
 
@@ -233,7 +277,11 @@ generate_status_P(void *pstr)
   memcpy_P(uip_appdata+9, pstr, slen);
   slen+=9;
   memcpy_P(uip_appdata+slen, PSTR("\r\nServer: Contiki/2.0 http://www.sics.se/contiki/\r\nConnection: close\r\n"), 70);
+#if DEBUGLOGIC
+  return 0;
+#else
   return slen+70;
+#endif
 }
 /*---------------------------------------------------------------------------*/
 static unsigned short
@@ -244,7 +292,11 @@ generate_header_P(void *pstr)
   memcpy_P(uip_appdata+14, pstr, slen);
   slen+=14;
   memcpy_P(uip_appdata+slen,PSTR("\r\n\r\n"),4);
+#if DEBUGLOGIC
+  return 0;
+#else
   return slen+4;
+#endif
 }
 /*---------------------------------------------------------------------------*/
 
@@ -296,7 +348,9 @@ PT_THREAD(handle_output(struct httpd_state *s))
   char *ptr;
   
   PT_BEGIN(&s->outputpt);
-//   strcpy(s->filename,"/index.html"); //for debugging
+#if DEBUGLOGIC
+   strcpy(s->filename,"/index.html");
+#endif
   if(!httpd_fs_open(s->filename, &s->file)) {
     strcpy_P(s->filename, PSTR("/404.html"));
     httpd_fs_open(s->filename, &s->file);
@@ -320,7 +374,8 @@ char http_get[4] PROGMEM ="GET ";
 char http_ref[8] PROGMEM ="Referer:";
 static
 PT_THREAD(handle_input(struct httpd_state *s))
-{ 
+{
+
   PSOCK_BEGIN(&s->sin); 
 
   PSOCK_READTO(&s->sin, ISO_space);
@@ -350,7 +405,7 @@ PT_THREAD(handle_input(struct httpd_state *s))
 
     if(strncmp_P(s->inputbuf, http_ref, 8) == 0) {
       s->inputbuf[PSOCK_DATALEN(&s->sin) - 2] = 0;
-//    petsciiconv_topetscii(s->inputbuf, PSOCK_DATALEN(&s->sin) - 2);
+      petsciiconv_topetscii(s->inputbuf, PSOCK_DATALEN(&s->sin) - 2);
       webserver_log(s->inputbuf);
     }
   }
@@ -360,17 +415,25 @@ PT_THREAD(handle_input(struct httpd_state *s))
 static void
 handle_connection(struct httpd_state *s)
 {
+#if DEBUGLOGIC
+  handle_output(s);
+#else
   handle_input(s);
   if(s->state == STATE_OUTPUT) {
     handle_output(s);
   }
+#endif
 }
 /*---------------------------------------------------------------------------*/
 void
 httpd_appcall(void *state)
 {
+#if DEBUGLOGIC
+  struct httpd_state *s;   //Enter here for debugging with output directed to TCPBUF
+  s = sg = (struct httpd_state *)memb_alloc(&conns);
+  if (1) {
+#else
   struct httpd_state *s = (struct httpd_state *)state;
-
   if(uip_closed() || uip_aborted() || uip_timedout()) {
     if(s != NULL) {
       memb_free(&conns, s);
@@ -381,6 +444,7 @@ httpd_appcall(void *state)
       uip_abort();
       return;
     }
+#endif
     tcp_markconn(uip_conn, s);
     PSOCK_INIT(&s->sin, (uint8_t *)s->inputbuf, sizeof(s->inputbuf) - 1);
     PSOCK_INIT(&s->sout, (uint8_t *)s->inputbuf, sizeof(s->inputbuf) - 1);
@@ -393,8 +457,8 @@ httpd_appcall(void *state)
     if(uip_poll()) {
       ++s->timer;
       if(s->timer >= 20) {
-	uip_abort();
-	memb_free(&conns, s);
+        uip_abort();
+        memb_free(&conns, s);
       }
     } else {
       s->timer = 0;
