@@ -1,0 +1,4 @@
+%!: /header.html
+<h1>Sensor Readings</h1><br>
+%! sensors
+%! file-stats .
