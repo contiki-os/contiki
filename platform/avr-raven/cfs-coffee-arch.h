@@ -44,19 +44,42 @@
 
 #include "contiki-conf.h"
 
-//Currently you may choose just one for the coffee file sytem
-//#define COFFEE_AVR_EEPROM     //use eeprom for file system
-#define COFFEE_AVR_FLASH        //use flash for file system
+//Currently you may choose just one of the following for the coffee file sytem
+//A static file sysstem allows file rewrites but no extensions or new files
+//This allows a static linked list to index into the file system
+#if COFFEE_FILES==1             //1=eeprom for static file system
+#define COFFEE_AVR_EEPROM 1
+#define COFFEE_STATIC     1
+#elif COFFEE_FILES==2           //2=eeprom for full file system
+#define COFFEE_AVR_EEPROM 1
+#elif COFFEE_FILES==2           //3=program flash for static file system
+#define COFFEE_AVR_FLASH  1
+#define COFFEE_STATIC     1
+#else                           //4=program flash with full file system
+#define COFFEE_AVR_FLASH  1
+#endif
 
 #ifdef COFFEE_AVR_EEPROM
 #include "dev/eeprom.h"
 //1284p EEPROM has 512 pages of 8 bytes each = 4KB
 
-#define COFFEE_SECTOR_SIZE        64UL
+#if COFFEE_ADDRESS==DEFAULT       //Make can pass starting address with COFFEE_ADDRESS=0xnnnnnnnn
+#undef COFFEE_ADDRESS
+#ifdef CFS_EEPROM_CONF_OFFSET     //Else use the platform default
+#define COFFEE_ADDRESS            CFS_EEPROM_CONF_OFFSET
+#else                             //Use zero if no default defined
+#define COFFEE_ADDRESS            0
+#endif
+#endif
+
+/* Byte page size, starting address, and size of the file system */
 #define COFFEE_PAGE_SIZE          16UL
-#define COFFEE_START              CFS_EEPROM_CONF_OFFSET
+#define COFFEE_START              COFFEE_ADDRESS
 #define COFFEE_SIZE               ((3 * 1024U) - COFFEE_START)
+/* These must agree with the parameters passed to makefsdata */
+#define COFFEE_SECTOR_SIZE        (COFFEE_PAGE_SIZE*4)
 #define COFFEE_NAME_LENGTH        16
+/* These are used internally by the coffee file system */
 #define COFFEE_MAX_OPEN_FILES     4
 #define COFFEE_FD_SET_SIZE        8
 #define COFFEE_LOG_TABLE_LIMIT    16
@@ -81,30 +104,45 @@ void avr_eeprom_erase(uint16_t sector);
 #ifdef COFFEE_AVR_FLASH
 /* 1284p PROGMEM has 512 pages of 256 bytes each = 128KB
  * Writing to the last 32 NRRW pages will halt the CPU.
- * Take care not to overwrite the .bootloader section...         */
-#define COFFEE_PAGE_SIZE          256UL                           //Byte per program flash page (256 for 1284p
-#define COFFEE_PAGE_START         65536UL/COFFEE_PAGE_SIZE        //Starting page at 64KB for webserver
-#define COFFEE_PAGES              512UL-COFFEE_PAGE_START-32UL    //Number of pages to use (reserve NWWR pages)
-#define COFFEE_START              (COFFEE_PAGE_START)*COFFEE_PAGE_SIZE   //Starting address of the file system, on a page boundary
-#define FLASH_WORD_READS          1                               //1=Faster, but 130 bytes more PROGMEM
-#define FLASH_COMPLEMENT_DATA     0                               //1=Slower reads, but no page writes after erase and 18 bytes less PROGMEM
+ * Take care not to overwrite the .bootloader section...
+ */
 
-#define COFFEE_SIZE               (COFFEE_PAGES)*COFFEE_PAGE_SIZE //Bytes in filesystem
-#define COFFEE_SECTOR_SIZE        (COFFEE_PAGE_SIZE*1)            //Each page a sector
-#define COFFEE_NAME_LENGTH        16                              //processes.shtml is longest file name
+/* Byte page size, starting address on page boundary, and size of the file system */
+#define COFFEE_PAGE_SIZE          (2*SPM_PAGESIZE)
+#ifndef COFFEE_ADDRESS            //Make can pass starting address with COFFEE_ADDRESS=0xnnnnnnnn, default is 64KB for webserver
+#define COFFEE_ADDRESS            0x10000
+#endif
+#define COFFEE_PAGES              (512-(COFFEE_ADDRESS/COFFEE_PAGE_SIZE)-32)
+#define COFFEE_START              (COFFEE_ADDRESS & ~(COFFEE_PAGE_SIZE-1))
+//#define COFFEE_START            (COFFEE_PAGE_SIZE*COFFEE_PAGES) 
+#define COFFEE_SIZE               (COFFEE_PAGES*COFFEE_PAGE_SIZE)
+
+/* These must agree with the parameters passed to makefsdata */
+#define COFFEE_SECTOR_SIZE        (COFFEE_PAGE_SIZE*1)
+#define COFFEE_NAME_LENGTH        16
+
+/* These are used internally by the AVR flash read routines */
+/* Word reads are faster but take 130 bytes more PROGMEM */
+#define FLASH_WORD_READS          1
+/* 1=Slower reads, but no page writes after erase and 18 bytes less PROGMEM. Best for dynamic file system */
+#define FLASH_COMPLEMENT_DATA     0 
+
+/* These are used internally by the coffee file system */
+/* Micro logs are not needed for single page sectors */
 #define COFFEE_MAX_OPEN_FILES     4
-#define COFFEE_FD_SET_SIZE        8                                //Size of file descriptor
+#define COFFEE_FD_SET_SIZE        8
 #define COFFEE_LOG_TABLE_LIMIT    16
 #define COFFEE_DIR_CACHE_ENTRIES  1
-#define COFFEE_DYN_SIZE           (COFFEE_PAGE_SIZE*1)             //Allocation block size
-#define COFFEE_MICRO_LOGS         0                                //1 to enable, 0 best for single page sectors
-#define COFFEE_LOG_SIZE           128                              //Microlog size, when used
+#define COFFEE_DYN_SIZE           (COFFEE_PAGE_SIZE*1)
+#define COFFEE_MICRO_LOGS         0
+#define COFFEE_LOG_SIZE           128
 
 /* coffee_page_t is used for page and sector numbering
  * uint8_t can handle 511 pages.
  * cfs_offset_t is used for full byte addresses
  * If CFS_CONF_OFFSET_TYPE is not defined it defaults to int.
- * uint16_t can handle up to a 65535 byte file system.            */
+ * uint16_t can handle up to a 65535 byte file system.
+ */
 #define coffee_page_t uint8_t
 #define CFS_CONF_OFFSET_TYPE uint16_t
 
@@ -120,6 +158,12 @@ void avr_eeprom_erase(uint16_t sector);
 void avr_flash_erase(coffee_page_t sector);
 void avr_flash_read (CFS_CONF_OFFSET_TYPE addr, uint8_t *buf, CFS_CONF_OFFSET_TYPE size);
 void avr_flash_write(CFS_CONF_OFFSET_TYPE addr, uint8_t *buf, CFS_CONF_OFFSET_TYPE size);
+
+#define avr_httpd_fs_cpy(dest,addr,size) avr_flash_read((CFS_CONF_OFFSET_TYPE) addr, (uint8_t *)dest, (CFS_CONF_OFFSET_TYPE) size)
+char    avr_httpd_fs_getchar(char *addr);
+char *  avr_httpd_fs_strchr (char *ram, int character);
+int     avr_httpd_fs_strcmp (char *addr,char *ram);
+
 
 #endif /* COFFEE_AVR_FLASH */
 

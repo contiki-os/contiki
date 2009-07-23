@@ -30,14 +30,13 @@
  * 
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: httpd-fs.c,v 1.2 2009/06/19 17:11:28 dak664 Exp $
+ * $Id: httpd-fs.c,v 1.3 2009/07/23 16:16:07 dak664 Exp $
  */
 
 #include "contiki-net.h"
 #include "httpd.h"
 #include "httpd-fs.h"
 #include "httpd-fsdata.h"
-
 #include "httpd-fsdata.c" 
 
 #if HTTPD_FS_STATISTICS==2
@@ -46,11 +45,18 @@ u16_t httpd_filecount[HTTPD_FS_NUMFILES];
 
 /*-----------------------------------------------------------------------------------*/
 void *
-httpd_get_root()
+httpd_fs_get_root()
 {
   return (void *)HTTPD_FS_ROOT;
 }
 /*-----------------------------------------------------------------------------------*/
+u16_t
+httpd_fs_get_size()
+{
+  return HTTPD_FS_SIZE;
+}
+/*-----------------------------------------------------------------------------------*/
+
 u16_t
 httpd_fs_open(const char *name, struct httpd_fs_file *file)
 {
@@ -62,24 +68,28 @@ httpd_fs_open(const char *name, struct httpd_fs_file *file)
   for(f = (struct httpd_fsdata_file_noconst *)HTTPD_FS_ROOT;
       f != NULL;
       f = (struct httpd_fsdata_file_noconst *)fram.next) {
+
+    /*Get the linked list entry into ram from program flash */
     memcpy_P(&fram,f,sizeof(fram));
-    if(strcmp_P(name, fram.name) == 0) {
+
+    /*Compare name passed in RAM with name in whatever flash the file is in */
+    if(httpd_fs_strcmp((char *)name, fram.name) == 0) {
       if (file) {
         file->data = fram.data;
         file->len  = fram.len;
-#if HTTPD_FS_STATISTICS==1
+#if HTTPD_FS_STATISTICS==1          //increment count in linked list field if it is in RAM
         f->count++;
       }
       return f->count;
     }
     ++i
-#elif HTTPD_FS_STATISTICS==2
+#elif HTTPD_FS_STATISTICS==2       //increment count in RAM array when linked list is in flash
         ++httpd_filecount[i];
       }
       return httpd_filecount[i];
     }
     ++i;
-#else
+#else                              //no file statistics
       }
       return 1;
     }

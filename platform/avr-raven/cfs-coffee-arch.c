@@ -42,6 +42,7 @@
 #include <avr/boot.h>
 #include <avr/interrupt.h>
 #include <avr/pgmspace.h>
+#include <string.h>
 
 #include "cfs-coffee-arch.h"
 
@@ -53,7 +54,7 @@
 #define PRINTF(...)
 #endif
 
-#define TESTCOFFEE 1
+#define TESTCOFFEE 0
 #if TESTCOFFEE
 
 #include "cfs/cfs.h"
@@ -61,7 +62,6 @@
 #include "lib/crc16.h"
 #include "lib/random.h"
 #include <stdio.h>
-#include <string.h>
 
 #define FAIL(x) error = (x); goto end;
 
@@ -325,6 +325,7 @@ void
 avr_flash_read(CFS_CONF_OFFSET_TYPE addr, uint8_t *buf, CFS_CONF_OFFSET_TYPE size)
 {
   uint32_t addr32=COFFEE_START+addr;
+  uint16_t isize=size;
 #if DEBUG
   unsigned char *bufo=(unsigned char *)buf;
   uint8_t i;
@@ -332,7 +333,7 @@ avr_flash_read(CFS_CONF_OFFSET_TYPE addr, uint8_t *buf, CFS_CONF_OFFSET_TYPE siz
   PRINTF("r0x%04x(%u) ",w,size);
 #endif
 #ifndef FLASH_WORD_READS
-  for (;size>0;size--) {
+  for (;isize>0;isize--) {
 #if FLASH_COMPLEMENT_DATA
     *buf++=~(uint8_t)pgm_read_byte_far(addr32++);
 #else
@@ -341,25 +342,24 @@ avr_flash_read(CFS_CONF_OFFSET_TYPE addr, uint8_t *buf, CFS_CONF_OFFSET_TYPE siz
   }
 #else
 /* 130 bytes more PROGMEM, but faster */
-  if (size&0x01) {       //handle first odd byte
+  if (isize&0x01) {       //handle first odd byte
 #if FLASH_COMPLEMENT_DATA
     *buf++=~(uint8_t)pgm_read_byte_far(addr32++);
 #else
     *buf++=(uint8_t)pgm_read_byte_far(addr32++);
 #endif /*FLASH_COMPLEMENT_DATA*/
-     size--;
+     isize--;
   }
-  for (;size>1;size-=2) {//read words from flash
+  for (;isize>1;isize-=2) {//read words from flash
 #if FLASH_COMPLEMENT_DATA
    *(uint16_t *)buf=~(uint16_t)pgm_read_word_far(addr32);
 #else
    *(uint16_t *)buf=(uint16_t)pgm_read_word_far(addr32);
 #endif /*FLASH_COMPLEMENT_DATA*/
-
     buf+=2;
     addr32+=2;
   }
-  if (size) {            //handle last odd byte
+  if (isize) {            //handle last odd byte
 #if FLASH_COMPLEMENT_DATA
     *buf++=~(uint8_t)pgm_read_byte_far(addr32);
 #else
@@ -370,7 +370,8 @@ avr_flash_read(CFS_CONF_OFFSET_TYPE addr, uint8_t *buf, CFS_CONF_OFFSET_TYPE siz
 
 #if DEBUG>1
   PRINTF("\nbuf=");
-  for (i=0;i<16;i++) PRINTF("%2x ",*bufo++);
+//  PRINTF("%s",bufo);
+// for (i=0;i<16;i++) PRINTF("%2x ",*bufo++);
 #endif
 }
 /*---------------------------------------------------------------------------*/
@@ -392,7 +393,7 @@ avr_flash_erase(coffee_page_t sector)
  * Note this routine will be reentered during the test!                     */
 
   if ((sector+i)==COFFEE_PAGES-1) {
-    unsigned int j=COFFEE_START>>1,k=(COFFEE_START+COFFEE_SIZE)>>1,l=COFFEE_SIZE/1024UL;
+    int j=(int)(COFFEE_START>>1),k=(int)((COFFEE_START>>1)+(COFFEE_SIZE>>1)),l=(int)(COFFEE_SIZE/1024UL);
     printf_P(PSTR("\nTesting coffee filesystem [0x%08x -> 0x%08x (%uKb)] ..."),j,k,l);
     int r= coffee_file_test();
     if (r<0) {
@@ -401,8 +402,49 @@ avr_flash_erase(coffee_page_t sector)
       printf_P(PSTR("Passed! :-)\n"));
     }
   }
-#endif
+#endif /* TESTCOFFEE */
 }
+
+/*httpd-fs routines
+  getchar is straigtforward.
+  strcmp only needs to handle file names for fs_open. Note filename in buf will not be zero terminated
+    if it fills the coffee name field, so a pseudo strcmp is done here.
+  strchr searches for script starts so must handle arbitrarily large strings
+ */
+char avr_httpd_fs_getchar(char *addr) {
+  char r;
+  avr_flash_read((CFS_CONF_OFFSET_TYPE) addr, (uint8_t*) &r, 1);
+  return r;
+}
+int avr_httpd_fs_strcmp (char *ram, char *addr) {
+  uint8_t i,*in,buf[32];
+  avr_flash_read((CFS_CONF_OFFSET_TYPE)addr, buf, sizeof(buf));
+//return strcmp(ram, (char *)buf);
+  in=(uint8_t *)ram;
+  for (i=0;i<32;i++) {
+    if (buf[i]==0) return(0);
+    if (buf[i]!=*in) break;
+    in++;
+  }
+/* A proper strcmp would return a + or minus number based on the last comparison*/
+//if (buf[i]>*in) return(i); else return(-i);
+  return(i);
+}
+char * avr_httpd_fs_strchr (char *addr, int character) {
+  char buf[129],*pptr;
+  buf[128]=character;
+  while (1) {
+    avr_flash_read((CFS_CONF_OFFSET_TYPE)addr, (uint8_t *) buf, 128);
+    pptr=strchr(buf, character);
+    if (pptr!=&buf[128]) {
+      if (pptr==0) return 0;
+      return (addr+(pptr-buf));
+   }
+    addr+=128;
+  }
+
+}
+
 /*---------------------------------------------------------------------------*/
 /*
  * Transfer buf[size] from RAM to flash, starting at addr.
@@ -415,7 +457,7 @@ void
 avr_flash_write(CFS_CONF_OFFSET_TYPE addr, uint8_t *buf, CFS_CONF_OFFSET_TYPE size)
 {
   uint32_t addr32;
-  uint16_t w,startpage;
+  uint16_t w;
   uint8_t  bb,ba,sreg;
  
   /* Disable interrupts, make sure no eeprom write in progress */
@@ -426,18 +468,22 @@ avr_flash_write(CFS_CONF_OFFSET_TYPE addr, uint8_t *buf, CFS_CONF_OFFSET_TYPE si
   /* Calculate the starting address of the first flash page being
     modified (will be on a page boundary) and the number of
     unaltered bytes before and after the data to be written.          */
-
-  startpage=addr/COFFEE_PAGE_SIZE;
+#if 0    //this is 8 bytes longer
+  uint16_t startpage=addr/COFFEE_PAGE_SIZE;
   addr32=COFFEE_START+startpage*COFFEE_PAGE_SIZE;
+#else
+  addr32=COFFEE_START+(addr&~(COFFEE_PAGE_SIZE-1));
+#endif
   bb=addr&0xff;
   ba=2*SPM_PAGESIZE-((addr+size)&0xff); 
   
 #if DEBUG
+  uint16_t startpage=addr/COFFEE_PAGE_SIZE;
   w=addr32>>1;   //Show progmem word address for debug
   if (buf) {
     PRINTF("w0x%04x %u %u %u",w,size,bb,ba);
   } else {
-    PRINTF("e0x%04x %u ",w,thepage);
+    PRINTF("e0x%04x %u ",w,startpage);
   }
 #endif
 

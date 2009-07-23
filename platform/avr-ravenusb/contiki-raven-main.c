@@ -65,16 +65,22 @@
 #include "rndis/rndis_task.h"
 #include "storage/storage_task.h"
 
-FUSES = 
-	{
-		.low = 0xde,
-		.high = 0x99,
-		.extended = 0xff,
-	};
+/*----------------------Configuration of the .elf file---------------------*/
+typedef struct {unsigned char B2;unsigned char B1;unsigned char B0;} __signature_t;
+#define SIGNATURE __signature_t __signature __attribute__((section (".signature")))
+SIGNATURE = {
+/* Older AVR-GCCs may not define the SIGNATURE_n bytes so use explicit values */
+  .B2 = 0x82,//SIGNATURE_2, //AT90USB128x
+  .B1 = 0x97,//SIGNATURE_1, //128KB flash
+  .B0 = 0x1E,//SIGNATURE_0, //Atmel
+};
+FUSES ={.low = 0xde, .high = 0x99, .extended = 0xff,};
 
 /* Put default MAC address in EEPROM */
 uint8_t mac_address[8] EEMEM = {0x02, 0x12, 0x13, 0xff, 0xfe, 0x14, 0x15, 0x16};
-
+//uint8_t EEMEM mac_address[8];     //The raven webserver uses this EEMEM allocation
+//uint8_t EEMEM server_name[16];
+//uint8_t EEMEM domain_name[30];
 
 PROCINIT(&etimer_process, &mac_process);
 
