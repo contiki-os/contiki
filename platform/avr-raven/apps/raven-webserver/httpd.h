@@ -28,7 +28,7 @@
  *
  * This file is part of the uIP TCP/IP stack.
  *
- * $Id: httpd.h,v 1.3 2009/07/23 16:16:07 dak664 Exp $
+ * $Id: httpd.h,v 1.4 2009/07/24 15:41:52 dak664 Exp $
  *
  */
 
@@ -37,7 +37,8 @@
 
 
 #include "contiki-net.h"
-#include "httpd-fs.h"
+#include "httpd-fs.h" 
+#include "lib/petsciiconv.h"
 
 struct httpd_state {
   unsigned char timer;
@@ -55,7 +56,37 @@ struct httpd_state {
     void *ptr;
   } u;
 };
+/* httpd string storage is in RAM by default. Other storage can be defined here */
+#define HTTPD_STRING_TYPE PROGMEM_TYPE
+#define PROGMEM_TYPE 1
+#define EEPROM_TYPE 2
 
+#if HTTPD_STRING_TYPE==PROGMEM_TYPE
+#define HTTPD_STRING_ATTR PROGMEM
+/* These will fail if the server strings are above 64K in program flash */
+#define httpd_memcpy       memcpy_P
+#define httpd_strcpy       strcpy_P
+#define httpd_strcmp       strcmp_P
+#define httpd_strncmp      strncmp_P
+#define httpd_strlen       strlen_P
+#define httpd_snprintf     snprintf_P
+#elif HTTPD_STRING_TYPE==EEPROM_TYPE
+#define HTTPD_STRING_ATTR EEPROM
+/* These are not implemented as yet */
+#define httpd_memcpy       memcpy_E
+#define httpd_strcpy       strcpy_E
+#define httpd_strcmp       strcmp_E
+#define httpd_strncmp      strncmp_E
+#define httpd_strlen       strlen_E
+#define httpd_snprintf     snprintf_E
+#else
+#define httpd_memcpy       memcpy
+#define httpd_strcpy       strcpy
+#define httpd_strcmp       strcmp
+#define httpd_strncmp      strncmp
+#define httpd_strlen       strlen
+#define httpd_snprintf     snprintf
+#endif
 
 void httpd_init(void);
 void httpd_appcall(void *state);
