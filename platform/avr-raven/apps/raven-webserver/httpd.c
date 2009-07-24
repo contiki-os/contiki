@@ -30,7 +30,7 @@
  *
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: httpd.c,v 1.3 2009/07/23 16:16:07 dak664 Exp $
+ * $Id: httpd.c,v 1.4 2009/07/24 15:41:52 dak664 Exp $
  */
 
 #include <string.h>
@@ -41,8 +41,7 @@
 #include "httpd-fs.h"
 #include "httpd-cgi.h"
 #include "httpd.h"
-//#include "lib/petsciiconv.h"
-#define petsciiconv_topetscii(...)
+
 //#include "http-strings.h"
 #if COFFEE_FILES
 #include "cfs-coffee-arch.h"
@@ -51,7 +50,7 @@
 /* DEBUGLOGIC is a convenient way to debug in a simulator without a tcp/ip connection.
  * Break the program in the process loop and step from the entry in httpd_appcall.
  * The input file is forced to /index.html and the output directed to TCPBUF.
- * If cgi's are invoked define it in httpd-cgi.c as well.
+ * If cgi's are invoked define it in httpd-cgi.c as well!
  * psock_generator_send in /core/net/psock.c must also be modified as follows:
  * ...
  * // Wait until all data is sent and acknowledged.
@@ -69,7 +68,11 @@ char TCPBUF[512];
 #endif
 #if DEBUG
 #include <stdio.h>
+#if HTTPD_STRING_TYPE==PROGMEM_TYPE
 #define PRINTF(FORMAT,args...) printf_P(PSTR(FORMAT),##args)
+#else
+#define PRINTF printf
+#endif
 #else
 #define PRINTF(...)
 #endif
@@ -259,7 +262,7 @@ PT_THREAD(handle_script(struct httpd_state *s))
           s->len = uip_mss();
         }
       }
-      PRINTF("httpd: Sending %u bytes from 0x%04x\n",s->file.len,s->file.data);
+      PRINTF("httpd: Sending %u bytes from 0x%04x\n",s->file.len,(unsigned int)s->file.data);
       PT_WAIT_THREAD(&s->scriptpt, send_part_of_file(s));
       s->file.data += s->len;
       s->file.len  -= s->len;
@@ -269,29 +272,33 @@ PT_THREAD(handle_script(struct httpd_state *s))
   PT_END(&s->scriptpt);
 }
 /*---------------------------------------------------------------------------*/
+const char httpd_http[]     HTTPD_STRING_ATTR = "HTTP/1.0 ";
+const char httpd_server[]   HTTPD_STRING_ATTR = "\r\nServer: Contiki/2.0 http://www.sics.se/contiki/\r\nConnection: close\r\n";
 static unsigned short
-generate_status_P(void *pstr)
+generate_status(void *sstr)
 {
-  uint8_t slen=strlen_P(pstr);
-  memcpy_P(uip_appdata, PSTR("HTTP/1.0 "), 9);
-  memcpy_P(uip_appdata+9, pstr, slen);
-  slen+=9;
-  memcpy_P(uip_appdata+slen, PSTR("\r\nServer: Contiki/2.0 http://www.sics.se/contiki/\r\nConnection: close\r\n"), 70);
+  uint8_t slen=httpd_strlen((char *)sstr);
+  httpd_memcpy(uip_appdata, httpd_http, sizeof(httpd_http)-1);
+  httpd_memcpy(uip_appdata+sizeof(httpd_http)-1, (char *)sstr, slen);
+  slen+=sizeof(httpd_http)-1;
+  httpd_memcpy(uip_appdata+slen, httpd_server, sizeof(httpd_server)-1);
 #if DEBUGLOGIC
   return 0;
 #else
-  return slen+70;
+  return slen+sizeof(httpd_server)-1;
 #endif
 }
 /*---------------------------------------------------------------------------*/
+const char httpd_content[]  HTTPD_STRING_ATTR = "Content-type: ";
+const char httpd_crlf[]     HTTPD_STRING_ATTR = "\r\n\r\n";
 static unsigned short
-generate_header_P(void *pstr)
+generate_header(void *hstr)
 {
-  uint8_t slen=strlen_P(pstr);
-  memcpy_P(uip_appdata,PSTR("Content-type: "),14); 
-  memcpy_P(uip_appdata+14, pstr, slen);
-  slen+=14;
-  memcpy_P(uip_appdata+slen,PSTR("\r\n\r\n"),4);
+  uint8_t slen=httpd_strlen((char *)hstr);
+  httpd_memcpy(uip_appdata,httpd_content,sizeof(httpd_content)-1); 
+  httpd_memcpy(uip_appdata+sizeof(httpd_content)-1, (char *)hstr, slen);
+  slen+=sizeof(httpd_content)-1;
+  httpd_memcpy(uip_appdata+slen,httpd_crlf,sizeof(httpd_crlf)-1);
 #if DEBUGLOGIC
   return 0;
 #else
@@ -299,49 +306,54 @@ generate_header_P(void *pstr)
 #endif
 }
 /*---------------------------------------------------------------------------*/
-
 char http_htm[10]   PROGMEM ="text/html";
 char http_css[ 9]   PROGMEM ="text/css";
-char http_png[10]   PROGMEM ="image/png";
-char http_gif[10]   PROGMEM ="image/gif";
-char http_jpg[11]   PROGMEM ="image/jpeg";
-char http_txt[11]   PROGMEM ="text/plain";
-char http_shtml[ 6] PROGMEM =".shtml";
-char index_html[12] PROGMEM ="/index.html";
+const char httpd_mime_htm[] HTTPD_STRING_ATTR = "text/html";
+const char httpd_mime_css[] HTTPD_STRING_ATTR = "text/css";
+const char httpd_mime_png[] HTTPD_STRING_ATTR = "image/png";
+const char httpd_mime_gif[] HTTPD_STRING_ATTR = "image/gif";
+const char httpd_mime_jpg[] HTTPD_STRING_ATTR = "image/jpeg";
+const char httpd_mime_txt[] HTTPD_STRING_ATTR = "text/plain";
+const char httpd_mime_bin[] HTTPD_STRING_ATTR = "application/octet-stream";
+const char httpd_jpg     [] HTTPD_STRING_ATTR = "jpg";
+const char httpd_shtml   [] HTTPD_STRING_ATTR = ".shtml";
 
 static
-PT_THREAD(send_headers(struct httpd_state *s, char *statushdr))
+PT_THREAD(send_headers(struct httpd_state *s, const char *statushdr))
 {
   char *ptr;
   PSOCK_BEGIN(&s->sout);
 
-  PSOCK_GENERATOR_SEND(&s->sout,generate_status_P,statushdr);
+  PSOCK_GENERATOR_SEND(&s->sout, generate_status, (char *)statushdr);
 
   ptr = strrchr(s->filename, ISO_period);
-
-  if (pgm_read_byte_near(statushdr)=='4') {
-      PSOCK_GENERATOR_SEND(&s->sout, generate_header_P, http_htm);
+  if (httpd_strncmp("4", statushdr, 1)==0) {
+      PSOCK_GENERATOR_SEND(&s->sout, generate_header, &httpd_mime_htm  );
   } else if(ptr == NULL) {
-      PSOCK_GENERATOR_SEND(&s->sout, generate_header_P,PSTR("application/octet-stream"));
+      PSOCK_GENERATOR_SEND(&s->sout, generate_header, &httpd_mime_bin );
   } else {
     ptr++;
-    if(strncmp_P(ptr, &http_htm[5],3)== 0 ||strncmp_P(ptr, &http_shtml[1], 4) == 0) {
-      PSOCK_GENERATOR_SEND(&s->sout, generate_header_P, http_htm );
-    } else if(strcmp_P(ptr, &http_css[5]) == 0) {
-      PSOCK_GENERATOR_SEND(&s->sout, generate_header_P, http_css );
-    } else if(strcmp_P(ptr, &http_png[6]) == 0) {
-      PSOCK_GENERATOR_SEND(&s->sout, generate_header_P, http_png );
-    } else if(strcmp_P(ptr, &http_gif[6])== 0) {
-      PSOCK_GENERATOR_SEND(&s->sout, generate_header_P, http_gif );
-    } else if(strcmp_P(ptr, PSTR("jpg")) == 0) {
-      PSOCK_GENERATOR_SEND(&s->sout, generate_header_P, http_jpg );
+    if(httpd_strncmp(ptr, &httpd_mime_htm[5],3)== 0 ||httpd_strncmp(ptr, &httpd_shtml[1], 4) == 0) {
+      PSOCK_GENERATOR_SEND(&s->sout, generate_header, &httpd_mime_htm );
+    } else if(httpd_strcmp(ptr, &httpd_mime_css[5]) == 0) {
+      PSOCK_GENERATOR_SEND(&s->sout, generate_header, &httpd_mime_css );
+    } else if(httpd_strcmp(ptr, &httpd_mime_png[6]) == 0) {
+      PSOCK_GENERATOR_SEND(&s->sout, generate_header, &httpd_mime_png );
+    } else if(httpd_strcmp(ptr, &httpd_mime_gif[6])== 0) {
+      PSOCK_GENERATOR_SEND(&s->sout, generate_header, &httpd_mime_gif );
+    } else if(httpd_strcmp(ptr, httpd_mime_jpg) == 0) {
+      PSOCK_GENERATOR_SEND(&s->sout, generate_header, &httpd_mime_jpg );
     } else {
-      PSOCK_GENERATOR_SEND(&s->sout, generate_header_P, http_txt);
+      PSOCK_GENERATOR_SEND(&s->sout, generate_header, &httpd_mime_txt);
     }
   }
   PSOCK_END(&s->sout);
 }
 /*---------------------------------------------------------------------------*/
+const char httpd_indexfn [] HTTPD_STRING_ATTR = "/index.html";
+const char httpd_404fn   [] HTTPD_STRING_ATTR = "/404.html";
+const char httpd_404notf [] HTTPD_STRING_ATTR = "404 Not found";
+const char httpd_200ok   [] HTTPD_STRING_ATTR = "200 OK";
 static
 PT_THREAD(handle_output(struct httpd_state *s))
 {
@@ -349,17 +361,17 @@ PT_THREAD(handle_output(struct httpd_state *s))
   
   PT_BEGIN(&s->outputpt);
 #if DEBUGLOGIC
-   strcpy(s->filename,"/index.html");
+   httpd_strcpy(s->filename,httpd_indexfn);
 #endif
   if(!httpd_fs_open(s->filename, &s->file)) {
-    strcpy_P(s->filename, PSTR("/404.html"));
+    httpd_strcpy(s->filename, httpd_404fn);
     httpd_fs_open(s->filename, &s->file);
-    PT_WAIT_THREAD(&s->outputpt, send_headers(s, PSTR("404 Not found")));
+    PT_WAIT_THREAD(&s->outputpt, send_headers(s, httpd_404notf));
     PT_WAIT_THREAD(&s->outputpt, send_file(s));
   } else {
-    PT_WAIT_THREAD(&s->outputpt, send_headers(s, PSTR("200 OK")));
+    PT_WAIT_THREAD(&s->outputpt, send_headers(s, httpd_200ok));
     ptr = strchr(s->filename, ISO_period);
-    if((ptr != NULL && strncmp_P(ptr, http_shtml, 6) == 0) || strcmp_P(s->filename,index_html)==0) {
+    if((ptr != NULL && httpd_strncmp(ptr, httpd_shtml, 6) == 0) || httpd_strcmp(s->filename,httpd_indexfn)==0) {
       PT_INIT(&s->scriptpt);
       PT_WAIT_THREAD(&s->outputpt, handle_script(s));
     } else {
@@ -370,8 +382,8 @@ PT_THREAD(handle_output(struct httpd_state *s))
   PT_END(&s->outputpt);
 }
 /*---------------------------------------------------------------------------*/
-char http_get[4] PROGMEM ="GET ";
-char http_ref[8] PROGMEM ="Referer:";
+const char httpd_get[] HTTPD_STRING_ATTR = "GET ";
+const char httpd_ref[] HTTPD_STRING_ATTR = "Referer:";
 static
 PT_THREAD(handle_input(struct httpd_state *s))
 {
@@ -380,7 +392,7 @@ PT_THREAD(handle_input(struct httpd_state *s))
 
   PSOCK_READTO(&s->sin, ISO_space);
 
-  if(strncmp_P(s->inputbuf, http_get, 4) != 0) {
+  if(httpd_strncmp(s->inputbuf, httpd_get, 4) != 0) {
     PSOCK_CLOSE_EXIT(&s->sin);
   }
   PSOCK_READTO(&s->sin, ISO_space);
@@ -390,7 +402,7 @@ PT_THREAD(handle_input(struct httpd_state *s))
   }
 
   if(s->inputbuf[1] == ISO_space) {
-    strcpy_P(s->filename, index_html);
+    httpd_strcpy(s->filename, httpd_indexfn);
   } else {
     s->inputbuf[PSOCK_DATALEN(&s->sin) - 1] = 0;
     strncpy(s->filename, &s->inputbuf[0], sizeof(s->filename));
@@ -403,7 +415,7 @@ PT_THREAD(handle_input(struct httpd_state *s))
   while(1) {
     PSOCK_READTO(&s->sin, ISO_nl);
 
-    if(strncmp_P(s->inputbuf, http_ref, 8) == 0) {
+    if(httpd_strncmp(s->inputbuf, httpd_ref, 8) == 0) {
       s->inputbuf[PSOCK_DATALEN(&s->sin) - 2] = 0;
       petsciiconv_topetscii(s->inputbuf, PSOCK_DATALEN(&s->sin) - 2);
       webserver_log(s->inputbuf);

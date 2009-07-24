@@ -30,7 +30,7 @@
  * 
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: httpd-fs.c,v 1.3 2009/07/23 16:16:07 dak664 Exp $
+ * $Id: httpd-fs.c,v 1.4 2009/07/24 15:41:52 dak664 Exp $
  */
 
 #include "contiki-net.h"
@@ -69,8 +69,8 @@ httpd_fs_open(const char *name, struct httpd_fs_file *file)
       f != NULL;
       f = (struct httpd_fsdata_file_noconst *)fram.next) {
 
-    /*Get the linked list entry into ram from program flash */
-    memcpy_P(&fram,f,sizeof(fram));
+    /*Get the linked list entry into ram from wherever it is */
+    httpd_memcpy(&fram,f,sizeof(fram));
 
     /*Compare name passed in RAM with name in whatever flash the file is in */
     if(httpd_fs_strcmp((char *)name, fram.name) == 0) {
@@ -121,8 +121,8 @@ httpd_fs_count(char *name)
   for(f = (struct httpd_fsdata_file_noconst *)HTTPD_FS_ROOT;
       f != NULL;
       f = (struct httpd_fsdata_file_noconst *)fram.next) {
-    memcpy_P(&fram,f,sizeof(fram));
-    if(strcmp_P(name, fram.name) == 0) {
+    httpd_memcpy(&fram,f,sizeof(fram));
+    if(httpd_strcmp(name, fram.name) == 0) {
 #if HTTPD_FS_STATISTICS==1
       return f->count;
 #elif HTTPD_FS_STATISTICS==2
