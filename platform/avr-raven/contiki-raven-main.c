@@ -52,19 +52,18 @@ extern int rf230_interrupt_flag;
 #include "loader/symtab.h"
 
 #ifdef RF230BB        //radio driver using contiki core mac
-#include "rf230bb.h"
+#include "radio/rf230bb/rf230bb.h"
 #include "net/mac/frame802154.h"
 #include "net/sicslowpan.h"
 #include "net/uip-netif.h"
-//#include "net/mac/sicslowmac.h"
+#include "net/mac/sicslowmac.h"
 #else                 //radio driver using Atmel/Cisco 802.15.4'ish MAC
 #include <stdbool.h>
 #include "mac.h"
-//#include "sicslowmac.h"
+#include "sicslowmac.h"
 #include "sicslowpan.h"
 #include "ieee-15-4-manager.h"
 #endif /*RF230BB*/
-#include "sicslowmac.h"
 
 #include "contiki.h"
 #include "contiki-net.h"
@@ -78,7 +77,10 @@ extern int rf230_interrupt_flag;
 #include "raven-lcd.h"
 #endif
 
+#if WEBSERVER
 #include "httpd-fs.h"
+#endif
+
 #ifdef COFFEE_FILES
 #include "cfs/cfs.h"
 #include "cfs/cfs-coffee.h"
@@ -87,7 +89,8 @@ extern int rf230_interrupt_flag;
 #if UIP_CONF_ROUTER
 #include "net/routing/rimeroute.h"
 #include "net/rime/rime-udp.h"
-#endif /* UIP_CONF_ROUTER*/
+#endif
+
 #include "net/rime.h"
 //#include "node-id.h"
 
@@ -104,10 +107,13 @@ SIGNATURE = {
 FUSES ={.low = 0xe2, .high = 0x99, .extended = 0xff,};
 
 /* Put default MAC address in EEPROM */
-//uint8_t mac_address[8] EEMEM = {0x02, 0x11, 0x22, 0xff, 0xfe, 0x33, 0x44, 0x55};
+#if WEBSERVER
 extern uint8_t mac_address[8];     //These are defined in httpd-fsdata.c via makefsdata.h 
 extern uint8_t server_name[16];
 extern uint8_t domain_name[30];
+#else
+uint8_t mac_address[8] EEMEM = {0x02, 0x11, 0x22, 0xff, 0xfe, 0x33, 0x44, 0x55};
+#endif
 
 /*-----------------------Initial contiki processes--------------------------*/
 #ifdef RAVEN_LCD_INTERFACE
@@ -119,8 +125,10 @@ PROCINIT(&etimer_process, &mac_process, &tcpip_process, &raven_lcd_process);
 #else
 #ifdef RF230BB
 PROCINIT(&etimer_process, &tcpip_process);
-#else
+#elif WEBSERVER    //TODO:get hello-world to compile with ipv6
 PROCINIT(&etimer_process, &mac_process, &tcpip_process);
+#else
+PROCINIT(&etimer_process);
 #endif /*RF230BB*/
 #endif /*RAVEN_LCD_INTERFACE*/
 
@@ -128,8 +136,6 @@ PROCINIT(&etimer_process, &mac_process, &tcpip_process);
 /*------Done in a subroutine to keep main routine stack usage small--------*/
 void initialize(void)
 {
-  char buf[80];
-  unsigned int size;
   //calibrate_rc_osc_32k(); //CO: Had to comment this out
 
 #ifdef RAVEN_LCD_INTERFACE
@@ -215,6 +221,9 @@ void initialize(void)
 #endif
 
 /*--------------------------Announce the configuration---------------------*/
+#if WEBSERVER
+  char buf[80];
+  unsigned int size;
    eeprom_read_block (buf,server_name, sizeof(server_name));
    buf[sizeof(server_name)]=0;
    printf_P(PSTR("%s"),buf);
@@ -232,6 +241,9 @@ void initialize(void)
 #elif COFFEE_FILES==4
    printf_P(PSTR(".%s online with dynamic %u KB program memory file system\n"),buf,size>>10);
 #endif
+#else
+   printf_P(PSTR("Online\n"));
+#endif /* WEBSERVER */
 }
 /*-------------------------------------------------------------------------*/
 /*------------------------- Main Scheduler loop----------------------------*/
