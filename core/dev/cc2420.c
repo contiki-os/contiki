@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: cc2420.c,v 1.30 2009/04/29 11:38:50 adamdunkels Exp $
+ * @(#)$Id: cc2420.c,v 1.31 2009/07/28 22:24:53 joxe Exp $
  */
 /*
  * This code is almost device independent and should be easy to port.
@@ -69,6 +69,10 @@
 #ifndef CC2420_CONF_CHECKSUM
 #define CC2420_CONF_CHECKSUM 0
 #endif /* CC2420_CONF_CHECKSUM */
+
+#ifndef CC2420_CONF_AUTOACK
+#define CC2420_CONF_AUTOACK 0
+#endif /* CC2420_CONF_AUTOACK */
 
 #if CC2420_CONF_CHECKSUM
 #include "lib/crc16.h"
@@ -273,14 +277,13 @@ cc2420_init(void)
   /* Turn on the crystal oscillator. */
   strobe(CC2420_SXOSCON);
 
-  /* Turn off automatic packet acknowledgment. */
+  /* Turn on/off automatic packet acknowledgment and address decoding. */
   reg = getreg(CC2420_MDMCTRL0);
-  reg &= ~AUTOACK;
-  setreg(CC2420_MDMCTRL0, reg);
-
-  /* Turn off address decoding. */
-  reg = getreg(CC2420_MDMCTRL0);
-  reg &= ~ADR_DECODE;
+#if CC2420_CONF_AUTOACK
+  reg |= AUTOACK | ADR_DECODE;
+#else
+  reg &= ~(AUTOACK | ADR_DECODE);
+#endif /* CC2420_CONF_AUTOACK */
   setreg(CC2420_MDMCTRL0, reg);
 
   /* Change default values as recomended in the data sheet, */
@@ -512,7 +515,12 @@ cc2420_set_pan_addr(unsigned pan,
   FASTSPI_WRITE_RAM_LE(&pan, CC2420RAM_PANID, 2, f);
   FASTSPI_WRITE_RAM_LE(&addr, CC2420RAM_SHORTADDR, 2, f);
   if(ieee_addr != NULL) {
-    FASTSPI_WRITE_RAM_LE(ieee_addr, CC2420RAM_IEEEADDR, 8, f);
+    uint8_t addr[8];
+    /* LSB first, MSB last for 802.15.4 addresses in CC2420 */
+    for (f = 0; f < 8; f++) {
+      addr[7 - f] = ieee_addr[f];
+    }
+    FASTSPI_WRITE_RAM_LE(addr, CC2420RAM_IEEEADDR, 8, f);
   }
 }
 /*---------------------------------------------------------------------------*/
