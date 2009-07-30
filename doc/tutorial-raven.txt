@@ -101,7 +101,7 @@ The binaries needed are:
 To compile each of them, type in Cygwin:
 \verbatim
 cd c:/contiki/examples/webserver-ipv6-raven
-make TARGET=avr-raven webserver6.elf
+make
 \endverbatim
 \verbatim
 cd c:/contiki/platform/avr-ravenlcd
