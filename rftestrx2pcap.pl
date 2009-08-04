@@ -53,28 +53,32 @@ while(1) {
     if (defined($count) && ($count != 0)) {
 	$str .= $c;
 	# match if ends in \n or \r and process line
-	if(($str =~ /\n\r$/) ||
-	   ($str =~ /\r\n$/)) {
+	if(($str =~ /\n$/) ||
+	   ($str =~ /\r$/)) {
 	    if($str =~ /^rftest/) {
 		#new packet
 		($sec, $usec) = gettimeofday;
-#		print "rftestline: $sec $usec $str\n\r";		
+		print STDERR "rftestline: $sec $usec $str";		
 	    } elsif($str =~ /^\s*data/) {
 		#packet payload
+		print STDERR "dataline: ";		
+		print STDERR $str;
 		$str =~ /data: 0x\d+ (.+)/;
 		my @data = split(' ',$1);
-#		print "dataline: ";		
 		($len, @data) = @data;
-#		print "\n\r"; 
 		#write out pcap entry
 		print pack('LLLL',($sec,$usec,scalar(@data),scalar(@data)+2));
+		print STDERR "new packet: $sec $usec " . scalar(@data) . " " . (scalar(@data)+2) . "\n\r";
 		@frame = @data[0,1];
-		print pack ('CC',($frame[1],$frame[0]));
+		print pack ('CC',(hex($frame[0]),hex($frame[1])));
+		print STDERR "$frame[0] $frame[1] ";
 		foreach my $data (@data[2..scalar(@data)-1]) {
 		    print pack ('C',hex($data));
+		    print STDERR "$data ";
 		}		
+		print STDERR "\n\r";
 	    }
-
+	    print STDERR "\n\r"; 
 	    $str = '';
 	}
     }

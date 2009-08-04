@@ -10,21 +10,21 @@ use CGI qw/:standard/;
 # paths
 my $meshpath = "/home/malvira/work";
 my $wwwpath = "/var/www";
-my $hostname = "localhost";
+my $hostname = "hotdog.redwirellc.com";
 
 # aliases
 my %aliases = ( 
     "2.0" => { 
 	alias  =>  "Lower Door",
 	ds=> {
-	    "GPIO29" => "Lock",
+	    "GPIO29" => "Lock (0 - locked, 1 - unlocked)",
 	},
     },
     "4.0" => { 
 	alias  =>  "Upper Door",
     },
     "1.0" => { 
-	alias  =>  "Sink (Hotdog)",
+	alias  =>  "Hotdog (datasink)",
     },
     );
 			 
@@ -42,13 +42,17 @@ foreach my $file (@files) {
     print h1("$addr: $aliases{$addr}{'alias'}");
     my @info = split(/\n/,qx(rrdtool info $meshpath/$addr.rrd));
 
-    my %ds;
+    my %dses;
     foreach my $info (@info) {
-	next if $info !~ /ds\[([\w\d]+)\]/;
-	$ds{$1}++;
+	next if $info !~ /ds\[([\w\d]+)\]\.([\w\d_]+)\s+=\s+([\w\d]+)/;
+	$dses{$1}{$2} = $3;
     }
+
+    my $lastupdate = qx(rrdtool lastupdate $meshpath/$addr.rrd);
+    $lastupdate =~ /([\w\d]+)\s+(\d+):\s+([\w\d]+)/;
+    print localtime($2) . " $1 $3<br>";
     
-    foreach my $ds (keys(%ds)) {
+    foreach my $ds (keys(%dses)) {
 	print h2("$ds: $aliases{$addr}{'ds'}{$ds}");
 	qx(rrdtool graph $wwwpath/$addr-$ds.png --start end-60min DEF:$ds=$meshpath/$addr.rrd:$ds:LAST LINE2:$ds#00a000:\"$ds\");
 	print img({src=>"http://$hostname/$addr-$ds.png"});
