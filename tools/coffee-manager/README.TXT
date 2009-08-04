@@ -8,8 +8,7 @@ Building:
 
 Usage:
 
-java -jar coffee.jar [-i|e <Coffee file> <file>] [-r <Coffee file>]
-                     [-l|s] <file system image>
+java -jar coffee.jar [-i|e|r <file>] [-l|s] <file system image>
 
 Options:
 
@@ -21,4 +20,4 @@ Options:
 
 Author:
 
-Nicols Tsiftes <nvt@sics.se>
+Nicolas Tsiftes <nvt@sics.se>

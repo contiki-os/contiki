@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: CoffeeManager.java,v 1.1 2009/08/04 10:36:53 nvt-se Exp $
+ * $Id: CoffeeManager.java,v 1.2 2009/08/04 15:19:08 nvt-se Exp $
  *
  * @author Nicolas Tsiftes
  *
@@ -44,23 +44,16 @@ import java.util.regex.Pattern;
 
 public class CoffeeManager {
 	private static CoffeeFS coffeeFS;
-	private static final int COMMAND_NULL    = 0;
-	private static final int COMMAND_INSERT  = 1;
-	private static final int COMMAND_EXTRACT = 2;
-	private static final int COMMAND_REMOVE  = 3;
-	private static final int COMMAND_LIST    = 4;
-	private static final int COMMAND_STATS   = 5;
+	public enum Command { INSERT, EXTRACT, REMOVE, LIST, STATS };
 
 	public static void main(String args[]) {
 		String platform = "sky";
 		String usage = "Usage: java -jar coffee.jar ";
-		int command = COMMAND_NULL;
-		String coffeeFile = "";
-		String localFile = "";
+		Command command = Command.STATS;
+		String filename = "";
 		String fsImage = "";
 
-		usage += "[-i|e <Coffee file> <file>] ";
-		usage += "[-r <Coffee file>] ";
+		usage += "[-i|e|r <file>] ";
 		usage += "[-l|s] ";
 		usage += "<file system image>";
 
@@ -77,26 +70,19 @@ public class CoffeeManager {
 				System.exit(1);
 			}
 
-			if(args[0].equals("-i") || args[0].equals("-e")) {
-				if(args.length != 4) {
-					System.err.println(usage);
-					System.exit(1);
-				}
-				if(args[0].equals("-i")) {
-					command = COMMAND_INSERT;
-				} else {
-					command = COMMAND_EXTRACT;
-				}
-				coffeeFile = args[1];
-				localFile = args[2];
-				fsImage = args[3];
-			} else if (args[0].equals("-r")) {
+			if(args[0].equals("-i") || args[0].equals("-e") || args[0].equals("-r")) {
 				if(args.length != 3) {
 					System.err.println(usage);
 					System.exit(1);
 				}
-				command = COMMAND_REMOVE;
-				coffeeFile = args[1];
+				if(args[0].equals("-i")) {
+					command = Command.INSERT;
+				} else if (args[0].equals("-r")) {
+					command = Command.REMOVE;
+				} else {
+					command = Command.EXTRACT;
+				}
+				filename = args[1];
 				fsImage = args[2];
 			} else {
 				if(args.length != 2) {
@@ -104,9 +90,9 @@ public class CoffeeManager {
 					System.exit(1);
 				}
 				if(args[0].equals("-l")) {
-					command = COMMAND_LIST;
+					command = Command.LIST;
 				} else {
-					command = COMMAND_STATS;
+					command = Command.STATS;
 				}
 				fsImage = args[1];
 			}
@@ -116,30 +102,37 @@ public class CoffeeManager {
 			CoffeeConfiguration conf = new CoffeeConfiguration(platform + ".properties");
 			coffeeFS = new CoffeeFS(new CoffeeImageFile(fsImage, conf));
 			switch (command) {
-			case COMMAND_INSERT:
-				if(coffeeFS.getFiles().get(localFile) != null) {
-					System.err.println("error: file \"" + localFile + "\" already exists");
+			case INSERT:
+				if(coffeeFS.getFiles().get(filename) != null) {
+					System.err.println("error: file \"" +
+						filename + "\" already exists");
 					break;
 				}
-				if(coffeeFS.insertFile(localFile) != null) {
-					System.out.println("Inserted the local file \"" + localFile + "\" into the file system image");
+				if(coffeeFS.insertFile(filename) != null) {
+					System.out.println("Inserted the local file \"" +
+						filename +
+						"\" into the file system image");
 				}
 				break;
-			case COMMAND_EXTRACT:
-				if(coffeeFS.extractFile(coffeeFile, localFile) == false) {
-					System.err.println("Inexistent file: " + coffeeFile);
+			case EXTRACT:
+				if(coffeeFS.extractFile(filename) == false) {
+					System.err.println("Inexistent file: " +
+						filename);
 					System.exit(1);
 				}
-				System.out.println("Saved the file \"" + coffeeFile + "\" from the system image into the local file \"" + localFile + "\"");
+				System.out.println("Saved the file \"" +
+					filename + "\"");
 				break;
-			case COMMAND_REMOVE:
-				coffeeFS.removeFile(coffeeFile);
-				System.out.println("Removed the file \"" + coffeeFile + "\" from the Coffee file system image");
+			case REMOVE:
+				coffeeFS.removeFile(filename);
+				System.out.println("Removed the file \"" +
+					filename +
+					"\" from the Coffee file system image");
 				break;
-			case COMMAND_LIST:
+			case LIST:
 				printFiles(coffeeFS.getFiles());
 				break;
-			case COMMAND_STATS:
+			case STATS:
 				printStatistics(coffeeFS);
 				break;
 			default:
