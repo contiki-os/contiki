@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: CoffeeFS.java,v 1.1 2009/08/04 10:36:53 nvt-se Exp $
+ * $Id: CoffeeFS.java,v 1.2 2009/08/04 10:39:13 nvt-se Exp $
  *
  * @author Nicolas Tsiftes
  *
@@ -146,9 +146,9 @@ public class CoffeeFS {
 		try {
 			File file = new File(filename);
 			FileInputStream input = new FileInputStream(file);
-System.out.println("file length: " + file.length() + ", page count: " + pageCount(file.length()));
 			int allocatePages = pageCount(file.length());
 			int start = findFreeExtent(allocatePages);
+
 			if(start == INVALID_PAGE) {
 				return null;
 			}

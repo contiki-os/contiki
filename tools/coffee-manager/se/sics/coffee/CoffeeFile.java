@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: CoffeeFile.java,v 1.1 2009/08/04 10:36:53 nvt-se Exp $
+ * $Id: CoffeeFile.java,v 1.2 2009/08/04 10:39:13 nvt-se Exp $
  *
  * @author Nicolas Tsiftes
  *
@@ -86,7 +86,6 @@ public class CoffeeFile {
 				startOffset + length);
 			length++;
 		}
-System.out.println("inserted bytes: " + length);
 	}
 
 	public void saveContents(String filename) throws IOException {
