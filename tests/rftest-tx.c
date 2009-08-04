@@ -151,7 +151,7 @@ void main(void) {
 	init_phy();
 
 	set_power(0x0f); /* 0dbm */
-	set_channel(1); /* channel 11 */
+	set_channel(0); /* channel 11 */
 
         reg(MACA_CONTROL) = SMAC_MACA_CNTL_INIT_STATE;
 	for(i=0; i<DELAY; i++) { continue; }
