@@ -155,27 +155,7 @@ void main(void) {
 	/* for OTAP */
 	for(i=0; i<len; i++) {
 		c = getc();	       
-//		put_hex(c);
-//		puts(": ");
-
-		/*for some reason I have to hard code the type here for it to work reliably */
-//		err = nvm_write(gNvmInternalInterface_c, type, &c, 4+i, 1); 
-		switch(type) 
-		{
-		case 1:
-			err = nvm_write(gNvmInternalInterface_c, 1, &c, 8+i, 1); 
-			break;
-		case 2:
-			err = nvm_write(gNvmInternalInterface_c, 2, &c, 8+i, 1); 
-			break;
-		case 3:
-			err = nvm_write(gNvmInternalInterface_c, 3, &c, 8+i, 1); 
-			break;
-		}
-
-//		puts("nvm_write returned: 0x");
-//		put_hex(err);
-//		puts("\n\r");
+		err = nvm_write(gNvmInternalInterface_c, type, &c, 8+i, 1); 
 	}
 
 	puts("flasher done\n\r");
