@@ -1,0 +1,79 @@
+;                     
+; Remote NDIS template device setup file
+; Copyright (c) Microsoft Corporation
+;
+; This is the template for the INF installation script 
+; for the RNDIS-over-USB host driver.
+; This INF works for Windows XP SP2, Windows XP x64, 
+; Windows Server 2003 SP1 x86, x64, and ia64, and 
+; Windows Vista x86 and x64.
+; This INF will work with Windows XP, Windows XP SP1, 
+; and Windows 2003 after applying specific hotfixes.
+
+; Adapted for Raven USB Stick
+; Works with Wireshark 1.2.0 and Winpcap 4.1 Beta5 on
+; my AMD Phenom with Windows7x64
+; David Kopf dak664@embarqmail.com June 2009
+
+[Version]
+Signature           = "$Windows NT$"
+Class               = Net
+ClassGUID           = {4d36e972-e325-11ce-bfc1-08002be10318}
+Provider            = %dak%
+DriverVer           =09/25/2008,6.0.6000.16384
+;CatalogFile        = device.cat
+
+[Manufacturer]
+%dak%         = RndisDevices,NTx86,NTamd64,NTia64
+
+; Decoration for x86 architecture
+[RndisDevices.NTx86]
+%RndisDevice%    = RNDIS.NT.5.1, USB\VID_03EB&PID_2021&MI_00
+
+
+; Decoration for x64 architecture
+[RndisDevices.NTamd64]
+%RndisDevice%    = RNDIS.NT.5.1, USB\VID_03EB&PID_2021&MI_00
+
+
+; Decoration for ia64 architecture
+[RndisDevices.NTia64]
+%RndisDevice%    = RNDIS.NT.5.1, USB\VID_03EB&PID_2021&MI_00
+
+
+;@@@ This is the common setting for setup
+[ControlFlags]
+ExcludeFromSelect=*
+
+; DDInstall section
+; References the in-build Netrndis.inf
+[RNDIS.NT.5.1]
+Characteristics = 0x84   ; NCF_PHYSICAL + NCF_HAS_UI
+BusType         = 15
+; NEVER REMOVE THE FOLLOWING REFERENCE FOR NETRNDIS.INF
+include         = netrndis.inf
+needs           = Usb_Rndis.ndi
+AddReg          = Rndis_AddReg_Vista
+
+; DDInstal.Services section
+[RNDIS.NT.5.1.Services]
+include     = netrndis.inf
+needs       = Usb_Rndis.ndi.Services
+
+; Optional registry settings. You can modify as needed.
+[RNDIS_AddReg_Vista] 
+HKR, NDI\params\rawmode,      ParamDesc,  0, %RAWMODE%
+HKR, NDI\params\rawmode,      base,       0, "10"
+HKR, NDI\params\rawmode,      type,       0, "enum"
+HKR, NDI\params\rawmode,      default,    0, "0"
+HKR, NDI\params\rawmode\enum, "0",        0, "Off"
+HKR, NDI\params\rawmode\enum, "1",        0, "On"
+
+; No sys copyfiles - the sys files are already in-build 
+; (part of the operating system).
+
+; Modify these strings for your device as needed.
+[Strings]
+dak             = "dak"
+RndisDevice           = "Atmel RAVEN USB Stick"
+RAWMODE               = "Raw 802.15.4 Mode"
