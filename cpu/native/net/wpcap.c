@@ -30,7 +30,7 @@
  *
  * Author: Oliver Schmidt <ol.sc@web.de>
  *
- * $Id: wpcap.c,v 1.14 2008/06/23 19:52:44 adamdunkels Exp $
+ * $Id: wpcap.c,v 1.15 2009/08/08 19:51:25 dak664 Exp $
  */
 
 #define WIN32_LEAN_AND_MEAN
@@ -59,6 +59,11 @@
 #ifdef __CYGWIN__
 __attribute__((dllimport)) extern char **__argv[];
 #endif /* __CYGWIN__ */
+
+#if UIP_CONF_IPV6 /*TODO: put this in the right place */
+//CCIF struct uip_eth_addr uip_ethaddr={{0xff,0xff,0xff,0xff,0xff,0xff}};
+struct uip_eth_addr uip_ethaddr={{0xff,0xff,0xff,0xff,0xff,0xff}};
+#endif /* #if UIP_CONF_IPV6 */
 
 struct pcap;
 
@@ -92,6 +97,7 @@ static int (* pcap_next_ex)(struct pcap *, struct pcap_pkthdr **, unsigned char 
 static int (* pcap_sendpacket)(struct pcap *, unsigned char *, int);
 
 #define BUF ((struct uip_eth_hdr *)&uip_buf[0])
+#define IPBUF ((struct uip_tcpip_hdr *)&uip_buf[UIP_LLH_LEN])
 
 /*---------------------------------------------------------------------------*/
 static void
@@ -187,8 +193,9 @@ set_ethaddr(struct in_addr addr)
 		 adapters->PhysicalAddress[2], adapters->PhysicalAddress[3],
 		 adapters->PhysicalAddress[4], adapters->PhysicalAddress[5]);
 	log_message("set_ethaddr:  ethernetaddr: ", buffer);
-
+#if !UIP_CONF_IPV6
 	uip_setethaddr((*(struct uip_eth_addr *)adapters->PhysicalAddress));
+#endif
 	break;
       }
     }
@@ -255,6 +262,37 @@ wpcap_poll(void)
   return (u16_t)packet_header->caplen;
 }
 /*---------------------------------------------------------------------------*/
+#if UIP_CONF_IPV6
+u8_t
+wpcap_send(uip_lladdr_t *lladdr)
+{
+  if(lladdr == NULL) {
+    /* the dest must be multicast */
+    (&BUF->dest)->addr[0] = 0x33;
+    (&BUF->dest)->addr[1] = 0x33;
+//    (&BUF->dest)->addr[2] = IPBUF->destipaddr.u8[12]; //destipaddr is zero
+//    (&BUF->dest)->addr[3] = IPBUF->destipaddr.u8[13];
+//    (&BUF->dest)->addr[4] = IPBUF->destipaddr.u8[14];
+//    (&BUF->dest)->addr[5] = IPBUF->destipaddr.u8[15];
+    (&BUF->dest)->addr[2] = uip_ethaddr.addr[2];
+    (&BUF->dest)->addr[3] = uip_ethaddr.addr[3];
+    (&BUF->dest)->addr[4] = uip_ethaddr.addr[4];
+    (&BUF->dest)->addr[5] = uip_ethaddr.addr[5];
+  } else {
+    memcpy(&BUF->dest, lladdr, UIP_LLADDR_LEN);
+  }
+    if ((&BUF->src)->addr[0]) {  //Linux tap6 does this always
+      memcpy(&BUF->src, &uip_lladdr, UIP_LLADDR_LEN);
+    }
+//  BUF->type = HTONS(UIP_ETHTYPE_IPV6); //math tmp   //This causes a silent exit
+
+  uip_len += sizeof(struct uip_eth_hdr);
+  if(pcap_sendpacket(pcap, uip_buf, uip_len) == -1) {
+    error_exit("error on send\n");
+  }
+return 0;
+}
+#else /* UIP_CONF_IPV6 */
 void
 wpcap_send(void)
 {
@@ -265,10 +303,11 @@ wpcap_send(void)
     printf("Send\n");
     }*/
 
-  if(pcap_sendpacket(pcap, uip_buf, uip_len) == -1) {
+      if(pcap_sendpacket(pcap, uip_buf, uip_len) == -1) {
     error_exit("error on send\n");
   }
 }
+#endif /* UIP_CONF_IPV6 */
 /*---------------------------------------------------------------------------*/
 void
 wpcap_exit(void)
