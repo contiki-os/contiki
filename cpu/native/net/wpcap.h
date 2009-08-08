@@ -30,7 +30,7 @@
  * 
  * Author: Oliver Schmidt <ol.sc@web.de>
  *
- * $Id: wpcap.h,v 1.2 2007/05/20 21:32:24 oliverschmidt Exp $
+ * $Id: wpcap.h,v 1.3 2009/08/08 19:51:25 dak664 Exp $
  */
 
 #ifndef __WPCAP_H__
@@ -38,7 +38,11 @@
 
 void wpcap_init(void);
 u16_t wpcap_poll(void);
+#if UIP_CONF_IPV6
+u8_t wpcap_send(uip_lladdr_t *lladdr);
+#else
 void wpcap_send(void);
+#endif
 void wpcap_exit(void);
 
 #endif /* __WPCAP_H__ */
