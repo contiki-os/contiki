@@ -30,7 +30,7 @@
  *
  * Author: Oliver Schmidt <ol.sc@web.de>
  *
- * $Id: wpcap.c,v 1.15 2009/08/08 19:51:25 dak664 Exp $
+ * $Id: wpcap.c,v 1.16 2009/08/09 20:44:42 oliverschmidt Exp $
  */
 
 #define WIN32_LEAN_AND_MEAN
@@ -63,7 +63,7 @@ __attribute__((dllimport)) extern char **__argv[];
 #if UIP_CONF_IPV6 /*TODO: put this in the right place */
 //CCIF struct uip_eth_addr uip_ethaddr={{0xff,0xff,0xff,0xff,0xff,0xff}};
 struct uip_eth_addr uip_ethaddr={{0xff,0xff,0xff,0xff,0xff,0xff}};
-#endif /* #if UIP_CONF_IPV6 */
+#endif /* UIP_CONF_IPV6 */
 
 struct pcap;
 
@@ -149,6 +149,7 @@ init_pcap(struct in_addr addr)
   }
 }
 /*---------------------------------------------------------------------------*/
+#if !UIP_CONF_IPV6
 static void
 set_ethaddr(struct in_addr addr)
 {
@@ -193,9 +194,7 @@ set_ethaddr(struct in_addr addr)
 		 adapters->PhysicalAddress[2], adapters->PhysicalAddress[3],
 		 adapters->PhysicalAddress[4], adapters->PhysicalAddress[5]);
 	log_message("set_ethaddr:  ethernetaddr: ", buffer);
-#if !UIP_CONF_IPV6
 	uip_setethaddr((*(struct uip_eth_addr *)adapters->PhysicalAddress));
-#endif
 	break;
       }
     }
@@ -206,6 +205,7 @@ set_ethaddr(struct in_addr addr)
     error_exit("no adapter found with ip addr specified on cmdline\n");
   }
 }
+#endif /* !UIP_CONF_IPV6 */
 /*---------------------------------------------------------------------------*/
 void
 wpcap_init(void)
@@ -238,7 +238,9 @@ wpcap_init(void)
   }
 
   init_pcap(addr);
+#if !UIP_CONF_IPV6
   set_ethaddr(addr);
+#endif
 }
 /*---------------------------------------------------------------------------*/
 u16_t
@@ -281,9 +283,9 @@ wpcap_send(uip_lladdr_t *lladdr)
   } else {
     memcpy(&BUF->dest, lladdr, UIP_LLADDR_LEN);
   }
-    if ((&BUF->src)->addr[0]) {  //Linux tap6 does this always
-      memcpy(&BUF->src, &uip_lladdr, UIP_LLADDR_LEN);
-    }
+  if ((&BUF->src)->addr[0]) {  //Linux tap6 does this always
+    memcpy(&BUF->src, &uip_lladdr, UIP_LLADDR_LEN);
+  }
 //  BUF->type = HTONS(UIP_ETHTYPE_IPV6); //math tmp   //This causes a silent exit
 
   uip_len += sizeof(struct uip_eth_hdr);
@@ -303,7 +305,7 @@ wpcap_send(void)
     printf("Send\n");
     }*/
 
-      if(pcap_sendpacket(pcap, uip_buf, uip_len) == -1) {
+  if(pcap_sendpacket(pcap, uip_buf, uip_len) == -1) {
     error_exit("error on send\n");
   }
 }
