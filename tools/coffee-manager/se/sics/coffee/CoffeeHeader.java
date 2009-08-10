@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: CoffeeHeader.java,v 1.1 2009/08/04 10:36:53 nvt-se Exp $
+ * $Id: CoffeeHeader.java,v 1.2 2009/08/10 12:51:52 nvt-se Exp $
  *
  * @author Nicolas Tsiftes
  *
@@ -97,7 +97,7 @@ class CoffeeHeader {
 		name = new String(bytes).substring(index,
 				index + conf.NAME_LENGTH);
 		int nullCharOffset = name.indexOf(0);
-		if(nullCharOffset >= 0) {
+		if (nullCharOffset >= 0) {
 			name = name.substring(0, nullCharOffset);
 		}
 	}
@@ -105,23 +105,23 @@ class CoffeeHeader {
 	private byte composeFlags() {
 		byte flags = 0;
 
-		if(valid) {
+		if (valid) {
 			flags |= HDR_FLAG_VALID;
 		}
-		if(allocated) {
+		if (allocated) {
 			flags |= HDR_FLAG_ALLOCATED;
 		}
-		if(obsolete) {
+		if (obsolete) {
 			flags |= HDR_FLAG_OBSOLETE;
 		}
-		if(modified) {
+		if (modified) {
 			flags |= HDR_FLAG_MODIFIED;
 		}
-		if(log) {
+		if (log) {
 			flags |= HDR_FLAG_LOG;
 		}
 
-		if(isolated) {
+		if (isolated) {
 			flags |= HDR_FLAG_ISOLATED;
 		}
 
@@ -129,22 +129,22 @@ class CoffeeHeader {
 	}
 
 	private void processFlags(int flags) {
-		if((flags & HDR_FLAG_VALID) != 0) {
+		if ((flags & HDR_FLAG_VALID) != 0) {
 			valid = true;
 		}
-		if((flags & HDR_FLAG_ALLOCATED) != 0) {
+		if ((flags & HDR_FLAG_ALLOCATED) != 0) {
 			allocated = true;
 		}
-		if((flags & HDR_FLAG_OBSOLETE) != 0) {
+		if ((flags & HDR_FLAG_OBSOLETE) != 0) {
 			obsolete = true;
 		}
-		if((flags & HDR_FLAG_MODIFIED) != 0) {
+		if ((flags & HDR_FLAG_MODIFIED) != 0) {
 			modified = true;
 		}
-		if((flags & HDR_FLAG_LOG) != 0) {
+		if ((flags & HDR_FLAG_LOG) != 0) {
 			log = true;
 		}
-		if((flags & HDR_FLAG_ISOLATED) != 0) {
+		if ((flags & HDR_FLAG_ISOLATED) != 0) {
 			isolated = true;
 		}
 	}
@@ -152,7 +152,7 @@ class CoffeeHeader {
 	private byte[] setPageValue(int page) {
 		byte[] bytes = new byte[conf.pageTypeSize];
 
-		for(int i = conf.pageTypeSize - 1; i >= 0; i--) {
+		for (int i = conf.pageTypeSize - 1; i >= 0; i--) {
 			bytes[i] = (byte) (page >> (8 * i));
 		}
 		return bytes;
@@ -161,7 +161,7 @@ class CoffeeHeader {
 	private int getPageValue(byte[] bytes, int offset) {
 		int page = 0;
 
-		for(int i = 0; i < conf.pageTypeSize; i++) {
+		for (int i = 0; i < conf.pageTypeSize; i++) {
 			page |= bytes[offset + i] << (8 * i);
 		}
 		return page;

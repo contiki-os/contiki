@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: CoffeeManager.java,v 1.2 2009/08/04 15:19:08 nvt-se Exp $
+ * $Id: CoffeeManager.java,v 1.3 2009/08/10 12:51:52 nvt-se Exp $
  *
  * @author Nicolas Tsiftes
  *
@@ -57,25 +57,25 @@ public class CoffeeManager {
 		usage += "[-l|s] ";
 		usage += "<file system image>";
 
-		if(args.length < 1) {
+		if (args.length < 1) {
 			System.err.println(usage);
 			System.exit(1);
 		}
 
-		if(args.length > 1) {
+		if (args.length > 1) {
 			Pattern validArg = Pattern.compile("-(i|e|r|l|s)");
 			Matcher m = validArg.matcher(args[0]);
-			if(!m.matches()) {
+			if (!m.matches()) {
 				System.err.println(usage);
 				System.exit(1);
 			}
 
-			if(args[0].equals("-i") || args[0].equals("-e") || args[0].equals("-r")) {
-				if(args.length != 3) {
+			if (args[0].equals("-i") || args[0].equals("-e") || args[0].equals("-r")) {
+				if (args.length != 3) {
 					System.err.println(usage);
 					System.exit(1);
 				}
-				if(args[0].equals("-i")) {
+				if (args[0].equals("-i")) {
 					command = Command.INSERT;
 				} else if (args[0].equals("-r")) {
 					command = Command.REMOVE;
@@ -85,11 +85,11 @@ public class CoffeeManager {
 				filename = args[1];
 				fsImage = args[2];
 			} else {
-				if(args.length != 2) {
+				if (args.length != 2) {
 					System.err.println(usage);
 					System.exit(1);
 				}
-				if(args[0].equals("-l")) {
+				if (args[0].equals("-l")) {
 					command = Command.LIST;
 				} else {
 					command = Command.STATS;
@@ -103,19 +103,19 @@ public class CoffeeManager {
 			coffeeFS = new CoffeeFS(new CoffeeImageFile(fsImage, conf));
 			switch (command) {
 			case INSERT:
-				if(coffeeFS.getFiles().get(filename) != null) {
+				if (coffeeFS.getFiles().get(filename) != null) {
 					System.err.println("error: file \"" +
 						filename + "\" already exists");
 					break;
 				}
-				if(coffeeFS.insertFile(filename) != null) {
+				if (coffeeFS.insertFile(filename) != null) {
 					System.out.println("Inserted the local file \"" +
 						filename +
 						"\" into the file system image");
 				}
 				break;
 			case EXTRACT:
-				if(coffeeFS.extractFile(filename) == false) {
+				if (coffeeFS.extractFile(filename) == false) {
 					System.err.println("Inexistent file: " +
 						filename);
 					System.exit(1);
