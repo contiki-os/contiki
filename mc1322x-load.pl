@@ -18,7 +18,7 @@ GetOptions ('file=s' => \$filename,
 	    'terminal=s' => \$term, 
 	    'verbose' => \$verbose, 
 	    'baud=s' => \$baud,
-    );
+    ) or die 'bad options';
 
 $| = 1;
 
@@ -34,10 +34,11 @@ if($filename eq '') {
     exit;
 }
 
+if (!(-e $filename)) { die "file $filename not found\n"; }
+if (($second ne '') && !(-e $second)) { die "secondary file $second not found\n"; }
+
 my $ob = Device::SerialPort->new ($term) or die "Can't start $term\n";
     # next test will die at runtime unless $ob
-
-if ($filename eq '') { die "you must specify a file with -f\n"; }
 
 $ob->baudrate($baud);
 $ob->parity('none');
