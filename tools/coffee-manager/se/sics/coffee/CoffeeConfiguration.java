@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: CoffeeConfiguration.java,v 1.1 2009/08/04 10:36:53 nvt-se Exp $
+ * $Id: CoffeeConfiguration.java,v 1.2 2009/08/10 12:51:52 nvt-se Exp $
  *
  * @author Nicolas Tsiftes
  *
@@ -63,8 +63,8 @@ public class CoffeeConfiguration {
 			new FileInputStream(filename);
 
 		prop.load(fstream);
-		for(int i = 0; i < validParameters.length; i++) {
-			if(prop.getProperty(validParameters[i]) == null) {
+		for (int i = 0; i < validParameters.length; i++) {
+			if (prop.getProperty(validParameters[i]) == null) {
 				throw new CoffeeException("missing the parameter \"" + validParameters[i] + "\" in the configuration file " + filename);
 			}
 		}

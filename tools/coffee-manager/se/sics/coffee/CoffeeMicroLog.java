@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: CoffeeImageFile.java,v 1.2 2009/08/10 12:51:52 nvt-se Exp $
+ * $Id: CoffeeMicroLog.java,v 1.1 2009/08/10 12:51:52 nvt-se Exp $
  *
  * @author Nicolas Tsiftes
  *
@@ -36,51 +36,68 @@
 
 package se.sics.coffee;
 
-import java.io.File;
 import java.io.IOException;
-import java.io.RandomAccessFile;
 
-public class CoffeeImageFile implements CoffeeImage {
-	private String filename;
-	private RandomAccessFile imageFile;
-	private CoffeeConfiguration conf;
+public class CoffeeMicroLog extends CoffeeFile {
+	private int logRecords;
+	private int logRecordSize;
+	private int indexStart;
+	private int indexSize;
+	private int recordStart;
+	private int[] index;
 
-	public CoffeeImageFile(String filename, CoffeeConfiguration conf) throws IOException {
-		this.filename = filename;
-		this.conf = conf;
-		File file = new File(filename);
-		imageFile = new RandomAccessFile(file, "rw");
-		if (imageFile.length() == 0) {
-			// Allocate a full file system image.
-			imageFile.setLength(conf.fsSize);
+	public CoffeeMicroLog(CoffeeFS fs, CoffeeHeader header)
+			throws IOException {
+		super(fs, header);
+
+		CoffeeConfiguration conf = fs.getConfiguration();
+		if (header.logRecordSize == 0) {
+			logRecordSize = conf.pageSize;
+		}
+		int logAreaSize;
+		if (header.logRecords == 0) {
+			logRecords = conf.defaultLogSize / logRecordSize;
+		} else {
+			logRecords = header.logRecords;
+		}
+
+		indexStart = header.getPage() * conf.pageSize +
+			     header.rawLength();
+		/* An index entry uses two bytes. */
+		indexSize = logRecords * 2;
+		recordStart = indexStart + indexSize;
+
+		index = new int[logRecords];
+		byte[] bytes = new byte[2];
+
+		for (int i = 0; i < logRecords; i++) {
+			coffeeFS.getImage().read(bytes, bytes.length,
+				indexStart + i * 2);
+			index[i] = bytes[1] << 8 | bytes[0];
 		}
 	}
 
-	public CoffeeConfiguration getConfiguration() {
-		return conf;
-	}
+	public byte[] getRegion(int region) throws IOException {
+		int headerSize = header.rawLength();
+		int indexSize = logRecords * 2;
 
-	public void read(byte[] bytes, int size, int offset) throws IOException {
-		imageFile.seek(conf.startOffset + offset);
-		imageFile.read(bytes, 0, size);
-	}
-
-	public void write(byte[] bytes, int size, int offset) throws IOException {
-		imageFile.seek(conf.startOffset + offset);
-		imageFile.write(bytes, 0, size);
-	}
-
-	public void erase(int size, int offset) throws IOException {
-		byte[] bytes = new byte[256];
-		int chunkSize;
-
-		while(size > 0) {
-			chunkSize = size > bytes.length ? bytes.length : size;
-			imageFile.seek(conf.startOffset + offset);
-			imageFile.write(bytes, 0, chunkSize);
-			size -= chunkSize;
-			offset += chunkSize;
+		for(int i = logRecords - 1; i >= 0; i--) {
+			if(index[i] - 1 == region) {
+				byte[] bytes = new byte[logRecordSize];
+				coffeeFS.getImage().read(bytes, bytes.length, 
+					recordStart + i * logRecordSize);
+				return bytes;
+			}
 		}
+
+		return null;
 	}
 
+	public int getLogRecords() {
+		return logRecords;
+	}
+
+	public int getLogRecordSize() {
+		return logRecordSize;
+	}
 }

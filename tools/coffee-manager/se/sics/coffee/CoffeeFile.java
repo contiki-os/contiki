@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: CoffeeFile.java,v 1.2 2009/08/04 10:39:13 nvt-se Exp $
+ * $Id: CoffeeFile.java,v 1.3 2009/08/10 12:51:52 nvt-se Exp $
  *
  * @author Nicolas Tsiftes
  *
@@ -39,30 +39,36 @@ package se.sics.coffee;
 import java.io.*;
 
 public class CoffeeFile {
-	private CoffeeFS coffeeFS;
-	private CoffeeHeader header;
+	protected CoffeeFS coffeeFS;
+	protected CoffeeHeader header;
 	private String name;
 	private int length;
 	private int startPage;
 	private int reservedSize;
-	private CoffeeFile logFile;
+	private CoffeeMicroLog microLog;
 	private boolean knownLength;
 
-	public CoffeeFile(CoffeeFS coffeeFS, CoffeeHeader header) {
+	public CoffeeFile(CoffeeFS coffeeFS, CoffeeHeader header) throws IOException {
 		this.coffeeFS = coffeeFS;
 		this.header = header;
 		name = header.name;
 		startPage = header.getPage();
 		reservedSize = header.maxPages * coffeeFS.getConfiguration().pageSize;
+		if (header.isModified() && 
+		   coffeeFS.getConfiguration().useMicroLogs == true) {
+			microLog = new CoffeeMicroLog(coffeeFS, coffeeFS.readHeader(header.logPage));
+		} else {
+			microLog = null;
+		}
 	}
 
 	private int calculateLength() throws IOException {
 		byte[] bytes = new byte[1];
 		int i;
 
-		for(i = reservedSize; i >= header.rawLength(); i--) {
+		for (i = reservedSize; i >= header.rawLength(); i--) {
 			coffeeFS.getImage().read(bytes, 1, header.getPage() * coffeeFS.getConfiguration().pageSize + i);
-			if(bytes[0] != 0) {
+			if (bytes[0] != 0) {
 				return i - header.rawLength() + 1;
 			}
 		}
@@ -89,16 +95,29 @@ public class CoffeeFile {
 	}
 
 	public void saveContents(String filename) throws IOException {
-		byte[] bytes = new byte[1];
 		int startOffset = header.getPage() *
 				  coffeeFS.getConfiguration().pageSize +
 				  header.rawLength();
 		int i;
+		byte[] bytes;
 
 		FileOutputStream fOut = new FileOutputStream(filename);
-		for(i = 0; i < getLength(); i++) {
-			coffeeFS.getImage().read(bytes, 1, startOffset + i);
-			fOut.write(bytes);
+
+		if(microLog != null) {
+			for(i = 0; i < microLog.getLogRecords(); i++) {
+				bytes = microLog.getRegion(i);
+				if(bytes == null) {
+					bytes = new byte[1];
+					coffeeFS.getImage().read(bytes, 1, i * microLog.getLogRecordSize());
+				}
+				fOut.write(bytes);
+			}
+		} else {
+			bytes = new byte[1];
+			for (i = 0; i < getLength(); i++) {
+				coffeeFS.getImage().read(bytes, 1, startOffset + i);
+				fOut.write(bytes);
+			}
 		}
 
 		fOut.close();
@@ -113,7 +132,7 @@ public class CoffeeFile {
 	}
 
 	public int getLength() throws IOException {
-		if(!knownLength) {
+		if (!knownLength) {
 			length = calculateLength();
 			knownLength = true;
 		}

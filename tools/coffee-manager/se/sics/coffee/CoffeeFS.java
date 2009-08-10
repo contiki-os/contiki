@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: CoffeeFS.java,v 1.3 2009/08/04 15:19:08 nvt-se Exp $
+ * $Id: CoffeeFS.java,v 1.4 2009/08/10 12:51:52 nvt-se Exp $
  *
  * @author Nicolas Tsiftes
  *
@@ -67,7 +67,7 @@ public class CoffeeFS {
 
 		while(currentPage < (conf.fsSize / conf.pageSize)) {
 			CoffeeHeader header = readHeader(currentPage);
-			if(header.isActive()) {
+			if (header.isActive() && !header.isLog()) {
 				CoffeeFile file = new CoffeeFile(this, header);
 				files.put(file.getName(), file);
 			}
@@ -87,12 +87,12 @@ public class CoffeeFS {
 
 		while(currentPage < (conf.fsSize / conf.pageSize)) {
 			header = readHeader(currentPage);
-			if(header.isFree()) {
-				if(start == INVALID_PAGE) {
+			if (header.isFree()) {
+				if (start == INVALID_PAGE) {
 					start = currentPage;
 				}
 				currentPage = nextFile(header, currentPage);
-				if(start + pages <= currentPage) {
+				if (start + pages <= currentPage) {
 					return start;
 				}
 			} else {
@@ -111,7 +111,7 @@ public class CoffeeFS {
 		return conf;
 	}
 
-	private CoffeeHeader readHeader(int page) throws IOException {
+	public CoffeeHeader readHeader(int page) throws IOException {
 		byte[] bytes = new byte[conf.NAME_LENGTH + conf.pageTypeSize * 2 + 6];
 		int index = 0;
 
@@ -121,16 +121,16 @@ public class CoffeeFS {
 		return header;
 	}
 
-	private void writeHeader(CoffeeHeader header) throws IOException {
+	public void writeHeader(CoffeeHeader header) throws IOException {
 		byte[] bytes = header.toRawHeader();
 
 		image.write(bytes, bytes.length, header.getPage() * conf.pageSize);
 	}
 
 	private int nextFile(CoffeeHeader header, int page) {
-		if(header.isFree()) {
+		if (header.isFree()) {
 			return page + conf.pagesPerSector & ~(conf.pagesPerSector - 1);
-		} else if(header.isIsolated()) {
+		} else if (header.isIsolated()) {
 			return page + 1;
 		}
 
@@ -149,7 +149,7 @@ public class CoffeeFS {
 			int allocatePages = pageCount(file.length());
 			int start = findFreeExtent(allocatePages);
 
-			if(start == INVALID_PAGE) {
+			if (start == INVALID_PAGE) {
 				return null;
 			}
 			CoffeeHeader header = new CoffeeHeader(this, start);
@@ -169,7 +169,7 @@ public class CoffeeFS {
 	public void removeFile(String filename)
 			throws CoffeeFileException, IOException {
 		CoffeeFile file = files.get(filename);
-		if(file == null) {
+		if (file == null) {
 			throw new CoffeeFileException("Coffee: attempt to remove inexistent file");
 		}
 
@@ -181,7 +181,7 @@ public class CoffeeFS {
 	public boolean extractFile(String filename) throws IOException {
 		CoffeeFile file = files.get(filename);
 
-		if(file == null) {
+		if (file == null) {
 			return false;
 		}
 
