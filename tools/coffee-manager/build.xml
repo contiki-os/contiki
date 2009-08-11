@@ -1,0 +1,35 @@
+<?xml version="1.0"?>
+
+<project name="Coffee Manager" default="jar" basedir=".">
+  <target name="init">
+    <tstamp/>
+  </target>
+
+  <target name="compile" depends="init">
+    <mkdir dir="build"/>
+    <javac srcdir="se/sics/coffee" destdir="build" />
+  </target>
+
+  <target name="clean" depends="init">
+    <delete file="coffee.jar"/>
+    <delete dir="build"/>
+  </target>
+
+  <target name="configs" depends="init">
+    <mkdir dir="build"/>
+    <copy todir="build">
+      <fileset file="sky.properties"/>
+      <fileset file="esb.properties"/>
+	</copy>
+  </target>
+
+  <target name="jar" depends="init, compile, configs">
+    <jar destfile="coffee.jar" basedir="build">
+      <manifest>
+        <attribute name="Main-Class" value="se.sics.coffee.CoffeeManager"/>
+        <attribute name="Class-Path" value="."/>
+      </manifest>
+    </jar>
+  </target>
+
+</project>
