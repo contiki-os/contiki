@@ -30,7 +30,7 @@
  *
  * Author: Oliver Schmidt <ol.sc@web.de>
  *
- * $Id: wpcap.c,v 1.16 2009/08/09 20:44:42 oliverschmidt Exp $
+ * $Id: wpcap.c,v 1.17 2009/08/11 16:06:17 dak664 Exp $
  */
 
 #define WIN32_LEAN_AND_MEAN
@@ -47,6 +47,13 @@
 #include <malloc.h>
 #endif /* __CYGWIN__ */
 
+#define DEBUG 0
+#if DEBUG
+#define PRINTF(...) printf(__VA_ARGS__)
+#else
+#define PRINTF(...)
+#endif
+
 /* Avoid 'conflicting types' errors. */
 #define htonl
 #define htons
@@ -59,11 +66,6 @@
 #ifdef __CYGWIN__
 __attribute__((dllimport)) extern char **__argv[];
 #endif /* __CYGWIN__ */
-
-#if UIP_CONF_IPV6 /*TODO: put this in the right place */
-//CCIF struct uip_eth_addr uip_ethaddr={{0xff,0xff,0xff,0xff,0xff,0xff}};
-struct uip_eth_addr uip_ethaddr={{0xff,0xff,0xff,0xff,0xff,0xff}};
-#endif /* UIP_CONF_IPV6 */
 
 struct pcap;
 
@@ -90,6 +92,13 @@ struct pcap_pkthdr {
 HMODULE wpcap;
 
 static struct pcap *pcap;
+
+/* uip_ethaddr is defined in uip.c. It is not used in uip6.c. 
+ * If needed for some purpose it can be defined here
+ */
+#if UIP_CONF_IPV6
+//struct uip_eth_addr uip_ethaddr;
+#endif
 
 static int (* pcap_findalldevs)(struct pcap_if **, char *);
 static struct pcap *(* pcap_open_live)(char *, int, int, int, char *);
@@ -123,33 +132,32 @@ init_pcap(struct in_addr addr)
 
     if(interfaces->addresses != NULL) {
       for(paddr = interfaces->addresses;
-	  paddr != NULL;
-	  paddr = paddr->next) {
-	if(paddr->addr != NULL && paddr->addr->sa_family == AF_INET) {
-	  
-	  struct in_addr interface_addr;
-	  interface_addr = ((struct sockaddr_in *)paddr->addr)->sin_addr;
-	  log_message("init_pcap:    with address: ", inet_ntoa(interface_addr));
-	  
-	  if(interface_addr.s_addr == addr.s_addr) {
-	    pcap = pcap_open_live(interfaces->name, UIP_BUFSIZE, 0, -1, error);
-	    if(pcap == NULL) {
-	      error_exit(error);
-	    }
-	    return;
-	  }
-	}
+        paddr != NULL;
+        paddr = paddr->next) {
+        if(paddr->addr != NULL && paddr->addr->sa_family == AF_INET) {
+
+          struct in_addr interface_addr;
+          interface_addr = ((struct sockaddr_in *)paddr->addr)->sin_addr;
+          log_message("init_pcap:    with address: ", inet_ntoa(interface_addr));
+
+          if(interface_addr.s_addr == addr.s_addr) {
+            pcap = pcap_open_live(interfaces->name, UIP_BUFSIZE, 0, -1, error);
+            if(pcap == NULL) {
+              error_exit(error);
+            }
+            return;
+          }
+        }
       }
     }
     interfaces = interfaces->next;
   }
 
   if(interfaces == NULL) {
-    error_exit("no interface found with ip addr specified on cmdline\n");
+    error_exit("no interface found with specified ip address\n");
   }
 }
 /*---------------------------------------------------------------------------*/
-#if !UIP_CONF_IPV6
 static void
 set_ethaddr(struct in_addr addr)
 {
@@ -157,16 +165,16 @@ set_ethaddr(struct in_addr addr)
   ULONG size = 0;
 
   if(GetAdaptersAddresses(AF_INET, GAA_FLAG_SKIP_ANYCAST |
-				   GAA_FLAG_SKIP_MULTICAST |
-				   GAA_FLAG_SKIP_DNS_SERVER,
-				   NULL, NULL, &size) != ERROR_BUFFER_OVERFLOW) {
+                                   GAA_FLAG_SKIP_MULTICAST |
+                                   GAA_FLAG_SKIP_DNS_SERVER,
+                          NULL, NULL, &size) != ERROR_BUFFER_OVERFLOW) {
     error_exit("error on access to adapter list size\n");
   }
   adapters = alloca(size);
   if(GetAdaptersAddresses(AF_INET, GAA_FLAG_SKIP_ANYCAST |
-				   GAA_FLAG_SKIP_MULTICAST |
-				   GAA_FLAG_SKIP_DNS_SERVER,
-				   NULL, adapters, &size) != ERROR_SUCCESS) {
+                                   GAA_FLAG_SKIP_MULTICAST |
+                                   GAA_FLAG_SKIP_DNS_SERVER,
+                          NULL, adapters, &size) != ERROR_SUCCESS) {
     error_exit("error on access to adapter list\n");
   }
 
@@ -174,7 +182,7 @@ set_ethaddr(struct in_addr addr)
 
     char buffer[256];
     WideCharToMultiByte(CP_ACP, 0, adapters->Description, -1,
-			buffer, sizeof(buffer), NULL, NULL);
+       buffer, sizeof(buffer), NULL, NULL);
     log_message("set_ethaddr: found adapter: ", buffer);
 
     if(adapters->FirstUnicastAddress != NULL &&
@@ -186,16 +194,20 @@ set_ethaddr(struct in_addr addr)
       log_message("set_ethaddr:  with address: ", inet_ntoa(adapter_addr));
 
       if(adapter_addr.s_addr == addr.s_addr) {
-	if(adapters->PhysicalAddressLength != 6) {
-	  error_exit("ip addr specified on cmdline does not belong to an ethernet card\n");
-	}
-	wsprintf(buffer, "%02X-%02X-%02X-%02X-%02X-%02X",
-		 adapters->PhysicalAddress[0], adapters->PhysicalAddress[1],
-		 adapters->PhysicalAddress[2], adapters->PhysicalAddress[3],
-		 adapters->PhysicalAddress[4], adapters->PhysicalAddress[5]);
-	log_message("set_ethaddr:  ethernetaddr: ", buffer);
-	uip_setethaddr((*(struct uip_eth_addr *)adapters->PhysicalAddress));
-	break;
+        if(adapters->PhysicalAddressLength != 6) {
+          error_exit("ip addr specified on cmdline does not belong to an ethernet card\n");
+        }
+        wsprintf(buffer, "%02X-%02X-%02X-%02X-%02X-%02X",
+          adapters->PhysicalAddress[0], adapters->PhysicalAddress[1],
+          adapters->PhysicalAddress[2], adapters->PhysicalAddress[3],
+          adapters->PhysicalAddress[4], adapters->PhysicalAddress[5]);
+        log_message("set_ethaddr:  ethernetaddr: ", buffer);
+#if UIP_CONF_IPV6
+//      int i;for (i=0;i<6;i++) uip_ethaddr.addr[i] = adapters->PhysicalAddress[i];
+#else
+        uip_setethaddr((*(struct uip_eth_addr *)adapters->PhysicalAddress));
+#endif
+        break;
       }
     }
     adapters = adapters->Next;
@@ -205,7 +217,6 @@ set_ethaddr(struct in_addr addr)
     error_exit("no adapter found with ip addr specified on cmdline\n");
   }
 }
-#endif /* !UIP_CONF_IPV6 */
 /*---------------------------------------------------------------------------*/
 void
 wpcap_init(void)
@@ -218,19 +229,22 @@ wpcap_init(void)
   addr.s_addr = inet_addr(__argv[1]);
 #endif /* __CYGWIN__ */
   if(addr.s_addr == INADDR_NONE) {
-    error_exit("usage: <program> <ip addr of ethernet card to share>\n");
+//  error_exit("usage: <program> <ip addr of ethernet card to share>\n");
+    addr.s_addr = inet_addr("10.10.10.10");
+    log_message("usage: <program> <ip addr of ethernet card to share>\n-->I'll try guessing ", inet_ntoa(addr));
+  } else {
+    log_message("wpcap_init:cmdline address: ", inet_ntoa(addr));
   }
-  log_message("wpcap_init: cmdline address: ", inet_ntoa(addr));
 
   wpcap = LoadLibrary("wpcap.dll");
   pcap_findalldevs = (int (*)(struct pcap_if **, char *))
-		     GetProcAddress(wpcap, "pcap_findalldevs");
+                     GetProcAddress(wpcap, "pcap_findalldevs");
   pcap_open_live   = (struct pcap *(*)(char *, int, int, int, char *))
-		     GetProcAddress(wpcap, "pcap_open_live");
+                     GetProcAddress(wpcap, "pcap_open_live");
   pcap_next_ex     = (int (*)(struct pcap *, struct pcap_pkthdr **, unsigned char **))
-		     GetProcAddress(wpcap, "pcap_next_ex");
+                     GetProcAddress(wpcap, "pcap_next_ex");
   pcap_sendpacket  = (int (*)(struct pcap *, unsigned char *, int))
-		     GetProcAddress(wpcap, "pcap_sendpacket");
+                     GetProcAddress(wpcap, "pcap_sendpacket");
 
   if(pcap_findalldevs == NULL || pcap_open_live  == NULL ||
      pcap_next_ex     == NULL || pcap_sendpacket == NULL) {
@@ -238,9 +252,8 @@ wpcap_init(void)
   }
 
   init_pcap(addr);
-#if !UIP_CONF_IPV6
   set_ethaddr(addr);
-#endif
+
 }
 /*---------------------------------------------------------------------------*/
 u16_t
@@ -268,32 +281,40 @@ wpcap_poll(void)
 u8_t
 wpcap_send(uip_lladdr_t *lladdr)
 {
+  static char cludge=0;
   if(lladdr == NULL) {
-    /* the dest must be multicast */
+/* the dest must be multicast*/
     (&BUF->dest)->addr[0] = 0x33;
     (&BUF->dest)->addr[1] = 0x33;
-//    (&BUF->dest)->addr[2] = IPBUF->destipaddr.u8[12]; //destipaddr is zero
-//    (&BUF->dest)->addr[3] = IPBUF->destipaddr.u8[13];
-//    (&BUF->dest)->addr[4] = IPBUF->destipaddr.u8[14];
-//    (&BUF->dest)->addr[5] = IPBUF->destipaddr.u8[15];
-    (&BUF->dest)->addr[2] = uip_ethaddr.addr[2];
-    (&BUF->dest)->addr[3] = uip_ethaddr.addr[3];
-    (&BUF->dest)->addr[4] = uip_ethaddr.addr[4];
-    (&BUF->dest)->addr[5] = uip_ethaddr.addr[5];
+    (&BUF->dest)->addr[2] = IPBUF->destipaddr.u8[12];
+    (&BUF->dest)->addr[3] = IPBUF->destipaddr.u8[13];
+    (&BUF->dest)->addr[4] = IPBUF->destipaddr.u8[14];
+    (&BUF->dest)->addr[5] = IPBUF->destipaddr.u8[15];
   } else {
     memcpy(&BUF->dest, lladdr, UIP_LLADDR_LEN);
   }
-  if ((&BUF->src)->addr[0]) {  //Linux tap6 does this always
-    memcpy(&BUF->src, &uip_lladdr, UIP_LLADDR_LEN);
-  }
-//  BUF->type = HTONS(UIP_ETHTYPE_IPV6); //math tmp   //This causes a silent exit
+  memcpy(&BUF->src, &uip_lladdr, UIP_LLADDR_LEN);
 
+/* TODO:After sending the initial NS a NS is received from 0 to me with my target address.
+ * This causes program exit -1 via uip_netif_dad_failed() from uip-nd6-io.c.
+ * It is OK once it receives an incoming packet
+ * Swallowing the first few output packets will (usually) get it going
+ * This is a cludge until the NS processing is resolved!
+ */
+if (cludge<3) {
+  cludge++;   //gulp
+} else {
+  PRINTF("Src= %02x %02x %02x %02x %02x %02x",(&BUF->src)->addr[0],(&BUF->src)->addr[1],(&BUF->src)->addr[2],(&BUF->src)->addr[3],(&BUF->src)->addr[4],(&BUF->src)->addr[5]);
+  PRINTF("  Dst= %02x %02x %02x %02x %02x %02x",(&BUF->dest)->addr[0],(&BUF->dest)->addr[1],(&BUF->dest)->addr[2],(&BUF->dest)->addr[3],(&BUF->dest)->addr[4],(&BUF->dest)->addr[5]);
+  PRINTF("  Type=%04x\n",BUF->type);
+  BUF->type = HTONS(UIP_ETHTYPE_IPV6);
   uip_len += sizeof(struct uip_eth_hdr);
   if(pcap_sendpacket(pcap, uip_buf, uip_len) == -1) {
     error_exit("error on send\n");
   }
-return 0;
 }
+return 0;
+} /* cludge */
 #else /* UIP_CONF_IPV6 */
 void
 wpcap_send(void)
