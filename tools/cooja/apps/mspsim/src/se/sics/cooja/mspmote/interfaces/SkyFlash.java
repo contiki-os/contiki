@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: SkyFlash.java,v 1.5 2009/06/17 13:05:27 fros4943 Exp $
+ * $Id: SkyFlash.java,v 1.6 2009/08/11 17:09:16 fros4943 Exp $
  */
 
 package se.sics.cooja.mspmote.interfaces;
@@ -53,7 +53,7 @@ public class SkyFlash extends MoteInterface {
   public int SIZE = 1024*1024;
 
   private SkyMote mote = null;
-  private CoojaM25P80 m24p80 = null;
+  protected CoojaM25P80 m24p80 = null;
 
   public SkyFlash(Mote mote) {
     this.mote = (SkyMote) mote;
