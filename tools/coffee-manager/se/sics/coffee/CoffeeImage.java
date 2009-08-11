@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: CoffeeImage.java,v 1.1 2009/08/04 10:36:53 nvt-se Exp $
+ * $Id: CoffeeImage.java,v 1.2 2009/08/11 17:03:59 fros4943 Exp $
  *
  * @author Nicolas Tsiftes
  *
@@ -38,7 +38,7 @@ package se.sics.coffee;
 
 import java.io.IOException;
 
-interface CoffeeImage {
+public interface CoffeeImage {
 	CoffeeConfiguration getConfiguration();
 	void read(byte[] bytes, int size, int offset) throws IOException;
 	void write(byte[] bytes, int size, int offset) throws IOException;

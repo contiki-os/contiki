@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: CoffeeFile.java,v 1.5 2009/08/11 14:42:58 nvt-se Exp $
+ * $Id: CoffeeFile.java,v 1.6 2009/08/11 17:03:59 fros4943 Exp $
  *
  * @author Nicolas Tsiftes
  *
@@ -94,14 +94,14 @@ public class CoffeeFile {
 		}
 	}
 
-	public void saveContents(String filename) throws IOException {
+	public void saveContents(File file) throws IOException {
 		int startOffset = header.getPage() *
 				  coffeeFS.getConfiguration().pageSize +
 				  header.rawLength();
 		int i;
 		byte[] bytes;
 
-		FileOutputStream fOut = new FileOutputStream(filename);
+		FileOutputStream fOut = new FileOutputStream(file);
 
 		if (microLog != null) {
 			for (i = 0; i < microLog.getLogRecords(); i++) {

@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: CoffeeFS.java,v 1.4 2009/08/10 12:51:52 nvt-se Exp $
+ * $Id: CoffeeFS.java,v 1.5 2009/08/11 17:03:59 fros4943 Exp $
  *
  * @author Nicolas Tsiftes
  *
@@ -39,18 +39,6 @@ package se.sics.coffee;
 import java.io.*;
 import java.util.Map;
 import java.util.TreeMap;
-
-class CoffeeException extends RuntimeException {
-	public CoffeeException(String message) {
-		super("Coffee error: " + message);
-	}
-}
-
-class CoffeeFileException extends RuntimeException {
-	public CoffeeFileException(String message) {
-		super("Coffee file error: " + message);
-	}
-}
 
 public class CoffeeFS {
 	private CoffeeImage image;
@@ -141,10 +129,13 @@ public class CoffeeFS {
 		return files;
 	}
 
-	public CoffeeFile insertFile(String filename) throws IOException {
+        public CoffeeFile insertFile(String filename) throws IOException {
+          return insertFile(new File(filename));
+        }
+        
+	public CoffeeFile insertFile(File file) throws IOException {
 		CoffeeFile coffeeFile;
 		try {
-			File file = new File(filename);
 			FileInputStream input = new FileInputStream(file);
 			int allocatePages = pageCount(file.length());
 			int start = findFreeExtent(allocatePages);
@@ -153,7 +144,7 @@ public class CoffeeFS {
 				return null;
 			}
 			CoffeeHeader header = new CoffeeHeader(this, start);
-			header.setName(filename);
+			header.setName(file.getName());
 			header.setReservedSize(allocatePages);
 			header.allocate();
 			coffeeFile = new CoffeeFile(this, header);
@@ -179,13 +170,31 @@ public class CoffeeFS {
 	}
 
 	public boolean extractFile(String filename) throws IOException {
-		CoffeeFile file = files.get(filename);
+	  return extractFile(filename, new File(filename));
+	}
+	
+	public boolean extractFile(String fileInCoffee, File fileOnDisk) throws IOException {
+		CoffeeFile file = files.get(fileInCoffee);
 
 		if (file == null) {
 			return false;
 		}
 
-		file.saveContents(filename);
+		file.saveContents(fileOnDisk);
 		return true;
 	}
+
+	static class CoffeeException extends RuntimeException {
+	        public CoffeeException(String message) {
+	                super("Coffee error: " + message);
+	        }
+	}
+
+	static class CoffeeFileException extends RuntimeException {
+	        public CoffeeFileException(String message) {
+	                super("Coffee file error: " + message);
+	        }
+	}
+
+
 }

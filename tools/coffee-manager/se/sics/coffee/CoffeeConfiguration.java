@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: CoffeeConfiguration.java,v 1.3 2009/08/11 14:42:58 nvt-se Exp $
+ * $Id: CoffeeConfiguration.java,v 1.4 2009/08/11 17:03:59 fros4943 Exp $
  *
  * @author Nicolas Tsiftes
  *
@@ -38,6 +38,8 @@ package se.sics.coffee;
 
 import java.io.*;
 import java.util.Properties;
+
+import se.sics.coffee.CoffeeFS.CoffeeException;
 
 public class CoffeeConfiguration {
 	public static final int FD_SET_SIZE = 256;
