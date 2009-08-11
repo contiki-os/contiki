@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: CoffeeManager.java,v 1.3 2009/08/10 12:51:52 nvt-se Exp $
+ * $Id: CoffeeManager.java,v 1.4 2009/08/11 17:03:59 fros4943 Exp $
  *
  * @author Nicolas Tsiftes
  *
@@ -144,7 +144,7 @@ public class CoffeeManager {
 		}
 	}
 
-	private static void printStatistics(CoffeeFS coffeeFS) {
+	public static void printStatistics(CoffeeFS coffeeFS) {
 		int bytesWritten = 0;
 		int bytesReserved = 0;
 		int fileCount = 0;
@@ -177,7 +177,7 @@ public class CoffeeManager {
 		}
 	}
 
-	private static void printFiles(Map<String, CoffeeFile> files) {
+	public static void printFiles(Map<String, CoffeeFile> files) {
 		try {
 			Iterator<Map.Entry<String, CoffeeFile>> iterator = files.entrySet().iterator();
 			while (iterator.hasNext()) {
