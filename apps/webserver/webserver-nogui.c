@@ -29,7 +29,7 @@
  *
  * This file is part of the Contiki OS.
  *
- * $Id: webserver-nogui.c,v 1.5 2008/02/08 22:53:32 oliverschmidt Exp $
+ * $Id: webserver-nogui.c,v 1.6 2009/08/11 16:07:54 dak664 Exp $
  *
  */
 
@@ -66,11 +66,40 @@ void
 webserver_log_file(uip_ipaddr_t *requester, char *file)
 {
 #if LOG_CONF_ENABLED
-  char buf[18];
-
   /* Print out IP address of requesting host. */
+
+  #if UIP_CONF_IPV6
+  char buf[48];
+  unsigned char i = 0;
+  unsigned char zerocnt = 0;
+  unsigned char numprinted = 0;
+  char *result=buf;
+
+  *result++='[';
+  while (numprinted < 8) {
+    if ((requester->u16[i] == 0) && (zerocnt == 0)) {
+      while(requester->u16[zerocnt + i] == 0) zerocnt++;
+      if (zerocnt == 1) {
+        *result++ = '0';
+         numprinted++;
+         break;
+      }
+      i += zerocnt;
+      numprinted += zerocnt;
+    } else {
+      result += sprintf(result, "%x", (unsigned int)(ntohs(requester->u16[i])));
+      i++;
+      numprinted++;
+    }
+    if (numprinted != 8) *result++ = ':';
+  }
+  result +=sprintf(result, "]: ");
+#else
+  char buf[20];
   sprintf(buf, "%d.%d.%d.%d: ", requester->u8[0], requester->u8[1],
-				requester->u8[2], requester->u8[3]);
+                                requester->u8[2], requester->u8[3]);
+#endif /* UIP_CONF_IPV6 */
+
   log_message(buf, file);
 #endif /* LOG_CONF_ENABLED */
 }
