@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: CoffeeMicroLog.java,v 1.1 2009/08/10 12:51:52 nvt-se Exp $
+ * $Id: CoffeeMicroLog.java,v 1.2 2009/08/11 14:42:58 nvt-se Exp $
  *
  * @author Nicolas Tsiftes
  *
@@ -81,8 +81,8 @@ public class CoffeeMicroLog extends CoffeeFile {
 		int headerSize = header.rawLength();
 		int indexSize = logRecords * 2;
 
-		for(int i = logRecords - 1; i >= 0; i--) {
-			if(index[i] - 1 == region) {
+		for (int i = logRecords - 1; i >= 0; i--) {
+			if (index[i] - 1 == region) {
 				byte[] bytes = new byte[logRecordSize];
 				coffeeFS.getImage().read(bytes, bytes.length, 
 					recordStart + i * logRecordSize);

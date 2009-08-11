@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: CoffeeFile.java,v 1.4 2009/08/10 12:56:13 nvt-se Exp $
+ * $Id: CoffeeFile.java,v 1.5 2009/08/11 14:42:58 nvt-se Exp $
  *
  * @author Nicolas Tsiftes
  *
@@ -103,10 +103,10 @@ public class CoffeeFile {
 
 		FileOutputStream fOut = new FileOutputStream(filename);
 
-		if(microLog != null) {
-			for(i = 0; i < microLog.getLogRecords(); i++) {
+		if (microLog != null) {
+			for (i = 0; i < microLog.getLogRecords(); i++) {
 				bytes = microLog.getRegion(i);
-				if(bytes == null) {
+				if (bytes == null) {
 					bytes = new byte[microLog.getLogRecordSize()];
 					coffeeFS.getImage().read(bytes, bytes.length, i * microLog.getLogRecordSize());
 				}
