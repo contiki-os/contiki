@@ -28,7 +28,7 @@
  *
  * This file is part of the uIP TCP/IP stack.
  *
- * $Id: httpd.h,v 1.5 2007/05/23 21:35:18 oliverschmidt Exp $
+ * $Id: httpd.h,v 1.6 2009/08/12 18:23:37 dak664 Exp $
  *
  */
 
@@ -59,5 +59,9 @@ struct httpd_state {
 
 void httpd_init(void);
 void httpd_appcall(void *state);
+
+#if UIP_CONF_IPV6
+uint8_t httpd_sprint_ip6(uip_ip6addr_t addr, char * result);
+#endif /* UIP_CONF_IPV6 */
 
 #endif /* __HTTPD_H__ */

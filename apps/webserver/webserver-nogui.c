@@ -29,7 +29,7 @@
  *
  * This file is part of the Contiki OS.
  *
- * $Id: webserver-nogui.c,v 1.6 2009/08/11 16:07:54 dak664 Exp $
+ * $Id: webserver-nogui.c,v 1.7 2009/08/12 18:23:37 dak664 Exp $
  *
  */
 
@@ -68,32 +68,11 @@ webserver_log_file(uip_ipaddr_t *requester, char *file)
 #if LOG_CONF_ENABLED
   /* Print out IP address of requesting host. */
 
-  #if UIP_CONF_IPV6
+#if UIP_CONF_IPV6
   char buf[48];
-  unsigned char i = 0;
-  unsigned char zerocnt = 0;
-  unsigned char numprinted = 0;
-  char *result=buf;
-
-  *result++='[';
-  while (numprinted < 8) {
-    if ((requester->u16[i] == 0) && (zerocnt == 0)) {
-      while(requester->u16[zerocnt + i] == 0) zerocnt++;
-      if (zerocnt == 1) {
-        *result++ = '0';
-         numprinted++;
-         break;
-      }
-      i += zerocnt;
-      numprinted += zerocnt;
-    } else {
-      result += sprintf(result, "%x", (unsigned int)(ntohs(requester->u16[i])));
-      i++;
-      numprinted++;
-    }
-    if (numprinted != 8) *result++ = ':';
-  }
-  result +=sprintf(result, "]: ");
+  uint8_t j;
+  j=httpd_sprint_ip6((uip_ip6addr_t)*requester, buf);
+  buf[j]=':';buf[j+1]=' ';buf[j+2]=0;
 #else
   char buf[20];
   sprintf(buf, "%d.%d.%d.%d: ", requester->u8[0], requester->u8[1],
