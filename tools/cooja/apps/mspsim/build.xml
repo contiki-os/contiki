@@ -5,11 +5,13 @@
   <property name="build" location="build"/>
   <property name="lib" location="lib"/>
   <property name="javadoc" location="javadoc"/>
-	<property name="cooja" location="../.."/>
+  <property name="cooja" location="../.."/>
   
-	<property name="cooja_jar" value="${cooja}/dist/cooja.jar"/>
+  <property name="cooja_jar" value="${cooja}/dist/cooja.jar"/>
   <property name="mspsim" location="../../../mspsim"/>
   <property name="mspsim_jar" value="${lib}/mspsim.jar"/>
+  <property name="coffee" location="../../../coffee-manager"/>
+  <property name="coffee_jar" value="${lib}/coffee.jar"/>
   <property name="cooja_mspsim_jar" value="${lib}/cooja_mspsim.jar"/>
 
   <target name="init">
@@ -27,10 +29,16 @@
     <copy todir="${lib}" file="${mspsim}/mspsim.jar" />
   </target>
 
-  <target name="compile" depends="init,mspsim">
+  <target name="coffee" depends="init">
+    <ant antfile="build.xml" dir="${coffee}" target="jar" inheritAll="false"/>
+    <copy todir="${lib}" file="${coffee}/coffee.jar" />
+  </target>
+
+  <target name="compile" depends="init,mspsim,coffee">
     <javac srcdir="${src}" destdir="${build}" debug="on">
       <classpath>
         <pathelement location="${mspsim_jar}"/>
+        <pathelement location="${coffee_jar}"/>
         <pathelement location="${cooja_jar}"/>
       </classpath>
     </javac>
@@ -43,6 +51,7 @@
       <fileset dir="${src}/" includes="**/*.java"/>
       <classpath>
         <pathelement location="${mspsim_jar}"/>
+        <pathelement location="${coffee_jar}"/>
         <pathelement location="${cooja_jar}"/>
       </classpath>
     </javadoc>
