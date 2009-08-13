@@ -8,10 +8,12 @@ Building:
 
 Usage:
 
-java -jar coffee.jar [-i|e|r <file>] [-l|s] <file system image>
+java -jar coffee.jar [-p <platform>] [-i|e|r <file>] [-l|s] <file system image>
 
 Options:
 
+-p   Selects the platform configuration of Coffee to use.
+     Valid choices: sky (default), esb.
 -i   Inserts a new file into the file system.
 -e   Extracts a file from the file system and saves it locally.
 -r   Removes a file from the file system.

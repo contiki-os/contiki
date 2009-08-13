@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: CoffeeManager.java,v 1.4 2009/08/11 17:03:59 fros4943 Exp $
+ * $Id: CoffeeManager.java,v 1.5 2009/08/13 12:11:20 nvt-se Exp $
  *
  * @author Nicolas Tsiftes
  *
@@ -41,6 +41,8 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import se.sics.coffee.CoffeeFS.CoffeeException;
+import se.sics.coffee.CoffeeFS.CoffeeFileException;
 
 public class CoffeeManager {
 	private static CoffeeFS coffeeFS;
@@ -53,50 +55,51 @@ public class CoffeeManager {
 		String filename = "";
 		String fsImage = "";
 
+		usage += "[-p <hardware platform>] ";
 		usage += "[-i|e|r <file>] ";
 		usage += "[-l|s] ";
 		usage += "<file system image>";
 
-		if (args.length < 1) {
+		if (args.length < 2) {
 			System.err.println(usage);
 			System.exit(1);
 		}
 
-		if (args.length > 1) {
-			Pattern validArg = Pattern.compile("-(i|e|r|l|s)");
-			Matcher m = validArg.matcher(args[0]);
-			if (!m.matches()) {
+		Pattern optionArg = Pattern.compile("-(p|i|e|r)");
+
+		for(int i = 0; i < args.length - 1; i++) {
+			if (optionArg.matcher(args[i]).matches()) {
+				if(i >= args.length - 2) {
+					System.err.println(usage);
+					System.exit(1);
+				}
+			}
+
+			if(args[i].equals("-p")) {
+				platform = args[i + 1];
+				i++;
+			} else if (args[i].equals("-i")) {
+				command = Command.INSERT;
+				filename = args[i + 1];
+				i++;
+			} else if (args[i].equals("-r")) {
+				command = Command.REMOVE;
+				filename = args[i + 1];
+				i++;
+			} else if (args[i].equals("-i")) {
+				command = Command.EXTRACT;
+				filename = args[i + 1];
+				i++;
+			} else if (args[i].equals("-l")) {
+				command = Command.LIST;
+			} else if (args[i].equals("-s")) {
+				command = Command.STATS;
+			} else {
 				System.err.println(usage);
 				System.exit(1);
 			}
-
-			if (args[0].equals("-i") || args[0].equals("-e") || args[0].equals("-r")) {
-				if (args.length != 3) {
-					System.err.println(usage);
-					System.exit(1);
-				}
-				if (args[0].equals("-i")) {
-					command = Command.INSERT;
-				} else if (args[0].equals("-r")) {
-					command = Command.REMOVE;
-				} else {
-					command = Command.EXTRACT;
-				}
-				filename = args[1];
-				fsImage = args[2];
-			} else {
-				if (args.length != 2) {
-					System.err.println(usage);
-					System.exit(1);
-				}
-				if (args[0].equals("-l")) {
-					command = Command.LIST;
-				} else {
-					command = Command.STATS;
-				}
-				fsImage = args[1];
-			}
 		}
+		fsImage = args[args.length - 1];
 
 		try {
 			CoffeeConfiguration conf = new CoffeeConfiguration(platform + ".properties");
@@ -140,6 +143,10 @@ public class CoffeeManager {
 				System.exit(1);
 			}
 		} catch (IOException e) {
+			System.err.println(e.getMessage());
+		} catch (CoffeeException e) {
+			System.err.println(e.getMessage());
+		} catch (CoffeeFileException e) {
 			System.err.println(e.getMessage());
 		}
 	}
