@@ -30,7 +30,7 @@
  *
  * Author: Oliver Schmidt <ol.sc@web.de>
  *
- * $Id: wpcap.c,v 1.17 2009/08/11 16:06:17 dak664 Exp $
+ * $Id: wpcap.c,v 1.18 2009/08/13 18:41:00 dak664 Exp $
  */
 
 #define WIN32_LEAN_AND_MEAN
@@ -145,6 +145,7 @@ init_pcap(struct in_addr addr)
             if(pcap == NULL) {
               error_exit(error);
             }
+//          pcap_setdirection(PCAP_D_IN);  //Not implemented in windows yet?
             return;
           }
         }
@@ -255,6 +256,7 @@ wpcap_init(void)
   set_ethaddr(addr);
 
 }
+
 /*---------------------------------------------------------------------------*/
 u16_t
 wpcap_poll(void)
@@ -269,19 +271,36 @@ wpcap_poll(void)
     return 0;
   }
 
+#if UIP_CONF_IPV6
+/* Since pcap_setdirection(PCAP_D_IN) is not implemented in winpcap all outgoing packets
+ * will be echoed back. The stack will ignore any packets not addressed to it, but initial
+ * ipv6 neighbor solicitations are addressed to everyone and the echoed NS sent on startup
+ * would be processed as a conflicting NS race which would cause a stack shutdown.
+ * So discard all packets with our source address (packet starts destaddr, srcaddr, ...)
+ *
+ */
+  int i;
+  for (i=0;i<UIP_LLADDR_LEN;i++) if (*(packet+UIP_LLADDR_LEN+i)!=uip_lladdr.addr[i]) break;
+  if (i==UIP_LLADDR_LEN) {
+    PRINTF("Discarding echoed packet\n");
+    return 0;
+  }
+#endif /* UIP_CONF_IPV6 */
+
   if(packet_header->caplen > UIP_BUFSIZE) {
     return 0;
   }
 
   CopyMemory(uip_buf, packet, packet_header->caplen);
   return (u16_t)packet_header->caplen;
+
 }
+
 /*---------------------------------------------------------------------------*/
 #if UIP_CONF_IPV6
 u8_t
 wpcap_send(uip_lladdr_t *lladdr)
 {
-  static char cludge=0;
   if(lladdr == NULL) {
 /* the dest must be multicast*/
     (&BUF->dest)->addr[0] = 0x33;
@@ -295,15 +314,6 @@ wpcap_send(uip_lladdr_t *lladdr)
   }
   memcpy(&BUF->src, &uip_lladdr, UIP_LLADDR_LEN);
 
-/* TODO:After sending the initial NS a NS is received from 0 to me with my target address.
- * This causes program exit -1 via uip_netif_dad_failed() from uip-nd6-io.c.
- * It is OK once it receives an incoming packet
- * Swallowing the first few output packets will (usually) get it going
- * This is a cludge until the NS processing is resolved!
- */
-if (cludge<3) {
-  cludge++;   //gulp
-} else {
   PRINTF("Src= %02x %02x %02x %02x %02x %02x",(&BUF->src)->addr[0],(&BUF->src)->addr[1],(&BUF->src)->addr[2],(&BUF->src)->addr[3],(&BUF->src)->addr[4],(&BUF->src)->addr[5]);
   PRINTF("  Dst= %02x %02x %02x %02x %02x %02x",(&BUF->dest)->addr[0],(&BUF->dest)->addr[1],(&BUF->dest)->addr[2],(&BUF->dest)->addr[3],(&BUF->dest)->addr[4],(&BUF->dest)->addr[5]);
   PRINTF("  Type=%04x\n",BUF->type);
@@ -312,9 +322,8 @@ if (cludge<3) {
   if(pcap_sendpacket(pcap, uip_buf, uip_len) == -1) {
     error_exit("error on send\n");
   }
-}
 return 0;
-} /* cludge */
+}
 #else /* UIP_CONF_IPV6 */
 void
 wpcap_send(void)
