@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: CoffeeManager.java,v 1.5 2009/08/13 12:11:20 nvt-se Exp $
+ * $Id: CoffeeManager.java,v 1.6 2009/08/13 12:15:35 nvt-se Exp $
  *
  * @author Nicolas Tsiftes
  *
@@ -86,7 +86,7 @@ public class CoffeeManager {
 				command = Command.REMOVE;
 				filename = args[i + 1];
 				i++;
-			} else if (args[i].equals("-i")) {
+			} else if (args[i].equals("-e")) {
 				command = Command.EXTRACT;
 				filename = args[i + 1];
 				i++;
