@@ -53,7 +53,7 @@ interrupt(DACDMA_VECTOR) irq_dacdma(void)
     if(callbacks[0] != NULL) {
       callbacks[0]();
     }
-    LPM_AWAKE();
+    _BIC_SR_IRQ(LPM3_bits);
   }
 
   if(DMA1CTL & DMAIFG) {
@@ -61,7 +61,7 @@ interrupt(DACDMA_VECTOR) irq_dacdma(void)
     if(callbacks[1] != NULL) {
       callbacks[1]();
     }
-    LPM_AWAKE();
+    _BIC_SR_IRQ(LPM3_bits);
   }
 
   if(DMA2CTL & DMAIFG) {
@@ -69,7 +69,7 @@ interrupt(DACDMA_VECTOR) irq_dacdma(void)
     if(callbacks[2] != NULL) {
       callbacks[2]();
     }
-    LPM_AWAKE();
+    _BIC_SR_IRQ(LPM3_bits);
   }
 
   if(DAC12_0CTL & DAC12IFG) {
