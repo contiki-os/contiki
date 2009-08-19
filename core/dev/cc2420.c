@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: cc2420.c,v 1.31 2009/07/28 22:24:53 joxe Exp $
+ * @(#)$Id: cc2420.c,v 1.32 2009/08/19 12:00:04 fros4943 Exp $
  */
 /*
  * This code is almost device independent and should be easy to port.
@@ -165,7 +165,7 @@ static void
 flushrx(void)
 {
   uint8_t dummy;
-  
+
   FASTSPI_READ_FIFO_BYTE(dummy);
   FASTSPI_STROBE(CC2420_SFLUSHRX);
   FASTSPI_STROBE(CC2420_SFLUSHRX);
@@ -204,10 +204,10 @@ off(void)
 {
   PRINTF("off\n");
   receive_on = 0;
-  
+
   /* Wait for transmission to end before turning radio off. */
   while(status() & BV(CC2420_TX_ACTIVE));
-  
+
   strobe(CC2420_SRFOFF);
   DISABLE_FIFOP_INT();
   ENERGEST_OFF(ENERGEST_TYPE_LISTEN);
@@ -292,7 +292,7 @@ cc2420_init(void)
   reg = getreg(CC2420_RXCTRL1);
   reg |= RXBPF_LOCUR;
   setreg(CC2420_RXCTRL1, reg);
-  
+
   /* Set the FIFOP threshold to maximum. */
   setreg(CC2420_IOCFG0, FIFOP_THR(127));
 
@@ -326,9 +326,9 @@ cc2420_send(const void *payload, unsigned short payload_len)
   } else {
     cc2420_set_txpower(CC2420_TXPOWER_MAX);
   }
-  
+
   PRINTF("cc2420: sending %d bytes\n", payload_len);
-  
+
   RIMESTATS_ADD(lltx);
 
   /* Wait for any previous transmission to finish. */
@@ -373,7 +373,7 @@ cc2420_send(const void *payload, unsigned short payload_len)
 #else /* WITH_SEND_CCA */
   strobe(CC2420_STXON);
 #endif /* WITH_SEND_CCA */
-  
+
   for(i = LOOP_20_SYMBOLS; i > 0; i--) {
     if(SFD_IS_1) {
 #if CC2420_CONF_TIMESTAMPS
@@ -406,13 +406,17 @@ cc2420_send(const void *payload, unsigned short payload_len)
       ENERGEST_OFF(ENERGEST_TYPE_TRANSMIT);
       if(receive_on) {
 	ENERGEST_ON(ENERGEST_TYPE_LISTEN);
+      } else {
+    /* We need to explicitly turn off the radio,
+     * since STXON[CCA] -> TX_ACTIVE -> RX_ACTIVE */
+    off();
       }
 
       RELEASE_LOCK();
       return 0;
     }
   }
-  
+
   /* If we are using WITH_SEND_CCA, we get here if the packet wasn't
      transmitted because of other channel activity. */
   RIMESTATS_ADD(contentiondrop);
@@ -444,7 +448,7 @@ cc2420_off(void)
     lock_off = 1;
     return 1;
   }
-  
+
   off();
   return 1;
 }
@@ -480,7 +484,7 @@ cc2420_set_channel(int c)
    */
 
   channel = c;
-  
+
   f = 5 * (c - 11) + 357 + 0x4000;
   /*
    * Writing RAM requires crystal oscillator to be stable.
@@ -558,13 +562,13 @@ PROCESS_THREAD(cc2420_process, ev, data)
   PROCESS_BEGIN();
 
   PRINTF("cc2420_process: started\n");
-  
+
   while(1) {
     PROCESS_YIELD_UNTIL(ev == PROCESS_EVENT_POLL);
 #if CC2420_TIMETABLE_PROFILING
     TIMETABLE_TIMESTAMP(cc2420_timetable, "poll");
 #endif /* CC2420_TIMETABLE_PROFILING */
-        
+
     if(receiver_callback != NULL) {
       PRINTF("cc2420_process: calling receiver callback\n");
       receiver_callback(&cc2420_driver);
@@ -594,12 +598,12 @@ cc2420_read(void *buf, unsigned short bufsize)
 #if CC2420_CONF_TIMESTAMPS
   struct timestamp t;
 #endif /* CC2420_CONF_TIMESTAMPS */
-  
+
   if(!FIFOP_IS_1) {
     /* If FIFOP is 0, there is no packet in the RXFIFO. */
     return 0;
   }
-  
+
 #if CC2420_CONF_TIMESTAMPS
   if(interrupt_time_set) {
     cc2420_time_of_arrival = interrupt_time;
@@ -627,7 +631,7 @@ cc2420_read(void *buf, unsigned short bufsize)
     RELEASE_LOCK();
     return 0;
   }
-  
+
   if(len - AUX_LEN > bufsize) {
     flushrx();
     RIMESTATS_ADD(toolong);
@@ -643,13 +647,13 @@ cc2420_read(void *buf, unsigned short bufsize)
   getrxdata(&t, TIMESTAMP_LEN);
 #endif /* CC2420_CONF_TIMESTAMPS */
   getrxdata(footer, FOOTER_LEN);
-  
+
 #if CC2420_CONF_CHECKSUM
   if(checksum != crc16_data(buf, len - AUX_LEN, 0)) {
     PRINTF("checksum failed 0x%04x != 0x%04x\n",
 	   checksum, crc16_data(buf, len - AUX_LEN, 0));
   }
-  
+
   if(footer[1] & FOOTER1_CRC_OK &&
      checksum == crc16_data(buf, len - AUX_LEN, 0)) {
 #else
@@ -661,25 +665,25 @@ cc2420_read(void *buf, unsigned short bufsize)
 
     packetbuf_set_attr(PACKETBUF_ATTR_RSSI, cc2420_last_rssi);
     packetbuf_set_attr(PACKETBUF_ATTR_LINK_QUALITY, cc2420_last_correlation);
-    
+
     RIMESTATS_ADD(llrx);
-    
+
 #if CC2420_CONF_TIMESTAMPS
     cc2420_time_of_departure =
       t.time +
       setup_time_for_transmission +
       (total_time_for_transmission * (len - 2)) / total_transmission_len;
-  
+
     cc2420_authority_level_of_sender = t.authority_level;
 
     packetbuf_set_attr(PACKETBUF_ATTR_TIMESTAMP, t.time);
 #endif /* CC2420_CONF_TIMESTAMPS */
-  
+
   } else {
     RIMESTATS_ADD(badcrc);
     len = AUX_LEN;
   }
-  
+
   /* Clean up in case of FIFO overflow!  This happens for every full
    * length frame and is signaled by FIFOP = 1 and FIFO = 0.
    */
@@ -690,9 +694,9 @@ cc2420_read(void *buf, unsigned short bufsize)
     /* Another packet has been received and needs attention. */
     process_poll(&cc2420_process);
   }
-  
+
   RELEASE_LOCK();
-  
+
   if(len < AUX_LEN) {
     return 0;
   }
@@ -723,7 +727,7 @@ cc2420_rssi(void)
 {
   int rssi;
   int radio_was_off = 0;
-  
+
   if(!receive_on) {
     radio_was_off = 1;
     cc2420_on();
