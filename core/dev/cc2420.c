@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: cc2420.c,v 1.32 2009/08/19 12:00:04 fros4943 Exp $
+ * @(#)$Id: cc2420.c,v 1.33 2009/08/19 15:05:05 nifi Exp $
  */
 /*
  * This code is almost device independent and should be easy to port.
@@ -240,6 +240,16 @@ setreg(enum cc2420_register regname, unsigned value)
   FASTSPI_SETREG(regname, value);
 }
 /*---------------------------------------------------------------------------*/
+static void
+set_txpower(uint8_t power)
+{
+  uint16_t reg;
+
+  reg = getreg(CC2420_TXCTRL);
+  reg = (reg & 0xffe0) | (power & 0x1f);
+  setreg(CC2420_TXCTRL, reg);
+}
+/*---------------------------------------------------------------------------*/
 #define AUTOACK (1 << 4)
 #define ADR_DECODE (1 << 11)
 #define RXFIFO_PROTECTION (1 << 9)
@@ -310,7 +320,7 @@ cc2420_init(void)
 int
 cc2420_send(const void *payload, unsigned short payload_len)
 {
-  int i;
+  int i, txpower;
   uint8_t total_len;
 #if CC2420_CONF_TIMESTAMPS
   struct timestamp timestamp;
@@ -318,13 +328,14 @@ cc2420_send(const void *payload, unsigned short payload_len)
 #if CC2420_CONF_CHECKSUM
   uint16_t checksum;
 #endif /* CC2420_CONF_CHECKSUM */
-
   GET_LOCK();
 
+  txpower = 0;
   if(packetbuf_attr(PACKETBUF_ATTR_RADIO_TXPOWER) > 0) {
-    cc2420_set_txpower(packetbuf_attr(PACKETBUF_ATTR_RADIO_TXPOWER) - 1);
-  } else {
-    cc2420_set_txpower(CC2420_TXPOWER_MAX);
+    /* Remember the current transmission power */
+    txpower = cc2420_get_txpower();
+    /* Set the specified transmission power */
+    set_txpower(packetbuf_attr(PACKETBUF_ATTR_RADIO_TXPOWER) - 1);
   }
 
   PRINTF("cc2420: sending %d bytes\n", payload_len);
@@ -412,6 +423,11 @@ cc2420_send(const void *payload, unsigned short payload_len)
     off();
       }
 
+      if(packetbuf_attr(PACKETBUF_ATTR_RADIO_TXPOWER) > 0) {
+        /* Restore the transmission power */
+        set_txpower(txpower & 0xff);
+      }
+
       RELEASE_LOCK();
       return 0;
     }
@@ -421,6 +437,12 @@ cc2420_send(const void *payload, unsigned short payload_len)
      transmitted because of other channel activity. */
   RIMESTATS_ADD(contentiondrop);
   PRINTF("cc2420: do_send() transmission never started\n");
+
+  if(packetbuf_attr(PACKETBUF_ATTR_RADIO_TXPOWER) > 0) {
+    /* Restore the transmission power */
+    set_txpower(txpower & 0xff);
+  }
+
   RELEASE_LOCK();
   return -3;			/* Transmission never started! */
 }
@@ -707,12 +729,8 @@ cc2420_read(void *buf, unsigned short bufsize)
 void
 cc2420_set_txpower(uint8_t power)
 {
-  uint16_t reg;
-
   GET_LOCK();
-  reg = getreg(CC2420_TXCTRL);
-  reg = (reg & 0xffe0) | (power & 0x1f);
-  setreg(CC2420_TXCTRL, reg);
+  set_txpower(power);
   RELEASE_LOCK();
 }
 /*---------------------------------------------------------------------------*/
