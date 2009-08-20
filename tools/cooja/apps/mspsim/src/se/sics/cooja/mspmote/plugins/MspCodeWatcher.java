@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: MspCodeWatcher.java,v 1.18 2009/06/15 09:44:42 fros4943 Exp $
+ * $Id: MspCodeWatcher.java,v 1.19 2009/08/20 12:52:17 fros4943 Exp $
  */
 
 package se.sics.cooja.mspmote.plugins;
@@ -304,9 +304,11 @@ public class MspCodeWatcher extends VisPlugin {
   private static File[] getSourceFiles(MspMote mote) {
     String[] sourceFiles = mote.getELF().getDebug().getSourceFiles();
     File contikiSource = mote.getType().getContikiSourceFile();
-    try {
-      contikiSource = contikiSource.getCanonicalFile();
-    } catch (IOException e1) {
+    if (contikiSource != null) {
+      try {
+        contikiSource = contikiSource.getCanonicalFile();
+      } catch (IOException e1) {
+      }
     }
     
     /* Verify that files exist */
