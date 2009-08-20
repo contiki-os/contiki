@@ -24,7 +24,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * $Id: Simulation.java,v 1.51 2009/07/06 12:29:57 fros4943 Exp $
+ * $Id: Simulation.java,v 1.52 2009/08/20 13:10:35 fros4943 Exp $
  */
 
 package se.sics.cooja;
@@ -688,11 +688,15 @@ public class Simulation extends Observable implements Runnable {
    *          Mote to add
    */
   public void addMote(final Mote mote) {
-    if (maxMoteStartupDelay > 0 && mote.getInterfaces().getClock() != null) {
-      mote.getInterfaces().getClock().setDrift(
-          - getSimulationTime()
-          - randomGenerator.nextInt((int)maxMoteStartupDelay)
-      );
+    if (mote.getInterfaces().getClock() != null) {
+      if (maxMoteStartupDelay > 0) {
+        mote.getInterfaces().getClock().setDrift(
+            - getSimulationTime()
+            - randomGenerator.nextInt((int)maxMoteStartupDelay)
+        );
+      } else {
+        mote.getInterfaces().getClock().setDrift(-getSimulationTime());
+      }
     }
 
     if (!isRunning()) {
