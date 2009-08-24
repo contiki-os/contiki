@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: node-id.c,v 1.3 2007/09/14 19:24:45 nvt-se Exp $
+ * $Id: node-id.c,v 1.4 2009/08/24 15:44:45 nifi Exp $
  */
 
 #include "node-id.h"
@@ -43,7 +43,7 @@ node_id_restore(void)
   uint16_t newid[2];
 
   infomem_read(newid, INFOMEM_NODE_ID, sizeof(newid));
-  node_id = ( newid[0] == 0xdead ) ? newid[1] : newid[0];
+  node_id = (newid[0] == 0xdead) ? newid[1] : 0;
 }
 /*---------------------------------------------------------------------------*/
 void
