@@ -1,8 +1,8 @@
-# $Id: Makefile.sky,v 1.26 2009/06/26 12:00:49 joxe Exp $
+# $Id: Makefile.sky,v 1.27 2009/08/25 16:24:49 adamdunkels Exp $
 
 
 ARCH=msp430.c leds.c watchdog.c light.c spi.c ds2411.c \
-     xmem.c i2c.c sht11.c battery-sensor.c acc-sensor.c \
+     xmem.c i2c.c sht11.c battery-sensor.c acc-sensor.c ext-sensor.c \
      cc2420.c cc2420-aes.c cc2420-arch.c irq.c \
      node-id.c sensors.c button-sensor.c cfs-coffee.c \
      radio-sensor.c uart1.c uip-ipchksum.c \
