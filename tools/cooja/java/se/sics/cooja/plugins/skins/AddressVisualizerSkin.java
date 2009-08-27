@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: AddressVisualizerSkin.java,v 1.1 2009/04/20 16:15:47 fros4943 Exp $
+ * $Id: AddressVisualizerSkin.java,v 1.2 2009/08/27 13:59:47 fros4943 Exp $
  */
 
 package se.sics.cooja.plugins.skins;
@@ -112,8 +112,12 @@ public class AddressVisualizerSkin implements VisualizerSkin {
     return null;
   }
 
-  public void paintSkin(Graphics g) {
+  public void paintBeforeMotes(Graphics g) {
+  }
+
+  public void paintAfterMotes(Graphics g) {
     FontMetrics fm = g.getFontMetrics();
+    g.setColor(Color.BLACK);
 
     /* Paint last output below motes */
     Mote[] allMotes = simulation.getMotes();

@@ -26,77 +26,39 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: LogVisualizerSkin.java,v 1.3 2009/08/27 13:59:47 fros4943 Exp $
+ * $Id: GridVisualizerSkin.java,v 1.1 2009/08/27 13:59:48 fros4943 Exp $
  */
 
 package se.sics.cooja.plugins.skins;
 
 import java.awt.Color;
-import java.awt.FontMetrics;
 import java.awt.Graphics;
-import java.awt.Point;
-import java.util.Observable;
-import java.util.Observer;
 
 import org.apache.log4j.Logger;
 
 import se.sics.cooja.ClassDescription;
 import se.sics.cooja.Mote;
 import se.sics.cooja.Simulation;
-import se.sics.cooja.interfaces.Log;
 import se.sics.cooja.interfaces.Position;
 import se.sics.cooja.plugins.Visualizer;
 import se.sics.cooja.plugins.VisualizerSkin;
 
 /**
- * Visualizer skin for Log output.
- *
- * Paints the last log message above each mote.
- *
+ * Background grid visualizer skin.
+ * 
  * @author Fredrik Osterlind
  */
-@ClassDescription("Log output: printf()'s")
-public class LogVisualizerSkin implements VisualizerSkin {
-  private static Logger logger = Logger.getLogger(LogVisualizerSkin.class);
+@ClassDescription("10m background grid")
+public class GridVisualizerSkin implements VisualizerSkin {
+  private static Logger logger = Logger.getLogger(GridVisualizerSkin.class);
 
-  private Simulation simulation = null;
   private Visualizer visualizer = null;
 
-  private Observer logObserver = new Observer() {
-    public void update(Observable obs, Object obj) {
-      visualizer.repaint();
-    }
-  };
-  private Observer simObserver = new Observer() {
-    public void update(Observable obs, Object obj) {
-
-      /* Observe logs */
-      for (Mote mote: simulation.getMotes()) {
-        Log log = mote.getInterfaces().getLog();
-        if (log != null) {
-          log.addObserver(logObserver);
-        }
-      }
-      visualizer.repaint();
-    }
-  };
-
   public void setActive(Simulation simulation, Visualizer vis) {
-    this.simulation = simulation;
     this.visualizer = vis;
-
-    simulation.addObserver(simObserver);
-    simObserver.update(null, null);
   }
 
   public void setInactive() {
-    simulation.deleteObserver(simObserver);
-    for (Mote mote: simulation.getMotes()) {
-      Log log = mote.getInterfaces().getLog();
-      if (log != null) {
-        log.deleteObserver(logObserver);
-      }
-    }
   }
 
   public Color[] getColorOf(Mote mote) {
@@ -104,30 +66,57 @@ public class LogVisualizerSkin implements VisualizerSkin {
   }
 
   public void paintBeforeMotes(Graphics g) {
+
+    /* Background grid every 10 meters */
+    Position upperLeft = 
+      visualizer.transformPixelToPosition(-10, -10);
+    upperLeft.setCoordinates(
+        ((int)(upperLeft.getXCoordinate()/10))*10,
+        ((int)(upperLeft.getYCoordinate()/10))*10,
+        0);
+    Position lowerRight = 
+      visualizer.transformPixelToPosition(visualizer.getWidth(), visualizer.getHeight());
+    lowerRight.setCoordinates(
+        ((int)(lowerRight.getXCoordinate()/10))*10,
+        ((int)(lowerRight.getYCoordinate()/10))*10,
+        0);
+
+    if ((lowerRight.getXCoordinate() - upperLeft.getXCoordinate())/10.0 < 200 &&
+        (lowerRight.getYCoordinate() - upperLeft.getYCoordinate())/10.0 < 200) {
+      /* X axis */
+      for (double x = upperLeft.getXCoordinate(); x <= lowerRight.getXCoordinate(); x += 10.0) {
+        int pixel = visualizer.transformPositionToPixel(x, 0, 0).x;
+        if (x % 100 == 0) {
+          g.setColor(Color.GRAY);
+        } else {
+          g.setColor(Color.LIGHT_GRAY);
+        }
+        g.drawLine(
+            pixel,
+            0,
+            pixel,
+            visualizer.getHeight()
+        );
+      }
+      /* Y axis */
+      for (double y = upperLeft.getYCoordinate(); y <= lowerRight.getYCoordinate(); y += 10.0) {
+        int pixel = visualizer.transformPositionToPixel(0, y, 0).y;
+        if (y % 100 == 0) {
+          g.setColor(Color.GRAY);
+        } else {
+          g.setColor(Color.LIGHT_GRAY);
+        }
+        g.drawLine(
+            0,
+            pixel,
+            visualizer.getWidth(),
+            pixel
+        );
+      }
+    }
   }
 
   public void paintAfterMotes(Graphics g) {
-    FontMetrics fm = g.getFontMetrics();
-    g.setColor(Color.BLACK);
-
-    /* Paint last output below motes */
-    Mote[] allMotes = simulation.getMotes();
-    for (Mote mote: allMotes) {
-      Log log = mote.getInterfaces().getLog();
-      if (log == null) {
-        continue;
-      }
-      String msg = log.getLastLogMessage();
-      if (msg == null) {
-        continue;
-      }
-
-      Position pos = mote.getInterfaces().getPosition();
-      Point pixel = visualizer.transformPositionToPixel(pos);
-
-      int msgWidth = fm.stringWidth(msg);
-      g.drawString(msg, pixel.x - msgWidth/2, pixel.y - Visualizer.MOTE_RADIUS);
-    }
   }
 
   public Visualizer getVisualizer() {

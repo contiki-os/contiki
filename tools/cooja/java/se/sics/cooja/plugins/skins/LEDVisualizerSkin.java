@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: LEDVisualizerSkin.java,v 1.3 2009/04/20 16:16:25 fros4943 Exp $
+ * $Id: LEDVisualizerSkin.java,v 1.4 2009/08/27 13:59:48 fros4943 Exp $
  */
 
 package se.sics.cooja.plugins.skins;
@@ -103,7 +103,10 @@ public class LEDVisualizerSkin implements VisualizerSkin {
     return null;
   }
 
-  public void paintSkin(Graphics g) {
+  public void paintBeforeMotes(Graphics g) {
+  }
+
+  public void paintAfterMotes(Graphics g) {
     /* Paint LEDs left of each mote */
     Mote[] allMotes = simulation.getMotes();
     for (Mote mote: allMotes) {
@@ -140,10 +143,7 @@ public class LEDVisualizerSkin implements VisualizerSkin {
       } else {
         g.drawRect(x, y, 7, 4);
       }
-
     }
-
-    g.setColor(Color.BLACK);
   }
 
   public Visualizer getVisualizer() {
