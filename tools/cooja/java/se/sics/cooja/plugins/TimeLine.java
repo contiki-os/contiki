@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: TimeLine.java,v 1.11 2009/07/02 12:05:24 fros4943 Exp $
+ * $Id: TimeLine.java,v 1.12 2009/08/27 16:38:09 fros4943 Exp $
  */
 
 package se.sics.cooja.plugins;
@@ -417,6 +417,116 @@ public class TimeLine extends VisPlugin {
     }
   };
 
+  private class MoteStatistics {
+    Mote mote;
+    long onTimeRedLED = 0, onTimeGreenLED = 0, onTimeBlueLED = 0;
+    int nrLogs = 0;
+    long radioOn = 0;
+    int nrRX = 0, nrTX = 0, nrCollisions = 0;
+    
+    public String toString() {
+      return
+      "Mote: " + mote + "\n" +
+      "LED red ontime:\t" + onTimeRedLED + "us = " + 100.0*((double)onTimeRedLED/simulation.getSimulationTime()) + "%\n" +
+      "LED green ontime:\t" + onTimeGreenLED + "us = " + 100.0*((double)onTimeGreenLED/simulation.getSimulationTime()) + "%\n" +
+      "LED blue ontime:\t" + onTimeBlueLED + "us = " + 100.0*((double)onTimeBlueLED/simulation.getSimulationTime()) + "%\n" +
+      "Log messages: " + nrLogs + "\n" +
+      "Radio ontime:\t" + radioOn + "us = " + 100.0*((double)radioOn/simulation.getSimulationTime()) + "%\n" +
+      "Radio RX: " + nrRX + "\n" +
+      "Radio TX: " + nrTX + "\n" +
+      "Radio collisions: " + nrCollisions + "\n"
+      ;
+    }
+  }
+  private Action statisticsAction = new AbstractAction() {
+    public void actionPerformed(ActionEvent e) {
+      if (simulation.isRunning()) {
+        simulation.stopSimulation();
+      }
+
+      /* Process all events (per mote basis) */
+      for (MoteEvents moteEvents: allMoteEvents) {
+        MoteStatistics stats = new MoteStatistics();
+        stats.mote = moteEvents.mote;
+        
+        for (MoteEvent ev: moteEvents.ledEvents) {
+          if (!(ev instanceof LEDEvent)) continue;
+          LEDEvent ledEvent = (LEDEvent) ev;
+
+          /* Red */
+          if (ledEvent.red) {
+            /* LED is on, add time interval */
+            if (ledEvent.next == null) {
+              stats.onTimeRedLED += (simulation.getSimulationTime() - ledEvent.time);
+            } else {
+              stats.onTimeRedLED += (ledEvent.next.time - ledEvent.time);
+            }
+          }
+
+          /* Green */
+          if (ledEvent.green) {
+            /* LED is on, add time interval */
+            if (ledEvent.next == null) {
+              stats.onTimeGreenLED += (simulation.getSimulationTime() - ledEvent.time);
+            } else {
+              stats.onTimeGreenLED += (ledEvent.next.time - ledEvent.time);
+            }
+          }
+          
+          /* Blue */
+          if (ledEvent.blue) {
+            /* LED is on, add time interval */
+            if (ledEvent.next == null) {
+              stats.onTimeBlueLED += (simulation.getSimulationTime() - ledEvent.time);
+            } else {
+              stats.onTimeBlueLED += (ledEvent.next.time - ledEvent.time);
+            }
+          }
+        }
+
+        for (MoteEvent ev: moteEvents.logEvents) {
+          if (!(ev instanceof LogEvent)) continue;
+          stats.nrLogs++;
+        }
+        
+        /* TODO Radio channels */
+
+        for (MoteEvent ev: moteEvents.radioHWEvents) {
+          if (!(ev instanceof RadioHWEvent)) continue;
+          RadioHWEvent hwEvent = (RadioHWEvent) ev;
+          if (hwEvent.on) {
+            /* HW is on */
+            if (hwEvent.next == null) {
+              stats.radioOn += (simulation.getSimulationTime() - hwEvent.time);
+            } else {
+              stats.radioOn += (hwEvent.next.time - hwEvent.time);
+            }
+          }
+        }
+        
+        for (MoteEvent ev: moteEvents.radioRXTXEvents) {
+          if (!(ev instanceof RadioRXTXEvent)) continue;
+          RadioRXTXEvent rxtxEvent = (RadioRXTXEvent) ev;
+          
+          if (rxtxEvent.state == RadioEvent.TRANSMISSION_STARTED) {
+            stats.nrTX++;
+          }
+          if (rxtxEvent.state == RadioEvent.RECEPTION_STARTED) {
+            stats.nrRX++;
+          }
+          if (rxtxEvent.state == RadioEvent.RECEPTION_INTERFERED) {
+            stats.nrCollisions++;
+          }
+        }
+        
+        /* TODO Watchpoints */
+
+        logger.info(stats.toString());
+      }
+
+    }
+  };
+  
   private void numberMotesWasUpdated() {
     /* Plugin title */
     if (allMoteEvents.isEmpty()) {
@@ -798,6 +908,10 @@ public class TimeLine extends VisPlugin {
       JMenuItem saveItem = new JMenuItem(saveDataAction);
       saveItem.setText("Save raw data to file");
       popupMenu.add(saveItem);
+
+      JMenuItem statisticsItem = new JMenuItem(statisticsAction);
+      statisticsItem.setText("Print statistics to console");
+      popupMenu.add(statisticsItem);
 
       addMouseListener(new MouseAdapter() {
         public void mouseClicked(MouseEvent e) {
