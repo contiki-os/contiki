@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006, Swedish Institute of Computer Science.
+ * Copyright (c) 2009, Swedish Institute of Computer Science.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -26,24 +26,52 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: VariableWatcher.java,v 1.8 2009/06/15 11:59:21 fros4943 Exp $
+ * $Id: VariableWatcher.java,v 1.9 2009/08/27 14:38:57 fros4943 Exp $
  */
 
 package se.sics.cooja.plugins;
 
-import java.awt.*;
-import java.awt.event.*;
-import java.beans.*;
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Component;
+import java.awt.Dimension;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.FocusAdapter;
+import java.awt.event.FocusEvent;
+import java.awt.event.FocusListener;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import java.text.NumberFormat;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Vector;
-import javax.swing.*;
+
+import javax.swing.BorderFactory;
+import javax.swing.Box;
+import javax.swing.BoxLayout;
+import javax.swing.JButton;
+import javax.swing.JComboBox;
+import javax.swing.JFormattedTextField;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JTextField;
+import javax.swing.SwingUtilities;
 import javax.swing.text.AttributeSet;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.PlainDocument;
 
 import org.jdom.Element;
-import se.sics.cooja.*;
+
+import se.sics.cooja.AddressMemory;
+import se.sics.cooja.ClassDescription;
+import se.sics.cooja.GUI;
+import se.sics.cooja.Mote;
+import se.sics.cooja.PluginType;
+import se.sics.cooja.Simulation;
+import se.sics.cooja.VisPlugin;
 import se.sics.cooja.AddressMemory.UnknownVariableException;
 
 /**
@@ -114,6 +142,7 @@ public class VariableWatcher extends VisPlugin {
     varName.setSelectedItem("[enter or pick name]");
 
     String[] allPotentialVarNames = moteMemory.getVariableNames();
+    Arrays.sort(allPotentialVarNames);
     for (String aVarName: allPotentialVarNames) {
       varName.addItem(aVarName);
     }
@@ -207,7 +236,7 @@ public class VariableWatcher extends VisPlugin {
 
     lengthPane.add(BorderLayout.EAST, varLength);
     mainPane.add(lengthPane);
-    mainPane.add(Box.createRigidArea(new Dimension(0,25)));
+    mainPane.add(Box.createRigidArea(new Dimension(0,5)));
 
     lengthPane.setVisible(false);
 
@@ -345,14 +374,14 @@ public class VariableWatcher extends VisPlugin {
     }
 
     mainPane.add(valuePane);
-    mainPane.add(Box.createRigidArea(new Dimension(0,15)));
+    mainPane.add(Box.createRigidArea(new Dimension(0,5)));
     charValuePane.setVisible(false);
     mainPane.add(charValuePane);
-    mainPane.add(Box.createRigidArea(new Dimension(0,25)));
+    mainPane.add(Box.createRigidArea(new Dimension(0,5)));
 
     debuglbl = new JLabel();
     mainPane.add(new JPanel().add(debuglbl));
-    mainPane.add(Box.createRigidArea(new Dimension(0,25)));
+    mainPane.add(Box.createRigidArea(new Dimension(0,5)));
 
     // Read/write buttons
     smallPane = new JPanel(new BorderLayout());
@@ -446,22 +475,10 @@ public class VariableWatcher extends VisPlugin {
     smallPane.add(BorderLayout.EAST, button);
     button.setEnabled(false);
     writeButton = button;
-
-
     mainPane.add(smallPane);
-    mainPane.add(Box.createRigidArea(new Dimension(0,25)));
 
-    this.setContentPane(new JScrollPane(mainPane,
-        JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,
-        JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED));
+    add(BorderLayout.NORTH, mainPane);
     pack();
-
-    try {
-      setSelected(true);
-    } catch (java.beans.PropertyVetoException e) {
-      // Could not select
-    }
-
   }
 
   private void setNumberOfValues(int nr) {
