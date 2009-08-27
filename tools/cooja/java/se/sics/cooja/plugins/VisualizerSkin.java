@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: VisualizerSkin.java,v 1.2 2009/04/14 15:40:26 fros4943 Exp $
+ * $Id: VisualizerSkin.java,v 1.3 2009/08/27 13:57:42 fros4943 Exp $
  */
 
 package se.sics.cooja.plugins;
@@ -70,7 +70,7 @@ public interface VisualizerSkin {
    * Used by skin generic visualization.
    * May return a single color, or two colors.
    *
-   * @see Visualizer#paintSkinGeneric(Graphics)
+   * @see Visualizer#paintMotes(Graphics)
    *
    * @param mote Mote
    * @return Color[] { Inner color, Outer color }
@@ -78,11 +78,20 @@ public interface VisualizerSkin {
   public Color[] getColorOf(Mote mote);
 
   /**
-   * Called when plugin is repainted on the currently active skin.
+   * Called every time the visualizer plugin is repainted.
+   * Paints graphics that should be underneath the motes.
    *
    * @param g Graphics
    */
-  public void paintSkin(Graphics g);
+  public void paintBeforeMotes(Graphics g);
+
+  /**
+   * Called every time the visualizer plugin is repainted.
+   * Paints graphics that should be on top of the motes.
+   *
+   * @param g Graphics
+   */
+  public void paintAfterMotes(Graphics g);
 
   /**
    * @return Visualizer plugin where this skin is showing
