@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: LogVisualizerSkin.java,v 1.3 2009/08/27 13:59:47 fros4943 Exp $
+ * $Id: PositionVisualizerSkin.java,v 1.1 2009/08/27 13:59:47 fros4943 Exp $
  */
 
 package se.sics.cooja.plugins.skins;
@@ -43,41 +43,42 @@ import org.apache.log4j.Logger;
 import se.sics.cooja.ClassDescription;
 import se.sics.cooja.Mote;
 import se.sics.cooja.Simulation;
-import se.sics.cooja.interfaces.Log;
+import se.sics.cooja.SimEventCentral.MoteCountListener;
 import se.sics.cooja.interfaces.Position;
 import se.sics.cooja.plugins.Visualizer;
 import se.sics.cooja.plugins.VisualizerSkin;
 
 /**
- * Visualizer skin for Log output.
+ * Visualizer skin for mote positions.
  *
- * Paints the last log message above each mote.
+ * Paints the three dimensional mote position on the right-hand side of the mote.
  *
  * @author Fredrik Osterlind
  */
-@ClassDescription("Log output: printf()'s")
-public class LogVisualizerSkin implements VisualizerSkin {
-  private static Logger logger = Logger.getLogger(LogVisualizerSkin.class);
+@ClassDescription("Positions")
+public class PositionVisualizerSkin implements VisualizerSkin {
+  private static Logger logger = Logger.getLogger(PositionVisualizerSkin.class);
 
   private Simulation simulation = null;
   private Visualizer visualizer = null;
 
-  private Observer logObserver = new Observer() {
+  private Observer positionObserver = new Observer() {
     public void update(Observable obs, Object obj) {
       visualizer.repaint();
     }
   };
-  private Observer simObserver = new Observer() {
-    public void update(Observable obs, Object obj) {
-
-      /* Observe logs */
-      for (Mote mote: simulation.getMotes()) {
-        Log log = mote.getInterfaces().getLog();
-        if (log != null) {
-          log.addObserver(logObserver);
-        }
+  private MoteCountListener simObserver = new MoteCountListener() {
+    public void moteWasAdded(Mote mote) {
+      Position p = mote.getInterfaces().getPosition();
+      if (p != null) {
+        p.addObserver(positionObserver);
       }
-      visualizer.repaint();
+    }
+    public void moteWasRemoved(Mote mote) {
+      Position p = mote.getInterfaces().getPosition();
+      if (p != null) {
+        p.deleteObserver(positionObserver);
+      }
     }
   };
 
@@ -85,17 +86,16 @@ public class LogVisualizerSkin implements VisualizerSkin {
     this.simulation = simulation;
     this.visualizer = vis;
 
-    simulation.addObserver(simObserver);
-    simObserver.update(null, null);
+    simulation.getEventCentral().addMoteCountListener(simObserver);
+    for (Mote m: simulation.getMotes()) {
+      simObserver.moteWasAdded(m);
+    }
   }
 
   public void setInactive() {
-    simulation.deleteObserver(simObserver);
-    for (Mote mote: simulation.getMotes()) {
-      Log log = mote.getInterfaces().getLog();
-      if (log != null) {
-        log.deleteObserver(logObserver);
-      }
+    simulation.getEventCentral().removeMoteCountListener(simObserver);
+    for (Mote m: simulation.getMotes()) {
+      simObserver.moteWasRemoved(m);
     }
   }
 
@@ -113,20 +113,41 @@ public class LogVisualizerSkin implements VisualizerSkin {
     /* Paint last output below motes */
     Mote[] allMotes = simulation.getMotes();
     for (Mote mote: allMotes) {
-      Log log = mote.getInterfaces().getLog();
-      if (log == null) {
-        continue;
-      }
-      String msg = log.getLastLogMessage();
-      if (msg == null) {
-        continue;
-      }
-
       Position pos = mote.getInterfaces().getPosition();
       Point pixel = visualizer.transformPositionToPixel(pos);
 
-      int msgWidth = fm.stringWidth(msg);
-      g.drawString(msg, pixel.x - msgWidth/2, pixel.y - Visualizer.MOTE_RADIUS);
+      String msg = "";
+      String[] parts;
+
+      /* X */
+      parts = String.valueOf(pos.getXCoordinate()).split("\\.");
+      if (parts[0].length() >= 4) {
+        msg += parts[0];
+      } else {
+        msg += String.valueOf(pos.getXCoordinate()).substring(0, 5);
+      }
+      
+      /* Y */
+      msg += ", ";
+      parts = String.valueOf(pos.getYCoordinate()).split("\\.");
+      if (parts[0].length() >= 4) {
+        msg += parts[0];
+      } else {
+        msg += String.valueOf(pos.getYCoordinate()).substring(0, 5);
+      }
+
+      /* Z */
+      if (pos.getZCoordinate() != 0) {
+        msg += ", ";
+        parts = String.valueOf(pos.getXCoordinate()).split("\\.");
+        if (parts[0].length() >= 4) {
+          msg += parts[0];
+        } else {
+          msg += String.valueOf(pos.getXCoordinate()).substring(0, 5);
+        }
+      }
+      
+      g.drawString(msg, pixel.x + Visualizer.MOTE_RADIUS + 4, pixel.y + 4);
     }
   }
 
