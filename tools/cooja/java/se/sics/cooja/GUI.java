@@ -24,7 +24,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * $Id: GUI.java,v 1.142 2009/07/03 13:37:40 fros4943 Exp $
+ * $Id: GUI.java,v 1.143 2009/08/27 12:25:12 nvt-se Exp $
  */
 
 package se.sics.cooja;
@@ -155,6 +155,11 @@ public class GUI extends Observable {
    * External tools default Mac OS X settings filename.
    */
   public static final String EXTERNAL_TOOLS_MACOSX_SETTINGS_FILENAME = "/external_tools_macosx.config";
+
+  /**
+   * External tools default FreeBSD settings filename.
+   */
+  public static final String EXTERNAL_TOOLS_FREEBSD_SETTINGS_FILENAME = "/external_tools_freebsd.config";
 
   /**
    * External tools default Linux/Unix settings filename.
@@ -2620,6 +2625,8 @@ public class GUI extends Observable {
       filename = GUI.EXTERNAL_TOOLS_WIN32_SETTINGS_FILENAME;
     } else if (osName.startsWith("mac os x")) {
       filename = GUI.EXTERNAL_TOOLS_MACOSX_SETTINGS_FILENAME;
+    } else if (osName.startsWith("freebsd")) {
+      filename = GUI.EXTERNAL_TOOLS_FREEBSD_SETTINGS_FILENAME;
     } else if (osName.startsWith("linux")) {
       filename = GUI.EXTERNAL_TOOLS_LINUX_SETTINGS_FILENAME;
       if (osArch.startsWith("amd64")) {
