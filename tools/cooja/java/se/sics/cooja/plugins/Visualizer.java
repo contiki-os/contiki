@@ -26,12 +26,18 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: Visualizer.java,v 1.9 2009/07/03 14:06:20 fros4943 Exp $
+ * $Id: Visualizer.java,v 1.10 2009/08/27 13:57:43 fros4943 Exp $
  */
 
 package se.sics.cooja.plugins;
 
-import java.awt.*;
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Cursor;
+import java.awt.Dimension;
+import java.awt.Graphics;
+import java.awt.MouseInfo;
+import java.awt.Point;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.Transferable;
 import java.awt.datatransfer.UnsupportedFlavorException;
@@ -41,26 +47,59 @@ import java.awt.dnd.DropTargetDragEvent;
 import java.awt.dnd.DropTargetDropEvent;
 import java.awt.dnd.DropTargetEvent;
 import java.awt.dnd.DropTargetListener;
-import java.awt.event.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.ItemEvent;
+import java.awt.event.ItemListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseMotionListener;
+import java.awt.geom.AffineTransform;
 import java.io.File;
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
+import java.util.Observable;
+import java.util.Observer;
+import java.util.Vector;
 
-import javax.swing.*;
+import javax.swing.JButton;
+import javax.swing.JCheckBoxMenuItem;
+import javax.swing.JLabel;
+import javax.swing.JMenuItem;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JPopupMenu;
+import javax.swing.JSeparator;
+import javax.swing.SwingUtilities;
 import javax.swing.Timer;
+import javax.swing.plaf.basic.BasicInternalFrameUI;
 
 import org.apache.log4j.Logger;
 import org.jdom.Element;
 
-import se.sics.cooja.*;
+import se.sics.cooja.ClassDescription;
+import se.sics.cooja.GUI;
+import se.sics.cooja.Mote;
+import se.sics.cooja.MoteInterface;
+import se.sics.cooja.PluginType;
+import se.sics.cooja.Simulation;
+import se.sics.cooja.VisPlugin;
 import se.sics.cooja.GUI.MoteRelation;
 import se.sics.cooja.SimEventCentral.MoteCountListener;
-import se.sics.cooja.interfaces.*;
+import se.sics.cooja.interfaces.LED;
+import se.sics.cooja.interfaces.Position;
+import se.sics.cooja.interfaces.SerialPort;
 import se.sics.cooja.plugins.skins.AddressVisualizerSkin;
+import se.sics.cooja.plugins.skins.GridVisualizerSkin;
 import se.sics.cooja.plugins.skins.IDVisualizerSkin;
 import se.sics.cooja.plugins.skins.LEDVisualizerSkin;
 import se.sics.cooja.plugins.skins.LogVisualizerSkin;
+import se.sics.cooja.plugins.skins.PositionVisualizerSkin;
+import se.sics.cooja.plugins.skins.TrafficVisualizerSkin;
+import se.sics.cooja.plugins.skins.UDGMVisualizerSkin;
 
 /**
  * Simulation visualizer supporting visualization skins.
@@ -79,29 +118,30 @@ import se.sics.cooja.plugins.skins.LogVisualizerSkin;
 @ClassDescription("Simulation visualizer")
 @PluginType(PluginType.SIM_STANDARD_PLUGIN)
 public class Visualizer extends VisPlugin {
-
   private static final long serialVersionUID = 1L;
   private static Logger logger = Logger.getLogger(Visualizer.class);
 
-  private static final int CANVAS_BORDER_WIDTH = 25;
   public static final int MOTE_RADIUS = 8;
-
   private static final Color[] DEFAULT_MOTE_COLORS = { Color.WHITE };
 
   private GUI gui = null;
   private Simulation simulation = null;
   private final JPanel canvas;
 
-  /* Transformation */
-  private double factorXCoordToPixel;
-  private double factorYCoordToPixel;
-  private double smallestXCoord;
-  private double smallestYCoord;
+  /* Viewport */
+  private AffineTransform viewportTransform;
+  public int resetViewport = 0;
 
-  /* Moving motes */
-  private boolean moteIsBeingMoved = false;
-  private long moteMoveBeginTime = -1;
-  private Mote moteToMove = null;
+  /* Actions: move motes, pan view, and zoom view */
+  private boolean panning = false;
+  private Position panningPosition = null; /* Panning start position */
+  private boolean zooming = false;
+  private double zoomStart = 0;
+  private Position zoomingPosition = null; /* Zooming center position */
+  private Point zoomingPixel = null; /* Zooming center pixel */
+  private boolean moving = false;
+  private Mote movedMote = null;
+  private long moveStartTime = -1;
   private Cursor moveCursor = new Cursor(Cursor.MOVE_CURSOR);
 
   /* Visualizer skins */
@@ -114,6 +154,9 @@ public class Visualizer extends VisPlugin {
     registerVisualizerSkin(AddressVisualizerSkin.class);
     registerVisualizerSkin(LogVisualizerSkin.class);
     registerVisualizerSkin(LEDVisualizerSkin.class);
+    registerVisualizerSkin(TrafficVisualizerSkin.class);
+    registerVisualizerSkin(PositionVisualizerSkin.class);
+    registerVisualizerSkin(GridVisualizerSkin.class);
   }
   private ArrayList<VisualizerSkin> currentSkins = new ArrayList<VisualizerSkin>();
 
@@ -127,14 +170,13 @@ public class Visualizer extends VisPlugin {
 
   /* Popup menu */
   public static interface SimulationMenuAction {
-    public boolean isEnabled(Simulation simulation);
-    public String getDescription(Simulation simulation);
+    public boolean isEnabled(Visualizer visualizer, Simulation simulation);
+    public String getDescription(Visualizer visualizer, Simulation simulation);
     public void doAction(Visualizer visualizer, Simulation simulation);
   }
-
   public static interface MoteMenuAction {
-    public boolean isEnabled(Mote mote);
-    public String getDescription(Mote mote);
+    public boolean isEnabled(Visualizer visualizer, Mote mote);
+    public String getDescription(Visualizer visualizer, Mote mote);
     public void doAction(Visualizer visualizer, Mote mote);
   }
 
@@ -153,14 +195,23 @@ public class Visualizer extends VisPlugin {
       private static final long serialVersionUID = 1L;
       public void paintComponent(Graphics g) {
         super.paintComponent(g);
-        paintSkinGeneric(g);
+
+        if (resetViewport > 0) {
+          resetViewport();
+          resetViewport--;
+        }
+
         for (VisualizerSkin skin: currentSkins) {
-          skin.paintSkin(g);
+          skin.paintBeforeMotes(g);
+        }
+        paintMotes(g);
+        for (VisualizerSkin skin: currentSkins) {
+          skin.paintAfterMotes(g);
         }
       }
     };
     canvas.setBackground(Color.WHITE);
-    calculateTransformations();
+    viewportTransform = new AffineTransform();
 
     /* Skin selector */
     skinButton.addActionListener(new ActionListener() {
@@ -236,7 +287,6 @@ public class Visualizer extends VisPlugin {
     /* Observe simulation and mote positions */
     posObserver = new Observer() {
       public void update(Observable obs, Object obj) {
-        calculateTransformations();
         repaint();
       }
     };
@@ -245,17 +295,20 @@ public class Visualizer extends VisPlugin {
         Position pos = mote.getInterfaces().getPosition();
         if (pos != null) {
           pos.addObserver(posObserver);
+          SwingUtilities.invokeLater(new Runnable() {
+            public void run() {
+              resetViewport = 1;
+              repaint();
+            }
+          });
         }
-        calculateTransformations();
-        repaint();
       }
       public void moteWasRemoved(Mote mote) {
         Position pos = mote.getInterfaces().getPosition();
         if (pos != null) {
           pos.deleteObserver(posObserver);
+          repaint();
         }
-        calculateTransformations();
-        repaint();
       }
     });
     for (Mote mote: simulation.getMotes()) {
@@ -264,8 +317,6 @@ public class Visualizer extends VisPlugin {
         pos.addObserver(posObserver);
       }
     }
-    calculateTransformations();
-    repaint();
 
     /* Observe mote highlights */
     gui.addMoteHighlightObserver(moteHighligtObserver = new Observer() {
@@ -310,49 +361,37 @@ public class Visualizer extends VisPlugin {
     /* Popup menu */
     canvas.addMouseMotionListener(new MouseMotionListener() {
       public void mouseMoved(MouseEvent e) {
-        handleMoveRequest(e.getPoint().x, e.getPoint().y, false);
+        handleMouseMove(e, false);
       }
       public void mouseDragged(MouseEvent e) {
-        handleMoveRequest(e.getPoint().x, e.getPoint().y, false);
+        handleMouseMove(e, false);
       }
     });
-    canvas.addMouseListener(new MouseListener() {
+    canvas.addMouseListener(new MouseAdapter() {
       public void mousePressed(MouseEvent e) {
         if (e.isPopupTrigger()) {
           handlePopupRequest(e.getPoint().x, e.getPoint().y);
-        } else if (SwingUtilities.isLeftMouseButton(e)){
-          //handleMoveRequest(e.getPoint().x, e.getPoint().y, false);
-          beginMoveRequest(e.getPoint().x, e.getPoint().y);
+          return;
+        } 
+
+        if (SwingUtilities.isLeftMouseButton(e)){
+          handleMousePress(e);
         }
       }
       public void mouseReleased(MouseEvent e) {
         if (e.isPopupTrigger()) {
           handlePopupRequest(e.getPoint().x, e.getPoint().y);
-        } else {
-          handleMoveRequest(e.getPoint().x, e.getPoint().y, true);
+          return;
         }
-      }
-      public void mouseEntered(MouseEvent e) {
-        if (e.isPopupTrigger()) {
-          handlePopupRequest(e.getPoint().x, e.getPoint().y);
-        }
-      }
-      public void mouseExited(MouseEvent e) {
-        if (e.isPopupTrigger()) {
-          handlePopupRequest(e.getPoint().x, e.getPoint().y);
-        }
+
+        handleMouseMove(e, true);
       }
       public void mouseClicked(MouseEvent e) {
         if (e.isPopupTrigger()) {
           handlePopupRequest(e.getPoint().x, e.getPoint().y);
         }
-      }
-    });
 
-    addComponentListener(new ComponentAdapter() {
-      public void componentResized(ComponentEvent ce) {
-        calculateTransformations();
-        repaint();
+        handleMouseMove(e, true);
       }
     });
 
@@ -364,7 +403,8 @@ public class Visualizer extends VisPlugin {
     registerMoteMenuAction(DeleteMoteMenuAction.class);
 
     /* Register simulation menu actions */
-    /* ... */
+    registerSimulationMenuAction(ResetViewportAction.class);
+    registerSimulationMenuAction(ToggleDecorationsMenuAction.class);
 
     /* Drag and drop files to motes */
     DropTargetListener dTargetListener = new DropTargetListener() {
@@ -469,7 +509,7 @@ public class Visualizer extends VisPlugin {
 
     this.setSize(300, 300);
     setLocation(gui.getDesktopPane().getWidth() - getWidth(), 0);
-    setVisible(true);
+    resetViewport = 3; /* XXX Quick-fix */
   }
 
   private void generateAndActivateSkin(Class<? extends VisualizerSkin> skinClass) {
@@ -548,9 +588,7 @@ public class Visualizer extends VisPlugin {
     visualizerSkins.remove(skin);
   }
 
-
   private void handlePopupRequest(final int x, final int y) {
-
     JPopupMenu menu = new JPopupMenu();
     menu.add(new JLabel("Select action:"));
 
@@ -565,8 +603,8 @@ public class Visualizer extends VisPlugin {
         for (Class<? extends MoteMenuAction> menuActionClass: moteMenuActions) {
           try {
             final MoteMenuAction menuAction = menuActionClass.newInstance();
-            if (menuAction.isEnabled(mote)) {
-              JMenuItem menuItem = new JMenuItem(menuAction.getDescription(mote));
+            if (menuAction.isEnabled(this, mote)) {
+              JMenuItem menuItem = new JMenuItem(menuAction.getDescription(this, mote));
               menuItem.addActionListener(new ActionListener() {
                 public void actionPerformed(ActionEvent e) {
                   menuAction.doAction(Visualizer.this, mote);
@@ -581,7 +619,6 @@ public class Visualizer extends VisPlugin {
           }
         }
       }
-
     }
 
     /* Simulation specific actions */
@@ -589,8 +626,8 @@ public class Visualizer extends VisPlugin {
     for (Class<? extends SimulationMenuAction> menuActionClass: simulationMenuActions) {
       try {
         final SimulationMenuAction menuAction = menuActionClass.newInstance();
-        if (menuAction.isEnabled(simulation)) {
-          JMenuItem menuItem = new JMenuItem(menuAction.getDescription(simulation));
+        if (menuAction.isEnabled(this, simulation)) {
+          JMenuItem menuItem = new JMenuItem(menuAction.getDescription(this, simulation));
           menuItem.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
               menuAction.doAction(Visualizer.this, simulation);
@@ -613,56 +650,126 @@ public class Visualizer extends VisPlugin {
     menu.setVisible(true);
   }
 
-  private void beginMoveRequest(final int x, final int y) {
+  private void handleMousePress(MouseEvent mouseEvent) {
+    int x = mouseEvent.getPoint().x;
+    int y = mouseEvent.getPoint().y;
     final Mote[] motes = findMotesAtPosition(x, y);
-    if (motes == null || motes.length == 0) {
-      return;
-    }
 
-    moteMoveBeginTime = System.currentTimeMillis();
-    beginMoveRequest(motes[0]);
-  }
-
-  private void beginMoveRequest(Mote moteToMove) {
-    moteIsBeingMoved = true;
-    this.moteToMove = moteToMove;
-    repaint();
-  }
-
-  private void handleMoveRequest(final int x, final int y,
-      boolean wasJustReleased) {
-
-    if (!moteIsBeingMoved) {
-      return;
-    }
-
-    if (!wasJustReleased) {
-      // Still moving mote
-      canvas.setCursor(moveCursor);
-      return;
-    }
-
-    // Stopped moving mote
-    canvas.setCursor(Cursor.getDefaultCursor());
-    moteIsBeingMoved = false;
-
-    Position newXYValues = transformPixelToPositon(new Point(x, y));
-
-    if (moteMoveBeginTime <= 0 || System.currentTimeMillis() - moteMoveBeginTime > 300) {
-      int returnValue = JOptionPane.showConfirmDialog(Visualizer.this, "Move mote to"
-          + "\nX=" + newXYValues.getXCoordinate() + "\nY="
-          + newXYValues.getYCoordinate() + "\nZ="
-          + moteToMove.getInterfaces().getPosition().getZCoordinate());
-
-      if (returnValue == JOptionPane.OK_OPTION) {
-        moteToMove.getInterfaces().getPosition().setCoordinates(
-            newXYValues.getXCoordinate(), newXYValues.getYCoordinate(),
-            moteToMove.getInterfaces().getPosition().getZCoordinate());
+    /* No motes clicked: We should either pan or zoom.
+     * Control or Shift pressed: We should either pan or zoom */
+    if (mouseEvent.isControlDown() || mouseEvent.isShiftDown()
+        || motes == null || motes.length == 0) {
+      if (mouseEvent.isControlDown()) {
+        /* Zoom */
+        zooming = true;
+        zoomingPixel = new Point(x, y);
+        zoomingPosition = transformPixelToPosition(zoomingPixel);
+        zoomStart = viewportTransform.getScaleX();
+      } else {
+        /* Pan */
+        panning = true;
+        panningPosition = transformPixelToPosition(x, y);
       }
+      return;
     }
-    moteMoveBeginTime = -1;
-    moteToMove = null;
+
+    /* One of the clicked motes should be moved */
+    beginMoveRequest(motes[0], true);
+  }
+
+  private void beginMoveRequest(Mote moteToMove, boolean withTiming) {
+    if (withTiming) {
+      moveStartTime = System.currentTimeMillis();
+    } else {
+      moveStartTime = -1;
+    }
+    moving = true;
+    movedMote = moteToMove;
     repaint();
+  }
+
+  private void handleMouseMove(MouseEvent e, boolean stop) {
+    int x = e.getX();
+    int y = e.getY();
+
+    /* Panning */
+    if (panning) {
+      if (panningPosition == null || stop) {
+        panning = false;
+        return;
+      }
+
+      /* The current mouse position should correspond to where panning started */
+      Position moved = transformPixelToPosition(x,y);
+      viewportTransform.translate(
+          moved.getXCoordinate() - panningPosition.getXCoordinate(), 
+          moved.getYCoordinate() - panningPosition.getYCoordinate()
+      );
+      repaint();
+      return;
+    }
+
+    /* Zooming */
+    if (zooming) {
+      if (zoomingPosition == null || zoomingPixel == null || stop) {
+        zooming = false;
+        return;
+      }
+
+      /* The zooming start pixel should correspond to the zooming center position */
+      /* The current mouse position should correspond to where panning started */
+      double zoomFactor = 1.0 + Math.abs((double) zoomingPixel.y - y)/100.0; 
+      double newZoom = (zoomingPixel.y - y)>0?zoomStart*zoomFactor: zoomStart/zoomFactor;
+      if (newZoom < 0.00001) {
+        newZoom = 0.00001;
+      }
+      viewportTransform.setToScale(
+          newZoom,
+          newZoom
+      );
+      Position moved = transformPixelToPosition(zoomingPixel);
+      viewportTransform.translate(
+          moved.getXCoordinate() - zoomingPosition.getXCoordinate(), 
+          moved.getYCoordinate() - zoomingPosition.getYCoordinate()
+      );
+      repaint();
+      return;
+    }
+
+    /* Moving */
+    if (moving) {
+      if (!stop) {
+        canvas.setCursor(moveCursor);
+        return;
+      }
+
+      /* Restore cursor */
+      canvas.setCursor(Cursor.getDefaultCursor());
+
+      /* Move mote */
+      Position newPos = transformPixelToPosition(x, y);
+      if (moveStartTime < 0 || System.currentTimeMillis() - moveStartTime > 300) {
+        String options[] = {"Yes", "Cancel"};
+        int returnValue = JOptionPane.showOptionDialog(Visualizer.this,
+            "Move mote to" +
+            "\nX=" + newPos.getXCoordinate() + 
+            "\nY=" + newPos.getYCoordinate() + 
+            "\nZ=" + movedMote.getInterfaces().getPosition().getZCoordinate(),
+            "Move mote?",
+            JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE,
+            null, options, options[0]);
+        if (returnValue == JOptionPane.YES_OPTION) {
+          movedMote.getInterfaces().getPosition().setCoordinates(
+              newPos.getXCoordinate(),
+              newPos.getYCoordinate(),
+              movedMote.getInterfaces().getPosition().getZCoordinate()
+          );
+        }
+      }
+
+      moving = false;
+      repaint();
+    }
   }
 
   /**
@@ -675,16 +782,16 @@ public class Visualizer extends VisPlugin {
    * @return All motes at given position
    */
   public Mote[] findMotesAtPosition(int clickedX, int clickedY) {
-    double xCoord = factorXPixelToCoord(clickedX);
-    double yCoord = factorYPixelToCoord(clickedY);
+    double xCoord = transformToPositionX(clickedX);
+    double yCoord = transformToPositionY(clickedY);
 
     ArrayList<Mote> motes = new ArrayList<Mote>();
 
     // Calculate painted mote radius in coordinates
-    double paintedMoteWidth = factorXPixelToCoord(MOTE_RADIUS)
-    - factorXPixelToCoord(0);
-    double paintedMoteHeight = factorYPixelToCoord(MOTE_RADIUS)
-    - factorYPixelToCoord(0);
+    double paintedMoteWidth = transformToPositionX(MOTE_RADIUS)
+    - transformToPositionX(0);
+    double paintedMoteHeight = transformToPositionY(MOTE_RADIUS)
+    - transformToPositionY(0);
 
     for (int i = 0; i < simulation.getMotesCount(); i++) {
       Position pos = simulation.getMote(i).getInterfaces().getPosition();
@@ -707,8 +814,9 @@ public class Visualizer extends VisPlugin {
     return motes.toArray(motesArr);
   }
 
-  public void paintSkinGeneric(Graphics g) {
+  public void paintMotes(Graphics g) {
     Mote[] allMotes = simulation.getMotes();
+
     for (Mote mote: allMotes) {
 
       /* Use the first skin's non-null mote colors */
@@ -733,8 +841,8 @@ public class Visualizer extends VisPlugin {
         g.setColor(HIGHLIGHT_COLOR);
         g.fillOval(x - MOTE_RADIUS, y - MOTE_RADIUS, 2 * MOTE_RADIUS,
             2 * MOTE_RADIUS);
-      } else if (mote == moteToMove) {
-        // Don't fill mote
+      } else if (mote == movedMote) {
+        /* No fill */
       } else if (moteColors.length >= 2) {
         g.setColor(moteColors[0]);
         g.fillOval(x - MOTE_RADIUS, y - MOTE_RADIUS, 2 * MOTE_RADIUS,
@@ -779,55 +887,70 @@ public class Visualizer extends VisPlugin {
     }
   }
 
-
   /**
-   * Recalculate size of canvas and factors for transforming between real and
-   * pixel coordinates. This method is called every time this frame is resized
-   * or created.
+   * Reset transform to show all motes.
    */
-  protected void calculateTransformations() {
-    if (simulation.getMotesCount() == 0) {
-      smallestXCoord = 0;
-      smallestYCoord = 0;
-      factorXCoordToPixel = 1;
-      factorYCoordToPixel = 1;
+  protected void resetViewport() {
+    Mote[] motes = simulation.getMotes();
+    if (motes.length == 0) {
+      /* No motes */
+      viewportTransform.setToIdentity();
       return;
     }
 
-    double biggestXCoord, biggestYCoord;
+    final double BORDER_SCALE_FACTOR = 1.1;
+    double smallX, bigX, smallY, bigY, scaleX, scaleY;
 
-    Position pos = simulation.getMote(0).getInterfaces().getPosition();
-    smallestXCoord = biggestXCoord = pos.getXCoordinate();
-    smallestYCoord = biggestYCoord = pos.getYCoordinate();
+    /* Init values */
+    {
+      Position pos = motes[0].getInterfaces().getPosition();
+      smallX = bigX = pos.getXCoordinate();
+      smallY = bigY = pos.getYCoordinate();
+    }
 
-    // Get extreme coordinates
-    Mote[] motes = simulation.getMotes();
+    /* Extremes */
     for (Mote mote: motes) {
-      pos = mote.getInterfaces().getPosition();
-
-      smallestXCoord = Math.min(smallestXCoord, pos.getXCoordinate());
-      smallestYCoord = Math.min(smallestYCoord, pos.getYCoordinate());
-      biggestXCoord = Math.max(biggestXCoord, pos.getXCoordinate());
-      biggestYCoord = Math.max(biggestYCoord, pos.getYCoordinate());
+      Position pos = mote.getInterfaces().getPosition();
+      smallX = Math.min(smallX, pos.getXCoordinate());
+      bigX = Math.max(bigX, pos.getXCoordinate());
+      smallY = Math.min(smallY, pos.getYCoordinate());
+      bigY = Math.max(bigY, pos.getYCoordinate());
     }
 
-    if ((biggestXCoord - smallestXCoord) == 0) {
-      factorXCoordToPixel = 1;
+    /* Scale viewport */
+    if (smallX == bigX) {
+      scaleX = 1;
     } else {
-      factorXCoordToPixel = ((double)
-          canvas.getSize().width - 2
-          * CANVAS_BORDER_WIDTH)
-          / (biggestXCoord - smallestXCoord);
+      scaleX = (bigX - smallX) / (double) (canvas.getWidth());
+    }
+    if (smallY == bigY) {
+      scaleY = 1;
+    } else {
+      scaleY = (bigY - smallY) / (double) (canvas.getHeight());
     }
 
-    if ((biggestYCoord - smallestYCoord) == 0) {
-      factorYCoordToPixel = 1;
-    } else {
-      factorYCoordToPixel = ((double)
-          canvas.getSize().height - 2
-          * CANVAS_BORDER_WIDTH)
-          / (biggestYCoord - smallestYCoord);
-    }
+    viewportTransform.setToIdentity();
+    double newZoom = (1.0/(BORDER_SCALE_FACTOR*Math.max(scaleX, scaleY)));
+    viewportTransform.setToScale(
+        newZoom,
+        newZoom
+    );
+
+    /* Center visible motes */
+    final double smallXfinal = smallX, bigXfinal = bigX, smallYfinal = smallY, bigYfinal = bigY;
+    SwingUtilities.invokeLater(new Runnable() {
+      public void run() {
+        Position viewMid =
+          transformPixelToPosition(canvas.getWidth()/2, canvas.getHeight()/2);
+        double motesMidX = (smallXfinal + bigXfinal) / 2.0;
+        double motesMidY = (smallYfinal + bigYfinal) / 2.0;
+
+        viewportTransform.translate(
+            viewMid.getXCoordinate() - motesMidX, 
+            viewMid.getYCoordinate() - motesMidY);
+        canvas.repaint();
+      }
+    });
   }
 
   /**
@@ -839,8 +962,11 @@ public class Visualizer extends VisPlugin {
    * @return Pixel coordinates
    */
   public Point transformPositionToPixel(Position pos) {
-    return new Point(factorXCoordToPixel(pos.getXCoordinate()),
-        factorYCoordToPixel(pos.getYCoordinate()));
+    return transformPositionToPixel(
+        pos.getXCoordinate(), 
+        pos.getYCoordinate(), 
+        pos.getZCoordinate()
+    );
   }
 
   /**
@@ -853,7 +979,14 @@ public class Visualizer extends VisPlugin {
    * @return Pixel coordinates
    */
   public Point transformPositionToPixel(double x, double y, double z) {
-    return new Point(factorXCoordToPixel(x), factorYCoordToPixel(y));
+    return new Point(transformToPixelX(x), transformToPixelY(y));
+  }
+
+  /**
+   * @return Canvas
+   */
+  public JPanel getCurrentCanvas() {
+    return canvas;
   }
 
   /**
@@ -863,31 +996,30 @@ public class Visualizer extends VisPlugin {
    *          On-screen pixel coordinate
    * @return Real world coordinate (z=0).
    */
-  public Position transformPixelToPositon(Point pixelPos) {
-    Position dummyPosition = new Position(null);
-    dummyPosition.setCoordinates(factorXPixelToCoord(pixelPos.x),
-        factorYPixelToCoord(pixelPos.y), 0.0);
-    return dummyPosition;
+  public Position transformPixelToPosition(Point pixelPos) {
+    return transformPixelToPosition(pixelPos.x, pixelPos.y);
+  }
+  public Position transformPixelToPosition(int x, int y) {
+    Position position = new Position(null);
+    position.setCoordinates(
+        transformToPositionX(x),
+        transformToPositionY(y), 
+        0.0
+    );
+    return position;
   }
 
-  /**
-   * @return The current canvas to paint on
-   */
-  public JPanel getCurrentCanvas() {
-    return canvas;
+  private int transformToPixelX(double x) {
+    return (int) (viewportTransform.getScaleX()*x + viewportTransform.getTranslateX());
   }
-
-  private int factorXCoordToPixel(double xCoordinate) {
-    return (int) ((xCoordinate - smallestXCoord) * factorXCoordToPixel + CANVAS_BORDER_WIDTH);
+  private int transformToPixelY(double y) {
+    return (int) (viewportTransform.getScaleY()*y + viewportTransform.getTranslateY());
   }
-  private int factorYCoordToPixel(double yCoordinate) {
-    return (int) ((yCoordinate - smallestYCoord) * factorYCoordToPixel) + CANVAS_BORDER_WIDTH;
+  private double transformToPositionX(int x) {
+    return (x - viewportTransform.getTranslateX())/viewportTransform.getScaleX() ;
   }
-  private double factorXPixelToCoord(int xPixel) {
-    return ((xPixel - CANVAS_BORDER_WIDTH) / factorXCoordToPixel) + smallestXCoord;
-  }
-  private double factorYPixelToCoord(int yPixel) {
-    return ((yPixel - CANVAS_BORDER_WIDTH) / factorYCoordToPixel) + smallestYCoord;
+  private double transformToPositionY(int y) {
+    return (y - viewportTransform.getTranslateY())/viewportTransform.getScaleY() ;
   }
 
   public void closePlugin() {
@@ -923,12 +1055,35 @@ public class Visualizer extends VisPlugin {
     Vector<Element> config = new Vector<Element>();
     Element element;
 
+    /* Skins */
     for (VisualizerSkin skin: currentSkins) {
       element = new Element("skin");
-      element.setText(GUI.getDescriptionOf(skin.getClass()));
+      element.setText(skin.getClass().getName());
       config.add(element);
     }
 
+    /* Viewport */
+    element = new Element("viewport");
+    double[] matrix = new double[6];
+    viewportTransform.getMatrix(matrix);
+    element.setText(
+        matrix[0] + " " + 
+        matrix[1] + " " + 
+        matrix[2] + " " + 
+        matrix[3] + " " + 
+        matrix[4] + " " + 
+        matrix[5]
+    );
+    config.add(element);
+
+    /* Hide decorations */
+    BasicInternalFrameUI ui = (BasicInternalFrameUI) getUI();
+    if (ui.getNorthPane().getPreferredSize() == null ||
+        ui.getNorthPane().getPreferredSize().height == 0) {
+      element = new Element("hidden");
+      config.add(element);
+    }
+    
     return config;
   }
 
@@ -937,7 +1092,9 @@ public class Visualizer extends VisPlugin {
       if (element.getName().equals("skin")) {
         String wanted = element.getText();
         for (Class<? extends VisualizerSkin> skinClass: visualizerSkins) {
-          if (wanted.equals(GUI.getDescriptionOf(skinClass))) {
+          if (wanted.equals(skinClass.getName())
+              /* Backwards compatibility */ 
+              || wanted.equals(GUI.getDescriptionOf(skinClass))) {
             final Class<? extends VisualizerSkin> skin = skinClass;
             SwingUtilities.invokeLater(new Runnable() {
               public void run() {
@@ -951,17 +1108,37 @@ public class Visualizer extends VisPlugin {
         if (wanted != null) {
           logger.warn("Could not load skin: " + element.getText());
         }
+      } else if (element.getName().equals("viewport")) {
+        try {
+          String[] matrix = element.getText().split(" ");
+          viewportTransform.setTransform(
+              Double.parseDouble(matrix[0]),
+              Double.parseDouble(matrix[1]),
+              Double.parseDouble(matrix[2]),
+              Double.parseDouble(matrix[3]),
+              Double.parseDouble(matrix[4]),
+              Double.parseDouble(matrix[5])
+          );
+          resetViewport = 0;
+        } catch (Exception e) {
+          logger.warn("Bad viewport: " + e.getMessage());
+          resetViewport();
+        }
+      } else if (element.getName().equals("hidden")) {
+        BasicInternalFrameUI ui = (BasicInternalFrameUI) getUI();
+        ui.getNorthPane().setPreferredSize(new Dimension(0,0));
+        skinButton.setVisible(false);
       }
     }
     return true;
   }
 
   protected static class ButtonClickMoteMenuAction implements MoteMenuAction {
-    public boolean isEnabled(Mote mote) {
+    public boolean isEnabled(Visualizer visualizer, Mote mote) {
       return mote.getInterfaces().getButton() != null
       && !mote.getInterfaces().getButton().isPressed();
     }
-    public String getDescription(Mote mote) {
+    public String getDescription(Visualizer visualizer, Mote mote) {
       return "Click button on " + mote;
     }
     public void doAction(Visualizer visualizer, Mote mote) {
@@ -970,10 +1147,10 @@ public class Visualizer extends VisPlugin {
   };
 
   protected static class DeleteMoteMenuAction implements MoteMenuAction {
-    public boolean isEnabled(Mote mote) {
+    public boolean isEnabled(Visualizer visualizer, Mote mote) {
       return true;
     }
-    public String getDescription(Mote mote) {
+    public String getDescription(Visualizer visualizer, Mote mote) {
       return "Delete " + mote;
     }
     public void doAction(Visualizer visualizer, Mote mote) {
@@ -982,10 +1159,10 @@ public class Visualizer extends VisPlugin {
   };
 
   protected static class ShowLEDMoteMenuAction implements MoteMenuAction {
-    public boolean isEnabled(Mote mote) {
+    public boolean isEnabled(Visualizer visualizer, Mote mote) {
       return mote.getInterfaces().getLED() != null;
     }
-    public String getDescription(Mote mote) {
+    public String getDescription(Visualizer visualizer, Mote mote) {
       return "Show LEDs on " + mote;
     }
     public void doAction(Visualizer visualizer, Mote mote) {
@@ -1013,7 +1190,7 @@ public class Visualizer extends VisPlugin {
   };
 
   protected static class ShowSerialMoteMenuAction implements MoteMenuAction {
-    public boolean isEnabled(Mote mote) {
+    public boolean isEnabled(Visualizer visualizer, Mote mote) {
       for (MoteInterface intf: mote.getInterfaces().getInterfaces()) {
         if (intf instanceof SerialPort) {
           return true;
@@ -1021,7 +1198,7 @@ public class Visualizer extends VisPlugin {
       }
       return false;
     }
-    public String getDescription(Mote mote) {
+    public String getDescription(Visualizer visualizer, Mote mote) {
       return "Show serial port on " + mote;
     }
     public void doAction(Visualizer visualizer, Mote mote) {
@@ -1056,15 +1233,71 @@ public class Visualizer extends VisPlugin {
   };
 
   protected static class MoveMoteMenuAction implements MoteMenuAction {
-    public boolean isEnabled(Mote mote) {
+    public boolean isEnabled(Visualizer visualizer, Mote mote) {
       return true;
     }
-    public String getDescription(Mote mote) {
+    public String getDescription(Visualizer visualizer, Mote mote) {
       return "Move " + mote;
     }
     public void doAction(Visualizer visualizer, Mote mote) {
-      visualizer.moteMoveBeginTime = -1;
-      visualizer.beginMoveRequest(mote);
+      visualizer.beginMoveRequest(mote, false);
+    }
+  };
+
+  protected static class ResetViewportAction implements SimulationMenuAction {
+    public void doAction(Visualizer visualizer, Simulation simulation) {
+      visualizer.resetViewport = 1;
+      visualizer.repaint();
+    }
+    public String getDescription(Visualizer visualizer, Simulation simulation) {
+      return "Reset viewport";
+    }
+    public boolean isEnabled(Visualizer visualizer, Simulation simulation) {
+      return true;
+    }
+  };
+
+  protected static class ToggleDecorationsMenuAction implements SimulationMenuAction {
+    public void doAction(final Visualizer visualizer, Simulation simulation) {
+      if (!(visualizer.getUI() instanceof BasicInternalFrameUI)) {
+        return;
+      }
+      BasicInternalFrameUI ui = (BasicInternalFrameUI) visualizer.getUI();
+
+      if (ui.getNorthPane().getPreferredSize() == null ||
+          ui.getNorthPane().getPreferredSize().height == 0) {
+        /* Restore window decorations */
+        ui.getNorthPane().setPreferredSize(null);
+        visualizer.skinButton.setVisible(true);
+      } else {
+        /* Hide window decorations */     
+        ui.getNorthPane().setPreferredSize(new Dimension(0,0));
+        visualizer.skinButton.setVisible(false);
+      }
+      visualizer.revalidate();
+      SwingUtilities.invokeLater(new Runnable() {
+        public void run() {
+          visualizer.repaint();
+        }
+      });
+    }
+    public String getDescription(Visualizer visualizer, Simulation simulation) {
+      if (!(visualizer.getUI() instanceof BasicInternalFrameUI)) {
+        return "Hide window decorations";
+      }
+      BasicInternalFrameUI ui = (BasicInternalFrameUI) visualizer.getUI();
+
+      if (ui.getNorthPane().getPreferredSize() == null ||
+          ui.getNorthPane().getPreferredSize().height == 0) {
+        return "Restore window decorations";
+      }
+      return "Hide window decorations";
+    }
+    public boolean isEnabled(Visualizer visualizer, Simulation simulation) {
+      if (!(visualizer.getUI() instanceof BasicInternalFrameUI)) {
+        return false;
+      }
+      return true;
     }
   };
 }
