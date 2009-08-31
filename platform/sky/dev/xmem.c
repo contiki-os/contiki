@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#)$Id: xmem.c,v 1.8 2009/05/11 15:26:24 nvt-se Exp $
+ * @(#)$Id: xmem.c,v 1.9 2009/08/31 12:06:35 nifi Exp $
  */
 
 /**
@@ -70,12 +70,6 @@
 #define  SPI_FLASH_INS_RES         0xab
 /*---------------------------------------------------------------------------*/
 static void
-spi_tx(unsigned byte)
-{
-  FASTSPI_TX(byte);
-}
-/*---------------------------------------------------------------------------*/
-static void
 write_enable(void)
 {
   int s;
@@ -83,7 +77,8 @@ write_enable(void)
   s = splhigh();
   SPI_FLASH_ENABLE();
   
-  spi_tx(SPI_FLASH_INS_WREN);
+  FASTSPI_TX(SPI_FLASH_INS_WREN);
+  SPI_WAITFOREOTx();
 
   SPI_FLASH_DISABLE();
   splx(s);
@@ -99,7 +94,8 @@ read_status_register(void)
   s = splhigh();
   SPI_FLASH_ENABLE();
   
-  spi_tx(SPI_FLASH_INS_RDSR);
+  FASTSPI_TX(SPI_FLASH_INS_RDSR);
+  SPI_WAITFOREOTx();
 
   FASTSPI_CLEAR_RX();
   FASTSPI_RX(u);
@@ -137,10 +133,11 @@ erase_sector(unsigned long offset)
   s = splhigh();
   SPI_FLASH_ENABLE();
   
-  spi_tx(SPI_FLASH_INS_SE);
-  spi_tx(offset >> 16);	/* MSB */
-  spi_tx(offset >> 8);
-  spi_tx(offset >> 0);	/* LSB */
+  FASTSPI_TX(SPI_FLASH_INS_SE);
+  FASTSPI_TX(offset >> 16);	/* MSB */
+  FASTSPI_TX(offset >> 8);
+  FASTSPI_TX(offset >> 0);	/* LSB */
+  SPI_WAITFOREOTx();
 
   SPI_FLASH_DISABLE();
   splx(s);
@@ -174,10 +171,11 @@ xmem_pread(void *_p, int size, unsigned long offset)
   s = splhigh();
   SPI_FLASH_ENABLE();
 
-  spi_tx(SPI_FLASH_INS_READ);
-  spi_tx(offset >> 16);	/* MSB */
-  spi_tx(offset >> 8);
-  spi_tx(offset >> 0);	/* LSB */
+  FASTSPI_TX(SPI_FLASH_INS_READ);
+  FASTSPI_TX(offset >> 16);	/* MSB */
+  FASTSPI_TX(offset >> 8);
+  FASTSPI_TX(offset >> 0);	/* LSB */
+  SPI_WAITFOREOTx();
   
   FASTSPI_CLEAR_RX();
   for(; p < end; p++) {
@@ -207,14 +205,15 @@ program_page(unsigned long offset, const unsigned char *p, int nbytes)
   s = splhigh();
   SPI_FLASH_ENABLE();
   
-  spi_tx(SPI_FLASH_INS_PP);
-  spi_tx(offset >> 16);	/* MSB */
-  spi_tx(offset >> 8);
-  spi_tx(offset >> 0);	/* LSB */
+  FASTSPI_TX(SPI_FLASH_INS_PP);
+  FASTSPI_TX(offset >> 16);	/* MSB */
+  FASTSPI_TX(offset >> 8);
+  FASTSPI_TX(offset >> 0);	/* LSB */
 
   for(; p < end; p++) {
-    spi_tx(~*p);
+    FASTSPI_TX(~*p);
   }
+  SPI_WAITFOREOTx();
 
   SPI_FLASH_DISABLE();
   splx(s);

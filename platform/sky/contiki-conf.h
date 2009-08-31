@@ -1,5 +1,5 @@
 /* -*- C -*- */
-/* @(#)$Id: contiki-conf.h,v 1.57 2009/06/29 09:54:39 nifi Exp $ */
+/* @(#)$Id: contiki-conf.h,v 1.58 2009/08/31 12:06:35 nifi Exp $ */
 
 #ifndef CONTIKI_CONF_H
 #define CONTIKI_CONF_H
@@ -170,10 +170,12 @@ typedef unsigned long off_t;
 #define SPI_TXBUF U0TXBUF
 #define SPI_RXBUF U0RXBUF
 
-				/* USART0 Tx buffer ready? */
+				/* USART0 Tx ready? */
 #define	SPI_WAITFOREOTx() while ((U0TCTL & TXEPT) == 0)
 				/* USART0 Rx buffer ready? */
 #define	SPI_WAITFOREORx() while ((IFG1 & URXIFG0) == 0)
+				/* USART0 Tx buffer ready? */
+#define SPI_WAITFOREOTxBUF() while ((IFG1 & UTXIFG0) == 0)
 
 #define SCK            1  /* P3.1 - Output: SPI Serial Clock (SCLK) */
 #define MOSI           2  /* P3.2 - Output: SPI Master out - slave in (MOSI) */

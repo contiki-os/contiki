@@ -1,5 +1,5 @@
 /* -*- C -*- */
-/* @(#)$Id: spi.h,v 1.4 2007/11/18 12:27:44 ksb Exp $ */
+/* @(#)$Id: spi.h,v 1.5 2009/08/31 12:06:34 nifi Exp $ */
 
 #ifndef SPI_H
 #define SPI_H
@@ -20,8 +20,8 @@ void spi_init(void);
 
 #define FASTSPI_TX(x)\
 	do {\
+		SPI_WAITFOREOTxBUF();\
 		SPI_TXBUF = x;\
-		SPI_WAITFOREOTx();\
 	} while(0)
 
 #define FASTSPI_RX(x)\
@@ -46,6 +46,7 @@ void spi_init(void);
         for (spiCnt = 0; spiCnt < (c); spiCnt++) {\
 			FASTSPI_TX(((u8_t*)(p))[spiCnt]);\
 		}\
+        SPI_WAITFOREOTx();\
 	} while(0)
 
 
@@ -93,6 +94,7 @@ void spi_init(void);
 		  FASTSPI_TX_ADDR(a);\
 		  FASTSPI_TX((u8_t) ((v) >> 8));\
 		  FASTSPI_TX((u8_t) (v));\
+                  SPI_WAITFOREOTx();\
 		  SPI_DISABLE();\
 	 } while (0)
 
@@ -133,6 +135,7 @@ void spi_init(void);
 		for (i = 0; i < (c); i++) {\
 		    FASTSPI_TX(((u8_t*)(p))[i]);\
 		}\
+                SPI_WAITFOREOTx();\
 		SPI_DISABLE();\
     } while (0)
 
@@ -142,6 +145,7 @@ void spi_init(void);
 		for (u8_t spiCnt = 0; spiCnt < (c); spiCnt++) {\
 		    FASTSPI_TX(((u8_t*)(p))[spiCnt]);\
 		}\
+                SPI_WAITFOREOTx();\
     } while (0)
 
 #define FASTSPI_READ_FIFO_BYTE(b)\
@@ -208,6 +212,7 @@ void spi_init(void);
 		  for (n = 0; n < (c); n++) {\
 				FASTSPI_TX(((u8_t*)(p))[n]);\
 		  }\
+                  SPI_WAITFOREOTx();\
 		  SPI_DISABLE();\
 	 } while (0)
 
