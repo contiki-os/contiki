@@ -30,7 +30,7 @@
  *
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: mt.c,v 1.6 2007/05/22 20:58:14 adamdunkels Exp $
+ * $Id: mt.c,v 1.7 2009/09/03 12:57:58 nvt-se Exp $
  */
 
 /**
@@ -49,8 +49,6 @@
 
 #define MT_STATE_READY   1
 #define MT_STATE_RUNNING 2
-#define MT_STATE_WAITING 3
-#define MT_STATE_PEEK    4
 #define MT_STATE_EXITED  5
 
 static struct mt_thread *current;
@@ -81,13 +79,11 @@ mt_start(struct mt_thread *thread, void (* function)(void *), void *data)
 void
 mt_exec(struct mt_thread *thread)
 {
-  if(thread->state == MT_STATE_READY ||
-     thread->state == MT_STATE_PEEK) {
+  if(thread->state == MT_STATE_READY) {
     thread->state = MT_STATE_RUNNING;
     current = thread;
     /* Switch context to the thread. The function call will not return
        until the the thread has yielded, or is preempted. */
-    /*printf("swtis\n");*/
     mtarch_exec(&thread->thread);
   }
 }
