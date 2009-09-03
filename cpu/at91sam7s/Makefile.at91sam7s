@@ -145,7 +145,7 @@ ifdef CORE
 	$(CC) $(LDFLAGS) $(CFLAGS) -nostartfiles -o $@ $(filter-out %.a,$^) $(filter %.a,$^) -lc $(filter %.a,$^)
 
 symbols.c: $(CORE)
-	$(NM) $< | awk -f $(CONTIKI_CPU)/builtins.awk -f ../../tools/mknmlist > symbols.c
+	$(NM) $< | awk -f $(CONTIKI_CPU)/builtins.awk -f $(CONTIKI)/tools/mknmlist > symbols.c
 
 else
 %.$(TARGET): %-nosyms.$(TARGET)

@@ -1,4 +1,4 @@
-# $Id: Makefile.msp430,v 1.28 2009/03/17 15:56:32 adamdunkels Exp $
+# $Id: Makefile.msp430,v 1.29 2009/09/03 17:41:58 adamdunkels Exp $
 
 ifdef nodeid
 CFLAGS += -DNODEID=$(nodeid)
@@ -86,7 +86,7 @@ loader-init.o: ${CONTIKI_TARGET}/loader/loader-init.S
 ifdef CORE
 symbols.c:
 #	@${CONTIKI}/tools/msp430-make-symbols $(CORE)
-	$(NM) $(CORE) | awk -f ../../tools/mknmlist > symbols.c
+	$(NM) $(CORE) | awk -f $(CONTIKI)/tools/mknmlist > symbols.c
 else
 symbols.c symbols.h:
 	@${CONTIKI}/tools/make-empty-symbols
