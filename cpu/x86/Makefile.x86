@@ -20,7 +20,7 @@ LDFLAGS  = -Wl,-Map=contiki-$(TARGET).map,-export-dynamic
 # .PHONY: symbols.c symbols.h
 ifdef CORE
 symbols.c symbols.h:
-	$(NM) $(CORE) | awk -f ../../tools/mknmlist > symbols.c
+	$(NM) $(CORE) | awk -f $(CONTIKI)/tools/mknmlist > symbols.c
 #	@${CONTIKI}/tools/make-symbols $(CORE)
 else
 symbols.c symbols.h:
