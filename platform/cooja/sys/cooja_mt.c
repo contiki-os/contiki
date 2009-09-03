@@ -30,7 +30,7 @@
  *
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: cooja_mt.c,v 1.1 2006/09/29 14:32:38 fros4943 Exp $
+ * $Id: cooja_mt.c,v 1.2 2009/09/03 12:57:57 nvt-se Exp $
  */
 /*
  * This file is ripped from mt.c of the Contiki Multi-threading library.
@@ -43,8 +43,6 @@
 
 #define MT_STATE_READY   1
 #define MT_STATE_RUNNING 2
-#define MT_STATE_WAITING 3
-#define MT_STATE_PEEK    4
 #define MT_STATE_EXITED  5
 
 static struct cooja_mt_thread *current;
@@ -75,13 +73,11 @@ cooja_mt_start(struct cooja_mt_thread *thread, void (* function)(void *), void *
 void
 cooja_mt_exec(struct cooja_mt_thread *thread)
 {
-  if(thread->state == MT_STATE_READY ||
-     thread->state == MT_STATE_PEEK) {
+  if(thread->state == MT_STATE_READY) {
     thread->state = MT_STATE_RUNNING;
     current = thread;
     /* Switch context to the thread. The function call will not return
        until the the thread has yielded, or is preempted. */
-    /*printf("swtis\n");*/
     cooja_mtarch_exec(&thread->thread);
   }
 }
