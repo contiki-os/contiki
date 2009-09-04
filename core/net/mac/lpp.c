@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: lpp.c,v 1.23 2009/06/22 11:14:11 nifi Exp $
+ * $Id: lpp.c,v 1.24 2009/09/04 10:59:30 nvt-se Exp $
  */
 
 /**
@@ -446,13 +446,13 @@ dutycycle(void *ptr)
 	}
       }
 #endif /* WITH_PENDING_BROADCAST */
+    
+    /* Turn on the radio for sending a probe packet and 
+       anticipating a data packet from a neighbor. */
+    turn_radio_on();
 
     /* Send a probe packet. */
     send_probe();
-    
-    /* Turn on the radio for a while in anticipation of a data packet
-       from a neighbor. */
-    turn_radio_on();
 
     /* Set a timer so that we keep the radio on for LISTEN_TIME. */
     ctimer_set(t, LISTEN_TIME, (void (*)(void *))dutycycle, t);
