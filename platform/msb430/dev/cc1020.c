@@ -364,20 +364,22 @@ cc1020_off(void)
 {
   int s;
 
-  if(cc1020_state & CC1020_RX_SEARCHING) {
-    /* Discard the current read buffer when the radio is shutting down. */
-    cc1020_rxlen = 0;
+  if(cc1020_state != CC1020_OFF) {
+    if(cc1020_state & CC1020_RX_SEARCHING) {
+      /* Discard the current read buffer when the radio is shutting down. */
+      cc1020_rxlen = 0;
 
-    LNA_POWER_OFF();		/* power down lna */
-    s = splhigh();
-    DISABLE_RX_IRQ();
-    cc1020_state = CC1020_OFF;
-    splx(s);
-    cc1020_setupPD();		/* power down radio */
-    ENERGEST_OFF(ENERGEST_TYPE_LISTEN);
-    cc1020_state = CC1020_OFF;
-  } else {
-    cc1020_state |= CC1020_TURN_OFF;
+      LNA_POWER_OFF();		/* power down lna */
+      s = splhigh();
+      DISABLE_RX_IRQ();
+      cc1020_state = CC1020_OFF;
+      splx(s);
+      cc1020_setupPD();		/* power down radio */
+      ENERGEST_OFF(ENERGEST_TYPE_LISTEN);
+      cc1020_state = CC1020_OFF;
+    } else {
+      cc1020_state |= CC1020_TURN_OFF;
+    }
   }
   return 1;
 }
@@ -720,7 +722,7 @@ static void
 cc1020_setupPD(void)
 {
   /*
-   *  Power down components an reset all registers except MAIN
+   *  Power down components and reset all registers except MAIN
    *  to their default values.
    */
   cc1020_write_reg(CC1020_MAIN,
@@ -776,3 +778,4 @@ cc1020_wakeupTX(int analog)
   MS_DELAY(1);
   cc1020_write_reg(CC1020_MAIN, 0xD1);
 }
+
