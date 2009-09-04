@@ -26,9 +26,10 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: clock.c,v 1.2 2009/03/26 16:22:37 fros4943 Exp $
+ * $Id: clock.c,v 1.3 2009/09/04 13:57:17 nvt-se Exp $
  */
 
+#include "contiki-conf.h"
 #include "sys/clock.h"
 #include "lib/simEnvChange.h"
 
@@ -52,7 +53,7 @@ clock_time(void)
 unsigned long
 clock_seconds(void)
 {
-  return 0;
+  return simCurrentTime / CLOCK_CONF_SECONDS;
 }
 /*-----------------------------------------------------------------------------------*/
 void
