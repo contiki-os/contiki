@@ -1,4 +1,4 @@
-# $Id: Makefile.avr,v 1.16 2009/07/26 12:10:38 dak664 Exp $
+# $Id: Makefile.avr,v 1.17 2009/09/07 12:02:58 joxe Exp $
 
 ### Check if we are running under Windows
 
@@ -33,23 +33,6 @@ override RF230BB = 0
 CONTIKI_CPU_DIRS            += dev/usb dev/usb/serial dev/usb/rndis dev/usb/storage
 CONTIKI_TARGET_SOURCEFILES  += $(USB)
 AVR        = clock.c mtarch.c eeprom.c flash.c leds-arch.c 
-endif
-
-### The RF230 "bare bones" driver uses the core MAC layer.
-### It does NOT work with the Jackdaw USB stick.
-### Define RF230BB in the base makefile, or use $make RF230BB=1 ...
-ifeq ($(RF230BB),1)
-#ifdef RF230BB
-  CFLAGS                     += -DRF230BB
-  #Source for AT86RF230 barebones driver using the contiki core MAC
-  include $(CONTIKI)/cpu/avr/radio/rf230bb/Makefile.rf230bb
-else
- # Source for AT86RF230
-   include $(CONTIKI)/cpu/avr/radio/rf230/Makefile.rf230
-  #Source for Atmel/Cisco 802.15.4'ish MAC
-  include $(CONTIKI)/cpu/avr/radio/mac/Makefile.mac
-  #Source for IEEE 802.15.4 manager interface
-  include $(CONTIKI)/cpu/avr/radio/ieee-manager/Makefile.ieee-manager
 endif
 
 #For a coffee file system, the application makefile can define COFFEE_FILES=n
@@ -153,6 +136,9 @@ $(OBJECTDIR)/%.o: %.c
 	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $(filter-out %.a,$^) $(filter %.a,$^) $(LDLIBS)
 
 %.hex: %.out
+	$(OBJCOPY) $^ -O ihex $@
+
+%.ihex: %.out
 	$(OBJCOPY) $^ -O ihex $@
 
 # Add a namelist to the kernel
