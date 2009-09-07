@@ -1,8 +1,21 @@
 /* -*- C -*- */
-/* @(#)$Id: spi.h,v 1.5 2009/08/31 12:06:34 nifi Exp $ */
+/* @(#)$Id: spi.h,v 1.6 2009/09/07 11:31:26 nifi Exp $ */
 
 #ifndef SPI_H
 #define SPI_H
+
+/* Define macros to use for checking SPI transmission status depending
+   on if it is possible to wait for TX buffer ready. This is possible
+   on for example MSP430 but not on AVR. */
+#ifdef SPI_WAITFORTxREADY
+#define SPI_WAITFORTx_BEFORE() SPI_WAITFORTxREADY()
+#define SPI_WAITFORTx_AFTER()
+#define SPI_WAITFORTx_ENDED() SPI_WAITFOREOTx()
+#else /* SPI_WAITFORTxREADY */
+#define SPI_WAITFORTx_BEFORE()
+#define SPI_WAITFORTx_AFTER() SPI_WAITFOREOTx()
+#define SPI_WAITFORTx_ENDED()
+#endif /* SPI_WAITFORTxREADY */
 
 extern unsigned char spi_busy;
 
@@ -20,8 +33,9 @@ void spi_init(void);
 
 #define FASTSPI_TX(x)\
 	do {\
-		SPI_WAITFOREOTxBUF();\
+		SPI_WAITFORTx_BEFORE();\
 		SPI_TXBUF = x;\
+		SPI_WAITFORTx_AFTER();\
 	} while(0)
 
 #define FASTSPI_RX(x)\
@@ -46,7 +60,7 @@ void spi_init(void);
         for (spiCnt = 0; spiCnt < (c); spiCnt++) {\
 			FASTSPI_TX(((u8_t*)(p))[spiCnt]);\
 		}\
-        SPI_WAITFOREOTx();\
+        SPI_WAITFORTx_ENDED();\
 	} while(0)
 
 
@@ -94,7 +108,7 @@ void spi_init(void);
 		  FASTSPI_TX_ADDR(a);\
 		  FASTSPI_TX((u8_t) ((v) >> 8));\
 		  FASTSPI_TX((u8_t) (v));\
-                  SPI_WAITFOREOTx();\
+                  SPI_WAITFORTx_ENDED();\
 		  SPI_DISABLE();\
 	 } while (0)
 
@@ -135,7 +149,7 @@ void spi_init(void);
 		for (i = 0; i < (c); i++) {\
 		    FASTSPI_TX(((u8_t*)(p))[i]);\
 		}\
-                SPI_WAITFOREOTx();\
+                SPI_WAITFORTx_ENDED();\
 		SPI_DISABLE();\
     } while (0)
 
@@ -145,7 +159,7 @@ void spi_init(void);
 		for (u8_t spiCnt = 0; spiCnt < (c); spiCnt++) {\
 		    FASTSPI_TX(((u8_t*)(p))[spiCnt]);\
 		}\
-                SPI_WAITFOREOTx();\
+                SPI_WAITFORTx_ENDED();\
     } while (0)
 
 #define FASTSPI_READ_FIFO_BYTE(b)\
@@ -212,7 +226,7 @@ void spi_init(void);
 		  for (n = 0; n < (c); n++) {\
 				FASTSPI_TX(((u8_t*)(p))[n]);\
 		  }\
-                  SPI_WAITFOREOTx();\
+                  SPI_WAITFORTx_ENDED();\
 		  SPI_DISABLE();\
 	 } while (0)
 
