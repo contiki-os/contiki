@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: rtimer-arch.c,v 1.4 2008/11/29 15:55:02 c_oflynn Exp $
+ * $Id: rtimer-arch.c,v 1.5 2009/09/07 12:02:58 joxe Exp $
  */
 
 /**
@@ -45,7 +45,7 @@
 #include <avr/io.h>
 #include <avr/interrupt.h>
 
-#include "lib/energest.h"
+#include "sys/energest.h"
 #include "sys/rtimer.h"
 #include "rtimer-arch.h"
 

@@ -86,6 +86,22 @@
 #define USART_BAUD_230400 1
 #define USART_BAUD_250000 1
 #define USART_BAUD_500000 0
+/* For Micaz the MCU clock rate is 7.3728 MHz*/
+#elif MCU_MHZ == 7
+/* Single speed operation (U2X = 0)*/
+#define USART_BAUD_2400 191
+#define USART_BAUD_4800 95
+#define USART_BAUD_9600 47
+#define USART_BAUD_14400 31
+#define USART_BAUD_19200 23
+#define USART_BAUD_28800 15
+#define USART_BAUD_38400 11
+#define USART_BAUD_57600 7
+#define USART_BAUD_76800 5
+#define USART_BAUD_115200 3
+#define USART_BAUD_230400 1
+#define USART_BAUD_250000 1
+#define USART_BAUD_500000 0
 #else
 #error "Please define the baud rates for your CPU clock: ATmega128 handbook p. \
 195-198 or set the rate in contiki-conf.h"
