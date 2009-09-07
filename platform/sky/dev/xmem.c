@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#)$Id: xmem.c,v 1.9 2009/08/31 12:06:35 nifi Exp $
+ * @(#)$Id: xmem.c,v 1.10 2009/09/07 11:31:26 nifi Exp $
  */
 
 /**
@@ -78,7 +78,7 @@ write_enable(void)
   SPI_FLASH_ENABLE();
   
   FASTSPI_TX(SPI_FLASH_INS_WREN);
-  SPI_WAITFOREOTx();
+  SPI_WAITFORTx_ENDED();
 
   SPI_FLASH_DISABLE();
   splx(s);
@@ -95,7 +95,7 @@ read_status_register(void)
   SPI_FLASH_ENABLE();
   
   FASTSPI_TX(SPI_FLASH_INS_RDSR);
-  SPI_WAITFOREOTx();
+  SPI_WAITFORTx_ENDED();
 
   FASTSPI_CLEAR_RX();
   FASTSPI_RX(u);
@@ -137,7 +137,7 @@ erase_sector(unsigned long offset)
   FASTSPI_TX(offset >> 16);	/* MSB */
   FASTSPI_TX(offset >> 8);
   FASTSPI_TX(offset >> 0);	/* LSB */
-  SPI_WAITFOREOTx();
+  SPI_WAITFORTx_ENDED();
 
   SPI_FLASH_DISABLE();
   splx(s);
@@ -175,7 +175,7 @@ xmem_pread(void *_p, int size, unsigned long offset)
   FASTSPI_TX(offset >> 16);	/* MSB */
   FASTSPI_TX(offset >> 8);
   FASTSPI_TX(offset >> 0);	/* LSB */
-  SPI_WAITFOREOTx();
+  SPI_WAITFORTx_ENDED();
   
   FASTSPI_CLEAR_RX();
   for(; p < end; p++) {
@@ -213,7 +213,7 @@ program_page(unsigned long offset, const unsigned char *p, int nbytes)
   for(; p < end; p++) {
     FASTSPI_TX(~*p);
   }
-  SPI_WAITFOREOTx();
+  SPI_WAITFORTx_ENDED();
 
   SPI_FLASH_DISABLE();
   splx(s);
