@@ -1,0 +1,71 @@
+CONTIKI_CPU_DIRS = . net
+
+CONTIKI_SOURCEFILES += #mtarch.c rtimer-arch.c elfloader-stub.c watchdog.c
+
+### Compiler definitions
+CC       = sdcc
+LD       = sdcc
+AS       = sdcc
+AR	   = sdcclib
+OBJCOPY  = objcopy
+STRIP    = strip
+
+CFLAGS  += --std-c99 --model-large --stack-auto -DSDCC_CC2430 
+CFLAGS  += -DRIME_CONF_NO_POLITE_ANNOUCEMENTS
+ASFLAGS += -plosgff
+LDFLAGS += --model-large --stack-auto -DSDCC_CC2430 --out-fmt-ihx
+LDFLAGS += --xram-loc 57344 --xram-size 8192
+AROPTS   = -a
+
+### CPU-dependent cleanup files
+CLEAN += *.lnk *.sym *.lib *.ihx *.rel *.mem *.rst *.asm
+
+### CPU-dependent directories
+CONTIKI_CPU_DIRS = . dev
+
+### CPU-dependent source files
+CONTIKI_SOURCEFILES += bus.c clock.c uart.c cc2430_rf.c dma.c
+CONTIKI_ASMFILES +=
+
+CONTIKI_ASMOBJECTFILES = ${addprefix $(OBJECTDIR)/,$(CONTIKI_ASMFILES:.S=.o)}
+
+CONTIKI_CASMOBJECTFILES = ${addprefix $(OBJECTDIR)/,$(CONTIKI_CASMFILES:.cS=.o)}
+
+CONTIKI_PLATFORM_DIRS = $(PLATFORM_APPDIRS) \
+	 ${addprefix $(CONTIKI)/platform/$(TARGET)/, $(CONTIKI_TARGET_DIRS)}
+
+### Compilation rules
+
+#CUSTOM_RULE_C_TO_OBJECTDIR_O=1
+CUSTOM_RULE_ALLOBJS_TO_TARGETLIB=1
+
+ifdef CUSTOM_RULE_CS_TO_OBJECTDIR_O
+$(OBJECTDIR)/%.o: %.cS
+	cp $< $(OBJECTDIR)/$*.c
+	$(CC) $(CFLAGS) -E $(OBJECTDIR)/$*.c > $(OBJECTDIR)/tmp
+	perl -pe "s/^#(.*)/;$$1/" $(OBJECTDIR)/tmp > $(OBJECTDIR)/$*.S
+	$(AS) $(ASFLAGS) -o $@ $(OBJECTDIR)/$*.S
+	rm -f $(OBJECTDIR)/tmp
+endif
+
+#CUSTOM_RULE_ALLOBJS_TO_TARGETLIB
+contiki-$(TARGET).lib: $(CONTIKI_OBJECTFILES) $(PROJECT_OBJECTFILES) $(CONTIKI_ASMOBJECTFILES) $(CONTIKI_CASMOBJECTFILES)
+	rm -f $@
+	for target in $^; do echo $$target >> $@; done
+
+%.$(TARGET): %.ihx
+
+# .rel is the object file default suffix under sdcc
+%.rel: %.co
+	mv $< $@
+
+# .ihx is the sdcc binary output file
+.PRECIOUS: %.ihx %.rel
+
+# .ihx is the sdcc binary output file
+%.ihx: %.rel $(PROJECT_OBJECTFILES) $(PROJECT_LIBRARIES) contiki-$(TARGET).lib
+	$(CC) $(LDFLAGS)  -o $@ $*.rel -lcontiki-$(TARGET).lib
+
+# Force the compilation of %.$(TARGET) to compile the %.ihx file.
+%.$(TARGET): %.ihx
+	@
