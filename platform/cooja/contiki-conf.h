@@ -27,7 +27,7 @@
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * $Id: contiki-conf.h,v 1.10 2009/04/01 13:46:56 fros4943 Exp $
+ * $Id: contiki-conf.h,v 1.11 2009/09/08 15:08:20 zhitao Exp $
  *
  */
 
@@ -85,5 +85,7 @@ typedef unsigned long clock_time_t;
 #define UIP_CONF_ND6_MAX_NEIGHBORS    4
 #define UIP_CONF_ND6_MAX_DEFROUTERS   2
 #endif /* UIP_CONF_IPV6 */
+
+#define CFS_CONF_OFFSET_TYPE	long
 
 #endif /* __CONTIKI_CONF_H__ */
