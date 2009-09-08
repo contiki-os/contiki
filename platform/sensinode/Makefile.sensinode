@@ -1,0 +1,44 @@
+# Sensinode CC2430 platform makefile
+# Supported products: N100, N600, N601, N710, N711
+
+# /dev supports defines for product models using the following format
+# e.g. MODEL_N601. Run make TARGET=sensinode DEFINES=MODEL_N601 to 
+# automatically configure the correct LED, button, UART etc. settings
+# for that product model. If no model is defined, MODEL_N100 is chosen by default.
+# Models settings are defined in /dev/models.h
+
+# make sensinode.upload - Will use nano_programmer to upload file using D2xx Devboard
+# make sensinode.serialdump - Will use the Contiki serialdump tool on the default UART
+
+ifndef CONTIKI
+  $(error CONTIKI not defined! You must specify where CONTIKI resides!)
+endif
+
+RIME_CONF_NO_POLITE_ANNOUCEMENTS = 1
+
+# Define the default UART for tools and tool commands
+DEFUART = /dev/ttyUSB0
+PROG = $(CONTIKI)/tools/sensinode/nano_programmer/nano_programmer -d $(DEFUART)
+SERIALDUMP = $(CONTIKI)/tools/sky/serialdump-linux -b115200 $(DEFUART)
+
+CONTIKI_TARGET_DIRS = . dev
+CONTIKI_TARGET_MAIN = ${addprefix $(OBJECTDIR)/,contiki-sesinode-main.o}
+
+CONTIKI_TARGET_SOURCEFILES = contiki-sensinode-main.c \
+                             leds.c leds-arch.c serial-line.c
+
+CONTIKI_SOURCEFILES += $(CONTIKI_TARGET_SOURCEFILES)
+
+.SUFFIXES:
+
+%.upload: %.ihx
+	$(PROG) -P $<
+
+sensinode.serialdump:
+	$(SERIALDUMP)
+
+### Define the CPU directory
+CONTIKI_CPU=$(CONTIKI)/cpu/cc2430
+include $(CONTIKI)/cpu/cc2430/Makefile.cc2430
+
+contiki-$(TARGET).a:# ${addprefix $(OBJECTDIR)/,symbols.o}
