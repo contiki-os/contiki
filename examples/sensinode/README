@@ -1,0 +1,39 @@
+Sensinode platform example and test applications
+ - by Zach Shelby (zach@sensinode.com)
+
+This directory contains example and test applications for 
+Sensinode CC2430 based devices. By default it is set to use the 
+sensinode platform:
+
+/platform/sensinode
+/cpu/cc2430
+
+To build an application:
+
+make [app_name]
+make hello_world
+
+To build and upload an application using the Sensinode nano_programmer 
+included under /tools (default /dev/ttyUSB0):
+
+make [app_name].upload
+make hello_world.upload
+
+To dump the serial port output (default /dev/ttyUSB0):
+
+make sensinode.serialdump
+
+To configure the hardware model, you can include a make option e.g. for 
+the N601 (N100 is assumed by default):
+
+make hello_world DEFINES=MODEL_N601 
+
+These make options are defined in /platform/sensinode/Makefile.sensinode
+
+Descriptions of applications:
+
+hello_world		A simple hello world app.
+clock_test		Test and example of sys/clock.h related features.
+rf_test_tx		Test for transmitting packets
+rf_test_rc		Test for receiving packets
+ 
