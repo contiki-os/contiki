@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: cfs-cooja.c,v 1.9 2009/03/02 09:34:47 fros4943 Exp $
+ * $Id: cfs-cooja.c,v 1.10 2009/09/08 15:08:20 zhitao Exp $
  */
 #include <string.h>
 #include "lib/simEnvChange.h"
@@ -39,7 +39,9 @@
 
 struct filestate {
   char flag;
+  int access;
   int fileptr;
+  int endptr;
 };
 
 static struct filestate file;
@@ -47,7 +49,7 @@ static struct filestate file;
 const struct simInterface cfs_interface;
 
 // COOJA variables
-#define CFS_BUF_SIZE 60*1024
+#define CFS_BUF_SIZE 1000000
 char simCFSData[CFS_BUF_SIZE] = { 0 };
 char simCFSChanged = 0;
 int simCFSRead = 0;
@@ -59,8 +61,13 @@ cfs_open(const char *n, int f)
 {
   if(file.flag == FLAG_FILE_CLOSED) {
     file.flag = FLAG_FILE_OPEN;
-    file.fileptr = 0;
-    return 1;
+    file.access = f;
+		if(f & CFS_APPEND) {
+			file.fileptr = file.endptr;
+		} else {
+	    file.fileptr = 0;
+		}
+    return 0;
   } else {
     return -1;
   }
@@ -75,12 +82,14 @@ cfs_close(int f)
 int
 cfs_read(int f, void *buf, unsigned int len)
 {
-  if(f == FLAG_FILE_OPEN) {
-	// TODO Should yield a few times?
-	memcpy(buf, &simCFSData[0] + file.fileptr, len);
+	if(file.flag == FLAG_FILE_OPEN && file.access & CFS_READ) {
+		if(file.fileptr + len >= file.endptr) {
+			len = file.endptr - file.fileptr;
+		}
+		memcpy(buf, &simCFSData[file.fileptr], len);
     file.fileptr += len;
-	simCFSChanged = 1;
-	simCFSRead += len;
+		simCFSChanged = 1;
+		simCFSRead += len;
     return len;
   } else {
     return -1;
@@ -90,12 +99,17 @@ cfs_read(int f, void *buf, unsigned int len)
 int
 cfs_write(int f, const void *buf, unsigned int len)
 {
-  if(f == FLAG_FILE_OPEN) {
-	// TODO Should yield a few times?
-	memcpy(&simCFSData[0] + file.fileptr, buf, len);
-    file.fileptr += len;
-	simCFSChanged = 1;
-	simCFSWritten += len;
+	if(file.flag == FLAG_FILE_OPEN && file.access & CFS_WRITE) {
+		if(file.fileptr + len > CFS_BUF_SIZE) {
+			len = CFS_BUF_SIZE - file.fileptr;
+		}
+		memcpy(&simCFSData[file.fileptr], buf, len);
+  	file.fileptr += len;
+		simCFSChanged = 1;
+		simCFSWritten += len;
+		if(file.fileptr > file.endptr) {
+			file.endptr = file.fileptr;
+		}
     return len;
   } else {
     return -1;
@@ -105,9 +119,20 @@ cfs_write(int f, const void *buf, unsigned int len)
 cfs_offset_t
 cfs_seek(int f, cfs_offset_t o, int w)
 {
-  if(f == FLAG_FILE_OPEN) {
-    file.fileptr = o;
-    return o;
+  if(file.flag == FLAG_FILE_OPEN) {
+  	if(w == CFS_SEEK_SET) {
+    	file.fileptr = o;
+  	} else if(w == CFS_SEEK_CUR) {
+			file.fileptr += o;
+  	} else if(w == CFS_SEEK_END) {
+  		file.fileptr = file.endptr + o;
+  	}
+  	if(file.fileptr >= 0 && file.fileptr <= CFS_BUF_SIZE) {
+  		if(file.fileptr > file.endptr) {
+  			file.endptr = file.fileptr;
+  		}
+		  return file.fileptr;
+  	}
   }
   return -1;
 }
@@ -115,19 +140,20 @@ cfs_seek(int f, cfs_offset_t o, int w)
 int
 cfs_remove(const char *name)
 {
-  return -1;
+	memset(simCFSData, 0, sizeof(simCFSData));
+  return 0;
 }
 /*---------------------------------------------------------------------------*/
 int
 cfs_opendir(struct cfs_dir *p, const char *n)
 {
-  return 1;
+  return 0;
 }
 /*---------------------------------------------------------------------------*/
 int
 cfs_readdir(struct cfs_dir *p, struct cfs_dirent *e)
 {
-  return 1;
+  return 0;
 }
 /*---------------------------------------------------------------------------*/
 void
