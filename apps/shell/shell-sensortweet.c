@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: shell-sensortweet.c,v 1.1 2009/05/11 17:11:37 adamdunkels Exp $
+ * $Id: shell-sensortweet.c,v 1.2 2009/09/09 21:06:51 adamdunkels Exp $
  */
 
 /**
@@ -61,7 +61,6 @@ PROCESS_THREAD(sensortweet_process, ev, data)
 {
   char message[140];
   char username_password[MAX_USERNAME_PASSWORD];
-  int len;
   int temp;
   uint16_t humidity;
   uint16_t battery_indicator;

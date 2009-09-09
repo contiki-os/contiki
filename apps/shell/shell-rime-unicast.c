@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: shell-rime-unicast.c,v 1.1 2009/05/10 21:04:40 adamdunkels Exp $
+ * $Id: shell-rime-unicast.c,v 1.2 2009/09/09 21:06:51 adamdunkels Exp $
  */
 
 /**
@@ -87,7 +87,6 @@ PROCESS_THREAD(shell_unicast_send_process, ev, data)
   int len;
   const char *nextptr;
   struct unicast_msg *msg;
-  char buf[30];
   
   PROCESS_BEGIN();
   
