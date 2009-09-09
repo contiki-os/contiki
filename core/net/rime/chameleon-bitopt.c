@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: chameleon-bitopt.c,v 1.7 2009/03/12 21:58:20 adamdunkels Exp $
+ * $Id: chameleon-bitopt.c,v 1.8 2009/09/09 21:09:42 adamdunkels Exp $
  */
 
 /**
@@ -333,10 +333,16 @@ unpack_header(void)
   return c;
 }
 /*---------------------------------------------------------------------------*/
+static void
+init(void)
+{
+
+}
+/*---------------------------------------------------------------------------*/
 CC_CONST_FUNCTION struct chameleon_module chameleon_bitopt = {
   unpack_header,
   pack_header,
   header_size,
-  NULL
+  init
 };
 /*---------------------------------------------------------------------------*/
