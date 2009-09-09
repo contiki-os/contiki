@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: chameleon-raw.c,v 1.6 2009/03/12 21:58:20 adamdunkels Exp $
+ * $Id: chameleon-raw.c,v 1.7 2009/09/09 21:09:42 adamdunkels Exp $
  */
 
 /**
@@ -182,5 +182,11 @@ hdrsize(const struct packetbuf_attrlist *a)
   return size / 8;
 }
 /*---------------------------------------------------------------------------*/
+static void
+init(void)
+{
+
+}
+/*---------------------------------------------------------------------------*/
 CC_CONST_FUNCTION struct chameleon_module chameleon_raw = { input, output,
-							    hdrsize, NULL };
+							    hdrsize, init };
