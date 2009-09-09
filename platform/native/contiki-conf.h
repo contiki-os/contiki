@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: contiki-conf.h,v 1.11 2008/10/15 09:14:25 adamdunkels Exp $
+ * @(#)$Id: contiki-conf.h,v 1.12 2009/09/09 21:11:24 adamdunkels Exp $
  */
 
 #ifndef __CONTIKI_CONF_H__
@@ -40,7 +40,7 @@
 #define CC_CONF_FUNCTION_POINTER_ARGS  1
 #define CC_CONF_FASTCALL
 #define CC_CONF_VA_ARGS                1
-#define CC_CONF_INLINE                 inline
+/*#define CC_CONF_INLINE                 inline*/
 
 #define CCIF
 #define CLIF
