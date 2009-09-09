@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: cc2420.c,v 1.33 2009/08/19 15:05:05 nifi Exp $
+ * @(#)$Id: cc2420.c,v 1.34 2009/09/09 21:07:42 adamdunkels Exp $
  */
 /*
  * This code is almost device independent and should be easy to port.
@@ -418,9 +418,9 @@ cc2420_send(const void *payload, unsigned short payload_len)
       if(receive_on) {
 	ENERGEST_ON(ENERGEST_TYPE_LISTEN);
       } else {
-    /* We need to explicitly turn off the radio,
-     * since STXON[CCA] -> TX_ACTIVE -> RX_ACTIVE */
-    off();
+	/* We need to explicitly turn off the radio,
+	 * since STXON[CCA] -> TX_ACTIVE -> RX_ACTIVE */
+	off();
       }
 
       if(packetbuf_attr(PACKETBUF_ATTR_RADIO_TXPOWER) > 0) {
