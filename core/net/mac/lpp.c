@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: lpp.c,v 1.24 2009/09/04 10:59:30 nvt-se Exp $
+ * $Id: lpp.c,v 1.25 2009/09/09 21:09:23 adamdunkels Exp $
  */
 
 /**
@@ -137,6 +137,8 @@ struct lpp_hdr {
   rimeaddr_t receiver;
 };
 
+static uint8_t lpp_is_on;
+
 static struct compower_activity current_packet;
 
 static const struct radio_driver *radio;
@@ -189,7 +191,9 @@ turn_radio_on(void)
 static void
 turn_radio_off(void)
 {
-  radio->off();
+  if(lpp_is_on) {
+    radio->off();
+  }
   /*  leds_off(LEDS_YELLOW);*/
 }
 /*---------------------------------------------------------------------------*/
@@ -426,14 +430,14 @@ static int
 dutycycle(void *ptr)
 {
   struct ctimer *t = ptr;
-  
+  struct queue_list_item *p;
+	
   PT_BEGIN(&dutycycle_pt);
 
   while(1) {
 
 #if WITH_PENDING_BROADCAST
     {
-	struct queue_list_item *p;
 	/* Before sending the probe, we mark all broadcast packets in
 	   our output queue to be pending. This means that they are
 	   ready to be sent, once we know that no neighbor is
@@ -803,6 +807,7 @@ set_receive_function(void (* recv)(const struct mac_driver *))
 static int
 on(void)
 {
+  lpp_is_on = 1;
   turn_radio_on();
   return 1;
 }
@@ -810,6 +815,7 @@ on(void)
 static int
 off(int keep_radio_on)
 {
+  lpp_is_on = 0;
   if(keep_radio_on) {
     turn_radio_on();
   } else {
@@ -843,6 +849,8 @@ lpp_init(const struct radio_driver *d)
   radio->set_receive_function(input_packet);
   restart_dutycycle(random_rand() % OFF_TIME);
 
+  lpp_is_on = 1;
+  
   announcement_register_listen_callback(listen_callback);
 
   memb_init(&queued_packets_memb);
