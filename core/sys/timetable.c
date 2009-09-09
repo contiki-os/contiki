@@ -28,16 +28,16 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: timetable.c,v 1.2 2008/02/28 22:43:40 oliverschmidt Exp $
+ * $Id: timetable.c,v 1.3 2009/09/09 21:10:35 adamdunkels Exp $
  */
 
 /**
  * \file
- *         A brief description of what this file is.
+ *         Implementation of timetable, a data structure containing timestamps for events
  * \author
  *         Adam Dunkels <adam@sics.se>
  */
-
+#include "sys/clock.h"
 #include "sys/timetable.h"
 
 #include <stdio.h>
