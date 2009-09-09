@@ -33,7 +33,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: mesh.c,v 1.17 2009/03/24 07:15:04 adamdunkels Exp $
+ * $Id: mesh.c,v 1.18 2009/09/09 21:10:21 adamdunkels Exp $
  */
 
 /**
@@ -69,6 +69,14 @@ data_packet_received(struct multihop_conn *multihop,
   struct mesh_conn *c = (struct mesh_conn *)
     ((char *)multihop - offsetof(struct mesh_conn, multihop));
 
+  struct route_entry *rt;
+
+  /* Refresh the route when we hear a packet from a neighbor. */
+  rt = route_lookup(from);
+  if(rt != NULL) {
+    route_refresh(rt);
+  }
+  
   if(c->cb->recv) {
     c->cb->recv(c, from, hops);
   }
@@ -83,7 +91,6 @@ data_packet_forward(struct multihop_conn *multihop,
   struct route_entry *rt;
 
   rt = route_lookup(dest);
-
   if(rt == NULL) {
     return NULL;
   }
@@ -151,6 +158,10 @@ mesh_send(struct mesh_conn *c, const rimeaddr_t *to)
 {
   int could_send;
 
+  PRINTF("%d.%d: mesh_send to %d.%d\n",
+	 rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1],
+	 to->u8[0], to->u8[1]);
+  
   could_send = multihop_send(&c->multihop, to);
 
   if(!could_send) {
