@@ -44,7 +44,7 @@
  *  ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  *  POSSIBILITY OF SUCH DAMAGE.
  *
- *  $Id: frame802154.c,v 1.2 2009/04/09 21:54:09 nifi Exp $
+ *  $Id: frame802154.c,v 1.3 2009/09/09 21:08:46 adamdunkels Exp $
 */
 /*
  *  \brief This file is where the main functions that relate to frame
@@ -274,7 +274,7 @@ frame802154_parse(uint8_t *data, uint8_t len, frame802154_t *pf)
   fcf.src_addr_mode = (p[1] >> 6) & 3;
 
   /* copy fcf and seqNum */
-  pf->fcf = fcf;
+  memcpy(&pf->fcf, &fcf, sizeof(frame802154_fcf_t));
   pf->seq = p[2];
   p += 3;                             /* Skip first three bytes */
 
