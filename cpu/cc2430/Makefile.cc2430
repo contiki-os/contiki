@@ -1,7 +1,3 @@
-CONTIKI_CPU_DIRS = . net
-
-CONTIKI_SOURCEFILES += #mtarch.c rtimer-arch.c elfloader-stub.c watchdog.c
-
 ### Compiler definitions
 CC       = sdcc
 LD       = sdcc
@@ -36,8 +32,14 @@ CONTIKI_PLATFORM_DIRS = $(PLATFORM_APPDIRS) \
 
 ### Compilation rules
 
-#CUSTOM_RULE_C_TO_OBJECTDIR_O=1
+CUSTOM_RULE_C_TO_OBJECTDIR_O=1
 CUSTOM_RULE_ALLOBJS_TO_TARGETLIB=1
+
+ifdef CUSTOM_RULE_C_TO_OBJECTDIR_O
+$(OBJECTDIR)/%.o: %.c
+	$(CC) $(CFLAGS) -c $< -o $@
+	@$(FINALIZE_DEPENDENCY)
+endif
 
 ifdef CUSTOM_RULE_CS_TO_OBJECTDIR_O
 $(OBJECTDIR)/%.o: %.cS
