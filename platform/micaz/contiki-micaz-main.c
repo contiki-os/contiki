@@ -48,6 +48,7 @@
 #include "dev/leds.h"
 #include "dev/rs232.h"
 #include "dev/watchdog.h"
+#include "dev/ds2401.h"
 
 #include "net/rime.h"
 #include "net/mac/nullmac.h"
@@ -73,13 +74,17 @@ main(void)
 
   leds_init();
 
-  leds_on(LEDS_ALL);
+  leds_on(LEDS_RED);
 
   /* Initialize USART */
   init_usart();
   
   /* Clock */
   clock_init();
+
+  leds_on(LEDS_GREEN);
+
+  ds2401_init();
 
   random_init(0);
 
@@ -92,10 +97,15 @@ main(void)
 
   ctimer_init();
 
+  leds_on(LEDS_YELLOW);
+
   init_net();
 
   printf_P(PSTR(CONTIKI_VERSION_STRING " started. Node id %u, using %s.\n"),
                                                        node_id, rime_mac->name);
+  printf_P(PSTR("MAC %02x:%02x:%02x:%02x:%02x:%02x:%02x:%02x\n"),
+	 ds2401_id[0], ds2401_id[1], ds2401_id[2], ds2401_id[3],
+	 ds2401_id[4], ds2401_id[5], ds2401_id[6], ds2401_id[7]);
 
   leds_off(LEDS_ALL);
 
