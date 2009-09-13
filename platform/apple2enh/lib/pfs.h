@@ -30,7 +30,7 @@
  * 
  * Author: Oliver Schmidt <ol.sc@web.de>
  *
- * $Id: pfs.h,v 1.1 2008/01/01 18:49:51 oliverschmidt Exp $
+ * $Id: pfs.h,v 1.2 2009/09/13 19:07:34 oliverschmidt Exp $
  */
 
 #ifndef __PFS_H__
@@ -39,5 +39,6 @@
 int  __fastcall__ pfs_open(const char* name, int flags);
 void __fastcall__ pfs_close(int fd);
 int  __fastcall__ pfs_read(int fd, void* buf, unsigned int len);
+int  __fastcall__ pfs_seek(int fd, int offset, int whence);
 
 #endif /* __PFS_H__ */
