@@ -4,9 +4,9 @@ CONTIKI_TARGET_MAIN = ${CONTIKI_CORE}.o
 
 SENSOR_BOARD_SOURCEFILES = mts300.c
 
-CONTIKI_TARGET_SOURCEFILES +=	rs232.c cfs-eeprom.c contiki-micaz-main.c \
-				                leds-arch.c cc2420.c init-net-rime.c node-id.c \
-                                clock.c spi.c cc2420-arch.c rtimer-arch.c
+CONTIKI_TARGET_SOURCEFILES += rs232.c cfs-eeprom.c contiki-micaz-main.c \
+                              leds-arch.c cc2420.c init-net-rime.c node-id.c \
+                              clock.c spi.c cc2420-arch.c rtimer-arch.c ds2401.c
 
 CONTIKI_TARGET_SOURCEFILES += $(SENSOR_BOARD_SOURCEFILES)
 
