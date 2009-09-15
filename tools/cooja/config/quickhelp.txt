@@ -1,3 +1,20 @@
+se.sics.cooja.plugins.Visualizer = \
+<b>Visualizer</b> \
+<p>The visualizer shows the positions of simulated motes as viewed from above (XY-plane). \
+It is possible to zoom (CRTL+Mouse drag) and pan (Shift+Mouse drag) the current view. \
+Mouse right-click a mote or unoccupied space for a popup menu with more options. \
+<p>The visualizer supports "visualizer skins". \
+Each skin provides some specific information, such as ongoing simulated radio traffic, or the IP addresses of motes. \
+Multiple skins can be active at the same time. \
+Click the upper "Select visualizer skin" button to select or deselect skins. \
+<p><b>Useful skins</b> \
+<br>Mote IDs: prints the unique mote IDs inside motes. \
+<br>Log output: prints the last printf message above motes. \
+<br>Radio traffic: displays inter-mote radio communication. \
+<br>Radio environment (UDGM): enables configurating the UDGM radio medium. \
+<p><b>Tip</b><br> \
+Right-click visualizer to show the popup menu, and click "Hide window decorations".
+
 se.sics.cooja.plugins.LogListener = \
 <b>Log Listener</b>\
 <p>Listens to log output from all simulated motes. \
