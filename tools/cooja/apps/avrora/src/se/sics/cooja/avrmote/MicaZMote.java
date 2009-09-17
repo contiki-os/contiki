@@ -26,16 +26,19 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: MicaZMote.java,v 1.6 2009/03/19 18:58:19 joxe Exp $
+ * $Id: MicaZMote.java,v 1.7 2009/09/17 10:45:14 fros4943 Exp $
  */
 
 package se.sics.cooja.avrmote;
+
+import java.io.File;
 import java.util.Collection;
-import java.util.Observer;
 import java.util.Random;
 import java.util.Vector;
+
 import org.apache.log4j.Logger;
 import org.jdom.Element;
+
 import se.sics.cooja.Mote;
 import se.sics.cooja.MoteInterface;
 import se.sics.cooja.MoteInterfaceHandler;
@@ -46,15 +49,18 @@ import se.sics.cooja.avrmote.interfaces.MicaClock;
 import se.sics.cooja.avrmote.interfaces.MicaSerial;
 import se.sics.cooja.avrmote.interfaces.MicaZLED;
 import se.sics.cooja.avrmote.interfaces.MicaZRadio;
+import se.sics.cooja.interfaces.MoteID;
 import se.sics.cooja.interfaces.Position;
-import avrora.sim.*;
-import avrora.sim.platform.*;
-import avrora.sim.mcu.*;
-import avrora.core.*;
-
+import avrora.core.LoadableProgram;
+import avrora.sim.Interpreter;
+import avrora.sim.Simulator;
+import avrora.sim.State;
+import avrora.sim.mcu.Microcontroller;
+import avrora.sim.platform.MicaZ;
+import avrora.sim.platform.PlatformFactory;
 
 /**
- * @author Joakim Eriksson
+ * @author Joakim Eriksson, Fredrik Osterlind
  */
 public class MicaZMote implements Mote {
   private static Logger logger = Logger.getLogger(MicaZMote.class);
@@ -64,9 +70,10 @@ public class MicaZMote implements Mote {
 
   /* Cycle counter */
   public long cycleCounter = 0;
-  public long cycleDrift = 0;
+  public long usDrift = 0; /* us */
 
   private Simulation mySimulation = null;
+  private MoteInterfaceHandler myMoteInterfaceHandler;
   private Microcontroller myCpu = null;
   private MicaZ micaZ = null;
   private LoadableProgram program = null;
@@ -77,7 +84,29 @@ public class MicaZMote implements Mote {
   /* Stack monitoring variables */
   private boolean stopNextInstruction = false;
 
-  private MoteInterfaceHandler myMoteInterfaceHandler;
+
+  public MicaZMote() {
+    myMoteType = null;
+    mySimulation = null;
+    myCpu = null;
+    /* TODO myMemory = null; */
+    myMoteInterfaceHandler = null;
+  }
+
+  public MicaZMote(Simulation simulation, MicaZMoteType type) {
+    mySimulation = simulation;
+    myMoteType = type;
+  }
+
+  protected boolean initEmulator(File fileELF) {
+    try {
+      prepareMote(fileELF);
+    } catch (Exception e) {
+      logger.fatal("Error when creating MicaZ mote: ", e);
+      return false;
+    }
+    return true;
+  }
 
   /**
    * Abort current tick immediately.
@@ -87,39 +116,20 @@ public class MicaZMote implements Mote {
     stopNextInstruction = true;
   }
 
+  private MoteInterfaceHandler createMoteInterfaceHandler() {
+    return new MoteInterfaceHandler(this, getType().getMoteInterfaceClasses());
+  }
+
   public MicaZ getMicaZ() {
     return micaZ;
   }
 
-  public MicaZMote() {
-    mySimulation = null;
-    myCpu = null;
-    myMoteInterfaceHandler = null;
-  }
-
-  public MicaZMote(Simulation simulation, MicaZMoteType type) {
-    mySimulation = simulation;
-    myMoteType = type;
-  }
-
   protected void initMote() {
     if (myMoteType != null) {
-      initEmulator(myMoteType.getContikiFirmwareFile().getAbsolutePath());
+      initEmulator(myMoteType.getContikiFirmwareFile());
       myMoteInterfaceHandler = createMoteInterfaceHandler();
     }
   }
-
-  protected boolean initEmulator(String fileELF) {
-    //System.out.println("Loading elf file: " + fileELF);
-    try {
-      prepareMote(fileELF);
-    } catch (Exception e) {
-      logger.fatal("Error when creating MicaZ mote:", e);
-      return false;
-    }
-    return true;
-  }
-
 
   public Simulation getSimulation() {
     return mySimulation;
@@ -136,7 +146,7 @@ public class MicaZMote implements Mote {
    * @param cpu MSP430 cpu
    * @throws Exception
    */
-  protected void prepareMote(String file) throws Exception {
+  protected void prepareMote(File file) throws Exception {
     program = new LoadableProgram(file);
     program.load();
     PlatformFactory factory = new MicaZ.Factory();
@@ -151,8 +161,8 @@ public class MicaZMote implements Mote {
     logger.warn("MicaZ motes can't change state");
   }
 
-  public State getState() {
-    return Mote.State.ACTIVE;
+  public int getID() {
+    return getInterfaces().getMoteID().getMoteID();
   }
 
   /* called when moteID is updated */
@@ -164,13 +174,6 @@ public class MicaZMote implements Mote {
   }
 
   public void setType(MoteType type) {
-    //myMoteType = (MspMoteType) type;
-  }
-
-  public void addStateObserver(Observer newObserver) {
-  }
-
-  public void deleteStateObserver(Observer newObserver) {
   }
 
   public MoteInterfaceHandler getInterfaces() {
@@ -182,24 +185,18 @@ public class MicaZMote implements Mote {
   }
 
   /* return false when done - e.g. true means more work to do before finished with this tick */
-
-  private boolean firstTick = true;
   private long cyclesExecuted = 0;
   public boolean tick(long simTime) {
     if (stopNextInstruction) {
       stopNextInstruction = false;
-      throw new RuntimeException("MSPSim requested simulation stop");
+      throw new RuntimeException("Avrora requested simulation stop");
     }
 
-    /* Nodes may be added in an ongoing simulation:
-     * Update cycle drift to current simulation time */
-    if (firstTick) {
-      firstTick = false;
-      cycleDrift += (-NR_CYCLES_PER_MSEC*simTime);
+    if (simTime + usDrift < 0) {
+      return false;
     }
 
-    long maxSimTimeCycles = NR_CYCLES_PER_MSEC * (simTime + 1) + cycleDrift;
-
+    long maxSimTimeCycles = (long)(NR_CYCLES_PER_MSEC * ((simTime+usDrift+Simulation.MILLISECOND)/(double)Simulation.MILLISECOND));
     if (maxSimTimeCycles <= cycleCounter) {
       return false;
     }
@@ -211,16 +208,9 @@ public class MicaZMote implements Mote {
       /* CPU already ticked too far - just wait it out */
       return true;
     }
-    //    myMoteInterfaceHandler.doActiveActionsBeforeTick();
+    myMoteInterfaceHandler.doActiveActionsBeforeTick();
 
     cyclesExecuted += interpreter.step();
-
-    //cpu.step(cycleCounter);
-
-    /* Check if radio has pending incoming bytes */
-//     if (myRadio != null && myRadio.hasPendingBytes()) {
-//       myRadio.tryDeliverNextByte(cpu.cycles);
-//     }
 
     return true;
   }
@@ -235,12 +225,7 @@ public class MicaZMote implements Mote {
         myMoteType = (MicaZMoteType) simulation.getMoteType(element.getText());
         getType().setIdentifier(element.getText());
 
-        try {
-          prepareMote(myMoteType.getContikiFirmwareFile().getAbsolutePath());
-        } catch (Exception e) {
-          // TODO Auto-generated catch block
-          e.printStackTrace();
-        }
+        initEmulator(myMoteType.getContikiFirmwareFile());
         myMoteInterfaceHandler = createMoteInterfaceHandler();
 
       } else if (name.equals("interface_config")) {
@@ -258,29 +243,6 @@ public class MicaZMote implements Mote {
     }
 
     return true;
-  }
-
-  private MoteInterfaceHandler createMoteInterfaceHandler() {
-    System.out.println("Creating mote interface handler....");
-    MoteInterfaceHandler moteInterfaceHandler = new MoteInterfaceHandler();
-
-      // Add position interface
-      Position motePosition = new Position(this);
-      Random random = new Random(); /* Do not use main random generator for positioning */
-      motePosition.setCoordinates(random.nextDouble()*100, random.nextDouble()*100, random.nextDouble()*100);
-      moteInterfaceHandler.addInterface(motePosition);
-
-      // Add LED interface
-      moteInterfaceHandler.addInterface(new MicaZLED(micaZ));
-      // Add Radio interface
-      moteInterfaceHandler.addInterface(new MicaZRadio(this));
-      // Add Clock interface
-      moteInterfaceHandler.addInterface(new MicaClock(this));
-      // Add Serial interface
-      moteInterfaceHandler.addInterface(new MicaSerial(this));
-
-
-      return moteInterfaceHandler;
   }
 
   public Collection<Element> getConfigXML() {
@@ -309,10 +271,21 @@ public class MicaZMote implements Mote {
   }
 
   public MoteMemory getMemory() {
+    /* TODO Implement */
     return null;
   }
 
   public void setMemory(MoteMemory memory) {
+    /* TODO Implement */
+  }
+
+  public String toString() {
+    MoteID moteID = getInterfaces() != null ? getInterfaces().getMoteID() : null;
+    if (moteID != null) {
+      return "MicaZ Mote, ID=" + moteID.getMoteID();
+    } else {
+      return "MicaZ Mote, ID=null";
+    }
   }
 
 }

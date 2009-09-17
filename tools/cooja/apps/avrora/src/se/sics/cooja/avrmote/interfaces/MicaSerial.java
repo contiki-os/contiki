@@ -8,11 +8,11 @@ import se.sics.cooja.dialogs.SerialUI;
 
 public class MicaSerial extends SerialUI {
 
-  Mote mote;
+  MicaZMote mote;
   
-  public MicaSerial(MicaZMote micaZMote) {
-    mote = micaZMote;
-    MicaZ micaZ = micaZMote.getMicaZ();
+  public MicaSerial(Mote micaZMote) {
+    mote = (MicaZMote) micaZMote;
+    MicaZ micaZ = mote.getMicaZ();
     /* this should go into some other piece of code for serial data */
     AtmelMicrocontroller mcu = (AtmelMicrocontroller) micaZ.getMicrocontroller();
     avrora.sim.mcu.USART usart = (avrora.sim.mcu.USART) mcu.getDevice("usart0");
