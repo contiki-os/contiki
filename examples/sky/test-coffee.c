@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: test-coffee.c,v 1.11 2009/05/04 22:09:52 nvt-se Exp $
+ * $Id: test-coffee.c,v 1.12 2009/09/17 14:32:57 nvt-se Exp $
  */
 
 /**
@@ -297,7 +297,7 @@ coffee_file_test(void)
     FAIL(-35);
   }
   if(total_read != APPEND_BYTES) {
-    FAIL(-35);
+    FAIL(-36);
   }
   cfs_close(afd);
 
