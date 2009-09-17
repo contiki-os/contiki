@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ContikiClock.java,v 1.11 2009/06/09 19:12:30 fros4943 Exp $
+ * $Id: ContikiClock.java,v 1.12 2009/09/17 11:06:35 fros4943 Exp $
  */
 
 package se.sics.cooja.contikimote.interfaces;
@@ -38,7 +38,6 @@ import org.apache.log4j.Logger;
 import org.jdom.Element;
 
 import se.sics.cooja.*;
-import se.sics.cooja.Mote.State;
 import se.sics.cooja.contikimote.ContikiMote;
 import se.sics.cooja.contikimote.ContikiMoteInterface;
 import se.sics.cooja.interfaces.Clock;
