@@ -68,11 +68,6 @@ msb_ports_init(void)
 int
 main(void)
 {
-#ifdef WITH_SDC
-  sd_cache_t sd_cache;
-  int r;
-#endif
-
   msp430_cpu_init();	
   watchdog_stop();
 
@@ -117,17 +112,6 @@ main(void)
 #endif /* PROFILE_CONF_ON */
  
   leds_off(LEDS_ALL);
-
-#if WITH_SDC
-  sdspi_init();
-  sd_init();
-  r = sd_init_card(&sd_cache);
-  if (r == SD_INIT_SUCCESS) {
-    printf("Found SD card (%lu bytes)\n", sd_get_size());
-  } else {
-    printf("SD card initialization failed: %d\n", r);
-  }
-#endif
 
   printf(CONTIKI_VERSION_STRING " started. Node id %u, using %s.\n", 
          node_id, rime_mac->name);

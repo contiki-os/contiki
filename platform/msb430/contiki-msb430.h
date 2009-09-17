@@ -47,16 +47,8 @@
 #include "dev/rs232.h"
 #include "dev/serial-line.h"
 #include "dev/slip.h"
-
-#ifdef WITH_SDC
-#include "dev/sd/sd.h"
-#include "dev/sd/sdspi.h"
-#endif
-
 #include "lib/sensors.h"
-
 #include "net/rime.h"
-
 #include "node-id.h"
 
 #endif /* !CONTIKI_MSB430_H */
