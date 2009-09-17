@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: Mote2MoteRelations.java,v 1.1 2009/02/26 13:31:25 fros4943 Exp $
+ * $Id: Mote2MoteRelations.java,v 1.2 2009/09/17 11:07:58 fros4943 Exp $
  */
 
 package se.sics.cooja.interfaces;
@@ -121,11 +121,7 @@ public class Mote2MoteRelations extends MoteInterface {
       Mote destinationMote = null;
       Mote[] allMotes = Mote2MoteRelations.this.mote.getSimulation().getMotes();
       for (Mote m: allMotes) {
-        if (m.getInterfaces().getMoteID() == null) {
-          continue;
-        }
-
-        if (id.equals("" + m.getInterfaces().getMoteID().getMoteID())) {
+        if (id.equals("" + m.getID())) {
           destinationMote = m;
           break;
         }
