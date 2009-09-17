@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ContikiRadio.java,v 1.28 2009/05/26 14:24:20 fros4943 Exp $
+ * $Id: ContikiRadio.java,v 1.29 2009/09/17 11:06:35 fros4943 Exp $
  */
 
 package se.sics.cooja.contikimote.interfaces;
@@ -308,15 +308,7 @@ public class ContikiRadio extends Radio implements ContikiMoteInterface, PolledA
    * data to the mote.
    */
   private void lockInReceivingMode() {
-    // If mote is inactive, try to wake it up
-    if (mote.getState() != Mote.State.ACTIVE) {
-      if (RAISES_EXTERNAL_INTERRUPT) {
-        mote.scheduleImmediateWakeup();
-      }
-      if (mote.getState() != Mote.State.ACTIVE) {
-        return;
-      }
-    }
+    mote.scheduleImmediateWakeup();
 
     // Lock core radio in receiving loop
     myMoteMemory.setByteValueOf("simReceiving", (byte) 1);

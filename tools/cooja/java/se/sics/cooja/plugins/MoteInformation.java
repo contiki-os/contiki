@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: MoteInformation.java,v 1.6 2008/10/28 13:59:35 fros4943 Exp $
+ * $Id: MoteInformation.java,v 1.7 2009/09/17 11:09:23 fros4943 Exp $
  */
 
 package se.sics.cooja.plugins;
@@ -38,7 +38,6 @@ import javax.swing.*;
 import org.apache.log4j.Logger;
 
 import se.sics.cooja.*;
-import se.sics.cooja.Mote.State;
 
 /**
  * Mote information displays information about a given mote.
@@ -57,9 +56,6 @@ public class MoteInformation extends VisPlugin {
   private final static int LABEL_WIDTH = 170;
   private final static int LABEL_HEIGHT = 15;
 
-  private final JLabel stateLabel;
-
-  private Observer stateObserver;
   private Vector<JPanel> visibleMoteInterfaces = new Vector<JPanel>();
 
   private Simulation mySimulation;
@@ -99,24 +95,6 @@ public class MoteInformation extends VisPlugin {
     smallPane.add(BorderLayout.EAST, button);
     mainPane.add(smallPane);
     mainPane.add(Box.createRigidArea(new Dimension(0,25)));
-
-    /* State */
-    smallPane = new JPanel(new BorderLayout());
-    label = new JLabel("-- STATE --");
-    label.setPreferredSize(new Dimension(LABEL_WIDTH,LABEL_HEIGHT));
-    smallPane.add(BorderLayout.WEST, label);
-    if (mote.getState() == Mote.State.ACTIVE) {
-      label = new JLabel("active");
-    } else if (mote.getState() == State.LPM) {
-      label = new JLabel("low power mode");
-    } else {
-      label = new JLabel("dead");
-    }
-
-    label.setPreferredSize(new Dimension(LABEL_WIDTH,LABEL_HEIGHT));
-    stateLabel = label;
-
-    smallPane.add(BorderLayout.EAST, label);
 
     mainPane.add(smallPane);
     mainPane.add(Box.createRigidArea(new Dimension(0,25)));
@@ -179,25 +157,9 @@ public class MoteInformation extends VisPlugin {
     } catch (java.beans.PropertyVetoException e) {
       // Could not select
     }
-
-    /* Listen to mote state changes */
-    mote.addStateObserver(stateObserver = new Observer() {
-      public void update(Observable obs, Object obj) {
-        if (mote.getState() == State.ACTIVE) {
-          stateLabel.setText("active");
-        } else if (mote.getState() == Mote.State.LPM) {
-          stateLabel.setText("low power mode");
-        } else {
-          stateLabel.setText("dead");
-        }
-      }
-    });
   }
 
   public void closePlugin() {
-	  // Remove state observer
-    mote.deleteStateObserver(stateObserver);
-
     // Release all interface visualizations
     for (JPanel interfaceVisualization: visibleMoteInterfaces) {
       MoteInterface moteInterface = (MoteInterface) interfaceVisualization.getClientProperty("my_interface");

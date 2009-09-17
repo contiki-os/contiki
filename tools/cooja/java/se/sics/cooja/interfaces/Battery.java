@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: Battery.java,v 1.8 2009/05/26 14:24:20 fros4943 Exp $
+ * $Id: Battery.java,v 1.9 2009/09/17 11:08:07 fros4943 Exp $
  */
 
 package se.sics.cooja.interfaces;
@@ -118,16 +118,7 @@ public class Battery extends MoteInterface implements PolledAfterAllTicks {
       return;
     }
 
-    // If mote is dead, do nothing
-    if (mote.getState() == Mote.State.DEAD) {
-      return;
-    }
-
-    if (mote.getState() == Mote.State.ACTIVE) {
-      cpuEnergyConsumption += cpuEnergyConsumptionLPMPerMs;
-    } else {
-      cpuEnergyConsumption += cpuEnergyConsumptionAwakePerMs;
-    }
+    cpuEnergyConsumption += cpuEnergyConsumptionAwakePerMs;
 
     totalEnergyConsumption = cpuEnergyConsumption;
     for (MoteInterface intf : mote.getInterfaces().getInterfaces()) {
