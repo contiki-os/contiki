@@ -26,22 +26,29 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: MicaZLED.java,v 1.3 2009/03/19 18:58:19 joxe Exp $
+ * $Id: MicaZLED.java,v 1.4 2009/09/17 10:45:13 fros4943 Exp $
  */
 
 package se.sics.cooja.avrmote.interfaces;
 
-import java.awt.*;
-import java.util.*;
-import javax.swing.*;
+import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.Graphics;
+import java.util.Collection;
+import java.util.Observable;
+import java.util.Observer;
+
+import javax.swing.JPanel;
+
 import org.apache.log4j.Logger;
 import org.jdom.Element;
 
-import avrora.sim.FiniteStateMachine;
-import avrora.sim.mcu.AtmelMicrocontroller;
-import avrora.sim.platform.MicaZ;
-import se.sics.cooja.*;
+import se.sics.cooja.ClassDescription;
+import se.sics.cooja.Mote;
+import se.sics.cooja.avrmote.MicaZMote;
 import se.sics.cooja.interfaces.LED;
+import avrora.sim.FiniteStateMachine;
+import avrora.sim.platform.MicaZ;
 
 /**
  * @author Joakim Eriksson
@@ -61,7 +68,9 @@ public class MicaZLED extends LED {
   private static final Color GREEN = new Color(0, 255, 0);
   private static final Color RED = new Color(255, 0, 0);
 
-  public MicaZLED(MicaZ micaZ) {
+  public MicaZLED(Mote mote) {
+    MicaZ micaZ = ((MicaZMote) mote).getMicaZ();
+
     avrora.sim.platform.LED.LEDGroup leds =
       (avrora.sim.platform.LED.LEDGroup) micaZ.getDevice("leds");
 

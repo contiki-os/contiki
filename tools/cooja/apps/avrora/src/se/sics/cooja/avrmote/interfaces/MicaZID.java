@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009, Swedish Institute of Computer Science.
+ * Copyright (c) 2007, Swedish Institute of Computer Science.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -26,50 +26,36 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: MicaClock.java,v 1.4 2009/09/17 10:45:13 fros4943 Exp $
+ * $Id: MicaZID.java,v 1.1 2009/09/17 10:45:13 fros4943 Exp $
  */
 
 package se.sics.cooja.avrmote.interfaces;
 
 import java.util.Collection;
+import java.util.Vector;
+
 import javax.swing.JPanel;
+
 import org.apache.log4j.Logger;
 import org.jdom.Element;
 
-import se.sics.cooja.*;
-import se.sics.cooja.avrmote.MicaZMote;
-import se.sics.cooja.interfaces.Clock;
-import se.sics.cooja.mspmote.MspMote;
+import se.sics.cooja.Mote;
+import se.sics.cooja.interfaces.MoteID;
 
+public class MicaZID extends MoteID {
+  private static Logger logger = Logger.getLogger(MicaZID.class);
 
-/**
- * @author Fredrik Osterlind, Joakim Eriksson
- */
-@ClassDescription("Cycle clock")
-public class MicaClock extends Clock {
-  private static Logger logger = Logger.getLogger(MicaClock.class);
+  private int moteID = -1; /* TODO Implement */
 
-  private MicaZMote myMote;
-
-  public MicaClock(Mote mote) {
-    myMote = (MicaZMote) mote;
+  public MicaZID(Mote mote) {
   }
 
-  public void setTime(long newTime) {
-    logger.fatal("Can't change emulated CPU time");
+  public int getMoteID() {
+    return moteID;
   }
 
-  public long getTime() {
-    long time = (long) ((double)myMote.cycleCounter * Simulation.MILLISECOND / MspMote.NR_CYCLES_PER_MSEC);
-    return time > 0 ? time : 0;
-  }
-
-  public void setDrift(long drift) {
-    myMote.usDrift = drift;
-  }
-
-  public long getDrift() {
-    return myMote.usDrift;
+  public void setMoteID(int newID) {
+    moteID = newID;
   }
 
   public JPanel getInterfaceVisualizer() {
@@ -84,10 +70,23 @@ public class MicaClock extends Clock {
   }
 
   public Collection<Element> getConfigXML() {
-    return null;
+    Vector<Element> config = new Vector<Element>();
+    Element element;
+
+    // Infinite boolean
+    element = new Element("id");
+    element.setText(Integer.toString(getMoteID()));
+    config.add(element);
+
+    return config;
   }
 
   public void setConfigXML(Collection<Element> configXML, boolean visAvailable) {
+    for (Element element : configXML) {
+      if (element.getName().equals("id")) {
+        setMoteID(Integer.parseInt(element.getText()));
+      }
+    }
   }
 
 }
