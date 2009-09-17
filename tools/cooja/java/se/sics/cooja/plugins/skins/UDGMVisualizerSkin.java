@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: UDGMVisualizerSkin.java,v 1.7 2009/08/27 13:59:47 fros4943 Exp $
+ * $Id: UDGMVisualizerSkin.java,v 1.8 2009/09/17 12:10:28 fros4943 Exp $
  */
 
 package se.sics.cooja.plugins.skins;
@@ -288,13 +288,23 @@ public class UDGMVisualizerSkin implements VisualizerSkin {
           / (double) selectedRadio.getOutputPowerIndicatorMax());
 
     Point translatedZero = visualizer.transformPositionToPixel(0.0, 0.0, 0.0);
-    Point translatedInterference = visualizer.transformPositionToPixel(moteInterferenceRange, moteInterferenceRange, 0.0);
-    Point translatedTransmission = visualizer.transformPositionToPixel(moteTransmissionRange, moteTransmissionRange, 0.0);
+    Point translatedInterference = 
+      visualizer.transformPositionToPixel(moteInterferenceRange, moteInterferenceRange, 0.0);
+    Point translatedTransmission = 
+      visualizer.transformPositionToPixel(moteTransmissionRange, moteTransmissionRange, 0.0);
+    Point translatedInterferenceMax = 
+      visualizer.transformPositionToPixel(radioMedium.INTERFERENCE_RANGE, radioMedium.INTERFERENCE_RANGE, 0.0);
+    Point translatedTransmissionMax = 
+      visualizer.transformPositionToPixel(radioMedium.TRANSMITTING_RANGE, radioMedium.TRANSMITTING_RANGE, 0.0);
 
     translatedInterference.x = Math.abs(translatedInterference.x - translatedZero.x);
     translatedInterference.y = Math.abs(translatedInterference.y - translatedZero.y);
     translatedTransmission.x = Math.abs(translatedTransmission.x - translatedZero.x);
     translatedTransmission.y = Math.abs(translatedTransmission.y - translatedZero.y);
+    translatedInterferenceMax.x = Math.abs(translatedInterferenceMax.x - translatedZero.x);
+    translatedInterferenceMax.y = Math.abs(translatedInterferenceMax.y - translatedZero.y);
+    translatedTransmissionMax.x = Math.abs(translatedTransmissionMax.x - translatedZero.x);
+    translatedTransmissionMax.y = Math.abs(translatedTransmissionMax.y - translatedZero.y);
 
     /* Interference range */
     g.setColor(COLOR_INT);
@@ -311,6 +321,21 @@ public class UDGMVisualizerSkin implements VisualizerSkin {
         y - translatedTransmission.y,
         2 * translatedTransmission.x,
         2 * translatedTransmission.y);
+
+    /* Interference range (MAX) */
+    g.setColor(Color.GRAY);
+    g.drawOval(
+        x - translatedInterferenceMax.x,
+        y - translatedInterferenceMax.y,
+        2 * translatedInterferenceMax.x,
+        2 * translatedInterferenceMax.y);
+
+    /* Transmission range (MAX) */
+    g.drawOval(
+        x - translatedTransmissionMax.x,
+        y - translatedTransmissionMax.y,
+        2 * translatedTransmissionMax.x,
+        2 * translatedTransmissionMax.y);
   }
 
   public void paintAfterMotes(Graphics g) {
