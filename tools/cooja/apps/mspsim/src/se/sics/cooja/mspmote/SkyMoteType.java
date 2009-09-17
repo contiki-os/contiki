@@ -26,18 +26,30 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: SkyMoteType.java,v 1.10 2009/08/11 17:09:34 fros4943 Exp $
+ * $Id: SkyMoteType.java,v 1.11 2009/09/17 10:50:11 fros4943 Exp $
  */
 
 package se.sics.cooja.mspmote;
 
-import java.awt.*;
+import java.awt.Container;
+import java.awt.Image;
+import java.awt.MediaTracker;
+import java.awt.Toolkit;
 import java.io.File;
 import java.net.URL;
-import javax.swing.*;
+
+import javax.swing.Icon;
+import javax.swing.ImageIcon;
+import javax.swing.JOptionPane;
 
 import org.apache.log4j.Logger;
-import se.sics.cooja.*;
+
+import se.sics.cooja.AbstractionLevelDescription;
+import se.sics.cooja.ClassDescription;
+import se.sics.cooja.GUI;
+import se.sics.cooja.MoteInterface;
+import se.sics.cooja.MoteType;
+import se.sics.cooja.Simulation;
 import se.sics.cooja.dialogs.CompileContiki;
 import se.sics.cooja.dialogs.MessageList;
 import se.sics.cooja.dialogs.MessageList.MessageContainer;
@@ -58,24 +70,6 @@ import se.sics.cooja.mspmote.interfaces.SkySerial;
 @AbstractionLevelDescription("Emulated level")
 public class SkyMoteType extends MspMoteType {
   private static Logger logger = Logger.getLogger(SkyMoteType.class);
-
-  public Icon getMoteTypeIcon() {
-    Toolkit toolkit = Toolkit.getDefaultToolkit();
-    URL imageURL = this.getClass().getClassLoader().getResource("images/sky.jpg");
-    Image image = toolkit.getImage(imageURL);
-    MediaTracker tracker = new MediaTracker(GUI.getTopParentContainer());
-    tracker.addImage(image, 1);
-    try {
-      tracker.waitForAll();
-    } catch (InterruptedException ex) {
-    }
-    if (image.getHeight(GUI.getTopParentContainer()) > 0 && image.getWidth(GUI.getTopParentContainer()) > 0) {
-      image = image.getScaledInstance((200*image.getWidth(GUI.getTopParentContainer())/image.getHeight(GUI.getTopParentContainer())), 200, Image.SCALE_DEFAULT);
-      return new ImageIcon(image);
-    }
-
-    return null;
-  }
 
   protected MspMote createMote(Simulation simulation) {
     return new SkyMote(this, simulation);
@@ -187,6 +181,24 @@ public class SkyMoteType extends MspMoteType {
       throw new MoteTypeCreationException("Contiki firmware file does not exist: " + getContikiFirmwareFile());
     }
     return true;
+  }
+
+  public Icon getMoteTypeIcon() {
+    Toolkit toolkit = Toolkit.getDefaultToolkit();
+    URL imageURL = this.getClass().getClassLoader().getResource("images/sky.jpg");
+    Image image = toolkit.getImage(imageURL);
+    MediaTracker tracker = new MediaTracker(GUI.getTopParentContainer());
+    tracker.addImage(image, 1);
+    try {
+      tracker.waitForAll();
+    } catch (InterruptedException ex) {
+    }
+    if (image.getHeight(GUI.getTopParentContainer()) > 0 && image.getWidth(GUI.getTopParentContainer()) > 0) {
+      image = image.getScaledInstance((200*image.getWidth(GUI.getTopParentContainer())/image.getHeight(GUI.getTopParentContainer())), 200, Image.SCALE_DEFAULT);
+      return new ImageIcon(image);
+    }
+
+    return null;
   }
 
   public Class<? extends MoteInterface>[] getAllMoteInterfaceClasses() {

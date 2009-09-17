@@ -26,16 +26,17 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: SkyMote.java,v 1.14 2009/04/20 16:12:01 fros4943 Exp $
+ * $Id: SkyMote.java,v 1.15 2009/09/17 10:50:11 fros4943 Exp $
  */
 
 package se.sics.cooja.mspmote;
 
 import java.io.File;
+
 import org.apache.log4j.Logger;
-import se.sics.cooja.MoteInterfaceHandler;
+
 import se.sics.cooja.Simulation;
-import se.sics.cooja.interfaces.*;
+import se.sics.cooja.interfaces.MoteID;
 import se.sics.mspsim.platform.sky.SkyNode;
 
 /**
@@ -58,20 +59,11 @@ public class SkyMote extends MspMote {
     try {
       skyNode = new SkyNode();
       prepareMote(fileELF, skyNode);
-
     } catch (Exception e) {
-      logger.fatal("Error when creating Sky mote:", e);
+      logger.fatal("Error when creating Sky mote: ", e);
       return false;
     }
     return true;
-  }
-
-  protected MoteInterfaceHandler createMoteInterfaceHandler() {
-    /* Uses current mote type configuration */
-    MoteInterfaceHandler moteInterfaceHandler =
-      super.createMoteInterfaceHandler();
-
-    return moteInterfaceHandler;
   }
 
   public void idUpdated(int newID) {

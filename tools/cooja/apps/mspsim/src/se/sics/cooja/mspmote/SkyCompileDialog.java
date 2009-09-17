@@ -26,12 +26,14 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: SkyCompileDialog.java,v 1.4 2009/08/27 12:25:12 nvt-se Exp $
+ * $Id: SkyCompileDialog.java,v 1.5 2009/09/17 10:50:11 fros4943 Exp $
  */
 
 package se.sics.cooja.mspmote;
+
 import java.awt.Container;
 import java.io.File;
+
 import org.apache.log4j.Logger;
 
 import se.sics.cooja.GUI;
@@ -77,6 +79,9 @@ public class SkyCompileDialog extends AbstractCompileDialog {
   }
 
   public boolean canLoadFirmware(File file) {
+    if (file.getName().endsWith(".sky")) {
+      return true;
+    }
     if (ELF.isELF(file)) {
       return true;
     }

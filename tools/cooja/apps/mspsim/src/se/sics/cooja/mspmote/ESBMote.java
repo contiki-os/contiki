@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ESBMote.java,v 1.8 2009/04/20 16:12:01 fros4943 Exp $
+ * $Id: ESBMote.java,v 1.9 2009/09/17 10:50:11 fros4943 Exp $
  */
 
 package se.sics.cooja.mspmote;
@@ -64,14 +64,6 @@ public class ESBMote extends MspMote {
       return false;
     }
     return true;
-  }
-
-  protected MoteInterfaceHandler createMoteInterfaceHandler() {
-    /* Uses current mote type configuration */
-    MoteInterfaceHandler moteInterfaceHandler =
-      super.createMoteInterfaceHandler();
-
-    return moteInterfaceHandler;
   }
 
   public String toString() {
