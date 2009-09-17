@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ContikiMote.java,v 1.12 2009/05/26 14:21:20 fros4943 Exp $
+ * $Id: ContikiMote.java,v 1.13 2009/09/17 11:05:56 fros4943 Exp $
  */
 
 package se.sics.cooja.contikimote;
@@ -49,7 +49,6 @@ import se.sics.cooja.*;
  * When ticked a Contiki mote polls all interfaces, copies the mote
  * memory to the core, lets the Contiki system handle one event,
  * fetches the updated memory and finally polls all interfaces again.
- * The mote state is also updated during a mote tick.
  *
  * @author      Fredrik Osterlind
  */
@@ -87,20 +86,10 @@ public class ContikiMote implements Mote {
     scheduleNextWakeup(mySim.getSimulationTime());
   }
 
-  public void setState(State newState) {
-    logger.warn("setState() not implemented");
- }
-
-  public State getState() {
-    return State.ACTIVE;
+  public int getID() {
+    return myInterfaceHandler.getMoteID().getMoteID();
   }
-
-  public void addStateObserver(Observer newObserver) {
-  }
-
-  public void deleteStateObserver(Observer newObserver) {
-  }
-
+  
   public MoteInterfaceHandler getInterfaces() {
     return myInterfaceHandler;
   }
@@ -236,13 +225,7 @@ public class ContikiMote implements Mote {
   }
 
   public String toString() {
-    if (getInterfaces() == null) {
-      return "Contiki Mote";
-    }
-    if (getInterfaces().getMoteID() == null) {
-      return "Contiki Mote, ID=null";
-    }
-    return "Contiki Mote, ID=" + getInterfaces().getMoteID().getMoteID();
+    return "Contiki Mote ID=" + getID();
   }
 
   private TimeEvent tickMoteEvent = new MoteTimeEvent(this, 0) {
