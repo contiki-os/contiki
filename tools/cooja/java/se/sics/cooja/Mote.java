@@ -24,23 +24,19 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * $Id: Mote.java,v 1.6 2008/12/04 14:03:42 joxe Exp $
+ * $Id: Mote.java,v 1.7 2009/09/17 11:05:09 fros4943 Exp $
  */
 
 package se.sics.cooja;
 
 import java.util.Collection;
-import java.util.Observer;
+
 import org.jdom.Element;
 
 /**
  * A simulated mote.
  *
- * A mote is always in some state, describing the status of the CPU etc. Motes
- * in different states may be handled differently by for example the simulation
- * loop and plugins.
- *
- * All motes must also have an interface handler, a mote type and a mote memory.
+ * All motes have an interface handler, a mote type and a mote memory.
  *
  * @see se.sics.cooja.MoteInterfaceHandler
  * @see se.sics.cooja.MoteMemory
@@ -51,49 +47,10 @@ import org.jdom.Element;
 public interface Mote {
 
   /**
-   * Possible mote states
+   * @return Unique mote ID
    */
-  public static enum State {
-    /* Active state */
-    ACTIVE,
-    /* Low power mode (sleeping) */
-    LPM,
-    /* Dead (for example out of batteries) */
-    DEAD
-  }
-
-  /**
-   * Tries to change state to given argument. A dead mote can typically not
-   * change state, while a sleeping or active mote can.
-   *
-   * @param newState
-   *          New state of mote.
-   */
-  public void setState(State newState);
-
-  /**
-   * @return Current mote state
-   */
-  public State getState();
-
-  /**
-   * Adds new state observer. This observer is notified if mote changes state.
-   *
-   * @see #deleteStateObserver(Observer)
-   * @param newObserver
-   *          New observer
-   */
-  public void addStateObserver(Observer newObserver);
-
-  /**
-   * Delete existing state observer.
-   *
-   * @see #addStateObserver(Observer)
-   * @param newObserver
-   *          Registered state observer
-   */
-  public void deleteStateObserver(Observer newObserver);
-
+  public int getID();
+  
   /**
    * Returns the interface handler of this mote.
    *
@@ -168,8 +125,7 @@ public interface Mote {
    * Each mote implementation may handle calls to this method differently, but
    * typically the simulated mote should at least handle one event.
    *
-   * This method is responsible for updating the mote interfaces, the memory and
-   * the mote state.
+   * This method is responsible for updating the mote interfaces.
    *
    * A call to this method typically polls all interfaces, activates the memory,
    * lets the underlying mote software handle one event, fetches the updated
@@ -185,8 +141,8 @@ public interface Mote {
    * Returns XML elements representing the current config of this mote. This is
    * fetched by the simulator for example when saving a simulation configuration
    * file. For example a mote may return the configs of all its interfaces. This
-   * method should however not return state specific information such as the
-   * mote state. (All nodes are restarted when loading a simulation.)
+   * method should however not return state specific information.
+   * (All nodes are restarted when loading a simulation.)
    *
    * @see #setConfigXML(Simulation, Collection, boolean)
    * @return XML elements representing the current mote config
