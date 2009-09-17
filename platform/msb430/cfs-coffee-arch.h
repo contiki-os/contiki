@@ -41,7 +41,7 @@
 #define CFS_COFFEE_ARCH_H
 
 #include "contiki-conf.h"
-#include "dev/sd/sd.h"
+#include "dev/sd_rio.h"
 
 /* Coffee configuration parameters. */
 #define COFFEE_SECTOR_SIZE		(10*1024*1024UL)
@@ -55,19 +55,19 @@
 #define COFFEE_DIR_CACHE_ENTRIES	16
 #define COFFEE_DYN_SIZE			32*1024UL
 #define COFFEE_LOG_SIZE			8*1024UL
+#define COFFEE_MICRO_LOGS		0
 
 /* Flash operations. */
 #define COFFEE_WRITE(buf, size, offset)				\
-		sd_write(COFFEE_START + (offset), (char *)(buf), (size))
+		sd_rio_write(COFFEE_START + (offset), (char *)(buf), (size))
 
 #define COFFEE_READ(buf, size, offset)				\
-  		sd_read((char *)(buf), COFFEE_START + (offset), (size))
+  		sd_rio_read(COFFEE_START + (offset), (char *)buf, (size))
 
-#define COFFEE_ERASE(sector)					\
-		sd_erase_blocks((sector) * COFFEE_SECTOR_SIZE, COFFEE_SECTOR_SIZE / 512);
+#define COFFEE_ERASE(sector)
 
 /* Coffee types. */
 typedef int16_t coffee_page_t;
-typedef int32_t coffee_offset_t;
+typedef sd_offset_t coffee_offset_t;
 
 #endif /* !COFFEE_ARCH_H */
