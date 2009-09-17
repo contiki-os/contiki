@@ -32,45 +32,34 @@
 
 /**
  * \file
- *	Coffee header for the Tmote Sky platform.
+ *	Coffee functions the MSB-430 platform.
  * \author
  * 	Nicolas Tsiftes <nvt@sics.se>
  */
 
-#ifndef CFS_COFFEE_ARCH_H
-#define CFS_COFFEE_ARCH_H
+#include "cfs-coffee-arch.h"
+#include "dev/sd.h"
 
-#include "contiki-conf.h"
-#include "dev/sd_rio.h"
+#include <string.h>
 
-/* Coffee configuration parameters. */
-#define COFFEE_SECTOR_SIZE		(10*1024*1024UL)
-#define COFFEE_PAGE_SIZE		1024UL
-#define COFFEE_START			0
-#define COFFEE_SIZE			(COFFEE_SECTOR_SIZE * 2)
-#define COFFEE_NAME_LENGTH		16
-#define COFFEE_MAX_OPEN_FILES		6
-#define COFFEE_FD_SET_SIZE		8
-#define COFFEE_LOG_TABLE_LIMIT		256
-#define COFFEE_DIR_CACHE_ENTRIES	16
-#define COFFEE_DYN_SIZE			32*1024UL
-#define COFFEE_LOG_SIZE			8*1024UL
-#define COFFEE_MICRO_LOGS		0
+int
+cfs_coffee_arch_erase(unsigned sector)
+{
+  char buf[SD_BLOCK_SIZE];
+  sd_offset_t start_offset;
+  sd_offset_t end_offset;
+  sd_offset_t offset;
+  int r;
 
-/* Flash operations. */
-#define COFFEE_WRITE(buf, size, offset)				\
-		sd_rio_write(COFFEE_START + (offset), (char *)(buf), (size))
+  memset(buf, 0, sizeof(buf));
 
-#define COFFEE_READ(buf, size, offset)				\
-  		sd_rio_read(COFFEE_START + (offset), (char *)buf, (size))
+  start_offset = COFFEE_START + sector * COFFEE_SECTOR_SIZE;
+  end_offset = start_offset + COFFEE_SECTOR_SIZE;
 
-#define COFFEE_ERASE(sector)					\
-		cfs_coffee_arch_erase(sector)
-
-/* Coffee types. */
-typedef int16_t coffee_page_t;
-typedef sd_offset_t coffee_offset_t;
-
-int cfs_coffee_arch_erase(unsigned);
-
-#endif /* !COFFEE_ARCH_H */
+  for(offset = start_offset; offset < end_offset; offset += SD_BLOCK_SIZE) {
+    if(sd_rio_write(offset, buf, sizeof(buf)) < 0) {
+      return -1;
+    }
+  }
+  return 0;
+}
