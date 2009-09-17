@@ -26,13 +26,12 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: PositionVisualizerSkin.java,v 1.1 2009/08/27 13:59:47 fros4943 Exp $
+ * $Id: PositionVisualizerSkin.java,v 1.2 2009/09/17 12:38:04 fros4943 Exp $
  */
 
 package se.sics.cooja.plugins.skins;
 
 import java.awt.Color;
-import java.awt.FontMetrics;
 import java.awt.Graphics;
 import java.awt.Point;
 import java.util.Observable;
@@ -107,43 +106,46 @@ public class PositionVisualizerSkin implements VisualizerSkin {
   }
 
   public void paintAfterMotes(Graphics g) {
-    FontMetrics fm = g.getFontMetrics();
     g.setColor(Color.BLACK);
 
-    /* Paint last output below motes */
+    /* Paint position coordinates right of motes */
     Mote[] allMotes = simulation.getMotes();
     for (Mote mote: allMotes) {
       Position pos = mote.getInterfaces().getPosition();
       Point pixel = visualizer.transformPositionToPixel(pos);
 
       String msg = "";
+      String posString;
       String[] parts;
 
       /* X */
-      parts = String.valueOf(pos.getXCoordinate()).split("\\.");
+      posString = String.valueOf(pos.getXCoordinate()) + "000";
+      parts = posString.split("\\.");
       if (parts[0].length() >= 4) {
         msg += parts[0];
       } else {
-        msg += String.valueOf(pos.getXCoordinate()).substring(0, 5);
+        msg += posString.substring(0, 5);
       }
       
       /* Y */
       msg += ", ";
-      parts = String.valueOf(pos.getYCoordinate()).split("\\.");
+      posString = String.valueOf(pos.getYCoordinate()) + "000";
+      parts = posString.split("\\.");
       if (parts[0].length() >= 4) {
         msg += parts[0];
       } else {
-        msg += String.valueOf(pos.getYCoordinate()).substring(0, 5);
+        msg += posString.substring(0, 5);
       }
 
       /* Z */
       if (pos.getZCoordinate() != 0) {
         msg += ", ";
-        parts = String.valueOf(pos.getXCoordinate()).split("\\.");
+        posString = String.valueOf(pos.getZCoordinate()) + "000";
+        parts = posString.split("\\.");
         if (parts[0].length() >= 4) {
           msg += parts[0];
         } else {
-          msg += String.valueOf(pos.getXCoordinate()).substring(0, 5);
+          msg += posString.substring(0, 5);
         }
       }
       
