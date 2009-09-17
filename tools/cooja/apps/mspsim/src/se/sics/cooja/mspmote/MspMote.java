@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: MspMote.java,v 1.31 2009/06/15 09:44:42 fros4943 Exp $
+ * $Id: MspMote.java,v 1.32 2009/09/17 10:50:11 fros4943 Exp $
  */
 
 package se.sics.cooja.mspmote;
@@ -39,18 +39,19 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Hashtable;
 import java.util.Observable;
-import java.util.Observer;
 import java.util.Vector;
+
 import org.apache.log4j.Logger;
 import org.jdom.Element;
+
 import se.sics.cooja.GUI;
 import se.sics.cooja.Mote;
 import se.sics.cooja.MoteInterface;
 import se.sics.cooja.MoteInterfaceHandler;
 import se.sics.cooja.MoteMemory;
 import se.sics.cooja.MoteType;
-import se.sics.cooja.Watchpoint;
 import se.sics.cooja.Simulation;
+import se.sics.cooja.Watchpoint;
 import se.sics.cooja.WatchpointMote;
 import se.sics.cooja.interfaces.IPAddress;
 import se.sics.cooja.mspmote.interfaces.TR1001Radio;
@@ -89,8 +90,6 @@ public abstract class MspMote implements Mote, WatchpointMote {
   private MoteInterfaceHandler myMoteInterfaceHandler = null;
   private ELF myELFModule = null;
 
-  protected TR1001Radio myRadio = null; /* TODO Only used by ESB (TR1001) */
-
   /* Stack monitoring variables */
   private boolean stopNextInstruction = false;
   private boolean monitorStackUsage = false;
@@ -99,14 +98,6 @@ public abstract class MspMote implements Mote, WatchpointMote {
   private StackOverflowObservable stackOverflowObservable = new StackOverflowObservable();
 
   private MspBreakpointContainer breakpointsContainer;
-  
-  /**
-   * Abort current tick immediately.
-   * May for example be called by a breakpoint handler.
-   */
-  public void stopNextInstruction() {
-    stopNextInstruction = true;
-  }
 
   public MspMote() {
     myMoteType = null;
@@ -120,7 +111,7 @@ public abstract class MspMote implements Mote, WatchpointMote {
     myMoteType = moteType;
     mySimulation = simulation;
   }
-
+  
   protected void initMote() {
     if (myMoteType != null) {
       initEmulator(myMoteType.getContikiFirmwareFile());
@@ -129,6 +120,14 @@ public abstract class MspMote implements Mote, WatchpointMote {
       /* Create watchpoint container */
       breakpointsContainer = new MspBreakpointContainer(this, getFirmwareDebugInfo(this));
     }
+  }
+
+  /**
+   * Abort current tick immediately.
+   * May for example be called by a breakpoint handler.
+   */
+  public void stopNextInstruction() {
+    stopNextInstruction = true;
   }
 
   protected MoteInterfaceHandler createMoteInterfaceHandler() {
@@ -267,14 +266,6 @@ public abstract class MspMote implements Mote, WatchpointMote {
     myCpu.reset();
   }
 
-  public void setState(State newState) {
-    logger.warn("Msp motes can't change state");
-  }
-
-  public State getState() {
-    return Mote.State.ACTIVE;
-  }
-
   /* called when moteID is updated */
   public void idUpdated(int newID) {
   }
@@ -285,12 +276,6 @@ public abstract class MspMote implements Mote, WatchpointMote {
 
   public void setType(MoteType type) {
     myMoteType = (MspMoteType) type;
-  }
-
-  public void addStateObserver(Observer newObserver) {
-  }
-
-  public void deleteStateObserver(Observer newObserver) {
   }
 
   public MoteInterfaceHandler getInterfaces() {
@@ -315,6 +300,7 @@ public abstract class MspMote implements Mote, WatchpointMote {
   public boolean tick(long simTime) {
     if (stopNextInstruction) {
       stopNextInstruction = false;
+      sendCLICommandAndPrint("trace 1000");
       throw new RuntimeException("MSPSim requested simulation stop");
     } 
     
@@ -348,18 +334,7 @@ public abstract class MspMote implements Mote, WatchpointMote {
     } catch (EmulationException e) {
       if (e.getMessage().startsWith("Bad operation")) {
         /* Experimental: print program counter history */
-        LineListener oldListener = commandListener;
-        LineListener tmpListener = new LineListener() {
-          public void lineRead(String line) {
-            logger.fatal(line);
-          }
-        };
-        setCLIListener(tmpListener);
-        logger.fatal("Bad operation detected. Program counter history:");
-        for (int element : pcHistory) {
-          sendCLICommand("line " + element);
-        }
-        setCLIListener(oldListener);
+        sendCLICommandAndPrint("trace 1000");
       }
 
       throw (RuntimeException)
@@ -383,6 +358,26 @@ public abstract class MspMote implements Mote, WatchpointMote {
     return true;
   }
 
+  private void sendCLICommandAndPrint(String comamnd) {
+    /* Backup listener */
+    LineListener oldListener = commandListener;
+
+    
+    setCLIListener(new LineListener() {
+      public void lineRead(String line) {
+        logger.fatal(line);
+      }
+    });
+    sendCLICommand(comamnd);
+
+    /* Restore listener */
+    setCLIListener(oldListener);
+  }
+  
+  public int getID() {
+    return getInterfaces().getMoteID().getMoteID();
+  }
+  
   public boolean setConfigXML(Simulation simulation, Collection<Element> configXML, boolean visAvailable) {
     for (Element element: configXML) {
       String name = element.getName();
