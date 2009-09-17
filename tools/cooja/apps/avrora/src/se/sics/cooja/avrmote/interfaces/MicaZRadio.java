@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: MicaZRadio.java,v 1.4 2009/09/17 10:45:13 fros4943 Exp $
+ * $Id: MicaZRadio.java,v 1.5 2009/09/17 12:09:14 fros4943 Exp $
  */
 
 package se.sics.cooja.avrmote.interfaces;
@@ -261,7 +261,7 @@ public class MicaZRadio extends Radio implements CustomDataRadio {
   }
 
   public int getCurrentOutputPowerIndicator() {
-    return 7; //cc2420.getOutputPowerIndicator();
+    return 31; //cc2420.getOutputPowerIndicator();
   }
 
   public int getOutputPowerIndicatorMax() {
