@@ -24,7 +24,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * $Id: AbstractApplicationMote.java,v 1.4 2009/03/09 15:38:10 fros4943 Exp $
+ * $Id: AbstractApplicationMote.java,v 1.5 2009/09/17 11:12:25 fros4943 Exp $
  */
 
 package se.sics.cooja.motes;
@@ -91,20 +91,6 @@ public abstract class AbstractApplicationMote implements Mote {
     }
   }
 
-  public void setState(State newState) {
-    logger.fatal("Application mote can not change state");
-  }
-
-  public State getState() {
-    return Mote.State.ACTIVE;
-  }
-
-  public void addStateObserver(Observer newObserver) {
-  }
-
-  public void deleteStateObserver(Observer newObserver) {
-  }
-
   public MoteInterfaceHandler getInterfaces() {
     return moteInterfaces;
   }
@@ -163,7 +149,7 @@ public abstract class AbstractApplicationMote implements Mote {
       element = new Element("interface_config");
       element.setText(moteInterface.getClass().getName());
 
-      Collection interfaceXML = moteInterface.getConfigXML();
+      Collection<Element> interfaceXML = moteInterface.getConfigXML();
       if (interfaceXML != null) {
         element.addContent(interfaceXML);
         config.add(element);
@@ -203,12 +189,12 @@ public abstract class AbstractApplicationMote implements Mote {
     return true;
   }
 
+  public int getID() {
+    return -1;
+  }
+  
   public String toString() {
-    if (getInterfaces().getMoteID() != null) {
-      return "Application Mote, ID=" + getInterfaces().getMoteID().getMoteID();
-    } else {
-      return "Application Mote, ID=null";
-    }
+    return "Application Mote, ID=" + getID();
   }
 
 }
