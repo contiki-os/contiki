@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: RadioLogger.java,v 1.22 2009/06/15 10:53:24 fros4943 Exp $
+ * $Id: RadioLogger.java,v 1.23 2009/09/17 13:20:48 fros4943 Exp $
  */
 
 package se.sics.cooja.plugins;
@@ -130,17 +130,17 @@ public class RadioLogger extends VisPlugin {
         if (col == COLUMN_TIME) {
           return Long.toString(conn.startTime / Simulation.MILLISECOND);
         } else if (col == COLUMN_FROM) {
-          return getMoteID(conn.connection.getSource().getMote());
+          return "" + conn.connection.getSource().getMote().getID();
         } else if (col == COLUMN_TO) {
           Radio[] dests = conn.connection.getDestinations();
           if (dests.length == 0) {
             return "-";
           }
           if (dests.length == 1) {
-            return getMoteID(dests[0].getMote());
+            return dests[0].getMote().getID();
           }
           if (dests.length == 2) {
-            return getMoteID(dests[0].getMote()) + ',' + getMoteID(dests[1].getMote());
+            return dests[0].getMote().getID() + ',' + dests[1].getMote().getID();
           }
           return "[" + dests.length + " d]";
         } else if (col == COLUMN_DATA) {
@@ -295,14 +295,6 @@ public class RadioLogger extends VisPlugin {
     }
   }
 
-  private String getMoteID(Mote mote) {
-    MoteID moteID = mote.getInterfaces().getMoteID();
-    if (moteID != null) {
-      return Integer.toString(moteID.getMoteID());
-    }
-    return mote.toString();
-  }
-
   private void prepareDataString(RadioConnectionLog conn) {
     byte[] data;
     if (conn.packet == null) {
@@ -385,11 +377,11 @@ public class RadioLogger extends VisPlugin {
       return "-";
     }
     if (dests.length == 1) {
-      return getMoteID(dests[0].getMote());
+      return "" + dests[0].getMote().getID();
     }
     StringBuilder sb = new StringBuilder();
     for (Radio dest: dests) {
-      sb.append(getMoteID(dest.getMote()) + ',');
+      sb.append(dest.getMote().getID() + ',');
     }
     sb.setLength(sb.length()-1);
     return sb.toString();

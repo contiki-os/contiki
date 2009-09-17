@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: MicaZMote.java,v 1.7 2009/09/17 10:45:14 fros4943 Exp $
+ * $Id: MicaZMote.java,v 1.8 2009/09/17 13:19:08 fros4943 Exp $
  */
 
 package se.sics.cooja.avrmote;
@@ -280,12 +280,7 @@ public class MicaZMote implements Mote {
   }
 
   public String toString() {
-    MoteID moteID = getInterfaces() != null ? getInterfaces().getMoteID() : null;
-    if (moteID != null) {
-      return "MicaZ Mote, ID=" + moteID.getMoteID();
-    } else {
-      return "MicaZ Mote, ID=null";
-    }
+    return "MicaZ " + getID();
   }
 
 }

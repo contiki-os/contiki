@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ContikiMote.java,v 1.13 2009/09/17 11:05:56 fros4943 Exp $
+ * $Id: ContikiMote.java,v 1.14 2009/09/17 13:20:03 fros4943 Exp $
  */
 
 package se.sics.cooja.contikimote;
@@ -225,7 +225,7 @@ public class ContikiMote implements Mote {
   }
 
   public String toString() {
-    return "Contiki Mote ID=" + getID();
+    return "Contiki " + getID();
   }
 
   private TimeEvent tickMoteEvent = new MoteTimeEvent(this, 0) {

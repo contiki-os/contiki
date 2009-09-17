@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ESBMote.java,v 1.9 2009/09/17 10:50:11 fros4943 Exp $
+ * $Id: ESBMote.java,v 1.10 2009/09/17 13:19:08 fros4943 Exp $
  */
 
 package se.sics.cooja.mspmote;
@@ -67,12 +67,7 @@ public class ESBMote extends MspMote {
   }
 
   public String toString() {
-    MoteID moteID = getInterfaces() != null ? getInterfaces().getMoteID() : null;
-    if (moteID != null) {
-      return "ESB Mote, ID=" + moteID.getMoteID();
-    } else {
-      return "ESB Mote, ID=null";
-    }
+    return "ESB " + getID();
   }
 
 }
