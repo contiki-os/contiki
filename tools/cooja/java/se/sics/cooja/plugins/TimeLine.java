@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: TimeLine.java,v 1.12 2009/08/27 16:38:09 fros4943 Exp $
+ * $Id: TimeLine.java,v 1.13 2009/09/17 13:20:48 fros4943 Exp $
  */
 
 package se.sics.cooja.plugins;
@@ -1232,10 +1232,7 @@ public class TimeLine extends VisPlugin {
       g.setFont(new Font("SansSerif", Font.PLAIN, paintedMoteHeight));
       int y = FIRST_MOTE_PIXEL_OFFSET-EVENT_PIXEL_HEIGHT/2+paintedMoteHeight;
       for (MoteEvents moteLog: allMoteEvents) {
-        String str = "??";
-        if (moteLog.mote.getInterfaces().getMoteID() != null) {
-          str = "" + moteLog.mote.getInterfaces().getMoteID().getMoteID();
-        }
+        String str = "" + moteLog.mote.getID();
         int w = g.getFontMetrics().stringWidth(str) + 1;
 
         /*g.drawRect(0, y, getWidth()-1, paintedMoteHeight);*/

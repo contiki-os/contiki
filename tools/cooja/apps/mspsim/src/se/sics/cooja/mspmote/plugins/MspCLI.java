@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: MspCLI.java,v 1.2 2009/03/21 14:40:22 fros4943 Exp $
+ * $Id: MspCLI.java,v 1.3 2009/09/17 13:19:08 fros4943 Exp $
  */
 
 package se.sics.cooja.mspmote.plugins;
@@ -68,7 +68,7 @@ public class MspCLI extends VisPlugin {
   private LineListener myListener;
 
   public MspCLI(Mote mote, Simulation simulationToVisualize, GUI gui) {
-    super("Msp CLI (" + mote.getInterfaces().getMoteID().getMoteID() + ')', gui);
+    super("Msp CLI (" + mote.getID() + ')', gui);
     this.mspMote = (MspMote) mote;
 
     final Container panel = getContentPane();

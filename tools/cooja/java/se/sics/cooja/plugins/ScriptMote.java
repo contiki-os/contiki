@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ScriptMote.java,v 1.1 2008/09/22 16:20:03 joxe Exp $
+ * $Id: ScriptMote.java,v 1.2 2009/09/17 13:20:48 fros4943 Exp $
  */
 
 package se.sics.cooja.plugins;
@@ -46,7 +46,7 @@ public class ScriptMote {
   public void setMoteMsg(Mote mote, String msg) {
     this.mote = mote;
     if (mote != null) {
-      id = mote.getInterfaces().getMoteID().getMoteID();
+      id = mote.getID();
     } else {
       id = -1;
     }

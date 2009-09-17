@@ -24,7 +24,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * $Id: EventListener.java,v 1.9 2009/06/10 15:57:08 fros4943 Exp $
+ * $Id: EventListener.java,v 1.10 2009/09/17 13:20:48 fros4943 Exp $
  */
 
 package se.sics.cooja.plugins;
@@ -105,10 +105,7 @@ public class EventListener extends VisPlugin {
 
     public void update(Observable obs, Object obj) {
       final MoteInterface moteInterface = (MoteInterface) obs;
-      int moteID = -1;
-      if (myMote.getInterfaces().getMoteID() != null) {
-        moteID = myMote.getInterfaces().getMoteID().getMoteID();
-      }
+      int moteID = myMote.getID();
 
       myParent.actOnChange("'" + GUI.getDescriptionOf(moteInterface.getClass())
           + "'" + " of mote '" + (moteID > 0 ? Integer.toString(moteID) : "?")

@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: IdIPDistributor.java,v 1.1 2006/08/21 12:13:06 fros4943 Exp $
+ * $Id: IdIPDistributor.java,v 1.2 2009/09/17 13:20:03 fros4943 Exp $
  */
 
 package se.sics.cooja.ipdistributors;
@@ -54,15 +54,12 @@ public class IdIPDistributor extends IPDistributor {
     generatedIPAddresses = new Vector<String>();
 
     for (int i=0; i < newMotes.size(); i++) {
-      if (newMotes.get(i).getInterfaces().getMoteID() != null) {
-        int moteId = newMotes.get(i).getInterfaces().getMoteID().getMoteID();
-        generatedIPAddresses.add("10." + 
-            (moteId / 256 % (256*256))
-            + "." + 
-            (moteId % 256)
-            + ".1");
-      } else
-        generatedIPAddresses.add("0.0.0.0");
+      int moteId = newMotes.get(i).getID();
+      generatedIPAddresses.add("10." + 
+          (moteId / 256 % (256*256))
+          + "." + 
+          (moteId % 256)
+          + ".1");
     }
 
   }

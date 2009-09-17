@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: LogScriptEngine.java,v 1.17 2009/06/15 17:39:02 fros4943 Exp $
+ * $Id: LogScriptEngine.java,v 1.18 2009/09/17 13:20:48 fros4943 Exp $
  */
 
 package se.sics.cooja.plugins;
@@ -118,7 +118,7 @@ public class LogScriptEngine {
         Mote mote = (Mote) obj;
         handleNewMoteOutput(
             mote,
-            mote.getInterfaces().getMoteID().getMoteID(),
+            mote.getID(),
             mote.getSimulation().getSimulationTime(),
             mote.getInterfaces().getLog().getLastLogMessage()
         );
@@ -167,7 +167,7 @@ public class LogScriptEngine {
       public void execute(long time) {
         handleNewMoteOutput(
             mote,
-            mote.getInterfaces().getMoteID().getMoteID(),
+            mote.getID(),
             mote.getSimulation().getSimulationTime(),
             msg
         );
@@ -405,7 +405,7 @@ public class LogScriptEngine {
 
             /* Update script variables */
             engine.put("mote", currentMote);
-            engine.put("id", currentMote.getInterfaces().getMoteID().getMoteID());
+            engine.put("id", currentMote.getID());
             engine.put("time", currentMote.getSimulation().getSimulationTime());
             engine.put("msg", msg);
 
