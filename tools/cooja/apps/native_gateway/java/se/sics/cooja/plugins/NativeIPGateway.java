@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: NativeIPGateway.java,v 1.7 2009/09/18 16:38:15 fros4943 Exp $
+ * $Id: NativeIPGateway.java,v 1.8 2009/09/18 16:45:26 fros4943 Exp $
  */
 
 package se.sics.cooja.plugins;
@@ -599,7 +599,7 @@ public class NativeIPGateway implements Plugin {
       }
 
       logger.info("> " + tunContikiApp.getName());
-      tunProcess = Runtime.getRuntime().exec(new String[] { tunContikiApp.getName() }, null, tunContikiAppDir);
+      tunProcess = Runtime.getRuntime().exec(new String[] { "./" + tunContikiApp.getName() }, null, tunContikiAppDir);
 
       /* Shutdown hook: kill minimal-net process */
       shutdownHook = new Thread(new Runnable() {
