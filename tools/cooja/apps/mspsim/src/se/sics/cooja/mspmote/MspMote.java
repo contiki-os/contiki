@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: MspMote.java,v 1.32 2009/09/17 10:50:11 fros4943 Exp $
+ * $Id: MspMote.java,v 1.33 2009/09/18 09:06:15 fros4943 Exp $
  */
 
 package se.sics.cooja.mspmote;
@@ -248,6 +248,7 @@ public abstract class MspMote implements Mote, WatchpointMote {
     this.myCpu.setMonitorExec(true);
 
     int[] memory = myCpu.getMemory();
+    logger.info("Loading ELF from: " + fileELF.getAbsolutePath());
     if (GUI.isVisualizedInApplet()) {
       myELFModule = node.loadFirmware(new URL(GUI.getAppletCodeBase(), fileELF.getName()), memory);
     } else {
