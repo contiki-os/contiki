@@ -24,7 +24,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * $Id: GUI.java,v 1.143 2009/08/27 12:25:12 nvt-se Exp $
+ * $Id: GUI.java,v 1.144 2009/09/18 16:13:31 fros4943 Exp $
  */
 
 package se.sics.cooja;
@@ -4093,11 +4093,15 @@ public class GUI extends Observable {
     public StartPluginGUIAction(String name) {
       super(name);
     }
-    public void actionPerformed(ActionEvent e) {
-      Class<Plugin> pluginClass = 
-        (Class<Plugin>) ((JMenuItem) e.getSource()).getClientProperty("class");
-      Mote mote = (Mote) ((JMenuItem) e.getSource()).getClientProperty("mote");
-      tryStartPlugin(pluginClass, myGUI, mySimulation, mote);
+    public void actionPerformed(final ActionEvent e) {
+      new Thread(new Runnable() {
+        public void run() {
+          Class<Plugin> pluginClass = 
+            (Class<Plugin>) ((JMenuItem) e.getSource()).getClientProperty("class");
+          Mote mote = (Mote) ((JMenuItem) e.getSource()).getClientProperty("mote");
+          tryStartPlugin(pluginClass, myGUI, mySimulation, mote);
+        }
+      }).start();
     }
     public boolean shouldBeEnabled() {
       return getSimulation() != null;
