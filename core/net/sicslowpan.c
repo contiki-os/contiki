@@ -32,7 +32,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: sicslowpan.c,v 1.8 2009/07/10 13:33:45 dak664 Exp $
+ * $Id: sicslowpan.c,v 1.9 2009/09/18 16:37:17 nifi Exp $
  */
 /**
  * \file
@@ -1285,15 +1285,6 @@ input(const struct mac_driver *r)
   }
 #endif /* SICSLOWPAN_CONF_CONVENTIONAL_MAC */
 
-#if UIP_CONF_ROUTER
-  if(!rimeaddr_cmp(packetbuf_addr(PACKETBUF_ADDR_RECEIVER),
-                   &rimeaddr_node_addr) &&
-     !rimeaddr_cmp(packetbuf_addr(PACKETBUF_ADDR_RECEIVER), &rimeaddr_null)) {
-    PRINTFI("sicslowpan: dropping packet not for us\n");
-    return;
-  }
-#endif /* UIP_CONF_ROUTER */
-
   /* init */
   uncomp_hdr_len = 0;
   rime_hdr_len = 0;
@@ -1483,7 +1474,7 @@ sicslowpan_init(const struct mac_driver *m)
 #if SICSLOWPAN_CONF_COMPRESSION == SICSLOWPAN_CONF_COMPRESSION_HC01
 #if SICSLOWPAN_CONF_MAX_ADDR_CONTEXTS < 1
 #error sicslowpan compression HC01 requires at least one address context.
-#error Change SICSLOWPAN_CONF_MAX_ADDR_CONTEXTS int contiki-conf.h.
+#error Change SICSLOWPAN_CONF_MAX_ADDR_CONTEXTS in contiki-conf.h.
 #endif
 
   /*
