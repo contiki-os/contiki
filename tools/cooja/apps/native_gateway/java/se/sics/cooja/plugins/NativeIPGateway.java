@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: NativeIPGateway.java,v 1.6 2009/06/26 09:28:45 fros4943 Exp $
+ * $Id: NativeIPGateway.java,v 1.7 2009/09/18 16:38:15 fros4943 Exp $
  */
 
 package se.sics.cooja.plugins;
@@ -34,6 +34,7 @@ package se.sics.cooja.plugins;
 import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.Dimension;
+import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
@@ -50,9 +51,11 @@ import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
+import javax.swing.JDialog;
 import javax.swing.JInternalFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.JProgressBar;
 import javax.swing.JScrollPane;
 import javax.swing.event.InternalFrameEvent;
 import javax.swing.event.InternalFrameListener;
@@ -72,6 +75,9 @@ import se.sics.cooja.Mote;
 import se.sics.cooja.Plugin;
 import se.sics.cooja.PluginType;
 import se.sics.cooja.Simulation;
+import se.sics.cooja.GUI.RunnableInEDT;
+import se.sics.cooja.dialogs.CompileContiki;
+import se.sics.cooja.dialogs.MessageList;
 import se.sics.cooja.interfaces.SerialPort;
 
 @ClassDescription("Open Native IP Gateway")
@@ -542,34 +548,58 @@ public class NativeIPGateway implements Plugin {
   }
 
   private void createTunInterfaceLinux() {
+    /* Show progress bar while compiling */
+    final JDialog progressDialog = new JDialog(
+        (Window)GUI.getTopParentContainer(), 
+        "Starting Native IP Gateway plugin"
+    );
+    final MessageList output = new MessageList();
+    if (GUI.isVisualized()) {
+      new RunnableInEDT<Boolean>() {
+        public Boolean work() {
+          JProgressBar progressBar = new JProgressBar(0, 100);
+          progressBar.setValue(0);
+          progressBar.setString("Compiling hello-world.minimal-net...");
+          progressBar.setStringPainted(true);
+          progressBar.setIndeterminate(true);
+          progressDialog.getContentPane().add(BorderLayout.NORTH, progressBar);
+          progressDialog.getContentPane().add(BorderLayout.CENTER, new JScrollPane(output));
+          progressDialog.setSize(350, 150);
+          progressDialog.setLocationRelativeTo((Window)GUI.getTopParentContainer());
+          progressDialog.setVisible(true);
+          GUI.setProgressMessage("Compiling hello-world.minimal-net (Native IP Gateway)");
+          return true;
+        }
+      }.invokeAndWait();
+    }
+
     try {
       /* Create tunnel interface by starting any Contiki minimal-net application.
        * We use the hello-world application.
        *
        * The Contiki node should have the IP address 192.168.1.2. */
-      String tunContikiApp = "hello-world." + TUNNEL_APP_TARGET;
       File tunContikiAppDir =
         new File(GUI.getExternalToolsSetting("PATH_CONTIKI"), "examples/hello-world");
-
+      File tunContikiApp = new File(tunContikiAppDir, "hello-world." + TUNNEL_APP_TARGET);
       /*logger.info("Creating tap0 via " + tunContikiAppDir + "/" + tunContikiApp);*/
-
-      String[] compileCmd = new String[3];
-      compileCmd[0] = "make";
-      compileCmd[1] = tunContikiApp;
-      compileCmd[2] = "TARGET=" + TUNNEL_APP_TARGET;
-      logger.info("> " + compileCmd[0] + " " + compileCmd[1] + " " + compileCmd[2]);
-      Process compileProcess = Runtime.getRuntime().exec(compileCmd, null, tunContikiAppDir);
-      compileProcess.waitFor();
-      boolean compileOK = compileProcess.exitValue() == 0;
-
-      if (!compileOK) {
-        throw new Exception(tunContikiAppDir + "/" + tunContikiApp + " compilation failed");
+      Process p = CompileContiki.compile(
+          GUI.getExternalToolsSetting("PATH_MAKE") + " " + tunContikiApp.getName()  + " TARGET=" + TUNNEL_APP_TARGET,
+          null,
+          null /* Do not observe output firmware file */,
+          tunContikiAppDir,
+          null,
+          null,
+          output,
+          true
+      );
+      if (p.exitValue() != 0) {
+        progressDialog.setVisible(false);
+        progressDialog.dispose();
+        throw new Exception("Compile failed: " + tunContikiApp.getPath());
       }
 
-      String[] tunAppCmd = new String[1];
-      tunAppCmd[0] = "./" + tunContikiApp;
-      logger.info("> " + tunAppCmd[0]);
-      tunProcess = Runtime.getRuntime().exec(tunAppCmd, null, tunContikiAppDir);
+      logger.info("> " + tunContikiApp.getName());
+      tunProcess = Runtime.getRuntime().exec(new String[] { tunContikiApp.getName() }, null, tunContikiAppDir);
 
       /* Shutdown hook: kill minimal-net process */
       shutdownHook = new Thread(new Runnable() {
@@ -586,10 +616,21 @@ public class NativeIPGateway implements Plugin {
       /* Waiting some time - otherwise pcap may not discover the new interface */
       Thread.sleep(250);
 
-      logger.info("Created tap0 via " + tunContikiAppDir + "/" + tunContikiApp);
+      logger.info("Created tap0 via " + tunContikiApp.getAbsolutePath());
     } catch (Exception e) {
       logger.fatal("Error when creating tap0: " + e.getMessage());
       logger.fatal("Try using an already existing network interface");
+    }
+    
+    /* Hide progress bar */
+    if (GUI.isVisualized()) {
+      new RunnableInEDT<Boolean>() {
+        public Boolean work() {
+          progressDialog.setVisible(false);
+          progressDialog.dispose();
+          return true;
+        }
+      }.invokeAndWait();
     }
   }
 
