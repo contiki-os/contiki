@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: test-cfs.c,v 1.4 2009/05/26 13:48:32 nvt-se Exp $
+ * $Id: test-cfs.c,v 1.5 2009/09/21 14:14:46 nifi Exp $
  */
 
 /**
@@ -59,13 +59,18 @@ PROCESS_THREAD(cfs_process, ev, data)
     fd = cfs_open("hej", CFS_WRITE);
     if(fd < 0) {
       printf("could not open file for writing, aborting\n");
+      errors++;
     } else {
       unsigned char buf[CHUNKSIZE];
       for(i = 0; i < filesize; i += CHUNKSIZE) {
 	for(j = 0; j < CHUNKSIZE; ++j) {
 	  buf[j] = i + j;
 	}
-	cfs_write(fd, buf, CHUNKSIZE);
+	if(cfs_write(fd, buf, CHUNKSIZE) < CHUNKSIZE) {
+          printf("failed to write at offset %d, aborting\n", i);
+          errors++;
+          break;
+        }
       }
       cfs_close(fd);
     }
@@ -73,18 +78,24 @@ PROCESS_THREAD(cfs_process, ev, data)
     fd = cfs_open("hej", CFS_READ);
     if(fd < 0) {
       printf("could not open file for reading, aborting\n");
+      errors++;
     } else {
       for(i = 0; i < filesize; ++i) {
 	unsigned char buf;
-	cfs_read(fd, &buf, 1);
+	if(cfs_read(fd, &buf, 1) < 1) {
+          printf("failed to read at offset %d, aborting\n", i);
+          errors++;
+          break;
+        }
 	if(buf != (i & 0xff)) {
 	  errors++;
 	  printf("error: diff at %d, %d != %d\n", i, i & 0xff, buf);
 	}
       }
     }
-    printf("CFS xmem test 1 completed with %d errors\n", errors);
+    printf("CFS test 1 completed with %d errors\n", errors);
     cfs_remove("hej");
+    errors = 0;
 
     fd = cfs_open("hej", CFS_WRITE);
     if(fd < 0) {
@@ -95,7 +106,11 @@ PROCESS_THREAD(cfs_process, ev, data)
 	for(j = 0; j < CHUNKSIZE; ++j) {
 	  buf[j] = i + j + 1;
 	}
-	cfs_write(fd, buf, CHUNKSIZE);
+	if(cfs_write(fd, buf, CHUNKSIZE) < CHUNKSIZE) {
+          printf("failed to write at offset %d, aborting\n", i);
+          errors++;
+          break;
+        }
       }
       cfs_close(fd);
     }
@@ -106,14 +121,18 @@ PROCESS_THREAD(cfs_process, ev, data)
     } else {
       for(i = 0; i < filesize; ++i) {
 	unsigned char buf;
-	cfs_read(fd, &buf, 1);
+	if(cfs_read(fd, &buf, 1) < 1) {
+          printf("failed to read at offset %d, aborting\n", i);
+          errors++;
+          break;
+        }
 	if(buf != ((i + 1) & 0xff)) {
 	  errors++;
 	  printf("error: diff at %d, %d != %d\n", i, (i + 1) & 0xff, buf);
 	}
       }
     }
-    printf("CFS xmem test 2 completed with %d errors\n", errors);
+    printf("CFS test 2 completed with %d errors\n", errors);
   }
 
   PROCESS_END();
