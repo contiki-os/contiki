@@ -40,11 +40,19 @@
 
 #include "cfs-coffee-arch.h"
 
-static const unsigned char nullb[COFFEE_SECTOR_SIZE] = {0};
+static const unsigned char nullb[COFFEE_SECTOR_SIZE < 32 ? COFFEE_SECTOR_SIZE : 32] = {0};
 
 void
 cfs_coffee_arch_erase(uint16_t sector)
 {
-  eeprom_write(COFFEE_START + sector * COFFEE_SECTOR_SIZE,
-	       (unsigned char *)nullb, sizeof(nullb));
+  unsigned int i;
+  for(i = 0; i <= COFFEE_SECTOR_SIZE - sizeof(nullb); i += sizeof(nullb)) {
+    eeprom_write(COFFEE_START + sector * COFFEE_SECTOR_SIZE + i,
+                 (unsigned char *)nullb, sizeof(nullb));
+  }
+  if(i < COFFEE_SECTOR_SIZE) {
+    eeprom_write(COFFEE_START + sector * COFFEE_SECTOR_SIZE + i,
+                 (unsigned char *)nullb, COFFEE_SECTOR_SIZE - i);
+
+  }
 }

@@ -44,17 +44,23 @@
 #include "contiki-conf.h"
 #include "dev/eeprom.h"
 
-#define COFFEE_SECTOR_SIZE		64UL
+#define COFFEE_SECTOR_SIZE		1024UL
 #define COFFEE_PAGE_SIZE		64UL
-#define COFFEE_START			CFS_EEPROM_CONF_OFFSET
+#define COFFEE_START			COFFEE_SECTOR_SIZE
 #define COFFEE_SIZE			(32 * 1024U - COFFEE_START)
 #define COFFEE_NAME_LENGTH		16
-#define COFFEE_MAX_OPEN_FILES		4
-#define COFFEE_FD_SET_SIZE		4
+#define COFFEE_MAX_OPEN_FILES		2
+#define COFFEE_FD_SET_SIZE		2
 #define COFFEE_LOG_TABLE_LIMIT		16
-#define COFFEE_DIR_CACHE_ENTRIES	1
 #define COFFEE_DYN_SIZE			1024
 #define COFFEE_LOG_SIZE			256
+
+#define COFFEE_MICRO_LOGS		0
+
+#if COFFEE_START < CFS_EEPROM_CONF_OFFSET
+#error COFFEE_START must be at least as large as CFS_EEPROM_CONF_OFFSET
+#error Change in cfs-coffee-arch.h
+#endif /* COFFEE_START < CFS_EEPROM_CONF_OFFSET */
 
 #define COFFEE_WRITE(buf, size, offset)				\
 		eeprom_write(COFFEE_START + (offset), (unsigned char *)(buf), (size))
