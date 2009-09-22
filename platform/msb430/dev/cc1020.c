@@ -75,6 +75,8 @@ static void cc1020_write_reg(uint8_t addr, uint8_t adata);
 static void cc1020_load_config(const uint8_t *);
 static void cc1020_reset(void);
 
+static const uint8_t syncword[SYNCWORD_SIZE] = {0xD3, 0x91};
+
 /* current mode of cc1020 chip */
 static volatile enum cc1020_state cc1020_state = CC1020_OFF;
 static volatile uint8_t cc1020_rxbuf[HDR_SIZE + CC1020_BUFFERSIZE];
@@ -138,7 +140,8 @@ cc1020_init(const uint8_t *config)
 
   /* init tx buffer with preamble + syncword */
   memset(cc1020_txbuf, PREAMBLE, PREAMBLE_SIZE);
-  memcpy((char *)cc1020_txbuf + PREAMBLE_SIZE, &syncword, SYNCWORD_SIZE);
+  cc1020_txbuf[PREAMBLE_SIZE] = syncword[0];
+  cc1020_txbuf[PREAMBLE_SIZE + 1] = syncword[1];
 
   /* calibrate receiver */
   cc1020_wakeupRX(RX_CURRENT);
