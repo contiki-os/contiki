@@ -236,8 +236,6 @@ enum cc1020_state {
  * @{
  */
 
-const uint8_t syncword[2] = {0xD3,0x91};
-
 // header: number of bytes in packet including header
 struct cc1020_header {
   uint8_t  pad;
@@ -251,7 +249,7 @@ struct cc1020_header {
 #define PREAMBLE_SIZE		6
 #define PREAMBLE		0xAA
 
-#define SYNCWORD_SIZE		(sizeof (syncword))
+#define SYNCWORD_SIZE		2
 #define HDR_SIZE		(sizeof (struct cc1020_header))
 
 #define CRC_SIZE		2
