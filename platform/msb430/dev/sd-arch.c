@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2005, Swedish Institute of Computer Science
+ * Copyright (c) 2009, Swedish Institute of Computer Science
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,30 +30,31 @@
  *
  */
 
-#ifndef CONTIKI_MSB430_H
-#define CONTIKI_MSB430_H
+/**
+ * \file
+ *	Architecture-dependent functions for SD over SPI.
+ * \author
+ * 	Nicolas Tsiftes <nvt@sics.se>
+ */
 
 #include "contiki.h"
-#include "contiki-net.h"
-#include "contiki-lib.h"
+#include "sd-arch.h"
 
-#include "dev/cc1020.h"
-#include "dev/hwconf.h"
-#include "dev/infomem.h"
-#include "dev/irq.h"
-#include "dev/leds.h"
-#include "dev/lpm.h"
-#include "dev/msb430-uart1.h"
-#include "dev/rs232.h"
-#include "dev/serial-line.h"
-#include "dev/slip.h"
+#include <string.h>
 
-#include "lib/sensors.h"
-#include "net/rime.h"
-#include "node-id.h"
+int
+sd_arch_init(void)
+{
+  P2SEL &= ~64;
+  P2DIR &= ~64;
 
-#if WITH_SD
-#include "dev/sd.h"
-#endif /* WITH_SD */
+  P5SEL |= 14;
+  P5SEL &= ~1;
+  P5OUT |= 1;
+  P5DIR |= 13;
+  P5DIR &= ~2;
 
-#endif /* !CONTIKI_MSB430_H */
+  uart_set_speed(UART_MODE_SPI, 2, 0, 0);
+
+  return 0;
+}

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2005, Swedish Institute of Computer Science
+ * Copyright (c) 2009, Swedish Institute of Computer Science
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,30 +30,50 @@
  *
  */
 
-#ifndef CONTIKI_MSB430_H
-#define CONTIKI_MSB430_H
+/**
+ * \file
+ *	SD driver interface.
+ * \author
+ * 	Nicolas Tsiftes <nvt@sics.se>
+ */
 
-#include "contiki.h"
-#include "contiki-net.h"
-#include "contiki-lib.h"
+#ifndef SD_H
+#define SD_H
 
-#include "dev/cc1020.h"
-#include "dev/hwconf.h"
-#include "dev/infomem.h"
-#include "dev/irq.h"
-#include "dev/leds.h"
-#include "dev/lpm.h"
-#include "dev/msb430-uart1.h"
-#include "dev/rs232.h"
-#include "dev/serial-line.h"
-#include "dev/slip.h"
+#include "sd-arch.h"
 
-#include "lib/sensors.h"
-#include "net/rime.h"
-#include "node-id.h"
+#define SD_BLOCK_SIZE				512
+#define SD_REGISTER_SIZE			16
 
-#if WITH_SD
-#include "dev/sd.h"
-#endif /* WITH_SD */
+/* API return codes. */
+#define SD_OK					 1
 
-#endif /* !CONTIKI_MSB430_H */
+#define SD_INIT_ERROR_NO_CARD			-1
+#define SD_INIT_ERROR_ARCH			-2
+#define SD_INIT_ERROR_NO_IF_COND		-3
+
+#define SD_WRITE_ERROR_NO_CMD_RESPONSE		-4
+#define SD_WRITE_ERROR_NO_BLOCK_RESPONSE	-5
+#define SD_WRITE_ERROR_PROGRAMMING		-6
+#define SD_WRITE_ERROR_TOKEN			-7
+#define SD_WRITE_ERROR_NO_TOKEN			-8
+
+#define SD_READ_ERROR_NO_CMD_RESPONSE		-9
+#define SD_READ_ERROR_INVALID_SIZE		-10
+#define SD_READ_ERROR_TOKEN			-11
+#define SD_READ_ERROR_NO_TOKEN			-12
+
+/* Type definition. */
+typedef uint32_t sd_offset_t;
+
+/* API */
+int sd_initialize(void);
+int sd_write(sd_offset_t, char *, unsigned);
+int sd_read(sd_offset_t, char *, unsigned);
+int sd_write_block(sd_offset_t, char *);
+int sd_read_block(sd_offset_t, char *);
+unsigned sd_get_block_size(void);
+sd_offset_t sd_get_capacity(void);
+char *sd_error_string(int);
+
+#endif /* !SD_H */

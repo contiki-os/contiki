@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2005, Swedish Institute of Computer Science
+ * Copyright (c) 2009, Swedish Institute of Computer Science
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,30 +30,44 @@
  *
  */
 
-#ifndef CONTIKI_MSB430_H
-#define CONTIKI_MSB430_H
+/**
+ * \file
+ *	SD driver implementation using SPI.
+ * \author
+ * 	Nicolas Tsiftes <nvt@sics.se>
+ */
 
-#include "contiki.h"
-#include "contiki-net.h"
-#include "contiki-lib.h"
+#ifndef SD_ARCH_H
+#define SD_ARCH_H
 
-#include "dev/cc1020.h"
-#include "dev/hwconf.h"
-#include "dev/infomem.h"
-#include "dev/irq.h"
-#include "dev/leds.h"
-#include "dev/lpm.h"
-#include "dev/msb430-uart1.h"
-#include "dev/rs232.h"
-#include "dev/serial-line.h"
-#include "dev/slip.h"
+#include "msb430-uart1.h"
 
-#include "lib/sensors.h"
-#include "net/rime.h"
-#include "node-id.h"
+#define MS_DELAY(x) clock_delay(354 * (x))
 
-#if WITH_SD
-#include "dev/sd.h"
-#endif /* WITH_SD */
+/* Machine-dependent macros. */
+#define LOCK_SPI()		do {				\
+				  if(!uart_lock(UART_MODE_SPI))	{\
+				    return 0;			\
+				  }				\
+				} while(0)
+#define UNLOCK_SPI()		do {				\
+				  uart_unlock(UART_MODE_SPI);	\
+				} while(0)
 
-#endif /* !CONTIKI_MSB430_H */
+#define SD_CONNECTED()		!(P2IN & 0x40)
+#define LOWER_CS()		(P5OUT &= ~0x01)
+#define RAISE_CS()		do {				\
+				  UART_WAIT_TXDONE();		\
+				  P5OUT |= 0x01;		\
+				  UART_TX = SPI_IDLE;		\
+				  UART_WAIT_TXDONE();		\
+				} while(0)
+
+/* Configuration parameters. */
+#define SD_TRANSACTION_ATTEMPTS		512
+#define SD_READ_RESPONSE_ATTEMPTS	8
+#define SD_READ_BLOCK_ATTEMPTS		2
+
+int sd_arch_init(void);
+
+#endif /* !SD_ARCH_H */
