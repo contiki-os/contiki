@@ -69,6 +69,10 @@ msb_ports_init(void)
 int
 main(void)
 {
+#if WITH_SD
+  int r;
+#endif /* WITH_SD */
+
   msp430_cpu_init();	
   watchdog_stop();
 
