@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: CoffeeConfiguration.java,v 1.4 2009/08/11 17:03:59 fros4943 Exp $
+ * $Id: CoffeeConfiguration.java,v 1.5 2009/09/22 16:31:36 nvt-se Exp $
  *
  * @author Nicolas Tsiftes
  *
@@ -45,7 +45,6 @@ public class CoffeeConfiguration {
 	public static final int FD_SET_SIZE = 256;
 	public static final int MAX_OPEN_FILES = 256;
 	public static final int LOG_TABLE_LIMIT = 256;
-	public static final int DIR_CACHE_ENTRIES = 256;
 	public static final int NAME_LENGTH = 16;
 	public static int fsSize, sectorSize, pageSize;
 	public static int startOffset, pageTypeSize;
