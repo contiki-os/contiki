@@ -4,6 +4,8 @@
 #define HAVE_STDINT_H
 #include "msp430def.h"
 
+#define WITH_SD				0
+
 #define ENERGEST_CONF_ON		1
 
 #define IRQ_PORT1			0x01
