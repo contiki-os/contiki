@@ -46,6 +46,7 @@
 #include "contiki.h"
 #include "contiki-msb430.h"
 #include "dev/adc.h"
+#include "dev/sd.h"
 #include "dev/serial-line.h"
 #include "dev/sht11.h"
 #include "dev/watchdog.h"
@@ -82,11 +83,10 @@ main(void)
   leds_init();
   leds_on(LEDS_ALL);
 
-  // low level
   irq_init();
   process_init();
 
-  // serial interface
+  /* serial interface */
   rs232_set_input(serial_line_input_byte);
   rs232_init();
   serial_line_init();
@@ -95,6 +95,23 @@ main(void)
   uart_unlock(UART_MODE_RS232);
 #if WITH_UIP
   slip_arch_init(BAUD2UBR(115200));
+#endif
+
+
+#if WITH_SD
+  r = sd_initialize();
+  if(r < 0) {
+    printf("Failed to initialize the SD driver: %s\n", sd_error_string(r));
+  } else {
+    sd_offset_t capacity;
+    printf("The SD driver was successfully initialized\n");
+    capacity = sd_get_capacity();
+    if(capacity < 0) {
+      printf("Failed to get the card capacity: %s\n", sd_error_string(r));
+    } else {
+      printf("Card capacity: %lu\n", (unsigned long)capacity);
+    }
+  }
 #endif
 
   /* System services */
