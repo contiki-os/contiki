@@ -49,7 +49,6 @@ cfs_coffee_arch_erase(unsigned sector)
   sd_offset_t start_offset;
   sd_offset_t end_offset;
   sd_offset_t offset;
-  int r;
 
   memset(buf, 0, sizeof(buf));
 
@@ -57,7 +56,7 @@ cfs_coffee_arch_erase(unsigned sector)
   end_offset = start_offset + COFFEE_SECTOR_SIZE;
 
   for(offset = start_offset; offset < end_offset; offset += SD_BLOCK_SIZE) {
-    if(sd_rio_write(offset, buf, sizeof(buf)) < 0) {
+    if(sd_write(offset, buf, sizeof(buf)) < 0) {
       return -1;
     }
   }

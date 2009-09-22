@@ -41,7 +41,7 @@
 #define CFS_COFFEE_ARCH_H
 
 #include "contiki-conf.h"
-#include "dev/sd_rio.h"
+#include "dev/sd.h"
 
 /* Coffee configuration parameters. */
 #define COFFEE_SECTOR_SIZE		(10*1024*1024UL)
@@ -59,10 +59,10 @@
 
 /* Flash operations. */
 #define COFFEE_WRITE(buf, size, offset)				\
-		sd_rio_write(COFFEE_START + (offset), (char *)(buf), (size))
+		sd_write(COFFEE_START + (offset), (char *)(buf), (size))
 
 #define COFFEE_READ(buf, size, offset)				\
-  		sd_rio_read(COFFEE_START + (offset), (char *)buf, (size))
+  		sd_read(COFFEE_START + (offset), (char *)buf, (size))
 
 #define COFFEE_ERASE(sector)					\
 		cfs_coffee_arch_erase(sector)
