@@ -53,6 +53,8 @@
 
 extern volatile bool uart_edge;
 
+extern void init_net(void);
+
 SENSORS(NULL);
 
 static void
