@@ -111,9 +111,10 @@ main(void)
     printf("The SD driver was successfully initialized\n");
     capacity = sd_get_capacity();
     if(capacity < 0) {
-      printf("Failed to get the card capacity: %s\n", sd_error_string(r));
+      printf("Failed to get the SD card capacity: %s\n", sd_error_string(r));
     } else {
-      printf("Card capacity: %lu\n", (unsigned long)capacity);
+      printf("SD card capacity: %u MB\n",
+	(unsigned)(capacity / (1024UL * 1024)));
     }
   }
 #endif
