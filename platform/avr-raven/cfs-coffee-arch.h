@@ -83,7 +83,6 @@
 #define COFFEE_MAX_OPEN_FILES     4
 #define COFFEE_FD_SET_SIZE        8
 #define COFFEE_LOG_TABLE_LIMIT    16
-#define COFFEE_DIR_CACHE_ENTRIES  1
 #define COFFEE_DYN_SIZE           (COFFEE_PAGE_SIZE * 4)
 #define COFFEE_LOG_SIZE           128
 
@@ -132,7 +131,6 @@ void avr_eeprom_erase(uint16_t sector);
 #define COFFEE_MAX_OPEN_FILES     4
 #define COFFEE_FD_SET_SIZE        8
 #define COFFEE_LOG_TABLE_LIMIT    16
-#define COFFEE_DIR_CACHE_ENTRIES  1
 #define COFFEE_DYN_SIZE           (COFFEE_PAGE_SIZE*1)
 #define COFFEE_MICRO_LOGS         0
 #define COFFEE_LOG_SIZE           128
