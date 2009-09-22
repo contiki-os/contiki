@@ -42,6 +42,10 @@
 
 #include "msb430-uart1.h"
 
+#ifndef U1IFG
+#define U1IFG		IFG2
+#endif /* U1IFG */
+
 #define MS_DELAY(x) clock_delay(354 * (x))
 
 /* Machine-dependent macros. */
