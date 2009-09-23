@@ -26,21 +26,35 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: CodeUI.java,v 1.7 2009/06/12 15:11:22 fros4943 Exp $
+ * $Id: CodeUI.java,v 1.8 2009/09/23 08:16:06 fros4943 Exp $
  */
 
 package se.sics.cooja.mspmote.plugins;
 
-import java.awt.*;
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Component;
+import java.awt.Font;
+import java.awt.Point;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Vector;
-import javax.swing.*;
+
+import javax.swing.AbstractListModel;
+import javax.swing.JLabel;
+import javax.swing.JList;
+import javax.swing.JMenuItem;
+import javax.swing.JPanel;
+import javax.swing.JPopupMenu;
+import javax.swing.JSeparator;
+import javax.swing.ListCellRenderer;
+import javax.swing.SwingUtilities;
+
 import org.apache.log4j.Logger;
 
 import se.sics.mspsim.extutil.highlight.CScanner;
@@ -188,7 +202,7 @@ public class CodeUI extends JPanel {
    * @param codeData Source code
    * @param lineNr Line numer
    */
-  public void displayNewCode(final File codeFile, final String[] codeData, final int lineNr) {
+  public void displayNewCode(File codeFile, String[] codeData, final int lineNr) {
     displayedFile = codeFile;
 
     if (codeData == null || codeData.length == 0) {
@@ -196,34 +210,40 @@ public class CodeUI extends JPanel {
       return;
     }
 
+    logger.info("Opening " + codeFile + " (" + codeData.length + " lines)");
+
+    /* Create new list */
+    final JList newList = new JList(new CodeListModel(codeData));
+    newList.setBackground(Color.WHITE);
+    newList.setFont(new Font("courier", 0, 12));
+    newList.setCellRenderer(new CodeCellRenderer(lineNr));
+    ((CodeCellRenderer)newList.getCellRenderer()).setNice(false);
+    newList.setFixedCellHeight(12);
+    newList.addMouseListener(new MouseAdapter() {
+      public void mousePressed(MouseEvent e) {
+        handleMouseEvent(e);
+      }
+      public void mouseReleased(MouseEvent e) {
+        handleMouseEvent(e);
+      }
+      public void mouseEntered(MouseEvent e) {
+        handleMouseEvent(e);
+      }
+      public void mouseExited(MouseEvent e) {
+        handleMouseEvent(e);
+      }
+      public void mouseClicked(MouseEvent e) {
+        handleMouseEvent(e);
+      }
+    });
+    createTokens(codeData);
+
     SwingUtilities.invokeLater(new Runnable() {
       public void run() {
-        // Display code
-        codeList = new JList(new CodeListModel(codeData));
-        codeList.setBackground(Color.WHITE);
-        codeList.setFont(new Font("courier", 0, 12));
-        codeList.setCellRenderer(new CodeCellRenderer(lineNr));
-        codeList.addMouseListener(new MouseListener() {
-          public void mousePressed(MouseEvent e) {
-            handleMouseEvent(e);
-          }
-          public void mouseReleased(MouseEvent e) {
-            handleMouseEvent(e);
-          }
-          public void mouseEntered(MouseEvent e) {
-            handleMouseEvent(e);
-          }
-          public void mouseExited(MouseEvent e) {
-            handleMouseEvent(e);
-          }
-          public void mouseClicked(MouseEvent e) {
-            handleMouseEvent(e);
-          }
-        });
         panel.removeAll();
+        codeList = newList;
         panel.add(codeList);
-
-        createTokens(codeData);
+        panel.validate();
         displayLine(lineNr);
       }
     });
@@ -231,29 +251,32 @@ public class CodeUI extends JPanel {
 
   /**
    * Mark given line number in shown source code.
+   * Should be called from AWT thread.
    *
    * @param lineNumber Line number
    */
-  public void displayLine(final int lineNumber) {
-    if (codeList == null || lineNumber < 0) {
-      SwingUtilities.invokeLater(new Runnable() {
-        public void run() {
-          codeList.updateUI();
-        }
-      });
+  public void displayLine(int lineNumber) {
+    if (codeList == null) {
       return;
     }
 
+    ((CodeCellRenderer) codeList.getCellRenderer()).setNice(false);
+    ((CodeCellRenderer) codeList.getCellRenderer()).changeCurrentLine(lineNumber);
+    ((CodeCellRenderer) codeList.getCellRenderer()).validate();
+
+    if (lineNumber > 0) {
+      int index = lineNumber - 1;
+      codeList.setSelectedIndex(index);
+      codeList.ensureIndexIsVisible(Math.max(0, index-3));
+      codeList.ensureIndexIsVisible(Math.min(index+3, codeList.getModel().getSize()));
+      codeList.ensureIndexIsVisible(index);
+    }
+
+    codeList.updateUI();
     SwingUtilities.invokeLater(new Runnable() {
       public void run() {
-        ((CodeCellRenderer) codeList.getCellRenderer()).changeCurrentLine(lineNumber);
-        int index = lineNumber - 1;
-        codeList.setSelectedIndex(index);
-
-        codeList.ensureIndexIsVisible(Math.max(0, index-3));
-        codeList.ensureIndexIsVisible(Math.min(index+3, codeList.getModel().getSize()));
-        codeList.ensureIndexIsVisible(index);
-        codeList.updateUI();
+        ((CodeCellRenderer) codeList.getCellRenderer()).setNice(true);
+        codeList.repaint();
       }
     });
   }
@@ -268,11 +291,7 @@ public class CodeUI extends JPanel {
       }
 
       final int currentLine = codeList.locationToIndex(new Point(event.getX(), event.getY())) + 1;
-      SwingUtilities.invokeLater(new Runnable() {
-        public void run() {
-          codeList.setSelectedIndex(currentLine - 1);
-        }
-      });
+      codeList.setSelectedIndex(currentLine - 1);
       JPopupMenu popupMenu = createPopupMenu(displayedFile, currentLine);
 
       popupMenu.setLocation(menuLocation);
@@ -397,9 +416,14 @@ public class CodeUI extends JPanel {
 
   private class CodeCellRenderer extends JLabel implements ListCellRenderer {
     private int currentIndex;
-
+    private boolean nice = true;
+    
     public CodeCellRenderer(int currentLineNr) {
       this.currentIndex = currentLineNr - 1;
+    }
+
+    public void setNice(boolean b) {
+      nice = b;
     }
 
     public void changeCurrentLine(int currentLineNr) {
@@ -407,16 +431,21 @@ public class CodeUI extends JPanel {
     }
 
     private String getColoredLabelText(int lineNr, int lineStartPos, Token[] tokens, String code) {
-      String html = "<html>";
-
+      StringBuilder sb = new StringBuilder();
+      sb.append("<html>");
+      
       /* Add line number */
       String lineString = "0000" + Integer.toString(lineNr);
       lineString = lineString.substring(lineString.length() - 4);
-      html += "<font color=\"333333\">" + lineString + ":  </font>";
+      sb.append("<font color=\"333333\">");
+      sb.append(lineString);
+      sb.append(":  </font>");
 
       /* Add code */
       if (tokens == null || tokens.length == 0 || lineStartPos < 0) {
-        html += "<font color=\"000000\">" + code + "</font>";
+        sb.append("<font color=\"000000\">");
+        sb.append(code);
+        sb.append("</font>");
       } else {
         for (int i=tokens.length-1; i >= 0; i--) {
           Token subToken = tokens[i];
@@ -466,11 +495,11 @@ public class CodeUI extends JPanel {
         }
 
         code = code.replace("  ", " &nbsp;");
-        html += code;
+        sb.append(code);
       }
 
-      html += "</html>";
-      return html;
+      sb.append("</html>");
+      return sb.toString();
     }
 
     public Component getListCellRendererComponent(
@@ -481,8 +510,9 @@ public class CodeUI extends JPanel {
        boolean cellHasFocus)
      {
       int lineNr = index + 1;
-
-      if (tokensArray != null && index < tokensArray.length && tokensArray[index] != null) {
+      if (!nice) {
+        setText((String) value);
+      } else if (tokensArray != null && index < tokensArray.length && tokensArray[index] != null) {
         setText(getColoredLabelText(lineNr, tokensStartPos[index], tokensArray[index], (String) value));
       } else {
         setText(getColoredLabelText(lineNr, 0, null, (String) value));
