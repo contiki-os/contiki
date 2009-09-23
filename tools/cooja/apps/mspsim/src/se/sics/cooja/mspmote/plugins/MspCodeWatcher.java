@@ -26,28 +26,59 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: MspCodeWatcher.java,v 1.19 2009/08/20 12:52:17 fros4943 Exp $
+ * $Id: MspCodeWatcher.java,v 1.20 2009/09/23 08:22:36 fros4943 Exp $
  */
 
 package se.sics.cooja.mspmote.plugins;
 
 import java.awt.BorderLayout;
 import java.awt.Component;
-import java.awt.event.*;
+import java.awt.Dimension;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.ItemEvent;
+import java.awt.event.ItemListener;
 import java.io.File;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Observable;
+import java.util.Observer;
+import java.util.Vector;
 
-import javax.swing.*;
+import javax.swing.AbstractAction;
+import javax.swing.Action;
+import javax.swing.Box;
+import javax.swing.BoxLayout;
+import javax.swing.JButton;
+import javax.swing.JComboBox;
+import javax.swing.JDialog;
+import javax.swing.JFileChooser;
+import javax.swing.JLabel;
+import javax.swing.JList;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JSplitPane;
+import javax.swing.JTextField;
+import javax.swing.SwingUtilities;
+import javax.swing.filechooser.FileFilter;
 import javax.swing.plaf.basic.BasicComboBoxRenderer;
+
 import org.apache.log4j.Logger;
 import org.jdom.Element;
 
-import se.sics.cooja.*;
+import se.sics.cooja.ClassDescription;
+import se.sics.cooja.GUI;
+import se.sics.cooja.Mote;
+import se.sics.cooja.PluginType;
+import se.sics.cooja.Simulation;
+import se.sics.cooja.VisPlugin;
+import se.sics.cooja.GUI.RunnableInEDT;
 import se.sics.cooja.mspmote.MspMote;
-import se.sics.cooja.mspmote.MspMoteType;
 import se.sics.cooja.util.StringUtils;
 import se.sics.mspsim.core.EmulationException;
 import se.sics.mspsim.core.MSP430;
@@ -74,7 +105,8 @@ public class MspCodeWatcher extends VisPlugin {
   private MspBreakpointContainer breakpoints = null;
 
   private JComboBox fileComboBox;
-  private final File[] sourceFiles;
+  private String[] debugInfoMap = null;
+  private File[] sourceFiles;
   
   /**
    * Mini-debugger for MSP Motes.
@@ -95,14 +127,7 @@ public class MspCodeWatcher extends VisPlugin {
     breakpoints = mspMote.getBreakpointsContainer();
     
     /* Create source file list */
-    sourceFiles = getSourceFiles(mspMote);
-    String[] sourceFilesHeader = new String[sourceFiles.length + 1];
-    sourceFilesHeader[0] = "[view sourcefile]";
-    for (int i=0; i < sourceFiles.length; i++) {
-      sourceFilesHeader[i+1] = sourceFiles[i].getName();
-    }
-    fileComboBox = new JComboBox(sourceFilesHeader);
-    fileComboBox.setSelectedIndex(0);
+    fileComboBox = new JComboBox();
     fileComboBox.addActionListener(new ActionListener() {
       public void actionPerformed(ActionEvent e) {
         sourceFileSelectionChanged();
@@ -126,11 +151,12 @@ public class MspCodeWatcher extends VisPlugin {
         return this;
       }
     });
-
+    updateFileComboBox();
     
     /* Browse code control (north) */
     JButton currentFileButton = new JButton(currentFileAction);
-
+    JButton mapButton = new JButton(mapAction);
+    
     Box browseBox = Box.createHorizontalBox();
     browseBox.add(Box.createHorizontalStrut(10));
     browseBox.add(new JLabel("Program counter: "));
@@ -139,6 +165,10 @@ public class MspCodeWatcher extends VisPlugin {
     browseBox.add(new JLabel("Browse: "));
     browseBox.add(fileComboBox);
     browseBox.add(Box.createHorizontalStrut(10));
+    browseBox.add(mapButton);
+    browseBox.add(Box.createHorizontalStrut(10));
+
+    mapAction.putValue(Action.NAME, "Map");
 
     
     /* Execution control panel (south) */
@@ -193,14 +223,30 @@ public class MspCodeWatcher extends VisPlugin {
     updateInfo();
   }
 
-  public void displaySourceFile(File file, int line) {
+  private void updateFileComboBox() {
+    sourceFiles = getSourceFiles(mspMote, debugInfoMap);
+    fileComboBox.removeAllItems();
+    fileComboBox.addItem("[view sourcefile]");
+    for (File f: sourceFiles) {
+      fileComboBox.addItem(f.getName());
+    }
+    fileComboBox.setSelectedIndex(0);
+  }
+
+  public void displaySourceFile(File file, final int line) {
     if (file != null &&
         sourceCodeUI.displayedFile != null &&
         file.compareTo(sourceCodeUI.displayedFile) == 0) {
-      sourceCodeUI.displayLine(line);
+      /* No need to reload source file */
+      SwingUtilities.invokeLater(new Runnable() {
+        public void run() {
+          sourceCodeUI.displayLine(line);
+        }
+      });
       return;
     }
-    logger.info("Reading source file: " + file);
+
+    /* Load source file from disk */
     String[] codeData = readTextFile(file);
     if (codeData == null) {
       return;
@@ -210,7 +256,7 @@ public class MspCodeWatcher extends VisPlugin {
 
   private void sourceFileSelectionChanged() {
     int index = fileComboBox.getSelectedIndex();
-    if (index == 0) {
+    if (index <= 0) {
       return;
     }
 
@@ -219,51 +265,28 @@ public class MspCodeWatcher extends VisPlugin {
   }
 
   private void updateInfo() {
-    // Update instructions view
+    /* Instructions */
     assCodeUI.updateRegs();
     assCodeUI.repaint();
 
-    // Try locate source file
+    /* Source */
     updateCurrentSourceCodeFile();
     if (currentCodeFile == null) {
       currentFileAction.setEnabled(false);
       currentFileAction.putValue(Action.NAME, "[unknown]");
+      currentFileAction.putValue(Action.SHORT_DESCRIPTION, null);
       return;
     }
-
-    displaySourceFile(currentCodeFile, currentLineNumber);
-
     currentFileAction.setEnabled(true);
     currentFileAction.putValue(Action.NAME, currentCodeFile.getName() + ":" + currentLineNumber);
-
+    currentFileAction.putValue(Action.SHORT_DESCRIPTION, currentCodeFile.getAbsolutePath() + ":" + currentLineNumber);
     fileComboBox.setSelectedIndex(0);
+
+    displaySourceFile(currentCodeFile, currentLineNumber);
   }
 
   public void closePlugin() {
     simulation.deleteObserver(simObserver);
-
-//    if (breakpoints.getBreakpoints().length == 0) {
-//      return;
-//    }
-//    
-//    if (GUI.isVisualized()) {
-//      String s1 = "Remove";
-//      String s2 = "Keep";
-//      Object[] options = { s1, s2 };
-//      int n = JOptionPane.showOptionDialog(GUI.getTopParentContainer(),
-//          "Mote has " + breakpoints.getBreakpoints().length + " breakpoints." +
-//          "\nShould they be removed?",
-//          "Remove mote breakpoints?", JOptionPane.YES_NO_OPTION,
-//          JOptionPane.QUESTION_MESSAGE, null, options, s1);
-//      if (n != JOptionPane.YES_OPTION) {
-//        return;
-//      }
-//    }
-//    
-//    /* Remove all mote breakpoints */
-//    while (breakpoints.getBreakpoints().length > 0) {
-//      breakpoints.removeBreakpoint(breakpoints.getBreakpoints()[0].getExecutableAddress());
-//    }
   }
 
   private void updateCurrentSourceCodeFile() {
@@ -271,38 +294,152 @@ public class MspCodeWatcher extends VisPlugin {
 
     try {
       DebugInfo debugInfo = mspMote.getELF().getDebugInfo(mspMote.getCPU().reg[MSP430.PC]);
-
       if (debugInfo == null) {
         return;
       }
 
-      /* Nasty Cygwin-Windows fix */
-      String path = debugInfo.getPath();
-
+      String path = 
+        new File(debugInfo.getPath(), debugInfo.getFile()).getPath().replace('\\', '/');
       if (path == null) {
         return;
       }
 
+      /* Debug info to source file map */
+      if (debugInfoMap != null && debugInfoMap.length == 2) {
+        if (path.startsWith(debugInfoMap[0])) {
+          path = path.replace(debugInfoMap[0], debugInfoMap[1]);
+        }
+      }
+
+      /* Nasty Cygwin-Windows fix */
       if (path.contains("/cygdrive/")) {
         int index = path.indexOf("/cygdrive/");
         char driveCharacter = path.charAt(index+10);
-
         path = path.replace("/cygdrive/" + driveCharacter + "/", driveCharacter + ":/");
       }
 
-      currentCodeFile = new File(path, debugInfo.getFile());
-      currentCodeFile = currentCodeFile.getCanonicalFile();
-      
+      currentCodeFile = new File(path).getCanonicalFile();
       currentLineNumber = debugInfo.getLine();
     } catch (Exception e) {
-      logger.fatal("Exception: " + e);
+      logger.fatal("Exception: " + e.getMessage(), e);
       currentCodeFile = null;
       currentLineNumber = -1;
     }
   }
 
-  private static File[] getSourceFiles(MspMote mote) {
-    String[] sourceFiles = mote.getELF().getDebug().getSourceFiles();
+  private void tryMapDebugInfo() {
+    final String[] debugFiles = mspMote.getELF().getDebug().getSourceFiles();
+    debugInfoMap = new RunnableInEDT<String[]>() {
+      public String[] work() {
+        /* Select which source file to use */
+        int counter = 0, n;
+        File correspondingFile = null;
+        while (true) {
+          n = JOptionPane.showOptionDialog(GUI.getTopParentContainer(),
+              "Choose which source file to manually locate.\n\n" +
+              "Some source files may not exist, as debug info is also inherited from the toolchain.\n" +
+              "\"Next\" selects the next source file in the debug info.\n\n" +
+              (counter+1) + "/" + debugFiles.length + ": " + debugFiles[counter],
+              "Select source file to locate", JOptionPane.YES_NO_CANCEL_OPTION,
+              JOptionPane.QUESTION_MESSAGE, null, 
+              new String[] { "Next", "Locate", "Cancel"}, "Next");
+          if (n == JOptionPane.CANCEL_OPTION) {
+            return null;
+          }
+          if (n == JOptionPane.NO_OPTION) {
+            /* Locate file */
+            final String filename = new File(debugFiles[counter]).getName();
+            JFileChooser fc = new JFileChooser();
+            fc.setFileFilter(new FileFilter() {
+              public boolean accept(File file) {
+                if (file.isDirectory()) { return true; }
+                if (file.getName().equals(filename)) {
+                  return true;
+                }
+                return false;
+              }
+              public String getDescription() {
+                return "Source file " + filename;
+              }
+            });
+            int returnVal = fc.showOpenDialog(GUI.getTopParentContainer());
+            if (returnVal == JFileChooser.APPROVE_OPTION) {
+              correspondingFile = fc.getSelectedFile();
+              break;
+            }
+          }
+
+          if (n == JOptionPane.YES_OPTION) {
+            /* Next file */
+            counter = (counter+1) % debugFiles.length;
+          }
+        }
+
+        /* Match files */
+        try {
+          String canonDebug = debugFiles[counter];
+          String canonSelected = correspondingFile.getCanonicalFile().getPath().replace('\\', '/');
+
+          int offset = 0;
+          while (canonDebug.regionMatches(
+              true,
+              canonDebug.length()-offset,
+              canonSelected, canonSelected.length()-offset,
+              offset)) {
+            offset++;
+            if (offset >= canonDebug.length() ||
+                offset >= canonSelected.length())
+              break;
+          }
+          offset--;
+          String replace = canonDebug.substring(0, canonDebug.length() - offset);
+          String replacement = canonSelected.substring(0, canonSelected.length() - offset);
+
+          {
+            JTextField replaceInput = new JTextField(replace);
+            replaceInput.setEditable(true);
+            JTextField replacementInput = new JTextField(replacement);
+            replacementInput.setEditable(true);
+
+            Box box = Box.createVerticalBox();
+            box.add(new JLabel("Debug info file:"));
+            box.add(new JLabel(canonDebug));
+            box.add(new JLabel("Selected file:"));
+            box.add(new JLabel(canonSelected));
+            box.add(Box.createVerticalStrut(20));
+            box.add(new JLabel("Replacing:"));
+            box.add(replaceInput);
+            box.add(new JLabel("with:"));
+            box.add(replacementInput);
+
+            JOptionPane optionPane = new JOptionPane();
+            optionPane.setMessage(box);
+            optionPane.setMessageType(JOptionPane.INFORMATION_MESSAGE);
+            optionPane.setOptions(new String[] { "OK" });
+            optionPane.setInitialValue("OK");
+            JDialog dialog = optionPane.createDialog(
+                GUI.getTopParentContainer(), 
+                "Mapping debug info to real sources");
+            dialog.setVisible(true);
+            
+            replace = replaceInput.getText();
+            replacement = replacementInput.getText();
+          }
+          
+          replace = replace.replace('\\', '/');
+          replacement = replacement.replace('\\', '/');
+          return new String[] { replace, replacement };
+        } catch (IOException e) {
+          logger.fatal("Error: " + e.getMessage(), e);
+          return null;
+        }
+      }
+    }.invokeAndWait();
+    updateFileComboBox();
+  }
+  
+  private static File[] getSourceFiles(MspMote mote, String[] map) {
+    final String[] sourceFiles = mote.getELF().getDebug().getSourceFiles();
     File contikiSource = mote.getType().getContikiSourceFile();
     if (contikiSource != null) {
       try {
@@ -312,8 +449,17 @@ public class MspCodeWatcher extends VisPlugin {
     }
     
     /* Verify that files exist */
-    Vector<File> existing = new Vector<File>();
+    ArrayList<File> existing = new ArrayList<File>();
     for (String sourceFile: sourceFiles) {
+
+      /* Debug info to source file map */
+      sourceFile = sourceFile.replace('\\', '/');
+      if (map != null && map.length == 2) {
+        if (sourceFile.startsWith(map[0])) {
+          sourceFile = sourceFile.replace(map[0], map[1]);
+        }
+      }
+
       /* Nasty Cygwin-Windows fix */
       if (sourceFile.contains("/cygdrive/")) {
         int index = sourceFile.indexOf("/cygdrive/");
@@ -338,8 +484,26 @@ public class MspCodeWatcher extends VisPlugin {
       }
     }
 
+    /* If no files were found, suggest map function */
+    if (sourceFiles.length > 0 && existing.isEmpty() && GUI.isVisualized()) {
+      new RunnableInEDT<Boolean>() {
+        public Boolean work() {
+          JOptionPane.showMessageDialog(
+              GUI.getTopParentContainer(),
+              "The firmware debug info specifies " + sourceFiles.length + " source files.\n" +
+              "However, Msp Code Watcher could not find any of these files.\n" +
+              "Make sure the source files were not moved after the firmware compilation.\n" +
+              "\n" +
+              "If you want to manually locate the sources, click \"Map\" button.",
+              "No source files found", 
+              JOptionPane.WARNING_MESSAGE);
+          return true;
+        }
+      }.invokeAndWait();
+    }
+
     /* Sort alphabetically */
-    Vector<File> sorted = new Vector<File>();
+    ArrayList<File> sorted = new ArrayList<File>();
     for (File file: existing) {
       int index = 0;
       for (index=0; index < sorted.size(); index++) {
@@ -355,8 +519,7 @@ public class MspCodeWatcher extends VisPlugin {
       sorted.add(0, contikiSource);
     }
 
-    File[] sortedArr = sorted.toArray(new File[0]);
-    return sortedArr;
+    return sorted.toArray(new File[0]);
   }
 
   /**
@@ -430,6 +593,12 @@ public class MspCodeWatcher extends VisPlugin {
         return;
       }
       displaySourceFile(currentCodeFile, currentLineNumber);
+    }
+  };
+
+  private AbstractAction mapAction = new AbstractAction() {
+    public void actionPerformed(ActionEvent e) {
+      tryMapDebugInfo();
     }
   };
 
