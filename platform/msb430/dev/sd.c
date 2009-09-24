@@ -385,12 +385,6 @@ read_register(int register_cmd, char *buf, int register_size)
   return read_block(register_cmd, 0, buf, register_size);
 }
 /*---------------------------------------------------------------------------*/
-unsigned
-sd_get_block_size(void)
-{
-  return SD_BLOCK_SIZE;
-}
-/*---------------------------------------------------------------------------*/
 sd_offset_t
 sd_get_capacity(void)
 {
