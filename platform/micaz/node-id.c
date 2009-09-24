@@ -39,12 +39,25 @@ uint16_t node_id = 0;
 void
 node_id_restore(void)
 {
+  uint16_t newid[2];
+  uint8_t volatile sreg;
 
+  sreg = SREG; /* Save status register before disabling interrupts. */
+  cli();    /* Disable interrupts. */
+  eeprom_read(EEPROM_NODE_ID_START, (unsigned char *)newid, sizeof(newid));
+  node_id = (newid[0] == 0xdead) ? newid[1] : 0;
+  SREG = sreg;    /* Enable interrupts. */
 }
 /*---------------------------------------------------------------------------*/
 void
 node_id_burn(uint16_t id)
 {
+  uint16_t buffer[2] = { 0xdead, id };
+  uint8_t volatile sreg;
 
+  sreg = SREG; /* Save status register before disabling interrupts. */
+  cli();    /* Disable interrupts. */
+  eeprom_write(EEPROM_NODE_ID_START, (unsigned char *)buffer, sizeof(buffer));
+  SREG = sreg;    /* Enable interrupts. */
 }
 /*---------------------------------------------------------------------------*/
