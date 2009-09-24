@@ -101,6 +101,8 @@ main(void)
 
   init_net();
 
+  node_id_restore();
+  
   printf_P(PSTR(CONTIKI_VERSION_STRING " started. Node id %u, using %s.\n"),
                                                        node_id, rime_mac->name);
   printf_P(PSTR("MAC %02x:%02x:%02x:%02x:%02x:%02x:%02x:%02x\n"),
