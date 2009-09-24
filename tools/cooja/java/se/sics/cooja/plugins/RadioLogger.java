@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: RadioLogger.java,v 1.23 2009/09/17 13:20:48 fros4943 Exp $
+ * $Id: RadioLogger.java,v 1.24 2009/09/24 08:56:17 nifi Exp $
  */
 
 package se.sics.cooja.plugins;
@@ -137,10 +137,10 @@ public class RadioLogger extends VisPlugin {
             return "-";
           }
           if (dests.length == 1) {
-            return dests[0].getMote().getID();
+            return "" + dests[0].getMote().getID();
           }
           if (dests.length == 2) {
-            return dests[0].getMote().getID() + ',' + dests[1].getMote().getID();
+            return "" + dests[0].getMote().getID() + ',' + dests[1].getMote().getID();
           }
           return "[" + dests.length + " d]";
         } else if (col == COLUMN_DATA) {
@@ -381,7 +381,7 @@ public class RadioLogger extends VisPlugin {
     }
     StringBuilder sb = new StringBuilder();
     for (Radio dest: dests) {
-      sb.append(dest.getMote().getID() + ',');
+      sb.append(dest.getMote().getID()).append(',');
     }
     sb.setLength(sb.length()-1);
     return sb.toString();
