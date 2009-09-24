@@ -72,7 +72,6 @@ int sd_write(sd_offset_t, char *, unsigned);
 int sd_read(sd_offset_t, char *, unsigned);
 int sd_write_block(sd_offset_t, char *);
 int sd_read_block(sd_offset_t, char *);
-unsigned sd_get_block_size(void);
 sd_offset_t sd_get_capacity(void);
 char *sd_error_string(int);
 
