@@ -87,7 +87,7 @@
   <plugin>
     se.sics.cooja.plugins.ScriptRunner
     <plugin_config>
-      <script>TIMEOUT(120000, log.log("timeout at phase " + phase + ". last message: " + msg + "\n"));
+      <script>TIMEOUT(360000, log.log("timeout at phase " + phase + ". last message: " + msg + "\n"));
 phase=0;
 
 /* Wait until node has booted */
