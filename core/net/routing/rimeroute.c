@@ -32,7 +32,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: rimeroute.c,v 1.1 2009/04/06 13:11:25 nvt-se Exp $
+ * $Id: rimeroute.c,v 1.2 2009/09/29 16:02:28 nvt-se Exp $
  */
 /**
  * \file
@@ -72,8 +72,13 @@ void uip_log(char *msg);
 #define UIP_LOG(m)
 #endif /* UIP_LOGGING == 1 */
 
-#define ROUTE_DISCOVERY_CHANNELS        70
-#define PACKET_TIMEOUT                  (CLOCK_SECOND * 10)
+#define ROUTE_DISCOVERY_CHANNEL	70
+
+#ifndef RIMEROUTE_CONF_DISCOVERY_TIMEOUT
+#define PACKET_TIMEOUT		(CLOCK_SECOND * 10)
+#else
+#define PACKET_TIMEOUT		(CLOCK_SECOND * RIMEROUTE_CONF_DISCOVERY_TIMEOUT)
+#endif /* RIMEROUTE_CONF_DISCOVERY_TIMEOUT */
 
 static void found_route(struct route_discovery_conn *, rimeaddr_t *);
 static void route_timed_out(struct route_discovery_conn *);
@@ -102,7 +107,7 @@ PROCESS_THREAD(rimeroute_process, ev, data)
 
   route_discovery_open(&route_discovery_conn,
                        CLOCK_SECOND * 10,
-                       ROUTE_DISCOVERY_CHANNELS,
+                       ROUTE_DISCOVERY_CHANNEL,
                        &route_discovery_callbacks);
 
   while(1) {
