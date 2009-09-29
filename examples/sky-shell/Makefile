@@ -20,6 +20,12 @@ CONTIKI = ../..
 	 ../../tools/base64-encode < $<; sleep 4; \
          echo "read $*.ce | size"; sleep 4) | make login
 
+%.file-upload: %
+	(echo; sleep 4; echo "~K"; sleep 4; \
+         echo "dec64 | write $* | null"; sleep 4; \
+	 ../../tools/base64-encode < $<; sleep 4; \
+         echo "read $* | size"; sleep 4) | make login
+
 %.netsend: %.shell-upload
 	(echo; sleep 4; echo "~K"; sleep 4; \
          echo "netcmd { recvnetfile | write $*.ce | size | send } "; sleep 4; \
