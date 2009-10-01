@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: sd-test.c,v 1.5 2009/09/22 15:37:18 nvt-se Exp $
+ * $Id: sd-test.c,v 1.6 2009/10/01 16:40:25 nvt-se Exp $
  */
 
 /**
@@ -83,8 +83,8 @@ PROCESS_THREAD(sd_test, event, data)
       } else {
         printf("read error: %d (%s)\n", r, sd_error_string(r));
       }
-      etimer_reset(&et);
     }
+    etimer_reset(&et);
   }
 
   PROCESS_END();
