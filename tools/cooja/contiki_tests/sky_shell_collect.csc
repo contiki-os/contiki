@@ -448,7 +448,7 @@ sink = id;
 YIELD_THEN_WAIT_UNTIL(id == sink);
 /*mote.getInterfaces().getButton().clickButton()*/
 log.log("Writing netcmd\n");
-node.write("netcmd { repeat 0 20 { randwait 20 sky-alldata | blink | send } }");
+node.write("netcmd { repeat 0 40 { randwait 40 sky-alldata | blink | send } }");
 YIELD_THEN_WAIT_UNTIL(id == sink);
 log.log("Writing collect command\n");
 node.write("collect | timestamp | blink | binprint &amp;");
