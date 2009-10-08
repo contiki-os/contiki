@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: SkyMote.java,v 1.16 2009/09/17 13:19:08 fros4943 Exp $
+ * $Id: SkyMote.java,v 1.17 2009/10/08 14:41:20 fros4943 Exp $
  */
 
 package se.sics.cooja.mspmote;
@@ -36,6 +36,7 @@ import java.io.File;
 import org.apache.log4j.Logger;
 
 import se.sics.cooja.Simulation;
+import se.sics.cooja.mspmote.interfaces.SkyCoffeeFilesystem;
 import se.sics.mspsim.platform.sky.SkyNode;
 
 /**
@@ -67,6 +68,10 @@ public class SkyMote extends MspMote {
 
   public void idUpdated(int newID) {
     skyNode.setNodeID(newID);
+  }
+
+  public SkyCoffeeFilesystem getFilesystem() {
+    return getInterfaces().getInterfaceOfType(SkyCoffeeFilesystem.class);
   }
 
   public String toString() {
