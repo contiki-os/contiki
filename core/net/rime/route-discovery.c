@@ -33,7 +33,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: route-discovery.c,v 1.17 2009/05/10 21:10:23 adamdunkels Exp $
+ * $Id: route-discovery.c,v 1.18 2009/10/08 16:30:26 nvt-se Exp $
  */
 
 /**
@@ -72,11 +72,13 @@ struct rrep_hdr {
 #define DEBUG 0
 #if DEBUG
 #include <stdio.h>
-#define PRINTF(...) PRINTF(__VA_ARGS__)
+#define PRINTF(...) printf(__VA_ARGS__)
 #else
 #define PRINTF(...)
 #endif
 
+/*---------------------------------------------------------------------------*/
+static char rrep_pending;		/* A reply for a request is pending. */
 /*---------------------------------------------------------------------------*/
 static void
 send_rreq(struct route_discovery_conn *c, const rimeaddr_t *dest)
@@ -182,6 +184,7 @@ rrep_packet_received(struct unicast_conn *uc, rimeaddr_t *from)
 
   if(rimeaddr_cmp(&msg->dest, &rimeaddr_node_addr)) {
     PRINTF("rrep for us!\n");
+    rrep_pending = 0;
     ctimer_stop(&c->t);
     if(c->cb->new_route) {
       c->cb->new_route(c, &msg->originator);
@@ -285,18 +288,26 @@ timeout_handler(void *ptr)
 {
   struct route_discovery_conn *c = ptr;
   PRINTF("route_discovery: timeout, timed out\n");
+  rrep_pending = 0;
   if(c->cb->timedout) {
     c->cb->timedout(c);
   }
 }
 /*---------------------------------------------------------------------------*/
-void
+int
 route_discovery_discover(struct route_discovery_conn *c, const rimeaddr_t *addr,
 			 clock_time_t timeout)
 {
+  if(rrep_pending) {
+    PRINTF("route_discovery_send: ignoring request because of pending response\n");
+    return 0;
+  }
+
   PRINTF("route_discovery_send: sending route request\n");
   ctimer_set(&c->t, timeout, timeout_handler, c);
+  rrep_pending = 1;
   send_rreq(c, addr);
+  return 1;
 }
 /*---------------------------------------------------------------------------*/
 /** @} */
