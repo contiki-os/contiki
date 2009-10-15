@@ -38,6 +38,7 @@ CUSTOM_RULE_ALLOBJS_TO_TARGETLIB=1
 ifdef CUSTOM_RULE_C_TO_OBJECTDIR_O
 $(OBJECTDIR)/%.o: %.c
 	$(CC) $(CFLAGS) -c $< -o $@
+	$(CC) $(CFLAGS) -MM -c $< > $(@:.o=.d)
 	@$(FINALIZE_DEPENDENCY)
 endif
 
