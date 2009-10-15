@@ -43,7 +43,7 @@ void cc2430_rf_init(void);
 #include "lib/crc16.h"
 #define CHECKSUM_LEN 2
 #else
-#define CHECKSUM_LEN 0
+#define CHECKSUM_LEN 2
 #endif /* CC2430_CONF_CHECKSUM */
 
 #define RF_RX_LED_ON()		leds_on(LEDS_RED);
@@ -189,16 +189,20 @@ cc2430_rf_send(const void *payload, unsigned short payload_len)
 
   RIMESTATS_ADD(lltx);
 
-  /* Send */
-
   cc2430_rf_command(ISFLUSHTX);
-  RFD = payload_len;
   PRINTF("cc2430_rf: sent = ");
+  /* Send the phy length byte first */
+  RFD = payload_len+CHECKSUM_LEN; 	/* Payload plus FCS */
+  PRINTF("(%d)", payload_len+CHECKSUM_LEN);
   for(i = 0 ; i < payload_len; i++) {
     RFD = ((unsigned char*)(payload))[i];
     PRINTF("%02X", ((unsigned char*)(payload))[i]);
   }
   PRINTF("\n");
+
+  /* Leave space for the FCS */
+  RFD = 0;
+  RFD = 0;
 
   if(cc2430_rf_cca_check(0,0) == -1) {
     return -1;
@@ -228,7 +232,7 @@ cc2430_rf_send(const void *payload, unsigned short payload_len)
 int
 cc2430_rf_read(void *buf, unsigned short bufsize)
 {
-  uint8_t i, len, type;
+  uint8_t i, len;
 #if CC2420_CONF_CHECKSUM
   uint16_t checksum;
 #endif /* CC2420_CONF_CHECKSUM */
@@ -237,7 +241,6 @@ cc2430_rf_read(void *buf, unsigned short bufsize)
 
   /* Check the length */
   len = RFD;
-  len &= 0x7f;
   PRINTF("cc2430_rf: received %d bytes\n", len);
 
   /* Check for validity */
@@ -265,7 +268,8 @@ cc2430_rf_read(void *buf, unsigned short bufsize)
 
   /* Read the buffer */
   PRINTF("cc2430_rf: read = ");
-  for(i = 1; i < (len + 1 - CHECKSUM_LEN); i++) {
+  PRINTF("(%d)", len);
+  for(i = 0; i < (len - CHECKSUM_LEN); i++) {
       ((unsigned char*)(buf))[i] = RFD;
       PRINTF("%02X", ((unsigned char*)(buf))[i]);
   }
@@ -273,6 +277,8 @@ cc2430_rf_read(void *buf, unsigned short bufsize)
 
 #if CC2430_CONF_CHECKSUM
     /* Deal with the checksum */
+    checksum = RFD * 256;
+    checksum += RFD;
 #endif /* CC2430_CONF_CHECKSUM */
 
   packetbuf_set_attr(PACKETBUF_ATTR_RSSI, ((int8_t) RFD) - 45);
