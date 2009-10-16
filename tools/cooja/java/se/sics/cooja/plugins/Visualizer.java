@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: Visualizer.java,v 1.10 2009/08/27 13:57:43 fros4943 Exp $
+ * $Id: Visualizer.java,v 1.11 2009/10/16 13:14:54 fros4943 Exp $
  */
 
 package se.sics.cooja.plugins;
@@ -97,6 +97,7 @@ import se.sics.cooja.plugins.skins.GridVisualizerSkin;
 import se.sics.cooja.plugins.skins.IDVisualizerSkin;
 import se.sics.cooja.plugins.skins.LEDVisualizerSkin;
 import se.sics.cooja.plugins.skins.LogVisualizerSkin;
+import se.sics.cooja.plugins.skins.MoteTypeVisualizerSkin;
 import se.sics.cooja.plugins.skins.PositionVisualizerSkin;
 import se.sics.cooja.plugins.skins.TrafficVisualizerSkin;
 import se.sics.cooja.plugins.skins.UDGMVisualizerSkin;
@@ -157,6 +158,7 @@ public class Visualizer extends VisPlugin {
     registerVisualizerSkin(TrafficVisualizerSkin.class);
     registerVisualizerSkin(PositionVisualizerSkin.class);
     registerVisualizerSkin(GridVisualizerSkin.class);
+    registerVisualizerSkin(MoteTypeVisualizerSkin.class);
   }
   private ArrayList<VisualizerSkin> currentSkins = new ArrayList<VisualizerSkin>();
 
