@@ -102,8 +102,7 @@ PROCESS_THREAD(udp_server_process, ev, data)
 
 #if UIP_CONF_ROUTER
   uip_ip6addr(&ipaddr, 0xaaaa, 0, 0, 0, 0, 0, 0, 0);
-  uip_netif_addr_autoconf_set(&ipaddr, &uip_lladdr);
-  uip_netif_addr_add(&ipaddr, 16, 0, TENTATIVE);
+  uip_netif_addr_add(&ipaddr, 64, 0, AUTOCONF);
 #endif /* UIP_CONF_ROUTER */
 
   print_local_addresses();

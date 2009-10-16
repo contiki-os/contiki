@@ -100,8 +100,7 @@ set_global_address(void)
   uip_ipaddr_t ipaddr;
 
   uip_ip6addr(&ipaddr, 0xaaaa, 0, 0, 0, 0, 0, 0, 0);
-  uip_netif_addr_autoconf_set(&ipaddr, &uip_lladdr);
-  uip_netif_addr_add(&ipaddr, 16, 0, TENTATIVE);
+  uip_netif_addr_add(&ipaddr, 64, 0, AUTOCONF);
 }
 /*---------------------------------------------------------------------------*/
 static void
