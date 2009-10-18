@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: uip-udp-packet.h,v 1.2 2007/04/30 15:19:53 bg- Exp $
+ * $Id: uip-udp-packet.h,v 1.3 2009/10/18 22:02:01 adamdunkels Exp $
  */
 
 /**
@@ -44,5 +44,7 @@
 #include "net/uip.h"
 
 void uip_udp_packet_send(struct uip_udp_conn *c, const void *data, int len);
+void uip_udp_packet_sendto(struct uip_udp_conn *c, const void *data, int len,
+			   const uip_ipaddr_t *toaddr, uint16_t toport);
 
 #endif /* __UIP_UDP_PACKET_H__ */
