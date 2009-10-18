@@ -30,19 +30,11 @@
 #
 # Author: Oliver Schmidt <ol.sc@web.de>
 #
-# $Id: Makefile.6502,v 1.29 2009/07/26 21:27:43 oliverschmidt Exp $
+# $Id: Makefile.6502,v 1.30 2009/10/18 11:34:38 oliverschmidt Exp $
 #
 
-ifndef CC65_INC
-  ${error CC65_INC not defined! You must specify where the cc65 headers reside}
-endif
-
-ifndef LD65_LIB
-  ${error LD65_LIB not defined! You must specify where the cc65 libraries reside}
-endif
-
-ifndef LD65_OBJ
-  ${error LD65_OBJ not defined! You must specify where the cc65 objects reside}
+ifndef CC65_HOME
+  ${error CC65_HOME not defined! You must specify where cc65 resides}
 endif
 
 all: cs8900a.eth lan91c96.eth
@@ -58,8 +50,7 @@ CONTIKI_CPU_SOURCEFILES    = log.c error.c config.c clock.c ctk-mouse.c \
 CONTIKI_SOURCEFILES += $(CTK) ctk-conio.c petsciiconv.c cfs-posix-dir.c \
                        $(CONTIKI_TARGET_SOURCEFILES) $(CONTIKI_CPU_SOURCEFILES)
                        
-TARGET_STARTFILES = $(TARGET).o --start-group
-TARGET_LIBFILES   = $(TARGET).lib --end-group
+TARGET_LIBFILES = $(TARGET).lib
 
 ### Compiler definitions
 
@@ -68,9 +59,12 @@ CC = cc65
 LD = ld65
 AR = ar65
 
+# Contiki is carefully designed to use extremely little stack.
+# The apps coming with Contiki run even on a 0x100 byte stack.
+
 ASFLAGS = -t $(TARGET)
 CFLAGS += -t $(TARGET) -Or
-LDFLAGS = -C $(CONTIKI)/platform/$(TARGET)/linker.cfg -m contiki-$(TARGET).map
+LDFLAGS = -D __STACKSIZE__=0x200 -u _main -m contiki-$(TARGET).map
 AROPTS  = a
 
 ### Compilation rules
