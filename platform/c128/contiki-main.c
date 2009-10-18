@@ -30,7 +30,7 @@
  * 
  * Author: Oliver Schmidt <ol.sc@web.de>
  *
- * $Id: contiki-main.c,v 1.6 2009/02/27 07:57:13 oliverschmidt Exp $
+ * $Id: contiki-main.c,v 1.7 2009/10/18 09:35:07 oliverschmidt Exp $
  */
 
 #include <string.h>
@@ -86,6 +86,8 @@ void
 main(void)
 {
   struct ethernet_config *ethernet_config;
+
+  videomode(VIDEOMODE_80COL);
 
   close(STDIN_FILENO);
   close(STDOUT_FILENO);
