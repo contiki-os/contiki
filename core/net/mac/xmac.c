@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: xmac.c,v 1.35 2009/08/20 18:59:17 adamdunkels Exp $
+ * $Id: xmac.c,v 1.36 2009/10/18 13:19:25 adamdunkels Exp $
  */
 
 /**
@@ -57,8 +57,9 @@
 #define WITH_CHANNEL_CHECK           0    /* Seems to work badly when enabled */
 #define WITH_TIMESYNCH               0
 #define WITH_QUEUE                   0
-#define WITH_ACK_OPTIMIZATION        0
+#define WITH_ACK_OPTIMIZATION        1
 #define WITH_RANDOM_WAIT_BEFORE_SEND 0
+#define WITH_ENCOUNTER_OPTIMIZATION  1
 
 struct announcement_data {
   uint16_t id;
@@ -101,6 +102,8 @@ struct xmac_hdr {
 #else
 #define DEFAULT_OFF_TIME (RTIMER_ARCH_SECOND / 2 - DEFAULT_ON_TIME)
 #endif
+
+#define DEFAULT_PERIOD (DEFAULT_OFF_TIME + DEFAULT_ON_TIME)
 
 /* The cycle time for announcements. */
 #define ANNOUNCEMENT_PERIOD 4 * CLOCK_SECOND
@@ -169,6 +172,23 @@ static void (* receiver_callback)(const struct mac_driver *);
 static struct compower_activity current_packet;
 #endif /* XMAC_CONF_COMPOWER */
 
+#if WITH_ENCOUNTER_OPTIMIZATION
+#define ENCOUNTER_LIFETIME (60 * CLOCK_SECOND)
+
+#include "lib/list.h"
+#include "lib/memb.h"
+
+struct encounter {
+  struct encounter *next;
+  rimeaddr_t neighbor;
+  rtimer_clock_t time;
+  struct ctimer remove_timer;
+};
+
+#define MAX_ENCOUNTERS 4
+LIST(encounter_list);
+MEMB(encounter_memb, struct encounter, MAX_ENCOUNTERS);
+#endif /* WITH_ENCOUNTER_OPTIMIZATION */
 /*---------------------------------------------------------------------------*/
 static void
 set_receive_function(void (* recv)(const struct mac_driver *))
@@ -214,26 +234,26 @@ powercycle(struct rtimer *t, void *ptr)
     }
 
     if(xmac_config.off_time > 0) {
-      if(waiting_for_packet == 0) {
-	if(we_are_sending == 0) {
+      if(we_are_sending == 0) {
+	if(waiting_for_packet == 0) {
 	  off();
 #if XMAC_CONF_COMPOWER
 	  compower_accumulate(&compower_idle_activity);
-#endif /* XMAC_CONF_COMPOWER */
-	}
-      } else {
-	waiting_for_packet++;
-	if(waiting_for_packet > 2) {
-	  /* We should not be awake for more than two consecutive
-	     power cycles without having heard a packet, so we turn off
-	     the radio. */
-	  waiting_for_packet = 0;
-	  if(we_are_sending == 0) {
-	    off();
-	  }
+#endif /* XMAC_CONF_COMPOWER */	
+	} else {
+	  waiting_for_packet++;
+	  if(waiting_for_packet >= 2) {
+	    /* We should not be awake for more than two consecutive
+	       power cycles without having heard a packet, so we turn off
+	       the radio. */
+	    waiting_for_packet = 0;
+	    if(we_are_sending == 0) {
+	      off();
+	    }
 #if XMAC_CONF_COMPOWER
-	  compower_accumulate(&compower_idle_activity);
+	    compower_accumulate(&compower_idle_activity);
 #endif /* XMAC_CONF_COMPOWER */
+	  }
 	}
       }
 
@@ -342,11 +362,51 @@ format_announcement(char *hdr)
 }
 #endif /* XMAC_CONF_ANNOUNCEMENTS */
 /*---------------------------------------------------------------------------*/
+#if WITH_ENCOUNTER_OPTIMIZATION
+static void
+remove_encounter(void *encounter)
+{
+  struct encounter *e = encounter;
+
+  ctimer_stop(&e->remove_timer);
+  list_remove(encounter_list, e);
+  memb_free(&encounter_memb, e);
+}
+/*---------------------------------------------------------------------------*/
+static void
+register_encounter(rimeaddr_t *neighbor, rtimer_clock_t time)
+{
+  struct encounter *e;
+
+  /* If we have an entry for this neighbor already, we renew it. */
+  for(e = list_head(encounter_list); e != NULL; e = e->next) {
+    if(rimeaddr_cmp(neighbor, &e->neighbor)) {
+      e->time = time;
+      ctimer_set(&e->remove_timer, ENCOUNTER_LIFETIME, remove_encounter, e);
+      break;
+    }
+  }
+  /* No matchin encounter was found, so we allocate a new one. */
+  if(e == NULL) {
+    e = memb_alloc(&encounter_memb);
+    if(e == NULL) {
+      /* We could not allocate memory for this encounter, so we just drop it. */
+      return;
+    }
+    rimeaddr_copy(&e->neighbor, neighbor);
+    e->time = time;
+    ctimer_set(&e->remove_timer, ENCOUNTER_LIFETIME, remove_encounter, e);
+    list_add(encounter_list, e);
+  }
+}
+#endif /* WITH_ENCOUNTER_OPTIMIZATION */
+/*---------------------------------------------------------------------------*/
 static int
 send_packet(void)
 {
   rtimer_clock_t t0;
   rtimer_clock_t t;
+  rtimer_clock_t encounter_time;
   int strobes;
   struct xmac_hdr hdr;
   int got_strobe_ack = 0;
@@ -356,6 +416,7 @@ send_packet(void)
   } strobe;
   int len;
   int is_broadcast = 0;
+  struct encounter *e;
 
 #if WITH_RANDOM_WAIT_BEFORE_SEND
   {
@@ -387,6 +448,45 @@ send_packet(void)
   we_are_sending = 1;
 
   off();
+
+#if WITH_ENCOUNTER_OPTIMIZATION
+  /* We go through the list of encounters to find if we have recorded
+     an encounter with this particular neighbor. If so, we can compute
+     the time for the next expected encounter and setup a ctimer to
+     switch on the radio just before the encounter. */
+  for(e = list_head(encounter_list); e != NULL; e = e->next) {
+    const rimeaddr_t *neighbor = packetbuf_addr(PACKETBUF_ADDR_RECEIVER);
+
+    if(rimeaddr_cmp(neighbor, &e->neighbor)) {
+      rtimer_clock_t wait, now, expected;
+
+      /* We expect encounters to happen every DEFAULT_PERIOD time
+	 units. The next expected encounter is at time e->time +
+	 DEFAULT_PERIOD. To compute a relative offset, we subtract
+	 with clock_time(). Because we are only interested in turning
+	 on the radio within the DEFAULT_PERIOD period, we compute the
+	 waiting time with modulo DEFAULT_PERIOD. */
+
+      now = RTIMER_NOW();
+      wait = ((rtimer_clock_t)(e->time - now)) % (DEFAULT_PERIOD);
+      expected = now + wait - DEFAULT_ON_TIME * 2;
+
+#if WITH_ACK_OPTIMIZATION
+      /* Wait until the receiver is expected to be awake */
+      if(packetbuf_attr(PACKETBUF_ATTR_PACKET_TYPE) !=
+	 PACKETBUF_ATTR_PACKET_TYPE_ACK) {
+	/* Do not wait if we are sending an ACK, because then the
+	   receiver will already be awake. */
+	while(RTIMER_CLOCK_LT(RTIMER_NOW(), expected));
+      }
+      
+#else /* WITH_ACK_OPTIMIZATION */
+      /* Wait until the receiver is expected to be awake */
+      while(RTIMER_CLOCK_LT(RTIMER_NOW(), expected));
+#endif /* WITH_ACK_OPTIMIZATION */
+    }
+  }
+#endif /* WITH_ENCOUNTER_OPTIMIZATION */
 
   /* Create the X-MAC header for the data packet. We cannot do this
      in-place in the packet buffer, because we cannot be sure of the
@@ -443,6 +543,7 @@ send_packet(void)
 	    /* We got an ACK from the receiver, so we can immediately send
 	       the packet. */
 	    got_strobe_ack = 1;
+	    encounter_time = RTIMER_NOW();
 	  }
 	}
       }
@@ -479,9 +580,14 @@ send_packet(void)
 
   /* Send the data packet. */
   if(is_broadcast || got_strobe_ack) {
-
     radio->send(packetbuf_hdrptr(), packetbuf_totlen());
   }
+
+#if WITH_ENCOUNTER_OPTIMIZATION
+  if(got_strobe_ack) {
+    register_encounter(&hdr.receiver, encounter_time);
+  }
+#endif /* WITH_ENCOUNTER_OPTIMIZATION */
   watchdog_start();
 
   PRINTF("xmac: send (strobes=%u,len=%u,%s), done\n", strobes,
@@ -720,6 +826,11 @@ xmac_init(const struct radio_driver *d)
   radio = d;
   radio->set_receive_function(input_packet);
 
+#if WITH_ENCOUNTER_OPTIMIZATION
+  list_init(encounter_list);
+  memb_init(&encounter_memb);
+#endif /* WITH_ENCOUNTER_OPTIMIZATION */
+  
 #if XMAC_CONF_ANNOUNCEMENTS
   announcement_register_listen_callback(listen_callback);
   ctimer_set(&announcement_cycle_ctimer, ANNOUNCEMENT_TIME,
