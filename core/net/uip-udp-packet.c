@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: uip-udp-packet.c,v 1.6 2008/10/14 13:39:12 julienabeille Exp $
+ * $Id: uip-udp-packet.c,v 1.7 2009/10/18 22:02:01 adamdunkels Exp $
  */
 
 /**
@@ -65,5 +65,27 @@ uip_udp_packet_send(struct uip_udp_conn *c, const void *data, int len)
 #endif
   uip_slen = 0;
 #endif /* UIP_UDP */
+}
+/*---------------------------------------------------------------------------*/
+void
+uip_udp_packet_sendto(struct uip_udp_conn *c, const void *data, int len,
+		      const uip_ipaddr_t *toaddr, uint16_t toport)
+{
+  uip_ipaddr_t curaddr;
+  uint16_t curport;
+
+  /* Save current IP addr/port. */
+  uip_ipaddr_copy(&curaddr, &c->ripaddr);
+  curport = c->rport;
+
+  /* Load new IP addr/port */
+  uip_ipaddr_copy(&c->ripaddr, toaddr);
+  c->rport = toport;
+
+  uip_udp_packet_send(c, data, len);
+
+  /* Restore old IP addr/port */
+  uip_ipaddr_copy(&c->ripaddr, &curaddr);
+  c->rport = curport;
 }
 /*---------------------------------------------------------------------------*/
