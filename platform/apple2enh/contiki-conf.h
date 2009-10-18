@@ -30,7 +30,7 @@
  * 
  * Author: Oliver Schmidt <ol.sc@web.de>
  *
- * $Id: contiki-conf.h,v 1.14 2008/05/23 23:13:41 oliverschmidt Exp $
+ * $Id: contiki-conf.h,v 1.15 2009/10/18 09:33:08 oliverschmidt Exp $
  */
 
 #ifndef __CONTIKI_CONF_H__
@@ -47,7 +47,6 @@
 #define CTK_CONF_WIDGETUP_KEY     0x01	/* Ctrl-A */
 #define CTK_CONF_WIDGETDOWN_KEY   '\t'	/* Tab or Ctrl-I */
 
-#define MOUSE_CONF_DRIVER  "a2e.stdmou.mou"
 #define MOUSE_CONF_XTOC(x) ((x) * 2 / 7)
 #define MOUSE_CONF_YTOC(y) ((y) / 8)
 
