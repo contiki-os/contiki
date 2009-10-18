@@ -30,13 +30,14 @@
 #
 # Author: Oliver Schmidt <ol.sc@web.de>
 #
-# $Id: Makefile.c128,v 1.3 2008/05/26 10:14:03 oliverschmidt Exp $
+# $Id: Makefile.c128,v 1.4 2009/10/18 09:58:21 oliverschmidt Exp $
 #
-
-CFLAGS += -DWITH_PETSCII
 
 CONTIKI_CPU = $(CONTIKI)/cpu/6502
 include $(CONTIKI_CPU)/Makefile.6502
+
+CFLAGS  += -DWITH_PETSCII
+LDFLAGS += -t $(TARGET)
 
 ifeq ($(MAKECMDGOALS),disk)
   ifndef C1541
