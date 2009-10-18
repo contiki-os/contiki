@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: example-collect.c,v 1.8 2009/03/12 21:58:21 adamdunkels Exp $
+ * $Id: example-collect.c,v 1.9 2009/10/18 17:52:08 adamdunkels Exp $
  */
 
 /**
@@ -71,7 +71,7 @@ PROCESS_THREAD(example_collect_process, ev, data)
 {
   PROCESS_BEGIN();
 
-  collect_open(&tc, 128, &callbacks);
+  collect_open(&tc, 130, &callbacks);
 
   while(1) {
     static struct etimer et;

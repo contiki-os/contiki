@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: example-rudolph1.c,v 1.4 2009/02/27 14:28:02 nvt-se Exp $
+ * $Id: example-rudolph1.c,v 1.5 2009/10/18 17:52:09 adamdunkels Exp $
  */
 
 /**
@@ -159,7 +159,7 @@ PROCESS_THREAD(example_rudolph1_process, ev, data)
   PROCESS_PAUSE();
 
   
-  rudolph1_open(&rudolph1, 128, &rudolph1_call);
+  rudolph1_open(&rudolph1, 140, &rudolph1_call);
   button_sensor.activate();
 
   rtimer_set(&t, RTIMER_NOW() + RTIMER_ARCH_SECOND, 1,

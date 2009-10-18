@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: example-rudolph2.c,v 1.3 2009/02/27 14:28:02 nvt-se Exp $
+ * $Id: example-rudolph2.c,v 1.4 2009/10/18 17:52:09 adamdunkels Exp $
  */
 
 /**
@@ -145,7 +145,7 @@ PROCESS_THREAD(example_rudolph2_process, ev, data)
   PROCESS_PAUSE();
 
   
-  rudolph2_open(&rudolph2, 128, &rudolph2_call);
+  rudolph2_open(&rudolph2, 142, &rudolph2_call);
   button_sensor.activate();
 
   PROCESS_PAUSE();
