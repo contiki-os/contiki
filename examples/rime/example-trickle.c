@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: example-trickle.c,v 1.2 2009/03/12 21:58:21 adamdunkels Exp $
+ * $Id: example-trickle.c,v 1.3 2009/10/18 17:52:09 adamdunkels Exp $
  */
 
 /**
@@ -65,7 +65,7 @@ PROCESS_THREAD(example_trickle_process, ev, data)
   PROCESS_EXITHANDLER(trickle_close(&trickle);)
   PROCESS_BEGIN();
 
-  trickle_open(&trickle, CLOCK_SECOND, 128, &trickle_call);
+  trickle_open(&trickle, CLOCK_SECOND, 145, &trickle_call);
   button_sensor.activate();
 
   while(1) {

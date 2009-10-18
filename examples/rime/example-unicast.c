@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: example-unicast.c,v 1.2 2009/03/12 21:58:21 adamdunkels Exp $
+ * $Id: example-unicast.c,v 1.3 2009/10/18 17:52:09 adamdunkels Exp $
  */
 
 /**
@@ -66,7 +66,7 @@ PROCESS_THREAD(example_unicast_process, ev, data)
     
   PROCESS_BEGIN();
 
-  unicast_open(&uc, 128, &unicast_callbacks);
+  unicast_open(&uc, 146, &unicast_callbacks);
 
   while(1) {
     static struct etimer et;

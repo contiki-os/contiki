@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: example-runicast.c,v 1.5 2009/05/06 15:03:49 adamdunkels Exp $
+ * $Id: example-runicast.c,v 1.6 2009/10/18 17:52:09 adamdunkels Exp $
  */
 
 /**
@@ -123,7 +123,7 @@ PROCESS_THREAD(test_runicast_process, ev, data)
 
   PROCESS_BEGIN();
 
-  runicast_open(&runicast, 128, &runicast_callbacks);
+  runicast_open(&runicast, 144, &runicast_callbacks);
 
   /* OPTIONAL: Sender history */
   list_init(history_table);

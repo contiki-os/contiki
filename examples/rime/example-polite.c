@@ -33,7 +33,7 @@ PROCESS_THREAD(example_polite_process, ev, data)
   
   PROCESS_BEGIN();
 
-  polite_open(&c, 128, &callbacks);
+  polite_open(&c, 136, &callbacks);
 
   while(1) {
     static struct etimer et;

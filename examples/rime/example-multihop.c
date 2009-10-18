@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: example-multihop.c,v 1.4 2009/03/23 18:10:09 adamdunkels Exp $
+ * $Id: example-multihop.c,v 1.5 2009/10/18 17:52:08 adamdunkels Exp $
  */
 
 /**
@@ -81,7 +81,7 @@
 
 #include <stdio.h>
 
-#define CHANNEL 128
+#define CHANNEL 135
 
 
 struct example_neighbor {
