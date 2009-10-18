@@ -30,7 +30,7 @@
  * 
  * Author: Oliver Schmidt <ol.sc@web.de>
  *
- * $Id: contiki-main.c,v 1.18 2008/07/06 07:37:34 oliverschmidt Exp $
+ * $Id: contiki-main.c,v 1.19 2009/10/18 09:37:37 oliverschmidt Exp $
  */
 
 #include "contiki-net.h"
@@ -69,6 +69,9 @@ void
 main(void)
 {
   struct ethernet_config *ethernet_config;
+
+  rebootafterexit();
+  videomode(VIDEOMODE_80COL);
 
 #if !WITH_PFS
   close(STDIN_FILENO);
