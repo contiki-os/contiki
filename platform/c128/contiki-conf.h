@@ -30,7 +30,7 @@
  * 
  * Author: Oliver Schmidt <ol.sc@web.de>
  *
- * $Id: contiki-conf.h,v 1.1 2008/01/05 22:30:23 oliverschmidt Exp $
+ * $Id: contiki-conf.h,v 1.2 2009/10/18 09:33:08 oliverschmidt Exp $
  */
 
 #ifndef __CONTIKI_CONF_H__
@@ -45,8 +45,7 @@
 #define CTK_CONF_WIDGETUP_KEY     CH_F5
 #define CTK_CONF_WIDGETDOWN_KEY   CH_F7
 
-#define MOUSE_CONF_DRIVER  "c128-1351.mou"
-#define MOUSE_CONF_XTOC(x) ((x) / 8)
+#define MOUSE_CONF_XTOC(x) ((x) / 4)
 #define MOUSE_CONF_YTOC(y) ((y) / 8)
 
 #define BORDERCOLOR       COLOR_LIGHTBLUE
