@@ -116,7 +116,7 @@ while (true) {
   nr_packets[id]++;
   //log.log("Node " + id + " received " + nr_packets[id] + " messages\n");
 
-  if (nr_packets[1] &gt;= 10 &amp;&amp; nr_packets[2] &gt;= 10) {
+  if (nr_packets[1] &gt;= 4 &amp;&amp; nr_packets[2] &gt;= 4) {
     log.log("Node 1: " + nr_packets[1] + ".\nNode 2: " + nr_packets[2] + ".\n");
     log.testOK(); /* Report test success */
   }
