@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: xmac.c,v 1.36 2009/10/18 13:19:25 adamdunkels Exp $
+ * $Id: xmac.c,v 1.37 2009/10/19 06:39:29 adamdunkels Exp $
  */
 
 /**
@@ -104,6 +104,15 @@ struct xmac_hdr {
 #endif
 
 #define DEFAULT_PERIOD (DEFAULT_OFF_TIME + DEFAULT_ON_TIME)
+
+/* On some platforms, we may end up with a DEFAULT_PERIOD that is 0
+   which will make compilation fail due to a modulo operation in the
+   code. To ensure that DEFAULT_PERIOD is greater than zero, we use
+   the construct below. */
+#if DEFAULT_PERIOD == 0
+#undef DEFAULT_PERIOD
+#define DEFAULT_PERIOD 1
+#endif
 
 /* The cycle time for announcements. */
 #define ANNOUNCEMENT_PERIOD 4 * CLOCK_SECOND
