@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: TimeLine.java,v 1.13 2009/09/17 13:20:48 fros4943 Exp $
+ * $Id: TimeLine.java,v 1.14 2009/10/19 17:36:28 fros4943 Exp $
  */
 
 package se.sics.cooja.plugins;
@@ -878,6 +878,7 @@ public class TimeLine extends VisPlugin {
   class Timeline extends JComponent {
     private int mousePixelPositionX = -1;
     private int mousePixelPositionY = -1;
+    private int mouseDownPixelPositionX = -1; 
 
     public Timeline() {
       setLayout(null);
@@ -944,6 +945,7 @@ public class TimeLine extends VisPlugin {
       public void mousePressed(MouseEvent e) {
         if (e.getPoint().getY() < FIRST_MOTE_PIXEL_OFFSET) {
           mousePixelPositionX = e.getX();
+          mouseDownPixelPositionX = e.getX();
           mousePixelPositionY = e.getY();
           repaint();
         }
@@ -1090,10 +1092,14 @@ public class TimeLine extends VisPlugin {
 
     private void drawMouseTime(Graphics g, long start, long end) {
       if (mousePixelPositionX >= 0) {
-        String str = "Time (ms): " + ((double)mousePixelPositionX*currentPixelDivisor/Simulation.MILLISECOND);
+        String str = 
+          "Time (ms): " + 
+        ((double)mousePixelPositionX*currentPixelDivisor/Simulation.MILLISECOND) +
+        " (" + Math.abs(((double)(mouseDownPixelPositionX - mousePixelPositionX)*currentPixelDivisor/Simulation.MILLISECOND)) + ")";
+        
         int h = g.getFontMetrics().getHeight();
         int w = g.getFontMetrics().stringWidth(str) + 6;
-        int y=mousePixelPositionY<getHeight()/2?0:getHeight()-h;
+        int y= mousePixelPositionY<getHeight()/2?0:getHeight()-h;
         int delta = mousePixelPositionX + w > end/currentPixelDivisor?w:0; /* Don't write outside visible area */
 
         /* Line */
