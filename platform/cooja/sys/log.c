@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: log.c,v 1.6 2008/10/05 15:40:27 fros4943 Exp $
+ * $Id: log.c,v 1.7 2009/10/19 18:00:49 fros4943 Exp $
  */
 
 #include <stdio.h>
@@ -36,7 +36,14 @@
 #include "lib/simEnvChange.h"
 
 #define IMPLEMENT_PRINTF 1
+
+#if WITH_UIP
+/* uIP packets via SLIP */
+#include "uip.h"
+#define MAX_LOG_LENGTH (2*UIP_BUFSIZE)
+#else /* WITH_UIP */
 #define MAX_LOG_LENGTH 1024
+#endif /* WITH_UIP */
 
 const struct simInterface simlog_interface;
 
