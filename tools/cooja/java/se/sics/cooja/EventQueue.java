@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: EventQueue.java,v 1.7 2009/06/15 16:51:42 fros4943 Exp $
+ * $Id: EventQueue.java,v 1.8 2009/10/19 17:32:38 fros4943 Exp $
  */
 
 package se.sics.cooja;
@@ -71,6 +71,7 @@ public class EventQueue {
       event.remove();
     }
     event.time = time;
+    event.removed = false;
     unsortedEvents.add(event);
     hasUnsortedEvents = true;
   }
