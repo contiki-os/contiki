@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: NativeIPGateway.java,v 1.8 2009/09/18 16:45:26 fros4943 Exp $
+ * $Id: NativeIPGateway.java,v 1.9 2009/10/19 17:31:13 fros4943 Exp $
  */
 
 package se.sics.cooja.plugins;
@@ -140,7 +140,7 @@ public class NativeIPGateway implements Plugin {
 
   private SlipState readSlipState = SlipState.STATE_OK;
   private int readSlipLength = 0;
-  private final int READ_SLIP_BUFFER_SIZE = 256;
+  private final int READ_SLIP_BUFFER_SIZE = 2048;
   private byte[] readSlipBuffer = new byte[READ_SLIP_BUFFER_SIZE];
 
   public NativeIPGateway(Mote mote, Simulation simulation, final GUI gui) {
