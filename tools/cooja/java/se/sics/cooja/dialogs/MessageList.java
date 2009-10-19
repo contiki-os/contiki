@@ -26,14 +26,14 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: MessageList.java,v 1.13 2009/06/25 15:46:57 fros4943 Exp $
+ * $Id: MessageList.java,v 1.14 2009/10/19 17:33:25 fros4943 Exp $
  *
  * -----------------------------------------------------------------
  *
  * Author  : Adam Dunkels, Joakim Eriksson, Niclas Finne, Fredrik Osterlind
  * Created : 2006-06-14
- * Updated : $Date: 2009/06/25 15:46:57 $
- *           $Revision: 1.13 $
+ * Updated : $Date: 2009/10/19 17:33:25 $
+ *           $Revision: 1.14 $
  */
 
 package se.sics.cooja.dialogs;
@@ -79,11 +79,21 @@ public class MessageList extends JList {
 
   private JPopupMenu popup = null;
   private boolean hideNormal = false;
+
+  private int max = -1;
   
   public MessageList() {
     super.setModel(new MessageModel());
     setCellRenderer(new MessageRenderer());
     setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+  }
+
+  /**
+   * @param max Maximum number of messages
+   */
+  public MessageList(int max) {
+    this();
+    this.max = max;
   }
 
   public Color getForeground(int type) {
@@ -157,6 +167,10 @@ public class MessageList extends JList {
 
     while (messages.size() > getModel().getSize()) {
       ((DefaultListModel) getModel()).addElement(messages.get(getModel().getSize()));
+    }
+    while (max > 0 && getModel().getSize() > max) {
+      ((DefaultListModel) getModel()).removeElementAt(0);
+      messages.remove(0);
     }
 
     if (scroll) {
