@@ -40,7 +40,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: packetbuf.h,v 1.2 2009/03/23 10:58:00 nifi Exp $
+ * $Id: packetbuf.h,v 1.3 2009/10/19 21:28:11 adamdunkels Exp $
  */
 
 /**
@@ -71,7 +71,7 @@
 #ifdef PACKETBUF_CONF_HDR_SIZE
 #define PACKETBUF_HDR_SIZE PACKETBUF_CONF_HDR_SIZE
 #else
-#define PACKETBUF_HDR_SIZE 32
+#define PACKETBUF_HDR_SIZE 48
 #endif
 
 /**
