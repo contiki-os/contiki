@@ -350,7 +350,7 @@
   <plugin>
     se.sics.cooja.plugins.ScriptRunner
     <plugin_config>
-      <script>TIMEOUT(300000, log.log("Timeout\n"));
+      <script>TIMEOUT(500000, log.log("Timeout\n"));
 
 function
 print_stats()
