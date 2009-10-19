@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#)$Id: contiki-sky-main.c,v 1.56 2009/06/22 11:14:11 nifi Exp $
+ * @(#)$Id: contiki-sky-main.c,v 1.57 2009/10/19 20:55:52 adamdunkels Exp $
  */
 
 #include <signal.h>
@@ -37,22 +37,23 @@
 
 #include "contiki.h"
 
+#include "dev/battery-sensor.h"
 #include "dev/button-sensor.h"
+#include "dev/cc2420.h"
 #include "dev/ds2411.h"
 #include "dev/leds.h"
 #include "dev/light.h"
-#include "dev/battery-sensor.h"
 #include "dev/serial-line.h"
 #include "dev/sht11.h"
-#include "dev/cc2420.h"
 #include "dev/slip.h"
 #include "dev/uart1.h"
 #include "dev/watchdog.h"
 #include "dev/xmem.h"
-
 #include "lib/random.h"
-
 #include "net/mac/frame802154.h"
+#include "net/mac/framer-802154.h"
+#include "net/mac/framer-nullmac.h"
+#include "net/mac/framer.h"
 
 #if WITH_UIP6
 #include "net/sicslowpan.h"
@@ -272,11 +273,20 @@ main(int argc, char **argv)
 	 ds2411_id[0], ds2411_id[1], ds2411_id[2], ds2411_id[3],
 	 ds2411_id[4], ds2411_id[5], ds2411_id[6], ds2411_id[7]);
 
+  framer_set(&framer_802154);
+  
 #if WITH_UIP6
   memcpy(&uip_lladdr.addr, ds2411_id, sizeof(uip_lladdr.addr));
-  sicslowpan_init(sicslowmac_init(&cc2420_driver));
+  /* Setup nullmac-like MAC for 802.15.4 */
+/*   sicslowpan_init(sicslowmac_init(&cc2420_driver)); */
+/*   printf(" %s channel %u\n", sicslowmac_driver.name, RF_CHANNEL); */
+
+  /* Setup X-MAC for 802.15.4 */
+  queuebuf_init();
+  sicslowpan_init(MAC_DRIVER.init(&cc2420_driver));
+  printf(" %s channel %u\n", MAC_DRIVER.name, RF_CHANNEL);
+
   process_start(&tcpip_process, NULL);
-  printf(" %s channel %u\n", sicslowmac_driver.name, RF_CHANNEL);
 #if UIP_CONF_ROUTER
   rime_init(rime_udp_init(NULL));
   uip_router_register(&rimeroute);
