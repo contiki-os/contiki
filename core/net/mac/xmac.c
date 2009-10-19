@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: xmac.c,v 1.38 2009/10/19 20:53:56 adamdunkels Exp $
+ * $Id: xmac.c,v 1.39 2009/10/19 21:27:02 adamdunkels Exp $
  */
 
 /**
@@ -93,7 +93,7 @@ struct xmac_hdr {
   uint8_t type;
 };
 
-#define MAX_STROBE_SIZE 40
+#define MAX_STROBE_SIZE 50
 
 #ifdef XMAC_CONF_ON_TIME
 #define DEFAULT_ON_TIME (XMAC_CONF_ON_TIME)
@@ -204,6 +204,11 @@ struct encounter {
 LIST(encounter_list);
 MEMB(encounter_memb, struct encounter, MAX_ENCOUNTERS);
 #endif /* WITH_ENCOUNTER_OPTIMIZATION */
+
+#ifndef MIN
+#define MIN(a, b) ((a) < (b)? (a) : (b))
+#endif /* MIN */
+
 /*---------------------------------------------------------------------------*/
 static void
 set_receive_function(void (* recv)(const struct mac_driver *))
@@ -326,8 +331,10 @@ static int
 parse_announcements(const rimeaddr_t *from)
 {
   /* Parse incoming announcements */
-  struct announcement_msg *adata = packetbuf_dataptr();
+  struct announcement_msg adata;
   int i;
+
+  memcpy(&adata, packetbuf_dataptr(), MIN(packetbuf_datalen(), sizeof(adata)));
   
   /*  printf("%d.%d: probe from %d.%d with %d announcements\n",
 	 rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1],
@@ -337,15 +344,15 @@ parse_announcements(const rimeaddr_t *from)
   }
   printf("\n");*/
   
-  for(i = 0; i < adata->num; ++i) {
+  for(i = 0; i < adata.num; ++i) {
     /*   printf("%d.%d: announcement %d: %d\n",
 	  rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1],
 	  adata->data[i].id,
 	  adata->data[i].value);*/
     
     announcement_heard(from,
-		       adata->data[i].id,
-		       adata->data[i].value);
+		       adata.data[i].id,
+		       adata.data[i].value);
   }
   return i;
 }
