@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: xmac.c,v 1.37 2009/10/19 06:39:29 adamdunkels Exp $
+ * $Id: xmac.c,v 1.38 2009/10/19 20:53:56 adamdunkels Exp $
  */
 
 /**
@@ -36,19 +36,21 @@
  *         A simple power saving MAC protocol based on X-MAC [SenSys 2006]
  * \author
  *         Adam Dunkels <adam@sics.se>
+ *         Niclas Finne <nfi@sics.se>
+ *         Joakim Eriksson <joakime@sics.se>
  */
 
-#include "sys/pt.h"
-#include "net/mac/xmac.h"
-#include "sys/rtimer.h"
 #include "dev/leds.h"
-#include "net/rime.h"
-#include "net/rime/timesynch.h"
 #include "dev/radio.h"
 #include "dev/watchdog.h"
 #include "lib/random.h"
-
+#include "net/mac/framer.h"
+#include "net/mac/xmac.h"
+#include "net/rime.h"
+#include "net/rime/timesynch.h"
 #include "sys/compower.h"
+#include "sys/pt.h"
+#include "sys/rtimer.h"
 
 #include "contiki-conf.h"
 
@@ -80,21 +82,23 @@ struct announcement_msg {
    "num" field in the struct. */
 #define ANNOUNCEMENT_MSG_HEADERLEN (sizeof (uint16_t))
 
-#define TYPE_STROBE       0
-#define TYPE_DATA         1
-#define TYPE_ANNOUNCEMENT 2
-#define TYPE_STROBE_ACK   3
+#define DISPATCH          0
+#define TYPE_STROBE       0x10
+/* #define TYPE_DATA         0x11 */
+#define TYPE_ANNOUNCEMENT 0x12
+#define TYPE_STROBE_ACK   0x13
 
 struct xmac_hdr {
-  uint16_t type;
-  rimeaddr_t sender;
-  rimeaddr_t receiver;
+  uint8_t dispatch;
+  uint8_t type;
 };
+
+#define MAX_STROBE_SIZE 40
 
 #ifdef XMAC_CONF_ON_TIME
 #define DEFAULT_ON_TIME (XMAC_CONF_ON_TIME)
 #else
-#define DEFAULT_ON_TIME (RTIMER_ARCH_SECOND / 200)
+#define DEFAULT_ON_TIME (RTIMER_ARCH_SECOND / 160)
 #endif
 
 #ifdef XMAC_CONF_OFF_TIME
@@ -154,6 +158,7 @@ static const struct radio_driver *radio;
 #if DEBUG
 #include <stdio.h>
 #define PRINTF(...) printf(__VA_ARGS__)
+#define PRINTDEBUG(...) printf(__VA_ARGS__)
 #else
 #undef LEDS_ON
 #undef LEDS_OFF
@@ -162,6 +167,7 @@ static const struct radio_driver *radio;
 #define LEDS_OFF(x)
 #define LEDS_TOGGLE(x)
 #define PRINTF(...)
+#define PRINTDEBUG(...)
 #endif
 
 #if XMAC_CONF_ANNOUNCEMENTS
@@ -251,7 +257,7 @@ powercycle(struct rtimer *t, void *ptr)
 #endif /* XMAC_CONF_COMPOWER */	
 	} else {
 	  waiting_for_packet++;
-	  if(waiting_for_packet >= 2) {
+	  if(waiting_for_packet > 2) {
 	    /* We should not be awake for more than two consecutive
 	       power cycles without having heard a packet, so we turn off
 	       the radio. */
@@ -317,7 +323,7 @@ powercycle(struct rtimer *t, void *ptr)
 /*---------------------------------------------------------------------------*/
 #if XMAC_CONF_ANNOUNCEMENTS
 static int
-parse_announcements(rimeaddr_t *from)
+parse_announcements(const rimeaddr_t *from)
 {
   /* Parse incoming announcements */
   struct announcement_msg *adata = packetbuf_dataptr();
@@ -383,7 +389,7 @@ remove_encounter(void *encounter)
 }
 /*---------------------------------------------------------------------------*/
 static void
-register_encounter(rimeaddr_t *neighbor, rtimer_clock_t time)
+register_encounter(const rimeaddr_t *neighbor, rtimer_clock_t time)
 {
   struct encounter *e;
 
@@ -395,7 +401,7 @@ register_encounter(rimeaddr_t *neighbor, rtimer_clock_t time)
       break;
     }
   }
-  /* No matchin encounter was found, so we allocate a new one. */
+  /* No matching encounter was found, so we allocate a new one. */
   if(e == NULL) {
     e = memb_alloc(&encounter_memb);
     if(e == NULL) {
@@ -415,17 +421,16 @@ send_packet(void)
 {
   rtimer_clock_t t0;
   rtimer_clock_t t;
-  rtimer_clock_t encounter_time;
+  rtimer_clock_t encounter_time = 0;
   int strobes;
-  struct xmac_hdr hdr;
+  struct xmac_hdr *hdr;
   int got_strobe_ack = 0;
-  struct {
-    struct xmac_hdr hdr;
-    struct announcement_msg announcement;
-  } strobe;
-  int len;
+  uint8_t strobe[MAX_STROBE_SIZE];
+  int strobe_len, len;
   int is_broadcast = 0;
+  int is_reliable;
   struct encounter *e;
+  struct queuebuf *packet;
 
 #if WITH_RANDOM_WAIT_BEFORE_SEND
   {
@@ -434,6 +439,50 @@ send_packet(void)
   }
 #endif /* WITH_RANDOM_WAIT_BEFORE_SEND */
   
+  /* Create the X-MAC header for the data packet. */
+  packetbuf_set_addr(PACKETBUF_ADDR_SENDER, &rimeaddr_node_addr);
+  if(rimeaddr_cmp(packetbuf_addr(PACKETBUF_ADDR_RECEIVER), &rimeaddr_null)) {
+    is_broadcast = 1;
+    PRINTDEBUG("xmac: send broadcast\n");
+  } else {
+#if UIP_CONF_IPV6
+    PRINTDEBUG("xmac: send unicast to %02x%02x:%02x%02x:%02x%02x:%02x%02x\n",
+           packetbuf_addr(PACKETBUF_ADDR_RECEIVER)->u8[0],
+           packetbuf_addr(PACKETBUF_ADDR_RECEIVER)->u8[1],
+           packetbuf_addr(PACKETBUF_ADDR_RECEIVER)->u8[2],
+           packetbuf_addr(PACKETBUF_ADDR_RECEIVER)->u8[3],
+           packetbuf_addr(PACKETBUF_ADDR_RECEIVER)->u8[4],
+           packetbuf_addr(PACKETBUF_ADDR_RECEIVER)->u8[5],
+           packetbuf_addr(PACKETBUF_ADDR_RECEIVER)->u8[6],
+           packetbuf_addr(PACKETBUF_ADDR_RECEIVER)->u8[7]);
+#else
+    PRINTDEBUG("xmac: send unicast to %u.%u\n",
+           packetbuf_addr(PACKETBUF_ADDR_RECEIVER)->u8[0],
+           packetbuf_addr(PACKETBUF_ADDR_RECEIVER)->u8[1]);
+#endif /* UIP_CONF_IPV6 */
+  }
+  is_reliable = packetbuf_attr(PACKETBUF_ATTR_RELIABLE) ||
+    packetbuf_attr(PACKETBUF_ATTR_ERELIABLE);
+  len = framer_get()->create();
+  strobe_len = len + sizeof(struct xmac_hdr);
+  if(len == 0 || strobe_len > sizeof(strobe)) {
+    /* Failed to send */
+    PRINTF("xmac: send failed, too large header\n");
+    return 0;
+  }
+  memcpy(strobe, packetbuf_hdrptr(), len);
+  strobe[len] = DISPATCH; /* dispatch */
+  strobe[len + 1] = TYPE_STROBE; /* type */
+
+  packetbuf_compact();
+  packet = queuebuf_new_from_packetbuf();
+  if(packet == NULL) {
+    /* No buffer available */
+    PRINTF("xmac: send failed, no queue buffer available (of %u)\n",
+           QUEUEBUF_CONF_NUM);
+    return 0;
+  }
+
 
 #if WITH_CHANNEL_CHECK
   /* Check if there are other strobes in the air. */
@@ -488,7 +537,6 @@ send_packet(void)
 	   receiver will already be awake. */
 	while(RTIMER_CLOCK_LT(RTIMER_NOW(), expected));
       }
-      
 #else /* WITH_ACK_OPTIMIZATION */
       /* Wait until the receiver is expected to be awake */
       while(RTIMER_CLOCK_LT(RTIMER_NOW(), expected));
@@ -496,22 +544,6 @@ send_packet(void)
     }
   }
 #endif /* WITH_ENCOUNTER_OPTIMIZATION */
-
-  /* Create the X-MAC header for the data packet. We cannot do this
-     in-place in the packet buffer, because we cannot be sure of the
-     alignment of the header in the packet buffer. */
-  hdr.type = TYPE_DATA;
-  rimeaddr_copy(&hdr.sender, &rimeaddr_node_addr);
-  rimeaddr_copy(&hdr.receiver, packetbuf_addr(PACKETBUF_ADDR_RECEIVER));
-  if(rimeaddr_cmp(&hdr.receiver, &rimeaddr_null)) {
-    is_broadcast = 1;
-  }
-
-  /* Copy the X-MAC header to the header portion of the packet
-     buffer. */
-  packetbuf_hdralloc(sizeof(struct xmac_hdr));
-  memcpy(packetbuf_hdrptr(), &hdr, sizeof(struct xmac_hdr));
-  packetbuf_compact();
 
   t0 = RTIMER_NOW();
   strobes = 0;
@@ -534,27 +566,45 @@ send_packet(void)
 
     t = RTIMER_NOW();
 
-    strobe.hdr.type = TYPE_STROBE;
-    rimeaddr_copy(&strobe.hdr.sender, &rimeaddr_node_addr);
-    rimeaddr_copy(&strobe.hdr.receiver, packetbuf_addr(PACKETBUF_ADDR_RECEIVER));
-
     /* Send the strobe packet. */
-    radio->send((const uint8_t *)&strobe, sizeof(struct xmac_hdr));
+    radio->send(strobe, strobe_len);
 
     while(got_strobe_ack == 0 &&
 	  RTIMER_CLOCK_LT(RTIMER_NOW(), t + xmac_config.strobe_wait_time)) {
       /* See if we got an ACK */
       if(!is_broadcast) {
-	len = radio->read((uint8_t *)&strobe, sizeof(struct xmac_hdr));
+        packetbuf_clear();
+        len = radio->read(packetbuf_dataptr(), PACKETBUF_SIZE);
 	if(len > 0) {
-	  if(rimeaddr_cmp(&strobe.hdr.sender, &rimeaddr_node_addr) &&
-	     rimeaddr_cmp(&strobe.hdr.receiver, &rimeaddr_node_addr)) {
-	    /* We got an ACK from the receiver, so we can immediately send
-	       the packet. */
-	    got_strobe_ack = 1;
-	    encounter_time = RTIMER_NOW();
-	  }
-	}
+          packetbuf_set_datalen(len);
+          if(framer_get()->parse()) {
+            hdr = packetbuf_dataptr();
+
+            if(hdr->dispatch == DISPATCH && hdr->type == TYPE_STROBE_ACK) {
+              if(rimeaddr_cmp(packetbuf_addr(PACKETBUF_ADDR_RECEIVER),
+                              &rimeaddr_node_addr)) {
+                /* We got an ACK from the receiver, so we can immediately send
+                   the packet. */
+                got_strobe_ack = 1;
+		encounter_time = RTIMER_NOW();
+              } else {
+                PRINTDEBUG("xmac: strobe ack for someone else\n");
+              }
+            } else {
+              /* TODO One of the nodes should back-off since several
+                 nodes are sending at once. If possible and if the
+                 packet is destined for this node: send a strobe ack
+                 if it is a strobe packet, queue the packet if it is a
+                 data packet? */
+              PRINTDEBUG("xmac: ignored data %u\n", len);
+#if DEBUG
+	      /*              collisions++;*/
+#endif /* DEBUG */
+            }
+          } else {
+            PRINTF("xmac: send failed to parse %u\n", len);
+          }
+        }
       }
     }
 
@@ -587,6 +637,10 @@ send_packet(void)
 	     keep it on() for a while. */
   }
 
+  /* restore the packet to send */
+  queuebuf_to_packetbuf(packet);
+  queuebuf_free(packet);
+
   /* Send the data packet. */
   if(is_broadcast || got_strobe_ack) {
     radio->send(packetbuf_hdrptr(), packetbuf_totlen());
@@ -594,7 +648,7 @@ send_packet(void)
 
 #if WITH_ENCOUNTER_OPTIMIZATION
   if(got_strobe_ack) {
-    register_encounter(&hdr.receiver, encounter_time);
+    register_encounter(packetbuf_addr(PACKETBUF_ADDR_RECEIVER), encounter_time);
   }
 #endif /* WITH_ENCOUNTER_OPTIMIZATION */
   watchdog_start();
@@ -667,74 +721,29 @@ read_packet(void)
   packetbuf_clear();
 
   len = radio->read(packetbuf_dataptr(), PACKETBUF_SIZE);
-  
-  if(len > 0) {
-    packetbuf_set_datalen(len);
+  if(len == 0) {
+    return 0;
+  }
+
+  packetbuf_set_datalen(len);
+
+  if(framer_get()->parse()) {
     hdr = packetbuf_dataptr();
 
-    packetbuf_hdrreduce(sizeof(struct xmac_hdr));
-
-    if(hdr->type == TYPE_STROBE) {
-      /* There is no data in the packet so it has to be a strobe. */
-      someone_is_sending = 2;
+    if(hdr->dispatch != DISPATCH) {
       
-      if(rimeaddr_cmp(&hdr->receiver, &rimeaddr_node_addr)) {
-	/* This is a strobe packet for us. */
-
-	if(rimeaddr_cmp(&hdr->sender, &rimeaddr_node_addr)) {
-	  /* If the sender address is our node address, the strobe is
-	     a stray strobe ACK to us, which we ignore unless we are
-	     currently sending a packet.  */
-	  someone_is_sending = 0;
-	} else {
-	  struct xmac_hdr msg;
-	  /* If the sender address is someone else, we should
-	     acknowledge the strobe and wait for the packet. By using
-	     the same address as both sender and receiver, we flag the
-	     message is a strobe ack. */
-	  msg.type = TYPE_STROBE_ACK;
-	  rimeaddr_copy(&msg.receiver, &hdr->sender);
-	  rimeaddr_copy(&msg.sender, &hdr->sender);
-	  /* We turn on the radio in anticipation of the incoming
-	     packet. */
-	  someone_is_sending = 1;
-	  waiting_for_packet = 1;
-	  on();
-	  radio->send((const uint8_t *)&msg, sizeof(struct xmac_hdr));
-	}
-      } else if(rimeaddr_cmp(&hdr->receiver, &rimeaddr_null)) {
-	/* If the receiver address is null, the strobe is sent to
-	   prepare for an incoming broadcast packet. If this is the
-	   case, we turn on the radio and wait for the incoming
-	   broadcast packet. */
-	waiting_for_packet = 1;
-	on();
-      }
-
-      /* Check for annoucements in the strobe */
-      /*      if(packetbuf_datalen() > 0) {
-	parse_announcements(&hdr->sender);
-	}*/
-      /* We are done processing the strobe and we therefore return
-	 to the caller. */
-      return RIME_OK;
-    } else if(hdr->type == TYPE_DATA) {
       someone_is_sending = 0;
-      if(rimeaddr_cmp(&hdr->receiver, &rimeaddr_node_addr) ||
-	 rimeaddr_cmp(&hdr->receiver, &rimeaddr_null)) {
+      if(rimeaddr_cmp(packetbuf_addr(PACKETBUF_ADDR_RECEIVER),
+                                     &rimeaddr_node_addr) ||
+	 rimeaddr_cmp(packetbuf_addr(PACKETBUF_ADDR_RECEIVER),
+                      &rimeaddr_null)) {
 	/* This is a regular packet that is destined to us or to the
 	   broadcast address. */
-	
+
 	/* We have received the final packet, so we can go back to being
 	   asleep. */
 	off();
 
-	/* Set sender and receiver packet attributes */
- 	if(!rimeaddr_cmp(&hdr->receiver, &rimeaddr_null)) {
-	  packetbuf_set_addr(PACKETBUF_ADDR_RECEIVER, &hdr->receiver);
-	}
-	packetbuf_set_addr(PACKETBUF_ADDR_SENDER, &hdr->sender);
-	
 #if XMAC_CONF_COMPOWER
 	/* Accumulate the power consumption for the packet reception. */
 	compower_accumulate(&current_packet);
@@ -743,27 +752,81 @@ read_packet(void)
 	   keep track of the amount of energy spent on receiving the
 	   packet. */
 	compower_attrconv(&current_packet);
-	
+
 	/* Clear the accumulated power consumption so that it is ready
 	   for the next packet. */
 	compower_clear(&current_packet);
 #endif /* XMAC_CONF_COMPOWER */
-	
+
 	waiting_for_packet = 0;
-	
+
 	/* XXX should set timer to send queued packet later. */
 	if(queued_packet != NULL) {
 	  queuebuf_free(queued_packet);
 	  queued_packet = NULL;
 	}
-	
-	return packetbuf_totlen();
+
+        PRINTDEBUG("xmac: data(%u)\n", packetbuf_datalen());
+	return packetbuf_datalen();
+      } else {
+        PRINTDEBUG("xmac: data not for us\n");
       }
+
+    } else if(hdr->type == TYPE_STROBE) {
+      someone_is_sending = 2;
+      
+      if(rimeaddr_cmp(packetbuf_addr(PACKETBUF_ADDR_RECEIVER),
+                      &rimeaddr_node_addr)) {
+	/* This is a strobe packet for us. */
+
+	/* If the sender address is someone else, we should
+	   acknowledge the strobe and wait for the packet. By using
+	   the same address as both sender and receiver, we flag the
+	   message is a strobe ack. */
+	hdr->type = TYPE_STROBE_ACK;
+	packetbuf_set_addr(PACKETBUF_ADDR_RECEIVER,
+			   packetbuf_addr(PACKETBUF_ADDR_SENDER));
+	packetbuf_set_addr(PACKETBUF_ADDR_SENDER, &rimeaddr_node_addr);
+	packetbuf_compact();
+	if(framer_get()->create()) {
+	  /* We turn on the radio in anticipation of the incoming
+	     packet. */
+	  someone_is_sending = 1;
+	  waiting_for_packet = 1;
+	  on();
+	  radio->send(packetbuf_hdrptr(), packetbuf_totlen());
+	  PRINTDEBUG("xmac: send strobe ack %u\n", packetbuf_totlen());
+	} else {
+	  PRINTF("xmac: failed to send strobe ack\n");
+	}
+      } else if(rimeaddr_cmp(packetbuf_addr(PACKETBUF_ADDR_RECEIVER),
+                             &rimeaddr_null)) {
+	/* If the receiver address is null, the strobe is sent to
+	   prepare for an incoming broadcast packet. If this is the
+	   case, we turn on the radio and wait for the incoming
+	   broadcast packet. */
+	waiting_for_packet = 1;
+	on();
+      } else {
+        PRINTDEBUG("xmac: strobe not for us\n");
+      }
+
+      /* We are done processing the strobe and we therefore return
+	 to the caller. */
+      return RIME_OK;
 #if XMAC_CONF_ANNOUNCEMENTS
     } else if(hdr->type == TYPE_ANNOUNCEMENT) {
-      parse_announcements(&hdr->sender);
+      packetbuf_hdrreduce(sizeof(struct xmac_hdr));
+      parse_announcements(packetbuf_addr(PACKETBUF_ADDR_SENDER));
 #endif /* XMAC_CONF_ANNOUNCEMENTS */
+    } else if(hdr->type == TYPE_STROBE_ACK) {
+      PRINTDEBUG("xmac: stray strobe ack\n");
+    } else {
+      PRINTF("xmac: unknown type %u (%u/%u)\n", hdr->type,
+             packetbuf_datalen(), len);
     }
+  } else {
+    PRINTF("xmac: failed to parse (%u)\n", packetbuf_totlen());
   }
   return 0;
 }
@@ -777,20 +840,22 @@ send_announcement(void *ptr)
   
   /* Set up the probe header. */
   packetbuf_clear();
-  packetbuf_set_datalen(sizeof(struct xmac_hdr));
   hdr = packetbuf_dataptr();
-  hdr->type = TYPE_ANNOUNCEMENT;
-  rimeaddr_copy(&hdr->sender, &rimeaddr_node_addr);
-  rimeaddr_copy(&hdr->receiver, &rimeaddr_null);
 
   announcement_len = format_announcement((char *)hdr +
 					 sizeof(struct xmac_hdr));
 
   if(announcement_len > 0) {
     packetbuf_set_datalen(sizeof(struct xmac_hdr) + announcement_len);
+    hdr->dispatch = DISPATCH;
+    hdr->type = TYPE_ANNOUNCEMENT;
 
+    packetbuf_set_addr(PACKETBUF_ADDR_SENDER, &rimeaddr_node_addr);
+    packetbuf_set_addr(PACKETBUF_ADDR_RECEIVER, &rimeaddr_null);
     packetbuf_set_attr(PACKETBUF_ATTR_RADIO_TXPOWER, announcement_radio_txpower);
-    radio->send(packetbuf_hdrptr(), packetbuf_totlen());
+    if(framer_get()->create()) {
+      radio->send(packetbuf_hdrptr(), packetbuf_totlen());
+    }
   }
 }
 /*---------------------------------------------------------------------------*/
