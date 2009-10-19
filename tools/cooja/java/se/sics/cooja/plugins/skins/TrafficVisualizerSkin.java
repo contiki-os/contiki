@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: TrafficVisualizerSkin.java,v 1.1 2009/08/27 13:59:48 fros4943 Exp $
+ * $Id: TrafficVisualizerSkin.java,v 1.2 2009/10/19 17:37:50 fros4943 Exp $
  */
 
 package se.sics.cooja.plugins.skins;
@@ -119,11 +119,13 @@ public class TrafficVisualizerSkin implements VisualizerSkin {
 
         if (showHistory) {
           RadioConnection[] past = radioMedium.getLastTickConnections();
-          for (RadioConnection con: past) {
-            history.add(con);
-          }
-          while (history.size() > HISTORY_SIZE) {
-            history.removeFirst();
+          if (past != null) {
+            for (RadioConnection con: past) {
+              history.add(con);
+            }
+            while (history.size() > HISTORY_SIZE) {
+              history.removeFirst();
+            }
           }
         }
         visualizer.repaint();
@@ -240,7 +242,10 @@ public class TrafficVisualizerSkin implements VisualizerSkin {
     if (conns != null) {
       g.setColor(Color.BLACK);
       for (RadioConnection conn : conns) {
-        Radio source = conn.getSource();
+        if (conn == null) {
+          continue;
+        }
+        Radio source = conn.getSource(); // XXX Must not be null!
         Point sourcePoint = visualizer.transformPositionToPixel(source.getPosition());
         for (Radio destRadio : conn.getDestinations()) {
           if (destRadio == null) {
