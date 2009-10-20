@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: framer-802154.c,v 1.1 2009/10/19 18:30:03 adamdunkels Exp $
+ * $Id: framer-802154.c,v 1.2 2009/10/20 07:42:03 nifi Exp $
  */
 
 /**
@@ -40,6 +40,7 @@
 #include "net/mac/framer-802154.h"
 #include "net/mac/frame802154.h"
 #include "net/rime/packetbuf.h"
+#include <string.h>
 
 #define DEBUG 0
 
