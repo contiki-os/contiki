@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: energest.h,v 1.4 2009/05/11 15:26:24 nvt-se Exp $
+ * $Id: energest.h,v 1.5 2009/10/20 20:19:27 adamdunkels Exp $
  */
 
 /**
@@ -92,7 +92,7 @@ extern energest_t energest_leveldevice_current_leveltime[ENERGEST_CONF_LEVELDEVI
 			   energest_current_mode[type] = 1; \
                            } while(0)
 
-#define ENERGEST_OFF(type) do { \
+#define ENERGEST_OFF(type) if(energest_current_mode[type] != 0) do {	\
                            energest_total_time[type].current += (rtimer_clock_t)(RTIMER_NOW() - \
                            energest_current_time[type]); \
 			   energest_current_mode[type] = 0; \
