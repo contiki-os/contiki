@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: NativeIPGateway.java,v 1.10 2009/10/20 09:22:07 fros4943 Exp $
+ * $Id: NativeIPGateway.java,v 1.11 2009/10/21 16:43:24 fros4943 Exp $
  */
 
 package se.sics.cooja.plugins;
@@ -542,10 +542,15 @@ public class NativeIPGateway extends VisPlugin {
 
   private void createTunInterfaceLinux() {
     /* Show progress bar while compiling */
-    final JDialog progressDialog = new JDialog(
-        (Window)GUI.getTopParentContainer(), 
-        "Starting Native IP Gateway plugin"
-    );
+    final JDialog progressDialog;
+    if (GUI.isVisualized()) {
+      progressDialog = new JDialog(
+          (Window)GUI.getTopParentContainer(), 
+          "Starting Native IP Gateway plugin"
+      );
+    } else {
+      progressDialog = null;
+    }
     final MessageList output = new MessageList();
     if (GUI.isVisualized()) {
       new RunnableInEDT<Boolean>() {
@@ -586,8 +591,10 @@ public class NativeIPGateway extends VisPlugin {
           true
       );
       if (p.exitValue() != 0) {
-        progressDialog.setVisible(false);
-        progressDialog.dispose();
+        if (GUI.isVisualized()) {
+          progressDialog.setVisible(false);
+          progressDialog.dispose();
+        }
         throw new Exception("Compile failed: " + tunContikiApp.getPath());
       }
 
