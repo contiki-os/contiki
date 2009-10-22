@@ -1,5 +1,9 @@
 %.u:	%.ihex
+ifdef JTAG_PORT
+	msp430-jtag -l $(JTAG_PORT) -eI $^
+else
 	msp430-jtag -eI $^
+endif
 
 #CW=cw23
 
