@@ -33,7 +33,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: neighbor.c,v 1.19 2009/10/21 21:25:10 nifi Exp $
+ * $Id: neighbor.c,v 1.20 2009/10/22 13:11:20 zhitao Exp $
  */
 
 /**
@@ -150,6 +150,9 @@ neighbor_timedout_etx(struct neighbor *n, uint8_t etx)
 {
   if(n != NULL) {
     n->etxs[n->etxptr] += etx;
+    if(n->etxs[n->etxptr] > RTMETRIC_MAX / NEIGHBOR_ETX_SCALE) {
+      n->etxs[n->etxptr] = RTMETRIC_MAX / NEIGHBOR_ETX_SCALE;
+    }
     n->etxptr = (n->etxptr + 1) % NEIGHBOR_NUM_ETXS;
   }
 }
