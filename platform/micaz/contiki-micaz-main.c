@@ -59,11 +59,11 @@
 void
 init_usart(void)
 {
-  /* Second rs232 port for debugging */
+  /* First rs232 port for debugging */
   rs232_init(RS232_PORT_0, USART_BAUD_115200,
              USART_PARITY_NONE | USART_STOP_BITS_1 | USART_DATA_BITS_8);
 
-  /* Redirect stdout to second port */
+  /* Redirect stdout to first port */
   rs232_redirect_stdout(RS232_PORT_0);
 
 }
