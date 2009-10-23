@@ -26,18 +26,28 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: LogScriptEngine.java,v 1.18 2009/09/17 13:20:48 fros4943 Exp $
+ * $Id: LogScriptEngine.java,v 1.19 2009/10/23 11:55:53 fros4943 Exp $
  */
 
 package se.sics.cooja.plugins;
 
 import java.lang.reflect.UndeclaredThrowableException;
-import java.util.*;
+import java.util.Hashtable;
+import java.util.Observable;
+import java.util.Observer;
 import java.util.concurrent.Semaphore;
-import javax.script.*;
+
+import javax.script.Invocable;
+import javax.script.ScriptEngine;
+import javax.script.ScriptEngineManager;
+import javax.script.ScriptException;
 
 import org.apache.log4j.Logger;
-import se.sics.cooja.*;
+
+import se.sics.cooja.GUI;
+import se.sics.cooja.Mote;
+import se.sics.cooja.Simulation;
+import se.sics.cooja.TimeEvent;
 
 /**
  * Loads and executes a Contiki test script.
@@ -442,7 +452,20 @@ public class LogScriptEngine {
   };
   private TimeEvent quitEvent = new TimeEvent(0) {
     public void execute(long time) {
-      simulation.getGUI().doQuit(false);
+      simulation.stopSimulation();
+      new Thread() {
+        public void run() {
+          try { Thread.sleep(500); } catch (InterruptedException e) { }
+          simulation.getGUI().doQuit(false);
+        };
+      }.start();
+      new Thread() {
+        public void run() {
+          try { Thread.sleep(2000); } catch (InterruptedException e) { }
+          logger.warn("Killing COOJA");
+          System.exit(1);
+        };
+      }.start();
     }
   };
 
