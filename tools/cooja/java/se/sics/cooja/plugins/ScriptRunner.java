@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ScriptRunner.java,v 1.22 2009/06/24 14:08:14 fros4943 Exp $
+ * $Id: ScriptRunner.java,v 1.23 2009/10/23 11:55:53 fros4943 Exp $
  */
 
 package se.sics.cooja.plugins;
@@ -349,11 +349,6 @@ public class ScriptRunner extends VisPlugin {
       scriptTextArea.setEnabled(true);
       logger.info("Test script deactivated");
       setTitle("Contiki Test Editor");
-
-      /* Automatically exit COOJA */
-      if (!GUI.isVisualized()) {
-        System.exit(1);
-      }
     }
   }
 
