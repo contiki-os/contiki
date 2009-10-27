@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: sky-shell.c,v 1.10 2009/03/12 21:58:21 adamdunkels Exp $
+ * $Id: sky-shell.c,v 1.11 2009/10/27 14:13:30 adamdunkels Exp $
  */
 
 /**
@@ -167,6 +167,7 @@ struct sky_alldata_msg {
 PROCESS_THREAD(shell_sky_alldata_process, ev, data)
 {
   static unsigned long last_cpu, last_lpm, last_transmit, last_listen;
+  unsigned long cpu, lpm, transmit, listen;
   struct sky_alldata_msg msg;
   struct neighbor *n;
   PROCESS_BEGIN();
@@ -183,11 +184,24 @@ PROCESS_THREAD(shell_sky_alldata_process, ev, data)
 
   energest_flush();
   
-  msg.cpu = energest_type_time(ENERGEST_TYPE_CPU) - last_cpu;
-  msg.lpm = energest_type_time(ENERGEST_TYPE_LPM) - last_lpm;
-  msg.transmit = energest_type_time(ENERGEST_TYPE_TRANSMIT) - last_transmit;
-  msg.listen = energest_type_time(ENERGEST_TYPE_LISTEN) - last_listen;
+  cpu = energest_type_time(ENERGEST_TYPE_CPU) - last_cpu;
+  lpm = energest_type_time(ENERGEST_TYPE_LPM) - last_lpm;
+  transmit = energest_type_time(ENERGEST_TYPE_TRANSMIT) - last_transmit;
+  listen = energest_type_time(ENERGEST_TYPE_LISTEN) - last_listen;
 
+  /* Make sure that the values are within 16 bits. */
+  while(cpu >= 65536ul || lpm >= 65536ul ||
+	transmit >= 65536ul || listen >= 65536ul) {
+    cpu /= 2;
+    lpm /= 2;
+    transmit /= 2;
+    listen /= 2;
+  }
+  
+  msg.cpu = cpu;
+  msg.lpm = lpm;
+  msg.transmit = transmit;
+  msg.listen = listen;
 
   last_cpu = energest_type_time(ENERGEST_TYPE_CPU);
   last_lpm = energest_type_time(ENERGEST_TYPE_LPM);
@@ -217,12 +231,14 @@ PROCESS_THREAD(sky_shell_process, ev, data)
   shell_blink_init();
   shell_file_init();
   shell_coffee_init();
+  /*  shell_download_init();
+      shell_rime_sendcmd_init();*/
   shell_ps_init();
   shell_reboot_init();
   shell_rime_init();
   shell_rime_netcmd_init();
-  shell_rime_ping_init();
-  /*shell_rime_debug_init();*/
+  /*  shell_rime_ping_init();*/
+  shell_rime_debug_init(); 
   shell_rime_sniff_init();
   shell_sky_init();
   shell_text_init();
