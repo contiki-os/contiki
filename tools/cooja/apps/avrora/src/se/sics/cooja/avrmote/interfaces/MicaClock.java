@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: MicaClock.java,v 1.4 2009/09/17 10:45:13 fros4943 Exp $
+ * $Id: MicaClock.java,v 1.5 2009/10/27 10:20:25 fros4943 Exp $
  */
 
 package se.sics.cooja.avrmote.interfaces;
@@ -60,8 +60,9 @@ public class MicaClock extends Clock {
   }
 
   public long getTime() {
-    long time = (long) ((double)myMote.cycleCounter * Simulation.MILLISECOND / MspMote.NR_CYCLES_PER_MSEC);
-    return time > 0 ? time : 0;
+//    long time = (long) ((double)myMote.cycleCounter * Simulation.MILLISECOND / MspMote.NR_CYCLES_PER_MSEC);
+//    return time > 0 ? time : 0;
+    return 0;
   }
 
   public void setDrift(long drift) {
