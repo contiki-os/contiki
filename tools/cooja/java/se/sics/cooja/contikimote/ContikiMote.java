@@ -26,16 +26,25 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ContikiMote.java,v 1.14 2009/09/17 13:20:03 fros4943 Exp $
+ * $Id: ContikiMote.java,v 1.15 2009/10/27 10:12:33 fros4943 Exp $
  */
 
 package se.sics.cooja.contikimote;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.Vector;
+
 import org.apache.log4j.Logger;
 import org.jdom.Element;
 
-import se.sics.cooja.*;
+import se.sics.cooja.Mote;
+import se.sics.cooja.MoteInterface;
+import se.sics.cooja.MoteInterfaceHandler;
+import se.sics.cooja.MoteMemory;
+import se.sics.cooja.MoteType;
+import se.sics.cooja.SectionMoteMemory;
+import se.sics.cooja.Simulation;
+import se.sics.cooja.motes.AbstractWakeupMote;
 
 /**
  * A Contiki mote executes an actual Contiki system via
@@ -52,13 +61,13 @@ import se.sics.cooja.*;
  *
  * @author      Fredrik Osterlind
  */
-public class ContikiMote implements Mote {
+public class ContikiMote extends AbstractWakeupMote implements Mote {
   private static Logger logger = Logger.getLogger(ContikiMote.class);
 
   private ContikiMoteType myType = null;
   private SectionMoteMemory myMemory = null;
   private MoteInterfaceHandler myInterfaceHandler = null;
-  private Simulation mySim = null;
+  private Simulation simulation = null;
 
   /**
    * Creates a new uninitialized Contiki mote.
@@ -78,12 +87,12 @@ public class ContikiMote implements Mote {
    * @param sim Mote's simulation
    */
   public ContikiMote(ContikiMoteType moteType, Simulation sim) {
-    this.mySim = sim;
+    this.simulation = sim;
     this.myType = moteType;
     this.myMemory = moteType.createInitialMemory();
     this.myInterfaceHandler = new MoteInterfaceHandler(this, moteType.getMoteInterfaceClasses());
     
-    scheduleNextWakeup(mySim.getSimulationTime());
+    requestImmediateWakeup();
   }
 
   public int getID() {
@@ -115,11 +124,11 @@ public class ContikiMote implements Mote {
   }
 
   public Simulation getSimulation() {
-    return mySim;
+    return simulation;
   }
 
   public void setSimulation(Simulation simulation) {
-    mySim = simulation;
+    this.simulation = simulation;
   }
 
   /**
@@ -132,7 +141,7 @@ public class ContikiMote implements Mote {
    *
    * @param simTime Current simulation time
    */
-  public boolean tick(long simTime) {
+  public void execute(long simTime) {
 
     /* Poll mote interfaces */
     myInterfaceHandler.doActiveActionsBeforeTick();
@@ -141,7 +150,7 @@ public class ContikiMote implements Mote {
     /* Check if pre-boot time */
     if (myInterfaceHandler.getClock().getTime() < 0) {
       scheduleNextWakeup(simTime + -myInterfaceHandler.getClock().getTime());
-      return false;
+      return;
     }
 
     /* Copy mote memory to Contiki */
@@ -156,8 +165,6 @@ public class ContikiMote implements Mote {
     /* Poll mote interfaces */
     myInterfaceHandler.doActiveActionsAfterTick();
     myInterfaceHandler.doPassiveActionsAfterTick();
-
-    return false;
   }
 
   /**
@@ -181,7 +188,7 @@ public class ContikiMote implements Mote {
       element = new Element("interface_config");
       element.setText(moteInterface.getClass().getName());
 
-      Collection interfaceXML = moteInterface.getConfigXML();
+      Collection<Element> interfaceXML = moteInterface.getConfigXML();
       if (interfaceXML != null) {
         element.addContent(interfaceXML);
         config.add(element);
@@ -192,7 +199,7 @@ public class ContikiMote implements Mote {
   }
 
   public boolean setConfigXML(Simulation simulation, Collection<Element> configXML, boolean visAvailable) {
-    mySim = simulation;
+    this.simulation = simulation;
 
     for (Element element: configXML) {
       String name = element.getName();
@@ -220,7 +227,7 @@ public class ContikiMote implements Mote {
       }
     }
 
-    scheduleNextWakeup(mySim.getSimulationTime());
+    requestImmediateWakeup();
     return true;
   }
 
@@ -228,29 +235,7 @@ public class ContikiMote implements Mote {
     return "Contiki " + getID();
   }
 
-  private TimeEvent tickMoteEvent = new MoteTimeEvent(this, 0) {
-    public void execute(long t) {
-      /* Tick Contiki mote */
-      tick(mySim.getSimulationTime());
-    }
-    public String toString() {
-      return "CONTIKI TICK " + ContikiMote.this;
-    }
-  };
-
-  public void scheduleImmediateWakeup() {
-    scheduleNextWakeup(mySim.getSimulationTime());
-  }
-  
-  public void scheduleNextWakeup(long time) {
-    if (tickMoteEvent.isScheduled() &&
-        tickMoteEvent.getTime() <= time) {
-      /* Native tick events already scheduled */
-      return;
-    }
-
-    /* Reschedule native mote event */
-    /*logger.info("Rescheduled tick from " + tickMoteEvent.time + " to " + time);*/
-    mySim.scheduleEventUnsafe(tickMoteEvent, time);
+  public boolean tick(long simTime) {
+    throw new RuntimeException("Obsolete method");
   }
 }
