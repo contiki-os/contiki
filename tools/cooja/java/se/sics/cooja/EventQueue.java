@@ -26,12 +26,10 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: EventQueue.java,v 1.8 2009/10/19 17:32:38 fros4943 Exp $
+ * $Id: EventQueue.java,v 1.9 2009/10/27 10:06:59 fros4943 Exp $
  */
 
 package se.sics.cooja;
-
-import java.util.ArrayList;
 
 /**
  * @author Joakim Eriksson (ported to COOJA by Fredrik Osterlind)
@@ -40,41 +38,6 @@ public class EventQueue {
 
   private TimeEvent first;
   private int eventCount = 0;
-
-  /* For scheduling events from outside simulation thread effectively */
-  private boolean hasUnsortedEvents = false;
-  private ArrayList<TimeEvent> unsortedEvents = new ArrayList<TimeEvent>();
-
-  public EventQueue() {
-  }
-
-  private synchronized void sortEvents() {
-    hasUnsortedEvents = false;
-
-    for (TimeEvent e: unsortedEvents) {
-      if (!e.removed) {
-        addEvent(e);
-      }
-    }
-    unsortedEvents.clear();
-  }
-
-  /**
-   * May be called from outside simulation thread.
-   *
-   * @param event Event
-   * @param time Time
-   */
-  public synchronized void addEventUnsorted(TimeEvent event, long time) {
-    /* Make sure this event is not executed before being resorted (readded) */
-    if (event.queue != null) {
-      event.remove();
-    }
-    event.time = time;
-    event.removed = false;
-    unsortedEvents.add(event);
-    hasUnsortedEvents = true;
-  }
 
   /**
    * Should only be called from simulation thread!
@@ -87,14 +50,12 @@ public class EventQueue {
     addEvent(event);
   }
 
-  /**
-   * Should only be called from simulation thread!
-   *
-   * @param event Event
-   */
-  public void addEvent(TimeEvent event) {
-    if (event.queue != null) {
+  private void addEvent(TimeEvent event) {
+    if (event.removed && event.queue != null) {
       removeFromQueue(event);
+    }
+    if (event.queue != null) {
+      throw new IllegalStateException("Event was already scheduled in the past: " + event);
     }
 
     if (first == null) {
@@ -168,10 +129,6 @@ public class EventQueue {
    * @return Event
    */
   public TimeEvent popFirst() {
-    if (hasUnsortedEvents) {
-      sortEvents();
-    }
-
     TimeEvent tmp = first;
     if (tmp == null) {
       return null;
@@ -193,14 +150,10 @@ public class EventQueue {
   }
 
   public TimeEvent peekFirst() {
-    if (hasUnsortedEvents) {
-      sortEvents();
-    }
-
     return first;
   }
 
   public String toString() {
-    return "EventQueue with " + (eventCount+unsortedEvents.size()) + " events";
+    return "EventQueue with " + eventCount + " events";
   }
 }
