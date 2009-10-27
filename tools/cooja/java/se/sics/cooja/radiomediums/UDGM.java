@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: UDGM.java,v 1.26 2009/10/27 10:10:03 fros4943 Exp $
+ * $Id: UDGM.java,v 1.27 2009/10/27 10:36:01 fros4943 Exp $
  */
 
 package se.sics.cooja.radiomediums;
@@ -288,7 +288,7 @@ public class UDGM extends AbstractRadioMedium {
         }
 
         if (!intfRadio.isInterfered()) {
-          logger.warn("Radio was not interfered: " + intfRadio);
+          /*logger.warn("Radio was not interfered: " + intfRadio);*/
           intfRadio.interfereAnyReception();
         }
       }
