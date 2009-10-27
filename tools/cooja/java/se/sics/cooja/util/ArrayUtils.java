@@ -24,10 +24,19 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * $Id: ArrayUtils.java,v 1.1 2009/07/02 11:58:37 fros4943 Exp $
+ * $Id: ArrayUtils.java,v 1.2 2009/10/27 09:52:24 fros4943 Exp $
  */
 
 package se.sics.cooja.util;
+
+import java.awt.Container;
+import java.io.DataInputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+
+import javax.swing.JFileChooser;
 
 /**
  * Some utility methods for managing arrays.
@@ -87,4 +96,39 @@ public class ArrayUtils {
     }
     return -1;
   }
+  
+  public static boolean writeToFile(File dest, byte[] data) {
+    try {
+      FileOutputStream writer = new FileOutputStream(dest);
+      writer.write(data);
+      return true;
+    } catch (IOException e) {
+      return false;
+    }
+  }
+  
+  public static byte[] readFromFile(File file) {
+    long fileSize = file.length();
+    byte[] fileData = new byte[(int) fileSize];
+
+    FileInputStream fileIn;
+    DataInputStream dataIn;
+    int offset = 0;
+    int numRead = 0;
+    try {
+      fileIn = new FileInputStream(file);
+      dataIn = new DataInputStream(fileIn);
+      while (offset < fileData.length
+          && (numRead = dataIn.read(fileData, offset, fileData.length - offset)) >= 0) {
+        offset += numRead;
+      }
+
+      dataIn.close();
+      fileIn.close();
+      return fileData;
+    } catch (Exception ex) {
+      return null;
+    }
+  }
+
 }
