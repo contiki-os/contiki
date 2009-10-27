@@ -27,7 +27,7 @@
 
   <target name="mspsim" depends="init">
     <copy todir="${lib}" file="${mspsim}/mspsim.jar" />
-    <copy todir="${lib}" file="${mspsim}/jipv6.jar" />
+    <copy todir="${lib}" file="${mspsim}/lib/jipv6.jar" />
   </target>
 
   <target name="coffee" depends="init">
