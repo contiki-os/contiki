@@ -26,31 +26,45 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: MspStackWatcher.java,v 1.5 2008/12/04 14:03:41 joxe Exp $
+ * $Id: MspStackWatcher.java,v 1.6 2009/10/27 10:13:34 fros4943 Exp $
  */
 
 package se.sics.cooja.mspmote.plugins;
 
 import java.awt.BorderLayout;
 import java.awt.GridLayout;
-import java.awt.event.*;
-import java.util.*;
-import javax.swing.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.util.Observable;
+import java.util.Observer;
+
+import javax.swing.JButton;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
 
 import org.apache.log4j.Logger;
 
-import se.sics.cooja.*;
+import se.sics.cooja.ClassDescription;
+import se.sics.cooja.GUI;
+import se.sics.cooja.Mote;
+import se.sics.cooja.PluginType;
+import se.sics.cooja.Simulation;
+import se.sics.cooja.VisPlugin;
 import se.sics.cooja.mspmote.MspMote;
 import se.sics.mspsim.core.MSP430;
 import se.sics.mspsim.ui.StackUI;
+import se.sics.mspsim.ui.WindowManager;
 import se.sics.mspsim.util.Utils;
 
 @ClassDescription("Msp Stack Watcher")
 @PluginType(PluginType.MOTE_PLUGIN)
 public class MspStackWatcher extends VisPlugin {
   private static Logger logger = Logger.getLogger(MspStackWatcher.class);
+  
   private MspMote mspMote;
   private MSP430 cpu;
+  private StackUI stackUI;
+
   private Simulation simulation;
   private Observer stackObserver = null;
   private JButton startButton;
@@ -103,8 +117,10 @@ public class MspStackWatcher extends VisPlugin {
     });
 
     // Create nfi's stack viewer
-    final StackUI stackUI = new StackUI(cpu, (int)MspMote.NR_CYCLES_PER_MSEC);
-
+    stackUI = new StackUI(cpu);
+    stackUI.init("MSPSim stack", mspMote.registry);
+    stackUI.start();
+    
     // Register as log listener
     /*if (logObserver == null && mspMote.getInterfaces().getLog() != null) {
       mspMote.getInterfaces().getLog().addObserver(logObserver = new Observer() {
@@ -133,7 +149,7 @@ public class MspStackWatcher extends VisPlugin {
 
   public void closePlugin() {
     mspMote.getStackOverflowObservable().deleteObserver(stackObserver);
+    stackUI.stop();
   }
-
 
 }
