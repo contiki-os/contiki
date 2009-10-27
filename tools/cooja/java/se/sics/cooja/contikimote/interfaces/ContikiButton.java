@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ContikiButton.java,v 1.13 2009/05/26 14:24:20 fros4943 Exp $
+ * $Id: ContikiButton.java,v 1.14 2009/10/27 10:11:17 fros4943 Exp $
  */
 
 package se.sics.cooja.contikimote.interfaces;
@@ -127,7 +127,7 @@ public class ContikiButton extends Button implements ContikiMoteInterface {
       moteMem.setByteValueOf("simButtonChanged", (byte) 1);
 
       /* If mote is inactive, wake it up */
-      mote.scheduleImmediateWakeup();
+      mote.requestImmediateWakeup();
 
       setChanged();
       notifyObservers();
@@ -141,7 +141,7 @@ public class ContikiButton extends Button implements ContikiMoteInterface {
       moteMem.setByteValueOf("simButtonChanged", (byte) 1);
 
       /* If mote is inactive, wake it up */
-      mote.scheduleImmediateWakeup();
+      mote.requestImmediateWakeup();
 
       setChanged();
       notifyObservers();

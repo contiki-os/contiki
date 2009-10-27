@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: LogScriptEngine.java,v 1.19 2009/10/23 11:55:53 fros4943 Exp $
+ * $Id: LogScriptEngine.java,v 1.20 2009/10/27 10:12:00 fros4943 Exp $
  */
 
 package se.sics.cooja.plugins;
@@ -103,11 +103,11 @@ public class LogScriptEngine {
 
     /* Check if test script requested us to stop */
     if (stopSimulation) {
-      stopSimulationEvent.execute(0);
+      stopSimulationRunnable.run();
       stopSimulation = false;
     }
     if (quitCooja) {
-      quitEvent.execute(0);
+      quitRunnable.run();
       quitCooja = false;
     }
   }
@@ -173,8 +173,8 @@ public class LogScriptEngine {
    * @param mote Mote
    */
   public void fakeMoteLogOutput(final String msg, final Mote mote) {
-    simulation.scheduleEvent(new TimeEvent(0) {
-      public void execute(long time) {
+    simulation.invokeSimulationThread(new Runnable() {
+      public void run() {
         handleNewMoteOutput(
             mote,
             mote.getID(),
@@ -182,7 +182,7 @@ public class LogScriptEngine {
             msg
         );
       }
-    }, simulation.getSimulationTime());
+    });
   }
 
   public void setScriptLogObserver(Observer observer) {
@@ -281,17 +281,16 @@ public class LogScriptEngine {
     String jsCode = parser.getJSCode();
 
     long timeoutTime = parser.getTimeoutTime();
-    if (timeoutTime > 0) {
-      simulation.scheduleEvent(
-          timeoutEvent,
-          simulation.getSimulationTime() + timeoutTime);
-    } else {
-      logger.info("No timeout defined, using default (us): " + 
-          (simulation.getSimulationTime() + DEFAULT_TIMEOUT));
-      simulation.scheduleEvent(
-          timeoutEvent,
-          (simulation.getSimulationTime() + DEFAULT_TIMEOUT));
+    if (timeoutTime < 0) {
+      logger.info("No timeout defined, using default (us): " + DEFAULT_TIMEOUT);
+      timeoutTime = DEFAULT_TIMEOUT;
     }
+    final long absoluteTimeout = simulation.getSimulationTime() + timeoutTime;
+    simulation.invokeSimulationThread(new Runnable() {
+      public void run() {
+        simulation.scheduleEvent(timeoutEvent, absoluteTimeout);
+      }
+    });
 
     engine.eval(jsCode);
 
@@ -375,10 +374,10 @@ public class LogScriptEngine {
         if (GUI.isVisualized()) {
           log("[if test was run without visualization, COOJA would now have been terminated]\n");
           stopSimulation = true;
-          simulation.scheduleEvent(stopSimulationEvent, simulation.getSimulationTime());
+          simulation.invokeSimulationThread(stopSimulationRunnable);
         } else {
           quitCooja = true;
-          simulation.scheduleEvent(quitEvent, simulation.getSimulationTime());
+          simulation.invokeSimulationThread(quitRunnable);
         }
 
         timeoutEvent.remove();
@@ -392,19 +391,19 @@ public class LogScriptEngine {
         if (GUI.isVisualized()) {
           log("[if test was run without visualization, COOJA would now have been terminated]\n");
           stopSimulation = true;
-          simulation.scheduleEvent(stopSimulationEvent, simulation.getSimulationTime());
+          simulation.invokeSimulationThread(stopSimulationRunnable);
         } else {
           quitCooja = true;
-          simulation.scheduleEvent(quitEvent, simulation.getSimulationTime());
+          simulation.invokeSimulationThread(quitRunnable);
         }
 
         semaphoreSim.release(100);
         throw new RuntimeException("test script killed");
       }
 
-      public void generateMessage(long delay, final String msg) {
+      public void generateMessage(final long delay, final String msg) {
         final Mote currentMote = (Mote) engine.get("mote");
-        TimeEvent generateEvent = new TimeEvent(0) {
+        final TimeEvent generateEvent = new TimeEvent(0) {
           public void execute(long t) {
             if (scriptThread == null ||
                 !scriptThread.isAlive()) {
@@ -422,9 +421,13 @@ public class LogScriptEngine {
             stepScript();
           }
         };
-        simulation.scheduleEvent(
-            generateEvent,
-            simulation.getSimulationTime() + delay*Simulation.MILLISECOND);
+        simulation.invokeSimulationThread(new Runnable() {
+          public void run() {
+            simulation.scheduleEvent(
+                generateEvent,
+                simulation.getSimulationTime() + delay*Simulation.MILLISECOND);
+          }
+        });
       }
     });
 
@@ -444,14 +447,14 @@ public class LogScriptEngine {
       stepScript();
     }
   };
-  private TimeEvent stopSimulationEvent = new TimeEvent(0) {
-    public void execute(long time) {
+  private Runnable stopSimulationRunnable = new Runnable() {
+    public void run() {
       simulation.stopSimulation();
       timeoutEvent.remove();
     }
   };
-  private TimeEvent quitEvent = new TimeEvent(0) {
-    public void execute(long time) {
+  private Runnable quitRunnable = new Runnable() {
+    public void run() {
       simulation.stopSimulation();
       new Thread() {
         public void run() {

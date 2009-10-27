@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ContikiRS232.java,v 1.10 2009/06/15 14:40:28 fros4943 Exp $
+ * $Id: ContikiRS232.java,v 1.11 2009/10/27 10:11:17 fros4943 Exp $
  */
 
 package se.sics.cooja.contikimote.interfaces;
@@ -119,8 +119,8 @@ public class ContikiRS232 extends SerialUI implements ContikiMoteInterface, Poll
   public void writeString(String message) {
     final byte[] dataToAppend = message.getBytes();
 
-    TimeEvent writeStringEvent = new MoteTimeEvent(mote, 0) {
-      public void execute(long t) {
+    mote.getSimulation().invokeSimulationThread(new Runnable() {
+      public void run() {
         /* Append to existing buffer */
         int oldSize = moteMem.getIntValueOf("simSerialReceivingLength");
         int newSize = oldSize + dataToAppend.length;
@@ -135,13 +135,9 @@ public class ContikiRS232 extends SerialUI implements ContikiMoteInterface, Poll
         moteMem.setByteArray("simSerialReceivingData", newData);
 
         moteMem.setByteValueOf("simSerialReceivingFlag", (byte) 1);
-        mote.scheduleImmediateWakeup();
+        mote.requestImmediateWakeup();
       }
-    };
-    mote.getSimulation().scheduleEvent(
-        writeStringEvent,
-        mote.getSimulation().getSimulationTime()
-    );
+    });
   }
 
   public double energyConsumption() {
@@ -196,13 +192,17 @@ public class ContikiRS232 extends SerialUI implements ContikiMoteInterface, Poll
 
         /* Reschedule us if more bytes are available */
         mote.getSimulation().scheduleEvent(this, t);
-        mote.scheduleImmediateWakeup();
+        mote.requestImmediateWakeup();
       }
     };
-    mote.getSimulation().scheduleEvent(
-        pendingBytesEvent,
-        mote.getSimulation().getSimulationTime()
-    );
+    mote.getSimulation().invokeSimulationThread(new Runnable() {
+      public void run() {
+        mote.getSimulation().scheduleEvent(
+            pendingBytesEvent,
+            mote.getSimulation().getSimulationTime()
+        );
+      }
+    });
   }
 
   public void writeByte(final byte b) {
@@ -245,13 +245,17 @@ public class ContikiRS232 extends SerialUI implements ContikiMoteInterface, Poll
 
         /* Reschedule us if more bytes are available */
         mote.getSimulation().scheduleEvent(this, t);
-        mote.scheduleImmediateWakeup();
+        mote.requestImmediateWakeup();
       }
     };
-    mote.getSimulation().scheduleEvent(
-        pendingBytesEvent,
-        mote.getSimulation().getSimulationTime()
-    );
+    mote.getSimulation().invokeSimulationThread(new Runnable() {
+      public void run() {
+        mote.getSimulation().scheduleEvent(
+            pendingBytesEvent,
+            mote.getSimulation().getSimulationTime()
+        );
+      }
+    });
   }
 
 }

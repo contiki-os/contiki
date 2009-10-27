@@ -26,38 +26,44 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: SkySerial.java,v 1.16 2009/06/02 09:34:59 fros4943 Exp $
+ * $Id: SkySerial.java,v 1.17 2009/10/27 10:14:35 fros4943 Exp $
  */
 
 package se.sics.cooja.mspmote.interfaces;
 
-import java.util.*;
+import java.util.Vector;
 
 import org.apache.log4j.Logger;
 
-import se.sics.cooja.*;
+import se.sics.cooja.ClassDescription;
+import se.sics.cooja.Mote;
+import se.sics.cooja.Simulation;
 import se.sics.cooja.TimeEvent;
-import se.sics.mspsim.core.*;
 import se.sics.cooja.dialogs.SerialUI;
 import se.sics.cooja.interfaces.SerialPort;
 import se.sics.cooja.mspmote.SkyMote;
+import se.sics.mspsim.core.IOUnit;
+import se.sics.mspsim.core.USART;
+import se.sics.mspsim.core.USARTListener;
 
 /**
  * @author Fredrik Osterlind
  */
 @ClassDescription("Serial port")
 public class SkySerial extends SerialUI implements SerialPort {
-  private static final long DELAY_INCOMING_DATA = 69; /* Corresponds to 115200 bit/s */
+  private static final long DELAY_INCOMING_DATA = 69; /* 115200 bit/s */
   
   private static Logger logger = Logger.getLogger(SkySerial.class);
 
+  private Simulation simulation;
   private SkyMote mote;
   private USART usart;
   
   private Vector<Byte> incomingData = new Vector<Byte>();
-
+ 
   public SkySerial(Mote mote) {
     this.mote = (SkyMote) mote;
+    this.simulation = mote.getSimulation();
 
     /* Listen to port writes */
     IOUnit ioUnit = this.mote.getCPU().getIOUnit("USART 1");
@@ -78,7 +84,25 @@ public class SkySerial extends SerialUI implements SerialPort {
 
   public void writeByte(byte b) {
     incomingData.add(b);
-    mote.getSimulation().scheduleEvent(writeDataEvent, mote.getSimulation().getSimulationTime());
+    if (writeDataEvent.isScheduled()) {
+      return;
+    }
+
+    /* Simulation thread: schedule immediately */
+    if (simulation.isSimulationThread()) {
+      simulation.scheduleEvent(writeDataEvent, simulation.getSimulationTime());
+      return;
+    }
+    
+    /* Non-simulation thread: poll */
+    simulation.invokeSimulationThread(new Runnable() {
+      public void run() {
+        if (writeDataEvent.isScheduled()) {
+          return;
+        }
+        simulation.scheduleEvent(writeDataEvent, simulation.getSimulationTime());
+      }
+    });
   }
 
   public void writeString(String s) {
@@ -109,13 +133,14 @@ public class SkySerial extends SerialUI implements SerialPort {
       b = incomingData.remove(0);
     }
     usart.byteReceived(b);
+    mote.requestImmediateWakeup();
   }
 
   private TimeEvent writeDataEvent = new TimeEvent(0) {
     public void execute(long t) {
       tryWriteNextByte();
       if (!incomingData.isEmpty()) {
-        mote.getSimulation().scheduleEvent(this, t+DELAY_INCOMING_DATA);
+        simulation.scheduleEvent(this, t+DELAY_INCOMING_DATA);
       }
     }
   };
@@ -123,5 +148,4 @@ public class SkySerial extends SerialUI implements SerialPort {
   public Mote getMote() {
     return mote;
   }
-
 }
