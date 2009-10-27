@@ -87,7 +87,7 @@
   <plugin>
     se.sics.cooja.plugins.ScriptRunner
     <plugin_config>
-      <script>TIMEOUT(60000);
+      <script>TIMEOUT(80000);
 
 fileOK = null;
 gcOK = null;
