@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: shell-checkpoint.c,v 1.1 2009/02/04 17:49:15 fros4943 Exp $
+ * $Id: shell-checkpoint.c,v 1.2 2009/10/27 10:46:24 fros4943 Exp $
  */
 
 #include "contiki.h"
@@ -69,9 +69,10 @@ PROCESS_THREAD(shell_checkpoint_process, ev, data)
     shell_output_str(&checkpoint_command,
              "checkpoint: could not open file for writing: ", data);
   } else {
-    shell_output_str(&rollback_command, "checkpoint to: ", data);
+    shell_output_str(&checkpoint_command, "checkpoint to: ", data);
     checkpoint_checkpoint(fd);
     cfs_close(fd);
+    shell_output_str(&checkpoint_command, "checkpointing done", "");
   }
 
   PROCESS_END();
