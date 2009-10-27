@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: MspCodeWatcher.java,v 1.20 2009/09/23 08:22:36 fros4943 Exp $
+ * $Id: MspCodeWatcher.java,v 1.21 2009/10/27 08:52:49 fros4943 Exp $
  */
 
 package se.sics.cooja.mspmote.plugins;
@@ -176,9 +176,6 @@ public class MspCodeWatcher extends VisPlugin {
     JButton button = new JButton(stepAction);
     stepAction.putValue(Action.NAME, "Step instruction");
     controlPanel.add(button);
-    button = new JButton(untilAction);
-    untilAction.putValue(Action.NAME, "Until function return");
-    /*controlPanel.add(button);*/
 
     
     /* Main components: assembler and C code + breakpoints (center) */
@@ -210,11 +207,9 @@ public class MspCodeWatcher extends VisPlugin {
       public void update(Observable obs, Object obj) {
         if (!simulation.isRunning()) {
           stepAction.setEnabled(true);
-          untilAction.setEnabled(true);
           updateInfo();
         } else {
           stepAction.setEnabled(false);
-          untilAction.setEnabled(false);
         }
       }
     });
@@ -605,60 +600,10 @@ public class MspCodeWatcher extends VisPlugin {
   private AbstractAction stepAction = new AbstractAction() {
     public void actionPerformed(ActionEvent e) {
       try {
-        mspMote.getCPU().step(mspMote.getCPU().cycles+1);
+        mspMote.getCPU().stepInstructions(1);
       } catch (EmulationException ex) {
         logger.fatal("Error: ", ex);
       }
-      updateInfo();
-    }
-  };
-
-  private AbstractAction untilAction = new AbstractAction() {
-    public void actionPerformed(ActionEvent e) {
-      /* XXX TODO Implement me */
-      final int max = 10000;
-      int count=0;
-      int pc, instruction;
-      MSP430 cpu = mspMote.getCPU();
-      int depth = 0;
-
-      /* Extract function name */
-      DebugInfo debugInfo = mspMote.getELF().getDebugInfo(mspMote.getCPU().reg[MSP430.PC]);
-      if (debugInfo == null || debugInfo.getFunction() == null) {
-        logger.fatal("Unknown function");
-        return;
-      }
-      String functionName = debugInfo.getFunction().split(":")[0];
-      logger.info("Function: '" + functionName + "'");
-
-      pc = cpu.readRegister(MSP430Core.PC);
-      instruction = cpu.memory[pc] + (cpu.memory[pc + 1] << 8);
-      if (instruction == MSP430.RETURN) {
-        logger.fatal("Already at return instruction");
-        return;
-      }
-
-      try {
-        while (count++ < max) {
-          cpu.step(mspMote.getCPU().cycles+1);
-          pc = cpu.readRegister(MSP430Core.PC);
-          instruction = cpu.memory[pc] + (cpu.memory[pc + 1] << 8);
-          if ((instruction & 0xff80) == MSP430.CALL) {
-            depth++;
-          } else if (instruction == MSP430.RETURN) {
-            depth--;
-            if (depth < 0) {
-              updateInfo();
-              return;
-            }
-
-          }
-        }
-      } catch (EmulationException e1) {
-        logger.fatal("Error: ", e1);
-      }
-
-      logger.fatal("Function '" + functionName + "' did not return within " + max + " instructions");
       updateInfo();
     }
   };
