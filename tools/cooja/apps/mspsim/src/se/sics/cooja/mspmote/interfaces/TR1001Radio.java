@@ -26,24 +26,39 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: TR1001Radio.java,v 1.13 2009/05/26 14:33:30 fros4943 Exp $
+ * $Id: TR1001Radio.java,v 1.14 2009/10/27 10:14:35 fros4943 Exp $
  */
 
 package se.sics.cooja.mspmote.interfaces;
 
-import java.util.*;
-import javax.swing.*;
 import java.awt.BorderLayout;
 import java.awt.GridLayout;
-import java.awt.event.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.util.ArrayDeque;
+import java.util.Collection;
+import java.util.Observable;
+import java.util.Observer;
+
+import javax.swing.JButton;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+
 import org.apache.log4j.Logger;
 import org.jdom.Element;
 
-import se.sics.mspsim.core.*;
-import se.sics.cooja.*;
+import se.sics.cooja.ClassDescription;
+import se.sics.cooja.Mote;
+import se.sics.cooja.RadioPacket;
+import se.sics.cooja.Simulation;
 import se.sics.cooja.TimeEvent;
-import se.sics.cooja.interfaces.*;
+import se.sics.cooja.interfaces.CustomDataRadio;
+import se.sics.cooja.interfaces.Position;
+import se.sics.cooja.interfaces.Radio;
 import se.sics.cooja.mspmote.ESBMote;
+import se.sics.mspsim.core.IOUnit;
+import se.sics.mspsim.core.USART;
+import se.sics.mspsim.core.USARTListener;
 
 /**
  * TR1001 radio interface on ESB platform. Assumes driver specifics such as
@@ -133,9 +148,9 @@ public class TR1001Radio extends Radio implements USARTListener,
 
     /* Convert to TR1001 packet data */
     TR1001RadioByte[] byteArr = TR1001RadioPacketConverter.fromCoojaToTR1001(packet);
-    final ArrayList<TR1001RadioByte> byteList = new ArrayList<TR1001RadioByte>();
+    final ArrayDeque<TR1001RadioByte> byteList = new ArrayDeque<TR1001RadioByte>();
     for (TR1001RadioByte b : byteArr) {
-      byteList.add(b);
+      byteList.addLast(b);
     }
 
     /* Feed incoming bytes to radio "slowly" via time events */
@@ -143,10 +158,11 @@ public class TR1001Radio extends Radio implements USARTListener,
       public void execute(long t) {
         /* Stop receiving data when buffer is empty */
         if (byteList.isEmpty() || isInterfered) {
+          byteList.clear();
           return;
         }
 
-        TR1001RadioByte b = byteList.remove(0);
+        TR1001RadioByte b = byteList.pop();
         radioUSART.byteReceived(b.getByte());
 
         mote.getSimulation().scheduleEvent(this, t + DELAY_BETWEEN_BYTES);
@@ -196,9 +212,11 @@ public class TR1001Radio extends Radio implements USARTListener,
 
     // Remember recent radio activity
     millisSinceLastSend = 0;
-    mote.getSimulation().scheduleEvent(
-        followupTransmissionEvent,
-        mote.getSimulation().getSimulationTime() + Simulation.MILLISECOND);
+    if (!followupTransmissionEvent.isScheduled()) {
+      mote.getSimulation().scheduleEvent(
+          followupTransmissionEvent,
+          mote.getSimulation().getSimulationTime() + Simulation.MILLISECOND);
+    }
 
     if (outgoingDataLength >= outgoingData.length) {
       logger.warn("----- TR1001 DROPPING OUTGOING BYTE (buffer overflow) -----");

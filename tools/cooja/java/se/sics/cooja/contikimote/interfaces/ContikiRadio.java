@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ContikiRadio.java,v 1.29 2009/09/17 11:06:35 fros4943 Exp $
+ * $Id: ContikiRadio.java,v 1.30 2009/10/27 10:11:17 fros4943 Exp $
  */
 
 package se.sics.cooja.contikimote.interfaces;
@@ -223,7 +223,7 @@ public class ContikiRadio extends Radio implements ContikiMoteInterface, PolledA
       // Unlock (if locked)
       myMoteMemory.setByteValueOf("simReceiving", (byte) 0);
 
-      mote.scheduleImmediateWakeup();
+      mote.requestImmediateWakeup();
 
       lastEventTime = mote.getSimulation().getSimulationTime();
       lastEvent = RadioEvent.RECEPTION_FINISHED;
@@ -241,7 +241,7 @@ public class ContikiRadio extends Radio implements ContikiMoteInterface, PolledA
 
     lastEventTime = mote.getSimulation().getSimulationTime();
     lastEvent = RadioEvent.RECEPTION_FINISHED;
-    mote.scheduleImmediateWakeup();
+    mote.requestImmediateWakeup();
     this.setChanged();
     this.notifyObservers();
   }
@@ -308,7 +308,7 @@ public class ContikiRadio extends Radio implements ContikiMoteInterface, PolledA
    * data to the mote.
    */
   private void lockInReceivingMode() {
-    mote.scheduleImmediateWakeup();
+    mote.requestImmediateWakeup();
 
     // Lock core radio in receiving loop
     myMoteMemory.setByteValueOf("simReceiving", (byte) 1);

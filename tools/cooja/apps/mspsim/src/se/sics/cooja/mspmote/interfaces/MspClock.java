@@ -26,20 +26,22 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: MspClock.java,v 1.9 2009/05/26 14:31:07 fros4943 Exp $
+ * $Id: MspClock.java,v 1.10 2009/10/27 10:14:35 fros4943 Exp $
  */
 
 package se.sics.cooja.mspmote.interfaces;
 
 import java.util.Collection;
+
 import javax.swing.JPanel;
+
 import org.apache.log4j.Logger;
 import org.jdom.Element;
 
-import se.sics.cooja.*;
+import se.sics.cooja.ClassDescription;
+import se.sics.cooja.Mote;
+import se.sics.cooja.Simulation;
 import se.sics.cooja.interfaces.Clock;
-import se.sics.cooja.mspmote.MspMote;
-import se.sics.mspsim.core.MSP430;
 
 /**
  * @author Fredrik Osterlind
@@ -48,12 +50,12 @@ import se.sics.mspsim.core.MSP430;
 public class MspClock extends Clock {
   private static Logger logger = Logger.getLogger(MspClock.class);
 
-  private MspMote myMote;
-  private MSP430 cpu;
+  private Simulation simulation;
+  
+  private long timeDrift; /* Microseconds */
 
   public MspClock(Mote mote) {
-    myMote = (MspMote) mote;
-    cpu = myMote.getCPU();
+    simulation = mote.getSimulation();
   }
 
   public void setTime(long newTime) {
@@ -61,19 +63,19 @@ public class MspClock extends Clock {
   }
 
   public long getTime() {
-    long time = (long) ((double)cpu.cycles * Simulation.MILLISECOND / MspMote.NR_CYCLES_PER_MSEC);
-    return time > 0 ? time : 0;
+    return simulation.getSimulationTime() + timeDrift;
   }
 
   public void setDrift(long drift) {
-    myMote.usDrift = drift;
+    timeDrift = drift;
   }
 
   public long getDrift() {
-    return myMote.usDrift;
+    return timeDrift;
   }
 
   public JPanel getInterfaceVisualizer() {
+    /* TODO Show current CPU speed */
     return null;
   }
 

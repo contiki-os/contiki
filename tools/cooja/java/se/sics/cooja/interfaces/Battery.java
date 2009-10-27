@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: Battery.java,v 1.9 2009/09/17 11:08:07 fros4943 Exp $
+ * $Id: Battery.java,v 1.10 2009/10/27 10:11:17 fros4943 Exp $
  */
 
 package se.sics.cooja.interfaces;
@@ -127,7 +127,7 @@ public class Battery extends MoteInterface implements PolledAfterAllTicks {
 
     /* Check if we are out of energy */
     if (getEnergyConsumption() > INITIAL_ENERGY) {
-      mote.scheduleImmediateWakeup();
+      mote.requestImmediateWakeup();
     }
 
     setChanged();

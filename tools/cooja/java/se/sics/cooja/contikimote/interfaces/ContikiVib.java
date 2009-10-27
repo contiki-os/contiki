@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ContikiVib.java,v 1.7 2009/05/26 14:24:20 fros4943 Exp $
+ * $Id: ContikiVib.java,v 1.8 2009/10/27 10:11:17 fros4943 Exp $
  */
 
 package se.sics.cooja.contikimote.interfaces;
@@ -119,7 +119,7 @@ public class ContikiVib extends MoteInterface implements ContikiMoteInterface {
     if (moteMem.getByteValueOf("simVibIsActive") == 1) {
       moteMem.setByteValueOf("simVibChanged", (byte) 1);
 
-      mote.scheduleImmediateWakeup();
+      mote.requestImmediateWakeup();
     }
   }
 
