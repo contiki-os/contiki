@@ -1,5 +1,5 @@
 /* -*- C -*- */
-/* @(#)$Id: contiki-conf.h,v 1.60 2009/10/18 07:15:33 adamdunkels Exp $ */
+/* @(#)$Id: contiki-conf.h,v 1.61 2009/10/27 15:25:02 fros4943 Exp $ */
 
 #ifndef CONTIKI_CONF_H
 #define CONTIKI_CONF_H
@@ -249,6 +249,7 @@ typedef unsigned long off_t;
 
 #define SPI_ENABLE()    ( P4OUT &= ~BV(CSN) ) /* ENABLE CSn (active low) */
 #define SPI_DISABLE()   ( P4OUT |=  BV(CSN) ) /* DISABLE CSn (active low) */
+#define SPI_ENABLED()   ( (P4OUT & BV(CSN)) != BV(CSN) )
 
 #ifdef PROJECT_CONF_H
 #include PROJECT_CONF_H
