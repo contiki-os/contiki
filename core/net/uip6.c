@@ -41,7 +41,7 @@
  *
  * This file is part of the uIP TCP/IP stack.
  *
- * $Id: uip6.c,v 1.6 2009/05/19 11:54:50 nvt-se Exp $
+ * $Id: uip6.c,v 1.7 2009/10/27 22:34:08 adamdunkels Exp $
  *
  */
 
@@ -901,6 +901,12 @@ uip_process(u8_t flag)
       uip_flags = UIP_POLL;
       UIP_APPCALL();
       goto appsend;
+#if UIP_ACTIVE_OPEN
+    } else if((uip_connr->tcpstateflags & UIP_TS_MASK) == UIP_SYN_SENT) {
+      /* In the SYN_SENT state, we retransmit out SYN. */
+      UIP_TCP_BUF->flags = 0;
+      goto tcp_send_syn;
+#endif /* UIP_ACTIVE_OPEN */
     }
     goto drop;
 #endif /* UIP_TCP */
