@@ -24,7 +24,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * $Id: GUI.java,v 1.144 2009/09/18 16:13:31 fros4943 Exp $
+ * $Id: GUI.java,v 1.145 2009/10/27 09:31:22 fros4943 Exp $
  */
 
 package se.sics.cooja;
@@ -1959,6 +1959,21 @@ public class GUI extends Observable {
     pluginClassesTemporary.clear();
   }
 
+  /**
+   * Returns started plugin with given class name, if any.
+   * 
+   * @param classname Class name
+   * @return Plugin instance
+   */
+  public Plugin getStartedPlugin(String classname) {
+    for (Plugin p: startedPlugins) {
+      if (p.getClass().getName().equals(classname)) {
+        return p;
+      }
+    }
+    return null;
+  }
+  
   /**
    * Return a mote plugins submenu for given mote.
    *
