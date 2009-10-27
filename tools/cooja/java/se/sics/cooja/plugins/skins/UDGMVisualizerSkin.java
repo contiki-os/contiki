@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: UDGMVisualizerSkin.java,v 1.8 2009/09/17 12:10:28 fros4943 Exp $
+ * $Id: UDGMVisualizerSkin.java,v 1.9 2009/10/27 10:14:58 fros4943 Exp $
  */
 
 package se.sics.cooja.plugins.skins;
@@ -162,16 +162,16 @@ public class UDGMVisualizerSkin implements VisualizerSkin {
 
     txRangeSpinner.addChangeListener(new ChangeListener() {
       public void stateChanged(ChangeEvent e) {
-        radioMedium.TRANSMITTING_RANGE = ((SpinnerNumberModel)
-            txRangeSpinner.getModel()).getNumber().doubleValue();
+        radioMedium.setTxRange(((SpinnerNumberModel)
+            txRangeSpinner.getModel()).getNumber().doubleValue());
         visualizer.repaint();
       }
     });
 
     interferenceRangeSpinner.addChangeListener(new ChangeListener() {
       public void stateChanged(ChangeEvent e) {
-        radioMedium.INTERFERENCE_RANGE = ((SpinnerNumberModel)
-            interferenceRangeSpinner.getModel()).getNumber().doubleValue();
+        radioMedium.setInterferenceRange(((SpinnerNumberModel)
+            interferenceRangeSpinner.getModel()).getNumber().doubleValue());
         visualizer.repaint();
       }
     });
