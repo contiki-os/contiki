@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ESBMote.java,v 1.10 2009/09/17 13:19:08 fros4943 Exp $
+ * $Id: ESBMote.java,v 1.11 2009/10/27 10:02:48 fros4943 Exp $
  */
 
 package se.sics.cooja.mspmote;
@@ -57,6 +57,7 @@ public class ESBMote extends MspMote {
   protected boolean initEmulator(File fileELF) {
     try {
       esbNode = new ESBNode();
+      registry = esbNode.getRegistry();
       prepareMote(fileELF, esbNode);
 
     } catch (Exception e) {
