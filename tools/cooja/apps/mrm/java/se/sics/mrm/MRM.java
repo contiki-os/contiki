@@ -26,33 +26,41 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: MRM.java,v 1.9 2009/02/24 15:05:36 fros4943 Exp $
+ * $Id: MRM.java,v 1.10 2009/10/27 10:14:09 fros4943 Exp $
  */
 
 package se.sics.mrm;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.Hashtable;
+import java.util.Observable;
+import java.util.Observer;
+import java.util.Random;
+
 import org.apache.log4j.Logger;
 import org.jdom.Element;
 
-import se.sics.cooja.*;
-import se.sics.cooja.interfaces.*;
+import se.sics.cooja.ClassDescription;
+import se.sics.cooja.RadioConnection;
+import se.sics.cooja.Simulation;
+import se.sics.cooja.interfaces.Position;
+import se.sics.cooja.interfaces.Radio;
 import se.sics.cooja.radiomediums.AbstractRadioMedium;
 
 /**
  * This is the main class of the COOJA Multi-path Ray-tracing Medium (MRM)
  * package.
  *
- * MRM is meant to be an alternative to the simpler radio mediums available in
+ * MRM is an alternative to the simpler radio mediums available in
  * COOJA. It is packet based and uses a 2D ray-tracing approach to approximate
- * signal strength attenuations between simulated radios. Currently the
+ * signal strength attenuation between simulated radios. Currently the
  * ray-tracing only supports reflections and refractions through homogeneous
  * obstacles.
  *
- * MRM provides a number of plugins for example a plugin for visualizing radio
- * environments, and a plugin for configuring the radio medium.
+ * MRM registers two plugins: a plugin for visualizing the radio
+ * environments, and a plugin for configuring the radio medium parameters.
  *
- * Future work includes adding diffractions and scattering support.
+ * Future work includes adding support for diffraction and scattering.
  *
  * @author Fredrik Osterlind
  */
@@ -61,7 +69,6 @@ public class MRM extends AbstractRadioMedium {
   private static Logger logger = Logger.getLogger(MRM.class);
 
   private ChannelModel currentChannelModel = null;
-  private Simulation mySimulation = null;
 
   private Random random = null;
 
@@ -101,6 +108,9 @@ public class MRM extends AbstractRadioMedium {
         continue;
       }
 
+      /* TODO Use DGRM to cache link information.
+       * (No need to loop over all receivers) */
+      
       double listeningPositionX = listeningRadio.getPosition().getXCoordinate();
       double listeningPositionY = listeningRadio.getPosition().getYCoordinate();
 
@@ -229,13 +239,11 @@ public class MRM extends AbstractRadioMedium {
   }
 
   public Collection<Element> getConfigXML() {
-    // Forwarding to current channel model
     return currentChannelModel.getConfigXML();
   }
 
   public boolean setConfigXML(Collection<Element> configXML,
       boolean visAvailable) {
-    // Forwarding to current channel model
     return currentChannelModel.setConfigXML(configXML);
   }
 
@@ -255,8 +263,7 @@ public class MRM extends AbstractRadioMedium {
   /**
    * Deletes an earlier registered setting observer.
    *
-   * @param osb
-   *          Earlier registered observer
+   * @param obs Earlier registered observer
    */
   public void deleteSettingsObserver(Observer obs) {
     settingsObservable.deleteObserver(obs);
@@ -276,7 +283,7 @@ public class MRM extends AbstractRadioMedium {
    * @return Number of registered radios.
    */
   public int getRegisteredRadioCount() {
-    return getRegisteredRadios().size();
+    return getRegisteredRadios().length;
   }
 
   /**
@@ -286,7 +293,7 @@ public class MRM extends AbstractRadioMedium {
    * @return Radio at given index
    */
   public Radio getRegisteredRadio(int index) {
-    return getRegisteredRadios().get(index);
+    return getRegisteredRadios()[index];
   }
 
   /**
