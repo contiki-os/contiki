@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006, Swedish Institute of Computer Science.
+ * Copyright (c) 2009, Swedish Institute of Computer Science.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -26,151 +26,221 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: UDGM.java,v 1.25 2009/05/26 14:17:29 fros4943 Exp $
+ * $Id: UDGM.java,v 1.26 2009/10/27 10:10:03 fros4943 Exp $
  */
 
 package se.sics.cooja.radiomediums;
 
-import java.util.*;
-import org.jdom.Element;
-import org.apache.log4j.Logger;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Observable;
+import java.util.Observer;
+import java.util.Random;
 
-import se.sics.cooja.*;
+import org.apache.log4j.Logger;
+import org.jdom.Element;
+
+import se.sics.cooja.ClassDescription;
+import se.sics.cooja.Mote;
+import se.sics.cooja.RadioConnection;
+import se.sics.cooja.Simulation;
+import se.sics.cooja.SimEventCentral.MoteCountListener;
 import se.sics.cooja.contikimote.interfaces.ContikiRadio;
-import se.sics.cooja.interfaces.*;
+import se.sics.cooja.interfaces.Position;
+import se.sics.cooja.interfaces.Radio;
 import se.sics.cooja.plugins.Visualizer;
 import se.sics.cooja.plugins.skins.UDGMVisualizerSkin;
+import se.sics.cooja.radiomediums.DirectedGraphMedium.DestinationRadio;
 
 /**
- * The Unit Disk Graph medium has two different range parameters; one for
- * transmitting and one for interfering other transmissions.
- *
- * The radio medium supports both byte and packet radios.
- *
- * The registered radios' signal strengths are updated whenever the radio medium
- * changes. There are three fixed levels: no surrounding traffic heard, noise
- * heard and data heard.
- *
- * The radio output power indicator (0-100) is used in a very simple way; the
- * total transmission (and interfering) range is multiplied with [power_ind]%.
+ * The Unit Disk Graph Radio Medium abstracts radio transmission range as circles.
+ * 
+ * It uses two different range parameters: one for transmissions, and one for
+ * interfering with other radios and transmissions.
+ * 
+ * Both radio ranges grow with the radio output power indicator.
+ * The range parameters are multiplied with [output power]/[maximum output power].
+ * For example, if the transmission range is 100m, the current power indicator 
+ * is 50, and the maximum output power indicator is 100, then the resulting transmission 
+ * range becomes 50m.
+ * 
+ * For radio transmissions within range, two different success ratios are used [0.0-1.0]:
+ * one for successful transmissions, and one for successful receptions.
+ * If the transmission fails, no radio will hear the transmission.
+ * If one of receptions fail, only that receiving radio will not receive the transmission,
+ * but will be interfered throughout the entire radio connection.  
+ * 
+ * The received radio packet signal strength grows inversely with the distance to the
+ * transmitter.
  *
  * @see #SS_STRONG
  * @see #SS_WEAK
  * @see #SS_NOTHING
  *
- * @see UDGMVisualizerSkin
+ * @see DirectedGraphMedium, UDGMVisualizerSkin
  * @author Fredrik Osterlind
  */
 @ClassDescription("Unit Disk Graph Medium (UDGM)")
 public class UDGM extends AbstractRadioMedium {
   private static Logger logger = Logger.getLogger(UDGM.class);
 
-  /* Signal strengths in dBm.
-   * Approx. values measured on TmoteSky */
-  public static final double SS_NOTHING = -100;
-  public static final double SS_STRONG = -10;
-  public static final double SS_WEAK = -95;
-
   public double SUCCESS_RATIO_TX = 1.0; /* Success ratio of TX. If this fails, no radios receive the packet */
-  public double SUCCESS_RATIO_RX = 1.0; /* Success ratio of RX. If this fails, a single radio does not receive the packet */
+  public double SUCCESS_RATIO_RX = 1.0; /* Success ratio of RX. If this fails, the single affected receiver does not receive the packet */
   public double TRANSMITTING_RANGE = 50; /* Transmission range. */
   public double INTERFERENCE_RANGE = 100; /* Interference range. Ignored if below transmission range. */
 
-  private Simulation mySimulation;
+  private Simulation simulation;
+  private DirectedGraphMedium dgrm; /* Used only for efficient destination lookup */
 
   private Random random = null;
 
   public UDGM(Simulation simulation) {
     super(simulation);
+    this.simulation = simulation;
+    random = simulation.getRandomGenerator();
+    dgrm = new DirectedGraphMedium() {
+      protected void analyzeEdges() {
+        /* Create edges according to distances.
+         * XXX May be slow for mobile networks */
+        clearEdges();
+        for (Radio source: UDGM.this.getRegisteredRadios()) {
+          Position sourcePos = source.getPosition();
+          for (Radio dest: UDGM.this.getRegisteredRadios()) {
+            Position destPos = dest.getPosition();
+            /* Ignore ourselves */
+            if (source == dest) {
+              continue;
+            }
+            double distance = sourcePos.getDistanceTo(destPos);
+            if (distance < Math.max(TRANSMITTING_RANGE, INTERFERENCE_RANGE)) {
+              /* Add potential destination */
+              addEdge(
+                  new DirectedGraphMedium.Edge(source, 
+                      new DestinationRadio(dest)));
+            }
+          }
+        }
+        super.analyzeEdges();
+      }
+    };
 
-    /* Register visualizer skin */
-    /* TODO Should be unregistered when radio medium is removed */
+    /* Register as position observer.
+     * If any positions change, re-analyze potential receivers. */
+    final Observer positionObserver = new Observer() {
+      public void update(Observable o, Object arg) {
+        dgrm.requestEdgeAnalysis();
+      }
+    };
+    /* Re-analyze potential receivers if radios are added/removed. */
+    simulation.getEventCentral().addMoteCountListener(new MoteCountListener() {
+      public void moteWasAdded(Mote mote) {
+        mote.getInterfaces().getPosition().addObserver(positionObserver);
+        dgrm.requestEdgeAnalysis();
+      }
+      public void moteWasRemoved(Mote mote) {
+        mote.getInterfaces().getPosition().deleteObserver(positionObserver);
+        dgrm.requestEdgeAnalysis();
+      }
+    });
+    for (Mote mote: simulation.getMotes()) {
+      mote.getInterfaces().getPosition().addObserver(positionObserver);
+    }
+    dgrm.requestEdgeAnalysis();
+
+    /* Register visualizer skin.
+     * TODO Should be unregistered when radio medium is removed */
     Visualizer.registerVisualizerSkin(UDGMVisualizerSkin.class);
-
-    mySimulation = simulation;
-    random = mySimulation.getRandomGenerator();
   }
 
-  public RadioConnection createConnections(Radio sendingRadio) {
-    Position sendingPosition = sendingRadio.getPosition();
-    RadioConnection newConnection = new RadioConnection(sendingRadio);
+  public void setTxRange(double r) {
+    TRANSMITTING_RANGE = r;
+    dgrm.requestEdgeAnalysis();
+  }
 
-    // Fetch current output power indicator (scale with as percent)
-    double moteTransmissionRange = TRANSMITTING_RANGE
-        * ((double) sendingRadio.getCurrentOutputPowerIndicator() / (double) sendingRadio.getOutputPowerIndicatorMax());
-    double moteInterferenceRange = INTERFERENCE_RANGE
-        * ((double) sendingRadio.getCurrentOutputPowerIndicator() / (double) sendingRadio.getOutputPowerIndicatorMax());
+  public void setInterferenceRange(double r) {
+    INTERFERENCE_RANGE = r;
+    dgrm.requestEdgeAnalysis();
+  }
 
-    /* Fail transmission randomly (affects all receiving nodes) */
+  public RadioConnection createConnections(Radio sender) {
+    RadioConnection newConnection = new RadioConnection(sender);
+
+    /* Fail radio transmission randomly - no radios will hear this transmission */
     if (SUCCESS_RATIO_TX < 1.0 && random.nextDouble() > SUCCESS_RATIO_TX) {
       return newConnection;
     }
 
-    // Loop through all radios
-    for (int listenNr = 0; listenNr < getRegisteredRadios().size(); listenNr++) {
-      Radio listeningRadio = getRegisteredRadios().get(listenNr);
-      Position listeningRadioPosition = listeningRadio.getPosition();
+    /* Calculate ranges: grows with radio output power */
+    double moteTransmissionRange = TRANSMITTING_RANGE
+    * ((double) sender.getCurrentOutputPowerIndicator() / (double) sender.getOutputPowerIndicatorMax());
+    double moteInterferenceRange = INTERFERENCE_RANGE
+    * ((double) sender.getCurrentOutputPowerIndicator() / (double) sender.getOutputPowerIndicatorMax());
 
-      // Ignore sending radio and radios on different channels
-      if (sendingRadio == listeningRadio) {
+    /* Get all potential destination radios */
+    DestinationRadio[] potentialDestinations = dgrm.getPotentialDestinations(sender);
+    if (potentialDestinations == null) {
+      return newConnection;
+    }
+
+    /* Loop through all potential destinations */
+    Position senderPos = sender.getPosition();
+    for (DestinationRadio dest: potentialDestinations) {
+      Radio recv = dest.radio;
+      Position recvPos = recv.getPosition();
+
+      /* Fail if radios are on different (but configured) channels */ 
+      if (sender.getChannel() >= 0 &&
+          recv.getChannel() >= 0 &&
+          sender.getChannel() != recv.getChannel()) {
         continue;
       }
-      if (sendingRadio.getChannel() >= 0 &&
-          listeningRadio.getChannel() >= 0 &&
-          sendingRadio.getChannel() != listeningRadio.getChannel()) {
-        continue;
-      }
-      if (!listeningRadio.isReceiverOn()) {
+
+      /* Fail if radio is turned off */ 
+      if (!recv.isReceiverOn()) {
         /* Special case: allow connection if source is Contiki radio, 
          * and destination is something else (byte radio).
          * Allows cross-level communication with power-saving MACs. */
-        if (sendingRadio instanceof ContikiRadio &&
-            !(listeningRadio instanceof ContikiRadio)) {
+        if (sender instanceof ContikiRadio &&
+            !(recv instanceof ContikiRadio)) {
           /*logger.info("Special case: creating connection to turned off radio");*/
         } else {
           continue;
         }
       }
 
-      double distance = sendingPosition.getDistanceTo(listeningRadioPosition);
-
+      double distance = senderPos.getDistanceTo(recvPos);
       if (distance <= moteTransmissionRange) {
-        // Check if this radio is able to receive transmission
-        if (listeningRadio.isInterfered()) {
-          // Keep interfering radio
-          newConnection.addInterfered(listeningRadio);
+        /* Within transmission range */
 
-        } else if (listeningRadio.isReceiving() ||
+        if (recv.isInterfered()) {
+          /* Was interfered: keep interfering */
+          newConnection.addInterfered(recv);
+
+        } else if (recv.isReceiving() ||
             (SUCCESS_RATIO_RX < 1.0 && random.nextDouble() > SUCCESS_RATIO_RX)) {
-          newConnection.addInterfered(listeningRadio);
+          /* Was receiving, or reception failed: start interfering */
+          newConnection.addInterfered(recv);
+          recv.interfereAnyReception();
 
-          // Start interfering radio
-          listeningRadio.interfereAnyReception();
-
-          // Update connection that is transmitting to this radio
-          RadioConnection existingConn = null;
+          /* Interfere receiver in all other active radio connections */
           for (RadioConnection conn : getActiveConnections()) {
             for (Radio dstRadio : conn.getDestinations()) {
-              if (dstRadio == listeningRadio) {
-                existingConn = conn;
+              if (dstRadio == recv) {
+                conn.removeDestination(recv);
+                conn.addInterfered(recv);
                 break;
               }
             }
           }
-          if (existingConn != null) {
-            // Change radio from receiving to interfered
-            existingConn.removeDestination(listeningRadio);
-            existingConn.addInterfered(listeningRadio);
 
-          }
         } else {
-          // Radio OK to receive
-          newConnection.addDestination(listeningRadio);
+          /* Success: radio starts receiving */
+          newConnection.addDestination(recv);
         }
       } else if (distance <= moteInterferenceRange) {
-        // Interfere radio
-        newConnection.addInterfered(listeningRadio);
-        listeningRadio.interfereAnyReception();
+        /* Within interference range */
+        newConnection.addInterfered(recv);
+        recv.interfereAnyReception();
       }
     }
 
@@ -178,20 +248,16 @@ public class UDGM extends AbstractRadioMedium {
   }
 
   public void updateSignalStrengths() {
-    // // Save old signal strengths
-    // double[] oldSignalStrengths = new double[registeredRadios.size()];
-    // for (int i = 0; i < registeredRadios.size(); i++) {
-    // oldSignalStrengths[i] = registeredRadios.get(i)
-    // .getCurrentSignalStrength();
-    // }
+    /* Override: uses distance as signal strength factor */
 
-    // Reset signal strength on all radios
+    /* Reset signal strengths */
     for (Radio radio : getRegisteredRadios()) {
       radio.setCurrentSignalStrength(SS_NOTHING);
     }
 
-    // Set signal strength on all OK transmissions
-    for (RadioConnection conn : getActiveConnections()) {
+    /* Set signal strength to below strong on destinations */
+    RadioConnection[] conns = getActiveConnections();
+    for (RadioConnection conn : conns) {
       conn.getSource().setCurrentSignalStrength(SS_STRONG);
       for (Radio dstRadio : conn.getDestinations()) {
         double dist = conn.getSource().getPosition().getDistanceTo(dstRadio.getPosition());
@@ -205,8 +271,8 @@ public class UDGM extends AbstractRadioMedium {
       }
     }
 
-    // Set signal strength on all interferences
-    for (RadioConnection conn : getActiveConnections()) {
+    /* Set signal strength to below weak on interfered */
+    for (RadioConnection conn : conns) {
       for (Radio intfRadio : conn.getInterfered()) {
         double dist = conn.getSource().getPosition().getDistanceTo(intfRadio.getPosition());
 
@@ -222,37 +288,23 @@ public class UDGM extends AbstractRadioMedium {
         }
 
         if (!intfRadio.isInterfered()) {
-          // Set to interfered again
+          logger.warn("Radio was not interfered: " + intfRadio);
           intfRadio.interfereAnyReception();
         }
       }
     }
-
-    // // Fetch new signal strengths
-    // double[] newSignalStrengths = new double[registeredRadios.size()];
-    // for (int i = 0; i < registeredRadios.size(); i++) {
-    // newSignalStrengths[i] = registeredRadios.get(i)
-    // .getCurrentSignalStrength();
-    // }
-    //
-    // // Compare new and old signal strengths
-    // for (int i = 0; i < registeredRadios.size(); i++) {
-    // if (oldSignalStrengths[i] != newSignalStrengths[i])
-    // logger.warn("Signal strengths changed on radio[" + i + "]: "
-    // + oldSignalStrengths[i] + " -> " + newSignalStrengths[i]);
-    // }
   }
 
   public Collection<Element> getConfigXML() {
-    Vector<Element> config = new Vector<Element>();
+    ArrayList<Element> config = new ArrayList<Element>();
     Element element;
 
-    // Transmitting range
+    /* Transmitting range */
     element = new Element("transmitting_range");
     element.setText(Double.toString(TRANSMITTING_RANGE));
     config.add(element);
 
-    // Interference range
+    /* Interference range */
     element = new Element("interference_range");
     element.setText(Double.toString(INTERFERENCE_RANGE));
     config.add(element);

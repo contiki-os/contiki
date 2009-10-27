@@ -1,3 +1,34 @@
+/*
+ * Copyright (c) 2009, Swedish Institute of Computer Science.
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions
+ * are met:
+ * 1. Redistributions of source code must retain the above copyright
+ *    notice, this list of conditions and the following disclaimer.
+ * 2. Redistributions in binary form must reproduce the above copyright
+ *    notice, this list of conditions and the following disclaimer in the
+ *    documentation and/or other materials provided with the distribution.
+ * 3. Neither the name of the Institute nor the names of its contributors
+ *    may be used to endorse or promote products derived from this software
+ *    without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE INSTITUTE AND CONTRIBUTORS ``AS IS'' AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED.  IN NO EVENT SHALL THE INSTITUTE OR CONTRIBUTORS BE LIABLE
+ * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+ * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+ * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+ * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+ * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+ * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+ * SUCH DAMAGE.
+ *
+ * $Id: DGRMConfigurator.java,v 1.3 2009/10/27 10:10:03 fros4943 Exp $
+ */
+
 package se.sics.cooja.plugins;
 
 import java.awt.BorderLayout;
@@ -6,6 +37,7 @@ import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
 import java.util.Observable;
 import java.util.Observer;
+
 import javax.swing.DefaultCellEditor;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
@@ -29,8 +61,13 @@ import se.sics.cooja.PluginType;
 import se.sics.cooja.Simulation;
 import se.sics.cooja.VisPlugin;
 import se.sics.cooja.radiomediums.DirectedGraphMedium;
+import se.sics.cooja.radiomediums.DirectedGraphMedium.DGRMDestinationRadio;
 
 /**
+ * Simple user interface for configuring edges for the Directed Graph 
+ * Radio Medium (DGRM).
+ * 
+ * @see DirectedGraphMedium
  * @author Fredrik Osterlind
  */
 @ClassDescription("DGRM Configurator")
@@ -82,11 +119,11 @@ public class DGRMConfigurator extends VisPlugin {
           combo.addItem(0.3);
           combo.addItem(0.2);
           combo.addItem(0.1);
-          combo.addItem(0.1);
           combo.addItem(0.0);
         }
         if (column == IDX_DELAY) {
           combo.removeAllItems();
+          combo.addItem(0);
           combo.addItem(1);
           combo.addItem(2);
           combo.addItem(3);
@@ -190,16 +227,21 @@ public class DGRMConfigurator extends VisPlugin {
     DirectedGraphMedium.Edge newEdge;
     if (dest.getSelectedItem() instanceof Mote) {
       newEdge = new DirectedGraphMedium.Edge(
-          (Mote) source.getSelectedItem(),
-          (Mote) dest.getSelectedItem(),
-          ((Number)ratio.getValue()).doubleValue(),
-          ((Number)delay.getValue()).longValue()
+          ((Mote) source.getSelectedItem()).getInterfaces().getRadio(),
+          new DGRMDestinationRadio(
+              ((Mote) dest.getSelectedItem()).getInterfaces().getRadio(),
+              ((Number)ratio.getValue()).doubleValue(),
+              ((Number)delay.getValue()).longValue()
+          )
       );
     } else {
       newEdge = new DirectedGraphMedium.Edge(
-          (Mote) source.getSelectedItem(),
-          ((Number)ratio.getValue()).doubleValue(),
-          ((Number)delay.getValue()).longValue()
+          ((Mote) source.getSelectedItem()).getInterfaces().getRadio(),
+          new DGRMDestinationRadio(
+              null,
+              ((Number)ratio.getValue()).doubleValue(),
+              ((Number)delay.getValue()).longValue()
+          )
       );
     }
     radioMedium.addEdge(newEdge);
@@ -243,19 +285,19 @@ public class DGRMConfigurator extends VisPlugin {
         if (edge.source == null) {
           return "?";
         }
-        return edge.source;
+        return edge.source.getMote();
       }
       if (column == IDX_DST) {
-        if (edge.dest == null) {
+        if (edge.superDest.toAll) {
           return "ALL";
         }
-        return edge.dest;
+        return edge.superDest.radio.getMote();
       }
       if (column == IDX_RATIO) {
-        return edge.successRatio;
+        return ((DGRMDestinationRadio)edge.superDest).ratio;
       }
       if (column == IDX_DELAY) {
-        return edge.delay / Simulation.MILLISECOND;
+        return ((DGRMDestinationRadio)edge.superDest).delay / Simulation.MILLISECOND;
       }
       if (column == IDX_DEL) {
         return new Boolean(false);
@@ -278,14 +320,16 @@ public class DGRMConfigurator extends VisPlugin {
       DirectedGraphMedium.Edge edge = radioMedium.getEdges()[row];
       if (column == IDX_RATIO) {
         /* Success ratio */
-        edge.successRatio = ((Number)value).doubleValue();
-        radioMedium.setEdgesDirty();
+        ((DGRMDestinationRadio)edge.superDest).ratio =
+          ((Number)value).doubleValue();
+        radioMedium.requestEdgeAnalysis();
         return;
       }
       if (column == IDX_DELAY) {
         /* Propagation delay (ms) */
-        edge.delay = ((Number)value).longValue() * Simulation.MILLISECOND;
-        radioMedium.setEdgesDirty();
+        ((DGRMDestinationRadio)edge.superDest).delay =
+          ((Number)value).longValue() * Simulation.MILLISECOND;
+        radioMedium.requestEdgeAnalysis();
         return;
       }
       if (column == IDX_DEL) {
@@ -301,14 +345,14 @@ public class DGRMConfigurator extends VisPlugin {
         return false;
       }
 
-      Mote sourceMote = radioMedium.getEdges()[row].source;
+      Mote sourceMote = radioMedium.getEdges()[row].source.getMote();
       if (column == IDX_SRC) {
         gui.signalMoteHighlight(sourceMote);
         return false;
       }
       if (column == IDX_DST) {
-        if (radioMedium.getEdges()[row].dest != null) {
-          gui.signalMoteHighlight(radioMedium.getEdges()[row].dest);
+        if (!radioMedium.getEdges()[row].superDest.toAll) {
+          gui.signalMoteHighlight(radioMedium.getEdges()[row].superDest.radio.getMote());
         }
         return false;
       }
