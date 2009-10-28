@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: LogScriptEngine.java,v 1.20 2009/10/27 10:12:00 fros4943 Exp $
+ * $Id: LogScriptEngine.java,v 1.21 2009/10/28 15:34:34 fros4943 Exp $
  */
 
 package se.sics.cooja.plugins;
@@ -48,6 +48,7 @@ import se.sics.cooja.GUI;
 import se.sics.cooja.Mote;
 import se.sics.cooja.Simulation;
 import se.sics.cooja.TimeEvent;
+import se.sics.cooja.SimEventCentral.MoteCountListener;
 
 /**
  * Loads and executes a Contiki test script.
@@ -64,8 +65,32 @@ public class LogScriptEngine {
   private ScriptEngine engine = 
     new ScriptEngineManager().getEngineByName("JavaScript");
 
-  private Observer logObserver = null; /* Detect mote log output */
-  private Observer simObserver = null; /* Detect added/removed motes */
+  /* Log observer: watches all log interfaces */
+  private Observer logObserver = new Observer() {
+    public void update(Observable obs, Object obj) {
+      Mote mote = (Mote) obj;
+      handleNewMoteOutput(
+          mote,
+          mote.getID(),
+          mote.getSimulation().getSimulationTime(),
+          mote.getInterfaces().getLog().getLastLogMessage()
+      );
+    }
+  };
+  
+  /* Mote count observer: keeps track of newly added nodes */
+  private MoteCountListener newMotesListener = new MoteCountListener() {
+    public void moteWasAdded(Mote mote) {
+      if (mote.getInterfaces().getLog() != null) {
+        mote.getInterfaces().getLog().addObserver(logObserver);
+      }
+    }
+    public void moteWasRemoved(Mote mote) {
+      if (mote.getInterfaces().getLog() != null) {
+        mote.getInterfaces().getLog().deleteObserver(logObserver);
+      }
+    }
+  };
 
   private Semaphore semaphoreScript = null; /* Semaphores blocking script/simulation */
   private Semaphore semaphoreSim = null;
@@ -114,26 +139,6 @@ public class LogScriptEngine {
 
   public LogScriptEngine(Simulation simulation) {
     this.simulation = simulation;
-
-    /* Create simulation observer: keeps track of newly added nodes */
-    simObserver = new Observer() {
-      public void update(Observable obs, Object obj) {
-        registerLogObserver();
-      }
-    };
-
-    /* Create log observer: watches all log interfaces */
-    logObserver = new Observer() {
-      public void update(Observable obs, Object obj) {
-        Mote mote = (Mote) obj;
-        handleNewMoteOutput(
-            mote,
-            mote.getID(),
-            mote.getSimulation().getSimulationTime(),
-            mote.getInterfaces().getLog().getLastLogMessage()
-        );
-      }
-    };
   }
 
   /* Only called from the simulation loop */
@@ -160,7 +165,9 @@ public class LogScriptEngine {
             e.getMessage(),
             e, false);
       }
-      unregisterLogObserver();
+      for (Mote m: simulation.getMotes()) {
+        newMotesListener.moteWasRemoved(m);
+      }
       simulation.stopSimulation();
     }
   }
@@ -189,24 +196,6 @@ public class LogScriptEngine {
     scriptLogObserver = observer;
   }
 
-  private void unregisterLogObserver() {
-    /* Unregister mote log observer */
-    for (Mote mote: simulation.getMotes()) {
-      if (mote.getInterfaces().getLog() != null) {
-        mote.getInterfaces().getLog().deleteObserver(logObserver);
-      }
-    }
-  }
-
-  private void registerLogObserver() {
-    /* Register mote log observer */
-    for (Mote mote: simulation.getMotes()) {
-      if (mote.getInterfaces().getLog() != null) {
-        mote.getInterfaces().getLog().addObserver(logObserver);
-      }
-    }
-  }
-
   /**
    * Deactivate script
    */
@@ -228,9 +217,10 @@ public class LogScriptEngine {
 
     timeoutEvent.remove();
 
-    simulation.deleteObserver(simObserver);
-
-    unregisterLogObserver();
+    simulation.getEventCentral().removeMoteCountListener(newMotesListener);
+    for (Mote mote: simulation.getMotes()) {
+      newMotesListener.moteWasRemoved(mote);
+    }
 
     engine.put("SHUTDOWN", true);
 
@@ -359,7 +349,10 @@ public class LogScriptEngine {
     }
 
     /* Setup simulation observers */
-    simulation.addObserver(simObserver);
+    simulation.getEventCentral().addMoteCountListener(newMotesListener);
+    for (Mote mote: simulation.getMotes()) {
+      newMotesListener.moteWasAdded(mote);
+    }
 
     /* Create script output logger */
     engine.put("log", new ScriptLog() {
@@ -436,8 +429,6 @@ public class LogScriptEngine {
 
     scriptMote = new ScriptMote();
     engine.put("node", scriptMote);
-
-    registerLogObserver();
   }
 
   private TimeEvent timeoutEvent = new TimeEvent(0) {
