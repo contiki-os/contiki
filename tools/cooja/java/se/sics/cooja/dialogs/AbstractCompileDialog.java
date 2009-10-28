@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: AbstractCompileDialog.java,v 1.7 2009/04/01 14:01:45 fros4943 Exp $
+ * $Id: AbstractCompileDialog.java,v 1.8 2009/10/28 12:02:21 fros4943 Exp $
  */
 
 package se.sics.cooja.dialogs;
@@ -155,6 +155,7 @@ public abstract class AbstractCompileDialog extends JDialog {
           String path = GUI.getExternalToolsSetting("COMPILE_LAST_FILE", null);
           if (path != null) {
             lastFile = new File(path);
+            lastFile = gui.restorePortablePath(lastFile);
           }
         }
 
@@ -495,7 +496,7 @@ public abstract class AbstractCompileDialog extends JDialog {
     }
 
     lastFile = file;
-    GUI.setExternalToolsSetting("COMPILE_LAST_FILE", lastFile.getAbsolutePath());
+    GUI.setExternalToolsSetting("COMPILE_LAST_FILE", gui.createPortablePath(lastFile).getPath());
 
     if (file.getName().endsWith(".c")) {
       setDialogState(DialogState.SELECTED_SOURCE);
