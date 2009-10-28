@@ -32,13 +32,26 @@
 package se.sics.cooja.motes;
 
 import java.awt.Container;
+
 import org.apache.log4j.Logger;
-import se.sics.cooja.*;
-import se.sics.cooja.interfaces.Position;
+
+import se.sics.cooja.AbstractionLevelDescription;
+import se.sics.cooja.COOJARadioPacket;
+import se.sics.cooja.ClassDescription;
+import se.sics.cooja.Mote;
+import se.sics.cooja.MoteTimeEvent;
+import se.sics.cooja.MoteType;
+import se.sics.cooja.RadioPacket;
+import se.sics.cooja.Simulation;
+import se.sics.cooja.interfaces.ApplicationRadio;
+import se.sics.cooja.interfaces.Radio.RadioEvent;
 
 /**
  * Simple application-level mote that periodically transmits dummy radio packets
- * on a configurable radio channel, interfering all surrounding radio communication.
+ * on all radio channels (-1), interfering all surrounding radio communication.
+ * 
+ * This mote type also implements the mote functionality ("mote software"),
+ * and can be used as an example of implementing application-level mote.
  *
  * @see DisturberMote
  * @author Fredrik Osterlind, Thiemo Voigt
@@ -54,22 +67,67 @@ public class DisturberMoteType extends AbstractApplicationMoteType {
 
   public DisturberMoteType(String identifier) {
     super(identifier);
-    setDescription("Disturber Mote Type #" + getIdentifier());
+    setDescription("Disturber Mote Type #" + identifier);
   }
 
+  public boolean configureAndInit(Container parentContainer,
+      Simulation simulation, boolean visAvailable) {
+    if (!super.configureAndInit(parentContainer, simulation, visAvailable)) {
+      return false;
+    }
+    setDescription("Disturber Mote Type #" + getIdentifier());
+    return true;
+  }
+  
   public Mote generateMote(Simulation simulation) {
     return new DisturberMote(this, simulation);
   }
 
-  public boolean configureAndInit(Container parentContainer, Simulation simulation, boolean visAvailable) {
-    super.configureAndInit(parentContainer, simulation, visAvailable);
-    setDescription("Disturber Mote Type #" + getIdentifier());
+  public static class DisturberMote extends AbstractApplicationMote {
+    private ApplicationRadio radio = null;
+    
+    private final RadioPacket radioPacket = new COOJARadioPacket(new byte[] {
+        0x01, 0x02, 0x03, 0x04, 0x05
+    });
+    private final static long DELAY = 1*Simulation.MILLISECOND;
+    private final static long DURATION = 1*Simulation.MILLISECOND;
+    
+    public DisturberMote() {
+      super();
+    }
+    public DisturberMote(MoteType moteType, Simulation simulation) {
+      super(moteType, simulation);
+    }
+    
+    public void execute(long time) {
+      if (radio == null) {
+        radio = (ApplicationRadio) getInterfaces().getRadio();
+      }
+      
+      /* Start sending interfering traffic */
+      /*logger.info("Sending radio packet on channel: " + radio.getChannel());*/
+      radio.startTransmittingPacket(radioPacket, DURATION);
+    }
 
-    Class<? extends MoteInterface>[] moteInterfaces = new Class[2];
-    moteInterfaces[0] = Position.class;
-    moteInterfaces[1] = DisturberRadio.class;
-    setMoteInterfaceClasses(moteInterfaces);
+    public boolean tick(long simTime) {
+      throw new RuntimeException("Obsolete method");
+    }
 
-    return true;
-  }
+    public void receivedPacket(RadioPacket p) {
+      /* Ignore */
+    }
+    public void sentPacket(RadioPacket p) {
+      /* Send another packet after a small pause */
+      getSimulation().scheduleEvent(new MoteTimeEvent(this, 0) {
+        public void execute(long t) {
+          /*logger.info("Sending another radio packet on channel: " + radio.getChannel());*/
+          radio.startTransmittingPacket(radioPacket, DURATION);
+        }
+      }, getSimulation().getSimulationTime() + DELAY);
+    }
+
+    public String toString() {
+      return "Disturber " + getID();
+    }
+}
 }

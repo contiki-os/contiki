@@ -24,7 +24,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * $Id: AbstractApplicationMoteType.java,v 1.3 2009/03/09 15:38:10 fros4943 Exp $
+ * $Id: AbstractApplicationMoteType.java,v 1.4 2009/10/28 14:38:02 fros4943 Exp $
  */
 
 package se.sics.cooja.motes;
@@ -36,39 +36,40 @@ import java.io.File;
 import java.util.*;
 
 import javax.swing.*;
+
 import org.apache.log4j.Logger;
 import org.jdom.Element;
 
 import se.sics.cooja.*;
 import se.sics.cooja.interfaces.ApplicationRadio;
+import se.sics.cooja.interfaces.MoteID;
 import se.sics.cooja.interfaces.Position;
 
 @ClassDescription("Application Mote Type")
 public abstract class AbstractApplicationMoteType implements MoteType {
   private static Logger logger = Logger.getLogger(AbstractApplicationMoteType.class);
 
-  // Mote type specific data
-  private String identifier = null;
-
-  private String description = null;
-
-  private Class<? extends MoteInterface>[] moteInterfaces = null;
-
-  // Type specific class configuration
   private ProjectConfig myConfig = null;
 
+  private String identifier = null;
+  private String description = null;
+
+  private final Class<? extends MoteInterface>[] moteInterfaceClasses =
+    new Class[] { SimpleMoteID.class, Position.class, ApplicationRadio.class };
+
   public AbstractApplicationMoteType() {
+    super();
   }
 
   public AbstractApplicationMoteType(String identifier) {
+    super();
     this.identifier = identifier;
-    description = "Application Mote Type #" + identifier;
+    this.description = "Application Mote Type #" + identifier;
   }
 
   public boolean configureAndInit(Container parentContainer, Simulation simulation, boolean visAvailable) {
-
     if (identifier == null) {
-      // Create unique identifier
+      /* Create unique identifier */
       int counter = 0;
       boolean identifierOK = false;
       while (!identifierOK) {
@@ -86,16 +87,9 @@ public abstract class AbstractApplicationMoteType implements MoteType {
         }
       }
     }
-
     if (description == null) {
-      // Create description
       description = "Application Mote Type #" + identifier;
     }
-
-    moteInterfaces = new Class[2];
-    moteInterfaces[0] = Position.class;
-    moteInterfaces[1] = ApplicationRadio.class;
-
     return true;
   }
 
@@ -116,11 +110,11 @@ public abstract class AbstractApplicationMoteType implements MoteType {
   }
 
   public Class<? extends MoteInterface>[] getMoteInterfaceClasses() {
-    return moteInterfaces;
+    return moteInterfaceClasses;
   }
 
   public void setMoteInterfaceClasses(Class<? extends MoteInterface>[] moteInterfaces) {
-    this.moteInterfaces = moteInterfaces;
+    throw new RuntimeException("Can not change the mote interface classes");
   }
 
   public JPanel getTypeVisualizer() {
@@ -152,7 +146,7 @@ public abstract class AbstractApplicationMoteType implements MoteType {
     smallPane.add(BorderLayout.WEST, label);
     panel.add(smallPane);
 
-    for (Class moteInterface : moteInterfaces) {
+    for (Class<? extends MoteInterface> moteInterface : moteInterfaceClasses) {
       smallPane = new JPanel(new BorderLayout());
       label = new JLabel(moteInterface.getSimpleName());
       smallPane.add(BorderLayout.EAST, label);
@@ -193,61 +187,55 @@ public abstract class AbstractApplicationMoteType implements MoteType {
   }
 
   public Collection<Element> getConfigXML() {
-    Vector<Element> config = new Vector<Element>();
-
+    ArrayList<Element> config = new ArrayList<Element>();
     Element element;
 
-    // Identifier
     element = new Element("identifier");
     element.setText(getIdentifier());
     config.add(element);
 
-    // Description
     element = new Element("description");
     element.setText(getDescription());
     config.add(element);
-
-    // Mote interfaces
-    for (Class moteInterface : getMoteInterfaceClasses()) {
-      element = new Element("moteinterface");
-      element.setText(moteInterface.getName());
-      config.add(element);
-    }
 
     return config;
   }
 
   public boolean setConfigXML(Simulation simulation,
       Collection<Element> configXML, boolean visAvailable) {
-    ArrayList<Class<? extends MoteInterface>> moteInterfacesList = new ArrayList<Class<? extends MoteInterface>>();
     for (Element element : configXML) {
-
       String name = element.getName();
-
       if (name.equals("identifier")) {
         identifier = element.getText();
       } else if (name.equals("description")) {
         description = element.getText();
-      } else if (name.equals("moteinterface")) {
-        Class<? extends MoteInterface> moteInterfaceClass =
-          simulation.getGUI().tryLoadClass(
-              this, MoteInterface.class, element.getText().trim());
-
-        if (moteInterfaceClass == null) {
-          logger.warn("Can't find mote interface class: " + element.getText());
-        } else {
-          moteInterfacesList.add(moteInterfaceClass);
-        }
       } else {
-        logger.fatal("Unrecognized entry in loaded configuration: " + name);
+        logger.fatal("Unrecognized entry: " + name);
       }
     }
 
-    moteInterfaces = new Class[moteInterfacesList.size()];
-    moteInterfacesList.toArray(moteInterfaces);
-
     boolean createdOK = configureAndInit(GUI.getTopParentContainer(), simulation, visAvailable);
     return createdOK;
+  }
+
+  public static class SimpleMoteID extends MoteID {
+    private int id = -1;
+    public SimpleMoteID(Mote mote) {
+    }
+    public int getMoteID() {
+      return id;
+    }
+    public void setMoteID(int newID) {
+      this.id = newID;
+    }
+    public double energyConsumption() {
+      return 0;
+    }
+    public JPanel getInterfaceVisualizer() {
+      return null;
+    }
+    public void releaseInterfaceVisualizer(JPanel panel) {
+    }
   }
 
 }
