@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: LEDVisualizerSkin.java,v 1.4 2009/08/27 13:59:48 fros4943 Exp $
+ * $Id: LEDVisualizerSkin.java,v 1.5 2009/10/28 15:16:21 fros4943 Exp $
  */
 
 package se.sics.cooja.plugins.skins;
@@ -42,8 +42,8 @@ import org.apache.log4j.Logger;
 import se.sics.cooja.ClassDescription;
 import se.sics.cooja.Mote;
 import se.sics.cooja.Simulation;
+import se.sics.cooja.SimEventCentral.MoteCountListener;
 import se.sics.cooja.interfaces.LED;
-import se.sics.cooja.interfaces.MoteID;
 import se.sics.cooja.interfaces.Position;
 import se.sics.cooja.plugins.Visualizer;
 import se.sics.cooja.plugins.VisualizerSkin;
@@ -67,17 +67,18 @@ public class LEDVisualizerSkin implements VisualizerSkin {
       visualizer.repaint();
     }
   };
-  private Observer simObserver = new Observer() {
-    public void update(Observable obs, Object obj) {
-
-      /* Observe LEDs */
-      for (Mote mote: simulation.getMotes()) {
-        LED led = mote.getInterfaces().getLED();
-        if (led != null) {
-          led.addObserver(ledObserver);
-        }
+  private MoteCountListener newMotesListener = new MoteCountListener() {
+    public void moteWasAdded(Mote mote) {
+      LED led = mote.getInterfaces().getLED();
+      if (led != null) {
+        led.addObserver(ledObserver);
       }
-      visualizer.repaint();
+    }
+    public void moteWasRemoved(Mote mote) {
+      LED led = mote.getInterfaces().getLED();
+      if (led != null) {
+        led.deleteObserver(ledObserver);
+      }
     }
   };
 
@@ -85,17 +86,16 @@ public class LEDVisualizerSkin implements VisualizerSkin {
     this.simulation = simulation;
     this.visualizer = vis;
 
-    simulation.addObserver(simObserver);
-    simObserver.update(null, null);
+    simulation.getEventCentral().addMoteCountListener(newMotesListener);
+    for (Mote m: simulation.getMotes()) {
+      newMotesListener.moteWasAdded(m);
+    }
   }
 
   public void setInactive() {
-    simulation.deleteObserver(simObserver);
-    for (Mote mote: simulation.getMotes()) {
-      LED led = mote.getInterfaces().getLED();
-      if (led != null) {
-        led.deleteObserver(ledObserver);
-      }
+    simulation.getEventCentral().removeMoteCountListener(newMotesListener);
+    for (Mote m: simulation.getMotes()) {
+      newMotesListener.moteWasRemoved(m);
     }
   }
 
