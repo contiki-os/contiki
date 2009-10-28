@@ -26,31 +26,45 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ApplicationRadio.java,v 1.9 2009/04/16 14:26:36 fros4943 Exp $
+ * $Id: ApplicationRadio.java,v 1.10 2009/10/28 14:38:02 fros4943 Exp $
  */
 
 package se.sics.cooja.interfaces;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.util.*;
-import javax.swing.*;
+import java.util.Collection;
+import java.util.Observable;
+import java.util.Observer;
+
+import javax.swing.Box;
+import javax.swing.BoxLayout;
+import javax.swing.JButton;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+
 import org.apache.log4j.Logger;
 import org.jdom.Element;
 
-import se.sics.cooja.*;
+import se.sics.cooja.Mote;
+import se.sics.cooja.MoteTimeEvent;
+import se.sics.cooja.RadioPacket;
+import se.sics.cooja.Simulation;
 
 /**
- * Application radio. May for example be used by Java-based mote to implement
- * radio functionality. Supports radio channels and output power functionality.
- * The mote should observe the radio for incoming radio packet data.
+ * Application radio.
+ * 
+ * May be used by Java-based mote to implement radio functionality.
+ * Supports radio channels and output power functionality.
+ * The mote itself should observe the radio for incoming radio packet data.
  *
  * @author Fredrik Osterlind
  */
-public class ApplicationRadio extends Radio implements PolledBeforeActiveTicks {
-  private Mote myMote;
-
+public class ApplicationRadio extends Radio {
   private static Logger logger = Logger.getLogger(ApplicationRadio.class);
+
+  private Simulation simulation;
+  private Mote mote;
 
   private RadioPacket packetFromMote = null;
   private RadioPacket packetToMote = null;
@@ -64,17 +78,14 @@ public class ApplicationRadio extends Radio implements PolledBeforeActiveTicks {
   private RadioEvent lastEvent = RadioEvent.UNKNOWN;
   private long lastEventTime = 0;
 
-  private boolean outPacketExists = false;
-  private RadioPacket outPacket = null;
-  private int outPacketDuration = -1;
-
   private double signalStrength = -100;
-  private int radioChannel = 1;
+  private int radioChannel = -1;
   private double outputPower = 0;
   private int outputPowerIndicator = 100;
 
   public ApplicationRadio(Mote mote) {
-    this.myMote = mote;
+    this.mote = mote;
+    this.simulation = mote.getSimulation();
   }
 
   /* Packet radio support */
@@ -99,7 +110,7 @@ public class ApplicationRadio extends Radio implements PolledBeforeActiveTicks {
     }
 
     isReceiving = true;
-    lastEventTime = myMote.getSimulation().getSimulationTime();
+    lastEventTime = simulation.getSimulationTime();
     lastEvent = RadioEvent.RECEPTION_STARTED;
     this.setChanged();
     this.notifyObservers();
@@ -107,16 +118,13 @@ public class ApplicationRadio extends Radio implements PolledBeforeActiveTicks {
 
   public void signalReceptionEnd() {
     if (isInterfered() || packetToMote == null) {
-      // Reset interfered flag
       isInterfered = false;
-
-      // Reset data
       packetToMote = null;
       return;
     }
 
     isReceiving = false;
-    lastEventTime = myMote.getSimulation().getSimulationTime();
+    lastEventTime = simulation.getSimulationTime();
     lastEvent = RadioEvent.RECEPTION_FINISHED;
     this.setChanged();
     this.notifyObservers();
@@ -139,7 +147,7 @@ public class ApplicationRadio extends Radio implements PolledBeforeActiveTicks {
   }
 
   public Position getPosition() {
-    return myMote.getInterfaces().getPosition();
+    return mote.getInterfaces().getPosition();
   }
 
   public RadioEvent getLastEvent() {
@@ -151,7 +159,7 @@ public class ApplicationRadio extends Radio implements PolledBeforeActiveTicks {
       isInterfered = true;
 
       lastEvent = RadioEvent.RECEPTION_INTERFERED;
-      lastEventTime = myMote.getSimulation().getSimulationTime();
+      lastEventTime = simulation.getSimulationTime();
       this.setChanged();
       this.notifyObservers();
     }
@@ -189,10 +197,48 @@ public class ApplicationRadio extends Radio implements PolledBeforeActiveTicks {
    * @param packet Packet data
    * @param duration Duration to transmit
    */
-  public void startTransmittingPacket(RadioPacket packet, int duration) {
-    outPacketExists = true;
-    outPacketDuration = duration;
-    outPacket = packet;
+  public void startTransmittingPacket(final RadioPacket packet, final long duration) {
+    Runnable startTransmission = new Runnable() {
+      public void run() {
+        if (isTransmitting) {
+          logger.warn("Already transmitting, aborting new transmission");
+          return;
+        }
+
+        /* Start transmission */
+        isTransmitting = true;
+        lastEvent = RadioEvent.TRANSMISSION_STARTED;
+        lastEventTime = simulation.getSimulationTime();
+        ApplicationRadio.this.setChanged();
+        ApplicationRadio.this.notifyObservers();
+        
+        /* Deliver data */
+        packetFromMote = packet;
+        lastEvent = RadioEvent.PACKET_TRANSMITTED;
+        ApplicationRadio.this.setChanged();
+        ApplicationRadio.this.notifyObservers();
+
+        /*logger.info("Transmission started");*/
+
+        /* Finish transmission */
+        simulation.scheduleEvent(new MoteTimeEvent(mote, 0) {
+          public void execute(long t) {
+            isTransmitting = false;
+            lastEvent = RadioEvent.TRANSMISSION_FINISHED;
+            lastEventTime = t;
+            ApplicationRadio.this.setChanged();
+            ApplicationRadio.this.notifyObservers();
+            /*logger.info("Transmission finished");*/
+          }
+        }, simulation.getSimulationTime() + duration);
+      }
+    };
+
+    if (simulation.isSimulationThread()) {
+      startTransmission.run();
+    } else {
+      simulation.invokeSimulationThread(startTransmission);
+    }
   }
 
   /**
@@ -214,34 +260,6 @@ public class ApplicationRadio extends Radio implements PolledBeforeActiveTicks {
    */
   public void setChannel(int channel) {
     radioChannel = channel;
-  }
-
-  public void doActionsBeforeTick() {
-    long currentTime = myMote.getSimulation().getSimulationTime();
-
-    if (outPacketExists) {
-      outPacketExists = false;
-      isTransmitting = true;
-      lastEvent = RadioEvent.TRANSMISSION_STARTED;
-      lastEventTime = currentTime;
-      transmissionEndTime = currentTime + outPacketDuration;
-      this.setChanged();
-      this.notifyObservers();
-
-      // Deliver packet right away
-      packetFromMote = outPacket;
-      lastEvent = RadioEvent.PACKET_TRANSMITTED;
-      this.setChanged();
-      this.notifyObservers();
-    }
-
-    if (isTransmitting && currentTime >= transmissionEndTime) {
-      isTransmitting = false;
-      lastEvent = RadioEvent.TRANSMISSION_FINISHED;
-      lastEventTime = currentTime;
-      this.setChanged();
-      this.notifyObservers();
-    }
   }
 
   public JPanel getInterfaceVisualizer() {
@@ -318,7 +336,7 @@ public class ApplicationRadio extends Radio implements PolledBeforeActiveTicks {
   }
 
   public Mote getMote() {
-    return myMote;
+    return mote;
   }
 
   public boolean isReceiverOn() {
