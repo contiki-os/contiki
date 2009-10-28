@@ -24,7 +24,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * $Id: GUI.java,v 1.146 2009/10/28 12:07:37 fros4943 Exp $
+ * $Id: GUI.java,v 1.147 2009/10/28 13:37:29 nifi Exp $
  */
 
 package se.sics.cooja;
@@ -383,9 +383,6 @@ public class GUI extends Observable {
     // Load default and overwrite with user settings (if any)
     loadExternalToolsDefaultSettings();
     loadExternalToolsUserSettings();
-    if (specifiedContikiPath != null) {
-      setExternalToolsSetting("PATH_CONTIKI", specifiedContikiPath);
-    }
 
     /* Debugging - Break on repaints outside EDT */
     /*RepaintManager.setCurrentManager(new RepaintManager() {
@@ -2602,6 +2599,9 @@ public class GUI extends Observable {
    * @return Value
    */
   public static String getExternalToolsSetting(String name, String defaultValue) {
+    if (specifiedContikiPath != null && "PATH_CONTIKI".equals(name)) {
+      return specifiedContikiPath;
+    }
     return currentExternalToolsSettings.getProperty(name, defaultValue);
   }
 
@@ -2623,7 +2623,11 @@ public class GUI extends Observable {
    *          New value
    */
   public static void setExternalToolsSetting(String name, String newVal) {
-    currentExternalToolsSettings.setProperty(name, newVal);
+    if (specifiedContikiPath != null && "PATH_CONTIKI".equals(name)) {
+      specifiedContikiPath = newVal;
+    } else {
+      currentExternalToolsSettings.setProperty(name, newVal);
+    }
   }
 
   /**
@@ -2724,7 +2728,7 @@ public class GUI extends Observable {
       while (keyEnum.hasMoreElements()) {
         String key = (String) keyEnum.nextElement();
         String defaultSetting = getExternalToolsDefaultSetting(key, "");
-        String currentSetting = getExternalToolsSetting(key, "");
+        String currentSetting = currentExternalToolsSettings.getProperty(key, "");
         if (!defaultSetting.equals(currentSetting)) {
           differingSettings.setProperty(key, currentSetting);
         }
@@ -3006,7 +3010,6 @@ public class GUI extends Observable {
       if (element.startsWith("-contiki=")) {
         String arg = element.substring("-contiki=".length());
         GUI.specifiedContikiPath = arg;
-        GUI.externalToolsUserSettingsFileReadOnly = true;
       }
 
       if (element.startsWith("-external_tools_config=")) {
@@ -3058,11 +3061,6 @@ public class GUI extends Observable {
       /* Load simulation */
       String config = args[0].substring("-nogui=".length());
       File configFile = new File(config);
-      try {
-        configFile = configFile.getCanonicalFile();
-      } catch (IOException e) {
-        configFile = new File(config);
-      }
       Simulation sim = quickStartSimulationConfig(configFile, false);
       if (sim == null) {
         System.exit(1);
@@ -3936,7 +3934,8 @@ public class GUI extends Observable {
     try {
       File configPath = currentConfigFile.getParentFile();
       if (configPath == null) {
-        return null;
+        /* File is in current directory */
+        configPath = new File("");
       }
       String configCanonical = configPath.getCanonicalPath();
 
@@ -3977,13 +3976,13 @@ public class GUI extends Observable {
     }
     File configPath = currentConfigFile.getParentFile();
     if (configPath == null) {
-      return null;
+        /* File is in current directory */
+        configPath = new File("");
     }
     String portablePath = portable.getPath();
     if (!portablePath.startsWith(PATH_CONFIG_IDENTIFIER)) {
       return null;
     }
-
     File absolute = new File(portablePath.replace(PATH_CONFIG_IDENTIFIER, configPath.getAbsolutePath()));
     return absolute;
   }
