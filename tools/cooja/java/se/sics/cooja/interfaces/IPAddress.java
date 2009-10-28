@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: IPAddress.java,v 1.6 2009/05/26 14:24:21 fros4943 Exp $
+ * $Id: IPAddress.java,v 1.7 2009/10/28 15:58:43 fros4943 Exp $
  */
 
 package se.sics.cooja.interfaces;
@@ -59,7 +59,7 @@ public class IPAddress extends MoteInterface {
     moteMem = (AddressMemory) mote.getMemory();
 
     /* Detect startup IP (only zeroes) */
-    TimeEvent updateWhenAddressReady = new TimeEvent(0) {
+    TimeEvent updateWhenAddressReady = new MoteTimeEvent(mote, 0) {
       public void execute(long t) {
         if (!isVersion4() && !isVersion6()) {
           return;

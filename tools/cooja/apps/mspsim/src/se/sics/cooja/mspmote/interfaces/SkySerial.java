@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: SkySerial.java,v 1.17 2009/10/27 10:14:35 fros4943 Exp $
+ * $Id: SkySerial.java,v 1.18 2009/10/28 15:58:42 fros4943 Exp $
  */
 
 package se.sics.cooja.mspmote.interfaces;
@@ -37,6 +37,7 @@ import org.apache.log4j.Logger;
 
 import se.sics.cooja.ClassDescription;
 import se.sics.cooja.Mote;
+import se.sics.cooja.MoteTimeEvent;
 import se.sics.cooja.Simulation;
 import se.sics.cooja.TimeEvent;
 import se.sics.cooja.dialogs.SerialUI;
@@ -136,7 +137,7 @@ public class SkySerial extends SerialUI implements SerialPort {
     mote.requestImmediateWakeup();
   }
 
-  private TimeEvent writeDataEvent = new TimeEvent(0) {
+  private TimeEvent writeDataEvent = new MoteTimeEvent(mote, 0) {
     public void execute(long t) {
       tryWriteNextByte();
       if (!incomingData.isEmpty()) {

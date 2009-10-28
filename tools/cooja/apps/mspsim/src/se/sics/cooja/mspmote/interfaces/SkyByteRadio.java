@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: SkyByteRadio.java,v 1.13 2009/10/27 10:14:35 fros4943 Exp $
+ * $Id: SkyByteRadio.java,v 1.14 2009/10/28 15:58:43 fros4943 Exp $
  */
 
 package se.sics.cooja.mspmote.interfaces;
@@ -162,7 +162,7 @@ public class SkyByteRadio extends Radio implements CustomDataRadio {
 
   private byte[] crossBufferedData = null;
 
-  private TimeEvent deliverPacketDataEvent = new TimeEvent(0) {
+  private TimeEvent deliverPacketDataEvent = new MoteTimeEvent(mote, 0) {
     public void execute(long t) {
 
       if (crossBufferedData == null) {
