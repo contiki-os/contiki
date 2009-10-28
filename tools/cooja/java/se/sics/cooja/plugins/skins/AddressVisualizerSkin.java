@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: AddressVisualizerSkin.java,v 1.2 2009/08/27 13:59:47 fros4943 Exp $
+ * $Id: AddressVisualizerSkin.java,v 1.3 2009/10/28 15:16:21 fros4943 Exp $
  */
 
 package se.sics.cooja.plugins.skins;
@@ -35,6 +35,9 @@ import java.awt.Color;
 import java.awt.FontMetrics;
 import java.awt.Graphics;
 import java.awt.Point;
+import java.awt.Toolkit;
+import java.awt.datatransfer.Clipboard;
+import java.awt.datatransfer.StringSelection;
 import java.util.Observable;
 import java.util.Observer;
 
@@ -43,11 +46,14 @@ import org.apache.log4j.Logger;
 import se.sics.cooja.ClassDescription;
 import se.sics.cooja.Mote;
 import se.sics.cooja.Simulation;
+import se.sics.cooja.SimEventCentral.MoteCountListener;
+import se.sics.cooja.dialogs.MessageList.MessageContainer;
 import se.sics.cooja.interfaces.IPAddress;
 import se.sics.cooja.interfaces.Position;
 import se.sics.cooja.interfaces.RimeAddress;
 import se.sics.cooja.plugins.Visualizer;
 import se.sics.cooja.plugins.VisualizerSkin;
+import se.sics.cooja.plugins.Visualizer.MoteMenuAction;
 
 /**
  * Visualizer skin for mote addresses.
@@ -68,35 +74,18 @@ public class AddressVisualizerSkin implements VisualizerSkin {
       visualizer.repaint();
     }
   };
-  private Observer simObserver = new Observer() {
-    public void update(Observable obs, Object obj) {
-
-      /* Observe Rime and IP addresses */
-      for (Mote mote: simulation.getMotes()) {
-        IPAddress ipAddr = mote.getInterfaces().getIPAddress();
-        if (ipAddr != null) {
-          ipAddr.addObserver(addrObserver);
-        }
-        RimeAddress rimeAddr = mote.getInterfaces().getRimeAddress();
-        if (rimeAddr != null) {
-          rimeAddr.addObserver(addrObserver);
-        }
+  private MoteCountListener newMotesListener = new MoteCountListener() {
+    public void moteWasAdded(Mote mote) {
+      IPAddress ipAddr = mote.getInterfaces().getIPAddress();
+      if (ipAddr != null) {
+        ipAddr.addObserver(addrObserver);
       }
-      visualizer.repaint();
+      RimeAddress rimeAddr = mote.getInterfaces().getRimeAddress();
+      if (rimeAddr != null) {
+        rimeAddr.addObserver(addrObserver);
+      }
     }
-  };
-
-  public void setActive(Simulation simulation, Visualizer vis) {
-    this.simulation = simulation;
-    this.visualizer = vis;
-
-    simulation.addObserver(simObserver);
-    simObserver.update(null, null);
-  }
-
-  public void setInactive() {
-    simulation.deleteObserver(simObserver);
-    for (Mote mote: simulation.getMotes()) {
+    public void moteWasRemoved(Mote mote) {
       IPAddress ipAddr = mote.getInterfaces().getIPAddress();
       if (ipAddr != null) {
         ipAddr.deleteObserver(addrObserver);
@@ -106,6 +95,29 @@ public class AddressVisualizerSkin implements VisualizerSkin {
         rimeAddr.deleteObserver(addrObserver);
       }
     }
+  };
+
+  public void setActive(Simulation simulation, Visualizer vis) {
+    this.simulation = simulation;
+    this.visualizer = vis;
+
+    simulation.getEventCentral().addMoteCountListener(newMotesListener);
+    for (Mote m: simulation.getMotes()) {
+      newMotesListener.moteWasAdded(m);
+    }
+    
+    /* Register menu actions */
+    visualizer.registerMoteMenuAction(CopyAddressAction.class);
+  }
+
+  public void setInactive() {
+    simulation.getEventCentral().removeMoteCountListener(newMotesListener);
+    for (Mote m: simulation.getMotes()) {
+      newMotesListener.moteWasRemoved(m);
+    }
+
+    /* Unregister menu actions */
+    visualizer.unregisterMoteMenuAction(CopyAddressAction.class);
   }
 
   public Color[] getColorOf(Mote mote) {
@@ -115,6 +127,19 @@ public class AddressVisualizerSkin implements VisualizerSkin {
   public void paintBeforeMotes(Graphics g) {
   }
 
+  private static String getMoteString(Mote mote) {
+    IPAddress ipAddr = mote.getInterfaces().getIPAddress();
+    if (ipAddr != null) {
+      return ipAddr.getIPString();
+    }
+
+    RimeAddress rimeAddr = mote.getInterfaces().getRimeAddress();
+    if (rimeAddr != null) {
+      return rimeAddr.getAddressString();
+    }
+    return null;
+  }
+  
   public void paintAfterMotes(Graphics g) {
     FontMetrics fm = g.getFontMetrics();
     g.setColor(Color.BLACK);
@@ -122,21 +147,7 @@ public class AddressVisualizerSkin implements VisualizerSkin {
     /* Paint last output below motes */
     Mote[] allMotes = simulation.getMotes();
     for (Mote mote: allMotes) {
-      String msg = null;
-      {
-        IPAddress ipAddr = mote.getInterfaces().getIPAddress();
-        if (ipAddr != null) {
-          msg = ipAddr.getIPString();
-        }
-      }
-
-      if (msg == null) {
-        RimeAddress rimeAddr = mote.getInterfaces().getRimeAddress();
-        if (rimeAddr != null) {
-          msg = rimeAddr.getAddressString();
-        }
-      }
-      
+      String msg = getMoteString(mote);
       if (msg == null) {
         continue;
       }
@@ -149,6 +160,21 @@ public class AddressVisualizerSkin implements VisualizerSkin {
     }
   }
 
+  public static class CopyAddressAction implements MoteMenuAction {
+    public boolean isEnabled(Visualizer visualizer, Mote mote) {
+      return true;
+    }
+
+    public String getDescription(Visualizer visualizer, Mote mote) {
+      return "Copy address to clipboard: \"" + getMoteString(mote) + "\"";
+    }
+
+    public void doAction(Visualizer visualizer, Mote mote) {
+      Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
+      StringSelection stringSelection = new StringSelection(getMoteString(mote));
+      clipboard.setContents(stringSelection, null);
+    }
+  };
   public Visualizer getVisualizer() {
     return visualizer;
   }
