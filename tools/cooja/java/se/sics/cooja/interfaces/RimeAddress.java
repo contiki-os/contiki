@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: RimeAddress.java,v 1.3 2009/05/26 14:24:21 fros4943 Exp $
+ * $Id: RimeAddress.java,v 1.4 2009/10/28 15:58:43 fros4943 Exp $
  */
 
 package se.sics.cooja.interfaces;
@@ -61,7 +61,7 @@ public class RimeAddress extends MoteInterface {
     moteMem = (AddressMemory) mote.getMemory();
 
     /* Detect startup address (only zeroes) */
-    TimeEvent updateWhenAddressReady = new TimeEvent(0) {
+    TimeEvent updateWhenAddressReady = new MoteTimeEvent(mote, 0) {
       public void execute(long t) {
         String addrString = getAddressString();
         addrString = addrString.replace(".", "");

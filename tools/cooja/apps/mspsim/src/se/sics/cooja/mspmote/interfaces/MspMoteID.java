@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: MspMoteID.java,v 1.12 2009/05/26 14:31:07 fros4943 Exp $
+ * $Id: MspMoteID.java,v 1.13 2009/10/28 15:58:42 fros4943 Exp $
  */
 
 package se.sics.cooja.mspmote.interfaces;
@@ -41,6 +41,7 @@ import org.apache.log4j.Logger;
 import org.jdom.Element;
 
 import se.sics.cooja.Mote;
+import se.sics.cooja.MoteTimeEvent;
 import se.sics.cooja.Simulation;
 import se.sics.cooja.TimeEvent;
 import se.sics.cooja.interfaces.MoteID;
@@ -93,8 +94,8 @@ public class MspMoteID extends MoteID {
    * @see Mote
    * @see se.sics.cooja.MoteInterfaceHandler
    */
-  public MspMoteID(Mote mote) {
-    this.mote = (MspMote) mote;
+  public MspMoteID(Mote m) {
+    this.mote = (MspMote) m;
     this.moteMem = (MspMoteMemory) mote.getMemory();
 
     String[] variables = moteMem.getVariableNames();
@@ -118,28 +119,32 @@ public class MspMoteID extends MoteID {
 
     /*logger.debug("ID location: " + location);*/
 
-    if (PERSISTENT_SET_ID) {
-      mote.getSimulation().scheduleEvent(persistentSetIDEvent, mote.getSimulation().getSimulationTime());
-    }
-  }
+    final TimeEvent persistentSetIDEvent = new MoteTimeEvent(mote, 0) {
+      public void execute(long t) {
 
-  private TimeEvent persistentSetIDEvent = new TimeEvent(0) {
-    public void execute(long t) {
+        if (persistentSetIDCounter-- > 0)
+        {
+          setMoteID(moteID);
+          /*logger.info("Setting ID: " + moteID + " at " + t);*/
 
-      if (persistentSetIDCounter-- > 0)
-      {
-        setMoteID(moteID);
-        /*logger.info("Setting ID: " + moteID + " at " + t);*/
-
-        if (t + mote.getInterfaces().getClock().getDrift() < 0) {
-          /* Wait until node is booting */
-          mote.getSimulation().scheduleEvent(this, -mote.getInterfaces().getClock().getDrift());
-        } else {
-          mote.getSimulation().scheduleEvent(this, t+Simulation.MILLISECOND);
+          if (t + mote.getInterfaces().getClock().getDrift() < 0) {
+            /* Wait until node is booting */
+            mote.getSimulation().scheduleEvent(this, -mote.getInterfaces().getClock().getDrift());
+          } else {
+            mote.getSimulation().scheduleEvent(this, t+Simulation.MILLISECOND);
+          }
         }
       }
+    };
+
+    if (PERSISTENT_SET_ID) {
+      mote.getSimulation().invokeSimulationThread(new Runnable() {
+        public void run() {
+          persistentSetIDEvent.execute(MspMoteID.this.mote.getSimulation().getSimulationTime());
+        };
+      });
     }
-  };
+  }
 
   public int getMoteID() {
     if (location == ID_LOCATION.VARIABLE_NODE_ID) {
