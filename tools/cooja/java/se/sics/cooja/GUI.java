@@ -24,7 +24,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * $Id: GUI.java,v 1.145 2009/10/27 09:31:22 fros4943 Exp $
+ * $Id: GUI.java,v 1.146 2009/10/28 12:07:37 fros4943 Exp $
  */
 
 package se.sics.cooja;
@@ -402,7 +402,7 @@ public class GUI extends Observable {
     if (defaultProjectDirs != null && defaultProjectDirs.length() > 0) {
       String[] arr = defaultProjectDirs.split(";");
       for (String p : arr) {
-        File projectDir = new File(p);
+        File projectDir = restorePortablePath(new File(p));
         currentProjectDirs.add(projectDir);
       }
 
@@ -410,6 +410,7 @@ public class GUI extends Observable {
       try {
         reparseProjectConfig();
       } catch (ParseProjectsException e) {
+        logger.fatal("Error when loading projects: " + e.getMessage(), e);
         if (isVisualized()) {
           JOptionPane.showMessageDialog(GUI.getTopParentContainer(),
               "Default projects could not load, reconfigure project directories:" +
@@ -417,7 +418,6 @@ public class GUI extends Observable {
               "\n\nSee console for stack trace with more information.",
               "Project loading error", JOptionPane.ERROR_MESSAGE);
         }
-        logger.fatal("Error when loading projects", e);
       }
     }
 
@@ -1384,13 +1384,11 @@ public class GUI extends Observable {
           // Append config to general config
           projectConfig.appendProjectDir(projectDir);
         } catch (FileNotFoundException e) {
-          logger.fatal("Could not find project config file: " + projectDir);
           throw (ParseProjectsException) new ParseProjectsException(
-              "Could not find project config file: " + projectDir).initCause(e);
+              "Error when loading project: " + e.getMessage()).initCause(e);
         } catch (IOException e) {
-          logger.fatal("Error when reading project config file: " + projectDir);
           throw (ParseProjectsException) new ParseProjectsException(
-              "Error when reading project config file: " + projectDir).initCause(e);
+              "Error when reading project config: " + e.getMessage()).initCause(e);
         }
       }
 
@@ -2784,21 +2782,27 @@ public class GUI extends Observable {
       } else if (e.getActionCommand().equals("edit paths")) {
         ExternalToolsDialog.showDialog(GUI.getTopParentContainer());
       } else if (e.getActionCommand().equals("manage projects")) {
-        Vector<File> newProjects = ProjectDirectoriesDialog.showDialog(
-            GUI.getTopParentContainer(), currentProjectDirs, null);
+        File[] newProjects = ProjectDirectoriesDialog.showDialog(
+            GUI.getTopParentContainer(), 
+            GUI.this, 
+            currentProjectDirs.toArray(new File[0])
+        );
         if (newProjects != null) {
-          currentProjectDirs = newProjects;
+          currentProjectDirs.clear();
+          for (File p: newProjects) {
+            currentProjectDirs.add(p);
+          }
           try {
             reparseProjectConfig();
-          } catch (ParseProjectsException e2) {
-            logger.fatal("Error when loading projects: " + e2.getMessage());
-            e2.printStackTrace();
-            if (myGUI.isVisualized()) {
+          } catch (ParseProjectsException ex) {
+            logger.fatal("Error when loading projects: " + ex.getMessage(), ex);
+            if (isVisualized()) {
               JOptionPane.showMessageDialog(GUI.getTopParentContainer(),
-                  "Error when loading projects.\nStack trace printed to console.",
-                  "Error", JOptionPane.ERROR_MESSAGE);
+                  "Configured projects could not load, reconfigure project directories:" +
+                  "\n\tMenu->Settings->Manage project directories" +
+                  "\n\nSee console for stack trace with more information.",
+                  "Project loading error", JOptionPane.ERROR_MESSAGE);
             }
-            return;
           }
         }
       } else if (e.getActionCommand().equals("configuration wizard")) {
@@ -3002,6 +3006,7 @@ public class GUI extends Observable {
       if (element.startsWith("-contiki=")) {
         String arg = element.substring("-contiki=".length());
         GUI.specifiedContikiPath = arg;
+        GUI.externalToolsUserSettingsFileReadOnly = true;
       }
 
       if (element.startsWith("-external_tools_config=")) {
@@ -3052,7 +3057,12 @@ public class GUI extends Observable {
 
       /* Load simulation */
       String config = args[0].substring("-nogui=".length());
-      final File configFile = new File(config);
+      File configFile = new File(config);
+      try {
+        configFile = configFile.getCanonicalFile();
+      } catch (IOException e) {
+        configFile = new File(config);
+      }
       Simulation sim = quickStartSimulationConfig(configFile, false);
       if (sim == null) {
         System.exit(1);
@@ -3296,7 +3306,7 @@ public class GUI extends Observable {
       /* Store project directories meta data */
       for (File project: currentProjectDirs) {
         Element projectElement = new Element("project");
-        projectElement.addContent(project.getPath().replaceAll("\\\\", "/"));
+        projectElement.addContent(createPortablePath(project).getPath().replaceAll("\\\\", "/"));
         root.addContent(projectElement);
       }
 
@@ -3411,18 +3421,23 @@ public class GUI extends Observable {
     /* Match current projects against projects in simulation config */
     for (final Element pluginElement : configXML.toArray(new Element[0])) {
       if (pluginElement.getName().equals("project")) {
-        String project = pluginElement.getText();
-
+        File projectFile = restorePortablePath(new File(pluginElement.getText()));
+        try {
+          projectFile = projectFile.getCanonicalFile();
+        } catch (IOException e) {
+        }
+        
         boolean found = false;
         for (File currentProject: currentProjectDirs) {
-          if (project.equals(currentProject.getPath().replaceAll("\\\\", "/"))) {
+          if (projectFile.getPath().replaceAll("\\\\", "/").
+              equals(currentProject.getPath().replaceAll("\\\\", "/"))) {
             found = true;
             break;
           }
         }
 
         if (!found) {
-          logger.warn("Loaded simulation may depend on external project: '" + project + "'");
+          logger.warn("Loaded simulation may depend on not found  project: '" + projectFile + "'");
           allOk = false;
         }
       }
@@ -3803,112 +3818,174 @@ public class GUI extends Observable {
     moteRelationObservable.deleteObserver(observer);
   }
 
+  /**
+   * Tries to convert given file to be "portable".
+   * The portable path is either relative to Contiki, or to the configuration (.csc) file.
+   * 
+   * If this method fails, it returns the original file.
+   * 
+   * @param file Original file
+   * @return Portable file, or original file is conversion failed
+   */
   public File createPortablePath(File file) {
+    File portable = null;
+    
+    portable = createContikiRelativePath(file);
+    if (portable != null) {
+      /*logger.info("Generated Contiki relative path '" + file.getPath() + "' to '" + portable.getPath() + "'");*/
+      return portable;
+    }
+
+    portable = createConfigRelativePath(file);
+    if (portable != null) {
+      /*logger.info("Generated config relative path '" + file.getPath() + "' to '" + portable.getPath() + "'");*/
+      return portable;
+    }
+    
+    logger.warn("Path is not portable: '" + file.getPath());
+    return file;
+  }
+
+  /**
+   * Tries to restore a previously "portable" file to be "absolute".
+   * If the given file already exists, no conversion is performed.
+   * 
+   * @see #createPortablePath(File)
+   * @param file Portable file
+   * @return Absolute file
+   */
+  public File restorePortablePath(File file) {
+    if (file == null || file.exists()) {
+      /* No conversion possible/needed */
+      return file;
+    }
+
+    File absolute = null;
+    absolute = restoreContikiRelativePath(file);
+    if (absolute != null) {
+      /*logger.info("Restored Contiki relative path '" + file.getPath() + "' to '" + absolute.getPath() + "'");*/
+      return absolute;
+    }
+
+    absolute = restoreConfigRelativePath(file);
+    if (absolute != null) {
+      /*logger.info("Restored config relative path '" + file.getPath() + "' to '" + absolute.getPath() + "'");*/
+      return absolute;
+    }
+    
+    /*logger.info("Portable path was not restored: '" + file.getPath());*/
+    return file;
+  }
+
+  private final static String PATH_CONTIKI_IDENTIFIER = "[CONTIKI_DIR]";
+  private File createContikiRelativePath(File file) {
     try {
       File contikiPath = new File(GUI.getExternalToolsSetting("PATH_CONTIKI", null));
-      String contikiRelative = contikiPath.getPath();
       String contikiCanonical = contikiPath.getCanonicalPath();
 
       String fileCanonical = file.getCanonicalPath();
       if (!fileCanonical.startsWith(contikiCanonical)) {
-        /*logger.warn("Error when converting to Contiki relative path: file is not in Contiki: " + file.getAbsolutePath());*/
-        return createConfigPath(file);
+        /* File is not in a Contiki subdirectory */
+        /*logger.info("File is not in a Contiki subdirectory: " + file.getAbsolutePath());*/
+        return null;
       }
 
-      /* Replace Contiki's canonical path with Contiki's relative path */
-      String newFilePath = fileCanonical.replaceFirst(
+      /* Replace Contiki's canonical path with Contiki identifier */
+      String portablePath = fileCanonical.replaceFirst(
           java.util.regex.Matcher.quoteReplacement(contikiCanonical), 
-          java.util.regex.Matcher.quoteReplacement(contikiRelative));
-
-      File newFile = new File(newFilePath);
-      if (!newFile.exists()) {
-        /*logger.warn("Error when converting to Contiki relative path: new file does not exist: " + newFile.getAbsolutePath());*/
-        return createConfigPath(file);
+          java.util.regex.Matcher.quoteReplacement(PATH_CONTIKI_IDENTIFIER));
+      File portable = new File(portablePath);
+      
+      /* Verify conversion */
+      File verify = restoreContikiRelativePath(portable);
+      if (verify == null || !verify.exists()) {
+        /* Error: did file even exist pre-conversion? */
+        return null;
       }
 
-      logger.info("Generated Contiki relative path '" + file.getPath() + "' to '" + newFile.getPath() + "'");
-      return newFile;
-
+      return portable;
     } catch (IOException e1) {
       /*logger.warn("Error when converting to Contiki relative path: " + e1.getMessage());*/
+      return null;
     }
+  }
+  private File restoreContikiRelativePath(File portable) {
+    try {
+      File contikiPath = new File(GUI.getExternalToolsSetting("PATH_CONTIKI", null));
+      String contikiCanonical = contikiPath.getCanonicalPath();
 
-    return createConfigPath(file);
+      String portablePath = portable.getPath();
+      if (!portablePath.startsWith(PATH_CONTIKI_IDENTIFIER)) {
+        return null;
+      }
+
+      File absolute = new File(portablePath.replace(PATH_CONTIKI_IDENTIFIER, contikiCanonical));
+      return absolute;
+    } catch (IOException e) {
+      return null;
+    }
   }
 
-  public File restorePortablePath(File file) {
-    return restoreConfigPath(file);
-  }
-
+  private final static String PATH_CONFIG_IDENTIFIER = "[CONFIG_DIR]";
   public File currentConfigFile = null; /* Used to generate config relative paths */
-  public File createConfigPath(File file) {
+  private File createConfigRelativePath(File file) {
+    String id = PATH_CONFIG_IDENTIFIER;
     if (currentConfigFile == null) {
-      return file;
+      return null;
     }
-
     try {
       File configPath = currentConfigFile.getParentFile();
-      String configIdentifier = "[CONFIG_DIR]";
       if (configPath == null) {
-        return file;
+        return null;
       }
       String configCanonical = configPath.getCanonicalPath();
 
       String fileCanonical = file.getCanonicalPath();
       if (!fileCanonical.startsWith(configCanonical)) {
-
         /* SPECIAL CASE: Allow one parent directory */
         configCanonical = configPath.getParentFile().getCanonicalPath();
-        configIdentifier += "/..";
-        if (!fileCanonical.startsWith(configCanonical)) {
-          /*logger.warn("Error when converting to config relative path: file not in config directory: " + file.getAbsolutePath());*/
-          return file;
-        }
+        id += "/..";
+      }
+      if (!fileCanonical.startsWith(configCanonical)) {
+        /* File is not in a config subdirectory */
+        logger.info("File is not in a config subdirectory: " + file.getAbsolutePath());
+        return null;
       }
 
       /* Replace config's canonical path with config identifier */
-      String newFilePath = fileCanonical.replaceFirst(
+      String portablePath = fileCanonical.replaceFirst(
           java.util.regex.Matcher.quoteReplacement(configCanonical), 
-          java.util.regex.Matcher.quoteReplacement(configIdentifier));
-
-      File newFile = new File(newFilePath);
-      /*logger.info("Generated config relative path: '" + file.getPath() + "' to '" + newFile.getPath() + "'");*/
+          java.util.regex.Matcher.quoteReplacement(id));
+      File portable = new File(portablePath);
       
-      /* Verify that new file exists */
-      File tmpFile = restorePortablePath(newFile);
-      if (!tmpFile.exists()) {
-        /*logger.warn("Failed generating config relative path, using absolute path: " + file);*/
-        return file;
+      /* Verify conversion */
+      File verify = restoreConfigRelativePath(portable);
+      if (verify == null || !verify.exists()) {
+        /* Error: did file even exist pre-conversion? */
+        return null;
       }
 
-      return newFile;
-
+      return portable;
     } catch (IOException e1) {
       /*logger.warn("Error when converting to config relative path: " + e1.getMessage());*/
+      return null;
     }
-
-    return file;
   }
-
-  public File restoreConfigPath(File file) {
+  private File restoreConfigRelativePath(File portable) {
     if (currentConfigFile == null) {
-      return file;
+      return null;
     }
-
     File configPath = currentConfigFile.getParentFile();
     if (configPath == null) {
-      return file;
+      return null;
+    }
+    String portablePath = portable.getPath();
+    if (!portablePath.startsWith(PATH_CONFIG_IDENTIFIER)) {
+      return null;
     }
 
-    String path = file.getPath();
-    if (!path.startsWith("[CONFIG_DIR]")) {
-      /*logger.info("Not config relative path: " + file.getAbsolutePath());*/
-      return file;
-    }
-
-    File newFile = new File(path.replace("[CONFIG_DIR]", configPath.getAbsolutePath()));
-    /*logger.info("Reverted config relative path: '" + path + "' to '" + newFile.getPath() + "'");*/
-    return newFile;
+    File absolute = new File(portablePath.replace(PATH_CONFIG_IDENTIFIER, configPath.getAbsolutePath()));
+    return absolute;
   }
 
   private static JProgressBar PROGRESS_BAR = null;
