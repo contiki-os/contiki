@@ -24,7 +24,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * $Id: ExecuteJAR.java,v 1.1 2009/10/29 10:17:15 fros4943 Exp $
+ * $Id: ExecuteJAR.java,v 1.2 2009/10/29 17:05:14 fros4943 Exp $
  */
 
 package se.sics.cooja.util;
@@ -32,6 +32,8 @@ package se.sics.cooja.util;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.net.URISyntaxException;
 import java.security.AccessControlException;
 import java.util.Enumeration;
 import java.util.Properties;
@@ -54,10 +56,8 @@ import se.sics.cooja.plugins.ScriptRunner;
 public class ExecuteJAR {
   private static Logger logger = Logger.getLogger(ExecuteJAR.class);
 
-  public final static String EXECUTABLE_JAR_FILENAME = "cooja_simulation.jar";
-  public final static String EXTERNALTOOLS_FILENAME = "externaltools.config";
   public final static String SIMCONFIG_FILENAME = "simulation.csc";
-  public final static String FIRMWARE_PREFIX = "firmware";
+  public final static String EXTERNALTOOLS_FILENAME = "exttools.config";
   public final static String FIRMWARE_SUFFIX = ".sky";
 
   public static void main(String[] args) {
@@ -72,8 +72,7 @@ public class ExecuteJAR {
     }
 
     if (args.length > 0) {
-      /* Generate */
-      logger.debug("Generating JAR");
+      /* Generate executable JAR */
       if (args.length != 1) {
         throw new RuntimeException(
             "Bad command line arguments: specify only one simulation config!"
@@ -81,103 +80,140 @@ public class ExecuteJAR {
       }
       generate(new File(args[0]));
     } else {
-      logger.debug("Executing JAR");
+      /* Run simulation */
       execute();
     }
   }
 
-  private static void generate(File file) {
-    if (!file.exists()) {
+  private static void generate(File config) {
+    if (!config.exists()) {
       throw new RuntimeException(
-          "Simulation config not found: " + file.getAbsolutePath()
+          "Simulation config not found: " + config.getAbsolutePath()
       );
     }
 
     /* Load simulation */
-    logger.debug("Loading " + file);
-    Simulation s = GUI.quickStartSimulationConfig(file, false);
+    logger.info("Loading " + config);
+    Simulation s = GUI.quickStartSimulationConfig(config, false);
     if (s == null) {
       throw new RuntimeException(
           "Error when creating simulation"
       );
     }
     s.stopSimulation();
-    logger.debug("Stopped simulation");
 
-    buildExecutableJAR(s.getGUI(), new File("."));
+    buildExecutableJAR(s.getGUI(), new File(config.getName() + ".jar"));
     System.exit(1);
   }
-  
+
+  final static boolean OVERWRITE = false;
   private static void execute() {
-    /* Execute */
-    GUI.externalToolsUserSettingsFile = new File(EXTERNALTOOLS_FILENAME);
+    String executeDir = null;
+    try {
+      executeDir = new File(
+          ExecuteJAR.class.getProtectionDomain().getCodeSource().getLocation().toURI()).getName();
+      if (!executeDir.endsWith(".jar")) {
+        logger.fatal("Not a proper JAR archive: " + executeDir);
+        System.exit(1);
+      }
+      executeDir = executeDir.substring(0, executeDir.length()-".jar".length());
+      new File(executeDir).mkdir();
+    } catch (URISyntaxException e1) {
+      logger.fatal("Can't access JAR file name: " + e1.getMessage());
+      System.exit(1);
+    }
 
     /* Unpack JAR dependencies - only when they do not already exist! */
     try {
-      Process process;
-      if (!new File(SIMCONFIG_FILENAME).exists()) {
-        logger.info("Unpacking simulation config: " + SIMCONFIG_FILENAME);
-        process = Runtime.getRuntime().exec(new String[] { 
-            "jar", 
-            "xf", 
-            EXECUTABLE_JAR_FILENAME, 
-            SIMCONFIG_FILENAME,
-        });
-        process.waitFor();
+      InputStream inputStream;
+      File diskFile = new File(executeDir, SIMCONFIG_FILENAME);
+      if (OVERWRITE || !diskFile.exists()) {
+        logger.info("Unpacking simulation config: " + SIMCONFIG_FILENAME + " -> " + diskFile.getName());
+        inputStream = GUI.class.getResourceAsStream("/" + SIMCONFIG_FILENAME);
+        byte[] fileData = ArrayUtils.readFromStream(inputStream);
+        if (fileData == null) {
+          logger.info("Failed extracting file (read fail)");
+          System.exit(1);
+        }
+        boolean ok = ArrayUtils.writeToFile(diskFile, fileData);
+        if (!ok) {
+          logger.info("Failed extracting file (write fail)");
+          System.exit(1);
+        }
       } else {
-        logger.info("Skip: simulation config alrady exists: " + SIMCONFIG_FILENAME);
+        logger.info("Skip: simulation config already exists: " + diskFile);
       }
 
-      if (!new File(EXTERNALTOOLS_FILENAME).exists()) {
-        logger.info("Unpacking external tools config: " + EXTERNALTOOLS_FILENAME);
-        process = Runtime.getRuntime().exec(new String[] { 
-            "jar", 
-            "xf", 
-            EXECUTABLE_JAR_FILENAME, 
-            EXTERNALTOOLS_FILENAME,
-        });
-        process.waitFor();
+      diskFile = new File(executeDir, EXTERNALTOOLS_FILENAME);
+      if (OVERWRITE || !diskFile.exists()) {
+        logger.info("Unpacking external tools config: " + EXTERNALTOOLS_FILENAME + " -> " + diskFile.getName());
+        inputStream = GUI.class.getResourceAsStream("/" + EXTERNALTOOLS_FILENAME);
+        byte[] fileData = ArrayUtils.readFromStream(inputStream);
+        if (fileData == null) {
+          logger.info("Failed extracting file (read fail)");
+          System.exit(1);
+        }
+        boolean ok = ArrayUtils.writeToFile(diskFile, fileData);
+        if (!ok) {
+          logger.info("Failed extracting file (write fail)");
+          System.exit(1);
+        }
       } else {
-        logger.info("Skip: external tools config alrady exists: " + EXTERNALTOOLS_FILENAME);
+        logger.info("Skip: external tools config already exists: " + diskFile);
       }
+      GUI.externalToolsUserSettingsFile = diskFile;
 
-      if (!new File(FIRMWARE_PREFIX + 0 + FIRMWARE_SUFFIX).exists()) {
-        logger.info("Unpacking firmware files (max 10))");
-        process = Runtime.getRuntime().exec(new String[] { 
-            "jar", 
-            "xf", 
-            EXECUTABLE_JAR_FILENAME, 
-            FIRMWARE_PREFIX + 0 + FIRMWARE_SUFFIX,
-            FIRMWARE_PREFIX + 1 + FIRMWARE_SUFFIX,
-            FIRMWARE_PREFIX + 2 + FIRMWARE_SUFFIX,
-            FIRMWARE_PREFIX + 3 + FIRMWARE_SUFFIX,
-            FIRMWARE_PREFIX + 4 + FIRMWARE_SUFFIX,
-            FIRMWARE_PREFIX + 5 + FIRMWARE_SUFFIX,
-            FIRMWARE_PREFIX + 6 + FIRMWARE_SUFFIX,
-            FIRMWARE_PREFIX + 7 + FIRMWARE_SUFFIX,
-            FIRMWARE_PREFIX + 8 + FIRMWARE_SUFFIX,
-            FIRMWARE_PREFIX + 9 + FIRMWARE_SUFFIX,
-        });
-        process.waitFor();
-      } else {
-        logger.info("Skip: firmware files already exist");
+      int firmwareCounter = 0;
+      while (true) {
+        File firmwareFile = new File(firmwareCounter + FIRMWARE_SUFFIX);
+        diskFile = new File(executeDir, firmwareCounter + FIRMWARE_SUFFIX);
+        firmwareCounter++;
+        if (OVERWRITE || !diskFile.exists()) {
+          logger.info("Unpacking firmware file: " + firmwareFile.getName() + " -> " + diskFile.getName());
+          inputStream = GUI.class.getResourceAsStream("/" + firmwareFile.getName());
+          if (inputStream == null) {
+            /* Not available in simulation */
+            break;
+          }
+          byte[] fileData = ArrayUtils.readFromStream(inputStream);
+          if (fileData == null) {
+            logger.info("Failed extracting file (read fail)");
+            System.exit(1);
+          }
+          boolean ok = ArrayUtils.writeToFile(diskFile, fileData);
+          if (!ok) {
+            logger.info("Failed extracting file (write fail)");
+            System.exit(1);
+          }
+        } else {
+          logger.info("Skip: firmware files already exist: " + diskFile);
+          break;
+        }
       }
     } catch (Exception e) {
-      System.err.println("Error when partially unpacking executable JAR: " + e.getMessage());
+      logger.fatal("Error when unpacking executable JAR: " + e.getMessage());
       return;
     }
 
     logger.info("Starting simulation");
     GUI.setLookAndFeel();
-    GUI.quickStartSimulationConfig(new File(SIMCONFIG_FILENAME), false);
+    GUI.quickStartSimulationConfig(new File(executeDir, SIMCONFIG_FILENAME), false);
   }
 
   /**
    * Builds executable JAR from current simulation
    * 
    * @param gui GUI. Must contain simulation
+   * @param outputFile Output file
    */
-  public static void buildExecutableJAR(GUI gui, File outputDir) {
+  public static boolean buildExecutableJAR(GUI gui, File outputFile) {
+    String executeDir = null;
+    executeDir = outputFile.getName();
+    if (!executeDir.endsWith(".jar")) {
+      throw new RuntimeException("Not a proper JAR archive: " + executeDir);
+    }
+    executeDir = executeDir.substring(0, executeDir.length()-".jar".length());
+
     Simulation simulation = gui.getSimulation();
     if (simulation == null) {
       throw new RuntimeException(
@@ -267,7 +303,6 @@ public class ExecuteJAR {
             "Project JAR could not be found: " + jarFile.getAbsolutePath()
         );
       }
-
       logger.info("Unpacking core JAR " + jar);
       try {
         Process unjarProcess = Runtime.getRuntime().exec(
@@ -299,7 +334,7 @@ public class ExecuteJAR {
             ((Element)moteTypeElement).removeChildren("commands"); /* Remove build commands */
             for (Object pathElement : ((Element)moteTypeElement).getChildren()) {
               if (((Element) pathElement).getName().equals("firmware")) {
-                String newName = FIRMWARE_PREFIX + firmwareCounter++ + FIRMWARE_SUFFIX;
+                String newName = (firmwareCounter++) + FIRMWARE_SUFFIX;
                 /* Copy firmwares, and update firmware references */
                 String firmwarePath = ((Element)pathElement).getText();
                 File firmwareFile = gui.restorePortablePath(new File(firmwarePath));
@@ -321,8 +356,8 @@ public class ExecuteJAR {
                       "Error when writing firmware file: " + firmwareFile
                   );
                 }
-                logger.info("Simconfig: Update firmware path reference: " + firmwareFile.getAbsolutePath() + " -> " + newName);
-                ((Element)pathElement).setText(newName);
+                logger.info("Simconfig: Update firmware path reference: " + firmwareFile.getAbsolutePath() + " -> " + (executeDir + "/" + newName));
+                ((Element)pathElement).setText(executeDir + "/" + newName);
               }
             }
           }
@@ -344,12 +379,11 @@ public class ExecuteJAR {
           "Error when writing simulation configuration: " + configFile
       ).initCause(e1);
     }
-    logger.info("Wrote simulation configuration: " + configFile.getAbsolutePath());
+    logger.info("Wrote simulation configuration: " + configFile.getName());
 
     /* Export external tools config (without projects) */
     try {
       File externalToolsConfig = new File(workingDir, EXTERNALTOOLS_FILENAME);
-      logger.info("Exporting external tools config: " + externalToolsConfig);
       FileOutputStream out = new FileOutputStream(externalToolsConfig);
       Properties differingSettings = new Properties();
       Enumeration<Object> keyEnum = GUI.currentExternalToolsSettings.keys();
@@ -367,6 +401,7 @@ public class ExecuteJAR {
 
       differingSettings.store(out, "COOJA External Tools (User specific)");
       out.close();
+      logger.info("Wrote external tools config: " + externalToolsConfig.getName());
     } catch (Exception e2) {
       throw (RuntimeException) new RuntimeException(
           "Error when writing external tools configuration: " + e2.getMessage()   
@@ -378,23 +413,22 @@ public class ExecuteJAR {
     if (manifestFile.exists()) {
       manifestFile.delete();
     }
-    logger.info("Creating manifest file: " + manifestFile);
     StringBuilder sb = new StringBuilder();
     sb.append("Manifest-Version: 1.0\r\n");
     sb.append("Main-Class: " + ExecuteJAR.class.getName() + "\r\n");
     sb.append("Class-path: .\r\n");
     StringUtils.saveToFile(manifestFile, sb.toString());
+    logger.info("Wrote manifest file: " + manifestFile.getName());
 
     /* Build executable JAR */
-    File executableJAR = new File(outputDir, EXECUTABLE_JAR_FILENAME);
-    if (executableJAR.exists()) {
-      executableJAR.delete();
+    if (outputFile.exists()) {
+      outputFile.delete();
     }
 
-    logger.info("Building executable JAR: " + executableJAR);
+    logger.info("Building executable JAR: " + outputFile);
     try {
       Process jarProcess = Runtime.getRuntime().exec(
-          new String[] { "jar", "cfm", executableJAR.getAbsolutePath(), "manifest.tmp", "*"},
+          new String[] { "jar", "cfm", outputFile.getAbsolutePath(), "manifest.tmp", "*"},
           null,
           workingDir
       );
@@ -405,8 +439,31 @@ public class ExecuteJAR {
       ).initCause(e1);
     }    
 
+    /* Delete temporary working directory */
+    logger.info("Deleting temporary files in: " + workingDir.getAbsolutePath());
+    if (!deleteDirectory(workingDir)) {
+      if (!deleteDirectory(workingDir)) {
+        deleteDirectory(workingDir);
+      }
+    }
+
     /* We are done! */
-    logger.info("Done! You may remove the temporary working directory: " + workingDir.getAbsolutePath());
-    logger.info("Run simulation: > java -jar " + EXECUTABLE_JAR_FILENAME);
+    logger.info("Done! To run simulation: > java -jar " + outputFile.getName());
+    return true;
   }
+  
+  private static boolean deleteDirectory(File path) {
+    if(path.exists()) {
+      File[] files = path.listFiles();
+      for(File file: files) {
+        if(file.isDirectory()) {
+          deleteDirectory(file);
+        } else {
+          file.delete();
+        }
+      }
+    }
+    return(path.delete());
+  }
+
 }
