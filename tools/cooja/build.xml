@@ -13,8 +13,26 @@
     <echo>
 The COOJA Simulator
 
-> ant run
-  Starts COOJA simulator
+  Start COOJA
+  > ant run
+  Build COOJA (dist/cooja.jar) and all default projects (MSPSim et al)
+  > ant jar
+
+  Start COOJA with more memory allocated (for large simulations)
+  > ant run_bigmem
+  Start COOJA, show error box if process terminates unexpectedly.
+  > ant run_errorbox
+
+  Start COOJA and immediately loads simulation in sim.csc
+  > java -mx512m -jar dist/cooja.jar -quickstart=sim.csc
+  Start COOJA without GUI and run simulation in sim.csc
+  > java -mx512m -jar dist/cooja.jar -nogui=sim.csc
+
+  Build executable simulation JAR from current projects and simulation in sim.csc
+  > ant jar
+  > cd build
+  build/> java -cp ".;../lib/jdom.jar;../lib/log4j.jar" se.sics.cooja.util.ExecuteJAR "/home/user/sim.csc"
+    
     </echo>
   </target>
 
