@@ -24,7 +24,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * $Id: GUI.java,v 1.148 2009/10/29 10:16:05 fros4943 Exp $
+ * $Id: GUI.java,v 1.149 2009/10/29 17:05:13 fros4943 Exp $
  */
 
 package se.sics.cooja;
@@ -2595,7 +2595,7 @@ public class GUI extends Observable {
    * @return Value
    */
   public static String getExternalToolsSetting(String name) {
-    return currentExternalToolsSettings.getProperty(name);
+    return getExternalToolsSetting(name, null);
   }
 
   /**
@@ -4158,34 +4158,70 @@ public class GUI extends Observable {
       getSimulation().stopSimulation();
 
       /* Info message */
-      JOptionPane.showMessageDialog(GUI.getTopParentContainer(),
+      String[] options = new String[] { "OK", "Cancel" };
+      int n = JOptionPane.showOptionDialog(
+          GUI.getTopParentContainer(),
           "This function attempts to build an executable COOJA JAR from the current simulation.\n" +
           "The JAR will contain all simulation dependencies, including project JAR files and mote firmware files.\n" +
           "\nExecutable simulations can be used to run already prepared simulations on several computers.\n" +
           "\nThis is an experimental feature!",
-          "Export simulation to executable JAR", JOptionPane.INFORMATION_MESSAGE);
+          "Export simulation to executable JAR", JOptionPane.OK_CANCEL_OPTION,
+          JOptionPane.INFORMATION_MESSAGE, null, options, options[0]);
+      if (n != JOptionPane.OK_OPTION) {
+        return;
+      }
 
-      /* Select output directory */
+      /* Select output file */
       JFileChooser fc = new JFileChooser();
-      fc.setDialogTitle("Select directory for " + ExecuteJAR.EXECUTABLE_JAR_FILENAME);
-      fc.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
-      fc.setAcceptAllFileFilterUsed(false);
-      int returnVal = fc.showSaveDialog(myDesktopPane);
+      FileFilter jarFilter = new FileFilter() {
+        public boolean accept(File file) {
+          if (file.isDirectory()) {
+            return true;
+          }
+          if (file.getName().endsWith(".jar")) {
+            return true;
+          }
+          return false;
+        }
+        public String getDescription() {
+          return "Java archive";
+        }
+        public String toString() {
+          return ".jar";
+        }
+      };
+      fc.setFileFilter(jarFilter);
+      fc.setSelectedFile(new File("cooja_simulation.jar"));
+      int returnVal = fc.showSaveDialog(GUI.getTopParentContainer());
       if (returnVal != JFileChooser.APPROVE_OPTION) {
         return;
       }
-      File dir = fc.getSelectedFile();
-      if (!dir.isDirectory()) {
-        return;
+      File outputFile = fc.getSelectedFile();
+      if (outputFile.exists()) {
+        options = new String[] { "Overwrite", "Cancel" };
+        n = JOptionPane.showOptionDialog(
+            GUI.getTopParentContainer(),
+            "A file with the same name already exists.\nDo you want to remove it?",
+            "Overwrite existing file?", JOptionPane.YES_NO_OPTION,
+            JOptionPane.QUESTION_MESSAGE, null, options, options[0]);
+        if (n != JOptionPane.YES_OPTION) {
+          return;
+        }
+        outputFile.delete();
       }
       
-      try {
-        ExecuteJAR.buildExecutableJAR(GUI.this, dir);
-      } catch (RuntimeException ex) {
-        JOptionPane.showMessageDialog(GUI.getTopParentContainer(),
-            ex.getMessage(),
-            "Mote type not supported", JOptionPane.ERROR_MESSAGE);
-      }
+      final File finalOutputFile = outputFile;
+      new Thread() {
+        public void run() {
+          try {
+            ExecuteJAR.buildExecutableJAR(GUI.this, finalOutputFile);   
+          } catch (RuntimeException ex) {
+            JOptionPane.showMessageDialog(GUI.getTopParentContainer(),
+                ex.getMessage(),
+                "Error", JOptionPane.ERROR_MESSAGE);
+          }
+        }
+      }.start();
     }
     public boolean shouldBeEnabled() {
       return getSimulation() != null;
