@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#)$Id: contiki-sky-main.c,v 1.57 2009/10/19 20:55:52 adamdunkels Exp $
+ * @(#)$Id: contiki-sky-main.c,v 1.58 2009/10/29 22:10:59 adamdunkels Exp $
  */
 
 #include <signal.h>
@@ -287,6 +287,20 @@ main(int argc, char **argv)
   printf(" %s channel %u\n", MAC_DRIVER.name, RF_CHANNEL);
 
   process_start(&tcpip_process, NULL);
+
+  printf("Tentative link-local IPv6 address ");
+  {
+    int i;
+    for(i = 0; i < 7; ++i) {
+      printf("%02x%02x:",
+	     uip_netif_physical_if.addresses[0].ipaddr.u8[i * 2],
+	     uip_netif_physical_if.addresses[0].ipaddr.u8[i * 2 + 1]);
+    }
+    printf("%02x%02x\n",
+	   uip_netif_physical_if.addresses[0].ipaddr.u8[14],
+	   uip_netif_physical_if.addresses[0].ipaddr.u8[15]);
+  }
+  
 #if UIP_CONF_ROUTER
   rime_init(rime_udp_init(NULL));
   uip_router_register(&rimeroute);
