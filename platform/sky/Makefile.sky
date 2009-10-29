@@ -1,4 +1,4 @@
-# $Id: Makefile.sky,v 1.27 2009/08/25 16:24:49 adamdunkels Exp $
+# $Id: Makefile.sky,v 1.28 2009/10/29 22:10:21 adamdunkels Exp $
 
 
 ARCH=msp430.c leds.c watchdog.c light.c spi.c ds2411.c \
@@ -79,9 +79,15 @@ sky-motelist:
 sky-motes:
 	@echo $(MOTES)
 
+ifdef MOTE
+%.upload: %.ihex
+	cp $< $(IHEXFILE)
+	$(MAKE) sky-u.$(subst /,-,$(word $(MOTE), $(MOTES)))
+else # MOTE
 %.upload: %.ihex
 	cp $< $(IHEXFILE)
 	$(MAKE) sky-reset sky-upload
+endif # MOTE
 
 sky-upload: sky-reset
 	$(MAKE) -j $(NUMPAR) sky-upload-sequence
