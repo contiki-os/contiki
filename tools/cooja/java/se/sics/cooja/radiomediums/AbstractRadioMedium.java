@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: AbstractRadioMedium.java,v 1.11 2009/10/27 10:10:03 fros4943 Exp $
+ * $Id: AbstractRadioMedium.java,v 1.12 2009/10/29 10:31:55 fros4943 Exp $
  */
 
 package se.sics.cooja.radiomediums;
@@ -268,6 +268,7 @@ public abstract class AbstractRadioMedium extends RadioMedium {
         updateSignalStrengths();
 
         /* Notify observers */
+        lastConnection = null;
         radioMediumObservable.setRadioMediumChangedAndNotify();
 
       } else if (event == Radio.RadioEvent.TRANSMISSION_FINISHED) {
