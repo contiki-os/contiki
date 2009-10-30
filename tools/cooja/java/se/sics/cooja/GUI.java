@@ -24,7 +24,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * $Id: GUI.java,v 1.149 2009/10/29 17:05:13 fros4943 Exp $
+ * $Id: GUI.java,v 1.150 2009/10/30 15:27:26 nifi Exp $
  */
 
 package se.sics.cooja;
@@ -3953,8 +3953,11 @@ public class GUI extends Observable {
       String fileCanonical = file.getCanonicalPath();
       if (!fileCanonical.startsWith(configCanonical)) {
         /* SPECIAL CASE: Allow one parent directory */
-        configCanonical = configPath.getParentFile().getCanonicalPath();
-        id += "/..";
+        File parent = new File(configCanonical).getParentFile();
+        if (parent != null) {
+          configCanonical = parent.getCanonicalPath();
+          id += "/..";
+        }
       }
       if (!fileCanonical.startsWith(configCanonical)) {
         /* File is not in a config subdirectory */
