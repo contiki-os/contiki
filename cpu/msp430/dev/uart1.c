@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#)$Id: uart1.c,v 1.13 2009/10/27 16:25:28 fros4943 Exp $
+ * @(#)$Id: uart1.c,v 1.14 2009/10/30 15:06:27 adamdunkels Exp $
  */
 
 /*
@@ -37,6 +37,7 @@
 #include <io.h>
 #include <signal.h>
 
+#include "dev/leds.h"
 #include "sys/energest.h"
 #include "dev/uart1.h"
 #include "dev/watchdog.h"
@@ -99,12 +100,6 @@ uart1_writeb(unsigned char c)
 }
 /*---------------------------------------------------------------------------*/
 #if ! WITH_UIP /* If WITH_UIP is defined, putchar() is defined by the SLIP driver */
-int
-putchar(int c)
-{
-  uart1_writeb((char)c);
-  return c;
-}
 #endif /* ! WITH_UIP */
 /*---------------------------------------------------------------------------*/
 /**
@@ -169,6 +164,7 @@ uart1_init(unsigned long ubr)
 interrupt(UART1RX_VECTOR)
 uart1_rx_interrupt(void)
 {
+  uint8_t c;
   ENERGEST_ON(ENERGEST_TYPE_IRQ);
 
   if(!(URXIFG1 & IFG2)) {
@@ -178,14 +174,16 @@ uart1_rx_interrupt(void)
     rx_in_progress = 1;
     LPM4_EXIT;
   } else {
+    c = RXBUF1;
     rx_in_progress = 0;
     /* Check status register for receive errors. */
     if(URCTL1 & RXERR) {
       volatile unsigned dummy;
-      dummy = RXBUF1;   /* Clear error flags by forcing a dummy read. */
+      leds_invert(LEDS_ALL);
+      //      dummy = RXBUF1;   /* Clear error flags by forcing a dummy read. */
     } else {
       if(uart1_input_handler != NULL) {
-	if(uart1_input_handler(RXBUF1)) {
+	if(uart1_input_handler(c)) {
 	  LPM4_EXIT;
 	}
       }
