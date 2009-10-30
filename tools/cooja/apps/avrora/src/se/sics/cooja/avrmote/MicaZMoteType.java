@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: MicaZMoteType.java,v 1.6 2009/09/17 10:45:14 fros4943 Exp $
+ * $Id: MicaZMoteType.java,v 1.7 2009/10/30 09:42:50 fros4943 Exp $
  */
 
 package se.sics.cooja.avrmote;
@@ -290,7 +290,7 @@ public class MicaZMoteType implements MoteType {
       } else if (name.equals("firmware")) {
         fileFirmware = new File(element.getText());
         if (!fileFirmware.exists()) {
-          fileFirmware = simulation.getGUI().restorePortablePath(fileSource);
+          fileFirmware = simulation.getGUI().restorePortablePath(fileFirmware);
         }
       } else if (name.equals("moteinterface")) {
         String intfClass = element.getText().trim();
