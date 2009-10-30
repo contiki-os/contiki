@@ -26,14 +26,13 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: MicaZMote.java,v 1.8 2009/09/17 13:19:08 fros4943 Exp $
+ * $Id: MicaZMote.java,v 1.9 2009/10/30 09:42:50 fros4943 Exp $
  */
 
 package se.sics.cooja.avrmote;
 
 import java.io.File;
 import java.util.Collection;
-import java.util.Random;
 import java.util.Vector;
 
 import org.apache.log4j.Logger;
@@ -45,12 +44,7 @@ import se.sics.cooja.MoteInterfaceHandler;
 import se.sics.cooja.MoteMemory;
 import se.sics.cooja.MoteType;
 import se.sics.cooja.Simulation;
-import se.sics.cooja.avrmote.interfaces.MicaClock;
-import se.sics.cooja.avrmote.interfaces.MicaSerial;
-import se.sics.cooja.avrmote.interfaces.MicaZLED;
-import se.sics.cooja.avrmote.interfaces.MicaZRadio;
-import se.sics.cooja.interfaces.MoteID;
-import se.sics.cooja.interfaces.Position;
+import se.sics.cooja.motes.AbstractEmulatedMote;
 import avrora.core.LoadableProgram;
 import avrora.sim.Interpreter;
 import avrora.sim.Simulator;
@@ -62,15 +56,11 @@ import avrora.sim.platform.PlatformFactory;
 /**
  * @author Joakim Eriksson, Fredrik Osterlind
  */
-public class MicaZMote implements Mote {
+public class MicaZMote extends AbstractEmulatedMote implements Mote {
   private static Logger logger = Logger.getLogger(MicaZMote.class);
 
   /* 8 MHz according to Contiki config */
   public static long NR_CYCLES_PER_MSEC = 8000;
-
-  /* Cycle counter */
-  public long cycleCounter = 0;
-  public long usDrift = 0; /* us */
 
   private Simulation mySimulation = null;
   private MoteInterfaceHandler myMoteInterfaceHandler;
@@ -84,7 +74,6 @@ public class MicaZMote implements Mote {
   /* Stack monitoring variables */
   private boolean stopNextInstruction = false;
 
-
   public MicaZMote() {
     myMoteType = null;
     mySimulation = null;
@@ -96,6 +85,9 @@ public class MicaZMote implements Mote {
   public MicaZMote(Simulation simulation, MicaZMoteType type) {
     mySimulation = simulation;
     myMoteType = type;
+
+    /* Schedule us immediately */
+    requestImmediateWakeup();
   }
 
   protected boolean initEmulator(File fileELF) {
@@ -184,37 +176,39 @@ public class MicaZMote implements Mote {
     myMoteInterfaceHandler = moteInterfaceHandler;
   }
 
-  /* return false when done - e.g. true means more work to do before finished with this tick */
-  private long cyclesExecuted = 0;
   public boolean tick(long simTime) {
+    throw new RuntimeException("Obsolete method");
+  }
+
+  private long cyclesExecuted = 0;
+  private long cyclesUntil = 0;
+  public void execute(long t) {
+    /* Wait until mote boots */
+    if (myMoteInterfaceHandler.getClock().getTime() < 0) {
+      scheduleNextWakeup(t - myMoteInterfaceHandler.getClock().getTime());
+      return;
+    }
+
     if (stopNextInstruction) {
       stopNextInstruction = false;
       throw new RuntimeException("Avrora requested simulation stop");
+    } 
+
+    /* TODO Poll mote interfaces? */
+
+    /* Execute one millisecond */
+    cyclesUntil += NR_CYCLES_PER_MSEC;
+    while (cyclesExecuted < cyclesUntil) {
+      cyclesExecuted += interpreter.step();
     }
 
-    if (simTime + usDrift < 0) {
-      return false;
-    }
+    /* TODO Poll mote interfaces? */
 
-    long maxSimTimeCycles = (long)(NR_CYCLES_PER_MSEC * ((simTime+usDrift+Simulation.MILLISECOND)/(double)Simulation.MILLISECOND));
-    if (maxSimTimeCycles <= cycleCounter) {
-      return false;
-    }
-
-    // Leave control to emulated CPU
-    cycleCounter += 1;
-
-    if (cyclesExecuted > cycleCounter) {
-      /* CPU already ticked too far - just wait it out */
-      return true;
-    }
-    myMoteInterfaceHandler.doActiveActionsBeforeTick();
-
-    cyclesExecuted += interpreter.step();
-
-    return true;
+    /* Schedule wakeup every millisecond */
+    /* TODO Optimize next wakeup time */
+    scheduleNextWakeup(t + Simulation.MILLISECOND);
   }
-
+  
   public boolean setConfigXML(Simulation simulation, Collection<Element> configXML, boolean visAvailable) {
     for (Element element: configXML) {
       String name = element.getName();
@@ -242,6 +236,8 @@ public class MicaZMote implements Mote {
       }
     }
 
+    /* Schedule us immediately */
+    requestImmediateWakeup();
     return true;
   }
 
