@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: uip6-bridge-tap.c,v 1.1 2009/05/08 12:49:36 joxe Exp $
+ * $Id: uip6-bridge-tap.c,v 1.2 2009/11/02 11:46:49 adamdunkels Exp $
  *
  */
 
@@ -43,6 +43,9 @@
 #include "dev/slip.h"
 #include "dev/leds.h"
 #include "sicslow_ethernet.h"
+
+#include "net/rime/packetbuf.h"
+
 #include <stdio.h>
 #include <string.h>
 
@@ -59,6 +62,9 @@ tcpip_output(uip_lladdr_t *a)
 {
   if(outputfunc != NULL) {
     outputfunc(a);
+    /*    printf("pppp o %u tx %u rx %u\n", UIP_IP_BUF->proto,
+	   packetbuf_attr(PACKETBUF_ATTR_TRANSMIT_TIME),
+	   packetbuf_attr(PACKETBUF_ATTR_LISTEN_TIME));*/
     leds_invert(LEDS_GREEN);
   }
   return 0;
@@ -85,7 +91,9 @@ tcpip_input(void)
   if(uip_len > 0) {
     mac_LowpanToEthernet();
     if(uip_len > 0) {
-/*       slip_write(UIP_IP_BUF, uip_len); */
+      /*      printf("pppp i %u tx %u rx %u\n", UIP_IP_BUF->proto,
+	     packetbuf_attr(PACKETBUF_ATTR_TRANSMIT_TIME),
+	     packetbuf_attr(PACKETBUF_ATTR_LISTEN_TIME));*/
       slip_write(uip_buf, uip_len);
       leds_invert(LEDS_RED);
       uip_len = 0;
@@ -122,5 +130,30 @@ PROCESS_THREAD(uip6_bridge, ev, data)
   process_start(&slip_process, NULL);
 
   PROCESS_END();
+}
+/*---------------------------------------------------------------------------*/
+int
+putchar(int c)
+{
+#define SLIP_END     0300
+  static char debug_frame = 0;
+
+  if(!debug_frame) {		/* Start of debug output */
+    slip_arch_writeb(SLIP_END);
+    slip_arch_writeb('\r');	/* Type debug line == '\r' */
+    debug_frame = 1;
+  }
+
+  slip_arch_writeb((char)c);
+
+  /*
+   * Line buffered output, a newline marks the end of debug output and
+   * implicitly flushes debug output.
+   */
+  if(c == '\n') {
+    slip_arch_writeb(SLIP_END);
+    debug_frame = 0;
+  }
+  return c;
 }
 /*---------------------------------------------------------------------------*/

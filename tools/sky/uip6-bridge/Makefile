@@ -20,7 +20,7 @@ all:	uip6-bridge-tap.sky
 
 upload: uip6-bridge-tap.ihex
 	cp $< $(IHEXFILE)
-	$(MAKE) sky-u.$(subst /,-,$(word 1, $(MOTES)))
+	$(MAKE) sky-u.$(subst /,-,$(word $(MOTE), $(MOTES)))
 
 include $(CONTIKI)/Makefile.include
 
@@ -35,10 +35,6 @@ connect: ../../tapslip6
 	sudo ../../tapslip6 -t tap0 -s $(USBDEVPREFIX)$(word $(MOTE), $(CMOTES)) 127.0.0.1 255.0.0.0
 
 bridge:
-	sudo sysctl net.ipv6.conf.all.forwarding=1
-	sudo ifconfig tap0 down
-	sudo ifconfig tap0 hw ether $(MAC)
-	sudo ifconfig tap0 up
 	sudo service radvd restart
 	sudo route add -6 aaaa::/64 tap0
 	sudo ip -6 address add aaaa::1/64 dev tap0

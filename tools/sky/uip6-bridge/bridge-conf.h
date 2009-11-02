@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: bridge-conf.h,v 1.3 2009/10/26 13:34:08 adamdunkels Exp $
+ * $Id: bridge-conf.h,v 1.4 2009/11/02 11:46:49 adamdunkels Exp $
  */
 
 /**
@@ -54,5 +54,6 @@
 #define RF_CHANNEL              26
 
 #define CC2420_CONF_AUTOACK     1
+
 
 #endif /* __BRIDGE_CONF_H__ */
