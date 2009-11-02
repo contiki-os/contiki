@@ -46,6 +46,7 @@ $ob->databits(8);
 $ob->stopbits(1);
 $ob->handshake("rts");
 $ob->read_const_time(1000); # 1 second per unfulfilled "read" call
+$ob->rts_active(1);
 
 my $s = 0;
 
