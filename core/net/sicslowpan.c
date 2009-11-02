@@ -32,7 +32,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: sicslowpan.c,v 1.9 2009/09/18 16:37:17 nifi Exp $
+ * $Id: sicslowpan.c,v 1.10 2009/11/02 11:58:56 adamdunkels Exp $
  */
 /**
  * \file
@@ -1139,7 +1139,12 @@ output(uip_lladdr_t *localdest)
   /* reset rime buffer */
   packetbuf_clear();
   rime_ptr = packetbuf_dataptr();
-  
+
+  if(UIP_IP_BUF->proto == UIP_PROTO_TCP) {
+    packetbuf_set_attr(PACKETBUF_ATTR_PACKET_TYPE,
+		       PACKETBUF_ATTR_PACKET_TYPE_STREAM);
+  }
+    
   /*
    * The destination address will be tagged to each outbound
    * packet. If the argument localdest is NULL, we are sending a
@@ -1445,6 +1450,7 @@ input(const struct mac_driver *r)
     sicslowpan_len = 0;
     processed_ip_len = 0;
 #endif /* SICSLOWPAN_CONF_FRAG */
+
     tcpip_input();
 #if SICSLOWPAN_CONF_FRAG
   }
