@@ -29,7 +29,7 @@
  *
  * This file is part of the uIP TCP/IP stack.
  *
- * $Id: tapslip6.c,v 1.1 2009/05/08 12:37:34 joxe Exp $
+ * $Id: tapslip6.c,v 1.2 2009/11/02 11:46:49 adamdunkels Exp $
  *
  */
 
@@ -100,6 +100,22 @@ print_packet(u_int8_t *p, int len) {
   printf("\n");
 }
 
+int
+is_sensible_string(const unsigned char *s, int len)
+{
+  int i;
+  for(i = 1; i < len; i++) {
+    if(s[i] == 0 || s[i] == '\r' || s[i] == '\n' || s[i] == '\t') {
+      continue;
+    } else if(s[i] < ' ' || '~' < s[i]) {
+      return 0;
+    }
+  }
+  return 1;
+}
+
+
+
 /*
  * Read from serial, when we have a packet write it to tun. No output
  * buffering, input buffered by stdio.
@@ -142,7 +158,6 @@ serial_to_tun(FILE *inslip, int outfd)
   switch(c) {
   case SLIP_END:
     if(inbufptr > 0) {
-
       if(uip.inbuf[0] == '!') {
 	if (uip.inbuf[1] == 'M') {
 	  /* Read gateway MAC address and autoconfigure tap0 interface */
@@ -161,9 +176,14 @@ serial_to_tun(FILE *inslip, int outfd)
 	  ssystem("ifconfig %s hw ether %s", tundev, &macs[6]);
 	  ssystem("ifconfig %s up", tundev);
 	}
+#define DEBUG_LINE_MARKER '\r'
+      } else if(uip.inbuf[0] == DEBUG_LINE_MARKER) {
+	fwrite(uip.inbuf + 1, inbufptr - 1, 1, stdout);
+      } else if(is_sensible_string(uip.inbuf, inbufptr)) {
+	fwrite(uip.inbuf, inbufptr, 1, stdout);
       } else {
 	printf("Writing to tun  len: %d\n", inbufptr);
-	print_packet(uip.inbuf, inbufptr);
+	/*	print_packet(uip.inbuf, inbufptr);*/
 	if(write(outfd, uip.inbuf, inbufptr) != inbufptr) {
 	  err(1, "serial_to_tun: write");
 	}
@@ -244,14 +264,14 @@ write_to_serial(int outfd, void *inbuf, int len)
   u_int8_t *p = inbuf;
   int i, ecode;
 
-  printf("Got packet of length %d - write SLIP\n", len);
-  print_packet(p, len);
+  /*  printf("Got packet of length %d - write SLIP\n", len);*/
+  /*  print_packet(p, len);*/
 
   /* It would be ``nice'' to send a SLIP_END here but it's not
    * really necessary.
    */
   /* slip_send(outfd, SLIP_END); */
-  printf("writing packet to serial!!! %d\n", len);
+  /*  printf("writing packet to serial!!! %d\n", len);*/
   for(i = 0; i < len; i++) {
     switch(p[i]) {
     case SLIP_END:
