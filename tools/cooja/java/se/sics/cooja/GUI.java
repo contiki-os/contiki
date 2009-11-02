@@ -24,7 +24,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * $Id: GUI.java,v 1.150 2009/10/30 15:27:26 nifi Exp $
+ * $Id: GUI.java,v 1.151 2009/11/02 13:18:27 fros4943 Exp $
  */
 
 package se.sics.cooja;
@@ -3961,7 +3961,7 @@ public class GUI extends Observable {
       }
       if (!fileCanonical.startsWith(configCanonical)) {
         /* File is not in a config subdirectory */
-        logger.info("File is not in a config subdirectory: " + file.getAbsolutePath());
+        /*logger.info("File is not in a config subdirectory: " + file.getAbsolutePath());*/
         return null;
       }
 
