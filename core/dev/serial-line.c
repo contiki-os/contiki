@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: serial-line.c,v 1.2 2009/10/27 16:20:31 fros4943 Exp $
+ * @(#)$Id: serial-line.c,v 1.3 2009/11/02 12:47:06 fros4943 Exp $
  */
 #include "dev/serial-line.h"
 #include <string.h> /* for memcpy() */
@@ -56,44 +56,37 @@ PROCESS(serial_line_process, "Serial driver");
 
 process_event_t serial_line_event_message;
 
-
 /*---------------------------------------------------------------------------*/
 int
 serial_line_input_byte(unsigned char c)
 {
   static uint8_t overflow = 0; /* Buffer overflow: ignore until END */
+  if (IGNORE_CHAR(c)) {
+    return 0;
+  }
 
-  if(!IGNORE_CHAR(c)) {
-    if(!overflow) {
-      /* Add character */
-      if(ringbuf_put(&rxbuf, c) == 0) {
-        /* Buffer overflow: ignore the rest of the line */
-        overflow = 1;
-        process_poll(&serial_line_process);
-      }
-    } else {
-      /* Buffer overflowed:
-       * Only (try to) add terminator characters, otherwise skip */
-      if(c == END && ringbuf_put(&rxbuf, c) != 0) {
-        overflow = 0;
-      } else {
-        process_poll(&serial_line_process);
-      }
+  if(!overflow) {
+    /* Add character */
+    if(ringbuf_put(&rxbuf, c) == 0) {
+      /* Buffer overflow: ignore the rest of the line */
+      overflow = 1;
     }
-
-    if(c == END && !overflow) {
-      /* Tell process at least one (potentially cropped due to overflow)
-       * line exists in the buffer */
-      process_poll(&serial_line_process);
-      return 1;
+  } else {
+    /* Buffer overflowed:
+     * Only (try to) add terminator characters, otherwise skip */
+    if(c == END && ringbuf_put(&rxbuf, c) != 0) {
+      overflow = 0;
     }
   }
-  return 0;
+
+  /* Wake up consumer process */
+  process_poll(&serial_line_process);
+  return 1;
 }
 /*---------------------------------------------------------------------------*/
 PROCESS_THREAD(serial_line_process, ev, data)
 {
-  static char buf[128];
+  static char buf[BUFSIZE];
   static int ptr;
 
   PROCESS_BEGIN();
@@ -110,20 +103,22 @@ PROCESS_THREAD(serial_line_process, ev, data)
       PROCESS_YIELD();
     } else {
       if(c != END) {
-        buf[ptr++] = (uint8_t)c;
+        if(ptr < BUFSIZE-1) {
+          buf[ptr++] = (uint8_t)c;
+        } else {
+          /* Ignore character (wait for EOL) */
+        }
       } else {
         /* Terminate */
         buf[ptr++] = (uint8_t)'\0';
 
-        if (ptr > 1) {
-          /* Broadcast event */
-          process_post(PROCESS_BROADCAST, serial_line_event_message, buf);
+        /* Broadcast event */
+        process_post(PROCESS_BROADCAST, serial_line_event_message, buf);
 
-          /* Wait until all processes have handled the serial line event */
-          if(PROCESS_ERR_OK ==
-            process_post(PROCESS_CURRENT(), PROCESS_EVENT_CONTINUE, NULL)) {
-            PROCESS_WAIT_EVENT_UNTIL(ev == PROCESS_EVENT_CONTINUE);
-          }
+        /* Wait until all processes have handled the serial line event */
+        if(PROCESS_ERR_OK ==
+          process_post(PROCESS_CURRENT(), PROCESS_EVENT_CONTINUE, NULL)) {
+          PROCESS_WAIT_EVENT_UNTIL(ev == PROCESS_EVENT_CONTINUE);
         }
         ptr = 0;
       }
