@@ -1,3 +1,7 @@
+- openocd flashing
+  use run_algorithm to hook ROM NVM functions
+  see flash/stm32x.c
+
 - set XTAL_CNTL. See
    http://devl.org/pipermail/mc1322x/2009-October/000063.html
    
