@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: SimControl.java,v 1.16 2009/10/27 10:12:00 fros4943 Exp $
+ * $Id: SimControl.java,v 1.17 2009/11/02 10:02:58 fros4943 Exp $
  */
 
 package se.sics.cooja.plugins;
@@ -133,6 +133,9 @@ public class SimControl extends VisPlugin {
           stopTimeTextField.setToolTipText("Simulation will stop at time (us): " + t);
           SimControl.this.simulation.invokeSimulationThread(new Runnable() {
             public void run() {
+              if (stopEvent.isScheduled()) {
+                stopEvent.remove();
+              }
               SimControl.this.simulation.scheduleEvent(stopEvent, t);
             }
           });
