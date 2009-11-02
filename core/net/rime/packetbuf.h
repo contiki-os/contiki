@@ -40,7 +40,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: packetbuf.h,v 1.3 2009/10/19 21:28:11 adamdunkels Exp $
+ * $Id: packetbuf.h,v 1.4 2009/11/02 11:58:56 adamdunkels Exp $
  */
 
 /**
@@ -316,6 +316,8 @@ extern const char *packetbuf_attr_strings[];
 
 #define PACKETBUF_ATTR_PACKET_TYPE_DATA 0
 #define PACKETBUF_ATTR_PACKET_TYPE_ACK 1
+#define PACKETBUF_ATTR_PACKET_TYPE_STREAM 2
+
 enum {
   PACKETBUF_ATTR_NONE,
   PACKETBUF_ATTR_CHANNEL,

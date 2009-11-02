@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: xmac.c,v 1.39 2009/10/19 21:27:02 adamdunkels Exp $
+ * $Id: xmac.c,v 1.40 2009/11/02 11:58:56 adamdunkels Exp $
  */
 
 /**
@@ -53,6 +53,10 @@
 #include "sys/rtimer.h"
 
 #include "contiki-conf.h"
+
+#ifdef EXPERIMENT_SETUP
+#include "experiment-setup.h"
+#endif
 
 #include <string.h>
 
@@ -160,12 +164,12 @@ static const struct radio_driver *radio;
 #define PRINTF(...) printf(__VA_ARGS__)
 #define PRINTDEBUG(...) printf(__VA_ARGS__)
 #else
-#undef LEDS_ON
+/*#undef LEDS_ON
 #undef LEDS_OFF
 #undef LEDS_TOGGLE
 #define LEDS_ON(x)
 #define LEDS_OFF(x)
-#define LEDS_TOGGLE(x)
+#define LEDS_TOGGLE(x)*/
 #define PRINTF(...)
 #define PRINTDEBUG(...)
 #endif
@@ -205,6 +209,11 @@ LIST(encounter_list);
 MEMB(encounter_memb, struct encounter, MAX_ENCOUNTERS);
 #endif /* WITH_ENCOUNTER_OPTIMIZATION */
 
+static uint8_t is_streaming;
+static rimeaddr_t is_streaming_to, is_streaming_to_too;
+static rtimer_clock_t stream_until;
+#define DEFAULT_STREAM_TIME (RTIMER_ARCH_SECOND)
+
 #ifndef MIN
 #define MIN(a, b) ((a) < (b)? (a) : (b))
 #endif /* MIN */
@@ -229,7 +238,8 @@ on(void)
 static void
 off(void)
 {
-  if(xmac_is_on && radio_is_on != 0 && is_listening == 0) {
+  if(xmac_is_on && radio_is_on != 0 && is_listening == 0 &&
+     is_streaming == 0) {
     radio_is_on = 0;
     radio->off();
     LEDS_OFF(LEDS_RED);
@@ -243,6 +253,14 @@ powercycle(struct rtimer *t, void *ptr)
 #if WITH_TIMESYNCH
   rtimer_clock_t should_be, adjust;
 #endif /* WITH_TIMESYNCH */
+
+  if(is_streaming) {
+    if(!RTIMER_CLOCK_LT(RTIMER_NOW(), stream_until)) {
+      is_streaming = 0;
+      rimeaddr_copy(&is_streaming_to, &rimeaddr_null);
+      rimeaddr_copy(&is_streaming_to_too, &rimeaddr_null);
+    }
+  }
 
 
   PT_BEGIN(&pt);
@@ -438,6 +456,8 @@ send_packet(void)
   int is_reliable;
   struct encounter *e;
   struct queuebuf *packet;
+  int is_already_streaming = 0;
+
 
 #if WITH_RANDOM_WAIT_BEFORE_SEND
   {
@@ -445,6 +465,7 @@ send_packet(void)
     while(RTIMER_CLOCK_LT(RTIMER_NOW(), t));
   }
 #endif /* WITH_RANDOM_WAIT_BEFORE_SEND */
+
   
   /* Create the X-MAC header for the data packet. */
   packetbuf_set_addr(PACKETBUF_ADDR_SENDER, &rimeaddr_node_addr);
@@ -473,8 +494,8 @@ send_packet(void)
   len = framer_get()->create();
   strobe_len = len + sizeof(struct xmac_hdr);
   if(len == 0 || strobe_len > sizeof(strobe)) {
-    /* Failed to send */
-    PRINTF("xmac: send failed, too large header\n");
+    /* Failed to send */ 
+   PRINTF("xmac: send failed, too large header\n");
     return 0;
   }
   memcpy(strobe, packetbuf_hdrptr(), len);
@@ -493,24 +514,47 @@ send_packet(void)
 
 #if WITH_CHANNEL_CHECK
   /* Check if there are other strobes in the air. */
-  waiting_for_packet = 1;
-  on();
-  t0 = RTIMER_NOW();
-  while(RTIMER_CLOCK_LT(RTIMER_NOW(), t0 + xmac_config.strobe_wait_time * 2)) {
-    len = radio->read(&strobe.hdr, sizeof(strobe.hdr));
-    if(len > 0) {
-      someone_is_sending = 1;
+  if(!someone_is_sending) {
+    waiting_for_packet = 1;
+    on();
+    t0 = RTIMER_NOW();
+    while(RTIMER_CLOCK_LT(RTIMER_NOW(), t0 + xmac_config.strobe_wait_time * 2)) {
+      len = radio->read(&strobe.hdr, sizeof(strobe.hdr));
+      if(len > 0) {
+	someone_is_sending = 1;
+      }
     }
+    waiting_for_packet = 0;
   }
-  waiting_for_packet = 0;
   
   while(someone_is_sending);
 
 #endif /* WITH_CHANNEL_CHECK */
-  
+
+
   /* By setting we_are_sending to one, we ensure that the rtimer
      powercycle interrupt do not interfere with us sending the packet. */
   we_are_sending = 1;
+
+#if WITH_STREAMING
+  if(is_streaming == 1 &&
+     (rimeaddr_cmp(packetbuf_addr(PACKETBUF_ADDR_RECEIVER),
+		   &is_streaming_to) ||
+      rimeaddr_cmp(packetbuf_addr(PACKETBUF_ADDR_RECEIVER),
+		   &is_streaming_to_too))) {
+    is_already_streaming = 1;
+  }
+  if(packetbuf_attr(PACKETBUF_ATTR_PACKET_TYPE) ==
+     PACKETBUF_ATTR_PACKET_TYPE_STREAM) {
+    is_streaming = 1;
+    if(rimeaddr_cmp(&is_streaming_to, &rimeaddr_null)) {
+      rimeaddr_copy(&is_streaming_to, packetbuf_addr(PACKETBUF_ADDR_RECEIVER));
+    } else if(!rimeaddr_cmp(&is_streaming_to, packetbuf_addr(PACKETBUF_ADDR_RECEIVER))) {
+      rimeaddr_copy(&is_streaming_to_too, packetbuf_addr(PACKETBUF_ADDR_RECEIVER));
+    }
+    stream_until = RTIMER_NOW() + DEFAULT_STREAM_TIME;
+  }
+#endif /* WITH_STREAMING */
 
   off();
 
@@ -539,7 +583,8 @@ send_packet(void)
 #if WITH_ACK_OPTIMIZATION
       /* Wait until the receiver is expected to be awake */
       if(packetbuf_attr(PACKETBUF_ATTR_PACKET_TYPE) !=
-	 PACKETBUF_ATTR_PACKET_TYPE_ACK) {
+	 PACKETBUF_ATTR_PACKET_TYPE_ACK &&
+	 is_streaming == 0) {
 	/* Do not wait if we are sending an ACK, because then the
 	   receiver will already be awake. */
 	while(RTIMER_CLOCK_LT(RTIMER_NOW(), expected));
@@ -564,6 +609,8 @@ send_packet(void)
     on();
   }
 
+  if(!is_already_streaming) {
+    
   watchdog_stop();
   got_strobe_ack = 0;
   for(strobes = 0;
@@ -624,37 +671,36 @@ send_packet(void)
       on();
       }*/
   }
+  }
 
+#if WITH_ACK_OPTIMIZATION
   /* If we have received the strobe ACK, and we are sending a packet
      that will need an upper layer ACK (as signified by the
      PACKETBUF_ATTR_RELIABLE packet attribute), we keep the radio on. */
   if(got_strobe_ack && (packetbuf_attr(PACKETBUF_ATTR_RELIABLE) ||
-			packetbuf_attr(PACKETBUF_ATTR_ERELIABLE))) {
-
-#if WITH_ACK_OPTIMIZATION
+			packetbuf_attr(PACKETBUF_ATTR_ERELIABLE) ||
+			packetbuf_attr(PACKETBUF_ATTR_PACKET_TYPE) ==
+			PACKETBUF_ATTR_PACKET_TYPE_STREAM)) {
     on(); /* Wait for ACK packet */
     waiting_for_packet = 1;
-#else /* WITH_ACK_OPTIMIZATION */
-    off();
-#endif /* WITH_ACK_OPTIMIZATION */
-
   } else {
-
-    off(); /* shell ping don't seem to work with off() here, so we'll
-	     keep it on() for a while. */
+    off();
   }
+#else /* WITH_ACK_OPTIMIZATION */
+  off();
+#endif /* WITH_ACK_OPTIMIZATION */
 
   /* restore the packet to send */
   queuebuf_to_packetbuf(packet);
   queuebuf_free(packet);
 
   /* Send the data packet. */
-  if(is_broadcast || got_strobe_ack) {
+  if(is_broadcast || got_strobe_ack || is_streaming) {
     radio->send(packetbuf_hdrptr(), packetbuf_totlen());
   }
 
 #if WITH_ENCOUNTER_OPTIMIZATION
-  if(got_strobe_ack) {
+  if(got_strobe_ack && !is_streaming) {
     register_encounter(packetbuf_addr(PACKETBUF_ADDR_RECEIVER), encounter_time);
   }
 #endif /* WITH_ENCOUNTER_OPTIMIZATION */
@@ -738,7 +784,6 @@ read_packet(void)
     hdr = packetbuf_dataptr();
 
     if(hdr->dispatch != DISPATCH) {
-      
       someone_is_sending = 0;
       if(rimeaddr_cmp(packetbuf_addr(PACKETBUF_ADDR_RECEIVER),
                                      &rimeaddr_node_addr) ||

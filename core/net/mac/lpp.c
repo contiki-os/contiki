@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: lpp.c,v 1.26 2009/10/19 11:25:54 nifi Exp $
+ * $Id: lpp.c,v 1.27 2009/11/02 11:58:56 adamdunkels Exp $
  */
 
 /**
@@ -79,6 +79,7 @@
 #define WITH_ENCOUNTER_OPTIMIZATION   1
 #define WITH_ADAPTIVE_OFF_TIME        0
 #define WITH_PENDING_BROADCAST        1
+#define WITH_STREAMING                1
 
 #ifdef LPP_CONF_LISTEN_TIME
 #define LISTEN_TIME LPP_CONF_LISTEN_TIME
@@ -180,6 +181,13 @@ struct encounter {
 #define MAX_ENCOUNTERS 4
 LIST(encounter_list);
 MEMB(encounter_memb, struct encounter, MAX_ENCOUNTERS);
+
+#if WITH_STREAMING
+static uint8_t is_streaming;
+static struct ctimer stream_probe_timer, stream_off_timer;
+#define STREAM_PROBE_TIME CLOCK_SECOND / 128
+#define STREAM_OFF_TIME CLOCK_SECOND / 2
+#endif /* WITH_STREAMING */
 /*---------------------------------------------------------------------------*/
 static void
 turn_radio_on(void)
@@ -191,7 +199,7 @@ turn_radio_on(void)
 static void
 turn_radio_off(void)
 {
-  if(lpp_is_on) {
+  if(lpp_is_on && is_streaming == 0) {
     radio->off();
   }
   /*  leds_off(LEDS_YELLOW);*/
@@ -247,6 +255,12 @@ turn_radio_on_callback(void *packet)
   /*  printf("enc\n");*/
 }
 /*---------------------------------------------------------------------------*/
+static void
+stream_off(void *dummy)
+{
+  is_streaming = 0;
+}
+/*---------------------------------------------------------------------------*/
 /* This function goes through all encounters to see if it finds a
    matching neighbor. If so, we set a ctimer that will turn on the
    radio just before we expect the neighbor to send a probe packet. If
@@ -261,6 +275,18 @@ turn_radio_on_for_neighbor(rimeaddr_t *neighbor, struct queue_list_item *i)
 {
   struct encounter *e;
 
+#if WITH_STREAMING
+  if(packetbuf_attr(PACKETBUF_ATTR_PACKET_TYPE) ==
+     PACKETBUF_ATTR_PACKET_TYPE_STREAM) {
+    is_streaming = 1;
+    turn_radio_on();
+    list_add(queued_packets_list, i);
+    ctimer_set(&stream_off_timer, STREAM_OFF_TIME,
+	       stream_off, NULL);
+    return;
+  }
+#endif /* WITH_STREAMING */
+  
   if(rimeaddr_cmp(neighbor, &rimeaddr_null)) {
 #if ! WITH_PENDING_BROADCAST
     /* We have been asked to turn on the radio for a broadcast, so we
@@ -400,6 +426,19 @@ send_probe(void)
   radio->send(packetbuf_hdrptr(), packetbuf_totlen());
 
   compower_accumulate(&compower_idle_activity);
+}
+/*---------------------------------------------------------------------------*/
+static void
+send_stream_probe(void *dummy)
+{
+  /* Turn on the radio for sending a probe packet and 
+     anticipating a data packet from a neighbor. */
+  turn_radio_on();
+  
+  /* Send a probe packet. */
+  send_probe();
+
+  is_streaming = 1;
 }
 /*---------------------------------------------------------------------------*/
 static int
@@ -718,6 +757,13 @@ read_packet(void)
 	      /* Send a probe packet to catch any reply from the other node. */
 	      restart_dutycycle(PROBE_AFTER_TRANSMISSION_TIME);
 #endif /* WITH_PROBE_AFTER_TRANSMISSION */
+
+#if WITH_STREAMING
+	      if(is_streaming) {
+		ctimer_set(&stream_probe_timer, STREAM_PROBE_TIME,
+			   send_stream_probe, NULL);
+	      }
+#endif /* WITH_STREAMING */
 	    }
 
 #if WITH_ACK_OPTIMIZATION
