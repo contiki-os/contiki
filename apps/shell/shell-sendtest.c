@@ -28,12 +28,12 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: shell-sendtest.c,v 1.5 2008/11/17 22:52:10 oliverschmidt Exp $
+ * $Id: shell-sendtest.c,v 1.6 2009/11/03 10:04:23 adamdunkels Exp $
  */
 
 /**
  * \file
- *         A brief description of what this file is.
+ *         A small pogram to measure the communication performance between two nodes
  * \author
  *         Adam Dunkels <adam@sics.se>
  */
@@ -106,20 +106,29 @@ const static struct rucb_callbacks rucb_callbacks = {write_chunk,
 						     NULL};
 static struct rucb_conn rucb;
 /*---------------------------------------------------------------------------*/
+static void
+print_usage(void)
+{
+  shell_output_str(&sendtest_command,
+		   "sendtest <receiver> <size> [packetsize]: recevier must be specified", "");
+
+}
+/*---------------------------------------------------------------------------*/
 PROCESS_THREAD(shell_sendtest_process, ev, data)
 {
   static rimeaddr_t receiver;
   const char *nextptr;
   const char *args;
   char buf[40];
+  static unsigned long cpu, lpm, rx, tx;
+  unsigned long cpu2, lpm2, rx2, tx2;
   
   PROCESS_BEGIN();
 
   args = data;
   receiver.u8[0] = shell_strtolong(args, &nextptr);
   if(nextptr == data || *nextptr != '.') {
-    shell_output_str(&sendtest_command,
-		     "sendtest <receiver> <size> [packetsize]: recevier must be specified", "");
+    print_usage();
     PROCESS_EXIT();
   }
   args = nextptr + 1;
@@ -132,8 +141,7 @@ PROCESS_THREAD(shell_sendtest_process, ev, data)
   }
   filesize = shell_strtolong(args, &nextptr);  
   if(nextptr == data || filesize == 0) {
-    shell_output_str(&sendtest_command,
-		     "sendtest <receiver> <size> [packetsize]: size must be specified and > 0", "");
+    print_usage();
     PROCESS_EXIT();
   }
 
@@ -144,8 +152,7 @@ PROCESS_THREAD(shell_sendtest_process, ev, data)
   packetsize = 64;
   packetsize = shell_strtolong(args, &nextptr);  
   if(packetsize == 0) {
-    shell_output_str(&sendtest_command,
-		     "sendtest <receiver> <size> [packetsize]: packetsize must be > 0", "");
+    print_usage();
     PROCESS_EXIT();
   }
 
@@ -158,11 +165,42 @@ PROCESS_THREAD(shell_sendtest_process, ev, data)
 
   start_time_rucb = clock_time();
   rucb_send(&rucb, &receiver);
+
+  energest_flush();
+  lpm = energest_type_time(ENERGEST_TYPE_LPM);
+  cpu = energest_type_time(ENERGEST_TYPE_CPU);
+  rx = energest_type_time(ENERGEST_TYPE_LISTEN);
+  tx = energest_type_time(ENERGEST_TYPE_TRANSMIT);
+
   PROCESS_WAIT_UNTIL(download_complete);
+
+  energest_flush();
+  lpm2 = energest_type_time(ENERGEST_TYPE_LPM);
+  cpu2 = energest_type_time(ENERGEST_TYPE_CPU);
+  rx2 = energest_type_time(ENERGEST_TYPE_LISTEN);
+  tx2 = energest_type_time(ENERGEST_TYPE_TRANSMIT);
+
   sprintf(buf, "%d seconds, %lu bytes/second",
 	  (int)((end_time_rucb - start_time_rucb) / CLOCK_SECOND),
 	  CLOCK_SECOND * filesize / (end_time_rucb - start_time_rucb));
   shell_output_str(&sendtest_command, "Completed in ", buf);
+
+  sprintf(buf, "%lu/%d rx %lu/%d tx (seconds)",
+	  (rx2 - rx), RTIMER_ARCH_SECOND,
+	  (tx2 - tx), RTIMER_ARCH_SECOND);
+  shell_output_str(&sendtest_command, "Radio total on time ", buf);
+
+  sprintf(buf, "%lu/%lu = %lu%%",
+	  (rx2 - rx),
+	  (cpu2 + lpm2 - cpu - lpm),
+	  100 * (rx2 - rx)/(cpu2 + lpm2 - cpu - lpm));
+  shell_output_str(&sendtest_command, "Radio rx duty cycle ", buf);
+
+  sprintf(buf, "%lu/%lu = %lu%%",
+	  (tx2 - tx),
+	  (cpu2 + lpm2 - cpu - lpm),
+	  100 * (tx2 - tx)/(cpu2 + lpm2 - cpu - lpm));
+  shell_output_str(&sendtest_command, "Radio tx duty cycle ", buf);
 
   PROCESS_END();
 }
