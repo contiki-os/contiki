@@ -9,7 +9,8 @@ shell_src = shell.c shell-reboot.c \
             shell-tcpsend.c shell-udpsend.c shell-ping.c shell-netstat.c \
             shell-rime-sendcmd.c shell-download.c shell-rime-neighbors.c \
             shell-rime-unicast.c \
-            shell-tweet.c
+            shell-tweet.c \
+            shell-netperf.c
 shell_dsc = shell-dsc.c
 
 APPS += webbrowser
