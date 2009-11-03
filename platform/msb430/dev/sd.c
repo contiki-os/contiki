@@ -38,8 +38,8 @@
  */
 
 #include "contiki.h"
-#include "msb430-uart1.h"
 #include "sd.h"
+#include "sd-arch.h"
 
 #include <string.h>
 
@@ -83,33 +83,10 @@
 #define DATA_CRC_ERROR		5
 #define DATA_WRITE_ERROR	6
 
-/*---------------------------------------------------------------------------*/
-static void
-spi_write(int c)
-{
-  UART_TX = c;
-  UART_WAIT_TXDONE();
-}
-/*---------------------------------------------------------------------------*/
-static unsigned
-spi_read(void)
-{
-  UART_TX = SPI_IDLE;
-  UART_WAIT_RX();
-  return UART_RX;
-}
-/*---------------------------------------------------------------------------*/
-static void
-spi_write_block(uint8_t *bytes, int amount)
-{
-  int i;
+static uint16_t rw_block_size;
+static uint16_t block_size;
 
-  for(i = 0; i < amount; i++) {
-    UART_TX = bytes[i];
-    UART_WAIT_TXDONE();
-    UART_RX;
-  }
-}
+static int read_register(int register_cmd, char *buf, int register_size);
 /*---------------------------------------------------------------------------*/
 static int
 send_command(uint8_t cmd, uint32_t argument)
@@ -125,9 +102,9 @@ send_command(uint8_t cmd, uint32_t argument)
      GO_IDLE_STATE command. */
   req[5] = 0x95;
 
-  spi_write(SPI_IDLE);
-  spi_write_block(req, sizeof(req));
-  spi_write(SPI_IDLE);
+  sd_arch_spi_write(SPI_IDLE);
+  sd_arch_spi_write_block(req, sizeof(req));
+  sd_arch_spi_write(SPI_IDLE);
 
   return 0;
 }
@@ -140,7 +117,7 @@ get_response(int length)
   static uint8_t r[R7];
 
   for(i = 0; i < SD_READ_RESPONSE_ATTEMPTS; i++) {
-    x = spi_read();
+    x = sd_arch_spi_read();
     if((x & 0x80) == 0) {
       /* A get_response byte is indicated by the MSB being 0. */
       r[0] = x;
@@ -153,7 +130,7 @@ get_response(int length)
   }
 
   for(i = 1; i < length; i++) {
-    r[i] = spi_read();
+    r[i] = sd_arch_spi_read();
   }
 
   return r;
@@ -185,8 +162,9 @@ transaction(int command, unsigned long argument,
 int
 sd_initialize(void)
 {
+  unsigned char reg[16];
   int i;
-  uint8_t *r;
+  uint8_t *r, read_bl_len;
 
   if(sd_arch_init() < 0) {
     return SD_INIT_ERROR_ARCH;
@@ -249,6 +227,17 @@ sd_initialize(void)
     PRINTF("OCR: %d %d %d %d %d\n", r[0], r[1], r[2], r[3], r[4]);
   }
 
+
+  if(read_register(SEND_CSD, reg, sizeof(reg)) < 0) {
+    PRINTF("Failed to get block size of SD card\n");
+    return SD_INIT_ERROR_NO_BLOCK_SIZE;
+  }
+
+  read_bl_len = reg[5] & 0x0f;
+  block_size = 1 << read_bl_len;
+  rw_block_size = (block_size > 512) ? 512 : block_size;
+  PRINTF("Found block size %d\n", block_size);
+
   /* XXX Arbitrary wait time here. Need to investigate why this is needed. */
   MS_DELAY(5);
 
@@ -280,20 +269,20 @@ sd_write_block(sd_offset_t offset, char *buf)
   if(r != NULL && r[0] == 0) {
     /* We received an R1 response with no errors.
        Send a start block token to the card now. */
-    spi_write(START_BLOCK_TOKEN);
+    sd_arch_spi_write(START_BLOCK_TOKEN);
 
     /* Write the data block. */
-    spi_write_block(buf, SD_BLOCK_SIZE);
+    sd_arch_spi_write_block(buf, rw_block_size);
 
     /* Get a response from the card. */
     retval = SD_WRITE_ERROR_NO_BLOCK_RESPONSE;
     for(i = 0; i < SD_TRANSACTION_ATTEMPTS; i++) {
-      data_response = spi_read();
+      data_response = sd_arch_spi_read();
       if((data_response & 0x11) == 1) {
         /* Data response token received. */
         status_code = (data_response >> 1) & 0x7;
         if(status_code == DATA_ACCEPTED) {
-          retval = SD_BLOCK_SIZE;
+          retval = rw_block_size;
         } else {
           retval = SD_WRITE_ERROR_PROGRAMMING;
         }
@@ -333,7 +322,7 @@ read_block(unsigned read_cmd, sd_offset_t offset, char *buf, int len)
     /* We received an R1 response with no errors.
        Get a token from the card now. */
     for(i = 0; i < SD_TRANSACTION_ATTEMPTS; i++) {
-      token = spi_read();
+      token = sd_arch_spi_read();
       if(token == START_BLOCK_TOKEN || (token > 0 && token <= 8)) {
         break;
       }
@@ -342,14 +331,14 @@ read_block(unsigned read_cmd, sd_offset_t offset, char *buf, int len)
     if(token == START_BLOCK_TOKEN) {
       /* A start block token has been received. Read the block now. */
       for(i = 0; i < len; i++) {
-        buf[i] = spi_read();
+        buf[i] = sd_arch_spi_read();
       }
 
       /* Consume CRC. TODO: Validate the block. */
-      spi_read();
-      spi_read();
+      sd_arch_spi_read();
+      sd_arch_spi_read();
 
-      retval = SD_BLOCK_SIZE;
+      retval = len;
     } else if(token > 0 && token <= 8) {
       /* The card returned a data error token. */
       retval = SD_READ_ERROR_TOKEN;
@@ -376,7 +365,7 @@ read_block(unsigned read_cmd, sd_offset_t offset, char *buf, int len)
 int
 sd_read_block(sd_offset_t offset, char *buf)
 {
-  return read_block(READ_SINGLE_BLOCK, offset, buf, SD_BLOCK_SIZE);
+  return read_block(READ_SINGLE_BLOCK, offset, buf, rw_block_size);
 }
 /*---------------------------------------------------------------------------*/
 static int
@@ -400,12 +389,12 @@ sd_get_capacity(void)
     return r;
   }
 
-  c_size = ((reg[6] & 3) << 10) + (reg[7] << 2) + (reg[8] & 3);
+  c_size = ((reg[6] & 3) << 10) + (reg[7] << 2) + ((reg[8] >> 6) & 3);
   c_size_mult = ((reg[9] & 3) << 1) + ((reg[10] & 0x80) >> 7);
-  mult = 2 << (c_size_mult + 2);
+  mult = 1 << (c_size_mult + 2);
   block_nr = (c_size + 1) * mult;
 
-  return block_nr * SD_BLOCK_SIZE;
+  return block_nr * block_size;
 }
 /*---------------------------------------------------------------------------*/
 char *
@@ -421,6 +410,8 @@ sd_error_string(int error_code)
     return "architecture-dependent initialization failed";
   case SD_INIT_ERROR_NO_IF_COND:
     return "unable to obtain the interface condition";
+  case SD_INIT_ERROR_NO_BLOCK_SIZE:
+    return "unable to obtain the block size";
   case SD_WRITE_ERROR_NO_CMD_RESPONSE:
     return "no response from the card after submitting a write request";
   case SD_WRITE_ERROR_NO_BLOCK_RESPONSE:
@@ -453,16 +444,16 @@ sd_write(sd_offset_t offset, char *buf, size_t size)
   int r, i;
   size_t written;
   size_t to_write;
-  char sd_buf[SD_BLOCK_SIZE];
+  char sd_buf[rw_block_size];
 
   /* Emulation of data writing using arbitrary offsets and chunk sizes. */
   memset(sd_buf, 0, sizeof(sd_buf));
   written = 0;
-  offset_in_block = offset % SD_BLOCK_SIZE;
+  offset_in_block = offset & (rw_block_size - 1);
 
   do {
-    to_write = MIN(size - written, SD_BLOCK_SIZE - offset_in_block);
-    address = (offset + written) & ~(SD_BLOCK_SIZE - 1);
+    to_write = MIN(size - written, rw_block_size - offset_in_block);
+    address = (offset + written) & ~(rw_block_size - 1);
 
     for(i = 0; i < SD_READ_BLOCK_ATTEMPTS; i++) {
       r = sd_read_block(address, sd_buf);
@@ -491,18 +482,18 @@ sd_read(sd_offset_t offset, char *buf, size_t size)
 {
   size_t total_read;
   size_t to_read;
-  char sd_buf[SD_BLOCK_SIZE];
+  char sd_buf[rw_block_size];
   uint16_t offset_in_block;
   int r, i;
 
   /* Emulation of data reading using arbitrary offsets and chunk sizes. */
   total_read = 0;
-  offset_in_block = offset % SD_BLOCK_SIZE;
+  offset_in_block = offset & (rw_block_size - 1);
 
   do {
-    to_read = MIN(size - total_read, SD_BLOCK_SIZE - offset_in_block);
+    to_read = MIN(size - total_read, rw_block_size - offset_in_block);
     for(i = 0; i < SD_READ_BLOCK_ATTEMPTS; i++) {
-      r = sd_read_block((offset + total_read) & ~(SD_BLOCK_SIZE - 1), sd_buf);
+      r = sd_read_block((offset + total_read) & ~(rw_block_size - 1), sd_buf);
       if(r == sizeof(sd_buf)) {
 	break;
       }

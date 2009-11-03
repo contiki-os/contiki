@@ -38,9 +38,10 @@
  */
 
 #include "contiki.h"
+#include "msb430-uart1.h"
 #include "sd-arch.h"
 
-#include <string.h>
+#define SPI_IDLE	0xff
 
 int
 sd_arch_init(void)
@@ -57,4 +58,33 @@ sd_arch_init(void)
   uart_set_speed(UART_MODE_SPI, 2, 0, 0);
 
   return 0;
+}
+
+
+void
+sd_arch_spi_write(int c)
+{
+  UART_TX = c;
+  UART_WAIT_TXDONE();
+}
+
+void
+sd_arch_spi_write_block(uint8_t *bytes, int amount)
+{
+  int i;
+
+  for(i = 0; i < amount; i++) {
+    UART_TX = bytes[i];
+    UART_WAIT_TXDONE();
+    UART_RX;
+  }
+}
+
+
+unsigned
+sd_arch_spi_read(void)
+{
+  UART_TX = SPI_IDLE;
+  UART_WAIT_RX();
+  return UART_RX;
 }
