@@ -457,7 +457,7 @@ sd_write(sd_offset_t offset, char *buf, size_t size)
 
     for(i = 0; i < SD_READ_BLOCK_ATTEMPTS; i++) {
       r = sd_read_block(address, sd_buf);
-      if(r == sizeof(buf)) {
+      if(r == sizeof(sd_buf)) {
 	break;
       }
     }
