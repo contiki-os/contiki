@@ -5,6 +5,7 @@
 
 
 #include "net/uip.h"
+#include "net/uip-netif.h"
 #include <string.h>
 
 #define UIP_IP_BUF   ((struct uip_ip_hdr *)&uip_buf[UIP_LLH_LEN])
@@ -19,6 +20,7 @@ uip_lladdr_t uip_lladdr;
 
 u16_t htons(u16_t val) { return HTONS(val);}
 
+struct uip_netif uip_netif_physical_if;
 
 /********** UIP_NETIF.c **********/
 
@@ -46,6 +48,11 @@ uip_netif_addr_autoconf_set(uip_ipaddr_t *ipaddr, uip_lladdr_t *lladdr)
 #endif
 }
 
+void
+uip_netif_addr_add(uip_ipaddr_t *ipaddr, u8_t length,
+		   unsigned long vlifetime, uip_netif_type type)
+{
+}
 /********** UIP.c ****************/
 
 static u16_t
