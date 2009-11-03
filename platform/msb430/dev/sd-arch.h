@@ -73,5 +73,8 @@
 #define SD_READ_BLOCK_ATTEMPTS		2
 
 int sd_arch_init(void);
+void sd_arch_spi_write(int c);
+void sd_arch_spi_write_block(uint8_t *bytes, int amount);
+unsigned sd_arch_spi_read(void);
 
 #endif /* !SD_ARCH_H */
