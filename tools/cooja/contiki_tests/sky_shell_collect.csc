@@ -350,11 +350,12 @@
   <plugin>
     se.sics.cooja.plugins.ScriptRunner
     <plugin_config>
-      <script>TIMEOUT(500000, log.log("Timeout\n"));
+      <script>TIMEOUT(500000, print_stats());
 
 function
 print_stats()
 {
+  log.log("Time " + time + "\n");
   log.log("Received " + total_received  + " messages, " +
 	  (total_received / nrNodes) + " messages/node, " +
 	  total_lost + " lost, " +
