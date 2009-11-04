@@ -55,7 +55,7 @@ gccincdir := $(shell $(CC) -print-file-name=include)
 
 CPPFLAGS := $(DBGFLAGS) $(OPTFLAGS) $(RELFLAGS)		\
 	-D__KERNEL__ -DTEXT_BASE=$(TEXT_BASE)		\
-	-I$(TOPDIR)/include				\
+	-I$(TOPDIR)/libmc1322x/include				\
 	-fno-builtin -ffreestanding -nostdinc -isystem	\
 	$(gccincdir) -pipe $(PLATFORM_CPPFLAGS)
 

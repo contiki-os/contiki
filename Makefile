@@ -39,7 +39,8 @@ include $(TOPDIR)/config.mk
 
 AOBJS =
 COBJS = $(patsubst %.c,%.o,$(wildcard src/*.c))
-TESTS = $(wildcard tests/*.c)
+#TESTS = $(wildcard tests/*.c)
+TESTS = tests/blink-red.c
 TARGETS = $(patsubst %.c,%.o,$(TESTS))
 
 # Add GCC lib
@@ -53,17 +54,17 @@ ALL = $(TESTS:.c=.srec) $(TESTS:.c=.bin) $(TESTS:.c=.dis)
 
 all:		src/start.o src/isr.o $(ALL)
 
-tests/flasher.obj: src/maca.o src/nvm.o
-tests/nvm-read.obj: src/maca.o src/nvm.o
-tests/nvm-write.obj: src/maca.o src/nvm.o
-tests/rftest-rx.obj: src/maca.o src/nvm.o
-tests/rftest-tx.obj: src/maca.o src/nvm.o
-tests/tmr-ints.obj: src/isr.o
-tests/sleep.obj: src/isr.o src/maca.o src/nvm.o
+#tests/flasher.obj: src/maca.o src/nvm.o
+#tests/nvm-read.obj: src/maca.o src/nvm.o
+#tests/nvm-write.obj: src/maca.o src/nvm.o
+#tests/rftest-rx.obj: src/maca.o src/nvm.o
+#tests/rftest-tx.obj: src/maca.o src/nvm.o
+#tests/tmr-ints.obj: src/isr.o
+#tests/sleep.obj: src/isr.o src/maca.o src/nvm.o
 
 NOTHUMB_CPPFLAGS := $(DBGFLAGS) $(OPTFLAGS) $(RELFLAGS)         \
         -D__KERNEL__ -DTEXT_BASE=$(TEXT_BASE)           \
-        -I$(TOPDIR)/include                             \
+        -I$(TOPDIR)/libmc1322x/include                             \
         -fno-builtin -ffreestanding -nostdinc -isystem  \
         $(gccincdir) -pipe 
 NOTHUMB_CPPFLAGS_EXTRA = -march=armv4t -mlong-calls -mtune=arm7tdmi-s -DCONFIG_ARM -D__ARM__ -mthumb-interwork 
@@ -108,8 +109,9 @@ sinclude .depend
 clean:
 	find . -type f \
 		\( -name 'core' -o -name '*.bak' -o -name '*~' \
-		-o -name '*.o'  -o -name '*.a' \) -print \
+		-o -name '*.o'  -o -name '*.a' -o -name '*.obj' \) -print \
 		| xargs rm -f
+	rm -f $(ALL) $(OBJS)
 
 clobber:	clean
 	find . -type f \
