@@ -32,28 +32,21 @@ ARCH  = arm
 CPU   = arm7tdmi-s
 export	ARCH CPU VENDOR
 
-#CROSS_COMPILE = arm-unknown-linux-gnu-
-#CROSS_COMPILE = arm-softfloat-linux-gnu-
-#export	CROSS_COMPILE
-
 # load other configuration
 include $(TOPDIR)/config.mk
 
 #########################################################################
-# blink objects....order is important (i.e. start must be first)
 
 AOBJS =
 COBJS = $(patsubst %.c,%.o,$(wildcard src/*.c))
 TESTS = $(wildcard tests/*.c)
 TARGETS = $(patsubst %.c,%.o,$(TESTS))
-#TARGETS = tests/blink-white.o 
 
 # Add GCC lib
 PLATFORM_LIBS += --no-warn-mismatch -L $(shell dirname `$(CC) $(CFLAGS) -print-libgcc-file-name`) -lgcc
 
 #########################################################################
 
-#ALL = blink.srec blink.bin blink.dis blink.System.map
 ALL = $(TESTS:.c=.srec) $(TESTS:.c=.bin) $(TESTS:.c=.dis) 
 
 .PRECIOUS: 	$(COBJS) $(TARGETS) $(TESTS:.c=.obj)
