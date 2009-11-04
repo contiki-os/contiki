@@ -7,7 +7,7 @@
   <simulation>
     <title>My simulation</title>
     <delaytime>0</delaytime>
-    <randomseed>123456</randomseed>
+    <randomseed>generated</randomseed>
     <motedelay_us>1000000</motedelay_us>
     <radiomedium>
       se.sics.cooja.radiomediums.UDGM
@@ -73,24 +73,9 @@
   <plugin>
     se.sics.cooja.plugins.SimControl
     <width>290</width>
-    <z>5</z>
+    <z>2</z>
     <height>172</height>
     <location_x>0</location_x>
-    <location_y>0</location_y>
-    <minimized>false</minimized>
-  </plugin>
-  <plugin>
-    se.sics.cooja.plugins.Visualizer
-    <plugin_config>
-      <skin>se.sics.cooja.plugins.skins.IDVisualizerSkin</skin>
-      <skin>se.sics.cooja.plugins.skins.GridVisualizerSkin</skin>
-      <skin>se.sics.cooja.plugins.skins.UDGMVisualizerSkin</skin>
-      <viewport>2.920727775710812 0.0 0.0 2.920727775710812 -28.526147202610904 -183.26750359633323</viewport>
-    </plugin_config>
-    <width>300</width>
-    <z>6</z>
-    <height>300</height>
-    <location_x>724</location_x>
     <location_y>0</location_y>
     <minimized>false</minimized>
   </plugin>
@@ -100,10 +85,10 @@
       <filter />
     </plugin_config>
     <width>1024</width>
-    <z>2</z>
-    <height>150</height>
+    <z>0</z>
+    <height>377</height>
     <location_x>0</location_x>
-    <location_y>398</location_y>
+    <location_y>171</location_y>
     <minimized>false</minimized>
   </plugin>
   <plugin>
@@ -118,49 +103,28 @@
       <zoom>9</zoom>
     </plugin_config>
     <width>1024</width>
-    <z>0</z>
+    <z>1</z>
     <height>150</height>
     <location_x>0</location_x>
     <location_y>548</location_y>
     <minimized>false</minimized>
   </plugin>
   <plugin>
-    se.sics.cooja.plugins.MoteInterfaceViewer
-    <mote_arg>0</mote_arg>
-    <plugin_config>
-      <interface>Serial port</interface>
-      <scrollpos>0,0</scrollpos>
-    </plugin_config>
-    <width>432</width>
-    <z>1</z>
-    <height>505</height>
-    <location_x>290</location_x>
-    <location_y>-1</location_y>
-    <minimized>false</minimized>
-  </plugin>
-  <plugin>
-    se.sics.cooja.plugins.MoteInterfaceViewer
-    <mote_arg>1</mote_arg>
-    <plugin_config>
-      <interface>Serial port</interface>
-      <scrollpos>0,0</scrollpos>
-    </plugin_config>
-    <width>350</width>
-    <z>3</z>
-    <height>300</height>
-    <location_x>379</location_x>
-    <location_y>112</location_y>
-    <minimized>false</minimized>
-  </plugin>
-  <plugin>
     se.sics.cooja.plugins.ScriptRunner
     <plugin_config>
-      <script>started = 0;
+      <script>TIMEOUT(100000);
+started = 0;
 while(true) {
   YIELD(); /* wait for another mote output */
   log.log(time + " " + id + " " + msg + "\n");
+  if(msg.startsWith("Done")) {
+    log.testOK();
+  }
+  if(msg.startsWith("netperf control connection failed")) {
+    log.testFailed();
+  }
   if(id == 1 &amp;&amp; msg.startsWith("1.0: Contiki") &amp;&amp; started == 0) {
-    write(mote, "netperf 2.0 20\n"); /* Write to mote serial port */
+    write(mote, "netperf -bups 2.0 20\n"); /* Write to mote serial port */
     started = 1;
   }
 }
@@ -169,11 +133,11 @@ while(true) {
       <active>true</active>
     </plugin_config>
     <width>600</width>
-    <z>4</z>
+    <z>-1</z>
     <height>476</height>
     <location_x>399</location_x>
     <location_y>154</location_y>
-    <minimized>false</minimized>
+    <minimized>true</minimized>
   </plugin>
 </simconf>
 
