@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: shell-netperf.c,v 1.1 2009/11/03 22:52:39 adamdunkels Exp $
+ * $Id: shell-netperf.c,v 1.2 2009/11/04 07:48:18 adamdunkels Exp $
  */
 
 /**
@@ -135,7 +135,7 @@ print_remote_stats(struct stats *s)
 {
   unsigned long total_time;
   
-  printf("1 %d %d %d %u %lu %lu %lu %lu %lu %lu\n",
+  printf("1 %d %d %d %u %lu %lu %lu %lu %lu %lu # for automatic processing\n",
 	 s->sent, s->received, s->timedout,
 	 s->end - s->start,
 	 s->total_tx_latency, s->total_rx_latency,
@@ -161,7 +161,7 @@ print_local_stats(struct stats *s)
 {
   unsigned long total_time;
   
-  printf("0 %d %d %d %u %lu %lu %lu %lu %lu %lu\n",
+  printf("0 %d %d %d %u %lu %lu %lu %lu %lu %lu # for automatic processing\n",
 	 s->sent, s->received, s->timedout,
 	 s->end - s->start,
 	 s->total_tx_latency, s->total_rx_latency,
@@ -390,6 +390,7 @@ static void
 timedout_ctrl(struct runicast_conn *c, const rimeaddr_t *to, uint8_t rexmits)
 {
   shell_output_str(&netperf_command, "netperf control connection failed", "");
+  process_exit(&shell_netperf_process);
 }
 static void
 recv_ctrl(struct runicast_conn *c, const rimeaddr_t *from, uint8_t seqno)
@@ -460,7 +461,15 @@ static void
 print_usage(void)
 {
   shell_output_str(&netperf_command,
-		   "netperf <receiver> <num packets>: perform network measurements to receiver", "");
+		   "netperf [-b|u|p|s] <receiver> <num packets>: perform network measurements to receiver", "");
+  shell_output_str(&netperf_command,
+		   "        -b measure broadcast performance", "");
+  shell_output_str(&netperf_command,
+		   "        -u measure one-way unicast performance", "");
+  shell_output_str(&netperf_command,
+		   "        -p measure ping-pong unicast performance", "");
+  shell_output_str(&netperf_command,
+		   "        -s measure ping-pong stream unicast performance", "");
 }
 /*---------------------------------------------------------------------------*/
 void
@@ -482,10 +491,40 @@ PROCESS_THREAD(shell_netperf_process, ev, data)
   const char *args;
   static char recvstr[40];
   static int i, num_packets;
-  
+  static uint8_t do_broadcast, do_unicast, do_pingpong, do_stream_pingpong;
+
   PROCESS_BEGIN();
 
+  do_broadcast = do_unicast = do_pingpong =
+    do_stream_pingpong = 0;
+  
   args = data;
+
+  /* Parse the -bups options */
+  while(*args == '-') {
+    ++args;
+    while(*args != ' ' &&
+	  *args != 0) {
+      if(*args == 'b') {
+	do_broadcast = 1;
+      }
+      if(*args == 'u') {
+	do_unicast = 1;
+      }
+      if(*args == 'p') {
+	do_pingpong = 1;
+      }
+      if(*args == 's') {
+	do_stream_pingpong = 1;
+      }
+      ++args;
+    }
+    while(*args == ' ') {
+      args++;
+    }
+  }
+
+  /* Parse the receiver address */
   receiver.u8[0] = shell_strtolong(args, &nextptr);
   if(nextptr == data || *nextptr != '.') {
     print_usage();
@@ -494,9 +533,12 @@ PROCESS_THREAD(shell_netperf_process, ev, data)
   args = nextptr + 1;
   receiver.u8[1] = shell_strtolong(args, &nextptr);
 
+  /* Store the receiver address as a string since we need to print it
+     out later. */
   snprintf(recvstr, sizeof(recvstr), "%d.%d",
 	   receiver.u8[0], receiver.u8[1]);
 
+  /* Parse the number of packets to send */
   args = nextptr;
   while(*args == ' ') {
     ++args;
@@ -507,123 +549,128 @@ PROCESS_THREAD(shell_netperf_process, ev, data)
     PROCESS_EXIT();
   }
 
-  shell_output_str(&netperf_command, "-------- Broadcast --------", "");
-  
-  shell_output_str(&netperf_command, "Contacting ", recvstr);
-  send_ctrl_command(&receiver, CTRL_COMMAND_CLEAR);
-  PROCESS_YIELD_UNTIL(ev == CONTINUE_EVENT);
-
-  shell_output_str(&netperf_command, "Sending broadcast packets to ", recvstr);
-
-  setup_sending(&receiver, num_packets);
-  for(i = 0; i < num_packets; ++i) {
-    if(construct_next_packet()) {
-      broadcast_send(&broadcast);
-      stats.sent++;
-    }
-    PROCESS_PAUSE();
-  }
-
-  shell_output_str(&netperf_command, "Requesting statistics from ", recvstr);
-  send_ctrl_command(&receiver, CTRL_COMMAND_STATS);
-  PROCESS_YIELD_UNTIL(ev == CONTINUE_EVENT);
-
-  /* Wait for reply */
-  PROCESS_YIELD_UNTIL(ev == CONTINUE_EVENT);
-
-  finalize_stats(&stats);
-  print_local_stats(&stats);
-
-  /*         -+-+-+-+-+-+            */
-
-  shell_output_str(&netperf_command, "-------- Unicast --------", "");
+  /* Send broadcast packets, if requested */
+  if(do_broadcast) {
+    shell_output_str(&netperf_command, "-------- Broadcast --------", "");
     
-  shell_output_str(&netperf_command, "Contacting ", recvstr);
-  send_ctrl_command(&receiver, CTRL_COMMAND_CLEAR);
-  PROCESS_YIELD_UNTIL(ev == CONTINUE_EVENT);
-
-  shell_output_str(&netperf_command, "Sending unicast packets to ", recvstr);
-
-  setup_sending(&receiver, num_packets);
-
-  for(i = 0; i < num_packets; ++i) {
-    if(construct_next_packet()) {
-      unicast_send(&unicast, &receiver);
-      stats.sent++;
-    }
-    PROCESS_PAUSE();
-  }
-
-  shell_output_str(&netperf_command, "Requesting statistics from ", recvstr);
-  send_ctrl_command(&receiver, CTRL_COMMAND_STATS);
-  PROCESS_YIELD_UNTIL(ev == CONTINUE_EVENT);
-
-  /* Wait for reply */
-  PROCESS_YIELD_UNTIL(ev == CONTINUE_EVENT);
-
-  finalize_stats(&stats);
-  print_local_stats(&stats);
-
-  shell_output_str(&netperf_command, "-------- Unicast ping-pong--------", "");
+    shell_output_str(&netperf_command, "Contacting ", recvstr);
+    send_ctrl_command(&receiver, CTRL_COMMAND_CLEAR);
+    PROCESS_YIELD_UNTIL(ev == CONTINUE_EVENT);
     
-  shell_output_str(&netperf_command, "Contacting ", recvstr);
-  send_ctrl_command(&receiver, CTRL_COMMAND_CLEAR);
-  PROCESS_YIELD_UNTIL(ev == CONTINUE_EVENT);
-
-  shell_output_str(&netperf_command, "Sending unicast packets to ", recvstr);
-
-  setup_sending(&receiver, num_packets);
-
-  for(i = 0; i < num_packets; ++i) {
-    if(construct_next_echo()) {
-      unicast_send(&unicast, &receiver);
-      stats.sent++;
-    }
-    etimer_set(&e, CLOCK_SECOND);
-    PROCESS_YIELD_UNTIL(ev == CONTINUE_EVENT || etimer_expired(&e));
-  }
-
-  shell_output_str(&netperf_command, "Requesting statistics from ", recvstr);
-  send_ctrl_command(&receiver, CTRL_COMMAND_STATS);
-  PROCESS_YIELD_UNTIL(ev == CONTINUE_EVENT);
-
-  /* Wait for reply */
-  PROCESS_YIELD_UNTIL(ev == CONTINUE_EVENT);
-
-  finalize_stats(&stats);
-  print_local_stats(&stats);
-
-  shell_output_str(&netperf_command, "-------- Unicast stream ping-pong--------", "");
+    shell_output_str(&netperf_command, "Measuring broadcast performance to ", recvstr);
     
-  shell_output_str(&netperf_command, "Contacting ", recvstr);
-  send_ctrl_command(&receiver, CTRL_COMMAND_CLEAR);
-  PROCESS_YIELD_UNTIL(ev == CONTINUE_EVENT);
-
-  shell_output_str(&netperf_command, "Sending unicast packets to ", recvstr);
-
-  setup_sending(&receiver, num_packets);
-
-  for(i = 0; i < num_packets; ++i) {
-    if(construct_next_stream_echo()) {
-      unicast_send(&unicast, &receiver);
-      stats.sent++;
+    setup_sending(&receiver, num_packets);
+    for(i = 0; i < num_packets; ++i) {
+      if(construct_next_packet()) {
+	broadcast_send(&broadcast);
+	stats.sent++;
+      }
+      PROCESS_PAUSE();
     }
-    etimer_set(&e, CLOCK_SECOND);
-    PROCESS_YIELD_UNTIL(ev == CONTINUE_EVENT || etimer_expired(&e));
+    
+    shell_output_str(&netperf_command, "Requesting statistics from ", recvstr);
+    send_ctrl_command(&receiver, CTRL_COMMAND_STATS);
+    PROCESS_YIELD_UNTIL(ev == CONTINUE_EVENT);
+    
+    /* Wait for reply */
+    PROCESS_YIELD_UNTIL(ev == CONTINUE_EVENT);
+    
+    finalize_stats(&stats);
+    print_local_stats(&stats);
   }
 
-  shell_output_str(&netperf_command, "Requesting statistics from ", recvstr);
-  send_ctrl_command(&receiver, CTRL_COMMAND_STATS);
-  PROCESS_YIELD_UNTIL(ev == CONTINUE_EVENT);
-
-  /* Wait for reply */
-  PROCESS_YIELD_UNTIL(ev == CONTINUE_EVENT);
-
-  finalize_stats(&stats);
-  print_local_stats(&stats);
+  if(do_unicast) {
+    shell_output_str(&netperf_command, "-------- Unicast one-way --------", "");
+    
+    shell_output_str(&netperf_command, "Contacting ", recvstr);
+    send_ctrl_command(&receiver, CTRL_COMMAND_CLEAR);
+    PROCESS_YIELD_UNTIL(ev == CONTINUE_EVENT);
+    
+    shell_output_str(&netperf_command, "Measuring unicast performance to ", recvstr);
+    
+    setup_sending(&receiver, num_packets);
+    
+    for(i = 0; i < num_packets; ++i) {
+      if(construct_next_packet()) {
+	unicast_send(&unicast, &receiver);
+	stats.sent++;
+      }
+      PROCESS_PAUSE();
+    }
+    
+    shell_output_str(&netperf_command, "Requesting statistics from ", recvstr);
+    send_ctrl_command(&receiver, CTRL_COMMAND_STATS);
+    PROCESS_YIELD_UNTIL(ev == CONTINUE_EVENT);
+    
+    /* Wait for reply */
+    PROCESS_YIELD_UNTIL(ev == CONTINUE_EVENT);
+    
+    finalize_stats(&stats);
+    print_local_stats(&stats);
+  }
+  if(do_pingpong) {
+    shell_output_str(&netperf_command, "-------- Unicast ping-pong--------", "");
+    
+    shell_output_str(&netperf_command, "Contacting ", recvstr);
+    send_ctrl_command(&receiver, CTRL_COMMAND_CLEAR);
+    PROCESS_YIELD_UNTIL(ev == CONTINUE_EVENT);
+    
+    shell_output_str(&netperf_command, "Measuring two-way unicast performance to ", recvstr);
+    
+    setup_sending(&receiver, num_packets);
+    
+    for(i = 0; i < num_packets; ++i) {
+      if(construct_next_echo()) {
+	unicast_send(&unicast, &receiver);
+	stats.sent++;
+      }
+      etimer_set(&e, CLOCK_SECOND);
+      PROCESS_YIELD_UNTIL(ev == CONTINUE_EVENT || etimer_expired(&e));
+    }
+    
+    shell_output_str(&netperf_command, "Requesting statistics from ", recvstr);
+    send_ctrl_command(&receiver, CTRL_COMMAND_STATS);
+    PROCESS_YIELD_UNTIL(ev == CONTINUE_EVENT);
+    
+    /* Wait for reply */
+    PROCESS_YIELD_UNTIL(ev == CONTINUE_EVENT);
+    
+    finalize_stats(&stats);
+    print_local_stats(&stats);
+  }
+  if(do_stream_pingpong) {
+    shell_output_str(&netperf_command, "-------- Unicast stream ping-pong--------", "");
+    
+    shell_output_str(&netperf_command, "Contacting ", recvstr);
+    send_ctrl_command(&receiver, CTRL_COMMAND_CLEAR);
+    PROCESS_YIELD_UNTIL(ev == CONTINUE_EVENT);
+    
+    shell_output_str(&netperf_command, "Measuring two-way unicast stream performance to ", recvstr);
+    
+    setup_sending(&receiver, num_packets);
+    
+    for(i = 0; i < num_packets; ++i) {
+      if(construct_next_stream_echo()) {
+	unicast_send(&unicast, &receiver);
+	stats.sent++;
+      }
+      etimer_set(&e, CLOCK_SECOND);
+      PROCESS_YIELD_UNTIL(ev == CONTINUE_EVENT || etimer_expired(&e));
+    }
+    
+    shell_output_str(&netperf_command, "Requesting statistics from ", recvstr);
+    send_ctrl_command(&receiver, CTRL_COMMAND_STATS);
+    PROCESS_YIELD_UNTIL(ev == CONTINUE_EVENT);
+    
+    /* Wait for reply */
+    PROCESS_YIELD_UNTIL(ev == CONTINUE_EVENT);
+    
+    finalize_stats(&stats);
+    print_local_stats(&stats);
+    
+  }
 
   shell_output_str(&netperf_command, "Done", "");
-  
   PROCESS_END();
 }
 /*---------------------------------------------------------------------------*/
