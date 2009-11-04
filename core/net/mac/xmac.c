@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: xmac.c,v 1.40 2009/11/02 11:58:56 adamdunkels Exp $
+ * $Id: xmac.c,v 1.41 2009/11/04 16:02:45 adamdunkels Exp $
  */
 
 /**
@@ -66,6 +66,7 @@
 #define WITH_ACK_OPTIMIZATION        1
 #define WITH_RANDOM_WAIT_BEFORE_SEND 0
 #define WITH_ENCOUNTER_OPTIMIZATION  1
+#define WITH_STREAMING               1
 
 struct announcement_data {
   uint16_t id;
@@ -164,12 +165,12 @@ static const struct radio_driver *radio;
 #define PRINTF(...) printf(__VA_ARGS__)
 #define PRINTDEBUG(...) printf(__VA_ARGS__)
 #else
-/*#undef LEDS_ON
+#undef LEDS_ON
 #undef LEDS_OFF
 #undef LEDS_TOGGLE
 #define LEDS_ON(x)
 #define LEDS_OFF(x)
-#define LEDS_TOGGLE(x)*/
+#define LEDS_TOGGLE(x)
 #define PRINTF(...)
 #define PRINTDEBUG(...)
 #endif
@@ -457,7 +458,6 @@ send_packet(void)
   struct encounter *e;
   struct queuebuf *packet;
   int is_already_streaming = 0;
-
 
 #if WITH_RANDOM_WAIT_BEFORE_SEND
   {
