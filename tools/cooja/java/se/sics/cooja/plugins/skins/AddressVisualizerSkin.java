@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: AddressVisualizerSkin.java,v 1.3 2009/10/28 15:16:21 fros4943 Exp $
+ * $Id: AddressVisualizerSkin.java,v 1.4 2009/11/05 11:54:59 fros4943 Exp $
  */
 
 package se.sics.cooja.plugins.skins;
@@ -129,7 +129,7 @@ public class AddressVisualizerSkin implements VisualizerSkin {
 
   private static String getMoteString(Mote mote) {
     IPAddress ipAddr = mote.getInterfaces().getIPAddress();
-    if (ipAddr != null) {
+    if (ipAddr != null && ipAddr.getIPString() != null) {
       return ipAddr.getIPString();
     }
 
