@@ -72,11 +72,13 @@ void
 sd_arch_spi_write_block(uint8_t *bytes, int amount)
 {
   int i;
+  volatile char dummy;
 
   for(i = 0; i < amount; i++) {
     UART_TX = bytes[i];
     UART_WAIT_TXDONE();
-    UART_RX;
+    UART_WAIT_RX();
+    dummy = UART_RX;
   }
 }
 
