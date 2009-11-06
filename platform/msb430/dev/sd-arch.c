@@ -84,7 +84,9 @@ sd_arch_spi_write_block(uint8_t *bytes, int amount)
 unsigned
 sd_arch_spi_read(void)
 {
-  UART_TX = SPI_IDLE;
-  UART_WAIT_RX();
+  if((U1IFG & URXIFG1) == 0) {
+    UART_TX = SPI_IDLE;
+    UART_WAIT_RX();
+  }
   return UART_RX;
 }
