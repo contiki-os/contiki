@@ -52,7 +52,7 @@
 #include "net/rime/rimestats.h"
 #include "dev/irq.h"
 #include "dev/dma.h"
-#include "energest.h"
+#include "sys/energest.h"
 
 #define DEBUG 0
 #if DEBUG
