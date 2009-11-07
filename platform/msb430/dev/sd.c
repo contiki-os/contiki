@@ -211,7 +211,7 @@ sd_initialize(void)
 
   LOCK_SPI();
 
-  for(i = 0; i < 10000; i++) {
+  for(i = 0; i < SD_TRANSACTION_ATTEMPTS; i++) {
     LOWER_CS();
     send_command(READ_OCR, 0);
     r = get_response(R3);
@@ -235,7 +235,8 @@ sd_initialize(void)
 
   read_bl_len = reg[5] & 0x0f;
   block_size = 1 << read_bl_len;
-  rw_block_size = (block_size > 512) ? 512 : block_size;
+  rw_block_size = (block_size > SD_DEFAULT_BLOCK_SIZE) ?
+			SD_DEFAULT_BLOCK_SIZE : block_size;
   PRINTF("Found block size %d\n", block_size);
 
   /* XXX Arbitrary wait time here. Need to investigate why this is needed. */

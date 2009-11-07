@@ -42,7 +42,7 @@
 
 #include "sd-arch.h"
 
-#define SD_BLOCK_SIZE				512
+#define SD_DEFAULT_BLOCK_SIZE			512
 #define SD_REGISTER_SIZE			16
 
 /* API return codes. */
