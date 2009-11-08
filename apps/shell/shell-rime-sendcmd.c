@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: shell-rime-sendcmd.c,v 1.1 2009/04/16 14:33:47 fros4943 Exp $
+ * $Id: shell-rime-sendcmd.c,v 1.2 2009/11/08 19:43:00 adamdunkels Exp $
  */
 
 #include "contiki.h"
@@ -142,7 +142,7 @@ PROCESS_THREAD(shell_sendcmd_process, ev, data)
 }
 /*---------------------------------------------------------------------------*/
 static void
-recv_uc(struct unicast_conn *c, rimeaddr_t *from)
+recv_uc(struct unicast_conn *c, const rimeaddr_t *from)
 {
   struct cmd_msg *msg;
   uint16_t crc;
