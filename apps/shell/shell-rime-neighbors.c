@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: shell-rime-neighbors.c,v 1.2 2009/10/18 11:42:06 adamdunkels Exp $
+ * $Id: shell-rime-neighbors.c,v 1.3 2009/11/08 19:43:00 adamdunkels Exp $
  */
 
 /**
@@ -52,7 +52,7 @@ static uint8_t listening_for_neighbors = 0;
 
 /*---------------------------------------------------------------------------*/
 static void
-received_announcement(struct announcement *a, rimeaddr_t *from,
+received_announcement(struct announcement *a, const rimeaddr_t *from,
 		      uint16_t id, uint16_t value)
 {
   struct {

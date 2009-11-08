@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: shell-rime-unicast.c,v 1.2 2009/09/09 21:06:51 adamdunkels Exp $
+ * $Id: shell-rime-unicast.c,v 1.3 2009/11/08 19:43:00 adamdunkels Exp $
  */
 
 /**
@@ -133,7 +133,7 @@ PROCESS_THREAD(shell_unicast_send_process, ev, data)
 }
 /*---------------------------------------------------------------------------*/
 static void
-recv_uc(struct unicast_conn *c, rimeaddr_t *from)
+recv_uc(struct unicast_conn *c, const rimeaddr_t *from)
 {
   struct unicast_msg *msg;
 #define OUTPUT_BLOB_HDRSIZE 6

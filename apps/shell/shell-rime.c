@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: shell-rime.c,v 1.14 2009/05/10 21:04:06 adamdunkels Exp $
+ * $Id: shell-rime.c,v 1.15 2009/11/08 19:43:00 adamdunkels Exp $
  */
 
 /**
@@ -419,8 +419,8 @@ send_collect(void *dummy)
 }
 /*---------------------------------------------------------------------------*/
 static int
-recv_netflood(struct netflood_conn *c, rimeaddr_t *from,
-	      rimeaddr_t *originator, uint8_t seqno, uint8_t hops)
+recv_netflood(struct netflood_conn *c, const rimeaddr_t *from,
+	      const rimeaddr_t *originator, uint8_t seqno, uint8_t hops)
 {
   struct netflood_msg *msg;
   
