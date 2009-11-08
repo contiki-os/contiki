@@ -33,7 +33,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: multihop.c,v 1.6 2009/05/10 21:10:02 adamdunkels Exp $
+ * $Id: multihop.c,v 1.7 2009/11/08 19:40:17 adamdunkels Exp $
  */
 
 /**
@@ -66,7 +66,7 @@ static const struct packetbuf_attrlist attributes[] =
 
 /*---------------------------------------------------------------------------*/
 void
-data_packet_received(struct unicast_conn *uc, rimeaddr_t *from)
+data_packet_received(struct unicast_conn *uc, const rimeaddr_t *from)
 {
   struct multihop_conn *c = (struct multihop_conn *)uc;
   rimeaddr_t *nexthop;

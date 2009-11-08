@@ -34,7 +34,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: runicast.c,v 1.6 2009/04/06 21:19:34 adamdunkels Exp $
+ * $Id: runicast.c,v 1.7 2009/11/08 19:40:18 adamdunkels Exp $
  */
 
 /**
@@ -100,7 +100,7 @@ sent_by_stunicast(struct stunicast_conn *stunicast)
 }
 /*---------------------------------------------------------------------------*/
 static void
-recv_from_stunicast(struct stunicast_conn *stunicast, rimeaddr_t *from)
+recv_from_stunicast(struct stunicast_conn *stunicast, const rimeaddr_t *from)
 {
   struct runicast_conn *c = (struct runicast_conn *)stunicast;
   /*  struct runicast_hdr *hdr = packetbuf_dataptr();*/
@@ -182,7 +182,8 @@ recv_from_stunicast(struct stunicast_conn *stunicast, rimeaddr_t *from)
   }
 }
 /*---------------------------------------------------------------------------*/
-static const struct stunicast_callbacks runicast = {recv_from_stunicast, sent_by_stunicast};
+static const struct stunicast_callbacks runicast = {recv_from_stunicast,
+						    sent_by_stunicast};
 /*---------------------------------------------------------------------------*/
 void
 runicast_open(struct runicast_conn *c, uint16_t channel,
@@ -209,7 +210,8 @@ runicast_is_transmitting(struct runicast_conn *c)
 }
 /*---------------------------------------------------------------------------*/
 int
-runicast_send(struct runicast_conn *c, rimeaddr_t *receiver, uint8_t max_retransmissions)
+runicast_send(struct runicast_conn *c, const rimeaddr_t *receiver,
+	      uint8_t max_retransmissions)
 {
   if (runicast_is_transmitting(c)) {
     PRINTF("%d.%d: runicast: already transmitting\n",

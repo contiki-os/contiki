@@ -33,7 +33,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: trickle.c,v 1.17 2009/04/06 21:20:35 adamdunkels Exp $
+ * $Id: trickle.c,v 1.18 2009/11/08 19:40:18 adamdunkels Exp $
  */
 
 /**
@@ -133,7 +133,7 @@ run_trickle(struct trickle_conn *c)
 }
 /*---------------------------------------------------------------------------*/
 static void
-recv(struct broadcast_conn *bc, rimeaddr_t *from)
+recv(struct broadcast_conn *bc, const rimeaddr_t *from)
 {
   struct trickle_conn *c = (struct trickle_conn *)bc;
   uint16_t seqno = packetbuf_attr(PACKETBUF_ATTR_EPACKET_ID);

@@ -60,7 +60,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: stunicast.h,v 1.3 2009/05/26 13:58:53 nvt-se Exp $
+ * $Id: stunicast.h,v 1.4 2009/11/08 19:40:18 adamdunkels Exp $
  */
 
 /**
@@ -82,7 +82,7 @@ struct stunicast_conn;
 #define STUNICAST_ATTRIBUTES  UNICAST_ATTRIBUTES
 
 struct stunicast_callbacks {
-  void (* recv)(struct stunicast_conn *c, rimeaddr_t *from);
+  void (* recv)(struct stunicast_conn *c, const rimeaddr_t *from);
   void (* sent)(struct stunicast_conn *c);
 };
 
@@ -98,11 +98,11 @@ void stunicast_open(struct stunicast_conn *c, uint16_t channel,
 	       const struct stunicast_callbacks *u);
 void stunicast_close(struct stunicast_conn *c);
 
-int stunicast_send_stubborn(struct stunicast_conn *c, rimeaddr_t *receiver,
+int stunicast_send_stubborn(struct stunicast_conn *c, const rimeaddr_t *receiver,
 		      clock_time_t rxmittime);
 void stunicast_cancel(struct stunicast_conn *c);
 
-int stunicast_send(struct stunicast_conn *c, rimeaddr_t *receiver);
+int stunicast_send(struct stunicast_conn *c, const rimeaddr_t *receiver);
 
 void stunicast_set_timer(struct stunicast_conn *c, clock_time_t t);
 

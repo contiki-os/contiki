@@ -33,7 +33,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: stunicast.c,v 1.2 2009/03/12 21:58:21 adamdunkels Exp $
+ * $Id: stunicast.c,v 1.3 2009/11/08 19:40:18 adamdunkels Exp $
  */
 
 /**
@@ -57,7 +57,7 @@
 
 /*---------------------------------------------------------------------------*/
 static void
-recv_from_uc(struct unicast_conn *uc, rimeaddr_t *from)
+recv_from_uc(struct unicast_conn *uc, const rimeaddr_t *from)
 {
   register struct stunicast_conn *c = (struct stunicast_conn *)uc;
   PRINTF("%d.%d: stunicast: recv_from_uc from %d.%d\n",
@@ -117,7 +117,7 @@ stunicast_set_timer(struct stunicast_conn *c, clock_time_t t)
 }
 /*---------------------------------------------------------------------------*/
 int
-stunicast_send_stubborn(struct stunicast_conn *c, rimeaddr_t *receiver,
+stunicast_send_stubborn(struct stunicast_conn *c, const rimeaddr_t *receiver,
 		  clock_time_t rxmittime)
 {
   if(c->buf != NULL) {
@@ -143,7 +143,7 @@ stunicast_send_stubborn(struct stunicast_conn *c, rimeaddr_t *receiver,
 }
 /*---------------------------------------------------------------------------*/
 int
-stunicast_send(struct stunicast_conn *c, rimeaddr_t *receiver)
+stunicast_send(struct stunicast_conn *c, const rimeaddr_t *receiver)
 {
   PRINTF("%d.%d: stunicast_send to %d.%d\n",
 	 rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1],

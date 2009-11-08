@@ -34,7 +34,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: unicast.c,v 1.2 2009/03/12 21:58:21 adamdunkels Exp $
+ * $Id: unicast.c,v 1.3 2009/11/08 19:40:18 adamdunkels Exp $
  */
 
 /**
@@ -64,7 +64,7 @@ static const struct packetbuf_attrlist attributes[] =
 
 /*---------------------------------------------------------------------------*/
 static void
-recv_from_broadcast(struct broadcast_conn *broadcast, rimeaddr_t *from)
+recv_from_broadcast(struct broadcast_conn *broadcast, const rimeaddr_t *from)
 {
   struct unicast_conn *c = (struct unicast_conn *)broadcast;
 

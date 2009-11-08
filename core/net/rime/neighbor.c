@@ -33,7 +33,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: neighbor.c,v 1.20 2009/10/22 13:11:20 zhitao Exp $
+ * $Id: neighbor.c,v 1.21 2009/11/08 19:40:17 adamdunkels Exp $
  */
 
 /**
@@ -125,7 +125,7 @@ neighbor_init(void)
 }
 /*---------------------------------------------------------------------------*/
 struct neighbor *
-neighbor_find(rimeaddr_t *addr)
+neighbor_find(const rimeaddr_t *addr)
 {
   struct neighbor *n;
   for(n = list_head(neighbors_list); n != NULL; n = n->next) {
@@ -180,7 +180,7 @@ neighbor_etx(struct neighbor *n)
 }
 /*---------------------------------------------------------------------------*/
 void
-neighbor_add(rimeaddr_t *addr, uint8_t nrtmetric, uint8_t netx)
+neighbor_add(const rimeaddr_t *addr, uint8_t nrtmetric, uint8_t netx)
 {
   uint16_t rtmetric;
   uint16_t etx;
@@ -253,7 +253,7 @@ neighbor_add(rimeaddr_t *addr, uint8_t nrtmetric, uint8_t netx)
 }
 /*---------------------------------------------------------------------------*/
 void
-neighbor_remove(rimeaddr_t *addr)
+neighbor_remove(const rimeaddr_t *addr)
 {
   struct neighbor *n;
 

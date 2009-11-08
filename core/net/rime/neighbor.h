@@ -38,7 +38,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: neighbor.h,v 1.11 2008/02/24 22:05:27 adamdunkels Exp $
+ * $Id: neighbor.h,v 1.12 2009/11/08 19:40:17 adamdunkels Exp $
  */
 
 /**
@@ -68,12 +68,12 @@ struct neighbor {
 void neighbor_init(void);
 /*void neighbor_periodic(int max_time);*/
 
-void neighbor_add(rimeaddr_t *addr, uint8_t rtmetric, uint8_t etx);
+void neighbor_add(const rimeaddr_t *addr, uint8_t rtmetric, uint8_t etx);
 void neighbor_update(struct neighbor *n, uint8_t rtmetric);
 void neighbor_update_etx(struct neighbor *n, uint8_t etx);
 void neighbor_timedout_etx(struct neighbor *n, uint8_t etx);
-void neighbor_remove(rimeaddr_t *addr);
-struct neighbor *neighbor_find(rimeaddr_t *addr);
+void neighbor_remove(const rimeaddr_t *addr);
+struct neighbor *neighbor_find(const rimeaddr_t *addr);
 struct neighbor *neighbor_best(void);
 void neighbor_set_lifetime(int seconds);
 

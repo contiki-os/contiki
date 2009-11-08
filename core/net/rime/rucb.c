@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: rucb.c,v 1.10 2009/04/16 14:32:01 fros4943 Exp $
+ * $Id: rucb.c,v 1.11 2009/11/08 19:40:18 adamdunkels Exp $
  */
 
 /**
@@ -68,7 +68,7 @@ read_data(struct rucb_conn *c)
 }
 /*---------------------------------------------------------------------------*/
 static void
-acked(struct runicast_conn *ruc, rimeaddr_t *to, uint8_t retransmissions)
+acked(struct runicast_conn *ruc, const rimeaddr_t *to, uint8_t retransmissions)
 {
   struct rucb_conn *c = (struct rucb_conn *)ruc;
   PRINTF("%d.%d: rucb acked\n",
@@ -84,7 +84,7 @@ acked(struct runicast_conn *ruc, rimeaddr_t *to, uint8_t retransmissions)
 }
 /*---------------------------------------------------------------------------*/
 static void
-timedout(struct runicast_conn *ruc, rimeaddr_t *to, uint8_t retransmissions)
+timedout(struct runicast_conn *ruc, const rimeaddr_t *to, uint8_t retransmissions)
 {
   struct rucb_conn *c = (struct rucb_conn *)ruc;
   PRINTF("%d.%d: rucb timedout\n",
@@ -95,7 +95,7 @@ timedout(struct runicast_conn *ruc, rimeaddr_t *to, uint8_t retransmissions)
 }
 /*---------------------------------------------------------------------------*/
 static void
-recv(struct runicast_conn *ruc, rimeaddr_t *from, uint8_t seqno)
+recv(struct runicast_conn *ruc, const rimeaddr_t *from, uint8_t seqno)
 {
   struct rucb_conn *c = (struct rucb_conn *)ruc;
 
@@ -155,7 +155,7 @@ rucb_close(struct rucb_conn *c)
 }
 /*---------------------------------------------------------------------------*/
 int
-rucb_send(struct rucb_conn *c, rimeaddr_t *receiver)
+rucb_send(struct rucb_conn *c, const rimeaddr_t *receiver)
 {
   c->chunk = 0;
   read_data(c);

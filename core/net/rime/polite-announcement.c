@@ -33,7 +33,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: polite-announcement.c,v 1.5 2009/05/08 08:52:55 adamdunkels Exp $
+ * $Id: polite-announcement.c,v 1.6 2009/11/08 19:40:17 adamdunkels Exp $
  */
 
 /**
@@ -115,7 +115,7 @@ send_adv(clock_time_t interval)
 }
 /*---------------------------------------------------------------------------*/
 static void
-adv_packet_received(struct ipolite_conn *ipolite, rimeaddr_t *from)
+adv_packet_received(struct ipolite_conn *ipolite, const rimeaddr_t *from)
 {
   struct announcement_msg *adata = packetbuf_dataptr();
   int i;

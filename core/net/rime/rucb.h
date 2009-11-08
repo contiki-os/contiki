@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: rucb.h,v 1.3 2008/07/03 21:52:25 adamdunkels Exp $
+ * $Id: rucb.h,v 1.4 2009/11/08 19:40:18 adamdunkels Exp $
  */
 
 /**
@@ -73,7 +73,7 @@ void rucb_open(struct rucb_conn *c, uint16_t channel,
 	      const struct rucb_callbacks *u);
 void rucb_close(struct rucb_conn *c);
 
-int rucb_send(struct rucb_conn *c, rimeaddr_t *receiver);
+int rucb_send(struct rucb_conn *c, const rimeaddr_t *receiver);
 
 
 #endif /* __RUCB_H__ */
