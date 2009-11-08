@@ -81,7 +81,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: ipolite.h,v 1.8 2009/03/12 21:58:21 adamdunkels Exp $
+ * $Id: ipolite.h,v 1.9 2009/11/08 19:40:17 adamdunkels Exp $
  */
 
 /**
@@ -114,7 +114,7 @@ struct ipolite_callbacks {
   /**
    * Called when a packet is received on the connection.
    */
-  void (* recv)(struct ipolite_conn *c, rimeaddr_t *from);
+  void (* recv)(struct ipolite_conn *c, const rimeaddr_t *from);
 
   /**
    * Called when a packet is sent on the connection.

@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: uip-over-mesh.c,v 1.14 2009/05/10 21:08:01 adamdunkels Exp $
+ * $Id: uip-over-mesh.c,v 1.15 2009/11/08 19:40:16 adamdunkels Exp $
  */
 
 /**
@@ -78,7 +78,7 @@ static uip_ipaddr_t netaddr, netmask;
 
 /*---------------------------------------------------------------------------*/
 static void
-recv_data(struct unicast_conn *c, rimeaddr_t *from)
+recv_data(struct unicast_conn *c, const rimeaddr_t *from)
 {
   struct route_entry *e;
   rimeaddr_t source;
@@ -112,7 +112,7 @@ send_data(rimeaddr_t *next)
 }
 /*---------------------------------------------------------------------------*/
 static void
-new_route(struct route_discovery_conn *c, rimeaddr_t *to)
+new_route(struct route_discovery_conn *c, const rimeaddr_t *to)
 {
   struct route_entry *rt;
   

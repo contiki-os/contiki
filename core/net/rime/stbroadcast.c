@@ -33,7 +33,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: stbroadcast.c,v 1.2 2009/03/12 21:58:21 adamdunkels Exp $
+ * $Id: stbroadcast.c,v 1.3 2009/11/08 19:40:18 adamdunkels Exp $
  */
 
 /**
@@ -50,7 +50,7 @@
 
 /*---------------------------------------------------------------------------*/
 static void
-recv_from_broadcast(struct broadcast_conn *broadcast, rimeaddr_t *sender)
+recv_from_broadcast(struct broadcast_conn *broadcast, const rimeaddr_t *sender)
 {
   register struct stbroadcast_conn *c = (struct stbroadcast_conn *)broadcast;
   /*  DEBUGF(3, "stbroadcast: recv_from_broadcast from %d\n", from_id);*/

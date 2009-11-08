@@ -54,7 +54,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: announcement.h,v 1.4 2009/05/26 13:58:53 nvt-se Exp $
+ * $Id: announcement.h,v 1.5 2009/11/08 19:40:17 adamdunkels Exp $
  */
 
 /**
@@ -72,7 +72,7 @@
 struct announcement;
 
 typedef void (*announcement_callback_t)(struct announcement *a,
-					rimeaddr_t *from,
+					const rimeaddr_t *from,
 					uint16_t id, uint16_t val);
 
 /**
@@ -211,7 +211,7 @@ struct announcement *announcement_list(void);
  *             neighbor has been heard.
  *
  */
-void announcement_heard(rimeaddr_t *from, uint16_t id, uint16_t value);
+void announcement_heard(const rimeaddr_t *from, uint16_t id, uint16_t value);
 
 /**
  * \brief      Register a listen callback with the announcement module

@@ -45,7 +45,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: route-discovery.h,v 1.9 2009/10/08 16:30:26 nvt-se Exp $
+ * $Id: route-discovery.h,v 1.10 2009/11/08 19:40:18 adamdunkels Exp $
  */
 
 /**
@@ -64,7 +64,7 @@
 struct route_discovery_conn;
 
 struct route_discovery_callbacks {
-  void (* new_route)(struct route_discovery_conn *c, rimeaddr_t *to);
+  void (* new_route)(struct route_discovery_conn *c, const rimeaddr_t *to);
   void (* timedout)(struct route_discovery_conn *c);
 };
 

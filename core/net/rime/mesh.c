@@ -33,7 +33,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: mesh.c,v 1.18 2009/09/09 21:10:21 adamdunkels Exp $
+ * $Id: mesh.c,v 1.19 2009/11/08 19:40:17 adamdunkels Exp $
  */
 
 /**
@@ -99,7 +99,7 @@ data_packet_forward(struct multihop_conn *multihop,
 }
 /*---------------------------------------------------------------------------*/
 static void
-found_route(struct route_discovery_conn *rdc, rimeaddr_t *dest)
+found_route(struct route_discovery_conn *rdc, const rimeaddr_t *dest)
 {
   struct mesh_conn *c = (struct mesh_conn *)
     ((char *)rdc - offsetof(struct mesh_conn, route_discovery_conn));
@@ -138,6 +138,7 @@ void
 mesh_open(struct mesh_conn *c, uint16_t channels,
 	  const struct mesh_callbacks *callbacks)
 {
+  route_init();
   multihop_open(&c->multihop, channels, &data_callbacks);
   route_discovery_open(&c->route_discovery_conn,
 		       CLOCK_SECOND * 2,

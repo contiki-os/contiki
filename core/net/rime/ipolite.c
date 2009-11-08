@@ -33,7 +33,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: ipolite.c,v 1.14 2009/03/12 21:58:21 adamdunkels Exp $
+ * $Id: ipolite.c,v 1.15 2009/11/08 19:40:17 adamdunkels Exp $
  */
 
 /**
@@ -67,7 +67,7 @@
 
 /*---------------------------------------------------------------------------*/
 static void
-recv(struct broadcast_conn *broadcast, rimeaddr_t *from)
+recv(struct broadcast_conn *broadcast, const rimeaddr_t *from)
 {
   struct ipolite_conn *c = (struct ipolite_conn *)broadcast;
   if(c->q != NULL &&
@@ -116,6 +116,7 @@ ipolite_open(struct ipolite_conn *c, uint16_t channel,
 {
   broadcast_open(&c->c, channel, &broadcast);
   c->cb = cb;
+  PRINTF("ipolite open channel %d\n", channel);
 }
 /*---------------------------------------------------------------------------*/
 void

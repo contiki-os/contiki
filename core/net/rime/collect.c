@@ -36,7 +36,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: collect.c,v 1.28 2009/05/30 19:54:05 nvt-se Exp $
+ * $Id: collect.c,v 1.29 2009/11/08 19:40:17 adamdunkels Exp $
  */
 
 /**
@@ -227,7 +227,8 @@ update_rtmetric(struct collect_conn *tc)
 }
 /*---------------------------------------------------------------------------*/
 static void
-node_packet_received(struct runicast_conn *c, rimeaddr_t *from, uint8_t seqno)
+node_packet_received(struct runicast_conn *c, const rimeaddr_t *from,
+		     uint8_t seqno)
 {
   struct collect_conn *tc = (struct collect_conn *)
     ((char *)c - offsetof(struct collect_conn, runicast_conn));
@@ -295,7 +296,8 @@ node_packet_received(struct runicast_conn *c, rimeaddr_t *from, uint8_t seqno)
 }
 /*---------------------------------------------------------------------------*/
 static void
-node_packet_sent(struct runicast_conn *c, rimeaddr_t *to, uint8_t transmissions)
+node_packet_sent(struct runicast_conn *c, const rimeaddr_t *to,
+		 uint8_t transmissions)
 {
   struct collect_conn *tc = (struct collect_conn *)
     ((char *)c - offsetof(struct collect_conn, runicast_conn));
@@ -318,7 +320,8 @@ node_packet_sent(struct runicast_conn *c, rimeaddr_t *to, uint8_t transmissions)
 }
 /*---------------------------------------------------------------------------*/
 static void
-node_packet_timedout(struct runicast_conn *c, rimeaddr_t *to, uint8_t transmissions)
+node_packet_timedout(struct runicast_conn *c, const rimeaddr_t *to,
+		     uint8_t transmissions)
 {
   struct collect_conn *tc = (struct collect_conn *)
     ((char *)c - offsetof(struct collect_conn, runicast_conn));
@@ -339,7 +342,8 @@ node_packet_timedout(struct runicast_conn *c, rimeaddr_t *to, uint8_t transmissi
 /*---------------------------------------------------------------------------*/
 #if !COLLECT_ANNOUNCEMENTS
 static void
-adv_received(struct neighbor_discovery_conn *c, rimeaddr_t *from, uint16_t rtmetric)
+adv_received(struct neighbor_discovery_conn *c, const rimeaddr_t *from,
+	     uint16_t rtmetric)
 {
   struct collect_conn *tc = (struct collect_conn *)
     ((char *)c - offsetof(struct collect_conn, neighbor_discovery_conn));
@@ -360,7 +364,7 @@ adv_received(struct neighbor_discovery_conn *c, rimeaddr_t *from, uint16_t rtmet
 }
 #else
 static void
-received_announcement(struct announcement *a, rimeaddr_t *from,
+received_announcement(struct announcement *a, const rimeaddr_t *from,
 		      uint16_t id, uint16_t value)
 {
   struct collect_conn *tc = (struct collect_conn *)

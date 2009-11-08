@@ -33,7 +33,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: rmh.c,v 1.9 2009/03/21 20:53:06 nvt-se Exp $
+ * $Id: rmh.c,v 1.10 2009/11/08 19:40:17 adamdunkels Exp $
  */
 
 /**
@@ -64,7 +64,7 @@ struct data_hdr {
 
 /*---------------------------------------------------------------------------*/
 static void
-received(struct runicast_conn *uc, rimeaddr_t *from, uint8_t seqno)
+received(struct runicast_conn *uc, const rimeaddr_t *from, uint8_t seqno)
 {
   struct rmh_conn *c = (struct rmh_conn *)uc;
   struct data_hdr *msg = packetbuf_dataptr();
@@ -96,13 +96,13 @@ received(struct runicast_conn *uc, rimeaddr_t *from, uint8_t seqno)
 }
 /*---------------------------------------------------------------------------*/
 static void
-sent(struct runicast_conn *c, rimeaddr_t *to, uint8_t retransmissions)
+sent(struct runicast_conn *c, const rimeaddr_t *to, uint8_t retransmissions)
 {
 
 }
 /*---------------------------------------------------------------------------*/
 static void
-timedout(struct runicast_conn *c, rimeaddr_t *to, uint8_t retransmissions)
+timedout(struct runicast_conn *c, const rimeaddr_t *to, uint8_t retransmissions)
 {
 
 }

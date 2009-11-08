@@ -33,7 +33,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: route-discovery.c,v 1.18 2009/10/08 16:30:26 nvt-se Exp $
+ * $Id: route-discovery.c,v 1.19 2009/11/08 19:40:17 adamdunkels Exp $
  */
 
 /**
@@ -102,7 +102,7 @@ send_rreq(struct route_discovery_conn *c, const rimeaddr_t *dest)
 }
 /*---------------------------------------------------------------------------*/
 static void
-send_rrep(struct route_discovery_conn *c, rimeaddr_t *dest)
+send_rrep(struct route_discovery_conn *c, const rimeaddr_t *dest)
 {
   struct rrep_hdr *rrepmsg;
   struct route_entry *rt;
@@ -132,7 +132,8 @@ send_rrep(struct route_discovery_conn *c, rimeaddr_t *dest)
 }
 /*---------------------------------------------------------------------------*/
 static void
-insert_route(rimeaddr_t *originator, rimeaddr_t *last_hop, uint8_t hops)
+insert_route(const rimeaddr_t *originator, const rimeaddr_t *last_hop,
+	     uint8_t hops)
 {
   PRINTF("%d.%d: Inserting %d.%d into routing table, next hop %d.%d, hop count %d\n",
 	 rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1],
@@ -160,7 +161,7 @@ insert_route(rimeaddr_t *originator, rimeaddr_t *last_hop, uint8_t hops)
 }
 /*---------------------------------------------------------------------------*/
 static void
-rrep_packet_received(struct unicast_conn *uc, rimeaddr_t *from)
+rrep_packet_received(struct unicast_conn *uc, const rimeaddr_t *from)
 {
   struct rrep_hdr *msg = packetbuf_dataptr();
   struct route_entry *rt;
@@ -205,8 +206,8 @@ rrep_packet_received(struct unicast_conn *uc, rimeaddr_t *from)
 }
 /*---------------------------------------------------------------------------*/
 static int
-rreq_packet_received(struct netflood_conn *nf, rimeaddr_t *from,
-		      rimeaddr_t *originator, uint8_t seqno, uint8_t hops)
+rreq_packet_received(struct netflood_conn *nf, const rimeaddr_t *from,
+		     const rimeaddr_t *originator, uint8_t seqno, uint8_t hops)
 {
   struct route_msg *msg = packetbuf_dataptr();
   struct route_discovery_conn *c = (struct route_discovery_conn *)
