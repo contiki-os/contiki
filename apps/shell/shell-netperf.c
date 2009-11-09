@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: shell-netperf.c,v 1.3 2009/11/08 19:43:00 adamdunkels Exp $
+ * $Id: shell-netperf.c,v 1.4 2009/11/09 08:22:17 adamdunkels Exp $
  */
 
 /**
@@ -87,7 +87,7 @@ enum {
   CTRL_COMMAND_CLEAR,
   CTRL_COMMAND_STATS,
   CTRL_COMMAND_STATS_REPLY
-} datapath_commands;
+} ctrlpath_commands;
 
 struct ctrl_msg {
   uint8_t command;
