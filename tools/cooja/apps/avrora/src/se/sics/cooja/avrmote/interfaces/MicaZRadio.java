@@ -26,30 +26,22 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: MicaZRadio.java,v 1.5 2009/09/17 12:09:14 fros4943 Exp $
+ * $Id: MicaZRadio.java,v 1.6 2009/11/10 12:56:20 joxe Exp $
  */
 
 package se.sics.cooja.avrmote.interfaces;
 
-import java.awt.BorderLayout;
-import java.awt.GridLayout;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.util.*;
-import javax.swing.*;
 import org.apache.log4j.Logger;
-import org.jdom.Element;
 
+import avrora.sim.FiniteStateMachine;
+import avrora.sim.FiniteStateMachine.Probe;
 import avrora.sim.platform.MicaZ;
 import avrora.sim.radio.CC2420Radio;
 import avrora.sim.radio.Medium;
 
 import se.sics.cooja.*;
 import se.sics.cooja.avrmote.MicaZMote;
-import se.sics.cooja.interfaces.CustomDataRadio;
-import se.sics.cooja.interfaces.Position;
-import se.sics.cooja.interfaces.Radio;
-import se.sics.cooja.mspmote.interfaces.CC2420RadioPacketConverter;
+import se.sics.cooja.emulatedmote.Radio802154;
 
 /**
  * CC2420 to COOJA wrapper.
@@ -57,133 +49,55 @@ import se.sics.cooja.mspmote.interfaces.CC2420RadioPacketConverter;
  * @author Joakim Eriksson
  */
 @ClassDescription("CC2420")
-public class MicaZRadio extends Radio implements CustomDataRadio {
+public class MicaZRadio extends Radio802154 {
   private static Logger logger = Logger.getLogger(MicaZRadio.class);
 
-  private long lastEventTime = 0;
-
-  private RadioEvent lastEvent = RadioEvent.UNKNOWN;
-
-  private MicaZMote mote;
   private MicaZ micaz;
   private CC2420Radio cc2420;
-
-  private boolean isInterfered = false;
-
-  private boolean isTransmitting = false;
-
-  private boolean isReceiving = false;
-//  private boolean hasFailedReception = false;
-
-  private boolean radioOn = true;
-
-  private RadioByte lastOutgoingByte = null;
-
-  private RadioByte lastIncomingByte = null;
-
-  private RadioPacket lastOutgoingPacket = null;
-
-  private RadioPacket lastIncomingPacket = null;
 
 //  private int mode;
   Medium.Transmitter trans;
   CC2420Radio.Receiver recv;
-
+  FiniteStateMachine fsm;
+  
   public MicaZRadio(Mote mote) {
-    this.mote = (MicaZMote) mote;
-    micaz = this.mote.getMicaZ();
+    super(mote);
+    micaz = ((MicaZMote)mote).getMicaZ();
     cc2420 = (CC2420Radio) micaz.getDevice("radio");
+   
     trans = cc2420.getTransmitter();
+    fsm = cc2420.getFiniteStateMachine();
     recv = (CC2420Radio.Receiver) cc2420.getReceiver();
     trans.insertProbe(new Medium.Probe.Empty() {
-      int len = 0;
-      int expLen = 0;
-      byte[] buffer = new byte[127 + 15];
-
-      public void fireBeforeTransmit(Medium.Transmitter t, byte val) {
-        if (len == 0) {
-          lastEventTime = MicaZRadio.this.mote.getSimulation().getSimulationTime();
-          lastEvent = RadioEvent.TRANSMISSION_STARTED;
-          /*logger.debug("----- MICAZ TRANSMISSION STARTED -----");*/
-          setChanged();
-          notifyObservers();
+        public void fireBeforeTransmit(Medium.Transmitter t, byte val) {
+            handleTransmit(val);
         }
-        /* send this byte to all nodes */
-        lastOutgoingByte = new RadioByte(val);
-        lastEventTime = MicaZRadio.this.mote.getSimulation().getSimulationTime();
-        lastEvent = RadioEvent.CUSTOM_DATA_TRANSMITTED;
-        setChanged();
-        notifyObservers();
-
-        buffer[len++] = val;
-
-        if (len == 6) {
-//          System.out.println("## CC2420 Packet of length: " + data + " expected...");
-          expLen = val + 6;
-        }
-
-        if (len == expLen) {
-          /*logger.debug("----- MICAZ CUSTOM DATA TRANSMITTED -----");*/
-
-          lastOutgoingPacket = CC2420RadioPacketConverter.fromCC2420ToCooja(buffer);
-          lastEventTime = MicaZRadio.this.mote.getSimulation().getSimulationTime();
-          lastEvent = RadioEvent.PACKET_TRANSMITTED;
-          /*logger.debug("----- MICAZ PACKET TRANSMITTED -----");*/
-          setChanged();
-          notifyObservers();
-
-          //          System.out.println("## CC2420 Transmission finished...");
-
-          lastEventTime = MicaZRadio.this.mote.getSimulation().getSimulationTime();
-          /*logger.debug("----- SKY TRANSMISSION FINISHED -----");*/
-          lastEvent = RadioEvent.TRANSMISSION_FINISHED;
-          setChanged();
-          notifyObservers();
-          len = 0;
-        }
-      }
     });
-  }
-
-  /* Packet radio support */
-  public RadioPacket getLastPacketTransmitted() {
-    return lastOutgoingPacket;
-  }
-
-  public RadioPacket getLastPacketReceived() {
-    return lastIncomingPacket;
-  }
-
-  public void setReceivedPacket(RadioPacket packet) {
-  }
-
-  /* Custom data radio support */
-  public Object getLastCustomDataTransmitted() {
-    return lastOutgoingByte;
-  }
-
-  public Object getLastCustomDataReceived() {
-    return lastIncomingByte;
-  }
-
-  public void receiveCustomData(Object data) {
-    if (data instanceof RadioByte) {
-      lastIncomingByte = (RadioByte) data;
-      recv.nextByte(true, lastIncomingByte.getPacketData()[0]);
-    }
-  }
-
-  /* General radio support */
-  public boolean isTransmitting() {
-    return isTransmitting;
-  }
-
-  public boolean isReceiving() {
-    return isReceiving;
-  }
-
-  public boolean isInterfered() {
-    return isInterfered;
+    fsm.insertProbe(new Probe() {
+        public void fireBeforeTransition(int arg0, int arg1) {
+        }
+        public void fireAfterTransition(int arg0, int arg1) {
+            //System.out.println("CC2420 - MicaZ FSM: " + arg0 + " " + arg1);
+            RadioEvent re = null;
+            if (arg1 >= 3) {
+                re = RadioEvent.HW_ON;
+            } else {
+                if (arg0 > 3 && arg1 == 2) {
+                    /* likely that radio dips into 2 before going back to 3 */
+                } else {
+                    re = RadioEvent.HW_OFF;
+                }
+            }
+            if (re != null) {
+                lastEvent = re;
+                lastEventTime = MicaZRadio.this.mote.getSimulation().getSimulationTime();
+                setChanged();
+                notifyObservers();
+            }
+        }
+    });
+    
+    
   }
 
   public int getChannel() {
@@ -194,66 +108,20 @@ public class MicaZRadio extends Radio implements CustomDataRadio {
 
   public int getFrequency() {
 //    cc2420.updateActiveFrequency();
-//    return cc2420.getActiveFrequency();
-    return 0;
+      return (int) cc2420.getFrequency();
   }
 
   public boolean isReceiverOn() {
-    /* TODO Implement me */
-    return true;
+      FiniteStateMachine fsm = cc2420.getFiniteStateMachine();
+      /* based on reading the source code it seems that the fsm state = 3 means on */
+      //System.out.println("COOJA: cc2420 FSM: " + fsm.getCurrentState());
+      return fsm.getCurrentState() >= 3;
   }
 
   public void signalReceptionStart() {
 //    cc2420.setCCA(true);
 //    hasFailedReception = mode == CC2420.MODE_TXRX_OFF;
-    isReceiving = true;
-    /* TODO cc2420.setSFD(true); */
-
-    lastEventTime = mote.getSimulation().getSimulationTime();
-    lastEvent = RadioEvent.RECEPTION_STARTED;
-    /*logger.debug("----- SKY RECEPTION STARTED -----");*/
-    setChanged();
-    notifyObservers();
-  }
-
-  public void signalReceptionEnd() {
-    /* Deliver packet data */
-    isReceiving = false;
-//    hasFailedReception = false;
-    isInterfered = false;
-//    cc2420.setCCA(false);
-
-    /* tell the receiver that the packet is ended */
-    recv.nextByte(false, (byte)0);
-
-    lastEventTime = mote.getSimulation().getSimulationTime();
-    lastEvent = RadioEvent.RECEPTION_FINISHED;
-    /*logger.debug("----- SKY RECEPTION FINISHED -----");*/
-    setChanged();
-    notifyObservers();
-  }
-
-  public RadioEvent getLastEvent() {
-    return lastEvent;
-  }
-
-  public void interfereAnyReception() {
-    isInterfered = true;
-    isReceiving = false;
-//    hasFailedReception = false;
-    lastIncomingPacket = null;
-
-    //cc2420.setCCA(true);
-
-    /* is this ok ?? */
-    recv.nextByte(false, (byte)0);
-
-
-    lastEventTime = mote.getSimulation().getSimulationTime();
-    lastEvent = RadioEvent.RECEPTION_INTERFERED;
-    /*logger.debug("----- SKY RECEPTION INTERFERED -----");*/
-    setChanged();
-    notifyObservers();
+      super.signalReceptionStart();
   }
 
   public double getCurrentOutputPower() {
@@ -280,96 +148,13 @@ public class MicaZRadio extends Radio implements CustomDataRadio {
     return 1.0;
   }
 
-  public JPanel getInterfaceVisualizer() {
-    // Location
-    JPanel wrapperPanel = new JPanel(new BorderLayout());
-    JPanel panel = new JPanel(new GridLayout(5, 2));
-
-    final JLabel statusLabel = new JLabel("");
-    final JLabel lastEventLabel = new JLabel("");
-    final JLabel channelLabel = new JLabel("");
-    final JLabel powerLabel = new JLabel("");
-    final JLabel ssLabel = new JLabel("");
-    final JButton updateButton = new JButton("Update");
-
-    panel.add(new JLabel("STATE:"));
-    panel.add(statusLabel);
-
-    panel.add(new JLabel("LAST EVENT:"));
-    panel.add(lastEventLabel);
-
-    panel.add(new JLabel("CHANNEL:"));
-    panel.add(channelLabel);
-
-    panel.add(new JLabel("OUTPUT POWER:"));
-    panel.add(powerLabel);
-
-    panel.add(new JLabel("SIGNAL STRENGTH:"));
-    JPanel smallPanel = new JPanel(new GridLayout(1, 2));
-    smallPanel.add(ssLabel);
-    smallPanel.add(updateButton);
-    panel.add(smallPanel);
-
-    updateButton.addActionListener(new ActionListener() {
-      public void actionPerformed(ActionEvent e) {
-        channelLabel.setText(getChannel() + " (freq=" + getFrequency() + " MHz)");
-        powerLabel.setText(getCurrentOutputPower() + " dBm (indicator=" + getCurrentOutputPowerIndicator() + "/" + getOutputPowerIndicatorMax() + ")");
-        ssLabel.setText(getCurrentSignalStrength() + " dBm");
-      }
-    });
-
-    Observer observer;
-    this.addObserver(observer = new Observer() {
-      public void update(Observable obs, Object obj) {
-        if (isTransmitting()) {
-          statusLabel.setText("transmitting");
-        } else if (isReceiving()) {
-          statusLabel.setText("receiving");
-        } else if (radioOn /* mode != CC2420.MODE_TXRX_OFF */) {
-          statusLabel.setText("listening for traffic");
-        } else {
-          statusLabel.setText("HW off");
-        }
-
-        lastEventLabel.setText(lastEvent + " @ time=" + lastEventTime);
-
-        channelLabel.setText(getChannel() + " (freq=" + getFrequency() + " MHz)");
-        powerLabel.setText(getCurrentOutputPower() + " dBm (indicator=" + getCurrentOutputPowerIndicator() + "/" + getOutputPowerIndicatorMax() + ")");
-        ssLabel.setText(getCurrentSignalStrength() + " dBm");
-      }
-    });
-
-    observer.update(null, null);
-
-    wrapperPanel.add(BorderLayout.NORTH, panel);
-
-    // Saving observer reference for releaseInterfaceVisualizer
-    wrapperPanel.putClientProperty("intf_obs", observer);
-    return wrapperPanel;
+  protected void handleEndOfReception() {
+      /* tell the receiver that the packet is ended */
+      recv.nextByte(false, (byte)0);
   }
 
-  public void releaseInterfaceVisualizer(JPanel panel) {
-    Observer observer = (Observer) panel.getClientProperty("intf_obs");
-    if (observer == null) {
-      logger.fatal("Error when releasing panel, observer is null");
-      return;
-    }
-
-    this.deleteObserver(observer);
-  }
-
-  public Mote getMote() {
-    return mote;
-  }
-
-  public Position getPosition() {
-    return mote.getInterfaces().getPosition();
-  }
-
-  public Collection<Element> getConfigXML() {
-    return null;
-  }
-
-  public void setConfigXML(Collection<Element> configXML, boolean visAvailable) {
+  protected void handleReceive(byte b) {
+      //System.out.println("MicaZ: Received: " + (b &0xff));
+      recv.nextByte(true, (byte)b);
   }
 }
