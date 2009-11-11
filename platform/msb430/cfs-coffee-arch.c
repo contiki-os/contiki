@@ -45,7 +45,7 @@
 int
 cfs_coffee_arch_erase(unsigned sector)
 {
-  char buf[SD_BLOCK_SIZE];
+  char buf[SD_DEFAULT_BLOCK_SIZE];
   sd_offset_t start_offset;
   sd_offset_t end_offset;
   sd_offset_t offset;
@@ -55,7 +55,7 @@ cfs_coffee_arch_erase(unsigned sector)
   start_offset = COFFEE_START + sector * COFFEE_SECTOR_SIZE;
   end_offset = start_offset + COFFEE_SECTOR_SIZE;
 
-  for(offset = start_offset; offset < end_offset; offset += SD_BLOCK_SIZE) {
+  for(offset = start_offset; offset < end_offset; offset += SD_DEFAULT_BLOCK_SIZE) {
     if(sd_write(offset, buf, sizeof(buf)) < 0) {
       return -1;
     }

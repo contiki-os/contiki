@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: sd-test.c,v 1.7 2009/11/06 15:11:52 nvt-se Exp $
+ * $Id: sd-test.c,v 1.8 2009/11/11 14:59:34 nvt-se Exp $
  */
 
 /**
@@ -49,11 +49,13 @@
 PROCESS(sd_test, "SD test process");
 AUTOSTART_PROCESSES(&sd_test);
 
+#define BUF_SIZE	64
+
 PROCESS_THREAD(sd_test, event, data)
 {
   static unsigned long iter;
   static unsigned long offset;
-  char buf[SD_BLOCK_SIZE];
+  char buf[BUF_SIZE];
   static struct etimer et;
   int r, buflen;
 
