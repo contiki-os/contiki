@@ -47,7 +47,7 @@
  *
  * This file is part of the uIP TCP/IP stack.
  *
- * $Id: uip.h,v 1.24 2009/04/06 13:18:50 nvt-se Exp $
+ * $Id: uip.h,v 1.25 2009/11/12 14:05:42 joxe Exp $
  *
  */
 
@@ -1949,6 +1949,19 @@ CCIF extern uip_lladdr_t uip_lladdr;
    (((a)->u16[6]) == 0) &&                          \
    (((a)->u8[14]) == 0) &&                          \
    (((a)->u8[15]) == 0x01))
+
+/** \brief Is IPv6 address a the link local all-routers multicast address */
+#define uip_is_addr_linklocal_allrouters_mcast(a)     \
+  ((((a)->u8[0]) == 0xff) &&                        \
+   (((a)->u8[1]) == 0x02) &&                        \
+   (((a)->u16[1]) == 0) &&                          \
+   (((a)->u16[2]) == 0) &&                          \
+   (((a)->u16[3]) == 0) &&                          \
+   (((a)->u16[4]) == 0) &&                          \
+   (((a)->u16[5]) == 0) &&                          \
+   (((a)->u16[6]) == 0) &&                          \
+   (((a)->u8[14]) == 0) &&                          \
+   (((a)->u8[15]) == 0x02))
 
 /** \brief set IP address a to unspecified */
 #define uip_create_unspecified(a) uip_ip6addr(a, 0, 0, 0, 0, 0, 0, 0, 0)
