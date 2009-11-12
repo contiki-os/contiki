@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: MicaZMote.java,v 1.9 2009/10/30 09:42:50 fros4943 Exp $
+ * $Id: MicaZMote.java,v 1.10 2009/11/12 12:49:34 joxe Exp $
  */
 
 package se.sics.cooja.avrmote;
@@ -45,7 +45,10 @@ import se.sics.cooja.MoteMemory;
 import se.sics.cooja.MoteType;
 import se.sics.cooja.Simulation;
 import se.sics.cooja.motes.AbstractEmulatedMote;
+import se.sics.cooja.mspmote.MspMoteMemory;
+import avrora.arch.avr.AVRProperties;
 import avrora.core.LoadableProgram;
+import avrora.sim.AtmelInterpreter;
 import avrora.sim.Interpreter;
 import avrora.sim.Simulator;
 import avrora.sim.State;
@@ -67,8 +70,9 @@ public class MicaZMote extends AbstractEmulatedMote implements Mote {
   private Microcontroller myCpu = null;
   private MicaZ micaZ = null;
   private LoadableProgram program = null;
-  private Interpreter interpreter = null;
-
+  private AtmelInterpreter interpreter = null;
+  private AvrMoteMemory myMemory = null;
+  private AVRProperties avrProperties = null;
   private MicaZMoteType myMoteType = null;
 
   /* Stack monitoring variables */
@@ -144,9 +148,11 @@ public class MicaZMote extends AbstractEmulatedMote implements Mote {
     PlatformFactory factory = new MicaZ.Factory();
     micaZ = (MicaZ) factory.newPlatform(1, program.getProgram());
     myCpu = micaZ.getMicrocontroller();
+    avrProperties = (AVRProperties) myCpu.getProperties();
     Simulator sim = myCpu.getSimulator();
-    interpreter = sim.getInterpreter();
+    interpreter = (AtmelInterpreter) sim.getInterpreter();
 //     State state = interpreter.getState();
+    myMemory = new AvrMoteMemory(program.getProgram().getSourceMapping(), avrProperties, interpreter);
   }
 
   public void setState(State newState) {
@@ -267,12 +273,11 @@ public class MicaZMote extends AbstractEmulatedMote implements Mote {
   }
 
   public MoteMemory getMemory() {
-    /* TODO Implement */
-    return null;
+    return myMemory;
   }
 
   public void setMemory(MoteMemory memory) {
-    /* TODO Implement */
+    myMemory = (AvrMoteMemory) memory;
   }
 
   public String toString() {
