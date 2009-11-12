@@ -41,7 +41,7 @@
  *
  * This file is part of the uIP TCP/IP stack.
  *
- * $Id: uip6.c,v 1.7 2009/10/27 22:34:08 adamdunkels Exp $
+ * $Id: uip6.c,v 1.8 2009/11/12 14:05:42 joxe Exp $
  *
  */
 
@@ -1103,7 +1103,8 @@ uip_process(u8_t flag)
       UIP_IP_BUF->ttl = UIP_IP_BUF->ttl - 1;
       UIP_STAT(++uip_stat.ip.forwarded);
       goto send;
-    } else if(!uip_is_addr_linklocal_allnodes_mcast(&UIP_IP_BUF->destipaddr)) {
+    } else if(!uip_is_addr_linklocal_allnodes_mcast(&UIP_IP_BUF->destipaddr) &&
+	      !uip_is_addr_linklocal_allrouters_mcast(&UIP_IP_BUF->destipaddr)) {
       PRINTF("Dropping packet, not for me\n");
       UIP_STAT(++uip_stat.ip.drop);
       goto drop;
