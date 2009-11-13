@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: TimeLine.java,v 1.14 2009/10/19 17:36:28 fros4943 Exp $
+ * $Id: TimeLine.java,v 1.15 2009/11/13 13:01:13 fros4943 Exp $
  */
 
 package se.sics.cooja.plugins;
@@ -134,6 +134,8 @@ public class TimeLine extends VisPlugin {
   private boolean showLogOutputs = false;
   private boolean showWatchpoints = false;
 
+  private Point popupLocation = null;
+
   /**
    * @param simulation Simulation
    * @param gui GUI
@@ -214,7 +216,7 @@ public class TimeLine extends VisPlugin {
         timeline,
         JScrollPane.VERTICAL_SCROLLBAR_ALWAYS,
         JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
-
+    timelineScrollPane.getHorizontalScrollBar().setUnitIncrement(50);
     JButton timelineAddMoteButton = new JButton(addMoteAction);
     timelineAddMoteButton.setText("+");
     timelineAddMoteButton.setToolTipText("Add mote");
@@ -310,7 +312,12 @@ public class TimeLine extends VisPlugin {
   private Action zoomInAction = new AbstractAction() {
     public void actionPerformed(ActionEvent e) {
       Rectangle r = timeline.getVisibleRect();
-      final long centerTime = (r.x + r.width/2)*currentPixelDivisor;
+      int pixelX = r.x + r.width/2;
+      if (popupLocation != null) {
+        pixelX = popupLocation.x;
+        popupLocation = null;
+      }
+      final long centerTime = pixelX*currentPixelDivisor;
 
       if (zoomLevel > 0) {
         zoomLevel--;
@@ -319,9 +326,16 @@ public class TimeLine extends VisPlugin {
       logger.info("Zoom level: " + currentPixelDivisor + " microseconds/pixel " + ((zoomLevel==0)?"(MIN)":""));
       
       lastRepaintSimulationTime = -1; /* Force repaint */
+      repaintTimelineTimer.getActionListeners()[0].actionPerformed(null); /* Force size update*/
       SwingUtilities.invokeLater(new Runnable() {
         public void run() {
-          Rectangle r = new Rectangle((int)(centerTime/currentPixelDivisor)-1, 0, 2, 1);
+          int w = timeline.getVisibleRect().width;
+          
+          int centerPixel = (int)(centerTime/currentPixelDivisor);
+          Rectangle r = new Rectangle(
+              centerPixel - w/2, 0, 
+              w, 1
+          );
           timeline.scrollRectToVisible(r);
         }
       });
@@ -331,7 +345,12 @@ public class TimeLine extends VisPlugin {
   private Action zoomOutAction = new AbstractAction() {
     public void actionPerformed(ActionEvent e) {
       Rectangle r = timeline.getVisibleRect();
-      final long centerTime = (r.x + r.width/2)*currentPixelDivisor;
+      int pixelX = r.x + r.width/2;
+      if (popupLocation != null) {
+        pixelX = popupLocation.x;
+        popupLocation = null;
+      }
+      final long centerTime = pixelX*currentPixelDivisor;
 
       if (zoomLevel < ZOOM_LEVELS.length-1) {
         zoomLevel++;
@@ -340,9 +359,15 @@ public class TimeLine extends VisPlugin {
       logger.info("Zoom level: " + currentPixelDivisor + " microseconds/pixel " + ((zoomLevel==ZOOM_LEVELS.length-1)?"(MAX)":""));
 
       lastRepaintSimulationTime = -1; /* Force repaint */
+      repaintTimelineTimer.getActionListeners()[0].actionPerformed(null); /* Force size update */
       SwingUtilities.invokeLater(new Runnable() {
         public void run() {
-          Rectangle r = new Rectangle((int)(centerTime/currentPixelDivisor)-1, 0, 2, 1);
+          int w = timeline.getVisibleRect().width;
+          int centerPixel = (int)(centerTime/currentPixelDivisor);
+          Rectangle r = new Rectangle(
+              centerPixel - w/2, 0, 
+              w, 1
+          );
           timeline.scrollRectToVisible(r);
         }
       });
@@ -917,16 +942,19 @@ public class TimeLine extends VisPlugin {
       addMouseListener(new MouseAdapter() {
         public void mouseClicked(MouseEvent e) {
           if (e.isPopupTrigger()) {
+            popupLocation = new Point(e.getX(), e.getY());
             popupMenu.show(Timeline.this, e.getX(), e.getY());
           }
         }
         public void mousePressed(MouseEvent e) {
           if (e.isPopupTrigger()) {
+            popupLocation = new Point(e.getX(), e.getY());
             popupMenu.show(Timeline.this, e.getX(), e.getY());
           }
         }
         public void mouseReleased(MouseEvent e) {
           if (e.isPopupTrigger()) {
+            popupLocation = new Point(e.getX(), e.getY());
             popupMenu.show(Timeline.this, e.getX(), e.getY());
           }
         }
