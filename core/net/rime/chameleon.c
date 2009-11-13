@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: chameleon.c,v 1.6 2009/03/12 21:58:20 adamdunkels Exp $
+ * $Id: chameleon.c,v 1.7 2009/11/13 09:14:52 fros4943 Exp $
  */
 
 /**
@@ -141,8 +141,10 @@ chameleon_output(struct channel *c)
     printhdr(packetbuf_hdrptr(), packetbuf_hdrlen());
 #endif /* DEBUG */
     if(ret) {
-      rime_output();
-      return 1;
+      if (rime_output() == RIME_OK) {
+        return 1;
+      }
+      return 0;
     }
   }
   return 0;
