@@ -24,7 +24,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * $Id: AvrMoteMemory.java,v 1.1 2009/11/12 12:49:34 joxe Exp $
+ * $Id: AvrMoteMemory.java,v 1.2 2009/11/13 09:50:25 joxe Exp $
  */
 
 package se.sics.cooja.avrmote;
@@ -93,20 +93,40 @@ public class AvrMoteMemory implements MoteMemory, AddressMemory {
         System.out.println("Data: " + interpreter.getDataByte(mem.lma_addr & 0xfffff));
         System.out.println("Flash: " + interpreter.getFlashByte(mem.lma_addr & 0xfffff));
         int data = 0;
-        if (mem.vma_addr > 0xfffff) {       
+        if (mem.vma_addr > 0xfffff) {
             for (int i = 0; i < len; i++) {
-                data = (data << 8) + (interpreter.getDataByte((mem.vma_addr & 0xfffff) + i) & 0xff);
+                data = (data << 8) + (interpreter.getDataByte((mem.vma_addr & 0xfffff) + len - i - 1) & 0xff);
                 System.out.println("Read byte: " + interpreter.getDataByte((mem.vma_addr & 0xfffff) + i) +
                         " => " + data);
             }
         } else {
             for (int i = 0; i < len; i++) {
-                data = (data << 8) + interpreter.getFlashByte(mem.vma_addr + i) & 0xff;
+                data = (data << 8) + interpreter.getFlashByte(mem.vma_addr + len - i - 1) & 0xff;
             }
         }
         return data;
     }
 
+    private void setValue(String varName, int val, int len) throws UnknownVariableException {
+        Location mem = memoryMap.getLocation(varName);
+        if (mem == null) throw new UnknownVariableException("Variable does not exist: " + varName);
+
+        int data = val;
+        if (mem.vma_addr > 0xfffff) {       
+            // write LSB first.
+            for (int i = 0; i < len; i++) {
+                interpreter.writeDataByte((mem.vma_addr & 0xfffff) + i, (byte) (data & 0xff));
+                System.out.println("Wrote byte: " + (data & 0xff));
+                data = data >> 8;
+            }
+        } else {
+            for (int i = 0; i < len; i++) {
+                interpreter.writeFlashByte(mem.vma_addr + i, (byte) (data & 0xff));
+                data = data >> 8;
+            }
+        }
+    }
+    
     public int getIntValueOf(String varName) throws UnknownVariableException {
         return getValueOf(varName, 2);
     }
@@ -134,13 +154,15 @@ public class AvrMoteMemory implements MoteMemory, AddressMemory {
 
     public void setByteValueOf(String varName, byte newVal)
             throws UnknownVariableException {
+        setValue(varName, newVal, 1);
     }
 
     public void setIntValueOf(String varName, int newVal)
             throws UnknownVariableException {
+        setValue(varName, newVal, 2);
     }
 
     public boolean variableExists(String varName) {
-        return false;
+        return memoryMap.getLocation(varName) != null;
     }
 }
