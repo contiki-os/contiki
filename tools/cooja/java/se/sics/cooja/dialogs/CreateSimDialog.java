@@ -26,21 +26,44 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: CreateSimDialog.java,v 1.16 2009/05/26 14:25:07 fros4943 Exp $
+ * $Id: CreateSimDialog.java,v 1.17 2009/11/13 08:51:23 fros4943 Exp $
  */
 
 package se.sics.cooja.dialogs;
 
-import java.awt.*;
-import java.awt.event.*;
-import java.text.*;
+import java.awt.BorderLayout;
+import java.awt.Component;
+import java.awt.Container;
+import java.awt.Dimension;
+import java.awt.Window;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.KeyEvent;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
+import java.text.NumberFormat;
 import java.util.Random;
 import java.util.Vector;
-import javax.swing.*;
+
+import javax.swing.AbstractAction;
+import javax.swing.BorderFactory;
+import javax.swing.Box;
+import javax.swing.InputMap;
+import javax.swing.JButton;
+import javax.swing.JCheckBox;
+import javax.swing.JComboBox;
+import javax.swing.JComponent;
+import javax.swing.JDialog;
+import javax.swing.JFormattedTextField;
+import javax.swing.JLabel;
+import javax.swing.JTextField;
+import javax.swing.KeyStroke;
 
 import org.apache.log4j.Logger;
 
-import se.sics.cooja.*;
+import se.sics.cooja.GUI;
+import se.sics.cooja.RadioMedium;
+import se.sics.cooja.Simulation;
 
 /**
  * A dialog for creating and configuring a simulation.
@@ -51,18 +74,12 @@ public class CreateSimDialog extends JDialog {
   private static final long serialVersionUID = 1L;
   private static Logger logger = Logger.getLogger(CreateSimDialog.class);
 
-  private AddSimEventHandler myEventHandler = new AddSimEventHandler();
-
   private final static int LABEL_WIDTH = 170;
   private final static int LABEL_HEIGHT = 25;
 
   private Simulation mySimulation = null;
-  private GUI myGUI = null;
 
-  private CreateSimDialog myDialog;
-
-  private JFormattedTextField delayTime, simulationTime, tickTime;
-  private JFormattedTextField randomSeed, tickLists, delayedStartup;
+  private JFormattedTextField randomSeed, delayedStartup;
   private JCheckBox randomSeedGenerated;
 
   private JTextField title;
@@ -73,136 +90,86 @@ public class CreateSimDialog extends JDialog {
   /**
    * Shows a dialog for configuring a simulation.
    *
-   * @param parentContainer Parent container for dialog
-   * @param simulationToConfigure Simulation to configure
+   * @param parent Parent container for dialog
+   * @param simulation Simulation to configure
    * @return True if simulation configured correctly
    */
-  public static boolean showDialog(Container parentContainer, Simulation simulationToConfigure) {
-    final CreateSimDialog myDialog;
-    if (parentContainer instanceof Window) {
-      myDialog = new CreateSimDialog((Window) parentContainer, simulationToConfigure.getGUI());
-    } else if (parentContainer instanceof Dialog) {
-      myDialog = new CreateSimDialog((Dialog) parentContainer, simulationToConfigure.getGUI());
-    } else if (parentContainer instanceof Frame) {
-      myDialog = new CreateSimDialog((Frame) parentContainer, simulationToConfigure.getGUI());
-    } else {
-      logger.fatal("Unknown parent container type: " + parentContainer);
-      return false;
-    }
-
-    myDialog.setDefaultCloseOperation(JDialog.DO_NOTHING_ON_CLOSE);
-    myDialog.addWindowListener(new WindowListener() {
-      public void windowDeactivated(WindowEvent e) {
-      }
-
-      public void windowIconified(WindowEvent e) {
-      }
-
-      public void windowDeiconified(WindowEvent e) {
-      }
-
-      public void windowOpened(WindowEvent e) {
-      }
-
-      public void windowClosed(WindowEvent e) {
-      }
-
-      public void windowActivated(WindowEvent e) {
-      }
-
+  public static boolean showDialog(Container parent, Simulation simulation) {
+    final CreateSimDialog dialog = new CreateSimDialog((Window) parent, simulation.getGUI());
+    dialog.setDefaultCloseOperation(JDialog.DO_NOTHING_ON_CLOSE);
+    dialog.addWindowListener(new WindowAdapter() {
       public void windowClosing(WindowEvent e) {
-        myDialog.cancelButton.doClick();
+        dialog.cancelButton.doClick();
       }
     });
 
-    myDialog.mySimulation = simulationToConfigure;
+    dialog.mySimulation = simulation;
 
     // Set title
-    if (simulationToConfigure.getTitle() != null) {
+    if (simulation.getTitle() != null) {
       // Title already preset
-      myDialog.title.setText(simulationToConfigure.getTitle());
+      dialog.title.setText(simulation.getTitle());
     } else {
       // Suggest title
-      myDialog.title.setText("My simulation");
+      dialog.title.setText("My simulation");
     }
 
-    // Set delay time
-    myDialog.delayTime.setValue(new Integer(simulationToConfigure.getDelayTime()));
-
-    // Set simulation time
-    myDialog.simulationTime.setValue(new Long(simulationToConfigure.getSimulationTime()/Simulation.MILLISECOND));
-
     // Select radio medium
-    if (simulationToConfigure.getRadioMedium() != null) {
+    if (simulation.getRadioMedium() != null) {
       Class<? extends RadioMedium> radioMediumClass =
-        simulationToConfigure.getRadioMedium().getClass();
+        simulation.getRadioMedium().getClass();
 
       String currentDescription = GUI.getDescriptionOf(radioMediumClass);
 
-      for (int i=0; i < myDialog.radioMediumBox.getItemCount(); i++) {
-        String menuDescription = (String) myDialog.radioMediumBox.getItemAt(i);
+      for (int i=0; i < dialog.radioMediumBox.getItemCount(); i++) {
+        String menuDescription = (String) dialog.radioMediumBox.getItemAt(i);
         if (menuDescription.equals(currentDescription)) {
-          myDialog.radioMediumBox.setSelectedIndex(i);
+          dialog.radioMediumBox.setSelectedIndex(i);
           break;
         }
       }
     }
 
     // Set random seed
-    if (simulationToConfigure.getRandomSeedGenerated()) {
-      myDialog.randomSeedGenerated.setSelected(true);
-      myDialog.randomSeed.setEnabled(false);
-      myDialog.randomSeed.setText("[autogenerated]");
+    if (simulation.getRandomSeedGenerated()) {
+      dialog.randomSeedGenerated.setSelected(true);
+      dialog.randomSeed.setEnabled(false);
+      dialog.randomSeed.setText("[autogenerated]");
     } else {
-      myDialog.randomSeed.setEnabled(true);
-      myDialog.randomSeed.setValue(new Long(simulationToConfigure.getRandomSeed()));
+      dialog.randomSeed.setEnabled(true);
+      dialog.randomSeed.setValue(new Long(simulation.getRandomSeed()));
     }
 
     // Set delayed mote startup time (ms)
-    myDialog.delayedStartup.setValue(new Long(simulationToConfigure.getDelayedMoteStartupTime()/Simulation.MILLISECOND));
+    dialog.delayedStartup.setValue(new Long(simulation.getDelayedMoteStartupTime()/Simulation.MILLISECOND));
 
 
     // Set position and focus of dialog
-    myDialog.setLocationRelativeTo(parentContainer);
-    myDialog.title.requestFocus();
-    myDialog.title.select(0, myDialog.title.getText().length());
+    dialog.setLocationRelativeTo(parent);
+    dialog.title.requestFocus();
+    dialog.title.select(0, dialog.title.getText().length());
 
     // Dispose on escape key
-    InputMap inputMap = myDialog.getRootPane().getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
+    InputMap inputMap = dialog.getRootPane().getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
     inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0, false), "dispose");
     AbstractAction cancelAction = new AbstractAction(){
       public void actionPerformed(ActionEvent e) {
-        myDialog.cancelButton.doClick();
+        dialog.cancelButton.doClick();
       }
     };
-    myDialog.getRootPane().getActionMap().put("dispose", cancelAction);
+    dialog.getRootPane().getActionMap().put("dispose", cancelAction);
 
-    myDialog.setVisible(true);
+    dialog.setVisible(true);
 
-    if (myDialog.mySimulation != null) {
+    if (dialog.mySimulation != null) {
       // Simulation configured correctly
       return true;
     }
     return false;
   }
 
-  private CreateSimDialog(Dialog dialog, GUI gui) {
-    super(dialog, "Create new simulation", ModalityType.APPLICATION_MODAL);
-    setupDialog(gui);
-  }
   private CreateSimDialog(Window window, GUI gui) {
     super(window, "Create new simulation", ModalityType.APPLICATION_MODAL);
-    setupDialog(gui);
-  }
-  private CreateSimDialog(Frame frame, GUI gui) {
-    super(frame, "Create new simulation", ModalityType.APPLICATION_MODAL);
-    setupDialog(gui);
-  }
-
-  private void setupDialog(GUI gui) {
-    myDialog = this;
-    myGUI = gui;
-
     Box vertBox = Box.createVerticalBox();
 
     JLabel label;
@@ -221,15 +188,18 @@ public class CreateSimDialog extends JDialog {
     buttonBox.add(Box.createHorizontalGlue());
 
     cancelButton = new JButton("Cancel");
-    cancelButton.setActionCommand("cancel");
-    cancelButton.addActionListener(myEventHandler);
+    cancelButton.addActionListener(new ActionListener() {
+      public void actionPerformed(ActionEvent e) {
+        mySimulation = null;
+        dispose();
+      };
+    });
     buttonBox.add(cancelButton);
 
     button = new JButton("Create");
-    button.setActionCommand("create");
-    button.addActionListener(myEventHandler);
+    button.addActionListener(createSimulationListener);
     buttonBox.add(Box.createHorizontalStrut(5));
-    myDialog.rootPane.setDefaultButton(button);
+    getRootPane().setDefaultButton(button);
     buttonBox.add(button);
 
 
@@ -281,53 +251,9 @@ public class CreateSimDialog extends JDialog {
     vertBox.add(horizBox);
     vertBox.add(Box.createRigidArea(new Dimension(0,5)));
 
-
-/*    // Radio Medium Logging selection
-    smallPane = Box.createHorizontalBox();
-    smallPane.setMaximumSize(new Dimension(Integer.MAX_VALUE,LABEL_HEIGHT));
-    smallPane.setAlignmentX(Component.LEFT_ALIGNMENT);
-    logCheckBox = new JCheckBox("Log all radio traffic?");
-    logCheckBox.setPreferredSize(new Dimension(LABEL_WIDTH,LABEL_HEIGHT));
-
-    textField = new JTextField();
-    textField.setText("[filename]");
-    textField.setColumns(25);
-    logFilename = textField;
-
-    smallPane.add(logCheckBox);
-    smallPane.add(Box.createHorizontalStrut(10));
-    smallPane.add(textField);
-
-
-    mainPane.add(smallPane);
-    mainPane.add(Box.createRigidArea(new Dimension(0,5)));
-*/
-
-
     // -- Advanced settings --
     Box advancedBox = Box.createVerticalBox();
     advancedBox.setBorder(BorderFactory.createTitledBorder("Advanced settings"));
-
-    // Start time
-    horizBox = Box.createHorizontalBox();
-    horizBox.setMaximumSize(new Dimension(Integer.MAX_VALUE,LABEL_HEIGHT));
-    horizBox.setAlignmentX(Component.LEFT_ALIGNMENT);
-    label = new JLabel("Simulation start time (ms)");
-    label.setPreferredSize(new Dimension(LABEL_WIDTH,LABEL_HEIGHT));
-
-    numberField = new JFormattedTextField(integerFormat);
-    numberField.setValue(new Integer(0));
-    numberField.setColumns(4);
-    numberField.setEnabled(false); /* Disabled: Almost never used */
-    simulationTime = numberField;
-
-    horizBox.add(label);
-    horizBox.add(Box.createHorizontalStrut(150));
-    horizBox.add(numberField);
-    horizBox.setToolTipText("Initial value of simulated time");
-
-    advancedBox.add(horizBox);
-    advancedBox.add(Box.createRigidArea(new Dimension(0,5)));
 
     // Delayed startup
     horizBox = Box.createHorizontalBox();
@@ -347,30 +273,6 @@ public class CreateSimDialog extends JDialog {
     horizBox.setToolTipText("Maximum mote startup delay (random interval: [0, time])");
 
     advancedBox.add(horizBox);
-    advancedBox.add(Box.createVerticalStrut(5));
-
-    advancedBox.add(Box.createVerticalStrut(5));
-
-    // Delay time
-    horizBox = Box.createHorizontalBox();
-    horizBox.setMaximumSize(new Dimension(Integer.MAX_VALUE,LABEL_HEIGHT));
-    horizBox.setAlignmentX(Component.LEFT_ALIGNMENT);
-    label = new JLabel("Delay time (ms)");
-    label.setPreferredSize(new Dimension(LABEL_WIDTH,LABEL_HEIGHT));
-
-    numberField = new JFormattedTextField(integerFormat);
-    numberField.setValue(new Integer(100));
-    numberField.setColumns(4);
-    delayTime = numberField;
-
-    horizBox.add(label);
-    horizBox.add(Box.createHorizontalStrut(150));
-    horizBox.add(numberField);
-    horizBox.setToolTipText("Delay between each simulated millisecond. Controls simulation speed.");
-
-    advancedBox.add(horizBox);
-    advancedBox.add(Box.createVerticalStrut(5));
-
     advancedBox.add(Box.createVerticalStrut(5));
 
     // Random seed
@@ -420,46 +322,38 @@ public class CreateSimDialog extends JDialog {
     pack();
   }
 
-  private class AddSimEventHandler implements ActionListener {
+  private ActionListener createSimulationListener = new ActionListener() {
     public void actionPerformed(ActionEvent e) {
-      if (e.getActionCommand().equals("cancel")) {
-        mySimulation = null;
-        dispose();
-      } else if (e.getActionCommand().equals("create")) {
-        mySimulation.setDelayTime(((Number) delayTime.getValue()).intValue());
-        mySimulation.setSimulationTime(((Number) simulationTime.getValue()).intValue());
-        mySimulation.setTitle(title.getText());
+      mySimulation.setTitle(title.getText());
 
-        String currentRadioMediumDescription = (String) radioMediumBox.getSelectedItem();
-        for (Class<? extends RadioMedium> radioMediumClass: myGUI.getRegisteredRadioMediums()) {
-          String radioMediumDescription = GUI.getDescriptionOf(radioMediumClass);
+      String currentRadioMediumDescription = (String) radioMediumBox.getSelectedItem();
+      for (Class<? extends RadioMedium> radioMediumClass: mySimulation.getGUI().getRegisteredRadioMediums()) {
+        String radioMediumDescription = GUI.getDescriptionOf(radioMediumClass);
 
-          if (currentRadioMediumDescription.equals(radioMediumDescription)) {
-            try {
-              RadioMedium radioMedium = RadioMedium.generateRadioMedium(radioMediumClass, mySimulation);
-              mySimulation.setRadioMedium(radioMedium);
-            } catch (Exception ex) {
-              logger.fatal("Exception when creating radio medium: " + ex);
-              ex.printStackTrace();
-              mySimulation.setRadioMedium(null);
-            }
-            break;
+        if (currentRadioMediumDescription.equals(radioMediumDescription)) {
+          try {
+            RadioMedium radioMedium = RadioMedium.generateRadioMedium(radioMediumClass, mySimulation);
+            mySimulation.setRadioMedium(radioMedium);
+          } catch (Exception ex) {
+            logger.fatal("Error generating radio medium: " + ex.getMessage(), ex);
+            mySimulation.setRadioMedium(null);
           }
+          break;
         }
-
-        if (randomSeedGenerated.isSelected()) {
-          mySimulation.setRandomSeedGenerated(true);
-          mySimulation.setRandomSeed(new Random().nextLong());
-        } else {
-          mySimulation.setRandomSeedGenerated(false);
-          mySimulation.setRandomSeed(((Number) randomSeed.getValue()).longValue());
-        }
-
-        mySimulation.setDelayedMoteStartupTime((int) ((Number) delayedStartup.getValue()).intValue()*Simulation.MILLISECOND);
-
-        dispose();
       }
+
+      if (randomSeedGenerated.isSelected()) {
+        mySimulation.setRandomSeedGenerated(true);
+        mySimulation.setRandomSeed(new Random().nextLong());
+      } else {
+        mySimulation.setRandomSeedGenerated(false);
+        mySimulation.setRandomSeed(((Number) randomSeed.getValue()).longValue());
+      }
+
+      mySimulation.setDelayedMoteStartupTime((int) ((Number) delayedStartup.getValue()).intValue()*Simulation.MILLISECOND);
+
+      dispose();
     }
-  }
+  };
 
 }
