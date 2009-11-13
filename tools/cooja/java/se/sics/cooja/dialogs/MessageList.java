@@ -26,14 +26,14 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: MessageList.java,v 1.14 2009/10/19 17:33:25 fros4943 Exp $
+ * $Id: MessageList.java,v 1.15 2009/11/13 14:27:46 fros4943 Exp $
  *
  * -----------------------------------------------------------------
  *
  * Author  : Adam Dunkels, Joakim Eriksson, Niclas Finne, Fredrik Osterlind
  * Created : 2006-06-14
- * Updated : $Date: 2009/10/19 17:33:25 $
- *           $Revision: 1.14 $
+ * Updated : $Date: 2009/11/13 14:27:46 $
+ *           $Revision: 1.15 $
  */
 
 package se.sics.cooja.dialogs;
@@ -179,7 +179,7 @@ public class MessageList extends JList {
   }
 
   public void addMessage(final String message, final int type) {
-    GUI.setProgressMessage(message);
+    GUI.setProgressMessage(message, type);
 
     MessageContainer msg = new MessageContainer(message, type);
     messages.add(msg);
