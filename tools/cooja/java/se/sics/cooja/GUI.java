@@ -24,7 +24,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * $Id: GUI.java,v 1.151 2009/11/02 13:18:27 fros4943 Exp $
+ * $Id: GUI.java,v 1.152 2009/11/13 08:49:26 fros4943 Exp $
  */
 
 package se.sics.cooja;
@@ -1580,23 +1580,16 @@ public class GUI extends Observable {
    * @param mote Mote
    */
   public void closeMotePlugins(Mote mote) {
-    Vector<Plugin> pluginsToRemove = new Vector<Plugin>();
-
-    for (Plugin startedPlugin : startedPlugins) {
-      int pluginType = startedPlugin.getClass().getAnnotation(PluginType.class).value();
-
+    for (Plugin p: startedPlugins.toArray(new Plugin[0])) {
+      int pluginType = p.getClass().getAnnotation(PluginType.class).value();
       if (pluginType != PluginType.MOTE_PLUGIN) {
         continue;
       }
 
-      Mote pluginMote = (Mote) startedPlugin.getTag();
+      Mote pluginMote = (Mote) p.getTag();
       if (pluginMote == mote) {
-        pluginsToRemove.add(startedPlugin);
+        removePlugin(p, false);
       }
-    }
-
-    for (Plugin pluginToRemove: pluginsToRemove) {
-      removePlugin(pluginToRemove, false);
     }
   }
 
@@ -2032,25 +2025,38 @@ public class GUI extends Observable {
 
   /**
    * Creates a new mote type of the given mote type class.
-   *
-   * @param moteTypeClass
-   *          Mote type class
+   * This may include displaying a dialog for user configurations.
+   * 
+   * If mote type is created successfully, the add motes dialog will appear.
+   * 
+   * @param moteTypeClass Mote type class
    */
   public void doCreateMoteType(Class<? extends MoteType> moteTypeClass) {
+    doCreateMoteType(moteTypeClass, true);
+  }
+  
+  /**
+   * Creates a new mote type of the given mote type class.
+   * This may include displaying a dialog for user configurations.
+   * 
+   * @param moteTypeClass Mote type class
+   * @param addMotes Show add motes dialog after successfully adding mote type  
+   */
+  public void doCreateMoteType(Class<? extends MoteType> moteTypeClass, boolean addMotes) {
     if (mySimulation == null) {
       logger.fatal("Can't create mote type (no simulation)");
       return;
     }
-
-    // Stop simulation (if running)
     mySimulation.stopSimulation();
 
     // Create mote type
     MoteType newMoteType = null;
-    boolean moteTypeOK = false;
     try {
       newMoteType = moteTypeClass.newInstance();
-      moteTypeOK = newMoteType.configureAndInit(GUI.getTopParentContainer(), mySimulation, isVisualized());
+      if (!newMoteType.configureAndInit(GUI.getTopParentContainer(), mySimulation, isVisualized())) {
+        return;
+      }
+      mySimulation.addMoteType(newMoteType);
     } catch (Exception e) {
       logger.fatal("Exception when creating mote type", e);
       if (isVisualized()) {
@@ -2059,11 +2065,8 @@ public class GUI extends Observable {
       return;
     }
 
-    // Add mote type to simulation
-    if (moteTypeOK) {
-      mySimulation.addMoteType(newMoteType);
-
-      /* Allow user to immediately add motes */
+    /* Allow user to immediately add motes */
+    if (addMotes) {
       doAddMotes(newMoteType);
     }
   }
@@ -2115,6 +2118,7 @@ public class GUI extends Observable {
     // Delete simulation
     mySimulation.deleteObservers();
     mySimulation.stopSimulation();
+    mySimulation.removed();
 
     /* Clear current mote relations */
     MoteRelation relations[] = getMoteRelations();
@@ -2223,18 +2227,7 @@ public class GUI extends Observable {
 
       progressDialog = new RunnableInEDT<JDialog>() {
         public JDialog work() {
-          final JDialog progressDialog;
-
-          if (GUI.getTopParentContainer() instanceof Window) {
-            progressDialog = new JDialog((Window) GUI.getTopParentContainer(), progressTitle, ModalityType.APPLICATION_MODAL);
-          } else if (GUI.getTopParentContainer() instanceof Frame) {
-            progressDialog = new JDialog((Frame) GUI.getTopParentContainer(), progressTitle, ModalityType.APPLICATION_MODAL);
-          } else if (GUI.getTopParentContainer() instanceof Dialog) {
-            progressDialog = new JDialog((Dialog) GUI.getTopParentContainer(), progressTitle, ModalityType.APPLICATION_MODAL);
-          } else {
-            logger.warn("No parent container");
-            progressDialog = new JDialog((Frame) null, progressTitle, ModalityType.APPLICATION_MODAL);
-          }
+          final JDialog progressDialog = new JDialog((Window) GUI.getTopParentContainer(), progressTitle, ModalityType.APPLICATION_MODAL);
 
           JPanel progressPanel = new JPanel(new BorderLayout());
           JProgressBar progressBar;
@@ -2252,9 +2245,6 @@ public class GUI extends Observable {
               if (loadThread.isAlive()) {
                 loadThread.interrupt();
                 doRemoveSimulation(false);
-              }
-              if (progressDialog.isDisplayable()) {
-                progressDialog.dispose();
               }
             }
           });
@@ -2379,9 +2369,6 @@ public class GUI extends Observable {
         if (loadThread.isAlive()) {
           loadThread.interrupt();
           doRemoveSimulation(false);
-        }
-        if (progressDialog.isDisplayable()) {
-          progressDialog.dispose();
         }
       }
     });
@@ -2542,6 +2529,10 @@ public class GUI extends Observable {
       if (n != JOptionPane.YES_OPTION) {
         return;
       }
+    }
+
+    if (getSimulation() != null) {
+      doRemoveSimulation(false);
     }
 
     // Clean up resources
@@ -3186,7 +3177,7 @@ public class GUI extends Observable {
     }
   }
 
-  private Simulation loadSimulationConfig(StringReader stringReader, boolean quick)
+  public Simulation loadSimulationConfig(StringReader stringReader, boolean quick)
   throws SimulationCreationException {
     try {
       SAXBuilder builder = new SAXBuilder();
@@ -3203,7 +3194,7 @@ public class GUI extends Observable {
     }
   }
 
-  private Simulation loadSimulationConfig(Element root, boolean quick, Long manualRandomSeed)
+  public Simulation loadSimulationConfig(Element root, boolean quick, Long manualRandomSeed)
   throws SimulationCreationException {
     Simulation newSim = null;
 
