@@ -244,16 +244,16 @@ cc1020_send(const void *buf, unsigned short len)
   while(cc1020_state & CC1020_RX_RECEIVING) {
     if(RTIMER_CLOCK_LT(timeout_time, RTIMER_NOW())) {
       PRINTF("cc1020: transmission blocked by reception in progress\n");
-      return -3;
+      return RADIO_TX_ERR;
     }
   }
   
   if(cc1020_state == CC1020_OFF) {
-    return -2;
+    return RADIO_TX_ERR;
   }
 
   if(len > CC1020_BUFFERSIZE) {
-    return -1;
+    return RADIO_TX_ERR;
   }
 
   /* The preamble and the sync word are already in buffer. */
@@ -291,7 +291,7 @@ cc1020_send(const void *buf, unsigned short len)
     }
     if(try == CC1020_CONF_CCA_TIMEOUT) {
       PRINTF("cc1020: CCA failed (RSSI %d)\n", cc1020_get_rssi());
-      return -3;
+      return RADIO_TX_ERR;
     }
 
     /* Then wait for a short pseudo-random time before sending. */
@@ -317,7 +317,7 @@ cc1020_send(const void *buf, unsigned short len)
     cc1020_set_rx();
   }
 
-  return len;
+  return RADIO_TX_OK;
 }
 
 int
