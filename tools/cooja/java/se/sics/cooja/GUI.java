@@ -24,7 +24,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * $Id: GUI.java,v 1.152 2009/11/13 08:49:26 fros4943 Exp $
+ * $Id: GUI.java,v 1.153 2009/11/13 14:25:43 fros4943 Exp $
  */
 
 package se.sics.cooja;
@@ -82,6 +82,7 @@ import javax.swing.DefaultDesktopManager;
 import javax.swing.InputMap;
 import javax.swing.JApplet;
 import javax.swing.JButton;
+import javax.swing.JCheckBox;
 import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JComponent;
 import javax.swing.JDesktopPane;
@@ -266,6 +267,8 @@ public class GUI extends Observable {
     "COMMAND_VAR_NAME_ADDRESS",
     "COMMAND_DATA_START", "COMMAND_DATA_END",
     "COMMAND_BSS_START", "COMMAND_BSS_END",
+    
+    "HIDE_WARNINGS"
   };
 
   private static final int FRAME_NEW_OFFSET = 30;
@@ -2218,6 +2221,8 @@ public class GUI extends Observable {
       }
     }
 
+    addToFileHistory(configFile);
+
     final JDialog progressDialog;
     final String progressTitle = configFile == null
     ? "Loading" : ("Loading " + configFile.getAbsolutePath());
@@ -2283,9 +2288,19 @@ public class GUI extends Observable {
       try {
         shouldRetry = false;
         myGUI.doRemoveSimulation(false);
+        PROGRESS_WARNINGS.clear();
         newSim = loadSimulationConfig(fileToLoad, quick);
         myGUI.setSimulation(newSim, false);
-        addToFileHistory(fileToLoad);
+        
+        /* Optionally show compilation warnings */
+        boolean hideWarn = Boolean.parseBoolean(
+            GUI.getExternalToolsSetting("HIDE_WARNINGS", "false")
+        );
+        if (quick && !hideWarn && !PROGRESS_WARNINGS.isEmpty()) {
+          showWarningsDialog(frame, PROGRESS_WARNINGS.toArray(new String[0]));
+        }
+        PROGRESS_WARNINGS.clear();
+        
       } catch (UnsatisfiedLinkError e) {
         shouldRetry = showErrorDialog(GUI.getTopParentContainer(), "Simulation load error", e, true);
       } catch (SimulationCreationException e) {
@@ -2333,12 +2348,23 @@ public class GUI extends Observable {
           try {
             shouldRetry = false;
             myGUI.doRemoveSimulation(false);
+            PROGRESS_WARNINGS.clear();
             Simulation newSim = loadSimulationConfig(root, true, new Long(randomSeed));
             myGUI.setSimulation(newSim, false);
 
             if (autoStart) {
               newSim.startSimulation();
             }
+            
+            /* Optionally show compilation warnings */
+            boolean hideWarn = Boolean.parseBoolean(
+                GUI.getExternalToolsSetting("HIDE_WARNINGS", "false")
+            );
+            if (!hideWarn && !PROGRESS_WARNINGS.isEmpty()) {
+              showWarningsDialog(frame, PROGRESS_WARNINGS.toArray(new String[0]));
+            }
+            PROGRESS_WARNINGS.clear();
+            
           } catch (UnsatisfiedLinkError e) {
             shouldRetry = showErrorDialog(frame, "Simulation reload error", e, true);
 
@@ -3169,11 +3195,9 @@ public class GUI extends Observable {
 
       return loadSimulationConfig(root, quick, null);
     } catch (JDOMException e) {
-      logger.fatal("Config not wellformed: " + e.getMessage());
-      return null;
+      throw (SimulationCreationException) new SimulationCreationException("Config not wellformed").initCause(e);
     } catch (IOException e) {
-      logger.fatal("Load simulation error: " + e.getMessage());
-      return null;
+      throw (SimulationCreationException) new SimulationCreationException("Load simulation error").initCause(e);
     }
   }
 
@@ -3696,6 +3720,53 @@ public class GUI extends Observable {
 
   }
 
+  private static void showWarningsDialog(final Frame parent, final String[] warnings) {
+    new RunnableInEDT<Boolean>() {
+      public Boolean work() {
+        final JDialog dialog = new JDialog((Frame)parent, "Compilation warnings", false);
+        Box buttonBox = Box.createHorizontalBox();
+
+        /* Warnings message list */
+        MessageList compilationOutput = new MessageList();
+        for (String w: warnings) {
+          compilationOutput.addMessage(w, MessageList.ERROR);
+        }
+        compilationOutput.addPopupMenuItem(null, true);
+
+        /* Checkbox */
+        buttonBox.add(Box.createHorizontalGlue());
+        JCheckBox hideButton = new JCheckBox("Hide compilation warnings", false);
+        hideButton.addActionListener(new ActionListener() {
+          public void actionPerformed(ActionEvent e) {
+            GUI.setExternalToolsSetting("HIDE_WARNINGS",
+                "" + ((JCheckBox)e.getSource()).isSelected());
+          };
+        });
+        buttonBox.add(Box.createHorizontalStrut(10));
+        buttonBox.add(hideButton);
+
+        /* Close on escape */
+        AbstractAction closeAction = new AbstractAction(){
+          public void actionPerformed(ActionEvent e) {
+            dialog.dispose();
+          }
+        };
+        InputMap inputMap = dialog.getRootPane().getInputMap(
+            JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
+        inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0, false), "close");
+        dialog.getRootPane().getActionMap().put("close", closeAction);
+
+        /* Layout */
+        dialog.getContentPane().add(BorderLayout.CENTER, new JScrollPane(compilationOutput));
+        dialog.getContentPane().add(BorderLayout.SOUTH, buttonBox);
+        dialog.setSize(700, 500);
+        dialog.setLocationRelativeTo(parent);
+        dialog.setVisible(true);
+        return true;
+      }
+    }.invokeAndWait();
+  }
+  
   /**
    * Runs work method in event dispatcher thread.
    * Worker method returns a value.
@@ -3993,10 +4064,17 @@ public class GUI extends Observable {
   }
 
   private static JProgressBar PROGRESS_BAR = null;
+  private static ArrayList<String> PROGRESS_WARNINGS = new ArrayList<String>();
   public static void setProgressMessage(String msg) {
+    setProgressMessage(msg, MessageList.NORMAL);
+  }
+  public static void setProgressMessage(String msg, int type) {
     if (PROGRESS_BAR != null && PROGRESS_BAR.isShowing()) {
       PROGRESS_BAR.setString(msg);
       PROGRESS_BAR.setStringPainted(true);
+    }
+    if (type != MessageList.NORMAL) {
+      PROGRESS_WARNINGS.add(msg);
     }
   }
 
