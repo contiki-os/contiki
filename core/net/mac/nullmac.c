@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: nullmac.c,v 1.10 2009/06/22 11:14:11 nifi Exp $
+ * $Id: nullmac.c,v 1.11 2009/11/13 10:09:02 fros4943 Exp $
  */
 
 /**
@@ -47,7 +47,10 @@ static void (* receiver_callback)(const struct mac_driver *);
 static int
 send_packet(void)
 {
-  return radio->send(packetbuf_hdrptr(), packetbuf_totlen());
+  if (radio->send(packetbuf_hdrptr(), packetbuf_totlen()) == RADIO_TX_OK) {
+    return MAC_TX_OK;
+  }
+  return MAC_TX_ERR;
 }
 /*---------------------------------------------------------------------------*/
 static void
