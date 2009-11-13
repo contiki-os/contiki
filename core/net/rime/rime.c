@@ -33,7 +33,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: rime.c,v 1.21 2009/03/12 21:58:21 adamdunkels Exp $
+ * $Id: rime.c,v 1.22 2009/11/13 09:10:24 fros4943 Exp $
  */
 
 /**
@@ -133,24 +133,26 @@ rime_init(const struct mac_driver *m)
 #endif /* ! RIME_CONF_NO_POLITE_ANNOUCEMENTS */
 }
 /*---------------------------------------------------------------------------*/
-void
+int
 rime_output(void)
 {
   struct rime_sniffer *s;
-    
+
   RIMESTATS_ADD(tx);
   packetbuf_compact();
 
   if(rime_mac) {
-    if(rime_mac->send()) {
+    if(rime_mac->send() == MAC_TX_OK) {
       /* Call sniffers, but only if the packet was sent. */
       for(s = list_head(sniffers); s != NULL; s = s->next) {
-	if(s->output_callback != NULL) {
-	  s->output_callback();
-	}
+        if(s->output_callback != NULL) {
+          s->output_callback();
+        }
       }
+      return RIME_OK;
     }
   }
+  return RIME_ERR;
 }
 /*---------------------------------------------------------------------------*/
 /** @} */

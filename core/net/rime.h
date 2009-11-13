@@ -33,7 +33,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: rime.h,v 1.23 2009/03/17 20:28:44 nvt-se Exp $
+ * $Id: rime.h,v 1.24 2009/11/13 09:10:25 fros4943 Exp $
  */
 
 /**
@@ -106,7 +106,7 @@ void rime_input(void);
 void rime_driver_send(void);
 
 void rime_set_output(void (*output_function)(void));
-void rime_output(void);
+int rime_output(void);
 
 extern const struct mac_driver *rime_mac;
 
