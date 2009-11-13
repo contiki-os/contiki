@@ -26,227 +26,52 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: Battery.java,v 1.10 2009/10/27 10:11:17 fros4943 Exp $
+ * $Id: Battery.java,v 1.11 2009/11/13 08:52:26 fros4943 Exp $
  */
 
 package se.sics.cooja.interfaces;
 
-import java.util.*;
-import javax.swing.*;
+import java.util.Collection;
+
+import javax.swing.JPanel;
+
 import org.apache.log4j.Logger;
 import org.jdom.Element;
 
-import se.sics.cooja.*;
-import se.sics.cooja.contikimote.ContikiMote;
+import se.sics.cooja.ClassDescription;
+import se.sics.cooja.Mote;
+import se.sics.cooja.MoteInterface;
 
 /**
- * A Battery represents the energy source for a mote. This implementation has no
- * connection with underlying simulated software: a mote does not know about energy.
- * <p>
- * This Battery updates energy after each mote tick:
- * the energy consumption of each interface is summed up.
- * In addition, the Battery adds the CPU energy.
- * <p>
- *
- * This observable notifies every tick (relatively time-consuming).
- *
- * When the energy left is below 0 the mote is dead.
- *
+ * A Battery represents the energy source for a mote.
+ * The previous battery mote interface implementation was removed, 
+ * awaiting a new more powerful design connected to Contiki's power profiler.
+ * The current code does not monitor the energy consumption of simulated motes.
+ * 
  * @see MoteInterface
  * @see MoteInterface#energyConsumption()
  *
  * @author Fredrik Osterlind
  */
 @ClassDescription("Battery")
-public class Battery extends MoteInterface implements PolledAfterAllTicks {
+public class Battery extends MoteInterface {
   private static Logger logger = Logger.getLogger(Battery.class);
 
   /**
-   * Approximate energy consumption of a mote's CPU in active mode (mA). ESB
-   * measured energy consumption is 1.49 mA.
-   */
-  public final double CPU_ENERGY_CONSUMPTION_AWAKE_mA;
-
-  /**
-   * Approximate energy consumption of a mote's CPU in low power mode (mA). ESB
-   * measured energy consumption is 1.34 mA.
-   */
-  public final double CPU_ENERGY_CONSUMPTION_LPM_mA;
-
-  /**
-   * Initial energy of battery in milli coulomb (mQ). ESB mote: 3 regular AA
-   * batteries, each ~1.25 Ah. 3 * 1.25 Ah = 3 * 1.25 * 3600 Q = 13,500 Q =
-   * 13,500,000 mQ
-   */
-  public final double INITIAL_ENERGY;
-
-  private ContikiMote mote = null;
-
-  private double cpuEnergyConsumptionLPMPerMs;
-  private double cpuEnergyConsumptionAwakePerMs;
-
-  private boolean hasInfiniteEnergy;
-
-  private double cpuEnergyConsumption = 0;
-
-  private double totalEnergyConsumption = 0;
-
-  /**
-   * Creates a new battery connected to given mote.
-   *
    * @param mote Mote
-   *
-   * @see #energyConsumption
-   * @see #INITIAL_ENERGY
    */
   public Battery(Mote mote) {
-    /* Read configuration */
-    CPU_ENERGY_CONSUMPTION_AWAKE_mA = mote.getType().getConfig().getDoubleValue(Battery.class, "CPU_AWAKE_mA");
-    CPU_ENERGY_CONSUMPTION_LPM_mA = mote.getType().getConfig().getDoubleValue(Battery.class, "CPU_LPM_mA");
-    INITIAL_ENERGY = mote.getType().getConfig().getDoubleValue(Battery.class, "INITIAL_ENERGY_mQ");
-    hasInfiniteEnergy = mote.getType().getConfig().getBooleanValue(Battery.class, "INFINITE_ENERGY_bool");
-
-    cpuEnergyConsumptionAwakePerMs = CPU_ENERGY_CONSUMPTION_AWAKE_mA * 0.001; /* TODO Voltage */
-    cpuEnergyConsumptionLPMPerMs = CPU_ENERGY_CONSUMPTION_LPM_mA * 0.001; /* TODO Voltage */
-
-    this.mote = (ContikiMote) mote;
-  }
-
-  public void doActionsAfterTick() {
-    // If infinite energy, do nothing
-    if (hasInfiniteEnergy) {
-      return;
-    }
-
-    cpuEnergyConsumption += cpuEnergyConsumptionAwakePerMs;
-
-    totalEnergyConsumption = cpuEnergyConsumption;
-    for (MoteInterface intf : mote.getInterfaces().getInterfaces()) {
-      totalEnergyConsumption += intf.energyConsumption();
-    }
-
-    /* Check if we are out of energy */
-    if (getEnergyConsumption() > INITIAL_ENERGY) {
-      mote.requestImmediateWakeup();
-    }
-
-    setChanged();
-    notifyObservers();
-  }
-
-  /**
-   * @param inf Infinite energy
-   */
-  public void setInfiniteEnergy(boolean inf) {
-    hasInfiniteEnergy = inf;
-
-    setChanged();
-    notifyObservers();
-  }
-
-  /**
-   * @return True if battery has infinite energy
-   */
-  public boolean hasInfiniteEnergy() {
-    return hasInfiniteEnergy;
-  }
-
-  /**
-   * @return Initial energy
-   */
-  public double getInitialEnergy() {
-    return INITIAL_ENERGY;
-  }
-
-  /**
-   * @return Current energy consumption
-   */
-  public double getEnergyConsumption() {
-    return totalEnergyConsumption;
-  }
-
-  /**
-   * @return Energy left ratio
-   */
-  public double getEnergyLeftRatio() {
-    return ((getInitialEnergy() - getEnergyConsumption()) / getInitialEnergy());
-  }
-
-  public JPanel getInterfaceVisualizer() {
-    // Battery energy left
-    JPanel panel = new JPanel();
-    panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
-    final JLabel initialLabel = new JLabel("");
-    final JLabel energyLabel = new JLabel("");
-    final JLabel leftLabel = new JLabel("");
-
-    if (hasInfiniteEnergy()) {
-      initialLabel.setText("[infinite energy]");
-      energyLabel.setText("");
-      leftLabel.setText("");
-    } else {
-      initialLabel.setText("Total energy (mQ): " + getInitialEnergy());
-      energyLabel.setText("Consumed energy (mQ): " + getEnergyConsumption());
-      leftLabel.setText("Energy left (%): " + (getEnergyLeftRatio() * 100));
-    }
-
-    panel.add(initialLabel);
-    panel.add(energyLabel);
-    panel.add(leftLabel);
-
-    Observer observer;
-    this.addObserver(observer = new Observer() {
-      public void update(Observable obs, Object obj) {
-        if (hasInfiniteEnergy()) {
-          initialLabel.setText("[infinite energy]");
-          energyLabel.setText("");
-          leftLabel.setText("");
-        } else {
-          initialLabel.setText("Total energy (mQ): " + getInitialEnergy());
-          energyLabel.setText("Consumed energy (mQ): " + getEnergyConsumption());
-          leftLabel.setText("Energy left (%): " + (getEnergyLeftRatio() * 100));
-        }
-      }
-    });
-
-    // Saving observer reference for releaseInterfaceVisualizer
-    panel.putClientProperty("intf_obs", observer);
-
-    return panel;
-  }
-
-  public void releaseInterfaceVisualizer(JPanel panel) {
-    Observer observer = (Observer) panel.getClientProperty("intf_obs");
-    if (observer == null) {
-      logger.fatal("Error when releasing panel, observer is null");
-      return;
-    }
-
-    this.deleteObserver(observer);
-  }
-
-  public double energyConsumption() {
-    return 0.0;
   }
 
   public Collection<Element> getConfigXML() {
-    Vector<Element> config = new Vector<Element>();
-    Element element;
-
-    // Infinite boolean
-    element = new Element("infinite");
-    element.setText(Boolean.toString(hasInfiniteEnergy));
-    config.add(element);
-
-    return config;
+    return null;
   }
-
   public void setConfigXML(Collection<Element> configXML, boolean visAvailable) {
-    for (Element element : configXML) {
-      if (element.getName().equals("infinite")) {
-        hasInfiniteEnergy = Boolean.parseBoolean(element.getText());
-      }
-    }
+  }
+  public JPanel getInterfaceVisualizer() {
+    return null;
+  }
+  public void releaseInterfaceVisualizer(JPanel panel) {
   }
 
 }
