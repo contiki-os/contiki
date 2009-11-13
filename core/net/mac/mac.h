@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: mac.h,v 1.5 2009/06/22 11:14:11 nifi Exp $
+ * $Id: mac.h,v 1.6 2009/11/13 08:59:22 fros4943 Exp $
  */
 
 /**
@@ -68,5 +68,10 @@ struct mac_driver {
   int (* off)(int keep_radio_on);
 };
 
+/* Generic MAC return values. */
+enum {
+  MAC_TX_OK,
+  MAC_TX_ERR,
+};
 
 #endif /* __MAC_H__ */
