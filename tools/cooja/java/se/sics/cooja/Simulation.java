@@ -24,7 +24,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * $Id: Simulation.java,v 1.53 2009/10/27 10:06:59 fros4943 Exp $
+ * $Id: Simulation.java,v 1.54 2009/11/13 08:37:36 fros4943 Exp $
  */
 
 package se.sics.cooja;
@@ -180,37 +180,14 @@ public class Simulation extends Observable implements Runnable {
    * @param time Execution time
    */
   public void scheduleEvent(final TimeEvent e, final long time) {
-    if (!isRunning() || isSimulationThread()) {
-      /* Schedule immediately */
-      if (e.isScheduled()) {
-        e.remove();
-      }
-      eventQueue.addEvent(e, time);
-      return;
-    }
-
-    /* Schedule soon */
-    invokeSimulationThread(new Runnable() {
-      public void run() {
-        if (e.isScheduled()) {
-          e.remove();
-        }
-        if (time < getSimulationTime()) {
-          eventQueue.addEvent(e, getSimulationTime());
-        } else {
-          eventQueue.addEvent(e, time);
-        }
-      }
-    });
-    
     /* TODO Strict scheduling from simulation thread */
-    /*if (e.isScheduled()) {
+    if (e.isScheduled()) {
       throw new IllegalStateException("Event already scheduled: " + e);
     }
     if (isRunning && !isSimulationThread()) {
       throw new IllegalStateException("Scheduling event from non-simulation thread: " + e);
     }
-    eventQueue.addEvent(e, time);*/
+    eventQueue.addEvent(e, time);
   }
 
   private TimeEvent delayEvent = new TimeEvent(0) {
@@ -662,6 +639,12 @@ public class Simulation extends Observable implements Runnable {
       public void run() {
         motes.remove(mote);
         currentRadioMedium.unregisterMote(mote, Simulation.this);
+        
+        /* Dispose mote interface resources */
+        for (MoteInterface i: mote.getInterfaces().getInterfaces()) {
+          i.removed();
+        }
+
         setChanged();
         notifyObservers(mote);
 
@@ -686,8 +669,22 @@ public class Simulation extends Observable implements Runnable {
       /* Remove mote from simulation thread */
       invokeSimulationThread(removeMote);
     }
+    
+    getGUI().closeMotePlugins(mote);
   }
 
+  /**
+   * Called to free resources used by the simulation.
+   * This method is called just before the simulation is removed.
+   */
+  public void removed() {
+    /* Remove all motes */
+    Mote[] motes = getMotes();
+    for (Mote m: motes) {
+      removeMote(m);
+    }
+  }
+  
   /**
    * Adds a mote to this simulation
    *
@@ -790,6 +787,29 @@ public class Simulation extends Observable implements Runnable {
   public void addMoteType(MoteType newMoteType) {
     moteTypes.add(newMoteType);
 
+    this.setChanged();
+    this.notifyObservers(this);
+  }
+
+  /**
+   * Remove given mote type from simulation.
+   * 
+   * @param type Mote type
+   */
+  public void removeMoteType(MoteType type) {
+    if (!moteTypes.contains(type)) {
+      logger.fatal("Mote type is not registered: " + type);
+      return;
+    }
+    
+    /* Remove motes */
+    for (Mote m: getMotes()) {
+      if (m.getType() == type) {
+        removeMote(m);
+      }
+    }
+
+    moteTypes.remove(type);
     this.setChanged();
     this.notifyObservers(this);
   }
