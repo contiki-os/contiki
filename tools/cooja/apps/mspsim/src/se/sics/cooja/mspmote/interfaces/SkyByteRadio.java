@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: SkyByteRadio.java,v 1.14 2009/10/28 15:58:43 fros4943 Exp $
+ * $Id: SkyByteRadio.java,v 1.15 2009/11/13 08:32:01 fros4943 Exp $
  */
 
 package se.sics.cooja.mspmote.interfaces;
@@ -95,6 +95,7 @@ public class SkyByteRadio extends Radio implements CustomDataRadio {
         if (len == 0) {
           lastEventTime = SkyByteRadio.this.mote.getSimulation().getSimulationTime();
           lastEvent = RadioEvent.TRANSMISSION_STARTED;
+          isTransmitting = true;
           /*logger.debug("----- SKY TRANSMISSION STARTED -----");*/
           setChanged();
           notifyObservers();
@@ -129,6 +130,7 @@ public class SkyByteRadio extends Radio implements CustomDataRadio {
 
           lastEventTime = SkyByteRadio.this.mote.getSimulation().getSimulationTime();
           /*logger.debug("----- SKY TRANSMISSION FINISHED -----");*/
+          isTransmitting = false;
           lastEvent = RadioEvent.TRANSMISSION_FINISHED;
           setChanged();
           notifyObservers();
@@ -262,10 +264,7 @@ public class SkyByteRadio extends Radio implements CustomDataRadio {
   }
 
   public void signalReceptionStart() {
-    cc2420.setCCA(true);
-//    hasFailedReception = mode == CC2420.MODE_TXRX_OFF;
     isReceiving = true;
-    /* TODO cc2420.setSFD(true); */
 
     lastEventTime = mote.getSimulation().getSimulationTime();
     lastEvent = RadioEvent.RECEPTION_STARTED;
@@ -277,9 +276,7 @@ public class SkyByteRadio extends Radio implements CustomDataRadio {
   public void signalReceptionEnd() {
     /* Deliver packet data */
     isReceiving = false;
-//    hasFailedReception = false;
     isInterfered = false;
-    cc2420.setCCA(false);
 
     lastEventTime = mote.getSimulation().getSimulationTime();
     lastEvent = RadioEvent.RECEPTION_FINISHED;
@@ -295,9 +292,7 @@ public class SkyByteRadio extends Radio implements CustomDataRadio {
   public void interfereAnyReception() {
     isInterfered = true;
     isReceiving = false;
-//    hasFailedReception = false;
     lastIncomingPacket = null;
-    cc2420.setCCA(true);
 
     lastEventTime = mote.getSimulation().getSimulationTime();
     lastEvent = RadioEvent.RECEPTION_INTERFERED;
