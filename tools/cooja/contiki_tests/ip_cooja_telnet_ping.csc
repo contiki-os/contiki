@@ -105,6 +105,10 @@ WAIT_UNTIL(msg.contains('Telnet server'));
 /* override simulation delay, test times out is too fast otherwise */
 mote.getSimulation().setDelayTime(1);
 
+GENERATE_MSG(5000, "continue");
+WAIT_UNTIL(msg.equals("continue"));
+log.log("Starting ping process\n");
+
 /* start ping process */
 var runnableObj = new Object();
 runnableObj.run = function() {
