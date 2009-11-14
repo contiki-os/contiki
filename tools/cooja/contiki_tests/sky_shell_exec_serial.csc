@@ -1,9 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <simconf>
-  <project>../apps/mrm</project>
-  <project>../apps/mspsim</project>
-  <project>../apps/avrora</project>
-  <project>../apps/native_gateway</project>
+  <project>[CONTIKI_DIR]/tools/cooja/apps/mrm</project>
+  <project>[CONTIKI_DIR]/tools/cooja/apps/mspsim</project>
+  <project>[CONTIKI_DIR]/tools/cooja/apps/avrora</project>
   <simulation>
     <title>My simulation</title>
     <delaytime>0</delaytime>
@@ -16,11 +15,14 @@
       <success_ratio_tx>1.0</success_ratio_tx>
       <success_ratio_rx>1.0</success_ratio_rx>
     </radiomedium>
+    <events>
+      <logoutput>40000</logoutput>
+    </events>
     <motetype>
       se.sics.cooja.mspmote.SkyMoteType
       <identifier>sky1</identifier>
       <description>Sky Mote Type #sky1</description>
-      <source>../../../examples/sky-shell-exec/sky-shell-exec.c</source>
+      <source>[CONTIKI_DIR]/examples/sky-shell-exec/sky-shell-exec.c</source>
       <commands>echo CLEANING
 make clean TARGET=sky
 
@@ -33,7 +35,7 @@ make sky-shell-exec.sky CORE=sky-shell-exec.sky TARGET=sky
 make sky-shell-exec.sky CORE=sky-shell-exec.sky TARGET=sky
 make sky-shell-exec.sky CORE=sky-shell-exec.sky TARGET=sky
 make sky-shell-exec.sky CORE=sky-shell-exec.sky TARGET=sky</commands>
-      <firmware>../../../examples/sky-shell-exec/sky-shell-exec.sky</firmware>
+      <firmware>[CONTIKI_DIR]/examples/sky-shell-exec/sky-shell-exec.sky</firmware>
       <moteinterface>se.sics.cooja.interfaces.Position</moteinterface>
       <moteinterface>se.sics.cooja.interfaces.IPAddress</moteinterface>
       <moteinterface>se.sics.cooja.interfaces.Mote2MoteRelations</moteinterface>
@@ -121,7 +123,7 @@ sb = new java.lang.StringBuilder();
 process = new java.lang.Runtime.getRuntime().exec(cmdarr, null, helloworld.getParentFile());
 stdIn = new java.io.BufferedReader(new java.io.InputStreamReader(process.getInputStream()));
 while ((line = stdIn.readLine()) != null) {
-  write(mote, line + "\n");
+  write(mote, line);
   sb.append(line);
 
   YIELD();
