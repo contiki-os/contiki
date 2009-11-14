@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ContikiButton.java,v 1.14 2009/10/27 10:11:17 fros4943 Exp $
+ * $Id: ContikiButton.java,v 1.15 2009/11/14 11:09:41 fros4943 Exp $
  */
 
 package se.sics.cooja.contikimote.interfaces;
@@ -108,16 +108,28 @@ public class ContikiButton extends Button implements ContikiMoteInterface {
    * Clicks button: Presses and immediately releases button.
    */
   public void clickButton() {
-    mote.getSimulation().scheduleEvent(pressButtonEvent, mote.getSimulation().getSimulationTime());
-    mote.getSimulation().scheduleEvent(releaseButtonEvent, mote.getSimulation().getSimulationTime() + Simulation.MILLISECOND);
+    mote.getSimulation().invokeSimulationThread(new Runnable() {
+      public void run() {
+        mote.getSimulation().scheduleEvent(pressButtonEvent, mote.getSimulation().getSimulationTime());
+        mote.getSimulation().scheduleEvent(releaseButtonEvent, mote.getSimulation().getSimulationTime() + Simulation.MILLISECOND);
+      }      
+    });
   }
 
   public void pressButton() {
-    mote.getSimulation().scheduleEvent(pressButtonEvent, mote.getSimulation().getSimulationTime());
+    mote.getSimulation().invokeSimulationThread(new Runnable() {
+      public void run() {
+        mote.getSimulation().scheduleEvent(pressButtonEvent, mote.getSimulation().getSimulationTime());
+      }      
+    });
   }
 
   public void releaseButton() {
-    mote.getSimulation().scheduleEvent(releaseButtonEvent, mote.getSimulation().getSimulationTime());
+    mote.getSimulation().invokeSimulationThread(new Runnable() {
+      public void run() {
+        mote.getSimulation().scheduleEvent(releaseButtonEvent, mote.getSimulation().getSimulationTime());
+      }      
+    });
   }
 
   private void doReleaseButton() {
