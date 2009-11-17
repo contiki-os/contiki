@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: MicaZMote.java,v 1.11 2009/11/17 14:09:02 joxe Exp $
+ * $Id: MicaZMote.java,v 1.12 2009/11/17 14:30:26 joxe Exp $
  */
 
 package se.sics.cooja.avrmote;
@@ -50,8 +50,11 @@ import avrora.core.LoadableProgram;
 import avrora.sim.AtmelInterpreter;
 import avrora.sim.Simulator;
 import avrora.sim.State;
+import avrora.sim.mcu.AtmelMicrocontroller;
+import avrora.sim.mcu.EEPROM;
 import avrora.sim.mcu.Microcontroller;
 import avrora.sim.platform.MicaZ;
+import avrora.sim.platform.Platform;
 import avrora.sim.platform.PlatformFactory;
 
 /**
@@ -65,7 +68,7 @@ public class MicaZMote extends AbstractEmulatedMote implements Mote {
 
   private Simulation mySimulation = null;
   private MoteInterfaceHandler myMoteInterfaceHandler;
-  private Microcontroller myCpu = null;
+  private AtmelMicrocontroller myCpu = null;
   private MicaZ micaZ = null;
   private LoadableProgram program = null;
   private AtmelInterpreter interpreter = null;
@@ -73,6 +76,8 @@ public class MicaZMote extends AbstractEmulatedMote implements Mote {
   private AVRProperties avrProperties = null;
   private MicaZMoteType myMoteType = null;
 
+  private EEPROM eeprom = null;
+  
   /* Stack monitoring variables */
   private boolean stopNextInstruction = false;
 
@@ -145,7 +150,9 @@ public class MicaZMote extends AbstractEmulatedMote implements Mote {
     program.load();
     PlatformFactory factory = new MicaZ.Factory();
     micaZ = (MicaZ) factory.newPlatform(1, program.getProgram());
-    myCpu = micaZ.getMicrocontroller();
+    myCpu = (AtmelMicrocontroller) micaZ.getMicrocontroller();
+    eeprom = (EEPROM) myCpu.getDevice("eeprom");
+    
     avrProperties = (AVRProperties) myCpu.getProperties();
     Simulator sim = myCpu.getSimulator();
     interpreter = (AtmelInterpreter) sim.getInterpreter();
@@ -153,6 +160,11 @@ public class MicaZMote extends AbstractEmulatedMote implements Mote {
     myMemory = new AvrMoteMemory(program.getProgram().getSourceMapping(), avrProperties, interpreter);
   }
 
+  public void setEEPROM(int address, int i) {
+      byte[] eedata = eeprom.getContent();
+      eedata[address] = (byte) i;
+  }
+  
   public void setState(State newState) {
     logger.warn("MicaZ motes can't change state");
   }

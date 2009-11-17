@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: MicaZID.java,v 1.2 2009/11/17 14:09:03 joxe Exp $
+ * $Id: MicaZID.java,v 1.3 2009/11/17 14:30:26 joxe Exp $
  */
 
 package se.sics.cooja.avrmote.interfaces;
@@ -47,6 +47,7 @@ import se.sics.cooja.MoteTimeEvent;
 import se.sics.cooja.Simulation;
 import se.sics.cooja.TimeEvent;
 import se.sics.cooja.avrmote.AvrMoteMemory;
+import se.sics.cooja.avrmote.MicaZMote;
 import se.sics.cooja.interfaces.MoteID;
 
 public class MicaZID extends MoteID {
@@ -60,7 +61,7 @@ public class MicaZID extends MoteID {
     private AvrMoteMemory moteMem;
     boolean tosID = false;
     boolean contikiID = false;
-    private Mote mote;
+    private MicaZMote mote;
     private int persistentSetIDCounter = 1000;
 
     TimeEvent persistentSetIDEvent = new MoteTimeEvent(mote, 0) {
@@ -79,7 +80,7 @@ public class MicaZID extends MoteID {
 
 
     public MicaZID(Mote mote) {
-        this.mote = mote;
+        this.mote = (MicaZMote) mote;
         this.moteMem = (AvrMoteMemory) mote.getMemory();
 
         if (moteMem.variableExists("node_id")) {
@@ -127,6 +128,10 @@ public class MicaZID extends MoteID {
     public void setMoteID(int newID) {
         moteID = newID;
         if (contikiID) {
+            mote.setEEPROM(0, 0xad);
+            mote.setEEPROM(1, 0xde);
+            mote.setEEPROM(2, newID);
+            mote.setEEPROM(3, newID >> 8);
             System.out.println("Setting node id: " + newID);
             moteMem.setIntValueOf("node_id", newID);
         }
