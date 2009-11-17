@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007, Swedish Institute of Computer Science.
+ * Copyright (c) 2009, Swedish Institute of Computer Science.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: MicaZID.java,v 1.1 2009/09/17 10:45:13 fros4943 Exp $
+ * $Id: MicaZID.java,v 1.2 2009/11/17 14:09:03 joxe Exp $
  */
 
 package se.sics.cooja.avrmote.interfaces;
@@ -39,54 +39,135 @@ import javax.swing.JPanel;
 import org.apache.log4j.Logger;
 import org.jdom.Element;
 
+import avrora.sim.State;
+import avrora.sim.Simulator.Watch;
+
 import se.sics.cooja.Mote;
+import se.sics.cooja.MoteTimeEvent;
+import se.sics.cooja.Simulation;
+import se.sics.cooja.TimeEvent;
+import se.sics.cooja.avrmote.AvrMoteMemory;
 import se.sics.cooja.interfaces.MoteID;
 
 public class MicaZID extends MoteID {
-  private static Logger logger = Logger.getLogger(MicaZID.class);
 
-  private int moteID = -1; /* TODO Implement */
+    private static final boolean PERSISTENT_SET_ID = true;
 
-  public MicaZID(Mote mote) {
-  }
+    private static Logger logger = Logger.getLogger(MicaZID.class);
 
-  public int getMoteID() {
-    return moteID;
-  }
+    private int moteID = -1; /* TODO Implement */
 
-  public void setMoteID(int newID) {
-    moteID = newID;
-  }
+    private AvrMoteMemory moteMem;
+    boolean tosID = false;
+    boolean contikiID = false;
+    private Mote mote;
+    private int persistentSetIDCounter = 1000;
 
-  public JPanel getInterfaceVisualizer() {
-    return null;
-  }
+    TimeEvent persistentSetIDEvent = new MoteTimeEvent(mote, 0) {
+        public void execute(long t) {
+            if (persistentSetIDCounter-- > 0) {
+                setMoteID(moteID);
+                if (t + mote.getInterfaces().getClock().getDrift() < 0) {
+                    /* Wait until node is booting */
+                    mote.getSimulation().scheduleEvent(this, -mote.getInterfaces().getClock().getDrift());
+                } else {
+                    mote.getSimulation().scheduleEvent(this, t + Simulation.MILLISECOND / 16);
+                }
+            }
+        }
+    };
 
-  public void releaseInterfaceVisualizer(JPanel panel) {
-  }
 
-  public double energyConsumption() {
-    return 0;
-  }
+    public MicaZID(Mote mote) {
+        this.mote = mote;
+        this.moteMem = (AvrMoteMemory) mote.getMemory();
 
-  public Collection<Element> getConfigXML() {
-    Vector<Element> config = new Vector<Element>();
-    Element element;
+        if (moteMem.variableExists("node_id")) {
+            contikiID = true;
 
-    // Infinite boolean
-    element = new Element("id");
-    element.setText(Integer.toString(getMoteID()));
-    config.add(element);
+            int addr = moteMem.getVariableAddress("node_id");
+            moteMem.insertWatch(new Watch() {
+                public void fireAfterRead(State arg0, int arg1, byte arg2) {
+                    System.out.println("Read from node_id: " + arg2);
+                }
+                public void fireAfterWrite(State arg0, int arg1, byte arg2) {
+                }
+                public void fireBeforeRead(State arg0, int arg1) {
+                }
+                public void fireBeforeWrite(State arg0, int arg1, byte arg2) {
+                    System.out.println("Writing to node_id: " + arg2);
+                }}, addr);
+        }
 
-    return config;
-  }
+        if (moteMem.variableExists("TOS_NODE_ID")) {
+            tosID = true;
+        }
 
-  public void setConfigXML(Collection<Element> configXML, boolean visAvailable) {
-    for (Element element : configXML) {
-      if (element.getName().equals("id")) {
-        setMoteID(Integer.parseInt(element.getText()));
-      }
+
+        if (PERSISTENT_SET_ID) {
+            mote.getSimulation().invokeSimulationThread(new Runnable() {
+                public void run() {
+                    persistentSetIDEvent.execute(MicaZID.this.mote.getSimulation().getSimulationTime());
+                };
+            });
+        }
     }
-  }
 
+    public int getMoteID() {
+        if (contikiID) {
+            return moteMem.getIntValueOf("node_id");
+        }
+
+        if (tosID) {
+            return moteMem.getIntValueOf("TOS_NODE_ID");
+        }     
+        return moteID;
+    }
+
+    public void setMoteID(int newID) {
+        moteID = newID;
+        if (contikiID) {
+            System.out.println("Setting node id: " + newID);
+            moteMem.setIntValueOf("node_id", newID);
+        }
+        if (tosID) {
+            moteMem.setIntValueOf("TOS_NODE_ID", newID);
+            moteMem.setIntValueOf("ActiveMessageAddressC$addr", newID);
+        }
+        setChanged();
+        notifyObservers();
+        return;
+    }
+
+
+    public JPanel getInterfaceVisualizer() {
+        return null;
+    }
+
+    public void releaseInterfaceVisualizer(JPanel panel) {
+    }
+
+    public double energyConsumption() {
+        return 0;
+    }
+
+    public Collection<Element> getConfigXML() {
+        Vector<Element> config = new Vector<Element>();
+        Element element;
+
+        // Infinite boolean
+        element = new Element("id");
+        element.setText(Integer.toString(getMoteID()));
+        config.add(element);
+
+        return config;
+    }
+
+    public void setConfigXML(Collection<Element> configXML, boolean visAvailable) {
+        for (Element element : configXML) {
+            if (element.getName().equals("id")) {
+                setMoteID(Integer.parseInt(element.getText()));
+            }
+        }
+    }
 }
