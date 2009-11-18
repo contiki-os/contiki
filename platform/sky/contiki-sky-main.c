@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#)$Id: contiki-sky-main.c,v 1.58 2009/10/29 22:10:59 adamdunkels Exp $
+ * @(#)$Id: contiki-sky-main.c,v 1.59 2009/11/18 13:51:55 nifi Exp $
  */
 
 #include <signal.h>
@@ -61,7 +61,6 @@
 #include "net/mac/sicslowmac.h"
 #if UIP_CONF_ROUTER
 #include "net/routing/rimeroute.h"
-#include "net/rime/rime-udp.h"
 #endif /* UIP_CONF_ROUTER*/
 #endif /* WITH_UIP6 */
 
@@ -302,7 +301,6 @@ main(int argc, char **argv)
   }
   
 #if UIP_CONF_ROUTER
-  rime_init(rime_udp_init(NULL));
   uip_router_register(&rimeroute);
 #endif /* UIP_CONF_ROUTER */
 #else /* WITH_UIP6 */
