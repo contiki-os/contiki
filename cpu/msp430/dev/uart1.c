@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#)$Id: uart1.c,v 1.14 2009/10/30 15:06:27 adamdunkels Exp $
+ * @(#)$Id: uart1.c,v 1.15 2009/11/18 13:24:12 nifi Exp $
  */
 
 /*
@@ -37,7 +37,6 @@
 #include <io.h>
 #include <signal.h>
 
-#include "dev/leds.h"
 #include "sys/energest.h"
 #include "dev/uart1.h"
 #include "dev/watchdog.h"
@@ -174,14 +173,12 @@ uart1_rx_interrupt(void)
     rx_in_progress = 1;
     LPM4_EXIT;
   } else {
-    c = RXBUF1;
     rx_in_progress = 0;
     /* Check status register for receive errors. */
     if(URCTL1 & RXERR) {
-      volatile unsigned dummy;
-      leds_invert(LEDS_ALL);
-      //      dummy = RXBUF1;   /* Clear error flags by forcing a dummy read. */
+      c = RXBUF1;   /* Clear error flags by forcing a dummy read. */
     } else {
+      c = RXBUF1;
       if(uart1_input_handler != NULL) {
 	if(uart1_input_handler(c)) {
 	  LPM4_EXIT;
