@@ -57,7 +57,7 @@ LIBS    = memb.c mmem.c timer.c list.c etimer.c energest.c rtimer.c stimer.c \
 ifdef UIP_CONF_IPV6
 CFLAGS += -DUIP_CONF_IPV6
   UIP   = uip6.c tcpip.c psock.c uip-udp-packet.c uip-split.c \
-          uip-over-mesh.c resolv.c hc.c tcpdump.c uiplib.c
+          resolv.c tcpdump.c uiplib.c
   NET   = $(UIP) uip-icmp6.c uip-nd6.c uip-nd6-io.c uip-netif.c sicslowpan.c
 else # UIP_CONF_IPV6
   UIP   = uip.c uiplib.c resolv.c tcpip.c psock.c hc.c uip-split.c uip-fw.c \
