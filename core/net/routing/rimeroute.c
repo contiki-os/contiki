@@ -32,7 +32,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: rimeroute.c,v 1.3 2009/11/08 19:40:18 adamdunkels Exp $
+ * $Id: rimeroute.c,v 1.4 2009/11/18 13:51:56 nifi Exp $
  */
 /**
  * \file
@@ -49,6 +49,7 @@
 #include "net/rime.h"
 #include "net/sicslowpan.h"
 #include "net/rime/route.h"
+#include "net/rime/rime-udp.h"
 
 #define DEBUG 0
 #if DEBUG
@@ -105,6 +106,10 @@ PROCESS_THREAD(rimeroute_process, ev, data)
 
   rimeroute_event = process_alloc_event();
 
+  rime_init(rime_udp_init(NULL));
+  /* Cache routes for 10 minutes */
+  route_set_lifetime(600);
+
   route_discovery_open(&route_discovery_conn,
                        CLOCK_SECOND * 10,
                        ROUTE_DISCOVERY_CHANNEL,
@@ -137,8 +142,7 @@ static int
 activate(void)
 {
   PRINTF("Rimeroute started\n");
-  /* Cache routes for 10 minutes */
-  route_set_lifetime(600);
+
   process_start(&rimeroute_process, NULL);
 
   return 0;
