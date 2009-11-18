@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#)$Id: uart1.c,v 1.15 2009/11/18 13:24:12 nifi Exp $
+ * @(#)$Id: uart1.c,v 1.16 2009/11/18 15:45:32 nifi Exp $
  */
 
 /*
@@ -48,7 +48,11 @@ static uint8_t rx_in_progress;
 
 static volatile uint8_t transmitting;
 
+#ifdef UART1_CONF_TX_WITH_INTERRUPT
+#define TX_WITH_INTERRUPT UART1_CONF_TX_WITH_INTERRUPT
+#else /* UART1_CONF_TX_WITH_INTERRUPT */
 #define TX_WITH_INTERRUPT 1
+#endif /* UART1_CONF_TX_WITH_INTERRUPT */
 
 #if TX_WITH_INTERRUPT
 #define TXBUFSIZE 64
@@ -126,18 +130,44 @@ uart1_init(unsigned long ubr)
   /*
    * UMCTL1 values calculated using
    * http://mspgcc.sourceforge.net/baudrate.html
-   * Table assumes that F_CPU = 3,900,000 Hz.
    */
   switch(ubr) {
+
+#if F_CPU == 3900000ul
+
   case UART1_BAUD2UBR(115200ul):
     UMCTL1 = 0xF7;
     break;
   case UART1_BAUD2UBR(57600ul):
     UMCTL1 = 0xED;
     break;
+  case UART1_BAUD2UBR(38400ul):
+    UMCTL1 = 0xD6;
+    break;
+  case UART1_BAUD2UBR(19200ul):
+    UMCTL1 = 0x08;
+    break;
+  case UART1_BAUD2UBR(9600ul):
+    UMCTL1 = 0x22;
+    break;
+
+#elif F_CPU == 2457600ul
+
+  case UART1_BAUD2UBR(115200ul):
+    UMCTL1 = 0x4A;
+    break;
+  case UART1_BAUD2UBR(57600ul):
+    UMCTL1 = 0x5B;
+    break;
   default:
     /* 9600, 19200, 38400 don't require any correction */
     UMCTL1 = 0x00;
+
+#else
+
+#error Unsupported CPU speed in uart1.c
+
+#endif
   }
 
   ME2 &= ~USPIE1;			/* USART1 SPI module disable */
