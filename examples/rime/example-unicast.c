@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: example-unicast.c,v 1.3 2009/10/18 17:52:09 adamdunkels Exp $
+ * $Id: example-unicast.c,v 1.4 2009/11/19 17:31:23 nifi Exp $
  */
 
 /**
@@ -52,7 +52,7 @@ PROCESS(example_unicast_process, "Example unicast");
 AUTOSTART_PROCESSES(&example_unicast_process);
 /*---------------------------------------------------------------------------*/
 static void
-recv_uc(struct unicast_conn *c, rimeaddr_t *from)
+recv_uc(struct unicast_conn *c, const rimeaddr_t *from)
 {
   printf("unicast message received from %d.%d\n",
 	 from->u8[0], from->u8[1]);
