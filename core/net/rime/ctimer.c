@@ -33,7 +33,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: ctimer.c,v 1.5 2007/11/13 15:13:03 nifi Exp $
+ * $Id: ctimer.c,v 1.6 2009/11/19 18:32:05 nifi Exp $
  */
 
 /**
@@ -131,6 +131,19 @@ ctimer_reset(struct ctimer *c)
 }
 /*---------------------------------------------------------------------------*/
 void
+ctimer_restart(struct ctimer *c)
+{
+  if(initialized) {
+    PROCESS_CONTEXT_BEGIN(&ctimer_process);
+    etimer_restart(&c->etimer);
+    PROCESS_CONTEXT_END(&ctimer_process);
+  }
+
+  list_remove(ctimer_list, c);
+  list_add(ctimer_list, c);
+}
+/*---------------------------------------------------------------------------*/
+void
 ctimer_stop(struct ctimer *c)
 {
   if(initialized) {
@@ -140,6 +153,21 @@ ctimer_stop(struct ctimer *c)
     c->etimer.p = PROCESS_NONE;
   }
   list_remove(ctimer_list, c);
+}
+/*---------------------------------------------------------------------------*/
+int
+ctimer_expired(struct ctimer *c)
+{
+  struct ctimer *t;
+  if(initialized) {
+    return etimer_expired(&c->etimer);
+  }
+  for(t = list_head(ctimer_list); t != NULL; t = t->next) {
+    if(t == c) {
+      return 0;
+    }
+  }
+  return 1;
 }
 /*---------------------------------------------------------------------------*/
 /** @} */
