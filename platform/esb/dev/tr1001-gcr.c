@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: tr1001-gcr.c,v 1.13 2008/07/08 12:27:22 nifi Exp $
+ * @(#)$Id: tr1001-gcr.c,v 1.14 2009/11/19 18:04:02 nifi Exp $
  */
 /**
  * \addtogroup esb
@@ -62,6 +62,19 @@
 #include <signal.h>
 #include <string.h>
 
+#ifdef TR1001_CONF_BEEP_ON_BAD_CRC
+#define BEEP_ON_BAD_CRC TR1001_CONF_BEEP_ON_BAD_CRC
+#else
+#define BEEP_ON_BAD_CRC 1
+#endif /* TR1001_CONF_BEEP_ON_BAD_CRC */
+
+#if BEEP_ON_BAD_CRC
+#include "dev/beep.h"
+#define BEEP_BEEP(t) beep_beep(t)
+#else
+#define BEEP_BEEP(t)
+#endif /* BEEP_ON_BAD_CRC */
+
 #define RXSTATE_READY     0
 #define RXSTATE_RECEIVING 1
 #define RXSTATE_FULL      2
@@ -69,10 +82,15 @@
 #define SYNCH1 0x3c
 #define SYNCH2 0x03
 
+#ifdef TR1001_CONF_BUFFER_SIZE
+#define RXBUFSIZE TR1001_CONF_BUFFER_SIZE
+#else
+#define RXBUFSIZE PACKETBUF_SIZE
+#endif /* TR1001_CONF_BUFFER_SIZE */
+
 /*
  * The buffer which holds incoming data.
  */
-#define RXBUFSIZE UIP_BUFSIZE
 unsigned char tr1001_rxbuf[RXBUFSIZE];
 
 /*
@@ -372,6 +390,7 @@ interrupt (UART0RX_VECTOR)
   ENERGEST_OFF(ENERGEST_TYPE_IRQ);
 }
 /*---------------------------------------------------------------------------*/
+#if DEBUG
 static void
 dump_packet(int len)
 {
@@ -380,6 +399,7 @@ dump_packet(int len)
     LOG("%d: 0x%02x\n", i, tr1001_rxbuf[i]);
   }
 }
+#endif /* DEBUG */
 /*---------------------------------------------------------------------------*/
 PT_THREAD(tr1001_default_rxhandler_pt(unsigned char incoming_byte))
 {
@@ -440,7 +460,7 @@ PT_THREAD(tr1001_default_rxhandler_pt(unsigned char incoming_byte))
 	/* If the incoming byte isn't a valid GCR encoded byte,
 	   we start again from the beginning. */
 	if(!gcr_valid()) {
-	  beep_beep(1000);
+	  BEEP_BEEP(1000);
 	  LOG("Incorrect GCR in header at byte %d/1 %x\n", tmppos, incoming_byte);
 	  RIMESTATS_ADD(badsynch);
 	  PT_RESTART(&rxhandler_pt);
@@ -476,7 +496,7 @@ PT_THREAD(tr1001_default_rxhandler_pt(unsigned char incoming_byte))
 	/* If the incoming byte isn't a valid Manchester encoded byte,
 	   we start again from the beinning. */
 	if(!gcr_valid()) {
-	  beep_beep(1000);
+	  BEEP_BEEP(1000);
 	  LOG("Incorrect GCR 0x%02x at byte %d/1\n", incoming_byte,
 	      tmppos - TR1001_HDRLEN);
 	  RIMESTATS_ADD(badsynch);
@@ -499,7 +519,7 @@ PT_THREAD(tr1001_default_rxhandler_pt(unsigned char incoming_byte))
 
 	gcr_decode(incoming_byte);
 	if(!gcr_valid()) {
-	  beep_beep(1000);
+	  BEEP_BEEP(1000);
 	  RIMESTATS_ADD(badsynch);
 	  PT_RESTART(&rxhandler_pt);
 	}
@@ -525,7 +545,7 @@ PT_THREAD(tr1001_default_rxhandler_pt(unsigned char incoming_byte))
 
     } else {
       LOG("Incorrect CRC\n");
-      beep_beep(1000);
+      BEEP_BEEP(1000);
       RIMESTATS_ADD(badcrc);
     }
   }
@@ -592,8 +612,11 @@ tr1001_send(const void *packet, unsigned short len)
 
   LOG("tr1001_send: sending %d bytes\n", len);
 
+  if(onoroff == ON) {
+    ENERGEST_OFF(ENERGEST_TYPE_LISTEN);
+  }
   ENERGEST_ON(ENERGEST_TYPE_TRANSMIT);
-  
+
   /* Prepare the transmission. */
   prepare_transmission(NUM_SYNCHBYTES);
 
@@ -631,6 +654,7 @@ tr1001_send(const void *packet, unsigned short len)
 
   /* Turn on (or off) reception again. */
   if(onoroff == ON) {
+    ENERGEST_ON(ENERGEST_TYPE_LISTEN);
     rxon();
     rxclear();
   } else {
@@ -641,7 +665,7 @@ tr1001_send(const void *packet, unsigned short len)
   ENERGEST_OFF(ENERGEST_TYPE_TRANSMIT);
   RIMESTATS_ADD(lltx);
 
-  return 0;
+  return RADIO_TX_OK;
 }
 /*---------------------------------------------------------------------------*/
 int
@@ -651,18 +675,22 @@ tr1001_read(void *buf, unsigned short bufsize)
 
   if(tr1001_rxstate == RXSTATE_FULL) {
 
+#if DEBUG
     dump_packet(tr1001_rxlen + 2);
+#endif /* DEBUG */
 
     tmplen = tr1001_rxlen;
 
     if(tmplen > bufsize) {
-      tmplen = bufsize;
+      LOG("tr1001_read: too large packet: %d/%d bytes\n", tmplen, bufsize);
+      rxclear();
+      RIMESTATS_ADD(toolong);
+      return -1;
     }
 
     memcpy(buf, &tr1001_rxbuf[TR1001_HDRLEN], tmplen);
 
     /* header + content + CRC */
-/*     sstrength = (tmp_sstrength / (TR1001_HDRLEN + tr1001_rxlen + 2)) << 1; */
     sstrength = (tmp_count ? ((tmp_sstrength / tmp_count) << 2) : 0);
 
     rxclear();
