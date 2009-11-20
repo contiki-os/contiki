@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#)$Id: contiki-sky-main.c,v 1.8 2008/12/16 17:05:14 nifi Exp $
+ * @(#)$Id: contiki-sky-main.c,v 1.9 2009/11/20 10:45:07 nifi Exp $
  */
 
 #include <signal.h>
@@ -109,6 +109,17 @@ set_rime_addr(void)
   rimeaddr_set_node_addr(&addr);
 }
 /*---------------------------------------------------------------------------*/
+static void
+print_processes(struct process * const processes[])
+{
+  printf("Starting");
+  while(*processes != NULL) {
+    printf(" '%s'", (*processes)->name);
+    processes++;
+  }
+  putchar('\n');
+}
+/*---------------------------------------------------------------------------*/
 int
 main(int argc, char **argv)
 {
@@ -127,7 +138,7 @@ main(int argc, char **argv)
 #endif /* WITH_UIP */
   
   printf("Starting %s "
-	 "($Id: contiki-sky-main.c,v 1.8 2008/12/16 17:05:14 nifi Exp $)\n", __FILE__);
+	 "($Id: contiki-sky-main.c,v 1.9 2009/11/20 10:45:07 nifi Exp $)\n", __FILE__);
   ds2411_init();
   sensors_light_init();
   sht11_init();
@@ -184,7 +195,7 @@ main(int argc, char **argv)
 
   button_sensor.activate();
   
-  printf("Autostarting processes\n");
+  print_processes(autostart_processes);
   autostart_start(autostart_processes);
 
   energest_init();
