@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: TimeLine.java,v 1.15 2009/11/13 13:01:13 fros4943 Exp $
+ * $Id: TimeLine.java,v 1.16 2009/11/23 15:25:13 fros4943 Exp $
  */
 
 package se.sics.cooja.plugins;
@@ -104,9 +104,9 @@ public class TimeLine extends VisPlugin {
   private static final boolean PAINT_ZERO_WIDTH_EVENTS = true;
   private static final int TIMELINE_UPDATE_INTERVAL = 100;
 
-  private static int currentPixelDivisor = 200;
+  private static long currentPixelDivisor = 200;
 
-  private static final int[] ZOOM_LEVELS = { 1, 2, 5, 10, 20, 50, 100, 200, 500, 1000, 2000, 5000, 10000 }; 
+  private static final long[] ZOOM_LEVELS = { 1, 2, 5, 10, 20, 50, 100, 200, 500, 1000, 2000, 5000, 10000 }; 
 
   private int zoomLevel = 9;
 
@@ -989,7 +989,7 @@ public class TimeLine extends VisPlugin {
     public void paintComponent(Graphics g) {
       Rectangle bounds = g.getClipBounds();
       /*logger.info("Clip bounds: " + bounds);*/
-      long intervalStart = bounds.x*currentPixelDivisor;
+      long intervalStart = (long)bounds.x*(long)currentPixelDivisor;
       long intervalEnd = intervalStart + bounds.width*currentPixelDivisor;
 
       if (intervalEnd > simulation.getSimulationTime()) {
@@ -1107,12 +1107,12 @@ public class TimeLine extends VisPlugin {
       while (time <= end) {
         if (time % (100*Simulation.MILLISECOND) == 0) {
           g.drawLine(
-              (int) time/currentPixelDivisor, (int)0, 
-              (int) time/currentPixelDivisor, (int)TIME_MARKER_PIXEL_HEIGHT);
+              (int) (time/currentPixelDivisor), (int)0, 
+              (int) (time/currentPixelDivisor), (int)TIME_MARKER_PIXEL_HEIGHT);
         } else {
           g.drawLine(
-              (int) time/currentPixelDivisor, (int)0, 
-              (int) time/currentPixelDivisor, (int)TIME_MARKER_PIXEL_HEIGHT/2);
+              (int) (time/currentPixelDivisor), (int)0, 
+              (int) (time/currentPixelDivisor), (int)TIME_MARKER_PIXEL_HEIGHT/2);
         }          
         time += (10*Simulation.MILLISECOND);
       }
@@ -1311,9 +1311,9 @@ public class TimeLine extends VisPlugin {
 
         /* Calculate event width */
         if (ev.next != null) {
-          w = (int) (ev.next.time - ev.time)/currentPixelDivisor;
+          w = (int) ((ev.next.time - ev.time)/currentPixelDivisor);
         } else {
-          w = (int) (end - ev.time)/currentPixelDivisor; /* No more events */
+          w = (int) ((end - ev.time)/currentPixelDivisor); /* No more events */
         }
 
         /* Handle zero pixel width events */
@@ -1436,9 +1436,9 @@ public class TimeLine extends VisPlugin {
 
         /* Calculate event width */
         if (ev.next != null) {
-          w = (int) (ev.next.time - ev.time)/currentPixelDivisor;
+          w = (int) ((ev.next.time - ev.time)/currentPixelDivisor);
         } else {
-          w = (int) (end - ev.time)/currentPixelDivisor; /* No more events */
+          w = (int) ((end - ev.time)/currentPixelDivisor); /* No more events */
         }
 
         /* Handle zero pixel width events */
