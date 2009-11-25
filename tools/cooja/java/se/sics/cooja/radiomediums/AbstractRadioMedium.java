@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: AbstractRadioMedium.java,v 1.13 2009/11/25 15:49:58 fros4943 Exp $
+ * $Id: AbstractRadioMedium.java,v 1.14 2009/11/25 18:13:05 fros4943 Exp $
  */
 
 package se.sics.cooja.radiomediums;
@@ -186,8 +186,10 @@ public abstract class AbstractRadioMedium extends RadioMedium {
     for (RadioConnection conn : activeConnections) {
       if (conn.isDestination(radio)) {
         conn.addInterfered(radio);
+        if (!radio.isInterfered()) {
+          radio.interfereAnyReception();
+        }
       }
-      radio.interfereAnyReception();
     }
   }
 
