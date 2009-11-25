@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: MspMoteID.java,v 1.13 2009/10/28 15:58:42 fros4943 Exp $
+ * $Id: MspMoteID.java,v 1.14 2009/11/25 09:17:16 fros4943 Exp $
  */
 
 package se.sics.cooja.mspmote.interfaces;
@@ -35,8 +35,10 @@ import java.util.Collection;
 import java.util.Observable;
 import java.util.Observer;
 import java.util.Vector;
+
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+
 import org.apache.log4j.Logger;
 import org.jdom.Element;
 
@@ -84,7 +86,7 @@ public class MspMoteID extends MoteID {
 
   private ID_LOCATION location = ID_LOCATION.JAVA_ONLY;
 
-  private int moteID = -1; /* Only used for location IN_JAVA_ONLY */
+  private int moteID = -1;
 
   /**
    * Creates an interface to the mote ID at mote.
@@ -98,23 +100,15 @@ public class MspMoteID extends MoteID {
     this.mote = (MspMote) m;
     this.moteMem = (MspMoteMemory) mote.getMemory();
 
-    String[] variables = moteMem.getVariableNames();
-
-    location = ID_LOCATION.JAVA_ONLY;
-    for (String variable: variables) {
-      if (variable.equals("TOS_NODE_ID")) {
-        if (location == ID_LOCATION.VARIABLE_NODE_ID) {
-          location = ID_LOCATION.VARIABLES_BOTH;
-        } else {
-          location = ID_LOCATION.VARIABLE_TOS_NODE_ID;
-        }
-      } else if (variable.equals("node_id")) {
-        if (location == ID_LOCATION.VARIABLE_TOS_NODE_ID) {
-          location = ID_LOCATION.VARIABLES_BOTH;
-        } else {
-          location = ID_LOCATION.VARIABLE_NODE_ID;
-        }
-      }
+    if (moteMem.variableExists("node_id") &&
+        moteMem.variableExists("TOS_NODE_ID")) {
+      location = ID_LOCATION.VARIABLES_BOTH;
+    } else if (moteMem.variableExists("node_id")) {
+      location = ID_LOCATION.VARIABLE_NODE_ID;
+    } else if (moteMem.variableExists("TOS_NODE_ID")) {
+      location = ID_LOCATION.VARIABLE_TOS_NODE_ID;
+    } else {
+      location = ID_LOCATION.JAVA_ONLY;
     }
 
     /*logger.debug("ID location: " + location);*/
@@ -147,7 +141,7 @@ public class MspMoteID extends MoteID {
   }
 
   public int getMoteID() {
-    if (location == ID_LOCATION.VARIABLE_NODE_ID) {
+    /*if (location == ID_LOCATION.VARIABLE_NODE_ID) {
       return moteMem.getIntValueOf("node_id");
     }
 
@@ -161,10 +155,9 @@ public class MspMoteID extends MoteID {
 
     if (location == ID_LOCATION.JAVA_ONLY) {
       return moteID;
-    }
+    }*/
 
-    logger.fatal("Unknown node ID location");
-    return -1;
+    return moteID;
   }
 
   public void setMoteID(int newID) {
@@ -183,6 +176,10 @@ public class MspMoteID extends MoteID {
         }
       }
       moteMem.setIntValueOf("node_id", newID);
+      /* Experimental: set Contiki random seed variable if it exists */
+      if (moteMem.variableExists("rseed")) {
+        moteMem.setIntValueOf("rseed", (int) (mote.getSimulation().getRandomSeed() + newID));
+      }
       setChanged();
       notifyObservers();
       return;
@@ -197,6 +194,10 @@ public class MspMoteID extends MoteID {
         }
       }
       moteMem.setIntValueOf("node_id", newID);
+      /* Experimental: set Contiki random seed variable if it exists */
+      if (moteMem.variableExists("rseed")) {
+        moteMem.setIntValueOf("rseed", (int) (mote.getSimulation().getRandomSeed() + newID));
+      }
       moteMem.setIntValueOf("TOS_NODE_ID", newID);
       moteMem.setIntValueOf("ActiveMessageAddressC$addr", newID);
       setChanged();
