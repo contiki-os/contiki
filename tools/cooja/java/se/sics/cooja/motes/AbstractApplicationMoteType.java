@@ -24,7 +24,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * $Id: AbstractApplicationMoteType.java,v 1.4 2009/10/28 14:38:02 fros4943 Exp $
+ * $Id: AbstractApplicationMoteType.java,v 1.5 2009/11/25 20:48:22 fros4943 Exp $
  */
 
 package se.sics.cooja.motes;
@@ -41,6 +41,7 @@ import org.apache.log4j.Logger;
 import org.jdom.Element;
 
 import se.sics.cooja.*;
+import se.sics.cooja.MoteType.MoteTypeCreationException;
 import se.sics.cooja.interfaces.ApplicationRadio;
 import se.sics.cooja.interfaces.MoteID;
 import se.sics.cooja.interfaces.Position;
@@ -67,7 +68,8 @@ public abstract class AbstractApplicationMoteType implements MoteType {
     this.description = "Application Mote Type #" + identifier;
   }
 
-  public boolean configureAndInit(Container parentContainer, Simulation simulation, boolean visAvailable) {
+  public boolean configureAndInit(Container parentContainer, Simulation simulation, boolean visAvailable) 
+  throws MoteTypeCreationException {
     if (identifier == null) {
       /* Create unique identifier */
       int counter = 0;
@@ -202,7 +204,8 @@ public abstract class AbstractApplicationMoteType implements MoteType {
   }
 
   public boolean setConfigXML(Simulation simulation,
-      Collection<Element> configXML, boolean visAvailable) {
+      Collection<Element> configXML, boolean visAvailable)
+  throws MoteTypeCreationException {
     for (Element element : configXML) {
       String name = element.getName();
       if (name.equals("identifier")) {
