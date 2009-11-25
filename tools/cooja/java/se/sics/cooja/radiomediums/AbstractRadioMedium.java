@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: AbstractRadioMedium.java,v 1.12 2009/10/29 10:31:55 fros4943 Exp $
+ * $Id: AbstractRadioMedium.java,v 1.13 2009/11/25 15:49:58 fros4943 Exp $
  */
 
 package se.sics.cooja.radiomediums;
@@ -124,9 +124,8 @@ public abstract class AbstractRadioMedium extends RadioMedium {
    *
    * Determines which radios should receive or be interfered by the transmission.
    *
-   * @param radio
-   *          Transmitting radio
-   * @return New registered connection
+   * @param radio Source radio
+   * @return New connection
    */
   abstract public RadioConnection createConnections(Radio radio);
 
@@ -144,19 +143,25 @@ public abstract class AbstractRadioMedium extends RadioMedium {
     /* Set signal strength to strong on destinations */
     RadioConnection[] conns = getActiveConnections();
     for (RadioConnection conn : conns) {
-      conn.getSource().setCurrentSignalStrength(SS_STRONG);
+      if (conn.getSource().getCurrentSignalStrength() < SS_STRONG) {
+        conn.getSource().setCurrentSignalStrength(SS_STRONG);
+      }
       for (Radio dstRadio : conn.getDestinations()) {
-        dstRadio.setCurrentSignalStrength(SS_STRONG);
+        if (conn.getSource().getCurrentSignalStrength() < SS_STRONG) {
+          dstRadio.setCurrentSignalStrength(SS_STRONG);
+        }
       }
     }
 
     /* Set signal strength to weak on interfered */
     for (RadioConnection conn : conns) {
       for (Radio intfRadio : conn.getInterfered()) {
-        intfRadio.setCurrentSignalStrength(SS_WEAK);
+        if (intfRadio.getCurrentSignalStrength() < SS_WEAK) {
+          intfRadio.setCurrentSignalStrength(SS_WEAK);
+        }
         
         if (!intfRadio.isInterfered()) {
-          logger.warn("Radio was not interfered");
+          /*logger.warn("Radio was not interfered");*/
           intfRadio.interfereAnyReception();
         }
       }
@@ -171,29 +176,18 @@ public abstract class AbstractRadioMedium extends RadioMedium {
    * @param radio Radio
    */
   private void removeFromActiveConnections(Radio radio) {
-    /* Abort ongoing receptions */
-    if (radio.isReceiving()) {
-      radio.interfereAnyReception();
-      radio.signalReceptionEnd();
-    }
-
-    /* Connection source */
+    /* This radio must not be a connection source */
     RadioConnection connection = getActiveConnectionFrom(radio);
     if (connection != null) {
-      for (Radio dstRadio : connection.getDestinations()) {
-        dstRadio.interfereAnyReception();
-        dstRadio.signalReceptionEnd();
-      }
-      for (Radio dstRadio : connection.getInterfered()) {
-        dstRadio.signalReceptionEnd();
-      }
-      activeConnections.remove(connection);
+      logger.fatal("Connection source turned off radio: " + radio);
     }
 
-    /* Connection destination and interfered */
+    /* Set interfered if currently a connection destination */
     for (RadioConnection conn : activeConnections) {
-      conn.removeDestination(radio);
-      conn.removeInterfered(radio);
+      if (conn.isDestination(radio)) {
+        conn.addInterfered(radio);
+      }
+      radio.interfereAnyReception();
     }
   }
 
@@ -243,9 +237,20 @@ public abstract class AbstractRadioMedium extends RadioMedium {
       } else if (event == Radio.RadioEvent.TRANSMISSION_STARTED) {
         /* Create new radio connection */
 
+        if (radio.isReceiving()) {
+          /* Radio starts transmitting when it should be receiving!
+           * Ok, but it won't receive the packet */
+          for (RadioConnection conn : activeConnections) {
+            if (conn.isDestination(radio)) {
+              conn.addInterfered(radio);
+            }
+          }
+          radio.interfereAnyReception();
+        }
+        
         RadioConnection newConnection = createConnections(radio);
         activeConnections.add(newConnection);
-        for (Radio r: newConnection.getDestinations()) {
+        for (Radio r: newConnection.getAllDestinations()) {
           if (newConnection.getDestinationDelay(r) == 0) {
             r.signalReceptionStart();
           } else {
@@ -284,8 +289,7 @@ public abstract class AbstractRadioMedium extends RadioMedium {
         activeConnections.remove(connection);
         lastConnection = connection;
         COUNTER_TX++;
-        for (Radio dstRadio : connection.getDestinations()) {
-          COUNTER_RX++;
+        for (Radio dstRadio : connection.getAllDestinations()) {
           if (connection.getDestinationDelay(dstRadio) == 0) {
             dstRadio.signalReceptionEnd();
           } else {
@@ -302,21 +306,10 @@ public abstract class AbstractRadioMedium extends RadioMedium {
                 simulation.getSimulationTime() + connection.getDestinationDelay(dstRadio));
           }
         }
-        for (Radio intRadio : connection.getInterfered()) {
-          COUNTER_INTERFERED++;
-          /* Check if radio is still interfered by some other connection */
-          boolean stillInterfered = false;
-          for (RadioConnection conn : getActiveConnections()) {
-            for (Radio r: conn.getInterfered()) {
-              if (intRadio == r) {
-                stillInterfered = true;
-                break;
-              }
-            }
-          }
-          if (!stillInterfered) {
-            intRadio.signalReceptionEnd();
-          }
+        COUNTER_RX += connection.getDestinations().length;
+        COUNTER_INTERFERED += connection.getInterfered().length;
+        for (Radio intRadio : connection.getInterferedNonDestinations()) {
+          intRadio.signalReceptionEnd();
         }
 
         /* Update signal strengths */
@@ -341,7 +334,7 @@ public abstract class AbstractRadioMedium extends RadioMedium {
           return;
         }
 
-        for (Radio dstRadio : connection.getDestinations()) {
+        for (Radio dstRadio : connection.getAllDestinations()) {
 
           if (!radio.getClass().equals(dstRadio.getClass()) ||
               !(radio instanceof CustomDataRadio)) {
@@ -384,7 +377,7 @@ public abstract class AbstractRadioMedium extends RadioMedium {
           return;
         }
 
-        for (Radio dstRadio : connection.getDestinations()) {
+        for (Radio dstRadio : connection.getAllDestinations()) {
 
           if (radio.getClass().equals(dstRadio.getClass()) &&
               radio instanceof CustomDataRadio) {
@@ -466,13 +459,8 @@ public abstract class AbstractRadioMedium extends RadioMedium {
     radioMediumObservable.deleteObserver(observer);
   }
 
-  public RadioConnection[] getLastTickConnections() {
-    if (lastConnection == null) {
-      return null;
-    }
-
-    /* XXX Method only returns a single connection */
-    return new RadioConnection[] { lastConnection };
+  public RadioConnection getLastConnection() {
+    return lastConnection;
   }
 
 }
