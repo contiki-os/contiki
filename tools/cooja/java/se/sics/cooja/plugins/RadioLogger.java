@@ -26,28 +26,33 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: RadioLogger.java,v 1.24 2009/09/24 08:56:17 nifi Exp $
+ * $Id: RadioLogger.java,v 1.25 2009/11/25 15:32:34 fros4943 Exp $
  */
 
 package se.sics.cooja.plugins;
+
+import java.awt.Color;
 import java.awt.Font;
 import java.awt.Rectangle;
 import java.awt.Toolkit;
 import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.StringSelection;
 import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
 import java.io.File;
 import java.io.FileWriter;
+import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Observable;
 import java.util.Observer;
+import java.util.Properties;
+import java.util.Vector;
 
 import javax.swing.AbstractAction;
 import javax.swing.Action;
+import javax.swing.Icon;
 import javax.swing.JFileChooser;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
@@ -58,10 +63,10 @@ import javax.swing.table.AbstractTableModel;
 
 import org.apache.log4j.Logger;
 import org.jdom.Element;
+
 import se.sics.cooja.ClassDescription;
 import se.sics.cooja.ConvertedRadioPacket;
 import se.sics.cooja.GUI;
-import se.sics.cooja.Mote;
 import se.sics.cooja.PluginType;
 import se.sics.cooja.RadioConnection;
 import se.sics.cooja.RadioMedium;
@@ -69,7 +74,6 @@ import se.sics.cooja.RadioPacket;
 import se.sics.cooja.Simulation;
 import se.sics.cooja.VisPlugin;
 import se.sics.cooja.dialogs.TableColumnAdjuster;
-import se.sics.cooja.interfaces.MoteID;
 import se.sics.cooja.interfaces.Radio;
 import se.sics.cooja.util.StringUtils;
 
@@ -146,6 +150,13 @@ public class RadioLogger extends VisPlugin {
         } else if (col == COLUMN_DATA) {
           if (conn.data == null) {
             prepareDataString(connections.get(row));
+          }
+          if (aliases != null) {
+            /* Check if alias exists */
+            String alias = (String) aliases.get(conn.data);
+            if (alias != null) {
+              return alias;
+            }
           }
           return conn.data;
         }
@@ -237,7 +248,11 @@ public class RadioLogger extends VisPlugin {
     popupMenu.add(new JMenuItem(copyAllAction));
     popupMenu.add(new JMenuItem(clearAction));
     popupMenu.addSeparator();
+    popupMenu.add(new JMenuItem(aliasAction));
+    popupMenu.addSeparator();
     popupMenu.add(new JMenuItem(saveAction));
+    popupMenu.addSeparator();
+    popupMenu.add(new JMenuItem(timeLineAction));
     dataTable.setComponentPopupMenu(popupMenu);
 
     add(new JScrollPane(dataTable));
@@ -248,19 +263,15 @@ public class RadioLogger extends VisPlugin {
 
     radioMedium.addRadioMediumObserver(radioMediumObserver = new Observer() {
       public void update(Observable obs, Object obj) {
-        RadioConnection[] conns = radioMedium.getLastTickConnections();
-        if (conns == null || conns.length == 0) {
+        RadioConnection conn = radioMedium.getLastConnection();
+        if (conn == null) {
           return;
         }
-        final RadioConnectionLog[] logged = new RadioConnectionLog[conns.length];
-        for (int i = 0, n = logged.length; i < n; i++) {
-          RadioConnectionLog loggedConn = new RadioConnectionLog();
-          loggedConn.startTime = conns[i].getStartTime();
-          loggedConn.endTime = simulation.getSimulationTime();
-          loggedConn.connection = conns[i];
-          loggedConn.packet = conns[i].getSource().getLastPacketTransmitted();
-          logged[i] = loggedConn;
-        }
+        final RadioConnectionLog loggedConn = new RadioConnectionLog();
+        loggedConn.startTime = conn.getStartTime();
+        loggedConn.endTime = simulation.getSimulationTime();
+        loggedConn.connection = conn;
+        loggedConn.packet = conn.getSource().getLastPacketTransmitted();
         java.awt.EventQueue.invokeLater(new Runnable() {
           public void run() {
             int lastSize = connections.size();
@@ -272,9 +283,7 @@ public class RadioLogger extends VisPlugin {
               Rectangle visible = dataTable.getVisibleRect();
               isVisible = visible.y <= lastRow.y && visible.y + visible.height >= lastRow.y + lastRow.height;
             }
-            for(RadioConnectionLog log: logged) {
-              connections.add(log);
-            }
+            connections.add(loggedConn);
             if (connections.size() > lastSize) {
               model.fireTableRowsInserted(lastSize, connections.size() - 1);
             }
@@ -295,6 +304,26 @@ public class RadioLogger extends VisPlugin {
     }
   }
 
+  /**
+   * Selects a logged radio packet close to the given time.
+   * 
+   * @param time Start time
+   */
+  public void trySelectTime(final long time) {
+    java.awt.EventQueue.invokeLater(new Runnable() {
+      public void run() {
+        for (int i=0; i < connections.size(); i++) {
+          if (connections.get(i).endTime < time) {
+            continue;
+          }
+          dataTable.scrollRectToVisible(dataTable.getCellRect(i, 0, true));
+          dataTable.setRowSelectionInterval(i, i);
+          return;
+        }
+      }
+    });  
+  }
+  
   private void prepareDataString(RadioConnectionLog conn) {
     byte[] data;
     if (conn.packet == null) {
@@ -353,14 +382,37 @@ public class RadioLogger extends VisPlugin {
   }
 
   public Collection<Element> getConfigXML() {
-    return null;
+    if (aliases == null) {
+      return null;
+    }
+
+    ArrayList<Element> config = new ArrayList<Element>();
+    Element element;
+
+    for (Object key: aliases.keySet()) {
+      element = new Element("alias");
+      element.setAttribute("payload", (String) key);
+      element.setAttribute("alias", (String) aliases.get(key));
+      config.add(element);
+    }
+
+    return config;
   }
 
-  public boolean setConfigXML(Collection<Element> configXML,
-      boolean visAvailable) {
+  public boolean setConfigXML(Collection<Element> configXML, boolean visAvailable) {
+    if (aliases == null) {
+      aliases = new Properties();
+    }
+    for (Element element : configXML) {
+      if (element.getName().equals("alias")) {
+        String payload = element.getAttributeValue("payload");
+        String alias = element.getAttributeValue("alias");
+        aliases.put(payload, alias);
+      }
+    }
     return true;
   }
-
+  
   private static class RadioConnectionLog {
     long startTime;
     long endTime;
@@ -478,5 +530,70 @@ public class RadioLogger extends VisPlugin {
 
     }
   };
+
+  private Action timeLineAction = new AbstractAction("to Timeline") {
+    public void actionPerformed(ActionEvent e) {
+      TimeLine plugin = (TimeLine) simulation.getGUI().getStartedPlugin(TimeLine.class.getName());
+      if (plugin == null) {
+        logger.fatal("No Timeline plugin");
+        return;
+      }
+
+      int selectedRow = dataTable.getSelectedRow();
+      if (selectedRow < 0) return;
+      long time = connections.get(selectedRow).startTime;
+      
+      /* Select simulation time */
+      plugin.trySelectTime(time);
+    }
+  };
   
+  private Properties aliases = null;
+  private Action aliasAction = new AbstractAction("Assign alias") {
+    public void actionPerformed(ActionEvent e) {
+      int selectedRow = dataTable.getSelectedRow();
+      if (selectedRow < 0) return;
+
+      String current = "";
+      if (aliases != null && aliases.get(connections.get(selectedRow).data) != null) {
+        current = (String) aliases.get(connections.get(selectedRow).data);
+      }
+
+      String alias = (String) JOptionPane.showInputDialog(
+          GUI.getTopParentContainer(), 
+          "Enter alias for all packets with identical payload.\n" +
+          "An empty string removes the current alias.\n\n" +
+          connections.get(selectedRow).data + "\n",
+          "Create packet payload alias",
+          JOptionPane.QUESTION_MESSAGE,
+          null,
+          null,
+          current);
+      if (alias == null) {
+        /* Cancelled */
+        return;
+      }
+
+      /* Should be null if empty */
+      if (aliases == null) {
+        aliases = new Properties();
+      }
+
+      /* Remove current alias */
+      if (alias.equals("")) {
+        aliases.remove(connections.get(selectedRow).data);
+        
+        /* Should be null if empty */
+        if (aliases.isEmpty()) {
+          aliases = null;
+        }
+        repaint();
+        return;
+      }
+
+      /* (Re)define alias */
+      aliases.put(connections.get(selectedRow).data, alias);
+      repaint();
+    }
+  };
 }
