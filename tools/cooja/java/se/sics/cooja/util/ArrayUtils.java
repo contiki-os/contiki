@@ -24,7 +24,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * $Id: ArrayUtils.java,v 1.3 2009/10/29 16:48:50 fros4943 Exp $
+ * $Id: ArrayUtils.java,v 1.4 2009/11/25 15:43:45 fros4943 Exp $
  */
 
 package se.sics.cooja.util;
@@ -104,6 +104,8 @@ public class ArrayUtils {
     try {
       FileOutputStream writer = new FileOutputStream(dest);
       writer.write(data);
+      writer.flush();
+      writer.close();
       return true;
     } catch (IOException e) {
       return false;
