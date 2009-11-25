@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: MRM.java,v 1.10 2009/10/27 10:14:09 fros4943 Exp $
+ * $Id: MRM.java,v 1.11 2009/11/25 15:43:03 fros4943 Exp $
  */
 
 package se.sics.mrm;
@@ -148,10 +148,9 @@ public class MRM extends AbstractRadioMedium {
             }
           }
           if (existingConn != null) {
-            // Change radio from receiving to interfered
-            existingConn.removeDestination(listeningRadio);
+            /* Flag radio as interfered */
             existingConn.addInterfered(listeningRadio);
-
+            listeningRadio.interfereAnyReception();
           }
         } else {
           // Radio OK to receive
