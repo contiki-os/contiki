@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: RadioMedium.java,v 1.7 2009/05/26 14:17:29 fros4943 Exp $
+ * $Id: RadioMedium.java,v 1.8 2009/11/25 15:26:35 fros4943 Exp $
  */
 
 package se.sics.cooja;
@@ -122,18 +122,9 @@ public abstract class RadioMedium {
   public abstract void deleteRadioMediumObserver(Observer observer);
 
   /**
-   * Returns all connections made during last tick loop.
-   *
-   * Typically a radio medium is a tick observer and transfers data between
-   * radios after each tick loop. When these calculations are finished, it will
-   * in turn notify all radio medium observers. A radio medium observer may get
-   * information about which connections were made by using this method. Observe
-   * that this method may return null of no connections were made.
-   *
-   * @see RadioConnection
-   * @return All connections made during last tick loop or null if none
+   * @return Last radio connection finished in the radio medium
    */
-  public abstract RadioConnection[] getLastTickConnections();
+  public abstract RadioConnection getLastConnection();
 
   /**
    * Returns XML elements representing the current config of this radio medium.
