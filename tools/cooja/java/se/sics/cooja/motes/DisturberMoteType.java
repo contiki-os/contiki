@@ -89,8 +89,8 @@ public class DisturberMoteType extends AbstractApplicationMoteType {
     private final RadioPacket radioPacket = new COOJARadioPacket(new byte[] {
         0x01, 0x02, 0x03, 0x04, 0x05
     });
-    private final static long DELAY = 1*Simulation.MILLISECOND;
-    private final static long DURATION = 1*Simulation.MILLISECOND;
+    private final static long DELAY = Simulation.MILLISECOND/5;
+    private final static long DURATION = 10*Simulation.MILLISECOND;
     
     public DisturberMote() {
       super();
