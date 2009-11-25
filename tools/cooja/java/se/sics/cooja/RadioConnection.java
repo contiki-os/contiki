@@ -26,120 +26,145 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: RadioConnection.java,v 1.11 2009/11/13 08:38:45 fros4943 Exp $
+ * $Id: RadioConnection.java,v 1.12 2009/11/25 15:21:15 fros4943 Exp $
  */
 
 package se.sics.cooja;
 
-import java.util.Vector;
+import java.util.ArrayList;
+
+import org.apache.log4j.Logger;
 
 import se.sics.cooja.interfaces.Radio;
 
 /**
- * A radio connection represents a connection between a source radio and zero or
- * more destination and interfered radios. Typically the destinations are able
- * to receive data sent by the source radio, and the interfered radios are not.
- *
+ * A radio connection represents a connection between a single source radio and 
+ * any number of destination and interfered radios.
+ * 
+ * Note that a destination node may be interfered, and that an interfered radio 
+ * does not need to be a destination. Interfered radios may be added during the
+ * connection lifetime. 
+ * 
+ * Radio medium implementations may differ slightly in how they forward connection data 
+ * to destination and interfered radios.
+ * Typically, however, all destination radios (including those that are interfered)
+ * receive the connection data.
+ * And the interfered non-destination radios do not receive the connection data.
+ * 
  * @see RadioMedium
  * @author Fredrik Osterlind
  */
 public class RadioConnection {
+  private static Logger logger = Logger.getLogger(RadioConnection.class);
+
   private static int ID = 0; /* Unique radio connection ID. For internal use */
-  
   private int id;
-  
+
   private Radio source;
+  
+  private ArrayList<Radio> allDestinations = new ArrayList<Radio>();
+  private ArrayList<Long> allDestinationDelays = new ArrayList<Long>();
 
-  private Vector<Radio> destinations = new Vector<Radio>();
-
-  private Vector<Long> destinationDelays = new Vector<Long>();
-
-  private Vector<Radio> interfered = new Vector<Radio>();
-
+  private ArrayList<Radio> allInterfered = new ArrayList<Radio>();
+  private ArrayList<Radio> onlyInterfered = new ArrayList<Radio>();
+  private ArrayList<Radio> destinationsNonInterfered = new ArrayList<Radio>();
+  
   private long startTime;
 
   /**
    * Creates a new radio connection with given source and no destinations.
    *
-   * @param sourceRadio
-   *          Source radio
+   * @param sourceRadio Source radio
    */
   public RadioConnection(Radio sourceRadio) {
     this.source = sourceRadio;
     startTime = sourceRadio.getMote().getSimulation().getSimulationTime();
-    
+
     this.id = ID++;
   }
 
+  /**
+   * @return Radio connection start time
+   */
   public long getStartTime() {
     return startTime;
   }
 
   /**
-   * Set source of this connection.
-   *
-   * @param radio
-   *          Source radio
-   */
-  public void setSource(Radio radio) {
-    source = radio;
-  }
-
-  /**
-   * Adds destination radio.
-   *
-   * @param radio
-   *          Radio
-   */
-  public void addDestination(Radio radio) {
-    destinations.add(radio);
-    destinationDelays.add(new Long(0));
-  }
-
-  public void addDestination(Radio radio, Long delay) {
-    destinations.add(radio);
-    destinationDelays.add(delay);
-  }
-
-  public Long getDestinationDelay(Radio radio) {
-    int idx = destinations.indexOf(radio);
-    return destinationDelays.get(idx);
-  }
-
-  /**
-   * Adds interfered radio.
-   *
-   * @param radio
-   *          Radio
-   */
-  public void addInterfered(Radio radio) {
-    interfered.add(radio);
-  }
-
-  /**
-   * Removes destination radio.
+   * Add (non-interfered) destination radio to connection.
    *
    * @param radio Radio
-   * @return True if radio was removed
    */
-  public boolean removeDestination(Radio radio) {
-    int idx = destinations.indexOf(radio);
-    if (idx < 0) {
-      return false; 
-    }
-    destinations.remove(idx);
-    destinationDelays.remove(idx);
-    return true;
+  public void addDestination(Radio radio) {
+    addDestination(radio, new Long(0));
   }
 
   /**
-   * Removes interfered radio.
-   *
-   * @param radio
-   *          Radio
+   * Add (non-interfered) destination radio to connection.
+   * 
+   * @param radio Radio
+   * @param delay Radio propagation delay (us)
    */
-  public void removeInterfered(Radio radio) {
-    interfered.remove(radio);
+  public void addDestination(Radio radio, Long delay) {
+    if (isDestination(radio)) {
+      logger.fatal("Radio is already a destination: " + radio);
+      return;
+    }
+    allDestinations.add(radio);
+    allDestinationDelays.add(delay);
+    destinationsNonInterfered.add(radio);
+    onlyInterfered.remove(radio);
+  }
+
+  /**
+   * @param radio Radio
+   * @return Radio propagation delay (us)
+   */
+  public long getDestinationDelay(Radio radio) {
+    int idx = allDestinations.indexOf(radio);
+    if (idx < 0) {
+      logger.fatal("Radio is not a connection destination: " + radio);
+      return 0;
+    }
+    return allDestinationDelays.get(idx);
+
+  }
+
+  /**
+   * Adds interfered radio to connection.
+   * Note that the radio may or may not already be a destination.
+   *
+   * @param radio Radio
+   * @see #getDestinations()
+   * @see #getAllDestinations()
+   */
+  public void addInterfered(Radio radio) {
+    if (isInterfered(radio)) {
+      logger.fatal("Radio is already interfered: " + radio);
+      return;
+    }
+
+    allInterfered.add(radio);
+    destinationsNonInterfered.remove(radio);
+    if (!isDestination(radio)) {
+      onlyInterfered.add(radio);
+    }
+  }
+
+  /**
+   * @param radio Radio
+   * @return True if radio is a non-interfered destination in this connection
+   */
+  public boolean isDestination(Radio radio) {
+    return destinationsNonInterfered.contains(radio);
+  }
+
+  /**
+   * @param radio Radio
+   * @return True if radio is interfered in this connection
+   */
+  public boolean isInterfered(Radio radio) {
+    return allInterfered.contains(radio);
   }
 
   /**
@@ -150,32 +175,42 @@ public class RadioConnection {
   }
 
   /**
-   * @return All destinations of this connection
+   * @see #getAllDestinations()
+   * @return All non-interfered destinations
    */
   public Radio[] getDestinations() {
-    Radio[] arr = new Radio[destinations.size()];
-    destinations.toArray(arr);
-    return arr;
+    return destinationsNonInterfered.toArray(new Radio[0]);
   }
 
   /**
-   * @return All radios interfered by this connection
+   * @see #getDestinations()
+   * @return All destination radios, including radios that became
+   * interfered after the connection started.
+   */
+  public Radio[] getAllDestinations() {
+    return allDestinations.toArray(new Radio[0]);
+  }
+
+  /**
+   * @return All radios interfered by this connection, including destinations
    */
   public Radio[] getInterfered() {
-    Radio[] arr = new Radio[interfered.size()];
-    interfered.toArray(arr);
-    return arr;
+    return allInterfered.toArray(new Radio[0]);
+  }
+
+  public Radio[] getInterferedNonDestinations() {
+    return onlyInterfered.toArray(new Radio[0]);
   }
 
   public String toString() {
-    if (destinations.size() == 0) {
+    if (destinationsNonInterfered.size() == 0) {
       return id + ": Radio connection: " + source.getMote() + " -> none";
     }
-    if (destinations.size() == 1) {
-      return id + ": Radio connection: " + source.getMote() + " -> " + destinations.get(0).getMote();
+    if (destinationsNonInterfered.size() == 1) {
+      return id + ": Radio connection: " + source.getMote() + " -> " + destinationsNonInterfered.get(0).getMote();
     }
 
-    return id + ": Radio connection: " + source.getMote() + " -> " + destinations.size() + " motes";
+    return id + ": Radio connection: " + source.getMote() + " -> " + destinationsNonInterfered.size() + " motes";
 
   }
 
