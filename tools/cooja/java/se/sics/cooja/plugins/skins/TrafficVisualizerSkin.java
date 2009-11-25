@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: TrafficVisualizerSkin.java,v 1.3 2009/11/25 15:40:46 fros4943 Exp $
+ * $Id: TrafficVisualizerSkin.java,v 1.4 2009/11/25 15:44:51 fros4943 Exp $
  */
 
 package se.sics.cooja.plugins.skins;
@@ -224,6 +224,9 @@ public class TrafficVisualizerSkin implements VisualizerSkin {
       /* Paint history in gray */
       RadioConnection[] historyArr = history.toArray(new RadioConnection[0]);
       for (RadioConnection conn : historyArr) {
+        if (conn == null) {
+          continue;
+        }
         g.setColor(COLOR_HISTORY);
         Radio source = conn.getSource();
         Point sourcePoint = visualizer.transformPositionToPixel(source.getPosition());
