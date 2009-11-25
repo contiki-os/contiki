@@ -24,7 +24,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * $Id: GUI.java,v 1.153 2009/11/13 14:25:43 fros4943 Exp $
+ * $Id: GUI.java,v 1.154 2009/11/25 10:29:21 fros4943 Exp $
  */
 
 package se.sics.cooja;
@@ -4263,7 +4263,8 @@ public class GUI extends Observable {
         }
       };
       fc.setFileFilter(jarFilter);
-      fc.setSelectedFile(new File("cooja_simulation.jar"));
+      File suggest = new File(getExternalToolsSetting("EXECUTE_JAR_LAST", "cooja_simulation.jar"));
+      fc.setSelectedFile(suggest);
       int returnVal = fc.showSaveDialog(GUI.getTopParentContainer());
       if (returnVal != JFileChooser.APPROVE_OPTION) {
         return;
@@ -4283,6 +4284,7 @@ public class GUI extends Observable {
       }
       
       final File finalOutputFile = outputFile;
+      setExternalToolsSetting("EXECUTE_JAR_LAST", outputFile.getPath());
       new Thread() {
         public void run() {
           try {
