@@ -43,6 +43,7 @@ import se.sics.cooja.MoteTimeEvent;
 import se.sics.cooja.MoteType;
 import se.sics.cooja.RadioPacket;
 import se.sics.cooja.Simulation;
+import se.sics.cooja.MoteType.MoteTypeCreationException;
 import se.sics.cooja.interfaces.ApplicationRadio;
 import se.sics.cooja.interfaces.Radio.RadioEvent;
 
@@ -71,7 +72,8 @@ public class DisturberMoteType extends AbstractApplicationMoteType {
   }
 
   public boolean configureAndInit(Container parentContainer,
-      Simulation simulation, boolean visAvailable) {
+      Simulation simulation, boolean visAvailable) 
+  throws MoteTypeCreationException {
     if (!super.configureAndInit(parentContainer, simulation, visAvailable)) {
       return false;
     }
