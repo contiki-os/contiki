@@ -24,7 +24,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * $Id: Simulation.java,v 1.54 2009/11/13 08:37:36 fros4943 Exp $
+ * $Id: Simulation.java,v 1.55 2009/11/25 20:47:19 fros4943 Exp $
  */
 
 package se.sics.cooja;
@@ -610,7 +610,9 @@ public class Simulation extends Observable implements Runnable {
       if (element.getName().equals("mote")) {
         Class<? extends Mote> moteClass = myGUI.tryLoadClass(this, Mote.class,
             element.getText().trim());
-
+        if (moteClass == null) {
+          throw new Exception("Could not load mote class: " + element.getText().trim());
+        }
         Mote mote = moteClass.getConstructor((Class[]) null).newInstance((Object[]) null);
         if (mote.setConfigXML(this, element.getChildren(), visAvailable)) {
           addMote(mote);

@@ -24,7 +24,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * $Id: GUI.java,v 1.154 2009/11/25 10:29:21 fros4943 Exp $
+ * $Id: GUI.java,v 1.155 2009/11/25 20:47:18 fros4943 Exp $
  */
 
 package se.sics.cooja;
@@ -302,7 +302,7 @@ public class GUI extends Observable {
 
   private Vector<File> currentProjectDirs = new Vector<File>();
 
-  private ClassLoader projectDirClassLoader;
+  public ClassLoader projectDirClassLoader;
 
   private Vector<Class<? extends MoteType>> moteTypeClasses = new Vector<Class<? extends MoteType>>();
 
@@ -2846,12 +2846,9 @@ public class GUI extends Observable {
   /**
    * Help method that tries to load and initialize a class with given name.
    *
-   * @param <N>
-   *          Class extending given class type
-   * @param classType
-   *          Class type
-   * @param className
-   *          Class name
+   * @param <N> Class extending given class type
+   * @param classType Class type
+   * @param className Class name
    * @return Class extending given class type or null if not found
    */
   public <N extends Object> Class<? extends N> tryLoadClass(
