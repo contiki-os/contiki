@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: SkyByteRadio.java,v 1.16 2009/11/25 10:01:55 fros4943 Exp $
+ * $Id: SkyByteRadio.java,v 1.17 2009/11/25 15:18:11 fros4943 Exp $
  */
 
 package se.sics.cooja.mspmote.interfaces;
@@ -144,6 +144,9 @@ public class SkyByteRadio extends Radio implements CustomDataRadio {
         if (isReceiverOn()) {
           lastEvent = RadioEvent.HW_ON;
         } else {
+          if (isTransmitting()) {
+            logger.fatal("Turning off radio while transmitting");
+          }
           lastEvent = RadioEvent.HW_OFF;
         }
         lastEventTime = SkyByteRadio.this.mote.getSimulation().getSimulationTime();
