@@ -24,12 +24,15 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * $Id: Radio.java,v 1.10 2009/04/16 14:26:36 fros4943 Exp $
+ * $Id: Radio.java,v 1.11 2009/11/25 16:05:47 fros4943 Exp $
  */
 
 package se.sics.cooja.interfaces;
 
-import se.sics.cooja.*;
+import se.sics.cooja.ClassDescription;
+import se.sics.cooja.Mote;
+import se.sics.cooja.MoteInterface;
+import se.sics.cooja.RadioPacket;
 
 /**
  * A Radio represents a mote radio transceiver.
@@ -80,7 +83,7 @@ public abstract class Radio extends MoteInterface {
 
   /**
    * Signal that the current reception was ended. This method should normally be
-   * called from the radio medium.
+   * called from the radio medium on both destination and interfered radios.
    *
    * @see #signalReceptionStart()
    */
@@ -119,12 +122,20 @@ public abstract class Radio extends MoteInterface {
    */
   public abstract boolean isInterfered();
 
+  /**
+   * @return True if the simulated radio receiver is turned on
+   */
   public abstract boolean isReceiverOn();
 
   /**
    * Interferes with any current reception. If this method is called, the packet
    * will be dropped. This method can be used to simulate radio interference
-   * such as high background noise.
+   * such as high background noise or radio packet collisions.
+   * 
+   * When the radio is no longer interfered, the {@link #signalReceptionEnd()} 
+   * method must be called.
+   *  
+   * @see #signalReceptionEnd()
    */
   public abstract void interfereAnyReception();
 
