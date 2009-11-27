@@ -26,18 +26,18 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: MoteID.java,v 1.2 2009/10/28 14:35:10 fros4943 Exp $
+ * $Id: MoteID.java,v 1.3 2009/11/27 15:53:10 fros4943 Exp $
  */
 
 package se.sics.cooja.interfaces;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Vector;
 
 import org.jdom.Element;
 
-import se.sics.cooja.*;
+import se.sics.cooja.ClassDescription;
+import se.sics.cooja.MoteInterface;
 
 /**
  * A MoteID represents a mote ID number. An implementation should notify all

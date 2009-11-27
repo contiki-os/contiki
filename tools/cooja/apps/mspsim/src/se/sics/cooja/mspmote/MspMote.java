@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: MspMote.java,v 1.34 2009/10/27 10:02:48 fros4943 Exp $
+ * $Id: MspMote.java,v 1.35 2009/11/27 15:53:10 fros4943 Exp $
  */
 
 package se.sics.cooja.mspmote;
@@ -40,7 +40,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Hashtable;
 import java.util.Observable;
-import java.util.Vector;
 
 import org.apache.log4j.Logger;
 import org.jdom.Element;
@@ -395,21 +394,18 @@ public abstract class MspMote extends AbstractEmulatedMote implements Mote, Watc
   }
   
   public boolean setConfigXML(Simulation simulation, Collection<Element> configXML, boolean visAvailable) {
+    setSimulation(simulation);
+    initEmulator(myMoteType.getContikiFirmwareFile());
+    myMoteInterfaceHandler = createMoteInterfaceHandler();
+
+    /* Create watchpoint container */
+    breakpointsContainer = new MspBreakpointContainer(this, getFirmwareDebugInfo(this));
+
     for (Element element: configXML) {
       String name = element.getName();
 
       if (name.equals("motetype_identifier")) {
-
-        setSimulation(simulation);
-        myMoteType = (MspMoteType) simulation.getMoteType(element.getText());
-        getType().setIdentifier(element.getText());
-
-        initEmulator(myMoteType.getContikiFirmwareFile());
-        myMoteInterfaceHandler = createMoteInterfaceHandler();
-
-        /* Create watchpoint container */
-        breakpointsContainer = new MspBreakpointContainer(this, getFirmwareDebugInfo(this));
-        
+        /* Ignored: handled by simulation */
       } else if ("breakpoints".equals(element.getName())) {
         breakpointsContainer.setConfigXML(element.getChildren(), visAvailable);
       } else if (name.equals("interface_config")) {
@@ -436,14 +432,8 @@ public abstract class MspMote extends AbstractEmulatedMote implements Mote, Watc
   }
 
   public Collection<Element> getConfigXML() {
-    Vector<Element> config = new Vector<Element>();
-
+    ArrayList<Element> config = new ArrayList<Element>();
     Element element;
-
-    // Mote type identifier
-    element = new Element("motetype_identifier");
-    element.setText(getType().getIdentifier());
-    config.add(element);
 
     /* Breakpoints */
     element = new Element("breakpoints");

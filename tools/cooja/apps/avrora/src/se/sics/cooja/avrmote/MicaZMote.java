@@ -26,14 +26,14 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: MicaZMote.java,v 1.12 2009/11/17 14:30:26 joxe Exp $
+ * $Id: MicaZMote.java,v 1.13 2009/11/27 15:53:10 fros4943 Exp $
  */
 
 package se.sics.cooja.avrmote;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Vector;
 
 import org.apache.log4j.Logger;
 import org.jdom.Element;
@@ -52,9 +52,7 @@ import avrora.sim.Simulator;
 import avrora.sim.State;
 import avrora.sim.mcu.AtmelMicrocontroller;
 import avrora.sim.mcu.EEPROM;
-import avrora.sim.mcu.Microcontroller;
 import avrora.sim.platform.MicaZ;
-import avrora.sim.platform.Platform;
 import avrora.sim.platform.PlatformFactory;
 
 /**
@@ -183,6 +181,7 @@ public class MicaZMote extends AbstractEmulatedMote implements Mote {
   }
 
   public void setType(MoteType type) {
+    myMoteType = (MicaZMoteType) type;
   }
 
   public MoteInterfaceHandler getInterfaces() {
@@ -227,18 +226,15 @@ public class MicaZMote extends AbstractEmulatedMote implements Mote {
   }
   
   public boolean setConfigXML(Simulation simulation, Collection<Element> configXML, boolean visAvailable) {
+    setSimulation(simulation);
+    initEmulator(myMoteType.getContikiFirmwareFile());
+    myMoteInterfaceHandler = createMoteInterfaceHandler();
+
     for (Element element: configXML) {
       String name = element.getName();
 
       if (name.equals("motetype_identifier")) {
-
-        setSimulation(simulation);
-        myMoteType = (MicaZMoteType) simulation.getMoteType(element.getText());
-        getType().setIdentifier(element.getText());
-
-        initEmulator(myMoteType.getContikiFirmwareFile());
-        myMoteInterfaceHandler = createMoteInterfaceHandler();
-
+        /* Ignored: handled by simulation */
       } else if (name.equals("interface_config")) {
         Class<? extends MoteInterface> moteInterfaceClass = simulation.getGUI().tryLoadClass(
               this, MoteInterface.class, element.getText().trim());
@@ -259,16 +255,10 @@ public class MicaZMote extends AbstractEmulatedMote implements Mote {
   }
 
   public Collection<Element> getConfigXML() {
-    Vector<Element> config = new Vector<Element>();
-
+    ArrayList<Element> config = new ArrayList<Element>();
     Element element;
 
-    // Mote type identifier
-    element = new Element("motetype_identifier");
-    element.setText(getType().getIdentifier());
-    config.add(element);
-
-    // Mote interfaces
+    /* Mote interfaces */
     for (MoteInterface moteInterface: getInterfaces().getInterfaces()) {
       element = new Element("interface_config");
       element.setText(moteInterface.getClass().getName());
