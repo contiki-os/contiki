@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: xmac.c,v 1.41 2009/11/04 16:02:45 adamdunkels Exp $
+ * $Id: xmac.c,v 1.42 2009/11/27 12:49:27 adamdunkels Exp $
  */
 
 /**
@@ -379,24 +379,26 @@ parse_announcements(const rimeaddr_t *from)
 static int
 format_announcement(char *hdr)
 {
-  struct announcement_msg *adata;
+  struct announcement_msg adata;
   struct announcement *a;
   
   /* Construct the announcements */
-  adata = (struct announcement_msg *)hdr;
+  /*  adata = (struct announcement_msg *)hdr;*/
   
-  adata->num = 0;
+  adata.num = 0;
   for(a = announcement_list();
-      a != NULL && adata->num < ANNOUNCEMENT_MAX;
+      a != NULL && adata.num < ANNOUNCEMENT_MAX;
       a = a->next) {
-    adata->data[adata->num].id = a->id;
-    adata->data[adata->num].value = a->value;
-    adata->num++;
+    adata.data[adata->num].id = a->id;
+    adata.data[adata->num].value = a->value;
+    adata.num++;
   }
 
-  if(adata->num > 0) {
+  memcpy(hdr, &adata, sizeof(struct announcement_msg));
+  
+  if(adata.num > 0) {
     return ANNOUNCEMENT_MSG_HEADERLEN +
-      sizeof(struct announcement_data) * adata->num;
+      sizeof(struct announcement_data) * adata.num;
   } else {
     return 0;
   }
