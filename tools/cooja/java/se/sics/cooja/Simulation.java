@@ -24,7 +24,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * $Id: Simulation.java,v 1.55 2009/11/25 20:47:19 fros4943 Exp $
+ * $Id: Simulation.java,v 1.56 2009/11/27 15:53:10 fros4943 Exp $
  */
 
 package se.sics.cooja;
@@ -484,10 +484,17 @@ public class Simulation extends Observable implements Runnable {
       element = new Element("mote");
       element.setText(mote.getClass().getName());
 
-      Collection<Element> moteXML = mote.getConfigXML();
-      if (moteXML != null) {
-        element.addContent(moteXML);
+      Collection<Element> moteConfig = mote.getConfigXML();
+      if (moteConfig == null) {
+        moteConfig = new ArrayList<Element>();
       }
+      
+      /* Add mote type identifier */
+      Element typeIdentifier = new Element("motetype_identifier");
+      typeIdentifier.setText(mote.getType().getIdentifier());
+      moteConfig.add(typeIdentifier);
+      
+      element.addContent(moteConfig);
       config.add(element);
     }
 
@@ -606,14 +613,30 @@ public class Simulation extends Observable implements Runnable {
         }
       }
 
-      // Mote
+      /* Mote */
       if (element.getName().equals("mote")) {
-        Class<? extends Mote> moteClass = myGUI.tryLoadClass(this, Mote.class,
-            element.getText().trim());
+        String moteClassName = element.getText().trim();
+        
+        /* Read mote type identifier */
+        MoteType moteType = null;
+        for (Element subElement: (Collection<Element>) element.getChildren()) {
+          if (subElement.getName().equals("motetype_identifier")) {
+            moteType = getMoteType(subElement.getText());
+            break;
+          }
+        }
+        if (moteType == null) {
+          throw new Exception("No mote type for mote: " + moteClassName);
+        }
+        
+        /* Load mote class using mote type's class loader */
+        Class<? extends Mote> moteClass = myGUI.tryLoadClass(moteType, Mote.class, moteClassName);
         if (moteClass == null) {
           throw new Exception("Could not load mote class: " + element.getText().trim());
         }
+
         Mote mote = moteClass.getConstructor((Class[]) null).newInstance((Object[]) null);
+        mote.setType(moteType);
         if (mote.setConfigXML(this, element.getChildren(), visAvailable)) {
           addMote(mote);
         } else {

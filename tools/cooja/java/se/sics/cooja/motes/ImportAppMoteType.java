@@ -36,6 +36,7 @@ import java.io.File;
 import java.lang.reflect.Constructor;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Random;
 
 import javax.swing.JFileChooser;
 import javax.swing.filechooser.FileFilter;
@@ -75,12 +76,15 @@ public class ImportAppMoteType extends AbstractApplicationMoteType {
   }
 
   private class TestClassLoader extends ClassLoader {
+    private int id; /* DEBUG */
     private File file;
     public TestClassLoader(File f) {
+      id = new Random().nextInt();
       file = f;
     }
     public TestClassLoader(ClassLoader parent, File f) {
       super(parent);
+      id = new Random().nextInt();
       file = f;
     }
     public Class<?> findClass(String name) {
@@ -89,6 +93,9 @@ public class ImportAppMoteType extends AbstractApplicationMoteType {
     }
     private byte[] loadClassData(String name) {
       return ArrayUtils.readFromFile(file);
+    }
+    public String toString() {
+      return "ImportAppMoteType classloader #" + id;
     }
   }
 
@@ -200,6 +207,7 @@ public class ImportAppMoteType extends AbstractApplicationMoteType {
         new TestClassLoader(simulation.getGUI().projectDirClassLoader, moteClassFile);
     }
 
+    logger.info(moteClass.getClassLoader());
     setDescription("Imported Mote Type #" + moteClassFile.getName());
 
     return true;
