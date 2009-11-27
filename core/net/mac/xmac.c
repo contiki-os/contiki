@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: xmac.c,v 1.42 2009/11/27 12:49:27 adamdunkels Exp $
+ * $Id: xmac.c,v 1.43 2009/11/27 14:27:50 fros4943 Exp $
  */
 
 /**
@@ -278,7 +278,7 @@ powercycle(struct rtimer *t, void *ptr)
 	  off();
 #if XMAC_CONF_COMPOWER
 	  compower_accumulate(&compower_idle_activity);
-#endif /* XMAC_CONF_COMPOWER */	
+#endif /* XMAC_CONF_COMPOWER */
 	} else {
 	  waiting_for_packet++;
 	  if(waiting_for_packet > 2) {
@@ -354,7 +354,7 @@ parse_announcements(const rimeaddr_t *from)
   int i;
 
   memcpy(&adata, packetbuf_dataptr(), MIN(packetbuf_datalen(), sizeof(adata)));
-  
+
   /*  printf("%d.%d: probe from %d.%d with %d announcements\n",
 	 rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1],
 	 from->u8[0], from->u8[1], adata->num);*/
@@ -362,13 +362,13 @@ parse_announcements(const rimeaddr_t *from)
     printf("%02x ", ((uint8_t *)packetbuf_dataptr())[i]);
   }
   printf("\n");*/
-  
+
   for(i = 0; i < adata.num; ++i) {
     /*   printf("%d.%d: announcement %d: %d\n",
 	  rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1],
 	  adata->data[i].id,
 	  adata->data[i].value);*/
-    
+
     announcement_heard(from,
 		       adata.data[i].id,
 		       adata.data[i].value);
@@ -381,21 +381,21 @@ format_announcement(char *hdr)
 {
   struct announcement_msg adata;
   struct announcement *a;
-  
+
   /* Construct the announcements */
   /*  adata = (struct announcement_msg *)hdr;*/
-  
+
   adata.num = 0;
   for(a = announcement_list();
       a != NULL && adata.num < ANNOUNCEMENT_MAX;
       a = a->next) {
-    adata.data[adata->num].id = a->id;
-    adata.data[adata->num].value = a->value;
+    adata.data[adata.num].id = a->id;
+    adata.data[adata.num].value = a->value;
     adata.num++;
   }
 
   memcpy(hdr, &adata, sizeof(struct announcement_msg));
-  
+
   if(adata.num > 0) {
     return ANNOUNCEMENT_MSG_HEADERLEN +
       sizeof(struct announcement_data) * adata.num;
@@ -468,7 +468,7 @@ send_packet(void)
   }
 #endif /* WITH_RANDOM_WAIT_BEFORE_SEND */
 
-  
+
   /* Create the X-MAC header for the data packet. */
   packetbuf_set_addr(PACKETBUF_ADDR_SENDER, &rimeaddr_node_addr);
   if(rimeaddr_cmp(packetbuf_addr(PACKETBUF_ADDR_RECEIVER), &rimeaddr_null)) {
@@ -496,7 +496,7 @@ send_packet(void)
   len = framer_get()->create();
   strobe_len = len + sizeof(struct xmac_hdr);
   if(len == 0 || strobe_len > sizeof(strobe)) {
-    /* Failed to send */ 
+    /* Failed to send */
    PRINTF("xmac: send failed, too large header\n");
     return 0;
   }
@@ -528,7 +528,7 @@ send_packet(void)
     }
     waiting_for_packet = 0;
   }
-  
+
   while(someone_is_sending);
 
 #endif /* WITH_CHANNEL_CHECK */
@@ -612,7 +612,7 @@ send_packet(void)
   }
 
   if(!is_already_streaming) {
-    
+
   watchdog_stop();
   got_strobe_ack = 0;
   for(strobes = 0;
@@ -725,7 +725,7 @@ send_packet(void)
      the next packet. */
   compower_clear(&current_packet);
 #endif /* XMAC_CONF_COMPOWER */
-  
+
   we_are_sending = 0;
 
   LEDS_OFF(LEDS_BLUE);
@@ -828,7 +828,7 @@ read_packet(void)
 
     } else if(hdr->type == TYPE_STROBE) {
       someone_is_sending = 2;
-      
+
       if(rimeaddr_cmp(packetbuf_addr(PACKETBUF_ADDR_RECEIVER),
                       &rimeaddr_node_addr)) {
 	/* This is a strobe packet for us. */
@@ -891,7 +891,7 @@ send_announcement(void *ptr)
 {
   struct xmac_hdr *hdr;
   int announcement_len;
-  
+
   /* Set up the probe header. */
   packetbuf_clear();
   hdr = packetbuf_dataptr();
@@ -958,7 +958,7 @@ xmac_init(const struct radio_driver *d)
   list_init(encounter_list);
   memb_init(&encounter_memb);
 #endif /* WITH_ENCOUNTER_OPTIMIZATION */
-  
+
 #if XMAC_CONF_ANNOUNCEMENTS
   announcement_register_listen_callback(listen_callback);
   ctimer_set(&announcement_cycle_ctimer, ANNOUNCEMENT_TIME,
