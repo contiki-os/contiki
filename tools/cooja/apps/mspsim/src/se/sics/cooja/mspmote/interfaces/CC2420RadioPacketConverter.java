@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: CC2420RadioPacketConverter.java,v 1.10 2009/05/26 13:33:35 fros4943 Exp $
+ * $Id: CC2420RadioPacketConverter.java,v 1.11 2009/12/02 16:29:36 fros4943 Exp $
  */
 
 package se.sics.cooja.mspmote.interfaces;
@@ -35,7 +35,6 @@ import org.apache.log4j.Logger;
 
 import se.sics.cooja.ConvertedRadioPacket;
 import se.sics.cooja.RadioPacket;
-import se.sics.cooja.util.StringUtils;
 
 /**
  * Converts radio packets between X-MAC/CC24240/Sky and COOJA.
