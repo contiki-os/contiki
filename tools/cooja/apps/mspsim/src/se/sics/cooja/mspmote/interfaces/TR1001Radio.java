@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: TR1001Radio.java,v 1.15 2009/10/28 15:58:43 fros4943 Exp $
+ * $Id: TR1001Radio.java,v 1.16 2009/12/02 16:39:42 fros4943 Exp $
  */
 
 package se.sics.cooja.mspmote.interfaces;
@@ -47,6 +47,7 @@ import javax.swing.JPanel;
 import org.apache.log4j.Logger;
 import org.jdom.Element;
 
+import se.sics.cooja.COOJARadioPacket;
 import se.sics.cooja.ClassDescription;
 import se.sics.cooja.Mote;
 import se.sics.cooja.MoteTimeEvent;
@@ -62,109 +63,96 @@ import se.sics.mspsim.core.USART;
 import se.sics.mspsim.core.USARTListener;
 
 /**
- * TR1001 radio interface on ESB platform. Assumes driver specifics such as
- * preambles, synchbytes, GCR coding, CRC16.
+ * TR1001 radio interface on ESB platform.
+ * Assumes Contiki driver specifics such as preambles, synchbytes, GCR coding, CRC16.
  * 
  * @author Fredrik Osterlind
  */
 @ClassDescription("TR1001 Radio")
-public class TR1001Radio extends Radio implements USARTListener,
-    CustomDataRadio {
+public class TR1001Radio extends Radio implements USARTListener, CustomDataRadio {
   private static Logger logger = Logger.getLogger(TR1001Radio.class);
 
   /**
-   * Delay used when feeding packet data to radio chip (us). 416us corresponds
-   * to 19200 bit/s with encoding.
+   * Cross-level:
+   * Delay used when feeding packet data to radio chip (us).
+   * 416us corresponds to 19200 bit/s with encoding.
    */
-  public static final long DELAY_BETWEEN_BYTES = 3 * 416;
+  public static final long DELAY_BETWEEN_BYTES = 416;
 
   private ESBMote mote;
 
-  private boolean radioOn = true;
-
   private boolean isTransmitting = false;
-
   private boolean isReceiving = false;
-
   private boolean isInterfered = false;
 
   private RadioEvent lastEvent = RadioEvent.UNKNOWN;
-
   private long lastEventTime = 0;
 
   private USART radioUSART = null;
 
-  private RadioPacket lastIncomingPacket = null;
+  private RadioPacket receivedPacket = null;
+  private RadioPacket sentPacket = null;
 
-  private RadioPacket packetFromMote = null;
-
-  /* Outgoing packet data buffer */
-  private TR1001RadioByte[] outgoingData = new TR1001RadioByte[128]; /* TODO Adaptive max size */
-
-  private int outgoingDataLength = 0;
-
-  private int millisSinceLastSend = -1;
-
-  /* Outgoing byte data buffer */
-  private TR1001RadioByte tr1001ByteFromMote = null;
-
-  private TR1001RadioByte lastIncomingByte = null;
-
-  private long transmissionStartCycles = -1;
+  private byte receivedByte, sentByte;
 
   private TR1001RadioPacketConverter tr1001PacketConverter = null;
 
-  private double signalStrength = 0;
-
+  private boolean radioOn = true; /* TODO MSPSim: Not implemented */
+  private double signalStrength = 0;  /* TODO MSPSim: Not implemented */
+  
+  
   /**
    * Creates an interface to the TR1001 radio at mote.
    * 
-   * @param mote
-   *          Radio's mote.
-   * @see Mote
-   * @see se.sics.cooja.MoteInterfaceHandler
+   * @param mote Mote
    */
   public TR1001Radio(Mote mote) {
     this.mote = (ESBMote) mote;
 
     /* Start listening to CPU's USART */
     IOUnit usart = this.mote.getCPU().getIOUnit("USART 0");
-    if (usart instanceof USART) {
+    if (usart != null && usart instanceof USART) {
       radioUSART = (USART) usart;
       radioUSART.setUSARTListener(this);
+    } else {
+      throw new RuntimeException("Bad TR1001 IO: " + usart);
     }
   }
 
   /* Packet radio support */
   public RadioPacket getLastPacketTransmitted() {
-    return packetFromMote;
+    return sentPacket;
   }
 
   public RadioPacket getLastPacketReceived() {
-    return lastIncomingPacket;
+    return receivedPacket;
   }
 
   public void setReceivedPacket(RadioPacket packet) {
-    lastIncomingPacket = packet;
+    receivedPacket = packet;
 
     /* Convert to TR1001 packet data */
-    TR1001RadioByte[] byteArr = TR1001RadioPacketConverter.fromCoojaToTR1001(packet);
-    final ArrayDeque<TR1001RadioByte> byteList = new ArrayDeque<TR1001RadioByte>();
-    for (TR1001RadioByte b : byteArr) {
-      byteList.addLast(b);
+    byte[] arr = TR1001RadioPacketConverter.fromCoojaToTR1001(packet);
+    final ArrayDeque<Byte> data = new ArrayDeque<Byte>();
+    for (Byte b : arr) {
+      data.addLast(b);
     }
 
     /* Feed incoming bytes to radio "slowly" via time events */
     TimeEvent receiveCrosslevelDataEvent = new MoteTimeEvent(mote, 0) {
       public void execute(long t) {
         /* Stop receiving data when buffer is empty */
-        if (byteList.isEmpty() || isInterfered) {
-          byteList.clear();
+        if (data.isEmpty()) {
           return;
         }
 
-        TR1001RadioByte b = byteList.pop();
-        radioUSART.byteReceived(b.getByte());
+        byte b = data.pop();
+        if (isInterfered) {
+          radioUSART.byteReceived(0xFF); /* Corrupted data */
+        } else {
+          radioUSART.byteReceived(b);
+        }
+        mote.requestImmediateWakeup();
 
         mote.getSimulation().scheduleEvent(this, t + DELAY_BETWEEN_BYTES);
       }
@@ -174,90 +162,83 @@ public class TR1001Radio extends Radio implements USARTListener,
 
   /* Custom data radio support */
   public Object getLastCustomDataTransmitted() {
-    return tr1001ByteFromMote;
+    return sentByte;
   }
 
   public Object getLastCustomDataReceived() {
-    return lastIncomingByte;
+    return receivedByte;
   }
 
   public void receiveCustomData(Object data) {
-    if (data instanceof TR1001RadioByte) {
-      lastIncomingByte = ((TR1001RadioByte) data);
+    if (!(data instanceof Byte)) {
+      logger.fatal("Received bad custom data: " + data);
+      return;
+    }
+    receivedByte = (Byte) data;
 
-      if (radioUSART.isReceiveFlagCleared()) {
-        /*logger.info("----- TR1001 RECEIVED BYTE -----");*/
-        radioUSART.byteReceived(lastIncomingByte.getByte());
+    mote.requestImmediateWakeup();
+    if (radioUSART.isReceiveFlagCleared()) {
+      /*logger.info("----- TR1001 RECEIVED BYTE -----");*/
+      if (isInterfered) {
+        radioUSART.byteReceived(0xFF); /* Corrupted data */
       } else {
-        logger.warn("----- TR1001 RECEIVED BYTE DROPPED -----");
+        radioUSART.byteReceived(receivedByte);
       }
+    } else {
+      logger.warn(mote.getSimulation().getSimulationTime() + ": ----- TR1001 RECEIVED BYTE DROPPED -----");
     }
   }
 
   /* USART listener support */
   public void dataReceived(USART source, int data) {
-    if (outgoingDataLength == 0 && !isTransmitting()) {
+    if (!isTransmitting()) {
       /* New transmission discovered */
       /*logger.info("----- NEW TR1001 TRANSMISSION DETECTED -----");*/
       tr1001PacketConverter = new TR1001RadioPacketConverter();
-
-      isTransmitting = true;
-
-      transmissionStartCycles = mote.getCPU().cycles;
-
+      
       lastEvent = RadioEvent.TRANSMISSION_STARTED;
       lastEventTime = mote.getSimulation().getSimulationTime();
+      isTransmitting = true;
       this.setChanged();
       this.notifyObservers();
-    }
 
-    // Remember recent radio activity
-    millisSinceLastSend = 0;
-    if (!followupTransmissionEvent.isScheduled()) {
+      /* Timeout transmission after some time */
+      if (timeoutTransmission.isScheduled()) {
+        logger.warn("Timeout TX event already scheduled");
+        timeoutTransmission.remove();
+      }
       mote.getSimulation().scheduleEvent(
-          followupTransmissionEvent,
-          mote.getSimulation().getSimulationTime() + Simulation.MILLISECOND);
+          timeoutTransmission,
+          mote.getSimulation().getSimulationTime() + 40*Simulation.MILLISECOND
+      );
     }
 
-    if (outgoingDataLength >= outgoingData.length) {
-      logger.warn("----- TR1001 DROPPING OUTGOING BYTE (buffer overflow) -----");
-      return;
-    }
-
-    // Deliver byte to radio medium as custom data
-    /* logger.debug("----- TR1001 SENT BYTE -----"); */
+    /* Deliver custom data byte */
     lastEvent = RadioEvent.CUSTOM_DATA_TRANSMITTED;
-    tr1001ByteFromMote = new TR1001RadioByte((byte) data);
+    sentByte = (byte) data;
     this.setChanged();
     this.notifyObservers();
 
-    outgoingData[outgoingDataLength++] = tr1001ByteFromMote;
-
-    // Feed to application level immediately
-    boolean finished = tr1001PacketConverter
-        .fromTR1001ToCoojaAccumulated(tr1001ByteFromMote);
+    /* Detect full packet */
+    boolean finished = tr1001PacketConverter.fromTR1001ToCoojaAccumulated(sentByte);
     if (finished) {
+      timeoutTransmission.remove();
+      
       /* Transmission finished - deliver packet immediately */
       if (tr1001PacketConverter.accumulatedConversionIsOk()) {
-        packetFromMote = tr1001PacketConverter.getAccumulatedConvertedCoojaPacket();
-
-        /* Notify observers of new prepared packet */
+        /* Deliver packet */
         /* logger.info("----- TR1001 DELIVERED PACKET -----"); */
+        sentPacket = tr1001PacketConverter.getAccumulatedConvertedCoojaPacket();
         lastEvent = RadioEvent.PACKET_TRANSMITTED;
         this.setChanged();
         this.notifyObservers();
       }
 
-      // Reset counters and wait for next packet
-      outgoingDataLength = 0;
-      millisSinceLastSend = -1;
-
-      // Signal we are done transmitting
+      /* Finish transmission */
       isTransmitting = false;
       lastEvent = RadioEvent.TRANSMISSION_FINISHED;
-      this.setChanged();
-      this.notifyObservers();
-
+      TR1001Radio.this.setChanged();
+      TR1001Radio.this.notifyObservers();
       /* logger.info("----- TR1001 TRANSMISSION ENDED -----"); */
     }
   }
@@ -279,12 +260,14 @@ public class TR1001Radio extends Radio implements USARTListener,
   }
 
   public int getChannel() {
+    /* TODO Implement */
     return -1;
   }
 
   public void signalReceptionStart() {
     lastEvent = RadioEvent.RECEPTION_STARTED;
     isReceiving = true;
+    isInterfered = false;
     this.setChanged();
     this.notifyObservers();
   }
@@ -304,7 +287,7 @@ public class TR1001Radio extends Radio implements USARTListener,
   public void interfereAnyReception() {
     if (!isInterfered()) {
       isInterfered = true;
-      lastIncomingPacket = null;
+      receivedPacket = null;
 
       lastEventTime = mote.getSimulation().getSimulationTime();
       lastEvent = RadioEvent.RECEPTION_INTERFERED;
@@ -340,33 +323,25 @@ public class TR1001Radio extends Radio implements USARTListener,
     return mote.getInterfaces().getPosition();
   }
 
-  private TimeEvent followupTransmissionEvent = new MoteTimeEvent(mote, 0) {
+  private TimeEvent timeoutTransmission = new MoteTimeEvent(mote, 0) {
     public void execute(long t) {
-
-      if (isTransmitting()) {
-        millisSinceLastSend++;
-
-        // Detect transmission end due to inactivity
-        if (millisSinceLastSend > 5) {
-          /* Dropping packet due to inactivity */
-          packetFromMote = null;
-
-          /* Reset counters and wait for next packet */
-          outgoingDataLength = 0;
-          millisSinceLastSend = -1;
-
-          /* Signal we are done transmitting */
-          isTransmitting = false;
-          lastEvent = RadioEvent.TRANSMISSION_FINISHED;
-          TR1001Radio.this.setChanged();
-          TR1001Radio.this.notifyObservers();
-
-          /*logger.debug("----- NULL TRANSMISSION ENDED -----");*/
-        }
-
-        /* Reschedule as long as node is transmitting */
-        mote.getSimulation().scheduleEvent(this, t + Simulation.MILLISECOND);
+      if (!isTransmitting()) {
+        /* Nothing to do */
+        return;
       }
+      
+      logger.warn("TR1001 transmission timed out, delivering empty packet");
+      
+      /* XXX Timeout: We may need to deliver an empty radio packet here */
+      sentPacket = new COOJARadioPacket(new byte[0]);
+      lastEvent = RadioEvent.PACKET_TRANSMITTED;
+      TR1001Radio.this.setChanged();
+      TR1001Radio.this.notifyObservers();
+      
+      isTransmitting = false;
+      lastEvent = RadioEvent.TRANSMISSION_FINISHED;
+      TR1001Radio.this.setChanged();
+      TR1001Radio.this.notifyObservers();
     }
   };
 
