@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ESBMoteType.java,v 1.10 2009/04/20 16:12:01 fros4943 Exp $
+ * $Id: ESBMoteType.java,v 1.11 2009/12/02 16:27:59 fros4943 Exp $
  */
 
 package se.sics.cooja.mspmote;
@@ -130,7 +130,7 @@ public class ESBMoteType extends MspMoteType {
         setDescription("ESB Mote Type #" + getIdentifier());
       }
 
-      return ESBCompileDialog.showDialog(parentContainer, simulation, this);
+      return MspCompileDialog.showDialog(parentContainer, simulation, this, "esb");
     }
 
     /* Not visualized: Compile Contiki immediately */

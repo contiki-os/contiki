@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: SkyMoteType.java,v 1.11 2009/09/17 10:50:11 fros4943 Exp $
+ * $Id: SkyMoteType.java,v 1.12 2009/12/02 16:27:59 fros4943 Exp $
  */
 
 package se.sics.cooja.mspmote;
@@ -126,7 +126,7 @@ public class SkyMoteType extends MspMoteType {
         setDescription("Sky Mote Type #" + getIdentifier());
       }
 
-      return SkyCompileDialog.showDialog(parentContainer, simulation, this);
+      return MspCompileDialog.showDialog(parentContainer, simulation, this, "sky");
     }
 
     /* Not visualized: Compile Contiki immediately */
