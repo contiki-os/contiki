@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: SkyByteRadio.java,v 1.17 2009/11/25 15:18:11 fros4943 Exp $
+ * $Id: SkyByteRadio.java,v 1.18 2009/12/02 16:29:36 fros4943 Exp $
  */
 
 package se.sics.cooja.mspmote.interfaces;
@@ -75,9 +75,9 @@ public class SkyByteRadio extends Radio implements CustomDataRadio {
 
   private boolean isReceiving = false;
 
-  private CC2420RadioByte lastOutgoingByte = null;
+  private byte lastOutgoingByte;
 
-  private CC2420RadioByte lastIncomingByte = null;
+  private byte lastIncomingByte;
 
   private RadioPacket lastOutgoingPacket = null;
 
@@ -102,7 +102,7 @@ public class SkyByteRadio extends Radio implements CustomDataRadio {
         }
 
         /* send this byte to all nodes */
-        lastOutgoingByte = new CC2420RadioByte(data);
+        lastOutgoingByte = data;
         lastEventTime = SkyByteRadio.this.mote.getSimulation().getSimulationTime();
         lastEvent = RadioEvent.CUSTOM_DATA_TRANSMITTED;
         setChanged();
@@ -244,15 +244,17 @@ public class SkyByteRadio extends Radio implements CustomDataRadio {
   }
 
   public void receiveCustomData(Object data) {
-    if (data instanceof CC2420RadioByte) {
-      lastIncomingByte = (CC2420RadioByte) data;
-      if (isInterfered()) {
-        cc2420.receivedByte((byte)0xFF);
-      } else {
-        cc2420.receivedByte(lastIncomingByte.getPacketData()[0]);
-      }
-      mote.requestImmediateWakeup();
+    if (!(data instanceof Byte)) {
+      logger.fatal("Bad custom data: " + data);
+      return;
     }
+    lastIncomingByte = (Byte) data;
+    if (isInterfered()) {
+      cc2420.receivedByte((byte)0xFF);
+    } else {
+      cc2420.receivedByte(lastIncomingByte);
+    }
+    mote.requestImmediateWakeup();
   }
 
   /* General radio support */
