@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: MspMoteType.java,v 1.32 2009/09/18 09:26:22 fros4943 Exp $
+ * $Id: MspMoteType.java,v 1.33 2009/12/02 17:15:59 fros4943 Exp $
  */
 
 package se.sics.cooja.mspmote;
@@ -41,6 +41,7 @@ import org.apache.log4j.Logger;
 import org.jdom.Element;
 import se.sics.cooja.*;
 import se.sics.cooja.interfaces.IPAddress;
+import se.sics.cooja.mspmote.interfaces.MspSerial;
 
 /**
  * MSP430-based mote types emulated in MSPSim.
@@ -282,6 +283,14 @@ public abstract class MspMoteType implements MoteType {
         if (intfClass.equals("se.sics.cooja.mspmote.interfaces.MspIPAddress")) {
           logger.warn("Old simulation config detected: IP address interface was moved");
           intfClass = IPAddress.class.getName();
+        }
+        if (intfClass.equals("se.sics.cooja.mspmote.interfaces.ESBLog")) {
+          logger.warn("Old simulation config detected: ESBLog was replaced by MspSerial");
+          intfClass = MspSerial.class.getName();
+        }
+        if (intfClass.equals("se.sics.cooja.mspmote.interfaces.SkySerial")) {
+          logger.warn("Old simulation config detected: SkySerial was replaced by MspSerial");
+          intfClass = MspSerial.class.getName();
         }
         
         Class<? extends MoteInterface> moteInterfaceClass =

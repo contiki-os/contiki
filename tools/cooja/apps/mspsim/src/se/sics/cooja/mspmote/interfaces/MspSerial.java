@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: SkySerial.java,v 1.18 2009/10/28 15:58:42 fros4943 Exp $
+ * $Id: MspSerial.java,v 1.1 2009/12/02 17:12:32 fros4943 Exp $
  */
 
 package se.sics.cooja.mspmote.interfaces;
@@ -42,7 +42,7 @@ import se.sics.cooja.Simulation;
 import se.sics.cooja.TimeEvent;
 import se.sics.cooja.dialogs.SerialUI;
 import se.sics.cooja.interfaces.SerialPort;
-import se.sics.cooja.mspmote.SkyMote;
+import se.sics.cooja.mspmote.MspMote;
 import se.sics.mspsim.core.IOUnit;
 import se.sics.mspsim.core.USART;
 import se.sics.mspsim.core.USARTListener;
@@ -51,19 +51,19 @@ import se.sics.mspsim.core.USARTListener;
  * @author Fredrik Osterlind
  */
 @ClassDescription("Serial port")
-public class SkySerial extends SerialUI implements SerialPort {
+public class MspSerial extends SerialUI implements SerialPort {
   private static final long DELAY_INCOMING_DATA = 69; /* 115200 bit/s */
   
-  private static Logger logger = Logger.getLogger(SkySerial.class);
+  private static Logger logger = Logger.getLogger(MspSerial.class);
 
   private Simulation simulation;
-  private SkyMote mote;
+  private MspMote mote;
   private USART usart;
   
   private Vector<Byte> incomingData = new Vector<Byte>();
  
-  public SkySerial(Mote mote) {
-    this.mote = (SkyMote) mote;
+  public MspSerial(Mote mote) {
+    this.mote = (MspMote) mote;
     this.simulation = mote.getSimulation();
 
     /* Listen to port writes */
@@ -72,7 +72,7 @@ public class SkySerial extends SerialUI implements SerialPort {
       usart = (USART) ioUnit;
       usart.setUSARTListener(new USARTListener() {
         public void dataReceived(USART arg0, int arg1) {
-          SkySerial.this.dataReceived(arg1);
+          MspSerial.this.dataReceived(arg1);
         }
         public void stateChanged(int state) {
           if (state == USARTListener.RXFLAG_CLEARED) {
