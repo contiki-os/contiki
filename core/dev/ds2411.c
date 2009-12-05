@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: ds2411.c,v 1.3 2009/06/23 13:12:37 joxe Exp $
+ * @(#)$Id: ds2411.c,v 1.4 2009/12/05 11:26:20 adamdunkels Exp $
  */
 /*
  * Device driver for the Dallas Semiconductor DS2411 chip. Heavily
@@ -115,7 +115,7 @@ unsigned char ds2411_id[8];
 #define tH 480
 #define tI 70
 #define tJ 410
-
+/*---------------------------------------------------------------------------*/
 static int
 owreset(void)
 {
@@ -128,13 +128,13 @@ owreset(void)
   udelay(tJ);
   return result;
 }
-
+/*---------------------------------------------------------------------------*/
 static void
 owwriteb(unsigned byte)
 {
   int i = 7;
   do {
-    if (byte & 0x01) {
+    if(byte & 0x01) {
       OUTP_0();
       udelay_tA();
       OUTP_1();			/* Releases the bus */
@@ -145,13 +145,14 @@ owwriteb(unsigned byte)
       OUTP_1();			/* Releases the bus */
       udelay(tD);
     }
-    if (i == 0)
+    if(i == 0) {
       return;
+    }
     i--;
     byte >>= 1;
-  } while (1);
+  } while(1);
 }
-
+/*---------------------------------------------------------------------------*/
 static unsigned
 owreadb(void)
 {
@@ -162,31 +163,34 @@ owreadb(void)
     udelay_tA();
     OUTP_1();			/* Releases the bus */
     udelay(tE);
-    if (INP())
+    if(INP()) {
       result |= 0x80;		/* LSbit first */
+    }
     udelay(tF);
-    if (i == 0)
+    if(i == 0) {
       return result;
+    }
     i--;
     result >>= 1;
-  } while (1);
+  } while(1);
 }
-
+/*---------------------------------------------------------------------------*/
 /* Polynomial ^8 + ^5 + ^4 + 1 */
 static unsigned
 crc8_add(unsigned acc, unsigned byte)
 {
   int i;
   acc ^= byte;
-  for (i = 0; i < 8; i++)
-    if (acc & 1)
+  for(i = 0; i < 8; i++) {
+    if(acc & 1) {
       acc = (acc >> 1) ^ 0x8c;
-    else
+    } else {
       acc >>= 1;
-
+    }
+  }
   return acc;
 }
-
+/*---------------------------------------------------------------------------*/
 int
 ds2411_init()
 {
@@ -195,7 +199,7 @@ ds2411_init()
 
   PIN_INIT();
 
-  if (owreset() == 0) {	/* Something pulled down 1-wire. */
+  if(owreset() == 0) {	/* Something pulled down 1-wire. */
     /*
      * Read MAC id with interrupts disabled.
      */
@@ -203,18 +207,21 @@ ds2411_init()
     owwriteb(0x33);		/* Read ROM command. */
     family = owreadb();
     /* We receive 6 bytes in the reverse order, LSbyte first. */
-    for (i = 7; i >= 2; i--)
+    for(i = 7; i >= 2; i--) {
       ds2411_id[i] = owreadb();
+    }
     crc = owreadb();
     splx(s);
 
     /* Verify family and that CRC match. */
-    if (family != 0x01)
+    if(family != 0x01) {
       goto fail;
+    }
     acc = crc8_add(0x0, family);
-    for (i = 7; i >= 2; i--)
+    for(i = 7; i >= 2; i--) {
       acc = crc8_add(acc, ds2411_id[i]);
-    if (acc == crc) {
+    }
+    if(acc == crc) {
 #ifdef CONTIKI_TARGET_SKY
       /* 00:12:75    Moteiv    # Moteiv Corporation */
       ds2411_id[0] = 0x00;
@@ -229,3 +236,4 @@ ds2411_init()
   memset(ds2411_id, 0x0, sizeof(ds2411_id));
   return 0;			/* Fail! */
 }
+/*---------------------------------------------------------------------------*/
