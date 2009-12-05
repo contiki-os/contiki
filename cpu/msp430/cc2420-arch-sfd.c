@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006, Swedish Institute of Computer Science
+ * Copyright (c) 2009, Swedish Institute of Computer Science
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -26,46 +26,49 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#)$Id: cc2420-arch.c,v 1.5 2009/12/05 19:42:56 adamdunkels Exp $
+ * @(#)$Id: cc2420-arch-sfd.c,v 1.1 2009/12/05 19:42:56 adamdunkels Exp $
  */
 
 #include <io.h>
 #include <signal.h>
 
-#include "contiki.h"
-#include "contiki-net.h"
-
 #include "dev/spi.h"
 #include "dev/cc2420.h"
 
-#ifdef CONF_SFD_TIMESTAMPS
-#include "cc2420-arch-sfd.h"
-#endif
+uint16_t cc2420_arch_sfd_start_time;
+uint16_t cc2420_arch_sfd_end_time;
 
 /*---------------------------------------------------------------------------*/
-interrupt(PORT1_VECTOR)
-cc24240_port1_interrupt(void)
+/* SFD interrupt for timestamping radio packets */
+interrupt(TIMERB1_VECTOR)
+cc24240_timerb1_interrupt(void)
 {
+  int tbiv;
   ENERGEST_ON(ENERGEST_TYPE_IRQ);
-  if(cc2420_interrupt()) {
-    LPM4_EXIT;
+  /* always read TBIV to clear IFG */
+  tbiv = TBIV;
+  if(SFD_IS_1) {
+    cc2420_arch_sfd_start_time = TBCCR1;
+  } else {
+    cc2420_arch_sfd_end_time = TBCCR1;
   }
   ENERGEST_OFF(ENERGEST_TYPE_IRQ);
 }
-
 /*---------------------------------------------------------------------------*/
 void
-cc2420_arch_init(void)
+cc2420_arch_sfd_init(void)
 {
-  spi_init();
-
-  /* all input by default, set these as output */
-  P4DIR |= BV(CSN) | BV(VREG_EN) | BV(RESET_N);
-
-#ifdef CONF_SFD_TIMESTAMPS
-  cc2420_arch_sfd_init();
-#endif
-
-  SPI_DISABLE();                /* Unselect radio. */
+  /* Need to select the special function! */
+  P4SEL = BV(SFD);
+  
+  /* start timer B - 32768 ticks per second */
+  TBCTL = TBSSEL_1 | TBCLR;
+  
+  /* CM_3 = capture mode - capture on both edges */
+  TBCCTL1 = CM_3 | CAP | SCS;
+  TBCCTL1 |= CCIE;
+  
+  /* Start Timer_B in continuous mode. */
+  TBCTL |= MC1;
 }
 /*---------------------------------------------------------------------------*/
