@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006, Swedish Institute of Computer Science
+ * Copyright (c) 2009, Swedish Institute of Computer Science
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -26,46 +26,11 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#)$Id: cc2420-arch.c,v 1.5 2009/12/05 19:42:56 adamdunkels Exp $
+ * @(#)$Id: cc2420-arch-sfd.h,v 1.1 2009/12/05 19:42:56 adamdunkels Exp $
  */
+#ifndef CC2420_ARCH_SFD_H
+#define CC2420_ARCH_SFD_H
 
-#include <io.h>
-#include <signal.h>
+void cc2420_arch_sfd_init(void);
 
-#include "contiki.h"
-#include "contiki-net.h"
-
-#include "dev/spi.h"
-#include "dev/cc2420.h"
-
-#ifdef CONF_SFD_TIMESTAMPS
-#include "cc2420-arch-sfd.h"
-#endif
-
-/*---------------------------------------------------------------------------*/
-interrupt(PORT1_VECTOR)
-cc24240_port1_interrupt(void)
-{
-  ENERGEST_ON(ENERGEST_TYPE_IRQ);
-  if(cc2420_interrupt()) {
-    LPM4_EXIT;
-  }
-  ENERGEST_OFF(ENERGEST_TYPE_IRQ);
-}
-
-/*---------------------------------------------------------------------------*/
-void
-cc2420_arch_init(void)
-{
-  spi_init();
-
-  /* all input by default, set these as output */
-  P4DIR |= BV(CSN) | BV(VREG_EN) | BV(RESET_N);
-
-#ifdef CONF_SFD_TIMESTAMPS
-  cc2420_arch_sfd_init();
-#endif
-
-  SPI_DISABLE();                /* Unselect radio. */
-}
-/*---------------------------------------------------------------------------*/
+#endif /* CC2420_ARCH_SFD_H */
