@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: mac.h,v 1.6 2009/11/13 08:59:22 fros4943 Exp $
+ * $Id: mac.h,v 1.7 2009/12/05 21:49:51 adamdunkels Exp $
  */
 
 /**
@@ -70,8 +70,21 @@ struct mac_driver {
 
 /* Generic MAC return values. */
 enum {
+  /**< The MAC layer transmission was OK. */
   MAC_TX_OK,
+
+  /**< The MAC layer transmission could not be performed due to a
+     collision. */
+  MAC_TX_COLLISION,
+
+  /**< The MAC layer transmission could not be performed because of an
+     error. The upper layer may try again later. */
   MAC_TX_ERR,
+
+  /**< The MAC layer transmission could not be performed because of a
+     fatal error. The upper layer does not need to try again, as the
+     error will be fatal then as well. */
+  MAC_TX_ERR_FATAL,
 };
 
 #endif /* __MAC_H__ */
