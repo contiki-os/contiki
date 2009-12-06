@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: xmac.c,v 1.46 2009/12/06 17:10:54 adamdunkels Exp $
+ * $Id: xmac.c,v 1.47 2009/12/06 23:29:38 adamdunkels Exp $
  */
 
 /**
@@ -60,14 +60,8 @@
 
 #include <string.h>
 
-#ifndef WITH_TIMESYNCH
-#define WITH_TIMESYNCH               0
-#endif
 #ifndef WITH_ACK_OPTIMIZATION
 #define WITH_ACK_OPTIMIZATION        1
-#endif
-#ifndef WITH_RANDOM_WAIT_BEFORE_SEND
-#define WITH_RANDOM_WAIT_BEFORE_SEND 0
 #endif
 #ifndef WITH_ENCOUNTER_OPTIMIZATION
 #define WITH_ENCOUNTER_OPTIMIZATION  1
@@ -156,7 +150,7 @@ struct xmac_config xmac_config = {
 static struct rtimer rt;
 static struct pt pt;
 
-static int xmac_is_on = 0;
+static volatile uint8_t xmac_is_on = 0;
 
 static volatile unsigned char waiting_for_packet = 0;
 static volatile unsigned char someone_is_sending = 0;
@@ -295,10 +289,6 @@ powercycle_turn_radio_on(void)
 static char
 powercycle(struct rtimer *t, void *ptr)
 {
-#if WITH_TIMESYNCH
-  rtimer_clock_t should_be, adjust;
-#endif /* WITH_TIMESYNCH */
-
   if(is_streaming) {
     if(!RTIMER_CLOCK_LT(RTIMER_NOW(), stream_until)) {
       is_streaming = 0;
@@ -306,7 +296,6 @@ powercycle(struct rtimer *t, void *ptr)
       rimeaddr_copy(&is_streaming_to_too, &rimeaddr_null);
     }
   }
-
 
   PT_BEGIN(&pt);
 
@@ -457,14 +446,6 @@ send_packet(void)
   struct queuebuf *packet;
   int is_already_streaming = 0;
   uint8_t collisions;
-
-#if WITH_RANDOM_WAIT_BEFORE_SEND
-  {
-    rtimer_clock_t t = RTIMER_NOW() + (random_rand() % (xmac_config.on_time * 4));
-    while(RTIMER_CLOCK_LT(RTIMER_NOW(), t));
-  }
-#endif /* WITH_RANDOM_WAIT_BEFORE_SEND */
-
 
   /* Create the X-MAC header for the data packet. */
   packetbuf_set_addr(PACKETBUF_ADDR_SENDER, &rimeaddr_node_addr);
@@ -617,8 +598,6 @@ send_packet(void)
 	    } else /*if(hdr->dispatch == DISPATCH && hdr->type == TYPE_STROBE)*/ {
 	      PRINTDEBUG("xmac: strobe from someone else\n");
 	      collisions++;
-	      /*	    } else {
-			    PRINTDEBUG("xmac: ignored len %u\n", len);*/
 	    }
 	  } else {
 	    PRINTF("xmac: send failed to parse %u\n", len);
@@ -731,7 +710,6 @@ qsend_packet(void)
     PRINTF("xmac: send immediately.\n");
     return send_packet();
   }
-
 }
 /*---------------------------------------------------------------------------*/
 static void
