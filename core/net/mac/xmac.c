@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: xmac.c,v 1.45 2009/12/06 17:05:45 adamdunkels Exp $
+ * $Id: xmac.c,v 1.46 2009/12/06 17:10:54 adamdunkels Exp $
  */
 
 /**
@@ -295,7 +295,6 @@ powercycle_turn_radio_on(void)
 static char
 powercycle(struct rtimer *t, void *ptr)
 {
-  int r;
 #if WITH_TIMESYNCH
   rtimer_clock_t should_be, adjust;
 #endif /* WITH_TIMESYNCH */
