@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: UDGM.java,v 1.28 2009/11/25 10:36:08 fros4943 Exp $
+ * $Id: UDGM.java,v 1.29 2009/12/07 11:03:19 fros4943 Exp $
  */
 
 package se.sics.cooja.radiomediums;
@@ -195,24 +195,28 @@ public class UDGM extends AbstractRadioMedium {
         continue;
       }
 
-      /* Fail if radio is turned off */ 
-      if (!recv.isReceiverOn()) {
-        /* Special case: allow connection if source is Contiki radio, 
-         * and destination is something else (byte radio).
-         * Allows cross-level communication with power-saving MACs. */
-        if (sender instanceof ContikiRadio &&
-            !(recv instanceof ContikiRadio)) {
-          /*logger.info("Special case: creating connection to turned off radio");*/
-        } else {
-          continue;
-        }
-      }
+      /* Fail if radio is turned off */
+//      if (!recv.isReceiverOn()) {
+//        /* Special case: allow connection if source is Contiki radio, 
+//         * and destination is something else (byte radio).
+//         * Allows cross-level communication with power-saving MACs. */
+//        if (sender instanceof ContikiRadio &&
+//            !(recv instanceof ContikiRadio)) {
+//          /*logger.info("Special case: creating connection to turned off radio");*/
+//        } else {
+//          recv.interfereAnyReception();
+//          continue;
+//        }
+//      }
 
       double distance = senderPos.getDistanceTo(recvPos);
       if (distance <= moteTransmissionRange) {
         /* Within transmission range */
 
-        if (recv.isInterfered()) {
+        if (!recv.isReceiverOn()) {
+          newConnection.addInterfered(recv);
+          recv.interfereAnyReception();
+        } else if (recv.isInterfered()) {
           /* Was interfered: keep interfering */
           newConnection.addInterfered(recv);
         } else if (recv.isTransmitting()) {
@@ -225,11 +229,8 @@ public class UDGM extends AbstractRadioMedium {
 
           /* Interfere receiver in all other active radio connections */
           for (RadioConnection conn : getActiveConnections()) {
-            for (Radio dstRadio : conn.getDestinations()) {
-              if (dstRadio == recv) {
-                conn.addInterfered(recv);
-                break;
-              }
+            if (conn.isDestination(recv)) {
+              conn.addInterfered(recv);
             }
           }
 
