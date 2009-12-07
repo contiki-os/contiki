@@ -24,7 +24,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * $Id: SimEventCentral.java,v 1.2 2009/07/03 13:37:41 fros4943 Exp $
+ * $Id: SimEventCentral.java,v 1.3 2009/12/07 11:06:08 fros4943 Exp $
  */
 
 package se.sics.cooja;
@@ -240,9 +240,10 @@ public class SimEventCentral {
       /* Start observing all log interfaces */
       Mote[] motes = simulation.getMotes();
       for (Mote m: motes) {
-        Log log = m.getInterfaces().getLog();
-        if (log != null) {
-          moteObservations.add(new MoteObservation(m, log, logOutputObserver));
+        for (MoteInterface mi: m.getInterfaces().getInterfaces()) {
+          if (mi instanceof Log) {
+            moteObservations.add(new MoteObservation(m, mi, logOutputObserver));
+          }
         }
       }
     }
@@ -303,10 +304,12 @@ public class SimEventCentral {
   /* HELP METHODS: MAINTAIN OBSERVERS */
   private void moteWasAdded(Mote mote) {
     if (logOutputListeners.length > 0) {
-      /* Add another log output observation */
-      Log log = mote.getInterfaces().getLog();
-      if (log != null) {
-        moteObservations.add(new MoteObservation(mote, log, logOutputObserver));
+      /* Add another log output observation.
+       * (Supports multiple log interfaces per mote) */
+      for (MoteInterface mi: mote.getInterfaces().getInterfaces()) {
+        if (mi instanceof Log) {
+          moteObservations.add(new MoteObservation(mote, mi, logOutputObserver));
+        }
       }
     }
 
