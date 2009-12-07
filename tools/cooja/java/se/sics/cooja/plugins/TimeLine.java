@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: TimeLine.java,v 1.17 2009/11/25 15:39:57 fros4943 Exp $
+ * $Id: TimeLine.java,v 1.18 2009/12/07 11:04:15 fros4943 Exp $
  */
 
 package se.sics.cooja.plugins;
@@ -743,6 +743,9 @@ public class TimeLine extends VisPlugin {
             if (moteRadio.isTransmitting()) {
               ev = new RadioRXTXEvent(
                   simulation.getSimulationTime(), RXTXRadioEvent.TRANSMITTING);
+            } else if (!moteRadio.isReceiverOn()) {
+              ev = new RadioRXTXEvent(
+                  simulation.getSimulationTime(), RXTXRadioEvent.IDLE);
             } else if (moteRadio.isInterfered()) {
               ev = new RadioRXTXEvent(
                   simulation.getSimulationTime(), RXTXRadioEvent.INTERFERED);
