@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: SkyByteRadio.java,v 1.18 2009/12/02 16:29:36 fros4943 Exp $
+ * $Id: SkyByteRadio.java,v 1.19 2009/12/07 12:31:19 fros4943 Exp $
  */
 
 package se.sics.cooja.mspmote.interfaces;
@@ -436,6 +436,12 @@ public class SkyByteRadio extends Radio implements CustomDataRadio {
   }
 
   public boolean isReceiverOn() {
-    return mote.skyNode.radio.getMode() != CC2420.MODE_TXRX_OFF;
+    if (mote.skyNode.radio.getMode() == CC2420.MODE_POWER_OFF) {
+      return false;
+    }
+    if (mote.skyNode.radio.getMode() == CC2420.MODE_TXRX_OFF) {
+      return false;
+    }
+    return true;
   }
 }
