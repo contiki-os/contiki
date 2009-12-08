@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: rtimer-arch.c,v 1.10 2009/12/07 14:32:16 adamdunkels Exp $
+ * $Id: rtimer-arch.c,v 1.11 2009/12/08 23:39:45 adamdunkels Exp $
  */
 
 /**
@@ -55,13 +55,13 @@
 
 /*---------------------------------------------------------------------------*/
 interrupt(TIMERA0_VECTOR) timera0 (void) {
-  int taiv;
   ENERGEST_ON(ENERGEST_TYPE_IRQ);
-  taiv = TAIV;
+
   rtimer_run_next();
   if(process_nevents() > 0) {
     LPM4_EXIT;
   }
+
   ENERGEST_OFF(ENERGEST_TYPE_IRQ);
 }
 /*---------------------------------------------------------------------------*/
@@ -81,5 +81,6 @@ void
 rtimer_arch_schedule(rtimer_clock_t t)
 {
   PRINTF("rtimer_arch_schedule time %u\n", t);
+  
   TACCR0 = t;
 }
