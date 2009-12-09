@@ -34,7 +34,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: timesynch.c,v 1.8 2009/03/17 09:57:01 nifi Exp $
+ * $Id: timesynch.c,v 1.9 2009/12/09 18:08:26 adamdunkels Exp $
  */
 
 /**
@@ -69,7 +69,7 @@ timesynch_set_authority_level(int level)
 rtimer_clock_t
 timesynch_time(void)
 {
-  return rtimer_arch_now() + offset;
+  return RTIMER_NOW() + offset;
 }
 /*---------------------------------------------------------------------------*/
 rtimer_clock_t
