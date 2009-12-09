@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: shell-time.c,v 1.7 2009/02/11 11:08:55 adamdunkels Exp $
+ * $Id: shell-time.c,v 1.8 2009/12/09 18:12:23 adamdunkels Exp $
  */
 
 /**
@@ -50,6 +50,12 @@
 #include <string.h>
 
 #define MAX_COMMANDLENGTH 64
+#define PERIOD_INTERVAL   60
+
+#ifndef MIN
+#define MIN(a, b) ((a) < (b)? (a) : (b))
+#endif /* MIN */
+
 
 /*---------------------------------------------------------------------------*/
 PROCESS(shell_time_process, "time");
@@ -97,7 +103,7 @@ PROCESS_THREAD(shell_time_process, ev, data)
   }
   
   msg.clock = (uint16_t)clock_time();
-  msg.rtimer = (uint16_t)rtimer_arch_now();
+  msg.rtimer = (uint16_t)RTIMER_NOW();
 #if TIMESYNCH_CONF_ENABLED
   msg.timesynch = timesynch_time();
   msg.timesynch_authority = timesynch_authority_level();
@@ -195,7 +201,7 @@ PROCESS_THREAD(shell_repeat_server_process, ev, data)
 /*---------------------------------------------------------------------------*/
 PROCESS_THREAD(shell_repeat_process, ev, data)
 {
-  static int reps, period;
+  static int reps, period, period_left;
   static char command[MAX_COMMANDLENGTH];
   static struct etimer etimer;
   static int i;
@@ -250,7 +256,6 @@ PROCESS_THREAD(shell_repeat_process, ev, data)
   /*  printf("repeats %d period %d command '%s'\n",
       reps, period, command);*/
 
-  etimer_set(&etimer, CLOCK_SECOND * period);
   for(i = 0; reps == 0 || i < reps; ++i) {
 
     process_start(&shell_repeat_server_process, command);
@@ -261,8 +266,13 @@ PROCESS_THREAD(shell_repeat_process, ev, data)
 		       data == &shell_repeat_server_process);
     
     PROCESS_PAUSE();
-    PROCESS_WAIT_UNTIL(etimer_expired(&etimer));
-    etimer_reset(&etimer);
+    
+    for(period_left = period;
+	period_left > 0;
+	period_left -= MIN(PERIOD_INTERVAL, period_left)) {
+      etimer_set(&etimer, CLOCK_SECOND * MIN(PERIOD_INTERVAL, period_left));
+      PROCESS_WAIT_UNTIL(etimer_expired(&etimer));
+    }
   }
   
 
