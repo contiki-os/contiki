@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: clock.c,v 1.18 2009/12/08 23:40:14 adamdunkels Exp $
+ * @(#)$Id: clock.c,v 1.19 2009/12/09 12:55:35 adamdunkels Exp $
  */
 
 
@@ -42,8 +42,6 @@
 #include "sys/etimer.h"
 #include "rtimer-arch.h"
 
-/* 38400 cycles @ 2.4576MHz with divisor 8 ==> 1/8 s */
-/* #define INTERVAL (307200ULL / CLOCK_SECOND) */
 #define INTERVAL (RTIMER_ARCH_SECOND / CLOCK_SECOND)
 
 #define MAX_TICKS (~((clock_time_t)0) / 2)
@@ -136,8 +134,8 @@ clock_init(void)
   /* Select SMCLK (2.4576MHz), clear TAR */
   /* TACTL = TASSEL1 | TACLR | ID_3; */
   
-  /* Select ACLK 32768Hz clock, divide by 8 */
-  TACTL = TASSEL0 | TACLR | ID_3;
+  /* Select ACLK 32768Hz clock, divide by 4 */
+  TACTL = TASSEL0 | TACLR | ID_2;
 
   /* Initialize ccr1 to create the X ms interval. */
   /* CCR1 interrupt enabled, interrupt occurs when timer equals CCR1. */
