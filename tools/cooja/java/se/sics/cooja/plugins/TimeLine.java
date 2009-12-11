@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: TimeLine.java,v 1.19 2009/12/07 11:14:02 fros4943 Exp $
+ * $Id: TimeLine.java,v 1.20 2009/12/11 10:41:10 fros4943 Exp $
  */
 
 package se.sics.cooja.plugins;
@@ -40,6 +40,8 @@ import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.BufferedWriter;
@@ -68,6 +70,7 @@ import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
 import javax.swing.JToolTip;
+import javax.swing.KeyStroke;
 import javax.swing.Popup;
 import javax.swing.PopupFactory;
 import javax.swing.SwingUtilities;
@@ -238,6 +241,12 @@ public class TimeLine extends VisPlugin {
     );
     splitPane.setOneTouchExpandable(true);
 
+    /* Zoom in/out via keyboard*/
+    getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_PLUS, KeyEvent.CTRL_DOWN_MASK), "zoomIn");
+    getActionMap().put("zoomIn", zoomInAction);
+    getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_MINUS, KeyEvent.CTRL_DOWN_MASK), "zoomOut");
+    getActionMap().put("zoomOut", zoomOutAction);
+
     getContentPane().add(splitPane);
 
     pack();
@@ -320,6 +329,9 @@ public class TimeLine extends VisPlugin {
         pixelX = popupLocation.x;
         popupLocation = null;
       }
+      if (mousePixelPositionX > 0) {
+        pixelX = mousePixelPositionX;
+      }
       final long centerTime = pixelX*currentPixelDivisor;
 
       if (zoomLevel > 0) {
@@ -359,6 +371,9 @@ public class TimeLine extends VisPlugin {
         popupLocation = null;
       }
       final long centerTime = pixelX*currentPixelDivisor;
+      if (mousePixelPositionX > 0) {
+        pixelX = mousePixelPositionX;
+      }
 
       if (zoomLevel < ZOOM_LEVELS.length-1) {
         zoomLevel++;
@@ -1011,12 +1026,12 @@ public class TimeLine extends VisPlugin {
 
     public Timeline() {
       setLayout(null);
-      setToolTipText("");
+      setToolTipText(null);
       setBackground(COLOR_BACKGROUND);
       
       addMouseListener(mouseAdapter);
       addMouseMotionListener(mouseAdapter);
-
+      
       /* Popup menu */
       final JPopupMenu popupMenu = new JPopupMenu();
 
@@ -1057,7 +1072,7 @@ public class TimeLine extends VisPlugin {
         }
       });
     }
-    
+
     private MouseAdapter mouseAdapter = new MouseAdapter() {
       private Popup popUpToolTip = null;
       public void mouseDragged(MouseEvent e) {
@@ -1081,7 +1096,7 @@ public class TimeLine extends VisPlugin {
         } else {
           /* Trigger tooltip */
           JToolTip t = timeline.createToolTip();
-          t.setTipText(timeline.getToolTipText(e));
+          t.setTipText(Timeline.this.getMouseToolTipText(e));
           if (t.getTipText() == null || t.getTipText().equals("")) {
             return;
           }
@@ -1267,7 +1282,7 @@ public class TimeLine extends VisPlugin {
       }
     }
 
-    public String getToolTipText(MouseEvent event) {
+    public String getMouseToolTipText(MouseEvent event) {
       if (event.getPoint().y <= TIME_MARKER_PIXEL_HEIGHT) {
         return "<html>Click to display time marker</html>";
       }
@@ -1341,7 +1356,7 @@ public class TimeLine extends VisPlugin {
   class MoteRuler extends JPanel {
     public MoteRuler() {
       setPreferredSize(new Dimension(35, 1));
-      setToolTipText("");
+      setToolTipText(null);
       setBackground(COLOR_BACKGROUND);
 
       final JPopupMenu popupMenu = new JPopupMenu();
