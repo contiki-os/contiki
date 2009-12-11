@@ -30,7 +30,7 @@
  * 
  * Author: Oliver Schmidt <ol.sc@web.de>
  *
- * $Id: mt-test.c,v 1.2 2007/09/11 12:55:57 matsutsuka Exp $
+ * $Id: mt-test.c,v 1.3 2009/12/11 14:59:45 matsutsuka Exp $
  */
 
 /**
@@ -63,14 +63,14 @@ static char buf[20];
 void
 println(char *str1)
 {
-  static unsigned int i;
+  unsigned int i;
   
   for(i = 1; i < WIN_YSIZE; i++) {
-    memcpy(log + (i - 1) * WIN_XSIZE, log + i * WIN_XSIZE, WIN_XSIZE);
+    memcpy(&log[(i - 1) * WIN_XSIZE], &log[i * WIN_XSIZE], WIN_XSIZE);
   }
-  memset(log + (WIN_YSIZE - 1) * WIN_XSIZE, 0, WIN_XSIZE);
+  memset(&log[(WIN_YSIZE - 1) * WIN_XSIZE], 0, WIN_XSIZE);
 
-  strncpy(log + (WIN_YSIZE - 1) * WIN_XSIZE, str1, WIN_XSIZE);
+  strncpy(&log[(WIN_YSIZE - 1) * WIN_XSIZE], str1, WIN_XSIZE);
 
   CTK_WIDGET_REDRAW(&loglabel);
 }
