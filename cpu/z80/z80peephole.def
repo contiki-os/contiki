@@ -1,0 +1,183 @@
+#
+# Customized peep-hole optimizer for z80/SDCC
+# @author Takahide Matsutsuka <markn@markn.org>
+#
+# $Id: z80peephole.def,v 1.1 2009/12/11 14:59:32 matsutsuka Exp $
+#
+
+replace {
+	ld	hl, %1
+	ld	(hl), #0x%2
+	inc	hl
+	ld	(hl), #0x%3
+} by {
+	;; (peep) 1 short store
+	ld	hl, #0x%3%2
+	ld	(%1), hl
+}
+
+replace {
+	ld	hl, %1 + 0
+	ld	(hl), %2
+	ld	hl, %1 + 1
+	ld	(hl), %3
+} by {
+	;; (peep) 2 short store
+	ld	hl, %1
+	ld	(hl), %2
+	inc	hl
+	ld	(hl), %3
+}
+
+replace	{
+	sub	a, #0x01
+	jr	Z, %1
+} by {
+	;; (peep) 3 decrement optimization
+	dec	a
+	jr	z, %1
+}
+replace	{
+	sub	a, #0x01
+	jr	NZ, %1
+} by {
+	;; (peep) 4 decrement optimization
+	dec	a
+	jr	nz, %1
+}
+replace	{
+	sub	a, #0x01
+	jp	Z, %1
+} by {
+	;; (peep) 5 decrement optimization
+	dec	a
+	jp	z, %1
+}
+replace	{
+	sub	a, #0x01
+	jp	NZ, %1
+} by {
+	;; (peep) 6 decrement optimization
+	dec	a
+	jp	nz, %1
+}
+
+replace	{
+	push	%1
+	pop	iy
+	ld	a, (iy)
+	or	a, a
+} by {
+	;; (peep) 7 or optimization
+	ld	a, (%1)
+	or	a, a
+}
+
+replace {
+	ld	iy, %1
+	ld	a, 0 (iy)
+} by {
+	;; (peep) 8 iy optimization
+	ld	a, (%1)
+}
+
+replace {
+	ld	iy, %1
+	ld	0 (iy), a
+} by {
+	;; (peep) 9 iy optimization
+	ld	(%1), a
+}
+
+replace	{
+	push	%1
+	pop	iy
+	ld	(iy), %2
+} by {
+	;; (peep) 10 iy optimization
+	ld	a, %2
+	ld	(%1), a
+}
+
+replace {
+	ld	iy, %1
+	ld	%2,0 (iy)
+	ld	iy, %1
+	ld	%3,1 (iy)
+	ld	iy, %1
+	ld	%4,2 (iy)
+	ld	iy, %1
+	ld	%5,3 (iy)
+} by {
+	;; (peep) 11 iy optimization
+	ld	iy, %1
+	ld	%2,0 (iy)
+	ld	%3,1 (iy)
+	ld	%4,2 (iy)
+	ld	%5,3 (iy)
+}
+
+replace {
+	ld	iy, %1
+	ld	%2,0 (iy)
+	ld	iy, %1
+	ld	%3,1 (iy)
+} by {
+	;; (peep) 12 iy optimization
+	ld	iy, %1
+	ld	%2,0 (iy)
+	ld	%3,1 (iy)
+}
+
+replace {
+	ld	iy, %1
+	ld	0 (iy), %2
+	ld	iy, %1
+	ld	1 (iy), %3
+	ld	iy, %1
+	ld	2 (iy), %4
+	ld	iy, %1
+	ld	3 (iy), %5
+} by {
+	;; (peep) 13 iy optimization
+	ld	iy, %1
+	ld	0 (iy), %2
+	ld	1 (iy), %3
+	ld	2 (iy), %4
+	ld	3 (iy), %5
+}
+
+replace {
+	ld	iy, %1
+	ld	0 (iy), %2
+	ld	iy, %1
+	ld	1 (iy), %3
+} by {
+	;; (peep) 14 iy optimization
+	ld	iy, %1
+	ld	0 (iy), %2
+	ld	1 (iy), %3
+}
+
+replace	{
+	jp	%1
+%2:
+} by {
+	;; (peep) 15 short jump optimization
+	jr	%1
+%2:
+} if labelInRange
+
+replace {
+	ld	c,%3 (ix)
+	ld	b,%4 (ix)
+	push	bc
+	pop	iy
+	ld	0 (iy), #0x%6
+	ld	1 (iy), #0x%5
+} by {
+	;; (peep) 16 store value
+	ld	l, %3 (ix)
+	ld	h, %4 (ix)
+	ld	(hl), #0x%5%6
+}

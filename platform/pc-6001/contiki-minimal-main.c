@@ -27,7 +27,7 @@
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * $Id: contiki-minimal-main.c,v 1.1 2007/09/11 12:12:59 matsutsuka Exp $
+ * $Id: contiki-minimal-main.c,v 1.2 2009/12/11 14:59:31 matsutsuka Exp $
  *
  */
 
@@ -43,7 +43,7 @@
 #include "program-handler.h"
 #include "tinysample-dsc.h"
 
-extern struct process *tiny_process;
+PROCESS_NAME(tiny_process);
 /*---------------------------------------------------------------------------*/
 int
 main(void)

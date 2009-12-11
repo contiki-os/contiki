@@ -27,7 +27,7 @@
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * $Id: contiki-serial-main.c,v 1.4 2009/03/17 20:32:22 adamdunkels Exp $
+ * $Id: contiki-serial-main.c,v 1.5 2009/12/11 14:59:31 matsutsuka Exp $
  *
  */
 
@@ -62,7 +62,7 @@ rs232_print(char* str) {
 }
 /*---------------------------------------------------------------------------*/
 static void
-log_message(char* str) {
+log(char* str) {
   while (*str != 0) {
     libputc_arch(*str++);
   }
@@ -80,18 +80,18 @@ PROCESS_THREAD(stest_process, ev, data)
 
   etimer_set(&timer, CLOCK_SECOND);
 
-  log_message("Starting serial test process");
+  log("Starting serial test process");
   while(1) {
     PROCESS_WAIT_EVENT();
 
     if (etimer_expired(&timer)) {
-      log_message("Sending serial data now");
+      log("Sending serial data now");
       rs232_print("GNU's not Unix\n");
       etimer_reset(&timer);
     }
 
     if(ev == serial_line_event_message) {
-      log_message(data);
+      log(data);
     }
   }
 

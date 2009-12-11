@@ -2,7 +2,7 @@
 # Makefile for z80/SDCC
 # @author Takahide Matsutsuka <markn@markn.org>
 #
-# $Id: Makefile.z80,v 1.13 2009/07/09 18:26:55 matsutsuka Exp $
+# $Id: Makefile.z80,v 1.14 2009/12/11 14:59:32 matsutsuka Exp $
 #
 
 ### Compiler definitions
@@ -19,14 +19,14 @@ CUSTOM_RULE_ALLOBJS_TO_TARGETLIB=1
 CUSTOM_RULE_LINK=1
 
 ### Default flags
-CFLAGS  += --std-c99 -mz80
-# --peep-file $(CONTIKI_CPU)/z80peephole.def
+CFLAGS  += --std-c99 -mz80 --opt-code-size
+CFLAGS	+= --peep-file $(CONTIKI_CPU)/z80peephole.def --fverbose-asm
 ASFLAGS +=
 LDFLAGS += -mz80 --out-fmt-ihx --no-std-crt0
 AROPTS   = -a
 
 ### CPU-dependent cleanup files
-CLEAN += *.lnk *.sym *.lib contiki.ihx
+CLEAN +=
 
 ### CPU-dependent directories
 CONTIKI_CPU_DIRS = . dev lib loader
@@ -36,7 +36,6 @@ CONTIKI_SOURCEFILES += strcasecmp.c mtarch.c uip_arch.c \
 	libconio_z80.c log-conio.c rs232.c \
 	mef.c
 CONTIKI_ASMFILES += uip_arch-asm.S crt0.S 
-#crt-prg.S
 
 CONTIKI_ASMOBJECTFILES = ${addprefix $(OBJECTDIR)/,$(CONTIKI_ASMFILES:.S=.o)}
 
@@ -65,21 +64,17 @@ $(OBJECTDIR)/%.o: %.cS
 endif
 
 #CUSTOM_RULE_ALLOBJS_TO_TARGETLIB
-contiki-$(TARGET).lib: $(CONTIKI_OBJECTFILES) $(PROJECT_OBJECTFILES) $(CONTIKI_ASMOBJECTFILES) $(CONTIKI_CASMOBJECTFILES)
+$(OBJECTDIR)/contiki-$(TARGET).lib: $(CONTIKI_OBJECTFILES) $(PROJECT_OBJECTFILES) $(CONTIKI_ASMOBJECTFILES) $(CONTIKI_CASMOBJECTFILES)
 	rm -f $@
 	for target in $^; do echo $$target >> $@; done
+	sed -i -e "s/$(OBJECTDIR)\///" $@
 
 #CUSTOM_RULE_LINK
-contiki.ihx: contiki-$(TARGET).lib $(OBJECTDIR)/crt0.o
-	$(CC) $(LDFLAGS)  -o $@ $(OBJECTDIR)/crt0.o -lcontiki-$(TARGET).lib
-	$(LD) -nf contiki
+$(OBJECTDIR)/contiki.ihx: $(OBJECTDIR)/contiki-$(TARGET).lib $(OBJECTDIR)/crt0.o
+	$(CC) $(LDFLAGS)  -o $@ $(OBJECTDIR)/crt0.o -L$(OBJECTDIR) -lcontiki-$(TARGET).lib
+	$(LD) -nf $(OBJECTDIR)/contiki
+	mv $(OBJECTDIR)/contiki.map .
 
-LDPFLAGS = -mz80 --out-fmt-ihx --no-std-crt0 --code-loc 0 --data-loc 0
-
-test.ihx: contiki-$(TARGET).lib $(OBJECTDIR)/crt-prg.o
-	$(CC) $(LDPFLAGS)  -o $@ $(OBJECTDIR)/crt-prg.o -lcontiki-$(TARGET).lib
-	$(LD) -nf test
-
-%.ihx: contiki-$(TARGET).lib $(OBJECTDIR)/%*.o
+$(OBJECTDIR)/%.ihx: $(OBJECTDIR)/contiki-$(TARGET).lib $(OBJECTDIR)/%*.o
 	$(CC) $(LDPFLAGS)  -o $@ $(OBJECTDIR)/$*.o -lcontiki-$(TARGET).lib
 	$(LD) -nf $*
