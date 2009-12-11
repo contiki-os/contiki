@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: cc2420.c,v 1.35 2009/11/13 10:07:53 fros4943 Exp $
+ * @(#)$Id: cc2420.c,v 1.36 2009/12/11 18:32:54 zhitao Exp $
  */
 /*
  * This code is almost device independent and should be easy to port.
@@ -572,8 +572,10 @@ int
 cc2420_interrupt(void)
 {
 #if CC2420_CONF_TIMESTAMPS
-  interrupt_time = timesynch_time();
-  interrupt_time_set = 1;
+  if(!interrupt_time_set) {
+    interrupt_time = timesynch_time();
+    interrupt_time_set = 1;
+  }
 #endif /* CC2420_CONF_TIMESTAMPS */
 
   CLEAR_FIFOP_INT();
@@ -627,20 +629,11 @@ cc2420_read(void *buf, unsigned short bufsize)
   struct timestamp t;
 #endif /* CC2420_CONF_TIMESTAMPS */
 
-  if(!FIFOP_IS_1) {
-    /* If FIFOP is 0, there is no packet in the RXFIFO. */
+  if(!FIFO_IS_1) {
+    /* If FIFO is 0, there is no packet in the RXFIFO. */
     return 0;
   }
 
-#if CC2420_CONF_TIMESTAMPS
-  if(interrupt_time_set) {
-    cc2420_time_of_arrival = interrupt_time;
-    interrupt_time_set = 0;
-  } else {
-    cc2420_time_of_arrival = 0;
-  }
-  cc2420_time_of_departure = 0;
-#endif /* CC2420_CONF_TIMESTAMPS */
   GET_LOCK();
 
   getrxbyte(&len);
@@ -697,12 +690,19 @@ cc2420_read(void *buf, unsigned short bufsize)
     RIMESTATS_ADD(llrx);
 
 #if CC2420_CONF_TIMESTAMPS
-    cc2420_time_of_departure =
-      t.time +
-      setup_time_for_transmission +
-      (total_time_for_transmission * (len - 2)) / total_transmission_len;
-
-    cc2420_authority_level_of_sender = t.authority_level;
+    if(interrupt_time_set) {
+      cc2420_time_of_arrival = interrupt_time;
+      cc2420_time_of_departure =
+	t.time +
+	setup_time_for_transmission +
+	(total_time_for_transmission * (len - 2)) / total_transmission_len;
+    
+      cc2420_authority_level_of_sender = t.authority_level;
+      interrupt_time_set = 0;
+    } else {
+      /* Bypass timesynch */
+      cc2420_authority_level_of_sender = timesynch_authority_level();
+    }
 
     packetbuf_set_attr(PACKETBUF_ATTR_TIMESTAMP, t.time);
 #endif /* CC2420_CONF_TIMESTAMPS */
@@ -718,7 +718,7 @@ cc2420_read(void *buf, unsigned short bufsize)
   if(FIFOP_IS_1 && !FIFO_IS_1) {
     /*    printf("cc2420_read: FIFOP_IS_1 1\n");*/
     flushrx();
-  } else if(FIFOP_IS_1) {
+  } else if(FIFO_IS_1) {
     /* Another packet has been received and needs attention. */
     process_poll(&cc2420_process);
   }
