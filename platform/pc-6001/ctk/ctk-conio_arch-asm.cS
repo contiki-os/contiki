@@ -7,7 +7,7 @@
 ;;; 
 ;;; @author Takahide Matsutsuka <markn@markn.org>
 ;;; 
-;;; $Id: ctk-conio_arch-asm.cS,v 1.2 2007/09/29 04:10:00 matsutsuka Exp $
+;;; $Id: ctk-conio_arch-asm.cS,v 1.3 2009/12/11 15:00:38 matsutsuka Exp $
 ;;;
 
 	;; uses preprocessor to enable definitions
@@ -686,7 +686,7 @@ _draw_widget_textentry_loop2:	; 0xc39d Stack text count yx
 	ld	a, 4(ix)	; w->w.widget.textentry.xpos
 	sub	5(ix)		; xscroll
 	sub	h		; textentry.xpos - xscroll- i
-	ld	a, #00		; flags don't change
+	ld	a, #00		; flags do not change
 	jr	nz, _draw_widget_textentry_revers
 	ld	a, #01
 _draw_widget_textentry_revers:
