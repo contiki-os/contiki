@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: TimeLine.java,v 1.20 2009/12/11 10:41:10 fros4943 Exp $
+ * $Id: TimeLine.java,v 1.21 2009/12/14 13:25:04 fros4943 Exp $
  */
 
 package se.sics.cooja.plugins;
@@ -652,6 +652,21 @@ public class TimeLine extends VisPlugin {
       plugin.trySelectTime(popupLocation.x*currentPixelDivisor);
     }
   };
+  private Action logListenerAction = new AbstractAction("to Log Listener") {
+    public void actionPerformed(ActionEvent e) {
+      LogListener plugin = (LogListener) simulation.getGUI().getStartedPlugin(LogListener.class.getName());
+      if (plugin == null) {
+        logger.fatal("No Log Listener plugin");
+        return;
+      }
+      if (popupLocation == null) {
+        return;
+      }
+
+      /* Select simulation time */
+      plugin.trySelectTime(popupLocation.x*currentPixelDivisor);
+    }
+  };
   
   private void numberMotesWasUpdated() {
     /* Plugin title */
@@ -1050,6 +1065,7 @@ public class TimeLine extends VisPlugin {
       popupMenu.addSeparator();
 
       popupMenu.add(new JMenuItem(radioLoggerAction));
+      popupMenu.add(new JMenuItem(logListenerAction));
 
       addMouseListener(new MouseAdapter() {
         public void mouseClicked(MouseEvent e) {
