@@ -26,16 +26,17 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: VisPlugin.java,v 1.10 2009/06/30 12:46:26 fros4943 Exp $
+ * $Id: VisPlugin.java,v 1.11 2009/12/14 13:29:35 fros4943 Exp $
  */
 
 package se.sics.cooja;
 
 import java.util.Collection;
+
 import javax.swing.JInternalFrame;
 import javax.swing.event.InternalFrameAdapter;
 import javax.swing.event.InternalFrameEvent;
-import javax.swing.event.InternalFrameListener;
+
 import org.jdom.Element;
 
 import se.sics.cooja.plugins.SimControl;
@@ -103,6 +104,11 @@ public abstract class VisPlugin extends JInternalFrame implements Plugin {
     return tag;
   }
 
-  public class PluginRequiresVisualizationException extends RuntimeException {
+  public void startPlugin() {
+  }
+  public void closePlugin() {
+  }
+  
+  public static class PluginRequiresVisualizationException extends RuntimeException {
   }
 }
