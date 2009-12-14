@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: RadioLogger.java,v 1.25 2009/11/25 15:32:34 fros4943 Exp $
+ * $Id: RadioLogger.java,v 1.26 2009/12/14 13:25:04 fros4943 Exp $
  */
 
 package se.sics.cooja.plugins;
@@ -253,6 +253,7 @@ public class RadioLogger extends VisPlugin {
     popupMenu.add(new JMenuItem(saveAction));
     popupMenu.addSeparator();
     popupMenu.add(new JMenuItem(timeLineAction));
+    popupMenu.add(new JMenuItem(logListenerAction));
     dataTable.setComponentPopupMenu(popupMenu);
 
     add(new JScrollPane(dataTable));
@@ -547,7 +548,24 @@ public class RadioLogger extends VisPlugin {
       plugin.trySelectTime(time);
     }
   };
-  
+
+  private Action logListenerAction = new AbstractAction("to Log Listener") {
+    public void actionPerformed(ActionEvent e) {
+      LogListener plugin = (LogListener) simulation.getGUI().getStartedPlugin(LogListener.class.getName());
+      if (plugin == null) {
+        logger.fatal("No Log Listener plugin");
+        return;
+      }
+
+      int selectedRow = dataTable.getSelectedRow();
+      if (selectedRow < 0) return;
+      long time = connections.get(selectedRow).startTime;
+      
+      /* Select simulation time */
+      plugin.trySelectTime(time);
+    }
+  };
+
   private Properties aliases = null;
   private Action aliasAction = new AbstractAction("Assign alias") {
     public void actionPerformed(ActionEvent e) {

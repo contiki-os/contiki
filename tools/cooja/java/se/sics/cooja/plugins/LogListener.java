@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: LogListener.java,v 1.20 2009/09/17 13:20:48 fros4943 Exp $
+ * $Id: LogListener.java,v 1.21 2009/12/14 13:25:04 fros4943 Exp $
  */
 
 package se.sics.cooja.plugins;
@@ -80,7 +80,6 @@ import se.sics.cooja.VisPlugin;
 import se.sics.cooja.SimEventCentral.LogOutputEvent;
 import se.sics.cooja.SimEventCentral.LogOutputListener;
 import se.sics.cooja.dialogs.TableColumnAdjuster;
-import se.sics.cooja.interfaces.MoteID;
 
 /**
  * A simple mote log listener.
@@ -196,6 +195,10 @@ public class LogListener extends VisPlugin {
     popupMenu.add(new JMenuItem(clearAction));
     popupMenu.addSeparator();
     popupMenu.add(new JMenuItem(saveAction));
+    popupMenu.addSeparator();
+    popupMenu.add(new JMenuItem(radioLoggerAction));
+    popupMenu.add(new JMenuItem(timeLineAction));
+    
     logTable.setComponentPopupMenu(popupMenu);
 
     /* Fetch log output history */
@@ -268,7 +271,7 @@ public class LogListener extends VisPlugin {
     filterTextField = new JTextField("");
     filterTextFieldBackground = filterTextField.getBackground();
     filterPanel.add(Box.createHorizontalStrut(2));
-    filterPanel.add(new JLabel("Filter on string: "));
+    filterPanel.add(new JLabel("Filter: "));
     filterPanel.add(filterTextField);
     filterTextField.addActionListener(new ActionListener() {
       public void actionPerformed(ActionEvent e) {
@@ -349,6 +352,26 @@ public class LogListener extends VisPlugin {
     }
   }
 
+  public void trySelectTime(final long time) {
+    java.awt.EventQueue.invokeLater(new Runnable() {
+      public void run() {
+        for (int i=0; i < logs.size(); i++) {
+          if (logs.get(i).ev.getTime() < time) {
+            continue;
+          }
+
+          int view = logTable.convertRowIndexToView(i);
+          if (view < 0) {
+            continue;
+          }
+          logTable.scrollRectToVisible(logTable.getCellRect(view, 0, true));
+          logTable.setRowSelectionInterval(view, view);
+          return;
+        }
+      }
+    });  
+  }
+
   private static class LogData {
     public final LogOutputEvent ev;
     public final String strID; /* cached value */
@@ -405,6 +428,45 @@ public class LogListener extends VisPlugin {
     }
   };
 
+  private Action timeLineAction = new AbstractAction("to Timeline") {
+    public void actionPerformed(ActionEvent e) {
+      TimeLine plugin = (TimeLine) simulation.getGUI().getStartedPlugin(TimeLine.class.getName());
+      if (plugin == null) {
+        logger.fatal("No Timeline plugin");
+        return;
+      }
+
+      int view = logTable.getSelectedRow();
+      if (view < 0) {
+        return;
+      }
+      int model = logTable.convertRowIndexToModel(view);
+      
+      /* Select simulation time */
+      plugin.trySelectTime(logs.get(model).ev.getTime());
+    }
+  };
+
+  private Action radioLoggerAction = new AbstractAction("to Radio Logger") {
+    public void actionPerformed(ActionEvent e) {
+      RadioLogger plugin = (RadioLogger) simulation.getGUI().getStartedPlugin(RadioLogger.class.getName());
+      if (plugin == null) {
+        logger.fatal("No Radio Logger plugin");
+        return;
+      }
+
+      int view = logTable.getSelectedRow();
+      if (view < 0) {
+        return;
+      }
+      int model = logTable.convertRowIndexToModel(view);
+      
+      /* Select simulation time */
+      plugin.trySelectTime(logs.get(model).ev.getTime());
+    }
+  };
+
+  
   private Action clearAction = new AbstractAction("Clear") {
     public void actionPerformed(ActionEvent e) {
       int size = logs.size();
@@ -423,11 +485,11 @@ public class LogListener extends VisPlugin {
 
       StringBuilder sb = new StringBuilder();
       for (int i: selectedRows) {
-        sb.append(logTable.getValueAt(i, 0));
+        sb.append(logTable.getValueAt(i, COLUMN_TIME));
         sb.append("\t");
-        sb.append(logTable.getValueAt(i, 1));
+        sb.append(logTable.getValueAt(i, COLUMN_FROM));
         sb.append("\t");
-        sb.append(logTable.getValueAt(i, 2));
+        sb.append(logTable.getValueAt(i, COLUMN_DATA));
         sb.append("\n");
       }
 
