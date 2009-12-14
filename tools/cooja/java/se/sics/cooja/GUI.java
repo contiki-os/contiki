@@ -24,7 +24,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * $Id: GUI.java,v 1.155 2009/11/25 20:47:18 fros4943 Exp $
+ * $Id: GUI.java,v 1.156 2009/12/14 13:29:35 fros4943 Exp $
  */
 
 package se.sics.cooja;
@@ -1640,10 +1640,10 @@ public class GUI extends Observable {
    * @param argMote Plugin mote argument
    * @return Started plugin
    */
-  public Plugin tryStartPlugin(final Class<? extends Plugin> pluginClass,
-      final GUI argGUI, final Simulation argSimulation, final Mote argMote) {
+  private Plugin tryStartPlugin(final Class<? extends Plugin> pluginClass,
+      final GUI argGUI, final Simulation argSimulation, final Mote argMote, boolean activate) {
     try {
-      return startPlugin(pluginClass, argGUI, argSimulation, argMote);
+      return startPlugin(pluginClass, argGUI, argSimulation, argMote, activate);
     } catch (PluginConstructionException ex) {
       if (GUI.isVisualized()) {
         GUI.showErrorDialog(GUI.getTopParentContainer(), "Error when starting plugin", ex, false);
@@ -1663,6 +1663,18 @@ public class GUI extends Observable {
     return null;
   }
 
+  public Plugin tryStartPlugin(final Class<? extends Plugin> pluginClass,
+      final GUI argGUI, final Simulation argSimulation, final Mote argMote) {
+    return tryStartPlugin(pluginClass, argGUI, argSimulation, argMote, true);
+  }
+
+  public Plugin startPlugin(final Class<? extends Plugin> pluginClass,
+      final GUI argGUI, final Simulation argSimulation, final Mote argMote) 
+  throws PluginConstructionException 
+  {
+    return startPlugin(pluginClass, argGUI, argSimulation, argMote, true);
+  }
+
   /**
    * Starts given plugin. If visualized, the plugin is also shown.
    * 
@@ -1674,8 +1686,8 @@ public class GUI extends Observable {
    * @return Started plugin
    * @throws PluginConstructionException At errors
    */
-  public Plugin startPlugin(final Class<? extends Plugin> pluginClass,
-      final GUI argGUI, final Simulation argSimulation, final Mote argMote)
+  private Plugin startPlugin(final Class<? extends Plugin> pluginClass,
+      final GUI argGUI, final Simulation argSimulation, final Mote argMote, boolean activate)
   throws PluginConstructionException
   {
 
@@ -1743,15 +1755,19 @@ public class GUI extends Observable {
       throw ex;
     }
 
+    if (activate) {
+      plugin.startPlugin();
+    }
+
     // Add to active plugins list
     startedPlugins.add(plugin);
     updateGUIComponentState();
 
     // Show plugin if visualizer type
-    if (plugin.getGUI() != null) {
+    if (activate && plugin.getGUI() != null) {
       myGUI.showPlugin(plugin);
     }
-
+    
     return plugin;
   }
 
@@ -3515,7 +3531,7 @@ public class GUI extends Observable {
         }
 
         /* Start plugin */
-        final Plugin startedPlugin = tryStartPlugin(pluginClass, this, simulation, mote);
+        final Plugin startedPlugin = tryStartPlugin(pluginClass, this, simulation, mote, false);
         if (startedPlugin == null) {
           continue;
         }
@@ -3527,6 +3543,9 @@ public class GUI extends Observable {
           }
         }
 
+        /* Activate plugin */
+        startedPlugin.startPlugin();
+        
         /* If Cooja not visualized, ignore window configuration */
         if (startedPlugin.getGUI() == null) {
           continue;
@@ -3573,6 +3592,7 @@ public class GUI extends Observable {
               }
             } catch (Exception e) { }
 
+            showPlugin(startedPlugin);
             return true;
           }
         }.invokeAndWait();

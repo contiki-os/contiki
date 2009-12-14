@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: Plugin.java,v 1.3 2008/12/16 15:07:14 fros4943 Exp $
+ * $Id: Plugin.java,v 1.4 2009/12/14 13:29:35 fros4943 Exp $
  */
 
 package se.sics.cooja;
@@ -53,6 +53,16 @@ public interface Plugin {
    * Graphical component of plugin (if any)
    */
   public JInternalFrame getGUI();
+
+
+  /**
+   * This method is called to activate a new plugin, after constructing it.
+   * If a simulation is loaded, this method is called after {@link #setConfigXML(Collection, boolean)}.
+   * 
+   * @see #setConfigXML(Collection, boolean)
+   * @see #closePlugin()
+   */
+  public void startPlugin();
 
   /**
    * This method is called when an opened plugin is about to close.
