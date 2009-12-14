@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: MspCLI.java,v 1.3 2009/09/17 13:19:08 fros4943 Exp $
+ * $Id: MspCLI.java,v 1.4 2009/12/14 13:23:18 fros4943 Exp $
  */
 
 package se.sics.cooja.mspmote.plugins;
@@ -166,29 +166,17 @@ public class MspCLI extends VisPlugin {
     });
     panel.add(commandField, BorderLayout.SOUTH);
 
-    if (mspMote.hasCLIListener()) {
-      logArea.setText("*** CLI already occupied by another listener ***");
-    } else {
-      myListener = new LineListener() {
-        @Override
-        public void lineRead(String line) {
-          addCLIData(line);
-        }
-      };
-      mspMote.setCLIListener(myListener);
-    }
-    // Tries to select this plugin
-    try {
-      setSize(400, 200);
-      setSelected(true);
-    } catch (java.beans.PropertyVetoException e) {
-      // Could not select
-    }
+    myListener = new LineListener() {
+      public void lineRead(String line) {
+        addCLIData(line);
+      }
+    };
+    mspMote.addCLIListener(myListener);
   }
 
   public void closePlugin() {
     if (myListener != null) {
-      mspMote.setCLIListener(null);
+      mspMote.addCLIListener(null);
     }
   }
 

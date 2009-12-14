@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: MspMote.java,v 1.36 2009/12/02 17:12:32 fros4943 Exp $
+ * $Id: MspMote.java,v 1.37 2009/12/14 13:22:57 fros4943 Exp $
  */
 
 package se.sics.cooja.mspmote;
@@ -81,7 +81,7 @@ public abstract class MspMote extends AbstractEmulatedMote implements Mote, Watc
 
   private Simulation simulation;
   private CommandHandler commandHandler;
-  private LineListener commandListener;
+  private ArrayList<LineListener> commandListeners = new ArrayList<LineListener>();
   private MSP430 myCpu = null;
   private MspMoteType myMoteType = null;
   private MspMoteMemory myMemory = null;
@@ -148,11 +148,15 @@ public abstract class MspMote extends AbstractEmulatedMote implements Mote, Watc
   }
 
   public boolean hasCLIListener() {
-    return this.commandListener != null;
+    return !commandListeners.isEmpty();
   }
 
-  public void setCLIListener(LineListener listener) {
-    this.commandListener = listener;
+  public void addCLIListener(LineListener listener) {
+    commandListeners.add(listener);
+  }
+
+  public void removeCLIListener(LineListener listener) {
+    commandListeners.remove(listener);
   }
 
   /**
@@ -237,11 +241,12 @@ public abstract class MspMote extends AbstractEmulatedMote implements Mote, Watc
    */
   protected void prepareMote(File fileELF, GenericNode node) throws IOException {
     LineOutputStream lout = new LineOutputStream(new LineListener() {
-      @Override
       public void lineRead(String line) {
-        LineListener listener = commandListener;
-        if (listener != null) {
-          listener.lineRead(line);
+        for (LineListener l: commandListeners.toArray(new LineListener[0])) {
+          if (l == null) {
+            continue;
+          }
+          l.lineRead(line);
         }
       }});
     PrintStream out = new PrintStream(lout);
@@ -374,20 +379,15 @@ public abstract class MspMote extends AbstractEmulatedMote implements Mote, Watc
     }*/
   }
   
-  private void sendCLICommandAndPrint(String comamnd) {
-    /* Backup listener */
-    LineListener oldListener = commandListener;
-
-    
-    setCLIListener(new LineListener() {
+  private void sendCLICommandAndPrint(String cmd) {
+    LineListener tmp = new LineListener() {
       public void lineRead(String line) {
         logger.fatal(line);
       }
-    });
-    sendCLICommand(comamnd);
-
-    /* Restore listener */
-    setCLIListener(oldListener);
+    };
+    commandListeners.add(tmp);
+    sendCLICommand(cmd);
+    commandListeners.remove(tmp);
   }
   
   public int getID() {
