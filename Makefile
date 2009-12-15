@@ -52,6 +52,13 @@ ALL = $(TESTS:.c=.srec) $(TESTS:.c=.bin) $(TESTS:.c=.dis)
 
 .PRECIOUS: 	$(COBJS) $(TARGETS) $(TESTS:.c=.obj)
 
+LIBOBJS = $(patsubst %.c,%.o,$(wildcard libmc1322x/*.c))
+
+libmc1322x: libmc1322x.a
+
+libmc1322x.a: $(LIBOBJS) 
+	$(AR) r libmc1322x.a $(LIBOBJS)
+
 all:		src/start.o src/isr.o $(ALL)
 
 #tests/flasher.obj: src/maca.o src/nvm.o

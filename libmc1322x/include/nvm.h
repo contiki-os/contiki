@@ -1,7 +1,7 @@
 #ifndef NVM_H
 #define NVM_H
 
-#include "embedded_types.h"
+#include "types.h"
 
 typedef enum
 {
