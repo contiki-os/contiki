@@ -58,7 +58,7 @@ b) Compile your code using SDCC.
    default crt0 object.  The customized crt0.o file is in lib directory
    of this release.
 
-c) Convert ihx file to cas file using hex2cas.
+c) Convert ihx file to cas file using hexameter
 
    hexameter <ihx_file|binary_file> [ihx_file|binary_file ...]
    The ihx files are just attached in the specified order.
@@ -144,17 +144,18 @@ For type 03 (byte) and 04 (word), bytes field has no effect.
 
 6/ History
 
-3/29/2003 1.0.0 First version
-4/20/2003 1.0.1 Mode option has been added
-9/01/2007 1.1.0 ROM-mode has been added
-9/28/2007 1.2.0 Customized crt0 has been introduced to clear global data
-3/15/2008 1.3.0 VRAM options introduced
-4/28/2008 1.4.0 Header file option introduced
+03/29/2003 1.0.0 First version
+04/20/2003 1.0.1 Mode option has been added
+09/01/2007 1.1.0 ROM-mode has been added
+09/28/2007 1.2.0 Customized crt0 has been introduced to clear global data
+03/15/2008 1.3.0 VRAM options introduced
+04/28/2008 1.4.0 Header file option introduced
 
-5/17/2008 2.0.0 Migrated to hexameter, to support more flexible configurations
-7/16/2008 2.1.0 Support arguments in ihx file, remove prefix/suffix instead
-7/18/2008 2.1.1 Cygwin dependency has been removed
-
+05/17/2008 2.0.0 Migrated to hexameter, to support more flexible configurations
+07/16/2008 2.1.0 Support arguments in ihx file, remove prefix/suffix instead
+07/18/2008 2.1.1 Cygwin dependency has been removed
+10/02/2008 2.1.2 Template for sdos 1.1 has been added
+12/14/2009 2.1.3 A minor bug in Linux environment has been fixed
 
 Enjoy!
 

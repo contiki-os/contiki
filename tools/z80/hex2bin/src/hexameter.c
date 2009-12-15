@@ -1,41 +1,38 @@
 /*
- * Copyright (c) 2003-2008, Takahide Matsutsuka.
- * All rights reserved. 
+ * Copyright (c) 2003-2009, Takahide Matsutsuka.
+ * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
  * are met:
  * 1. Redistributions of source code must retain the above copyright
  *    notice, this list of conditions and the following disclaimer.
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in
- *    the documentation and/or other materials provided with the
- *    distribution.
- * 3. The end-user documentation included with the redistribution, if
- *    any, must include the following acknowlegement:
- *       "This product includes software developed by Takahide Matsutsuka."
- *    Alternately, this acknowlegement may appear in the software itself,
- *    if and wherever such third-party acknowlegements normally appear.
- * 4. The name of the author may not be used to endorse or promote
+ * 2. Redistributions in binary form must reproduce the above
+ *    copyright notice, this list of conditions and the following
+ *    disclaimer in the documentation and/or other materials provided
+ *    with the distribution.
+ * 3. The name of the author may not be used to endorse or promote
  *    products derived from this software without specific prior
- *    written permission.  
+ *    written permission.
  *
- * THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESSED OR IMPLIED
- * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
- * OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED.  IN NO EVENT SHALL THE APACHE SOFTWARE FOUNDATION OR
- * ITS CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
- * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
- * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF
- * USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
- * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
- * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
- * SUCH DAMAGE.
+ * THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS
+ * OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED.  IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY
+ * DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+ * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE
+ * GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+ * WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+ * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ *
+ * $Id: hexameter.c,v 1.3 2009/12/15 07:13:14 matsutsuka Exp $
+ *
  */
 
 /*
- * A main file for hex2cas.
+ * A main file for hexameter.
  */
 
 #define MAX_PATH 1024
@@ -151,8 +148,8 @@ unsigned char analyzeOption(int argc, char **argv, Configuration *config) {
 
       break;
     case 'h':
-      printf("Hexameter: Convert Intel HEX file (ihx) to binary file, ver. 2.1.0\n");
-      printf("Copyright (c) 2003-2008 Takahide Matsutsuka <markn@markn.org>\n");
+      printf("Hexameter: Convert Intel HEX file (ihx) to binary file, ver. 2.1.3\n");
+      printf("Copyright (c) 2003-2009 Takahide Matsutsuka <markn@markn.org>\n");
       printf("Usage: hexameter [options] <ihx|bin> [<ihx|bin>...]\n");
       printf("Options:\n");
       printf(" -v verbose output\n");
@@ -299,15 +296,20 @@ int main(int argc, char **argv) {
 
   memset(&config, 0, sizeof(Configuration));
 
+#ifndef __CYGWIN__
+  r = analyzeOption(argc, argv, &config);
+  if (r) {
+    return r;
+  }
+#endif
   while (optind < argc) {
+#ifdef __CYGWIN__
     r = analyzeOption(argc, argv, &config);
     if (r) {
       return r;
     }
-    if (optind == argc) {
-      break;
-    }
-    if (config.length == MAXFILES) {
+#endif
+    if (config.length >= MAXFILES) {
       printf("too much files specified\n");
       return 1;
     }
