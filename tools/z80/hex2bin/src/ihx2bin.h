@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2007, Takahide Matsutsuka.
+ * Copyright (c) 2003-2008, Takahide Matsutsuka.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,7 +27,7 @@
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * $Id: ihx2bin.h,v 1.2 2008/07/20 07:44:39 matsutsuka Exp $
+ * $Id: ihx2bin.h,v 1.3 2009/12/15 07:13:14 matsutsuka Exp $
  *
  */
 
