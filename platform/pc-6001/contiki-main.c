@@ -27,29 +27,28 @@
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * $Id: contiki-main.c,v 1.3 2008/07/20 07:44:39 matsutsuka Exp $
+ * $Id: contiki-main.c,v 1.4 2009/12/16 06:47:18 matsutsuka Exp $
  *
  */
 
 /*
  * \file
- * 	This is a sample main file with desktop.
+ * 	This is a main file for standard configuration.
  * \author
  * 	Takahide Matsutsuka <markn@markn.org>
  */
 
 #include "contiki.h"
+#include "ctk/ctk.h"
 
-#include "program-handler.h"
-#include "about-dsc.h"
-#include "calc-dsc.h"
-#include "process-list-dsc.h"
-#include "shell-dsc.h"
-#include "mt-test-dsc.h"
+#ifndef WITHOUT_GUI
+#define CTK_PROCESS &ctk_process,
+#else /* WITH_GUI */
+#define CTK_PROCESS
+#endif /* WITH_GUI */
 
-#if WITH_LOADER_ARCH
-#include "directory-dsc.h"
-#endif
+PROCINIT(CTK_PROCESS
+	 &etimer_process);
 
 /*---------------------------------------------------------------------------*/
 int
@@ -57,24 +56,7 @@ main(void)
 {
   /* initialize process manager. */
   process_init();
-
-  /* start services */
-  process_start(&ctk_process, NULL);
-  process_start(&program_handler_process, NULL);
-  process_start(&etimer_process, NULL);
-
-  /* register programs to the program handler */
-#if WITH_LOADER_ARCH
-  program_handler_add(&directory_dsc, "Directory", 1);
-  program_handler_add(&processes_dsc, "Processes", 1);
-  //  program_handler_add(&shell_dsc, "Command shell", 1);
-#else
-  program_handler_add(&processes_dsc, "Processes", 1);
-  program_handler_add(&mttest_dsc, "Multithread", 1);
-  program_handler_add(&calc_dsc, "Calculator", 1);
-  program_handler_add(&about_dsc, "About", 1);
-//  program_handler_add(&shell_dsc, "Command shell", 1);
-#endif
+  autostart_start(autostart_processes);
 
   while(1) {
     process_run();

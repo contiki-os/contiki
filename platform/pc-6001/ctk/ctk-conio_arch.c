@@ -27,7 +27,7 @@
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * $Id: ctk-conio_arch.c,v 1.3 2007/09/29 04:10:00 matsutsuka Exp $
+ * $Id: ctk-conio_arch.c,v 1.4 2009/12/16 06:47:18 matsutsuka Exp $
  *
  */
 
@@ -71,7 +71,7 @@ const u8_t off_widget_textentry_state = offsetof(struct ctk_widget, widget) +
 #if CTK_CONF_HYPERLINK
 const u8_t off_widget_hyperlink_text = offsetof(struct ctk_widget, widget) +
   offsetof(struct ctk_widget_hyperlink, text);
-#endif CTK_CONF_HYPERLINK
+#endif /* CTK_CONF_HYPERLINK */
 
 #if CTK_CONF_ICONS
 const u8_t off_widget_icon_title      = offsetof(struct ctk_widget, widget) +
