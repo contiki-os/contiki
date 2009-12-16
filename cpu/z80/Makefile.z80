@@ -2,7 +2,7 @@
 # Makefile for z80/SDCC
 # @author Takahide Matsutsuka <markn@markn.org>
 #
-# $Id: Makefile.z80,v 1.14 2009/12/11 14:59:32 matsutsuka Exp $
+# $Id: Makefile.z80,v 1.15 2009/12/16 06:47:17 matsutsuka Exp $
 #
 
 ### Compiler definitions
@@ -25,16 +25,21 @@ ASFLAGS +=
 LDFLAGS += -mz80 --out-fmt-ihx --no-std-crt0
 AROPTS   = -a
 
+ifdef CONTIKI_PROJECT
+  CFLAGS += -DAUTOSTART_ENABLE=1
+  CONTIKI_SOURCEFILES += $(CONTIKI_PROJECT).c
+endif
+
 ### CPU-dependent cleanup files
-CLEAN +=
+CLEAN += *.ihx *.lnk *.sym contiki-$(TARGET).lib *.$(TARGET)
 
 ### CPU-dependent directories
 CONTIKI_CPU_DIRS = . dev lib loader
 
 ### CPU-dependent source files
 CONTIKI_SOURCEFILES += strcasecmp.c mtarch.c uip_arch.c \
-	libconio_z80.c log-conio.c rs232.c \
-	mef.c
+	libconio_z80.c log-conio.c rs232.c
+
 CONTIKI_ASMFILES += uip_arch-asm.S crt0.S 
 
 CONTIKI_ASMOBJECTFILES = ${addprefix $(OBJECTDIR)/,$(CONTIKI_ASMFILES:.S=.o)}
@@ -64,17 +69,15 @@ $(OBJECTDIR)/%.o: %.cS
 endif
 
 #CUSTOM_RULE_ALLOBJS_TO_TARGETLIB
-$(OBJECTDIR)/contiki-$(TARGET).lib: $(CONTIKI_OBJECTFILES) $(PROJECT_OBJECTFILES) $(CONTIKI_ASMOBJECTFILES) $(CONTIKI_CASMOBJECTFILES)
+contiki-$(TARGET).lib: $(CONTIKI_OBJECTFILES) $(PROJECT_OBJECTFILES) $(CONTIKI_ASMOBJECTFILES) $(CONTIKI_CASMOBJECTFILES)
 	rm -f $@
 	for target in $^; do echo $$target >> $@; done
-	sed -i -e "s/$(OBJECTDIR)\///" $@
+
+#CUSTOM_RULE_LINK (workaround for compiling examples)
+$(CONTIKI_PROJECT): $(CONTIKI_PROJECT).ihx
+	mv $(CONTIKI_PROJECT).ihx $(CONTIKI_PROJECT).$(TARGET)
 
 #CUSTOM_RULE_LINK
-$(OBJECTDIR)/contiki.ihx: $(OBJECTDIR)/contiki-$(TARGET).lib $(OBJECTDIR)/crt0.o
-	$(CC) $(LDFLAGS)  -o $@ $(OBJECTDIR)/crt0.o -L$(OBJECTDIR) -lcontiki-$(TARGET).lib
-	$(LD) -nf $(OBJECTDIR)/contiki
-	mv $(OBJECTDIR)/contiki.map .
-
-$(OBJECTDIR)/%.ihx: $(OBJECTDIR)/contiki-$(TARGET).lib $(OBJECTDIR)/%*.o
-	$(CC) $(LDPFLAGS)  -o $@ $(OBJECTDIR)/$*.o -lcontiki-$(TARGET).lib
+%.ihx: contiki-$(TARGET).lib
+	$(CC) $(LDFLAGS)  -o $@ $(OBJECTDIR)/crt0.o -lcontiki-$(TARGET).lib
 	$(LD) -nf $*

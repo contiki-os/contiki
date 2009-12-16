@@ -27,66 +27,57 @@
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * $Id: z80def.h,v 1.8 2009/12/16 06:47:17 matsutsuka Exp $
+ * $Id: contiki-desktop-main.c,v 1.1 2009/12/16 06:47:18 matsutsuka Exp $
  *
  */
 
 /*
  * \file
- *	This file contains a set of configuration for using SDCC as a compiler.
- *
+ * 	This is a sample main file with desktop.
  * \author
- *	Takahide Matsutsuka <markn@markn.org>
+ * 	Takahide Matsutsuka <markn@markn.org>
  */
 
-#ifndef __Z80_DEF_H__
-#define __Z80_DEF_H__
+#include "contiki.h"
 
-#define CC_CONF_FUNCTION_POINTER_ARGS	1
-#define CC_CONF_FASTCALL
-#define CC_CONF_VA_ARGS		        0
-#define CC_CONF_UNSIGNED_CHAR_BUGS	0
-#define CC_CONF_REGISTER_ARGS		0
+#include "program-handler.h"
+#include "about-dsc.h"
+#include "calc-dsc.h"
+#include "process-list-dsc.h"
+#include "shell-dsc.h"
+#include "mt-test-dsc.h"
 
-
-/* Generic types. */
-typedef   signed char    int8_t;
-typedef unsigned char   uint8_t;
-typedef   signed short  int16_t;
-typedef unsigned short uint16_t;
-typedef unsigned long  uint32_t;
-typedef unsigned char   u8_t;      /* 8 bit type */
-typedef unsigned short u16_t;      /* 16 bit type */
-typedef unsigned long  u32_t;      /* 32 bit type */
-typedef   signed long  s32_t;      /* 32 bit type */
-typedef unsigned short uip_stats_t;
-typedef   signed long  int32_t;    /* 32 bit type */
-#ifndef _SIZE_T_DEFINED
-#define _SIZE_T_DEFINED
-typedef unsigned int size_t;
+#if WITH_LOADER_ARCH
+#include "directory-dsc.h"
 #endif
 
-/* Compiler configurations */
-#define CCIF
-#define CLIF
-#define CC_CONF_CONST_FUNCTION_BUG
+/*---------------------------------------------------------------------------*/
+int
+main(void)
+{
+  /* initialize process manager. */
+  process_init();
 
-/*
- * Enable architecture-depend checksum calculation
- * for uIP configuration.
- * @see uip_arch.h
- * @see uip_arch-asm.S
- */
-#define UIP_ARCH_ADD32		1
-#define UIP_ARCH_CHKSUM	1
-#define UIP_ARCH_IPCHKSUM
+  /* start services */
+  process_start(&ctk_process, NULL);
+  process_start(&program_handler_process, NULL);
+  process_start(&etimer_process, NULL);
 
-#define CC_CONF_ASSIGN_AGGREGATE(dest, src)	\
-    memcpy(dest, src, sizeof(*dest))
+  /* register programs to the program handler */
+#if WITH_LOADER_ARCH
+  program_handler_add(&directory_dsc, "Directory", 1);
+  program_handler_add(&processes_dsc, "Processes", 1);
+  //  program_handler_add(&shell_dsc, "Command shell", 1);
+#else
+  program_handler_add(&processes_dsc, "Processes", 1);
+  program_handler_add(&mttest_dsc, "Multithread", 1);
+  program_handler_add(&calc_dsc, "Calculator", 1);
+  program_handler_add(&about_dsc, "About", 1);
+//  program_handler_add(&shell_dsc, "Command shell", 1);
+#endif
 
-#define uip_ipaddr_copy(dest, src)		\
-    memcpy(dest, src, sizeof(*dest))
-
-#define snprintf(a...)
-
-#endif /* __Z80_DEF_H__ */
+  while(1) {
+    process_run();
+    etimer_request_poll();
+  }
+}
