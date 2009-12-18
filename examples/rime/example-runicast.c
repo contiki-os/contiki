@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: example-runicast.c,v 1.6 2009/10/18 17:52:09 adamdunkels Exp $
+ * $Id: example-runicast.c,v 1.7 2009/12/18 15:26:35 nifi Exp $
  */
 
 /**
@@ -68,7 +68,7 @@ LIST(history_table);
 MEMB(history_mem, struct history_entry, NUM_HISTORY_ENTRIES);
 /*---------------------------------------------------------------------------*/
 static void
-recv_runicast(struct runicast_conn *c, rimeaddr_t *from, uint8_t seqno)
+recv_runicast(struct runicast_conn *c, const rimeaddr_t *from, uint8_t seqno)
 {
   /* OPTIONAL: Sender history */
   struct history_entry *e = NULL;
@@ -101,13 +101,13 @@ recv_runicast(struct runicast_conn *c, rimeaddr_t *from, uint8_t seqno)
 	 from->u8[0], from->u8[1], seqno);
 }
 static void
-sent_runicast(struct runicast_conn *c, rimeaddr_t *to, uint8_t retransmissions)
+sent_runicast(struct runicast_conn *c, const rimeaddr_t *to, uint8_t retransmissions)
 {
   printf("runicast message sent to %d.%d, retransmissions %d\n",
 	 to->u8[0], to->u8[1], retransmissions);
 }
 static void
-timedout_runicast(struct runicast_conn *c, rimeaddr_t *to, uint8_t retransmissions)
+timedout_runicast(struct runicast_conn *c, const rimeaddr_t *to, uint8_t retransmissions)
 {
   printf("runicast message timed out when sending to %d.%d, retransmissions %d\n",
 	 to->u8[0], to->u8[1], retransmissions);
