@@ -700,4 +700,6 @@ __xdata __at (0xDFD9) unsigned char RFD_SHADOW;
 
 __xdata __at (0xDFF9) unsigned char U1BUF_SHADOW;
 
+__xdata __at (0xDFBA) unsigned int ADC_SHADOW;
+
 #endif /*REG_CC2430*/

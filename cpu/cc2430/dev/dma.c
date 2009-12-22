@@ -35,7 +35,7 @@ dma_init(void)
 /*---------------------------------------------------------------------------*/
 #ifdef HAVE_DMA
 /**
- * Configure a DMA channel.
+ * Configure a DMA channel except word mode.
  *
  * \param channel channel ID;
  * \param src source address;
@@ -56,6 +56,33 @@ dma_config(uint8_t channel, void *src, dma_inc_t src_inc, void *dst, dma_inc_t d
 	   uint16_t length, dma_vlen_t vlen_mode, dma_type_t t_mode, dma_trigger_t trigger,
 	   struct process * proc)
 {
+  return dma_config2(channel,src,src_inc, dst, dst_inc, length, 0, vlen_mode, t_mode, trigger, proc);
+}
+
+/*---------------------------------------------------------------------------*/
+/**
+ * Configure a DMA channel.
+ *
+ * \param channel channel ID;
+ * \param src source address;
+ * \param src_inc source increment mode;
+ * \param dst dest address;
+ * \param dst_inc dest increment mode;
+ * \param length maximum length;
+ * \param word_mode set to 1 for 16-bits per transfer;
+ * \param vlen_mode variable length mode;
+ * \param t_mode DMA transfer mode;
+ * \param trigger DMA trigger;
+ * \param proc process that is upon interrupt;
+ *
+ * \return Handle to DMA channel
+ * \return 0 invalid channel
+ */
+xDMAHandle
+dma_config2(uint8_t channel, void *src, dma_inc_t src_inc, void *dst, dma_inc_t dst_inc,
+	   uint16_t length, uint8_t word_mode, dma_vlen_t vlen_mode, dma_type_t t_mode, dma_trigger_t trigger,
+	   struct process * proc)
+{
   if((!channel) || (channel > 4)) {
     return 0;
   }
@@ -70,7 +97,7 @@ dma_config(uint8_t channel, void *src, dma_inc_t src_inc, void *dst, dma_inc_t d
   dma_conf[channel].dst_l = ((uint16_t) dst);
   dma_conf[channel].len_h = vlen_mode + (length >> 8);
   dma_conf[channel].len_l = length;
-  dma_conf[channel].t_mode = (t_mode << 5) + trigger;
+  dma_conf[channel].t_mode = ((word_mode&0x1)<<7) | (t_mode << 5) | trigger;
   dma_conf[channel].addr_mode = (src_inc << 6) + (dst_inc << 4) + 2; /*DMA has priority*/
   
   /*Callback is defined*/
@@ -176,7 +203,7 @@ dma_config_print(xDMAHandle channel)
     uint8_t *ptr = (uint8_t *)&(dma_conf[ch_id]);
     for(i = 0; i< 8; i++) {
       if(i != 0) {
-	printf(":%x", *ptr++);
+	printf(":%02x", *ptr++);
       }
     }
     printf("\n");
@@ -216,7 +243,6 @@ dma_ISR(void) __interrupt (DMA_VECTOR)
     spi_rx_dma_callback();
   }
 #endif
-  
 #ifdef HAVE_DMA
   for(i = 0; i < 4; i++) {
     if((DMAIRQ & (1 << i + 1)) != 0) {
