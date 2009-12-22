@@ -70,8 +70,13 @@ typedef unsigned int size_t;
  * @see uip_arch.h
  * @see uip_arch-asm.S
  */
-#define UIP_ARCH_ADD32		1
-#define UIP_ARCH_CHKSUM	1
+/*
+ * DO NOT USE UIP_ARCH flags!
+ * uip_arch code was copied from z80 directory but NOT ported
+ */
+
+#define UIP_ARCH_ADD32		0
+#define UIP_ARCH_CHKSUM	0
 #define UIP_ARCH_IPCHKSUM
 
 #define CC_CONF_ASSIGN_AGGREGATE(dest, src)	\

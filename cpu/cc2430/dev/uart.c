@@ -13,9 +13,19 @@ static int (*uart1_input_handler)(unsigned char c);
 void
 uart0_init(uint32_t speed)
 {
-  if(speed != 115200) {
-    return;
+  if(speed == 115200) {
+    U0BAUD=216;	/*115200*/
+    U0GCR =11; 	/*LSB first and 115200*/
   }
+  else if(speed == 38400) {
+    U0BAUD=59;	/*38400*/
+    U0GCR =10; 	/*LSB first and 38400*/
+  }
+  else if(speed == 9600) {
+    U0BAUD= 59;	/* 9600 */
+    U0GCR = 8; 	/*LSB first and 9600*/
+  }
+  else { return; }
 
 #ifdef UART0_ALTERNATIVE_2
   PERCFG |= U0CFG;	/*alternative port 2 = P1.5-2*/
@@ -39,20 +49,6 @@ uart0_init(uint32_t speed)
   P0DIR &= ~0x14;		/*CTS & RX in*/
 #endif
   
-  if(speed == 115200) {
-    U0BAUD=216;	/*115200*/
-    U0GCR =11; 	/*LSB first and 115200*/
-  }
-
-  if(speed == 38400) {
-    U0BAUD=59;	/*38400*/
-    U0GCR =10; 	/*LSB first and 38400*/
-  }
-
-  if(speed == 9600) {
-    U0BAUD= 59;	/* 9600 */
-    U0GCR = 8; 	/*LSB first and 9600*/
-  }
 
 #ifdef UART0_RTSCTS
   U0UCR = 0x42;		/*defaults: 8N1, RTS/CTS, high stop bit*/
