@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: example-announcement.c,v 1.1 2009/03/08 20:27:42 adamdunkels Exp $
+ * $Id: example-announcement.c,v 1.2 2009/12/28 18:18:23 nvt-se Exp $
  */
 
 /**
@@ -54,7 +54,7 @@ PROCESS(example_announcement_process, "Example announcement process");
 AUTOSTART_PROCESSES(&example_announcement_process);
 /*---------------------------------------------------------------------------*/
 static void
-received_announcement(struct announcement *a, rimeaddr_t *from,
+received_announcement(struct announcement *a, const rimeaddr_t *from,
 		      uint16_t id, uint16_t value)
 {
   /* We set our own announced value to one plus that of our neighbor. */
