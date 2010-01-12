@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: TimeLine.java,v 1.21 2009/12/14 13:25:04 fros4943 Exp $
+ * $Id: TimeLine.java,v 1.22 2010/01/12 09:11:26 fros4943 Exp $
  */
 
 package se.sics.cooja.plugins;
@@ -40,7 +40,6 @@ import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
@@ -68,6 +67,7 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
+import javax.swing.JSlider;
 import javax.swing.JSplitPane;
 import javax.swing.JToolTip;
 import javax.swing.KeyStroke;
@@ -75,6 +75,8 @@ import javax.swing.Popup;
 import javax.swing.PopupFactory;
 import javax.swing.SwingUtilities;
 import javax.swing.Timer;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 
 import org.apache.log4j.Logger;
 import org.jdom.Element;
@@ -400,6 +402,51 @@ public class TimeLine extends VisPlugin {
           timeline.scrollRectToVisible(r);
         }
       });
+    }
+  };
+  
+  private Action zoomSliderAction = new AbstractAction("Zoom slider") {
+    public void actionPerformed(ActionEvent e) {
+      final JSlider zoomSlider = new JSlider(JSlider.VERTICAL, 0, ZOOM_LEVELS.length-1, zoomLevel);
+      zoomSlider.setInverted(true);
+      zoomSlider.setPaintTicks(true);
+      zoomSlider.setPaintLabels(false);
+
+      final long centerTime = popupLocation.x*currentPixelDivisor;
+      
+      zoomSlider.addChangeListener(new ChangeListener() {
+        public void stateChanged(ChangeEvent e) {
+          zoomLevel = zoomSlider.getValue();
+          
+          currentPixelDivisor = ZOOM_LEVELS[zoomLevel];
+          logger.info("Zoom level: " + currentPixelDivisor + " microseconds/pixel " + ((zoomLevel==ZOOM_LEVELS.length-1)?"(MAX)":""));
+
+          lastRepaintSimulationTime = -1; /* Force repaint */
+          repaintTimelineTimer.getActionListeners()[0].actionPerformed(null); /* Force size update */
+          SwingUtilities.invokeLater(new Runnable() {
+            public void run() {
+              int w = timeline.getVisibleRect().width;
+              int centerPixel = (int)(centerTime/currentPixelDivisor);
+              Rectangle r = new Rectangle(
+                  centerPixel - w/2, 0, 
+                  w, 1
+              );
+
+              /* Time ruler */
+              mousePixelPositionX = centerPixel;
+              mouseDownPixelPositionX = centerPixel;
+              mousePixelPositionY = timeline.getHeight();
+              
+              timeline.scrollRectToVisible(r);
+            }
+          });
+        }
+      });
+      
+      final JPopupMenu zoomPopup = new JPopupMenu();
+      zoomPopup.add(zoomSlider);
+      zoomPopup.show(TimeLine.this, TimeLine.this.getWidth()/2, 0);
+      zoomSlider.requestFocus();
     }
   };
   
@@ -1056,6 +1103,7 @@ public class TimeLine extends VisPlugin {
 
       popupMenu.add(new JMenuItem(zoomInAction));
       popupMenu.add(new JMenuItem(zoomOutAction));
+      popupMenu.add(new JMenuItem(zoomSliderAction));
 
       popupMenu.addSeparator();
 
