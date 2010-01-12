@@ -22,11 +22,12 @@ Right-click the main area for a popup menu with more options. \
 <p>You may filter shown logs by entering regular expressions in the bottom text field. \
 Filtering is performed on both the Mote and the Data columns.\
 <p><b>Filter examples:</b> \
-<br><br>Hello<br><i>logs containing the string Hello</i>\
-<br><br>^Contiki<br><i>logs starting with Contiki</i>\
+<br><br>Hello<br><i>logs containing the string 'Hello'</i>\
+<br><br>^Contiki<br><i>logs starting with 'Contiki'</i>\
 <br><br>^[CR]<br><i>logs starting either a C or an R</i>\
-<br><br>'Hello'$<br><i>logs ending with 'Hello'</i>\
-<br><br>^ID:[2-3]$<br><i>logs from motes 2 and 3</i>
+<br><br>Hello$<br><i>logs ending with 'Hello'</i>\
+<br><br>^ID:[2-5]$<br><i>logs from motes 2 to 5</i>\
+<br><br>^ID:[2-5]§Contiki<br><i>logs from motes 2 to 5 starting with 'Contiki'</i>
 
 se.sics.cooja.plugins.TimeLine = \
 <b>Timeline</b>\
