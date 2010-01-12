@@ -26,18 +26,29 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: Mote2MoteRelations.java,v 1.2 2009/09/17 11:07:58 fros4943 Exp $
+ * $Id: Mote2MoteRelations.java,v 1.3 2010/01/12 09:36:10 fros4943 Exp $
  */
 
 package se.sics.cooja.interfaces;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Observable;
+import java.util.Observer;
 
-import javax.swing.*;
+import javax.swing.BoxLayout;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.SwingUtilities;
+
 import org.apache.log4j.Logger;
 import org.jdom.Element;
 
-import se.sics.cooja.*;
+import se.sics.cooja.ClassDescription;
+import se.sics.cooja.GUI;
+import se.sics.cooja.Mote;
+import se.sics.cooja.MoteInterface;
+import se.sics.cooja.SimEventCentral.MoteCountListener;
 
 /**
  * Mote2Mote Relations is used to show mote relations in simulated
@@ -72,6 +83,8 @@ public class Mote2MoteRelations extends MoteInterface {
   private ArrayList<Mote> relations = new ArrayList<Mote>();
   private GUI gui;
 
+  private MoteCountListener moteCountListener;
+  
   public Mote2MoteRelations(Mote mote) {
     this.mote = mote;
     this.gui = mote.getSimulation().getGUI();
@@ -95,6 +108,36 @@ public class Mote2MoteRelations extends MoteInterface {
       }
     };
     init.run();
+
+    mote.getSimulation().getEventCentral().addMoteCountListener(moteCountListener = new MoteCountListener() {
+      public void moteWasAdded(Mote mote) {
+      }
+      public void moteWasRemoved(Mote mote) {
+        /* This mote was removed - cleanup by removed() */
+        if (Mote2MoteRelations.this.mote == mote) {
+          return;
+        }
+
+        /* Remove mote from our relations */
+        if (!relations.contains(mote)) {
+          return;
+        }
+        relations.remove(mote);
+        gui.removeMoteRelation(Mote2MoteRelations.this.mote, mote);
+      }
+    });
+  }
+
+  public void removed() {
+    super.removed();
+    
+    for (Mote m: relations) {
+      gui.removeMoteRelation(Mote2MoteRelations.this.mote, m);
+    }
+    relations.clear();
+
+    mote.getSimulation().getEventCentral().removeMoteCountListener(moteCountListener);
+    mote.getInterfaces().getLog().deleteObserver(logObserver);
   }
 
   private Observer logObserver = new Observer() {
