@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: LogListener.java,v 1.22 2010/01/12 15:42:08 nifi Exp $
+ * $Id: LogListener.java,v 1.23 2010/01/13 15:04:47 nifi Exp $
  */
 
 package se.sics.cooja.plugins;
@@ -146,7 +146,7 @@ public class LogListener extends VisPlugin {
         } else if (col == COLUMN_DATA) {
           return log.ev.getMessage();
         } else if (col == COLUMN_CONCAT) {
-          return log.strID + '§' + log.ev.getMessage();
+          return log.strID + ' ' + log.ev.getMessage();
         }
         return null;
       }

@@ -27,7 +27,7 @@ Filtering is performed on both the Mote and the Data columns.\
 <br><br>^[CR]<br><i>logs starting either a C or an R</i>\
 <br><br>Hello$<br><i>logs ending with 'Hello'</i>\
 <br><br>^ID:[2-5]$<br><i>logs from motes 2 to 5</i>\
-<br><br>^ID:[2-5]§Contiki<br><i>logs from motes 2 to 5 starting with 'Contiki'</i>
+<br><br>^ID:[2-5] Contiki<br><i>logs from motes 2 to 5 starting with 'Contiki'</i>
 
 se.sics.cooja.plugins.TimeLine = \
 <b>Timeline</b>\
