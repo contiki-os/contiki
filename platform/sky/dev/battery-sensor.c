@@ -26,14 +26,14 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: battery-sensor.c,v 1.3 2010/01/14 13:53:06 joxe Exp $
+ * $Id: battery-sensor.c,v 1.4 2010/01/14 14:00:38 joxe Exp $
  *
  * -----------------------------------------------------------------
  *
  * Author  : Adam Dunkels, Joakim Eriksson, Niclas Finne
  * Created : 2005-11-01
- * Updated : $Date: 2010/01/14 13:53:06 $
- *           $Revision: 1.3 $
+ * Updated : $Date: 2010/01/14 14:00:38 $
+ *           $Revision: 1.4 $
  */
 
 #include "dev/battery-sensor.h"
@@ -41,7 +41,7 @@
 #include "dev/irq.h"
 
 const struct sensors_sensor battery_sensor;
-
+static uint8_t active;
 /*---------------------------------------------------------------------------*/
 static void
 activate(void)

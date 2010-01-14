@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#)$Id: contiki-sky-main.c,v 1.59 2009/11/18 13:51:55 nifi Exp $
+ * @(#)$Id: contiki-sky-main.c,v 1.60 2010/01/14 14:00:38 joxe Exp $
  */
 
 #include <signal.h>
@@ -251,8 +251,10 @@ main(int argc, char **argv)
   /*
    * Initialize light and humidity/temp sensors.
    */
-  sensors_light_init();
-  battery_sensor.activate();
+  /*
+    light_sensor.configure(SENSORS_ACTIVE, (void *) 1);
+    battery_sensor.configure(SENSORS_ACTIVE, (void *) 1);
+  */
   sht11_init();
 
   ctimer_init();
@@ -353,7 +355,7 @@ main(int argc, char **argv)
   }
 #endif /* WITH_UIP */
 
-  button_sensor.activate();
+  button_sensor.configure(SENSORS_ACTIVE, (void *) 1);
 
   energest_init();
   ENERGEST_ON(ENERGEST_TYPE_CPU);
