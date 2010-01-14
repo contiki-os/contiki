@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: cc2420.c,v 1.36 2009/12/11 18:32:54 zhitao Exp $
+ * @(#)$Id: cc2420.c,v 1.37 2010/01/14 23:32:05 adamdunkels Exp $
  */
 /*
  * This code is almost device independent and should be easy to port.
@@ -629,7 +629,7 @@ cc2420_read(void *buf, unsigned short bufsize)
   struct timestamp t;
 #endif /* CC2420_CONF_TIMESTAMPS */
 
-  if(!FIFO_IS_1) {
+  if(!FIFOP_IS_1) {
     /* If FIFO is 0, there is no packet in the RXFIFO. */
     return 0;
   }
@@ -718,7 +718,7 @@ cc2420_read(void *buf, unsigned short bufsize)
   if(FIFOP_IS_1 && !FIFO_IS_1) {
     /*    printf("cc2420_read: FIFOP_IS_1 1\n");*/
     flushrx();
-  } else if(FIFO_IS_1) {
+  } else if(FIFOP_IS_1) {
     /* Another packet has been received and needs attention. */
     process_poll(&cc2420_process);
   }
