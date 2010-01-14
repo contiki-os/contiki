@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: test-button.c,v 1.1 2007/03/23 00:06:12 adamdunkels Exp $
+ * $Id: test-button.c,v 1.2 2010/01/14 14:04:39 joxe Exp $
  */
 
 /**
@@ -40,6 +40,7 @@
 
 #include "contiki.h"
 #include "dev/button-sensor.h"
+#include "dev/light-sensor.h"
 #include "dev/leds.h"
 
 /*---------------------------------------------------------------------------*/
@@ -50,12 +51,13 @@ PROCESS_THREAD(test_button_process, ev, data)
 {
   PROCESS_BEGIN();
 
-  button_sensor.activate();
+  SENSORS_ACTIVATE(light_sensor);
   
   while(1) {
     PROCESS_WAIT_EVENT_UNTIL(ev == sensors_event &&
 			     data == &button_sensor);
     leds_toggle(LEDS_ALL);
+    printf("Light: %d\n", light_sensor.value(0));
   }
   
   PROCESS_END();
