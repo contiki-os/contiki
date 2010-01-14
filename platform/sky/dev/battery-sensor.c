@@ -26,14 +26,14 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: battery-sensor.c,v 1.2 2008/09/18 21:29:06 joxe Exp $
+ * $Id: battery-sensor.c,v 1.3 2010/01/14 13:53:06 joxe Exp $
  *
  * -----------------------------------------------------------------
  *
  * Author  : Adam Dunkels, Joakim Eriksson, Niclas Finne
  * Created : 2005-11-01
- * Updated : $Date: 2008/09/18 21:29:06 $
- *           $Revision: 1.2 $
+ * Updated : $Date: 2010/01/14 13:53:06 $
+ *           $Revision: 1.3 $
  */
 
 #include "dev/battery-sensor.h"
@@ -41,21 +41,7 @@
 #include "dev/irq.h"
 
 const struct sensors_sensor battery_sensor;
-/*static unsigned int battery_value;*/
 
-/*---------------------------------------------------------------------------*/
-static void
-init(void)
-{
-  /*  battery_value = 0;*/
-}
-/*---------------------------------------------------------------------------*/
-static int
-irq(void)
-{
-  /*  battery_value = ADC12MEM6;*/
-  return 0;
-}
 /*---------------------------------------------------------------------------*/
 static void
 activate(void)
@@ -67,32 +53,26 @@ activate(void)
   P6DIR = 0xff;
   P6OUT = 0x00;
 
-  
   /* stop converting immediately */
   ADC12CTL0 &= ~ENC;
-  ADC12CTL1 &= ~CONSEQ_3; 
+  ADC12CTL1 &= ~CONSEQ_3;
 
   /* Configure ADC12_2 to sample channel 11 (voltage) and use */
   /* the Vref+ as reference (SREF_1) since it is a stable reference */
   ADC12MCTL2 = (INCH_11 + SREF_1);
 
   ADC12CTL1 |= CONSEQ_3;
-  ADC12CTL0 |= ENC | ADC12SC; 
+  ADC12CTL0 |= ENC | ADC12SC;
 
   /*  Irq_adc12_activate(&battery_sensor, 6, (INCH_11 + SREF_1)); */
+
+  active = 1;
 }
 /*---------------------------------------------------------------------------*/
 static void
 deactivate(void)
 {
-  /*  irq_adc12_deactivate(&battery_sensor, 6);
-      battery_value = 0;*/
-}
-/*---------------------------------------------------------------------------*/
-static int
-active(void)
-{
-  return 0; /* irq_adc12_active(6);*/
+  active = 0;
 }
 /*---------------------------------------------------------------------------*/
 static unsigned int
@@ -104,15 +84,27 @@ value(int type)
 static int
 configure(int type, void *c)
 {
+  switch(type) {
+  case SENSORS_ACTIVE:
+    if (c) {
+      activate();
+    } else {
+      deactivate();
+    }
+  }
   return 0;
 }
 /*---------------------------------------------------------------------------*/
 static void *
 status(int type)
 {
+  switch (type) {
+  case SENSORS_ACTIVE:
+  case SENSORS_READY:
+    return (void *) active;
+  }
   return NULL;
 }
 /*---------------------------------------------------------------------------*/
 SENSORS_SENSOR(battery_sensor, BATTERY_SENSOR,
-	       init, irq, activate, deactivate, active,
 	       value, configure, status);

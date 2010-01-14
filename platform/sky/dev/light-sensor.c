@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006, Swedish Institute of Computer Science.
+ * Copyright (c) 2005, Swedish Institute of Computer Science
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -26,93 +26,55 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: acc-sensor.c,v 1.4 2010/01/14 13:53:06 joxe Exp $
+ * This file is part of the Contiki operating system.
  *
- * -----------------------------------------------------------------
- *
- * Author  : Adam Dunkels, Joakim Eriksson, Niclas Finne
- * Created : 2005-11-01
- * Updated : $Date: 2010/01/14 13:53:06 $
- *           $Revision: 1.4 $
+ * @(#)$Id: light-sensor.c,v 1.1 2010/01/14 13:53:06 joxe Exp $
  */
 
-#include "dev/acc-sensor.h"
+#include <stdlib.h>
+
 #include <io.h>
-#include "dev/irq.h"
 
-#include <stdio.h>
+#include "contiki.h"
+#include "lib/sensors.h"
+#include "dev/light.h"
 
-const struct sensors_sensor acc_sensor;
-static uint8_t active;
+const struct sensors_sensor light_sensor;
 
-/*---------------------------------------------------------------------------*/
-static void
-activate(void)
+/*
+ * Initialize periodic readings from the 2 photo diodes. The most
+ * recent readings will be stored in ADC internal registers/memory.
+ */
+void
+static light_sensor_init(void)
 {
-  /* This assumes that some other sensor system already did setup the ADC */
-  /* (in the case of the sky platform it is sensors_light_init that does it) */
-
-  P6SEL |= 0x70;
-  P6DIR = 0x00;
+  P6SEL |= 0x30;
+  P6DIR = 0xff;
   P6OUT = 0x00;
 
-  P2DIR |= 0x48;
-  P2OUT |= 0x48;
+  /* Set up the ADC. */
+  ADC12CTL0 = REF2_5V + SHT0_6 + SHT1_6 + MSC; // Setup ADC12, ref., sampling time
+  ADC12CTL1 = SHP + CONSEQ_3 + CSTARTADD_0;	// Use sampling timer, repeat-sequenc-of-channels
 
+  ADC12MCTL0 = (INCH_4 + SREF_0); // photodiode 1 (P64)
+  ADC12MCTL1 = (INCH_5 + SREF_0); // photodiode 2 (P65)
 
-  /* stop converting immediately */
-  ADC12CTL0 &= ~ENC;
-  ADC12CTL1 &= ~CONSEQ_3;
+  ADC12CTL0 |= ADC12ON + REFON;
 
-  /* Configure ADC12_2 to sample channel 11 (voltage) and use */
-  /* the Vref+ as reference (SREF_1) since it is a stable reference */
-  ADC12MCTL2 = (INCH_4 + SREF_1);
-  ADC12MCTL3 = (INCH_5 + SREF_1);
-  ADC12MCTL4 = (INCH_6 + SREF_1);
-  /* internal temperature can be read as value(3) */
-  ADC12MCTL5 = (INCH_10 + SREF_1);
-
-  ADC12CTL1 |= CONSEQ_3;
-  ADC12CTL0 |= ENC | ADC12SC;
-
-  /*  Irq_adc12_activate(&acc_sensor, 6, (INCH_11 + SREF_1)); */
-  active = 1;
+  ADC12CTL0 |= ENC;		// enable conversion
+  ADC12CTL0 |= ADC12SC;		// sample & convert
 }
-/*---------------------------------------------------------------------------*/
-static void
-deactivate(void)
-{
-  /*  irq_adc12_deactivate(&acc_sensor, 6);
-      acc_value = 0;*/
-  active = 0;
-}
+
 /*---------------------------------------------------------------------------*/
 static unsigned int
 value(int type)
 {
-  switch(type) {
-  case 0:
-    return ADC12MEM2;
-  case 1:
-    return ADC12MEM3;
-  case 2:
-    return ADC12MEM4;
-  case 3:
-    return ADC12MEM5;
-  }
-  return 0;
-}
-/*---------------------------------------------------------------------------*/
-static int
-configure(int type, void *c)
-{
-  switch(type) {
-  case SENSORS_ACTIVE:
-    if (c) {
-      activate();
-    } else {
-      deactivate();
-    }
+  /* should be constants */
+  switch (type) {
+/* Photosynthetically Active Radiation. */
+  case 0:   return ADC12MEM0;
+/* Total Solar Radiation. */
+  case 1:   return ADC12MEM1;
   }
   return 0;
 }
@@ -123,10 +85,28 @@ status(int type)
   switch (type) {
   case SENSORS_ACTIVE:
   case SENSORS_READY:
-    return (void *) active;
+    return (ADC12CTL0 & (ADC12ON + REFON)) == (ADC12ON + REFON);
   }
   return NULL;
 }
+
 /*---------------------------------------------------------------------------*/
-SENSORS_SENSOR(acc_sensor, ACC_SENSOR,
+static int
+configure(int type, void *c)
+{
+  switch (type) {
+  case SENSORS_ACTIVE:
+    if (c) {
+      if (!status(SENSORS_ACTIVE)) {
+	light_sensor_init();
+      }
+    } else {
+      /* shut down sensing */
+      ADC12CTL0 = 0;
+    }
+  }
+  return 0;
+}
+/*---------------------------------------------------------------------------*/
+SENSORS_SENSOR(light_sensor, "Light",
 	       value, configure, status);
