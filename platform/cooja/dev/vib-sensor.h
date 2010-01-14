@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: vib-sensor.h,v 1.2 2010/01/14 19:12:31 nifi Exp $
+ * $Id: vib-sensor.h,v 1.3 2010/01/14 20:02:55 nifi Exp $
  */
 
 #ifndef __VIB_H__
@@ -36,6 +36,6 @@
 
 extern const struct sensors_sensor vib_sensor;
 
-#define VIB_SENSOR "Vibration sensor"
+#define VIB_SENSOR "Vibration"
 
 #endif /* __VIB_H__ */
