@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: xmac.c,v 1.47 2009/12/06 23:29:38 adamdunkels Exp $
+ * $Id: xmac.c,v 1.48 2010/01/14 20:14:03 adamdunkels Exp $
  */
 
 /**
@@ -200,7 +200,6 @@ static struct compower_activity current_packet;
 #endif /* XMAC_CONF_COMPOWER */
 
 #if WITH_ENCOUNTER_OPTIMIZATION
-#define ENCOUNTER_LIFETIME (60 * CLOCK_SECOND)
 
 #include "lib/list.h"
 #include "lib/memb.h"
@@ -209,7 +208,6 @@ struct encounter {
   struct encounter *next;
   rimeaddr_t neighbor;
   rtimer_clock_t time;
-  struct ctimer remove_timer;
 };
 
 #define MAX_ENCOUNTERS 4
@@ -392,16 +390,6 @@ format_announcement(char *hdr)
 /*---------------------------------------------------------------------------*/
 #if WITH_ENCOUNTER_OPTIMIZATION
 static void
-remove_encounter(void *encounter)
-{
-  struct encounter *e = encounter;
-
-  ctimer_stop(&e->remove_timer);
-  list_remove(encounter_list, e);
-  memb_free(&encounter_memb, e);
-}
-/*---------------------------------------------------------------------------*/
-static void
 register_encounter(const rimeaddr_t *neighbor, rtimer_clock_t time)
 {
   struct encounter *e;
@@ -410,7 +398,6 @@ register_encounter(const rimeaddr_t *neighbor, rtimer_clock_t time)
   for(e = list_head(encounter_list); e != NULL; e = e->next) {
     if(rimeaddr_cmp(neighbor, &e->neighbor)) {
       e->time = time;
-      ctimer_set(&e->remove_timer, ENCOUNTER_LIFETIME, remove_encounter, e);
       break;
     }
   }
@@ -423,7 +410,6 @@ register_encounter(const rimeaddr_t *neighbor, rtimer_clock_t time)
     }
     rimeaddr_copy(&e->neighbor, neighbor);
     e->time = time;
-    ctimer_set(&e->remove_timer, ENCOUNTER_LIFETIME, remove_encounter, e);
     list_add(encounter_list, e);
   }
 }
