@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: sensors.h,v 1.5 2010/01/14 14:17:08 nifi Exp $
+ * @(#)$Id: sensors.h,v 1.6 2010/01/14 15:33:27 joxe Exp $
  */
 
 #ifndef __SENSORS_H__
@@ -41,10 +41,8 @@
 #define SENSORS_ACTIVE 129 /* ACTIVE => 0 -> turn off, 1 -> turn on */
 #define SENSORS_READY 130 /* read only */
 
-#define SENSORS_ACTIVATE(sensor)                \
-(sensor)->configure(SENSORS_ACTIVE, (void *)1)
-#define SENSORS_DEACTIVATE(sensor)              \
-(sensor)->configure(SENSORS_ACTIVE, (void *)0)
+#define SENSORS_ACTIVATE(sensor) (sensor)->configure(SENSORS_ACTIVE, 1)
+#define SENSORS_DEACTIVATE(sensor) (sensor)->configure(SENSORS_ACTIVE, 0)
 
 #define SENSORS_SENSOR(name, type, value, configure, status)        \
 const struct sensors_sensor name = { type, value, configure, status }
@@ -57,9 +55,9 @@ unsigned char sensors_flags[SENSORS_NUM];
 
 struct sensors_sensor {
   char *       type;
-  unsigned int (* value)     (int type);
-  int          (* configure) (int type, void *parameters);
-  void *       (* status)    (int type);
+  int          (* value)     (int type);
+  int          (* configure) (int type, int value);
+  int          (* status)    (int type);
 };
 
 struct sensors_sensor *sensors_find(char *type);
