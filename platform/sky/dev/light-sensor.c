@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: light-sensor.c,v 1.2 2010/01/14 15:50:14 joxe Exp $
+ * @(#)$Id: light-sensor.c,v 1.3 2010/01/14 20:23:02 adamdunkels Exp $
  */
 
 #include <stdlib.h>
@@ -37,7 +37,7 @@
 
 #include "contiki.h"
 #include "lib/sensors.h"
-#include "dev/light.h"
+#include "dev/light-sensor.h"
 
 const struct sensors_sensor light_sensor;
 
@@ -45,8 +45,8 @@ const struct sensors_sensor light_sensor;
  * Initialize periodic readings from the 2 photo diodes. The most
  * recent readings will be stored in ADC internal registers/memory.
  */
-void
-static light_sensor_init(void)
+static void
+light_sensor_init(void)
 {
   P6SEL |= 0x30;
   P6DIR = 0xff;
@@ -64,17 +64,19 @@ static light_sensor_init(void)
   ADC12CTL0 |= ENC;		// enable conversion
   ADC12CTL0 |= ADC12SC;		// sample & convert
 }
-
 /*---------------------------------------------------------------------------*/
 static int
 value(int type)
 {
-  /* should be constants */
-  switch (type) {
-/* Photosynthetically Active Radiation. */
-  case 0:   return ADC12MEM0;
-/* Total Solar Radiation. */
-  case 1:   return ADC12MEM1;
+
+  switch(type) {
+    /* Photosynthetically Active Radiation. */
+  case LIGHT_SENSOR_PHOTOSYNTHETIC:
+    return ADC12MEM0;
+
+    /* Total Solar Radiation. */
+  case LIGHT_SENSOR_TOTAL_SOLAR:
+    return ADC12MEM1;
   }
   return 0;
 }
@@ -82,7 +84,7 @@ value(int type)
 static int
 status(int type)
 {
-  switch (type) {
+  switch(type) {
   case SENSORS_ACTIVE:
   case SENSORS_READY:
     return (ADC12CTL0 & (ADC12ON + REFON)) == (ADC12ON + REFON);
@@ -94,10 +96,10 @@ status(int type)
 static int
 configure(int type, int c)
 {
-  switch (type) {
+  switch(type) {
   case SENSORS_ACTIVE:
-    if (c) {
-      if (!status(SENSORS_ACTIVE)) {
+    if(c) {
+      if(!status(SENSORS_ACTIVE)) {
 	light_sensor_init();
       }
     } else {
