@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2005, Swedish Institute of Computer Science
+ * Copyright (c) 2009, Swedish Institute of Computer Science
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: sensors.c,v 1.2 2006/10/06 09:18:52 adamdunkels Exp $
+ * @(#)$Id: sensors.c,v 1.3 2010/01/14 13:29:56 joxe Exp $
  */
 /* exeperimental code, will be renamed to sensors.c when done */
 
@@ -64,33 +64,6 @@ get_sensor_index(const struct sensors_sensor *s)
   return i;
 }
 /*---------------------------------------------------------------------------*/
-void
-sensors_add_irq(const struct sensors_sensor *s, unsigned char irq)
-{
-  sensors_flags[get_sensor_index(s)] |= irq;
-}
-/*---------------------------------------------------------------------------*/
-void
-sensors_remove_irq(const struct sensors_sensor *s, unsigned char irq)
-{
-  sensors_flags[get_sensor_index(s)] &= ~irq;
-}
-/*---------------------------------------------------------------------------*/
-int
-sensors_handle_irq(unsigned char irq_flag)
-{
-  int i, w;
-
-  w = 0;
-  for(i = 0; i < num_sensors; ++i) {
-    if(sensors_flags[i] & irq_flag) {
-      w += sensors[i]->irq();
-    }
-  }
-  
-  return w;
-}
-/*---------------------------------------------------------------------------*/
 struct sensors_sensor *
 sensors_first(void)
 {
@@ -115,11 +88,11 @@ sensors_find(char *prefix)
 {
   int i;
   unsigned short len;
-  
+
   /* Search through all processes and search for the specified process
      name. */
   len = strlen(prefix);
-  
+
   for(i = 0; i < num_sensors; ++i) {
     if(strncmp(prefix, sensors[i]->type, len) == 0) {
       return sensors[i];
@@ -128,51 +101,22 @@ sensors_find(char *prefix)
   return NULL;
 }
 /*---------------------------------------------------------------------------*/
-#define SELCOLL ((struct process *)0x1)
-
-void
-sensors_select(const struct sensors_sensor *s, struct process *p)
-{
-  int i = get_sensor_index(s);
-
-  if(sensors_selecting_proc[i] == NULL) {
-    sensors_selecting_proc[i] = p;
-  } else if(sensors_selecting_proc[i] == p) {
-    /* If the selecting process is already registered we do nothing */
-  } else {
-    /* Collision, revert to broadcast! */
-    sensors_selecting_proc[i] = SELCOLL;
-  }
-}
-/*---------------------------------------------------------------------------*/
-void
-sensors_unselect(const struct sensors_sensor *s, const struct process *p)
-{
-  int i = get_sensor_index(s);
-
-  if(sensors_selecting_proc[i] == p) {
-    sensors_selecting_proc[i] = NULL;
-  } else {
-    /* We collided and must continue to use broadcast! */
-  }
-}
-/*---------------------------------------------------------------------------*/
 PROCESS_THREAD(sensors_process, ev, data)
 {
   static int i;
   static int events;
 
   PROCESS_BEGIN();
-  
-  for(i = 0; sensors[i] != NULL; ++i) {
-    sensors_flags[i] = 0;
-    sensors[i]->init();
-  }
-  num_sensors = i;
-  
+
+  sensors_platform_init();
+
   sensors_event = process_alloc_event();
 
-  irq_init();
+  for(i = 0; sensors[i] != NULL; ++i) {
+    sensors_flags[i] = 0;
+    sensors[i]->configure(SENSORS_HW_INIT, 0);
+  }
+  num_sensors = i;
 
   while(1) {
 
@@ -182,11 +126,6 @@ PROCESS_THREAD(sensors_process, ev, data)
       events = 0;
       for(i = 0; i < num_sensors; ++i) {
 	if(sensors_flags[i] & FLAG_CHANGED) {
-	  /*	if(sensors_selecting_proc[i] == SELCOLL
-		|| sensors_selecting_proc[i] == NULL)
-		process_post(PROCESS_BROADCAST, sensors_event, sensors[i]);
-		else
-		process_post(sensors_selecting_proc[i], sensors_event, sensors[i]);*/
 	  if(process_post(PROCESS_BROADCAST, sensors_event, sensors[i]) == PROCESS_ERR_OK) {
 	    PROCESS_WAIT_EVENT_UNTIL(ev == sensors_event);
 	  }
