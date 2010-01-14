@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2005, Swedish Institute of Computer Science
+ * Copyright (c) 2010, Swedish Institute of Computer Science.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -26,42 +26,26 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * This file is part of the Contiki operating system.
+ * This file is part of the Configurable Sensor Network Application
+ * Architecture for sensor nodes running the Contiki operating system.
  *
- * @(#)$Id: radio-sensor.c,v 1.4 2010/01/14 13:53:06 joxe Exp $
+ * $Id: light-sensor.h,v 1.1 2010/01/14 13:53:06 joxe Exp $
+ *
+ * -----------------------------------------------------------------
+ *
+ * Author  : Adam Dunkels, Joakim Eriksson, Niclas Finne
+ * Created : 2010-01-08
+ * Updated : $Date: 2010/01/14 13:53:06 $
+ *           $Revision: 1.1 $
  */
 
+#ifndef __LIGHT_SENSOR_H__
+#define __LIGHT_SENSOR_H__
+
 #include "lib/sensors.h"
-#include "dev/irq.h"
-#include "dev/cc2420.h"
-#include "dev/radio-sensor.h"
 
-const struct sensors_sensor radio_sensor;
+extern const struct sensors_sensor light_sensor;
 
-/*---------------------------------------------------------------------------*/
-static unsigned int
-value(int type)
-{
-  switch(type) {
-  case RADIO_SENSOR_LAST_PACKET:
-    return cc2420_last_correlation;
-  case RADIO_SENSOR_LAST_VALUE:
-  default:
-    return cc2420_last_rssi;
-  }
-}
-/*---------------------------------------------------------------------------*/
-static int
-configure(int type, void *c)
-{
-  return 0;
-}
-/*---------------------------------------------------------------------------*/
-static void *
-status(int type)
-{
-  return NULL;
-}
-/*---------------------------------------------------------------------------*/
-SENSORS_SENSOR(radio_sensor, RADIO_SENSOR,
-	       value, configure, status);
+
+
+#endif /* __LIGHT-SENSOR_H__ */
