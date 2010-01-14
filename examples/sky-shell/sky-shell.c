@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: sky-shell.c,v 1.12 2009/12/06 23:28:25 adamdunkels Exp $
+ * $Id: sky-shell.c,v 1.13 2010/01/14 15:03:28 joxe Exp $
  */
 
 /**
@@ -48,7 +48,7 @@
 #include "net/rime.h"
 #include "dev/cc2420.h"
 #include "dev/leds.h"
-#include "dev/light.h"
+#include "dev/light-sensor.h"
 #include "dev/sht11.h"
 #include "dev/battery-sensor.h"
 
@@ -176,8 +176,8 @@ PROCESS_THREAD(shell_sky_alldata_process, ev, data)
   msg.len = sizeof(struct sky_alldata_msg) / sizeof(uint16_t);
   msg.clock = clock_time();
   msg.timesynch_time = timesynch_time();
-  msg.light1 = sensors_light1();
-  msg.light2 = sensors_light2();
+  msg.light1 = light_sensor.value(0);
+  msg.light2 = light_sensor.value(1);
   msg.temp = sht11_temp();
   msg.humidity = sht11_humidity();
   msg.rssi = do_rssi();
@@ -247,6 +247,8 @@ PROCESS_THREAD(sky_shell_process, ev, data)
   /*  shell_sendtest_init();*/
 
   shell_register_command(&sky_alldata_command);
+
+  light_sensor.configure(SENSORS_ACTIVE, (void *) 1);
 
 #if DEBUG_SNIFFERS
   rime_sniffer_add(&s);
