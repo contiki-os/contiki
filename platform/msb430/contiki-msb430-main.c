@@ -89,7 +89,6 @@ main(void)
   leds_init();
   leds_on(LEDS_ALL);
 
-  irq_init();
   process_init();
 
   /* serial interface */

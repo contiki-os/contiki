@@ -40,7 +40,6 @@
 #include "dev/cc1020.h"
 #include "dev/hwconf.h"
 #include "dev/infomem.h"
-#include "dev/irq.h"
 #include "dev/leds.h"
 #include "dev/lpm.h"
 #include "dev/msb430-uart1.h"
