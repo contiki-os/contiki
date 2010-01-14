@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006, Swedish Institute of Computer Science.
+ * Copyright (c) 2010, Swedish Institute of Computer Science.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -26,14 +26,14 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: acc-sensor.c,v 1.4 2010/01/14 13:53:06 joxe Exp $
+ * $Id: acc-sensor.c,v 1.5 2010/01/14 15:50:13 joxe Exp $
  *
  * -----------------------------------------------------------------
  *
  * Author  : Adam Dunkels, Joakim Eriksson, Niclas Finne
  * Created : 2005-11-01
- * Updated : $Date: 2010/01/14 13:53:06 $
- *           $Revision: 1.4 $
+ * Updated : $Date: 2010/01/14 15:50:13 $
+ *           $Revision: 1.5 $
  */
 
 #include "dev/acc-sensor.h"
@@ -87,7 +87,7 @@ deactivate(void)
   active = 0;
 }
 /*---------------------------------------------------------------------------*/
-static unsigned int
+static int
 value(int type)
 {
   switch(type) {
@@ -104,7 +104,7 @@ value(int type)
 }
 /*---------------------------------------------------------------------------*/
 static int
-configure(int type, void *c)
+configure(int type, int c)
 {
   switch(type) {
   case SENSORS_ACTIVE:
@@ -117,15 +117,15 @@ configure(int type, void *c)
   return 0;
 }
 /*---------------------------------------------------------------------------*/
-static void *
+static int
 status(int type)
 {
   switch (type) {
   case SENSORS_ACTIVE:
   case SENSORS_READY:
-    return (void *) active;
+    return active;
   }
-  return NULL;
+  return 0;
 }
 /*---------------------------------------------------------------------------*/
 SENSORS_SENSOR(acc_sensor, ACC_SENSOR,

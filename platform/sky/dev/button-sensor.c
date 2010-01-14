@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: button-sensor.c,v 1.2 2010/01/14 13:53:06 joxe Exp $
+ * @(#)$Id: button-sensor.c,v 1.3 2010/01/14 15:50:14 joxe Exp $
  */
 #include "lib/sensors.h"
 #include "dev/hwconf.h"
@@ -38,7 +38,7 @@
 const struct sensors_sensor button_sensor;
 
 static struct timer debouncetimer;
-static void* status(int type);
+static int status(int type);
 
 HWCONF_PIN(BUTTON, 2, 7);
 HWCONF_IRQ(BUTTON, 2, 7);
@@ -68,7 +68,7 @@ value(int type)
 }
 /*---------------------------------------------------------------------------*/
 static int
-configure(int type, void *c)
+configure(int type, int c)
 {
   switch (type) {
   case SENSORS_ACTIVE:
@@ -89,7 +89,7 @@ configure(int type, void *c)
   return 0;
 }
 /*---------------------------------------------------------------------------*/
-static void *
+static int
 status(int type)
 {
   switch (type) {
@@ -97,7 +97,7 @@ status(int type)
   case SENSORS_READY:
     return BUTTON_IRQ_ENABLED();
   }
-  return NULL;
+  return 0;
 }
 /*---------------------------------------------------------------------------*/
 SENSORS_SENSOR(button_sensor, BUTTON_SENSOR,
