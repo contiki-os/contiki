@@ -42,6 +42,7 @@
 
 #include "contiki-conf.h"
 #include "dev/xmem.h"
+#include "dev/watchdog.h"
 
 /* Coffee configuration parameters. */
 #define COFFEE_SECTOR_SIZE		65536UL
@@ -56,6 +57,9 @@
 #define COFFEE_LOG_SIZE			1024
 
 #define COFFEE_MICRO_LOGS		1
+
+#define COFFEE_WATCHDOG_START()		watchdog_start()
+#define COFFEE_WATCHDOG_STOP()		watchdog_stop()
 
 /* Flash operations. */
 #define COFFEE_WRITE(buf, size, offset)				\
