@@ -28,18 +28,17 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: radio-sensor.c,v 1.5 2010/01/14 15:50:14 joxe Exp $
+ * @(#)$Id: radio-sensor.c,v 1.6 2010/01/14 20:01:19 nifi Exp $
  */
 
 #include "lib/sensors.h"
-#include "dev/irq.h"
 #include "dev/cc2420.h"
 #include "dev/radio-sensor.h"
 
 const struct sensors_sensor radio_sensor;
 
 /*---------------------------------------------------------------------------*/
-static unsigned int
+static int
 value(int type)
 {
   switch(type) {
@@ -60,7 +59,7 @@ configure(int type, int c)
 static int
 status(int type)
 {
-  return NULL;
+  return 0;
 }
 /*---------------------------------------------------------------------------*/
 SENSORS_SENSOR(radio_sensor, RADIO_SENSOR,

@@ -1,5 +1,5 @@
 /* -*- C -*- */
-/* @(#)$Id: contiki-conf.h,v 1.63 2010/01/14 15:50:13 joxe Exp $ */
+/* @(#)$Id: contiki-conf.h,v 1.64 2010/01/14 20:01:18 nifi Exp $ */
 
 #ifndef CONTIKI_CONF_H
 #define CONTIKI_CONF_H
@@ -42,7 +42,7 @@
 #include "msp430def.h"
 
 #ifndef RF_CHANNEL
-#define RF_CHANNEL              26
+#define RF_CHANNEL              16
 #endif /* RF_CHANNEL */
 
 #define ELFLOADER_CONF_TEXT_IN_ROM 0

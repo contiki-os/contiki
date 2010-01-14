@@ -26,21 +26,18 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: acc-sensor.c,v 1.5 2010/01/14 15:50:13 joxe Exp $
+ * $Id: acc-sensor.c,v 1.6 2010/01/14 20:01:18 nifi Exp $
  *
  * -----------------------------------------------------------------
  *
  * Author  : Adam Dunkels, Joakim Eriksson, Niclas Finne
  * Created : 2005-11-01
- * Updated : $Date: 2010/01/14 15:50:13 $
- *           $Revision: 1.5 $
+ * Updated : $Date: 2010/01/14 20:01:18 $
+ *           $Revision: 1.6 $
  */
 
 #include "dev/acc-sensor.h"
 #include <io.h>
-#include "dev/irq.h"
-
-#include <stdio.h>
 
 const struct sensors_sensor acc_sensor;
 static uint8_t active;

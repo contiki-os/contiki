@@ -1,4 +1,4 @@
-# $Id: Makefile.sky,v 1.31 2010/01/14 15:50:13 joxe Exp $
+# $Id: Makefile.sky,v 1.32 2010/01/14 20:01:18 nifi Exp $
 
 
 ARCH=msp430.c leds.c watchdog.c spi.c ds2411.c \
@@ -29,7 +29,7 @@ contiki-$(TARGET).a: ${addprefix $(OBJECTDIR)/,symbols.o}
 
 
 NUMPAR=20
-IHEXFILE=tmpimage.ihex
+#IHEXFILE=tmpimage.ihex
 
 # Check if we are running under Windows
 ifdef OS
@@ -87,8 +87,8 @@ ifdef MOTE
 	$(MAKE) sky-u.$(subst /,-,$(word $(MOTE), $(MOTES)))
 else # MOTE
 %.upload: %.ihex
-	cp $< $(IHEXFILE)
-	$(MAKE) sky-reset sky-upload
+#	cp $< $(IHEXFILE)
+	$(MAKE) sky-reset sky-upload IHEXFILE=$<
 endif # MOTE
 
 sky-upload: sky-reset
