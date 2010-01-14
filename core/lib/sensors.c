@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: sensors.c,v 1.3 2010/01/14 13:29:56 joxe Exp $
+ * @(#)$Id: sensors.c,v 1.4 2010/01/14 13:55:21 nifi Exp $
  */
 /* exeperimental code, will be renamed to sensors.c when done */
 
@@ -41,7 +41,6 @@
 
 extern struct sensors_sensor *sensors[];
 extern unsigned char sensors_flags[];
-extern struct process *sensors_selecting_proc[];
 
 #define FLAG_CHANGED    0x80
 
@@ -107,8 +106,6 @@ PROCESS_THREAD(sensors_process, ev, data)
   static int events;
 
   PROCESS_BEGIN();
-
-  sensors_platform_init();
 
   sensors_event = process_alloc_event();
 
