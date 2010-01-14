@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: sky-shell.c,v 1.13 2010/01/14 15:03:28 joxe Exp $
+ * $Id: sky-shell.c,v 1.14 2010/01/14 20:15:34 adamdunkels Exp $
  */
 
 /**
@@ -172,16 +172,18 @@ PROCESS_THREAD(shell_sky_alldata_process, ev, data)
   struct neighbor *n;
   PROCESS_BEGIN();
 
-  
+
+  SENSORS_ACTIVATE(light_sensor);
   msg.len = sizeof(struct sky_alldata_msg) / sizeof(uint16_t);
   msg.clock = clock_time();
   msg.timesynch_time = timesynch_time();
-  msg.light1 = light_sensor.value(0);
-  msg.light2 = light_sensor.value(1);
+  msg.light1 = light_sensor.value(LIGHT_SENSOR_PHOTOSYNTHETIC);
+  msg.light2 = light_sensor.value(LIGHT_SENSOR_TOTAL_SOLAR);
   msg.temp = sht11_temp();
   msg.humidity = sht11_humidity();
   msg.rssi = do_rssi();
-
+  SENSORS_DEACTIVATE(light_sensor);
+  
   energest_flush();
   
   cpu = energest_type_time(ENERGEST_TYPE_CPU) - last_cpu;
@@ -247,8 +249,6 @@ PROCESS_THREAD(sky_shell_process, ev, data)
   /*  shell_sendtest_init();*/
 
   shell_register_command(&sky_alldata_command);
-
-  light_sensor.configure(SENSORS_ACTIVE, (void *) 1);
 
 #if DEBUG_SNIFFERS
   rime_sniffer_add(&s);
