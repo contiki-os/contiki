@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: radio-sensor.c,v 1.3 2007/05/29 12:27:00 fros4943 Exp $
+ * @(#)$Id: radio-sensor.c,v 1.4 2010/01/14 19:12:31 nifi Exp $
  */
 
 #include "lib/sensors.h"
@@ -40,54 +40,29 @@ const struct sensors_sensor radio_sensor;
 
 extern int simSignalStrength;
 
-// COOJA variables (none - no corresponding part in Java)
-
-/*---------------------------------------------------------------------------*/
-static void
-init(void)
-{
-}
 /*---------------------------------------------------------------------------*/
 static int
-irq(void)
-{
-  return 0;
-}
-/*---------------------------------------------------------------------------*/
-static void
-activate(void)
-{
-}
-/*---------------------------------------------------------------------------*/
-static void
-deactivate(void)
-{
-}
-/*---------------------------------------------------------------------------*/
-static int
-active(void)
-{
-  return 0;
-}
-/*---------------------------------------------------------------------------*/
-static unsigned int
 value(int type)
 {
   return simSignalStrength;
 }
 /*---------------------------------------------------------------------------*/
 static int
-configure(int type, void *c)
+configure(int type, int c)
 {
   return 0;
 }
 /*---------------------------------------------------------------------------*/
-static void *
+static int
 status(int type)
 {
-  return NULL;
+  switch(type) {
+  case SENSORS_ACTIVE:
+  case SENSORS_READY:
+    return 1;
+  }
+  return 0;
 }
 /*---------------------------------------------------------------------------*/
 SENSORS_SENSOR(radio_sensor, RADIO_SENSOR,
-	       init, irq, activate, deactivate, active,
-	       value, configure, status);
+               value, configure, status);
