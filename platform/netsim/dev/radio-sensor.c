@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: radio-sensor.c,v 1.1 2006/10/06 08:25:31 adamdunkels Exp $
+ * @(#)$Id: radio-sensor.c,v 1.2 2010/01/14 15:38:56 adamdunkels Exp $
  */
 
 #include "lib/sensors.h"
@@ -43,29 +43,6 @@ static void
 init(void)
 {
   radio_sensor_signal = 0;
-}
-/*---------------------------------------------------------------------------*/
-static int
-irq(void)
-{
-  return 0;
-}
-/*---------------------------------------------------------------------------*/
-static void
-activate(void)
-{
-}
-/*---------------------------------------------------------------------------*/
-static void
-deactivate(void)
-{
-  radio_sensor_signal = 0;
-}
-/*---------------------------------------------------------------------------*/
-static int
-active(void)
-{
-  return 1;
 }
 /*---------------------------------------------------------------------------*/
 static unsigned int
@@ -87,5 +64,4 @@ status(int type)
 }
 /*---------------------------------------------------------------------------*/
 SENSORS_SENSOR(radio_sensor, RADIO_SENSOR,
-	       init, irq, activate, deactivate, active,
 	       value, configure, status);
