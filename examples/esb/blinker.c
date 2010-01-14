@@ -26,14 +26,14 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: blinker.c,v 1.2 2007/11/28 20:31:30 nifi Exp $
+ * $Id: blinker.c,v 1.3 2010/01/14 18:18:51 nifi Exp $
  *
  * -----------------------------------------------------------------
  *
  * Author  : Adam Dunkels, Joakim Eriksson, Niclas Finne
  * Created : 2006-08-28
- * Updated : $Date: 2007/11/28 20:31:30 $
- *           $Revision: 1.2 $
+ * Updated : $Date: 2010/01/14 18:18:51 $
+ *           $Revision: 1.3 $
  */
 
 #include "contiki-esb.h"
@@ -52,9 +52,9 @@ PROCESS_THREAD(blinker_process, ev, data)
   etimer_stop(&pir_timer);
   etimer_stop(&vib_timer);
   etimer_set(&etimer, CLOCK_SECOND * 4);
-  button_sensor.activate();
-  vib_sensor.activate();
-  pir_sensor.activate();
+  button_sensor.configure(SENSORS_ACTIVE, 1);
+  vib_sensor.configure(SENSORS_ACTIVE, 1);
+  pir_sensor.configure(SENSORS_ACTIVE, 1);
 
   while(1) {
 

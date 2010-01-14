@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: fft-test.c,v 1.2 2008/04/25 22:12:25 joxe Exp $
+ * $Id: fft-test.c,v 1.3 2010/01/14 18:18:51 nifi Exp $
  *
  * -----------------------------------------------------------------
  * fft-test - a test program that use the sound sensor for sampling
@@ -35,8 +35,8 @@
  *
  * Author  : Joakim Eriksson
  * Created : 2008-04-04
- * Updated : $Date: 2008/04/25 22:12:25 $
- *           $Revision: 1.2 $
+ * Updated : $Date: 2010/01/14 18:18:51 $
+ *           $Revision: 1.3 $
  */
 
 #include "contiki-esb.h"
@@ -65,12 +65,10 @@ PROCESS_THREAD(fft_process, ev, data)
   PROCESS_BEGIN();
 
   etimer_set(&etimer, CLOCK_SECOND * 4);
-  button_sensor.activate();
+  button_sensor.configure(SENSORS_ACTIVE, 1);
   /* start and configure the sound sensor for sampling */
-  sound_sensor.activate();
-  sound_sensor.configure(SOUND_SET_BUFFER_PTR, fftBuf);
-  sound_sensor.configure(SOUND_SET_BUFFER_SIZE, (void *) FFT_TEST_SIZE);
-  sound_sensor.configure(SOUND_SET_DIV, (void *) 1);
+  sound_sensor.configure(SENSORS_ACTIVE, 1);
+  sound_sensor_set_buffer(fftBuf, FFT_TEST_SIZE, 1);
   while(1) {
 
     PROCESS_WAIT_EVENT();
@@ -124,7 +122,7 @@ PROCESS_THREAD(fft_process, ev, data)
     } else if(ev == PROCESS_EVENT_TIMER) {
       if(data == &etimer) {
 	if(on) {
-	  sound_sensor.configure(SOUND_START_SAMPLE, NULL);
+	  sound_sensor_start_sample();
 	  leds_off(LEDS_ALL);
 	}
 	etimer_set(&etimer, CLOCK_SECOND / 2);
