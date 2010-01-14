@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: example-meshconn.c,v 1.2 2009/03/12 21:58:21 adamdunkels Exp $
+ * $Id: example-meshconn.c,v 1.3 2010/01/14 14:32:22 joxe Exp $
  */
 
 /**
@@ -94,8 +94,6 @@ PROCESS_THREAD(test_meshconn_process, ev, data)
   PROCESS_BEGIN();
 
   meshconn_open(&meshconn, 128, &callbacks);
-
-  /* button_sensor.activate();*/
 
   while(1) {
     rimeaddr_t addr;
