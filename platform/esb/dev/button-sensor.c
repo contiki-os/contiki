@@ -28,10 +28,12 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: button-sensor.c,v 1.3 2006/06/18 08:07:31 adamdunkels Exp $
+ * @(#)$Id: button-sensor.c,v 1.4 2010/01/14 17:39:35 nifi Exp $
  */
 
-#include "contiki-esb.h"
+#include "dev/button-sensor.h"
+#include "dev/hwconf.h"
+#include <signal.h>
 
 const struct sensors_sensor button_sensor;
 
@@ -41,68 +43,61 @@ HWCONF_PIN(BUTTON, 2, 7);
 HWCONF_IRQ(BUTTON, 2, 7);
 
 /*---------------------------------------------------------------------------*/
-static void
-init(void)
+interrupt(PORT2_VECTOR)
+     irq_p2(void)
 {
-  timer_set(&debouncetimer, 0);
-  BUTTON_IRQ_EDGE_SELECTD();
+  ENERGEST_ON(ENERGEST_TYPE_IRQ);
 
-  BUTTON_SELECT();
-  BUTTON_MAKE_INPUT();
-}
-/*---------------------------------------------------------------------------*/
-static int
-irq(void)
-{
   if(BUTTON_CHECK_IRQ()) {
     if(timer_expired(&debouncetimer)) {
       timer_set(&debouncetimer, CLOCK_SECOND / 4);
       sensors_changed(&button_sensor);
-      return 1;
+      LPM4_EXIT;
     }
   }
-
-  return 0;
-}
-/*---------------------------------------------------------------------------*/
-static void
-activate(void)
-{
-  sensors_add_irq(&button_sensor, BUTTON_IRQ_PORT());
-  BUTTON_ENABLE_IRQ();
-}
-/*---------------------------------------------------------------------------*/
-static void
-deactivate(void)
-{
-  BUTTON_DISABLE_IRQ();
-  sensors_remove_irq(&button_sensor, BUTTON_IRQ_PORT());
+  P2IFG = 0x00;
+  ENERGEST_OFF(ENERGEST_TYPE_IRQ);
 }
 /*---------------------------------------------------------------------------*/
 static int
-active(void)
-{
-  return BUTTON_IRQ_ENABLED();
-}
-/*---------------------------------------------------------------------------*/
-static unsigned int
 value(int type)
 {
   return BUTTON_READ() || !timer_expired(&debouncetimer);
 }
 /*---------------------------------------------------------------------------*/
 static int
-configure(int type, void *c)
+configure(int type, int value)
 {
+  switch (type) {
+  case SENSORS_HW_INIT:
+    BUTTON_IRQ_EDGE_SELECTD();
+    BUTTON_SELECT();
+    BUTTON_MAKE_INPUT();
+    return 1;
+  case SENSORS_ACTIVE:
+    if (value) {
+      if(!BUTTON_IRQ_ENABLED()) {
+        timer_set(&debouncetimer, 0);
+        BUTTON_ENABLE_IRQ();
+      }
+    } else {
+      BUTTON_DISABLE_IRQ();
+    }
+    return 1;
+  }
   return 0;
 }
 /*---------------------------------------------------------------------------*/
-static void *
+static int
 status(int type)
 {
-  return NULL;
+  switch (type) {
+  case SENSORS_ACTIVE:
+  case SENSORS_READY:
+    return BUTTON_IRQ_ENABLED();
+  }
+  return 0;
 }
 /*---------------------------------------------------------------------------*/
 SENSORS_SENSOR(button_sensor, BUTTON_SENSOR,
-	       init, irq, activate, deactivate, active,
-	       value, configure, status);
+               value, configure, status);

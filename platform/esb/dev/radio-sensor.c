@@ -28,13 +28,11 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: radio-sensor.c,v 1.3 2007/11/28 21:26:35 nifi Exp $
+ * @(#)$Id: radio-sensor.c,v 1.4 2010/01/14 17:39:35 nifi Exp $
  */
 
-#include "contiki-esb.h"
+#include "dev/radio-sensor.h"
 #include "dev/irq.h"
-#include <io.h>
-
 #include "dev/tr1001.h"
 
 const struct sensors_sensor radio_sensor;
@@ -42,42 +40,14 @@ const struct sensors_sensor radio_sensor;
 unsigned int radio_sensor_signal;
 
 /*---------------------------------------------------------------------------*/
-static void
-init(void)
-{
-  /* Initialization of ADC12 done by irq */
-
-  radio_sensor_signal = 0;
-}
-/*---------------------------------------------------------------------------*/
 static int
 irq(void)
 {
   radio_sensor_signal = ADC12MEM5;
-  /*  sensors_changed(&radio_sensor);*/
   return 0;
 }
 /*---------------------------------------------------------------------------*/
-static void
-activate(void)
-{
-  irq_adc12_activate(&radio_sensor, 5, INCH_5 + SREF_0);
-}
-/*---------------------------------------------------------------------------*/
-static void
-deactivate(void)
-{
-  irq_adc12_deactivate(&radio_sensor, 5);
-  radio_sensor_signal = 0;
-}
-/*---------------------------------------------------------------------------*/
 static int
-active(void)
-{
-  return irq_adc12_active(5);
-}
-/*---------------------------------------------------------------------------*/
-static unsigned int
 value(int type)
 {
   switch(type) {
@@ -85,22 +55,42 @@ value(int type)
     return tr1001_sstrength();
   case RADIO_SENSOR_LAST_VALUE:
   default:
-    return ADC12MEM5; /* radio_sensor_signal; */
+    return radio_sensor_signal;
   }
 }
 /*---------------------------------------------------------------------------*/
 static int
-configure(int type, void *c)
+configure(int type, int value)
 {
+  switch (type) {
+  case SENSORS_HW_INIT:
+    /* Initialization of ADC12 done by irq */
+    radio_sensor_signal = 0;
+    return 1;
+  case SENSORS_ACTIVE:
+    if (value) {
+      if(!irq_adc12_active(5)) {
+        irq_adc12_activate(5, (INCH_5 + SREF_0), irq);
+      }
+    } else {
+      irq_adc12_deactivate(5);
+      radio_sensor_signal = 0;
+    }
+    return 1;
+  }
   return 0;
 }
 /*---------------------------------------------------------------------------*/
-static void *
+static int
 status(int type)
 {
-  return NULL;
+  switch (type) {
+  case SENSORS_ACTIVE:
+  case SENSORS_READY:
+    return irq_adc12_active(5);
+  }
+  return 0;
 }
 /*---------------------------------------------------------------------------*/
 SENSORS_SENSOR(radio_sensor, RADIO_SENSOR,
-	       init, irq, activate, deactivate, active,
-	       value, configure, status);
+               value, configure, status);

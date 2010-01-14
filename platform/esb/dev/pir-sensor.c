@@ -28,85 +28,70 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: pir-sensor.c,v 1.2 2006/10/09 21:08:51 nifi Exp $
+ * @(#)$Id: pir-sensor.c,v 1.3 2010/01/14 17:39:35 nifi Exp $
  */
 
-#include "contiki-esb.h"
+#include "dev/pir-sensor.h"
+#include "dev/irq.h"
+#include "dev/hwconf.h"
 
 const struct sensors_sensor pir_sensor;
 
 static unsigned int pir;
-static unsigned char flags;
 
-HWCONF_PIN(PIR, 1, 3);
-HWCONF_IRQ(PIR, 1, 3);
+#define PIR_IRQ() 3
+HWCONF_PIN(PIR, 1, PIR_IRQ());
+HWCONF_IRQ(PIR, 1, PIR_IRQ());
 
 /*---------------------------------------------------------------------------*/
 static int
 irq(void)
 {
-  if(PIR_CHECK_IRQ()) {
-    ++pir;
-    if(flags & PIR_ENABLE_EVENT) {
-      sensors_changed(&pir_sensor);
-    }
-    return 1;
-  }
-  return 0;
-}
-/*---------------------------------------------------------------------------*/
-static void
-init(void)
-{
-  flags = PIR_ENABLE_EVENT;
-  pir = 0;
-  PIR_SELECT();
-  PIR_MAKE_INPUT();
-}
-/*---------------------------------------------------------------------------*/
-static void
-activate(void)
-{
-  sensors_add_irq(&pir_sensor, PIR_IRQ_PORT());
-  PIR_ENABLE_IRQ();
-}
-/*---------------------------------------------------------------------------*/
-static void
-deactivate(void)
-{
-  PIR_DISABLE_IRQ();
-  sensors_remove_irq(&pir_sensor, PIR_IRQ_PORT());
+  ++pir;
+  sensors_changed(&pir_sensor);
+  return 1;
 }
 /*---------------------------------------------------------------------------*/
 static int
-active(void)
-{
-  return PIR_IRQ_ENABLED();
-}
-/*---------------------------------------------------------------------------*/
-static unsigned int
 value(int type)
 {
   return pir;
 }
 /*---------------------------------------------------------------------------*/
 static int
-configure(int type, void *c)
+configure(int type, int value)
 {
-  if(c) {
-    flags |= type & 0xff;
-  } else {
-    flags &= ~type & 0xff;
+  switch (type) {
+  case SENSORS_HW_INIT:
+    pir = 0;
+    PIR_SELECT();
+    PIR_MAKE_INPUT();
+    return 1;
+  case SENSORS_ACTIVE:
+    if (value) {
+      if(!PIR_IRQ_ENABLED()) {
+        irq_port1_activate(PIR_IRQ(), irq);
+        PIR_ENABLE_IRQ();
+      }
+    } else {
+      PIR_DISABLE_IRQ();
+      irq_port1_deactivate(PIR_IRQ());
+    }
+    return 1;
   }
-  return 1;
+  return 0;
 }
 /*---------------------------------------------------------------------------*/
-static void *
+static int
 status(int type)
 {
-  return (void *) (((int) (flags & type)) & 0xff);
+  switch (type) {
+  case SENSORS_ACTIVE:
+  case SENSORS_READY:
+    return PIR_IRQ_ENABLED();
+  }
+  return 0;
 }
 /*---------------------------------------------------------------------------*/
 SENSORS_SENSOR(pir_sensor, PIR_SENSOR,
-	       init, irq, activate, deactivate, active,
-	       value, configure, status);
+               value, configure, status);

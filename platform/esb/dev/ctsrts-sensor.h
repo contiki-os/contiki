@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: ctsrts-sensor.h,v 1.1 2006/06/18 07:49:33 adamdunkels Exp $
+ * @(#)$Id: ctsrts-sensor.h,v 1.2 2010/01/14 17:39:35 nifi Exp $
  */
 
 /**
@@ -42,7 +42,7 @@
 #ifndef __CTSRTS_SENSOR_H__
 #define __CTSRTS_SENSOR_H__
 
-#include "contiki-esb.h"
+#include "lib/sensors.h"
 
 extern const struct sensors_sensor ctsrts_sensor;
 

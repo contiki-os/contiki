@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: ctsrts-sensor.c,v 1.1 2006/06/18 07:49:33 adamdunkels Exp $
+ * @(#)$Id: ctsrts-sensor.c,v 1.2 2010/01/14 17:39:35 nifi Exp $
  */
 
 /**
@@ -40,7 +40,10 @@
  * handshake but as said, that is not implemented yet.
  */
 
-#include "contiki-esb.h"
+#include "dev/ctsrts-sensor.h"
+#include "dev/irq.h"
+#include "dev/hwconf.h"
+#include <signal.h>
 
 const struct sensors_sensor ctsrts_sensor;
 
@@ -49,83 +52,21 @@ HWCONF_PIN(RS232RTS, 1, 7);
 HWCONF_PIN(RS232CTS, 1, 6);
 HWCONF_IRQ(RS232CTS, 1, 6);
 
-
-/*---------------------------------------------------------------------------*/
-static void
-init(void)
-{
-  RS232RTS_SELECT();
-  RS232RTS_MAKE_OUTPUT();
-  RS232RTS_CLEAR();
-  RS232CTS_SELECT();
-  RS232CTS_MAKE_INPUT();
-}
-
-/**
- * Indicate to host/client we are NOT ready to receive data. Sets the RTS pin
- * to low.
- */
-void ctsrts_rts_clear(void) {
-  RS232RTS_CLEAR();
-}
-
-/**
- * Request host/client to send data. Sets the RTS pin to high.
- */
-void ctsrts_rts_set(void) {
-  RS232RTS_SET();
-}
-
 /*---------------------------------------------------------------------------*/
 static int
 irq(void)
 {
-  if(RS232CTS_CHECK_IRQ()) {
-    /* Change the flank triggering for the irq so we will detect next
-       shift. */
-    if(RS232CTS_READ()) {
-      RS232CTS_IRQ_EDGE_SELECTD();
-    } else {
-      RS232CTS_IRQ_EDGE_SELECTU();
-    }
-
-    sensors_changed(&ctsrts_sensor);
-    return 1;
-  }
-  return 0;
-}
-/*---------------------------------------------------------------------------*/
-static void
-activate(void)
-{
-  /*
-   * Check current status on the CTS pin and set IRQ flank so we will detect
-   * a shift.
-   */
+  /* Change the flank triggering for the irq so we will detect next shift. */
   if(RS232CTS_READ()) {
     RS232CTS_IRQ_EDGE_SELECTD();
   } else {
     RS232CTS_IRQ_EDGE_SELECTU();
   }
-  
-  sensors_add_irq(&ctsrts_sensor, RS232CTS_IRQ_PORT());
-  RS232CTS_ENABLE_IRQ();
-}
-/*---------------------------------------------------------------------------*/
-static void
-deactivate(void)
-{
-  RS232CTS_DISABLE_IRQ();
-  sensors_remove_irq(&ctsrts_sensor, RS232CTS_IRQ_PORT());
+  sensors_changed(&ctsrts_sensor);
+  return 1;
 }
 /*---------------------------------------------------------------------------*/
 static int
-active(void)
-{
-  return RS232CTS_IRQ_ENABLED();
-}
-/*---------------------------------------------------------------------------*/
-static unsigned int
 value(int type)
 {
   /*
@@ -135,21 +76,71 @@ value(int type)
    * the PC I set RTS which is coupled to the CTS on the esb and I read a 0.
    * Maybe RTS is defined active LOW on the PC? //Kalle
    */
-  return RS232CTS_READ()?0:1;
+  return RS232CTS_READ() ? 0 : 1;
 }
 /*---------------------------------------------------------------------------*/
 static int
-configure(int type, void *c)
+configure(int type, int value)
 {
+  switch (type) {
+  case SENSORS_HW_INIT:
+    RS232RTS_SELECT();
+    RS232RTS_MAKE_OUTPUT();
+    RS232RTS_CLEAR();
+    RS232CTS_SELECT();
+    RS232CTS_MAKE_INPUT();
+    return 1;
+  case SENSORS_ACTIVE:
+    if (value) {
+      if(!RS232CTS_IRQ_ENABLED()) {
+
+        /*
+         * Check current status on the CTS pin and set IRQ flank so we
+         * will detect a shift.
+         */
+        if(RS232CTS_READ()) {
+          RS232CTS_IRQ_EDGE_SELECTD();
+        } else {
+          RS232CTS_IRQ_EDGE_SELECTU();
+        }
+
+        irq_port1_activate(RS232CTS_IRQ_PORT(), irq);
+        RS232CTS_ENABLE_IRQ();
+      }
+    } else {
+      RS232CTS_DISABLE_IRQ();
+      irq_port1_deactivate(RS232CTS_IRQ_PORT());
+    }
+    return 1;
+  }
   return 0;
 }
 /*---------------------------------------------------------------------------*/
-static void *
+static int
 status(int type)
 {
-  return NULL;
+  switch (type) {
+  case SENSORS_ACTIVE:
+  case SENSORS_READY:
+    return RS232CTS_IRQ_ENABLED();
+  }
+  return 0;
+}
+/*---------------------------------------------------------------------------*/
+/**
+ * Indicate to host/client we are NOT ready to receive data. Sets the RTS pin
+ * to low.
+ */
+void ctsrts_rts_clear(void) {
+  RS232RTS_CLEAR();
+}
+/*---------------------------------------------------------------------------*/
+/**
+ * Request host/client to send data. Sets the RTS pin to high.
+ */
+void ctsrts_rts_set(void) {
+  RS232RTS_SET();
 }
 /*---------------------------------------------------------------------------*/
 SENSORS_SENSOR(ctsrts_sensor, CTSRTS_SENSOR,
-	       init, irq, activate, deactivate, active,
-	       value, configure, status);
+               value, configure, status);

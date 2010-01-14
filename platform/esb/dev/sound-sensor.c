@@ -28,10 +28,10 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: sound-sensor.c,v 1.3 2008/07/08 12:35:05 nifi Exp $
+ * @(#)$Id: sound-sensor.c,v 1.4 2010/01/14 17:39:35 nifi Exp $
  */
 #include <stdlib.h>
-#include "contiki-esb.h"
+#include "dev/sound-sensor.h"
 #include "dev/irq.h"
 
 #define MIC_MIN_SENS 150
@@ -40,7 +40,6 @@
 const struct sensors_sensor sound_sensor;
 
 static unsigned int sound, micdiff, micmax, avgmax;
-char sound_pause;
 static int8_t mode;
 static int8_t sample_div;
 static int8_t ctr;
@@ -49,34 +48,24 @@ static int buffer_size;
 static int buf_pos;
 
 /*---------------------------------------------------------------------------*/
-static void
-init(void)
-{
-  /* Initialization of ADC12 done by irq */
-  mode = 0;
-}
-/*---------------------------------------------------------------------------*/
 static int
 irq(void)
 {
+  micdiff = micdiff + abs(ADC12MEM4 - sound) - (micdiff >> 3);
+  sound = ADC12MEM4;
 
-  if (!sound_pause) {
-    micdiff = micdiff + abs(ADC12MEM4 - sound) - (micdiff >> 3);
-
-    if(mode == SAMPLE) {
-      leds_invert(LEDS_RED);
-      ctr++;
-      if(ctr >= sample_div) {
-	ctr = 0;
-	sample_buffer[buf_pos++] = ADC12MEM4;
-	if(buf_pos >= buffer_size) {
-	  mode = 0;
-	  leds_off(LEDS_RED);
-	  sensors_changed(&sound_sensor);
-	}
+  if(mode == SAMPLE) {
+    ctr++;
+    if(ctr >= sample_div) {
+      ctr = 0;
+      sample_buffer[buf_pos++] = sound;
+      if(buf_pos >= buffer_size) {
+        mode = 0;
+        sensors_changed(&sound_sensor);
+        return 1;
       }
     }
-
+  }
 
 /*   if (micdiff > MIC_MIN_SENS) { */
 /*     sensors_changed(&sound_sensor); */
@@ -91,8 +80,6 @@ irq(void)
 /*     if (micmax < micdiff) { */
 /*       micmax = micdiff; */
 /*     } */
-  }
-
 
 /*   if (micdiff > 2000) { */
 /*     leds_on(LEDS_GREEN); */
@@ -104,37 +91,10 @@ irq(void)
 /*     leds_on(LEDS_RED); */
 /*   } */
 
-  sound = ADC12MEM4;
-
   return 0;
 }
 /*---------------------------------------------------------------------------*/
-static void
-activate(void)
-{
-  sound = micdiff = micmax = 0;
-  sound_pause = 0;
-  mode = 0;
-  ctr = 0;
-  sample_div = 0;
-  buf_pos = 0;
-  avgmax = 5000;
-  irq_adc12_activate(&sound_sensor, 4, INCH_0 + SREF_0);
-}
-/*---------------------------------------------------------------------------*/
-static void
-deactivate(void)
-{
-  irq_adc12_deactivate(&sound_sensor, 4);
-}
-/*---------------------------------------------------------------------------*/
 static int
-active(void)
-{
-  return irq_adc12_active(4);
-}
-/*---------------------------------------------------------------------------*/
-static unsigned int
 value(int type)
 {
   /* try returning the max to see what values we get... */
@@ -146,34 +106,62 @@ value(int type)
 }
 /*---------------------------------------------------------------------------*/
 static int
-configure(int type, void *c)
+configure(int type, int value)
 {
-  if(type == SOUND_SET_BUFFER_PTR) {
-    sample_buffer = (int16_t *) c;
-  } else if (type == SOUND_SET_BUFFER_SIZE) {
-    buffer_size = (int) c;
-  } else if (type == SOUND_SET_DIV) {
-    sample_div = (int) c & 0xff;
-  } else if(type == SOUND_START_SAMPLE) {
-    if(buffer_size > 0) {
-      leds_on(LEDS_RED);
-      buf_pos = 0;
-      ctr = 0;
-      mode = SAMPLE;
+  switch (type) {
+  case SENSORS_HW_INIT:
+    /* Initialization of ADC12 done by irq */
+    mode = 0;
+    buffer_size = 0;
+    return 1;
+  case SENSORS_ACTIVE:
+    if (value) {
+      if(!irq_adc12_active(4)) {
+        sound = micdiff = micmax = 0;
+        mode = 0;
+        ctr = 0;
+        sample_div = 0;
+        buf_pos = 0;
+        avgmax = 5000;
+        irq_adc12_activate(4, (INCH_0 + SREF_0), irq);
+      }
+    } else {
+      irq_adc12_deactivate(4);
     }
+    return 1;
   }
   return 0;
 }
 /*---------------------------------------------------------------------------*/
-static void *
+static int
 status(int type)
 {
-  if(type == SOUND_SAMPLING) {
-    return (void *) (mode == SAMPLE);
+  switch (type) {
+  case SENSORS_ACTIVE:
+    return irq_adc12_active(4);
+  case SENSORS_READY:
+    return (mode != SAMPLE) && irq_adc12_active(4);
   }
-  return NULL;
+  return 0;
+}
+/*---------------------------------------------------------------------------*/
+void
+sound_sensor_start_sample(void)
+{
+  if(buffer_size > 0) {
+    buf_pos = 0;
+    ctr = 0;
+    mode = SAMPLE;
+  }
+}
+/*---------------------------------------------------------------------------*/
+void
+sound_sensor_set_buffer(int16_t *buffer, int buf_size, int divider)
+{
+  sample_buffer = buffer;
+  buffer_size = buf_size;
+  sample_div = divider;
 }
 /*---------------------------------------------------------------------------*/
 SENSORS_SENSOR(sound_sensor, SOUND_SENSOR,
-	       init, irq, activate, deactivate, active,
-	       value, configure, status);
+               value, configure, status);
