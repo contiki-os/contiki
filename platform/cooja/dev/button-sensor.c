@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: button-sensor.c,v 1.4 2007/04/02 14:14:28 fros4943 Exp $
+ * $Id: button-sensor.c,v 1.5 2010/01/14 16:13:45 joxe Exp $
  */
 
 #include "lib/sensors.h"
@@ -41,38 +41,6 @@ static struct timer debouncetimer;
 char simButtonChanged;
 char simButtonIsDown;
 char simButtonIsActive;
-
-/*---------------------------------------------------------------------------*/
-static void
-init(void)
-{
-  simButtonIsActive = 1;
-  timer_set(&debouncetimer, 0);
-}
-/*---------------------------------------------------------------------------*/
-static int
-irq(void)
-{
-  return 1;
-}
-/*---------------------------------------------------------------------------*/
-static void
-activate(void)
-{
-  simButtonIsActive = 1;
-}
-/*---------------------------------------------------------------------------*/
-static void
-deactivate(void)
-{
-  simButtonIsActive = 0;
-}
-/*---------------------------------------------------------------------------*/
-static int
-active(void)
-{
-  return simButtonIsActive;
-}
 /*---------------------------------------------------------------------------*/
 static unsigned int
 value(int type)
@@ -81,22 +49,28 @@ value(int type)
 }
 /*---------------------------------------------------------------------------*/
 static int
-configure(int type, void *c)
+configure(int type, int c)
 {
+  if(type == SENSORS_ACTIVE) {
+    simButtonIsActive = c;
+  } else if(type == SENSORS_HW_INIT) {
+    simButtonIsActive = 1;
+    timer_set(&debouncetimer, 0);
+  }
   return 0;
 }
 /*---------------------------------------------------------------------------*/
-static void *
+static int
 status(int type)
 {
-  return 0;
+  return (type == SENSORS_ACTIVE) ? simButtonIsActive : 0;
 }
 /*---------------------------------------------------------------------------*/
 static void
 doInterfaceActionsBeforeTick(void)
 {
   // Check if button value has changed
-  if (simButtonChanged && simButtonIsActive && simButtonIsDown) {
+  if(simButtonChanged && simButtonIsActive && simButtonIsDown) {
     if(timer_expired(&debouncetimer)) {
       timer_set(&debouncetimer, CLOCK_SECOND / 10);
       sensors_changed(&button_sensor);
@@ -116,5 +90,4 @@ SIM_INTERFACE(button_interface,
 	      doInterfaceActionsAfterTick);
 
 SENSORS_SENSOR(button_sensor, BUTTON_SENSOR,
-	       init, irq, activate, deactivate, active,
 	       value, configure, status);
