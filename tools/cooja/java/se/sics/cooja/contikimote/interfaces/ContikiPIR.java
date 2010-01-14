@@ -26,18 +26,19 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ContikiPIR.java,v 1.8 2009/10/27 10:11:17 fros4943 Exp $
+ * $Id: ContikiPIR.java,v 1.9 2010/01/14 19:06:14 nifi Exp $
  */
 
 package se.sics.cooja.contikimote.interfaces;
 
-import java.awt.event.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.util.Collection;
-import javax.swing.*;
-import org.apache.log4j.Logger;
+import javax.swing.JButton;
+import javax.swing.JPanel;
 import org.jdom.Element;
-
-import se.sics.cooja.*;
+import se.sics.cooja.Mote;
+import se.sics.cooja.SectionMoteMemory;
 import se.sics.cooja.contikimote.ContikiMote;
 import se.sics.cooja.contikimote.ContikiMoteInterface;
 import se.sics.cooja.interfaces.PIR;
@@ -63,7 +64,6 @@ import se.sics.cooja.interfaces.PIR;
  * @author Fredrik Osterlind
  */
 public class ContikiPIR extends PIR implements ContikiMoteInterface {
-  private static Logger logger = Logger.getLogger(ContikiPIR.class);
 
   /**
    * Approximate energy consumption of an active PIR sensor. ESB measured energy
@@ -106,15 +106,13 @@ public class ContikiPIR extends PIR implements ContikiMoteInterface {
    * Simulates a change in the PIR sensor.
    */
   public void triggerChange() { 
-    mote.getSimulation().scheduleEvent(pirEvent, mote.getSimulation().getSimulationTime());
+    mote.getSimulation().invokeSimulationThread(new Runnable() {
+      public void run() {
+        doTriggerChange();
+      }
+    });
   }
 
-  private TimeEvent pirEvent = new MoteTimeEvent(mote, 0) {
-    public void execute(long t) {
-      doTriggerChange();
-    }
-  };
-  
   public void doTriggerChange() { 
     if (moteMem.getByteValueOf("simPirIsActive") == 1) {
       moteMem.setByteValueOf("simPirChanged", (byte) 1);
