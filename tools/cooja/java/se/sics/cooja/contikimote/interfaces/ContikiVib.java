@@ -26,18 +26,21 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ContikiVib.java,v 1.8 2009/10/27 10:11:17 fros4943 Exp $
+ * $Id: ContikiVib.java,v 1.9 2010/01/14 19:06:14 nifi Exp $
  */
 
 package se.sics.cooja.contikimote.interfaces;
 
-import java.awt.event.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.util.Collection;
-import javax.swing.*;
-import org.apache.log4j.Logger;
+import javax.swing.JButton;
+import javax.swing.JPanel;
 import org.jdom.Element;
-
-import se.sics.cooja.*;
+import se.sics.cooja.ClassDescription;
+import se.sics.cooja.Mote;
+import se.sics.cooja.MoteInterface;
+import se.sics.cooja.SectionMoteMemory;
 import se.sics.cooja.contikimote.ContikiMote;
 import se.sics.cooja.contikimote.ContikiMoteInterface;
 
@@ -63,7 +66,6 @@ import se.sics.cooja.contikimote.ContikiMoteInterface;
  */
 @ClassDescription("Vibration sensor")
 public class ContikiVib extends MoteInterface implements ContikiMoteInterface {
-  private static Logger logger = Logger.getLogger(ContikiVib.class);
 
   /**
    * Approximate energy consumption of an active vibration sensor. ESB measured
@@ -106,14 +108,12 @@ public class ContikiVib extends MoteInterface implements ContikiMoteInterface {
    * Simulates a change in the vibration sensor.
    */
   public void triggerChange() {
-    mote.getSimulation().scheduleEvent(vibrateEvent, mote.getSimulation().getSimulationTime());
+    mote.getSimulation().invokeSimulationThread(new Runnable() {
+      public void run() {
+        doTriggerChange();
+      }
+    });
   }
-  
-  private TimeEvent vibrateEvent = new MoteTimeEvent(mote, 0) {
-    public void execute(long t) {
-      doTriggerChange();
-    }
-  };
   
   public void doTriggerChange() { 
     if (moteMem.getByteValueOf("simVibIsActive") == 1) {
