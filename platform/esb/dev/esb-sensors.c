@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: esb-sensors.c,v 1.2 2007/03/19 00:34:43 adamdunkels Exp $
+ * $Id: esb-sensors.c,v 1.3 2010/01/14 17:39:35 nifi Exp $
  */
 
 /**
@@ -41,7 +41,9 @@
  * sufficient for now.
  */
 
-#include "contiki-esb.h"
+#include "dev/hwconf.h"
+#include "dev/irq.h"
+#include "sys/energest.h"
 
 HWCONF_PIN(SENSORSWITCH, 5, 5);
 
@@ -51,6 +53,8 @@ esb_sensors_init(void)
 {
   SENSORSWITCH_SELECT();
   SENSORSWITCH_MAKE_OUTPUT();
+
+  irq_init();
 }
 /*---------------------------------------------------------------------------*/
 void

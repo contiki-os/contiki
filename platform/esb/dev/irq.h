@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2005, Swedish Institute of Computer Science
+ * Copyright (c) 2009, Swedish Institute of Computer Science
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,70 +28,20 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: vib-sensor.c,v 1.4 2010/01/14 17:39:35 nifi Exp $
+ * @(#)$Id: irq.h,v 1.3 2010/01/14 17:39:35 nifi Exp $
  */
+#ifndef __IRQ_H__
+#define __IRQ_H__
 
-#include "dev/vib-sensor.h"
-#include "dev/irq.h"
-#include "dev/hwconf.h"
+void irq_init(void);
 
-const struct sensors_sensor vib_sensor;
+void irq_port1_activate(unsigned char irqno, int (* irq)(void));
+void irq_port1_deactivate(unsigned char irqno);
 
-static unsigned int vib;
+void irq_adc12_activate(unsigned char adcno, unsigned char config,
+                        int (* irq)(void));
+void irq_adc12_deactivate(unsigned char adcno);
 
-#define VIB_IRQ() 4
-HWCONF_PIN(VIB, 1, VIB_IRQ());
-HWCONF_IRQ(VIB, 1, VIB_IRQ());
+int irq_adc12_active(unsigned char adcno);
 
-/*---------------------------------------------------------------------------*/
-static int
-irq(void)
-{
-  ++vib;
-  sensors_changed(&vib_sensor);
-  return 1;
-}
-/*---------------------------------------------------------------------------*/
-static int
-value(int type)
-{
-  return vib;
-}
-/*---------------------------------------------------------------------------*/
-static int
-configure(int type, int value)
-{
-  switch (type) {
-  case SENSORS_HW_INIT:
-    vib = 0;
-    VIB_SELECT();
-    VIB_MAKE_INPUT();
-    return 1;
-  case SENSORS_ACTIVE:
-    if (value) {
-      if(!VIB_IRQ_ENABLED()) {
-        irq_port1_activate(VIB_IRQ(), irq);
-        VIB_ENABLE_IRQ();
-      }
-    } else {
-      VIB_DISABLE_IRQ();
-      irq_port1_deactivate(VIB_IRQ());
-    }
-    return 1;
-  }
-  return 0;
-}
-/*---------------------------------------------------------------------------*/
-static int
-status(int type)
-{
-  switch (type) {
-  case SENSORS_ACTIVE:
-  case SENSORS_READY:
-    return VIB_IRQ_ENABLED();
-  }
-  return 0;
-}
-/*---------------------------------------------------------------------------*/
-SENSORS_SENSOR(vib_sensor, VIB_SENSOR,
-               value, configure, status);
+#endif /* __IRQ_H__ */

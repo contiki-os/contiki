@@ -26,14 +26,14 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: battery-sensor.c,v 1.4 2007/05/22 21:06:57 adamdunkels Exp $
+ * $Id: battery-sensor.c,v 1.5 2010/01/14 17:39:35 nifi Exp $
  *
  * -----------------------------------------------------------------
  *
  * Author  : Adam Dunkels, Joakim Eriksson, Niclas Finne
  * Created : 2005-11-01
- * Updated : $Date: 2007/05/22 21:06:57 $
- *           $Revision: 1.4 $
+ * Updated : $Date: 2010/01/14 17:39:35 $
+ *           $Revision: 1.5 $
  */
 
 #include "dev/battery-sensor.h"
@@ -44,12 +44,6 @@ const struct sensors_sensor battery_sensor;
 static unsigned int battery_value;
 
 /*---------------------------------------------------------------------------*/
-static void
-init(void)
-{
-  battery_value = 0;
-}
-/*---------------------------------------------------------------------------*/
 static int
 irq(void)
 {
@@ -57,43 +51,42 @@ irq(void)
   return 0;
 }
 /*---------------------------------------------------------------------------*/
-static void
-activate(void)
-{
-  irq_adc12_activate(&battery_sensor, 6, (INCH_4 + SREF_0));
-}
-/*---------------------------------------------------------------------------*/
-static void
-deactivate(void)
-{
-  irq_adc12_deactivate(&battery_sensor, 6);
-  battery_value = 0;
-}
-/*---------------------------------------------------------------------------*/
 static int
-active(void)
-{
-  return irq_adc12_active(6);
-}
-/*---------------------------------------------------------------------------*/
-static unsigned int
 value(int type)
 {
   return ADC12MEM6/*battery_value*/;
 }
 /*---------------------------------------------------------------------------*/
 static int
-configure(int type, void *c)
+configure(int type, int value)
 {
+  switch (type) {
+  case SENSORS_HW_INIT:
+    battery_value = 0;
+    return 1;
+  case SENSORS_ACTIVE:
+    if (value) {
+      if(!irq_adc12_active(6)) {
+        irq_adc12_activate(6, (INCH_4 + SREF_0), irq);
+      }
+    } else {
+      irq_adc12_deactivate(6);
+    }
+    return 1;
+  }
   return 0;
 }
 /*---------------------------------------------------------------------------*/
-static void *
+static int
 status(int type)
 {
-  return NULL;
+  switch (type) {
+  case SENSORS_ACTIVE:
+  case SENSORS_READY:
+    return irq_adc12_active(6);
+  }
+  return 0;
 }
 /*---------------------------------------------------------------------------*/
 SENSORS_SENSOR(battery_sensor, BATTERY_SENSOR,
-	       init, irq, activate, deactivate, active,
-	       value, configure, status);
+               value, configure, status);
