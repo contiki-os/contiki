@@ -26,17 +26,15 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * This file is part of the Configurable Sensor Network Application
- * Architecture for sensor nodes running the Contiki operating system.
  *
- * $Id: light-sensor.h,v 1.1 2010/01/14 13:53:06 joxe Exp $
+ * $Id: light-sensor.h,v 1.2 2010/01/14 20:23:02 adamdunkels Exp $
  *
  * -----------------------------------------------------------------
  *
  * Author  : Adam Dunkels, Joakim Eriksson, Niclas Finne
  * Created : 2010-01-08
- * Updated : $Date: 2010/01/14 13:53:06 $
- *           $Revision: 1.1 $
+ * Updated : $Date: 2010/01/14 20:23:02 $
+ *           $Revision: 1.2 $
  */
 
 #ifndef __LIGHT_SENSOR_H__
@@ -46,6 +44,8 @@
 
 extern const struct sensors_sensor light_sensor;
 
+#define LIGHT_SENSOR_PHOTOSYNTHETIC 0
+#define LIGHT_SENSOR_TOTAL_SOLAR    1
 
 
 #endif /* __LIGHT-SENSOR_H__ */
