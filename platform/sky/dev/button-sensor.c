@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: button-sensor.c,v 1.3 2010/01/14 15:50:14 joxe Exp $
+ * @(#)$Id: button-sensor.c,v 1.4 2010/01/14 20:01:19 nifi Exp $
  */
 #include "lib/sensors.h"
 #include "dev/hwconf.h"
@@ -60,8 +60,7 @@ interrupt(PORT2_VECTOR)
   ENERGEST_OFF(ENERGEST_TYPE_IRQ);
 }
 /*---------------------------------------------------------------------------*/
-
-static unsigned int
+static int
 value(int type)
 {
   return BUTTON_READ() || !timer_expired(&debouncetimer);
@@ -85,6 +84,7 @@ configure(int type, int c)
     } else {
       BUTTON_DISABLE_IRQ();
     }
+    return 1;
   }
   return 0;
 }
