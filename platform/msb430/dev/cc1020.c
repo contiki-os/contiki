@@ -50,7 +50,6 @@
 #include "lib/random.h"
 #include "lib/crc16.h"
 #include "net/rime/rimestats.h"
-#include "dev/irq.h"
 #include "dev/dma.h"
 #include "sys/energest.h"
 
