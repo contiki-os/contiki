@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2005, Swedish Institute of Computer Science
+ * Copyright (c) 2009, Swedish Institute of Computer Science
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: sensors.h,v 1.2 2007/11/17 18:05:56 adamdunkels Exp $
+ * @(#)$Id: sensors.h,v 1.3 2010/01/14 13:29:56 joxe Exp $
  */
 
 #ifndef __SENSORS_H__
@@ -36,11 +36,16 @@
 
 #include "contiki.h"
 
-#define SENSORS_SENSOR(name, type, init, irq, activate, deactivate, \
-                       active, value, configure, status)            \
-const struct sensors_sensor name = { type  ,                        \
-                               init, irq, activate, deactivate,     \
-                               active, value, configure, status }
+/* some constants for the configure API */
+#define SENSORS_HW_INIT 128 /* internal - used only for initialization */
+#define SENSORS_ACTIVE 129 /* ACTIVE => 0 -> turn off, 1 -> turn on */
+#define SENSORS_READY 130 /* read only */
+
+#define SENSORS_ACTIVATE(sensor) sensor.configure(SENSORS_ACTIVE, (void*)1)
+#define SENSORS_DEACTIVATE(sensor) sensor.configure(SENSORS_ACTIVE, (void*)0)
+
+#define SENSORS_SENSOR(name, type, value, configure, status)        \
+const struct sensors_sensor name = { type, value, configure, status }
 
 #define SENSORS_NUM (sizeof(sensors) / sizeof(struct sensors_sensor *))
 
@@ -51,11 +56,6 @@ struct process *sensors_selecting_proc[SENSORS_NUM]
 
 struct sensors_sensor {
   char *       type;
-  void         (* init)      (void);
-  int          (* irq)       (void);
-  void         (* activate)  (void);
-  void         (* deactivate)(void);
-  int          (* active)    (void);
   unsigned int (* value)     (int type);
   int          (* configure) (int type, void *parameters);
   void *       (* status)    (int type);
@@ -67,19 +67,8 @@ struct sensors_sensor *sensors_first(void);
 
 void sensors_changed(const struct sensors_sensor *s);
 
-
-void sensors_add_irq(const struct sensors_sensor *s, unsigned char irq);
-void sensors_remove_irq(const struct sensors_sensor *s, unsigned char irq);
-
-int sensors_handle_irq(unsigned char irq_flag);
-
-void sensors_select(const struct sensors_sensor *s, struct process *p);
-void sensors_unselect(const struct sensors_sensor *s, const struct process *p);
-
 extern process_event_t sensors_event;
 
 PROCESS_NAME(sensors_process);
-
-void irq_init(void);
 
 #endif /* __SENSORS_H__ */
