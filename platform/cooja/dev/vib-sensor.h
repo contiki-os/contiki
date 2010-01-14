@@ -26,11 +26,13 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: vib-sensor.h,v 1.1 2006/08/21 12:11:18 fros4943 Exp $
+ * $Id: vib-sensor.h,v 1.2 2010/01/14 19:12:31 nifi Exp $
  */
 
 #ifndef __VIB_H__
 #define __VIB_H__
+
+#include "lib/sensors.h"
 
 extern const struct sensors_sensor vib_sensor;
 

@@ -26,10 +26,9 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: vib-sensor.c,v 1.1 2006/08/21 12:11:18 fros4943 Exp $
+ * $Id: vib-sensor.c,v 1.2 2010/01/14 19:12:31 nifi Exp $
  */
 
-#include "lib/sensors.h"
 #include "dev/vib-sensor.h"
 #include "lib/simEnvChange.h"
 
@@ -42,52 +41,35 @@ char simVibIsActive;
 char simVibValue = 0;
 
 /*---------------------------------------------------------------------------*/
-static void
-init(void)
-{
-  simVibIsActive = 1;
-}
-/*---------------------------------------------------------------------------*/
 static int
-irq(void)
-{
-  return 0;
-}
-/*---------------------------------------------------------------------------*/
-static void
-activate(void)
-{
-  simVibIsActive = 1;
-}
-/*---------------------------------------------------------------------------*/
-static void
-deactivate(void)
-{
-  simVibIsActive = 0;
-}
-/*---------------------------------------------------------------------------*/
-static int
-active(void)
-{
-  return simVibIsActive;
-}
-/*---------------------------------------------------------------------------*/
-static unsigned int
 value(int type)
 {
   return simVibValue;
 }
 /*---------------------------------------------------------------------------*/
 static int
-configure(int type, void *c)
+configure(int type, int c)
 {
+  switch(type) {
+  case SENSORS_HW_INIT:
+    simVibIsActive = 0;
+    return 1;
+  case SENSORS_ACTIVE:
+    simVibIsActive = c;
+    return 1;
+  }
   return 0;
 }
 /*---------------------------------------------------------------------------*/
-static void *
+static int
 status(int type)
 {
-  return NULL;
+  switch(type) {
+  case SENSORS_ACTIVE:
+  case SENSORS_READY:
+    return simVibIsActive;
+  }
+  return 0;
 }
 /*---------------------------------------------------------------------------*/
 static void
@@ -95,7 +77,7 @@ doInterfaceActionsBeforeTick(void)
 {
   // Check if Vib value has changed
   if (simVibIsActive && simVibChanged) {
-    simVibValue = !simVibValue;
+    simVibValue++;
 
     sensors_changed(&vib_sensor);
     simVibChanged = 0;
@@ -113,5 +95,4 @@ SIM_INTERFACE(vib_interface,
 	doInterfaceActionsAfterTick);
 
 SENSORS_SENSOR(vib_sensor, VIB_SENSOR,
-	       init, irq, activate, deactivate, active,
-	       value, configure, status);
+               value, configure, status);

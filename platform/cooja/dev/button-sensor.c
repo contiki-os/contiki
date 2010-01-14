@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: button-sensor.c,v 1.5 2010/01/14 16:13:45 joxe Exp $
+ * $Id: button-sensor.c,v 1.6 2010/01/14 19:12:31 nifi Exp $
  */
 
 #include "lib/sensors.h"
@@ -42,7 +42,7 @@ char simButtonChanged;
 char simButtonIsDown;
 char simButtonIsActive;
 /*---------------------------------------------------------------------------*/
-static unsigned int
+static int
 value(int type)
 {
   return simButtonIsDown || !timer_expired(&debouncetimer);
@@ -53,9 +53,11 @@ configure(int type, int c)
 {
   if(type == SENSORS_ACTIVE) {
     simButtonIsActive = c;
+    return 1;
   } else if(type == SENSORS_HW_INIT) {
     simButtonIsActive = 1;
     timer_set(&debouncetimer, 0);
+    return 1;
   }
   return 0;
 }

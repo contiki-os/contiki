@@ -26,11 +26,13 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: pir-sensor.h,v 1.1 2006/08/21 12:11:19 fros4943 Exp $
+ * $Id: pir-sensor.h,v 1.2 2010/01/14 19:12:31 nifi Exp $
  */
 
 #ifndef __PIR_H__
 #define __PIR_H__
+
+#include "lib/sensors.h"
 
 extern const struct sensors_sensor pir_sensor;
 
