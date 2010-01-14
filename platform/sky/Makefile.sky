@@ -1,9 +1,9 @@
-# $Id: Makefile.sky,v 1.32 2010/01/14 20:01:18 nifi Exp $
+# $Id: Makefile.sky,v 1.33 2010/01/14 20:16:52 adamdunkels Exp $
 
 
 ARCH=msp430.c leds.c watchdog.c spi.c ds2411.c \
      xmem.c i2c.c sht11.c light-sensor.c acc-sensor.c battery-sensor.c \
-     cc2420.c cc2420-aes.c cc2420-arch.c cc2420-arch-sfd.c \
+     cc2420.c cc2420-aes.c cc2420-arch.c cc2420-arch-sfd.c sht11-sensor.c \
      node-id.c sensors.c button-sensor.c cfs-coffee.c \
      radio-sensor.c uart1.c uip-ipchksum.c \
      checkpoint-arch.c #slip.c slip_uart1.c
