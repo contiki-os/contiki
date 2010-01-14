@@ -26,14 +26,14 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: battery-sensor.c,v 1.4 2010/01/14 14:00:38 joxe Exp $
+ * $Id: battery-sensor.c,v 1.5 2010/01/14 15:50:14 joxe Exp $
  *
  * -----------------------------------------------------------------
  *
  * Author  : Adam Dunkels, Joakim Eriksson, Niclas Finne
  * Created : 2005-11-01
- * Updated : $Date: 2010/01/14 14:00:38 $
- *           $Revision: 1.4 $
+ * Updated : $Date: 2010/01/14 15:50:14 $
+ *           $Revision: 1.5 $
  */
 
 #include "dev/battery-sensor.h"
@@ -82,7 +82,7 @@ value(int type)
 }
 /*---------------------------------------------------------------------------*/
 static int
-configure(int type, void *c)
+configure(int type, int c)
 {
   switch(type) {
   case SENSORS_ACTIVE:
@@ -95,13 +95,13 @@ configure(int type, void *c)
   return 0;
 }
 /*---------------------------------------------------------------------------*/
-static void *
+static int
 status(int type)
 {
   switch (type) {
   case SENSORS_ACTIVE:
   case SENSORS_READY:
-    return (void *) active;
+    return active;
   }
   return NULL;
 }

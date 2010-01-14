@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: radio-sensor.c,v 1.4 2010/01/14 13:53:06 joxe Exp $
+ * @(#)$Id: radio-sensor.c,v 1.5 2010/01/14 15:50:14 joxe Exp $
  */
 
 #include "lib/sensors.h"
@@ -52,12 +52,12 @@ value(int type)
 }
 /*---------------------------------------------------------------------------*/
 static int
-configure(int type, void *c)
+configure(int type, int c)
 {
   return 0;
 }
 /*---------------------------------------------------------------------------*/
-static void *
+static int
 status(int type)
 {
   return NULL;

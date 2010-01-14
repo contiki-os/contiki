@@ -1,7 +1,7 @@
-# $Id: Makefile.sky,v 1.30 2010/01/14 14:00:38 joxe Exp $
+# $Id: Makefile.sky,v 1.31 2010/01/14 15:50:13 joxe Exp $
 
 
-ARCH=msp430.c leds.c watchdog.c light.c spi.c ds2411.c \
+ARCH=msp430.c leds.c watchdog.c spi.c ds2411.c \
      xmem.c i2c.c sht11.c light-sensor.c acc-sensor.c battery-sensor.c \
      cc2420.c cc2420-aes.c cc2420-arch.c cc2420-arch-sfd.c \
      node-id.c sensors.c button-sensor.c cfs-coffee.c \
