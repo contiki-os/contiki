@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: example-mesh.c,v 1.5 2009/10/18 17:52:08 adamdunkels Exp $
+ * $Id: example-mesh.c,v 1.6 2010/01/14 14:32:22 joxe Exp $
  */
 
 /**
@@ -83,7 +83,7 @@ PROCESS_THREAD(example_mesh_process, ev, data)
 
   mesh_open(&mesh, 132, &callbacks);
 
-  button_sensor.activate();
+  button_sensor.configure(SENSORS_ACTIVE, (void *) 1);
 
   while(1) {
     rimeaddr_t addr;
