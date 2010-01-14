@@ -52,7 +52,13 @@
 #include "cfs/cfs.h"
 #include "cfs-coffee-arch.h"
 #include "cfs/cfs-coffee.h"
-#include "dev/watchdog.h"
+
+#ifndef COFFEE_WATCHDOG_START
+#define COFFEE_WATCHDOG_START()
+#endif
+#ifndef COFFEE_WATCHDOG_STOP
+#define COFFEE_WATCHDOG_STOP()
+#endif
 
 #if COFFEE_START & (COFFEE_SECTOR_SIZE - 1)
 #error COFFEE_START must point to the first byte in a sector.
@@ -284,7 +290,7 @@ collect_garbage(int mode)
   struct sector_status stats;
   coffee_page_t first_page, isolation_count;
 
-  watchdog_stop();
+  COFFEE_WATCHDOG_STOP();
 
   PRINTF("Coffee: Running the file system garbage collector in %s mode\n",
 	 mode == GC_RELUCTANT ? "reluctant" : "greedy");
@@ -322,7 +328,7 @@ collect_garbage(int mode)
     }
   }
 
-  watchdog_start();
+  COFFEE_WATCHDOG_START();
 }
 /*---------------------------------------------------------------------------*/
 static coffee_page_t
@@ -538,10 +544,10 @@ reserve(const char *name, coffee_page_t pages,
   coffee_page_t page;
   struct file *file;
 
-  watchdog_stop();
+  COFFEE_WATCHDOG_STOP();
 
   if(!allow_duplicates && find_file(name) != NULL) {
-    watchdog_start();
+    COFFEE_WATCHDOG_START();
     return NULL;
   }
 
@@ -553,7 +559,7 @@ reserve(const char *name, coffee_page_t pages,
     collect_garbage(GC_GREEDY);
     page = find_contiguous_pages(pages);
     if(page == INVALID_PAGE) {
-      watchdog_start();
+      COFFEE_WATCHDOG_START();
       *gc_wait = 1;
       return NULL;
     }
@@ -570,7 +576,7 @@ reserve(const char *name, coffee_page_t pages,
 
   file = load_file(page, &hdr);
   file->end = 0;
-  watchdog_start();
+  COFFEE_WATCHDOG_START();
 
   return file;
 }
@@ -735,21 +741,21 @@ merge_log(coffee_page_t file_page, int extend)
   }
 
   offset = 0;
-  watchdog_stop();
+  COFFEE_WATCHDOG_STOP();
   do {
     char buf[hdr.log_record_size == 0 ? COFFEE_PAGE_SIZE : hdr.log_record_size];
     n = cfs_read(fd, buf, sizeof(buf));
     if(n < 0) {
       remove_by_page(new_file->page, 0, 0);
       cfs_close(fd);
-      watchdog_start();
+      COFFEE_WATCHDOG_START();
       return -1;
     } else if(n > 0) {
       COFFEE_WRITE(buf, n, absolute_offset(new_file->page, offset));
       offset += n;
     }
   } while(n != 0);
-  watchdog_start();
+  COFFEE_WATCHDOG_START();
 
   for(i = 0; i < COFFEE_FD_SET_SIZE; i++) {
     if(coffee_fd_set[i].flags != COFFEE_FD_FREE && 
@@ -1208,12 +1214,12 @@ cfs_coffee_format(void)
 
   *next_free = 0;
 
-  watchdog_stop();
+  COFFEE_WATCHDOG_STOP();
   for(i = 0; i < COFFEE_SECTOR_COUNT; i++) {
     COFFEE_ERASE(i);
     PRINTF(".");
   }
-  watchdog_start();
+  COFFEE_WATCHDOG_START();
 
   /* Formatting invalidates the file information. */
   memset(&protected_mem, 0, sizeof(protected_mem));
