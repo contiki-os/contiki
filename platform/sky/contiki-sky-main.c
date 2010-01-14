@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#)$Id: contiki-sky-main.c,v 1.61 2010/01/14 15:50:13 joxe Exp $
+ * @(#)$Id: contiki-sky-main.c,v 1.62 2010/01/14 20:18:23 adamdunkels Exp $
  */
 
 #include <signal.h>
@@ -37,8 +37,6 @@
 
 #include "contiki.h"
 
-#include "dev/battery-sensor.h"
-#include "dev/button-sensor.h"
 #include "dev/cc2420.h"
 #include "dev/ds2411.h"
 #include "dev/leds.h"
@@ -72,7 +70,13 @@
 #include "sys/autostart.h"
 #include "sys/profile.h"
 
-SENSORS(&button_sensor);
+
+#include "dev/battery-sensor.h"
+#include "dev/button-sensor.h"
+#include "dev/light-sensor.h"
+#include "dev/sht11-sensor.h"
+
+SENSORS(&button_sensor, &light_sensor, &battery_sensor, &sht11_sensor);
 
 #if DCOSYNCH_CONF_ENABLED
 static struct timer mgt_timer;
@@ -137,11 +141,13 @@ void uip_log(char *msg) { puts(msg); }
 #define RF_CHANNEL              26
 #endif
 /*---------------------------------------------------------------------------*/
+#if 0
 void
 force_inclusion(int d1, int d2)
 {
   snprintf(NULL, 0, "%d", d1 % d2);
 }
+#endif
 /*---------------------------------------------------------------------------*/
 static void
 set_rime_addr(void)
@@ -251,11 +257,10 @@ main(int argc, char **argv)
   /*
    * Initialize light and humidity/temp sensors.
    */
-  /*
-    light_sensor.configure(SENSORS_ACTIVE, 1);
-    battery_sensor.configure(SENSORS_ACTIVE, 1);
-  */
-  sht11_init();
+
+  SENSORS_ACTIVATE(light_sensor);
+  SENSORS_ACTIVATE(battery_sensor);
+  SENSORS_ACTIVATE(sht11_sensor);
 
   ctimer_init();
 
@@ -301,6 +306,20 @@ main(int argc, char **argv)
 	   uip_netif_physical_if.addresses[0].ipaddr.u8[14],
 	   uip_netif_physical_if.addresses[0].ipaddr.u8[15]);
   }
+  
+  {
+    uip_ipaddr_t ipaddr;
+    int i;
+    uip_ip6addr(&ipaddr, 0xaaaa, 0, 0, 0, 0, 0, 0, 0);
+    uip_netif_addr_autoconf_set(&ipaddr, &uip_lladdr);
+    uip_netif_addr_add(&ipaddr, 16, 0, TENTATIVE);
+    printf("Tentative IPv6 address ");
+    for(i = 0; i < 7; ++i) {
+      printf("%04x:", ipaddr.u16[i]);
+    }
+    printf("%04x\n", ipaddr.u16[7]);
+  }
+
   
 #if UIP_CONF_ROUTER
   uip_router_register(&rimeroute);
@@ -355,7 +374,7 @@ main(int argc, char **argv)
   }
 #endif /* WITH_UIP */
 
-  SENSORS_ACTIVATE(&button_sensor);
+  SENSORS_ACTIVATE(button_sensor);
 
   energest_init();
   ENERGEST_ON(ENERGEST_TYPE_CPU);
