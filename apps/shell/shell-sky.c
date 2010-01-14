@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: shell-sky.c,v 1.13 2009/03/05 21:12:02 adamdunkels Exp $
+ * $Id: shell-sky.c,v 1.14 2010/01/14 15:05:40 joxe Exp $
  */
 
 /**
@@ -46,7 +46,7 @@
 #include "net/rime.h"
 #include "dev/cc2420.h"
 #include "dev/leds.h"
-#include "dev/light.h"
+#include "dev/light-sensor.h"
 #include "dev/battery-sensor.h"
 #include "dev/sht11.h"
 
@@ -144,8 +144,8 @@ PROCESS_THREAD(shell_sense_process, ev, data)
   msg.len = 7;
   msg.clock = clock_time();
   msg.timesynch_time = timesynch_time();
-  msg.light1 = sensors_light1();
-  msg.light2 = sensors_light2();
+  msg.light1 = light_sensor.value(0);
+  msg.light2 = light_sensor.value(1);
   msg.temp = sht11_temp();
   msg.humidity = sht11_humidity();
   msg.rssi = do_rssi();
