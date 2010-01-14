@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: sensors.h,v 1.6 2010/01/14 15:33:27 joxe Exp $
+ * @(#)$Id: sensors.h,v 1.7 2010/01/14 20:04:38 nifi Exp $
  */
 
 #ifndef __SENSORS_H__
@@ -60,7 +60,7 @@ struct sensors_sensor {
   int          (* status)    (int type);
 };
 
-struct sensors_sensor *sensors_find(char *type);
+struct sensors_sensor *sensors_find(const char *type);
 struct sensors_sensor *sensors_next(const struct sensors_sensor *s);
 struct sensors_sensor *sensors_first(void);
 

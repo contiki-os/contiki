@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: sensors.c,v 1.4 2010/01/14 13:55:21 nifi Exp $
+ * @(#)$Id: sensors.c,v 1.5 2010/01/14 20:04:38 nifi Exp $
  */
 /* exeperimental code, will be renamed to sensors.c when done */
 
@@ -83,7 +83,7 @@ sensors_changed(const struct sensors_sensor *s)
 }
 /*---------------------------------------------------------------------------*/
 struct sensors_sensor *
-sensors_find(char *prefix)
+sensors_find(const char *prefix)
 {
   int i;
   unsigned short len;
