@@ -26,14 +26,14 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: battery-sensor.c,v 1.6 2010/01/14 20:01:18 nifi Exp $
+ * $Id: battery-sensor.c,v 1.7 2010/01/15 21:37:15 nifi Exp $
  *
  * -----------------------------------------------------------------
  *
  * Author  : Adam Dunkels, Joakim Eriksson, Niclas Finne
  * Created : 2005-11-01
- * Updated : $Date: 2010/01/14 20:01:18 $
- *           $Revision: 1.6 $
+ * Updated : $Date: 2010/01/15 21:37:15 $
+ *           $Revision: 1.7 $
  */
 
 #include "dev/battery-sensor.h"
@@ -74,7 +74,7 @@ deactivate(void)
   active = 0;
 }
 /*---------------------------------------------------------------------------*/
-static unsigned int
+static int
 value(int type)
 {
   return ADC12MEM2/*battery_value*/;
@@ -102,7 +102,7 @@ status(int type)
   case SENSORS_READY:
     return active;
   }
-  return NULL;
+  return 0;
 }
 /*---------------------------------------------------------------------------*/
 SENSORS_SENSOR(battery_sensor, BATTERY_SENSOR,
