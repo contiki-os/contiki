@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ScriptRunner.java,v 1.24 2009/10/29 14:39:08 fros4943 Exp $
+ * $Id: ScriptRunner.java,v 1.25 2010/01/15 10:52:55 fros4943 Exp $
  */
 
 package se.sics.cooja.plugins;
@@ -70,6 +70,7 @@ public class ScriptRunner extends VisPlugin {
       "helloworld.js", "Wait for 'Hello, world'",
       "log_all.js", "Just log all printf()'s and timeout",
       "shell.js", "Basic shell interaction",
+      "plugins.js", "Interact with surrounding COOJA plugins",
   };
 
   private Simulation simulation;
