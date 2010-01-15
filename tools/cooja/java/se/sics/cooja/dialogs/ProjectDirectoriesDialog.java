@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ProjectDirectoriesDialog.java,v 1.10 2009/10/28 12:03:48 fros4943 Exp $
+ * $Id: ProjectDirectoriesDialog.java,v 1.11 2010/01/15 10:09:23 adamdunkels Exp $
  */
 
 package se.sics.cooja.dialogs;
@@ -137,7 +137,7 @@ public class ProjectDirectoriesDialog extends JDialog {
 
     buttonPane.add(Box.createRigidArea(new Dimension(10, 0)));
 
-    button = new JButton("Set default");
+    button = new JButton("Save as default");
     button.addActionListener(new ActionListener() {
       public void actionPerformed(ActionEvent e) {
         Object[] options = { "Ok", "Cancel" };
