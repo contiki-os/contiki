@@ -24,7 +24,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * $Id: Simulation.java,v 1.56 2009/11/27 15:53:10 fros4943 Exp $
+ * $Id: Simulation.java,v 1.57 2010/01/15 14:00:06 fros4943 Exp $
  */
 
 package se.sics.cooja;
@@ -528,14 +528,19 @@ public class Simulation extends Observable implements Runnable {
 
       // Random seed
       if (element.getName().equals("randomseed")) {
-        if (manualRandomSeed != null) {
-          setRandomSeed(manualRandomSeed);
-        } else if (element.getText().equals("generated")) {
+        long newSeed;
+        
+        if (element.getText().equals("generated")) {
           randomSeedGenerated = true;
-          setRandomSeed(new Random().nextLong());
+          newSeed = new Random().nextLong();
         } else {
-          setRandomSeed(Long.parseLong(element.getText()));
+          newSeed = Long.parseLong(element.getText());
         }
+        if (manualRandomSeed != null) {
+          newSeed = manualRandomSeed;
+        }
+
+        setRandomSeed(newSeed);
       }
 
       // Max mote startup delay
