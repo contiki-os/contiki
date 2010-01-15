@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: Plugin.java,v 1.4 2009/12/14 13:29:35 fros4943 Exp $
+ * $Id: Plugin.java,v 1.5 2010/01/15 10:46:53 fros4943 Exp $
  */
 
 package se.sics.cooja;
@@ -70,23 +70,6 @@ public interface Plugin {
    * opened interface visualizers.
    */
   public void closePlugin();
-
-  /**
-   * This method is used by the simulator for book-keeping purposes, and should
-   * normally not be called by the plugin itself.
-   *
-   * @param tag
-   *          Object
-   */
-  public void tagWithObject(Object tag);
-
-  /**
-   * This method is used by the simulator for book-keeping purposes, and should
-   * normally not be called by the plugin itself.
-   *
-   * @return Object
-   */
-  public Object getTag();
 
   /**
    * Returns XML elements representing the current config of this plugin. This
