@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: pinger.c,v 1.1 2006/06/18 07:48:48 adamdunkels Exp $
+ * @(#)$Id: pinger.c,v 1.2 2010/01/15 10:37:04 nifi Exp $
  */
 
 #include "contiki-esb.h"
@@ -124,8 +124,7 @@ PT_THREAD(config_thread(struct pt *pt, process_event_t ev, process_data_t data))
   
   while(1) {
     
-    PT_WAIT_UNTIL(pt, ev == sensors_event &&
-		  (struct sensors_sensor *)data == &button_sensor);
+    PT_WAIT_UNTIL(pt, ev == sensors_event && data == &button_sensor);
 
     beep();
     
@@ -134,8 +133,7 @@ PT_THREAD(config_thread(struct pt *pt, process_event_t ev, process_data_t data))
     etimer_set(&pushtimer, CLOCK_SECOND);
     for(counter = 0; !etimer_expired(&pushtimer); ++counter) {
       etimer_restart(&pushtimer);
-      PT_YIELD_UNTIL(pt, (ev == sensors_event &&
-			  (struct sensors_sensor *)data == &button_sensor) ||
+      PT_YIELD_UNTIL(pt, (ev == sensors_event && data == &button_sensor) ||
 		     etimer_expired(&pushtimer));
     }
 
@@ -173,7 +171,7 @@ PROCESS_THREAD(pinger, ev, data)
   
   PT_INIT(&config_pt);
 
-  button_sensor.activate();
+  button_sensor.configure(SENSORS_ACTIVE, 1);
     
   
   while(1) {

@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: sensor-output.c,v 1.3 2007/10/26 12:37:48 joxe Exp $
+ * @(#)$Id: sensor-output.c,v 1.4 2010/01/15 10:37:04 nifi Exp $
  */
 #include "contiki-esb.h"
 
@@ -46,9 +46,9 @@ PROCESS_THREAD(sensor_output_process, ev, data)
   PROCESS_BEGIN();
 
   /* Activate some sensors to get sensor events */
-  button_sensor.activate();
-  pir_sensor.activate();
-  vib_sensor.activate();
+  button_sensor.configure(SENSORS_ACTIVE, 1);
+  pir_sensor.configure(SENSORS_ACTIVE, 1);
+  vib_sensor.configure(SENSORS_ACTIVE, 1);
 
   while(1) {
     PROCESS_WAIT_EVENT_UNTIL(ev == sensors_event);

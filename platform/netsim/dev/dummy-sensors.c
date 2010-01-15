@@ -29,35 +29,35 @@
  * This file is part of the Configurable Sensor Network Application
  * Architecture for sensor nodes running the Contiki operating system.
  *
- * $Id: dummy-sensors.c,v 1.3 2010/01/15 08:50:39 adamdunkels Exp $
+ * $Id: dummy-sensors.c,v 1.4 2010/01/15 10:34:36 nifi Exp $
  *
  * -----------------------------------------------------------------
  *
  * Author  : Adam Dunkels, Joakim Eriksson, Niclas Finne
  * Created : 2005-11-01
- * Updated : $Date: 2010/01/15 08:50:39 $
- *           $Revision: 1.3 $
+ * Updated : $Date: 2010/01/15 10:34:36 $
+ *           $Revision: 1.4 $
  */
 
 #include "dev/temperature-sensor.h"
 
 /*---------------------------------------------------------------------------*/
-static unsigned int
+static int
 value(int type)
 {
   return 0;
 }
 /*---------------------------------------------------------------------------*/
 static int
-configure(int type, void *c)
+configure(int type, int c)
 {
   return 0;
 }
 /*---------------------------------------------------------------------------*/
-static void *
+static int
 status(int type)
 {
-  return NULL;
+  return 0;
 }
 /*---------------------------------------------------------------------------*/
 SENSORS_SENSOR(temperature_sensor, TEMPERATURE_SENSOR,
