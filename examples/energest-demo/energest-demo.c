@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: energest-demo.c,v 1.8 2009/03/12 21:58:21 adamdunkels Exp $
+ * $Id: energest-demo.c,v 1.9 2010/01/15 11:02:18 nifi Exp $
  */
 
 /**
@@ -340,7 +340,7 @@ PROCESS_THREAD(user_process, ev, data)
 
   printf("Node id %d\n", node_id);
   
-  button_sensor.activate();
+  SENSORS_ACTIVATE(button_sensor);
   state = RADIO_OFF;
   
   while(1) {
