@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: CreateSimDialog.java,v 1.17 2009/11/13 08:51:23 fros4943 Exp $
+ * $Id: CreateSimDialog.java,v 1.18 2010/01/15 14:00:43 fros4943 Exp $
  */
 
 package se.sics.cooja.dialogs;
@@ -288,7 +288,7 @@ public class CreateSimDialog extends JDialog {
     randomSeed = numberField;
 
     randomSeedGenerated = new JCheckBox();
-    randomSeedGenerated.setToolTipText("Autmatically generate random seed at simulation load");
+    randomSeedGenerated.setToolTipText("Automatically generate random seed at simulation load");
     randomSeedGenerated.addActionListener(new ActionListener() {
       public void actionPerformed(ActionEvent e) {
         if (((JCheckBox)e.getSource()).isSelected()) {
