@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: example-multihop.c,v 1.6 2010/01/14 14:32:22 joxe Exp $
+ * $Id: example-multihop.c,v 1.7 2010/01/15 10:24:36 nifi Exp $
  */
 
 /**
@@ -221,7 +221,7 @@ PROCESS_THREAD(example_multihop_process, ev, data)
 
   /* Activate the button sensor. We use the button to drive traffic -
      when the button is pressed, a packet is sent. */
-  button_sensor.configure(SENSORS_ACTIVE, (void *) 1);
+  SENSORS_ACTIVATE(button_sensor);
 
   /* Loop forever, send a packet when the button is pressed. */
   while(1) {

@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: example-rudolph0.c,v 1.4 2010/01/14 14:32:22 joxe Exp $
+ * $Id: example-rudolph0.c,v 1.5 2010/01/15 10:24:37 nifi Exp $
  */
 
 /**
@@ -124,7 +124,7 @@ PROCESS_THREAD(example_rudolph0_process, ev, data)
 
   
   rudolph0_open(&rudolph0, 138, &rudolph0_call);
-  button_sensor.configure(SENSORS_ACTIVE, (void *) 1);
+  SENSORS_ACTIVATE(button_sensor);
 
   while(1) {
     PROCESS_WAIT_EVENT_UNTIL(ev == sensors_event &&

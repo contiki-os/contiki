@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: example-rucb.c,v 1.6 2009/10/18 17:52:08 adamdunkels Exp $
+ * $Id: example-rucb.c,v 1.7 2010/01/15 10:24:37 nifi Exp $
  */
 
 /**
@@ -116,7 +116,7 @@ PROCESS_THREAD(example_rucb_process, ev, data)
 
   
   rucb_open(&rucb, 137, &rucb_call);
-  button_sensor.activate();
+  SENSORS_ACTIVATE(button_sensor);
 
   PROCESS_PAUSE();
 
