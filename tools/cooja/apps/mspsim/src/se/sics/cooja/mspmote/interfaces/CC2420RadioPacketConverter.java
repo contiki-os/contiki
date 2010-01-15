@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: CC2420RadioPacketConverter.java,v 1.11 2009/12/02 16:29:36 fros4943 Exp $
+ * $Id: CC2420RadioPacketConverter.java,v 1.12 2010/01/15 10:43:02 fros4943 Exp $
  */
 
 package se.sics.cooja.mspmote.interfaces;
@@ -186,7 +186,7 @@ public class CC2420RadioPacketConverter {
     byte originalData[] = new byte[originalLen];
     System.arraycopy(data, 6, originalData, 0, originalLen);
     if (len < 0) {
-      logger.warn("No cross-level conversion available: negative packet length");
+      /*logger.warn("No cross-level conversion available: negative packet length");*/
       return new ConvertedRadioPacket(new byte[0], originalData);
     }
     byte convertedData[] = new byte[len];
