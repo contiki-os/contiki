@@ -26,14 +26,14 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: radio-test.c,v 1.5 2009/03/12 21:58:21 adamdunkels Exp $
+ * $Id: radio-test.c,v 1.6 2010/01/15 10:32:36 nifi Exp $
  *
  * -----------------------------------------------------------------
  *
  * Author  : Adam Dunkels, Joakim Eriksson, Niclas Finne
  * Created : 2006-03-07
- * Updated : $Date: 2009/03/12 21:58:21 $
- *           $Revision: 1.5 $
+ * Updated : $Date: 2010/01/15 10:32:36 $
+ *           $Revision: 1.6 $
  *
  * Simple application to indicate connectivity between two nodes:
  *
@@ -128,7 +128,7 @@ PROCESS_THREAD(radio_test_process, ev, data)
 
   abc_open(&abc, PORT, &abc_call);
   etimer_set(&send_timer, CLOCK_SECOND);
-  button_sensor.activate();
+  SENSORS_ACTIVATE(button_sensor);
 
   while(1) {
     PROCESS_WAIT_EVENT();
