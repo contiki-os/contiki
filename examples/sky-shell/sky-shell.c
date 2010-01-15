@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: sky-shell.c,v 1.14 2010/01/14 20:15:34 adamdunkels Exp $
+ * $Id: sky-shell.c,v 1.15 2010/01/15 08:51:56 adamdunkels Exp $
  */
 
 /**
@@ -49,8 +49,8 @@
 #include "dev/cc2420.h"
 #include "dev/leds.h"
 #include "dev/light-sensor.h"
-#include "dev/sht11.h"
 #include "dev/battery-sensor.h"
+#include "dev/sht11-sensor.h"
 
 #include "lib/checkpoint.h"
 
@@ -174,15 +174,17 @@ PROCESS_THREAD(shell_sky_alldata_process, ev, data)
 
 
   SENSORS_ACTIVATE(light_sensor);
+  SENSORS_ACTIVATE(battery_sensor);
+  SENSORS_ACTIVATE(sht11_sensor);
+  
   msg.len = sizeof(struct sky_alldata_msg) / sizeof(uint16_t);
   msg.clock = clock_time();
   msg.timesynch_time = timesynch_time();
   msg.light1 = light_sensor.value(LIGHT_SENSOR_PHOTOSYNTHETIC);
   msg.light2 = light_sensor.value(LIGHT_SENSOR_TOTAL_SOLAR);
-  msg.temp = sht11_temp();
-  msg.humidity = sht11_humidity();
+  msg.temp = sht11_sensor.value(SHT11_SENSOR_TEMP);
+  msg.humidity = sht11_sensor.value(SHT11_SENSOR_HUMIDITY);
   msg.rssi = do_rssi();
-  SENSORS_DEACTIVATE(light_sensor);
   
   energest_flush();
   
@@ -220,8 +222,14 @@ PROCESS_THREAD(shell_sky_alldata_process, ev, data)
     msg.best_neighbor_rtmetric = n->rtmetric;
   }
   msg.battery_voltage = battery_sensor.value(0);
-  msg.battery_indicator = sht11_sreg() & 0x40? 1: 0;
+  msg.battery_indicator = sht11_sensor.value(SHT11_SENSOR_BATTERY_INDICATOR);
   shell_output(&sky_alldata_command, &msg, sizeof(msg), "", 0);
+
+
+  SENSORS_DEACTIVATE(light_sensor);
+  SENSORS_DEACTIVATE(battery_sensor);
+  SENSORS_DEACTIVATE(sht11_sensor);
+
   PROCESS_END();
 }
 /*---------------------------------------------------------------------------*/
