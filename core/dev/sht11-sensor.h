@@ -27,14 +27,14 @@
  * SUCH DAMAGE.
  *
  *
- * $Id: sht11-sensor.h,v 1.1 2010/01/14 20:16:33 adamdunkels Exp $
+ * $Id: sht11-sensor.h,v 1.2 2010/01/15 08:51:21 adamdunkels Exp $
  *
  * -----------------------------------------------------------------
  *
  * Author  : Adam Dunkels, Joakim Eriksson, Niclas Finne
  * Created : 2010-01-08
- * Updated : $Date: 2010/01/14 20:16:33 $
- *           $Revision: 1.1 $
+ * Updated : $Date: 2010/01/15 08:51:21 $
+ *           $Revision: 1.2 $
  */
 
 #ifndef __SHT11_SENSOR_H__
@@ -44,8 +44,9 @@
 
 extern const struct sensors_sensor sht11_sensor;
 
-#define SHT11_SENSOR_TEMP       0
-#define SHT11_SENSOR_HUMIDITY   1
+#define SHT11_SENSOR_TEMP              0
+#define SHT11_SENSOR_HUMIDITY          1
+#define SHT11_SENSOR_BATTERY_INDICATOR 2
 
 
 #endif /* __SHT11-SENSOR_H__ */
