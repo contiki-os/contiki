@@ -26,10 +26,11 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: MoteInterfaceViewer.java,v 1.7 2009/06/30 12:46:26 fros4943 Exp $
+ * $Id: MoteInterfaceViewer.java,v 1.8 2010/01/15 10:54:42 fros4943 Exp $
  */
 
 package se.sics.cooja.plugins;
+
 import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.EventQueue;
@@ -38,17 +39,21 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.Collection;
 import java.util.Vector;
+
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
+
 import org.jdom.Element;
+
 import se.sics.cooja.ClassDescription;
 import se.sics.cooja.GUI;
 import se.sics.cooja.Mote;
 import se.sics.cooja.MoteInterface;
+import se.sics.cooja.MotePlugin;
 import se.sics.cooja.PluginType;
 import se.sics.cooja.Simulation;
 import se.sics.cooja.VisPlugin;
@@ -61,7 +66,7 @@ import se.sics.cooja.GUI.HasQuickHelp;
  */
 @ClassDescription("Mote Interface Viewer")
 @PluginType(PluginType.MOTE_PLUGIN)
-public class MoteInterfaceViewer extends VisPlugin implements HasQuickHelp {
+public class MoteInterfaceViewer extends VisPlugin implements HasQuickHelp, MotePlugin {
   private static final long serialVersionUID = 1L;
 
   private Mote mote;
@@ -69,7 +74,6 @@ public class MoteInterfaceViewer extends VisPlugin implements HasQuickHelp {
   private JPanel currentInterfaceVisualizer = null;
   private JComboBox selectInterfaceComboBox = null;
   private JScrollPane mainScrollPane;
-
 
   /**
    * Create a new mote interface viewer.
@@ -94,7 +98,7 @@ public class MoteInterfaceViewer extends VisPlugin implements HasQuickHelp {
     selectInterfaceComboBox = new JComboBox();
     final JPanel interfacePanel = new JPanel();
 
-    Vector<MoteInterface> intfs = mote.getInterfaces().getInterfaces();
+    Collection<MoteInterface> intfs = mote.getInterfaces().getInterfaces();
     for (MoteInterface intf : intfs) {
       selectInterfaceComboBox.addItem(GUI.getDescriptionOf(intf));
     }
@@ -233,6 +237,10 @@ public class MoteInterfaceViewer extends VisPlugin implements HasQuickHelp {
     }
 
     return help;
+  }
+
+  public Mote getMote() {
+    return mote;
   }
 
 }

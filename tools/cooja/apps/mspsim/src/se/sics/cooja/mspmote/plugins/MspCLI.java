@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: MspCLI.java,v 1.4 2009/12/14 13:23:18 fros4943 Exp $
+ * $Id: MspCLI.java,v 1.5 2010/01/15 10:55:03 fros4943 Exp $
  */
 
 package se.sics.cooja.mspmote.plugins;
@@ -46,6 +46,7 @@ import javax.swing.SwingUtilities;
 import se.sics.cooja.ClassDescription;
 import se.sics.cooja.GUI;
 import se.sics.cooja.Mote;
+import se.sics.cooja.MotePlugin;
 import se.sics.cooja.PluginType;
 import se.sics.cooja.Simulation;
 import se.sics.cooja.VisPlugin;
@@ -54,7 +55,7 @@ import se.sics.mspsim.cli.LineListener;
 
 @ClassDescription("Msp CLI")
 @PluginType(PluginType.MOTE_PLUGIN)
-public class MspCLI extends VisPlugin {
+public class MspCLI extends VisPlugin implements MotePlugin {
 
   private static final long serialVersionUID = 2833218439838209672L;
 
@@ -197,6 +198,10 @@ public class MspCLI extends VisPlugin {
 
   private String trim(String text) {
     return (text != null) && ((text = text.trim()).length() > 0) ? text : null;
+  }
+  
+  public Mote getMote() {
+    return mspMote;
   }
 
 }
