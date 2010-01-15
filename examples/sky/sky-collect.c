@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: sky-collect.c,v 1.9 2009/03/12 21:58:21 adamdunkels Exp $
+ * $Id: sky-collect.c,v 1.10 2010/01/15 10:32:36 nifi Exp $
  */
 
 /**
@@ -44,10 +44,10 @@
 #include "net/rime/collect.h"
 #include "dev/leds.h"
 #include "dev/button-sensor.h"
+#include "dev/light-sensor.h"
+#include "dev/sht11-sensor.h"
 
-#include "dev/light.h"
 #include "dev/cc2420.h"
-#include "dev/sht11.h"
 #include <stdio.h>
 #include <string.h>
 #include "contiki-net.h"
@@ -192,7 +192,7 @@ PROCESS_THREAD(test_collect_process, ev, data)
   PROCESS_EXITHANDLER(goto exit;)
   PROCESS_BEGIN();
 
-  button_sensor.activate();
+  SENSORS_ACTIVATE(button_sensor);
   
   collect_open(&tc, 128, &callbacks);
   
@@ -213,14 +213,19 @@ PROCESS_THREAD(test_collect_process, ev, data)
       struct sky_collect_msg *msg;
       struct neighbor *n;
       /*      leds_toggle(LEDS_BLUE);*/
+
+      SENSORS_ACTIVATE(light_sensor);
+      SENSORS_ACTIVATE(sht11_sensor);
+
       packetbuf_clear();
       msg = (struct sky_collect_msg *)packetbuf_dataptr();
       packetbuf_set_datalen(sizeof(struct sky_collect_msg));
-      msg->light1 = sensors_light1();
-      msg->light2 = sensors_light2();
-      msg->temperature = sht11_temp();
-      msg->humidity = sht11_humidity();
+      msg->light1 = light_sensor.value(LIGHT_SENSOR_PHOTOSYNTHETIC);
+      msg->light2 = light_sensor.value(LIGHT_SENSOR_TOTAL_SOLAR);
+      msg->temperature = sht11_sensor.value(SHT11_SENSOR_TEMP);
+      msg->humidity = sht11_sensor.value(SHT11_SENSOR_HUMIDITY);
       msg->rssi = do_rssi();
+
       msg->energy_lpm = energest_type_time(ENERGEST_TYPE_LPM);
       msg->energy_cpu = energest_type_time(ENERGEST_TYPE_CPU);
       msg->energy_rx = energest_type_time(ENERGEST_TYPE_LISTEN);
@@ -255,6 +260,10 @@ PROCESS_THREAD(test_collect_process, ev, data)
       msg->lltx = rimestats.lltx;
       msg->llrx = rimestats.llrx;
       msg->timestamp = timesynch_time();
+
+      SENSORS_DEACTIVATE(light_sensor);
+      SENSORS_DEACTIVATE(sht11_sensor);
+
       collect_send(&tc, REXMITS);
     }
   }
