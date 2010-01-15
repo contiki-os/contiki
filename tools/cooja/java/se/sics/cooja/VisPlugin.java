@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: VisPlugin.java,v 1.11 2009/12/14 13:29:35 fros4943 Exp $
+ * $Id: VisPlugin.java,v 1.12 2010/01/15 10:47:36 fros4943 Exp $
  */
 
 package se.sics.cooja;
@@ -54,7 +54,6 @@ import se.sics.cooja.plugins.SimControl;
  * @author Fredrik Osterlind
  */
 public abstract class VisPlugin extends JInternalFrame implements Plugin {
-  private Object tag = null;
 
   public VisPlugin(String title, final GUI gui) {
     this(title, gui, true);
@@ -75,8 +74,9 @@ public abstract class VisPlugin extends JInternalFrame implements Plugin {
       }
       public void internalFrameActivated(InternalFrameEvent e) {
         /* Highlight mote in COOJA */
-        if (VisPlugin.this.tag != null && tag instanceof Mote) {
-          gui.signalMoteHighlight((Mote) tag);
+        Plugin p = VisPlugin.this;
+        if (p instanceof MotePlugin) {
+          gui.signalMoteHighlight(((MotePlugin)p).getMote());
         }
         gui.loadQuickHelp(VisPlugin.this);
       }
@@ -94,14 +94,6 @@ public abstract class VisPlugin extends JInternalFrame implements Plugin {
 
   public boolean setConfigXML(Collection<Element> configXML, boolean visAvailable) {
     return false;
-  }
-
-  public void tagWithObject(Object tag) {
-    this.tag = tag;
-  }
-
-  public Object getTag() {
-    return tag;
   }
 
   public void startPlugin() {

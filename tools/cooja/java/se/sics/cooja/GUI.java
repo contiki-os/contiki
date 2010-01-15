@@ -24,7 +24,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * $Id: GUI.java,v 1.156 2009/12/14 13:29:35 fros4943 Exp $
+ * $Id: GUI.java,v 1.157 2010/01/15 10:47:36 fros4943 Exp $
  */
 
 package se.sics.cooja;
@@ -1584,12 +1584,11 @@ public class GUI extends Observable {
    */
   public void closeMotePlugins(Mote mote) {
     for (Plugin p: startedPlugins.toArray(new Plugin[0])) {
-      int pluginType = p.getClass().getAnnotation(PluginType.class).value();
-      if (pluginType != PluginType.MOTE_PLUGIN) {
+      if (!(p instanceof MotePlugin)) {
         continue;
       }
 
-      Mote pluginMote = (Mote) p.getTag();
+      Mote pluginMote = ((MotePlugin)p).getMote();
       if (pluginMote == mote) {
         removePlugin(p, false);
       }
@@ -1715,9 +1714,6 @@ public class GUI extends Observable {
         plugin = 
           pluginClass.getConstructor(new Class[] { Mote.class, Simulation.class, GUI.class })
           .newInstance(argMote, argSimulation, argGUI);
-
-        /* Tag plugin with mote */
-        plugin.tagWithObject(argMote);
 
       } else if (pluginType == PluginType.SIM_PLUGIN
           || pluginType == PluginType.SIM_STANDARD_PLUGIN) {
@@ -3378,11 +3374,10 @@ public class GUI extends Observable {
    * @return Config or null
    */
   public Collection<Element> getPluginsConfigXML() {
-    Vector<Element> config = new Vector<Element>();
-
-    // Loop through all started plugins
-    // (Only return config of non-GUI plugins)
+    ArrayList<Element> config = new ArrayList<Element>();
     Element pluginElement, pluginSubElement;
+
+    /* Loop over all plugins */
     for (Plugin startedPlugin : startedPlugins) {
       int pluginType = startedPlugin.getClass().getAnnotation(PluginType.class).value();
 
@@ -3396,10 +3391,9 @@ public class GUI extends Observable {
       pluginElement.setText(startedPlugin.getClass().getName());
 
       // Create mote argument config (if mote plugin)
-      if (pluginType == PluginType.MOTE_PLUGIN
-          && startedPlugin.getTag() != null) {
+      if (pluginType == PluginType.MOTE_PLUGIN) {
         pluginSubElement = new Element("mote_arg");
-        Mote taggedMote = (Mote) startedPlugin.getTag();
+        Mote taggedMote = ((MotePlugin) startedPlugin).getMote();
         for (int moteNr = 0; moteNr < mySimulation.getMotesCount(); moteNr++) {
           if (mySimulation.getMote(moteNr) == taggedMote) {
             pluginSubElement.setText(Integer.toString(moteNr));
