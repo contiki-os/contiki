@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: LogListener.java,v 1.23 2010/01/13 15:04:47 nifi Exp $
+ * $Id: LogListener.java,v 1.24 2010/01/15 10:54:05 fros4943 Exp $
  */
 
 package se.sics.cooja.plugins;
@@ -110,7 +110,6 @@ public class LogListener extends VisPlugin {
 
   private Simulation simulation;
 
-  private String filterText = "";
   private JTextField filterTextField = null;
   private Color filterTextFieldBackground;
 
@@ -280,8 +279,8 @@ public class LogListener extends VisPlugin {
     filterPanel.add(filterTextField);
     filterTextField.addActionListener(new ActionListener() {
       public void actionPerformed(ActionEvent e) {
-        filterText = filterTextField.getText();
-        setFilter(filterText);
+        String str = filterTextField.getText();
+        setFilter(str);
         /* Autoscroll */
         logTable.scrollRectToVisible(new Rectangle(0, logTable.getHeight() - 2, 1, logTable.getHeight()));
       }
@@ -319,7 +318,7 @@ public class LogListener extends VisPlugin {
     Element element;
 
     element = new Element("filter");
-    element.setText(filterText);
+    element.setText(filterTextField.getText());
     config.add(element);
 
     return config;
@@ -329,11 +328,10 @@ public class LogListener extends VisPlugin {
     for (Element element : configXML) {
       String name = element.getName();
       if ("filter".equals(name)) {
-        filterText = element.getText();
+        final String str = element.getText();
         EventQueue.invokeLater(new Runnable() {
           public void run() {
-            filterTextField.setText(filterText);
-            setFilter(filterText);
+            setFilter(str);
           }
         });
       }
@@ -342,10 +340,16 @@ public class LogListener extends VisPlugin {
     return true;
   }
 
-  private void setFilter(String text) {
+  public String getFilter() {
+    return filterTextField.getText();
+  }
+
+  public void setFilter(String str) {
+    filterTextField.setText(str);
+
     try {
-      if (text != null && text.length() > 0) {
-        logFilter.setRowFilter(RowFilter.regexFilter(text, COLUMN_FROM, COLUMN_DATA, COLUMN_CONCAT));
+      if (str != null && str.length() > 0) {
+        logFilter.setRowFilter(RowFilter.regexFilter(str, COLUMN_FROM, COLUMN_DATA, COLUMN_CONCAT));
       } else {
         logFilter.setRowFilter(null);
       }
