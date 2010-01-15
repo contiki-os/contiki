@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: MoteInformation.java,v 1.7 2009/09/17 11:09:23 fros4943 Exp $
+ * $Id: MoteInformation.java,v 1.8 2010/01/15 10:54:42 fros4943 Exp $
  */
 
 package se.sics.cooja.plugins;
@@ -46,7 +46,7 @@ import se.sics.cooja.*;
  */
 @ClassDescription("Mote Information")
 @PluginType(PluginType.MOTE_PLUGIN)
-public class MoteInformation extends VisPlugin {
+public class MoteInformation extends VisPlugin implements MotePlugin {
   private static Logger logger = Logger.getLogger(MoteInformation.class);
 
   private static final long serialVersionUID = 1L;
@@ -169,6 +169,10 @@ public class MoteInformation extends VisPlugin {
         logger.warn("Could not release panel");
       }
     }
+  }
+
+  public Mote getMote() {
+    return mote;
   }
 
 }

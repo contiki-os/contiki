@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: MspCycleWatcher.java,v 1.2 2008/02/11 11:50:44 fros4943 Exp $
+ * $Id: MspCycleWatcher.java,v 1.3 2010/01/15 10:55:03 fros4943 Exp $
  */
 
 package se.sics.cooja.mspmote.plugins;
@@ -46,7 +46,7 @@ import se.sics.mspsim.core.MSP430;
 
 @ClassDescription("Msp Cycle Watcher")
 @PluginType(PluginType.MOTE_PLUGIN)
-public class MspCycleWatcher extends VisPlugin {
+public class MspCycleWatcher extends VisPlugin implements MotePlugin {
   private static Logger logger = Logger.getLogger(MspStackWatcher.class);
   private MspMote mspMote;
   private MSP430 cpu;
@@ -120,5 +120,8 @@ public class MspCycleWatcher extends VisPlugin {
     simulation.deleteObserver(simObserver);
   }
 
+  public Mote getMote() {
+    return mspMote;
+  }
 
 }

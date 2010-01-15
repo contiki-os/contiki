@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: MspCodeWatcher.java,v 1.21 2009/10/27 08:52:49 fros4943 Exp $
+ * $Id: MspCodeWatcher.java,v 1.22 2010/01/15 10:55:03 fros4943 Exp $
  */
 
 package se.sics.cooja.mspmote.plugins;
@@ -74,6 +74,7 @@ import org.jdom.Element;
 import se.sics.cooja.ClassDescription;
 import se.sics.cooja.GUI;
 import se.sics.cooja.Mote;
+import se.sics.cooja.MotePlugin;
 import se.sics.cooja.PluginType;
 import se.sics.cooja.Simulation;
 import se.sics.cooja.VisPlugin;
@@ -88,7 +89,7 @@ import se.sics.mspsim.util.DebugInfo;
 
 @ClassDescription("Msp Code Watcher")
 @PluginType(PluginType.MOTE_PLUGIN)
-public class MspCodeWatcher extends VisPlugin {
+public class MspCodeWatcher extends VisPlugin implements MotePlugin {
   private static Logger logger = Logger.getLogger(MspCodeWatcher.class);
   private Simulation simulation;
   private Observer simObserver;
@@ -607,5 +608,9 @@ public class MspCodeWatcher extends VisPlugin {
       updateInfo();
     }
   };
+
+  public Mote getMote() {
+    return mspMote;
+  }
 
 }
