@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: TimeLine.java,v 1.22 2010/01/12 09:11:26 fros4943 Exp $
+ * $Id: TimeLine.java,v 1.23 2010/01/15 10:51:20 fros4943 Exp $
  */
 
 package se.sics.cooja.plugins;
@@ -543,125 +543,131 @@ public class TimeLine extends VisPlugin {
       if (simulation.isRunning()) {
         simulation.stopSimulation();
       }
-      
-      /* Process all events (per mote basis) */
-      ArrayList<MoteStatistics> allStats = new ArrayList<MoteStatistics>();
-      for (MoteEvents moteEvents: allMoteEvents) {
-        MoteStatistics stats = new MoteStatistics();
-        allStats.add(stats);
-        stats.mote = moteEvents.mote;
-        
-        for (MoteEvent ev: moteEvents.ledEvents) {
-          if (!(ev instanceof LEDEvent)) continue;
-          LEDEvent ledEvent = (LEDEvent) ev;
-
-          /* Red */
-          if (ledEvent.red) {
-            /* LED is on, add time interval */
-            if (ledEvent.next == null) {
-              stats.onTimeRedLED += (simulation.getSimulationTime() - ledEvent.time);
-            } else {
-              stats.onTimeRedLED += (ledEvent.next.time - ledEvent.time);
-            }
-          }
-
-          /* Green */
-          if (ledEvent.green) {
-            /* LED is on, add time interval */
-            if (ledEvent.next == null) {
-              stats.onTimeGreenLED += (simulation.getSimulationTime() - ledEvent.time);
-            } else {
-              stats.onTimeGreenLED += (ledEvent.next.time - ledEvent.time);
-            }
-          }
-          
-          /* Blue */
-          if (ledEvent.blue) {
-            /* LED is on, add time interval */
-            if (ledEvent.next == null) {
-              stats.onTimeBlueLED += (simulation.getSimulationTime() - ledEvent.time);
-            } else {
-              stats.onTimeBlueLED += (ledEvent.next.time - ledEvent.time);
-            }
-          }
-        }
-
-        for (MoteEvent ev: moteEvents.logEvents) {
-          if (!(ev instanceof LogEvent)) continue;
-          stats.nrLogs++;
-        }
-        
-        /* TODO Radio channels */
-
-        for (MoteEvent ev: moteEvents.radioHWEvents) {
-          if (!(ev instanceof RadioHWEvent)) continue;
-          RadioHWEvent hwEvent = (RadioHWEvent) ev;
-          if (hwEvent.on) {
-            /* HW is on */
-            if (hwEvent.next == null) {
-              stats.radioOn += (simulation.getSimulationTime() - hwEvent.time);
-            } else {
-              stats.radioOn += (hwEvent.next.time - hwEvent.time);
-            }
-          }
-        }
-        
-        for (MoteEvent ev: moteEvents.radioRXTXEvents) {
-          if (!(ev instanceof RadioRXTXEvent)) continue;
-          RadioRXTXEvent rxtxEvent = (RadioRXTXEvent) ev;
-          if (rxtxEvent.state == RXTXRadioEvent.IDLE) {
-            continue;
-          }
-
-          long diff;
-          if (rxtxEvent.next == null) {
-            diff = (simulation.getSimulationTime() - rxtxEvent.time);
-          } else {
-            diff = (rxtxEvent.next.time - rxtxEvent.time);
-          }
-
-          if (rxtxEvent.state == RXTXRadioEvent.TRANSMITTING) {
-            stats.onTimeTX += diff;
-            continue;
-          }
-          if (rxtxEvent.state == RXTXRadioEvent.INTERFERED) {
-            stats.onTimeInterfered += diff;
-            continue;
-          }
-          if (rxtxEvent.state == RXTXRadioEvent.RECEIVING) {
-            stats.onTimeRX += diff;
-            continue;
-          }
-        }
-        
-        /* TODO Watchpoints */
-
-        logger.info(stats.toString());
-      }
-
-      /* Summary */
-      MoteStatistics all = new MoteStatistics();
-      for (MoteStatistics stats: allStats) {
-        all.onTimeRedLED += stats.onTimeRedLED;
-        all.onTimeGreenLED += stats.onTimeGreenLED;
-        all.onTimeBlueLED += stats.onTimeBlueLED;
-        all.radioOn += stats.radioOn;
-        all.onTimeRX += stats.onTimeRX;
-        all.onTimeTX += stats.onTimeTX;
-        all.onTimeInterfered += stats.onTimeInterfered;
-      }
-      all.onTimeBlueLED /= allStats.size();
-      all.onTimeGreenLED /= allStats.size();
-      all.onTimeBlueLED /= allStats.size();
-      all.radioOn /= allStats.size();
-      all.onTimeRX /= allStats.size();
-      all.onTimeTX /= allStats.size();
-      all.onTimeInterfered /= allStats.size();
-
-      logger.info("SIMULATION AVERAGE:");
-      logger.info(all.toString());
+      logger.info(extractStatistics());
     }
   };
+  
+  public synchronized String extractStatistics() {
+    StringBuilder output = new StringBuilder();
+    
+    /* Process all events (per mote basis) */
+    ArrayList<MoteStatistics> allStats = new ArrayList<MoteStatistics>();
+    for (MoteEvents moteEvents: allMoteEvents) {
+      MoteStatistics stats = new MoteStatistics();
+      allStats.add(stats);
+      stats.mote = moteEvents.mote;
+      
+      for (MoteEvent ev: moteEvents.ledEvents) {
+        if (!(ev instanceof LEDEvent)) continue;
+        LEDEvent ledEvent = (LEDEvent) ev;
+
+        /* Red */
+        if (ledEvent.red) {
+          /* LED is on, add time interval */
+          if (ledEvent.next == null) {
+            stats.onTimeRedLED += (simulation.getSimulationTime() - ledEvent.time);
+          } else {
+            stats.onTimeRedLED += (ledEvent.next.time - ledEvent.time);
+          }
+        }
+
+        /* Green */
+        if (ledEvent.green) {
+          /* LED is on, add time interval */
+          if (ledEvent.next == null) {
+            stats.onTimeGreenLED += (simulation.getSimulationTime() - ledEvent.time);
+          } else {
+            stats.onTimeGreenLED += (ledEvent.next.time - ledEvent.time);
+          }
+        }
+        
+        /* Blue */
+        if (ledEvent.blue) {
+          /* LED is on, add time interval */
+          if (ledEvent.next == null) {
+            stats.onTimeBlueLED += (simulation.getSimulationTime() - ledEvent.time);
+          } else {
+            stats.onTimeBlueLED += (ledEvent.next.time - ledEvent.time);
+          }
+        }
+      }
+
+      for (MoteEvent ev: moteEvents.logEvents) {
+        if (!(ev instanceof LogEvent)) continue;
+        stats.nrLogs++;
+      }
+      
+      /* TODO Radio channels */
+
+      for (MoteEvent ev: moteEvents.radioHWEvents) {
+        if (!(ev instanceof RadioHWEvent)) continue;
+        RadioHWEvent hwEvent = (RadioHWEvent) ev;
+        if (hwEvent.on) {
+          /* HW is on */
+          if (hwEvent.next == null) {
+            stats.radioOn += (simulation.getSimulationTime() - hwEvent.time);
+          } else {
+            stats.radioOn += (hwEvent.next.time - hwEvent.time);
+          }
+        }
+      }
+      
+      for (MoteEvent ev: moteEvents.radioRXTXEvents) {
+        if (!(ev instanceof RadioRXTXEvent)) continue;
+        RadioRXTXEvent rxtxEvent = (RadioRXTXEvent) ev;
+        if (rxtxEvent.state == RXTXRadioEvent.IDLE) {
+          continue;
+        }
+
+        long diff;
+        if (rxtxEvent.next == null) {
+          diff = (simulation.getSimulationTime() - rxtxEvent.time);
+        } else {
+          diff = (rxtxEvent.next.time - rxtxEvent.time);
+        }
+
+        if (rxtxEvent.state == RXTXRadioEvent.TRANSMITTING) {
+          stats.onTimeTX += diff;
+          continue;
+        }
+        if (rxtxEvent.state == RXTXRadioEvent.INTERFERED) {
+          stats.onTimeInterfered += diff;
+          continue;
+        }
+        if (rxtxEvent.state == RXTXRadioEvent.RECEIVING) {
+          stats.onTimeRX += diff;
+          continue;
+        }
+      }
+      
+      /* TODO Watchpoints */
+
+      output.append(stats.toString());
+    }
+
+    /* Summary */
+    MoteStatistics all = new MoteStatistics();
+    for (MoteStatistics stats: allStats) {
+      all.onTimeRedLED += stats.onTimeRedLED;
+      all.onTimeGreenLED += stats.onTimeGreenLED;
+      all.onTimeBlueLED += stats.onTimeBlueLED;
+      all.radioOn += stats.radioOn;
+      all.onTimeRX += stats.onTimeRX;
+      all.onTimeTX += stats.onTimeTX;
+      all.onTimeInterfered += stats.onTimeInterfered;
+    }
+    all.onTimeBlueLED /= allStats.size();
+    all.onTimeGreenLED /= allStats.size();
+    all.onTimeBlueLED /= allStats.size();
+    all.radioOn /= allStats.size();
+    all.onTimeRX /= allStats.size();
+    all.onTimeTX /= allStats.size();
+    all.onTimeInterfered /= allStats.size();
+
+    output.append("SIMULATION AVERAGE:");
+    output.append(all.toString());
+    return output.toString();
+  }
   
   public void trySelectTime(final long time) {
     java.awt.EventQueue.invokeLater(new Runnable() {
