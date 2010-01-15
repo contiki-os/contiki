@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: beeper.c,v 1.2 2006/06/21 12:40:14 nifi Exp $
+ * @(#)$Id: beeper.c,v 1.3 2010/01/15 10:37:04 nifi Exp $
  */
 #include "contiki-esb.h"
 
@@ -66,7 +66,7 @@ PROCESS_THREAD(beeper_process, ev, data)
   etimer_set(&etimer, CLOCK_SECOND / 2);
   PT_INIT(&beeper_pt);
   
-  button_sensor.activate();
+  button_sensor.configure(SENSORS_ACTIVE, 1);
   
   while(1) {
 
