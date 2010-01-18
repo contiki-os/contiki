@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: clock.c,v 1.19 2009/12/09 12:55:35 adamdunkels Exp $
+ * @(#)$Id: clock.c,v 1.20 2010/01/18 21:17:11 adamdunkels Exp $
  */
 
 
@@ -57,15 +57,15 @@ interrupt(TIMERA1_VECTOR) timera1 (void) {
 
   if(TAIV == 2) {
 
-    eint();
-
     /* HW timer bug fix: Interrupt handler called before TR==CCR.
      * Occurrs when timer state is toggled between STOP and CONT. */
     while(TACTL & MC1 && TACCR1 - TAR == 1);
 
     /* Make sure interrupt time is future */
     do {
+      TACTL &= ~MC1;
       TACCR1 += INTERVAL;
+      TACTL |= MC1;
       ++count;
 
       /* Make sure the CLOCK_CONF_SECOND is a power of two, to ensure
@@ -88,6 +88,7 @@ interrupt(TIMERA1_VECTOR) timera1 (void) {
       etimer_request_poll();
       LPM4_EXIT;
     }
+
   }
   /*  if(process_nevents() >= 0) {
     LPM4_EXIT;
