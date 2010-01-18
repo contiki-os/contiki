@@ -28,7 +28,7 @@
  *
  * This file is part of the uIP TCP/IP stack.
  *
- * $Id: ajax-cgi.c,v 1.3 2009/05/11 17:38:29 adamdunkels Exp $
+ * $Id: ajax-cgi.c,v 1.4 2010/01/18 11:13:40 nifi Exp $
  *
  */
 
@@ -102,8 +102,8 @@ httpd_cgi_add(struct httpd_cgi_call *c)
 }
 /*---------------------------------------------------------------------------*/
 #if CONTIKI_TARGET_SKY
-#include "dev/sht11.h"
-#include "dev/light.h"
+#include "dev/sht11-sensor.h"
+#include "dev/light-sensor.h"
 #endif /* CONTIKI_TARGET_SKY */
 
 static
@@ -123,12 +123,16 @@ PT_THREAD(sensorscall(struct httpd_state *s, char *ptr))
 	  PSOCK_WAIT_UNTIL(&s->sout, timer_expired(&t));*/
 
 #if CONTIKI_TARGET_SKY
+    SENSORS_ACTIVATE(sht11_sensor);
+    SENSORS_ACTIVATE(light_sensor);
     snprintf(buf, sizeof(buf),
 	     "t(%d);h(%d);l1(%d);l2(%d);",
-	     sht11_temp(),
-	     sht11_humidity(),
-	     sensors_light1(),
-	     sensors_light2());
+	     sht11_sensor.value(SHT11_SENSOR_TEMP),
+	     sht11_sensor.value(SHT11_SENSOR_HUMIDITY),
+             light_sensor.value(LIGHT_SENSOR_PHOTOSYNTHETIC);
+             light_sensor.value(LIGHT_SENSOR_TOTAL_SOLAR));
+    SENSORS_DEACTIVATE(sht11_sensor);
+    SENSORS_DEACTIVATE(light_sensor);
 #else /* CONTIKI_TARGET_SKY */
     snprintf(buf, sizeof(buf),
 	     "t(%d);h(%d);l1(%d);l2(%d);",
