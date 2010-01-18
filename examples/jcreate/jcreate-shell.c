@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: jcreate-shell.c,v 1.3 2010/01/14 17:39:22 joxe Exp $
+ * $Id: jcreate-shell.c,v 1.4 2010/01/18 11:07:15 nifi Exp $
  */
 
 /**
@@ -222,7 +222,7 @@ PROCESS_THREAD(sky_shell_process, ev, data)
   shell_rime_init();
   /*  shell_rime_debug_init();*/
   shell_rime_netcmd_init();
-  shell_rime_ping_init();
+/*   shell_rime_ping_init(); */
   shell_rime_neighbors_init();
   shell_rime_sendcmd_init();
   /*  shell_rime_sniff_init();*/
@@ -231,7 +231,7 @@ PROCESS_THREAD(sky_shell_process, ev, data)
   shell_text_init();
   shell_time_init();
 
-  SENSORS_ACTIVATE(&acc_sensor);
+  SENSORS_ACTIVATE(acc_sensor);
   shell_register_command(&acc_command);
   shell_register_command(&poke_command);
   shell_register_command(&peek_command);
