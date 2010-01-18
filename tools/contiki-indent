@@ -1,0 +1,3 @@
+#!/bin/sh
+export INDENT_PROFILE=`dirname $0`/indent.pro
+indent $1 
