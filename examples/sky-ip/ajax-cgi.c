@@ -28,7 +28,7 @@
  *
  * This file is part of the uIP TCP/IP stack.
  *
- * $Id: ajax-cgi.c,v 1.4 2010/01/18 11:13:40 nifi Exp $
+ * $Id: ajax-cgi.c,v 1.5 2010/01/19 11:23:13 nifi Exp $
  *
  */
 
@@ -129,7 +129,7 @@ PT_THREAD(sensorscall(struct httpd_state *s, char *ptr))
 	     "t(%d);h(%d);l1(%d);l2(%d);",
 	     sht11_sensor.value(SHT11_SENSOR_TEMP),
 	     sht11_sensor.value(SHT11_SENSOR_HUMIDITY),
-             light_sensor.value(LIGHT_SENSOR_PHOTOSYNTHETIC);
+             light_sensor.value(LIGHT_SENSOR_PHOTOSYNTHETIC),
              light_sensor.value(LIGHT_SENSOR_TOTAL_SOLAR));
     SENSORS_DEACTIVATE(sht11_sensor);
     SENSORS_DEACTIVATE(light_sensor);
@@ -202,7 +202,7 @@ PT_THREAD(neighborscall(struct httpd_state *s, char *ptr))
 /*---------------------------------------------------------------------------*/
 
 static void
-received_announcement(struct announcement *a, rimeaddr_t *from,
+received_announcement(struct announcement *a, const rimeaddr_t *from,
 	     uint16_t id, uint16_t value)
 {
   struct neighbor *n;
