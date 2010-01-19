@@ -79,6 +79,7 @@
 /* "Reluctant" garbage collection stops after erasing one sector. */
 #define GC_RELUCTANT		1
 
+/* File descriptor macros. */
 #define FD_VALID(fd)					\
 	((fd) >= 0 && (fd) < COFFEE_FD_SET_SIZE && 	\
 	coffee_fd_set[(fd)].flags != COFFEE_FD_FREE)
@@ -86,6 +87,7 @@
 #define FD_WRITABLE(fd)		(coffee_fd_set[(fd)].flags & CFS_WRITE)
 #define FD_APPENDABLE(fd)	(coffee_fd_set[(fd)].flags & CFS_APPEND)
 
+/* File object macros. */
 #define FILE_MODIFIED(file)	((file)->flags & COFFEE_FILE_MODIFIED)
 #define FILE_FREE(file)		((file)->max_pages == 0)
 #define FILE_UNREFERENCED(file)	((file)->references == 0)
@@ -98,6 +100,7 @@
 #define HDR_FLAG_LOG		0x10	/* Log file. */
 #define HDR_FLAG_ISOLATED	0x20	/* Isolated page. */
 
+/* File header macros. */
 #define CHECK_FLAG(hdr, flag)	((hdr).flags & (flag))
 #define HDR_VALID(hdr)		CHECK_FLAG(hdr, HDR_FLAG_VALID)
 #define HDR_ALLOCATED(hdr)	CHECK_FLAG(hdr, HDR_FLAG_ALLOCATED)
@@ -110,18 +113,21 @@
 				!HDR_OBSOLETE(hdr)  && \
 				!HDR_ISOLATED(hdr))
 
+/* Shortcuts derived from the hardware-dependent configuration of Coffee. */
 #define COFFEE_SECTOR_COUNT	(unsigned)(COFFEE_SIZE / COFFEE_SECTOR_SIZE)
 #define COFFEE_PAGE_COUNT	\
 	((coffee_page_t)(COFFEE_SIZE / COFFEE_PAGE_SIZE))
 #define COFFEE_PAGES_PER_SECTOR	\
 	((coffee_page_t)(COFFEE_SECTOR_SIZE / COFFEE_PAGE_SIZE))
 
+/* This structure is used for garbage collection statistics. */
 struct sector_status {
   coffee_page_t active;
   coffee_page_t obsolete;
   coffee_page_t free;
 };
 
+/* The structure of cached file objects. */
 struct file {
   cfs_offset_t end;
   coffee_page_t page;
@@ -131,12 +137,15 @@ struct file {
   uint8_t flags;
 };
 
+/* The file descriptor structure. */
 struct file_desc {
   cfs_offset_t offset;
   struct file *file;
   uint8_t flags;
 };
 
+/* The file header structure mimics the representation of file headers 
+   in the physical storage medium. */
 struct file_header {
   coffee_page_t log_page;
   uint16_t log_records;
@@ -154,6 +163,12 @@ struct log_param {
   uint16_t size;
 };
 
+/*
+ * The protected memory consists of structures that should not be 
+ * overwritten during system checkpointing because they may be used by 
+ * the checkpointing implementation. These structures need not be 
+ * protected if checkpointing is not used.
+ */
 static struct protected_mem_t {
   struct file coffee_files[COFFEE_MAX_OPEN_FILES];
   struct file_desc coffee_fd_set[COFFEE_FD_SET_SIZE];
@@ -203,6 +218,11 @@ get_sector_status(uint16_t sector, struct sector_status *stats)
   memset(stats, 0, sizeof(*stats));
   active = obsolete = free = 0;
 
+  /*
+   * get_sector_status() is an iterative function using local static 
+   * state. It therefore requires the the caller loops starts from 
+   * sector 0 in order to reset the internal state.
+   */
   if(sector == 0) {
     skip_pages = 0;
     last_pages_are_active = 0;
@@ -211,6 +231,11 @@ get_sector_status(uint16_t sector, struct sector_status *stats)
   sector_start = sector * COFFEE_PAGES_PER_SECTOR;
   sector_end = sector_start + COFFEE_PAGES_PER_SECTOR;
 
+  /*
+   * Account for pages belonging to a file starting in a previous 
+   * segment that extends into this segment. If the whole segment is 
+   * covered, we do not need to continue counting pages in this iteration.
+   */
   if(last_pages_are_active) {
     if(skip_pages >= COFFEE_PAGES_PER_SECTOR) {
       stats->active = COFFEE_PAGES_PER_SECTOR;
@@ -227,6 +252,8 @@ get_sector_status(uint16_t sector, struct sector_status *stats)
     obsolete = skip_pages;
   }
 
+  /* Determine the amount of pages of each type that have not been 
+     accounted for yet in the current sector. */
   for(page = sector_start + skip_pages; page < sector_end;) {
     read_header(&hdr, page);
     last_pages_are_active = 0;
@@ -246,6 +273,14 @@ get_sector_status(uint16_t sector, struct sector_status *stats)
     }
   }
 
+  /*
+   * Determine the amount of pages in the following sectors that
+   * should be remembered for the next iteration. This is necessary 
+   * because no page except the first of a file contains information 
+   * about what type of page it is. A side effect of remembering this
+   * amount is that there is no need to read in the headers of each 
+   * of these pages from the storage.
+   */
   skip_pages = active + obsolete + free - COFFEE_PAGES_PER_SECTOR;
   if(skip_pages > 0) {
     if(last_pages_are_active) {
@@ -259,6 +294,13 @@ get_sector_status(uint16_t sector, struct sector_status *stats)
   stats->obsolete = obsolete;
   stats->free = free;
 
+  /*
+   * To avoid unnecessary page isolation, we notify the callee that 
+   * "skip_pages" pages should be isolated only the current file extent 
+   * ends in the next sector. If the file extent ends in a more distant 
+   * sector, however, the garbage collection can free the next sector 
+   * immediately without requiring page isolation. 
+   */
   return (last_pages_are_active || (skip_pages >= COFFEE_PAGES_PER_SECTOR)) ?
 	0 : skip_pages;
 }
@@ -334,6 +376,16 @@ collect_garbage(int mode)
 static coffee_page_t
 next_file(coffee_page_t page, struct file_header *hdr)
 {
+  /*
+   * The quick-skip algorithm for finding file extents is the most 
+   * essential part of Coffee. The file allocation rules enables this 
+   * algorithm to quickly jump over free areas and allocated extents 
+   * after reading single headers and determining their status.
+   *
+   * The worst-case performance occurs when we encounter multiple long 
+   * sequences of isolated pages, but such sequences are uncommon and 
+   * always shorter than a sector.
+   */
   if(HDR_FREE(*hdr)) {
     return (page + COFFEE_PAGES_PER_SECTOR) & ~(COFFEE_PAGES_PER_SECTOR - 1);
   } else if(HDR_ISOLATED(*hdr)) {
