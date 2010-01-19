@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#)$Id: cc2420-arch.c,v 1.6 2010/01/19 13:11:23 adamdunkels Exp $
+ * @(#)$Id: cc2420-arch.c,v 1.7 2010/01/19 20:35:41 adamdunkels Exp $
  */
 
 #include <io.h>
@@ -64,7 +64,7 @@ cc2420_arch_init(void)
   /* all input by default, set these as output */
   P4DIR |= BV(CSN) | BV(VREG_EN) | BV(RESET_N);
 
-#ifdef CONF_SFD_TIMESTAMPS
+#if CONF_SFD_TIMESTAMPS
   cc2420_arch_sfd_init();
 #endif
 
