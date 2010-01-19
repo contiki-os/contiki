@@ -42,20 +42,11 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: rtimer.c,v 1.6 2009/12/08 23:55:17 adamdunkels Exp $
+ * @(#)$Id: rtimer.c,v 1.7 2010/01/19 13:08:24 adamdunkels Exp $
  */
 
 #include "sys/rtimer.h"
 #include "contiki.h"
-
-#ifdef RTIMER_CONF_NUM
-#define LIST_SIZE RTIMER_CONF_NUM
-#else
-#define LIST_SIZE 8
-#endif
-
-static struct rtimer *rtimers[LIST_SIZE];
-static u8_t next, firstempty;
 
 #define DEBUG 0
 #if DEBUG
@@ -71,8 +62,6 @@ static struct rtimer *next_rtimer;
 void
 rtimer_init(void)
 {
-  next = 0;
-  firstempty = 0;
   rtimer_arch_init();
 }
 /*---------------------------------------------------------------------------*/
