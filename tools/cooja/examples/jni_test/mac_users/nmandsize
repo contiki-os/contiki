@@ -1,23 +1,17 @@
-#!/bin/bash
-
 nm -a -m $1
 
-DATA_START=`size -x -m -l $1 | grep "Section __data: 0x" | awk '{print $5}'`
-echo DATA SECTION START: $DATA_START
+S="$(size -x -m -l $1)"
 
-DATA_SIZE=`size -x -m -l $1 | grep "Section __data: 0x" | awk '{print $3}'`
-echo DATA SECTION SIZE: $DATA_SIZE
+parse() (
+    echo "$S" |
+	awk '/^Segment/ {s=$2} s=="__DATA:" && $2=="'$1'" \
+		{printf "%s %s 0x%x\n",$5,$3,$3+$5}' |
+	(read start size end; 
+	 echo "$2 START: $start";
+	 echo "$2 SIZE: $size";
+	 echo "$2 END: $end")
+)
 
-DATA_END=` echo $(($DATA_START+$DATA_SIZE)) | awk '{printf("0x%x", $0)}' `
-echo DATA SECTION END: $DATA_END
-
-BSS_START=$DATA_END
-echo BSS SECTION START: $BSS_START
-
-#TOTAL_SIZE=`size -x -m -l $1 | grep -m 1 -A 10000 "Segment __DATA" | grep -m 1 -B 10000 "total 0x" | grep total | awk '{print $2}'`
-#echo TOTAL SECTION SIZE: $TOTAL_SIZE
-
-TOTAL_SIZE=`size -x -m -l $1 | grep "Segment __DATA: 0x" | awk '{print $3}'`
-echo TOTAL SECTION SIZE: $TOTAL_SIZE
-
-echo BSS SECTION END: ` echo $(($DATA_START+$TOTAL_SIZE)) | awk '{printf("0x%x", $0)}' `
+parse __data: "DATA SECTION"
+parse __bss: "BSS SECTION"
+parse __common: "COMMON SECTION"
