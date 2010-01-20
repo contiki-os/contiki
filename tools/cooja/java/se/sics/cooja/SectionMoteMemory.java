@@ -24,17 +24,15 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * $Id: SectionMoteMemory.java,v 1.6 2008/02/11 14:04:16 fros4943 Exp $
+ * $Id: SectionMoteMemory.java,v 1.7 2010/01/20 13:33:33 fros4943 Exp $
  */
 
 package se.sics.cooja;
 
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
-import java.util.*;
-import org.apache.log4j.Logger;
+import java.util.ArrayList;
+import java.util.Properties;
 
-import se.sics.cooja.MoteMemory;
+import org.apache.log4j.Logger;
 
 /**
  * Represents a mote memory consisting of non-overlapping memory sections with
@@ -49,35 +47,29 @@ import se.sics.cooja.MoteMemory;
 public class SectionMoteMemory implements MoteMemory, AddressMemory {
   private static Logger logger = Logger.getLogger(SectionMoteMemory.class);
 
-  private Vector<MoteMemorySection> sections = new Vector<MoteMemorySection>();
+  private ArrayList<MoteMemorySection> sections = new ArrayList<MoteMemorySection>();
 
-  private final Properties variableAddresses;
+  private final Properties addresses;
 
   /**
    * Create a new mote memory with information about which variables exist and
    * their relative memory addresses.
    *
-   * @param variableAddresses
-   *          Variable addresses
+   * @param addresses Variable addresses
    */
-  public SectionMoteMemory(Properties variableAddresses) {
-    this.variableAddresses = variableAddresses;
+  public SectionMoteMemory(Properties addresses) {
+    this.addresses = addresses;
   }
 
   public String[] getVariableNames() {
-    String[] names = new String[variableAddresses.size()];
-    Enumeration nameEnum = variableAddresses.keys();
-    for (int i = 0; i < variableAddresses.size(); i++) {
-      names[i] = (String) nameEnum.nextElement();
-    }
-    return names;
+    return addresses.values().toArray(new String[0]);
   }
 
   public int getVariableAddress(String varName) throws UnknownVariableException {
-    if (!variableAddresses.containsKey(varName)) {
+    if (!addresses.containsKey(varName)) {
       throw new UnknownVariableException(varName);
     }
-    return ((Integer) variableAddresses.get(varName)).intValue();
+    return ((Integer) addresses.get(varName)).intValue();
   }
 
   public int getIntegerLength() {
@@ -99,7 +91,7 @@ public class SectionMoteMemory implements MoteMemory, AddressMemory {
   }
 
   public void setMemorySegment(int address, byte[] data) {
-    // TODO Creating overlapping memory sections possible
+    /* TODO XXX Sections may overlap */
     for (MoteMemorySection section : sections) {
       if (section.includesAddr(address)
           && section.includesAddr(address + data.length - 1)) {
@@ -131,10 +123,8 @@ public class SectionMoteMemory implements MoteMemory, AddressMemory {
    * Removes a memory segment from this memory. The section containing the
    * segment may be split into two sections.
    *
-   * @param startAddr
-   *          Start address
-   * @param size
-   *          Length
+   * @param startAddr Start address
+   * @param size Length
    */
   public void removeSegmentFromMemory(int startAddr, int size) {
     for (MoteMemorySection section : sections) {
@@ -178,7 +168,7 @@ public class SectionMoteMemory implements MoteMemory, AddressMemory {
       return 0;
     }
 
-    return sections.elementAt(sectionNr).getStartAddr();
+    return sections.get(sectionNr).getStartAddr();
   }
 
   /**
@@ -193,7 +183,7 @@ public class SectionMoteMemory implements MoteMemory, AddressMemory {
       return 0;
     }
 
-    return sections.elementAt(sectionNr).getSize();
+    return sections.get(sectionNr).getSize();
   }
 
   /**
@@ -208,19 +198,19 @@ public class SectionMoteMemory implements MoteMemory, AddressMemory {
       return null;
     }
 
-    return sections.elementAt(sectionNr).getData();
+    return sections.get(sectionNr).getData();
   }
 
   public boolean variableExists(String varName) {
-    return variableAddresses.containsKey(varName);
+    return addresses.containsKey(varName);
   }
 
   public int getIntValueOf(String varName) throws UnknownVariableException {
     // Get start address of variable
-    if (!variableAddresses.containsKey(varName)) {
+    if (!addresses.containsKey(varName)) {
       throw new UnknownVariableException(varName);
     }
-    int varAddr = ((Integer) variableAddresses.get(varName)).intValue();
+    int varAddr = ((Integer) addresses.get(varName)).intValue();
 
     byte[] varData = getMemorySegment(varAddr, 4);
 
@@ -235,7 +225,7 @@ public class SectionMoteMemory implements MoteMemory, AddressMemory {
     retVal += ((varData[pos++] & 0xFF)) << 8;
     retVal += ((varData[pos++] & 0xFF)) << 0;
 
-    // TODO Check if small/big-endian when coming from JNI?
+    /* TODO Correct for all platforms? */
     retVal = Integer.reverseBytes(retVal);
 
     return retVal;
@@ -243,12 +233,12 @@ public class SectionMoteMemory implements MoteMemory, AddressMemory {
 
   public void setIntValueOf(String varName, int newVal) throws UnknownVariableException {
     // Get start address of variable
-    if (!variableAddresses.containsKey(varName)) {
+    if (!addresses.containsKey(varName)) {
       throw new UnknownVariableException(varName);
     }
-    int varAddr = ((Integer) variableAddresses.get(varName)).intValue();
+    int varAddr = ((Integer) addresses.get(varName)).intValue();
 
-    // TODO Check if small/big-endian when coming from JNI?
+    /* TODO Correct for all platforms? */
     int newValToSet = Integer.reverseBytes(newVal);
 
     // Create byte array
@@ -265,10 +255,10 @@ public class SectionMoteMemory implements MoteMemory, AddressMemory {
 
   public byte getByteValueOf(String varName) throws UnknownVariableException {
     // Get start address of variable
-    if (!variableAddresses.containsKey(varName)) {
+    if (!addresses.containsKey(varName)) {
       throw new UnknownVariableException(varName);
     }
-    int varAddr = ((Integer) variableAddresses.get(varName)).intValue();
+    int varAddr = ((Integer) addresses.get(varName)).intValue();
 
     byte[] varData = getMemorySegment(varAddr, 1);
 
@@ -281,10 +271,10 @@ public class SectionMoteMemory implements MoteMemory, AddressMemory {
 
   public void setByteValueOf(String varName, byte newVal) throws UnknownVariableException {
     // Get start address of variable
-    if (!variableAddresses.containsKey(varName)) {
+    if (!addresses.containsKey(varName)) {
       throw new UnknownVariableException(varName);
     }
-    int varAddr = ((Integer) variableAddresses.get(varName)).intValue();
+    int varAddr = ((Integer) addresses.get(varName)).intValue();
 
     byte[] varData = new byte[1];
 
@@ -295,10 +285,10 @@ public class SectionMoteMemory implements MoteMemory, AddressMemory {
 
   public byte[] getByteArray(String varName, int length) throws UnknownVariableException {
     // Get start address of variable
-    if (!variableAddresses.containsKey(varName)) {
+    if (!addresses.containsKey(varName)) {
       throw new UnknownVariableException(varName);
     }
-    int varAddr = ((Integer) variableAddresses.get(varName)).intValue();
+    int varAddr = ((Integer) addresses.get(varName)).intValue();
 
     // TODO Check if small/big-endian when coming from JNI?
     return getMemorySegment(varAddr, length);
@@ -306,10 +296,10 @@ public class SectionMoteMemory implements MoteMemory, AddressMemory {
 
   public void setByteArray(String varName, byte[] data) throws UnknownVariableException {
     // Get start address of variable
-    if (!variableAddresses.containsKey(varName)) {
+    if (!addresses.containsKey(varName)) {
       throw new UnknownVariableException(varName);
     }
-    int varAddr = ((Integer) variableAddresses.get(varName)).intValue();
+    int varAddr = ((Integer) addresses.get(varName)).intValue();
 
     // TODO Check if small/big-endian when coming from JNI?
     setMemorySegment(varAddr, data);
@@ -415,108 +405,17 @@ public class SectionMoteMemory implements MoteMemory, AddressMemory {
       MoteMemorySection clone = new MoteMemorySection(startAddr, dataClone);
       return clone;
     }
-
   }
 
-  // EXPERIMENTAL AND DEBUG METHODS
   public SectionMoteMemory clone() {
-    Vector<MoteMemorySection> clonedSections = new Vector<MoteMemorySection>();
+    ArrayList<MoteMemorySection> clones = new ArrayList<MoteMemorySection>();
     for (MoteMemorySection section : sections) {
-      clonedSections.add(section.clone());
+      clones.add(section.clone());
     }
 
-    SectionMoteMemory clone = new SectionMoteMemory(variableAddresses);
-    clone.sections = clonedSections;
+    SectionMoteMemory clone = new SectionMoteMemory(addresses);
+    clone.sections = clones;
 
     return clone;
-  }
-
-  protected byte[] getChecksum() {
-    MessageDigest messageDigest;
-    try {
-      messageDigest = MessageDigest.getInstance("MD5");
-
-      for (MoteMemorySection section : sections) {
-        messageDigest.update(section.data, 0, section.getSize());
-      }
-    } catch (NoSuchAlgorithmException e) {
-      return null;
-    }
-    return messageDigest.digest();
-  }
-
-  protected Vector<Integer> getDifferenceAddressesOf(
-      SectionMoteMemory anotherMem) {
-    Vector<Integer> differences = new Vector<Integer>();
-
-    if (this.getNumberOfSections() != anotherMem.getNumberOfSections()) {
-      logger.fatal("Number of section do not match!");
-      return null;
-    }
-
-    for (int i = 0; i < sections.size(); i++) {
-      if (this.getSizeOfSection(i) != anotherMem.getSizeOfSection(i)) {
-        logger.fatal("Section " + i + " sizes do not match!");
-        return null;
-      }
-      if (this.getStartAddrOfSection(i) != anotherMem.getStartAddrOfSection(i)) {
-        logger.fatal("Section " + i + " start addresses do not match!");
-        return null;
-      }
-
-      for (int j = 0; j < sections.get(i).getSize(); j++) {
-        if (this.sections.get(i).data[j] != anotherMem.getDataOfSection(i)[j]) {
-          differences.add(new Integer(sections.get(i).startAddr + j));
-        }
-      }
-      System.err.println();
-    }
-    return differences;
-  }
-
-  protected void printMemory() {
-    for (int i = 0; i < sections.size(); i++) {
-      System.err.print("Section[" + i + "]: ");
-      for (int j = 0; j < sections.get(i).getSize(); j++) {
-        System.err.print(sections.get(i).getData()[j] + ",");
-      }
-      System.err.println();
-    }
-  }
-
-  protected void printDifferences(SectionMoteMemory anotherMem) {
-    if (this.getNumberOfSections() != anotherMem.getNumberOfSections()) {
-      logger.fatal("Number of section do not match!");
-      return;
-    }
-
-    for (int i = 0; i < sections.size(); i++) {
-      if (this.getSizeOfSection(i) != anotherMem.getSizeOfSection(i)) {
-        logger.fatal("Section " + i + " sizes do not match!");
-        return;
-      }
-      if (this.getStartAddrOfSection(i) != anotherMem.getStartAddrOfSection(i)) {
-        logger.fatal("Section " + i + " start addresses do not match!");
-        return;
-      }
-
-      System.err.print("Section[" + i + "]: ");
-      for (int j = 0; j < sections.get(i).getSize(); j++) {
-        if (this.sections.get(i).data[j] != anotherMem.getDataOfSection(i)[j]) {
-          System.err.print(j + ",");
-        }
-      }
-      System.err.println();
-    }
-  }
-
-  protected void printChecksum() {
-    byte[] checksum = this.getChecksum();
-    System.err.print("Checksum: ");
-    for (byte element : checksum) {
-      System.err.print(element + ",");
-    }
-    System.err.println();
-  }
-
+  }  
 }
