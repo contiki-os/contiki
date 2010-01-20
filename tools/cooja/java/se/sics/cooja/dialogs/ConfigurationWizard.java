@@ -26,12 +26,14 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ConfigurationWizard.java,v 1.4 2009/04/20 16:09:10 fros4943 Exp $
+ * $Id: ConfigurationWizard.java,v 1.5 2010/01/20 16:29:15 fros4943 Exp $
  */
 
 package se.sics.cooja.dialogs;
 
-import java.awt.*;
+import java.awt.BorderLayout;
+import java.awt.Container;
+import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
@@ -49,8 +51,19 @@ import java.io.OutputStreamWriter;
 import java.io.PrintStream;
 import java.lang.reflect.Constructor;
 import java.util.Properties;
-import java.util.Vector;
-import javax.swing.*;
+
+import javax.swing.Box;
+import javax.swing.BoxLayout;
+import javax.swing.JButton;
+import javax.swing.JComboBox;
+import javax.swing.JDialog;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JProgressBar;
+import javax.swing.JScrollPane;
+
 import se.sics.cooja.CoreComm;
 import se.sics.cooja.GUI;
 import se.sics.cooja.SectionMoteMemory;
@@ -62,21 +75,32 @@ public class ConfigurationWizard extends JDialog {
   private static final long serialVersionUID = 1L;
 
   private static final String COMPILER_ARGS_suggestions[] = new String[] {
+    "",
+    "Windows cygwin:",
     "-mno-cygwin -Wall -I'$(JAVA_HOME)/include' -I'$(JAVA_HOME)/include/win32' -fno-builtin-printf",
     "-mno-cygwin -Wall -I'$(JAVA_HOME)/include' -I'$(JAVA_HOME)/include/win32'",
     "-Wall -D_JNI_IMPLEMENTATION_ -I'$(JAVA_HOME)/include' -I'$(JAVA_HOME)/include/win32'",
     "-mno-cygwin -I'$(JAVA_HOME)/include' -I'$(JAVA_HOME)/include/win32'",
+    
+    "Linux:",
     "-I'$(JAVA_HOME)/include' -I'$(JAVA_HOME)/include/linux' -fno-builtin-printf -fPIC",
-    "",
+    
+    "Mac OS X:",
     "-Wall -I/System/Library/Frameworks/JavaVM.framework/Versions/CurrentJDK/Headers -dynamiclib -fno-common"
   };
 
   private static final String LINK_COMMAND_1_suggestions[] = new String[] {
+    "",
+    "Windows cygwin:",
     "gcc -mno-cygwin -shared -Wl,-Map=$(MAPFILE) -Wl,--add-stdcall-alias -o $(LIBFILE)",
     "gcc -shared -Wl,-Map=$(MAPFILE) -o $(LIBFILE)",
+    "",
+    "Linux:",
     "gcc -I'$(JAVA_HOME)/include' -I'$(JAVA_HOME)/include/linux' -shared -Wl,-Map=$(MAPFILE) -o $(LIBFILE)",
     "ld -Map=$(MAPFILE) -shared --add-stdcall-alias /usr/lib/mingw/dllcrt2.o -o $(LIBFILE)",
     "gcc -shared -Wl,-Map=$(MAPFILE) -Wall -D_JNI_IMPLEMENTATION_ -Wl,--kill-at -o $(LIBFILE)",
+    "",
+    "Mac OS X:",
     "gcc -dynamiclib -fno-common -o $(LIBFILE)"
   };
 
@@ -167,7 +191,9 @@ public class ConfigurationWizard extends JDialog {
         "Throughout the wizard, Contiki libraries are compiled and loaded while allowing you to \n" +
         "alter external tools settings such as compiler arguments.\n" +
         "\n" +
-        "Changes made in this wizard are reflected in menu Settings, External tools paths.\n",
+        "Changes made in this wizard are reflected in menu Settings, External tools paths.\n" +
+        "\n" +
+        "NOTE: You do not need to complete this wizard for emulating motes, such as Sky motes.\n",
         "Configuration Wizard",
         JOptionPane.YES_NO_OPTION, JOptionPane.INFORMATION_MESSAGE,
         null, options, options[0]);
@@ -722,7 +748,7 @@ public class ConfigurationWizard extends JDialog {
       testOutput.addMessage("### Error: Map file not found", MessageList.ERROR);
       return false;
     }
-    Vector<String> mapData = ContikiMoteType.loadMapFile(mapFile);
+    String[] mapData = ContikiMoteType.loadMapFile(mapFile);
     if (mapData == null) {
       testOutput.addMessage("### Error: Map file could not be read", MessageList.ERROR);
       return false;
@@ -737,10 +763,10 @@ public class ConfigurationWizard extends JDialog {
     }
 
     testOutput.addMessage("### Validating section addresses");
-    relDataSectionAddr = ContikiMoteType.loadRelDataSectionAddr(mapData);
-    dataSectionSize = ContikiMoteType.loadDataSectionSize(mapData);
-    relBssSectionAddr = ContikiMoteType.loadRelBssSectionAddr(mapData);
-    bssSectionSize = ContikiMoteType.loadBssSectionSize(mapData);
+    relDataSectionAddr = ContikiMoteType.parseMapDataSectionAddr(mapData);
+    dataSectionSize = ContikiMoteType.parseMapDataSectionSize(mapData);
+    relBssSectionAddr = ContikiMoteType.parseMapBssSectionAddr(mapData);
+    bssSectionSize = ContikiMoteType.parseMapBssSectionSize(mapData);
     testOutput.addMessage("Data section address: 0x" + Integer.toHexString(relDataSectionAddr));
     testOutput.addMessage("Data section size: 0x" + Integer.toHexString(dataSectionSize));
     testOutput.addMessage("BSS section address: 0x" + Integer.toHexString(relBssSectionAddr));
@@ -802,7 +828,7 @@ public class ConfigurationWizard extends JDialog {
     testOutput.addMessage("### Testing command based address parsing");
 
     testOutput.addMessage("### Executing command");
-    Vector<String> commandData = ContikiMoteType.loadCommandData(cLibraryFile);
+    String[] commandData = ContikiMoteType.loadCommandData(cLibraryFile);
     if (commandData == null) {
       testOutput.addMessage("### Error: Could not execute command", MessageList.ERROR);
       return false;
@@ -817,10 +843,10 @@ public class ConfigurationWizard extends JDialog {
     }
 
     testOutput.addMessage("### Validating section addresses");
-    relDataSectionAddr = ContikiMoteType.loadCommandRelDataSectionAddr(commandData);
-    dataSectionSize = ContikiMoteType.loadCommandDataSectionSize(commandData);
-    relBssSectionAddr = ContikiMoteType.loadCommandRelBssSectionAddr(commandData);
-    bssSectionSize = ContikiMoteType.loadCommandBssSectionSize(commandData);
+    relDataSectionAddr = ContikiMoteType.parseCommandDataSectionAddr(commandData);
+    dataSectionSize = ContikiMoteType.parseCommandDataSectionSize(commandData);
+    relBssSectionAddr = ContikiMoteType.parseCommandBssSectionAddr(commandData);
+    bssSectionSize = ContikiMoteType.parseCommandBssSectionSize(commandData);
     testOutput.addMessage("Data section address: 0x" + Integer.toHexString(relDataSectionAddr));
     testOutput.addMessage("Data section size: 0x" + Integer.toHexString(dataSectionSize));
     testOutput.addMessage("BSS section address: 0x" + Integer.toHexString(relBssSectionAddr));
