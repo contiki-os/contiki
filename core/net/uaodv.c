@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: uaodv.c,v 1.36 2007/11/28 12:52:34 adamdunkels Exp $
+ * $Id: uaodv.c,v 1.37 2010/01/20 09:58:16 fros4943 Exp $
  */
 
 /**
@@ -75,18 +75,8 @@ last_known_seqno(uip_ipaddr_t *host)
   return 0;
 }
 
-#ifndef NOINIT
-#ifdef __GNUC__
-#define NOINIT __attribute__((section(".noinit")))
-#else /* __GNUC__ */
-#define NOINIT
-#endif /* __GNUC__ */
-#endif
 
-/*
- * When possible, keep state across reboots.
- */
-NOINIT static u32_t rreq_id, my_hseqno;	/* In host byte order! */
+static u32_t rreq_id, my_hseqno;	/* In host byte order! */
 
 #define NFWCACHE 16
 
