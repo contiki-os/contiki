@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ContikiMoteType.java,v 1.37 2009/06/03 17:27:37 fros4943 Exp $
+ * $Id: ContikiMoteType.java,v 1.38 2010/01/20 16:21:36 fros4943 Exp $
  */
 
 package se.sics.cooja.contikimote;
@@ -34,20 +34,46 @@ package se.sics.cooja.contikimote;
 import java.awt.BorderLayout;
 import java.awt.Container;
 import java.awt.Dimension;
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.lang.reflect.Method;
-import java.security.*;
-import java.util.*;
-import java.util.regex.*;
-import javax.swing.*;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Properties;
+import java.util.Random;
+import java.util.Vector;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+import javax.swing.Box;
+import javax.swing.BoxLayout;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+
 import org.apache.log4j.Logger;
 import org.jdom.Element;
 
-import se.sics.cooja.*;
+import se.sics.cooja.AbstractionLevelDescription;
+import se.sics.cooja.ClassDescription;
+import se.sics.cooja.CoreComm;
+import se.sics.cooja.GUI;
+import se.sics.cooja.Mote;
+import se.sics.cooja.MoteInterface;
+import se.sics.cooja.MoteType;
+import se.sics.cooja.ProjectConfig;
+import se.sics.cooja.SectionMoteMemory;
+import se.sics.cooja.Simulation;
 import se.sics.cooja.dialogs.CompileContiki;
 import se.sics.cooja.dialogs.ContikiMoteCompileDialog;
 import se.sics.cooja.dialogs.MessageList;
 import se.sics.cooja.dialogs.MessageList.MessageContainer;
+import se.sics.cooja.util.StringUtils;
 
 /**
  * The Contiki mote type holds the native library used to communicate with an
@@ -172,7 +198,7 @@ public class ContikiMoteType implements MoteType {
   // Type specific class configuration
   private ProjectConfig myConfig = null;
 
-  private int relAddressOfRefenceVariable = 0;
+  private int relAddressOfReferenceVariable = 0;
 
   private CoreComm myCoreComm = null;
 
@@ -210,10 +236,6 @@ public class ContikiMoteType implements MoteType {
       if (!compileOK) {
         return false;
       }
-
-      /* Load compiled library */
-      doInit();
-      return true;
 
     } else {
       if (getIdentifier() == null) {
@@ -328,11 +350,11 @@ public class ContikiMoteType implements MoteType {
           !getContikiFirmwareFile().exists()) {
         throw new MoteTypeCreationException("Contiki firmware file does not exist: " + getContikiFirmwareFile());
       }
-
-      /* Load compiled library */
-      doInit();
-      return true;
     }
+
+    /* Load compiled library */
+    doInit();
+    return true;
   }
 
   public static File getExpectedFirmwareFile(File source) {
@@ -350,7 +372,7 @@ public class ContikiMoteType implements MoteType {
    *
    * @throws MoteTypeCreationException
    */
-  public void doInit() throws MoteTypeCreationException {
+  private void doInit() throws MoteTypeCreationException {
 
     if (myCoreComm != null) {
       throw new MoteTypeCreationException(
@@ -370,90 +392,102 @@ public class ContikiMoteType implements MoteType {
     logger.info("Creating core communicator between Java class '" + javaClassName + "' and Contiki library '" + getContikiFirmwareFile().getName() + "'");
     myCoreComm = CoreComm.createCoreComm(this.javaClassName, getContikiFirmwareFile());
 
-    // Should we parse addresses using map file or command?
+    /* Parse addresses using map file or command */
     boolean useCommand = Boolean.parseBoolean(GUI.getExternalToolsSetting("PARSE_WITH_COMMAND", "false"));
 
-    int relDataSectionAddr = -1;
-    int dataSectionSize = -1;
-    int relBssSectionAddr = -1;
-    int bssSectionSize = -1;
+    int dataSectionAddr = -1, dataSectionSize = -1;
+    int bssSectionAddr = -1, bssSectionSize = -1;
+    int commonSectionAddr = -1, commonSectionSize = -1;
 
     if (useCommand) {
-      // Parse command output
-      Vector<String> commandData = loadCommandData(getContikiFirmwareFile());
-      if (commandData == null) {
-        logger.fatal("No parse command output could be loaded");
+      /* Parse command output */
+      String[] output = loadCommandData(getContikiFirmwareFile());
+      if (output == null) {
         throw new MoteTypeCreationException("No parse command output loaded");
       }
-
-      boolean parseOK = parseCommandData(commandData, varAddresses);
+      boolean parseOK = parseCommandData(output, varAddresses);
       if (!parseOK) {
         logger.fatal("Command output parsing failed");
         throw new MoteTypeCreationException("Command output parsing failed");
       }
 
-      relDataSectionAddr = loadCommandRelDataSectionAddr(commandData);
-      dataSectionSize = loadCommandDataSectionSize(commandData);
-      relBssSectionAddr = loadCommandRelBssSectionAddr(commandData);
-      bssSectionSize = loadCommandBssSectionSize(commandData);
+      dataSectionAddr = parseCommandDataSectionAddr(output);
+      dataSectionSize = parseCommandDataSectionSize(output);
+      bssSectionAddr = parseCommandBssSectionAddr(output);
+      bssSectionSize = parseCommandBssSectionSize(output);
+      commonSectionAddr = parseCommandCommonSectionAddr(output);
+      commonSectionSize = parseCommandCommonSectionSize(output);
+      
     } else {
-      // Parse map file
+      /* Parse command output */
       if (mapFile == null ||
           !mapFile.exists()) {
-        logger.fatal("Map file " + mapFile.getAbsolutePath() + " could not be found!");
-        throw new MoteTypeCreationException("Map file " + mapFile.getAbsolutePath() + " could not be found!");
+        throw new MoteTypeCreationException("Map file " + mapFile + " could not be found!");
       }
-
-      Vector<String> mapData = loadMapFile(mapFile);
+      String[] mapData = loadMapFile(mapFile);
       if (mapData == null) {
         logger.fatal("No map data could be loaded");
-        throw new MoteTypeCreationException("No map data could be loaded");
+        throw new MoteTypeCreationException("No map data could be loaded: " + mapFile);
       }
-
       boolean parseOK = parseMapFileData(mapData, varAddresses);
       if (!parseOK) {
         logger.fatal("Map data parsing failed");
-        throw new MoteTypeCreationException("Map data parsing failed");
+        throw new MoteTypeCreationException("Map data parsing failed: " + mapFile);
       }
 
-      relDataSectionAddr = loadRelDataSectionAddr(mapData);
-      dataSectionSize = loadDataSectionSize(mapData);
-      relBssSectionAddr = loadRelBssSectionAddr(mapData);
-      bssSectionSize = loadBssSectionSize(mapData);
+      dataSectionAddr = parseMapDataSectionAddr(mapData);
+      dataSectionSize = parseMapDataSectionSize(mapData);
+      bssSectionAddr = parseMapBssSectionAddr(mapData);
+      bssSectionSize = parseMapBssSectionSize(mapData);
+      commonSectionAddr = parseMapCommonSectionAddr(mapData);
+      commonSectionSize = parseMapCommonSectionSize(mapData);
+      
     }
 
-    // Create variable names to addresses mappings
     if (varAddresses.size() == 0) {
-      throw new MoteTypeCreationException(
-      "Variable name to addresses mappings could not be created");
+      throw new MoteTypeCreationException("Library variables parsing failed");
     }
 
     try {
-      // Get offset between relative and absolute addresses
-      relAddressOfRefenceVariable = (Integer) varAddresses.get("referenceVar");
+      /* Relative <-> absolute addresses offset */
+      relAddressOfReferenceVariable = (Integer) varAddresses.get("referenceVar");
     } catch (Exception e) {
       throw (MoteTypeCreationException) new MoteTypeCreationException(
           "JNI call error: " + e.getMessage()).initCause(e);
     }
 
-    if (relDataSectionAddr <= 0 || dataSectionSize <= 0
-        || relBssSectionAddr <= 0 || bssSectionSize <= 0) {
-      throw new MoteTypeCreationException(
-      "Could not parse section addresses correctly");
+    if (dataSectionAddr <= 0 || dataSectionSize <= 0
+        || bssSectionAddr <= 0 || bssSectionSize <= 0) {
+      throw new MoteTypeCreationException("Library section addresses parsing failed");
     }
 
-    myCoreComm.setReferenceAddress(relAddressOfRefenceVariable);
+    myCoreComm.setReferenceAddress(relAddressOfReferenceVariable);
 
-    // Create initial memory
-    byte[] initialDataSection = new byte[dataSectionSize];
-    getCoreMemory(relDataSectionAddr, dataSectionSize,
-        initialDataSection);
-    byte[] initialBssSection = new byte[bssSectionSize];
-    getCoreMemory(relBssSectionAddr, bssSectionSize,
-        initialBssSection);
+    /* Create initial memory: data+bss+optional common */
     initialMemory = new SectionMoteMemory(varAddresses);
-    initialMemory.setMemorySegment(relDataSectionAddr, initialDataSection);
-    initialMemory.setMemorySegment(relBssSectionAddr, initialBssSection);
+    
+    byte[] initialDataSection = new byte[dataSectionSize];
+    getCoreMemory(dataSectionAddr, dataSectionSize, initialDataSection);
+    initialMemory.setMemorySegment(dataSectionAddr, initialDataSection);
+    logger.info(getContikiFirmwareFile().getName() +
+        ": data section at 0x" + Integer.toHexString(dataSectionAddr) + 
+        " (0x" + dataSectionSize + " bytes)");
+    
+    byte[] initialBssSection = new byte[bssSectionSize];
+    getCoreMemory(bssSectionAddr, bssSectionSize, initialBssSection);
+    initialMemory.setMemorySegment(bssSectionAddr, initialBssSection);
+    logger.info(getContikiFirmwareFile().getName() +
+        ": BSS section at 0x" + Integer.toHexString(bssSectionAddr) + 
+        " (0x" + bssSectionSize + " bytes)");
+    
+    if (commonSectionAddr > 0 && commonSectionSize > 0) {
+      byte[] initialCommonSection = new byte[commonSectionSize];
+      getCoreMemory(commonSectionAddr, commonSectionSize, initialCommonSection);
+      initialMemory.setMemorySegment(commonSectionAddr, initialCommonSection);
+      logger.info(getContikiFirmwareFile().getName() +
+          ": common section at 0x" + Integer.toHexString(commonSectionAddr) + 
+          " (0x" + commonSectionSize + " bytes)");
+    }
   }
 
   /**
@@ -499,10 +533,10 @@ public class ContikiMoteType implements MoteType {
    * @param varAddresses
    *          Properties that should contain the name to addresses mappings.
    */
-  public static boolean parseMapFileData(Vector<String> mapFileData,
+  public static boolean parseMapFileData(String[] mapFileData,
       Properties varAddresses) {
-    Vector<String> varNames = getMapFileVarNames(mapFileData);
-    if (varNames == null || varNames.size() == 0) {
+    String[] varNames = getMapFileVarNames(mapFileData);
+    if (varNames == null || varNames.length == 0) {
       return false;
     }
 
@@ -520,40 +554,36 @@ public class ContikiMoteType implements MoteType {
   }
 
   /**
-   * Parses specified parse command output for variable
-   * name to addresses mappings. The mappings are added
-   * to the given properties object.
+   * Parses parse command output for variable name to addresses mappings.
+   * The mappings are written to the given properties object.
    *
-   * @param commandData
-   *          Output from parse command on object file
-   * @param varAddresses
-   *          Properties that should contain the name to addresses mappings.
+   * @param output Command output
+   * @param addresses Variable addresses mappings
    */
-  public static boolean parseCommandData(Vector<String> commandData,
-      Properties varAddresses) {
+  public static boolean parseCommandData(String[] output, Properties addresses) {
     int nrNew = 0, nrOld = 0, nrMismatch = 0;
 
-    Pattern pattern = Pattern.compile(GUI
-        .getExternalToolsSetting("COMMAND_VAR_NAME_ADDRESS"));
-    for (String commandLine : commandData) {
-      Matcher matcher = pattern.matcher(commandLine);
+    Pattern pattern = 
+      Pattern.compile(GUI.getExternalToolsSetting("COMMAND_VAR_NAME_ADDRESS"));
+
+    for (String line : output) {
+      Matcher matcher = pattern.matcher(line);
 
       if (matcher.find()) {
-        // logger.debug("Parsing line: " + commandLine);
-        String varName = matcher.group(2);
-        int varAddress = Integer.parseInt(matcher.group(1), 16);
+        /* Line matched variable address */
+        String symbol = matcher.group(2);
+        int address = Integer.parseInt(matcher.group(1), 16);
 
-        if (!varAddresses.containsKey(varName)) {
+        if (!addresses.containsKey(symbol)) {
           nrNew++;
-          varAddresses.put(varName, new Integer(varAddress));
+          addresses.put(symbol, new Integer(address));
         } else {
-          int oldAddress = (Integer) varAddresses.get(varName);
-          if (oldAddress != varAddress) {
+          int oldAddress = (Integer) addresses.get(symbol);
+          if (oldAddress != address) {
             /*logger.warn("Warning, command response not matching previous entry of: "
                 + varName);*/
             nrMismatch++;
           }
-
           nrOld++;
         }
       }
@@ -651,11 +681,10 @@ public class ContikiMoteType implements MoteType {
   /**
    * Get relative address of variable with given name.
    *
-   * @param varName
-   *          Name of variable
+   * @param varName Name of variable
    * @return Relative memory address of variable or -1 if not found
    */
-  public static int getMapFileVarAddress(Vector<String> mapFileData, String varName, Properties varAddresses) {
+  public static int getMapFileVarAddress(String[] mapFileData, String varName, Properties varAddresses) {
     int varAddr;
     String varAddrString;
     if ((varAddrString = varAddresses.getProperty(varName)) != null) {
@@ -663,8 +692,10 @@ public class ContikiMoteType implements MoteType {
       return varAddr;
     }
 
-    String regExp = GUI.getExternalToolsSetting("MAPFILE_VAR_ADDRESS_1")
-    + varName + GUI.getExternalToolsSetting("MAPFILE_VAR_ADDRESS_2");
+    String regExp =
+      GUI.getExternalToolsSetting("MAPFILE_VAR_ADDRESS_1") +
+      varName +
+      GUI.getExternalToolsSetting("MAPFILE_VAR_ADDRESS_2");
     String retString = getFirstMatchGroup(mapFileData, regExp, 1);
 
     if (retString != null) {
@@ -684,11 +715,10 @@ public class ContikiMoteType implements MoteType {
     myCoreComm.setMemory(relAddr, length, mem);
   }
 
-  private static String getFirstMatchGroup(Vector<String> lines, String regexp,
-      int groupNr) {
+  private static String getFirstMatchGroup(String[] lines, String regexp, int groupNr) {
     Pattern pattern = Pattern.compile(regexp);
-    for (int i = 0; i < lines.size(); i++) {
-      Matcher matcher = pattern.matcher(lines.get(i));
+    for (String line : lines) {
+      Matcher matcher = pattern.matcher(line);
       if (matcher.find()) {
         return matcher.group(groupNr);
       }
@@ -703,27 +733,35 @@ public class ContikiMoteType implements MoteType {
    *
    * @return Variable names found in the data and bss section
    */
-  public static Vector<String> getMapFileVarNames(Vector<String> mapFileData) {
+  public static String[] getMapFileVarNames(String[] mapFileData) {
+    ArrayList<String> varNames = new ArrayList<String>();
 
-    Vector<String> varNames = getAllVariableNames(mapFileData,
-        loadRelDataSectionAddr(mapFileData),
-        loadRelDataSectionAddr(mapFileData) + loadDataSectionSize(mapFileData));
+    String[] dataVariables = getAllVariableNames(
+        mapFileData,
+        parseMapDataSectionAddr(mapFileData),
+        parseMapDataSectionAddr(mapFileData) + parseMapDataSectionSize(mapFileData));
+    for (String v: dataVariables) {
+      varNames.add(v);
+    }
 
-    varNames.addAll(getAllVariableNames(mapFileData,
-        loadRelBssSectionAddr(mapFileData), loadRelBssSectionAddr(mapFileData)
-        + loadBssSectionSize(mapFileData)));
+    String[] bssVariables = getAllVariableNames(
+        mapFileData,
+        parseMapBssSectionAddr(mapFileData),
+        parseMapBssSectionAddr(mapFileData) + parseMapBssSectionSize(mapFileData));
+    for (String v: bssVariables) {
+      varNames.add(v);
+    }
 
-    return varNames;
+    return varNames.toArray(new String[0]);
   }
 
-  public static Vector<String> getAllVariableNames(Vector<String> lines,
+  public static String[] getAllVariableNames(String[] lines,
       int startAddress, int endAddress) {
-    Vector<String> varNames = new Vector<String>();
+    ArrayList<String> varNames = new ArrayList<String>();
 
-    Pattern pattern = Pattern.compile(GUI
-        .getExternalToolsSetting("MAPFILE_VAR_NAME"));
-    for (int i = 0; i < lines.size(); i++) {
-      Matcher matcher = pattern.matcher(lines.get(i));
+    Pattern pattern = Pattern.compile(GUI.getExternalToolsSetting("MAPFILE_VAR_NAME"));
+    for (String line : lines) {
+      Matcher matcher = pattern.matcher(line);
       if (matcher.find()) {
         if (Integer.decode(matcher.group(1)).intValue() >= startAddress
             && Integer.decode(matcher.group(1)).intValue() <= endAddress) {
@@ -731,13 +769,14 @@ public class ContikiMoteType implements MoteType {
         }
       }
     }
-    return varNames;
+    return varNames.toArray(new String[0]);
   }
 
   protected int getVariableSize(Vector<String> lines, String varName) {
-    Pattern pattern = Pattern.compile(GUI
-        .getExternalToolsSetting("MAPFILE_VAR_SIZE_1")
-        + varName + GUI.getExternalToolsSetting("MAPFILE_VAR_SIZE_2"));
+    Pattern pattern = Pattern.compile(
+        GUI.getExternalToolsSetting("MAPFILE_VAR_SIZE_1") + 
+        varName + 
+        GUI.getExternalToolsSetting("MAPFILE_VAR_SIZE_2"));
     for (int i = 0; i < lines.size(); i++) {
       Matcher matcher = pattern.matcher(lines.get(i));
       if (matcher.find()) {
@@ -747,9 +786,9 @@ public class ContikiMoteType implements MoteType {
     return -1;
   }
 
-  public static int loadRelDataSectionAddr(Vector<String> mapFileData) {
-    String retString = getFirstMatchGroup(mapFileData, GUI
-        .getExternalToolsSetting("MAPFILE_DATA_START"), 1);
+  private static int parseFirstHexInt(String regexp, String[] data) {
+    String retString = 
+      getFirstMatchGroup(data, regexp, 1);
 
     if (retString != null) {
       return Integer.parseInt(retString.trim(), 16);
@@ -758,110 +797,124 @@ public class ContikiMoteType implements MoteType {
     }
   }
 
-  public static int loadDataSectionSize(Vector<String> mapFileData) {
-    String retString = getFirstMatchGroup(mapFileData, GUI
-        .getExternalToolsSetting("MAPFILE_DATA_SIZE"), 1);
-
-    if (retString != null) {
-      return Integer.parseInt(retString.trim(), 16);
-    } else {
+  public static int parseMapDataSectionAddr(String[] mapFileData) {
+    String regexp = GUI.getExternalToolsSetting("MAPFILE_DATA_START", "");
+    if (regexp.equals("")) {
       return -1;
     }
+    return parseFirstHexInt(regexp, mapFileData);
+  }
+  public static int parseMapDataSectionSize(String[] mapFileData) {
+    String regexp = GUI.getExternalToolsSetting("MAPFILE_DATA_SIZE", "");
+    if (regexp.equals("")) {
+      return -1;
+    }
+    return parseFirstHexInt(regexp, mapFileData);
+  }
+  public static int parseMapBssSectionAddr(String[] mapFileData) {
+    String regexp = GUI.getExternalToolsSetting("MAPFILE_BSS_START", "");
+    if (regexp.equals("")) {
+      return -1;
+    }
+    return parseFirstHexInt(regexp, mapFileData);
+  }
+  public static int parseMapBssSectionSize(String[] mapFileData) {
+    String regexp = GUI.getExternalToolsSetting("MAPFILE_BSS_SIZE", "");
+    if (regexp.equals("")) {
+      return -1;
+    }
+    return parseFirstHexInt(regexp, mapFileData);
+  }
+  public static int parseMapCommonSectionAddr(String[] mapFileData) {
+    String regexp = GUI.getExternalToolsSetting("MAPFILE_COMMON_START", "");
+    if (regexp.equals("")) {
+      return -1;
+    }
+    return parseFirstHexInt(regexp, mapFileData);
+  }
+  public static int parseMapCommonSectionSize(String[] mapFileData) {
+    String regexp = GUI.getExternalToolsSetting("MAPFILE_COMMON_SIZE", "");
+    if (regexp.equals("")) {
+      return -1;
+    }
+    return parseFirstHexInt(regexp, mapFileData);
   }
 
-  public static int loadRelBssSectionAddr(Vector<String> mapFileData) {
-    String retString = getFirstMatchGroup(mapFileData, GUI
-        .getExternalToolsSetting("MAPFILE_BSS_START"), 1);
-
-    if (retString != null) {
-      return Integer.parseInt(retString.trim(), 16);
-    } else {
+  public static int parseCommandDataSectionAddr(String[] output) {
+    String regexp = GUI.getExternalToolsSetting("COMMAND_DATA_START", "");
+    if (regexp.equals("")) {
       return -1;
     }
+    return parseFirstHexInt(regexp, output);
   }
-
-  public static int loadBssSectionSize(Vector<String> mapFileData) {
-    String retString = getFirstMatchGroup(mapFileData, GUI
-        .getExternalToolsSetting("MAPFILE_BSS_SIZE"), 1);
-
-    if (retString != null) {
-      return Integer.parseInt(retString.trim(), 16);
-    } else {
+  public static int parseCommandDataSectionSize(String[] output) {
+    String regexp = GUI.getExternalToolsSetting("COMMAND_DATA_END", "");
+    if (regexp.equals("")) {
       return -1;
     }
+    int start = parseCommandDataSectionAddr(output);
+    if (start < 0) {
+      return -1;
+    }
+
+    int end = parseFirstHexInt(regexp, output);
+    if (end < 0) {
+      return -1;
+    }
+    return end - start;
   }
-
-  public static int loadCommandRelDataSectionAddr(Vector<String> commandData) {
-    String retString = getFirstMatchGroup(commandData, GUI
-        .getExternalToolsSetting("COMMAND_DATA_START"), 1);
-
-    if (retString != null) {
-      return Integer.parseInt(retString.trim(), 16);
-    } else {
+  public static int parseCommandBssSectionAddr(String[] output) {
+    String regexp = GUI.getExternalToolsSetting("COMMAND_BSS_START", "");
+    if (regexp.equals("")) {
       return -1;
     }
+    return parseFirstHexInt(regexp, output);
   }
-
-  public static int loadCommandDataSectionSize(Vector<String> commandData) {
-    String retString;
-    int start, end;
-
-    retString = getFirstMatchGroup(commandData, GUI
-        .getExternalToolsSetting("COMMAND_DATA_START"), 1);
-    if (retString != null) {
-      start = Integer.parseInt(retString.trim(), 16);
-    } else {
+  public static int parseCommandBssSectionSize(String[] output) {
+    String regexp = GUI.getExternalToolsSetting("COMMAND_BSS_END", "");
+    if (regexp.equals("")) {
+      return -1;
+    }
+    int start = parseCommandBssSectionAddr(output);
+    if (start < 0) {
       return -1;
     }
 
-    retString = getFirstMatchGroup(commandData, GUI
-        .getExternalToolsSetting("COMMAND_DATA_END"), 1);
-    if (retString != null) {
-      end = Integer.parseInt(retString.trim(), 16);
-    } else {
+    int end = parseFirstHexInt(regexp, output);
+    if (end < 0) {
+      return -1;
+    }
+    return end - start;
+  }
+  public static int parseCommandCommonSectionAddr(String[] output) {
+    String regexp = GUI.getExternalToolsSetting("COMMAND_COMMON_START", "");
+    if (regexp.equals("")) {
+      return -1;
+    }
+    return parseFirstHexInt(regexp, output);
+  }
+  public static int parseCommandCommonSectionSize(String[] output) {
+    String regexp = GUI.getExternalToolsSetting("COMMAND_COMMON_END", "");
+    if (regexp.equals("")) {
+      return -1;
+    }
+    int start = parseCommandCommonSectionAddr(output);
+    if (start < 0) {
       return -1;
     }
 
+    int end = parseFirstHexInt(regexp, output);
+    if (end < 0) {
+      return -1;
+    }
     return end - start;
   }
 
-  public static int loadCommandRelBssSectionAddr(Vector<String> commandData) {
-    String retString = getFirstMatchGroup(commandData, GUI
-        .getExternalToolsSetting("COMMAND_BSS_START"), 1);
-
-    if (retString != null) {
-      return Integer.parseInt(retString.trim(), 16);
-    } else {
-      return -1;
-    }
-  }
-
-  public static int loadCommandBssSectionSize(Vector<String> commandData) {
-    String retString;
-    int start, end;
-
-    retString = getFirstMatchGroup(commandData, GUI
-        .getExternalToolsSetting("COMMAND_BSS_START"), 1);
-    if (retString != null) {
-      start = Integer.parseInt(retString.trim(), 16);
-    } else {
-      return -1;
-    }
-
-    retString = getFirstMatchGroup(commandData, GUI
-        .getExternalToolsSetting("COMMAND_BSS_END"), 1);
-    if (retString != null) {
-      end = Integer.parseInt(retString.trim(), 16);
-    } else {
-      return -1;
-    }
-
-    return end - start;
-  }
-
-  private static int getRelVarAddr(Vector<String> mapFileData, String varName) {
-    String regExp = GUI.getExternalToolsSetting("MAPFILE_VAR_ADDRESS_1")
-    + varName + GUI.getExternalToolsSetting("MAPFILE_VAR_ADDRESS_2");
+  private static int getRelVarAddr(String mapFileData[], String varName) {
+    String regExp = 
+      GUI.getExternalToolsSetting("MAPFILE_VAR_ADDRESS_1") +
+      varName + 
+      GUI.getExternalToolsSetting("MAPFILE_VAR_ADDRESS_2");
     String retString = getFirstMatchGroup(mapFileData, regExp, 1);
 
     if (retString != null) {
@@ -871,122 +924,57 @@ public class ContikiMoteType implements MoteType {
     }
   }
 
-  public static Vector<String> loadMapFile(File mapFile) {
-    Vector<String> mapFileData = new Vector<String>();
-
-    try {
-      BufferedReader in = new BufferedReader(new InputStreamReader(
-          new FileInputStream(mapFile)));
-
-      while (in.ready()) {
-        mapFileData.add(in.readLine());
-      }
-    } catch (FileNotFoundException e) {
-      logger.fatal("File not found: " + e);
-      return null;
-    } catch (IOException e) {
-      logger.fatal("IO error: " + e);
+  public static String[] loadMapFile(File mapFile) {
+    String contents = StringUtils.loadFromFile(mapFile);
+    if (contents == null) {
       return null;
     }
-
-    return mapFileData;
+    return contents.split("\n");
   }
 
   /**
-   * Executes parse command on given file and returns the result.
+   * Executes configured command on given file and returns the result.
    *
-   * @param libraryFile
-   *          File
-   * @return Execution response
+   * @param libraryFile Contiki library
+   * @return Execution response, or null at failure
    */
-  public static Vector<String> loadCommandData(File libraryFile) {
-    Vector<String> commandData = new Vector<String>();
+  public static String[] loadCommandData(File libraryFile) {
+    ArrayList<String> output = new ArrayList<String>();
 
     try {
       String command = GUI.getExternalToolsSetting("PARSE_COMMAND");
-
       if (command == null) {
         return null;
       }
 
-      // Prepare command
-      command = command.replace("$(LIBFILE)", libraryFile.getName().replace(File.separatorChar, '/'));
+      /* Prepare command */
+      command = command.replace("$(LIBFILE)", 
+          libraryFile.getName().replace(File.separatorChar, '/'));
 
+      /* Execute command, read response */
       String line;
-      Process p = Runtime.getRuntime().exec(command.split(" "), null, libraryFile.getParentFile());
-      BufferedReader input = new BufferedReader(new InputStreamReader(p.getInputStream()));
-      p.getErrorStream().close(); // Ignore error stream
+      Process p = Runtime.getRuntime().exec(
+          command.split(" "), 
+          null, 
+          libraryFile.getParentFile()
+      );
+      BufferedReader input = new BufferedReader(
+          new InputStreamReader(p.getInputStream())
+      );
+      p.getErrorStream().close();
       while ((line = input.readLine()) != null) {
-        commandData.add(line);
+        output.add(line);
       }
       input.close();
-    } catch (Exception err) {
-      err.printStackTrace();
-      return null;
-    }
 
-    if (commandData == null || commandData.size() == 0) {
-      return null;
-    }
-
-    return commandData;
-  }
-
-  /**
-   * Runs external tool objdump on given file and returns the result.
-   *
-   * @param libraryFile
-   *          File
-   * @return Execution response
-   */
-  public static Vector<String> loadObjdumpData(File libraryFile) {
-    Vector<String> objdumpData = new Vector<String>();
-
-    try {
-      String objdumpPath = GUI.getExternalToolsSetting("PATH_OBJDUMP");
-      String objdumpArgs = GUI.getExternalToolsSetting("OBJDUMP_ARGS");
-
-      if (objdumpPath == null || objdumpPath.equals("")) {
+      if (output == null || output.size() == 0) {
         return null;
       }
-
-      String[] objdumpExecArray;
-      if (!objdumpArgs.trim().equals("")) {
-        // Arguments need to be passed to program
-        String[] splittedObjdumpArgs = objdumpArgs.split(" ");
-        objdumpExecArray = new String[1 + splittedObjdumpArgs.length + 1];
-
-        objdumpExecArray[0] = objdumpPath.trim();
-
-        objdumpExecArray[objdumpExecArray.length - 1] = libraryFile
-        .getAbsolutePath();
-        System.arraycopy(splittedObjdumpArgs, 0, objdumpExecArray, 1,
-            splittedObjdumpArgs.length);
-      } else {
-        objdumpExecArray = new String[2];
-        objdumpExecArray[0] = objdumpPath.trim();
-        objdumpExecArray[1] = libraryFile.getAbsolutePath();
-      }
-
-      String line;
-      Process p = Runtime.getRuntime().exec(objdumpExecArray);
-      BufferedReader input = new BufferedReader(new InputStreamReader(p
-          .getInputStream()));
-      p.getErrorStream().close(); // Ignore error stream
-      while ((line = input.readLine()) != null) {
-        objdumpData.add(line);
-      }
-      input.close();
+      return output.toArray(new String[0]);
     } catch (Exception err) {
-      err.printStackTrace();
+      logger.fatal("Command error: " + err.getMessage(), err);
       return null;
     }
-
-    if (objdumpData == null || objdumpData.size() == 0) {
-      return null;
-    }
-
-    return objdumpData;
   }
 
   public String getDescription() {
@@ -1374,7 +1362,7 @@ public class ContikiMoteType implements MoteType {
 
       /* Guess compile commands */
       String compileCommands =
-      "make " + getExpectedFirmwareFile(oldVersionSource).getName() + " TARGET=cooja";
+        "make " + getExpectedFirmwareFile(oldVersionSource).getName() + " TARGET=cooja";
       logger.info("Guessing compile commands: " + compileCommands);
       setCompileCommands(compileCommands);
     }
