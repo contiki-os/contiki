@@ -1,0 +1,23 @@
+# segment.rules file assigns source code modules to specific banks
+# segment.rules is constructed from any segment.rules found in the search path
+# the search path is defined in Makefile.cc2430
+# segment.rules get processed by a perl snippet listed in the Makefile.cc2430
+# the processed output is put into the obj_* directory
+# comments starting with "#" are supported
+# perl regular expression matching can be used on the file name specification
+# 
+# general rules -- 
+#  some code must be placed in all banks (or SDCC/aslink will complain at link time)
+#  code called from function pointers must be in HOME/CSEG/BANK0
+#  interrupt code must also be in HOME/CSEG/BANK0
+#  code not marked with __banked can only be called from code in the same bank  
+#
+HOME intr.c  # All interrupt code must live in HOME/BANK0
+HOME uart.c
+BANK3 uart_init.c
+BANK2 dma.c
+CSEG cc2430/dev/bus.c
+CSEG autostart.c
+BANK2 cc2430/dev/cc2430_rf.c
+BANK1 cc2430/
+BANK1 .
