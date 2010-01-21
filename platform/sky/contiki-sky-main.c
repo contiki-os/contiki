@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#)$Id: contiki-sky-main.c,v 1.62 2010/01/14 20:18:23 adamdunkels Exp $
+ * @(#)$Id: contiki-sky-main.c,v 1.63 2010/01/21 11:17:08 adamdunkels Exp $
  */
 
 #include <signal.h>
@@ -76,7 +76,7 @@
 #include "dev/light-sensor.h"
 #include "dev/sht11-sensor.h"
 
-SENSORS(&button_sensor, &light_sensor, &battery_sensor, &sht11_sensor);
+SENSORS(&button_sensor);
 
 #if DCOSYNCH_CONF_ENABLED
 static struct timer mgt_timer;
@@ -259,8 +259,8 @@ main(int argc, char **argv)
    */
 
   SENSORS_ACTIVATE(light_sensor);
-  SENSORS_ACTIVATE(battery_sensor);
-  SENSORS_ACTIVATE(sht11_sensor);
+  /*  SENSORS_ACTIVATE(battery_sensor);
+      SENSORS_ACTIVATE(sht11_sensor);*/
 
   ctimer_init();
 
