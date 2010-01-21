@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: MspDebugOutput.java,v 1.1 2010/01/21 17:43:59 fros4943 Exp $
+ * $Id: MspDebugOutput.java,v 1.2 2010/01/21 18:02:54 fros4943 Exp $
  */
 
 package se.sics.cooja.mspmote.interfaces;
@@ -72,6 +72,10 @@ public class MspDebugOutput extends Log {
     this.mote = (MspMote) mote;
     this.mem = (MspMoteMemory) this.mote.getMemory();
 
+    if (!mem.variableExists(CONTIKI_POINTER)) {
+      /* Disabled */
+      return;
+    }
     this.mote.getCPU().setBreakPoint(mem.getVariableAddress(CONTIKI_POINTER),
         new CPUMonitor() {
       public void cpuAction(int type, int adr, int data) {
@@ -87,7 +91,6 @@ public class MspDebugOutput extends Log {
         }
       }
     });
-    
   }
 
   private String extractString(MspMoteMemory mem, int address) {
