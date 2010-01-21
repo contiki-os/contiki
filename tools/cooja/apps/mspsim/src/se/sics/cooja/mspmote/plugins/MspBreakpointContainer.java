@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: MspBreakpointContainer.java,v 1.2 2009/06/17 13:06:55 fros4943 Exp $
+ * $Id: MspBreakpointContainer.java,v 1.3 2010/01/21 22:32:32 fros4943 Exp $
  */
 
 package se.sics.cooja.mspmote.plugins;
@@ -187,7 +187,6 @@ public class MspBreakpointContainer implements WatchpointMote {
   protected void signalBreakpointTrigger(MspBreakpoint b) {
     if (b.stopsSimulation() && mspMote.getSimulation().isRunning()) {
       /* Stop simulation immediately */
-      mspMote.getSimulation().stopSimulation();
       mspMote.stopNextInstruction();
     }
 
