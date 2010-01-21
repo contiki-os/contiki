@@ -122,6 +122,7 @@ __sfr __at (0x9E)   T2PEROF2;
 #define PEROF20	0x01
 
 __sfr __at (0x9F) FMAP;
+__sfr __at (0x9F) PSBANK;
 
 __sfr __at (0xA0) P2   ;
 /* P2 */
