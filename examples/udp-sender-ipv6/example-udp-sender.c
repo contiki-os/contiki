@@ -81,7 +81,7 @@ udphandler(process_event_t ev, process_data_t data)
     uip_udp_packet_send(udpconn, "Sender says Hi!", strlen("Sender says Hi!"));
   }
 
-  etimer_restart(&udp_periodic_timer);
+  etimer_set(&udp_periodic_timer, 13*CLOCK_SECOND + random_rand()%(4*CLOCK_SECOND));
   return 0;
 }
 /*---------------------------------------------------------------------------*/
