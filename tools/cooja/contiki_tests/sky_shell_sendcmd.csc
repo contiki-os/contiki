@@ -1,9 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <simconf>
-  <project>../apps/mrm</project>
-  <project>../apps/mspsim</project>
-  <project>../apps/avrora</project>
-  <project>../apps/native_gateway</project>
+  <project>[CONTIKI_DIR]/tools/cooja/apps/mrm</project>
+  <project>[CONTIKI_DIR]/tools/cooja/apps/mspsim</project>
+  <project>[CONTIKI_DIR]/tools/cooja/apps/avrora</project>
   <simulation>
     <title>My simulation</title>
     <delaytime>0</delaytime>
@@ -16,13 +15,16 @@
       <success_ratio_tx>1.0</success_ratio_tx>
       <success_ratio_rx>1.0</success_ratio_rx>
     </radiomedium>
+    <events>
+      <logoutput>40000</logoutput>
+    </events>
     <motetype>
       se.sics.cooja.mspmote.SkyMoteType
       <identifier>sky1</identifier>
       <description>Sky Mote Type #sky1</description>
-      <source>../../../examples/sky-shell/sky-checkpoint.c</source>
+      <source>[CONTIKI_DIR]/examples/sky-shell/sky-checkpoint.c</source>
       <commands>make sky-checkpoint.sky TARGET=sky</commands>
-      <firmware>../../../examples/sky-shell/sky-checkpoint.sky</firmware>
+      <firmware>[CONTIKI_DIR]/examples/sky-shell/sky-checkpoint.sky</firmware>
       <moteinterface>se.sics.cooja.interfaces.Position</moteinterface>
       <moteinterface>se.sics.cooja.interfaces.IPAddress</moteinterface>
       <moteinterface>se.sics.cooja.interfaces.Mote2MoteRelations</moteinterface>
@@ -31,12 +33,14 @@
       <moteinterface>se.sics.cooja.mspmote.interfaces.SkyButton</moteinterface>
       <moteinterface>se.sics.cooja.mspmote.interfaces.SkyFlash</moteinterface>
       <moteinterface>se.sics.cooja.mspmote.interfaces.SkyByteRadio</moteinterface>
-      <moteinterface>se.sics.cooja.mspmote.interfaces.SkySerial</moteinterface>
+      <moteinterface>se.sics.cooja.mspmote.interfaces.MspSerial</moteinterface>
       <moteinterface>se.sics.cooja.mspmote.interfaces.SkyLED</moteinterface>
+      <moteinterface>se.sics.cooja.interfaces.RimeAddress</moteinterface>
+      <moteinterface>se.sics.cooja.mspmote.interfaces.SkyCoffeeFilesystem</moteinterface>
+      <moteinterface>se.sics.cooja.mspmote.interfaces.MspDebugOutput</moteinterface>
     </motetype>
     <mote>
       se.sics.cooja.mspmote.SkyMote
-      <motetype_identifier>sky1</motetype_identifier>
       <breakpoints />
       <interface_config>
         se.sics.cooja.interfaces.Position
@@ -48,10 +52,10 @@
         se.sics.cooja.mspmote.interfaces.MspMoteID
         <id>1</id>
       </interface_config>
+      <motetype_identifier>sky1</motetype_identifier>
     </mote>
     <mote>
       se.sics.cooja.mspmote.SkyMote
-      <motetype_identifier>sky1</motetype_identifier>
       <breakpoints />
       <interface_config>
         se.sics.cooja.interfaces.Position
@@ -63,10 +67,10 @@
         se.sics.cooja.mspmote.interfaces.MspMoteID
         <id>2</id>
       </interface_config>
+      <motetype_identifier>sky1</motetype_identifier>
     </mote>
     <mote>
       se.sics.cooja.mspmote.SkyMote
-      <motetype_identifier>sky1</motetype_identifier>
       <breakpoints />
       <interface_config>
         se.sics.cooja.interfaces.Position
@@ -78,10 +82,10 @@
         se.sics.cooja.mspmote.interfaces.MspMoteID
         <id>3</id>
       </interface_config>
+      <motetype_identifier>sky1</motetype_identifier>
     </mote>
     <mote>
       se.sics.cooja.mspmote.SkyMote
-      <motetype_identifier>sky1</motetype_identifier>
       <breakpoints />
       <interface_config>
         se.sics.cooja.interfaces.Position
@@ -93,26 +97,29 @@
         se.sics.cooja.mspmote.interfaces.MspMoteID
         <id>4</id>
       </interface_config>
+      <motetype_identifier>sky1</motetype_identifier>
     </mote>
   </simulation>
   <plugin>
     se.sics.cooja.plugins.SimControl
     <width>248</width>
-    <z>3</z>
+    <z>2</z>
     <height>200</height>
-    <location_x>0</location_x>
-    <location_y>0</location_y>
+    <location_x>1</location_x>
+    <location_y>1</location_y>
     <minimized>false</minimized>
   </plugin>
   <plugin>
     se.sics.cooja.plugins.Visualizer
     <plugin_config>
-      <skin>Mote IDs</skin>
-      <skin>Log output: printf()'s</skin>
-      <skin>Radio environment (UDGM)</skin>
+      <skin>se.sics.cooja.plugins.skins.IDVisualizerSkin</skin>
+      <skin>se.sics.cooja.plugins.skins.LogVisualizerSkin</skin>
+      <skin>se.sics.cooja.plugins.skins.UDGMVisualizerSkin</skin>
+      <skin>se.sics.cooja.plugins.skins.TrafficVisualizerSkin</skin>
+      <viewport>2.126765951505188 0.0 0.0 2.126765951505188 -7.584821059232853 59.46165934250099</viewport>
     </plugin_config>
     <width>246</width>
-    <z>2</z>
+    <z>6</z>
     <height>243</height>
     <location_x>1</location_x>
     <location_y>202</location_y>
@@ -121,9 +128,9 @@
   <plugin>
     se.sics.cooja.plugins.LogListener
     <plugin_config>
-      <filter />
+      <filter>Sending</filter>
     </plugin_config>
-    <width>1024</width>
+    <width>1022</width>
     <z>1</z>
     <height>209</height>
     <location_x>0</location_x>
@@ -143,12 +150,12 @@ while (mote1 == null) {
   }
   YIELD();
 }
-GENERATE_MSG(2000, "continue");
+GENERATE_MSG(20000, "continue");
 YIELD_THEN_WAIT_UNTIL(msg.equals("continue"));
 
 /* Send command: mote 1 -&gt; mote 2*/
-command = "sendcmd 2.0 echo hello\n";
-log.log("mote1&gt; " + command);
+command = "sendcmd 2.0 echo hello";
+log.log("mote1&gt; " + command + "\n");
 write(mote1, command);
 YIELD_THEN_WAIT_UNTIL(id == 2 &amp;&amp; msg.contains("hello"));
 log.log("mote2: " + msg + "\n");
@@ -156,8 +163,8 @@ GENERATE_MSG(1000, "continue");
 YIELD_THEN_WAIT_UNTIL(msg.equals("continue"));
 
 /* Send command: mote 1 -&gt; mote 2*/
-command = "sendcmd 2.0 {echo hello again}\n";
-log.log("mote1&gt; " + command);
+command = "sendcmd 2.0 {echo hello again}";
+log.log("mote1&gt; " + command + "\n");
 write(mote1, command);
 YIELD_THEN_WAIT_UNTIL(id == 2 &amp;&amp; msg.contains("hello again"));
 log.log("mote2: " + msg + "\n");
@@ -165,8 +172,8 @@ GENERATE_MSG(1000, "continue");
 YIELD_THEN_WAIT_UNTIL(msg.equals("continue"));
 
 /* Send command: mote 1 -&gt; mote 2 -&gt; mote 3 -&gt; mote 4 */
-command = "sendcmd 2.0 {sendcmd 3.0 {sendcmd 4.0 echo multihop}}\n";
-log.log("mote1&gt; " + command);
+command = "sendcmd 2.0 {sendcmd 3.0 {sendcmd 4.0 echo multihop}}";
+log.log("mote1&gt; " + command + "\n");
 write(mote1, command);
 YIELD_THEN_WAIT_UNTIL(id == 4 &amp;&amp; msg.contains("multihop"));
 log.log("mote4: " + msg + "\n");
@@ -178,10 +185,30 @@ log.testOK(); /* Report test success and quit */</script>
       <active>true</active>
     </plugin_config>
     <width>775</width>
-    <z>0</z>
-    <height>656</height>
+    <z>3</z>
+    <height>445</height>
     <location_x>246</location_x>
     <location_y>0</location_y>
+    <minimized>false</minimized>
+  </plugin>
+  <plugin>
+    se.sics.cooja.plugins.TimeLine
+    <plugin_config>
+      <mote>0</mote>
+      <mote>1</mote>
+      <mote>2</mote>
+      <mote>3</mote>
+      <showRadioRXTX />
+      <showRadioHW />
+      <showLEDs />
+      <split>109</split>
+      <zoom>12</zoom>
+    </plugin_config>
+    <width>1021</width>
+    <z>0</z>
+    <height>150</height>
+    <location_x>1</location_x>
+    <location_y>655</location_y>
     <minimized>false</minimized>
   </plugin>
 </simconf>
