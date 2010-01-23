@@ -24,7 +24,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * $Id: AbstractApplicationMote.java,v 1.7 2009/11/27 15:53:10 fros4943 Exp $
+ * $Id: AbstractApplicationMote.java,v 1.8 2010/01/23 11:26:32 joxe Exp $
  */
 
 package se.sics.cooja.motes;
@@ -72,7 +72,9 @@ public abstract class AbstractApplicationMote extends AbstractWakeupMote impleme
     public void update(Observable obs, Object obj) {
       ApplicationRadio radio = (ApplicationRadio) obs;
       if (radio.getLastEvent() == Radio.RadioEvent.RECEPTION_FINISHED) {
-        receivedPacket(radio.getLastPacketReceived());
+        /* only send in packets when they exist */
+        if (radio.getLastPacketReceived() != null)
+            receivedPacket(radio.getLastPacketReceived());
       } else if (radio.getLastEvent() == Radio.RadioEvent.TRANSMISSION_FINISHED) {
         sentPacket(radio.getLastPacketTransmitted());
       }
