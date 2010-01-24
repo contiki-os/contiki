@@ -33,23 +33,20 @@ package se.sics.cooja.motes;
 
 import java.awt.Container;
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.lang.reflect.Constructor;
+import java.net.URL;
+import java.net.URLClassLoader;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Random;
-
-import javax.swing.JFileChooser;
-import javax.swing.filechooser.FileFilter;
-
-import org.apache.log4j.Logger;
 import org.jdom.Element;
-
 import se.sics.cooja.AbstractionLevelDescription;
 import se.sics.cooja.ClassDescription;
-import se.sics.cooja.GUI;
 import se.sics.cooja.Mote;
 import se.sics.cooja.MoteType;
 import se.sics.cooja.Simulation;
+import se.sics.cooja.dialogs.ImportAppMoteDialog;
 import se.sics.cooja.util.ArrayUtils;
 
 /**
@@ -58,11 +55,11 @@ import se.sics.cooja.util.ArrayUtils;
 @ClassDescription("Imported App Mote Type")
 @AbstractionLevelDescription("Application level")
 public class ImportAppMoteType extends AbstractApplicationMoteType {
-  private static Logger logger = Logger.getLogger(ImportAppMoteType.class);
 
   private Simulation simulation;
 
-  private File moteClassFile = null;
+  private File moteClassPath = null;
+  private String moteClassName = null;
   private Class<? extends AbstractApplicationMote> moteClass = null;
   private Constructor<? extends AbstractApplicationMote> moteConstructor = null;
 
@@ -75,36 +72,20 @@ public class ImportAppMoteType extends AbstractApplicationMoteType {
     setDescription("Imported App Mote Type #" + identifier);
   }
 
-  private class TestClassLoader extends ClassLoader {
-    private int id; /* DEBUG */
-    private File file;
-    public TestClassLoader(File f) {
-      id = new Random().nextInt();
-      file = f;
-    }
-    public TestClassLoader(ClassLoader parent, File f) {
-      super(parent);
-      id = new Random().nextInt();
-      file = f;
-    }
-    public Class<?> findClass(String name) {
-      byte[] data = loadClassData(name);
-      return defineClass(data, 0, data.length);
-    }
-    private byte[] loadClassData(String name) {
-      return ArrayUtils.readFromFile(file);
-    }
-    public String toString() {
-      return "ImportAppMoteType classloader #" + id;
-    }
-  }
-
   public Collection<Element> getConfigXML() {
-    ArrayList<Element> config = new ArrayList<Element>();
+    Collection<Element> config = super.getConfigXML();
 
-    Element element = new Element("moteclass");
-    element.setText(simulation.getGUI().createPortablePath(moteClassFile).getPath());
-    config.add(element);
+    if (moteClassPath != null) {
+      Element element = new Element("motepath");
+      element.setText(simulation.getGUI().createPortablePath(moteClassPath).getPath());
+      config.add(element);
+    }
+
+    if (moteClassName != null) {
+      Element element = new Element("moteclass");
+      element.setText(moteClassName);
+      config.add(element);
+    }
 
     return config;
   }
@@ -117,11 +98,13 @@ public class ImportAppMoteType extends AbstractApplicationMoteType {
     for (Element element : configXML) {
       String name = element.getName();
       if (name.equals("moteclass")) {
-        moteClassFile = simulation.getGUI().restorePortablePath(new File(element.getText()));
+        moteClassName = element.getText();
+      } else if (name.equals("motepath")) {
+        moteClassPath = simulation.getGUI().restorePortablePath(new File(element.getText()));
       }
     }
 
-    return configureAndInit(GUI.getTopParentContainer(), simulation, visAvailable);
+    return super.setConfigXML(simulation, configXML, visAvailable);
   }
 
   public boolean configureAndInit(Container parentContainer,
@@ -133,84 +116,54 @@ public class ImportAppMoteType extends AbstractApplicationMoteType {
       return false;
     }
 
-    boolean updateSuggestion = false;
     if (visAvailable) {
       /* Select mote class file */
-      JFileChooser fileChooser = new JFileChooser();
-      fileChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
-      fileChooser.setDialogTitle("Select application class file");
-      if (moteClassFile != null) {
-        fileChooser.setSelectedFile(moteClassFile);
-      } else {
-        updateSuggestion = true;
-        fileChooser.setSelectedFile(new File(GUI.getExternalToolsSetting("IMPORT_APP_LAST", "mymote.class")));
-      }
-      fileChooser.setFileFilter(new FileFilter() {
-        public boolean accept(File file) {
-          if (file.isDirectory()) {
-            return true;
-          }
-          if (file.getName().endsWith(".class")) {
-            return true;
-          }
-          return false;
-        }
-        public String getDescription() {
-          return "Java class extending " + AbstractApplicationMoteType.class.getName();
-        }
-        public String toString() {
-          return ".class";
-        }
-      });
-
-      int reply = fileChooser.showOpenDialog(GUI.getTopParentContainer());
-      if (reply != JFileChooser.APPROVE_OPTION) {
+      ImportAppMoteDialog dialog = new ImportAppMoteDialog(parentContainer, simulation, this);
+      if (!dialog.waitForUserResponse()) {
         return false;
       }
-
-      moteClassFile = fileChooser.getSelectedFile();
     }
-
-    if (moteClassFile == null) {
+    if (moteClassName == null) {
       throw new MoteTypeCreationException("Unknown mote class file");
     }
-    if (!moteClassFile.exists()) {
-      throw new MoteTypeCreationException("Mote class file does not exist");
-    }
-    if (updateSuggestion) {
-      GUI.setExternalToolsSetting("IMPORT_APP_LAST", moteClassFile.getPath());
-    }
 
-    /* Load class */
-    TestClassLoader loader = new TestClassLoader(moteClassFile);
     try {
-      moteClass = 
-        (Class<? extends AbstractApplicationMote>) 
-        loader.loadClass("ignored class name");
-      moteConstructor = 
-        (Constructor<? extends AbstractApplicationMote>) 
-        moteClass.getConstructor(new Class[] { MoteType.class, Simulation.class });
+      if (moteClassPath == null) {
+        // No class path. Check if path is available in the class name.
+        convertPathToClass();
+      }
+
+      ClassLoader parentLoader = getParentClassLoader();
+      ClassLoader loader;
+      if (moteClassPath != null) {
+        /* Load class */
+        loader = new URLClassLoader(new java.net.URL[] { moteClassPath.toURI().toURL() },
+            parentLoader);
+      } else {
+        loader = parentLoader;
+      }
+
+      moteClass = loader.loadClass(moteClassName).asSubclass(AbstractApplicationMote.class);
+      moteConstructor = moteClass.getConstructor(new Class[] { MoteType.class, Simulation.class });
     } catch (Exception e) {
-      throw (MoteTypeCreationException) 
-      new MoteTypeCreationException("Error when loading class from: " + moteClassFile.getPath()).initCause(e);
-    } catch (Throwable t) {
-      throw (MoteTypeCreationException) 
-      new MoteTypeCreationException("Error when loading class from: " + moteClassFile.getPath()).initCause(t);
+      throw createError(e);
+    } catch(LinkageError e) {
+      throw createError(e);
     }
 
-    /* XXX Extending GUI's project class loader. Nasty. */
-    if (simulation.getGUI().projectDirClassLoader == null) {
-      simulation.getGUI().projectDirClassLoader = 
-        new TestClassLoader(ClassLoader.getSystemClassLoader(), moteClassFile);
-    } else {
-      simulation.getGUI().projectDirClassLoader = 
-        new TestClassLoader(simulation.getGUI().projectDirClassLoader, moteClassFile);
+    if (getDescription() == null || getDescription().length() == 0) {
+      setDescription("Imported Mote Type #" + moteClassName);
     }
-
-    logger.info(moteClass.getClassLoader());
-    setDescription("Imported Mote Type #" + moteClassFile.getName());
-
     return true;
+  }
+
+  private MoteTypeCreationException createError(Throwable e) {
+    MoteTypeCreationException mte =
+      new MoteTypeCreationException("Error when loading class from: "
+          + (moteClassPath != null ? moteClassPath.getAbsolutePath() : "") + " "
+          + moteClassName);
+    mte.initCause(e);
+    return mte;
   }
 
   public Mote generateMote(Simulation simulation) {
@@ -220,4 +173,109 @@ public class ImportAppMoteType extends AbstractApplicationMoteType {
       throw (RuntimeException) new RuntimeException("Error when generating mote").initCause(e);
     }
   }
+
+  public void setMoteClassPath(File moteClassPath) {
+    this.moteClassPath = moteClassPath;
+  }
+
+  public File getMoteClassPath() {
+    return moteClassPath;
+  }
+
+  public void setMoteClassName(String moteClassName) {
+    this.moteClassName = moteClassName;
+  }
+
+  public String getMoteClassName() {
+    return moteClassName;
+  }
+
+  private void convertPathToClass() {
+    if (moteClassName.indexOf('/') < 0 && moteClassName.indexOf(File.separatorChar) < 0) {
+      // No conversion possible
+      return;
+    }
+    File moteClassFile = new File(moteClassName);
+    if (moteClassFile.canRead()) {
+      try {
+        TestLoader test = createTestLoader(moteClassFile);
+        // Successfully found the class
+        moteClassPath = test.getTestClassPath();
+        moteClassName = test.getTestClassName();
+      } catch (Exception e) {
+        // Ignore
+      } catch (LinkageError e) {
+        // Ignore
+      }
+    }
+  }
+
+  private ClassLoader getParentClassLoader() {
+    if (simulation.getGUI().projectDirClassLoader == null) {
+      return ClassLoader.getSystemClassLoader();
+    } else {
+      return simulation.getGUI().projectDirClassLoader;
+    }
+  }
+
+  public TestLoader createTestLoader(File classFile) throws IOException {
+    classFile = classFile.getCanonicalFile();
+    ArrayList<URL> list = new ArrayList<URL>();
+    for(File parent = classFile.getParentFile();
+        parent != null;
+        parent = parent.getParentFile()) {
+      list.add(parent.toURI().toURL());
+    }
+    return new TestLoader(list.toArray(new URL[list.size()]),
+        getParentClassLoader(), classFile);
+  }
+
+  public static class TestLoader extends URLClassLoader {
+    private final File classFile;
+    private File classPath;
+    private Class<?> testClass;
+
+    private TestLoader(URL[] classpath, ClassLoader parentClassLoader, File classFile)
+      throws IOException
+    {
+      super(classpath, parentClassLoader);
+      this.classFile = classFile.getCanonicalFile();
+
+      byte[] data = ArrayUtils.readFromFile(classFile);
+      if (data == null) {
+        throw new FileNotFoundException(classFile.getAbsolutePath());
+      }
+      this.testClass = defineClass(null, data, 0, data.length);
+    }
+
+    public File getTestClassFile() {
+      return classFile;
+    }
+
+    public boolean isTestSubclass(Class<?> type) {
+      return type.isAssignableFrom(testClass);
+    }
+    
+    public Class<?> getTestClass() {
+      return testClass;
+    }
+
+    public String getTestClassName() {
+      return testClass.getCanonicalName();
+    }
+
+    public File getTestClassPath() {
+      if (classPath == null) {
+        String name = testClass.getCanonicalName();
+        int index = name.indexOf('.');
+        classPath = classFile.getParentFile();
+        while(index >= 0) {
+          classPath = classPath.getParentFile();
+          index = name.indexOf('.', index + 1);
+        }
+      }
+      return classPath;
+    }
+  }
+
 }
