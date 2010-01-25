@@ -42,7 +42,7 @@ CONTIKI_CPU_DIRS = . dev
 
 ### CPU-dependent source files
 CONTIKI_SOURCEFILES += bus.c clock.c uart.c cc2430_rf.c dma.c
-##CONTIKI_SOURCEFILES += uart_init.c uart_intr.c cc2430_rf_intr.c dma_intr.c adc.c clock_intr.c
+CONTIKI_SOURCEFILES += uart_init.c uart_intr.c cc2430_rf_intr.c dma_intr.c adc.c
 CONTIKI_ASMFILES +=
 
 CONTIKI_ASMOBJECTFILES = ${addprefix $(OBJECTDIR)/,$(CONTIKI_ASMFILES:.S=.o)}
