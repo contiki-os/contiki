@@ -30,7 +30,7 @@
  *
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: uip-split.c,v 1.2 2008/10/14 13:39:12 julienabeille Exp $
+ * $Id: uip-split.c,v 1.3 2010/01/25 13:53:15 adamdunkels Exp $
  */
 
 #include <string.h>
@@ -53,7 +53,7 @@ uip_split_output(void)
 
   /* We only try to split maximum sized TCP segments. */
   if(BUF->proto == UIP_PROTO_TCP &&
-     uip_len == UIP_BUFSIZE - UIP_LLH_LEN) {
+     uip_len == UIP_TCP_MSS + UIP_TCPIP_HLEN) {
 
     tcplen = uip_len - UIP_TCPIP_HLEN;
     /* Split the segment in two. If the original packet length was
