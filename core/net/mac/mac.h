@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: mac.h,v 1.7 2009/12/05 21:49:51 adamdunkels Exp $
+ * $Id: mac.h,v 1.8 2010/01/25 11:43:32 adamdunkels Exp $
  */
 
 /**
@@ -66,6 +66,9 @@ struct mac_driver {
 
   /** Turn the MAC layer off. */
   int (* off)(int keep_radio_on);
+
+  /** Returns the channel check interval, expressed in clock_time_t ticks. */
+  unsigned short (* channel_check_interval)(void);
 };
 
 /* Generic MAC return values. */

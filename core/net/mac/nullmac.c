@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: nullmac.c,v 1.12 2009/12/05 13:29:41 adamdunkels Exp $
+ * $Id: nullmac.c,v 1.13 2010/01/25 11:43:32 adamdunkels Exp $
  */
 
 /**
@@ -93,6 +93,12 @@ off(int keep_radio_on)
   }
 }
 /*---------------------------------------------------------------------------*/
+static unsigned short
+channel_check_interval(void)
+{
+  return 0;
+}
+/*---------------------------------------------------------------------------*/
 const struct mac_driver nullmac_driver = {
   "nullmac",
   nullmac_init,
@@ -101,6 +107,7 @@ const struct mac_driver nullmac_driver = {
   set_receive_function,
   on,
   off,
+  channel_check_interval,
 };
 /*---------------------------------------------------------------------------*/
 const struct mac_driver *
