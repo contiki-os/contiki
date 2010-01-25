@@ -4,11 +4,14 @@
  * \author
  *         Original: Martti Huttunen <martti@sensinode.com>
  *         Port: Zach Shelby <zach@sensinode.com>
+ *
+ *         bankable DMA functions
  */
 
 #include <stdio.h>
 
 #include "contiki.h"
+#include "banked.h"
 
 #include "dev/dma.h"
 #include "cc2430_sfr.h"
@@ -18,10 +21,9 @@ struct process * dma_callback[4];
 
 /*---------------------------------------------------------------------------*/
 void
-dma_init(void)
+dma_init(void) __banked
 {
   uint16_t tmp_ptr;
-  
   memset(dma_conf, 0, 4*sizeof(dma_config_t));
   for(tmp_ptr = 0; tmp_ptr < 4; tmp_ptr++) {
     dma_callback[tmp_ptr] = 0;
@@ -51,14 +53,15 @@ dma_init(void)
  * \return Handle to DMA channel
  * \return 0 invalid channel
  */
+/*  IMPLEMENTED dma_config as macro to reduce stack/code space
 xDMAHandle
 dma_config(uint8_t channel, void *src, dma_inc_t src_inc, void *dst, dma_inc_t dst_inc,
 	   uint16_t length, dma_vlen_t vlen_mode, dma_type_t t_mode, dma_trigger_t trigger,
-	   struct process * proc)
+	   struct process * proc) __banked
 {
   return dma_config2(channel,src,src_inc, dst, dst_inc, length, 0, vlen_mode, t_mode, trigger, proc);
 }
-
+*/
 /*---------------------------------------------------------------------------*/
 /**
  * Configure a DMA channel.
@@ -81,8 +84,9 @@ dma_config(uint8_t channel, void *src, dma_inc_t src_inc, void *dst, dma_inc_t d
 xDMAHandle
 dma_config2(uint8_t channel, void *src, dma_inc_t src_inc, void *dst, dma_inc_t dst_inc,
 	   uint16_t length, uint8_t word_mode, dma_vlen_t vlen_mode, dma_type_t t_mode, dma_trigger_t trigger,
-	   struct process * proc)
+	   struct process * proc) __banked
 {
+  unsigned char jj;
   if((!channel) || (channel > 4)) {
     return 0;
   }
@@ -119,7 +123,7 @@ dma_config2(uint8_t channel, void *src, dma_inc_t src_inc, void *dst, dma_inc_t 
  * \return pdFALSE	semaphore creation failed
  */
 uint8_t
-dma_arm(xDMAHandle channel)
+dma_arm(xDMAHandle channel) __banked
 {
   uint8_t ch_id = ((uint8_t)channel);
   if(!ch_id || (ch_id > 4)) {
@@ -138,7 +142,7 @@ dma_arm(xDMAHandle channel)
  * \return pdFALSE	semaphore creation failed
  */
 uint8_t
-dma_abort(xDMAHandle channel)
+dma_abort(xDMAHandle channel) __banked
 {
   uint8_t ch_id = ((uint8_t) channel);
   if(!ch_id || (ch_id > 4)) {
@@ -157,7 +161,7 @@ dma_abort(xDMAHandle channel)
  * \return pdFALSE	semaphore creation failed
  */
 uint8_t
-dma_trigger(xDMAHandle channel)
+dma_trigger(xDMAHandle channel) __banked
 {
   uint8_t ch_id = ((uint8_t) channel);
   if(!ch_id || (ch_id > 4)) {
@@ -176,7 +180,7 @@ dma_trigger(xDMAHandle channel)
  * \return pdFALSE	not active
  */
 uint8_t
-dma_state(xDMAHandle channel)
+dma_state(xDMAHandle channel) __banked
 {
   uint8_t ch_id = ((uint8_t)channel);
   if(!ch_id || (ch_id > 4)) {
@@ -189,7 +193,7 @@ dma_state(xDMAHandle channel)
 }
 /*---------------------------------------------------------------------------*/
 void
-dma_config_print(xDMAHandle channel)
+dma_config_print(xDMAHandle channel) __banked
 {
   uint8_t ch_id = channel - 1;
   
@@ -210,50 +214,3 @@ dma_config_print(xDMAHandle channel)
   }
 }
 #endif
-/*---------------------------------------------------------------------------*/
-#ifdef HAVE_RF_DMA
-extern void rf_dma_callback_isr(void);
-#endif
-#ifdef SPI_DMA_RX
-extern void spi_rx_dma_callback(void);
-#endif
-/*---------------------------------------------------------------------------*/
-/**
- * DMA interrupt service routine.
- *
- * if callback defined a poll is made to that process
- */
-void
-dma_ISR(void) __interrupt (DMA_VECTOR)
-{
-#ifdef HAVE_DMA
-  uint8_t i;
-#endif
-  EA=0;
-#ifdef HAVE_RF_DMA
-  if((DMAIRQ & 1) != 0) {
-    DMAIRQ &= ~1;
-    DMAARM=0x81;
-    rf_dma_callback_isr();
-  }
-#endif
-#ifdef SPI_DMA_RX
-  if((DMAIRQ & 0x08) != 0) {
-    DMAIRQ &= ~(1 << 3);
-    spi_rx_dma_callback();
-  }
-#endif
-#ifdef HAVE_DMA
-  for(i = 0; i < 4; i++) {
-    if((DMAIRQ & (1 << i + 1)) != 0) {
-      DMAIRQ &= ~(1 << i+1);
-      if(dma_callback[i] != 0) {
-	process_poll(dma_callback[i]);
-      }
-    }
-  }
-#endif
-  IRCON_DMAIF = 0;
-  EA = 1;
-}
-/*---------------------------------------------------------------------------*/
