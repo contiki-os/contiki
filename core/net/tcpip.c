@@ -29,7 +29,7 @@
  * This file is part of the Contiki operating system.
  *
  *
- * $Id: tcpip.c,v 1.21 2009/04/13 19:54:07 nvt-se Exp $
+ * $Id: tcpip.c,v 1.22 2010/01/25 13:37:05 adamdunkels Exp $
  */
 /**
  * \file
@@ -113,8 +113,10 @@ static u8_t (* outputfunc)(uip_lladdr_t *a);
 u8_t
 tcpip_output(uip_lladdr_t *a)
 {
+  int ret;
   if(outputfunc != NULL) {
-    return outputfunc(a);
+    ret = outputfunc(a);
+    return ret;
   }
   UIP_LOG("tcpip_output: Use tcpip_set_outputfunc() to set an output function");
   return 0;
@@ -320,8 +322,6 @@ udp_broadcast_new(u16_t port, void *appstate)
   return conn;
 }
 #endif /* UIP_UDP */
-
-/*---------------------------------------------------------------------------*/
 /*---------------------------------------------------------------------------*/
 #if UIP_CONF_ICMP6
 u8_t
@@ -334,12 +334,15 @@ icmp6_new(void *appstate) {
   return 1;
 }
 
-void tcpip_icmp6_call(u8_t type) {
-  process_post_synch(uip_icmp6_conns.appstate.p, type, 0);
+void
+tcpip_icmp6_call(u8_t type)
+{
+  if(uip_icmp6_conns.appstate.p != PROCESS_NONE) {
+    process_post_synch(uip_icmp6_conns.appstate.p, type, 0);
+  }
   return;
 }
-
-#endif /*UIP_CONF_ICMP6*/
+#endif /* UIP_CONF_ICMP6 */
 /*---------------------------------------------------------------------------*/
 
 static void
