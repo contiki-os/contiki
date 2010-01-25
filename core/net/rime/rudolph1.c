@@ -33,7 +33,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: rudolph1.c,v 1.13 2009/11/08 19:40:18 adamdunkels Exp $
+ * $Id: rudolph1.c,v 1.14 2010/01/25 13:54:06 adamdunkels Exp $
  */
 
 /**
@@ -304,7 +304,7 @@ rudolph1_open(struct rudolph1_conn *c, uint16_t channel,
 	      const struct rudolph1_callbacks *cb)
 {
   trickle_open(&c->trickle, TRICKLE_INTERVAL, channel, &trickle);
-  ipolite_open(&c->ipolite, channel + 1, &ipolite);
+  ipolite_open(&c->ipolite, channel + 1, 1, &ipolite);
   c->cb = cb;
   c->version = 0;
   c->send_interval = DEFAULT_SEND_INTERVAL;

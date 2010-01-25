@@ -33,7 +33,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: ipolite.c,v 1.15 2009/11/08 19:40:17 adamdunkels Exp $
+ * $Id: ipolite.c,v 1.16 2010/01/25 13:54:06 adamdunkels Exp $
  */
 
 /**
@@ -74,13 +74,17 @@ recv(struct broadcast_conn *broadcast, const rimeaddr_t *from)
      packetbuf_datalen() == queuebuf_datalen(c->q) &&
      memcmp(packetbuf_dataptr(), queuebuf_dataptr(c->q),
 	    MIN(c->hdrsize, packetbuf_datalen())) == 0) {
-    /* We received a copy of our own packet, so we do not send out
-       packet. */
-    queuebuf_free(c->q);
-    c->q = NULL;
-    ctimer_stop(&c->t);
-    if(c->cb->dropped) {
-      c->cb->dropped(c);
+    /* We received a copy of our own packet, so we increase the
+       duplicate counter. If it reaches its maximum, do not send out
+       our packet. */
+    c->dups++;
+    if(c->dups == c->maxdups) {
+      queuebuf_free(c->q);
+      c->q = NULL;
+      ctimer_stop(&c->t);
+      if(c->cb->dropped) {
+        c->cb->dropped(c);
+      }
     }
   }
   if(c->cb->recv) {
@@ -111,11 +115,12 @@ send(void *ptr)
 static const struct broadcast_callbacks broadcast = { recv };
 /*---------------------------------------------------------------------------*/
 void
-ipolite_open(struct ipolite_conn *c, uint16_t channel,
+ipolite_open(struct ipolite_conn *c, uint16_t channel, uint8_t dups,
 	  const struct ipolite_callbacks *cb)
 {
   broadcast_open(&c->c, channel, &broadcast);
   c->cb = cb;
+  c->maxdups = dups;
   PRINTF("ipolite open channel %d\n", channel);
 }
 /*---------------------------------------------------------------------------*/
@@ -139,11 +144,12 @@ ipolite_send(struct ipolite_conn *c, clock_time_t interval, uint8_t hdrsize)
 	   rimeaddr_node_addr.u8[0],rimeaddr_node_addr.u8[1]);
     queuebuf_free(c->q);
   }
+  c->dups = 0;
   c->hdrsize = hdrsize;
   if(interval == 0) {
     PRINTF("%d.%d: ipolite_send: interval 0\n",
 	   rimeaddr_node_addr.u8[0],rimeaddr_node_addr.u8[1]);
-    if (broadcast_send(&c->c)) {
+    if(broadcast_send(&c->c)) {
       if(c->cb->sent) {
 	c->cb->sent(c);
       }
