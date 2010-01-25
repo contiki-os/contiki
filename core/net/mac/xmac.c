@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: xmac.c,v 1.48 2010/01/14 20:14:03 adamdunkels Exp $
+ * $Id: xmac.c,v 1.49 2010/01/25 11:43:32 adamdunkels Exp $
  */
 
 /**
@@ -920,6 +920,12 @@ turn_off(int keep_radio_on)
   }
 }
 /*---------------------------------------------------------------------------*/
+static unsigned short
+channel_check_interval(void)
+{
+  return (1ul * CLOCK_SECOND * DEFAULT_PERIOD) / RTIMER_ARCH_SECOND;
+}
+/*---------------------------------------------------------------------------*/
 const struct mac_driver xmac_driver =
   {
     "X-MAC",
@@ -928,5 +934,6 @@ const struct mac_driver xmac_driver =
     read_packet,
     set_receive_function,
     turn_on,
-    turn_off
+    turn_off,
+    channel_check_interval,
   };

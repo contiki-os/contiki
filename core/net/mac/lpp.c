@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: lpp.c,v 1.28 2009/12/06 13:18:32 adamdunkels Exp $
+ * $Id: lpp.c,v 1.29 2010/01/25 11:43:32 adamdunkels Exp $
  */
 
 /**
@@ -882,6 +882,12 @@ off(int keep_radio_on)
   return 1;
 }
 /*---------------------------------------------------------------------------*/
+static unsigned short
+channel_check_interval(void)
+{
+  return OFF_TIME + LISTEN_TIME;
+}
+/*---------------------------------------------------------------------------*/
 const struct mac_driver lpp_driver = {
   "LPP",
   lpp_init,
@@ -890,6 +896,7 @@ const struct mac_driver lpp_driver = {
   set_receive_function,
   on,
   off,
+  channel_check_interval,
 };
 /*---------------------------------------------------------------------------*/
 static void
