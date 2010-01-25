@@ -33,7 +33,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: polite-announcement.c,v 1.8 2010/01/21 11:39:35 fros4943 Exp $
+ * $Id: polite-announcement.c,v 1.9 2010/01/25 13:55:17 adamdunkels Exp $
  */
 
 /**
@@ -61,6 +61,8 @@ struct announcement_data {
   uint16_t id;
   uint16_t value;
 };
+
+#define NUM_DUPS 5
 
 #define ANNOUNCEMENT_MSG_HEADERLEN 2
 struct announcement_msg {
@@ -130,7 +132,10 @@ adv_packet_received(struct ipolite_conn *ipolite, const rimeaddr_t *from)
     struct announcement_data data;
 
     /* Copy announcements */
-    memcpy(&data, &((struct announcement_msg *)packetbuf_dataptr())->data[i], sizeof(struct announcement_data));
+    memcpy(&data.id, &((struct announcement_msg *)packetbuf_dataptr())->data[i].id,
+          sizeof(uint16_t));
+    memcpy(&data.value, &((struct announcement_msg *)packetbuf_dataptr())->data[i].value,
+          sizeof(uint16_t));
     announcement_heard(from,
 		       data.id,
 		       data.value);
@@ -163,7 +168,7 @@ polite_announcement_init(uint16_t channel,
 			clock_time_t min,
 			clock_time_t max)
 {
-  ipolite_open(&c.c, channel, &ipolite_callbacks);
+  ipolite_open(&c.c, channel, NUM_DUPS, &ipolite_callbacks);
 
   c.min_interval = min;
   c.max_interval = max;
