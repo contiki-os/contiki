@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#)$Id: contiki-sky-main.c,v 1.63 2010/01/21 11:17:08 adamdunkels Exp $
+ * @(#)$Id: contiki-sky-main.c,v 1.64 2010/01/25 11:48:16 adamdunkels Exp $
  */
 
 #include <signal.h>
@@ -118,6 +118,15 @@ static uint8_t is_gateway;
 #define MAC_DRIVER xmac_driver
 #endif /* MAC_CONF_DRIVER */
 #endif /* MAC_DRIVER */
+
+#ifndef MAC_CSMA
+#ifdef MAC_CONF_CSMA
+#define MAC_CSMA MAC_CONF_CSMA
+#else
+#define MAC_CSMA 1
+#endif /* MAC_CONF_CSMA */
+#endif /* MAC_CSMA */
+
 
 extern const struct mac_driver MAC_DRIVER;
 
@@ -325,8 +334,16 @@ main(int argc, char **argv)
   uip_router_register(&rimeroute);
 #endif /* UIP_CONF_ROUTER */
 #else /* WITH_UIP6 */
+#if MAC_CSMA
+  rime_init(csma_init(MAC_DRIVER.init(&cc2420_driver)));
+#else /* MAC_CSMA */
   rime_init(MAC_DRIVER.init(&cc2420_driver));
-  printf(" %s channel %u\n", rime_mac->name, RF_CHANNEL);
+#endif /* MAC_CSMA */
+  printf(" %s, channel check rate %d Hz, radio channel %u\n",
+         rime_mac->name,
+         CLOCK_SECOND / (rime_mac->channel_check_interval() == 0? 1:
+                         rime_mac->channel_check_interval()),
+         RF_CHANNEL);
 #endif /* WITH_UIP6 */
 
 #if !WITH_UIP && !WITH_UIP6
