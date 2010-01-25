@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: bus.h,v 1.2 2010/01/25 23:12:09 anthony-a Exp $
+ * $Id: bus.h,v 1.3 2010/01/25 23:13:04 anthony-a Exp $
  */
 
 /**
@@ -46,14 +46,6 @@
 #include "8051def.h"
 
 #define inline
-#ifdef SDCC
-#ifdef HAVE_SDCC_BANKING
-#else
-#define __banked 
-#endif
-#else
-#define __banked 
-#endif
 
 void bus_init(void) __banked;
 void flash_read(uint8_t *buf, uint32_t address, uint8_t size) __banked;
