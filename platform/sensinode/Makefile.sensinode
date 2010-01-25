@@ -13,7 +13,7 @@
 ifndef CONTIKI
   $(error CONTIKI not defined! You must specify where CONTIKI resides!)
 endif
-
+CFLAGS  += -DRIME_CONF_NO_POLITE_ANNOUCEMENTS
 RIME_CONF_NO_POLITE_ANNOUCEMENTS = 1
 
 # Define the default UART for tools and tool commands
