@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: bus.c,v 1.1 2009/09/08 20:07:35 zdshelby Exp $
+ * $Id: bus.c,v 1.2 2010/01/25 23:12:09 anthony-a Exp $
  */
 
 /**
@@ -38,13 +38,14 @@
  *         Adam Dunkels <adam@sics.se>
  */
 
+#include "banked.h"
 #include "cc2430_sfr.h"
 #include "dev/bus.h"
 #include "sys/clock.h"
 
 /*---------------------------------------------------------------------------*/
 void
-bus_init(void)
+bus_init (void) __banked
 {
   CLKCON = (0x00 | OSC32K); 			/* 32k internal */
   while(CLKCON != (0x00 | OSC32K));
@@ -65,7 +66,7 @@ bus_init(void)
  * \param size    number of bytes to read
  */
 void
-flash_read(uint8_t *buf, uint32_t address, uint8_t size)
+flash_read (uint8_t *buf, uint32_t address, uint8_t size) __banked
 {
   buf;	 	/*dptr0*/
   address; 	/*stack-6*/

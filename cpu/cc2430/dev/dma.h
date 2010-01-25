@@ -8,7 +8,7 @@
 
 #ifndef __DMA_H
 #define __DMA_H
-
+#include "banked.h"
 #include "cc2430_sfr.h"
 
 /** DMA triggers */
@@ -93,7 +93,7 @@ typedef struct dma_config_t
 
 }dma_config_t;
 
-extern void dma_init(void);
+extern void dma_init(void) __banked;
 typedef void (*dma_func)(void *);
 
 extern dma_config_t dma_conf[4];
@@ -101,14 +101,20 @@ extern dma_config_t dma_conf[4];
 #ifdef HAVE_DMA
 typedef uint8_t xDMAHandle;
 
-extern xDMAHandle dma_config(uint8_t channel, void *src, dma_inc_t src_inc, void *dst, dma_inc_t dst_inc,
+#define dma_config(channel, src, src_inc, dst, dst_inc, length, vlen_mode, t_mode, trigger, proc) dma_config2(channel,src,src_inc, dst, dst_inc, length, 0, vlen_mode, t_mode, trigger, proc)
+/* 
+ extern xDMAHandle dma_config(uint8_t channel, void *src, dma_inc_t src_inc, void *dst, dma_inc_t dst_inc, 
                              uint16_t length, dma_vlen_t vlen_mode, dma_type_t t_mode,
 			     dma_trigger_t trigger, struct process * p);
-extern uint8_t dma_arm(xDMAHandle channel);
-extern uint8_t dma_abort(xDMAHandle channel);
-extern uint8_t dma_trigger(xDMAHandle channel);
-extern uint8_t dma_state(xDMAHandle channel);
-void dma_config_print(xDMAHandle channel);
+*/
+extern xDMAHandle dma_config2(uint8_t channel, void *src, dma_inc_t src_inc, void *dst, dma_inc_t dst_inc,
+                             uint16_t length, uint8_t word_mode, dma_vlen_t vlen_mode, dma_type_t t_mode,
+			     dma_trigger_t trigger, struct process * p) __banked;
+extern uint8_t dma_arm(xDMAHandle channel) __banked;
+extern uint8_t dma_abort(xDMAHandle channel) __banked;
+extern uint8_t dma_trigger(xDMAHandle channel) __banked;
+extern uint8_t dma_state(xDMAHandle channel) __banked;
+void dma_config_print(xDMAHandle channel) __banked;
 #endif
 
 extern void dma_ISR( void ) __interrupt (DMA_VECTOR);

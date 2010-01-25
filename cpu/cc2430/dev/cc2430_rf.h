@@ -8,6 +8,7 @@
 #ifndef __CC2430_RF_H__
 #define __CC2430_RF_H__
 
+#include "banked.h"
 #include "contiki.h"
 #include "dev/radio.h"
 #include "cc2430_sfr.h"
@@ -66,15 +67,19 @@ void cc2430_rf_set_receiver(void (* recv)(const struct radio_driver *));
 int cc2430_rf_on(void);
 int cc2430_rf_off(void);
 int cc2430_rf_read(void *buf, unsigned short bufsize);
-int cc2430_rf_send(const void *data, unsigned short len);
+int cc2430_rf_read_banked (void *buf, unsigned short bufsize) __banked;
+int cc2430_rf_send(void *data, unsigned short len);
+int cc2430_rf_send_b (void *data, unsigned short len) __banked;
+extern unsigned short cc2430_rf_payload_len;
+extern void *cc2430_rf_payload;
 
 /* RF driver functions */
-void cc2430_rf_init(void);
-void cc2430_rf_command(uint8_t command);
+void cc2430_rf_init(void) __banked;
+void cc2430_rf_command(uint8_t command) __banked;
 int8_t cc2430_rf_channel_set(uint8_t channel);
 int8_t cc2430_rf_power_set(uint8_t new_power);
-int8_t cc2430_rf_rx_enable(void);
-int8_t cc2430_rf_rx_disable(void);
+int8_t cc2430_rf_rx_enable(void) __banked;
+int8_t cc2430_rf_rx_disable(void) __banked;
 int8_t cc2430_rf_tx_enable(void);
 int8_t cc2430_rf_address_decoder_mode(rf_address_mode_t mode);
 int8_t cc2430_rf_analyze_rssi(void);
