@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ScriptRunner.java,v 1.25 2010/01/15 10:52:55 fros4943 Exp $
+ * $Id: ScriptRunner.java,v 1.26 2010/01/25 07:49:42 fros4943 Exp $
  */
 
 package se.sics.cooja.plugins;
@@ -46,18 +46,35 @@ import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.util.*;
+import java.util.Collection;
+import java.util.Observable;
+import java.util.Observer;
+import java.util.Vector;
 
 import javax.script.ScriptException;
-import javax.swing.*;
+import javax.swing.AbstractAction;
+import javax.swing.BorderFactory;
+import javax.swing.JButton;
+import javax.swing.JDialog;
+import javax.swing.JMenuItem;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JPopupMenu;
+import javax.swing.JScrollPane;
+import javax.swing.JSplitPane;
+import javax.swing.JTextArea;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
+
 import org.apache.log4j.Logger;
 import org.jdom.Element;
 
-import se.sics.cooja.*;
+import se.sics.cooja.ClassDescription;
+import se.sics.cooja.GUI;
+import se.sics.cooja.PluginType;
+import se.sics.cooja.Simulation;
+import se.sics.cooja.VisPlugin;
 import se.sics.cooja.dialogs.MessageList;
-import se.sics.cooja.plugins.ScriptParser.ScriptSyntaxErrorException;
 import se.sics.cooja.util.StringUtils;
 
 @ClassDescription("Contiki Test Editor")
@@ -163,7 +180,7 @@ public class ScriptRunner extends VisPlugin {
         }
         lineTextArea.setText(txt);
         
-        ScriptParser parser;
+        /*ScriptParser parser;
         try {
           parser = new ScriptParser(scriptTextArea.getText());
           String tooltip = parser.getJSCode();
@@ -172,7 +189,7 @@ public class ScriptRunner extends VisPlugin {
           lineTextArea.setToolTipText(tooltip);
         } catch (ScriptSyntaxErrorException e) {
           lineTextArea.setToolTipText("Unable to generate code: " + e.getMessage());
-        }
+        }*/
       }
 
       public void changedUpdate(DocumentEvent e) {
