@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: log.c,v 1.7 2009/10/19 18:00:49 fros4943 Exp $
+ * $Id: log.c,v 1.8 2010/01/25 12:34:05 fros4943 Exp $
  */
 
 #include <stdio.h>
@@ -45,9 +45,15 @@
 #define MAX_LOG_LENGTH 1024
 #endif /* WITH_UIP */
 
+#if MAX_LOG_LENGTH < 1024
+#undef MAX_LOG_LENGTH
+#define MAX_LOG_LENGTH 1024
+#endif /* MAX_LOG_LENGTH < 1024 */
+
+
 const struct simInterface simlog_interface;
 
-// COOJA variables
+/* Variables shared between COOJA and Contiki */
 char simLoggedData[MAX_LOG_LENGTH];
 int simLoggedLength;
 char simLoggedFlag;
@@ -74,7 +80,7 @@ simlog(const char *message)
     return;
   }
 
-  memcpy(&simLoggedData[0] + simLoggedLength, &message[0], strlen(message));
+  memcpy(simLoggedData + simLoggedLength, message, strlen(message));
   simLoggedLength += strlen(message);
   simLoggedFlag = 1;
 }
@@ -108,6 +114,7 @@ int
 puts(const char* s)
 {
   simlog(s);
+  simlog_char('\n');
   return 0;
 }
 /*-----------------------------------------------------------------------------------*/
@@ -117,8 +124,8 @@ printf(const char *fmt, ...)
   int res;
   static char buf[MAX_LOG_LENGTH];
   va_list ap;
-  va_start (ap, fmt);
-  res = vsnprintf (buf, MAX_LOG_LENGTH, fmt, ap);
+  va_start(ap, fmt);
+  res = vsnprintf(buf, MAX_LOG_LENGTH, fmt, ap);
   va_end(ap);
 
   simlog(buf);
