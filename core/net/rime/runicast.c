@@ -34,7 +34,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: runicast.c,v 1.8 2009/12/18 14:49:42 nifi Exp $
+ * $Id: runicast.c,v 1.9 2010/01/26 10:19:26 adamdunkels Exp $
  */
 
 /**
@@ -51,7 +51,11 @@
 
 #define RUNICAST_PACKET_ID_BITS 2
 
+#ifdef RUNICAST_CONF_REXMIT_TIME
+#define REXMIT_TIME RUNICAST_CONF_REXMIT_TIME
+#else /* RUNICAST_CONF_REXMIT_TIME */
 #define REXMIT_TIME CLOCK_SECOND
+#endif /* RUNICAST_CONF_REXMIT_TIME */
 
 static const struct packetbuf_attrlist attributes[] =
   {
