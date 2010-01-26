@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#)$Id: cc2420-arch-sfd.c,v 1.2 2010/01/19 13:11:01 adamdunkels Exp $
+ * @(#)$Id: cc2420-arch-sfd.c,v 1.3 2010/01/26 10:20:16 adamdunkels Exp $
  */
 
 #include <io.h>
@@ -35,9 +35,9 @@
 #include "dev/spi.h"
 #include "dev/cc2420.h"
 
-uint8_t cc2420_arch_sfd_counter;
-uint16_t cc2420_arch_sfd_start_time;
-uint16_t cc2420_arch_sfd_end_time;
+volatile uint8_t cc2420_arch_sfd_counter;
+volatile uint16_t cc2420_arch_sfd_start_time;
+volatile uint16_t cc2420_arch_sfd_end_time;
 
 /*---------------------------------------------------------------------------*/
 /* SFD interrupt for timestamping radio packets */
