@@ -33,7 +33,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: polite-announcement.c,v 1.9 2010/01/25 13:55:17 adamdunkels Exp $
+ * $Id: polite-announcement.c,v 1.10 2010/01/26 10:18:55 adamdunkels Exp $
  */
 
 /**
@@ -62,7 +62,11 @@ struct announcement_data {
   uint16_t value;
 };
 
+#ifdef POLITE_ANNOUNCEMENT_CONF_MAX_DUPS
+#define NUM_DUPS POLITE_ANNOUNCEMENT_CONF_MAX_DUPS
+#else /* POLITE_ANNOUNCEMENT_CONF_MAX_DUPS */
 #define NUM_DUPS 5
+#endif /* POLITE_ANNOUNCEMENT_CONF_MAX_DUPS */
 
 #define ANNOUNCEMENT_MSG_HEADERLEN 2
 struct announcement_msg {
