@@ -33,7 +33,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: route-discovery.c,v 1.19 2009/11/08 19:40:17 adamdunkels Exp $
+ * $Id: route-discovery.c,v 1.20 2010/01/27 08:12:56 adamdunkels Exp $
  */
 
 /**
@@ -188,7 +188,13 @@ rrep_packet_received(struct unicast_conn *uc, const rimeaddr_t *from)
     rrep_pending = 0;
     ctimer_stop(&c->t);
     if(c->cb->new_route) {
-      c->cb->new_route(c, &msg->originator);
+      rimeaddr_t originator;
+
+      /* If the callback modifies the packet, the originator address
+         will be lost. Therefore, we need to copy it into a local
+         variable before calling the callback. */
+      rimeaddr_copy(&originator, &msg->originator);
+      c->cb->new_route(c, &originator);
     }
 
   } else {
