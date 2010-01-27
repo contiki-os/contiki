@@ -1,0 +1,38 @@
+<?xml version="1.0"?>
+
+<project name="COOJA: Serial socket" default="jar" basedir=".">
+  <property name="cooja" location="../.."/>
+  <property name="cooja_jar" value="../../dist/cooja.jar"/>
+
+  <target name="init">
+    <tstamp/>
+  </target>
+
+  <target name="compile" depends="init">
+    <mkdir dir="build"/>
+    <javac srcdir="java" destdir="build" debug="on">
+      <classpath>
+        <pathelement path="."/>
+        <pathelement location="${cooja_jar}"/>
+      </classpath>
+    </javac>
+  </target>
+
+  <target name="clean" depends="init">
+	<delete dir="build"/>
+  </target>
+
+  <target name="jar" depends="clean, init, compile">
+    <mkdir dir="lib"/>
+    <jar destfile="lib/serial_socket.jar" basedir="build">
+      <manifest>
+        <attribute name="Class-Path" value="."/>
+      </manifest>
+    </jar>
+  </target>
+
+  <target name="jar_and_cooja_run" depends="jar">
+	<ant antfile="build.xml" dir="${cooja}" target="run" inheritAll="false"/>
+  </target>
+
+</project>
