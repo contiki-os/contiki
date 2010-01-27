@@ -30,7 +30,7 @@
 #
 # Author: Oliver Schmidt <ol.sc@web.de>
 #
-# $Id: Makefile.c64,v 1.6 2009/10/18 09:58:21 oliverschmidt Exp $
+# $Id: Makefile.c64,v 1.7 2010/01/27 22:37:16 oliverschmidt Exp $
 #
 
 CONTIKI_CPU = $(CONTIKI)/cpu/6502
@@ -53,7 +53,7 @@ disk: all
 	$(C1541) -attach $(DISK) -write cs8900a.eth                           cs8900a.eth
 	$(C1541) -attach $(DISK) -write lan91c96.eth                          lan91c96.eth
 ifeq ($(findstring WITH_MOUSE,$(DEFINES)),WITH_MOUSE)
-	$(C1541) -attach $(DISK) -write $(LD65_LIB)/../mou/c64-1351.mou       c64-1351.mou
+	$(C1541) -attach $(DISK) -write $(CC65_HOME)/mou/c64-1351.mou         c64-1351.mou
 endif
 ifeq ($(HTTPD-CFS),1)
 	$(C1541) -attach $(DISK) -write httpd-cfs/index.html                  index.html
