@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: csma.c,v 1.1 2010/01/25 11:46:44 adamdunkels Exp $
+ * $Id: csma.c,v 1.2 2010/01/27 07:36:31 adamdunkels Exp $
  */
 
 /**
@@ -49,6 +49,8 @@
 
 #include "lib/list.h"
 #include "lib/memb.h"
+
+#include <string.h>
 
 struct queued_packet {
   struct queued_packet *next;
@@ -181,7 +183,7 @@ channel_check_interval(void)
 static char namebuf[NAMEBUF_LEN];
 const struct mac_driver csma_driver = {
   namebuf,
-  csma_init,
+  (const struct mac_driver *(*)(const struct radio_driver *psc))csma_init,
   send_packet,
   read_packet,
   set_receive_function,
