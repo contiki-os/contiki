@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: bridge-conf.h,v 1.4 2009/11/02 11:46:49 adamdunkels Exp $
+ * $Id: bridge-conf.h,v 1.5 2010/01/28 13:49:24 adamdunkels Exp $
  */
 
 /**
@@ -55,5 +55,6 @@
 
 #define CC2420_CONF_AUTOACK     1
 
-
+#undef UIP_CONF_BUFFER_SIZE
+#define UIP_CONF_BUFFER_SIZE  256
 #endif /* __BRIDGE_CONF_H__ */
