@@ -33,7 +33,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: sicslowpan.h,v 1.4 2009/04/06 13:11:20 nifi Exp $
+ * $Id: sicslowpan.h,v 1.5 2010/01/28 13:50:51 adamdunkels Exp $
  */
 /**
  * \file
@@ -255,5 +255,6 @@ struct sicslowpan_addr_context {
  */
 void sicslowpan_init(const struct mac_driver *m);
 
+extern const struct mac_driver *sicslowpan_mac;
 #endif /* __SICSLOWPAN_H__ */
 /** @} */
