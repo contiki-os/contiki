@@ -32,7 +32,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: sicslowpan.c,v 1.10 2009/11/02 11:58:56 adamdunkels Exp $
+ * $Id: sicslowpan.c,v 1.11 2010/01/28 13:50:51 adamdunkels Exp $
  */
 /**
  * \file
@@ -142,7 +142,7 @@ void uip_log(char *msg);
  *  @{
  */
 /** A pointer to the mac driver */
-static const struct mac_driver *mac;
+const struct mac_driver *sicslowpan_mac;
 
 /**
  * A pointer to the rime buffer.
@@ -1109,10 +1109,10 @@ send_packet(rimeaddr_t *dest)
    */
   packetbuf_set_addr(PACKETBUF_ADDR_RECEIVER, dest);
 
-  if(mac != NULL) {
+  if(sicslowpan_mac != NULL) {
   /** \todo: Fix sending delays so they aren't blocking, or even better would
    *         be to figure out how to get rid of delays entirely */
-    mac->send();
+    sicslowpan_mac->send();
   }
 }
 
@@ -1466,10 +1466,10 @@ void
 sicslowpan_init(const struct mac_driver *m)
 {
   /* remember the mac driver */
-  mac = m;
+  sicslowpan_mac = m;
  
   /* Set our input function as the receive function of the MAC. */
-  mac->set_receive_function(input);
+  sicslowpan_mac->set_receive_function(input);
 
   /*
    * Set out output function as the function to be called from uIP to
