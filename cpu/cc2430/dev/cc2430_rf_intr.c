@@ -23,6 +23,12 @@
 
 #include "net/rime/packetbuf.h"
 #include "net/rime/rimestats.h"
+#define DEBUG 1
+#if DEBUG
+#define PRINTF(...) printf(__VA_ARGS__)
+#else
+#define PRINTF(...) do {} while (0)
+#endif
 
 #ifdef RF_LED_ENABLE
 #define RF_RX_LED_ON()		leds_on(LEDS_RED);
@@ -42,7 +48,7 @@ uint8_t rf_error = 0;
 
 
 /*---------------------------------------------------------------------------*/
-PROCESS_NAME(cc2430_rf_process);
+PROCESS(cc2430_rf_process, "CC2430 RF driver");
 
 /*---------------------------------------------------------------------------*/
 /**
@@ -94,7 +100,8 @@ cc2430_rf_error_ISR( void ) __interrupt (RFERR_VECTOR)
   EA = 1;
 }
 
-extern void (* receiver_callback)(const struct radio_driver *);
+void (* receiver_callback)(const struct radio_driver *);
+
 void
 cc2430_rf_set_receiver(void (* recv)(const struct radio_driver *))
 {
@@ -123,8 +130,26 @@ cc2430_rf_send(void *payload, unsigned short payload_len)
 }
 /*---------------------------------------------------------------------------*/
 int
-cc2430_rf_read(void *buf, unsigned short bufsize) __banked
+cc2430_rf_read(void *buf, unsigned short bufsize) 
 {
   return cc2430_rf_read_banked(buf, bufsize);
 }
 /*---------------------------------------------------------------------------*/
+/*---------------------------------------------------------------------------*/
+PROCESS_THREAD(cc2430_rf_process, ev, data)
+{
+  PROCESS_BEGIN();
+  while(1) {
+    PROCESS_YIELD_UNTIL(ev == PROCESS_EVENT_POLL);
+
+    if(receiver_callback != NULL) {
+      PRINTF("cc2430_rf_process: calling receiver callback\n");
+      receiver_callback(&cc2430_rf_driver);
+    } else {
+      PRINTF("cc2430_rf_process: no receiver callback\n");
+      cc2430_rf_command(ISFLUSHRX);
+    }
+  }
+
+  PROCESS_END();
+}
