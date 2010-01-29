@@ -14,14 +14,12 @@
 #include "dev/radio.h"
 #include "dev/cc2430_rf.h"
 #include "cc2430_sfr.h"
-#include "dev/leds.h"
 #include "sys/clock.h"
 
 #include "net/rime/packetbuf.h"
 #include "net/rime/rimestats.h"
 
-void (* receiver_callback)(const struct radio_driver *);
-
+extern void (* receiver_callback)(const struct radio_driver *);
 #ifndef RF_DEFAULT_POWER
 #define RF_DEFAULT_POWER 100
 #endif
@@ -40,12 +38,21 @@ void (* receiver_callback)(const struct radio_driver *);
 #else
 #define CHECKSUM_LEN 2
 #endif /* CC2430_CONF_CHECKSUM */
-
+#if DEBUG_LEDS
+/* moved leds code to BANK1 to make space for cc2430_rf_process in HOME */
+/* can't call code in BANK1 from alternate banks unless it is marked with __banked */
+#include "dev/leds.h"
 #define RF_RX_LED_ON()		leds_on(LEDS_RED);
 #define RF_RX_LED_OFF()		leds_off(LEDS_RED);
 #define RF_TX_LED_ON()		leds_on(LEDS_GREEN);
 #define RF_TX_LED_OFF()		leds_off(LEDS_GREEN);
-
+#else
+#define RF_RX_LED_ON()		
+#define RF_RX_LED_OFF()		
+#define RF_TX_LED_ON()		
+#define RF_TX_LED_OFF()		
+#endif
+#include "dev/brione_lcd.h"
 #define DEBUG 1
 #if DEBUG
 #define PRINTF(...) printf(__VA_ARGS__)
@@ -72,7 +79,7 @@ uint8_t rf_softack;
 uint16_t rf_panid;
 
 /*---------------------------------------------------------------------------*/
-PROCESS(cc2430_rf_process, "CC2430 RF driver");
+PROCESS_NAME(cc2430_rf_process);
 /*---------------------------------------------------------------------------*/
 
 const struct radio_driver cc2430_rf_driver =
@@ -84,25 +91,6 @@ const struct radio_driver cc2430_rf_driver =
     cc2430_rf_off,
   };
 
-/*---------------------------------------------------------------------------*/
-PROCESS_THREAD(cc2430_rf_process, ev, data)
-{
-  PROCESS_BEGIN();
-
-  while(1) {
-    PROCESS_YIELD_UNTIL(ev == PROCESS_EVENT_POLL);
-
-    if(receiver_callback != NULL) {
-      PRINTF("cc2430_rf_process: calling receiver callback\n");
-      receiver_callback(&cc2430_rf_driver);
-    } else {
-      PRINTF("cc2430_rf_process: no receiver callback\n");
-      cc2430_rf_command(ISFLUSHRX);
-    }
-  }
-
-  PROCESS_END();
-}
 /*---------------------------------------------------------------------------*/
 void
 cc2430_rf_init(void) __banked
@@ -227,7 +215,6 @@ cc2430_rf_read_banked(void *buf, unsigned short bufsize) __banked
 
   /* Check the length */
   len = RFD;
-  PRINTF("cc2430_rf: received %d bytes\n", len);
 
   /* Check for validity */
   if(len > CC2430_MAX_PACKET_LEN) {
@@ -266,7 +253,6 @@ cc2430_rf_read_banked(void *buf, unsigned short bufsize) __banked
     checksum = RFD * 256;
     checksum += RFD;
 #endif /* CC2430_CONF_CHECKSUM */
-
   packetbuf_set_attr(PACKETBUF_ATTR_RSSI, ((int8_t) RFD) - 45);
   packetbuf_set_attr(PACKETBUF_ATTR_LINK_QUALITY, RFD);
 
