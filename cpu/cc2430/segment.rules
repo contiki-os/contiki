@@ -13,6 +13,8 @@
 #  code not marked with __banked can only be called from code in the same bank  
 #
 HOME intr.c  # All interrupt code must live in HOME/BANK0
+HOME bus.c  # flash_read cannot be banked.
+HOME clock.c  # cannot bank clock.c code because header file is part of core.
 HOME uart.c
 BANK3 uart_init.c
 BANK2 dma.c
