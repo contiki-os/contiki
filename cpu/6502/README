@@ -43,7 +43,7 @@ MTU_SIZE
 
 WITH_LOGGING
 - Default: 0
-- Purpose: Have log_message() write messages to the screen.
+- Purpose: Have log_message() and UIP_LOG() write messages to the screen.
 
 WITH_BOOST
 - Default: 0

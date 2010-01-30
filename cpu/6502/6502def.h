@@ -30,7 +30,7 @@
  *
  * Author: Oliver Schmidt <ol.sc@web.de>
  *
- * @(#)$Id: 6502def.h,v 1.17 2009/03/01 12:26:53 oliverschmidt Exp $
+ * @(#)$Id: 6502def.h,v 1.18 2010/01/30 20:48:31 oliverschmidt Exp $
  */
 
 #ifndef __6502DEF_H__
@@ -68,8 +68,10 @@ typedef unsigned short uip_stats_t;
 
 #if WITH_LOGGING
 #define LOG_CONF_ENABLED 1
+#define UIP_CONF_LOGGING 1
 #else /* WITH_LOGGING */
 #define LOG_CONF_ENABLED 0
+#define UIP_CONF_LOGGING 0
 #endif /* WITH_LOGGING */
 
 #if MTU_SIZE
