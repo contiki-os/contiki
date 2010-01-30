@@ -30,7 +30,7 @@
  *
  * Author: Oliver Schmidt <ol.sc@web.de>
  *
- * @(#)$Id: 6502def.h,v 1.18 2010/01/30 20:48:31 oliverschmidt Exp $
+ * @(#)$Id: 6502def.h,v 1.19 2010/01/30 20:54:15 oliverschmidt Exp $
  */
 
 #ifndef __6502DEF_H__
@@ -99,11 +99,9 @@ typedef unsigned short uip_stats_t;
 #endif /* WITH_CLIENT */
 
 #if WITH_DNS
-#define UIP_CONF_UDP           1
-#define UIP_CONF_UDP_CHECKSUMS 1
+#define UIP_CONF_UDP 1
 #else /* WITH_DNS */
-#define UIP_CONF_UDP           0
-#define UIP_CONF_UDP_CHECKSUMS 0
+#define UIP_CONF_UDP 0
 #endif /* WITH_DNS */
 
 #define CTK_CONF_WIDGET_FLAGS 0
