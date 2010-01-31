@@ -30,7 +30,7 @@
  * 
  * Author: Oliver Schmidt <ol.sc@web.de>
  *
- * $Id: contiki-conf.h,v 1.4 2010/01/31 20:42:49 oliverschmidt Exp $
+ * $Id: contiki-conf.h,v 1.5 2010/01/31 21:54:36 oliverschmidt Exp $
  */
 
 #ifndef __CONTIKI_CONF_H__
@@ -55,6 +55,10 @@
 #define WIDGETCOLOR_FOCUS COLOR_YELLOW
 #define WIDGETCOLOR_FWIN  COLOR_LIGHTBLUE
 #define WIDGETCOLOR_HLINK COLOR_CYAN
+
+#define EMAIL_CONF_WIDTH  79
+#define EMAIL_CONF_HEIGHT 20
+#define EMAIL_CONF_ERASE   0
 
 #define IRC_CONF_WIDTH  80
 #define IRC_CONF_HEIGHT 24

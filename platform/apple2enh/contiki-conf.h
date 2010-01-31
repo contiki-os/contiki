@@ -30,7 +30,7 @@
  * 
  * Author: Oliver Schmidt <ol.sc@web.de>
  *
- * $Id: contiki-conf.h,v 1.17 2010/01/31 18:30:50 oliverschmidt Exp $
+ * $Id: contiki-conf.h,v 1.18 2010/01/31 21:50:11 oliverschmidt Exp $
  */
 
 #ifndef __CONTIKI_CONF_H__
@@ -47,6 +47,10 @@
 
 #define MOUSE_CONF_XTOC(x) ((x) * 2 / 7)
 #define MOUSE_CONF_YTOC(y) ((y) / 8)
+
+#define EMAIL_CONF_WIDTH  79
+#define EMAIL_CONF_HEIGHT 19
+#define EMAIL_CONF_ERASE   0
 
 #define IRC_CONF_WIDTH  80
 #define IRC_CONF_HEIGHT 23
