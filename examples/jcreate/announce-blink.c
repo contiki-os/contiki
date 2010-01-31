@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: announce-blink.c,v 1.1 2009/03/24 19:45:46 adamdunkels Exp $
+ * $Id: announce-blink.c,v 1.2 2010/01/31 16:47:44 nifi Exp $
  */
 
 /**
@@ -109,7 +109,7 @@ remove_neighbor(void *dummy)
 }
 /*---------------------------------------------------------------------------*/
 static void
-received_announcement(struct announcement *a, rimeaddr_t *from,
+received_announcement(struct announcement *a, const rimeaddr_t *from,
 		      uint16_t id, uint16_t value)
 {
   struct neighbor_entry *e;
@@ -169,7 +169,7 @@ PROCESS_THREAD(announce_blink_process, ev, data)
 #endif /* CONTIKI_TARGET_NATIVE */
   
 #if CONTIKI_TARGET_SKY
-  acc_sensor.activate();
+  SENSORS_ACTIVATE(acc_sensor);
 
   /* Lower the transmission power for the announcements so that only
      close-range neighbors are noticed. (Makes for a nicer visual
