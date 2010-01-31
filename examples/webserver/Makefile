@@ -1,4 +1,4 @@
-CONTIKI_PROJECT = webserver-example
+CONTIKI_PROJECT = webserver
 all: $(CONTIKI_PROJECT)
 
 APPS = webserver
