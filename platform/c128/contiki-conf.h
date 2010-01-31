@@ -30,7 +30,7 @@
  * 
  * Author: Oliver Schmidt <ol.sc@web.de>
  *
- * $Id: contiki-conf.h,v 1.3 2010/01/30 20:48:31 oliverschmidt Exp $
+ * $Id: contiki-conf.h,v 1.4 2010/01/31 20:42:49 oliverschmidt Exp $
  */
 
 #ifndef __CONTIKI_CONF_H__
@@ -56,9 +56,14 @@
 #define WIDGETCOLOR_FWIN  COLOR_LIGHTBLUE
 #define WIDGETCOLOR_HLINK COLOR_CYAN
 
+#define IRC_CONF_WIDTH  80
+#define IRC_CONF_HEIGHT 24
+
 #define WEBSERVER_CONF_CGI_CONNS UIP_CONNS
 #define WEBSERVER_CONF_CFS_CONNS 8
 
+#define WWW_CONF_WEBPAGE_WIDTH      80
+#define WWW_CONF_WEBPAGE_HEIGHT     20
 #define WWW_CONF_HISTORY_SIZE        4
 #define WWW_CONF_MAX_URLLEN         38
 #define WWW_CONF_MAX_NUMPAGEWIDGETS 20
