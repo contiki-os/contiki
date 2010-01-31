@@ -29,7 +29,7 @@
  *
  * This file is part of the Contiki desktop environment for the C64.
  *
- * $Id: email.c,v 1.6 2010/01/31 21:13:38 oliverschmidt Exp $
+ * $Id: email.c,v 1.7 2010/01/31 21:44:49 oliverschmidt Exp $
  *
  */
 
@@ -161,7 +161,8 @@ static struct ctk_textentry pop3passwordtextentry =
 */
 
 static struct ctk_button setupokbutton =
-  {CTK_BUTTON(24, 15, 2, "Ok")};
+/*  {CTK_BUTTON(24, 15, 2, "Ok")};*/
+  {CTK_BUTTON(24, 6, 2, "Ok")};
 
 PROCESS(email_process, "E-mail client");
 
@@ -201,6 +202,8 @@ applyconfig(void)
   uiplib_ipaddrconv(smtpserver, (unsigned char *)addr);
 #endif /* UIP_UDP */
   smtp_configure("contiki", addrptr);
+
+  petsciiconv_toascii(fromaddress, sizeof(fromaddress));
 }
 /*-----------------------------------------------------------------------------------*/
 static void
@@ -239,18 +242,19 @@ PROCESS_THREAD(email_process, ev, data)
 #endif /* MAIL_ERASE */
   
   /* Create setup window. */
-  ctk_window_new(&setupwindow, 28, 16, "E-mail setup");
+/*  ctk_window_new(&setupwindow, 28, 16, "E-mail setup");*/
+  ctk_window_new(&setupwindow, 28, 7, "E-mail setup");
   
   CTK_WIDGET_ADD(&setupwindow, &fromaddresslabel);
   CTK_WIDGET_ADD(&setupwindow, &fromaddresstextentry);
   CTK_WIDGET_ADD(&setupwindow, &smtpserverlabel);
   CTK_WIDGET_ADD(&setupwindow, &smtpservertextentry);
-  /*	  CTK_WIDGET_ADD(&setupwindow, &pop3serverlabel);*/
-  /*    CTK_WIDGET_ADD(&setupwindow, &pop3servertextentry);*/
-  /*	  CTK_WIDGET_ADD(&setupwindow, &pop3userlabel);*/
-  /*    CTK_WIDGET_ADD(&setupwindow, &pop3usertextentry);*/
-  /*    CTK_WIDGET_ADD(&setupwindow, &pop3passwordlabel);*/
-  /*    CTK_WIDGET_ADD(&setupwindow, &pop3passwordtextentry);*/
+/*  CTK_WIDGET_ADD(&setupwindow, &pop3serverlabel);*/
+/*  CTK_WIDGET_ADD(&setupwindow, &pop3servertextentry);*/
+/*  CTK_WIDGET_ADD(&setupwindow, &pop3userlabel);*/
+/*  CTK_WIDGET_ADD(&setupwindow, &pop3usertextentry);*/
+/*  CTK_WIDGET_ADD(&setupwindow, &pop3passwordlabel);*/
+/*  CTK_WIDGET_ADD(&setupwindow, &pop3passwordtextentry);*/
   CTK_WIDGET_ADD(&setupwindow, &setupokbutton);
   
   CTK_WIDGET_FOCUS(&setupwindow, &fromaddresstextentry);
