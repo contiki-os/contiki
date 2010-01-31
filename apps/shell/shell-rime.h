@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: shell-rime.h,v 1.5 2009/11/03 22:52:39 adamdunkels Exp $
+ * $Id: shell-rime.h,v 1.6 2010/01/31 23:57:22 adamdunkels Exp $
  */
 
 /**
@@ -48,8 +48,11 @@ void shell_rime_init(void);
 /* Rime channel used by the 'unicast' debug command, which uses 1 channel */
 #define SHELL_RIME_CHANNEL_UNICAST   20
 
+/* Rime channel used by the 'runicast' debug command, which uses 1 channel */
+#define SHELL_RIME_CHANNEL_RUNICAST  SHELL_RIME_CHANNEL_UNICAST + 1
+
 /* Rime channel used by the 'broadcast' debug command, which uses 1 channel */
-#define SHELL_RIME_CHANNEL_BROADCAST SHELL_RIME_CHANNEL_UNICAST + 1
+#define SHELL_RIME_CHANNEL_BROADCAST SHELL_RIME_CHANNEL_RUNICAST + 1
 
 /* Rime channel used by the 'nodes' command, which uses 1 channel */
 #define SHELL_RIME_CHANNEL_NODES     SHELL_RIME_CHANNEL_BROADCAST + 1
