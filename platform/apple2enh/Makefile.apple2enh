@@ -30,7 +30,7 @@
 #
 # Author: Oliver Schmidt <ol.sc@web.de>
 #
-# $Id: Makefile.apple2enh,v 1.10 2010/01/31 09:34:12 oliverschmidt Exp $
+# $Id: Makefile.apple2enh,v 1.11 2010/01/31 18:21:41 oliverschmidt Exp $
 #
 
 CONTIKI_SOURCEFILES += log-asm.S pfs.S
@@ -50,7 +50,7 @@ ifeq ($(MAKECMDGOALS),disk)
   endif
 endif
 
-TRIM_PROJECT := ${shell echo $(CONTIKI_PROJECT) | sed 's!\(.\{1,8\}\).*!\1!'}
+TRIM_PROJECT := ${shell echo $(CONTIKI_PROJECT) | sed 's!\([^-]\{1,8\}\).*!\1!'}
 
 disk: all
 	cp $(CONTIKI)/tools/$(TARGET)/prodos.dsk contiki.dsk
