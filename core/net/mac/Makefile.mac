@@ -1,2 +1,2 @@
-CONTIKI_SOURCEFILES += xmac.c nullmac.c lpp.c frame802154.c sicslowmac.c
+CONTIKI_SOURCEFILES += cxmac.c xmac.c nullmac.c lpp.c frame802154.c sicslowmac.c
 CONTIKI_SOURCEFILES += framer.c framer-nullmac.c framer-802154.c csma.c
