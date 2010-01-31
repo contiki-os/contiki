@@ -135,7 +135,9 @@ typedef unsigned short uip_stats_t;
 
 #define EMAIL_CONF_WIDTH  76
 #define EMAIL_CONF_HEIGHT 30
-
+#ifndef PLATFORM_BUILD
+#define EMAIL_CONF_ERASE   0
+#endif
 
 #define IRC_CONF_WIDTH         78
 #define IRC_CONF_HEIGHT        30
