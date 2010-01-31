@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: csma.c,v 1.2 2010/01/27 07:36:31 adamdunkels Exp $
+ * $Id: csma.c,v 1.3 2010/01/31 13:55:36 adamdunkels Exp $
  */
 
 /**
@@ -124,8 +124,9 @@ send_packet(void)
     ctimer_set(&q->retransmit_timer, time,
 	       retransmit_packet, q);
     list_add(packet_list, q);
+  } else {
+    queuebuf_free(buf);
   }
-  queuebuf_free(buf);
   return ret;
 }
 #else /* CSMA_CONF_REXMIT */
