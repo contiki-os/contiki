@@ -350,8 +350,7 @@
   <plugin>
     se.sics.cooja.plugins.ScriptRunner
     <plugin_config>
-      <script>TIMEOUT(500000, print_stats());
-
+      <script>
 function
 print_stats()
 {
@@ -394,8 +393,9 @@ print_stats()
 	  "% tx " + 100 * total_transmit / (total_cpu + total_lpm) +
   	  "% average latency " + total_latency / (4096 * total_received) +
 	  " ms \n");
-	  
 }
+
+TIMEOUT(500000, print_stats());
 
 /* Conf. */
 booted = new Array();
