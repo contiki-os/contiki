@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#)$Id: contiki-sky-main.c,v 1.64 2010/01/25 11:48:16 adamdunkels Exp $
+ * @(#)$Id: contiki-sky-main.c,v 1.65 2010/02/01 11:55:04 adamdunkels Exp $
  */
 
 #include <signal.h>
@@ -48,6 +48,7 @@
 #include "dev/watchdog.h"
 #include "dev/xmem.h"
 #include "lib/random.h"
+#include "net/mac/csma.h"
 #include "net/mac/frame802154.h"
 #include "net/mac/framer-802154.h"
 #include "net/mac/framer-nullmac.h"
@@ -298,8 +299,16 @@ main(int argc, char **argv)
 
   /* Setup X-MAC for 802.15.4 */
   queuebuf_init();
+#if MAC_CSMA
+  sicslowpan_init(csma_init(MAC_DRIVER.init(&cc2420_driver)));
+#else /* MAC_CSMA */
   sicslowpan_init(MAC_DRIVER.init(&cc2420_driver));
-  printf(" %s channel %u\n", MAC_DRIVER.name, RF_CHANNEL);
+#endif /* MAC_CSMA */ 
+  printf(" %s, channel check rate %d Hz, radio channel %u\n",
+         sicslowpan_mac->name,
+         CLOCK_SECOND / (sicslowpan_mac->channel_check_interval() == 0? 1:
+                         sicslowpan_mac->channel_check_interval()),
+         RF_CHANNEL);
 
   process_start(&tcpip_process, NULL);
 
@@ -316,7 +325,7 @@ main(int argc, char **argv)
 	   uip_netif_physical_if.addresses[0].ipaddr.u8[15]);
   }
   
-  {
+  if(0) {
     uip_ipaddr_t ipaddr;
     int i;
     uip_ip6addr(&ipaddr, 0xaaaa, 0, 0, 0, 0, 0, 0, 0);
