@@ -29,7 +29,7 @@
  *
  * This file is part of the "contiki" web browser.
  *
- * $Id: webclient.c,v 1.7 2008/11/10 21:57:26 oliverschmidt Exp $
+ * $Id: webclient.c,v 1.8 2010/02/01 19:44:30 oliverschmidt Exp $
  *
  */
 
@@ -139,6 +139,7 @@ webclient_get(char *host, u16_t port, char *file)
   
   /* First check if the host is an IP address. */
   ipaddr = &addr[0];
+#if UIP_UDP
   if(uiplib_ipaddrconv(host, (unsigned char *)addr) == 0) {
     ipaddr = resolv_lookup(host);
     
@@ -146,6 +147,9 @@ webclient_get(char *host, u16_t port, char *file)
       return 0;
     }
   }
+#else /* UIP_UDP */
+  uiplib_ipaddrconv(host, (unsigned char *)addr);
+#endif /* UIP_UDP */
   
   conn = tcp_connect((uip_ipaddr_t *)ipaddr, htons(port), NULL);
   
@@ -482,9 +486,11 @@ webclient_appcall(void *state)
 	dispatcher_markconn(conn, NULL);
 	init_connection();
 	}*/
+#if UIP_UDP
       if(resolv_lookup(s.host) == NULL) {
 	resolv_query(s.host);
       }
+#endif /* UIP_UDP */
       webclient_get(s.host, s.port, s.file);
     }
   }
