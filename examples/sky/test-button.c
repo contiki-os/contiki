@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: test-button.c,v 1.2 2010/01/14 14:04:39 joxe Exp $
+ * $Id: test-button.c,v 1.3 2010/02/01 17:40:33 nifi Exp $
  */
 
 /**
@@ -42,6 +42,7 @@
 #include "dev/button-sensor.h"
 #include "dev/light-sensor.h"
 #include "dev/leds.h"
+#include <stdio.h>
 
 /*---------------------------------------------------------------------------*/
 PROCESS(test_button_process, "Test button");
