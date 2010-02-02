@@ -29,7 +29,7 @@
  *
  * This file is part of the Contiki OS
  *
- * $Id: contiki-main.c,v 1.22 2009/08/09 20:51:19 oliverschmidt Exp $
+ * $Id: contiki-main.c,v 1.23 2010/02/02 17:51:55 dak664 Exp $
  *
  */
 
@@ -37,6 +37,7 @@
 #include <time.h>
 #include <sys/select.h>
 #include <unistd.h>
+#include <memory.h>
 
 #include "contiki.h"
 #include "contiki-net.h"
@@ -56,6 +57,42 @@ PROCINIT(&etimer_process, &tcpip_process, &wpcap_process, &serial_line_process);
 PROCINIT(&etimer_process, &tapdev_process, &tcpip_process, &serial_line_process);
 #endif /* __CYGWIN__ */
 
+#if UIP_CONF_IPV6
+/*---------------------------------------------------------------------------*/
+void
+sprint_ip6(uip_ip6addr_t addr)
+{
+  unsigned char i = 0;
+  unsigned char zerocnt = 0;
+  unsigned char numprinted = 0;
+  char thestring[40];
+  char * result = thestring;
+
+  *result++='[';
+  while (numprinted < 8) {
+    if ((addr.u16[i] == 0) && (zerocnt == 0)) {
+      while(addr.u16[zerocnt + i] == 0) zerocnt++;
+      if (zerocnt == 1) {
+        *result++ = '0';
+         numprinted++;
+         break;
+      }
+      i += zerocnt;
+      numprinted += zerocnt;
+    } else {
+      result += sprintf(result, "%x", (unsigned int)(ntohs(addr.u16[i])));
+      i++;
+      numprinted++;
+    }
+    if (numprinted != 8) *result++ = ':';
+  }
+  *result++=']';
+  *result=0;
+  printf("%s",thestring);
+}
+#endif /* UIP_CONF_IPV6 */
+/*---------------------------------------------------------------------------*/
+
 /*---------------------------------------------------------------------------*/
 int
 main(void)
@@ -68,28 +105,39 @@ main(void)
   ctimer_init();
 
   autostart_start(autostart_processes);
-    
+
+  /* Set default IP addresses if not specified */
 #if !UIP_CONF_IPV6
   uip_ipaddr_t addr;
-  uip_ipaddr(&addr, 10,1,1,1);
+  
+  uip_gethostaddr(&addr);
+  if (addr.u8[0]==0) {
+    uip_ipaddr(&addr, 10,1,1,1);
+  }
   printf("IP Address:  %d.%d.%d.%d\n", uip_ipaddr_to_quad(&addr));
   uip_sethostaddr(&addr);
 
-  uip_ipaddr(&addr, 255,0,0,0);
-  printf("Subnet Mask: %d.%d.%d.%d\n", uip_ipaddr_to_quad(&addr));
-  uip_setnetmask(&addr);
-
-  uip_ipaddr(&addr, 10,1,1,100);
-  printf("Def. Router: %d.%d.%d.%d\n", uip_ipaddr_to_quad(&addr));
-  uip_setdraddr(&addr);
-#else /* !UIP_CONF_IPV6 */
-  {
-    uip_ipaddr_t ipaddr;
-    
-    uip_ip6addr(&ipaddr, 0xaaaa, 0, 0, 0, 0, 0, 0, 0);
-    uip_netif_addr_autoconf_set(&ipaddr, &uip_lladdr);
-    uip_netif_addr_add(&ipaddr, 16, 0, TENTATIVE);
+  uip_getnetmask(&addr);
+  if (addr.u8[0]==0) {
+    uip_ipaddr(&addr, 255,0,0,0);
+    uip_setnetmask(&addr);
   }
+  printf("Subnet Mask: %d.%d.%d.%d\n", uip_ipaddr_to_quad(&addr));
+
+  uip_getdraddr(&addr);
+  if (addr.u8[0]==0) {
+    uip_ipaddr(&addr, 10,1,1,100);
+    uip_setdraddr(&addr);
+  }
+  printf("Def. Router: %d.%d.%d.%d\n", uip_ipaddr_to_quad(&addr));
+
+#else /* !UIP_CONF_IPV6 */
+  uip_ipaddr_t ipaddr;
+
+  uip_ip6addr(&ipaddr, 0xaaaa, 0, 0, 0, 0, 0, 0, 0);
+  uip_netif_addr_autoconf_set(&ipaddr, &uip_lladdr);
+  uip_netif_addr_add(&ipaddr, 16, 0, TENTATIVE);
+  printf("IP6 Address: ");sprint_ip6(ipaddr);printf("\n");
 #endif /* !UIP_CONF_IPV6 */
 
   /* Make standard output unbuffered. */
