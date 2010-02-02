@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: example-unicast.c,v 1.4 2009/11/19 17:31:23 nifi Exp $
+ * $Id: example-unicast.c,v 1.5 2010/02/02 16:36:46 adamdunkels Exp $
  */
 
 /**
@@ -77,9 +77,11 @@ PROCESS_THREAD(example_unicast_process, ev, data)
     PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&et));
 
     packetbuf_copyfrom("Hello", 5);
-    addr.u8[0] = 41;
-    addr.u8[1] = 41;
-    unicast_send(&uc, &addr);
+    addr.u8[0] = 1;
+    addr.u8[1] = 0;
+    if(!rimeaddr_cmp(&addr, &rimeaddr_node_addr)) {
+      unicast_send(&uc, &addr);
+    }
 
   }
 
