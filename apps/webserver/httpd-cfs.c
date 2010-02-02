@@ -30,9 +30,13 @@
  *
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: httpd-cfs.c,v 1.11 2009/02/09 13:04:37 fros4943 Exp $
+ * $Id: httpd-cfs.c,v 1.12 2010/02/02 18:17:55 adamdunkels Exp $
  */
 
+#include <stdio.h>
+#ifndef HAVE_SNPRINTF
+int snprintf(char *str, size_t size, const char *format, ...);
+#endif /* HAVE_SNPRINTF */
 #include <string.h>
 
 #include "contiki-net.h"
@@ -83,6 +87,34 @@ PT_THREAD(send_file(struct httpd_state *s))
 }
 /*---------------------------------------------------------------------------*/
 static
+PT_THREAD(send_dir(struct httpd_state *s))
+{
+  static char buf[80];
+  static int r, num;
+  static struct cfs_dir dir;
+  static struct cfs_dirent dirent;
+  PSOCK_BEGIN(&s->sout);
+
+  SEND_STRING(&s->sout, "<body>File system contents:<br>\r\n");
+  
+  r = cfs_opendir(&dir, "/");
+  if(r == 0) {
+    num = 0;
+    while(cfs_readdir(&dir, &dirent) >= 0) {
+      snprintf(buf, sizeof(buf), "<a href=\"/%s\">%s</a><br>", dirent.name, dirent.name);
+      SEND_STRING(&s->sout, buf);
+      ++num;
+    }
+    snprintf(buf, sizeof(buf), "%d files</body>", num);
+    SEND_STRING(&s->sout, buf);
+    cfs_closedir(&dir);
+  } else {
+    SEND_STRING(&s->sout, "Could not open directory</body>");
+  }
+  PSOCK_END(&s->sout);
+}
+/*---------------------------------------------------------------------------*/
+static
 PT_THREAD(send_headers(struct httpd_state *s, const char *statushdr))
 {
   char *ptr;
@@ -119,8 +151,11 @@ PT_THREAD(handle_output(struct httpd_state *s))
   if(s->fd < 0) {
     s->fd = cfs_open("notfound.html", CFS_READ);
     if(s->fd < 0) {
-      uip_abort();
-      memb_free(&conns, s);
+      PT_WAIT_THREAD(&s->outputpt,
+                     send_headers(s, http_header_200));
+      PT_WAIT_THREAD(&s->outputpt,
+                     send_dir(s));
+      uip_close();
       webserver_log_file(&uip_conn->ripaddr, "reset (no notfound.html)");
       PT_EXIT(&s->outputpt);
     }
