@@ -147,6 +147,8 @@ static u8_t i;
 void 
 uip_nd6_io_ns_input(void)
 {
+  u8_t flags;
+  
   PRINTF("Received NS from");
   PRINT6ADDR(&UIP_IP_BUF->srcipaddr);
   PRINTF("to");
@@ -156,13 +158,11 @@ uip_nd6_io_ns_input(void)
   PRINTF("\n");
   UIP_STAT(++uip_stat.nd6.recv);
  
-  u8_t flags;
  
 #if UIP_CONF_IPV6_CHECKS
   if((UIP_IP_BUF->ttl != UIP_ND6_HOP_LIMIT) ||
      (uip_is_addr_mcast(&UIP_ND6_NS_BUF->tgtipaddr)) ||
-     (UIP_ICMP_BUF->icode != 0))
-  {
+     (UIP_ICMP_BUF->icode != 0)) {
     goto badpkt;
   }
 #endif /* UIP_CONF_IPV6_CHECKS */ 
@@ -359,9 +359,6 @@ uip_nd6_io_ns_input(void)
   uip_len = 0;
   return;
 }
-
-
-
 /*------------------------------------------------------------------*/
 void
 uip_nd6_io_ns_output(uip_ipaddr_t *src, uip_ipaddr_t *dest, uip_ipaddr_t *tgt)
@@ -448,15 +445,6 @@ void
 uip_nd6_io_na_input(void)
 {
 
-  PRINTF("Received NA from");
-  PRINT6ADDR(&UIP_IP_BUF->srcipaddr);
-  PRINTF("to");
-  PRINT6ADDR(&UIP_IP_BUF->destipaddr);
-  PRINTF("with target address");
-  PRINT6ADDR((uip_ipaddr_t *)(&UIP_ND6_NA_BUF->tgtipaddr));
-  PRINTF("\n");
-  UIP_STAT(++uip_stat.nd6.recv);
- 
   /* 
    * booleans. the three last one are not 0 or 1 but 0 or 0x80, 0x40, 0x20
    * but it works. Be careful though, do not use tests such as is_router == 1 
@@ -466,6 +454,14 @@ uip_nd6_io_na_input(void)
   u8_t is_solicited = ((UIP_ND6_NA_BUF->flagsreserved & UIP_ND6_NA_FLAG_SOLICITED));
   u8_t is_override =  ((UIP_ND6_NA_BUF->flagsreserved & UIP_ND6_NA_FLAG_OVERRIDE));
 
+  PRINTF("Received NA from");
+  PRINT6ADDR(&UIP_IP_BUF->srcipaddr);
+  PRINTF("to");
+  PRINT6ADDR(&UIP_IP_BUF->destipaddr);
+  PRINTF("with target address");
+  PRINT6ADDR((uip_ipaddr_t *)(&UIP_ND6_NA_BUF->tgtipaddr));
+  PRINTF("\n");
+  UIP_STAT(++uip_stat.nd6.recv);
 
 #if UIP_CONF_IPV6_CHECKS
   /*
