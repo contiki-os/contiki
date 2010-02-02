@@ -164,11 +164,11 @@ uip_netif_compute_reachable_time(void)
 u8_t
 uip_netif_is_addr_my_solicited(uip_ipaddr_t *ipaddr)
 {
-  if(uip_ipaddr_cmp(ipaddr, &uip_netif_physical_if.solicited_node_mcastaddr))
+  if(uip_ipaddr_cmp(ipaddr, &uip_netif_physical_if.solicited_node_mcastaddr)) {
     return 1;
+  }
   return 0;
 }
-
 /*---------------------------------------------------------------------------*/
 struct uip_netif_addr *
 uip_netif_addr_lookup(uip_ipaddr_t *ipaddr, u8_t length, uip_netif_type type)
@@ -248,10 +248,9 @@ uip_netif_addr_autoconf_set(uip_ipaddr_t *ipaddr, uip_lladdr_t *lladdr)
   memcpy(ipaddr->u8 + 13, (u8_t*)lladdr + 3, 3);
   ipaddr->u8[8] ^= 0x02;
 #else
-  UIP_LOG("CAN NOT BUIL INTERFACE IDENTIFIER");
+  UIP_LOG("CAN NOT BUILD INTERFACE IDENTIFIER");
   UIP_LOG("THE STACK IS GOING TO SHUT DOWN");
   UIP_LOG("THE HOST WILL BE UNREACHABLE");
-  exit(-1);
 #endif
 }
 /*---------------------------------------------------------------------------*/
@@ -385,7 +384,6 @@ uip_netif_dad(void)
 void
 uip_netif_dad_failed(uip_ipaddr_t *ipaddr)
 {
-
   UIP_LOG("DAD FAILED");
   UIP_LOG("THE STACK IS GOING TO SHUT DOWN");
   UIP_LOG("THE HOST WILL BE UNREACHABLE");
@@ -396,8 +394,6 @@ uip_netif_dad_failed(uip_ipaddr_t *ipaddr)
     dad_ifaddr = NULL;
     dad_ns = 0;
   }
-  
-  exit(-1);
 }
 /*---------------------------------------------------------------------------*/
 void
@@ -411,8 +407,6 @@ uip_netif_sched_send_rs(void)
     PRINTF("Scheduling RS\n");  
   }
 }
-
-
 /*---------------------------------------------------------------------------*/
 void
 uip_netif_send_rs(void)
