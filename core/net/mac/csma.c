@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: csma.c,v 1.3 2010/01/31 13:55:36 adamdunkels Exp $
+ * $Id: csma.c,v 1.4 2010/02/02 20:45:58 adamdunkels Exp $
  */
 
 /**
@@ -184,7 +184,7 @@ channel_check_interval(void)
 static char namebuf[NAMEBUF_LEN];
 const struct mac_driver csma_driver = {
   namebuf,
-  (const struct mac_driver *(*)(const struct radio_driver *psc))csma_init,
+  NULL,
   send_packet,
   read_packet,
   set_receive_function,
