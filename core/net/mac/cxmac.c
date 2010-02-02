@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: cxmac.c,v 1.5 2010/01/31 18:44:23 adamdunkels Exp $
+ * $Id: cxmac.c,v 1.6 2010/02/02 16:33:07 adamdunkels Exp $
  */
 
 /**
@@ -147,7 +147,7 @@ struct cxmac_config cxmac_config = {
 };
 
 #include <stdio.h>
-static struct rtimer rt;
+
 static struct pt pt;
 
 static volatile uint8_t cxmac_is_on = 0;
@@ -292,7 +292,7 @@ static char cpowercycle(void *ptr);
 static void
 cschedule_powercycle(clock_time_t time)
 {
-  int r;
+
   if(cxmac_is_on) {
     if(time == 0) {
       time = 1;
