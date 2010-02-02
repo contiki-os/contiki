@@ -10,7 +10,7 @@ shell_src = shell.c shell-reboot.c \
             shell-rime-sendcmd.c shell-download.c shell-rime-neighbors.c \
             shell-rime-unicast.c \
             shell-tweet.c \
-            shell-netperf.c
+            shell-netperf.c shell-memdebug.c
 shell_dsc = shell-dsc.c
 
 APPS += webbrowser
