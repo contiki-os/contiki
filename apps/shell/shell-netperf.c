@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: shell-netperf.c,v 1.4 2009/11/09 08:22:17 adamdunkels Exp $
+ * $Id: shell-netperf.c,v 1.5 2010/02/02 15:29:24 adamdunkels Exp $
  */
 
 /**
@@ -106,6 +106,16 @@ static int left_to_send;
 
 static struct stats stats;
 
+enum {
+  TYPE_NONE             = 0,
+  TYPE_BROADCAST        = 1,
+  TYPE_UNICAST          = 2,
+  TYPE_UNICAST_PINGPONG = 3,
+  TYPE_UNICAST_STREAM   = 4,
+};
+
+static uint8_t current_type;
+
 /*---------------------------------------------------------------------------*/
 PROCESS(shell_netperf_process, "netperf");
 SHELL_COMMAND(netperf_command,
@@ -136,7 +146,8 @@ print_remote_stats(struct stats *s)
 {
   unsigned long total_time;
   
-  printf("1 %d %d %d %u %lu %lu %lu %lu %lu %lu # for automatic processing\n",
+  printf("%d 1 %d %d %d %u %lu %lu %lu %lu %lu %lu # for automatic processing\n",
+	 current_type,
 	 s->sent, s->received, s->timedout,
 	 s->end - s->start,
 	 s->total_tx_latency, s->total_rx_latency,
@@ -162,7 +173,8 @@ print_local_stats(struct stats *s)
 {
   unsigned long total_time;
   
-  printf("0 %d %d %d %u %lu %lu %lu %lu %lu %lu # for automatic processing\n",
+  printf("%d 0 %d %d %d %u %lu %lu %lu %lu %lu %lu # for automatic processing\n",
+	 current_type, 
 	 s->sent, s->received, s->timedout,
 	 s->end - s->start,
 	 s->total_tx_latency, s->total_rx_latency,
@@ -396,8 +408,14 @@ timedout_ctrl(struct runicast_conn *c, const rimeaddr_t *to, uint8_t rexmits)
 static void
 recv_ctrl(struct runicast_conn *c, const rimeaddr_t *from, uint8_t seqno)
 {
+  static uint8_t last_seqno = -1;
   struct stats s;
   struct ctrl_msg *msg = packetbuf_dataptr();
+
+  if(last_seqno == seqno) {
+    return;
+  }
+  last_seqno = seqno;
   switch(msg->command) {
   case CTRL_COMMAND_STATS:
     msg->command = CTRL_COMMAND_STATS_REPLY;
@@ -496,6 +514,8 @@ PROCESS_THREAD(shell_netperf_process, ev, data)
 
   PROCESS_BEGIN();
 
+  current_type = TYPE_NONE;
+  
   do_broadcast = do_unicast = do_pingpong =
     do_stream_pingpong = 0;
   
@@ -552,6 +572,7 @@ PROCESS_THREAD(shell_netperf_process, ev, data)
 
   /* Send broadcast packets, if requested */
   if(do_broadcast) {
+    current_type = TYPE_BROADCAST;
     shell_output_str(&netperf_command, "-------- Broadcast --------", "");
     
     shell_output_str(&netperf_command, "Contacting ", recvstr);
@@ -581,6 +602,7 @@ PROCESS_THREAD(shell_netperf_process, ev, data)
   }
 
   if(do_unicast) {
+    current_type = TYPE_UNICAST;
     shell_output_str(&netperf_command, "-------- Unicast one-way --------", "");
     
     shell_output_str(&netperf_command, "Contacting ", recvstr);
@@ -610,6 +632,7 @@ PROCESS_THREAD(shell_netperf_process, ev, data)
     print_local_stats(&stats);
   }
   if(do_pingpong) {
+    current_type = TYPE_UNICAST_PINGPONG;
     shell_output_str(&netperf_command, "-------- Unicast ping-pong--------", "");
     
     shell_output_str(&netperf_command, "Contacting ", recvstr);
@@ -640,6 +663,7 @@ PROCESS_THREAD(shell_netperf_process, ev, data)
     print_local_stats(&stats);
   }
   if(do_stream_pingpong) {
+    current_type = TYPE_UNICAST_STREAM;
     shell_output_str(&netperf_command, "-------- Unicast stream ping-pong--------", "");
     
     shell_output_str(&netperf_command, "Contacting ", recvstr);
