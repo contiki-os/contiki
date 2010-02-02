@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006, Swedish Institute of Computer Science.
+ * Copyright (c) 2010, Swedish Institute of Computer Science.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -26,71 +26,21 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: battery-sensor.c,v 1.8 2010/02/02 20:59:45 joxe Exp $
+ * This file is part of the Contiki operating system.
+ * $Id: sky-sensors.h,v 1.1 2010/02/02 20:59:45 joxe Exp $
  *
  * -----------------------------------------------------------------
  *
- * Author  : Adam Dunkels, Joakim Eriksson, Niclas Finne
- * Created : 2005-11-01
+ * Author  : Joakim Eriksson
+ * Created : 2010-02-02
  * Updated : $Date: 2010/02/02 20:59:45 $
- *           $Revision: 1.8 $
+ *           $Revision: 1.1 $
  */
 
-#include "dev/battery-sensor.h"
-#include <io.h>
+#ifndef __SKY_SENSORS_H__
+#define __SKY_SENSORS_H__
 
-const struct sensors_sensor battery_sensor;
-static uint8_t active;
-/*---------------------------------------------------------------------------*/
-static void
-activate(void)
-{
-  /* Configure ADC12_2 to sample channel 11 (voltage) and use */
-  /* the Vref+ as reference (SREF_1) since it is a stable reference */
-  ADC12MCTL2 = (INCH_11 + SREF_1);
+void sky_sensors_activate(uint8_t);
+void sky_sensors_deactivate(uint8_t);
 
-  sky_sensors_activate(0x80);
-
-  active = 1;
-}
-/*---------------------------------------------------------------------------*/
-static void
-deactivate(void)
-{
-  sky_sensors_deactivate(0x80);
-  active = 0;
-}
-/*---------------------------------------------------------------------------*/
-static int
-value(int type)
-{
-  return ADC12MEM2/*battery_value*/;
-}
-/*---------------------------------------------------------------------------*/
-static int
-configure(int type, int c)
-{
-  switch(type) {
-  case SENSORS_ACTIVE:
-    if (c) {
-      activate();
-    } else {
-      deactivate();
-    }
-  }
-  return 0;
-}
-/*---------------------------------------------------------------------------*/
-static int
-status(int type)
-{
-  switch (type) {
-  case SENSORS_ACTIVE:
-  case SENSORS_READY:
-    return active;
-  }
-  return 0;
-}
-/*---------------------------------------------------------------------------*/
-SENSORS_SENSOR(battery_sensor, BATTERY_SENSOR,
-	       value, configure, status);
+#endif /* __SKY_SENSORS_H__ */
