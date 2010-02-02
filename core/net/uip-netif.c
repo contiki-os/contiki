@@ -118,8 +118,9 @@ uip_netif_init(void)
   uip_netif_physical_if.addresses[0].is_infinite = 1;
  
   /* set all other addresses to NOT_USED initialy */
-  for(i = 1; i < UIP_CONF_NETIF_MAX_ADDRESSES; i ++)
-    uip_netif_physical_if.addresses[i].state = NOT_USED;  
+  for(i = 1; i < UIP_CONF_NETIF_MAX_ADDRESSES; i ++) {
+    uip_netif_physical_if.addresses[i].state = NOT_USED;
+  }
  
   uip_ip6addr_u8(&(uip_netif_physical_if.solicited_node_mcastaddr),
                  0xff, 0x02, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0x01, 0xff,
@@ -135,11 +136,10 @@ uip_netif_init(void)
   /* Reset the timer */
   etimer_set(&uip_netif_timer_periodic, CLOCK_SECOND);
 }
-
-
 /*---------------------------------------------------------------------------*/
-void 
-uip_netif_periodic(void) {
+void
+uip_netif_periodic(void)
+{
   for(i = 1; i < UIP_CONF_NETIF_MAX_ADDRESSES; i++) {
     if((uip_netif_physical_if.addresses[i].state != NOT_USED) &&
        (uip_netif_physical_if.addresses[i].is_infinite != 1) &&
@@ -155,14 +155,15 @@ uip_netif_periodic(void) {
 u32_t
 uip_netif_compute_reachable_time(void)
 {
-  return (u32_t)(uip_netif_physical_if.base_reachable_time * UIP_ND6_MIN_RANDOM_FACTOR) + ((u16_t)(random_rand() << 8) + (u16_t)random_rand()) % (u32_t)(uip_netif_physical_if.base_reachable_time *(UIP_ND6_MAX_RANDOM_FACTOR - UIP_ND6_MIN_RANDOM_FACTOR));
+  return (u32_t)(UIP_ND6_MIN_RANDOM_FACTOR(uip_netif_physical_if.base_reachable_time)) +
+    ((u16_t)(random_rand() << 8) + (u16_t)random_rand()) %
+    (u32_t)(UIP_ND6_MAX_RANDOM_FACTOR(uip_netif_physical_if.base_reachable_time) -
+            UIP_ND6_MIN_RANDOM_FACTOR(uip_netif_physical_if.base_reachable_time));
 }
-
-
 /*---------------------------------------------------------------------------*/
 u8_t
 uip_netif_is_addr_my_solicited(uip_ipaddr_t *ipaddr)
-{   
+{
   if(uip_ipaddr_cmp(ipaddr, &uip_netif_physical_if.solicited_node_mcastaddr))
     return 1;
   return 0;
@@ -170,17 +171,17 @@ uip_netif_is_addr_my_solicited(uip_ipaddr_t *ipaddr)
 
 /*---------------------------------------------------------------------------*/
 struct uip_netif_addr *
-uip_netif_addr_lookup(uip_ipaddr_t *ipaddr, u8_t length, uip_netif_type type) {
+uip_netif_addr_lookup(uip_ipaddr_t *ipaddr, u8_t length, uip_netif_type type)
+{
   for(i = 0; i < UIP_CONF_NETIF_MAX_ADDRESSES; i ++) {
     if((uip_netif_physical_if.addresses[i].state != NOT_USED) &&
        (uip_netif_physical_if.addresses[i].type == type || type == 0) &&
-       (uip_ipaddr_prefixcmp(&(uip_netif_physical_if.addresses[i].ipaddr), ipaddr, length))) { 
-      return &uip_netif_physical_if.addresses[i]; 
+       (uip_ipaddr_prefixcmp(&(uip_netif_physical_if.addresses[i].ipaddr), ipaddr, length))) {
+      return &uip_netif_physical_if.addresses[i];
     }
   }
-  return NULL; 
+  return NULL;
 }
-
 /*---------------------------------------------------------------------------*/
 void
 uip_netif_addr_add(uip_ipaddr_t *ipaddr, u8_t length, unsigned long vlifetime, uip_netif_type type) {
@@ -231,8 +232,6 @@ uip_netif_addr_add(uip_ipaddr_t *ipaddr, u8_t length, unsigned long vlifetime, u
   UIP_LOG("ADDRESS LIST FULL");
   return;
 }
-
-
 /*---------------------------------------------------------------------------*/
 void
 uip_netif_addr_autoconf_set(uip_ipaddr_t *ipaddr, uip_lladdr_t *lladdr)
@@ -255,8 +254,6 @@ uip_netif_addr_autoconf_set(uip_ipaddr_t *ipaddr, uip_lladdr_t *lladdr)
   exit(-1);
 #endif
 }
-
-
 /*---------------------------------------------------------------------------*/
 u8_t
 get_match_length(uip_ipaddr_t *src, uip_ipaddr_t *dst)
@@ -282,8 +279,6 @@ get_match_length(uip_ipaddr_t *src, uip_ipaddr_t *dst)
   }
   return len;
 }
-
-
 /*---------------------------------------------------------------------------*/
 void
 uip_netif_select_src(uip_ipaddr_t *src, uip_ipaddr_t *dst)
@@ -307,8 +302,6 @@ uip_netif_select_src(uip_ipaddr_t *src, uip_ipaddr_t *dst)
   uip_ipaddr_copy(src, &(uip_netif_physical_if.addresses[index].ipaddr));
   return;
 }
-
-
 /*---------------------------------------------------------------------------*/
 void
 uip_netif_sched_dad(struct uip_netif_addr *ifaddr)
@@ -335,8 +328,6 @@ uip_netif_sched_dad(struct uip_netif_addr *ifaddr)
 
   etimer_set(&uip_netif_timer_dad, random_rand()%(UIP_ND6_MAX_RTR_SOLICITATION_DELAY * CLOCK_SECOND)); 
 }
-
-
 /*---------------------------------------------------------------------------*/
 void
 uip_netif_dad(void)
@@ -390,8 +381,6 @@ uip_netif_dad(void)
     }
   }
 }
-
-
 /*---------------------------------------------------------------------------*/
 void
 uip_netif_dad_failed(uip_ipaddr_t *ipaddr)
@@ -410,8 +399,6 @@ uip_netif_dad_failed(uip_ipaddr_t *ipaddr)
   
   exit(-1);
 }
-
-
 /*---------------------------------------------------------------------------*/
 void
 uip_netif_sched_send_rs(void)
