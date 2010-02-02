@@ -22,7 +22,7 @@ PROG = $(CONTIKI)/tools/sensinode/nano_programmer/nano_programmer -d $(DEFUART)
 SERIALDUMP = $(CONTIKI)/tools/sky/serialdump-linux -b115200 $(DEFUART)
 
 CONTIKI_TARGET_DIRS = . dev
-CONTIKI_TARGET_MAIN = ${addprefix $(OBJECTDIR)/,contiki-sesinode-main.o}
+CONTIKI_TARGET_MAIN = ${addprefix $(OBJECTDIR)/,contiki-sensinode-main.o}
 
 CONTIKI_TARGET_SOURCEFILES = contiki-sensinode-main.c \
                              leds.c leds-arch.c serial-line.c
