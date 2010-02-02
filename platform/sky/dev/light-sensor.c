@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: light-sensor.c,v 1.3 2010/01/14 20:23:02 adamdunkels Exp $
+ * @(#)$Id: light-sensor.c,v 1.4 2010/02/02 20:59:45 joxe Exp $
  */
 
 #include <stdlib.h>
@@ -37,6 +37,7 @@
 
 #include "contiki.h"
 #include "lib/sensors.h"
+#include "sky-sensors.h"
 #include "dev/light-sensor.h"
 
 const struct sensors_sensor light_sensor;
@@ -48,21 +49,10 @@ const struct sensors_sensor light_sensor;
 static void
 light_sensor_init(void)
 {
-  P6SEL |= 0x30;
-  P6DIR = 0xff;
-  P6OUT = 0x00;
-
-  /* Set up the ADC. */
-  ADC12CTL0 = REF2_5V + SHT0_6 + SHT1_6 + MSC; // Setup ADC12, ref., sampling time
-  ADC12CTL1 = SHP + CONSEQ_3 + CSTARTADD_0;	// Use sampling timer, repeat-sequenc-of-channels
-
   ADC12MCTL0 = (INCH_4 + SREF_0); // photodiode 1 (P64)
   ADC12MCTL1 = (INCH_5 + SREF_0); // photodiode 2 (P65)
 
-  ADC12CTL0 |= ADC12ON + REFON;
-
-  ADC12CTL0 |= ENC;		// enable conversion
-  ADC12CTL0 |= ADC12SC;		// sample & convert
+  sky_sensors_activate(0x30);
 }
 /*---------------------------------------------------------------------------*/
 static int
@@ -103,8 +93,7 @@ configure(int type, int c)
 	light_sensor_init();
       }
     } else {
-      /* shut down sensing */
-      ADC12CTL0 = 0;
+      sky_sensors_deactivate(0x30);
     }
   }
   return 0;
