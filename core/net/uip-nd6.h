@@ -88,9 +88,9 @@
 #define UIP_ND6_MAX_UNICAST_SOLICIT    3
 #define UIP_ND6_REACHABLE_TIME         30000
 #define UIP_ND6_RETRANS_TIMER	       1000 
-#define UIP_ND6_DELAY_FIRST_PROBE_TIME 5 
-#define UIP_ND6_MIN_RANDOM_FACTOR      0.5
-#define UIP_ND6_MAX_RANDOM_FACTOR      1.5
+#define UIP_ND6_DELAY_FIRST_PROBE_TIME 5
+#define UIP_ND6_MIN_RANDOM_FACTOR(x)   (x / 2)
+#define UIP_ND6_MAX_RANDOM_FACTOR(x)   ((x) + (x) / 2)
 /** @} */
 
 
@@ -171,7 +171,7 @@ typedef enum {
  * @{
  */
 /** \brief An entry in the neighbor cache */
-struct uip_nd6_neighbor{
+struct uip_nd6_neighbor {
   uip_ipaddr_t ipaddr;
   uip_lladdr_t lladdr;
   u8_t isrouter;
