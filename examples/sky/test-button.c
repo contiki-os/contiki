@@ -28,12 +28,13 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: test-button.c,v 1.4 2010/02/02 21:17:32 joxe Exp $
+ * $Id: test-button.c,v 1.5 2010/02/02 21:41:54 joxe Exp $
  */
 
 /**
  * \file
- *         A brief description of what this file is.
+ *         An example of how to use the button and light sensor on
+ *         the Tmote Sky platform.
  * \author
  *         Adam Dunkels <adam@sics.se>
  */
@@ -58,7 +59,7 @@ PROCESS_THREAD(test_button_process, ev, data)
     PROCESS_WAIT_EVENT_UNTIL(ev == sensors_event &&
 			     data == &button_sensor);
     leds_toggle(LEDS_ALL);
-    if (!active) {
+    if(!active) {
       /* activate light sensor */
       SENSORS_ACTIVATE(light_sensor);
       printf("Light: %d\n", light_sensor.value(0));
