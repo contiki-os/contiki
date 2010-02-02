@@ -26,14 +26,14 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: battery-sensor.c,v 1.8 2010/02/02 20:59:45 joxe Exp $
+ * $Id: battery-sensor.c,v 1.9 2010/02/02 21:17:44 joxe Exp $
  *
  * -----------------------------------------------------------------
  *
  * Author  : Adam Dunkels, Joakim Eriksson, Niclas Finne
  * Created : 2005-11-01
- * Updated : $Date: 2010/02/02 20:59:45 $
- *           $Revision: 1.8 $
+ * Updated : $Date: 2010/02/02 21:17:44 $
+ *           $Revision: 1.9 $
  */
 
 #include "dev/battery-sensor.h"
@@ -72,7 +72,7 @@ configure(int type, int c)
 {
   switch(type) {
   case SENSORS_ACTIVE:
-    if (c) {
+    if(c) {
       activate();
     } else {
       deactivate();
@@ -84,7 +84,7 @@ configure(int type, int c)
 static int
 status(int type)
 {
-  switch (type) {
+  switch(type) {
   case SENSORS_ACTIVE:
   case SENSORS_READY:
     return active;
