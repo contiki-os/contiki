@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: cxmac.c,v 1.6 2010/02/02 16:33:07 adamdunkels Exp $
+ * $Id: cxmac.c,v 1.7 2010/02/02 23:28:58 adamdunkels Exp $
  */
 
 /**
@@ -114,7 +114,7 @@ struct cxmac_hdr {
 #ifdef CXMAC_CONF_OFF_TIME
 #define DEFAULT_OFF_TIME (CXMAC_CONF_OFF_TIME)
 #else
-#define DEFAULT_OFF_TIME (RTIMER_ARCH_SECOND / 4 - DEFAULT_ON_TIME)
+#define DEFAULT_OFF_TIME (RTIMER_ARCH_SECOND / MAC_CHANNEL_CHECK_RATE - DEFAULT_ON_TIME)
 #endif
 
 #define DEFAULT_PERIOD (DEFAULT_OFF_TIME + DEFAULT_ON_TIME)

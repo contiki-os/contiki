@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: lpp.c,v 1.29 2010/01/25 11:43:32 adamdunkels Exp $
+ * $Id: lpp.c,v 1.30 2010/02/02 23:28:58 adamdunkels Exp $
  */
 
 /**
@@ -90,7 +90,7 @@
 #ifdef LPP_CONF_OFF_TIME
 #define OFF_TIME LPP_CONF_OFF_TIME
 #else
-#define OFF_TIME (CLOCK_SECOND / 2 - LISTEN_TIME)
+#define OFF_TIME (CLOCK_SECOND / MAC_CHANNEL_CHECK_RATE - LISTEN_TIME)
 #endif /* LPP_CONF_OFF_TIME */
 
 #define PACKET_LIFETIME (LISTEN_TIME + OFF_TIME)
