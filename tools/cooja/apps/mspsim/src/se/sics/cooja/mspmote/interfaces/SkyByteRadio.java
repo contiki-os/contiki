@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: SkyByteRadio.java,v 1.21 2010/02/03 12:37:34 fros4943 Exp $
+ * $Id: SkyByteRadio.java,v 1.22 2010/02/03 19:15:15 fros4943 Exp $
  */
 
 package se.sics.cooja.mspmote.interfaces;
@@ -48,12 +48,12 @@ import org.jdom.Element;
 
 import se.sics.cooja.ClassDescription;
 import se.sics.cooja.Mote;
-import se.sics.cooja.MoteTimeEvent;
 import se.sics.cooja.RadioPacket;
 import se.sics.cooja.Simulation;
 import se.sics.cooja.interfaces.CustomDataRadio;
 import se.sics.cooja.interfaces.Position;
 import se.sics.cooja.interfaces.Radio;
+import se.sics.cooja.mspmote.MspMoteTimeEvent;
 import se.sics.cooja.mspmote.SkyMote;
 import se.sics.mspsim.chip.CC2420;
 import se.sics.mspsim.chip.RFListener;
@@ -209,8 +209,9 @@ public class SkyByteRadio extends Radio implements CustomDataRadio {
       }
 
       final byte byteToDeliver = b;
-      getMote().getSimulation().scheduleEvent(new MoteTimeEvent(getMote(), 0) {
+      getMote().getSimulation().scheduleEvent(new MspMoteTimeEvent(mote, 0) {
         public void execute(long t) {
+          super.execute(t);
           cc2420.receivedByte(byteToDeliver);
           mote.requestImmediateWakeup();
         }        
@@ -234,12 +235,21 @@ public class SkyByteRadio extends Radio implements CustomDataRadio {
       return;
     }
     lastIncomingByte = (Byte) data;
+
+    final byte inputByte;
     if (isInterfered()) {
-      cc2420.receivedByte((byte)0xFF);
+      inputByte = (byte)0xFF;
     } else {
-      cc2420.receivedByte(lastIncomingByte);
+      inputByte = lastIncomingByte;
     }
-    mote.requestImmediateWakeup();
+    mote.getSimulation().scheduleEvent(new MspMoteTimeEvent(mote, 0) {
+      public void execute(long t) {
+        super.execute(t);
+        cc2420.receivedByte(inputByte);
+        mote.requestImmediateWakeup();
+      }        
+    }, mote.getSimulation().getSimulationTime());
+
   }
 
   /* General radio support */
