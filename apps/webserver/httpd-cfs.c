@@ -30,7 +30,7 @@
  *
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: httpd-cfs.c,v 1.14 2010/02/03 21:06:51 adamdunkels Exp $
+ * $Id: httpd-cfs.c,v 1.15 2010/02/03 23:19:40 oliverschmidt Exp $
  */
 
 #include <stdio.h>
@@ -133,17 +133,19 @@ PT_THREAD(handle_output(struct httpd_state *s))
   if(s->fd < 0) {
     strcpy(s->filename, "notfound.html");
     s->fd = cfs_open(s->filename, CFS_READ);
+    petsciiconv_toascii(s->filename, sizeof(s->filename));
     if(s->fd < 0) {
       PT_WAIT_THREAD(&s->outputpt,
                      send_headers(s, http_header_404));
       PT_WAIT_THREAD(&s->outputpt,
-                     send_string(s, "Not found"));
+                     send_string(s, "not found"));
       uip_close();
       webserver_log_file(&uip_conn->ripaddr, "404 (no notfound.html)");
       PT_EXIT(&s->outputpt);
     }
     PT_WAIT_THREAD(&s->outputpt,
 		   send_headers(s, http_header_404));
+    webserver_log_file(&uip_conn->ripaddr, "404 - notfound.html");
   } else {
     PT_WAIT_THREAD(&s->outputpt,
 		   send_headers(s, http_header_200));
