@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: IPAddress.java,v 1.7 2009/10/28 15:58:43 fros4943 Exp $
+ * $Id: IPAddress.java,v 1.8 2010/02/03 10:14:46 fros4943 Exp $
  */
 
 package se.sics.cooja.interfaces;
@@ -34,7 +34,6 @@ package se.sics.cooja.interfaces;
 import java.util.Collection;
 import java.util.Observable;
 import java.util.Observer;
-import java.util.Vector;
 
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -42,10 +41,16 @@ import javax.swing.JPanel;
 import org.apache.log4j.Logger;
 import org.jdom.Element;
 
-import se.sics.cooja.*;
+import se.sics.cooja.AddressMemory;
+import se.sics.cooja.ClassDescription;
+import se.sics.cooja.Mote;
+import se.sics.cooja.MoteInterface;
+import se.sics.cooja.MoteTimeEvent;
+import se.sics.cooja.Simulation;
+import se.sics.cooja.TimeEvent;
 
 /**
- * IPv4 or IPv6 address.
+ * Read-only interface to IPv4 or IPv6 address.
  *
  * @author Fredrik Osterlind
  */
@@ -53,7 +58,6 @@ import se.sics.cooja.*;
 public class IPAddress extends MoteInterface {
   private static Logger logger = Logger.getLogger(IPAddress.class);
   private AddressMemory moteMem;
-  private static boolean warnedNotImplemented = false;
 
   public IPAddress(final Mote mote) {
     moteMem = (AddressMemory) mote.getMemory();
@@ -88,7 +92,6 @@ public class IPAddress extends MoteInterface {
    * Returns IP address string.
    * Supports both IPv4 and IPv6 addresses.
    *
-   * @see #setIPString(String)
    * @return IP address string
    */
   public String getIPString() {
@@ -138,53 +141,6 @@ public class IPAddress extends MoteInterface {
    */
   public boolean isVersion6() {
     return moteMem.variableExists("uip_netif_physical_if");
-  }
-
-  /**
-   * Set IPv4 address: a.b.c.d.
-   *
-   * @param a First byte
-   * @param b Second byte
-   * @param c Third byte
-   * @param d Fourth byte
-   */
-  public void setIPv4Address(int a, int b, int c, int d) {
-    /* TODO Implement */
-    if (!warnedNotImplemented) {
-      warnedNotImplemented = true;
-      logger.warn("Changing IP addresses is no longer supported.");
-      logger.warn("The IP address is instead determined by Contiki, for example based on the MAC/Rime address, or the node ID.");
-    }
-  }
-
-  /**
-   * Set IPv6 address.
-   *
-   * @param address 16 element IP address array
-   */
-  public void setIPv6Address(int[] address) {
-    /* TODO Implement */
-    if (!warnedNotImplemented) {
-      warnedNotImplemented = true;
-      logger.warn("Changing IP addresses is no longer supported.");
-      logger.warn("The IP address is instead determined by Contiki, for example based on the MAC/Rime address, or the node ID.");
-    }
-  }
-
-  /**
-   * Set IP address.
-   * Supports both IPv4 and IPv6 addresses.
-   *
-   * @see #getIPString()
-   * @param ipString IP address string
-   */
-  public void setIPString(String ipString) {
-    /* TODO Implement */
-    if (!warnedNotImplemented) {
-      warnedNotImplemented = true;
-      logger.warn("Changing IP addresses is no longer supported.");
-      logger.warn("The IP address is instead determined by Contiki, for example based on the MAC/Rime address, or the node ID.");
-    }
   }
 
   public JPanel getInterfaceVisualizer() {
@@ -244,9 +200,5 @@ public class IPAddress extends MoteInterface {
       s = str16.substring(0, 4 - s.length()) + s;
     }
     return s;
-  }
-
-  public double energyConsumption() {
-    return 0;
   }
 }

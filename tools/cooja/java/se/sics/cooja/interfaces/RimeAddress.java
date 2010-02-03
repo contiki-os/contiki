@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: RimeAddress.java,v 1.4 2009/10/28 15:58:43 fros4943 Exp $
+ * $Id: RimeAddress.java,v 1.5 2010/02/03 10:14:46 fros4943 Exp $
  */
 
 package se.sics.cooja.interfaces;
@@ -41,7 +41,13 @@ import javax.swing.JPanel;
 import org.apache.log4j.Logger;
 import org.jdom.Element;
 
-import se.sics.cooja.*;
+import se.sics.cooja.AddressMemory;
+import se.sics.cooja.ClassDescription;
+import se.sics.cooja.Mote;
+import se.sics.cooja.MoteInterface;
+import se.sics.cooja.MoteTimeEvent;
+import se.sics.cooja.Simulation;
+import se.sics.cooja.TimeEvent;
 
 /**
  * Read-only interface to Rime address read from Contiki variable: rimeaddr_node_addr.
@@ -63,6 +69,10 @@ public class RimeAddress extends MoteInterface {
     /* Detect startup address (only zeroes) */
     TimeEvent updateWhenAddressReady = new MoteTimeEvent(mote, 0) {
       public void execute(long t) {
+        if (!hasRimeAddress()) {
+          return;
+        }
+
         String addrString = getAddressString();
         addrString = addrString.replace(".", "");
         addrString = addrString.replace("0", "");
@@ -82,7 +92,15 @@ public class RimeAddress extends MoteInterface {
     updateWhenAddressReady.execute(0);
   }
 
+  public boolean hasRimeAddress() {
+    return moteMem.variableExists("rimeaddr_node_addr");
+  }
+
   public String getAddressString() {
+    if (!hasRimeAddress()) {
+      return null;
+    }
+
     String addrString = "";
     byte[] addr = moteMem.getByteArray("rimeaddr_node_addr", RIME_ADDR_LENGTH);
     for (int i=0; i < RIME_ADDR_LENGTH-1; i++) {
@@ -122,15 +140,10 @@ public class RimeAddress extends MoteInterface {
     this.deleteObserver(observer);
   }
 
-
   public Collection<Element> getConfigXML() {
     return null;
   }
 
   public void setConfigXML(Collection<Element> configXML, boolean visAvailable) {
-  }
-
-  public double energyConsumption() {
-    return 0;
   }
 }
