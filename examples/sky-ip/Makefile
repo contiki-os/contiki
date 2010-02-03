@@ -1,5 +1,5 @@
 CONTIKI_PROJECT = sky-webserver
-all: $(CONTIKI_PROJECT)
+all: sky-webserver sky-telnet-server telnet-tweet 
 PLATFORM_BUILD=1 # This is needed to avoid the shell to include the httpd-cfs version of the websrerver
 APPS = webserver twitter telnetd
 CFLAGS = -DWITH_UIP=1 -I. #-DWITH_NULLMAC=1
