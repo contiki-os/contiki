@@ -28,12 +28,12 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: shell-file.c,v 1.12 2009/05/12 14:22:58 nvt-se Exp $
+ * $Id: shell-file.c,v 1.13 2010/02/03 20:40:00 adamdunkels Exp $
  */
 
 /**
  * \file
- *         A brief description of what this file is.
+ *         File-related shell commands
  * \author
  *         Adam Dunkels <adam@sics.se>
  */
