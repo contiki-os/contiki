@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ContikiRS232.java,v 1.11 2009/10/27 10:11:17 fros4943 Exp $
+ * $Id: ContikiRS232.java,v 1.12 2010/02/03 09:27:24 fros4943 Exp $
  */
 
 package se.sics.cooja.contikimote.interfaces;
@@ -42,7 +42,6 @@ import se.sics.cooja.interfaces.PolledAfterActiveTicks;
 
 /**
  * Contiki mote serial port and log interfaces.
- * Not fully implemented yet: does not support writeArray and writeByte
  *
  * Contiki variables:
  * <ul>
@@ -55,6 +54,7 @@ import se.sics.cooja.interfaces.PolledAfterActiveTicks;
  * Core interface:
  * <ul>
  * <li>rs232_interface
+ * <li>simlog_interface
  * </ul>
  * <p>
  *
@@ -72,13 +72,6 @@ public class ContikiRS232 extends SerialUI implements ContikiMoteInterface, Poll
   private SectionMoteMemory moteMem = null;
 
   /**
-   * Approximate energy consumption of every sent character over RS232 (mQ).
-   */
-  public final double ENERGY_CONSUMPTION_PER_CHAR_mQ;
-
-  private double myEnergyConsumption = 0.0;
-
-  /**
    * Creates an interface to the RS232 at mote.
    *
    * @param mote
@@ -87,9 +80,6 @@ public class ContikiRS232 extends SerialUI implements ContikiMoteInterface, Poll
    * @see se.sics.cooja.MoteInterfaceHandler
    */
   public ContikiRS232(Mote mote) {
-    ENERGY_CONSUMPTION_PER_CHAR_mQ =
-      mote.getType().getConfig().getDoubleValue(ContikiRS232.class, "CONSUMPTION_PER_CHAR_mQ");
-
     this.mote = (ContikiMote) mote;
     this.moteMem = (SectionMoteMemory) mote.getMemory();
   }
@@ -103,16 +93,12 @@ public class ContikiRS232 extends SerialUI implements ContikiMoteInterface, Poll
       int len = moteMem.getIntValueOf("simLoggedLength");
       byte[] bytes = moteMem.getByteArray("simLoggedData", len);
 
-      myEnergyConsumption = ENERGY_CONSUMPTION_PER_CHAR_mQ * len;
-
       moteMem.setByteValueOf("simLoggedFlag", (byte) 0);
       moteMem.setIntValueOf("simLoggedLength", 0);
 
       for (byte b: bytes) {
         dataReceived(b);
       }
-    } else {
-      myEnergyConsumption = 0.0;
     }
   }
 
@@ -138,10 +124,6 @@ public class ContikiRS232 extends SerialUI implements ContikiMoteInterface, Poll
         mote.requestImmediateWakeup();
       }
     });
-  }
-
-  public double energyConsumption() {
-    return myEnergyConsumption;
   }
 
   public Mote getMote() {
