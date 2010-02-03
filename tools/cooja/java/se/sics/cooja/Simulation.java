@@ -24,7 +24,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * $Id: Simulation.java,v 1.60 2010/02/03 15:33:36 fros4943 Exp $
+ * $Id: Simulation.java,v 1.61 2010/02/03 15:49:25 fros4943 Exp $
  */
 
 package se.sics.cooja;
@@ -948,7 +948,7 @@ public class Simulation extends Observable implements Runnable {
    * Returns current simulation time rounded to milliseconds.
    * 
    * @see #getSimulationTime()
-   * @return
+   * @return Time rounded to milliseconds
    */
   public long getSimulationTimeMillis() {
     return currentSimulationTime / MILLISECOND;

@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: UDGM.java,v 1.29 2009/12/07 11:03:19 fros4943 Exp $
+ * $Id: UDGM.java,v 1.30 2010/02/03 15:49:25 fros4943 Exp $
  */
 
 package se.sics.cooja.radiomediums;
@@ -45,7 +45,6 @@ import se.sics.cooja.Mote;
 import se.sics.cooja.RadioConnection;
 import se.sics.cooja.Simulation;
 import se.sics.cooja.SimEventCentral.MoteCountListener;
-import se.sics.cooja.contikimote.interfaces.ContikiRadio;
 import se.sics.cooja.interfaces.Position;
 import se.sics.cooja.interfaces.Radio;
 import se.sics.cooja.plugins.Visualizer;
@@ -77,7 +76,8 @@ import se.sics.cooja.radiomediums.DirectedGraphMedium.DestinationRadio;
  * @see #SS_WEAK
  * @see #SS_NOTHING
  *
- * @see DirectedGraphMedium, UDGMVisualizerSkin
+ * @see DirectedGraphMedium
+ * @see UDGMVisualizerSkin
  * @author Fredrik Osterlind
  */
 @ClassDescription("Unit Disk Graph Medium (UDGM)")

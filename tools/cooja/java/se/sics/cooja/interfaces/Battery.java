@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: Battery.java,v 1.11 2009/11/13 08:52:26 fros4943 Exp $
+ * $Id: Battery.java,v 1.12 2010/02/03 15:49:24 fros4943 Exp $
  */
 
 package se.sics.cooja.interfaces;
@@ -49,7 +49,6 @@ import se.sics.cooja.MoteInterface;
  * The current code does not monitor the energy consumption of simulated motes.
  * 
  * @see MoteInterface
- * @see MoteInterface#energyConsumption()
  *
  * @author Fredrik Osterlind
  */
