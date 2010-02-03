@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: TR1001Radio.java,v 1.18 2010/02/03 19:15:56 fros4943 Exp $
+ * $Id: TR1001Radio.java,v 1.19 2010/02/03 19:30:32 fros4943 Exp $
  */
 
 package se.sics.cooja.mspmote.interfaces;
@@ -183,13 +183,20 @@ public class TR1001Radio extends Radio implements USARTListener, CustomDataRadio
 
     receivedByte = isInterfered ? CORRUPTED_DATA : (Byte) data;
 
-    if (radioUSART.isReceiveFlagCleared()) {
-      /*logger.info("----- TR1001 RECEIVED BYTE -----");*/
-      radioUSART.byteReceived(receivedByte);
-    } else {
-      logger.warn(mote.getSimulation().getSimulationTime() + ": ----- TR1001 RECEIVED BYTE DROPPED -----");
-    }
-    mote.requestImmediateWakeup();
+    final byte finalByte = receivedByte;
+    mote.getSimulation().scheduleEvent(new MspMoteTimeEvent(mote, 0) {
+      public void execute(long t) {
+        super.execute(t);
+
+        if (radioUSART.isReceiveFlagCleared()) {
+          /*logger.info("----- TR1001 RECEIVED BYTE -----");*/
+          radioUSART.byteReceived(finalByte);
+        } else {
+          logger.warn(mote.getSimulation().getSimulationTime() + ": ----- TR1001 RECEIVED BYTE DROPPED -----");
+        }
+        mote.requestImmediateWakeup();
+      }
+    }, mote.getSimulation().getSimulationTime());
   }
 
   /* USART listener support */
