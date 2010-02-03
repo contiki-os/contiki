@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: csma.c,v 1.4 2010/02/02 20:45:58 adamdunkels Exp $
+ * $Id: csma.c,v 1.5 2010/02/03 01:17:54 adamdunkels Exp $
  */
 
 /**
@@ -103,8 +103,8 @@ send_packet(void)
   /* Check if we saw a collission, and if we have a queuebuf with the
      packet available. Only retransmit unicast packets. Retransmit
      only once, for now. */
-  if(ret == MAC_TX_COLLISION && buf != NULL &&
-     !rimeaddr_cmp(&receiver, &rimeaddr_null)) {
+  if((ret == MAC_TX_COLLISION || ret == MAC_TX_NOACK) &&
+     buf != NULL && !rimeaddr_cmp(&receiver, &rimeaddr_null)) {
     struct queued_packet *q;
 
     q = memb_alloc(&packet_memb);
@@ -115,11 +115,18 @@ send_packet(void)
     q->buf = buf;
     q->retransmits = 0;
 
-    time = mac->channel_check_interval();
-    if(time == 0) {
-      time = CLOCK_SECOND;
+    if(ret == MAC_TX_COLLISION) {
+      /* If the packet wasn't sent because of a collission, we let the
+         other packet get through before we try again. */
+      time = mac->channel_check_interval();
+      if(time == 0) {
+        time = CLOCK_SECOND;
+      }
+      time = time + (random_rand() % (3 * time));
+    } else {
+      /* If the packet didn't get an ACK, we retransmit immediately. */
+      time = 0;
     }
-    time = time + (random_rand() % (3 * time));
     
     ctimer_set(&q->retransmit_timer, time,
 	       retransmit_packet, q);
