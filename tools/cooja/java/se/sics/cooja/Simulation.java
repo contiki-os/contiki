@@ -24,7 +24,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * $Id: Simulation.java,v 1.58 2010/01/24 20:10:57 nifi Exp $
+ * $Id: Simulation.java,v 1.59 2010/02/03 12:15:37 fros4943 Exp $
  */
 
 package se.sics.cooja;
@@ -282,6 +282,8 @@ public class Simulation extends Observable implements Runnable {
       if (!GUI.isVisualized()) {
 	/* Quit simulator if in test mode */
 	System.exit(1);
+      } else {
+        GUI.showErrorDialog(GUI.getTopParentContainer(), "Simulation error", e, false);
       }
     }
     isRunning = false;
