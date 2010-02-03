@@ -452,7 +452,10 @@ while(nodes_starting) {
 }
 
 /* Create sink */
-log.log("All nodes booted, creating sink at node " + id + "\n");
+sink = id;
+GENERATE_MSG(1000, "continue");
+YIELD_THEN_WAIT_UNTIL(msg.equals("continue"));
+log.log("All nodes booted, creating sink at node " + sink + "\n");
 mote.getInterfaces().getButton().clickButton()
 
 while(true) {
