@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: example-shell.c,v 1.2 2009/05/11 17:37:15 adamdunkels Exp $
+ * $Id: example-shell.c,v 1.3 2010/02/03 20:37:52 adamdunkels Exp $
  */
 
 /**
@@ -59,6 +59,7 @@ PROCESS_THREAD(example_shell_process, ev, data)
 
   serial_shell_init();
 
+  shell_base64_init();
   shell_blink_init();
   /*shell_checkpoint_init();*/
   /*shell_coffee_init();*/

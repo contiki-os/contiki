@@ -28,12 +28,12 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: shell-text.c,v 1.4 2010/02/03 20:37:29 adamdunkels Exp $
+ * $Id: shell-base64.c,v 1.1 2010/02/03 20:37:29 adamdunkels Exp $
  */
 
 /**
  * \file
- *         Text-related shell commands
+ *         Base64-related shell commands
  * \author
  *         Adam Dunkels <adam@sics.se>
  */
@@ -50,40 +50,11 @@ int snprintf(char *str, size_t size, const char *format, ...);
 #include <string.h>
 
 /*---------------------------------------------------------------------------*/
-PROCESS(shell_echo_process, "echo");
-SHELL_COMMAND(echo_command,
-	      "echo",
-	      "echo <text>: print <text>",
-	      &shell_echo_process);
 PROCESS(shell_dec64_process, "dec64");
 SHELL_COMMAND(dec64_command,
 	      "dec64",
 	      "dec64: decode base64 input",
 	      &shell_dec64_process);
-PROCESS(shell_binprint_process, "binprint");
-SHELL_COMMAND(binprint_command,
-	      "binprint",
-	      "binprint: print binary data in decimal format",
-	      &shell_binprint_process);
-PROCESS(shell_hd_process, "hd");
-SHELL_COMMAND(hd_command,
-	      "hd",
-	      "hd: print binary data in hexadecimal format",
-	      &shell_hd_process);
-PROCESS(shell_size_process, "size");
-SHELL_COMMAND(size_command,
-	      "size",
-	      "size: print the size of the input",
-	      &shell_size_process);
-/*---------------------------------------------------------------------------*/
-PROCESS_THREAD(shell_echo_process, ev, data)
-{
-  PROCESS_BEGIN();
-
-  shell_output(&echo_command, data, (int)strlen(data), "", 0);
-  
-  PROCESS_END();
-}
 /*---------------------------------------------------------------------------*/
 #define BASE64_MAX_LINELEN 76
 
@@ -173,131 +144,9 @@ PROCESS_THREAD(shell_dec64_process, ev, data)
   PROCESS_END();
 }
 /*---------------------------------------------------------------------------*/
-PROCESS_THREAD(shell_hd_process, ev, data)
-{
-  struct shell_input *input;
-  uint16_t *ptr;
-  int i;
-  char buf[57], *bufptr;
-
-  PROCESS_BEGIN();
-
-  while(1) {
-    PROCESS_WAIT_EVENT_UNTIL(ev == shell_event_input);
-    input = data;
-
-    if(input->len1 + input->len2 == 0) {
-      PROCESS_EXIT();
-    }
-
-    bufptr = buf;
-    ptr = (uint16_t *)input->data1;
-    for(i = 0; i < input->len1 && i < input->len1 - 1; i += 2) {
-      bufptr += sprintf(bufptr, "0x%04x ", *ptr);
-      if(bufptr - buf >= sizeof(buf) - 7) {
-	shell_output_str(&hd_command, buf, "");
-	bufptr = buf;
-      }
-      ptr++;
-    }
-
-    ptr = (uint16_t *)input->data2;
-    for(i = 0; i < input->len2 && i < input->len2 - 1; i += 2) {
-      bufptr += sprintf(bufptr, "0x%04x ", *ptr);
-      if(bufptr - buf >= sizeof(buf) - 7) {
-	shell_output_str(&hd_command, buf, "");
-	bufptr = buf;
-      }
-      ptr++;
-    }
-    if(bufptr != buf) {
-      shell_output_str(&hd_command, buf, "");
-    }
-    
-  }
-  PROCESS_END();
-}
-/*---------------------------------------------------------------------------*/
-PROCESS_THREAD(shell_binprint_process, ev, data)
-{
-  struct shell_input *input;
-  uint16_t *ptr;
-  int i;
-  char buf[2*64], *bufptr;
-
-  PROCESS_BEGIN();
-
-  while(1) {
-    PROCESS_WAIT_EVENT_UNTIL(ev == shell_event_input);
-    input = data;
-
-    if(input->len1 + input->len2 == 0) {
-      PROCESS_EXIT();
-    }
-
-    bufptr = buf;
-    ptr = (uint16_t *)input->data1;
-    for(i = 0; i < input->len1 && i < input->len1 - 1; i += 2) {
-      bufptr += sprintf(bufptr, "%u ", *ptr);
-      if(bufptr - buf >= sizeof(buf) - 6) {
-	shell_output_str(&binprint_command, buf, "");
-	bufptr = buf;
-      }
-      ptr++;
-    }
-
-    /* XXX need to check if input->len1 == 1 here, and then shift this
-       byte into the sequence of 16-bitters below. */
-    
-    ptr = (uint16_t *)input->data2;
-    for(i = 0; i < input->len2 && i < input->len2 - 1; i += 2) {
-      bufptr += sprintf(bufptr, "%u ", *ptr);
-      if(bufptr - buf >= sizeof(buf) - 6) {
-	shell_output_str(&binprint_command, buf, "");
-	bufptr = buf;
-      }
-      ptr++;
-    }
-    
-    if(bufptr != buf) {
-      shell_output_str(&binprint_command, buf, "");
-    }
-    
-  }
-  PROCESS_END();
-}
-/*---------------------------------------------------------------------------*/
-PROCESS_THREAD(shell_size_process, ev, data)
-{
-  struct shell_input *input;
-  static unsigned long size;
-  
-  PROCESS_BEGIN();
-  size = 0;
-  
-  while(1) {
-    PROCESS_WAIT_EVENT_UNTIL(ev == shell_event_input);
-    input = data;
-
-    size += input->len1 + input->len2;
-    
-    if(input->len1 + input->len2 == 0) {
-      char buf[10];
-      snprintf(buf, sizeof(buf), "%lu", size);
-      shell_output_str(&size_command, buf, "");
-      PROCESS_EXIT();
-    }
-  }
-  PROCESS_END();
-}
-/*---------------------------------------------------------------------------*/
 void
-shell_text_init(void)
+shell_base64_init(void)
 {
-  shell_register_command(&binprint_command);
-  shell_register_command(&hd_command);
-  shell_register_command(&echo_command);
   shell_register_command(&dec64_command);
-  shell_register_command(&size_command);
 }
 /*---------------------------------------------------------------------------*/
