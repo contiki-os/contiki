@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: test-button.c,v 1.5 2010/02/02 21:41:54 joxe Exp $
+ * $Id: test-button.c,v 1.6 2010/02/03 09:54:38 joxe Exp $
  */
 
 /**
@@ -54,7 +54,9 @@ static uint8_t active;
 PROCESS_THREAD(test_button_process, ev, data)
 {
   PROCESS_BEGIN();
+  active = 0;
   SENSORS_ACTIVATE(button_sensor);
+
   while(1) {
     PROCESS_WAIT_EVENT_UNTIL(ev == sensors_event &&
 			     data == &button_sensor);
@@ -68,9 +70,9 @@ PROCESS_THREAD(test_button_process, ev, data)
       printf("Light: %d\n", light_sensor.value(0));
       SENSORS_DEACTIVATE(light_sensor);
     }
+    active ^= 1;
     leds_toggle(LEDS_ALL);
   }
-  
   PROCESS_END();
 }
 /*---------------------------------------------------------------------------*/
