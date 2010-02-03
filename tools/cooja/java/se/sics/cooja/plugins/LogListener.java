@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: LogListener.java,v 1.24 2010/01/15 10:54:05 fros4943 Exp $
+ * $Id: LogListener.java,v 1.25 2010/02/03 15:55:50 fros4943 Exp $
  */
 
 package se.sics.cooja.plugins;
@@ -297,15 +297,8 @@ public class LogListener extends VisPlugin {
   }
 
   private void updateTitle() {
-    int observing = simulation.getEventCentral().getLogOutputObservationsCount();
-    int tot = simulation.getMotesCount();
-    if (observing == tot) {
-      setTitle("Log Listener (listening on all " + simulation.getMotesCount() + " motes)");
-    } else {
-      setTitle("Log Listener (listening on " 
-          + simulation.getEventCentral().getLogOutputObservationsCount() + "/"
-          + simulation.getMotesCount() + " motes)");
-    }
+    setTitle("Log Listener (listening on " 
+        + simulation.getEventCentral().getLogOutputObservationsCount() + " log interfaces)");
   }
 
   public void closePlugin() {
