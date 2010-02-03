@@ -111,10 +111,6 @@ public class DisturberMoteType extends AbstractApplicationMoteType {
       radio.startTransmittingPacket(radioPacket, DURATION);
     }
 
-    public boolean tick(long simTime) {
-      throw new RuntimeException("Obsolete method");
-    }
-
     public void receivedPacket(RadioPacket p) {
       /* Ignore */
     }

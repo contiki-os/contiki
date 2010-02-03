@@ -129,10 +129,5 @@ public class RimeABC extends AbstractApplicationMote {
   public String toString() {
     return "App Rime ABC " + getID();
   }
-
-  public boolean tick(long simTime) {
-    /* Obsolete method */
-    return false;
-  }
 }
 
