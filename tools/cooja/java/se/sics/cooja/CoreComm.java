@@ -24,7 +24,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * $Id: CoreComm.java,v 1.14 2009/03/10 21:05:00 fros4943 Exp $
+ * $Id: CoreComm.java,v 1.15 2010/02/03 15:49:25 fros4943 Exp $
  */
 
 package se.sics.cooja;
@@ -279,15 +279,13 @@ public abstract class CoreComm {
   /**
    * Loads given Java class file from disk.
    *
-   * @param classFile
-   *          Java class (without extension)
+   * @param className Java class name
    * @return Loaded class
-   * @throws MoteTypeCreationException
-   *           If error occurs
+   * @throws MoteTypeCreationException If error occurs
    */
-  public static Class loadClassFile(String className)
+  public static Class<?> loadClassFile(String className)
       throws MoteTypeCreationException {
-    Class loadedClass = null;
+    Class<?> loadedClass = null;
     try {
       ClassLoader urlClassLoader = new URLClassLoader(
           new URL[] { new File(".").toURI().toURL() },

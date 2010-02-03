@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: VisualizerSkin.java,v 1.3 2009/08/27 13:57:42 fros4943 Exp $
+ * $Id: VisualizerSkin.java,v 1.4 2010/02/03 15:49:24 fros4943 Exp $
  */
 
 package se.sics.cooja.plugins;
@@ -52,7 +52,8 @@ public interface VisualizerSkin {
    * @param sim Simulation
    * @param visualizer Visualizer plugin
    *
-   * @see #paintSkin(Graphics)
+   * @see #paintBeforeMotes(Graphics)
+   * @see #paintAfterMotes(Graphics)
    * @see #setInactive()
    */
   public void setActive(Simulation sim, Visualizer visualizer);

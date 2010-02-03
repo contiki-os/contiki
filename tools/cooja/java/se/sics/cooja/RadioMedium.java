@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: RadioMedium.java,v 1.8 2009/11/25 15:26:35 fros4943 Exp $
+ * $Id: RadioMedium.java,v 1.9 2010/02/03 15:49:25 fros4943 Exp $
  */
 
 package se.sics.cooja;
@@ -100,10 +100,9 @@ public abstract class RadioMedium {
   /**
    * Adds an observer which is notified each time a radio connection has finished.
    *
-   * @see #getLastTickConnections()
+   * @see #getLastConnection()
    * @see #deleteRadioMediumObserver(Observer)
-   * @param observer
-   *          New observer
+   * @param observer New observer
    */
   public abstract void addRadioMediumObserver(Observer observer);
 

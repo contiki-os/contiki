@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ConfigurationWizard.java,v 1.6 2010/02/03 09:58:07 fros4943 Exp $
+ * $Id: ConfigurationWizard.java,v 1.7 2010/02/03 15:49:24 fros4943 Exp $
  */
 
 package se.sics.cooja.dialogs;
@@ -668,7 +668,7 @@ public class ConfigurationWizard extends JDialog {
     testOutput.addMessage("### Loading Java library class: se/sics/cooja/corecomm/" + javaLibraryName);
     Class<? extends CoreComm> javaLibraryClass = null;
     try {
-      javaLibraryClass = CoreComm.loadClassFile(javaLibraryName);
+      javaLibraryClass = (Class<? extends CoreComm>) CoreComm.loadClassFile(javaLibraryName);
     } catch (MoteTypeCreationException e) {
       e.printStackTrace(errorStream);
       testOutput.addMessage("### Error: " + e.getMessage(), MessageList.ERROR);

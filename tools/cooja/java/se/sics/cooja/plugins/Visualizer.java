@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: Visualizer.java,v 1.12 2010/01/13 12:29:10 nifi Exp $
+ * $Id: Visualizer.java,v 1.13 2010/02/03 15:49:24 fros4943 Exp $
  */
 
 package se.sics.cooja.plugins;
@@ -112,8 +112,8 @@ import se.sics.cooja.plugins.skins.UDGMVisualizerSkin;
  *
  * Observes the simulation and all mote positions.
  *
- * @see #registerMoteMenuAction(MoteMenuAction)
- * @see #registerSimulationMenuAction(SimulationMenuAction)
+ * @see #registerMoteMenuAction(Class)
+ * @see #registerSimulationMenuAction(Class)
  * @see #registerVisualizerSkin(Class)
  * @see UDGMVisualizerSkin
  * @author Fredrik Osterlind

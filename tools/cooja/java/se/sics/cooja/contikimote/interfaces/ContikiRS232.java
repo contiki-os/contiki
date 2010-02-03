@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ContikiRS232.java,v 1.12 2010/02/03 09:27:24 fros4943 Exp $
+ * $Id: ContikiRS232.java,v 1.13 2010/02/03 15:49:25 fros4943 Exp $
  */
 
 package se.sics.cooja.contikimote.interfaces;
@@ -60,7 +60,7 @@ import se.sics.cooja.interfaces.PolledAfterActiveTicks;
  *
  * This observable notifies observers when a serial message is sent from the mote.
  *
- * @see #getSerialMessages()
+ * @see #getLastLogMessage()
  *
  * @author Fredrik Osterlind
  */
