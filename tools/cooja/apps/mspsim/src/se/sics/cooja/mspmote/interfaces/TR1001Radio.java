@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: TR1001Radio.java,v 1.17 2010/02/03 13:47:33 nifi Exp $
+ * $Id: TR1001Radio.java,v 1.18 2010/02/03 19:15:56 fros4943 Exp $
  */
 
 package se.sics.cooja.mspmote.interfaces;
@@ -58,6 +58,7 @@ import se.sics.cooja.interfaces.CustomDataRadio;
 import se.sics.cooja.interfaces.Position;
 import se.sics.cooja.interfaces.Radio;
 import se.sics.cooja.mspmote.MspMote;
+import se.sics.cooja.mspmote.MspMoteTimeEvent;
 import se.sics.mspsim.core.IOUnit;
 import se.sics.mspsim.core.USART;
 import se.sics.mspsim.core.USARTListener;
@@ -142,8 +143,10 @@ public class TR1001Radio extends Radio implements USARTListener, CustomDataRadio
     }
 
     /* Feed incoming bytes to radio "slowly" via time events */
-    TimeEvent receiveCrosslevelDataEvent = new MoteTimeEvent(mote, 0) {
+    TimeEvent receiveCrosslevelDataEvent = new MspMoteTimeEvent(mote, 0) {
       public void execute(long t) {
+        super.execute(t);
+        
         /* Stop receiving data when buffer is empty */
         if (data.isEmpty()) {
           return;
