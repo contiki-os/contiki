@@ -21,7 +21,8 @@
       <identifier>sky1</identifier>
       <description>Sky Mote Type #1</description>
       <source>../../../examples/sky/test-coffee.c</source>
-      <commands>make test-coffee.sky TARGET=sky</commands>
+      <commands>make clean TARGET=sky
+make test-coffee.sky TARGET=sky</commands>
       <firmware>../../../examples/sky/test-coffee.sky</firmware>
       <moteinterface>se.sics.cooja.interfaces.Position</moteinterface>
       <moteinterface>se.sics.cooja.interfaces.IPAddress</moteinterface>

@@ -23,7 +23,8 @@
       <identifier>sky1</identifier>
       <description>Sky Mote Type #1</description>
       <source>[CONTIKI_DIR]/examples/rime/example-abc.c</source>
-      <commands>make example-abc.sky TARGET=sky DEFINES=MAC_DRIVER=nullmac_driver</commands>
+      <commands>make clean TARGET=sky
+make example-abc.sky TARGET=sky DEFINES=MAC_DRIVER=nullmac_driver</commands>
       <firmware>[CONTIKI_DIR]/examples/rime/example-abc.sky</firmware>
       <moteinterface>se.sics.cooja.interfaces.Position</moteinterface>
       <moteinterface>se.sics.cooja.interfaces.IPAddress</moteinterface>
@@ -44,7 +45,8 @@
       <identifier>esb1</identifier>
       <description>ESB Mote Type #1</description>
       <source>[CONTIKI_DIR]/examples/rime/example-abc.c</source>
-      <commands>make example-abc.esb TARGET=esb DEFINES=MAC_DRIVER=nullmac_driver</commands>
+      <commands>make clean TARGET=esb
+make example-abc.esb TARGET=esb DEFINES=MAC_DRIVER=nullmac_driver</commands>
       <firmware>[CONTIKI_DIR]/examples/rime/example-abc.esb</firmware>
       <moteinterface>se.sics.cooja.interfaces.Position</moteinterface>
       <moteinterface>se.sics.cooja.interfaces.IPAddress</moteinterface>

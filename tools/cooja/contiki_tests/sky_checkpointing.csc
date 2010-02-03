@@ -21,7 +21,8 @@
       <identifier>sky1</identifier>
       <description>Sky Mote Type #1</description>
       <source>../../../examples/sky-shell/sky-checkpoint.c</source>
-      <commands>make sky-checkpoint.sky TARGET=sky</commands>
+      <commands>make clean TARGET=sky
+make sky-checkpoint.sky TARGET=sky</commands>
       <firmware>../../../examples/sky-shell/sky-checkpoint.sky</firmware>
       <moteinterface>se.sics.cooja.interfaces.Position</moteinterface>
       <moteinterface>se.sics.cooja.interfaces.IPAddress</moteinterface>

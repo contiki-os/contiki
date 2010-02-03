@@ -21,7 +21,8 @@
       <identifier>sky1</identifier>
       <description>Sky Mote Type #1</description>
       <source>../../../examples/udp-sender-ipv6/example-udp-sender.c</source>
-      <commands>make example-udp-sender.sky TARGET=sky DEFINES=WITH_UIP6,UDP_ADDR_A=0xfe80,UDP_ADDR_B=0,UDP_ADDR_C=0,UDP_ADDR_D=0,UDP_ADDR_E=0x0212,UDP_ADDR_F=0x7402,UDP_ADDR_G=0x02,UDP_ADDR_H=0x202</commands>
+      <commands>make clean TARGET=sky
+make example-udp-sender.sky TARGET=sky DEFINES=WITH_UIP6,UDP_ADDR_A=0xfe80,UDP_ADDR_B=0,UDP_ADDR_C=0,UDP_ADDR_D=0,UDP_ADDR_E=0x0212,UDP_ADDR_F=0x7402,UDP_ADDR_G=0x02,UDP_ADDR_H=0x202</commands>
       <firmware>../../../examples/udp-sender-ipv6/example-udp-sender.sky</firmware>
       <moteinterface>se.sics.cooja.interfaces.Position</moteinterface>
       <moteinterface>se.sics.cooja.interfaces.IPAddress</moteinterface>
@@ -39,7 +40,8 @@
       <identifier>sky2</identifier>
       <description>Sky Mote Type #2</description>
       <source>../../../examples/udp-receiver-ipv6/example-udp-receiver.c</source>
-      <commands>make example-udp-receiver.sky TARGET=sky DEFINES=WITH_UIP6,UDP_ADDR_A=0xfe80,UDP_ADDR_B=0,UDP_ADDR_C=0,UDP_ADDR_D=0,UDP_ADDR_E=0x0212,UDP_ADDR_F=0x7401,UDP_ADDR_G=0x01,UDP_ADDR_H=0x101</commands>
+      <commands>make clean TARGET=sky
+make example-udp-receiver.sky TARGET=sky DEFINES=WITH_UIP6,UDP_ADDR_A=0xfe80,UDP_ADDR_B=0,UDP_ADDR_C=0,UDP_ADDR_D=0,UDP_ADDR_E=0x0212,UDP_ADDR_F=0x7401,UDP_ADDR_G=0x01,UDP_ADDR_H=0x101</commands>
       <firmware>../../../examples/udp-receiver-ipv6/example-udp-receiver.sky</firmware>
       <moteinterface>se.sics.cooja.interfaces.Position</moteinterface>
       <moteinterface>se.sics.cooja.interfaces.IPAddress</moteinterface>

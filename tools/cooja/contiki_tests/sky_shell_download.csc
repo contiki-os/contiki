@@ -23,7 +23,8 @@
       <identifier>sky1</identifier>
       <description>Sky Mote Type #sky1</description>
       <source>[CONTIKI_DIR]/examples/sky-shell/sky-checkpoint.c</source>
-      <commands>make sky-checkpoint.sky TARGET=sky</commands>
+      <commands>make clean TARGET=sky
+make sky-checkpoint.sky TARGET=sky</commands>
       <firmware>[CONTIKI_DIR]/examples/sky-shell/sky-checkpoint.sky</firmware>
       <moteinterface>se.sics.cooja.interfaces.Position</moteinterface>
       <moteinterface>se.sics.cooja.interfaces.IPAddress</moteinterface>

@@ -21,7 +21,8 @@
       <identifier>sky1</identifier>
       <description>Sky Mote Type #1</description>
       <source>../../../examples/multi-threading/multi-threading.c</source>
-      <commands>make multi-threading.sky TARGET=sky</commands>
+      <commands>make clean TARGET=sky
+make multi-threading.sky TARGET=sky</commands>
       <firmware>../../../examples/multi-threading/multi-threading.sky</firmware>
       <moteinterface>se.sics.cooja.interfaces.Position</moteinterface>
       <moteinterface>se.sics.cooja.interfaces.IPAddress</moteinterface>
