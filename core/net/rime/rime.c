@@ -33,7 +33,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: rime.c,v 1.23 2010/01/25 13:54:26 adamdunkels Exp $
+ * $Id: rime.c,v 1.24 2010/02/03 20:38:33 adamdunkels Exp $
  */
 
 /**
@@ -111,7 +111,6 @@ rime_init(const struct mac_driver *m)
 {
   queuebuf_init();
   packetbuf_clear();
-  neighbor_init();
   announcement_init();
   rime_mac = m;
   rime_mac->set_receive_function(input);

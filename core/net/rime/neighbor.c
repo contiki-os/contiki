@@ -33,7 +33,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: neighbor.c,v 1.21 2009/11/08 19:40:17 adamdunkels Exp $
+ * $Id: neighbor.c,v 1.22 2010/02/03 20:38:33 adamdunkels Exp $
  */
 
 /**
@@ -114,14 +114,13 @@ periodic(void *ptr)
 void
 neighbor_init(void)
 {
-  
-  memb_init(&neighbors_mem);
-  list_init(neighbors_list);
-  /*  for(i = 0; i < MAX_NEIGHBORS; ++i) {
-    rimeaddr_copy(&neighbors[i].addr, &rimeaddr_null);
-    }*/
-  
-  ctimer_set(&t, CLOCK_SECOND, periodic, NULL);
+  static uint8_t initialized = 0;
+  if(initialized == 0) {
+    initialized = 1;
+    memb_init(&neighbors_mem);
+    list_init(neighbors_list);
+    ctimer_set(&t, CLOCK_SECOND, periodic, NULL);
+  }
 }
 /*---------------------------------------------------------------------------*/
 struct neighbor *
