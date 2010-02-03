@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 
-<project name="Plugin example" default="compile" basedir=".">
+<project name="COOJA Plugin example" default="compile" basedir=".">
   <property name="src" location="java"/>
   <property name="build" location="java"/>
 
