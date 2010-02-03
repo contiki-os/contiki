@@ -30,7 +30,7 @@
  * 
  * Author: Oliver Schmidt <ol.sc@web.de>
  *
- * $Id: contiki-conf.h,v 1.7 2010/02/02 22:23:57 oliverschmidt Exp $
+ * $Id: contiki-conf.h,v 1.8 2010/02/03 22:53:59 oliverschmidt Exp $
  */
 
 #ifndef __CONTIKI_CONF_H__
@@ -64,7 +64,7 @@
 #define IRC_CONF_HEIGHT 24
 
 #define WEBSERVER_CONF_CGI_CONNS UIP_CONNS
-#define WEBSERVER_CONF_CFS_CONNS 7
+#define WEBSERVER_CONF_CFS_CONNS 8
 
 #define WWW_CONF_WEBPAGE_WIDTH      80
 #define WWW_CONF_WEBPAGE_HEIGHT     20
