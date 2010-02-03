@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: MspMote.java,v 1.38 2010/01/21 22:32:32 fros4943 Exp $
+ * $Id: MspMote.java,v 1.39 2010/02/03 11:06:23 fros4943 Exp $
  */
 
 package se.sics.cooja.mspmote;
@@ -394,7 +394,6 @@ public abstract class MspMote extends AbstractEmulatedMote implements Mote, Watc
   
   public boolean setConfigXML(Simulation simulation, Collection<Element> configXML, boolean visAvailable) {
     setSimulation(simulation);
-    initEmulator(myMoteType.getContikiFirmwareFile());
     myMoteInterfaceHandler = createMoteInterfaceHandler();
 
     /* Create watchpoint container */
