@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: shell-text.c,v 1.4 2010/02/03 20:37:29 adamdunkels Exp $
+ * $Id: shell-text.c,v 1.5 2010/02/03 21:39:25 adamdunkels Exp $
  */
 
 /**
@@ -55,11 +55,6 @@ SHELL_COMMAND(echo_command,
 	      "echo",
 	      "echo <text>: print <text>",
 	      &shell_echo_process);
-PROCESS(shell_dec64_process, "dec64");
-SHELL_COMMAND(dec64_command,
-	      "dec64",
-	      "dec64: decode base64 input",
-	      &shell_dec64_process);
 PROCESS(shell_binprint_process, "binprint");
 SHELL_COMMAND(binprint_command,
 	      "binprint",
@@ -142,80 +137,6 @@ base64_add_char(struct base64_decoder_state *s, char c)
     }
   }
   return 1;
-}
-/*---------------------------------------------------------------------------*/
-PROCESS_THREAD(shell_dec64_process, ev, data)
-{
-  PROCESS_BEGIN();
-
-  while(1) {
-    struct shell_input *input;
-    struct base64_decoder_state s;
-    int i;
-
-    PROCESS_WAIT_EVENT_UNTIL(ev == shell_event_input);
-    input = data;
-
-    if(input->len1 + input->len2 == 0) {
-      PROCESS_EXIT();
-    }
-
-    s.sextets = s.dataptr = s.padding = 0;
-
-    for(i = 0; i < input->len1; ++i) {
-      base64_add_char(&s, input->data1[i]);
-    }
-    for(i = 0; i < input->len2; ++i) {
-      base64_add_char(&s, input->data2[i]);
-    }
-    shell_output(&dec64_command, s.data, s.dataptr - s.padding, "", 0);
-  }
-  PROCESS_END();
-}
-/*---------------------------------------------------------------------------*/
-PROCESS_THREAD(shell_hd_process, ev, data)
-{
-  struct shell_input *input;
-  uint16_t *ptr;
-  int i;
-  char buf[57], *bufptr;
-
-  PROCESS_BEGIN();
-
-  while(1) {
-    PROCESS_WAIT_EVENT_UNTIL(ev == shell_event_input);
-    input = data;
-
-    if(input->len1 + input->len2 == 0) {
-      PROCESS_EXIT();
-    }
-
-    bufptr = buf;
-    ptr = (uint16_t *)input->data1;
-    for(i = 0; i < input->len1 && i < input->len1 - 1; i += 2) {
-      bufptr += sprintf(bufptr, "0x%04x ", *ptr);
-      if(bufptr - buf >= sizeof(buf) - 7) {
-	shell_output_str(&hd_command, buf, "");
-	bufptr = buf;
-      }
-      ptr++;
-    }
-
-    ptr = (uint16_t *)input->data2;
-    for(i = 0; i < input->len2 && i < input->len2 - 1; i += 2) {
-      bufptr += sprintf(bufptr, "0x%04x ", *ptr);
-      if(bufptr - buf >= sizeof(buf) - 7) {
-	shell_output_str(&hd_command, buf, "");
-	bufptr = buf;
-      }
-      ptr++;
-    }
-    if(bufptr != buf) {
-      shell_output_str(&hd_command, buf, "");
-    }
-    
-  }
-  PROCESS_END();
 }
 /*---------------------------------------------------------------------------*/
 PROCESS_THREAD(shell_binprint_process, ev, data)
