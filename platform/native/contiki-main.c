@@ -29,7 +29,7 @@
  *
  * This file is part of the Contiki OS
  *
- * $Id: contiki-main.c,v 1.10 2009/03/17 15:56:32 adamdunkels Exp $
+ * $Id: contiki-main.c,v 1.11 2010/02/03 16:47:26 adamdunkels Exp $
  *
  */
 
@@ -57,7 +57,8 @@ main(void)
 {
   printf("Starting Contiki\n");
   process_init();
-
+  ctimer_init();
+  
   procinit_init();
   
   autostart_start(autostart_processes);
