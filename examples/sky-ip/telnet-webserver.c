@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: telnet-webserver.c,v 1.1 2008/02/24 21:33:57 adamdunkels Exp $
+ * $Id: telnet-webserver.c,v 1.2 2010/02/03 20:05:20 adamdunkels Exp $
  */
 
 /**
@@ -76,17 +76,10 @@ PROCESS_THREAD(sky_telnetd_process, ev, data)
   PROCESS_PAUSE();
 
   shell_blink_init();
-  /*  shell_file_init();
-      shell_netfile_init();*/
   shell_ps_init();
-  /*  shell_reboot_init();*/
   shell_rime_init();
   shell_rime_ping_init();
   shell_rime_netcmd_init();
-  shell_rime_sniff_init();
-  /*shell_sky_init();*/
-  /*  shell_text_init();
-      shell_time_init();*/
 
   shell_register_command(&id_command);
   

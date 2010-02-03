@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: telnet-tweet.c,v 1.1 2009/05/11 17:36:13 adamdunkels Exp $
+ * $Id: telnet-tweet.c,v 1.2 2010/02/03 20:05:19 adamdunkels Exp $
  */
 
 /**
@@ -57,25 +57,14 @@ PROCESS_THREAD(sky_telnetd_process, ev, data)
   PROCESS_PAUSE();
 
   shell_blink_init();
-  /*  shell_file_init();
-      shell_coffee_init();*/
-  /*    shell_netfile_init();*/
   shell_ps_init();
   shell_ping_init();
   shell_reboot_init();
-  /*  shell_rime_init();
-  shell_rime_ping_init();
-  shell_rime_netcmd_init();
-  shell_rime_sniff_init();*/
   shell_power_init();
   shell_sky_init();
   shell_text_init();
   shell_time_init();
 
-  /*  shell_wget_init();*/
-
-  shell_rime_neighbors_init();
-  
   shell_tweet_init();
   shell_sensortweet_init();
   
