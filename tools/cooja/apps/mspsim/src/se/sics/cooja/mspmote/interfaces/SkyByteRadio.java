@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: SkyByteRadio.java,v 1.20 2010/01/15 10:44:26 fros4943 Exp $
+ * $Id: SkyByteRadio.java,v 1.21 2010/02/03 12:37:34 fros4943 Exp $
  */
 
 package se.sics.cooja.mspmote.interfaces;
@@ -35,20 +35,28 @@ import java.awt.BorderLayout;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.util.*;
-import javax.swing.*;
+import java.util.Collection;
+import java.util.Observable;
+import java.util.Observer;
+
+import javax.swing.JButton;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+
 import org.apache.log4j.Logger;
 import org.jdom.Element;
 
-import se.sics.cooja.*;
+import se.sics.cooja.ClassDescription;
+import se.sics.cooja.Mote;
+import se.sics.cooja.MoteTimeEvent;
+import se.sics.cooja.RadioPacket;
+import se.sics.cooja.Simulation;
 import se.sics.cooja.interfaces.CustomDataRadio;
 import se.sics.cooja.interfaces.Position;
 import se.sics.cooja.interfaces.Radio;
 import se.sics.cooja.mspmote.SkyMote;
 import se.sics.mspsim.chip.CC2420;
 import se.sics.mspsim.chip.RFListener;
-import se.sics.mspsim.chip.CC2420.RadioState;
-import se.sics.mspsim.chip.CC2420.StateListener;
 import se.sics.mspsim.core.Chip;
 import se.sics.mspsim.core.OperatingModeListener;
 
@@ -61,26 +69,27 @@ import se.sics.mspsim.core.OperatingModeListener;
 public class SkyByteRadio extends Radio implements CustomDataRadio {
   private static Logger logger = Logger.getLogger(SkyByteRadio.class);
 
-  private long lastEventTime = 0;
+  /**
+   * Cross-level:
+   * Inter-byte delay for delivering cross-level packet bytes.
+   */
+  public static final long DELAY_BETWEEN_BYTES = 
+    (long) (1000.0*Simulation.MILLISECOND/(250000.0/8.0)); /* us. Corresponds to 250kbit/s */
 
+  private long lastEventTime = 0;
   private RadioEvent lastEvent = RadioEvent.UNKNOWN;
 
   private SkyMote mote;
-
   private CC2420 cc2420;
 
   private boolean isInterfered = false;
-
   private boolean isTransmitting = false;
-
   private boolean isReceiving = false;
 
   private byte lastOutgoingByte;
-
   private byte lastIncomingByte;
 
   private RadioPacket lastOutgoingPacket = null;
-
   private RadioPacket lastIncomingPacket = null;
 
   public SkyByteRadio(Mote mote) {
@@ -179,73 +188,35 @@ public class SkyByteRadio extends Radio implements CustomDataRadio {
     return lastIncomingPacket;
   }
 
-  private byte[] crossBufferedData = null;
-
-  private TimeEvent deliverPacketDataEvent = new MoteTimeEvent(mote, 0) {
-    public void execute(long t) {
-
-      if (crossBufferedData == null) {
-        return;
-      }
-
-      /*logger.info("Delivering buffered packet data now: " + mote.getSimulation().getSimulationTime());*/
-      for (byte b: crossBufferedData) {
-        if (isInterfered()) {
-          cc2420.receivedByte((byte)0xFF);
-        } else {
-          cc2420.receivedByte(b);
-        }
-      }
-      mote.requestImmediateWakeup();
-      crossBufferedData = null;
-    }
-  };
-
-  private StateListener cc2420StateListener = new StateListener() {
-    public void newState(RadioState state) {
-      if (cc2420.getState() != CC2420.RadioState.RX_SFD_SEARCH) {
-        return;
-      }
-
-      cc2420.setStateListener(null);
-
-      if (crossBufferedData == null) {
-        return;
-      }
-
-      /*logger.info("Radio was turned on! Short delay before transmitting buffered data: " + mote.getSimulation().getSimulationTime());*/
-
-      /* Deliver data after the radio drivers flush */
-      mote.getSimulation().scheduleEvent(
-          deliverPacketDataEvent,
-          mote.getSimulation().getSimulationTime()+Simulation.MILLISECOND/3
-      );
-    }
-  };
-
   public void setReceivedPacket(RadioPacket packet) {
+    /* Note:
+     * Only nodes at other abstraction levels deliver full packets.
+     * Sky motes would instead directly deliver bytes. */
+    
     lastIncomingPacket = packet;
-    byte[] packetData = CC2420RadioPacketConverter.fromCoojaToCC2420(packet);
-
+    /* TODO Check isReceiverOn() instead? */
     if (cc2420.getState() != CC2420.RadioState.RX_SFD_SEARCH) {
-      /*logger.info("Radio is turned off. Buffering data.");*/
-
-      crossBufferedData = packetData;
-      cc2420.setStateListener(cc2420StateListener);
-
-      /* TODO Event to remove listener and give up */
+      logger.warn("Radio is turned off, dropping packet data");
       return;
     }
 
-    /* Delivering data immediately */
+    /* Delivering packet bytes with delays */
+    byte[] packetData = CC2420RadioPacketConverter.fromCoojaToCC2420(packet);
+    long deliveryTime = getMote().getSimulation().getSimulationTime();
     for (byte b: packetData) {
       if (isInterfered()) {
-        cc2420.receivedByte((byte)0xFF);
-      } else {
-        cc2420.receivedByte(b);
+        b = (byte) 0xFF;
       }
+
+      final byte byteToDeliver = b;
+      getMote().getSimulation().scheduleEvent(new MoteTimeEvent(getMote(), 0) {
+        public void execute(long t) {
+          cc2420.receivedByte(byteToDeliver);
+          mote.requestImmediateWakeup();
+        }        
+      }, deliveryTime);
+      deliveryTime += DELAY_BETWEEN_BYTES;
     }
-    mote.requestImmediateWakeup();
   }
 
   /* Custom data radio support */
@@ -350,10 +321,6 @@ public class SkyByteRadio extends Radio implements CustomDataRadio {
 
   public void setCurrentSignalStrength(double signalStrength) {
     cc2420.setRSSI((int) signalStrength);
-  }
-
-  public double energyConsumption() {
-    return 0;
   }
 
   public JPanel getInterfaceVisualizer() {
