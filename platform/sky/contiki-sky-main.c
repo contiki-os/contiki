@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#)$Id: contiki-sky-main.c,v 1.66 2010/02/02 16:25:30 adamdunkels Exp $
+ * @(#)$Id: contiki-sky-main.c,v 1.67 2010/02/03 01:20:47 adamdunkels Exp $
  */
 
 #include <signal.h>
@@ -211,8 +211,6 @@ set_gateway(void)
     uip_over_mesh_set_gateway(&rimeaddr_node_addr);
     uip_over_mesh_make_announced_gateway();
     is_gateway = 1;
-
-    rime_mac->off(1);
   }
 }
 #endif /* WITH_UIP */
