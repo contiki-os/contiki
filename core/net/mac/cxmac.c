@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: cxmac.c,v 1.8 2010/02/03 01:17:32 adamdunkels Exp $
+ * $Id: cxmac.c,v 1.9 2010/02/03 16:44:43 adamdunkels Exp $
  */
 
 /**
@@ -252,20 +252,6 @@ off(void)
   }
 }
 /*---------------------------------------------------------------------------*/
-static char powercycle(struct rtimer *t, void *ptr);
-static void
-schedule_powercycle(struct rtimer *t, rtimer_clock_t time)
-{
-  int r;
-  if(cxmac_is_on) {
-    r = rtimer_set(t, RTIMER_TIME(t) + time, 1,
-		   (void (*)(struct rtimer *, void *))powercycle, NULL);
-    if(r) {
-      PRINTF("schedule_powercycle: could not set rtimer\n");
-    }
-  }
-}
-/*---------------------------------------------------------------------------*/
 static void
 powercycle_turn_radio_off(void)
 {
@@ -339,50 +325,6 @@ cpowercycle(void *ptr)
 	}
       }
       CSCHEDULE_POWERCYCLE(DEFAULT_OFF_TIME);
-      PT_YIELD(&pt);
-    }
-  }
-
-  PT_END(&pt);
-}
-/*---------------------------------------------------------------------------*/
-static char
-powercycle(struct rtimer *t, void *ptr)
-{
-  if(is_streaming) {
-    if(!RTIMER_CLOCK_LT(RTIMER_NOW(), stream_until)) {
-      is_streaming = 0;
-      rimeaddr_copy(&is_streaming_to, &rimeaddr_null);
-      rimeaddr_copy(&is_streaming_to_too, &rimeaddr_null);
-    }
-  }
-
-  PT_BEGIN(&pt);
-
-  while(1) {
-    /* Only wait for some cycles to pass for someone to start sending */
-    if(someone_is_sending > 0) {
-      someone_is_sending--;
-    }
-
-    /* If there were a strobe in the air, turn radio on */
-    powercycle_turn_radio_on();
-    schedule_powercycle(t, cxmac_config.on_time);
-    PT_YIELD(&pt);
-
-    if(cxmac_config.off_time > 0) {
-      powercycle_turn_radio_off();
-      if(waiting_for_packet != 0) {
-	waiting_for_packet++;
-	if(waiting_for_packet > 2) {
-	  /* We should not be awake for more than two consecutive
-	     power cycles without having heard a packet, so we turn off
-	     the radio. */
-	  waiting_for_packet = 0;
-	  powercycle_turn_radio_off();
-	}
-      }
-      schedule_powercycle(t, cxmac_config.off_time);
       PT_YIELD(&pt);
     }
   }
@@ -494,6 +436,7 @@ send_packet(void)
   struct queuebuf *packet;
   int is_already_streaming = 0;
   uint8_t collisions;
+
 
   /* Create the X-MAC header for the data packet. */
   packetbuf_set_addr(PACKETBUF_ADDR_SENDER, &rimeaddr_node_addr);
