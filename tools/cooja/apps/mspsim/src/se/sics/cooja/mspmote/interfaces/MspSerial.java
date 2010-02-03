@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: MspSerial.java,v 1.2 2010/02/03 19:17:30 fros4943 Exp $
+ * $Id: MspSerial.java,v 1.3 2010/02/03 20:00:29 fros4943 Exp $
  */
 
 package se.sics.cooja.mspmote.interfaces;
@@ -62,6 +62,8 @@ public class MspSerial extends SerialUI implements SerialPort {
   
   private Vector<Byte> incomingData = new Vector<Byte>();
  
+  private TimeEvent writeDataEvent;
+  
   public MspSerial(Mote mote) {
     this.mote = (MspMote) mote;
     this.simulation = mote.getSimulation();
@@ -81,6 +83,18 @@ public class MspSerial extends SerialUI implements SerialPort {
         }
       });
     }
+
+    writeDataEvent = new MspMoteTimeEvent((MspMote) mote, 0) {
+      public void execute(long t) {
+        super.execute(t);
+        
+        tryWriteNextByte();
+        if (!incomingData.isEmpty()) {
+          simulation.scheduleEvent(this, t+DELAY_INCOMING_DATA);
+        }
+      }
+    };
+
   }
 
   public void writeByte(byte b) {
@@ -136,17 +150,6 @@ public class MspSerial extends SerialUI implements SerialPort {
     usart.byteReceived(b);
     mote.requestImmediateWakeup();
   }
-
-  private TimeEvent writeDataEvent = new MspMoteTimeEvent(mote, 0) {
-    public void execute(long t) {
-      super.execute(t);
-      
-      tryWriteNextByte();
-      if (!incomingData.isEmpty()) {
-        simulation.scheduleEvent(this, t+DELAY_INCOMING_DATA);
-      }
-    }
-  };
 
   public Mote getMote() {
     return mote;
