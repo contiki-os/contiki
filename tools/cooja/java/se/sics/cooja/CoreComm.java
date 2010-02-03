@@ -24,7 +24,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * $Id: CoreComm.java,v 1.15 2010/02/03 15:49:25 fros4943 Exp $
+ * $Id: CoreComm.java,v 1.16 2010/02/03 16:06:04 fros4943 Exp $
  */
 
 package se.sics.cooja;
@@ -35,6 +35,7 @@ import java.net.*;
 import java.util.Vector;
 
 import se.sics.cooja.MoteType.MoteTypeCreationException;
+import se.sics.cooja.contikimote.ContikiMoteType;
 import se.sics.cooja.dialogs.MessageList;
 
 /**
@@ -347,7 +348,7 @@ public abstract class CoreComm {
 
   /**
    * Ticks a mote once. This should not be used directly, but instead via
-   * Mote.tick().
+   * {@link ContikiMoteType#tick()}.
    */
   public abstract void tick();
 
