@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: MicaZMote.java,v 1.13 2009/11/27 15:53:10 fros4943 Exp $
+ * $Id: MicaZMote.java,v 1.14 2010/02/03 16:04:44 fros4943 Exp $
  */
 
 package se.sics.cooja.avrmote;
@@ -190,10 +190,6 @@ public class MicaZMote extends AbstractEmulatedMote implements Mote {
 
   public void setInterfaces(MoteInterfaceHandler moteInterfaceHandler) {
     myMoteInterfaceHandler = moteInterfaceHandler;
-  }
-
-  public boolean tick(long simTime) {
-    throw new RuntimeException("Obsolete method");
   }
 
   private long cyclesExecuted = 0;

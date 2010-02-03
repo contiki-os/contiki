@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: MspMote.java,v 1.39 2010/02/03 11:06:23 fros4943 Exp $
+ * $Id: MspMote.java,v 1.40 2010/02/03 16:04:44 fros4943 Exp $
  */
 
 package se.sics.cooja.mspmote;
@@ -307,10 +307,6 @@ public abstract class MspMote extends AbstractEmulatedMote implements Mote, Watc
    * @return True if successful
    */
   protected abstract boolean initEmulator(File ELFFile);
-
-  public boolean tick(long simTime) {
-    throw new RuntimeException("Obsolete method");
-  }
 
   private long lastExecute = -1; /* Last time mote executed */
   private long nextExecute;

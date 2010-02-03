@@ -24,7 +24,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * $Id: Mote.java,v 1.7 2009/09/17 11:05:09 fros4943 Exp $
+ * $Id: Mote.java,v 1.8 2010/02/03 16:05:49 fros4943 Exp $
  */
 
 package se.sics.cooja;
@@ -118,24 +118,6 @@ public interface Mote {
    *          Simulation
    */
   public void setSimulation(Simulation simulation);
-
-  /**
-   * Ticks this mote and increases any internal time to given argument.
-   *
-   * Each mote implementation may handle calls to this method differently, but
-   * typically the simulated mote should at least handle one event.
-   *
-   * This method is responsible for updating the mote interfaces.
-   *
-   * A call to this method typically polls all interfaces, activates the memory,
-   * lets the underlying mote software handle one event, fetches the updated
-   * memory and finally polls all interfaces again.
-   *
-   * @param simTime
-   *          New simulation time
-   * @return True is mote accepts another immediate tick
-   */
-  public boolean tick(long simTime);
 
   /**
    * Returns XML elements representing the current config of this mote. This is

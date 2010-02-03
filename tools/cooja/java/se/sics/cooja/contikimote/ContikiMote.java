@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ContikiMote.java,v 1.16 2009/11/27 15:53:10 fros4943 Exp $
+ * $Id: ContikiMote.java,v 1.17 2010/02/03 16:06:21 fros4943 Exp $
  */
 
 package se.sics.cooja.contikimote;
@@ -229,7 +229,4 @@ public class ContikiMote extends AbstractWakeupMote implements Mote {
     return "Contiki " + getID();
   }
 
-  public boolean tick(long simTime) {
-    throw new RuntimeException("Obsolete method");
-  }
 }
