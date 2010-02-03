@@ -24,7 +24,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * $Id: Simulation.java,v 1.59 2010/02/03 12:15:37 fros4943 Exp $
+ * $Id: Simulation.java,v 1.60 2010/02/03 15:33:36 fros4943 Exp $
  */
 
 package se.sics.cooja;
@@ -315,7 +315,26 @@ public class Simulation extends Observable implements Runnable {
   }
 
   /**
+   * Stops simulation and conditionally blocks until stopped.
+   * 
+   * @param block Blocks if true
+   * 
+   * @see #stopSimulation()
+   */
+  public void stopSimulation(boolean block) {
+    if (!isRunning()) {
+      return;
+    }
+    if (block) {
+      stopSimulation();
+    } else {
+      stopSimulation = true;
+    }
+  }
+
+  /**
    * Stops this simulation (notifies observers).
+   * Method blocks until simulation has stopped.
    */
   public void stopSimulation() {
     if (isRunning()) {
