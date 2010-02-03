@@ -230,6 +230,8 @@ for (i=1; i &lt;= 10; i++) {
 }
 
 WAIT_UNTIL(id == 1 &amp;&amp; msg.contains('Starting'));
+GENERATE_MSG(1000, "continue");
+YIELD_THEN_WAIT_UNTIL(msg.equals("continue"));
 log.log("Node 1 started. Clicking node button.\n");
 mote.getInterfaces().getButton().clickButton()
 
