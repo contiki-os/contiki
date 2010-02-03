@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: DGRMConfigurator.java,v 1.3 2009/10/27 10:10:03 fros4943 Exp $
+ * $Id: DGRMConfigurator.java,v 1.4 2010/02/03 09:30:38 fros4943 Exp $
  */
 
 package se.sics.cooja.plugins;
@@ -143,7 +143,7 @@ public class DGRMConfigurator extends VisPlugin {
       }
     };
     combo.setEditable(true);
-    graphTable.getColumnModel().getColumn(2).setCellRenderer(new DefaultTableCellRenderer() {
+    graphTable.getColumnModel().getColumn(IDX_RATIO).setCellRenderer(new DefaultTableCellRenderer() {
       public void setValue(Object value) {
         if (!(value instanceof Double)) {
           setText(value.toString());
@@ -153,7 +153,7 @@ public class DGRMConfigurator extends VisPlugin {
         setText((Math.round(v*1000.0) / 10.0) + "%");
       }
     });
-    graphTable.getColumnModel().getColumn(3).setCellRenderer(new DefaultTableCellRenderer() {
+    graphTable.getColumnModel().getColumn(IDX_DELAY).setCellRenderer(new DefaultTableCellRenderer() {
       public void setValue(Object value) {
         if (!(value instanceof Long)) {
           setText(value.toString());
@@ -163,8 +163,8 @@ public class DGRMConfigurator extends VisPlugin {
         setText(v + " ms");
       }
     });
-    graphTable.getColumnModel().getColumn(2).setCellEditor(new DefaultCellEditor(combo));
-    graphTable.getColumnModel().getColumn(3).setCellEditor(new DefaultCellEditor(combo));
+    graphTable.getColumnModel().getColumn(IDX_RATIO).setCellEditor(new DefaultCellEditor(combo));
+    graphTable.getColumnModel().getColumn(IDX_DELAY).setCellEditor(new DefaultCellEditor(combo));
 
     graphTable.setAutoResizeMode(JTable.AUTO_RESIZE_SUBSEQUENT_COLUMNS);
     graphTable.getSelectionModel().setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
@@ -320,16 +320,22 @@ public class DGRMConfigurator extends VisPlugin {
       DirectedGraphMedium.Edge edge = radioMedium.getEdges()[row];
       if (column == IDX_RATIO) {
         /* Success ratio */
-        ((DGRMDestinationRadio)edge.superDest).ratio =
-          ((Number)value).doubleValue();
-        radioMedium.requestEdgeAnalysis();
+        try {
+          ((DGRMDestinationRadio)edge.superDest).ratio =
+            ((Number)value).doubleValue();
+          radioMedium.requestEdgeAnalysis();
+        } catch (ClassCastException e) {
+        }
         return;
       }
       if (column == IDX_DELAY) {
         /* Propagation delay (ms) */
-        ((DGRMDestinationRadio)edge.superDest).delay =
-          ((Number)value).longValue() * Simulation.MILLISECOND;
-        radioMedium.requestEdgeAnalysis();
+        try {
+          ((DGRMDestinationRadio)edge.superDest).delay =
+            ((Number)value).longValue() * Simulation.MILLISECOND;
+          radioMedium.requestEdgeAnalysis();
+        } catch (ClassCastException e) {
+        }
         return;
       }
       if (column == IDX_DEL) {
