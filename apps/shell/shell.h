@@ -48,7 +48,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: shell.h,v 1.21 2010/02/02 15:28:53 adamdunkels Exp $
+ * $Id: shell.h,v 1.22 2010/02/03 20:40:23 adamdunkels Exp $
  */
 
 /**
@@ -353,6 +353,7 @@ struct shell_input {
  * @}
  */
 
+#include "shell-base64.h"
 #include "shell-blink.h"
 #include "shell-checkpoint.h"
 #include "shell-coffee.h"

@@ -28,21 +28,21 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: shell-text.h,v 1.2 2010/02/03 20:37:29 adamdunkels Exp $
+ * $Id: shell-base64.h,v 1.1 2010/02/03 20:37:29 adamdunkels Exp $
  */
 
 /**
  * \file
- *         Text-related shell commands
+ *         Shell commands for base64 decoding
  * \author
  *         Adam Dunkels <adam@sics.se>
  */
 
-#ifndef __SHELL_TEXT_H__
-#define __SHELL_TEXT_H__
+#ifndef __SHELL_BASE64_H__
+#define __SHELL_BASE64_H__
 
 #include "shell.h"
 
-void shell_text_init(void);
+void shell_base64_init(void);
 
-#endif /* __SHELL_TEXT_H__ */
+#endif /* __SHELL_BASE64_H__ */
