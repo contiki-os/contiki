@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: shell-text.c,v 1.5 2010/02/03 21:39:25 adamdunkels Exp $
+ * $Id: shell-text.c,v 1.6 2010/02/03 21:53:51 adamdunkels Exp $
  */
 
 /**
@@ -75,68 +75,54 @@ PROCESS_THREAD(shell_echo_process, ev, data)
 {
   PROCESS_BEGIN();
 
-  shell_output(&echo_command, data, (int)strlen(data), "", 0);
+  shell_output(&echo_command, data, (int)strlen(data), "\n", 1);
   
   PROCESS_END();
 }
 /*---------------------------------------------------------------------------*/
-#define BASE64_MAX_LINELEN 76
-
-struct base64_decoder_state {
-  uint8_t data[3 * BASE64_MAX_LINELEN / 4];
-  int dataptr;
-  unsigned long tmpdata;
-  int sextets;
-  int padding;
-};
-/*---------------------------------------------------------------------------*/
-static int
-base64_decode_char(char c)
+PROCESS_THREAD(shell_hd_process, ev, data)
 {
-  if(c >= 'A' && c <= 'Z') {
-    return c - 'A';
-  } else if(c >= 'a' && c <= 'z') {
-    return c - 'a' + 26;
-  } else if(c >= '0' && c <= '9') {
-    return c - '0' + 52;
-  } else if(c == '+') {
-    return 62;
-  } else if(c == '/') {
-    return 63;
-  } else {
-    return 0;
-  }
-}
-/*---------------------------------------------------------------------------*/
-static int
-base64_add_char(struct base64_decoder_state *s, char c)
-{
-  if(isspace(c)) {
-    return 0;
-  }
+  struct shell_input *input;
+  uint16_t *ptr;
+  int i;
+  char buf[57], *bufptr;
 
-  if(s->dataptr >= sizeof(s->data)) {
-    return 0;
-  }
-  if(c == '=') {
-    ++s->padding;
-  }
-  
-  s->tmpdata = (s->tmpdata << 6) | base64_decode_char(c);
-  ++s->sextets;
-  if(s->sextets == 4) {
-    s->sextets = 0;
-    s->data[s->dataptr] = (uint8_t)(s->tmpdata >> 16);
-    s->data[s->dataptr + 1] = (uint8_t)(s->tmpdata >> 8);
-    s->data[s->dataptr + 2] = (uint8_t)(s->tmpdata);
-    s->dataptr += 3;
-    if(s->dataptr == sizeof(s->data)) {
-      return 0;
-    } else {
-      return 1;
+  PROCESS_BEGIN();
+
+  while(1) {
+    PROCESS_WAIT_EVENT_UNTIL(ev == shell_event_input);
+    input = data;
+
+    if(input->len1 + input->len2 == 0) {
+      PROCESS_EXIT();
     }
+
+    bufptr = buf;
+    ptr = (uint16_t *)input->data1;
+    for(i = 0; i < input->len1 && i < input->len1 - 1; i += 2) {
+      bufptr += sprintf(bufptr, "0x%04x ", *ptr);
+      if(bufptr - buf >= sizeof(buf) - 7) {
+	shell_output_str(&hd_command, buf, "");
+	bufptr = buf;
+      }
+      ptr++;
+    }
+
+    ptr = (uint16_t *)input->data2;
+    for(i = 0; i < input->len2 && i < input->len2 - 1; i += 2) {
+      bufptr += sprintf(bufptr, "0x%04x ", *ptr);
+      if(bufptr - buf >= sizeof(buf) - 7) {
+	shell_output_str(&hd_command, buf, "");
+	bufptr = buf;
+      }
+      ptr++;
+    }
+    if(bufptr != buf) {
+      shell_output_str(&hd_command, buf, "");
+    }
+    
   }
-  return 1;
+  PROCESS_END();
 }
 /*---------------------------------------------------------------------------*/
 PROCESS_THREAD(shell_binprint_process, ev, data)
@@ -218,7 +204,6 @@ shell_text_init(void)
   shell_register_command(&binprint_command);
   shell_register_command(&hd_command);
   shell_register_command(&echo_command);
-  shell_register_command(&dec64_command);
   shell_register_command(&size_command);
 }
 /*---------------------------------------------------------------------------*/
