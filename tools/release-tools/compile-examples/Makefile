@@ -4,11 +4,10 @@ all:
 	@uname -a
 	@$(MAKE) -s -k compile || cat *.output
 
-compile: rime-examples energest-demo shell hello-world \
+compile: rime-examples shell hello-world \
          ipso-ipv6-raven jcreate multi-threading sky sky-ip sky-shell \
          webserver-ipv6 webserver-ipv6-raven
 
-energest-demo: example-energest-demo.sky
 shell: example-example-shell.native example-example-shell.netsim
 hello-world: example-hello-world.sky example-hello-world.native \
              example-hello-world.netsim example-hello-world.minimal-net example-hello-world.msb430
