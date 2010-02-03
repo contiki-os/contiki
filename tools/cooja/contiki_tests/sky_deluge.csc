@@ -21,7 +21,8 @@
       <identifier>sky1</identifier>
       <description>Sky Mote Type #1</description>
       <source>../../../examples/sky/test-deluge.c</source>
-      <commands>make APPS=deluge test-deluge.sky TARGET=sky</commands>
+      <commands>make clean TARGET=sky
+make APPS=deluge test-deluge.sky TARGET=sky</commands>
       <firmware>../../../examples/sky/test-deluge.sky</firmware>
       <moteinterface>se.sics.cooja.interfaces.Position</moteinterface>
       <moteinterface>se.sics.cooja.interfaces.IPAddress</moteinterface>

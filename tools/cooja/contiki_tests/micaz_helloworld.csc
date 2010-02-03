@@ -23,7 +23,8 @@
       <identifier>micaz1</identifier>
       <description>MicaZ Mote Type #micaz1</description>
       <source>../../../examples/hello-world/hello-world.c</source>
-      <commands>make hello-world.elf TARGET=micaz</commands>
+      <commands>make clean TARGET=micaz
+make hello-world.elf TARGET=micaz</commands>
       <firmware>../../../examples/hello-world/hello-world.elf</firmware>
       <moteinterface>se.sics.cooja.interfaces.Position</moteinterface>
       <moteinterface>se.sics.cooja.avrmote.interfaces.MicaZID</moteinterface>

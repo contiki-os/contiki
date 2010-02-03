@@ -21,7 +21,8 @@
       <identifier>sky1</identifier>
       <description>Sky Mote Type #1</description>
       <source>../../../examples/rime/example-trickle.c</source>
-      <commands>make example-trickle.sky TARGET=sky</commands>
+      <commands>make clean TARGET=sky
+make example-trickle.sky TARGET=sky</commands>
       <firmware>../../../examples/rime/example-trickle.sky</firmware>
       <moteinterface>se.sics.cooja.interfaces.Position</moteinterface>
       <moteinterface>se.sics.cooja.interfaces.IPAddress</moteinterface>
