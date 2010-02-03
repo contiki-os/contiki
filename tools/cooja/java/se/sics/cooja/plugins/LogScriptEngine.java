@@ -26,11 +26,14 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: LogScriptEngine.java,v 1.21 2009/10/28 15:34:34 fros4943 Exp $
+ * $Id: LogScriptEngine.java,v 1.22 2010/02/03 09:32:25 fros4943 Exp $
  */
 
 package se.sics.cooja.plugins;
 
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
 import java.lang.reflect.UndeclaredThrowableException;
 import java.util.Hashtable;
 import java.util.Observable;
@@ -359,6 +362,16 @@ public class LogScriptEngine {
       public void log(String msg) {
         if (scriptLogObserver != null) {
           scriptLogObserver.update(null, msg);
+        }
+      }
+      public void append(String filename, String msg) {
+        try{
+          FileWriter fstream = new FileWriter(filename, true);
+          BufferedWriter out = new BufferedWriter(fstream);
+          out.write(msg);
+          out.close();
+        } catch (Exception e) {
+          logger.warn("Test append failed: " + filename + ": " + e.getMessage());
         }
       }
       public void testOK() {
