@@ -3,7 +3,7 @@ all: $(CONTIKI_PROJECT)
 PLATFORM_BUILD=1 # This is needed to avoid the shell to include the httpd-cfs version of the websrerver
 APPS = webserver twitter telnetd
 CFLAGS = -DWITH_UIP=1 -I. #-DWITH_NULLMAC=1
-DEFINES=MAC_DRIVER=cxmac_driver,MAC_CONF_CHANNEL_CHECK_RATE=8
+DEFINES=MAC_DRIVER=cxmac_driver,MAC_CHANNEL_CHECK_RATE=8
 
 # The webserver application normally contains a built-in file system and support
 # for server-side includes.
