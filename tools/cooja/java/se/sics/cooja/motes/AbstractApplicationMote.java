@@ -24,7 +24,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * $Id: AbstractApplicationMote.java,v 1.8 2010/01/23 11:26:32 joxe Exp $
+ * $Id: AbstractApplicationMote.java,v 1.9 2010/02/03 15:11:48 fros4943 Exp $
  */
 
 package se.sics.cooja.motes;
@@ -47,6 +47,7 @@ import se.sics.cooja.RadioPacket;
 import se.sics.cooja.SectionMoteMemory;
 import se.sics.cooja.Simulation;
 import se.sics.cooja.interfaces.ApplicationRadio;
+import se.sics.cooja.interfaces.ApplicationSerialPort;
 import se.sics.cooja.interfaces.Radio;
 
 /**
@@ -96,6 +97,10 @@ public abstract class AbstractApplicationMote extends AbstractWakeupMote impleme
     requestImmediateWakeup();
   }
 
+  public void log(String msg) {
+    ((ApplicationSerialPort)moteInterfaces.getLog()).triggerLog(msg);
+  }
+  
   public MoteInterfaceHandler getInterfaces() {
     return moteInterfaces;
   }
