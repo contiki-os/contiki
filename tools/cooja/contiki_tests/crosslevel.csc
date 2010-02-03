@@ -85,7 +85,7 @@
       se.sics.cooja.motes.ImportAppMoteType
       <identifier>apptype1</identifier>
       <description>Application Mote Type #apptype1</description>
-      <motepath>[CONTIKI_DIR]\tools\cooja\examples\appmote_rimeabc</motepath>
+      <motepath>[CONTIKI_DIR]/tools/cooja/examples/appmote_rimeabc</motepath>
       <moteclass>RimeABC</moteclass>
     </motetype>
     <mote>
