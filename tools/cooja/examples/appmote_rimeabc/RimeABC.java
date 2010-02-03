@@ -115,14 +115,14 @@ public class RimeABC extends AbstractApplicationMote {
     byte[] noHeader = new byte[packetData.length-2-1];
     System.arraycopy(packetData, 2, noHeader, 0, noHeader.length);
     String test = new String(noHeader);
-    System.out.println(this + ": abc message received '" + test + "'");
+    log("abc message received '" + test + "'");
 
     /* Turn on green LED */
     leds.setLED(ApplicationLED.LEDS_GREEN);
   }
 
   public void sentPacket(RadioPacket p) {
-    System.out.println(this + ": abc message sent");
+    log("abc message sent");
     requestImmediateWakeup(); /* Triggers execute method */
   }
 
