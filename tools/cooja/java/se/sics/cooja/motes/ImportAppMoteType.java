@@ -77,7 +77,8 @@ public class ImportAppMoteType extends AbstractApplicationMoteType {
 
     if (moteClassPath != null) {
       Element element = new Element("motepath");
-      element.setText(simulation.getGUI().createPortablePath(moteClassPath).getPath());
+      File file = simulation.getGUI().createPortablePath(moteClassPath);
+      element.setText(file.getPath().replaceAll("\\\\", "/"));
       config.add(element);
     }
 
