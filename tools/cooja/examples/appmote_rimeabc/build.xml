@@ -1,0 +1,19 @@
+<?xml version="1.0"?>
+
+<project name="COOJA App mote example: Rime's ABC" default="compile" basedir=".">
+  <property name="cooja" location="../.."/>
+  <property name="cooja_jar" value="${cooja}/dist/cooja.jar"/>
+
+  <target name="init">
+    <tstamp/>
+  </target>
+
+  <target name="compile" depends="init">
+    <javac srcdir="." destdir="." debug="on">
+      <classpath>
+        <pathelement location="${cooja_jar}"/>
+      </classpath>
+    </javac>
+  </target>
+
+</project>
