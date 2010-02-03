@@ -33,7 +33,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: route.c,v 1.15 2009/05/10 21:08:01 adamdunkels Exp $
+ * $Id: route.c,v 1.16 2010/02/03 01:18:24 adamdunkels Exp $
  */
 
 /**
@@ -192,6 +192,13 @@ route_refresh(struct route_entry *e)
        out. */
     e->time = 0;
     e->decay = 0;
+    
+    PRINTF("route_refresh: time %d last %d decay %d for entry to %d.%d with nexthop %d.%d and cost %d\n",
+           e->time, e->time_last_decay, e->decay,
+           e->dest.u8[0], e->dest.u8[1],
+           e->nexthop.u8[0], e->nexthop.u8[1],
+           e->cost);
+
   }
 }
 /*---------------------------------------------------------------------------*/
