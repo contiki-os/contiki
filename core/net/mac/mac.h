@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: mac.h,v 1.10 2010/02/03 01:17:32 adamdunkels Exp $
+ * $Id: mac.h,v 1.11 2010/02/03 16:45:12 adamdunkels Exp $
  */
 
 /**
@@ -41,6 +41,7 @@
 #ifndef __MAC_H__
 #define __MAC_H__
 
+#include "contiki-conf.h"
 #include "dev/radio.h"
 
 /**
@@ -92,11 +93,12 @@ enum {
      error will be fatal then as well. */
   MAC_TX_ERR_FATAL,
 };
-
+#ifndef MAC_CHANNEL_CHECK_RATE
 #ifdef MAC_CONF_CHANNEL_CHECK_RATE
 #define MAC_CHANNEL_CHECK_RATE MAC_CONF_CHANNEL_CHECK_RATE
-#else /* MAC_CHANNEL_CHECK_RATE */
+#else /* MAC_CONF_CHANNEL_CHECK_RATE */
 #define MAC_CHANNEL_CHECK_RATE 4
+#endif /* MAC_CONF_CHANNEL_CHECK_RATE */
 #endif /* MAC_CHANNEL_CHECK_RATE */
 
 #if (MAC_CHANNEL_CHECK_RATE & (MAC_CHANNEL_CHECK_RATE - 1)) != 0
