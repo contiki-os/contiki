@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: MspSerial.java,v 1.1 2009/12/02 17:12:32 fros4943 Exp $
+ * $Id: MspSerial.java,v 1.2 2010/02/03 19:17:30 fros4943 Exp $
  */
 
 package se.sics.cooja.mspmote.interfaces;
@@ -37,12 +37,12 @@ import org.apache.log4j.Logger;
 
 import se.sics.cooja.ClassDescription;
 import se.sics.cooja.Mote;
-import se.sics.cooja.MoteTimeEvent;
 import se.sics.cooja.Simulation;
 import se.sics.cooja.TimeEvent;
 import se.sics.cooja.dialogs.SerialUI;
 import se.sics.cooja.interfaces.SerialPort;
 import se.sics.cooja.mspmote.MspMote;
+import se.sics.cooja.mspmote.MspMoteTimeEvent;
 import se.sics.mspsim.core.IOUnit;
 import se.sics.mspsim.core.USART;
 import se.sics.mspsim.core.USARTListener;
@@ -137,8 +137,10 @@ public class MspSerial extends SerialUI implements SerialPort {
     mote.requestImmediateWakeup();
   }
 
-  private TimeEvent writeDataEvent = new MoteTimeEvent(mote, 0) {
+  private TimeEvent writeDataEvent = new MspMoteTimeEvent(mote, 0) {
     public void execute(long t) {
+      super.execute(t);
+      
       tryWriteNextByte();
       if (!incomingData.isEmpty()) {
         simulation.scheduleEvent(this, t+DELAY_INCOMING_DATA);
