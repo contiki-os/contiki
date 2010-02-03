@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: contiki-esb-main.c,v 1.16 2009/07/07 13:06:56 nifi Exp $
+ * @(#)$Id: contiki-esb-main.c,v 1.17 2010/02/03 13:59:55 nifi Exp $
  */
 
 #include <io.h>
@@ -56,7 +56,6 @@
 
 #if DCOSYNCH_ENABLED
 static struct timer dco_timer;
-static char dco_enabled = 0;
 #endif /* DCOSYNCH_ENABLED */
 
 SENSORS(&button_sensor, &sound_sensor, &vib_sensor,
