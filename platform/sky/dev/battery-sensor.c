@@ -26,17 +26,18 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: battery-sensor.c,v 1.9 2010/02/02 21:17:44 joxe Exp $
+ * $Id: battery-sensor.c,v 1.10 2010/02/03 20:30:07 nifi Exp $
  *
  * -----------------------------------------------------------------
  *
  * Author  : Adam Dunkels, Joakim Eriksson, Niclas Finne
  * Created : 2005-11-01
- * Updated : $Date: 2010/02/02 21:17:44 $
- *           $Revision: 1.9 $
+ * Updated : $Date: 2010/02/03 20:30:07 $
+ *           $Revision: 1.10 $
  */
 
 #include "dev/battery-sensor.h"
+#include "dev/sky-sensors.h"
 #include <io.h>
 
 const struct sensors_sensor battery_sensor;
