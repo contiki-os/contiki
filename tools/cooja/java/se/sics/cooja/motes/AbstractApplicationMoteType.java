@@ -24,7 +24,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * $Id: AbstractApplicationMoteType.java,v 1.6 2010/01/24 22:24:36 joxe Exp $
+ * $Id: AbstractApplicationMoteType.java,v 1.7 2010/02/03 09:28:55 fros4943 Exp $
  */
 
 package se.sics.cooja.motes;
@@ -33,15 +33,24 @@ import java.awt.BorderLayout;
 import java.awt.Container;
 import java.awt.Dimension;
 import java.io.File;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
 
-import javax.swing.*;
+import javax.swing.Box;
+import javax.swing.BoxLayout;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
 
 import org.apache.log4j.Logger;
 import org.jdom.Element;
 
-import se.sics.cooja.*;
-import se.sics.cooja.MoteType.MoteTypeCreationException;
+import se.sics.cooja.ClassDescription;
+import se.sics.cooja.GUI;
+import se.sics.cooja.Mote;
+import se.sics.cooja.MoteInterface;
+import se.sics.cooja.MoteType;
+import se.sics.cooja.ProjectConfig;
+import se.sics.cooja.Simulation;
 import se.sics.cooja.interfaces.ApplicationLED;
 import se.sics.cooja.interfaces.ApplicationRadio;
 import se.sics.cooja.interfaces.MoteID;
@@ -213,8 +222,6 @@ public abstract class AbstractApplicationMoteType implements MoteType {
         identifier = element.getText();
       } else if (name.equals("description")) {
         description = element.getText();
-      } else {
-        logger.fatal("Unrecognized entry: " + name);
       }
     }
 
