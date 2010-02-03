@@ -30,7 +30,7 @@
  *
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: httpd-cfs.c,v 1.12 2010/02/02 18:17:55 adamdunkels Exp $
+ * $Id: httpd-cfs.c,v 1.13 2010/02/03 20:41:16 adamdunkels Exp $
  */
 
 #include <stdio.h>
@@ -87,30 +87,12 @@ PT_THREAD(send_file(struct httpd_state *s))
 }
 /*---------------------------------------------------------------------------*/
 static
-PT_THREAD(send_dir(struct httpd_state *s))
+PT_THREAD(send_string(struct httpd_state *s, const char *str))
 {
-  static char buf[80];
-  static int r, num;
-  static struct cfs_dir dir;
-  static struct cfs_dirent dirent;
   PSOCK_BEGIN(&s->sout);
 
-  SEND_STRING(&s->sout, "<body>File system contents:<br>\r\n");
-  
-  r = cfs_opendir(&dir, "/");
-  if(r == 0) {
-    num = 0;
-    while(cfs_readdir(&dir, &dirent) >= 0) {
-      snprintf(buf, sizeof(buf), "<a href=\"/%s\">%s</a><br>", dirent.name, dirent.name);
-      SEND_STRING(&s->sout, buf);
-      ++num;
-    }
-    snprintf(buf, sizeof(buf), "%d files</body>", num);
-    SEND_STRING(&s->sout, buf);
-    cfs_closedir(&dir);
-  } else {
-    SEND_STRING(&s->sout, "Could not open directory</body>");
-  }
+  SEND_STRING(&s->sout, str);
+
   PSOCK_END(&s->sout);
 }
 /*---------------------------------------------------------------------------*/
@@ -149,14 +131,15 @@ PT_THREAD(handle_output(struct httpd_state *s))
   s->fd = cfs_open(s->filename, CFS_READ);
   petsciiconv_toascii(s->filename, sizeof(s->filename));
   if(s->fd < 0) {
-    s->fd = cfs_open("notfound.html", CFS_READ);
+    strcpy(s->filename, "notfound.html");
+    s->fd = cfs_open(s->filename, CFS_READ);
     if(s->fd < 0) {
       PT_WAIT_THREAD(&s->outputpt,
-                     send_headers(s, http_header_200));
+                     send_headers(s, http_header_404));
       PT_WAIT_THREAD(&s->outputpt,
-                     send_dir(s));
+                     send_string("Not found"));
       uip_close();
-      webserver_log_file(&uip_conn->ripaddr, "reset (no notfound.html)");
+      webserver_log_file(&uip_conn->ripaddr, "404 (no notfound.html)");
       PT_EXIT(&s->outputpt);
     }
     PT_WAIT_THREAD(&s->outputpt,
