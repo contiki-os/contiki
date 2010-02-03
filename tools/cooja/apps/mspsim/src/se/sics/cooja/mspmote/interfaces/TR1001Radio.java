@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: TR1001Radio.java,v 1.16 2009/12/02 16:39:42 fros4943 Exp $
+ * $Id: TR1001Radio.java,v 1.17 2010/02/03 13:47:33 nifi Exp $
  */
 
 package se.sics.cooja.mspmote.interfaces;
@@ -57,7 +57,7 @@ import se.sics.cooja.TimeEvent;
 import se.sics.cooja.interfaces.CustomDataRadio;
 import se.sics.cooja.interfaces.Position;
 import se.sics.cooja.interfaces.Radio;
-import se.sics.cooja.mspmote.ESBMote;
+import se.sics.cooja.mspmote.MspMote;
 import se.sics.mspsim.core.IOUnit;
 import se.sics.mspsim.core.USART;
 import se.sics.mspsim.core.USARTListener;
@@ -79,7 +79,10 @@ public class TR1001Radio extends Radio implements USARTListener, CustomDataRadio
    */
   public static final long DELAY_BETWEEN_BYTES = 416;
 
-  private ESBMote mote;
+  /* The data used when transmission is interfered */
+  private static final Byte CORRUPTED_DATA = (byte) 0xff;
+
+  private MspMote mote;
 
   private boolean isTransmitting = false;
   private boolean isReceiving = false;
@@ -107,7 +110,7 @@ public class TR1001Radio extends Radio implements USARTListener, CustomDataRadio
    * @param mote Mote
    */
   public TR1001Radio(Mote mote) {
-    this.mote = (ESBMote) mote;
+    this.mote = (MspMote) mote;
 
     /* Start listening to CPU's USART */
     IOUnit usart = this.mote.getCPU().getIOUnit("USART 0");
@@ -174,19 +177,16 @@ public class TR1001Radio extends Radio implements USARTListener, CustomDataRadio
       logger.fatal("Received bad custom data: " + data);
       return;
     }
-    receivedByte = (Byte) data;
 
-    mote.requestImmediateWakeup();
+    receivedByte = isInterfered ? CORRUPTED_DATA : (Byte) data;
+
     if (radioUSART.isReceiveFlagCleared()) {
       /*logger.info("----- TR1001 RECEIVED BYTE -----");*/
-      if (isInterfered) {
-        radioUSART.byteReceived(0xFF); /* Corrupted data */
-      } else {
-        radioUSART.byteReceived(receivedByte);
-      }
+      radioUSART.byteReceived(receivedByte);
     } else {
       logger.warn(mote.getSimulation().getSimulationTime() + ": ----- TR1001 RECEIVED BYTE DROPPED -----");
     }
+    mote.requestImmediateWakeup();
   }
 
   /* USART listener support */
