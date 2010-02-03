@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: mac.h,v 1.9 2010/02/02 23:28:58 adamdunkels Exp $
+ * $Id: mac.h,v 1.10 2010/02/03 01:17:32 adamdunkels Exp $
  */
 
 /**
@@ -79,6 +79,9 @@ enum {
   /**< The MAC layer transmission could not be performed due to a
      collision. */
   MAC_TX_COLLISION,
+
+  /**< The MAC layer did not get an acknowledgement for the packet. */
+  MAC_TX_NOACK,
 
   /**< The MAC layer transmission could not be performed because of an
      error. The upper layer may try again later. */

@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: xmac.c,v 1.51 2010/02/02 23:28:58 adamdunkels Exp $
+ * $Id: xmac.c,v 1.52 2010/02/03 01:17:32 adamdunkels Exp $
  */
 
 /**
@@ -676,7 +676,11 @@ send_packet(void)
 
   LEDS_OFF(LEDS_BLUE);
   if(collisions == 0) {
-    return MAC_TX_OK;
+    if(!is_broadcast && !got_strobe_ack) {
+      return MAC_TX_NOACK;
+    } else {
+      return MAC_TX_OK;
+    }
   } else {
     someone_is_sending++;
     return MAC_TX_COLLISION;
