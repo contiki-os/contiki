@@ -23,7 +23,7 @@
       <identifier>sky1</identifier>
       <description>Sky Mote Type #1</description>
       <source>[CONTIKI_DIR]/examples/rime/example-abc.c</source>
-      <commands>make example-abc.sky TARGET=sky</commands>
+      <commands>make example-abc.sky TARGET=sky DEFINES=MAC_DRIVER=nullmac_driver</commands>
       <firmware>[CONTIKI_DIR]/examples/rime/example-abc.sky</firmware>
       <moteinterface>se.sics.cooja.interfaces.Position</moteinterface>
       <moteinterface>se.sics.cooja.interfaces.IPAddress</moteinterface>
@@ -44,7 +44,7 @@
       <identifier>esb1</identifier>
       <description>ESB Mote Type #1</description>
       <source>[CONTIKI_DIR]/examples/rime/example-abc.c</source>
-      <commands>make example-abc.esb TARGET=esb</commands>
+      <commands>make example-abc.esb TARGET=esb DEFINES=MAC_DRIVER=nullmac_driver</commands>
       <firmware>[CONTIKI_DIR]/examples/rime/example-abc.esb</firmware>
       <moteinterface>se.sics.cooja.interfaces.Position</moteinterface>
       <moteinterface>se.sics.cooja.interfaces.IPAddress</moteinterface>
@@ -59,7 +59,7 @@
     </motetype>
     <motetype>
       se.sics.cooja.contikimote.ContikiMoteType
-      <identifier>mtype48</identifier>
+      <identifier>mtype686</identifier>
       <description>Contiki Mote Type #1</description>
       <contikiapp>[CONTIKI_DIR]/examples/rime/example-abc.c</contikiapp>
       <commands>make example-abc.cooja TARGET=cooja</commands>
@@ -93,7 +93,7 @@
         se.sics.cooja.contikimote.interfaces.ContikiMoteID
         <id>1</id>
       </interface_config>
-      <motetype_identifier>mtype48</motetype_identifier>
+      <motetype_identifier>mtype686</motetype_identifier>
     </mote>
     <mote>
       se.sics.cooja.contikimote.ContikiMote
@@ -107,7 +107,7 @@
         se.sics.cooja.contikimote.interfaces.ContikiMoteID
         <id>2</id>
       </interface_config>
-      <motetype_identifier>mtype48</motetype_identifier>
+      <motetype_identifier>mtype686</motetype_identifier>
     </mote>
     <mote>
       se.sics.cooja.mspmote.SkyMote
@@ -181,7 +181,7 @@
         se.sics.cooja.contikimote.interfaces.ContikiMoteID
         <id>7</id>
       </interface_config>
-      <motetype_identifier>mtype48</motetype_identifier>
+      <motetype_identifier>mtype686</motetype_identifier>
     </mote>
     <mote>
       se.sics.cooja.mspmote.SkyMote
@@ -210,7 +210,7 @@
         se.sics.cooja.contikimote.interfaces.ContikiMoteID
         <id>9</id>
       </interface_config>
-      <motetype_identifier>mtype48</motetype_identifier>
+      <motetype_identifier>mtype686</motetype_identifier>
     </mote>
     <mote>
       se.sics.cooja.mspmote.ESBMote
@@ -261,7 +261,7 @@
   <plugin>
     se.sics.cooja.plugins.SimControl
     <width>265</width>
-    <z>5</z>
+    <z>3</z>
     <height>200</height>
     <location_x>0</location_x>
     <location_y>1</location_y>
@@ -273,7 +273,7 @@
       <filter />
     </plugin_config>
     <width>460</width>
-    <z>4</z>
+    <z>2</z>
     <height>178</height>
     <location_x>400</location_x>
     <location_y>568</location_y>
@@ -290,7 +290,7 @@
       <viewport>0.6868927097814259 0.0 0.0 0.6868927097814259 19.429407529520386 57.09333478544578</viewport>
     </plugin_config>
     <width>401</width>
-    <z>1</z>
+    <z>4</z>
     <height>177</height>
     <location_x>0</location_x>
     <location_y>569</location_y>
@@ -299,7 +299,7 @@
   <plugin>
     se.sics.cooja.plugins.RadioLogger
     <width>265</width>
-    <z>2</z>
+    <z>5</z>
     <height>371</height>
     <location_x>0</location_x>
     <location_y>199</location_y>
@@ -334,11 +334,11 @@ while (true) {
     log.log("\n");
   }
 
-  /* Did all nodes (1-10) receive at least one message? */
+  /* Did all nodes (1-12) receive at least three messages? */
   for (i = 1; i &lt;= 12; i++) {
-    if (nr_packets[i] &lt; 1) break;
+    if (nr_packets[i] &lt; 3) break;
   }
-  if (i == 12) {
+  if (i == 13) {
     log.testOK();
   }
 
@@ -347,7 +347,7 @@ while (true) {
       <active>true</active>
     </plugin_config>
     <width>596</width>
-    <z>3</z>
+    <z>0</z>
     <height>569</height>
     <location_x>264</location_x>
     <location_y>0</location_y>
@@ -374,7 +374,7 @@ while (true) {
       <zoom>12</zoom>
     </plugin_config>
     <width>862</width>
-    <z>0</z>
+    <z>1</z>
     <height>219</height>
     <location_x>-1</location_x>
     <location_y>746</location_y>
