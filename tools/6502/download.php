@@ -10,19 +10,19 @@ case "apple2":
     $hex = $_GET['apple2-addr'];
     $drv = $_GET['apple2-drv'];
     $ext = 'dsk';
-    $ofs = 0x0B500;
+    $ofs = 0x05B00;
     break;
 case "c64":
     $hex = strtok($_GET['c64-addr-drv'],  '-');
     $drv = strtok('-');
     $ext = 'd64';
-    $ofs = 0x17802;
+    $ofs = 0x15002;
     break;
 case "c128":
     $hex = strtok($_GET['c128-addr-drv'], '-');
     $drv = strtok('-');
     $ext = 'd71';
-    $ofs = 0x17802;
+    $ofs = 0x15002;
     break;
 }
 
