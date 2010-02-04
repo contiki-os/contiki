@@ -24,7 +24,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * $Id: Simulation.java,v 1.61 2010/02/03 15:49:25 fros4943 Exp $
+ * $Id: Simulation.java,v 1.62 2010/02/04 15:32:41 nifi Exp $
  */
 
 package se.sics.cooja;
@@ -503,7 +503,6 @@ public class Simulation extends Observable implements Runnable {
     // Motes
     for (Mote mote : motes) {
       element = new Element("mote");
-      element.setText(mote.getClass().getName());
 
       Collection<Element> moteConfig = mote.getConfigXML();
       if (moteConfig == null) {
@@ -641,20 +640,22 @@ public class Simulation extends Observable implements Runnable {
 
       /* Mote */
       if (element.getName().equals("mote")) {
-        String moteClassName = element.getText().trim();
-        
+
         /* Read mote type identifier */
         MoteType moteType = null;
         for (Element subElement: (Collection<Element>) element.getChildren()) {
           if (subElement.getName().equals("motetype_identifier")) {
             moteType = getMoteType(subElement.getText());
+            if (moteType == null) {
+              throw new Exception("No mote type '" + subElement.getText() + "' for mote");
+            }
             break;
           }
         }
         if (moteType == null) {
-          throw new Exception("No mote type for mote: " + moteClassName);
+          throw new Exception("No mote type specified for mote");
         }
-       
+    
         /* Create mote using mote type */
         Mote mote = moteType.generateMote(this);
         if (mote.setConfigXML(this, element.getChildren(), visAvailable)) {
