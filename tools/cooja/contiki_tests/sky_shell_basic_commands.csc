@@ -90,7 +90,7 @@ WAIT_UNTIL(msg.contains('Contiki&gt;'));
 /* Test command: help */
 log.log("&gt; help\n");
 write(mote, "help");
-WAIT_UNTIL(msg.startsWith('write &lt;filename&gt;'));
+WAIT_UNTIL(msg.startsWith('Available commands:'));
 WAIT_UNTIL(msg.contains('Contiki&gt;'));
 
 log.testOK(); /* We are done! */</script>
