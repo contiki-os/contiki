@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: shell-rime.c,v 1.15 2009/11/08 19:43:00 adamdunkels Exp $
+ * $Id: shell-rime.c,v 1.16 2010/02/04 16:21:15 adamdunkels Exp $
  */
 
 /**
@@ -323,7 +323,7 @@ PROCESS_THREAD(shell_send_process, ev, data)
   struct collect_msg *msg;
   
   PROCESS_BEGIN();
-
+  
   while(1) {
     PROCESS_WAIT_EVENT_UNTIL(ev == shell_event_input);
     input = data;
@@ -346,7 +346,6 @@ PROCESS_THREAD(shell_send_process, ev, data)
       msg->timestamp = 0;
 #endif
       msg->crc = crc16_data(msg->data, len, 0);
-      /*      printf("Sending %d bytes\n", len);*/
       collect_send(&collect, COLLECT_REXMITS);
     }
   }
@@ -356,14 +355,17 @@ PROCESS_THREAD(shell_send_process, ev, data)
 static void
 recv_collect(const rimeaddr_t *originator, u8_t seqno, u8_t hops)
 {
-  struct collect_msg *collect_msg;
+  struct collect_msg collect_msg;
+  char *dataptr;
   rtimer_clock_t latency;
   int len;
-  
-  collect_msg = packetbuf_dataptr();
+
+  /* Copy the collect message header. */
+  memcpy(&collect_msg, packetbuf_dataptr(), sizeof(collect_msg));
+  dataptr = ((struct collect_msg *)packetbuf_dataptr())->data;
   
 #if TIMESYNCH_CONF_ENABLED
-  latency = timesynch_time() - collect_msg->timestamp;
+  latency = timesynch_time() - collect_msg.timestamp;
 #else
   latency = 0;
 #endif
@@ -380,17 +382,16 @@ recv_collect(const rimeaddr_t *originator, u8_t seqno, u8_t hops)
     if(packetbuf_datalen() >= COLLECT_MSG_HDRSIZE) {
       len = packetbuf_datalen() - COLLECT_MSG_HDRSIZE;
 
-      if(collect_msg->crc == crc16_data(collect_msg->data, len, 0)) {
+      if(collect_msg.crc == crc16_data(dataptr, len, 0)) {
 	msg.len = 5 + (packetbuf_datalen() - COLLECT_MSG_HDRSIZE) / 2;
 	rimeaddr_copy((rimeaddr_t *)&msg.originator, originator);
 	msg.seqno = seqno;
 	msg.hops = hops;
 	msg.latency = latency;
-	/*    printf("recv_collect datalen %d\n", packetbuf_datalen());*/
 	
 	shell_output(&collect_command,
 		     &msg, sizeof(msg),
-		     collect_msg->data, packetbuf_datalen() - COLLECT_MSG_HDRSIZE);
+		     dataptr, packetbuf_datalen() - COLLECT_MSG_HDRSIZE);
       }
     }
   } else if(waiting_for_nodes) {
