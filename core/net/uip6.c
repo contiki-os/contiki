@@ -41,7 +41,7 @@
  *
  * This file is part of the uIP TCP/IP stack.
  *
- * $Id: uip6.c,v 1.10 2010/02/04 21:14:45 adamdunkels Exp $
+ * $Id: uip6.c,v 1.11 2010/02/04 21:33:51 oliverschmidt Exp $
  *
  */
 
@@ -417,9 +417,9 @@ uip_init(void)
   }
 #endif /* UIP_TCP */
 
-#if UIP_ACTIVE_OPEN
+#if UIP_ACTIVE_OPEN || UIP_UDP
   lastport = 1024;
-#endif /* UIP_ACTIVE_OPEN */
+#endif /* UIP_ACTIVE_OPEN || UIP_UDP */
 
 #if UIP_UDP
   for(c = 0; c < UIP_UDP_CONNS; ++c) {
