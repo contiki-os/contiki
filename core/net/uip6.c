@@ -41,7 +41,7 @@
  *
  * This file is part of the uIP TCP/IP stack.
  *
- * $Id: uip6.c,v 1.8 2009/11/12 14:05:42 joxe Exp $
+ * $Id: uip6.c,v 1.9 2010/02/04 11:17:42 adamdunkels Exp $
  *
  */
 
@@ -1358,6 +1358,12 @@ uip_process(u8_t flag)
   uip_len = uip_len - UIP_IPUDPH_LEN;
 #endif /* UIP_UDP_CHECKSUMS */
 
+  /* Make sure that the UDP destination port number is not zero. */
+  if(UIP_UDP_BUF->destport == 0) {
+    UIP_LOG("udp: zero port.");
+    goto drop;
+  }
+
   /* Demultiplex this UDP packet between the UDP "connections". */
   for(uip_udp_conn = &uip_udp_conns[0];
       uip_udp_conn < &uip_udp_conns[UIP_UDP_CONNS];
@@ -1443,7 +1449,13 @@ uip_process(u8_t flag)
     UIP_LOG("tcp: bad checksum.");
     goto drop;
   }
-  
+
+  /* Make sure that the TCP port number is not zero. */
+  if(UIP_TCP_BUF->destport == 0 || UIP_TCP_BUF->srcport == 0) {
+    UIP_LOG("tcp: zero port.");
+    goto drop;
+  }
+
   /* Demultiplex this segment. */
   /* First check any active connections. */
   for(uip_connr = &uip_conns[0]; uip_connr <= &uip_conns[UIP_CONNS - 1];
