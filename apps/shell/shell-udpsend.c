@@ -30,7 +30,7 @@
  *
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: shell-udpsend.c,v 1.4 2010/02/04 14:59:08 adamdunkels Exp $
+ * $Id: shell-udpsend.c,v 1.5 2010/02/04 15:23:15 nifi Exp $
  */
 
 #include <string.h>
@@ -84,13 +84,17 @@ PROCESS_THREAD(shell_udpsend_process, ev, data)
 		     "udpsend <server> <port> [localport]: server as address", "");
     PROCESS_EXIT();
   }
+  if(next - (char *)data > sizeof(server)) {
+    shell_output_str(&udpsend_command, "Too long input", "");
+    PROCESS_EXIT();
+  }
   strncpy(server, data, sizeof(server));
   /* NULL-terminate the server string. */
   server[next - (char *)data] = 0;
   ++next;
   port = shell_strtolong(next, &nextptr);
 
-  uiplib_ipaddrconv(server, (u8_t *)&serveraddr);
+  uiplib_ipaddrconv(server, (uint8_t *)&serveraddr);
   udpconn = udp_new(&serveraddr, htons(port), NULL);
   
   if(next != nextptr) {
