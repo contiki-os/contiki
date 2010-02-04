@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: sky-shell-exec.c,v 1.1 2009/03/26 12:46:20 fros4943 Exp $
+ * $Id: sky-shell-exec.c,v 1.2 2010/02/04 00:10:48 fros4943 Exp $
  */
 
 #include "contiki.h"
@@ -79,6 +79,7 @@ PROCESS_THREAD(sky_shell_process, ev, data)
   /*shell_time_init();*/
   /*  shell_checkpoint_init();*/
   shell_exec_init();
+  shell_base64_init();
 
   PROCESS_END();
 }
