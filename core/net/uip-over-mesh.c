@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: uip-over-mesh.c,v 1.17 2010/02/03 01:13:17 adamdunkels Exp $
+ * $Id: uip-over-mesh.c,v 1.18 2010/02/04 18:57:33 adamdunkels Exp $
  */
 
 /**
@@ -257,7 +257,7 @@ uip_over_mesh_send(void)
   if(BUF->proto == UIP_PROTO_TCP) {
     packetbuf_set_attr(PACKETBUF_ATTR_ERELIABLE, 1);
     packetbuf_set_attr(PACKETBUF_ATTR_RELIABLE, 1);
-    packetbuf_set_attr(PACKETBUF_ATTR_PACKET_TYPE, PACKETBUF_ATTR_PACKET_TYPE_STREAM);
+    /*    packetbuf_set_attr(PACKETBUF_ATTR_PACKET_TYPE, PACKETBUF_ATTR_PACKET_TYPE_STREAM);*/
   }
 
   rt = route_lookup(&receiver);
