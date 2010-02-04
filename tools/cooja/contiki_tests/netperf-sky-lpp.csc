@@ -25,7 +25,7 @@
       <description>netperf shell</description>
       <source>[CONTIKI_DIR]/examples/netperf/netperf-shell.c</source>
       <commands>make clean TARGET=sky
-make MAC_DRIVER=lpp_driver netperf-shell.sky TARGET=sky</commands>
+make DEFINES=MAC_DRIVER=lpp_driver netperf-shell.sky TARGET=sky</commands>
       <firmware>[CONTIKI_DIR]/examples/netperf/netperf-shell.sky</firmware>
       <moteinterface>se.sics.cooja.interfaces.Position</moteinterface>
       <moteinterface>se.sics.cooja.interfaces.RimeAddress</moteinterface>
@@ -125,7 +125,7 @@ while(true) {
     log.testFailed();
   }
   if(id == 1 &amp;&amp; msg.startsWith("1.0: Contiki") &amp;&amp; started == 0) {
-    write(mote, "netperf -bups 2.0 20\n"); /* Write to mote serial port */
+    write(mote, "netperf -ps 2.0 20\n"); /* Write to mote serial port */
     started = 1;
   }
 }
