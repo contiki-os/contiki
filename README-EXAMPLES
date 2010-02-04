@@ -14,6 +14,20 @@ compile-platforms/
   A test script that compiles Contiki for a number of platforms and
   reports any errors found during the build.
 
+email/
+
+  An email program supporting SMTP. It can be compiled and run in the
+  'win32' target by typing the following commands:
+
+    cd examples/email
+    make
+    ./email-client.win32
+
+  Most likely you'll have to adjust the TCP/IP values set in main() in
+  platform/win32/contiki-main.c to match your needs.
+
+  Please consult cpu/native/net/README-WPCAP as well.
+
 energest-demo/
 
   A demo application that shows the energy consumption of eight Tmote
@@ -49,6 +63,20 @@ hello-world/
 
   The program will then appear to hang, and must be stopped by
   pressing the C key while holding down the Control key.
+
+irc/
+
+  An IRC client. It can be compiled and run in the 'win32' target by
+  typing the following commands:
+
+    cd examples/irc
+    make
+    ./irc-client.win32
+
+  Most likely you'll have to adjust the TCP/IP values set in main() in
+  platform/win32/contiki-main.c to match your needs.
+
+  Please consult cpu/native/net/README-WPCAP as well.
 
 multi-threading/
 
@@ -137,7 +165,7 @@ webserver/
 
     cd examples/webserver
     make
-    ./webserver.minimal-net
+    ./webserver-example.minimal-net
 
   As an alternative to the static and dynamic compiled-in content the web
   server can instead support "external" static-only content loaded from
