@@ -30,7 +30,7 @@
  *
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: shell-udpsend.c,v 1.2 2009/03/06 07:23:08 adamdunkels Exp $
+ * $Id: shell-udpsend.c,v 1.3 2010/02/04 11:20:09 adamdunkels Exp $
  */
 
 #include <string.h>
@@ -84,8 +84,10 @@ PROCESS_THREAD(shell_udpsend_process, ev, data)
 		     "udpsend <server> <port> [localport]: server as address", "");
     PROCESS_EXIT();
   }
-  ++next;
+  /* NULL-terminate the server string before copying. */
+  *next = 0;
   strncpy(server, data, sizeof(server));
+  ++next;
   port = shell_strtolong(next, &nextptr);
 
   uiplib_ipaddrconv(server, (u8_t *)&serveraddr);
