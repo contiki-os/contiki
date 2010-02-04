@@ -6,7 +6,7 @@
  *
  * \addtogroup usbstick
  *
- * \author 
+ * \author
  *        Colin O'Flynn <coflynn@newae.com>
  *
  ******************************************************************************/
@@ -66,6 +66,12 @@
 //_____ M A C R O S ________________________________________________________
 
 
+#define EEMCMD_ECHO                    0x00 ///bmEEMCmd Echo
+#define EEMCMD_ECHO_RESPONSE           0x01 ///bmEEMCmd Echo Response
+#define EEMCMD_SUSPEND_HINT            0x02 ///bmEEMCmd Suspend Hint
+#define EEMCMD_RESPONSE_HINT           0x03 ///bmEEMCmd Response Hint
+#define EEMCMD_RESPONSE_COMPLETE_HINT  0x04 ///bmEEMCmd Response Complete Hint
+#define EEMCMD_TICKLE                  0x05 ///bmEEMCmd Tickle
 
 
 
@@ -82,6 +88,8 @@
 
 //_____ D E C L A R A T I O N S ____________________________________________
 
+uint8_t eem_send(uint8_t * senddata, uint16_t sendlen, uint8_t led);
+uint8_t rndis_send(uint8_t * senddata, uint16_t sendlen, uint8_t led);
 
 //! Timers for LEDs
 uint8_t led1_timer, led2_timer;
@@ -289,6 +297,9 @@ static uint16_t iad_fail_timeout, rndis_fail_timeout;
 					//Subtract what we already took
 					dataoffset -= sizeof(rndis_data_packet_t);
 
+					//Clear this flag
+					Usb_ack_nak_out();
+
 					//Read to the start of data
 					while(dataoffset) {
 						Usb_read_byte();
@@ -302,10 +313,19 @@ static uint16_t iad_fail_timeout, rndis_fail_timeout;
 					
 
 							//Wait for new data
-							while (!Is_usb_receive_out());
-					
-					
+							while (!Is_usb_receive_out() && (!Is_usb_receive_nak_out()));
+
+							//Check for NAK
+							if (Is_usb_receive_nak_out()) {
+								Usb_ack_nak_out();
+								break;
+							}
+
 							bytecounter = Usb_byte_counter_8();
+
+							//ZLP?
+							if (bytecounter == 0)
+								break;
 						}
 
 					}
@@ -340,14 +360,154 @@ static uint16_t iad_fail_timeout, rndis_fail_timeout;
 					mac_ethernetToLowpan(uip_buf);
 					
 
-				} //if (PBUF->DataLength) 
+
+				} //if (PBUF->DataLength)
 
 
 		}  //if(Is_usb_receive_out() && (uip_len == 0))
         
 	    } // if (rndis_data_intialized)
+	    else if(Is_device_enumerated() &&  //Enumeration processs OK &&
+	           (usb_mode == eem) )         //USB Stick is using EEM
+	   {
+			uint16_t datalength;
 
-		if ((usb_mode == rndis_only) || (usb_mode == rndis_debug)) {
+	        if (doInit) {
+				mac_ethernetSetup();
+				doInit = 0;
+	        }
+
+	        //Connected!
+	        Led0_on();
+
+	        Usb_select_endpoint(RX_EP);
+
+	        //If we have data and a free buffer
+	        if(Is_usb_receive_out() && (uip_len == 0)) {
+
+	        //Read how much (endpoint only stores up to 64 bytes anyway)
+	        bytecounter = Usb_byte_counter_8();
+
+	        //EEM uses 2 bytes as a header
+	        headercounter = 2;
+
+	        uint8_t fail = 0;
+
+	        //Hmm.. what's going on here?
+	         if (bytecounter < headercounter) {
+	             Usb_ack_receive_out();
+	                    //TODO CO done = 1;
+	         }
+
+	         //Read EEM Header
+	         i = 0;
+	         while (headercounter) {
+	        	data_buffer[i] = Usb_read_byte();
+	            bytecounter--;
+	            headercounter--;
+	            i++;
+	         }
+
+			//Order is LSB/MSB, so MSN is in data_buffer[1]
+			//Bit 15 indicates command packet when set
+			if (data_buffer[1] & 0x80) {
+				//not a data payload
+				datalength = 0;
+			} else {
+	            //'0' indicates data packet
+               	//Length is lower 14 bits
+	            datalength = data_buffer[0] | ((data_buffer[1] & 0x3F) << 8);
+	        }
+
+			/* EEM Command Packet */
+			if ((datalength == 0) && (fail == 0))
+			{
+				uint8_t command;
+				uint16_t echoLength;
+
+				//Strip command off
+				command = data_buffer[1] & 0x38;
+				command = command >> 3;
+
+				//Decode command type
+				switch (command)
+				{
+					/* Echo Request */
+					case EEMCMD_ECHO:
+
+						//Get echo length
+						echoLength  = (data_buffer[1] & 0x07) << 8; //MSB
+						echoLength |= data_buffer[0];               //LSB
+
+						//TODO: everything. oops.
+
+						break;
+
+					/* Everything else: Whatever. */
+					case EEMCMD_ECHO_RESPONSE:
+					case EEMCMD_SUSPEND_HINT:
+					case EEMCMD_RESPONSE_HINT:
+					case EEMCMD_RESPONSE_COMPLETE_HINT:
+					case EEMCMD_TICKLE:
+						break;
+
+					default: break;
+				}
+			}
+			/* EEM Data Packet */
+			else if (datalength && (fail == 0))
+			{
+				//Looks like we've got a live one
+				rx_start_led();
+
+				uint16_t bytes_received = 0;
+				uint16_t dataleft = datalength;
+				U8 * buffer = uip_buf;
+
+				while(dataleft)
+				{
+					*buffer++ = Usb_read_byte();
+
+					dataleft--;
+					bytecounter--;
+					bytes_received++;
+
+					//Check if endpoint is done but we are expecting more data
+					if ((bytecounter == 0) && (dataleft))
+					{
+						//ACK previous data
+						Usb_ack_receive_out();
+
+						//Wait for new data
+						while (!Is_usb_receive_out());
+
+						//Get new data
+						bytecounter = Usb_byte_counter_8();
+
+						//ZLP?
+						if (bytecounter == 0)
+						{
+							//Incomplete!!
+							break;
+						}
+					}
+				}
+
+				//Ack final data packet
+				Usb_ack_receive_out();
+
+				//Packet has CRC, nobody wants that garbage
+				datalength -= 4;
+
+				//Send data over RF or to local stack
+				uip_len = datalength; //uip_len includes LLH_LEN
+				mac_ethernetToLowpan(uip_buf);
+
+			} //if (datalength)
+		}  //if(Is_usb_receive_out() && (uip_len == 0))
+		} // if (Is_device_enumerated())
+
+		if ((usb_mode == rndis_only) || (usb_mode == rndis_debug) || (usb_mode == eem)) {
 			etimer_set(&et, CLOCK_SECOND/80);
 		} else {
 			etimer_set(&et, CLOCK_SECOND);
@@ -357,6 +517,107 @@ static uint16_t iad_fail_timeout, rndis_fail_timeout;
 	} // while(1)
 
 	PROCESS_END();
+}
+
+/**
+ \brief Sends a single ethernet frame over USB using appropriate low-level protocol (EEM or RNDIS)
+ \param senddata Data to send
+ \param sendlen Length of data to send
+ \param led Should the LED be light up for this frame?
+ */
+uint8_t usb_eth_send(uint8_t * senddata, uint16_t sendlen, uint8_t led)
+{
+	if (usb_mode == eem)
+		return eem_send(senddata, sendlen, led);
+
+	if ((usb_mode == rndis_only) || (usb_mode == rndis_debug))
+		return rndis_send(senddata, sendlen, led);
+
+	return 0;
+}
+
+/**
+ \brief Send a single ethernet frame using EEM
+ */
+uint8_t eem_send(uint8_t * senddata, uint16_t sendlen, uint8_t led)
+{
+	//Check device is set up
+	if (Is_device_enumerated() == 0)
+		return 0;
+
+	//Make a header
+	uint8_t header[2];
+
+	//Fake CRC! Add 4 to length for CRC
+	sendlen += 4;
+	header[0] = (sendlen >> 8) & 0x3f;
+	header[1] = sendlen & 0xff;
+
+	//We send CRC seperatly..
+	sendlen -= 4;
+
+	//Send Data
+	Usb_select_endpoint(TX_EP);
+	//Usb_send_in();
+
+	//Wait for ready
+	while(!Is_usb_write_enabled());
+
+	//Send header (LSB then MSB)
+	Usb_write_byte(header[1]);
+	Usb_write_byte(header[0]);
+
+	//Send packet
+	while(sendlen) {
+		Usb_write_byte(*senddata);
+		senddata++;
+		sendlen--;
+
+		//If endpoint is full, send data in
+		//And then wait for data to transfer
+		if (!Is_usb_write_enabled()) {
+			Usb_send_in();
+
+			while(!Is_usb_write_enabled());
+		}
+
+	}
+
+	//CRC = 0xdeadbeef
+	//Linux kernel 2.6.31 needs 0xdeadbeef in wrong order,
+	//like this: uint8_t crc[4] = {0xef, 0xbe, 0xad, 0xde};
+	//This is fixed in 2.6.32 to the correct order (0xde, 0xad, 0xbe, 0xef)
+	uint8_t crc[4] = {0xde, 0xad, 0xbe, 0xef};
+
+	sendlen = 4;
+	uint8_t i = 0;
+
+	//Send fake CRC
+	while(sendlen) {
+		Usb_write_byte(crc[i]);
+		i++;
+		sendlen--;
+
+		//If endpoint is full, send data in
+		//And then wait for data to transfer
+		if (!Is_usb_write_enabled()) {
+			Usb_send_in();
+
+			while(!Is_usb_write_enabled());
+		}
+
+		if (led) {
+			tx_end_led();
+		}
+	}
+
+	//Send last data in - also handles sending a ZLP if needed
+	Usb_send_in();
+
+    //Wait for ready
+    while(!Is_usb_write_enabled());
+
+	return 1;
 }
 
 /**

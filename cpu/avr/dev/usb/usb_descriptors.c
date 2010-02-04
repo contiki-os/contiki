@@ -110,7 +110,7 @@ FLASH S_usb_user_configuration_descriptor_composite usb_conf_desc_composite = {
     0xFF,               // bFunctionProcotol (Vendor specific)
     0x00                // iInterface
   },//8
-  
+
  /// RNDIS DEVICE
  { sizeof(S_usb_interface_descriptor)
  , INTERFACE_DESCRIPTOR
@@ -443,6 +443,67 @@ FLASH S_usb_user_configuration_descriptor_mass usb_conf_desc_mass = {
  }
 };
 
+/************* EEM-ONLY ***************/
+
+// usb_user_device_descriptor
+FLASH S_usb_device_descriptor usb_dev_desc_eem =
+{
+  sizeof(usb_dev_desc_composite)
+, DEVICE_DESCRIPTOR
+, Usb_write_word_enum_struc(USB_SPECIFICATION)
+, EEM_DEVICE_CLASS
+, EEM_DEVICE_SUB_CLASS
+, EEM_DEVICE_PROTOCOL
+, EP_CONTROL_LENGTH
+, Usb_write_word_enum_struc(VENDOR_ID)
+, Usb_write_word_enum_struc(COMPOSITE_PRODUCT_ID)
+, Usb_write_word_enum_struc(RELEASE_NUMBER)
+, MAN_INDEX
+, PROD_INDEX
+, SN_INDEX
+, NB_CONFIGURATION
+};
+
+
+// usb_user_configuration_descriptor FS
+FLASH S_usb_user_configuration_descriptor_eem usb_conf_desc_eem = {
+ { sizeof(S_usb_configuration_descriptor)
+ , CONFIGURATION_DESCRIPTOR
+ , Usb_write_word_enum_struc(sizeof(S_usb_user_configuration_descriptor_eem))
+ , EEM_NB_INTERFACE
+ , CONF_NB
+ , CONF_INDEX
+ , CONF_ATTRIBUTES
+ , MAX_POWER
+ },//9
+ /// EEM DEVICE
+ { sizeof(S_usb_interface_descriptor)
+ , INTERFACE_DESCRIPTOR
+ , EEM_INTERFACE0_NB
+ , EEM_ALTERNATE0
+ , EEM_NB_ENDPOINT0
+ , EEM_INTERFACE0_CLASS
+ , EEM_INTERFACE0_SUB_CLASS
+ , EEM_INTERFACE0_PROTOCOL
+ , EEM_INTERFACE0_INDEX
+ } //9
+,
+{ sizeof(S_usb_endpoint_descriptor)
+ , ENDPOINT_DESCRIPTOR
+ , EEM_ENDPOINT_NB_1
+ , EEM_EP_ATTRIBUTES_1
+ , Usb_write_word_enum_struc(EEM_EP_SIZE_1)
+ , EEM_EP_INTERVAL_1
+ } //7
+ ,
+ { sizeof(S_usb_endpoint_descriptor)
+  , ENDPOINT_DESCRIPTOR
+  , EEM_ENDPOINT_NB_2
+  , EEM_EP_ATTRIBUTES_2
+  , Usb_write_word_enum_struc(EEM_EP_SIZE_2)
+  , EEM_EP_INTERVAL_2
+  } //7
+};
 
 /************* COMMON *****************/
 
@@ -485,13 +546,16 @@ FLASH S_usb_language_id usb_user_language_id = {
 
 
 
-PGM_VOID_P Usb_get_dev_desc_pointer(void) 
+PGM_VOID_P Usb_get_dev_desc_pointer(void)
 {
 	if (usb_mode == rndis_only)
 		return &(usb_dev_desc_network.bLength);
 
 	if (usb_mode == rndis_debug)
 		return &(usb_dev_desc_composite.bLength);
+
+	if (usb_mode == eem)
+		return &(usb_dev_desc_eem.bLength);
 
 	return &(usb_dev_desc_mass.bLength);
 }
@@ -506,17 +570,23 @@ U8 Usb_get_dev_desc_length(void)
 	if (usb_mode == rndis_debug)
 		return sizeof(usb_dev_desc_composite);
 
+	if (usb_mode == eem)
+		return sizeof(usb_dev_desc_eem);
+
 	return sizeof(usb_dev_desc_mass);
 }
 
 
-PGM_VOID_P  Usb_get_conf_desc_pointer(void) 
+PGM_VOID_P  Usb_get_conf_desc_pointer(void)
 {
 	if (usb_mode == rndis_only)
 		return &(usb_conf_desc_network.cfg.bLength);
 
 	if (usb_mode == rndis_debug)
 		return &(usb_conf_desc_composite.cfg.bLength);
+
+	if (usb_mode == eem)
+		return &(usb_conf_desc_eem.cfg.bLength);
 
 	return &(usb_conf_desc_mass.cfg.bLength);
 }
@@ -530,6 +600,9 @@ U8  Usb_get_conf_desc_length(void)
 
 	if (usb_mode == rndis_debug)
 		return sizeof(usb_conf_desc_composite);
+
+	if (usb_mode == eem)
+		return sizeof(usb_conf_desc_eem);
 
 	return sizeof(usb_conf_desc_mass);
 }

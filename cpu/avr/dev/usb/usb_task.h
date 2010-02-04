@@ -171,7 +171,8 @@
 typedef enum {
 	rndis_only,
 	rndis_debug,
-	mass_storage
+	mass_storage,
+	eem
 } usb_mode_t;
 
 //_____ D E C L A R A T I O N S ____________________________________________

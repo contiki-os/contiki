@@ -532,6 +532,8 @@ typedef enum endpoint_parameter{ep_num, ep_type, ep_direction, ep_size, ep_bank,
 #define Usb_ack_receive_setup()                   (UEINTX &= ~(1<<RXSTPI))
 //! tests if NAK IN received
 #define Is_usb_receive_nak_in()                   (UEINTX &(1<<NAKINI))
+//! tests if NAK OUT received
+#define Is_usb_receive_nak_out()                  (UEINTX &(1<<NAKOUTI))
    //! acks reveive OUT
 #define Usb_ack_receive_out()                     (UEINTX &= ~(1<<RXOUTI), Usb_ack_fifocon())
    //! acks STALL sent
