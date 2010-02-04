@@ -270,7 +270,23 @@ void usb_user_endpoint_init(U8 conf_nb)
                          DIRECTION_OUT, \
                          SIZE_64,       \
                          ONE_BANK,     \
-                         NYET_ENABLED);	
+                         NYET_ENABLED);
+  }
+
+  if (usb_mode == eem ) {
+     usb_configure_endpoint(TX_EP,         \
+  	                      TYPE_BULK,     \
+  	                      DIRECTION_IN,  \
+  	                      SIZE_64,       \
+  	                      TWO_BANKS,     \
+  	                      NYET_ENABLED);
+
+	  usb_configure_endpoint(RX_EP,          \
+ 	                          TYPE_BULK,     \
+  	                      DIRECTION_OUT, \
+  		                  SIZE_64,       \
+  		                  TWO_BANKS,     \
+  		                  NYET_ENABLED);
   }
 
 
@@ -290,6 +306,11 @@ void usb_user_endpoint_init(U8 conf_nb)
   if (usb_mode == mass_storage) {
   Usb_reset_endpoint(VCP_TX_EP);
   Usb_reset_endpoint(VCP_RX_EP);
+  }
+
+  if (usb_mode == eem){
+  Usb_reset_endpoint(TX_EP);
+  Usb_reset_endpoint(RX_EP);
   }
 
 }

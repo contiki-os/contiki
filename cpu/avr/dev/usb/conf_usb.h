@@ -98,9 +98,9 @@
 #define VCP_RX_EP			0x06
 #define VCP_TX_EP			0x05
 #define VCP_INT_EP			0x04
-#define TX_EP				0x02
-#define RX_EP				0x03
-#define INT_EP              0x01
+#define TX_EP				0x01
+#define RX_EP				0x02
+#define INT_EP              0x03
 
 /** USB Mass Storage Setup **/
 

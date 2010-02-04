@@ -71,12 +71,16 @@
 #define COMPOSITE_DEVICE_PROTOCOL    0x01      // IAD
 
 #define NETWORK_DEVICE_CLASS          0x02      // CDC ACM
-#define NETWORK_DEVICE_SUB_CLASS      0x02      // 
+#define NETWORK_DEVICE_SUB_CLASS      0x02      //
 #define NETWORK_DEVICE_PROTOCOL       0xFF      // Vendor-specific
 
 #define MASS_DEVICE_CLASS            0x00      //
 #define MASS_DEVICE_SUB_CLASS        0x00      //
 #define MASS_DEVICE_PROTOCOL         0x00      //
+
+#define EEM_DEVICE_CLASS              0x02      // CDC
+#define EEM_DEVICE_SUB_CLASS          0x0C      // EEM
+#define EEM_DEVICE_PROTOCOL           0x07      // EEM
 
 #define EP_CONTROL_LENGTH     64
 #define VENDOR_ID             0x03EB // Atmel vendor ID = 03EBh
@@ -92,6 +96,7 @@
 #define NETWORK_NB_INTERFACE         2
 #define COMPOSITE_NB_INTERFACE       4
 #define MASS_NB_INTERFACE            1
+#define EEM_NB_INTERFACE          1
 #define CONF_NB            1
 #define CONF_INDEX         0
 #define CONF_ATTRIBUTES    USB_CONFIG_BUSPOWERED
@@ -196,7 +201,7 @@
 #define MS_EP_ATTRIBUTES_1     0x02          // BULK = 0x02, INTERUPT = 0x03
 #define MS_EP_IN_LENGTH        64
 #define MS_EP_SIZE_1           MS_EP_IN_LENGTH
-#define MS_EP_INTERVAL_1       0x00 			
+#define MS_EP_INTERVAL_1       0x00
 
 
 // USB Endpoint 2 descriptor FS
@@ -204,8 +209,32 @@
 #define MS_EP_ATTRIBUTES_2     0x02          // BULK = 0x02, INTERUPT = 0x03
 #define MS_EP_IN_LENGTH        64
 #define MS_EP_SIZE_2           MS_EP_IN_LENGTH
-#define MS_EP_INTERVAL_2       0x00 			
+#define MS_EP_INTERVAL_2       0x00
 
+/******* EEM Configuration *******/
+
+// Interface 0 descriptor
+#define EEM_INTERFACE0_NB        0
+#define EEM_ALTERNATE0           0
+#define EEM_NB_ENDPOINT0         2
+#define EEM_INTERFACE0_CLASS     0x02    // CDC ACM Com
+#define EEM_INTERFACE0_SUB_CLASS 0x0C    // EEM
+#define EEM_INTERFACE0_PROTOCOL  0x07    // EEM
+#define EEM_INTERFACE0_INDEX     0
+
+            // USB Endpoint 1 descriptor
+            // Bulk IN
+#define EEM_ENDPOINT_NB_1       0x80 | TX_EP
+#define EEM_EP_ATTRIBUTES_1     0x02          // BULK = 0x02, INTERUPT = 0x03
+#define EEM_EP_SIZE_1           0x40 //64 byte max size
+#define EEM_EP_INTERVAL_1       0x00
+
+             // USB Endpoint 2 descriptor
+             // Bulk OUT
+#define EEM_ENDPOINT_NB_2       RX_EP
+#define EEM_EP_ATTRIBUTES_2     0x02          // BULK = 0x02, INTERUPT = 0x03
+#define EEM_EP_SIZE_2           0x40  //64 byte max size
+#define EEM_EP_INTERVAL_2       0x00
 
 #define DEVICE_STATUS         0x00 // TBD
 #define INTERFACE_STATUS      0x00 // TBD
@@ -442,8 +471,17 @@ typedef struct
 
 } S_usb_user_configuration_descriptor_mass;
 
+/* EEM */
+typedef struct
+{
+   S_usb_configuration_descriptor cfg;
+   S_usb_interface_descriptor     ifc0;
+   S_usb_endpoint_descriptor      ep1;
+   S_usb_endpoint_descriptor      ep2;
+} S_usb_user_configuration_descriptor_eem;
 
-PGM_VOID_P Usb_get_dev_desc_pointer(void); 
+
+PGM_VOID_P Usb_get_dev_desc_pointer(void);
 U8 Usb_get_dev_desc_length(void);
 PGM_VOID_P  Usb_get_conf_desc_pointer(void) ;
 U8  Usb_get_conf_desc_length(void);
