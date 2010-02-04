@@ -41,7 +41,7 @@
  *
  * This file is part of the uIP TCP/IP stack.
  *
- * $Id: uip6.c,v 1.9 2010/02/04 11:17:42 adamdunkels Exp $
+ * $Id: uip6.c,v 1.10 2010/02/04 21:14:45 adamdunkels Exp $
  *
  */
 
@@ -200,10 +200,10 @@ struct uip_conn *uip_conn;
 static u8_t c;
 #endif
 
-#if UIP_ACTIVE_OPEN
+#if UIP_ACTIVE_OPEN || UIP_UDP
 /* Keeps track of the last port used for a new connection. */
 static u16_t lastport;
-#endif /* UIP_ACTIVE_OPEN */
+#endif /* UIP_ACTIVE_OPEN || UIP_UDP */
 /** @} */
 
 /*---------------------------------------------------------------------------*/

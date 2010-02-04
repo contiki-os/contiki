@@ -41,7 +41,7 @@
  *
  * This file is part of the uIP TCP/IP stack.
  *
- * $Id: uip.c,v 1.19 2010/02/04 11:17:42 adamdunkels Exp $
+ * $Id: uip.c,v 1.20 2010/02/04 21:14:45 adamdunkels Exp $
  *
  */
 
@@ -174,10 +174,10 @@ void uip_setipid(u16_t id) { ipid = id; }
 static u8_t iss[4];          /* The iss variable is used for the TCP
 				initial sequence number. */
 
-#if UIP_ACTIVE_OPEN
+#if UIP_ACTIVE_OPEN || UIP_UDP
 static u16_t lastport;       /* Keeps track of the last port used for
 				a new connection. */
-#endif /* UIP_ACTIVE_OPEN */
+#endif /* UIP_ACTIVE_OPEN || UIP_UDP */
 
 /* Temporary variables. */
 u8_t uip_acc32[4];
