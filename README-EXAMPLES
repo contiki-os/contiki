@@ -28,11 +28,6 @@ email/
 
   Please consult cpu/native/net/README-WPCAP as well.
 
-energest-demo/
-
-  A demo application that shows the energy consumption of eight Tmote
-  Sky boards in real-time. The graphical user interface requires Java.
-
 esb/
 
   A set of demo applications for the ESB board.
