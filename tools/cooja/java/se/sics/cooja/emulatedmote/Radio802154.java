@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: Radio802154.java,v 1.1 2009/11/10 12:54:39 joxe Exp $
+ * $Id: Radio802154.java,v 1.2 2010/02/05 09:07:58 fros4943 Exp $
  */
 package se.sics.cooja.emulatedmote;
 
@@ -193,8 +193,6 @@ public abstract class Radio802154 extends Radio implements CustomDataRadio {
 
     public abstract void setCurrentSignalStrength(double signalStrength);
 
-    public abstract double energyConsumption();
- 
     /* need to add a few more methods later??? */
     public void signalReceptionStart() {
         isReceiving = true;

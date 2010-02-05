@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: Mote2MoteRelations.java,v 1.3 2010/01/12 09:36:10 fros4943 Exp $
+ * $Id: Mote2MoteRelations.java,v 1.4 2010/02/05 09:07:58 fros4943 Exp $
  */
 
 package se.sics.cooja.interfaces;
@@ -223,10 +223,6 @@ public class Mote2MoteRelations extends MoteInterface {
       return;
     }
     this.deleteObserver(observer);
-  }
-
-  public double energyConsumption() {
-    return 0;
   }
 
   public Collection<Element> getConfigXML() {

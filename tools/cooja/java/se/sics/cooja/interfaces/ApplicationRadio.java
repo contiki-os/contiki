@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ApplicationRadio.java,v 1.11 2010/01/24 23:16:17 joxe Exp $
+ * $Id: ApplicationRadio.java,v 1.12 2010/02/05 09:07:58 fros4943 Exp $
  */
 
 package se.sics.cooja.interfaces;
@@ -333,10 +333,6 @@ private int interfered;
     }
 
     this.deleteObserver(observer);
-  }
-
-  public double energyConsumption() {
-    return 0;
   }
 
   public Collection<Element> getConfigXML() {
