@@ -1,0 +1,35 @@
+STM32TEST =  
+
+#CODEPROP_SOURCES = codeprop-otf.c ram-segments.c
+
+CONTIKI_TARGET_DIRS = .
+# Master clock frequency
+MCK=48000000
+CFLAGS+=-DAUTOSTART_ENABLE
+
+ifndef CONTIKI_TARGET_MAIN
+CONTIKI_TARGET_MAIN = contiki-main.c
+endif
+
+CONTIKI_TARGET_SOURCEFILES += $(SENSORS) $(STEPPER_ROBOT) \
+ $(CODEPROP_SOURCES) $(CONTIKI_TARGET_MAIN)
+
+# include $(CONTIKI)/platform/$(TARGET)/apps/Makefile.apps
+
+include $(CONTIKI)/cpu/arm/stm32f103/Makefile.stm32f103
+
+#contiki-$(TARGET).a: ${addprefix $(OBJECTDIR)/,symbols.o}
+
+ifndef BASE_IP
+BASE_IP := 172.16.1.1
+endif
+
+### System dependent Makefile
+
+ifndef WINDIR
+  ifdef OS
+    ifneq (,$(findstring Windows,$(OS)))
+      WINDIR := Windows
+    endif
+  endif
+endif
