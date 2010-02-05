@@ -24,7 +24,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * $Id: AbstractApplicationMoteType.java,v 1.8 2010/02/03 15:11:48 fros4943 Exp $
+ * $Id: AbstractApplicationMoteType.java,v 1.9 2010/02/05 09:08:07 fros4943 Exp $
  */
 
 package se.sics.cooja.motes;
@@ -244,9 +244,6 @@ public abstract class AbstractApplicationMoteType implements MoteType {
     }
     public void setMoteID(int newID) {
       this.id = newID;
-    }
-    public double energyConsumption() {
-      return 0;
     }
     public JPanel getInterfaceVisualizer() {
       return null;

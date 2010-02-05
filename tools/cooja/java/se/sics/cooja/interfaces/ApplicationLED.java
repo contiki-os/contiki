@@ -137,10 +137,6 @@ public class ApplicationLED extends LED {
        this.deleteObserver(observer);
      }
 
-     public double energyConsumption() {
-       return 0;
-     }
-
      public Collection<Element> getConfigXML() {
        return null;
      }
