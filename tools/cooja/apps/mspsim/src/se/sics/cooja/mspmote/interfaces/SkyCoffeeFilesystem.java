@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: SkyCoffeeFilesystem.java,v 1.2 2009/10/08 14:41:20 fros4943 Exp $
+ * $Id: SkyCoffeeFilesystem.java,v 1.3 2010/02/05 08:44:57 fros4943 Exp $
  */
 
 package se.sics.cooja.mspmote.interfaces;
@@ -99,10 +99,6 @@ public class SkyCoffeeFilesystem extends MoteInterface {
     TableColumnAdjuster adjuster = new TableColumnAdjuster(filesTable);
     adjuster.setDynamicAdjustment(true);
     adjuster.packColumns();
-  }
-
-  public double energyConsumption() {
-    return 0;
   }
 
   public Collection<Element> getConfigXML() {

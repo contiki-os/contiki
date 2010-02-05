@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ESBLED.java,v 1.5 2009/03/09 17:14:35 fros4943 Exp $
+ * $Id: ESBLED.java,v 1.6 2010/02/05 08:44:57 fros4943 Exp $
  */
 
 package se.sics.cooja.mspmote.interfaces;
@@ -86,10 +86,6 @@ public class ESBLED extends LED implements PortListener {
 
   public boolean isRedOn() {
     return redOn;
-  }
-
-  public double energyConsumption() {
-    return 0;
   }
 
   public JPanel getInterfaceVisualizer() {
