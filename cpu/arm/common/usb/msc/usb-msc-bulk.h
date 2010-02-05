@@ -3,39 +3,10 @@
 
 #include <usb.h>
 #include <stdint.h>
+#include <msc/msc-defs.h>
 
-#define USB_MSC_BUFFERS 4
+#define USB_MSC_BUFFERS 16
 
-/*  Communication Class */
-/* Class code */
-#define MASS_STORAGE  0x08
-
-/* Interface subclass codes */
-#define MASS_RBC 0x01
-#define MASS_SFF_8020i 0x02
-#define MASS_MMC_2 0x02
-#define MASS_QIC_157 0x03
-#define MASS_UFI 0x04
-#define MASS_SFF_8070i 0x05
-#define MASS_SCSI_TRANSP 0x06
-
-/* Protocols */
-#define MASS_CBI_COMPLETION 0x00
-#define MASS_CBI_NO_COMPLETION 0x01
-#define MASS_BULK_ONLY 0x50
-
-/* Requests */
-#define MASS_BULK_RESET 0xff
-#define MASS_BULK_GET_MAX_LUN 0xfe
-
-#define MASS_BULK_CBW_SIGNATURE  0x43425355
-#define MASS_BULK_CSW_SIGNATURE  0x53425355
-
-#define MASS_BULK_CBW_FLAG_IN 0x80
-
-#define MASS_BULK_CSW_STATUS_PASSED 0x00
-#define MASS_BULK_CSW_STATUS_FAILED 0x01
-#define MASS_BULK_CSW_STATUS_PHASE_ERROR 0x02
 
 struct usb_msc_bulk_cbw
 {

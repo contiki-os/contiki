@@ -37,7 +37,7 @@ struct _USBBuffer
 
 /* HALT the endpoint at this point. Only valid for bulk and interrupt
    endpoints */
-#define USB_BUFFER_HALT 0x20
+#define USB_BUFFER_HALT 0x100
 
 /* Flags set by system */
 
@@ -77,6 +77,9 @@ struct USBRequestHandlerHook
 
 void
 usb_register_request_handler(struct USBRequestHandlerHook *hook);
+
+void
+usb_prepend_request_handler(struct USBRequestHandlerHook *hook);
 
 void
 usb_setup_bulk_endpoint(uint8_t addr);

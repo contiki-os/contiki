@@ -66,4 +66,64 @@ _GPIO_OUTPUT_SPEED_##speed(_GPIO_CONF_BIT_REG_##bit(GPIO_,_MODE##bit##_1),\
 #define AFIO_REMAP(mask,value) \
 MODIFY_REG(AFIO->MAPR, AFIO_MAPR_SWJ_CFG | mask, AFIO_MAPR_SWJ_CFG_VALUE | value);
 
+#define GPIO_CM0  0x000000000000000fLL
+#define GPIO_CM1  0x00000000000000f0LL
+#define GPIO_CM2  0x0000000000000f00LL
+#define GPIO_CM3  0x000000000000f000LL
+#define GPIO_CM4  0x00000000000f0000LL
+#define GPIO_CM5  0x0000000000f00000LL
+#define GPIO_CM6  0x000000000f000000LL
+#define GPIO_CM7  0x00000000f0000000LL
+#define GPIO_CM8  0x0000000f00000000LL
+#define GPIO_CM9  0x000000f000000000LL
+#define GPIO_CM10 0x00000f0000000000LL
+#define GPIO_CM11 0x0000f00000000000LL
+#define GPIO_CM12 0x000f000000000000LL
+#define GPIO_CM13 0x00f0000000000000LL
+#define GPIO_CM14 0x0f00000000000000LL
+#define GPIO_CM15 0xf000000000000000LL
+
+#define _GPIO_CONF_INPUT_MASK(port, mask , mode)	\
+  MODIFY_REG(GPIO##port ->CRH,((mask)>>32), (mode & ((mask)>>32)));	\
+  MODIFY_REG(GPIO##port ->CRL,((mask)&0xffffffff), (mode & ((mask)&0xffffffff)))
+
+#define GPIO_CONF_INPUT_ANALOG(port, mask) \
+  _GPIO_CONF_INPUT_MASK(port, mask, 0x00000000)
+
+#define GPIO_CONF_INPUT_FLOATING(port, mask) \
+  _GPIO_CONF_INPUT_MASK(port, mask, 0x44444444)
+
+#define GPIO_CONF_INPUT_PU_PD(port, mask) \
+  _GPIO_CONF_INPUT_MASK(port, mask, 0x88888888)
+
+#define GPIO_CONF_OUTPUT_PUSH_PULL_50(port, mask) \
+  _GPIO_CONF_INPUT_MASK(port, mask, 0x22222222)
+#define GPIO_CONF_OUTPUT_PUSH_PULL_10(port, mask) \
+  _GPIO_CONF_INPUT_MASK(port, mask, 0x33333333)
+#define GPIO_CONF_OUTPUT_PUSH_PULL_2(port, mask) \
+  _GPIO_CONF_INPUT_MASK(port, mask, 0x11111111)
+
+#define GPIO_CONF_OUTPUT_OPEN_DRAIN_50(port, mask) \
+  _GPIO_CONF_INPUT_MASK(port, mask, 0x77777777)
+#define GPIO_CONF_OUTPUT_OPEN_DRAIN_10(port, mask) \
+  _GPIO_CONF_INPUT_MASK(port, mask, 0x55555555)
+#define GPIO_CONF_OUTPUT_OPEN_DRAIN_2(port, mask) \
+  _GPIO_CONF_INPUT_MASK(port, mask, 0x66666666)
+
+#define GPIO_CONF_OUTPUT_ALT_PUSH_PULL_50(port, mask) \
+  _GPIO_CONF_INPUT_MASK(port, mask, 0xbbbbbbbb)
+#define GPIO_CONF_OUTPUT_ALT_PUSH_PULL_10(port, mask) \
+  _GPIO_CONF_INPUT_MASK(port, mask, 0x99999999)
+#define GPIO_CONF_OUTPUT_ALT_PUSH_PULL_2(port, mask) \
+  _GPIO_CONF_INPUT_MASK(port, mask, 0xaaaaaaaa)
+
+#define GPIO_CONF_OUTPUT_ALT_OPEN_DRAIN_50(port, mask) \
+  _GPIO_CONF_INPUT_MASK(port, mask, 0xffffffff)
+#define GPIO_CONF_OUTPUT_ALT_OPEN_DRAIN_10(port, mask) \
+  _GPIO_CONF_INPUT_MASK(port, mask, 0xdddddddd)
+#define GPIO_CONF_OUTPUT_ALT_OPEN_DRAIN_2(port, mask) \
+  _GPIO_CONF_INPUT_MASK(port, mask, 0xeeeeeeee)
+
+
+
 #endif /* __GPIO_H__LK7NAD1HN8__ */

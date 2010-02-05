@@ -6,7 +6,7 @@
 static StrFormatResult
 write_str(void *user_data, const char *data, unsigned int len)
 {
-  dbg_send_bytes((unsigned char*)data, len);
+  if (len > 0) dbg_send_bytes((unsigned char*)data, len);
   return STRFORMAT_OK;
 }
 

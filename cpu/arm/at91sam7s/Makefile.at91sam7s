@@ -190,4 +190,11 @@ ocd_reset:
 $(OBJECTDIR)/elfloader.o: 
 	echo -n >$@
 
+clean: clean_cpu
+
+.PHONY: clean_cpu
+
+clean_cpu:
+	-rm -rf $(BUILTSRCDIR)
+
 .PRECIOUS: %-nosyms.$(TARGET)

@@ -5,7 +5,7 @@
 #include <stdio.h>
 #include <string.h>
 
-#define DEBUG   
+#define DEBUG     
 
 #ifdef DEBUG
 #define PRINTF(...) printf(__VA_ARGS__)
@@ -65,13 +65,14 @@ usb_msc_send_data_buf_flags(const uint8_t *data, unsigned int len,
   }
   state.cmd_data_submitted += len;
   buf_free = NEXT_BUF(buf_free);
-/*   PRINTF("usb_msc_send_data: %d\n", len); */
+  /* PRINTF("usb_msc_send_data: %d\n", len); */
   if (flags & USB_MSC_DATA_SEND) {
     usb_submit_xmit_buffer(BULK_IN, &data_usb_buffer[buf_first]);
     buf_first = buf_free;
-/*     PRINTF("usb_msc_send_data: sent\n"); */
+    /* PRINTF("usb_msc_send_data: sent\n"); */
   } else if (flags & USB_MSC_DATA_LAST) {
     /* Cancel transmission */
+    PRINTF("Send last\n");
     buf_first = buf_free;
     process_poll(&usb_mass_bulk_process);
   }
@@ -89,7 +90,7 @@ usb_msc_receive_data_buf_flags(uint8_t *data, unsigned int len,
 {
   USBBuffer *buffer = &data_usb_buffer[buf_free];
   if (buffer->id != USB_BUFFER_ID_UNUSED) {
-    printf("Data IN buffer busy\n");
+    printf("Data OUT buffer busy\n");
     return;
   }
   buffer->flags = USB_BUFFER_NOTIFY | buf_flags;
@@ -363,6 +364,7 @@ PROCESS_THREAD(usb_mass_bulk_request_process, ev , data)
     uint8_t id = 0;
     /* Wait for any data to be sent */
     while (buf_submitted == buf_free) {
+      PRINTF("Wait data\n");
       PROCESS_WAIT_EVENT();
     }
 #if 0
@@ -379,7 +381,7 @@ PROCESS_THREAD(usb_mass_bulk_request_process, ev , data)
     }
     while (!(data_usb_buffer[buf_submitted].flags & USB_BUFFER_SUBMITTED)) {
       id = data_usb_buffer[buf_submitted].id;
-      /* PRINTF("id: %02x\n", id); */
+      /* PRINTF("id: %02x\n", id);  */
       if (id == USB_BUFFER_ID_UNUSED) break;
       state.cmd_data_transfered += buffer_lengths[buf_submitted];
       data_usb_buffer[buf_submitted].id = USB_BUFFER_ID_UNUSED;
