@@ -522,7 +522,7 @@ read_hw_buffer(USBBuffer *buffer, unsigned int offset, unsigned int len)
 #define USB_WRITE_BLOCK 0x01
 #define USB_WRITE_NOTIFY 0x02
 
-static void
+void
 write_hw_buffer(USBBuffer *buffer,unsigned int offset, unsigned int len)
 {
 #ifdef USB_STM32F103_ENABLE_ALT_COPY
@@ -531,8 +531,11 @@ write_hw_buffer(USBBuffer *buffer,unsigned int offset, unsigned int len)
   } else
 #endif    
     {
-      const uint8_t *data = buffer->data;
-      uint32_t *hw_data = ((u32*)USB_MEM_BASE) + offset/2;
+      const uint8_t *data;
+      uint32_t *hw_data;
+      if (len == 0) return;
+      data = buffer->data;
+      hw_data = ((u32*)USB_MEM_BASE) + offset/2;
       buffer->data += len;
       if (offset & 1) {
 	*hw_data = (*hw_data & 0xff) | (*data++ << 8);
@@ -554,7 +557,7 @@ static unsigned int
 get_receive_capacity(USBBuffer *buffer)
 {
   unsigned int capacity = 0;
-  while(buffer && !(buffer->flags & (USB_BUFFER_IN| USB_BUFFER_SETUP))) {
+  while(buffer && !(buffer->flags & (USB_BUFFER_IN| USB_BUFFER_SETUP|USB_BUFFER_HALT))) {
     capacity += buffer->left;
     buffer = buffer->next;
   }
@@ -761,10 +764,10 @@ start_transmit(USBEndpoint *ep)
     break;
   case USB_EP_FLAGS_TYPE_BULK:
     if (buffer->flags & USB_BUFFER_HALT) {
-      if (ep->status & 0x01) return USB_READ_BLOCK;
+      if (ep->status & 0x01) return USB_WRITE_BLOCK;
       ep->status |= 0x01;
       stall_bulk_in(hw_ep);
-      return USB_READ_BLOCK;
+      return USB_WRITE_BLOCK;
     }
     if (USB->EPR[hw_ep] & USB_EPxR_SW_BUF_TX) {
       hw_offset =  buf_desc->ADDR_TX_1;
@@ -790,10 +793,8 @@ start_transmit(USBEndpoint *ep)
     if (buffer->left == 0) {
       if (buffer->flags & USB_BUFFER_SHORT_END) {
 	if (len == 0) {
-	  /* Avoid endless loop */
-	  buffer->flags &= ~USB_BUFFER_SHORT_END;
 	  /* Send zero length packet. */
-	  break;
+	  break; /* Leave without moving to next buffer */
 	} else {
 	  len = 0;
 	}

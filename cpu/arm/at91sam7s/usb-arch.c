@@ -5,7 +5,7 @@
 #include <debug-uart.h>
 
 
-/* #define DEBUG  */
+/* #define DEBUG   */
 #ifdef DEBUG
 #define PRINTF(...) printf(__VA_ARGS__)
 #else
@@ -340,7 +340,7 @@ static unsigned int
 get_receive_capacity(USBBuffer *buffer)
 {
   unsigned int capacity = 0;
-  while(buffer && !(buffer->flags & (USB_BUFFER_IN| USB_BUFFER_SETUP))) {
+  while(buffer && !(buffer->flags & (USB_BUFFER_IN| USB_BUFFER_SETUP|USB_BUFFER_HALT))) {
     capacity += buffer->left;
     buffer = buffer->next;
   }
@@ -494,6 +494,16 @@ start_transmit(USBEndpoint *ep)
   if (!(ep_flags & USB_EP_FLAGS_ENABLED) || !buffer) return USB_WRITE_BLOCK;
   switch(ep_flags & USB_EP_FLAGS_TYPE_MASK) {
   case USB_EP_FLAGS_TYPE_BULK:
+    if (buffer->flags & USB_BUFFER_HALT) {
+      if (ep->status & 0x01) return USB_WRITE_BLOCK;
+      ep->status |= 0x01;
+      if (!(ep->flags & USB_EP_FLAGS_TRANSMITTING)) {
+	UDP_SET_EP_CTRL_FLAGS(&AT91C_UDP_CSR[hw_ep],
+			      AT91C_UDP_FORCESTALL, AT91C_UDP_FORCESTALL);
+	PRINTF("HALT IN\n");
+      }
+      return USB_WRITE_BLOCK;
+    }
   case USB_EP_FLAGS_TYPE_ISO:
     if (!(ep->flags & USB_EP_FLAGS_TRANSMITTING)) {
       if (AT91C_UDP_CSR[hw_ep] & AT91C_UDP_TXPKTRDY) return USB_WRITE_BLOCK;
@@ -518,8 +528,6 @@ start_transmit(USBEndpoint *ep)
     if (buffer->left == 0) {
       if (buffer->flags & USB_BUFFER_SHORT_END) {
 	if (len == 0) {
-	  /* Avoid endless loop */
-	  buffer->flags &= ~USB_BUFFER_SHORT_END;
 	  /* Send zero length packet. */
 	  break;
 	} else {
@@ -554,7 +562,19 @@ start_transfer(USBEndpoint *ep)
 {
   unsigned int hw_ep = EP_HW_NUM(ep->addr);
   int res;
-  while (ep->flags & USB_EP_FLAGS_RECV_PENDING) {
+  while (1) {
+    if (!(ep->addr & 0x80)) {
+      if (ep->buffer && (ep->buffer->flags & USB_BUFFER_HALT)) {
+	if (ep->status & 0x01) return ;
+	ep->status |= 0x01;
+	UDP_SET_EP_CTRL_FLAGS(&AT91C_UDP_CSR[EP_HW_NUM(ep->addr)],
+			      AT91C_UDP_FORCESTALL, AT91C_UDP_FORCESTALL);
+	PRINTF("HALT OUT\n");
+	*AT91C_UDP_IDR = 1<<hw_ep;
+	return;
+      }
+    }
+    if (!(ep->flags & USB_EP_FLAGS_RECV_PENDING)) break;
     res = handle_pending_receive(ep);
     if (res & USB_READ_NOTIFY) {
       notify_ep_process(ep, USB_EP_EVENT_NOTIFICATION);
@@ -609,7 +629,7 @@ start_transfer(USBEndpoint *ep)
   if (ep->buffer) {
     if (ep->buffer->flags & USB_BUFFER_IN) {
       res = start_transmit(ep);
-      if (res & USB_READ_NOTIFY) {
+      if (res & USB_WRITE_NOTIFY) {
 	notify_ep_process(ep, USB_EP_EVENT_NOTIFICATION);
       }
     } else {
@@ -658,6 +678,7 @@ usb_arch_transfer_complete(unsigned int hw_ep)
     if (ep->status & 0x01) {
       UDP_SET_EP_CTRL_FLAGS(&AT91C_UDP_CSR[hw_ep],
 			    AT91C_UDP_FORCESTALL, AT91C_UDP_FORCESTALL);
+      PRINTF("HALT IN\n");
     } else {
       start_transfer(ep);
     }
@@ -807,7 +828,16 @@ usb_arch_halt_endpoint(unsigned char ep_addr, int halt)
 			  0, AT91C_UDP_FORCESTALL);
     *AT91C_UDP_RSTEP = 1<<EP_HW_NUM(ep_addr);
     *AT91C_UDP_RSTEP = 0;
-	
+    
+    /* Release HALT buffer */
+    if (ep->buffer && (ep->buffer->flags & USB_BUFFER_HALT)) {
+      ep->buffer->flags &= ~USB_BUFFER_SUBMITTED;
+      if (ep->buffer->flags & USB_BUFFER_NOTIFY) {
+	notify_ep_process(ep,USB_EP_EVENT_NOTIFICATION);
+      }
+      ep->buffer = ep->buffer->next;
+    }
+    
     /* Restart transmission */
     start_transfer(&usb_endpoints[EP_INDEX(ep_addr)]);
   }

@@ -4,6 +4,8 @@ ifeq (${wildcard $(BUILTSRCDIR)},)
   DUMMY := ${shell mkdir $(BUILTSRCDIR)}
 endif
 
+STRUCTGEN = structgen
+
 PROJECTDIRS += $(BUILTSRCDIR)
 
 USB_STRING_DESCRIPTORS ?= $(CONTIKI_CPU_ARM)/common/usb/cdc-acm/string-descriptors.xml
@@ -26,7 +28,7 @@ endif
 
 ifdef USB_MASS_STORAGE_CLASS
 CONTIKI_CPU_DIRS += ../common/usb/msc
-USB += usb-msc-bulk.c usb-rbc.c msc-descriptors.c msc-string-descriptors.c
+USB += usb-msc-bulk.c usb-rbc.c msc-descriptors-consts.c msc-descriptors.c 
 XMLDIRS += $(CONTIKI_CPU_ARM)/common/usb/msc
 endif
 
@@ -42,7 +44,17 @@ USB += usb-msc-bulk.c usb-streaming.c msc-scsi-transparent-descriptors.c msc-str
 XMLDIRS += $(CONTIKI_CPU_ARM)/common/usb/msc
 endif
 
+ifdef USB_MTP_CLASS
+CONTIKI_CPU_DIRS += ../common/usb/mtp
+USB += usb-mtp.c mtp-descriptors-consts.c mtp-descriptors.c
+STRUCTGENDIRS += $(CONTIKI_CPU_ARM)/common/usb/mtp
+endif
+
 vpath %.xml $(XMLDIRS)
+vpath %.gen.c $(STRUCTGENDIRS)
 
 %.c: %.xml
 	$(XSLTPROC) $(CONTIKI_CPU_ARM)/common/usb/string-descriptors.xslt $^ >$(BUILTSRCDIR)/$@
+
+%-consts.c: %.gen.c 
+	$(CPP) -I$(CFLAGS) $< | $(STRUCTGEN) --output $(BUILTSRCDIR)/$*-consts.c

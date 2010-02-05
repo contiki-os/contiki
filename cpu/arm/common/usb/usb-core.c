@@ -8,7 +8,7 @@
 #include <descriptors.h>
 #include <string-descriptors.h>
 
-/* #define DEBUG   */
+#define DEBUG 
 #ifdef DEBUG
 #define PRINTF(...) printf(__VA_ARGS__)
 #else
@@ -25,8 +25,8 @@ static USBBuffer ctrl_buffer;
 #define STATUS_OUT_ID 4
 #define STATUS_IN_ID 5
 
-static unsigned short usb_device_status;
-static unsigned char usb_configuration_value;
+static uint16_t usb_device_status;
+static uint8_t usb_configuration_value;
 
 static struct USBRequestHandlerHook *usb_request_handler_hooks = NULL;
 
@@ -35,11 +35,6 @@ static const unsigned short zero_word = 0;
 
 static unsigned char usb_flags = 0;
 #define USB_FLAG_ADDRESS_PENDING 0x01
-#define USB_FLAG_RECEIVING_CTRL 0x04
-#define USB_FLAG_SEND_ZLP 0x08 /* If the last packet has max length,
-				  then it needs to be followed by a
-				  zero length packet to mark the
-				  end. */
 
 static struct process *global_user_event_pocess = NULL;
 static unsigned int global_user_events = 0;
@@ -74,6 +69,9 @@ usb_send_ctrl_response(const uint8_t *data, unsigned int len)
     len = usb_setup_buffer.wLength;	/* Truncate if too long */
   }
   ctrl_buffer.flags = USB_BUFFER_NOTIFY | USB_BUFFER_IN;
+  if (len < usb_setup_buffer.wLength) {
+    ctrl_buffer.flags |= USB_BUFFER_SHORT_END;
+  }
   ctrl_buffer.next = NULL;
   ctrl_buffer.data = (uint8_t*)data;
   ctrl_buffer.left = len;
@@ -81,9 +79,12 @@ usb_send_ctrl_response(const uint8_t *data, unsigned int len)
   usb_submit_xmit_buffer(0,&ctrl_buffer);
 }
 
+static uint8_t error_stall = 0;
+
 void
 usb_error_stall()
 {
+  error_stall = 1;
   usb_arch_control_stall(0);
 }
 
@@ -137,12 +138,13 @@ get_device_descriptor()
 static void
 get_string_descriptor()
 {
+#if OLD_STRING_DESCR
   if (LOW_BYTE(usb_setup_buffer.wValue) == 0) {
     usb_send_ctrl_response((const unsigned char*)string_languages->lang_descr,
 			   string_languages->lang_descr->bLength);
   } else {
-    unsigned char l;
     const struct usb_st_string_descriptor *descriptor;
+    unsigned char l;
     const struct usb_st_string_descriptor * const *table;
     const struct usb_st_string_language_map *map;
     if (LOW_BYTE(usb_setup_buffer.wValue) > string_languages->max_index) {
@@ -165,6 +167,18 @@ get_string_descriptor()
     usb_send_ctrl_response((const unsigned char*)descriptor,
 			   descriptor->bLength);
   }
+#else
+  const struct usb_st_string_descriptor *descriptor;
+  descriptor = (struct usb_st_string_descriptor*)
+    usb_class_get_string_descriptor(usb_setup_buffer.wIndex,
+				    LOW_BYTE(usb_setup_buffer.wValue));
+  if (!descriptor) {
+    usb_error_stall();
+    return;
+  }
+  usb_send_ctrl_response((const unsigned char*)descriptor,
+			   descriptor->bLength);
+#endif
 }
 
 static void
@@ -478,6 +492,11 @@ PROCESS_THREAD(usb_process, ev , data)
 		     usb_setup_buffer.bmRequestType, usb_setup_buffer.bRequest,
 		     usb_setup_buffer.wValue, usb_setup_buffer.wIndex,
 		     usb_setup_buffer.wLength);
+	    }
+	    /* Check if any handler stalled the pipe, if so prepare for
+	       next setup */
+	    if (error_stall) {
+	      error_stall = 0;
 	      submit_setup();
 	    }
 	  } else {
@@ -540,6 +559,13 @@ usb_register_request_handler(struct USBRequestHandlerHook *hook)
   /* Add last */
   *prevp = hook;
   hook->next = NULL;
+}
+
+void
+usb_prepend_request_handler(struct USBRequestHandlerHook *hook)
+{
+  hook->next = usb_request_handler_hooks;
+  usb_request_handler_hooks = hook;
 }
 
 
