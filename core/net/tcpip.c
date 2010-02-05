@@ -29,7 +29,7 @@
  * This file is part of the Contiki operating system.
  *
  *
- * $Id: tcpip.c,v 1.22 2010/01/25 13:37:05 adamdunkels Exp $
+ * $Id: tcpip.c,v 1.23 2010/02/05 12:43:36 nifi Exp $
  */
 /**
  * \file
@@ -73,6 +73,9 @@ void uip_log(char *msg);
 #define UIP_IP_BUF ((struct uip_ip_hdr *)&uip_buf[UIP_LLH_LEN])
 
 process_event_t tcpip_event;
+#if UIP_CONF_ICMP6
+process_event_t tcpip_icmp6_event;
+#endif /* UIP_CONF_ICMP6 */
 
 /*static struct tcpip_event_args ev_args;*/
 
@@ -338,7 +341,9 @@ void
 tcpip_icmp6_call(u8_t type)
 {
   if(uip_icmp6_conns.appstate.p != PROCESS_NONE) {
-    process_post_synch(uip_icmp6_conns.appstate.p, type, 0);
+    /* XXX: This is a hack that needs to be updated. Passing a pointer (&type)
+       like this only works with process_post_synch. */
+    process_post_synch(uip_icmp6_conns.appstate.p, tcpip_icmp6_event, &type);
   }
   return;
 }
@@ -743,6 +748,9 @@ PROCESS_THREAD(tcpip_process, ev, data)
 #endif
 
   tcpip_event = process_alloc_event();
+#if UIP_CONF_ICMP6
+  tcpip_icmp6_event = process_alloc_event();
+#endif /* UIP_CONF_ICMP6 */
   etimer_set(&periodic, CLOCK_SECOND/2);
 
   uip_init();
