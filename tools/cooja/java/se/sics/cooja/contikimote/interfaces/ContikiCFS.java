@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ContikiCFS.java,v 1.10 2009/05/26 14:24:20 fros4943 Exp $
+ * $Id: ContikiCFS.java,v 1.11 2010/02/05 09:01:06 fros4943 Exp $
  */
 
 package se.sics.cooja.contikimote.interfaces;
@@ -70,8 +70,7 @@ import se.sics.cooja.interfaces.PolledAfterActiveTicks;
 public class ContikiCFS extends MoteInterface implements ContikiMoteInterface, PolledAfterActiveTicks {
   private static Logger logger = Logger.getLogger(ContikiCFS.class);
 
-  public int FILESYSTEM_SIZE = 60*1024; /* Configure me */
-
+  public int FILESYSTEM_SIZE = 1000; /* Configure CFS size here and in cfs-cooja.c */
   private Mote mote = null;
   private SectionMoteMemory moteMem = null;
 
@@ -79,26 +78,13 @@ public class ContikiCFS extends MoteInterface implements ContikiMoteInterface, P
   private int lastWritten = 0;
 
   /**
-   * Approximate energy consumption of every character read from filesystem (mQ).
-   */
-  public final double ENERGY_CONSUMPTION_PER_READ_CHAR_mQ;
-  public final double ENERGY_CONSUMPTION_PER_WRITTEN_CHAR_mQ;
-
-  /**
    * Creates an interface to the filesystem at mote.
    *
-   * @param mote
-   *          Mote.
+   * @param mote Mote
    * @see Mote
    * @see se.sics.cooja.MoteInterfaceHandler
    */
   public ContikiCFS(Mote mote) {
-    // Read class configurations of this mote type
-    ENERGY_CONSUMPTION_PER_READ_CHAR_mQ = mote.getType().getConfig()
-    .getDoubleValue(ContikiCFS.class, "CONSUMPTION_PER_READ_CHAR_mQ");
-    ENERGY_CONSUMPTION_PER_WRITTEN_CHAR_mQ = mote.getType().getConfig()
-    .getDoubleValue(ContikiCFS.class, "CONSUMPTION_PER_WRITTEN_CHAR_mQ");
-
     this.mote = mote;
     this.moteMem = (SectionMoteMemory) mote.getMemory();
   }
@@ -179,8 +165,9 @@ public class ContikiCFS extends MoteInterface implements ContikiMoteInterface, P
 
         // Write file data to CFS
         if (fileData != null) {
-          setFilesystemData(fileData);
-          logger.info("Done! (" + fileData.length + " bytes written to CFS)");
+          if (setFilesystemData(fileData)) {
+            logger.info("Done! (" + fileData.length + " bytes written to CFS)");
+          }
         }
       }
     });
@@ -212,10 +199,6 @@ public class ContikiCFS extends MoteInterface implements ContikiMoteInterface, P
     }
 
     this.deleteObserver(observer);
-  }
-
-  public double energyConsumption() {
-    return 0.0;
   }
 
   public Collection<Element> getConfigXML() {
