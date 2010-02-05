@@ -33,7 +33,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: ctimer.c,v 1.6 2009/11/19 18:32:05 nifi Exp $
+ * $Id: ctimer.c,v 1.7 2010/02/05 19:13:05 oliverschmidt Exp $
  */
 
 /**
@@ -61,7 +61,7 @@ static char initialized;
 #endif
 
 /*---------------------------------------------------------------------------*/
-PROCESS(ctimer_process, "ctimer process");
+PROCESS(ctimer_process, "Ctimer process");
 PROCESS_THREAD(ctimer_process, ev, data)
 {
   struct ctimer *c;
