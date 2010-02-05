@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: cfs-cooja.c,v 1.10 2009/09/08 15:08:20 zhitao Exp $
+ * $Id: cfs-cooja.c,v 1.11 2010/02/05 08:59:51 fros4943 Exp $
  */
 #include <string.h>
 #include "lib/simEnvChange.h"
@@ -49,7 +49,7 @@ static struct filestate file;
 const struct simInterface cfs_interface;
 
 // COOJA variables
-#define CFS_BUF_SIZE 1000000
+#define CFS_BUF_SIZE 1000 /* Configure CFS size here and in ContikiCFS.java */
 char simCFSData[CFS_BUF_SIZE] = { 0 };
 char simCFSChanged = 0;
 int simCFSRead = 0;
