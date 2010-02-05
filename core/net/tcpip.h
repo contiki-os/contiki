@@ -62,7 +62,7 @@
  *
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: tcpip.h,v 1.15 2009/03/17 20:28:44 nvt-se Exp $
+ * $Id: tcpip.h,v 1.16 2010/02/05 12:43:37 nifi Exp $
  */
 #ifndef __TCPIP_H__
 #define __TCPIP_H__
@@ -282,6 +282,14 @@ CCIF void tcpip_poll_udp(struct uip_udp_conn *conn);
  */
 
 #if UIP_CONF_ICMP6
+
+/**
+ * The ICMP6 event.
+ *
+ * This event is posted to a process whenever a uIP ICMP event has occurred.
+ */
+CCIF extern process_event_t tcpip_icmp6_event;
+
 /**
  * \brief register an ICMPv6 callback
  * \return 0 if success, 1 if failure (one application already registered)
