@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ContikiIPAddress.java,v 1.6 2009/04/01 17:43:18 fros4943 Exp $
+ * $Id: ContikiIPAddress.java,v 1.7 2010/02/05 08:49:18 fros4943 Exp $
  */
 
 package se.sics.cooja.contikimote.interfaces;
@@ -75,10 +75,5 @@ public class ContikiIPAddress extends IPAddress implements ContikiMoteInterface 
   public static String[] getCoreInterfaceDependencies() {
     /*return new String[]{"ip_interface"};*/
     return null;
-  }
-
-  public double energyConsumption() {
-    // Virtual interface, does not require any energy
-    return 0.0;
   }
 }

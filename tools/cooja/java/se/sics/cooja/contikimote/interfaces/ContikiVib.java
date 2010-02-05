@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ContikiVib.java,v 1.9 2010/01/14 19:06:14 nifi Exp $
+ * $Id: ContikiVib.java,v 1.10 2010/02/05 08:49:42 fros4943 Exp $
  */
 
 package se.sics.cooja.contikimote.interfaces;
@@ -67,17 +67,8 @@ import se.sics.cooja.contikimote.ContikiMoteInterface;
 @ClassDescription("Vibration sensor")
 public class ContikiVib extends MoteInterface implements ContikiMoteInterface {
 
-  /**
-   * Approximate energy consumption of an active vibration sensor. ESB measured
-   * energy consumption is 1.58 mA.
-   */
-  public final double ENERGY_CONSUMPTION_VIB_mA;
-
-  private double energyActiveVibPerTick = -1;
-
   private ContikiMote mote;
   private SectionMoteMemory moteMem;
-  private double myEnergyConsumption = 0.0;
 
   /**
    * Creates an interface to the vibration sensor at mote.
@@ -88,16 +79,8 @@ public class ContikiVib extends MoteInterface implements ContikiMoteInterface {
    * @see se.sics.cooja.MoteInterfaceHandler
    */
   public ContikiVib(Mote mote) {
-    // Read class configurations of this mote type
-    ENERGY_CONSUMPTION_VIB_mA = mote.getType().getConfig().getDoubleValue(
-        ContikiVib.class, "ACTIVE_CONSUMPTION_mA");
-
     this.mote = (ContikiMote) mote;
     this.moteMem = (SectionMoteMemory) mote.getMemory();
-
-    if (energyActiveVibPerTick < 0) {
-      energyActiveVibPerTick = ENERGY_CONSUMPTION_VIB_mA * 0.001;
-    }
   }
 
   public static String[] getCoreInterfaceDependencies() {
@@ -141,10 +124,6 @@ public class ContikiVib extends MoteInterface implements ContikiMoteInterface {
   }
 
   public void releaseInterfaceVisualizer(JPanel panel) {
-  }
-
-  public double energyConsumption() {
-    return myEnergyConsumption;
   }
 
   public Collection<Element> getConfigXML() {
