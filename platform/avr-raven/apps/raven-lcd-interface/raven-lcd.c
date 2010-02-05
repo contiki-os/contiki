@@ -28,7 +28,7 @@
  *  ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  *  POSSIBILITY OF SUCH DAMAGE.
  *
- * $Id: raven-lcd.c,v 1.2 2009/07/08 15:26:17 dak664 Exp $
+ * $Id: raven-lcd.c,v 1.3 2010/02/05 15:16:02 nifi Exp $
 */
 
 /**
@@ -167,8 +167,8 @@ send_frame(uint8_t cmd, uint8_t len, uint8_t *payload)
 static u8_t
 raven_gui_loop(process_event_t ev, process_data_t data)
 {
-
-    switch (ev){
+  if(ev == tcpip_icmp6_event) {
+    switch(*((uint8_t *)data)) {
     case ICMP6_ECHO_REQUEST:
         /* We have received a ping request over the air. Send frame back to 3290 */
         send_frame(PING_REQUEST, 0, 0);
@@ -177,6 +177,9 @@ raven_gui_loop(process_event_t ev, process_data_t data)
         /* We have received a ping reply over the air.  Send frame back to 3290 */
         send_frame(PING_REPLY, 1, &seqno);
         break;
+    }
+  } else {
+    switch(ev){
     case SERIAL_CMD:        
         /* Check for command from serial port, execute it. */
         if (cmd.done){
