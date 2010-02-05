@@ -26,20 +26,31 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ContikiRadio.java,v 1.30 2009/10/27 10:11:17 fros4943 Exp $
+ * $Id: ContikiRadio.java,v 1.31 2010/02/05 09:07:13 fros4943 Exp $
  */
 
 package se.sics.cooja.contikimote.interfaces;
 
-import java.util.*;
-import javax.swing.*;
 import java.awt.BorderLayout;
 import java.awt.GridLayout;
-import java.awt.event.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.util.Collection;
+import java.util.Observable;
+import java.util.Observer;
+
+import javax.swing.JButton;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+
 import org.apache.log4j.Logger;
 import org.jdom.Element;
 
-import se.sics.cooja.*;
+import se.sics.cooja.COOJARadioPacket;
+import se.sics.cooja.Mote;
+import se.sics.cooja.RadioPacket;
+import se.sics.cooja.SectionMoteMemory;
+import se.sics.cooja.Simulation;
 import se.sics.cooja.contikimote.ContikiMote;
 import se.sics.cooja.contikimote.ContikiMoteInterface;
 import se.sics.cooja.interfaces.PolledAfterActiveTicks;
@@ -94,29 +105,15 @@ public class ContikiRadio extends Radio implements ContikiMoteInterface, PolledA
   private static Logger logger = Logger.getLogger(ContikiRadio.class);
 
   /**
-   * Approximate energy consumption of an active radio. ESB measured energy
-   * consumption is 5 mA. TODO Measure energy consumption
-   */
-  public final double ENERGY_CONSUMPTION_RADIO_mA;
-
-  /**
-   * Approximate transmission rate (kbps), used to calculate transmission
-   * duration of packets. Each transmission is assumed to use an encoding with
-   * an overhead nrBytesx0.25 (such as GCR), and a fixed overhead of 34 bytes.
+   * Transmission bitrate (kbps).
    */
   public final double RADIO_TRANSMISSION_RATE_kbps;
-
-  private final boolean RAISES_EXTERNAL_INTERRUPT;
-
-  private double energyListeningRadioPerTick = -1;
 
   private RadioPacket packetToMote = null;
 
   private RadioPacket packetFromMote = null;
 
   private boolean radioOn = true;
-
-  private double myEnergyConsumption = 0.0;
 
   private boolean isTransmitting = false;
 
@@ -140,20 +137,11 @@ public class ContikiRadio extends Radio implements ContikiMoteInterface, PolledA
    */
   public ContikiRadio(Mote mote) {
     // Read class configurations of this mote type
-    ENERGY_CONSUMPTION_RADIO_mA = mote.getType().getConfig().getDoubleValue(
-        ContikiRadio.class, "ACTIVE_CONSUMPTION_mA");
-    RAISES_EXTERNAL_INTERRUPT = mote.getType().getConfig().getBooleanValue(
-        ContikiRadio.class, "EXTERNAL_INTERRUPT_bool");
     RADIO_TRANSMISSION_RATE_kbps = mote.getType().getConfig().getDoubleValue(
         ContikiRadio.class, "RADIO_TRANSMISSION_RATE_kbps");
 
     this.mote = (ContikiMote) mote;
     this.myMoteMemory = (SectionMoteMemory) mote.getMemory();
-
-    // Calculate energy consumption of a listening radio
-    if (energyListeningRadioPerTick < 0) {
-      energyListeningRadioPerTick = ENERGY_CONSUMPTION_RADIO_mA * 0.001;
-    }
 
     radioOn = myMoteMemory.getByteValueOf("simRadioHWOn") == 1;
   }
@@ -336,10 +324,8 @@ public class ContikiRadio extends Radio implements ContikiMoteInterface, PolledA
       this.notifyObservers();
     }
     if (!radioOn) {
-      myEnergyConsumption = 0.0;
       return;
     }
-    myEnergyConsumption = energyListeningRadioPerTick;
 
     // Check if radio output power changed
     if (myMoteMemory.getByteValueOf("simPower") != oldOutputPowerIndicator) {
@@ -382,8 +368,9 @@ public class ContikiRadio extends Radio implements ContikiMoteInterface, PolledA
 
       isTransmitting = true;
 
-      // Calculate transmission duration (us)
-      long duration = (int) (Simulation.MILLISECOND*((280 + 10 * size) / RADIO_TRANSMISSION_RATE_kbps));
+      /* Calculate transmission duration (us) */
+      /* XXX Currently floored due to millisecond scheduling! */
+      long duration = (int) (Simulation.MILLISECOND*((8 * size /*bits*/) / RADIO_TRANSMISSION_RATE_kbps));
       transmissionEndTime = mote.getSimulation().getSimulationTime() + Math.max(1, duration);
       lastEventTime = mote.getSimulation().getSimulationTime();
 
@@ -476,10 +463,6 @@ public class ContikiRadio extends Radio implements ContikiMoteInterface, PolledA
     }
 
     this.deleteObserver(observer);
-  }
-
-  public double energyConsumption() {
-    return myEnergyConsumption;
   }
 
   public Collection<Element> getConfigXML() {
