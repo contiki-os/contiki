@@ -149,8 +149,8 @@ send_frame(uint8_t cmd, uint8_t len, uint8_t *payload)
 static u8_t
 raven_gui_loop(process_event_t ev, process_data_t data)
 {
-
-  switch (ev){
+  if(ev == tcpip_icmp6_event) {
+    switch(*((uint8_t *)data)){
     case ICMP6_ECHO_REQUEST:
       /* We have received a ping request over the air.
          Send frame back to 3290 */
@@ -161,6 +161,9 @@ raven_gui_loop(process_event_t ev, process_data_t data)
          Send frame back to 3290 */
       send_frame(PING_REPLY, 1, &seqno);
       break;
+    }
+  } else {
+    switch(ev){
     case SERIAL_CMD:        
       /* Check for command from serial port, execute it. */
       if (cmd.done){
