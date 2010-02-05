@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: MicaZLED.java,v 1.4 2009/09/17 10:45:13 fros4943 Exp $
+ * $Id: MicaZLED.java,v 1.5 2010/02/05 08:24:57 fros4943 Exp $
  */
 
 package se.sics.cooja.avrmote.interfaces;
@@ -117,10 +117,6 @@ public class MicaZLED extends LED {
 
   public boolean isRedOn() {
     return redOn;
-  }
-
-  public double energyConsumption() {
-    return 0;
   }
 
   public JPanel getInterfaceVisualizer() {

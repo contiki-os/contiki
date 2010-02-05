@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: MicaZID.java,v 1.3 2009/11/17 14:30:26 joxe Exp $
+ * $Id: MicaZID.java,v 1.4 2010/02/05 08:24:57 fros4943 Exp $
  */
 
 package se.sics.cooja.avrmote.interfaces;
@@ -150,10 +150,6 @@ public class MicaZID extends MoteID {
     }
 
     public void releaseInterfaceVisualizer(JPanel panel) {
-    }
-
-    public double energyConsumption() {
-        return 0;
     }
 
     public Collection<Element> getConfigXML() {

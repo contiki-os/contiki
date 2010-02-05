@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: MicaZRadio.java,v 1.6 2009/11/10 12:56:20 joxe Exp $
+ * $Id: MicaZRadio.java,v 1.7 2010/02/05 08:24:57 fros4943 Exp $
  */
 
 package se.sics.cooja.avrmote.interfaces;
@@ -142,10 +142,6 @@ public class MicaZRadio extends Radio802154 {
 
   public void setCurrentSignalStrength(double signalStrength) {
     //cc2420.setRSSI((int) signalStrength);
-  }
-
-  public double energyConsumption() {
-    return 1.0;
   }
 
   protected void handleEndOfReception() {
