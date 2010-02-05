@@ -28,7 +28,7 @@
  *  ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  *  POSSIBILITY OF SUCH DAMAGE.
  *
- * $Id: raven-lcd.c,v 1.3 2010/02/05 15:16:02 nifi Exp $
+ * $Id: raven-lcd.c,v 1.4 2010/02/05 16:45:56 nifi Exp $
 */
 
 /**
@@ -204,7 +204,8 @@ raven_gui_loop(process_event_t ev, process_data_t data)
     default:
         break;
     }
-    return 0;
+  }
+  return 0;
 }
 
 /*---------------------------------------------------------------------------*/

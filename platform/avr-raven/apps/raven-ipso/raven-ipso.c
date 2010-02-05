@@ -188,6 +188,7 @@ raven_gui_loop(process_event_t ev, process_data_t data)
       break;
     default:
       break;
+    }
   }
   return 0;
 }
