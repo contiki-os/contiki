@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ContikiClock.java,v 1.12 2009/09/17 11:06:35 fros4943 Exp $
+ * $Id: ContikiClock.java,v 1.13 2010/02/05 08:49:18 fros4943 Exp $
  */
 
 package se.sics.cooja.contikimote.interfaces;
@@ -151,10 +151,6 @@ public class ContikiClock extends Clock implements ContikiMoteInterface, PolledB
   }
 
   public void releaseInterfaceVisualizer(JPanel panel) {
-  }
-
-  public double energyConsumption() {
-    return 0.0;
   }
 
   public Collection<Element> getConfigXML() {

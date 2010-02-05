@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ContikiLED.java,v 1.7 2009/02/25 14:46:24 fros4943 Exp $
+ * $Id: ContikiLED.java,v 1.8 2010/02/05 08:49:18 fros4943 Exp $
  */
 
 package se.sics.cooja.contikimote.interfaces;
@@ -79,34 +79,7 @@ public class ContikiLED extends LED implements ContikiMoteInterface, PolledAfter
   private static final Color YELLOW = new Color(255, 255, 0);
   private static final Color RED = new Color(255, 0, 0);
 
-  private double myEnergyConsumption = 0.0;
-
-  /**
-   * Approximate energy consumption of a green led (mA). ESB measured value:
-   * 5.69 mA. TODO Measure energy consumption
-   */
-  public final double ENERGY_CONSUMPTION_GREEN_LED;
-
-  /**
-   * Approximate energy consumption of a yellow led (mA). ESB measured value:
-   * 5.69 mA. TODO Measure energy consumption
-   */
-  public final double ENERGY_CONSUMPTION_YELLOW_LED;
-
-  /**
-   * Approximate energy consumption of a red led (mA). ESB measured value: 5.69
-   * mA.
-   */
-  public final double ENERGY_CONSUMPTION_RED_LED;
-
-  private double energyOfGreenLedPerTick = -1;
-  private double energyOfYellowLedPerTick = -1;
-  private double energyOfRedLedPerTick = -1;
-
   public ContikiLED() {
-    ENERGY_CONSUMPTION_GREEN_LED = 0;
-    ENERGY_CONSUMPTION_YELLOW_LED = 0;
-    ENERGY_CONSUMPTION_RED_LED = 0;
   }
 
   /**
@@ -118,22 +91,8 @@ public class ContikiLED extends LED implements ContikiMoteInterface, PolledAfter
    * @see se.sics.cooja.MoteInterfaceHandler
    */
   public ContikiLED(Mote mote) {
-    // Read class configurations of this mote type
-    ENERGY_CONSUMPTION_GREEN_LED = mote.getType().getConfig()
-        .getDoubleValue(ContikiLED.class, "GREEN_LED_CONSUMPTION_mA");
-    ENERGY_CONSUMPTION_YELLOW_LED = mote.getType().getConfig()
-        .getDoubleValue(ContikiLED.class, "YELLOW_LED_CONSUMPTION_mA");
-    ENERGY_CONSUMPTION_RED_LED = mote.getType().getConfig()
-        .getDoubleValue(ContikiLED.class, "RED_LED_CONSUMPTION_mA");
-
     this.mote = mote;
     this.moteMem = (SectionMoteMemory) mote.getMemory();
-
-    if (energyOfGreenLedPerTick < 0) {
-      energyOfGreenLedPerTick = ENERGY_CONSUMPTION_GREEN_LED * 0.001;
-      energyOfYellowLedPerTick = ENERGY_CONSUMPTION_YELLOW_LED * 0.001;
-      energyOfRedLedPerTick = ENERGY_CONSUMPTION_RED_LED * 0.001;
-    }
   }
 
   public static String[] getCoreInterfaceDependencies() {
@@ -164,17 +123,6 @@ public class ContikiLED extends LED implements ContikiMoteInterface, PolledAfter
       ledChanged = true;
     } else {
       ledChanged = false;
-    }
-
-    myEnergyConsumption = 0.0;
-    if ((newLedsValue & LEDS_GREEN) > 0) {
-      myEnergyConsumption += energyOfGreenLedPerTick;
-    }
-    if ((newLedsValue & LEDS_YELLOW) > 0) {
-      myEnergyConsumption += energyOfYellowLedPerTick;
-    }
-    if ((newLedsValue & LEDS_RED) > 0) {
-      myEnergyConsumption += energyOfRedLedPerTick;
     }
 
     currentLedValue = newLedsValue;
@@ -253,10 +201,6 @@ public class ContikiLED extends LED implements ContikiMoteInterface, PolledAfter
     }
 
     this.deleteObserver(observer);
-  }
-
-  public double energyConsumption() {
-    return myEnergyConsumption;
   }
 
   public Collection<Element> getConfigXML() {

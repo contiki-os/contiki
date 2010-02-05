@@ -26,19 +26,26 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ContikiBeeper.java,v 1.10 2009/05/26 14:24:20 fros4943 Exp $
+ * $Id: ContikiBeeper.java,v 1.11 2010/02/05 08:49:18 fros4943 Exp $
  */
 
 package se.sics.cooja.contikimote.interfaces;
 
 import java.awt.Dimension;
 import java.awt.Toolkit;
-import java.util.*;
-import javax.swing.*;
+import java.util.Collection;
+import java.util.Observable;
+import java.util.Observer;
+
+import javax.swing.BoxLayout;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+
 import org.apache.log4j.Logger;
 import org.jdom.Element;
 
-import se.sics.cooja.*;
+import se.sics.cooja.Mote;
+import se.sics.cooja.SectionMoteMemory;
 import se.sics.cooja.contikimote.ContikiMoteInterface;
 import se.sics.cooja.interfaces.Beeper;
 import se.sics.cooja.interfaces.PolledAfterActiveTicks;
@@ -68,15 +75,6 @@ public class ContikiBeeper extends Beeper implements ContikiMoteInterface, Polle
   private static Logger logger = Logger.getLogger(ContikiBeeper.class);
 
   /**
-   * Assuming beep always lasts for 0.1 seconds. ESB measured energy
-   * consumption: 16.69 mA. Total energy consumption of a beep is then:
-   * 0.1*16.69
-   */
-  private final double ENERGY_CONSUMPTION_BEEP;
-
-  private double myEnergyConsumption = 0.0;
-
-  /**
    * Creates an interface to the beeper at mote.
    *
    * @param mote
@@ -85,10 +83,6 @@ public class ContikiBeeper extends Beeper implements ContikiMoteInterface, Polle
    * @see se.sics.cooja.MoteInterfaceHandler
    */
   public ContikiBeeper(Mote mote) {
-    // Read class configurations of this mote type
-    ENERGY_CONSUMPTION_BEEP = mote.getType().getConfig().getDoubleValue(
-        ContikiBeeper.class, "BEEP_CONSUMPTION_mQ");
-
     this.mote = mote;
     this.moteMem = (SectionMoteMemory) mote.getMemory();
   }
@@ -101,23 +95,12 @@ public class ContikiBeeper extends Beeper implements ContikiMoteInterface, Polle
     return new String[]{"beep_interface"};
   }
 
-  private TimeEvent stopBeepEvent = new MoteTimeEvent(mote, 0) {
-    public void execute(long t) {
-      myEnergyConsumption = 0.0;
-    }
-  };
-
   public void doActionsAfterTick() {
     if (moteMem.getByteValueOf("simBeeped") == 1) {
-      myEnergyConsumption = ENERGY_CONSUMPTION_BEEP;
-
       this.setChanged();
       this.notifyObservers(mote);
 
       moteMem.setByteValueOf("simBeeped", (byte) 0);
-
-      /* Schedule stop beeping (reset energy consumption) */
-      mote.getSimulation().scheduleEvent(stopBeepEvent, mote.getSimulation().getSimulationTime()+Simulation.MILLISECOND);
     }
   }
 
@@ -160,10 +143,6 @@ public class ContikiBeeper extends Beeper implements ContikiMoteInterface, Polle
     }
 
     this.deleteObserver(observer);
-  }
-
-  public double energyConsumption() {
-    return myEnergyConsumption;
   }
 
   public Collection<Element> getConfigXML() {

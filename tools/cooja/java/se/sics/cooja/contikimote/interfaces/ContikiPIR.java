@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ContikiPIR.java,v 1.9 2010/01/14 19:06:14 nifi Exp $
+ * $Id: ContikiPIR.java,v 1.10 2010/02/05 08:49:42 fros4943 Exp $
  */
 
 package se.sics.cooja.contikimote.interfaces;
@@ -65,17 +65,8 @@ import se.sics.cooja.interfaces.PIR;
  */
 public class ContikiPIR extends PIR implements ContikiMoteInterface {
 
-  /**
-   * Approximate energy consumption of an active PIR sensor. ESB measured energy
-   * consumption is 0.4 mA. TODO Measure energy consumption
-   */
-  public final double ENERGY_CONSUMPTION_PIR_mA;
-
-  private double energyActivePerTick = -1;
-
   private ContikiMote mote;
   private SectionMoteMemory moteMem;
-  private double myEnergyConsumption = 0.0;
 
   /**
    * Creates an interface to the PIR at mote.
@@ -86,16 +77,8 @@ public class ContikiPIR extends PIR implements ContikiMoteInterface {
    * @see se.sics.cooja.MoteInterfaceHandler
    */
   public ContikiPIR(Mote mote) {
-    // Read class configurations of this mote type
-    ENERGY_CONSUMPTION_PIR_mA = mote.getType().getConfig().getDoubleValue(
-        ContikiPIR.class, "ACTIVE_CONSUMPTION_mA");
-
     this.mote = (ContikiMote) mote;
     this.moteMem = (SectionMoteMemory) mote.getMemory();
-
-    if (energyActivePerTick < 0) {
-      energyActivePerTick = ENERGY_CONSUMPTION_PIR_mA * 0.001;
-    }
   }
 
   public static String[] getCoreInterfaceDependencies() {
@@ -121,8 +104,6 @@ public class ContikiPIR extends PIR implements ContikiMoteInterface {
     }
   }
 
-  /* TODO Energy consumption of active PIR */
-
   public JPanel getInterfaceVisualizer() {
     JPanel panel = new JPanel();
     final JButton clickButton = new JButton("Signal PIR");
@@ -139,10 +120,6 @@ public class ContikiPIR extends PIR implements ContikiMoteInterface {
   }
 
   public void releaseInterfaceVisualizer(JPanel panel) {
-  }
-
-  public double energyConsumption() {
-    return myEnergyConsumption;
   }
 
   public Collection<Element> getConfigXML() {
