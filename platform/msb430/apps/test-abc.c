@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: test-abc.c,v 1.4 2009/03/12 21:58:21 adamdunkels Exp $
+ * $Id: test-abc.c,v 1.5 2010/02/05 11:52:37 nvt-se Exp $
  */
 
 /**
@@ -40,8 +40,17 @@
 
 #include "contiki.h"
 #include "net/rime.h"
+#include "node-id.h"
 
 #include <stdio.h>
+
+#ifndef SENDER_ID
+#define SENDER_ID	1
+#endif
+
+#ifndef SEND_INTERVAL
+#define SEND_INTERVAL	(CLOCK_SECOND * 3)
+#endif
 
 /*---------------------------------------------------------------------------*/
 PROCESS(test_abc_process, "ABC test");
@@ -79,10 +88,11 @@ PROCESS_THREAD(test_abc_process, ev, data)
   abc_open(&abc, 128, &abc_call);
 
   while(1) {
-    etimer_set(&et, CLOCK_SECOND / 2);
+    etimer_set(&et, SEND_INTERVAL);
     PROCESS_WAIT_EVENT();
-    if (etimer_expired(&et)) {
+    if (etimer_expired(&et) && node_id == SENDER_ID) {
       len = snprintf(buf, sizeof (buf), "%u", ++i);
+      printf("Sending packet %d\n", i);
       packetbuf_copyfrom(buf, len + 1);
       abc_send(&abc);
     }
