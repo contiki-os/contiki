@@ -49,7 +49,7 @@
 
 static struct uip_udp_conn *udpconn;
 
-PROCESS(udp_process_receiver, "UPD test receiver");
+PROCESS(udp_process_receiver, "UDP test receiver");
 AUTOSTART_PROCESSES(&udp_process_receiver);
 
 /*---------------------------------------------------------------------------*/
