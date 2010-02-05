@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: DummyInterface.java,v 1.3 2009/05/26 14:34:43 fros4943 Exp $
+ * $Id: DummyInterface.java,v 1.4 2010/02/05 08:44:34 fros4943 Exp $
  */
 
 import java.util.*;
@@ -92,10 +92,6 @@ public class DummyInterface extends MoteInterface implements ContikiMoteInterfac
   }
 
   public void releaseInterfaceVisualizer(JPanel panel) {
-  }
-
-  public double energyConsumption() {
-    return 0; /* My total energy consumption is always zero */
   }
 
   public Collection<Element> getConfigXML() {

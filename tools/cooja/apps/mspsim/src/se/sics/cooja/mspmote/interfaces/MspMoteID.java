@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: MspMoteID.java,v 1.14 2009/11/25 09:17:16 fros4943 Exp $
+ * $Id: MspMoteID.java,v 1.15 2010/02/05 08:44:57 fros4943 Exp $
  */
 
 package se.sics.cooja.mspmote.interfaces;
@@ -251,10 +251,6 @@ public class MspMoteID extends MoteID {
     }
 
     this.deleteObserver(observer);
-  }
-
-  public double energyConsumption() {
-    return 0;
   }
 
   public Collection<Element> getConfigXML() {

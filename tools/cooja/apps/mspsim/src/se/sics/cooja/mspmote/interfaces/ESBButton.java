@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ESBButton.java,v 1.3 2009/03/09 17:14:35 fros4943 Exp $
+ * $Id: ESBButton.java,v 1.4 2010/02/05 08:44:57 fros4943 Exp $
  */
 
 package se.sics.cooja.mspmote.interfaces;
@@ -75,10 +75,6 @@ public class ESBButton extends Button {
 
   public boolean isPressed() {
     return false;
-  }
-
-  public double energyConsumption() {
-    return 0;
   }
 
   public JPanel getInterfaceVisualizer() {

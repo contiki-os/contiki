@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: MspClock.java,v 1.10 2009/10/27 10:14:35 fros4943 Exp $
+ * $Id: MspClock.java,v 1.11 2010/02/05 08:44:57 fros4943 Exp $
  */
 
 package se.sics.cooja.mspmote.interfaces;
@@ -80,10 +80,6 @@ public class MspClock extends Clock {
   }
 
   public void releaseInterfaceVisualizer(JPanel panel) {
-  }
-
-  public double energyConsumption() {
-    return 0;
   }
 
   public Collection<Element> getConfigXML() {
