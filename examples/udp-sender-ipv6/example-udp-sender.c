@@ -53,7 +53,7 @@ static struct etimer udp_periodic_timer;
 static struct uip_udp_conn *udpconn;
 static u8_t count = 0;
 
-PROCESS(udp_process_sender, "UPD test sender");
+PROCESS(udp_process_sender, "UDP test sender");
 AUTOSTART_PROCESSES(&udp_process_sender);
 
 /*---------------------------------------------------------------------------*/
