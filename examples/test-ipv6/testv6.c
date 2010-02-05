@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: testv6.c,v 1.2 2006/08/10 19:22:23 bg- Exp $
+ * $Id: testv6.c,v 1.3 2010/02/05 19:13:06 oliverschmidt Exp $
  */
 
 #include "contiki-net.h"
@@ -38,7 +38,7 @@ static const struct uip_eth_addr ethaddr = {{0x00,0x06,0x98,0x01,0x02,0x29}};
 
 /*---------------------------------------------------------------------------*/
 PROCESS(test_process, "Test");
-PROCESS(test_tcpip_process, "tcp/ip test");
+PROCESS(test_tcpip_process, "TCP/IP test");
 AUTOSTART_PROCESSES(&test_process, &test_tcpip_process, &webserver_nogui_process);
 /*---------------------------------------------------------------------------*/
 PROCESS_THREAD(test_process, ev, data)
