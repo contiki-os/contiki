@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: MicaClock.java,v 1.6 2009/10/30 09:42:50 fros4943 Exp $
+ * $Id: MicaClock.java,v 1.7 2010/02/05 08:24:57 fros4943 Exp $
  */
 
 package se.sics.cooja.avrmote.interfaces;
@@ -82,10 +82,6 @@ public class MicaClock extends Clock {
   }
 
   public void releaseInterfaceVisualizer(JPanel panel) {
-  }
-
-  public double energyConsumption() {
-    return 0;
   }
 
   public Collection<Element> getConfigXML() {
