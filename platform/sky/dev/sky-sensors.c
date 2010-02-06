@@ -28,14 +28,14 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: sky-sensors.c,v 1.1 2010/02/02 20:59:45 joxe Exp $
+ * $Id: sky-sensors.c,v 1.2 2010/02/06 18:28:26 joxe Exp $
  *
  * -----------------------------------------------------------------
  *
  * Author  : Joakim Eriksson
  * Created : 2010-02-02
- * Updated : $Date: 2010/02/02 20:59:45 $
- *           $Revision: 1.1 $
+ * Updated : $Date: 2010/02/06 18:28:26 $
+ *           $Revision: 1.2 $
  */
 #include <stdlib.h>
 
@@ -61,7 +61,7 @@ sky_sensors_activate(uint8_t type)
     ADC12CTL0 = REF2_5V + SHT0_6 + SHT1_6 + MSC; /* Setup ADC12, ref., sampling time */
     ADC12CTL1 = SHP + CONSEQ_3 + CSTARTADD_0;	/* Use sampling timer, repeat-sequenc-of-channels */
     /* convert up to MEM4 */
-    ADC12MCTL4 |= EOS;
+    ADC12MCTL9 |= EOS;
 
     ADC12CTL0 |= ADC12ON + REFON;
     ADC12CTL0 |= ENC;		/* enable conversion */
