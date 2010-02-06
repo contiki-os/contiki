@@ -26,124 +26,85 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ext-sensor.c,v 1.1 2009/08/25 16:24:49 adamdunkels Exp $
+ * $Id: ext-sensor.c,v 1.2 2010/02/06 14:41:24 adamdunkels Exp $
  *
  * -----------------------------------------------------------------
  *
- * Author  : Adam Dunkels, Joakim Eriksson, Niclas Finne, Marcus Lundén
+ * Author  : Adam Dunkels, Joakim Eriksson, Niclas Finne, Marcus Lundén,
+ *           Jesper Karlsson
  * Created : 2005-11-01
- * Updated : $Date: 2009/08/25 16:24:49 $
- *           $Revision: 1.1 $
+ * Updated : $Date: 2010/02/06 14:41:24 $
+ *           $Revision: 1.2 $
  */
 
-#include "dev/ext-sensor.h"
 #include <io.h>
-#include "dev/irq.h"
-
 #include <stdio.h>
 
+#include "contiki.h"
+#include "dev/ext-sensor.h"
+#include "lib/sensors.h"
+#include "sky-sensors.h"
+
 const struct sensors_sensor ext_sensor;
-
-/*---------------------------------------------------------------------------*/
-static void
-init(void)
-{
-
-}
+static uint8_t active;
 /*---------------------------------------------------------------------------*/
 static int
-irq(void)
-{
-  return 0;
-}
-/*---------------------------------------------------------------------------*/
-static void
-activate(void)
-{
-  /* This assumes that some other sensor system already did setup the ADC */
-  /* (in the case of the JCreate platform it is sensors_light_init before */
-  /* acc.meter that does it) */
-
-  /* P6.0 and P6.1 are inputs and peripheral function (A0, A1) selected */
-  /* P6SEL |= (1<<P6.0)|(1<<P6.1);*/
-  P6SEL |= 0x03;
-  P6DIR = 0x00;
-  P6OUT = 0x00;
-
-
-  /* stop converting immediately in order to be able to write to registers */
-  ADC12CTL0 &= ~ENC;
-  ADC12CTL1 &= ~CONSEQ_3;
-
-  /* Make sure that previous ADCMEM isn't EOS */
-  ADC12MCTL5 &= ~(EOS);
-  /* We want full voltage range, therefore +ref=Vcc and -ref=GND */
-  /* MemReg6 == P6.0/A0 == port "under" logo */
-  ADC12MCTL6 = (INCH_0 | SREF_0);
-  /* MemReg7 == P6.1/A1 == port "over" logo , End Of (ADC-)Sequence */
-  ADC12MCTL7 = (INCH_1 | SREF_0 | EOS);
-
-  /* Start ADC again */
-  ADC12CTL1 |= CONSEQ_3;
-  ADC12CTL0 |= ENC | ADC12SC;
-
-  /*  Irq_adc12_activate(&ext_sensor, 6, (INCH_11 + SREF_1)); */
-}
-/*---------------------------------------------------------------------------*/
-static void
-deactivate(void)
-{
-  /* stop converting immediately in order to be able to write to registers */
-  ADC12CTL0 &= ~ENC;
-  ADC12CTL1 &= ~CONSEQ_3;
-
-  /* Prev ADCMEM == EOS */
-  ADC12MCTL5 |= EOS;
-
-  /* Start ADC again */
-  ADC12CTL1 |= CONSEQ_3;
-  ADC12CTL0 |= ENC | ADC12SC;
-
-  /*  irq_adc12_deactivate(&ext_sensor, 6);
-      ext_value = 0;*/
-}
-/*---------------------------------------------------------------------------*/
-static int
-active(void)
-{
-  /* If previous ADCmem (5) has not EOS set, then extension ports are active */
-  if ((ADC12MCTL5&&EOS) == 0)
-  {
-    return 1;
-  }
-  else return (0); /* irq_adc12_active(6);*/
-}
-/*---------------------------------------------------------------------------*/
-static unsigned int
 value(int type)
 {
-  /* value(0) corresponds to the port under the logo, value(1) to the port over the logo */
+  /* ADC0 corresponds to the port under the logo, ADC1 to the port over the logo,
+     ADC2 and ADC3 corresponds to port on the JCreate bottom expansion port) */
   switch(type) {
-  case 0:
-    return ADC12MEM6;
-  case 1:
-    return ADC12MEM7;
+    case ADC0:
+      return ADC12MEM6;
+    case ADC1:
+      return ADC12MEM7;
+    case ADC2:
+      return ADC12MEM8;
+    case ADC3:
+      return ADC12MEM9;
   }
   return 0;
 }
 /*---------------------------------------------------------------------------*/
 static int
-configure(int type, void *c)
+status(int type)
 {
+  switch(type) {
+    case SENSORS_ACTIVE:
+    case SENSORS_READY:
+      return active;
+  }
   return 0;
 }
 /*---------------------------------------------------------------------------*/
-static void *
-status(int type)
+static int
+configure(int type, int c)
 {
-  return NULL;
+  switch(type) {
+    case SENSORS_ACTIVE:
+      if(c) {
+        if(!status(SENSORS_ACTIVE)) {
+          /* SREF_1 is Vref+ */
+          /* MemReg6 == P6.0/A0 == port "under" logo */
+          ADC12MCTL6 = (INCH_0 + SREF_1);
+          /* MemReg7 == P6.1/A1 == port "over" logo */
+          ADC12MCTL7 = (INCH_1 + SREF_1);
+          /* MemReg8 == P6.2/A2, bottom expansion port */
+          ADC12MCTL8 = (INCH_2 + SREF_1);
+          /* MemReg9 == P6.1/A3, bottom expansion port, End Of (ADC-)Sequence */
+          ADC12MCTL9 = (INCH_3 + SREF_1);
+
+          sky_sensors_activate(0x0F);
+          active = 1;
+        }
+      } else {
+        sky_sensors_deactivate(0x0F);
+        active = 0;
+      }
+  }
+  return 0;
 }
 /*---------------------------------------------------------------------------*/
-SENSORS_SENSOR(ext_sensor, EXT_SENSOR,
-	       init, irq, activate, deactivate, active,
-	       value, configure, status);
+SENSORS_SENSOR(ext_sensor, "Ext",
+         value, configure, status);
+
