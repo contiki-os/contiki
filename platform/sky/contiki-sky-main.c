@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#)$Id: contiki-sky-main.c,v 1.67 2010/02/03 01:20:47 adamdunkels Exp $
+ * @(#)$Id: contiki-sky-main.c,v 1.68 2010/02/06 10:00:49 adamdunkels Exp $
  */
 
 #include <signal.h>
@@ -323,9 +323,11 @@ main(int argc, char **argv)
     uip_netif_addr_add(&ipaddr, 16, 0, TENTATIVE);
     printf("Tentative IPv6 address ");
     for(i = 0; i < 7; ++i) {
-      printf("%04x:", ipaddr.u16[i]);
+      printf("%02x%02x:",
+             ipaddr.u8[i * 2], ipaddr.u8[i * 2 + 1]);
     }
-    printf("%04x\n", ipaddr.u16[7]);
+    printf("%02x%02x\n",
+           ipaddr.u8[7 * 2], ipaddr.u8[7 * 2 + 1]);
   }
 
   
