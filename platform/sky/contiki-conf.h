@@ -1,8 +1,10 @@
 /* -*- C -*- */
-/* @(#)$Id: contiki-conf.h,v 1.69 2010/02/03 16:48:04 adamdunkels Exp $ */
+/* @(#)$Id: contiki-conf.h,v 1.70 2010/02/06 10:00:25 adamdunkels Exp $ */
 
 #ifndef CONTIKI_CONF_H
 #define CONTIKI_CONF_H
+
+
 
 /* Specifies the default MAC driver */
 #define MAC_CONF_CSMA               1
@@ -106,13 +108,15 @@
 #define UIP_CONF_ND6_MAX_NEIGHBORS      4
 #define UIP_CONF_ND6_MAX_DEFROUTERS     2
 #define UIP_CONF_IP_FORWARD             0
-#define UIP_CONF_BUFFER_SIZE		140
+#define UIP_CONF_BUFFER_SIZE		240
 
 #define SICSLOWPAN_CONF_COMPRESSION_IPV6        0
 #define SICSLOWPAN_CONF_COMPRESSION_HC1         1
 #define SICSLOWPAN_CONF_COMPRESSION_HC01        2
 #define SICSLOWPAN_CONF_COMPRESSION             SICSLOWPAN_CONF_COMPRESSION_HC01
+#ifndef SICSLOWPAN_CONF_FRAG
 #define SICSLOWPAN_CONF_FRAG                    0
+#endif /* SICSLOWPAN_CONF_FRAG */
 #define SICSLOWPAN_CONF_CONVENTIONAL_MAC	1
 #define SICSLOWPAN_CONF_MAX_ADDR_CONTEXTS       2
 #else /* WITH_UIP6 */
