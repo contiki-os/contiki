@@ -32,7 +32,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: sicslowpan.c,v 1.15 2010/02/06 17:07:43 adamdunkels Exp $
+ * $Id: sicslowpan.c,v 1.16 2010/02/06 20:50:24 adamdunkels Exp $
  */
 /**
  * \file
@@ -1217,6 +1217,7 @@ output(uip_lladdr_t *localdest)
     send_packet(&dest);
     queuebuf_to_packetbuf(q);
     queuebuf_free(q);
+    q = NULL;
 
     /* set processed_ip_len to what we already sent from the IP payload*/
     processed_ip_len = rime_payload_len + uncomp_hdr_len;
@@ -1247,6 +1248,7 @@ output(uip_lladdr_t *localdest)
       memcpy(rime_ptr + rime_hdr_len,
              (void *)UIP_IP_BUF + processed_ip_len, rime_payload_len);
       packetbuf_set_datalen(rime_payload_len + rime_hdr_len);
+      q = queuebuf_new_from_packetbuf();
       if(q == NULL) {
         PRINTFO("could not allocate queuebuf, dropping fragment\n");
         return 0;
@@ -1254,6 +1256,7 @@ output(uip_lladdr_t *localdest)
       send_packet(&dest);
       queuebuf_to_packetbuf(q);
       queuebuf_free(q);
+      q = NULL;
       processed_ip_len += rime_payload_len;
     }
     
