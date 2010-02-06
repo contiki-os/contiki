@@ -32,7 +32,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: sicslowpan.c,v 1.14 2010/02/06 09:42:49 adamdunkels Exp $
+ * $Id: sicslowpan.c,v 1.15 2010/02/06 17:07:43 adamdunkels Exp $
  */
 /**
  * \file
@@ -1118,10 +1118,6 @@ send_packet(rimeaddr_t *dest)
   /* If we are sending multiple packets in a row, we need to let the
      watchdog know that we are still alive. */
   watchdog_periodic();
-  
-  /* The MAC may add headers. We clear them here, since we may need to
-     resend (parts of) the packet during fragmentation. */
-  packetbuf_clear_hdr();
 }
 
 /** \brief Take an IP packet and format it to be sent on an 802.15.4
