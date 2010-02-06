@@ -32,7 +32,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: sicslowpan.c,v 1.13 2010/02/06 07:49:58 adamdunkels Exp $
+ * $Id: sicslowpan.c,v 1.14 2010/02/06 09:42:49 adamdunkels Exp $
  */
 /**
  * \file
@@ -1180,6 +1180,7 @@ output(uip_lladdr_t *localdest)
   
   if(uip_len - uncomp_hdr_len > MAC_MAX_PAYLOAD - rime_hdr_len) {
 #if SICSLOWPAN_CONF_FRAG
+    struct queuebuf *q;
     /*
      * The outbound IPv6 packet is too large to fit into a single 15.4
      * packet, so we fragment it into multiple packets and send them.
@@ -1212,7 +1213,14 @@ output(uip_lladdr_t *localdest)
     memcpy(rime_ptr + rime_hdr_len,
            (void *)UIP_IP_BUF + uncomp_hdr_len, rime_payload_len);
     packetbuf_set_datalen(rime_payload_len + rime_hdr_len);
+    q = queuebuf_new_from_packetbuf();
+    if(q == NULL) {
+      PRINTFO("could not allocate queuebuf for first fragment, dropping packet\n");
+      return 0;
+    }
     send_packet(&dest);
+    queuebuf_to_packetbuf(q);
+    queuebuf_free(q);
 
     /* set processed_ip_len to what we already sent from the IP payload*/
     processed_ip_len = rime_payload_len + uncomp_hdr_len;
@@ -1243,7 +1251,13 @@ output(uip_lladdr_t *localdest)
       memcpy(rime_ptr + rime_hdr_len,
              (void *)UIP_IP_BUF + processed_ip_len, rime_payload_len);
       packetbuf_set_datalen(rime_payload_len + rime_hdr_len);
+      if(q == NULL) {
+        PRINTFO("could not allocate queuebuf, dropping fragment\n");
+        return 0;
+      }
       send_packet(&dest);
+      queuebuf_to_packetbuf(q);
+      queuebuf_free(q);
       processed_ip_len += rime_payload_len;
     }
     
