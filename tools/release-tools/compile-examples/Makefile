@@ -6,7 +6,11 @@ all:
 
 compile: rime-examples shell hello-world \
          ipso-ipv6-raven jcreate multi-threading sky sky-ip sky-shell \
-         webserver-ipv6 webserver-ipv6-raven
+         webserver-ipv6 webserver-ipv6-raven tools
+
+tools:
+	@(cd ../../../tools ; $(MAKE))
+	@(cd ../../../tools/sky/uip6-bridge ; $(MAKE))
 
 shell: example-example-shell.native example-example-shell.netsim
 hello-world: example-hello-world.sky example-hello-world.native \
