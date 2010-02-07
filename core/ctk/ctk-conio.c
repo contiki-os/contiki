@@ -29,7 +29,7 @@
  *
  * This file is part of the "ctk" console GUI toolkit for cc65
  *
- * $Id: ctk-conio.c,v 1.12 2010/02/07 21:38:01 oliverschmidt Exp $
+ * $Id: ctk-conio.c,v 1.13 2010/02/07 21:43:03 oliverschmidt Exp $
  *
  */
 
@@ -77,6 +77,7 @@ ctk_draw_init(void)
   (void)textcolor(WINDOWCOLOR_FOCUS);
   screensize(&sizex, &sizey);
   ctk_draw_clear(0, sizey);
+  gotoxy(0, 0);
 }
 /*-----------------------------------------------------------------------------------*/
 static void
