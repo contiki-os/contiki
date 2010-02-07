@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: watchdog.c,v 1.1 2009/07/14 19:23:22 dak664 Exp $
+ * @(#)$Id: watchdog.c,v 1.1 2010/02/07 07:43:35 adamdunkels Exp $
  */
 
  /* Dummy watchdog routines for the Raven 1284p */
