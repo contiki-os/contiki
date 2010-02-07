@@ -1,4 +1,4 @@
-# $Id: Makefile.avr,v 1.17 2009/09/07 12:02:58 joxe Exp $
+# $Id: Makefile.avr,v 1.18 2010/02/07 07:43:35 adamdunkels Exp $
 
 ### Check if we are running under Windows
 
@@ -23,7 +23,7 @@ CONTIKI_CPU=$(CONTIKI)/cpu/avr
 ### These directories will be searched for the specified source files
 ### TARGETLIBS are platform-specific routines in the contiki library path
 CONTIKI_CPU_DIRS            = . dev
-AVR        = clock.c mtarch.c eeprom.c flash.c rs232.c leds-arch.c 
+AVR        = clock.c mtarch.c eeprom.c flash.c rs232.c leds-arch.c watchdog.c
 ELFLOADER  = elfloader.c elfloader-avr.c symtab-avr.c
 TARGETLIBS = random.c leds.c
 
@@ -63,7 +63,7 @@ ifdef COFFEE_FILES                #if files are defined force definition of COFF
   endif
  endif
  COFFEE_ADDRESS1 = $(shell echo $$(( $(COFFEE_ADDRESS) + 1 )))
- CONTIKI_TARGET_SOURCEFILES += cfs-coffee.c cfs-coffee-arch.c watchdog.c
+ CONTIKI_TARGET_SOURCEFILES += cfs-coffee.c cfs-coffee-arch.c 
  CFLAGS += -DCOFFEE_FILES=$(COFFEE_FILES) -DCOFFEE_ADDRESS=$(COFFEE_ADDRESS)
  ifneq ($(COFFEE_ADDRESS), DEFAULT)
   LDFLAGS+= -Wl,--section-start=.coffeefiles=$(COFFEE_ADDRESS)
