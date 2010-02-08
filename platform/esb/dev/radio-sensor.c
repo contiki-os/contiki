@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: radio-sensor.c,v 1.4 2010/01/14 17:39:35 nifi Exp $
+ * @(#)$Id: radio-sensor.c,v 1.5 2010/02/08 00:00:45 nifi Exp $
  */
 
 #include "dev/radio-sensor.h"
@@ -62,13 +62,13 @@ value(int type)
 static int
 configure(int type, int value)
 {
-  switch (type) {
+  switch(type) {
   case SENSORS_HW_INIT:
     /* Initialization of ADC12 done by irq */
     radio_sensor_signal = 0;
     return 1;
   case SENSORS_ACTIVE:
-    if (value) {
+    if(value) {
       if(!irq_adc12_active(5)) {
         irq_adc12_activate(5, (INCH_5 + SREF_0), irq);
       }
@@ -84,7 +84,7 @@ configure(int type, int value)
 static int
 status(int type)
 {
-  switch (type) {
+  switch(type) {
   case SENSORS_ACTIVE:
   case SENSORS_READY:
     return irq_adc12_active(5);

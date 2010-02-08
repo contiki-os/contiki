@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: ctsrts-sensor.c,v 1.3 2010/01/14 20:03:27 nifi Exp $
+ * @(#)$Id: ctsrts-sensor.c,v 1.4 2010/02/08 00:00:45 nifi Exp $
  */
 
 /**
@@ -83,7 +83,7 @@ value(int type)
 static int
 configure(int type, int value)
 {
-  switch (type) {
+  switch(type) {
   case SENSORS_HW_INIT:
     RS232RTS_SELECT();
     RS232RTS_MAKE_OUTPUT();
@@ -92,7 +92,7 @@ configure(int type, int value)
     RS232CTS_MAKE_INPUT();
     return 1;
   case SENSORS_ACTIVE:
-    if (value) {
+    if(value) {
       if(!RS232CTS_IRQ_ENABLED()) {
 
         /*
@@ -120,7 +120,7 @@ configure(int type, int value)
 static int
 status(int type)
 {
-  switch (type) {
+  switch(type) {
   case SENSORS_ACTIVE:
   case SENSORS_READY:
     return RS232CTS_IRQ_ENABLED();
