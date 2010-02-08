@@ -74,6 +74,10 @@
 #define INVALID_PAGE		((coffee_page_t)-1)
 #define UNKNOWN_OFFSET		((cfs_offset_t)-1)
 
+#define REMOVE_LOG		1
+#define CLOSE_FDS		1
+#define ALLOW_GC		1
+
 /* "Greedy" garbage collection erases as many sectors as possible. */
 #define GC_GREEDY		0
 /* "Reluctant" garbage collection stops after erasing one sector. */
@@ -534,7 +538,8 @@ find_contiguous_pages(coffee_page_t amount)
 }
 /*---------------------------------------------------------------------------*/
 static int
-remove_by_page(coffee_page_t page, int remove_log, int close_fds)
+remove_by_page(coffee_page_t page, int remove_log, int close_fds,
+               int gc_allowed)
 {
   struct file_header hdr;
   int i;
@@ -545,7 +550,7 @@ remove_by_page(coffee_page_t page, int remove_log, int close_fds)
   }
 
   if(remove_log && HDR_MODIFIED(hdr)) {
-    if(remove_by_page(hdr.log_page, 0, 0) < 0) {
+    if(remove_by_page(hdr.log_page, !REMOVE_LOG, !CLOSE_FDS, !ALLOW_GC) < 0) {
       return -1;
     }
   }
@@ -573,7 +578,7 @@ remove_by_page(coffee_page_t page, int remove_log, int close_fds)
   }
 
 #if !COFFEE_CONF_EXTENDED_WEAR_LEVELLING
-  if(!HDR_LOG(hdr)) {
+  if(gc_allowed) {
     collect_garbage(GC_RELUCTANT);
   }
 #endif
@@ -798,7 +803,7 @@ merge_log(coffee_page_t file_page, int extend)
     char buf[hdr.log_record_size == 0 ? COFFEE_PAGE_SIZE : hdr.log_record_size];
     n = cfs_read(fd, buf, sizeof(buf));
     if(n < 0) {
-      remove_by_page(new_file->page, 0, 0);
+      remove_by_page(new_file->page, !REMOVE_LOG, !CLOSE_FDS, ALLOW_GC);
       cfs_close(fd);
       COFFEE_WATCHDOG_START();
       return -1;
@@ -817,8 +822,8 @@ merge_log(coffee_page_t file_page, int extend)
     }
   }
 
-  if(remove_by_page(file_page, 1, 0) < 0) {
-    remove_by_page(new_file->page, 0, 0);
+  if(remove_by_page(file_page, REMOVE_LOG, !CLOSE_FDS, !ALLOW_GC) < 0) {
+    remove_by_page(new_file->page, !REMOVE_LOG, !CLOSE_FDS, !ALLOW_GC);
     cfs_close(fd);
     return -1;
   }
@@ -1053,7 +1058,7 @@ cfs_remove(const char *name)
     return -1;
   }
 
-  return remove_by_page(file->page, 1, 1);
+  return remove_by_page(file->page, REMOVE_LOG, CLOSE_FDS, ALLOW_GC);
 }
 /*---------------------------------------------------------------------------*/
 int
