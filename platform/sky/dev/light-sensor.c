@@ -28,16 +28,14 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: light-sensor.c,v 1.5 2010/02/02 21:17:44 joxe Exp $
+ * @(#)$Id: light-sensor.c,v 1.6 2010/02/08 00:02:39 nifi Exp $
  */
-
-#include <stdlib.h>
 
 #include <io.h>
 
 #include "contiki.h"
 #include "lib/sensors.h"
-#include "sky-sensors.h"
+#include "dev/sky-sensors.h"
 #include "dev/light-sensor.h"
 
 const struct sensors_sensor light_sensor;
