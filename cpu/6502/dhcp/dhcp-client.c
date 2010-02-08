@@ -29,13 +29,9 @@
  *
  * This file is part of the Contiki desktop environment
  *
- * $Id: dhcp-client.c,v 1.1 2010/02/08 22:08:17 oliverschmidt Exp $
+ * $Id: dhcp-client.c,v 1.2 2010/02/08 22:26:19 oliverschmidt Exp $
  *
  */
-
-#include <stdlib.h>
-#include <errno.h>
-#include <string.h>
 
 #include "contiki-net.h"
 #include "ctk/ctk.h"
@@ -140,9 +136,9 @@ nullterminate(char *cptr)
 static void
 apply_tcpipconfig(void)
 {
-  int file = open("contiki.cfg", O_RDONLY);
-  int size = read(file, uip_buf, 100);
-  close(file);
+  int file = cfs_open("contiki.cfg", CFS_READ);
+  int size = cfs_read(file, uip_buf, 100);
+  cfs_close(file);
 
   nullterminate(ipaddr);
   uiplib_ipaddrconv(ipaddr, &uip_buf[0]);
@@ -158,9 +154,9 @@ apply_tcpipconfig(void)
   uiplib_ipaddrconv(dnsserver, &uip_buf[12]);
 #endif /* WITH_DNS */
 
-  file = open("contiki.cfg", O_WRONLY | O_CREAT | O_TRUNC);
-  write(file, uip_buf, size);
-  close(file);
+  file = cfs_open("contiki.cfg", CFS_WRITE);
+  cfs_write(file, uip_buf, size);
+  cfs_close(file);
 }
 /*-----------------------------------------------------------------------------------*/
 static void
