@@ -36,7 +36,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: collect.c,v 1.31 2010/02/03 20:38:33 adamdunkels Exp $
+ * $Id: collect.c,v 1.32 2010/02/08 21:59:49 adamdunkels Exp $
  */
 
 /**
@@ -289,6 +289,9 @@ node_packet_received(struct runicast_conn *c, const rimeaddr_t *from,
     if(packetqueue_enqueue_packetbuf(&forwarding_queue, FORWARD_PACKET_LIFETIME,
 				     tc)) {
       send_queued_packet();
+    } else {
+      PRINTF("%d.%d: packet dropped: no queue buffer available\n",
+	   rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1]);
     }
   }
   
@@ -326,7 +329,7 @@ node_packet_timedout(struct runicast_conn *c, const rimeaddr_t *to,
   struct collect_conn *tc = (struct collect_conn *)
     ((char *)c - offsetof(struct collect_conn, runicast_conn));
 
-  PRINTF("%d.%d: timedout after %d retransmissions\n",
+  PRINTF("%d.%d: timedout after %d retransmissions: packet dropped\n",
 	 rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1], transmissions);
   
   tc->forwarding = 0;
@@ -482,6 +485,9 @@ collect_send(struct collect_conn *tc, int rexmits)
 				       tc)) {
 	send_queued_packet();
 	return 1;
+      } else {
+        PRINTF("%d.%d: drop originated packet: no queuebuf\n",
+               rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1]);
       }
     } else {
       /*      printf("Didn't find any neighbor\n");*/
@@ -491,6 +497,9 @@ collect_send(struct collect_conn *tc, int rexmits)
       if(packetqueue_enqueue_packetbuf(&forwarding_queue, FORWARD_PACKET_LIFETIME,
 				       tc)) {
 	return 1;
+      } else {
+        PRINTF("%d.%d: drop originated packet: no queuebuf\n",
+               rimeaddr_node_addr.u8[0], rimeaddr_node_addr.u8[1]);
       }
     }
   }
