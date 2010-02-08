@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ApplicationRadio.java,v 1.12 2010/02/05 09:07:58 fros4943 Exp $
+ * $Id: ApplicationRadio.java,v 1.13 2010/02/08 16:00:46 fros4943 Exp $
  */
 
 package se.sics.cooja.interfaces;
@@ -83,7 +83,7 @@ public class ApplicationRadio extends Radio {
   private double outputPower = 0;
   private int outputPowerIndicator = 100;
 
-private int interfered;
+  private int interfered;
 
   public ApplicationRadio(Mote mote) {
     this.mote = mote;
@@ -119,14 +119,14 @@ private int interfered;
   }
 
   public void signalReceptionEnd() {
-      //System.out.println("SignalReceptionEnded for node: " + mote.getID() + " intf:" + interfered);
+    //System.out.println("SignalReceptionEnded for node: " + mote.getID() + " intf:" + interfered);
     if (isInterfered() || packetToMote == null) {
       interfered--;
       if (interfered == 0) isInterfered = false;
       if (interfered < 0) {
-          isInterfered = false;
-          //logger.warn("Interfered got lower than 0!!!");
-          interfered = 0;
+        isInterfered = false;
+        //logger.warn("Interfered got lower than 0!!!");
+        interfered = 0;
       }
       packetToMote = null;
       if (interfered > 0) return;
@@ -222,7 +222,7 @@ private int interfered;
         lastEventTime = simulation.getSimulationTime();
         ApplicationRadio.this.setChanged();
         ApplicationRadio.this.notifyObservers();
-        
+
         /* Deliver data */
         packetFromMote = packet;
         lastEvent = RadioEvent.PACKET_TRANSMITTED;
@@ -346,7 +346,19 @@ private int interfered;
     return mote;
   }
 
+  private boolean radioOn = true;
+  public void setReceiverOn(boolean radioOn) {
+    if (this.radioOn == radioOn) {
+      return;
+    }
+
+    this.radioOn = radioOn;
+    lastEvent = radioOn?RadioEvent.HW_ON:RadioEvent.HW_OFF;
+    lastEventTime = simulation.getSimulationTime();
+    this.setChanged();
+    this.notifyObservers();
+  }
   public boolean isReceiverOn() {
-    return true;
+    return radioOn;
   }
 }
