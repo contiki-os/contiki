@@ -30,7 +30,7 @@
 #
 # Author: Oliver Schmidt <ol.sc@web.de>
 #
-# $Id: Makefile,v 1.1 2010/02/03 23:52:31 oliverschmidt Exp $
+# $Id: Makefile,v 1.2 2010/02/08 22:29:26 oliverschmidt Exp $
 #
 
 ifndef CC65_HOME
@@ -45,43 +45,50 @@ ifndef C1541
   ${error C1541 not defined! You must specify where VICE c1541 resides}
 endif
 
-disks: apple2enh-server-disk apple2enh-client-disk c64-disk c128-disk
+disks: apple2enh-1-disk apple2enh-2-disk c64-disk c128-disk
 
-apple2enh-server-disk:
-	cp ../apple2enh/prodos.dsk contiki-server.dsk
-	java -jar $(AC) -p    contiki-server.dsk contiki.cfg     bin 0 < dummy.cfg
-	java -jar $(AC) -p    contiki-server.dsk webserve.system sys 0 < ../apple2enh/loader.system
-	java -jar $(AC) -cc65 contiki-server.dsk webserve        bin   < ../../examples/webserver/webserver-example.apple2enh
-	java -jar $(AC) -p    contiki-server.dsk cs8900a.eth     rel 0 < ../../examples/webserver/cs8900a.eth
-	java -jar $(AC) -p    contiki-server.dsk lan91c96.eth    rel 0 < ../../examples/webserver/lan91c96.eth
-	java -jar $(AC) -p    contiki-server.dsk index.html      bin 0 < ../../examples/webserver/httpd-cfs/index.html
-	java -jar $(AC) -p    contiki-server.dsk background.gif  bin 0 < ../../examples/webserver/httpd-cfs/background.gif
-	java -jar $(AC) -p    contiki-server.dsk contiki.gif     bin 0 < ../../examples/webserver/httpd-cfs/contiki.gif
-	java -jar $(AC) -p    contiki-server.dsk notfound.html   bin 0 < ../../examples/webserver/httpd-cfs/notfound.html
+apple2enh-1-disk:
+	cp ../apple2enh/prodos.dsk contiki-1.dsk
+	java -jar $(AC) -p    contiki-1.dsk contiki.cfg     bin 0 < dummy.cfg
+	java -jar $(AC) -p    contiki-1.dsk menu.system     sys 0 < ../apple2enh/menu.system
+	java -jar $(AC) -p    contiki-1.dsk dhcp.system     sys 0 < ../apple2enh/loader.system
+	java -jar $(AC) -cc65 contiki-1.dsk dhcp            bin 0 < ../../cpu/6502/dhcp/dhcp-client.apple2enh
+	java -jar $(AC) -p    contiki-1.dsk webserve.system sys 0 < ../apple2enh/loader.system
+	java -jar $(AC) -cc65 contiki-1.dsk webserve        bin   < ../../examples/webserver/webserver-example.apple2enh
+	java -jar $(AC) -p    contiki-1.dsk webbrows.system sys 0 < ../apple2enh/loader.system
+	java -jar $(AC) -cc65 contiki-1.dsk webbrows        bin   < ../../examples/webbrowser/webbrowser.apple2enh
+	java -jar $(AC) -p    contiki-1.dsk cs8900a.eth     rel 0 < ../../cpu/6502/dhcp/cs8900a.eth
+	java -jar $(AC) -p    contiki-1.dsk lan91c96.eth    rel 0 < ../../cpu/6502/dhcp/lan91c96.eth
+	java -jar $(AC) -p    contiki-1.dsk a2e.stdmou.mou  rel 0 < $(CC65_HOME)/mou/a2e.stdmou.mou
+	java -jar $(AC) -p    contiki-1.dsk index.html      bin 0 < ../../examples/webserver/httpd-cfs/index.html
+	java -jar $(AC) -p    contiki-1.dsk background.gif  bin 0 < ../../examples/webserver/httpd-cfs/background.gif
+	java -jar $(AC) -p    contiki-1.dsk contiki.gif     bin 0 < ../../examples/webserver/httpd-cfs/contiki.gif
+	java -jar $(AC) -p    contiki-1.dsk notfound.html   bin 0 < ../../examples/webserver/httpd-cfs/notfound.html
 
-apple2enh-client-disk:
-	cp ../apple2enh/prodos.dsk contiki-client.dsk
-	java -jar $(AC) -p    contiki-client.dsk contiki.cfg     bin 0 < dummy.cfg
-	java -jar $(AC) -p    contiki-client.dsk menu.system     sys 0 < ../apple2enh/menu.system
-	java -jar $(AC) -p    contiki-client.dsk webbrows.system sys 0 < ../apple2enh/loader.system
-	java -jar $(AC) -cc65 contiki-client.dsk webbrows        bin   < ../../examples/webbrowser/webbrowser.apple2enh
-	java -jar $(AC) -p    contiki-client.dsk irc.system      sys 0 < ../apple2enh/loader.system
-	java -jar $(AC) -cc65 contiki-client.dsk irc             bin   < ../../examples/irc/irc-client.apple2enh
-	java -jar $(AC) -p    contiki-client.dsk email.system    sys 0 < ../apple2enh/loader.system
-	java -jar $(AC) -cc65 contiki-client.dsk email           bin   < ../../examples/email/email-client.apple2enh
-	java -jar $(AC) -p    contiki-client.dsk cs8900a.eth     rel 0 < ../../examples/webserver/cs8900a.eth
-	java -jar $(AC) -p    contiki-client.dsk lan91c96.eth    rel 0 < ../../examples/webserver/lan91c96.eth
-	java -jar $(AC) -p    contiki-client.dsk a2e.stdmou.mou  rel 0 < $(CC65_HOME)/mou/a2e.stdmou.mou
+apple2enh-2-disk:
+	cp ../apple2enh/prodos.dsk contiki-2.dsk
+	java -jar $(AC) -p    contiki-2.dsk contiki.cfg     bin 0 < dummy.cfg
+	java -jar $(AC) -p    contiki-2.dsk menu.system     sys 0 < ../apple2enh/menu.system
+	java -jar $(AC) -p    contiki-2.dsk dhcp.system     sys 0 < ../apple2enh/loader.system
+	java -jar $(AC) -cc65 contiki-2.dsk dhcp            bin 0 < ../../cpu/6502/dhcp/dhcp-client.apple2enh
+	java -jar $(AC) -p    contiki-2.dsk irc.system      sys 0 < ../apple2enh/loader.system
+	java -jar $(AC) -cc65 contiki-2.dsk irc             bin   < ../../examples/irc/irc-client.apple2enh
+	java -jar $(AC) -p    contiki-2.dsk email.system    sys 0 < ../apple2enh/loader.system
+	java -jar $(AC) -cc65 contiki-2.dsk email           bin   < ../../examples/email/email-client.apple2enh
+	java -jar $(AC) -p    contiki-2.dsk cs8900a.eth     rel 0 < ../../cpu/6502/dhcp/cs8900a.eth
+	java -jar $(AC) -p    contiki-2.dsk lan91c96.eth    rel 0 < ../../cpu/6502/dhcp/lan91c96.eth
+	java -jar $(AC) -p    contiki-2.dsk a2e.stdmou.mou  rel 0 < $(CC65_HOME)/mou/a2e.stdmou.mou
 
 c64-disk:
 	$(C1541) -format contiki,00 d64 contiki.d64
 	$(C1541) -attach contiki.d64 -write dummy.cfg                                         contiki.cfg
+	$(C1541) -attach contiki.d64 -write ../../cpu/6502/dhcp/dhcp-client.c64               dhcp
 	$(C1541) -attach contiki.d64 -write ../../examples/webserver/webserver-example.c64    webserver
 	$(C1541) -attach contiki.d64 -write ../../examples/webbrowser/webbrowser.c64          webbrowser
 	$(C1541) -attach contiki.d64 -write ../../examples/irc/irc-client.c64                 irc
 	$(C1541) -attach contiki.d64 -write ../../examples/email/email-client.c64             email
-	$(C1541) -attach contiki.d64 -write ../../examples/webserver/cs8900a.eth              cs8900a.eth
-	$(C1541) -attach contiki.d64 -write ../../examples/webserver/lan91c96.eth             lan91c96.eth
+	$(C1541) -attach contiki.d64 -write ../../cpu/6502/dhcp/cs8900a.eth                   cs8900a.eth
+	$(C1541) -attach contiki.d64 -write ../../cpu/6502/dhcp/lan91c96.eth                  lan91c96.eth
 	$(C1541) -attach contiki.d64 -write $(CC65_HOME)/mou/c64-1351.mou                     c64-1351.mou
 	$(C1541) -attach contiki.d64 -write ../../examples/webserver/httpd-cfs/index.html     index.html
 	$(C1541) -attach contiki.d64 -write ../../examples/webserver/httpd-cfs/background.gif background.gif
@@ -91,12 +98,13 @@ c64-disk:
 c128-disk:
 	$(C1541) -format contiki,00 d71 contiki.d71
 	$(C1541) -attach contiki.d71 -write dummy.cfg                                         contiki.cfg
+	$(C1541) -attach contiki.d71 -write ../../cpu/6502/dhcp/dhcp-client.c128              dhcp
 	$(C1541) -attach contiki.d71 -write ../../examples/webserver/webserver-example.c128   webserver
 	$(C1541) -attach contiki.d71 -write ../../examples/webbrowser/webbrowser.c128         webbrowser
 	$(C1541) -attach contiki.d71 -write ../../examples/irc/irc-client.c128                irc
 	$(C1541) -attach contiki.d71 -write ../../examples/email/email-client.c128            email
-	$(C1541) -attach contiki.d71 -write ../../examples/webserver/cs8900a.eth              cs8900a.eth
-	$(C1541) -attach contiki.d71 -write ../../examples/webserver/lan91c96.eth             lan91c96.eth
+	$(C1541) -attach contiki.d71 -write ../../cpu/6502/dhcp/cs8900a.eth                   cs8900a.eth
+	$(C1541) -attach contiki.d71 -write ../../cpu/6502/dhcp/lan91c96.eth                  lan91c96.eth
 	$(C1541) -attach contiki.d71 -write $(CC65_HOME)/mou/c128-1351.mou                    c128-1351.mou
 	$(C1541) -attach contiki.d71 -write ../../examples/webserver/httpd-cfs/index.html     index.html
 	$(C1541) -attach contiki.d71 -write ../../examples/webserver/httpd-cfs/background.gif background.gif
