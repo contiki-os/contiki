@@ -26,14 +26,14 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: temperature-sensor.c,v 1.2 2010/01/14 17:39:35 nifi Exp $
+ * $Id: temperature-sensor.c,v 1.3 2010/02/08 00:00:45 nifi Exp $
  *
  * -----------------------------------------------------------------
  *
  * Author  : Adam Dunkels, Joakim Eriksson, Niclas Finne
  * Created : 2005-11-01
- * Updated : $Date: 2010/01/14 17:39:35 $
- *           $Revision: 1.2 $
+ * Updated : $Date: 2010/02/08 00:00:45 $
+ *           $Revision: 1.3 $
  */
 
 #include "dev/temperature-sensor.h"
@@ -57,13 +57,13 @@ value(int type)
 static int
 configure(int type, int value)
 {
-  switch (type) {
+  switch(type) {
   case SENSORS_HW_INIT:
     active = 0;
     ds1629_init();
     return 1;
   case SENSORS_ACTIVE:
-    if (value) {
+    if(value) {
       if(!active) {
         active = 1;
         ds1629_start();
@@ -79,7 +79,7 @@ configure(int type, int value)
 static int
 status(int type)
 {
-  switch (type) {
+  switch(type) {
   case SENSORS_ACTIVE:
   case SENSORS_READY:
     return active;

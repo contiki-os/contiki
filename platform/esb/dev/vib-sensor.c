@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: vib-sensor.c,v 1.4 2010/01/14 17:39:35 nifi Exp $
+ * @(#)$Id: vib-sensor.c,v 1.5 2010/02/08 00:00:45 nifi Exp $
  */
 
 #include "dev/vib-sensor.h"
@@ -61,14 +61,14 @@ value(int type)
 static int
 configure(int type, int value)
 {
-  switch (type) {
+  switch(type) {
   case SENSORS_HW_INIT:
     vib = 0;
     VIB_SELECT();
     VIB_MAKE_INPUT();
     return 1;
   case SENSORS_ACTIVE:
-    if (value) {
+    if(value) {
       if(!VIB_IRQ_ENABLED()) {
         irq_port1_activate(VIB_IRQ(), irq);
         VIB_ENABLE_IRQ();
@@ -85,7 +85,7 @@ configure(int type, int value)
 static int
 status(int type)
 {
-  switch (type) {
+  switch(type) {
   case SENSORS_ACTIVE:
   case SENSORS_READY:
     return VIB_IRQ_ENABLED();

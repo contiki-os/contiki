@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: pir-sensor.c,v 1.3 2010/01/14 17:39:35 nifi Exp $
+ * @(#)$Id: pir-sensor.c,v 1.4 2010/02/08 00:00:45 nifi Exp $
  */
 
 #include "dev/pir-sensor.h"
@@ -61,14 +61,14 @@ value(int type)
 static int
 configure(int type, int value)
 {
-  switch (type) {
+  switch(type) {
   case SENSORS_HW_INIT:
     pir = 0;
     PIR_SELECT();
     PIR_MAKE_INPUT();
     return 1;
   case SENSORS_ACTIVE:
-    if (value) {
+    if(value) {
       if(!PIR_IRQ_ENABLED()) {
         irq_port1_activate(PIR_IRQ(), irq);
         PIR_ENABLE_IRQ();
@@ -85,7 +85,7 @@ configure(int type, int value)
 static int
 status(int type)
 {
-  switch (type) {
+  switch(type) {
   case SENSORS_ACTIVE:
   case SENSORS_READY:
     return PIR_IRQ_ENABLED();
