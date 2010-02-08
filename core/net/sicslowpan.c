@@ -32,7 +32,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: sicslowpan.c,v 1.16 2010/02/06 20:50:24 adamdunkels Exp $
+ * $Id: sicslowpan.c,v 1.17 2010/02/08 21:59:21 adamdunkels Exp $
  */
 /**
  * \file
@@ -48,6 +48,7 @@
 #include <string.h>
 
 #include "contiki.h"
+#include "dev/watchdog.h"
 #include "net/tcpip.h"
 #include "net/uip.h"
 #include "net/uip-netif.h"
@@ -1373,7 +1374,7 @@ input(const struct mac_driver *r)
        * the packet is a fragment that does not belong to the packet
        * being reassembled or the packet is not a fragment.
        */
-      PRINTFI("sicslowpan input: Dropping 6lowpan packet\n");
+      PRINTFI("sicslowpan input: Dropping 6lowpan packet that is not a fragment of the packet currently being reassembled\n");
       return;
     }
   } else {
