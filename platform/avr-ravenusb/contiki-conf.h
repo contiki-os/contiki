@@ -115,6 +115,11 @@ typedef int32_t s32_t;
 
 #define UIP_CONF_STATISTICS      1
 
+
+/* Fragmentation uses queuebuf.c to save packets */
+#define QUEUEBUF_CONF_NUM 1
+#define QUEUEBUF_CONF_REF_NUM 1
+
 /* Route-Under-MAC uses 16-bit short addresses */
 #if UIP_CONF_USE_RUM
 #undef  UIP_CONF_LL_802154
