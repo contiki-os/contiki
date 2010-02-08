@@ -81,6 +81,13 @@ typedef int32_t s32_t;
 #define SICSLOWPAN_CONF_MAX_ADDR_CONTEXTS 2
 #define SICSLOWPAN_CONF_FRAG              1     //set zero for sky equivalence with barebones driver
 
+/* Below will prevent fragmentation of TCP packets, undef for faster page loads, simpler wireshark captures */
+//#define UIP_CONF_TCP_MSS 48
+
+/* Fragmentation uses queuebuf.c to save packets */
+#define QUEUEBUF_CONF_NUM 1
+#define QUEUEBUF_CONF_REF_NUM 1
+
 #ifdef RF230BB
 #define SICSLOWPAN_CONF_CONVENTIONAL_MAC    1   //for barebones driver
 //#define SICSLOWPAN_CONF_FRAG              0   //for sky equivalence with barebones driver
