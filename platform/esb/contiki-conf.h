@@ -81,6 +81,7 @@ typedef unsigned short uip_stats_t;
 
 #define LOADER_CONF_ARCH "loader/loader-arch.h"
 
+#define ELFLOADER_CONF_TEXT_IN_ROM 1
 #define ELFLOADER_CONF_DATAMEMORY_SIZE 100
 #define ELFLOADER_CONF_TEXTMEMORY_SIZE 0x1000
 
