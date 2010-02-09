@@ -79,6 +79,7 @@ extern int rf230_interrupt_flag;
 
 #if WEBSERVER
 #include "httpd-fs.h"
+#include "httpd-cgi.h"
 #endif
 
 #ifdef COFFEE_FILES
@@ -221,7 +222,12 @@ void initialize(void)
 #endif
 
 /*--------------------------Announce the configuration---------------------*/
+#define ANNOUNCE_BOOT 1    //adds about 400 bytes to program size
+#if ANNOUNCE_BOOT
+
 #if WEBSERVER
+
+  uint8_t i;
   char buf[80];
   unsigned int size;
    eeprom_read_block (buf,server_name, sizeof(server_name));
@@ -241,10 +247,44 @@ void initialize(void)
 #elif COFFEE_FILES==4
    printf_P(PSTR(".%s online with dynamic %u KB program memory file system\n"),buf,size>>10);
 #endif
+
+/* Add prefixes for testing */
+#if 0
+{  
+  uip_ip6addr_t ipaddr;
+  uip_ip6addr(&ipaddr, 0xaaaa, 0, 0, 0, 0, 0, 0, 0);
+  uip_netif_addr_autoconf_set(&ipaddr, &uip_lladdr);
+  uip_netif_addr_add(&ipaddr, 16, 0, TENTATIVE);
+}
+#endif
+#if 0
+{
+  uip_ip6addr_t ipaddr;
+  uip_ip6addr(&ipaddr, 0xaaaa, 0, 0, 0, 0, 0, 0, 0);
+  uip_netif_addr_add(&ipaddr, UIP_DEFAULT_PREFIX_LEN, 0, AUTOCONF);
+  uip_nd6_prefix_add(&ipaddr, UIP_DEFAULT_PREFIX_LEN, 0);
+}
+#endif
+
+  for(i = 0; i < UIP_CONF_NETIF_MAX_ADDRESSES; i ++) {
+   if(uip_netif_physical_if.addresses[i].state != NOT_USED) {
+      httpd_cgi_sprint_ip6(*(uip_ipaddr_t*)&uip_netif_physical_if.addresses[i],buf);
+      printf_P(PSTR("IPv6 Address: %s\n"),buf);
+   }
+  }
 #else
    printf_P(PSTR("Online\n"));
 #endif /* WEBSERVER */
+
+#endif /* ANNOUNCE_BOOT */
+
 }
+/*---------------------------------------------------------------------------*/
+void log_message(char *m1, char *m2)
+{
+  printf_P(PSTR("%s%s\n"), m1, m2);
+}
+
 /*-------------------------------------------------------------------------*/
 /*------------------------- Main Scheduler loop----------------------------*/
 /*-------------------------------------------------------------------------*/
