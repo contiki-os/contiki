@@ -1,4 +1,4 @@
-# $Id: Makefile.esb,v 1.13 2010/02/09 07:04:11 nifi Exp $
+# $Id: Makefile.esb,v 1.14 2010/02/09 07:34:37 nifi Exp $
 
 SENSORS    = sensors.c irq.c button-sensor.c pir-sensor.c vib-sensor.c \
              sound-sensor.c radio-sensor.c ctsrts-sensor.c battery-sensor.c \
@@ -17,6 +17,15 @@ CONTIKI_TARGET_SOURCEFILES += $(SENSORS) $(ESB) \
         contiki-esb-default-init-lowlevel.c \
         contiki-esb-default-init-apps.c \
 	rs232.c rs232-putchar.c fader.c $(CONTIKI_TARGET_MAIN)
+
+ifdef WITH_CODEPROP
+CONTIKI_TARGET_DIRS += ../../apps/codeprop
+CONTIKI_TARGET_SOURCEFILES += codeprop-tmp.c
+ifndef NETSTACK
+NETSTACK = uip
+endif
+endif
+
 ifeq ($(NETSTACK),uip)
 CONTIKI_TARGET_SOURCEFILES += contiki-esb-init-net-uip.c uip-ipchksum.c
 else
