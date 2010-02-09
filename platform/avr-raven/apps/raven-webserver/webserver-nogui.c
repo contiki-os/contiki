@@ -29,7 +29,7 @@
  *
  * This file is part of the Contiki OS.
  *
- * $Id: webserver-nogui.c,v 1.2 2009/06/19 17:11:28 dak664 Exp $
+ * $Id: webserver-nogui.c,v 1.3 2010/02/09 14:41:18 dak664 Exp $
  *
  */
 
@@ -42,6 +42,7 @@
 #include "http-strings.h"
 #include "webserver-nogui.h"
 #include "httpd.h"
+#include "httpd-cgi.h"
 
 PROCESS(webserver_nogui_process, "Web server");
 
@@ -61,19 +62,29 @@ PROCESS_THREAD(webserver_nogui_process, ev, data)
   
   PROCESS_END();
 }
+
 /*---------------------------------------------------------------------------*/
 void
 webserver_log_file(uip_ipaddr_t *requester, char *file)
 {
-#if LOG_CONF_ENABLED
-  char buf[18];
-
   /* Print out IP address of requesting host. */
-  sprintf_P(buf, PSTR("%d.%d.%d.%d: "), requester->u8[0], requester->u8[1],
-				requester->u8[2], requester->u8[3]);
+#if LOG_CONF_ENABLED
+#if UIP_CONF_IPV6
+  char buf[48];
+  uint8_t j;
+  j=httpd_cgi_sprint_ip6((uip_ip6addr_t)*requester, buf);
+  buf[j]=':';buf[j+1]=' ';buf[j+2]=0;
+#else
+  char buf[20];
+  sprintf(buf, "%d.%d.%d.%d: ", requester->u8[0], requester->u8[1],
+                                requester->u8[2], requester->u8[3]);
+#endif /* UIP_CONF_IPV6 */
+
   log_message(buf, file);
 #endif /* LOG_CONF_ENABLED */
+
 }
+
 /*---------------------------------------------------------------------------*/
 void
 webserver_log(char *msg)
