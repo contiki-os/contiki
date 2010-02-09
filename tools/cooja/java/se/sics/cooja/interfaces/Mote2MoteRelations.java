@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: Mote2MoteRelations.java,v 1.4 2010/02/05 09:07:58 fros4943 Exp $
+ * $Id: Mote2MoteRelations.java,v 1.5 2010/02/09 22:14:23 fros4943 Exp $
  */
 
 package se.sics.cooja.interfaces;
@@ -39,7 +39,6 @@ import java.util.Observer;
 import javax.swing.BoxLayout;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
-import javax.swing.SwingUtilities;
 
 import org.apache.log4j.Logger;
 import org.jdom.Element;
@@ -48,7 +47,8 @@ import se.sics.cooja.ClassDescription;
 import se.sics.cooja.GUI;
 import se.sics.cooja.Mote;
 import se.sics.cooja.MoteInterface;
-import se.sics.cooja.SimEventCentral.MoteCountListener;
+import se.sics.cooja.SimEventCentral.LogOutputEvent;
+import se.sics.cooja.SimEventCentral.LogOutputListener;
 
 /**
  * Mote2Mote Relations is used to show mote relations in simulated
@@ -79,38 +79,18 @@ public class Mote2MoteRelations extends MoteInterface {
   private static Logger logger = Logger.getLogger(Mote2MoteRelations.class);
   private Mote mote = null;
 
-  private Log log;
   private ArrayList<Mote> relations = new ArrayList<Mote>();
   private GUI gui;
 
-  private MoteCountListener moteCountListener;
-  
+  private LogOutputListener logListener;
+
   public Mote2MoteRelations(Mote mote) {
     this.mote = mote;
     this.gui = mote.getSimulation().getGUI();
 
-    /* XXX Bug: Infinitely repeating runnable if no log interface exists! */
-    Runnable init = new Runnable() {
-      public void run() {
-        if (Mote2MoteRelations.this.mote.getInterfaces() == null
-            || Mote2MoteRelations.this.mote.getInterfaces().getLog() == null) {
-          SwingUtilities.invokeLater(this);
-          return;
-        }
-
-        log = Mote2MoteRelations.this.mote.getInterfaces().getLog();
-        if (log == null) {
-          SwingUtilities.invokeLater(this);
-          return;
-        }
-
-        log.addObserver(logObserver);
-      }
-    };
-    init.run();
-
-    mote.getSimulation().getEventCentral().addMoteCountListener(moteCountListener = new MoteCountListener() {
+    mote.getSimulation().getEventCentral().addLogOutputListener(logListener = new LogOutputListener() {
       public void moteWasAdded(Mote mote) {
+        /* Ignored */
       }
       public void moteWasRemoved(Mote mote) {
         /* This mote was removed - cleanup by removed() */
@@ -125,75 +105,78 @@ public class Mote2MoteRelations extends MoteInterface {
         relations.remove(mote);
         gui.removeMoteRelation(Mote2MoteRelations.this.mote, mote);
       }
+      public void newLogOutput(LogOutputEvent ev) {
+        handleNewLog(ev.msg);
+      }
+      public void removedLogOutput(LogOutputEvent ev) {
+        /* Ignored */
+      }
     });
   }
 
   public void removed() {
     super.removed();
-    
-    for (Mote m: relations) {
+
+    Mote[] relationsArr = relations.toArray(new Mote[0]);
+    for (Mote m: relationsArr) {
       gui.removeMoteRelation(Mote2MoteRelations.this.mote, m);
     }
     relations.clear();
 
-    mote.getSimulation().getEventCentral().removeMoteCountListener(moteCountListener);
-    mote.getInterfaces().getLog().deleteObserver(logObserver);
+    mote.getSimulation().getEventCentral().removeLogOutputListener(logListener);
   }
 
-  private Observer logObserver = new Observer() {
-    public void update(Observable o, Object arg) {
-      String msg = log.getLastLogMessage();
-      if (msg == null) {
-        return;
-      }
-
-      if (!msg.startsWith("#L ")) {
-        return;
-      }
-
-      String[] args = msg.split(" ");
-      if (args.length != 3) {
-        return;
-      }
-
-      String id = args[1];
-      String state = args[2];
-
-      /* Locate destination mote */
-      /* TODO Use Rime address interface instead of mote ID? */
-      Mote destinationMote = null;
-      Mote[] allMotes = Mote2MoteRelations.this.mote.getSimulation().getMotes();
-      for (Mote m: allMotes) {
-        if (id.equals("" + m.getID())) {
-          destinationMote = m;
-          break;
-        }
-      }
-      if (destinationMote == null) {
-        logger.warn("No destination mote with ID: " + id);
-        return;
-      }
-      if (destinationMote == mote) {
-        /*logger.warn("Cannot create relation with ourselves");*/
-        return;
-      }
-
-      /* Change line state */
-      if (state.equals("1")) {
-        if (relations.contains(destinationMote)) {
-          return;
-        }
-        relations.add(destinationMote);
-        gui.addMoteRelation(mote, destinationMote);
-      } else {
-        relations.remove(destinationMote);
-        gui.removeMoteRelation(mote, destinationMote);
-      }
-
-      setChanged();
-      notifyObservers();
+  private void handleNewLog(String msg) {
+    if (msg == null) {
+      return;
     }
-  };
+
+    if (!msg.startsWith("#L ")) {
+      return;
+    }
+
+    String[] args = msg.split(" ");
+    if (args.length != 3) {
+      return;
+    }
+
+    String id = args[1];
+    String state = args[2];
+
+    /* Locate destination mote */
+    /* TODO Use Rime address interface instead of mote ID? */
+    Mote destinationMote = null;
+    Mote[] allMotes = Mote2MoteRelations.this.mote.getSimulation().getMotes();
+    for (Mote m: allMotes) {
+      if (id.equals("" + m.getID())) {
+        destinationMote = m;
+        break;
+      }
+    }
+    if (destinationMote == null) {
+      logger.warn("No destination mote with ID: " + id);
+      return;
+    }
+    if (destinationMote == mote) {
+      /*logger.warn("Cannot create relation with ourselves");*/
+      return;
+    }
+
+    /* Change line state */
+    if (state.equals("1")) {
+      if (relations.contains(destinationMote)) {
+        return;
+      }
+      relations.add(destinationMote);
+      gui.addMoteRelation(mote, destinationMote);
+    } else {
+      relations.remove(destinationMote);
+      gui.removeMoteRelation(mote, destinationMote);
+    }
+
+    setChanged();
+    notifyObservers();
+  }
 
   public JPanel getInterfaceVisualizer() {
     JPanel panel = new JPanel();
