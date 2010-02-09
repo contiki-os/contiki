@@ -64,12 +64,29 @@ TCP/IP'.
 
 \section slipintro-setup Setup ESB for over the air programming
 
--# Make sure you have the latest version of contiki (older versions of
-   contiki might not work with SLIP under Windows)
--# Install the contiki kernel by running
+Make sure you have the latest version of Contiki (older versions of
+Contiki might not work with SLIP under Windows).
+
+-# Each node needs an IP address for OTA to work. The node id
+is used to construct an IP address for the node. If you specify 2 as
+node id, the node will have the IP address 172.16.1.2. Each node
+should have its own unique node id. To set the node id move to the
+directory '<tt>contiki-2.x/examples/esb</tt>' and run
 \code
-make core.u
+make burn-nodeid.u nodeid=X
 \endcode
+Use the number 1, 2, 3, etc, as the node id (\c X) for the nodes. This
+will give the nodes the IP addresses 172.16.1.1, 172.16.1.2, etc. The
+node id only needs to be set once for each node and it will remain
+even when new applications are uploaded onto the node.
+-# You need to compile a core and upload it onto the nodes. All nodes
+must run the same core. Move to the directory
+'<tt>contiki-2.x/examples/esb</tt>' and run
+\code
+make WITH_CODEPROP=1 core
+make WITH_CODEPROP=1 core.u
+\endcode
+to upload the core to your nodes.
 -# Attach the ESB node to the serial port and make sure it is
 turned on. Select your ESB SLIP connection in your 'Network
 Connections' and choose 'Connect' (or double click on it). If
@@ -84,36 +101,17 @@ ping 172.16.1.1
 
 If everything works the node should click and reply to the pings.
 
-\section slipintro-send Send programs over the air
-
-Contiki applications to be installed via radio are compiled somewhat
-different compared to normal applications.
-
-Each node needs an IP address for OTA to work. A node id can be
-specified when you upload the contiki kernel to a node and this is
-used to construct an IP address for the node. If you specify 2 as
-node id, the node will have the IP address 172.16.1.2. Each node
-should have its own unique node id.
-
-You need to compile a core and upload it onto the nodes. All nodes
-must run the same core. Move to the directory
-'<tt>contiki-2.x/platform/esb</tt>' and run
-
-\code
-make
-make core.u nodeid=X
-\endcode
-
-to upload the core to your nodes. Use the number 1, 2, 3, etc,
-as the node id (\c X) for the nodes. This will give the nodes the IP
-addresses 172.16.1.1, 172.16.1.2, etc.
-
-Then you need a program to send the application to connected
+You also need a program to send the application to connected
 nodes. Compile it by running
 
 \code
 make send
 \endcode
+
+\section slipintro-send Send programs over the air
+
+Contiki applications to be installed via radio are compiled somewhat
+different compared to normal applications.
 
 Make sure you have a node with IP address 172.16.1.1 connected to your
 serial port and have SLIP activated. Then compile and send a

@@ -4,29 +4,32 @@
 
 \section sensors Sensor functions
 
-Some sensors generate events when the sensors change. It is always
-possible to query the state of a sensor through a set of query functions.
+Each sensor has a set of functions for controlling it and query it for
+its state. Some sensors also generate an events when the sensors
+change. A sensor must be activated before it generates events or
+relevant values.
 
-\subsection quickref-sensors-events Sensor events
+- SENSORS_ACTIVATE(sensor) - activate the sensor
+- SENSORS_DEACTIVATE(sensor) - deactivate the sensor
+- sensor.value(0) - query the sensor for its last value
 
-- \ref sensors_event_button_down - the button has been pressed
-- \ref sensors_event_button_up - the button has been depressed
-- \ref sensors_event_humidity - a change in humidity has been detected
-- \ref sensors_event_light - a change in light has been detected
-- \ref sensors_event_motion - motion has been detected
-- \ref sensors_event_sound - sound has been detected
-- \ref sensors_event_temperature - temperature has changed
-- \ref sensors_event_vibration - vibration has been detected
+- \ref sensors_event - event sent when a sensor has changed (the data
+  argument will referer to the actual sensor)
 
-\subsection quickref-sensors-query Sensor query functions
+Example for querying the button:
 
-- sensors_battery() - query the battery voltage level
-- sensors_button() - query the on-board button
-- sensors_mic() - query the microphone
-- sensors_pir() - query the passive IR sensor (motion detector)
-- sensors_radiosignal() - query the radio signal strength
-- sensors_temp() - query the temperature sensor
-- sensors_vib() - query the vibration sensor
+- \ref SENSORS_ACTIVATE(button_sensor) - activate the button sensor
+- \ref button_sensor.value(0) - the button has been pressed or not
+
+\subsection quickref-sensors Sensor on the ESB platform
+
+- \ref battery_sensor - query the battery voltage level
+- \ref button_sensor - query the on-board button
+- \ref pir_sensor - query the passive IR sensor (motion detector)
+- \ref radio_sensor - query the radio signal strength
+- \ref sound_sensor - query the microphone
+- \ref temperature_sensor - query the temperature sensor
+- \ref vib_sensor - query the vibration sensor
 
 \section quickref-leds LED functions
 
@@ -45,10 +48,10 @@ possible to query the state of a sensor through a set of query functions.
 
 \section quickref-timers Timer functions
 
-Contiki supports two types of timers: event timers and simple
-timers. Event timers generates an event when the timer expires,
-whereas the simple timer has to be actively queried to check when it
-has expired.
+Contiki provides a set of timer libraries. Event timers generates an
+event when the timer expires and callback timers call a function when
+the timer expires. The simple timers on the other hand have to be
+actively queried to check when they have expired.
 
 \subsection quickref-etimer Event timers
 
@@ -56,6 +59,13 @@ has expired.
 - etimer_set() - set an event timer
 - etimer_reset() - set an expired event timer to the next interval
 - etimer_restart() - restart an event timer from the current point in time
+
+\subsection quickref-ctimer Callback timers
+
+- ctimer_expired() - check if a callback timer has expired
+- ctimer_set() - set a callback timer
+- ctimer_reset() - set an expired callback timer to the next interval
+- ctimer_restart() - restart a callback timer from the current point in time
 
 \subsection quickref-timer Simple timers
 
