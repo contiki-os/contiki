@@ -28,7 +28,7 @@
  *
  * This file is part of the uIP TCP/IP stack.
  *
- * $Id: httpd-cgi.c,v 1.4 2009/07/24 15:41:52 dak664 Exp $
+ * $Id: httpd-cgi.c,v 1.5 2010/02/09 14:41:18 dak664 Exp $
  *
  */
 
@@ -99,9 +99,6 @@ static const char *states[] = {
   called};
 
   char sensor_temperature[12];
-
-  uint8_t sprint_ip6(uip_ip6addr_t addr, char * result);
-
 
 void
 web_set_temp(char *s)
@@ -210,7 +207,7 @@ make_tcp_stats(void *arg)
   conn = &uip_conns[s->u.count];
 
   numprinted = httpd_snprintf((char *)uip_appdata, uip_mss(), httpd_cgi_tcpstat1, htons(conn->lport));
-  numprinted += sprint_ip6(conn->ripaddr, uip_appdata + numprinted);
+  numprinted += httpd_cgi_sprint_ip6(conn->ripaddr, uip_appdata + numprinted);
   httpd_strcpy(tstate,states[conn->tcpstateflags & UIP_TS_MASK]);
   numprinted +=  httpd_snprintf((char *)uip_appdata + numprinted, uip_mss() - numprinted,
                  httpd_cgi_tcpstat2,
@@ -318,7 +315,7 @@ httpd_cgi_init(void)
 }
 /*---------------------------------------------------------------------------*/
 
-uint8_t sprint_ip6(uip_ip6addr_t addr, char * result)
+uint8_t httpd_cgi_sprint_ip6(uip_ip6addr_t addr, char * result)
         {
         unsigned char zerocnt = 0;
         unsigned char numprinted = 0;
