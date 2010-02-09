@@ -88,6 +88,9 @@ typedef int32_t s32_t;
 #define QUEUEBUF_CONF_NUM 1
 #define QUEUEBUF_CONF_REF_NUM 1
 
+/* Logging adds 200 bytes to program size */
+#define LOG_CONF_ENABLED 1
+
 #ifdef RF230BB
 #define SICSLOWPAN_CONF_CONVENTIONAL_MAC    1   //for barebones driver
 //#define SICSLOWPAN_CONF_FRAG              0   //for sky equivalence with barebones driver
