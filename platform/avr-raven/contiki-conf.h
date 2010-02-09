@@ -70,7 +70,7 @@ typedef int32_t s32_t;
 #define CLIF
 
 #define RIMEADDR_CONF_SIZE       8
-//#define PACKETBUF_CONF_HDR_SIZE    0           //undefine when using the barebones driver
+#define PACKETBUF_CONF_HDR_SIZE    0           //RF230 handles headers internally
 
 /* 0 for IPv6, or 1 for HC1, 2 for HC01 */
 #define SICSLOWPAN_CONF_COMPRESSION_IPV6 0 
@@ -79,7 +79,7 @@ typedef int32_t s32_t;
 
 #define SICSLOWPAN_CONF_COMPRESSION       SICSLOWPAN_CONF_COMPRESSION_HC01 
 #define SICSLOWPAN_CONF_MAX_ADDR_CONTEXTS 2
-#define SICSLOWPAN_CONF_FRAG              1     //set zero for sky equivalence with barebones driver
+#define SICSLOWPAN_CONF_FRAG              1
 
 /* Below will prevent fragmentation of TCP packets, undef for faster page loads, simpler wireshark captures */
 //#define UIP_CONF_TCP_MSS 48
@@ -91,8 +91,11 @@ typedef int32_t s32_t;
 /* Logging adds 200 bytes to program size */
 #define LOG_CONF_ENABLED 1
 
+/* RF230BB reduces program size by 6.5KB, RAM by 500 bytes */
 #ifdef RF230BB
-#define SICSLOWPAN_CONF_CONVENTIONAL_MAC    1   //for barebones driver
+#define SICSLOWPAN_CONF_CONVENTIONAL_MAC    1   //for barebones driver, sicslowpan calls radio->read function
+#undef PACKETBUT_CONF_HDR_SIZE                  //RF230BB takes the packetbuf default for header size
+//#undef SICSLOWPAN_CONF_FRAG
 //#define SICSLOWPAN_CONF_FRAG              0   //for sky equivalence with barebones driver
 //#define UIP_CONF_BUFFER_SIZE            256   //for sky equivalence with barebones driver
 //#define UIP_CONF_ROUTER 1
