@@ -175,3 +175,19 @@ webserver/
 
   Please consult cpu/native/net/README-WPCAP as well if you are running
   Microsoft Windows.
+
+wget/
+
+  A command line program that retrieves files from web servers and saves
+  them using the 'Contiki File System' (CFS). It can be compiled and run
+  in the 'minimal-net' target by typing the following commands:
+
+    cd examples/wget
+    make
+    ./wget.minimal-net
+
+  Most likely you'll have to adjust the TCP/IP values set in main() in
+  platform/minimal-net/contiki-main.c to match your needs.
+
+  Please consult cpu/native/net/README-WPCAP as well if you are running
+  Microsoft Windows.
