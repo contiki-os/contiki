@@ -30,7 +30,7 @@
  * 
  * Author: Oliver Schmidt <ol.sc@web.de>
  *
- * $Id: multi-threading.c,v 1.4 2008/05/26 09:12:22 oliverschmidt Exp $
+ * $Id: multi-threading.c,v 1.5 2010/02/10 07:59:42 oliverschmidt Exp $
  */
 
 /**
@@ -47,7 +47,6 @@
  * C-library functions don't work when called from a Contiki thread. */
 
 #include "contiki.h"
-#include "sys/log.h"
 #include "sys/mt.h"
 
 static char *ptr;
@@ -105,7 +104,7 @@ PROCESS_THREAD(multi_threading_process, ev, data)
 	mt_exec(&count_thread);
 	toggle++;
       }
-      log_message(ptr, "");
+      puts(ptr);
 
       etimer_set(&timer, CLOCK_SECOND / 2);
     }
