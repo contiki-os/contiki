@@ -66,6 +66,9 @@ OPENOCD_CFG = arm7_wig.cfg
 SAMIAM=Sam_I_Am
 SAMIAM_TTY=/dev/ttyACM0
 
+# Use OpenOCD by default
+PROG=openocd
+
 ARCH_FLAGS= -march=armv7-m -mthumb
 
 CFLAGSNO = -I. -I$(CONTIKI)/core -I$(CONTIKI_CPU) -I$(CONTIKI_CPU)/loader \
@@ -154,17 +157,18 @@ empty-symbols.c:
 
 
 
-
-upload_ocd_%: %.bin
+ifeq ($(PROG),openocd)
+%.u: %.bin
 	# Clear lock bits
 	$(OPENOCD) -s $(OPENOCD_DIR) -f $(OPENOCD_CFG) -c init -c "reset halt;sleep 250;flash probe 0;stm32x mass_erase 0; sleep 500;flash write_bank 0 $< 0;reset halt;resume;sleep 500;exit"
-
-
-upload_%: %.ihex
+else ifeq ($(PROG),samiam)
+%.u: %.ihex
 	# Clear lock bits
 	$(SAMIAM) "open $(SAMIAM_TTY) , writew 0xffffff64 5a000004"
 	$(SAMIAM) "open $(SAMIAM_TTY) , writew 0xffffff64 5a002004"
 	$(SAMIAM) "open $(SAMIAM_TTY) , flash $< , go"
+
+endif
 
 ocd_reset:
 	$(OPENOCD) -s $(OPENOCD_DIR) -f $(OPENOCD_CFG) -c init -c "reset halt;resume" -c exit
