@@ -40,7 +40,7 @@ endif
 
 ifdef USB_MSC_STREAMING
 CONTIKI_CPU_DIRS += ../common/usb/msc
-USB += usb-msc-bulk.c usb-streaming.c msc-scsi-transparent-descriptors.c msc-streaming-string-descriptors.c
+USB += usb-msc-bulk.c usb-streaming.c msc-scsi-streaming-descriptors-consts.c msc-scsi-streaming-descriptors.c
 XMLDIRS += $(CONTIKI_CPU_ARM)/common/usb/msc
 endif
 
