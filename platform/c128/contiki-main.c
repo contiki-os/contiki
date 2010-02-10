@@ -30,7 +30,7 @@
  * 
  * Author: Oliver Schmidt <ol.sc@web.de>
  *
- * $Id: contiki-main.c,v 1.7 2009/10/18 09:35:07 oliverschmidt Exp $
+ * $Id: contiki-main.c,v 1.8 2010/02/10 07:43:25 oliverschmidt Exp $
  */
 
 #include <string.h>
@@ -88,12 +88,6 @@ main(void)
   struct ethernet_config *ethernet_config;
 
   videomode(VIDEOMODE_80COL);
-
-  close(STDIN_FILENO);
-  close(STDOUT_FILENO);
-#if !UIP_LOGGING && !LOG_CONF_ENABLED
-  close(STDERR_FILENO);
-#endif /* !UIP_LOGGING && !LOG_CONF_ENABLED */
 
   process_init();
 

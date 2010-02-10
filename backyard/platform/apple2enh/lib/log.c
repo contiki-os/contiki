@@ -30,7 +30,7 @@
  * 
  * Author: Oliver Schmidt <ol.sc@web.de>
  *
- * $Id: log.c,v 1.1 2007/12/21 00:43:57 oliverschmidt Exp $
+ * $Id: log.c,v 1.1 2010/02/10 07:43:25 oliverschmidt Exp $
  */
 
 #include "net/uip.h"

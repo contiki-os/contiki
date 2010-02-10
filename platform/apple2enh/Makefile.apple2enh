@@ -30,10 +30,10 @@
 #
 # Author: Oliver Schmidt <ol.sc@web.de>
 #
-# $Id: Makefile.apple2enh,v 1.11 2010/01/31 18:21:41 oliverschmidt Exp $
+# $Id: Makefile.apple2enh,v 1.12 2010/02/10 07:43:25 oliverschmidt Exp $
 #
 
-CONTIKI_SOURCEFILES += log-asm.S pfs.S
+CONTIKI_SOURCEFILES += pfs.S
 HIGHCODE_SOURCEFILES = process.c etimer.c uip_arp.c
 
 CONTIKI_CPU = $(CONTIKI)/cpu/6502
