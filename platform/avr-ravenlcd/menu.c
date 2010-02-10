@@ -404,7 +404,7 @@ void
 menu_send_temp(void)
 {
     int16_t result;
-    uint8_t str[10];
+    uint8_t str[12];
     uint8_t * p = 0;
 
     /* Turn on nose LED for activity indicator */
@@ -417,7 +417,7 @@ menu_send_temp(void)
     p = signed_dectoascii(result, (str + 10));
 
     /* Send frame via serial port. */
-    uart_serial_send_frame(SEND_TEMP, strlen((char *)p), p);
+    uart_serial_send_frame(SEND_TEMP, 1+strlen((char *)p), p);
 
     led_off();
 }
