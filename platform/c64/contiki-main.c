@@ -30,7 +30,7 @@
  * 
  * Author: Oliver Schmidt <ol.sc@web.de>
  *
- * $Id: contiki-main.c,v 1.22 2009/02/27 07:57:14 oliverschmidt Exp $
+ * $Id: contiki-main.c,v 1.23 2010/02/10 07:43:25 oliverschmidt Exp $
  */
 
 #include <string.h>
@@ -86,12 +86,6 @@ void
 main(void)
 {
   struct ethernet_config *ethernet_config;
-
-  close(STDIN_FILENO);
-  close(STDOUT_FILENO);
-#if !UIP_LOGGING && !LOG_CONF_ENABLED
-  close(STDERR_FILENO);
-#endif /* !UIP_LOGGING && !LOG_CONF_ENABLED */
 
   process_init();
 

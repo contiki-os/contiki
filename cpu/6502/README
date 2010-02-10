@@ -25,10 +25,6 @@ bootable floppy disk image containing the project binary, a sample configuration
 file and the Ethernet card drivers.
 
 
-The 6502-based targets do in general not support keyboard input or screen output
-through stdin, stdout and stderr.
-
-
 The build for 6502-based machines supports so-called high-level configuration
 macros which allow to customize Contiki on a per-project basis. They are set
 in form of a comma-separated list as value of the make variable DEFINES on the

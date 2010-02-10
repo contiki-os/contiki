@@ -30,7 +30,7 @@
  * 
  * Author: Oliver Schmidt <ol.sc@web.de>
  *
- * $Id: contiki-main.c,v 1.19 2009/10/18 09:37:37 oliverschmidt Exp $
+ * $Id: contiki-main.c,v 1.20 2010/02/10 07:43:25 oliverschmidt Exp $
  */
 
 #include "contiki-net.h"
@@ -72,12 +72,6 @@ main(void)
 
   rebootafterexit();
   videomode(VIDEOMODE_80COL);
-
-#if !WITH_PFS
-  close(STDIN_FILENO);
-  close(STDOUT_FILENO);
-  close(STDERR_FILENO);
-#endif /* !WITH_PFS */
 
   process_init();
 
