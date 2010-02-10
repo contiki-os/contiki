@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: Mote2MoteRelations.java,v 1.5 2010/02/09 22:14:23 fros4943 Exp $
+ * $Id: Mote2MoteRelations.java,v 1.6 2010/02/10 13:29:27 fros4943 Exp $
  */
 
 package se.sics.cooja.interfaces;
@@ -106,6 +106,9 @@ public class Mote2MoteRelations extends MoteInterface {
         gui.removeMoteRelation(Mote2MoteRelations.this.mote, mote);
       }
       public void newLogOutput(LogOutputEvent ev) {
+        if (ev.getMote() != Mote2MoteRelations.this.mote) {
+          return;
+        }
         handleNewLog(ev.msg);
       }
       public void removedLogOutput(LogOutputEvent ev) {
@@ -131,6 +134,10 @@ public class Mote2MoteRelations extends MoteInterface {
       return;
     }
 
+    if (msg.startsWith("DEBUG: ")) {
+      msg = msg.substring("DEBUG: ".length());
+    }
+    
     if (!msg.startsWith("#L ")) {
       return;
     }
