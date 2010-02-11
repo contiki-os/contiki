@@ -105,6 +105,7 @@ static int find_temp(int16_t value, uint16_t* array, int count);
 
 /**
  *   \brief This will initialize the digital IO and adc channel for temperture readings.
+ *   Optionally enable adc channel 2 for measurement of EXT_SUPL_SIG.
  *
  *   \retval 0 Place holder for returning status.
 */
@@ -123,6 +124,12 @@ temp_init(void)
     /* Temp sens input, no pullup */
     TEMP_DDR &= ~(1 << TEMP_BIT_IN);
     TEMP_PORT &= ~(1 << TEMP_BIT_IN);
+
+#if MEASURE_ADC2
+    DIDR0 |= (1 << ADC2D);
+    TEMP_DDR &= ~(1 << 2);
+    TEMP_PORT &= ~(1 << 2);
+#endif   
 
     temp_initialized = true;
 
