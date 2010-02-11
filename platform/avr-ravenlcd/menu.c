@@ -400,6 +400,9 @@ menu_stop_temp(void)
 /**
  *   \brief This will send the data via the serial port.
 */
+#if MEASURE_ADC2
+extern uint16_t ADC2_reading;
+#endif
 void
 menu_send_temp(void)
 {
@@ -418,6 +421,13 @@ menu_send_temp(void)
 
     /* Send frame via serial port. */
     uart_serial_send_frame(SEND_TEMP, 1+strlen((char *)p), p);
+
+#if MEASURE_ADC2
+    /* Send ADC2 via serial port. */
+    p = signed_dectoascii(ADC2_reading, (str + 10));
+    str[9]='m';str[10]='V';str[11]=0;   //convert degrees to millivolts ;)
+    uart_serial_send_frame(SEND_ADC2, 1+strlen((char *)p), p);
+#endif
 
     led_off();
 }
