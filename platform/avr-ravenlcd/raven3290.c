@@ -55,9 +55,14 @@
  *      the menu will signal a <b>caution</b> symbol to the user letting them know the JTAG
  *      feature needs to be disabled.
  *     \image html caution.gif
+ *      -# The JTAG header may also need to be physically disconnected from any external
+ *      programming/debugging device in order to obtain correct temperature readings.
  *   -# <b>Temp Data</b> - Once the temperature reading is proper, the user can send this reading
  *   to the webserver for Sensor Reading Data (<b>Once</b> or <b>Auto</b>). The webserver will
  *   only update the html data when <b>refreshed</b>.
+ *   -# <b>EXT_SUPL_SIG</b> - This signal connects the external supply voltage to ADC2 through a divider.
+ *   Enabling MEASURE_ADC2 in temp.h causes it to be sampled and sent to the webserver along
+ *   with the temperature.
  *
  *   More information about the operation of the Contiki 6LoWPAN system can be found
  *   at the \ref tutorialraven.
