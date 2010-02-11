@@ -147,12 +147,18 @@ temp_deinit(void)
  *
  *   After the raw adc value is stored, it will be used to lookup a degree conversion
  *   based on the tables for F or C.
+ *   Optionally, EXT_SUPL_SIG is also read on channel 2 and stored in the global
+ *   ADC2_reading for subsequent transfer to the 1284p web server.
  *
  *   \param unit Used to determine what unit needs to be appended with the value.
  *
  *   \return EOF This is an uninitialized adc error.
  *   \retval temp The newly converted value in degrees F or C.
 */
+#if MEASURE_ADC2
+uint16_t ADC2_reading;
+#endif
+
 int16_t
 temp_get(temp_unit_t unit)
 {
@@ -168,12 +174,25 @@ temp_get(temp_unit_t unit)
     TEMP_PORT |= (1 << TEMP_BIT_PWR);
 
     /* Init ADC and measure */
-	adc_init(ADC_CHAN_ADC4, ADC_TRIG_FREE_RUN, ADC_REF_AVCC, ADC_PS_128);
+    adc_init(ADC_CHAN_ADC4, ADC_TRIG_FREE_RUN, ADC_REF_AVCC, ADC_PS_128);
     adc_conversion_start();
     while ((res = adc_result_get(ADC_ADJ_RIGHT)) == EOF ){
         ;
     }
-    adc_deinit();
+    
+#if MEASURE_ADC2
+    /* Measure external voltage supply, routed to ADC2 through a 470K/100K divider*/
+    /* AVCC is 3.3 volts if using external supply, else Vbat which will be lower */
+    /* Convert result to millivolts assuming AVCC is 3.3 volts, on battery it will be lower! */
+    adc_init(ADC_CHAN_ADC2, ADC_TRIG_FREE_RUN, ADC_REF_AVCC, ADC_PS_128);
+    adc_conversion_start();
+    while ((ADC2_reading = adc_result_get(ADC_ADJ_RIGHT)) == EOF ){
+        ;
+    }
+    ADC2_reading = (ADC2_reading*((470+100)*3300UL))/(100*1024UL);
+#endif
+ 
+   adc_deinit();
     /* Re-init the adc for buttons. */
     key_init();
 
