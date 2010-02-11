@@ -75,5 +75,9 @@ clean:
 	-rm -rf $(OBJECTS) $(PROJECT).elf dep/* $(PROJECT).hex $(PROJECT).eep $(PROJECT).map $(PROJECT).lss
 
 ## Other dependencies
+## In cygwin the /dep folder causes make to fail after the initial make.
+## $make CYG=1 allows cleans and makes based on .c dependencies (but not .h)
+ifndef CYG
 -include $(shell mkdir dep 2>/dev/null) $(wildcard dep/*)
+endif
 
