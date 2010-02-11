@@ -67,9 +67,12 @@ typedef enum {
 /** \} */
 
 /** \brief          Initialize the temperature sensor
+ *                  ADC2=EXT_SUPL_SIG can also be measured and sent
+ *                  to the 1284p along with the temperature reading.
  *
  * \return                              EOF on error
  */
+//#define MEASURE_ADC2 1    //adds 250 bytes to program size
 int temp_init(void);
 
 
