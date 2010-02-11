@@ -56,6 +56,7 @@
 #define NULL_CMD                      (0)
 #define SEND_TEMP                     (0x80)
 #define SEND_PING                     (0x81)
+#define SEND_ADC2                     (0x82)
 /** \} */
 
 /** \name These are the Radio to GUI binary commands. */
