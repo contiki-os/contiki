@@ -27,7 +27,7 @@
  * SUCH DAMAGE.
  *
  *
- * $Id: rf230bb.c,v 1.1 2009/07/08 16:17:07 dak664 Exp $
+ * $Id: rf230bb.c,v 1.2 2010/02/12 16:41:02 dak664 Exp $
 */
 
 /**
@@ -84,6 +84,13 @@
 
 #define WITH_SEND_CCA 0
 
+/* See clock.c and httpd-cgi.c for RADIOSTATS code */
+uint8_t RF230_radio_on;
+#define RADIOSTATS 0
+#if RADIOSTATS
+uint8_t RF230_rsigsi;
+uint16_t RF230_sendpackets,RF230_receivepackets,RF230_sendfail,RF230_receivefail;
+#endif
 
 #if RF230_CONF_TIMESTAMPS
 #include "net/rime/timesynch.h"
@@ -172,8 +179,6 @@ static void (* receiver_callback)(const struct radio_driver *);
 
 //signed char rf230_last_rssi;
 //uint8_t rf230_last_correlation;
-
-static uint8_t receive_on;
 //static uint8_t rssi_val;
 uint8_t rx_mode;
 /* Radio stuff in network byte order. */
@@ -396,7 +401,7 @@ on(void)
 {
   ENERGEST_ON(ENERGEST_TYPE_LISTEN);
   PRINTF("rf230 internal on\n");
-  receive_on = 1;
+  RF230_radio_on = 1;
 
   hal_set_slptr_low();
 //radio_is_waking=1;//can test this before tx instead of delaying
@@ -410,7 +415,7 @@ static void
 off(void)
 {
   PRINTF("rf230 internal off\n");
-  receive_on = 0;
+  RF230_radio_on = 0;
   
   /* Wait for transmission to end before turning radio off. */
   rf230_waitidle(); 
@@ -450,7 +455,7 @@ rf230_off(void)
 {
 // PRINTF("rf230_off\n");	
   /* Don't do anything if we are already turned off. */
-  if(receive_on == 0) {
+  if(RF230_radio_on == 0) {
     return 1;
   }
 
@@ -469,7 +474,7 @@ int
 rf230_on(void)
 {
 //PRINTF("rf230_on\n");
-  if(receive_on) {
+  if(RF230_radio_on) {
     return 1;
   }
   if(locked) {
@@ -665,6 +670,9 @@ bomb
   rxframe.length=0;
  // framep+=len-AUX_LEN+2;
 
+#if RADIOSTATS
+  RF230_receivepackets++;
+#endif
 
 #if RF230_CONF_CHECKSUM
 bomb
@@ -706,7 +714,9 @@ bomb
 	packetbuf_set_addr(PACKETBUF_ADDR_SENDER, (const rimeaddr_t *)src_reversed);
 
   */  
-    
+ #if RADIOSTATS
+    RF230_rsigsi=hal_subregister_read( SR_RSSI );
+#endif      
     packetbuf_set_attr(PACKETBUF_ATTR_RSSI, hal_subregister_read( SR_RSSI ));
     packetbuf_set_attr(PACKETBUF_ATTR_LINK_QUALITY, rxframe.lqi);
     
@@ -725,7 +735,12 @@ bomb
 #endif /* RF230_CONF_TIMESTAMPS */
   
   } else {
-	PRINTF("rf230: Bad CRC\n");
+    PRINTF("rf230: Bad CRC\n");
+
+#if RADIOSTATS
+    RF230_receivefail++;
+#endif
+
     RIMESTATS_ADD(badcrc);
     len = AUX_LEN;
   }
@@ -775,7 +790,7 @@ rf230_rssi(void)
   int radio_was_off = 0;
   
   /*The RSSI measurement should only be done in RX_ON or BUSY_RX.*/
-  if(!receive_on) {
+  if(!RF230_radio_on) {
     radio_was_off = 1;
     rf230_on();
   }
@@ -800,6 +815,10 @@ rf230_send(const void *payload, unsigned short payload_len)
   uint16_t checksum;
 #endif /* RF230_CONF_CHECKSUM */
 
+#if RADIOSTATS
+  RF230_sendpackets++;
+#endif
+
   GET_LOCK();
 
   if(packetbuf_attr(PACKETBUF_ATTR_RADIO_TXPOWER) > 0) {
@@ -816,6 +835,9 @@ rf230_send(const void *payload, unsigned short payload_len)
   total_len = payload_len + AUX_LEN;
   /*Check function parameters and current state.*/
   if (total_len > RF230_MAX_TX_FRAME_LENGTH){
+#if RADIOSTATS
+    RF230_sendfail++;
+#endif   
     return -1;
   }
   pbuf=&buffer[0];
@@ -874,7 +896,7 @@ rf230_send(const void *payload, unsigned short payload_len)
       rtimer_clock_t txtime = timesynch_time();
 #endif /* RF230_CONF_TIMESTAMPS */
 
-      if(receive_on) {
+      if(RF230_radio_on) {
 	     ENERGEST_OFF(ENERGEST_TYPE_LISTEN);
       }
       ENERGEST_ON(ENERGEST_TYPE_TRANSMIT);
@@ -897,7 +919,7 @@ rf230_send(const void *payload, unsigned short payload_len)
       ENERGEST_OFF_LEVEL(ENERGEST_TYPE_TRANSMIT,rf230_get_txpower());
 #endif
       ENERGEST_OFF(ENERGEST_TYPE_TRANSMIT);
-      if(receive_on) {
+      if(RF230_radio_on) {
 	    ENERGEST_ON(ENERGEST_TYPE_LISTEN);
       }
 
@@ -910,6 +932,9 @@ rf230_send(const void *payload, unsigned short payload_len)
      transmitted because of other channel activity. */
   RIMESTATS_ADD(contentiondrop);
   PRINTF("rf230: do_send() transmission never started\n");
+#if RADIOSTATS
+  RF230_sendfail++;
+#endif     
   RELEASE_LOCK();
   return -3;			/* Transmission never started! */
 }/*---------------------------------------------------------------------------*/
