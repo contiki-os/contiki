@@ -36,7 +36,7 @@
  *  ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  *  POSSIBILITY OF SUCH DAMAGE.
  *
- * $Id: radio.c,v 1.4 2010/02/12 16:41:02 dak664 Exp $
+ * $Id: radio.c,v 1.5 2010/02/12 18:00:30 dak664 Exp $
 */
 
 /**
@@ -258,7 +258,7 @@ radio_trx_end_event(uint32_t const isr_timestamp)
     if (rx_mode){
         /* radio has received frame, store it away */
 #if RADIOSTATS
-        RF230_rssi=rssi_val;
+        RF230_rsigsi=rssi_val;
         RF230_receivepackets++;
 #endif
         parsed_frame.time = isr_timestamp;
