@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ScriptRunner.java,v 1.26 2010/01/25 07:49:42 fros4943 Exp $
+ * $Id: ScriptRunner.java,v 1.27 2010/02/12 09:28:28 fros4943 Exp $
  */
 
 package se.sics.cooja.plugins;
@@ -46,10 +46,10 @@ import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Observable;
 import java.util.Observer;
-import java.util.Vector;
 
 import javax.script.ScriptException;
 import javax.swing.AbstractAction;
@@ -80,6 +80,7 @@ import se.sics.cooja.util.StringUtils;
 @ClassDescription("Contiki Test Editor")
 @PluginType(PluginType.SIM_PLUGIN)
 public class ScriptRunner extends VisPlugin {
+  private static final long serialVersionUID = 7614358340336799109L;
   private static Logger logger = Logger.getLogger(ScriptRunner.class);
 
   final String[] EXAMPLE_SCRIPTS = new String[] {
@@ -550,12 +551,19 @@ public class ScriptRunner extends VisPlugin {
   }
 
   public Collection<Element> getConfigXML() {
-    Vector<Element> config = new Vector<Element>();
+    ArrayList<Element> config = new ArrayList<Element>();
     Element element;
 
-    element = new Element("script");
-    element.setText(scriptTextArea.getText());
-    config.add(element);
+    if (scriptFile != null) {
+      element = new Element("scriptfile");
+      element.setText(simulation.getGUI().createPortablePath(scriptFile).getPath().replace('\\', '/'));
+      config.add(element);
+      StringUtils.saveToFile(scriptFile, scriptTextArea.getText());
+    } else {
+      element = new Element("script");
+      element.setText(scriptTextArea.getText());
+      config.add(element);
+    }
 
     element = new Element("active");
     element.setText("" + (engine != null));
@@ -568,6 +576,7 @@ public class ScriptRunner extends VisPlugin {
     setScriptActive(false);
   }
 
+  private File scriptFile = null;
   public boolean setConfigXML(Collection<Element> configXML, boolean visAvailable) {
     for (Element element : configXML) {
       String name = element.getName();
@@ -575,6 +584,15 @@ public class ScriptRunner extends VisPlugin {
         if (!element.getText().isEmpty()) {
           updateScript(element.getText());
         }
+      } else if ("scriptfile".equals(name)) {
+        File file = simulation.getGUI().restorePortablePath(new File(element.getText().trim()));
+        String script = StringUtils.loadFromFile(file);
+        if (script == null) {
+          logger.fatal("Failed to load script from: " + file.getAbsolutePath());
+        } else {
+          updateScript(script);
+        }
+        scriptFile = file;
       } else if ("active".equals(name)) {
         boolean active = Boolean.parseBoolean(element.getText());
         if (GUI.isVisualized()) {
