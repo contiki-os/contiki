@@ -6,8 +6,16 @@
 #include <avr/io.h>
 #include <avr/interrupt.h>
 
+/* Experimental: RADIOSTATS should be also be defined in the radio driver and webserver */
+#define RADIOSTATS 0
+#if RADIOSTATS
+static volatile clock_time_t count, scount, rcount;
+volatile unsigned long seconds,radioontime;
+extern uint8_t RF230_radio_on;
+#else
 static volatile clock_time_t count, scount;
-static volatile unsigned long seconds;
+volatile unsigned long seconds;
+#endif
 
 /*---------------------------------------------------------------------------*/
 //SIGNAL(SIG_OUTPUT_COMPARE0)
@@ -18,6 +26,14 @@ ISR(AVR_OUTPUT_COMPARE_INT)
     scount = 0;
     seconds++;
   }
+#if RADIOSTATS
+  if (RF230_radio_on) {
+    if (++rcount == CLOCK_SECOND) {
+      rcount=0;
+      radioontime++;
+    }
+  }
+#endif
   if(etimer_pending()) {
     etimer_request_poll();
   }
