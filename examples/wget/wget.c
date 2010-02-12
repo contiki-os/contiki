@@ -29,7 +29,7 @@
  *
  * This file is part of the Contiki desktop environment
  *
- * $Id: wget.c,v 1.1 2010/02/10 23:51:38 oliverschmidt Exp $
+ * $Id: wget.c,v 1.2 2010/02/12 10:14:09 oliverschmidt Exp $
  *
  */
 
@@ -162,8 +162,9 @@ PROCESS_THREAD(wget_process, ev, data)
     if(ev == 0) {
       fputs("\nGet url:", stdout);
       gets(url);
-      fputs("Save as:", stdout);
+      fputs("\nSave as:", stdout);
       gets(name);
+      puts("");
       file = cfs_open(name, CFS_WRITE);
       if(file == -1) {
         printf("Open error with '%s'\n", name);
