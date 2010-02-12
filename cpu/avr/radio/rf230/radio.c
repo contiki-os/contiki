@@ -36,7 +36,7 @@
  *  ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  *  POSSIBILITY OF SUCH DAMAGE.
  *
- * $Id: radio.c,v 1.3 2009/07/05 18:50:44 dak664 Exp $
+ * $Id: radio.c,v 1.4 2010/02/12 16:41:02 dak664 Exp $
 */
 
 /**
@@ -112,6 +112,14 @@ static radio_rx_callback rx_frame_callback;
 static uint8_t rssi_val;
 static uint8_t rx_mode;
 uint8_t rxMode = RX_AACK_ON;
+
+/* See clock.c and httpd-cgi.c for RADIOSTATS code */
+#define RADIOSTATS 0
+#if RADIOSTATS
+uint8_t RF230_radio_on, RF230_rsigsi;
+uint16_t RF230_sendpackets,RF230_receivepackets,RF230_sendfail,RF230_receivefail;
+#endif
+
 static hal_rx_frame_t rx_frame;
 static parsed_frame_t parsed_frame;
 
@@ -184,9 +192,12 @@ radio_init(bool cal_rc_osc,
         else {
             if (hal_register_read(RG_MAN_ID_0) != SUPPORTED_MANUFACTURER_ID)
                 init_status = RADIO_UNSUPPORTED_DEVICE;
-    else
-        hal_register_write(RG_IRQ_MASK, RF230_SUPPORTED_INTERRUPT_MASK);
+            else
+                hal_register_write(RG_IRQ_MASK, RF230_SUPPORTED_INTERRUPT_MASK);
         }
+#if RADIOSTATS
+        RF230_radio_on = 1;
+#endif
     }
 
     /*  set callbacks for events.  Save user's rx_event, which we will */
@@ -246,6 +257,10 @@ radio_trx_end_event(uint32_t const isr_timestamp)
     }
     if (rx_mode){
         /* radio has received frame, store it away */
+#if RADIOSTATS
+        RF230_rssi=rssi_val;
+        RF230_receivepackets++;
+#endif
         parsed_frame.time = isr_timestamp;
         parsed_frame.rssi = rssi_val;
         
@@ -271,12 +286,18 @@ radio_trx_end_event(uint32_t const isr_timestamp)
         case TRAC_NO_ACK:
         case TRAC_CHANNEL_ACCESS_FAILURE:
             event.event = MAC_EVENT_NACK;
+#if RADIOSTATS
+        RF230_sendfail++;
+#endif
             break;
         case TRAC_SUCCESS_WAIT_FOR_ACK:
             /*  should only happen in RX mode */
         case TRAC_INVALID:
             /*  should never happen here */
         default:
+#if RADIOSTATS
+            RF230_sendfail++;
+#endif
             break;
         }
         if (event.event)
@@ -893,6 +914,9 @@ radio_enter_sleep_mode(void)
         /* Enter Sleep. */
         hal_set_slptr_high();
         enter_sleep_status = RADIO_SUCCESS;
+#if RADIOSTATS
+        RF230_radio_on = 0;
+#endif
     }
 
     return enter_sleep_status;
@@ -921,6 +945,9 @@ radio_leave_sleep_mode(void)
     /* Ensure that the radio transceiver is in the TRX_OFF state. */
     if (radio_get_trx_state() == TRX_OFF){
         leave_sleep_status = RADIO_SUCCESS;
+#if RADIOSTATS
+        RF230_radio_on = 1;
+#endif
     }
 
     return leave_sleep_status;
@@ -990,12 +1017,18 @@ radio_send_data(uint8_t data_length, uint8_t *data)
 {
     /*Check function parameters and current state.*/
     if (data_length > RF230_MAX_TX_FRAME_LENGTH){
+#if RADIOSTATS
+        RF230_sendfail++;
+#endif
         return RADIO_INVALID_ARGUMENT;
     }
 
      /* If we are busy, return */
         if ((radio_get_trx_state() == BUSY_TX) || (radio_get_trx_state() == BUSY_TX_ARET) )
         {
+#if RADIOSTATS
+        RF230_sendfail++;
+#endif
         return RADIO_WRONG_STATE;
         }
 
@@ -1008,7 +1041,9 @@ radio_send_data(uint8_t data_length, uint8_t *data)
     hal_set_slptr_low();
 
     hal_frame_write(data, data_length); /* Then write data to the frame buffer. */
-
+#if RADIOSTATS
+    RF230_sendpackets++;
+#endif
     return RADIO_SUCCESS;
 }
 
