@@ -28,7 +28,7 @@
  *
  * This file is part of the uIP TCP/IP stack.
  *
- * $Id: httpd-cgi.h,v 1.2 2010/02/09 14:41:18 dak664 Exp $
+ * $Id: httpd-cgi.h,v 1.3 2010/02/12 16:42:59 dak664 Exp $
  *
  */
 
@@ -55,6 +55,7 @@ static struct httpd_cgi_call name = {NULL, str, function}
 
 void httpd_cgi_init(void);
 void web_set_temp(char *s);
+void web_set_voltage(char *s);
 uint8_t httpd_cgi_sprint_ip6(uip_ip6addr_t addr, char * result);
 
 #endif /* __HTTPD_CGI_H__ */
