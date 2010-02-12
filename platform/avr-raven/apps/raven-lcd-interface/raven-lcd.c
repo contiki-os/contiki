@@ -28,7 +28,7 @@
  *  ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  *  POSSIBILITY OF SUCH DAMAGE.
  *
- * $Id: raven-lcd.c,v 1.4 2010/02/05 16:45:56 nifi Exp $
+ * $Id: raven-lcd.c,v 1.5 2010/02/12 16:46:39 dak664 Exp $
 */
 
 /**
@@ -88,8 +88,10 @@ static struct{
 #define UIP_IP_BUF                ((struct uip_ip_hdr *)&uip_buf[UIP_LLH_LEN])
 #define UIP_ICMP_BUF            ((struct uip_icmp_hdr *)&uip_buf[uip_l2_l3_hdr_len])
 #define PING6_DATALEN 16
-#define CMD_PING 0x81
+
 #define CMD_TEMP 0x80
+#define CMD_PING 0x81
+#define CMD_ADC2 0x82
 
 #define SOF_CHAR 1
 #define EOF_CHAR 4
@@ -193,6 +195,10 @@ raven_gui_loop(process_event_t ev, process_data_t data)
             case CMD_TEMP:
                 /* Set temperature string in web server */
                 web_set_temp((char *)cmd.frame);
+                break;
+            case CMD_ADC2:
+                /* Set ext voltage string in web server */
+                web_set_voltage((char *)cmd.frame);
                 break;
             default:
                 break;
