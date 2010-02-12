@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: LogVisualizerSkin.java,v 1.4 2009/10/28 15:42:03 fros4943 Exp $
+ * $Id: LogVisualizerSkin.java,v 1.5 2010/02/12 09:25:46 fros4943 Exp $
  */
 
 package se.sics.cooja.plugins.skins;
@@ -42,10 +42,14 @@ import org.apache.log4j.Logger;
 
 import se.sics.cooja.ClassDescription;
 import se.sics.cooja.Mote;
+import se.sics.cooja.MoteInterface;
 import se.sics.cooja.Simulation;
+import se.sics.cooja.SimEventCentral.LogOutputEvent;
+import se.sics.cooja.SimEventCentral.LogOutputListener;
 import se.sics.cooja.SimEventCentral.MoteCountListener;
 import se.sics.cooja.interfaces.Log;
 import se.sics.cooja.interfaces.Position;
+import se.sics.cooja.interfaces.SerialPort;
 import se.sics.cooja.plugins.Visualizer;
 import se.sics.cooja.plugins.VisualizerSkin;
 
@@ -63,23 +67,17 @@ public class LogVisualizerSkin implements VisualizerSkin {
   private Simulation simulation = null;
   private Visualizer visualizer = null;
 
-  private Observer logObserver = new Observer() {
-    public void update(Observable obs, Object obj) {
+  private LogOutputListener logOutputListener = new LogOutputListener() {
+    public void moteWasAdded(Mote mote) {
       visualizer.repaint();
     }
-  };
-  private MoteCountListener newMotesListener = new MoteCountListener() {
-    public void moteWasAdded(Mote mote) {
-      Log log = mote.getInterfaces().getLog();
-      if (log != null) {
-        log.addObserver(logObserver);
-      }
-    }
     public void moteWasRemoved(Mote mote) {
-      Log log = mote.getInterfaces().getLog();
-      if (log != null) {
-        log.deleteObserver(logObserver);
-      }
+      visualizer.repaint();
+    }
+    public void newLogOutput(LogOutputEvent ev) {
+      visualizer.repaint();
+    }
+    public void removedLogOutput(LogOutputEvent ev) {
     }
   };
 
@@ -87,17 +85,11 @@ public class LogVisualizerSkin implements VisualizerSkin {
     this.simulation = simulation;
     this.visualizer = vis;
 
-    simulation.getEventCentral().addMoteCountListener(newMotesListener);
-    for (Mote m: simulation.getMotes()) {
-      newMotesListener.moteWasAdded(m);
-    }
+    simulation.getEventCentral().addLogOutputListener(logOutputListener);
   }
 
   public void setInactive() {
-    simulation.getEventCentral().removeMoteCountListener(newMotesListener);
-    for (Mote m: simulation.getMotes()) {
-      newMotesListener.moteWasRemoved(m);
-    }
+    simulation.getEventCentral().removeLogOutputListener(logOutputListener);
   }
 
   public Color[] getColorOf(Mote mote) {
@@ -114,11 +106,17 @@ public class LogVisualizerSkin implements VisualizerSkin {
     /* Paint last output below motes */
     Mote[] allMotes = simulation.getMotes();
     for (Mote mote: allMotes) {
-      Log log = mote.getInterfaces().getLog();
-      if (log == null) {
-        continue;
+      String msg = null;
+      for (MoteInterface mi: mote.getInterfaces().getInterfaces()) {
+        if (!(mi instanceof Log)) {
+          continue;
+        }
+        Log log = (Log) mi;
+        if (log.getLastLogMessage() == null) {
+          continue;
+        }
+        msg = log.getLastLogMessage();
       }
-      String msg = log.getLastLogMessage();
       if (msg == null) {
         continue;
       }
