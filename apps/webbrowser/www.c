@@ -29,7 +29,7 @@
  *
  * This file is part of the Contiki desktop environment
  *
- * $Id: www.c,v 1.11 2010/02/01 19:44:30 oliverschmidt Exp $
+ * $Id: www.c,v 1.12 2010/02/13 10:39:57 oliverschmidt Exp $
  *
  */
 
@@ -70,10 +70,15 @@ static char webpage[WWW_CONF_WEBPAGE_WIDTH *
 /* The CTK widgets for the main window. */
 static struct ctk_window mainwindow;
 
+#if WWW_CONF_HISTORY_SIZE > 0
 static struct ctk_button backbutton =
   {CTK_BUTTON(0, 0, 4, "Back")};
 static struct ctk_button downbutton =
   {CTK_BUTTON(10, 0, 4, "Down")};
+#else /* WWW_CONF_HISTORY_SIZE > 0 */
+static struct ctk_button downbutton =
+  {CTK_BUTTON(0, 0, 4, "Down")};
+#endif /* WWW_CONF_HISTORY_SIZE > 0 */
 static struct ctk_button stopbutton =
   {CTK_BUTTON(WWW_CONF_WEBPAGE_WIDTH - 16, 0, 4, "Stop")};
 static struct ctk_button gobutton =
@@ -110,10 +115,11 @@ static struct ctk_button wgetyesbutton =
   {CTK_BUTTON(11, 5, 24, "Close browser & download")};
 #endif /* WWW_CONF_WITH_WGET */
 
+#if WWW_CONF_HISTORY_SIZE > 0
 /* The char arrays that hold the history of visited URLs. */
 static char history[WWW_CONF_HISTORY_SIZE][WWW_CONF_MAX_URLLEN];
 static char history_last;
-
+#endif /* WWW_CONF_HISTORY_SIZE > 0 */
 
 /* The CTK widget definitions for the hyperlinks and the char arrays
    that hold the link URLs. */
@@ -177,7 +183,9 @@ static void formsubmit(struct formattribs *attribs);
 static void
 make_window(void)
 {
+#if WWW_CONF_HISTORY_SIZE > 0
   CTK_WIDGET_ADD(&mainwindow, &backbutton);
+#endif /* WWW_CONF_HISTORY_SIZE > 0 */
   CTK_WIDGET_ADD(&mainwindow, &downbutton);
   CTK_WIDGET_ADD(&mainwindow, &stopbutton);
   CTK_WIDGET_ADD(&mainwindow, &gobutton);
@@ -374,6 +382,7 @@ open_link(char *link)
   start_loading();
 }
 /*-----------------------------------------------------------------------------------*/
+#if WWW_CONF_HISTORY_SIZE > 0
 /* log_back():
  *
  * Copies the current URL from the url variable and into the log for
@@ -390,6 +399,7 @@ log_back(void)
     }
   }
 }
+#endif /* WWW_CONF_HISTORY_SIZE > 0 */
 /*-----------------------------------------------------------------------------------*/
 static void
 quit(void)
@@ -443,10 +453,21 @@ PROCESS_THREAD(www_process, ev, data)
     if(ev == tcpip_event) {
       webclient_appcall(data);
     } else if(ev == ctk_signal_widget_activate) {
-      if(w == (struct ctk_widget *)&backbutton) {
+      if(w == (struct ctk_widget *)&gobutton ||
+	 w == (struct ctk_widget *)&urlentry) {
+	start_loading();
+	firsty = 0;
+#if WWW_CONF_HISTORY_SIZE > 0	
+	log_back();
+#endif /* WWW_CONF_HISTORY_SIZE > 0 */
+	memcpy(url, editurl, WWW_CONF_MAX_URLLEN);
+	petsciiconv_toascii(url, WWW_CONF_MAX_URLLEN);
+	open_url();
+	CTK_WIDGET_FOCUS(&mainwindow, &gobutton);
+#if WWW_CONF_HISTORY_SIZE > 0
+      } else if(w == (struct ctk_widget *)&backbutton) {
 	firsty = 0;
 	start_loading();
-	
 	--history_last;
 	if(history_last > WWW_CONF_HISTORY_SIZE) {
 	  history_last = WWW_CONF_HISTORY_SIZE - 1;
@@ -454,21 +475,12 @@ PROCESS_THREAD(www_process, ev, data)
 	memcpy(url, history[(int)history_last], WWW_CONF_MAX_URLLEN);
 	open_url();
 	CTK_WIDGET_FOCUS(&mainwindow, &backbutton);
+#endif /* WWW_CONF_HISTORY_SIZE > 0 */
       } else if(w == (struct ctk_widget *)&downbutton) {
 	firsty = pagey + WWW_CONF_WEBPAGE_HEIGHT - 4;
 	start_loading();
 	open_url();
 	CTK_WIDGET_FOCUS(&mainwindow, &downbutton);
-      } else if(w == (struct ctk_widget *)&gobutton ||
-		w == (struct ctk_widget *)&urlentry) {
-	start_loading();
-	firsty = 0;
-	
-	log_back();
-	memcpy(url, editurl, WWW_CONF_MAX_URLLEN);
-	petsciiconv_toascii(url, WWW_CONF_MAX_URLLEN);
-	open_url();
-	CTK_WIDGET_FOCUS(&mainwindow, &gobutton);
       } else if(w == (struct ctk_widget *)&stopbutton) {
 	loading = 0;
 	webclient_close();
@@ -502,7 +514,9 @@ PROCESS_THREAD(www_process, ev, data)
       }
     } else if(ev == ctk_signal_hyperlink_activate) {
       firsty = 0;
+#if WWW_CONF_HISTORY_SIZE > 0
       log_back();
+#endif /* WWW_CONF_HISTORY_SIZE > 0 */
       open_link(w->widget.hyperlink.url);
       CTK_WIDGET_FOCUS(&mainwindow, &stopbutton);
       /*    ctk_window_open(&mainwindow);*/
@@ -865,8 +879,8 @@ htmlparser_renderstate(unsigned char s)
 }
 #endif /* WWW_CONF_RENDERSTATE */
 
-#if WWW_CONF_FORMS
 /*-----------------------------------------------------------------------------------*/
+#if WWW_CONF_FORMS
 void
 htmlparser_submitbutton(char *text, char *name,
 			char *formname, char *formaction)
@@ -960,8 +974,10 @@ formsubmit(struct formattribs *attribs)
   }
   --urlptr;
   *urlptr = 0;
+#if WWW_CONF_HISTORY_SIZE > 0
   log_back();
+#endif /* WWW_CONF_HISTORY_SIZE > 0 */
   open_link(tmpurl);
 }
-/*-----------------------------------------------------------------------------------*/
 #endif /* WWW_CONF_FORMS */
+/*-----------------------------------------------------------------------------------*/
