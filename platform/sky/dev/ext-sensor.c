@@ -26,15 +26,15 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ext-sensor.c,v 1.2 2010/02/06 14:41:24 adamdunkels Exp $
+ * $Id: ext-sensor.c,v 1.3 2010/02/13 11:20:48 joxe Exp $
  *
  * -----------------------------------------------------------------
  *
  * Author  : Adam Dunkels, Joakim Eriksson, Niclas Finne, Marcus Lundén,
  *           Jesper Karlsson
  * Created : 2005-11-01
- * Updated : $Date: 2010/02/06 14:41:24 $
- *           $Revision: 1.2 $
+ * Updated : $Date: 2010/02/13 11:20:48 $
+ *           $Revision: 1.3 $
  */
 
 #include <io.h>
@@ -86,13 +86,13 @@ configure(int type, int c)
         if(!status(SENSORS_ACTIVE)) {
           /* SREF_1 is Vref+ */
           /* MemReg6 == P6.0/A0 == port "under" logo */
-          ADC12MCTL6 = (INCH_0 + SREF_1);
+          ADC12MCTL6 = (INCH_0 + SREF_0);
           /* MemReg7 == P6.1/A1 == port "over" logo */
-          ADC12MCTL7 = (INCH_1 + SREF_1);
+          ADC12MCTL7 = (INCH_1 + SREF_0);
           /* MemReg8 == P6.2/A2, bottom expansion port */
-          ADC12MCTL8 = (INCH_2 + SREF_1);
+          ADC12MCTL8 = (INCH_2 + SREF_0);
           /* MemReg9 == P6.1/A3, bottom expansion port, End Of (ADC-)Sequence */
-          ADC12MCTL9 = (INCH_3 + SREF_1);
+          ADC12MCTL9 = (INCH_3 + SREF_0);
 
           sky_sensors_activate(0x0F);
           active = 1;
@@ -107,4 +107,3 @@ configure(int type, int c)
 /*---------------------------------------------------------------------------*/
 SENSORS_SENSOR(ext_sensor, "Ext",
          value, configure, status);
-
