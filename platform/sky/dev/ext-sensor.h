@@ -26,20 +26,25 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ext-sensor.h,v 1.1 2009/08/25 16:24:49 adamdunkels Exp $
+ * $Id: ext-sensor.h,v 1.2 2010/02/13 11:20:48 joxe Exp $
  *
  * -----------------------------------------------------------------
  *
  * Author  : Marcus Lundén
  * Created : 2005-11-01
- * Updated : $Date: 2009/08/25 16:24:49 $
- *           $Revision: 1.1 $
+ * Updated : $Date: 2010/02/13 11:20:48 $
+ *           $Revision: 1.2 $
  */
 
 #ifndef __EXT_SENSOR_H__
 #define __EXT_SENSOR_H__
 
 #include "lib/sensors.h"
+
+#define ADC0 0
+#define ADC1 1
+#define ADC2 2
+#define ADC3 3
 
 extern const struct sensors_sensor ext_sensor;
 
