@@ -41,7 +41,7 @@
  *
  * This file is part of the uIP TCP/IP stack.
  *
- * $Id: uip6.c,v 1.12 2010/02/15 18:03:08 adamdunkels Exp $
+ * $Id: uip6.c,v 1.13 2010/02/15 19:23:54 adamdunkels Exp $
  *
  */
 
@@ -1682,14 +1682,18 @@ uip_process(u8_t flag)
      receive a SYN, in which case we should retransmit our SYNACK
      (which is done futher down). */
   if(!((((uip_connr->tcpstateflags & UIP_TS_MASK) == UIP_SYN_SENT) &&
-	((BUF->flags & TCP_CTL) == (TCP_SYN | TCP_ACK))) ||
+	((UIP_TCP_BUF->flags & TCP_CTL) == (TCP_SYN | TCP_ACK))) ||
        (((uip_connr->tcpstateflags & UIP_TS_MASK) == UIP_SYN_RCVD) &&
-	((BUF->flags & TCP_CTL) == TCP_SYN)))) {
+	((UIP_TCP_BUF->flags & TCP_CTL) == TCP_SYN)))) {
     if((uip_len > 0 || ((UIP_TCP_BUF->flags & (TCP_SYN | TCP_FIN)) != 0)) &&
        (UIP_TCP_BUF->seqno[0] != uip_connr->rcv_nxt[0] ||
         UIP_TCP_BUF->seqno[1] != uip_connr->rcv_nxt[1] ||
         UIP_TCP_BUF->seqno[2] != uip_connr->rcv_nxt[2] ||
         UIP_TCP_BUF->seqno[3] != uip_connr->rcv_nxt[3])) {
+
+      if(UIP_TCP_BUF->flags & TCP_SYN) {
+        goto tcp_send_synack;
+      }
       goto tcp_send_ack;
     }
   }
@@ -1761,7 +1765,7 @@ uip_process(u8_t flag)
         goto appsend;
       }
       /* We need to retransmit the SYNACK */
-      if((BUF->flags & TCP_CTL) == TCP_SYN) {
+      if((UIP_TCP_BUF->flags & TCP_CTL) == TCP_SYN) {
 	goto tcp_send_synack;
       }
       goto drop;
