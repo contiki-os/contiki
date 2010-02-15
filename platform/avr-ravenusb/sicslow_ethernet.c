@@ -249,7 +249,7 @@
 
 #if UIP_CONF_SIMPLE_JACKDAW_ADDR_TRANS
 #define rndis_ethernet_addr local_ethernet_addr
-static uint64_t local_ethernet_addr = 0x3A3B3C3D3E3F;
+static uint64_t local_ethernet_addr = 0x3A3B3C3D3E3FULL;
 #else
 extern uint64_t rndis_ethernet_addr;
 #endif
@@ -672,7 +672,6 @@ int8_t mac_translateIcmpLinkLayer(lltype_t target)
  */
 uint8_t mac_createSicslowpanLongAddr(uint8_t * ethernet, uip_lladdr_t * lowpan)
 {
-  uint8_t index;
 
 #if UIP_CONF_SIMPLE_JACKDAW_ADDR_TRANS
 
@@ -687,8 +686,10 @@ uint8_t mac_createSicslowpanLongAddr(uint8_t * ethernet, uip_lladdr_t * lowpan)
   lowpan->addr[7] = ethernet[5];
 
 #else //!UIP_CONF_SIMPLE_JACKDAW_ADDR_TRANS
+ 
+ uint8_t index;
 
-#if UIP_LLADDR_LEN == 8
+ #if UIP_LLADDR_LEN == 8
   //Special case - if the address is our address, we just copy over what we know to be
   //our 802.15.4 address
   
@@ -750,8 +751,6 @@ uint8_t mac_createSicslowpanLongAddr(uint8_t * ethernet, uip_lladdr_t * lowpan)
  */
 uint8_t mac_createEthernetAddr(uint8_t * ethernet, uip_lladdr_t * lowpan)
 {
-  uint8_t index = 0;
-  uint8_t i;
 //uint8_t i,j, match;
 
 
@@ -767,7 +766,10 @@ uint8_t mac_createEthernetAddr(uint8_t * ethernet, uip_lladdr_t * lowpan)
 
 #else //!UIP_CONF_SIMPLE_JACKDAW_ADDR_TRANS
 
-#if UIP_LLADDR_LEN == 8
+  uint8_t index = 0;
+  uint8_t i;
+
+  #if UIP_LLADDR_LEN == 8
 
    //Special case - if the address is our address, we just copy over what we know to be
   //our 802.3 address
