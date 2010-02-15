@@ -57,7 +57,7 @@
  *
  * This file is part of the uIP TCP/IP stack.
  *
- * $Id: resolv.c,v 1.7 2007/11/17 18:05:21 adamdunkels Exp $
+ * $Id: resolv.c,v 1.8 2010/02/15 20:49:38 dak664 Exp $
  *
  */
 
@@ -394,6 +394,7 @@ resolv_query(char *name)
   register struct namemap *nameptr;
       
   lseq = lseqi = 0;
+  nameptr = 0;                //compiler warning if not initialized
   
   for(i = 0; i < RESOLV_ENTRIES; ++i) {
     nameptr = &names[i];
