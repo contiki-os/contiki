@@ -41,7 +41,7 @@
  *
  * This file is part of the uIP TCP/IP stack.
  *
- * $Id: uip.c,v 1.22 2010/02/15 18:03:07 adamdunkels Exp $
+ * $Id: uip.c,v 1.23 2010/02/15 23:31:05 adamdunkels Exp $
  *
  */
 
@@ -736,6 +736,7 @@ uip_process(u8_t flag)
       /* If the connection has outstanding data, we increase the
 	 connection's timer and see if it has reached the RTO value
 	 in which case we retransmit. */
+
       if(uip_outstanding(uip_connr)) {
 	if(uip_connr->timer-- == 0) {
 	  if(uip_connr->nrtx == UIP_MAXRTX ||
