@@ -41,7 +41,7 @@
  *
  * This file is part of the uIP TCP/IP stack.
  *
- * $Id: uip.c,v 1.21 2010/02/04 21:33:51 oliverschmidt Exp $
+ * $Id: uip.c,v 1.22 2010/02/15 18:03:07 adamdunkels Exp $
  *
  */
 
@@ -1454,9 +1454,13 @@ uip_process(u8_t flag)
 
   /* First, check if the sequence number of the incoming packet is
      what we're expecting next. If not, we send out an ACK with the
-     correct numbers in. */
-  if(!(((uip_connr->tcpstateflags & UIP_TS_MASK) == UIP_SYN_SENT) &&
-       ((BUF->flags & TCP_CTL) == (TCP_SYN | TCP_ACK)))) {
+     correct numbers in, unless we are in the SYN_RCVD state and
+     receive a SYN, in which case we should retransmit our SYNACK
+     (which is done futher down). */
+  if(!((((uip_connr->tcpstateflags & UIP_TS_MASK) == UIP_SYN_SENT) &&
+	((BUF->flags & TCP_CTL) == (TCP_SYN | TCP_ACK))) ||
+       (((uip_connr->tcpstateflags & UIP_TS_MASK) == UIP_SYN_RCVD) &&
+	((BUF->flags & TCP_CTL) == TCP_SYN)))) {
     if((uip_len > 0 || ((BUF->flags & (TCP_SYN | TCP_FIN)) != 0)) &&
        (BUF->seqno[0] != uip_connr->rcv_nxt[0] ||
 	BUF->seqno[1] != uip_connr->rcv_nxt[1] ||
@@ -1531,6 +1535,10 @@ uip_process(u8_t flag)
       uip_slen = 0;
       UIP_APPCALL();
       goto appsend;
+    }
+    /* We need to retransmit the SYNACK */
+    if((BUF->flags & TCP_CTL) == TCP_SYN) {
+      goto tcp_send_synack;
     }
     goto drop;
 #if UIP_ACTIVE_OPEN
