@@ -30,7 +30,7 @@
  *
  * @(#)$$
  */
-#define DEBUG 0
+#define DEBUG 1
 #if DEBUG
 #define PRINTF(FORMAT,args...) printf_P(PSTR(FORMAT),##args)
 int pingtimer1=0,pingtimer2=0;
@@ -56,7 +56,23 @@ extern int rf230_interrupt_flag;
 #include "net/mac/frame802154.h"
 #include "net/sicslowpan.h"
 #include "net/uip-netif.h"
+//#include "net/mac/lpp.h"
+#include "net/mac/cxmac.h"
 #include "net/mac/sicslowmac.h"
+
+#if WITH_NULLMAC
+#define MAC_DRIVER nullmac_driver
+#endif /* WITH_NULLMAC */
+
+#ifndef MAC_DRIVER
+#ifdef MAC_CONF_DRIVER
+#define MAC_DRIVER MAC_CONF_DRIVER
+#else
+#define MAC_DRIVER sicslowmac_driver
+//#define MAC_DRIVER cxmac_driver
+#endif /* MAC_CONF_DRIVER */
+#endif /* MAC_DRIVER */
+
 #else                 //radio driver using Atmel/Cisco 802.15.4'ish MAC
 #include <stdbool.h>
 #include "mac.h"
@@ -160,9 +176,24 @@ void initialize(void)
 {
   /* Start radio and radio receive process */
   rf230_init();
-  sicslowpan_init(sicslowmac_init(&rf230_driver));
-//  ctimer_init();
+ // sicslowpan_init(sicslowmac_init(&rf230_driver));
+  sicslowpan_init(MAC_DRIVER.init(&rf230_driver));
+ // ctimer_init();
+  rtimer_init();
+ // queuebuf_init();
+
+ // sicslowpan_init(csma_init(MAC_DRIVER.init(&cc2420_driver)));
+
+//  sicslowpan_init(MAC_DRIVER.init(&rf230_driver));
+
+ // printf(" %s, channel check rate %d Hz, radio channel %u\n",
+ //        sicslowpan_mac->name,
+ //        CLOCK_SECOND / (sicslowpan_mac->channel_check_interval() == 0? 1:
+ //                        sicslowpan_mac->channel_check_interval()),
+ //        RF_CHANNEL);
 //  sicslowpan_init(lpp_init(&rf230_driver));
+ // sicslowpan_init(cxmac_init(&rf230_driver));
+ //  sicslowpan_init(xmac_init(&rf230_driver));
 //  rime_init(sicslowmac_driver.init(&rf230_driver));
 //  rime_init(lpp_init(&rf230_driver));
 
@@ -187,11 +218,13 @@ void initialize(void)
  // PRINTF("Prefix %x::/%u\n",ipprefix.u16[0],UIP_DEFAULT_PREFIX_LEN);
 
 #if UIP_CONF_ROUTER
+#warning Routing enabled
+  PRINTF("Routing Enabled\n")
   rime_init(rime_udp_init(NULL));
   uip_router_register(&rimeroute);
 #endif
-
-  PRINTF("Driver: %s, Channel: %u\n", sicslowmac_driver.name, rf230_get_channel()); 
+  PRINTF("Driver: %s, Channel: %u\n\r", MAC_DRIVER.name, rf230_get_channel()); 
+ //PRINTF("Driver: %s, Channel: %u\n", sicslowmac_driver.name, rf230_get_channel()); 
 }
 #endif /*RF230BB*/
 
@@ -295,7 +328,7 @@ main(void)
   while(1) {
     process_run();
 
-#if DEBUG
+#if 0
     if (rf230_interrupt_flag) {
       if (rf230_interrupt_flag!=11) {
         PRINTF("*****Radio interrupt %u\n",rf230_interrupt_flag);
