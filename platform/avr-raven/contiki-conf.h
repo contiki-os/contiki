@@ -51,6 +51,7 @@ typedef int32_t s32_t;
  */
 #define MCU_MHZ 8
 #define PLATFORM PLATFORM_AVR
+/*TODO:Who defines RAVEN_REVISION = RAVEN_D needed by hal.h? */
 
 /* Clock ticks per second */
 #define CLOCK_CONF_SECOND 125
@@ -94,13 +95,25 @@ typedef int32_t s32_t;
 /* RF230BB reduces program size by 6.5KB, RAM by 500 bytes */
 #ifdef RF230BB
 #define SICSLOWPAN_CONF_CONVENTIONAL_MAC    1   //for barebones driver, sicslowpan calls radio->read function
-#undef PACKETBUT_CONF_HDR_SIZE                  //RF230BB takes the packetbuf default for header size
+#undef PACKETBUF_CONF_HDR_SIZE                  //RF230BB takes the packetbuf default for header size
+#define UIP_CONF_ROUTER 0
+#if 0
+/* Specifies the default MAC driver */
+#define MAC_CONF_CSMA               1
+#define XMAC_CONF_COMPOWER          1
+#define CXMAC_CONF_COMPOWER         1
+#define MAC_CONF_DRIVER             cxmac_driver
+#define MAC_CONF_CHANNEL_CHECK_RATE 8
+#define RIME_CONF_NO_POLITE_ANNOUCEMENTS 0
+#define CXMAC_CONF_ANNOUNCEMENTS    0
+#define XMAC_CONF_ANNOUNCEMENTS     0
+#endif
+
 //#undef SICSLOWPAN_CONF_FRAG
 //#define SICSLOWPAN_CONF_FRAG              0   //for sky equivalence with barebones driver
 //#define UIP_CONF_BUFFER_SIZE            256   //for sky equivalence with barebones driver
 //#define UIP_CONF_ROUTER 1
-#define UIP_CONF_ROUTER 0 
-#endif
+#endif /*RF230BB */
 
 #define SICSLOWPAN_CONF_MAXAGE 5
 
