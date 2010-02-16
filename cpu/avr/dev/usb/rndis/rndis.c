@@ -837,7 +837,7 @@ uint8_t rndis_send_status(rndis_Status_t stat)
  */
 void rndis_packetFilter(uint32_t newfilter)
 {
-
+#if !RF230BB
 	if (newfilter & NDIS_PACKET_TYPE_PROMISCUOUS) {
 		rxMode = RX_ON; 
 		radio_set_trx_state(RX_ON);
@@ -845,7 +845,7 @@ void rndis_packetFilter(uint32_t newfilter)
 		rxMode = RX_AACK_ON;
 		radio_set_trx_state(RX_AACK_ON);
 	}
-
+#endif
 }
 
 /** @} */
