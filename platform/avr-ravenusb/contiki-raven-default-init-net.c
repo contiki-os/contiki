@@ -32,10 +32,12 @@
  *
  * @(#)$$
  */
-
 #include "contiki-raven.h"
-
+#if !RF230BB
 #include "zmac.h"
+#else
+extern uint64_t macLongAddr;
+#endif
 #include "sicslowpan.h"
 extern uint64_t rndis_ethernet_addr;
 
@@ -61,7 +63,8 @@ init_net(void)
      IPv6 address will be. This will have ff:fe in the middle.         */
   macLongAddr = (macLongAddr & 0xffffff0000ffffffULL) | (0x000000fffe000000ULL);
 
+#if !RF230BB
   ieee15_4ManagerAddress.set_long_addr(macLongAddr); 
+#endif
 }
-
 
