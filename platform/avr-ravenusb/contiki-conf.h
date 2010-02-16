@@ -130,7 +130,7 @@ typedef int32_t s32_t;
 #define UIP_DATA_RUM_OFFSET      5
 #endif
 
-#if 0     //xmac protocol
+#if RF230BB && 0     //xmac protocol
 #undef UIP_CONF_ROUTER
 #undef UIP_CONF_LLH_LEN
 #define UIP_CONF_LLH_LEN         14
@@ -145,7 +145,7 @@ typedef int32_t s32_t;
 #define UIP_CONF_BUFFER_SIZE  256
 #endif
 
-#if 1
+#if RF230BB && 0
 /* Specifies the default MAC driver */
 #define MAC_CONF_CSMA               1
 #define XMAC_CONF_COMPOWER          1
