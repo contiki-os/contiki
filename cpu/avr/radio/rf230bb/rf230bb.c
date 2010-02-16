@@ -27,7 +27,7 @@
  * SUCH DAMAGE.
  *
  *
- * $Id: rf230bb.c,v 1.2 2010/02/12 16:41:02 dak664 Exp $
+ * $Id: rf230bb.c,v 1.3 2010/02/16 21:41:24 dak664 Exp $
 */
 
 /**
@@ -86,7 +86,7 @@
 
 /* See clock.c and httpd-cgi.c for RADIOSTATS code */
 uint8_t RF230_radio_on;
-#define RADIOSTATS 0
+#define RADIOSTATS 1
 #if RADIOSTATS
 uint8_t RF230_rsigsi;
 uint16_t RF230_sendpackets,RF230_receivepackets,RF230_sendfail,RF230_receivefail;
@@ -400,7 +400,8 @@ static void
 on(void)
 {
   ENERGEST_ON(ENERGEST_TYPE_LISTEN);
-  PRINTF("rf230 internal on\n");
+//  printf("on");
+  PRINTF("rf230 on");
   RF230_radio_on = 1;
 
   hal_set_slptr_low();
@@ -414,7 +415,8 @@ on(void)
 static void
 off(void)
 {
-  PRINTF("rf230 internal off\n");
+ // printf("of");
+  PRINTF("rf230 off");
   RF230_radio_on = 0;
   
   /* Wait for transmission to end before turning radio off. */
@@ -453,7 +455,7 @@ rf230_set_receiver(void (* recv)(const struct radio_driver *))
 int
 rf230_off(void)
 {
-// PRINTF("rf230_off\n");	
+  PRINTF("off");	
   /* Don't do anything if we are already turned off. */
   if(RF230_radio_on == 0) {
     return 1;
@@ -473,7 +475,6 @@ rf230_off(void)
 int
 rf230_on(void)
 {
-//PRINTF("rf230_on\n");
   if(RF230_radio_on) {
     return 1;
   }
@@ -541,7 +542,7 @@ rf230_set_pan_addr(uint16_t pan,uint16_t addr,uint8_t *ieee_addr)
   }
  
 }
-
+//uint8_t rf230processflag;      //for debugging process call problems
 /*---------------------------------------------------------------------------*/
 /* Process to handle input packets
  * Receive interrupts cause this process to be polled
@@ -553,12 +554,13 @@ PROCESS_THREAD(rf230_process, ev, data)
   
   while(1) {
     PROCESS_YIELD_UNTIL(ev == PROCESS_EVENT_POLL);
-    
+
 #if RF230_TIMETABLE_PROFILING
     TIMETABLE_TIMESTAMP(rf230_timetable, "poll");
 #endif /* RF230_TIMETABLE_PROFILING */
-        
+//  rf230processflag=1;
     if(receiver_callback != NULL) {
+//    rf230processflag=2;    
       receiver_callback(&rf230_driver);
 #if RF230_TIMETABLE_PROFILING
       TIMETABLE_TIMESTAMP(rf230_timetable, "end");
@@ -566,7 +568,8 @@ PROCESS_THREAD(rf230_process, ev, data)
 					   &rf230_timetable);
       timetable_clear(&rf230_timetable);
 #endif /* RF230_TIMETABLE_PROFILING */
-    } else {
+    } else {   
+//    rf230processflag=99;
       PRINTF("rf230_process not receiving function\n");
 //    flushrx();
     }
@@ -579,6 +582,7 @@ PROCESS_THREAD(rf230_process, ev, data)
  * This routine is called by the radio receive interrupt in hal.c
  * It just sets the poll flag for the rf230 process.
  */
+
 #if RF230_CONF_TIMESTAMPS
 static volatile rtimer_clock_t interrupt_time;
 static volatile int interrupt_time_set;
@@ -595,7 +599,7 @@ rf230_interrupt(void)
   interrupt_time = timesynch_time();
   interrupt_time_set = 1;
 #endif /* RF230_CONF_TIMESTAMPS */
-
+//rf230processflag=11;
   process_poll(&rf230_process);
 #if RF230_TIMETABLE_PROFILING
   timetable_clear(&rf230_timetable);
@@ -765,7 +769,7 @@ rf230_set_txpower(uint8_t power)
     power=TX_PWR_17_2DBM;
   }
   if (radio_is_sleeping() ==true) {
-	PRINTF("rf230_set_txpower:Sleeping");
+    PRINTF("rf230_set_txpower:Sleeping");  //happens with cxmac
   } else {
     hal_subregister_write(SR_TX_PWR, power);
   }
@@ -776,8 +780,8 @@ int
 rf230_get_txpower(void)
 {
   if (radio_is_sleeping() ==true) {
-	PRINTF("rf230_get_txpower:Sleeping");
-	return 0;
+    printf("rf230_get_txpower:Sleeping");
+    return 0;
   } else {
     return hal_subregister_read(SR_TX_PWR);
   }
@@ -802,6 +806,7 @@ rf230_rssi(void)
   }
   return rssi;
 }
+
 /*---------------------------------------------------------------------------*/
 int
 rf230_send(const void *payload, unsigned short payload_len)
@@ -855,6 +860,8 @@ rf230_send(const void *payload, unsigned short payload_len)
   memcpy(pbuf,&timestamp,TIMESTAMP_LEN);
   pbuf+=TIMESTAMP_LEN;
 #endif /* RF230_CONF_TIMESTAMPS */
+
+
  
 /*Below comments were for cc240 radio, don't know how they apply to rf230 - DAK */
   /* The TX FIFO can only hold one packet. Make sure to not overrun
@@ -871,6 +878,83 @@ rf230_send(const void *payload, unsigned short payload_len)
 //#endif
 #define LOOP_20_SYMBOLS 500
  
+#if JACKDAW&&0
+//Send transmitted frame to ethernet for wireshark capture
+{
+
+//  _delay_ms(SICSLOW_CORRECTION_DELAY);
+    _delay_ms(7);
+
+   /* create structure to store result. */
+  frame_create_params_t params;
+  frame_result_t result;
+
+  /* Save the msduHandle in a global variable. */
+ // msduHandle = packetbuf_attr(PACKETBUF_ATTR_PACKET_ID);
+
+  /* Build the FCF. */
+  params.fcf.frameType = DATAFRAME;
+  params.fcf.securityEnabled = false;
+  params.fcf.framePending = false;
+  params.fcf.ackRequired = packetbuf_attr(PACKETBUF_ATTR_RELIABLE);
+  params.fcf.panIdCompression = false;
+
+  /* Insert IEEE 802.15.4 (2003) version bit. */
+  params.fcf.frameVersion = IEEE802154_2003;
+
+  /* Increment and set the data sequence number. */
+  params.seq = macDSN++;
+
+  /* Complete the addressing fields. */
+  /**
+     \todo For phase 1 the addresses are all long. We'll need a mechanism
+     in the rime attributes to tell the mac to use long or short for phase 2.
+  */
+  params.fcf.srcAddrMode = LONGADDRMODE;
+  params.dest_pid = ieee15_4ManagerAddress.get_dst_panid();
+
+  /*
+   *  If the output address is NULL in the Rime buf, then it is broadcast
+   *  on the 802.15.4 network.
+   */
+  if(rimeaddr_cmp(packetbuf_addr(PACKETBUF_ADDR_RECEIVER), &rimeaddr_null) ) {
+    /* Broadcast requires short address mode. */
+    params.fcf.destAddrMode = SHORTADDRMODE;
+    params.dest_pid = BROADCASTPANDID;
+    params.dest_addr.addr16 = BROADCASTADDR;
+
+  } else {
+
+    /* Phase 1.5 - end nodes send to anyone? */
+    memcpy(&params.dest_addr, (uint8_t *)packetbuf_addr(PACKETBUF_ADDR_RECEIVER), LONG_ADDR_LEN);
+	
+    /* Change from sicslowpan byte arrangement to sicslowmac */
+    byte_reverse((uint8_t*)&params.dest_addr.addr64, LONG_ADDR_LEN);
+
+    /* Phase 1 - end nodes only sends to pan coordinator node. */
+    /* params.dest_addr.addr64 = ieee15_4ManagerAddress.get_coord_long_addr(); */
+    params.fcf.destAddrMode = LONGADDRMODE;
+  }
+
+  /* Set the source PAN ID to the global variable. */
+  params.src_pid = ieee15_4ManagerAddress.get_src_panid();
+
+  /*
+   * Set up the source address using only the long address mode for
+   * phase 1.
+   */
+  params.src_addr.addr64 = ieee15_4ManagerAddress.get_long_addr();
+
+  /* Copy the payload data. */
+  params.payload_len = packetbuf_datalen();
+  params.payload =  packetbuf_dataptr();
+
+
+  mac_logTXtoEthernet(&params, &result);
+   
+}
+#endif /* JACKDAW */
+
  /* Wait for any previous transmission to finish. */
   rf230_waitidle();
 
