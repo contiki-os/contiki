@@ -1,4 +1,4 @@
-# $Id: Makefile.avr,v 1.19 2010/02/07 23:05:20 adamdunkels Exp $
+# $Id: Makefile.avr,v 1.20 2010/02/16 21:48:38 dak664 Exp $
 
 ### Check if we are running under Windows
 
@@ -23,13 +23,12 @@ CONTIKI_CPU=$(CONTIKI)/cpu/avr
 ### These directories will be searched for the specified source files
 ### TARGETLIBS are platform-specific routines in the contiki library path
 CONTIKI_CPU_DIRS            = . dev
-AVR        = clock.c mtarch.c eeprom.c flash.c rs232.c leds-arch.c watchdog.c
+AVR        = clock.c mtarch.c eeprom.c flash.c rs232.c leds-arch.c watchdog.c rtimer-arch.c
 ELFLOADER  = elfloader.c elfloader-avr.c symtab-avr.c
 TARGETLIBS = random.c leds.c
 
 ifdef USB
 ### Add the directories for the USB stick and remove the default rs232 driver
-override RF230BB = 0
 CONTIKI_CPU_DIRS            += dev/usb dev/usb/serial dev/usb/rndis dev/usb/storage
 CONTIKI_TARGET_SOURCEFILES  += $(USB)
 AVR        = clock.c mtarch.c eeprom.c flash.c leds-arch.c watchdog.c
