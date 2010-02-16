@@ -1,4 +1,4 @@
-# $Id: Makefile.avr,v 1.20 2010/02/16 21:48:38 dak664 Exp $
+# $Id: Makefile.avr,v 1.21 2010/02/16 21:56:15 dak664 Exp $
 
 ### Check if we are running under Windows
 
@@ -31,7 +31,7 @@ ifdef USB
 ### Add the directories for the USB stick and remove the default rs232 driver
 CONTIKI_CPU_DIRS            += dev/usb dev/usb/serial dev/usb/rndis dev/usb/storage
 CONTIKI_TARGET_SOURCEFILES  += $(USB)
-AVR        = clock.c mtarch.c eeprom.c flash.c leds-arch.c watchdog.c
+AVR        = clock.c mtarch.c eeprom.c flash.c leds-arch.c watchdog.c rtimer-arch.c
 endif
 
 #For a coffee file system, the application makefile can define COFFEE_FILES=n
