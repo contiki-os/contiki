@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: rtimer-arch.c,v 1.5 2009/09/07 12:02:58 joxe Exp $
+ * $Id: rtimer-arch.c,v 1.6 2010/02/16 21:48:38 dak664 Exp $
  */
 
 /**
@@ -50,15 +50,23 @@
 #include "rtimer-arch.h"
 
 #if defined(__AVR_ATmega1281__) || defined(__AVR_ATmega1284P__)
-#error FTH081029 test timer 3
-	#define ETIMSK TIMSK3
-    #define ETIFR TIFR3
-	#define TICIE3 ICIE3
+//#error FTH081029 test timer 3
+#define ETIMSK TIMSK3
+#define ETIFR TIFR3
+#define TICIE3 ICIE3
 
-	//Has no 'C', so we just set it to B. The code doesn't really use C so this
-	//is safe to do but lets it compile
-	#define OCIE3C	OCIE3B
-	#define OCF3C	OCF3B
+//Has no 'C', so we just set it to B. The code doesn't really use C so this
+//is safe to do but lets it compile
+#warning No OCIE3C in architecture, hopefully it will not be needed
+#define OCIE3C	OCIE3B
+#define OCF3C	OCF3B
+#endif
+
+#if defined(__AVR_AT90USB1287__)
+#warning AT90USB1287 rtimers not tested
+#define ETIMSK TIMSK3
+#define ETIFR TIFR3
+#define TICIE3 ICIE3
 #endif
 
 /*---------------------------------------------------------------------------*/
