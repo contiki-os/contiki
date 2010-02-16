@@ -47,7 +47,7 @@
  *  \file
  *  \brief This file contains low-level radio driver code.
  *
- *   $Id: hal.h,v 1.1 2009/07/08 16:17:07 dak664 Exp $
+ *   $Id: hal.h,v 1.2 2010/02/16 21:41:24 dak664 Exp $
 */
 
 #ifndef HAL_AVR_H
@@ -280,6 +280,7 @@
 #define HAL_DISABLE_RADIO_INTERRUPT( ) ( EIMSK &= ~( 1 << INT5 ) )
 #else
 #define RADIO_VECT TIMER1_CAPT_vect
+// Raven and Jackdaw
 #define HAL_ENABLE_RADIO_INTERRUPT( ) ( TIMSK1 |= ( 1 << ICIE1 ) )
 #define HAL_DISABLE_RADIO_INTERRUPT( ) ( TIMSK1 &= ~( 1 << ICIE1 ) )
 #endif
