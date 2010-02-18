@@ -117,6 +117,20 @@ The COOJA Simulator
     </java>
   </target>
 
+  <target name="runfree" depends="init, compile, jar, copy configs">
+    <java fork="yes" dir="${build}" classname="se.sics.cooja.GUI" maxmemory="1536m">
+      <arg line="${args}"/>
+      <env key="LD_LIBRARY_PATH" value="."/>
+      <classpath>
+        <pathelement path="${build}"/>
+        <pathelement location="lib/jdom.jar"/>
+        <pathelement location="lib/log4j.jar"/>
+        <pathelement location="../mspsim/lib/jfreechart-1.0.11.jar"/>
+        <pathelement location="../mspsim/lib/jcommon-1.0.14.jar"/>
+      </classpath>
+    </java>
+  </target>
+
   <target name="run_bigmem" depends="init, compile, jar, copy configs">
     <java fork="yes" dir="${build}" classname="se.sics.cooja.GUI" maxmemory="1536m">
       <arg line="${args}"/>

@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: MicaZMoteType.java,v 1.7 2009/10/30 09:42:50 fros4943 Exp $
+ * $Id: MicaZMoteType.java,v 1.8 2010/02/18 11:13:20 joxe Exp $
  */
 
 package se.sics.cooja.avrmote;
@@ -66,6 +66,8 @@ import se.sics.cooja.avrmote.interfaces.MicaZRadio;
 import se.sics.cooja.dialogs.CompileContiki;
 import se.sics.cooja.dialogs.MessageList;
 import se.sics.cooja.dialogs.MessageList.MessageContainer;
+import se.sics.cooja.interfaces.Mote2MoteRelations;
+import se.sics.cooja.interfaces.MoteAttributes;
 import se.sics.cooja.interfaces.Position;
 
 /**
@@ -419,7 +421,9 @@ public class MicaZMoteType implements MoteType {
         MicaZLED.class,
         MicaZRadio.class,
         MicaClock.class,
-        MicaSerial.class
+        MicaSerial.class,
+        Mote2MoteRelations.class,
+        MoteAttributes.class
     };
   }
 

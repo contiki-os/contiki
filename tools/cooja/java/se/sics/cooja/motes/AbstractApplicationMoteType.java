@@ -24,7 +24,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * $Id: AbstractApplicationMoteType.java,v 1.9 2010/02/05 09:08:07 fros4943 Exp $
+ * $Id: AbstractApplicationMoteType.java,v 1.10 2010/02/18 11:13:21 joxe Exp $
  */
 
 package se.sics.cooja.motes;
@@ -54,6 +54,8 @@ import se.sics.cooja.Simulation;
 import se.sics.cooja.interfaces.ApplicationLED;
 import se.sics.cooja.interfaces.ApplicationRadio;
 import se.sics.cooja.interfaces.ApplicationSerialPort;
+import se.sics.cooja.interfaces.Mote2MoteRelations;
+import se.sics.cooja.interfaces.MoteAttributes;
 import se.sics.cooja.interfaces.MoteID;
 import se.sics.cooja.interfaces.Position;
 
@@ -71,7 +73,9 @@ public abstract class AbstractApplicationMoteType implements MoteType {
       Position.class,
       ApplicationSerialPort.class,
       ApplicationRadio.class,
-      ApplicationLED.class
+      ApplicationLED.class,
+      Mote2MoteRelations.class,
+      MoteAttributes.class
   };
 
   public AbstractApplicationMoteType() {
