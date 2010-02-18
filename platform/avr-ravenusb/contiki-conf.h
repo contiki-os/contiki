@@ -147,9 +147,13 @@ typedef int32_t s32_t;
 
 #if RF230BB && 0
 /* Specifies the default MAC driver */
+//no autoack gives bad FCS for some reason?
+//#define RF230_CONF_NO_AUTO_ACK      1
 #define MAC_CONF_CSMA               1
 #define XMAC_CONF_COMPOWER          1
 #define CXMAC_CONF_COMPOWER         1
+//following gives 50% duty cycle, undef for 5%
+#define CXMAC_CONF_ON_TIME (RTIMER_ARCH_SECOND / 16)
 #define MAC_CONF_DRIVER             cxmac_driver
 #define MAC_CONF_CHANNEL_CHECK_RATE 8
 #define RIME_CONF_NO_POLITE_ANNOUCEMENTS 0

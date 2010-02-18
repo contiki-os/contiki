@@ -52,9 +52,13 @@
 #if RF230BB        //radio driver using contiki core mac
 #include "radio/rf230bb/rf230bb.h"
 #include "net/mac/frame802154.h"
+#include "net/mac/framer-802154.h"
+//#include "net/mac/framer-nullmac.h"
+//#include "net/mac/framer.h"
 #include "net/sicslowpan.h"
 #include "net/uip-netif.h"
 #include "net/mac/lpp.h"
+//#include "dev/xmem.h"
 
 #if WITH_NULLMAC
 #define MAC_DRIVER nullmac_driver
@@ -98,8 +102,9 @@
 #define UIP_IP_BUF ((struct uip_ip_hdr *)&uip_buf[UIP_LLH_LEN])
 extern int rf230_interrupt_flag;
 extern uint8_t rf230processflag;
+#endif /* RF230BB */
 
-#if 0  //dummy tcpip process not needed?
+#if 1  //dummy tcpip process not needed?
 PROCESS(tcpip_process, "tcpip dummy");
 PROCESS_THREAD(tcpip_process, ev, data)
 {
@@ -113,7 +118,6 @@ tcpip_ipv6_output(void)
 }
 #endif
 
-#endif /* RF230BB */
 
 /*----------------------Configuration of the .elf file---------------------*/
 typedef struct {unsigned char B2;unsigned char B1;unsigned char B0;} __signature_t;
@@ -132,14 +136,11 @@ uint8_t mac_address[8] EEMEM = {0x02, 0x12, 0x13, 0xff, 0xfe, 0x14, 0x15, 0x16};
 //uint8_t EEMEM server_name[16];
 //uint8_t EEMEM domain_name[30];
 
-#if !RF230BB
-PROCINIT(&etimer_process, &mac_process);
-#else
+#if RF230BB
 rimeaddr_t macLongAddr;
-//PROCINIT(&etimer_process, &tcpip_process);
-PROCINIT(&etimer_process);
 #endif
 
+//uint8_t rtimerworks;
 int
 main(void)
 {
@@ -160,28 +161,29 @@ main(void)
   /* Clock */
   clock_init();
 
-//  printf_P(PSTR("\n\n\n********BOOTING CONTIKI*********\n"));
+/* rtimers not needed yet */
+// rtimer_init();
 
-  /* Process subsystem */
+  /* Process subsystem. */
   process_init();
 
-  /* Register initial processes */
-  procinit_init();
+  /* etimer process must be started before ctimer init */
+  process_start(&etimer_process, NULL);
   
 #ifdef RF230BB
 {
+  ctimer_init();
   /* Start radio and radio receive process */
   /* Note this starts RF230 process, so must be done after process_init */
   rf230_init();
+  
+ // set_rime_addr();
+  framer_set(&framer_802154);
+  queuebuf_init();
   sicslowpan_init(MAC_DRIVER.init(&rf230_driver));
- // sicslowpan_init(sicslowmac_init(&rf230_driver));
-//   sicslowpan_init(lpp_init(&rf230_driver));
-//  sicslowpan_init(cxmac_init(&rf230_driver));
- // ctimer_init();
-  rtimer_init();
- // queuebuf_init();
-
-
+// sicslowpan_init(sicslowmac_init(&rf230_driver));
+// sicslowpan_init(lpp_init(&rf230_driver));
+// sicslowpan_init(cxmac_init(&rf230_driver));
 
   /* Set addresses BEFORE starting tcpip process */
 
@@ -199,8 +201,6 @@ main(void)
   macLongAddr.u8[6]=addr.u8[1];
   macLongAddr.u8[7]=addr.u8[0];
  
-  sei(); //dak - is this necessary?
- 
   memcpy(&uip_lladdr.addr, &addr.u8, 8);	
   rf230_set_pan_addr(IEEE802154_PANID, 0, (uint8_t *)&addr.u8);   //ABCD is default - dak
 
@@ -217,10 +217,18 @@ main(void)
   rime_init(rime_udp_init(NULL));
   uip_router_register(&rimeroute);
 #endif
-
- // printf("Driver: %s, Channel: %u\n", sicslowmac_driver.name, rf230_get_channel()); 
 }
 #endif /*RF230BB*/
+
+
+#if RF230BB
+  process_start(&tcpip_process, NULL);
+#else
+/* The order of starting these is important! */
+  process_start(&mac_process, NULL);
+  process_start(&tcpip_process, NULL);
+
+#endif
 
   /* Setup USB */
   process_start(&usb_process, NULL);
@@ -228,14 +236,18 @@ main(void)
   process_start(&rndis_process, NULL);
   process_start(&storage_process, NULL);
 
- // printf_P(PSTR("System online.\n"));
-
   //Fix MAC address
   init_net();
   
    /* Main scheduler loop */
   while(1) {
     process_run();
+#if 0
+ if (rtimerworks) {
+  printf("i");
+  rtimerworks=0;
+}
+#endif
 
   /* Debugging - allow USB CDC to keep up with printfs */
 #if ANNOUNCE
@@ -244,6 +256,7 @@ main(void)
 #if RF230BB
     } else if (firsttime==40000) {
        printf("MAC address %x:%x:%x:%x:%x:%x:%x:%x\n\r",addr.u8[0],addr.u8[1],addr.u8[2],addr.u8[3],addr.u8[4],addr.u8[5],addr.u8[6],addr.u8[7]);
+
     } else if (firsttime==44000) {
       printf("Driver: %s, Channel: %u\n\r", MAC_DRIVER.name, rf230_get_channel()); 
 #endif
