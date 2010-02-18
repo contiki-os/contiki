@@ -1,6 +1,8 @@
 #ifndef __CONTIKI_CONF_H__
 #define __CONTIKI_CONF_H__
 
+#define NETSTACK_CONF_RADIO   tr1001_driver
+
 /* DCO speed resynchronization for more robust UART, etc. */
 #define DCOSYNCH_CONF_ENABLED 1
 #define DCOSYNCH_CONF_PERIOD 30
