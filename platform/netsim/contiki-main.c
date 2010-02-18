@@ -30,7 +30,7 @@
  *
  * Author: Adam Dunkels <adam@sics.se>
  *
- * $Id: contiki-main.c,v 1.33 2009/03/17 15:56:32 adamdunkels Exp $
+ * $Id: contiki-main.c,v 1.34 2010/02/18 23:10:06 adamdunkels Exp $
  */
 
 #include "contiki.h"
@@ -126,10 +126,12 @@ contiki_main(int flag)
   uip_init();
  
   ctimer_init();
-  rime_init(nullmac_init(&ethernode_driver));
-  /*  rime_init(lpp_init(&ethernode_driver));*/
 
-  uip_over_mesh_init(2);
+  NETSTACK_RDC.init();
+  NETSTACK_MAC.init();
+  NETSTACK_NETWORK.init();
+
+    uip_over_mesh_init(2);
   uip_over_mesh_set_net(&meshif.ipaddr, &meshif.netmask);
       
   if(flag == 1) {
