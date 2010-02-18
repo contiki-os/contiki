@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * @(#)$Id: cc2420.c,v 1.38 2010/02/18 21:48:39 adamdunkels Exp $
+ * @(#)$Id: cc2420.c,v 1.39 2010/02/18 23:52:34 adamdunkels Exp $
  */
 /*
  * This code is almost device independent and should be easy to port.
@@ -57,8 +57,6 @@
 #include "sys/timetable.h"
 
 #define WITH_SEND_CCA 0
-
-#include "cc2420-arch-sfd.h"
 
 #if CC2420_CONF_TIMESTAMPS
 #include "net/rime/timesynch.h"
