@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: rtimer-arch.c,v 1.13 2010/01/30 14:03:35 adamdunkels Exp $
+ * $Id: rtimer-arch.c,v 1.14 2010/02/18 22:15:54 adamdunkels Exp $
  */
 
 /**
@@ -82,6 +82,8 @@ rtimer_arch_schedule(rtimer_clock_t t)
 {
   PRINTF("rtimer_arch_schedule time %u\n", t);
 
+  TACTL &= ~MC1;
   TACCR0 = t;
+  TACTL |= MC1;
 }
 /*---------------------------------------------------------------------------*/
