@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: contikimac.c,v 1.2 2010/02/18 21:48:39 adamdunkels Exp $
+ * $Id: contikimac.c,v 1.3 2010/02/18 23:52:34 adamdunkels Exp $
  */
 
 /**
@@ -39,8 +39,6 @@
  *         Niclas Finne <nfi@sics.se>
  *         Joakim Eriksson <joakime@sics.se>
  */
-
-#include <io.h>
 
 #include "net/netstack.h"
 #include "dev/leds.h"
