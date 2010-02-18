@@ -28,7 +28,7 @@
  *
  * This file is part of the Contiki operating system.
  *
- * $Id: rtimer-arch.h,v 1.4 2007/12/11 17:21:14 joxe Exp $
+ * $Id: rtimer-arch.h,v 1.5 2010/02/18 17:21:44 dak664 Exp $
  */
 
 #ifndef __RTIMER_ARCH_H__
@@ -36,7 +36,10 @@
 
 #include <avr/interrupt.h>
 
+/* Will affect radio on/off timing for cx-mac */
 #define RTIMER_ARCH_SECOND (8192)
+
+
 
 /* Handle that not all AVRs have TCNT3 - this should be configuratble
    in contiki-conf later! */
