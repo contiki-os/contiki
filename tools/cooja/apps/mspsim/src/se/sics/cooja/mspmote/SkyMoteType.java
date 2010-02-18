@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: SkyMoteType.java,v 1.15 2010/02/12 09:34:49 fros4943 Exp $
+ * $Id: SkyMoteType.java,v 1.16 2010/02/18 11:13:21 joxe Exp $
  */
 
 package se.sics.cooja.mspmote;
@@ -55,6 +55,7 @@ import se.sics.cooja.dialogs.MessageList;
 import se.sics.cooja.dialogs.MessageList.MessageContainer;
 import se.sics.cooja.interfaces.IPAddress;
 import se.sics.cooja.interfaces.Mote2MoteRelations;
+import se.sics.cooja.interfaces.MoteAttributes;
 import se.sics.cooja.interfaces.Position;
 import se.sics.cooja.interfaces.RimeAddress;
 import se.sics.cooja.mspmote.interfaces.MspClock;
@@ -208,6 +209,7 @@ public class SkyMoteType extends MspMoteType {
         RimeAddress.class,
         IPAddress.class,
         Mote2MoteRelations.class,
+        MoteAttributes.class,
         MspClock.class,
         MspMoteID.class,
         SkyButton.class,

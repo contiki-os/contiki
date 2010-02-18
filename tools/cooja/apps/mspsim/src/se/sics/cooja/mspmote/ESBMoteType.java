@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Id: ESBMoteType.java,v 1.12 2009/12/02 17:12:32 fros4943 Exp $
+ * $Id: ESBMoteType.java,v 1.13 2010/02/18 11:13:21 joxe Exp $
  */
 
 package se.sics.cooja.mspmote;
@@ -43,6 +43,7 @@ import se.sics.cooja.dialogs.MessageList;
 import se.sics.cooja.dialogs.MessageList.MessageContainer;
 import se.sics.cooja.interfaces.IPAddress;
 import se.sics.cooja.interfaces.Mote2MoteRelations;
+import se.sics.cooja.interfaces.MoteAttributes;
 import se.sics.cooja.interfaces.Position;
 import se.sics.cooja.interfaces.RimeAddress;
 import se.sics.cooja.mspmote.interfaces.ESBButton;
@@ -198,7 +199,8 @@ public class ESBMoteType extends MspMoteType {
         ESBButton.class,
         MspMoteID.class,
         TR1001Radio.class,
-        Mote2MoteRelations.class
+        Mote2MoteRelations.class,
+        MoteAttributes.class
     };
   }
 
